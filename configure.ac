@@ -2137,6 +2137,7 @@ dnl tranle@intellicorp.com says libXmu.a can need XtMalloc in libXt.a to link.
   fi
   AC_CHECK_LIB(Xmu, XmuConvertStandardSelection)
   test $ac_cv_lib_Xmu_XmuConvertStandardSelection = no && LIBS="$OLDLIBS"
+  dnl ac_cv_lib_Xmu_XmuConvertStandardSelection is also referenced below.
 fi
 AC_SUBST(LIBXTR6)
 
@@ -3147,6 +3148,24 @@ dnl Seems like the kind of thing we should be testing for, though.
 dnl Compare with HAVE_INET_SOCKETS (which is unused...) above.
 AC_DEFINE(HAVE_SOCKETS, 1, [Define if the system supports
   4.2-compatible sockets.])
+
+
+AH_TEMPLATE(NO_EDITRES, [Define if XEditRes should not be used.])
+
+case $opsys in
+  aix4-2)
+    dnl Unfortunately without libXmu we cannot support EditRes.
+    if test x$ac_cv_lib_Xmu_XmuConvertStandardSelection != xyes; then
+      AC_DEFINE(NO_EDITRES, 1)    
+    fi
+    ;;
+
+  hpux*)
+    dnl Assar Westerlund <assar@sics.se> says this is necessary for
+    dnl HP-UX 10.20, and that it works for HP-UX 0 as well.
+    AC_DEFINE(NO_EDITRES, 1)
+    ;;
+esac
 
 
 case $opsys in
