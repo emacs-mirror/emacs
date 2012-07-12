@@ -29,10 +29,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* #define BSD4_2 */
 /* #define BSD_SYSTEM */
 
-/* Letter to use in finding device name of first pty,
-   if system supports pty's.  'a' means it is /dev/ptya0.  */
-#define FIRST_PTY_LETTER 'a'
-
 /* subprocesses should be undefined if you do NOT want to
    have code for asynchronous subprocesses
    (as used in M-x compile and M-x shell).

@@ -28,9 +28,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #if defined HAVE_GRANTPT
 #define UNIX98_PTYS
 
-/* Run only once.  We need a `for'-loop because the code uses `continue'.  */
-#define PTY_ITERATION	int i; for (i = 0; i < 1; i++)
-
 #ifdef HAVE_GETPT
 #define PTY_NAME_SPRINTF
 #define PTY_OPEN fd = getpt ()
@@ -56,13 +53,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
     sigunblock (sigmask (SIGCHLD));			\
   }
 
-#else /* not HAVE_GRANTPT */
-
-/* Letter to use in finding device name of first pty,
-   if system supports pty's.  'p' means it is /dev/ptyp0  */
-#define FIRST_PTY_LETTER 'p'
-
-#endif  /* not HAVE_GRANTPT */
+#endif  /* HAVE_GRANTPT */
 
 /* Here, on a separate page, add any special hacks needed
    to make Emacs work on this system.  For example,

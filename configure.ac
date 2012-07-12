@@ -3291,6 +3291,66 @@ case $opsys in
 esac
 
 
+dnl Used in process.c, this must be a loop, even if it only runs once.
+dnl (Except on SGI; see below.  Take that, clarity and consistency!)
+AH_TEMPLATE(PTY_ITERATION, [How to iterate over PTYs.])
+dnl Only used if !PTY_ITERATION.  Iterate from FIRST_PTY_LETTER to z,
+dnl trying suffixes 0-16.
+AH_TEMPLATE(FIRST_PTY_LETTER, [Letter to use in finding device name of
+  first PTY, if PTYs are supported.])
+
+case $opsys in
+  aix4-2 )
+    AC_DEFINE(PTY_ITERATION, [int c; for (c = 0; !c ; c++)] )
+    ;;
+
+  cygwin )
+    AC_DEFINE(PTY_ITERATION, [int i; for (i = 0; i < 1; i++)] )
+    ;;
+
+  darwin )
+    AC_DEFINE(PTY_ITERATION, [int i; for (i = 0; i < 1; i++)] )
+    dnl Not used, because PTY_ITERATION is defined.
+    AC_DEFINE(FIRST_PTY_LETTER, ['p'])
+    ;;
+
+  gnu | hpux* | freebsd | netbsd | openbsd )
+    AC_DEFINE(FIRST_PTY_LETTER, ['p'])
+    ;;
+
+  gnu-linux | gnu-kfreebsd )
+    dnl if HAVE_GRANTPT
+    if test "x$ac_cv_func_grantpt" = xyes; then
+      AC_DEFINE(PTY_ITERATION, [int i; for (i = 0; i < 1; i++)] )
+    else
+      AC_DEFINE(FIRST_PTY_LETTER, ['p'])
+    fi
+    ;;
+
+  irix6-5 )
+    dnl It looks like this cannot be right, because it is not a loop.
+    dnl However, process.c actually does this:
+    dnl # ifndef __sgi
+    dnl   continue;
+    dnl # else
+    dnl   return -1;
+    dnl # endif
+    dnl which presumably makes it OK, since irix == sgi (?).
+    dnl FIXME it seems like this special treatment is unnecessary?
+    dnl Why can't irix use a single-trip loop like eg cygwin?
+    AC_DEFINE(PTY_ITERATION, [])
+    dnl Not used, because PTY_ITERATION is defined.
+    AC_DEFINE(FIRST_PTY_LETTER, ['q'])
+    ;;
+
+  sol2* | unixware )
+    dnl This change means that we don't loop through allocate_pty too
+    dnl many times in the (rare) event of a failure.
+    AC_DEFINE(FIRST_PTY_LETTER, ['z'])
+    ;;
+esac
+
+
 AH_TEMPLATE(SIGNALS_VIA_CHARACTERS, [Make process_send_signal work by
 "typing" a signal character on the pty.])
 

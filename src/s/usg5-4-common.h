@@ -64,10 +64,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    this is all we need.  */
 #define TIOCSIGSEND TIOCSIGNAL
 
-/* This change means that we don't loop through allocate_pty too many
-   times in the (rare) event of a failure.  */
-#define FIRST_PTY_LETTER 'z'
-
 /* This sets the name of the master side of the PTY.  */
 #define PTY_NAME_SPRINTF strcpy (pty_name, "/dev/ptmx");
 

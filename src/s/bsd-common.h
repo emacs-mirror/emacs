@@ -36,6 +36,3 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* For mem-limits.h.  */
 #define BSD4_2
-
-/* First pty name is /dev/ptyp0.  */
-#define FIRST_PTY_LETTER 'p'

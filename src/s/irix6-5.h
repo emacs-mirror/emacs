@@ -26,11 +26,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #undef SETUP_SLAVE_PTY
 
-/* Letter to use in finding device name of first pty,
-   if system supports pty's.  'a' means it is /dev/ptya0  */
-#undef FIRST_PTY_LETTER
-#define FIRST_PTY_LETTER 'q'
-
 /* No need to use sprintf to get the tty name--we get that from _getpty.  */
 #define PTY_TTY_NAME_SPRINTF
 /* No need to get the pty name at all.  */
@@ -39,8 +34,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifdef emacs
 char *_getpty();
 #endif
-/* We need only try once to open a pty.  */
-#define PTY_ITERATION
 /* Here is how to do it.  */
 #define PTY_OPEN					    \
 {							    \

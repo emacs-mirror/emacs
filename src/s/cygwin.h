@@ -17,7 +17,6 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
-#define PTY_ITERATION		int i; for (i = 0; i < 1; i++) /* ick */
 #define PTY_NAME_SPRINTF	/* none */
 #define PTY_TTY_NAME_SPRINTF	/* none */
 #define PTY_OPEN					\

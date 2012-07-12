@@ -24,10 +24,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define USG5
 #define HPUX
 
-/* Letter to use in finding device name of first pty,
-   if system supports pty's.  'p' means it is /dev/ptym/ptyp0  */
-#define FIRST_PTY_LETTER 'p'
-
 /* Special hacks needed to make Emacs run on this system.  */
 
 /* This is how to get the device name of the tty end of a pty.  */
