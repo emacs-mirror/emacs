@@ -32,14 +32,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    your system and must be used only through an encapsulation
    (Which you should place, by convention, in sysdep.c).  */
 
-
-/* This is to work around mysterious gcc failures in some system versions.
-   It is unlikely that Emacs changes will work around this problem;
-   therefore, this should remain permanently.  */
-#ifndef HAVE_XRMSETDATABASE
-#define HAVE_XRMSETDATABASE
-#endif
-
 #ifdef __ia64__
 #define GC_MARK_SECONDARY_STACK()				\
   do {								\

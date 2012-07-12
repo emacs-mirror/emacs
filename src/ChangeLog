@@ -1,3 +1,8 @@
+2012-07-12  Glenn Morris  <rgm@gnu.org>
+
+	* s/gnu-linux.h, s/hpux10-20.h:
+	Do not unconditionally define HAVE_XRMSETDATABASE.
+
 2012-07-12  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (insert_left_trunc_glyphs): Fix incorrect size in

@@ -39,12 +39,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #undef srandom
 #undef random
 
-/* Rainer Malzbender <rainer@displaytech.com> says defining
-   HAVE_XRMSETDATABASE allows Emacs to compile on HP-UX 10.20 using GCC.  */
-#ifndef HAVE_XRMSETDATABASE
-#define HAVE_XRMSETDATABASE
-#endif
-
 /* Conservative garbage collection has not been tested, so for now
    play it safe and stick with the old-fashioned way of marking.  */
 #define GC_MARK_STACK GC_USE_GCPROS_AS_BEFORE
