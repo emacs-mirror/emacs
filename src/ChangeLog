@@ -1,3 +1,12 @@
+2012-07-12  Glenn Morris  <rgm@gnu.org>
+
+
+	* process.c (init_process_emacs): Rename from init_process.
+	The old name is also the name of a Mach system call.
+	* lisp.h, emacs.c: Update for this name change.
+	* nsgui.h, sysselect.h, s/darwin.h: Remove workaround that is no
+	longer needed.
+
 2012-07-12  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (insert_left_trunc_glyphs): Fix incorrect size in

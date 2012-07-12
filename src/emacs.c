@@ -1597,8 +1597,8 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
 
   init_charset ();
 
-  init_editfns (); /* init_process uses Voperating_system_release. */
-  init_process (); /* init_display uses add_keyboard_wait_descriptor. */
+  init_editfns (); /* init_process_emacs uses Voperating_system_release. */
+  init_process_emacs (); /* init_display uses add_keyboard_wait_descriptor. */
   init_keyboard ();	/* This too must precede init_sys_modes.  */
   if (!noninteractive)
     init_display ();	/* Determine terminal type.  Calls init_sys_modes.  */

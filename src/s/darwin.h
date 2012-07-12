@@ -34,10 +34,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    for process-connection-type dependent on the kernel version.  */
 #define MIN_PTY_KERNEL_VERSION '7'
 
-/* Avoid the use of the name init_process (process.c) because it is
-   also the name of a Mach system call.  */
-#define init_process emacs_init_process
-
 /* Definitions for how to compile & link.  */
 #ifdef HAVE_NS
 #define SYSTEM_PURESIZE_EXTRA 200000

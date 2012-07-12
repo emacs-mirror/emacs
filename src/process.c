@@ -7298,8 +7298,10 @@ integer or floating point values.
 }
 
 
+/* This is not called "init_process" because that is the name of a
+   Mach system call, so it would cause problems on Darwin systems.  */
 void
-init_process (void)
+init_process_emacs (void)
 {
 #ifdef subprocesses
   register int i;
