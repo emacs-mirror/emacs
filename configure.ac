@@ -1266,7 +1266,9 @@ AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <math.h>]],
 [[static struct exception x; x.arg1 = x.arg2 = x.retval; x.name = ""; x.type = 1;]])],
   emacs_cv_struct_exception=yes, emacs_cv_struct_exception=no))
 HAVE_EXCEPTION=$emacs_cv_struct_exception
-if test $emacs_cv_struct_exception != yes; then
+dnl Define on Darwin so emacs symbols will not conflict with those
+dnl in the System framework.  Otherwise -prebind will not work.
+if test $emacs_cv_struct_exception != yes || test $opsys = darwin; then
   AC_DEFINE(NO_MATHERR, 1, [Define to 1 if you don't have struct exception in math.h.])
 fi
 

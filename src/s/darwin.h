@@ -82,9 +82,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Do not define abort in emacs.c.  */
 #define NO_ABORT
 
-/* Do not define matherr in floatfns.c.  */
-#define NO_MATHERR
-
 /* The following solves the problem that Emacs hangs when evaluating
    (make-comint "test0" "/nodir/nofile" nil "") when /nodir/nofile
    does not exist.  Also, setsid is not allowed in the vfork child's
