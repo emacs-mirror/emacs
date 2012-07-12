@@ -1,3 +1,10 @@
+2012-07-12  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Use empty_unibyte_string where applicable.
+	* keyboard.c (parse_tool_bar_item): Use empty_unibyte_string.
+	* lread.c (read1): Likewise.
+	* xsettings.c (syms_of_xsettings): Likewise.
+
 2012-07-12  Glenn Morris  <rgm@gnu.org>
 
 	* s/cygwin.h (G_SLICE_ALWAYS_MALLOC):

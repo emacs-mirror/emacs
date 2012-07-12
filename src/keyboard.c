@@ -8331,7 +8331,7 @@ parse_tool_bar_item (Lisp_Object key, Lisp_Object item)
       if (SCHARS (new_lbl) <= tool_bar_max_label_size)
         PROP (TOOL_BAR_ITEM_LABEL) = new_lbl;
       else
-        PROP (TOOL_BAR_ITEM_LABEL) = make_string ("", 0);
+        PROP (TOOL_BAR_ITEM_LABEL) = empty_unibyte_string;
       xfree (buf);
     }
 

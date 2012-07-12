@@ -1035,7 +1035,7 @@ If this variable is nil, Emacs ignores system font changes.  */);
 
   DEFVAR_LISP ("xft-settings", Vxft_settings,
                doc: /* Font settings applied to Xft.  */);
-  Vxft_settings = make_string ("", 0);
+  Vxft_settings = empty_unibyte_string;
 
 #ifdef HAVE_XFT
   Fprovide (intern_c_string ("font-render-setting"), Qnil);

@@ -2670,13 +2670,13 @@ read1 (register Lisp_Object readcharfun, int *pch, int first_in_list)
 	      /* No symbol character follows, this is the empty
 		 symbol.  */
 	      UNREAD (c);
-	      return Fmake_symbol (build_string (""));
+	      return Fmake_symbol (empty_unibyte_string);
 	    }
 	  goto read_symbol;
 	}
       /* ## is the empty symbol.  */
       if (c == '#')
-	return Fintern (build_string (""), Qnil);
+	return Fintern (empty_unibyte_string, Qnil);
       /* Reader forms that can reuse previously read objects.  */
       if (c >= '0' && c <= '9')
 	{
