@@ -18,8 +18,6 @@ You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 
-#define RUN_TIME_REMAP
-
 /* Define symbols to identify the version of Unix this is.
    Define all the symbols that apply correctly.  */
 #define USG				/* System III, System V, etc */
@@ -39,9 +37,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* This is how to get the device name of the control end of a pty.  */
 #define PTY_NAME_SPRINTF \
 	sprintf (pty_name, "/dev/ptym/pty%c%x", c, i);
-
-/* This triggers a conditional in xfaces.c.  */
-#define XOS_NEEDS_TIME_H
 
 /* Assar Westerlund <assar@sics.se> says this is necessary for
    HP-UX 10.20, and that it works for HP-UX 0 as well.  */

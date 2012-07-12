@@ -1,5 +1,13 @@
 2012-07-12  Glenn Morris  <rgm@gnu.org>
 
+	* s/irix6-5.h (SETPGRP_RELEASES_CTTY, PREFER_VSUSP):
+	* s/hpux10-20.h (RUN_TIME_REMAP):
+	* s/bsd-common.h (TABDLY): Move to configure.
+
+	* s/hpux10-20.h, s/sol2-6.h: Move XOS_NEEDS_TIME_H to configure.
+
+	* s/bsd-common.h, s/darwin.h: Move TAB3 to configure.
+
 	* s/aix4-2.h (BROKEN_FIONREAD, BROKEN_SIGAIO, BROKEN_SIGPTY)
 	(BROKEN_SIGPOLL): Let configure set them.
 

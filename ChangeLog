@@ -3,8 +3,10 @@
 	* configure.ac (NO_MATHERR): Unconditionally define for Darwin;
 	as src/s/darwin.h used to.
 
-	* configure.ac (NARROWPROTO, NO_ABORT, BROKEN_FIONREAD, BROKEN_SIGAIO):
-	(BROKEN_SIGPOLL, BROKEN_SIGPTY): Move here from src/s.
+	* configure.ac (NARROWPROTO, NO_ABORT, BROKEN_FIONREAD, BROKEN_SIGAIO)
+	(BROKEN_SIGPOLL, BROKEN_SIGPTY, PREFER_VSUSP, RUN_TIME_REMAP)
+	(SETPGRP_RELEASES_CTTY, TAB3, TABDLY, RUN_TIME_REMAP
+	(XOS_NEEDS_TIME_H): Move here from src/s.
 
 2012-07-11  Glenn Morris  <rgm@gnu.org>
 

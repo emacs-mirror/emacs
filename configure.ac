@@ -3365,33 +3365,67 @@ case $opsys in
     ;;
 esac
 
+
+AH_TEMPLATE(TAB3, [Undocumented.])
+
 case $opsys in
-   gnu) opsysfile="s/bsd-common.h" ;;
+  darwin) AC_DEFINE(TAB3, OXTABS) ;;
 
-   gnu-kfreebsd) opsysfile="s/gnu-linux.h" ;;
+  gnu | freebsd | netbsd | openbsd )
+    AC_DEFINE(TABDLY, OXTABS, [Undocumented.] )
+    AC_DEFINE(TAB3, OXTABS)
+    ;;
 
-   hpux11)
-     dnl See comments in sysdep.c:sys_signal.
-     dnl SA_RESTART resets the timeout of `select' on hpux11.
-     dnl Defining BROKEN_SA_RESTART is not the same as undef'ing SA_RESTART.
-     AC_DEFINE(BROKEN_SA_RESTART, 1, [Define if SA_RESTART should only
-       be used in batch mode.])
-     dnl It works to open the pty's tty in the parent (Emacs), then
-     dnl close and reopen it in the child.
-     AC_DEFINE(USG_SUBTTY_WORKS, 1, [Define for USG systems where it
-       works to open a pty's tty in the parent process, then close and
-       reopen it in the child.])
+  hpux*)
+    AC_DEFINE(RUN_TIME_REMAP, 1, [Define if emacs.c needs to call
+      run_time_remap; for HPUX.])
+    ;;
+esac
 
-     opsysfile="s/hpux10-20.h"
-   ;;
 
-   openbsd) opsysfile="s/netbsd.h" ;;
+dnl Used in xfaces.c.
+case $opsys in
+  hpux* | sol2* )
+    AC_DEFINE(XOS_NEEDS_TIME_H, 1, [Compensate for a bug in Xos.h on
+      some systems, where it requires time.h.])
+    ;;
+esac
 
-   sol2-10)
-     AC_DEFINE(_STRUCTURED_PROC, 1, [Needed for system_process_attributes
-       on Solaris.])
-     opsysfile="s/sol2-6.h"
-   ;;
+
+case $opsys in
+  gnu) opsysfile="s/bsd-common.h" ;;
+
+  gnu-kfreebsd) opsysfile="s/gnu-linux.h" ;;
+
+  hpux11)
+    dnl See comments in sysdep.c:sys_signal.
+    dnl SA_RESTART resets the timeout of `select' on hpux11.
+    dnl Defining BROKEN_SA_RESTART is not the same as undef'ing SA_RESTART.
+    AC_DEFINE(BROKEN_SA_RESTART, 1, [Define if SA_RESTART should only
+      be used in batch mode.])
+    dnl It works to open the pty's tty in the parent (Emacs), then
+    dnl close and reopen it in the child.
+    AC_DEFINE(USG_SUBTTY_WORKS, 1, [Define for USG systems where it
+      works to open a pty's tty in the parent process, then close and
+      reopen it in the child.])
+
+    opsysfile="s/hpux10-20.h"
+    ;;
+
+  irix6-5)
+    AC_DEFINE(PREFER_VSUSP, 1, [Define if process_send_signal should
+      use VSUSP instead of VSWTCH.])
+    AC_DEFINE(SETPGRP_RELEASES_CTTY, 1, [Define if process.c:child_setup
+      should not call setpgrp.])
+    ;;
+
+  openbsd) opsysfile="s/netbsd.h" ;;
+
+  sol2-10)
+    AC_DEFINE(_STRUCTURED_PROC, 1, [Needed for system_process_attributes
+      on Solaris.])
+    opsysfile="s/sol2-6.h"
+    ;;
 esac
 
 # Set up the CFLAGS for real compilation, so we can substitute it.

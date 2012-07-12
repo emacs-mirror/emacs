@@ -24,8 +24,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #undef _longjmp /* use system versions, not conservative aliases */
 #undef _setjmp
 
-#define SETPGRP_RELEASES_CTTY
-
 #undef SETUP_SLAVE_PTY
 
 /* Letter to use in finding device name of first pty,
@@ -66,9 +64,6 @@ char *_getpty();
 
 /* Ulimit(UL_GMEMLIM) is busted...  */
 #define ULIMIT_BREAK_VALUE 0x14000000
-
-/* Tell process_send_signal to use VSUSP instead of VSWTCH.  */
-#define PREFER_VSUSP
 
 #undef SA_RESTART     /* not the same as defining BROKEN_SA_RESTART */
 

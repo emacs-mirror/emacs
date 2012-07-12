@@ -21,9 +21,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define SOLARIS2
 
-/* This triggers a conditional in xfaces.c.  */
-#define XOS_NEEDS_TIME_H
-
 /* This is the same definition as in usg5-4-common.h, but with sigblock/sigunblock
    rather than sighold/sigrelse, which appear to be BSD4.1 specific.
    It may also be appropriate for SVR4.x

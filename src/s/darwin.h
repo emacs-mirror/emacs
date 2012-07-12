@@ -60,9 +60,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    also the name of a Mach system call.  */
 #define init_process emacs_init_process
 
-/* System uses OXTABS instead of the expected TAB3.  (Copied from bsd386.h.)  */
-#define TAB3 OXTABS
-
 /* Definitions for how to compile & link.  */
 #ifdef HAVE_NS
 #define SYSTEM_PURESIZE_EXTRA 200000
