@@ -21,28 +21,4 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define SOLARIS2
 
-/* This is the same definition as in usg5-4-common.h, but with sigblock/sigunblock
-   rather than sighold/sigrelse, which appear to be BSD4.1 specific.
-   It may also be appropriate for SVR4.x
-   (x<2) but I'm not sure.   fnf@cygnus.com */
-/* This sets the name of the slave side of the PTY.  On SysVr4,
-   grantpt(3) forks a subprocess, so keep sigchld_handler() from
-   intercepting that death.  If any child but grantpt's should die
-   within, it should be caught after sigrelse(2). */
-
-#define PTY_TTY_NAME_SPRINTF			\
-  {						\
-    char *ptsname (int), *ptyname;		\
-						\
-    sigblock (sigmask (SIGCLD));		\
-    if (grantpt (fd) == -1)			\
-      { emacs_close (fd); return -1; }		\
-    sigunblock (sigmask (SIGCLD));		\
-    if (unlockpt (fd) == -1)			\
-      { emacs_close (fd); return -1; }		\
-    if (!(ptyname = ptsname (fd)))		\
-      { emacs_close (fd); return -1; }		\
-    snprintf (pty_name, sizeof pty_name, "%s", ptyname); \
-  }
-
 #define GC_SETJMP_WORKS 1

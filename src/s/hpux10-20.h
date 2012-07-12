@@ -26,14 +26,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Special hacks needed to make Emacs run on this system.  */
 
-/* This is how to get the device name of the tty end of a pty.  */
-#define PTY_TTY_NAME_SPRINTF \
-            sprintf (pty_name, "/dev/pty/tty%c%x", c, i);
-
-/* This is how to get the device name of the control end of a pty.  */
-#define PTY_NAME_SPRINTF \
-	sprintf (pty_name, "/dev/ptym/pty%c%x", c, i);
-
 /* Assar Westerlund <assar@sics.se> says this is necessary for
    HP-UX 10.20, and that it works for HP-UX 0 as well.  */
 #define NO_EDITRES

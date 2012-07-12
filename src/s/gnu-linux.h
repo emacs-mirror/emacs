@@ -27,31 +27,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #if defined HAVE_GRANTPT
 #define UNIX98_PTYS
-
-#ifdef HAVE_GETPT
-#define PTY_NAME_SPRINTF
-#else /* not HAVE_GETPT */
-#define PTY_NAME_SPRINTF strcpy (pty_name, "/dev/ptmx");
-#endif /* not HAVE_GETPT */
-
-/* Note that grantpt and unlockpt may fork.  We must block SIGCHLD to
-   prevent sigchld_handler from intercepting the child's death.  */
-#define PTY_TTY_NAME_SPRINTF				\
-  {							\
-    char *ptyname;					\
-							\
-    sigblock (sigmask (SIGCHLD));			\
-    if (grantpt (fd) == -1 || unlockpt (fd) == -1	\
-        || !(ptyname = ptsname(fd)))			\
-      {							\
-	sigunblock (sigmask (SIGCHLD));			\
-	close (fd);					\
-	return -1;					\
-      }							\
-    snprintf (pty_name, sizeof pty_name, "%s", ptyname); \
-    sigunblock (sigmask (SIGCHLD));			\
-  }
-
 #endif  /* HAVE_GRANTPT */
 
 /* Here, on a separate page, add any special hacks needed

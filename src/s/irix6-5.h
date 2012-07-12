@@ -26,11 +26,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #undef SETUP_SLAVE_PTY
 
-/* No need to use sprintf to get the tty name--we get that from _getpty.  */
-#define PTY_TTY_NAME_SPRINTF
-/* No need to get the pty name at all.  */
-#undef PTY_NAME_SPRINTF
-#define PTY_NAME_SPRINTF
 #ifdef emacs
 char *_getpty();
 #endif

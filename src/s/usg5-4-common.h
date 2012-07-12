@@ -64,9 +64,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    this is all we need.  */
 #define TIOCSIGSEND TIOCSIGNAL
 
-/* This sets the name of the master side of the PTY.  */
-#define PTY_NAME_SPRINTF strcpy (pty_name, "/dev/ptmx");
-
 /* Push various streams modules onto a PTY channel.  */
 #define SETUP_SLAVE_PTY \
   if (ioctl (xforkin, I_PUSH, "ptem") == -1)	\

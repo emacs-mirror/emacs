@@ -1,5 +1,10 @@
 2012-07-12  Glenn Morris  <rgm@gnu.org>
 
+	* src/s/aix4-2.h, src/s/cygwin.h, src/s/darwin.h:
+	* src/s/gnu-linux.h, src/s/hpux10-20.h, src/s/irix6-5.h:
+	* src/s/sol2-6.h, src/s/unixware.h, src/s/usg5-4-common.h:
+	Move PTY_NAME_SPRINTF, PTY_TTY_NAME_SPRINTF to configure.
+
 	* s/cygwin.h, s/darwin.h, s/gnu-linux.h, s/irix6-5.h:
 	Move PTY_OPEN to configure.
 

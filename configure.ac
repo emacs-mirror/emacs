@@ -3299,16 +3299,26 @@ dnl trying suffixes 0-16.
 AH_TEMPLATE(FIRST_PTY_LETTER, [Letter to use in finding device name of
   first PTY, if PTYs are supported.])
 AH_TEMPLATE(PTY_OPEN, [How to open a PTY, if non-standard.])
+AH_TEMPLATE(PTY_NAME_SPRINTF, [How to get the device name of the control
+  end of a PTY, if non-standard.])
+AH_TEMPLATE(PTY_TTY_NAME_SPRINTF, [How to get device name of the tty
+  end of a PTY, if non-standard.])
 
 case $opsys in
   aix4-2 )
     AC_DEFINE(PTY_ITERATION, [int c; for (c = 0; !c ; c++)] )
+    dnl You allocate a pty by opening /dev/ptc to get the master side.
+    dnl To get the name of the slave side, you just ttyname() the master side.
+    AC_DEFINE(PTY_NAME_SPRINTF, [strcpy (pty_name, "/dev/ptc");] )
+    AC_DEFINE(PTY_TTY_NAME_SPRINTF, [strcpy (pty_name, ttyname (fd));] )
     ;;
 
   cygwin )
     AC_DEFINE(PTY_ITERATION, [int i; for (i = 0; i < 1; i++)] )
     dnl multi-line AC_DEFINEs are hard. :(
     AC_DEFINE(PTY_OPEN, [ do { int dummy; SIGMASKTYPE mask; mask = sigblock (sigmask (SIGCHLD)); if (-1 == openpty (&fd, &dummy, pty_name, 0, 0)) fd = -1; sigsetmask (mask); if (fd >= 0) emacs_close (dummy); } while (0)] )
+    AC_DEFINE(PTY_NAME_SPRINTF, [] )
+    AC_DEFINE(PTY_TTY_NAME_SPRINTF, [] )
     ;;
 
   darwin )
@@ -3319,9 +3329,11 @@ case $opsys in
     dnl But we don't have to block SIGCHLD because it is blocked in the
     dnl implementation of grantpt.
     AC_DEFINE(PTY_OPEN, [ do { int slave; if (openpty (&fd, &slave, pty_name, NULL, NULL) == -1) fd = -1; else emacs_close (slave); } while (0)] )
+    AC_DEFINE(PTY_NAME_SPRINTF, [] )
+    AC_DEFINE(PTY_TTY_NAME_SPRINTF, [] )
     ;;
 
-  gnu | hpux* | freebsd | netbsd | openbsd )
+  gnu | freebsd | netbsd | openbsd )
     AC_DEFINE(FIRST_PTY_LETTER, ['p'])
     ;;
 
@@ -3329,13 +3341,25 @@ case $opsys in
     dnl if HAVE_GRANTPT
     if test "x$ac_cv_func_grantpt" = xyes; then
       AC_DEFINE(PTY_ITERATION, [int i; for (i = 0; i < 1; i++)] )
+      dnl Note that grantpt and unlockpt may fork.  We must block SIGCHLD
+      dnl to prevent sigchld_handler from intercepting the child's death.
+      AC_DEFINE(PTY_TTY_NAME_SPRINTF, [{ char *ptyname; sigblock (sigmask (SIGCHLD)); if (grantpt (fd) == -1 || unlockpt (fd) == -1 || !(ptyname = ptsname(fd))) { sigunblock (sigmask (SIGCHLD)); close (fd); return -1; } snprintf (pty_name, sizeof pty_name, "%s", ptyname); sigunblock (sigmask (SIGCHLD)); }] )
       dnl if HAVE_GETPT
       if test "x$ac_cv_func_getpt" = xyes; then
         AC_DEFINE(PTY_OPEN, [fd = getpt ()])
+        AC_DEFINE(PTY_NAME_SPRINTF, [] )
+      else
+        AC_DEFINE(PTY_NAME_SPRINTF, [strcpy (pty_name, "/dev/ptmx");] )
       fi
     else
       AC_DEFINE(FIRST_PTY_LETTER, ['p'])
     fi
+    ;;
+
+  hpux*)
+    AC_DEFINE(FIRST_PTY_LETTER, ['p'])
+    AC_DEFINE(PTY_NAME_SPRINTF, [sprintf (pty_name, "/dev/ptym/pty%c%x", c, i);] )
+    AC_DEFINE(PTY_TTY_NAME_SPRINTF, [sprintf (pty_name, "/dev/pty/tty%c%x", c, i);] )
     ;;
 
   irix6-5 )
@@ -3353,12 +3377,31 @@ case $opsys in
     dnl Not used, because PTY_ITERATION is defined.
     AC_DEFINE(FIRST_PTY_LETTER, ['q'])
     AC_DEFINE(PTY_OPEN, [ { struct sigaction ocstat, cstat; struct stat stb; char * name; sigemptyset(&cstat.sa_mask); cstat.sa_handler = SIG_DFL; cstat.sa_flags = 0; sigaction(SIGCLD, &cstat, &ocstat); name = _getpty (&fd, O_RDWR | O_NDELAY, 0600, 0); sigaction(SIGCLD, &ocstat, (struct sigaction *)0); if (name == 0) return -1; if (fd < 0) return -1; if (fstat (fd, &stb) < 0) return -1; strcpy (pty_name, name); }] )
+    dnl No need to get the pty name at all. 
+    AC_DEFINE(PTY_NAME_SPRINTF, [] )
+    dnl No need to use sprintf to get the tty name--we get that from _getpty.
+    AC_DEFINE(PTY_TTY_NAME_SPRINTF, [] )
     ;;
 
-  sol2* | unixware )
+  sol2* )
     dnl This change means that we don't loop through allocate_pty too
     dnl many times in the (rare) event of a failure.
     AC_DEFINE(FIRST_PTY_LETTER, ['z'])
+    AC_DEFINE(PTY_NAME_SPRINTF, [strcpy (pty_name, "/dev/ptmx");] )
+    dnl Uses sigblock/sigunblock rather than sighold/sigrelse,
+    dnl which appear to be BSD4.1 specific.  It may also be appropriate
+    dnl for SVR4.x (x<2) but I'm not sure.   fnf@cygnus.com
+    dnl On SysVr4, grantpt(3) forks a subprocess, so keep sigchld_handler()
+    dnl from intercepting that death.  If any child but grantpt's should die
+    dnl within, it should be caught after sigrelse(2).
+    AC_DEFINE(PTY_TTY_NAME_SPRINTF, [{ char *ptsname (int), *ptyname; sigblock (sigmask (SIGCLD)); if (grantpt (fd) == -1) { emacs_close (fd); return -1; } sigunblock (sigmask (SIGCLD)); if (unlockpt (fd) == -1) { emacs_close (fd); return -1; } if (!(ptyname = ptsname (fd))) { emacs_close (fd); return -1; } snprintf (pty_name, sizeof pty_name, "%s", ptyname); }] )
+    ;;
+
+  dnl Comments are as per sol2*.
+  unixware )
+    AC_DEFINE(FIRST_PTY_LETTER, ['z'])
+    AC_DEFINE(PTY_NAME_SPRINTF, [strcpy (pty_name, "/dev/ptmx");] )
+    AC_DEFINE(PTY_TTY_NAME_SPRINTF, [{ char *ptsname (int), *ptyname; sigblock(sigmask(SIGCLD)); if (grantpt(fd) == -1) fatal("could not grant slave pty"); sigunblock(sigmask(SIGCLD)); if (unlockpt(fd) == -1) fatal("could not unlock slave pty"); if (!(ptyname = ptsname(fd))) fatal ("could not enable slave pty"); snprintf (pty_name, sizeof pty_name, "%s", ptyname); }] )
     ;;
 esac
 
