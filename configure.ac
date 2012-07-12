@@ -3157,7 +3157,13 @@ dnl See eg <http://article.gmane.org/gmane.os.openbsd.ports/46831>.
 case $opsys in
   hpux* | irix6-5 | openbsd | sol2* | unixware )
     AC_DEFINE(BROKEN_SIGIO, 1, [Define if SIGIO should not be used.])
-  ;;
+    ;;
+
+  dnl Define the following so emacs symbols will not conflict with those
+  dnl in the System framework.  Otherwise -prebind will not work.
+  darwin)
+    AC_DEFINE(NO_ABORT, 1, [Do not define abort in emacs.c.])
+    ;;
 esac
 
 case $opsys in

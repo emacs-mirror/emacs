@@ -76,12 +76,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #undef HAVE_POSIX_MEMALIGN
 #endif
 
-/* Define the following so emacs symbols will not conflict with those
-   in the System framework.  Otherwise -prebind will not work.  */
-
-/* Do not define abort in emacs.c.  */
-#define NO_ABORT
-
 /* The following solves the problem that Emacs hangs when evaluating
    (make-comint "test0" "/nodir/nofile" nil "") when /nodir/nofile
    does not exist.  Also, setsid is not allowed in the vfork child's
