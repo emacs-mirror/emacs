@@ -86,15 +86,13 @@ _Noreturn void croak (char *);
 #if defined (SIGIO) && defined (BROKEN_SIGIO)
 # undef SIGIO
 #endif
-/* Last user: m/ibmrs6000.h  */
+/* These are only used by AIX  */
 #if defined (SIGPOLL) && defined (BROKEN_SIGPOLL)
 #undef SIGPOLL
 #endif
-/* Last user: m/ibmrs6000.h  */
 #if defined (SIGAIO) && defined (BROKEN_SIGAIO)
 #undef SIGAIO
 #endif
-/* Last user: m/ibmrs6000.h  */
 #if defined (SIGPTY) && defined (BROKEN_SIGPTY)
 #undef SIGPTY
 #endif

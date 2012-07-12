@@ -3152,11 +3152,25 @@ case $opsys in
   ;;
 esac
 
-dnl SIGIO exists, but the feature doesn't work in the way Emacs needs.
-dnl See eg <http://article.gmane.org/gmane.os.openbsd.ports/46831>.
+
 case $opsys in
+  dnl SIGIO exists, but the feature doesn't work in the way Emacs needs.
+  dnl See eg <http://article.gmane.org/gmane.os.openbsd.ports/46831>.
   hpux* | irix6-5 | openbsd | sol2* | unixware )
     AC_DEFINE(BROKEN_SIGIO, 1, [Define if SIGIO should not be used.])
+    ;;
+
+  aix4-2)
+    dnl BUILD 9008 - FIONREAD problem still exists in X-Windows.
+    AC_DEFINE(BROKEN_FIONREAD, 1, [Define if FIONREAD should not be used.])
+    dnl As we define BROKEN_FIONREAD, SIGIO will be undefined in systty.h.
+    dnl But, on AIX, SIGAIO, SIGPTY, and SIGPOLL are defined as SIGIO,
+    dnl which causes compilation error at init_signals in sysdep.c.
+    dnl So, we define these macros so that syssignal.h detects them
+    dnl and undefine SIGAIO, SIGPTY and SIGPOLL.
+    AC_DEFINE(BROKEN_SIGAIO, 1, [Define if SIGAIO should not be used.])
+    AC_DEFINE(BROKEN_SIGPOLL,1, [Define if SIGPOLL should not be used.])
+    AC_DEFINE(BROKEN_SIGPTY, 1, [Define if SIGPTY should not be used.])
     ;;
 
   dnl Define the following so emacs symbols will not conflict with those

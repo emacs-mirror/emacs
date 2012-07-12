@@ -1,6 +1,9 @@
 2012-07-12  Glenn Morris  <rgm@gnu.org>
 
-	* s/darwin.h (NO_ABORT, NO_MATHERR): Let configure set it.
+	* s/aix4-2.h (BROKEN_FIONREAD, BROKEN_SIGAIO, BROKEN_SIGPTY)
+	(BROKEN_SIGPOLL): Let configure set them.
+
+	* s/darwin.h (NO_ABORT, NO_MATHERR): Let configure set them.
 
 	* s/bsd-common.h, s/cygwin.h, s/gnu-linux.h, s/irix6-5.h:
 	* s/template.h: Move NARROWPROTO to configure.
