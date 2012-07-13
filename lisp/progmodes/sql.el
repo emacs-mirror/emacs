@@ -2856,7 +2856,7 @@ appended to the SQLi buffer without disturbing your SQL buffer."
 (defun sql-get-login-ext (symbol prompt history-var plist)
   "Prompt user with extended login parameters.
 
-The global value of SYMBOL is the last value and the global value 
+The global value of SYMBOL is the last value and the global value
 of the SYMBOL is set based on the user's input.
 
 If PLIST is nil, then the user is simply prompted for a string
@@ -2871,7 +2871,7 @@ regexp pattern specified in its value.
 The `:completion' property prompts for a string specified by its
 value.  (The property value is used as the PREDICATE argument to
 `completing-read'.)"
-  (set-default 
+  (set-default
    symbol
    (let* ((default (plist-get plist :default))
           (last-value (default-value symbol))
@@ -4146,10 +4146,12 @@ PRODUCT is the SQL product.  PARAMS is a list of strings which are
 passed as command line arguments."
   (let ((program (sql-get-product-feature product :sqli-program))
         (buf-name "SQL"))
-    ;; make sure we can find the program
-    (unless (executable-find program)
+    ;; Make sure we can find the program.  `executable-find' does not
+    ;; work for remote hosts; we suppress the check there.
+    (unless (or (file-remote-p default-directory)
+		(executable-find program))
       (error "Unable to locate SQL program \'%s\'" program))
-    ;; Make sure buffer name is unique
+    ;; Make sure buffer name is unique.
     (when (sql-buffer-live-p (format "*%s*" buf-name))
       (setq buf-name (format "SQL-%s" product))
       (when (sql-buffer-live-p (format "*%s*" buf-name))

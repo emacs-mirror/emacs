@@ -1,3 +1,9 @@
+2012-07-13  Michael Albinus  <michael.albinus@gmx.de>
+
+	* progmodes/sql.el (sql-comint): Suppress the check for program on
+	remote hosts.  Reported by Francis Devereux <francis@devrx.org>.
+	(Bug#11908)
+
 2012-07-13  Chong Yidong  <cyd@gnu.org>
 
 	* bindings.el: Assign a non-nil permanent-local property to
@@ -375,12 +381,12 @@
 	`git-registered'.
 	(vc-git-mode-line-string): Call `vc-working-revision' instead of
 	`vc-git-working-revision' in order to benefit from the cache.
-	(vc-git-root): Use cache property `git-root'.
+	(vc-git-root): Use cache property `git-root'.  (Bug#11757)
 
 2012-06-30  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* vc/vc-hooks.el (vc-before-save): Clear cache if file has been
-	removed (likely outside Emacs).
+	removed (likely outside Emacs).  (Bug#11757)
 
 2012-06-30  Stefan Monnier  <monnier@iro.umontreal.ca>
 
