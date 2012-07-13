@@ -271,6 +271,11 @@ ns_charset_covers(NSCharacterSet *set1, NSCharacterSet *set2, float pct)
     const unsigned short *bytes2 = [[set2 bitmapRepresentation] bytes];
     int i, off = 0, tot = 0;
 
+    /* Work around what appears to be a GNUstep bug.
+       See <http://bugs.gnu.org/11853>.  */
+    if (! (bytes1 && bytes2))
+      return NO;
+
     for (i=0; i<4096; i++, bytes1++, bytes2++)
 	if (*bytes2)
 	  {

@@ -1,3 +1,8 @@
+2012-07-13  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* nsfont.m (ns_charset_covers): Don't abort if no bitmap (Bug#11853).
+	Report and trivial fix by BT Templeton.
+
 2012-07-13  Glenn Morris  <rgm@gnu.org>
 
 	* s/usg5-4-common.h (NSIG_MINIMUM): Let configure set it.
