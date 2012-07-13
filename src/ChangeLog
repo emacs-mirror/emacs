@@ -1,3 +1,8 @@
+2012-07-13  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* xdisp.c (produce_special_glyphs): Now static.
+	* dispextern.h (produce_special_glyphs): Remove decl.
+
 2012-07-13  Glenn Morris  <rgm@gnu.org>
 
 	* s/bsd-common, s/cygwin.h: Remove empty files.

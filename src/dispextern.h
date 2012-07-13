@@ -3065,7 +3065,6 @@ extern ptrdiff_t compute_display_string_pos (struct text_pos *,
 extern ptrdiff_t compute_display_string_end (ptrdiff_t,
 					     struct bidi_string_data *);
 extern void produce_stretch_glyph (struct it *);
-extern void produce_special_glyphs (struct it *, enum display_element_type);
 
 #ifdef HAVE_WINDOW_SYSTEM
 

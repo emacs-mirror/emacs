@@ -951,6 +951,7 @@ static void append_stretch_glyph (struct it *, Lisp_Object,
 
 #endif /* HAVE_WINDOW_SYSTEM */
 
+static void produce_special_glyphs (struct it *, enum display_element_type);
 static void show_mouse_face (Mouse_HLInfo *, enum draw_glyphs_face);
 static int coords_in_mouse_face_p (struct window *, int, int);
 
@@ -24179,7 +24180,7 @@ produce_stretch_glyph (struct it *it)
    non-null glyph_row member.  This function ensures that fields like
    face_id, c, len of IT are left untouched.  */
 
-void
+static void
 produce_special_glyphs (struct it *it, enum display_element_type what)
 {
   struct it temp_it;
