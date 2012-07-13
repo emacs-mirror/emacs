@@ -19,16 +19,6 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
-
-/* Define symbols to identify the version of Unix this is.
-   Define all the symbols that apply correctly.  */
-
-/* #define USG5 */
-/* #define USG */
-/* #define HPUX */
-/* #define BSD4_2 */
-/* #define BSD_SYSTEM */
-
 /* subprocesses should be undefined if you do NOT want to
    have code for asynchronous subprocesses
    (as used in M-x compile and M-x shell).

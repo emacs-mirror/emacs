@@ -1,3 +1,17 @@
+2012-07-13  Glenn Morris  <rgm@gnu.org>
+
+	* s/usg5-4-common.h (USG, USG5):
+	* s/template.h (USG5, USG, HPUX, BSD4_2, BSD_SYSTEM):
+	* s/sol2-6.h (SOLARIS2):
+	* s/irix6-5.h (IRIX6_5):
+	* s/hpux10-20.h (USG, USG5, HPUX):
+	* s/gnu-linux.h (USG, GNU_LINUX):
+	* s/freebsd.h (BSD_SYSTEM):
+	* s/darwin.h (BSD4_2, BSD_SYSTEM, DARWIN_OS):
+	* s/cygwin.h (CYGWIN):
+	* s/bsd-common.h (BSD_SYSTEM, BSD4_2):
+	* s/aix4-2.h (USG, USG5, _AIX): Move "system type" macros to configure.
+
 2012-07-13  BT Templeton  <bpt@hcoop.net>  (tiny change)
 
 	* nsfont.m (ns_charset_covers): Don't abort if no bitmap (Bug#11853).

@@ -20,18 +20,6 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
-/* Define symbols to identify the version of Unix this is.
-   Define all the symbols that apply correctly.  */
-#define USG
-#define GNU_LINUX
-
-/* Here, on a separate page, add any special hacks needed
-   to make Emacs work on this system.  For example,
-   you might define certain system call names that don't
-   exist on your system, or that do different things on
-   your system and must be used only through an encapsulation
-   (Which you should place, by convention, in sysdep.c).  */
-
 #ifdef __ia64__
 #define GC_MARK_SECONDARY_STACK()				\
   do {								\

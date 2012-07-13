@@ -17,15 +17,6 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
-
-/* Define symbols to identify the version of Unix this is.
-   Define all the symbols that apply correctly.  */
-#define USG				/* System III, System V, etc */
-#define USG5
-#define HPUX
-
-/* Special hacks needed to make Emacs run on this system.  */
-
 /* We have to go this route, rather than hpux9's approach of renaming the
    functions via macros.  The system's stdlib.h has fully prototyped
    declarations, which yields a conflicting definition of srand48; it

@@ -3481,7 +3481,7 @@ case $opsys in
 
   gnu | gnu-linux | gnu-kfreebsd )
     AC_MSG_CHECKING([for style of pending output formalism])
-    dnl In autoconf 2.67 (?) and later, we could use a single test
+    dnl In autoconf 2.67 and later, we could use a single test
     dnl since the preprocessed output is accessible in "conftest.i".
     AC_PREPROC_IFELSE([AC_LANG_PROGRAM([[
 #include <stdio.h>
@@ -3591,6 +3591,87 @@ case $opsys in
   hpux* | sol2* )
     AC_DEFINE(XOS_NEEDS_TIME_H, 1, [Compensate for a bug in Xos.h on
       some systems, where it requires time.h.])
+    ;;
+esac
+
+
+dnl Define symbols to identify the version of Unix this is.
+dnl Define all the symbols that apply correctly.
+AH_TEMPLATE(BSD4_2, [Define if the system is compatible with BSD 4.2.])
+AH_TEMPLATE(BSD_SYSTEM, [Define if the system is compatible with BSD 4.2.])
+AH_TEMPLATE(USG, [Define if the system is compatible with System III.])
+AH_TEMPLATE(USG5, [Define if the system is compatible with System V.])
+
+case $opsys in
+  aix4-2)
+    AC_DEFINE(USG, [])
+    AC_DEFINE(USG5, [])
+    dnl This symbol should be defined on AIX Version 3  ???????
+    AC_PREPROC_IFELSE([AC_LANG_PROGRAM([[
+#ifndef _AIX
+# error "_AIX not defined"
+#endif
+    ]], [[]])], [], AC_DEFINE(_AIX, [], [Define if the system is AIX.]))
+    ;;
+
+  cygwin)
+    AC_DEFINE(CYGWIN, 1, [Define if the system is Cygwin.])
+    ;;
+
+  darwin)
+    dnl BSD4_3 and BSD4_4 are already defined in sys/param.h.
+    AC_DEFINE(BSD4_2, [])
+    AC_DEFINE(BSD_SYSTEM, [])
+    dnl More specific than the above two.  We cannot use __APPLE__ as this
+    dnl may not be defined on non-OSX Darwin, and we cannot define DARWIN
+    dnl here because Panther and lower CoreFoundation.h uses DARWIN to
+    dnl distinguish OS X from pure Darwin.
+    AC_DEFINE(DARWIN_OS, [], [Define if the system is Darwin.])
+    ;;
+
+  freebsd)
+    AC_DEFINE(BSD4_2, [])
+    dnl Hack to avoid calling AC_PREPROC_IFELSE multiple times.
+    dnl Would not be needed with autoconf >= 2.67, where the
+    dnl preprocessed output is accessible in "conftest.i".
+    AC_DEFINE(BSD_SYSTEM_AHB, 1, [Define if AH_BOTTOM should change BSD_SYSTEM.])
+    ;;
+
+  gnu | netbsd | openbsd )
+    AC_DEFINE(BSD4_2, [])
+    AC_PREPROC_IFELSE([AC_LANG_PROGRAM([[
+#ifndef BSD_SYSTEM
+# error "BSD_SYSTEM not defined"
+#endif
+    ]], [[]])], [], AC_DEFINE(BSD_SYSTEM, 43) )
+    ;;
+
+  gnu-linux | gnu-kfreebsd )
+    AC_DEFINE(USG, [])
+    AC_DEFINE(GNU_LINUX, [], [Define if ths system is compatible with GNU/Linux.])
+    ;;
+
+  hpux*)
+    AC_DEFINE(USG, [])
+    AC_DEFINE(USG5, [])
+    AC_DEFINE(HPUX, [], [Define if the system is HPUX.])
+    ;;
+
+  irix6-5)
+    AC_DEFINE(USG, [])
+    AC_DEFINE(USG5, [])
+    AC_DEFINE(IRIX6_5, [], [Define if the system is IRIX.])
+    ;;
+
+  sol2*)
+    AC_DEFINE(USG, [])
+    AC_DEFINE(USG5, [])
+    AC_DEFINE(SOLARIS2, [], [Define if the system is Solaris.])
+    ;;
+
+  unixware)
+    AC_DEFINE(USG, [])
+    AC_DEFINE(USG5, [])
     ;;
 esac
 
@@ -4033,6 +4114,19 @@ AH_BOTTOM([
 #include <alloca.h>
 #if ! HAVE_ALLOCA
 # error "alloca not available on this machine"
+#endif
+
+/* This silences a few compilation warnings on FreeBSD.  */
+#ifdef BSD_SYSTEM_AHB
+#undef BSD_SYSTEM_AHB
+#undef BSD_SYSTEM
+#if __FreeBSD__ == 1
+#define BSD_SYSTEM 199103
+#elif __FreeBSD__ == 2
+#define BSD_SYSTEM 199306
+#elif __FreeBSD__ >= 3
+#define BSD_SYSTEM 199506
+#endif
 #endif
 
 /* Define AMPERSAND_FULL_NAME if you use the convention

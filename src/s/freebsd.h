@@ -23,16 +23,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Get most of the stuff from bsd-common */
 #include "bsd-common.h"
 
-/* This silences a few compilation warnings.  */
-#undef BSD_SYSTEM
-#if __FreeBSD__ == 1
-#define BSD_SYSTEM 199103
-#elif __FreeBSD__ == 2
-#define BSD_SYSTEM 199306
-#elif __FreeBSD__ >= 3
-#define BSD_SYSTEM 199506
-#endif
-
 /* Tell that garbage collector that setjmp is known to save all
    registers relevant for conservative garbage collection in the jmp_buf.  */
 #define GC_SETJMP_WORKS 1

@@ -1,5 +1,11 @@
 2012-07-13  Glenn Morris  <rgm@gnu.org>
 
+	* configure.ac (BSD4_2, BSD_SYSTEM, USG, USG5, _AIX, CYGWIN)
+	(DARWIN_OS, GNU_LINUX, HPUX, IRIX6_5, SOLARIS2):
+	Move "system type" macros here from src/s.
+	(BSD_SYSTEM_AHB): New hack macro.
+	(AH_BOTTOM): Set BSD_SYSTEM, using BSD_SYSTEM_AHB.
+
 	* configure.ac (NSIG_MINIMUM, ULIMIT_BREAK_VALUE):
 	Move here from src/s.
 

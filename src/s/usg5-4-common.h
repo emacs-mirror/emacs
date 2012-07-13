@@ -20,13 +20,6 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
-/* Use the SysVr3 file for at least base configuration.  */
-#define USG				/* System III, System V, etc */
-
-#define USG5
-/* Nothing in Emacs use this any more.  */
-/* #define USG5_4 */
-
 /* setjmp and longjmp can safely replace _setjmp and _longjmp,
    but they will run slower.  */
 #define _setjmp setjmp

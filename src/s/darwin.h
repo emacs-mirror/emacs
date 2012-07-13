@@ -17,19 +17,6 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
-
-/* Define symbols to identify the version of Unix this is.
-   Define all the symbols that apply correctly.  */
-#define BSD4_2
-/* BSD4_3 and BSD4_4 are already defined in sys/param.h */
-#define BSD_SYSTEM
-
-/* More specific than the above two.  We cannot use __APPLE__ as this
-   may not be defined on non-OSX Darwin, and we cannot define DARWIN
-   here because Panther and lower CoreFoundation.h uses DARWIN to
-   distinguish OS X from pure Darwin.  */
-#define DARWIN_OS
-
 /* Definitions for how to compile & link.  */
 #ifdef emacs
 #define malloc unexec_malloc
