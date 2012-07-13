@@ -1,5 +1,6 @@
 2012-07-12  Glenn Morris  <rgm@gnu.org>
 
+	* s/darwin.h (SYSTEM_PURESIZE_EXTRA): Move to configure.
 
 	* process.c (init_process_emacs): Rename from init_process.
 	The old name is also the name of a Mach system call.

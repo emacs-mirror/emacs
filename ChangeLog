@@ -1,5 +1,8 @@
 2012-07-12  Glenn Morris  <rgm@gnu.org>
 
+	* configure.ac (AH_BOTTOM) [DARWIN_OS]: Move SYSTEM_PURESIZE_EXTRA
+	setting here from src/s/darwin.h.
+
 	* configure.ac (NO_MATHERR): Unconditionally define for Darwin;
 	as src/s/darwin.h used to.
 

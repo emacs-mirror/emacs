@@ -4029,13 +4029,14 @@ AH_BOTTOM([
 # include config_opsysfile
 #endif
 
-/* GNUstep needs a bit more pure memory.  Of the existing knobs,
-   SYSTEM_PURESIZE_EXTRA seems like the least likely to cause problems.
-  (There is probably a better place to do this, but right now the
-   Cocoa side does this in s/darwin.h and we cannot parallel this
-   exactly since GNUstep is multi-OS.  */
-#if defined HAVE_NS && defined NS_IMPL_GNUSTEP
+/* Mac OS X / GNUstep need a bit more pure memory.  Of the existing knobs,
+   SYSTEM_PURESIZE_EXTRA seems like the least likely to cause problems.  */
+#ifdef HAVE_NS
+#if defined NS_IMPL_GNUSTEP
 #  define SYSTEM_PURESIZE_EXTRA 30000
+#elif defined DARWIN_OS
+#  define SYSTEM_PURESIZE_EXTRA 200000
+#endif
 #endif
 
 #ifdef emacs /* Don't do this for lib-src.  */

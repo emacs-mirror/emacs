@@ -35,10 +35,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define MIN_PTY_KERNEL_VERSION '7'
 
 /* Definitions for how to compile & link.  */
-#ifdef HAVE_NS
-#define SYSTEM_PURESIZE_EXTRA 200000
-#endif
-
 #ifdef emacs
 #define malloc unexec_malloc
 #define realloc unexec_realloc
