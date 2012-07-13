@@ -1,3 +1,9 @@
+2012-07-13  Juanma Barranquero  <lekktu@gmail.com>
+
+	* s/ms-w32.h (FIRST_PTY_LETTER, HAVE_SOCKETS): Move to nt/config.nt.
+	(HAVE_ATTRIBUTE_ALIGNED, HAVE_C99_STRTOLD, HAVE___BUILTIN_UNWIND_INIT):
+	Set here, not in nt/config.nt.
+
 2012-07-13  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (move_it_in_display_line_to): On GUI terminals, allow

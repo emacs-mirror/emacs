@@ -51,11 +51,38 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to the number of bits in type 'wint_t'. */
 #undef BITSIZEOF_WINT_T
 
+/* Define if FIONREAD should not be used. */
+#undef BROKEN_FIONREAD
+
+/* Define if get_current_dir_name should not be used. */
+#undef BROKEN_GET_CURRENT_DIR_NAME
+
+/* Define on FreeBSD to work around an issue when reading from a PTY. */
+#undef BROKEN_PTY_READ_AFTER_EAGAIN
+
 /* Define if SA_RESTART should only be used in batch mode. */
 #undef BROKEN_SA_RESTART
 
+/* Define if SIGAIO should not be used. */
+#undef BROKEN_SIGAIO
+
 /* Define if SIGIO should not be used. */
 #undef BROKEN_SIGIO
+
+/* Define if SIGPOLL should not be used. */
+#undef BROKEN_SIGPOLL
+
+/* Define if SIGPTY should not be used. */
+#undef BROKEN_SIGPTY
+
+/* Define if the system is compatible with BSD 4.2. */
+#undef BSD4_2
+
+/* Define if the system is compatible with BSD 4.2. */
+#undef BSD_SYSTEM
+
+/* Define if AH_BOTTOM should change BSD_SYSTEM. */
+#undef BSD_SYSTEM_AHB
 
 /* Define if Emacs cannot be dumped on your system. */
 #undef CANNOT_DUMP
@@ -73,8 +100,14 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    */
 #undef CRAY_STACKSEG_END
 
+/* Define if the system is Cygwin. */
+#undef CYGWIN
+
 /* Define to 1 if using 'alloca.c'. */
 #undef C_ALLOCA
+
+/* Define if the system is Darwin. */
+#undef DARWIN_OS
 
 /* Extra bits to be or'd in with any pointers stored in a Lisp_Object. */
 #undef DATA_SEG_BITS
@@ -105,6 +138,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if expensive run-time data type and consistency checks are
    enabled. */
 #undef ENABLE_CHECKING
+
+/* Letter to use in finding device name of first PTY, if PTYs are supported.
+   */
+#define FIRST_PTY_LETTER 'a'
 
 /* Define to 1 if futimesat mishandles a NULL file name. */
 #undef FUTIMESAT_NULL_BUG
@@ -150,8 +187,15 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Value of PENDING_OUTPUT_COUNT if using the GNU C library. */
 #undef GNU_LIBRARY_PENDING_OUTPUT_COUNT
 
+/* Define if ths system is compatible with GNU/Linux. */
+#undef GNU_LINUX
+
 /* Define to 1 if you want to use the GNU memory allocator. */
 #define GNU_MALLOC 1
+
+/* Define to set the G_SLICE environment variable to "always-malloc" at
+   startup, if using GTK. */
+#undef G_SLICE_ALWAYS_MALLOC
 
 /* Define to 1 if the file /usr/lpp/X11/bin/smt.exp exists. */
 #undef HAVE_AIX_SMT_EXP
@@ -679,6 +723,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if the pthread_sigmask function can be used (despite bugs). */
 #undef HAVE_PTHREAD_SIGMASK
 
+/* Define if the system supports pty devices. */
+#undef HAVE_PTYS
+
 /* Define to 1 if you have the <pty.h> header file. */
 #undef HAVE_PTY_H
 
@@ -744,6 +791,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 if you have the `snprintf' function. */
 #define HAVE_SNPRINTF 1
+
+/* Define if the system supports 4.2-compatible sockets.
+   NT supports Winsock which is close enough (with some hacks).  */
+#define HAVE_SOCKETS 1
 
 /* Define to 1 if you have sound support. */
 #define HAVE_SOUND 1
@@ -1031,6 +1082,15 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to support using a Hesiod database to find the POP server. */
 #undef HESIOD
 
+/* Define if the system is HPUX. */
+#undef HPUX
+
+/* Define to read input using SIGIO. */
+#undef INTERRUPT_INPUT
+
+/* Define if the system is IRIX. */
+#undef IRIX6_5
+
 /* Define to support Kerberos-authenticated POP mail retrieval. */
 #undef KERBEROS
 
@@ -1062,6 +1122,16 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to support POP mail retrieval. */
 #define MAIL_USE_POP 1
 
+/* Define if system's imake configuration file defines `NeedWidePrototypes' as
+   `NO'. */
+#undef NARROWPROTO
+
+/* Do not define abort in emacs.c. */
+#undef NO_ABORT
+
+/* Define if XEditRes should not be used. */
+#undef NO_EDITRES
+
 /* Define to 1 if you don't have struct exception in math.h. */
 #define NO_MATHERR 1
 
@@ -1070,6 +1140,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define if termio.h should not be included. */
 #undef NO_TERMIO
+
+/* Minimum value of NSIG. */
+#undef NSIG_MINIMUM
 
 /* Define to 1 if `NSInteger' is defined. */
 #undef NS_HAVE_NSINTEGER
@@ -1115,6 +1188,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    png_longjmp. */
 #undef PNG_DEPSTRUCT
 
+/* Define if process_send_signal should use VSUSP instead of VSWTCH. */
+#undef PREFER_VSUSP
+
 /* Define to 1 if pthread_sigmask(), when it fails, returns -1 and sets errno.
    */
 #undef PTHREAD_SIGMASK_FAILS_WITH_ERRNO
@@ -1128,6 +1204,18 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to l, ll, u, ul, ull, etc., as suitable for constants of type
    'ptrdiff_t'. */
 #undef PTRDIFF_T_SUFFIX
+
+/* How to iterate over PTYs. */
+#undef PTY_ITERATION
+
+/* How to get the device name of the control end of a PTY, if non-standard. */
+#undef PTY_NAME_SPRINTF
+
+/* How to open a PTY, if non-standard. */
+#undef PTY_OPEN
+
+/* How to get device name of the tty end of a PTY, if non-standard. */
+#undef PTY_TTY_NAME_SPRINTF
 
 /* Define to 1 if readlink fails to recognize a trailing slash. */
 #undef READLINK_TRAILING_SLASH_BUG
@@ -1144,6 +1232,12 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    slash */
 #undef REPLACE_FUNC_STAT_FILE
 
+/* Define if emacs.c needs to call run_time_remap; for HPUX. */
+#undef RUN_TIME_REMAP
+
+/* Define if process.c:child_setup should not call setpgrp. */
+#undef SETPGRP_RELEASES_CTTY
+
 /* Make process_send_signal work by "typing" a signal character on the pty. */
 #undef SIGNALS_VIA_CHARACTERS
 
@@ -1154,6 +1248,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to l, ll, u, ul, ull, etc., as suitable for constants of type
    'size_t'. */
 #undef SIZE_T_SUFFIX
+
+/* Define if the system is Solaris. */
+#undef SOLARIS2
 
 /* If using the C implementation of alloca, define if you know the
    direction of stack growth for your system; otherwise it will be
@@ -1181,6 +1278,12 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* The type of system you are compiling for; sets `system-type'. */
 #define SYSTEM_TYPE "windows-nt"
 
+/* Undocumented. */
+#undef TAB3
+
+/* Undocumented. */
+#undef TABDLY
+
 /* Define to 1 if you use terminfo instead of termcap. */
 #undef TERMINFO
 
@@ -1194,12 +1297,18 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    timespec. */
 #undef TYPEOF_STRUCT_STAT_ST_ATIM_IS_STRUCT_TIMESPEC
 
+/* Undocumented. */
+#undef ULIMIT_BREAK_VALUE
+
 /* Define to 1 for Encore UMAX. */
 #undef UMAX
 
 /* Define to 1 for Encore UMAX 4.3 that has <inq_status/cpustats.h> instead of
    <sys/cpustats.h>. */
 #undef UMAX4_3
+
+/* Define if the system has Unix98 PTYs. */
+#undef UNIX98_PTYS
 
 /* Define to 1 if using GTK. */
 #undef USE_GTK
@@ -1221,6 +1330,12 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 if using an X toolkit. */
 #undef USE_X_TOOLKIT
+
+/* Define if the system is compatible with System III. */
+#undef USG
+
+/* Define if the system is compatible with System V. */
+#undef USG5
 
 /* Define for USG systems where it works to open a pty's tty in the parent
    process, then close and reopen it in the child. */
@@ -1255,9 +1370,15 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define this to check for malloc buffer overrun. */
 #undef XMALLOC_OVERRUN_CHECK
 
+/* Compensate for a bug in Xos.h on some systems, where it requires time.h. */
+#undef XOS_NEEDS_TIME_H
+
 /* Define to the type of the 6th arg of XRegisterIMInstantiateCallback, either
    XPointer or XPointer*. */
 #undef XRegisterIMInstantiateCallback_arg6
+
+/* Define if the system is AIX. */
+#undef _AIX
 
 /* Enable large inode numbers on Mac OS X.  */
 #ifndef _DARWIN_USE_64_BIT_INODE
@@ -1458,6 +1579,19 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 #endif
 
+/* This silences a few compilation warnings on FreeBSD.  */
+#ifdef BSD_SYSTEM_AHB
+#undef BSD_SYSTEM_AHB
+#undef BSD_SYSTEM
+#if __FreeBSD__ == 1
+#define BSD_SYSTEM 199103
+#elif __FreeBSD__ == 2
+#define BSD_SYSTEM 199306
+#elif __FreeBSD__ >= 3
+#define BSD_SYSTEM 199506
+#endif
+#endif
+
 /* Define AMPERSAND_FULL_NAME if you use the convention
    that & in the full name stands for the login id.  */
 #undef AMPERSAND_FULL_NAME
@@ -1475,13 +1609,14 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 # include config_opsysfile
 #endif
 
-/* GNUstep needs a bit more pure memory.  Of the existing knobs,
-   SYSTEM_PURESIZE_EXTRA seems like the least likely to cause problems.
-  (There is probably a better place to do this, but right now the
-   Cocoa side does this in s/darwin.h and we cannot parallel this
-   exactly since GNUstep is multi-OS.  */
-#if defined HAVE_NS && defined NS_IMPL_GNUSTEP
+/* Mac OS X / GNUstep need a bit more pure memory.  Of the existing knobs,
+   SYSTEM_PURESIZE_EXTRA seems like the least likely to cause problems.  */
+#ifdef HAVE_NS
+#if defined NS_IMPL_GNUSTEP
 #  define SYSTEM_PURESIZE_EXTRA 30000
+#elif defined DARWIN_OS
+#  define SYSTEM_PURESIZE_EXTRA 200000
+#endif
 #endif
 
 #ifdef emacs /* Don't do this for lib-src.  */
@@ -1540,20 +1675,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
   /* GC_SETJMP_WORKS is nearly always appropriate for GCC.  */
 #    define GC_SETJMP_WORKS 1
 #  endif
-#endif
-
-/* Define to 1 if GCC-style __attribute__ ((__aligned__ (expr))) works. */
-#ifdef __GNUC__
-#define HAVE_ATTRIBUTE_ALIGNED 1
-#endif
-
-/* Define to 1 if strtold conforms to C99. */
-#ifdef __GNUC__
-#define HAVE_C99_STRTOLD 1
-#endif
-
-#if (__GNUC__ > 2 || (__GNUC__ == 2 && __GNUC_MINOR__ >= 8))
-#define HAVE___BUILTIN_UNWIND_INIT 1
 #endif
 
 #endif /* EMACS_CONFIG_H */

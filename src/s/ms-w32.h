@@ -38,16 +38,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    convention must be whatever standard the libraries expect.  */
 #define _CALLBACK_ __cdecl
 
-/* Letter to use in finding device name of first pty,
-   if system supports pty's.  'a' means it is /dev/ptya0  */
-#define FIRST_PTY_LETTER 'a'
-
 /* Define HAVE_TIMEVAL if the system supports the BSD style clock values.
    Look in <sys/time.h> for a timeval structure.  */
 #define HAVE_TIMEVAL 1
-
-/* NT supports Winsock which is close enough (with some hacks).  */
-#define HAVE_SOCKETS 1
 
 /* But our select implementation doesn't allow us to make non-blocking
    connects.  So until that is fixed, this is necessary:  */
@@ -69,6 +62,20 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* If the character used to separate elements of the executable path
    is not ':', #define this to be the appropriate character constant.  */
 #define SEPCHAR ';'
+
+/* Define to 1 if GCC-style __attribute__ ((__aligned__ (expr))) works. */
+#ifdef __GNUC__
+#define HAVE_ATTRIBUTE_ALIGNED 1
+#endif
+
+/* Define to 1 if strtold conforms to C99. */
+#ifdef __GNUC__
+#define HAVE_C99_STRTOLD 1
+#endif
+
+#if (__GNUC__ > 2 || (__GNUC__ == 2 && __GNUC_MINOR__ >= 8))
+#define HAVE___BUILTIN_UNWIND_INIT 1
+#endif
 
 /* ============================================================ */
 
