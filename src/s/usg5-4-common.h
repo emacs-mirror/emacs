@@ -52,11 +52,3 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    this is all we need.  */
 #define TIOCSIGSEND TIOCSIGNAL
 
-/* Push various streams modules onto a PTY channel.  */
-#define SETUP_SLAVE_PTY \
-  if (ioctl (xforkin, I_PUSH, "ptem") == -1)	\
-    fatal ("ioctl I_PUSH ptem");		\
-  if (ioctl (xforkin, I_PUSH, "ldterm") == -1)	\
-    fatal ("ioctl I_PUSH ldterm");	\
-  if (ioctl (xforkin, I_PUSH, "ttcompat") == -1) \
-    fatal ("ioctl I_PUSH ttcompat");

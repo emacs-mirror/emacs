@@ -22,8 +22,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #undef _longjmp /* use system versions, not conservative aliases */
 #undef _setjmp
 
-#undef SETUP_SLAVE_PTY
-
 #ifdef emacs
 char *_getpty();
 #endif

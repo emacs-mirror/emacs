@@ -1,3 +1,8 @@
+2012-07-13  Glenn Morris  <rgm@gnu.org>
+
+	* s/usg5-4-common.h (SETUP_SLAVE_PTY): Let configure set it.
+	* s/irix6-5.h (SETUP_SLAVE_PTY): No more need to unset it.
+
 2012-07-13  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsterm.m (uRect): Only define if NS_IMPL_GNUSTEP.
