@@ -7398,8 +7398,7 @@ init_process_emacs (void)
     char const *release = (STRINGP (Voperating_system_release)
 			   ? SSDATA (Voperating_system_release)
 			   : 0);
-    if (!release || !release[0] || (release[0] < MIN_PTY_KERNEL_VERSION
-				    && release[1] == '.')) {
+    if (!release || !release[0] || (release[0] < '7' && release[1] == '.')) {
       Vprocess_connection_type = Qnil;
     }
   }

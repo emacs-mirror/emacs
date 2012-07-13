@@ -1,3 +1,8 @@
+2012-07-13  Glenn Morris  <rgm@gnu.org>
+
+	* process.c (init_process_emacs): Replace MIN_PTY_KERNEL_VERSION.
+	* s/darwin.h (MIN_PTY_KERNEL_VERSION): Remove single-use macro.
+
 2012-07-12  Glenn Morris  <rgm@gnu.org>
 
 	* s/darwin.h (SYSTEM_PURESIZE_EXTRA): Move to configure.

@@ -30,10 +30,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    distinguish OS X from pure Darwin.  */
 #define DARWIN_OS
 
-/* PTYs only work correctly on Darwin 7 or higher.  So make the default
-   for process-connection-type dependent on the kernel version.  */
-#define MIN_PTY_KERNEL_VERSION '7'
-
 /* Definitions for how to compile & link.  */
 #ifdef emacs
 #define malloc unexec_malloc
