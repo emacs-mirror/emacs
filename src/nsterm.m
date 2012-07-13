@@ -169,7 +169,9 @@ static EmacsScroller *last_mouse_scroll_bar = nil;
 static struct frame *ns_updating_frame;
 static NSView *focus_view = NULL;
 static int ns_window_num = 0;
+#ifdef NS_IMPL_GNUSTEP
 static NSRect uRect;
+#endif
 static BOOL gsaved = NO;
 BOOL ns_in_resize = NO;
 static BOOL ns_fake_keydown = NO;
@@ -347,7 +349,7 @@ ns_exec_path (void)
   pathEnum = [paths objectEnumerator];
   resourcePaths = @"";
 
-  while (resourcePath = [pathEnum nextObject])
+  while ((resourcePath = [pathEnum nextObject]))
     {
       if ([fileManager fileExistsAtPath: resourcePath isDirectory: &isDir])
         if (isDir)
@@ -387,7 +389,7 @@ ns_load_path (void)
   /* Hack to skip site-lisp.  */
   if (no_site_lisp) resourcePath = [pathEnum nextObject];
 
-  while (resourcePath = [pathEnum nextObject])
+  while ((resourcePath = [pathEnum nextObject]))
     {
       if ([fileManager fileExistsAtPath: resourcePath isDirectory: &isDir])
         if (isDir)
@@ -1111,7 +1113,7 @@ x_free_frame_resources (struct frame *f)
   NSView *view = FRAME_NS_VIEW (f);
   struct ns_display_info *dpyinfo = FRAME_NS_DISPLAY_INFO (f);
   Mouse_HLInfo *hlinfo = MOUSE_HL_INFO (f);
-  NSTRACE (x_destroy_window);
+  NSTRACE (x_free_frame_resources);
   check_ns ();
 
   [(EmacsView *)view setWindowClosing: YES]; /* may not have been informed */
@@ -1218,7 +1220,6 @@ x_set_window_size (struct frame *f, int change_grav, int cols, int rows)
    -------------------------------------------------------------------------- */
 {
   EmacsView *view = FRAME_NS_VIEW (f);
-  EmacsToolbar *toolbar = [view toolbar];
   NSWindow *window = [view window];
   NSRect wr = [window frame];
   int tb = FRAME_EXTERNAL_TOOL_BAR (f);
@@ -1503,21 +1504,6 @@ ns_get_color (const char *name, NSColor **col)
 }
 
 
-static NSColor *
-ns_get_color_default (const char *name, NSColor *dflt)
-/* --------------------------------------------------------------------------
-     Parse a color or use a default value
-   -------------------------------------------------------------------------- */
-{
-  NSColor * col;
-
-  if (ns_get_color (name, &col))
-    return dflt;
-  else
-    return col;
-}
-
-
 int
 ns_lisp_to_color (Lisp_Object color, NSColor **col)
 /* --------------------------------------------------------------------------
@@ -1526,9 +1512,9 @@ ns_lisp_to_color (Lisp_Object color, NSColor **col)
 {
   NSTRACE (ns_lisp_to_color);
   if (STRINGP (color))
-    return ns_get_color (SDATA (color), col);
+    return ns_get_color (SSDATA (color), col);
   else if (SYMBOLP (color))
-    return ns_get_color (SDATA (SYMBOL_NAME (color)), col);
+    return ns_get_color (SSDATA (SYMBOL_NAME (color)), col);
   return 1;
 }
 
@@ -1773,7 +1759,6 @@ ns_mouse_position (struct frame **fp, int insist, Lisp_Object *bar_window,
 {
   id view;
   NSPoint position;
-  int xchar, ychar;
   Lisp_Object frame, tail;
   struct frame *f;
   struct ns_display_info *dpyinfo;
@@ -1867,7 +1852,7 @@ ns_frame_up_to_date (struct frame *f)
 }
 
 
-void
+static void
 ns_define_frame_cursor (struct frame *f, Cursor cursor)
 /* --------------------------------------------------------------------------
     External (RIF): set frame mouse pointer type.
@@ -1992,7 +1977,7 @@ ns_clear_frame (struct frame *f)
 }
 
 
-void
+static void
 ns_clear_frame_area (struct frame *f, int x, int y, int width, int height)
 /* --------------------------------------------------------------------------
     External (RIF):  Clear section of frame
@@ -2195,8 +2180,7 @@ ns_compute_glyph_string_overhangs (struct glyph_string *s)
      External (RIF); compute left/right overhang of whole string and set in s
    -------------------------------------------------------------------------- */
 {
-  struct face *face = FACE_FROM_ID (s->f, s->first_glyph->face_id);
-  struct font *font = s->font; /*face->font; */
+  struct font *font = s->font;
 
   if (s->char2b)
     {
@@ -2313,7 +2297,7 @@ ns_draw_fringe_bitmap (struct window *w, struct glyph_row *row,
 }
 
 
-void
+static void
 ns_draw_window_cursor (struct window *w, struct glyph_row *glyph_row,
                        int x, int y, int cursor_type, int cursor_width,
                        int on_p, int active_p)
@@ -3627,7 +3611,6 @@ ns_set_vertical_scroll_bar (struct window *window,
   BOOL barOnVeryLeft, barOnVeryRight;
   int top, left, height, width, sb_width, sb_left;
   EmacsScroller *bar;
-static int count = 0;
 
   /* optimization; display engine sends WAY too many of these.. */
   if (!NILP (window->vertical_scroll_bar))
@@ -3809,40 +3792,20 @@ static Lisp_Object ns_string_to_lispmod (const char *s)
      Convert modifier name to lisp symbol
    -------------------------------------------------------------------------- */
 {
-  if (!strncmp (SDATA (SYMBOL_NAME (Qmeta)), s, 10))
+  if (!strncmp (SSDATA (SYMBOL_NAME (Qmeta)), s, 10))
     return Qmeta;
-  else if (!strncmp (SDATA (SYMBOL_NAME (Qsuper)), s, 10))
+  else if (!strncmp (SSDATA (SYMBOL_NAME (Qsuper)), s, 10))
     return Qsuper;
-  else if (!strncmp (SDATA (SYMBOL_NAME (Qcontrol)), s, 10))
+  else if (!strncmp (SSDATA (SYMBOL_NAME (Qcontrol)), s, 10))
     return Qcontrol;
-  else if (!strncmp (SDATA (SYMBOL_NAME (Qalt)), s, 10))
+  else if (!strncmp (SSDATA (SYMBOL_NAME (Qalt)), s, 10))
     return Qalt;
-  else if (!strncmp (SDATA (SYMBOL_NAME (Qhyper)), s, 10))
+  else if (!strncmp (SSDATA (SYMBOL_NAME (Qhyper)), s, 10))
     return Qhyper;
-  else if (!strncmp (SDATA (SYMBOL_NAME (Qnone)), s, 10))
+  else if (!strncmp (SSDATA (SYMBOL_NAME (Qnone)), s, 10))
     return Qnone;
   else
     return Qnil;
-}
-
-
-static Lisp_Object ns_mod_to_lisp (int m)
-/* --------------------------------------------------------------------------
-     Convert modifier code (see lisp.h) to lisp symbol
-   -------------------------------------------------------------------------- */
-{
-  if (m == CHAR_META)
-    return Qmeta;
-  else if (m == CHAR_SUPER)
-    return Qsuper;
-  else if (m == CHAR_CTL)
-    return Qcontrol;
-  else if (m == CHAR_ALT)
-    return Qalt;
-  else if (m == CHAR_HYPER)
-    return Qhyper;
-  else /* if (m == 0) */
-    return Qnone;
 }
 
 
@@ -3874,7 +3837,7 @@ ns_default (const char *parameter, Lisp_Object *result,
 }
 
 
-void
+static void
 ns_initialize_display_info (struct ns_display_info *dpyinfo)
 /* --------------------------------------------------------------------------
       Initialize global info and storage for display.
@@ -3963,7 +3926,6 @@ static void
 ns_delete_terminal (struct terminal *terminal)
 {
   struct ns_display_info *dpyinfo = terminal->display_info.ns;
-  int i;
 
   /* Protect against recursive calls.  delete_frame in
      delete_terminal calls us back when it deletes our last frame.  */
@@ -4124,7 +4086,6 @@ ns_term_init (Lisp_Object display_name)
     if ( cl == nil )
       {
         Lisp_Object color_file, color_map, color;
-        int r,g,b;
         unsigned long c;
         char *name;
 
@@ -4141,7 +4102,7 @@ ns_term_init (Lisp_Object display_name)
         for ( ; CONSP (color_map); color_map = XCDR (color_map))
           {
             color = XCAR (color_map);
-            name = SDATA (XCAR (color));
+            name = SSDATA (XCAR (color));
             c = XINT (XCDR (color));
             [cl setColor:
                   [NSColor colorWithCalibratedRed: RED_FROM_ULONG (c) / 255.0
@@ -4253,7 +4214,7 @@ ns_term_shutdown (int sig)
 
   /* code not reached in emacs.c after this is called by shut_down_emacs: */
   if (STRINGP (Vauto_save_list_file_name))
-    unlink (SDATA (Vauto_save_list_file_name));
+    unlink (SSDATA (Vauto_save_list_file_name));
 
   if (sig == 0 || sig == SIGTERM)
     {
@@ -4600,7 +4561,7 @@ ns_term_shutdown (int sig)
 {
   [ns_pending_service_names addObject: userData];
   [ns_pending_service_args addObject: [NSString stringWithUTF8String:
-      SDATA (ns_string_from_pasteboard (pboard))]];
+      SSDATA (ns_string_from_pasteboard (pboard))]];
 }
 
 
@@ -4664,8 +4625,8 @@ ns_term_shutdown (int sig)
   if (!emacs_event)
     return;
 
-  if (newFont = [sender convertFont:
-                           ((struct nsfont_info *)face->font)->nsfont])
+  if ((newFont = [sender convertFont:
+                           ((struct nsfont_info *)face->font)->nsfont]))
     {
       SET_FRAME_GARBAGED (emacsframe); /* now needed as of 2008/10 */
 
@@ -5141,7 +5102,6 @@ ns_term_shutdown (int sig)
 - (void)mouseDown: (NSEvent *)theEvent
 {
   NSPoint p = [self convertPoint: [theEvent locationInWindow] fromView: nil];
-  Lisp_Object window;
 
   NSTRACE (mouseDown);
 
@@ -5371,9 +5331,9 @@ ns_term_shutdown (int sig)
 
 - (void)windowDidResize: (NSNotification *)notification
 {
+#ifdef NS_IMPL_GNUSTEP
   NSWindow *theWindow = [notification object];
 
-#ifdef NS_IMPL_GNUSTEP
    /* in GNUstep, at least currently, it's possible to get a didResize
       without getting a willResize.. therefore we need to act as if we got
       the willResize now */
@@ -5493,7 +5453,6 @@ ns_term_shutdown (int sig)
   Lisp_Object tem;
   NSWindow *win;
   NSButton *toggleButton;
-  int vbextra = NS_SCROLL_BAR_WIDTH (f);
   NSSize sz;
   NSColor *col;
   NSString *name;
@@ -5546,7 +5505,7 @@ ns_term_shutdown (int sig)
 
   tem = f->name;
   name = [NSString stringWithUTF8String:
-                   NILP (tem) ? (unsigned char *)"Emacs" : SDATA (tem)];
+                   NILP (tem) ? "Emacs" : SSDATA (tem)];
   [win setTitle: name];
 
   /* toolbar support */
@@ -5565,7 +5524,7 @@ ns_term_shutdown (int sig)
   tem = f->icon_name;
   if (!NILP (tem))
     [win setMiniwindowTitle:
-           [NSString stringWithUTF8String: SDATA (tem)]];
+           [NSString stringWithUTF8String: SSDATA (tem)]];
 
   {
     NSScreen *screen = [win screen];
@@ -5710,18 +5669,13 @@ ns_term_shutdown (int sig)
 
 - (void)mouseEntered: (NSEvent *)theEvent
 {
-  NSPoint p = [self convertPoint: [theEvent locationInWindow] fromView: nil];
-  struct ns_display_info *dpyinfo = FRAME_NS_DISPLAY_INFO (emacsframe);
   NSTRACE (mouseEntered);
-
   last_mouse_movement_time = EV_TIMESTAMP (theEvent);
 }
 
 
 - (void)mouseExited: (NSEvent *)theEvent
 {
-  NSPoint p = [self convertPoint: [theEvent locationInWindow] fromView: nil];
-  NSRect r;
   Mouse_HLInfo *hlinfo = emacsframe ? MOUSE_HL_INFO (emacsframe) : NULL;
 
   NSTRACE (mouseExited);
@@ -5744,10 +5698,14 @@ ns_term_shutdown (int sig)
   NSTRACE (menuDown);
   if (context_menu_value == -1)
     context_menu_value = [sender tag];
-  else
-    find_and_call_menu_selection (emacsframe, emacsframe->menu_bar_items_used,
-                                  emacsframe->menu_bar_vector,
-                                  (void *)[sender tag]);
+  else 
+    {
+      NSInteger tag = [sender tag];
+      find_and_call_menu_selection (emacsframe, emacsframe->menu_bar_items_used,
+                                    emacsframe->menu_bar_vector,
+                                    (void *)tag);
+    }
+
   ns_send_appdefined (-1);
   return self;
 }

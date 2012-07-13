@@ -1,5 +1,77 @@
 2012-07-13  Jan Djärv  <jan.h.d@swipnet.se>
 
+	* nsterm.m (uRect): Only define if NS_IMPL_GNUSTEP.
+	(x_free_frame_resources): Pass x_free_frame_resources to NSTRACE.
+	(ns_lisp_to_color, ns_string_to_lispmod, ns_term_init)
+	(ns_term_shutdown, requestService, initFrameFromEmacs): Use SSDATA
+	where appropriate.
+	(ns_exec_path, ns_load_path, changeFont): Put () around assignment used
+	as boolean expression.
+	(x_set_window_size): Remove unused variable toolbar.
+	(ns_get_color_default, ns_mod_to_lisp): Remove.
+	(ns_mouse_position): Remove unused variables xchar and ychar.
+	(ns_compute_glyph_string_overhangs): Remove unused variable face.
+	(ns_set_vertical_scroll_bar): Remove unused variable count.
+	(ns_delete_terminal): Remove unused variable i.
+	(ns_term_init): Remove unused variables r, g and b.
+	(mouseDown): Remove unused variable window.
+	(windowDidResize): Move definition of theWindow inside NS_IMPL_GNUSTEP.
+	(initFrameFromEmacs): Remove unused variable vbextra.
+	(mouseEntered): Remove unused variables p and dpyinfo.
+	(mouseExited): Remove unused variables p and r.
+	(ns_define_frame_cursor, ns_clear_frame_area)
+	(ns_draw_window_cursor, ns_initialize_display_info): Make static.
+	(menuDown): Assign [sender tag] to variable and cast the variable.
+
+	* nsterm.h (menuDown): Add id as type to argument sender.
+	(ns_display_info_for_name): Add Lisp_Object argument.
+	(ns_term_init): Add Lisp_Object argument.
+	(ns_map_event_to_object): Add void argument.
+	(ns_string_from_pasteboard, ns_string_to_pasteboard): Add correct
+	prototype with arguments and only declare if __OBJC__.
+	(nxatoms_of_nsselect): Add void argument.
+	(ns_lisp_to_cursor_type): Add Lisp_Object argument.
+	(ns_alloc_autorelease_pool): Add void argument.
+	(ns_release_autorelease_pool): Add void* argument.
+	(ns_get_defaults_value): Add const char* argument.
+
+	* nsmenu.m (ns_update_menubar, ns_menu_show, process_dialog)
+	(initFromContents): Use SSDATA where appropriate.
+	(ns_update_menubar): Add braces to ambigous if-else.
+	(initWithTitle): Put () around assignment in if statement.
+	(ns_menu_show): Remove unused variables window and keymap.
+	(update_frame_tool_bar): Remove unused variable selected_p.
+	(initWithContentRect): Remove unused variable this_cmd_name.
+
+	* nsimage.m (ns_load_image, allocInitFromFile): Use SSDATA where
+	appropriate.
+	(setXBMColor): Remove unused variable len.
+	(setPixmapData): Put () around assignment in loop statement.
+
+	* nsfont.m (ns_get_family, ns_lang_to_script, ns_otf_to_script)
+	(ns_registry_to_script, ns_get_req_script, nsfont_open): Use SSDATA
+	where appropriate.
+	(ns_get_covering_families, ns_findfonts, nsfont_list_family): Put ()
+	around assignment in loop statement.
+	(nsfont_open): Remove unused variable i.
+	(nsfont_open): Remove unused variable len.
+	(nsfont_draw): Remove unused variable cs.
+
+	* nsfns.m (x_set_icon_name, ns_set_name_internal)
+	(ns_set_name_as_filename, ns_implicitly_set_icon_type)
+	(x_set_icon_type, ns_lisp_to_cursor_type, Fns_read_file_name)
+	(Fns_get_resource, Fns_set_resource, Fx_open_connection)
+	(Fns_font_name, Fns_perform_service)
+	(Fns_convert_utf8_nfd_to_nfc, ns_do_applescript)
+	(Fns_do_applescript, Fx_show_tip): Use SSDATA where appropriate.
+	(ns_set_name): Remove unused variable view.
+	(x_set_menu_bar_lines): Remove unused variable olines.
+	(x_set_tool_bar_lines): Remove unused variable root_window.
+	(Fns_list_colors): Put () around assignment in while statement.
+	(Fns_perform_service): Remove unused variable len.
+	(Fns_display_usable_bounds): Remove unused variable top.
+	(syms_of_nsfns): Remove unused variable i.
+
 	* nsmenu.m (ns_update_menubar): Exchange place of argument 2 and 3 to
 	memcpy (Bug#11907).
 

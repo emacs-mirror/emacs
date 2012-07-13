@@ -96,7 +96,7 @@ ns_load_image (struct frame *f, struct image *img,
     {
       NSData *data;
 
-      data = [NSData dataWithBytes: SDATA (spec_data)
+      data = [NSData dataWithBytes: SSDATA (spec_data)
 			    length: SBYTES (spec_data)];
       eImg = [[EmacsImage alloc] initWithData: data];
       [eImg setPixmapData];
@@ -171,7 +171,7 @@ static EmacsImage *ImageList = nil;
 
   /* look for an existing image of the same name */
   while (image != nil &&
-         [[image name] compare: [NSString stringWithUTF8String: SDATA (file)]]
+         [[image name] compare: [NSString stringWithUTF8String: SSDATA (file)]]
              != NSOrderedSame)
     image = [image imageListNext];
 
@@ -187,7 +187,7 @@ static EmacsImage *ImageList = nil;
     return nil;
 
   image = [[EmacsImage alloc] initByReferencingFile:
-                     [NSString stringWithUTF8String: SDATA (found)]];
+                     [NSString stringWithUTF8String: SSDATA (found)]];
 
 #if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_6
   imgRep = [NSBitmapImageRep imageRepWithData:[image TIFFRepresentation]];
@@ -205,7 +205,7 @@ static EmacsImage *ImageList = nil;
   [image setScalesWhenResized: YES];
   [image setSize: NSMakeSize([imgRep pixelsWide], [imgRep pixelsHigh])];
 
-  [image setName: [NSString stringWithUTF8String: SDATA (file)]];
+  [image setName: [NSString stringWithUTF8String: SSDATA (file)]];
   [image reference];
   ImageList = [image imageListSetNext: ImageList];
 
@@ -334,7 +334,6 @@ static EmacsImage *ImageList = nil;
 - setXBMColor: (NSColor *)color
 {
   NSSize s = [self size];
-  int len = (int) s.width * s.height;
   unsigned char *planes[5];
   CGFloat r, g, b, a;
   NSColor *rgbColor;
@@ -400,7 +399,7 @@ static EmacsImage *ImageList = nil;
   NSImageRep *rep;
 
   reps = [[self representations] objectEnumerator];
-  while (rep = (NSImageRep *) [reps nextObject])
+  while ((rep = (NSImageRep *) [reps nextObject]))
     {
       if ([rep respondsToSelector: @selector (getBitmapDataPlanes:)])
         {
