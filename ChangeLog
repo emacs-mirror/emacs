@@ -1,5 +1,7 @@
 2012-07-13  Glenn Morris  <rgm@gnu.org>
 
+	* configure.ac (opsysfile): Set to empty on gnu, cygwin.
+
 	* configure.ac (BSD4_2, BSD_SYSTEM, USG, USG5, _AIX, CYGWIN)
 	(DARWIN_OS, GNU_LINUX, HPUX, IRIX6_5, SOLARIS2):
 	Move "system type" macros here from src/s.

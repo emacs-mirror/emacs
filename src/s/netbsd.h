@@ -17,10 +17,6 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
-
-/* Get most of the stuff from bsd-common.  */
-#include "bsd-common.h"
-
 /* Greg A. Woods <woods@weird.com> says we must include signal.h
    before syssignal.h is included, to work around interface conflicts
    that are handled with CPP __RENAME() macro in signal.h.  */

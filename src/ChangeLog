@@ -1,5 +1,8 @@
 2012-07-13  Glenn Morris  <rgm@gnu.org>
 
+	* s/bsd-common, s/cygwin.h: Remove empty files.
+	* s/freebsd.h, s/netbsd.h: Do not include bsd-common.h.
+
 	* s/usg5-4-common.h (USG, USG5):
 	* s/template.h (USG5, USG, HPUX, BSD4_2, BSD_SYSTEM):
 	* s/sol2-6.h (SOLARIS2):

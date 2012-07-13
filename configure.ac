@@ -3615,6 +3615,7 @@ case $opsys in
     ;;
 
   cygwin)
+    opsysfile=
     AC_DEFINE(CYGWIN, 1, [Define if the system is Cygwin.])
     ;;
 
@@ -3687,7 +3688,7 @@ case $opsys in
       using GTK.])
     ;;
 
-  gnu) opsysfile="s/bsd-common.h" ;;
+  gnu) opsysfile= ;;
 
   gnu-kfreebsd) opsysfile="s/gnu-linux.h" ;;
 
