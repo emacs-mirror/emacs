@@ -132,6 +132,15 @@ displayed correctly."
   :type 'boolean
   :group 'todos)
 
+(defcustom todos-undo-item-omit-comment 'ask
+  "Whether to omit done item comment on undoing the item.
+Nil means never omit the comment, t means always omit it, `ask'
+means prompt user and omit comment only on confirmation."
+  :type '(choice (const :tag "Never" nil)
+		 (const :tag "Always" t)
+		 (const :tag "Ask" ask))
+  :group 'todos)
+
 (defcustom todos-print-function 'ps-print-buffer-with-faces
   "Function called to print buffer content; see `todos-print'."
   :type 'symbol
@@ -1288,6 +1297,41 @@ editing or a bug in todos.el."
   (interactive)
   (let ((todos-categories (todos-make-categories-list t)))
     (todos-update-categories-sexp)))
+
+(defvar todos-allcats-file (concat todos-files-directory "todos-allcats.el")
+  "Name of file containing the value of `todos-all-categories-alist'.
+The contents of this file are automatically generated and
+executed when todos.el is loaded, hence users should not edit
+it.")
+
+(defun todos-all-categories-alist ()
+  ""
+  ;; FIXME: loop through archive files for categories not in todo files?
+  (let ((files todos-files)
+	allcats)
+    (dolist (f files)
+      ;; FIXME: If file buffer is modified, save first.
+      (with-temp-buffer
+	(insert-file-contents f)
+	(let ((cats (read (buffer-substring-no-properties
+			   (line-beginning-position)
+			   (line-end-position)))))
+	  (dolist (c cats)
+	    (let* ((cat (assoc (car c) allcats))
+		   (catcdr (cdr cat)))
+	      (unless (listp catcdr) (setq catcdr (list catcdr)))
+	      (if cat
+		  (setcdr cat (append catcdr (list (todos-short-file-name f))))
+		(setq allcats (append allcats
+				      (list
+				       (cons (car c)
+					     (todos-short-file-name f)))))))))))
+    allcats))
+
+(defvar todos-all-categories-alist (if (file-exists-p todos-allcats-file)
+				       (load-file todos-allcats-file)
+				     (todos-all-categories-alist))
+  "Alist of names of all Todos categories and their files.")
 
 ;;; Global variables and helper functions for items
 
@@ -3157,6 +3201,31 @@ The category is chosen by prompt, with TAB completion."
   (interactive)
   (todos-jump-to-category nil t))
 
+(defun todos-jump-to-any-category ()
+  ""
+  (interactive)
+  (let* ((cats-alist todos-all-categories-alist)
+	 (cats (mapcar 'car cats-alist))
+	 (completion-ignore-case todos-completion-ignore-case)
+	 (cat (completing-read "Jump to category: " cats nil t))
+	 (files (if (zerop (length cat))
+		    (keyboard-quit)
+		  (cdr (assoc cat cats-alist))))
+	 (file (if (nlistp files)
+		   files
+		 (completing-read (format "Jump to \"%s\" in which file? " cat)
+				  files nil t))))
+    (if (zerop (length file))
+	(keyboard-quit)
+      (setq file (concat todos-files-directory file ".todo"))
+      (set-window-buffer (selected-window)
+			 (set-buffer (find-file-noselect file)))
+      (unless todos-global-current-todos-file
+	(setq todos-global-current-todos-file todos-current-todos-file))
+      (todos-category-number cat)
+      (todos-category-select)
+	(goto-char (point-min)))))
+
 (defun todos-jump-to-item ()
   "Jump to the file and category of the filtered item at point."
   (interactive)
@@ -4733,7 +4802,12 @@ entry/entries in that category."
 		  (while (< (point) end)
 		    (if (todos-marked-item-p)
 			(todos-remove-item)
-		      (todos-forward-item))))
+		      (todos-forward-item)))
+		  ;; FIXME: does this work?
+		  (remove-overlays (point-min) (point-max)
+				   'before-string todos-item-mark)
+		  (setq todos-categories-with-marks
+			(assq-delete-all cat todos-categories-with-marks)))
 	      (if ov (delete-overlay ov))
 	      (todos-remove-item))))
 	(todos-update-count 'todo (- count) cat1)
@@ -4886,9 +4960,11 @@ the restored item."
 				 ": [^]]+\\]") end t)
 		    (if (eq first 'first)
 			(setq first
-			      ;; FIXME: make this a user option?
-			      (when (y-or-n-p "Omit comment from restored item? ")
-				'omit))
+			      (if (eq todos-undo-item-omit-comment 'ask)
+				  (when (y-or-n-p
+					 "Omit comment from restored item? ")
+				    'omit)
+				(when todos-undo-item-omit-comment 'omit)))
 		      t)
 		    (when (eq first 'omit)
 		      (delete-region (match-beginning 0) (match-end 0))

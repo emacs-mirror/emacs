@@ -1,5 +1,15 @@
 2012-09-24  Stephen Berman  <stephen.berman@gmx.net>
 
+	* calendar/todos.el (todos-undo-item-omit-comment): New defcustom.
+	(todos-item-undo): Use it.
+	(todos-allcats-file, todos-all-categories-alist): New variables.
+	(todos-all-categories-alist): New function.
+	(todos-jump-to-any-category): New command.
+	(todos-move-item): Remove mark overlays from buffer items were
+	moved from; update todos-categories-with-marks,
+
+2012-09-24  Stephen Berman  <stephen.berman@gmx.net>
+
 	* calendar/todos.el: Further code rearrangement; further new and
 	revised comments.
 	(todos-reevaluate-filelist-defcustoms): Rename from
