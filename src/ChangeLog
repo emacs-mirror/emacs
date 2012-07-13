@@ -1,3 +1,8 @@
+2012-07-13  Kalle Kankare <kalle.kankare@iki.fi> (tiny change)
+
+	* image.c (Fimagemagick_types): Initialize ex with GetExceptionInfo
+	and free it with DestroyExceptionInfo (Bug#11558).
+
 2012-07-13  Juanma Barranquero  <lekktu@gmail.com>
 
 	* s/ms-w32.h (FIRST_PTY_LETTER, HAVE_SOCKETS): Move to nt/config.nt.

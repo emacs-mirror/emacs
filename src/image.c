@@ -7968,9 +7968,14 @@ and `imagemagick-types-inhibit'.  */)
   Lisp_Object typelist = Qnil;
   size_t numf = 0;
   ExceptionInfo ex;
-  char **imtypes = GetMagickList ("*", &numf, &ex);
+  char **imtypes;
   size_t i;
   Lisp_Object Qimagemagicktype;
+
+  GetExceptionInfo(&ex);
+  imtypes = GetMagickList ("*", &numf, &ex);
+  DestroyExceptionInfo(&ex);
+
   for (i = 0; i < numf; i++)
     {
       Qimagemagicktype = intern (imtypes[i]);
