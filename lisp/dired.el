@@ -1956,15 +1956,14 @@ You can use it to recover marks, killed lines or subdirs."
 Actual changes in files cannot be undone by Emacs."))
 
 (defun dired-toggle-read-only ()
-  "Edit dired buffer with Wdired, or set it read-only.
-Call `wdired-change-to-wdired-mode' in dired buffers whose editing is
-supported by Wdired (the major mode of the dired buffer is `dired-mode').
-Otherwise, for buffers inheriting from dired-mode, call `toggle-read-only'."
+  "Edit Dired buffer with Wdired, or make it read-only.
+If the current buffer can be edited with Wdired, (i.e. the major
+mode is `dired-mode'), call `wdired-change-to-wdired-mode'.
+Otherwise, call `toggle-read-only'."
   (interactive)
   (if (eq major-mode 'dired-mode)
       (wdired-change-to-wdired-mode)
-    (with-no-warnings
-      (toggle-read-only))))
+    (toggle-read-only nil t)))
 
 (defun dired-next-line (arg)
   "Move down lines then position at filename.

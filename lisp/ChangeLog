@@ -1,3 +1,33 @@
+2012-07-13  Chong Yidong  <cyd@gnu.org>
+
+	* files.el (toggle-read-only): Doc fix and code cleanup.  New arg
+	to allow printing the message when called from Lisp.
+
+	* emacs-lisp/bytecomp.el (byte-compile-interactive-only-functions):
+	Remove toggle-read-only.
+
+	* bs.el (bs-toggle-readonly):
+	* buff-menu.el (Buffer-menu-toggle-read-only): Remove
+	with-no-warnings around toggle-read-only.
+
+	* ffap.el (ffap--toggle-read-only): Accept a list of buffers.
+	Remove with-no-warnings around toggle-read-only.
+	(ffap-read-only, ffap-read-only-other-window)
+	(ffap-read-only-other-frame): Callers changed.
+
+	* help-mode.el: Don't require view package.
+	(help-mode-finish): Set buffer-read-only instead of calling
+	toggle-read-only.
+
+	* bindings.el (mode-line-toggle-read-only):
+	* dired.el (dired-toggle-read-only):
+	* ibuffer.el (ibuffer-do-toggle-read-only): Call toggle-read-only
+	with non-nil second arg.
+
+	* emacs-lisp/eieio-custom.el (eieio-customize-object):
+	* vc/ediff.el (ediff-set-read-only-in-buf-A): Set buffer-read-only
+	directly.
+
 2012-07-12  Eli Zaretskii  <eliz@gnu.org>
 
 	* emacs-lisp/bytecomp.el (byte-recompile-directory): Use cl-incf,

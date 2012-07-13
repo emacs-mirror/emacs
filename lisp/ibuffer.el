@@ -1283,7 +1283,7 @@ With optional ARG, make read-only only if ARG is positive."
   (:opstring "toggled read only status in"
    :interactive "P"
    :modifier-p t)
-  (toggle-read-only arg))
+  (toggle-read-only arg t))
 
 (define-ibuffer-op ibuffer-do-delete ()
   "Kill marked buffers as with `kill-this-buffer'."

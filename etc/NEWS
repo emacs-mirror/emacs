@@ -476,6 +476,9 @@ still be supported for Emacs 24.x.
 
 * Lisp changes in Emacs 24.2
 
+** `toggle-read-only' accepts a second argument specifying whether to
+print a message, if called from Lisp.
+
 ** CL-style generalized variables are now in core Elisp.
 `setf' is autoloaded and `push' and `pop' accept generalized variables.
 

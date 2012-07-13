@@ -30,7 +30,6 @@
 ;;; Code:
 
 (require 'button)
-(require 'view)
 (eval-when-compile (require 'easymenu))
 
 (defvar help-mode-map
@@ -288,10 +287,7 @@ Commands:
 ;;;###autoload
 (defun help-mode-finish ()
   (when (eq major-mode 'help-mode)
-    ;; View mode's read-only status of existing *Help* buffer is lost
-    ;; by with-output-to-temp-buffer.
-    (toggle-read-only 1)
-
+    (setq buffer-read-only t)
     (save-excursion
       (goto-char (point-min))
       (let ((inhibit-read-only t))

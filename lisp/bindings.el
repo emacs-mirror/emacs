@@ -40,7 +40,7 @@ corresponding to the mode line clicked."
   (interactive "e")
   (save-selected-window
     (select-window (posn-window (event-start event)))
-    (with-no-warnings (toggle-read-only))
+    (toggle-read-only nil t)
     (force-mode-line-update)))
 
 (defun mode-line-toggle-modified (event)

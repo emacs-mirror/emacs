@@ -1698,9 +1698,11 @@ Only intended for interactive use."
       (set-window-dedicated-p win wdp))
     value))
 
-(defun ffap--toggle-read-only (buffer)
-  (with-current-buffer buffer
-    (with-no-warnings
+(defun ffap--toggle-read-only (buffer-or-list)
+  (dolist (buffer (if (listp buffer-or-list)
+		      buffer-or-list
+		    (list buffer-or-list)))
+    (with-current-buffer buffer
       (toggle-read-only 1))))
 
 (defun ffap-read-only ()
@@ -1710,8 +1712,7 @@ Only intended for interactive use."
   (let ((value (call-interactively 'ffap)))
     (unless (or (bufferp value) (bufferp (car-safe value)))
       (setq value (current-buffer)))
-    (mapc #'ffap--toggle-read-only
-	  (if (listp value) value (list value)))
+    (ffap--toggle-read-only value)
     value))
 
 (defun ffap-read-only-other-window ()
@@ -1719,8 +1720,7 @@ Only intended for interactive use."
 Only intended for interactive use."
   (interactive)
   (let ((value (ffap-other-window)))
-    (mapc #'ffap--toggle-read-only
-	  (if (listp value) value (list value)))
+    (ffap--toggle-read-only value)
     value))
 
 (defun ffap-read-only-other-frame ()
@@ -1728,8 +1728,7 @@ Only intended for interactive use."
 Only intended for interactive use."
   (interactive)
   (let ((value (ffap-other-frame)))
-    (mapc #'ffap--toggle-read-only
-	  (if (listp value) value (list value)))
+    (ffap--toggle-read-only value)
     value))
 
 (defun ffap-alternate-file ()

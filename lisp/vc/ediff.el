@@ -152,7 +152,7 @@
 ;; Used as a startup hook to set `_orig' patch file read-only.
 (defun ediff-set-read-only-in-buf-A ()
   (ediff-with-current-buffer ediff-buffer-A
-    (toggle-read-only 1)))
+    (setq buffer-read-only t)))
 
 ;; Return a plausible default for ediff's first file:
 ;; In dired, return the file number FILENO (or 0) in the list

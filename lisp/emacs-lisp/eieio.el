@@ -3040,7 +3040,7 @@ Optional argument NOESCAPE is passed to `prin1-to-string' when appropriate."
 ;;; Start of automatically extracted autoloads.
 
 ;;;### (autoloads (customize-object) "eieio-custom" "eieio-custom.el"
-;;;;;;  "9cf80224540c52045d515a4c2c833543")
+;;;;;;  "928623502e8bf40454822355388542b5")
 ;;; Generated autoloads from eieio-custom.el
 
 (autoload 'customize-object "eieio-custom" "\

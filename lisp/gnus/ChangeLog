@@ -1,3 +1,8 @@
+2012-07-13  Chong Yidong  <cyd@gnu.org>
+
+	* smime.el (smime-certificate-info): Set buffer-read-only directly,
+	instead of calling toggle-read-only with a (bogus) argument.
+
 2012-07-09  Tassilo Horn  <tassilo@member.fsf.org>
 
 	* gnus-sum.el (gnus-summary-limit-to-author): Use default value instead

@@ -1,3 +1,9 @@
+2012-07-13  Chong Yidong  <cyd@gnu.org>
+
+	* buffers.texi (Read Only Buffers): Document toggle-read-only
+	changes.  Reword to account for the fact that read-only is
+	currently not supported in overlay properties.
+
 2012-07-07  Chong Yidong  <cyd@gnu.org>
 
 	* loading.texi (Library Search): Index site-lisp directories.

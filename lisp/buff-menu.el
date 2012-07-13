@@ -515,11 +515,12 @@ The current window remains selected."
     (bury-buffer menu)))
 
 (defun Buffer-menu-toggle-read-only ()
-  "Toggle read-only status of buffer on this line."
+  "Toggle read-only status of buffer on this line.
+This behaves like invoking \\[toggle-read-only] in that buffer."
   (interactive)
   (let (read-only)
     (with-current-buffer (Buffer-menu-buffer t)
-      (with-no-warnings (toggle-read-only))
+      (toggle-read-only)
       (setq read-only buffer-read-only))
     (tabulated-list-set-col 1 (if read-only "%" " ") t)))
 

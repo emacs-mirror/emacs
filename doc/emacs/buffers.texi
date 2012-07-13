@@ -232,11 +232,14 @@ have special commands to operate on the text; also by visiting a file
 whose access control says you cannot write it.
 
 @findex toggle-read-only
+@vindex view-read-only
  The command @kbd{C-x C-q} (@code{toggle-read-only}) makes a read-only
 buffer writable, and makes a writable buffer read-only.  This works by
 setting the variable @code{buffer-read-only}, which has a local value
 in each buffer and makes the buffer read-only if its value is
-non-@code{nil}.
+non-@code{nil}.  If you change the option @code{view-read-only} to a
+non-@code{nil} value, making the buffer read-only with @kbd{C-x C-q}
+also enables View mode in the buffer (@pxref{View Mode}).
 
 @findex rename-buffer
   @kbd{M-x rename-buffer} changes the name of the current buffer.  You

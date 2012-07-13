@@ -345,7 +345,7 @@ These groups are specified with the `:group' slot flag."
 		       (concat "*CUSTOMIZE "
 			       (object-name obj) " "
 			       (symbol-name g) "*")))
-    (toggle-read-only -1)
+    (setq buffer-read-only nil)
     (kill-all-local-variables)
     (erase-buffer)
     (let ((all (overlay-lists)))

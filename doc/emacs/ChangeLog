@@ -1,3 +1,7 @@
+2012-07-13  Chong Yidong  <cyd@gnu.org>
+
+	* buffers.texi (Misc Buffer): Document view-read-only.
+
 2012-07-07  Chong Yidong  <cyd@gnu.org>
 
 	* custom.texi (Init File): Index site-lisp (Bug#11435).
