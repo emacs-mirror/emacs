@@ -19243,7 +19243,7 @@ _ACEOF
 fi
 
   test $ac_cv_lib_Xmu_XmuConvertStandardSelection = no && LIBS="$OLDLIBS"
-fi
+  fi
 
 
 LIBXMU=-lXmu
@@ -22634,12 +22634,35 @@ $as_echo "#define HAVE_SOCKETS 1" >>confdefs.h
 
 
 
+
+
+case $opsys in
+  aix4-2)
+        if test x$ac_cv_lib_Xmu_XmuConvertStandardSelection != xyes; then
+      $as_echo "#define NO_EDITRES 1" >>confdefs.h
+
+    fi
+    ;;
+
+  hpux*)
+            $as_echo "#define NO_EDITRES 1" >>confdefs.h
+
+    ;;
+esac
+
+
 case $opsys in
   darwin | gnu | hpux* | *bsd )
 
 $as_echo "#define NO_TERMIO 1" >>confdefs.h
 
-  ;;
+    ;;
+
+  irix6-5 | sol2* | unixware )
+
+$as_echo "#define NSIG_MINIMUM 32" >>confdefs.h
+
+    ;;
 esac
 
 
@@ -22775,6 +22798,9 @@ case $opsys in
 
   gnu-linux | gnu-kfreebsd )
         if test "x$ac_cv_func_grantpt" = xyes; then
+
+$as_echo "#define UNIX98_PTYS 1" >>confdefs.h
+
       $as_echo "#define PTY_ITERATION int i; for (i = 0; i < 1; i++) " >>confdefs.h
 
                   $as_echo "#define PTY_TTY_NAME_SPRINTF { char *ptyname; sigblock (sigmask (SIGCHLD)); if (grantpt (fd) == -1 || unlockpt (fd) == -1 || !(ptyname = ptsname(fd))) { sigunblock (sigmask (SIGCHLD)); close (fd); return -1; } snprintf (pty_name, sizeof pty_name, \"%s\", ptyname); sigunblock (sigmask (SIGCHLD)); } " >>confdefs.h
@@ -22996,6 +23022,7 @@ esac
 
 
 
+
 case $opsys in
   darwin) $as_echo "#define TAB3 OXTABS" >>confdefs.h
  ;;
@@ -23008,9 +23035,37 @@ $as_echo "#define TABDLY OXTABS" >>confdefs.h
 
     ;;
 
+  gnu-linux | gnu-kfreebsd )
+            cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+#ifndef __i386__
+# error "not i386"
+#endif
+
+int
+main ()
+{
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_cpp "$LINENO"; then :
+  $as_echo "#define ULIMIT_BREAK_VALUE (32*1024*1024)" >>confdefs.h
+
+fi
+rm -f conftest.err conftest.$ac_ext
+    ;;
+
   hpux*)
 
 $as_echo "#define RUN_TIME_REMAP 1" >>confdefs.h
+
+    ;;
+
+  irix6-5)
+        $as_echo "#define ULIMIT_BREAK_VALUE 0x14000000" >>confdefs.h
 
     ;;
 esac
@@ -23025,6 +23080,141 @@ $as_echo "#define XOS_NEEDS_TIME_H 1" >>confdefs.h
 esac
 
 
+
+
+
+
+
+case $opsys in
+  aix4-2)
+    $as_echo "#define USG /**/" >>confdefs.h
+
+    $as_echo "#define USG5 /**/" >>confdefs.h
+
+        cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+#ifndef _AIX
+# error "_AIX not defined"
+#endif
+
+int
+main ()
+{
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_cpp "$LINENO"; then :
+
+else
+
+$as_echo "#define _AIX /**/" >>confdefs.h
+
+fi
+rm -f conftest.err conftest.$ac_ext
+    ;;
+
+  cygwin)
+    opsysfile=
+
+$as_echo "#define CYGWIN 1" >>confdefs.h
+
+    ;;
+
+  darwin)
+        $as_echo "#define BSD4_2 /**/" >>confdefs.h
+
+    $as_echo "#define BSD_SYSTEM /**/" >>confdefs.h
+
+
+$as_echo "#define DARWIN_OS /**/" >>confdefs.h
+
+    ;;
+
+  freebsd)
+    $as_echo "#define BSD4_2 /**/" >>confdefs.h
+
+
+$as_echo "#define BSD_SYSTEM_AHB 1" >>confdefs.h
+
+    ;;
+
+  gnu | netbsd | openbsd )
+    $as_echo "#define BSD4_2 /**/" >>confdefs.h
+
+    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+#ifndef BSD_SYSTEM
+# error "BSD_SYSTEM not defined"
+#endif
+
+int
+main ()
+{
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_cpp "$LINENO"; then :
+
+else
+  $as_echo "#define BSD_SYSTEM 43" >>confdefs.h
+
+fi
+rm -f conftest.err conftest.$ac_ext
+    ;;
+
+  gnu-linux | gnu-kfreebsd )
+    $as_echo "#define USG /**/" >>confdefs.h
+
+
+$as_echo "#define GNU_LINUX /**/" >>confdefs.h
+
+    ;;
+
+  hpux*)
+    $as_echo "#define USG /**/" >>confdefs.h
+
+    $as_echo "#define USG5 /**/" >>confdefs.h
+
+
+$as_echo "#define HPUX /**/" >>confdefs.h
+
+    ;;
+
+  irix6-5)
+    $as_echo "#define USG /**/" >>confdefs.h
+
+    $as_echo "#define USG5 /**/" >>confdefs.h
+
+
+$as_echo "#define IRIX6_5 /**/" >>confdefs.h
+
+    ;;
+
+  sol2*)
+    $as_echo "#define USG /**/" >>confdefs.h
+
+    $as_echo "#define USG5 /**/" >>confdefs.h
+
+
+$as_echo "#define SOLARIS2 /**/" >>confdefs.h
+
+    ;;
+
+  unixware)
+    $as_echo "#define USG /**/" >>confdefs.h
+
+    $as_echo "#define USG5 /**/" >>confdefs.h
+
+    ;;
+esac
+
+
 case $opsys in
           cygwin)
 
@@ -23032,7 +23222,7 @@ $as_echo "#define G_SLICE_ALWAYS_MALLOC 1" >>confdefs.h
 
     ;;
 
-  gnu) opsysfile="s/bsd-common.h" ;;
+  gnu) opsysfile= ;;
 
   gnu-kfreebsd) opsysfile="s/gnu-linux.h" ;;
 
