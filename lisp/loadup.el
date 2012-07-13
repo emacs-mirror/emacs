@@ -374,9 +374,7 @@
 (if (or (member (nth 3 command-line-args) '("dump" "bootstrap"))
 	(member (nth 4 command-line-args) '("dump" "bootstrap")))
     (progn
-      (if (memq system-type '(ms-dos windows-nt cygwin))
-          (message "Dumping under the name emacs")
-        (message "Dumping under the name emacs"))
+      (message "Dumping under the name emacs")
       (condition-case ()
 	  (delete-file "emacs")
 	(file-error nil))
