@@ -1,7 +1,6 @@
-2012-07-13  Paul Eggert  <eggert@cs.ucla.edu>
+2012-07-13  BT Templeton  <bpt@hcoop.net>  (tiny change)
 
 	* nsfont.m (ns_charset_covers): Don't abort if no bitmap (Bug#11853).
-	Report and trivial fix by BT Templeton.
 
 2012-07-13  Glenn Morris  <rgm@gnu.org>
 
