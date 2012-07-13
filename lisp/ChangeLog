@@ -1,3 +1,7 @@
+2012-07-13  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* emacs-lisp/cl.el (labels): Remove spurious quote.  (Bug#11938)
+
 2012-07-13  Juanma Barranquero  <lekktu@gmail.com>
 
 	* bindings.el (top): Use `mapc' instead of `mapcar'.

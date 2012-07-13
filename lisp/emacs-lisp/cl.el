@@ -489,7 +489,7 @@ will not work - use `labels' instead" (symbol-name (car x))))
   "Make temporary function bindings.
 Like `cl-labels' except that the lexical scoping is handled via `lexical-let'
 rather than relying on `lexical-binding'."
-  (declare (indent 1) (debug cl-flet) (obsolete 'cl-labels "24.2"))
+  (declare (indent 1) (debug cl-flet) (obsolete cl-labels "24.2"))
   (let ((vars nil) (sets nil) (newenv macroexpand-all-environment))
     (dolist (binding bindings)
       ;; It's important that (not (eq (symbol-name var1) (symbol-name var2)))
