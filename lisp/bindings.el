@@ -657,14 +657,14 @@ okay.  See `mode-line-format'.")
 ;; For consistency, we give them the `permanent-local' property, even
 ;; though `kill-all-local-variables' does not actually consult it.
 
-(mapcar (lambda (sym) (put sym 'permanent-local t))
-	'(buffer-file-name default-directory buffer-backed-up
-	  buffer-saved-size buffer-auto-save-file-name
-	  buffer-read-only buffer-undo-list mark-active
-	  point-before-scroll buffer-file-truename
-	  buffer-file-format buffer-auto-save-file-format
-	  buffer-display-count buffer-display-time
-	  enable-multibyte-characters))
+(mapc (lambda (sym) (put sym 'permanent-local t))
+      '(buffer-file-name default-directory buffer-backed-up
+	buffer-saved-size buffer-auto-save-file-name
+	buffer-read-only buffer-undo-list mark-active
+	point-before-scroll buffer-file-truename
+	buffer-file-format buffer-auto-save-file-format
+	buffer-display-count buffer-display-time
+	enable-multibyte-characters))
 
 ;; We have base64, md5 and sha1 functions built in now.
 (provide 'base64)
