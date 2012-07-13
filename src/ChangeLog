@@ -1,3 +1,9 @@
+2012-07-13  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (move_it_in_display_line_to): On GUI terminals, allow
+	cursor overflow into the last glyph on display line when the right
+	fringe is off.  (Bug#11832)
+
 2012-07-13  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* xdisp.c (produce_special_glyphs): Now static.

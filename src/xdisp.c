@@ -8381,10 +8381,15 @@ move_it_in_display_line_to (struct it *it,
 			  /* On graphical terminals, newlines may
 			     "overflow" into the fringe if
 			     overflow-newline-into-fringe is non-nil.
-			     On text terminals, newlines may overflow
-			     into the last glyph on the display
-			     line.*/
+			     On text terminals, and on graphical
+			     terminals with no right margin, newlines
+			     may overflow into the last glyph on the
+			     display line.*/
 			  if (!FRAME_WINDOW_P (it->f)
+			      || ((it->bidi_p
+				   && it->bidi_it.paragraph_dir == R2L)
+				  ? WINDOW_LEFT_FRINGE_WIDTH (it->w)
+				  : WINDOW_RIGHT_FRINGE_WIDTH (it->w)) == 0
 			      || IT_OVERFLOW_NEWLINE_INTO_FRINGE (it))
 			    {
 			      if (!get_next_display_element (it))
@@ -8518,7 +8523,7 @@ move_it_in_display_line_to (struct it *it,
 	  if (!FRAME_WINDOW_P (it->f)
 	      || ((it->bidi_p && it->bidi_it.paragraph_dir == R2L)
 		  ? WINDOW_LEFT_FRINGE_WIDTH (it->w)
-		  : WINDOW_RIGHT_FRINGE_WIDTH (it->w))
+		  : WINDOW_RIGHT_FRINGE_WIDTH (it->w)) == 0
 	      || IT_OVERFLOW_NEWLINE_INTO_FRINGE (it))
 	    {
 	      int at_eob_p = 0;
