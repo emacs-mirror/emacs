@@ -1,5 +1,7 @@
 2012-07-13  Chong Yidong  <cyd@gnu.org>
 
+	* custom.texi (Examining): Update C-h v message.
+
 	* buffers.texi (Misc Buffer): Document view-read-only.
 
 2012-07-07  Chong Yidong  <cyd@gnu.org>

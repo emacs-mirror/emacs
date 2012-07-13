@@ -1,5 +1,13 @@
 2012-07-13  Chong Yidong  <cyd@gnu.org>
 
+	* bindings.el: Assign a non-nil permanent-local property to
+	per-buffer variables which lack a default value (Bug#11930).
+
+	* help-fns.el (describe-variable): In the "automatically becomes
+	local" notice, take note of permanent-local variables.
+
+2012-07-13  Chong Yidong  <cyd@gnu.org>
+
 	* files.el (toggle-read-only): Doc fix and code cleanup.  New arg
 	to allow printing the message when called from Lisp.
 

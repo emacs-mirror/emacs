@@ -766,7 +766,7 @@ displays something like this:
 fill-column is a variable defined in `C source code'.
 fill-column's value is 70
 
-Automatically becomes buffer-local when set in any fashion.
+Automatically becomes buffer-local when set.
 This variable is safe as a file local variable if its value
 satisfies the predicate `integerp'.
 

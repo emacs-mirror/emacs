@@ -852,7 +852,10 @@ it is displayed along with the global value."
                              (with-temp-buffer
                                (local-variable-if-set-p variable))))
                 (setq extra-line t)
-                (princ "  Automatically becomes buffer-local when set in any fashion.\n"))
+                (princ "  Automatically becomes ")
+		(if (get variable 'permanent-local)
+		    (princ "permanently "))
+		(princ "buffer-local when set.\n"))
 
               ;; Mention if it's an alias
               (unless (eq alias variable)
