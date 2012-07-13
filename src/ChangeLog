@@ -1,3 +1,8 @@
+2012-07-13  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsmenu.m (ns_update_menubar): Exchange place of argument 2 and 3 to
+	memcpy (Bug#11907).
+
 2012-07-13  Kalle Kankare <kalle.kankare@iki.fi> (tiny change)
 
 	* image.c (Fimagemagick_types): Initialize ex with GetExceptionInfo
