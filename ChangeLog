@@ -8,8 +8,8 @@
 	(BSD_SYSTEM_AHB): New hack macro.
 	(AH_BOTTOM): Set BSD_SYSTEM, using BSD_SYSTEM_AHB.
 
-	* configure.ac (NSIG_MINIMUM, ULIMIT_BREAK_VALUE):
-	Move here from src/s.
+	* configure.ac (NSIG_MINIMUM, ULIMIT_BREAK_VALUE, SETUP_SLAVE_PTY)
+	(GC_MARK_SECONDARY_STACK): Move here from src/s.
 
 2012-07-12  Glenn Morris  <rgm@gnu.org>
 

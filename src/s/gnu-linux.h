@@ -20,16 +20,6 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
-#ifdef __ia64__
-#define GC_MARK_SECONDARY_STACK()				\
-  do {								\
-    extern void *__libc_ia64_register_backing_store_base;	\
-    __builtin_ia64_flushrs ();					\
-    mark_memory (__libc_ia64_register_backing_store_base,	\
-		 __builtin_ia64_bsp ());			\
-  } while (0)
-#endif
-
 /* Tell that garbage collector that setjmp is known to save all
    registers relevant for conservative garbage collection in the jmp_buf.
    Not all the architectures are tested, but there are Debian packages

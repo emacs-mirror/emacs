@@ -1,5 +1,7 @@
 2012-07-13  Glenn Morris  <rgm@gnu.org>
 
+	* s/gnu-linux.h (GC_MARK_SECONDARY_STACK): Let configure set it.
+
 	* s/usg5-4-common.h (SETUP_SLAVE_PTY): Let configure set it.
 	* s/irix6-5.h (SETUP_SLAVE_PTY): No more need to unset it.
 

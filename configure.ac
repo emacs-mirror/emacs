@@ -3578,6 +3578,14 @@ case $opsys in
 # error "not i386"
 #endif
       ]], [[]])], AC_DEFINE(ULIMIT_BREAK_VALUE, [(32*1024*1024)]), [])
+
+    AC_PREPROC_IFELSE([AC_LANG_PROGRAM([[
+#ifndef __ia64__
+# error "not ia64"
+#endif
+      ]], [[]])], AC_DEFINE(GC_MARK_SECONDARY_STACK(),
+        [do { extern void *__libc_ia64_register_backing_store_base; __builtin_ia64_flushrs (); mark_memory (__libc_ia64_register_backing_store_base, __builtin_ia64_bsp ());} while (0)],
+        [Mark a secondary stack, like the register stack on the ia64.]), [])
     ;;
 
   hpux*)
