@@ -98,6 +98,7 @@ _Noreturn void croak (char *);
 #endif
 
 
+/* FIXME?  Emacs only defines NSIG_MINIMUM on some platforms?  */
 #if NSIG < NSIG_MINIMUM
 # ifdef NSIG
 #  undef NSIG

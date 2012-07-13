@@ -46,11 +46,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <sys/termios.h>
 #endif
 
-/* Some SVr4s don't define NSIG in sys/signal.h for ANSI environments;
-   instead, there's a system variable _sys_nsig.  Unfortunately, we need the
-   constant to dimension an array.  So wire in the appropriate value here.  */
-#define NSIG_MINIMUM 32
-
 /* It is possible to receive SIGCHLD when there are no children
    waiting, because a previous waitsys(2) cleaned up the carcass of child
    without clearing the SIGCHLD pending info.  So, use a non-blocking

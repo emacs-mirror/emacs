@@ -1,5 +1,7 @@
 2012-07-13  Glenn Morris  <rgm@gnu.org>
 
+	* s/usg5-4-common.h (NSIG_MINIMUM): Let configure set it.
+
 	* s/gnu-linux.h, s/irix6-5.h: Let configure set ULIMIT_BREAK_VALUE.
 
 	* process.c (init_process_emacs): Replace MIN_PTY_KERNEL_VERSION.

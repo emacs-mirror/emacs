@@ -3171,7 +3171,15 @@ esac
 case $opsys in
   darwin | gnu | hpux* | *bsd )
     AC_DEFINE(NO_TERMIO, 1, [Define if termio.h should not be included.])
-  ;;
+    ;;
+
+  irix6-5 | sol2* | unixware )
+    dnl Some SVr4s don't define NSIG in sys/signal.h for ANSI environments;
+    dnl instead, there's a system variable _sys_nsig.  Unfortunately, we
+    dnl need the constant to dimension an array.  So wire in the appropriate
+    dnl value here.
+    AC_DEFINE(NSIG_MINIMUM, 32, [Minimum value of NSIG.])
+    ;;
 esac
 
 
