@@ -3545,6 +3545,7 @@ case $opsys in
 esac
 
 
+AH_TEMPLATE(ULIMIT_BREAK_VALUE, [Undocumented.])
 AH_TEMPLATE(TAB3, [Undocumented.])
 
 case $opsys in
@@ -3555,9 +3556,24 @@ case $opsys in
     AC_DEFINE(TAB3, OXTABS)
     ;;
 
+  gnu-linux | gnu-kfreebsd )
+    dnl libc-linux/sysdeps/linux/i386/ulimit.c says that due to shared
+    dnl library, we cannot get the maximum address for brk.
+    AC_PREPROC_IFELSE([AC_LANG_PROGRAM([[
+#ifndef __i386__
+# error "not i386"
+#endif
+      ]], [[]])], AC_DEFINE(ULIMIT_BREAK_VALUE, [(32*1024*1024)]), [])
+    ;;
+
   hpux*)
     AC_DEFINE(RUN_TIME_REMAP, 1, [Define if emacs.c needs to call
       run_time_remap; for HPUX.])
+    ;;
+
+  irix6-5)
+    dnl Ulimit(UL_GMEMLIM) is busted...
+    AC_DEFINE(ULIMIT_BREAK_VALUE, [0x14000000])
     ;;
 esac
 

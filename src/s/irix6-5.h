@@ -30,9 +30,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 char *_getpty();
 #endif
 
-/* Ulimit(UL_GMEMLIM) is busted...  */
-#define ULIMIT_BREAK_VALUE 0x14000000
-
 #undef SA_RESTART     /* not the same as defining BROKEN_SA_RESTART */
 
 #undef TIOCSIGSEND		/* defined in usg5-4-common.h */
