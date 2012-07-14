@@ -1,5 +1,10 @@
 2012-09-24  Stephen Berman  <stephen.berman@gmx.net>
 
+	* calendar/todos.el (todos-copy-item): New command.
+	(todos-insertion-map): Add key binding for it.
+
+2012-09-24  Stephen Berman  <stephen.berman@gmx.net>
+
 	* calendar/todos.el (todos-undo-item-omit-comment): New defcustom.
 	(todos-item-undo): Use it.
 	(todos-allcats-file, todos-all-categories-alist): New variables.

@@ -2382,6 +2382,7 @@ which is the value of the user option
 (defvar todos-insertion-map
   (let ((map (make-keymap)))
     (todos-insertion-key-bindings map)
+    (define-key map "p" 'todos-copy-item)
     map)
   "Keymap for Todos mode insertion commands.")
 
@@ -4240,6 +4241,17 @@ the priority is not given by HERE but by prompting."
 	(todos-update-count 'todo 1)
 	(if (or diary todos-include-in-diary) (todos-update-count 'diary 1))
 	(todos-update-categories-sexp)))))
+
+(defun todos-copy-item ()
+  "Copy item at point and insert the copy as a new item."
+  (interactive)
+  (unless (or (todos-done-item-p) (looking-at "^$"))
+    (let ((copy (todos-item-string))
+	  (diary-item (todos-diary-item-p)))
+      (todos-set-item-priority copy (todos-current-category) t)
+      (todos-update-count 'todo 1)
+      (when diary-item (todos-update-count 'diary 1))
+      (todos-update-categories-sexp))))
 
 (defvar todos-date-from-calendar nil
   "Helper variable for setting item date from the Emacs Calendar.")
