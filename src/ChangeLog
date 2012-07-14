@@ -1,3 +1,13 @@
+2012-07-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* gmalloc.c (GMALLOC_INHIBIT_VALLOC): Don't reference.
+
+	* s/msdos.h (BSD_SYSTEM, DATA_START, GC_SETJMP_WORKS, HAVE_MOUSE)
+	(HAVE_MENUS): Don't define, defined by editing config.in with
+	msdos/sed2v2.inp.
+	(GMALLOC_INHIBIT_VALLOC): Don't define.
+	(MODE_LINE_BINARY_TEXT): Remove, not used anymore.
+
 2012-07-14  Juanma Barranquero  <lekktu@gmail.com>
 
 	* s/ms-w32.h (GC_SETJMP_WORKS, GC_MARK_STACK): Set in nt/config.nt.
