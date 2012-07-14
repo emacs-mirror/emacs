@@ -43,7 +43,7 @@
 ;; Define the built-in fringe bitmaps and setup default mappings
 
 (when (boundp 'fringe-bitmaps)
-  (let ((bitmaps '(question-mark
+  (let ((bitmaps '(question-mark exclamation-mark
 		   left-arrow right-arrow up-arrow down-arrow
 		   left-curly-arrow right-curly-arrow
 		   left-triangle right-triangle

@@ -1,3 +1,7 @@
+2012-07-14  Leo Liu  <sdl.web@gmail.com>
+
+	* fringe.c: Add a new bitmap exclamation-mark.
+
 2012-07-14  Eli Zaretskii  <eliz@gnu.org>
 
 	* gmalloc.c (GMALLOC_INHIBIT_VALLOC): Don't reference.
