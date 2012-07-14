@@ -1,3 +1,17 @@
+2012-07-14  Chong Yidong  <cyd@gnu.org>
+
+	* xt-mouse.el: Implement extended mouse coordinates (Bug#10642).
+	(xterm-mouse-translate): Move code into xterm-mouse-translate-1.
+	(xterm-mouse-translate-extended, xterm-mouse-translate-1)
+	(xterm-mouse--read-event-sequence-1000)
+	(xterm-mouse--read-event-sequence-1006): New functions.  For old
+	mouse protocol, handle M-mouse-X events correctly.
+	(xterm-mouse-event): New arg specifying mouse protocol.
+	(turn-on-xterm-mouse-tracking-on-terminal)
+	(turn-off-xterm-mouse-tracking-on-terminal): Send DEC 1006
+	sequence to toggle extended coordinates on newer XTerms.  This
+	appears to be harmless on terminals which do not support this.
+
 2012-07-14  Leo Liu  <sdl.web@gmail.com>
 
 	Add fringe bitmap indicators for flymake.  (Bug#11253)
