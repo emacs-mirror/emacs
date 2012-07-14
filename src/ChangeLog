@@ -1,3 +1,7 @@
+2012-07-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* s/ms-w32.h (GC_SETJMP_WORKS, GC_MARK_STACK): Set in nt/config.nt.
+
 2012-07-14  Glenn Morris  <rgm@gnu.org>
 
 	* s/aix4-2.h, s/freebsd.h, s/gnu-linux.h, s/hpux10-20.h:

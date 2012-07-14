@@ -1,3 +1,9 @@
+2012-07-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt: Sync with autogen/config.in.
+	(GC_MARK_SECONDARY_STACK, GC_MARK_STACK, GC_SETJMP_WORKS)
+	(SETUP_SLAVE_PTY): New macros.
+
 2012-07-13  Juanma Barranquero  <lekktu@gmail.com>
 
 	* config.nt: Sync with autogen/config.in.

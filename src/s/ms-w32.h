@@ -50,13 +50,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    for received packets, so datagrams are broken too.  */
 #define BROKEN_DATAGRAM_SOCKETS 1
 
-/* MSVC ignores the "register" keyword, so test fails even though
-   setjmp does work.  */
-#define GC_SETJMP_WORKS 1
-
-/* Enable conservative stack marking for GC.  */
-#define GC_MARK_STACK 1
-
 #define MAIL_USE_SYSTEM_LOCK 1
 
 /* If the character used to separate elements of the executable path
