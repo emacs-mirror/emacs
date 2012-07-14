@@ -155,6 +155,17 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define this to check for short string overrun. */
 #undef GC_CHECK_STRING_OVERRUN
 
+/* Mark a secondary stack, like the register stack on the ia64. */
+#undef GC_MARK_SECONDARY_STACK
+
+/* Define to GC_USE_GCPROS_AS_BEFORE if conservative garbage collection is not
+   known to work. */
+#undef GC_MARK_STACK
+
+/* Define if setjmp is known to save all registers relevant for conservative
+   garbage collection in the jmp_buf. */
+#undef GC_SETJMP_WORKS
+
 /* Define to 1 if the `getpgrp' function requires zero arguments. */
 #undef GETPGRP_VOID
 
@@ -1229,6 +1240,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define if process.c:child_setup should not call setpgrp. */
 #undef SETPGRP_RELEASES_CTTY
 
+/* How to set up a slave PTY, if needed. */
+#undef SETUP_SLAVE_PTY
+
 /* Make process_send_signal work by "typing" a signal character on the pty. */
 #undef SIGNALS_VIA_CHARACTERS
 
@@ -1656,15 +1670,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Some versions of GNU/Linux define noinline in their headers.  */
 #ifdef noinline
 #undef noinline
-#endif
-
-/* These won't be used automatically yet.  We also need to know, at least,
-   that the stack is continuous.  */
-#ifdef __GNUC__
-#  ifndef GC_SETJMP_WORKS
-  /* GC_SETJMP_WORKS is nearly always appropriate for GCC.  */
-#    define GC_SETJMP_WORKS 1
-#  endif
 #endif
 
 #endif /* EMACS_CONFIG_H */
