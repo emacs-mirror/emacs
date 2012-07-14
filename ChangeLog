@@ -1,3 +1,8 @@
+2012-07-14  Glenn Morris  <rgm@gnu.org>
+
+	* configure.ac (GC_SETJMP_WORKS, GC_MARK_STACK): Move here from src/s.
+	(AH_BOTTOM): Move GC_SETJMP_WORKS GCC fallback to main body.
+
 2012-07-13  Glenn Morris  <rgm@gnu.org>
 
 	* configure.ac (opsysfile): Set to empty on gnu, cygwin.

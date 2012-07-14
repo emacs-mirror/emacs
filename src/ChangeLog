@@ -1,3 +1,9 @@
+2012-07-14  Glenn Morris  <rgm@gnu.org>
+
+	* s/aix4-2.h, s/freebsd.h, s/gnu-linux.h, s/hpux10-20.h:
+	* s/irix6-5.h, s/netbsd.h, s/sol2-6.h, s/unixware.h:
+	Let configure set GC_SETJMP_WORKS, GC_MARK_STACK.
+
 2012-07-13  Glenn Morris  <rgm@gnu.org>
 
 	* s/gnu-linux.h (GC_MARK_SECONDARY_STACK): Let configure set it.

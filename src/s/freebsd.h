@@ -20,6 +20,3 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
-/* Tell that garbage collector that setjmp is known to save all
-   registers relevant for conservative garbage collection in the jmp_buf.  */
-#define GC_SETJMP_WORKS 1

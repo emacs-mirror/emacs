@@ -3600,6 +3600,55 @@ case $opsys in
 esac
 
 
+dnl These won't be used automatically yet.  We also need to know, at least,
+dnl that the stack is continuous.
+AH_TEMPLATE(GC_SETJMP_WORKS, [Define if setjmp is known to save all
+  registers relevant for conservative garbage collection in the jmp_buf.])
+
+AH_TEMPLATE(GC_MARK_STACK, [Define to GC_USE_GCPROS_AS_BEFORE if
+  conservative garbage collection is not known to work.])
+
+
+case $opsys in
+  aix4-2 | hpux* | unixware)
+    dnl Conservative garbage collection has not been tested, so for now
+    dnl play it safe and stick with the old-fashioned way of marking.
+    AC_DEFINE(GC_MARK_STACK, [GC_USE_GCPROS_AS_BEFORE])
+    ;;
+
+  dnl Not all the architectures are tested, but there are Debian packages
+  dnl for SCM and/or Guile on them, so the technique must work.  See also
+  dnl comments in alloc.c concerning setjmp and gcc.
+  dnl Fixme: it's probably safe to just use the GCC conditional below.
+  gnu-linux | gnu-kfreebsd )
+    AC_PREPROC_IFELSE([AC_LANG_PROGRAM([[
+#if defined __i386__ || defined __sparc__ || defined __mc68000__ \
+  || defined __alpha__ || defined __mips__ || defined __s390__ \
+  || defined __arm__ || defined __powerpc__ || defined __amd64__ \
+  || defined __ia64__ || defined __sh__
+/* ok */
+#else
+# error "setjmp not known to work on this arch"
+#endif
+    ]], [[]])], AC_DEFINE(GC_SETJMP_WORKS, 1),
+      AC_DEFINE(GC_MARK_STACK, [GC_USE_GCPROS_AS_BEFORE]) )
+    ;;
+esac
+
+
+if test x$GCC = xyes; then
+   dnl GC_SETJMP_WORKS is nearly always appropriate for GCC.
+   AC_DEFINE(GC_SETJMP_WORKS, 1)
+else
+  case $opsys in
+    dnl irix: Tested on Irix 6.5.  SCM worked on earlier versions.
+    freebsd | netbsd | openbsd | irix6-5 | sol2* )
+      AC_DEFINE(GC_SETJMP_WORKS, 1)
+      ;;
+  esac
+fi                              dnl GCC?
+
+
 dnl Used in xfaces.c.
 case $opsys in
   hpux* | sol2* )
@@ -4219,15 +4268,6 @@ AH_BOTTOM([
 /* Some versions of GNU/Linux define noinline in their headers.  */
 #ifdef noinline
 #undef noinline
-#endif
-
-/* These won't be used automatically yet.  We also need to know, at least,
-   that the stack is continuous.  */
-#ifdef __GNUC__
-#  ifndef GC_SETJMP_WORKS
-  /* GC_SETJMP_WORKS is nearly always appropriate for GCC.  */
-#    define GC_SETJMP_WORKS 1
-#  endif
 #endif
 
 #endif /* EMACS_CONFIG_H */

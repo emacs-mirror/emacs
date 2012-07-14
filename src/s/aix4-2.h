@@ -19,6 +19,3 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Perry Smith <pedz@ddivt1.austin.ibm.com> says these are correct.  */
 #undef sigmask
 
-/* Conservative garbage collection has not been tested, so for now
-   play it safe and stick with the old-fashioned way of marking.  */
-#define GC_MARK_STACK GC_USE_GCPROS_AS_BEFORE

@@ -17,9 +17,4 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
-
 #include "usg5-4-common.h"
-
-/* Conservative garbage collection has not been tested, so for now
-   play it safe and stick with the old-fashioned way of marking.  */
-#define GC_MARK_STACK GC_USE_GCPROS_AS_BEFORE

@@ -19,4 +19,3 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include "usg5-4-common.h"
 
-#define GC_SETJMP_WORKS 1

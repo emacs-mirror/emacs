@@ -30,5 +30,3 @@ char *_getpty();
 
 #undef TIOCSIGSEND		/* defined in usg5-4-common.h */
 
-/* Tested on Irix 6.5.  SCM worked on earlier versions.  */
-#define GC_SETJMP_WORKS 1
