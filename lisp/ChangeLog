@@ -1,5 +1,11 @@
 2012-07-14  Leo Liu  <sdl.web@gmail.com>
 
+	Add fringe bitmap indicators for flymake.  (Bug#11253)
+	* progmodes/flymake.el (flymake-highlight-line): Use fringe bitmaps.
+	(flymake-make-overlay): New arg BITMAP.
+	(flymake-error-bitmap, flymake-warning-bitmap)
+	(flymake-fringe-indicator-position): New user variables.
+
 	* fringe.el: New bitmap exclamation-mark.
 
 2012-07-14  Jan Djärv  <jan.h.d@swipnet.se>

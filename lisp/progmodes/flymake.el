@@ -763,15 +763,46 @@ line number outside the file being compiled."
   "Determine whether overlay OV was created by flymake."
   (and (overlayp ov) (overlay-get ov 'flymake-overlay)))
 
-(defun flymake-make-overlay (beg end tooltip-text face mouse-face)
+(defcustom flymake-error-bitmap '(exclamation-mark error)
+  "Bitmap used in the fringe for indicating errors.
+The value may also be a list of two elements where the second
+element specifies the face for the bitmap."
+  :group 'flymake
+  :type 'symbol)
+
+(defcustom flymake-warning-bitmap 'question-mark
+  "Bitmap used in the fringe for indicating warnings.
+The value may also be a list of two elements where the second
+element specifies the face for the bitmap."
+  :group 'flymake
+  :type 'symbol)
+
+(defcustom flymake-fringe-indicator-position 'left-fringe
+  "The position to put flymake fringe indicator.
+The value can be nil, left-fringe or right-fringe.
+Fringe indicators are disabled if nil."
+  :group 'flymake
+  :type '(choice (const left-fringe)
+		 (const right-fringe)
+		 (const :tag "No fringe indicators" nil)))
+
+(defun flymake-make-overlay (beg end tooltip-text face bitmap mouse-face)
   "Allocate a flymake overlay in range BEG and END."
   (when (not (flymake-region-has-flymake-overlays beg end))
-    (let ((ov (make-overlay beg end nil t t)))
+    (let ((ov (make-overlay beg end nil t t))
+	  (fringe (and flymake-fringe-indicator-position
+		       (propertize "!" 'display
+				   (cons flymake-fringe-indicator-position
+					 (if (listp bitmap)
+					     bitmap
+					   (list bitmap)))))))
       (overlay-put ov 'face           face)
       (overlay-put ov 'mouse-face     mouse-face)
       (overlay-put ov 'help-echo      tooltip-text)
       (overlay-put ov 'flymake-overlay  t)
       (overlay-put ov 'priority 100)
+      (overlay-put ov 'evaporate t)
+      (overlay-put ov 'before-string fringe)
       ;;+(flymake-log 3 "created overlay %s" ov)
       ov)
     (flymake-log 3 "created an overlay at (%d-%d)" beg end)))
@@ -815,7 +846,8 @@ Perhaps use text from LINE-ERR-INFO-LIST to enhance highlighting."
 	 (beg      line-beg)
 	 (end      line-end)
 	 (tooltip-text (flymake-ler-text (nth 0 line-err-info-list)))
-	 (face     nil))
+	 (face     nil)
+	 (bitmap   nil))
 
     (goto-char line-beg)
     (while (looking-at "[ \t]")
@@ -839,10 +871,12 @@ Perhaps use text from LINE-ERR-INFO-LIST to enhance highlighting."
       (setq end (point)))
 
     (if (> (flymake-get-line-err-count line-err-info-list "e") 0)
-	(setq face 'flymake-errline)
-      (setq face 'flymake-warnline))
+	(setq face 'flymake-errline
+	      bitmap flymake-error-bitmap)
+      (setq face 'flymake-warnline
+	    bitmap flymake-warning-bitmap))
 
-    (flymake-make-overlay beg end tooltip-text face nil)))
+    (flymake-make-overlay beg end tooltip-text face bitmap nil)))
 
 (defun flymake-parse-err-lines (err-info-list lines)
   "Parse err LINES, store info in ERR-INFO-LIST."
