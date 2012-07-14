@@ -41,8 +41,9 @@ typedef unsigned long Time;
 
 #include <sys/time.h>	/* for 'struct timeval' */
 
-/* The type to use to represent temporal intervals.  Its address can be passed
-   as the timeout argument to the pselect system call.  */
+/* The type to use to represent non-negative temporal intervals.  Its
+   address can be passed as the timeout argument to the pselect system
+   call.  */
 typedef struct timespec EMACS_TIME;
 
 /* Resolution of EMACS_TIME time stamps (in units per second), and log
@@ -84,7 +85,13 @@ current_emacs_time (void)
 
 /* Return the result of adding A to B, or of subtracting B from A.
    On overflow, store an extremal value: ergo, if time_t is unsigned,
-   return 0 if the true answer would be negative.  */
+   return 0 if the true answer would be negative.
+
+   WARNING: These are NOT general-purpose macros for adding or
+   subtracting arbitrary time values!  They are generally intended to
+   be used with their first argument an absolute time since the epoch
+   and the second argument a non-negative offset.  Do NOT use them for
+   anything else.  */
 static inline EMACS_TIME
 add_emacs_time (EMACS_TIME a, EMACS_TIME b)
 {
@@ -96,7 +103,9 @@ sub_emacs_time (EMACS_TIME a, EMACS_TIME b)
   return timespec_sub (a, b);
 }
 
-/* Return the sign of the valid time stamp TIME, either -1, 0, or 1.  */
+/* Return the sign of the valid time stamp TIME, either -1, 0, or 1.
+   Note: this can only return a negative value if time_t is a signed
+   data type.  */
 static inline int
 EMACS_TIME_SIGN (EMACS_TIME t)
 {
@@ -111,8 +120,9 @@ EMACS_TIME_VALID_P (EMACS_TIME t)
 }
 
 /* Convert the double D to the greatest EMACS_TIME not greater than D.
-   On overflow, return an extremal value.  Return the minimum
-   EMACS_TIME if D is not a number.  */
+   On overflow, return an extremal value; in particular, if time_t is
+   an unsigned data type and D is negative, return zero.  Return the
+   minimum EMACS_TIME if D is not a number.  */
 static inline EMACS_TIME
 EMACS_TIME_FROM_DOUBLE (double d)
 {
