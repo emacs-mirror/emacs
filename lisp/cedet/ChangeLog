@@ -946,6 +946,7 @@
 	(srecode-template-inserter-ask, srecode-template-inserter-width)
 	(srecode-template-inserter-section-start)
 	(srecode-template-inserter-section-end, srecode-insert-method):
+	Fix typos in docstrings.
 
 2010-01-12  Juanma Barranquero  <lekktu@gmail.com>
 

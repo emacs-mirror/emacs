@@ -7,7 +7,7 @@
 
 	* sedleim.inp (MKDIR_P): Edit to DOS "md" command.
 
-	* sed1v2.inp: (LIB_CLOCK_GETTIME): Edit to empty.
+	* sed1v2.inp (LIB_CLOCK_GETTIME): Edit to empty.
 	Remove lines that invoke PAXCTL.
 	(clean): Fix recipe not to run Unixy shell commands.
 

@@ -291,7 +291,7 @@
 
 	* lib/stat-time.h:
 	* lib/timespec.h:
-	* lib/utimens.h: Include sys/time.h
+	* lib/utimens.h: Include sys/time.h.
 
 2012-06-23  Andreas Schwab  <schwab@linux-m68k.org>
 
@@ -5156,7 +5156,7 @@
 
 2004-10-08  Steven Tamm  <steventamm@mac.com>
 
-	* configure.in (HAVE_MALLOC_MALLOC_H): Test for malloc/malloc.h
+	* configure.in (HAVE_MALLOC_MALLOC_H): Test for malloc/malloc.h.
 
 2004-10-06  Jan Djärv  <jan.h.d@swipnet.se>
 
@@ -8003,7 +8003,7 @@
 
 1995-09-30  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
 
-	* configure.in (powerpc-*-solaris2): New alternative.x
+	* configure.in (powerpc-*-solaris2): New alternative.
 
 1995-09-12  Karl Heuer  <kwzh@gnu.ai.mit.edu>
 
@@ -8521,7 +8521,7 @@
 
 1994-09-20  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
 
-	* Makefile.in (paths-force): Depend on src/paths.h
+	* Makefile.in (paths-force): Depend on src/paths.h.
 
 1994-09-19  Karl Heuer  <kwzh@hal.gnu.ai.mit.edu>
 
@@ -9362,7 +9362,7 @@
 
 1993-09-12  Roland McGrath  (roland@sugar-bombs.gnu.ai.mit.edu)
 
-	* make-dist: Dist vpath.sed
+	* make-dist: Dist vpath.sed.
 
 	* Makefile.in (lib-src/Makefile, src/Makefile, oldXMenu/Makefile):
 	Depend on vpath.sed.

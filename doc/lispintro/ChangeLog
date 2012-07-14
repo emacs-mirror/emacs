@@ -389,7 +389,7 @@
 	`named' to `selected'.
 	(lengths-list-file): Remove extraneous parenthesis from reference.
 	(lengths-list-many-files): Explain `expand-file-name' better.
-	(Files List): Rephrase sentence regarding Lisp sources directory
+	(Files List): Rephrase sentence regarding Lisp sources directory.
 
 2006-11-04  Robert J. Chassell  <bob@rattlesnake.com>
 

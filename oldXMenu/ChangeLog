@@ -612,7 +612,7 @@
 
 	* copyright.h: New file (copied from X11R4 distribution)
 	* All files: Replaced occurrences of #include <X11/copyright.h>
-	with #include "copyright.h"
+	with #include "copyright.h".
 
 1991-10-25  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
 

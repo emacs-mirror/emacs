@@ -185,7 +185,7 @@
 	* url-queue.el (url-queue-retrieve): Take an optional
 	`inhibit-cookies' parameter.
 
-	* url.el (url-retrieve): Ditto
+	* url.el (url-retrieve): Ditto.
 
 	* url-http.el (url-http-create-request): Don't send cookies unless
 	requested.

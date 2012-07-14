@@ -4731,7 +4731,7 @@
 2010-11-29  Binjo  <binjo.cn@gmail.com>  (tiny change)
 
 	* nnimap.el (nnimap-open-connection-1): w32 open-network-stream doesn't
-	seem to accept strings-with-numbers as port numbers,
+	seem to accept strings-with-numbers as port numbers.
 
 2010-11-29  Andrew Cohen  <cohen@andy.bu.edu>
 
@@ -4930,7 +4930,7 @@
 
 2010-11-25  Julien Danjou  <julien@danjou.info>
 
-	* shr-color.el (shr-color->hexadecimal): Use color-rgb->hex
+	* shr-color.el (shr-color->hexadecimal): Use color-rgb->hex.
 
 	* color.el: Rename from color-lab.el
 	(color-rgb->hex): Add.
@@ -20992,8 +20992,8 @@
 
 2004-05-20  Danny Siu  <dsiu@adobe.com>
 
-	* gnus-sum.el (gnus-summary-recenter): Summery buffer was not auto
-	centered even when gnus-auto-center-summary is t
+	* gnus-sum.el (gnus-summary-recenter): Summary buffer was not auto
+	centered even when gnus-auto-center-summary is t.
 
 2004-05-22  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
@@ -22215,7 +22215,7 @@
 
 	* gnus.el (gnus-method-to-server): Move defsubst before first use.
 
-	* gnus-diary.el (gnus-diary-header-schedule): caddr -> car (cddr
+	* gnus-diary.el (gnus-diary-header-schedule): caddr -> car (cddr.
 
 	* gnus-art.el (gnus-article-edit-mode): Define before first
 	reference.
@@ -22447,7 +22447,7 @@
 
 	* gnus-sum.el (gnus-select-newgroup): Replace inline code with
 	gnus-agent-possibly-alter-active.
-	(gnus-adjust-marked-articles): Faster handling of simple lists
+	(gnus-adjust-marked-articles): Faster handling of simple lists.
 
 2004-01-21  Jesper Harder  <harder@ifa.au.dk>
 

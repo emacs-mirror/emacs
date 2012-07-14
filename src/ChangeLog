@@ -88,7 +88,7 @@
 	* nsmenu.m (ns_update_menubar): Exchange place of argument 2 and 3 to
 	memcpy (Bug#11907).
 
-2012-07-13  Kalle Kankare <kalle.kankare@iki.fi> (tiny change)
+2012-07-13  Kalle Kankare  <kalle.kankare@iki.fi>  (tiny change)
 
 	* image.c (Fimagemagick_types): Initialize ex with GetExceptionInfo
 	and free it with DestroyExceptionInfo (Bug#11558).
@@ -361,7 +361,7 @@
 	not functions.  All uses rewritten to use the following, respectively:
 	(emacs_secs_addr, invalid_emacs_time, get_emacs_time)
 	(add_emacs_time, sub_emacs_time): New functions.
-	* atimer.c: Don't include <sys/time.h>,	as "systime.h" does this.
+	* atimer.c: Don't include <sys/time.h>, as "systime.h" does this.
 	* fileio.c (Fcopy_file):
 	* xterm.c (XTflash): Get the current time closer to when it's used.
 	* makefile.w32-in ($(BLD)/atimer.$(O)): Update dependencies.
@@ -682,7 +682,7 @@
 	X Windows version.  Doc fix.
 	* xfns.c (Fx_window_property): Doc fix.  (Bug#11870)
 
-2012-07-06  Juanma Barranquero	<lekktu@gmail.com>
+2012-07-06  Juanma Barranquero  <lekktu@gmail.com>
 	    Eli Zaretskii  <eliz@gnu.org>
 
 	* s/ms-w32.h: Settings not specific to Windows moved to nt/config.nt.
@@ -921,7 +921,7 @@
 	* alloc.c (PSEUDOVECTOR_NBYTES): Remove stray ';'
 	that causes compilation to fail on pre-C99 compilers.
 
-2012-07-04  Juanma Barranquero	<lekktu@gmail.com>
+2012-07-04  Juanma Barranquero  <lekktu@gmail.com>
 
 	* s/ms-w32.h (LISP_FLOAT_TYPE, HAVE_MEMCMP, HAVE_MEMCPY)
 	(HAVE_MEMMOVE, HAVE_MEMSET): Don't set, obsolete.

@@ -631,7 +631,7 @@
 
 2009-02-23  Jason Rumney  <jasonr@gnu.org>
 
-	* nt/README-ftp-server: Update for 23.0.91
+	* nt/README-ftp-server: Update for 23.0.91.
 
 	* nt/README.W32: Remove ever expanding versions of Windows.
 	Shorten FAQ URL.  Remove mention of obsolete lock directory.

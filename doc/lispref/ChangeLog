@@ -10916,8 +10916,8 @@
 	(Recording Input): Document that clear-this-command-keys clears
 	the vector to be returned by recent-keys.
 
-	* keymaps.texi (Scanning Keymaps) <where-is-internal>: The
-	argument keymap can be a list.
+	* keymaps.texi (Scanning Keymaps) <where-is-internal>:
+	The argument keymap can be a list.
 
 	* nonascii.texi (User-Chosen Coding Systems)
 	<select-safe-coding-system>: Document the new argument
@@ -11162,7 +11162,7 @@
 	* Makefile (dist): Don't bother excluding autosave files; they'll
 	never make it into the temp directory anyway, and the hash marks
 	in the name are problematic for make and the Bourne shell.
-	(srcs):
+	(srcs): ???
 
 1993-02-12  Jim Blandy  (jimb@wookumz.gnu.ai.mit.edu)
 

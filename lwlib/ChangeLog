@@ -607,7 +607,7 @@
 
 	* xlwmenuP.h (_XlwMenu_part): Add top_depth.
 
-	* xlwmenu.h: Removed declaration of pop_up_menu
+	* xlwmenu.h: Removed declaration of pop_up_menu.
 
 	* xlwmenu.c (Start): Get correct time if time in event is CurrentTime.
 	(find_first_selectable, find_next_selectable)

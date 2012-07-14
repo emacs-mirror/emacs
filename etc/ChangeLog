@@ -993,7 +993,7 @@
 
 2009-09-27  Teodor Zlatanov  <tzz@lifelogs.com>
 
-	* NEWS: Mention new library imap-hash.el
+	* NEWS: Mention new library imap-hash.el.
 
 2009-09-22  Juanma Barranquero  <lekktu@gmail.com>
 
@@ -1037,7 +1037,7 @@
 2009-08-08  Dmitry Dzhus  <dima@sphinx.net.ru>
 
 	* images/gud/all.xpm, images/gud/thread.xpm: New icons for
-	gdb-mi.el
+	gdb-mi.el.
 
 2009-08-07  Dan Nicolaescu  <dann@ics.uci.edu>
 
@@ -2073,7 +2073,7 @@
 
 2007-07-02  Carsten Dominik  <dominik@science.uva.nl>
 
-	* orgcard.tex: Version 5.01
+	* orgcard.tex: Version 5.01.
 
 2007-06-27  Michael Albinus  <michael.albinus@gmx.de>
 
@@ -2641,7 +2641,7 @@
 2006-09-15  Richard Stallman  <rms@gnu.org>
 
 	* THE-GNU-PROJECT: Update with the latest footnotes
-	from www.gnu.org/gnu/the-gnu-project.html
+	from www.gnu.org/gnu/the-gnu-project.html.
 
 2006-09-15  David Kastrup  <dak@gnu.org>
 
@@ -3267,7 +3267,7 @@
 
 2005-11-18  Carsten Dominik  <dominik@science.uva.nl>
 
-	* orgcard.tex: Version 3.20
+	* orgcard.tex: Version 3.20.
 
 2005-11-16  Nick Roberts  <nickrob@snap.net.nz>
 
@@ -5018,7 +5018,7 @@
 
 1993-03-19  Eric S. Raymond  (eric@geech.gnu.ai.mit.edu)
 
-	* sex.6: Added 900-line support
+	* sex.6: Added 900-line support.
 
 	* NEWS: Added news about the package finder.
 
@@ -5557,7 +5557,7 @@
 1988-12-31  Richard Mlynarik  (mly@rice-chex.ai.mit.edu)
 
 	* env.c: Add decl for my-index.
-	* etags.c (file-entries): .oak => scheme
+	* etags.c (file-entries): .oak => scheme.
 
 1988-12-30  Richard Stallman  (rms@sugar-bombs.ai.mit.edu)
 

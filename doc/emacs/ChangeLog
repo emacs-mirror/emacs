@@ -1308,7 +1308,6 @@
 	* custom.texi (Mouse Buttons):
 	* rmail.texi (Rmail Scrolling):
 	* search.texi (Isearch Scroll):
-
 	* display.texi (Scrolling): Replace scroll-up/down with
 	scroll-up/down-command.  Fix scroll-preserve-screen-position
 	description.  Document scroll-error-top-bottom.
@@ -3127,9 +3126,9 @@
 	* ack.texi (Acknowledgments): General update based on AUTHORS,
 	including removal of some stuff no longer distributed.
 
-2008-12-19  Agustin Martin  <agustin.martin@hispalinux.es>
+2008-12-19  Agustín Martín  <agustin.martin@hispalinux.es>
 
-	* fixit.texi: Mention hunspell
+	* fixit.texi: Mention hunspell.
 
 2008-12-19  Glenn Morris  <rgm@gnu.org>
 
