@@ -1,3 +1,8 @@
+2012-07-14  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* progmodes/cc-cmds.el (c-defun-name): Recognize Objective-C methods
+	also (Bug#7879).
+
 2012-07-14  Chong Yidong  <cyd@gnu.org>
 
 	* electric.el (electric-pair-post-self-insert-function): Fix pair
