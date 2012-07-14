@@ -94,10 +94,6 @@ You lose; /* Emacs for DOS must be compiled with DJGPP */
 :se=</SO>:so=<SO>:us=<UL>:ue=</UL>:md=<BD>:mh=<DIM>:mb=<BL>:mr=<RV>:me=<NV>:\
 :AB=<BG %d>:AF=<FG %d>:op=<DefC>:"
 
-/* Define this to a function (Fdowncase, Fupcase) if your file system
-   likes that.  */
-#define FILE_SYSTEM_CASE Fmsdos_downcase_filename
-
 /* Define this to be the separator between devices and paths.  */
 #define DEVICE_SEP ':'
 

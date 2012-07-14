@@ -470,9 +470,6 @@ file_name_completion (Lisp_Object file, Lisp_Object dirname, int all_flag, int v
 
   CHECK_STRING (file);
 
-#ifdef FILE_SYSTEM_CASE
-  file = FILE_SYSTEM_CASE (file);
-#endif
   bestmatch = Qnil;
   encoded_file = encoded_dir = Qnil;
   GCPRO5 (file, dirname, bestmatch, encoded_file, encoded_dir);

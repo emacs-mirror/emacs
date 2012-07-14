@@ -83,10 +83,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include "commands.h"
 
-#ifndef FILE_SYSTEM_CASE
-#define FILE_SYSTEM_CASE(filename)  (filename)
-#endif
-
 /* Nonzero during writing of auto-save files */
 static int auto_saving;
 
@@ -334,7 +330,6 @@ Given a Unix syntax file name, returns a string ending in slash.  */)
       return STRINGP (handled_name) ? handled_name : Qnil;
     }
 
-  filename = FILE_SYSTEM_CASE (filename);
 #ifdef DOS_NT
   beg = (char *) alloca (SBYTES (filename) + 1);
   memcpy (beg, SSDATA (filename), SBYTES (filename) + 1);
@@ -864,7 +859,6 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
 	UNGCPRO;
       }
   }
-  name = FILE_SYSTEM_CASE (name);
   multibyte = STRING_MULTIBYTE (name);
   if (multibyte != STRING_MULTIBYTE (default_directory))
     {
