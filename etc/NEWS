@@ -158,6 +158,9 @@ character when doing minibuffer filename prompts.
 
 ** `goto-char' is now bound to `M-g c'.
 
+** New command `C-x r M-w' (copy-rectangle-as-kill).
+It copies the region-rectangle as the last rectangle kill.
+
 ** New input method `vietnamese-vni'.
 
 

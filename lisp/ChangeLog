@@ -1,3 +1,14 @@
+2012-07-14  Chong Yidong  <cyd@gnu.org>
+
+	* bindings.el: Consolidate ctl-x-r-map bindings.  Bind
+	copy-rectangle-as-kill to C-x r w.
+
+	* rect.el, register.el: Move bindings to bindings.el.
+
+2012-07-14  Reuben Thomas  <rrt@sc3d.org>
+
+	* rect.el (copy-rectangle-as-kill): New command (Bug#739).
+
 2012-07-13  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* emacs-lisp/cl.el (labels): Remove spurious quote.  (Bug#11938)

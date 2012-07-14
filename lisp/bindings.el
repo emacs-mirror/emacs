@@ -1183,7 +1183,30 @@ if `inhibit-field-text-motion' is non-nil."
 (define-key ctl-x-5-map "m" 'compose-mail-other-frame)
 
 
-(defvar ctl-x-r-map (make-sparse-keymap)
+(defvar ctl-x-r-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map "c" 'clear-rectangle)
+    (define-key map "k" 'kill-rectangle)
+    (define-key map "d" 'delete-rectangle)
+    (define-key map "y" 'yank-rectangle)
+    (define-key map "o" 'open-rectangle)
+    (define-key map "t" 'string-rectangle)
+    (define-key map "N" 'rectangle-number-lines)
+    (define-key map "\M-w" 'copy-rectangle-as-kill)
+    (define-key map "\C-@" 'point-to-register)
+    (define-key map [?\C-\ ] 'point-to-register)
+    (define-key map " " 'point-to-register)
+    (define-key map "j" 'jump-to-register)
+    (define-key map "s" 'copy-to-register)
+    (define-key map "x" 'copy-to-register)
+    (define-key map "i" 'insert-register)
+    (define-key map "g" 'insert-register)
+    (define-key map "r" 'copy-rectangle-to-register)
+    (define-key map "n" 'number-to-register)
+    (define-key map "+" 'increment-register)
+    (define-key map "w" 'window-configuration-to-register)
+    (define-key map "f" 'frame-configuration-to-register)
+    map)
   "Keymap for subcommands of C-x r.")
 (define-key ctl-x-map "r" ctl-x-r-map)
 
