@@ -1,5 +1,10 @@
 2012-07-14  Chong Yidong  <cyd@gnu.org>
 
+	* electric.el (electric-pair-post-self-insert-function): Fix pair
+	insertion in empty-region case (Bug#11520).
+
+2012-07-14  Chong Yidong  <cyd@gnu.org>
+
 	* bindings.el: Consolidate ctl-x-r-map bindings.  Bind
 	copy-rectangle-as-kill to C-x r w.
 

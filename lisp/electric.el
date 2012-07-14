@@ -322,12 +322,13 @@ This can be convenient for people who find it easier to hit ) than C-f."
      ((and (memq syntax '(?\( ?\" ?\$)) (use-region-p))
       (if (> (mark) (point))
           (goto-char (mark))
-        ;; We already inserted the open-paren but at the end of the region,
-        ;; so we have to remove it and start over.
-        (delete-char -1)
-        (save-excursion
+	;; We already inserted the open-paren but at the end of the
+	;; region, so we have to remove it and start over.
+	(delete-char -1)
+	(save-excursion
           (goto-char (mark))
-          (insert last-command-event)))
+	  ;; Do not insert after `save-excursion' marker (Bug#11520).
+          (insert-before-markers last-command-event)))
       (insert closer))
      ;; Backslash-escaped: no pairing, no skipping.
      ((save-excursion
