@@ -1687,11 +1687,6 @@ Fifth Floor, Boston, MA 02110-1301, USA.
    The author may be reached (Email) at the address mike@ai.mit.edu,
    or (US mail) as Mike Haertel c/o Free Software Foundation.  */
 
-/* Emacs defines GMALLOC_INHIBIT_VALLOC to avoid this definition
-   on MSDOS, where it conflicts with a system header file.  */
-
-#ifndef	GMALLOC_INHIBIT_VALLOC
-
 /* Allocate SIZE bytes on a page boundary.  */
 extern void *valloc (size_t);
 
@@ -1711,8 +1706,6 @@ valloc (size_t size)
 
   return memalign (pagesize, size);
 }
-
-#endif	/* Not ELIDE_VALLOC.  */
 
 #ifdef GC_MCHECK
 
