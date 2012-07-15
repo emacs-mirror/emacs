@@ -1,3 +1,14 @@
+2012-07-15  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Use zero_vector where appropriate.
+	* alloc.c (zero_vector): Define as Lisp_Object.  Adjust users
+	accordingly.
+	* lisp.h (zero_vector): New declaration.
+	* font.c (null_vector): Remove.
+	(syms_of_font): Remove initialization and staticpro.
+	(font_list_entities, font_find_for_lface): Change to use zero_vector.
+	* keymap.c (Faccessible_keymaps): Likewise.
+
 2012-07-15  Leo Liu  <sdl.web@gmail.com>
 
 	* fringe.c: Fix typo in comments.

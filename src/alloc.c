@@ -2973,7 +2973,7 @@ static struct Lisp_Vector *large_vectors;
 
 /* The only vector with 0 slots, allocated from pure space.  */
 
-static struct Lisp_Vector *zero_vector;
+Lisp_Object zero_vector;
 
 /* Get a new vector block.  */
 
@@ -2997,8 +2997,7 @@ allocate_vector_block (void)
 static void
 init_vectors (void)
 {
-  zero_vector = pure_alloc (header_size, Lisp_Vectorlike);
-  zero_vector->header.size = 0;
+  zero_vector = make_pure_vector (0);
 }
 
 /* Allocate vector from a vector block.  */
@@ -3190,7 +3189,7 @@ allocate_vectorlike (ptrdiff_t len)
   /* eassert (!handling_signal); */
 
   if (len == 0)
-    p = zero_vector;
+    p = XVECTOR (zero_vector);
   else
     {
       size_t nbytes = header_size + len * word_size;

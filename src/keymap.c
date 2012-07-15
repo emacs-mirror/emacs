@@ -2010,9 +2010,7 @@ then the value includes only maps for prefixes that start with PREFIX.  */)
 	return Qnil;
     }
   else
-    maps = Fcons (Fcons (Fmake_vector (make_number (0), Qnil),
-			 get_keymap (keymap, 1, 0)),
-		  Qnil);
+    maps = Fcons (Fcons (zero_vector, get_keymap (keymap, 1, 0)), Qnil);
 
   /* For each map in the list maps,
      look at any other maps it points to,

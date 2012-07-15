@@ -2605,6 +2605,7 @@ extern void mark_object (Lisp_Object);
 extern void refill_memory_reserve (void);
 #endif
 extern const char *pending_malloc_warning;
+extern Lisp_Object zero_vector;
 extern Lisp_Object *stack_base;
 extern Lisp_Object list1 (Lisp_Object);
 extern Lisp_Object list2 (Lisp_Object, Lisp_Object);

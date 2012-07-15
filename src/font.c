@@ -59,10 +59,6 @@ Lisp_Object Qascii_0, Qiso8859_1, Qiso10646_1, Qunicode_bmp, Qunicode_sip;
 /* Unicode category `Cf'.  */
 static Lisp_Object QCf;
 
-/* Special vector of zero length.  This is repeatedly used by (struct
-   font_driver *)->list when a specified font is not found. */
-static Lisp_Object null_vector;
-
 /* Vector of Vfont_weight_table, Vfont_slant_table, and Vfont_width_table. */
 static Lisp_Object font_style_table;
 
@@ -2748,7 +2744,7 @@ font_list_entities (Lisp_Object frame, Lisp_Object spec)
 
 	    val = driver_list->driver->list (frame, scratch_font_spec);
 	    if (NILP (val))
-	      val = null_vector;
+	      val = zero_vector;
 	    else
 	      val = Fvconcat (1, &val);
 	    copy = copy_font_spec (scratch_font_spec);
@@ -3104,10 +3100,10 @@ font_find_for_lface (FRAME_PTR f, Lisp_Object *attrs, Lisp_Object spec, int c)
     {
       registry[0] = DEFAULT_ENCODING;
       registry[1] = Qascii_0;
-      registry[2] = null_vector;
+      registry[2] = zero_vector;
     }
   else
-    registry[1] = null_vector;
+    registry[1] = zero_vector;
 
   if (c >= 0 && ! NILP (AREF (spec, FONT_REGISTRY_INDEX)))
     {
@@ -3136,20 +3132,20 @@ font_find_for_lface (FRAME_PTR f, Lisp_Object *attrs, Lisp_Object spec, int c)
   ASET (work, FONT_SIZE_INDEX, Qnil);
   foundry[0] = AREF (work, FONT_FOUNDRY_INDEX);
   if (! NILP (foundry[0]))
-    foundry[1] = null_vector;
+    foundry[1] = zero_vector;
   else if (STRINGP (attrs[LFACE_FOUNDRY_INDEX]))
     {
       val = attrs[LFACE_FOUNDRY_INDEX];
       foundry[0] = font_intern_prop (SSDATA (val), SBYTES (val), 1);
       foundry[1] = Qnil;
-      foundry[2] = null_vector;
+      foundry[2] = zero_vector;
     }
   else
-    foundry[0] = Qnil, foundry[1] = null_vector;
+    foundry[0] = Qnil, foundry[1] = zero_vector;
 
   adstyle[0] = AREF (work, FONT_ADSTYLE_INDEX);
   if (! NILP (adstyle[0]))
-    adstyle[1] = null_vector;
+    adstyle[1] = zero_vector;
   else if (FONTP (attrs[LFACE_FONT_INDEX]))
     {
       Lisp_Object face_font = attrs[LFACE_FONT_INDEX];
@@ -3158,13 +3154,13 @@ font_find_for_lface (FRAME_PTR f, Lisp_Object *attrs, Lisp_Object spec, int c)
 	{
 	  adstyle[0] = AREF (face_font, FONT_ADSTYLE_INDEX);
 	  adstyle[1] = Qnil;
-	  adstyle[2] = null_vector;
+	  adstyle[2] = zero_vector;
 	}
       else
-	adstyle[0] = Qnil, adstyle[1] = null_vector;
+	adstyle[0] = Qnil, adstyle[1] = zero_vector;
     }
   else
-    adstyle[0] = Qnil, adstyle[1] = null_vector;
+    adstyle[0] = Qnil, adstyle[1] = zero_vector;
 
 
   val = AREF (work, FONT_FAMILY_INDEX);
@@ -3177,7 +3173,7 @@ font_find_for_lface (FRAME_PTR f, Lisp_Object *attrs, Lisp_Object spec, int c)
     {
       family = alloca ((sizeof family[0]) * 2);
       family[0] = Qnil;
-      family[1] = null_vector;	/* terminator.  */
+      family[1] = zero_vector;	/* terminator.  */
     }
   else
     {
@@ -3192,7 +3188,7 @@ font_find_for_lface (FRAME_PTR f, Lisp_Object *attrs, Lisp_Object spec, int c)
 	    family[i] = XCAR (alters);
 	  if (NILP (AREF (spec, FONT_FAMILY_INDEX)))
 	    family[i++] = Qnil;
-	  family[i] = null_vector;
+	  family[i] = zero_vector;
 	}
       else
 	{
@@ -3201,7 +3197,7 @@ font_find_for_lface (FRAME_PTR f, Lisp_Object *attrs, Lisp_Object spec, int c)
 	  family[i++] = val;
 	  if (NILP (AREF (spec, FONT_FAMILY_INDEX)))
 	    family[i++] = Qnil;
-	  family[i] = null_vector;
+	  family[i] = zero_vector;
 	}
     }
 
@@ -5094,9 +5090,6 @@ syms_of_font (void)
   DEFSYM (Qko, "ko");
 
   DEFSYM (QCuser_spec, "user-spec");
-
-  staticpro (&null_vector);
-  null_vector = Fmake_vector (make_number (0), Qnil);
 
   staticpro (&scratch_font_spec);
   scratch_font_spec = Ffont_spec (0, NULL);
