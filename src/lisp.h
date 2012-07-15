@@ -2437,7 +2437,6 @@ Lisp_Object make_hash_table (Lisp_Object, Lisp_Object, Lisp_Object,
 ptrdiff_t hash_lookup (struct Lisp_Hash_Table *, Lisp_Object, EMACS_UINT *);
 ptrdiff_t hash_put (struct Lisp_Hash_Table *, Lisp_Object, Lisp_Object,
 		    EMACS_UINT);
-void init_weak_hash_tables (void);
 extern void init_fns (void) ATTRIBUTE_CONST;
 
 extern Lisp_Object substring_both (Lisp_Object, ptrdiff_t, ptrdiff_t,

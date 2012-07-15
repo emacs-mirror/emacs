@@ -1,5 +1,20 @@
 2012-07-15  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	Cleanup basic allocation variables and functions.
+	* alloc.c (ignore_warnings, init_intervals, init_float)
+	(init_cons, init_symbol, init_marker): Remove.
+	(interval_block_index): Initialize to INTERVAL_BLOCK_SIZE.
+	(float_block_index): Initialize to FLOAT_BLOCK_SIZE.
+	(cons_block_index): Initialize to CONS_BLOCK_SIZE.
+	(symbol_block_size): Initialize to SYMBOL_BLOCK_SIZE.
+	(marker_block_index): Initialize to MARKER_BLOCK_SIZE.
+	(staticidx, init_alloc_once, init_strings, free_ablock):
+	Remove redundant initialization.
+	* fns.c (init_weak_hash_tables): Remove.
+	* lisp.h (init_weak_hash_tables): Remove prototype.
+
+2012-07-15  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	Use zero_vector where appropriate.
 	* alloc.c (zero_vector): Define as Lisp_Object.  Adjust users
 	accordingly.
