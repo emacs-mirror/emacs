@@ -4203,6 +4203,9 @@ static void
 xg_create_tool_bar (FRAME_PTR f)
 {
   struct x_output *x = f->output_data.x;
+#if GTK_CHECK_VERSION (3, 3, 6)
+  GtkStyleContext *gsty;
+#endif
 
   x->toolbar_widget = gtk_toolbar_new ();
   x->toolbar_detached = 0;
@@ -4211,6 +4214,10 @@ xg_create_tool_bar (FRAME_PTR f)
 
   gtk_toolbar_set_style (GTK_TOOLBAR (x->toolbar_widget), GTK_TOOLBAR_ICONS);
   toolbar_set_orientation (x->toolbar_widget, GTK_ORIENTATION_HORIZONTAL);
+#if GTK_CHECK_VERSION (3, 3, 6)
+  gsty = gtk_widget_get_style_context (x->toolbar_widget);
+  gtk_style_context_add_class (gsty, "primary-toolbar");
+#endif
 }
 
 
@@ -4262,6 +4269,22 @@ xg_make_tool_item (FRAME_PTR f,
   GtkWidget *wb = gtk_button_new ();
   /* The eventbox is here so we can have tooltips on disabled items.  */
   GtkWidget *weventbox = gtk_event_box_new ();
+#if GTK_CHECK_VERSION (3, 3, 6)
+  GtkCssProvider *css_prov = gtk_css_provider_new ();
+  GtkStyleContext *gsty;
+
+  gtk_css_provider_load_from_data (css_prov,
+				   "GtkEventBox {"
+				   "    background-color: transparent;"
+				   "}",
+				   -1, NULL);
+
+  gsty = gtk_widget_get_style_context (weventbox);
+  gtk_style_context_add_provider (gsty,
+				  GTK_STYLE_PROVIDER (css_prov),
+				  GTK_STYLE_PROVIDER_PRIORITY_USER);
+  g_object_unref (css_prov);
+#endif
 
   gtk_box_set_homogeneous (GTK_BOX (vb), FALSE);
 

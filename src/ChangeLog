@@ -1,3 +1,10 @@
+2012-07-15  Stefano Facchini  <stefano.facchini@gmail.com>  (tiny change)
+
+	* gtkutil.c (xg_create_tool_bar): Apply "primary-toolbar" style to
+	the toolbar (Bug#9451).
+	(xg_make_tool_item): Give the widget event box a transparent
+	background.
+
 2012-07-15  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Cleanup basic allocation variables and functions.
