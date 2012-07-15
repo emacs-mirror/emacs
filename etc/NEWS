@@ -113,6 +113,8 @@ treated as images.
 ** Face underlining can now use a wave.
 See the "Face Attributes" section of the Elisp manual.
 
+** New fringe bitmap exclamation-mark.
+
 ** String values for `initial-buffer-choice' also apply to emacsclient
 frames, if emacsclient is only told to open a new frame without
 specifying any file to visit or expression to evaluate.
@@ -267,6 +269,10 @@ insertions in green (new faces `diff-refine-added' and
 The variable `diff-use-changed-face' defines whether to use
 the face `diff-changed', or `diff-removed' and `diff-added'
 to highlight changes in context diffs.
+
+** Flymake uses fringe bitmaps to indicate errors and warnings.
+See flymake-fringe-indicator-position, flymake-error-bitmap and
+flymake-warning-bitmap.
 
 ** Ediff now uses the same color scheme as Diff mode
 on high color displays.

@@ -107,7 +107,7 @@ struct fringe_bitmap
 static unsigned short question_mark_bits[] = {
   0x3c, 0x7e, 0x7e, 0x0c, 0x18, 0x18, 0x00, 0x18, 0x18};
 
-/* A exclamation mark.  */
+/* An exclamation mark.  */
 /*
   ...XX...
   ...XX...

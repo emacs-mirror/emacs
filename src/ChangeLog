@@ -1,3 +1,7 @@
+2012-07-15  Leo Liu  <sdl.web@gmail.com>
+
+	* fringe.c: Fix typo in comments.
+
 2012-07-14  Leo Liu  <sdl.web@gmail.com>
 
 	* fringe.c: Add a new bitmap exclamation-mark.

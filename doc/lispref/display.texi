@@ -3550,7 +3550,7 @@ Used to indicate buffer boundaries.
 @itemx @code{vertical-bar}, @code{horizontal-bar}
 Used for different types of fringe cursors.
 
-@item @code{empty-line}, @code{question-mark}
+@item @code{empty-line}, @code{question-mark}, @code{exclamation-mark}
 Unused.
 @end table
 
