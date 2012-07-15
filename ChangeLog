@@ -1,3 +1,9 @@
+2012-07-15  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Merge from gnulib, incorporating:
+	2012-07-15 pthread_sigmask: fix bug on FreeBSD 9 (Bug#11884)
+	2012-07-11 gettext: do not assume '#define ... defined ...' behavior
+
 2012-07-14  Glenn Morris  <rgm@gnu.org>
 
 	* configure.ac (GC_SETJMP_WORKS, GC_MARK_STACK): Move here from src/s.
