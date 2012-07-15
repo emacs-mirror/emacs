@@ -1123,6 +1123,12 @@ bidi_find_paragraph_start (ptrdiff_t pos, ptrdiff_t pos_byte)
   return pos_byte;
 }
 
+/* On a 3.4 GHz machine, searching forward for a strong directional
+   character in a long paragraph full of weaks or neutrals takes about
+   1 ms for each 20K characters.  The number below limits each call to
+   bidi_paragraph_init to less than 10 ms even on slow machines.  */
+#define MAX_STRONG_CHAR_SEARCH 100000
+
 /* Determine the base direction, a.k.a. base embedding level, of the
    paragraph we are about to iterate through.  If DIR is either L2R or
    R2L, just use that.  Otherwise, determine the paragraph direction
@@ -1218,6 +1224,8 @@ bidi_paragraph_init (bidi_dir_t dir, struct bidi_it *bidi_it, int no_default_p)
       /* The following loop is run more than once only if NO_DEFAULT_P
 	 is non-zero, and only if we are iterating on a buffer.  */
       do {
+	ptrdiff_t pos1;
+
 	bytepos = pstartbyte;
 	if (!string_p)
 	  pos = BYTE_TO_CHAR (bytepos);
@@ -1226,11 +1234,15 @@ bidi_paragraph_init (bidi_dir_t dir, struct bidi_it *bidi_it, int no_default_p)
 			      bidi_it->frame_window_p, &ch_len, &nchars);
 	type = bidi_get_type (ch, NEUTRAL_DIR);
 
+	pos1 = pos;
 	for (pos += nchars, bytepos += ch_len;
-	     (bidi_get_category (type) != STRONG)
-	       || (bidi_ignore_explicit_marks_for_paragraph_level
-		   && (type == RLE || type == RLO
-		       || type == LRE || type == LRO));
+	     ((bidi_get_category (type) != STRONG)
+	      || (bidi_ignore_explicit_marks_for_paragraph_level
+		  && (type == RLE || type == RLO
+		      || type == LRE || type == LRO)))
+	       /* Stop when searched too far into an abnormally large
+		  paragraph full of weak or neutral characters.  */
+	       && pos - pos1 < MAX_STRONG_CHAR_SEARCH;
 	     type = bidi_get_type (ch, NEUTRAL_DIR))
 	  {
 	    if (pos >= end)
