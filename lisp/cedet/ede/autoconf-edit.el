@@ -31,7 +31,7 @@
 (declare-function ede-srecode-insert "ede/srecode")
 
 (defun autoconf-new-program (rootdir program testfile)
-  "Initialize a new configure.in in ROOTDIR for PROGRAM using TESTFILE.
+  "Initialize a new configure.ac in ROOTDIR for PROGRAM using TESTFILE.
 ROOTDIR is the root directory of a given autoconf controlled project.
 PROGRAM is the program to be configured.
 TESTFILE is the file used with AC_INIT.
@@ -325,7 +325,7 @@ Optional argument PARAM is the parameter to pass to the macro as one string."
   "Position the cursor where PROG is queried.
 PROG is the VARIABLE to use in autoconf to identify the program.
 PROG excludes the _PROG suffix.  Thus if PROG were EMACS, then the
-variable in configure.in would be EMACS_PROG."
+variable in configure.ac would be EMACS_PROG."
   (let ((op (point))
 	(found t)
 	(builtin (assoc prog autoconf-program-builtin)))

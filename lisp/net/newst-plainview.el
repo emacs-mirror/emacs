@@ -155,61 +155,39 @@ The following printf-like specifiers can be used:
 ;; ======================================================================
 ;; faces
 
-(defface newsticker-new-item-face
-  '((((class color) (background dark))
-     (:family "sans" :bold t))
-    (((class color) (background light))
-     (:family "sans" :bold t)))
+(defface newsticker-new-item-face '((t :weight bold))
   "Face for new news items."
   :group 'newsticker-faces)
 
 (defface newsticker-old-item-face
-  '((((class color) (background dark))
-     (:family "sans" :bold t :foreground "orange3"))
-    (((class color) (background light))
-     (:family "sans" :bold t :foreground "red4")))
+  '((default :weight bold)
+    (((class color) (background dark))  :foreground "orange3")
+    (((class color) (background light)) :foreground "red4"))
   "Face for old news items."
   :group 'newsticker-faces)
 
 (defface newsticker-immortal-item-face
-  '((((class color) (background dark))
-     (:family "sans" :bold t :italic t :foreground "orange"))
-    (((class color) (background light))
-     (:family "sans" :bold t :italic t :foreground "blue")))
+  '((default :weight bold :slant italic)
+    (((class color) (background dark))  :foreground "orange")
+    (((class color) (background light)) :foreground "blue"))
   "Face for immortal news items."
   :group 'newsticker-faces)
 
 (defface newsticker-obsolete-item-face
-  '((((class color) (background dark))
-     (:family "sans" :bold t :strike-through t))
-    (((class color) (background light))
-     (:family "sans" :bold t :strike-through t)))
+  '((t :weight bold :strike-through t))
   "Face for old news items."
   :group 'newsticker-faces)
 
-(defface newsticker-date-face
-  '((((class color) (background dark))
-     (:family "sans" :italic t :height 0.8))
-    (((class color) (background light))
-     (:family "sans" :italic t :height 0.8)))
+(defface newsticker-date-face '((t :slant italic :height 0.8))
   "Face for newsticker dates."
   :group 'newsticker-faces)
 
-(defface newsticker-statistics-face
-  '((((class color) (background dark))
-     (:family "sans" :italic t :height 0.8))
-    (((class color) (background light))
-     (:family "sans" :italic t :height 0.8)))
+(defface newsticker-statistics-face '((t :slant italic :height 0.8))
   "Face for newsticker dates."
   :group 'newsticker-faces)
 
-(defface newsticker-default-face
-  '((((class color) (background dark))
-     (:inherit default))
-    (((class color) (background light))
-     (:inherit default)))
+(defface newsticker-default-face '((t))
   "Face for the description of news items."
-  ;;:set 'newsticker--set-customvar
   :group 'newsticker-faces)
 
 (defcustom newsticker-hide-old-items-in-newsticker-buffer

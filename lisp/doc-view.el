@@ -133,7 +133,7 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 (require 'dired)
 (require 'image-mode)
 (require 'jka-compr)
@@ -259,9 +259,9 @@ of the page moves to the previous page."
       (setq ol nil))
     (if ol
         (progn
-          (assert (eq (overlay-buffer ol) (current-buffer)))
+          (cl-assert (eq (overlay-buffer ol) (current-buffer)))
           (setq ol (copy-overlay ol)))
-      (assert (not (get-char-property (point-min) 'display)))
+      (cl-assert (not (get-char-property (point-min) 'display)))
       (setq ol (make-overlay (point-min) (point-max) nil t))
       (overlay-put ol 'doc-view t))
     (overlay-put ol 'window (car winprops))
@@ -892,30 +892,30 @@ Start by converting PAGES, and then the rest."
 (defun doc-view-doc->txt (txt callback)
   "Convert the current document to text and call CALLBACK when done."
   (make-directory (doc-view-current-cache-dir) t)
-  (case doc-view-doc-type
-    (pdf
+  (pcase doc-view-doc-type
+    (`pdf
      ;; Doc is a PDF, so convert it to TXT
      (doc-view-pdf->txt doc-view-buffer-file-name txt callback))
-    (ps
+    (`ps
      ;; Doc is a PS, so convert it to PDF (which will be converted to
      ;; TXT thereafter).
      (let ((pdf (expand-file-name "doc.pdf"
 				  (doc-view-current-cache-dir))))
        (doc-view-ps->pdf doc-view-buffer-file-name pdf
                          (lambda () (doc-view-pdf->txt pdf txt callback)))))
-    (dvi
+    (`dvi
      ;; Doc is a DVI.  This means that a doc.pdf already exists in its
      ;; cache subdirectory.
      (doc-view-pdf->txt (expand-file-name "doc.pdf"
                                           (doc-view-current-cache-dir))
                         txt callback))
-    (odf
+    (`odf
      ;; Doc is some ODF (or MS Office) doc.  This means that a doc.pdf
      ;; already exists in its cache subdirectory.
      (doc-view-pdf->txt (expand-file-name "doc.pdf"
                                           (doc-view-current-cache-dir))
                         txt callback))
-    (t (error "DocView doesn't know what to do"))))
+    (_ (error "DocView doesn't know what to do"))))
 
 (defun doc-view-ps->pdf (ps pdf callback)
   "Convert PS to PDF asynchronously and call CALLBACK when finished."
@@ -950,19 +950,18 @@ Those files are saved in the directory given by the function
   (let ((png-file (expand-file-name "page-%d.png"
                                     (doc-view-current-cache-dir))))
     (make-directory (doc-view-current-cache-dir) t)
-    (case doc-view-doc-type
-      (dvi
+    (pcase doc-view-doc-type
+      (`dvi
        ;; DVI files have to be converted to PDF before Ghostscript can process
        ;; it.
        (let ((pdf (expand-file-name "doc.pdf" doc-view-current-cache-dir)))
          (doc-view-dvi->pdf doc-view-buffer-file-name pdf
                             (lambda () (doc-view-pdf/ps->png pdf png-file)))))
-      (odf
+      (`odf
        ;; ODF files have to be converted to PDF before Ghostscript can
        ;; process it.
        (let ((pdf (expand-file-name "doc.pdf" doc-view-current-cache-dir))
-             (opdf (expand-file-name (concat (file-name-sans-extension
-                                              (file-name-nondirectory doc-view-buffer-file-name))
+             (opdf (expand-file-name (concat (file-name-base doc-view-buffer-file-name)
                                              ".pdf")
                                      doc-view-current-cache-dir))
              (png-file png-file))
@@ -974,11 +973,11 @@ Those files are saved in the directory given by the function
 			      ;; Rename to doc.pdf
 			      (rename-file opdf pdf)
 			      (doc-view-pdf/ps->png pdf png-file)))))
-      (pdf
+      (`pdf
        (let ((pages (doc-view-active-pages)))
          ;; Convert PDF to PNG images starting with the active pages.
          (doc-view-pdf->png doc-view-buffer-file-name png-file pages)))
-      (t
+      (_
        ;; Convert to PNG images.
        (doc-view-pdf/ps->png doc-view-buffer-file-name png-file)))))
 
@@ -1104,7 +1103,7 @@ have the page we want to view."
 		    (and (not (member pagefile prev-pages))
 			 (member pagefile doc-view-current-files)))
 	    (with-selected-window win
-				  (assert (eq (current-buffer) buffer))
+				  (cl-assert (eq (current-buffer) buffer))
 				  (doc-view-goto-page page))))))))
 
 (defun doc-view-buffer-message ()

@@ -73,16 +73,12 @@ typedef struct xg_menu_item_cb_data_
 
 } xg_menu_item_cb_data;
 
-
-#ifdef HAVE_GTK_FILE_SELECTION_NEW
-extern int use_old_gtk_file_dialog;
-#endif
 struct _widget_value;
 
 extern struct _widget_value *malloc_widget_value (void);
 extern void free_widget_value (struct _widget_value *);
 
-extern int xg_uses_old_file_dialog (void);
+extern int xg_uses_old_file_dialog (void) ATTRIBUTE_CONST;
 
 extern char *xg_get_file_name (FRAME_PTR f,
                                char *prompt,

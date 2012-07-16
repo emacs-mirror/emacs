@@ -79,26 +79,8 @@
 
 (eval-when-compile (require 'cl))
 
-(eval-when-compile
-  (when (null (ignore-errors (require 'ert)))
-    (defmacro* ert-deftest (name () &body docstring-keys-and-body))))
-
-(ignore-errors
-  (require 'ert))
-(eval-and-compile
-  (or (ignore-errors (progn
-                       (require 'eieio)
-                       (require 'eieio-base)))
-      ;; gnus-fallback-lib/ from gnus/lisp/gnus-fallback-lib
-      (ignore-errors
-        (let ((load-path (cons (expand-file-name
-                                "gnus-fallback-lib/eieio"
-                                (file-name-directory (locate-library "gnus")))
-                               load-path)))
-          (require 'eieio)
-          (require 'eieio-base)))
-      (error
-       "eieio not found in `load-path' or gnus-fallback-lib/ directory.")))
+(require 'eieio)
+(require 'eieio-base)
 
 (defclass registry-db (eieio-persistent)
   ((version :initarg :version
@@ -372,112 +354,6 @@ Proposes any entries over the max-hard limit minus size * prune-factor."
 	   (candidates (loop for k being the hash-keys of data
 			     collect k)))
       (list limit candidates))))
-
-(ert-deftest registry-instantiation-test ()
-  (should (registry-db "Testing")))
-
-(ert-deftest registry-match-test ()
-  (let ((entry '((hello "goodbye" "bye") (blank))))
-
-    (message "Testing :regex matching")
-    (should (registry--match :regex entry '((hello "nye" "bye"))))
-    (should (registry--match :regex entry '((hello "good"))))
-    (should-not (registry--match :regex entry '((hello "nye"))))
-    (should-not (registry--match :regex entry '((hello))))
-
-    (message "Testing :member matching")
-    (should (registry--match :member entry '((hello "bye"))))
-    (should (registry--match :member entry '((hello "goodbye"))))
-    (should-not (registry--match :member entry '((hello "good"))))
-    (should-not (registry--match :member entry '((hello "nye"))))
-    (should-not (registry--match :member entry '((hello)))))
-  (message "Done with matching testing."))
-
-(defun registry-make-testable-db (n &optional name file)
-  (let* ((db (registry-db
-              (or name "Testing")
-              :file (or file "unused")
-              :max-hard n
-              :max-soft 0               ; keep nothing not precious
-              :precious '(extra more-extra)
-              :tracked '(sender subject groups))))
-    (dotimes (i n)
-      (registry-insert db i `((sender "me")
-                              (subject "about you")
-                              (more-extra) ; empty data key should be pruned
-                              ;; first 5 entries will NOT have this extra data
-                              ,@(when (< 5 i) (list (list 'extra "more data")))
-                              (groups ,(number-to-string i)))))
-    db))
-
-(ert-deftest registry-usage-test ()
-  (let* ((n 100)
-         (db (registry-make-testable-db n)))
-    (message "size %d" n)
-    (should (= n (registry-size db)))
-    (message "max-hard test")
-    (should-error (registry-insert db "new" '()))
-    (message "Individual lookup")
-    (should (= 58 (caadr (registry-lookup db '(1 58 99)))))
-    (message "Grouped individual lookup")
-    (should (= 3 (length (registry-lookup db '(1 58 99)))))
-    (when (boundp 'lexical-binding)
-      (message "Individual lookup (breaks before lexbind)")
-      (should (= 58
-                 (caadr (registry-lookup-breaks-before-lexbind db '(1 58 99)))))
-      (message "Grouped individual lookup (breaks before lexbind)")
-      (should (= 3
-                 (length (registry-lookup-breaks-before-lexbind db
-                                                                '(1 58 99))))))
-    (message "Search")
-    (should (= n (length (registry-search db :all t))))
-    (should (= n (length (registry-search db :member '((sender "me"))))))
-    (message "Secondary index search")
-    (should (= n (length (registry-lookup-secondary-value db 'sender "me"))))
-    (should (equal '(74) (registry-lookup-secondary-value db 'groups "74")))
-    (message "Delete")
-    (should (registry-delete db '(1) t))
-    (decf n)
-    (message "Search after delete")
-    (should (= n (length (registry-search db :all t))))
-    (message "Secondary search after delete")
-    (should (= n (length (registry-lookup-secondary-value db 'sender "me"))))
-    ;; (message "Pruning")
-    ;; (let* ((tokeep (registry-search db :member '((extra "more data"))))
-    ;;        (count (- n (length tokeep)))
-    ;;        (pruned (registry-prune db))
-    ;;        (prune-count (length pruned)))
-    ;;   (message "Expecting to prune %d entries and pruned %d"
-    ;;            count prune-count)
-    ;;   (should (and (= count 5)
-    ;;                (= count prune-count))))
-    (message "Done with usage testing.")))
-
-(ert-deftest registry-persistence-test ()
-  (let* ((n 100)
-         (tempfile (make-temp-file "registry-persistence-"))
-         (name "persistence tester")
-         (db (registry-make-testable-db n name tempfile))
-         size back)
-    (message "Saving to %s" tempfile)
-    (eieio-persistent-save db)
-    (setq size (nth 7 (file-attributes tempfile)))
-    (message "Saved to %s: size %d" tempfile size)
-    (should (< 0 size))
-    (with-temp-buffer
-      (insert-file-contents-literally tempfile)
-      (should (looking-at (concat ";; Object "
-                                  name
-                                  "\n;; EIEIO PERSISTENT OBJECT"))))
-    (message "Reading object back")
-    (setq back (eieio-persistent-read tempfile))
-    (should back)
-    (message "Read object back: %d keys, expected %d==%d"
-             (registry-size back) n (registry-size db))
-    (should (= (registry-size back) n))
-    (should (= (registry-size back) (registry-size db)))
-    (delete-file tempfile))
-  (message "Done with persistence testing."))
 
 (provide 'registry)
 ;;; registry.el ends here

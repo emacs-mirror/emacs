@@ -435,7 +435,7 @@
 
 (eval-when-compile			; to avoid compiler warnings
   (require 'dired)
-  (require 'cl)
+  (require 'cl-lib)
   (require 'apropos))
 
 (defun woman-mapcan (fn x)
@@ -2385,20 +2385,20 @@ Currently set only from '\" t in the first line of the source file.")
     (if woman-negative-vertical-space
 	(woman-negative-vertical-space from))
 
-    (if woman-preserve-ascii
-	;; Re-instate escaped escapes to just `\' and unpaddable
-	;; spaces to just `space', without inheriting any text
-	;; properties.  This is not necessary, UNLESS the buffer is to
-	;; be saved as ASCII.
-	(progn
-	  (goto-char from)
-	  (while (search-forward woman-escaped-escape-string nil t)
-	    (delete-char -1)
-	    (insert ?\\))
-	  (goto-char from)
-	  (while (search-forward woman-unpadded-space-string nil t)
-	    (delete-char -1)
-	    (insert ?\s))))
+    (when woman-preserve-ascii
+      ;; Re-instate escaped escapes to just `\' and unpaddable spaces
+      ;; to just `space'.  This is not necessary for display since
+      ;; there are display table entries for the escaped chars, but it
+      ;; is necessary if the buffer might be saved as ASCII.
+      ;;
+      ;; `subst-char-in-region' preserves text properties on the
+      ;; characters, which is necessary for bold, underline, etc on
+      ;; \e.  There's usually no face on spaces, but if there is then
+      ;; it's good to keep that too.
+      (subst-char-in-region from (point-max)
+			    woman-escaped-escape-char ?\\)
+      (subst-char-in-region from (point-max)
+			    woman-unpadded-space-char ?\s))
 
     ;; Must return the new end of file if used in format-alist.
     (point-max)))
@@ -2679,8 +2679,7 @@ If DELETE is non-nil then delete from point."
 	;; then use the WoMan search mechanism to find the filename ...
 	(setq filename
 	      (woman-file-name
-	       (file-name-sans-extension
-		(file-name-nondirectory name))))
+	       (file-name-base name)))
 	;; Cannot find the file, so ...
 	(kill-buffer (current-buffer))
 	(error "File `%s' not found" name))
@@ -2866,15 +2865,18 @@ interpolated by `\*x' and `\*(xx' escapes."
 	     (re-search-forward "[^ \t\n]+")
 	     (let ((string (match-string 0)))
 	       (skip-chars-forward " \t")
-;		 (setq string
-;		       (cons string
-;			     ;; hack (?) for CGI.man!
-;			     (cond ((looking-at "\"\"") "\"")
-;				   ((looking-at ".*") (match-string 0)))
-;			     ))
-	       ;; Above hack causes trouble in arguments!
-	       (looking-at ".*")
-	       (setq string (cons string (match-string 0)))
+	       (if (= ?\" (following-char))
+		   ;; Double-quote starts a string, eg.
+		   ;;   .ds foo "blah...
+		   ;; is value blah... through to newline.  There's no
+		   ;; closing " (per the groff manual), but rather any
+		   ;; further " is included literally in the string.  Eg.
+		   ;;   .ds foo ""
+		   ;; sets foo to a single " character.
+		   (forward-char))
+	       (setq string (cons string
+				  (buffer-substring (point)
+						    (line-end-position))))
 	       ;; This should be an update, but consing a new string
 	       ;; onto the front of the alist has the same effect:
 	       (setq woman-string-alist (cons string woman-string-alist))
@@ -3922,7 +3924,7 @@ Leave 1 blank line.  Format paragraphs upto TO."
 (defun woman2-process-escapes (to &optional numeric)
   "Process remaining escape sequences up to marker TO, preserving point.
 Optional argument NUMERIC, if non-nil, means the argument is numeric."
-  (assert (and (markerp to) (marker-insertion-type to)))
+  (cl-assert (and (markerp to) (marker-insertion-type to)))
   ;; The first two cases below could be merged (maybe)!
   (let ((from (point)))
     ;; Discard zero width filler character used to hide leading dots
@@ -3930,7 +3932,9 @@ Optional argument NUMERIC, if non-nil, means the argument is numeric."
     (while (re-search-forward "\\\\[&|^]" to t)
       (woman-delete-match 0)
       ;; If on a line by itself, consume newline as well (Bug#3651).
-      (and (eq (char-before (match-beginning 0)) ?\n)
+      ;; But not in a .nf region, preserve all newlines in that case.
+      (and (not woman-nofill)
+	   (eq (char-before (match-beginning 0)) ?\n)
 	   (eq (char-after (match-beginning 0)) ?\n)
 	   (delete-char 1)))
 

@@ -44,8 +44,6 @@
     (error "%s: Loading ns-win.el but not compiled for GNUstep/MacOS"
            (invocation-name)))
 
-(eval-when-compile (require 'cl))
-
 ;; Documentation-purposes only: actually loaded in loadup.el.
 (require 'frame)
 (require 'mouse)

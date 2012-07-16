@@ -34,8 +34,6 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
-
 ;;; Customizable variables
 
 (defgroup dired nil
@@ -170,8 +168,9 @@ If a character, new links are unconditionally marked with that character."
 
 (defcustom dired-dwim-target nil
   "If non-nil, Dired tries to guess a default target directory.
-This means: if there is a dired buffer displayed in the next window,
-use its current subdir, instead of the current subdir of this dired buffer.
+This means: if there is a Dired buffer displayed in the next
+window, use its current directory, instead of this Dired buffer's
+current directory.
 
 The target is used in the prompt for file copy, rename etc."
   :type 'boolean
@@ -1957,15 +1956,14 @@ You can use it to recover marks, killed lines or subdirs."
 Actual changes in files cannot be undone by Emacs."))
 
 (defun dired-toggle-read-only ()
-  "Edit dired buffer with Wdired, or set it read-only.
-Call `wdired-change-to-wdired-mode' in dired buffers whose editing is
-supported by Wdired (the major mode of the dired buffer is `dired-mode').
-Otherwise, for buffers inheriting from dired-mode, call `toggle-read-only'."
+  "Edit Dired buffer with Wdired, or make it read-only.
+If the current buffer can be edited with Wdired, (i.e. the major
+mode is `dired-mode'), call `wdired-change-to-wdired-mode'.
+Otherwise, call `toggle-read-only'."
   (interactive)
   (if (eq major-mode 'dired-mode)
       (wdired-change-to-wdired-mode)
-    (with-no-warnings
-      (toggle-read-only))))
+    (toggle-read-only nil t)))
 
 (defun dired-next-line (arg)
   "Move down lines then position at filename.
@@ -2209,10 +2207,11 @@ Optional arg GLOBAL means to replace all matches."
   ;; dired-get-filename.
   (concat (or dir default-directory) file))
 
-(defun dired-make-relative (file &optional dir _ignore)
+(defun dired-make-relative (file &optional dir)
   "Convert FILE (an absolute file name) to a name relative to DIR.
-If this is impossible, return FILE unchanged.
-DIR must be a directory name, not a file name."
+If DIR is omitted or nil, it defaults to `default-directory'.
+If FILE is not in the directory tree of DIR, return FILE
+unchanged."
   (or dir (setq dir default-directory))
   ;; This case comes into play if default-directory is set to
   ;; use ~.
@@ -2220,8 +2219,6 @@ DIR must be a directory name, not a file name."
       (setq dir (expand-file-name dir)))
   (if (string-match (concat "^" (regexp-quote dir)) file)
       (substring file (match-end 0))
-;;;  (or no-error
-;;;	(error "%s: not in directory tree growing at %s" file dir))
     file))
 
 ;;; Functions for finding the file name in a dired buffer line.
@@ -2467,8 +2464,6 @@ You can then feed the file name(s) to other commands with \\[yank]."
 						  dired-subdir-alist))))
 	   cur-dir))))
 
-;(defun dired-get-subdir-min (elt)
-;  (cdr elt))
 ;; can't use macro,  must be redefinable for other alist format in dired-nstd.
 (defalias 'dired-get-subdir-min 'cdr)
 
@@ -2730,12 +2725,14 @@ Optional argument means return a file name relative to `default-directory'."
 ;; Deleting files
 
 (defcustom dired-recursive-deletes 'top
-  "Decide whether recursive deletes are allowed.
-A value of nil means no recursive deletes.
-`always' means delete recursively without asking.  This is DANGEROUS!
-`top' means ask for each directory at top level, but delete its subdirectories
-without asking.
-Anything else means ask for each directory."
+  "Whether Dired deletes directories recursively.
+If nil, Dired will not delete non-empty directories.
+`always' means to delete non-empty directories recursively,
+without asking.  This is dangerous!
+`top' means to ask for each top-level directory specified by the
+Dired deletion command, and delete its subdirectories without
+asking.
+Any other value means to ask for each directory."
   :type '(choice :tag "Delete non-empty directories"
 		 (const :tag "Yes" always)
 		 (const :tag "No--only delete empty directories" nil)
@@ -3577,11 +3574,11 @@ To be called first in body of `dired-sort-other', etc."
 ;;;;  Drag and drop support
 
 (defcustom dired-recursive-copies 'top
-  "Decide whether recursive copies are allowed.
-A value of nil means no recursive copies.
-`always' means copy recursively without asking.
-`top' means ask for each directory at top level.
-Anything else means ask for each directory."
+  "Whether Dired copies directories recursively.
+If nil, never copy recursively.
+`always' means to copy recursively without asking.
+`top' means to ask for each directory at top level.
+Any other value means to ask for each directory."
   :type '(choice :tag "Copy directories"
 		 (const :tag "No recursive copies" nil)
 		 (const :tag "Ask for each directory" t)
@@ -3739,7 +3736,7 @@ Ask means pop up a menu for the user to select one of copy, move or link."
 ;;;;;;  dired-run-shell-command dired-do-shell-command dired-do-async-shell-command
 ;;;;;;  dired-clean-directory dired-do-print dired-do-touch dired-do-chown
 ;;;;;;  dired-do-chgrp dired-do-chmod dired-compare-directories dired-backup-diff
-;;;;;;  dired-diff) "dired-aux" "dired-aux.el" "de7e4c64718c8ba8438a6397a460bf23")
+;;;;;;  dired-diff) "dired-aux" "dired-aux.el" "91d39bd8f7e9ce93dc752fe74bea78c2")
 ;;; Generated autoloads from dired-aux.el
 
 (autoload 'dired-diff "dired-aux" "\
@@ -3979,16 +3976,21 @@ If DIRECTORY already exists, signal an error.
 
 (autoload 'dired-do-copy "dired-aux" "\
 Copy all marked (or next ARG) files, or copy the current file.
-This normally preserves the last-modified date when copying.
-When operating on just the current file, you specify the new name.
-When operating on multiple or marked files, you specify a directory,
-and new copies of these files are made in that directory
-with the same names that the files currently have.  The default
-suggested for the target directory depends on the value of
-`dired-dwim-target', which see.
+When operating on just the current file, prompt for the new name.
 
-This command copies symbolic links by creating new ones,
-like `cp -d'.
+When operating on multiple or marked files, prompt for a target
+directory, and make the new copies in that directory, with the
+same names as the original files.  The initial suggestion for the
+target directory is the Dired buffer's current directory (or, if
+`dired-dwim-target' is non-nil, the current directory of a
+neighboring Dired window).
+
+If `dired-copy-preserve-time' is non-nil, this command preserves
+the modification time of each old file in the copy, similar to
+the \"-p\" option for the \"cp\" shell command.
+
+This command copies symbolic links by creating new ones, similar
+to the \"-d\" option for the \"cp\" shell command.
 
 \(fn &optional ARG)" t nil)
 
@@ -4091,9 +4093,10 @@ See Info node `(emacs)Subdir switches' for more details.
 \(fn DIRNAME &optional SWITCHES NO-ERROR-IF-NOT-DIR-P)" t nil)
 
 (autoload 'dired-insert-subdir "dired-aux" "\
-Insert this subdirectory into the same dired buffer.
-If it is already present, overwrites previous entry,
-  else inserts it at its natural place (as `ls -lR' would have done).
+Insert this subdirectory into the same Dired buffer.
+If it is already present, overwrite the previous entry;
+  otherwise, insert it at its natural place (as `ls -lR' would
+  have done).
 With a prefix arg, you may edit the `ls' switches used for this listing.
   You can add `R' to the switches to expand the whole tree starting at
   this subdirectory.

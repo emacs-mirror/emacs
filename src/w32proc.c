@@ -777,7 +777,7 @@ sys_spawnve (int mode, char *cmdname, char **argv, char **envp)
     }
 
   /* Handle executable names without an executable suffix.  */
-  program = make_string (cmdname, strlen (cmdname));
+  program = build_string (cmdname);
   if (NILP (Ffile_executable_p (program)))
     {
       struct gcpro gcpro1;
@@ -1080,7 +1080,7 @@ extern int proc_buffered_char[];
 
 int
 sys_select (int nfds, SELECT_TYPE *rfds, SELECT_TYPE *wfds, SELECT_TYPE *efds,
-	    EMACS_TIME *timeout)
+	    EMACS_TIME *timeout, void *ignored)
 {
   SELECT_TYPE orfds;
   DWORD timeout_ms, start_time;
@@ -1090,7 +1090,8 @@ sys_select (int nfds, SELECT_TYPE *rfds, SELECT_TYPE *wfds, SELECT_TYPE *efds,
   HANDLE wait_hnd[MAXDESC + MAX_CHILDREN];
   int fdindex[MAXDESC];   /* mapping from wait handles back to descriptors */
 
-  timeout_ms = timeout ? (timeout->tv_sec * 1000 + timeout->tv_usec / 1000) : INFINITE;
+  timeout_ms =
+    timeout ? (timeout->tv_sec * 1000 + timeout->tv_nsec / 1000000) : INFINITE;
 
   /* If the descriptor sets are NULL but timeout isn't, then just Sleep.  */
   if (rfds == NULL && wfds == NULL && efds == NULL && timeout != NULL)
@@ -1948,8 +1949,12 @@ If LCID (a 16-bit number) is not a valid locale, the result is nil.  */)
       got_full = GetLocaleInfo (XINT (lcid),
 				XINT (longform),
 				full_name, sizeof (full_name));
+      /* GetLocaleInfo's return value includes the terminating null
+	 character, when the returned information is a string, whereas
+	 make_unibyte_string needs the string length without the
+	 terminating null.  */
       if (got_full)
-	return make_unibyte_string (full_name, got_full);
+	return make_unibyte_string (full_name, got_full - 1);
     }
 
   return Qnil;

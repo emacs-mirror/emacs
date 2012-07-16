@@ -32,8 +32,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <ctype.h>
 #include <setjmp.h>
 #include "lisp.h"
-#include "buffer.h"
 #include "character.h"
+#include "buffer.h"
 #include "charset.h"
 #include "category.h"
 #include "keymap.h"
@@ -49,9 +49,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 static int category_table_version;
 
 static Lisp_Object Qcategory_table, Qcategoryp, Qcategorysetp, Qcategory_table_p;
-
-/* Temporary internal variable used in macro CHAR_HAS_CATEGORY.  */
-Lisp_Object _temp_category_set;
 
 /* Make CATEGORY_SET includes (if VAL is t) or excludes (if VAL is
    nil) CATEGORY.  */

@@ -67,7 +67,7 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 (defgroup avoid nil
   "Make mouse pointer stay out of the way of editing."
@@ -206,30 +206,30 @@ If you want the mouse banished to a different corner set
   (let* ((fra-or-win         (assoc-default
                               'frame-or-window
                               mouse-avoidance-banish-position 'eq))
-         (list-values        (case fra-or-win
-                               (frame (list 0 0 (frame-width) (frame-height)))
-                               (window (window-edges))))
-         (alist              (loop for v in list-values
-                                   for k in '(left top right bottom)
-                                   collect (cons k v)))
+         (list-values        (pcase fra-or-win
+                               (`frame (list 0 0 (frame-width) (frame-height)))
+                               (`window (window-edges))))
+         (alist              (cl-loop for v in list-values
+                                      for k in '(left top right bottom)
+                                      collect (cons k v)))
          (side               (assoc-default
                               'side
-                              mouse-avoidance-banish-position 'eq))
+                              mouse-avoidance-banish-position #'eq))
          (side-dist          (assoc-default
                               'side-pos
-                              mouse-avoidance-banish-position 'eq))
+                              mouse-avoidance-banish-position #'eq))
          (top-or-bottom      (assoc-default
                               'top-or-bottom
-                              mouse-avoidance-banish-position 'eq))
+                              mouse-avoidance-banish-position #'eq))
          (top-or-bottom-dist (assoc-default
                               'top-or-bottom-pos
-                              mouse-avoidance-banish-position 'eq))
-         (side-fn            (case side
-                               (left '+)
-                               (right '-)))
-         (top-or-bottom-fn   (case top-or-bottom
-                               (top '+)
-                               (bottom '-))))
+                              mouse-avoidance-banish-position #'eq))
+         (side-fn            (pcase side
+                               (`left '+)
+                               (`right '-)))
+         (top-or-bottom-fn   (pcase top-or-bottom
+                               (`top '+)
+                               (`bottom '-))))
     (cons (funcall side-fn                        ; -/+
                    (assoc-default side alist 'eq) ; right or left
                    side-dist)                     ; distance from side

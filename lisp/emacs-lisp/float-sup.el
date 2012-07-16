@@ -28,13 +28,9 @@
 ;; Provide an easy hook to tell if we are running with floats or not.
 ;; Define pi and e via math-lib calls (much less prone to killer typos).
 (defconst float-pi (* 4 (atan 1)) "The value of Pi (3.1415926...).")
-(progn
-  ;; Simulate a defconst that doesn't declare the variable dynamically bound.
-  (setq-default pi float-pi)
-  (put 'pi 'variable-documentation
-       "Obsolete since Emacs-23.3.  Use `float-pi' instead.")
-  (put 'pi 'risky-local-variable t)
-  (push 'pi current-load-list))
+(defconst pi float-pi
+  "Obsolete since Emacs-23.3.  Use `float-pi' instead.")
+(internal-make-var-non-special 'pi)
 
 (defconst float-e (exp 1) "The value of e (2.7182818...).")
 

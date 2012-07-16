@@ -32,20 +32,21 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <allocator.h>
 #include <careadlinkat.h>
 #include <ignore-value.h>
+#include <utimens.h>
 
 #include "lisp.h"
 #include "sysselect.h"
 #include "blockinput.h"
 
-#ifdef __FreeBSD__
+#ifdef BSD_SYSTEM
+#include <sys/param.h>
 #include <sys/sysctl.h>
-#include <sys/user.h>
-#include <sys/resource.h> */
-#include <math.h>
 #endif
 
-#ifdef DARWIN_OS
-#include <sys/sysctl.h>
+#ifdef __FreeBSD__
+#include <sys/user.h>
+#include <sys/resource.h>
+#include <math.h>
 #endif
 
 #ifdef WINDOWSNT
@@ -58,21 +59,12 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <sys/stat.h>
 #include <errno.h>
 
-#ifdef HAVE_SETPGID
-#if !defined (USG)
-#undef setpgrp
-#define setpgrp setpgid
-#endif
-#endif
-
 /* Get SI_SRPC_DOMAIN, if it is available.  */
 #ifdef HAVE_SYS_SYSTEMINFO_H
 #include <sys/systeminfo.h>
 #endif
 
 #ifdef MSDOS	/* Demacs 1.1.2 91/10/20 Manabu Higashida, MW Aug 1993 */
-#include <dos.h>
-#include "dosfns.h"
 #include "msdos.h"
 #include <sys/param.h>
 #endif
@@ -109,25 +101,16 @@ extern char *getwd (char *);
 
 #include "syssignal.h"
 #include "systime.h"
-#ifdef HAVE_UTIME_H
-#include <utime.h>
-#endif
-
-#ifndef HAVE_UTIMES
-#ifndef HAVE_STRUCT_UTIMBUF
-/* We want to use utime rather than utimes, but we couldn't find the
-   structure declaration.  We'll use the traditional one.  */
-struct utimbuf {
-  long actime;
-  long modtime;
-};
-#endif
-#endif
 
 static int emacs_get_tty (int, struct emacs_tty *);
 static int emacs_set_tty (int, struct emacs_tty *, int);
 #if defined TIOCNOTTY || defined USG5 || defined CYGWIN
-static void croak (char *) NO_RETURN;
+static _Noreturn void croak (char *);
+#endif
+
+/* ULLONG_MAX is missing on Red Hat Linux 7.3; see Bug#11781.  */
+#ifndef ULLONG_MAX
+#define ULLONG_MAX TYPE_MAXIMUM (unsigned long long int)
 #endif
 
 /* Declare here, including term.h is problematic on some systems.  */
@@ -165,7 +148,7 @@ get_current_dir_name (void)
 #endif
       )
     {
-      buf = (char *) malloc (strlen (pwd) + 1);
+      buf = malloc (strlen (pwd) + 1);
       if (!buf)
         return NULL;
       strcpy (buf, pwd);
@@ -174,7 +157,7 @@ get_current_dir_name (void)
   else
     {
       size_t buf_size = 1024;
-      buf = (char *) malloc (buf_size);
+      buf = malloc (buf_size);
       if (!buf)
         return NULL;
       for (;;)
@@ -189,7 +172,7 @@ get_current_dir_name (void)
               return NULL;
             }
           buf_size *= 2;
-          buf = (char *) realloc (buf, buf_size);
+          buf = realloc (buf, buf_size);
           if (!buf)
             return NULL;
         }
@@ -198,7 +181,7 @@ get_current_dir_name (void)
   else
     {
       /* We need MAXPATHLEN here.  */
-      buf = (char *) malloc (MAXPATHLEN + 1);
+      buf = malloc (MAXPATHLEN + 1);
       if (!buf)
         return NULL;
       if (getwd (buf) == NULL)
@@ -538,7 +521,7 @@ sys_subshell (void)
     goto xyzzy;
 
   dir = expand_and_dir_to_file (Funhandled_file_name_directory (dir), Qnil);
-  str_volatile = str = (unsigned char *) alloca (SCHARS (dir) + 2);
+  str_volatile = str = alloca (SCHARS (dir) + 2);
   len = SCHARS (dir);
   memcpy (str, SDATA (dir), len);
   if (str[len - 1] != '/') str[len++] = '/';
@@ -873,7 +856,7 @@ init_sys_modes (struct tty_display_info *tty_out)
     return;                     /* The tty is suspended. */
 
   if (! tty_out->old_tty)
-    tty_out->old_tty = (struct emacs_tty *) xmalloc (sizeof (struct emacs_tty));
+    tty_out->old_tty = xmalloc (sizeof *tty_out->old_tty);
 
   emacs_get_tty (fileno (tty_out->input), tty_out->old_tty);
 
@@ -1367,7 +1350,7 @@ init_system_name (void)
   Vsystem_name = build_string (uts.nodename);
 #else /* HAVE_GETHOSTNAME */
   unsigned int hostname_size = 256;
-  char *hostname = (char *) alloca (hostname_size);
+  char *hostname = alloca (hostname_size);
 
   /* Try to get the host name; if the buffer is too short, try
      again.  Apparently, the only indication gethostname gives of
@@ -1383,7 +1366,7 @@ init_system_name (void)
 	break;
 
       hostname_size <<= 1;
-      hostname = (char *) alloca (hostname_size);
+      hostname = alloca (hostname_size);
     }
 #ifdef HAVE_SOCKETS
   /* Turn the hostname into the official, fully-qualified hostname.
@@ -1501,9 +1484,10 @@ sys_signal (int signal_number, signal_handler_t action)
 #if defined (SA_RESTART)
   /* Emacs mostly works better with restartable system services. If this
      flag exists, we probably want to turn it on here.
-     However, on some systems this resets the timeout of `select'
-     which means that `select' never finishes if it keeps getting signals.
-     BROKEN_SA_RESTART is defined on those systems.  */
+     However, on some systems (only hpux11 at present) this resets the
+     timeout of `select' which means that `select' never finishes if
+     it keeps getting signals.
+     We define BROKEN_SA_RESTART on those systems.  */
   /* It's not clear why the comment above says "mostly works better".  --Stef
      When SYNC_INPUT is set, we don't want SA_RESTART because we need to poll
      for pending input so we need long-running syscalls to be interrupted
@@ -1808,21 +1792,6 @@ get_random (void)
   return val & INTMASK;
 }
 
-#ifndef HAVE_STRERROR
-#ifndef WINDOWSNT
-char *
-strerror (int errnum)
-{
-  extern char *sys_errlist[];
-  extern int sys_nerr;
-
-  if (errnum >= 0 && errnum < sys_nerr)
-    return sys_errlist[errnum];
-  return (char *) "Unknown error";
-}
-#endif /* not WINDOWSNT */
-#endif /* ! HAVE_STRERROR */
-
 #ifndef HAVE_SNPRINTF
 /* Approximate snprintf as best we can on ancient hosts that lack it.  */
 int
@@ -2032,65 +2001,6 @@ getwd (char *pathname)
 #endif /* HAVE_GETWD */
 
 /*
- *	Emulate rename using unlink/link.  Note that this is
- *	only partially correct.  Also, doesn't enforce restriction
- *	that files be of same type (regular->regular, dir->dir, etc).
- */
-
-#ifndef HAVE_RENAME
-
-int
-rename (const char *from, const char *to)
-{
-  if (access (from, 0) == 0)
-    {
-      unlink (to);
-      if (link (from, to) == 0)
-	if (unlink (from) == 0)
-	  return (0);
-    }
-  return (-1);
-}
-
-#endif
-
-
-#if defined (HPUX) && !defined (HAVE_PERROR)
-
-/* HPUX curses library references perror, but as far as we know
-   it won't be called.  Anyway this definition will do for now.  */
-
-void
-perror (void)
-{
-}
-#endif /* HPUX and not HAVE_PERROR */
-
-/*
- *	Gettimeofday.  Simulate as much as possible.  Only accurate
- *	to nearest second.  Emacs doesn't use tzp so ignore it for now.
- *	Only needed when subprocesses are defined.
- */
-
-#ifndef HAVE_GETTIMEOFDAY
-#ifdef HAVE_TIMEVAL
-
-int
-gettimeofday (struct timeval *tp, struct timezone *tzp)
-{
-  extern long time (long);
-
-  tp->tv_sec = time ((long *)0);
-  tp->tv_usec = 0;
-  if (tzp != 0)
-    tzp->tz_minuteswest = -1;
-  return 0;
-}
-
-#endif
-#endif /* !HAVE_GETTIMEOFDAY && HAVE_TIMEVAL */
-
-/*
  *	This function will go away as soon as all the stubs fixed. (fnf)
  */
 
@@ -2126,147 +2036,44 @@ closedir (DIR *dirp /* stream from opendir */)
 #endif /* HAVE_DIRENT_H */
 
 
-int
-set_file_times (const char *filename, EMACS_TIME atime, EMACS_TIME mtime)
+/* Return a struct timeval that is roughly equivalent to T.
+   Use the least timeval not less than T.
+   Return an extremal value if the result would overflow.  */
+struct timeval
+make_timeval (EMACS_TIME t)
 {
-#ifdef HAVE_UTIMES
-  struct timeval tv[2];
-  tv[0] = atime;
-  tv[1] = mtime;
-  return utimes (filename, tv);
-#else /* not HAVE_UTIMES */
-  struct utimbuf utb;
-  utb.actime = EMACS_SECS (atime);
-  utb.modtime = EMACS_SECS (mtime);
-  return utime (filename, &utb);
-#endif /* not HAVE_UTIMES */
+  struct timeval tv;
+  tv.tv_sec = t.tv_sec;
+  tv.tv_usec = t.tv_nsec / 1000;
+
+  if (t.tv_nsec % 1000 != 0)
+    {
+      if (tv.tv_usec < 999999)
+	tv.tv_usec++;
+      else if (tv.tv_sec < TYPE_MAXIMUM (time_t))
+	{
+	  tv.tv_sec++;
+	  tv.tv_usec = 0;
+	}
+    }
+
+  return tv;
 }
-
-/* mkdir and rmdir functions, for systems which don't have them.  */
 
-#ifndef HAVE_MKDIR
-/*
- * Written by Robert Rother, Mariah Corporation, August 1985.
- *
- * If you want it, it's yours.  All I ask in return is that if you
- * figure out how to do this in a Bourne Shell script you send me
- * a copy.
- *					sdcsvax!rmr or rmr@uscd
- *
- * Severely hacked over by John Gilmore to make a 4.2BSD compatible
- * subroutine.  11Mar86; hoptoad!gnu
- *
- * Modified by rmtodd@uokmax 6-28-87 -- when making an already existing dir,
- * subroutine didn't return EEXIST.  It does now.
- */
-
-/*
- * Make a directory.
- */
+/* Set the access and modification time stamps of FD (a.k.a. FILE) to be
+   ATIME and MTIME, respectively.
+   FD must be either negative -- in which case it is ignored --
+   or a file descriptor that is open on FILE.
+   If FD is nonnegative, then FILE can be NULL.  */
 int
-mkdir (char *dpath, int dmode)
+set_file_times (int fd, const char *filename,
+		EMACS_TIME atime, EMACS_TIME mtime)
 {
-  pid_t cpid;
-  int status, fd;
-  struct stat statbuf;
-
-  if (stat (dpath, &statbuf) == 0)
-    {
-      errno = EEXIST;		/* Stat worked, so it already exists */
-      return -1;
-    }
-
-  /* If stat fails for a reason other than non-existence, return error */
-  if (errno != ENOENT)
-    return -1;
-
-  synch_process_alive = 1;
-  switch (cpid = fork ())
-    {
-
-    case -1:			/* Error in fork */
-      return (-1);		/* Errno is set already */
-
-    case 0:			/* Child process */
-      /*
-		 * Cheap hack to set mode of new directory.  Since this
-		 * child process is going away anyway, we zap its umask.
-		 * FIXME, this won't suffice to set SUID, SGID, etc. on this
-		 * directory.  Does anybody care?
-		 */
-      status = umask (0);	/* Get current umask */
-      status = umask (status | (0777 & ~dmode));	/* Set for mkdir */
-      fd = emacs_open ("/dev/null", O_RDWR, 0);
-      if (fd >= 0)
-        {
-	  dup2 (fd, 0);
-	  dup2 (fd, 1);
-	  dup2 (fd, 2);
-        }
-      execl ("/bin/mkdir", "mkdir", dpath, (char *) 0);
-      _exit (-1);		/* Can't exec /bin/mkdir */
-
-    default:			/* Parent process */
-      wait_for_termination (cpid);
-    }
-
-  if (synch_process_death != 0 || synch_process_retcode != 0
-      || synch_process_termsig != 0)
-    {
-      errno = EIO;		/* We don't know why, but */
-      return -1;		/* /bin/mkdir failed */
-    }
-
-  return 0;
+  struct timespec timespec[2];
+  timespec[0] = atime;
+  timespec[1] = mtime;
+  return fdutimens (fd, filename, timespec);
 }
-#endif /* not HAVE_MKDIR */
-
-#ifndef HAVE_RMDIR
-int
-rmdir (char *dpath)
-{
-  int cpid, status, fd;
-  struct stat statbuf;
-
-  if (stat (dpath, &statbuf) != 0)
-    {
-      /* Stat just set errno.  We don't have to */
-      return -1;
-    }
-
-  synch_process_alive = 1;
-  switch (cpid = fork ())
-    {
-
-    case -1:			/* Error in fork */
-      return (-1);		/* Errno is set already */
-
-    case 0:			/* Child process */
-      fd = emacs_open ("/dev/null", O_RDWR, 0);
-      if (fd >= 0)
-        {
-	  dup2 (fd, 0);
-	  dup2 (fd, 1);
-	  dup2 (fd, 2);
-        }
-      execl ("/bin/rmdir", "rmdir", dpath, (char *) 0);
-      _exit (-1);		/* Can't exec /bin/rmdir */
-
-    default:			/* Parent process */
-      wait_for_termination (cpid);
-    }
-
-  if (synch_process_death != 0 || synch_process_retcode != 0
-      || synch_process_termsig != 0)
-    {
-      errno = EIO;		/* We don't know why, but */
-      return -1;		/* /bin/rmdir failed */
-    }
-
-  return 0;
-}
-#endif /* !HAVE_RMDIR */
-
 
 #ifndef HAVE_STRSIGNAL
 char *
@@ -2543,7 +2350,7 @@ list_system_processes (void)
 Lisp_Object
 list_system_processes (void)
 {
-#ifdef DARWIN_OS
+#if defined DARWIN_OS || defined __NetBSD__ || defined __OpenBSD__
   int mib[] = {CTL_KERN, KERN_PROC, KERN_PROC_ALL};
 #else
   int mib[] = {CTL_KERN, KERN_PROC, KERN_PROC_PROC};
@@ -2569,8 +2376,10 @@ list_system_processes (void)
   len /= sizeof (struct kinfo_proc);
   for (i = 0; i < len; i++)
     {
-#ifdef DARWIN_OS
+#if defined DARWIN_OS || defined __NetBSD__
       proclist = Fcons (make_fixnum_or_float (procs[i].kp_proc.p_pid), proclist);
+#elif defined __OpenBSD__
+      proclist = Fcons (make_fixnum_or_float (procs[i].p_pid), proclist);
 #else
       proclist = Fcons (make_fixnum_or_float (procs[i].ki_pid), proclist);
 #endif
@@ -2595,60 +2404,78 @@ list_system_processes (void)
 #endif /* !defined (WINDOWSNT) */
 
 #ifdef GNU_LINUX
-static void
-time_from_jiffies (unsigned long long tval, long hz,
-		   time_t *sec, unsigned *usec)
+static EMACS_TIME
+time_from_jiffies (unsigned long long tval, long hz)
 {
-  unsigned long long ullsec;
+  unsigned long long s = tval / hz;
+  unsigned long long frac = tval % hz;
+  int ns;
 
-  *sec = tval / hz;
-  ullsec = *sec;
-  tval -= ullsec * hz;
-  /* Careful: if HZ > 1 million, then integer division by it yields zero.  */
-  if (hz <= 1000000)
-    *usec = tval * 1000000 / hz;
+  if (TYPE_MAXIMUM (time_t) < s)
+    time_overflow ();
+  if (LONG_MAX - 1 <= ULLONG_MAX / EMACS_TIME_RESOLUTION
+      || frac <= ULLONG_MAX / EMACS_TIME_RESOLUTION)
+    ns = frac * EMACS_TIME_RESOLUTION / hz;
   else
-    *usec = tval / (hz / 1000000);
+    {
+      /* This is reachable only in the unlikely case that HZ * HZ
+	 exceeds ULLONG_MAX.  It calculates an approximation that is
+	 guaranteed to be in range.  */
+      long hz_per_ns = (hz / EMACS_TIME_RESOLUTION
+			+ (hz % EMACS_TIME_RESOLUTION != 0));
+      ns = frac / hz_per_ns;
+    }
+
+  return make_emacs_time (s, ns);
 }
 
 static Lisp_Object
 ltime_from_jiffies (unsigned long long tval, long hz)
 {
-  time_t sec;
-  unsigned usec;
-
-  time_from_jiffies (tval, hz, &sec, &usec);
-
-  return list3 (make_number ((sec >> 16) & 0xffff),
-		make_number (sec & 0xffff),
-		make_number (usec));
+  EMACS_TIME t = time_from_jiffies (tval, hz);
+  return make_lisp_time (t);
 }
 
-static void
-get_up_time (time_t *sec, unsigned *usec)
+static EMACS_TIME
+get_up_time (void)
 {
   FILE *fup;
-
-  *sec = *usec = 0;
+  EMACS_TIME up = make_emacs_time (0, 0);
 
   BLOCK_INPUT;
   fup = fopen ("/proc/uptime", "r");
 
   if (fup)
     {
-      double uptime, idletime;
+      unsigned long long upsec, upfrac, idlesec, idlefrac;
+      int upfrac_start, upfrac_end, idlefrac_start, idlefrac_end;
 
-      /* The numbers in /proc/uptime use C-locale decimal point, but
-	 we already set ourselves to the C locale (see `fixup_locale'
-	 in emacs.c).  */
-      if (2 <= fscanf (fup, "%lf %lf", &uptime, &idletime))
+      if (fscanf (fup, "%llu.%n%llu%n %llu.%n%llu%n",
+		  &upsec, &upfrac_start, &upfrac, &upfrac_end,
+		  &idlesec, &idlefrac_start, &idlefrac, &idlefrac_end)
+	  == 4)
 	{
-	  *sec = uptime;
-	  *usec = (uptime - *sec) * 1000000;
+	  if (TYPE_MAXIMUM (time_t) < upsec)
+	    {
+	      upsec = TYPE_MAXIMUM (time_t);
+	      upfrac = EMACS_TIME_RESOLUTION - 1;
+	    }
+	  else
+	    {
+	      int upfraclen = upfrac_end - upfrac_start;
+	      for (; upfraclen < LOG10_EMACS_TIME_RESOLUTION; upfraclen++)
+		upfrac *= 10;
+	      for (; LOG10_EMACS_TIME_RESOLUTION < upfraclen; upfraclen--)
+		upfrac /= 10;
+	      upfrac = min (upfrac, EMACS_TIME_RESOLUTION - 1);
+	    }
+	  up = make_emacs_time (upsec, upfrac);
 	}
       fclose (fup);
     }
   UNBLOCK_INPUT;
+
+  return up;
 }
 
 #define MAJOR(d) (((unsigned)(d) >> 8) & 0xfff)
@@ -2737,9 +2564,11 @@ system_process_attributes (Lisp_Object pid)
   char procbuf[1025], *p, *q;
   int fd;
   ssize_t nread;
-  const char *cmd = NULL;
+  static char const default_cmd[] = "???";
+  const char *cmd = default_cmd;
+  int cmdsize = sizeof default_cmd - 1;
   char *cmdline = NULL;
-  ptrdiff_t cmdsize = 0, cmdline_size;
+  ptrdiff_t cmdline_size;
   unsigned char c;
   printmax_t proc_id;
   int ppid, pgrp, sess, tty, tpgid, thcount;
@@ -2748,9 +2577,7 @@ system_process_attributes (Lisp_Object pid)
   unsigned long long u_time, s_time, cutime, cstime, start;
   long priority, niceness, rss;
   unsigned long minflt, majflt, cminflt, cmajflt, vsize;
-  time_t sec;
-  unsigned usec;
-  EMACS_TIME tnow, tstart, tboot, telapsed;
+  EMACS_TIME tnow, tstart, tboot, telapsed, us_time;
   double pcpu, pmem;
   Lisp_Object attrs = Qnil;
   Lisp_Object cmd_str, decoded_cmd, tem;
@@ -2803,11 +2630,6 @@ system_process_attributes (Lisp_Object pid)
 	}
       else
 	q = NULL;
-      if (cmd == NULL)
-	{
-	  cmd = "???";
-	  cmdsize = 3;
-	}
       /* Command name is encoded in locale-coding-system; decode it.  */
       cmd_str = make_unibyte_string (cmd, cmdsize);
       decoded_cmd = code_convert_string_norecord (cmd_str,
@@ -2872,36 +2694,19 @@ system_process_attributes (Lisp_Object pid)
 	  attrs = Fcons (Fcons (Qpri, make_number (priority)), attrs);
 	  attrs = Fcons (Fcons (Qnice, make_number (niceness)), attrs);
 	  attrs = Fcons (Fcons (Qthcount, make_fixnum_or_float (thcount_eint)), attrs);
-	  EMACS_GET_TIME (tnow);
-	  get_up_time (&sec, &usec);
-	  EMACS_SET_SECS (telapsed, sec);
-	  EMACS_SET_USECS (telapsed, usec);
-	  EMACS_SUB_TIME (tboot, tnow, telapsed);
-	  time_from_jiffies (start, clocks_per_sec, &sec, &usec);
-	  EMACS_SET_SECS (tstart, sec);
-	  EMACS_SET_USECS (tstart, usec);
-	  EMACS_ADD_TIME (tstart, tboot, tstart);
-	  attrs = Fcons (Fcons (Qstart,
-				list3 (make_number
-				       ((EMACS_SECS (tstart) >> 16) & 0xffff),
-				       make_number
-				       (EMACS_SECS (tstart) & 0xffff),
-				       make_number
-				       (EMACS_USECS (tstart)))),
-			 attrs);
+	  tnow = current_emacs_time ();
+	  telapsed = get_up_time ();
+	  tboot = sub_emacs_time (tnow, telapsed);
+	  tstart = time_from_jiffies (start, clocks_per_sec);
+	  tstart = add_emacs_time (tboot, tstart);
+	  attrs = Fcons (Fcons (Qstart, make_lisp_time (tstart)), attrs);
 	  attrs = Fcons (Fcons (Qvsize, make_fixnum_or_float (vsize/1024)), attrs);
 	  attrs = Fcons (Fcons (Qrss, make_fixnum_or_float (4*rss)), attrs);
-	  EMACS_SUB_TIME (telapsed, tnow, tstart);
-	  attrs = Fcons (Fcons (Qetime,
-				list3 (make_number
-				       ((EMACS_SECS (telapsed) >> 16) & 0xffff),
-				       make_number
-				       (EMACS_SECS (telapsed) & 0xffff),
-				       make_number
-				       (EMACS_USECS (telapsed)))),
-			 attrs);
-	  time_from_jiffies (u_time + s_time, clocks_per_sec, &sec, &usec);
-	  pcpu = (sec + usec / 1000000.0) / (EMACS_SECS (telapsed) + EMACS_USECS (telapsed) / 1000000.0);
+	  telapsed = sub_emacs_time (tnow, tstart);
+	  attrs = Fcons (Fcons (Qetime, make_lisp_time (telapsed)), attrs);
+	  us_time = time_from_jiffies (u_time + s_time, clocks_per_sec);
+	  pcpu = (EMACS_TIME_TO_DOUBLE (us_time)
+		  / EMACS_TIME_TO_DOUBLE (telapsed));
 	  if (pcpu > 1.0)
 	    pcpu = 1.0;
 	  attrs = Fcons (Fcons (Qpcpu, make_float (100 * pcpu)), attrs);
@@ -2962,14 +2767,9 @@ system_process_attributes (Lisp_Object pid)
 	}
       if (!cmdline_size)
 	{
-	  if (!cmd)
-	    cmd = "???";
-	  if (!cmdsize)
-	    cmdsize = strlen (cmd);
 	  cmdline_size = cmdsize + 2;
 	  cmdline = xmalloc (cmdline_size + 1);
-	  strcpy (cmdline, "[");
-	  strcat (strncat (cmdline, cmd, cmdsize), "]");
+	  sprintf (cmdline, "[%.*s]", cmdsize, cmd);
 	}
       emacs_close (fd);
       /* Command line is encoded in locale-coding-system; decode it.  */
@@ -3082,27 +2882,13 @@ system_process_attributes (Lisp_Object pid)
 		Qcstime
 		Are they available? */
 
-	  attrs = Fcons (Fcons (Qtime,
-	  			list3 (make_number (pinfo.pr_time.tv_sec >> 16),
-	  			       make_number (pinfo.pr_time.tv_sec & 0xffff),
-	  			       make_number (pinfo.pr_time.tv_nsec))),
-	  		 attrs);
-
-	  attrs = Fcons (Fcons (Qctime,
-	  			list3 (make_number (pinfo.pr_ctime.tv_sec >> 16),
-	  			       make_number (pinfo.pr_ctime.tv_sec & 0xffff),
-	  			       make_number (pinfo.pr_ctime.tv_nsec))),
-	  		 attrs);
-
+	  attrs = Fcons (Fcons (Qtime, make_lisp_time (pinfo.pr_time)), attrs);
+	  attrs = Fcons (Fcons (Qctime, make_lisp_time (pinfo.pr_ctime)), attrs);
 	  attrs = Fcons (Fcons (Qpri, make_number (pinfo.pr_lwp.pr_pri)), attrs);
 	  attrs = Fcons (Fcons (Qnice, make_number (pinfo.pr_lwp.pr_nice)), attrs);
 	  attrs = Fcons (Fcons (Qthcount, make_fixnum_or_float (pinfo.pr_nlwp)), attrs);
 
-	  attrs = Fcons (Fcons (Qstart,
-	  			list3 (make_number (pinfo.pr_start.tv_sec >> 16),
-	  			       make_number (pinfo.pr_start.tv_sec & 0xffff),
-	  			       make_number (pinfo.pr_start.tv_nsec))),
-	  		 attrs);
+	  attrs = Fcons (Fcons (Qstart, make_lisp_time (pinfo.pr_start)), attrs);
 	  attrs = Fcons (Fcons (Qvsize, make_fixnum_or_float (pinfo.pr_size)), attrs);
 	  attrs = Fcons (Fcons (Qrss, make_fixnum_or_float (pinfo.pr_rssize)), attrs);
 
@@ -3131,6 +2917,18 @@ system_process_attributes (Lisp_Object pid)
 }
 
 #elif defined __FreeBSD__
+
+static EMACS_TIME
+timeval_to_EMACS_TIME (struct timeval t)
+{
+  return make_emacs_time (t.tv_sec, t.tv_usec * 1000);
+}
+
+static Lisp_Object
+make_lisp_timeval (struct timeval t)
+{
+  return make_lisp_time (timeval_to_EMACS_TIME (t));
+}
 
 Lisp_Object
 system_process_attributes (Lisp_Object pid)
@@ -3227,35 +3025,36 @@ system_process_attributes (Lisp_Object pid)
   attrs = Fcons (Fcons (Qcminflt, make_number (proc.ki_rusage_ch.ru_minflt)), attrs);
   attrs = Fcons (Fcons (Qcmajflt, make_number (proc.ki_rusage_ch.ru_majflt)), attrs);
 
-#define TIMELIST(ts)					\
-  list3 (make_number (EMACS_SECS (ts) >> 16 & 0xffff),	\
-	 make_number (EMACS_SECS (ts) & 0xffff),	\
-	 make_number (EMACS_USECS (ts)))
+  attrs = Fcons (Fcons (Qutime, make_lisp_timeval (proc.ki_rusage.ru_utime)),
+		 attrs);
+  attrs = Fcons (Fcons (Qstime, make_lisp_timeval (proc.ki_rusage.ru_stime)),
+		 attrs);
+  t = add_emacs_time (timeval_to_EMACS_TIME (proc.ki_rusage.ru_utime),
+		      timeval_to_EMACS_TIME (proc.ki_rusage.ru_stime));
+  attrs = Fcons (Fcons (Qtime, make_lisp_time (t)), attrs);
 
-  attrs = Fcons (Fcons (Qutime, TIMELIST (proc.ki_rusage.ru_utime)), attrs);
-  attrs = Fcons (Fcons (Qstime, TIMELIST (proc.ki_rusage.ru_stime)), attrs);
-  EMACS_ADD_TIME (t, proc.ki_rusage.ru_utime, proc.ki_rusage.ru_stime);
-  attrs = Fcons (Fcons (Qtime,  TIMELIST (t)), attrs);
-
-  attrs = Fcons (Fcons (Qcutime, TIMELIST (proc.ki_rusage_ch.ru_utime)), attrs);
-  attrs = Fcons (Fcons (Qcstime, TIMELIST (proc.ki_rusage_ch.ru_utime)), attrs);
-  EMACS_ADD_TIME (t, proc.ki_rusage_ch.ru_utime, proc.ki_rusage_ch.ru_stime);
-  attrs = Fcons (Fcons (Qctime, TIMELIST (t)), attrs);
+  attrs = Fcons (Fcons (Qcutime,
+			make_lisp_timeval (proc.ki_rusage_ch.ru_utime)),
+		 attrs);
+  attrs = Fcons (Fcons (Qcstime,
+			make_lisp_timeval (proc.ki_rusage_ch.ru_utime)),
+		 attrs);
+  t = add_emacs_time (timeval_to_EMACS_TIME (proc.ki_rusage_ch.ru_utime),
+		      timeval_to_EMACS_TIME (proc.ki_rusage_ch.ru_stime));
+  attrs = Fcons (Fcons (Qctime, make_lisp_time (t)), attrs);
 
   attrs = Fcons (Fcons (Qthcount, make_fixnum_or_float (proc.ki_numthreads)),
 		 attrs);
   attrs = Fcons (Fcons (Qpri,   make_number (proc.ki_pri.pri_native)), attrs);
   attrs = Fcons (Fcons (Qnice,  make_number (proc.ki_nice)), attrs);
-  attrs = Fcons (Fcons (Qstart, TIMELIST (proc.ki_start)), attrs);
+  attrs = Fcons (Fcons (Qstart, make_lisp_timeval (proc.ki_start)), attrs);
   attrs = Fcons (Fcons (Qvsize, make_number (proc.ki_size >> 10)), attrs);
   attrs = Fcons (Fcons (Qrss,   make_number (proc.ki_rssize * pagesize >> 10)),
 		 attrs);
 
-  EMACS_GET_TIME (now);
-  EMACS_SUB_TIME (t, now, proc.ki_start);
-  attrs = Fcons (Fcons (Qetime, TIMELIST (t)), attrs);
-
-#undef TIMELIST
+  now = current_emacs_time ();
+  t = sub_emacs_time (now, timeval_to_EMACS_TIME (proc.ki_start));
+  attrs = Fcons (Fcons (Qetime, make_lisp_time (t)), attrs);
 
   len = sizeof fscale;
   if (sysctlbyname ("kern.fscale", &fscale, &len, NULL, 0) == 0)

@@ -28,7 +28,7 @@
 # other built files.
 
 
-# This macro should be invoked from ./configure.in, in the section
+# This macro should be invoked from ./configure.ac, in the section
 # "Checks for programs", right after AC_PROG_CC, and certainly before
 # any checks for libraries, header files, types and library functions.
 AC_DEFUN([gl_EARLY],
@@ -40,13 +40,17 @@ AC_DEFUN([gl_EARLY],
   AC_REQUIRE([gl_PROG_AR_RANLIB])
   # Code from module alloca-opt:
   # Code from module allocator:
+  # Code from module c-ctype:
+  # Code from module c-strcase:
   # Code from module careadlinkat:
+  # Code from module clock-time:
   # Code from module crypto/md5:
   # Code from module crypto/sha1:
   # Code from module crypto/sha256:
   # Code from module crypto/sha512:
   # Code from module dosname:
   # Code from module dtoastr:
+  # Code from module dtotimespec:
   # Code from module dup2:
   # Code from module extensions:
   AC_REQUIRE([gl_USE_SYSTEM_EXTENSIONS])
@@ -55,6 +59,8 @@ AC_DEFUN([gl_EARLY],
   # Code from module getopt-gnu:
   # Code from module getopt-posix:
   # Code from module gettext-h:
+  # Code from module gettime:
+  # Code from module gettimeofday:
   # Code from module ignore-value:
   # Code from module include_next:
   # Code from module intprops:
@@ -67,10 +73,10 @@ AC_DEFUN([gl_EARLY],
   # Code from module multiarch:
   # Code from module nocrash:
   # Code from module pathmax:
+  # Code from module pselect:
   # Code from module pthread_sigmask:
   # Code from module readlink:
   # Code from module signal-h:
-  # Code from module sigprocmask:
   # Code from module snippet/_Noreturn:
   # Code from module snippet/arg-nonnull:
   # Code from module snippet/c++defs:
@@ -78,6 +84,7 @@ AC_DEFUN([gl_EARLY],
   # Code from module socklen:
   # Code from module ssize_t:
   # Code from module stat:
+  # Code from module stat-time:
   # Code from module stdalign:
   # Code from module stdarg:
   dnl Some compilers (e.g., AIX 5.3 cc) need to be in c99 mode
@@ -96,17 +103,22 @@ AC_DEFUN([gl_EARLY],
   # Code from module strtoull:
   # Code from module strtoumax:
   # Code from module symlink:
+  # Code from module sys_select:
   # Code from module sys_stat:
-  # Code from module sys_types:
+  # Code from module sys_time:
   # Code from module time:
   # Code from module time_r:
+  # Code from module timespec:
+  # Code from module timespec-add:
+  # Code from module timespec-sub:
   # Code from module u64:
   # Code from module unistd:
+  # Code from module utimens:
   # Code from module verify:
   # Code from module warnings:
 ])
 
-# This macro should be invoked from ./configure.in, in the section
+# This macro should be invoked from ./configure.ac, in the section
 # "Check for header files, types and library functions".
 AC_DEFUN([gl_INIT],
 [
@@ -124,6 +136,7 @@ AC_DEFUN([gl_INIT],
   gl_source_base='lib'
 gl_FUNC_ALLOCA
 AC_CHECK_FUNCS_ONCE([readlinkat])
+gl_CLOCK_TIME
 gl_MD5
 gl_SHA1
 gl_SHA256
@@ -161,6 +174,13 @@ if test $REPLACE_GETOPT = 1; then
   GNULIB_GL_UNISTD_H_GETOPT=1
 fi
 AC_SUBST([GNULIB_GL_UNISTD_H_GETOPT])
+gl_GETTIME
+gl_FUNC_GETTIMEOFDAY
+if test $HAVE_GETTIMEOFDAY = 0 || test $REPLACE_GETTIMEOFDAY = 1; then
+  AC_LIBOBJ([gettimeofday])
+  gl_PREREQ_GETTIMEOFDAY
+fi
+gl_SYS_TIME_MODULE_INDICATOR([gettimeofday])
 AC_REQUIRE([AC_C_INLINE])
 gl_INTTYPES_INCOMPLETE
 AC_REQUIRE([gl_LARGEFILE])
@@ -177,6 +197,11 @@ if test $REPLACE_MKTIME = 1; then
 fi
 gl_TIME_MODULE_INDICATOR([mktime])
 gl_MULTIARCH
+gl_FUNC_PSELECT
+if test $HAVE_PSELECT = 0 || test $REPLACE_PSELECT = 1; then
+  AC_LIBOBJ([pselect])
+fi
+gl_SYS_SELECT_MODULE_INDICATOR([pselect])
 gl_FUNC_PTHREAD_SIGMASK
 if test $HAVE_PTHREAD_SIGMASK = 0 || test $REPLACE_PTHREAD_SIGMASK = 1; then
   AC_LIBOBJ([pthread_sigmask])
@@ -192,6 +217,8 @@ gl_UNISTD_MODULE_INDICATOR([readlink])
 gl_SIGNAL_H
 gl_TYPE_SOCKLEN_T
 gt_TYPE_SSIZE_T
+gl_STAT_TIME
+gl_STAT_BIRTHTIME
 gl_STDALIGN_H
 gl_STDARG_H
 AM_STDBOOL_H
@@ -217,9 +244,11 @@ if test $HAVE_SYMLINK = 0 || test $REPLACE_SYMLINK = 1; then
   AC_LIBOBJ([symlink])
 fi
 gl_UNISTD_MODULE_INDICATOR([symlink])
+gl_HEADER_SYS_SELECT
+AC_PROG_MKDIR_P
 gl_HEADER_SYS_STAT_H
 AC_PROG_MKDIR_P
-gl_SYS_TYPES_H
+gl_HEADER_SYS_TIME_H
 AC_PROG_MKDIR_P
 gl_HEADER_TIME_H
 gl_TIME_R
@@ -228,12 +257,13 @@ if test $HAVE_LOCALTIME_R = 0 || test $REPLACE_LOCALTIME_R = 1; then
   gl_PREREQ_TIME_R
 fi
 gl_TIME_MODULE_INDICATOR([time_r])
+gl_TIMESPEC
 AC_REQUIRE([AC_C_INLINE])
 gl_UNISTD_H
+gl_UTIMENS
   gl_gnulib_enabled_dosname=false
   gl_gnulib_enabled_be453cec5eecf5731a274f2de7f2db36=false
   gl_gnulib_enabled_pathmax=false
-  gl_gnulib_enabled_sigprocmask=false
   gl_gnulib_enabled_stat=false
   gl_gnulib_enabled_strtoll=false
   gl_gnulib_enabled_strtoull=false
@@ -257,18 +287,6 @@ AC_SUBST([LTLIBINTL])
     if ! $gl_gnulib_enabled_pathmax; then
 gl_PATHMAX
       gl_gnulib_enabled_pathmax=true
-    fi
-  }
-  func_gl_gnulib_m4code_sigprocmask ()
-  {
-    if ! $gl_gnulib_enabled_sigprocmask; then
-gl_SIGNALBLOCKING
-if test $HAVE_POSIX_SIGNALBLOCKING = 0; then
-  AC_LIBOBJ([sigprocmask])
-  gl_PREREQ_SIGPROCMASK
-fi
-gl_SIGNAL_MODULE_INDICATOR([sigprocmask])
-      gl_gnulib_enabled_sigprocmask=true
     fi
   }
   func_gl_gnulib_m4code_stat ()
@@ -331,9 +349,6 @@ gl_STDLIB_MODULE_INDICATOR([strtoull])
   if test $REPLACE_LSTAT = 1; then
     func_gl_gnulib_m4code_stat
   fi
-  if test $HAVE_PTHREAD_SIGMASK = 0 || test $REPLACE_PTHREAD_SIGMASK = 1; then
-    func_gl_gnulib_m4code_sigprocmask
-  fi
   if test $HAVE_READLINK = 0 || test $REPLACE_READLINK = 1; then
     func_gl_gnulib_m4code_stat
   fi
@@ -353,7 +368,6 @@ gl_STDLIB_MODULE_INDICATOR([strtoull])
   AM_CONDITIONAL([gl_GNULIB_ENABLED_dosname], [$gl_gnulib_enabled_dosname])
   AM_CONDITIONAL([gl_GNULIB_ENABLED_be453cec5eecf5731a274f2de7f2db36], [$gl_gnulib_enabled_be453cec5eecf5731a274f2de7f2db36])
   AM_CONDITIONAL([gl_GNULIB_ENABLED_pathmax], [$gl_gnulib_enabled_pathmax])
-  AM_CONDITIONAL([gl_GNULIB_ENABLED_sigprocmask], [$gl_gnulib_enabled_sigprocmask])
   AM_CONDITIONAL([gl_GNULIB_ENABLED_stat], [$gl_gnulib_enabled_stat])
   AM_CONDITIONAL([gl_GNULIB_ENABLED_strtoll], [$gl_gnulib_enabled_strtoll])
   AM_CONDITIONAL([gl_GNULIB_ENABLED_strtoull], [$gl_gnulib_enabled_strtoull])
@@ -506,10 +520,16 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/alloca.in.h
   lib/allocator.c
   lib/allocator.h
+  lib/c-ctype.c
+  lib/c-ctype.h
+  lib/c-strcase.h
+  lib/c-strcasecmp.c
+  lib/c-strncasecmp.c
   lib/careadlinkat.c
   lib/careadlinkat.h
   lib/dosname.h
   lib/dtoastr.c
+  lib/dtotimespec.c
   lib/dup2.c
   lib/filemode.c
   lib/filemode.h
@@ -521,6 +541,8 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/getopt1.c
   lib/getopt_int.h
   lib/gettext.h
+  lib/gettime.c
+  lib/gettimeofday.c
   lib/ignore-value.h
   lib/intprops.h
   lib/inttypes.in.h
@@ -530,6 +552,7 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/mktime-internal.h
   lib/mktime.c
   lib/pathmax.h
+  lib/pselect.c
   lib/pthread_sigmask.c
   lib/readlink.c
   lib/sha1.c
@@ -539,7 +562,7 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/sha512.c
   lib/sha512.h
   lib/signal.in.h
-  lib/sigprocmask.c
+  lib/stat-time.h
   lib/stat.c
   lib/stdalign.in.h
   lib/stdarg.in.h
@@ -557,21 +580,30 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/strtoull.c
   lib/strtoumax.c
   lib/symlink.c
+  lib/sys_select.in.h
   lib/sys_stat.in.h
-  lib/sys_types.in.h
+  lib/sys_time.in.h
   lib/time.in.h
   lib/time_r.c
+  lib/timespec-add.c
+  lib/timespec-sub.c
+  lib/timespec.h
   lib/u64.h
   lib/unistd.in.h
+  lib/utimens.c
+  lib/utimens.h
   lib/verify.h
   m4/00gnulib.m4
   m4/alloca.m4
   m4/c-strtod.m4
+  m4/clock_time.m4
   m4/dup2.m4
   m4/extensions.m4
   m4/filemode.m4
   m4/getloadavg.m4
   m4/getopt.m4
+  m4/gettime.m4
+  m4/gettimeofday.m4
   m4/gnulib-common.m4
   m4/include_next.m4
   m4/inttypes.m4
@@ -585,16 +617,17 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/nocrash.m4
   m4/off_t.m4
   m4/pathmax.m4
+  m4/pselect.m4
   m4/pthread_sigmask.m4
   m4/readlink.m4
   m4/sha1.m4
   m4/sha256.m4
   m4/sha512.m4
   m4/signal_h.m4
-  m4/signalblocking.m4
   m4/socklen.m4
   m4/ssize_t.m4
   m4/st_dm_mode.m4
+  m4/stat-time.m4
   m4/stat.m4
   m4/stdalign.m4
   m4/stdarg.m4
@@ -609,12 +642,18 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/strtoull.m4
   m4/strtoumax.m4
   m4/symlink.m4
+  m4/sys_select_h.m4
+  m4/sys_socket_h.m4
   m4/sys_stat_h.m4
-  m4/sys_types_h.m4
+  m4/sys_time_h.m4
   m4/time_h.m4
   m4/time_r.m4
+  m4/timespec.m4
   m4/tm_gmtoff.m4
   m4/unistd_h.m4
+  m4/utimbuf.m4
+  m4/utimens.m4
+  m4/utimes.m4
   m4/warn-on-use.m4
   m4/warnings.m4
   m4/wchar_t.m4

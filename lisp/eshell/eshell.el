@@ -222,7 +222,7 @@
 ;; things up.
 
 (eval-when-compile
-  (require 'cl)
+  (require 'cl-lib)
   (require 'esh-util))
 (require 'esh-util)
 (require 'esh-mode)
@@ -235,10 +235,6 @@ shells such as bash, zsh, rc, 4dos."
   :link '(info-link "(eshell)Top")
   :version "21.1"
   :group 'applications)
-
-;; This is hack to force make-autoload to put the whole definition
-;; into the autoload file (see esh-module.el).
-(defalias 'eshell-defgroup 'defgroup)
 
 ;;;_* User Options
 ;;
@@ -302,7 +298,7 @@ switches to the session with that number, creating it if necessary.  A
 nonnumeric prefix arg means to create a new session.  Returns the
 buffer selected (or created)."
   (interactive "P")
-  (assert eshell-buffer-name)
+  (cl-assert eshell-buffer-name)
   (let ((buf (cond ((numberp arg)
 		    (get-buffer-create (format "%s<%d>"
 					       eshell-buffer-name
@@ -316,7 +312,7 @@ buffer selected (or created)."
     ;; window that that command was invoked from.  To achieve this,
     ;; it's necessary to add `eshell-buffer-name' to the variable
     ;; `same-window-buffer-names', which is done when Eshell is loaded
-    (assert (and buf (buffer-live-p buf)))
+    (cl-assert (and buf (buffer-live-p buf)))
     (pop-to-buffer buf)
     (unless (eq major-mode 'eshell-mode)
       (eshell-mode))
@@ -384,11 +380,11 @@ With prefix ARG, insert output into the current buffer at point."
 	(when intr
 	  (if (eshell-interactive-process)
 	      (eshell-wait-for-process (eshell-interactive-process)))
-	  (assert (not (eshell-interactive-process)))
+	  (cl-assert (not (eshell-interactive-process)))
 	  (goto-char (point-max))
 	  (while (and (bolp) (not (bobp)))
 	    (delete-char -1)))
-	(assert (and buf (buffer-live-p buf)))
+	(cl-assert (and buf (buffer-live-p buf)))
 	(unless arg
 	  (let ((len (if (not intr) 2
 		       (count-lines (point-min) (point-max)))))
@@ -428,7 +424,7 @@ corresponding to a successful execution."
 		       (list 'eshell-commands
 			     (list 'eshell-command-to-value
 				   (eshell-parse-command command))) t)))
-	  (assert (eq (car result) 'quote))
+	  (cl-assert (eq (car result) 'quote))
 	  (if (and status-var (symbolp status-var))
 	      (set status-var eshell-last-command-status))
 	  (cadr result))))))

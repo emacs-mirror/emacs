@@ -7,7 +7,7 @@
 # gives unlimited permission to copy and/or distribute it,
 # with or without modifications, as long as this notice is preserved.
 
-#serial 5
+#serial 6
 
 # Autoconf defines AC_FUNC_GETLOADAVG, but that is obsolescent.
 # New applications should use gl_GETLOADAVG instead.
@@ -22,7 +22,7 @@ AC_REQUIRE([AC_USE_SYSTEM_EXTENSIONS])
 
 gl_save_LIBS=$LIBS
 
-# getloadvg is present in libc on glibc >= 2.2, MacOS X, FreeBSD >= 2.0,
+# getloadvg is present in libc on glibc >= 2.2, Mac OS X, FreeBSD >= 2.0,
 # NetBSD >= 0.9, OpenBSD >= 2.0, Solaris >= 7.
 HAVE_GETLOADAVG=1
 AC_CHECK_FUNC([getloadavg], [],
@@ -104,6 +104,8 @@ AC_CHECK_DECL([getloadavg], [], [HAVE_DECL_GETLOADAVG=0],
 AC_DEFUN([gl_PREREQ_GETLOADAVG],
 [
 # Figure out what our getloadavg.c needs.
+
+AC_CHECK_HEADERS_ONCE([sys/param.h])
 
 # On HPUX9, an unprivileged user can get load averages this way.
 if test $gl_func_getloadavg_done = no; then

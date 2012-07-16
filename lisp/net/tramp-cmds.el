@@ -89,7 +89,9 @@ When called interactively, a Tramp connection has to be selected."
     (tramp-flush-directory-property vec "")
 
     ;; Flush connection cache.
-    (tramp-flush-connection-property (tramp-get-connection-process vec))
+    (when (processp (tramp-get-connection-process vec))
+      (delete-process (tramp-get-connection-process vec))
+      (tramp-flush-connection-property (tramp-get-connection-process vec)))
     (tramp-flush-connection-property vec)
 
     ;; Remove buffers.
@@ -293,8 +295,9 @@ buffer in your bug report.
   ;; Dump load-path shadows.
   (insert "\nload-path shadows:\n==================\n")
   (ignore-errors
-    (mapc (lambda (x) (when (string-match "tramp" x) (insert x "\n")))
-	  (split-string (list-load-path-shadows t) "\n")))
+    (mapc
+     (lambda (x) (when (string-match "tramp" x) (insert x "\n")))
+     (split-string (tramp-compat-funcall 'list-load-path-shadows t) "\n")))
 
   ;; Append buffers only when we are in message mode.
   (when (and

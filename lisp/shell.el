@@ -96,7 +96,6 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
 (require 'comint)
 (require 'pcomplete)
 
@@ -1243,7 +1242,7 @@ Returns non-nil if successful."
              (variables (mapcar (lambda (x)
                                   (substring x 0 (string-match "=" x)))
                                 process-environment))
-             (suffix (case (char-before start) (?\{ "}") (?\( ")") (t ""))))
+             (suffix (pcase (char-before start) (?\{ "}") (?\( ")") (_ ""))))
         (list start end variables
               :exit-function
               (lambda (s finished)

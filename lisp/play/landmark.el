@@ -56,7 +56,7 @@
 ;; concise problem description.
 
 ;;;_* Require
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 ;;;_* From Gomoku
 
@@ -1417,7 +1417,7 @@ After this limit is reached, landmark-random-move is called to push him out of i
   (put 'z 't-1 (get 'z 't))
   (put 'z 't (calc-smell-internal 'landmark-tree))
   (if (= (- (get 'z 't) (get 'z 't-1)) 0.0)
-      (incf landmark-no-payoff)
+      (cl-incf landmark-no-payoff)
     (setf landmark-no-payoff 0)))
 
 (defun landmark-store-old-y_t ()
@@ -1464,7 +1464,7 @@ After this limit is reached, landmark-random-move is called to push him out of i
 	    (landmark-e forward-char)
 	    (landmark-w backward-char)))
   (landmark-plot-square (landmark-point-square) 1)
-  (incf landmark-number-of-moves)
+  (cl-incf landmark-number-of-moves)
   (if landmark-output-moves
       (message "Moves made: %d" landmark-number-of-moves)))
 
@@ -1591,11 +1591,11 @@ If the game is finished, this command requests for another game."
 ; this a worka!
 ; (eval  (cons '+ list))
 ;;;_  - landmark-set-landmark-signal-strengths ()
-;;; on a screen higher than wide, I noticed that the robot would amble
-;;; left and right and not move forward. examining *landmark-blackbox*
-;;; revealed that there was no scent from the north and south
-;;; landmarks, hence, they need less factoring down of the effect of
-;;; distance on scent.
+;; on a screen higher than wide, I noticed that the robot would amble
+;; left and right and not move forward. examining *landmark-blackbox*
+;; revealed that there was no scent from the north and south
+;; landmarks, hence, they need less factoring down of the effect of
+;; distance on scent.
 
 (defun landmark-set-landmark-signal-strengths ()
   (setq landmark-tree-r (* (sqrt (+ (square landmark-cx) (square landmark-cy))) 1.5))

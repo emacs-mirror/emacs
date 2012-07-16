@@ -78,9 +78,8 @@ Other values of LIMIT are ignored.  */)
 
   if (EQ (limit, Qt))
     {
-      EMACS_TIME t;
-      EMACS_GET_TIME (t);
-      seed_random (getpid () ^ EMACS_SECS (t) ^ EMACS_USECS (t));
+      EMACS_TIME t = current_emacs_time ();
+      seed_random (getpid () ^ EMACS_SECS (t) ^ EMACS_NSECS (t));
     }
 
   if (NATNUMP (limit) && XFASTINT (limit) != 0)
@@ -1018,7 +1017,7 @@ If STRING is multibyte and contains a character of charset
   if (STRING_MULTIBYTE (string))
     {
       ptrdiff_t bytes = SBYTES (string);
-      unsigned char *str = (unsigned char *) xmalloc (bytes);
+      unsigned char *str = xmalloc (bytes);
 
       memcpy (str, SDATA (string), bytes);
       bytes = str_as_unibyte (str, bytes);
@@ -1100,7 +1099,7 @@ an error is signaled.  */)
   if (STRING_MULTIBYTE (string))
     {
       ptrdiff_t chars = SCHARS (string);
-      unsigned char *str = (unsigned char *) xmalloc (chars);
+      unsigned char *str = xmalloc (chars);
       ptrdiff_t converted = str_to_unibyte (SDATA (string), str, chars, 0);
 
       if (converted < chars)
@@ -2095,8 +2094,9 @@ internal_equal (register Lisp_Object o1, register Lisp_Object o2, int depth, int
 	   are sensible to compare, so eliminate the others now.  */
 	if (size & PSEUDOVECTOR_FLAG)
 	  {
-	    if (!(size & (PVEC_COMPILED
-			  | PVEC_CHAR_TABLE | PVEC_SUB_CHAR_TABLE | PVEC_FONT)))
+	    if (!(size & ((PVEC_COMPILED | PVEC_CHAR_TABLE
+			   | PVEC_SUB_CHAR_TABLE | PVEC_FONT)
+			  << PSEUDOVECTOR_SIZE_BITS)))
 	      return 0;
 	    size &= PSEUDOVECTOR_SIZE_MASK;
 	  }
@@ -3434,8 +3434,8 @@ larger_vector (Lisp_Object vec, ptrdiff_t incr_min, ptrdiff_t nitems_max)
   ptrdiff_t C_language_max = min (PTRDIFF_MAX, SIZE_MAX) / sizeof *v->contents;
   ptrdiff_t n_max = (0 <= nitems_max && nitems_max < C_language_max
 		     ? nitems_max : C_language_max);
-  xassert (VECTORP (vec));
-  xassert (0 < incr_min && -1 <= nitems_max);
+  eassert (VECTORP (vec));
+  eassert (0 < incr_min && -1 <= nitems_max);
   old_size = ASIZE (vec);
   incr_max = n_max - old_size;
   incr = max (incr_min, min (old_size >> 1, incr_max));
@@ -3514,7 +3514,7 @@ static EMACS_UINT
 hashfn_eq (struct Lisp_Hash_Table *h, Lisp_Object key)
 {
   EMACS_UINT hash = XUINT (key) ^ XTYPE (key);
-  xassert ((hash & ~INTMASK) == 0);
+  eassert ((hash & ~INTMASK) == 0);
   return hash;
 }
 
@@ -3531,7 +3531,7 @@ hashfn_eql (struct Lisp_Hash_Table *h, Lisp_Object key)
     hash = sxhash (key, 0);
   else
     hash = XUINT (key) ^ XTYPE (key);
-  xassert ((hash & ~INTMASK) == 0);
+  eassert ((hash & ~INTMASK) == 0);
   return hash;
 }
 
@@ -3544,7 +3544,7 @@ static EMACS_UINT
 hashfn_equal (struct Lisp_Hash_Table *h, Lisp_Object key)
 {
   EMACS_UINT hash = sxhash (key, 0);
-  xassert ((hash & ~INTMASK) == 0);
+  eassert ((hash & ~INTMASK) == 0);
   return hash;
 }
 
@@ -3605,11 +3605,11 @@ make_hash_table (Lisp_Object test, Lisp_Object size, Lisp_Object rehash_size,
   double index_float;
 
   /* Preconditions.  */
-  xassert (SYMBOLP (test));
-  xassert (INTEGERP (size) && XINT (size) >= 0);
-  xassert ((INTEGERP (rehash_size) && XINT (rehash_size) > 0)
+  eassert (SYMBOLP (test));
+  eassert (INTEGERP (size) && XINT (size) >= 0);
+  eassert ((INTEGERP (rehash_size) && XINT (rehash_size) > 0)
 	   || (FLOATP (rehash_size) && 1 < XFLOAT_DATA (rehash_size)));
-  xassert (FLOATP (rehash_threshold)
+  eassert (FLOATP (rehash_threshold)
 	   && 0 < XFLOAT_DATA (rehash_threshold)
 	   && XFLOAT_DATA (rehash_threshold) <= 1.0);
 
@@ -3667,8 +3667,8 @@ make_hash_table (Lisp_Object test, Lisp_Object size, Lisp_Object rehash_size,
   h->next_free = make_number (0);
 
   XSET_HASH_TABLE (table, h);
-  xassert (HASH_TABLE_P (table));
-  xassert (XHASH_TABLE (table) == h);
+  eassert (HASH_TABLE_P (table));
+  eassert (XHASH_TABLE (table) == h);
 
   /* Maybe add this hash table to the list of all weak hash tables.  */
   if (NILP (h->weak))
@@ -3748,6 +3748,17 @@ maybe_resize_hash_table (struct Lisp_Hash_Table *h)
       nsize = max (index_size, 2 * new_size);
       if (INDEX_SIZE_BOUND < nsize)
 	error ("Hash table too large to resize");
+
+#ifdef ENABLE_CHECKING
+      if (HASH_TABLE_P (Vpurify_flag)
+	  && XHASH_TABLE (Vpurify_flag) == h)
+	{
+	  Lisp_Object args[2];
+	  args[0] = build_string ("Growing hash table to: %d");
+	  args[1] = make_number (new_size);
+	  Fmessage (2, args);
+	}
+#endif
 
       h->key_and_value = larger_vector (h->key_and_value,
 					2 * (new_size - old_size), -1);
@@ -3832,7 +3843,7 @@ hash_put (struct Lisp_Hash_Table *h, Lisp_Object key, Lisp_Object value,
 {
   ptrdiff_t start_of_bucket, i;
 
-  xassert ((hash & ~INTMASK) == 0);
+  eassert ((hash & ~INTMASK) == 0);
 
   /* Increment count after resizing because resizing may fail.  */
   maybe_resize_hash_table (h);
@@ -3891,7 +3902,7 @@ hash_remove_from_table (struct Lisp_Hash_Table *h, Lisp_Object key)
 	  HASH_NEXT (h, i) = h->next_free;
 	  h->next_free = make_number (i);
 	  h->count--;
-	  xassert (h->count >= 0);
+	  eassert (h->count >= 0);
 	  break;
 	}
       else
@@ -3933,12 +3944,6 @@ hash_clear (struct Lisp_Hash_Table *h)
 /************************************************************************
 			   Weak Hash Tables
  ************************************************************************/
-
-void
-init_weak_hash_tables (void)
-{
-  weak_hash_tables = NULL;
-}
 
 /* Sweep weak hash table H.  REMOVE_ENTRIES_P non-zero means remove
    entries from the table that don't survive the current GC.
@@ -4335,7 +4340,7 @@ usage: (make-hash-table &rest KEYWORD-ARGS)  */)
 
   /* The vector `used' is used to keep track of arguments that
      have been consumed.  */
-  used = (char *) alloca (nargs * sizeof *used);
+  used = alloca (nargs * sizeof *used);
   memset (used, 0, nargs * sizeof *used);
 
   /* See if there's a `:test TEST' among the arguments.  */
@@ -5016,10 +5021,4 @@ this variable.  */);
   defsubr (&Smd5);
   defsubr (&Ssecure_hash);
   defsubr (&Slocale_info);
-}
-
-
-void
-init_fns (void)
-{
 }

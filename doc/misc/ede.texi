@@ -790,7 +790,7 @@ compilers that will be inserted into the Makefile.
 
 Compiler instantiations must also insert variables specifying the
 compiler it plans to use, in addition to creating Automake settings for
-@file{configure.in} when appropriate.
+@file{configure.ac} when appropriate.
 
 Compiler objects are stored in the target objects as a list of
 symbols, where the symbols value is the object.  This enables the
@@ -1557,7 +1557,7 @@ For project @var{THIS}, test that the file @var{FILE} exists, or create it.
 
 @deffn Method ede-proj-setup-buildenvironment :AFTER this &optional force
 Setup the build environment for project @var{THIS}.
-Handles the Makefile, or a Makefile.am configure.in combination.
+Handles the Makefile, or a Makefile.am configure.ac combination.
 Optional argument @var{FORCE} will force items to be regenerated.
 @end deffn
 
@@ -1567,7 +1567,7 @@ These are removed with make clean.
 @end deffn
 
 @deffn Method ede-proj-configure-synchronize :AFTER this
-Synchronize what we know about project @var{THIS} into configure.in.
+Synchronize what we know about project @var{THIS} into configure.ac.
 @end deffn
 
 @deffn Method ede-proj-makefile-insert-variables-new :AFTER this
@@ -1603,7 +1603,7 @@ Return the name of the Makefile with the DIST target in it for @var{THIS}.
 @end deffn
 
 @deffn Method ede-proj-configure-file :AFTER this
-The configure.in script used by project @var{THIS}.
+The configure.ac script used by project @var{THIS}.
 @end deffn
 
 @deffn Method ede-commit-project :AFTER proj
@@ -1767,7 +1767,7 @@ Create a Makefile for all Makefile targets in @var{THIS} if needed.
 
 @deffn Method ede-proj-setup-buildenvironment :AFTER this &optional force
 Setup the build environment for project @var{THIS}.
-Handles the Makefile, or a Makefile.am configure.in combination.
+Handles the Makefile, or a Makefile.am configure.ac combination.
 Optional argument @var{FORCE} will force items to be regenerated.
 @end deffn
 

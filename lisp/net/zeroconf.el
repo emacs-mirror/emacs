@@ -102,11 +102,6 @@
 ;;  Pacify byte-compiler.  D-Bus support in the Emacs core can be
 ;; disabled with configuration option "--without-dbus".  Declare used
 ;; subroutines and variables of `dbus' therefore.
-(eval-when-compile
-  (require 'cl))
-
-(declare-function dbus-call-method "dbusbind.c")
-(declare-function dbus-register-signal "dbusbind.c")
 (defvar dbus-debug)
 
 (require 'dbus)
@@ -548,7 +543,7 @@ DOMAIN is nil, the local domain is used."
    ((string-equal (dbus-event-member-name last-input-event) "ItemNew")
     ;; Parameters: (interface protocol type domain flags)
     ;; Register a service browser.
-    (let ((object-path (zeroconf-register-service-browser (nth-value 2 val))))
+    (let ((object-path (zeroconf-register-service-browser (nth 2 val))))
       ;; Register the signals.
       (dolist (member '("ItemNew" "ItemRemove" "Failure"))
 	(dbus-register-signal

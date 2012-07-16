@@ -24,16 +24,14 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
-/* #define FONTSET_DEBUG */
-
 #include <config.h>
 #include <stdio.h>
 #include <setjmp.h>
 
 #include "lisp.h"
 #include "blockinput.h"
-#include "buffer.h"
 #include "character.h"
+#include "buffer.h"
 #include "charset.h"
 #include "ccl.h"
 #include "keyboard.h"
@@ -54,13 +52,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "termhooks.h"
 
 #include "font.h"
-
-#undef xassert
-#ifdef FONTSET_DEBUG
-#define xassert(X)	do {if (!(X)) abort ();} while (0)
-#else   /* not FONTSET_DEBUG */
-#define xassert(X)	(void) 0
-#endif	/* not FONTSET_DEBUG */
 
 /* FONTSET
 
@@ -206,17 +197,14 @@ static void accumulate_script_ranges (Lisp_Object, Lisp_Object,
                                       Lisp_Object);
 static void set_fontset_font (Lisp_Object, Lisp_Object);
 
-#ifdef FONTSET_DEBUG
-
-/* Return 1 if ID is a valid fontset id, else return 0.  */
+/* Return 1 if ID is a valid fontset id, else return 0.
+   Optimized away if ENABLE_CHECKING is not defined.  */
 
 static int
 fontset_id_valid_p (int id)
 {
   return (id >= 0 && id < ASIZE (Vfontset_table) - 1);
 }
-
-#endif
 
 
 
@@ -459,7 +447,7 @@ fontset_get_font_group (Lisp_Object fontset, int c)
   Lisp_Object base_fontset;
   int from = 0, to = MAX_CHAR, i;
 
-  xassert (! BASE_FONTSET_P (fontset));
+  eassert (! BASE_FONTSET_P (fontset));
   if (c >= 0)
     font_group = CHAR_TABLE_REF (fontset, c);
   else
@@ -848,7 +836,7 @@ free_realized_fontset (FRAME_PTR f, Lisp_Object fontset)
   if (0)
     for (tail = FONTSET_OBJLIST (fontset); CONSP (tail); tail = XCDR (tail))
       {
-	xassert (FONT_OBJECT_P (XCAR (tail)));
+	eassert (FONT_OBJECT_P (XCAR (tail)));
 	font_close_object (f, XCAR (tail));
       }
 #endif
@@ -865,8 +853,8 @@ free_face_fontset (FRAME_PTR f, struct face *face)
   fontset = FONTSET_FROM_ID (face->fontset);
   if (NILP (fontset))
     return;
-  xassert (! BASE_FONTSET_P (fontset));
-  xassert (f == XFRAME (FONTSET_FRAME (fontset)));
+  eassert (! BASE_FONTSET_P (fontset));
+  eassert (f == XFRAME (FONTSET_FRAME (fontset)));
   free_realized_fontset (f, fontset);
   ASET (Vfontset_table, face->fontset, Qnil);
   if (face->fontset < next_fontset_id)
@@ -876,8 +864,8 @@ free_face_fontset (FRAME_PTR f, struct face *face)
       int id = XINT (FONTSET_ID (FONTSET_DEFAULT (fontset)));
 
       fontset = AREF (Vfontset_table, id);
-      xassert (!NILP (fontset) && ! BASE_FONTSET_P (fontset));
-      xassert (f == XFRAME (FONTSET_FRAME (fontset)));
+      eassert (!NILP (fontset) && ! BASE_FONTSET_P (fontset));
+      eassert (f == XFRAME (FONTSET_FRAME (fontset)));
       free_realized_fontset (f, fontset);
       ASET (Vfontset_table, id, Qnil);
       if (id < next_fontset_id)
@@ -924,9 +912,9 @@ face_for_char (FRAME_PTR f, struct face *face, int c, int pos, Lisp_Object objec
   if (ASCII_CHAR_P (c) || face->fontset < 0)
     return face->ascii_face->id;
 
-  xassert (fontset_id_valid_p (face->fontset));
+  eassert (fontset_id_valid_p (face->fontset));
   fontset = FONTSET_FROM_ID (face->fontset);
-  xassert (!BASE_FONTSET_P (fontset));
+  eassert (!BASE_FONTSET_P (fontset));
 
   if (pos < 0)
     {
@@ -973,7 +961,7 @@ face_for_char (FRAME_PTR f, struct face *face, int c, int pos, Lisp_Object objec
 	  FONTSET_NOFONT_FACE (fontset) = make_number (face_id);
 	}
     }
-  xassert (face_id >= 0);
+  eassert (face_id >= 0);
   return face_id;
 }
 
@@ -992,9 +980,9 @@ font_for_char (struct face *face, int c, int pos, Lisp_Object object)
       return font_object;
     }
 
-  xassert (fontset_id_valid_p (face->fontset));
+  eassert (fontset_id_valid_p (face->fontset));
   fontset = FONTSET_FROM_ID (face->fontset);
-  xassert (!BASE_FONTSET_P (fontset));
+  eassert (!BASE_FONTSET_P (fontset));
   if (pos < 0)
     {
       id = -1;
@@ -1094,9 +1082,9 @@ fontset_pattern_regexp (Lisp_Object pattern)
 	 we convert "*" to "[^-]*" which is much faster in regular
 	 expression matching.  */
       if (ndashes < 14)
-	p1 = regex = (unsigned char *) alloca (SBYTES (pattern) + 2 * nstars + 2 * nescs + 1);
+	p1 = regex = alloca (SBYTES (pattern) + 2 * nstars + 2 * nescs + 1);
       else
-	p1 = regex = (unsigned char *) alloca (SBYTES (pattern) + 5 * nstars + 2 * nescs + 1);
+	p1 = regex = alloca (SBYTES (pattern) + 5 * nstars + 2 * nescs + 1);
 
       *p1++ = '^';
       for (p0 = SDATA (pattern); *p0; p0++)
@@ -1658,7 +1646,7 @@ FONT-SPEC is a vector, a cons, or a string.  See the documentation of
       char xlfd[256];
       int len;
 
-      if (font_parse_xlfd (SSDATA (name), font_spec) < 0)
+      if (font_parse_xlfd (SSDATA (name), SBYTES (name), font_spec) < 0)
 	error ("Fontset name must be in XLFD format");
       short_name = AREF (font_spec, FONT_REGISTRY_INDEX);
       if (strncmp (SSDATA (SYMBOL_NAME (short_name)), "fontset-", 8)
@@ -1680,11 +1668,11 @@ FONT-SPEC is a vector, a cons, or a string.  See the documentation of
       Fset_char_table_range (fontset, Qt, Qnil);
     }
 
-  for (; ! NILP (fontlist); fontlist = Fcdr (fontlist))
+  for (; CONSP (fontlist); fontlist = XCDR (fontlist))
     {
       Lisp_Object elt, script;
 
-      elt = Fcar (fontlist);
+      elt = XCAR (fontlist);
       script = Fcar (elt);
       elt = Fcdr (elt);
       if (CONSP (elt) && (NILP (XCDR (elt)) || CONSP (XCDR (elt))))
@@ -1905,8 +1893,7 @@ format is the same as above.  */)
 
   /* Recode fontsets realized on FRAME from the base fontset FONTSET
      in the table `realized'.  */
-  realized[0] = (Lisp_Object *) alloca (sizeof (Lisp_Object)
-					* ASIZE (Vfontset_table));
+  realized[0] = alloca (sizeof (Lisp_Object) * ASIZE (Vfontset_table));
   for (i = j = 0; i < ASIZE (Vfontset_table); i++)
     {
       elt = FONTSET_FROM_ID (i);
@@ -1917,8 +1904,7 @@ format is the same as above.  */)
     }
   realized[0][j] = Qnil;
 
-  realized[1] = (Lisp_Object *) alloca (sizeof (Lisp_Object)
-					* ASIZE (Vfontset_table));
+  realized[1] = alloca (sizeof (Lisp_Object) * ASIZE (Vfontset_table));
   for (i = j = 0; ! NILP (realized[0][i]); i++)
     {
       elt = FONTSET_DEFAULT (realized[0][i]);
@@ -2104,7 +2090,7 @@ DEFUN ("fontset-list", Ffontset_list, Sfontset_list, 0, 0, 0,
 }
 
 
-#ifdef FONTSET_DEBUG
+#ifdef ENABLE_CHECKING
 
 Lisp_Object dump_fontset (Lisp_Object) EXTERNALLY_VISIBLE;
 
@@ -2154,7 +2140,7 @@ DEFUN ("fontset-list-all", Ffontset_list_all, Sfontset_list_all, 0, 0, 0,
       val = Fcons (dump_fontset (AREF (Vfontset_table, i)), val);
   return (Fnreverse (val));
 }
-#endif	/* FONTSET_DEBUG */
+#endif	/* ENABLE_CHECKING */
 
 void
 syms_of_fontset (void)
@@ -2178,7 +2164,7 @@ syms_of_fontset (void)
   staticpro (&Vdefault_fontset);
   FONTSET_ID (Vdefault_fontset) = make_number (0);
   FONTSET_NAME (Vdefault_fontset)
-    = make_pure_c_string ("-*-*-*-*-*-*-*-*-*-*-*-*-fontset-default");
+    = build_pure_c_string ("-*-*-*-*-*-*-*-*-*-*-*-*-fontset-default");
   ASET (Vfontset_table, 0, Vdefault_fontset);
   next_fontset_id = 1;
 
@@ -2224,7 +2210,7 @@ alternate fontnames (if any) are tried instead.  */);
   DEFVAR_LISP ("fontset-alias-alist", Vfontset_alias_alist,
 	       doc: /* Alist of fontset names vs the aliases.  */);
   Vfontset_alias_alist = Fcons (Fcons (FONTSET_NAME (Vdefault_fontset),
-				       make_pure_c_string ("fontset-default")),
+				       build_pure_c_string ("fontset-default")),
 				Qnil);
 
   DEFVAR_LISP ("vertical-centering-font-regexp",
@@ -2245,7 +2231,7 @@ at the vertical center of lines.  */);
   defsubr (&Sfontset_info);
   defsubr (&Sfontset_font);
   defsubr (&Sfontset_list);
-#ifdef FONTSET_DEBUG
+#ifdef ENABLE_CHECKING
   defsubr (&Sfontset_list_all);
 #endif
 }

@@ -169,15 +169,6 @@ This is a compatibility function for different Emacsen."
   `(delete-region (point-at-bol)
 		  (progn (forward-line ,(or n 1)) (point))))
 
-(defun gnus-byte-code (func)
-  "Return a form that can be `eval'ed based on FUNC."
-  (let ((fval (indirect-function func)))
-    (if (byte-code-function-p fval)
-	(let ((flist (append fval nil)))
-	  (setcar flist 'byte-code)
-	  flist)
-      (cons 'progn (cddr fval)))))
-
 (defun gnus-extract-address-components (from)
   "Extract address components from a From header.
 Given an RFC-822 address FROM, extract full name and canonical address.
@@ -1926,6 +1917,19 @@ Sizes are in pixels."
                                  :width new-width)
                    image)))
       image)))
+
+(defun gnus-recursive-directory-files (dir)
+  "Return all regular files below DIR."
+  (let (files)
+    (dolist (file (directory-files dir t))
+      (when (and (not (member (file-name-nondirectory file) '("." "..")))
+		 (file-readable-p file))
+	(cond
+	 ((file-regular-p file)
+	  (push file files))
+	 ((file-directory-p file)
+	  (setq files (append (gnus-recursive-directory-files file) files))))))
+    files))
 
 (defun gnus-list-memq-of-list (elements list)
   "Return non-nil if any of the members of ELEMENTS are in LIST."

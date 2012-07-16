@@ -1,3 +1,77 @@
+2012-07-11  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Assume mkdir, perror, rename, rmdir, strerror.
+	* CPP-DEFINES (HAVE_MKDIR, HAVE_PERROR, HAVE_RENAME, HAVE_RMDIR)
+	(HAVE_STRERROR, strerror):
+	Remove.
+
+2012-07-10  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* coccinelle/list_loop.cocci: Semantic patch to convert from Fcdr
+	to XCDR and consistently use CONSP in the list iteration loops.
+	* coccinelle/vector_contents.cocci: Fix indentation.
+
+2012-07-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* bzrmerge.el: Use cl-lib.
+
+2012-07-09  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Rename configure.in to configure.ac (Bug#11603).
+	* admin.el (set-version):
+	* quick-install-emacs (VERSION):
+	Get version number from configure.ac, not configure.in.
+
+2012-07-06  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use c_strcasecmp for ASCII case-insensitive comparison (Bug#11786).
+	* merge-gnulib (GNULIB_MODULES): Add c-strcase.
+
+2012-07-05  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* coccinelle/xzalloc.cocci: Semantic patch to convert
+	calls to xmalloc with following memset to xzalloc.
+
+2012-07-04  Juanma Barranquero  <lekktu@gmail.com>
+
+	* CPP-DEFINES (LISP_FLOAT_TYPE): Remove, obsolete.
+
+2012-06-26  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* coccinelle/build_string.cocci: Semantic patch
+	to convert from make_string to build_string.
+
+2012-06-24  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	First Coccinelle semantic patch.
+	* coccinelle: New subdirectory
+	* coccinelle/README: Documentation stub.
+	* coccinelle/vector_contents.cocci: Semantic patch to replace direct
+	access to `contents' member of Lisp_Vector objects with AREF and ASET
+	where appropriate.
+
+2012-06-22  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Support higher-resolution time stamps (Bug#9000).
+	* merge-gnulib (GNULIB_MODULES): Add dtotimespec, gettime,
+	gettimeofday, pselect, stat-time, sys_time, time, timespec-add,
+	timespec-sub, utimens.
+	(GNULIB_TOOL_FLAGS): Add --avoid=select --avoid=sigprocmask.
+	This trims down the gnulib import, from the very latest gnulib.
+	Emacs does its own implementation of 'select' and 'sigprocmask'
+	on Windows, and it assumes 'select' and 'sigprocmask' on non-Windows
+	hosts, so it doesn't need these modules.
+	Similarly, avoid errno, fcntl, fcntl-h, fstat, and sys_types, as
+	these gnulib modules are only for Windows porting and Emacs ports
+	to Windows in a different way.
+
+2012-06-13  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* make-emacs: Rename --union-type to --check-lisp-type.
+	Define CHECK_LISP_OBJECT_TYPE insted of USE_LISP_UNION_TYPE.
+	* CPP-DEFINES (DEBUG_LISP_OBJECT_TYPE): Rename from
+	USE_LISP_UNION_TYPE.
+
 2012-06-03  Glenn Morris  <rgm@gnu.org>
 
 	* quick-install-emacs (PUBLIC_LIBSRC_SCRIPTS): Remove rcs-checkin.
@@ -166,11 +240,11 @@
 
 	* unidata/makefile.w32-in (all): Remove src/biditype.h and
 	src/bidimirror.h.
-	(../../src/biditype.h, ../../src/bidimirror.h): Deleted.
+	(../../src/biditype.h, ../../src/bidimirror.h): Delete.
 
 	* unidata/Makefile.in (all): Remove src/biditype.h and
 	src/bidimirror.h.
-	(../../src/biditype.h, ../../src/bidimirror.h): Deleted.
+	(../../src/biditype.h, ../../src/bidimirror.h): Delete.
 
 2011-07-07  Juanma Barranquero  <lekktu@gmail.com>
 
@@ -181,8 +255,8 @@
 
 	* unidata/unidata-gen.el (unidata-dir): New variable.
 	(unidata-setup-list): Expand unidata-text-file in unidata-dir.
-	(unidata-prop-alist): INDEX element may be a function.  New
-	optional element VAL-LIST (for general-category and bidi-class).
+	(unidata-prop-alist): INDEX element may be a function.
+	New optional element VAL-LIST (for general-category and bidi-class).
 	New entry `mirroring'.
 	(unidata-prop-default, unidata-prop-val-list): New subst.
 	(unidata-get-character, unidata-put-character): Delete them.
@@ -538,13 +612,13 @@
 
 2009-04-17  Kenichi Handa  <handa@m17n.org>
 
-	* unidata/unidata-gen.el (unidata-get-decomposition): Adjust
-	Hangle decomposition rule to Unicode.
+	* unidata/unidata-gen.el (unidata-get-decomposition):
+	Adjust Hangle decomposition rule to Unicode.
 
 2009-04-09  Kenichi Handa  <handa@m17n.org>
 
-	* unidata/unidata-gen.el (unidata-describe-decomposition): Return
-	a string with a composition property to disable combining
+	* unidata/unidata-gen.el (unidata-describe-decomposition):
+	Return a string with a composition property to disable combining
 	characters being composed.
 
 2009-03-11  Miles Bader  <miles@gnu.org>
@@ -557,7 +631,7 @@
 
 2009-02-23  Jason Rumney  <jasonr@gnu.org>
 
-	* nt/README-ftp-server: Update for 23.0.91
+	* nt/README-ftp-server: Update for 23.0.91.
 
 	* nt/README.W32: Remove ever expanding versions of Windows.
 	Shorten FAQ URL.  Remove mention of obsolete lock directory.
@@ -1039,7 +1113,7 @@
 
 2005-10-17  Bill Wohler  <wohler@newt.com>
 
-	* FOR-RELEASE (DOCUMENTATION): Removed lisp/toolbar from list
+	* FOR-RELEASE (DOCUMENTATION): Remove lisp/toolbar from list
 	since it's gone.  Also marked mh-e as done.
 
 2005-10-11  Juanma Barranquero  <lekktu@gmail.com>
@@ -1086,7 +1160,7 @@
 
 2005-03-30  Marcelo Toledo  <marcelo@marcelotoledo.org>
 
-	* FOR-RELEASE (Documentation): Added check the Emacs Tutorial.
+	* FOR-RELEASE (Documentation): Add check the Emacs Tutorial.
 	The first line of every tutorial must begin with a sentence saying
 	"Emacs Tutorial" in the respective language.  This should be
 	followed by "See end for copying conditions", likewise in the

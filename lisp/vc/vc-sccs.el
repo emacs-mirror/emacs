@@ -1,6 +1,6 @@
 ;;; vc-sccs.el --- support for SCCS version-control
 
-;; Copyright (C) 1992-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1992-2012 Free Software Foundation, Inc.
 
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
@@ -23,10 +23,6 @@
 
 ;;; Commentary:
 
-;; Proper function of the SCCS diff commands requires the shellscript vcdiff
-;; to be installed somewhere on Emacs's path for executables.
-;;
-
 ;;; Code:
 
 (eval-when-compile
@@ -37,15 +33,13 @@
 ;;;
 
 ;; ;; Maybe a better solution is to not use "get" but "sccs get".
-;; (defcustom vc-sccs-path
-;;   (let ((path ()))
-;;     (dolist (dir '("/usr/sccs" "/usr/lib/sccs" "/usr/libexec/sccs"))
-;;       (if (file-directory-p dir)
-;;           (push dir path)))
-;;     path)
-;;   "List of extra directories to search for SCCS commands."
-;;   :type '(repeat directory)
-;;   :group 'vc)
+;; ;; Note for GNU CSSC, you can parse sccs -V to get the libexec path.
+;;  (defcustom vc-sccs-path
+;;    (prune-directory-list '("/usr/ccs/bin" "/usr/sccs" "/usr/lib/sccs"
+;; 			   "/usr/libexec/sccs"))
+;;    "List of extra directories to search for SCCS commands."
+;;    :type '(repeat directory)
+;;    :group 'vc)
 
 (defgroup vc-sccs nil
   "VC SCCS backend."
@@ -186,11 +180,24 @@ For a description of possible values, see `vc-check-master-templates'."
     (vc-insert-file (vc-name file) "^\001e\n\001[^s]")
     (vc-parse-buffer "^\001d D \\([^ ]+\\)" 1)))
 
+;; Cf vc-sccs-find-revision.
+(defun vc-sccs-write-revision (file outfile &optional rev)
+  "Write the SCCS version of input file FILE to output file OUTFILE.
+Optional string REV is a revision."
+  (with-temp-buffer
+    (apply 'vc-sccs-do-command t 0 "get" (vc-name file)
+	   (append '("-s" "-p" "-k") ; -k: no keyword expansion
+		   (if rev (list (concat "-r" rev)))))
+    (write-region nil nil outfile nil 'silent)))
+
 (defun vc-sccs-workfile-unchanged-p (file)
   "SCCS-specific implementation of `vc-workfile-unchanged-p'."
-  (zerop (apply 'vc-do-command "*vc*" 1 "vcdiff" (vc-name file)
-                (list "--brief" "-q"
-                      (concat "-r" (vc-working-revision file))))))
+  (let ((tempfile (make-temp-file "vc-sccs")))
+    (unwind-protect
+	(progn
+	  (vc-sccs-write-revision file tempfile (vc-working-revision file))
+	  (zerop (vc-do-command "*vc*" 1 "cmp" file tempfile)))
+      (delete-file tempfile))))
 
 
 ;;;
@@ -346,17 +353,75 @@ revert all subfiles."
   (vc-sccs-do-command buffer 0 "prs" (mapcar 'vc-name files))
   (when limit 'limit-unsupported))
 
+;; FIXME use sccsdiff if present?
 (defun vc-sccs-diff (files &optional oldvers newvers buffer)
   "Get a difference report using SCCS between two filesets."
   (setq files (vc-expand-dirs files))
   (setq oldvers (vc-sccs-lookup-triple (car files) oldvers))
   (setq newvers (vc-sccs-lookup-triple (car files) newvers))
-  (apply 'vc-do-command (or buffer "*vc-diff*")
-	 1 "vcdiff" (mapcar 'vc-name (vc-expand-dirs files))
-         (append (list "-q"
-                       (and oldvers (concat "-r" oldvers))
-                       (and newvers (concat "-r" newvers)))
-                 (vc-switches 'SCCS 'diff))))
+  (or buffer (setq buffer "*vc-diff*"))
+  ;; We have to reimplement pieces of vc-do-command, because
+  ;; we want to run multiple external commands, and only do the setup
+  ;; and exit pieces once.
+  (save-current-buffer
+    (unless (or (eq buffer t)
+		(and (stringp buffer) (string= (buffer-name) buffer))
+		(eq buffer (current-buffer)))
+      (vc-setup-buffer buffer))
+    (let* ((fake-flags (append (vc-switches 'SCCS 'diff)
+			       (if oldvers (list (concat " -r" oldvers)))
+			       (if newvers (list (concat " -r" newvers)))))
+	   (fake-command
+	    (format "diff%s %s"
+		    (if fake-flags
+			(concat " " (mapconcat 'identity fake-flags " "))
+		      "")
+		    (vc-delistify files)))
+	   (status 0)
+	   (oldproc (get-buffer-process (current-buffer))))
+    (when vc-command-messages
+      (message "Running %s in foreground..." fake-command))
+    (if oldproc (delete-process oldproc))
+    (dolist (file files)
+      (let ((oldfile (make-temp-file "vc-sccs"))
+	    newfile)
+	(unwind-protect
+	    (progn
+	      (vc-sccs-write-revision file oldfile oldvers)
+	      (if newvers
+		  (vc-sccs-write-revision file (setq newfile
+						     (make-temp-file "vc-sccs"))
+					  newvers))
+	      (let* ((inhibit-read-only t)
+		     (buffer-undo-list t)
+		     (process-environment
+		      (cons "LC_MESSAGES=C" process-environment))
+		     (w32-quote-process-args t)
+		     (this-status
+		      (apply 'process-file "diff" nil t nil
+			     (append (vc-switches 'SCCS 'diff)
+				     (list oldfile
+					   (or newfile
+					       (file-relative-name file)))))))
+		(or (integerp this-status) (setq status 'error))
+		(and (integerp status)
+		     (> this-status status)
+		     (setq status this-status))))
+	  (delete-file oldfile)
+	  (if newfile (delete-file newfile)))))
+    (when (or (not (integerp status)) (> status 1))
+      (unless (eq ?\s (aref (buffer-name (current-buffer)) 0))
+	(pop-to-buffer (current-buffer))
+	(goto-char (point-min))
+	(shrink-window-if-larger-than-buffer))
+      (error "Running %s...FAILED (%s)" fake-command
+	     (if (integerp status) (format "status %d" status) status)))
+    (when vc-command-messages
+      (message "Running %s...OK = %d" fake-command status))
+    ;; Should we pretend we ran sccsdiff instead?
+    ;; This might not actually be a valid diff command.
+    (run-hook-with-args 'vc-post-command-functions "diff" files fake-flags)
+    status)))
 
 
 ;;;

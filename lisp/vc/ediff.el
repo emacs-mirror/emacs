@@ -152,7 +152,7 @@
 ;; Used as a startup hook to set `_orig' patch file read-only.
 (defun ediff-set-read-only-in-buf-A ()
   (ediff-with-current-buffer ediff-buffer-A
-    (toggle-read-only 1)))
+    (setq buffer-read-only t)))
 
 ;; Return a plausible default for ediff's first file:
 ;; In dired, return the file number FILENO (or 0) in the list
@@ -491,12 +491,12 @@ If this file is a backup, `ediff' it with its original."
 	      (setq buf-B-file-name (file-name-nondirectory buf-B-file-name)))
 	  (if (stringp buf-C-file-name)
 	      (setq buf-C-file-name (file-name-nondirectory buf-C-file-name)))
-	  
+
 	  (setq file-A (ediff-make-temp-file buf-A buf-A-file-name)
 		file-B (ediff-make-temp-file buf-B buf-B-file-name))
 	  (if buf-C-is-alive
 	      (setq file-C (ediff-make-temp-file buf-C buf-C-file-name)))
-	  
+
 	  (ediff-setup (get-buffer buf-A) file-A
 		       (get-buffer buf-B) file-B
 		       (if buf-C-is-alive (get-buffer buf-C))
@@ -542,8 +542,8 @@ expression; only file names that match the regexp are considered."
 	 (default-regexp (eval ediff-default-filtering-regexp))
 	 f)
      (list (setq f (read-directory-name
-		    "Directory A to compare:" dir-A nil 'must-match))
-	   (read-directory-name "Directory B to compare:"
+		    "Directory A to compare: " dir-A nil 'must-match))
+	   (read-directory-name "Directory B to compare: "
 			   (if ediff-use-last-dir
 			       ediff-last-dir-B
 			     (ediff-strip-last-dir f))
@@ -1072,7 +1072,7 @@ lines.  For small regions, use `ediff-regions-wordwise'."
 	  (ediff-with-current-buffer buffer-B
 	    (setq beg-B (move-marker (make-marker) beg-B)
 		  end-B (move-marker (make-marker) end-B)))
-	  
+
 	  ;; make file-A
 	  (if word-mode
 	      (ediff-wordify beg-A end-A buffer-A tmp-buffer)
@@ -1084,7 +1084,7 @@ lines.  For small regions, use `ediff-regions-wordwise'."
 	      (ediff-wordify beg-B end-B buffer-B tmp-buffer)
 	    (ediff-copy-to-buffer beg-B end-B buffer-B tmp-buffer))
 	  (setq file-B (ediff-make-temp-file tmp-buffer "regB"))
-	  
+
 	  (setq overl-A (ediff-make-bullet-proof-overlay beg-A end-A buffer-A))
 	  (setq overl-B (ediff-make-bullet-proof-overlay beg-B end-B buffer-B))
 	  (ediff-setup buffer-A file-A

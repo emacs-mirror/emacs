@@ -396,7 +396,7 @@ get_bloc (SIZE size)
   register bloc_ptr new_bloc;
   register heap_ptr heap;
 
-  if (! (new_bloc = (bloc_ptr) malloc (BLOC_PTR_SIZE))
+  if (! (new_bloc = malloc (BLOC_PTR_SIZE))
       || ! (new_bloc->data = obtain (break_value, size)))
     {
       free (new_bloc);
@@ -741,7 +741,7 @@ r_alloc_sbrk (long int size)
   if (! r_alloc_initialized)
     r_alloc_init ();
 
-  if (! use_relocatable_buffers)
+  if (use_relocatable_buffers <= 0)
     return (*real_morecore) (size);
 
   if (size == 0)
@@ -1142,12 +1142,12 @@ r_alloc_reset_variable (POINTER *old, POINTER *new)
 void
 r_alloc_inhibit_buffer_relocation (int inhibit)
 {
-  if (use_relocatable_buffers < 0)
-    use_relocatable_buffers = 0;
+  if (use_relocatable_buffers > 1)
+    use_relocatable_buffers = 1;
   if (inhibit)
-    use_relocatable_buffers++;
-  else if (use_relocatable_buffers > 0)
     use_relocatable_buffers--;
+  else if (use_relocatable_buffers < 1)
+    use_relocatable_buffers++;
 }
 
 

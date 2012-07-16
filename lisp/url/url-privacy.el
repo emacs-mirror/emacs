@@ -21,7 +21,6 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
 (require 'url-vars)
 
 (defun url-device-type (&optional device)
@@ -46,11 +45,11 @@
 	 ((memq (url-device-type) '(win32 w32)) "Windows; 32bit")
 	 ((eq (url-device-type) 'pm) "OS/2; 32bit")
 	 (t
-	  (case (url-device-type)
-	    (x "X11")
-	    (ns "OpenStep")
-	    (tty "TTY")
-	    (otherwise nil)))))
+	  (pcase (url-device-type)
+	    (`x "X11")
+	    (`ns "OpenStep")
+	    (`tty "TTY")
+	    (_ nil)))))
 
   (setq url-personal-mail-address (or url-personal-mail-address
 				      user-mail-address

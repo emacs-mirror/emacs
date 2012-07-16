@@ -1,3 +1,10 @@
+2012-06-26  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* Makefile.in (ALL_CFLAGS): Add -I../lib -I${srcdir}/../lib.
+	This is needed for hosts that lack <alloca.h>, when Emacs is
+	configured --with-x-toolkit=no.  Problem reported by Herbert
+	J. Skuhra for FreeBSD.
+
 2012-04-18  Paul Eggert  <eggert@cs.ucla.edu>
 
 	configure: new option --enable-gcc-warnings (Bug#11207)
@@ -605,7 +612,7 @@
 
 	* copyright.h: New file (copied from X11R4 distribution)
 	* All files: Replaced occurrences of #include <X11/copyright.h>
-	with #include "copyright.h"
+	with #include "copyright.h".
 
 1991-10-25  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
 

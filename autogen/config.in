@@ -1,4 +1,4 @@
-/* src/config.in.  Generated from configure.in by autoheader.  */
+/* src/config.in.  Generated from configure.ac by autoheader.  */
 
 /* GNU Emacs site configuration template file.
 
@@ -46,19 +46,80 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to the number of bits in type 'wint_t'. */
 #undef BITSIZEOF_WINT_T
 
+/* Define if FIONREAD should not be used. */
+#undef BROKEN_FIONREAD
+
+/* Define if get_current_dir_name should not be used. */
+#undef BROKEN_GET_CURRENT_DIR_NAME
+
+/* Define on FreeBSD to work around an issue when reading from a PTY. */
+#undef BROKEN_PTY_READ_AFTER_EAGAIN
+
+/* Define if SA_RESTART should only be used in batch mode. */
+#undef BROKEN_SA_RESTART
+
+/* Define if SIGAIO should not be used. */
+#undef BROKEN_SIGAIO
+
+/* Define if SIGIO should not be used. */
+#undef BROKEN_SIGIO
+
+/* Define if SIGPOLL should not be used. */
+#undef BROKEN_SIGPOLL
+
+/* Define if SIGPTY should not be used. */
+#undef BROKEN_SIGPTY
+
+/* Define if the system is compatible with BSD 4.2. */
+#undef BSD4_2
+
+/* Define if the system is compatible with BSD 4.2. */
+#undef BSD_SYSTEM
+
+/* Define if AH_BOTTOM should change BSD_SYSTEM. */
+#undef BSD_SYSTEM_AHB
+
 /* Define if Emacs cannot be dumped on your system. */
 #undef CANNOT_DUMP
+
+/* Define this to enable compile time checks for the Lisp_Object data type. */
+#undef CHECK_LISP_OBJECT_TYPE
+
+/* Define if you want lock files to be written, so that Emacs can tell
+   instantly when you try to modify a file that someone else has modified in
+   his/her Emacs. */
+#undef CLASH_DETECTION
 
 /* Define to one of '_getb67', 'GETB67', 'getb67' for Cray-2 and Cray-YMP
    systems. This function is required for 'alloca.c' support on those systems.
    */
 #undef CRAY_STACKSEG_END
 
+/* Define if the system is Cygwin. */
+#undef CYGWIN
+
 /* Define to 1 if using 'alloca.c'. */
 #undef C_ALLOCA
 
+/* Define if the system is Darwin. */
+#undef DARWIN_OS
+
+/* Extra bits to be or'd in with any pointers stored in a Lisp_Object. */
+#undef DATA_SEG_BITS
+
+/* Address of the start of the data segment. */
+#undef DATA_START
+
+/* Name of the default sound device. */
+#undef DEFAULT_SOUND_DEVICE
+
 /* Define to 1 for DGUX with <sys/dg_sys_info.h>. */
 #undef DGUX
+
+/* Define if process.c does not need to close a pty to make it a controlling
+   terminal (it is already a controlling terminal of the subprocess, because
+   we did ioctl TIOCSCTTY). */
+#undef DONT_REOPEN_PTY
 
 /* Define to 1 if you are using the GNU C Library. */
 #undef DOUG_LEA_MALLOC
@@ -69,8 +130,16 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to the options passed to configure. */
 #undef EMACS_CONFIG_OPTIONS
 
-/* Enable expensive run-time checking of data types? */
+/* Define to 1 if expensive run-time data type and consistency checks are
+   enabled. */
 #undef ENABLE_CHECKING
+
+/* Letter to use in finding device name of first PTY, if PTYs are supported.
+   */
+#undef FIRST_PTY_LETTER
+
+/* Define to 1 if futimesat mishandles a NULL file name. */
+#undef FUTIMESAT_NULL_BUG
 
 /* Define this to check for errors in cons list. */
 #undef GC_CHECK_CONS_LIST
@@ -86,17 +155,53 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define this to check for short string overrun. */
 #undef GC_CHECK_STRING_OVERRUN
 
+/* Mark a secondary stack, like the register stack on the ia64. */
+#undef GC_MARK_SECONDARY_STACK
+
+/* Define to GC_USE_GCPROS_AS_BEFORE if conservative garbage collection is not
+   known to work. */
+#undef GC_MARK_STACK
+
+/* Define if setjmp is known to save all registers relevant for conservative
+   garbage collection in the jmp_buf. */
+#undef GC_SETJMP_WORKS
+
 /* Define to 1 if the `getpgrp' function requires zero arguments. */
 #undef GETPGRP_VOID
 
-/* Define to 1 if gettimeofday accepts only one argument. */
-#undef GETTIMEOFDAY_ONE_ARGUMENT
+/* Define if gettimeofday clobbers the localtime buffer. */
+#undef GETTIMEOFDAY_CLOBBERS_LOCALTIME
+
+/* Define this to 'void' or 'struct timezone' to match the system's
+   declaration of the second argument to gettimeofday. */
+#undef GETTIMEOFDAY_TIMEZONE
+
+/* Define this to enable glyphs debugging code. */
+#undef GLYPH_DEBUG
+
+/* Define to a C preprocessor expression that evaluates to 1 or 0, depending
+   whether the gnulib module fscanf shall be considered present. */
+#undef GNULIB_FSCANF
 
 /* enable some gnulib portability checks */
 #undef GNULIB_PORTCHECK
 
+/* Define to a C preprocessor expression that evaluates to 1 or 0, depending
+   whether the gnulib module scanf shall be considered present. */
+#undef GNULIB_SCANF
+
+/* Value of PENDING_OUTPUT_COUNT if using the GNU C library. */
+#undef GNU_LIBRARY_PENDING_OUTPUT_COUNT
+
+/* Define if ths system is compatible with GNU/Linux. */
+#undef GNU_LINUX
+
 /* Define to 1 if you want to use the GNU memory allocator. */
 #undef GNU_MALLOC
+
+/* Define to set the G_SLICE environment variable to "always-malloc" at
+   startup, if using GTK. */
+#undef G_SLICE_ALWAYS_MALLOC
 
 /* Define to 1 if the file /usr/lpp/X11/bin/smt.exp exists. */
 #undef HAVE_AIX_SMT_EXP
@@ -130,6 +235,12 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the `cfsetspeed' function. */
 #undef HAVE_CFSETSPEED
 
+/* Define to 1 if you have the `clock_gettime' function. */
+#undef HAVE_CLOCK_GETTIME
+
+/* Define to 1 if you have the `clock_settime' function. */
+#undef HAVE_CLOCK_SETTIME
+
 /* Define to 1 if you have the `closedir' function. */
 #undef HAVE_CLOSEDIR
 
@@ -144,6 +255,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 if using D-Bus. */
 #undef HAVE_DBUS
+
+/* Define to 1 if you have the `dbus_type_is_valid' function. */
+#undef HAVE_DBUS_TYPE_IS_VALID
 
 /* Define to 1 if you have the `dbus_validate_bus_name' function. */
 #undef HAVE_DBUS_VALIDATE_BUS_NAME
@@ -250,6 +364,15 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 if you have the `fsync' function. */
 #undef HAVE_FSYNC
+
+/* Define to 1 if you have the `futimens' function. */
+#undef HAVE_FUTIMENS
+
+/* Define to 1 if you have the `futimes' function. */
+#undef HAVE_FUTIMES
+
+/* Define to 1 if you have the `futimesat' function. */
+#undef HAVE_FUTIMESAT
 
 /* Define to 1 if you have the `gai_strerror' function. */
 #undef HAVE_GAI_STRERROR
@@ -510,6 +633,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the `lstat' function. */
 #undef HAVE_LSTAT
 
+/* Define to 1 if you have the `lutimes' function. */
+#undef HAVE_LUTIMES
+
 /* Define to 1 if using libm17n-flt. */
 #undef HAVE_M17N_FLT
 
@@ -521,6 +647,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 if you have the `MagickExportImagePixels' function. */
 #undef HAVE_MAGICKEXPORTIMAGEPIXELS
+
+/* Define to 1 if you have the `MagickMergeImageLayers' function. */
+#undef HAVE_MAGICKMERGEIMAGELAYERS
 
 /* Define to 1 if you have the <maillock.h> header file. */
 #undef HAVE_MAILLOCK_H
@@ -539,9 +668,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    systems that support xmenu.c. */
 #undef HAVE_MENUS
 
-/* Define to 1 if you have the `mkdir' function. */
-#undef HAVE_MKDIR
-
 /* Define to 1 if you have the `mkstemp' function. */
 #undef HAVE_MKSTEMP
 
@@ -550,6 +676,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define if you have mouse support. */
 #undef HAVE_MOUSE
+
+/* Define to 1 if you have the `nanotime' function. */
+#undef HAVE_NANOTIME
 
 /* Define to 1 if you have the <net/if_dl.h> header file. */
 #undef HAVE_NET_IF_DL_H
@@ -579,6 +708,12 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the `posix_memalign' function. */
 #undef HAVE_POSIX_MEMALIGN
 
+/* Define if you have the /proc filesystem. */
+#undef HAVE_PROCFS
+
+/* Define to 1 if you have the `pselect' function. */
+#undef HAVE_PSELECT
+
 /* Define to 1 if you have the `pstat_getdynamic' function. */
 #undef HAVE_PSTAT_GETDYNAMIC
 
@@ -590,6 +725,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 if the pthread_sigmask function can be used (despite bugs). */
 #undef HAVE_PTHREAD_SIGMASK
+
+/* Define if the system supports pty devices. */
+#undef HAVE_PTYS
 
 /* Define to 1 if you have the <pty.h> header file. */
 #undef HAVE_PTY_H
@@ -609,17 +747,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the `recvfrom' function. */
 #undef HAVE_RECVFROM
 
-/* Define to 1 if you have the `rename' function. */
-#undef HAVE_RENAME
-
 /* Define to 1 if res_init is available. */
 #undef HAVE_RES_INIT
 
 /* Define to 1 if you have the `rint' function. */
 #undef HAVE_RINT
-
-/* Define to 1 if you have the `rmdir' function. */
-#undef HAVE_RMDIR
 
 /* Define to 1 if using librsvg. */
 #undef HAVE_RSVG
@@ -663,6 +795,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the `snprintf' function. */
 #undef HAVE_SNPRINTF
 
+/* Define if the system supports 4.2-compatible sockets. */
+#undef HAVE_SOCKETS
+
 /* Define to 1 if you have sound support. */
 #undef HAVE_SOUND
 
@@ -680,9 +815,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 if you have the <stdlib.h> header file. */
 #undef HAVE_STDLIB_H
-
-/* Define to 1 if you have the `strerror' function. */
-#undef HAVE_STRERROR
 
 /* Define to 1 if you have the <strings.h> header file. */
 #undef HAVE_STRINGS_H
@@ -726,10 +858,32 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if `n_un.n_name' is a member of `struct nlist'. */
 #undef HAVE_STRUCT_NLIST_N_UN_N_NAME
 
+/* Define to 1 if `st_atimensec' is a member of `struct stat'. */
+#undef HAVE_STRUCT_STAT_ST_ATIMENSEC
+
+/* Define to 1 if `st_atimespec.tv_nsec' is a member of `struct stat'. */
+#undef HAVE_STRUCT_STAT_ST_ATIMESPEC_TV_NSEC
+
+/* Define to 1 if `st_atim.st__tim.tv_nsec' is a member of `struct stat'. */
+#undef HAVE_STRUCT_STAT_ST_ATIM_ST__TIM_TV_NSEC
+
+/* Define to 1 if `st_atim.tv_nsec' is a member of `struct stat'. */
+#undef HAVE_STRUCT_STAT_ST_ATIM_TV_NSEC
+
+/* Define to 1 if `st_birthtimensec' is a member of `struct stat'. */
+#undef HAVE_STRUCT_STAT_ST_BIRTHTIMENSEC
+
+/* Define to 1 if `st_birthtimespec.tv_nsec' is a member of `struct stat'. */
+#undef HAVE_STRUCT_STAT_ST_BIRTHTIMESPEC_TV_NSEC
+
+/* Define to 1 if `st_birthtim.tv_nsec' is a member of `struct stat'. */
+#undef HAVE_STRUCT_STAT_ST_BIRTHTIM_TV_NSEC
+
 /* Define to 1 if `tm_zone' is a member of `struct tm'. */
 #undef HAVE_STRUCT_TM_TM_ZONE
 
-/* Define to 1 if `struct utimbuf' is declared by <utime.h>. */
+/* Define if struct utimbuf is declared -- usually in <utime.h>. Some systems
+   have utime.h but don't declare the struct anywhere. */
 #undef HAVE_STRUCT_UTIMBUF
 
 /* Define if struct stat has an st_dm_mode member. */
@@ -771,6 +925,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the <sys/systeminfo.h> header file. */
 #undef HAVE_SYS_SYSTEMINFO_H
 
+/* Define to 1 if you have the <sys/timeb.h> header file. */
+#undef HAVE_SYS_TIMEB_H
+
 /* Define to 1 if you have the <sys/time.h> header file. */
 #undef HAVE_SYS_TIME_H
 
@@ -794,9 +951,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 if you have the tiff library (-ltiff). */
 #undef HAVE_TIFF
-
-/* Define to 1 if `struct timeval' is declared by <sys/time.h>. */
-#undef HAVE_TIMEVAL
 
 /* Define if struct tm has the tm_gmtoff member. */
 #undef HAVE_TM_GMTOFF
@@ -824,6 +978,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the <util.h> header file. */
 #undef HAVE_UTIL_H
 
+/* Define to 1 if you have the `utimensat' function. */
+#undef HAVE_UTIMENSAT
+
 /* Define to 1 if you have the `utimes' function. */
 #undef HAVE_UTIMES
 
@@ -848,8 +1005,14 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define if you have a window system. */
 #undef HAVE_WINDOW_SYSTEM
 
+/* Define to 1 if you have the <winsock2.h> header file. */
+#undef HAVE_WINSOCK2_H
+
 /* Define to 1 if `fork' works. */
 #undef HAVE_WORKING_FORK
+
+/* Define if utimes works properly. */
+#undef HAVE_WORKING_UTIMES
 
 /* Define to 1 if `vfork' works. */
 #undef HAVE_WORKING_VFORK
@@ -906,6 +1069,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if the system has the type `_Bool'. */
 #undef HAVE__BOOL
 
+/* Define to 1 if you have the `_ftime' function. */
+#undef HAVE__FTIME
+
 /* Define to 1 if you have the `__builtin_unwind_init' function. */
 #undef HAVE___BUILTIN_UNWIND_INIT
 
@@ -917,6 +1083,15 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to support using a Hesiod database to find the POP server. */
 #undef HESIOD
+
+/* Define if the system is HPUX. */
+#undef HPUX
+
+/* Define to read input using SIGIO. */
+#undef INTERRUPT_INPUT
+
+/* Define if the system is IRIX. */
+#undef IRIX6_5
 
 /* Define to support Kerberos-authenticated POP mail retrieval. */
 #undef KERBEROS
@@ -949,11 +1124,27 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to support POP mail retrieval. */
 #undef MAIL_USE_POP
 
+/* Define if system's imake configuration file defines `NeedWidePrototypes' as
+   `NO'. */
+#undef NARROWPROTO
+
+/* Do not define abort in emacs.c. */
+#undef NO_ABORT
+
+/* Define if XEditRes should not be used. */
+#undef NO_EDITRES
+
 /* Define to 1 if you don't have struct exception in math.h. */
 #undef NO_MATHERR
 
 /* Define to 1 if your C compiler doesn't accept -c and -o together. */
 #undef NO_MINUS_C_MINUS_O
+
+/* Define if termio.h should not be included. */
+#undef NO_TERMIO
+
+/* Minimum value of NSIG. */
+#undef NSIG_MINIMUM
 
 /* Define to 1 if `NSInteger' is defined. */
 #undef NS_HAVE_NSINTEGER
@@ -991,6 +1182,17 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to the version of this package. */
 #undef PACKAGE_VERSION
 
+/* Number of chars of output in the buffer of a stdio stream. */
+#undef PENDING_OUTPUT_COUNT
+
+/* Define to empty to suppress deprecation warnings when building with
+   --enable-gcc-warnings and with libpng versions before 1.5, which lack
+   png_longjmp. */
+#undef PNG_DEPSTRUCT
+
+/* Define if process_send_signal should use VSUSP instead of VSWTCH. */
+#undef PREFER_VSUSP
+
 /* Define to 1 if pthread_sigmask(), when it fails, returns -1 and sets errno.
    */
 #undef PTHREAD_SIGMASK_FAILS_WITH_ERRNO
@@ -1004,6 +1206,18 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to l, ll, u, ul, ull, etc., as suitable for constants of type
    'ptrdiff_t'. */
 #undef PTRDIFF_T_SUFFIX
+
+/* How to iterate over PTYs. */
+#undef PTY_ITERATION
+
+/* How to get the device name of the control end of a PTY, if non-standard. */
+#undef PTY_NAME_SPRINTF
+
+/* How to open a PTY, if non-standard. */
+#undef PTY_OPEN
+
+/* How to get device name of the tty end of a PTY, if non-standard. */
+#undef PTY_TTY_NAME_SPRINTF
 
 /* Define to 1 if readlink fails to recognize a trailing slash. */
 #undef READLINK_TRAILING_SLASH_BUG
@@ -1020,6 +1234,18 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    slash */
 #undef REPLACE_FUNC_STAT_FILE
 
+/* Define if emacs.c needs to call run_time_remap; for HPUX. */
+#undef RUN_TIME_REMAP
+
+/* Define if process.c:child_setup should not call setpgrp. */
+#undef SETPGRP_RELEASES_CTTY
+
+/* How to set up a slave PTY, if needed. */
+#undef SETUP_SLAVE_PTY
+
+/* Make process_send_signal work by "typing" a signal character on the pty. */
+#undef SIGNALS_VIA_CHARACTERS
+
 /* Define to l, ll, u, ul, ull, etc., as suitable for constants of type
    'sig_atomic_t'. */
 #undef SIG_ATOMIC_T_SUFFIX
@@ -1027,6 +1253,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to l, ll, u, ul, ull, etc., as suitable for constants of type
    'size_t'. */
 #undef SIZE_T_SUFFIX
+
+/* Define if the system is Solaris. */
+#undef SOLARIS2
 
 /* If using the C implementation of alloca, define if you know the
    direction of stack growth for your system; otherwise it will be
@@ -1051,6 +1280,15 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to use system malloc. */
 #undef SYSTEM_MALLOC
 
+/* The type of system you are compiling for; sets `system-type'. */
+#undef SYSTEM_TYPE
+
+/* Undocumented. */
+#undef TAB3
+
+/* Undocumented. */
+#undef TABDLY
+
 /* Define to 1 if you use terminfo instead of termcap. */
 #undef TERMINFO
 
@@ -1060,6 +1298,13 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if your <sys/time.h> declares `struct tm'. */
 #undef TM_IN_SYS_TIME
 
+/* Define to 1 if the type of the st_atim member of a struct stat is struct
+   timespec. */
+#undef TYPEOF_STRUCT_STAT_ST_ATIM_IS_STRUCT_TIMESPEC
+
+/* Undocumented. */
+#undef ULIMIT_BREAK_VALUE
+
 /* Define to 1 for Encore UMAX. */
 #undef UMAX
 
@@ -1067,11 +1312,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    <sys/cpustats.h>. */
 #undef UMAX4_3
 
+/* Define if the system has Unix98 PTYs. */
+#undef UNIX98_PTYS
+
 /* Define to 1 if using GTK. */
 #undef USE_GTK
-
-/* Define this to use a lisp union for the Lisp_Object data type. */
-#undef USE_LISP_UNION_TYPE
 
 /* Define to 1 if using the Lucid X toolkit. */
 #undef USE_LUCID
@@ -1090,6 +1335,16 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 if using an X toolkit. */
 #undef USE_X_TOOLKIT
+
+/* Define if the system is compatible with System III. */
+#undef USG
+
+/* Define if the system is compatible with System V. */
+#undef USG5
+
+/* Define for USG systems where it works to open a pty's tty in the parent
+   process, then close and reopen it in the child. */
+#undef USG_SUBTTY_WORKS
 
 /* Version number of package */
 #undef VERSION
@@ -1120,9 +1375,15 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define this to check for malloc buffer overrun. */
 #undef XMALLOC_OVERRUN_CHECK
 
+/* Compensate for a bug in Xos.h on some systems, where it requires time.h. */
+#undef XOS_NEEDS_TIME_H
+
 /* Define to the type of the 6th arg of XRegisterIMInstantiateCallback, either
    XPointer or XPointer*. */
 #undef XRegisterIMInstantiateCallback_arg6
+
+/* Define if the system is AIX. */
+#undef _AIX
 
 /* Enable large inode numbers on Mac OS X.  */
 #ifndef _DARWIN_USE_64_BIT_INODE
@@ -1172,6 +1433,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you need to in order for 'stat' and other things to work. */
 #undef _POSIX_SOURCE
 
+/* Needed for system_process_attributes on Solaris. */
+#undef _STRUCTURED_PROC
+
 /* Define to 500 only on HP-UX. */
 #undef _XOPEN_SOURCE
 
@@ -1179,7 +1443,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifndef _ALL_SOURCE
 # undef _ALL_SOURCE
 #endif
-/* Enable general extensions on MacOS X.  */
+/* Enable general extensions on Mac OS X.  */
 #ifndef _DARWIN_C_SOURCE
 # undef _DARWIN_C_SOURCE
 #endif
@@ -1215,6 +1479,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* A replacement for va_copy, if needed.  */
 #define gl_va_copy(a,b) ((a) = (b))
 
+/* Define to rpl_gmtime if the replacement function should be used. */
+#undef gmtime
+
 /* Define to `__inline__' or `__inline' if that's what the C compiler
    calls it, or to nothing if 'inline' is not supported under any name.  */
 #ifndef __cplusplus
@@ -1224,7 +1491,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Work around a bug in Apple GCC 4.0.1 build 5465: In C99 mode, it supports
    the ISO C 99 semantics of 'extern inline' (unlike the GNU C semantics of
    earlier versions), but does not display it by setting __GNUC_STDC_INLINE__.
-   __APPLE__ && __MACH__ test for MacOS X.
+   __APPLE__ && __MACH__ test for Mac OS X.
    __APPLE_CC__ tests for the Apple compiler and its version.
    __STDC_VERSION__ tests for the C99 mode.  */
 #if defined __APPLE__ && defined __MACH__ && __APPLE_CC__ >= 5465 && !defined __cplusplus && __STDC_VERSION__ >= 199901L && !defined __GNUC_STDC_INLINE__
@@ -1233,6 +1500,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 if the compiler is checking for lint. */
 #undef lint
+
+/* Define to rpl_localtime if the replacement function should be used. */
+#undef localtime
 
 /* Define to a type if <wchar.h> does not define. */
 #undef mbstate_t
@@ -1312,6 +1582,19 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 # error "alloca not available on this machine"
 #endif
 
+/* This silences a few compilation warnings on FreeBSD.  */
+#ifdef BSD_SYSTEM_AHB
+#undef BSD_SYSTEM_AHB
+#undef BSD_SYSTEM
+#if __FreeBSD__ == 1
+#define BSD_SYSTEM 199103
+#elif __FreeBSD__ == 2
+#define BSD_SYSTEM 199306
+#elif __FreeBSD__ >= 3
+#define BSD_SYSTEM 199506
+#endif
+#endif
+
 /* Define AMPERSAND_FULL_NAME if you use the convention
    that & in the full name stands for the login id.  */
 /* Turned on June 1996 supposing nobody will mind it.  */
@@ -1326,15 +1609,18 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define subprocesses
 
 /* Include the os dependent file.  */
-#include config_opsysfile
+#ifdef config_opsysfile
+# include config_opsysfile
+#endif
 
-/* GNUstep needs a bit more pure memory.  Of the existing knobs,
-   SYSTEM_PURESIZE_EXTRA seems like the least likely to cause problems.
-  (There is probably a better place to do this, but right now the
-   Cocoa side does this in s/darwin.h and we cannot parallel this
-   exactly since GNUstep is multi-OS.  */
-#if defined HAVE_NS && defined NS_IMPL_GNUSTEP
+/* Mac OS X / GNUstep need a bit more pure memory.  Of the existing knobs,
+   SYSTEM_PURESIZE_EXTRA seems like the least likely to cause problems.  */
+#ifdef HAVE_NS
+#if defined NS_IMPL_GNUSTEP
 #  define SYSTEM_PURESIZE_EXTRA 30000
+#elif defined DARWIN_OS
+#  define SYSTEM_PURESIZE_EXTRA 200000
+#endif
 #endif
 
 #ifdef emacs /* Don't do this for lib-src.  */
@@ -1352,13 +1638,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <string.h>
 #include <stdlib.h>
-
-#if defined __GNUC__ && (__GNUC__ > 2 \
-                         || (__GNUC__ == 2 && __GNUC_MINOR__ >= 5))
-#define NO_RETURN	__attribute__ ((__noreturn__))
-#else
-#define NO_RETURN	/* nothing */
-#endif
 
 #if __GNUC__ >= 3  /* On GCC 3.0 we might get a warning.  */
 #define NO_INLINE __attribute__((noinline))
@@ -1386,18 +1665,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    ATTRIBUTE_FORMAT ((__printf__, formatstring_parameter, first_argument))
 #endif
 
+#define ATTRIBUTE_CONST _GL_ATTRIBUTE_CONST
+
 /* Some versions of GNU/Linux define noinline in their headers.  */
 #ifdef noinline
 #undef noinline
-#endif
-
-/* These won't be used automatically yet.  We also need to know, at least,
-   that the stack is continuous.  */
-#ifdef __GNUC__
-#  ifndef GC_SETJMP_WORKS
-  /* GC_SETJMP_WORKS is nearly always appropriate for GCC.  */
-#    define GC_SETJMP_WORKS 1
-#  endif
 #endif
 
 #endif /* EMACS_CONFIG_H */

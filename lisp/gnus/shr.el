@@ -119,6 +119,7 @@ cid: URL as the argument.")
   (let ((map (make-sparse-keymap)))
     (define-key map "a" 'shr-show-alt-text)
     (define-key map "i" 'shr-browse-image)
+    (define-key map "z" 'shr-zoom-image)
     (define-key map "I" 'shr-insert-image)
     (define-key map "u" 'shr-copy-url)
     (define-key map "v" 'shr-browse-url)
@@ -128,16 +129,22 @@ cid: URL as the argument.")
 
 ;; Public functions and commands.
 
-(defun shr-visit-file (file)
-  "Parse FILE as an HTML document, and render it in a new buffer."
-  (interactive "fHTML file name: ")
+(defun shr-render-buffer (buffer)
+  "Display the HTML rendering of the current buffer."
+  (interactive (list (current-buffer)))
   (pop-to-buffer "*html*")
   (erase-buffer)
   (shr-insert-document
-   (with-temp-buffer
-     (insert-file-contents file)
+   (with-current-buffer buffer
      (libxml-parse-html-region (point-min) (point-max))))
   (goto-char (point-min)))
+
+(defun shr-visit-file (file)
+  "Parse FILE as an HTML document, and render it in a new buffer."
+  (interactive "fHTML file name: ")
+  (with-temp-buffer
+    (insert-file-contents file)
+    (shr-render-buffer (current-buffer))))
 
 ;;;###autoload
 (defun shr-insert-document (dom)
@@ -235,6 +242,40 @@ the URL of the image to the kill buffer instead."
 		    (list (current-buffer) (1- (point)) (point-marker))
 		    t t))))
 
+(defun shr-zoom-image ()
+  "Toggle the image size.
+The size will be rotated between the default size, the original
+size, and full-buffer size."
+  (interactive)
+  (let ((url (get-text-property (point) 'image-url))
+	(size (get-text-property (point) 'image-size))
+	(buffer-read-only nil))
+    (if (not url)
+	(message "No image under point")
+      ;; Delete the old picture.
+      (while (get-text-property (point) 'image-url)
+	(forward-char -1))
+      (forward-char 1)
+      (let ((start (point)))
+	(while (get-text-property (point) 'image-url)
+	  (forward-char 1))
+	(forward-char -1)
+	(put-text-property start (point) 'display nil)
+	(when (> (- (point) start) 2)
+	  (delete-region start (1- (point)))))
+      (message "Inserting %s..." url)
+      (url-retrieve url 'shr-image-fetched
+		    (list (current-buffer) (1- (point)) (point-marker)
+			  (list (cons 'size
+				      (cond ((or (eq size 'default)
+						 (null size))
+					     'original)
+					    ((eq size 'original)
+					     'full)
+					    ((eq size 'full)
+					     'default)))))
+		    t))))
+
 ;;; Utility functions.
 
 (defun shr-transform-dom (dom)
@@ -298,6 +339,7 @@ the URL of the image to the kill buffer instead."
 
 (defun shr-insert (text)
   (when (and (eq shr-state 'image)
+	     (not (bolp))
 	     (not (string-match "\\`[ \t\n]+\\'" text)))
     (insert "\n")
     (setq shr-state nil))
@@ -305,11 +347,11 @@ the URL of the image to the kill buffer instead."
    ((eq shr-folding-mode 'none)
     (insert text))
    (t
-    (when (and (string-match "\\`[ \t\n]" text)
+    (when (and (string-match "\\`[ \t\n ]" text)
 	       (not (bolp))
 	       (not (eq (char-after (1- (point))) ? )))
       (insert " "))
-    (dolist (elem (split-string text))
+    (dolist (elem (split-string text "[ \f\t\n\r\v ]+" t))
       (when (and (bolp)
 		 (> shr-indentation 0))
 	(shr-indent))
@@ -349,7 +391,7 @@ the URL of the image to the kill buffer instead."
 	    (shr-indent))
 	  (end-of-line))
 	(insert " ")))
-    (unless (string-match "[ \t\n]\\'" text)
+    (unless (string-match "[ \t\n ]\\'" text)
       (delete-char -1)))))
 
 (defun shr-find-fill-point ()
@@ -408,32 +450,29 @@ the URL of the image to the kill buffer instead."
 			 (shr-char-kinsoku-eol-p (following-char)))))
 	   (goto-char bp)))
 	((shr-char-kinsoku-eol-p (preceding-char))
-	 (if (shr-char-kinsoku-eol-p (following-char))
-	     ;; There are consecutive kinsoku-eol characters.
-	     (setq failed t)
-	   (let ((count 4))
-	     (while
-		 (progn
-		   (backward-char 1)
-		   (and (> (setq count (1- count)) 0)
-			(not (memq (preceding-char) (list ?\C-@ ?\n ? )))
-			(or (shr-char-kinsoku-eol-p (preceding-char))
-			    (shr-char-kinsoku-bol-p (following-char)))))))
-	   (if (setq failed (= (current-column) shr-indentation))
-	       ;; There's no breakable point that doesn't violate kinsoku,
-	       ;; so we go to the second best position.
-	       (if (looking-at "\\(\\c<+\\)\\c<")
-		   (goto-char (match-end 1))
-		 (forward-char 1)))))
-	(t
-	 (if (shr-char-kinsoku-bol-p (preceding-char))
-	     ;; There are consecutive kinsoku-bol characters.
-	     (setq failed t)
-	   (let ((count 4))
-	     (while (and (>= (setq count (1- count)) 0)
+	 ;; Find backward the point where kinsoku-eol characters begin.
+	 (let ((count 4))
+	   (while
+	       (progn
+		 (backward-char 1)
+		 (and (> (setq count (1- count)) 0)
+		      (not (memq (preceding-char) (list ?\C-@ ?\n ? )))
+		      (or (shr-char-kinsoku-eol-p (preceding-char))
+			  (shr-char-kinsoku-bol-p (following-char)))))))
+	 (if (setq failed (= (current-column) shr-indentation))
+	     ;; There's no breakable point that doesn't violate kinsoku,
+	     ;; so we go to the second best position.
+	     (if (looking-at "\\(\\c<+\\)\\c<")
+		 (goto-char (match-end 1))
+	       (forward-char 1))))
+	((shr-char-kinsoku-bol-p (following-char))
+	 ;; Find forward the point where kinsoku-bol characters end.
+	 (let ((count 4))
+	   (while (progn
+		    (forward-char 1)
+		    (and (>= (setq count (1- count)) 0)
 			 (shr-char-kinsoku-bol-p (following-char))
-			 (shr-char-breakable-p (following-char)))
-	       (forward-char 1))))))
+			 (shr-char-breakable-p (following-char))))))))
        (when (eq (following-char) ? )
 	 (forward-char 1))))
     (not failed)))
@@ -465,7 +504,7 @@ the URL of the image to the kill buffer instead."
       (if (save-excursion
 	    (beginning-of-line)
 	    (looking-at " *$"))
-	  (insert "\n")
+	  (delete-region (match-beginning 0) (match-end 0))
 	(insert "\n\n")))))
 
 (defun shr-indent ()
@@ -523,7 +562,7 @@ the URL of the image to the kill buffer instead."
 		    (expand-file-name (file-name-nondirectory url)
 				      directory)))))
 
-(defun shr-image-fetched (status buffer start end)
+(defun shr-image-fetched (status buffer start end &optional flags)
   (let ((image-buffer (current-buffer)))
     (when (and (buffer-name buffer)
 	       (not (plist-get status :error)))
@@ -534,30 +573,53 @@ the URL of the image to the kill buffer instead."
 	  (with-current-buffer buffer
 	    (save-excursion
 	      (let ((alt (buffer-substring start end))
+		    (properties (text-properties-at start))
 		    (inhibit-read-only t))
 		(delete-region start end)
 		(goto-char start)
-		(funcall shr-put-image-function data alt)))))))
+		(funcall shr-put-image-function data alt flags)
+		(while properties
+		  (let ((type (pop properties))
+			(value (pop properties)))
+		    (unless (memq type '(display image-size))
+		      (put-text-property start (point) type value))))))))))
     (kill-buffer image-buffer)))
 
-(defun shr-put-image (data alt)
+(defun shr-put-image (data alt &optional flags)
   "Put image DATA with a string ALT.  Return image."
   (if (display-graphic-p)
-      (let ((image (ignore-errors
-                     (shr-rescale-image data))))
+      (let* ((size (cdr (assq 'size flags)))
+	     (start (point))
+	     (image (cond
+		     ((eq size 'original)
+		      (create-image data nil t :ascent 100))
+		     ((eq size 'full)
+		      (ignore-errors
+			(shr-rescale-image data t)))
+		     (t
+		      (ignore-errors
+			(shr-rescale-image data))))))
         (when image
 	  ;; When inserting big-ish pictures, put them at the
 	  ;; beginning of the line.
 	  (when (and (> (current-column) 0)
 		     (> (car (image-size image t)) 400))
 	    (insert "\n"))
-	  (insert-image image (or alt "*"))
+	  (if (eq size 'original)
+	      (let ((overlays (overlays-at (point))))
+		(insert-sliced-image image (or alt "*") nil 20 1)
+		(dolist (overlay overlays)
+		  (overlay-put overlay 'face 'default)))
+	    (insert-image image (or alt "*")))
+	  (put-text-property start (point) 'image-size size)
 	  (when (image-animated-p image)
 	    (image-animate image nil 60)))
 	image)
     (insert alt)))
 
-(defun shr-rescale-image (data)
+(defun shr-rescale-image (data &optional force)
+  "Rescale DATA, if too big, to fit the current buffer.
+If FORCE, rescale the image anyway."
   (let ((image (create-image data nil t :ascent 100)))
     (if (or (not (fboundp 'imagemagick-types))
 	    (not (get-buffer-window (current-buffer))))
@@ -572,7 +634,8 @@ the URL of the image to the kill buffer instead."
 	     (window-height (truncate (* shr-max-image-proportion
 					 (- (nth 3 edges) (nth 1 edges)))))
 	     scaled-image)
-	(when (> height window-height)
+	(when (or force
+		  (> height window-height))
 	  (setq image (or (create-image data 'imagemagick t
 					:height window-height
 					:ascent 100)
@@ -984,7 +1047,12 @@ ones, in case fg and bg are nil."
     (shr-generic cont)))
 
 (defun shr-tag-br (cont)
-  (unless (bobp)
+  (when (and (not (bobp))
+	     ;; Only add a newline if we break the current line, or
+	     ;; the previous line isn't a blank line.
+	     (or (not (bolp))
+		 (and (> (- (point) 2) (point-min))
+		      (not (= (char-after (- (point) 2)) ?\n)))))
     (insert "\n")
     (shr-indent))
   (shr-generic cont))
@@ -1392,5 +1460,9 @@ ones, in case fg and bg are nil."
     max))
 
 (provide 'shr)
+
+;; Local Variables:
+;; coding: iso-8859-1
+;; End:
 
 ;;; shr.el ends here

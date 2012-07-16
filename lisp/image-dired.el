@@ -157,7 +157,7 @@
 (require 'widget)
 
 (eval-when-compile
-  (require 'cl)
+  (require 'cl-lib)
   (require 'wid-edit))
 
 (defgroup image-dired nil
@@ -602,14 +602,14 @@ according to the Thumbnail Managing Standard."
                  (md5 (file-name-as-directory (file-name-directory f)))))
            (format "%s%s%s.thumb.%s"
                    (file-name-as-directory (expand-file-name (image-dired-dir)))
-                   (file-name-sans-extension (file-name-nondirectory f))
+                   (file-name-base f)
                    (if md5-hash (concat "_" md5-hash) "")
                    (file-name-extension f))))
         ((eq 'per-directory image-dired-thumbnail-storage)
          (let ((f (expand-file-name file)))
            (format "%s.image-dired/%s.thumb.%s"
                    (file-name-directory f)
-                   (file-name-sans-extension (file-name-nondirectory f))
+                   (file-name-base f)
                    (file-name-extension f))))))
 
 (defun image-dired-create-thumb (original-file thumbnail-file)
@@ -653,21 +653,24 @@ previous -ARG, if ARG<0) files."
           (image-file (dired-get-filename nil t))
           thumb-file
           overlay)
-     (when (and image-file (string-match-p (image-file-name-regexp) image-file))
+     (when (and image-file
+                (string-match-p (image-file-name-regexp) image-file))
        (setq thumb-file (image-dired-get-thumbnail-image image-file))
        ;; If image is not already added, then add it.
        (let ((cur-ov (overlays-in (point) (1+ (point)))))
          (if cur-ov
              (delete-overlay (car cur-ov))
 	   (put-image thumb-file image-pos)
-	   (setq overlay (loop for o in (overlays-in (point) (1+ (point)))
-			       when (overlay-get o 'put-image) collect o into ov
-			       finally return (car ov)))
+	   (setq overlay
+                 (cl-loop for o in (overlays-in (point) (1+ (point)))
+                          when (overlay-get o 'put-image) collect o into ov
+                          finally return (car ov)))
 	   (overlay-put overlay 'image-file image-file)
 	   (overlay-put overlay 'thumb-file thumb-file)))))
    arg             ; Show or hide image on ARG next files.
    'show-progress) ; Update dired display after each image is updated.
-  (add-hook 'dired-after-readin-hook 'image-dired-dired-after-readin-hook nil t))
+  (add-hook 'dired-after-readin-hook
+            'image-dired-dired-after-readin-hook nil t))
 
 (defun image-dired-dired-after-readin-hook ()
   "Relocate existing thumbnail overlays in dired buffer after reverting.

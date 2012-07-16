@@ -24,6 +24,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <setjmp.h>
 
 #include "lisp.h"
+#include "character.h"
 #include "buffer.h"
 #include "region-cache.h"
 
@@ -131,15 +132,13 @@ static void revalidate_region_cache (struct buffer *buf, struct region_cache *c)
 struct region_cache *
 new_region_cache (void)
 {
-  struct region_cache *c
-    = (struct region_cache *) xmalloc (sizeof (struct region_cache));
+  struct region_cache *c = xmalloc (sizeof *c);
 
   c->gap_start = 0;
   c->gap_len = NEW_CACHE_GAP;
   c->cache_len = 0;
-  c->boundaries =
-    (struct boundary *) xmalloc ((c->gap_len + c->cache_len)
-                                 * sizeof (*c->boundaries));
+  c->boundaries = xmalloc ((c->gap_len + c->cache_len)
+			   * sizeof (*c->boundaries));
 
   c->beg_unchanged = 0;
   c->end_unchanged = 0;

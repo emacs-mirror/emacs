@@ -44,8 +44,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif /* MSDOS */
 
 #include "commands.h"
-#include "buffer.h"
 #include "character.h"
+#include "buffer.h"
 #include "ccl.h"
 #include "coding.h"
 #include "composite.h"
@@ -59,6 +59,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #ifdef MSDOS
 #include "msdos.h"
+#endif
+
+#ifdef HAVE_NS
+#include "nsterm.h"
 #endif
 
 #ifndef USE_CRT_DLL
@@ -96,8 +100,6 @@ int synch_process_retcode;
 
 /* Nonzero if this is termination due to exit.  */
 static int call_process_exited;
-
-static Lisp_Object Fgetenv_internal (Lisp_Object, Lisp_Object);
 
 static Lisp_Object
 call_process_kill (Lisp_Object fdpid)
@@ -1174,9 +1176,9 @@ child_setup (int in, int out, int err, register char **new_argv, int set_pgrp, L
     /* MSDOS must have all environment variables malloc'ed, because
        low-level libc functions that launch subsidiary processes rely
        on that.  */
-    pwd_var = (char *) xmalloc (i + 6);
+    pwd_var = xmalloc (i + 6);
 #else
-    pwd_var = (char *) alloca (i + 6);
+    pwd_var = alloca (i + 6);
 #endif
     temp = pwd_var + 4;
     memcpy (pwd_var, "PWD=", 4);
@@ -1244,7 +1246,7 @@ child_setup (int in, int out, int err, register char **new_argv, int set_pgrp, L
       }
 
     /* new_length + 2 to include PWD and terminating 0.  */
-    env = new_env = (char **) alloca ((new_length + 2) * sizeof (char *));
+    env = new_env = alloca ((new_length + 2) * sizeof *env);
     /* If we have a PWD envvar, pass one down,
        but with corrected value.  */
     if (egetenv ("PWD"))
@@ -1252,7 +1254,7 @@ child_setup (int in, int out, int err, register char **new_argv, int set_pgrp, L
 
     if (STRINGP (display))
       {
-	char *vdata = (char *) alloca (sizeof "DISPLAY=" + SBYTES (display));
+	char *vdata = alloca (sizeof "DISPLAY=" + SBYTES (display));
 	strcpy (vdata, "DISPLAY=");
 	strcat (vdata, SSDATA (display));
 	new_env = add_env (env, new_env, vdata);
@@ -1515,18 +1517,37 @@ init_callproc_1 (void)
 {
   char *data_dir = egetenv ("EMACSDATA");
   char *doc_dir = egetenv ("EMACSDOC");
+#ifdef HAVE_NS
+  const char *etc_dir = ns_etc_directory ();
+  const char *path_exec = ns_exec_path ();
+#endif
 
   Vdata_directory
     = Ffile_name_as_directory (build_string (data_dir ? data_dir
-					     : PATH_DATA));
+#ifdef HAVE_NS
+                                             : (etc_dir ? etc_dir : PATH_DATA)
+#else
+                                             : PATH_DATA
+#endif
+                                             ));
   Vdoc_directory
     = Ffile_name_as_directory (build_string (doc_dir ? doc_dir
-					     : PATH_DOC));
+#ifdef HAVE_NS
+                                             : (etc_dir ? etc_dir : PATH_DOC)
+#else
+                                             : PATH_DOC
+#endif
+                                             ));
 
   /* Check the EMACSPATH environment variable, defaulting to the
      PATH_EXEC path from epaths.h.  */
-  Vexec_path = decode_env_path ("EMACSPATH", PATH_EXEC);
+  Vexec_path = decode_env_path ("EMACSPATH",
+#ifdef HAVE_NS
+                                path_exec ? path_exec :
+#endif
+                                PATH_EXEC);
   Vexec_directory = Ffile_name_as_directory (Fcar (Vexec_path));
+  /* FIXME?  For ns, path_exec should go at the front?  */
   Vexec_path = nconc2 (decode_env_path ("PATH", ""), Vexec_path);
 }
 
@@ -1539,6 +1560,17 @@ init_callproc (void)
 
   register char * sh;
   Lisp_Object tempdir;
+#ifdef HAVE_NS
+  if (data_dir == 0)
+    {
+      const char *etc_dir = ns_etc_directory ();
+      if (etc_dir)
+        {
+          data_dir = alloca (strlen (etc_dir) + 1);
+          strcpy (data_dir, etc_dir);
+        }
+    }
+#endif
 
   if (!NILP (Vinstallation_directory))
     {
@@ -1550,7 +1582,14 @@ init_callproc (void)
 	  /* MSDOS uses wrapped binaries, so don't do this.  */
       if (NILP (Fmember (tem, Vexec_path)))
 	{
-	  Vexec_path = decode_env_path ("EMACSPATH", PATH_EXEC);
+#ifdef HAVE_NS
+	  const char *path_exec = ns_exec_path ();
+#endif
+	  Vexec_path = decode_env_path ("EMACSPATH",
+#ifdef HAVE_NS
+					path_exec ? path_exec :
+#endif
+					PATH_EXEC);
 	  Vexec_path = Fcons (tem, Vexec_path);
 	  Vexec_path = nconc2 (decode_env_path ("PATH", ""), Vexec_path);
 	}

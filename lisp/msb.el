@@ -77,13 +77,13 @@
 ;; hacked on by Dave Love.
 ;;; Code:
 
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
-;;;
-;;; Some example constants to be used for `msb-menu-cond'.  See that
-;;; variable for more information.  Please note that if the condition
-;;; returns `multi', then the buffer can appear in several menus.
-;;;
+;;
+;; Some example constants to be used for `msb-menu-cond'.  See that
+;; variable for more information.  Please note that if the condition
+;; returns `multi', then the buffer can appear in several menus.
+;;
 (defconst msb--few-menus
   '(((and (boundp 'server-buffer-clients)
 	  server-buffer-clients
@@ -702,18 +702,18 @@ See `msb-menu-cond' for a description of its elements."
 	(multi-flag nil)
 	function-info-list)
     (setq function-info-list
-	  (loop for fi
-		across function-info-vector
-		if (and (setq result
-			      (eval (aref fi 1))) ;Test CONDITION
-			(not (and (eq result 'no-multi)
-				  multi-flag))
-			(progn (when (eq result 'multi)
-				 (setq multi-flag t))
-			       t))
-		collect fi
-		until (and result
-			   (not (eq result 'multi)))))
+	  (cl-loop for fi
+                   across function-info-vector
+                   if (and (setq result
+                                 (eval (aref fi 1))) ;Test CONDITION
+                           (not (and (eq result 'no-multi)
+                                     multi-flag))
+                           (progn (when (eq result 'multi)
+                                    (setq multi-flag t))
+                                  t))
+                   collect fi
+                   until (and result
+                              (not (eq result 'multi)))))
     (when (and (not function-info-list)
 	       (not result))
       (error "No catch-all in msb-menu-cond!"))
@@ -817,7 +817,7 @@ results in
 (defun msb--mode-menu-cond ()
   (let ((key msb-modes-key))
     (mapcar (lambda (item)
-	      (incf key)
+	      (cl-incf key)
 	      (list `( eq major-mode (quote ,(car item)))
 		    key
 		    (concat (cdr item) " (%d)")))
@@ -841,18 +841,18 @@ It takes the form ((TITLE . BUFFER-LIST)...)."
  	     (> msb-display-most-recently-used 0))
     (let* ((buffers (cdr (buffer-list)))
 	   (most-recently-used
-	    (loop with n = 0
-		  for buffer in buffers
-		  if (with-current-buffer buffer
-		       (and (not (msb-invisible-buffer-p))
-			    (not (eq major-mode 'dired-mode))))
-		  collect (with-current-buffer buffer
-			    (cons (funcall msb-item-handling-function
-					   buffer
-					   max-buffer-name-length)
-				  buffer))
-		  and do (incf n)
-		  until (>= n msb-display-most-recently-used))))
+	    (cl-loop with n = 0
+                     for buffer in buffers
+                     if (with-current-buffer buffer
+                          (and (not (msb-invisible-buffer-p))
+                               (not (eq major-mode 'dired-mode))))
+                     collect (with-current-buffer buffer
+                               (cons (funcall msb-item-handling-function
+                                              buffer
+                                              max-buffer-name-length)
+                                     buffer))
+                     and do (cl-incf n)
+                     until (>= n msb-display-most-recently-used))))
       (cons (if (stringp msb-most-recently-used-title)
 		(format msb-most-recently-used-title
 			(length most-recently-used))
@@ -899,29 +899,29 @@ It takes the form ((TITLE . BUFFER-LIST)...)."
     (when file-buffers
       (setq file-buffers
 	    (mapcar (lambda (buffer-list)
-		      (list* msb-files-by-directory-sort-key
-                             (car buffer-list)
-                             (sort
-                              (mapcar (lambda (buffer)
-                                        (cons (with-current-buffer buffer
-                                                (funcall
-                                                 msb-item-handling-function
-                                                 buffer
-                                                 max-buffer-name-length))
-                                              buffer))
-                                      (cdr buffer-list))
-                              (lambda (item1 item2)
-                                (string< (car item1) (car item2))))))
+		      `(,msb-files-by-directory-sort-key
+                        ,(car buffer-list)
+                        ,@(sort
+                           (mapcar (lambda (buffer)
+                                     (cons (with-current-buffer buffer
+                                             (funcall
+                                              msb-item-handling-function
+                                              buffer
+                                              max-buffer-name-length))
+                                           buffer))
+                                   (cdr buffer-list))
+                           (lambda (item1 item2)
+                             (string< (car item1) (car item2))))))
                     (msb--choose-file-menu file-buffers))))
     ;; Now make the menu - a list of (TITLE . BUFFER-LIST)
     (let* (menu
 	   (most-recently-used
 	    (msb--most-recently-used-menu max-buffer-name-length))
 	   (others (nconc file-buffers
-			   (loop for elt
-				 across function-info-vector
-				 for value = (msb--create-sort-item elt)
-				 if value collect value))))
+                          (cl-loop for elt
+                                   across function-info-vector
+                                   for value = (msb--create-sort-item elt)
+                                   if value collect value))))
       (setq menu
 	    (mapcar 'cdr		;Remove the SORT-KEY
 		    ;; Sort the menus - not the items.
@@ -1039,7 +1039,7 @@ variable `msb-menu-cond'."
 	  (tmp-list nil))
       (while (< count msb-max-menu-items)
 	(push (pop list) tmp-list)
-	(incf count))
+	(cl-incf count))
       (setq tmp-list (nreverse tmp-list))
       (setq sub-name (concat (car (car tmp-list)) "..."))
       (push (nconc (list mcount sub-name
@@ -1076,7 +1076,7 @@ variable `msb-menu-cond'."
 				  (cons (buffer-name (cdr item))
 					(cons (car item) end)))
 				(cdr sub-menu))))
-	   (nconc (list (incf mcount) (car sub-menu)
+	   (nconc (list (cl-incf mcount) (car sub-menu)
 			'keymap (car sub-menu))
 		  (msb--split-menus buffers))))))
      raw-menu)))

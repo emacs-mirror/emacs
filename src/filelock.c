@@ -40,8 +40,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <errno.h>
 
 #include "lisp.h"
-#include "buffer.h"
 #include "character.h"
+#include "buffer.h"
 #include "coding.h"
 #include "systime.h"
 
@@ -174,14 +174,14 @@ get_boot_time (void)
 
       filename = Qnil;
 
-      sprintf (cmd_string, "%s.%d", WTMP_FILE, counter);
-      tempname = build_string (cmd_string);
+      tempname = make_formatted_string
+	(cmd_string, "%s.%d", WTMP_FILE, counter);
       if (! NILP (Ffile_exists_p (tempname)))
 	filename = tempname;
       else
 	{
-	  sprintf (cmd_string, "%s.%d.gz", WTMP_FILE, counter);
-	  tempname = build_string (cmd_string);
+	  tempname = make_formatted_string (cmd_string, "%s.%d.gz",
+					    WTMP_FILE, counter);
 	  if (! NILP (Ffile_exists_p (tempname)))
 	    {
 	      Lisp_Object args[6];
@@ -294,12 +294,13 @@ typedef struct
    trailing period plus one for the digit after it plus one for the
    null.  */
 #define MAKE_LOCK_NAME(lock, file) \
-  (lock = (char *) alloca (SBYTES (file) + 2 + 1 + 1 + 1), \
+  (lock = alloca (SBYTES (file) + 2 + 1 + 1 + 1), \
    fill_in_lock_file_name (lock, (file)))
 
 static void
 fill_in_lock_file_name (register char *lockfile, register Lisp_Object fn)
 {
+  ptrdiff_t length = SBYTES (fn);
   register char *p;
   struct stat st;
   int count = 0;
@@ -309,14 +310,14 @@ fill_in_lock_file_name (register char *lockfile, register Lisp_Object fn)
   /* Shift the nondirectory part of the file name (including the null)
      right two characters.  Here is one of the places where we'd have to
      do something to support 14-character-max file names.  */
-  for (p = lockfile + strlen (lockfile); p != lockfile && *p != '/'; p--)
+  for (p = lockfile + length; p != lockfile && *p != '/'; p--)
     p[2] = *p;
 
   /* Insert the `.#'.  */
   p[1] = '.';
   p[2] = '#';
 
-  p = p + strlen (p);
+  p = p + length + 2;
 
   while (lstat (lockfile, &st) == 0 && !S_ISLNK (st.st_mode))
     {
@@ -422,7 +423,7 @@ current_lock_owner (lock_info_type *owner, char *lfname)
       return -1;
     }
   len = at - lfinfo;
-  owner->user = (char *) xmalloc (len + 1);
+  owner->user = xmalloc (len + 1);
   memcpy (owner->user, lfinfo, len);
   owner->user[len] = 0;
 
@@ -449,7 +450,7 @@ current_lock_owner (lock_info_type *owner, char *lfname)
 
   /* The host is everything in between.  */
   len = dot - at - 1;
-  owner->host = (char *) xmalloc (len + 1);
+  owner->host = xmalloc (len + 1);
   memcpy (owner->host, at + 1, len);
   owner->host[len] = 0;
 
@@ -706,15 +707,6 @@ t if it is locked by you, else a string saying which user has locked it.  */)
     FREE_LOCK_INFO (locker);
 
   return ret;
-}
-
-/* Initialization functions.  */
-
-void
-init_filelock (void)
-{
-  boot_time = 0;
-  boot_time_initialized = 0;
 }
 
 #endif /* CLASH_DETECTION */

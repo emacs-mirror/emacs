@@ -43,8 +43,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <setjmp.h>
 #include "lisp.h"
 #include "commands.h"
-#include "buffer.h"
 #include "character.h"
+#include "buffer.h"
 #include "charset.h"
 #include "keyboard.h"
 #include "frame.h"
@@ -92,7 +92,6 @@ static Lisp_Object where_is_cache;
 /* Which keymaps are reverse-stored in the cache.  */
 static Lisp_Object where_is_cache_keymaps;
 
-static Lisp_Object Flookup_key (Lisp_Object, Lisp_Object, Lisp_Object);
 static Lisp_Object store_in_keymap (Lisp_Object, Lisp_Object, Lisp_Object);
 
 static Lisp_Object define_as_prefix (Lisp_Object, Lisp_Object);
@@ -956,8 +955,6 @@ store_in_keymap (Lisp_Object keymap, register Lisp_Object idx, Lisp_Object def)
   return def;
 }
 
-static Lisp_Object Fcopy_keymap (Lisp_Object);
-
 static Lisp_Object
 copy_keymap_item (Lisp_Object elt)
 {
@@ -1481,7 +1478,7 @@ current_minor_maps (Lisp_Object **modeptr, Lisp_Object **mapptr)
 		/* Use malloc here.  See the comment above this function.
 		   Avoid realloc here; it causes spurious traps on GNU/Linux [KFS] */
 		BLOCK_INPUT;
-		newmodes = (Lisp_Object *) malloc (allocsize);
+		newmodes = malloc (allocsize);
 		if (newmodes)
 		  {
 		    if (cmm_modes)
@@ -1493,7 +1490,7 @@ current_minor_maps (Lisp_Object **modeptr, Lisp_Object **mapptr)
 		    cmm_modes = newmodes;
 		  }
 
-		newmaps = (Lisp_Object *) malloc (allocsize);
+		newmaps = malloc (allocsize);
 		if (newmaps)
 		  {
 		    if (cmm_maps)
@@ -2013,9 +2010,7 @@ then the value includes only maps for prefixes that start with PREFIX.  */)
 	return Qnil;
     }
   else
-    maps = Fcons (Fcons (Fmake_vector (make_number (0), Qnil),
-			 get_keymap (keymap, 1, 0)),
-		  Qnil);
+    maps = Fcons (Fcons (zero_vector, get_keymap (keymap, 1, 0)), Qnil);
 
   /* For each map in the list maps,
      look at any other maps it points to,
@@ -2926,7 +2921,7 @@ You type        Translation\n\
 	  if (!SYMBOLP (modes[i]))
 	    abort ();
 
-	  p = title = (char *) alloca (42 + SCHARS (SYMBOL_NAME (modes[i])));
+	  p = title = alloca (42 + SCHARS (SYMBOL_NAME (modes[i])));
 	  *p++ = '\f';
 	  *p++ = '\n';
 	  *p++ = '`';
@@ -3708,11 +3703,11 @@ syms_of_keymap (void)
   Ffset (intern_c_string ("Control-X-prefix"), control_x_map);
 
   exclude_keys
-    = pure_cons (pure_cons (make_pure_c_string ("DEL"), make_pure_c_string ("\\d")),
-		 pure_cons (pure_cons (make_pure_c_string ("TAB"), make_pure_c_string ("\\t")),
-		    pure_cons (pure_cons (make_pure_c_string ("RET"), make_pure_c_string ("\\r")),
-			   pure_cons (pure_cons (make_pure_c_string ("ESC"), make_pure_c_string ("\\e")),
-				  pure_cons (pure_cons (make_pure_c_string ("SPC"), make_pure_c_string (" ")),
+    = pure_cons (pure_cons (build_pure_c_string ("DEL"), build_pure_c_string ("\\d")),
+		 pure_cons (pure_cons (build_pure_c_string ("TAB"), build_pure_c_string ("\\t")),
+		    pure_cons (pure_cons (build_pure_c_string ("RET"), build_pure_c_string ("\\r")),
+			   pure_cons (pure_cons (build_pure_c_string ("ESC"), build_pure_c_string ("\\e")),
+				  pure_cons (pure_cons (build_pure_c_string ("SPC"), build_pure_c_string (" ")),
 					 Qnil)))));
   staticpro (&exclude_keys);
 

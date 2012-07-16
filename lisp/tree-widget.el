@@ -115,7 +115,6 @@
 ;;
 
 ;;; Code:
-(eval-when-compile (require 'cl))
 (require 'wid-edit)
 
 ;;; Customization

@@ -88,8 +88,7 @@
 ;;; Variables:
 ;;;===================================================================
 
-(eval-when-compile
-  (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 (defgroup decipher nil
   "Cryptanalyze monoalphabetic substitution ciphers."
@@ -170,7 +169,7 @@ in your `.emacs' file.")
     (let ((key ?a))
       (while (<= key ?z)
 	(define-key map (vector key) 'decipher-keypress)
-	(incf key)))
+	(cl-incf key)))
     map)
   "Keymap for Decipher mode.")
 
@@ -194,7 +193,7 @@ in your `.emacs' file.")
         (c ?0))
     (while (<= c ?9)
       (modify-syntax-entry c "_" table) ;Digits are not part of words
-      (incf c))
+      (cl-incf c))
     (setq decipher-mode-syntax-table table)))
 
 (defvar decipher-alphabet nil)
@@ -414,7 +413,7 @@ The most useful commands are:
   (if undo-rec
       (progn
         (push undo-rec decipher-undo-list)
-        (incf decipher-undo-list-size)
+        (cl-incf decipher-undo-list-size)
         (if (> decipher-undo-list-size decipher-undo-limit)
             (let ((new-size (- decipher-undo-limit 100)))
               ;; Truncate undo list to NEW-SIZE elements:
@@ -588,7 +587,7 @@ you have determined the keyword."
           (progn
             (while (rassoc cipher-char decipher-alphabet)
               ;; Find the next unused letter
-              (incf cipher-char))
+              (cl-incf cipher-char))
             (push (cons ?\s cipher-char) undo-rec)
             (decipher-set-map cipher-char (car plain-map) t))))
     (decipher-add-undo undo-rec)))
@@ -644,7 +643,7 @@ You should use this if you edit the ciphertext."
       (while (>= plain-char ?a)
         (backward-char)
         (push (cons plain-char (following-char)) decipher-alphabet)
-        (decf plain-char)))))
+        (cl-decf plain-char)))))
 
 ;;;===================================================================
 ;;; Analyzing ciphertext:
@@ -805,8 +804,8 @@ TOTAL is the total number of letters in the ciphertext."
       (while temp-list
         (insert (caar temp-list)
                 (format "%4d%3d%%  "
-                        (cadar temp-list)
-                        (/ (* 100 (cadar temp-list)) total)))
+                        (cl-cadar temp-list)
+                        (/ (* 100 (cl-cadar temp-list)) total)))
         (setq temp-list (nthcdr 4 temp-list)))
       (insert ?\n)
       (setq freq-list (cdr freq-list)
@@ -838,17 +837,17 @@ TOTAL is the total number of letters in the ciphertext."
   ;;     A vector of 26 integers, counting the number of occurrences
   ;;     of the corresponding characters.
   (setq decipher--digram (format "%c%c" decipher--prev-char decipher-char))
-  (incf (cdr (or (assoc decipher--digram decipher--digram-list)
+  (cl-incf (cdr (or (assoc decipher--digram decipher--digram-list)
                  (car (push (cons decipher--digram 0)
                             decipher--digram-list)))))
   (and (>= decipher--prev-char ?A)
-       (incf (aref (aref decipher--before (- decipher--prev-char ?A))
+       (cl-incf (aref (aref decipher--before (- decipher--prev-char ?A))
                    (if (equal decipher-char ?\s)
                        26
                      (- decipher-char ?A)))))
   (and (>= decipher-char ?A)
-       (incf (aref decipher--freqs (- decipher-char ?A)))
-       (incf (aref (aref decipher--after (- decipher-char ?A))
+       (cl-incf (aref decipher--freqs (- decipher-char ?A)))
+       (cl-incf (aref (aref decipher--after (- decipher-char ?A))
                    (if (equal decipher--prev-char ?\s)
                        26
                      (- decipher--prev-char ?A)))))
@@ -859,8 +858,8 @@ TOTAL is the total number of letters in the ciphertext."
   (let ((total 0))
     (concat
      (mapconcat (lambda (x)
-                  (cond ((> x 99) (incf total) "XX")
-                        ((> x 0)  (incf total) (format "%2d" x))
+                  (cond ((> x 99) (cl-incf total) "XX")
+                        ((> x 0)  (cl-incf total) (format "%2d" x))
                         (t        "  ")))
                 counts
                 "")
@@ -873,10 +872,10 @@ TOTAL is the total number of letters in the ciphertext."
   ;; We do not include spaces (word divisions) in this count.
   (let ((total 0)
         (i 26))
-    (while (>= (decf i) 0)
+    (while (>= (cl-decf i) 0)
       (if (or (> (aref before-count i) 0)
               (> (aref after-count  i) 0))
-          (incf total)))
+          (cl-incf total)))
     total))
 
 (defun decipher-analyze-buffer ()
@@ -890,7 +889,7 @@ Creates the statistics buffer if it doesn't exist."
         decipher--digram decipher--digram-list freq-list)
     (message "Scanning buffer...")
     (let ((i 26))
-      (while (>= (decf i) 0)
+      (while (>= (cl-decf i) 0)
         (aset decipher--before i (make-vector 27 0))
         (aset decipher--after  i (make-vector 27 0))))
     (if decipher-ignore-spaces
@@ -898,7 +897,7 @@ Creates the statistics buffer if it doesn't exist."
           (decipher-loop-no-breaks 'decipher--analyze)
           ;; The first character of ciphertext was marked as following a space:
           (let ((i 26))
-            (while (>= (decf i) 0)
+            (while (>= (cl-decf i) 0)
               (aset (aref decipher--after  i) 26 0))))
       (decipher-loop-with-breaks 'decipher--analyze))
     (message "Processing results...")
@@ -913,7 +912,7 @@ Creates the statistics buffer if it doesn't exist."
     ;;   of times it occurs, and DIFFERENT is the number of different
     ;;   letters it appears next to.
     (let ((i 26))
-      (while (>= (decf i) 0)
+      (while (>= (cl-decf i) 0)
         (setq freq-list
               (cons (list (+ i ?A)
                           (aref decipher--freqs i)
@@ -933,7 +932,7 @@ Creates the statistics buffer if it doesn't exist."
       (insert ?\n)
       ;; Display frequency counts for letters in order of frequency:
       (setq freq-list (sort freq-list
-                            (lambda (a b) (> (second a) (second b)))))
+                            (lambda (a b) (> (cl-second a) (cl-second b)))))
       (decipher-insert-frequency-counts freq-list total-chars)
       ;; Display letters in order of frequency:
       (insert ?\n (mapconcat (lambda (a) (char-to-string (car a)))
@@ -957,11 +956,11 @@ Creates the statistics buffer if it doesn't exist."
       ;; Display adjacency list for each letter, sorted in descending
       ;; order of the number of adjacent letters:
       (setq freq-list (sort freq-list
-                            (lambda (a b) (> (third a) (third b)))))
+                            (lambda (a b) (> (cl-third a) (cl-third b)))))
       (let ((temp-list freq-list)
             entry i)
         (while (setq entry (pop temp-list))
-          (if (equal 0 (second entry))
+          (if (equal 0 (cl-second entry))
               nil                       ;This letter was not used
             (setq i (- (car entry) ?A))
             (insert ?\n "  "
@@ -969,8 +968,8 @@ Creates the statistics buffer if it doesn't exist."
                     (car entry)
                     ": A B C D E F G H I J K L M N O P Q R S T U V W X Y Z *"
                     (format "%4d %4d %3d%%\n  "
-                            (third entry) (second entry)
-                            (/ (* 100 (second entry)) total-chars))
+                            (cl-third entry) (cl-second entry)
+                            (/ (* 100 (cl-second entry)) total-chars))
                     (decipher--digram-counts (aref decipher--after  i)) ?\n))))
       (setq buffer-read-only t)
       (set-buffer-modified-p nil)

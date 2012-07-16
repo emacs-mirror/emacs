@@ -538,7 +538,7 @@ If t, do incremental search for a sequence of words, ignoring punctuation.
 If the value is a function (e.g. `isearch-symbol-regexp'), it is called to
 convert the search string to a regexp used by regexp search functions.
 The property `isearch-message-prefix' put on this function specifies the
-prefix string displyed in the search message.")
+prefix string displayed in the search message.")
 
 (defvar isearch-cmds nil
   "Stack of search status sets.

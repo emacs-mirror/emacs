@@ -1009,10 +1009,11 @@ be set in `.emacs' instead."
     (purp "#9999cc" "#666699")
     (no "#ff0000" "#ffff00")
     (neutral "#b4b4b4" "#878787")
+    (ma "#2020e0" "#8080ff")
     (september "#bf9900" "#ffcc00"))
   "Color alist used for the Gnus logo.")
 
-(defcustom gnus-logo-color-style 'no
+(defcustom gnus-logo-color-style 'ma
   "*Color styles used for the Gnus logo."
   :type `(choice ,@(mapcar (lambda (elem) (list 'const (car elem)))
 			   gnus-logo-color-alist))
@@ -2803,6 +2804,8 @@ gnus-registry.el will populate this if it's loaded.")
      ("gnus-kill" gnus-kill gnus-apply-kill-file-internal
       gnus-kill-file-edit-file gnus-kill-file-raise-followups-to-author
       gnus-execute gnus-expunge gnus-batch-kill gnus-batch-score)
+     ("gnus-registry" gnus-try-warping-via-registry
+      gnus-registry-handle-action)
      ("gnus-cache" gnus-cache-possibly-enter-article gnus-cache-save-buffers
       gnus-cache-possibly-remove-articles gnus-cache-request-article
       gnus-cache-retrieve-headers gnus-cache-possibly-alter-active

@@ -136,7 +136,7 @@ am__cd = cd
 /^GNULIB_WARN_CFLAGS *=/s/@GNULIB_WARN_CFLAGS@//
 /^WARN_CFLAGS *=/s/@WARN_CFLAGS@//
 /^WERROR_CFLAGS *=/s/@WERROR_CFLAGS@//
-/^DEFS *=/s/@[^@\n]*@/-DHAVE_CONFIG_H/
+/^DEFS *=/s/@[^@\n]*@//
 /^DEPDIR *=/s/@[^@\n]*@/deps/
 /^DEPFLAGS *=/s/@[^@\n]*@/-MMD -MF ${DEPDIR}\/$*.d/
 /^ECHO_N *=/s/@[^@\n]*@/-n/
@@ -211,6 +211,7 @@ am__cd = cd
 /^GNULIB_GETPAGESIZE *=/s/@GNULIB_GETPAGESIZE@/0/
 /^GNULIB_GL_UNISTD_H_GETOPT *=/s/@GNULIB_GL_UNISTD_H_GETOPT@/1/
 /^GNULIB_GETSUBOPT *=/s/@GNULIB_GETSUBOPT@/0/
+/^GNULIB_GETTIMEOFDAY *=/s/@GNULIB_GETTIMEOFDAY@/0/
 /^GNULIB_GETUSERSHELL *=/s/@GNULIB_GETUSERSHELL@/0/
 /^GNULIB_GRANTPT *=/s/@GNULIB_GRANTPT@/0/
 /^GNULIB_GROUP_MEMBER *=/s/@GNULIB_GROUP_MEMBER@/0/
@@ -246,6 +247,7 @@ am__cd = cd
 /^GNULIB_PREAD *=/s/@GNULIB_PREAD@/0/
 /^GNULIB_PRINTF *=/s/@GNULIB_PRINTF@/0/
 /^GNULIB_PRINTF_POSIX *=/s/@GNULIB_PRINTF_POSIX@/0/
+/^GNULIB_PSELECT *=/s/@GNULIB_PSELECT@/0/
 /^GNULIB_PTHREAD_SIGMASK *=/s/@GNULIB_PTHREAD_SIGMASK@/0/
 /^GNULIB_PTSNAME *=/s/@GNULIB_PTSNAME@/0/
 /^GNULIB_PTSNAME_R *=/s/@GNULIB_PTSNAME_R@/0/
@@ -268,6 +270,7 @@ am__cd = cd
 /^GNULIB_RMDIR *=/s/@GNULIB_RMDIR@/0/
 /^GNULIB_RPMATCH *=/s/@GNULIB_RPMATCH@/0/
 /^GNULIB_SCANF *=/s/@GNULIB_SCANF@/0/
+/^GNULIB_SELECT *=/s/@GNULIB_SELECT@/0/
 /^GNULIB_SETENV *=/s/@GNULIB_SETENV@/0/
 /^GNULIB_SETHOSTNAME *=/s/@GNULIB_SETHOSTNAME@/0/
 /^GNULIB_SIGACTION *=/s/@GNULIB_SIGACTION@/0/
@@ -418,12 +421,15 @@ am__cd = cd
 /^HAVE_STRTOULL *=/s/@HAVE_STRTOULL@/1/
 /^HAVE_STRUCT_SIGACTION_SA_SIGACTION *=/s/@HAVE_STRUCT_SIGACTION_SA_SIGACTION@/0/
 /^HAVE_STRUCT_RANDOM_DATA *=/s/@HAVE_STRUCT_RANDOM_DATA@/0/
+/^HAVE_STRUCT_TIMEVAL *=/s/@HAVE_STRUCT_TIMEVAL@/1/
 /^HAVE_SYMLINK *=/s/@HAVE_SYMLINK@/1/
 /^HAVE_SYMLINKAT *=/s/@HAVE_SYMLINKAT@/0/
 /^HAVE_SYS_BITYPES_H *=/s/@HAVE_SYS_BITYPES_H@/0/
 /^HAVE_SYS_INTTYPES_H *=/s/@HAVE_SYS_INTTYPES_H@/0/
 /^HAVE_SYS_LOADAVG_H *=/s/@HAVE_SYS_LOADAVG_H@/0/
 /^HAVE_SYS_PARAM_H *=/s/@HAVE_SYS_PARAM_H@/1/
+/^HAVE_SYS_SELECT_H *=/s/@HAVE_SYS_SELECT_H@/0/
+/^HAVE_SYS_TIME_H *=/s/@HAVE_SYS_TIME_H@/1/
 /^HAVE_SYS_TYPES_H *=/s/@HAVE_SYS_TYPES_H@/1/
 /^HAVE_TIMEGM *=/s/@HAVE_TIMEGM@/0/
 /^HAVE_TYPE_VOLATILE_SIG_ATOMIC_T *=/s/@HAVE_TYPE_VOLATILE_SIG_ATOMIC_T@/1/
@@ -457,7 +463,9 @@ am__cd = cd
 /^NEXT_AS_FIRST_DIRECTIVE_STDINT_H *=/s/@[^@\n]*@/<stdint.h>/
 /^NEXT_AS_FIRST_DIRECTIVE_STDIO_H *=/s/@[^@\n]*@/<stdio.h>/
 /^NEXT_AS_FIRST_DIRECTIVE_STDLIB_H *=/s/@[^@\n]*@/<stdlib.h>/
+/^NEXT_AS_FIRST_DIRECTIVE_SYS_SELECT_H *=/s/@[^@\n]*@//
 /^NEXT_AS_FIRST_DIRECTIVE_SYS_STAT_H *=/s!@[^@\n]*@!<sys/stat.h>!
+/^NEXT_AS_FIRST_DIRECTIVE_SYS_TIME_H *=/s/@[^@\n]*@//
 /^NEXT_AS_FIRST_DIRECTIVE_SYS_TYPES_H *=/s!@[^@\n]*@!<sys/types.h>!
 /^NEXT_AS_FIRST_DIRECTIVE_TIME_H *=/s/@[^@\n]*@/<time.h>/
 /^NEXT_AS_FIRST_DIRECTIVE_UNISTD_H *=/s/@[^@\n]*@/<unistd.h>/
@@ -468,7 +476,9 @@ am__cd = cd
 /^NEXT_STDIO_H *=/s/@[^@\n]*@/<stdio.h>/
 /^NEXT_STDINT_H *=/s/@[^@\n]*@/<stdint.h>/
 /^NEXT_STDLIB_H *=/s/@[^@\n]*@/<stdlib.h>/
+/^NEXT_SYS_SELECT_H *=/s/@[^@\n]*@//
 /^NEXT_SYS_STAT_H *=/s!@[^@\n]*@!<sys/stat.h>!
+/^NEXT_SYS_TIME_H *=/s/@[^@\n]*@//
 /^NEXT_SYS_TYPES_H *=/s!@[^@\n]*@!<sys/types.h>!
 /^NEXT_TIME_H *=/s/@[^@\n]*@/<time.h>/
 /^NEXT_UNISTD_H *=/s/@[^@\n]*@/<unistd.h>/
@@ -507,6 +517,7 @@ am__cd = cd
 /^REPLACE_GETLINE *=/s/@REPLACE_GETLINE@/0/
 /^REPLACE_GETLOGIN_R *=/s/@REPLACE_GETLOGIN_R@/0/
 /^REPLACE_GETPAGESIZE *=/s/@REPLACE_GETPAGESIZE@/0/
+/^REPLACE_GETTIMEOFDAY *=/s/@REPLACE_GETTIMEOFDAY@/0/
 /^REPLACE_ISATTY *=/s/@REPLACE_ISATTY@/0/
 /^REPLACE_LCHOWN *=/s/@REPLACE_LCHOWN@/0/
 /^REPLACE_LINK *=/s/@REPLACE_LINK@/0/
@@ -529,6 +540,7 @@ am__cd = cd
 /^REPLACE_PREAD *=/s/@REPLACE_PREAD@/0/
 /^REPLACE_PRINTF *=/s/@REPLACE_PRINTF@/0/
 /^REPLACE_PTHREAD_SIGMASK *=/s/@REPLACE_PTHREAD_SIGMASK@/0/
+/^REPLACE_PSELECT *=/s/@REPLACE_PSELECT@/0/
 /^REPLACE_PTSNAME_R *=/s/@REPLACE_PTSNAME_R@/0/
 /^REPLACE_PUTENV *=/s/@REPLACE_PUTENV@/0/
 /^REPLACE_PWRITE *=/s/@REPLACE_PWRITE@/0/
@@ -551,6 +563,7 @@ am__cd = cd
 /^REPLACE_STDIO_WRITE_FUNCS *=/s/@REPLACE_STDIO_WRITE_FUNCS@/0/
 /^REPLACE_STRTOD *=/s/@REPLACE_STRTOD@/0/
 /^REPLACE_STRTOIMAX *=/s/@REPLACE_STRTOIMAX@/0/
+/^REPLACE_STRUCT_TIMEVAL *=/s/@REPLACE_STRUCT_TIMEVAL@/0/
 /^REPLACE_SYMLINK *=/s/@REPLACE_SYMLINK@/0/
 /^REPLACE_TIMEGM *=/s/@REPLACE_TIMEGM@/0/
 /^REPLACE_TMPFILE *=/s/@REPLACE_TMPFILE@/0/
@@ -588,7 +601,13 @@ am__cd = cd
 /am__append_2 *=.*verify\.h/s/@[^@\n]*@//
 /^gl_LIBOBJS *=/s/@[^@\n]*@/getopt.o getopt1.o strftime.o time_r.o getloadavg.o pthread_sigmask.o/
 /^BUILT_SOURCES *=/s/ *inttypes\.h//
-/^am_libgnu_a_OBJECTS *=/s/careadlinkat\.\$(OBJEXT)//
+/^BUILT_SOURCES *=/,/^[^ 	]/{
+  s| *sys/select\.h||
+  s| *sys/time\.h||
+}
+/^am_libgnu_a_OBJECTS *=/,/^[ 	]/{
+  s/careadlinkat\.\$(OBJEXT) //
+}
 /^am_libgnu_a_OBJECTS *=/s/allocator\.\$(OBJEXT)//
 /^srcdir *=/s/@[^@\n]*@/./
 /^top_srcdir *=/s/@[^@\n]*@/../
@@ -661,3 +680,6 @@ s/\.in-h\;  *\\$/.in-h >> $@-t/
   s/'\; \\ *$/' >> $@-t/
 }
 s!\$(MKDIR_P)[ 	][ 	]*sys!command.com /c "if not exist sys\\stat.h md sys"!
+/^	@for dir in/,/^[^	 ]/c\
+	-rm -rf $(MOSTLYCLEANDIRS)
+/^	 *-test . /d

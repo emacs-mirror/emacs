@@ -347,8 +347,8 @@ DST-ZONE are equal, and all the DST-* integer variables are 0.
 Some operating systems cannot provide all this information to Emacs; in this
 case, `calendar-current-time-zone' returns a list containing nil for the data
 it can't find."
-  (unless calendar-current-time-zone-cache
-    (setq calendar-current-time-zone-cache (calendar-dst-find-data))))
+  (or calendar-current-time-zone-cache
+      (setq calendar-current-time-zone-cache (calendar-dst-find-data))))
 
 
 ;; Following options should be set based on conditions when the code

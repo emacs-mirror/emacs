@@ -25,8 +25,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <setjmp.h>
 #include "lisp.h"
 #include "commands.h"
-#include "buffer.h"
 #include "character.h"
+#include "buffer.h"
 #include "keymap.h"
 #include "regex.h"
 
@@ -143,7 +143,6 @@ static ptrdiff_t find_start_begv;
 static EMACS_INT find_start_modiff;
 
 
-static Lisp_Object Fsyntax_table_p (Lisp_Object);
 static Lisp_Object skip_chars (int, Lisp_Object, Lisp_Object, int);
 static Lisp_Object skip_syntaxes (int, Lisp_Object, Lisp_Object);
 static Lisp_Object scan_lists (EMACS_INT, EMACS_INT, EMACS_INT, int);
@@ -988,7 +987,7 @@ text property.  */)
       }
 
   if (val < ASIZE (Vsyntax_code_object) && NILP (match))
-    return XVECTOR (Vsyntax_code_object)->contents[val];
+    return AREF (Vsyntax_code_object, val);
   else
     /* Since we can't use a shared object, let's make a new one.  */
     return Fcons (make_number (val), match);
@@ -1582,7 +1581,7 @@ skip_chars (int forwardp, Lisp_Object string, Lisp_Object lim, int handle_iso_cl
 	  fastmap[CHAR_LEADING_CODE (c)] = 1;
 	  range_start_byte = i;
 	  range_start_char = c;
-	  char_ranges = (int *) alloca (sizeof (int) * 128 * 2);
+	  char_ranges = alloca (sizeof *char_ranges * 128 * 2);
 	  for (i = 129; i < 0400; i++)
 	    {
 	      c = BYTE8_TO_CHAR (i);
@@ -1603,7 +1602,7 @@ skip_chars (int forwardp, Lisp_Object string, Lisp_Object lim, int handle_iso_cl
     }
   else				/* STRING is multibyte */
     {
-      char_ranges = (int *) alloca (sizeof (int) * SCHARS (string) * 2);
+      char_ranges = alloca (sizeof *char_ranges * SCHARS (string) * 2);
 
       while (i_byte < size_byte)
 	{
@@ -3386,32 +3385,31 @@ init_syntax_once (void)
   /* Create objects which can be shared among syntax tables.  */
   Vsyntax_code_object = Fmake_vector (make_number (Smax), Qnil);
   for (i = 0; i < ASIZE (Vsyntax_code_object); i++)
-    XVECTOR (Vsyntax_code_object)->contents[i]
-      = Fcons (make_number (i), Qnil);
+    ASET (Vsyntax_code_object, i, Fcons (make_number (i), Qnil));
 
   /* Now we are ready to set up this property, so we can
      create syntax tables.  */
   Fput (Qsyntax_table, Qchar_table_extra_slots, make_number (0));
 
-  temp = XVECTOR (Vsyntax_code_object)->contents[(int) Swhitespace];
+  temp = AREF (Vsyntax_code_object, (int) Swhitespace);
 
   Vstandard_syntax_table = Fmake_char_table (Qsyntax_table, temp);
 
   /* Control characters should not be whitespace.  */
-  temp = XVECTOR (Vsyntax_code_object)->contents[(int) Spunct];
+  temp = AREF (Vsyntax_code_object, (int) Spunct);
   for (i = 0; i <= ' ' - 1; i++)
     SET_RAW_SYNTAX_ENTRY (Vstandard_syntax_table, i, temp);
   SET_RAW_SYNTAX_ENTRY (Vstandard_syntax_table, 0177, temp);
 
   /* Except that a few really are whitespace.  */
-  temp = XVECTOR (Vsyntax_code_object)->contents[(int) Swhitespace];
+  temp = AREF (Vsyntax_code_object, (int) Swhitespace);
   SET_RAW_SYNTAX_ENTRY (Vstandard_syntax_table, ' ', temp);
   SET_RAW_SYNTAX_ENTRY (Vstandard_syntax_table, '\t', temp);
   SET_RAW_SYNTAX_ENTRY (Vstandard_syntax_table, '\n', temp);
   SET_RAW_SYNTAX_ENTRY (Vstandard_syntax_table, 015, temp);
   SET_RAW_SYNTAX_ENTRY (Vstandard_syntax_table, 014, temp);
 
-  temp = XVECTOR (Vsyntax_code_object)->contents[(int) Sword];
+  temp = AREF (Vsyntax_code_object, (int) Sword);
   for (i = 'a'; i <= 'z'; i++)
     SET_RAW_SYNTAX_ENTRY (Vstandard_syntax_table, i, temp);
   for (i = 'A'; i <= 'Z'; i++)
@@ -3439,14 +3437,14 @@ init_syntax_once (void)
   SET_RAW_SYNTAX_ENTRY (Vstandard_syntax_table, '\\',
 			Fcons (make_number ((int) Sescape), Qnil));
 
-  temp = XVECTOR (Vsyntax_code_object)->contents[(int) Ssymbol];
+  temp = AREF (Vsyntax_code_object, (int) Ssymbol);
   for (i = 0; i < 10; i++)
     {
       c = "_-+*/&|<>="[i];
       SET_RAW_SYNTAX_ENTRY (Vstandard_syntax_table, c, temp);
     }
 
-  temp = XVECTOR (Vsyntax_code_object)->contents[(int) Spunct];
+  temp = AREF (Vsyntax_code_object, (int) Spunct);
   for (i = 0; i < 12; i++)
     {
       c = ".,;:?!#@~^'`"[i];
@@ -3454,7 +3452,7 @@ init_syntax_once (void)
     }
 
   /* All multibyte characters have syntax `word' by default.  */
-  temp = XVECTOR (Vsyntax_code_object)->contents[(int) Sword];
+  temp = AREF (Vsyntax_code_object, (int) Sword);
   char_table_set_range (Vstandard_syntax_table, 0x80, MAX_CHAR, temp);
 }
 
@@ -3477,7 +3475,7 @@ syms_of_syntax (void)
   Fput (Qscan_error, Qerror_conditions,
 	pure_cons (Qscan_error, pure_cons (Qerror, Qnil)));
   Fput (Qscan_error, Qerror_message,
-	make_pure_c_string ("Scan error"));
+	build_pure_c_string ("Scan error"));
 
   DEFVAR_BOOL ("parse-sexp-ignore-comments", parse_sexp_ignore_comments,
 	       doc: /* Non-nil means `forward-sexp', etc., should treat comments as whitespace.  */);

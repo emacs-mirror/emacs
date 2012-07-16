@@ -658,7 +658,6 @@
 (declare-function diff-setup-whitespace "diff-mode" ())
 
 (eval-when-compile
-  (require 'cl)
   (require 'dired))
 
 (unless (assoc 'vc-parent-buffer minor-mode-alist)
@@ -936,11 +935,13 @@ Within directories, only files already under version control are noticed."
 
 (defvar vc-dir-backend)
 (defvar log-view-vc-backend)
+(defvar log-edit-vc-backend)
 (defvar diff-vc-backend)
 
 (defun vc-deduce-backend ()
   (cond ((derived-mode-p 'vc-dir-mode)   vc-dir-backend)
 	((derived-mode-p 'log-view-mode) log-view-vc-backend)
+	((derived-mode-p 'log-edit-mode) log-edit-vc-backend)
 	((derived-mode-p 'diff-mode)     diff-vc-backend)
         ;; Maybe we could even use comint-mode rather than shell-mode?
 	((derived-mode-p 'dired-mode 'shell-mode 'compilation-mode)
@@ -1434,7 +1435,8 @@ Runs the normal hooks `vc-before-checkin-hook' and `vc-checkin-hook'."
          (vc-checkout-time . ,(nth 5 (file-attributes file)))
          (vc-working-revision . nil)))
      (message "Checking in %s...done" (vc-delistify files)))
-   'vc-checkin-hook))
+   'vc-checkin-hook
+   backend))
 
 ;;; Additional entry points for examining version histories
 
@@ -1680,7 +1682,7 @@ Return t if the buffer had changes, nil otherwise."
 		    (called-interactively-p 'interactive)))
 
 ;;;###autoload
-(defun vc-diff (historic &optional not-urgent)
+(defun vc-diff (&optional historic not-urgent)
   "Display diffs between file revisions.
 Normally this compares the currently selected fileset with their
 working revisions.  With a prefix argument HISTORIC, it reads two revision

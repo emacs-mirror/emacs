@@ -26,7 +26,6 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
 
 (require 'mailcap)
 
@@ -180,9 +179,9 @@ If URL is a multibyte string, it will be encoded as utf-8 and
 URL-encoded before it's used."
   (url-do-setup)
   (url-gc-dead-buffers)
-  (if (stringp url)
-      (set-text-properties 0 (length url) nil url))
-  (setq url (url-encode-url url))
+  (when (stringp url)
+    (set-text-properties 0 (length url) nil url)
+    (setq url (url-encode-url url)))
   (if (not (vectorp url))
       (setq url (url-generic-parse-url url)))
   (if (not (functionp callback))

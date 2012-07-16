@@ -20,8 +20,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <config.h>
 #include <setjmp.h>
 #include "lisp.h"
-#include "buffer.h"
 #include "character.h"
+#include "buffer.h"
 
 /* Record one cached position found recently by
    buf_charpos_to_bytepos or buf_bytepos_to_charpos.  */
@@ -31,8 +31,43 @@ static ptrdiff_t cached_bytepos;
 static struct buffer *cached_buffer;
 static int cached_modiff;
 
-static void byte_char_debug_check (struct buffer *, ptrdiff_t, ptrdiff_t);
+/* Juanma Barranquero <lekktu@gmail.com> reported ~3x increased
+   bootstrap time when byte_char_debug_check is enabled; so this
+   is never turned on by --enable-checking configure option.  */
 
+#ifdef MARKER_DEBUG
+
+extern int count_markers (struct buffer *) EXTERNALLY_VISIBLE;
+extern ptrdiff_t verify_bytepos (ptrdiff_t charpos) EXTERNALLY_VISIBLE;
+
+static void
+byte_char_debug_check (struct buffer *b, ptrdiff_t charpos, ptrdiff_t bytepos)
+{
+  ptrdiff_t nchars;
+
+  if (NILP (BVAR (b, enable_multibyte_characters)))
+    return;
+
+  if (bytepos > BUF_GPT_BYTE (b))
+    nchars
+      = multibyte_chars_in_text (BUF_BEG_ADDR (b),
+				 BUF_GPT_BYTE (b) - BUF_BEG_BYTE (b))
+      + multibyte_chars_in_text (BUF_GAP_END_ADDR (b),
+				 bytepos - BUF_GPT_BYTE (b));
+  else
+    nchars = multibyte_chars_in_text (BUF_BEG_ADDR (b),
+				      bytepos - BUF_BEG_BYTE (b));
+
+  if (charpos - 1 != nchars)
+    abort ();
+}
+
+#else /* not MARKER_DEBUG */
+
+#define byte_char_debug_check(b,charpos,bytepos) do { } while (0)
+
+#endif /* MARKER_DEBUG */
+ 
 void
 clear_charpos_cache (struct buffer *b)
 {
@@ -61,8 +96,8 @@ clear_charpos_cache (struct buffer *b)
   if (this_charpos == charpos)						\
     {									\
       ptrdiff_t value = (BYTEPOS);				       	\
-      if (byte_debug_flag)						\
-	byte_char_debug_check (b, charpos, value);			\
+									\
+      byte_char_debug_check (b, charpos, value);			\
       return value;							\
     }									\
   else if (this_charpos > charpos)					\
@@ -86,31 +121,11 @@ clear_charpos_cache (struct buffer *b)
       if (best_above - best_below == best_above_byte - best_below_byte)	\
         {								\
 	  ptrdiff_t value = best_below_byte + (charpos - best_below);	\
-	  if (byte_debug_flag)						\
-	    byte_char_debug_check (b, charpos, value);			\
+									\
+	  byte_char_debug_check (b, charpos, value);			\
 	  return value;							\
 	}								\
     }									\
-}
-
-static void
-byte_char_debug_check (struct buffer *b, ptrdiff_t charpos, ptrdiff_t bytepos)
-{
-  ptrdiff_t nchars = 0;
-
-  if (bytepos > BUF_GPT_BYTE (b))
-    {
-      nchars = multibyte_chars_in_text (BUF_BEG_ADDR (b),
-					BUF_GPT_BYTE (b) - BUF_BEG_BYTE (b));
-      nchars += multibyte_chars_in_text (BUF_GAP_END_ADDR (b),
-					 bytepos - BUF_GPT_BYTE (b));
-    }
-  else
-    nchars = multibyte_chars_in_text (BUF_BEG_ADDR (b),
-				      bytepos - BUF_BEG_BYTE (b));
-
-  if (charpos - 1 != nchars)
-    abort ();
 }
 
 ptrdiff_t
@@ -187,15 +202,9 @@ buf_charpos_to_bytepos (struct buffer *b, ptrdiff_t charpos)
 	 cache the correspondence by creating a marker here.
 	 It will last until the next GC.  */
       if (record)
-	{
-	  Lisp_Object marker, buffer;
-	  marker = Fmake_marker ();
-	  XSETBUFFER (buffer, b);
-	  set_marker_both (marker, buffer, best_below, best_below_byte);
-	}
+	build_marker (b, best_below, best_below_byte);
 
-      if (byte_debug_flag)
-	byte_char_debug_check (b, charpos, best_below_byte);
+      byte_char_debug_check (b, best_below, best_below_byte);
 
       cached_buffer = b;
       cached_modiff = BUF_MODIFF (b);
@@ -218,15 +227,9 @@ buf_charpos_to_bytepos (struct buffer *b, ptrdiff_t charpos)
 	 cache the correspondence by creating a marker here.
 	 It will last until the next GC.  */
       if (record)
-	{
-	  Lisp_Object marker, buffer;
-	  marker = Fmake_marker ();
-	  XSETBUFFER (buffer, b);
-	  set_marker_both (marker, buffer, best_above, best_above_byte);
-	}
+	build_marker (b, best_above, best_above_byte);
 
-      if (byte_debug_flag)
-	byte_char_debug_check (b, charpos, best_above_byte);
+      byte_char_debug_check (b, best_above, best_above_byte);
 
       cached_buffer = b;
       cached_modiff = BUF_MODIFF (b);
@@ -239,25 +242,6 @@ buf_charpos_to_bytepos (struct buffer *b, ptrdiff_t charpos)
 
 #undef CONSIDER
 
-/* Used for debugging: recompute the bytepos corresponding to CHARPOS
-   in the simplest, most reliable way.  */
-
-extern ptrdiff_t verify_bytepos (ptrdiff_t charpos) EXTERNALLY_VISIBLE;
-ptrdiff_t
-verify_bytepos (ptrdiff_t charpos)
-{
-  ptrdiff_t below = 1;
-  ptrdiff_t below_byte = 1;
-
-  while (below != charpos)
-    {
-      below++;
-      BUF_INC_POS (current_buffer, below_byte);
-    }
-
-  return below_byte;
-}
-
 /* buf_bytepos_to_charpos returns the char position corresponding to
    BYTEPOS.  */
 
@@ -272,8 +256,8 @@ verify_bytepos (ptrdiff_t charpos)
   if (this_bytepos == bytepos)						\
     {									\
       ptrdiff_t value = (CHARPOS);				       	\
-      if (byte_debug_flag)						\
-	byte_char_debug_check (b, value, bytepos);			\
+									\
+      byte_char_debug_check (b, value, bytepos);			\
       return value;							\
     }									\
   else if (this_bytepos > bytepos)					\
@@ -297,8 +281,8 @@ verify_bytepos (ptrdiff_t charpos)
       if (best_above - best_below == best_above_byte - best_below_byte)	\
 	{								\
 	  ptrdiff_t value = best_below + (bytepos - best_below_byte);	\
-	  if (byte_debug_flag)						\
-	    byte_char_debug_check (b, value, bytepos);			\
+									\
+	  byte_char_debug_check (b, value, bytepos);			\
 	  return value;							\
 	}								\
     }									\
@@ -365,15 +349,9 @@ buf_bytepos_to_charpos (struct buffer *b, ptrdiff_t bytepos)
 	 But don't do it if BUF_MARKERS is nil;
 	 that is a signal from Fset_buffer_multibyte.  */
       if (record && BUF_MARKERS (b))
-	{
-	  Lisp_Object marker, buffer;
-	  marker = Fmake_marker ();
-	  XSETBUFFER (buffer, b);
-	  set_marker_both (marker, buffer, best_below, best_below_byte);
-	}
+	build_marker (b, best_below, best_below_byte);
 
-      if (byte_debug_flag)
-	byte_char_debug_check (b, best_below, bytepos);
+      byte_char_debug_check (b, best_below, best_below_byte);
 
       cached_buffer = b;
       cached_modiff = BUF_MODIFF (b);
@@ -398,15 +376,9 @@ buf_bytepos_to_charpos (struct buffer *b, ptrdiff_t bytepos)
 	 But don't do it if BUF_MARKERS is nil;
 	 that is a signal from Fset_buffer_multibyte.  */
       if (record && BUF_MARKERS (b))
-	{
-	  Lisp_Object marker, buffer;
-	  marker = Fmake_marker ();
-	  XSETBUFFER (buffer, b);
-	  set_marker_both (marker, buffer, best_above, best_above_byte);
-	}
+	build_marker (b, best_above, best_above_byte);
 
-      if (byte_debug_flag)
-	byte_char_debug_check (b, best_above, bytepos);
+      byte_char_debug_check (b, best_above, best_above_byte);
 
       cached_buffer = b;
       cached_modiff = BUF_MODIFF (b);
@@ -452,7 +424,28 @@ Returns nil if MARKER points nowhere.  */)
 
   return Qnil;
 }
-
+
+/* Change M so it points to B at CHARPOS and BYTEPOS.  */
+
+static inline void
+attach_marker (struct Lisp_Marker *m, struct buffer *b,
+	       ptrdiff_t charpos, ptrdiff_t bytepos)
+{
+  /* Every character is at least one byte.  */
+  eassert (charpos <= bytepos);
+
+  m->charpos = charpos;
+  m->bytepos = bytepos;
+
+  if (m->buffer != b)
+    {
+      unchain_marker (m);
+      m->buffer = b;
+      m->next = BUF_MARKERS (b);
+      BUF_MARKERS (b) = m;
+    }
+}
+
 DEFUN ("set-marker", Fset_marker, Sset_marker, 2, 3, 0,
        doc: /* Position MARKER before character number POSITION in BUFFER.
 BUFFER defaults to the current buffer.
@@ -461,7 +454,7 @@ Then it no longer slows down editing in any buffer.
 Returns MARKER.  */)
   (Lisp_Object marker, Lisp_Object position, Lisp_Object buffer)
 {
-  register ptrdiff_t charno;
+  register ptrdiff_t charpos;
   register ptrdiff_t bytepos;
   register struct buffer *b;
   register struct Lisp_Marker *m;
@@ -503,24 +496,10 @@ Returns MARKER.  */)
     }
 
   CHECK_NUMBER_COERCE_MARKER (position);
-  charno = clip_to_bounds (BUF_BEG (b), XINT (position), BUF_Z (b));
-  bytepos = buf_charpos_to_bytepos (b, charno);
+  charpos = clip_to_bounds (BUF_BEG (b), XINT (position), BUF_Z (b));
+  bytepos = buf_charpos_to_bytepos (b, charpos);
 
-  /* Every character is at least one byte.  */
-  if (charno > bytepos)
-    abort ();
-
-  m->bytepos = bytepos;
-  m->charpos = charno;
-
-  if (m->buffer != b)
-    {
-      unchain_marker (m);
-      m->buffer = b;
-      m->next = BUF_MARKERS (b);
-      BUF_MARKERS (b) = m;
-    }
-
+  attach_marker (m, b, charpos, bytepos);
   return marker;
 }
 
@@ -530,7 +509,7 @@ Returns MARKER.  */)
 Lisp_Object
 set_marker_restricted (Lisp_Object marker, Lisp_Object pos, Lisp_Object buffer)
 {
-  register ptrdiff_t charno;
+  register ptrdiff_t charpos;
   register ptrdiff_t bytepos;
   register struct buffer *b;
   register struct Lisp_Marker *m;
@@ -572,24 +551,10 @@ set_marker_restricted (Lisp_Object marker, Lisp_Object pos, Lisp_Object buffer)
     }
 
   CHECK_NUMBER_COERCE_MARKER (pos);
-  charno = clip_to_bounds (BUF_BEGV (b), XINT (pos), BUF_ZV (b));
-  bytepos = buf_charpos_to_bytepos (b, charno);
+  charpos = clip_to_bounds (BUF_BEGV (b), XINT (pos), BUF_ZV (b));
+  bytepos = buf_charpos_to_bytepos (b, charpos);
 
-  /* Every character is at least one byte.  */
-  if (charno > bytepos)
-    abort ();
-
-  m->bytepos = bytepos;
-  m->charpos = charno;
-
-  if (m->buffer != b)
-    {
-      unchain_marker (m);
-      m->buffer = b;
-      m->next = BUF_MARKERS (b);
-      BUF_MARKERS (b) = m;
-    }
-
+  attach_marker (m, b, charpos, bytepos);
   return marker;
 }
 
@@ -623,21 +588,8 @@ set_marker_both (Lisp_Object marker, Lisp_Object buffer, ptrdiff_t charpos, ptrd
   if (BUF_Z (b) == BUF_Z_BYTE (b)
       && charpos != bytepos)
     abort ();
-  /* Every character is at least one byte.  */
-  if (charpos > bytepos)
-    abort ();
 
-  m->bytepos = bytepos;
-  m->charpos = charpos;
-
-  if (m->buffer != b)
-    {
-      unchain_marker (m);
-      m->buffer = b;
-      m->next = BUF_MARKERS (b);
-      BUF_MARKERS (b) = m;
-    }
-
+  attach_marker (m, b, charpos, bytepos);
   return marker;
 }
 
@@ -667,90 +619,59 @@ set_marker_restricted_both (Lisp_Object marker, Lisp_Object buffer, ptrdiff_t ch
 	}
     }
 
-  if (charpos < BUF_BEGV (b))
-    charpos = BUF_BEGV (b);
-  if (charpos > BUF_ZV (b))
-    charpos = BUF_ZV (b);
-  if (bytepos < BUF_BEGV_BYTE (b))
-    bytepos = BUF_BEGV_BYTE (b);
-  if (bytepos > BUF_ZV_BYTE (b))
-    bytepos = BUF_ZV_BYTE (b);
+  charpos = clip_to_bounds (BUF_BEGV (b), charpos, BUF_ZV (b));
+  bytepos = clip_to_bounds (BUF_BEGV_BYTE (b), bytepos, BUF_ZV_BYTE (b));
 
   /* In a single-byte buffer, the two positions must be equal.  */
   if (BUF_Z (b) == BUF_Z_BYTE (b)
       && charpos != bytepos)
     abort ();
-  /* Every character is at least one byte.  */
-  if (charpos > bytepos)
-    abort ();
 
-  m->bytepos = bytepos;
-  m->charpos = charpos;
-
-  if (m->buffer != b)
-    {
-      unchain_marker (m);
-      m->buffer = b;
-      m->next = BUF_MARKERS (b);
-      BUF_MARKERS (b) = m;
-    }
-
+  attach_marker (m, b, charpos, bytepos);
   return marker;
 }
 
-/* Remove MARKER from the chain of whatever buffer it is in.
-   Leave it "in no buffer".
-
-   This is called during garbage collection,
-   so we must be careful to ignore and preserve mark bits,
-   including those in chain fields of markers.  */
+/* Remove MARKER from the chain of whatever buffer it is in,
+   leaving it points to nowhere.  This is called during garbage
+   collection, so we must be careful to ignore and preserve
+   mark bits, including those in chain fields of markers.  */
 
 void
 unchain_marker (register struct Lisp_Marker *marker)
 {
-  register struct Lisp_Marker *tail, *prev, *next;
-  register struct buffer *b;
+  register struct buffer *b = marker->buffer;
 
-  b = marker->buffer;
-  if (b == 0)
-    return;
-
-  if (EQ (BVAR (b, name), Qnil))
-    abort ();
-
-  marker->buffer = 0;
-
-  tail = BUF_MARKERS (b);
-  prev = NULL;
-  while (tail)
+  if (b)
     {
-      next = tail->next;
+      register struct Lisp_Marker *tail, **prev;
 
-      if (marker == tail)
-	{
-	  if (!prev)
-	    {
-	      BUF_MARKERS (b) = next;
-	      /* Deleting first marker from the buffer's chain.  Crash
-		 if new first marker in chain does not say it belongs
-		 to the same buffer, or at least that they have the same
-		 base buffer.  */
-	      if (next && b->text != next->buffer->text)
-		abort ();
-	    }
-	  else
-	    prev->next = next;
-	  /* We have removed the marker from the chain;
-	     no need to scan the rest of the chain.  */
-	  return;
-	}
-      else
-	prev = tail;
-      tail = next;
+      /* No dead buffers here.  */
+      eassert (!NILP (BVAR (b, name)));
+
+      marker->buffer = NULL;
+      prev = &BUF_MARKERS (b);
+
+      for (tail = BUF_MARKERS (b); tail; prev = &tail->next, tail = *prev)
+	if (marker == tail)
+	  {
+	    if (*prev == BUF_MARKERS (b))
+	      {
+		/* Deleting first marker from the buffer's chain.  Crash 
+		   if new first marker in chain does not say it belongs
+		   to the same buffer, or at least that they have the same
+		   base buffer.  */
+		if (tail->next && b->text != tail->next->buffer->text)
+		  abort ();
+	      }
+	    *prev = tail->next;
+	    /* We have removed the marker from the chain;
+	       no need to scan the rest of the chain.  */
+	    break;
+	  }
+
+      /* Error if marker was not in it's chain.  */
+      eassert (tail != NULL);
     }
-
-  /* Marker was not in its chain.  */
-  abort ();
 }
 
 /* Return the char position of marker MARKER, as a C integer.  */
@@ -764,6 +685,8 @@ marker_position (Lisp_Object marker)
   if (!buf)
     error ("Marker does not point anywhere");
 
+  eassert (BUF_BEG (buf) <= m->charpos && m->charpos <= BUF_Z (buf));
+
   return m->charpos;
 }
 
@@ -774,15 +697,13 @@ marker_byte_position (Lisp_Object marker)
 {
   register struct Lisp_Marker *m = XMARKER (marker);
   register struct buffer *buf = m->buffer;
-  register ptrdiff_t i = m->bytepos;
 
   if (!buf)
     error ("Marker does not point anywhere");
 
-  if (i < BUF_BEG_BYTE (buf) || i > BUF_Z_BYTE (buf))
-    abort ();
+  eassert (BUF_BEG_BYTE (buf) <= m->bytepos && m->bytepos <= BUF_Z_BYTE (buf));
 
-  return i;
+  return m->bytepos;
 }
 
 DEFUN ("copy-marker", Fcopy_marker, Scopy_marker, 0, 2, 0,
@@ -835,20 +756,21 @@ DEFUN ("buffer-has-markers-at", Fbuffer_has_markers_at, Sbuffer_has_markers_at,
   (Lisp_Object position)
 {
   register struct Lisp_Marker *tail;
-  register ptrdiff_t charno;
+  register ptrdiff_t charpos;
 
-  charno = clip_to_bounds (BEG, XINT (position), Z);
+  charpos = clip_to_bounds (BEG, XINT (position), Z);
 
   for (tail = BUF_MARKERS (current_buffer); tail; tail = tail->next)
-    if (tail->charpos == charno)
+    if (tail->charpos == charpos)
       return Qt;
 
   return Qnil;
 }
 
+#ifdef MARKER_DEBUG
+
 /* For debugging -- count the markers in buffer BUF.  */
 
-extern int count_markers (struct buffer *) EXTERNALLY_VISIBLE;
 int
 count_markers (struct buffer *buf)
 {
@@ -860,6 +782,26 @@ count_markers (struct buffer *buf)
 
   return total;
 }
+
+/* For debugging -- recompute the bytepos corresponding
+   to CHARPOS in the simplest, most reliable way.  */
+
+ptrdiff_t
+verify_bytepos (ptrdiff_t charpos)
+{
+  ptrdiff_t below = 1;
+  ptrdiff_t below_byte = 1;
+
+  while (below != charpos)
+    {
+      below++;
+      BUF_INC_POS (current_buffer, below_byte);
+    }
+
+  return below_byte;
+}
+
+#endif /* MARKER_DEBUG */
 
 void
 syms_of_marker (void)
@@ -871,8 +813,4 @@ syms_of_marker (void)
   defsubr (&Smarker_insertion_type);
   defsubr (&Sset_marker_insertion_type);
   defsubr (&Sbuffer_has_markers_at);
-
-  DEFVAR_BOOL ("byte-debug-flag", byte_debug_flag,
-	       doc: /* Non-nil enables debugging checks in byte/char position conversions.  */);
-  byte_debug_flag = 0;
 }

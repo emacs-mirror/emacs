@@ -35,6 +35,8 @@ s|\([ 	]\)echo|\1djecho|g
 export EMACSLOADPATH=${buildlisppath}\
 RUN_EMACS = ${EMACS} -batch --no-site-file
 
+/^MKDIR_P *=/s,@MKDIR_P@,command.com /c md,
+
 /^	cd ../c\
 	${MAKE} -C ../src ${MFLAGS} emacs
 

@@ -1101,11 +1101,11 @@ recover are present in Emacs buffers.  You should then save them.  Only
 this---saving them---updates the files themselves.
 
 @vindex auto-save-list-file-prefix
-  Emacs records information about interrupted sessions for later
-recovery in files named @file{.saves-@var{pid}-@var{hostname}} in the
-directory @file{~/.emacs.d/auto-save-list/}.  This directory is
-determined by the variable @code{auto-save-list-file-prefix}.  If you
-set @code{auto-save-list-file-prefix} to @code{nil}, sessions are not
+  Emacs records information about interrupted sessions in files named
+@file{.saves-@var{pid}-@var{hostname}} in the directory
+@file{~/.emacs.d/auto-save-list/}.  This directory is determined by
+the variable @code{auto-save-list-file-prefix}.  If you set
+@code{auto-save-list-file-prefix} to @code{nil}, sessions are not
 recorded for recovery.
 
 @node File Aliases

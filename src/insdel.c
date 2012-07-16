@@ -25,8 +25,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include "lisp.h"
 #include "intervals.h"
-#include "buffer.h"
 #include "character.h"
+#include "buffer.h"
 #include "window.h"
 #include "blockinput.h"
 #include "region-cache.h"
@@ -40,8 +40,6 @@ static void insert_from_buffer_1 (struct buffer *buf,
 				  int inherit);
 static void gap_left (ptrdiff_t charpos, ptrdiff_t bytepos, int newgap);
 static void gap_right (ptrdiff_t charpos, ptrdiff_t bytepos);
-
-static Lisp_Object Fcombine_after_change_execute (void);
 
 /* List of elements of the form (BEG-UNCHANGED END-UNCHANGED CHANGE-AMOUNT)
    describing changes which happened while combine_after_change_calls

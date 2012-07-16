@@ -19,12 +19,12 @@
 
 ALL = $(BLD)/test-distrib.exe $(BLD)/make-docfile.exe $(BLD)/hexl.exe\
  $(BLD)/ctags.exe $(BLD)/etags.exe $(BLD)/movemail.exe $(BLD)/ebrowse.exe\
- $(BLD)/emacsclient.exe $(BLD)/emacsclientw.exe
+ $(BLD)/emacsclient.exe $(BLD)/emacsclientw.exe $(BLD)/profile.exe
 
 .PHONY: make-docfile
 
 LOCAL_FLAGS	= -DWINDOWSNT -DDOS_NT -DNO_LDAV=1 \
-		  -DNO_ARCHIVES=1 -DHAVE_CONFIG_H=1 -I../lib \
+		  -DNO_ARCHIVES=1 -I../lib \
 		  -I../nt/inc -I../src $(EMACS_EXTRA_C_FLAGS)
 
 LIBS 		= $(BASE_LIBS) $(ADVAPI32)
@@ -38,7 +38,7 @@ $(BLD)/hexl.exe:		$(BLD)/hexl.$(O)
 		$(LINK) $(LINK_OUT)$@ $(LINK_FLAGS) $(BLD)/hexl.$(O) $(LIBS)
 $(BLD)/test-distrib.exe: $(BLD)/test-distrib.$(O)
 		$(LINK) $(LINK_OUT)$@ $(LINK_FLAGS) $(BLD)/test-distrib.$(O) $(LIBS)
-		"$(BLD)/test-distrib.exe" "$(SRC)/testfile"
+		"$(BLD)/test-distrib.exe" "$(LIB_SRC)/testfile"
 
 MOVEMAILOBJS =  $(BLD)/movemail.$(O) \
 		$(BLD)/pop.$(O) \
@@ -106,9 +106,15 @@ ctags.c:	etags.c
 		- $(DEL) ctags.c
 		$(CP) etags.c ctags.c
 
-CTAGS_CFLAGS  = -DCTAGS $(ETAGS_CFLAGS) -DEMACS_NAME="\"GNU Emacs\""
+CTAGS_CFLAGS  = -DCTAGS $(ETAGS_CFLAGS)
 $(BLD)/ctags.$(O): ctags.c
 		$(CC) $(CFLAGS) $(CTAGS_CFLAGS) $(CC_OUT)$@ ctags.c
+
+PROFILEOBJS	= $(BLD)/profile.$(O) \
+		  ../lib/$(BLD)/libgnu.$(A) \
+		  $(BLD)/ntlib.$(O)
+$(BLD)/profile.exe:	$(PROFILEOBJS)
+		$(LINK) $(LINK_OUT)$@ $(LINK_FLAGS) $(PROFILEOBJS) $(LIBS)
 
 #
 # From ..\src\Makefile.in
@@ -236,7 +242,6 @@ lisp2 = \
 	$(lispsource)language/georgian.el \
 	$(lispsource)language/khmer.el \
 	$(lispsource)language/burmese.el \
-	$(lispsource)paths.el \
 	$(lispsource)register.elc \
 	$(lispsource)replace.elc \
 	$(lispsource)simple.elc \
@@ -307,6 +312,7 @@ install:	$(INSTALL_FILES)
 		$(CP) $(BLD)/movemail.exe $(INSTALL_DIR)/bin
 		$(CP) $(BLD)/emacsclient.exe $(INSTALL_DIR)/bin
 		$(CP) $(BLD)/emacsclientw.exe $(INSTALL_DIR)/bin
+		$(CP) $(BLD)/profile.exe $(INSTALL_DIR)/bin
 		- mkdir "$(INSTALL_DIR)/etc"
 		$(CP) $(DOC) $(INSTALL_DIR)/etc
 
@@ -349,105 +355,108 @@ TAGS: $(BLD)/etags.exe *.c *.h
 ### DEPENDENCIES ###
 
 EMACS_ROOT	= ..
-SRC		= .
+LIB_SRC		= .
+SRC		= $(EMACS_ROOT)/src
+NT_INC		= $(EMACS_ROOT)/nt/inc
+GNU_LIB		= $(EMACS_ROOT)/lib
 
-$(BLD)/alloca.$(O) : \
-	$(SRC)/alloca.c \
-	$(EMACS_ROOT)/src/s/ms-w32.h \
-	$(EMACS_ROOT)/src/config.h \
-	$(EMACS_ROOT)/src/blockinput.h
+MS_W32_H       = $(SRC)/s/ms-w32.h \
+		 $(NT_INC)/sys/stat.h
+CONFIG_H       = $(SRC)/config.h \
+		 $(MS_W32_H)
+INTTYPES_H     = $(NT_INC)/inttypes.h \
+		 $(NT_INC)/stdint.h
+NTLIB_H        = $(LIB_SRC)/ntlib.h \
+		 $(NT_INC)/pwd.h
+SYSTIME_H      = $(SRC)/systime.h \
+		 $(NT_INC)/sys/time.h \
+		 $(GNU_LIB)/timespec.h
 
 $(BLD)/ctags.$(O) : \
-	$(SRC)/ctags.c \
-	$(EMACS_ROOT)/nt/inc/sys/param.h \
-	$(EMACS_ROOT)/nt/inc/sys/stat.h \
-	$(EMACS_ROOT)/src/s/ms-w32.h \
-	$(EMACS_ROOT)/lib-src/../src/config.h \
-	$(SRC)/ntlib.h \
-	$(EMACS_ROOT)/lib/getopt.h
+	$(LIB_SRC)/ctags.c \
+	$(SRC)/regex.h \
+	$(NT_INC)/sys/stat.h \
+	$(NT_INC)/unistd.h \
+	$(GNU_LIB)/c-strcase.h \
+	$(GNU_LIB)/getopt.h \
+	$(CONFIG_H)
 
 $(BLD)/ebrowse.$(O) : \
-	$(SRC)/ebrowse.c \
-	$(EMACS_ROOT)/lib/min-max.h \
-	$(EMACS_ROOT)/src/s/ms-w32.h \
-	$(EMACS_ROOT)/lib-src/../src/config.h
+	$(LIB_SRC)/ebrowse.c \
+	$(GNU_LIB)/getopt.h \
+	$(GNU_LIB)/min-max.h \
+	$(CONFIG_H)
 
 $(BLD)/emacsclient.$(O) : \
-	$(SRC)/emacsclient.c \
-	$(EMACS_ROOT)/nt/inc/sys/stat.h \
-	$(EMACS_ROOT)/src/s/ms-w32.h \
-	$(EMACS_ROOT)/lib-src/../src/config.h
+	$(LIB_SRC)/emacsclient.c \
+	$(NT_INC)/pwd.h \
+	$(NT_INC)/sys/stat.h \
+	$(NT_INC)/unistd.h \
+	$(GNU_LIB)/getopt.h \
+	$(CONFIG_H)
 
 $(BLD)/etags.$(O) : \
-	$(SRC)/etags.c \
-	$(EMACS_ROOT)/nt/inc/sys/param.h \
-	$(EMACS_ROOT)/nt/inc/sys/stat.h \
-	$(EMACS_ROOT)/src/s/ms-w32.h \
-	$(EMACS_ROOT)/lib-src/../src/config.h \
-	$(SRC)/ntlib.h \
-	$(EMACS_ROOT)/lib/getopt.h
-
-$(BLD)/getdate.$(O) : \
-	$(SRC)/getdate.c \
-	$(EMACS_ROOT)/src/s/ms-w32.h \
-	$(EMACS_ROOT)/src/config.h \
-	$(MSTOOLS_SYS)/types.h
+	$(LIB_SRC)/etags.c \
+	$(SRC)/regex.h \
+	$(NT_INC)/sys/stat.h \
+	$(NT_INC)/unistd.h \
+	$(GNU_LIB)/c-strcase.h \
+	$(GNU_LIB)/getopt.h \
+	$(CONFIG_H)
 
 $(BLD)/hexl.$(O) : \
-	$(SRC)/hexl.c
-
-$(BLD)/leditcfns.$(O) : \
-	$(SRC)/leditcfns.c
+	$(LIB_SRC)/hexl.c \
+	$(CONFIG_H)
 
 $(BLD)/make-docfile.$(O) : \
-	$(SRC)/make-docfile.c \
-	$(EMACS_ROOT)/src/config.h
-
-$(BLD)/make-path.$(O) : \
-	$(SRC)/make-path.c
+	$(LIB_SRC)/make-docfile.c \
+	$(NT_INC)/unistd.h \
+	$(CONFIG_H)
 
 $(BLD)/movemail.$(O) : \
-	$(SRC)/movemail.c \
-	$(EMACS_ROOT)/src/s/ms-w32.h \
-	$(EMACS_ROOT)/lib-src/../src/config.h \
-	$(EMACS_ROOT)/nt/inc/sys/file.h \
-	$(EMACS_ROOT)/nt/inc/sys/stat.h \
-	$(EMACS_ROOT)/lib-src/../src/syswait.h \
-	$(EMACS_ROOT)/nt/inc/pwd.h \
-	$(SRC)/ntlib.h
-	$(CC) $(CFLAGS) -DUSG $(CC_OUT)$@ movemail.c
+	$(LIB_SRC)/movemail.c \
+	$(LIB_SRC)/pop.h \
+	$(SRC)/syswait.h \
+	$(NT_INC)/pwd.h \
+	$(NT_INC)/sys/file.h \
+	$(NT_INC)/sys/stat.h \
+	$(NT_INC)/unistd.h \
+	$(GNU_LIB)/getopt.h \
+	$(CONFIG_H) \
+	$(NTLIB_H)
 
 $(BLD)/ntlib.$(O) : \
-	$(SRC)/ntlib.c \
-	$(SRC)/ntlib.h \
-	$(EMACS_ROOT)/nt/inc/sys/stat.h \
-	$(EMACS_ROOT)/nt/inc/pwd.h
+	$(LIB_SRC)/ntlib.c \
+	$(NT_INC)/sys/stat.h \
+	$(NTLIB_H)
 
 $(BLD)/pop.$(O) : \
-	$(SRC)/pop.c \
-	$(SRC)/pop.h \
-	$(EMACS_ROOT)/lib/min-max.h \
-	$(SRC)/ntlib.h
+	$(LIB_SRC)/pop.c \
+	$(LIB_SRC)/pop.h \
+	$(NT_INC)/netdb.h \
+	$(NT_INC)/pwd.h \
+	$(NT_INC)/unistd.h \
+	$(GNU_LIB)/min-max.h \
+	$(CONFIG_H) \
+	$(NTLIB_H)
 
 $(BLD)/profile.$(O) : \
-	$(SRC)/profile.c \
-	$(EMACS_ROOT)/src/s/ms-w32.h \
-	$(EMACS_ROOT)/lib-src/../src/config.h \
-	$(EMACS_ROOT)/lib-src/../src/systime.h
+	$(LIB_SRC)/profile.c \
+	$(GNU_LIB)/intprops.h \
+	$(CONFIG_H) \
+	$(INTTYPES_H) \
+	$(SYSTIME_H)
 
-$(BLD)/qsort.$(O) : \
-	$(SRC)/qsort.c
-
-$(BLD)/tcp.$(O) : \
-	$(SRC)/tcp.c
+$(BLD)/regex.$(O) : \
+	$(SRC)/regex.c \
+	$(SRC)/regex.h \
+	$(NT_INC)/unistd.h \
+	$(CONFIG_H)
 
 $(BLD)/test-distrib.$(O) : \
-	$(SRC)/test-distrib.c
-
-$(BLD)/timer.$(O) : \
-	$(SRC)/timer.c \
-	$(EMACS_ROOT)/src/s/ms-w32.h \
-	$(EMACS_ROOT)/lib-src/../src/config.h
+	$(LIB_SRC)/test-distrib.c \
+	$(NT_INC)/unistd.h \
+	$(CONFIG_H)
 
 # The following dependencies are for supporting parallel builds, where
 # we must make sure $(BLD) exists before any compilation starts.

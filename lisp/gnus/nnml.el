@@ -4,7 +4,7 @@
 ;;   Foundation, Inc.
 
 ;; Authors: Didier Verna <didier@xemacs.org> (adding compaction)
-;;	Simon Josefsson <simon@josefsson.org> (adding MARKS)
+;;	Simon Josefsson <simon@josefsson.org>
 ;;	Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;;	Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
 ;; Keywords: news, mail
@@ -67,15 +67,6 @@ the `nnml-generate-nov-databases' command.  The function will go
 through all nnml directories and generate nov databases for them
 all.  This may very well take some time.")
 
-(defvoo nnml-marks-is-evil nil
-  "If non-nil, Gnus will never generate and use marks file for mail spools.
-Using marks files makes it possible to backup and restore mail groups
-separately from `.newsrc.eld'.  If you have, for some reason, set this
-to t, and want to set it to nil again, you should always remove the
-corresponding marks file (usually named `.marks' in the nnml group
-directory, but see `nnml-marks-file-name') for the group.  Then the
-marks file will be regenerated properly by Gnus.")
-
 (defvoo nnml-prepare-save-mail-hook nil
   "Hook run narrowed to an article before saving.")
 
@@ -102,7 +93,6 @@ non-nil.")
   "nnml version.")
 
 (defvoo nnml-nov-file-name ".overview")
-(defvoo nnml-marks-file-name ".marks")
 
 (defvoo nnml-current-directory nil)
 (defvoo nnml-current-group nil)
@@ -117,10 +107,6 @@ non-nil.")
 (defvar nnml-nov-buffer-file-name nil)
 
 (defvoo nnml-file-coding-system nnmail-file-coding-system)
-
-(defvoo nnml-marks nil)
-
-(defvar nnml-marks-modtime (gnus-make-hashtable))
 
 
 ;;; Interface functions.
@@ -513,8 +499,7 @@ non-nil.")
 			nnml-current-directory t
 			(concat
 			 nnheader-numerical-short-files
-			 "\\|" (regexp-quote nnml-nov-file-name) "$"
-			 "\\|" (regexp-quote nnml-marks-file-name) "$")))
+			 "\\|" (regexp-quote nnml-nov-file-name) "$")))
 		      (decoded (nnml-decoded-group-name group server)))
 		  (dolist (article articles)
 		    (when (file-writable-p article)
@@ -554,10 +539,6 @@ non-nil.")
       (let ((overview (concat old-dir nnml-nov-file-name)))
 	(when (file-exists-p overview)
 	  (rename-file overview (concat new-dir nnml-nov-file-name))))
-      ;; Move .marks file.
-      (let ((marks (concat old-dir nnml-marks-file-name)))
-	(when (file-exists-p marks)
-	  (rename-file marks (concat new-dir nnml-marks-file-name))))
       (when (<= (length (directory-files old-dir)) 2)
 	(ignore-errors (delete-directory old-dir)))
       ;; That went ok, so we change the internal structures.
@@ -1033,99 +1014,6 @@ Use the nov database for the current group if available."
 	  (forward-line 1))
 	alist))))
 
-(deffoo nnml-request-set-mark (group actions &optional server)
-  (nnml-possibly-change-directory group server)
-  (unless nnml-marks-is-evil
-    (nnml-open-marks group server)
-    (setq nnml-marks (nnheader-update-marks-actions nnml-marks actions))
-    (nnml-save-marks group server))
-  nil)
-
-(deffoo nnml-request-marks (group info &optional server)
-  (nnml-possibly-change-directory group server)
-  (when (and (not nnml-marks-is-evil) (nnml-marks-changed-p group server))
-    (nnheader-message 8 "Updating marks for %s..." group)
-    (nnml-open-marks group server)
-    ;; Update info using `nnml-marks'.
-    (mapc (lambda (pred)
-	    (unless (memq (cdr pred) gnus-article-unpropagated-mark-lists)
-	      (gnus-info-set-marks
-	       info
-	       (gnus-update-alist-soft
-		(cdr pred)
-		(cdr (assq (cdr pred) nnml-marks))
-		(gnus-info-marks info))
-	       t)))
-	  gnus-article-mark-lists)
-    (let ((seen (cdr (assq 'read nnml-marks))))
-      (gnus-info-set-read info
-			  (if (and (integerp (car seen))
-				   (null (cdr seen)))
-			      (list (cons (car seen) (car seen)))
-			    seen)))
-    (nnheader-message 8 "Updating marks for %s...done" group))
-  info)
-
-(defun nnml-marks-changed-p (group server)
-  (let ((file (nnml-group-pathname group nnml-marks-file-name server)))
-    (if (null (gnus-gethash file nnml-marks-modtime))
-	t ;; never looked at marks file, assume it has changed
-      (not (equal (gnus-gethash file nnml-marks-modtime)
-		  (nth 5 (file-attributes file)))))))
-
-(defun nnml-save-marks (group server)
-  (let ((file-name-coding-system nnmail-pathname-coding-system)
-	(file (nnml-group-pathname group nnml-marks-file-name server)))
-    (condition-case err
-	(progn
-	  (nnml-possibly-create-directory group server)
-	  (with-temp-file file
-	    (erase-buffer)
-	    (gnus-prin1 nnml-marks)
-	    (insert "\n"))
-	  (gnus-sethash file
-			(nth 5 (file-attributes file))
-			nnml-marks-modtime))
-      (error (or (gnus-yes-or-no-p
-		  (format "Could not write to %s (%s).  Continue? " file err))
-		 (error "Cannot write to %s (%s)" file err))))))
-
-(defun nnml-open-marks (group server)
-  (let* ((decoded (nnml-decoded-group-name group server))
-	 (file (nnmail-group-pathname decoded nnml-directory
-				      nnml-marks-file-name))
-	 (file-name-coding-system nnmail-pathname-coding-system))
-    (if (file-exists-p file)
-	(condition-case err
-	    (with-temp-buffer
-	      (gnus-sethash file (nth 5 (file-attributes file))
-			    nnml-marks-modtime)
-	      (nnheader-insert-file-contents file)
-	      (setq nnml-marks (read (current-buffer)))
-	      (dolist (el gnus-article-unpropagated-mark-lists)
-		(setq nnml-marks (gnus-remassoc el nnml-marks))))
-	  (error (or (gnus-yes-or-no-p
-		      (format "Error reading nnml marks file %s (%s).  Continuing will use marks from .newsrc.eld.  Continue? " file err))
-		     (error "Cannot read nnml marks file %s (%s)" file err))))
-      ;; User didn't have a .marks file.  Probably first time
-      ;; user of the .marks stuff.  Bootstrap it from .newsrc.eld.
-      (let ((info (gnus-get-info
-		   (gnus-group-prefixed-name
-		    group
-		    (gnus-server-to-method
-		     (format "nnml:%s" (or server "")))))))
-	(setq decoded (if (member server '(nil ""))
-			  (concat "nnml:" decoded)
-			(format "nnml+%s:%s" server decoded)))
-	(nnheader-message 7 "Bootstrapping marks for %s..." decoded)
-	(setq nnml-marks (gnus-info-marks info))
-	(push (cons 'read (gnus-info-read info)) nnml-marks)
-	(dolist (el gnus-article-unpropagated-mark-lists)
-	  (setq nnml-marks (gnus-remassoc el nnml-marks)))
-	(nnml-save-marks group server)
-	(nnheader-message 7 "Bootstrapping marks for %s...done" decoded)))))
-
-
 ;;;
 ;;; Group and server compaction. -- dvl
 ;;;
@@ -1275,19 +1163,11 @@ Use the nov database for the current group if available."
 	  (gnus-set-active group-full-name active))
 	;; 1 bis/
 	;; #### NOTE: normally, we should save the overview (NOV) file
-	;; #### here, just like we save the marks file. However, there is no
-	;; #### such function as nnml-save-nov for a single group. Only for
-	;; #### all groups. Gnus inconsistency is getting worse every day...
-	;; 2/ Rebuild marks file:
-	(unless nnml-marks-is-evil
-	  ;; #### NOTE: this constant use of global variables everywhere is
-	  ;; #### truly disgusting. Gnus really needs a *major* cleanup.
-	  (setq nnml-marks (gnus-info-marks info))
-	  (push (cons 'read (gnus-info-read info)) nnml-marks)
-	  (dolist (el gnus-article-unpropagated-mark-lists)
-	    (setq nnml-marks (gnus-remassoc el nnml-marks)))
-	  (nnml-save-marks group server))
-	;; 3/ Save everything if this was not part of a bigger operation:
+	;; #### here. However, there is no such function as
+	;; #### nnml-save-nov for a single group. Only for all
+	;; #### groups. Gnus inconsistency is getting worse every
+	;; #### day...  ;; 3/ Save everything if this was not part of
+	;; #### a bigger operation:
 	(if (not save)
 	    ;; Nothing to save (yet):
 	    t
@@ -1298,9 +1178,6 @@ Use the nov database for the current group if available."
 	  (nnml-save-nov)
 	  ;; b/ Save the active file:
 	  (nnmail-save-active nnml-group-alist nnml-active-file)
-	  (let ((marks (nnml-group-pathname group nnml-marks-file-name server)))
-	    (when (file-exists-p marks)
-	      (delete-file marks)))
 	  t)))))
 
 (defun nnml-request-compact (&optional server)

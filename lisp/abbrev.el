@@ -31,7 +31,7 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 (defgroup abbrev-mode nil
   "Word abbreviations mode."
@@ -540,7 +540,7 @@ the current abbrev table before abbrev lookup happens."
     (dotimes (i (length table))
       (aset table i 0))
     ;; Preserve the table's properties.
-    (assert sym)
+    (cl-assert sym)
     (let ((newsym (intern "" table)))
       (set newsym nil)	     ; Make sure it won't be confused for an abbrev.
       (setplist newsym (symbol-plist sym)))
@@ -583,8 +583,8 @@ An obsolete but still supported calling form is:
 \(define-abbrev TABLE NAME EXPANSION &optional HOOK COUNT SYSTEM)."
   (when (and (consp props) (or (null (car props)) (numberp (car props))))
     ;; Old-style calling convention.
-    (setq props (list* :count (car props)
-                       (if (cadr props) (list :system (cadr props))))))
+    (setq props `(:count ,(car props)
+                  ,@(if (cadr props) (list :system (cadr props))))))
   (unless (plist-get props :count)
     (setq props (plist-put props :count 0)))
   (let ((system-flag (plist-get props :system))
@@ -621,7 +621,7 @@ current (if global is nil) or standard syntax table."
       (let ((badchars ())
             (pos 0))
         (while (string-match "\\W" abbrev pos)
-          (pushnew (aref abbrev (match-beginning 0)) badchars)
+          (cl-pushnew (aref abbrev (match-beginning 0)) badchars)
           (setq pos (1+ pos)))
         (error "Some abbrev characters (%s) are not word constituents %s"
                (apply 'string (nreverse badchars))
@@ -836,8 +836,7 @@ return value is that of `abbrev-insert'.)"
   (interactive)
   (run-hooks 'pre-abbrev-expand-hook)
   (with-wrapper-hook abbrev-expand-functions ()
-    (destructuring-bind (&optional sym name wordstart wordend)
-        (abbrev--before-point)
+    (pcase-let ((`(,sym ,name ,wordstart ,wordend) (abbrev--before-point)))
       (when sym
         (let ((startpos (copy-marker (point) t))
               (endmark (copy-marker wordend t)))

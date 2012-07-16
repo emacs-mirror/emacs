@@ -2231,7 +2231,8 @@ unfolded."
 		 (unfoldable
 		  (or (equal gnus-article-unfold-long-headers t)
 		      (and (stringp gnus-article-unfold-long-headers)
-			   (string-match gnus-article-unfold-long-headers header)))))
+			   (string-match gnus-article-unfold-long-headers
+					 header)))))
 	    (with-temp-buffer
 	      (insert header)
 	      (goto-char (point-min))
@@ -5329,9 +5330,8 @@ Compressed files like .gz and .bz2 are decompressed."
 		(or (cdr (assq arg
 			       gnus-summary-show-article-charset-alist))
 		    (mm-read-coding-system "Charset: "))))
-	 (t
-	  (if (mm-handle-undisplayer handle)
-	      (mm-remove-part handle))))
+	 ((mm-handle-undisplayer handle)
+	  (mm-remove-part handle)))
 	(forward-line 2)
         (mm-display-inline handle)
 	(goto-char b)))))
@@ -5621,7 +5621,9 @@ all parts."
     (let ((handle (cdr (assq n gnus-article-mime-handle-alist))))
       (when (gnus-article-goto-part n)
 	(if (equal (car handle) "multipart/alternative")
-	    (gnus-article-press-button)
+	    (progn
+	      (beginning-of-line) ;; Make it toggle subparts
+	      (gnus-article-press-button))
 	  (when (eq (gnus-mm-display-part handle) 'internal)
 	    (gnus-set-window-start)))))))
 
@@ -6200,12 +6202,13 @@ Provided for backwards compatibility."
 	     (not gnus-inhibit-hiding))
     (gnus-article-hide-headers)))
 
-(declare-function shr-put-image "shr" (data alt))
+(declare-function shr-put-image "shr" (data alt &optional flags))
 
-(defun gnus-shr-put-image (data alt)
+(defun gnus-shr-put-image (data alt &optional flags)
   "Put image DATA with a string ALT.  Enable image to be deleted."
   (let ((image (shr-put-image data (propertize (or alt "*")
-					       'gnus-image-category 'shr))))
+					       'gnus-image-category 'shr)
+			      flags)))
     (when image
       (gnus-add-image 'shr image))))
 
@@ -6524,7 +6527,8 @@ not have a face in `gnus-article-boring-faces'."
 	    (ding)
 	  (unless (member keys nosave-in-article)
 	    (set-buffer gnus-article-current-summary))
-	  (when (get func 'disabled)
+	  (when (and (symbolp func)
+		     (get func 'disabled))
 	    (error "Function %s disabled" func))
 	  (call-interactively func)
 	  (setq new-sum-point (point)))

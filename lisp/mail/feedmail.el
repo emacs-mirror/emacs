@@ -372,8 +372,7 @@
 (require 'mail-utils)		     ; pick up mail-strip-quoted-names
 
 (eval-when-compile
-  (require 'smtpmail)
-  (require 'cl))
+  (require 'smtpmail))
 
 (autoload 'mail-do-fcc "sendmail")
 
@@ -1951,9 +1950,6 @@ bail out with an appropriate answer to the global confirmation prompt."
   (feedmail-say-debug ">in-> feedmail-run-the-queue-global-prompts")
   (let ((feedmail-queue-runner-confirm-global t)) (feedmail-run-the-queue arg)))
 
-;; letf fools the byte-compiler.
-(defvar file-name-buffer-file-type-alist)
-
 ;;;###autoload
 (defun feedmail-run-the-queue (&optional arg)
   "Visit each message in the feedmail queue directory and send it out.
@@ -2392,8 +2388,10 @@ mapped to mostly alphanumerics for safety."
 (defun feedmail-send-it-immediately ()
   "Handle immediate sending, including during a queue run."
   (feedmail-say-debug ">in-> feedmail-send-it-immediately")
-  (let ((feedmail-error-buffer (get-buffer-create " *FQM Outgoing Email Errors*"))
-	(feedmail-prepped-text-buffer (get-buffer-create " *FQM Outgoing Email Text*"))
+  (let ((feedmail-error-buffer
+         (get-buffer-create " *FQM Outgoing Email Errors*"))
+	(feedmail-prepped-text-buffer
+         (get-buffer-create " *FQM Outgoing Email Text*"))
 	(feedmail-raw-text-buffer (current-buffer))
 	(feedmail-address-list)
 	(eoh-marker)
@@ -2405,7 +2403,7 @@ mapped to mostly alphanumerics for safety."
 	(a-re-dtcb  "^\\(To\\|Cc\\|Bcc\\):")
 	(a-re-dtc   "^\\(To\\|Cc\\):")
 	(a-re-db    "^Bcc:")
-	;; to get a temporary changeable copy
+	;; To get a temporary changeable copy.
 	(mail-header-separator mail-header-separator)
 	)
     (unwind-protect
@@ -2413,10 +2411,10 @@ mapped to mostly alphanumerics for safety."
 	  (set-buffer feedmail-error-buffer) (erase-buffer)
 	  (set-buffer feedmail-prepped-text-buffer) (erase-buffer)
 
-	  ;; jam contents of user-supplied mail buffer into our scratch buffer
+	  ;; Jam contents of user-supplied mail buffer into our scratch buffer.
 	  (insert-buffer-substring feedmail-raw-text-buffer)
 
-	  ;; require one newline at the end.
+	  ;; Require one newline at the end.
 	  (goto-char (point-max))
 	  (or (= (preceding-char) ?\n) (insert ?\n))
 
@@ -2437,54 +2435,69 @@ mapped to mostly alphanumerics for safety."
 		  (and (fboundp 'expand-mail-aliases) mail-aliases))
 	      (expand-mail-aliases (point-min) eoh-marker))
 
-	  ;; make it pretty
+	  ;; Make it pretty.
 	  (if feedmail-fill-to-cc (feedmail-fill-to-cc-function eoh-marker))
-	  ;; ignore any blank lines in the header
+	  ;; Ignore any blank lines in the header.
 	  (goto-char (point-min))
-	  (while (and (re-search-forward "\n\n\n*" eoh-marker t) (< (point) eoh-marker))
+	  (while (and (re-search-forward "\n\n\n*" eoh-marker t)
+                      (< (point) eoh-marker))
 	    (replace-match "\n"))
 
 	  (let ((case-fold-search t) (addr-regexp))
 	    (goto-char (point-min))
-	    ;; there are some RFC-822 combinations/cases missed here,
-	    ;; but probably good enough and what users expect
+	    ;; There are some RFC-822 combinations/cases missed here,
+	    ;; but probably good enough and what users expect.
 	    ;;
-	    ;; use resent-* stuff only if there is at least one non-empty one
+	    ;; Use resent-* stuff only if there is at least one non-empty one.
 	    (setq feedmail-is-a-resend
 		  (re-search-forward
-		   ;; header name, followed by optional whitespace, followed by
-		   ;; non-whitespace, followed by anything, followed by newline;
-		   ;; the idea is empty Resent-* headers are ignored
+		   ;; Header name, followed by optional whitespace, followed by
+		   ;; non-whitespace, followed by anything, followed by
+                   ;; newline; the idea is empty Resent-* headers are ignored.
 		   "^\\(Resent-To:\\|Resent-Cc:\\|Resent-Bcc:\\)\\s-*\\S-+.*$"
 		   eoh-marker t))
-	    ;; if we say so, gather the Bcc stuff before the main course
-	    (if (eq feedmail-deduce-bcc-where 'first)
-		(progn (if feedmail-is-a-resend (setq addr-regexp a-re-rb) (setq addr-regexp a-re-db))
-		       (setq feedmail-address-list (feedmail-deduce-address-list feedmail-prepped-text-buffer (point-min) eoh-marker addr-regexp feedmail-address-list))))
-	    ;; the main course
-	    (if (or (eq feedmail-deduce-bcc-where 'first) (eq feedmail-deduce-bcc-where 'last))
-		;; handled by first or last cases, so don't get Bcc stuff
-		(progn (if feedmail-is-a-resend (setq addr-regexp a-re-rtc) (setq addr-regexp a-re-dtc))
-		       (setq feedmail-address-list (feedmail-deduce-address-list feedmail-prepped-text-buffer (point-min) eoh-marker addr-regexp feedmail-address-list)))
-	      ;; not handled by first or last cases, so also get Bcc stuff
-	      (progn (if feedmail-is-a-resend (setq addr-regexp a-re-rtcb) (setq addr-regexp a-re-dtcb))
-		     (setq feedmail-address-list (feedmail-deduce-address-list feedmail-prepped-text-buffer (point-min) eoh-marker addr-regexp feedmail-address-list))))
-	    ;; if we say so, gather the Bcc stuff after the main course
-	    (if (eq feedmail-deduce-bcc-where 'last)
-		(progn (if feedmail-is-a-resend (setq addr-regexp a-re-rb) (setq addr-regexp a-re-db))
-		       (setq feedmail-address-list (feedmail-deduce-address-list feedmail-prepped-text-buffer (point-min) eoh-marker addr-regexp feedmail-address-list))))
-	    (if (not feedmail-address-list) (error "FQM: Sending...abandoned, no addressees"))
-	    ;; not needed, but meets user expectations
+	    ;; If we say so, gather the Bcc stuff before the main course.
+	    (when (eq feedmail-deduce-bcc-where 'first)
+              (setq addr-regexp (if feedmail-is-a-resend a-re-rb a-re-db))
+              (setq feedmail-address-list
+                    (feedmail-deduce-address-list
+                     feedmail-prepped-text-buffer (point-min) eoh-marker
+                     addr-regexp feedmail-address-list)))
+	    ;; The main course.
+            (setq addr-regexp
+                  (if (memq feedmail-deduce-bcc-where '(first last))
+                      ;; Handled by first or last cases, so don't get
+                      ;; Bcc stuff.
+                      (if feedmail-is-a-resend a-re-rtc a-re-dtc)
+                    ;; Not handled by first or last cases, so also get
+                    ;; Bcc stuff.
+                    (if feedmail-is-a-resend a-re-rtcb a-re-dtcb)))
+            (setq feedmail-address-list
+                  (feedmail-deduce-address-list
+                   feedmail-prepped-text-buffer (point-min) eoh-marker
+                   addr-regexp feedmail-address-list))
+	    ;; If we say so, gather the Bcc stuff after the main course.
+	    (when (eq feedmail-deduce-bcc-where 'last)
+              (setq addr-regexp (if feedmail-is-a-resend a-re-rb a-re-db))
+              (setq feedmail-address-list
+                    (feedmail-deduce-address-list
+                     feedmail-prepped-text-buffer (point-min) eoh-marker
+                     addr-regexp feedmail-address-list)))
+	    (if (not feedmail-address-list)
+                (error "FQM: Sending...abandoned, no addressees"))
+	    ;; Not needed, but meets user expectations.
 	    (setq feedmail-address-list (nreverse feedmail-address-list))
 	    ;; Find and handle any Bcc fields.
-	    (setq bcc-holder (feedmail-accume-n-nuke-header eoh-marker "^Bcc:"))
-	    (setq resent-bcc-holder (feedmail-accume-n-nuke-header eoh-marker "^Resent-Bcc:"))
-	    (if (and bcc-holder (not feedmail-nuke-bcc))
-		(progn (goto-char (point-min))
-		       (insert bcc-holder)))
-	    (if (and resent-bcc-holder (not feedmail-nuke-resent-bcc))
-		(progn (goto-char (point-min))
-		       (insert resent-bcc-holder)))
+	    (setq bcc-holder
+                  (feedmail-accume-n-nuke-header eoh-marker "^Bcc:"))
+	    (setq resent-bcc-holder
+                  (feedmail-accume-n-nuke-header eoh-marker "^Resent-Bcc:"))
+	    (when (and bcc-holder (not feedmail-nuke-bcc))
+              (goto-char (point-min))
+              (insert bcc-holder))
+	    (when (and resent-bcc-holder (not feedmail-nuke-resent-bcc))
+              (goto-char (point-min))
+              (insert resent-bcc-holder))
 	    (goto-char (point-min))
 
 	    ;; fiddle about, fiddle about, fiddle about....
@@ -2492,16 +2505,20 @@ mapped to mostly alphanumerics for safety."
 	    (feedmail-fiddle-sender)
 	    (feedmail-fiddle-x-mailer)
 	    (feedmail-fiddle-message-id
-	     (or feedmail-queue-runner-is-active (buffer-file-name feedmail-raw-text-buffer)))
+	     (or feedmail-queue-runner-is-active
+                 (buffer-file-name feedmail-raw-text-buffer)))
 	    (feedmail-fiddle-date
-	     (or feedmail-queue-runner-is-active (buffer-file-name feedmail-raw-text-buffer)))
-	    (feedmail-fiddle-list-of-fiddle-plexes feedmail-fiddle-plex-user-list)
+	     (or feedmail-queue-runner-is-active
+                 (buffer-file-name feedmail-raw-text-buffer)))
+	    (feedmail-fiddle-list-of-fiddle-plexes
+             feedmail-fiddle-plex-user-list)
 
 	    ;; don't send out a blank headers of various sorts
 	    ;; (this loses on continued line with a blank first line)
 	    (goto-char (point-min))
 	    (and feedmail-nuke-empty-headers ; hey, who's an empty-header?
-		 (while (re-search-forward "^[A-Za-z0-9-]+:[ \t]*\n" eoh-marker t)
+		 (while (re-search-forward "^[A-Za-z0-9-]+:[ \t]*\n"
+                                           eoh-marker t)
 		   (replace-match ""))))
 
 	  (feedmail-say-debug "last chance hook: %s" feedmail-last-chance-hook)
@@ -2513,79 +2530,90 @@ mapped to mostly alphanumerics for safety."
 		(confirm (cond
 			  ((eq feedmail-confirm-outgoing 'immediate)
 			   (not feedmail-queue-runner-is-active))
-			  ((eq feedmail-confirm-outgoing 'queued) feedmail-queue-runner-is-active)
+			  ((eq feedmail-confirm-outgoing 'queued)
+                           feedmail-queue-runner-is-active)
 			  (t feedmail-confirm-outgoing)))
 		(fullframe (cond
 			    ((eq feedmail-display-full-frame 'immediate)
 			     (not feedmail-queue-runner-is-active))
-			    ((eq feedmail-display-full-frame 'queued) feedmail-queue-runner-is-active)
+			    ((eq feedmail-display-full-frame 'queued)
+                             feedmail-queue-runner-is-active)
 			    (t feedmail-display-full-frame))))
 	    (if fullframe
 		(progn
 		  (switch-to-buffer feedmail-prepped-text-buffer t)
 		  (delete-other-windows)))
-	    (if (or (not confirm) (feedmail-one-last-look feedmail-prepped-text-buffer))
-		(let ((user-mail-address (feedmail-envelope-deducer eoh-marker)))
+	    (if (or (not confirm)
+                    (feedmail-one-last-look feedmail-prepped-text-buffer))
+		(let ((user-mail-address
+                       (feedmail-envelope-deducer eoh-marker)))
 		  (feedmail-say-debug "give it to buffer-eater")
 		  (feedmail-give-it-to-buffer-eater)
 		  (feedmail-say-debug "gave it to buffer-eater")
-		  (if (and (not feedmail-queue-runner-is-active) (setq also-file (buffer-file-name feedmail-raw-text-buffer)))
-		      (progn		; if a file but not running the queue, offer to delete it
+		  (if (and (not feedmail-queue-runner-is-active)
+                           (setq also-file
+                                 (buffer-file-name feedmail-raw-text-buffer)))
+		      (progn
+                        ;; If a file but not running the queue,
+                        ;; offer to delete it
 			(setq also-file (expand-file-name also-file))
 			(when (or feedmail-queue-auto-file-nuke
                                   (y-or-n-p
                                    (format "FQM: Delete message file %s? "
                                            also-file)))
-                          ;; if we delete the affiliated file, get rid
+                          ;; If we delete the affiliated file, get rid
                           ;; of the file name association and make sure we
-                          ;; don't annoy people with a prompt on exit
+                          ;; don't annoy people with a prompt on exit.
                           (delete-file also-file)
                           (with-current-buffer feedmail-raw-text-buffer
                             (setq buffer-offer-save nil)
                             (setq buffer-file-name nil)))))
 		  (goto-char (point-min))
-		  ;; re-insert and handle any Fcc fields (and, optionally, any Bcc).
-		  (if fcc (letf (((default-value 'buffer-file-type)
-                                  feedmail-force-binary-write))
-			    (insert fcc)
-			    (if (not feedmail-nuke-bcc-in-fcc)
-				(progn (if bcc-holder (insert bcc-holder))
-				       (if resent-bcc-holder (insert resent-bcc-holder))))
-
-			    (run-hooks 'feedmail-before-fcc-hook)
-
-			    (if feedmail-nuke-body-in-fcc
-				(progn (goto-char eoh-marker)
-				       (if (natnump feedmail-nuke-body-in-fcc)
-					   (forward-line feedmail-nuke-body-in-fcc))
-				       (delete-region (point) (point-max))
-				       ))
-			    (mail-do-fcc eoh-marker)
-			    )))
-	      ;; user bailed out of one-last-look
+		  ;; Re-insert and handle any Fcc fields (and, optionally,
+                  ;; any Bcc).
+		  (when fcc
+                    (let ((old (default-value 'buffer-file-type)))
+                      (unwind-protect
+                          (progn
+                            (setq-default buffer-file-type 
+                                          feedmail-force-binary-write)
+                            (insert fcc)
+                            (unless feedmail-nuke-bcc-in-fcc
+                              (if bcc-holder (insert bcc-holder))
+                              (if resent-bcc-holder
+                                  (insert resent-bcc-holder)))
+                          
+                            (run-hooks 'feedmail-before-fcc-hook)
+                          
+                            (when feedmail-nuke-body-in-fcc
+                              (goto-char eoh-marker)
+                              (if (natnump feedmail-nuke-body-in-fcc)
+                                  (forward-line feedmail-nuke-body-in-fcc))
+                              (delete-region (point) (point-max)))
+                            (mail-do-fcc eoh-marker))
+                        (setq-default buffer-file-type old)))))
+	      ;; User bailed out of one-last-look.
 	      (if feedmail-queue-runner-is-active
 		  (throw 'skip-me-q 'skip-me-q)
 		(throw 'skip-me-i 'skip-me-i))
 	      )))) ; unwind-protect body (save-excursion)
 
-      ;; unwind-protect cleanup forms
+      ;; unwind-protect cleanup forms.
       (kill-buffer feedmail-prepped-text-buffer)
       (set-buffer feedmail-error-buffer)
       (if (zerop (buffer-size)) (kill-buffer feedmail-error-buffer)
-	(progn (display-buffer feedmail-error-buffer)
-	       ;; read fast ... the meter is running
-	       (if feedmail-queue-runner-is-active
-		   (progn
-		     (ding t)
-		     (feedmail-say-chatter "Sending...failed")))
-	       (error "FQM: Sending...failed")))
+        (display-buffer feedmail-error-buffer)
+        ;; Read fast ... the meter is running.
+        (if feedmail-queue-runner-is-active
+            (progn
+              (ding t)
+              (feedmail-say-chatter "Sending...failed")))
+        (error "FQM: Sending...failed"))
       (set-buffer feedmail-raw-text-buffer))
     )					; let
-  (if (and feedmail-queue-chatty (not feedmail-queue-runner-is-active))
-      (progn
-	(feedmail-queue-reminder 'after-immediate)
-	(sit-for feedmail-queue-chatty-sit-for)))
-  )
+  (when (and feedmail-queue-chatty (not feedmail-queue-runner-is-active))
+    (feedmail-queue-reminder 'after-immediate)
+    (sit-for feedmail-queue-chatty-sit-for)))
 
 
 (defun feedmail-fiddle-header (name value &optional action folding)

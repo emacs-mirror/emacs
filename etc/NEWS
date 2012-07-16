@@ -44,6 +44,16 @@ you want them.
 ** On Mac OS X, configure no longer automatically adds the Fink /sw
 directories to the search path.  You must add them yourself if you want them.
 
+---
+** The standalone scripts rcs-checkin and vcdiff have been removed
+(from the bin and libexec directories, respectively).  The former is
+no longer relevant, the latter is replaced by lisp (in vc-sccs.el).
+
+** The configuration option '--enable-use-lisp-union-type' has been
+renamed to '--enable-check-lisp-object-type', as the resulting
+Lisp_Object type no longer uses a union to implement the compile time
+check that this option enables.
+
 
 * Startup Changes in Emacs 24.2
 
@@ -51,8 +61,30 @@ directories to the search path.  You must add them yourself if you want them.
 lisp/ directory.  There should not be any there anyway.  If you have
 been adding them there, put them somewhere else, eg site-lisp.
 
+---
+** The `--no-site-lisp' command line option now works for Nextstep builds.
+
 
 * Changes in Emacs 24.2
+
+** Help changes
+
+*** `C-h f' (describe-function) can now perform autoloading.
+When this command is called for an autoloaded function whose docstring
+contains a key substitution construct, that function's library is
+automatically loaded, so that the documentation can be shown
+correctly.  To disable this, set `help-enable-auto-load' to nil.
+
+*** `C-h f' now reports previously-autoloaded functions as "autoloaded",
+even after their associated libraries have been loaded (and the
+autoloads have been redefined as functions).
+
+** The function `current-time' now returns extended-format time stamps
+(HIGH LOW USEC PSEC) that use picosecond resolution; the PSEC
+component is new.  PSEC is typically a multiple of 1000 on current
+machines.  Other functions that use this format, such as
+file-attributes and format-time-string, have been changed accordingly.
+Old-format time stamps are still accepted.
 
 ** New functions `system-users', `system-groups' return lists of the user
 name, group names known to the system (where possible).
@@ -75,6 +107,14 @@ ImageMagick types are treated as images.  The function
 `imagemagick-filter-types' returns the list of types that will be
 treated as images.
 
+*** Images displayed via ImageMagick now support transparency and the
+:background image spec property.
+
+** Face underlining can now use a wave.
+See the "Face Attributes" section of the Elisp manual.
+
+** New fringe bitmap exclamation-mark.
+
 ** String values for `initial-buffer-choice' also apply to emacsclient
 frames, if emacsclient is only told to open a new frame without
 specifying any file to visit or expression to evaluate.
@@ -96,6 +136,10 @@ that does not have its own specialized help text.
 *** You can now click mouse-3 in the coding system indicator to
 invokes `set-buffer-file-coding-system'.
 
++++
+** Setting `enable-remote-dir-locals' to non-nil allows directory
+local variables on remote hosts.
+
 
 * Editing Changes in Emacs 24.2
 
@@ -116,8 +160,22 @@ character when doing minibuffer filename prompts.
 
 ** `goto-char' is now bound to `M-g c'.
 
+** New command `C-x r M-w' (copy-rectangle-as-kill).
+It copies the region-rectangle as the last rectangle kill.
+
+** New input method `vietnamese-vni'.
+
 
 * Changes in Specialized Modes and Packages in Emacs 24.2
+
+** Term changes
+
+The variables `term-default-fg-color' and `term-default-bg-color' are
+now deprecated in favor of the `term-face' face, that you can
+customize.  Also, it is now possible to customize how are displayed the
+ANSI terminal colors and styles by customizing the corresponding
+`term-color-<COLOR>', `term-color-underline' and `term-color-bold'
+faces.
 
 ** CL's main entry is now (require 'cl-lib).
 `cl-lib' is like the old `cl' except that it uses the namespace cleanly,
@@ -131,11 +189,75 @@ which have not been renamed to `cl-foo*' but just `cl-foo'.
 The old `cl' is now deprecated and is nothing more than a bunch of aliases that
 provide the old non-prefixed names.
 
-** VHDL-mode
-- Support for ghdl (free vhdl compiler).  Now default.
-- Add/update support for VHDL-AMS packages.
-- Update to VHDL'02 standard.
-- Accept \r and \f as whitespace.
+** Desktop
+
+*** `desktop-path' no longer includes the "." directory.  Desktop
+files are now located in ~/.emacs.d by default.
+
+** Python mode
+
+A new version of python.el, which provides several new features, including:
+per-buffer shells, better indentation, Python 3 support, and improved
+shell-interaction compatible with iPython (and virtually any other
+text based shell).
+
+*** Some user options have been replaced/renamed:
+Old defcustom:                | New defcustom:
+python-indent                 | python-indent-offset
+python-guess-indent           | python-indent-guess-indent-offset
+python-pdbtrack-do-tracking-p | python-pdbtrack-activate
+python-use-skeletons          | python-skeleton-autoinsert
+
+*** Some user options have been removed:
+
+**** `python-indent-string-contents': Strings are never indented.
+
+**** `python-honour-comment-indentation':
+Comments are never considered as indentation markers themselves.
+
+**** `python-continuation-offset': Indentation is automatically
+calculated in a pep8 compliant way depending on the context.
+
+**** `python-shell-prompt-alist', `python-shell-continuation-prompt-alist':
+Have no direct mapping as the shell interaction is completely different.
+
+**** `python-python-command', `python-jython-command':
+Replaced by `python-shell-interpreter'.
+
+**** `inferior-python-filter-regexp', `python-remove-cwd-from-path',
+`python-pdbtrack-minor-mode-string', `python-source-modes':
+No longer relevant.
+
+*** Some commands have been replaced:
+Old command               | New command
+python-insert-class       | python-skeleton-class
+python-insert-def         | python-skeleton-def
+python-insert-for         | python-skeleton-for
+python-insert-if          | python-skeleton-if
+python-insert-try/except  | python-skeleton-try
+python-insert-try/finally | python-skeleton-try
+python-insert-while       | python-skeleton-while
+python-find-function      | python-nav-jump-to-defun
+python-next-statement     | python-nav-forward-sentence
+python-previous-statement | python-nav-backward-sentence
+python-send-buffer        | python-shell-send-buffer
+python-send-defun         | python-shell-send-defun
+python-send-region        | python-shell-send-region
+python-send-region-and-go | Emulate with python-shell-send-region and
+                            python-shell-switch-to-shell
+python-send-string        | python-shell-send-string
+python-switch-to-python   | python-shell-switch-to-shell
+python-describe-symbol    | python-eldoc-at-point
+
+** VHDL mode
+
+*** The free software compiler GHDL is supported (and now the default).
+
+*** Support for the VHDL-AMS packages has been added/updated.
+
+*** Updated to the 2002 revision of the VHDL standard.
+
+*** Accepts \r and \f as whitespace.
 
 ** Diff mode
 
@@ -147,6 +269,10 @@ insertions in green (new faces `diff-refine-added' and
 The variable `diff-use-changed-face' defines whether to use
 the face `diff-changed', or `diff-removed' and `diff-added'
 to highlight changes in context diffs.
+
+** Flymake uses fringe bitmaps to indicate errors and warnings.
+See flymake-fringe-indicator-position, flymake-error-bitmap and
+flymake-warning-bitmap.
 
 ** Ediff now uses the same color scheme as Diff mode
 on high color displays.
@@ -196,6 +322,12 @@ see the `apropos' Custom group for details.
 **** The old options whose values specified faces to use were removed
 (i.e. `apropos-symbol-face', `apropos-keybinding-face', etc.).
 
+** Buffer Menu
+This package has been rewritten to use Tabulated List mode.
+
+*** Option `Buffer-menu-buffer+size-width' is now obsolete.
+Use `Buffer-menu-name-width' and `Buffer-menu-size-width' instead.
+
 ** Calendar
 
 *** The calendars produced by cal-html include holidays.
@@ -235,6 +367,15 @@ closing brackets to be aligned with the line of the opening bracket.
 
 ** which-function-mode now applies to all applicable major modes by default.
 
+** Tramp
+
++++
+*** The syntax has been extended in order to allow ad-hoc proxy
+definitions.  See the manual for details.
+
++++
+*** Remote processes are now supported also on remote Windows host.
+
 ** D-Bus
 
 +++
@@ -270,6 +411,11 @@ details.
 The function `notifications-get-capabilities' returns the supported
 server properties.
 
+** Package Menu
+
+*** Newly-available packages are listed in the Package Menu as "new",
+and sorted above the other "available" packages by default.
+
 ** Tabulated List and packages derived from it
 
 *** New command `tabulated-list-sort', bound to `S', sorts the column
@@ -296,11 +442,15 @@ inefficiency, and not namespace-clean.
 
 *** bruce.el
 
+*** ledit.el
+
 *** mailpost.el
 
 *** mouse-sel.el
 
 *** patcomp.el
+
+*** cust-print.el
 
 
 * New Modes and Packages in Emacs 24.2
@@ -312,6 +462,12 @@ inefficiency, and not namespace-clean.
 Only variables defined using `defcustom' are considered user options.
 The function `user-variable-p' is now an obsolete alias for
 `custom-variable-p'.
+
++++
+** The return values of `defalias', `defun' and `defmacro' have changed,
+and are now undefined.  For backwards compatibility, defun and
+defmacro currently return the name of the newly defined function/macro
+but this should not be relied upon.
 
 ** `face-spec-set' no longer sets frame-specific attributes when the
 third argument is a frame (that usage was obsolete since Emacs 22.2).
@@ -329,6 +485,12 @@ still be supported for Emacs 24.x.
 
 * Lisp changes in Emacs 24.2
 
+** `toggle-read-only' accepts a second argument specifying whether to
+print a message, if called from Lisp.
+
+** CL-style generalized variables are now in core Elisp.
+`setf' is autoloaded and `push' and `pop' accept generalized variables.
+
 ** `defun' also accepts a (declare DECLS) form, like `defmacro'.
 The interpretation of the DECLS is determined by `defun-declarations-alist'.
 
@@ -339,6 +501,9 @@ The interpretation of the DECLS is determined by `defun-declarations-alist'.
 ** New macros `setq-local' and `defvar-local'.
 
 ** New error type and new function `user-error'.  Doesn't trigger the debugger.
+
+** The functions get-lru-window, get-mru-window and get-largest-window
+now accept a third argument to avoid choosing the selected window.
 
 ** Completion
 
@@ -353,6 +518,10 @@ table, but with a different prefix.
 *** `current-time-string' no longer requires that its argument's year
 must be in the range 1000..9999.  It now works with any year supported
 by the underlying C implementation.
+
+** New function file-name-base.
+
+** New function `tty-top-frame' returns the topmost frame of a text terminal.
 
 ** `automount-dir-prefix' is obsolete.
 ** `buffer-has-markers-at' is obsolete.
@@ -514,7 +683,8 @@ terminal coding system.  The new option `glyphless-char-display-control'
 specifies how to display them: as a hexadecimal code in a box, a thin
 1-pixel space, an empty box, etc.
 
-*** New input methods: farsi, farsi-translit, bulgarian-alt-phonetic.
+*** New input methods for Farsi and Bulgarian
+(farsi-isiri-9147, farsi-transliterate-banan, bulgarian-alt-phonetic).
 
 *** `nobreak-char-display' now also highlights Unicode hyphen chars
 (U+2010 and U+2011).

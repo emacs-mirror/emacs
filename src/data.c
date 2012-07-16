@@ -517,7 +517,7 @@ DEFUN ("setcdr", Fsetcdr, Ssetcdr, 2, 2, 0,
   return newcdr;
 }
 
-/* Extract and set components of symbols */
+/* Extract and set components of symbols.  */
 
 DEFUN ("boundp", Fboundp, Sboundp, 1, 1, 0,
        doc: /* Return t if SYMBOL's value is not void.  */)
@@ -637,8 +637,9 @@ DEFUN ("fset", Ffset, Sfset, 2, 2, 0,
     Fput (symbol, Qautoload, XCDR (function));
 
   XSYMBOL (symbol)->function = definition;
-  /* Handle automatic advice activation */
-  if (CONSP (XSYMBOL (symbol)->plist) && !NILP (Fget (symbol, Qad_advice_info)))
+  /* Handle automatic advice activation.  */
+  if (CONSP (XSYMBOL (symbol)->plist)
+      && !NILP (Fget (symbol, Qad_advice_info)))
     {
       call2 (Qad_activate_internal, symbol, Qnil);
       definition = XSYMBOL (symbol)->function;
@@ -647,11 +648,12 @@ DEFUN ("fset", Ffset, Sfset, 2, 2, 0,
 }
 
 DEFUN ("defalias", Fdefalias, Sdefalias, 2, 3, 0,
-       doc: /* Set SYMBOL's function definition to DEFINITION, and return DEFINITION.
+       doc: /* Set SYMBOL's function definition to DEFINITION.
 Associates the function with the current load file, if any.
 The optional third argument DOCSTRING specifies the documentation string
 for SYMBOL; if it is omitted or nil, SYMBOL uses the documentation string
-determined by DEFINITION.  */)
+determined by DEFINITION.
+The return value is undefined.  */)
   (register Lisp_Object symbol, Lisp_Object definition, Lisp_Object docstring)
 {
   CHECK_SYMBOL (symbol);
@@ -666,7 +668,10 @@ determined by DEFINITION.  */)
   LOADHIST_ATTACH (Fcons (Qdefun, symbol));
   if (!NILP (docstring))
     Fput (symbol, Qfunction_documentation, docstring);
-  return definition;
+  /* We used to return `definition', but now that `defun' and `defmacro' expand
+     to a call to `defalias', we return `symbol' for backward compatibility
+     (bug#11686).  */
+  return symbol;
 }
 
 DEFUN ("setplist", Fsetplist, Ssetplist, 2, 2, 0,
@@ -1458,8 +1463,7 @@ union Lisp_Val_Fwd
 static struct Lisp_Buffer_Local_Value *
 make_blv (struct Lisp_Symbol *sym, int forwarded, union Lisp_Val_Fwd valcontents)
 {
-  struct Lisp_Buffer_Local_Value *blv
-    = xmalloc (sizeof (struct Lisp_Buffer_Local_Value));
+  struct Lisp_Buffer_Local_Value *blv = xmalloc (sizeof *blv);
   Lisp_Object symbol;
   Lisp_Object tem;
 
@@ -1500,7 +1504,7 @@ The function `default-value' gets the default value and `set-default' sets it.  
 {
   struct Lisp_Symbol *sym;
   struct Lisp_Buffer_Local_Value *blv = NULL;
-  union Lisp_Val_Fwd valcontents IF_LINT (= {0});
+  union Lisp_Val_Fwd valcontents IF_LINT (= {LISP_INITIALLY_ZERO});
   int forwarded IF_LINT (= 0);
 
   CHECK_SYMBOL (variable);
@@ -1577,7 +1581,7 @@ Instead, use `add-hook' and specify t for the LOCAL argument.  */)
 {
   register Lisp_Object tem;
   int forwarded IF_LINT (= 0);
-  union Lisp_Val_Fwd valcontents IF_LINT (= {0});
+  union Lisp_Val_Fwd valcontents IF_LINT (= {LISP_INITIALLY_ZERO});
   struct Lisp_Symbol *sym;
   struct Lisp_Buffer_Local_Value *blv = NULL;
 
@@ -2129,7 +2133,7 @@ bool-vector.  IDX starts at 0.  */)
     {
       if (idxval < 0 || idxval >= ASIZE (array))
 	args_out_of_range (array, idx);
-      XVECTOR (array)->contents[idxval] = newelt;
+      ASET (array, idxval, newelt);
     }
   else if (BOOL_VECTOR_P (array))
     {
@@ -2444,20 +2448,17 @@ Uses a minus sign if negative.
 NUMBER may be an integer or a floating point number.  */)
   (Lisp_Object number)
 {
-  char buffer[VALBITS];
+  char buffer[max (FLOAT_TO_STRING_BUFSIZE, INT_BUFSIZE_BOUND (EMACS_INT))];
+  int len;
 
   CHECK_NUMBER_OR_FLOAT (number);
 
   if (FLOATP (number))
-    {
-      char pigbuf[FLOAT_TO_STRING_BUFSIZE];
+    len = float_to_string (buffer, XFLOAT_DATA (number));
+  else
+    len = sprintf (buffer, "%"pI"d", XINT (number));
 
-      float_to_string (pigbuf, XFLOAT_DATA (number));
-      return build_string (pigbuf);
-    }
-
-  sprintf (buffer, "%"pI"d", XINT (number));
-  return build_string (buffer);
+  return make_unibyte_string (buffer, len);
 }
 
 DEFUN ("string-to-number", Fstring_to_number, Sstring_to_number, 1, 2, 0,
@@ -3010,11 +3011,11 @@ syms_of_data (void)
   Fput (Qerror, Qerror_conditions,
 	error_tail);
   Fput (Qerror, Qerror_message,
-	make_pure_c_string ("error"));
+	build_pure_c_string ("error"));
 
 #define PUT_ERROR(sym, tail, msg)			\
   Fput (sym, Qerror_conditions, pure_cons (sym, tail)); \
-  Fput (sym, Qerror_message, make_pure_c_string (msg))
+  Fput (sym, Qerror_message, build_pure_c_string (msg))
 
   PUT_ERROR (Qquit, Qnil, "Quit");
 
@@ -3041,7 +3042,7 @@ syms_of_data (void)
 
   arith_tail = pure_cons (Qarith_error, error_tail);
   Fput (Qarith_error, Qerror_conditions, arith_tail);
-  Fput (Qarith_error, Qerror_message, make_pure_c_string ("Arithmetic error"));
+  Fput (Qarith_error, Qerror_message, build_pure_c_string ("Arithmetic error"));
 
   PUT_ERROR (Qbeginning_of_buffer, error_tail, "Beginning of buffer");
   PUT_ERROR (Qend_of_buffer, error_tail, "End of buffer");
@@ -3208,9 +3209,8 @@ syms_of_data (void)
 }
 
 #ifndef FORWARD_SIGNAL_TO_MAIN_THREAD
-static void arith_error (int) NO_RETURN;
+_Noreturn
 #endif
-
 static void
 arith_error (int signo)
 {

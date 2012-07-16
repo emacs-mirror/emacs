@@ -88,7 +88,6 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
 (require 'button)
 
 ;; vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
@@ -989,41 +988,41 @@ Return the buffer in which the manpage will appear."
 See the variable `Man-notify-method' for the different notification behaviors."
   (let ((saved-frame (with-current-buffer man-buffer
 		       Man-original-frame)))
-    (case Man-notify-method
-     (newframe
-      ;; Since we run asynchronously, perhaps while Emacs is waiting
-      ;; for input, we must not leave a different buffer current.  We
-      ;; can't rely on the editor command loop to reselect the
-      ;; selected window's buffer.
-      (save-excursion
-	(let ((frame (make-frame Man-frame-parameters)))
-	  (set-window-buffer (frame-selected-window frame) man-buffer)
-          (set-window-dedicated-p (frame-selected-window frame) t)
-	  (or (display-multi-frame-p frame)
-	      (select-frame frame)))))
-     (pushy
-      (switch-to-buffer man-buffer))
-     (bully
-      (and (frame-live-p saved-frame)
-	   (select-frame saved-frame))
-      (pop-to-buffer man-buffer)
-      (delete-other-windows))
-     (aggressive
-      (and (frame-live-p saved-frame)
-	   (select-frame saved-frame))
-      (pop-to-buffer man-buffer))
-     (friendly
-      (and (frame-live-p saved-frame)
-	   (select-frame saved-frame))
-      (display-buffer man-buffer 'not-this-window))
-     (polite
-      (beep)
-      (message "Manual buffer %s is ready" (buffer-name man-buffer)))
-     (quiet
-      (message "Manual buffer %s is ready" (buffer-name man-buffer)))
-     (t ;; meek
-      (message ""))
-     )))
+    (pcase Man-notify-method
+      (`newframe
+       ;; Since we run asynchronously, perhaps while Emacs is waiting
+       ;; for input, we must not leave a different buffer current.  We
+       ;; can't rely on the editor command loop to reselect the
+       ;; selected window's buffer.
+       (save-excursion
+         (let ((frame (make-frame Man-frame-parameters)))
+           (set-window-buffer (frame-selected-window frame) man-buffer)
+           (set-window-dedicated-p (frame-selected-window frame) t)
+           (or (display-multi-frame-p frame)
+               (select-frame frame)))))
+      (`pushy
+       (switch-to-buffer man-buffer))
+      (`bully
+       (and (frame-live-p saved-frame)
+            (select-frame saved-frame))
+       (pop-to-buffer man-buffer)
+       (delete-other-windows))
+      (`aggressive
+       (and (frame-live-p saved-frame)
+            (select-frame saved-frame))
+       (pop-to-buffer man-buffer))
+      (`friendly
+       (and (frame-live-p saved-frame)
+            (select-frame saved-frame))
+       (display-buffer man-buffer 'not-this-window))
+      (`polite
+       (beep)
+       (message "Manual buffer %s is ready" (buffer-name man-buffer)))
+      (`quiet
+       (message "Manual buffer %s is ready" (buffer-name man-buffer)))
+      (_ ;; meek
+       (message ""))
+      )))
 
 (defun Man-softhyphen-to-minus ()
   ;; \255 is SOFT HYPHEN in Latin-N.  Versions of Debian man, at
@@ -1061,14 +1060,14 @@ Same for the ANSI bold and normal escape sequences."
       (setq faces
 	    (cond
 	     ((match-beginning 2)
-	      (delq (case (char-after (match-beginning 2))
+	      (delq (pcase (char-after (match-beginning 2))
 		      (?2 Man-overstrike-face)
 		      (?4 Man-underline-face)
 		      (?7 Man-reverse-face))
 		    faces))
 	     ((eq (char-after (match-beginning 1)) ?0) nil)
 	     (t
-	      (cons (case (char-after (match-beginning 1))
+	      (cons (pcase (char-after (match-beginning 1))
 		      (?1 Man-overstrike-face)
 		      (?4 Man-underline-face)
 		      (?7 Man-reverse-face))

@@ -21,8 +21,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <config.h>
 #include <setjmp.h>
 #include "lisp.h"
-#include "buffer.h"
 #include "character.h"
+#include "buffer.h"
 
 static Lisp_Object Qcase_table_p, Qcase_table;
 Lisp_Object Vascii_downcase_table;

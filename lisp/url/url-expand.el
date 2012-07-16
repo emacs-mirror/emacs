@@ -24,7 +24,6 @@
 (require 'url-methods)
 (require 'url-util)
 (require 'url-parse)
-(eval-when-compile (require 'cl))
 
 (defun url-expander-remove-relative-links (name)
   ;; Strip . and .. from pathnames

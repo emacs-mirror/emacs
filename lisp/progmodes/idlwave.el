@@ -5235,9 +5235,7 @@ Can run from `after-save-hook'."
 	  class
 	  (cond ((not (boundp 'idlwave-scanning-lib))
 		 (list  'buffer (buffer-file-name)))
-;		((string= (downcase
-;			   (file-name-sans-extension
-;			    (file-name-nondirectory (buffer-file-name))))
+;		((string= (downcase (file-name-base))
 ;			  (downcase name))
 ;		 (list 'lib))
 ;		(t (cons 'lib (file-name-nondirectory (buffer-file-name))))

@@ -205,8 +205,6 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Variables
 
-(eval-when-compile (require 'cl))
-
 (defgroup browse-url nil
   "Use a web browser to look at a URL."
   :prefix "browse-url-"
@@ -1621,22 +1619,21 @@ from `browse-url-elinks-wrapper'."
 
 (defun browse-url-elinks-sentinel (process url)
   "Determines if Elinks is running or a new one has to be started."
-  (let ((exit-status (process-exit-status process)))
-    ;; Try to determine if an instance is running or if we have to
-    ;; create a new one.
-    (case exit-status
-	  (5
-	   ;; No instance, start a new one.
-	   (browse-url-elinks-new-window url))
-	  (0
-	   ;; Found an instance, open URL in new tab.
-	   (let ((process-environment (browse-url-process-environment)))
-	     (start-process (concat "elinks:" url) nil
-			    "elinks" "-remote"
-			    (concat "openURL(\"" url "\",new-tab)"))))
-	  (otherwise
-	   (error "Unrecognized exit-code %d of process `elinks'"
-		  exit-status)))))
+  ;; Try to determine if an instance is running or if we have to
+  ;; create a new one.
+  (pcase (process-exit-status process)
+    (5
+     ;; No instance, start a new one.
+     (browse-url-elinks-new-window url))
+    (0
+     ;; Found an instance, open URL in new tab.
+     (let ((process-environment (browse-url-process-environment)))
+       (start-process (concat "elinks:" url) nil
+                      "elinks" "-remote"
+                      (concat "openURL(\"" url "\",new-tab)"))))
+    (exit-status
+     (error "Unrecognized exit-code %d of process `elinks'"
+            exit-status))))
 
 (provide 'browse-url)
 

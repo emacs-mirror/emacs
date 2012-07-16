@@ -791,44 +791,39 @@ subdirs in the alternatives."
   :type 'boolean
   :group 'ido)
 
-(defface ido-first-match  '((t (:bold t)))
+(defface ido-first-match  '((t :weight bold))
   "Face used by ido for highlighting first match."
   :group 'ido)
 
 (defface ido-only-match  '((((class color))
-                                 (:foreground "ForestGreen"))
-                                (t (:italic t)))
+			    :foreground "ForestGreen")
+			   (t :slant italic))
   "Face used by ido for highlighting only match."
   :group 'ido)
 
 (defface ido-subdir  '((((min-colors 88) (class color))
-                             (:foreground "red1"))
-			    (((class color))
-                             (:foreground "red"))
-                            (t (:underline t)))
+			:foreground "red1")
+		       (((class color))
+			:foreground "red")
+		       (t :underline t))
   "Face used by ido for highlighting subdirs in the alternatives."
   :group 'ido)
 
-(defface ido-virtual '((t (:inherit font-lock-builtin-face)))
+(defface ido-virtual '((t :inherit font-lock-builtin-face))
   "Face used by ido for matching virtual buffer names."
   :version "24.1"
   :group 'ido)
 
-(defface ido-indicator  '((((min-colors 88) (class color))
-				(:foreground "yellow1"
-				 :background "red1"
-				 :width condensed))
-			       (((class color))
-				(:foreground "yellow"
-				 :background "red"
-				 :width condensed))
-			       (t (:inverse-video t)))
+(defface ido-indicator '((((min-colors 88) (class color))
+			  :foreground "yellow1" :background "red1" :width condensed)
+			 (((class color))
+			  :foreground "yellow" :background "red" :width condensed)
+			 (t :inverse-video t))
   "Face used by ido for highlighting its indicators."
   :group 'ido)
 
 (defface ido-incomplete-regexp
-  '((t
-     (:inherit font-lock-warning-face)))
+  '((t :inherit font-lock-warning-face))
   "Ido face for indicating incomplete regexps."
   :group 'ido)
 
@@ -4051,8 +4046,7 @@ their normal keybindings, except for the following: \\<ido-buffer-completion-map
 RET Select the buffer at the front of the list of matches.  If the
 list is empty, possibly prompt to create new buffer.
 
-\\[ido-select-text] Select the current prompt as the buffer.
-If no buffer is found, prompt for a new one.
+\\[ido-select-text] Use the current input string verbatim.
 
 \\[ido-next-match] Put the first element at the end of the list.
 \\[ido-prev-match] Put the last element at the start of the list.
@@ -4138,8 +4132,7 @@ except for the following: \\<ido-file-completion-map>
 RET Select the file at the front of the list of matches.  If the
 list is empty, possibly prompt to create new file.
 
-\\[ido-select-text] Select the current prompt as the buffer or file.
-If no buffer or file is found, prompt for a new one.
+\\[ido-select-text] Use the current input string verbatim.
 
 \\[ido-next-match] Put the first element at the end of the list.
 \\[ido-prev-match] Put the last element at the start of the list.
@@ -4147,6 +4140,7 @@ If no buffer or file is found, prompt for a new one.
 matches all files.  If there is only one match, select that file.
 If there is no common suffix, show a list of all matching files
 in a separate window.
+\\[ido-magic-delete-char] Open the specified directory in Dired mode.
 \\[ido-edit-input] Edit input string (including directory).
 \\[ido-prev-work-directory] or \\[ido-next-work-directory] go to previous/next directory in work directory history.
 \\[ido-merge-work-directories] search for file in the work directory history.

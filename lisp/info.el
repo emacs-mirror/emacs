@@ -32,8 +32,6 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
-
 (defgroup info nil
   "Info subsystem."
   :group 'help
@@ -168,6 +166,83 @@ A header-line does not scroll with the rest of the buffer."
   '((t :inherit info-node))
   "Face for Info nodes in a node header."
   :group 'info)
+
+;; This is a defcustom largely so that we can get the benefit
+;; of custom-initialize-delay.  Perhaps it would work to make it a
+;; defvar and explicitly give it a standard-value property, and
+;; call custom-initialize-delay on it.
+;; The progn forces the autoloader to include the whole thing, not
+;; just an abbreviated version.
+;;;###autoload
+(progn
+(defcustom Info-default-directory-list
+  (let* ((config-dir
+	  (file-name-as-directory
+	   ;; Self-contained NS build with info/ in the app-bundle.
+	   (or (and (featurep 'ns)
+		    (let ((dir (expand-file-name "../info" data-directory)))
+		      (if (file-directory-p dir) dir)))
+	       configure-info-directory)))
+	 (prefixes
+	  ;; Directory trees in which to look for info subdirectories
+	  (prune-directory-list '("/usr/local/" "/usr/" "/opt/" "/")))
+	 (suffixes
+	  ;; Subdirectories in each directory tree that may contain info
+	  ;; directories.  Most of these are rather outdated.
+	  ;; It ought to be fine to stop checking the "emacs" ones now,
+	  ;; since this is Emacs and we have not installed info files
+	  ;; into such directories for a looong time...
+	  '("share/" "" "gnu/" "gnu/lib/" "gnu/lib/emacs/"
+	    "emacs/" "lib/" "lib/emacs/"))
+	 (standard-info-dirs
+	  (apply #'nconc
+		 (mapcar (lambda (pfx)
+			   (let ((dirs
+				  (mapcar (lambda (sfx)
+					    (concat pfx sfx "info/"))
+					  suffixes)))
+			     (prune-directory-list dirs)))
+			 prefixes)))
+	 ;; If $(prefix)/share/info is not one of the standard info
+	 ;; directories, they are probably installing an experimental
+	 ;; version of Emacs, so make sure that experimental version's Info
+	 ;; files override the ones in standard directories.
+	 (dirs
+	  (if (member config-dir standard-info-dirs)
+	      ;; FIXME?  What is the point of adding it again at the end
+	      ;; when it is already present earlier in the list?
+	      (nconc standard-info-dirs (list config-dir))
+	    (cons config-dir standard-info-dirs))))
+    (if (not (eq system-type 'windows-nt))
+	dirs
+      ;; Include the info directory near where Emacs executable was installed.
+      (let* ((instdir (file-name-directory invocation-directory))
+	     (dir1 (expand-file-name "../info/" instdir))
+	     (dir2 (expand-file-name "../../../info/" instdir)))
+	(cond ((file-exists-p dir1) (append dirs (list dir1)))
+	      ((file-exists-p dir2) (append dirs (list dir2)))
+	      (t dirs)))))
+
+  "Default list of directories to search for Info documentation files.
+They are searched in the order they are given in the list.
+Therefore, the directory of Info files that come with Emacs
+normally should come last (so that local files override standard ones),
+unless Emacs is installed into a non-standard directory.  In the latter
+case, the directory of Info files that come with Emacs should be
+first in this list.
+
+Once Info is started, the list of directories to search
+comes from the variable `Info-directory-list'.
+This variable `Info-default-directory-list' is used as the default
+for initializing `Info-directory-list' when Info is started, unless
+the environment variable INFOPATH is set.
+
+Although this is a customizable variable, that is mainly for technical
+reasons.  Normally, you should either set INFOPATH or customize
+`Info-additional-directory-list', rather than changing this variable."
+  :initialize 'custom-initialize-delay
+  :type '(repeat directory)
+  :group 'info))
 
 (defvar Info-directory-list nil
   "List of directories to search for Info documentation files.
@@ -3692,15 +3767,22 @@ If FORK is non-nil, it is passed to `Info-goto-node'."
 
 (defun Info-mouse-follow-link (click)
   "Follow a link where you click."
-  (interactive "e")
+  (interactive "@e")
   (let* ((position (event-start click))
 	 (posn-string (and position (posn-string position)))
-	 (string (car-safe posn-string))
-	 (string-pos (cdr-safe posn-string))
-	 (link-args (and string string-pos
-			 (get-text-property string-pos 'link-args string))))
-    (when link-args
-      (Info-goto-node link-args))))
+	 (link-args (if posn-string
+			(get-text-property (cdr posn-string)
+					   'link-args
+					   (car posn-string))
+		      (get-char-property (posn-point position)
+					 'link-args))))
+    (cond ((stringp link-args)
+	   (Info-goto-node link-args))
+	  ;; These special values of the `link-args' property are used
+	  ;; for navigation; see `Info-fontify-node'.
+	  ((eq link-args 'prev) (Info-prev))
+	  ((eq link-args 'next) (Info-next))
+	  ((eq link-args 'up)   (Info-up)))))
 
 
 (defvar Info-mode-map
@@ -3758,6 +3840,8 @@ If FORK is non-nil, it is passed to `Info-goto-node'."
     (define-key map "\177" 'Info-scroll-down)
     (define-key map [mouse-2] 'Info-mouse-follow-nearest-node)
     (define-key map [follow-link] 'mouse-face)
+    (define-key map [XF86Back] 'Info-history-back)
+    (define-key map [XF86Forward] 'Info-history-forward)
     map)
   "Keymap containing Info commands.")
 
@@ -4273,45 +4357,17 @@ the variable `Info-file-list-for-emacs'."
 	  (t
 	   (Info-goto-emacs-command-node command)))))
 
-(defvar Info-next-link-keymap
-  (let ((keymap (make-sparse-keymap)))
-    (define-key keymap [header-line mouse-1] 'Info-next)
-    (define-key keymap [header-line mouse-2] 'Info-next)
-    (define-key keymap [header-line down-mouse-1] 'ignore)
-    (define-key keymap [mouse-2] 'Info-next)
-    (define-key keymap [follow-link] 'mouse-face)
-    keymap)
-  "Keymap to put on the Next link in the text or the header line.")
-
-(defvar Info-prev-link-keymap
-  (let ((keymap (make-sparse-keymap)))
-    (define-key keymap [header-line mouse-1] 'Info-prev)
-    (define-key keymap [header-line mouse-2] 'Info-prev)
-    (define-key keymap [header-line down-mouse-1] 'ignore)
-    (define-key keymap [mouse-2] 'Info-prev)
-    (define-key keymap [follow-link] 'mouse-face)
-    keymap)
-  "Keymap to put on the Prev link in the text or the header line.")
-
-(defvar Info-up-link-keymap
-  (let ((keymap (make-sparse-keymap)))
-    (define-key keymap [header-line mouse-1] 'Info-up)
-    (define-key keymap [header-line mouse-2] 'Info-up)
-    (define-key keymap [header-line down-mouse-1] 'ignore)
-    (define-key keymap [mouse-2] 'Info-up)
-    (define-key keymap [follow-link] 'mouse-face)
-    keymap)
-  "Keymap to put on the Up link in the text or the header line.")
-
 (defvar Info-link-keymap
   (let ((keymap (make-sparse-keymap)))
-    (define-key keymap [header-line mouse-1] 'Info-mouse-follow-link)
+    (define-key keymap [header-line down-mouse-1] 'mouse-drag-header-line)
+    (define-key keymap [header-line mouse-1] 'mouse-select-window)
     (define-key keymap [header-line mouse-2] 'Info-mouse-follow-link)
-    (define-key keymap [header-line down-mouse-1] 'ignore)
     (define-key keymap [mouse-2] 'Info-mouse-follow-link)
     (define-key keymap [follow-link] 'mouse-face)
     keymap)
-  "Keymap to put on the link in the text or the header line.")
+  "Keymap to put on Info links.
+This is used for the \"Next\", \"Prev\", and \"Up\" links in the
+first line or header line, and for breadcrumb links.")
 
 (defun Info-breadcrumbs ()
   (let ((nodes (Info-toc-nodes Info-current-file))
@@ -4400,15 +4456,14 @@ the variable `Info-file-list-for-emacs'."
                                  'help-echo
                                  (concat "mouse-2: Go to node "
                                          (buffer-substring nbeg nend)))
-              ;; Always set up the text property keymap.
-              ;; It will either be used in the buffer
-              ;; or copied in the header line.
-              (put-text-property
-	       tbeg nend 'keymap
-	       (cond
-		((string-equal (downcase tag) "prev") Info-prev-link-keymap)
-		((string-equal (downcase tag) "next") Info-next-link-keymap)
-		((string-equal (downcase tag) "up"  ) Info-up-link-keymap))))))
+              ;; Set up the text property keymap.  Depending on
+              ;; `Info-use-header-line', it is either used in the
+              ;; buffer, or copied to the header line.  A symbol value
+              ;; of the `link-args' property is handled specially by
+              ;; `Info-mouse-follow-link'.
+              (put-text-property tbeg nend 'keymap Info-link-keymap)
+              (put-text-property tbeg nend 'link-args
+				 (intern (downcase tag))))))
 
         ;; (when (> Info-breadcrumbs-depth 0)
         ;;   (insert (Info-breadcrumbs)))

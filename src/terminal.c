@@ -225,16 +225,13 @@ create_terminal (void)
   struct terminal *terminal = allocate_terminal ();
   Lisp_Object terminal_coding, keyboard_coding;
 
-  terminal->name = NULL;
   terminal->next_terminal = terminal_list;
   terminal_list = terminal;
 
   terminal->id = next_terminal_id++;
 
-  terminal->keyboard_coding =
-    (struct coding_system *) xmalloc (sizeof (struct coding_system));
-  terminal->terminal_coding =
-    (struct coding_system *) xmalloc (sizeof (struct coding_system));
+  terminal->keyboard_coding = xmalloc (sizeof (struct coding_system));
+  terminal->terminal_coding = xmalloc (sizeof (struct coding_system));
 
   /* If default coding systems for the terminal and the keyboard are
      already defined, use them in preference to the defaults.  This is
@@ -255,9 +252,6 @@ create_terminal (void)
   setup_coding_system (keyboard_coding, terminal->keyboard_coding);
   setup_coding_system (terminal_coding, terminal->terminal_coding);
 
-  terminal->param_alist = Qnil;
-  terminal->charset_list = Qnil;
-  terminal->Vselection_alist = Qnil;
   return terminal;
 }
 

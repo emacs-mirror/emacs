@@ -294,7 +294,7 @@ load_charset_map (struct charset *charset, struct charset_map_entries *entries, 
       else
 	{
 	  if (! temp_charset_work)
-	    temp_charset_work = xmalloc (sizeof (*temp_charset_work));
+	    temp_charset_work = xmalloc (sizeof *temp_charset_work);
 	  if (control_flag == 1)
 	    {
 	      memset (temp_charset_work->table.decoder, -1,
@@ -878,9 +878,9 @@ usage: (define-charset-internal ...)  */)
 
       min_byte_obj = Faref (val, make_number (i * 2));
       max_byte_obj = Faref (val, make_number (i * 2 + 1));
-      CHECK_RANGED_INTEGER (0, min_byte_obj, 255);
+      CHECK_RANGED_INTEGER (min_byte_obj, 0, 255);
       min_byte = XINT (min_byte_obj);
-      CHECK_RANGED_INTEGER (min_byte, max_byte_obj, 255);
+      CHECK_RANGED_INTEGER (max_byte_obj, min_byte, 255);
       max_byte = XINT (max_byte_obj);
       charset.code_space[i * 4] = min_byte;
       charset.code_space[i * 4 + 1] = max_byte;
@@ -898,7 +898,7 @@ usage: (define-charset-internal ...)  */)
     charset.dimension = dimension;
   else
     {
-      CHECK_RANGED_INTEGER (1, val, 4);
+      CHECK_RANGED_INTEGER (val, 1, 4);
       charset.dimension = XINT (val);
     }
 
@@ -912,8 +912,7 @@ usage: (define-charset-internal ...)  */)
 
   if (! charset.code_linear_p)
     {
-      charset.code_space_mask = (unsigned char *) xmalloc (256);
-      memset (charset.code_space_mask, 0, 256);
+      charset.code_space_mask = xzalloc (256);
       for (i = 0; i < 4; i++)
 	for (j = charset.code_space[i * 4]; j <= charset.code_space[i * 4 + 1];
 	     j++)
@@ -991,7 +990,7 @@ usage: (define-charset-internal ...)  */)
     charset.iso_revision = -1;
   else
     {
-      CHECK_RANGED_INTEGER (-1, val, 63);
+      CHECK_RANGED_INTEGER (val, -1, 63);
       charset.iso_revision = XINT (val);
     }
 
@@ -2296,11 +2295,15 @@ init_charset (void)
   tempdir = Fexpand_file_name (build_string ("charsets"), Vdata_directory);
   if (access (SSDATA (tempdir), 0) < 0)
     {
-      dir_warning ("Error: charsets directory (%s) does not exist.\n\
+      /* This used to be non-fatal (dir_warning), but it should not
+         happen, and if it does sooner or later it will cause some
+         obscure problem (eg bug#6401), so better abort.  */
+      fprintf (stderr, "Error: charsets directory not found:\n\
+%s\n\
 Emacs will not function correctly without the character map files.\n\
 Please check your installation!\n",
-                   tempdir);
-      /* TODO should this be a fatal error?  (Bug#909)  */
+                   SDATA (tempdir));
+      exit (1);
     }
 
   Vcharset_map_path = Fcons (tempdir, Qnil);

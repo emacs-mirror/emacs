@@ -153,6 +153,8 @@ LIBOTF_LIBS = @LIBOTF_LIBS@
 M17N_FLT_CFLAGS = @M17N_FLT_CFLAGS@
 M17N_FLT_LIBS = @M17N_FLT_LIBS@
 
+LIB_CLOCK_GETTIME=@LIB_CLOCK_GETTIME@
+
 DBUS_CFLAGS = @DBUS_CFLAGS@
 DBUS_LIBS = @DBUS_LIBS@
 ## dbusbind.o if HAVE_DBUS, else empty.
@@ -301,11 +303,8 @@ MKDEPDIR=@MKDEPDIR@
 ## -Demacs is needed to make some files produce the correct version
 ## for use in Emacs.
 ##
-## -DHAVE_CONFIG_H is needed for some other files to take advantage of
-## the information in `config.h'.
-##
 ## FIXME? MYCPPFLAGS only referenced in etc/DEBUG.
-ALL_CFLAGS=-Demacs -DHAVE_CONFIG_H $(MYCPPFLAGS) -I. -I$(srcdir) \
+ALL_CFLAGS=-Demacs $(MYCPPFLAGS) -I. -I$(srcdir) \
   -I$(lib) -I$(srcdir)/../lib \
   $(C_SWITCH_MACHINE) $(C_SWITCH_SYSTEM) $(C_SWITCH_X_SITE) \
   $(GNUSTEP_CFLAGS) $(CFLAGS_SOUND) $(RSVG_CFLAGS) $(IMAGEMAGICK_CFLAGS) \
@@ -384,7 +383,7 @@ otherobj= $(TERMCAP_OBJ) $(PRE_ALLOC_OBJ) $(GMALLOC_OBJ) $(RALLOC_OBJ) \
 ## duplicated symbols.  If the standard libraries were compiled
 ## with GCC, we might need LIB_GCC again after them.
 LIBES = $(LIBS) $(LIBX_BASE) $(LIBX_OTHER) $(LIBSOUND) \
-   $(RSVG_LIBS) $(IMAGEMAGICK_LIBS) $(DBUS_LIBS) \
+   $(RSVG_LIBS) $(IMAGEMAGICK_LIBS) $(LIB_CLOCK_GETTIME) $(DBUS_LIBS) \
    $(LIBXML2_LIBS) $(LIBGPM) $(LIBRESOLV) $(LIBS_SYSTEM) \
    $(LIBS_TERMCAP) $(GETLOADAVG_LIBS) $(SETTINGS_LIBS) $(LIBSELINUX_LIBS) \
    $(FREETYPE_LIBS) $(FONTCONFIG_LIBS) $(LIBOTF_LIBS) $(M17N_FLT_LIBS) \
@@ -396,7 +395,6 @@ all: emacs$(EXEEXT) $(OTHER_FILES)
 $(leimdir)/leim-list.el: bootstrap-emacs$(EXEEXT)
 	cd $(leimdir) && $(MAKE) $(MFLAGS) leim-list.el EMACS=$(bootstrap_exe)
 
-## Does anyone ever pay attention to the load-path-shadows output here?
 ## The dumped Emacs is as functional and more efficient than
 ## bootstrap-emacs, so we replace the latter with the former.
 ## Strictly speaking, emacs does not depend directly on all of $lisp,
@@ -405,13 +403,10 @@ $(leimdir)/leim-list.el: bootstrap-emacs$(EXEEXT)
 emacs$(EXEEXT): temacs$(EXEEXT) $(etc)/DOC $(lisp) $(leimdir)/leim-list.el
 	if test "$(CANNOT_DUMP)" = "yes"; then \
 	  ln -f temacs$(EXEEXT) emacs$(EXEEXT); \
-	  EMACSLOADPATH=$(lispsource) ./emacs -batch \
-	    -f list-load-path-shadows || true; \
 	else \
 	  LC_ALL=C $(RUN_TEMACS) -batch -l loadup dump || exit 1; \
 	  test "X$(PAXCTL)" = X || $(PAXCTL) -zex emacs$(EXEEXT); \
 	  ln -f emacs$(EXEEXT) bootstrap-emacs$(EXEEXT); \
-	  ./emacs -batch -f list-load-path-shadows || true; \
 	fi
 
 ## We run make-docfile twice because the command line may get too long

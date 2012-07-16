@@ -147,7 +147,7 @@ fi
 
 ### Find out which version of Emacs this is.
 version=`
-  sed -n 's/^AC_INIT(emacs,[	 ]*\([^	 )]*\).*/\1/p' <configure.in
+  sed -n 's/^AC_INIT(emacs,[	 ]*\([^	 )]*\).*/\1/p' <configure.ac
 ` || version=
 if [ ! "${version}" ]; then
   echo "${progname}: can't find current Emacs version in \`./src/emacs.c'" >&2
@@ -230,35 +230,24 @@ fi
 
 if [ $update = yes ]; then
 
-  ## Make sure configure is newer than configure.in.
-  if [ "x`ls -t configure configure.in | sed q`" != "xconfigure" ]; then
-    echo "\`./configure.in' is newer than \`./configure'" >&2
-    echo "Running autoconf" >&2
-    autoconf || { x=$?; echo Autoconf FAILED! >&2; exit $x; }
-  fi
+  ## Make sure configure is newer than configure.ac, etc.
+  ## It is better to let autoreconf do what is needed than
+  ## for us to try and duplicate all its checks.
+  echo "Running autoreconf"
+  autoreconf -i -I m4 || { x=$?; echo Autoreconf FAILED! >&2; exit $x; }
 
-  ## Make sure src/stamp-h.in is newer than configure.in.
-  if [ "x`ls -t src/stamp-h.in configure.in | sed q`" != "xsrc/stamp-h.in" ]; then
-    echo "\`./configure.in' is newer than \`./src/stamp-h.in'" >&2
-    echo "Running autoheader" >&2
-    autoheader || { x=$?; echo Autoheader FAILED! >&2; exit $x; }
-    rm -f src/stamp-h.in
-    echo timestamp > src/stamp-h.in
-  fi
+  ## Make sure src/stamp-h.in is newer than configure.ac.
+  rm -f src/stamp-h.in
+  echo timestamp > src/stamp-h.in
 
   echo "Updating Info files"
-  (cd doc/emacs; make info)
-  (cd doc/misc; make info)
-  (cd doc/lispref; make info)
-  (cd doc/lispintro; make info)
+  make info-real
 
   echo "Updating finder, custom and autoload data"
-  (cd lisp; make updates EMACS="$EMACS")
+  (cd lisp && make updates EMACS="$EMACS")
 
-  if test -f leim/leim-list.el; then
-    echo "Updating leim-list.el"
-    (cd leim; make leim-list.el EMACS="$EMACS")
-  fi
+  echo "Updating leim-list.el"
+  (cd leim && make leim-list.el EMACS="$EMACS")
 
   echo "Recompiling Lisp files"
   $EMACS -batch -f batch-byte-recompile-directory lisp leim
@@ -284,7 +273,7 @@ mkdir ${tempdir}
 ### README while the rest of the tar file is still unpacking.  Whoopee.
 echo "Making links to top-level files"
 ln INSTALL README BUGS ${tempdir}
-ln ChangeLog Makefile.in configure configure.in ${tempdir}
+ln ChangeLog Makefile.in configure configure.ac ${tempdir}
 ln config.bat make-dist .dir-locals.el ${tempdir}
 ln aclocal.m4 ${tempdir}
 
@@ -386,7 +375,7 @@ echo "Making links to \`lib'"
 echo "Making links to \`lib-src'"
 (cd lib-src
  ln [a-zA-Z]*.[ch] ../${tempdir}/lib-src
- ln ChangeLog Makefile.in README testfile vcdiff ../${tempdir}/lib-src
+ ln ChangeLog Makefile.in README testfile ../${tempdir}/lib-src
  ln grep-changelog rcs2log ../${tempdir}/lib-src
  ln makefile.w32-in ../${tempdir}/lib-src)
 

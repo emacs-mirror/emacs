@@ -734,13 +734,8 @@ struct font_data_list
   struct font_data_list *next;
 };
 
-EXFUN (Ffont_spec, MANY);
 extern Lisp_Object copy_font_spec (Lisp_Object);
 extern Lisp_Object merge_font_spec (Lisp_Object, Lisp_Object);
-EXFUN (Ffont_get, 2);
-EXFUN (Ffont_put, 3);
-EXFUN (Flist_fonts, 4);
-EXFUN (Ffont_xlfd_name, 2);
 
 extern Lisp_Object font_make_entity (void);
 extern Lisp_Object font_make_object (int, Lisp_Object, int);
@@ -776,7 +771,7 @@ extern void font_prepare_for_face (FRAME_PTR f, struct face *face);
 extern void font_done_for_face (FRAME_PTR f, struct face *face);
 
 extern Lisp_Object font_open_by_spec (FRAME_PTR f, Lisp_Object spec);
-extern Lisp_Object font_open_by_name (FRAME_PTR f, const char *name);
+extern Lisp_Object font_open_by_name (FRAME_PTR f, const char *name, ptrdiff_t len);
 
 extern Lisp_Object font_intern_prop (const char *str, ptrdiff_t len,
 				     int force_symbol);
@@ -786,9 +781,9 @@ extern void font_parse_family_registry (Lisp_Object family,
                                         Lisp_Object registry,
                                         Lisp_Object spec);
 
-extern int font_parse_xlfd (char *name, Lisp_Object font);
-extern int font_unparse_xlfd (Lisp_Object font, int pixel_size,
-                              char *name, int bytes);
+extern int font_parse_xlfd (char *name, ptrdiff_t len, Lisp_Object font);
+extern ptrdiff_t font_unparse_xlfd (Lisp_Object font, int pixel_size,
+				    char *name, int bytes);
 extern int font_unparse_fcname (Lisp_Object font, int pixel_size,
                                 char *name, int bytes);
 extern void register_font_driver (struct font_driver *driver, FRAME_PTR f);

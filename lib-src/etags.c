@@ -91,9 +91,7 @@ char pot_etags_version[] = "@(#) pot revision number is 17.38.1.4";
 #  define NDEBUG		/* disable assert */
 #endif
 
-#ifdef HAVE_CONFIG_H
-# include <config.h>
-#endif /* !HAVE_CONFIG_H */
+#include <config.h>
 
 #ifndef _GNU_SOURCE
 # define _GNU_SOURCE 1		/* enables some compiler checks on GNU */
@@ -113,10 +111,6 @@ char pot_etags_version[] = "@(#) pot revision number is 17.38.1.4";
 # include <fcntl.h>
 # include <sys/param.h>
 # include <io.h>
-# ifndef HAVE_CONFIG_H
-#   define DOS_NT
-#   include <sys/config.h>
-# endif
 #else
 # define MSDOS FALSE
 #endif /* MSDOS */
@@ -150,6 +144,7 @@ char pot_etags_version[] = "@(#) pot revision number is 17.38.1.4";
 #include <errno.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <c-strcase.h>
 
 #include <assert.h>
 #ifdef NDEBUG
@@ -167,14 +162,6 @@ char pot_etags_version[] = "@(#) pot revision number is 17.38.1.4";
 # include <getopt.h>
 #endif /* NO_LONG_OPTIONS */
 
-#ifndef HAVE_CONFIG_H		/* this is a standalone compilation */
-# ifdef __CYGWIN__         	/* compiling on Cygwin */
-			     !!! NOTICE !!!
- the regex.h distributed with Cygwin is not compatible with etags, alas!
-If you want regular expression support, you should delete this notice and
-	      arrange to use the GNU regex.h and regex.c.
-# endif
-#endif
 #include <regex.h>
 
 /* Define CTAGS to make the program "ctags" compatible with the usual one.
@@ -188,9 +175,9 @@ If you want regular expression support, you should delete this notice and
 #endif
 
 #define streq(s,t)	(assert ((s)!=NULL || (t)!=NULL), !strcmp (s, t))
-#define strcaseeq(s,t)	(assert ((s)!=NULL && (t)!=NULL), !etags_strcasecmp (s, t))
+#define strcaseeq(s,t)	(assert ((s)!=NULL && (t)!=NULL), !c_strcasecmp (s, t))
 #define strneq(s,t,n)	(assert ((s)!=NULL || (t)!=NULL), !strncmp (s, t, n))
-#define strncaseeq(s,t,n) (assert ((s)!=NULL && (t)!=NULL), !etags_strncasecmp (s, t, n))
+#define strncaseeq(s,t,n) (assert ((s)!=NULL && (t)!=NULL), !c_strncasecmp (s, t, n))
 
 #define CHARS 256		/* 2^sizeof(char) */
 #define CHAR(x)		((unsigned int)(x) & (CHARS - 1))
@@ -366,9 +353,9 @@ static void analyse_regex (char *);
 static void free_regexps (void);
 static void regex_tag_multiline (void);
 static void error (const char *, ...) ATTRIBUTE_FORMAT_PRINTF (1, 2);
-static void suggest_asking_for_help (void) NO_RETURN;
-void fatal (const char *, const char *) NO_RETURN;
-static void pfatal (const char *) NO_RETURN;
+static _Noreturn void suggest_asking_for_help (void);
+_Noreturn void fatal (const char *, const char *);
+static _Noreturn void pfatal (const char *);
 static void add_node (node *, node **);
 
 static void init (void);
@@ -389,8 +376,6 @@ static char *savenstr (const char *, int);
 static char *savestr (const char *);
 static char *etags_strchr (const char *, int);
 static char *etags_strrchr (const char *, int);
-static int etags_strcasecmp (const char *, const char *);
-static int etags_strncasecmp (const char *, const char *, int);
 static char *etags_getcwd (void);
 static char *relative_filename (char *, char *);
 static char *absolute_filename (char *, char *);
@@ -2138,7 +2123,7 @@ invalidate_nodes (fdesc *badfdp, node **npp)
 
 
 static int total_size_of_entries (node *);
-static int number_len (long);
+static int number_len (long) ATTRIBUTE_CONST;
 
 /* Length of a non-negative number's decimal representation. */
 static int
@@ -2657,17 +2642,11 @@ write_classname (linebuffer *cn, const char *qualifier)
     }
   for (i = 1; i < cstack.nl; i++)
     {
-      char *s;
-      int slen;
-
-      s = cstack.cname[i];
+      char *s = cstack.cname[i];
       if (s == NULL)
 	continue;
-      slen = strlen (s);
-      len += slen + qlen;
-      linebuffer_setlen (cn, len);
-      strncat (cn->buffer, qualifier, qlen);
-      strncat (cn->buffer, s, slen);
+      linebuffer_setlen (cn, len + qlen + strlen (s));
+      len += sprintf (cn->buffer + len, "%s%s", qualifier, s);
     }
 }
 
@@ -2882,7 +2861,7 @@ consider_token (register char *str, register int len, register int c, int *c_ext
 	   fvdef = fvnone;
 	   objdef = omethodtag;
 	   linebuffer_setlen (&token_name, len);
-	   strncpy (token_name.buffer, str, len);
+	   memcpy (token_name.buffer, str, len);
 	   token_name.buffer[len] = '\0';
 	   return TRUE;
 	 }
@@ -2894,10 +2873,11 @@ consider_token (register char *str, register int len, register int c, int *c_ext
      case omethodparm:
        if (parlev == 0)
 	 {
+	   int oldlen = token_name.len;
 	   fvdef = fvnone;
 	   objdef = omethodtag;
-	   linebuffer_setlen (&token_name, token_name.len + len);
-	   strncat (token_name.buffer, str, len);
+	   linebuffer_setlen (&token_name, oldlen + len);
+	   memcpy (token_name.buffer + oldlen, str, len);
 	   return TRUE;
 	 }
        return FALSE;
@@ -3326,12 +3306,12 @@ C_entries (int c_ext, FILE *inf)
 			      && nestlev > 0 && definedef == dnone)
 			    /* in struct body */
 			    {
+			      int len;
                               write_classname (&token_name, qualifier);
-			      linebuffer_setlen (&token_name,
-						 token_name.len+qlen+toklen);
-			      strcat (token_name.buffer, qualifier);
-			      strncat (token_name.buffer,
-				       newlb.buffer + tokoff, toklen);
+			      len = token_name.len;
+			      linebuffer_setlen (&token_name, len+qlen+toklen);
+			      sprintf (token_name.buffer + len, "%s%.*s",
+				       qualifier, toklen, newlb.buffer + tokoff);
 			      token.named = TRUE;
 			    }
 			  else if (objdef == ocatseen)
@@ -3339,11 +3319,8 @@ C_entries (int c_ext, FILE *inf)
 			    {
 			      int len = strlen (objtag) + 2 + toklen;
 			      linebuffer_setlen (&token_name, len);
-			      strcpy (token_name.buffer, objtag);
-			      strcat (token_name.buffer, "(");
-			      strncat (token_name.buffer,
-				       newlb.buffer + tokoff, toklen);
-			      strcat (token_name.buffer, ")");
+			      sprintf (token_name.buffer, "%s(%.*s)",
+				       objtag, toklen, newlb.buffer + tokoff);
 			      token.named = TRUE;
 			    }
 			  else if (objdef == omethodtag
@@ -3367,8 +3344,8 @@ C_entries (int c_ext, FILE *inf)
 				  len -= 1;
 				}
 			      linebuffer_setlen (&token_name, len);
-			      strncpy (token_name.buffer,
-				       newlb.buffer + off, len);
+			      memcpy (token_name.buffer,
+				      newlb.buffer + off, len);
 			      token_name.buffer[len] = '\0';
 			      if (defun)
 				while (--len >= 0)
@@ -3379,8 +3356,8 @@ C_entries (int c_ext, FILE *inf)
 			  else
 			    {
 			      linebuffer_setlen (&token_name, toklen);
-			      strncpy (token_name.buffer,
-				       newlb.buffer + tokoff, toklen);
+			      memcpy (token_name.buffer,
+				      newlb.buffer + tokoff, toklen);
 			      token_name.buffer[toklen] = '\0';
 			      /* Name macros and members. */
 			      token.named = (structdef == stagseen
@@ -5176,7 +5153,7 @@ HTML_labels (FILE *inf)
 		  for (end = dbp; *end != '\0' && intoken (*end); end++)
 		    continue;
 		linebuffer_setlen (&token_name, end - dbp);
-		strncpy (token_name.buffer, dbp, end - dbp);
+		memcpy (token_name.buffer, dbp, end - dbp);
 		token_name.buffer[end - dbp] = '\0';
 
 		dbp = end;
@@ -5276,7 +5253,7 @@ Prolog_functions (FILE *inf)
 	  else if (len + 1 > allocated)
 	    xrnew (last, len + 1, char);
 	  allocated = len + 1;
-	  strncpy (last, cp, len);
+	  memcpy (last, cp, len);
 	  last[len] = '\0';
 	}
     }
@@ -5449,7 +5426,7 @@ Erlang_functions (FILE *inf)
 	  else if (len + 1 > allocated)
 	    xrnew (last, len + 1, char);
 	  allocated = len + 1;
-	  strncpy (last, cp, len);
+	  memcpy (last, cp, len);
 	  last[len] = '\0';
 	}
     }
@@ -5832,7 +5809,7 @@ substitute (char *in, char *out, struct re_registers *regs)
       {
 	dig = *out - '0';
 	diglen = regs->end[dig] - regs->start[dig];
-	strncpy (t, in + regs->start[dig], diglen);
+	memcpy (t, in + regs->start[dig], diglen);
 	t += diglen;
       }
     else
@@ -6055,7 +6032,7 @@ readline_internal (linebuffer *lbp, register FILE *stream)
 	  filebuf.size *= 2;
 	  xrnew (filebuf.buffer, filebuf.size, char);
 	}
-      strncpy (filebuf.buffer + filebuf.len, lbp->buffer, lbp->len);
+      memcpy (filebuf.buffer + filebuf.len, lbp->buffer, lbp->len);
       filebuf.len += lbp->len;
       filebuf.buffer[filebuf.len++] = '\n';
       filebuf.buffer[filebuf.len] = '\0';
@@ -6278,7 +6255,7 @@ savenstr (const char *cp, int len)
   register char *dp;
 
   dp = xnew (len + 1, char);
-  strncpy (dp, cp, len);
+  memcpy (dp, cp, len);
   dp[len] = '\0';
   return dp;
 }
@@ -6318,48 +6295,6 @@ etags_strchr (register const char *sp, register int c)
 	return (char *)sp;
     } while (*sp++);
   return NULL;
-}
-
-/*
- * Compare two strings, ignoring case for alphabetic characters.
- *
- * Same as BSD's strcasecmp, included for portability.
- */
-static int
-etags_strcasecmp (register const char *s1, register const char *s2)
-{
-  while (*s1 != '\0'
-	 && (ISALPHA (*s1) && ISALPHA (*s2)
-	     ? lowcase (*s1) == lowcase (*s2)
-	     : *s1 == *s2))
-    s1++, s2++;
-
-  return (ISALPHA (*s1) && ISALPHA (*s2)
-	  ? lowcase (*s1) - lowcase (*s2)
-	  : *s1 - *s2);
-}
-
-/*
- * Compare two strings, ignoring case for alphabetic characters.
- * Stop after a given number of characters
- *
- * Same as BSD's strncasecmp, included for portability.
- */
-static int
-etags_strncasecmp (register const char *s1, register const char *s2, register int n)
-{
-  while (*s1 != '\0' && n-- > 0
-	 && (ISALPHA (*s1) && ISALPHA (*s2)
-	     ? lowcase (*s1) == lowcase (*s2)
-	     : *s1 == *s2))
-    s1++, s2++;
-
-  if (n < 0)
-    return 0;
-  else
-    return (ISALPHA (*s1) && ISALPHA (*s2)
-	    ? lowcase (*s1) - lowcase (*s2)
-	    : *s1 - *s2);
 }
 
 /* Skip spaces (end of string is not space), return new pointer. */

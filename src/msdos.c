@@ -31,7 +31,13 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <time.h>
 #include <sys/param.h>
 #include <sys/time.h>
+/* gettime and settime in dos.h clash with their namesakes from
+   gnulib, so we move out of our way the prototypes in dos.h.  */
+#define gettime dos_h_gettime_
+#define settime dos_h_settime_
 #include <dos.h>
+#undef gettime
+#undef settime
 #include <errno.h>
 #include <sys/stat.h>    /* for _fixpath */
 #include <unistd.h>	 /* for chdir, dup, dup2, etc. */
@@ -103,18 +109,18 @@ int _crt0_startup_flags = (_CRT0_FLAG_UNIX_SBRK | _CRT0_FLAG_FILL_SBRK_MEMORY);
 
 #endif /* not SYSTEM_MALLOC */
 
+/* Return the current timestamp in milliseconds since midnight.  */
 static unsigned long
 event_timestamp (void)
 {
-  struct time t;
+  struct timespec t;
   unsigned long s;
 
   gettime (&t);
-  s = t.ti_min;
-  s *= 60;
-  s += t.ti_sec;
+  s = t.tv_sec;
+  s %= 86400;
   s *= 1000;
-  s += t.ti_hund * 10;
+  s += t.tv_nsec * 1000000;
 
   return s;
 }
@@ -514,8 +520,10 @@ dos_set_window_size (int *rows, int *cols)
 
   /* If the user specified a special video mode for these dimensions,
      use that mode.  */
-  sprintf (video_name, "screen-dimensions-%dx%d", *rows, *cols);
-  video_mode = Fsymbol_value (Fintern_soft (build_string (video_name), Qnil));
+  video_mode 
+    = Fsymbol_value (Fintern_soft (make_formatted_string 
+				   (video_name, "screen-dimensions-%dx%d",
+				    *rows, *cols), Qnil));
 
   if (INTEGERP (video_mode)
       && (video_mode_value = XINT (video_mode)) > 0)
@@ -1610,11 +1618,9 @@ IT_set_frame_parameters (struct frame *f, Lisp_Object alist)
 
   /* Extract parm names and values into those vectors.  */
   i = 0;
-  for (tail = alist; CONSP (tail); tail = Fcdr (tail))
+  for (tail = alist; CONSP (tail); tail = XCDR (tail))
     {
-      Lisp_Object elt;
-
-      elt = Fcar (tail);
+      Lisp_Object elt = XCAR (tail);
       parms[i] = Fcar (elt);
       CHECK_SYMBOL (parms[i]);
       values[i] = Fcdr (elt);
@@ -2466,12 +2472,12 @@ dos_rawgetc (void)
       sc = regs.h.ah;
 
       total_doskeys += 2;
-      XVECTOR (recent_doskeys)->contents[recent_doskeys_index++]
-	= make_number (c);
+      ASET (recent_doskeys, recent_doskeys_index, make_number (c));
+      recent_doskeys_index++;
       if (recent_doskeys_index == NUM_RECENT_DOSKEYS)
 	recent_doskeys_index = 0;
-      XVECTOR (recent_doskeys)->contents[recent_doskeys_index++]
-	= make_number (sc);
+      ASET (recent_doskeys, recent_doskeys_index, make_number (sc));
+      recent_doskeys_index++;
       if (recent_doskeys_index == NUM_RECENT_DOSKEYS)
 	recent_doskeys_index = 0;
 
@@ -2822,7 +2828,7 @@ IT_menu_create (void)
 {
   XMenu *menu;
 
-  menu = (XMenu *) xmalloc (sizeof (XMenu));
+  menu = xmalloc (sizeof (XMenu));
   menu->allocated = menu->count = menu->panecount = menu->width = 0;
   return menu;
 }
@@ -2836,10 +2842,10 @@ IT_menu_make_room (XMenu *menu)
   if (menu->allocated == 0)
     {
       int count = menu->allocated = 10;
-      menu->text = (char **) xmalloc (count * sizeof (char *));
-      menu->submenu = (XMenu **) xmalloc (count * sizeof (XMenu *));
-      menu->panenumber = (int *) xmalloc (count * sizeof (int));
-      menu->help_text = (const char **) xmalloc (count * sizeof (char *));
+      menu->text = xmalloc (count * sizeof (char *));
+      menu->submenu = xmalloc (count * sizeof (XMenu *));
+      menu->panenumber = xmalloc (count * sizeof (int));
+      menu->help_text = xmalloc (count * sizeof (char *));
     }
   else if (menu->allocated == menu->count)
     {
@@ -2920,7 +2926,7 @@ IT_menu_display (XMenu *menu, int y, int x, int pn, int *faces, int disp_help)
   width = menu->width;
   /* We multiply width by 2 to account for possible control characters.
      FIXME: cater to non-ASCII characters in menus.  */
-  text = (struct glyph *) xmalloc ((width * 2 + 2) * sizeof (struct glyph));
+  text = xmalloc ((width * 2 + 2) * sizeof (struct glyph));
   ScreenGetCursor (&row, &col);
   mouse_get_xy (&mx, &my);
   IT_update_begin (sf);
@@ -4072,13 +4078,6 @@ sigprocmask (int how, const sigset_t *new_set, sigset_t *old_set)
 #ifndef HAVE_SELECT
 #include "sysselect.h"
 
-#ifndef EMACS_TIME_ZERO_OR_NEG_P
-#define EMACS_TIME_ZERO_OR_NEG_P(time)	\
-  ((long)(time).tv_sec < 0		\
-   || ((time).tv_sec == 0		\
-       && (long)(time).tv_usec <= 0))
-#endif
-
 /* This yields the rest of the current time slice to the task manager.
    It should be called by any code which knows that it has nothing
    useful to do except idle.
@@ -4104,10 +4103,10 @@ dos_yield_time_slice (void)
    because wait_reading_process_output takes care of that.  */
 int
 sys_select (int nfds, SELECT_TYPE *rfds, SELECT_TYPE *wfds, SELECT_TYPE *efds,
-	    EMACS_TIME *timeout)
+	    EMACS_TIME *timeout, void *ignored)
 {
   int check_input;
-  struct time t;
+  struct timespec t;
 
   check_input = 0;
   if (rfds)
@@ -4137,22 +4136,17 @@ sys_select (int nfds, SELECT_TYPE *rfds, SELECT_TYPE *wfds, SELECT_TYPE *efds,
       EMACS_TIME clnow, cllast, cldiff;
 
       gettime (&t);
-      EMACS_SET_SECS_USECS (cllast, t.ti_sec, t.ti_hund * 10000L);
+      cllast = make_emacs_time (t.tv_sec, t.tv_nsec);
 
       while (!check_input || !detect_input_pending ())
 	{
 	  gettime (&t);
-	  EMACS_SET_SECS_USECS (clnow, t.ti_sec, t.ti_hund * 10000L);
-	  EMACS_SUB_TIME (cldiff, clnow, cllast);
-
-	  /* When seconds wrap around, we assume that no more than
-	     1 minute passed since last `gettime'.  */
-	  if (EMACS_TIME_NEG_P (cldiff))
-	    EMACS_SET_SECS (cldiff, EMACS_SECS (cldiff) + 60);
-	  EMACS_SUB_TIME (*timeout, *timeout, cldiff);
+	  clnow = make_emacs_time (t.tv_sec, t.tv_nsec);
+	  cldiff = sub_emacs_time (clnow, cllast);
+	  *timeout = sub_emacs_time (*timeout, cldiff);
 
 	  /* Stop when timeout value crosses zero.  */
-	  if (EMACS_TIME_ZERO_OR_NEG_P (*timeout))
+	  if (EMACS_TIME_SIGN (*timeout) <= 0)
 	    return 0;
 	  cllast = clnow;
 	  dos_yield_time_slice ();

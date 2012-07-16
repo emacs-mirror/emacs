@@ -29,7 +29,7 @@
 (when (featurep 'mucs)
   (error "nxml-mode is not compatible with Mule-UCS"))
 
-(eval-when-compile (require 'cl))	; for assert
+(eval-when-compile (require 'cl-lib))
 
 (require 'xmltok)
 (require 'nxml-enc)
@@ -54,9 +54,9 @@
 
 (defcustom nxml-char-ref-display-glyph-flag t
   "Non-nil means display glyph following character reference.
-The glyph is displayed in face `nxml-glyph'.  The hook
-`nxml-glyph-set-hook' can be used to customize for which characters
-glyphs are displayed."
+The glyph is displayed in face `nxml-glyph'.  The abnormal hook
+`nxml-glyph-set-functions' can be used to change the characters
+for which glyphs are displayed."
   :group 'nxml
   :type 'boolean)
 
@@ -930,16 +930,16 @@ Called with `font-lock-beg' and `font-lock-end' dynamically bound."
     (nxml-debug-change "nxml-fontify-matcher" (point) bound)
 
     (when (< (point) nxml-prolog-end)
-      ;; prolog needs to be fontified in one go, and
+      ;; Prolog needs to be fontified in one go, and
       ;; nxml-extend-region makes sure we start at BOB.
-      (assert (bobp))
+      (cl-assert (bobp))
       (nxml-fontify-prolog)
       (goto-char nxml-prolog-end))
 
     (let (xmltok-dependent-regions
           xmltok-errors)
       (while (and (nxml-tokenize-forward)
-                  (<= (point) bound)) ; intervals are open-ended
+                  (<= (point) bound))   ; Intervals are open-ended.
         (nxml-apply-fontify-rule)))
 
     (setq nxml-last-fontify-end (point)))

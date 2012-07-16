@@ -91,7 +91,7 @@
 (require 'gud)
 (require 'json)
 (require 'bindat)
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 (declare-function speedbar-change-initial-expansion-list
                   "speedbar" (new-default))
@@ -2269,8 +2269,7 @@ Return position where LINE begins."
 ;; gdb-table struct is a way to programmatically construct simple
 ;; tables. It help to reliably align columns of data in GDB buffers
 ;; and provides
-(defstruct
-  gdb-table
+(cl-defstruct gdb-table
   (column-sizes nil)
   (rows nil)
   (row-properties nil)
@@ -2757,9 +2756,9 @@ corresponding to the mode line clicked."
         (add-to-list 'gdb-threads-list
                      (cons (bindat-get-field thread 'id)
                            thread))
-        (if running
-            (incf gdb-running-threads-count)
-          (incf gdb-stopped-threads-count))
+        (cl-incf (if running
+                     gdb-running-threads-count
+                   gdb-stopped-threads-count))
 
         (gdb-table-add-row table
                            (list

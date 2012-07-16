@@ -24,8 +24,7 @@
 
 ;;; Code:
 
-(eval-when-compile
-  (require 'cl))                        ; assert
+(eval-when-compile (require 'cl-lib))
 
 (defvar bzrmerge-skip-regexp
   "back[- ]?port\\|merge\\|sync\\|re-?generate\\|bump version\\|from trunk\\|\
@@ -256,17 +255,17 @@ Does not make other difference."
           ;; Do a "skip" (i.e. merge the meta-data only).
           (setq beg (1- (car skip)))
           (while (and skip (or (null merge) (< (car skip) (car merge))))
-            (assert (> (car skip) (or end beg)))
+            (cl-assert (> (car skip) (or end beg)))
             (setq end (pop skip)))
           (message "Skipping %s..%s" beg end)
           (bzrmerge-add-metadata from end))
 
          (t
           ;; Do a "normal" merge.
-          (assert (or (null skip) (< (car merge) (car skip))))
+          (cl-assert (or (null skip) (< (car merge) (car skip))))
           (setq beg (1- (car merge)))
           (while (and merge (or (null skip) (< (car merge) (car skip))))
-            (assert (> (car merge) (or end beg)))
+            (cl-assert (> (car merge) (or end beg)))
             (setq end (pop merge)))
           (message "Merging %s..%s" beg end)
           (if (with-temp-buffer

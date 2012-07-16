@@ -76,7 +76,7 @@ sigset_t sys_sigblock   (sigset_t new_mask);
 sigset_t sys_sigunblock (sigset_t new_mask);
 sigset_t sys_sigsetmask (sigset_t new_mask);
 #if ! (defined TIOCNOTTY || defined USG5 || defined CYGWIN)
-void croak (char *) NO_RETURN;
+_Noreturn void croak (char *);
 #endif
 
 #define sys_sigdel(MASK,SIG) sigdelset (&MASK,SIG)
@@ -86,20 +86,19 @@ void croak (char *) NO_RETURN;
 #if defined (SIGIO) && defined (BROKEN_SIGIO)
 # undef SIGIO
 #endif
-/* Last user: m/ibmrs6000.h  */
+/* These are only used by AIX  */
 #if defined (SIGPOLL) && defined (BROKEN_SIGPOLL)
 #undef SIGPOLL
 #endif
-/* Last user: m/ibmrs6000.h  */
 #if defined (SIGAIO) && defined (BROKEN_SIGAIO)
 #undef SIGAIO
 #endif
-/* Last user: m/ibmrs6000.h  */
 #if defined (SIGPTY) && defined (BROKEN_SIGPTY)
 #undef SIGPTY
 #endif
 
 
+/* FIXME?  Emacs only defines NSIG_MINIMUM on some platforms?  */
 #if NSIG < NSIG_MINIMUM
 # ifdef NSIG
 #  undef NSIG

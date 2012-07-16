@@ -29,6 +29,7 @@
 
 #if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__
 # if _GL_WINDOWS_64_BIT_ST_SIZE
+#  undef stat /* avoid warning on mingw64 with _FILE_OFFSET_BITS=64 */
 #  define stat _stati64
 #  define REPLACE_FUNC_STAT_DIR 1
 #  undef REPLACE_FUNC_STAT_FILE

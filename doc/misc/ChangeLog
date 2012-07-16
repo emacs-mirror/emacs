@@ -1,3 +1,100 @@
+2012-07-09  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Rename configure.in to configure.ac (Bug#11603).
+	* ede.texi (Compiler and Linker objects, ede-proj-project)
+	(ede-step-project): Prefer the name configure.ac to configure.in.
+
+2012-07-06  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (Multi-hops): Introduce
+	`tramp-restricted-shell-hosts-alist'.
+
+2012-06-26  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi (POP before SMTP): POP-before-SMTP works with all sending
+	methods, so don't mention smtpmail here.
+
+2012-06-26  Wolfgang Jenkner  <wjenkner@inode.at>
+
+	* gnus.texi (Picons): Document gnus-picon-properties.
+
+2012-06-26  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi: Remove mention of compilation, as that's no longer
+	supported.
+
+2012-06-26  Christopher Schmidt  <christopher@ch.ristopher.com>
+
+	* gnus.texi (Archived Messages): Mention
+	gnus-gcc-pre-body-encode-hook and gnus-gcc-post-body-encode-hook.
+
+2012-06-26  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi (Various Summary Stuff):
+	Remove mention of `gnus-propagate-marks'.
+
+2012-06-26  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi: Remove mentions of nnml/nnfolder/nntp backend marks,
+	which no longer exist.
+
+2012-06-26  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi (Archived Messages):
+	Document gnus-gcc-self-resent-messages.
+
+2012-06-26  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* message.texi (Mail Variables):
+	Mention the optional user parameter for X-Message-SMTP-Method.
+
+2012-06-26  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi (Posting Styles): Mention X-Message-SMTP-Method.
+
+	* message.texi (Mail Variables): Document X-Message-SMTP-Method.
+
+2012-06-26  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi (Key Index): Change encoding to utf-8.
+
+2012-06-21  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in: Rename infodir to buildinfodir throughout.  (Bug#11737)
+
+2012-06-11  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi (Group Timestamp): Mention where to find documentation for
+	the `gnus-tmp-' variables (bug#11601).
+
+2012-06-11  Michael Albinus  <michael.albinus@gmx.de>
+
+	Sync with Tramp 2.2.6-pre.
+
+	* tramp.texi (all): Use consequently @command{}, @env{} and @kbd{}
+	where appropriate.
+	(Ad-hoc multi-hops): New section.
+	(Remote processes): New subsection "Running remote processes on
+	Windows hosts".
+	(History): Add remote commands on Windows, and ad-hoc multi-hop
+	methods.
+	(External methods): "ControlPersist" must be set to "no" for the
+	`scpc' method.
+	(Remote processes): Add a note about `auto-revert-tail-mode'.
+	(Frequently Asked Questions): Use "scpx" in combination with
+	"ControlPersist".  Reported by Adam Spiers <emacs@adamspiers.org>.
+
+	* trampver.texi: Update release number.
+
+2012-06-10  Chong Yidong  <cyd@gnu.org>
+
+	* sc.texi: Remove bogus @ifinfo commands which prevent makeinfo
+	compilation for html-mono.
+
+2012-06-08  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* texinfo.tex: Merge from gnulib.
+
 2012-05-29  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* Makefile.in (echo-info): Don't try to install info files named
@@ -735,7 +832,7 @@
 2011-08-15  Eric Schulte  <schulte.eric@gmail.com>
 
 	* org.texi (Structure of code blocks): Explicitly state that the
-	behavior of multiple blocks of the same name is undefined
+	behavior of multiple blocks of the same name is undefined.
 
 2011-08-15  Christian Egli  <christian.egli@sbszh.ch>
 
@@ -1102,7 +1199,7 @@
 
 2011-03-19  Antoine Levitt  <antoine.levitt@gmail.com>
 
-	* gnus.texi (Listing Groups): Document gnus-group-list-ticked
+	* gnus.texi (Listing Groups): Document gnus-group-list-ticked.
 
 2011-03-17  Jay Belanger  <jay.p.belanger@gmail.com>
 
@@ -3027,7 +3124,7 @@
 2009-07-29  Jay Belanger  <jay.p.belanger@gmail.com>
 
 	* calc.texi (Stack Manipulation Commands): Add documentation for
-	`calc-transpose-lines'
+	`calc-transpose-lines'.
 
 2009-07-27  Michael Albinus  <michael.albinus@gmx.de>
 

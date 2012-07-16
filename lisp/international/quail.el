@@ -53,7 +53,7 @@
 ;;; Code:
 
 (require 'help-mode)
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 (defgroup quail nil
   "Quail: multilingual input method."
@@ -2395,10 +2395,10 @@ should be made by `quail-build-decode-map' (which see)."
                    (let ((last-col-elt (or (nth (1- (* (1+ col) newrows))
                                                 single-list)
                                            (car (last single-list)))))
-                     (incf width (+ (max 3 (length (car last-col-elt)))
-                                    1 single-trans-width 1))))
+                     (cl-incf width (+ (max 3 (length (car last-col-elt)))
+                                       1 single-trans-width 1))))
                  (< width window-width))
-          (incf cols))
+          (cl-incf cols))
         (setq rows (/ (+ len cols -1) cols)) ;Round up.
         (let ((key-width (max 3 (length (car (nth (1- rows) single-list))))))
           (insert "key")

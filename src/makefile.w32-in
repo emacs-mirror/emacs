@@ -27,11 +27,7 @@ EMACSLOADPATH=$(CURDIR)/../lisp
 # Size in MBs of the static heap in temacs.exe.
 HEAPSIZE = 27
 
-#
-# HAVE_CONFIG_H is required by some generic gnu sources stuck into
-# the emacs source tree.
-#
-LOCAL_FLAGS     = -Demacs=1 -DHAVE_CONFIG_H -I../lib -I../nt/inc -DHAVE_NTGUI=1 $(EMACS_EXTRA_C_FLAGS)
+LOCAL_FLAGS     = -Demacs=1 -I../lib -I../nt/inc -DHAVE_NTGUI=1 $(EMACS_EXTRA_C_FLAGS)
 
 SRC             = .
 EMACS           = $(BLD)/emacs.exe
@@ -391,11 +387,14 @@ GNU_LIB = $(EMACS_ROOT)/lib
 NT_INC = $(EMACS_ROOT)/nt/inc
 
 SYSTIME_H      = $(SRC)/systime.h \
-		 $(NT_INC)/sys/time.h
+		 $(NT_INC)/sys/time.h \
+		 $(GNU_LIB)/timespec.h
 ATIMER_H       = $(SRC)/atimer.h \
 		 $(SYSTIME_H)
 BLOCKINPUT_H   = $(SRC)/blockinput.h \
 		 $(ATIMER_H)
+BUFFER_H       = $(SRC)/buffer.h \
+		 $(SYSTIME_H)
 CAREADLINKAT_H = $(GNU_LIB)/careadlinkat.h \
 		 $(NT_INC)/unistd.h
 CHARACTER_H    = $(SRC)/character.h \
@@ -413,6 +412,8 @@ DIR_H          = $(NT_INC)/sys/dir.h \
 W32GUI_H       = $(SRC)/w32gui.h \
 		 $(SYSTIME_H)
 DISPEXTERN_H   = $(SRC)/dispextern.h \
+		 $(GNU_LIB)/c-strcase.h \
+		 $(SYSTIME_H) \
 		 $(W32GUI_H)
 FILEMODE_H     = $(GNU_LIB)/filemode.h \
 		 $(NT_INC)/sys/stat.h
@@ -455,6 +456,8 @@ SHA512_H       = $(GNU_LIB)/sha512.h \
 		 $(U64_H)
 SOCKET_H       = $(NT_INC)/sys/socket.h \
 		 $(SRC)/w32.h
+STAT_TIME_H    = $(GNU_LIB)/stat-time.h \
+		 $(NT_INC)/sys/stat.h
 SYSTTY_H       = $(SRC)/systty.h \
 		 $(NT_INC)/sys/ioctl.h \
 		 $(NT_INC)/unistd.h
@@ -467,13 +470,13 @@ WINDOW_H       = $(SRC)/window.h \
 
 $(BLD)/alloc.$(O) : \
 	$(SRC)/alloc.c \
-	$(SRC)/buffer.h \
 	$(SRC)/puresize.h \
 	$(SRC)/syssignal.h \
 	$(SRC)/w32.h \
 	$(NT_INC)/unistd.h \
 	$(GNU_LIB)/verify.h \
 	$(BLOCKINPUT_H) \
+	$(BUFFER_H) \
 	$(CHARACTER_H) \
 	$(CONFIG_H) \
 	$(FRAME_H) \
@@ -487,7 +490,6 @@ $(BLD)/alloc.$(O) : \
 $(BLD)/atimer.$(O) : \
 	$(SRC)/atimer.c \
 	$(SRC)/syssignal.h \
-	$(NT_INC)/sys/time.h \
 	$(NT_INC)/unistd.h \
 	$(ATIMER_H) \
 	$(BLOCKINPUT_H) \
@@ -497,7 +499,7 @@ $(BLD)/atimer.$(O) : \
 
 $(BLD)/bidi.$(O) : \
 	$(SRC)/bidi.c \
-	$(SRC)/buffer.h \
+	$(BUFFER_H) \
 	$(CHARACTER_H) \
 	$(CONFIG_H) \
 	$(DISPEXTERN_H) \
@@ -505,7 +507,6 @@ $(BLD)/bidi.$(O) : \
 
 $(BLD)/buffer.$(O) : \
 	$(SRC)/buffer.c \
-	$(SRC)/buffer.h \
 	$(SRC)/commands.h \
 	$(SRC)/indent.h \
 	$(SRC)/keymap.h \
@@ -515,6 +516,7 @@ $(BLD)/buffer.$(O) : \
 	$(NT_INC)/unistd.h \
 	$(GNU_LIB)/verify.h \
 	$(BLOCKINPUT_H) \
+	$(BUFFER_H) \
 	$(CHARACTER_H) \
 	$(CONFIG_H) \
 	$(FRAME_H) \
@@ -525,8 +527,8 @@ $(BLD)/buffer.$(O) : \
 
 $(BLD)/bytecode.$(O) : \
 	$(SRC)/bytecode.c \
-	$(SRC)/buffer.h \
 	$(SRC)/syntax.h \
+	$(BUFFER_H) \
 	$(CHARACTER_H) \
 	$(CONFIG_H) \
 	$(LISP_H) \
@@ -534,9 +536,9 @@ $(BLD)/bytecode.$(O) : \
 
 $(BLD)/callint.$(O) : \
 	$(SRC)/callint.c \
-	$(SRC)/buffer.h \
 	$(SRC)/commands.h \
 	$(SRC)/keymap.h \
+	$(BUFFER_H) \
 	$(CHARACTER_H) \
 	$(CONFIG_H) \
 	$(KEYBOARD_H) \
@@ -545,7 +547,6 @@ $(BLD)/callint.$(O) : \
 
 $(BLD)/callproc.$(O) : \
 	$(SRC)/callproc.c \
-	$(SRC)/buffer.h \
 	$(SRC)/ccl.h \
 	$(SRC)/commands.h \
 	$(SRC)/composite.h \
@@ -555,6 +556,7 @@ $(BLD)/callproc.$(O) : \
 	$(NT_INC)/sys/file.h \
 	$(NT_INC)/unistd.h \
 	$(BLOCKINPUT_H) \
+	$(BUFFER_H) \
 	$(CHARACTER_H) \
 	$(CODING_H) \
 	$(CONFIG_H) \
@@ -566,27 +568,27 @@ $(BLD)/callproc.$(O) : \
 
 $(BLD)/casefiddle.$(O) : \
 	$(SRC)/casefiddle.c \
-	$(SRC)/buffer.h \
 	$(SRC)/commands.h \
 	$(SRC)/composite.h \
 	$(SRC)/keymap.h \
 	$(SRC)/syntax.h \
+	$(BUFFER_H) \
 	$(CHARACTER_H) \
 	$(CONFIG_H) \
 	$(LISP_H)
 
 $(BLD)/casetab.$(O) : \
 	$(SRC)/casetab.c \
-	$(SRC)/buffer.h \
+	$(BUFFER_H) \
 	$(CHARACTER_H) \
 	$(CONFIG_H) \
 	$(LISP_H)
 
 $(BLD)/category.$(O) : \
 	$(SRC)/category.c \
-	$(SRC)/buffer.h \
 	$(SRC)/category.h \
 	$(SRC)/keymap.h \
+	$(BUFFER_H) \
 	$(CHARACTER_H) \
 	$(CHARSET_H) \
 	$(CONFIG_H) \
@@ -603,10 +605,10 @@ $(BLD)/ccl.$(O) : \
 
 $(BLD)/character.$(O) : \
 	$(SRC)/character.c \
-	$(SRC)/buffer.h \
 	$(SRC)/composite.h \
 	$(SRC)/disptab.h \
 	$(GNU_LIB)/intprops.h \
+	$(BUFFER_H) \
 	$(CHARACTER_H) \
 	$(CHARSET_H) \
 	$(CONFIG_H) \
@@ -614,9 +616,9 @@ $(BLD)/character.$(O) : \
 
 $(BLD)/charset.$(O) : \
 	$(SRC)/charset.c \
-	$(SRC)/buffer.h \
 	$(SRC)/disptab.h \
 	$(NT_INC)/unistd.h \
+	$(BUFFER_H) \
 	$(CHARACTER_H) \
 	$(CHARSET_H) \
 	$(CODING_H) \
@@ -633,10 +635,10 @@ $(BLD)/chartab.$(O) : \
 
 $(BLD)/cmds.$(O) : \
 	$(SRC)/cmds.c \
-	$(SRC)/buffer.h \
 	$(SRC)/commands.h \
 	$(SRC)/keymap.h \
 	$(SRC)/syntax.h \
+	$(BUFFER_H) \
 	$(CHARACTER_H) \
 	$(CONFIG_H) \
 	$(DISPEXTERN_H) \
@@ -647,9 +649,9 @@ $(BLD)/cmds.$(O) : \
 
 $(BLD)/coding.$(O) : \
 	$(SRC)/coding.c \
-	$(SRC)/buffer.h \
 	$(SRC)/ccl.h \
 	$(SRC)/composite.h \
+	$(BUFFER_H) \
 	$(CHARACTER_H) \
 	$(CHARSET_H) \
 	$(CODING_H) \
@@ -661,7 +663,7 @@ $(BLD)/coding.$(O) : \
 
 $(BLD)/composite.$(O) : \
 	$(SRC)/composite.c \
-	$(SRC)/buffer.h \
+	$(BUFFER_H) \
 	$(CHARACTER_H) \
 	$(CODING_H) \
 	$(CONFIG_H) \
@@ -675,10 +677,11 @@ $(BLD)/composite.$(O) : \
 
 $(BLD)/data.$(O) : \
 	$(SRC)/data.c \
-	$(SRC)/buffer.h \
+	$(SRC)/keymap.h \
 	$(SRC)/puresize.h \
 	$(SRC)/syssignal.h \
 	$(GNU_LIB)/intprops.h \
+	$(BUFFER_H) \
 	$(CHARACTER_H) \
 	$(CONFIG_H) \
 	$(FONT_H) \
@@ -689,13 +692,13 @@ $(BLD)/data.$(O) : \
 
 $(BLD)/dired.$(O) : \
 	$(SRC)/dired.c \
-	$(SRC)/buffer.h \
 	$(SRC)/commands.h \
 	$(SRC)/regex.h \
 	$(NT_INC)/pwd.h \
 	$(NT_INC)/sys/stat.h \
 	$(NT_INC)/unistd.h \
 	$(BLOCKINPUT_H) \
+	$(BUFFER_H) \
 	$(CHARACTER_H) \
 	$(CHARSET_H) \
 	$(CODING_H) \
@@ -704,11 +707,11 @@ $(BLD)/dired.$(O) : \
 	$(FILEMODE_H) \
 	$(GRP_H) \
 	$(LISP_H) \
+	$(STAT_TIME_H) \
 	$(SYSTIME_H)
 
 $(BLD)/dispnew.$(O) : \
 	$(SRC)/dispnew.c \
-	$(SRC)/buffer.h \
 	$(SRC)/cm.h \
 	$(SRC)/commands.h \
 	$(SRC)/disptab.h \
@@ -718,6 +721,7 @@ $(BLD)/dispnew.$(O) : \
 	$(SRC)/termopts.h \
 	$(NT_INC)/unistd.h \
 	$(BLOCKINPUT_H) \
+	$(BUFFER_H) \
 	$(CHARACTER_H) \
 	$(CONFIG_H) \
 	$(DISPEXTERN_H) \
@@ -733,11 +737,11 @@ $(BLD)/dispnew.$(O) : \
 
 $(BLD)/doc.$(O) : \
 	$(SRC)/doc.c \
-	$(SRC)/buffer.h \
 	$(SRC)/buildobj.h \
 	$(SRC)/keymap.h \
 	$(NT_INC)/sys/file.h \
 	$(NT_INC)/unistd.h \
+	$(BUFFER_H) \
 	$(CHARACTER_H) \
 	$(CONFIG_H) \
 	$(KEYBOARD_H) \
@@ -752,13 +756,13 @@ $(BLD)/doprnt.$(O) : \
 
 $(BLD)/editfns.$(O) : \
 	$(SRC)/editfns.c \
-	$(SRC)/buffer.h \
 	$(NT_INC)/pwd.h \
 	$(NT_INC)/unistd.h \
 	$(GNU_LIB)/intprops.h \
 	$(GNU_LIB)/strftime.h \
 	$(GNU_LIB)/verify.h \
 	$(BLOCKINPUT_H) \
+	$(BUFFER_H) \
 	$(CHARACTER_H) \
 	$(CODING_H) \
 	$(CONFIG_H) \
@@ -770,7 +774,6 @@ $(BLD)/editfns.$(O) : \
 
 $(BLD)/emacs.$(O) : \
 	$(SRC)/emacs.c \
-	$(SRC)/buffer.h \
 	$(SRC)/commands.h \
 	$(SRC)/gnutls.h \
 	$(SRC)/keymap.h \
@@ -781,6 +784,8 @@ $(BLD)/emacs.$(O) : \
 	$(NT_INC)/sys/file.h \
 	$(NT_INC)/unistd.h \
 	$(BLOCKINPUT_H) \
+	$(BUFFER_H) \
+	$(CHARACTER_H) \
 	$(CONFIG_H) \
 	$(FRAME_H) \
 	$(INTERVALS_H) \
@@ -803,12 +808,12 @@ $(BLD)/eval.$(O) : \
 
 $(BLD)/fileio.$(O) : \
 	$(SRC)/fileio.c \
-	$(SRC)/buffer.h \
 	$(SRC)/commands.h \
 	$(NT_INC)/pwd.h \
 	$(NT_INC)/sys/stat.h \
 	$(NT_INC)/unistd.h \
 	$(BLOCKINPUT_H) \
+	$(BUFFER_H) \
 	$(CHARACTER_H) \
 	$(CODING_H) \
 	$(CONFIG_H) \
@@ -816,16 +821,17 @@ $(BLD)/fileio.$(O) : \
 	$(FRAME_H) \
 	$(INTERVALS_H) \
 	$(LISP_H) \
+	$(STAT_TIME_H) \
 	$(SYSTIME_H) \
 	$(WINDOW_H)
 
 $(BLD)/filelock.$(O) : \
 	$(SRC)/filelock.c \
-	$(SRC)/buffer.h \
 	$(NT_INC)/pwd.h \
 	$(NT_INC)/sys/file.h \
 	$(NT_INC)/sys/stat.h \
 	$(NT_INC)/unistd.h \
+	$(BUFFER_H) \
 	$(CHARACTER_H) \
 	$(CODING_H) \
 	$(CONFIG_H) \
@@ -844,12 +850,12 @@ $(BLD)/floatfns.$(O) : \
 
 $(BLD)/fns.$(O) : \
 	$(SRC)/fns.c \
-	$(SRC)/buffer.h \
 	$(SRC)/commands.h \
 	$(SRC)/keymap.h \
 	$(NT_INC)/unistd.h \
 	$(GNU_LIB)/intprops.h \
 	$(BLOCKINPUT_H) \
+	$(BUFFER_H) \
 	$(CHARACTER_H) \
 	$(CODING_H) \
 	$(CONFIG_H) \
@@ -866,9 +872,9 @@ $(BLD)/fns.$(O) : \
 
 $(BLD)/font.$(O) : \
 	$(SRC)/font.c \
-	$(SRC)/buffer.h \
 	$(SRC)/composite.h \
 	$(SRC)/fontset.h \
+	$(BUFFER_H) \
 	$(CHARACTER_H) \
 	$(CHARSET_H) \
 	$(CONFIG_H) \
@@ -881,10 +887,10 @@ $(BLD)/font.$(O) : \
 
 $(BLD)/fontset.$(O) : \
 	$(SRC)/fontset.c \
-	$(SRC)/buffer.h \
 	$(SRC)/ccl.h \
 	$(SRC)/fontset.h \
 	$(BLOCKINPUT_H) \
+	$(BUFFER_H) \
 	$(CHARACTER_H) \
 	$(CHARSET_H) \
 	$(CONFIG_H) \
@@ -900,11 +906,11 @@ $(BLD)/fontset.$(O) : \
 
 $(BLD)/frame.$(O) : \
 	$(SRC)/frame.c \
-	$(SRC)/buffer.h \
 	$(SRC)/commands.h \
 	$(SRC)/fontset.h \
 	$(SRC)/termchar.h \
 	$(BLOCKINPUT_H) \
+	$(BUFFER_H) \
 	$(CHARACTER_H) \
 	$(CONFIG_H) \
 	$(DISPEXTERN_H) \
@@ -918,8 +924,9 @@ $(BLD)/frame.$(O) : \
 
 $(BLD)/fringe.$(O) : \
 	$(SRC)/fringe.c \
-	$(SRC)/buffer.h \
 	$(BLOCKINPUT_H) \
+	$(BUFFER_H) \
+	$(CHARACTER_H) \
 	$(CONFIG_H) \
 	$(DISPEXTERN_H) \
 	$(FRAME_H) \
@@ -942,8 +949,9 @@ $(BLD)/gnutls.$(O) : \
 
 $(BLD)/xml.$(O) : \
 	$(SRC)/xml.c \
-	$(SRC)/buffer.h \
 	$(SRC)/w32.h \
+	$(BUFFER_H) \
+	$(CHARACTER_H) \
 	$(CONFIG_H) \
 	$(LISP_H)
 
@@ -967,7 +975,6 @@ $(BLD)/image.$(O) : \
 
 $(BLD)/indent.$(O) : \
 	$(SRC)/indent.c \
-	$(SRC)/buffer.h \
 	$(SRC)/category.h \
 	$(SRC)/composite.h \
 	$(SRC)/disptab.h \
@@ -975,6 +982,7 @@ $(BLD)/indent.$(O) : \
 	$(SRC)/region-cache.h \
 	$(SRC)/termchar.h \
 	$(SRC)/termopts.h \
+	$(BUFFER_H) \
 	$(CHARACTER_H) \
 	$(CONFIG_H) \
 	$(DISPEXTERN_H) \
@@ -986,10 +994,10 @@ $(BLD)/indent.$(O) : \
 
 $(BLD)/insdel.$(O) : \
 	$(SRC)/insdel.c \
-	$(SRC)/buffer.h \
 	$(SRC)/region-cache.h \
 	$(GNU_LIB)/intprops.h \
 	$(BLOCKINPUT_H) \
+	$(BUFFER_H) \
 	$(CHARACTER_H) \
 	$(CONFIG_H) \
 	$(INTERVALS_H) \
@@ -998,10 +1006,11 @@ $(BLD)/insdel.$(O) : \
 
 $(BLD)/intervals.$(O) : \
 	$(SRC)/intervals.c \
-	$(SRC)/buffer.h \
 	$(SRC)/keymap.h \
 	$(SRC)/puresize.h \
 	$(GNU_LIB)/intprops.h \
+	$(BUFFER_H) \
+	$(CHARACTER_H) \
 	$(CONFIG_H) \
 	$(INTERVALS_H) \
 	$(KEYBOARD_H) \
@@ -1009,7 +1018,6 @@ $(BLD)/intervals.$(O) : \
 
 $(BLD)/keyboard.$(O) : \
 	$(SRC)/keyboard.c \
-	$(SRC)/buffer.h \
 	$(SRC)/commands.h \
 	$(SRC)/disptab.h \
 	$(SRC)/keymap.h \
@@ -1023,6 +1031,7 @@ $(BLD)/keyboard.$(O) : \
 	$(NT_INC)/unistd.h \
 	$(ATIMER_H) \
 	$(BLOCKINPUT_H) \
+	$(BUFFER_H) \
 	$(CHARACTER_H) \
 	$(CONFIG_H) \
 	$(DISPEXTERN_H) \
@@ -1038,11 +1047,11 @@ $(BLD)/keyboard.$(O) : \
 
 $(BLD)/keymap.$(O) : \
 	$(SRC)/keymap.c \
-	$(SRC)/buffer.h \
 	$(SRC)/commands.h \
 	$(SRC)/keymap.h \
 	$(SRC)/puresize.h \
 	$(BLOCKINPUT_H) \
+	$(BUFFER_H) \
 	$(CHARACTER_H) \
 	$(CHARSET_H) \
 	$(CONFIG_H) \
@@ -1059,13 +1068,13 @@ $(BLD)/lastfile.$(O) : \
 
 $(BLD)/lread.$(O) : \
 	$(SRC)/lread.c \
-	$(SRC)/buffer.h \
 	$(SRC)/commands.h \
 	$(SRC)/epaths.h \
 	$(NT_INC)/sys/file.h \
 	$(NT_INC)/sys/stat.h \
 	$(NT_INC)/unistd.h \
 	$(BLOCKINPUT_H) \
+	$(BUFFER_H) \
 	$(CHARACTER_H) \
 	$(CHARSET_H) \
 	$(CODING_H) \
@@ -1074,13 +1083,15 @@ $(BLD)/lread.$(O) : \
 	$(INTERVALS_H) \
 	$(KEYBOARD_H) \
 	$(LISP_H) \
+	$(STAT_TIME_H) \
 	$(TERMHOOKS_H)
 
 $(BLD)/macros.$(O) : \
 	$(SRC)/macros.c \
-	$(SRC)/buffer.h \
 	$(SRC)/commands.h \
 	$(SRC)/macros.h \
+	$(BUFFER_H) \
+	$(CHARACTER_H) \
 	$(CONFIG_H) \
 	$(KEYBOARD_H) \
 	$(LISP_H) \
@@ -1088,7 +1099,7 @@ $(BLD)/macros.$(O) : \
 
 $(BLD)/marker.$(O) : \
 	$(SRC)/marker.c \
-	$(SRC)/buffer.h \
+	$(BUFFER_H) \
 	$(CHARACTER_H) \
 	$(CONFIG_H) \
 	$(LISP_H)
@@ -1109,10 +1120,11 @@ $(BLD)/menu.$(O) : \
 
 $(BLD)/minibuf.$(O) : \
 	$(SRC)/minibuf.c \
-	$(SRC)/buffer.h \
 	$(SRC)/commands.h \
 	$(SRC)/keymap.h \
 	$(SRC)/syntax.h \
+	$(BUFFER_H) \
+	$(CHARACTER_H) \
 	$(CONFIG_H) \
 	$(DISPEXTERN_H) \
 	$(FRAME_H) \
@@ -1194,9 +1206,9 @@ $(BLD)/w32console.$(O) : \
 
 $(BLD)/print.$(O) : \
 	$(SRC)/print.c \
-	$(SRC)/buffer.h \
 	$(SRC)/termchar.h \
 	$(BLOCKINPUT_H) \
+	$(BUFFER_H) \
 	$(CHARACTER_H) \
 	$(CHARSET_H) \
 	$(CONFIG_H) \
@@ -1213,7 +1225,6 @@ $(BLD)/print.$(O) : \
 
 $(BLD)/process.$(O) : \
 	$(SRC)/process.c \
-	$(SRC)/buffer.h \
 	$(SRC)/commands.h \
 	$(SRC)/composite.h \
 	$(SRC)/gnutls.h \
@@ -1230,6 +1241,7 @@ $(BLD)/process.$(O) : \
 	$(NT_INC)/unistd.h \
 	$(ATIMER_H) \
 	$(BLOCKINPUT_H) \
+	$(BUFFER_H) \
 	$(CHARACTER_H) \
 	$(CODING_H) \
 	$(CONFIG_H) \
@@ -1254,19 +1266,19 @@ $(BLD)/ralloc.$(O) : \
 
 $(BLD)/regex.$(O) : \
 	$(SRC)/regex.c \
-	$(SRC)/buffer.h \
 	$(SRC)/category.h \
 	$(SRC)/regex.h \
 	$(SRC)/syntax.h \
-	$(NT_INC)/unistd.h \
+	$(BUFFER_H) \
 	$(CHARACTER_H) \
 	$(CONFIG_H) \
 	$(LISP_H)
 
 $(BLD)/region-cache.$(O) : \
 	$(SRC)/region-cache.c \
-	$(SRC)/buffer.h \
 	$(SRC)/region-cache.h \
+	$(BUFFER_H) \
+	$(CHARACTER_H) \
 	$(CONFIG_H) \
 	$(LISP_H)
 
@@ -1283,13 +1295,13 @@ $(BLD)/scroll.$(O) : \
 
 $(BLD)/search.$(O) : \
 	$(SRC)/search.c \
-	$(SRC)/buffer.h \
 	$(SRC)/category.h \
 	$(SRC)/commands.h \
 	$(SRC)/regex.h \
 	$(SRC)/region-cache.h \
 	$(SRC)/syntax.h \
 	$(BLOCKINPUT_H) \
+	$(BUFFER_H) \
 	$(CHARACTER_H) \
 	$(CHARSET_H) \
 	$(CONFIG_H) \
@@ -1307,12 +1319,12 @@ $(BLD)/sound.$(O) : \
 
 $(BLD)/syntax.$(O) : \
 	$(SRC)/syntax.c \
-	$(SRC)/buffer.h \
 	$(SRC)/category.h \
 	$(SRC)/commands.h \
 	$(SRC)/keymap.h \
 	$(SRC)/regex.h \
 	$(SRC)/syntax.h \
+	$(BUFFER_H) \
 	$(CHARACTER_H) \
 	$(CONFIG_H) \
 	$(INTERVALS_H) \
@@ -1333,6 +1345,7 @@ $(BLD)/sysdep.$(O) : \
 	$(NT_INC)/unistd.h \
 	$(GNU_LIB)/allocator.h \
 	$(GNU_LIB)/ignore-value.h \
+	$(GNU_LIB)/utimens.h \
 	$(BLOCKINPUT_H) \
 	$(CAREADLINKAT_H) \
 	$(CONFIG_H) \
@@ -1350,7 +1363,6 @@ $(BLD)/sysdep.$(O) : \
 
 $(BLD)/term.$(O) : \
 	$(SRC)/term.c \
-	$(SRC)/buffer.h \
 	$(SRC)/cm.h \
 	$(SRC)/composite.h \
 	$(SRC)/disptab.h \
@@ -1360,8 +1372,10 @@ $(BLD)/term.$(O) : \
 	$(SRC)/termopts.h \
 	$(SRC)/tparam.h \
 	$(NT_INC)/sys/file.h \
+	$(NT_INC)/sys/time.h \
 	$(NT_INC)/unistd.h \
 	$(BLOCKINPUT_H) \
+	$(BUFFER_H) \
 	$(CHARACTER_H) \
 	$(CHARSET_H) \
 	$(CODING_H) \
@@ -1388,7 +1402,8 @@ $(BLD)/terminal.$(O) : \
 
 $(BLD)/textprop.$(O) : \
 	$(SRC)/textprop.c \
-	$(SRC)/buffer.h \
+	$(BUFFER_H) \
+	$(CHARACTER_H) \
 	$(CONFIG_H) \
 	$(INTERVALS_H) \
 	$(LISP_H) \
@@ -1402,8 +1417,9 @@ $(BLD)/tparam.$(O) : \
 
 $(BLD)/undo.$(O) : \
 	$(SRC)/undo.c \
-	$(SRC)/buffer.h \
 	$(SRC)/commands.h \
+	$(BUFFER_H) \
+	$(CHARACTER_H) \
 	$(CONFIG_H) \
 	$(LISP_H) \
 	$(WINDOW_H)
@@ -1422,13 +1438,14 @@ $(BLD)/vm-limit.$(O) : \
 
 $(BLD)/window.$(O) : \
 	$(SRC)/window.c \
-	$(SRC)/buffer.h \
 	$(SRC)/commands.h \
 	$(SRC)/disptab.h \
 	$(SRC)/indent.h \
 	$(SRC)/keymap.h \
 	$(SRC)/termchar.h \
 	$(BLOCKINPUT_H) \
+	$(BUFFER_H) \
+	$(CHARACTER_H) \
 	$(CONFIG_H) \
 	$(DISPEXTERN_H) \
 	$(FRAME_H) \
@@ -1441,7 +1458,6 @@ $(BLD)/window.$(O) : \
 
 $(BLD)/xdisp.$(O) : \
 	$(SRC)/xdisp.c \
-	$(SRC)/buffer.h \
 	$(SRC)/commands.h \
 	$(SRC)/disptab.h \
 	$(SRC)/fontset.h \
@@ -1452,6 +1468,7 @@ $(BLD)/xdisp.$(O) : \
 	$(SRC)/termchar.h \
 	$(SRC)/termopts.h \
 	$(BLOCKINPUT_H) \
+	$(BUFFER_H) \
 	$(CHARACTER_H) \
 	$(CHARSET_H) \
 	$(CODING_H) \
@@ -1469,11 +1486,11 @@ $(BLD)/xdisp.$(O) : \
 
 $(BLD)/xfaces.$(O) : \
 	$(SRC)/xfaces.c \
-	$(SRC)/buffer.h \
 	$(SRC)/fontset.h \
 	$(SRC)/termchar.h \
 	$(NT_INC)/sys/stat.h \
 	$(BLOCKINPUT_H) \
+	$(BUFFER_H) \
 	$(CHARACTER_H) \
 	$(CHARSET_H) \
 	$(CONFIG_H) \
@@ -1489,7 +1506,6 @@ $(BLD)/xfaces.$(O) : \
 
 $(BLD)/w32fns.$(O) : \
 	$(SRC)/w32fns.c \
-	$(SRC)/buffer.h \
 	$(SRC)/ccl.h \
 	$(SRC)/epaths.h \
 	$(SRC)/fontset.h \
@@ -1497,6 +1513,7 @@ $(BLD)/w32fns.$(O) : \
 	$(SRC)/w32font.h \
 	$(SRC)/w32heap.h \
 	$(BLOCKINPUT_H) \
+	$(BUFFER_H) \
 	$(CHARACTER_H) \
 	$(CHARSET_H) \
 	$(CODING_H) \
@@ -1514,10 +1531,11 @@ $(BLD)/w32fns.$(O) : \
 
 $(BLD)/w32menu.$(O) : \
 	$(SRC)/w32menu.c \
-	$(SRC)/buffer.h \
 	$(SRC)/keymap.h \
 	$(SRC)/w32heap.h \
 	$(BLOCKINPUT_H) \
+	$(BUFFER_H) \
+	$(CHARACTER_H) \
 	$(CHARSET_H) \
 	$(CODING_H) \
 	$(CONFIG_H) \
@@ -1532,7 +1550,6 @@ $(BLD)/w32menu.$(O) : \
 
 $(BLD)/w32term.$(O) : \
 	$(SRC)/w32term.c \
-	$(SRC)/buffer.h \
 	$(SRC)/ccl.h \
 	$(SRC)/disptab.h \
 	$(SRC)/fontset.h \
@@ -1544,6 +1561,7 @@ $(BLD)/w32term.$(O) : \
 	$(NT_INC)/sys/stat.h \
 	$(ATIMER_H) \
 	$(BLOCKINPUT_H) \
+	$(BUFFER_H) \
 	$(CHARACTER_H) \
 	$(CHARSET_H) \
 	$(CODING_H) \

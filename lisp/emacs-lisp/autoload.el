@@ -32,7 +32,7 @@
 
 (require 'lisp-mode)			;for `doc-string-elt' properties.
 (require 'help-fns)			;for help-add-fundoc-usage.
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 (defvar generated-autoload-file nil
   "File into which to write autoload definitions.
@@ -151,17 +151,19 @@ expression, in which case we want to handle forms differently."
 		   easy-mmode-define-global-mode define-global-minor-mode
 		   define-globalized-minor-mode
 		   easy-mmode-define-minor-mode define-minor-mode
-		   defun* defmacro* define-overloadable-function))
+		   cl-defun defun* cl-defmacro defmacro*
+                   define-overloadable-function))
       (let* ((macrop (memq car '(defmacro defmacro*)))
 	     (name (nth 1 form))
-	     (args (case car
-                     ((defun defmacro defun* defmacro*
-                        define-overloadable-function) (nth 2 form))
-                     ((define-skeleton) '(&optional str arg))
-                     ((define-generic-mode define-derived-mode
-                        define-compilation-mode) nil)
-                     (t)))
-	     (body (nthcdr (get car 'doc-string-elt) form))
+	     (args (pcase car
+                     ((or `defun `defmacro
+                          `defun* `defmacro* `cl-defun `cl-defmacro
+                          `define-overloadable-function) (nth 2 form))
+                     (`define-skeleton '(&optional str arg))
+                     ((or `define-generic-mode `define-derived-mode
+                          `define-compilation-mode) nil)
+                     (_ t)))
+	     (body (nthcdr (or (get car 'doc-string-elt) 3) form))
 	     (doc (if (stringp (car body)) (pop body))))
         ;; Add the usage form at the end where describe-function-1
         ;; can recover it.
@@ -546,7 +548,7 @@ Return non-nil if and only if FILE adds no autoloads to OUTFILE
                 (save-excursion
                   ;; Insert the section-header line which lists the file name
                   ;; and which functions are in it, etc.
-                  (assert (= ostart output-start))
+                  (cl-assert (= ostart output-start))
                   (goto-char output-start)
                   (let ((relfile (file-relative-name absfile)))
                     (autoload-insert-section-header

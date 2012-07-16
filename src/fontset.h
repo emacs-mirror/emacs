@@ -39,7 +39,6 @@ extern Lisp_Object font_for_char (struct face *, int, int, Lisp_Object);
 extern int make_fontset_for_ascii_face (FRAME_PTR, int, struct face *);
 extern int fontset_from_font (Lisp_Object);
 extern int fs_query_fontset (Lisp_Object, int);
-EXFUN (Fquery_fontset, 2);
 extern Lisp_Object list_fontsets (struct frame *, Lisp_Object, int);
 
 extern Lisp_Object Qlatin;

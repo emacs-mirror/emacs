@@ -22,8 +22,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <setjmp.h>
 #include "lisp.h"
 #include "commands.h"
-#include "buffer.h"
 #include "character.h"
+#include "buffer.h"
 #include "syntax.h"
 #include "window.h"
 #include "keyboard.h"

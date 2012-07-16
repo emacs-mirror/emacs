@@ -91,7 +91,7 @@ ALL_CFLAGS=$(C_SWITCH_SYSTEM) $(C_SWITCH_MACHINE) \
   $(C_SWITCH_X_SITE) \
   $(WARN_CFLAGS) $(WERROR_CFLAGS) ${PROFILING_CFLAGS} \
   $(CPPFLAGS) $(CFLAGS) -DEMACS_BITMAP_FILES \
-  -I../src -I${srcdir} -I${srcdir}/../src
+  -I../src -I../lib -I${srcdir} -I${srcdir}/../src -I${srcdir}/../lib
 
 .c.o:
 	$(CC) -c ${ALL_CFLAGS} $<

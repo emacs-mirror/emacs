@@ -34,9 +34,10 @@
 (provide 'esh-ext)
 
 (eval-when-compile
-  (require 'cl)
+  (require 'cl-lib)
   (require 'esh-cmd))
 (require 'esh-util)
+(require 'esh-opt)
 
 (defgroup eshell-ext nil
   "External commands are invoked when operating system executables are
@@ -188,6 +189,7 @@ all the output from the remote command, and sends it all at once,
 causing the user to wonder if anything's really going on..."
   (let ((outbuf (generate-new-buffer " *eshell remote output*"))
 	(errbuf (generate-new-buffer " *eshell remote error*"))
+	(command (or (file-remote-p command 'localname) command))
 	(exitcode 1))
     (unwind-protect
 	(progn
@@ -205,10 +207,10 @@ causing the user to wonder if anything's really going on..."
 (defun eshell-external-command (command args)
   "Insert output from an external COMMAND, using ARGS."
   (setq args (eshell-stringify-list (eshell-flatten-list args)))
-  (if (file-remote-p default-directory)
-      (eshell-remote-command command args))
+  ;; (if (file-remote-p default-directory)
+  ;;     (eshell-remote-command command args))
   (let ((interp (eshell-find-interpreter command)))
-    (assert interp)
+    (cl-assert interp)
     (if (functionp (car interp))
 	(apply (car interp) (append (cdr interp) args))
       (eshell-gather-process-output

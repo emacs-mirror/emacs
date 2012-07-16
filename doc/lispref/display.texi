@@ -790,8 +790,8 @@ Its default value is a list of two functions:
 @findex collapse-delayed-warnings
 @findex display-delayed-warnings
 @noindent
-The function @code{collapse-delayed-warnings} iterates through
-@code{delayed-warnings-list}, removing repeated entries.  The function
+The function @code{collapse-delayed-warnings} removes repeated entries
+from @code{delayed-warnings-list}.  The function
 @code{display-delayed-warnings} calls @code{display-warning} on each
 of the entries in @code{delayed-warnings-list}, in turn, and then sets
 @code{delayed-warnings-list} to @code{nil}.
@@ -1927,11 +1927,16 @@ exactly what the @code{defface} says.
 @cindex face specification
 The @var{spec} argument is a @dfn{face specification}, which states
 how the face should appear on different kinds of terminals.  It should
-be an alist whose elements each have the form @code{(@var{display}
-@var{atts})}.  @var{display} specifies a class of terminals (see
-below), while @var{atts} is a property list of face attributes and
-their values, specifying the appearance of the face on matching
-terminals
+be an alist whose elements each have the form
+
+@example
+(@var{display} . @var{plist})
+@end example
+
+@noindent
+@var{display} specifies a class of terminals (see below), while
+@var{plist} is a property list of face attributes and their values,
+specifying how the face appears on such terminals
 @iftex
 (see the next section for details about face attributes).
 @end iftex
@@ -1947,8 +1952,8 @@ for that frame.  There are three possibilities for @var{display}:
 @table @asis
 @item @code{default}
 This element of @var{spec} doesn't match any frames; instead, it
-specifies defaults that apply to all frames.  This kind of element, if
-used, must be the first element of @var{spec}.  Each of the following
+specifies defaults that apply to all frames.  This element, if used,
+must be the first element of @var{spec}.  Each of the following
 elements can override any or all of these defaults.
 
 @item @code{t}
@@ -2066,23 +2071,20 @@ attribute is ignored.
 @table @code
 @item :family
 Font family or fontset (a string).  @xref{Fonts,,, emacs, The GNU
-Emacs Manual}.  If you specify a font family name, the wild-card
-characters @samp{*} and @samp{?} are allowed.  The function
-@code{font-family-list}, described below, returns a list of available
-family names.  @xref{Fontsets}, for information about fontsets.
+Emacs Manual}, for more information about font families; the function
+@code{font-family-list} (see below) returns a list of available family
+names.  @xref{Fontsets}, for information about fontsets.
 
 @item :foundry
 The name of the @dfn{font foundry} for the font family specified by
-the @code{:family} attribute (a string).  The wild-card characters
-@samp{*} and @samp{?} are allowed.  @xref{Fonts,,, emacs, The GNU
-Emacs Manual}.
+the @code{:family} attribute (a string).  @xref{Fonts,,, emacs, The
+GNU Emacs Manual}.
 
 @item :width
-Relative proportionate character width, also known as the character
-set width.  This should be one of the symbols @code{ultra-condensed},
-@code{extra-condensed}, @code{condensed}, @code{semi-condensed},
-@code{normal}, @code{semi-expanded}, @code{expanded},
-@code{extra-expanded}, or @code{ultra-expanded}.
+Relative character width.  This should be one of the symbols
+@code{ultra-condensed}, @code{extra-condensed}, @code{condensed},
+@code{semi-condensed}, @code{normal}, @code{semi-expanded},
+@code{expanded}, @code{extra-expanded}, or @code{ultra-expanded}.
 
 @item :height
 The height of the font.  In the simplest case, this is an integer in
@@ -2110,6 +2112,7 @@ variable-brightness text, any weight greater than normal is displayed
 as extra bright, and any weight less than normal is displayed as
 half-bright.
 
+@cindex italic text
 @item :slant
 Font slant---one of the symbols @code{italic}, @code{oblique},
 @code{normal}, @code{reverse-italic}, or @code{reverse-oblique}.  On
@@ -2126,19 +2129,42 @@ stipple patterns.
 Background color, a string.  The value can be a system-defined color
 name, or a hexadecimal color specification.  @xref{Color Names}.
 
+@cindex underlined text
 @item :underline
-Whether or not characters should be underlined, and in what color.  If
-the value is @code{t}, underlining uses the foreground color of the
-face.  If the value is a string, underlining uses that color.  The
-value @code{nil} means do not underline.
+Whether or not characters should be underlined, and in what
+way.  The possible values of the @code{:underline} attribute are:
 
+@table @asis
+@item @code{nil}
+Don't underline.
+
+@item @code{t}
+Underline with the foreground color of the face.
+
+@item @var{color}
+Underline in color @var{color}; which should be either a string
+specifying a color, or the symbol @code{foreground-color}, meaning the
+foreground color of the face.
+
+@item @code{(:color @var{color} :style @var{style})}
+@var{color} is as described above.  Omitting the attribute
+@code{:color} means to use the foreground color of the face.
+@var{style} should be a symbol @code{line} or @code{wave}, meaning to
+use a straight or wavy line.  Omitting the attribute @code{:style}
+means to use a straight line.
+@end table
+
+@cindex overlined text
 @item :overline
 Whether or not characters should be overlined, and in what color.
-The value is used like that of @code{:underline}.
+If the value is @code{t}, overlining uses the foreground color of the
+face.  If the value is a string, overlining uses that color.  The
+value @code{nil} means do not overline.
 
+@cindex strike-through text
 @item :strike-through
 Whether or not characters should be strike-through, and in what
-color.  The value is used like that of @code{:underline}.
+color.  The value is used like that of @code{:overline}.
 
 @item :box
 Whether or not a box should be drawn around characters, its color, the
@@ -2220,16 +2246,6 @@ faces (@pxref{Displaying Faces}).  If a list of faces is used,
 attributes from faces earlier in the list override those from later
 faces.
 @end table
-
-For compatibility with Emacs 20, you can also specify values for two
-``fake'' face attributes: @code{:bold} and @code{:italic}.  Their
-values must be either @code{t} or @code{nil}; a value of
-@code{unspecified} is not allowed.  Setting @code{:bold} to @code{t}
-is equivalent to setting the @code{:weight} attribute to @code{bold},
-and setting it to @code{nil} is equivalent to setting @code{:weight}
-to @code{normal}.  Setting @code{:italic} to @code{t} is equivalent to
-setting the @code{:slant} attribute to @code{italic}, and setting it
-to @code{nil} is equivalent to setting @code{:slant} to @code{normal}.
 
 @defun font-family-list &optional frame
 This function returns a list of available font family names.  The
@@ -2518,39 +2534,34 @@ Scale,,, emacs, The GNU Emacs Manual}).
 The value of this variable is an alist whose elements have the form
 @code{(@var{face} . @var{remapping})}.  This causes Emacs to display
 any text having the face @var{face} with @var{remapping}, rather than
-the ordinary definition of @var{face}.  @var{remapping} may be any
-face specification suitable for a @code{face} text property: either a
-face name, or a property list of attribute/value pairs, or a list in
-which each element is either a face name or a property list
-(@pxref{Special Properties}).
+the ordinary definition of @var{face}.
+
+@var{remapping} may be any face specification suitable for a
+@code{face} text property: either a face (i.e.@: a face name or a
+property list of attribute/value pairs), or a list of faces.  For
+details, see the description of the @code{face} text property in
+@ref{Special Properties}.  @var{remapping} serves as the complete
+specification for the remapped face---it replaces the normal
+definition of @var{face}, instead of modifying it.
 
 If @code{face-remapping-alist} is buffer-local, its local value takes
 effect only within that buffer.
 
-Two points bear emphasizing:
+Note: face remapping is non-recursive.  If @var{remapping} references
+the same face name @var{face}, either directly or via the
+@code{:inherit} attribute of some other face in @var{remapping}, that
+reference uses the normal definition of @var{face}.  For instance, if
+the @code{mode-line} face is remapped using this entry in
+@code{face-remapping-alist}:
 
-@enumerate
-@item
-@var{remapping} serves as the complete specification for the remapped
-face---it replaces the normal definition of @var{face}, instead of
-modifying it.
-
-@item
-If @var{remapping} references the same face name @var{face}, either
-directly or via the @code{:inherit} attribute of some other face in
-@var{remapping}, that reference uses the normal definition of
-@var{face}.  In other words, the remapping cannot be recursive.
-
-For instance, if the @code{mode-line} face is remapped using this
-entry in @code{face-remapping-alist}:
 @example
 (mode-line italic mode-line)
 @end example
+
 @noindent
 then the new definition of the @code{mode-line} face inherits from the
 @code{italic} face, and the @emph{normal} (non-remapped) definition of
 @code{mode-line} face.
-@end enumerate
 @end defvar
 
   The following functions implement a higher-level interface to
@@ -3539,7 +3550,7 @@ Used to indicate buffer boundaries.
 @itemx @code{vertical-bar}, @code{horizontal-bar}
 Used for different types of fringe cursors.
 
-@item @code{empty-line}, @code{question-mark}
+@item @code{empty-line}, @code{question-mark}, @code{exclamation-mark}
 Unused.
 @end table
 
@@ -4615,6 +4626,12 @@ JPEG files, add @code{JPG} to this list.
 image descriptor properties:
 
 @table @code
+@item :background @var{background}
+@var{background}, if non-@code{nil}, should be a string specifying a
+color, which is used as the image's background color if the image
+supports transparency.  If the value is @code{nil}, it defaults to the
+frame's background color.
+
 @item :width, :height
 The @code{:width} and @code{:height} keywords are used for scaling the
 image.  If only one of them is specified, the other one will be

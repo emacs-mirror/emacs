@@ -395,16 +395,15 @@ Return the user input (a string).
 
 INITIAL, if non-nil, is the initial minibuffer input.
 OP-SYMBOL is an operation symbol (see `dired-no-confirm').
-ARG is normally the prefix argument for the calling command.
-FILES should be a list of file names.
+ARG is normally the prefix argument for the calling command;
+it is passed as the first argument to `dired-mark-prompt'.
+FILES should be a list of marked files' names.
 
-DEFAULT-VALUE, if non-nil, should be a \"standard\" value or list
-of such values, available via history commands.  Note that if the
-user enters empty input, this function returns the empty string,
-not DEFAULT-VALUE.
+Optional arg DEFAULT-VALUE is a default value or list of default
+values, passed as the seventh arg to `completing-read'.
 
-Optional argument COLLECTION is a collection of possible completions,
-suitable for use by `completing-read'."
+Optional arg COLLECTION is a collection of possible completions,
+passed as the second arg to `completing-read'."
   (dired-mark-pop-up nil op-symbol files
 		     'completing-read
 		     (format prompt (dired-mark-prompt arg files))
@@ -1408,9 +1407,9 @@ NAME-CONSTRUCTOR should be a function accepting a single
 argument, the name of an old file, and returning either the
 corresponding new file name or nil to skip.
 
-Optional MARKER-CHAR is a character with which to mark every
-newfile's entry, or t to use the current marker character if the
-old file was marked."
+If optional argument MARKER-CHAR is non-nil, mark each
+newly-created file's Dired entry with the character MARKER-CHAR,
+or with the current marker character if MARKER-CHAR is t."
   (let (dired-create-files-failures failures
 	skipped (success-count 0) (total (length fn-list)))
     (let (to overwrite-query
@@ -1513,10 +1512,11 @@ ESC or `q' to not overwrite any of the remaining files,
 					&optional marker-char op1
 					how-to)
   "Create a new file for each marked file.
-Prompts user for target, which is a directory in which to create
-  the new files.  Target may also be a plain file if only one marked
-  file exists.  The way the default for the target directory is
-  computed depends on the value of `dired-dwim-target-directory'.
+Prompt user for a target directory in which to create the new
+  files.  The target may also be a non-directory file, if only
+  one file is marked.  The initial suggestion for target is the
+  Dired buffer's current directory (or, if `dired-dwim-target' is
+  non-nil, the current directory of a neighboring Dired window).
 OP-SYMBOL is the symbol for the operation.  Function `dired-mark-pop-up'
   will determine whether pop-ups are appropriate for this OP-SYMBOL.
 FILE-CREATOR and OPERATION as in `dired-create-files'.
@@ -1721,16 +1721,21 @@ See HOW-TO argument for `dired-do-create-files'.")
 ;;;###autoload
 (defun dired-do-copy (&optional arg)
   "Copy all marked (or next ARG) files, or copy the current file.
-This normally preserves the last-modified date when copying.
-When operating on just the current file, you specify the new name.
-When operating on multiple or marked files, you specify a directory,
-and new copies of these files are made in that directory
-with the same names that the files currently have.  The default
-suggested for the target directory depends on the value of
-`dired-dwim-target', which see.
+When operating on just the current file, prompt for the new name.
 
-This command copies symbolic links by creating new ones,
-like `cp -d'."
+When operating on multiple or marked files, prompt for a target
+directory, and make the new copies in that directory, with the
+same names as the original files.  The initial suggestion for the
+target directory is the Dired buffer's current directory (or, if
+`dired-dwim-target' is non-nil, the current directory of a
+neighboring Dired window).
+
+If `dired-copy-preserve-time' is non-nil, this command preserves
+the modification time of each old file in the copy, similar to
+the \"-p\" option for the \"cp\" shell command.
+
+This command copies symbolic links by creating new ones, similar
+to the \"-d\" option for the \"cp\" shell command."
   (interactive "P")
   (let ((dired-recursive-copies dired-recursive-copies))
     (dired-do-create-files 'copy (function dired-copy-file)
@@ -1996,9 +2001,10 @@ See Info node `(emacs)Subdir switches' for more details."
 
 ;;;###autoload
 (defun dired-insert-subdir (dirname &optional switches no-error-if-not-dir-p)
-  "Insert this subdirectory into the same dired buffer.
-If it is already present, overwrites previous entry,
-  else inserts it at its natural place (as `ls -lR' would have done).
+  "Insert this subdirectory into the same Dired buffer.
+If it is already present, overwrite the previous entry;
+  otherwise, insert it at its natural place (as `ls -lR' would
+  have done).
 With a prefix arg, you may edit the `ls' switches used for this listing.
   You can add `R' to the switches to expand the whole tree starting at
   this subdirectory.

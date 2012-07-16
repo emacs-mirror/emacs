@@ -51,10 +51,6 @@
 ;;; Code:
 
 
-(eval-when-compile
-  (require 'cl))
-
-
 ;;; User variables
 
 

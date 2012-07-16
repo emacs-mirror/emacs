@@ -33,7 +33,7 @@
 ;;; Code:
 
 (require 'pp)
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 ;;; Misc comments:
 ;;
@@ -2015,11 +2015,11 @@ To carry out the deletions that you've marked, use \\<bookmark-bmenu-mode-map>\\
         (tmp-list     ()))
     (while
         (let ((char (read-key (concat prompt bookmark-search-pattern))))
-          (case char
-            ((?\e ?\r) nil) ; RET or ESC break the search loop.
+          (pcase char
+            ((or ?\e ?\r) nil) ; RET or ESC break the search loop.
             (?\C-g (setq bookmark-quit-flag t) nil)
             (?\d (pop tmp-list) t) ; Delete last char of pattern with DEL
-            (t
+            (_
              (if (characterp char)
                  (push char tmp-list)
                (setq unread-command-events
@@ -2034,9 +2034,9 @@ To carry out the deletions that you've marked, use \\<bookmark-bmenu-mode-map>\\
 (defun bookmark-bmenu-filter-alist-by-regexp (regexp)
   "Filter `bookmark-alist' with bookmarks matching REGEXP and rebuild list."
   (let ((bookmark-alist
-         (loop for i in bookmark-alist
-               when (string-match regexp (car i)) collect i into new
-               finally return new)))
+         (cl-loop for i in bookmark-alist
+                  when (string-match regexp (car i)) collect i into new
+                  finally return new)))
     (bookmark-bmenu-list)))
 
 
@@ -2115,36 +2115,36 @@ strings returned are not."
 ;;;###autoload
 (defvar menu-bar-bookmark-map
   (let ((map (make-sparse-keymap "Bookmark functions")))
-    (define-key map [load]
-      `(menu-item ,(purecopy "Load a Bookmark File...") bookmark-load
-		  :help ,(purecopy "Load bookmarks from a bookmark file)")))
-    (define-key map [write]
-      `(menu-item ,(purecopy "Save Bookmarks As...") bookmark-write
-		  :help ,(purecopy "Write bookmarks to a file (reading the file name with the minibuffer)")))
-    (define-key map [save]
-      `(menu-item ,(purecopy "Save Bookmarks") bookmark-save
-		  :help ,(purecopy "Save currently defined bookmarks")))
-    (define-key map [edit]
-      `(menu-item ,(purecopy "Edit Bookmark List") bookmark-bmenu-list
-		  :help ,(purecopy "Display a list of existing bookmarks")))
-    (define-key map [delete]
-      `(menu-item ,(purecopy "Delete Bookmark...") bookmark-delete
-		  :help ,(purecopy "Delete a bookmark from the bookmark list")))
-    (define-key map [rename]
-      `(menu-item ,(purecopy "Rename Bookmark...") bookmark-rename
-		  :help ,(purecopy "Change the name of a bookmark")))
-    (define-key map [locate]
-      `(menu-item ,(purecopy "Insert Location...") bookmark-locate
-		  :help ,(purecopy "Insert the name of the file associated with a bookmark")))
-    (define-key map [insert]
-      `(menu-item ,(purecopy "Insert Contents...") bookmark-insert
-		  :help ,(purecopy "Insert the text of the file pointed to by a bookmark")))
-    (define-key map [set]
-      `(menu-item ,(purecopy "Set Bookmark...") bookmark-set
-		  :help ,(purecopy "Set a bookmark named inside a file.")))
-    (define-key map [jump]
-      `(menu-item ,(purecopy "Jump to Bookmark...") bookmark-jump
-		  :help ,(purecopy "Jump to a bookmark (a point in some file)")))
+    (bindings--define-key map [load]
+      '(menu-item "Load a Bookmark File..." bookmark-load
+		  :help "Load bookmarks from a bookmark file)"))
+    (bindings--define-key map [write]
+      '(menu-item "Save Bookmarks As..." bookmark-write
+		  :help "Write bookmarks to a file (reading the file name with the minibuffer)"))
+    (bindings--define-key map [save]
+      '(menu-item "Save Bookmarks" bookmark-save
+		  :help "Save currently defined bookmarks"))
+    (bindings--define-key map [edit]
+      '(menu-item "Edit Bookmark List" bookmark-bmenu-list
+		  :help "Display a list of existing bookmarks"))
+    (bindings--define-key map [delete]
+      '(menu-item "Delete Bookmark..." bookmark-delete
+		  :help "Delete a bookmark from the bookmark list"))
+    (bindings--define-key map [rename]
+      '(menu-item "Rename Bookmark..." bookmark-rename
+		  :help "Change the name of a bookmark"))
+    (bindings--define-key map [locate]
+      '(menu-item "Insert Location..." bookmark-locate
+		  :help "Insert the name of the file associated with a bookmark"))
+    (bindings--define-key map [insert]
+      '(menu-item "Insert Contents..." bookmark-insert
+		  :help "Insert the text of the file pointed to by a bookmark"))
+    (bindings--define-key map [set]
+      '(menu-item "Set Bookmark..." bookmark-set
+		  :help "Set a bookmark named inside a file."))
+    (bindings--define-key map [jump]
+      '(menu-item "Jump to Bookmark..." bookmark-jump
+		  :help "Jump to a bookmark (a point in some file)"))
     map))
 
 ;;;###autoload

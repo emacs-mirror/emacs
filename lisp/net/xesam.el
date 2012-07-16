@@ -127,16 +127,7 @@
 
 ;;; Code:
 
-;; D-Bus support in the Emacs core can be disabled with configuration
-;; option "--without-dbus".  Declare used subroutines and variables.
-(declare-function dbus-call-method "dbusbind.c")
-(declare-function dbus-register-signal "dbusbind.c")
-
 (require 'dbus)
-
-;; Pacify byte compiler.
-(eval-when-compile
-  (require 'cl))
 
 ;; Widgets are used to highlight the search results.
 (require 'widget)
@@ -414,24 +405,24 @@ If there is no registered search engine at all, the function returns `nil'."
 	;; That is not the case now, so we set it ourselves.
 	;; Hopefully, this will change later.
 	(setq hit-fields
-	      (case (intern vendor-id)
-		(Beagle
+	      (pcase (intern vendor-id)
+		(`Beagle
 		 '("xesam:mimeType" "xesam:url"))
-		(Strigi
+		(`Strigi
 		 '("xesam:author" "xesam:cc" "xesam:charset"
 		   "xesam:contentType" "xesam:fileExtension"
 		   "xesam:id" "xesam:lineCount" "xesam:links"
 		   "xesam:mimeType" "xesam:name" "xesam:size"
 		   "xesam:sourceModified" "xesam:subject" "xesam:to"
 		   "xesam:url"))
-		(TrackerXesamSession
+		(`TrackerXesamSession
 		 '("xesam:relevancyRating" "xesam:url"))
-		(Debbugs
+		(`Debbugs
 		 '("xesam:keyword" "xesam:owner" "xesam:title"
 		   "xesam:url" "xesam:sourceModified" "xesam:mimeType"
 		   "debbugs:key"))
 		;; xesam-tools yahoo service.
-		(t '("xesam:contentModified" "xesam:mimeType" "xesam:summary"
+		(_ '("xesam:contentModified" "xesam:mimeType" "xesam:summary"
 		     "xesam:title" "xesam:url" "yahoo:displayUrl"))))
 
 	(xesam-set-property engine "hit.fields" hit-fields)

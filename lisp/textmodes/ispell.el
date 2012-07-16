@@ -1064,8 +1064,7 @@ Return the new dictionary alist."
 	(insert-file-contents alias-file)
 	;; Look for a line "add FOO.multi", extract FOO
 	(when (search-forward-regexp "^add \\([^.]+\\)\\.multi" nil t)
-	  (let* ((aliasname (file-name-sans-extension
-			     (file-name-nondirectory alias-file)))
+	  (let* ((aliasname (file-name-base alias-file))
 		 (already-exists-p (assoc aliasname alist))
 		 (realname (match-string 1))
 		 (realdict (assoc realname alist)))

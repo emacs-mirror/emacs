@@ -509,6 +509,7 @@ Lines matching `gnus-cite-attribution-suffix' and perhaps
 	  (if (and (equal (cdadr m) "")
 		   (equal (cdar m) (cdaddr m))
 		   (goto-char (caadr m))
+		   (looking-at "[ \t]*$")
 		   (forward-line 1)
 		   (= (point) (caaddr m)))
 	      (setcdr m (cdddr m))

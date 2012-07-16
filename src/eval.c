@@ -131,16 +131,14 @@ int handling_signal;
 Lisp_Object inhibit_lisp_code;
 
 static Lisp_Object funcall_lambda (Lisp_Object, ptrdiff_t, Lisp_Object *);
-static void unwind_to_catch (struct catchtag *, Lisp_Object) NO_RETURN;
 static int interactive_p (int);
 static Lisp_Object apply_lambda (Lisp_Object fun, Lisp_Object args);
-static Lisp_Object Ffetch_bytecode (Lisp_Object);
 
 void
 init_eval_once (void)
 {
   enum { size = 50 };
-  specpdl = (struct specbinding *) xmalloc (size * sizeof (struct specbinding));
+  specpdl = xmalloc (size * sizeof *specpdl);
   specpdl_size = size;
   specpdl_ptr = specpdl;
   /* Don't forget to update docs (lispref node "Local Variables").  */
@@ -790,6 +788,17 @@ usage: (defconst SYMBOL INITVALUE [DOCSTRING])  */)
   return sym;
 }
 
+/* Make SYMBOL lexically scoped.  */
+DEFUN ("internal-make-var-non-special", Fmake_var_non_special,
+       Smake_var_non_special, 1, 1, 0,
+       doc: /* Internal function.  */)
+     (Lisp_Object symbol)
+{
+  CHECK_SYMBOL (symbol);
+  XSYMBOL (symbol)->declared_special = 0;
+  return Qnil;
+}
+
 
 DEFUN ("let*", FletX, SletX, 1, UNEVALLED, 0,
        doc: /* Bind variables according to VARLIST then eval BODY.
@@ -1020,7 +1029,13 @@ definitions to shadow the loaded ones for use in file byte-compilation.  */)
 	  if (NILP (expander))
 	    break;
 	}
-      form = apply1 (expander, XCDR (form));
+      {
+	Lisp_Object newform = apply1 (expander, XCDR (form));
+	if (EQ (form, newform))
+	  break;
+	else
+	  form = newform;
+      }
     }
   return form;
 }
@@ -1094,10 +1109,10 @@ internal_catch (Lisp_Object tag, Lisp_Object (*func) (Lisp_Object), Lisp_Object 
 
    This is used for correct unwinding in Fthrow and Fsignal.  */
 
-static void
+static _Noreturn void
 unwind_to_catch (struct catchtag *catch, Lisp_Object value)
 {
-  register int last_time;
+  int last_time;
 
   /* Save the value in the tag.  */
   catch->val = value;
@@ -2055,8 +2070,8 @@ eval_sub (Lisp_Object form)
 	error ("Lisp nesting exceeds `max-lisp-eval-depth'");
     }
 
-  original_fun = Fcar (form);
-  original_args = Fcdr (form);
+  original_fun = XCAR (form);
+  original_args = XCDR (form);
 
   backtrace.next = backtrace_list;
   backtrace_list = &backtrace;
@@ -2226,7 +2241,7 @@ eval_sub (Lisp_Object form)
   return val;
 }
 
-DEFUN ("apply", Fapply, Sapply, 2, MANY, 0,
+DEFUN ("apply", Fapply, Sapply, 1, MANY, 0,
        doc: /* Call FUNCTION with our remaining args, using our last arg as list of args.
 Then return the value FUNCTION returns.
 Thus, (apply '+ 1 2 '(3 4)) returns 10.
@@ -2788,7 +2803,8 @@ usage: (funcall FUNCTION &rest ARGUMENTS)  */)
 	{
 	  if (XSUBR (fun)->max_args > numargs)
 	    {
-	      internal_args = (Lisp_Object *) alloca (XSUBR (fun)->max_args * sizeof (Lisp_Object));
+	      internal_args = alloca (XSUBR (fun)->max_args
+				      * sizeof *internal_args);
 	      memcpy (internal_args, args + 1, numargs * sizeof (Lisp_Object));
 	      for (i = numargs; i < XSUBR (fun)->max_args; i++)
 		internal_args[i] = Qnil;
@@ -3576,6 +3592,7 @@ alist of active lexical bindings.  */);
   defsubr (&Sdefvar);
   defsubr (&Sdefvaralias);
   defsubr (&Sdefconst);
+  defsubr (&Smake_var_non_special);
   defsubr (&Slet);
   defsubr (&SletX);
   defsubr (&Swhile);

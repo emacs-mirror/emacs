@@ -106,7 +106,9 @@ interned variable `args' (created using a `let' form)."
 				       (and (listp opt) (nth 3 opt)))
 				     (cadr options)))
 		   '(usage-msg last-value ext-command args))
-       (eshell-do-opt ,name ,options (quote ,body-forms)))))
+       ;; FIXME: `options' ends up hiding some variable names under `quote',
+       ;; which is incompatible with lexical scoping!!
+       (eshell-do-opt ,name ,options (lambda () ,@body-forms)))))
 
 ;;; Internal Functions:
 
@@ -117,7 +119,7 @@ interned variable `args' (created using a `let' form)."
 ;; Documented part of the interface; see eshell-eval-using-options.
 (defvar args)
 
-(defun eshell-do-opt (name options body-forms)
+(defun eshell-do-opt (name options body-fun)
   "Helper function for `eshell-eval-using-options'.
 This code doesn't really need to be macro expanded everywhere."
   (setq args temp-args)
@@ -133,8 +135,7 @@ This code doesn't really need to be macro expanded everywhere."
 		      (throw 'eshell-usage
 			     (eshell-show-usage name options)))
 		  (setq args (eshell-process-args name args options)
-			last-value (eval (append (list 'progn)
-						 body-forms)))
+			last-value (funcall body-fun))
 		  nil))
 	   (error "%s" usage-msg))))
       (throw 'eshell-external
@@ -218,10 +219,8 @@ switch is unrecognized."
 	 found)
     (while opts
       (if (and (listp (car opts))
-		 (nth kind (car opts))
-		 (if (= kind 0)
-		     (eq switch (nth kind (car opts)))
-		   (string= switch (nth kind (car opts)))))
+               (nth kind (car opts))
+               (equal switch (nth kind (car opts))))
 	  (progn
 	    (eshell-set-option name ai (car opts) options)
 	    (setq found t opts nil))

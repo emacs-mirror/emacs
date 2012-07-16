@@ -83,10 +83,16 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
   gdk_window_get_geometry (w, a, b, c, d, 0)
 #define gdk_x11_window_lookup_for_display(d, w) \
   gdk_xid_table_lookup_for_display (d, w)
+#define gtk_box_new(ori, spacing)                                       \
+  ((ori) == GTK_ORIENTATION_HORIZONTAL                                  \
+   ? gtk_hbox_new (FALSE, (spacing)) : gtk_vbox_new (FALSE, (spacing)))
+#define gtk_scrollbar_new(ori, spacing)                                 \
+  ((ori) == GTK_ORIENTATION_HORIZONTAL                                  \
+   ? gtk_hscrollbar_new ((spacing)) : gtk_vscrollbar_new ((spacing)))
 #ifndef GDK_KEY_g
 #define GDK_KEY_g GDK_g
 #endif
-#endif
+#endif /* HAVE_GTK3 */
 
 #define XG_BIN_CHILD(x) gtk_bin_get_child (GTK_BIN (x))
 
@@ -209,7 +215,7 @@ malloc_widget_value (void)
     }
   else
     {
-      wv = (widget_value *) xmalloc (sizeof (widget_value));
+      wv = xmalloc (sizeof *wv);
       malloc_cpt++;
     }
   memset (wv, 0, sizeof (widget_value));
@@ -523,9 +529,8 @@ get_utf8_string (const char *str)
                                        &bytes_written, &err))
              && err->code == G_CONVERT_ERROR_ILLEGAL_SEQUENCE)
         {
-          strncpy (up, (char *)p, bytes_written);
+          memcpy (up, p, bytes_written);
           sprintf (up + bytes_written, "\\%03o", p[bytes_written]);
-          up[bytes_written+4] = '\0';
           up += bytes_written+4;
           p += bytes_written+1;
           g_error_free (err);
@@ -1098,7 +1103,10 @@ xg_create_frame_widgets (FRAME_PTR f)
   BLOCK_INPUT;
 
   if (FRAME_X_EMBEDDED_P (f))
-    wtop = gtk_plug_new (f->output_data.x->parent_desc);
+    {
+      GdkDisplay *gdpy = gdk_x11_lookup_xdisplay (FRAME_X_DISPLAY (f));
+      wtop = gtk_plug_new_for_display (gdpy, f->output_data.x->parent_desc);
+    }
   else
     wtop = gtk_window_new (GTK_WINDOW_TOPLEVEL);
 
@@ -1112,8 +1120,10 @@ xg_create_frame_widgets (FRAME_PTR f)
 
   xg_set_screen (wtop, f);
 
-  wvbox = gtk_vbox_new (FALSE, 0);
-  whbox = gtk_hbox_new (FALSE, 0);
+  wvbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 0);
+  whbox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
+  gtk_box_set_homogeneous (GTK_BOX (wvbox), FALSE);
+  gtk_box_set_homogeneous (GTK_BOX (whbox), FALSE);
 
 #ifdef HAVE_GTK3
   wfixed = emacs_fixed_new (f);
@@ -1488,9 +1498,12 @@ create_dialog (widget_value *wv,
 
   if (make_two_rows)
     {
-      GtkWidget *wvbox = gtk_vbox_new (TRUE, button_spacing);
-      GtkWidget *whbox_up = gtk_hbox_new (FALSE, 0);
-      whbox_down = gtk_hbox_new (FALSE, 0);
+      GtkWidget *wvbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, button_spacing);
+      GtkWidget *whbox_up = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
+      gtk_box_set_homogeneous (GTK_BOX (wvbox), TRUE);
+      gtk_box_set_homogeneous (GTK_BOX (whbox_up), FALSE);
+      whbox_down = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
+      gtk_box_set_homogeneous (GTK_BOX (whbox_down), FALSE);
 
       gtk_box_pack_start (cur_box, wvbox, FALSE, FALSE, 0);
       gtk_box_pack_start (GTK_BOX (wvbox), whbox_up, FALSE, FALSE, 0);
@@ -1612,16 +1625,16 @@ xg_maybe_add_timer (gpointer data)
 {
   struct xg_dialog_data *dd = (struct xg_dialog_data *) data;
   EMACS_TIME next_time = timer_check ();
-  long secs = EMACS_SECS (next_time);
-  long usecs = EMACS_USECS (next_time);
 
   dd->timerid = 0;
 
-  if (secs >= 0 && usecs >= 0 && secs < ((guint)-1)/1000)
+  if (EMACS_TIME_VALID_P (next_time))
     {
-      dd->timerid = g_timeout_add (secs * 1000 + usecs/1000,
-                                   xg_maybe_add_timer,
-                                   dd);
+      time_t s = EMACS_SECS (next_time);
+      int per_ms = EMACS_TIME_RESOLUTION / 1000;
+      int ms = (EMACS_NSECS (next_time) + per_ms - 1) / per_ms;
+      if (s <= ((guint) -1 - ms) / 1000)
+	dd->timerid = g_timeout_add (s * 1000 + ms, xg_maybe_add_timer, dd);
     }
   return FALSE;
 }
@@ -1778,7 +1791,8 @@ xg_get_file_with_chooser (FRAME_PTR f,
                                          NULL);
   gtk_file_chooser_set_local_only (GTK_FILE_CHOOSER (filewin), TRUE);
 
-  wbox = gtk_vbox_new (FALSE, 0);
+  wbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 0);
+  gtk_box_set_homogeneous (GTK_BOX (wbox), FALSE);
   gtk_widget_show (wbox);
   wtoggle = gtk_check_button_new_with_label ("Show hidden files.");
 
@@ -2043,7 +2057,7 @@ make_cl_data (xg_menu_cb_data *cl_data, FRAME_PTR f, GCallback highlight_cb)
 {
   if (! cl_data)
     {
-      cl_data = (xg_menu_cb_data*) xmalloc (sizeof (*cl_data));
+      cl_data = xmalloc (sizeof *cl_data);
       cl_data->f = f;
       cl_data->menu_bar_vector = f->menu_bar_vector;
       cl_data->menu_bar_items_used = f->menu_bar_items_used;
@@ -2190,7 +2204,8 @@ make_widget_for_menu_item (const char *utf8_label, const char *utf8_key)
   GtkWidget *wkey;
   GtkWidget *wbox;
 
-  wbox = gtk_hbox_new (FALSE, 0);
+  wbox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
+  gtk_box_set_homogeneous (GTK_BOX (wbox), FALSE);
   wlbl = gtk_label_new (utf8_label);
   wkey = gtk_label_new (utf8_key);
 
@@ -2342,7 +2357,7 @@ xg_create_one_menuitem (widget_value *item,
   if (utf8_label) g_free (utf8_label);
   if (utf8_key) g_free (utf8_key);
 
-  cb_data = xmalloc (sizeof (xg_menu_item_cb_data));
+  cb_data = xmalloc (sizeof *cb_data);
 
   xg_list_insert (&xg_menu_item_cb_list, &cb_data->ptrs);
 
@@ -2847,7 +2862,7 @@ xg_update_menu_item (widget_value *val,
   utf8_key = get_utf8_string (val->key);
 
   /* See if W is a menu item with a key.  See make_menu_item above.  */
-  if (GTK_IS_HBOX (wchild))
+  if (GTK_IS_BOX (wchild))
     {
       GList *list = gtk_container_get_children (GTK_CONTAINER (wchild));
 
@@ -3401,7 +3416,7 @@ update_theme_scrollbar_width (void)
   int w = 0, b = 0;
 
   vadj = gtk_adjustment_new (XG_SB_MIN, XG_SB_MIN, XG_SB_MAX, 0.1, 0.1, 0.1);
-  wscroll = gtk_vscrollbar_new (GTK_ADJUSTMENT (vadj));
+  wscroll = gtk_scrollbar_new (GTK_ORIENTATION_VERTICAL, GTK_ADJUSTMENT (vadj));
   g_object_ref_sink (G_OBJECT (wscroll));
   gtk_widget_style_get (wscroll, "slider-width", &w, "trough-border", &b, NULL);
   gtk_widget_destroy (wscroll);
@@ -3478,7 +3493,7 @@ xg_create_scroll_bar (FRAME_PTR f,
   vadj = gtk_adjustment_new (XG_SB_MIN, XG_SB_MIN, XG_SB_MAX,
                              0.1, 0.1, 0.1);
 
-  wscroll = gtk_vscrollbar_new (GTK_ADJUSTMENT (vadj));
+  wscroll = gtk_scrollbar_new (GTK_ORIENTATION_VERTICAL, GTK_ADJUSTMENT (vadj));
   webox = gtk_event_box_new ();
   gtk_widget_set_name (wscroll, scroll_bar_name);
 #ifndef HAVE_GTK3
@@ -3711,8 +3726,15 @@ xg_event_is_for_scrollbar (FRAME_PTR f, XEvent *event)
     {
       /* Check if press occurred outside the edit widget.  */
       GdkDisplay *gdpy = gdk_x11_lookup_xdisplay (FRAME_X_DISPLAY (f));
-      retval = gdk_display_get_window_at_pointer (gdpy, NULL, NULL)
-        != gtk_widget_get_window (f->output_data.x->edit_widget);
+      GdkWindow *gwin;
+#ifdef HAVE_GTK3
+      GdkDevice *gdev = gdk_device_manager_get_client_pointer
+        (gdk_display_get_device_manager (gdpy));
+      gwin = gdk_device_get_window_at_position (gdev, NULL, NULL);
+#else
+      gwin = gdk_display_get_window_at_pointer (gdpy, NULL, NULL);
+#endif
+      retval = gwin != gtk_widget_get_window (f->output_data.x->edit_widget);
     }
   else if (f
            && ((event->type == ButtonRelease && event->xbutton.button < 4)
@@ -4181,6 +4203,9 @@ static void
 xg_create_tool_bar (FRAME_PTR f)
 {
   struct x_output *x = f->output_data.x;
+#if GTK_CHECK_VERSION (3, 3, 6)
+  GtkStyleContext *gsty;
+#endif
 
   x->toolbar_widget = gtk_toolbar_new ();
   x->toolbar_detached = 0;
@@ -4189,6 +4214,10 @@ xg_create_tool_bar (FRAME_PTR f)
 
   gtk_toolbar_set_style (GTK_TOOLBAR (x->toolbar_widget), GTK_TOOLBAR_ICONS);
   toolbar_set_orientation (x->toolbar_widget, GTK_ORIENTATION_HORIZONTAL);
+#if GTK_CHECK_VERSION (3, 3, 6)
+  gsty = gtk_widget_get_style_context (x->toolbar_widget);
+  gtk_style_context_add_class (gsty, "primary-toolbar");
+#endif
 }
 
 
@@ -4233,10 +4262,31 @@ xg_make_tool_item (FRAME_PTR f,
                    int i, int horiz, int text_image)
 {
   GtkToolItem *ti = gtk_tool_item_new ();
-  GtkWidget *vb = horiz ? gtk_hbox_new (FALSE, 0) : gtk_vbox_new (FALSE, 0);
+  GtkWidget *vb = gtk_box_new (horiz
+                               ? GTK_ORIENTATION_HORIZONTAL
+                               : GTK_ORIENTATION_VERTICAL,
+                               0);
   GtkWidget *wb = gtk_button_new ();
   /* The eventbox is here so we can have tooltips on disabled items.  */
   GtkWidget *weventbox = gtk_event_box_new ();
+#if GTK_CHECK_VERSION (3, 3, 6)
+  GtkCssProvider *css_prov = gtk_css_provider_new ();
+  GtkStyleContext *gsty;
+
+  gtk_css_provider_load_from_data (css_prov,
+				   "GtkEventBox {"
+				   "    background-color: transparent;"
+				   "}",
+				   -1, NULL);
+
+  gsty = gtk_widget_get_style_context (weventbox);
+  gtk_style_context_add_provider (gsty,
+				  GTK_STYLE_PROVIDER (css_prov),
+				  GTK_STYLE_PROVIDER_PRIORITY_USER);
+  g_object_unref (css_prov);
+#endif
+
+  gtk_box_set_homogeneous (GTK_BOX (vb), FALSE);
 
   if (wimage && !text_image)
     gtk_box_pack_start (GTK_BOX (vb), wimage, TRUE, TRUE, 0);
@@ -4305,6 +4355,24 @@ xg_make_tool_item (FRAME_PTR f,
 }
 
 static int
+is_box_type (GtkWidget *vb, int is_horizontal)
+{
+#ifdef HAVE_GTK3
+  int ret = 0;
+  if (GTK_IS_BOX (vb))
+    {
+      GtkOrientation ori = gtk_orientable_get_orientation (GTK_ORIENTABLE (vb));
+      ret = (ori == GTK_ORIENTATION_HORIZONTAL && is_horizontal)
+        || (ori == GTK_ORIENTATION_VERTICAL && ! is_horizontal);
+    }
+  return ret;
+#else
+  return is_horizontal ? GTK_IS_VBOX (vb) : GTK_IS_HBOX (vb);
+#endif
+}
+
+
+static int
 xg_tool_item_stale_p (GtkWidget *wbutton, const char *stock_name,
 		      const char *icon_name, const struct image *img,
 		      const char *label, int horiz)
@@ -4332,14 +4400,14 @@ xg_tool_item_stale_p (GtkWidget *wbutton, const char *stock_name,
   else if (wimage)
     {
       gpointer gold_img = g_object_get_data (G_OBJECT (wimage),
-					    XG_TOOL_BAR_IMAGE_DATA);
+                                             XG_TOOL_BAR_IMAGE_DATA);
       Pixmap old_img = (Pixmap) gold_img;
       if (old_img != img->pixmap)
 	return 1;
     }
 
   /* Check button configuration and label.  */
-  if ((horiz ? GTK_IS_VBOX (vb) : GTK_IS_HBOX (vb))
+  if (is_box_type (vb, horiz)
       || (label ? (wlbl == NULL) : (wlbl != NULL)))
     return 1;
 
@@ -4556,7 +4624,7 @@ update_frame_tool_bar (FRAME_PTR f)
                        ? TOOL_BAR_IMAGE_DISABLED_SELECTED
                        : TOOL_BAR_IMAGE_DISABLED_DESELECTED);
 
-              xassert (ASIZE (image) >= idx);
+              eassert (ASIZE (image) >= idx);
               image = AREF (image, idx);
             }
           else
@@ -4716,6 +4784,7 @@ void
 xg_initialize (void)
 {
   GtkBindingSet *binding_set;
+  GtkSettings *settings;
 
 #if HAVE_XFT
   /* Work around a bug with corrupted data if libXft gets unloaded.  This way
@@ -4732,17 +4801,19 @@ xg_initialize (void)
   id_to_widget.max_size = id_to_widget.used = 0;
   id_to_widget.widgets = 0;
 
+  settings = gtk_settings_get_for_screen (gdk_display_get_default_screen
+                                          (gdk_display_get_default ()));
   /* Remove F10 as a menu accelerator, it does not mix well with Emacs key
      bindings.  It doesn't seem to be any way to remove properties,
      so we set it to VoidSymbol which in X means "no key".  */
-  gtk_settings_set_string_property (gtk_settings_get_default (),
+  gtk_settings_set_string_property (settings,
                                     "gtk-menu-bar-accel",
                                     "VoidSymbol",
                                     EMACS_CLASS);
 
   /* Make GTK text input widgets use Emacs style keybindings.  This is
      Emacs after all.  */
-  gtk_settings_set_string_property (gtk_settings_get_default (),
+  gtk_settings_set_string_property (settings,
                                     "gtk-key-theme-name",
                                     "Emacs",
                                     EMACS_CLASS);

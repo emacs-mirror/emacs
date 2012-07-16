@@ -44,6 +44,13 @@
 #  define alloca _alloca
 # elif defined __DECC && defined __VMS
 #  define alloca __ALLOCA
+# elif defined __TANDEM && defined _TNS_E_TARGET
+#  ifdef  __cplusplus
+extern "C"
+#  endif
+void *_alloca (unsigned short);
+#  pragma intrinsic (_alloca)
+#  define alloca _alloca
 # else
 #  include <stddef.h>
 #  ifdef  __cplusplus

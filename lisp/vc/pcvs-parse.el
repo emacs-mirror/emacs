@@ -32,8 +32,6 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
-
 (require 'pcvs-util)
 (require 'pcvs-info)
 
@@ -117,7 +115,7 @@ If RE matches, advance the point until the line after the match and
 then assign the variables as specified in MATCHES (via `setq')."
   (cons 'cvs-do-match
 	(cons re (mapcar (lambda (match)
-			   `(cons ',(first match) ,(second match)))
+			   `(cons ',(car match) ,(cadr match)))
 			 matches))))
 
 (defun cvs-do-match (re &rest matches)
@@ -150,8 +148,8 @@ Match RE and if successful, execute MATCHES."
     (cvs-or
      (funcall parse-spec)
 
-     (dolist (re cvs-parse-ignored-messages)
-       (when (cvs-match re) (return t)))
+     (cl-dolist (re cvs-parse-ignored-messages)
+       (when (cvs-match re) (cl-return t)))
 
      ;; This is a parse error.  Create a message-type fileinfo.
      (and
@@ -221,7 +219,7 @@ The remaining KEYS are passed directly to `cvs-create-fileinfo'."
       ;; ?: Unknown file.
       (let ((code (aref c 0)))
 	(cvs-parsed-fileinfo
-	 (case code
+	 (pcase code
 	   (?M 'MODIFIED)
 	   (?A 'ADDED)
 	   (?R 'REMOVED)
@@ -238,7 +236,7 @@ The remaining KEYS are passed directly to `cvs-create-fileinfo'."
 		(if (re-search-forward "^<<<<<<< " nil t)
 		    'CONFLICT 'NEED-MERGE))))
 	   (?J 'NEED-MERGE)		;not supported by standard CVS
-	   ((?U ?P)
+	   ((or ?U ?P)
 	    (if dont-change-disc 'NEED-UPDATE
 	      (cons 'UP-TO-DATE (if (eq code ?U) 'UPDATED 'PATCHED)))))
 	 path 'trust)))

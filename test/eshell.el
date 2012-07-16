@@ -28,7 +28,7 @@
 ;;; Code:
 
 (eval-when-compile
-  (require 'cl)				; assert
+  (require 'cl-lib)
   (require 'eshell)
   (require 'esh-util))
 (require 'esh-mode)
@@ -267,9 +267,9 @@
 
 (eshell-deftest banner banner-displayed
   "Startup banner is displayed at point-min"
-  (assert eshell-banner-message)
+  (cl-assert eshell-banner-message)
   (let ((msg (eval eshell-banner-message)))
-    (assert msg)
+    (cl-assert msg)
     (goto-char (point-min))
     (looking-at msg)))
 

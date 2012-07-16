@@ -71,7 +71,7 @@ Emacs has been idle for IDLE `gnus-demon-timestep's."
 ;;; Internal variables.
 
 (defvar gnus-demon-timers nil
-  "List of idle timers which are running.")
+  "Plist of idle timers which are running.")
 (defvar gnus-inhibit-demon nil
   "If non-nil, no daemonic function will be run.")
 
@@ -98,15 +98,32 @@ Emacs has been idle for IDLE `gnus-demon-timestep's."
     (float-time (or (current-idle-time)
                     '(0 0 0)))))
 
-(defun gnus-demon-run-callback (func &optional idle)
-  "Run FUNC if Emacs has been idle for longer than IDLE seconds."
+(defun gnus-demon-run-callback (func &optional idle time special)
+  "Run FUNC if Emacs has been idle for longer than IDLE seconds.
+If not, and a TIME is given, restart a new idle timer, so FUNC
+can be called at the next opportunity. Such a special idle run is
+marked with SPECIAL."
   (unless gnus-inhibit-demon
-    (when (or (not idle)
-              (and (eq idle t) (> (gnus-demon-idle-since) 0))
-              (<= idle (gnus-demon-idle-since)))
+    (block run-callback
+      (when (eq idle t)
+        (setq idle 0.001))
+      (cond (special
+             (setq gnus-demon-timers
+                   (plist-put gnus-demon-timers func
+                              (run-with-timer time time 'gnus-demon-run-callback
+                                              func idle time))))
+            ((and idle (> idle (gnus-demon-idle-since)))
+             (when time
+               (nnheader-cancel-timer (plist-get gnus-demon-timers func))
+               (setq gnus-demon-timers
+                     (plist-put gnus-demon-timers func
+				(run-with-idle-timer idle nil
+						     'gnus-demon-run-callback
+						     func idle time t))))
+             (return-from run-callback)))
       (with-local-quit
-       (ignore-errors
-         (funcall func))))))
+        (ignore-errors
+          (funcall func))))))
 
 (defun gnus-demon-init ()
   "Initialize the Gnus daemon."
@@ -140,12 +157,14 @@ Emacs has been idle for IDLE `gnus-demon-timestep's."
              ;; (func number any)
              ;; Call every `time'
              ((integerp time)
-              (run-with-timer time time 'gnus-demon-run-callback func idle))
+              (run-with-timer time time 'gnus-demon-run-callback
+			      func idle time))
              ;; (func string any)
              ((stringp time)
-              (run-with-timer time (* 24 60 60) 'gnus-demon-run-callback func idle)))))
+              (run-with-timer time (* 24 60 60) 'gnus-demon-run-callback
+			      func idle)))))
       (when timer
-        (add-to-list 'gnus-demon-timers timer)))))
+        (setq gnus-demon-timers (plist-put gnus-demon-timers func timer))))))
 
 (defun gnus-demon-time-to-step (time)
   "Find out how many steps to TIME, which is on the form \"17:43\"."
@@ -184,8 +203,8 @@ Emacs has been idle for IDLE `gnus-demon-timestep's."
 (defun gnus-demon-cancel ()
   "Cancel any Gnus daemons."
   (interactive)
-  (dolist (timer gnus-demon-timers)
-    (nnheader-cancel-timer timer))
+  (dotimes (i (/ (length gnus-demon-timers) 2))
+    (nnheader-cancel-timer (nth (1+ (* i 2)) gnus-demon-timers)))
   (setq gnus-demon-timers nil))
 
 (defun gnus-demon-add-disconnection ()

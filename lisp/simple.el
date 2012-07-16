@@ -28,8 +28,6 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))       ;For define-minor-mode.
-
 (declare-function widget-convert "wid-edit" (type &rest args))
 (declare-function shell-mode "shell" ())
 
@@ -3044,41 +3042,43 @@ be copied into other buffers."
 
 (defvar interprogram-cut-function nil
   "Function to call to make a killed region available to other programs.
+Most window systems provide a facility for cutting and pasting
+text between different programs, such as the clipboard on X and
+MS-Windows, or the pasteboard on Nextstep/Mac OS.
 
-Most window systems provide some sort of facility for cutting and
-pasting text between the windows of different programs.
-This variable holds a function that Emacs calls whenever text
-is put in the kill ring, to make the new kill available to other
-programs.
-
-The function takes one argument, TEXT, which is a string containing
-the text which should be made available.")
+This variable holds a function that Emacs calls whenever text is
+put in the kill ring, to make the new kill available to other
+programs.  The function takes one argument, TEXT, which is a
+string containing the text which should be made available.")
 
 (defvar interprogram-paste-function nil
   "Function to call to get text cut from other programs.
+Most window systems provide a facility for cutting and pasting
+text between different programs, such as the clipboard on X and
+MS-Windows, or the pasteboard on Nextstep/Mac OS.
 
-Most window systems provide some sort of facility for cutting and
-pasting text between the windows of different programs.
-This variable holds a function that Emacs calls to obtain
-text that other programs have provided for pasting.
+This variable holds a function that Emacs calls to obtain text
+that other programs have provided for pasting.  The function is
+called with no arguments.  If no other program has provided text
+to paste, the function should return nil (in which case the
+caller, usually `current-kill', should use the top of the Emacs
+kill ring).  If another program has provided text to paste, the
+function should return that text as a string (in which case the
+caller should put this string in the kill ring as the latest
+kill).
 
-The function should be called with no arguments.  If the function
-returns nil, then no other program has provided such text, and the top
-of the Emacs kill ring should be used.  If the function returns a
-string, then the caller of the function \(usually `current-kill')
-should put this string in the kill ring as the latest kill.
-
-This function may also return a list of strings if the window
+The function may also return a list of strings if the window
 system supports multiple selections.  The first string will be
-used as the pasted text, but the other will be placed in the
-kill ring for easy access via `yank-pop'.
+used as the pasted text, but the other will be placed in the kill
+ring for easy access via `yank-pop'.
 
-Note that the function should return a string only if a program other
-than Emacs has provided a string for pasting; if Emacs provided the
-most recent string, the function should return nil.  If it is
-difficult to tell whether Emacs or some other program provided the
-current string, it is probably good enough to return nil if the string
-is equal (according to `string=') to the last text Emacs provided.")
+Note that the function should return a string only if a program
+other than Emacs has provided a string for pasting; if Emacs
+provided the most recent string, the function should return nil.
+If it is difficult to tell whether Emacs or some other program
+provided the current string, it is probably good enough to return
+nil if the string is equal (according to `string=') to the last
+text Emacs provided.")
 
 
 
@@ -3184,7 +3184,10 @@ If `interprogram-cut-function' is set, pass the resulting kill to it."
 (set-advertised-calling-convention 'kill-append '(string before-p) "23.3")
 
 (defcustom yank-pop-change-selection nil
-  "If non-nil, rotating the kill ring changes the window system selection."
+  "Whether rotating the kill ring changes the window system selection.
+If non-nil, whenever the kill ring is rotated (usually via the
+`yank-pop' command), Emacs also calls `interprogram-cut-function'
+to copy the new kill to the window system selection."
   :type 'boolean
   :group 'killing
   :version "23.1")
@@ -3541,7 +3544,7 @@ Goes backward if ARG is negative; error if CHAR not found."
 ;; kill-line and its subroutines.
 
 (defcustom kill-whole-line nil
-  "If non-nil, `kill-line' with no arg at beg of line kills the whole line."
+  "If non-nil, `kill-line' with no arg at start of line kills the whole line."
   :type 'boolean
   :group 'killing)
 
@@ -3858,7 +3861,11 @@ run `deactivate-mark-hook'."
       (cond (saved-region-selection
 	     (x-set-selection 'PRIMARY saved-region-selection)
 	     (setq saved-region-selection nil))
-	    ((/= (region-beginning) (region-end))
+	    ;; If another program has acquired the selection, region
+	    ;; deactivation should not clobber it (Bug#11772).
+	    ((and (/= (region-beginning) (region-end))
+		  (or (x-selection-owner-p 'PRIMARY)
+		      (null (x-selection-exists-p 'PRIMARY))))
 	     (x-set-selection 'PRIMARY
 			      (buffer-substring-no-properties
 			       (region-beginning)
@@ -5425,7 +5432,9 @@ non-`nil'.
 
 The value of `normal-auto-fill-function' specifies the function to use
 for `auto-fill-function' when turning Auto Fill mode on."
-  :variable (eq auto-fill-function normal-auto-fill-function))
+  :variable (auto-fill-function
+             . (lambda (v) (setq auto-fill-function
+                            (if v normal-auto-fill-function)))))
 
 ;; This holds a document string used to document auto-fill-mode.
 (defun auto-fill-function ()
@@ -5538,7 +5547,8 @@ the line.  Before a tab, such characters insert until the tab is
 filled in.  \\[quoted-insert] still inserts characters in
 overwrite mode; this is supposed to make it easier to insert
 characters when necessary."
-  :variable (eq overwrite-mode 'overwrite-mode-textual))
+  :variable (overwrite-mode
+             . (lambda (v) (setq overwrite-mode (if v 'overwrite-mode-textual)))))
 
 (define-minor-mode binary-overwrite-mode
   "Toggle Binary Overwrite mode.
@@ -5557,7 +5567,8 @@ ordinary typing characters do.
 Note that Binary Overwrite mode is not its own minor mode; it is
 a specialization of overwrite mode, entered by setting the
 `overwrite-mode' variable to `overwrite-mode-binary'."
-  :variable (eq overwrite-mode 'overwrite-mode-binary))
+  :variable (overwrite-mode
+             . (lambda (v) (setq overwrite-mode (if v 'overwrite-mode-binary)))))
 
 (define-minor-mode line-number-mode
   "Toggle line number display in the mode line (Line Number mode).
@@ -6343,7 +6354,7 @@ Use \\<completion-list-mode-map>\\[mouse-choose-completion] to select one\
   "Finish setup of the completions buffer.
 Called from `temp-buffer-show-hook'."
   (when (eq major-mode 'completion-list-mode)
-    (toggle-read-only 1)))
+    (setq buffer-read-only t)))
 
 (add-hook 'temp-buffer-show-hook 'completion-list-mode-finish)
 
@@ -6780,8 +6791,10 @@ probably not turn on this mode on a text-only terminal if you don't
 have both Backspace, Delete and F1 keys.
 
 See also `normal-erase-is-backspace'."
-  :variable (eq (terminal-parameter
-                 nil 'normal-erase-is-backspace) 1)
+  :variable ((eq (terminal-parameter nil 'normal-erase-is-backspace) 1)
+             . (lambda (v)
+                 (setf (terminal-parameter nil 'normal-erase-is-backspace)
+                       (if v 1 0))))
   (let ((enabled (eq 1 (terminal-parameter
                         nil 'normal-erase-is-backspace))))
 

@@ -56,15 +56,14 @@
 
 ;;; Code:
 
-(eval-when-compile
-  (require 'cl)
-  ;; dynamic bondage:
-  (defvar baseward-step)
-  (defvar fly-step)
-  (defvar fly-row-start)
-  (defvar pole-width)
-  (defvar pole-char)
-  (defvar line-offset))
+(eval-when-compile (require 'cl-lib))
+;; dynamic bondage:
+(defvar baseward-step)
+(defvar fly-step)
+(defvar fly-row-start)
+(defvar pole-width)
+(defvar pole-char)
+(defvar line-offset)
 
 (defgroup hanoi nil
   "The Towers of Hanoi."
@@ -124,9 +123,9 @@ second since 1970-01-01 00:00:00 GMT.
 Repent before ring 31 moves."
   (interactive)
   (let* ((start (ftruncate (float-time)))
-	 (bits (loop repeat 32
-		     for x = (/ start (expt 2.0 31)) then (* x 2.0)
-		     collect (truncate (mod x 2.0))))
+	 (bits (cl-loop repeat 32
+                        for x = (/ start (expt 2.0 31)) then (* x 2.0)
+                        collect (truncate (mod x 2.0))))
 	 (hanoi-move-period 1.0))
     (hanoi-internal 32 bits start)))
 
@@ -138,9 +137,9 @@ current-time interface is made s2G-compliant, hanoi.el will need
 to be updated."
   (interactive)
   (let* ((start (ftruncate (float-time)))
-	 (bits (loop repeat 64
-		     for x = (/ start (expt 2.0 63)) then (* x 2.0)
-		     collect (truncate (mod x 2.0))))
+	 (bits (cl-loop repeat 64
+                        for x = (/ start (expt 2.0 63)) then (* x 2.0)
+                        collect (truncate (mod x 2.0))))
 	 (hanoi-move-period 1.0))
     (hanoi-internal 64 bits start)))
 
@@ -197,22 +196,22 @@ BITS must be of length nrings.  Start at START-TIME."
 	      (setq fly-row-start (1- line-offset))
 	      (setq fly-step line-offset)
 	      (setq baseward-step -1)
-	      (loop repeat base-len do
-		    (unless (zerop base-lines)
-		      (insert-char ?\  (1- base-lines))
-		      (insert base-char)
-		      (hanoi-put-face (1- (point)) (point) hanoi-base-face))
-		    (insert-char ?\  (+ 2 nrings))
-		    (insert ?\n))
+	      (cl-loop repeat base-len do
+                       (unless (zerop base-lines)
+                         (insert-char ?\  (1- base-lines))
+                         (insert base-char)
+                         (hanoi-put-face (1- (point)) (point) hanoi-base-face))
+                       (insert-char ?\  (+ 2 nrings))
+                       (insert ?\n))
 	      (delete-char -1)
-	      (loop for coord in pole-coords do
-		    (loop for row from (- coord (/ pole-width 2))
-			  for start = (+ (* row line-offset) base-lines 1)
-			  repeat pole-width do
-			  (subst-char-in-region start (+ start nrings 1)
-						?\  pole-char)
-			  (hanoi-put-face start (+ start nrings 1)
-					  hanoi-pole-face))))
+	      (dolist (coord pole-coords)
+                (cl-loop for row from (- coord (/ pole-width 2))
+                         for start = (+ (* row line-offset) base-lines 1)
+                         repeat pole-width do
+                         (subst-char-in-region start (+ start nrings 1)
+                                               ?\  pole-char)
+                         (hanoi-put-face start (+ start nrings 1)
+                                         hanoi-pole-face))))
 	  ;; vertical
 	  (setq line-offset (1+ base-len))
 	  (setq fly-step 1)
@@ -222,17 +221,17 @@ BITS must be of length nrings.  Start at START-TIME."
 	    (setq fly-row-start (point))
 	    (insert-char ?\  base-len)
 	    (insert ?\n)
-	    (loop repeat (1+ nrings)
-		  with pole-line =
-		  (loop with line = (make-string base-len ?\ )
-			for coord in pole-coords
-			for start = (- coord (/ pole-width 2))
-			for end = (+ start pole-width) do
-			(hanoi-put-face start end hanoi-pole-face line)
-			(loop for i from start below end do
-			      (aset line i pole-char))
-			finally return line)
-		  do (insert pole-line ?\n))
+	    (cl-loop repeat (1+ nrings)
+                     with pole-line =
+                     (cl-loop with line = (make-string base-len ?\ )
+                              for coord in pole-coords
+                              for start = (- coord (/ pole-width 2))
+                              for end = (+ start pole-width) do
+                              (hanoi-put-face start end hanoi-pole-face line)
+                              (cl-loop for i from start below end do
+                                       (aset line i pole-char))
+                              finally return line)
+                     do (insert pole-line ?\n))
 	    (insert-char base-char base-len)
 	    (hanoi-put-face (- (point) base-len) (point) hanoi-base-face)
 	    (set-window-start (selected-window)
@@ -244,40 +243,41 @@ BITS must be of length nrings.  Start at START-TIME."
 	     ;; the car is the position of the top ring currently on the pole,
 	     ;;   (or the base of the pole if it is empty).
 	     ;; the cdr is in the fly-row just above the pole.
-	     (poles (loop for coord in pole-coords
-			  for fly-pos = (+ fly-row-start (* fly-step coord))
-			  for base = (+ fly-pos (* baseward-step (+ 2 nrings)))
-			  collect (cons base fly-pos)))
+	     (poles
+              (cl-loop for coord in pole-coords
+                       for fly-pos = (+ fly-row-start (* fly-step coord))
+                       for base = (+ fly-pos (* baseward-step (+ 2 nrings)))
+                       collect (cons base fly-pos)))
 	     ;; compute the string for each ring and make the list of
 	     ;; ring pairs.  Each ring pair is initially (str . diameter).
 	     ;; Once placed in buffer it is changed to (center-pos . diameter).
 	     (rings
-	      (loop
-		;; radii are measured from the edge of the pole out.
-		;; So diameter = 2 * radius + pole-width.  When
-		;; there's room, we make each ring's radius =
-		;; pole-number + 1.  If there isn't room, we step
-		;; evenly from the max radius down to 1.
-		with max-radius = (min nrings
-				       (/ (- max-ring-diameter pole-width) 2))
-		for n from (1- nrings) downto 0
-		for radius =  (1+ (/ (* n max-radius) nrings))
-		for diameter = (+ pole-width (* 2 radius))
-		with format-str = (format "%%0%dd" pole-width)
-		for str = (concat (if vert "<" "^")
-				  (make-string (1- radius) (if vert ?\- ?\|))
-				  (format format-str n)
-				  (make-string (1- radius) (if vert ?\- ?\|))
-				  (if vert ">" "v"))
-		for face =
-		  (if (eq (logand n 1) 1) ; oddp would require cl at runtime
-		      hanoi-odd-ring-face hanoi-even-ring-face)
-		do (hanoi-put-face 0 (length str) face str)
-		collect (cons str diameter)))
+	      (cl-loop
+               ;; radii are measured from the edge of the pole out.
+               ;; So diameter = 2 * radius + pole-width.  When
+               ;; there's room, we make each ring's radius =
+               ;; pole-number + 1.  If there isn't room, we step
+               ;; evenly from the max radius down to 1.
+               with max-radius = (min nrings
+                                      (/ (- max-ring-diameter pole-width) 2))
+               for n from (1- nrings) downto 0
+               for radius =  (1+ (/ (* n max-radius) nrings))
+               for diameter = (+ pole-width (* 2 radius))
+               with format-str = (format "%%0%dd" pole-width)
+               for str = (concat (if vert "<" "^")
+                                 (make-string (1- radius) (if vert ?\- ?\|))
+                                 (format format-str n)
+                                 (make-string (1- radius) (if vert ?\- ?\|))
+                                 (if vert ">" "v"))
+               for face =
+               (if (eq (logand n 1) 1)  ; oddp would require cl at runtime
+                   hanoi-odd-ring-face hanoi-even-ring-face)
+               do (hanoi-put-face 0 (length str) face str)
+               collect (cons str diameter)))
 	     ;; Disable display of line and column numbers, for speed.
 	     (line-number-mode nil) (column-number-mode nil))
 	  ;; do it!
-	  (hanoi-n bits rings (car poles) (cadr poles) (caddr poles)
+	  (hanoi-n bits rings (car poles) (cadr poles) (cl-caddr poles)
 		   start-time))
 	(message "Done"))
     (setq buffer-read-only t)
@@ -322,14 +322,14 @@ BITS must be of length nrings.  Start at START-TIME."
 
 ;; put never-before-placed RING on POLE and update their cars.
 (defun hanoi-insert-ring (ring pole)
-  (decf (car pole) baseward-step)
+  (cl-decf (car pole) baseward-step)
   (let ((str (car ring))
 	(start (- (car pole) (* (/ (cdr ring) 2) fly-step))))
     (setcar ring (car pole))
-    (loop for pos upfrom start by fly-step
-	      for i below (cdr ring) do
-	      (subst-char-in-region pos (1+ pos) (char-after pos) (aref str i))
-	      (set-text-properties pos (1+ pos) (text-properties-at i str)))
+    (cl-loop for pos upfrom start by fly-step
+             for i below (cdr ring) do
+             (subst-char-in-region pos (1+ pos) (char-after pos) (aref str i))
+             (set-text-properties pos (1+ pos) (text-properties-at i str)))
     (hanoi-goto-char (car pole))))
 
 ;; like goto-char, but if position is outside the window, then move to
@@ -341,8 +341,8 @@ BITS must be of length nrings.  Start at START-TIME."
 
 ;; do one pole-to-pole move and update the ring and pole pairs.
 (defun hanoi-move-ring (ring from to start-time)
-  (incf (car from) baseward-step)
-  (decf (car to) baseward-step)
+  (cl-incf (car from) baseward-step)
+  (cl-decf (car to) baseward-step)
   (let* ;; We move flywards-steps steps up the pole to the fly row,
 	;; then fly fly-steps steps across the fly row, then go
 	;; baseward-steps steps down the new pole.
@@ -378,15 +378,15 @@ BITS must be of length nrings.  Start at START-TIME."
 		    (/ (- tick flyward-ticks fly-ticks)
 		       ticks-per-pole-step))))))))
     (if hanoi-move-period
-	(loop for elapsed = (- (float-time) start-time)
-	      while (< elapsed hanoi-move-period)
-	      with tick-period = (/ (float hanoi-move-period) total-ticks)
-	      for tick = (ceiling (/ elapsed tick-period)) do
-	      (hanoi-ring-to-pos ring (funcall tick-to-pos tick))
-	      (hanoi-sit-for (- (* tick tick-period) elapsed)))
-      (loop for tick from 1 to total-ticks by 2 do
-	    (hanoi-ring-to-pos ring (funcall tick-to-pos tick))
-	    (hanoi-sit-for 0)))
+	(cl-loop for elapsed = (- (float-time) start-time)
+                 while (< elapsed hanoi-move-period)
+                 with tick-period = (/ (float hanoi-move-period) total-ticks)
+                 for tick = (ceiling (/ elapsed tick-period)) do
+                 (hanoi-ring-to-pos ring (funcall tick-to-pos tick))
+                 (hanoi-sit-for (- (* tick tick-period) elapsed)))
+      (cl-loop for tick from 1 to total-ticks by 2 do
+               (hanoi-ring-to-pos ring (funcall tick-to-pos tick))
+               (hanoi-sit-for 0)))
     ;; Always make last move to keep pole and ring data consistent
     (hanoi-ring-to-pos ring (car to))
     (if hanoi-move-period (+ start-time hanoi-move-period))))
@@ -403,11 +403,12 @@ BITS must be of length nrings.  Start at START-TIME."
     (let* ((start (- (car ring) (* (/ (cdr ring) 2) fly-step)))
 	   (new-start (- pos (- (car ring) start))))
       (if hanoi-horizontal-flag
-	  (loop for i below (cdr ring)
-		for j = (if (< new-start start) i (- (cdr ring) i 1))
-		for old-pos = (+ start (* j fly-step))
-		for new-pos = (+ new-start (* j fly-step)) do
-		(transpose-regions old-pos (1+ old-pos) new-pos (1+ new-pos)))
+	  (cl-loop for i below (cdr ring)
+                   for j = (if (< new-start start) i (- (cdr ring) i 1))
+                   for old-pos = (+ start (* j fly-step))
+                   for new-pos = (+ new-start (* j fly-step)) do
+                   (transpose-regions old-pos (1+ old-pos)
+                                      new-pos (1+ new-pos)))
 	(let ((end (+ start (cdr ring)))
 	      (new-end (+ new-start (cdr ring))))
 	  (if (< (abs (- new-start start)) (- end start))
@@ -425,9 +426,9 @@ BITS must be of length nrings.  Start at START-TIME."
 	     (curr-char (if on-pole ?\  pole-char))
 	     (face (if on-pole hanoi-pole-face nil)))
 	(if hanoi-horizontal-flag
-	    (loop for pos from pole-start below pole-end by line-offset do
-		  (subst-char-in-region pos (1+ pos) curr-char new-char)
-		  (hanoi-put-face pos (1+ pos) face))
+	    (cl-loop for pos from pole-start below pole-end by line-offset do
+                     (subst-char-in-region pos (1+ pos) curr-char new-char)
+                     (hanoi-put-face pos (1+ pos) face))
 	  (subst-char-in-region pole-start pole-end curr-char new-char)
 	  (hanoi-put-face pole-start pole-end face))))
     (setcar ring pos))

@@ -256,8 +256,10 @@ usually do not have translators for other languages.\n\n")))
     (insert "Important settings:\n")
     (mapc
      (lambda (var)
-       (insert (format "  value of $%s: %s\n" var (getenv var))))
-     '("LC_ALL" "LC_COLLATE" "LC_CTYPE" "LC_MESSAGES"
+       (let ((val (getenv var)))
+	 (if val (insert (format "  value of $%s: %s\n" var val)))))
+     '("EMACSDATA" "EMACSDOC" "EMACSLOADPATH" "EMACSPATH"
+       "LC_ALL" "LC_COLLATE" "LC_CTYPE" "LC_MESSAGES"
        "LC_MONETARY" "LC_NUMERIC" "LC_TIME" "LANG" "XMODIFIERS"))
     (insert (format "  locale-coding-system: %s\n" locale-coding-system))
     (insert (format "  default enable-multibyte-characters: %s\n"

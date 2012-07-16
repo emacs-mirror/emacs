@@ -29,11 +29,12 @@
 (eval-when-compile (require 'eshell))
 
 ;;;###autoload
-(eshell-defgroup eshell-prompt nil
+(progn
+(defgroup eshell-prompt nil
   "This module provides command prompts, and navigation between them,
 as is common with most shells."
   :tag "Command prompts"
-  :group 'eshell-module)
+  :group 'eshell-module))
 
 ;;; User Variables:
 
@@ -69,9 +70,9 @@ re-entered for it to take effect."
   :group 'eshell-prompt)
 
 (defface eshell-prompt
-  '((((class color) (background light)) (:foreground "Red" :bold t))
-    (((class color) (background dark)) (:foreground "Pink" :bold t))
-    (t (:bold t)))
+  '((default :weight bold)
+    (((class color) (background light)) :foreground "Red")
+    (((class color) (background dark))  :foreground "Pink"))
   "The face used to highlight prompt strings.
 For highlighting other kinds of strings -- similar to shell mode's
 behavior -- simply use an output filer which changes text properties."

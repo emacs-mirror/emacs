@@ -765,16 +765,14 @@ displays something like this:
 @example
 fill-column is a variable defined in `C source code'.
 fill-column's value is 70
-Local in buffer custom.texi; global value is 70
-Automatically becomes buffer-local when set in any fashion.
 
-  Automatically becomes buffer-local when set in any fashion.
-  This variable is safe as a file local variable if its value
-  satisfies the predicate `integerp'.
+Automatically becomes buffer-local when set.
+This variable is safe as a file local variable if its value
+satisfies the predicate `integerp'.
 
 Documentation:
-*Column beyond which automatic line-wrapping should happen.
-Interactively, you can set the buffer local value using C-x f.
+Column beyond which automatic line-wrapping should happen.
+Interactively, you can set the local value with C-x f.
 
 You can customize this variable.
 @end example
@@ -1054,13 +1052,14 @@ pair with a colon and semicolon.  The special variable/value pair
 @findex add-file-local-variable-prop-line
 @findex delete-file-local-variable-prop-line
 @findex copy-dir-locals-to-file-locals-prop-line
-  You can use the command @kbd{M-x add-file-local-variable-prop-line}
-instead of adding entries by hand.  It prompts for
-a variable and value, and adds them to the first line in the
-appropriate way.  @kbd{M-x delete-file-local-variable-prop-line}
-prompts for a variable, and deletes its entry from the line.  @kbd{M-x
-copy-dir-locals-to-file-locals-prop-line} copies directory-local
-variables to the first line (@pxref{Directory Variables}).
+  You can use @kbd{M-x add-file-local-variable-prop-line} instead of
+adding entries by hand.  This command prompts for a variable and
+value, and adds them to the first line in the appropriate way.
+@kbd{M-x delete-file-local-variable-prop-line} prompts for a variable,
+and deletes its entry from the line.  The command @kbd{M-x
+copy-dir-locals-to-file-locals-prop-line} copies the current
+directory-local variables to the first line (@pxref{Directory
+Variables}).
 
   Here is an example first line that specifies Lisp mode and sets two
 variables with numeric values:
@@ -1283,7 +1282,9 @@ specified in @file{.dir-locals.el}, as though they had been defined as
 file-local variables for that file (@pxref{File Variables}).  Emacs
 searches for @file{.dir-locals.el} starting in the directory of the
 visited file, and moving up the directory tree.  To avoid slowdown,
-this search is skipped for remote files.
+this search is skipped for remote files.  If needed, the search can be
+extended for remote files by setting the variable
+@code{enable-remote-dir-locals} to @code{t}.
 
   The @file{.dir-locals.el} file should hold a specially-constructed
 list, which maps major mode names (symbols) to alists
@@ -2102,11 +2103,12 @@ loading of this library, use the option @samp{--no-site-file}.
 better to put them in @file{default.el}, so that users can more easily
 override them.
 
+@cindex site-lisp directories
   You can place @file{default.el} and @file{site-start.el} in any of
 the directories which Emacs searches for Lisp libraries.  The variable
 @code{load-path} (@pxref{Lisp Libraries}) specifies these directories.
-Many sites put these files in the @file{site-lisp} subdirectory of the
-Emacs installation directory, typically
+Many sites put these files in a subdirectory named @file{site-lisp} in
+the Emacs installation directory, such as
 @file{/usr/local/share/emacs/site-lisp}.
 
   Byte-compiling your init file is not recommended (@pxref{Byte

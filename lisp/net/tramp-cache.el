@@ -328,7 +328,8 @@ KEY identifies the connection, it is either a process or a vector."
 	       (not (zerop (hash-table-count tramp-cache-data)))
 	       tramp-cache-data-changed
 	       (stringp tramp-persistency-file-name))
-      (let ((cache (copy-hash-table tramp-cache-data)))
+      (let ((cache (copy-hash-table tramp-cache-data))
+	    print-length print-level)
 	;; Remove temporary data.  If there is the key "login-as", we
 	;; don't save either, because all other properties might
 	;; depend on the login name, and we want to give the

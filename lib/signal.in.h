@@ -55,7 +55,7 @@
 #ifndef _@GUARD_PREFIX@_SIGNAL_H
 #define _@GUARD_PREFIX@_SIGNAL_H
 
-/* MacOS X 10.3, FreeBSD 6.4, OpenBSD 3.8, OSF/1 4.0, Solaris 2.6 declare
+/* Mac OS X 10.3, FreeBSD 6.4, OpenBSD 3.8, OSF/1 4.0, Solaris 2.6 declare
    pthread_sigmask in <pthread.h>, not in <signal.h>.
    But avoid namespace pollution on glibc systems.*/
 #if (@GNULIB_PTHREAD_SIGMASK@ || defined GNULIB_POSIXCHECK) \
@@ -197,7 +197,7 @@ typedef int verify_NSIG_constraint[NSIG <= 32 ? 1 : -1];
 
 /* Test whether a given signal is contained in a signal set.  */
 # if @HAVE_POSIX_SIGNALBLOCKING@
-/* This function is defined as a macro on MacOS X.  */
+/* This function is defined as a macro on Mac OS X.  */
 #  if defined __cplusplus && defined GNULIB_NAMESPACE
 #   undef sigismember
 #  endif
@@ -210,7 +210,7 @@ _GL_CXXALIASWARN (sigismember);
 
 /* Initialize a signal set to the empty set.  */
 # if @HAVE_POSIX_SIGNALBLOCKING@
-/* This function is defined as a macro on MacOS X.  */
+/* This function is defined as a macro on Mac OS X.  */
 #  if defined __cplusplus && defined GNULIB_NAMESPACE
 #   undef sigemptyset
 #  endif
@@ -222,7 +222,7 @@ _GL_CXXALIASWARN (sigemptyset);
 
 /* Add a signal to a signal set.  */
 # if @HAVE_POSIX_SIGNALBLOCKING@
-/* This function is defined as a macro on MacOS X.  */
+/* This function is defined as a macro on Mac OS X.  */
 #  if defined __cplusplus && defined GNULIB_NAMESPACE
 #   undef sigaddset
 #  endif
@@ -235,7 +235,7 @@ _GL_CXXALIASWARN (sigaddset);
 
 /* Remove a signal from a signal set.  */
 # if @HAVE_POSIX_SIGNALBLOCKING@
-/* This function is defined as a macro on MacOS X.  */
+/* This function is defined as a macro on Mac OS X.  */
 #  if defined __cplusplus && defined GNULIB_NAMESPACE
 #   undef sigdelset
 #  endif
@@ -248,7 +248,7 @@ _GL_CXXALIASWARN (sigdelset);
 
 /* Fill a signal set with all possible signals.  */
 # if @HAVE_POSIX_SIGNALBLOCKING@
-/* This function is defined as a macro on MacOS X.  */
+/* This function is defined as a macro on Mac OS X.  */
 #  if defined __cplusplus && defined GNULIB_NAMESPACE
 #   undef sigfillset
 #  endif

@@ -197,8 +197,6 @@ static off_t data_segment_old_fileoff = 0;
 
 static struct segment_command *data_segment_scp;
 
-static void unexec_error (const char *format, ...) NO_RETURN;
-
 /* Read N bytes from infd into memory starting at address DEST.
    Return true if successful, false otherwise.  */
 static int
@@ -275,7 +273,7 @@ unexec_copy (off_t dest, off_t src, ssize_t count)
 
 /* Debugging and informational messages routines.  */
 
-static void
+static _Noreturn void
 unexec_error (const char *format, ...)
 {
   va_list ap;
@@ -396,7 +394,7 @@ build_region_list (void)
 	}
       else
 	{
-	  r = (struct region_t *) malloc (sizeof (struct region_t));
+	  r = malloc (sizeof *r);
 
 	  if (!r)
 	    unexec_error ("cannot allocate region structure");
@@ -671,7 +669,7 @@ read_load_commands (void)
 #endif
 
   nlc = mh.ncmds;
-  lca = (struct load_command **) malloc (nlc * sizeof (struct load_command *));
+  lca = malloc (nlc * sizeof *lca);
 
   for (i = 0; i < nlc; i++)
     {
@@ -680,7 +678,7 @@ read_load_commands (void)
 	 size first and then read the rest.  */
       if (!unexec_read (&lc, sizeof (struct load_command)))
         unexec_error ("cannot read load command");
-      lca[i] = (struct load_command *) malloc (lc.cmdsize);
+      lca[i] = malloc (lc.cmdsize);
       memcpy (lca[i], &lc, sizeof (struct load_command));
       if (!unexec_read (lca[i] + 1, lc.cmdsize - sizeof (struct load_command)))
         unexec_error ("cannot read content of load command");
@@ -848,6 +846,8 @@ copy_data_segment (struct load_command *lc)
 	       || strncmp (sectp->sectname, "__cfstring", 16) == 0
 	       || strncmp (sectp->sectname, "__gcc_except_tab", 16) == 0
 	       || strncmp (sectp->sectname, "__program_vars", 16) == 0
+	       || strncmp (sectp->sectname, "__mod_init_func", 16) == 0
+	       || strncmp (sectp->sectname, "__mod_term_func", 16) == 0
 	       || strncmp (sectp->sectname, "__objc_", 7) == 0)
 	{
 	  if (!unexec_copy (sectp->offset, old_file_offset, sectp->size))
@@ -1378,7 +1378,7 @@ unexec_realloc (void *old_ptr, size_t new_size)
 	  size_t old_size = ((unexec_malloc_header_t *) old_ptr)[-1].u.size;
 	  size_t size = new_size > old_size ? old_size : new_size;
 
-	  p = (size_t *) malloc (new_size);
+	  p = malloc (new_size);
 	  if (size)
 	    memcpy (p, old_ptr, size);
 	}

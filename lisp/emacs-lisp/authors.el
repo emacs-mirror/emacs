@@ -399,7 +399,7 @@ Changes to files in this list are not listed.")
     ("Lawrence R. Dodd" :cowrote "dired-x.el")
     ;; No longer distributed.
 ;;;    ("Viktor Dukhovni" :wrote "unexsunos4.c")
-    ("Paul Eggert" :wrote "rcs2log" "vcdiff")
+    ("Paul Eggert" :wrote "rcs2log") ; "vcdiff"
     ("Fred Fish" :changed "unexcoff.c")
     ;; No longer distributed.
 ;;;    ("Tim Fleehart" :wrote "makefile.nt")
@@ -427,7 +427,7 @@ Changes to files in this list are not listed.")
     ;; No longer distributed.
 ;;;    ("Ishikawa Chiaki" :changed "aviion.h" "dgux.h")
     ;; ymakefile no longer distributed.
-    ("Michael K. Johnson" :changed "configure.in" "emacs.c" "intel386.h"
+    ("Michael K. Johnson" :changed "configure.ac" "emacs.c" "intel386.h"
      "mem-limits.h" "process.c" "template.h" "sysdep.c" "syssignal.h"
      "systty.h" "unexcoff.c" "linux.h")
     ;; No longer distributed.
@@ -580,6 +580,7 @@ in the repository.")
     ("s/windowsnt.h" . "s/ms-w32.h")
     ("winnt.el" . "w32-fns.el")
     ("config.emacs" . "configure")
+    ("configure.in" . "configure.ac")
     ("config.h.dist" . "config.in")
     ("config.h-dist" . "config.in")
     ("config.h.in" . "config.in")
@@ -702,7 +703,7 @@ or is on the list of removed files.  Returns the non-directory part of
 the file name.  Only uses the LOG-FILE position POS and associated AUTHOR
 to print a message if FILE is not found."
   ;; FILE should be re-checked in every different directory associated
-  ;; with a LOG-FILE.  Eg configure.in from src/ChangeLog is not the
+  ;; with a LOG-FILE.  Eg configure.ac from src/ChangeLog is not the
   ;; same as that from top-level/ChangeLog.
   (let* ((fullname (expand-file-name file (file-name-directory log-file)))
 	 (entry (assoc fullname authors-checked-files-alist))

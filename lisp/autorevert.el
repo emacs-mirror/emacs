@@ -94,9 +94,6 @@
 
 (require 'timer)
 
-(eval-when-compile (require 'cl))
-
-
 ;; Custom Group:
 ;;
 ;; The two modes will be placed next to Auto Save Mode under the

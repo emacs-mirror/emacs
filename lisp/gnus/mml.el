@@ -463,8 +463,10 @@ If MML is non-nil, return the buffer up till the correspondent mml tag."
 (defvar mml-multipart-number 0)
 (defvar mml-inhibit-compute-boundary nil)
 
-(defun mml-generate-mime ()
-  "Generate a MIME message based on the current MML document."
+(defun mml-generate-mime (&optional multipart-type)
+  "Generate a MIME message based on the current MML document.
+MULTIPART-TYPE defaults to \"mixed\", but can also
+be \"related\" or \"alternate\"."
   (let ((cont (mml-parse))
 	(mml-multipart-number mml-multipart-number)
 	(options message-options))
@@ -476,8 +478,9 @@ If MML is non-nil, return the buffer up till the correspondent mml tag."
 	    (if (and (consp (car cont))
 		     (= (length cont) 1))
 		(mml-generate-mime-1 (car cont))
-	      (mml-generate-mime-1 (nconc (list 'multipart '(type . "mixed"))
-					  cont)))
+	      (mml-generate-mime-1
+	       (nconc (list 'multipart (cons 'type (or multipart-type "mixed")))
+		      cont)))
 	    (setq options message-options)
 	    (buffer-string))
 	(setq message-options options)))))

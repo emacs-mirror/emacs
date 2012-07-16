@@ -539,6 +539,7 @@ The relevant features are:
                 (and (memq 'reportBackground tocheck-capabilities)
                      version
                      (>= version 242)))
+	(discard-input)
         (send-string-to-terminal "\e]11;?\e\\")
         (when (and (equal (read-event nil nil 2) ?\e)
                    (equal (read-event nil nil 2) ?\]))

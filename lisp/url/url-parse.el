@@ -25,11 +25,11 @@
 
 (require 'url-vars)
 (require 'auth-source)
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 (autoload 'url-scheme-get-property "url-methods")
 
-(defstruct (url
+(cl-defstruct (url
             (:constructor nil)
             (:constructor url-parse-make-urlobj
                           (&optional type user password host portspec filename
@@ -40,11 +40,11 @@
 
 (defsubst url-port (urlobj)
   "Return the port number for the URL specified by URLOBJ."
+  (declare (gv-setter (lambda (port) `(setf (url-portspec ,urlobj) ,port))))
   (or (url-portspec urlobj)
       (if (url-type urlobj)
           (url-scheme-get-property (url-type urlobj) 'default-port))))
 
-(defsetf url-port (urlobj) (port) `(setf (url-portspec ,urlobj) ,port))
 
 (defun url-path-and-query (urlobj)
   "Return the path and query components of URLOBJ.

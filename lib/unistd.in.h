@@ -1318,7 +1318,7 @@ _GL_WARN_ON_USE (rmdir, "rmdir is unportable - "
 _GL_FUNCDECL_SYS (sethostname, int, (const char *name, size_t len)
                                     _GL_ARG_NONNULL ((1)));
 # endif
-/* Need to cast, because on Solaris 11 2011-10, MacOS X 10.5, IRIX 6.5
+/* Need to cast, because on Solaris 11 2011-10, Mac OS X 10.5, IRIX 6.5
    and FreeBSD 6.4 the second parameter is int.  On Solaris 11
    2011-10, the first parameter is not const.  */
 _GL_CXXALIAS_SYS_CAST (sethostname, int, (const char *name, size_t len));

@@ -118,7 +118,7 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 (require 'ewoc)				;Ewoc was once cookie
 (require 'pcvs-defs)
 (require 'pcvs-util)
@@ -219,21 +219,21 @@
 (autoload 'cvs-status-get-tags "cvs-status")
 (defun cvs-tags-list ()
   "Return a list of acceptable tags, ready for completions."
-  (assert (cvs-buffer-p))
+  (cl-assert (cvs-buffer-p))
   (let ((marked (cvs-get-marked)))
-    (list* '("BASE") '("HEAD")
-	   (when marked
-	     (with-temp-buffer
-	       (process-file cvs-program
-			     nil	;no input
-			     t		;output to current-buffer
-			     nil	;don't update display while running
-			     "status"
-			     "-v"
-			     (cvs-fileinfo->full-name (car marked)))
-	       (goto-char (point-min))
-	       (let ((tags (cvs-status-get-tags)))
-		 (when (listp tags) tags)))))))
+    `(("BASE") ("HEAD")
+      ,@(when marked
+          (with-temp-buffer
+            (process-file cvs-program
+                          nil           ;no input
+                          t		;output to current-buffer
+                          nil           ;don't update display while running
+                          "status"
+                          "-v"
+                          (cvs-fileinfo->full-name (car marked)))
+            (goto-char (point-min))
+            (let ((tags (cvs-status-get-tags)))
+              (when (listp tags) tags)))))))
 
 (defvar cvs-tag-history nil)
 (defconst cvs-qtypedesc-tag
@@ -426,16 +426,16 @@ If non-nil, NEW means to create a new buffer no matter what."
 	      ;; look for another cvs buffer visiting the same directory
 	      (save-excursion
 		(unless new
-		  (dolist (buffer (cons (current-buffer) (buffer-list)))
+		  (cl-dolist (buffer (cons (current-buffer) (buffer-list)))
 		    (set-buffer buffer)
 		    (and (cvs-buffer-p)
-			 (case cvs-reuse-cvs-buffer
-			   (always t)
-			   (subdir
+			 (pcase cvs-reuse-cvs-buffer
+			   (`always t)
+			   (`subdir
 			    (or (string-prefix-p default-directory dir)
 				(string-prefix-p dir default-directory)))
-			   (samedir (string= default-directory dir)))
-			 (return buffer)))))
+			   (`samedir (string= default-directory dir)))
+			 (cl-return buffer)))))
 	      ;; we really have to create a new buffer:
 	      ;; we temporarily bind cwd to "" to prevent
 	      ;; create-file-buffer from using directory info
@@ -478,7 +478,7 @@ If non-nil, NEW means to create a new buffer no matter what."
 	   ;;(set-buffer buf)
 	   buffer))))))
 
-(defun* cvs-cmd-do (cmd dir flags fis new
+(cl-defun cvs-cmd-do (cmd dir flags fis new
 			&key cvsargs noexist dont-change-disc noshow)
   (let* ((dir (file-name-as-directory
 	       (abbreviate-file-name (expand-file-name dir))))
@@ -501,7 +501,7 @@ If non-nil, NEW means to create a new buffer no matter what."
 ;;	       cvsbuf))))
 
 (defun cvs-run-process (args fis postprocess &optional single-dir)
-  (assert (cvs-buffer-p cvs-buffer))
+  (cl-assert (cvs-buffer-p cvs-buffer))
   (save-current-buffer
     (let ((procbuf (current-buffer))
 	  (cvsbuf cvs-buffer)
@@ -521,9 +521,9 @@ If non-nil, NEW means to create a new buffer no matter what."
 		  (let ((inhibit-read-only t))
 		    (insert "pcl-cvs: descending directory " dir "\n"))
 		  ;; loop to find the same-dir-elems
-		  (do* ((files () (cons (cvs-fileinfo->file fi) files))
-			(fis fis (cdr fis))
-			(fi (car fis) (car fis)))
+		  (cl-do* ((files () (cons (cvs-fileinfo->file fi) files))
+                           (fis fis (cdr fis))
+                           (fi (car fis) (car fis)))
 		      ((not (and fis (string= dir (cvs-fileinfo->dir fi))))
 		       (list dir files fis))))))
 	     (dir (nth 0 dir+files+rest))
@@ -813,7 +813,7 @@ TIN specifies an optional starting point."
   (while (and tin (cvs-fileinfo< fi (ewoc-data tin)))
     (setq tin (ewoc-prev c tin)))
   (if (null tin) (ewoc-enter-first c fi) ;empty collection
-    (assert (not (cvs-fileinfo< fi (ewoc-data tin))))
+    (cl-assert (not (cvs-fileinfo< fi (ewoc-data tin))))
     (let ((next-tin (ewoc-next c tin)))
       (while (not (or (null next-tin)
 		      (cvs-fileinfo< fi (ewoc-data next-tin))))
@@ -871,15 +871,15 @@ RM-MSGS if non-nil means remove messages."
 	   (let* ((type (cvs-fileinfo->type fi))
 		  (subtype (cvs-fileinfo->subtype fi))
 		  (keep
-		   (case type
+		   (pcase type
 		     ;; remove temp messages and keep the others
-		     (MESSAGE (not (or rm-msgs (eq subtype 'TEMP))))
+		     (`MESSAGE (not (or rm-msgs (eq subtype 'TEMP))))
 		     ;; remove entries
-		     (DEAD nil)
+		     (`DEAD nil)
 		     ;; handled also?
-		     (UP-TO-DATE (not rm-handled))
+		     (`UP-TO-DATE (not rm-handled))
 		     ;; keep the rest
-		     (t (not (run-hook-with-args-until-success
+		     (_ (not (run-hook-with-args-until-success
 			      'cvs-cleanup-functions fi))))))
 
 	     ;; mark dirs for removal
@@ -1389,7 +1389,7 @@ an empty list if it doesn't point to a file at all."
 		      fis))))
     (nreverse fis)))
 
-(defun* cvs-mode-marked (filter &optional cmd
+(cl-defun cvs-mode-marked (filter &optional cmd
 				&key read-only one file noquery)
   "Get the list of marked FIS.
 CMD is used to determine whether to use the marks or not.
@@ -1474,7 +1474,7 @@ The POSTPROC specified there (typically `log-edit') is then called,
   (let ((msg (buffer-substring-no-properties (point-min) (point-max))))
     (cvs-mode!)
     ;;(pop-to-buffer cvs-buffer)
-    (cvs-mode-do "commit" (list* "-m" msg flags) 'commit)))
+    (cvs-mode-do "commit" `("-m" ,msg ,@flags) 'commit)))
 
 
 ;;;; Editing existing commit log messages.
@@ -1604,7 +1604,7 @@ With prefix argument, prompt for cvs flags."
 			 (or current-prefix-arg (not cvs-add-default-message)))
 		    (read-from-minibuffer "Enter description: ")
 		  (or cvs-add-default-message "")))
-	   (flags (list* "-m" msg flags))
+	   (flags `("-m" ,msg ,@flags))
 	   (postproc
 	    ;; setup postprocessing for the directory entries
 	    (when dirs
@@ -1758,7 +1758,7 @@ Signal an error if there is no backup file."
 	    (set-buffer-modified-p nil)
 	    (let ((buffer-file-name (expand-file-name file)))
 	      (after-find-file))
-	    (toggle-read-only 1)
+	    (setq buffer-read-only t)
 	    (message "Retrieving revision %s... Done" rev)
 	    (current-buffer))))))
 
@@ -1845,7 +1845,7 @@ Signal an error if there is no backup file."
 	  (setq ret t)))
       ret)))
 
-(defun* cvs-mode-run (cmd flags fis
+(cl-defun cvs-mode-run (cmd flags fis
 		      &key (buf (cvs-temp-buffer))
 		           dont-change-disc cvsargs postproc)
   "Generic cvs-mode-<foo> function.
@@ -1887,7 +1887,7 @@ POSTPROC is a list of expressions to be evaluated at the very end (after
       (cvs-run-process args fis postproc single-dir))))
 
 
-(defun* cvs-mode-do (cmd flags filter
+(cl-defun cvs-mode-do (cmd flags filter
 		     &key show dont-change-disc cvsargs postproc)
   "Generic cvs-mode-<foo> function.
 Executes `cvs CVSARGS CMD FLAGS' on the selected files.

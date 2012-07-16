@@ -1362,6 +1362,9 @@ If optional arg NO-ACTIVATE is non-nil, don't activate packages."
     map)
   "Local keymap for `package-menu-mode' buffers.")
 
+(defvar package-menu--new-package-list nil
+  "List of newly-available packages since `list-packages' was last called.")
+
 (define-derived-mode package-menu-mode tabulated-list-mode "Package Menu"
   "Major mode for browsing a list of packages.
 Letters do not insert themselves; instead, they are commands.
@@ -1415,9 +1418,10 @@ or a list of package names (symbols) to display."
       (when (or (eq packages t) (memq name packages))
 	(let ((hold (assq name package-load-list)))
 	  (package--push name (cdr elt)
-			 (if (and hold (null (cadr hold)))
-			     "disabled"
-			   "available")
+			 (cond
+			  ((and hold (null (cadr hold))) "disabled")
+			  ((memq name package-menu--new-package-list) "new")
+			  (t "available"))
 			 info-list))))
 
     ;; Obsolete packages:
@@ -1442,6 +1446,7 @@ identifier (NAME . VERSION-LIST)."
 	 (face (cond
 		((string= status "built-in")  'font-lock-builtin-face)
 		((string= status "available") 'default)
+		((string= status "new") 'bold)
 		((string= status "held")      'font-lock-constant-face)
 		((string= status "disabled")  'font-lock-warning-face)
 		((string= status "installed") 'font-lock-comment-face)
@@ -1487,7 +1492,7 @@ If optional arg BUTTON is non-nil, describe its associated package."
 (defun package-menu-mark-install (&optional _num)
   "Mark a package for installation and move to the next line."
   (interactive "p")
-  (if (string-equal (package-menu-get-status) "available")
+  (if (member (package-menu-get-status) '("available" "new"))
       (tabulated-list-put-tag "I" t)
     (forward-line)))
 
@@ -1536,7 +1541,7 @@ If optional arg BUTTON is non-nil, describe its associated package."
 	    (status (aref (cadr entry) 2)))
 	(cond ((equal status "installed")
 	       (push pkg installed))
-	      ((equal status "available")
+	      ((member status '("available" "new"))
 	       (push pkg available)))))
     ;; Loop through list of installed packages, finding upgrades
     (dolist (pkg installed)
@@ -1642,16 +1647,18 @@ packages marked for deletion are removed."
 	(sB (aref (cadr B) 2)))
     (cond ((string= sA sB)
 	   (package-menu--name-predicate A B))
-	  ((string= sA  "available") t)
+	  ((string= sA "new") t)
+	  ((string= sB "new") nil)
+	  ((string= sA "available") t)
 	  ((string= sB "available") nil)
-	  ((string= sA  "installed") t)
+	  ((string= sA "installed") t)
 	  ((string= sB "installed") nil)
-	  ((string= sA  "held") t)
+	  ((string= sA "held") t)
 	  ((string= sB "held") nil)
-	  ((string= sA  "built-in") t)
+	  ((string= sA "built-in") t)
 	  ((string= sB "built-in") nil)
-	  ((string= sA  "obsolete") t)
-	  ((string= sB  "obsolete") nil)
+	  ((string= sA "obsolete") t)
+	  ((string= sB "obsolete") nil)
 	  (t (string< sA sB)))))
 
 (defun package-menu--description-predicate (A B)
@@ -1676,22 +1683,36 @@ The list is displayed in a buffer named `*Packages*'."
   ;; Initialize the package system if necessary.
   (unless package--initialized
     (package-initialize t))
-  (unless no-fetch
-    (package-refresh-contents))
-  (let ((buf (get-buffer-create "*Packages*")))
-    (with-current-buffer buf
-      (package-menu-mode)
-      (package-menu--generate nil t))
-    ;; The package menu buffer has keybindings.  If the user types
-    ;; `M-x list-packages', that suggests it should become current.
-    (switch-to-buffer buf))
-  (let ((upgrades (package-menu--find-upgrades)))
-    (if upgrades
-	(message "%d package%s can be upgraded; type `%s' to mark %s for upgrading."
-		 (length upgrades)
-		 (if (= (length upgrades) 1) "" "s")
-		 (substitute-command-keys "\\[package-menu-mark-upgrades]")
-		 (if (= (length upgrades) 1) "it" "them")))))
+  (let (old-archives new-packages)
+    (unless no-fetch
+      ;; Read the locally-cached archive-contents.
+      (package-read-all-archive-contents)
+      (setq old-archives package-archive-contents)
+      ;; Fetch the remote list of packages.
+      (package-refresh-contents)
+      ;; Find which packages are new.
+      (dolist (elt package-archive-contents)
+	(unless (assq (car elt) old-archives)
+	  (push (car elt) new-packages))))
+
+    ;; Generate the Package Menu.
+    (let ((buf (get-buffer-create "*Packages*")))
+      (with-current-buffer buf
+	(package-menu-mode)
+	(set (make-local-variable 'package-menu--new-package-list)
+	     new-packages)
+	(package-menu--generate nil t))
+      ;; The package menu buffer has keybindings.  If the user types
+      ;; `M-x list-packages', that suggests it should become current.
+      (switch-to-buffer buf))
+
+    (let ((upgrades (package-menu--find-upgrades)))
+      (if upgrades
+	  (message "%d package%s can be upgraded; type `%s' to mark %s for upgrading."
+		   (length upgrades)
+		   (if (= (length upgrades) 1) "" "s")
+		   (substitute-command-keys "\\[package-menu-mark-upgrades]")
+		   (if (= (length upgrades) 1) "it" "them"))))))
 
 ;;;###autoload
 (defalias 'package-list-packages 'list-packages)

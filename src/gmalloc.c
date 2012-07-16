@@ -21,9 +21,7 @@ Fifth Floor, Boston, MA 02110-1301, USA.
    The author may be reached (Email) at the address mike@ai.mit.edu,
    or (US mail) as Mike Haertel c/o Free Software Foundation.  */
 
-#ifdef	HAVE_CONFIG_H
 #include <config.h>
-#endif
 
 #ifdef HAVE_PTHREAD
 #define USE_PTHREAD
@@ -1618,7 +1616,7 @@ memalign (size_t alignment, size_t size)
 	  break;
       if (l == NULL)
 	{
-	  l = malloc (sizeof (struct alignlist));
+	  l = malloc (sizeof *l);
 	  if (l != NULL)
 	    {
 	      l->next = _aligned_blocks;
@@ -1689,11 +1687,6 @@ Fifth Floor, Boston, MA 02110-1301, USA.
    The author may be reached (Email) at the address mike@ai.mit.edu,
    or (US mail) as Mike Haertel c/o Free Software Foundation.  */
 
-/* Emacs defines GMALLOC_INHIBIT_VALLOC to avoid this definition
-   on MSDOS, where it conflicts with a system header file.  */
-
-#ifndef	GMALLOC_INHIBIT_VALLOC
-
 /* Allocate SIZE bytes on a page boundary.  */
 extern void *valloc (size_t);
 
@@ -1713,8 +1706,6 @@ valloc (size_t size)
 
   return memalign (pagesize, size);
 }
-
-#endif	/* Not ELIDE_VALLOC.  */
 
 #ifdef GC_MCHECK
 
@@ -1813,7 +1804,7 @@ mallochook (size_t size)
   struct hdr *hdr;
 
   __malloc_hook = old_malloc_hook;
-  hdr = malloc (sizeof (struct hdr) + size + 1);
+  hdr = malloc (sizeof *hdr + size + 1);
   __malloc_hook = mallochook;
   if (hdr == NULL)
     return NULL;
@@ -1844,7 +1835,7 @@ reallochook (void *ptr, size_t size)
   __free_hook = old_free_hook;
   __malloc_hook = old_malloc_hook;
   __realloc_hook = old_realloc_hook;
-  hdr = realloc (hdr, sizeof (struct hdr) + size + 1);
+  hdr = realloc (hdr, sizeof *hdr + size + 1);
   __free_hook = freehook;
   __malloc_hook = mallochook;
   __realloc_hook = reallochook;

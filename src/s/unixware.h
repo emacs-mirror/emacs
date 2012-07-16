@@ -17,40 +17,4 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
-
 #include "usg5-4-common.h"
-
-/* #define HAVE_GETWD  (appears to be buggy on SVR4.2) */
-#undef HAVE_GETWD
-
-#undef HAVE_SYSV_SIGPAUSE
-
-/* This is the same definition as in usg5-4-common.h, but with sigblock/sigunblock
-   rather than sighold/sigrelse, which appear to be BSD4.1 specific.
-   It may also be appropriate for SVR4.x
-   (x<2) but I'm not sure.   fnf@cygnus.com */
-/* This sets the name of the slave side of the PTY.  On SysVr4,
-   grantpt(3) forks a subprocess, so keep sigchld_handler() from
-   intercepting that death.  If any child but grantpt's should die
-   within, it should be caught after sigrelse(2).  */
-#define PTY_TTY_NAME_SPRINTF			\
-  {						\
-    char *ptsname (int), *ptyname;		\
-						\
-    sigblock(sigmask(SIGCLD));			\
-    if (grantpt(fd) == -1)			\
-      fatal("could not grant slave pty");	\
-    sigunblock(sigmask(SIGCLD));		\
-    if (unlockpt(fd) == -1)			\
-      fatal("could not unlock slave pty");	\
-    if (!(ptyname = ptsname(fd)))		\
-      fatal ("could not enable slave pty");	\
-    strncpy(pty_name, ptyname, sizeof(pty_name)); \
-    pty_name[sizeof(pty_name) - 1] = 0;		\
-  }
-
-#define	PENDING_OUTPUT_COUNT(FILE) ((FILE)->__ptr - (FILE)->__base)
-
-/* Conservative garbage collection has not been tested, so for now
-   play it safe and stick with the old-fashioned way of marking.  */
-#define GC_MARK_STACK GC_USE_GCPROS_AS_BEFORE

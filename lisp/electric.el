@@ -38,8 +38,6 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
-
 ;; This loop is the guts for non-standard modes which retain control
 ;; until some event occurs.  It is a `do-forever', the only way out is
 ;; to throw.  It assumes that you have set up the keymap, window, and
@@ -324,12 +322,13 @@ This can be convenient for people who find it easier to hit ) than C-f."
      ((and (memq syntax '(?\( ?\" ?\$)) (use-region-p))
       (if (> (mark) (point))
           (goto-char (mark))
-        ;; We already inserted the open-paren but at the end of the region,
-        ;; so we have to remove it and start over.
-        (delete-char -1)
-        (save-excursion
+	;; We already inserted the open-paren but at the end of the
+	;; region, so we have to remove it and start over.
+	(delete-char -1)
+	(save-excursion
           (goto-char (mark))
-          (insert last-command-event)))
+	  ;; Do not insert after `save-excursion' marker (Bug#11520).
+          (insert-before-markers last-command-event)))
       (insert closer))
      ;; Backslash-escaped: no pairing, no skipping.
      ((save-excursion
@@ -394,16 +393,16 @@ arguments that returns one of those symbols.")
                (not (nth 8 (save-excursion (syntax-ppss pos)))))
       (let ((end (copy-marker (point) t)))
         (goto-char pos)
-        (case (if (functionp rule) (funcall rule) rule)
+        (pcase (if (functionp rule) (funcall rule) rule)
           ;; FIXME: we used `newline' down here which called
           ;; self-insert-command and ran post-self-insert-hook recursively.
           ;; It happened to make electric-indent-mode work automatically with
           ;; electric-layout-mode (at the cost of re-indenting lines
           ;; multiple times), but I'm not sure it's what we want.
-          (before (goto-char (1- pos)) (skip-chars-backward " \t")
+          (`before (goto-char (1- pos)) (skip-chars-backward " \t")
                   (unless (bolp) (insert "\n")))
-          (after  (insert "\n"))       ; FIXME: check eolp before inserting \n?
-          (around (save-excursion
+          (`after  (insert "\n"))      ; FIXME: check eolp before inserting \n?
+          (`around (save-excursion
                     (goto-char (1- pos)) (skip-chars-backward " \t")
                     (unless (bolp) (insert "\n")))
                   (insert "\n")))      ; FIXME: check eolp before inserting \n?

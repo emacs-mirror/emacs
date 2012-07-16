@@ -2044,7 +2044,7 @@ During executions, the list is first generated, then as each next method
 is called, the next method is popped off the stack.")
 
 (defvar eieio-pre-method-execution-hooks nil
-  "Hooks run just before a method is executed.
+  "Abnormal hook run just before an EIEIO method is executed.
 The hook function must accept one argument, the list of forms
 about to be executed.")
 
@@ -2543,10 +2543,12 @@ This is usually a symbol that starts with `:'."
 ;;; Here are some CLOS items that need the CL package
 ;;
 
-(defsetf slot-value (obj slot) (store) (list 'eieio-oset obj slot store))
-(defsetf eieio-oref (obj slot) (store) (list 'eieio-oset obj slot store))
+(defsetf eieio-oref eieio-oset)
+;; FIXME: Not needed for Emacs>=24.2 since setf follows function aliases.
+(defsetf slot-value eieio-oset)
 
 ;; The below setf method was written by Arnd Kohrs <kohrs@acm.org>
+;; FIXME: Not needed for Emacs>=24.2 since setf expands macros.
 (define-setf-method oref (obj slot)
   (with-no-warnings
     (require 'cl)
@@ -3038,7 +3040,7 @@ Optional argument NOESCAPE is passed to `prin1-to-string' when appropriate."
 ;;; Start of automatically extracted autoloads.
 
 ;;;### (autoloads (customize-object) "eieio-custom" "eieio-custom.el"
-;;;;;;  "9cf80224540c52045d515a4c2c833543")
+;;;;;;  "928623502e8bf40454822355388542b5")
 ;;; Generated autoloads from eieio-custom.el
 
 (autoload 'customize-object "eieio-custom" "\

@@ -1111,11 +1111,11 @@ in communication with other processes.
 @table @kbd
 @item C-x @key{RET} x @var{coding} @key{RET}
 Use coding system @var{coding} for transferring selections to and from
-other window-based applications (@code{set-selection-coding-system}).
+other graphical applications (@code{set-selection-coding-system}).
 
 @item C-x @key{RET} X @var{coding} @key{RET}
 Use coding system @var{coding} for transferring @emph{one}
-selection---the next one---to or from another window-based application
+selection---the next one---to or from another graphical application
 (@code{set-next-selection-coding-system}).
 
 @item C-x @key{RET} p @var{input-coding} @key{RET} @var{output-coding} @key{RET}

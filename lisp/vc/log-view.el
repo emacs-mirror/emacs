@@ -109,7 +109,6 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
 (require 'pcvs-util)
 (autoload 'vc-find-revision "vc")
 (autoload 'vc-diff-internal "vc")
@@ -246,10 +245,10 @@ The match group number 1 should match the revision number itself.")
   '(log-view-font-lock-keywords t nil nil nil))
 
 (defvar log-view-vc-fileset nil
-  "Set this to the fileset corresponding to the current log.")
+  "The VC fileset corresponding to the current log.")
 
 (defvar log-view-vc-backend nil
-  "Set this to the VC backend that created the current log.")
+  "The VC backend that created the current log.")
 
 ;;;;
 ;;;; Actual code

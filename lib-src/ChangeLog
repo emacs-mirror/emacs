@@ -1,3 +1,180 @@
+2012-07-12  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* movemail.c: Add missing 'defined'.
+	Suggested by Sven Joachim in
+	<http://lists.gnu.org/archive/html/emacs-devel/2012-07/msg00218.html>.
+
+2012-07-11  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Port 'movemail' again to Solaris and similar hosts.
+	See Susan Cragin's report in
+	<http://lists.gnu.org/archive/html/emacs-devel/2012-07/msg00199.html>.
+	* movemail.c (xmalloc): Also define if !DISABLE_DIRECT_ACCESS &&
+	!MAIL_USE_MMDF && !MAIL_USE_SYSTEM_LOCK.  Move up, so it doesn't
+	need a forward declaration.
+	(main): Rewrite to avoid no-longer-present function 'concat', if
+	!DISABLE_DIRECT_ACCESS && !MAIL_USE_MMDF && !MAIL_USE_SYSTEM_LOCK.
+
+	Assume strerror.
+	* emacsclient.c, movemail.c, update-game-score.c (strerror)
+	[!HAVE_STRERROR]: Remove.
+
+2012-07-10  Paul Eggert  <eggert@cs.ucla.edu>
+
+	EMACS_TIME simplification (Bug#11875).
+	* profile.c (TV2): Remove no-longer-needed static var.
+
+	Simplify by avoiding confusing use of strncpy etc.
+	* etags.c (write_classname, C_entries):
+	Use sprintf rather than strncpy or strncat.
+	* etags.c (consider_token, C_entries, HTML_labels, Prolog_functions)
+	(Erlang_functions, substitute, readline_internal, savenstr):
+	* movemail.c (mail_spool_name):
+	Use memcpy rather than strncpy or strncat when either will do.
+	* make-docfile.c (write_c_args):
+	Use memcmp rather than strncmp when either will do.
+	* movemail.c (pop_retr):
+	* pop.c (pop_stat, pop_list, pop_multi_first, pop_last)
+	(socket_connection, pop_getline, sendline, getok):
+	Use snprintf rather than strncpy or strncat.
+	* movemail.c (concat): Remove; no longer needed.
+	(xmalloc): Define only if needed, now that concat has gone away.
+	Return void *.  All uses changed.
+
+2012-07-09  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Add GCC-style 'const' attribute to functions that can use it.
+	* etags.c (number_len): Add ATTRIBUTE_CONST.
+
+2012-07-09  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacsclient.c (w32_execvp): Declare execvp to silence the compiler.
+
+2012-07-09  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in ($(BLD)/test-distrib.exe): Use LIB_SRC, not SRC.
+	(LIB_SRC, NT_INC, GNU_LIB, MS_W32_H, CONFIG_H, INTTYPES_H, NTLIB_H)
+	(SYSTIME_H): New macros.
+	(SRC): Redefine to point to src/, not current directory.
+	($(BLD)/ctags.$(O), $(BLD)/ebrowse.$(O), $(BLD)/emacsclient.$(O))
+	($(BLD)/etags.$(O), $(BLD)/hexl.$(O), $(BLD)/make-docfile.$(O))
+	($(BLD)/movemail.$(O), $(BLD)/ntlib.$(O), $(BLD)/pop.$(O))
+	($(BLD)/profile.$(O), $(BLD)/test-distrib.$(O)): Update dependencies.
+	($(BLD)/regex.$(O)): New dependency.
+
+2012-07-09  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in (ALL): Add profile.exe.
+	(PROFILEOBJS): New macro.
+	($(BLD)/profile.exe): New target.
+	(install): Copy profile.exe.
+	($(BLD)/alloca.$(O), $(BLD)/tcp.$(O)): Remove, obsolete.
+
+2012-07-07  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in ($(BLD)/ctags.$(O), $(BLD)/etags.$(O)):
+	Update dependencies.
+
+2012-07-06  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use c_strcasecmp for ASCII case-insensitive comparison (Bug#11786).
+	* etags.c: Include c-strcase.h.
+	(etags_strcasecmp, etags_strncasecmp): Remove.
+	All uses replaced with c_strcasecmp and c_strncasecmp.
+
+2012-07-06  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* make-docfile.c (write_globals): Warn about duplicate function
+	definitions with differing signatures.
+
+2012-07-03  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* make-docfile.c (scan_c_file): Suppress GCC warning.
+
+2012-06-29  Tom Tromey  <tromey@redhat.com>
+
+	* make-docfile.c (enum global_type) <FUNCTION>: New constant.
+	(struct global) <value>: New field.
+	(add_global): Add 'value' argument.
+	(compare_globals): Sort functions at the end.
+	(close_emacs_globals): New function.
+	(write_globals): Handle functions.
+	(scan_c_file): Call add_global for DEFUN.
+
+2012-06-30  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in (CTAGS_CFLAGS): Remove EMACS_NAME;
+	already defined in ETAGS_CFLAGS.
+
+2012-06-27  Glenn Morris  <rgm@gnu.org>
+
+	* makefile.w32-in (lisp2): Remove paths.el.
+
+2012-06-26  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Clean out last vestiges of the old HAVE_CONFIG_H stuff.
+	* Makefile.in (BASE_CFLAGS):
+	* makefile.w32-in (LOCAL_FLAGS): Remove -DHAVE_CONFIG_H.
+	* etags.c, hexl.c, pop.c: Include <config.h> unconditionally.
+	* etags.c (DOS_NT):
+	* pop.c (MAIL_USE_POP, h_errno):
+	Remove code that was conditioned on !HAVE_CONFIG_H.
+
+2012-06-25  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* etags.c (etags_strcasecmp, etags_strncasecmp): Define to
+	library functions strcasecmp and strncasecmp if available.
+
+2012-06-24  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Switch from NO_RETURN to C11's _Noreturn (Bug#11750).
+	* ebrowse.c (usage, version):
+	* emacsclient.c (print_help_and_exit, fail):
+	* etags.c (suggest_asking_for_help, fatal, pfatal):
+	* hexl.c (usage):
+	* make-docfile.c (fatal):
+	* movemail.c (fatal, pfatal_with_name, pfatal_and_delete):
+	* update-game-score.c (usage):
+	* ebrowse.c (usage, version):
+	* emacsclient.c (print_help_and_exit, fail):
+	Use _Noreturn rather than NO_RETURN.
+	No need for separate decl merely because of _Noreturn.
+
+2012-06-24  Samuel Bronson  <naesten@gmail.com>  (tiny change)
+
+	* emacsclient.c (set_local_socket): Fix compiler warning (Bug#7838).
+
+2012-06-22  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Support higher-resolution time stamps (Bug#9000).
+	* Makefile.in (LIB_CLOCK_GETTIME): New macro.
+	(profile${EXEEXT}): Use it.
+	* profile.c: Include inttypes.h, intprops.h.
+	(time_string): Size conservatively; do not guess size.
+	(get_time): Now prints nanoseconds.
+	(gettimeofday): Remove replacement function; gnulib now does this.
+
+2012-06-08  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* make-docfile.c (search_lisp_doc_at_eol): Unget last read
+	character.
+
+2012-06-06  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (STAMP_INST_SCRIPTS, STAMP_SCRIPTS, insrcdir)
+	(stamp-rcs2log, stamp-grep-changelog): Remove.
+	(all, clean): Remove references to stamps.
+
+	* vcdiff: Remove file.
+	* Makefile.in (SCRIPTS, STAMP_SCRIPTS): Remove vcdiff.
+	(stamp-vcdiff): Remove.
+
+2012-06-05  Glenn Morris  <rgm@gnu.org>
+
+	* makefile.w32-in ($(BLD)/getdate.$(O), $(BLD)/leditcfns.$(O)):
+	($(BLD)/make-path.$(O), $(BLD)/qsort.$(O)):
+	($(BLD)/timer.$(O)): Remove cruft.
+
 2012-06-03  Glenn Morris  <rgm@gnu.org>
 
 	* rcs-checkin: Remove file.

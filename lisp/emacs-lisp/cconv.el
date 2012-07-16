@@ -110,7 +110,7 @@
 ;;     ,@(mapcar (lambda (binder) (if (consp binder) (cadr binder)))
 ;;               binders)))
 
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 (defconst cconv-liftwhen 6
   "Try to do lambda lifting if the number of arguments + free variables
@@ -173,7 +173,7 @@ Returns a form where all lambdas don't have any free variables."
   ;; Here we assume that X appears at most once in M.
   (let* ((b (assq x m))
          (res (if b (remq b m) m)))
-    (assert (null (assq x res))) ;; Check the assumption was warranted.
+    (cl-assert (null (assq x res))) ;; Check the assumption was warranted.
     res))
 
 (defun cconv--map-diff-set (m s)
@@ -185,7 +185,7 @@ Returns a form where all lambdas don't have any free variables."
     (nreverse res)))
 
 (defun cconv--convert-function (args body env parentform)
-  (assert (equal body (caar cconv-freevars-alist)))
+  (cl-assert (equal body (caar cconv-freevars-alist)))
   (let* ((fvs (cdr (pop cconv-freevars-alist)))
          (body-new '())
          (letbind '())
@@ -251,11 +251,11 @@ ENV is a list where each entry takes the shape either:
 EXTEND is a list of variables which might need to be accessed even from places
 where they are shadowed, because some part of ENV causes them to be used at
 places where they originally did not directly appear."
-  (assert (not (delq nil (mapcar (lambda (mapping)
-                                   (if (eq (cadr mapping) 'apply-partially)
-                                       (cconv--set-diff (cdr (cddr mapping))
-                                                        extend)))
-                                 env))))
+  (cl-assert (not (delq nil (mapcar (lambda (mapping)
+                                      (if (eq (cadr mapping) 'apply-partially)
+                                          (cconv--set-diff (cdr (cddr mapping))
+                                                           extend)))
+                                    env))))
 
   ;; What's the difference between fvrs and envs?
   ;; Suppose that we have the code
@@ -287,10 +287,10 @@ places where they originally did not directly appear."
                   ;; Check if var is a candidate for lambda lifting.
                   ((and (member (cons binder form) cconv-lambda-candidates)
                         (progn
-                          (assert (and (eq (car value) 'function)
-                                       (eq (car (cadr value)) 'lambda)))
-                          (assert (equal (cddr (cadr value))
-                                         (caar cconv-freevars-alist)))
+                          (cl-assert (and (eq (car value) 'function)
+                                          (eq (car (cadr value)) 'lambda)))
+                          (cl-assert (equal (cddr (cadr value))
+                                            (caar cconv-freevars-alist)))
                           ;; Peek at the freevars to decide whether to λ-lift.
                           (let* ((fvs (cdr (car cconv-freevars-alist)))
                                  (fun (cadr value))
@@ -307,7 +307,7 @@ places where they originally did not directly appear."
                           (funcbody-env ()))
                      (push `(,var . (apply-partially ,var . ,fvs)) new-env)
                      (dolist (fv fvs)
-                       (pushnew fv new-extend)
+                       (cl-pushnew fv new-extend)
                        (if (and (eq 'car (car-safe (cdr (assq fv env))))
                                 (not (memq fv funargs)))
                            (push `(,fv . (car ,fv)) funcbody-env)))
@@ -345,14 +345,14 @@ places where they originally did not directly appear."
                      (mapcar (lambda (mapping)
                                (if (not (eq (cadr mapping) 'apply-partially))
                                    mapping
-                                 (assert (eq (car mapping) (nth 2 mapping)))
-                                 (list* (car mapping)
-                                        'apply-partially
-                                        (car mapping)
-                                        (mapcar (lambda (arg)
-                                                  (if (eq var arg)
-                                                      closedsym arg))
-                                                (nthcdr 3 mapping)))))
+                                 (cl-assert (eq (car mapping) (nth 2 mapping)))
+                                 `(,(car mapping)
+                                   apply-partially
+                                   ,(car mapping)
+                                   ,@(mapcar (lambda (arg)
+                                               (if (eq var arg)
+                                                   closedsym arg))
+                                             (nthcdr 3 mapping)))))
                              new-env))
                (setq new-extend (remq var new-extend))
                (push closedsym new-extend)
@@ -455,7 +455,7 @@ places where they originally did not directly appear."
      (let ((mapping (cdr (assq fun env))))
        (pcase mapping
          (`(apply-partially ,_ . ,(and fvs `(,_ . ,_)))
-          (assert (eq (cadr mapping) fun))
+          (cl-assert (eq (cadr mapping) fun))
           `(,callsym ,fun
                      ,@(mapcar (lambda (fv)
                                  (let ((exp (or (cdr (assq fv env)) fv)))
@@ -551,7 +551,7 @@ FORM is the parent form that binds this var."
     ;; Transfer uses collected in `envcopy' (via `newenv') back to `env';
     ;; and compute free variables.
     (while env
-      (assert (and envcopy (eq (caar env) (caar envcopy))))
+      (cl-assert (and envcopy (eq (caar env) (caar envcopy))))
       (let ((free nil)
             (x (cdr (car env)))
             (y (cdr (car envcopy))))

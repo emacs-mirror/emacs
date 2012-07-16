@@ -48,8 +48,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <sys/stat.h>
 #include <getopt.h>
 
-static int usage (int err) NO_RETURN;
-
 #define MAX_ATTEMPTS 5
 #define MAX_SCORES 200
 #define MAX_DATA_LEN 1024
@@ -59,7 +57,7 @@ static int usage (int err) NO_RETURN;
 #define difftime(t1, t0) (double)((t1) - (t0))
 #endif
 
-static int
+static _Noreturn void
 usage (int err)
 {
   fprintf (stdout, "Usage: update-game-score [-m MAX] [-r] [-d DIR] game/scorefile SCORE DATA\n");
@@ -89,34 +87,14 @@ static void sort_scores (struct score_entry *scores, int count, int reverse);
 static int write_scores (const char *filename,
 			 const struct score_entry *scores, int count);
 
-static void lose (const char *msg) NO_RETURN;
-
-static void
+static _Noreturn void
 lose (const char *msg)
 {
   fprintf (stderr, "%s\n", msg);
   exit (EXIT_FAILURE);
 }
 
-static void lose_syserr (const char *msg) NO_RETURN;
-
-/* Taken from sysdep.c.  */
-#ifndef HAVE_STRERROR
-#ifndef WINDOWSNT
-char *
-strerror (int errnum)
-{
-  extern char *sys_errlist[];
-  extern int sys_nerr;
-
-  if (errnum >= 0 && errnum < sys_nerr)
-    return sys_errlist[errnum];
-  return (char *) "Unknown error";
-}
-#endif /* not WINDOWSNT */
-#endif /* ! HAVE_STRERROR */
-
-static void
+static _Noreturn void
 lose_syserr (const char *msg)
 {
   fprintf (stderr, "%s: %s\n", msg, strerror (errno));

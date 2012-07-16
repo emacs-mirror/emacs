@@ -70,17 +70,18 @@
 ;;; Code:
 
 (eval-when-compile
-  (require 'cl)
+  (require 'cl-lib)
   (require 'eshell))
 (require 'esh-util)
 
 ;;;###autoload
-(eshell-defgroup eshell-cmpl nil
+(progn
+(defgroup eshell-cmpl nil
   "This module provides a programmable completion function bound to
 the TAB key, which allows for completing command names, file names,
 variable names, arguments, etc."
   :tag "Argument completion"
-  :group 'eshell-module)
+  :group 'eshell-module))
 
 ;;; User Variables:
 
@@ -357,7 +358,7 @@ to writing a completion function."
 	    (nconc posns (list pos)))
 	(setq pos (1+ pos))))
     (setq posns (cdr posns))
-    (assert (= (length args) (length posns)))
+    (cl-assert (= (length args) (length posns)))
     (let ((a args)
 	  (i 0)
 	  l final)
@@ -369,7 +370,7 @@ to writing a completion function."
       (and l
 	   (setq args (nthcdr (1+ l) args)
 		 posns (nthcdr (1+ l) posns))))
-    (assert (= (length args) (length posns)))
+    (cl-assert (= (length args) (length posns)))
     (when (and args (eq (char-syntax (char-before end)) ? )
 	       (not (eq (char-before (1- end)) ?\\)))
       (nconc args (list ""))
@@ -382,7 +383,7 @@ to writing a completion function."
 			 (let ((result
 				(eshell-do-eval
 				 (list 'eshell-commands arg) t)))
-			   (assert (eq (car result) 'quote))
+			   (cl-assert (eq (car result) 'quote))
 			   (cadr result))
 		       arg)))
 		(if (numberp val)

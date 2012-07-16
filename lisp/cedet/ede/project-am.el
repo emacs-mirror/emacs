@@ -896,10 +896,10 @@ files in the project."
     out))
 
 
-;;; Configure.in queries.
+;;; Configure.ac queries.
 ;;
 (defvar project-am-autoconf-file-options
-  '("configure.in" "configure.ac")
+  '("configure.ac" "configure.in")
   "List of possible configure files to look in for project info.")
 
 (defun project-am-autoconf-file (dir)
@@ -948,7 +948,7 @@ Kill the Configure buffer if it was not already in a buffer."
 	(configfiles nil)
 	)
     (cond
-     ;; Try configure.in or configure.ac
+     ;; Try configure.ac or configure.in
      (conf-in
       (project-am-with-config-current conf-in
 	(let ((aci (autoconf-parameters-for-macro "AC_INIT"))

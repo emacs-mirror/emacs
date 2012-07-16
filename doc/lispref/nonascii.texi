@@ -408,16 +408,15 @@ codepoint belongs: most unassigned codepoints get the value of
 or @code{R} (strong R).
 
 @item decomposition
-Corresponds to the Unicode @code{Decomposition_Type} and
-@code{Decomposition_Value} properties.  The value is a list, whose
-first element may be a symbol representing a compatibility formatting
-tag, such as @code{small}@footnote{The Unicode specification writes
-these tag names inside @samp{<..>} brackets, but the tag names in
-Emacs do not include the brackets; e.g.@: Unicode specifies
-@samp{<small>} where Emacs uses @samp{small}.  }; the other elements
-are characters that give the compatibility decomposition sequence of
-this character.  For unassigned codepoints, the value is the character
-itself.
+Corresponds to the Unicode properties @code{Decomposition_Type} and
+@code{Decomposition_Value}.  The value is a list, whose first element
+may be a symbol representing a compatibility formatting tag, such as
+@code{small}@footnote{The Unicode specification writes these tag names
+inside @samp{<..>} brackets, but the tag names in Emacs do not include
+the brackets; e.g.@: Unicode specifies @samp{<small>} where Emacs uses
+@samp{small}.  }; the other elements are characters that give the
+compatibility decomposition sequence of this character.  For
+unassigned codepoints, the value is the character itself.
 
 @item decimal-digit-value
 Corresponds to the Unicode @code{Numeric_Value} property for

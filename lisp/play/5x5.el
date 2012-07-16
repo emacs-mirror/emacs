@@ -50,8 +50,7 @@
 
 ;; Things we need.
 
-(eval-when-compile
-  (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 ;; Customize options.
 
@@ -260,8 +259,8 @@ Quit current game           \\[5x5-quit-game]"
 (defun 5x5-make-new-grid ()
   "Create and return a new `5x5' grid structure."
   (let ((grid (make-vector 5x5-grid-size nil)))
-    (loop for y from 0 to (1- 5x5-grid-size) do
-          (aset grid y (make-vector 5x5-grid-size nil)))
+    (dotimes (y 5x5-grid-size)
+      (aset grid y (make-vector 5x5-grid-size nil)))
     grid))
 
 (defun 5x5-cell (grid y x)
@@ -279,9 +278,9 @@ Quit current game           \\[5x5-quit-game]"
 (defun 5x5-copy-grid (grid)
   "Make a new copy of GRID."
   (let ((copy (5x5-make-new-grid)))
-    (loop for y from 0 to (1- 5x5-grid-size) do
-          (loop for x from 0 to (1- 5x5-grid-size) do
-                (5x5-set-cell copy y x (5x5-cell grid y x))))
+    (dotimes (y 5x5-grid-size)
+      (dotimes (x 5x5-grid-size)
+        (5x5-set-cell copy y x (5x5-cell grid y x))))
     copy))
 
 (defun 5x5-make-move (grid row col)
@@ -299,45 +298,46 @@ Quit current game           \\[5x5-quit-game]"
 
 (defun 5x5-row-value (row)
   "Get the \"on-value\" for grid row ROW."
-  (loop for y from 0 to (1- 5x5-grid-size) sum (if (aref row y) 1 0)))
+  (cl-loop for y from 0 to (1- 5x5-grid-size) sum (if (aref row y) 1 0)))
 
 (defun 5x5-grid-value (grid)
   "Get the \"on-value\" for grid GRID."
-  (loop for y from 0 to (1- 5x5-grid-size) sum (5x5-row-value (aref grid y))))
+  (cl-loop for y from 0 to (1- 5x5-grid-size)
+           sum (5x5-row-value (aref grid y))))
 
 (defun 5x5-draw-grid-end ()
   "Draw the top/bottom of the grid."
   (insert "+")
-  (loop for x from 0 to (1- 5x5-grid-size) do
-        (insert "-" (make-string 5x5-x-scale ?-)))
+  (dotimes (x 5x5-grid-size)
+    (insert "-" (make-string 5x5-x-scale ?-)))
   (insert "-+ "))
 
 (defun 5x5-draw-grid (grids)
   "Draw the grids GRIDS into the current buffer."
   (let ((inhibit-read-only t) grid-org)
     (erase-buffer)
-    (loop for grid in grids do (5x5-draw-grid-end))
+    (dolist (grid grids) (5x5-draw-grid-end))
     (insert "\n")
     (setq grid-org (point))
-    (loop for y from 0 to (1- 5x5-grid-size) do
-          (loop for lines from 0 to (1- 5x5-y-scale) do
-                (loop for grid in grids do
-                      (loop for x from 0 to (1- 5x5-grid-size) do
-                            (insert (if (zerop x) "| " " ")
-                                    (make-string 5x5-x-scale
-                                                 (if (5x5-cell grid y x) ?# ?.))))
-                      (insert " | "))
-                (insert "\n")))
+    (dotimes (y 5x5-grid-size)
+      (dotimes (lines 5x5-y-scale)
+        (dolist (grid grids)
+          (dotimes (x 5x5-grid-size)
+            (insert (if (zerop x) "| " " ")
+                    (make-string 5x5-x-scale
+                                 (if (5x5-cell grid y x) ?# ?.))))
+          (insert " | "))
+        (insert "\n")))
     (when 5x5-solver-output
       (if (= (car 5x5-solver-output) 5x5-moves)
 	  (save-excursion
 	    (goto-char grid-org)
 	    (beginning-of-line (+ 1 (/ 5x5-y-scale 2)))
-	    (let ((solution-grid (cdadr 5x5-solver-output)))
-	      (dotimes (y  5x5-grid-size)
+	    (let ((solution-grid (cl-cdadr 5x5-solver-output)))
+	      (dotimes (y 5x5-grid-size)
 		(save-excursion
 		  (forward-char  (+ 1 (/ (1+ 5x5-x-scale) 2)))
-		  (dotimes (x   5x5-grid-size)
+		  (dotimes (x 5x5-grid-size)
 		    (when (5x5-cell solution-grid y x)
 		      (if (= 0 (mod 5x5-x-scale 2))
 			  (progn
@@ -350,7 +350,7 @@ Quit current game           \\[5x5-quit-game]"
 		    (forward-char  (1+ 5x5-x-scale))))
 		(forward-line  5x5-y-scale))))
 	(setq 5x5-solver-output nil)))
-    (loop for grid in grids do (5x5-draw-grid-end))
+    (dolist (grid grids) (5x5-draw-grid-end))
     (insert "\n")
     (insert (format "On: %d  Moves: %d" (5x5-grid-value (car grids)) 5x5-moves))))
 
@@ -362,16 +362,16 @@ Quit current game           \\[5x5-quit-game]"
 
 (defun 5x5-made-move ()
   "Keep track of how many moves have been made."
-  (incf 5x5-moves))
+  (cl-incf 5x5-moves))
 
 (defun 5x5-make-random-grid (&optional move)
   "Make a random grid."
   (setq move (or move (symbol-function '5x5-flip-cell)))
   (let ((grid (5x5-make-new-grid)))
-    (loop for y from 0 to (1- 5x5-grid-size) do
-          (loop for x from 0 to (1- 5x5-grid-size) do
-                (if (zerop (random 2))
-                    (funcall move grid y x))))
+    (dotimes (y 5x5-grid-size)
+      (dotimes (x 5x5-grid-size)
+        (if (zerop (random 2))
+            (funcall move grid y x))))
     grid))
 
 ;; Cracker functions.
@@ -444,20 +444,20 @@ should return a grid vector array that is the new solution."
 (defun 5x5-make-xor-with-mutation (current best)
   "Xor current and best solution then mutate the result."
   (let ((xored (5x5-make-new-grid)))
-    (loop for y from 0 to (1- 5x5-grid-size) do
-          (loop for x from 0 to (1- 5x5-grid-size) do
-                (5x5-set-cell xored y x
-                              (5x5-xor (5x5-cell current y x)
-                                       (5x5-cell best    y x)))))
+    (dotimes (y 5x5-grid-size)
+      (dotimes (x 5x5-grid-size)
+        (5x5-set-cell xored y x
+                      (5x5-xor (5x5-cell current y x)
+                               (5x5-cell best    y x)))))
     (5x5-mutate-solution xored)))
 
 (defun 5x5-mutate-solution (solution)
   "Randomly flip bits in the solution."
-  (loop for y from 0 to (1- 5x5-grid-size) do
-        (loop for x from 0 to (1- 5x5-grid-size) do
-              (if (= (random (/ (* 5x5-grid-size 5x5-grid-size) 2))
-                     (/ (/ (* 5x5-grid-size 5x5-grid-size) 2) 2))
-                  (5x5-flip-cell solution y x))))
+  (dotimes (y 5x5-grid-size)
+    (dotimes (x 5x5-grid-size)
+      (if (= (random (/ (* 5x5-grid-size 5x5-grid-size) 2))
+             (/ (/ (* 5x5-grid-size 5x5-grid-size) 2) 2))
+          (5x5-flip-cell solution y x))))
   solution)
 
 (defun 5x5-play-solution (solution best)
@@ -465,15 +465,15 @@ should return a grid vector array that is the new solution."
 in progress because it is an animated attempt."
   (5x5-new-game)
   (let ((inhibit-quit t))
-    (loop for y from 0 to (1- 5x5-grid-size) do
-          (loop for x from 0 to (1- 5x5-grid-size) do
-                (setq 5x5-y-pos y
-                      5x5-x-pos x)
-                (if (5x5-cell solution y x)
-                    (5x5-flip-current))
-                (5x5-draw-grid (list 5x5-grid solution best))
-                (5x5-position-cursor)
-                (sit-for 5x5-animate-delay))))
+    (dotimes (y 5x5-grid-size)
+      (dotimes (x 5x5-grid-size)
+        (setq 5x5-y-pos y
+              5x5-x-pos x)
+        (if (5x5-cell solution y x)
+            (5x5-flip-current))
+        (5x5-draw-grid (list 5x5-grid solution best))
+        (5x5-position-cursor)
+        (sit-for 5x5-animate-delay))))
   5x5-grid)
 
 ;; Arithmetic solver
@@ -568,14 +568,14 @@ to complete the 5x5.
 
 Solutions are sorted from least to greatest Hamming weight."
   (require 'calc-ext)
-  (flet ((5x5-mat-mode-2
-	  (a)
-	  (math-map-vec
-	   (lambda (y)
-	     (math-map-vec
-	      (lambda (x) `(mod ,x 2))
-	      y))
-	   a)))
+  (cl-flet ((5x5-mat-mode-2
+             (a)
+             (math-map-vec
+              (lambda (y)
+                (math-map-vec
+                 (lambda (x) `(mod ,x 2))
+                 y))
+              a)))
     (let* (calc-command-flags
 	   (grid-size-squared (* 5x5-grid-size 5x5-grid-size))
 
@@ -658,8 +658,8 @@ Solutions are sorted from least to greatest Hamming weight."
 		       (cdr (5x5-mat-mode-2
 			     '(vec (vec 0 1 1 1 0 1 0 1 0 1 1 1 0 1
 					1 1 0 1 0 1 0 1 1 1 0)
-				   (vec 1 1 0 1 1 0 0 0 0 0 1 1 0 1
-					1 0 0 0 0 0 1 1 0 1 1)))))
+                               (vec 1 1 0 1 1 0 0 0 0 0 1 1 0 1
+                                    1 0 0 0 0 0 1 1 0 1 1)))))
 	       (calcFunc-trn id))))
 
 	   (inv-base-change
@@ -758,9 +758,9 @@ Solutions are sorted from least to greatest Hamming weight."
 		    ;; The Hamming Weight is computed by matrix reduction
 		    ;; with an ad-hoc operator.
 		    (math-reduce-vec
-		     ;; (cadadr '(vec (mod x 2))) => x
-		     (lambda (r x) (+ (if (integerp r) r (cadadr r))
-				      (cadadr x)))
+		     ;; (cl-cadadr '(vec (mod x 2))) => x
+		     (lambda (r x) (+ (if (integerp r) r (cl-cadadr r))
+				      (cl-cadadr x)))
 		     solution); car
 		    (5x5-vec-to-grid
 		     (calcFunc-arrange solution 5x5-grid-size));cdr
@@ -878,28 +878,28 @@ lest."
   "Move up."
   (interactive)
   (unless (zerop 5x5-y-pos)
-    (decf 5x5-y-pos)
+    (cl-decf 5x5-y-pos)
     (5x5-position-cursor)))
 
 (defun 5x5-down ()
   "Move down."
   (interactive)
   (unless (= 5x5-y-pos (1- 5x5-grid-size))
-    (incf 5x5-y-pos)
+    (cl-incf 5x5-y-pos)
     (5x5-position-cursor)))
 
 (defun 5x5-left ()
   "Move left."
   (interactive)
   (unless (zerop 5x5-x-pos)
-    (decf 5x5-x-pos)
+    (cl-decf 5x5-x-pos)
     (5x5-position-cursor)))
 
 (defun 5x5-right ()
   "Move right."
   (interactive)
   (unless (= 5x5-x-pos (1- 5x5-grid-size))
-    (incf 5x5-x-pos)
+    (cl-incf 5x5-x-pos)
     (5x5-position-cursor)))
 
 (defun 5x5-bol ()

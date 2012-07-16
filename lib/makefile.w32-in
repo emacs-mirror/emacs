@@ -20,14 +20,21 @@ ALL = gnulib
 
 .PHONY: $(ALL)
 
-LOCAL_FLAGS	= -DHAVE_CONFIG_H=1 -I. -I../nt/inc -I../src
+LOCAL_FLAGS	= -I. -I../nt/inc -I../src
 LIBS 		=
 
-GNULIBOBJS = $(BLD)/dtoastr.$(O) \
+GNULIBOBJS = $(BLD)/c-ctype.$(O) \
+	     $(BLD)/c-strcasecmp.$(O) \
+	     $(BLD)/c-strncasecmp.$(O) \
+	     $(BLD)/dtoastr.$(O) \
+	     $(BLD)/dtotimespec.$(O)  \
 	     $(BLD)/getopt.$(O)  \
 	     $(BLD)/getopt1.$(O) \
+	     $(BLD)/gettime.$(O) \
 	     $(BLD)/strftime.$(O) \
 	     $(BLD)/time_r.$(O) \
+	     $(BLD)/timespec-add.$(O) \
+	     $(BLD)/timespec-sub.$(O) \
 	     $(BLD)/md5.$(O) \
 	     $(BLD)/sha1.$(O) \
 	     $(BLD)/sha256.$(O) \
@@ -58,99 +65,144 @@ TAGS: FRC
 ### DEPENDENCIES ###
 
 EMACS_ROOT	= ..
-SRC		= .
+GNU_LIB		= .
+SRC		= $(EMACS_ROOT)/src
+NT_INC		= $(EMACS_ROOT)/nt/inc
+
+C_CTYPE_H      = $(GNU_LIB)/c-ctype.h \
+		 $(NT_INC)/stdbool.h
+MS_W32_H       = $(SRC)/s/ms-w32.h \
+		 $(NT_INC)/sys/stat.h
+CONFIG_H       = $(SRC)/config.h \
+		 $(MS_W32_H)
+FILEMODE_H     = $(GNU_LIB)/filemode.h \
+		 $(NT_INC)/sys/stat.h
+FTOASTR_H      = $(GNU_LIB)/ftoastr.h \
+		 $(GNU_LIB)/intprops.h
+FTOASTR_C      = $(GNU_LIB)/ftoastr.c \
+		 $(CONFIG_H) \
+		 $(FTOASTR_H) \
+		 $(GNU_LIB)/ftoastr.h
+GETOPT_INT_H   = $(GNU_LIB)/getopt_int.h \
+		 $(GNU_LIB)/getopt.h
+MD5_H          = $(GNU_LIB)/md5.h \
+		 $(NT_INC)/stdint.h
+SHA1_H         = $(GNU_LIB)/sha1.h \
+		 $(NT_INC)/stdint.h
+SHA256_H       = $(GNU_LIB)/sha256.h \
+		 $(NT_INC)/stdint.h
+U64_H          = $(GNU_LIB)/u64.h \
+		 $(NT_INC)/stdint.h
+SHA512_H       = $(GNU_LIB)/sha512.h \
+		 $(U64_H) \
+		 $(GNU_LIB)/u64.h
+
+$(BLD)/c-ctype.$(O) : \
+	$(GNU_LIB)/c-ctype.c \
+	$(CONFIG_H) \
+	$(C_CTYPE_H)
+
+$(BLD)/c-strcasecmp.$(O) : \
+	$(GNU_LIB)/c-strcasecmp.c \
+	$(GNU_LIB)/c-strcase.h \
+	$(CONFIG_H) \
+	$(C_CTYPE_H)
+
+$(BLD)/c-strncasecmp.$(O) : \
+	$(GNU_LIB)/c-strncasecmp.c \
+	$(GNU_LIB)/c-strcase.h \
+	$(CONFIG_H) \
+	$(C_CTYPE_H)
 
 $(BLD)/dtoastr.$(O) : \
-	$(SRC)/dtoastr.c \
-	$(SRC)/ftoastr.c \
-	$(SRC)/ftoastr.h \
-	$(SRC)/intprops.h \
-	$(EMACS_ROOT)/nt/inc/sys/stat.h \
-	$(EMACS_ROOT)/src/s/ms-w32.h \
-	$(EMACS_ROOT)/src/config.h
+	$(GNU_LIB)/dtoastr.c \
+	$(FTOASTR_C)
+
+$(BLD)/dtotimespec.$(O) : \
+	$(GNU_LIB)/dtotimespec.c \
+	$(GNU_LIB)/intprops.h \
+	$(GNU_LIB)/timespec.h \
+	$(CONFIG_H)
 
 $(BLD)/getopt.$(O) : \
-	$(SRC)/getopt.c \
-	$(SRC)/getopt.h \
-	$(SRC)/getopt_int.h \
-	$(SRC)/gettext.h \
-	$(EMACS_ROOT)/nt/inc/unistd.h \
-	$(EMACS_ROOT)/nt/inc/sys/stat.h \
-	$(EMACS_ROOT)/src/s/ms-w32.h \
-	$(EMACS_ROOT)/src/config.h
+	$(GNU_LIB)/getopt.c \
+	$(GNU_LIB)/getopt.h \
+	$(GNU_LIB)/gettext.h \
+	$(NT_INC)/unistd.h \
+	$(CONFIG_H) \
+	$(GETOPT_INT_H)
 
 $(BLD)/getopt1.$(O) : \
-	$(SRC)/getopt1.c \
-	$(SRC)/getopt.h \
-	$(SRC)/getopt_int.h \
-	$(EMACS_ROOT)/nt/inc/sys/stat.h \
-	$(EMACS_ROOT)/src/s/ms-w32.h \
-	$(EMACS_ROOT)/src/config.h
+	$(GNU_LIB)/getopt1.c \
+	$(GNU_LIB)/getopt.h \
+	$(CONFIG_H) \
+	$(GETOPT_INT_H)
+
+$(BLD)/gettime.$(O) : \
+	$(GNU_LIB)/gettime.c \
+	$(GNU_LIB)/timespec.h \
+	$(NT_INC)/sys/time.h \
+	$(CONFIG_H)
 
 $(BLD)/strftime.$(O) : \
-	$(SRC)/strftime.c \
-	$(SRC)/strftime.h \
-	$(EMACS_ROOT)/nt/inc/stdbool.h \
-	$(EMACS_ROOT)/nt/inc/sys/stat.h \
-	$(EMACS_ROOT)/src/s/ms-w32.h \
-	$(EMACS_ROOT)/src/config.h
+	$(GNU_LIB)/strftime.c \
+	$(GNU_LIB)/strftime.h \
+	$(NT_INC)/stdbool.h \
+	$(CONFIG_H)
 
 $(BLD)/time_r.$(O) : \
-	$(SRC)/time_r.c \
-	$(EMACS_ROOT)/nt/inc/sys/stat.h \
-	$(EMACS_ROOT)/src/s/ms-w32.h \
-	$(EMACS_ROOT)/src/config.h
+	$(GNU_LIB)/time_r.c \
+	$(CONFIG_H)
+
+$(BLD)/timespec-add.$(O) : \
+	$(GNU_LIB)/timespec-add.c \
+	$(GNU_LIB)/intprops.h \
+	$(GNU_LIB)/timespec.h \
+	$(CONFIG_H)
+
+$(BLD)/timespec-sub.$(O) : \
+	$(GNU_LIB)/timespec-sub.c \
+	$(GNU_LIB)/intprops.h \
+	$(GNU_LIB)/timespec.h \
+	$(CONFIG_H)
 
 $(BLD)/md5.$(O) : \
-	$(SRC)/md5.c \
-	$(SRC)/md5.h \
-	$(EMACS_ROOT)/nt/inc/stdint.h \
-	$(EMACS_ROOT)/nt/inc/stdalign.h \
-	$(EMACS_ROOT)/nt/inc/sys/stat.h \
-	$(EMACS_ROOT)/src/s/ms-w32.h \
-	$(EMACS_ROOT)/src/config.h
+	$(GNU_LIB)/md5.c \
+	$(NT_INC)/stdalign.h \
+	$(NT_INC)/stdint.h \
+	$(CONFIG_H) \
+	$(MD5_H)
 
 $(BLD)/sha1.$(O) : \
-	$(SRC)/sha1.c \
-	$(SRC)/sha1.h \
-	$(EMACS_ROOT)/nt/inc/stdint.h \
-	$(EMACS_ROOT)/nt/inc/stdalign.h \
-	$(EMACS_ROOT)/nt/inc/sys/stat.h \
-	$(EMACS_ROOT)/src/s/ms-w32.h \
-	$(EMACS_ROOT)/src/config.h
+	$(GNU_LIB)/sha1.c \
+	$(NT_INC)/stdalign.h \
+	$(NT_INC)/stdint.h \
+	$(CONFIG_H) \
+	$(SHA1_H)
 
 $(BLD)/sha256.$(O) : \
-	$(SRC)/sha256.c \
-	$(SRC)/sha256.h \
-	$(EMACS_ROOT)/nt/inc/stdint.h \
-	$(EMACS_ROOT)/nt/inc/stdalign.h \
-	$(EMACS_ROOT)/nt/inc/sys/stat.h \
-	$(EMACS_ROOT)/src/s/ms-w32.h \
-	$(EMACS_ROOT)/src/config.h
+	$(GNU_LIB)/sha256.c \
+	$(NT_INC)/stdalign.h \
+	$(NT_INC)/stdint.h \
+	$(CONFIG_H) \
+	$(SHA256_H)
 
 $(BLD)/sha512.$(O) : \
-	$(SRC)/sha512.c \
-	$(SRC)/sha512.h \
-	$(EMACS_ROOT)/nt/inc/stdint.h \
-	$(EMACS_ROOT)/nt/inc/stdalign.h \
-	$(EMACS_ROOT)/nt/inc/sys/stat.h \
-	$(EMACS_ROOT)/src/s/ms-w32.h \
-	$(EMACS_ROOT)/src/config.h
+	$(GNU_LIB)/sha512.c \
+	$(NT_INC)/stdalign.h \
+	$(NT_INC)/stdint.h \
+	$(CONFIG_H) \
+	$(SHA512_H)
 
 $(BLD)/filemode.$(O) : \
-	$(SRC)/filemode.c \
-	$(SRC)/filemode.h \
-	$(EMACS_ROOT)/nt/inc/sys/stat.h \
-	$(EMACS_ROOT)/src/s/ms-w32.h \
-	$(EMACS_ROOT)/src/config.h
+	$(GNU_LIB)/filemode.c \
+	$(CONFIG_H) \
+	$(FILEMODE_H)
 
 # The following dependencies are for supporting parallel builds, where
 # we must make sure $(BLD) exists before any compilation starts.
 #
-$(BLD)/dtoastr.$(O) $(BLD)/getopt.$(O) $(BLD)/getopt1.$(O): stamp_BLD
-$(BLD)/strftime.$(O) $(BLD)/time_r.$(O) $(BLD)/md5.$(O): stamp_BLD
-$(BLD)/sha1.$(O) $(BLD)/sha256.$(O) $(BLD)/sha512.$(O): stamp_BLD
-$(BLD)/filemode.$(O): stamp_BLD
+$(GNULIBOBJS): stamp_BLD
 
 #
 # Headers we would preprocess if we could.

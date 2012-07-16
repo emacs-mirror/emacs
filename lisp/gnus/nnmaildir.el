@@ -1461,7 +1461,7 @@ by nnmaildir-request-article.")
 	(if (eq time 'immediate)
 	    (setq time 0)
 	  (if (numberp time)
-	      (setq time (* time 86400)))))
+	      (setq time (round (* time 86400))))))
       (when no-force
 	(unless (integerp time) ;; handle 'never
 	  (throw 'return (gnus-uncompress-range ranges)))

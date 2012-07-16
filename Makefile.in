@@ -186,16 +186,20 @@ iconsrcdir=$(srcdir)/etc/images/icons
 lispdir=@lispdir@
 leimdir=@leimdir@
 
-# Directories Emacs should search for lisp files specific
-# to this site (i.e. customizations), before consulting
-# ${lispdir}.  This should be a colon-separated list of
-# directories.
+# Directories Emacs should search for standard lisp files.
+# The default is ${lispdir}:${leimdir}.
+standardlisppath=@standardlisppath@
+
+# Directories Emacs should search for lisp files specific to this
+# site (i.e. customizations), before consulting ${standardlisppath}.
+# This should be a colon-separated list of directories.
 locallisppath=@locallisppath@
 
 # Where Emacs will search to find its lisp files.  Before
 # changing this, check to see if your purpose wouldn't
 # better be served by changing locallisppath.  This
 # should be a colon-separated list of directories.
+# The default is ${locallisppath}:${standardlisppath}.
 lisppath=@lisppath@
 
 # Where Emacs will search for its lisp files while
@@ -277,16 +281,18 @@ all: ${SUBDIR}
 removenullpaths=sed -e 's/^://g' -e 's/:$$//g' -e 's/::/:/g'
 
 # Generate epaths.h from epaths.in.  This target is invoked by `configure'.
-# See comments in configure.in for why it is done this way, as opposed
+# See comments in configure.ac for why it is done this way, as opposed
 # to just letting configure generate epaths.h from epaths.in in a
 # similar way to how Makefile is made from Makefile.in.
 epaths-force: FRC
-	@(lisppath=`echo ${lisppath} | ${removenullpaths}` ;		\
+	@(standardlisppath=`echo ${standardlisppath} | ${removenullpaths}` ; \
+	  locallisppath=`echo ${locallisppath} | ${removenullpaths}` ; \
 	  buildlisppath=`echo ${buildlisppath} | ${removenullpaths}` ;	\
 	  x_default_search_path=`echo ${x_default_search_path}`; \
 	  gamedir=`echo ${gamedir}`; \
 	  sed < ${srcdir}/src/epaths.in > epaths.h.$$$$		\
-	  -e 's;\(#.*PATH_LOADSEARCH\).*$$;\1 "'"$${lisppath}"'";'	\
+	  -e 's;\(#.*PATH_LOADSEARCH\).*$$;\1 "'"$${standardlisppath}"'";' \
+	  -e 's;\(#.*PATH_SITELOADSEARCH\).*$$;\1 "'"$${locallisppath}"'";' \
 	  -e 's;\(#.*PATH_DUMPLOADSEARCH\).*$$;\1 "'"$${buildlisppath}"'";' \
 	  -e 's;\(#.*PATH_EXEC\).*$$;\1 "${archlibdir}";'		\
 	  -e 's;\(#.*PATH_INFO\).*$$;\1 "${infodir}";'			\
@@ -358,7 +364,7 @@ config.status: ${srcdir}/configure ${srcdir}/lisp/version.el
 	    ./configure $(CONFIGURE_FLAGS); \
 	fi
 
-AUTOCONF_INPUTS = $(srcdir)/configure.in $(srcdir)/aclocal.m4
+AUTOCONF_INPUTS = $(srcdir)/configure.ac $(srcdir)/aclocal.m4
 
 $(srcdir)/configure: $(AUTOCONF_INPUTS)
 	cd ${srcdir} && autoconf

@@ -32,13 +32,13 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "xterm.h"
 #include "frame.h"
 #include "window.h"
+#include "character.h"
 #include "buffer.h"
 #include "intervals.h"
 #include "dispextern.h"
 #include "keyboard.h"
 #include "blockinput.h"
 #include <epaths.h>
-#include "character.h"
 #include "charset.h"
 #include "coding.h"
 #include "fontset.h"
@@ -136,7 +136,7 @@ static Lisp_Object Qundefined_color;
 static Lisp_Object Qcompound_text, Qcancel_timer;
 Lisp_Object Qfont_param;
 
-#if GLYPH_DEBUG
+#ifdef GLYPH_DEBUG
 static ptrdiff_t image_cache_refcount;
 static int dpyinfo_refcount;
 #endif
@@ -1881,10 +1881,9 @@ xic_create_fontsetname (const char *base_fontname, int motif)
 
   /* Make a fontset name from the base font name.  */
   if (xic_default_fontset == base_fontname)
-    { /* There is no base font name, use the default.  */
-      ptrdiff_t len = strlen (base_fontname) + 2;
-      fontsetname = xmalloc (len);
-      memset (fontsetname, 0, len);
+    {
+      /* There is no base font name, use the default.  */
+      fontsetname = xmalloc (strlen (base_fontname) + 2);
       strcpy (fontsetname, base_fontname);
     }
   else
@@ -1900,13 +1899,12 @@ xic_create_fontsetname (const char *base_fontname, int motif)
       for (i = 0; *p; p++)
 	if (*p == '-') i++;
       if (i != 14)
-	{ /* As the font name doesn't conform to XLFD, we can't
+	{
+	  /* As the font name doesn't conform to XLFD, we can't
 	     modify it to generalize it to allcs and allfamilies.
 	     Use the specified font plus the default.  */
-	  ptrdiff_t len =
-	    strlen (base_fontname) + strlen (xic_default_fontset) + 3;
-	  fontsetname = xmalloc (len);
-	  memset (fontsetname, 0, len);
+	  fontsetname = xmalloc (strlen (base_fontname)
+				 + strlen (xic_default_fontset) + 3);
 	  strcpy (fontsetname, base_fontname);
 	  strcat (fontsetname, sep);
 	  strcat (fontsetname, xic_default_fontset);
@@ -1955,24 +1953,21 @@ xic_create_fontsetname (const char *base_fontname, int motif)
 
 	  /* Build the font spec that matches all charsets.  */
 	  len = p - base_fontname + strlen (allcs) + 1;
-	  font_allcs = (char *) alloca (len);
-	  memset (font_allcs, 0, len);
+	  font_allcs = alloca (len);
 	  memcpy (font_allcs, base_fontname, p - base_fontname);
 	  strcat (font_allcs, allcs);
 
 	  /* Build the font spec that matches all families and
 	     add-styles.  */
 	  len = p - p1 + strlen (allcs) + strlen (allfamilies) + 1;
-	  font_allfamilies = (char *) alloca (len);
-	  memset (font_allfamilies, 0, len);
+	  font_allfamilies = alloca (len);
 	  strcpy (font_allfamilies, allfamilies);
 	  memcpy (font_allfamilies + strlen (allfamilies), p1, p - p1);
 	  strcat (font_allfamilies, allcs);
 
 	  /* Build the font spec that matches all.  */
 	  len = p - p2 + strlen (allcs) + strlen (all) + strlen (allfamilies) + 1;
-	  font_all = (char *) alloca (len);
-	  memset (font_all, 0, len);
+	  font_all = alloca (len);
 	  strcpy (font_all, allfamilies);
 	  strcat (font_all, all);
 	  memcpy (font_all + strlen (all) + strlen (allfamilies), p2, p - p2);
@@ -1982,7 +1977,6 @@ xic_create_fontsetname (const char *base_fontname, int motif)
 	  len = strlen (base_fontname) + strlen (font_allcs)
 	    + strlen (font_allfamilies) + strlen (font_all) + 5;
 	  fontsetname = xmalloc (len);
-	  memset (fontsetname, 0, len);
 	  strcpy (fontsetname, base_fontname);
 	  strcat (fontsetname, sep);
 	  strcat (fontsetname, font_allcs);
@@ -2374,7 +2368,7 @@ x_window (struct frame *f, long window_prompting, int minibuffer_only)
 
   {
     char *str = SSDATA (Vx_resource_name);
-    f->namebuf = (char *) xmalloc (strlen (str) + 1);
+    f->namebuf = xmalloc (strlen (str) + 1);
     strcpy (f->namebuf, str);
   }
 
@@ -2503,7 +2497,7 @@ x_window (struct frame *f, long window_prompting, int minibuffer_only)
        it is safe to free it while the frame exists.
        It isn't worth the trouble of arranging to free it
        when the frame is deleted.  */
-    tem = (char *) xstrdup (shell_position);
+    tem = xstrdup (shell_position);
     XtSetArg (gal[gac], XtNgeometry, tem); gac++;
     XtSetValues (shell_widget, gal, gac);
   }
@@ -2920,17 +2914,17 @@ unwind_create_frame (Lisp_Object frame)
   /* If frame is ``official'', nothing to do.  */
   if (NILP (Fmemq (frame, Vframe_list)))
     {
-#if GLYPH_DEBUG && XASSERTS
+#if defined GLYPH_DEBUG && defined ENABLE_CHECKING
       struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
 #endif
 
       x_free_frame_resources (f);
       free_glyphs (f);
 
-#if GLYPH_DEBUG
+#if defined GLYPH_DEBUG && defined ENABLE_CHECKING
       /* Check that reference counts are indeed correct.  */
-      xassert (dpyinfo->reference_count == dpyinfo_refcount);
-      xassert (dpyinfo->terminal->image_cache->refcount == image_cache_refcount);
+      eassert (dpyinfo->reference_count == dpyinfo_refcount);
+      eassert (dpyinfo->terminal->image_cache->refcount == image_cache_refcount);
 #endif
       return Qt;
     }
@@ -2962,11 +2956,7 @@ x_default_font_parameter (struct frame *f, Lisp_Object parms)
          read yet.  */
       const char *system_font = xsettings_get_system_font ();
       if (system_font)
-        {
-          char *name = xstrdup (system_font);
-          font = font_open_by_name (f, name);
-          xfree (name);
-        }
+	font = font_open_by_name (f, system_font, strlen (system_font));
     }
 
   if (NILP (font))
@@ -2996,7 +2986,7 @@ x_default_font_parameter (struct frame *f, Lisp_Object parms)
 
       for (i = 0; names[i]; i++)
 	{
-	  font = font_open_by_name (f, names[i]);
+	  font = font_open_by_name (f, names[i], strlen (names[i]));
 	  if (! NILP (font))
 	    break;
 	}
@@ -3135,8 +3125,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
   f->terminal = dpyinfo->terminal;
 
   f->output_method = output_x_window;
-  f->output_data.x = (struct x_output *) xmalloc (sizeof (struct x_output));
-  memset (f->output_data.x, 0, sizeof (struct x_output));
+  f->output_data.x = xzalloc (sizeof *f->output_data.x);
   f->output_data.x->icon_bitmap = -1;
   FRAME_FONTSET (f) = -1;
   f->output_data.x->scroll_bar_foreground_pixel = -1;
@@ -3302,7 +3291,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
 					"scrollBarBackground",
 					"ScrollBarBackground", 0);
 
-#if GLYPH_DEBUG
+#ifdef GLYPH_DEBUG
   image_cache_refcount =
     FRAME_IMAGE_CACHE (f) ? FRAME_IMAGE_CACHE (f)->refcount : 0;
   dpyinfo_refcount = dpyinfo->reference_count;
@@ -3964,7 +3953,7 @@ select_visual (struct x_display_info *dpyinfo)
       /* VALUE should be of the form CLASS-DEPTH, where CLASS is one
 	 of `PseudoColor', `TrueColor' etc. and DEPTH is the color
 	 depth, a decimal number.  NAME is compared with case ignored.  */
-      char *s = (char *) alloca (SBYTES (value) + 1);
+      char *s = alloca (SBYTES (value) + 1);
       char *dash;
       int i, class = -1;
       XVisualInfo vinfo;
@@ -4196,9 +4185,10 @@ If TYPE is not given or nil, the type is STRING.
 FORMAT gives the size in bits of each element if VALUE is a list.
 It must be one of 8, 16 or 32.
 If VALUE is a string or FORMAT is nil or not given, FORMAT defaults to 8.
-If OUTER_P is non-nil, the property is changed for the outer X window of
+If OUTER-P is non-nil, the property is changed for the outer X window of
 FRAME.  Default is to change on the edit X window.  */)
-  (Lisp_Object prop, Lisp_Object value, Lisp_Object frame, Lisp_Object type, Lisp_Object format, Lisp_Object outer_p)
+  (Lisp_Object prop, Lisp_Object value, Lisp_Object frame,
+   Lisp_Object type, Lisp_Object format, Lisp_Object outer_p)
 {
   struct frame *f = check_x_frame (frame);
   Atom prop_atom;
@@ -4299,19 +4289,20 @@ DEFUN ("x-window-property", Fx_window_property, Sx_window_property,
        doc: /* Value is the value of window property PROP on FRAME.
 If FRAME is nil or omitted, use the selected frame.
 
-On MS Windows, this function only accepts the PROP and FRAME arguments.
-
 On X Windows, the following optional arguments are also accepted:
 If TYPE is nil or omitted, get the property as a string.
 Otherwise TYPE is the name of the atom that denotes the type expected.
 If SOURCE is non-nil, get the property on that window instead of from
 FRAME.  The number 0 denotes the root window.
-If DELETE_P is non-nil, delete the property after retrieving it.
-If VECTOR_RET_P is non-nil, don't return a string but a vector of values.
+If DELETE-P is non-nil, delete the property after retrieving it.
+If VECTOR-RET-P is non-nil, don't return a string but a vector of values.
+
+On MS Windows, this function accepts but ignores those optional arguments.
 
 Value is nil if FRAME hasn't a property with name PROP or if PROP has
 no value of TYPE (always string in the MS Windows case).  */)
-  (Lisp_Object prop, Lisp_Object frame, Lisp_Object type, Lisp_Object source, Lisp_Object delete_p, Lisp_Object vector_ret_p)
+  (Lisp_Object prop, Lisp_Object frame, Lisp_Object type,
+   Lisp_Object source, Lisp_Object delete_p, Lisp_Object vector_ret_p)
 {
   struct frame *f = check_x_frame (frame);
   Atom prop_atom;
@@ -4621,8 +4612,7 @@ x_create_tip_frame (struct x_display_info *dpyinfo,
      from this point on, x_destroy_window might screw up reference
      counts etc.  */
   f->output_method = output_x_window;
-  f->output_data.x = (struct x_output *) xmalloc (sizeof (struct x_output));
-  memset (f->output_data.x, 0, sizeof (struct x_output));
+  f->output_data.x = xzalloc (sizeof *f->output_data.x);
   f->output_data.x->icon_bitmap = -1;
   FRAME_FONTSET (f) = -1;
   f->output_data.x->scroll_bar_foreground_pixel = -1;
@@ -4736,7 +4726,7 @@ x_create_tip_frame (struct x_display_info *dpyinfo,
   x_default_parameter (f, parms, Qborder_color, build_string ("black"),
 		       "borderColor", "BorderColor", RES_TYPE_STRING);
 
-#if GLYPH_DEBUG
+#ifdef GLYPH_DEBUG
   image_cache_refcount =
     FRAME_IMAGE_CACHE (f) ? FRAME_IMAGE_CACHE (f)->refcount : 0;
   dpyinfo_refcount = dpyinfo->reference_count;
@@ -5834,7 +5824,7 @@ syms_of_xfns (void)
   Fput (Qundefined_color, Qerror_conditions,
 	pure_cons (Qundefined_color, pure_cons (Qerror, Qnil)));
   Fput (Qundefined_color, Qerror_message,
-	make_pure_c_string ("Undefined color"));
+	build_pure_c_string ("Undefined color"));
 
   DEFVAR_LISP ("x-pointer-shape", Vx_pointer_shape,
     doc: /* The shape of the pointer when over text.
@@ -5962,10 +5952,10 @@ When using Gtk+ tooltips, the tooltip face is not used.  */);
   DEFVAR_LISP ("gtk-version-string", Vgtk_version_string,
                doc: /* Version info for GTK+.  */);
   {
-    char gtk_version[40];
-    g_snprintf (gtk_version, sizeof (gtk_version), "%u.%u.%u",
-                GTK_MAJOR_VERSION, GTK_MINOR_VERSION, GTK_MICRO_VERSION);
-    Vgtk_version_string = make_pure_string (gtk_version, strlen (gtk_version), strlen (gtk_version), 0);
+    char gtk_version[sizeof ".." + 3 * INT_STRLEN_BOUND (int)];
+    int len = sprintf (gtk_version, "%d.%d.%d",
+		       GTK_MAJOR_VERSION, GTK_MINOR_VERSION, GTK_MICRO_VERSION);
+    Vgtk_version_string = make_pure_string (gtk_version, len, len, 0);
   }
 #endif /* USE_GTK */
 

@@ -1406,13 +1406,27 @@ arguments to `skip-chars-forward'."
   "Return t if files F1 and F2 have identical contents."
   (if (and (not (file-directory-p f1))
            (not (file-directory-p f2)))
-      (let ((res
-	     (apply 'call-process ediff-cmp-program nil nil nil
-		    (append ediff-cmp-options (list (expand-file-name f1)
-						    (expand-file-name f2))))
-	     ))
-	(and (numberp res) (eq res 0)))
-    ))
+      (if (equal (file-remote-p f1) (file-remote-p f2))
+	  (let ((res
+		 ;; In the remote case, this works only if F1 and F2 are
+		 ;; located on the same remote host.
+		 (apply 'process-file ediff-cmp-program nil nil nil
+			(append ediff-cmp-options
+				(list (or (file-remote-p f1 'localname)
+					  (expand-file-name f1))
+				      (or (file-remote-p f2 'localname)
+					  (expand-file-name f2)))))
+		 ))
+	    (and (numberp res) (eq res 0)))
+
+	;; F1 and F2 are not located on the same host.
+	(let ((t1 (file-local-copy f1))
+	      (t2 (file-local-copy f2)))
+	  (unwind-protect
+	      (ediff-same-file-contents (or t1 f1) (or t2 f2))
+	    (and t1 (delete-file t1))
+	    (and t2 (delete-file t2))))
+    )))
 
 
 (defun ediff-same-contents (d1 d2 &optional filter-re)

@@ -59,7 +59,7 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;
@@ -481,7 +481,7 @@ The returned list DOES NOT share structure with LIST."
 	(i 0))
     (while remain
       (push (pop remain) sublist)
-      (incf i)
+      (cl-incf i)
       (and (= i n)
 	   ;; We have finished a sublist
 	   (progn (push (nreverse sublist) result)
@@ -593,17 +593,17 @@ Non-nil arguments are in recursive calls."
     t))
 
 (defun imenu--create-keymap (title alist &optional cmd)
-  (list* 'keymap title
-	 (mapcar
-	  (lambda (item)
-	    (list* (car item) (car item)
-		   (cond
-		    ((imenu--subalist-p item)
-		     (imenu--create-keymap (car item) (cdr item) cmd))
-		    (t
-		     `(lambda () (interactive)
-			,(if cmd `(,cmd ',item) (list 'quote item)))))))
-	  alist)))
+  `(keymap ,title
+           ,@(mapcar
+              (lambda (item)
+                `(,(car item) ,(car item)
+                  ,@(cond
+                     ((imenu--subalist-p item)
+                      (imenu--create-keymap (car item) (cdr item) cmd))
+                     (t
+                      `(lambda () (interactive)
+                         ,(if cmd `(,cmd ',item) (list 'quote item)))))))
+              alist)))
 
 (defun imenu--in-alist (str alist)
   "Check whether the string STR is contained in multi-level ALIST."

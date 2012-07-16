@@ -40,7 +40,7 @@ corresponding to the mode line clicked."
   (interactive "e")
   (save-selected-window
     (select-window (posn-window (event-start event)))
-    (with-no-warnings (toggle-read-only))
+    (toggle-read-only nil t)
     (force-mode-line-update)))
 
 (defun mode-line-toggle-modified (event)
@@ -273,14 +273,34 @@ Normally nil in most modes, since there is no process to display.")
 (put 'mode-line-process 'risky-local-variable t)
 (make-variable-buffer-local 'mode-line-process)
 
+(defun bindings--define-key (map key item)
+  "Make as much as possible of the menus pure."
+  (declare (indent 2))
+  (define-key map key
+    (cond
+     ((not (consp item)) item)     ;Not sure that could be other than a symbol.
+     ;; Keymaps can't be made pure otherwise users can't remove/add elements
+     ;; from/to them any more.
+     ((keymapp item) item)
+     ((stringp (car item))
+      (if (keymapp (cdr item))
+          (cons (purecopy (car item)) (cdr item))
+        (purecopy item)))
+     ((eq 'menu-item (car item))
+      (if (keymapp (nth 2 item))
+          `(menu-item ,(purecopy (nth 1 item)) ,(nth 2 item)
+                      ,@(purecopy (nthcdr 3 item)))
+        (purecopy item)))
+     (t (message "non-menu-item: %S" item) item))))
+
 (defvar mode-line-mode-menu (make-sparse-keymap "Minor Modes") "\
 Menu of mode operations in the mode line.")
 
 (defvar mode-line-major-mode-keymap
   (let ((map (make-sparse-keymap)))
-    (define-key map [mode-line down-mouse-1]
-      `(menu-item ,(purecopy "Menu Bar") ignore
-        :filter (lambda (_) (mouse-menu-major-mode-map))))
+    (bindings--define-key map [mode-line down-mouse-1]
+      `(menu-item "Menu Bar" ignore
+        :filter ,(lambda (_) (mouse-menu-major-mode-map))))
     (define-key map [mode-line mouse-2] 'describe-mode)
     (define-key map [mode-line down-mouse-3] mode-line-mode-menu)
     map) "\
@@ -327,13 +347,13 @@ mouse-3: Toggle minor modes"
 (defvar mode-line-column-line-number-mode-map
   (let ((map (make-sparse-keymap))
 	(menu-map (make-sparse-keymap "Toggle Line and Column Number Display")))
-    (define-key menu-map [line-number-mode]
-      `(menu-item ,(purecopy "Display Line Numbers") line-number-mode
-		  :help ,(purecopy "Toggle displaying line numbers in the mode-line")
+    (bindings--define-key menu-map [line-number-mode]
+      '(menu-item "Display Line Numbers" line-number-mode
+		  :help "Toggle displaying line numbers in the mode-line"
 		  :button (:toggle . line-number-mode)))
-    (define-key menu-map [column-number-mode]
-      `(menu-item ,(purecopy "Display Column Numbers") column-number-mode
-		  :help ,(purecopy "Toggle displaying column numbers in the mode-line")
+    (bindings--define-key menu-map [column-number-mode]
+      '(menu-item "Display Column Numbers" column-number-mode
+		  :help "Toggle displaying column numbers in the mode-line"
 		  :button (:toggle . column-number-mode)))
     (define-key map [mode-line down-mouse-1] menu-map)
     map) "\
@@ -491,51 +511,51 @@ Switch to the most recently selected buffer other than the current one."
 
 ;; Use mode-line-mode-menu for local minor-modes only.
 ;; Global ones can go on the menubar (Options --> Show/Hide).
-(define-key mode-line-mode-menu [overwrite-mode]
-  `(menu-item ,(purecopy "Overwrite (Ovwrt)") overwrite-mode
-	      :help ,(purecopy "Overwrite mode: typed characters replace existing text")
+(bindings--define-key mode-line-mode-menu [overwrite-mode]
+  '(menu-item "Overwrite (Ovwrt)" overwrite-mode
+	      :help "Overwrite mode: typed characters replace existing text"
 	      :button (:toggle . overwrite-mode)))
-(define-key mode-line-mode-menu [outline-minor-mode]
-  `(menu-item ,(purecopy "Outline (Outl)") outline-minor-mode
+(bindings--define-key mode-line-mode-menu [outline-minor-mode]
+  '(menu-item "Outline (Outl)" outline-minor-mode
 	      ;; XXX: This needs a good, brief description.
-	      :help ,(purecopy "")
+	      :help ""
 	      :button (:toggle . (bound-and-true-p outline-minor-mode))))
-(define-key mode-line-mode-menu [highlight-changes-mode]
-  `(menu-item ,(purecopy "Highlight changes (Chg)") highlight-changes-mode
-	      :help ,(purecopy "Show changes in the buffer in a distinctive color")
+(bindings--define-key mode-line-mode-menu [highlight-changes-mode]
+  '(menu-item "Highlight changes (Chg)" highlight-changes-mode
+	      :help "Show changes in the buffer in a distinctive color"
 	      :button (:toggle . (bound-and-true-p highlight-changes-mode))))
-(define-key mode-line-mode-menu [hide-ifdef-mode]
-  `(menu-item ,(purecopy "Hide ifdef (Ifdef)") hide-ifdef-mode
-	      :help ,(purecopy "Show/Hide code within #ifdef constructs")
+(bindings--define-key mode-line-mode-menu [hide-ifdef-mode]
+  '(menu-item "Hide ifdef (Ifdef)" hide-ifdef-mode
+	      :help "Show/Hide code within #ifdef constructs"
 	      :button (:toggle . (bound-and-true-p hide-ifdef-mode))))
-(define-key mode-line-mode-menu [glasses-mode]
-  `(menu-item ,(purecopy "Glasses (o^o)") glasses-mode
-	      :help ,(purecopy "Insert virtual separators to make long identifiers easy to read")
+(bindings--define-key mode-line-mode-menu [glasses-mode]
+  '(menu-item "Glasses (o^o)" glasses-mode
+	      :help "Insert virtual separators to make long identifiers easy to read"
 	      :button (:toggle . (bound-and-true-p glasses-mode))))
-(define-key mode-line-mode-menu [font-lock-mode]
-  `(menu-item ,(purecopy "Font Lock") font-lock-mode
-	      :help ,(purecopy "Syntax coloring")
+(bindings--define-key mode-line-mode-menu [font-lock-mode]
+  '(menu-item "Font Lock" font-lock-mode
+	      :help "Syntax coloring"
 	      :button (:toggle . font-lock-mode)))
-(define-key mode-line-mode-menu [flyspell-mode]
-  `(menu-item ,(purecopy "Flyspell (Fly)") flyspell-mode
-	      :help ,(purecopy "Spell checking on the fly")
+(bindings--define-key mode-line-mode-menu [flyspell-mode]
+  '(menu-item "Flyspell (Fly)" flyspell-mode
+	      :help "Spell checking on the fly"
 	      :button (:toggle . (bound-and-true-p flyspell-mode))))
-(define-key mode-line-mode-menu [auto-revert-tail-mode]
-  `(menu-item ,(purecopy "Auto revert tail (Tail)") auto-revert-tail-mode
-	      :help ,(purecopy "Revert the tail of the buffer when buffer grows")
+(bindings--define-key mode-line-mode-menu [auto-revert-tail-mode]
+  '(menu-item "Auto revert tail (Tail)" auto-revert-tail-mode
+	      :help "Revert the tail of the buffer when buffer grows"
 	      :enable (buffer-file-name)
 	      :button (:toggle . (bound-and-true-p auto-revert-tail-mode))))
-(define-key mode-line-mode-menu [auto-revert-mode]
-  `(menu-item ,(purecopy "Auto revert (ARev)") auto-revert-mode
-	      :help ,(purecopy "Revert the buffer when the file on disk changes")
+(bindings--define-key mode-line-mode-menu [auto-revert-mode]
+  '(menu-item "Auto revert (ARev)" auto-revert-mode
+	      :help "Revert the buffer when the file on disk changes"
 	      :button (:toggle . (bound-and-true-p auto-revert-mode))))
-(define-key mode-line-mode-menu [auto-fill-mode]
-  `(menu-item ,(purecopy "Auto fill (Fill)") auto-fill-mode
-	      :help ,(purecopy "Automatically insert new lines")
+(bindings--define-key mode-line-mode-menu [auto-fill-mode]
+  '(menu-item "Auto fill (Fill)" auto-fill-mode
+	      :help "Automatically insert new lines"
 	      :button (:toggle . auto-fill-function)))
-(define-key mode-line-mode-menu [abbrev-mode]
-  `(menu-item ,(purecopy "Abbrev (Abbrev)") abbrev-mode
-	      :help ,(purecopy "Automatically expand abbreviations")
+(bindings--define-key mode-line-mode-menu [abbrev-mode]
+  '(menu-item "Abbrev (Abbrev)" abbrev-mode
+	      :help "Automatically expand abbreviations"
 	      :button (:toggle . abbrev-mode)))
 
 (defun mode-line-minor-mode-help (event)
@@ -630,8 +650,21 @@ okay.  See `mode-line-format'.")
         user-error ;; That's the main one!
         ))
 
-
 (make-variable-buffer-local 'indent-tabs-mode)
+
+;; These per-buffer variables are never reset by
+;; `kill-all-local-variables', because they have no default value.
+;; For consistency, we give them the `permanent-local' property, even
+;; though `kill-all-local-variables' does not actually consult it.
+
+(mapc (lambda (sym) (put sym 'permanent-local t))
+      '(buffer-file-name default-directory buffer-backed-up
+	buffer-saved-size buffer-auto-save-file-name
+	buffer-read-only buffer-undo-list mark-active
+	point-before-scroll buffer-file-truename
+	buffer-file-format buffer-auto-save-file-format
+	buffer-display-count buffer-display-time
+	enable-multibyte-characters))
 
 ;; We have base64, md5 and sha1 functions built in now.
 (provide 'base64)
@@ -784,16 +817,20 @@ if `inhibit-field-text-motion' is non-nil."
 
 (define-key ctl-x-map [right] 'next-buffer)
 (define-key ctl-x-map [C-right] 'next-buffer)
+(define-key global-map [XF86Forward] 'next-buffer)
 (define-key ctl-x-map [left] 'previous-buffer)
 (define-key ctl-x-map [C-left] 'previous-buffer)
+(define-key global-map [XF86Back] 'previous-buffer)
 
 (let ((map minibuffer-local-map))
   (define-key map "\en"   'next-history-element)
   (define-key map [next]  'next-history-element)
   (define-key map [down]  'next-history-element)
+  (define-key map [XF86Forward] 'next-history-element)
   (define-key map "\ep"   'previous-history-element)
   (define-key map [prior] 'previous-history-element)
   (define-key map [up]    'previous-history-element)
+  (define-key map [XF86Back] 'previous-history-element)
   (define-key map "\es"   'next-matching-history-element)
   (define-key map "\er"   'previous-matching-history-element)
   ;; Override the global binding (which calls indent-relative via
@@ -1146,7 +1183,30 @@ if `inhibit-field-text-motion' is non-nil."
 (define-key ctl-x-5-map "m" 'compose-mail-other-frame)
 
 
-(defvar ctl-x-r-map (make-sparse-keymap)
+(defvar ctl-x-r-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map "c" 'clear-rectangle)
+    (define-key map "k" 'kill-rectangle)
+    (define-key map "d" 'delete-rectangle)
+    (define-key map "y" 'yank-rectangle)
+    (define-key map "o" 'open-rectangle)
+    (define-key map "t" 'string-rectangle)
+    (define-key map "N" 'rectangle-number-lines)
+    (define-key map "\M-w" 'copy-rectangle-as-kill)
+    (define-key map "\C-@" 'point-to-register)
+    (define-key map [?\C-\ ] 'point-to-register)
+    (define-key map " " 'point-to-register)
+    (define-key map "j" 'jump-to-register)
+    (define-key map "s" 'copy-to-register)
+    (define-key map "x" 'copy-to-register)
+    (define-key map "i" 'insert-register)
+    (define-key map "g" 'insert-register)
+    (define-key map "r" 'copy-rectangle-to-register)
+    (define-key map "n" 'number-to-register)
+    (define-key map "+" 'increment-register)
+    (define-key map "w" 'window-configuration-to-register)
+    (define-key map "f" 'frame-configuration-to-register)
+    map)
   "Keymap for subcommands of C-x r.")
 (define-key ctl-x-map "r" ctl-x-r-map)
 

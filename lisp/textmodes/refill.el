@@ -83,8 +83,6 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
-
 (defgroup refill nil
   "Refilling paragraphs on changes."
   :group 'fill)
@@ -169,8 +167,8 @@ complex processing.")
   "Post-command function to do refilling (conditionally)."
   (when refill-doit ; there was a change
     ;; There's probably scope for more special cases here...
-    (case this-command
-      (self-insert-command
+    (pcase this-command
+      (`self-insert-command
        ;; Treat self-insertion commands specially, since they don't
        ;; always reset `refill-doit' -- for self-insertion commands that
        ;; *don't* cause a refill, we want to leave it turned on so that
@@ -180,9 +178,9 @@ complex processing.")
 	 ;; newline, covered below).
 	 (refill-fill-paragraph-at refill-doit)
 	 (setq refill-doit nil)))
-      ((quoted-insert fill-paragraph fill-region) nil)
-      ((newline newline-and-indent open-line indent-new-comment-line
-	reindent-then-newline-and-indent)
+      ((or `quoted-insert `fill-paragraph `fill-region) nil)
+      ((or `newline `newline-and-indent `open-line `indent-new-comment-line
+           `reindent-then-newline-and-indent)
        ;; Don't zap what was just inserted.
        (save-excursion
 	 (beginning-of-line)		; for newline-and-indent
@@ -196,7 +194,7 @@ complex processing.")
 	 (save-restriction
 	   (narrow-to-region (line-beginning-position) (point-max))
 	   (refill-fill-paragraph-at refill-doit))))
-      (t
+      (_
        (refill-fill-paragraph-at refill-doit)))
     (setq refill-doit nil)))
 

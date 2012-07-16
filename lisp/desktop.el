@@ -220,7 +220,7 @@ the normal hook `desktop-not-loaded-hook' is run."
   :group 'desktop
   :version "22.2")
 
-(defcustom desktop-path (list "." user-emacs-directory "~")
+(defcustom desktop-path (list user-emacs-directory "~")
   "List of directories to search for the desktop file.
 The base name of the file is specified in `desktop-base-file-name'."
   :type '(repeat directory)
@@ -410,8 +410,7 @@ is passed as the argument DESKTOP-BUFFER-MISC to functions in
                         'desktop-save-buffer "22.1")
 
 ;;;###autoload
-(defvar desktop-buffer-mode-handlers
-  nil
+(defvar desktop-buffer-mode-handlers nil
   "Alist of major mode specific functions to restore a desktop buffer.
 Functions listed are called by `desktop-create-buffer' when `desktop-read'
 evaluates the desktop file.  List elements must have the form
@@ -471,8 +470,7 @@ this table.  See also `desktop-minor-mode-handlers'."
   :group 'desktop)
 
 ;;;###autoload
-(defvar desktop-minor-mode-handlers
-  nil
+(defvar desktop-minor-mode-handlers nil
   "Alist of functions to restore non-standard minor modes.
 Functions are called by `desktop-create-buffer' to restore minor modes.
 List elements must have the form
@@ -968,8 +966,8 @@ It returns t if a desktop file was loaded, nil otherwise."
                (and dirs (car dirs)))
              ;; If not found and `desktop-path' is non-nil, use its first element.
              (and desktop-path (car desktop-path))
-             ;; Default: Home directory.
-             "~"))))
+             ;; Default: .emacs.d.
+             user-emacs-directory))))
     (if (file-exists-p (desktop-full-file-name))
 	;; Desktop file found, but is it already in use?
 	(let ((desktop-first-buffer nil)
@@ -981,6 +979,7 @@ It returns t if a desktop file was loaded, nil otherwise."
 	  (if (and owner
 		   (memq desktop-load-locked-desktop '(nil ask))
 		   (or (null desktop-load-locked-desktop)
+		       (daemonp)
 		       (not (y-or-n-p (format "Warning: desktop file appears to be in use by PID %s.\n\
 Using it may cause conflicts.  Use it anyway? " owner)))))
 	      (let ((default-directory desktop-dirname))

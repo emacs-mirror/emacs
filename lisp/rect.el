@@ -29,16 +29,6 @@
 ;; ### NOTE: this file was almost completely rewritten by Didier Verna
 ;; <didier@xemacs.org> in July 1999.
 
-;;; Global key bindings
-
-;;;###autoload (define-key ctl-x-r-map "c" 'clear-rectangle)
-;;;###autoload (define-key ctl-x-r-map "k" 'kill-rectangle)
-;;;###autoload (define-key ctl-x-r-map "d" 'delete-rectangle)
-;;;###autoload (define-key ctl-x-r-map "y" 'yank-rectangle)
-;;;###autoload (define-key ctl-x-r-map "o" 'open-rectangle)
-;;;###autoload (define-key ctl-x-r-map "t" 'string-rectangle)
-;;;###autoload (define-key ctl-x-r-map "N" 'rectangle-number-lines)
-
 ;;; Code:
 
 ;; FIXME: this function should be replaced by `apply-on-rectangle'
@@ -234,6 +224,13 @@ even beep.)"
 	 (progn (message "Read only text copied to kill ring") nil)
        (barf-if-buffer-read-only)
        (signal 'text-read-only (list (current-buffer)))))))
+
+;;;###autoload
+(defun copy-rectangle-as-kill (start end)
+  "Copy the region-rectangle and save it as the last killed one."
+  (interactive "r")
+  (setq killed-rectangle (extract-rectangle start end))
+  (setq deactivate-mark t))
 
 ;;;###autoload
 (defun yank-rectangle ()

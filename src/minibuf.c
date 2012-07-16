@@ -25,6 +25,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include "lisp.h"
 #include "commands.h"
+#include "character.h"
 #include "buffer.h"
 #include "dispextern.h"
 #include "keyboard.h"
@@ -247,7 +248,7 @@ read_minibuf_noninteractive (Lisp_Object map, Lisp_Object initial,
   val = Qnil;
   size = 100;
   len = 0;
-  line = (char *) xmalloc (size);
+  line = xmalloc (size);
 
   while ((c = getchar ()) != '\n')
     {
@@ -423,8 +424,8 @@ read_minibuf (Lisp_Object map, Lisp_Object initial, Lisp_Object prompt,
     {
       if (CONSP (initial))
 	{
-	  Lisp_Object backup_n = Fcdr (initial);
-	  initial = Fcar (initial);
+	  Lisp_Object backup_n = XCDR (initial);
+	  initial = XCAR (initial);
 	  CHECK_STRING (initial);
 	  if (!NILP (backup_n))
 	    {
@@ -621,7 +622,7 @@ read_minibuf (Lisp_Object map, Lisp_Object initial, Lisp_Object prompt,
   /* Display this minibuffer in the proper window.  */
   Fset_window_buffer (minibuf_window, Fcurrent_buffer (), Qnil);
   Fselect_window (minibuf_window, Qnil);
-  XSETFASTINT (XWINDOW (minibuf_window)->hscroll, 0);
+  XWINDOW (minibuf_window)->hscroll = 0;
 
   Fmake_local_variable (Qprint_escape_newlines);
   print_escape_newlines = 1;
@@ -791,8 +792,8 @@ get_minibuffer (EMACS_INT depth)
   buf = Fcar (tail);
   if (NILP (buf) || NILP (BVAR (XBUFFER (buf), name)))
     {
-      sprintf (name, " *Minibuf-%"pI"d*", depth);
-      buf = Fget_buffer_create (build_string (name));
+      buf = Fget_buffer_create
+	(make_formatted_string (name, " *Minibuf-%"pI"d*", depth));
 
       /* Although the buffer's name starts with a space, undo should be
 	 enabled in it.  */
@@ -803,10 +804,9 @@ get_minibuffer (EMACS_INT depth)
   else
     {
       ptrdiff_t count = SPECPDL_INDEX ();
-      /* `reset_buffer' blindly sets the list of overlays to NULL, so we
-	 have to empty the list, otherwise we end up with overlays that
-	 think they belong to this buffer while the buffer doesn't know about
-	 them any more.  */
+      /* We have to empty both overlay lists.  Otherwise we end
+	 up with overlays that think they belong to this buffer
+	 while the buffer doesn't know about them any more.  */
       delete_all_overlays (XBUFFER (buf));
       reset_buffer (XBUFFER (buf));
       record_unwind_protect (Fset_buffer, Fcurrent_buffer ());
@@ -887,8 +887,8 @@ read_minibuf_unwind (Lisp_Object data)
 
   /* Make sure minibuffer window is erased, not ignored.  */
   windows_or_buffers_changed++;
-  XSETFASTINT (XWINDOW (window)->last_modified, 0);
-  XSETFASTINT (XWINDOW (window)->last_overlay_modified, 0);
+  XWINDOW (window)->last_modified = 0;
+  XWINDOW (window)->last_overlay_modified = 0;
 
   /* In case the previous minibuffer displayed in this miniwindow is
      dead, we may keep displaying this buffer (tho it's inactive), so reset it,
@@ -1034,12 +1034,20 @@ Fifth arg INHERIT-INPUT-METHOD, if non-nil, means the minibuffer inherits
   (Lisp_Object prompt, Lisp_Object initial_input, Lisp_Object history, Lisp_Object default_value, Lisp_Object inherit_input_method)
 {
   Lisp_Object val;
+  ptrdiff_t count = SPECPDL_INDEX ();
+
+  /* Just in case we're in a recursive minibuffer, make it clear that the
+     previous minibuffer's completion table does not apply to the new
+     minibuffer.
+     FIXME: `minibuffer-completion-table' should be buffer-local instead.  */
+  specbind (Qminibuffer_completion_table, Qnil);
+
   val = Fread_from_minibuffer (prompt, initial_input, Qnil,
 			       Qnil, history, default_value,
 			       inherit_input_method);
   if (STRINGP (val) && SCHARS (val) == 0 && ! NILP (default_value))
     val = CONSP (default_value) ? XCAR (default_value) : default_value;
-  return val;
+  return unbind_to (count, val);
 }
 
 DEFUN ("read-no-blanks-input", Fread_no_blanks_input, Sread_no_blanks_input, 1, 3, 0,
@@ -1265,7 +1273,7 @@ is used to further constrain the set of candidates.  */)
     {
       collection = check_obarray (collection);
       obsize = ASIZE (collection);
-      bucket = XVECTOR (collection)->contents[idx];
+      bucket = AREF (collection, idx);
     }
 
   while (1)
@@ -1300,7 +1308,7 @@ is used to further constrain the set of candidates.  */)
 	    break;
 	  else
 	    {
-	      bucket = XVECTOR (collection)->contents[idx];
+	      bucket = AREF (collection, idx);
 	      continue;
 	    }
 	}
@@ -1528,7 +1536,7 @@ with a space are ignored unless STRING itself starts with a space.  */)
     {
       collection = check_obarray (collection);
       obsize = ASIZE (collection);
-      bucket = XVECTOR (collection)->contents[idx];
+      bucket = AREF (collection, idx);
     }
 
   while (1)
@@ -1563,7 +1571,7 @@ with a space are ignored unless STRING itself starts with a space.  */)
 	    break;
 	  else
 	    {
-	      bucket = XVECTOR (collection)->contents[idx];
+	      bucket = AREF (collection, idx);
 	      continue;
 	    }
 	}
@@ -1771,7 +1779,7 @@ the values STRING, PREDICATE and `lambda'.  */)
 	{
 	  for (i = ASIZE (collection) - 1; i >= 0; i--)
 	    {
-	      tail = XVECTOR (collection)->contents[i];
+	      tail = AREF (collection, i);
 	      if (SYMBOLP (tail))
 		while (1)
 		  {

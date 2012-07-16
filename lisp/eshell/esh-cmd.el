@@ -108,7 +108,7 @@
 (require 'esh-ext)
 
 (eval-when-compile
-  (require 'cl)
+  (require 'cl-lib)
   (require 'pcomplete))
 
 
@@ -604,7 +604,7 @@ For an external command, it means an exit code of 0."
 		 (list
 		  (if (<= (length pieces) 1)
 		      (car pieces)
-		    (assert (not eshell-in-pipeline-p))
+		    (cl-assert (not eshell-in-pipeline-p))
 		    `(eshell-execute-pipeline (quote ,pieces))))))
 	(setq bp (cdr bp))))
     ;; `results' might be empty; this happens in the case of
@@ -615,7 +615,7 @@ For an external command, it means an exit code of 0."
 	  results (cdr results)
 	  sep-terms (nreverse sep-terms))
     (while results
-      (assert (car sep-terms))
+      (cl-assert (car sep-terms))
       (setq final (eshell-structure-basic-command
 		   'if (string= (car sep-terms) "&&") "if"
 		   `(eshell-protect ,(car results))
@@ -1026,7 +1026,7 @@ be finished later after the completion of an asynchronous subprocess."
 	;; `eshell-copy-tree' is needed here so that the test argument
 	;; doesn't get modified and thus always yield the same result.
 	(when (car eshell-command-body)
-	  (assert (not synchronous-p))
+	  (cl-assert (not synchronous-p))
 	  (eshell-do-eval (car eshell-command-body))
 	  (setcar eshell-command-body nil)
 	  (setcar eshell-test-body nil))
@@ -1046,7 +1046,7 @@ be finished later after the completion of an asynchronous subprocess."
 	;; doesn't get modified and thus always yield the same result.
 	(if (car eshell-command-body)
 	    (progn
-	      (assert (not synchronous-p))
+	      (cl-assert (not synchronous-p))
 	      (eshell-do-eval (car eshell-command-body)))
 	  (unless (car eshell-test-body)
 	    (setcar eshell-test-body (eshell-copy-tree (car args))))
@@ -1201,7 +1201,7 @@ COMMAND may result in an alias being executed, or a plain command."
   (setq eshell-last-arguments args
 	eshell-last-command-name (eshell-stringify command))
   (run-hook-with-args 'eshell-prepare-command-hook)
-  (assert (stringp eshell-last-command-name))
+  (cl-assert (stringp eshell-last-command-name))
   (if eshell-last-command-name
       (or (run-hook-with-args-until-success
 	   'eshell-named-command-hook eshell-last-command-name
@@ -1220,9 +1220,7 @@ COMMAND may result in an alias being executed, or a plain command."
     (if (and file
 	     (string-match "\\(em\\|esh\\)-\\(.*\\)\\(\\.el\\)?\\'" file))
 	(let ((module-sym
-	       (intern (file-name-sans-extension
-			(file-name-nondirectory
-			 (concat "eshell-" (match-string 2 file)))))))
+	       (intern (file-name-base (concat "eshell-" (match-string 2 file))))))
 	  (if (and (functionp sym)
 		   (or (null module-sym)
 		       (eshell-using-module module-sym)

@@ -4,7 +4,7 @@
 	(org-clock-modeline-total, org-clock-task-overrun-text)
 	(org-clock-mode-line-entry): Doc fix, "modeline" -> "mode line".
 
-2012-05-27 Mark Shoulson <mark@kli.org>  (tiny change)
+2012-05-27  Mark Shoulson  <mark@kli.org>  (tiny change)
 
 	* org.el (org-fontify-entities): Fix bug: The entities \sup[123] and
 	\there4 were not "prettified" when org-pretty-entities was enabled.
@@ -362,7 +362,7 @@
 2012-04-01  Ilya Shlyakhter  <ilya_shl@alum.mit.edu>  (tiny change)
 
 	* org-colview.el (org-columns-cleanup-item): Handle case of empty
-	headline
+	headline.
 
 2012-04-01  Nicolas Goaziou  <n.goaziou@gmail.com>
 
@@ -400,7 +400,7 @@
 
 2012-04-01  Ilya Shlyakhter  <ilya_shl@alum.mit.edu>
 
-	* org-clock.el: (org-clock-get-table-data): Make sure todo-only
+	* org-clock.el (org-clock-get-table-data): Make sure todo-only
 	does not leak when it is set by make-org-tags-macher.
 
 2012-04-01  Bastien Guerry  <bzg@gnu.org>
@@ -688,7 +688,7 @@
 2012-04-01  Bernt Hansen  <bernt@norang.ca>
 
 	* org.el (org-clone-subtree-with-time-shift): Fix task cloning for
-	repeating tasks using .+n and ++n syntax
+	repeating tasks using .+n and ++n syntax.
 
 2012-04-01  Karl Fogel  <kfogel@red-bean.com>  (tiny change)
 
@@ -863,7 +863,7 @@
 
 2012-04-01  Toby S. Cubitt  <tsc25@cantab.net>  (tiny change)
 
-	* org.el (org-goto): call org-refile-get-location with NO-EXCLUDE
+	* org.el (org-goto): Call org-refile-get-location with NO-EXCLUDE
 	argument set, otherwise not only are headlines in the current
 	subtree excluded, but it throws an error if point happens not to
 	be within a subtree (e.g. at start of buffer).
@@ -877,7 +877,7 @@
 	* org-clock.el (org-in-clocktable-p): Moved to org.el.
 
 	* org.el (org-in-clocktable-p): New function. Moved from
-	org-clock.el
+	org-clock.el.
 
 2012-04-01  David Maus  <dmaus@ictsoc.de>
 
@@ -1011,7 +1011,7 @@
 
 2012-04-01  Toby S. Cubitt  <tsc25@cantab.net>  (tiny change)
 
-	* org.el (org-goto): call org-refile-get-location with NO-EXCLUDE
+	* org.el (org-goto): Call org-refile-get-location with NO-EXCLUDE
 	argument set, otherwise not only are headlines in the current
 	subtree excluded, but it throws an error if point happens not to
 	be within a subtree (e.g. at start of buffer).
@@ -1031,7 +1031,7 @@
 2012-04-01  Bernt Hansen  <bernt@norang.ca>
 
 	* org-clock.el (org-clock-out): Do not delete the current clocking
-	task when org-clock-out-hook clocks in another task
+	task when org-clock-out-hook clocks in another task.
 
 2012-04-01  David Maus  <dmaus@ictsoc.de>
 
@@ -1052,7 +1052,7 @@
 
 	* org-clock.el (org-in-clocktable-p): Moved to org.el.
 
-	* org.el (org-in-clocktable-p): New function. Moved from org-clock.el
+	* org.el (org-in-clocktable-p): New function.  Moved from org-clock.el.
 
 2012-04-01  David Maus  <dmaus@ictsoc.de>
 
@@ -1389,7 +1389,7 @@
 2012-04-01  Jambunathan K  <kjambunathan@gmail.com>
 
 	* org-odt.el (org-odt-label-styles): Add a new style.
-	(org-odt-category-map-alist):  Use it.
+	(org-odt-category-map-alist): Use it.
 
 2012-04-01  Jambunathan K  <kjambunathan@gmail.com>
 
@@ -1573,16 +1573,17 @@
 
 2012-04-01  Bernt Hansen  <bernt@norang.ca>
 
-	* org-agenda.el (org-agenda-switch-to): Widen org buffer only if point is
-	outside the current restriction
+	* org-agenda.el (org-agenda-switch-to): Widen org buffer only if point
+	is outside the current restriction.
 
 2012-04-01  Bernt Hansen  <bernt@norang.ca>
 
-	* org-agenda.el (org-agenda-clock-in): Save restriction when clocking in from the agenda
+	* org-agenda.el (org-agenda-clock-in): Save restriction when clocking
+	in from the agenda.
 
 2012-04-01  Bernt Hansen  <bernt@norang.ca>
 
-	* org.el: Honour existing restrictions when regenerating the agenda
+	* org.el: Honour existing restrictions when regenerating the agenda.
 
 2012-04-01  Bastien Guerry  <bzg@gnu.org>
 
@@ -1611,8 +1612,8 @@
 2012-04-01  Martyn Jago  <martyn.jago@btinternet.com>
 
 	* ob-emacs-lisp.el: A comment on the last line of an emacs-lisp
-	code block would cause an error when the block is was executed. This
-	fix cures this behaviour.
+	code block would cause an error when the block is was executed.
+	This fix cures this behaviour.
 
 2012-04-01  Eric Schulte  <eric.schulte@gmx.com>
 
@@ -2018,7 +2019,7 @@
 
 2012-01-03  Litvinov Sergey  <slitvinov@gmail.com>
 
-	* ob-octave.el: add graphical output to png file
+	* ob-octave.el: Add graphical output to png file.
 
 2012-01-03  Eric Schulte  <eric.schulte@gmx.com>
 
@@ -2107,7 +2108,7 @@
 
 2012-01-03  Michael Brand  <michael.ch.brand@gmail.com>
 
-	* org.el (Key bindings): remap the Outline functions from
+	* org.el (Key bindings): Remap the Outline functions from
 	`outline-mode-prefix-map' where possible.
 
 2012-01-03  Christian Moe  <mail@christianmoe.com>  (tiny change)
@@ -2186,7 +2187,7 @@
 	* org-special-blocks.el
 	(org-special-blocks-convert-html-special-cookies): Close
 	paragraph before opening or closing the <div>, and open
-	paragraph after. Also changed newline placement to be the same
+	paragraph after.  Also changed newline placement to be the same
 	as for other blocks.
 
 2012-01-03  Roberto Huelga  <rhuelga@gmail.com>
@@ -3344,9 +3345,9 @@
 	* ob-asymptote.el (org-babel-asymptote-table-to-array):
 	Require a new argument TYPE specifying the detected type of
 	array.  If it's a string array, make sure every element is
-	returned as a string. Also improve doc-string.
-	(org-babel-asymptote-var-to-asymptote): Fill new argument.  Small
-	refactoring.
+	returned as a string.  Also improve doc-string.
+	(org-babel-asymptote-var-to-asymptote): Fill new argument.
+	Small refactoring.
 	(org-babel-asymptote-define-type): Rewrite to avoid stopping
 	search at first float found, as strings have precedence over
 	floats.
@@ -3376,7 +3377,7 @@
 
 	* org-footnote.el (org-footnote-get-definition): The function has
 	to widen buffer if definition has not been found in the current
-	narrowed part. Be sure to restore that restriction once the
+	narrowed part.  Be sure to restore that restriction once the
 	definition is found.
 
 2012-01-03  Michal Sojka  <sojka@os.inf.tu-dresden.de>  (tiny change)
@@ -3419,7 +3420,7 @@
 2012-01-03  Suvayu Ali  <fatkasuvayu+linux@gmail.com>  (tiny change)
 
 	* org-inlinetask.el (org-inlinetask): New customizable face
-	for inlinetasks
+	for inlinetasks.
 
 2012-01-03  Bastien Guerry  <bzg@gnu.org>
 
@@ -3518,7 +3519,7 @@
 	(org-indent-agent-resume-delay): Change value.
 	(org-indent-initialize-buffer): Change argument name.
 	(org-indent-add-properties): Change argument name and type
-	expected. It must be a time value now.
+	expected.  It must be a time value now.
 
 2012-01-03  Bastien Guerry  <bzg@gnu.org>
 
@@ -3573,8 +3574,8 @@
 	(org-indent-initialize-agent): New function.
 	(org-indent-initialize-buffer): Now requires a mandatory
 	buffer argument.
-	(org-indent-add-properties): Reflect changes to variables. The resume
-	timer is now global.
+	(org-indent-add-properties): Reflect changes to variables.
+	The resume timer is now global.
 
 2012-01-03  Nicolas Goaziou  <n.goaziou@gmail.com>
 
@@ -3620,7 +3621,7 @@
 	* org-indent.el (org-indent-modified-headline-flag): Renamed from
 	`org-indent-deleted-headline-flag'
 	(org-indent-notify-modified-headline): Renamed from
-	`org-indent-notify-deleted-headline'. Handle situations when
+	`org-indent-notify-deleted-headline'.  Handle situations when
 	the stars of an headline are modified.
 	(org-indent-refresh-maybe): Remove case now handled by
 	previous function.
@@ -3643,7 +3644,7 @@
 	(org-indent-initial-timer, org-indent-initial-lock): New
 	variables.
 	(org-indent-mode): At initialization, start an idle timer to indent
-	the whole buffer. When the user is asking for control, interrupt the
+	the whole buffer.  When the user is asking for control, interrupt the
 	process, and resume at the same point when idle again.
 	(org-indent-initialize-buffer): New function.
 	(org-indent-add-properties): Throw an interrupt when indentation of
@@ -3690,7 +3691,7 @@
 2012-01-03  Nicolas Goaziou  <n.goaziou@gmail.com>
 
 	* org-indent.el (org-indent-mode): Completely refresh buffer
-	before starting org-indent-mode. Also set idle timer to refresh
+	before starting org-indent-mode.  Also set idle timer to refresh
 	only visible portion of buffer, and refresh the subtree instead of
 	section when promoting or demoting it.
 	(org-indent-add-properties): Rewrite function to proceed line by
@@ -3797,7 +3798,7 @@
 	template for html so that the exported file is valid
 	xhtml.  Added template for odt.
 	(org-inlinetask-export-handler): Fix typo in the regexp that
-	trims content. Make sure that the content is flanked by
+	trims content.  Make sure that the content is flanked by
 	paragraph boundaries on either side.
 
 2012-01-03  Bastien Guerry  <bzg@gnu.org>
@@ -4065,7 +4066,7 @@
 2012-01-03  Nicolas Goaziou  <n.goaziou@gmail.com>
 
 	* org.el (org-in-regexps-block-p): Return an useful value when
-	point is between START-RE and END-RE. No incomplete block is
+	point is between START-RE and END-RE.  No incomplete block is
 	allowed anymore.  Add another optional argument to bound the
 	bottom part of the search.
 	(org-narrow-to-block, org-in-block-p): Apply modifications.
@@ -4451,7 +4452,7 @@
 2011-07-28  Matt Lundin  <mdl@imapmail.org>
 
 	* org-bibtex.el (org-bibtex-create, org-bibtex-write): Change
-	argument of `org-toggle-tag' to 'on. (Other arguments, e.g., t,
+	argument of `org-toggle-tag' to 'on.  (Other arguments, e.g., t,
 	have no effect).
 
 2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
@@ -4835,7 +4836,7 @@
 
 	* ob-haskell.el (org-babel-haskell-export-to-lhs): Call
 	`kill-buffer' with argument indiciating to kill current
-	buffer. Emacs 22 compatibility.
+	buffer.  Emacs 22 compatibility.
 
 2011-07-28  David Maus  <dmaus@ictsoc.de>
 
@@ -5027,7 +5028,7 @@
 
 	* org-exp.el (org-export-preprocess-string): If the last subtree
 	is commented, footnotes inserted during normalizing at the end of
-	the buffer may get deleted. This patch ensures deletion comes
+	the buffer may get deleted.  This patch ensures deletion comes
 	first, normalization second.
 
 2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
@@ -5108,7 +5109,7 @@
 
 	* org-footnote.el (org-footnote-goto-definition): Now, determining
 	if point is at a footnote reference is entirely determined by
-	`org-footnote-at-reference-p'. No need to check if pattern isn't
+	`org-footnote-at-reference-p'.  No need to check if pattern isn't
 	at beginning of the line elsewhere.
 
 2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
@@ -5360,7 +5361,7 @@
 
 	* org-exp.el (org-export-backends): New variable.
 	(org-export-select-backend-specific-text): Use above
-	variable. Also mark text between #+BACKEND and
+	variable.  Also mark text between #+BACKEND and
 	#+BEGIN_BACKEND...#+END_BACKEND with org-native-text property.
 	This text property is currently used only by the new line-oriented
 	generic exporter (which is not yet part of the repo).
@@ -5787,7 +5788,7 @@
 	* org-exp.el (org-export): Use new compatibility function
 	`org-activate-mark'.
 
-	* org-compat.el (org-activate-mark): New function. Provide
+	* org-compat.el (org-activate-mark): New function.  Provide
 	`activate-mark' if not present (e.g. Emacs 22).
 
 2011-07-28  David Maus  <dmaus@ictsoc.de>
@@ -5957,14 +5958,14 @@
 	* org-html.el (org-export-as-html): Don't expand non-data lines of
 	table.el tables.
 	(org-html-expand): Removed the (buggy) test for non-data lines
-	in table.el tables. The test is now done as part of
+	in table.el tables.  The test is now done as part of
 	org-export-as-html.
 	(org-format-table-table-html-using-table-generate-source):
 	Added test for spanning of cells in table.el tables using
-	table.el's own library routine. Optionlly Suppress export of
+	table.el's own library routine.  Optionally suppress export of
 	simple table.el tables.
 	(org-format-table-html): Removed the (buggy) test for spanned
-	table.el tables. The test is now done as part of
+	table.el tables.  The test is now done as part of
 	org-format-table-table-html-using-table-generate-source.
 
 2011-07-28  Carsten Dominik  <carsten.dominik@gmail.com>
@@ -6338,7 +6339,7 @@
 	function would not pay attention to drawers or blocks indentation.
 	Thus, such constructs couldn't consistently end an item or a list.
 	This patch ensures line indentation is stored (if applicable)
-	before skipping them. Also fixed doc-string and comments.
+	before skipping them.  Also fixed doc-string and comments.
 
 2011-07-28  Carsten Dominik  <carsten.dominik@gmail.com>
 
@@ -6676,7 +6677,7 @@
 2011-07-28  Julien Danjou  <julien@danjou.info>
 
 	* org-latex.el (org-export-latex-date-format): Change default date
-	format to \today. This has the same result but respects the
+	format to \today.  This has the same result but respects the
 	language set in the document by default.
 
 2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
@@ -6892,7 +6893,7 @@
 	(org-agenda-change-all-lines): Stop using prefix-length.
 
 	* org-colview.el (org-columns-display-here): Stop using
-	prefix-length. Always return claned items.
+	prefix-length.  Always return claned items.
 
 	* org-mobile.el (org-mobile-write-agenda-for-mobile): Stop using
 	prefix-length.
@@ -6996,7 +6997,7 @@
 
 2011-07-28  Bastien Guerry  <bzg@gnu.org>
 
-	* org-html.el (org-export-as-html): bugfix: insert email
+	* org-html.el (org-export-as-html): Bugfix: insert email
 	correctly.
 
 2011-07-28  Bastien Guerry  <bzg@gnu.org>
@@ -7437,7 +7438,7 @@
 2011-07-28  Julien Danjou  <julien@danjou.info>
 
 	* org-macs.el (org-with-point-at): Store evaluated version of
-	pom. This fixes a potential bug when using (org-with-point-at
+	pom.  This fixes a potential bug when using (org-with-point-at
 	(func) …), where (func) would be evaluated multiple times,
 	therefore might return different results if a marker was returned
 	and different each time.
@@ -7706,7 +7707,7 @@
 
 2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
 
-	* org.el (org-toggle-item): Now accepts a prefix argument. When
+	* org.el (org-toggle-item): Now accepts a prefix argument.  When
 	used without argument on normal text, it will make the whole
 	region one item.  With an argument, it defaults to old behavior:
 	change each line in region into an item.
@@ -7865,7 +7866,7 @@
 	* org-inlinetask.el (org-inlinetask-export-templates): Slightly
 	modify templates so environment boundaries don't interfere with
 	content of task.  Unprotect content of task so it might benefit
-	from further transformations. Set original-indentation property to
+	from further transformations.  Set original-indentation property to
 	a high value to ensure that task is always in the last item of the
 	list.  Also, apply templates later in export process.
 
@@ -7896,7 +7897,7 @@
 	* org-exp.el (org-export-preprocess-string): Mark list endings
 	before babel blocks preprocessing starts, so blank lines that may
 	be inserted do not break list's structure.  Then, mark list with
-	special properties required by exporters. Thus output from babel
+	special properties required by exporters.  Thus output from babel
 	can easily be included in lists.
 	(org-export-mark-list-end): New function.
 	(org-export-mark-list-properties): New function.
@@ -8001,7 +8002,7 @@
 	helper function is not optional anymore.
 	(org-list-get-all-items): Shorten code with the help of cl.el.
 	(org-list-get-children): Now returns all children of item, even if
-	they do not belong to the same list. Renamed from
+	they do not belong to the same list.  Renamed from
 	`org-list-get-all-children'.
 	(org-list-get-list-begin): Function wasn't return value when item
 	was already the first item of the list at point.
@@ -10143,10 +10144,9 @@
 2010-11-11  Carsten Dominik  <carsten.dominik@gmail.com>
 
 	* org-capture.el (org-capture-templates): New capture property
-	`:kill-buffer'. (org-capture-finalize): Kill target buffer if that
-	is desired.
-	(org-capture-target-buffer): Remember if we have to make the
-	buffer.
+	`:kill-buffer'.
+	(org-capture-finalize): Kill target buffer if that is desired.
+	(org-capture-target-buffer): Remember if we have to make the buffer.
 
 2010-11-11  Carsten Dominik  <carsten.dominik@gmail.com>
 
@@ -11665,13 +11665,13 @@
 2010-11-11  Nicolas Goaziou  <n.goaziou@gmail.com>
 
 	* org-list.el (org-list-insert-item-generic): Updating checkboxes
-	can modifiy bottom point of a list, so make it a marker before
+	can modify bottom point of a list, so make it a marker before
 	calling `org-update-checkbox-count-maybe'.
 
 2010-11-11  Dan Davison  <davison@stats.ox.ac.uk>
 
 	* org.el (org-src-fontify-natively): Set to nil by default.
-	Supply cutomize interface.
+	Supply customize interface.
 
 2010-11-11  Bastien Guerry  <bzg@gnu.org>
 
@@ -12235,7 +12235,7 @@
 
 	* org-list.el (org-insert-item-internal): New function to handle
 	positioning and contents of an item being inserted at a specific
-	pos. It is not possible anymore to split a term in a description
+	pos.  It is not possible anymore to split a term in a description
 	list or a checkbox when inserting a new item.
 
 	* org-list.el (org-insert-item): Refactored by using the new
@@ -16332,9 +16332,8 @@
 
 2009-11-13  John Wiegley  <jwiegley@gmail.com>
 
-	* org-clock.el
-	(org-clock-auto-clock-resolution): Now takes three values: nil, t
-	and `when-no-clock-is-running'.
+	* org-clock.el (org-clock-auto-clock-resolution): Now takes three
+	values: nil, t and `when-no-clock-is-running'.
 	(org-clock-in): Use `org-clock-auto-clock-resolution' to determine
 	whether or not to resolve Org buffers on clock in.
 

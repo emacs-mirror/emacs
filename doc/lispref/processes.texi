@@ -541,16 +541,29 @@ is decoded in the same way as for @code{call-process}.
 @section Creating an Asynchronous Process
 @cindex asynchronous subprocess
 
-  After an @dfn{asynchronous process} is created, Emacs and the subprocess
-both continue running immediately.  The process thereafter runs
-in parallel with Emacs, and the two can communicate with each other
-using the functions described in the following sections.  However,
+  In this section, we describe how to create an @dfn{asynchronous
+process}.  After an asynchronous process is created, it runs in
+parallel with Emacs, and Emacs can communicate with it using the
+functions described in the following sections (@pxref{Input to
+Processes}, and @pxref{Output from Processes}).  Note that process
 communication is only partially asynchronous: Emacs sends data to the
 process only when certain functions are called, and Emacs accepts data
-from the process only when Emacs is waiting for input or for a time
-delay.
+from the process only while waiting for input or for a time delay.
 
-  Here we describe how to create an asynchronous process.
+@cindex pty
+@cindex pipe
+  An asynchronous process is controlled either via a @dfn{pty}
+(pseudo-terminal) or a @dfn{pipe}.  The choice of pty or pipe is made
+when creating the process, based on the value of the variable
+@code{process-connection-type} (see below).  Ptys are usually
+preferable for processes visible to the user, as in Shell mode,
+because they allow for job control (@kbd{C-c}, @kbd{C-z}, etc.)
+between the process and its children, whereas pipes do not.  For
+subprocesses used for internal purposes by programs, it is often
+better to use a pipe, because they are more efficient, and because
+they are immune to stray character injections that ptys introduce for
+large (around 500 byte) messages.  Also, the total number of ptys is
+limited on many systems and it is good not to waste them.
 
 @defun start-process name buffer-or-name program &rest args
 This function creates a new asynchronous subprocess and starts the
@@ -652,19 +665,9 @@ can also be executed on remote hosts, depending on @code{default-directory}.
 @end defun
 
 @defvar process-connection-type
-@cindex pipes
-@cindex @acronym{PTY}s
 This variable controls the type of device used to communicate with
-asynchronous subprocesses.  If it is non-@code{nil}, then @acronym{PTY}s are
+asynchronous subprocesses.  If it is non-@code{nil}, then ptys are
 used, when available.  Otherwise, pipes are used.
-
-@acronym{PTY}s are usually preferable for processes visible to the user, as
-in Shell mode, because they allow job control (@kbd{C-c}, @kbd{C-z},
-etc.) to work between the process and its children, whereas pipes do
-not.  For subprocesses used for internal purposes by programs, it is
-often better to use a pipe, because they are more efficient.  In
-addition, the total number of @acronym{PTY}s is limited on many systems and
-it is good not to waste them.
 
 The value of @code{process-connection-type} takes effect when
 @code{start-process} is called.  So you can specify how to communicate
@@ -678,8 +681,8 @@ with one subprocess by binding the variable around the call to
 @end group
 @end smallexample
 
-To determine whether a given subprocess actually got a pipe or a
-@acronym{PTY}, use the function @code{process-tty-name} (@pxref{Process
+To determine whether a given subprocess actually got a pipe or a pty,
+use the function @code{process-tty-name} (@pxref{Process
 Information}).
 @end defvar
 
@@ -957,9 +960,9 @@ data appears on the ``standard input'' of the subprocess.
 
 @c FIXME which?
   Some operating systems have limited space for buffered input in a
-@acronym{PTY}.  On these systems, Emacs sends an @acronym{EOF}
-periodically amidst the other characters, to force them through.  For
-most programs, these @acronym{EOF}s do no harm.
+pty.  On these systems, Emacs sends an @acronym{EOF} periodically
+amidst the other characters, to force them through.  For most
+programs, these @acronym{EOF}s do no harm.
 
   Subprocess input is normally encoded using a coding system before the
 subprocess receives it, much like text written into a file.  You can use
@@ -1770,7 +1773,7 @@ faults for all the child processes of the given process.
 @item utime
 Time spent by the process in the user context, for running the
 application's code.  The corresponding @var{value} is in the
-@w{@code{(@var{high} @var{low} @var{microsec})}} format, the same
+@w{@code{(@var{high} @var{low} @var{microsec} @var{picosec})}} format, the same
 format used by functions @code{current-time} (@pxref{Time of Day,
 current-time}) and @code{file-attributes} (@pxref{File Attributes}).
 
@@ -1801,12 +1804,12 @@ The number of threads in the process.
 
 @item start
 The time when the process was started, in the same
-@w{@code{(@var{high} @var{low} @var{microsec})}} format used by
-@code{current-time} and @code{file-attributes}.
+@w{@code{(@var{high} @var{low} @var{microsec} @var{picosec})}} format used by
+@code{current-time} and by @code{file-attributes}.
 
 @item etime
 The time elapsed since the process started, in the @w{@code{(@var{high}
-@var{low} @var{microsec})}} format.
+@var{low} @var{microsec} @var{picosec})}} format.
 
 @item vsize
 The virtual memory size of the process, measured in kilobytes.

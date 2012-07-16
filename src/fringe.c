@@ -24,6 +24,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "frame.h"
 #include "window.h"
 #include "dispextern.h"
+#include "character.h"
 #include "buffer.h"
 #include "blockinput.h"
 #include "termhooks.h"
@@ -105,6 +106,22 @@ struct fringe_bitmap
 */
 static unsigned short question_mark_bits[] = {
   0x3c, 0x7e, 0x7e, 0x0c, 0x18, 0x18, 0x00, 0x18, 0x18};
+
+/* An exclamation mark.  */
+/*
+  ...XX...
+  ...XX...
+  ...XX...
+  ...XX...
+  ...XX...
+  ...XX...
+  ...XX...
+  ........
+  ...XX...
+  ...XX...
+*/
+static unsigned short exclamation_mark_bits[] = {
+  0x18, 0x18, 0x18, 0x18, 0x18, 0x18, 0x18, 0x18, 0x00, 0x18};
 
 /* An arrow like this: `<-'.  */
 /*
@@ -431,6 +448,7 @@ static struct fringe_bitmap standard_bitmaps[] =
 {
   { NULL, 0, 0, 0, 0, 0 }, /* NO_FRINGE_BITMAP */
   { FRBITS (question_mark_bits),      8, 0, ALIGN_BITMAP_CENTER, 0 },
+  { FRBITS (exclamation_mark_bits),   8, 0, ALIGN_BITMAP_CENTER, 0 },
   { FRBITS (left_arrow_bits),         8, 0, ALIGN_BITMAP_CENTER, 0 },
   { FRBITS (right_arrow_bits),        8, 0, ALIGN_BITMAP_CENTER, 0 },
   { FRBITS (up_arrow_bits),           8, 0, ALIGN_BITMAP_TOP,    0 },
@@ -848,7 +866,7 @@ draw_fringe_bitmap (struct window *w, struct glyph_row *row, int left_p)
 void
 draw_row_fringe_bitmaps (struct window *w, struct glyph_row *row)
 {
-  xassert (interrupt_input_blocked);
+  eassert (interrupt_input_blocked);
 
   /* If row is completely invisible, because of vscrolling, we
      don't have to draw anything.  */
@@ -1615,12 +1633,10 @@ If BITMAP already exists, the existing definition is replaced.  */)
 		error ("No free fringe bitmap slots");
 
 	      i = max_fringe_bitmaps;
-	      fringe_bitmaps
-		= ((struct fringe_bitmap **)
-		   xrealloc (fringe_bitmaps, bitmaps * sizeof *fringe_bitmaps));
-	      fringe_faces
-		= (Lisp_Object *) xrealloc (fringe_faces,
-					    bitmaps * sizeof *fringe_faces);
+	      fringe_bitmaps = xrealloc (fringe_bitmaps,
+					 bitmaps * sizeof *fringe_bitmaps);
+	      fringe_faces = xrealloc (fringe_faces,
+				       bitmaps * sizeof *fringe_faces);
 
 	      for (i = max_fringe_bitmaps; i < bitmaps; i++)
 		{
@@ -1638,8 +1654,7 @@ If BITMAP already exists, the existing definition is replaced.  */)
 
   fb.dynamic = 1;
 
-  xfb = (struct fringe_bitmap *) xmalloc (sizeof fb
-					  + fb.height * BYTES_PER_BITMAP_ROW);
+  xfb = xmalloc (sizeof fb + fb.height * BYTES_PER_BITMAP_ROW);
   fb.bits = b = (unsigned short *) (xfb + 1);
   memset (b, 0, fb.height);
 
@@ -1671,23 +1686,27 @@ If FACE is nil, reset face to default fringe face.  */)
   (Lisp_Object bitmap, Lisp_Object face)
 {
   int n;
-  int face_id;
 
   CHECK_SYMBOL (bitmap);
   n = lookup_fringe_bitmap (bitmap);
   if (!n)
     error ("Undefined fringe bitmap");
 
+  /* The purpose of the following code is to signal an error if FACE
+     is not a face.  This is for the caller's convenience only; the
+     redisplay code should be able to fail gracefully.  Skip the check
+     if FRINGE_FACE_ID is unrealized (as in batch mode and during
+     daemon startup).  */
   if (!NILP (face))
     {
-      face_id = lookup_derived_face (SELECTED_FRAME (), face,
-				     FRINGE_FACE_ID, 1);
-      if (face_id < 0)
+      struct frame *f = SELECTED_FRAME ();
+
+      if (FACE_FROM_ID (f, FRINGE_FACE_ID)
+	  && lookup_derived_face (f, face, FRINGE_FACE_ID, 1) < 0)
 	error ("No such face");
     }
 
   fringe_faces[n] = face;
-
   return Qnil;
 }
 
@@ -1799,16 +1818,11 @@ init_fringe (void)
 
   max_fringe_bitmaps = MAX_STANDARD_FRINGE_BITMAPS + 20;
 
-  fringe_bitmaps
-    = (struct fringe_bitmap **) xmalloc (max_fringe_bitmaps * sizeof (struct fringe_bitmap *));
-  fringe_faces
-    = (Lisp_Object *) xmalloc (max_fringe_bitmaps * sizeof (Lisp_Object));
+  fringe_bitmaps = xzalloc (max_fringe_bitmaps * sizeof *fringe_bitmaps);
+  fringe_faces = xmalloc (max_fringe_bitmaps * sizeof *fringe_faces);
 
   for (i = 0; i < max_fringe_bitmaps; i++)
-    {
-      fringe_bitmaps[i] = NULL;
-      fringe_faces[i] = Qnil;
-    }
+    fringe_faces[i] = Qnil;
 }
 
 #ifdef HAVE_NTGUI

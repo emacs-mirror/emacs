@@ -215,10 +215,23 @@ You should not change this flag in a running Emacs.
 (such as by loading a library), that data is placed in normal storage.
 If normal storage runs low, then Emacs asks the operating system to
 allocate more memory.  Different types of Lisp objects, such as
-symbols, cons cells, markers, etc., are segregated in distinct blocks
-in memory.  (Vectors, long strings, buffers and certain other editing
-types, which are fairly large, are allocated in individual blocks, one
-per object, while small strings are packed into blocks of 8k bytes.)
+symbols, cons cells, small vectors, markers, etc., are segregated in
+distinct blocks in memory.  (Large vectors, long strings, buffers and
+certain other editing types, which are fairly large, are allocated in
+individual blocks, one per object; small strings are packed into blocks
+of 8k bytes, and small vectors are packed into blocks of 4k bytes).
+
+@cindex vector-like objects, storage
+@cindex storage of vector-like Lisp objects
+  Beyond the basic vector, a lot of objects like window, buffer, and
+frame are managed as if they were vectors.  The corresponding C data
+structures include the @code{struct vectorlike_header} field whose
+@code{next} field points to the next object in the chain:
+@code{header.next.buffer} points to the next buffer (which could be
+a killed buffer), and @code{header.next.vector} points to the next
+vector in a free list.  If a vector is small (smaller than or equal to
+@code{VBLOCK_BYTES_MAX} bytes, see @file{alloc.c}), then
+@code{header.next.nbytes} contains the vector size in bytes.
 
 @cindex garbage collection
   It is quite common to use some storage for a while, then release it
@@ -243,8 +256,12 @@ might as well be reused, since no one will miss them.  The second
   The sweep phase puts unused cons cells onto a @dfn{free list}
 for future allocation; likewise for symbols and markers.  It compacts
 the accessible strings so they occupy fewer 8k blocks; then it frees the
-other 8k blocks.  Vectors, buffers, windows, and other large objects are
-individually allocated and freed using @code{malloc} and @code{free}.
+other 8k blocks.  Unreachable vectors from vector blocks are coalesced
+to create largest possible free areas; if a free area spans a complete
+4k block, that block is freed.  Otherwise, the free area is recorded
+in a free list array, where each entry corresponds to a free list
+of areas of the same size.  Large vectors, buffers, and other large
+objects are allocated and freed individually.
 
 @cindex CL note---allocate more storage
 @quotation
@@ -1363,7 +1380,7 @@ needs to be reported, either by running the sentinel or by inserting a
 message in the process buffer.
 
 @item pty_flag
-Non-@code{nil} if communication with the subprocess uses a @acronym{PTY};
+Non-@code{nil} if communication with the subprocess uses a pty;
 @code{nil} if it uses a pipe.
 
 @item infd

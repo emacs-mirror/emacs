@@ -103,79 +103,79 @@
 
 (ert-deftest ert-test-run-tests-interactively-2 ()
   :tags '(:causes-redisplay)
-  (let ((passing-test (make-ert-test :name 'passing-test
-                                     :body (lambda () (ert-pass))))
-        (failing-test (make-ert-test :name 'failing-test
-                                     :body (lambda ()
-                                             (ert-info ((propertize "foo\nbar"
-                                                                    'a 'b))
-					      (ert-fail
-					       "failure message"))))))
-    (let ((ert-debug-on-error nil))
-      (let* ((buffer-name (generate-new-buffer-name "*ert-test-run-tests*"))
-             (messages nil)
-             (mock-message-fn
-              (lambda (format-string &rest args)
-                (push (apply #'format format-string args) messages))))
-        (flet ((expected-string (with-font-lock-p)
-                 (ert-propertized-string
-                  "Selector: (member <passing-test> <failing-test>)\n"
-                  "Passed: 1\n"
-                  "Failed: 1 (1 unexpected)\n"
-                  "Total:  2/2\n\n"
-                  "Started at:\n"
-                  "Finished.\n"
-                  "Finished at:\n\n"
-                  `(category ,(button-category-symbol
-                               'ert--results-progress-bar-button)
-                             button (t)
-                             face ,(if with-font-lock-p
-                                       'ert-test-result-unexpected
-                                     'button))
-                  ".F" nil "\n\n"
-                  `(category ,(button-category-symbol
-                               'ert--results-expand-collapse-button)
-                             button (t)
-                             face ,(if with-font-lock-p
-                                       'ert-test-result-unexpected
-                                     'button))
-                  "F" nil " "
-                  `(category ,(button-category-symbol
-                               'ert--test-name-button)
-                             button (t)
-                             ert-test-name failing-test)
-                  "failing-test"
-                  nil "\n    Info: " '(a b) "foo\n"
-                  nil "          " '(a b) "bar"
-                  nil "\n    (ert-test-failed \"failure message\")\n\n\n"
-                  )))
-        (save-window-excursion
-          (unwind-protect
-              (let ((case-fold-search nil))
-                (ert-run-tests-interactively
-                 `(member ,passing-test ,failing-test) buffer-name
-                 mock-message-fn)
-                (should (equal messages `(,(concat
-                                            "Ran 2 tests, 1 results were "
-                                            "as expected, 1 unexpected"))))
-                (with-current-buffer buffer-name
-                  (font-lock-mode 0)
-                  (should (ert-equal-including-properties
-                           (ert-filter-string (buffer-string)
-                                              '("Started at:\\(.*\\)$" 1)
-                                              '("Finished at:\\(.*\\)$" 1))
-                           (expected-string nil)))
-                  ;; `font-lock-mode' only works if interactive, so
-                  ;; pretend we are.
-                  (let ((noninteractive nil))
-                    (font-lock-mode 1))
-                  (should (ert-equal-including-properties
-                           (ert-filter-string (buffer-string)
-                                              '("Started at:\\(.*\\)$" 1)
-                                              '("Finished at:\\(.*\\)$" 1))
-                           (expected-string t)))))
-            (when (get-buffer buffer-name)
-              (kill-buffer buffer-name)))))))))
+  (let* ((passing-test (make-ert-test :name 'passing-test
+                                      :body (lambda () (ert-pass))))
+         (failing-test (make-ert-test :name 'failing-test
+                                      :body (lambda ()
+                                              (ert-info ((propertize "foo\nbar"
+                                                                     'a 'b))
+                                                (ert-fail
+                                                 "failure message")))))
+         (ert-debug-on-error nil)
+         (buffer-name (generate-new-buffer-name "*ert-test-run-tests*"))
+         (messages nil)
+         (mock-message-fn
+          (lambda (format-string &rest args)
+            (push (apply #'format format-string args) messages))))
+    (cl-flet ((expected-string (with-font-lock-p)
+                (ert-propertized-string
+                 "Selector: (member <passing-test> <failing-test>)\n"
+                 "Passed: 1\n"
+                 "Failed: 1 (1 unexpected)\n"
+                 "Total:  2/2\n\n"
+                 "Started at:\n"
+                 "Finished.\n"
+                 "Finished at:\n\n"
+                 `(category ,(button-category-symbol
+                              'ert--results-progress-bar-button)
+                            button (t)
+                            face ,(if with-font-lock-p
+                                      'ert-test-result-unexpected
+                                    'button))
+                 ".F" nil "\n\n"
+                 `(category ,(button-category-symbol
+                              'ert--results-expand-collapse-button)
+                            button (t)
+                            face ,(if with-font-lock-p
+                                      'ert-test-result-unexpected
+                                    'button))
+                 "F" nil " "
+                 `(category ,(button-category-symbol
+                              'ert--test-name-button)
+                            button (t)
+                            ert-test-name failing-test)
+                 "failing-test"
+                 nil "\n    Info: " '(a b) "foo\n"
+                 nil "          " '(a b) "bar"
+                 nil "\n    (ert-test-failed \"failure message\")\n\n\n"
+                 )))
+      (save-window-excursion
+        (unwind-protect
+            (let ((case-fold-search nil))
+              (ert-run-tests-interactively
+               `(member ,passing-test ,failing-test) buffer-name
+               mock-message-fn)
+              (should (equal messages `(,(concat
+                                          "Ran 2 tests, 1 results were "
+                                          "as expected, 1 unexpected"))))
+              (with-current-buffer buffer-name
+                (font-lock-mode 0)
+                (should (ert-equal-including-properties
+                         (ert-filter-string (buffer-string)
+                                            '("Started at:\\(.*\\)$" 1)
+                                            '("Finished at:\\(.*\\)$" 1))
+                         (expected-string nil)))
+                ;; `font-lock-mode' only works if interactive, so
+                ;; pretend we are.
+                (let ((noninteractive nil))
+                  (font-lock-mode 1))
+                (should (ert-equal-including-properties
+                         (ert-filter-string (buffer-string)
+                                            '("Started at:\\(.*\\)$" 1)
+                                            '("Finished at:\\(.*\\)$" 1))
+                         (expected-string t)))))
+          (when (get-buffer buffer-name)
+            (kill-buffer buffer-name)))))))
 
 (ert-deftest ert-test-describe-test ()
   "Tests `ert-describe-test'."

@@ -55,7 +55,7 @@ OBJS = lwlib.o $(TOOLKIT_OBJS) lwlib-utils.o
 ALL_CFLAGS= $(C_SWITCH_SYSTEM) $(C_SWITCH_X_SITE) \
   $(C_SWITCH_MACHINE) \
   $(WARN_CFLAGS) $(WERROR_CFLAGS) $(PROFILING_CFLAGS) $(CFLAGS) \
-  -DHAVE_CONFIG_H -Demacs -I../src \
+  -Demacs -I../src \
   -I$(srcdir) -I$(srcdir)/../src -I../lib -I$(srcdir)/../lib
 
 .c.o:

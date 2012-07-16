@@ -44,6 +44,10 @@
 
 ;; Add subdirectories to the load-path for files that might get
 ;; autoloaded when bootstrapping.
+;; This is because PATH_DUMPLOADSEARCH is just "../lisp".
+;; Note that we reset load-path below just before dumping,
+;; since lread.c:init_lread checks for changes to load-path
+;; in deciding whether to modify it.
 (if (or (equal (nth 3 command-line-args) "bootstrap")
 	(equal (nth 4 command-line-args) "bootstrap")
 	(equal (nth 3 command-line-args) "unidata-gen.el")
@@ -61,7 +65,7 @@
 
 (if (eq t purify-flag)
     ;; Hash consing saved around 11% of pure space in my tests.
-    (setq purify-flag (make-hash-table :test 'equal)))
+    (setq purify-flag (make-hash-table :test 'equal :size 70000)))
 
 (message "Using load-path %s" load-path)
 
@@ -104,6 +108,17 @@
 (load "button")
 (load "startup")
 
+;; We don't want to store loaddefs.el in the repository because it is
+;; a generated file; but it is required in order to compile the lisp files.
+;; When bootstrapping, we cannot generate loaddefs.el until an
+;; emacs binary has been built.  We therefore compromise and keep
+;; ldefs-boot.el in the repository.  This does not need to be updated
+;; as often as the real loaddefs.el would.  Bootstrap should always
+;; work with ldefs-boot.el.  Therefore, Whenever a new autoload cookie
+;; gets added that is necessary during bootstrapping, ldefs-boot.el
+;; should be updated by overwriting it with an up-to-date copy of
+;; loaddefs.el that is uncorrupted by local changes.
+;; autogen/update_autogen can be used to periodically update ldefs-boot.
 (condition-case nil
     ;; Don't get confused if someone compiled this by mistake.
     (load "loaddefs.el")
@@ -177,7 +192,6 @@
 (load "rfn-eshadow")
 
 (load "menu-bar")
-(load "paths")
 (load "emacs-lisp/lisp")
 (load "textmodes/page")
 (load "register")
@@ -252,6 +266,21 @@
 ;For other systems, you must edit ../src/Makefile.in.
 (load "site-load" t)
 
+;; ¡¡¡ Big Ugly Hack !!!
+;; src/bootstrap-emacs is mostly used to compile .el files, so it needs
+;; macroexp, bytecomp, cconv, and byte-opt to be fast.  Generally this is done
+;; by compiling those files first, but this only makes a difference if those
+;; files are not preloaded.  As it so happens, macroexp.el tends to be
+;; accidentally preloaded in src/bootstrap-emacs because cl.el and cl-macs.el
+;; require it.  So let's unload it here, if needed, to make sure the
+;; byte-compiled version is used.
+(if (or (not (fboundp 'macroexpand-all))
+        (byte-code-function-p (symbol-function 'macroexpand-all)))
+    nil
+  (fmakunbound 'macroexpand-all)
+  (setq features (delq 'macroexp features))
+  (autoload 'macroexpand-all "macroexp"))
+
 ;; Determine which last version number to use
 ;; based on the executables that now exist.
 (if (and (or (equal (nth 3 command-line-args) "dump")
@@ -321,6 +350,7 @@
 (when (hash-table-p purify-flag)
   (let ((strings 0)
         (vectors 0)
+        (bytecodes 0)
         (conses 0)
         (others 0))
     (maphash (lambda (k v)
@@ -328,10 +358,11 @@
                 ((stringp k) (setq strings (1+ strings)))
                 ((vectorp k) (setq vectors (1+ vectors)))
                 ((consp k)   (setq conses  (1+ conses)))
+                ((byte-code-function-p v) (setq bytecodes (1+ bytecodes)))
                 (t           (setq others  (1+ others)))))
              purify-flag)
-    (message "Pure-hashed: %d strings, %d vectors, %d conses, %d others"
-             strings vectors conses others)))
+    (message "Pure-hashed: %d strings, %d vectors, %d conses, %d bytecodes, %d others"
+             strings vectors conses bytecodes others)))
 
 ;; Avoid error if user loads some more libraries now and make sure the
 ;; hash-consing hash table is GC'd.
@@ -343,9 +374,7 @@
 (if (or (member (nth 3 command-line-args) '("dump" "bootstrap"))
 	(member (nth 4 command-line-args) '("dump" "bootstrap")))
     (progn
-      (if (memq system-type '(ms-dos windows-nt cygwin))
-          (message "Dumping under the name emacs")
-        (message "Dumping under the name emacs"))
+      (message "Dumping under the name emacs")
       (condition-case ()
 	  (delete-file "emacs")
 	(file-error nil))

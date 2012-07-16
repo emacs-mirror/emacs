@@ -1,3 +1,113 @@
+2012-07-15  Leo Liu  <sdl.web@gmail.com>
+
+	* display.texi (Fringe Bitmaps): Add exclamation-mark.
+
+2012-07-13  Chong Yidong  <cyd@gnu.org>
+
+	* buffers.texi (Read Only Buffers): Document toggle-read-only
+	changes.  Reword to account for the fact that read-only is
+	currently not supported in overlay properties.
+
+2012-07-07  Chong Yidong  <cyd@gnu.org>
+
+	* loading.texi (Library Search): Index site-lisp directories.
+
+2012-07-06  Chong Yidong  <cyd@gnu.org>
+
+	* intro.texi (A Sample Function Description): Fix incorrect
+	markup, undoing previous change.
+	(A Sample Variable Description): Minor clarifications and markup
+	improvements.
+
+	* elisp.texi (Top):
+	* text.texi (Text): Fix menu order.
+
+2012-07-06  Richard Stallman  <rms@gnu.org>
+
+	* intro.texi (Evaluation Notation, A Sample Function Description):
+	(A Sample Variable Description): Improve/undo previous changes.
+
+2012-07-05  Glenn Morris  <rgm@gnu.org>
+
+	* intro.texi (A Sample Function Description): Fix cross-refs.
+
+2012-07-05  Michael Witten  <mfwitten@gmail.com>  (tiny change)
+
+	* intro.texi (Evaluation Notation, A Sample Function Description)
+	(A Sample Variable Description, Version Info): Copy edits (bug#11862).
+
+2012-06-27  Chong Yidong  <cyd@gnu.org>
+
+	* processes.texi (Asynchronous Processes, Input to Processes):
+	* internals.texi (Process Internals): Don't capitalize "pty".
+
+2012-06-24  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	* processes.texi (Asynchronous Processes): Make the pty vs pipe
+	discussion more prominent.
+
+2012-06-23  Eli Zaretskii  <eliz@gnu.org>
+
+	* commands.texi (Misc Events): Document the language-change event.
+
+2012-06-22  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Support higher-resolution time stamps (Bug#9000).
+	* os.texi (Time of Day, Time Parsing, Processor Run Time, Idle Timers):
+	* processes.texi (System Processes):
+	Time stamp resolution is now picosecond, not microsecond.
+
+2012-06-21  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in: Rename infodir to buildinfodir throughout.  (Bug#11737)
+
+2012-06-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* functions.texi (Defining Functions):
+	* macros.texi (Defining Macros): Un-define the return value of `defun',
+	`defmacro' and `defalias'.
+
+2012-06-17  Chong Yidong  <cyd@gnu.org>
+
+	* elisp.texi: Remove urlcolor setting.
+
+2012-06-17  Glenn Morris  <rgm@gnu.org>
+
+	* display.texi (Face Attributes): Copyedits.  Add a few cindex entries.
+	Overlining no longer behaves exactly like underlining.
+
+2012-06-16  Aurelien Aptel  <aurelien.aptel@gmail.com>
+
+	* display.texi (Face Attributes):
+	Document wave-style underline face attribute.
+
+2012-06-11  Chong Yidong  <cyd@gnu.org>
+
+	* display.texi (ImageMagick Images): ImageMagick now supports the
+	:background property.
+
+2012-06-10  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* internals.texi (Garbage Collection): Typo fix.
+
+2012-06-09  Chong Yidong  <cyd@gnu.org>
+
+	* text.texi (Special Properties): Clarify the meaning of a list of
+	faces in the `face' property.
+
+	* display.texi (Face Remapping): Minor clarification.
+
+2012-06-08  Chong Yidong  <cyd@gnu.org>
+
+	* display.texi (Face Attributes): Font family does not accept
+	wildcards.  De-document obsolete :bold and :italic attributes.
+	(Defining Faces): Use new-style face spec format.
+
+2012-06-08  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* internals.text (Garbage Collection): Document new
+	vector management code and vectorlike_header structure.
+
 2012-06-03  Chong Yidong  <cyd@gnu.org>
 
 	* modes.texi (Mode Line Data): Use "mode line construct"
@@ -10810,8 +10920,8 @@
 	(Recording Input): Document that clear-this-command-keys clears
 	the vector to be returned by recent-keys.
 
-	* keymaps.texi (Scanning Keymaps) <where-is-internal>: The
-	argument keymap can be a list.
+	* keymaps.texi (Scanning Keymaps) <where-is-internal>:
+	The argument keymap can be a list.
 
 	* nonascii.texi (User-Chosen Coding Systems)
 	<select-safe-coding-system>: Document the new argument
@@ -11056,7 +11166,7 @@
 	* Makefile (dist): Don't bother excluding autosave files; they'll
 	never make it into the temp directory anyway, and the hash marks
 	in the name are problematic for make and the Bourne shell.
-	(srcs):
+	(srcs): ???
 
 1993-02-12  Jim Blandy  (jimb@wookumz.gnu.ai.mit.edu)
 

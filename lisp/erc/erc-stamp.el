@@ -152,7 +152,7 @@ from entering them and instead jump over them."
   :group 'erc-stamp
   :type 'boolean)
 
-(defface erc-timestamp-face '((t (:bold t :foreground "green")))
+(defface erc-timestamp-face '((t :weight bold :foreground "green"))
   "ERC timestamp face."
   :group 'erc-faces)
 

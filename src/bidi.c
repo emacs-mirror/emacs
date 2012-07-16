@@ -59,8 +59,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <setjmp.h>
 
 #include "lisp.h"
-#include "buffer.h"
 #include "character.h"
+#include "buffer.h"
 #include "dispextern.h"
 
 static int bidi_initialized = 0;
@@ -149,7 +149,7 @@ bidi_get_type (int ch, bidi_dir_t override)
 static inline void
 bidi_check_type (bidi_type_t type)
 {
-  xassert (UNKNOWN_BT <= type && type <= NEUTRAL_ON);
+  eassert (UNKNOWN_BT <= type && type <= NEUTRAL_ON);
 }
 
 /* Given a bidi TYPE of a character, return its category.  */
@@ -263,7 +263,7 @@ bidi_push_embedding_level (struct bidi_it *bidi_it,
 			   int level, bidi_dir_t override)
 {
   bidi_it->stack_idx++;
-  xassert (bidi_it->stack_idx < BIDI_MAXLEVEL);
+  eassert (bidi_it->stack_idx < BIDI_MAXLEVEL);
   bidi_it->level_stack[bidi_it->stack_idx].level = level;
   bidi_it->level_stack[bidi_it->stack_idx].override = override;
 }
@@ -361,8 +361,7 @@ bidi_cache_shrink (void)
 {
   if (bidi_cache_size > BIDI_CACHE_CHUNK)
     {
-      bidi_cache
-	= (struct bidi_it *) xrealloc (bidi_cache, BIDI_CACHE_CHUNK * elsz);
+      bidi_cache = xrealloc (bidi_cache, BIDI_CACHE_CHUNK * elsz);
       bidi_cache_size = BIDI_CACHE_CHUNK;
     }
   bidi_cache_reset ();
@@ -458,7 +457,7 @@ bidi_cache_find_level_change (int level, int dir, int before)
       ptrdiff_t i = dir ? bidi_cache_last_idx : bidi_cache_idx - 1;
       int incr = before ? 1 : 0;
 
-      xassert (!dir || bidi_cache_last_idx >= 0);
+      eassert (!dir || bidi_cache_last_idx >= 0);
 
       if (!dir)
 	dir = -1;
@@ -616,7 +615,7 @@ bidi_push_it (struct bidi_it *bidi_it)
   memcpy (&bidi_cache[bidi_cache_idx++], bidi_it, sizeof (struct bidi_it));
 
   /* Push the current cache start onto the stack.  */
-  xassert (bidi_cache_sp < IT_STACK_SIZE);
+  eassert (bidi_cache_sp < IT_STACK_SIZE);
   bidi_cache_start_stack[bidi_cache_sp++] = bidi_cache_start;
 
   /* Start a new level of cache, and make it empty.  */
@@ -1124,6 +1123,12 @@ bidi_find_paragraph_start (ptrdiff_t pos, ptrdiff_t pos_byte)
   return pos_byte;
 }
 
+/* On a 3.4 GHz machine, searching forward for a strong directional
+   character in a long paragraph full of weaks or neutrals takes about
+   1 ms for each 20K characters.  The number below limits each call to
+   bidi_paragraph_init to less than 10 ms even on slow machines.  */
+#define MAX_STRONG_CHAR_SEARCH 100000
+
 /* Determine the base direction, a.k.a. base embedding level, of the
    paragraph we are about to iterate through.  If DIR is either L2R or
    R2L, just use that.  Otherwise, determine the paragraph direction
@@ -1219,6 +1224,8 @@ bidi_paragraph_init (bidi_dir_t dir, struct bidi_it *bidi_it, int no_default_p)
       /* The following loop is run more than once only if NO_DEFAULT_P
 	 is non-zero, and only if we are iterating on a buffer.  */
       do {
+	ptrdiff_t pos1;
+
 	bytepos = pstartbyte;
 	if (!string_p)
 	  pos = BYTE_TO_CHAR (bytepos);
@@ -1227,11 +1234,15 @@ bidi_paragraph_init (bidi_dir_t dir, struct bidi_it *bidi_it, int no_default_p)
 			      bidi_it->frame_window_p, &ch_len, &nchars);
 	type = bidi_get_type (ch, NEUTRAL_DIR);
 
+	pos1 = pos;
 	for (pos += nchars, bytepos += ch_len;
-	     (bidi_get_category (type) != STRONG)
-	       || (bidi_ignore_explicit_marks_for_paragraph_level
-		   && (type == RLE || type == RLO
-		       || type == LRE || type == LRO));
+	     ((bidi_get_category (type) != STRONG)
+	      || (bidi_ignore_explicit_marks_for_paragraph_level
+		  && (type == RLE || type == RLO
+		      || type == LRE || type == LRO)))
+	       /* Stop when searched too far into an abnormally large
+		  paragraph full of weak or neutral characters.  */
+	       && pos - pos1 < MAX_STRONG_CHAR_SEARCH;
 	     type = bidi_get_type (ch, NEUTRAL_DIR))
 	  {
 	    if (pos >= end)
@@ -1958,7 +1969,7 @@ bidi_resolve_neutral (struct bidi_it *bidi_it)
 	      case STRONG_AL:
 		/* Actually, STRONG_AL cannot happen here, because
 		   bidi_resolve_weak converts it to STRONG_R, per W3.  */
-		xassert (type != STRONG_AL);
+		eassert (type != STRONG_AL);
 		next_type = type;
 		break;
 	      case WEAK_EN:

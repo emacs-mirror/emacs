@@ -70,25 +70,20 @@ AUTOGENEL = $(lisp)/loaddefs.el $(LOADDEFS) $(lisp)/cus-load.el \
 # During bootstrapping the byte-compiler is run interpreted when compiling
 # itself, and uses more stack than usual.
 #
-BIG_STACK_DEPTH = 1200
+BIG_STACK_DEPTH = 2200
 BIG_STACK_OPTS = --eval "(setq max-lisp-eval-depth $(BIG_STACK_DEPTH))"
 
 BYTE_COMPILE_FLAGS = $(BIG_STACK_OPTS) $(BYTE_COMPILE_EXTRA_FLAGS)
 
 # Files to compile before others during a bootstrap.  This is done to
-# speed up the bootstrap process.  The CC files are compiled first
-# because CC mode tweaks the compilation process, and requiring
-# cc-mode when it is not compiled doesn't work during the
-# bootstrapping.
+# speed up the bootstrap process.
 
 COMPILE_FIRST = \
-	$(lisp)/emacs-lisp/byte-opt.el \
-	$(lisp)/emacs-lisp/bytecomp.el \
 	$(lisp)/emacs-lisp/macroexp.el \
 	$(lisp)/emacs-lisp/cconv.el \
-	$(lisp)/subr.el \
-	$(lisp)/progmodes/cc-mode.el \
-	$(lisp)/progmodes/cc-vars.el
+	$(lisp)/emacs-lisp/byte-opt.el \
+	$(lisp)/emacs-lisp/bytecomp.el \
+	$(lisp)/emacs-lisp/autoload.el
 
 # The actual Emacs command run in the targets below.
 # The quotes around $(EMACS) are here because the user could type
@@ -316,16 +311,16 @@ TAGS-LISP-CMD: $(lisptagsfiles1) $(lisptagsfiles2) $(lisptagsfiles3) $(lisptagsf
 # compiled find the right files.
 
 # Need separate version for sh and native cmd.exe
-compile: $(lisp)/subdirs.el mh-autoloads compile-$(SHELLTYPE) doit
+compile: update-subdirs compile-$(SHELLTYPE) doit
 
-compile-CMD:
+compile-CMD: autoloads
 #	-for %%f in ($(lisp) $(WINS)) do for %%g in (%%f\*.elc) do @attrib -r %%g
 	for %%f in ($(COMPILE_FIRST)) do \
 	  $(emacs) -l loaddefs $(BYTE_COMPILE_FLAGS) -f batch-byte-compile-if-not-done %%f
 	for %%f in (. $(WINS)) do for %%g in (%%f/*.el) do \
 	  $(emacs) -l loaddefs $(BYTE_COMPILE_FLAGS) -f batch-byte-compile-if-not-done %%f/%%g
 
-compile-SH:
+compile-SH: autoloads
 #	for elc in $(lisp)/*.elc $(lisp)/*/*.elc; do attrib -r $$elc; done
 	for el in $(COMPILE_FIRST); do \
 	  echo Compiling $$el; \
@@ -345,7 +340,7 @@ compile-SH:
 # unconditionally.  Some files don't actually get compiled because they
 # set the local variable no-byte-compile.
 
-compile-always: $(lisp)/subdirs.el compile-always-$(SHELLTYPE) doit
+compile-always: update-subdirs compile-always-$(SHELLTYPE) doit
 
 compile-always-CMD:
 #	-for %%f in ($(lisp) $(WINS)) do for %%g in (%%f\*.elc) do @attrib -r %%g
@@ -501,7 +496,7 @@ bootstrap-clean-SH:
 # When done, remove bootstrap-emacs from ../bin, so that
 # it will not be mistaken for an installed binary.
 
-bootstrap: update-subdirs autoloads mh-autoloads compile finder-data custom-deps
+bootstrap: update-subdirs compile finder-data custom-deps
 	- $(DEL) "$(EMACS)"
 
 #

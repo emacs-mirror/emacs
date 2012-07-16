@@ -35,11 +35,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "dispextern.h"	/* frame.h seems to want this */
 #include "frame.h"	/* Need this to get the X window of selected_frame */
 #include "blockinput.h"
+#include "character.h"
 #include "buffer.h"
 #include "process.h"
 #include "termhooks.h"
 #include "keyboard.h"
-#include "character.h"
 
 #include <X11/Xproto.h>
 
@@ -180,16 +180,11 @@ x_queue_event (struct input_event *event)
 	}
     }
 
-  queue_tmp
-    = (struct selection_event_queue *) xmalloc (sizeof (struct selection_event_queue));
-
-  if (queue_tmp != NULL)
-    {
-      TRACE1 ("QUEUE SELECTION EVENT %p", queue_tmp);
-      queue_tmp->event = *event;
-      queue_tmp->next = selection_queue;
-      selection_queue = queue_tmp;
-    }
+  queue_tmp = xmalloc (sizeof *queue_tmp);
+  TRACE1 ("QUEUE SELECTION EVENT %p", queue_tmp);
+  queue_tmp->event = *event;
+  queue_tmp->next = selection_queue;
+  selection_queue = queue_tmp;
 }
 
 /* Start queuing SELECTION_REQUEST_EVENT events.  */
@@ -912,7 +907,7 @@ x_convert_selection (struct input_event *event, Lisp_Object selection_symbol,
     {
       if (for_multiple)
 	{
-	  cs = xmalloc (sizeof (struct selection_data));
+	  cs = xmalloc (sizeof *cs);
 	  cs->data = (unsigned char *) &conversion_fail_tag;
 	  cs->size = 1;
 	  cs->format = 32;
@@ -929,7 +924,7 @@ x_convert_selection (struct input_event *event, Lisp_Object selection_symbol,
     }
 
   /* Otherwise, record the converted selection to binary.  */
-  cs = xmalloc (sizeof (struct selection_data));
+  cs = xmalloc (sizeof *cs);
   cs->data = NULL;
   cs->nofree = 1;
   cs->property = property;
@@ -1085,7 +1080,7 @@ static struct prop_location *
 expect_property_change (Display *display, Window window,
                         Atom property, int state)
 {
-  struct prop_location *pl = (struct prop_location *) xmalloc (sizeof *pl);
+  struct prop_location *pl = xmalloc (sizeof *pl);
   pl->identifier = ++prop_location_identifier;
   pl->display = display;
   pl->window = window;
@@ -1139,7 +1134,6 @@ wait_for_property_change_unwind (Lisp_Object loc)
 static void
 wait_for_property_change (struct prop_location *location)
 {
-  int secs, usecs;
   ptrdiff_t count = SPECPDL_INDEX ();
 
   if (property_change_reply_object)
@@ -1156,10 +1150,11 @@ wait_for_property_change (struct prop_location *location)
      property_change_reply, because property_change_reply_object says so.  */
   if (! location->arrived)
     {
-      secs = x_selection_timeout / 1000;
-      usecs = (x_selection_timeout % 1000) * 1000;
-      TRACE2 ("  Waiting %d secs, %d usecs", secs, usecs);
-      wait_reading_process_output (secs, usecs, 0, 0,
+      EMACS_INT timeout = max (0, x_selection_timeout);
+      EMACS_INT secs = timeout / 1000;
+      int nsecs = (timeout % 1000) * 1000000;
+      TRACE2 ("  Waiting %"pI"d secs, %d nsecs", secs, nsecs);
+      wait_reading_process_output (secs, nsecs, 0, 0,
 				   property_change_reply, NULL, 0);
 
       if (NILP (XCAR (property_change_reply)))
@@ -1228,7 +1223,8 @@ x_get_foreign_selection (Lisp_Object selection_symbol, Lisp_Object target_type,
   Atom type_atom = (CONSP (target_type)
 		    ? symbol_to_x_atom (dpyinfo, XCAR (target_type))
 		    : symbol_to_x_atom (dpyinfo, target_type));
-  int secs, usecs;
+  EMACS_INT timeout, secs;
+  int nsecs;
 
   if (!FRAME_LIVE_P (f))
     return Qnil;
@@ -1264,10 +1260,11 @@ x_get_foreign_selection (Lisp_Object selection_symbol, Lisp_Object target_type,
   UNBLOCK_INPUT;
 
   /* This allows quits.  Also, don't wait forever.  */
-  secs = x_selection_timeout / 1000;
-  usecs = (x_selection_timeout % 1000) * 1000;
-  TRACE1 ("  Start waiting %d secs for SelectionNotify", secs);
-  wait_reading_process_output (secs, usecs, 0, 0,
+  timeout = max (0, x_selection_timeout);
+  secs = timeout / 1000;
+  nsecs = (timeout % 1000) * 1000000;
+  TRACE1 ("  Start waiting %"pI"d secs for SelectionNotify", secs);
+  wait_reading_process_output (secs, nsecs, 0, 0,
 			       reading_selection_reply, NULL, 0);
   TRACE1 ("  Got event = %d", !NILP (XCAR (reading_selection_reply)));
 
@@ -1357,7 +1354,7 @@ x_get_window_property (Display *display, Window window, Atom property,
 	break;
 
       bytes_per_item = *actual_format_ret >> 3;
-      xassert (*actual_size_ret <= buffer_size / bytes_per_item);
+      eassert (*actual_size_ret <= buffer_size / bytes_per_item);
 
       /* The man page for XGetWindowProperty says:
          "If the returned format is 32, the returned data is represented
@@ -1444,7 +1441,7 @@ receive_incremental_selection (Display *display, Window window, Atom property,
   struct prop_location *wait_object;
   if (min (PTRDIFF_MAX, SIZE_MAX) < min_size_bytes)
     memory_full (SIZE_MAX);
-  *data_ret = (unsigned char *) xmalloc (min_size_bytes);
+  *data_ret = xmalloc (min_size_bytes);
   *size_bytes_ret = min_size_bytes;
 
   TRACE1 ("Read %u bytes incrementally", min_size_bytes);
@@ -1778,20 +1775,24 @@ lisp_data_to_selection_data (Display *display, Lisp_Object obj,
     }
   else if (SYMBOLP (obj))
     {
-      *data_ret = (unsigned char *) xmalloc (sizeof (Atom) + 1);
+      void *data = xmalloc (sizeof (Atom) + 1);
+      Atom *x_atom_ptr = data;
+      *data_ret = data;
       *format_ret = 32;
       *size_ret = 1;
       (*data_ret) [sizeof (Atom)] = 0;
-      (*(Atom **) data_ret) [0] = symbol_to_x_atom (dpyinfo, obj);
+      *x_atom_ptr = symbol_to_x_atom (dpyinfo, obj);
       if (NILP (type)) type = QATOM;
     }
   else if (RANGED_INTEGERP (X_SHRT_MIN, obj, X_SHRT_MAX))
     {
-      *data_ret = (unsigned char *) xmalloc (sizeof (short) + 1);
+      void *data = xmalloc (sizeof (short) + 1);
+      short *short_ptr = data;
+      *data_ret = data;
       *format_ret = 16;
       *size_ret = 1;
       (*data_ret) [sizeof (short)] = 0;
-      (*(short **) data_ret) [0] = XINT (obj);
+      *short_ptr = XINT (obj);
       if (NILP (type)) type = QINTEGER;
     }
   else if (INTEGERP (obj)
@@ -1800,11 +1801,13 @@ lisp_data_to_selection_data (Display *display, Lisp_Object obj,
 		   || (CONSP (XCDR (obj))
 		       && INTEGERP (XCAR (XCDR (obj)))))))
     {
-      *data_ret = (unsigned char *) xmalloc (sizeof (unsigned long) + 1);
+      void *data = xmalloc (sizeof (unsigned long) + 1);
+      unsigned long *x_long_ptr = data;
+      *data_ret = data;
       *format_ret = 32;
       *size_ret = 1;
       (*data_ret) [sizeof (unsigned long)] = 0;
-      (*(unsigned long **) data_ret) [0] = cons_to_x_long (obj);
+      *x_long_ptr = cons_to_x_long (obj);
       if (NILP (type)) type = QINTEGER;
     }
   else if (VECTORP (obj))
@@ -1816,30 +1819,35 @@ lisp_data_to_selection_data (Display *display, Lisp_Object obj,
       ptrdiff_t i;
       ptrdiff_t size = ASIZE (obj);
 
-      if (SYMBOLP (XVECTOR (obj)->contents [0]))
+      if (SYMBOLP (AREF (obj, 0)))
 	/* This vector is an ATOM set */
 	{
+	  void *data;
+	  Atom *x_atoms;
 	  if (NILP (type)) type = QATOM;
 	  for (i = 0; i < size; i++)
-	    if (!SYMBOLP (XVECTOR (obj)->contents [i]))
+	    if (!SYMBOLP (AREF (obj, i)))
 	      signal_error ("All elements of selection vector must have same type", obj);
 
-	  *data_ret = xnmalloc (size, sizeof (Atom));
+	  *data_ret = data = xnmalloc (size, sizeof *x_atoms);
+	  x_atoms = data;
 	  *format_ret = 32;
 	  *size_ret = size;
 	  for (i = 0; i < size; i++)
-	    (*(Atom **) data_ret) [i]
-	      = symbol_to_x_atom (dpyinfo, XVECTOR (obj)->contents [i]);
+	    x_atoms[i] = symbol_to_x_atom (dpyinfo, AREF (obj, i));
 	}
       else
 	/* This vector is an INTEGER set, or something like it */
 	{
 	  int format = 16;
 	  int data_size = sizeof (short);
+	  void *data;
+	  unsigned long *x_atoms;
+	  short *shorts;
 	  if (NILP (type)) type = QINTEGER;
 	  for (i = 0; i < size; i++)
 	    {
-	      if (! RANGED_INTEGERP (X_SHRT_MIN, XVECTOR (obj)->contents[i],
+	      if (! RANGED_INTEGERP (X_SHRT_MIN, AREF (obj, i),
 				     X_SHRT_MAX))
 		{
 		  /* Use sizeof (long) even if it is more than 32 bits.
@@ -1850,17 +1858,17 @@ lisp_data_to_selection_data (Display *display, Lisp_Object obj,
 		  break;
 		}
 	    }
-	  *data_ret = xnmalloc (size, data_size);
+	  *data_ret = data = xnmalloc (size, data_size);
+	  x_atoms = data;
+	  shorts = data;
 	  *format_ret = format;
 	  *size_ret = size;
 	  for (i = 0; i < size; i++)
 	    {
 	      if (format == 32)
-		(*((unsigned long **) data_ret)) [i] =
-		  cons_to_x_long (XVECTOR (obj)->contents[i]);
+		x_atoms[i] = cons_to_x_long (AREF (obj, i));
 	      else
-		(*((short **) data_ret)) [i] =
-		  XINT (XVECTOR (obj)->contents[i]);
+		shorts[i] = XINT (AREF (obj, i));
 	    }
 	}
     }
@@ -1895,11 +1903,10 @@ clean_local_selection_data (Lisp_Object obj)
       ptrdiff_t size = ASIZE (obj);
       Lisp_Object copy;
       if (size == 1)
-	return clean_local_selection_data (XVECTOR (obj)->contents [0]);
+	return clean_local_selection_data (AREF (obj, 0));
       copy = Fmake_vector (make_number (size), Qnil);
       for (i = 0; i < size; i++)
-	XVECTOR (copy)->contents [i]
-	  = clean_local_selection_data (XVECTOR (obj)->contents [i]);
+	ASET (copy, i, clean_local_selection_data (AREF (obj, i)));
       return copy;
     }
   return obj;

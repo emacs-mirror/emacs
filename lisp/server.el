@@ -81,7 +81,7 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 (defgroup server nil
   "Emacs running as a server process."
@@ -478,11 +478,11 @@ If CLIENT is non-nil, add a description of it to the logged message."
 See `server-quote-arg' and `server-process-filter'."
   (replace-regexp-in-string
    "&." (lambda (s)
-	  (case (aref s 1)
+	  (pcase (aref s 1)
 	    (?& "&")
 	    (?- "-")
 	    (?n "\n")
-	    (t " ")))
+	    (_ " ")))
    arg t t))
 
 (defun server-quote-arg (arg)
@@ -493,7 +493,7 @@ contains a space.
 See `server-unquote-arg' and `server-process-filter'."
   (replace-regexp-in-string
    "[-&\n ]" (lambda (s)
-	       (case (aref s 0)
+	       (pcase (aref s 0)
 		 (?& "&&")
 		 (?- "&-")
 		 (?\n "&n")
@@ -514,7 +514,7 @@ Creates the directory if necessary and makes sure:
   (setq dir (directory-file-name dir))
   (let ((attrs (file-attributes dir 'integer)))
     (unless attrs
-      (letf (((default-file-modes) ?\700)) (make-directory dir t))
+      (cl-letf (((default-file-modes) ?\700)) (make-directory dir t))
       (setq attrs (file-attributes dir 'integer)))
 
     ;; Check that it's safe for use.
@@ -550,9 +550,9 @@ The key is a 64-byte string of random chars in the range `!'..`~'.
 If called interactively, also inserts it into current buffer."
   (interactive)
   (let ((auth-key
-	 (loop repeat 64
-	       collect (+ 33 (random 94)) into auth
-	       finally return (concat auth))))
+	 (cl-loop repeat 64
+                  collect (+ 33 (random 94)) into auth
+                  finally return (concat auth))))
     (if (called-interactively-p 'interactive)
 	(insert auth-key))
     auth-key))
@@ -632,11 +632,13 @@ server or call `M-x server-force-delete' to forcibly disconnect it.")
 	(server-ensure-safe-dir server-dir)
 	(when server-process
 	  (server-log (message "Restarting server")))
-	(letf (((default-file-modes) ?\700))
+	(cl-letf (((default-file-modes) ?\700))
 	  (add-hook 'suspend-tty-functions 'server-handle-suspend-tty)
 	  (add-hook 'delete-frame-functions 'server-handle-delete-frame)
-	  (add-hook 'kill-buffer-query-functions 'server-kill-buffer-query-function)
-	  (add-hook 'kill-emacs-query-functions 'server-kill-emacs-query-function)
+	  (add-hook 'kill-buffer-query-functions
+                    'server-kill-buffer-query-function)
+	  (add-hook 'kill-emacs-query-functions
+                    'server-kill-emacs-query-function)
 	  (add-hook 'kill-emacs-hook 'server-force-stop) ;Cleanup upon exit.
 	  (setq server-process
 		(apply #'make-network-process
@@ -886,7 +888,7 @@ This handles splitting the command if it would be bigger than
     (process-put proc 'continuation nil)
     (if continuation (ignore-errors (funcall continuation)))))
 
-(defun* server-process-filter (proc string)
+(cl-defun server-process-filter (proc string)
   "Process a request from the server to edit some files.
 PROC is the server process.  STRING consists of a sequence of
 commands prefixed by a dash.  Some commands have arguments;
@@ -1001,8 +1003,8 @@ The following commands are accepted by the client:
       ;; receive the error string and shut down on its own.
       (sit-for 1)
       (delete-process proc)
-      ;; We return immediately
-      (return-from server-process-filter)))
+      ;; We return immediately.
+      (cl-return-from server-process-filter)))
   (let ((prev (process-get proc 'previous-string)))
     (when prev
       (setq string (concat prev string))
@@ -1021,7 +1023,7 @@ The following commands are accepted by the client:
           ;; In earlier versions of server.el (where we used an `emacsserver'
           ;; process), there could be multiple lines.  Nowadays this is not
           ;; supported any more.
-          (assert (eq (match-end 0) (length string)))
+          (cl-assert (eq (match-end 0) (length string)))
 	  (let ((request (substring string 0 (match-beginning 0)))
 		(coding-system (and (default-value 'enable-multibyte-characters)
 				    (or file-name-coding-system
@@ -1164,7 +1166,8 @@ The following commands are accepted by the client:
                  (setq dir (pop args-left))
                  (if coding-system
                      (setq dir (decode-coding-string dir coding-system)))
-                 (setq dir (command-line-normalize-file-name dir)))
+                 (setq dir (command-line-normalize-file-name dir))
+                 (process-put proc 'server-client-directory dir))
 
                 ;; Unknown command.
                 (arg (error "Unknown command: %s" arg))))

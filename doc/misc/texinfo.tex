@@ -3,7 +3,7 @@
 % Load plain if necessary, i.e., if running under initex.
 \expandafter\ifx\csname fmtname\endcsname\relax\input plain\fi
 %
-\def\texinfoversion{2012-05-16.16}
+\def\texinfoversion{2012-07-03.16}
 %
 % Copyright 1985, 1986, 1988, 1990, 1991, 1992, 1993, 1994, 1995,
 % 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
@@ -1117,7 +1117,7 @@ where each line of input produces a line of output.}
 % #1 is a control sequence in which to do the replacements,
 % which we \xdef.
 \def\txiescapepdf#1{%
-  \ifx\pdfescapestring\relax
+  \ifx\pdfescapestring\thisisundefined
     % No primitive available; should we give a warning or log?
     % Many times it won't matter.
   \else
@@ -4206,7 +4206,7 @@ end
 }
 \def\ifsetfail{\doignore{ifset}}
 
-% @ifclear VAR ... @end ifclear reads the `...' iff VAR has never been
+% @ifclear VAR ... @end executes the `...' iff VAR has never been
 % defined with @set, or has been undefined with @clear.
 %
 % The `\else' inside the `\doifset' parameter is a trick to reuse the
@@ -4216,6 +4216,35 @@ end
 \makecond{ifclear}
 \def\ifclear{\parsearg{\doifset{\else \let\next=\ifclearfail}}}
 \def\ifclearfail{\doignore{ifclear}}
+
+% @ifcommandisdefined CMD ... @end executes the `...' if CMD (written
+% without the @) is in fact defined.  We can only feasibly check at the
+% TeX level, so something like `mathcode' is going to considered
+% defined even though it is not a Texinfo command.
+% 
+\makecond{ifcommanddefined}
+\def\ifcommanddefined{\parsearg{\doifcmddefined{\let\next=\ifcmddefinedfail}}}
+%
+\def\doifcmddefined#1#2{{%
+    \makevalueexpandable
+    \let\next=\empty
+    \expandafter\ifx\csname #2\endcsname\relax
+      #1% If not defined, \let\next as above.
+    \fi
+    \expandafter
+  }\next
+}
+\def\ifcmddefinedfail{\doignore{ifcommanddefined}}
+
+% @ifcommandnotdefined CMD ... handlded similar to @ifclear above.
+\makecond{ifcommandnotdefined}
+\def\ifcommandnotdefined{%
+  \parsearg{\doifcmddefined{\else \let\next=\ifcmdnotdefinedfail}}}
+\def\ifcmdnotdefinedfail{\doignore{ifcommandnotdefined}}
+
+% Set the `txicommandconditionals' variable, so documents have a way to
+% test if the @ifcommand...defined conditionals are available.
+\set txicommandconditionals
 
 % @dircategory CATEGORY  -- specify a category of the dir file
 % which this file should belong to.  Ignore this in TeX.

@@ -25,8 +25,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <config.h>
 #include <setjmp.h>
 #include "lisp.h"
-#include "buffer.h"
 #include "character.h"
+#include "buffer.h"
 #include "coding.h"
 #include "intervals.h"
 #include "window.h"
@@ -158,9 +158,6 @@ static Lisp_Object Qauto_composition_function;
    auto-compositions.  */
 #define MAX_AUTO_COMPOSITION_LOOKBACK 3
 
-static Lisp_Object Fcomposition_get_gstring (Lisp_Object, Lisp_Object,
-					     Lisp_Object, Lisp_Object);
-
 /* Temporary variable used in macros COMPOSITION_XXX.  */
 Lisp_Object composition_temp;
 
@@ -240,13 +237,13 @@ get_composition_id (ptrdiff_t charpos, ptrdiff_t bytepos, ptrdiff_t nchars,
 	for (i = 0; i < nchars; i++)
 	  {
 	    FETCH_STRING_CHAR_ADVANCE (ch, string, charpos, bytepos);
-	    XVECTOR (key)->contents[i] = make_number (ch);
+	    ASET (key, i, make_number (ch));
 	  }
       else
 	for (i = 0; i < nchars; i++)
 	  {
 	    FETCH_CHAR_ADVANCE (ch, charpos, bytepos);
-	    XVECTOR (key)->contents[i] = make_number (ch);
+	    ASET (key, i, make_number (ch));
 	  }
     }
   else
@@ -329,7 +326,7 @@ get_composition_id (ptrdiff_t charpos, ptrdiff_t bytepos, ptrdiff_t nchars,
     memory_full (SIZE_MAX);
 
   /* Register the composition in composition_table.  */
-  cmp = (struct composition *) xmalloc (sizeof (struct composition));
+  cmp = xmalloc (sizeof *cmp);
 
   cmp->method = method;
   cmp->hash_index = hash_index;
@@ -954,11 +951,8 @@ autocmp_chars (Lisp_Object rule, ptrdiff_t charpos, ptrdiff_t bytepos, ptrdiff_t
 
       /* Save point as marker before calling out to lisp.  */
       if (NILP (string))
-	{
-	  Lisp_Object m = Fmake_marker ();
-	  set_marker_both (m, Qnil, pt, pt_byte);
-	  record_unwind_protect (restore_point_unwind, m);
-	}
+	record_unwind_protect (restore_point_unwind,
+			       build_marker (current_buffer, pt, pt_byte));
 
       args[0] = Vauto_composition_function;
       args[1] = AREF (rule, 2);

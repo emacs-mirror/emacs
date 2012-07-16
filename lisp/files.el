@@ -28,8 +28,6 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
-
 (defvar font-lock-keywords)
 
 (defgroup backup nil
@@ -782,10 +780,10 @@ one or more of those symbols."
     (read-file-name-internal string pred action))
    ((eq (car-safe action) 'boundaries)
     (let ((suffix (cdr action)))
-      (list* 'boundaries
-             (length (file-name-directory string))
-             (let ((x (file-name-directory suffix)))
-               (if x (1- (length x)) (length suffix))))))
+      `(boundaries
+        ,(length (file-name-directory string))
+        ,@(let ((x (file-name-directory suffix)))
+            (if x (1- (length x)) (length suffix))))))
    (t
     (let ((names '())
           ;; If we have files like "foo.el" and "foo.elc", we could load one of
@@ -878,12 +876,12 @@ or mount points potentially requiring authentication as a different user.")
 ;;       nil)))
 
 (defun locate-dominating-file (file name)
-  "Look up the directory hierarchy from FILE for a file named NAME.
+  "Look up the directory hierarchy from FILE for a directory containing NAME.
 Stop at the first parent directory containing a file NAME,
 and return the directory.  Return nil if not found.
-
-This function only tests if FILE exists.  If you care about whether
-it is readable, regular, etc., you should test the result."
+Instead of a string, NAME can also be a predicate taking one argument
+\(a directory) and returning a non-nil value if that directory is the one for
+which we're looking."
   ;; We used to use the above locate-dominating-files code, but the
   ;; directory-files call is very costly, so we're much better off doing
   ;; multiple calls using the code in here.
@@ -910,16 +908,14 @@ it is readable, regular, etc., you should test the result."
                     ;;   (setq user (nth 2 (file-attributes file)))
                     ;;   (and prev-user (not (equal user prev-user))))
                     (string-match locate-dominating-stop-dir-regexp file)))
-      ;; FIXME? maybe this function should (optionally?)
-      ;; use file-readable-p instead.  In many cases, an unreadable
-      ;; FILE is no better than a non-existent one.
-      ;; See eg dir-locals-find-file.
-      (setq try (file-exists-p (expand-file-name name file)))
+      (setq try (if (stringp name)
+                    (file-exists-p (expand-file-name name file))
+                  (funcall name file)))
       (cond (try (setq root file))
             ((equal file (setq file (file-name-directory
                                      (directory-file-name file))))
              (setq file nil))))
-    root))
+    (if root (file-name-as-directory root))))
 
 
 (defun executable-find (command)
@@ -1469,6 +1465,17 @@ file names with wildcards."
      (find-file filename)
      (current-buffer)))
 
+(defun find-file--read-only (fun filename wildcards)
+  (unless (or (and wildcards find-file-wildcards
+		   (not (string-match "\\`/:" filename))
+		   (string-match "[[*?]" filename))
+	      (file-exists-p filename))
+    (error "%s does not exist" filename))
+  (let ((value (funcall fun filename wildcards)))
+    (mapc (lambda (b) (with-current-buffer b (toggle-read-only 1)))
+	  (if (listp value) value (list value)))
+    value))
+
 (defun find-file-read-only (filename &optional wildcards)
   "Edit file FILENAME but don't allow changes.
 Like \\[find-file], but marks buffer as read-only.
@@ -1476,15 +1483,7 @@ Use \\[toggle-read-only] to permit editing."
   (interactive
    (find-file-read-args "Find file read-only: "
                         (confirm-nonexistent-file-or-buffer)))
-  (unless (or (and wildcards find-file-wildcards
-		   (not (string-match "\\`/:" filename))
-		   (string-match "[[*?]" filename))
-	      (file-exists-p filename))
-    (error "%s does not exist" filename))
-  (let ((value (find-file filename wildcards)))
-    (mapc (lambda (b) (with-current-buffer b (toggle-read-only 1)))
-	  (if (listp value) value (list value)))
-    value))
+  (find-file--read-only #'find-file filename wildcards))
 
 (defun find-file-read-only-other-window (filename &optional wildcards)
   "Edit file FILENAME in another window but don't allow changes.
@@ -1493,15 +1492,7 @@ Use \\[toggle-read-only] to permit editing."
   (interactive
    (find-file-read-args "Find file read-only other window: "
                         (confirm-nonexistent-file-or-buffer)))
-  (unless (or (and wildcards find-file-wildcards
-		   (not (string-match "\\`/:" filename))
-		   (string-match "[[*?]" filename))
-	      (file-exists-p filename))
-    (error "%s does not exist" filename))
-  (let ((value (find-file-other-window filename wildcards)))
-    (mapc (lambda (b) (with-current-buffer b (toggle-read-only 1)))
-	  (if (listp value) value (list value)))
-    value))
+  (find-file--read-only #'find-file-other-window filename wildcards))
 
 (defun find-file-read-only-other-frame (filename &optional wildcards)
   "Edit file FILENAME in another frame but don't allow changes.
@@ -1510,15 +1501,7 @@ Use \\[toggle-read-only] to permit editing."
   (interactive
    (find-file-read-args "Find file read-only other frame: "
                         (confirm-nonexistent-file-or-buffer)))
-  (unless (or (and wildcards find-file-wildcards
-		   (not (string-match "\\`/:" filename))
-		   (string-match "[[*?]" filename))
-	      (file-exists-p filename))
-    (error "%s does not exist" filename))
-  (let ((value (find-file-other-frame filename wildcards)))
-    (mapc (lambda (b) (with-current-buffer b (toggle-read-only 1)))
-	  (if (listp value) value (list value)))
-    value))
+  (find-file--read-only #'find-file-other-frame filename wildcards))
 
 (defun find-alternate-file-other-window (filename &optional wildcards)
   "Find file FILENAME as a replacement for the file in the next window.
@@ -1776,9 +1759,9 @@ When nil, never request confirmation."
 OP-TYPE specifies the file operation being performed (for message to user)."
   (when (and large-file-warning-threshold size
 	     (> size large-file-warning-threshold)
-	     (not (y-or-n-p (format "File %s is large (%dMB), really %s? "
+	     (not (y-or-n-p (format "File %s is large (%s), really %s? "
 				    (file-name-nondirectory filename)
-				    (/ size 1048576) op-type))))
+				    (file-size-human-readable size) op-type))))
     (error "Aborted")))
 
 (defun find-file-noselect (filename &optional nowarn rawfile wildcards)
@@ -2022,6 +2005,8 @@ Do you want to revisit the file normally now? ")
 	(after-find-file error (not nowarn)))
       (current-buffer))))
 
+(defvar file-name-buffer-file-type-alist) ;From dos-w32.el.
+
 (defun insert-file-contents-literally (filename &optional visit beg end replace)
   "Like `insert-file-contents', but only reads in the file literally.
 A buffer may be modified in several ways after reading into the buffer,
@@ -2033,21 +2018,14 @@ This function ensures that none of these modifications will take place."
 	(after-insert-file-functions nil)
 	(coding-system-for-read 'no-conversion)
 	(coding-system-for-write 'no-conversion)
-	(find-buffer-file-type-function
-         (if (fboundp 'find-buffer-file-type)
-             (symbol-function 'find-buffer-file-type)
-           nil))
+	(file-name-buffer-file-type-alist '(("" . t)))
         (inhibit-file-name-handlers
+         ;; FIXME: Yuck!!  We should turn insert-file-contents-literally
+         ;; into a file operation instead!
          (append '(jka-compr-handler image-file-handler epa-file-handler)
                  inhibit-file-name-handlers))
         (inhibit-file-name-operation 'insert-file-contents))
-    (unwind-protect
-         (progn
-           (fset 'find-buffer-file-type (lambda (_filename) t))
-           (insert-file-contents filename visit beg end replace))
-      (if find-buffer-file-type-function
-	  (fset 'find-buffer-file-type find-buffer-file-type-function)
-	(fmakunbound 'find-buffer-file-type)))))
+    (insert-file-contents filename visit beg end replace)))
 
 (defun insert-file-1 (filename insert-func)
   (if (file-directory-p filename)
@@ -3668,12 +3646,20 @@ is found.  Returns the new class name."
 	      class-name))
 	(error (message "Error reading dir-locals: %S" err) nil)))))
 
+(defcustom enable-remote-dir-locals nil
+  "Non-nil means dir-local variables will be applied to remote files."
+  :version "24.2"
+  :type 'boolean
+  :group 'find-file)
+
 (defun hack-dir-local-variables ()
   "Read per-directory local variables for the current buffer.
 Store the directory-local variables in `dir-local-variables-alist'
 and `file-local-variables-alist', without applying them."
   (when (and enable-local-variables
-	     (not (file-remote-p (or (buffer-file-name) default-directory))))
+	     (or enable-remote-dir-locals
+		 (not (file-remote-p (or (buffer-file-name)
+					 default-directory)))))
     ;; Find the variables file.
     (let ((variables-file (dir-locals-find-file
                            (or (buffer-file-name) default-directory)))
@@ -4077,6 +4063,12 @@ the value is \"\"."
         (if period
             "")))))
 
+(defun file-name-base (&optional filename)
+  "Return the base name of the FILENAME: no directory, no extension.
+FILENAME defaults to `buffer-file-name'."
+  (file-name-sans-extension
+   (file-name-nondirectory (or filename (buffer-file-name)))))
+
 (defcustom make-backup-file-name-function nil
   "A function to use instead of the default `make-backup-file-name'.
 A value of nil gives the default `make-backup-file-name' behavior.
@@ -4340,7 +4332,9 @@ on a DOS/Windows machine, it returns FILENAME in expanded form."
 							default-directory))))
     (setq filename (expand-file-name filename))
     (let ((fremote (file-remote-p filename))
-          (dremote (file-remote-p directory)))
+	  (dremote (file-remote-p directory))
+	  (fold-case (or (memq system-type '(ms-dos cygwin windows-nt))
+			 read-file-name-completion-ignore-case)))
       (if ;; Conditions for separate trees
 	  (or
 	   ;; Test for different filesystems on DOS/Windows
@@ -4349,7 +4343,7 @@ on a DOS/Windows machine, it returns FILENAME in expanded form."
 	    (memq system-type '(ms-dos cygwin windows-nt))
 	    (or
 	     ;; Test for different drive letters
-	     (not (eq t (compare-strings filename 0 2 directory 0 2)))
+	     (not (eq t (compare-strings filename 0 2 directory 0 2 fold-case)))
 	     ;; Test for UNCs on different servers
 	     (not (eq t (compare-strings
 			 (progn
@@ -4374,16 +4368,16 @@ on a DOS/Windows machine, it returns FILENAME in expanded form."
           (while (not
 		  (or
 		   (eq t (compare-strings filename-dir nil (length directory)
-					  directory nil nil case-fold-search))
+					  directory nil nil fold-case))
 		   (eq t (compare-strings filename nil (length directory)
-					  directory nil nil case-fold-search))))
+					  directory nil nil fold-case))))
             (setq directory (file-name-directory (substring directory 0 -1))
 		  ancestor (if (equal ancestor ".")
 			       ".."
 			     (concat "../" ancestor))))
           ;; Now ancestor is empty, or .., or ../.., etc.
           (if (eq t (compare-strings filename nil (length directory)
-				     directory nil nil case-fold-search))
+				     directory nil nil fold-case))
 	      ;; We matched within FILENAME's directory part.
 	      ;; Add the rest of FILENAME onto ANCESTOR.
 	      (let ((rest (substring filename (length directory))))
@@ -4830,37 +4824,51 @@ prints a message in the minibuffer.  Instead, use `set-buffer-modified-p'."
 	       "Modification-flag cleared"))
   (set-buffer-modified-p arg))
 
-(defun toggle-read-only (&optional arg)
-  "Change whether this buffer is read-only.
+(defun toggle-read-only (&optional arg message)
+  "Toggle the read-only state of the current buffer.
 With prefix argument ARG, make the buffer read-only if ARG is
-positive, otherwise make it writable.  If buffer is read-only
-and `view-read-only' is non-nil, enter view mode.
+positive; otherwise make it writable.
 
-This function is usually the wrong thing to use in a Lisp program.
-It can have side-effects beyond changing the read-only status of a buffer
-\(e.g., enabling view mode), and does not affect read-only regions that
-are caused by text properties.  To make a buffer read-only in Lisp code,
-set `buffer-read-only'.  To ignore read-only status (whether due to text
-properties or buffer state) and make changes, temporarily bind
-`inhibit-read-only'."
+When making the buffer read-only, enable View mode if
+`view-read-only' is non-nil.  When making the buffer writable,
+disable View mode if View mode is enabled.
+
+If called interactively, or if called from Lisp with MESSAGE
+non-nil, print a message reporting the buffer's new read-only
+status.
+
+Do not call this from a Lisp program unless you really intend to
+do the same thing as the \\[toggle-read-only] command, including
+possibly enabling or disabling View mode.  Also, note that this
+command works by setting the variable `buffer-read-only', which
+does not affect read-only regions caused by text properties.  To
+ignore read-only status in a Lisp program (whether due to text
+properties or buffer state), bind `inhibit-read-only' temporarily
+to a non-nil value."
   (interactive "P")
-  (if (and arg
-           (if (> (prefix-numeric-value arg) 0) buffer-read-only
-             (not buffer-read-only)))  ; If buffer-read-only is set correctly,
-      nil			       ; do nothing.
-    ;; Toggle.
-    (cond
-     ((and buffer-read-only view-mode)
-      (View-exit-and-edit)
-      (make-local-variable 'view-read-only)
-      (setq view-read-only t))		; Must leave view mode.
-     ((and (not buffer-read-only) view-read-only
-	   ;; If view-mode is already active, `view-mode-enter' is a nop.
-	   (not view-mode)
-           (not (eq (get major-mode 'mode-class) 'special)))
-      (view-mode-enter))
-     (t (setq buffer-read-only (not buffer-read-only))
-        (force-mode-line-update)))))
+  (cond
+   ;; Do nothing if `buffer-read-only' already matches the state
+   ;; specified by ARG.
+   ((and arg
+	 (if (> (prefix-numeric-value arg) 0)
+	     buffer-read-only
+	   (not buffer-read-only))))
+   ;; If View mode is enabled, exit it.
+   ((and buffer-read-only view-mode)
+    (View-exit-and-edit)
+    (set (make-local-variable 'view-read-only) t))
+   ;; If `view-read-only' is non-nil, enable View mode.
+   ((and view-read-only
+	 (not buffer-read-only)
+	 (not view-mode)
+	 (not (eq (get major-mode 'mode-class) 'special)))
+    (view-mode-enter))
+   ;; The usual action: flip `buffer-read-only'.
+   (t (setq buffer-read-only (not buffer-read-only))
+      (force-mode-line-update)))
+  (if (or message (called-interactively-p 'interactive))
+      (message "Read-only %s for this buffer"
+	       (if buffer-read-only "enabled" "disabled"))))
 
 (defun insert-file (filename)
   "Insert contents of file FILENAME into buffer after point.
@@ -5943,11 +5951,12 @@ returns nil."
 	  (when (and directory-free-space-program
 		     ;; Avoid failure if the default directory does
 		     ;; not exist (Bug#2631, Bug#3911).
-		     (let ((default-directory "/"))
-		       (eq (call-process directory-free-space-program
+                     (let ((default-directory
+                             (locate-dominating-file dir 'file-directory-p)))
+                       (eq (process-file directory-free-space-program
 					 nil t nil
 					 directory-free-space-args
-					 dir)
+                                         (file-relative-name dir))
 			   0)))
 	    ;; Assume that the "available" column is before the
 	    ;; "capacity" column.  Find the "%" and scan backward.
@@ -6453,20 +6462,20 @@ only these files will be asked to be saved."
 			   "/"
 			 (substring (car pair) 2)))))
 	(setq file-arg-indices (cdr file-arg-indices))))
-    (case method
-      (identity (car arguments))
-      (add (concat "/:" (apply operation arguments)))
-      (insert-file-contents
+    (pcase method
+      (`identity (car arguments))
+      (`add (concat "/:" (apply operation arguments)))
+      (`insert-file-contents
        (let ((visit (nth 1 arguments)))
          (prog1
-	       (apply operation arguments)
+             (apply operation arguments)
            (when (and visit buffer-file-name)
              (setq buffer-file-name (concat "/:" buffer-file-name))))))
-      (unquote-then-quote
+      (`unquote-then-quote
        (let ((buffer-file-name (substring buffer-file-name 2)))
          (apply operation arguments)))
-	  (t
-	   (apply operation arguments)))))
+      (_
+       (apply operation arguments)))))
 
 ;; Symbolic modes and read-file-modes.
 

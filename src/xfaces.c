@@ -233,7 +233,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #undef FRAME_X_DISPLAY_INFO
 #define FRAME_X_DISPLAY_INFO FRAME_W32_DISPLAY_INFO
 #define x_display_info w32_display_info
-#define FRAME_X_FONT_TABLE FRAME_W32_FONT_TABLE
 #define check_x check_w32
 #define GCGraphicsExposures 0
 #endif /* WINDOWSNT */
@@ -243,7 +242,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #undef FRAME_X_DISPLAY_INFO
 #define FRAME_X_DISPLAY_INFO FRAME_NS_DISPLAY_INFO
 #define x_display_info ns_display_info
-#define FRAME_X_FONT_TABLE FRAME_NS_FONT_TABLE
 #define check_x check_ns
 #define GCGraphicsExposures 0
 #endif /* HAVE_NS */
@@ -320,6 +318,7 @@ static Lisp_Object QCfontset;
 
 Lisp_Object Qnormal;
 Lisp_Object Qbold;
+static Lisp_Object Qline, Qwave;
 static Lisp_Object Qultra_light, Qextra_light, Qlight;
 static Lisp_Object Qsemi_light, Qsemi_bold, Qextra_bold, Qultra_bold;
 static Lisp_Object Qoblique, Qreverse_oblique, Qreverse_italic;
@@ -440,7 +439,7 @@ static Lisp_Object Vparam_value_alist;
 
 /* The total number of colors currently allocated.  */
 
-#if GLYPH_DEBUG
+#ifdef GLYPH_DEBUG
 static int ncolors_allocated;
 static int npixmaps_allocated;
 static int ngcs;
@@ -538,7 +537,7 @@ int color_count[256];
 void
 register_color (unsigned long pixel)
 {
-  xassert (pixel < 256);
+  eassert (pixel < 256);
   ++color_count[pixel];
 }
 
@@ -548,7 +547,7 @@ register_color (unsigned long pixel)
 void
 unregister_color (unsigned long pixel)
 {
-  xassert (pixel < 256);
+  eassert (pixel < 256);
   if (color_count[pixel] > 0)
     --color_count[pixel];
   else
@@ -662,7 +661,7 @@ static inline void
 x_free_gc (struct frame *f, GC gc)
 {
   eassert (interrupt_input_blocked);
-  IF_DEBUG (xassert (--ngcs >= 0));
+  IF_DEBUG (eassert (--ngcs >= 0));
   XFreeGC (FRAME_X_DISPLAY (f), gc);
 }
 
@@ -688,7 +687,7 @@ x_create_gc (struct frame *f, unsigned long mask, XGCValues *xgcv)
 static inline void
 x_free_gc (struct frame *f, GC gc)
 {
-  IF_DEBUG (xassert (--ngcs >= 0));
+  IF_DEBUG (eassert (--ngcs >= 0));
   xfree (gc);
 }
 
@@ -702,9 +701,8 @@ x_create_gc (struct frame *f,
 	     unsigned long mask,
 	     XGCValues *xgcv)
 {
-  GC gc = xmalloc (sizeof (*gc));
-  if (gc)
-    memcpy (gc, xgcv, sizeof (XGCValues));
+  GC gc = xmalloc (sizeof *gc);
+  memcpy (gc, xgcv, sizeof (XGCValues));
   return gc;
 }
 
@@ -714,29 +712,6 @@ x_free_gc (struct frame *f, GC gc)
   xfree (gc);
 }
 #endif  /* HAVE_NS */
-
-/* Like strcasecmp/stricmp.  Used to compare parts of font names which
-   are in ISO8859-1.  */
-
-int
-xstrcasecmp (const char *s1, const char *s2)
-{
-  while (*s1 && *s2)
-    {
-      unsigned char b1 = *s1;
-      unsigned char b2 = *s2;
-      unsigned char c1 = tolower (b1);
-      unsigned char c2 = tolower (b2);
-      if (c1 != c2)
-	return c1 < c2 ? -1 : 1;
-      ++s1, ++s2;
-    }
-
-  if (*s1 == 0)
-    return *s2 == 0 ? 0 : -1;
-  return 1;
-}
-
 
 /* If FRAME is nil, return a pointer to the selected frame.
    Otherwise, check that FRAME is a live frame, and return a pointer
@@ -1008,7 +983,7 @@ load_pixmap (FRAME_PTR f, Lisp_Object name, unsigned int *w_ptr,
     }
   else
     {
-#if GLYPH_DEBUG
+#ifdef GLYPH_DEBUG
       ++npixmaps_allocated;
 #endif
       if (w_ptr)
@@ -1323,8 +1298,8 @@ load_color (struct frame *f, struct face *face, Lisp_Object name,
 {
   XColor color;
 
-  xassert (STRINGP (name));
-  xassert (target_index == LFACE_FOREGROUND_INDEX
+  eassert (STRINGP (name));
+  eassert (target_index == LFACE_FOREGROUND_INDEX
 	   || target_index == LFACE_BACKGROUND_INDEX
 	   || target_index == LFACE_UNDERLINE_INDEX
 	   || target_index == LFACE_OVERLINE_INDEX
@@ -1373,7 +1348,7 @@ load_color (struct frame *f, struct face *face, Lisp_Object name,
 	  abort ();
 	}
     }
-#if GLYPH_DEBUG
+#ifdef GLYPH_DEBUG
   else
     ++ncolors_allocated;
 #endif
@@ -1853,7 +1828,6 @@ the WIDTH times as wide as FACE on FRAME.  */)
 #define LFACE_INHERIT(LFACE)	    AREF ((LFACE), LFACE_INHERIT_INDEX)
 #define LFACE_FONTSET(LFACE)	    AREF ((LFACE), LFACE_FONTSET_INDEX)
 
-#if XASSERTS
 /* Non-zero if LFACE is a Lisp face.  A Lisp face is a vector of size
    LFACE_VECTOR_SIZE which has the symbol `face' in slot 0.  */
 
@@ -1861,77 +1835,77 @@ the WIDTH times as wide as FACE on FRAME.  */)
      (VECTORP (LFACE)					\
       && ASIZE (LFACE) == LFACE_VECTOR_SIZE		\
       && EQ (AREF (LFACE, 0), Qface))
-#endif
 
 
-#if GLYPH_DEBUG
+#ifdef GLYPH_DEBUG
 
 /* Check consistency of Lisp face attribute vector ATTRS.  */
 
 static void
 check_lface_attrs (Lisp_Object *attrs)
 {
-  xassert (UNSPECIFIEDP (attrs[LFACE_FAMILY_INDEX])
+  eassert (UNSPECIFIEDP (attrs[LFACE_FAMILY_INDEX])
 	   || IGNORE_DEFFACE_P (attrs[LFACE_FAMILY_INDEX])
 	   || STRINGP (attrs[LFACE_FAMILY_INDEX]));
-  xassert (UNSPECIFIEDP (attrs[LFACE_FOUNDRY_INDEX])
+  eassert (UNSPECIFIEDP (attrs[LFACE_FOUNDRY_INDEX])
 	   || IGNORE_DEFFACE_P (attrs[LFACE_FOUNDRY_INDEX])
 	   || STRINGP (attrs[LFACE_FOUNDRY_INDEX]));
-  xassert (UNSPECIFIEDP (attrs[LFACE_SWIDTH_INDEX])
+  eassert (UNSPECIFIEDP (attrs[LFACE_SWIDTH_INDEX])
 	   || IGNORE_DEFFACE_P (attrs[LFACE_SWIDTH_INDEX])
 	   || SYMBOLP (attrs[LFACE_SWIDTH_INDEX]));
-  xassert (UNSPECIFIEDP (attrs[LFACE_HEIGHT_INDEX])
+  eassert (UNSPECIFIEDP (attrs[LFACE_HEIGHT_INDEX])
 	   || IGNORE_DEFFACE_P (attrs[LFACE_HEIGHT_INDEX])
 	   || INTEGERP (attrs[LFACE_HEIGHT_INDEX])
 	   || FLOATP (attrs[LFACE_HEIGHT_INDEX])
 	   || FUNCTIONP (attrs[LFACE_HEIGHT_INDEX]));
-  xassert (UNSPECIFIEDP (attrs[LFACE_WEIGHT_INDEX])
+  eassert (UNSPECIFIEDP (attrs[LFACE_WEIGHT_INDEX])
 	   || IGNORE_DEFFACE_P (attrs[LFACE_WEIGHT_INDEX])
 	   || SYMBOLP (attrs[LFACE_WEIGHT_INDEX]));
-  xassert (UNSPECIFIEDP (attrs[LFACE_SLANT_INDEX])
+  eassert (UNSPECIFIEDP (attrs[LFACE_SLANT_INDEX])
 	   || IGNORE_DEFFACE_P (attrs[LFACE_SLANT_INDEX])
 	   || SYMBOLP (attrs[LFACE_SLANT_INDEX]));
-  xassert (UNSPECIFIEDP (attrs[LFACE_UNDERLINE_INDEX])
+  eassert (UNSPECIFIEDP (attrs[LFACE_UNDERLINE_INDEX])
 	   || IGNORE_DEFFACE_P (attrs[LFACE_UNDERLINE_INDEX])
 	   || SYMBOLP (attrs[LFACE_UNDERLINE_INDEX])
-	   || STRINGP (attrs[LFACE_UNDERLINE_INDEX]));
-  xassert (UNSPECIFIEDP (attrs[LFACE_OVERLINE_INDEX])
+	   || STRINGP (attrs[LFACE_UNDERLINE_INDEX])
+	   || CONSP (attrs[LFACE_UNDERLINE_INDEX]));
+  eassert (UNSPECIFIEDP (attrs[LFACE_OVERLINE_INDEX])
 	   || IGNORE_DEFFACE_P (attrs[LFACE_OVERLINE_INDEX])
 	   || SYMBOLP (attrs[LFACE_OVERLINE_INDEX])
 	   || STRINGP (attrs[LFACE_OVERLINE_INDEX]));
-  xassert (UNSPECIFIEDP (attrs[LFACE_STRIKE_THROUGH_INDEX])
+  eassert (UNSPECIFIEDP (attrs[LFACE_STRIKE_THROUGH_INDEX])
 	   || IGNORE_DEFFACE_P (attrs[LFACE_STRIKE_THROUGH_INDEX])
 	   || SYMBOLP (attrs[LFACE_STRIKE_THROUGH_INDEX])
 	   || STRINGP (attrs[LFACE_STRIKE_THROUGH_INDEX]));
-  xassert (UNSPECIFIEDP (attrs[LFACE_BOX_INDEX])
+  eassert (UNSPECIFIEDP (attrs[LFACE_BOX_INDEX])
 	   || IGNORE_DEFFACE_P (attrs[LFACE_BOX_INDEX])
 	   || SYMBOLP (attrs[LFACE_BOX_INDEX])
 	   || STRINGP (attrs[LFACE_BOX_INDEX])
 	   || INTEGERP (attrs[LFACE_BOX_INDEX])
 	   || CONSP (attrs[LFACE_BOX_INDEX]));
-  xassert (UNSPECIFIEDP (attrs[LFACE_INVERSE_INDEX])
+  eassert (UNSPECIFIEDP (attrs[LFACE_INVERSE_INDEX])
 	   || IGNORE_DEFFACE_P (attrs[LFACE_INVERSE_INDEX])
 	   || SYMBOLP (attrs[LFACE_INVERSE_INDEX]));
-  xassert (UNSPECIFIEDP (attrs[LFACE_FOREGROUND_INDEX])
+  eassert (UNSPECIFIEDP (attrs[LFACE_FOREGROUND_INDEX])
 	   || IGNORE_DEFFACE_P (attrs[LFACE_FOREGROUND_INDEX])
 	   || STRINGP (attrs[LFACE_FOREGROUND_INDEX]));
-  xassert (UNSPECIFIEDP (attrs[LFACE_BACKGROUND_INDEX])
+  eassert (UNSPECIFIEDP (attrs[LFACE_BACKGROUND_INDEX])
 	   || IGNORE_DEFFACE_P (attrs[LFACE_BACKGROUND_INDEX])
 	   || STRINGP (attrs[LFACE_BACKGROUND_INDEX]));
-  xassert (UNSPECIFIEDP (attrs[LFACE_INHERIT_INDEX])
+  eassert (UNSPECIFIEDP (attrs[LFACE_INHERIT_INDEX])
 	   || IGNORE_DEFFACE_P (attrs[LFACE_INHERIT_INDEX])
 	   || NILP (attrs[LFACE_INHERIT_INDEX])
 	   || SYMBOLP (attrs[LFACE_INHERIT_INDEX])
 	   || CONSP (attrs[LFACE_INHERIT_INDEX]));
 #ifdef HAVE_WINDOW_SYSTEM
-  xassert (UNSPECIFIEDP (attrs[LFACE_STIPPLE_INDEX])
+  eassert (UNSPECIFIEDP (attrs[LFACE_STIPPLE_INDEX])
 	   || IGNORE_DEFFACE_P (attrs[LFACE_STIPPLE_INDEX])
 	   || SYMBOLP (attrs[LFACE_STIPPLE_INDEX])
 	   || !NILP (Fbitmap_spec_p (attrs[LFACE_STIPPLE_INDEX])));
-  xassert (UNSPECIFIEDP (attrs[LFACE_FONT_INDEX])
+  eassert (UNSPECIFIEDP (attrs[LFACE_FONT_INDEX])
 	   || IGNORE_DEFFACE_P (attrs[LFACE_FONT_INDEX])
 	   || FONTP (attrs[LFACE_FONT_INDEX]));
-  xassert (UNSPECIFIEDP (attrs[LFACE_FONTSET_INDEX])
+  eassert (UNSPECIFIEDP (attrs[LFACE_FONTSET_INDEX])
 	   || STRINGP (attrs[LFACE_FONTSET_INDEX])
 	   || NILP (attrs[LFACE_FONTSET_INDEX]));
 #endif
@@ -1945,17 +1919,17 @@ check_lface (Lisp_Object lface)
 {
   if (!NILP (lface))
     {
-      xassert (LFACEP (lface));
+      eassert (LFACEP (lface));
       check_lface_attrs (XVECTOR (lface)->contents);
     }
 }
 
-#else /* GLYPH_DEBUG == 0 */
+#else /* not GLYPH_DEBUG */
 
 #define check_lface_attrs(attrs)	(void) 0
 #define check_lface(lface)		(void) 0
 
-#endif /* GLYPH_DEBUG == 0 */
+#endif /* GLYPH_DEBUG */
 
 
 
@@ -2222,7 +2196,7 @@ set_lface_from_font (struct frame *f, Lisp_Object lface,
     {
       int pt = PIXEL_TO_POINT (font->pixel_size * 10, f->resy);
 
-      xassert (pt > 0);
+      eassert (pt > 0);
       LFACE_HEIGHT (lface) = make_number (pt);
     }
 
@@ -2525,7 +2499,8 @@ merge_face_ref (struct frame *f, Lisp_Object face_ref, Lisp_Object *to,
 		{
 		  if (EQ (value, Qt)
 		      || NILP (value)
-		      || STRINGP (value))
+		      || STRINGP (value)
+		      || CONSP (value))
 		    to[LFACE_UNDERLINE_INDEX] = value;
 		  else
 		    err = 1;
@@ -2727,7 +2702,7 @@ Value is a vector of face attributes.  */)
       ++windows_or_buffers_changed;
     }
 
-  xassert (LFACEP (lface));
+  eassert (LFACEP (lface));
   check_lface (lface);
   return lface;
 }
@@ -2948,14 +2923,53 @@ FRAME 0 means change the face on all frames, and change the default
     }
   else if (EQ (attr, QCunderline))
     {
-      if (!UNSPECIFIEDP (value) && !IGNORE_DEFFACE_P (value))
-	if ((SYMBOLP (value)
-	     && !EQ (value, Qt)
-	     && !EQ (value, Qnil))
-	    /* Underline color.  */
-	    || (STRINGP (value)
-		&& SCHARS (value) == 0))
-	  signal_error ("Invalid face underline", value);
+      int valid_p = 0;
+
+      if (UNSPECIFIEDP (value) || IGNORE_DEFFACE_P (value))
+	valid_p = 1;
+      else if (NILP (value) || EQ (value, Qt))
+        valid_p = 1;
+      else if (STRINGP (value) && SCHARS (value) > 0)
+        valid_p = 1;
+      else if (CONSP (value))
+        {
+          Lisp_Object key, val, list;
+
+          list = value;
+          valid_p = 1;
+
+          while (!NILP (CAR_SAFE(list)))
+            {
+              key = CAR_SAFE (list);
+              list = CDR_SAFE (list);
+              val = CAR_SAFE (list);
+              list = CDR_SAFE (list);
+
+              if (NILP (key) || NILP (val))
+                {
+                  valid_p = 0;
+                  break;
+                }
+
+              else if (EQ (key, QCcolor)
+                       && !(EQ (val, Qforeground_color)
+                            || (STRINGP (val) && SCHARS (val) > 0)))
+                {
+                  valid_p = 0;
+                  break;
+                }
+
+              else if (EQ (key, QCstyle)
+                       && !(EQ (val, Qline) || EQ (val, Qwave)))
+                {
+                  valid_p = 0;
+                  break;
+                }
+            }
+        }
+
+      if (!valid_p)
+        signal_error ("Invalid face underline", value);
 
       old_value = LFACE_UNDERLINE (lface);
       LFACE_UNDERLINE (lface) = value;
@@ -3472,7 +3486,7 @@ face_boolean_x_resource_value (Lisp_Object value, int signal_p)
 {
   Lisp_Object result = make_number (0);
 
-  xassert (STRINGP (value));
+  eassert (STRINGP (value));
 
   if (xstrcasecmp (SSDATA (value), "on") == 0
       || xstrcasecmp (SSDATA (value), "true") == 0)
@@ -4045,7 +4059,7 @@ hash_string_case_insensitive (Lisp_Object string)
 {
   const unsigned char *s;
   unsigned hash = 0;
-  xassert (STRINGP (string));
+  eassert (STRINGP (string));
   for (s = SDATA (string); *s; ++s)
     hash = (hash << 1) ^ tolower (*s);
   return hash;
@@ -4076,7 +4090,7 @@ lface_hash (Lisp_Object *v)
 static inline int
 lface_same_font_attributes_p (Lisp_Object *lface1, Lisp_Object *lface2)
 {
-  xassert (lface_fully_specified_p (lface1)
+  eassert (lface_fully_specified_p (lface1)
 	   && lface_fully_specified_p (lface2));
   return (xstrcasecmp (SSDATA (lface1[LFACE_FAMILY_INDEX]),
 		       SSDATA (lface2[LFACE_FAMILY_INDEX])) == 0
@@ -4107,8 +4121,7 @@ lface_same_font_attributes_p (Lisp_Object *lface1, Lisp_Object *lface2)
 static struct face *
 make_realized_face (Lisp_Object *attr)
 {
-  struct face *face = (struct face *) xmalloc (sizeof *face);
-  memset (face, 0, sizeof *face);
+  struct face *face = xzalloc (sizeof *face);
   face->ascii_face = face;
   memcpy (face->lface, attr, sizeof face->lface);
   return face;
@@ -4157,7 +4170,7 @@ void
 prepare_face_for_display (struct frame *f, struct face *face)
 {
 #ifdef HAVE_WINDOW_SYSTEM
-  xassert (FRAME_WINDOW_P (f));
+  eassert (FRAME_WINDOW_P (f));
 
   if (face->gc == 0)
     {
@@ -4253,13 +4266,11 @@ make_face_cache (struct frame *f)
   struct face_cache *c;
   int size;
 
-  c = (struct face_cache *) xmalloc (sizeof *c);
-  memset (c, 0, sizeof *c);
+  c = xzalloc (sizeof *c);
   size = FACE_CACHE_BUCKETS_SIZE * sizeof *c->buckets;
-  c->buckets = (struct face **) xmalloc (size);
-  memset (c->buckets, 0, size);
+  c->buckets = xzalloc (size);
   c->size = 50;
-  c->faces_by_id = (struct face **) xmalloc (c->size * sizeof *c->faces_by_id);
+  c->faces_by_id = xmalloc (c->size * sizeof *c->faces_by_id);
   c->f = f;
   c->menu_face_changed_p = menu_face_changed_default;
   return c;
@@ -4418,7 +4429,7 @@ cache_face (struct face_cache *c, struct face *face, unsigned int hash)
       break;
   face->id = i;
 
-#if GLYPH_DEBUG
+#ifdef GLYPH_DEBUG
   /* Check that FACE got a unique id.  */
   {
     int j, n;
@@ -4429,7 +4440,7 @@ cache_face (struct face_cache *c, struct face *face, unsigned int hash)
 	if (face1->id == i)
 	  ++n;
 
-    xassert (n == 1);
+    eassert (n == 1);
   }
 #endif /* GLYPH_DEBUG */
 
@@ -4480,7 +4491,7 @@ lookup_face (struct frame *f, Lisp_Object *attr)
   int i;
   struct face *face;
 
-  xassert (cache != NULL);
+  eassert (cache != NULL);
   check_lface_attrs (attr);
 
   /* Look up ATTR in the face cache.  */
@@ -4504,8 +4515,8 @@ lookup_face (struct frame *f, Lisp_Object *attr)
   if (face == NULL)
     face = realize_face (cache, attr, -1);
 
-#if GLYPH_DEBUG
-  xassert (face == FACE_FROM_ID (f, face->id));
+#ifdef GLYPH_DEBUG
+  eassert (face == FACE_FROM_ID (f, face->id));
 #endif /* GLYPH_DEBUG */
 
   return face->id;
@@ -4526,7 +4537,7 @@ face_for_font (struct frame *f, Lisp_Object font_object, struct face *base_face)
   int i;
   struct face *face;
 
-  xassert (cache != NULL);
+  eassert (cache != NULL);
   base_face = base_face->ascii_face;
   hash = lface_hash (base_face->lface);
   i = hash % FACE_CACHE_BUCKETS_SIZE;
@@ -4579,7 +4590,7 @@ lookup_named_face (struct frame *f, Lisp_Object symbol, int signal_p)
 }
 
 
-/* Return the display face-id of the basic face who's canonical face-id
+/* Return the display face-id of the basic face whose canonical face-id
    is FACE_ID.  The return value will usually simply be FACE_ID, unless that
    basic face has bee remapped via Vface_remapping_alist.  This function is
    conservative: if something goes wrong, it will simply return FACE_ID
@@ -4884,13 +4895,12 @@ static int
 tty_supports_face_attributes_p (struct frame *f, Lisp_Object *attrs,
 				struct face *def_face)
 {
-  int weight;
+  int weight, slant;
   Lisp_Object val, fg, bg;
   XColor fg_tty_color, fg_std_color;
   XColor bg_tty_color, bg_std_color;
   unsigned test_caps = 0;
   Lisp_Object *def_attrs = def_face->lface;
-
 
   /* First check some easy-to-check stuff; ttys support none of the
      following attributes, so we can just return false if any are requested
@@ -4907,10 +4917,8 @@ tty_supports_face_attributes_p (struct frame *f, Lisp_Object *attrs,
       || !UNSPECIFIEDP (attrs[LFACE_SWIDTH_INDEX])
       || !UNSPECIFIEDP (attrs[LFACE_OVERLINE_INDEX])
       || !UNSPECIFIEDP (attrs[LFACE_STRIKE_THROUGH_INDEX])
-      || !UNSPECIFIEDP (attrs[LFACE_BOX_INDEX])
-      || !UNSPECIFIEDP (attrs[LFACE_SLANT_INDEX]))
+      || !UNSPECIFIEDP (attrs[LFACE_BOX_INDEX]))
     return 0;
-
 
   /* Test for terminal `capabilities' (non-color character attributes).  */
 
@@ -4935,6 +4943,18 @@ tty_supports_face_attributes_p (struct frame *f, Lisp_Object *attrs,
 	}
       else if (def_weight == 100)
 	return 0;		/* same as default */
+    }
+
+  /* font slant */
+  val = attrs[LFACE_SLANT_INDEX];
+  if (!UNSPECIFIEDP (val)
+      && (slant = FONT_SLANT_NAME_NUMERIC (val), slant >= 0))
+    {
+      int def_slant = FONT_SLANT_NAME_NUMERIC (def_attrs[LFACE_SLANT_INDEX]);
+      if (slant == 100 || slant == def_slant)
+	return 0; /* same as default */
+      else
+	test_caps |= TTY_CAP_ITALIC;
     }
 
   /* underlining */
@@ -5336,11 +5356,11 @@ realize_default_face (struct frame *f)
   /* If the `default' face is not yet known, create it.  */
   lface = lface_from_face_name (f, Qdefault, 0);
   if (NILP (lface))
-  {
+    {
        Lisp_Object frame;
        XSETFRAME (frame, f);
        lface = Finternal_make_lisp_face (Qdefault, frame);
-  }
+    }
 
 #ifdef HAVE_WINDOW_SYSTEM
   if (FRAME_WINDOW_P (f))
@@ -5418,7 +5438,7 @@ realize_default_face (struct frame *f)
     LFACE_STIPPLE (lface) = Qnil;
 
   /* Realize the face; it must be fully-specified now.  */
-  xassert (lface_fully_specified_p (XVECTOR (lface)->contents));
+  eassert (lface_fully_specified_p (XVECTOR (lface)->contents));
   check_lface (lface);
   memcpy (attrs, XVECTOR (lface)->contents, sizeof attrs);
   face = realize_face (c, attrs, DEFAULT_FACE_ID);
@@ -5459,7 +5479,7 @@ realize_named_face (struct frame *f, Lisp_Object symbol, int id)
   /* The default face must exist and be fully specified.  */
   get_lface_attributes_no_remap (f, Qdefault, attrs, 1);
   check_lface_attrs (attrs);
-  xassert (lface_fully_specified_p (attrs));
+  eassert (lface_fully_specified_p (attrs));
 
   /* If SYMBOL isn't know as a face, create it.  */
   if (NILP (lface))
@@ -5489,7 +5509,7 @@ realize_face (struct face_cache *cache, Lisp_Object *attrs, int former_face_id)
   struct face *face;
 
   /* LFACE must be fully specified.  */
-  xassert (cache != NULL);
+  eassert (cache != NULL);
   check_lface_attrs (attrs);
 
   if (former_face_id >= 0 && cache->used > former_face_id)
@@ -5532,7 +5552,7 @@ realize_non_ascii_face (struct frame *f, Lisp_Object font_object,
   struct face_cache *cache = FRAME_FACE_CACHE (f);
   struct face *face;
 
-  face = (struct face *) xmalloc (sizeof *face);
+  face = xmalloc (sizeof *face);
   *face = *base_face;
   face->gc = 0;
   face->extra = NULL;
@@ -5567,9 +5587,9 @@ realize_x_face (struct face_cache *cache, Lisp_Object *attrs)
 #ifdef HAVE_WINDOW_SYSTEM
   struct face *default_face;
   struct frame *f;
-  Lisp_Object stipple, overline, strike_through, box;
+  Lisp_Object stipple, underline, overline, strike_through, box;
 
-  xassert (FRAME_WINDOW_P (cache->f));
+  eassert (FRAME_WINDOW_P (cache->f));
 
   /* Allocate a new realized face.  */
   face = make_realized_face (attrs);
@@ -5647,7 +5667,7 @@ realize_x_face (struct face_cache *cache, Lisp_Object *attrs)
     {
       /* Simple box of specified line width in foreground color of the
 	 face.  */
-      xassert (XINT (box) != 0);
+      eassert (XINT (box) != 0);
       face->box = FACE_SIMPLE_BOX;
       face->box_line_width = XINT (box);
       face->box_color = face->foreground;
@@ -5700,27 +5720,74 @@ realize_x_face (struct face_cache *cache, Lisp_Object *attrs)
 
   /* Text underline, overline, strike-through.  */
 
-  if (EQ (attrs[LFACE_UNDERLINE_INDEX], Qt))
+  underline = attrs[LFACE_UNDERLINE_INDEX];
+  if (EQ (underline, Qt))
     {
       /* Use default color (same as foreground color).  */
       face->underline_p = 1;
+      face->underline_type = FACE_UNDER_LINE;
       face->underline_defaulted_p = 1;
       face->underline_color = 0;
     }
-  else if (STRINGP (attrs[LFACE_UNDERLINE_INDEX]))
+  else if (STRINGP (underline))
     {
       /* Use specified color.  */
       face->underline_p = 1;
+      face->underline_type = FACE_UNDER_LINE;
       face->underline_defaulted_p = 0;
       face->underline_color
-	= load_color (f, face, attrs[LFACE_UNDERLINE_INDEX],
+	= load_color (f, face, underline,
 		      LFACE_UNDERLINE_INDEX);
     }
-  else if (NILP (attrs[LFACE_UNDERLINE_INDEX]))
+  else if (NILP (underline))
     {
       face->underline_p = 0;
       face->underline_defaulted_p = 0;
       face->underline_color = 0;
+    }
+  else if (CONSP (underline))
+    {
+      /* `(:color COLOR :style STYLE)'.
+         STYLE being one of `line' or `wave'. */
+      face->underline_p = 1;
+      face->underline_color = 0;
+      face->underline_defaulted_p = 1;
+      face->underline_type = FACE_UNDER_LINE;
+
+      while (CONSP (underline))
+        {
+          Lisp_Object keyword, value;
+
+          keyword = XCAR (underline);
+          underline = XCDR (underline);
+
+          if (!CONSP (underline))
+            break;
+          value = XCAR (underline);
+          underline = XCDR (underline);
+
+          if (EQ (keyword, QCcolor))
+            {
+              if (EQ (value, Qforeground_color))
+                {
+                  face->underline_defaulted_p = 1;
+                  face->underline_color = 0;
+                }
+              else if (STRINGP (value))
+                {
+                  face->underline_defaulted_p = 0;
+                  face->underline_color = load_color (f, face, value,
+                                                      LFACE_UNDERLINE_INDEX);
+                }
+            }
+          else if (EQ (keyword, QCstyle))
+            {
+              if (EQ (value, Qline))
+                face->underline_type = FACE_UNDER_LINE;
+              else if (EQ (value, Qwave))
+                face->underline_type = FACE_UNDER_WAVE;
+            }
+        }
     }
 
   overline = attrs[LFACE_OVERLINE_INDEX];
@@ -5781,7 +5848,7 @@ map_tty_color (struct frame *f, struct face *face,
     foreground_p ? FACE_TTY_DEFAULT_BG_COLOR : FACE_TTY_DEFAULT_FG_COLOR;
 #endif
 
-  xassert (idx == LFACE_FOREGROUND_INDEX || idx == LFACE_BACKGROUND_INDEX);
+  eassert (idx == LFACE_FOREGROUND_INDEX || idx == LFACE_BACKGROUND_INDEX);
 
   XSETFRAME (frame, f);
   color = face->lface[idx];
@@ -5849,7 +5916,7 @@ realize_tty_face (struct face_cache *cache, Lisp_Object *attrs)
   struct frame *f = cache->f;
 
   /* Frame must be a termcap frame.  */
-  xassert (FRAME_TERMCAP_P (cache->f) || FRAME_MSDOS_P (cache->f));
+  eassert (FRAME_TERMCAP_P (cache->f) || FRAME_MSDOS_P (cache->f));
 
   /* Allocate a new realized face.  */
   face = make_realized_face (attrs);
@@ -5857,15 +5924,13 @@ realize_tty_face (struct face_cache *cache, Lisp_Object *attrs)
   face->font_name = FRAME_MSDOS_P (cache->f) ? "ms-dos" : "tty";
 #endif
 
-  /* Map face attributes to TTY appearances.  We map slant to
-     dimmed text because we want italic text to appear differently
-     and because dimmed text is probably used infrequently.  */
+  /* Map face attributes to TTY appearances.  */
   weight = FONT_WEIGHT_NAME_NUMERIC (attrs[LFACE_WEIGHT_INDEX]);
   slant = FONT_SLANT_NAME_NUMERIC (attrs[LFACE_SLANT_INDEX]);
   if (weight > 100)
     face->tty_bold_p = 1;
-  if (weight < 100 || slant != 100)
-    face->tty_dim_p = 1;
+  if (slant != 100)
+    face->tty_italic_p = 1;
   if (!NILP (attrs[LFACE_UNDERLINE_INDEX]))
     face->tty_underline_p = 1;
   if (!NILP (attrs[LFACE_INVERSE_INDEX]))
@@ -5982,7 +6047,7 @@ face_at_buffer_position (struct window *w, ptrdiff_t pos,
 
   /* W must display the current buffer.  We could write this function
      to use the frame and buffer of W, but right now it doesn't.  */
-  /* xassert (XBUFFER (w->buffer) == current_buffer); */
+  /* eassert (XBUFFER (w->buffer) == current_buffer); */
 
   XSETFRAME (frame, f);
   XSETFASTINT (position, pos);
@@ -6092,7 +6157,7 @@ face_for_overlay_string (struct window *w, ptrdiff_t pos,
 
   /* W must display the current buffer.  We could write this function
      to use the frame and buffer of W, but right now it doesn't.  */
-  /* xassert (XBUFFER (w->buffer) == current_buffer); */
+  /* eassert (XBUFFER (w->buffer) == current_buffer); */
 
   XSETFRAME (frame, f);
   XSETFASTINT (position, pos);
@@ -6111,14 +6176,14 @@ face_for_overlay_string (struct window *w, ptrdiff_t pos,
 
   *endptr = endpos;
 
-  default_face = FACE_FROM_ID (f, DEFAULT_FACE_ID);
-
-  /* Optimize common cases where we can use the default face.  */
+  /* Optimize common case where we can use the default face.  */
   if (NILP (prop)
-      && !(pos >= region_beg && pos < region_end))
+      && !(pos >= region_beg && pos < region_end)
+      && NILP (Vface_remapping_alist))
     return DEFAULT_FACE_ID;
 
   /* Begin with attributes from the default face.  */
+  default_face = FACE_FROM_ID (f, lookup_basic_face (f, DEFAULT_FACE_ID));
   memcpy (attrs, default_face->lface, sizeof attrs);
 
   /* Merge in attributes specified via text properties.  */
@@ -6196,7 +6261,7 @@ face_at_string_position (struct window *w, Lisp_Object string,
     *endptr = -1;
 
   base_face = FACE_FROM_ID (f, base_face_id);
-  xassert (base_face);
+  eassert (base_face);
 
   /* Optimize the default case that there is no face property and we
      are not in the region.  */
@@ -6314,7 +6379,7 @@ where R,G,B are numbers between 0 and 255 and name is an arbitrary string.  */)
   CHECK_STRING (filename);
   abspath = Fexpand_file_name (filename, Qnil);
 
-  fp = fopen (SDATA (abspath), "rt");
+  fp = fopen (SSDATA (abspath), "rt");
   if (fp)
     {
       char buf[512];
@@ -6353,7 +6418,7 @@ where R,G,B are numbers between 0 and 255 and name is an arbitrary string.  */)
 				Tests
  ***********************************************************************/
 
-#if GLYPH_DEBUG
+#ifdef GLYPH_DEBUG
 
 /* Print the contents of the realized face FACE to stderr.  */
 
@@ -6428,7 +6493,7 @@ DEFUN ("show-face-resources", Fshow_face_resources, Sshow_face_resources,
   return Qnil;
 }
 
-#endif /* GLYPH_DEBUG != 0 */
+#endif /* GLYPH_DEBUG */
 
 
 
@@ -6469,6 +6534,8 @@ syms_of_xfaces (void)
   DEFSYM (QCcolor, ":color");
   DEFSYM (QCline_width, ":line-width");
   DEFSYM (QCstyle, ":style");
+  DEFSYM (Qline, "line");
+  DEFSYM (Qwave, "wave");
   DEFSYM (Qreleased_button, "released-button");
   DEFSYM (Qpressed_button, "pressed-button");
   DEFSYM (Qnormal, "normal");
@@ -6550,7 +6617,7 @@ syms_of_xfaces (void)
   defsubr (&Sinternal_set_alternative_font_family_alist);
   defsubr (&Sinternal_set_alternative_font_registry_alist);
   defsubr (&Sface_attributes_as_vector);
-#if GLYPH_DEBUG
+#ifdef GLYPH_DEBUG
   defsubr (&Sdump_face);
   defsubr (&Sshow_face_resources);
 #endif /* GLYPH_DEBUG */
@@ -6576,7 +6643,7 @@ that number of fonts when searching for a matching font.  */);
 This stipple pattern is used on monochrome displays
 instead of shades of gray for a face background color.
 See `set-face-stipple' for possible values for this variable.  */);
-  Vface_default_stipple = make_pure_c_string ("gray3");
+  Vface_default_stipple = build_pure_c_string ("gray3");
 
   DEFVAR_LISP ("tty-defined-color-alist", Vtty_defined_color_alist,
    doc: /* An alist of defined terminal colors and their RGB values.

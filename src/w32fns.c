@@ -32,13 +32,13 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "w32term.h"
 #include "frame.h"
 #include "window.h"
+#include "character.h"
 #include "buffer.h"
 #include "intervals.h"
 #include "dispextern.h"
 #include "keyboard.h"
 #include "blockinput.h"
 #include "epaths.h"
-#include "character.h"
 #include "charset.h"
 #include "coding.h"
 #include "ccl.h"
@@ -183,7 +183,7 @@ unsigned int msh_mousewheel = 0;
 #define MENU_FREE_DELAY 1000
 static unsigned menu_free_timer = 0;
 
-#if GLYPH_DEBUG
+#ifdef GLYPH_DEBUG
 static int image_cache_refcount, dpyinfo_refcount;
 #endif
 
@@ -678,7 +678,7 @@ w32_color_map_lookup (char *colorname)
       elt = XCAR (tail);
       if (!CONSP (elt)) continue;
 
-      tem = Fcar (elt);
+      tem = XCAR (elt);
 
       if (lstrcmpi (SDATA (tem), colorname) == 0)
 	{
@@ -1006,8 +1006,7 @@ w32_map_color (FRAME_PTR f, COLORREF color)
     }
 
   /* not already mapped, so add to list and recreate Windows palette */
-  list = (struct w32_palette_entry *)
-    xmalloc (sizeof (struct w32_palette_entry));
+  list = xmalloc (sizeof (struct w32_palette_entry));
   SET_W32_COLOR (list->entry, color);
   list->refcount = 1;
   list->next = FRAME_W32_DISPLAY_INFO (f)->color_list;
@@ -1109,8 +1108,7 @@ w32_defined_color (FRAME_PTR f, char *color, XColor *color_def, int alloc)
 	  if (entry == NULL && alloc)
 	    {
 	      /* not already mapped, so add to list */
-	      entry = (struct w32_palette_entry *)
-		xmalloc (sizeof (struct w32_palette_entry));
+	      entry = xmalloc (sizeof (struct w32_palette_entry));
 	      SET_W32_COLOR (entry->entry, XUINT (tem));
 	      entry->next = NULL;
 	      *prev = entry;
@@ -2509,19 +2507,19 @@ post_character_message (HWND hwnd, UINT msg,
      woken up if blocked in sys_select, but we do NOT want to post
      the quit_char message itself (because it will usually be as if
      the user had typed quit_char twice).  Instead, we post a dummy
-     message that has no particular effect. */
+     message that has no particular effect.  */
   {
     int c = wParam;
     if (isalpha (c) && wmsg.dwModifiers == ctrl_modifier)
       c = make_ctrl_char (c) & 0377;
     if (c == quit_char
-	|| (wmsg.dwModifiers == 0 &&
-	    w32_quit_key && wParam == w32_quit_key))
+	|| (wmsg.dwModifiers == 0
+	    && w32_quit_key && wParam == w32_quit_key))
       {
 	Vquit_flag = Qt;
 
 	/* The choice of message is somewhat arbitrary, as long as
-	   the main thread handler just ignores it. */
+	   the main thread handler just ignores it.  */
 	msg = WM_NULL;
 
 	/* Interrupt any blocking system calls.  */
@@ -3881,7 +3879,7 @@ w32_window (struct frame *f, long window_prompting, int minibuffer_only)
 
   {
     char *str = SSDATA (Vx_resource_name);
-    f->namebuf = (char *) xmalloc (strlen (str) + 1);
+    f->namebuf = xmalloc (strlen (str) + 1);
     strcpy (f->namebuf, str);
   }
 
@@ -3996,17 +3994,17 @@ unwind_create_frame (Lisp_Object frame)
   /* If frame is ``official'', nothing to do.  */
   if (NILP (Fmemq (frame, Vframe_list)))
     {
-#if GLYPH_DEBUG
+#ifdef GLYPH_DEBUG
       struct w32_display_info *dpyinfo = FRAME_W32_DISPLAY_INFO (f);
 #endif
 
       x_free_frame_resources (f);
       free_glyphs (f);
 
-#if GLYPH_DEBUG
+#ifdef GLYPH_DEBUG
       /* Check that reference counts are indeed correct.  */
-      xassert (dpyinfo->reference_count == dpyinfo_refcount);
-      xassert (dpyinfo->terminal->image_cache->refcount == image_cache_refcount);
+      eassert (dpyinfo->reference_count == dpyinfo_refcount);
+      eassert (dpyinfo->terminal->image_cache->refcount == image_cache_refcount);
 #endif
       return Qt;
     }
@@ -4038,7 +4036,7 @@ x_default_font_parameter (struct frame *f, Lisp_Object parms)
 
       for (i = 0; names[i]; i++)
         {
-          font = font_open_by_name (f, names[i]);
+          font = font_open_by_name (f, names[i], strlen (names[i]));
           if (! NILP (font))
             break;
         }
@@ -4145,9 +4143,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
   f->terminal = dpyinfo->terminal;
 
   f->output_method = output_w32;
-  f->output_data.w32 =
-    (struct w32_output *) xmalloc (sizeof (struct w32_output));
-  memset (f->output_data.w32, 0, sizeof (struct w32_output));
+  f->output_data.w32 = xzalloc (sizeof (struct w32_output));
   FRAME_FONTSET (f) = -1;
 
   f->icon_name
@@ -4160,7 +4156,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
 
   /* With FRAME_X_DISPLAY_INFO set up, this unwind-protect is safe.  */
   record_unwind_protect (unwind_create_frame, frame);
-#if GLYPH_DEBUG
+#ifdef GLYPH_DEBUG
   image_cache_refcount =
     FRAME_IMAGE_CACHE (f) ? FRAME_IMAGE_CACHE (f)->refcount : 0;
   dpyinfo_refcount = dpyinfo->reference_count;
@@ -4901,9 +4897,10 @@ If TYPE is not given or nil, the type is STRING.
 FORMAT gives the size in bits of each element if VALUE is a list.
 It must be one of 8, 16 or 32.
 If VALUE is a string or FORMAT is nil or not given, FORMAT defaults to 8.
-If OUTER_P is non-nil, the property is changed for the outer X window of
+If OUTER-P is non-nil, the property is changed for the outer X window of
 FRAME.  Default is to change on the edit X window.  */)
-  (Lisp_Object prop, Lisp_Object value, Lisp_Object frame, Lisp_Object type, Lisp_Object format, Lisp_Object outer_p)
+  (Lisp_Object prop, Lisp_Object value, Lisp_Object frame,
+   Lisp_Object type, Lisp_Object format, Lisp_Object outer_p)
 {
   struct frame *f = check_x_frame (frame);
   Atom prop_atom;
@@ -4948,23 +4945,24 @@ FRAME nil or omitted means use the selected frame.  Value is PROP.  */)
 
 
 DEFUN ("x-window-property", Fx_window_property, Sx_window_property,
-       1, 2, 0,
+       1, 6, 0,
        doc: /* Value is the value of window property PROP on FRAME.
 If FRAME is nil or omitted, use the selected frame.
-
-On MS Windows, this function only accepts the PROP and FRAME arguments.
 
 On X Windows, the following optional arguments are also accepted:
 If TYPE is nil or omitted, get the property as a string.
 Otherwise TYPE is the name of the atom that denotes the type expected.
 If SOURCE is non-nil, get the property on that window instead of from
 FRAME.  The number 0 denotes the root window.
-If DELETE_P is non-nil, delete the property after retrieving it.
-If VECTOR_RET_P is non-nil, don't return a string but a vector of values.
+If DELETE-P is non-nil, delete the property after retrieving it.
+If VECTOR-RET-P is non-nil, don't return a string but a vector of values.
+
+On MS Windows, this function accepts but ignores those optional arguments.
 
 Value is nil if FRAME hasn't a property with name PROP or if PROP has
 no value of TYPE (always string in the MS Windows case).  */)
-  (Lisp_Object prop, Lisp_Object frame)
+  (Lisp_Object prop, Lisp_Object frame, Lisp_Object type,
+   Lisp_Object source, Lisp_Object delete_p, Lisp_Object vector_ret_p)
 {
   struct frame *f = check_x_frame (frame);
   Atom prop_atom;
@@ -5230,14 +5228,12 @@ x_create_tip_frame (struct w32_display_info *dpyinfo,
      counts etc.  */
   f->terminal = dpyinfo->terminal;
   f->output_method = output_w32;
-  f->output_data.w32 =
-    (struct w32_output *) xmalloc (sizeof (struct w32_output));
-  memset (f->output_data.w32, 0, sizeof (struct w32_output));
+  f->output_data.w32 = xzalloc (sizeof (struct w32_output));
 
   FRAME_FONTSET (f)  = -1;
   f->icon_name = Qnil;
 
-#if GLYPH_DEBUG
+#ifdef GLYPH_DEBUG
   image_cache_refcount =
     FRAME_IMAGE_CACHE (f) ? FRAME_IMAGE_CACHE (f)->refcount : 0;
   dpyinfo_refcount = dpyinfo->reference_count;
@@ -6326,13 +6322,8 @@ The return value is the hotkey-id if registered, otherwise nil.  */)
 
       /* Notify input thread about new hot-key definition, so that it
 	 takes effect without needing to switch focus.  */
-#ifdef USE_LISP_UNION_TYPE
       PostThreadMessage (dwWindowsThreadId, WM_EMACS_REGISTER_HOT_KEY,
-			 (WPARAM) key.i, 0);
-#else
-      PostThreadMessage (dwWindowsThreadId, WM_EMACS_REGISTER_HOT_KEY,
-			 (WPARAM) key, 0);
-#endif
+			 (WPARAM) XLI (key), 0);
     }
 
   return key;
@@ -6354,13 +6345,8 @@ DEFUN ("w32-unregister-hot-key", Fw32_unregister_hot_key,
     {
       /* Notify input thread about hot-key definition being removed, so
 	 that it takes effect without needing focus switch.  */
-#ifdef USE_LISP_UNION_TYPE
       if (PostThreadMessage (dwWindowsThreadId, WM_EMACS_UNREGISTER_HOT_KEY,
-			     (WPARAM) XINT (XCAR (item)), (LPARAM) item.i))
-#else
-      if (PostThreadMessage (dwWindowsThreadId, WM_EMACS_UNREGISTER_HOT_KEY,
-			     (WPARAM) XINT (XCAR (item)), (LPARAM) item))
-#endif
+			     (WPARAM) XINT (XCAR (item)), (LPARAM) XLI (item)))
 	{
 	  MSG msg;
 	  GetMessage (&msg, NULL, WM_EMACS_DONE, WM_EMACS_DONE);
@@ -6432,13 +6418,8 @@ is set to off if the low bit of NEW-STATE is zero, otherwise on.  */)
   if (!dwWindowsThreadId)
     return make_number (w32_console_toggle_lock_key (vk_code, new_state));
 
-#ifdef USE_LISP_UNION_TYPE
   if (PostThreadMessage (dwWindowsThreadId, WM_EMACS_TOGGLE_LOCK_KEY,
-			 (WPARAM) vk_code, (LPARAM) new_state.i))
-#else
-  if (PostThreadMessage (dwWindowsThreadId, WM_EMACS_TOGGLE_LOCK_KEY,
-			 (WPARAM) vk_code, (LPARAM) new_state))
-#endif
+			 (WPARAM) vk_code, (LPARAM) XLI (new_state)))
     {
       MSG msg;
       GetMessage (&msg, NULL, WM_EMACS_DONE, WM_EMACS_DONE);
@@ -6702,7 +6683,7 @@ DEFUN ("default-printer-name", Fdefault_printer_name, Sdefault_printer_name,
       return Qnil;
     }
   /* Allocate memory for the PRINTER_INFO_2 struct */
-  ppi2 = (PRINTER_INFO_2 *) xmalloc (dwNeeded);
+  ppi2 = xmalloc (dwNeeded);
   if (!ppi2)
     {
       ClosePrinter (hPrn);
@@ -6817,7 +6798,7 @@ syms_of_w32fns (void)
   Fput (Qundefined_color, Qerror_conditions,
 	pure_cons (Qundefined_color, pure_cons (Qerror, Qnil)));
   Fput (Qundefined_color, Qerror_message,
-	make_pure_c_string ("Undefined color"));
+	build_pure_c_string ("Undefined color"));
 
   staticpro (&w32_grabbed_keys);
   w32_grabbed_keys = Qnil;

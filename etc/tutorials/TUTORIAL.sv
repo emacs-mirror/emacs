@@ -11,7 +11,7 @@ ALT eller EDIT). Vi använder här följande förkortningar:
          den och trycker sedan <chr>.
 
 Viktigt: För att avsluta Emacs trycker du C-x C-c (två tecken).
-För att avsluta kommandon som inte skrivits in fullt, tryck C-g.  
+För att avsluta kommandon som inte skrivits in fullt, tryck C-g.
 Tecknen ">>" i vänstermarginalen anger att du kan prova ett
 kommando. Till exempel:
 <<Tomma rader sätts in runt nästa rad när help-with-tutorial aktiveras>>
@@ -291,24 +291,24 @@ tas bort.
 >> Slå C-x 1 och se hur dokumentationsfönstret nu försvinner.
 
 Kommandot skiljer sig lite från andra kommandon du har lärt dig
-eftersom det består av två tecken. Det startar med tecknet
-KONTROLL-x. Det är faktisk många kommandon som startar med KONTROLL-x
-och många av dem har med filer, skärmbilder och liknande saker att
-göra. Dessa kommandon är två, tre eller fyra tecken långa.
+eftersom det består av två tecken. Det startar med tecknet KONTROLL-x.
+Det finns många kommandon som startar med KONTROLL-x och många av dem
+har med filer, skärmbilder och liknande saker att göra. Dessa
+kommandon är två, tre eller fyra tecken långa.
 
 
 * SKRIVA OCH TA BORT TEXT
 -------------------------
 
-Om du önskar att sätta in text är det bara att skriva in texten. 
-Vanliga tecken, som A, 7, *, etc., sätts in direkt när du skriver dem. 
+Om du önskar att sätta in text är det bara att skriva in texten.
+Vanliga tecken, som A, 7, *, etc., sätts in direkt när du skriver dem.
 Tryck på <Return> för att sätta in en radbrytning. (Det är den tangent
 på tangentbordet som ibland är märkt med "Enter")
 
-För att radera <DEL> tecknet omedelbart före aktuell markörposition,
-skriv <DEL>. Det är tangenten på tangentbordet som vanligtvis är
-markerad med "Backspace" -- det är samma tangent som du normal
-använder för att radera det sist inmatade tecknet utanför Emacs. 
+För att radera tecknet omedelbart före aktuell markörposition, tryck
+på <DEL>. Det är tangenten på tangentbordet som vanligtvis är markerad
+med "Backspace" -- det är samma tangent som du normal använder för att
+radera det sist inmatade tecknet utanför Emacs.
 
 Det kan finnas en annan tangent på ditt tangentbordet som är märkt med
 "Delete", men det är inte den vi menar med <DEL>.
@@ -885,7 +885,7 @@ ordlista över Emacs-termer.
 >> Flytta markören till den här raden och tryck C-l C-l.
 
 >> Skriv nu C-x 2, som leder till att skärmen delas i två
-   fönster. Bägge fönstren visar den här vägledningen. 
+   fönster. Bägge fönstren visar den här vägledningen.
    Redigeringsmarkören stannar i det övre fönstret.
 
 >> Skriv C-M-v för att rulla det nedre fönstret.

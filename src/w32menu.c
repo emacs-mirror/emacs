@@ -31,6 +31,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "termhooks.h"
 #include "window.h"
 #include "blockinput.h"
+#include "character.h"
 #include "buffer.h"
 #include "charset.h"
 #include "coding.h"
@@ -161,13 +162,12 @@ otherwise it is "Question". */)
     }
   else if (CONSP (position))
     {
-      Lisp_Object tem;
-      tem = Fcar (position);
+      Lisp_Object tem = XCAR (position);
       if (CONSP (tem))
-	window = Fcar (Fcdr (position));
+	window = Fcar (XCDR (position));
       else
 	{
-	  tem = Fcar (Fcdr (position));  /* EVENT_START (position) */
+	  tem = Fcar (XCDR (position));  /* EVENT_START (position) */
 	  window = Fcar (tem);	     /* POSN_WINDOW (tem) */
 	}
     }
@@ -1533,11 +1533,7 @@ add_menu_item (HMENU menu, widget_value *wv, HMENU item)
 	     until it is ready to be displayed, since GC can happen while
 	     menus are active.  */
 	  if (!NILP (wv->help))
-#ifdef USE_LISP_UNION_TYPE
-	    info.dwItemData = (DWORD) (wv->help).i;
-#else
-	    info.dwItemData = (DWORD) (wv->help);
-#endif
+	    info.dwItemData = (DWORD) XLI (wv->help);
 	  if (wv->button_type == BUTTON_TYPE_RADIO)
 	    {
 	      /* CheckMenuRadioItem allows us to differentiate TOGGLE and
@@ -1612,12 +1608,7 @@ w32_menu_display_help (HWND owner, HMENU menu, UINT item, UINT flags)
 	  info.fMask = MIIM_DATA;
 	  get_menu_item_info (menu, item, FALSE, &info);
 
-#ifdef USE_LISP_UNION_TYPE
-	  help = info.dwItemData ? (Lisp_Object) ((EMACS_INT) info.dwItemData)
-	                         : Qnil;
-#else
-	  help = info.dwItemData ? (Lisp_Object) info.dwItemData : Qnil;
-#endif
+	  help = info.dwItemData ? XIL (info.dwItemData) : Qnil;
 	}
 
       /* Store the help echo in the keyboard buffer as the X toolkit

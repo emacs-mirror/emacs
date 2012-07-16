@@ -231,7 +231,7 @@ static void my_set_focus (struct frame *, HWND);
 static void my_set_foreground_window (HWND);
 static void my_destroy_window (struct frame *, HWND);
 
-#if GLYPH_DEBUG
+#ifdef GLYPH_DEBUG
 static void x_check_font (struct frame *, struct font *);
 #endif
 
@@ -285,8 +285,7 @@ XChangeGC (void *ignore, XGCValues *gc, unsigned long mask,
 XGCValues *
 XCreateGC (void *ignore, Window window, unsigned long mask, XGCValues *xgcv)
 {
-  XGCValues *gc = (XGCValues *) xmalloc (sizeof (XGCValues));
-  memset (gc, 0, sizeof (XGCValues));
+  XGCValues *gc = xzalloc (sizeof (XGCValues));
 
   XChangeGC (ignore, gc, mask, xgcv);
 
@@ -313,6 +312,94 @@ w32_set_clip_rectangle (HDC hdc, RECT *rect)
     SelectClipRgn (hdc, NULL);
 }
 
+/* Restore clipping rectangle in S */
+static void
+w32_restore_glyph_string_clip (struct glyph_string *s)
+{
+  RECT *r = s->clip;
+  int n = s->num_clips;
+
+  if (n == 1)
+    w32_set_clip_rectangle (s->hdc, r);
+  else if (n > 1)
+    {
+      HRGN clip1 = CreateRectRgnIndirect (r);
+      HRGN clip2 = CreateRectRgnIndirect (r + 1);
+      if (CombineRgn (clip1, clip1, clip2, RGN_OR) != ERROR)
+        SelectClipRgn (s->hdc, clip1);
+      DeleteObject (clip1);
+      DeleteObject (clip2);
+    }
+}
+
+/*
+   Draw a wavy line under S. The wave fills wave_height pixels from y0.
+
+                    x0         wave_length = 2
+                                 --
+                y0   *   *   *   *   *
+                     |* * * * * * * * *
+    wave_height = 3  | *   *   *   *
+
+*/
+
+void
+w32_draw_underwave (struct glyph_string *s, COLORREF color)
+{
+  int wave_height = 2, wave_length = 3;
+  int dx, dy, x0, y0, width, x1, y1, x2, y2, odd, xmax;
+  XRectangle wave_clip, string_clip, final_clip;
+  RECT w32_final_clip, w32_string_clip;
+  HPEN hp, oldhp;
+
+  dx = wave_length;
+  dy = wave_height - 1;
+  x0 = s->x;
+  y0 = s->ybase + 1;
+  width = s->width;
+  xmax = x0 + width;
+
+  /* Find and set clipping rectangle */
+
+  wave_clip = (XRectangle){ x0, y0, width, wave_height };
+  get_glyph_string_clip_rect (s, &w32_string_clip);
+  CONVERT_TO_XRECT (string_clip, w32_string_clip);
+
+  if (!x_intersect_rectangles (&wave_clip, &string_clip, &final_clip))
+    return;
+
+  hp = CreatePen (PS_SOLID, 0, color);
+  oldhp = SelectObject (s->hdc, hp);
+  CONVERT_FROM_XRECT (final_clip, w32_final_clip);
+  w32_set_clip_rectangle (s->hdc, &w32_final_clip);
+
+  /* Draw the waves */
+
+  x1 = x0 - (x0 % dx);
+  x2 = x1 + dx;
+  odd = (x1/dx) % 2;
+  y1 = y2 = y0;
+
+  if (odd)
+    y1 += dy;
+  else
+    y2 += dy;
+
+  MoveToEx (s->hdc, x1, y1, NULL);
+
+  while (x1 <= xmax)
+    {
+      LineTo (s->hdc, x2, y2);
+      x1  = x2, y1 = y2;
+      x2 += dx, y2 = y0 + odd*dy;
+      odd = !odd;
+    }
+
+  /* Restore previous pen and clipping rectangle(s) */
+  w32_restore_glyph_string_clip (s);
+  SelectObject (s->hdc, oldhp);
+  DeleteObject (hp);
+}
 
 /* Draw a hollow rectangle at the specified position.  */
 void
@@ -654,7 +741,7 @@ x_after_update_window_line (struct glyph_row *desired_row)
   struct frame *f;
   int width, height;
 
-  xassert (w);
+  eassert (w);
 
   if (!desired_row->mode_line_p && !w->pseudo_window_p)
     desired_row->redraw_fringe_bitmaps_p = 1;
@@ -998,7 +1085,7 @@ x_set_mouse_face_gc (struct glyph_string *s)
       s->gc = FRAME_W32_DISPLAY_INFO (s->f)->scratch_cursor_gc;
     }
 
-  xassert (s->gc != 0);
+  eassert (s->gc != 0);
 }
 
 
@@ -1055,7 +1142,7 @@ x_set_glyph_string_gc (struct glyph_string *s)
     }
 
   /* GC must have been set.  */
-  xassert (s->gc != 0);
+  eassert (s->gc != 0);
 }
 
 
@@ -1472,7 +1559,7 @@ w32_alloc_lighter_color (struct frame *f, COLORREF *color,
   delta /= 256;
 
   /* Change RGB values by specified FACTOR.  Avoid overflow!  */
-  xassert (factor >= 0);
+  eassert (factor >= 0);
   new = PALETTERGB (min (0xff, factor * GetRValue (*color)),
                     min (0xff, factor * GetGValue (*color)),
                     min (0xff, factor * GetBValue (*color)));
@@ -2149,7 +2236,7 @@ x_draw_image_glyph_string (struct glyph_string *s)
 static void
 x_draw_stretch_glyph_string (struct glyph_string *s)
 {
-  xassert (s->first_glyph->type == STRETCH_GLYPH);
+  eassert (s->first_glyph->type == STRETCH_GLYPH);
 
   if (s->hl == DRAW_CURSOR
       && !x_stretch_cursor_p)
@@ -2347,60 +2434,74 @@ x_draw_glyph_string (struct glyph_string *s)
       /* Draw underline.  */
       if (s->face->underline_p)
         {
-          unsigned long thickness, position;
-          int y;
+          if (s->face->underline_type == FACE_UNDER_WAVE)
+            {
+              COLORREF color;
 
-          if (s->prev && s->prev->face->underline_p)
-            {
-              /* We use the same underline style as the previous one.  */
-              thickness = s->prev->underline_thickness;
-              position = s->prev->underline_position;
-            }
-          else
-            {
-              /* Get the underline thickness.  Default is 1 pixel.  */
-              if (s->font && s->font->underline_thickness > 0)
-                thickness = s->font->underline_thickness;
+              if (s->face->underline_defaulted_p)
+                color = s->gc->foreground;
               else
-                thickness = 1;
-              if (x_underline_at_descent_line)
-                position = (s->height - thickness) - (s->ybase - s->y);
+                color = s->face->underline_color;
+
+              w32_draw_underwave (s, color);
+            }
+          else if (s->face->underline_type == FACE_UNDER_LINE)
+            {
+              unsigned long thickness, position;
+              int y;
+
+              if (s->prev && s->prev->face->underline_p)
+                {
+                  /* We use the same underline style as the previous one.  */
+                  thickness = s->prev->underline_thickness;
+                  position = s->prev->underline_position;
+                }
               else
                 {
-                /* Get the underline position.  This is the recommended
-                   vertical offset in pixels from the baseline to the top of
-                   the underline.  This is a signed value according to the
-                   specs, and its default is
+                  /* Get the underline thickness.  Default is 1 pixel.  */
+                  if (s->font && s->font->underline_thickness > 0)
+                    thickness = s->font->underline_thickness;
+                  else
+                    thickness = 1;
+                  if (x_underline_at_descent_line)
+                    position = (s->height - thickness) - (s->ybase - s->y);
+                  else
+                    {
+                      /* Get the underline position.  This is the recommended
+                         vertical offset in pixels from the baseline to the top of
+                         the underline.  This is a signed value according to the
+                         specs, and its default is
 
-                   ROUND ((maximum_descent) / 2), with
-                   ROUND (x) = floor (x + 0.5)  */
+                         ROUND ((maximum_descent) / 2), with
+                         ROUND (x) = floor (x + 0.5)  */
 
-                if (x_use_underline_position_properties
-                    && s->font && s->font->underline_position >= 0)
-                  position = s->font->underline_position;
-                else if (s->font)
-                  position = (s->font->descent + 1) / 2;
+                      if (x_use_underline_position_properties
+                          && s->font && s->font->underline_position >= 0)
+                        position = s->font->underline_position;
+                      else if (s->font)
+                        position = (s->font->descent + 1) / 2;
+                    }
+                  position = max (position, underline_minimum_offset);
                 }
-	      position = max (position, underline_minimum_offset);
-            }
-	  /* Check the sanity of thickness and position.  We should
-	     avoid drawing underline out of the current line area.  */
-	  if (s->y + s->height <= s->ybase + position)
-	    position = (s->height - 1) - (s->ybase - s->y);
-	  if (s->y + s->height < s->ybase + position + thickness)
-	    thickness = (s->y + s->height) - (s->ybase + position);
-	  s->underline_thickness = thickness;
-	  s->underline_position =position;
-          y = s->ybase + position;
-          if (s->face->underline_defaulted_p)
-            {
-              w32_fill_area (s->f, s->hdc, s->gc->foreground, s->x,
-                             y, s->width, 1);
-            }
-          else
-            {
-              w32_fill_area (s->f, s->hdc, s->face->underline_color, s->x,
-                             y, s->width, 1);
+              /* Check the sanity of thickness and position.  We should
+                 avoid drawing underline out of the current line area.  */
+              if (s->y + s->height <= s->ybase + position)
+                position = (s->height - 1) - (s->ybase - s->y);
+              if (s->y + s->height < s->ybase + position + thickness)
+                thickness = (s->y + s->height) - (s->ybase + position);
+              s->underline_thickness = thickness;
+              s->underline_position =position;
+              y = s->ybase + position;
+              if (s->face->underline_defaulted_p)
+                {
+                  w32_fill_area (s->f, s->hdc, s->gc->foreground, s->x,
+                                 y, s->width, 1);
+                }
+              else
+                {
+                  w32_fill_area (s->f, s->hdc, s->face->underline_color, s->x,
+                                 y, s->width, 1);
+                }
             }
         }
       /* Draw overline.  */
@@ -4132,8 +4233,8 @@ w32_read_socket (struct terminal *terminal, int expected,
 	  /* Generate a language change event.  */
 	  f = x_window_to_frame (dpyinfo, msg.msg.hwnd);
 
-	  /* lParam contains the input lang ID.  Use it to update our
-	     record of the keyboard codepage.  */
+	  /* lParam contains the input language ID in its low 16 bits.
+	     Use it to update our record of the keyboard codepage.  */
 	  keyboard_codepage = codepage_for_locale ((LCID)(msg.msg.lParam
 							  & 0xffff));
 
@@ -4141,7 +4242,7 @@ w32_read_socket (struct terminal *terminal, int expected,
 	    {
 	      inev.kind = LANGUAGE_CHANGE_EVENT;
 	      XSETFRAME (inev.frame_or_window, f);
-	      inev.code = msg.msg.wParam;
+	      inev.code = keyboard_codepage;
 	      inev.modifiers = msg.msg.lParam & 0xffff;
 	    }
 	  break;
@@ -4342,7 +4443,7 @@ w32_read_socket (struct terminal *terminal, int expected,
 
           /* If the contents of the global variable help_echo_string
              has changed, generate a HELP_EVENT.  */
-#if 0 /* The below is an invalid comparison when USE_LISP_UNION_TYPE.
+#if 0 /* The below is an invalid comparison when CHECK_LISP_OBJECT_TYPE.
 	 But it was originally changed to this to fix a bug, so I have
 	 not removed it completely in case the bug is still there.  */
           if (help_echo_string != previous_help_echo_string ||
@@ -5922,7 +6023,7 @@ x_wm_set_icon_position (struct frame *f, int icon_x, int icon_y)
 				Fonts
  ***********************************************************************/
 
-#if GLYPH_DEBUG
+#ifdef GLYPH_DEBUG
 
 /* Check that FONT is valid on frame F.  It is if it can be found in F's
    font table.  */
@@ -5930,12 +6031,12 @@ x_wm_set_icon_position (struct frame *f, int icon_x, int icon_y)
 static void
 x_check_font (struct frame *f, struct font *font)
 {
-  xassert (font != NULL && ! NILP (font->props[FONT_TYPE_INDEX]));
+  eassert (font != NULL && ! NILP (font->props[FONT_TYPE_INDEX]));
   if (font->driver->check)
-    xassert (font->driver->check (f, font) == 0);
+    eassert (font->driver->check (f, font) == 0);
 }
 
-#endif /* GLYPH_DEBUG != 0 */
+#endif /* GLYPH_DEBUG */
 
 
 
@@ -5958,10 +6059,8 @@ w32_initialize_display_info (Lisp_Object display_name)
                                  w32_display_name_list);
   dpyinfo->name_list_element = XCAR (w32_display_name_list);
 
-  dpyinfo->w32_id_name
-    = (char *) xmalloc (SCHARS (Vinvocation_name)
-			+ SCHARS (Vsystem_name)
-			+ 2);
+  dpyinfo->w32_id_name = xmalloc (SCHARS (Vinvocation_name)
+				  + SCHARS (Vsystem_name) + 2);
   sprintf (dpyinfo->w32_id_name, "%s@%s",
 	   SDATA (Vinvocation_name), SDATA (Vsystem_name));
 
@@ -6126,7 +6225,7 @@ w32_create_terminal (struct w32_display_info *dpyinfo)
   /* We don't yet support separate terminals on W32, so don't try to share
      keyboards between virtual terminals that are on the same physical
      terminal like X does.  */
-  terminal->kboard = (KBOARD *) xmalloc (sizeof (KBOARD));
+  terminal->kboard = xmalloc (sizeof (KBOARD));
   init_kboard (terminal->kboard);
   KVAR (terminal->kboard, Vwindow_system) = intern ("w32");
   terminal->kboard->next_kboard = all_kboards;
@@ -6178,7 +6277,7 @@ w32_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
   terminal = w32_create_terminal (dpyinfo);
 
   /* Set the name of the terminal. */
-  terminal->name = (char *) xmalloc (SBYTES (display_name) + 1);
+  terminal->name = xmalloc (SBYTES (display_name) + 1);
   strncpy (terminal->name, SDATA (display_name), SBYTES (display_name));
   terminal->name[SBYTES (display_name)] = 0;
 

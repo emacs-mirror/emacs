@@ -1,3 +1,116 @@
+2012-07-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt: Sync with autogen/config.in.
+	(GC_MARK_SECONDARY_STACK, GC_MARK_STACK, GC_SETJMP_WORKS)
+	(SETUP_SLAVE_PTY): New macros.
+
+2012-07-13  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt: Sync with autogen/config.in.
+	(BROKEN_FIONREAD, BROKEN_GET_CURRENT_DIR_NAME)
+	(BROKEN_PTY_READ_AFTER_EAGAIN, BROKEN_SIGAIO, BROKEN_SIGPOLL)
+	(BROKEN_SIGPTY, BSD4_2, BSD_SYSTEM, BSD_SYSTEM_AHB, CYGWIN, DARWIN_OS)
+	(FIRST_PTY_LETTER, GNU_LINUX, G_SLICE_ALWAYS_MALLOC, HAVE_PTYS)
+	(HAVE_SOCKETS, HPUX, INTERRUPT_INPUT, IRIX6_5, NARROWPROTO, NO_ABORT)
+	(NO_EDITRES, NSIG_MINIMUM, PREFER_VSUSP, PTY_ITERATION)
+	(PTY_NAME_SPRINTF, PTY_OPEN, PTY_TTY_NAME_SPRINTF, RUN_TIME_REMAP)
+	(SETPGRP_RELEASES_CTTY, SOLARIS2, TAB3, TABDLY, ULIMIT_BREAK_VALUE)
+	(UNIX98_PTYS, USG, USG5, XOS_NEEDS_TIME_H, _AIX): New macros.
+	(HAVE_ATTRIBUTE_ALIGNED, HAVE_C99_STRTOLD, HAVE___BUILTIN_UNWIND_INIT):
+	Set in src/s/ms-w32.h, not here.
+
+2012-07-11  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt: Sync with autogen/config.in.
+	(CLASH_DETECTION, DEFAULT_SOUND_DEVICE, DONT_REOPEN_PTY)
+	(GNU_LIBRARY_PENDING_OUTPUT_COUNT, SIGNALS_VIA_CHARACTERS): New macros.
+	(HAVE_MKDIR, HAVE_RENAME, HAVE_RMDIR, HAVE_STRERROR): Remove.
+
+2012-07-10  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt: Sync with autogen/config.in.
+
+2012-07-09  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* config.nt (ATTRIBUTE_CONST): Add, to sync with configure.ac.
+
+2012-07-09  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt: Sync with autogen/config.in.
+
+2012-07-07  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt (HAVE_STRCASECMP, HAVE_STRNCASECMP): Remove.
+
+2012-07-06  Juanma Barranquero  <lekktu@gmail.com>
+	    Eli Zaretskii  <eliz@gnu.org>
+
+	* config.nt: Complete rework to bring it in sync with autogen/config.in.
+	All Windows-specific code moved to src/s/ms-w32.h.
+
+2012-07-04  Juanma Barranquero  <lekktu@gmail.com>
+	    Eli Zaretskii  <eliz@gnu.org>
+
+	* configure.bat (enablechecking): Enable checks through src/config.h,
+	not the compiler's command line.
+
+	* nmake.defs (CHECKING_CFLAGS): Remove.
+	(CFLAGS, ESC_CFLAGS): Do not include $(CHECKING_CFLAGS).
+
+	* gmake.defs (DEBUG_CFLAGS): Add -fno-crossjumping.
+	(CHECKING_CFLAGS): Remove.
+	(CFLAGS, ESC_CFLAGS): Do not include $(CHECKING_CFLAGS).
+
+2012-07-04  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt (LISP_FLOAT_TYPE, HAVE_XFREE386, USE_TEXT_PROPERTIES)
+	(GSSAPI, HAVE_LIBINTL, HAVE_LIBGSSAPI_KRB5, HAVE_LIBGSSAPI)
+	(HAVE_GSSAPI_H, HAVE_LIBXBD, HAVE_MEMCPY, HAVE_MEMMOVE, HAVE_MEMSET)
+	(HAVE_MEMCMP): Remove, obsolete.
+
+2012-06-30  Glenn Morris  <rgm@gnu.org>
+
+	* paths.h (PATH_SITELOADSEARCH): New.
+
+2012-06-28  Juanma Barranquero  <lekktu@gmail.com>
+
+	* nmake.defs (CHECKING_CFLAGS):
+	* gmake.defs (CHECKING_CFLAGS): Remove XASSERTS.
+
+2012-06-24  Eli Zaretskii  <eliz@gnu.org>
+
+	* config.nt (_Noreturn): Don't reference __SUNPRO_C.
+
+2012-06-24  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Switch from NO_RETURN to C11's _Noreturn (Bug#11750).
+	* config.nt (_Noreturn): New macro.
+	(NO_RETURN): Remove.  All uses replaced with _Noreturn.
+	(w32_abort) [HAVE_NTGUI]: Use _Noreturn rather than NO_RETURN.
+
+2012-06-24  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/sys/time.h (struct timespec): Don't define it here, it is
+	now defined in src/s/ms-w32.h.
+
+2012-06-23  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix the MS-Windows build broken by revno 108687.
+	* inc/sys/time.h (struct timespec): Define.
+
+2012-06-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (install-addpm): New target.
+	(dist): Depend on it.
+	(install-shortcuts): Depend on install-addpm instead of copying
+	addpm.exe as part of the recipe.  See
+	http://lists.gnu.org/archive/html/emacs-devel/2012-06/msg00171.html
+	for the related problem and discussions.
+
+2012-06-11  Glenn Morris  <rgm@gnu.org>
+
+	* config.nt (SYSTEM_TYPE): Define it.
+
 2012-05-31  Eli Zaretskii  <eliz@gnu.org>
 
 	* configure.bat (genmakefiles): Move the redirection away from the

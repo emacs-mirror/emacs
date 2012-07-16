@@ -31,8 +31,7 @@
 ;;; Code:
 
 (require 'timer)
-(eval-when-compile (require 'cl))
-
+(eval-when-compile (require 'cl-lib))
 
 (defgroup battery nil
   "Display battery status information."
@@ -360,16 +359,16 @@ The following %-sequences are provided:
 	(when (re-search-forward "present: +yes$" nil t)
 	  (when (re-search-forward "design capacity: +\\([0-9]+\\) m[AW]h$"
 				   nil t)
-	    (incf design-capacity (string-to-number (match-string 1))))
+	    (cl-incf design-capacity (string-to-number (match-string 1))))
 	  (when (re-search-forward "last full capacity: +\\([0-9]+\\) m[AW]h$"
 				   nil t)
-	    (incf last-full-capacity (string-to-number (match-string 1))))
+	    (cl-incf last-full-capacity (string-to-number (match-string 1))))
 	  (when (re-search-forward
 		 "design capacity warning: +\\([0-9]+\\) m[AW]h$" nil t)
-	    (incf warn (string-to-number (match-string 1))))
+	    (cl-incf warn (string-to-number (match-string 1))))
 	  (when (re-search-forward "design capacity low: +\\([0-9]+\\) m[AW]h$"
 				   nil t)
-	    (incf low (string-to-number (match-string 1)))))))
+	    (cl-incf low (string-to-number (match-string 1)))))))
     (setq full-capacity (if (> last-full-capacity 0)
 			    last-full-capacity design-capacity))
     (and capacity rate

@@ -36,8 +36,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "dispextern.h"	/* frame.h seems to want this */
 #include "frame.h"	/* Need this to get the X window of selected_frame */
 #include "blockinput.h"
-#include "buffer.h"
 #include "character.h"
+#include "buffer.h"
 #include "coding.h"
 #include "composite.h"
 
@@ -493,7 +493,7 @@ DEFUN ("w16-set-clipboard-data", Fw16_set_clipboard_data, Sw16_set_clipboard_dat
 
       setup_coding_system (Fcheck_coding_system (coding_system), &coding);
       coding.dst_bytes = nbytes * 4;
-      coding.destination = (unsigned char *) xmalloc (coding.dst_bytes);
+      coding.destination = xmalloc (coding.dst_bytes);
       Vnext_selection_coding_system = Qnil;
       coding.mode |= CODING_MODE_LAST_BLOCK;
       dst = coding.destination;
@@ -572,7 +572,7 @@ DEFUN ("w16-get-clipboard-data", Fw16_get_clipboard_data, Sw16_get_clipboard_dat
     goto unblock;
 
   if ((data_size = get_clipboard_data_size (CF_OEMTEXT)) == 0 ||
-      (htext = (unsigned char *)xmalloc (data_size)) == 0)
+      (htext = xmalloc (data_size)) == 0)
     goto closeclip;
 
   /* need to know final size after '\r' chars are removed because

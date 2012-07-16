@@ -45,6 +45,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include "commands.h"
 #include "intervals.h"
+#include "character.h"
 #include "buffer.h"
 #include "window.h"
 
@@ -92,31 +93,24 @@ extern void moncontrol (int mode);
 #define O_RDWR 2
 #endif
 
-#ifdef HAVE_SETPGID
-#if !defined (USG)
-#undef setpgrp
-#define setpgrp setpgid
-#endif
-#endif
-
 static const char emacs_version[] = VERSION;
 static const char emacs_copyright[] = "Copyright (C) 2012 Free Software Foundation, Inc.";
 
 /* Make these values available in GDB, which doesn't see macros.  */
 
-#ifdef USE_LSB_TAG
+#if USE_LSB_TAG
 int gdb_use_lsb EXTERNALLY_VISIBLE = 1;
 #else
 int gdb_use_lsb EXTERNALLY_VISIBLE = 0;
 #endif
-#ifndef USE_LISP_UNION_TYPE
-int gdb_use_union EXTERNALLY_VISIBLE  = 0;
+#ifndef CHECK_LISP_OBJECT_TYPE
+int gdb_use_struct EXTERNALLY_VISIBLE = 0;
 #else
-int gdb_use_union EXTERNALLY_VISIBLE = 1;
+int gdb_use_struct EXTERNALLY_VISIBLE = 1;
 #endif
 int gdb_valbits EXTERNALLY_VISIBLE = VALBITS;
 int gdb_gctypebits EXTERNALLY_VISIBLE = GCTYPEBITS;
-#if defined (DATA_SEG_BITS) && ! defined (USE_LSB_TAG)
+#if defined DATA_SEG_BITS && !USE_LSB_TAG
 uintptr_t gdb_data_seg_bits EXTERNALLY_VISIBLE = DATA_SEG_BITS;
 #else
 uintptr_t gdb_data_seg_bits EXTERNALLY_VISIBLE = 0;
@@ -125,7 +119,7 @@ ptrdiff_t PVEC_FLAG EXTERNALLY_VISIBLE = PSEUDOVECTOR_FLAG;
 ptrdiff_t gdb_array_mark_flag EXTERNALLY_VISIBLE = ARRAY_MARK_FLAG;
 /* GDB might say "No enum type named pvec_type" if we don't have at
    least one symbol with that type, and then xbacktrace could fail.  */
-enum pvec_type gdb_pvec_type EXTERNALLY_VISIBLE = PVEC_TYPE_MASK;
+enum pvec_type const gdb_pvec_type EXTERNALLY_VISIBLE = 0;
 
 /* Empty lisp strings.  To avoid having to build any others.  */
 Lisp_Object empty_unibyte_string, empty_multibyte_string;
@@ -575,7 +569,7 @@ static char dump_tz[] = "UtC0";
 /* Define a dummy function F.  Declare F too, to pacify gcc
    -Wmissing-prototypes.  */
 #define DEFINE_DUMMY_FUNCTION(f) \
-  void f (void) EXTERNALLY_VISIBLE; void f (void) {}
+  void f (void) ATTRIBUTE_CONST EXTERNALLY_VISIBLE; void f (void) {}
 
 #ifndef GCC_CTORS_IN_LIBC
 DEFINE_DUMMY_FUNCTION (__do_global_ctors)
@@ -1260,7 +1254,6 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
       init_alloc_once ();
       init_obarray ();
       init_eval_once ();
-      init_character_once ();
       init_charset_once ();
       init_coding_once ();
       init_syntax_once ();	/* Create standard syntax table.  */
@@ -1313,9 +1306,6 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
 
   init_eval ();
   init_data ();
-#ifdef CLASH_DETECTION
-  init_filelock ();
-#endif
   init_atimer ();
   running_asynch_code = 0;
 
@@ -1430,13 +1420,6 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
   /* Initialize environment from registry settings.  */
   init_environment (argv);
   init_ntproc ();	/* must precede init_editfns.  */
-#endif
-
-#ifdef HAVE_NS
-#ifndef CANNOT_DUMP
-  if (initialized)
-#endif
-    ns_init_paths ();
 #endif
 
   /* Initialize and GC-protect Vinitial_environment and
@@ -1610,22 +1593,17 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
 
   init_charset ();
 
-  init_editfns (); /* init_process uses Voperating_system_release. */
-  init_process (); /* init_display uses add_keyboard_wait_descriptor. */
+  init_editfns (); /* init_process_emacs uses Voperating_system_release. */
+  init_process_emacs (); /* init_display uses add_keyboard_wait_descriptor. */
   init_keyboard ();	/* This too must precede init_sys_modes.  */
   if (!noninteractive)
     init_display ();	/* Determine terminal type.  Calls init_sys_modes.  */
-  init_fns ();
   init_xdisp ();
 #ifdef HAVE_WINDOW_SYSTEM
   init_fringe ();
-  init_image ();
 #endif /* HAVE_WINDOW_SYSTEM */
   init_macros ();
   init_floatfns ();
-#ifdef HAVE_SOUND
-  init_sound ();
-#endif
   init_window ();
   init_font ();
 
@@ -1826,7 +1804,7 @@ static const struct standard_args standard_args[] =
 static void
 sort_args (int argc, char **argv)
 {
-  char **new = (char **) xmalloc (sizeof (char *) * argc);
+  char **new = xmalloc (argc * sizeof *new);
   /* For each element of argv,
      the corresponding element of options is:
      0 for an option that takes no arguments,

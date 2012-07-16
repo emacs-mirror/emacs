@@ -28,41 +28,49 @@
 ;;; Code:
 
 ;; Layout of a timer vector:
-;; [triggered-p high-seconds low-seconds usecs repeat-delay
+;; [triggered-p high-seconds low-seconds usecs psecs repeat-delay
 ;;  function args idle-delay]
 ;; triggered-p is nil if the timer is active (waiting to be triggered),
 ;;  t if it is inactive ("already triggered", in theory)
 
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
-(defstruct (timer
+(cl-defstruct (timer
             (:constructor nil)
             (:copier nil)
             (:constructor timer-create ())
             (:type vector)
             (:conc-name timer--))
   (triggered t)
-  high-seconds low-seconds usecs repeat-delay function args idle-delay)
+  high-seconds low-seconds usecs psecs repeat-delay function args idle-delay)
 
 (defun timerp (object)
   "Return t if OBJECT is a timer."
-  (and (vectorp object) (= (length object) 8)))
+  (and (vectorp object) (= (length object) 9)))
 
 ;; Pseudo field `time'.
 (defun timer--time (timer)
   (list (timer--high-seconds timer)
         (timer--low-seconds timer)
-        (timer--usecs timer)))
+	(timer--usecs timer)
+	(timer--psecs timer)))
 
-(defsetf timer--time
+(gv-define-simple-setter timer--time
   (lambda (timer time)
     (or (timerp timer) (error "Invalid timer"))
     (setf (timer--high-seconds timer) (pop time))
-    (setf (timer--low-seconds timer)
-	  (if (consp time) (car time) time))
-    (setf (timer--usecs timer) (or (and (consp time) (consp (cdr time))
-					(cadr time))
-				   0))))
+    (let ((low time) (usecs 0) (psecs 0))
+      (if (consp time)
+	  (progn
+	    (setq low (pop time))
+	    (if time
+		(progn
+		  (setq usecs (pop time))
+		  (if time
+		      (setq psecs (car time)))))))
+      (setf (timer--low-seconds timer) low)
+      (setf (timer--usecs timer) usecs)
+      (setf (timer--psecs timer) psecs))))
 
 
 (defun timer-set-time (timer time &optional delta)
@@ -77,7 +85,7 @@ fire repeatedly that many seconds apart."
 (defun timer-set-idle-time (timer secs &optional repeat)
   "Set the trigger idle time of TIMER to SECS.
 SECS may be an integer, floating point number, or the internal
-time format (HIGH LOW USECS) returned by, e.g., `current-idle-time'.
+time format returned by, e.g., `current-idle-time'.
 If optional third argument REPEAT is non-nil, make the timer
 fire each time Emacs is idle for that many seconds."
   (if (consp secs)
@@ -91,41 +99,46 @@ fire each time Emacs is idle for that many seconds."
   "Yield the next value after TIME that is an integral multiple of SECS.
 More precisely, the next value, after TIME, that is an integral multiple
 of SECS seconds since the epoch.  SECS may be a fraction."
-  (let ((time-base (ash 1 16)))
-    ;; Use floating point, taking care to not lose precision.
-    (let* ((float-time-base (float time-base))
-	   (million 1000000.0)
-	   (time-usec (+ (* million
-			    (+ (* float-time-base (nth 0 time))
-			       (nth 1 time)))
-			 (nth 2 time)))
-	   (secs-usec (* million secs))
-	   (mod-usec (mod time-usec secs-usec))
-	   (next-usec (+ (- time-usec mod-usec) secs-usec))
-	   (time-base-million (* float-time-base million)))
-      (list (floor next-usec time-base-million)
-	    (floor (mod next-usec time-base-million) million)
-	    (floor (mod next-usec million))))))
+  (let* ((trillion 1e12)
+	 (time-sec (+ (nth 1 time)
+		      (* 65536.0 (nth 0 time))))
+	 (delta-sec (mod (- time-sec) secs))
+	 (next-sec (+ time-sec (ffloor delta-sec)))
+	 (next-sec-psec (ffloor (* trillion (mod delta-sec 1))))
+	 (sub-time-psec (+ (or (nth 3 time) 0)
+			   (* 1e6 (nth 2 time))))
+	 (psec-diff (- sub-time-psec next-sec-psec)))
+    (if (and (<= next-sec time-sec) (< 0 psec-diff))
+	(setq next-sec-psec (+ sub-time-psec
+			       (mod (- psec-diff) (* trillion secs)))))
+    (setq next-sec (+ next-sec (floor next-sec-psec trillion)))
+    (setq next-sec-psec (mod next-sec-psec trillion))
+    (list (floor next-sec 65536)
+	  (floor (mod next-sec 65536))
+	  (floor next-sec-psec 1000000)
+	  (floor (mod next-sec-psec 1000000)))))
 
-(defun timer-relative-time (time secs &optional usecs)
-  "Advance TIME by SECS seconds and optionally USECS microseconds.
-SECS may be either an integer or a floating point number."
+(defun timer-relative-time (time secs &optional usecs psecs)
+  "Advance TIME by SECS seconds and optionally USECS nanoseconds
+and PSECS picoseconds.  SECS may be either an integer or a
+floating point number."
   (let ((delta (if (floatp secs)
 		   (seconds-to-time secs)
 		 (list (floor secs 65536) (mod secs 65536)))))
-    (if usecs
-	(setq delta (time-add delta (list 0 0 usecs))))
+    (if (or usecs psecs)
+	(setq delta (time-add delta (list 0 0 (or usecs 0) (or psecs 0)))))
     (time-add time delta)))
 
 (defun timer--time-less-p (t1 t2)
   "Say whether time value T1 is less than time value T2."
   (time-less-p (timer--time t1) (timer--time t2)))
 
-(defun timer-inc-time (timer secs &optional usecs)
-  "Increment the time set in TIMER by SECS seconds and USECS microseconds.
-SECS may be a fraction.  If USECS is omitted, that means it is zero."
+(defun timer-inc-time (timer secs &optional usecs psecs)
+  "Increment the time set in TIMER by SECS seconds, USECS nanoseconds,
+and PSECS picoseconds.  SECS may be a fraction.  If USECS or PSECS are
+omitted, they are treated as zero."
   (setf (timer--time timer)
-        (timer-relative-time (timer--time timer) secs usecs)))
+        (timer-relative-time (timer--time timer) secs usecs psecs)))
 
 (defun timer-set-time-with-usecs (timer time usecs &optional delta)
   "Set the trigger time of TIMER to TIME plus USECS.
@@ -135,6 +148,7 @@ If optional fourth argument DELTA is a positive number, make the timer
 fire repeatedly that many seconds apart."
   (setf (timer--time timer) time)
   (setf (timer--usecs timer) usecs)
+  (setf (timer--psecs timer) 0)
   (setf (timer--repeat-delay timer) (and (numberp delta) (> delta 0) delta))
   timer)
 (make-obsolete 'timer-set-time-with-usecs
@@ -154,6 +168,7 @@ fire repeatedly that many seconds apart."
 	   (integerp (timer--high-seconds timer))
 	   (integerp (timer--low-seconds timer))
 	   (integerp (timer--usecs timer))
+	   (integerp (timer--psecs timer))
 	   (timer--function timer))
       (let ((timers (if idle timer-idle-list timer-list))
 	    last)
@@ -253,7 +268,7 @@ how many will really happen."
   "Calculate number of seconds from when TIMER will run, until TIME.
 TIMER is a timer, and stands for the time when its next repeat is scheduled.
 TIME is a time-list."
-  (float-time (time-subtract time (timer--time timer))))
+  (- (float-time time) (float-time (timer--time timer))))
 
 (defun timer-event-handler (timer)
   "Call the handler for the timer TIMER.
@@ -386,7 +401,7 @@ This function is for compatibility; see also `run-with-timer'."
   "Perform an action the next time Emacs is idle for SECS seconds.
 The action is to call FUNCTION with arguments ARGS.
 SECS may be an integer, a floating point number, or the internal
-time format (HIGH LOW USECS) returned by, e.g., `current-idle-time'.
+time format returned by, e.g., `current-idle-time'.
 If Emacs is currently idle, and has been idle for N seconds (N < SECS),
 then it will call FUNCTION in SECS - N seconds from now.
 

@@ -129,26 +129,23 @@ See `format-time-string' for a list of valid specifiers."
   :group 'newsticker-reader)
 
 (defface newsticker-feed-face
-  '((((class color) (background dark))
-     (:family "sans" :bold t :height 1.2 :foreground "white"))
-    (((class color) (background light))
-     (:family "sans" :bold t :height 1.2 :foreground "black")))
+  '((default :weight bold :height 1.2)
+    (((class color) (background dark))  :foreground "white")
+    (((class color) (background light)) :foreground "black"))
   "Face for news feeds."
   :group 'newsticker-faces)
 
 (defface newsticker-extra-face
-  '((((class color) (background dark))
-     (:italic t :foreground "gray50" :height 0.8))
-    (((class color) (background light))
-     (:italic t :foreground "gray50" :height 0.8)))
+  '((default :slant italic :height 0.8)
+    (((class color) (background dark))  :foreground "gray50")
+    (((class color) (background light)) :foreground "gray50"))
   "Face for newsticker dates."
   :group 'newsticker-faces)
 
 (defface newsticker-enclosure-face
-  '((((class color) (background dark))
-     (:bold t :background "orange"))
-    (((class color) (background light))
-     (:bold t :background "orange")))
+  '((default :weight bold)
+    (((class color) (background dark))  :background "orange")
+    (((class color) (background light)) :background "orange"))
   "Face for enclosed elements."
   :group 'newsticker-faces)
 

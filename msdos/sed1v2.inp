@@ -105,6 +105,7 @@ s/\.h\.in/.h-in/
 /^LIBRESOLV *=/s/@LIBRESOLV@//
 /^LIBSELINUX_LIBS *=/s/@LIBSELINUX_LIBS@//
 /^LIB_PTHREAD_SIGMASK *=/s/@[^@\n]*@//
+/^LIB_CLOCK_GETTIME *=/s/@[^@\n]*@//g
 /^LIBGNUTLS_LIBS *=/s/@[^@\n]*@//
 /^LIBGNUTLS_CFLAGS *=/s/@[^@\n]*@//
 /^GETLOADAVG_LIBS *=/s/@[^@\n]*@//
@@ -135,9 +136,13 @@ s/\.h\.in/.h-in/
 /^.\$(libsrc)\/make-doc/s!>.*$!!
 /^	[ 	]*\$(libsrc)\/make-docfile /s!`[^`]*`!$(lisp); cd ../src!
 /^[ 	]*$/d
+/^\$(leimdir)\/leim-list.el: /s/bootstrap-emacs\$(EXEEXT)/temacs$(EXEEXT) $(BOOTSTRAPEMACS)/
 /^	if test -f/,/^	fi$/c\
 	command.com /c if exist .gdbinit rm -f _gdbinit
+/^	 *test "X\$(PAXCTL)" = X/d
+/^	 *test "\$(CANNOT_DUMP)" = "yes"/d
 /^	if test "\$(CANNOT_DUMP)" =/,/^	else /d
+/^	-\{0,1\} *ln -/s/bootstrap-emacs\$(EXEEXT).*$/bootstrap-emacs$(EXEEXT)/
 /^	fi/d
 /^	 *LC_ALL=C \$(RUN_TEMACS)/i\
 	stubedit temacs.exe minstack=1024k
@@ -198,3 +203,4 @@ s/ \$(DBUS_CFLAGS)//
 s| -I\$(srcdir)/../lib||
 # Add our local inttypes.h to prerequisites where needed
 /^lread\.o:/s|lread\.c|& ../msdos/inttypes.h|
+/^	 *test "X/d

@@ -2257,18 +2257,18 @@ editors.  Standard facilities can emulate these:
 @cindex Brief emulation
 @cindex emulation of Brief
 @cindex mode, CRiSP
-You can turn on key bindings to emulate the CRiSP/Brief editor with
-@kbd{M-x crisp-mode}.  Note that this rebinds @kbd{M-x} to exit Emacs
-unless you set the variable @code{crisp-override-meta-x}.  You can
-also use the command @kbd{M-x scroll-all-mode} or set the variable
+@kbd{M-x crisp-mode} enables key bindings to emulate the CRiSP/Brief
+editor.  Note that this rebinds @kbd{M-x} to exit Emacs unless you set
+the variable @code{crisp-override-meta-x}.  You can also use the
+command @kbd{M-x scroll-all-mode} or set the variable
 @code{crisp-load-scroll-all} to emulate CRiSP's scroll-all feature
 (scrolling all windows together).
 
 @item EDT (DEC VMS editor)
 @findex edt-emulation-on
 @findex edt-emulation-off
-Turn on EDT emulation @kbd{M-x edt-emulation-on}; use @kbd{M-x
-edt-emulation-off} to restore normal Emacs command bindings.
+Turn on EDT emulation with @kbd{M-x edt-emulation-on}; restore normal
+command bindings with @kbd{M-x edt-emulation-off}.
 
 Most of the EDT emulation commands are keypad keys, and most standard
 Emacs key bindings are still available.  The EDT emulation rebindings
@@ -2454,7 +2454,7 @@ point (@code{dired-at-point}).
 @code{ffap-read-only-other-window}, analogous to
 @code{find-file-read-only-other-window}.
 @item C-x 4 d
-@code{ffap-dired-other-window}, analogous to @code{dired-other-window}.
+@code{ffap-dired-other-window}, like @code{dired-other-window}.
 @item C-x 5 f
 @kindex C-x 5 f @r{(FFAP)}
 @code{ffap-other-frame}, analogous to @code{find-file-other-frame}.
@@ -2481,8 +2481,8 @@ find the one you select (@code{ffap-menu}).
 
 @findex animate-birthday-present
 @cindex animate
-  The @code{animate} package makes text dance (e.g. try
-@kbd{M-x animate-birthday-present}).
+  The @code{animate} package makes text dance (e.g.  @kbd{M-x
+animate-birthday-present}).
 
 @findex blackbox
 @findex mpuz

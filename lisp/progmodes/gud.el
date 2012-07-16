@@ -37,8 +37,6 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl)) ; for case macro
-
 (require 'comint)
 
 (defvar gdb-active-process)
@@ -528,10 +526,10 @@ required by the caller."
 		       nil 'gdb-edit-value)
 		   nil
 		   (if gdb-show-changed-values
-		       (or parent (case status
-				    (changed 'font-lock-warning-face)
-				    (out-of-scope 'shadow)
-				    (t t)))
+		       (or parent (pcase status
+				    (`changed 'font-lock-warning-face)
+				    (`out-of-scope 'shadow)
+				    (_ t)))
 		     t)
 		   depth)
 		(if (eq status 'out-of-scope) (setq parent 'shadow))
@@ -549,10 +547,10 @@ required by the caller."
 			 nil 'gdb-edit-value)
 		     nil
 		     (if gdb-show-changed-values
-			 (or parent (case status
-				      (changed 'font-lock-warning-face)
-				      (out-of-scope 'shadow)
-				      (t t)))
+			 (or parent (pcase status
+				      (`changed 'font-lock-warning-face)
+				      (`out-of-scope 'shadow)
+				      (_ t)))
 		       t)
 		     depth)
 		  (speedbar-make-tag-line
@@ -2763,10 +2761,9 @@ Obeying it means displaying in another window the specified file and line."
 						  (buffer-file-name)
 						(car frame)))))
 	 ((eq key ?F)
-	  (setq subst (file-name-sans-extension
-		       (file-name-nondirectory (if insource
-						   (buffer-file-name)
-						 (car frame))))))
+	  (setq subst (file-name-base (if insource
+                                          (buffer-file-name)
+                                        (car frame)))))
 	 ((eq key ?d)
 	  (setq subst (file-name-directory (if insource
 					       (buffer-file-name)
@@ -3413,11 +3410,11 @@ With arg, dereference expr if ARG is positive, otherwise do not dereference."
 
 (defun gud-tooltip-print-command (expr)
   "Return a suitable command to print the expression EXPR."
-  (case gud-minor-mode
-	(gdbmi (concat "-data-evaluate-expression " expr))
-	(dbx (concat "print " expr))
-	((xdb pdb) (concat "p " expr))
-	(sdb (concat expr "/"))))
+  (pcase gud-minor-mode
+    (`gdbmi (concat "-data-evaluate-expression " expr))
+    (`dbx (concat "print " expr))
+    ((or `xdb `pdb) (concat "p " expr))
+    (`sdb (concat expr "/"))))
 
 (declare-function gdb-input "gdb-mi" (command handler))
 (declare-function tooltip-expr-to-print "tooltip" (event))

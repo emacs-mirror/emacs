@@ -43,7 +43,7 @@
 ;; Define the built-in fringe bitmaps and setup default mappings
 
 (when (boundp 'fringe-bitmaps)
-  (let ((bitmaps '(question-mark
+  (let ((bitmaps '(question-mark exclamation-mark
 		   left-arrow right-arrow up-arrow down-arrow
 		   left-curly-arrow right-curly-arrow
 		   left-triangle right-triangle
@@ -207,8 +207,8 @@ frame parameter is used."
   "Set the default appearance of fringes on all frames.
 
 When called interactively, query the user for MODE.  Valid values
-for MODE include `none', `default', `left-only', `right-only',
-`minimal' and `half'.
+for MODE include `no-fringes', `default', `left-only', `right-only',
+`minimal' and `half-width'.
 
 When used in a Lisp program, MODE can be a cons cell where the
 integer in car specifies the left fringe width and the integer in

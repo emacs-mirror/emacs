@@ -28,7 +28,7 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 (require 'browse-url)
 (require 'url-parse)
 
@@ -48,7 +48,7 @@
 
 (defvar url-queue nil)
 
-(defstruct url-queue
+(cl-defstruct url-queue
   url callback cbargs silentp
   buffer start-time pre-triggered
   inhibit-cookiesp)
@@ -84,7 +84,7 @@ The variable `url-queue-timeout' sets a timeout."
       (cond
        ((or (url-queue-start-time entry)
 	    (url-queue-pre-triggered entry))
-	(incf running))
+	(cl-incf running))
        ((not waiting)
 	(setq waiting entry))))
     (when (and waiting
@@ -99,7 +99,7 @@ The variable `url-queue-timeout' sets a timeout."
     (dolist (entry url-queue)
       (cond
        ((url-queue-start-time entry)
-	(incf running))
+	(cl-incf running))
        ((not waiting)
 	(setq waiting entry))))
     (when (and waiting

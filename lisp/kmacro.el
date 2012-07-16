@@ -629,8 +629,7 @@ others, use \\[kmacro-name-last-macro]."
                                   (> (length (this-single-command-keys)) 1))
                              ;; Used when we're in the process of repeating.
                              (eq no-repeat 'repeating))
-			 last-input-event))
-	repeat-key-str)
+			 last-input-event)))
     (if end-macro
 	(kmacro-end-macro arg)
       (call-last-kbd-macro arg #'kmacro-loop-setup-function))
@@ -641,7 +640,13 @@ others, use \\[kmacro-name-last-macro]."
 		     (if (eq kmacro-call-repeat-key t)
 			 repeat-key
 		       kmacro-call-repeat-key)))
-      (setq repeat-key-str (format-kbd-macro (vector repeat-key) nil))
+      ;; Issue a hint to the user, if the echo area isn't in use.
+      (unless (current-message)
+	(message "(Type %s to repeat macro%s)"
+		 (format-kbd-macro (vector repeat-key) nil)
+		 (if (and kmacro-call-repeat-with-arg
+			  arg (> arg 1))
+		     (format " %d times" arg) "")))
       ;; Can't use the `keep-pred' arg because this overlay keymap needs to be
       ;; removed during the next run of the kmacro (i.e. we need to add&remove
       ;; this overlay-map at each repetition).

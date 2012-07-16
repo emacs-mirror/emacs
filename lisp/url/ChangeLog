@@ -1,3 +1,33 @@
+2012-07-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* url.el, url-queue.el, url-parse.el, url-http.el, url-future.el:
+	* url-dav.el, url-cookie.el: Use cl-lib.
+	* url-util.el, url-privacy.el, url-nfs.el, url-misc.el, url-methods.el:
+	* url-gw.el, url-file.el, url-expand.el: Dont use CL.
+
+2012-06-30  Glenn Morris  <rgm@gnu.org>
+
+	* url-vars.el (mm-mime-mule-charset-alist, mm-coding-system-p):
+	Declare.
+
+2012-06-21  Chong Yidong  <cyd@gnu.org>
+
+	* url.el (url-retrieve-internal): Fix last change (Bug#11627).
+
+2012-06-13  Juanma Barranquero  <lekktu@gmail.com>
+
+	* url-handlers.el (url-handler-regexp): Declare.
+
+2012-06-12  Chong Yidong  <cyd@gnu.org>
+
+	* url-handlers.el: Re-order file to avoid recursive load.
+
+2012-06-12  Chong Yidong  <cyd@gnu.org>
+
+	* url-handlers.el (url-handler-regexp):
+	* url-nfs.el (url-nfs-automounter-directory-spec):
+	* url-vars.el (url-load-hook): Convert to defcustom.
+
 2012-05-25  Leo Liu  <sdl.web@gmail.com>
 
 	* url-http.el (url-http-codes): Fix mal-formed defconst.
@@ -155,7 +185,7 @@
 	* url-queue.el (url-queue-retrieve): Take an optional
 	`inhibit-cookies' parameter.
 
-	* url.el (url-retrieve): Ditto
+	* url.el (url-retrieve): Ditto.
 
 	* url-http.el (url-http-create-request): Don't send cookies unless
 	requested.

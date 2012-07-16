@@ -1,4 +1,4 @@
-# multiarch.m4 serial 6
+# multiarch.m4 serial 7
 dnl Copyright (C) 2008-2012 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -6,7 +6,7 @@ dnl with or without modifications, as long as this notice is preserved.
 
 # Determine whether the compiler is or may be producing universal binaries.
 #
-# On MacOS X 10.5 and later systems, the user can create libraries and
+# On Mac OS X 10.5 and later systems, the user can create libraries and
 # executables that work on multiple system types--known as "fat" or
 # "universal" binaries--by specifying multiple '-arch' options to the
 # compiler but only a single '-arch' option to the preprocessor.  Like

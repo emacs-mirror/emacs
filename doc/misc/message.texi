@@ -1637,6 +1637,40 @@ To the thing similar to this, there is
 requires the @acronym{POP}-before-@acronym{SMTP} authentication.
 @xref{POP before SMTP, , POP before SMTP, gnus, The Gnus Manual}.
 
+@cindex X-Message-SMTP-Method
+If you have a complex @acronym{SMTP} setup, and want some messages to
+go via one mail server, and other messages to go through another, you
+can use the @samp{X-Message-SMTP-Method} header.  These are the
+supported values:
+
+@table @samp
+@item smtpmail
+
+@example
+X-Message-SMTP-Method: smtp smtp.fsf.org 587
+@end example
+
+This will send the message via @samp{smtp.fsf.org}, using port 587.
+
+@example
+X-Message-SMTP-Method: smtp smtp.fsf.org 587 other-user
+@end example
+
+This is the same as the above, but uses @samp{other-user} as the user
+name when authenticating.  This is handy if you have several
+@acronym{SMTP} accounts on the same server.
+
+@item sendmail
+
+@example
+X-Message-SMTP-Method: sendmail
+@end example
+
+This will send the message via the locally installed sendmail/exim/etc
+installation.
+
+@end table
+
 @item message-mh-deletable-headers
 @vindex message-mh-deletable-headers
 Most versions of MH doesn't like being fed messages that contain the

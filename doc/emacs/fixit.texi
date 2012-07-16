@@ -35,7 +35,7 @@ These were described earlier in this manual.  @xref{Erasing}.
   The @dfn{undo} command reverses recent changes in the buffer's text.
 Each buffer records changes individually, and the undo command always
 applies to the current buffer.  You can undo all the changes in a
-buffer for as far as back its records go.  Usually, each editing
+buffer for as far back as the buffer's records go.  Usually, each editing
 command makes a separate entry in the undo records, but some commands
 such as @code{query-replace} divide their changes into multiple
 entries for flexibility in undoing.  Consecutive character insertion
@@ -109,9 +109,9 @@ Emacs to hold text that users don't normally look at or edit.
 @vindex undo-strong-limit
 @vindex undo-outer-limit
 @cindex undo limit
-  When the undo records for a buffer becomes too large, Emacs discards
-the oldest undo records from time to time (during @dfn{garbage
-collection}).  You can specify how much undo records to keep by
+  When the undo information for a buffer becomes too large, Emacs discards
+the oldest records from time to time (during @dfn{garbage
+collection}).  You can specify how much undo information to keep by
 setting the variables @code{undo-limit}, @code{undo-strong-limit}, and
 @code{undo-outer-limit}.  Their values are expressed in bytes.
 

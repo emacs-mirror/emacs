@@ -688,9 +688,6 @@ struct face;
 XGCValues *XCreateGC (void *, Window, unsigned long, XGCValues *);
 struct frame * check_x_frame (Lisp_Object);
 
-EXFUN (Fx_display_color_p, 1);
-EXFUN (Fx_display_grayscale_p, 1);
-
 typedef DWORD (WINAPI * ClipboardSequence_Proc) (void);
 typedef BOOL (WINAPI * AppendMenuW_Proc) (
     IN HMENU,

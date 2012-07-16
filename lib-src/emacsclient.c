@@ -21,7 +21,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #ifdef WINDOWSNT
 
-/* config.h defines these, which disables sockets altogether! */
+/* ms-w32.h defines these, which disables sockets altogether!  */
 # undef _WINSOCKAPI_
 # undef _WINSOCK_H
 
@@ -169,8 +169,7 @@ int emacs_pid = 0;
    be used for the new frame */
 const char *frame_parameters = NULL;
 
-static void print_help_and_exit (void) NO_RETURN;
-static void fail (void) NO_RETURN;
+static _Noreturn void print_help_and_exit (void);
 
 
 struct option longopts[] =
@@ -452,19 +451,19 @@ w32_window_app (void)
   return window_app;
 }
 
-/*
-  execvp wrapper for Windows.  Quotes arguments with embedded spaces.
+/* execvp wrapper for Windows.  Quotes arguments with embedded spaces.
 
   This is necessary due to the broken implementation of exec* routines in
   the Microsoft libraries: they concatenate the arguments together without
   quoting special characters, and pass the result to CreateProcess, with
   predictably bad results.  By contrast, POSIX execvp passes the arguments
-  directly into the argv array of the child process.
-*/
+  directly into the argv array of the child process.  */
+
 int
 w32_execvp (const char *path, char **argv)
 {
   int i;
+  extern int execvp (const char*, char **);
 
   /* Required to allow a .BAT script as alternate editor.  */
   argv[0] = (char *) alternate_editor;
@@ -670,7 +669,7 @@ an empty string");
 }
 
 
-static void
+static _Noreturn void
 print_help_and_exit (void)
 {
   /* Spaces and tabs are significant in this message; they're chosen so the
@@ -713,12 +712,11 @@ Report bugs with M-x report-emacs-bug.\n", progname);
   exit (EXIT_SUCCESS);
 }
 
-/*
-  Try to run a different command, or --if no alternate editor is
-  defined-- exit with an errorcode.
-  Uses argv, but gets it from the global variable main_argv.
-*/
-static void
+/* Try to run a different command, or --if no alternate editor is
+   defined-- exit with an errorcode.
+   Uses argv, but gets it from the global variable main_argv.  */
+
+static _Noreturn void
 fail (void)
 {
   if (alternate_editor)
@@ -751,16 +749,15 @@ main (int argc, char **argv)
 #define AUTH_KEY_LENGTH      64
 #define SEND_BUFFER_SIZE   4096
 
-extern char *strerror (int);
-
 /* Buffer to accumulate data to send in TCP connections.  */
 char send_buffer[SEND_BUFFER_SIZE + 1];
 int sblen = 0;	/* Fill pointer for the send buffer.  */
 /* Socket used to communicate with the Emacs server process.  */
 HSOCKET emacs_socket = 0;
 
-/* On Windows, the socket library was historically separate from the standard
-   C library, so errors are handled differently.  */
+/* On Windows, the socket library was historically separate from the
+   standard C library, so errors are handled differently.  */
+
 static void
 sock_err_message (const char *function_name)
 {
@@ -865,7 +862,7 @@ quote_argument (HSOCKET s, const char *str)
 
 
 /* The inverse of quote_argument.  Removes quoting in string STR by
-   modifying the string in place.   Returns STR. */
+   modifying the string in place.   Returns STR.  */
 
 static char *
 unquote_argument (char *str)
@@ -948,10 +945,9 @@ initialize_sockets (void)
 #endif /* WINDOWSNT */
 
 
-/*
- * Read the information needed to set up a TCP comm channel with
- * the Emacs server: host, port, and authentication string.
- */
+/* Read the information needed to set up a TCP comm channel with
+   the Emacs server: host, port, and authentication string.  */
+
 static int
 get_server_config (const char *config_file, struct sockaddr_in *server,
 		   char *authentication)
@@ -1032,18 +1028,14 @@ set_tcp_socket (const char *local_server_file)
     message (FALSE, "%s: connected to remote socket at %s\n",
              progname, inet_ntoa (server.sin_addr));
 
-  /*
-   * Open up an AF_INET socket
-   */
+  /* Open up an AF_INET socket.  */
   if ((s = socket (AF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0)
     {
       sock_err_message ("socket");
       return INVALID_SOCKET;
     }
 
-  /*
-   * Set up the socket
-   */
+  /* Set up the socket.  */
   if (connect (s, (struct sockaddr *) &server, sizeof server) < 0)
     {
       sock_err_message ("connect");
@@ -1052,9 +1044,7 @@ set_tcp_socket (const char *local_server_file)
 
   setsockopt (s, SOL_SOCKET, SO_LINGER, (char *) &l_arg, sizeof l_arg);
 
-  /*
-   * Send the authentication
-   */
+  /* Send the authentication.  */
   auth_string[AUTH_KEY_LENGTH] = '\0';
 
   send_to_emacs (s, "-auth ");
@@ -1188,7 +1178,7 @@ handle_sigcont (int signalnum)
    going to sleep.  Normally the suspend is initiated by Emacs via
    server-handle-suspend-tty, but if the server gets out of sync with
    reality, we may get a SIGTSTP on C-z.  Handling this signal and
-   notifying Emacs about it should get things under control again. */
+   notifying Emacs about it should get things under control again.  */
 
 static void
 handle_sigtstp (int signalnum)
@@ -1240,10 +1230,7 @@ set_local_socket (const char *local_socket_name)
   HSOCKET s;
   struct sockaddr_un server;
 
-  /*
-   * Open up an AF_UNIX socket in this person's home directory
-   */
-
+  /* Open up an AF_UNIX socket in this person's home directory.  */
   if ((s = socket (AF_UNIX, SOCK_STREAM, 0)) < 0)
     {
       message (TRUE, "%s: socket: %s\n", progname, strerror (errno));
@@ -1278,7 +1265,7 @@ set_local_socket (const char *local_socket_name)
             if (n > 0)
               {
 		tmpdir = tmpdir_storage = xmalloc (n);
-                confstr (_CS_DARWIN_USER_TEMP_DIR, tmpdir, n);
+		confstr (_CS_DARWIN_USER_TEMP_DIR, tmpdir_storage, n);
               }
             else
 #endif
@@ -1477,10 +1464,9 @@ w32_find_emacs_process (HWND hWnd, LPARAM lParam)
   return FALSE;
 }
 
-/*
- * Search for a window of class "Emacs" and owned by a process with
- * process id = emacs_pid.  If found, allow it to grab the focus.
- */
+/* Search for a window of class "Emacs" and owned by a process with
+   process id = emacs_pid.  If found, allow it to grab the focus.  */
+
 void
 w32_give_focus (void)
 {
@@ -1862,22 +1848,3 @@ main (int argc, char **argv)
 }
 
 #endif /* HAVE_SOCKETS && HAVE_INET_SOCKETS */
-
-
-#ifndef HAVE_STRERROR
-char *
-strerror (errnum)
-     int errnum;
-{
-  extern char *sys_errlist[];
-  extern int sys_nerr;
-
-  if (errnum >= 0 && errnum < sys_nerr)
-    return sys_errlist[errnum];
-  return (char *) "Unknown error";
-}
-
-#endif /* ! HAVE_STRERROR */
-
-
-/* emacsclient.c ends here */

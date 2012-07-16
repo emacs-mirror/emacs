@@ -40,9 +40,9 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
-(defstruct url-future callback errorback status value)
+(cl-defstruct url-future callback errorback status value)
 
 (defmacro url-future-done-p (url-future)
   `(url-future-status ,url-future))

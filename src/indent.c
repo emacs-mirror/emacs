@@ -22,8 +22,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <setjmp.h>
 
 #include "lisp.h"
-#include "buffer.h"
 #include "character.h"
+#include "buffer.h"
 #include "category.h"
 #include "composite.h"
 #include "indent.h"
@@ -1817,7 +1817,7 @@ static struct position val_vmotion;
 struct position *
 vmotion (register ptrdiff_t from, register EMACS_INT vtarget, struct window *w)
 {
-  ptrdiff_t hscroll = XINT (w->hscroll);
+  ptrdiff_t hscroll = w->hscroll;
   struct position pos;
   /* vpos is cumulative vertical position, changed as from is changed */
   register EMACS_INT vpos = 0;

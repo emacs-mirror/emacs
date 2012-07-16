@@ -25,8 +25,7 @@
 
 ;;; Code:
 
-(eval-when-compile
-  (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 (require 'gamegrid)
 
@@ -195,7 +194,7 @@ and then start moving it leftwards.")
 
 (defun snake-display-options ()
   (let ((options (make-vector 256 nil)))
-    (loop for c from 0 to 255 do
+    (dotimes (c 256)
       (aset options c
 	    (cond ((= c snake-blank)
 		   snake-blank-options)
@@ -214,7 +213,7 @@ and then start moving it leftwards.")
 (defun snake-update-score ()
   (let* ((string (format "Score:  %05d" snake-score))
 	 (len (length string)))
-    (loop for x from 0 to (1- len) do
+    (dotimes (x len)
       (gamegrid-set-cell (+ snake-score-x x)
 			 snake-score-y
 			 (aref string x)))))
@@ -224,12 +223,12 @@ and then start moving it leftwards.")
 			snake-buffer-height
 			snake-space)
   (let ((buffer-read-only nil))
-    (loop for y from 0 to (1- snake-height) do
-	  (loop for x from 0 to (1- snake-width) do
-		(gamegrid-set-cell x y snake-border)))
-    (loop for y from 1 to (- snake-height 2) do
-	  (loop for x from 1 to (- snake-width 2) do
-		(gamegrid-set-cell x y snake-blank)))))
+    (dotimes (y snake-height)
+      (dotimes (x snake-width)
+        (gamegrid-set-cell x y snake-border)))
+    (cl-loop for y from 1 to (- snake-height 2) do
+             (cl-loop for x from 1 to (- snake-width 2) do
+                      (gamegrid-set-cell x y snake-blank)))))
 
 (defun snake-reset-game ()
   (gamegrid-kill-timer)
@@ -248,8 +247,8 @@ and then start moving it leftwards.")
     (dotimes (i snake-length)
       (gamegrid-set-cell x y snake-snake)
       (setq snake-positions (cons (vector x y) snake-positions))
-      (incf x snake-velocity-x)
-      (incf y snake-velocity-y)))
+      (cl-incf x snake-velocity-x)
+      (cl-incf y snake-velocity-y)))
   (snake-update-score))
 
 (defun snake-update-game (snake-buffer)
@@ -267,8 +266,8 @@ Argument SNAKE-BUFFER is the name of the buffer."
 	      (= c snake-snake))
 	  (snake-end-game)
 	(cond ((= c snake-dot)
-	       (incf snake-length)
-	       (incf snake-score)
+	       (cl-incf snake-length)
+	       (cl-incf snake-score)
 	       (snake-update-score))
 	      (t
 	       (let* ((last-cons (nthcdr (- snake-length 2)
@@ -280,7 +279,7 @@ Argument SNAKE-BUFFER is the name of the buffer."
 				    (if (= (% snake-cycle 5) 0)
 					snake-dot
 				      snake-blank))
-		 (incf snake-cycle)
+		 (cl-incf snake-cycle)
 		 (setcdr last-cons nil))))
 	(gamegrid-set-cell x y snake-snake)
 	(setq snake-positions

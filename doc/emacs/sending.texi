@@ -74,8 +74,8 @@ CC: mongol.soldier@@example.net, rms@@gnu.org
 Subject: Re: What is best in life?
 From: conan@@example.org
 --text follows this line--
-To crush your enemies, see them driven before you, and to hear the
-lamentation of their women.
+To crush your enemies, see them driven before you, and to
+hear the lamentation of their women.
 @end example
 
 @noindent

@@ -4005,73 +4005,68 @@ TEXT is the buffer's name, TOKEN and INDENT are unused."
 ;;; Color loading section.
 ;;
 (defface speedbar-button-face '((((class color) (background light))
-				 (:foreground "green4"))
+				 :foreground "green4")
 				(((class color) (background dark))
-				 (:foreground "green3")))
-  "Face used for +/- buttons."
+				 :foreground "green3"))
+  "Speedbar face for +/- buttons."
   :group 'speedbar-faces)
 
 (defface speedbar-file-face '((((class color) (background light))
-			       (:foreground "cyan4"))
+			       :foreground "cyan4")
 			      (((class color) (background dark))
-			       (:foreground "cyan"))
-			      (t (:bold t)))
-  "Face used for file names."
+			       :foreground "cyan")
+			      (t :weight bold))
+  "Speedbar face for file names."
   :group 'speedbar-faces)
 
 (defface speedbar-directory-face '((((class color) (background light))
-				    (:foreground "blue4"))
+				    :foreground "blue4")
 				   (((class color) (background dark))
-				    (:foreground "light blue")))
-  "Face used for directory names."
+				    :foreground "light blue"))
+  "Speedbar face for directory names."
   :group 'speedbar-faces)
+
 (defface speedbar-tag-face '((((class color) (background light))
-			      (:foreground "brown"))
+			      :foreground "brown")
 			     (((class color) (background dark))
-			      (:foreground "yellow")))
-  "Face used for displaying tags."
+			      :foreground "yellow"))
+  "Speedbar face for tags."
   :group 'speedbar-faces)
 
 (defface speedbar-selected-face '((((class color) (background light))
-				    (:foreground "red" :underline t))
+				   :foreground "red" :underline t)
 				  (((class color) (background dark))
-				   (:foreground "red" :underline t))
-				  (t (:underline t)))
-  "Face used to underline the file in the active window."
+				   :foreground "red" :underline t)
+				  (t :underline t))
+  "Speedbar face for the file in the active window."
   :group 'speedbar-faces)
 
 (defface speedbar-highlight-face '((((class color) (background light))
-				    (:background "green"))
+				    :background "green")
 				   (((class color) (background dark))
-				    (:background "sea green"))
-				   (((class grayscale monochrome)
-				     (background light))
-				    (:background "black"))
-				   (((class grayscale monochrome)
-				     (background dark))
-				    (:background "white")))
-  "Face used for highlighting buttons with the mouse."
+				    :background "sea green"))
+  "Speedbar face for highlighting buttons with the mouse."
   :group 'speedbar-faces)
 
 (defface speedbar-separator-face '((((class color) (background light))
-				    (:background "blue"
-				     :foreground "white"
-				     :overline "gray"))
+				    :background "blue"
+				    :foreground "white"
+				    :overline "gray")
 				   (((class color) (background dark))
-				    (:background "blue"
-				     :foreground "white"
-				     :overline "gray"))
+				    :background "blue"
+				    :foreground "white"
+				    :overline "gray")
 				   (((class grayscale monochrome)
 				     (background light))
-				    (:background "black"
-				     :foreground "white"
-				     :overline "white"))
+				    :background "black"
+				    :foreground "white"
+				    :overline "white")
 				   (((class grayscale monochrome)
 				     (background dark))
-				    (:background "white"
-				     :foreground "black"
-				     :overline "black")))
-  "Face used for separator labels in a display."
+				    :background "white"
+				    :foreground "black"
+				    :overline "black"))
+  "Speedbar face for separator labels in a display."
   :group 'speedbar-faces)
 
 ;; some edebug hooks

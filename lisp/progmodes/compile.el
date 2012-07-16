@@ -30,7 +30,7 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 (require 'tool-bar)
 (require 'comint)
 
@@ -791,7 +791,7 @@ info, are considered errors."
          3)))
   (setq compilation-skip-threshold level)
   (message "Skipping %s"
-           (case compilation-skip-threshold
+           (pcase compilation-skip-threshold
              (0 "Nothing")
              (1 "Info messages")
              (2 "Warnings and info"))))
@@ -826,7 +826,7 @@ from a different message."
 ;; modified using the same *compilation* buffer. this necessitates
 ;; re-parsing markers.
 
-;; (defstruct (compilation--loc
+;; (cl-defstruct (compilation--loc
 ;;             (:constructor nil)
 ;;             (:copier nil)
 ;;             (:constructor compilation--make-loc
@@ -875,7 +875,7 @@ from a different message."
 ;; These are the value of the `compilation-message' text-properties in the
 ;; compilation buffer.
 
-(defstruct (compilation--message
+(cl-defstruct (compilation--message
             (:constructor nil)
             (:copier nil)
             ;; (:type list)                ;Old representation.
@@ -1212,7 +1212,7 @@ FMTS is a list of format specs for transforming the file name.
   (goto-char end)
   (unless (bolp)
     ;; We generally don't like to parse partial lines.
-    (assert (eobp))
+    (cl-assert (eobp))
     (when (let ((proc (get-buffer-process (current-buffer))))
             (and proc (memq (process-status proc) '(run open))))
       (setq end (line-beginning-position))))
@@ -2415,7 +2415,7 @@ region and the first line of the next region."
     (push fs compilation-gcpro)
     (let ((loc (compilation-assq (or line 1) (cdr fs))))
       (setq loc (compilation-assq col loc))
-      (assert (null (cdr loc)))
+      (cl-assert (null (cdr loc)))
       (setcdr loc (compilation--make-cdrloc line fs marker))
       loc)))
 
@@ -2685,8 +2685,8 @@ The file-structure looks like this:
 (defun compilation--flush-file-structure (file)
   (or (consp file) (setq file (list file)))
   (let ((fs (compilation-get-file-structure file)))
-    (assert (eq fs (gethash file compilation-locs)))
-    (assert (eq fs (gethash (cons (caar fs) (cadr (car fs)))
+    (cl-assert (eq fs (gethash file compilation-locs)))
+    (cl-assert (eq fs (gethash (cons (caar fs) (cadr (car fs)))
                             compilation-locs)))
     (maphash (lambda (k v)
                (if (eq v fs) (remhash k compilation-locs)))

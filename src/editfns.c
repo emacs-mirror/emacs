@@ -52,8 +52,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <verify.h>
 
 #include "intervals.h"
-#include "buffer.h"
 #include "character.h"
+#include "buffer.h"
 #include "coding.h"
 #include "frame.h"
 #include "window.h"
@@ -73,14 +73,12 @@ extern char **environ;
 extern Lisp_Object w32_get_internal_run_time (void);
 #endif
 
-static void time_overflow (void) NO_RETURN;
-static Lisp_Object format_time_string (char const *, ptrdiff_t, Lisp_Object,
-				       int, time_t *, struct tm *);
+static Lisp_Object format_time_string (char const *, ptrdiff_t, EMACS_TIME,
+				       int, struct tm *);
 static int tm_diff (struct tm *, struct tm *);
 static void update_buffer_properties (ptrdiff_t, ptrdiff_t);
 
 static Lisp_Object Qbuffer_access_fontify_functions;
-static Lisp_Object Fuser_full_name (Lisp_Object);
 
 /* Symbol for the text property used to mark fields.  */
 
@@ -207,15 +205,6 @@ DEFUN ("string-to-char", Fstring_to_char, Sstring_to_char, 1, 1, 0,
     XSETFASTINT (val, 0);
   return val;
 }
-
-static Lisp_Object
-buildmark (ptrdiff_t charpos, ptrdiff_t bytepos)
-{
-  register Lisp_Object mark;
-  mark = Fmake_marker ();
-  set_marker_both (mark, Qnil, charpos, bytepos);
-  return mark;
-}
 
 DEFUN ("point", Fpoint, Spoint, 0, 0, 0,
        doc: /* Return value of point, as an integer.
@@ -231,7 +220,7 @@ DEFUN ("point-marker", Fpoint_marker, Spoint_marker, 0, 0, 0,
        doc: /* Return value of point, as a marker object.  */)
   (void)
 {
-  return buildmark (PT, PT_BYTE);
+  return build_marker (current_buffer, PT, PT_BYTE);
 }
 
 DEFUN ("goto-char", Fgoto_char, Sgoto_char, 1, 1, "NGoto char: ",
@@ -283,9 +272,10 @@ region_limit (int beginningp)
   if (NILP (m))
     error ("The mark is not set now, so there is no region");
 
-  if ((PT < XFASTINT (m)) == (beginningp != 0))
-    m = make_number (PT);
-  return m;
+  /* Clip to the current narrowing (bug#11770).  */
+  return make_number ((PT < XFASTINT (m)) == (beginningp != 0)
+		      ? PT
+		      : clip_to_bounds (BEGV, XFASTINT (m), ZV));
 }
 
 DEFUN ("region-beginning", Fregion_beginning, Sregion_beginning, 0, 0, 0,
@@ -398,14 +388,14 @@ get_pos_property (Lisp_Object position, register Lisp_Object prop, Lisp_Object o
 
       /* First try with room for 40 overlays.  */
       noverlays = 40;
-      overlay_vec = (Lisp_Object *) alloca (noverlays * sizeof (Lisp_Object));
+      overlay_vec = alloca (noverlays * sizeof *overlay_vec);
       noverlays = overlays_around (posn, overlay_vec, noverlays);
 
       /* If there are more than 40,
 	 make enough space for all, and try again.  */
       if (noverlays > 40)
 	{
-	  overlay_vec = (Lisp_Object *) alloca (noverlays * sizeof (Lisp_Object));
+	  overlay_vec = alloca (noverlays * sizeof *overlay_vec);
 	  noverlays = overlays_around (posn, overlay_vec, noverlays);
 	}
       noverlays = sort_overlays (overlay_vec, noverlays, NULL);
@@ -1004,7 +994,7 @@ DEFUN ("point-min-marker", Fpoint_min_marker, Spoint_min_marker, 0, 0, 0,
 This is the beginning, unless narrowing (a buffer restriction) is in effect.  */)
   (void)
 {
-  return buildmark (BEGV, BEGV_BYTE);
+  return build_marker (current_buffer, BEGV, BEGV_BYTE);
 }
 
 DEFUN ("point-max", Fpoint_max, Spoint_max, 0, 0, 0,
@@ -1024,7 +1014,7 @@ This is (1+ (buffer-size)), unless narrowing (a buffer restriction)
 is in effect, in which case it is less.  */)
   (void)
 {
-  return buildmark (ZV, ZV_BYTE);
+  return build_marker (current_buffer, ZV, ZV_BYTE);
 }
 
 DEFUN ("gap-position", Fgap_position, Sgap_position, 0, 0, 0,
@@ -1331,7 +1321,7 @@ name, or nil if there is no such user.  */)
       Lisp_Object login;
 
       login = Fuser_login_name (make_number (pw->pw_uid));
-      r = (char *) alloca (strlen (p) + SCHARS (login) + 1);
+      r = alloca (strlen (p) + SCHARS (login) + 1);
       memcpy (r, p, q - p);
       r[q - p] = 0;
       strcat (r, SSDATA (login));
@@ -1378,14 +1368,13 @@ DEFUN ("emacs-pid", Femacs_pid, Semacs_pid, 0, 0, 0,
 #endif
 
 /* Report that a time value is out of range for Emacs.  */
-static void
+void
 time_overflow (void)
 {
   error ("Specified time is not representable");
 }
 
-/* Return the upper part of the time T (everything but the bottom 16 bits),
-   making sure that it is representable.  */
+/* Return the upper part of the time T (everything but the bottom 16 bits).  */
 static EMACS_INT
 hi_time (time_t t)
 {
@@ -1413,34 +1402,23 @@ lo_time (time_t t)
 
 DEFUN ("current-time", Fcurrent_time, Scurrent_time, 0, 0, 0,
        doc: /* Return the current time, as the number of seconds since 1970-01-01 00:00:00.
-The time is returned as a list of three integers.  The first has the
-most significant 16 bits of the seconds, while the second has the
-least significant 16 bits.  The third integer gives the microsecond
-count.
-
-The microsecond count is zero on systems that do not provide
-resolution finer than a second.  */)
+The time is returned as a list of integers (HIGH LOW USEC PSEC).
+HIGH has the most significant bits of the seconds, while LOW has the
+least significant 16 bits.  USEC and PSEC are the microsecond and
+picosecond counts.  */)
   (void)
 {
-  EMACS_TIME t;
-
-  EMACS_GET_TIME (t);
-  return list3 (make_number (hi_time (EMACS_SECS (t))),
-		make_number (lo_time (EMACS_SECS (t))),
-		make_number (EMACS_USECS (t)));
+  return make_lisp_time (current_emacs_time ());
 }
 
 DEFUN ("get-internal-run-time", Fget_internal_run_time, Sget_internal_run_time,
        0, 0, 0,
        doc: /* Return the current run time used by Emacs.
-The time is returned as a list of three integers.  The first has the
-most significant 16 bits of the seconds, while the second has the
-least significant 16 bits.  The third integer gives the microsecond
-count.
+The time is returned as a list (HIGH LOW USEC PSEC), using the same
+style as (current-time).
 
 On systems that can't determine the run time, `get-internal-run-time'
-does the same thing as `current-time'.  The microsecond count is zero
-on systems that do not provide resolution finer than a second.  */)
+does the same thing as `current-time'.  */)
   (void)
 {
 #ifdef HAVE_GETRUSAGE
@@ -1460,10 +1438,7 @@ on systems that do not provide resolution finer than a second.  */)
       usecs -= 1000000;
       secs++;
     }
-
-  return list3 (make_number (hi_time (secs)),
-		make_number (lo_time (secs)),
-		make_number (usecs));
+  return make_lisp_time (make_emacs_time (secs, usecs * 1000));
 #else /* ! HAVE_GETRUSAGE  */
 #ifdef WINDOWSNT
   return w32_get_internal_run_time ();
@@ -1474,80 +1449,166 @@ on systems that do not provide resolution finer than a second.  */)
 }
 
 
-/* Make a Lisp list that represents the time T.  */
-Lisp_Object
+/* Make a Lisp list that represents the time T with fraction TAIL.  */
+static Lisp_Object
+make_time_tail (time_t t, Lisp_Object tail)
+{
+  return Fcons (make_number (hi_time (t)),
+		Fcons (make_number (lo_time (t)), tail));
+}
+
+/* Make a Lisp list that represents the system time T.  */
+static Lisp_Object
 make_time (time_t t)
 {
-  return list2 (make_number (hi_time (t)),
-		make_number (lo_time (t)));
+  return make_time_tail (t, Qnil);
+}
+
+/* Make a Lisp list that represents the Emacs time T.  T may be an
+   invalid time, with a slightly negative tv_nsec value such as
+   UNKNOWN_MODTIME_NSECS; in that case, the Lisp list contains a
+   correspondingly negative picosecond count.  */
+Lisp_Object
+make_lisp_time (EMACS_TIME t)
+{
+  int ns = EMACS_NSECS (t);
+  return make_time_tail (EMACS_SECS (t),
+			 list2 (make_number (ns / 1000),
+				make_number (ns % 1000 * 1000)));
+}
+
+/* Decode a Lisp list SPECIFIED_TIME that represents a time.
+   Set *PHIGH, *PLOW, *PUSEC, *PPSEC to its parts; do not check their values.
+   Return nonzero if successful.  */
+static int
+disassemble_lisp_time (Lisp_Object specified_time, Lisp_Object *phigh,
+		       Lisp_Object *plow, Lisp_Object *pusec,
+		       Lisp_Object *ppsec)
+{
+  if (CONSP (specified_time))
+    {
+      Lisp_Object low = XCDR (specified_time);
+      Lisp_Object usec = make_number (0);
+      Lisp_Object psec = make_number (0);
+      if (CONSP (low))
+	{
+	  Lisp_Object low_tail = XCDR (low);
+	  low = XCAR (low);
+	  if (CONSP (low_tail))
+	    {
+	      usec = XCAR (low_tail);
+	      low_tail = XCDR (low_tail);
+	      if (CONSP (low_tail))
+		psec = XCAR (low_tail);
+	    }
+	  else if (!NILP (low_tail))
+	    usec = low_tail;
+	}
+
+      *phigh = XCAR (specified_time);
+      *plow = low;
+      *pusec = usec;
+      *ppsec = psec;
+      return 1;
+    }
+
+  return 0;
+}
+
+/* From the time components HIGH, LOW, USEC and PSEC taken from a Lisp
+   list, generate the corresponding time value.
+
+   If RESULT is not null, store into *RESULT the converted time;
+   this can fail if the converted time does not fit into EMACS_TIME.
+   If *DRESULT is not null, store into *DRESULT the number of
+   seconds since the start of the POSIX Epoch.
+
+   Return nonzero if successful.  */
+int
+decode_time_components (Lisp_Object high, Lisp_Object low, Lisp_Object usec,
+			Lisp_Object psec,
+			EMACS_TIME *result, double *dresult)
+{
+  EMACS_INT hi, lo, us, ps;
+  if (! (INTEGERP (high) && INTEGERP (low)
+	 && INTEGERP (usec) && INTEGERP (psec)))
+    return 0;
+  hi = XINT (high);
+  lo = XINT (low);
+  us = XINT (usec);
+  ps = XINT (psec);
+
+  /* Normalize out-of-range lower-order components by carrying
+     each overflow into the next higher-order component.  */
+  us += ps / 1000000 - (ps % 1000000 < 0);
+  lo += us / 1000000 - (us % 1000000 < 0);
+  hi += lo >> 16;
+  ps = ps % 1000000 + 1000000 * (ps % 1000000 < 0);
+  us = us % 1000000 + 1000000 * (us % 1000000 < 0);
+  lo &= (1 << 16) - 1;
+
+  if (result)
+    {
+      if ((TYPE_SIGNED (time_t) ? TIME_T_MIN >> 16 <= hi : 0 <= hi)
+	  && hi <= TIME_T_MAX >> 16)
+	{
+	  /* Return the greatest representable time that is not greater
+	     than the requested time.  */
+	  time_t sec = hi;
+	  *result = make_emacs_time ((sec << 16) + lo, us * 1000 + ps / 1000);
+	}
+      else
+	{
+	  /* Overflow in the highest-order component.  */
+	  return 0;
+	}
+    }
+
+  if (dresult)
+    *dresult = (us * 1e6 + ps) / 1e12 + lo + hi * 65536.0;
+
+  return 1;
 }
 
 /* Decode a Lisp list SPECIFIED_TIME that represents a time.
    If SPECIFIED_TIME is nil, use the current time.
-   Set *RESULT to seconds since the Epoch.
-   If USEC is not null, set *USEC to the microseconds component.
-   Return nonzero if successful.  */
-int
-lisp_time_argument (Lisp_Object specified_time, time_t *result, int *usec)
-{
-  if (NILP (specified_time))
-    {
-      if (usec)
-        {
-          EMACS_TIME t;
 
-          EMACS_GET_TIME (t);
-          *usec = EMACS_USECS (t);
-          *result = EMACS_SECS (t);
-          return 1;
-        }
-      else
-        return time (result) != -1;
-    }
+   Round the time down to the nearest EMACS_TIME value.
+   Return seconds since the Epoch.
+   Signal an error if unsuccessful.  */
+EMACS_TIME
+lisp_time_argument (Lisp_Object specified_time)
+{
+  EMACS_TIME t;
+  if (NILP (specified_time))
+    t = current_emacs_time ();
   else
     {
-      Lisp_Object high, low;
-      EMACS_INT hi;
-      high = Fcar (specified_time);
-      CHECK_NUMBER (high);
-      low = Fcdr (specified_time);
-      if (CONSP (low))
-        {
-          if (usec)
-            {
-              Lisp_Object usec_l = Fcdr (low);
-              if (CONSP (usec_l))
-                usec_l = Fcar (usec_l);
-              if (NILP (usec_l))
-                *usec = 0;
-              else
-                {
-                  CHECK_NUMBER (usec_l);
-		  if (! (0 <= XINT (usec_l) && XINT (usec_l) < 1000000))
-		    return 0;
-                  *usec = XINT (usec_l);
-                }
-            }
-          low = Fcar (low);
-        }
-      else if (usec)
-        *usec = 0;
-      CHECK_NUMBER (low);
-      hi = XINT (high);
+      Lisp_Object high, low, usec, psec;
+      if (! (disassemble_lisp_time (specified_time, &high, &low, &usec, &psec)
+	     && decode_time_components (high, low, usec, psec, &t, 0)))
+	error ("Invalid time specification");
+    }
+  return t;
+}
 
-      /* Check for overflow, helping the compiler for common cases
-	 where no runtime check is needed, and taking care not to
-	 convert negative numbers to unsigned before comparing them.  */
-      if (! ((TYPE_SIGNED (time_t)
-	      ? (TIME_T_MIN >> 16 <= MOST_NEGATIVE_FIXNUM
-		 || TIME_T_MIN >> 16 <= hi)
-	      : 0 <= hi)
-	     && (MOST_POSITIVE_FIXNUM <= TIME_T_MAX >> 16
-		 || hi <= TIME_T_MAX >> 16)))
-	return 0;
-
-      *result = (hi << 16) + (XINT (low) & 0xffff);
-      return 1;
+/* Like lisp_time_argument, except decode only the seconds part,
+   do not allow out-of-range time stamps, do not check the subseconds part,
+   and always round down.  */
+static time_t
+lisp_seconds_argument (Lisp_Object specified_time)
+{
+  if (NILP (specified_time))
+    return time (NULL);
+  else
+    {
+      Lisp_Object high, low, usec, psec;
+      EMACS_TIME t;
+      if (! (disassemble_lisp_time (specified_time, &high, &low, &usec, &psec)
+	     && decode_time_components (high, low, make_number (0),
+					make_number (0), &t, 0)))
+	error ("Invalid time specification");
+      return EMACS_SECS (t);
     }
 }
 
@@ -1555,22 +1616,30 @@ DEFUN ("float-time", Ffloat_time, Sfloat_time, 0, 1, 0,
        doc: /* Return the current time, as a float number of seconds since the epoch.
 If SPECIFIED-TIME is given, it is the time to convert to float
 instead of the current time.  The argument should have the form
-(HIGH LOW) or (HIGH LOW USEC). Thus, you can use times obtained from
-`current-time' and from `file-attributes'.  SPECIFIED-TIME can also
-have the form (HIGH . LOW), but this is considered obsolete.
+(HIGH LOW) or (HIGH LOW USEC) or (HIGH LOW USEC PSEC).  Thus,
+you can use times from `current-time' and from `file-attributes'.
+SPECIFIED-TIME can also have the form (HIGH . LOW), but this is
+considered obsolete.
 
 WARNING: Since the result is floating point, it may not be exact.
 If precise time stamps are required, use either `current-time',
 or (if you need time as a string) `format-time-string'.  */)
   (Lisp_Object specified_time)
 {
-  time_t sec;
-  int usec;
-
-  if (! lisp_time_argument (specified_time, &sec, &usec))
-    error ("Invalid time specification");
-
-  return make_float ((sec * 1e6 + usec) / 1e6);
+  double t;
+  if (NILP (specified_time))
+    {
+      EMACS_TIME now = current_emacs_time ();
+      t = EMACS_SECS (now) + EMACS_NSECS (now) / 1e9;
+    }
+  else
+    {
+      Lisp_Object high, low, usec, psec;
+      if (! (disassemble_lisp_time (specified_time, &high, &low, &usec, &psec)
+	     && decode_time_components (high, low, usec, psec, 0, &t)))
+	error ("Invalid time specification");
+    }
+  return make_float (t);
 }
 
 /* Write information into buffer S of size MAXSIZE, according to the
@@ -1625,7 +1694,7 @@ emacs_nmemftime (char *s, size_t maxsize, const char *format,
 
 DEFUN ("format-time-string", Fformat_time_string, Sformat_time_string, 1, 3, 0,
        doc: /* Use FORMAT-STRING to format the time TIME, or now if omitted.
-TIME is specified as (HIGH LOW . IGNORED), as returned by
+TIME is specified as (HIGH LOW USEC PSEC), as returned by
 `current-time' or `file-attributes'.  The obsolete form (HIGH . LOW)
 is also still accepted.
 The third, optional, argument UNIVERSAL, if non-nil, means describe TIME
@@ -1679,41 +1748,37 @@ For example, to produce full ISO 8601 format, use "%Y-%m-%dT%T%z".
 usage: (format-time-string FORMAT-STRING &optional TIME UNIVERSAL)  */)
   (Lisp_Object format_string, Lisp_Object timeval, Lisp_Object universal)
 {
-  time_t t;
+  EMACS_TIME t = lisp_time_argument (timeval);
   struct tm tm;
 
   CHECK_STRING (format_string);
   format_string = code_convert_string_norecord (format_string,
 						Vlocale_coding_system, 1);
   return format_time_string (SSDATA (format_string), SBYTES (format_string),
-			     timeval, ! NILP (universal), &t, &tm);
+			     t, ! NILP (universal), &tm);
 }
 
 static Lisp_Object
 format_time_string (char const *format, ptrdiff_t formatlen,
-		    Lisp_Object timeval, int ut, time_t *tval, struct tm *tmp)
+		    EMACS_TIME t, int ut, struct tm *tmp)
 {
   char buffer[4000];
   char *buf = buffer;
   ptrdiff_t size = sizeof buffer;
   size_t len;
   Lisp_Object bufstring;
-  int usec;
-  int ns;
+  int ns = EMACS_NSECS (t);
   struct tm *tm;
   USE_SAFE_ALLOCA;
 
-  if (! lisp_time_argument (timeval, tval, &usec))
-    error ("Invalid time specification");
-  ns = usec * 1000;
-
   while (1)
     {
+      time_t *taddr = emacs_secs_addr (&t);
       BLOCK_INPUT;
 
       synchronize_system_time_locale ();
 
-      tm = ut ? gmtime (tval) : localtime (tval);
+      tm = ut ? gmtime (taddr) : localtime (taddr);
       if (! tm)
 	{
 	  UNBLOCK_INPUT;
@@ -1758,17 +1823,13 @@ east of Greenwich.  (Note that Common Lisp has different meanings for
 DOW and ZONE.)  */)
   (Lisp_Object specified_time)
 {
-  time_t time_spec;
+  time_t time_spec = lisp_seconds_argument (specified_time);
   struct tm save_tm;
   struct tm *decoded_time;
   Lisp_Object list_args[9];
 
-  if (! lisp_time_argument (specified_time, &time_spec, NULL))
-    error ("Invalid time specification");
-
   BLOCK_INPUT;
   decoded_time = localtime (&time_spec);
-  /* Make a copy, in case a signal handler modifies TZ or the struct.  */
   if (decoded_time)
     save_tm = *decoded_time;
   UNBLOCK_INPUT;
@@ -1848,7 +1909,7 @@ usage: (encode-time SECOND MINUTE HOUR DAY MONTH YEAR &optional ZONE)  */)
   tm.tm_isdst = -1;
 
   if (CONSP (zone))
-    zone = Fcar (zone);
+    zone = XCAR (zone);
   if (NILP (zone))
     {
       BLOCK_INPUT;
@@ -1919,13 +1980,10 @@ Thus, you can use times obtained from `current-time' and from
 but this is considered obsolete.  */)
   (Lisp_Object specified_time)
 {
-  time_t value;
+  time_t value = lisp_seconds_argument (specified_time);
   struct tm *tm;
   char buf[sizeof "Mon Apr 30 12:49:17 " + INT_STRLEN_BOUND (int) + 1];
   int len IF_LINT (= 0);
-
-  if (! lisp_time_argument (specified_time, &value, NULL))
-    error ("Invalid time specification");
 
   /* Convert to a string in ctime format, except without the trailing
      newline, and without the 4-digit year limit.  Don't use asctime
@@ -1994,17 +2052,17 @@ in this case, `current-time-zone' returns a list containing nil for
 the data it can't find.  */)
   (Lisp_Object specified_time)
 {
-  time_t value;
+  EMACS_TIME value;
   int offset;
   struct tm *t;
   struct tm localtm;
   Lisp_Object zone_offset, zone_name;
 
   zone_offset = Qnil;
-  zone_name = format_time_string ("%Z", sizeof "%Z" - 1, specified_time,
-				  0, &value, &localtm);
+  value = make_emacs_time (lisp_seconds_argument (specified_time), 0);
+  zone_name = format_time_string ("%Z", sizeof "%Z" - 1, value, 0, &localtm);
   BLOCK_INPUT;
-  t = gmtime (&value);
+  t = gmtime (emacs_secs_addr (&value));
   if (t)
     offset = tm_diff (&localtm, t);
   UNBLOCK_INPUT;
@@ -2018,8 +2076,9 @@ the data it can't find.  */)
 	  int m = offset / 60;
 	  int am = offset < 0 ? - m : m;
 	  char buf[sizeof "+00" + INT_STRLEN_BOUND (int)];
-	  sprintf (buf, "%c%02d%02d", (offset < 0 ? '-' : '+'), am/60, am%60);
-	  zone_name = build_string (buf);
+	  zone_name = make_formatted_string (buf, "%c%02d%02d", 
+					     (offset < 0 ? '-' : '+'),
+					     am / 60, am % 60);
 	}
     }
 
@@ -2106,8 +2165,8 @@ set_time_zone_rule (const char *tzstring)
   for (from = environ; *from; from++)
     continue;
   envptrs = from - environ + 2;
-  newenv = to = (char **) xmalloc (envptrs * sizeof (char *)
-				   + (tzstring ? strlen (tzstring) + 4 : 0));
+  newenv = to = xmalloc (envptrs * sizeof *newenv
+			 + (tzstring ? strlen (tzstring) + 4 : 0));
 
   /* Add TZSTRING to the end of environ, as a value for TZ.  */
   if (tzstring)
@@ -3241,8 +3300,8 @@ save_restriction_save (void)
     {
       Lisp_Object beg, end;
 
-      beg = buildmark (BEGV, BEGV_BYTE);
-      end = buildmark (ZV, ZV_BYTE);
+      beg = build_marker (current_buffer, BEGV, BEGV_BYTE);
+      end = build_marker (current_buffer, ZV, ZV_BYTE);
 
       /* END must move forward if text is inserted at its exact location.  */
       XMARKER (end)->insertion_type = 1;
@@ -3424,15 +3483,11 @@ usage: (message-box FORMAT-STRING &rest ARGS)  */)
       }
 #endif /* HAVE_MENUS */
       /* Copy the data so that it won't move when we GC.  */
-      if (! message_text)
-	{
-	  message_text = (char *)xmalloc (80);
-	  message_length = 80;
-	}
       if (SBYTES (val) > message_length)
 	{
-	  message_text = (char *) xrealloc (message_text, SBYTES (val));
-	  message_length = SBYTES (val);
+	  ptrdiff_t new_length = SBYTES (val) + 80;
+	  message_text = xrealloc (message_text, new_length);
+	  message_length = new_length;
 	}
       memcpy (message_text, SDATA (val), SBYTES (val));
       message2 (message_text, SBYTES (val),

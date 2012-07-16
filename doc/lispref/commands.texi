@@ -1716,6 +1716,38 @@ To test the signal handler, you can make Emacs send a signal to itself:
 @smallexample
 (signal-process (emacs-pid) 'sigusr1)
 @end smallexample
+
+@cindex @code{language-change} event
+@item language-change
+This kind of event is generated on MS-Windows when the input language
+has changed.  This typically means that the keyboard keys will send to
+Emacs characters from a different language.  The generated event has
+this form:
+
+@smallexample
+(language-change @var{frame} @var{codepage} @var{language-id})
+@end smallexample
+
+@noindent
+Here @var{frame} is the frame which was current when the input
+language changed; @var{codepage} is the new codepage number; and
+@var{language-id} is the numerical ID of the new input language.  The
+coding-system (@pxref{Coding Systems}) that corresponds to
+@var{codepage} is @code{cp@var{codepage}} or
+@code{windows-@var{codepage}}.  To convert @var{language-id} to a
+string (e.g., to use it for various language-dependent features, such
+as @code{set-language-environment}), use the
+@code{w32-get-locale-info} function, like this:
+
+@smallexample
+;; Get the abbreviated language name, such as "ENU" for English
+(w32-get-locale-info language-id)
+;; Get the full English name of the language,
+;; such as "English (United States)"
+(w32-get-locale-info language-id 4097)
+;; Get the full localized name of the language
+(w32-get-locale-info language-id t)
+@end smallexample
 @end table
 
   If one of these events arrives in the middle of a key sequence---that

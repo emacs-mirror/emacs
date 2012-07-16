@@ -32,7 +32,7 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl) (require 'vc))
+(eval-when-compile (require 'vc))
 
 (defgroup vc-mtn nil
   "VC Monotone (mtn) backend."
@@ -167,10 +167,10 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
       (if (string-match (car rule) branch)
 	  (setq branch (replace-match (cdr rule) t nil branch))))
     (format "Mtn%c%s"
-	    (case (vc-state file)
-	      ((up-to-date needs-update) ?-)
-	      (added ?@)
-	      (t ?:))
+	    (pcase (vc-state file)
+	      ((or `up-to-date `needs-update) ?-)
+	      (`added ?@)
+	      (_ ?:))
 	    branch)))
 
 (defun vc-mtn-register (files &optional _rev _comment)

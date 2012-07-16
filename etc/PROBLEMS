@@ -255,6 +255,36 @@ result in an endless loop.
 If you need Emacs to be able to recover from closing displays, compile
 it with the Lucid toolkit instead of GTK.
 
+** Emacs crashes when you try to view a file with complex characters.
+For example, the etc/HELLO file (as shown by C-h h).
+The message "symbol lookup error: /usr/bin/emacs: undefined symbol: OTF_open"
+is shown in the terminal from which you launched Emacs.
+This problem only happens when you use a graphical display (ie not
+with -nw) and compiled Emacs with the "libotf" library for complex
+text handling.
+
+This problem occurs because unfortunately there are two libraries
+called "libotf".  One is the library for handling OpenType fonts,
+http://www.m17n.org/libotf/, which is the one that Emacs expects.
+The other is a library for Open Trace Format, and is used by some
+versions of the MPI message passing interface for parallel
+programming.
+
+For example, on RHEL6 GNU/Linux, the OpenMPI rpm provides a version
+of "libotf.so" in /usr/lib/openmpi/lib.  This directory is not
+normally in the ld search path, but if you want to use OpenMPI,
+you must issue the command "module load openmpi".  This adds
+/usr/lib/openmpi/lib to LD_LIBRARY_PATH.  If you then start Emacs from
+the same shell, you will encounter this crash.
+Ref: <URL:https://bugzilla.redhat.com/show_bug.cgi?id=806031>
+
+There is no good solution to this problem if you need to use both
+OpenMPI and Emacs with libotf support.  The best you can do is use a
+wrapper shell script (or function) "emacs" that removes the offending
+element from LD_LIBRARY_PATH before starting emacs proper.
+Or you could recompile Emacs with an -Wl,-rpath option that
+gives the location of the correct libotf.
+
 * General runtime problems
 
 ** Lisp problems
@@ -1854,8 +1884,8 @@ Emacs uses symbolic links to implement file locks.  In a directory
 with +t bit, the directory owner becomes the owner of the symbolic
 link, so that it cannot be removed by anyone else.
 
-If you don't like those useless links, you can let Emacs not to using
-file lock by adding #undef CLASH_DETECTION to config.h.
+If you don't like those useless links, you can customize
+the option `create-lockfiles'.
 
 *** FreeBSD: Getting a Meta key on the console.
 
@@ -3204,50 +3234,6 @@ putting the argument into a temporary variable first, as in
 causes the problem to go away.
 The `contents' field of a Lisp vector is an array of Lisp_Objects,
 so you may see the problem happening with indexed references to that.
-
-** 68000 C compiler problems
-
-Various 68000 compilers have different problems.
-These are some that have been observed.
-
-*** Using value of assignment expression on union type loses.
-This means that  x = y = z;  or  foo (x = z);  does not work
-if x is of type Lisp_Object.
-
-*** "cannot reclaim" error.
-
-This means that an expression is too complicated.  You get the correct
-line number in the error message.  The code must be rewritten with
-simpler expressions.
-
-*** XCONS, XSTRING, etc macros produce incorrect code.
-
-If temacs fails to run at all, this may be the cause.
-Compile this test program and look at the assembler code:
-
-struct foo { char x; unsigned int y : 24; };
-
-lose (arg)
-     struct foo arg;
-{
-  test ((int *) arg.y);
-}
-
-If the code is incorrect, your compiler has this problem.
-In the XCONS, etc., macros in lisp.h you must replace (a).u.val with
-((a).u.val + coercedummy) where coercedummy is declared as int.
-
-This problem will only happen if USE_LISP_UNION_TYPE is manually
-defined in lisp.h.
-
-** C compilers lose on returning unions.
-
-I hear that some C compilers cannot handle returning a union type.
-Most of the functions in GNU Emacs return type Lisp_Object, which is
-defined as a union on some rare architectures.
-
-This problem will only happen if USE_LISP_UNION_TYPE is manually
-defined in lisp.h.
 
 
 This file is part of GNU Emacs.

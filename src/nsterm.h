@@ -89,7 +89,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    }
 
 /* AppKit-side interface */
-- menuDown: sender;
+- menuDown: (id)sender;
 - toolbarClicked: (id)item;
 - toggleToolbar: (id)sender;
 - (void)keyDown: (NSEvent *)theEvent;
@@ -535,7 +535,7 @@ struct ns_display_info
 extern struct ns_display_info *x_display_list;
 
 extern Lisp_Object ns_display_name_list;
-extern struct ns_display_info *ns_display_info_for_name ();
+extern struct ns_display_info *ns_display_info_for_name (Lisp_Object name);
 
 struct ns_display_info *check_x_display_info (Lisp_Object frame);
 FRAME_PTR check_x_frame (Lisp_Object frame);
@@ -697,7 +697,7 @@ struct x_output
   (! (FRAME_HAS_VERTICAL_SCROLL_BARS_ON_LEFT (f)) ? 0 \
    : FRAME_SCROLL_BAR_COLS (f))
 
-extern struct ns_display_info *ns_term_init ();
+extern struct ns_display_info *ns_term_init (Lisp_Object display_name);
 extern void ns_term_shutdown (int sig);
 
 /* constants for text rendering */
@@ -707,8 +707,6 @@ extern void ns_term_shutdown (int sig);
 #define NS_DUMPGLYPH_MOUSEFACE          3
 
 
-EXFUN (Fx_display_grayscale_p, 1);
-EXFUN (Fx_display_planes, 1);
 
 /* In nsfont, called from fontset.c */
 extern void nsfont_make_fontset_for_font (Lisp_Object name,
@@ -727,13 +725,15 @@ extern void ns_clear_frame (struct frame *f);
 extern const char *ns_xlfd_to_fontname (const char *xlfd);
 
 extern void check_ns (void);
-extern Lisp_Object ns_map_event_to_object ();
-extern Lisp_Object ns_string_from_pasteboard ();
-extern void ns_string_to_pasteboard ();
+extern Lisp_Object ns_map_event_to_object (void);
+#ifdef __OBJC__
+extern Lisp_Object ns_string_from_pasteboard (id pb);
+extern void ns_string_to_pasteboard (id pb, Lisp_Object str);
+#endif
 extern Lisp_Object ns_get_local_selection (Lisp_Object selection_name,
                                            Lisp_Object target_type);
-extern void nxatoms_of_nsselect ();
-extern int ns_lisp_to_cursor_type ();
+extern void nxatoms_of_nsselect (void);
+extern int ns_lisp_to_cursor_type (Lisp_Object arg);
 extern Lisp_Object ns_cursor_type_to_lisp (int arg);
 extern Lisp_Object Qnone;
 extern void ns_set_name_as_filename (struct frame *f);
@@ -758,9 +758,9 @@ extern void ns_free_indexed_color (unsigned long idx, struct frame *f);
 /* C access to ObjC functionality */
 extern void  ns_release_object (void *obj);
 extern void  ns_retain_object (void *obj);
-extern void *ns_alloc_autorelease_pool ();
-extern void ns_release_autorelease_pool ();
-extern const char *ns_get_defaults_value ();
+extern void *ns_alloc_autorelease_pool (void);
+extern void ns_release_autorelease_pool (void *);
+extern const char *ns_get_defaults_value (const char *key);
 
 /* in nsmenu */
 extern void update_frame_tool_bar (FRAME_PTR f);
@@ -796,11 +796,14 @@ extern void x_set_tool_bar_lines (struct frame *f,
 extern void x_activate_menubar (struct frame *);
 extern void free_frame_menubar (struct frame *);
 extern void x_free_frame_resources (struct frame *);
+extern void x_destroy_window (struct frame *);
 
 #define NSAPP_DATA2_RUNASSCRIPT 10
 extern void ns_run_ascript (void);
 
-extern void ns_init_paths (void);
+extern const char *ns_etc_directory (void);
+extern const char *ns_exec_path (void);
+extern const char *ns_load_path (void);
 extern void syms_of_nsterm (void);
 extern void syms_of_nsfns (void);
 extern void syms_of_nsmenu (void);
@@ -824,7 +827,8 @@ extern int x_display_pixel_width (struct ns_display_info *);
 
 /* This in nsterm.m */
 extern int ns_select (int nfds, fd_set *readfds, fd_set *writefds,
-                      fd_set *exceptfds, struct timeval *timeout);
+                      fd_set *exceptfds, EMACS_TIME *timeout,
+		      sigset_t *sigmask);
 extern unsigned long ns_get_rgb_color (struct frame *f,
                                        float r, float g, float b, float a);
 extern NSPoint last_mouse_motion_position;

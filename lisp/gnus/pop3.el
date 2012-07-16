@@ -194,10 +194,16 @@ Use streaming commands."
     (unless (memq (process-status process) '(open run))
       (error "pop3 process died"))
     (when total-size
-      (message "pop3 retrieved %dKB (%d%%)"
-	       (truncate (/ (buffer-size) 1000))
-	       (truncate (* (/ (* (buffer-size) 1.0)
-			       total-size) 100))))
+      (let ((size 0))
+	(goto-char (point-min))
+	(while (re-search-forward "^\\+OK.*\n" nil t)
+	  (setq size (+ size (- (point))
+			(if (re-search-forward "^\\.\r?\n" nil 'move)
+			    (match-beginning 0)
+			  (point)))))
+	(message "pop3 retrieved %dKB (%d%%)"
+		 (truncate (/ size 1000))
+		 (truncate (* (/ (* size 1.0) total-size) 100)))))
     (pop3-accept-process-output process))
   start-point)
 

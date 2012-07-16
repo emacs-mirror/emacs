@@ -1,3 +1,63 @@
+2012-07-13  Chong Yidong  <cyd@gnu.org>
+
+	* custom.texi (Examining): Update C-h v message.
+
+	* buffers.texi (Misc Buffer): Document view-read-only.
+
+2012-07-07  Chong Yidong  <cyd@gnu.org>
+
+	* custom.texi (Init File): Index site-lisp (Bug#11435).
+
+2012-07-06  Chong Yidong  <cyd@gnu.org>
+
+	* emacs.texi: Re-order top-level menu to correspond to logical
+	order, to avoid makeinfo warnings.
+
+	* ack.texi (Acknowledgments): Note new python.el.
+
+2012-06-29  Chong Yidong  <cyd@gnu.org>
+
+	* maintaining.texi (Basic VC Editing, VC Pull, Merging):
+	* basic.texi (Erasing, Basic Undo): Fix markup.
+
+2012-06-29  Glenn Morris  <rgm@gnu.org>
+
+	* fixit.texi (Undo): Grammar fixes.  (Bug#11779)
+
+2012-06-29  Michael Witten  <mfwitten@gmail.com>  (tiny change)
+
+	* fixit.texi (Undo): Fix typo.  (Bug#11775)
+
+2012-06-27  Glenn Morris  <rgm@gnu.org>
+
+	* ack.texi (Acknowledgments): Tiny update.
+
+2012-06-21  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in: Rename infodir to buildinfodir throughout.  (Bug#11737)
+
+2012-06-17  Chong Yidong  <cyd@gnu.org>
+
+	* emacs.texi: Remove urlcolor setting.  Update ISBN and edition number.
+
+	* anti.texi:
+	* building.texi:
+	* cmdargs.texi:
+	* custom.texi:
+	* display.texi:
+	* files.texi:
+	* frames.texi:
+	* glossary.texi:
+	* misc.texi:
+	* mule.texi:
+	* programs.texi:
+	* sending.texi:
+	* text.texi: Copyedits to avoid underfull/overfull in 7x9 manual.
+
+2012-06-06  Michael Albinus  <michael.albinus@gmx.de>
+
+	* custom.texi (Directory Variables): Mention enable-remote-dir-locals.
+
 2012-05-28  Glenn Morris  <rgm@gnu.org>
 
 	* ack.texi, building.texi, calendar.texi, custom.texi:
@@ -1248,7 +1308,6 @@
 	* custom.texi (Mouse Buttons):
 	* rmail.texi (Rmail Scrolling):
 	* search.texi (Isearch Scroll):
-
 	* display.texi (Scrolling): Replace scroll-up/down with
 	scroll-up/down-command.  Fix scroll-preserve-screen-position
 	description.  Document scroll-error-top-bottom.
@@ -3067,9 +3126,9 @@
 	* ack.texi (Acknowledgments): General update based on AUTHORS,
 	including removal of some stuff no longer distributed.
 
-2008-12-19  Agustin Martin  <agustin.martin@hispalinux.es>
+2008-12-19  Agustín Martín  <agustin.martin@hispalinux.es>
 
-	* fixit.texi: Mention hunspell
+	* fixit.texi: Mention hunspell.
 
 2008-12-19  Glenn Morris  <rgm@gnu.org>
 

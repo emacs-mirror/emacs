@@ -6,15 +6,16 @@
  */
 
 struct timeval
-  {
-    long tv_sec;	/* seconds */
-    long tv_usec;	/* microseconds */
-  };
+{
+  long		tv_sec;		/* seconds */
+  long		tv_usec;	/* microseconds */
+};
+
 struct timezone
-  {
-    int	tz_minuteswest;	/* minutes west of Greenwich */
-    int	tz_dsttime;	/* type of dst correction */
-  };
+{
+  int		tz_minuteswest;	/* minutes west of Greenwich */
+  int		tz_dsttime;	/* type of dst correction */
+};
 
 void gettimeofday (struct timeval *, struct timezone *);
 

@@ -262,6 +262,7 @@ Here is how to set it from @code{csh}:
 setenv EMACSLOADPATH /home/foo/.emacs.d/lisp:/opt/emacs/lisp
 @end example
 
+@cindex site-lisp directories
   If @env{EMACSLOADPATH} is not set (which is usually the case), Emacs
 initializes @code{load-path} with the following two directories:
 
@@ -513,9 +514,10 @@ the following:
 
 @item Definitions for major or minor modes:
 @code{define-minor-mode}, @code{define-globalized-minor-mode},
-@code{define-generic-mode}, @code{easy-mmode-define-minor-mode},
+@code{define-generic-mode}, @code{define-derived-mode},
+@code{easy-mmode-define-minor-mode},
 @code{easy-mmode-define-global-mode}, @code{define-compilation-mode},
-@code{define-derived-mode}, and @code{define-global-minor-mode}.
+and @code{define-global-minor-mode}.
 
 @item Other definition types:
 @code{defcustom}, @code{defgroup}, @code{defclass}

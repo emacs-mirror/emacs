@@ -1,4 +1,4 @@
-# stdio_h.m4 serial 41
+# stdio_h.m4 serial 42
 dnl Copyright (C) 2007-2012 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -13,7 +13,9 @@ AC_DEFUN([gl_STDIO_H],
   dnl No need to create extra modules for these functions. Everyone who uses
   dnl <stdio.h> likely needs them.
   GNULIB_FSCANF=1
+  gl_MODULE_INDICATOR([fscanf])
   GNULIB_SCANF=1
+  gl_MODULE_INDICATOR([scanf])
   GNULIB_FGETC=1
   GNULIB_GETC=1
   GNULIB_GETCHAR=1

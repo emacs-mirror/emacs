@@ -95,11 +95,12 @@
 (require 'eshell)
 
 ;;;###autoload
-(eshell-defgroup eshell-alias nil
+(progn
+(defgroup eshell-alias nil
   "Command aliases allow for easy definition of alternate commands."
   :tag "Command aliases"
   ;; :link '(info-link "(eshell)Command aliases")
-  :group 'eshell-module)
+  :group 'eshell-module))
 
 (defcustom eshell-aliases-file (expand-file-name "alias" eshell-directory-name)
   "The file in which aliases are kept.

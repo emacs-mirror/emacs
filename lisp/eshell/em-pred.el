@@ -49,13 +49,14 @@
 (eval-when-compile (require 'eshell))
 
 ;;;###autoload
-(eshell-defgroup eshell-pred nil
+(progn
+(defgroup eshell-pred nil
   "This module allows for predicates to be applied to globbing
 patterns (similar to zsh), in addition to string modifiers which can
 be applied either to globbing results, variable references, or just
 ordinary strings."
   :tag "Value modifiers and predicates"
-  :group 'eshell-module)
+  :group 'eshell-module))
 
 ;;; User Variables:
 

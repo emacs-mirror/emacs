@@ -906,7 +906,7 @@ DIARY OF CHANGES
    read_avail_input.
 
    (Fixed.  This was caused by unconditionally including stdin in
-   input_wait_mask in init_process.  The select call in
+   input_wait_mask in init_process_emacs.  The select call in
    wait_reading_process_input always returned immediately, indicating
    that there is pending input from stdin, which nobody read.
 

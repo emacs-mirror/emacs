@@ -364,6 +364,10 @@ Kevin Gallagher rewrote and enhanced the EDT emulation, and wrote
 flow control.
 
 @item
+Fabián E. Gallina rewrote @file{python.el}, the major mode for the
+Python programming language used in Emacs 24.2 onwards.
+
+@item
 Kevin Gallo added multiple-frame support for Windows NT and wrote
 @file{w32-win.el}, support functions for the MS-Windows window system.
 
@@ -710,13 +714,13 @@ headers; @file{hl-line.el}, a minor mode for highlighting the line in
 the current window on which point is; @file{cap-words.el}, a minor mode
 for motion in ``CapitalizedWordIdentifiers''; @file{latin1-disp.el}, a
 package that lets you display ISO 8859 characters on Latin-1 terminals
-by setting up appropriate display tables; @file{python.el}, a major mode
-for the Python programming language; @file{smiley.el}, a facility for
-displaying smiley faces; @file{sym-comp.el}, a library for performing
-mode-dependent symbol completion; @file{benchmark.el} for timing code
-execution; and @file{tool-bar.el}, a mode to control the display of
-the Emacs tool bar.  With Riccardo Murri he wrote @file{vc-bzr.el},
-support for the Bazaar version control system.
+by setting up appropriate display tables; the version of
+@file{python.el} used prior to Emacs 24.2; @file{smiley.el}, a
+facility for displaying smiley faces; @file{sym-comp.el}, a library
+for performing mode-dependent symbol completion; @file{benchmark.el}
+for timing code execution; and @file{tool-bar.el}, a mode to control
+the display of the Emacs tool bar.  With Riccardo Murri he wrote
+@file{vc-bzr.el}, support for the Bazaar version control system.
 
 @item
 Eric Ludlam wrote the Speedbar package; @file{checkdoc.el}, for checking
@@ -831,7 +835,9 @@ diffs; @file{css-mode.el} for Cascading Style Sheets;
 @file{bibtex-style.el} for Bib@TeX{} Style files; @file{mpc.el}, a
 client for the ``Music Player Daemon''; @file{smie.el}, a generic
 indentation engine; and @file{pcase.el}, implementing ML-style pattern
-matching.  He integrated the lexical binding code in Emacs 24.
+matching.  In Emacs 24, he integrated the lexical binding code,
+and cleaned up the CL namespace (making it acceptable to use CL
+functions at runtime).
 
 @item
 Morioka Tomohiko wrote several packages for MIME support in Gnus and

@@ -22,7 +22,7 @@ SHELL = /bin/sh
 srcdir = @srcdir@
 version=@version@
 
-infodir = $(srcdir)/../../info
+buildinfodir = $(srcdir)/../../info
 # Directory with the (customized) texinfo.tex file.
 texinfodir = $(srcdir)/../misc
 
@@ -41,11 +41,11 @@ DVIPS = dvips
 ENVADD = TEXINPUTS="$(srcdir):$(texinfodir):$(TEXINPUTS)" \
          MAKEINFO="$(MAKEINFO) $(MAKEINFO_OPTS)"
 
-mkinfodir = @${MKDIR_P} ${infodir}
+mkinfodir = @${MKDIR_P} ${buildinfodir}
 
 .PHONY: info dvi html pdf ps
 
-info: ${infodir}/eintr$(INFO_EXT)
+info: ${buildinfodir}/eintr$(INFO_EXT)
 
 dvi: emacs-lisp-intro.dvi
 html: emacs-lisp-intro.html
@@ -55,7 +55,7 @@ ps: emacs-lisp-intro.ps
 # The file name eintr must fit within 5 characters, to allow for
 # -NN extensions to fit into DOS 8+3 limits without clashing.
 # Note: "<" is not portable in ordinary make rules.
-${infodir}/eintr$(INFO_EXT): ${srcdir}/emacs-lisp-intro.texi
+${buildinfodir}/eintr$(INFO_EXT): ${srcdir}/emacs-lisp-intro.texi
 	$(mkinfodir)
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ ${srcdir}/emacs-lisp-intro.texi
 
@@ -85,7 +85,7 @@ clean: mostlyclean
 distclean: clean
 
 infoclean:
-	-cd $(infodir) && rm -f eintr$(INFO_EXT) eintr$(INFO_EXT)-[1-9]
+	-cd $(buildinfodir) && rm -f eintr$(INFO_EXT) eintr$(INFO_EXT)-[1-9]
 
 maintainer-clean: distclean infoclean
 
@@ -98,7 +98,8 @@ dist:
 	  ${texinfodir}/texinfo.tex \
 	  ${srcdir}/ChangeLog* ${srcdir}/README emacs-lispintro-${version}/
 	sed -e 's/@sr[c]dir@/./' -e 's/^\(texinfodir *=\).*/\1 ./' \
-	  -e 's/^\(infodir *=\).*/\1 ./' -e 's/^\(clean:.*\)/\1 infoclean/' \
+	  -e 's/^\(buildinfodir *=\).*/\1 ./' \
+	  -e 's/^\(clean:.*\)/\1 infoclean/' \
 	  -e "s/@ver[s]ion@/${version}/" \
 	  ${srcdir}/Makefile.in > emacs-lispintro-${version}/Makefile
 	tar -cf emacs-lispintro-${version}.tar emacs-lispintro-${version}

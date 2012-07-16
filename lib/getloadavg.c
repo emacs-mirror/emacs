@@ -28,7 +28,7 @@
                                 macro that comes with autoconf 2.13 or newer.
                                 If that isn't an option, then just put
                                 AC_CHECK_FUNCS(pstat_getdynamic) in your
-                                configure.in file.
+                                configure.ac file.
    HAVE_LIBPERFSTAT Define this if your system has the
                                 perfstat_cpu_total function in libperfstat (AIX).
    FIXUP_KERNEL_SYMBOL_ADDR()   Adjust address in returned struct nlist.
@@ -80,44 +80,22 @@
    We also #define LDAV_PRIVILEGED if a program will require
    special installation to be able to call getloadavg.  */
 
-/* "configure" defines CONFIGURING_GETLOADAVG to sidestep problems
-   with partially-configured source directories.  */
-
-#ifndef CONFIGURING_GETLOADAVG
-# include <config.h>
-# include <stdbool.h>
-#endif
+#include <config.h>
 
 /* Specification.  */
 #include <stdlib.h>
 
 #include <errno.h>
+#include <stdbool.h>
 #include <stdio.h>
 
 # include <sys/types.h>
 
-/* Both the Emacs and non-Emacs sections want this.  Some
-   configuration files' definitions for the LOAD_AVE_CVT macro (like
-   sparc.h's) use macros like FSCALE, defined here.  */
-# if defined (unix) || defined (__unix)
+# if HAVE_SYS_PARAM_H
 #  include <sys/param.h>
 # endif
 
 # include "intprops.h"
-
-/* The existing Emacs configuration files define a macro called
-   LOAD_AVE_CVT, which accepts a value of type LOAD_AVE_TYPE, and
-   returns the load average multiplied by 100.  What we actually want
-   is a macro called LDAV_CVT, which returns the load average as an
-   unmultiplied double.
-
-   For backwards compatibility, we'll define LDAV_CVT in terms of
-   LOAD_AVE_CVT, but future machine config files should just define
-   LDAV_CVT directly.  */
-
-# if !defined (LDAV_CVT) && defined (LOAD_AVE_CVT)
-#  define LDAV_CVT(n) (LOAD_AVE_CVT (n) / 100.0)
-# endif
 
 # if !defined (BSD) && defined (ultrix)
 /* Ultrix behaves like BSD on Vaxen.  */

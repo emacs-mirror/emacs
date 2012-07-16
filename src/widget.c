@@ -429,25 +429,15 @@ set_frame_size (EmacsFrame ew)
       {
 	/* the tricky things with the sign is to make sure that
 	   -0 is printed -0. */
-	int len;
-	char *tem;
 	sprintf (shell_position, "=%c%d%c%d",
 		 flags & XNegative ? '-' : '+', x < 0 ? -x : x,
 		 flags & YNegative ? '-' : '+', y < 0 ? -y : y);
-	len = strlen (shell_position) + 1;
-	tem = (char *) xmalloc (len);
-	strncpy (tem, shell_position, len);
-	XtVaSetValues (wmshell, XtNgeometry, tem, NULL);
+	XtVaSetValues (wmshell, XtNgeometry, xstrdup (shell_position), NULL);
       }
     else if (flags & (WidthValue | HeightValue))
       {
-	int len;
-	char *tem;
 	sprintf (shell_position, "=%dx%d", pixel_width, pixel_height);
-	len = strlen (shell_position) + 1;
-	tem = (char *) xmalloc (len);
-	strncpy (tem, shell_position, len);
-	XtVaSetValues (wmshell, XtNgeometry, tem, NULL);
+	XtVaSetValues (wmshell, XtNgeometry, xstrdup (shell_position), NULL);
       }
 
     /* If the geometry spec we're using has W/H components, mark the size

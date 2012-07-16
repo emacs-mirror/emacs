@@ -22,12 +22,12 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <setjmp.h>
 
 #include "lisp.h"
+#include "character.h"
 #include "buffer.h"
 #include "commands.h"
 #include "keyboard.h"
 #include "window.h"
 #include "keymap.h"
-#include "character.h"
 
 Lisp_Object Qminus, Qplus;
 Lisp_Object Qcall_interactively;
@@ -205,7 +205,7 @@ fix_command (Lisp_Object input, Lisp_Object values)
 	      if (CONSP (elt))
 		{
 		  Lisp_Object presflag, carelt;
-		  carelt = Fcar (elt);
+		  carelt = XCAR (elt);
 		  /* If it is (if X Y), look at Y.  */
 		  if (EQ (carelt, Qif)
 		      && EQ (Fnthcdr (make_number (3), elt), Qnil))
@@ -331,7 +331,7 @@ invoke it.  If KEYS is omitted or nil, the return value of
     {
       /* Make a copy of string so that if a GC relocates specs,
 	 `string' will still be valid.  */
-      string = (char *) alloca (SBYTES (specs) + 1);
+      string = alloca (SBYTES (specs) + 1);
       memcpy (string, SSDATA (specs), SBYTES (specs) + 1);
     }
   else
@@ -469,9 +469,9 @@ invoke it.  If KEYS is omitted or nil, the return value of
       < nargs)
     memory_full (SIZE_MAX);
 
-  args = (Lisp_Object *) alloca (nargs * sizeof (Lisp_Object));
-  visargs = (Lisp_Object *) alloca (nargs * sizeof (Lisp_Object));
-  varies = (signed char *) alloca (nargs);
+  args = alloca (nargs * sizeof *args);
+  visargs = alloca (nargs * sizeof *visargs);
+  varies = alloca (nargs * sizeof *varies);
 
   for (i = 0; i < nargs; i++)
     {

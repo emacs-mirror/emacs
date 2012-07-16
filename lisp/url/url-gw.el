@@ -22,7 +22,6 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
 (require 'url-vars)
 
 ;; Fixme: support SSH explicitly or via a url-gateway-rlogin-program?
@@ -233,8 +232,8 @@ Might do a non-blocking connection; use `process-status' to check."
 	  ;; right coding systems in both Emacs and XEmacs.
 	  (let ((coding-system-for-read 'binary)
 		(coding-system-for-write 'binary))
-	    (setq conn (case gw-method
-			 ((tls ssl native)
+	    (setq conn (pcase gw-method
+			 ((or `tls `ssl `native)
 			  (if (eq gw-method 'native)
 			      (setq gw-method 'plain))
 			  (open-network-stream
@@ -243,13 +242,13 @@ Might do a non-blocking connection; use `process-status' to check."
 			   ;; Use non-blocking socket if we can.
 			   :nowait (featurep 'make-network-process
 					     '(:nowait t))))
-			 (socks
+			 (`socks
 			  (socks-open-network-stream name buffer host service))
-			 (telnet
+			 (`telnet
 			  (url-open-telnet name buffer host service))
-			 (rlogin
+			 (`rlogin
 			  (url-open-rlogin name buffer host service))
-			 (otherwise
+			 (_
 			  (error "Bad setting of url-gateway-method: %s"
 				 url-gateway-method))))))
       conn)))

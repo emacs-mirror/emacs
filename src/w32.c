@@ -318,8 +318,10 @@ is_windows_9x (void)
   return s_b_ret;
 }
 
+static Lisp_Object ltime (ULONGLONG);
+
 /* Get total user and system times for get-internal-run-time.
-   Returns a list of three integers if the times are provided by the OS
+   Returns a list of integers if the times are provided by the OS
    (NT derivatives), otherwise it returns the result of current-time. */
 Lisp_Object
 w32_get_internal_run_time (void)
@@ -331,27 +333,12 @@ w32_get_internal_run_time (void)
       if ((*get_process_times_fn) (proc, &create, &exit, &kernel, &user))
         {
           LARGE_INTEGER user_int, kernel_int, total;
-          int microseconds;
           user_int.LowPart = user.dwLowDateTime;
           user_int.HighPart = user.dwHighDateTime;
           kernel_int.LowPart = kernel.dwLowDateTime;
           kernel_int.HighPart = kernel.dwHighDateTime;
           total.QuadPart = user_int.QuadPart + kernel_int.QuadPart;
-          /* FILETIME is 100 nanosecond increments, Emacs only wants
-             microsecond resolution.  */
-          total.QuadPart /= 10;
-          microseconds = total.QuadPart % 1000000;
-          total.QuadPart /= 1000000;
-
-          /* Sanity check to make sure we can represent the result.  */
-          if (total.HighPart == 0)
-            {
-              int secs = total.LowPart;
-
-              return list3 (make_number ((secs >> 16) & 0xffff),
-                            make_number (secs & 0xffff),
-                            make_number (microseconds));
-            }
+	  return ltime (total.QuadPart);
         }
     }
 
@@ -791,9 +778,8 @@ getwd (char *dir)
     return dir;
   return NULL;
 #else
-  /* Emacs doesn't actually change directory itself, and we want to
-     force our real wd to be where emacs.exe is to avoid unnecessary
-     conflicts when trying to rename or delete directories.  */
+  /* Emacs doesn't actually change directory itself, it stays in the
+     same directory where it was started.  */
   strcpy (dir, startup_dir);
   return dir;
 #endif
@@ -1490,7 +1476,7 @@ w32_get_resource (char *key, LPDWORD lpdwtype)
       lpvalue = NULL;
 
       if (RegQueryValueEx (hrootkey, key, NULL, NULL, NULL, &cbData) == ERROR_SUCCESS
-	  && (lpvalue = (LPBYTE) xmalloc (cbData)) != NULL
+	  && (lpvalue = xmalloc (cbData)) != NULL
 	  && RegQueryValueEx (hrootkey, key, NULL, lpdwtype, lpvalue, &cbData) == ERROR_SUCCESS)
 	{
           RegCloseKey (hrootkey);
@@ -1507,7 +1493,7 @@ w32_get_resource (char *key, LPDWORD lpdwtype)
       lpvalue = NULL;
 
       if (RegQueryValueEx (hrootkey, key, NULL, NULL, NULL, &cbData) == ERROR_SUCCESS
-	  && (lpvalue = (LPBYTE) xmalloc (cbData)) != NULL
+	  && (lpvalue = xmalloc (cbData)) != NULL
 	  && RegQueryValueEx (hrootkey, key, NULL, lpdwtype, lpvalue, &cbData) == ERROR_SUCCESS)
 	{
           RegCloseKey (hrootkey);
@@ -1549,12 +1535,7 @@ init_environment (char ** argv)
 	 read-only filesystem, like CD-ROM or a write-protected floppy.
 	 The only way to be really sure is to actually create a file and
 	 see if it succeeds.  But I think that's too much to ask.  */
-#ifdef _MSC_VER
-      /* MSVC's _access crashes with D_OK.  */
       if (tmp && sys_access (tmp, D_OK) == 0)
-#else
-      if (tmp && _access (tmp, D_OK) == 0)
-#endif
 	{
 	  char * var = alloca (strlen (tmp) + 8);
 	  sprintf (var, "TMPDIR=%s", tmp);
@@ -1794,27 +1775,15 @@ init_environment (char ** argv)
 	memcpy (*envp, "COMSPEC=", 8);
   }
 
-  /* Remember the initial working directory for getwd, then make the
-     real wd be the location of emacs.exe to avoid conflicts when
-     renaming or deleting directories.  (We also don't call chdir when
-     running subprocesses for the same reason.)  */
+  /* Remember the initial working directory for getwd.  */
   if (!GetCurrentDirectory (MAXPATHLEN, startup_dir))
     abort ();
 
   {
-    char *p;
     static char modname[MAX_PATH];
 
     if (!GetModuleFileName (NULL, modname, MAX_PATH))
       abort ();
-    if ((p = strrchr (modname, '\\')) == NULL)
-      abort ();
-    *p = 0;
-
-    SetCurrentDirectory (modname);
-
-    /* Ensure argv[0] has the full path to Emacs.  */
-    *p = '\\';
     argv[0] = modname;
   }
 
@@ -2000,13 +1969,48 @@ gettimeofday (struct timeval *tv, struct timezone *tz)
      changed.  We could fix that by using GetSystemTime and
      GetTimeZoneInformation, but that doesn't seem necessary, since
      Emacs always calls gettimeofday with the 2nd argument NULL (see
-     EMACS_GET_TIME).  */
+     current_emacs_time).  */
   if (tz)
     {
       tz->tz_minuteswest = tb.timezone;	/* minutes west of Greenwich  */
       tz->tz_dsttime = tb.dstflag;	/* type of dst correction  */
     }
 }
+
+/* Emulate fdutimens.  */
+
+/* Set the access and modification time stamps of FD (a.k.a. FILE) to be
+   TIMESPEC[0] and TIMESPEC[1], respectively.
+   FD must be either negative -- in which case it is ignored --
+   or a file descriptor that is open on FILE.
+   If FD is nonnegative, then FILE can be NULL, which means
+   use just futimes instead of utimes.
+   If TIMESPEC is null, FAIL.
+   Return 0 on success, -1 (setting errno) on failure.  */
+
+int
+fdutimens (int fd, char const *file, struct timespec const timespec[2])
+{
+  struct _utimbuf ut;
+
+  if (!timespec)
+    {
+      errno = ENOSYS;
+      return -1;
+    }
+  if (fd < 0 && !file)
+    {
+      errno = EBADF;
+      return -1;
+    }
+  ut.actime = timespec[0].tv_sec;
+  ut.modtime = timespec[1].tv_sec;
+  if (fd >= 0)
+    return _futime (fd, &ut);
+  else
+    return _utime (file, &ut);
+}
+
 
 /* ------------------------------------------------------------------------- */
 /* IO support and wrapper functions for W32 API. */
@@ -2165,7 +2169,7 @@ GetCachedVolumeInformation (char * root_dir)
 	 entry if present.  */
       if (info == NULL)
 	{
-	  info = (volume_info_data *) xmalloc (sizeof (volume_info_data));
+	  info = xmalloc (sizeof (volume_info_data));
 	  add_volume_info (root_dir, info);
 	}
       else
@@ -2645,7 +2649,8 @@ sys_access (const char * path, int mode)
 {
   DWORD attributes;
 
-  /* MSVC implementation doesn't recognize D_OK.  */
+  /* MSVCRT implementation of 'access' doesn't recognize D_OK, and its
+     newer versions blow up when passed D_OK.  */
   path = map_w32_filename (path, NULL);
   if (is_unc_volume (path))
     {
@@ -2657,9 +2662,17 @@ sys_access (const char * path, int mode)
     }
   else if ((attributes = GetFileAttributes (path)) == -1)
     {
-      /* Should try mapping GetLastError to errno; for now just indicate
-	 that path doesn't exist.  */
-      errno = EACCES;
+      DWORD w32err = GetLastError ();
+
+      switch (w32err)
+	{
+	case ERROR_FILE_NOT_FOUND:
+	  errno = ENOENT;
+	  break;
+	default:
+	  errno = EACCES;
+	  break;
+	}
       return -1;
     }
   if ((mode & X_OK) != 0 && !is_exec (path))
@@ -4071,14 +4084,17 @@ restore_privilege (TOKEN_PRIVILEGES *priv)
 }
 
 static Lisp_Object
-ltime (long time_sec, long time_usec)
+ltime (ULONGLONG time_100ns)
 {
-  return list3 (make_number ((time_sec >> 16) & 0xffff),
+  ULONGLONG time_sec = time_100ns / 10000000;
+  int subsec = time_100ns % 10000000;
+  return list4 (make_number (time_sec >> 16),
 		make_number (time_sec & 0xffff),
-		make_number (time_usec));
+		make_number (subsec / 10),
+		make_number (subsec % 10 * 100000));
 }
 
-#define U64_TO_LISP_TIME(time) ltime ((time) / 1000000L, (time) % 1000000L)
+#define U64_TO_LISP_TIME(time) ltime (time)
 
 static int
 process_times (HANDLE h_proc, Lisp_Object *ctime, Lisp_Object *etime,
@@ -4097,11 +4113,9 @@ process_times (HANDLE h_proc, Lisp_Object *ctime, Lisp_Object *etime,
   GetSystemTimeAsFileTime (&ft_current);
 
   FILETIME_TO_U64 (tem1, ft_kernel);
-  tem1 /= 10L;
   *stime = U64_TO_LISP_TIME (tem1);
 
   FILETIME_TO_U64 (tem2, ft_user);
-  tem2 /= 10L;
   *utime = U64_TO_LISP_TIME (tem2);
 
   tem3 = tem1 + tem2;
@@ -4110,13 +4124,13 @@ process_times (HANDLE h_proc, Lisp_Object *ctime, Lisp_Object *etime,
   FILETIME_TO_U64 (tem, ft_creation);
   /* Process no 4 (System) returns zero creation time.  */
   if (tem)
-    tem = (tem - utc_base) / 10L;
+    tem -= utc_base;
   *ctime = U64_TO_LISP_TIME (tem);
 
   if (tem)
     {
       FILETIME_TO_U64 (tem3, ft_current);
-      tem = (tem3 - utc_base) / 10L - tem;
+      tem = (tem3 - utc_base) - tem;
     }
   *etime = U64_TO_LISP_TIME (tem);
 
@@ -6275,7 +6289,7 @@ emacs_gnutls_pull (gnutls_transport_ptr_t p, void* buf, size_t sz)
 {
   int n, sc, err;
   SELECT_TYPE fdset;
-  EMACS_TIME timeout;
+  struct timeval timeout;
   struct Lisp_Process *process = (struct Lisp_Process *)p;
   int fd = process->infd;
 
@@ -6291,13 +6305,14 @@ emacs_gnutls_pull (gnutls_transport_ptr_t p, void* buf, size_t sz)
       if (err == EWOULDBLOCK)
         {
           /* Set a small timeout.  */
-          EMACS_SET_SECS_USECS (timeout, 1, 0);
+	  timeout.tv_sec = 1;
+	  timeout.tv_usec = 0;
           FD_ZERO (&fdset);
           FD_SET ((int)fd, &fdset);
 
           /* Use select with the timeout to poll the selector.  */
           sc = select (fd + 1, &fdset, (SELECT_TYPE *)0, (SELECT_TYPE *)0,
-                       &timeout);
+                       &timeout, NULL);
 
           if (sc > 0)
             continue;  /* Try again.  */

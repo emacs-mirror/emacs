@@ -35,8 +35,8 @@ by Hallvard:
 #include <config.h>
 #include <setjmp.h>
 #include "lisp.h"
-#include "buffer.h"
 #include "character.h"
+#include "buffer.h"
 #include "syntax.h"
 #include "window.h"
 
@@ -54,25 +54,33 @@ by Hallvard:
 /* #define BYTE_CODE_SAFE */
 /* #define BYTE_CODE_METER */
 
+/* If BYTE_CODE_THREADED is defined, then the interpreter will be
+   indirect threaded, using GCC's computed goto extension.  This code,
+   as currently implemented, is incompatible with BYTE_CODE_SAFE and
+   BYTE_CODE_METER.  */
+#if defined (__GNUC__) && !defined (BYTE_CODE_SAFE) && !defined (BYTE_CODE_METER)
+#define BYTE_CODE_THREADED
+#endif
+
 
 #ifdef BYTE_CODE_METER
 
 Lisp_Object Qbyte_code_meter;
-#define METER_2(code1, code2) \
-  XFASTINT (XVECTOR (XVECTOR (Vbyte_code_meter)->contents[(code1)]) \
-	    ->contents[(code2)])
-
-#define METER_1(code) METER_2 (0, (code))
+#define METER_2(code1, code2) AREF (AREF (Vbyte_code_meter, code1), code2)
+#define METER_1(code) METER_2 (0, code)
 
 #define METER_CODE(last_code, this_code)				\
 {									\
   if (byte_metering_on)							\
     {									\
-      if (METER_1 (this_code) < MOST_POSITIVE_FIXNUM)			\
-        METER_1 (this_code)++;						\
+      if (XFASTINT (METER_1 (this_code)) < MOST_POSITIVE_FIXNUM)	\
+        XSETFASTINT (METER_1 (this_code),				\
+		     XFASTINT (METER_1 (this_code)) + 1);		\
       if (last_code							\
-	  && METER_2 (last_code, this_code) < MOST_POSITIVE_FIXNUM)	\
-        METER_2 (last_code, this_code)++;				\
+	  && (XFASTINT (METER_2 (last_code, this_code))			\
+	      < MOST_POSITIVE_FIXNUM))					\
+        XSETFASTINT (METER_2 (last_code, this_code),			\
+		     XFASTINT (METER_2 (last_code, this_code)) + 1);	\
     }									\
 }
 
@@ -83,158 +91,204 @@ Lisp_Object Qbytecode;
 
 /*  Byte codes: */
 
-#define Bstack_ref 0 /* Actually, Bstack_ref+0 is not implemented: use dup.  */
-#define Bvarref 010
-#define Bvarset 020
-#define Bvarbind 030
-#define Bcall 040
-#define Bunbind 050
+#define BYTE_CODES							\
+DEFINE (Bstack_ref, 0) /* Actually, Bstack_ref+0 is not implemented: use dup.  */ \
+DEFINE (Bstack_ref1, 1)							\
+DEFINE (Bstack_ref2, 2)							\
+DEFINE (Bstack_ref3, 3)							\
+DEFINE (Bstack_ref4, 4)							\
+DEFINE (Bstack_ref5, 5)							\
+DEFINE (Bstack_ref6, 6)							\
+DEFINE (Bstack_ref7, 7)							\
+DEFINE (Bvarref, 010)							\
+DEFINE (Bvarref1, 011)							\
+DEFINE (Bvarref2, 012)							\
+DEFINE (Bvarref3, 013)							\
+DEFINE (Bvarref4, 014)							\
+DEFINE (Bvarref5, 015)							\
+DEFINE (Bvarref6, 016)							\
+DEFINE (Bvarref7, 017)							\
+DEFINE (Bvarset, 020)							\
+DEFINE (Bvarset1, 021)							\
+DEFINE (Bvarset2, 022)							\
+DEFINE (Bvarset3, 023)							\
+DEFINE (Bvarset4, 024)							\
+DEFINE (Bvarset5, 025)							\
+DEFINE (Bvarset6, 026)							\
+DEFINE (Bvarset7, 027)							\
+DEFINE (Bvarbind, 030)							\
+DEFINE (Bvarbind1, 031)							\
+DEFINE (Bvarbind2, 032)							\
+DEFINE (Bvarbind3, 033)							\
+DEFINE (Bvarbind4, 034)							\
+DEFINE (Bvarbind5, 035)							\
+DEFINE (Bvarbind6, 036)							\
+DEFINE (Bvarbind7, 037)							\
+DEFINE (Bcall, 040)							\
+DEFINE (Bcall1, 041)							\
+DEFINE (Bcall2, 042)							\
+DEFINE (Bcall3, 043)							\
+DEFINE (Bcall4, 044)							\
+DEFINE (Bcall5, 045)							\
+DEFINE (Bcall6, 046)							\
+DEFINE (Bcall7, 047)							\
+DEFINE (Bunbind, 050)							\
+DEFINE (Bunbind1, 051)							\
+DEFINE (Bunbind2, 052)							\
+DEFINE (Bunbind3, 053)							\
+DEFINE (Bunbind4, 054)							\
+DEFINE (Bunbind5, 055)							\
+DEFINE (Bunbind6, 056)							\
+DEFINE (Bunbind7, 057)							\
+									\
+DEFINE (Bnth, 070)							\
+DEFINE (Bsymbolp, 071)							\
+DEFINE (Bconsp, 072)							\
+DEFINE (Bstringp, 073)							\
+DEFINE (Blistp, 074)							\
+DEFINE (Beq, 075)							\
+DEFINE (Bmemq, 076)							\
+DEFINE (Bnot, 077)							\
+DEFINE (Bcar, 0100)							\
+DEFINE (Bcdr, 0101)							\
+DEFINE (Bcons, 0102)							\
+DEFINE (Blist1, 0103)							\
+DEFINE (Blist2, 0104)							\
+DEFINE (Blist3, 0105)							\
+DEFINE (Blist4, 0106)							\
+DEFINE (Blength, 0107)							\
+DEFINE (Baref, 0110)							\
+DEFINE (Baset, 0111)							\
+DEFINE (Bsymbol_value, 0112)						\
+DEFINE (Bsymbol_function, 0113)						\
+DEFINE (Bset, 0114)							\
+DEFINE (Bfset, 0115)							\
+DEFINE (Bget, 0116)							\
+DEFINE (Bsubstring, 0117)						\
+DEFINE (Bconcat2, 0120)							\
+DEFINE (Bconcat3, 0121)							\
+DEFINE (Bconcat4, 0122)							\
+DEFINE (Bsub1, 0123)							\
+DEFINE (Badd1, 0124)							\
+DEFINE (Beqlsign, 0125)							\
+DEFINE (Bgtr, 0126)							\
+DEFINE (Blss, 0127)							\
+DEFINE (Bleq, 0130)							\
+DEFINE (Bgeq, 0131)							\
+DEFINE (Bdiff, 0132)							\
+DEFINE (Bnegate, 0133)							\
+DEFINE (Bplus, 0134)							\
+DEFINE (Bmax, 0135)							\
+DEFINE (Bmin, 0136)							\
+DEFINE (Bmult, 0137)							\
+									\
+DEFINE (Bpoint, 0140)							\
+/* Was Bmark in v17.  */						\
+DEFINE (Bsave_current_buffer, 0141) /* Obsolete.  */			\
+DEFINE (Bgoto_char, 0142)						\
+DEFINE (Binsert, 0143)							\
+DEFINE (Bpoint_max, 0144)						\
+DEFINE (Bpoint_min, 0145)						\
+DEFINE (Bchar_after, 0146)						\
+DEFINE (Bfollowing_char, 0147)						\
+DEFINE (Bpreceding_char, 0150)						\
+DEFINE (Bcurrent_column, 0151)						\
+DEFINE (Bindent_to, 0152)						\
+DEFINE (Beolp, 0154)							\
+DEFINE (Beobp, 0155)							\
+DEFINE (Bbolp, 0156)							\
+DEFINE (Bbobp, 0157)							\
+DEFINE (Bcurrent_buffer, 0160)						\
+DEFINE (Bset_buffer, 0161)						\
+DEFINE (Bsave_current_buffer_1, 0162) /* Replacing Bsave_current_buffer.  */ \
+DEFINE (Binteractive_p, 0164) /* Obsolete since Emacs-24.1.  */		\
+									\
+DEFINE (Bforward_char, 0165)						\
+DEFINE (Bforward_word, 0166)						\
+DEFINE (Bskip_chars_forward, 0167)					\
+DEFINE (Bskip_chars_backward, 0170)					\
+DEFINE (Bforward_line, 0171)						\
+DEFINE (Bchar_syntax, 0172)						\
+DEFINE (Bbuffer_substring, 0173)					\
+DEFINE (Bdelete_region, 0174)						\
+DEFINE (Bnarrow_to_region, 0175)					\
+DEFINE (Bwiden, 0176)							\
+DEFINE (Bend_of_line, 0177)						\
+									\
+DEFINE (Bconstant2, 0201)						\
+DEFINE (Bgoto, 0202)							\
+DEFINE (Bgotoifnil, 0203)						\
+DEFINE (Bgotoifnonnil, 0204)						\
+DEFINE (Bgotoifnilelsepop, 0205)					\
+DEFINE (Bgotoifnonnilelsepop, 0206)					\
+DEFINE (Breturn, 0207)							\
+DEFINE (Bdiscard, 0210)							\
+DEFINE (Bdup, 0211)							\
+									\
+DEFINE (Bsave_excursion, 0212)						\
+DEFINE (Bsave_window_excursion, 0213) /* Obsolete since Emacs-24.1.  */	\
+DEFINE (Bsave_restriction, 0214)					\
+DEFINE (Bcatch, 0215)							\
+									\
+DEFINE (Bunwind_protect, 0216)						\
+DEFINE (Bcondition_case, 0217)						\
+DEFINE (Btemp_output_buffer_setup, 0220) /* Obsolete since Emacs-24.1.  */ \
+DEFINE (Btemp_output_buffer_show, 0221)  /* Obsolete since Emacs-24.1.  */ \
+									\
+DEFINE (Bunbind_all, 0222)	/* Obsolete.  Never used.  */		\
+									\
+DEFINE (Bset_marker, 0223)						\
+DEFINE (Bmatch_beginning, 0224)						\
+DEFINE (Bmatch_end, 0225)						\
+DEFINE (Bupcase, 0226)							\
+DEFINE (Bdowncase, 0227)						\
+									\
+DEFINE (Bstringeqlsign, 0230)						\
+DEFINE (Bstringlss, 0231)						\
+DEFINE (Bequal, 0232)							\
+DEFINE (Bnthcdr, 0233)							\
+DEFINE (Belt, 0234)							\
+DEFINE (Bmember, 0235)							\
+DEFINE (Bassq, 0236)							\
+DEFINE (Bnreverse, 0237)						\
+DEFINE (Bsetcar, 0240)							\
+DEFINE (Bsetcdr, 0241)							\
+DEFINE (Bcar_safe, 0242)						\
+DEFINE (Bcdr_safe, 0243)						\
+DEFINE (Bnconc, 0244)							\
+DEFINE (Bquo, 0245)							\
+DEFINE (Brem, 0246)							\
+DEFINE (Bnumberp, 0247)							\
+DEFINE (Bintegerp, 0250)						\
+									\
+DEFINE (BRgoto, 0252)							\
+DEFINE (BRgotoifnil, 0253)						\
+DEFINE (BRgotoifnonnil, 0254)						\
+DEFINE (BRgotoifnilelsepop, 0255)					\
+DEFINE (BRgotoifnonnilelsepop, 0256)					\
+									\
+DEFINE (BlistN, 0257)							\
+DEFINE (BconcatN, 0260)							\
+DEFINE (BinsertN, 0261)							\
+									\
+/* Bstack_ref is code 0.  */						\
+DEFINE (Bstack_set,  0262)						\
+DEFINE (Bstack_set2, 0263)						\
+DEFINE (BdiscardN,   0266)						\
+									\
+DEFINE (Bconstant, 0300)
 
-#define Bnth 070
-#define Bsymbolp 071
-#define Bconsp 072
-#define Bstringp 073
-#define Blistp 074
-#define Beq 075
-#define Bmemq 076
-#define Bnot 077
-#define Bcar 0100
-#define Bcdr 0101
-#define Bcons 0102
-#define Blist1 0103
-#define Blist2 0104
-#define Blist3 0105
-#define Blist4 0106
-#define Blength 0107
-#define Baref 0110
-#define Baset 0111
-#define Bsymbol_value 0112
-#define Bsymbol_function 0113
-#define Bset 0114
-#define Bfset 0115
-#define Bget 0116
-#define Bsubstring 0117
-#define Bconcat2 0120
-#define Bconcat3 0121
-#define Bconcat4 0122
-#define Bsub1 0123
-#define Badd1 0124
-#define Beqlsign 0125
-#define Bgtr 0126
-#define Blss 0127
-#define Bleq 0130
-#define Bgeq 0131
-#define Bdiff 0132
-#define Bnegate 0133
-#define Bplus 0134
-#define Bmax 0135
-#define Bmin 0136
-#define Bmult 0137
+enum byte_code_op
+{
+#define DEFINE(name, value) name = value,
+    BYTE_CODES
+#undef DEFINE
 
-#define Bpoint 0140
-/* Was Bmark in v17.  */
-#define Bsave_current_buffer 0141 /* Obsolete.  */
-#define Bgoto_char 0142
-#define Binsert 0143
-#define Bpoint_max 0144
-#define Bpoint_min 0145
-#define Bchar_after 0146
-#define Bfollowing_char 0147
-#define Bpreceding_char 0150
-#define Bcurrent_column 0151
-#define Bindent_to 0152
 #ifdef BYTE_CODE_SAFE
-#define Bscan_buffer 0153 /* No longer generated as of v18.  */
+    Bscan_buffer = 0153, /* No longer generated as of v18.  */
+    Bset_mark = 0163 /* this loser is no longer generated as of v18 */
 #endif
-#define Beolp 0154
-#define Beobp 0155
-#define Bbolp 0156
-#define Bbobp 0157
-#define Bcurrent_buffer 0160
-#define Bset_buffer 0161
-#define Bsave_current_buffer_1 0162 /* Replacing Bsave_current_buffer.  */
-#if 0
-#define Bread_char 0162 /* No longer generated as of v19 */
-#endif
-#ifdef BYTE_CODE_SAFE
-#define Bset_mark 0163 /* this loser is no longer generated as of v18 */
-#endif
-#define Binteractive_p 0164 /* Obsolete since Emacs-24.1.  */
-
-#define Bforward_char 0165
-#define Bforward_word 0166
-#define Bskip_chars_forward 0167
-#define Bskip_chars_backward 0170
-#define Bforward_line 0171
-#define Bchar_syntax 0172
-#define Bbuffer_substring 0173
-#define Bdelete_region 0174
-#define Bnarrow_to_region 0175
-#define Bwiden 0176
-#define Bend_of_line 0177
-
-#define Bconstant2 0201
-#define Bgoto 0202
-#define Bgotoifnil 0203
-#define Bgotoifnonnil 0204
-#define Bgotoifnilelsepop 0205
-#define Bgotoifnonnilelsepop 0206
-#define Breturn 0207
-#define Bdiscard 0210
-#define Bdup 0211
-
-#define Bsave_excursion 0212
-#define Bsave_window_excursion 0213 /* Obsolete since Emacs-24.1.  */
-#define Bsave_restriction 0214
-#define Bcatch 0215
-
-#define Bunwind_protect 0216
-#define Bcondition_case 0217
-#define Btemp_output_buffer_setup 0220 /* Obsolete since Emacs-24.1.  */
-#define Btemp_output_buffer_show 0221  /* Obsolete since Emacs-24.1.  */
-
-#define Bunbind_all 0222	/* Obsolete.  Never used.  */
-
-#define Bset_marker 0223
-#define Bmatch_beginning 0224
-#define Bmatch_end 0225
-#define Bupcase 0226
-#define Bdowncase 0227
-
-#define Bstringeqlsign 0230
-#define Bstringlss 0231
-#define Bequal 0232
-#define Bnthcdr 0233
-#define Belt 0234
-#define Bmember 0235
-#define Bassq 0236
-#define Bnreverse 0237
-#define Bsetcar 0240
-#define Bsetcdr 0241
-#define Bcar_safe 0242
-#define Bcdr_safe 0243
-#define Bnconc 0244
-#define Bquo 0245
-#define Brem 0246
-#define Bnumberp 0247
-#define Bintegerp 0250
-
-#define BRgoto 0252
-#define BRgotoifnil 0253
-#define BRgotoifnonnil 0254
-#define BRgotoifnilelsepop 0255
-#define BRgotoifnonnilelsepop 0256
-
-#define BlistN 0257
-#define BconcatN 0260
-#define BinsertN 0261
-
-/* Bstack_ref is code 0.  */
-#define Bstack_set  0262
-#define Bstack_set2 0263
-#define BdiscardN   0266
-
-#define Bconstant 0300
+};
 
 /* Whether to maintain a `top' and `bottom' field in the stack frame.  */
 #define BYTE_MAINTAIN_TOP (BYTE_CODE_SAFE || BYTE_MARK_STACK)
@@ -488,8 +542,7 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
   stack.constants = vector;
   if (MAX_ALLOCA / sizeof (Lisp_Object) <= XFASTINT (maxdepth))
     memory_full (SIZE_MAX);
-  top = (Lisp_Object *) alloca ((XFASTINT (maxdepth) + 1)
-                                         * sizeof (Lisp_Object));
+  top = alloca ((XFASTINT (maxdepth) + 1) * sizeof *top);
 #if BYTE_MAINTAIN_TOP
   stack.bottom = top + 1;
   stack.top = NULL;
@@ -561,27 +614,93 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
       this_op = op = FETCH;
       METER_CODE (prev_op, op);
 #else
+#ifndef BYTE_CODE_THREADED
       op = FETCH;
 #endif
+#endif
 
-      switch (op)
+      /* The interpreter can be compiled one of two ways: as an
+	 ordinary switch-based interpreter, or as a threaded
+	 interpreter.  The threaded interpreter relies on GCC's
+	 computed goto extension, so it is not available everywhere.
+	 Threading provides a performance boost.  These macros are how
+	 we allow the code to be compiled both ways.  */
+#ifdef BYTE_CODE_THREADED
+      /* The CASE macro introduces an instruction's body.  It is
+	 either a label or a case label.  */
+#define CASE(OP) insn_ ## OP
+      /* NEXT is invoked at the end of an instruction to go to the
+	 next instruction.  It is either a computed goto, or a
+	 plain break.  */
+#define NEXT goto *(targets[op = FETCH])
+      /* FIRST is like NEXT, but is only used at the start of the
+	 interpreter body.  In the switch-based interpreter it is the
+	 switch, so the threaded definition must include a semicolon.  */
+#define FIRST NEXT;
+      /* Most cases are labeled with the CASE macro, above.
+	 CASE_DEFAULT is one exception; it is used if the interpreter
+	 being built requires a default case.  The threaded
+	 interpreter does not, because the dispatch table is
+	 completely filled.  */
+#define CASE_DEFAULT
+      /* This introduces an instruction that is known to call abort.  */
+#define CASE_ABORT CASE (Bstack_ref): CASE (default)
+#else
+      /* See above for the meaning of the various defines.  */
+#define CASE(OP) case OP
+#define NEXT break
+#define FIRST switch (op)
+#define CASE_DEFAULT case 255: default:
+#define CASE_ABORT case 0
+#endif
+
+#ifdef BYTE_CODE_THREADED
+
+      /* A convenience define that saves us a lot of typing and makes
+	 the table clearer.  */
+#define LABEL(OP) [OP] = &&insn_ ## OP
+
+#if (__GNUC__ == 4 && 6 <= __GNUC_MINOR__) || 4 < __GNUC__
+# pragma GCC diagnostic push
+# pragma GCC diagnostic ignored "-Woverride-init"
+#endif
+
+      /* This is the dispatch table for the threaded interpreter.  */
+      static const void *const targets[256] =
 	{
-	case Bvarref + 7:
+	  [0 ... (Bconstant - 1)] = &&insn_default,
+	  [Bconstant ... 255] = &&insn_Bconstant,
+
+#define DEFINE(name, value) LABEL (name) ,
+	  BYTE_CODES
+#undef DEFINE
+	};
+
+#if (__GNUC__ == 4 && 6 <= __GNUC_MINOR__) || 4 < __GNUC__
+# pragma GCC diagnostic pop
+#endif
+
+#endif
+
+
+      FIRST
+	{
+	CASE (Bvarref7):
 	  op = FETCH2;
 	  goto varref;
 
-	case Bvarref:
-	case Bvarref + 1:
-	case Bvarref + 2:
-	case Bvarref + 3:
-	case Bvarref + 4:
-	case Bvarref + 5:
+	CASE (Bvarref):
+	CASE (Bvarref1):
+	CASE (Bvarref2):
+	CASE (Bvarref3):
+	CASE (Bvarref4):
+	CASE (Bvarref5):
 	  op = op - Bvarref;
 	  goto varref;
 
 	/* This seems to be the most frequently executed byte-code
 	   among the Bvarref's, so avoid a goto here.  */
-	case Bvarref+6:
+	CASE (Bvarref6):
 	  op = FETCH;
 	varref:
 	  {
@@ -606,10 +725,10 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 		AFTER_POTENTIAL_GC ();
 	      }
 	    PUSH (v2);
-	    break;
+	    NEXT;
 	  }
 
-	case Bgotoifnil:
+	CASE (Bgotoifnil):
 	  {
 	    Lisp_Object v1;
 	    MAYBE_GC ();
@@ -621,10 +740,10 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 		CHECK_RANGE (op);
 		stack.pc = stack.byte_string_start + op;
 	      }
-	    break;
+	    NEXT;
 	  }
 
-	case Bcar:
+	CASE (Bcar):
 	  {
 	    Lisp_Object v1;
 	    v1 = TOP;
@@ -638,28 +757,28 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 		wrong_type_argument (Qlistp, v1);
 		AFTER_POTENTIAL_GC ();
 	      }
-	    break;
+	    NEXT;
 	  }
 
-	case Beq:
+	CASE (Beq):
 	  {
 	    Lisp_Object v1;
 	    v1 = POP;
 	    TOP = EQ (v1, TOP) ? Qt : Qnil;
-	    break;
+	    NEXT;
 	  }
 
-	case Bmemq:
+	CASE (Bmemq):
 	  {
 	    Lisp_Object v1;
 	    BEFORE_POTENTIAL_GC ();
 	    v1 = POP;
 	    TOP = Fmemq (TOP, v1);
 	    AFTER_POTENTIAL_GC ();
-	    break;
+	    NEXT;
 	  }
 
-	case Bcdr:
+	CASE (Bcdr):
 	  {
 	    Lisp_Object v1;
 	    v1 = TOP;
@@ -673,24 +792,23 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 		wrong_type_argument (Qlistp, v1);
 		AFTER_POTENTIAL_GC ();
 	      }
-	    break;
-	    break;
+	    NEXT;
 	  }
 
-	case Bvarset:
-	case Bvarset+1:
-	case Bvarset+2:
-	case Bvarset+3:
-	case Bvarset+4:
-	case Bvarset+5:
+	CASE (Bvarset):
+	CASE (Bvarset1):
+	CASE (Bvarset2):
+	CASE (Bvarset3):
+	CASE (Bvarset4):
+	CASE (Bvarset5):
 	  op -= Bvarset;
 	  goto varset;
 
-	case Bvarset+7:
+	CASE (Bvarset7):
 	  op = FETCH2;
 	  goto varset;
 
-	case Bvarset+6:
+	CASE (Bvarset6):
 	  op = FETCH;
 	varset:
 	  {
@@ -713,54 +831,54 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 	      }
 	  }
 	  (void) POP;
-	  break;
+	  NEXT;
 
-	case Bdup:
+	CASE (Bdup):
 	  {
 	    Lisp_Object v1;
 	    v1 = TOP;
 	    PUSH (v1);
-	    break;
+	    NEXT;
 	  }
 
 	/* ------------------ */
 
-	case Bvarbind+6:
+	CASE (Bvarbind6):
 	  op = FETCH;
 	  goto varbind;
 
-	case Bvarbind+7:
+	CASE (Bvarbind7):
 	  op = FETCH2;
 	  goto varbind;
 
-	case Bvarbind:
-	case Bvarbind+1:
-	case Bvarbind+2:
-	case Bvarbind+3:
-	case Bvarbind+4:
-	case Bvarbind+5:
+	CASE (Bvarbind):
+	CASE (Bvarbind1):
+	CASE (Bvarbind2):
+	CASE (Bvarbind3):
+	CASE (Bvarbind4):
+	CASE (Bvarbind5):
 	  op -= Bvarbind;
 	varbind:
 	  /* Specbind can signal and thus GC.  */
 	  BEFORE_POTENTIAL_GC ();
 	  specbind (vectorp[op], POP);
 	  AFTER_POTENTIAL_GC ();
-	  break;
+	  NEXT;
 
-	case Bcall+6:
+	CASE (Bcall6):
 	  op = FETCH;
 	  goto docall;
 
-	case Bcall+7:
+	CASE (Bcall7):
 	  op = FETCH2;
 	  goto docall;
 
-	case Bcall:
-	case Bcall+1:
-	case Bcall+2:
-	case Bcall+3:
-	case Bcall+4:
-	case Bcall+5:
+	CASE (Bcall):
+	CASE (Bcall1):
+	CASE (Bcall2):
+	CASE (Bcall3):
+	CASE (Bcall4):
+	CASE (Bcall5):
 	  op -= Bcall;
 	docall:
 	  {
@@ -783,47 +901,47 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 #endif
 	    TOP = Ffuncall (op + 1, &TOP);
 	    AFTER_POTENTIAL_GC ();
-	    break;
+	    NEXT;
 	  }
 
-	case Bunbind+6:
+	CASE (Bunbind6):
 	  op = FETCH;
 	  goto dounbind;
 
-	case Bunbind+7:
+	CASE (Bunbind7):
 	  op = FETCH2;
 	  goto dounbind;
 
-	case Bunbind:
-	case Bunbind+1:
-	case Bunbind+2:
-	case Bunbind+3:
-	case Bunbind+4:
-	case Bunbind+5:
+	CASE (Bunbind):
+	CASE (Bunbind1):
+	CASE (Bunbind2):
+	CASE (Bunbind3):
+	CASE (Bunbind4):
+	CASE (Bunbind5):
 	  op -= Bunbind;
 	dounbind:
 	  BEFORE_POTENTIAL_GC ();
 	  unbind_to (SPECPDL_INDEX () - op, Qnil);
 	  AFTER_POTENTIAL_GC ();
-	  break;
+	  NEXT;
 
-	case Bunbind_all:	/* Obsolete.  Never used.  */
+	CASE (Bunbind_all):	/* Obsolete.  Never used.  */
 	  /* To unbind back to the beginning of this frame.  Not used yet,
 	     but will be needed for tail-recursion elimination.  */
 	  BEFORE_POTENTIAL_GC ();
 	  unbind_to (count, Qnil);
 	  AFTER_POTENTIAL_GC ();
-	  break;
+	  NEXT;
 
-	case Bgoto:
+	CASE (Bgoto):
 	  MAYBE_GC ();
 	  BYTE_CODE_QUIT;
 	  op = FETCH2;    /* pc = FETCH2 loses since FETCH2 contains pc++ */
 	  CHECK_RANGE (op);
 	  stack.pc = stack.byte_string_start + op;
-	  break;
+	  NEXT;
 
-	case Bgotoifnonnil:
+	CASE (Bgotoifnonnil):
 	  {
 	    Lisp_Object v1;
 	    MAYBE_GC ();
@@ -835,10 +953,10 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 		CHECK_RANGE (op);
 		stack.pc = stack.byte_string_start + op;
 	      }
-	    break;
+	    NEXT;
 	  }
 
-	case Bgotoifnilelsepop:
+	CASE (Bgotoifnilelsepop):
 	  MAYBE_GC ();
 	  op = FETCH2;
 	  if (NILP (TOP))
@@ -848,9 +966,9 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 	      stack.pc = stack.byte_string_start + op;
 	    }
 	  else DISCARD (1);
-	  break;
+	  NEXT;
 
-	case Bgotoifnonnilelsepop:
+	CASE (Bgotoifnonnilelsepop):
 	  MAYBE_GC ();
 	  op = FETCH2;
 	  if (!NILP (TOP))
@@ -860,15 +978,15 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 	      stack.pc = stack.byte_string_start + op;
 	    }
 	  else DISCARD (1);
-	  break;
+	  NEXT;
 
-	case BRgoto:
+	CASE (BRgoto):
 	  MAYBE_GC ();
 	  BYTE_CODE_QUIT;
 	  stack.pc += (int) *stack.pc - 127;
-	  break;
+	  NEXT;
 
-	case BRgotoifnil:
+	CASE (BRgotoifnil):
 	  {
 	    Lisp_Object v1;
 	    MAYBE_GC ();
@@ -879,10 +997,10 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 		stack.pc += (int) *stack.pc - 128;
 	      }
 	    stack.pc++;
-	    break;
+	    NEXT;
 	  }
 
-	case BRgotoifnonnil:
+	CASE (BRgotoifnonnil):
 	  {
 	    Lisp_Object v1;
 	    MAYBE_GC ();
@@ -893,10 +1011,10 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 		stack.pc += (int) *stack.pc - 128;
 	      }
 	    stack.pc++;
-	    break;
+	    NEXT;
 	  }
 
-	case BRgotoifnilelsepop:
+	CASE (BRgotoifnilelsepop):
 	  MAYBE_GC ();
 	  op = *stack.pc++;
 	  if (NILP (TOP))
@@ -905,9 +1023,9 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 	      stack.pc += op - 128;
 	    }
 	  else DISCARD (1);
-	  break;
+	  NEXT;
 
-	case BRgotoifnonnilelsepop:
+	CASE (BRgotoifnonnilelsepop):
 	  MAYBE_GC ();
 	  op = *stack.pc++;
 	  if (!NILP (TOP))
@@ -916,31 +1034,31 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 	      stack.pc += op - 128;
 	    }
 	  else DISCARD (1);
-	  break;
+	  NEXT;
 
-	case Breturn:
+	CASE (Breturn):
 	  result = POP;
 	  goto exit;
 
-	case Bdiscard:
+	CASE (Bdiscard):
 	  DISCARD (1);
-	  break;
+	  NEXT;
 
-	case Bconstant2:
+	CASE (Bconstant2):
 	  PUSH (vectorp[FETCH2]);
-	  break;
+	  NEXT;
 
-	case Bsave_excursion:
+	CASE (Bsave_excursion):
 	  record_unwind_protect (save_excursion_restore,
 				 save_excursion_save ());
-	  break;
+	  NEXT;
 
-	case Bsave_current_buffer: /* Obsolete since ??.  */
-	case Bsave_current_buffer_1:
+	CASE (Bsave_current_buffer): /* Obsolete since ??.  */
+	CASE (Bsave_current_buffer_1):
 	  record_unwind_protect (set_buffer_if_live, Fcurrent_buffer ());
-	  break;
+	  NEXT;
 
-	case Bsave_window_excursion: /* Obsolete since 24.1.  */
+	CASE (Bsave_window_excursion): /* Obsolete since 24.1.  */
 	  {
 	    register ptrdiff_t count1 = SPECPDL_INDEX ();
 	    record_unwind_protect (Fset_window_configuration,
@@ -949,29 +1067,29 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 	    TOP = Fprogn (TOP);
 	    unbind_to (count1, TOP);
 	    AFTER_POTENTIAL_GC ();
-	    break;
+	    NEXT;
 	  }
 
-	case Bsave_restriction:
+	CASE (Bsave_restriction):
 	  record_unwind_protect (save_restriction_restore,
 				 save_restriction_save ());
-	  break;
+	  NEXT;
 
-	case Bcatch:		/* FIXME: ill-suited for lexbind.  */
+	CASE (Bcatch):		/* FIXME: ill-suited for lexbind.  */
 	  {
 	    Lisp_Object v1;
 	    BEFORE_POTENTIAL_GC ();
 	    v1 = POP;
 	    TOP = internal_catch (TOP, eval_sub, v1);
 	    AFTER_POTENTIAL_GC ();
-	    break;
+	    NEXT;
 	  }
 
-	case Bunwind_protect:	/* FIXME: avoid closure for lexbind.  */
+	CASE (Bunwind_protect):	/* FIXME: avoid closure for lexbind.  */
 	  record_unwind_protect (Fprogn, POP);
-	  break;
+	  NEXT;
 
-	case Bcondition_case:	/* FIXME: ill-suited for lexbind.  */
+	CASE (Bcondition_case):	/* FIXME: ill-suited for lexbind.  */
 	  {
 	    Lisp_Object handlers, body;
 	    handlers = POP;
@@ -979,18 +1097,18 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 	    BEFORE_POTENTIAL_GC ();
 	    TOP = internal_lisp_condition_case (TOP, body, handlers);
 	    AFTER_POTENTIAL_GC ();
-	    break;
+	    NEXT;
 	  }
 
-	case Btemp_output_buffer_setup: /* Obsolete since 24.1.  */
+	CASE (Btemp_output_buffer_setup): /* Obsolete since 24.1.  */
 	  BEFORE_POTENTIAL_GC ();
 	  CHECK_STRING (TOP);
 	  temp_output_buffer_setup (SSDATA (TOP));
 	  AFTER_POTENTIAL_GC ();
 	  TOP = Vstandard_output;
-	  break;
+	  NEXT;
 
-	case Btemp_output_buffer_show: /* Obsolete since 24.1.  */
+	CASE (Btemp_output_buffer_show): /* Obsolete since 24.1.  */
 	  {
 	    Lisp_Object v1;
 	    BEFORE_POTENTIAL_GC ();
@@ -1000,10 +1118,10 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 	    /* pop binding of standard-output */
 	    unbind_to (SPECPDL_INDEX () - 1, Qnil);
 	    AFTER_POTENTIAL_GC ();
-	    break;
+	    NEXT;
 	  }
 
-	case Bnth:
+	CASE (Bnth):
 	  {
 	    Lisp_Object v1, v2;
 	    EMACS_INT n;
@@ -1018,173 +1136,173 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 	    immediate_quit = 0;
 	    TOP = CAR (v1);
 	    AFTER_POTENTIAL_GC ();
-	    break;
+	    NEXT;
 	  }
 
-	case Bsymbolp:
+	CASE (Bsymbolp):
 	  TOP = SYMBOLP (TOP) ? Qt : Qnil;
-	  break;
+	  NEXT;
 
-	case Bconsp:
+	CASE (Bconsp):
 	  TOP = CONSP (TOP) ? Qt : Qnil;
-	  break;
+	  NEXT;
 
-	case Bstringp:
+	CASE (Bstringp):
 	  TOP = STRINGP (TOP) ? Qt : Qnil;
-	  break;
+	  NEXT;
 
-	case Blistp:
+	CASE (Blistp):
 	  TOP = CONSP (TOP) || NILP (TOP) ? Qt : Qnil;
-	  break;
+	  NEXT;
 
-	case Bnot:
+	CASE (Bnot):
 	  TOP = NILP (TOP) ? Qt : Qnil;
-	  break;
+	  NEXT;
 
-	case Bcons:
+	CASE (Bcons):
 	  {
 	    Lisp_Object v1;
 	    v1 = POP;
 	    TOP = Fcons (TOP, v1);
-	    break;
+	    NEXT;
 	  }
 
-	case Blist1:
+	CASE (Blist1):
 	  TOP = Fcons (TOP, Qnil);
-	  break;
+	  NEXT;
 
-	case Blist2:
+	CASE (Blist2):
 	  {
 	    Lisp_Object v1;
 	    v1 = POP;
 	    TOP = Fcons (TOP, Fcons (v1, Qnil));
-	    break;
+	    NEXT;
 	  }
 
-	case Blist3:
+	CASE (Blist3):
 	  DISCARD (2);
 	  TOP = Flist (3, &TOP);
-	  break;
+	  NEXT;
 
-	case Blist4:
+	CASE (Blist4):
 	  DISCARD (3);
 	  TOP = Flist (4, &TOP);
-	  break;
+	  NEXT;
 
-	case BlistN:
+	CASE (BlistN):
 	  op = FETCH;
 	  DISCARD (op - 1);
 	  TOP = Flist (op, &TOP);
-	  break;
+	  NEXT;
 
-	case Blength:
+	CASE (Blength):
 	  BEFORE_POTENTIAL_GC ();
 	  TOP = Flength (TOP);
 	  AFTER_POTENTIAL_GC ();
-	  break;
+	  NEXT;
 
-	case Baref:
+	CASE (Baref):
 	  {
 	    Lisp_Object v1;
 	    BEFORE_POTENTIAL_GC ();
 	    v1 = POP;
 	    TOP = Faref (TOP, v1);
 	    AFTER_POTENTIAL_GC ();
-	    break;
+	    NEXT;
 	  }
 
-	case Baset:
+	CASE (Baset):
 	  {
 	    Lisp_Object v1, v2;
 	    BEFORE_POTENTIAL_GC ();
 	    v2 = POP; v1 = POP;
 	    TOP = Faset (TOP, v1, v2);
 	    AFTER_POTENTIAL_GC ();
-	    break;
+	    NEXT;
 	  }
 
-	case Bsymbol_value:
+	CASE (Bsymbol_value):
 	  BEFORE_POTENTIAL_GC ();
 	  TOP = Fsymbol_value (TOP);
 	  AFTER_POTENTIAL_GC ();
-	  break;
+	  NEXT;
 
-	case Bsymbol_function:
+	CASE (Bsymbol_function):
 	  BEFORE_POTENTIAL_GC ();
 	  TOP = Fsymbol_function (TOP);
 	  AFTER_POTENTIAL_GC ();
-	  break;
+	  NEXT;
 
-	case Bset:
+	CASE (Bset):
 	  {
 	    Lisp_Object v1;
 	    BEFORE_POTENTIAL_GC ();
 	    v1 = POP;
 	    TOP = Fset (TOP, v1);
 	    AFTER_POTENTIAL_GC ();
-	    break;
+	    NEXT;
 	  }
 
-	case Bfset:
+	CASE (Bfset):
 	  {
 	    Lisp_Object v1;
 	    BEFORE_POTENTIAL_GC ();
 	    v1 = POP;
 	    TOP = Ffset (TOP, v1);
 	    AFTER_POTENTIAL_GC ();
-	    break;
+	    NEXT;
 	  }
 
-	case Bget:
+	CASE (Bget):
 	  {
 	    Lisp_Object v1;
 	    BEFORE_POTENTIAL_GC ();
 	    v1 = POP;
 	    TOP = Fget (TOP, v1);
 	    AFTER_POTENTIAL_GC ();
-	    break;
+	    NEXT;
 	  }
 
-	case Bsubstring:
+	CASE (Bsubstring):
 	  {
 	    Lisp_Object v1, v2;
 	    BEFORE_POTENTIAL_GC ();
 	    v2 = POP; v1 = POP;
 	    TOP = Fsubstring (TOP, v1, v2);
 	    AFTER_POTENTIAL_GC ();
-	    break;
+	    NEXT;
 	  }
 
-	case Bconcat2:
+	CASE (Bconcat2):
 	  BEFORE_POTENTIAL_GC ();
 	  DISCARD (1);
 	  TOP = Fconcat (2, &TOP);
 	  AFTER_POTENTIAL_GC ();
-	  break;
+	  NEXT;
 
-	case Bconcat3:
+	CASE (Bconcat3):
 	  BEFORE_POTENTIAL_GC ();
 	  DISCARD (2);
 	  TOP = Fconcat (3, &TOP);
 	  AFTER_POTENTIAL_GC ();
-	  break;
+	  NEXT;
 
-	case Bconcat4:
+	CASE (Bconcat4):
 	  BEFORE_POTENTIAL_GC ();
 	  DISCARD (3);
 	  TOP = Fconcat (4, &TOP);
 	  AFTER_POTENTIAL_GC ();
-	  break;
+	  NEXT;
 
-	case BconcatN:
+	CASE (BconcatN):
 	  op = FETCH;
 	  BEFORE_POTENTIAL_GC ();
 	  DISCARD (op - 1);
 	  TOP = Fconcat (op, &TOP);
 	  AFTER_POTENTIAL_GC ();
-	  break;
+	  NEXT;
 
-	case Bsub1:
+	CASE (Bsub1):
 	  {
 	    Lisp_Object v1;
 	    v1 = TOP;
@@ -1199,10 +1317,10 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 		TOP = Fsub1 (v1);
 		AFTER_POTENTIAL_GC ();
 	      }
-	    break;
+	    NEXT;
 	  }
 
-	case Badd1:
+	CASE (Badd1):
 	  {
 	    Lisp_Object v1;
 	    v1 = TOP;
@@ -1217,10 +1335,10 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 		TOP = Fadd1 (v1);
 		AFTER_POTENTIAL_GC ();
 	      }
-	    break;
+	    NEXT;
 	  }
 
-	case Beqlsign:
+	CASE (Beqlsign):
 	  {
 	    Lisp_Object v1, v2;
 	    BEFORE_POTENTIAL_GC ();
@@ -1238,57 +1356,57 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 	      }
 	    else
 	      TOP = (XINT (v1) == XINT (v2) ? Qt : Qnil);
-	    break;
+	    NEXT;
 	  }
 
-	case Bgtr:
+	CASE (Bgtr):
 	  {
 	    Lisp_Object v1;
 	    BEFORE_POTENTIAL_GC ();
 	    v1 = POP;
 	    TOP = Fgtr (TOP, v1);
 	    AFTER_POTENTIAL_GC ();
-	    break;
+	    NEXT;
 	  }
 
-	case Blss:
+	CASE (Blss):
 	  {
 	    Lisp_Object v1;
 	    BEFORE_POTENTIAL_GC ();
 	    v1 = POP;
 	    TOP = Flss (TOP, v1);
 	    AFTER_POTENTIAL_GC ();
-	    break;
+	    NEXT;
 	  }
 
-	case Bleq:
+	CASE (Bleq):
 	  {
 	    Lisp_Object v1;
 	    BEFORE_POTENTIAL_GC ();
 	    v1 = POP;
 	    TOP = Fleq (TOP, v1);
 	    AFTER_POTENTIAL_GC ();
-	    break;
+	    NEXT;
 	  }
 
-	case Bgeq:
+	CASE (Bgeq):
 	  {
 	    Lisp_Object v1;
 	    BEFORE_POTENTIAL_GC ();
 	    v1 = POP;
 	    TOP = Fgeq (TOP, v1);
 	    AFTER_POTENTIAL_GC ();
-	    break;
+	    NEXT;
 	  }
 
-	case Bdiff:
+	CASE (Bdiff):
 	  BEFORE_POTENTIAL_GC ();
 	  DISCARD (1);
 	  TOP = Fminus (2, &TOP);
 	  AFTER_POTENTIAL_GC ();
-	  break;
+	  NEXT;
 
-	case Bnegate:
+	CASE (Bnegate):
 	  {
 	    Lisp_Object v1;
 	    v1 = TOP;
@@ -1303,209 +1421,209 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 		TOP = Fminus (1, &TOP);
 		AFTER_POTENTIAL_GC ();
 	      }
-	    break;
+	    NEXT;
 	  }
 
-	case Bplus:
+	CASE (Bplus):
 	  BEFORE_POTENTIAL_GC ();
 	  DISCARD (1);
 	  TOP = Fplus (2, &TOP);
 	  AFTER_POTENTIAL_GC ();
-	  break;
+	  NEXT;
 
-	case Bmax:
+	CASE (Bmax):
 	  BEFORE_POTENTIAL_GC ();
 	  DISCARD (1);
 	  TOP = Fmax (2, &TOP);
 	  AFTER_POTENTIAL_GC ();
-	  break;
+	  NEXT;
 
-	case Bmin:
+	CASE (Bmin):
 	  BEFORE_POTENTIAL_GC ();
 	  DISCARD (1);
 	  TOP = Fmin (2, &TOP);
 	  AFTER_POTENTIAL_GC ();
-	  break;
+	  NEXT;
 
-	case Bmult:
+	CASE (Bmult):
 	  BEFORE_POTENTIAL_GC ();
 	  DISCARD (1);
 	  TOP = Ftimes (2, &TOP);
 	  AFTER_POTENTIAL_GC ();
-	  break;
+	  NEXT;
 
-	case Bquo:
+	CASE (Bquo):
 	  BEFORE_POTENTIAL_GC ();
 	  DISCARD (1);
 	  TOP = Fquo (2, &TOP);
 	  AFTER_POTENTIAL_GC ();
-	  break;
+	  NEXT;
 
-	case Brem:
+	CASE (Brem):
 	  {
 	    Lisp_Object v1;
 	    BEFORE_POTENTIAL_GC ();
 	    v1 = POP;
 	    TOP = Frem (TOP, v1);
 	    AFTER_POTENTIAL_GC ();
-	    break;
+	    NEXT;
 	  }
 
-	case Bpoint:
+	CASE (Bpoint):
 	  {
 	    Lisp_Object v1;
 	    XSETFASTINT (v1, PT);
 	    PUSH (v1);
-	    break;
+	    NEXT;
 	  }
 
-	case Bgoto_char:
+	CASE (Bgoto_char):
 	  BEFORE_POTENTIAL_GC ();
 	  TOP = Fgoto_char (TOP);
 	  AFTER_POTENTIAL_GC ();
-	  break;
+	  NEXT;
 
-	case Binsert:
+	CASE (Binsert):
 	  BEFORE_POTENTIAL_GC ();
 	  TOP = Finsert (1, &TOP);
 	  AFTER_POTENTIAL_GC ();
-	  break;
+	  NEXT;
 
-	case BinsertN:
+	CASE (BinsertN):
 	  op = FETCH;
 	  BEFORE_POTENTIAL_GC ();
 	  DISCARD (op - 1);
 	  TOP = Finsert (op, &TOP);
 	  AFTER_POTENTIAL_GC ();
-	  break;
+	  NEXT;
 
-	case Bpoint_max:
+	CASE (Bpoint_max):
 	  {
 	    Lisp_Object v1;
 	    XSETFASTINT (v1, ZV);
 	    PUSH (v1);
-	    break;
+	    NEXT;
 	  }
 
-	case Bpoint_min:
+	CASE (Bpoint_min):
 	  {
 	    Lisp_Object v1;
 	    XSETFASTINT (v1, BEGV);
 	    PUSH (v1);
-	    break;
+	    NEXT;
 	  }
 
-	case Bchar_after:
+	CASE (Bchar_after):
 	  BEFORE_POTENTIAL_GC ();
 	  TOP = Fchar_after (TOP);
 	  AFTER_POTENTIAL_GC ();
-	  break;
+	  NEXT;
 
-	case Bfollowing_char:
+	CASE (Bfollowing_char):
 	  {
 	    Lisp_Object v1;
 	    BEFORE_POTENTIAL_GC ();
 	    v1 = Ffollowing_char ();
 	    AFTER_POTENTIAL_GC ();
 	    PUSH (v1);
-	    break;
+	    NEXT;
 	  }
 
-	case Bpreceding_char:
+	CASE (Bpreceding_char):
 	  {
 	    Lisp_Object v1;
 	    BEFORE_POTENTIAL_GC ();
 	    v1 = Fprevious_char ();
 	    AFTER_POTENTIAL_GC ();
 	    PUSH (v1);
-	    break;
+	    NEXT;
 	  }
 
-	case Bcurrent_column:
+	CASE (Bcurrent_column):
 	  {
 	    Lisp_Object v1;
 	    BEFORE_POTENTIAL_GC ();
 	    XSETFASTINT (v1, current_column ());
 	    AFTER_POTENTIAL_GC ();
 	    PUSH (v1);
-	    break;
+	    NEXT;
 	  }
 
-	case Bindent_to:
+	CASE (Bindent_to):
 	  BEFORE_POTENTIAL_GC ();
 	  TOP = Findent_to (TOP, Qnil);
 	  AFTER_POTENTIAL_GC ();
-	  break;
+	  NEXT;
 
-	case Beolp:
+	CASE (Beolp):
 	  PUSH (Feolp ());
-	  break;
+	  NEXT;
 
-	case Beobp:
+	CASE (Beobp):
 	  PUSH (Feobp ());
-	  break;
+	  NEXT;
 
-	case Bbolp:
+	CASE (Bbolp):
 	  PUSH (Fbolp ());
-	  break;
+	  NEXT;
 
-	case Bbobp:
+	CASE (Bbobp):
 	  PUSH (Fbobp ());
-	  break;
+	  NEXT;
 
-	case Bcurrent_buffer:
+	CASE (Bcurrent_buffer):
 	  PUSH (Fcurrent_buffer ());
-	  break;
+	  NEXT;
 
-	case Bset_buffer:
+	CASE (Bset_buffer):
 	  BEFORE_POTENTIAL_GC ();
 	  TOP = Fset_buffer (TOP);
 	  AFTER_POTENTIAL_GC ();
-	  break;
+	  NEXT;
 
-	case Binteractive_p:	/* Obsolete since 24.1.  */
+	CASE (Binteractive_p):	/* Obsolete since 24.1.  */
 	  PUSH (Finteractive_p ());
-	  break;
+	  NEXT;
 
-	case Bforward_char:
+	CASE (Bforward_char):
 	  BEFORE_POTENTIAL_GC ();
 	  TOP = Fforward_char (TOP);
 	  AFTER_POTENTIAL_GC ();
-	  break;
+	  NEXT;
 
-	case Bforward_word:
+	CASE (Bforward_word):
 	  BEFORE_POTENTIAL_GC ();
 	  TOP = Fforward_word (TOP);
 	  AFTER_POTENTIAL_GC ();
-	  break;
+	  NEXT;
 
-	case Bskip_chars_forward:
+	CASE (Bskip_chars_forward):
 	  {
 	    Lisp_Object v1;
 	    BEFORE_POTENTIAL_GC ();
 	    v1 = POP;
 	    TOP = Fskip_chars_forward (TOP, v1);
 	    AFTER_POTENTIAL_GC ();
-	    break;
+	    NEXT;
 	  }
 
-	case Bskip_chars_backward:
+	CASE (Bskip_chars_backward):
 	  {
 	    Lisp_Object v1;
 	    BEFORE_POTENTIAL_GC ();
 	    v1 = POP;
 	    TOP = Fskip_chars_backward (TOP, v1);
 	    AFTER_POTENTIAL_GC ();
-	    break;
+	    NEXT;
 	  }
 
-	case Bforward_line:
+	CASE (Bforward_line):
 	  BEFORE_POTENTIAL_GC ();
 	  TOP = Fforward_line (TOP);
 	  AFTER_POTENTIAL_GC ();
-	  break;
+	  NEXT;
 
-	case Bchar_syntax:
+	CASE (Bchar_syntax):
 	  {
 	    int c;
 
@@ -1517,51 +1635,51 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 	      MAKE_CHAR_MULTIBYTE (c);
 	    XSETFASTINT (TOP, syntax_code_spec[(int) SYNTAX (c)]);
 	  }
-	  break;
+	  NEXT;
 
-	case Bbuffer_substring:
+	CASE (Bbuffer_substring):
 	  {
 	    Lisp_Object v1;
 	    BEFORE_POTENTIAL_GC ();
 	    v1 = POP;
 	    TOP = Fbuffer_substring (TOP, v1);
 	    AFTER_POTENTIAL_GC ();
-	    break;
+	    NEXT;
 	  }
 
-	case Bdelete_region:
+	CASE (Bdelete_region):
 	  {
 	    Lisp_Object v1;
 	    BEFORE_POTENTIAL_GC ();
 	    v1 = POP;
 	    TOP = Fdelete_region (TOP, v1);
 	    AFTER_POTENTIAL_GC ();
-	    break;
+	    NEXT;
 	  }
 
-	case Bnarrow_to_region:
+	CASE (Bnarrow_to_region):
 	  {
 	    Lisp_Object v1;
 	    BEFORE_POTENTIAL_GC ();
 	    v1 = POP;
 	    TOP = Fnarrow_to_region (TOP, v1);
 	    AFTER_POTENTIAL_GC ();
-	    break;
+	    NEXT;
 	  }
 
-	case Bwiden:
+	CASE (Bwiden):
 	  BEFORE_POTENTIAL_GC ();
 	  PUSH (Fwiden ());
 	  AFTER_POTENTIAL_GC ();
-	  break;
+	  NEXT;
 
-	case Bend_of_line:
+	CASE (Bend_of_line):
 	  BEFORE_POTENTIAL_GC ();
 	  TOP = Fend_of_line (TOP);
 	  AFTER_POTENTIAL_GC ();
-	  break;
+	  NEXT;
 
-	case Bset_marker:
+	CASE (Bset_marker):
 	  {
 	    Lisp_Object v1, v2;
 	    BEFORE_POTENTIAL_GC ();
@@ -1569,72 +1687,72 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 	    v2 = POP;
 	    TOP = Fset_marker (TOP, v2, v1);
 	    AFTER_POTENTIAL_GC ();
-	    break;
+	    NEXT;
 	  }
 
-	case Bmatch_beginning:
+	CASE (Bmatch_beginning):
 	  BEFORE_POTENTIAL_GC ();
 	  TOP = Fmatch_beginning (TOP);
 	  AFTER_POTENTIAL_GC ();
-	  break;
+	  NEXT;
 
-	case Bmatch_end:
+	CASE (Bmatch_end):
 	  BEFORE_POTENTIAL_GC ();
 	  TOP = Fmatch_end (TOP);
 	  AFTER_POTENTIAL_GC ();
-	  break;
+	  NEXT;
 
-	case Bupcase:
+	CASE (Bupcase):
 	  BEFORE_POTENTIAL_GC ();
 	  TOP = Fupcase (TOP);
 	  AFTER_POTENTIAL_GC ();
-	  break;
+	  NEXT;
 
-	case Bdowncase:
+	CASE (Bdowncase):
 	  BEFORE_POTENTIAL_GC ();
 	  TOP = Fdowncase (TOP);
 	  AFTER_POTENTIAL_GC ();
-	break;
+	NEXT;
 
-	case Bstringeqlsign:
+      CASE (Bstringeqlsign):
 	  {
 	    Lisp_Object v1;
 	    BEFORE_POTENTIAL_GC ();
 	    v1 = POP;
 	    TOP = Fstring_equal (TOP, v1);
 	    AFTER_POTENTIAL_GC ();
-	    break;
+	    NEXT;
 	  }
 
-	case Bstringlss:
+	CASE (Bstringlss):
 	  {
 	    Lisp_Object v1;
 	    BEFORE_POTENTIAL_GC ();
 	    v1 = POP;
 	    TOP = Fstring_lessp (TOP, v1);
 	    AFTER_POTENTIAL_GC ();
-	    break;
+	    NEXT;
 	  }
 
-	case Bequal:
+	CASE (Bequal):
 	  {
 	    Lisp_Object v1;
 	    v1 = POP;
 	    TOP = Fequal (TOP, v1);
-	    break;
+	    NEXT;
 	  }
 
-	case Bnthcdr:
+	CASE (Bnthcdr):
 	  {
 	    Lisp_Object v1;
 	    BEFORE_POTENTIAL_GC ();
 	    v1 = POP;
 	    TOP = Fnthcdr (TOP, v1);
 	    AFTER_POTENTIAL_GC ();
-	    break;
+	    NEXT;
 	  }
 
-	case Belt:
+	CASE (Belt):
 	  {
 	    Lisp_Object v1, v2;
 	    if (CONSP (TOP))
@@ -1660,87 +1778,91 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 		TOP = Felt (TOP, v1);
 		AFTER_POTENTIAL_GC ();
 	      }
-	    break;
+	    NEXT;
 	  }
 
-	case Bmember:
+	CASE (Bmember):
 	  {
 	    Lisp_Object v1;
 	    BEFORE_POTENTIAL_GC ();
 	    v1 = POP;
 	    TOP = Fmember (TOP, v1);
 	    AFTER_POTENTIAL_GC ();
-	    break;
+	    NEXT;
 	  }
 
-	case Bassq:
+	CASE (Bassq):
 	  {
 	    Lisp_Object v1;
 	    BEFORE_POTENTIAL_GC ();
 	    v1 = POP;
 	    TOP = Fassq (TOP, v1);
 	    AFTER_POTENTIAL_GC ();
-	    break;
+	    NEXT;
 	  }
 
-	case Bnreverse:
+	CASE (Bnreverse):
 	  BEFORE_POTENTIAL_GC ();
 	  TOP = Fnreverse (TOP);
 	  AFTER_POTENTIAL_GC ();
-	  break;
+	  NEXT;
 
-	case Bsetcar:
+	CASE (Bsetcar):
 	  {
 	    Lisp_Object v1;
 	    BEFORE_POTENTIAL_GC ();
 	    v1 = POP;
 	    TOP = Fsetcar (TOP, v1);
 	    AFTER_POTENTIAL_GC ();
-	    break;
+	    NEXT;
 	  }
 
-	case Bsetcdr:
+	CASE (Bsetcdr):
 	  {
 	    Lisp_Object v1;
 	    BEFORE_POTENTIAL_GC ();
 	    v1 = POP;
 	    TOP = Fsetcdr (TOP, v1);
 	    AFTER_POTENTIAL_GC ();
-	    break;
+	    NEXT;
 	  }
 
-	case Bcar_safe:
+	CASE (Bcar_safe):
 	  {
 	    Lisp_Object v1;
 	    v1 = TOP;
 	    TOP = CAR_SAFE (v1);
-	    break;
+	    NEXT;
 	  }
 
-	case Bcdr_safe:
+	CASE (Bcdr_safe):
 	  {
 	    Lisp_Object v1;
 	    v1 = TOP;
 	    TOP = CDR_SAFE (v1);
-	    break;
+	    NEXT;
 	  }
 
-	case Bnconc:
+	CASE (Bnconc):
 	  BEFORE_POTENTIAL_GC ();
 	  DISCARD (1);
 	  TOP = Fnconc (2, &TOP);
 	  AFTER_POTENTIAL_GC ();
-	  break;
+	  NEXT;
 
-	case Bnumberp:
+	CASE (Bnumberp):
 	  TOP = (NUMBERP (TOP) ? Qt : Qnil);
-	  break;
+	  NEXT;
 
-	case Bintegerp:
+	CASE (Bintegerp):
 	  TOP = INTEGERP (TOP) ? Qt : Qnil;
-	  break;
+	  NEXT;
 
 #ifdef BYTE_CODE_SAFE
+	  /* These are intentionally written using 'case' syntax,
+	     because they are incompatible with the threaded
+	     interpreter.  */
+
 	case Bset_mark:
 	  BEFORE_POTENTIAL_GC ();
 	  error ("set-mark is an obsolete bytecode");
@@ -1753,49 +1875,49 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 	  break;
 #endif
 
-	case 0:
+	CASE_ABORT:
 	  /* Actually this is Bstack_ref with offset 0, but we use Bdup
 	     for that instead.  */
-	  /* case Bstack_ref: */
+	  /* CASE (Bstack_ref): */
 	  abort ();
 
 	  /* Handy byte-codes for lexical binding.  */
-	case Bstack_ref+1:
-	case Bstack_ref+2:
-	case Bstack_ref+3:
-	case Bstack_ref+4:
-	case Bstack_ref+5:
+	CASE (Bstack_ref1):
+	CASE (Bstack_ref2):
+	CASE (Bstack_ref3):
+	CASE (Bstack_ref4):
+	CASE (Bstack_ref5):
 	  {
 	    Lisp_Object *ptr = top - (op - Bstack_ref);
 	    PUSH (*ptr);
-	    break;
+	    NEXT;
 	  }
-	case Bstack_ref+6:
+	CASE (Bstack_ref6):
 	  {
 	    Lisp_Object *ptr = top - (FETCH);
 	    PUSH (*ptr);
-	    break;
+	    NEXT;
 	  }
-	case Bstack_ref+7:
+	CASE (Bstack_ref7):
 	  {
 	    Lisp_Object *ptr = top - (FETCH2);
 	    PUSH (*ptr);
-	    break;
+	    NEXT;
 	  }
-	case Bstack_set:
+	CASE (Bstack_set):
 	  /* stack-set-0 = discard; stack-set-1 = discard-1-preserve-tos.  */
 	  {
 	    Lisp_Object *ptr = top - (FETCH);
 	    *ptr = POP;
-	    break;
+	    NEXT;
 	  }
-	case Bstack_set2:
+	CASE (Bstack_set2):
 	  {
 	    Lisp_Object *ptr = top - (FETCH2);
 	    *ptr = POP;
-	    break;
+	    NEXT;
 	  }
-	case BdiscardN:
+	CASE (BdiscardN):
 	  op = FETCH;
 	  if (op & 0x80)
 	    {
@@ -1803,10 +1925,10 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 	      top[-op] = TOP;
 	    }
 	  DISCARD (op);
-	  break;
+	  NEXT;
 
-	case 255:
-	default:
+	CASE_DEFAULT
+	CASE (Bconstant):
 #ifdef BYTE_CODE_SAFE
 	  if (op < Bconstant)
 	    {
@@ -1820,6 +1942,7 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 #else
 	  PUSH (vectorp[op - Bconstant]);
 #endif
+	  NEXT;
 	}
     }
 
@@ -1867,8 +1990,8 @@ integer, it is incremented each time that symbol's function is called.  */);
   {
     int i = 256;
     while (i--)
-      XVECTOR (Vbyte_code_meter)->contents[i] =
-	Fmake_vector (make_number (256), make_number (0));
+      ASET (Vbyte_code_meter, i,
+           Fmake_vector (make_number (256), make_number (0)));
   }
 #endif
 }

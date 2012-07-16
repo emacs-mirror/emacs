@@ -35,7 +35,7 @@
 
 /* Ignore some GCC warnings for now.  This section should go away
    once the Emacs and Gnulib regex code is merged.  */
-#if (__GNUC__ == 4 && 3 <= __GNUC_MINOR__) || 4 < __GNUC__
+#if (__GNUC__ == 4 && 5 <= __GNUC_MINOR__) || 4 < __GNUC__
 # pragma GCC diagnostic ignored "-Wstrict-overflow"
 # ifndef emacs
 #  pragma GCC diagnostic ignored "-Wunused-but-set-variable"
@@ -46,9 +46,7 @@
 # endif
 #endif
 
-#ifdef HAVE_CONFIG_H
-# include <config.h>
-#endif
+#include <config.h>
 
 #include <stddef.h>
 
@@ -130,13 +128,13 @@
 
 # include <setjmp.h>
 # include "lisp.h"
+# include "character.h"
 # include "buffer.h"
 
 /* Make syntax table lookup grant data in gl_state.  */
 # define SYNTAX_ENTRY_VIA_PROPERTY
 
 # include "syntax.h"
-# include "character.h"
 # include "category.h"
 
 # ifdef malloc
@@ -214,8 +212,7 @@
 static void *
 xmalloc (size_t size)
 {
-  register void *val;
-  val = (void *) malloc (size);
+  void *val = malloc (size);
   if (!val && size)
     {
       write (2, "virtual memory exhausted\n", 25);
@@ -227,13 +224,13 @@ xmalloc (size_t size)
 static void *
 xrealloc (void *block, size_t size)
 {
-  register void *val;
+  void *val;
   /* We must call malloc explicitly when BLOCK is 0, since some
      reallocs don't do this.  */
   if (! block)
-    val = (void *) malloc (size);
+    val = malloc (size);
   else
-    val = (void *) realloc (block, size);
+    val = realloc (block, size);
   if (!val && size)
     {
       write (2, "virtual memory exhausted\n", 25);
@@ -1388,7 +1385,7 @@ typedef struct
 #ifdef MATCH_MAY_ALLOCATE
 # define INIT_FAIL_STACK()						\
   do {									\
-    fail_stack.stack = (fail_stack_elt_t *)				\
+    fail_stack.stack =							\
       REGEX_ALLOCATE_STACK (INIT_FAILURE_ALLOC * TYPICAL_FAILURE_SIZE	\
 			    * sizeof (fail_stack_elt_t));		\
 									\
@@ -1431,8 +1428,7 @@ typedef struct
     >= re_max_failures * TYPICAL_FAILURE_SIZE)				\
    ? 0									\
    : ((fail_stack).stack						\
-      = (fail_stack_elt_t *)						\
-	REGEX_REALLOCATE_STACK ((fail_stack).stack,			\
+      = REGEX_REALLOCATE_STACK ((fail_stack).stack,			\
 	  (fail_stack).size * sizeof (fail_stack_elt_t),		\
 	  MIN (re_max_failures * TYPICAL_FAILURE_SIZE,			\
 	       ((fail_stack).size * sizeof (fail_stack_elt_t)		\
@@ -2143,12 +2139,7 @@ static void
 extend_range_table_work_area (struct range_table_work_area *work_area)
 {
   work_area->allocated += 16 * sizeof (int);
-  if (work_area->table)
-    work_area->table
-      = (int *) realloc (work_area->table, work_area->allocated);
-  else
-    work_area->table
-      = (int *) malloc (work_area->allocated);
+  work_area->table = realloc (work_area->table, work_area->allocated);
 }
 
 #if 0
@@ -3743,16 +3734,8 @@ regex_compile (const re_char *pattern, size_t size, reg_syntax_t syntax, struct 
     if (fail_stack.size < re_max_failures * TYPICAL_FAILURE_SIZE)
       {
 	fail_stack.size = re_max_failures * TYPICAL_FAILURE_SIZE;
-
-	if (! fail_stack.stack)
-	  fail_stack.stack
-	    = (fail_stack_elt_t *) malloc (fail_stack.size
-					   * sizeof (fail_stack_elt_t));
-	else
-	  fail_stack.stack
-	    = (fail_stack_elt_t *) realloc (fail_stack.stack,
-					    (fail_stack.size
-					     * sizeof (fail_stack_elt_t)));
+	falk_stack.stack = realloc (fail_stack.stack,
+				    fail_stack.size * sizeof *falk_stack.stack);
       }
 
     regex_grow_registers (num_regs);
@@ -3824,18 +3807,37 @@ static boolean
 at_begline_loc_p (const re_char *pattern, const re_char *p, reg_syntax_t syntax)
 {
   re_char *prev = p - 2;
-  boolean prev_prev_backslash = prev > pattern && prev[-1] == '\\';
+  boolean odd_backslashes;
 
-  return
-       /* After a subexpression?  */
-       (*prev == '(' && (syntax & RE_NO_BK_PARENS || prev_prev_backslash))
-       /* After an alternative?	 */
-    || (*prev == '|' && (syntax & RE_NO_BK_VBAR || prev_prev_backslash))
-       /* After a shy subexpression?  */
-    || ((syntax & RE_SHY_GROUPS) && prev - 2 >= pattern
-	&& prev[-1] == '?' && prev[-2] == '('
-	&& (syntax & RE_NO_BK_PARENS
-	    || (prev - 3 >= pattern && prev[-3] == '\\')));
+  /* After a subexpression?  */
+  if (*prev == '(')
+    odd_backslashes = (syntax & RE_NO_BK_PARENS) == 0;
+
+  /* After an alternative?  */
+  else if (*prev == '|')
+    odd_backslashes = (syntax & RE_NO_BK_VBAR) == 0;
+
+  /* After a shy subexpression?  */
+  else if (*prev == ':' && (syntax & RE_SHY_GROUPS))
+    {
+      /* Skip over optional regnum.  */
+      while (prev - 1 >= pattern && prev[-1] >= '0' && prev[-1] <= '9')
+	--prev;
+
+      if (!(prev - 2 >= pattern
+	    && prev[-1] == '?' && prev[-2] == '('))
+	return false;
+      prev -= 2;
+      odd_backslashes = (syntax & RE_NO_BK_PARENS) == 0;
+    }
+  else
+    return false;
+
+  /* Count the number of preceding backslashes.  */
+  p = prev;
+  while (prev - 1 >= pattern && prev[-1] == '\\')
+    --prev;
+  return (p - prev) & odd_backslashes;
 }
 
 
@@ -6391,13 +6393,13 @@ re_comp (const char *s)
 
   if (!re_comp_buf.buffer)
     {
-      re_comp_buf.buffer = (unsigned char *) malloc (200);
+      re_comp_buf.buffer = malloc (200);
       if (re_comp_buf.buffer == NULL)
 	/* Yes, we're discarding `const' here if !HAVE_LIBINTL.  */
 	return (char *) gettext (re_error_msgid[(int) REG_ESPACE]);
       re_comp_buf.allocated = 200;
 
-      re_comp_buf.fastmap = (char *) malloc (1 << BYTEWIDTH);
+      re_comp_buf.fastmap = malloc (1 << BYTEWIDTH);
       if (re_comp_buf.fastmap == NULL)
 	/* Yes, we're discarding `const' here if !HAVE_LIBINTL.  */
 	return (char *) gettext (re_error_msgid[(int) REG_ESPACE]);
@@ -6481,15 +6483,13 @@ regcomp (regex_t *__restrict preg, const char *__restrict pattern,
   preg->used = 0;
 
   /* Try to allocate space for the fastmap.  */
-  preg->fastmap = (char *) malloc (1 << BYTEWIDTH);
+  preg->fastmap = malloc (1 << BYTEWIDTH);
 
   if (cflags & REG_ICASE)
     {
       unsigned i;
 
-      preg->translate
-	= (RE_TRANSLATE_TYPE) malloc (CHAR_SET_SIZE
-				      * sizeof (*(RE_TRANSLATE_TYPE)0));
+      preg->translate = malloc (CHAR_SET_SIZE * sizeof *preg->translate);
       if (preg->translate == NULL)
 	return (int) REG_ESPACE;
 
@@ -6644,7 +6644,7 @@ regerror (int err_code, const regex_t *preg, char *errbuf, size_t errbuf_size)
     {
       if (msg_size > errbuf_size)
 	{
-	  strncpy (errbuf, msg, errbuf_size - 1);
+	  memcpy (errbuf, msg, errbuf_size - 1);
 	  errbuf[errbuf_size - 1] = 0;
 	}
       else

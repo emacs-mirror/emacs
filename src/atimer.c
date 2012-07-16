@@ -27,10 +27,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "atimer.h"
 #include <unistd.h>
 
-#ifdef HAVE_SYS_TIME_H
-#include <sys/time.h>
-#endif
-
 /* Free-list of atimer structures.  */
 
 static struct atimer *free_atimers;
@@ -94,11 +90,9 @@ start_atimer (enum atimer_type type, EMACS_TIME timestamp, atimer_callback fn,
   /* Round TIME up to the next full second if we don't have
      itimers.  */
 #ifndef HAVE_SETITIMER
-  if (EMACS_USECS (timestamp) != 0)
-    {
-      EMACS_SET_USECS (timestamp, 0);
-      EMACS_SET_SECS (timestamp, EMACS_SECS (timestamp) + 1);
-    }
+  if (EMACS_NSECS (timestamp) != 0
+      && EMACS_SECS (timestamp) < TYPE_MAXIMUM (time_t))
+    timestamp = make_emacs_time (EMACS_SECS (timestamp) + 1, 0);
 #endif /* not HAVE_SETITIMER */
 
   /* Get an atimer structure from the free-list, or allocate
@@ -109,7 +103,7 @@ start_atimer (enum atimer_type type, EMACS_TIME timestamp, atimer_callback fn,
       free_atimers = t->next;
     }
   else
-    t = (struct atimer *) xmalloc (sizeof *t);
+    t = xmalloc (sizeof *t);
 
   /* Fill the atimer structure.  */
   memset (t, 0, sizeof *t);
@@ -127,13 +121,11 @@ start_atimer (enum atimer_type type, EMACS_TIME timestamp, atimer_callback fn,
       break;
 
     case ATIMER_RELATIVE:
-      EMACS_GET_TIME (t->expiration);
-      EMACS_ADD_TIME (t->expiration, t->expiration, timestamp);
+      t->expiration = add_emacs_time (current_emacs_time (), timestamp);
       break;
 
     case ATIMER_CONTINUOUS:
-      EMACS_GET_TIME (t->expiration);
-      EMACS_ADD_TIME (t->expiration, t->expiration, timestamp);
+      t->expiration = add_emacs_time (current_emacs_time (), timestamp);
       t->interval = timestamp;
       break;
     }
@@ -287,28 +279,25 @@ set_alarm (void)
 {
   if (atimers)
     {
-      EMACS_TIME now, timestamp;
 #ifdef HAVE_SETITIMER
       struct itimerval it;
 #endif
 
       /* Determine s/us till the next timer is ripe.  */
-      EMACS_GET_TIME (now);
-      EMACS_SUB_TIME (timestamp, atimers->expiration, now);
+      EMACS_TIME now = current_emacs_time ();
+
+      /* Don't set the interval to 0; this disables the timer.  */
+      EMACS_TIME interval = (EMACS_TIME_LE (atimers->expiration, now)
+			     ? make_emacs_time (0, 1000 * 1000)
+			     : sub_emacs_time (atimers->expiration, now));
 
 #ifdef HAVE_SETITIMER
-      /* Don't set the interval to 0; this disables the timer.  */
-      if (EMACS_TIME_LE (atimers->expiration, now))
-	{
-	  EMACS_SET_SECS (timestamp, 0);
-	  EMACS_SET_USECS (timestamp, 1000);
-	}
 
       memset (&it, 0, sizeof it);
-      it.it_value = timestamp;
+      it.it_value = make_timeval (interval);
       setitimer (ITIMER_REAL, &it, 0);
 #else /* not HAVE_SETITIMER */
-      alarm (max (EMACS_SECS (timestamp), 1));
+      alarm (max (EMACS_SECS (interval), 1));
 #endif /* not HAVE_SETITIMER */
     }
 }
@@ -341,11 +330,10 @@ run_timers (void)
 {
   EMACS_TIME now;
 
-  EMACS_GET_TIME (now);
-
   while (atimers
 	 && (pending_atimers = interrupt_input_blocked) == 0
-	 && EMACS_TIME_LE (atimers->expiration, now))
+	 && (now = current_emacs_time (),
+	     EMACS_TIME_LE (atimers->expiration, now)))
     {
       struct atimer *t;
 
@@ -355,7 +343,7 @@ run_timers (void)
 
       if (t->type == ATIMER_CONTINUOUS)
 	{
-	  EMACS_ADD_TIME (t->expiration, now, t->interval);
+	  t->expiration = add_emacs_time (now, t->interval);
 	  schedule_atimer (t);
 	}
       else
@@ -363,8 +351,6 @@ run_timers (void)
 	  t->next = free_atimers;
 	  free_atimers = t;
 	}
-
-      EMACS_GET_TIME (now);
     }
 
   if (! atimers)

@@ -24,13 +24,15 @@
 ;;; Code:
 
 (require 'eshell)
+(require 'esh-opt)
 
 ;;;###autoload
-(eshell-defgroup eshell-script nil
+(progn
+(defgroup eshell-script nil
   "This module allows for the execution of files containing Eshell
 commands, as a script file."
   :tag "Running script files."
-  :group 'eshell-module)
+  :group 'eshell-module))
 
 ;;; User Variables:
 

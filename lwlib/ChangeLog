@@ -1,3 +1,28 @@
+2012-07-06  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use c_strcasecmp for ASCII case-insensitive comparison (Bug#11786).
+	* lwlib.c: Include c-strcase.h.
+	(lwlib_strcasecmp): Remove.  All uses replaced with c_strcasecmp.
+
+2012-06-26  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Clean out last vestiges of the old HAVE_CONFIG_H stuff.
+	* Makefile.in (ALL_CFLAGS): Remove -DHAVE_CONFIG_H.
+	* lwlib-Xaw.c, lwlib-Xlw.c, lwlib-Xm.c, lwlib-utils.c, lwlib.c:
+	* xlwmenu.c: Include <config.h> unconditionally.
+
+2012-06-25  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* lwlib.c (my_strcasecmp): Rename to lwlib_strcasecmp, which
+	may be defined to library function strcasecmp if available.
+
+2012-06-24  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Switch from NO_RETURN to C11's _Noreturn (Bug#11750).
+	* xlwmenu.c (abort_gracefully):
+	Use _Noreturn rather than NO_RETURN.
+	No need for separate decl merely because of _Noreturn.
+
 2012-05-31  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Remove obsolete '#define static' cruft.
@@ -582,7 +607,7 @@
 
 	* xlwmenuP.h (_XlwMenu_part): Add top_depth.
 
-	* xlwmenu.h: Removed declaration of pop_up_menu
+	* xlwmenu.h: Removed declaration of pop_up_menu.
 
 	* xlwmenu.c (Start): Get correct time if time in event is CurrentTime.
 	(find_first_selectable, find_next_selectable)

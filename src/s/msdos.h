@@ -31,11 +31,6 @@ You lose; /* Emacs for DOS must be compiled with DJGPP */
 #endif
 
 #define DOS_NT	/* MSDOS or WINDOWSNT */
-#undef BSD_SYSTEM
-
-/* SYSTEM_TYPE should indicate the kind of system you are using.
-   It sets the Lisp variable system-type.  */
-#define SYSTEM_TYPE "ms-dos"
 
 /* subprocesses should be defined if you want to have code for
    asynchronous subprocesses (as used in M-x compile and M-x shell).
@@ -48,10 +43,6 @@ You lose; /* Emacs for DOS must be compiled with DJGPP */
    different things on your system and must be used only through an
    encapsulation (which you should place, by convention, in sysdep.c).  */
 
-/* Avoid incompatibilities between gmalloc.c and system header files
-   in how to declare valloc.  */
-#define GMALLOC_INHIBIT_VALLOC
-
 /* This overrides the default value on editfns.c, since DJGPP
    does not have pw->pw_gecos.  */
 #define USER_FULL_NAME (getenv ("NAME"))
@@ -61,15 +52,16 @@ You lose; /* Emacs for DOS must be compiled with DJGPP */
 #define _setjmp setjmp
 #define _longjmp longjmp
 
-#define DATA_START  (&etext + 1)
-
 #define _NAIVE_DOS_REGS
 
-/* command.com does not understand `...` so we define this.  */
+/* Used by emacs.c:decode_env_path.  */
 #define SEPCHAR ';'
 
+/* Used by callproc.c (and process.c, but in the part not compiled on
+   MSDOS).  The default is defined on process.h.  */
 #define NULL_DEVICE "nul"
 
+/* Used by floatfns.c.  */
 #define HAVE_INVERSE_HYPERBOLIC
 #define FLOAT_CHECK_DOMAIN
 
@@ -98,22 +90,13 @@ You lose; /* Emacs for DOS must be compiled with DJGPP */
    likes that.  */
 #define FILE_SYSTEM_CASE Fmsdos_downcase_filename
 
-/* Define this to be the separator between devices and paths.  */
+/* Define this to be the separator between devices and paths.  Used by
+   lisp.h to define IS_DEVICE_SEP.  */
 #define DEVICE_SEP ':'
 
-/* We'll support either convention on MSDOG.  */
+/* We'll support either convention of slashes on MSDOS.  */
 #define IS_DIRECTORY_SEP(_c_) ((_c_) == '/' || (_c_) == '\\')
 #define IS_ANY_SEP(_c_) (IS_DIRECTORY_SEP (_c_) || IS_DEVICE_SEP (_c_))
-
-
-/* Mode line description of a buffer's type.  */
-#define MODE_LINE_BINARY_TEXT(buf) (NILP(B_(buf,buffer_file_type)) ? "T" : "B")
-
-/* We have (the code to control) a mouse.  */
-#define HAVE_MOUSE
-
-/* We can use mouse menus.  */
-#define HAVE_MENUS
 
 /* Define one of these for easier conditionals.  */
 #ifdef HAVE_X_WINDOWS
@@ -133,7 +116,3 @@ You lose; /* Emacs for DOS must be compiled with DJGPP */
    enlarging Emacs footprint by another 100+ KBytes.  */
 #define SYSTEM_PURESIZE_EXTRA (-170000+65000)
 #endif
-
-/* Tell the garbage collector that setjmp is known to save all
-   registers relevant for conservative garbage collection in the jmp_buf.  */
-#define GC_SETJMP_WORKS 1

@@ -90,8 +90,6 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
-
 ;;; PRIVATE: defsubst must be defined before they are first used
 
 (defsubst derived-mode-hook-name (mode)
@@ -183,11 +181,11 @@ See Info node `(elisp)Derived Modes' for more details."
 
     ;; Process the keyword args.
     (while (keywordp (car body))
-      (case (pop body)
-	(:group (setq group (pop body)))
-	(:abbrev-table (setq abbrev (pop body)) (setq declare-abbrev nil))
-	(:syntax-table (setq syntax (pop body)) (setq declare-syntax nil))
-	(t (pop body))))
+      (pcase (pop body)
+	(`:group (setq group (pop body)))
+	(`:abbrev-table (setq abbrev (pop body)) (setq declare-abbrev nil))
+	(`:syntax-table (setq syntax (pop body)) (setq declare-syntax nil))
+	(_ (pop body))))
 
     (setq docstring (derived-mode-make-docstring
 		     parent child docstring syntax abbrev))

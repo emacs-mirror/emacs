@@ -129,7 +129,7 @@ discard_menu_items (void)
       menu_items = Qnil;
       menu_items_allocated = 0;
     }
-  xassert (NILP (menu_items_inuse));
+  eassert (NILP (menu_items_inuse));
 }
 
 #ifdef HAVE_NS
@@ -197,7 +197,8 @@ static void
 push_submenu_start (void)
 {
   ensure_menu_items (1);
-  XVECTOR (menu_items)->contents[menu_items_used++] = Qnil;
+  ASET (menu_items, menu_items_used, Qnil);
+  menu_items_used++;
   menu_items_submenu_depth++;
 }
 
@@ -207,7 +208,8 @@ static void
 push_submenu_end (void)
 {
   ensure_menu_items (1);
-  XVECTOR (menu_items)->contents[menu_items_used++] = Qlambda;
+  ASET (menu_items, menu_items_used, Qlambda);
+  menu_items_used++;
   menu_items_submenu_depth--;
 }
 
@@ -219,7 +221,8 @@ static void
 push_left_right_boundary (void)
 {
   ensure_menu_items (1);
-  XVECTOR (menu_items)->contents[menu_items_used++] = Qquote;
+  ASET (menu_items, menu_items_used, Qquote);
+  menu_items_used++;
 }
 
 /* Start a new menu pane in menu_items.
@@ -231,9 +234,12 @@ push_menu_pane (Lisp_Object name, Lisp_Object prefix_vec)
   ensure_menu_items (MENU_ITEMS_PANE_LENGTH);
   if (menu_items_submenu_depth == 0)
     menu_items_n_panes++;
-  XVECTOR (menu_items)->contents[menu_items_used++] = Qt;
-  XVECTOR (menu_items)->contents[menu_items_used++] = name;
-  XVECTOR (menu_items)->contents[menu_items_used++] = prefix_vec;
+  ASET (menu_items, menu_items_used, Qt);
+  menu_items_used++;
+  ASET (menu_items, menu_items_used, name);
+  menu_items_used++;
+  ASET (menu_items, menu_items_used, prefix_vec);
+  menu_items_used++;
 }
 
 /* Push one menu item into the current pane.  NAME is the string to
@@ -343,10 +349,10 @@ single_menu_item (Lisp_Object key, Lisp_Object item, Lisp_Object dummy, void *sk
   if (!res)
     return;			/* Not a menu item.  */
 
-  map = XVECTOR (item_properties)->contents[ITEM_PROPERTY_MAP];
+  map = AREF (item_properties, ITEM_PROPERTY_MAP);
 
-  enabled = XVECTOR (item_properties)->contents[ITEM_PROPERTY_ENABLE];
-  item_string = XVECTOR (item_properties)->contents[ITEM_PROPERTY_NAME];
+  enabled = AREF (item_properties, ITEM_PROPERTY_ENABLE);
+  item_string = AREF (item_properties, ITEM_PROPERTY_NAME);
 
   if (!NILP (map) && SREF (item_string, 0) == '@')
     {
@@ -363,11 +369,11 @@ single_menu_item (Lisp_Object key, Lisp_Object item, Lisp_Object dummy, void *sk
      front of them.  */
   {
     Lisp_Object prefix = Qnil;
-    Lisp_Object type = XVECTOR (item_properties)->contents[ITEM_PROPERTY_TYPE];
+    Lisp_Object type = AREF (item_properties, ITEM_PROPERTY_TYPE);
     if (!NILP (type))
       {
 	Lisp_Object selected
-	  = XVECTOR (item_properties)->contents[ITEM_PROPERTY_SELECTED];
+	  = AREF (item_properties, ITEM_PROPERTY_SELECTED);
 
 	if (skp->notbuttons)
 	  /* The first button. Line up previous items in this menu.  */
@@ -378,7 +384,7 @@ single_menu_item (Lisp_Object key, Lisp_Object item, Lisp_Object dummy, void *sk
 	    while (idx < menu_items_used)
 	      {
 		tem
-		  = XVECTOR (menu_items)->contents[idx + MENU_ITEMS_ITEM_NAME];
+		  = AREF (menu_items, idx + MENU_ITEMS_ITEM_NAME);
 		if (NILP (tem))
 		  {
 		    idx++;
@@ -397,8 +403,8 @@ single_menu_item (Lisp_Object key, Lisp_Object item, Lisp_Object dummy, void *sk
 		  {
 		    if (!submenu && SREF (tem, 0) != '\0'
 			&& SREF (tem, 0) != '-')
-		      XVECTOR (menu_items)->contents[idx + MENU_ITEMS_ITEM_NAME]
-			= concat2 (build_string ("    "), tem);
+		      ASET (menu_items, idx + MENU_ITEMS_ITEM_NAME,
+                           concat2 (build_string ("    "), tem));
 		    idx += MENU_ITEMS_ITEM_LENGTH;
 		  }
 	      }
@@ -430,11 +436,11 @@ single_menu_item (Lisp_Object key, Lisp_Object item, Lisp_Object dummy, void *sk
 #endif /* HAVE_X_WINDOWS || MSDOS */
 
   push_menu_item (item_string, enabled, key,
-		  XVECTOR (item_properties)->contents[ITEM_PROPERTY_DEF],
-		  XVECTOR (item_properties)->contents[ITEM_PROPERTY_KEYEQ],
-		  XVECTOR (item_properties)->contents[ITEM_PROPERTY_TYPE],
-		  XVECTOR (item_properties)->contents[ITEM_PROPERTY_SELECTED],
-		  XVECTOR (item_properties)->contents[ITEM_PROPERTY_HELP]);
+		  AREF (item_properties, ITEM_PROPERTY_DEF),
+		  AREF (item_properties, ITEM_PROPERTY_KEYEQ),
+		  AREF (item_properties, ITEM_PROPERTY_TYPE),
+		  AREF (item_properties, ITEM_PROPERTY_SELECTED),
+		  AREF (item_properties, ITEM_PROPERTY_HELP));
 
 #if defined (USE_X_TOOLKIT) || defined (USE_GTK) || defined (HAVE_NS) || defined (HAVE_NTGUI)
   /* Display a submenu using the toolkit.  */
@@ -626,8 +632,7 @@ digest_single_submenu (int start, int end, int top_level_items)
   widget_value **submenu_stack;
   int panes_seen = 0;
 
-  submenu_stack
-    = (widget_value **) alloca (menu_items_used * sizeof (widget_value *));
+  submenu_stack = alloca (menu_items_used * sizeof *submenu_stack);
   wv = xmalloc_widget_value ();
   wv->name = "menu";
   wv->value = 0;
@@ -645,27 +650,27 @@ digest_single_submenu (int start, int end, int top_level_items)
   i = start;
   while (i < end)
     {
-      if (EQ (XVECTOR (menu_items)->contents[i], Qnil))
+      if (EQ (AREF (menu_items, i), Qnil))
 	{
 	  submenu_stack[submenu_depth++] = save_wv;
 	  save_wv = prev_wv;
 	  prev_wv = 0;
 	  i++;
 	}
-      else if (EQ (XVECTOR (menu_items)->contents[i], Qlambda))
+      else if (EQ (AREF (menu_items, i), Qlambda))
 	{
 	  prev_wv = save_wv;
 	  save_wv = submenu_stack[--submenu_depth];
 	  i++;
 	}
-      else if (EQ (XVECTOR (menu_items)->contents[i], Qt)
+      else if (EQ (AREF (menu_items, i), Qt)
 	       && submenu_depth != 0)
 	i += MENU_ITEMS_PANE_LENGTH;
       /* Ignore a nil in the item list.
 	 It's meaningful only for dialog boxes.  */
-      else if (EQ (XVECTOR (menu_items)->contents[i], Qquote))
+      else if (EQ (AREF (menu_items, i), Qquote))
 	i += 1;
-      else if (EQ (XVECTOR (menu_items)->contents[i], Qt))
+      else if (EQ (AREF (menu_items, i), Qt))
 	{
 	  /* Create a new pane.  */
 	  Lisp_Object pane_name;
@@ -673,7 +678,7 @@ digest_single_submenu (int start, int end, int top_level_items)
 
 	  panes_seen++;
 
-	  pane_name = XVECTOR (menu_items)->contents[i + MENU_ITEMS_PANE_NAME];
+	  pane_name = AREF (menu_items, i + MENU_ITEMS_PANE_NAME);
 
 #ifdef HAVE_NTGUI
 	  if (STRINGP (pane_name))
@@ -887,31 +892,31 @@ find_and_call_menu_selection (FRAME_PTR f, int menu_bar_items_used, Lisp_Object 
   int i;
 
   entry = Qnil;
-  subprefix_stack = (Lisp_Object *) alloca (menu_bar_items_used * sizeof (Lisp_Object));
+  subprefix_stack = alloca (menu_bar_items_used * sizeof *subprefix_stack);
   prefix = Qnil;
   i = 0;
 
   while (i < menu_bar_items_used)
     {
-      if (EQ (XVECTOR (vector)->contents[i], Qnil))
+      if (EQ (AREF (vector, i), Qnil))
 	{
 	  subprefix_stack[submenu_depth++] = prefix;
 	  prefix = entry;
 	  i++;
 	}
-      else if (EQ (XVECTOR (vector)->contents[i], Qlambda))
+      else if (EQ (AREF (vector, i), Qlambda))
 	{
 	  prefix = subprefix_stack[--submenu_depth];
 	  i++;
 	}
-      else if (EQ (XVECTOR (vector)->contents[i], Qt))
+      else if (EQ (AREF (vector, i), Qt))
 	{
-	  prefix = XVECTOR (vector)->contents[i + MENU_ITEMS_PANE_PREFIX];
+	  prefix = AREF (vector, i + MENU_ITEMS_PANE_PREFIX);
 	  i += MENU_ITEMS_PANE_LENGTH;
 	}
       else
 	{
-	  entry = XVECTOR (vector)->contents[i + MENU_ITEMS_ITEM_VALUE];
+	  entry = AREF (vector, i + MENU_ITEMS_ITEM_VALUE);
 	  /* Treat the pointer as an integer.  There's no problem
 	     as long as pointers have enough bits to hold small integers.  */
 	  if ((intptr_t) client_data == i)
@@ -976,32 +981,32 @@ find_and_return_menu_selection (FRAME_PTR f, int keymaps, void *client_data)
 
   while (i < menu_items_used)
     {
-      if (EQ (XVECTOR (menu_items)->contents[i], Qnil))
+      if (EQ (AREF (menu_items, i), Qnil))
         {
           subprefix_stack[submenu_depth++] = prefix;
           prefix = entry;
           i++;
         }
-      else if (EQ (XVECTOR (menu_items)->contents[i], Qlambda))
+      else if (EQ (AREF (menu_items, i), Qlambda))
         {
           prefix = subprefix_stack[--submenu_depth];
           i++;
         }
-      else if (EQ (XVECTOR (menu_items)->contents[i], Qt))
+      else if (EQ (AREF (menu_items, i), Qt))
         {
           prefix
-            = XVECTOR (menu_items)->contents[i + MENU_ITEMS_PANE_PREFIX];
+            = AREF (menu_items, i + MENU_ITEMS_PANE_PREFIX);
           i += MENU_ITEMS_PANE_LENGTH;
         }
       /* Ignore a nil in the item list.
          It's meaningful only for dialog boxes.  */
-      else if (EQ (XVECTOR (menu_items)->contents[i], Qquote))
+      else if (EQ (AREF (menu_items, i), Qquote))
         i += 1;
       else
         {
           entry
-            = XVECTOR (menu_items)->contents[i + MENU_ITEMS_ITEM_VALUE];
-          if (&XVECTOR (menu_items)->contents[i] == client_data)
+            = AREF (menu_items, i + MENU_ITEMS_ITEM_VALUE);
+          if (&AREF (menu_items, i) == client_data)
             {
               if (keymaps != 0)
                 {
@@ -1192,14 +1197,16 @@ no quit occurs and `x-popup-menu' returns nil.  */)
 	 but I don't want to make one now.  */
       CHECK_WINDOW (window);
 
-    CHECK_RANGED_INTEGER ((xpos < INT_MIN - MOST_NEGATIVE_FIXNUM
+    CHECK_RANGED_INTEGER (x,
+			  (xpos < INT_MIN - MOST_NEGATIVE_FIXNUM
 			   ? (EMACS_INT) INT_MIN - xpos
 			   : MOST_NEGATIVE_FIXNUM),
-			  x, INT_MAX - xpos);
-    CHECK_RANGED_INTEGER ((ypos < INT_MIN - MOST_NEGATIVE_FIXNUM
+			  INT_MAX - xpos);
+    CHECK_RANGED_INTEGER (y,
+			  (ypos < INT_MIN - MOST_NEGATIVE_FIXNUM
 			   ? (EMACS_INT) INT_MIN - ypos
 			   : MOST_NEGATIVE_FIXNUM),
-			  y, INT_MAX - ypos);
+			  INT_MAX - ypos);
     xpos += XINT (x);
     ypos += XINT (y);
 

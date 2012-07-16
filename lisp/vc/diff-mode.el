@@ -53,7 +53,7 @@
 ;; - Handle `diff -b' output in context->unified.
 
 ;;; Code:
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 (defvar add-log-buffer-file-name-function)
 
@@ -493,14 +493,15 @@ See http://lists.gnu.org/archive/html/emacs-devel/2007-11/msg01990.html")
     ;; We may have a first evaluation of `end' thanks to the hunk header.
     (unless end
       (setq end (and (re-search-forward
-                      (case style
-                        (unified (concat (if diff-valid-unified-empty-line
-                                             "^[^-+# \\\n]\\|" "^[^-+# \\]\\|")
-                                         ;; A `unified' header is ambiguous.
-                                         diff-file-header-re))
-                        (context "^[^-+#! \\]")
-                        (normal "^[^<>#\\]")
-                        (t "^[^-+#!<> \\]"))
+                      (pcase style
+                        (`unified
+                         (concat (if diff-valid-unified-empty-line
+                                     "^[^-+# \\\n]\\|" "^[^-+# \\]\\|")
+                                 ;; A `unified' header is ambiguous.
+                                 diff-file-header-re))
+                        (`context "^[^-+#! \\]")
+                        (`normal "^[^<>#\\]")
+                        (_ "^[^-+#!<> \\]"))
                       nil t)
                      (match-beginning 0)))
       (when diff-valid-unified-empty-line
@@ -710,7 +711,7 @@ data such as \"Index: ...\" and such."
   (save-excursion
     (let ((n 0))
       (goto-char start)
-      (while (re-search-forward re end t) (incf n))
+      (while (re-search-forward re end t) (cl-incf n))
       n)))
 
 (defun diff-splittable-p ()
@@ -834,16 +835,16 @@ PREFIX is only used internally: don't use it."
        ;; use any previously used preference
        (cdr (assoc fs diff-remembered-files-alist))
        ;; try to be clever and use previous choices as an inspiration
-       (dolist (rf diff-remembered-files-alist)
+       (cl-dolist (rf diff-remembered-files-alist)
 	 (let ((newfile (diff-merge-strings (caar rf) (car fs) (cdr rf))))
-	   (if (and newfile (file-exists-p newfile)) (return newfile))))
+	   (if (and newfile (file-exists-p newfile)) (cl-return newfile))))
        ;; look for each file in turn.  If none found, try again but
        ;; ignoring the first level of directory, ...
-       (do* ((files fs (delq nil (mapcar 'diff-filename-drop-dir files)))
-	     (file nil nil))
+       (cl-do* ((files fs (delq nil (mapcar 'diff-filename-drop-dir files)))
+                (file nil nil))
 	   ((or (null files)
-		(setq file (do* ((files files (cdr files))
-				 (file (car files) (car files)))
+		(setq file (cl-do* ((files files (cdr files))
+                                    (file (car files) (car files)))
 			       ;; Use file-regular-p to avoid
 			       ;; /dev/null, directories, etc.
 			       ((or (null file) (file-regular-p file))
@@ -862,7 +863,7 @@ PREFIX is only used internally: don't use it."
 	    (diff-find-file-name old noprompt (match-string 1)))
        ;; if all else fails, ask the user
        (unless noprompt
-         (let ((file (expand-file-name (or (first fs) ""))))
+         (let ((file (expand-file-name (or (car fs) ""))))
 	   (setq file
 		 (read-file-name (format "Use file %s: " file)
 				 (file-name-directory file) file t
@@ -940,21 +941,23 @@ else cover the whole buffer."
 		    (let ((modif nil) last-pt)
 		      (while (progn (setq last-pt (point))
 				    (= (forward-line -1) 0))
-			(case (char-after)
+			(pcase (char-after)
 			  (?\s (insert " ") (setq modif nil) (backward-char 1))
 			  (?+ (delete-region (point) last-pt) (setq modif t))
 			  (?- (if (not modif)
-				  (progn (forward-char 1)
-					 (insert " "))
-				(delete-char 1)
-				(insert "! "))
-			      (backward-char 2))
+                                  (progn (forward-char 1)
+                                         (insert " "))
+                                (delete-char 1)
+                                (insert "! "))
+                              (backward-char 2))
 			  (?\\ (when (save-excursion (forward-line -1)
-						     (= (char-after) ?+))
-				 (delete-region (point) last-pt) (setq modif t)))
+                                                     (= (char-after) ?+))
+                                 (delete-region (point) last-pt)
+                                 (setq modif t)))
                           ;; diff-valid-unified-empty-line.
-                          (?\n (insert "  ") (setq modif nil) (backward-char 2))
-			  (t (setq modif nil))))))
+                          (?\n (insert "  ") (setq modif nil)
+                               (backward-char 2))
+			  (_ (setq modif nil))))))
 		  (goto-char (point-max))
 		  (save-excursion
 		    (insert "--- " line2 ","
@@ -967,7 +970,8 @@ else cover the whole buffer."
 		  (if (not (save-excursion (re-search-forward "^+" nil t)))
 		      (delete-region (point) (point-max))
 		    (let ((modif nil) (delete nil))
-		      (if (save-excursion (re-search-forward "^\\+.*\n-" nil t))
+		      (if (save-excursion (re-search-forward "^\\+.*\n-"
+                                                             nil t))
                           ;; Normally, lines in a substitution come with
                           ;; first the removals and then the additions, and
                           ;; the context->unified function follows this
@@ -976,22 +980,22 @@ else cover the whole buffer."
                           ;; context->unified as an undo command.
 			  (setq reversible nil))
 		      (while (not (eobp))
-			(case (char-after)
+			(pcase (char-after)
 			  (?\s (insert " ") (setq modif nil) (backward-char 1))
 			  (?- (setq delete t) (setq modif t))
 			  (?+ (if (not modif)
-				  (progn (forward-char 1)
-					 (insert " "))
-				(delete-char 1)
-				(insert "! "))
-			      (backward-char 2))
+                                  (progn (forward-char 1)
+                                         (insert " "))
+                                (delete-char 1)
+                                (insert "! "))
+                              (backward-char 2))
 			  (?\\ (when (save-excursion (forward-line 1)
-						     (not (eobp)))
-				 (setq delete t) (setq modif t)))
+                                                     (not (eobp)))
+                                 (setq delete t) (setq modif t)))
                           ;; diff-valid-unified-empty-line.
                           (?\n (insert "  ") (setq modif nil) (backward-char 2)
                                (setq reversible nil))
-			  (t (setq modif nil)))
+			  (_ (setq modif nil)))
 			(let ((last-pt (point)))
 			  (forward-line 1)
 			  (when delete
@@ -1051,17 +1055,18 @@ With a prefix argument, convert unified format to context format."
                   (goto-char pt1)
                   (forward-line 1)
                   (while (< (point) pt2)
-                    (case (char-after)
+                    (pcase (char-after)
                       (?! (delete-char 2) (insert "-") (forward-line 1))
                       (?- (forward-char 1) (delete-char 1) (forward-line 1))
-                      (?\s           ;merge with the other half of the chunk
+                      (?\s              ;merge with the other half of the chunk
                        (let* ((endline2
                                (save-excursion
                                  (goto-char pt2) (forward-line 1) (point))))
-                         (case (char-after pt2)
-                           ((?! ?+)
+                         (pcase (char-after pt2)
+                           ((or ?! ?+)
                             (insert "+"
-                                    (prog1 (buffer-substring (+ pt2 2) endline2)
+                                    (prog1
+                                        (buffer-substring (+ pt2 2) endline2)
                                       (delete-region pt2 endline2))))
                            (?\s
                             (unless (= (- endline2 pt2)
@@ -1075,9 +1080,9 @@ With a prefix argument, convert unified format to context format."
                             (delete-char 1)
                             (forward-line 1))
                            (?\\ (forward-line 1))
-                           (t (setq reversible nil)
+                           (_ (setq reversible nil)
                               (delete-char 1) (forward-line 1)))))
-                      (t (setq reversible nil) (forward-line 1))))
+                      (_ (setq reversible nil) (forward-line 1))))
                   (while (looking-at "[+! ] ")
                     (if (/= (char-after) ?!) (forward-char 1)
                       (delete-char 1) (insert "+"))
@@ -1155,13 +1160,13 @@ else cover the whole buffer."
 	    (replace-match "@@ -\\8 +\\7 @@" nil)
 	    (forward-line 1)
 	    (let ((c (char-after)) first last)
-	      (while (case (setq c (char-after))
+	      (while (pcase (setq c (char-after))
 		       (?- (setq first (or first (point)))
-			   (delete-char 1) (insert "+") t)
+                           (delete-char 1) (insert "+") t)
 		       (?+ (setq last (or last (point)))
-			   (delete-char 1) (insert "-") t)
-		       ((?\\ ?#) t)
-		       (t (when (and first last (< first last))
+                           (delete-char 1) (insert "-") t)
+		       ((or ?\\ ?#) t)
+		       (_ (when (and first last (< first last))
 			    (insert (delete-and-extract-region first last)))
 			  (setq first nil last nil)
 			  (memq c (if diff-valid-unified-empty-line
@@ -1184,13 +1189,13 @@ else cover the whole buffer."
 		    (concat diff-hunk-header-re-unified
 			    "\\|[-*][-*][-*] [0-9,]+ [-*][-*][-*][-*]$"
 			    "\\|--- .+\n\\+\\+\\+ ")))
-	      (case (char-after)
-		(?\s (incf space))
-		(?+ (incf plus))
-		(?- (incf minus))
-		(?! (incf bang))
-		((?\\ ?#) nil)
-		(t  (setq space 0 plus 0 minus 0 bang 0)))
+	      (pcase (char-after)
+		(?\s (cl-incf space))
+		(?+ (cl-incf plus))
+		(?- (cl-incf minus))
+		(?! (cl-incf bang))
+		((or ?\\ ?#) nil)
+		(_  (setq space 0 plus 0 minus 0 bang 0)))
 	    (cond
 	     ((looking-at diff-hunk-header-re-unified)
 	      (let* ((old1 (match-string 2))
@@ -1432,7 +1437,7 @@ Only works for unified diffs."
         (cond
          ((and (memq (char-after) '(?\s ?! ?+ ?-))
                (memq (char-after (1+ (point))) '(?\s ?\t)))
-          (decf count) t)
+          (cl-decf count) t)
          ((or (zerop count) (= count lines)) nil)
          ((memq (char-after) '(?! ?+ ?-))
           (if (not (and (eq (char-after (1+ (point))) ?\n)
@@ -1483,8 +1488,8 @@ Only works for unified diffs."
                 (after (string-to-number (or (match-string 4) "1"))))
             (forward-line)
             (while
-                (case (char-after)
-                  (?\s (decf before) (decf after) t)
+                (pcase (char-after)
+                  (?\s (cl-decf before) (cl-decf after) t)
                   (?-
                    (if (and (looking-at diff-file-header-re)
                             (zerop before) (zerop after))
@@ -1494,15 +1499,15 @@ Only works for unified diffs."
                        ;; line so that our code which doesn't count lines
                        ;; will not get confused.
                        (progn (save-excursion (insert "\n")) nil)
-                     (decf before) t))
-                  (?+ (decf after) t)
-                  (t
+                     (cl-decf before) t))
+                  (?+ (cl-decf after) t)
+                  (_
                    (cond
                     ((and diff-valid-unified-empty-line
                           ;; Not just (eolp) so we don't infloop at eob.
                           (eq (char-after) ?\n)
                           (> before 0) (> after 0))
-                     (decf before) (decf after) t)
+                     (cl-decf before) (cl-decf after) t)
                     ((and (zerop before) (zerop after)) nil)
                     ((or (< before 0) (< after 0))
                      (error (if (or (zerop before) (zerop after))
@@ -1719,16 +1724,17 @@ the value of this variable when given an appropriate prefix argument).
 
 With a prefix argument, REVERSE the hunk."
   (interactive "P")
-  (destructuring-bind (buf line-offset pos old new &optional switched)
-      ;; Sometimes we'd like to have the following behavior: if REVERSE go
-      ;; to the new file, otherwise go to the old.  But that means that by
-      ;; default we use the old file, which is the opposite of the default
-      ;; for diff-goto-source, and is thus confusing.  Also when you don't
-      ;; know about it it's pretty surprising.
-      ;; TODO: make it possible to ask explicitly for this behavior.
-      ;;
-      ;; This is duplicated in diff-test-hunk.
-      (diff-find-source-location nil reverse)
+  (pcase-let ((`(,buf ,line-offset ,pos ,old ,new ,switched)
+               ;; Sometimes we'd like to have the following behavior: if
+               ;; REVERSE go to the new file, otherwise go to the old.
+               ;; But that means that by default we use the old file, which is
+               ;; the opposite of the default for diff-goto-source, and is thus
+               ;; confusing.  Also when you don't know about it it's
+               ;; pretty surprising.
+               ;; TODO: make it possible to ask explicitly for this behavior.
+               ;;
+               ;; This is duplicated in diff-test-hunk.
+               (diff-find-source-location nil reverse)))
     (cond
      ((null line-offset)
       (error "Can't find the text to patch"))
@@ -1771,8 +1777,8 @@ With a prefix argument, REVERSE the hunk."
   "See whether it's possible to apply the current hunk.
 With a prefix argument, try to REVERSE the hunk."
   (interactive "P")
-  (destructuring-bind (buf line-offset pos src _dst &optional switched)
-      (diff-find-source-location nil reverse)
+  (pcase-let ((`(,buf ,line-offset ,pos ,src ,_dst ,switched)
+               (diff-find-source-location nil reverse)))
     (set-window-point (display-buffer buf) (+ (car pos) (cdr src)))
     (diff-hunk-status-msg line-offset (diff-xor reverse switched) t)))
 
@@ -1791,8 +1797,8 @@ then `diff-jump-to-old-file' is also set, for the next invocations."
   ;; This is a convenient detail when using smerge-diff.
   (if event (posn-set-point (event-end event)))
   (let ((rev (not (save-excursion (beginning-of-line) (looking-at "[-<]")))))
-    (destructuring-bind (buf line-offset pos src _dst &optional switched)
-	(diff-find-source-location other-file rev)
+    (pcase-let ((`(,buf ,line-offset ,pos ,src ,_dst ,switched)
+                 (diff-find-source-location other-file rev)))
       (pop-to-buffer buf)
       (goto-char (+ (car pos) (cdr src)))
       (diff-hunk-status-msg line-offset (diff-xor rev switched) t))))
@@ -1809,10 +1815,11 @@ For use in `add-log-current-defun-function'."
     (when (looking-at diff-hunk-header-re)
       (forward-line 1)
       (re-search-forward "^[^ ]" nil t))
-    (destructuring-bind (&optional buf _line-offset pos src dst switched)
-        ;; Use `noprompt' since this is used in which-func-mode and such.
-	(ignore-errors                ;Signals errors in place of prompting.
-          (diff-find-source-location nil nil 'noprompt))
+    (pcase-let ((`(,buf ,_line-offset ,pos ,src ,dst ,switched)
+                 (ignore-errors         ;Signals errors in place of prompting.
+                   ;; Use `noprompt' since this is used in which-func-mode
+                   ;; and such.
+                   (diff-find-source-location nil nil 'noprompt))))
       (when buf
         (beginning-of-line)
         (or (when (memq (char-after) '(?< ?-))
@@ -1835,7 +1842,7 @@ For use in `add-log-current-defun-function'."
   "Re-diff the current hunk, ignoring whitespace differences."
   (interactive)
   (let* ((char-offset (- (point) (diff-beginning-of-hunk t)))
-	 (opts (case (char-after) (?@ "-bu") (?* "-bc") (t "-b")))
+	 (opts (pcase (char-after) (?@ "-bu") (?* "-bc") (_ "-b")))
 	 (line-nb (and (or (looking-at "[^0-9]+\\([0-9]+\\)")
 			   (error "Can't find line number"))
 		       (string-to-number (match-string 1))))
@@ -1857,13 +1864,13 @@ For use in `add-log-current-defun-function'."
 	    (let ((status
 		   (call-process diff-command nil t nil
 				 opts file1 file2)))
-	      (case status
-		(0 nil)			;Nothing to reformat.
+	      (pcase status
+		(0 nil)                 ;Nothing to reformat.
 		(1 (goto-char (point-min))
-		   ;; Remove the file-header.
-		   (when (re-search-forward diff-hunk-header-re nil t)
-		     (delete-region (point-min) (match-beginning 0))))
-		(t (goto-char (point-max))
+                   ;; Remove the file-header.
+                   (when (re-search-forward diff-hunk-header-re nil t)
+                     (delete-region (point-min) (match-beginning 0))))
+		(_ (goto-char (point-max))
 		   (unless (bolp) (insert "\n"))
 		   (insert hunk)))
 	      (setq hunk (buffer-string))
@@ -1942,14 +1949,14 @@ For use in `add-log-current-defun-function'."
       (remove-overlays beg end 'diff-mode 'fine)
 
       (goto-char beg)
-      (case style
-        (unified
+      (pcase style
+        (`unified
          (while (re-search-forward "^\\(?:-.*\n\\)+\\(\\)\\(?:\\+.*\n\\)+"
                                    end t)
            (smerge-refine-subst (match-beginning 0) (match-end 1)
                                 (match-end 1) (match-end 0)
                                 nil 'diff-refine-preproc props-r props-a)))
-        (context
+        (`context
          (let* ((middle (save-excursion (re-search-forward "^---")))
                 (other middle))
            (while (re-search-forward "^\\(?:!.*\n\\)+" middle t)
@@ -1964,7 +1971,7 @@ For use in `add-log-current-defun-function'."
                                   'diff-refine-preproc
                                   (unless diff-use-changed-face props-r)
                                   (unless diff-use-changed-face props-a)))))
-        (t ;; Normal diffs.
+        (_ ;; Normal diffs.
          (let ((beg1 (1+ (point))))
            (when (re-search-forward "^---.*\n" end t)
              ;; It's a combined add&remove, so there's something to do.

@@ -3057,66 +3057,79 @@ M-RET    `message-newline-and-reformat' (break the line and reformat)."
 (defun message-goto-to ()
   "Move point to the To header."
   (interactive)
+  (push-mark)
   (message-position-on-field "To"))
 
 (defun message-goto-from ()
   "Move point to the From header."
   (interactive)
+  (push-mark)
   (message-position-on-field "From"))
 
 (defun message-goto-subject ()
   "Move point to the Subject header."
   (interactive)
+  (push-mark)
   (message-position-on-field "Subject"))
 
 (defun message-goto-cc ()
   "Move point to the Cc header."
   (interactive)
+  (push-mark)
   (message-position-on-field "Cc" "To"))
 
 (defun message-goto-bcc ()
   "Move point to the Bcc  header."
   (interactive)
+  (push-mark)
   (message-position-on-field "Bcc" "Cc" "To"))
 
 (defun message-goto-fcc ()
   "Move point to the Fcc header."
   (interactive)
+  (push-mark)
   (message-position-on-field "Fcc" "To" "Newsgroups"))
 
 (defun message-goto-reply-to ()
   "Move point to the Reply-To header."
   (interactive)
+  (push-mark)
   (message-position-on-field "Reply-To" "Subject"))
 
 (defun message-goto-newsgroups ()
   "Move point to the Newsgroups header."
   (interactive)
+  (push-mark)
   (message-position-on-field "Newsgroups"))
 
 (defun message-goto-distribution ()
   "Move point to the Distribution header."
   (interactive)
+  (push-mark)
   (message-position-on-field "Distribution"))
 
 (defun message-goto-followup-to ()
   "Move point to the Followup-To header."
   (interactive)
+  (push-mark)
   (message-position-on-field "Followup-To" "Newsgroups"))
 
 (defun message-goto-mail-followup-to ()
   "Move point to the Mail-Followup-To header."
   (interactive)
+  (push-mark)
   (message-position-on-field "Mail-Followup-To" "To"))
 
 (defun message-goto-keywords ()
   "Move point to the Keywords header."
   (interactive)
+  (push-mark)
   (message-position-on-field "Keywords" "Subject"))
 
 (defun message-goto-summary ()
   "Move point to the Summary header."
   (interactive)
+  (push-mark)
   (message-position-on-field "Summary" "Subject"))
 
 (eval-when-compile
@@ -3137,6 +3150,7 @@ M-RET    `message-newline-and-reformat' (break the line and reformat)."
   (when (and (message-called-interactively-p 'any)
 	     (looking-at "[ \t]*\n"))
     (expand-abbrev))
+  (push-mark)
   (goto-char (point-min))
   (or (search-forward (concat "\n" mail-header-separator "\n") nil t)
       (search-forward-regexp "[^:]+:\\([^\n]\\|\n[ \t]\\)+\n\n" nil t)))
@@ -3157,6 +3171,7 @@ M-RET    `message-newline-and-reformat' (break the line and reformat)."
 If there is no signature in the article, go to the end and
 return nil."
   (interactive)
+  (push-mark)
   (goto-char (point-min))
   (if (re-search-forward message-signature-separator nil t)
       (forward-line 1)
@@ -3796,7 +3811,7 @@ prefix, and don't delete any headers."
     (save-current-buffer
       (dolist (buffer (buffer-list t))
 	(set-buffer buffer)
-	(when (and (eq major-mode 'message-mode)
+	(when (and (derived-mode-p 'message-mode)
 		   (null message-sent-message-via))
 	  (push (buffer-name buffer) buffers))))
     (nreverse buffers)))
@@ -4479,8 +4494,9 @@ This function could be useful in `message-setup-hook'."
 	      (end-of-line)
 	      (insert (format " (%d/%d)" n total))
 	      (widen)
-              (funcall (or message-send-mail-real-function
-                           message-send-mail-function)))
+	      (if message-send-mail-real-function
+		  (funcall message-send-mail-real-function)
+		(message-multi-smtp-send-mail)))
 	    (setq n (+ n 1))
 	    (setq p (pop plist))
 	    (erase-buffer)))
@@ -4634,8 +4650,9 @@ If you always want Gnus to send messages in one piece, set
 ")))
 	      (progn
 		(message "Sending via mail...")
-		(funcall (or message-send-mail-real-function
-			     message-send-mail-function)))
+		(if message-send-mail-real-function
+		    (funcall message-send-mail-real-function)
+		  (message-multi-smtp-send-mail)))
 	    (message-send-mail-partially))
 	  (setq options message-options))
       (kill-buffer tembuf))
@@ -4644,6 +4661,28 @@ If you always want Gnus to send messages in one piece, set
     (push 'mail message-sent-message-via)))
 
 (defvar sendmail-program)
+(defvar smtpmail-smtp-user)
+
+(defun message-multi-smtp-send-mail ()
+  "Send the current buffer to `message-send-mail-function'.
+Or, if there's a header that specifies a different method, use
+that instead."
+  (let ((method (message-field-value "X-Message-SMTP-Method")))
+    (if (not method)
+	(funcall message-send-mail-function)
+      (message-remove-header "X-Message-SMTP-Method")
+      (setq method (split-string method))
+      (cond
+       ((equal (car method) "sendmail")
+	(message-send-mail-with-sendmail))
+       ((equal (car method) "smtp")
+	(require 'smtpmail)
+	(let ((smtpmail-smtp-server (nth 1 method))
+	      (smtpmail-smtp-service (nth 2 method))
+	      (smtpmail-smtp-user (or (nth 3 method) smtpmail-smtp-user)))
+	  (message-smtpmail-send-it)))
+       (t
+	(error "Unknown method %s" method))))))
 
 (defun message-send-mail-with-sendmail ()
   "Send off the prepared buffer with sendmail."
@@ -7530,7 +7569,7 @@ is for the internal use."
   (message "Resending message to %s..." address)
   (save-excursion
     (let ((cur (current-buffer))
-	  beg)
+	  gcc beg)
       ;; We first set up a normal mail buffer.
       (unless (message-mail-user-agent)
 	(set-buffer (get-buffer-create " *message resend*"))
@@ -7543,6 +7582,8 @@ is for the internal use."
       ;; Insert our usual headers.
       (message-generate-headers '(From Date To Message-ID))
       (message-narrow-to-headers)
+      (when (setq gcc (mail-fetch-field "gcc" nil t))
+	(message-remove-header "gcc"))
       ;; Remove X-Draft-From header etc.
       (message-remove-header message-ignored-mail-headers t)
       ;; Rename them all to "Resent-*".
@@ -7584,6 +7625,10 @@ is for the internal use."
 	    message-generate-hashcash
 	    rfc2047-encode-encoded-words)
 	(message-send-mail))
+      (when gcc
+	(message-goto-eoh)
+	(insert "Gcc: " gcc "\n"))
+      (run-hooks 'message-sent-hook)
       (kill-buffer (current-buffer)))
     (message "Resending message to %s...done" address)))
 

@@ -1,3 +1,390 @@
+2012-07-15  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Merge from gnulib, incorporating:
+	2012-07-15 pthread_sigmask: fix bug on FreeBSD 9 (Bug#11884)
+	2012-07-11 gettext: do not assume '#define ... defined ...' behavior
+
+2012-07-14  Glenn Morris  <rgm@gnu.org>
+
+	* configure.ac (GC_SETJMP_WORKS, GC_MARK_STACK): Move here from src/s.
+	(AH_BOTTOM): Move GC_SETJMP_WORKS GCC fallback to main body.
+
+2012-07-13  Glenn Morris  <rgm@gnu.org>
+
+	* configure.ac (opsysfile): Set to empty on gnu, cygwin.
+
+	* configure.ac (BSD4_2, BSD_SYSTEM, USG, USG5, _AIX, CYGWIN)
+	(DARWIN_OS, GNU_LINUX, HPUX, IRIX6_5, SOLARIS2):
+	Move "system type" macros here from src/s.
+	(BSD_SYSTEM_AHB): New hack macro.
+	(AH_BOTTOM): Set BSD_SYSTEM, using BSD_SYSTEM_AHB.
+
+	* configure.ac (NSIG_MINIMUM, ULIMIT_BREAK_VALUE, SETUP_SLAVE_PTY)
+	(GC_MARK_SECONDARY_STACK): Move here from src/s.
+
+2012-07-12  Glenn Morris  <rgm@gnu.org>
+
+	* configure.ac (AH_BOTTOM) [DARWIN_OS]: Move SYSTEM_PURESIZE_EXTRA
+	setting here from src/s/darwin.h.
+
+	* configure.ac (NO_MATHERR): Unconditionally define for Darwin;
+	as src/s/darwin.h used to.
+
+	* configure.ac (NARROWPROTO, NO_ABORT, BROKEN_GET_CURRENT_DIR_NAME)
+	(BROKEN_FIONREAD, BROKEN_PTY_READ_AFTER_EAGAIN, BROKEN_SIGAIO)
+	(BROKEN_SIGPOLL, BROKEN_SIGPTY, FIRST_PTY_LETTER, NO_EDITRES)
+	(G_SLICE_ALWAYS_MALLOC, PREFER_VSUSP, PTY_ITERATION, PTY_OPEN)
+	(PTY_NAME_SPRINTF, PTY_TTY_NAME_SPRINTF, RUN_TIME_REMAP)
+	(SETPGRP_RELEASES_CTTY, TAB3, TABDLY, RUN_TIME_REMAP, UNIX98_PTYS)
+	(XOS_NEEDS_TIME_H): Move here from src/s.
+
+2012-07-11  Glenn Morris  <rgm@gnu.org>
+
+	* configure.ac (INTERRUPT_INPUT): Move here from src/s.
+	(HAVE_PTYS, HAVE_SOCKETS): Define unconditionally.
+
+2012-07-11  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* configure.ac (tzset): Remove check that's redundant with gnulib.
+
+2012-07-11  Glenn Morris  <rgm@gnu.org>
+
+	* configure.ac (CLASH_DETECTION): Define unconditionally.
+
+	* configure.ac (opsysfile): Use bsd-common on gnu systems.
+
+	* configure.ac (GNU_LIBRARY_PENDING_OUTPUT_COUNT):
+	(SIGNALS_VIA_CHARACTERS): Move here from src/s.
+
+2012-07-11  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Assume mkdir, rename, rmdir, strerror.
+	* configure.ac (mkdir, rename, rmdir, strerror): Remove check.
+
+2012-07-11  Glenn Morris  <rgm@gnu.org>
+
+	* configure.ac (DONT_REOPEN_PTY): Move here from src/s.
+
+	* configure.ac (DEFAULT_SOUND_DEVICE): New definition.
+
+2012-07-10  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Remove "#define unix" that is no longer needed (Bug#11905).
+	Merge from gnulib to make "#define unix" unnecessary, incorporating:
+	2012-07-10 getloadavg: clean out old Emacs and Autoconf cruft
+	2012-07-09 getopt: Simplify after Emacs changed.
+
+2012-07-10  Glenn Morris  <rgm@gnu.org>
+
+	* configure.ac (DATA_START, DATA_SEG_BITS, PENDING_OUTPUT_COUNT):
+	Move here from src/s.
+
+2012-07-09  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* configure.ac (PNG_DEPSTRUCT): Define this instead of
+	PNG_DEPRECATED.
+
+2012-07-09  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Add GCC-style 'const' attribute to functions that can use it.
+	* configure.ac (WARN_CFLAGS): Add -Wsuggest-attribute=const.
+	(ATTRIBUTE_CONST): New macro, in config.h.
+
+2012-07-09  Juanma Barranquero  <lekktu@gmail.com>
+
+	* lib/makefile.w32-in: Rework dependencies.
+	(GNU_LIB, NT_INC, C_CTYPE_H, MS_W32_H, CONFIG_H, FILEMODE_H)
+	(FTOASTR_H, FTOASTR_C, GETOPT_INT_H, MD5_H, SHA1_H, SHA256_H)
+	(U64_H, SHA512_H): New macros.
+	(SRC): Redefine to point to src/, not current directory.
+	($(BLD)/c-ctype.$(O), $(BLD)/c-strcasecmp.$(O))
+	($(BLD)/c-strncasecmp.$(O), $(BLD)/dtoastr.$(O))
+	($(BLD)/dtotimespec.$(O), $(BLD)/getopt.$(O), $(BLD)/getopt1.$(O))
+	($(BLD)/gettime.$(O), $(BLD)/strftime.$(O), $(BLD)/time_r.$(O))
+	($(BLD)/timespec-add.$(O), $(BLD)/timespec-sub.$(O), $(BLD)/md5.$(O))
+	($(BLD)/sha1.$(O), $(BLD)/sha256.$(O), $(BLD)/sha512.$(O))
+	($(BLD)/filemode.$(O)): Update dependencies.
+
+2012-07-09  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Merge from gnulib, incorporating:
+	2012-07-09 timespec: mark functions with const attributes
+
+	Rename configure.in to configure.ac (Bug#11603).
+	The name 'configure.in' has been obsolescent for quite some time,
+	and the next release of Autoconf will generate warnings for it.
+	See commit 'v2.69-4-g560f16b' of 2012-05-06, "general: deprecate
+	'configure.in' as autoconf input" in the Autoconf git repository.
+	* configure.ac: Rename from configure.in.
+	* INSTALL, INSTALL.BZR, README, make-dist:
+	* Makefile.in (AUTOCONF_INPUTS):
+	* autogen.sh (autoconf_min):
+	* autogen/update_autogen (sources):
+	Adjust to reflect new name.
+
+2012-07-08  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Restore deprecation warnings, except for older libpng.
+	* configure.in (WARN_CFLAGS): Remove -Wno-deprecated-declarations.
+	(HAVE_LIBPNG_PNG_H): Don't bother checking for this if we have png.h.
+	(PNG_DEPRECATED): Define when compiling with older PNG versions.
+
+2012-07-07  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* configure.in (WARN_CFLAGS): Add -Wno-deprecated-declarations.
+
+2012-07-07  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Improve static checking when configured --with-ns.
+	See Samuel Bronson's remarks in
+	<http://lists.gnu.org/archive/html/emacs-devel/2012-07/msg00146.html>.
+	* configure.in (WARN_CFLAGS): Omit -Wunreachable-code, as it's
+	a no-op with recent GCC and harmful in earlier ones.
+	Omit -Wsync-nand, as it's irrelevant to Emacs and provokes a
+	warning when compiling with ObjC.  Always omit
+	-Wunsafe-loop-optimizations, as we don't mind when optimization is
+	being done correctly.
+
+2012-07-07  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in (BROKEN_SA_RESTART): Doc fix.
+
+	* configure.in: Rather than checking for things then undef'ing
+	them on some platforms, simply don't check for them.
+	(getwd): Don't check for it on unixware.
+	(random, rint): Don't check for these on hpux.
+	(res_init, libresolv): Don't check for these on darwin.
+
+2012-07-07  Juanma Barranquero  <lekktu@gmail.com>
+
+	* lib/makefile.w32-in (GNULIBOBJS): Add $(BLD)/c-ctype.$(O),
+	$(BLD)/c-strcasecmp.$(O) and $(BLD)/c-strncasecmp.$(O).
+	($(BLD)/c-ctype.$(O), $(BLD)/c-strcasecmp.$(O))
+	($(BLD)/c-strncasecmp.$(O)): New dependencies.
+
+2012-07-06  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* configure.in: Document --enable-gcc-warnings better.
+
+	Use c_strcasecmp for ASCII case-insensitive comparison (Bug#11786).
+	This is safer than strcasecmp, which has unspecified behavior
+	outside the POSIX locale and in practice sometimes does not work
+	in multibyte locales.  Similarly for c_strncasecmp and strncasecmp.
+	* configure.in (strcasecmp, strncasecmp): Remove checks.
+
+	* lib/c-ctype.c, lib/c-ctype.h, lib/c-strcase.h, lib/c-strcasecmp.c:
+	* lib/c-strncasecmp.c: New files, taken from gnulib.
+	* lib/gnulib.mk, m4/gnulib-comp.m4: Regenerate.
+
+	Merge from gnulib, incorporating:
+	2012-07-06 timespec-sub: avoid duplicate include
+	Reported by Juanma Barranquero.
+
+2012-07-06  Glenn Morris  <rgm@gnu.org>
+
+	* make-dist [update]: Let autoreconf figure out what needs updating.
+	Use `make info-real'.  leim/leim-list.el should always exist.
+	Check cd return value.
+
+2012-07-06  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Merge from gnulib.  This is for OpenBSD 5.1 amd64.
+	* m4/sys_time_h.m4: New version from gnulib, incorporating:
+	2012-07-05 sys_time: allow too-wide tv_sec
+
+2012-07-04  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Merge from gnulib.
+	* lib/alloca.in.h: New version from gnulib, incorporating:
+	2012-07-03 alloca: add support for HP NonStop TNS/E native
+
+2012-07-04  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* configure.in: If --enable-gcc-warnings, disable
+	-Wunsafe-loop-optimizations for -O1 optimization level.
+
+2012-06-30  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in (standardlisppath): New output variable.
+	(lisppath): Use standardlisppath.
+	* Makefile.in (standardlisppath): New, set by configure.
+	(epaths-force): Use standardlisppath and locallisppath rather than
+	lisppath.
+
+2012-06-28  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* configure.in: Fix previous change. Remove --enable-asserts.
+	(CPPFLAGS): Remove conditional -DXASSERTS=1.
+	Add --enable-link-time-optimization.
+	* INSTALL: Mention this.
+
+2012-06-28  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* configure.in: Add glyphs category to --enable-checking option.
+	(GLYPH_DEBUG): Define if glyphs debugging is enabled.
+
+2012-06-28  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* configure.in (ENABLE_CHECKING): Update comment.
+
+2012-06-28  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* configure.in: Don't check for sys/select.h, sys/time.h, utime.h.
+	Emacs proper no longer uses these headers, and can rely on Gnulib
+	for these checks.
+
+	Merge from gnulib.
+	* m4/getopt.m4: Copy new version from gnulib, incorporating:
+	getopt-posix: No longer guarantee that option processing is resettable.
+
+2012-06-27  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in: Only check for paxctl on gnu-linux.  (Bug#11398#26)
+
+	* INSTALL: Remove references to paths.el.
+
+2012-06-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* lib/makefile.w32-in ($(GNULIBOBJS)): Depend on stamp_BLD.  This
+	replaces separate dependency for each object file, which required
+	the same object file to be mentioned twice, causing failures in
+	parallel builds.
+
+2012-06-26  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Clean out last vestiges of the old HAVE_CONFIG_H stuff.
+	* lib/makefile.w32-in (LOCAL_FLAGS): Remove -DHAVE_CONFIG_H.
+
+2012-06-25  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* configure.in (AC_CHECK_FUNCS): Detect library functions
+	strcasecmp and strncasecmp.
+
+2012-06-24  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Switch from NO_RETURN to C11's _Noreturn (Bug#11750).
+	We might as well use the spelling standardized by C11,
+	as in the long run that should simplify maintenance.
+	* configure.in (NO_RETURN): Remove.  All uses replaced by _Noreturn.
+
+2012-06-24  Eli Zaretskii  <eliz@gnu.org>
+
+	* lib/makefile.w32-in ($(BLD)/dtotimespec.$(O)):
+	($(BLD)/timespec-add.$(O)):
+	($(BLD)/timespec-sub.$(O)): Don't depend on
+	$(EMACS_ROOT)/nt/inc/sys/time.h.
+
+	* lib/stat-time.h:
+	* lib/timespec.h:
+	* lib/utimens.h: Revert last change.
+
+2012-06-23  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Merge from gnulib.
+	* m4/getopt.m4: Copy new version from gnulib, incorporating:
+	getopt-gnu: Handle suboptimal getopt_long's abbreviation handling.
+
+2012-06-23  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix the MS-Windows build broken by revno 108687.
+	* lib/makefile.w32-in (GNULIBOBJS): Add $(BLD)/dtotimespec.$(O),
+	$(BLD)/gettime.$(O), $(BLD)/timespec-add.$(O), and
+	$(BLD)/timespec-sub.$(O).
+	($(BLD)/dtotimespec.$(O)):
+	($(BLD)/gettime.$(O)):
+	($(BLD)/timespec-add.$(O)):
+	($(BLD)/timespec-sub.$(O)): New dependencies.
+
+	* lib/stat-time.h:
+	* lib/timespec.h:
+	* lib/utimens.h: Include sys/time.h.
+
+2012-06-23  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* configure.in: Don't use AC_CHECK_FUNCS_ONCE, which doesn't use
+	the correct CFLAGS and LIBS.
+
+2012-06-22  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Support higher-resolution time stamps (Bug#9000).
+	* configure.in (gl_ASSERT_NO_GNULIB_POSIXCHECK)
+	(gl_ASSERT_NO_GNULIB_TESTS, gl_INIT): Move these up earlier, so
+	that the new clock stuff doesn't clash with RSVG_LIBS.
+	(AC_CHECK_HEADERS): Don't check for sys/select.h, sys/time.h, utime.h,
+	as gnulib does that for us now.
+	(emacs_cv_struct_utimbuf, HAVE_STRUCT_UTIMBUF, HAVE_TIMEVAL)
+	(GETTIMEOFDAY_ONE_ARGUMENT): Remove; gnulib does these now.
+	(AC_CHECK_FUNCS): Remove utimes; no longer needed.
+	* lib/dtotimespec.c, lib/gettime.c, lib/gettimeofday.c, lib/pselect.c:
+	* lib/stat-time.h, lib/sys_select.in.h, lib/sys_time.in.h:
+	* lib/timespec-add.c, lib/timespec-sub.c, lib/timespec.h:
+	* lib/utimens.c, lib/utimens.h, m4/clock_time.m4, m4/gettime.m4:
+	* m4/gettimeofday.m4, m4/pselect.m4, m4/stat-time.m4:
+	* m4/sys_select_h.m4, m4/sys_socket_h.m4, m4/sys_time_h.m4:
+	* m4/timespec.m4, m4/utimbuf.m4, m4/utimens.m4, m4/utimes.m4:
+	New files, copied automatically from gnulib.
+	* lib/gnulib.mk, m4/gnulib-comp.m4: Merge from gnulib.
+
+2012-06-22  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Merge from gnulib.
+	* lib/filemode.h, lib/signal.in.h, lib/stat.c, lib/stdint.in.h:
+	* lib/stdlib.in.h, lib/unistd.in.h, m4/extensions.m4, m4/getloadavg.m4:
+	* m4/getopt.m4, m4/gnulib-common.m4, m4/largefile.m4, m4/mktime.m4:
+	* m4/multiarch.m4, m4/nocrash.m4, m4/stdio_h.m4, m4/time_r.m4:
+	Copy new versions from gnulib, incorporating the following changes:
+	2012-06-22 time_r: fix typo that always overrode localtime_r decl
+	2012-06-22 Write "Mac OS X" instead of "MacOS X".
+	2012-06-21 mktime: fix integer overflow in 'configure'-time test
+	2012-06-21 nonblocking: Avoid compilation error on mingw64.
+	2012-06-19 stat, fstat: Avoid warnings on mingw64.
+	2012-06-19 getopt-gnu: Fix exit code overflow in autoconf test.
+
+2012-06-13  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* configure.in: Rename --enable-use-lisp-union-type to
+	--enable-check-lisp-object-type and define CHECK_LISP_OBJECT_TYPE
+	instead of USE_LISP_UNION_TYPE.
+
+2012-06-12  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in (HAVE_PROCFS, _STRUCTURED_PROC): New AC_DEFINEs.
+	(opsysfile): Set specially for sol2-10.
+
+	* configure.in (BROKEN_SA_RESTART, USG_SUBTTY_WORKS):
+	New AC_DEFINEs, for hpux11.
+	(opsysfile): Set specially for hpux11.
+
+2012-06-12  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* configure.in: Coalesce some function checking.
+	This makes 'configure' a bit smaller.
+	Prefer AC_CHECK_FUNCS_ONCE for functions that we always check for.
+
+2012-06-12  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in (opsysfile): Set specially for gnu-kfreebsd, openbsd.
+
+	* configure.in (NO_TERMIO, BROKEN_SIGIO): Move here from src/s.
+
+	* configure.in: Anticipate platforms with no src/s file.
+
+2012-06-12  Chong Yidong  <cyd@gnu.org>
+
+	* configure.in: Check for MagickMergeImageLayers (Bug#11678).
+
+2012-06-11  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in (SYSTEM_TYPE): New AC_DEFINE.
+
+2012-06-09  Michael Albinus  <michael.albinus@gmx.de>
+
+	* configure.in (dbus_type_is_valid): Check for library function.
+
+2012-06-06  Glenn Morris  <rgm@gnu.org>
+
+	* INSTALL, make-dist: Remove vcdiff.
+
 2012-06-03  Glenn Morris  <rgm@gnu.org>
 
 	* INSTALL, make-dist: Remove rcs-checkin.
@@ -405,7 +792,7 @@
 
 	* configure.in (dbus_validate_bus_name, dbus_validate_path)
 	(dbus_validate_interface, dbus_validate_member): Check also for
-	these library functions
+	these library functions.
 
 2012-04-22  Paul Eggert  <eggert@cs.ucla.edu>
 
@@ -565,7 +952,7 @@
 2011-12-17  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Port HAVE_PTHREAD configuration to MirBSD 10 (Bug#10201).
-	* configure.in (HAVE_PTHREAD): Check for pthread_atfork	if linking
+	* configure.in (HAVE_PTHREAD): Check for pthread_atfork if linking
 	to gmalloc.c.  This should prevent a MirBSD 10 build failure reported
 	by Nelson H. F. Beebe in
 	<http://lists.gnu.org/archive/html/emacs-devel/2011-12/msg00065.html>.
@@ -4645,7 +5032,7 @@
 
 2005-06-08  Steven Tamm  <steventamm@mac.com>
 
-	* configure.in: Support Darwin/MacOSX on Intel
+	* configure.in: Support Darwin/MacOSX on Intel.
 
 2005-06-06  Jan Djärv  <jan.h.d@swipnet.se>
 
@@ -4775,7 +5162,7 @@
 
 2004-10-08  Steven Tamm  <steventamm@mac.com>
 
-	* configure.in (HAVE_MALLOC_MALLOC_H): Test for malloc/malloc.h
+	* configure.in (HAVE_MALLOC_MALLOC_H): Test for malloc/malloc.h.
 
 2004-10-06  Jan Djärv  <jan.h.d@swipnet.se>
 
@@ -5130,7 +5517,7 @@
 
 2003-01-19  Jan Djärv  <jan.h.d@swipnet.se>
 
-	* configure.in: Add --with-gtk, --with-x-toolkit=gtk
+	* configure.in: Add --with-gtk, --with-x-toolkit=gtk.
 
 	* INSTALL (DETAILED BUILDING AND INSTALLATION): Add text about GTK.
 
@@ -5143,7 +5530,7 @@
 	* configure.in: New option, --enable-carbon-app, to specify
 	that the application should be installed
 	* Makefile.in (install-arch-dep): On Mac OS X, install the
-	Emacs.app application if carbon-app is enabled
+	Emacs.app application if carbon-app is enabled.
 
 2003-01-06  Dave Love  <fx@gnu.org>
 
@@ -7622,7 +8009,7 @@
 
 1995-09-30  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
 
-	* configure.in (powerpc-*-solaris2): New alternative.x
+	* configure.in (powerpc-*-solaris2): New alternative.
 
 1995-09-12  Karl Heuer  <kwzh@gnu.ai.mit.edu>
 
@@ -8136,11 +8523,11 @@
 
 1994-09-21  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
 
-	* configure.in (i[345]86-sequent-ptx*): Handle
+	* configure.in (i[345]86-sequent-ptx*): Handle.
 
 1994-09-20  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
 
-	* Makefile.in (paths-force): Depend on src/paths.h
+	* Makefile.in (paths-force): Depend on src/paths.h.
 
 1994-09-19  Karl Heuer  <kwzh@hal.gnu.ai.mit.edu>
 
@@ -8148,7 +8535,7 @@
 
 1994-09-18  Karl Heuer  <kwzh@hal.gnu.ai.mit.edu>
 
-	* Makefile.in (install-arch-indep): Copy DOC-*, not DOC*
+	* Makefile.in (install-arch-indep): Copy DOC-*, not DOC*.
 
 	* configure.in: Add AC_AIX.
 	Add checks to set HAVE_STRUCT_UTIMBUF, HAVE_TIMEVAL, HAVE_SELECT.
@@ -8981,7 +9368,7 @@
 
 1993-09-12  Roland McGrath  (roland@sugar-bombs.gnu.ai.mit.edu)
 
-	* make-dist: Dist vpath.sed
+	* make-dist: Dist vpath.sed.
 
 	* Makefile.in (lib-src/Makefile, src/Makefile, oldXMenu/Makefile):
 	Depend on vpath.sed.

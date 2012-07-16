@@ -134,68 +134,68 @@ commands.")
     (define-key map [follow-link] 'mouse-face)
 
     (define-key map [menu-bar Buffer-menu-mode] (cons (purecopy "Buffer-Menu") menu-map))
-    (define-key menu-map [quit]
-      `(menu-item ,(purecopy "Quit") quit-window
-		 :help ,(purecopy "Remove the buffer menu from the display")))
-    (define-key menu-map [rev]
-      `(menu-item ,(purecopy "Refresh") revert-buffer
-		 :help ,(purecopy "Refresh the *Buffer List* buffer contents")))
-    (define-key menu-map [s0] menu-bar-separator)
-    (define-key menu-map [tf]
-      `(menu-item ,(purecopy "Show Only File Buffers") Buffer-menu-toggle-files-only
+    (bindings--define-key menu-map [quit]
+      '(menu-item "Quit" quit-window
+		 :help "Remove the buffer menu from the display"))
+    (bindings--define-key menu-map [rev]
+      '(menu-item "Refresh" revert-buffer
+		 :help "Refresh the *Buffer List* buffer contents"))
+    (bindings--define-key menu-map [s0] menu-bar-separator)
+    (bindings--define-key menu-map [tf]
+      '(menu-item "Show Only File Buffers" Buffer-menu-toggle-files-only
 		  :button (:toggle . Buffer-menu-files-only)
-		  :help ,(purecopy "Toggle whether the current buffer-menu displays only file buffers")))
-    (define-key menu-map [s1] menu-bar-separator)
+		  :help "Toggle whether the current buffer-menu displays only file buffers"))
+    (bindings--define-key menu-map [s1] menu-bar-separator)
     ;; FIXME: The "Select" entries could use better names...
-    (define-key menu-map [sel]
-      `(menu-item ,(purecopy "Select Marked") Buffer-menu-select
-		 :help ,(purecopy "Select this line's buffer; also display buffers marked with `>'")))
-    (define-key menu-map [bm2]
-      `(menu-item ,(purecopy "Select Two") Buffer-menu-2-window
-		 :help ,(purecopy "Select this line's buffer, with previous buffer in second window")))
-    (define-key menu-map [bm1]
-      `(menu-item ,(purecopy "Select Current") Buffer-menu-1-window
-		 :help ,(purecopy "Select this line's buffer, alone, in full frame")))
-    (define-key menu-map [ow]
-      `(menu-item ,(purecopy "Select in Other Window") Buffer-menu-other-window
-		 :help ,(purecopy "Select this line's buffer in other window, leaving buffer menu visible")))
-    (define-key menu-map [tw]
-      `(menu-item ,(purecopy "Select in Current Window") Buffer-menu-this-window
-		 :help ,(purecopy "Select this line's buffer in this window")))
-    (define-key menu-map [s2] menu-bar-separator)
-    (define-key menu-map [is]
-      `(menu-item ,(purecopy "Regexp Isearch Marked Buffers...") Buffer-menu-isearch-buffers-regexp
-		 :help ,(purecopy "Search for a regexp through all marked buffers using Isearch")))
-    (define-key menu-map [ir]
-      `(menu-item ,(purecopy "Isearch Marked Buffers...") Buffer-menu-isearch-buffers
-		 :help ,(purecopy "Search for a string through all marked buffers using Isearch")))
-    (define-key menu-map [s3] menu-bar-separator)
-    (define-key menu-map [by]
-      `(menu-item ,(purecopy "Bury") Buffer-menu-bury
-		 :help ,(purecopy "Bury the buffer listed on this line")))
-    (define-key menu-map [vt]
-      `(menu-item ,(purecopy "Set Unmodified") Buffer-menu-not-modified
-		 :help ,(purecopy "Mark buffer on this line as unmodified (no changes to save)")))
-    (define-key menu-map [ex]
-      `(menu-item ,(purecopy "Execute") Buffer-menu-execute
-		 :help ,(purecopy "Save and/or delete buffers marked with s or k commands")))
-    (define-key menu-map [s4] menu-bar-separator)
-    (define-key menu-map [delb]
-      `(menu-item ,(purecopy "Mark for Delete and Move Backwards") Buffer-menu-delete-backwards
-		 :help ,(purecopy "Mark buffer on this line to be deleted by x command and move up one line")))
-    (define-key menu-map [del]
-      `(menu-item ,(purecopy "Mark for Delete") Buffer-menu-delete
-		 :help ,(purecopy "Mark buffer on this line to be deleted by x command")))
+    (bindings--define-key menu-map [sel]
+      '(menu-item "Select Marked" Buffer-menu-select
+		 :help "Select this line's buffer; also display buffers marked with `>'"))
+    (bindings--define-key menu-map [bm2]
+      '(menu-item "Select Two" Buffer-menu-2-window
+		 :help "Select this line's buffer, with previous buffer in second window"))
+    (bindings--define-key menu-map [bm1]
+      '(menu-item "Select Current" Buffer-menu-1-window
+		 :help "Select this line's buffer, alone, in full frame"))
+    (bindings--define-key menu-map [ow]
+      '(menu-item "Select in Other Window" Buffer-menu-other-window
+		 :help "Select this line's buffer in other window, leaving buffer menu visible"))
+    (bindings--define-key menu-map [tw]
+      '(menu-item "Select in Current Window" Buffer-menu-this-window
+		 :help "Select this line's buffer in this window"))
+    (bindings--define-key menu-map [s2] menu-bar-separator)
+    (bindings--define-key menu-map [is]
+      '(menu-item "Regexp Isearch Marked Buffers..." Buffer-menu-isearch-buffers-regexp
+		 :help "Search for a regexp through all marked buffers using Isearch"))
+    (bindings--define-key menu-map [ir]
+      '(menu-item "Isearch Marked Buffers..." Buffer-menu-isearch-buffers
+		 :help "Search for a string through all marked buffers using Isearch"))
+    (bindings--define-key menu-map [s3] menu-bar-separator)
+    (bindings--define-key menu-map [by]
+      '(menu-item "Bury" Buffer-menu-bury
+		 :help "Bury the buffer listed on this line"))
+    (bindings--define-key menu-map [vt]
+      '(menu-item "Set Unmodified" Buffer-menu-not-modified
+		 :help "Mark buffer on this line as unmodified (no changes to save)"))
+    (bindings--define-key menu-map [ex]
+      '(menu-item "Execute" Buffer-menu-execute
+		 :help "Save and/or delete buffers marked with s or k commands"))
+    (bindings--define-key menu-map [s4] menu-bar-separator)
+    (bindings--define-key menu-map [delb]
+      '(menu-item "Mark for Delete and Move Backwards" Buffer-menu-delete-backwards
+		 :help "Mark buffer on this line to be deleted by x command and move up one line"))
+    (bindings--define-key menu-map [del]
+      '(menu-item "Mark for Delete" Buffer-menu-delete
+		 :help "Mark buffer on this line to be deleted by x command"))
 
-    (define-key menu-map [sv]
-      `(menu-item ,(purecopy "Mark for Save") Buffer-menu-save
-		 :help ,(purecopy "Mark buffer on this line to be saved by x command")))
-    (define-key menu-map [umk]
-      `(menu-item ,(purecopy "Unmark") Buffer-menu-unmark
-		 :help ,(purecopy "Cancel all requested operations on buffer on this line and move down")))
-    (define-key menu-map [mk]
-      `(menu-item ,(purecopy "Mark") Buffer-menu-mark
-		 :help ,(purecopy "Mark buffer on this line for being displayed by v command")))
+    (bindings--define-key menu-map [sv]
+      '(menu-item "Mark for Save" Buffer-menu-save
+		 :help "Mark buffer on this line to be saved by x command"))
+    (bindings--define-key menu-map [umk]
+      '(menu-item "Unmark" Buffer-menu-unmark
+		 :help "Cancel all requested operations on buffer on this line and move down"))
+    (bindings--define-key menu-map [mk]
+      '(menu-item "Mark" Buffer-menu-mark
+		 :help "Mark buffer on this line for being displayed by v command"))
     map)
   "Local keymap for `Buffer-menu-mode' buffers.")
 
@@ -515,11 +515,12 @@ The current window remains selected."
     (bury-buffer menu)))
 
 (defun Buffer-menu-toggle-read-only ()
-  "Toggle read-only status of buffer on this line."
+  "Toggle read-only status of buffer on this line.
+This behaves like invoking \\[toggle-read-only] in that buffer."
   (interactive)
   (let (read-only)
     (with-current-buffer (Buffer-menu-buffer t)
-      (with-no-warnings (toggle-read-only))
+      (toggle-read-only)
       (setq read-only buffer-read-only))
     (tabulated-list-set-col 1 (if read-only "%" " ") t)))
 

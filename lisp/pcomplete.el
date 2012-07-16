@@ -118,7 +118,6 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
 (require 'comint)
 
 (defgroup pcomplete nil
@@ -875,9 +874,9 @@ component, `default-directory' is used as the basis for completion."
                 ;; The env-var is "out of bounds".
                 (if (eq action t)
                     (complete-with-action action table newstring pred)
-                  (list* 'boundaries
-                         (+ (car bounds) (- orig-length (length newstring)))
-                         (cdr bounds)))
+                  `(boundaries
+                    ,(+ (car bounds) (- orig-length (length newstring)))
+                    . ,(cdr bounds)))
               ;; The env-var is in the file bounds.
               (if (eq action t)
                   (let ((comps (complete-with-action
@@ -886,9 +885,9 @@ component, `default-directory' is used as the basis for completion."
                     ;; Strip the part of each completion that's actually
                     ;; coming from the env-var.
                     (mapcar (lambda (s) (substring s len)) comps))
-                (list* 'boundaries
-                       (+ envpos (- orig-length (length newstring)))
-                       (cdr bounds))))))))))
+                `(boundaries
+                  ,(+ envpos (- orig-length (length newstring)))
+                  . ,(cdr bounds))))))))))
 
 (defsubst pcomplete-all-entries (&optional regexp predicate)
   "Like `pcomplete-entries', but doesn't ignore any entries."
