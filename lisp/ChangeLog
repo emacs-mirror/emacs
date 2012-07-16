@@ -1,3 +1,17 @@
+2012-07-16  Fabián Ezequiel Gallina  <fgallina@cuca>
+
+	* progmodes/python.el: Enhancements to navigation commands.
+	(python-nav-backward-sentence)
+	(python-nav-forward-sentence): Remove.
+	(python-nav-backward-statement, python-nav-forward-statement)
+	(python-nav-statement-start, python-nav-statement-end)
+	(python-nav-backward-block, python-nav-forward-block)
+	(python-nav-block-start, python-nav-block-end)
+	(python-nav-forward-sexp-function)
+	(python-info-current-line-comment-p)
+	(python-info-current-line-empty-p): New functions.
+	(python-indent-context): Use `python-nav-statement-start'.
+
 2012-07-16  Michael Albinus  <michael.albinus@gmx.de>
 
 	* eshell/em-ls.el (eshell/ls): Use `apply'.

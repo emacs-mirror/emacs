@@ -46,11 +46,13 @@
 
 ;; Movement: `beginning-of-defun' and `end-of-defun' functions are
 ;; properly implemented.  There are also specialized
-;; `forward-sentence' and `backward-sentence' replacements
-;; (`python-nav-forward-sentence', `python-nav-backward-sentence'
-;; respectively).  Extra functions `python-nav-sentence-start' and
-;; `python-nav-sentence-end' are included to move to the beginning and
-;; to the end of a sentence while taking care of multiline definitions.
+;; `forward-sentence' and `backward-sentence' replacements called
+;; `python-nav-forward-block', `python-nav-backward-block'
+;; respectively which navigate between beginning of blocks of code.
+;; Extra functions `python-nav-forward-statement',
+;; `python-nav-backward-statement', `python-nav-statement-start',
+;; `python-nav-statement-end', `python-nav-block-start' and
+;; `python-nav-block-end' are included but no bound to any key.
 ;; `python-nav-jump-to-defun' is provided and allows jumping to a
 ;; function or class definition quickly in the current buffer.
 
@@ -227,10 +229,10 @@
   (let ((map (make-sparse-keymap)))
     ;; Movement
     (substitute-key-definition 'backward-sentence
-                               'python-nav-backward-sentence
+                               'python-nav-backward-block
                                map global-map)
     (substitute-key-definition 'forward-sentence
-                               'python-nav-forward-sentence
+                               'python-nav-forward-block
                                map global-map)
     (define-key map "\C-c\C-j" 'python-nav-jump-to-defun)
     ;; Indent specific
@@ -664,7 +666,7 @@ START is the buffer position where the sexp starts."
         ((setq start (save-excursion
                        (back-to-indentation)
                        (python-util-forward-comment -1)
-                       (python-nav-sentence-start)
+                       (python-nav-statement-start)
                        (point-marker)))
          'after-line)
         ;; Do not indent
@@ -1097,10 +1099,10 @@ Returns nil if point is not in a def or class."
                       (python-info-ppss-context-type))
             (forward-line 1)))))))
 
-(defun python-nav-sentence-start ()
-  "Move to start of current sentence."
+(defun python-nav-statement-start ()
+  "Move to start of current statement."
   (interactive "^")
-  (while (and (not (back-to-indentation))
+  (while (and (or (back-to-indentation) t)
               (not (bobp))
               (when (or
                      (save-excursion
@@ -1110,8 +1112,8 @@ Returns nil if point is not in a def or class."
                      (python-info-ppss-context 'paren))
                 (forward-line -1)))))
 
-(defun python-nav-sentence-end ()
-  "Move to end of current sentence."
+(defun python-nav-statement-end ()
+  "Move to end of current statement."
   (interactive "^")
   (while (and (goto-char (line-end-position))
               (not (eobp))
@@ -1121,28 +1123,185 @@ Returns nil if point is not in a def or class."
                      (python-info-ppss-context 'paren))
                 (forward-line 1)))))
 
-(defun python-nav-backward-sentence (&optional arg)
-  "Move backward to start of sentence.  With ARG, do it arg times.
-See `python-nav-forward-sentence' for more information."
+(defun python-nav-backward-statement (&optional arg)
+  "Move backward to previous statement.
+With ARG, repeat.  See `python-nav-forward-statement'."
   (interactive "^p")
   (or arg (setq arg 1))
-  (python-nav-forward-sentence (- arg)))
+  (python-nav-forward-statement (- arg)))
 
-(defun python-nav-forward-sentence (&optional arg)
-  "Move forward to next end of sentence.  With ARG, repeat.
-With negative argument, move backward repeatedly to start of sentence."
+(defun python-nav-forward-statement (&optional arg)
+  "Move forward to next statement.
+With ARG, repeat.  With negative argument, move ARG times
+backward to previous statement."
   (interactive "^p")
   (or arg (setq arg 1))
   (while (> arg 0)
+    (python-nav-statement-end)
     (python-util-forward-comment)
-    (python-nav-sentence-end)
-    (forward-line 1)
+    (python-nav-statement-start)
     (setq arg (1- arg)))
   (while (< arg 0)
-    (python-nav-sentence-end)
+    (python-nav-statement-start)
     (python-util-forward-comment -1)
-    (python-nav-sentence-start)
-    (forward-line -1)
+    (python-nav-statement-start)
+    (setq arg (1+ arg))))
+
+(defun python-nav-block-start ()
+  "Move to start of current block."
+  (interactive "^")
+  (let ((starting-pos (point))
+        (block-regexp (python-rx
+                       line-start (* whitespace) block-start)))
+    (if (progn
+          (python-nav-statement-start)
+          (looking-at (python-rx block-start)))
+        (point-marker)
+      ;; Go to first line beginning a statement
+      (while (and (not (bobp))
+                  (or (and (python-nav-statement-start) nil)
+                      (python-info-current-line-comment-p)
+                      (python-info-current-line-empty-p)))
+        (forward-line -1))
+      (let ((block-matching-indent
+             (- (current-indentation) python-indent-offset)))
+        (while
+            (and (python-nav-backward-block)
+                 (> (current-indentation) block-matching-indent)))
+        (if (and (looking-at (python-rx block-start))
+                 (= (current-indentation) block-matching-indent))
+            (point-marker)
+          (and (goto-char starting-pos) nil))))))
+
+(defun python-nav-block-end ()
+  "Move to end of current block."
+  (interactive "^")
+  (when (python-nav-block-start)
+    (let ((block-indentation (current-indentation)))
+      (python-nav-statement-end)
+      (while (and (forward-line 1)
+                  (not (eobp))
+                  (or (and (> (current-indentation) block-indentation)
+                           (or (python-nav-statement-end) t))
+                      (python-info-current-line-comment-p)
+                      (python-info-current-line-empty-p))))
+      (python-util-forward-comment -1)
+      (point-marker))))
+
+(defun python-nav-backward-block (&optional arg)
+  "Move backward to previous block of code.
+With ARG, repeat.  See `python-nav-forward-block'."
+  (interactive "^p")
+  (or arg (setq arg 1))
+  (python-nav-forward-block (- arg)))
+
+(defun python-nav-forward-block (&optional arg)
+  "Move forward to next block of code.
+With ARG, repeat.  With negative argument, move ARG times
+backward to previous block."
+  (interactive "^p")
+  (or arg (setq arg 1))
+  (let ((block-start-regexp
+         (python-rx line-start (* whitespace) block-start))
+        (starting-pos (point)))
+    (while (> arg 0)
+      (python-nav-statement-end)
+      (while (and
+              (re-search-forward block-start-regexp nil t)
+              (or (python-info-ppss-context 'string)
+                  (python-info-ppss-context 'comment)
+                  (python-info-ppss-context 'paren))))
+      (setq arg (1- arg)))
+    (while (< arg 0)
+      (python-nav-statement-start)
+      (while (and
+              (re-search-backward block-start-regexp nil t)
+              (or (python-info-ppss-context 'string)
+                  (python-info-ppss-context 'comment)
+                  (python-info-ppss-context 'paren))))
+      (setq arg (1+ arg)))
+    (python-nav-statement-start)
+    (if (not (looking-at (python-rx block-start)))
+        (and (goto-char starting-pos) nil)
+      (and (not (= (point) starting-pos)) (point-marker)))))
+
+(defun python-nav-forward-sexp-function (&optional arg)
+  "Move forward across one block of code.
+With ARG, do it that many times.  Negative arg -N means
+move backward N times."
+  (interactive "^p")
+  (or arg (setq arg 1))
+  (while (> arg 0)
+    (let ((block-starting-pos
+           (save-excursion (python-nav-block-start)))
+          (block-ending-pos
+           (save-excursion (python-nav-block-end)))
+          (next-block-starting-pos
+           (save-excursion (python-nav-forward-block))))
+      (cond ((not block-starting-pos)
+             (python-nav-forward-block))
+            ((= (point) block-starting-pos)
+             (if (or (not next-block-starting-pos)
+                     (< block-ending-pos next-block-starting-pos))
+                 (python-nav-block-end)
+               (python-nav-forward-block)))
+            ((= block-ending-pos (point))
+             (let ((parent-block-end-pos
+                    (save-excursion
+                      (python-util-forward-comment)
+                      (python-nav-block-start)
+                      (python-nav-block-end))))
+               (if (and parent-block-end-pos
+                        (or (not next-block-starting-pos)
+                            (> next-block-starting-pos parent-block-end-pos)))
+                   (goto-char parent-block-end-pos)
+                 (python-nav-forward-block))))
+            (t (python-nav-block-end))))
+      (setq arg (1- arg)))
+  (while (< arg 0)
+    (let* ((block-starting-pos
+            (save-excursion (python-nav-block-start)))
+           (block-ending-pos
+            (save-excursion (python-nav-block-end)))
+           (prev-block-ending-pos
+            (save-excursion (when (python-nav-backward-block)
+                              (python-nav-block-end))))
+           (prev-block-parent-ending-pos
+            (save-excursion
+              (when prev-block-ending-pos
+                (goto-char prev-block-ending-pos)
+                (python-util-forward-comment)
+                (python-nav-block-start)
+                (python-nav-block-end)))))
+      (cond ((not block-ending-pos)
+             (and (python-nav-backward-block)
+                  (python-nav-block-end)))
+            ((= (point) block-ending-pos)
+             (let ((candidates))
+               (dolist (name
+                        '(prev-block-parent-ending-pos
+                          prev-block-ending-pos
+                          block-ending-pos
+                          block-starting-pos))
+                 (when (and (symbol-value name)
+                            (< (symbol-value name) (point)))
+                   (add-to-list 'candidates (symbol-value name))))
+               (goto-char (apply 'max candidates))))
+            ((> (point) block-ending-pos)
+             (python-nav-block-end))
+            ((= (point) block-starting-pos)
+             (if (not (> (point) (or prev-block-ending-pos (point))))
+                 (python-nav-backward-block)
+               (goto-char prev-block-ending-pos)
+               (let ((parent-block-ending-pos
+                      (save-excursion
+                        (python-nav-forward-sexp-function)
+                        (and (not (looking-at (python-rx block-start)))
+                             (point)))))
+                 (when (and parent-block-ending-pos
+                            (> parent-block-ending-pos prev-block-ending-pos))
+                   (goto-char parent-block-ending-pos)))))
+            (t (python-nav-block-start))))
     (setq arg (1+ arg))))
 
 (defvar python-nav-list-defun-positions-cache nil)
@@ -2766,6 +2925,20 @@ The type returned can be 'comment, 'string or 'paren."
          (beginning-of-line 1)
          (looking-at python-nav-beginning-of-defun-regexp))))
 
+(defun python-info-current-line-comment-p ()
+  "Check if current line is a comment line."
+  (char-equal (or (char-after (+ (point) (current-indentation))) ?_) ?#))
+
+(defun python-info-current-line-empty-p ()
+  "Check if current line is empty, ignoring whitespace."
+  (save-excursion
+    (beginning-of-line 1)
+    (looking-at
+     (python-rx line-start (* whitespace)
+                (group (* not-newline))
+                (* whitespace) line-end))
+    (string-equal "" (match-string-no-properties 1))))
+
 
 ;;; Utility functions
 
@@ -2817,6 +2990,9 @@ if that value is non-nil."
 
   (set (make-local-variable 'parse-sexp-lookup-properties) t)
   (set (make-local-variable 'parse-sexp-ignore-comments) t)
+
+  (set (make-local-variable 'forward-sexp-function)
+       'python-nav-forward-sexp-function)
 
   (set (make-local-variable 'font-lock-defaults)
        '(python-font-lock-keywords nil nil nil nil))
