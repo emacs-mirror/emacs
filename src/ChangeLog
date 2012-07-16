@@ -1,3 +1,9 @@
+2012-07-16  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* gtkutil.h: Tiny cleanups.
+	(use_old_gtk_file_dialog): Remove useless declaration.
+	(xg_uses_old_file_dialog): Add suggested const attribute.
+
 2012-07-15  Eli Zaretskii  <eliz@gnu.org>
 
 	* bidi.c (MAX_STRONG_CHAR_SEARCH): New macro.
