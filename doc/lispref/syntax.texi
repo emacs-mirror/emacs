@@ -3,7 +3,7 @@
 @c Copyright (C) 1990-1995, 1998-1999, 2001-2012
 @c   Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
-@node Syntax Tables, Abbrevs, Searching and Matching, Top
+@node Syntax Tables
 @chapter Syntax Tables
 @cindex parsing buffer text
 @cindex syntax table

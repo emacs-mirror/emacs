@@ -2,7 +2,7 @@
 @c This is part of the GNU Emacs Lisp Reference Manual.
 @c Copyright (C) 1990-1995, 1998-1999, 2001-2012 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
-@node Frames, Positions, Windows, Top
+@node Frames
 @chapter Frames
 @cindex frame
 
@@ -108,7 +108,7 @@ for @code{framep} above.
 
 To create a new frame, call the function @code{make-frame}.
 
-@defun make-frame &optional alist
+@deffn Command make-frame &optional alist
 This function creates and returns a new frame, displaying the current
 buffer.
 
@@ -134,7 +134,7 @@ This function itself does not make the new frame the selected frame.
 @xref{Input Focus}.  The previously selected frame remains selected.
 On graphical terminals, however, the windowing system may select the
 new frame for its own reasons.
-@end defun
+@end deffn
 
 @defvar before-make-frame-hook
 A normal hook run by @code{make-frame} before it creates the frame.
@@ -1395,7 +1395,7 @@ same meaning as for @code{select-frame} (see below).  The return value
 of this function is not significant.
 @end defun
 
-@defun select-frame frame &optional norecord
+@deffn Command select-frame frame &optional norecord
 This function selects frame @var{frame}, temporarily disregarding the
 focus of the X server if any.  The selection of @var{frame} lasts until
 the next time the user does something to select a different frame, or
@@ -1418,7 +1418,7 @@ been deleted.
 In general, you should never use @code{select-frame} in a way that
 could switch to a different terminal without switching back when
 you're done.
-@end defun
+@end deffn
 
 Emacs cooperates with the window system by arranging to select frames as
 the server and window manager request.  It does so by generating a

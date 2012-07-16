@@ -65,7 +65,7 @@ struct handler *handlerlist;
 int gcpro_level;
 #endif
 
-Lisp_Object Qautoload, Qmacro, Qexit, Qinteractive, Qcommandp, Qdefun;
+Lisp_Object Qautoload, Qmacro, Qexit, Qinteractive, Qcommandp;
 Lisp_Object Qinhibit_quit;
 Lisp_Object Qand_rest;
 static Lisp_Object Qand_optional;
@@ -90,7 +90,7 @@ Lisp_Object Vautoload_queue;
 
 /* Current number of specbindings allocated in specpdl.  */
 
-EMACS_INT specpdl_size;
+ptrdiff_t specpdl_size;
 
 /* Pointer to beginning of specpdl.  */
 
@@ -111,7 +111,7 @@ static EMACS_INT lisp_eval_depth;
    signal the error instead of entering an infinite loop of debugger
    invocations.  */
 
-static int when_entered_debugger;
+static EMACS_INT when_entered_debugger;
 
 /* The function from which the last `signal' was called.  Set in
    Fsignal.  */
@@ -183,7 +183,7 @@ static Lisp_Object
 call_debugger (Lisp_Object arg)
 {
   int debug_while_redisplaying;
-  int count = SPECPDL_INDEX ();
+  ptrdiff_t count = SPECPDL_INDEX ();
   Lisp_Object val;
   EMACS_INT old_max = max_specpdl_size;
 
@@ -379,23 +379,14 @@ usage: (prog1 FIRST BODY...)  */)
   Lisp_Object val;
   register Lisp_Object args_left;
   struct gcpro gcpro1, gcpro2;
-  register int argnum = 0;
-
-  if (NILP (args))
-    return Qnil;
 
   args_left = args;
   val = Qnil;
   GCPRO2 (args, val);
 
-  do
-    {
-      Lisp_Object tem = eval_sub (XCAR (args_left));
-      if (!(argnum++))
-	val = tem;
-      args_left = XCDR (args_left);
-    }
-  while (CONSP (args_left));
+  val = eval_sub (XCAR (args_left));
+  while (CONSP (args_left = XCDR (args_left)))
+    eval_sub (XCAR (args_left));
 
   UNGCPRO;
   return val;
@@ -408,31 +399,12 @@ remaining args, whose values are discarded.
 usage: (prog2 FORM1 FORM2 BODY...)  */)
   (Lisp_Object args)
 {
-  Lisp_Object val;
-  register Lisp_Object args_left;
-  struct gcpro gcpro1, gcpro2;
-  register int argnum = -1;
+  struct gcpro gcpro1;
 
-  val = Qnil;
-
-  if (NILP (args))
-    return Qnil;
-
-  args_left = args;
-  val = Qnil;
-  GCPRO2 (args, val);
-
-  do
-    {
-      Lisp_Object tem = eval_sub (XCAR (args_left));
-      if (!(argnum++))
-	val = tem;
-      args_left = XCDR (args_left);
-    }
-  while (CONSP (args_left));
-
+  GCPRO1 (args);
+  eval_sub (XCAR (args));
   UNGCPRO;
-  return val;
+  return Fprog1 (XCDR (args));
 }
 
 DEFUN ("setq", Fsetq, Ssetq, 0, UNEVALLED, 0,
@@ -621,109 +593,6 @@ interactive_p (int exclude_subrs_p)
 }
 
 
-DEFUN ("defun", Fdefun, Sdefun, 2, UNEVALLED, 0,
-       doc: /* Define NAME as a function.
-The definition is (lambda ARGLIST [DOCSTRING] BODY...).
-See also the function `interactive'.
-usage: (defun NAME ARGLIST [DOCSTRING] BODY...)  */)
-  (Lisp_Object args)
-{
-  register Lisp_Object fn_name;
-  register Lisp_Object defn;
-
-  fn_name = Fcar (args);
-  CHECK_SYMBOL (fn_name);
-  defn = Fcons (Qlambda, Fcdr (args));
-  if (!NILP (Vinternal_interpreter_environment)) /* Mere optimization!  */
-    defn = Ffunction (Fcons (defn, Qnil));
-  if (!NILP (Vpurify_flag))
-    defn = Fpurecopy (defn);
-  if (CONSP (XSYMBOL (fn_name)->function)
-      && EQ (XCAR (XSYMBOL (fn_name)->function), Qautoload))
-    LOADHIST_ATTACH (Fcons (Qt, fn_name));
-  Ffset (fn_name, defn);
-  LOADHIST_ATTACH (Fcons (Qdefun, fn_name));
-  return fn_name;
-}
-
-DEFUN ("defmacro", Fdefmacro, Sdefmacro, 2, UNEVALLED, 0,
-       doc: /* Define NAME as a macro.
-The actual definition looks like
- (macro lambda ARGLIST [DOCSTRING] [DECL] BODY...).
-When the macro is called, as in (NAME ARGS...),
-the function (lambda ARGLIST BODY...) is applied to
-the list ARGS... as it appears in the expression,
-and the result should be a form to be evaluated instead of the original.
-
-DECL is a declaration, optional, which can specify how to indent
-calls to this macro, how Edebug should handle it, and which argument
-should be treated as documentation.  It looks like this:
-  (declare SPECS...)
-The elements can look like this:
-  (indent INDENT)
-	Set NAME's `lisp-indent-function' property to INDENT.
-
-  (debug DEBUG)
-	Set NAME's `edebug-form-spec' property to DEBUG.  (This is
-	equivalent to writing a `def-edebug-spec' for the macro.)
-
-  (doc-string ELT)
-	Set NAME's `doc-string-elt' property to ELT.
-
-usage: (defmacro NAME ARGLIST [DOCSTRING] [DECL] BODY...)  */)
-  (Lisp_Object args)
-{
-  register Lisp_Object fn_name;
-  register Lisp_Object defn;
-  Lisp_Object lambda_list, doc, tail;
-
-  fn_name = Fcar (args);
-  CHECK_SYMBOL (fn_name);
-  lambda_list = Fcar (Fcdr (args));
-  tail = Fcdr (Fcdr (args));
-
-  doc = Qnil;
-  if (STRINGP (Fcar (tail)))
-    {
-      doc = XCAR (tail);
-      tail = XCDR (tail);
-    }
-
-  if (CONSP (Fcar (tail))
-      && EQ (Fcar (Fcar (tail)), Qdeclare))
-    {
-      if (!NILP (Vmacro_declaration_function))
-	{
-	  struct gcpro gcpro1;
-	  GCPRO1 (args);
-	  call2 (Vmacro_declaration_function, fn_name, Fcar (tail));
-	  UNGCPRO;
-	}
-
-      tail = Fcdr (tail);
-    }
-
-  if (NILP (doc))
-    tail = Fcons (lambda_list, tail);
-  else
-    tail = Fcons (lambda_list, Fcons (doc, tail));
-
-  defn = Fcons (Qlambda, tail);
-  if (!NILP (Vinternal_interpreter_environment)) /* Mere optimization!  */
-    defn = Ffunction (Fcons (defn, Qnil));
-  defn = Fcons (Qmacro, defn);
-
-  if (!NILP (Vpurify_flag))
-    defn = Fpurecopy (defn);
-  if (CONSP (XSYMBOL (fn_name)->function)
-      && EQ (XCAR (XSYMBOL (fn_name)->function), Qautoload))
-    LOADHIST_ATTACH (Fcons (Qt, fn_name));
-  Ffset (fn_name, defn);
-  LOADHIST_ATTACH (Fcons (Qdefun, fn_name));
-  return fn_name;
-}
-
-
 DEFUN ("defvaralias", Fdefvaralias, Sdefvaralias, 2, 3, 0,
        doc: /* Make NEW-ALIAS a variable alias for symbol BASE-VARIABLE.
 Aliased variables always have the same value; setting one sets the other.
@@ -764,8 +633,8 @@ The return value is BASE-VARIABLE.  */)
   {
     struct specbinding *p;
 
-    for (p = specpdl_ptr - 1; p >= specpdl; p--)
-      if (p->func == NULL
+    for (p = specpdl_ptr; p > specpdl; )
+      if ((--p)->func == NULL
 	  && (EQ (new_alias,
 		  CONSP (p->symbol) ? XCAR (p->symbol) : p->symbol)))
 	error ("Don't know how to make a let-bound variable an alias");
@@ -842,9 +711,9 @@ usage: (defvar SYMBOL &optional INITVALUE DOCSTRING)  */)
 	{ /* Check if there is really a global binding rather than just a let
 	     binding that shadows the global unboundness of the var.  */
 	  volatile struct specbinding *pdl = specpdl_ptr;
-	  while (--pdl >= specpdl)
+	  while (pdl > specpdl)
 	    {
-	      if (EQ (pdl->symbol, sym) && !pdl->func
+	      if (EQ ((--pdl)->symbol, sym) && !pdl->func
 		  && EQ (pdl->old_value, Qunbound))
 		{
 		  message_with_string ("Warning: defvar ignored because %s is let-bound",
@@ -932,7 +801,7 @@ usage: (let* VARLIST BODY...)  */)
   (Lisp_Object args)
 {
   Lisp_Object varlist, var, val, elt, lexenv;
-  int count = SPECPDL_INDEX ();
+  ptrdiff_t count = SPECPDL_INDEX ();
   struct gcpro gcpro1, gcpro2, gcpro3;
 
   GCPRO3 (args, elt, varlist);
@@ -995,7 +864,7 @@ usage: (let VARLIST BODY...)  */)
 {
   Lisp_Object *temps, tem, lexenv;
   register Lisp_Object elt, varlist;
-  int count = SPECPDL_INDEX ();
+  ptrdiff_t count = SPECPDL_INDEX ();
   ptrdiff_t argnum;
   struct gcpro gcpro1, gcpro2;
   USE_SAFE_ALLOCA;
@@ -1298,7 +1167,7 @@ usage: (unwind-protect BODYFORM UNWINDFORMS...)  */)
   (Lisp_Object args)
 {
   Lisp_Object val;
-  int count = SPECPDL_INDEX ();
+  ptrdiff_t count = SPECPDL_INDEX ();
 
   record_unwind_protect (Fprogn, Fcdr (args));
   val = eval_sub (Fcar (args));
@@ -2042,12 +1911,11 @@ this does nothing and returns nil.  */)
     /* Only add entries after dumping, because the ones before are
        not useful and else we get loads of them from the loaddefs.el.  */
     LOADHIST_ATTACH (Fcons (Qautoload, function));
-  else
-    /* We don't want the docstring in purespace (instead,
-       Snarf-documentation should (hopefully) overwrite it).
-       We used to use 0 here, but that leads to accidental sharing in
-       purecopy's hash-consing, so we use a (hopefully) unique integer
-       instead.  */
+  else if (EQ (docstring, make_number (0)))
+    /* `read1' in lread.c has found the docstring starting with "\
+       and assumed the docstring will be provided by Snarf-documentation, so it
+       passed us 0 instead.  But that leads to accidental sharing in purecopy's
+       hash-consing, so we use a (hopefully) unique integer instead.  */
     docstring = make_number (XUNTAG (function, Lisp_Symbol));
   return Ffset (function,
 		Fpurecopy (list5 (Qautoload, file, docstring,
@@ -2084,7 +1952,7 @@ un_autoload (Lisp_Object oldqueue)
 void
 do_autoload (Lisp_Object fundef, Lisp_Object funname)
 {
-  int count = SPECPDL_INDEX ();
+  ptrdiff_t count = SPECPDL_INDEX ();
   Lisp_Object fun;
   struct gcpro gcpro1, gcpro2, gcpro3;
 
@@ -2131,7 +1999,7 @@ DEFUN ("eval", Feval, Seval, 1, 2, 0,
 If LEXICAL is t, evaluate using lexical scoping.  */)
   (Lisp_Object form, Lisp_Object lexical)
 {
-  int count = SPECPDL_INDEX ();
+  ptrdiff_t count = SPECPDL_INDEX ();
   specbind (Qinternal_interpreter_environment,
 	    NILP (lexical) ? Qnil : Fcons (Qt, Qnil));
   return unbind_to (count, eval_sub (form));
@@ -2365,7 +2233,8 @@ Thus, (apply '+ 1 2 '(3 4)) returns 10.
 usage: (apply FUNCTION &rest ARGUMENTS)  */)
   (ptrdiff_t nargs, Lisp_Object *args)
 {
-  ptrdiff_t i, numargs;
+  ptrdiff_t i;
+  EMACS_INT numargs;
   register Lisp_Object spread_arg;
   register Lisp_Object *funcall_args;
   Lisp_Object fun, retval;
@@ -3015,7 +2884,8 @@ static Lisp_Object
 apply_lambda (Lisp_Object fun, Lisp_Object args)
 {
   Lisp_Object args_left;
-  ptrdiff_t i, numargs;
+  ptrdiff_t i;
+  EMACS_INT numargs;
   register Lisp_Object *arg_vector;
   struct gcpro gcpro1, gcpro2, gcpro3;
   register Lisp_Object tem;
@@ -3060,7 +2930,7 @@ funcall_lambda (Lisp_Object fun, ptrdiff_t nargs,
 		register Lisp_Object *arg_vector)
 {
   Lisp_Object val, syms_left, next, lexenv;
-  int count = SPECPDL_INDEX ();
+  ptrdiff_t count = SPECPDL_INDEX ();
   ptrdiff_t i;
   int optional, rest;
 
@@ -3199,12 +3069,8 @@ DEFUN ("fetch-bytecode", Ffetch_bytecode, Sfetch_bytecode,
 static void
 grow_specpdl (void)
 {
-  register int count = SPECPDL_INDEX ();
-  int max_size =
-    min (max_specpdl_size,
-	 min (max (PTRDIFF_MAX, SIZE_MAX) / sizeof (struct specbinding),
-	      INT_MAX));
-  int size;
+  register ptrdiff_t count = SPECPDL_INDEX ();
+  ptrdiff_t max_size = min (max_specpdl_size, PTRDIFF_MAX);
   if (max_size <= specpdl_size)
     {
       if (max_specpdl_size < 400)
@@ -3212,9 +3078,7 @@ grow_specpdl (void)
       if (max_size <= specpdl_size)
 	signal_error ("Variable binding depth exceeds max-specpdl-size", Qnil);
     }
-  size = specpdl_size < max_size / 2 ? 2 * specpdl_size : max_size;
-  specpdl = xnrealloc (specpdl, size, sizeof *specpdl);
-  specpdl_size = size;
+  specpdl = xpalloc (specpdl, &specpdl_size, 1, max_size, sizeof *specpdl);
   specpdl_ptr = specpdl + count;
 }
 
@@ -3344,7 +3208,7 @@ record_unwind_protect (Lisp_Object (*function) (Lisp_Object), Lisp_Object arg)
 }
 
 Lisp_Object
-unbind_to (int count, Lisp_Object value)
+unbind_to (ptrdiff_t count, Lisp_Object value)
 {
   Lisp_Object quitf = Vquit_flag;
   struct gcpro gcpro1, gcpro2;
@@ -3424,7 +3288,7 @@ The debugger is entered when that frame exits, if the flag is non-nil.  */)
   (Lisp_Object level, Lisp_Object flag)
 {
   register struct backtrace *backlist = backtrace_list;
-  register int i;
+  register EMACS_INT i;
 
   CHECK_NUMBER (level);
 
@@ -3608,7 +3472,6 @@ before making `inhibit-quit' nil.  */);
 
   DEFSYM (Qinteractive, "interactive");
   DEFSYM (Qcommandp, "commandp");
-  DEFSYM (Qdefun, "defun");
   DEFSYM (Qand_rest, "&rest");
   DEFSYM (Qand_optional, "&optional");
   DEFSYM (Qclosure, "closure");
@@ -3670,23 +3533,16 @@ Note that `debug-on-error', `debug-on-quit' and friends
 still determine whether to handle the particular condition.  */);
   Vdebug_on_signal = Qnil;
 
-  DEFVAR_LISP ("macro-declaration-function", Vmacro_declaration_function,
-	       doc: /* Function to process declarations in a macro definition.
-The function will be called with two args MACRO and DECL.
-MACRO is the name of the macro being defined.
-DECL is a list `(declare ...)' containing the declarations.
-The value the function returns is not used.  */);
-  Vmacro_declaration_function = Qnil;
-
   /* When lexical binding is being used,
-   vinternal_interpreter_environment is non-nil, and contains an alist
+   Vinternal_interpreter_environment is non-nil, and contains an alist
    of lexically-bound variable, or (t), indicating an empty
    environment.  The lisp name of this variable would be
    `internal-interpreter-environment' if it weren't hidden.
    Every element of this list can be either a cons (VAR . VAL)
    specifying a lexical binding, or a single symbol VAR indicating
    that this variable should use dynamic scoping.  */
-  DEFSYM (Qinternal_interpreter_environment, "internal-interpreter-environment");
+  DEFSYM (Qinternal_interpreter_environment,
+	  "internal-interpreter-environment");
   DEFVAR_LISP ("internal-interpreter-environment",
 		Vinternal_interpreter_environment,
 	       doc: /* If non-nil, the current lexical environment of the lisp interpreter.
@@ -3717,8 +3573,6 @@ alist of active lexical bindings.  */);
   defsubr (&Ssetq);
   defsubr (&Squote);
   defsubr (&Sfunction);
-  defsubr (&Sdefun);
-  defsubr (&Sdefmacro);
   defsubr (&Sdefvar);
   defsubr (&Sdefvaralias);
   defsubr (&Sdefconst);

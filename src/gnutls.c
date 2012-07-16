@@ -351,11 +351,11 @@ emacs_gnutls_transport_set_errno (gnutls_session_t state, int err)
   fn_gnutls_transport_set_errno (state, err);
 }
 
-EMACS_INT
-emacs_gnutls_write (struct Lisp_Process *proc, const char *buf, EMACS_INT nbyte)
+ptrdiff_t
+emacs_gnutls_write (struct Lisp_Process *proc, const char *buf, ptrdiff_t nbyte)
 {
   ssize_t rtnval = 0;
-  EMACS_INT bytes_written;
+  ptrdiff_t bytes_written;
   gnutls_session_t state = proc->gnutls_state;
 
   if (proc->gnutls_initstage != GNUTLS_STAGE_READY)
@@ -406,8 +406,8 @@ emacs_gnutls_write (struct Lisp_Process *proc, const char *buf, EMACS_INT nbyte)
   return (bytes_written);
 }
 
-EMACS_INT
-emacs_gnutls_read (struct Lisp_Process *proc, char *buf, EMACS_INT nbyte)
+ptrdiff_t
+emacs_gnutls_read (struct Lisp_Process *proc, char *buf, ptrdiff_t nbyte)
 {
   ssize_t rtnval;
   gnutls_session_t state = proc->gnutls_state;
@@ -599,7 +599,7 @@ usage: (gnutls-error-fatalp ERROR)  */)
 	}
     }
 
-  if (!NUMBERP (err))
+  if (! TYPE_RANGED_INTEGERP (int, err))
     error ("Not an error symbol or code");
 
   if (0 == fn_gnutls_error_is_fatal (XINT (err)))
@@ -631,7 +631,7 @@ usage: (gnutls-error-string ERROR)  */)
 	}
     }
 
-  if (!NUMBERP (err))
+  if (! TYPE_RANGED_INTEGERP (int, err))
     return build_string ("Not an error symbol or code");
 
   return build_string (fn_gnutls_strerror (XINT (err)));
@@ -804,7 +804,10 @@ one trustfile (usually a CA bundle).  */)
     error ("gnutls-boot: invalid :hostname parameter");
   c_hostname = SSDATA (hostname);
 
-  if (NUMBERP (loglevel))
+  state = XPROCESS (proc)->gnutls_state;
+  XPROCESS (proc)->gnutls_p = 1;
+
+  if (TYPE_RANGED_INTEGERP (int, loglevel))
     {
       fn_gnutls_global_set_log_function (gnutls_log_function);
       fn_gnutls_global_set_log_level (XINT (loglevel));

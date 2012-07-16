@@ -12,7 +12,7 @@
 @raisesections
 @end ifnottex
 
-@node Entering Emacs, Exiting, Commands, Top
+@node Entering Emacs
 @section Entering Emacs
 @cindex entering Emacs
 @cindex starting Emacs
@@ -85,7 +85,7 @@ the desired file or directory.
 or @code{t}, which means to display the @file{*scratch*} buffer.
 @end ignore
 
-@node Exiting, Basic, Entering Emacs, Top
+@node Exiting
 @section Exiting Emacs
 @cindex exiting
 @cindex killing Emacs

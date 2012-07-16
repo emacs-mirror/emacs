@@ -37,6 +37,7 @@ dnl hence the single quotes.  This is per the GNU coding standards, see
 dnl (autoconf) Installation Directory Variables
 dnl See also epaths.h below.
 lispdir='${datadir}/emacs/${version}/lisp'
+leimdir='${datadir}/emacs/${version}/leim'
 locallisppath='${datadir}/emacs/${version}/site-lisp:'\
 '${datadir}/emacs/site-lisp'
 lisppath='${locallisppath}:${lispdir}:${datadir}/emacs/${version}/leim'
@@ -234,19 +235,6 @@ AC_ARG_ENABLE(asserts,
       USE_XASSERTS=$enableval,
       USE_XASSERTS=no)
 
-AC_ARG_ENABLE(maintainer-mode,
-[AS_HELP_STRING([--disable-maintainer-mode],
-                [disable make rules and dependencies not useful (and sometimes
-		 confusing) to the casual installer])],
-      USE_MAINTAINER_MODE=$enableval,
-      USE_MAINTAINER_MODE=yes)
-if test $USE_MAINTAINER_MODE = yes; then
-  MAINT=
-else
-  MAINT=#
-fi
-AC_SUBST(MAINT)
-
 AC_ARG_ENABLE(locallisppath,
 [AS_HELP_STRING([--enable-locallisppath=PATH],
                 [directories Emacs should search for lisp files specific
@@ -374,8 +362,8 @@ case "${srcdir}" in
   *  ) srcdir="`(cd ${srcdir}; pwd)`" ;;
 esac
 
-#### Given the configuration name, set machfile and opsysfile to the
-#### names of the m/*.h and s/*.h files we should use.
+#### Given the configuration name, set opsysfile to the
+#### name of s/*.h file we should use.
 
 ### Canonicalize the configuration name.
 
@@ -395,13 +383,11 @@ dnl quotation begins
 
 ### If you add support for a new configuration, add code to this
 ### switch statement to recognize your configuration name and select
-### the appropriate operating system and machine description files.
+### the appropriate operating system file.
 
-### You would hope that you could choose an m/*.h file pretty much
-### based on the machine portion of the configuration name, and an s/*.h
+### You would hope that you could choose an s/*.h
 ### file based on the operating system portion.  However, it turns out
-### that each m/*.h file is pretty manufacturer-specific - for
-### example mips.h is MIPS
+### that each s/*.h file is pretty manufacturer-specific.
 ### So we basically have to have a special case for each
 ### configuration name.
 ###
@@ -411,82 +397,40 @@ dnl quotation begins
 ### prepared to handle anything reasonably.  If version numbers
 ### matter, be sure /etc/MACHINES says something about it.
 
-machine='' opsys='' unported=no
+opsys='' unported=no
 case "${canonical}" in
 
   ## GNU/Linux and similar ports
   *-*-linux* )
     opsys=gnu-linux
-    case ${canonical} in
-      alpha*)	machine=alpha ;;
-      s390x-*)	machine=ibms390x ;;
-      powerpc*)	machine=macppc ;;
-      sparc*)	machine=sparc ;;
-      ia64*)	machine=ia64 ;;
-      m68k*)	machine=m68k ;;
-      x86_64*)	machine=amdx86-64 ;;
-    esac
   ;;
 
   ## FreeBSD ports
   *-*-freebsd* )
     opsys=freebsd
-    case "${canonical}" in
-      alpha*)           machine=alpha ;;
-      amd64-*|x86_64-*) machine=amdx86-64 ;;
-      ia64-*)           machine=ia64 ;;
-      i[3456]86-*)      machine=intel386 ;;
-      powerpc-*)        machine=macppc ;;
-      sparc-*)          machine=sparc ;;
-      sparc64-*)        machine=sparc ;;
-    esac
   ;;
 
   ## FreeBSD kernel + glibc based userland
   *-*-kfreebsd*gnu* )
     opsys=gnu-kfreebsd
-    case "${canonical}" in
-      alpha*)           machine=alpha ;;
-      amd64-*|x86_64-*) machine=amdx86-64 ;;
-      ia64-*)           machine=ia64 ;;
-      i[3456]86-*)      machine=intel386 ;;
-      powerpc-*)        machine=macppc ;;
-      sparc-*)          machine=sparc ;;
-      sparc64-*)        machine=sparc ;;
-    esac
   ;;
 
   ## NetBSD ports
   *-*-netbsd* )
     opsys=netbsd
-    case "${canonical}" in
-      alpha*)      machine=alpha ;;
-      x86_64-*)    machine=amdx86-64 ;;
-      i[3456]86-*) machine=intel386 ;;
-      m68k-*)      machine=m68k ;;
-      powerpc-*)   machine=macppc ;;
-      sparc*-)     machine=sparc ;;
-    esac
   ;;
 
   ## OpenBSD ports
   *-*-openbsd* )
     opsys=openbsd
-    case "${canonical}" in
-      alpha*)    machine=alpha ;;
-      x86_64-*)  machine=amdx86-64 ;;
-      i386-*)    machine=intel386 ;;
-      powerpc-*) machine=macppc ;;
-      sparc*)    machine=sparc ;;
-    esac
   ;;
 
   ## Apple Darwin / Mac OS X
   *-apple-darwin* )
     case "${canonical}" in
-      i[3456]86-* )  machine=intel386 ;;
-      powerpc-* )    machine=macppc ;;
-      x86_64-* )     machine=amdx86-64 ;;
+      i[3456]86-* )  ;;
+      powerpc-* )    ;;
+      x86_64-* )     ;;
       * )            unported=yes ;;
     esac
     opsys=darwin
@@ -509,16 +453,16 @@ case "${canonical}" in
 
   ## IBM machines
   rs6000-ibm-aix4.[23]* )
-    machine=ibmrs6000 opsys=aix4-2
+    opsys=aix4-2
   ;;
   powerpc-ibm-aix4.[23]*  )
-    machine=ibmrs6000 opsys=aix4-2
+    opsys=aix4-2
   ;;
   rs6000-ibm-aix[56]* )
-    machine=ibmrs6000 opsys=aix4-2
+    opsys=aix4-2
   ;;
   powerpc-ibm-aix[56]*  )
-    machine=ibmrs6000 opsys=aix4-2
+    opsys=aix4-2
   ;;
 
   ## Silicon Graphics machines
@@ -536,9 +480,9 @@ case "${canonical}" in
     | i[3456]86-*-solaris2* | i[3456]86-*-sunos5* \
     | x86_64-*-solaris2*    | x86_64-*-sunos5*)
     case "${canonical}" in
-      i[3456]86-*-* )     machine=intel386 ;;
-      amd64-*-*|x86_64-*-*)	machine=amdx86-64 ;;
-      sparc* )		machine=sparc ;;
+      i[3456]86-*-* )   ;;
+      amd64-*-*|x86_64-*-*) ;;
+      sparc* )		;;
       * )		unported=yes ;;
     esac
     case "${canonical}" in
@@ -570,7 +514,6 @@ case "${canonical}" in
 
   ## Intel 386 machines where we don't care about the manufacturer.
   i[3456]86-*-* )
-    machine=intel386
     case "${canonical}" in
       *-cygwin )                opsys=cygwin ;;
       *-darwin* )               opsys=darwin ;;
@@ -609,11 +552,6 @@ if test $unported = yes; then
 Check `etc/MACHINES' for recognized configuration names.])
 fi
 
-if test -n "$machine"; then
-  machfile="m/${machine}.h"
-else
-  machfile=
-fi
 opsysfile="s/${opsys}.h"
 
 
@@ -757,24 +695,12 @@ dnl if test "x$RANLIB" = x; then
 dnl   AC_PROG_RANLIB
 dnl fi
 
-## Although we're running on an amd64 kernel, we're actually compiling for
-## the x86 architecture.  The user should probably have provided an
-## explicit --build to `configure', but if everything else than the kernel
-## is running in i386 mode, we can help them out.
-if test "$machine" = "amdx86-64"; then
-  AC_CHECK_DECL([i386])
-  if test "$ac_cv_have_decl_i386" = "yes"; then
-    canonical=`echo "$canonical" | sed -e 's/^amd64/i386/' -e 's/^x86_64/i386/'`
-    machine=intel386
-    machfile="m/${machine}.h"
-  fi
-fi
-
-AC_PATH_PROG(INSTALL_INFO, install-info)
-AC_PATH_PROG(INSTALL_INFO, install-info,, /usr/sbin)
-AC_PATH_PROG(INSTALL_INFO, install-info,:, /sbin)
+AC_PATH_PROG(INSTALL_INFO, install-info, :,
+  $PATH$PATH_SEPARATOR/usr/sbin$PATH_SEPARATOR/sbin)
 dnl Don't use GZIP, which is used by gzip for additional parameters.
 AC_PATH_PROG(GZIP_PROG, gzip)
+AC_PATH_PROG(PAXCTL, paxctl,,
+  [$PATH$PATH_SEPARATOR/sbin$PATH_SEPARATOR/usr/sbin])
 
 
 ## Need makeinfo >= 4.7 (?) to build the manuals.
@@ -940,7 +866,8 @@ esac
 
 
 C_SWITCH_MACHINE=
-if test "$machine" = "alpha"; then
+case $canonical in
+ alpha*)
   AC_CHECK_DECL([__ELF__])
   if test "$ac_cv_have_decl___ELF__" = "yes"; then
     ## With ELF, make sure that all common symbols get allocated to in the
@@ -956,7 +883,8 @@ if test "$machine" = "alpha"; then
   else
     UNEXEC_OBJ=unexalpha.o
   fi
-fi
+  ;;
+esac
 AC_SUBST(C_SWITCH_MACHINE)
 
 AC_SUBST(UNEXEC_OBJ)
@@ -1001,9 +929,6 @@ fi
 AC_DEFUN([AC_TYPE_SIZE_T])
 # Likewise for obsolescent test for uid_t, gid_t; Emacs assumes them.
 AC_DEFUN([AC_TYPE_UID_T])
-
-dnl Do this early because it can frob feature test macros for Unix-98 &c.
-AC_SYS_LARGEFILE
 
 
 LIB_MATH=-lm
@@ -1130,14 +1055,14 @@ case $opsys in
 esac
 
 
+AC_PATH_PROG(PKG_CONFIG, pkg-config, no)
+
 dnl This function definition taken from Gnome 2.0
 dnl PKG_CHECK_MODULES(GSTUFF, gtk+-2.0 >= 1.3 glib = 1.3.4, action-if, action-not)
 dnl defines GSTUFF_LIBS, GSTUFF_CFLAGS, see pkg-config man page
 dnl also defines GSTUFF_PKG_ERRORS on error
 AC_DEFUN([PKG_CHECK_MODULES], [
   succeeded=no
-
-  AC_PATH_PROG(PKG_CONFIG, pkg-config, no)
 
   if test "$PKG_CONFIG" = "no" ; then
      ifelse([$4], , [AC_MSG_ERROR([
@@ -1239,10 +1164,11 @@ if test "${with_sound}" != "no"; then
 fi
 
 dnl checks for header files
-AC_CHECK_HEADERS(sys/select.h sys/time.h unistd.h utime.h \
-  linux/version.h sys/systeminfo.h \
-  stdio_ext.h fcntl.h coff.h pty.h sys/mman.h \
-  sys/vlimit.h sys/resource.h locale.h sys/_mbstate_t.h \
+AC_CHECK_HEADERS_ONCE(
+  sys/select.h sys/time.h utime.h
+  linux/version.h sys/systeminfo.h
+  stdio_ext.h fcntl.h coff.h pty.h
+  sys/vlimit.h sys/resource.h
   sys/utsname.h pwd.h utmp.h dirent.h util.h)
 
 AC_MSG_CHECKING(if personality LINUX32 can be set)
@@ -1326,7 +1252,7 @@ if test $emacs_cv_struct_exception != yes; then
   AC_DEFINE(NO_MATHERR, 1, [Define to 1 if you don't have struct exception in math.h.])
 fi
 
-AC_CHECK_HEADERS(sys/socket.h)
+AC_CHECK_HEADERS_ONCE(sys/socket.h)
 AC_CHECK_HEADERS(net/if.h, , , [AC_INCLUDES_DEFAULT
 #if HAVE_SYS_SOCKET_H
 #include <sys/socket.h>
@@ -1354,29 +1280,8 @@ AC_CHECK_MEMBERS([struct ifreq.ifr_flags, struct ifreq.ifr_hwaddr,
 #include <net/if.h>
 #endif])
 
-dnl checks for compiler characteristics
-
-dnl Testing __STDC__ to determine prototype support isn't good enough.
-dnl DEC C, for instance, doesn't define it with default options, and
-dnl is used on 64-bit systems (OSF Alphas).  Similarly for volatile
-dnl and void *.
-AC_C_PROTOTYPES
-AC_C_VOLATILE
-AC_C_CONST
-AC_CACHE_CHECK([for void * support], emacs_cv_void_star,
-  [AC_COMPILE_IFELSE([AC_LANG_PROGRAM([], [[void * foo;]])],
-                   emacs_cv_void_star=yes, emacs_cv_void_star=no)])
-if test $emacs_cv_void_star = yes; then
-  AC_DEFINE(POINTER_TYPE, void)
-else
-  AC_DEFINE(POINTER_TYPE, char)
-fi
-AH_TEMPLATE(POINTER_TYPE,
-	    [Define as `void' if your compiler accepts `void *'; otherwise
-	     define as `char'.])dnl
-
 dnl Check for endianness.
-AC_C_BIGENDIAN
+dnl AC_C_BIGENDIAN is done by gnulib.
 
 AC_CACHE_CHECK([for  __attribute__ ((__aligned__ (expr)))],
   [emacs_cv_attribute_aligned],
@@ -1392,7 +1297,7 @@ if test $emacs_cv_attribute_aligned = yes; then
 fi
 
 dnl check for Make feature
-AC_PROG_MAKE_SET
+dnl AC_PROG_MAKE_SET is done by Automake.
 
 DEPFLAGS=
 MKDEPDIR=":"
@@ -1572,7 +1477,6 @@ fi
 AC_SUBST(TEMACS_LDFLAGS2)
 
 INSTALL_ARCH_INDEP_EXTRA=install-etc
-LEIM_INSTALLDIR="\${install_prefix}/leim"
 ns_self_contained=no
 ns_frag=/dev/null
 NS_OBJ=
@@ -1599,7 +1503,7 @@ if test "${HAVE_NS}" = yes; then
      infodir="\${ns_appresdir}/info"
      mandir="\${ns_appresdir}/man"
      lispdir="\${ns_appresdir}/lisp"
-     LEIM_INSTALLDIR="\${ns_appresdir}/leim"
+     leimdir="\${ns_appresdir}/leim"
      INSTALL_ARCH_INDEP_EXTRA=
   fi
   ns_frag=$srcdir/src/ns.mk
@@ -1609,7 +1513,6 @@ fi
 CFLAGS="$tmp_CFLAGS"
 CPPFLAGS="$tmp_CPPFLAGS"
 AC_SUBST(INSTALL_ARCH_INDEP_EXTRA)
-AC_SUBST(LEIM_INSTALLDIR)
 AC_SUBST(ns_self_contained)
 AC_SUBST(NS_OBJ)
 AC_SUBST(NS_OBJC_OBJ)
@@ -1664,7 +1567,7 @@ case ${HAVE_X11} in
   yes ) HAVE_MENUS=yes ;;
 esac
 
-# Do the opsystem or machine files prohibit the use of the GNU malloc?
+# Does the opsystem file prohibit the use of the GNU malloc?
 # Assume not, until told otherwise.
 GNU_MALLOC=yes
 
@@ -1750,7 +1653,7 @@ AC_CHECK_LIB(Xbsd, main, LD_SWITCH_X_SITE="$LD_SWITCH_X_SITE -lXbsd")
 
 dnl Check if pthreads is available.
 LIB_PTHREAD=
-AC_CHECK_HEADERS(pthread.h)
+AC_CHECK_HEADERS_ONCE(pthread.h)
 if test "$ac_cv_header_pthread_h"; then
   dnl gmalloc.c uses pthread_atfork, which is not available on older-style
   dnl hosts such as MirBSD 10, so test for pthread_atfork instead of merely
@@ -1873,7 +1776,7 @@ if test "${HAVE_X11}" = "yes"; then
   fi
 
   AC_CHECK_FUNCS(XrmSetDatabase XScreenResourceString \
-XScreenNumberOfScreen XSetWMProtocols)
+XScreenNumberOfScreen)
 fi
 
 if test "${window_system}" = "x11"; then
@@ -2623,7 +2526,7 @@ fi
 AC_SUBST(LIBGPM)
 
 dnl Check for malloc/malloc.h on darwin
-AC_CHECK_HEADER(malloc/malloc.h, [AC_DEFINE(HAVE_MALLOC_MALLOC_H, 1, [Define to 1 if you have the <malloc/malloc.h> header file.])])
+AC_CHECK_HEADERS_ONCE(malloc/malloc.h)
 
 GNUSTEP_CFLAGS=
 ### Use NeXTstep API to implement GUI.
@@ -2728,7 +2631,7 @@ There may be a `development' package to install containing liblockfile.])
   fi
 fi
 AC_CHECK_FUNCS(touchlock)
-AC_CHECK_HEADERS(maillock.h)
+AC_CHECK_HEADERS_ONCE(maillock.h)
 AC_SUBST(LIBS_MAIL)
 
 ## Define MAIL_USE_FLOCK (or LOCKF) if the mailer uses flock (or lockf) to
@@ -2773,15 +2676,15 @@ esac
 AC_SUBST(BLESSMAIL_TARGET)
 
 
-AC_CHECK_FUNCS(gethostname getdomainname \
-rename closedir mkdir rmdir sysinfo getrusage get_current_dir_name \
+AC_CHECK_FUNCS(gethostname \
+rename closedir mkdir rmdir getrusage get_current_dir_name \
 random lrand48 logb frexp fmod rint cbrt setsid \
-strerror fpathconf select euidaccess getpagesize tzset setlocale \
+strerror fpathconf select euidaccess getpagesize setlocale \
 utimes getrlimit setrlimit setpgid getcwd getwd shutdown getaddrinfo \
-__fpending mblen mbrlen mbsinit strsignal setitimer ualarm \
-sendto recvfrom getsockopt setsockopt getsockname getpeername \
-gai_strerror mkstemp getline getdelim mremap fsync sync \
-difftime mempcpy mblen mbrlen posix_memalign \
+__fpending strsignal setitimer \
+sendto recvfrom getsockname getpeername \
+gai_strerror mkstemp getline getdelim fsync sync \
+difftime posix_memalign \
 getpwent endpwent getgrent endgrent \
 cfmakeraw cfsetspeed copysign __executable_start)
 
@@ -2796,7 +2699,7 @@ if test $emacs_cv_func___builtin_unwind_init = yes; then
 	    [Define to 1 if you have the `__builtin_unwind_init' function.])
 fi
 
-AC_CHECK_HEADERS(sys/un.h)
+AC_CHECK_HEADERS_ONCE(sys/un.h)
 
 AC_FUNC_FSEEKO
 
@@ -3063,6 +2966,7 @@ AC_SUBST(KRB5LIB)
 AC_SUBST(DESLIB)
 AC_SUBST(KRB4LIB)
 
+AC_CHECK_FUNCS_ONCE(tzset)
 AC_MSG_CHECKING(whether localtime caches TZ)
 AC_CACHE_VAL(emacs_cv_localtime_cache,
 [if test x$ac_cv_func_tzset = xyes; then
@@ -3222,6 +3126,7 @@ AC_SUBST(libexecdir)
 AC_SUBST(mandir)
 AC_SUBST(infodir)
 AC_SUBST(lispdir)
+AC_SUBST(leimdir)
 AC_SUBST(locallisppath)
 AC_SUBST(lisppath)
 AC_SUBST(x_default_search_path)
@@ -3240,13 +3145,7 @@ AC_SUBST(GNUSTEP_CFLAGS)
 AC_SUBST(CFLAGS)
 ## Used in lwlib/Makefile.in.
 AC_SUBST(X_TOOLKIT_TYPE)
-if test -n "${machfile}"; then
-  M_FILE="\$(srcdir)/${machfile}"
-else
-  M_FILE=
-fi
 S_FILE="\$(srcdir)/${opsysfile}"
-AC_SUBST(M_FILE)
 AC_SUBST(S_FILE)
 AC_SUBST(ns_appdir)
 AC_SUBST(ns_appbindir)
@@ -3259,10 +3158,6 @@ AC_DEFINE_UNQUOTED(EMACS_CONFIGURATION,  "${canonical}",
 		   [Define to the canonical Emacs configuration name.])
 AC_DEFINE_UNQUOTED(EMACS_CONFIG_OPTIONS, "${ac_configure_args}",
 		   [Define to the options passed to configure.])
-if test -n "$machfile"; then
-  AC_DEFINE_UNQUOTED(config_machfile,  "${machfile}",
-		     [Define to the used machine dependent file.])
-fi
 AC_DEFINE_UNQUOTED(config_opsysfile, "${opsysfile}",
 		   [Define to the used os dependent file.])
 
@@ -3441,8 +3336,7 @@ case "$opsys" in
    ##   #ifndef LD_SWITCH_SYSTEM
    ##   #if !defined (__GNUC__) && ((defined (BSD_SYSTEM) && !defined (COFF)))
    ## Since all the *bsds define LD_SWITCH_SYSTEM, this simplifies to:
-   ## not using gcc, darwin system not on an alpha (ie darwin, since
-   ## darwin + alpha does not occur).
+   ## not using gcc, darwin.
    ## Because this was done in src/Makefile.in, the resulting part of
    ## LD_SWITCH_SYSTEM was not used in configure (ie, in ac_link).
    ## It therefore seems cleaner to put this in LD_SWITCH_SYSTEM_TEMACS,
@@ -3482,12 +3376,12 @@ case "$opsys" in
   ## will also work on earlier NetBSD releases.
   netbsd|openbsd) LD_FIRSTFLAG="-nostartfiles" ;;
 
-  ## macpcc: NAKAJI Hiroyuki <nakaji@tutrp.tut.ac.jp> says
+  ## powerpc*: NAKAJI Hiroyuki <nakaji@tutrp.tut.ac.jp> says
   ##   MkLinux/LinuxPPC needs this.
-  ## ibms390x only supports opsys = gnu-linux so it can be added here.
+  ## s390x-* only supports opsys = gnu-linux so it can be added here.
   gnu-*)
-    case "$machine" in
-      macppc|ibms390x) LD_FIRSTFLAG="-nostdlib" ;;
+    case "$canonical" in
+      powerpc*|s390x-*) LD_FIRSTFLAG="-nostdlib" ;;
     esac
     ;;
 esac
@@ -3499,7 +3393,7 @@ if test "x$ORDINARY_LINK" = "xyes"; then
   AC_DEFINE(ORDINARY_LINK, 1, [Define if the C compiler is the linker.])
 
 ## The system files defining neither ORDINARY_LINK nor LD_FIRSTFLAG are:
-## freebsd, gnu-* not on macppc|ibms390x.
+## freebsd, gnu-* not on powerpc*|s390x*.
 elif test "x$GCC" = "xyes" && test "x$LD_FIRSTFLAG" = "x"; then
 
   ## Versions of GCC >= 2.0 put their library, libgcc.a, in obscure
@@ -3607,11 +3501,8 @@ AH_BOTTOM([
 
 #define subprocesses
 
-/* Include the os and machine dependent files.  */
+/* Include the os dependent file.  */
 #include config_opsysfile
-#ifdef config_machfile
-# include config_machfile
-#endif
 
 /* GNUstep needs a bit more pure memory.  Of the existing knobs,
    SYSTEM_PURESIZE_EXTRA seems like the least likely to cause problems.
@@ -3634,38 +3525,6 @@ AH_BOTTOM([
 #define RE_TRANSLATE_P(TBL) (!(INTEGERP (TBL) && XINT (TBL) == 0))
 #endif
 #endif
-
-/* These default definitions are good for almost all machines.
-   Any exceptions should override them in m/MACHINE.h.
-   They must be usable in preprocessor conditionals.  */
-
-#ifndef BITS_PER_CHAR
-#define BITS_PER_CHAR 8
-#endif
-
-#ifndef BITS_PER_SHORT
-#define BITS_PER_SHORT 16
-#endif
-
-#ifndef BITS_PER_INT
-#define BITS_PER_INT 32
-#endif
-
-#ifndef BITS_PER_LONG
-#ifdef _LP64
-#define BITS_PER_LONG 64
-#else
-#define BITS_PER_LONG 32
-#endif
-#endif
-
-#if !defined BITS_PER_LONG_LONG && HAVE_LONG_LONG_INT
-#define BITS_PER_LONG_LONG 64
-#endif
-
-/* Define if the compiler supports function prototypes.  It may do so but
-   not define __STDC__ (e.g. DEC C by default) or may define it as zero.  */
-#undef PROTOTYPES
 
 #include <string.h>
 #include <stdlib.h>
@@ -3734,17 +3593,12 @@ if test "${HAVE_GTK}" = "yes"; then
   USE_X_TOOLKIT=GTK
 fi
 
-and_machfile=
-if test -n "$machfile"; then
-  and_machfile=" and \`${machfile}'"
-fi
-
 echo "
 Configured for \`${canonical}'.
 
   Where should the build process find the source code?    ${srcdir}
-  What operating system and machine description files should Emacs use?
-        \`${opsysfile}'${and_machfile}
+  What operating system file should Emacs use?
+        \`${opsysfile}'
   What compiler should emacs be built with?               ${CC} ${CFLAGS}
   Should Emacs use the GNU version of malloc?             ${GNU_MALLOC}${GNU_MALLOC_reason}
   Should Emacs use a relocating allocator for buffers?    ${REL_ALLOC}

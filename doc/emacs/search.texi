@@ -2,7 +2,7 @@
 @c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2012
 @c   Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
-@node Search, Fixit, Display, Top
+@node Search
 @chapter Searching and Replacement
 @cindex searching
 @cindex finding strings within text
@@ -981,7 +981,7 @@ command @code{expand-region-abbrevs} (@pxref{Expanding Abbrevs}).
 * Query Replace::           How to use querying.
 @end menu
 
-@node Unconditional Replace, Regexp Replace, Replace, Replace
+@node Unconditional Replace
 @subsection Unconditional Replacement
 @findex replace-string
 
@@ -1011,7 +1011,7 @@ surrounded by word boundaries.
   @xref{Replacement and Case}, for details about case-sensitivity in
 replace commands.
 
-@node Regexp Replace, Replacement and Case, Unconditional Replace, Replace
+@node Regexp Replace
 @subsection Regexp Replacement
 @findex replace-regexp
 
@@ -1098,7 +1098,7 @@ M-x replace-regexp @key{RET} ^.\@{0,72\@}$ @key{RET}
 \,(format "%-72sABC%05d" \& \#) @key{RET}
 @end example
 
-@node Replacement and Case, Query Replace, Regexp Replace, Replace
+@node Replacement and Case
 @subsection Replace Commands and Case
 
   If the first argument of a replace command is all lower case, the
@@ -1130,7 +1130,7 @@ exactly as given, with no case conversion.  Likewise, if either
 @code{case-replace} or @code{case-fold-search} is set to @code{nil},
 replacement is done without case conversion.
 
-@node Query Replace,, Replacement and Case, Replace
+@node Query Replace
 @subsection Query Replace
 @cindex query replace
 

@@ -2,7 +2,7 @@
 @c This is part of the GNU Emacs Lisp Reference Manual.
 @c Copyright (C) 1990-1995, 1998-2012 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
-@node Text, Non-ASCII Characters, Markers, Top
+@node Text
 @chapter Text
 @cindex text
 
@@ -823,7 +823,6 @@ would be difficult to change the terminology now.
 @end menu
 
 @node Kill Ring Concepts
-@comment  node-name,  next,  previous,  up
 @subsection Kill Ring Concepts
 
   The kill ring records killed text as strings in a list, most recent
@@ -850,7 +849,6 @@ change the list itself---the most recent entry always comes first in the
 list.
 
 @node Kill Functions
-@comment  node-name,  next,  previous,  up
 @subsection Functions for Killing
 
   @code{kill-region} is the usual subroutine for killing text.  Any
@@ -967,7 +965,6 @@ specifying key bindings.
 @end defopt
 
 @node Yank Commands
-@comment  node-name,  next,  previous,  up
 @subsection Functions for Yanking
 
   This section describes higher-level commands for yanking, which are
@@ -1123,7 +1120,6 @@ window system's clipboard.  @xref{Window System Selections}.
 @end defvar
 
 @node Internals of Kill Ring
-@comment  node-name,  next,  previous,  up
 @subsection Internals of the Kill Ring
 
   The variable @code{kill-ring} holds the kill ring contents, in the
@@ -1196,7 +1192,6 @@ value for @code{kill-ring-max} is 60.
 @end defopt
 
 @node Undo
-@comment  node-name,  next,  previous,  up
 @section Undo
 @cindex redo
 
@@ -1399,7 +1394,6 @@ leak memory if the user waits too long before answering the question.
 @end defopt
 
 @node Filling
-@comment  node-name,  next,  previous,  up
 @section Filling
 @cindex filling text
 
@@ -1777,7 +1771,6 @@ prefix or @code{nil}, meaning it has failed to determine a prefix.
 @end defopt
 
 @node Auto Filling
-@comment  node-name,  next,  previous,  up
 @section Auto Filling
 @cindex filling, automatic
 @cindex Auto Fill mode
@@ -2072,7 +2065,6 @@ utility program.
 @end deffn
 
 @node Columns
-@comment  node-name,  next,  previous,  up
 @section Counting Columns
 @cindex columns
 @cindex counting columns
@@ -2415,7 +2407,6 @@ column, this command does nothing.
 @end deffn
 
 @node Indent Tabs
-@comment  node-name,  next,  previous,  up
 @subsection Adjustable ``Tab Stops''
 @cindex tabs stops for indentation
 
@@ -2474,7 +2465,6 @@ If @var{arg} is omitted or @code{nil}, it defaults to 1.
 @end deffn
 
 @node Case Changes
-@comment  node-name,  next,  previous,  up
 @section Case Changes
 @cindex case conversion in buffers
 
@@ -3530,7 +3520,7 @@ properties.  For simplicity, we will refer to the clickable text as a
 @dfn{link}.
 
   Implementing a link involves three separate steps: (1) indicating
-clickability when the mouse moves over the link; (2) making @kbd{RET}
+clickability when the mouse moves over the link; (2) making @key{RET}
 or @kbd{Mouse-2} on that link do something; and (3) setting up a
 @code{follow-link} condition so that the link obeys
 @code{mouse-1-click-follows-link}.
@@ -4068,7 +4058,7 @@ text, to avoid overlong lines.  However, if the optional argument
 the output is just one long line.
 @end deffn
 
-@deffn Command base64-encode-string string &optional no-line-break
+@defun base64-encode-string string &optional no-line-break
 This function converts the string @var{string} into base 64 code.  It
 returns a string containing the encoded text.  As for
 @code{base64-encode-region}, an error is signaled if a character in the
@@ -4078,15 +4068,15 @@ Normally, this function inserts newline characters into the encoded
 text, to avoid overlong lines.  However, if the optional argument
 @var{no-line-break} is non-@code{nil}, these newlines are not added, so
 the result string is just one long line.
-@end deffn
+@end defun
 
-@defun base64-decode-region beg end
+@deffn Command base64-decode-region beg end
 This function converts the region from @var{beg} to @var{end} from base
 64 code into the corresponding decoded text.  It returns the length of
 the decoded text.
 
 The decoding functions ignore newline characters in the encoded text.
-@end defun
+@end deffn
 
 @defun base64-decode-string string
 This function converts the string @var{string} from base 64 code into

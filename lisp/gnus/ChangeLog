@@ -1,3 +1,47 @@
+2012-06-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* nntp.el: Stop the `letf' madness.
+	(nntp--report-1): New var.
+	(nntp-report): Merge nntp-report-1 into it.
+	(nntp-with-open-group-function): Set nntp--report-1 instead of modifying
+	the nntp-report function.
+
+	* auth-source.el: Fix comment-style to follow the convention.
+
+2012-05-27  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-msg.el (gnus-msg-mail): Ensure that gnus-newsgroup-name is
+	a string so that Gcc works (bug#11514).
+
+2012-05-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* legacy-gnus-agent.el (gnus-agent-unhook-expire-days):
+	* gnus-demon.el (gnus-demon-init): Don't bother with type-of.
+
+2012-05-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* gnus-win.el (gnus-configure-frame): Don't signal an error when
+	jumping to *Server* from a dedicated *Group* window.
+	(gnus-configure-frame): CSE.
+
+	* gnus-registry.el: Minor style cleanup.
+	(gnus-registry--set/remove-mark): New function, extracted from
+	gnus-registry-install-shortcuts.
+	(gnus-registry-install-shortcuts): Use it.
+
+2012-05-25  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* nnspool.el (news-path): Use eval-and-compile.
+
+2012-05-24  Glenn Morris  <rgm@gnu.org>
+
+	* nnspool.el (news-directory, news-path, news-inews-program):
+	Move here from paths.el.  Don't see a need for these to be autoloaded.
+
+	* gnus.el (gnus-default-nntp-server): Make it a defcustom.
+	Merge in doc from paths.el version.  Don't see any need for this to be
+	autoloaded, or for the warning about users not setting it.
+
 2012-05-04  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix minor Y10k bug.
@@ -22655,7 +22699,7 @@
 
 See ChangeLog.2 for earlier changes.
 
-  Copyright (C) 2004-2012  Free Software Foundation, Inc.
+  Copyright (C) 2004-2012 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

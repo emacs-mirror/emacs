@@ -66,7 +66,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <unistd.h>
 #ifndef HAVE_UNISTD_H
-extern POINTER_TYPE *sbrk ();
+extern void *sbrk ();
 #endif
 
 #include <fcntl.h>
@@ -234,11 +234,11 @@ static ptrdiff_t pure_bytes_used_before_overflow;
 
 /* Index in pure at which next pure Lisp object will be allocated.. */
 
-static EMACS_INT pure_bytes_used_lisp;
+static ptrdiff_t pure_bytes_used_lisp;
 
 /* Number of bytes allocated for non-Lisp objects in pure storage.  */
 
-static EMACS_INT pure_bytes_used_non_lisp;
+static ptrdiff_t pure_bytes_used_non_lisp;
 
 /* If nonzero, this is a warning delivered by malloc and not yet
    displayed.  */
@@ -273,6 +273,7 @@ static Lisp_Object Qpost_gc_hook;
 static void mark_buffer (Lisp_Object);
 static void mark_terminals (void);
 static void gc_sweep (void);
+static Lisp_Object make_pure_vector (ptrdiff_t);
 static void mark_glyph_matrix (struct glyph_matrix *);
 static void mark_face_cache (struct face_cache *);
 
@@ -306,7 +307,7 @@ enum mem_type
   MEM_TYPE_VECTORLIKE
 };
 
-static POINTER_TYPE *lisp_malloc (size_t, enum mem_type);
+static void *lisp_malloc (size_t, enum mem_type);
 
 
 #if GC_MARK_STACK || defined GC_MALLOC_CHECK
@@ -387,8 +388,8 @@ static void *min_heap_address, *max_heap_address;
 static struct mem_node mem_z;
 #define MEM_NIL &mem_z
 
-static struct Lisp_Vector *allocate_vectorlike (EMACS_INT);
-static void lisp_free (POINTER_TYPE *);
+static struct Lisp_Vector *allocate_vectorlike (ptrdiff_t);
+static void lisp_free (void *);
 static void mark_stack (void);
 static int live_vector_p (struct mem_node *, void *);
 static int live_buffer_p (struct mem_node *, void *);
@@ -435,15 +436,15 @@ static Lisp_Object *staticvec[NSTATICS] = {&Vpurify_flag};
 
 static int staticidx = 0;
 
-static POINTER_TYPE *pure_alloc (size_t, int);
+static void *pure_alloc (size_t, int);
 
 
 /* Value is SZ rounded up to the next multiple of ALIGNMENT.
    ALIGNMENT must be a power of 2.  */
 
 #define ALIGN(ptr, ALIGNMENT) \
-  ((POINTER_TYPE *) ((((uintptr_t) (ptr)) + (ALIGNMENT) - 1) \
-		     & ~((ALIGNMENT) - 1)))
+  ((void *) (((uintptr_t) (ptr) + (ALIGNMENT) - 1) \
+	     & ~ ((ALIGNMENT) - 1)))
 
 
 
@@ -475,7 +476,7 @@ display_malloc_warning (void)
 /* Called if we can't allocate relocatable space for a buffer.  */
 
 void
-buffer_memory_full (EMACS_INT nbytes)
+buffer_memory_full (ptrdiff_t nbytes)
 {
   /* If buffers use the relocating allocator, no need to free
      spare_memory, because we may have plenty of malloc space left
@@ -604,7 +605,7 @@ static ptrdiff_t check_depth;
 
 /* Like malloc, but wraps allocated block with header and trailer.  */
 
-static POINTER_TYPE *
+static void *
 overrun_check_malloc (size_t size)
 {
   register unsigned char *val;
@@ -622,15 +623,15 @@ overrun_check_malloc (size_t size)
 	      XMALLOC_OVERRUN_CHECK_SIZE);
     }
   --check_depth;
-  return (POINTER_TYPE *)val;
+  return val;
 }
 
 
 /* Like realloc, but checks old block for overrun, and wraps new block
    with header and trailer.  */
 
-static POINTER_TYPE *
-overrun_check_realloc (POINTER_TYPE *block, size_t size)
+static void *
+overrun_check_realloc (void *block, size_t size)
 {
   register unsigned char *val = (unsigned char *) block;
   int overhead = ++check_depth == 1 ? XMALLOC_OVERRUN_CHECK_OVERHEAD : 0;
@@ -652,7 +653,7 @@ overrun_check_realloc (POINTER_TYPE *block, size_t size)
       memset (val, 0, XMALLOC_OVERRUN_CHECK_SIZE + XMALLOC_OVERRUN_SIZE_SIZE);
     }
 
-  val = (unsigned char *) realloc ((POINTER_TYPE *)val, size + overhead);
+  val = realloc (val, size + overhead);
 
   if (val && check_depth == 1)
     {
@@ -663,13 +664,13 @@ overrun_check_realloc (POINTER_TYPE *block, size_t size)
 	      XMALLOC_OVERRUN_CHECK_SIZE);
     }
   --check_depth;
-  return (POINTER_TYPE *)val;
+  return val;
 }
 
 /* Like free, but checks block for overrun.  */
 
 static void
-overrun_check_free (POINTER_TYPE *block)
+overrun_check_free (void *block)
 {
   unsigned char *val = (unsigned char *) block;
 
@@ -718,13 +719,13 @@ overrun_check_free (POINTER_TYPE *block)
 
 /* Like malloc but check for no memory and block interrupt input..  */
 
-POINTER_TYPE *
+void *
 xmalloc (size_t size)
 {
-  register POINTER_TYPE *val;
+  void *val;
 
   MALLOC_BLOCK_INPUT;
-  val = (POINTER_TYPE *) malloc (size);
+  val = malloc (size);
   MALLOC_UNBLOCK_INPUT;
 
   if (!val && size)
@@ -735,18 +736,18 @@ xmalloc (size_t size)
 
 /* Like realloc but check for no memory and block interrupt input..  */
 
-POINTER_TYPE *
-xrealloc (POINTER_TYPE *block, size_t size)
+void *
+xrealloc (void *block, size_t size)
 {
-  register POINTER_TYPE *val;
+  void *val;
 
   MALLOC_BLOCK_INPUT;
   /* We must call malloc explicitly when BLOCK is 0, since some
      reallocs don't do this.  */
   if (! block)
-    val = (POINTER_TYPE *) malloc (size);
+    val = malloc (size);
   else
-    val = (POINTER_TYPE *) realloc (block, size);
+    val = realloc (block, size);
   MALLOC_UNBLOCK_INPUT;
 
   if (!val && size)
@@ -758,7 +759,7 @@ xrealloc (POINTER_TYPE *block, size_t size)
 /* Like free but block interrupt input.  */
 
 void
-xfree (POINTER_TYPE *block)
+xfree (void *block)
 {
   if (!block)
     return;
@@ -893,7 +894,7 @@ safe_alloca_unwind (Lisp_Object arg)
 static void *lisp_malloc_loser;
 #endif
 
-static POINTER_TYPE *
+static void *
 lisp_malloc (size_t nbytes, enum mem_type type)
 {
   register void *val;
@@ -938,7 +939,7 @@ lisp_malloc (size_t nbytes, enum mem_type type)
    call to lisp_malloc.  */
 
 static void
-lisp_free (POINTER_TYPE *block)
+lisp_free (void *block)
 {
   MALLOC_BLOCK_INPUT;
   free (block);
@@ -1034,7 +1035,7 @@ static struct ablock *free_ablock;
 /* Allocate an aligned block of nbytes.
    Alignment is on a multiple of BLOCK_ALIGN and `nbytes' has to be
    smaller or equal to BLOCK_BYTES.  */
-static POINTER_TYPE *
+static void *
 lisp_align_malloc (size_t nbytes, enum mem_type type)
 {
   void *base, *val;
@@ -1141,7 +1142,7 @@ lisp_align_malloc (size_t nbytes, enum mem_type type)
 }
 
 static void
-lisp_align_free (POINTER_TYPE *block)
+lisp_align_free (void *block)
 {
   struct ablock *ablock = block;
   struct ablocks *abase = ABLOCK_ABASE (ablock);
@@ -1662,7 +1663,7 @@ struct sdata
 
 #ifdef GC_CHECK_STRING_BYTES
 
-  EMACS_INT nbytes;
+  ptrdiff_t nbytes;
   unsigned char data[1];
 
 #define SDATA_NBYTES(S)	(S)->nbytes
@@ -1677,7 +1678,7 @@ struct sdata
     unsigned char data[1];
 
     /* When STRING is null.  */
-    EMACS_INT nbytes;
+    ptrdiff_t nbytes;
   } u;
 
 #define SDATA_NBYTES(S)	(S)->u.nbytes
@@ -1787,24 +1788,24 @@ static char const string_overrun_cookie[GC_STRING_OVERRUN_COOKIE_SIZE] =
 #define SDATA_SIZE(NBYTES)			\
      ((SDATA_DATA_OFFSET			\
        + (NBYTES) + 1				\
-       + sizeof (EMACS_INT) - 1)		\
-      & ~(sizeof (EMACS_INT) - 1))
+       + sizeof (ptrdiff_t) - 1)		\
+      & ~(sizeof (ptrdiff_t) - 1))
 
 #else /* not GC_CHECK_STRING_BYTES */
 
 /* The 'max' reserves space for the nbytes union member even when NBYTES + 1 is
    less than the size of that member.  The 'max' is not needed when
-   SDATA_DATA_OFFSET is a multiple of sizeof (EMACS_INT), because then the
+   SDATA_DATA_OFFSET is a multiple of sizeof (ptrdiff_t), because then the
    alignment code reserves enough space.  */
 
 #define SDATA_SIZE(NBYTES)				      \
      ((SDATA_DATA_OFFSET				      \
-       + (SDATA_DATA_OFFSET % sizeof (EMACS_INT) == 0	      \
+       + (SDATA_DATA_OFFSET % sizeof (ptrdiff_t) == 0	      \
 	  ? NBYTES					      \
-	  : max (NBYTES, sizeof (EMACS_INT) - 1))	      \
+	  : max (NBYTES, sizeof (ptrdiff_t) - 1))	      \
        + 1						      \
-       + sizeof (EMACS_INT) - 1)			      \
-      & ~(sizeof (EMACS_INT) - 1))
+       + sizeof (ptrdiff_t) - 1)			      \
+      & ~(sizeof (ptrdiff_t) - 1))
 
 #endif /* not GC_CHECK_STRING_BYTES */
 
@@ -1848,10 +1849,10 @@ static int check_string_bytes_count;
 
 /* Like GC_STRING_BYTES, but with debugging check.  */
 
-EMACS_INT
+ptrdiff_t
 string_bytes (struct Lisp_String *s)
 {
-  EMACS_INT nbytes =
+  ptrdiff_t nbytes =
     (s->size_byte < 0 ? s->size & ~ARRAY_MARK_FLAG : s->size_byte);
 
   if (!PURE_POINTER_P (s)
@@ -1874,7 +1875,7 @@ check_sblock (struct sblock *b)
     {
       /* Compute the next FROM here because copying below may
 	 overwrite data we need to compute it.  */
-      EMACS_INT nbytes;
+      ptrdiff_t nbytes;
 
       /* Check that the string size recorded in the string is the
 	 same as the one recorded in the sdata structure. */
@@ -2020,7 +2021,7 @@ allocate_string_data (struct Lisp_String *s,
 {
   struct sdata *data, *old_data;
   struct sblock *b;
-  EMACS_INT needed, old_nbytes;
+  ptrdiff_t needed, old_nbytes;
 
   if (STRING_BYTES_MAX < nbytes)
     string_overflow ();
@@ -2265,7 +2266,7 @@ compact_small_strings (void)
 	{
 	  /* Compute the next FROM here because copying below may
 	     overwrite data we need to compute it.  */
-	  EMACS_INT nbytes;
+	  ptrdiff_t nbytes;
 
 #ifdef GC_CHECK_STRING_BYTES
 	  /* Check that the string size recorded in the string is the
@@ -2395,7 +2396,8 @@ LENGTH must be a number.  INIT matters only in whether it is t or nil.  */)
 {
   register Lisp_Object val;
   struct Lisp_Bool_Vector *p;
-  EMACS_INT length_in_chars, length_in_elts;
+  ptrdiff_t length_in_chars;
+  EMACS_INT length_in_elts;
   int bits_per_value;
 
   CHECK_NATNUM (length);
@@ -2403,8 +2405,6 @@ LENGTH must be a number.  INIT matters only in whether it is t or nil.  */)
   bits_per_value = sizeof (EMACS_INT) * BOOL_VECTOR_BITS_PER_CHAR;
 
   length_in_elts = (XFASTINT (length) + bits_per_value - 1) / bits_per_value;
-  length_in_chars = ((XFASTINT (length) + BOOL_VECTOR_BITS_PER_CHAR - 1)
-		     / BOOL_VECTOR_BITS_PER_CHAR);
 
   /* We must allocate one more elements than LENGTH_IN_ELTS for the
      slot `size' of the struct Lisp_Bool_Vector.  */
@@ -2416,6 +2416,8 @@ LENGTH must be a number.  INIT matters only in whether it is t or nil.  */)
   p = XBOOL_VECTOR (val);
   p->size = XFASTINT (length);
 
+  length_in_chars = ((XFASTINT (length) + BOOL_VECTOR_BITS_PER_CHAR - 1)
+		     / BOOL_VECTOR_BITS_PER_CHAR);
   if (length_in_chars)
     {
       memset (p->data, ! NILP (init) ? -1 : 0, length_in_chars);
@@ -2434,10 +2436,10 @@ LENGTH must be a number.  INIT matters only in whether it is t or nil.  */)
    multibyte, depending on the contents.  */
 
 Lisp_Object
-make_string (const char *contents, EMACS_INT nbytes)
+make_string (const char *contents, ptrdiff_t nbytes)
 {
   register Lisp_Object val;
-  EMACS_INT nchars, multibyte_nbytes;
+  ptrdiff_t nchars, multibyte_nbytes;
 
   parse_str_as_multibyte ((const unsigned char *) contents, nbytes,
 			  &nchars, &multibyte_nbytes);
@@ -2454,7 +2456,7 @@ make_string (const char *contents, EMACS_INT nbytes)
 /* Make an unibyte string from LENGTH bytes at CONTENTS.  */
 
 Lisp_Object
-make_unibyte_string (const char *contents, EMACS_INT length)
+make_unibyte_string (const char *contents, ptrdiff_t length)
 {
   register Lisp_Object val;
   val = make_uninit_string (length);
@@ -2468,7 +2470,7 @@ make_unibyte_string (const char *contents, EMACS_INT length)
 
 Lisp_Object
 make_multibyte_string (const char *contents,
-		       EMACS_INT nchars, EMACS_INT nbytes)
+		       ptrdiff_t nchars, ptrdiff_t nbytes)
 {
   register Lisp_Object val;
   val = make_uninit_multibyte_string (nchars, nbytes);
@@ -2482,7 +2484,7 @@ make_multibyte_string (const char *contents,
 
 Lisp_Object
 make_string_from_bytes (const char *contents,
-			EMACS_INT nchars, EMACS_INT nbytes)
+			ptrdiff_t nchars, ptrdiff_t nbytes)
 {
   register Lisp_Object val;
   val = make_uninit_multibyte_string (nchars, nbytes);
@@ -2500,7 +2502,7 @@ make_string_from_bytes (const char *contents,
 
 Lisp_Object
 make_specified_string (const char *contents,
-		       EMACS_INT nchars, EMACS_INT nbytes, int multibyte)
+		       ptrdiff_t nchars, ptrdiff_t nbytes, int multibyte)
 {
   register Lisp_Object val;
 
@@ -2699,8 +2701,10 @@ make_float (double float_value)
    GC are put on a free list to be reallocated before allocating
    any new cons cells from the latest cons_block.  */
 
-#define CONS_BLOCK_SIZE \
-  (((BLOCK_BYTES - sizeof (struct cons_block *)) * CHAR_BIT) \
+#define CONS_BLOCK_SIZE						\
+  (((BLOCK_BYTES - sizeof (struct cons_block *)			\
+     /* The compiler might add padding at the end.  */		\
+     - (sizeof (struct Lisp_Cons) - sizeof (int))) * CHAR_BIT)	\
    / (sizeof (struct Lisp_Cons) * CHAR_BIT + 1))
 
 #define CONS_BLOCK(fptr) \
@@ -2939,7 +2943,7 @@ enum
    with room for LEN Lisp_Objects.  */
 
 static struct Lisp_Vector *
-allocate_vectorlike (EMACS_INT len)
+allocate_vectorlike (ptrdiff_t len)
 {
   struct Lisp_Vector *p;
   size_t nbytes;
@@ -2995,7 +2999,7 @@ allocate_vector (EMACS_INT len)
 /* Allocate other vector-like structures.  */
 
 struct Lisp_Vector *
-allocate_pseudovector (int memlen, int lisplen, EMACS_INT tag)
+allocate_pseudovector (int memlen, int lisplen, int tag)
 {
   struct Lisp_Vector *v = allocate_vectorlike (memlen);
   int i;
@@ -3059,14 +3063,14 @@ See also the function `vector'.  */)
   (register Lisp_Object length, Lisp_Object init)
 {
   Lisp_Object vector;
-  register EMACS_INT sizei;
-  register EMACS_INT i;
+  register ptrdiff_t sizei;
+  register ptrdiff_t i;
   register struct Lisp_Vector *p;
 
   CHECK_NATNUM (length);
-  sizei = XFASTINT (length);
 
-  p = allocate_vector (sizei);
+  p = allocate_vector (XFASTINT (length));
+  sizei = XFASTINT (length);
   for (i = 0; i < sizei; i++)
     p->contents[i] = init;
 
@@ -4297,8 +4301,8 @@ mark_maybe_pointer (void *p)
    wider than a pointer might allocate a Lisp_Object in non-adjacent halves.
    If USE_LSB_TAG, the bottom half is not a valid pointer, but it should
    suffice to widen it to to a Lisp_Object and check it that way.  */
-#if defined USE_LSB_TAG || UINTPTR_MAX >> VALBITS != 0
-# if !defined USE_LSB_TAG && UINTPTR_MAX >> VALBITS >> GCTYPEBITS != 0
+#if defined USE_LSB_TAG || VAL_MAX < UINTPTR_MAX
+# if !defined USE_LSB_TAG && VAL_MAX < UINTPTR_MAX >> GCTYPEBITS
   /* If tag bits straddle pointer-word boundaries, neither mark_maybe_pointer
      nor mark_maybe_object can follow the pointers.  This should not occur on
      any practical porting target.  */
@@ -4722,10 +4726,10 @@ valid_lisp_object_p (Lisp_Object obj)
    pointer to it.  TYPE is the Lisp type for which the memory is
    allocated.  TYPE < 0 means it's not used for a Lisp object.  */
 
-static POINTER_TYPE *
+static void *
 pure_alloc (size_t size, int type)
 {
-  POINTER_TYPE *result;
+  void *result;
 #ifdef USE_LSB_TAG
   size_t alignment = (1 << GCTYPEBITS);
 #else
@@ -4791,14 +4795,14 @@ check_pure_size (void)
    address.  Return NULL if not found.  */
 
 static char *
-find_string_data_in_pure (const char *data, EMACS_INT nbytes)
+find_string_data_in_pure (const char *data, ptrdiff_t nbytes)
 {
   int i;
-  EMACS_INT skip, bm_skip[256], last_char_skip, infinity, start, start_max;
+  ptrdiff_t skip, bm_skip[256], last_char_skip, infinity, start, start_max;
   const unsigned char *p;
   char *non_lisp_beg;
 
-  if (pure_bytes_used_non_lisp < nbytes + 1)
+  if (pure_bytes_used_non_lisp <= nbytes)
     return NULL;
 
   /* Set up the Boyer-Moore table.  */
@@ -4862,7 +4866,7 @@ find_string_data_in_pure (const char *data, EMACS_INT nbytes)
 
 Lisp_Object
 make_pure_string (const char *data,
-		  EMACS_INT nchars, EMACS_INT nbytes, int multibyte)
+		  ptrdiff_t nchars, ptrdiff_t nbytes, int multibyte)
 {
   Lisp_Object string;
   struct Lisp_String *s;
@@ -4890,7 +4894,7 @@ make_pure_c_string (const char *data)
 {
   Lisp_Object string;
   struct Lisp_String *s;
-  EMACS_INT nchars = strlen (data);
+  ptrdiff_t nchars = strlen (data);
 
   s = (struct Lisp_String *) pure_alloc (sizeof *s, Lisp_String);
   s->size = nchars;
@@ -4936,8 +4940,8 @@ make_pure_float (double num)
 /* Return a vector with room for LEN Lisp_Objects allocated from
    pure space.  */
 
-Lisp_Object
-make_pure_vector (EMACS_INT len)
+static Lisp_Object
+make_pure_vector (ptrdiff_t len)
 {
   Lisp_Object new;
   struct Lisp_Vector *p;
@@ -4981,8 +4985,8 @@ Does not copy symbols.  Copies strings without text properties.  */)
   else if (COMPILEDP (obj) || VECTORP (obj))
     {
       register struct Lisp_Vector *vec;
-      register EMACS_INT i;
-      EMACS_INT size;
+      register ptrdiff_t i;
+      ptrdiff_t size;
 
       size = ASIZE (obj);
       if (size & PSEUDOVECTOR_FLAG)
@@ -5034,10 +5038,10 @@ staticpro (Lisp_Object *varaddress)
 
 /* Temporarily prevent garbage collection.  */
 
-int
+ptrdiff_t
 inhibit_garbage_collection (void)
 {
-  int count = SPECPDL_INDEX ();
+  ptrdiff_t count = SPECPDL_INDEX ();
 
   specbind (Qgc_cons_threshold, make_number (MOST_POSITIVE_FIXNUM));
   return count;
@@ -5063,7 +5067,7 @@ See Info node `(elisp)Garbage Collection'.  */)
   ptrdiff_t i;
   int message_p;
   Lisp_Object total[8];
-  int count = SPECPDL_INDEX ();
+  ptrdiff_t count = SPECPDL_INDEX ();
   EMACS_TIME t1, t2, t3;
 
   if (abort_on_gc)
@@ -5358,7 +5362,7 @@ See Info node `(elisp)Garbage Collection'.  */)
 
   if (!NILP (Vpost_gc_hook))
     {
-      int gc_count = inhibit_garbage_collection ();
+      ptrdiff_t gc_count = inhibit_garbage_collection ();
       safe_run_hooks (Qpost_gc_hook);
       unbind_to (gc_count, Qnil);
     }
@@ -5443,8 +5447,8 @@ ptrdiff_t mark_object_loop_halt EXTERNALLY_VISIBLE;
 static void
 mark_vectorlike (struct Lisp_Vector *ptr)
 {
-  EMACS_INT size = ptr->header.size;
-  EMACS_INT i;
+  ptrdiff_t size = ptr->header.size;
+  ptrdiff_t i;
 
   eassert (!VECTOR_MARKED_P (ptr));
   VECTOR_MARK (ptr);		/* Else mark it */
@@ -6325,7 +6329,7 @@ Lisp_Object
 which_symbols (Lisp_Object obj, EMACS_INT find_max)
 {
    struct symbol_block *sblk;
-   int gc_count = inhibit_garbage_collection ();
+   ptrdiff_t gc_count = inhibit_garbage_collection ();
    Lisp_Object found = Qnil;
 
    if (! DEADP (obj))

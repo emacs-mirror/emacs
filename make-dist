@@ -285,7 +285,7 @@ mkdir ${tempdir}
 echo "Making links to top-level files"
 ln INSTALL README BUGS ${tempdir}
 ln ChangeLog Makefile.in configure configure.in ${tempdir}
-ln config.bat make-dist update-subdirs vpath.sed .dir-locals.el ${tempdir}
+ln config.bat make-dist .dir-locals.el ${tempdir}
 ln aclocal.m4 ${tempdir}
 
 echo "Creating subdirectories"
@@ -293,7 +293,7 @@ for subdir in site-lisp \
 	      leim leim/CXTERM-DIC leim/MISC-DIC \
 	      leim/SKK-DIC leim/ja-dic leim/quail \
 	      build-aux build-aux/snippet \
-	      src src/m src/s src/bitmaps lib lib-src oldXMenu lwlib \
+	      src src/s src/bitmaps lib lib-src oldXMenu lwlib \
 	      nt nt/inc nt/inc/sys nt/inc/arpa nt/inc/netinet nt/icons \
 	      `find etc lisp admin -type d` \
 	      doc doc/emacs doc/misc doc/man doc/lispref doc/lispintro \
@@ -346,7 +346,7 @@ echo "Making links to \`leim' and its subdirectories"
 echo "Making links to \`build-aux'"
 (cd build-aux
  ln compile config.guess config.sub depcomp ../${tempdir}/build-aux
- ln install-sh missing move-if-change ../${tempdir}/build-aux)
+ ln install-sh missing move-if-change update-subdirs ../${tempdir}/build-aux)
 
 echo "Making links to \`build-aux/snippet'"
 (cd build-aux/snippet
@@ -370,10 +370,6 @@ echo "Making links to \`src/bitmaps'"
 (cd src/bitmaps
  ln README *.xbm ../../${tempdir}/src/bitmaps)
 
-echo "Making links to \`src/m'"
-(cd src/m
- ln README [a-zA-Z0-9]*.h ../../${tempdir}/src/m)
-
 echo "Making links to \`src/s'"
 (cd src/s
  ln README [a-zA-Z0-9]*.h ../../${tempdir}/src/s)
@@ -391,7 +387,7 @@ echo "Making links to \`lib-src'"
 (cd lib-src
  ln [a-zA-Z]*.[ch] ../${tempdir}/lib-src
  ln ChangeLog Makefile.in README testfile vcdiff ../${tempdir}/lib-src
- ln grep-changelog rcs2log rcs-checkin ../${tempdir}/lib-src
+ ln grep-changelog rcs2log ../${tempdir}/lib-src
  ln makefile.w32-in ../${tempdir}/lib-src)
 
 echo "Making links to \`m4'"

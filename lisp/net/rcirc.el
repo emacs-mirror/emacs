@@ -30,7 +30,7 @@
 ;; one-to-one communication.
 
 ;; Rcirc has simple defaults and clear and consistent behavior.
-;; Message arrival timestamps, activity notification on the modeline,
+;; Message arrival timestamps, activity notification on the mode line,
 ;; message filling, nick completion, and keepalive pings are all
 ;; enabled by default, but can easily be adjusted or turned off.  Each
 ;; discussion takes place in its own buffer and there is a single
@@ -394,7 +394,7 @@ will be killed."
   "List of buffers with unviewed activity.")
 
 (defvar rcirc-activity-string ""
-  "String displayed in modeline representing `rcirc-activity'.")
+  "String displayed in mode line representing `rcirc-activity'.")
 (put 'rcirc-activity-string 'risky-local-variable t)
 
 (defvar rcirc-server-buffer nil
@@ -1599,7 +1599,7 @@ record activity."
 	  (buffer-disable-undo)
 	  (buffer-enable-undo))
 
-	;; record modeline activity
+	;; record mode line activity
 	(when (and activity
 		   (not rcirc-ignore-buffer-activity-flag)
 		   (not (and rcirc-dim-nicks sender
@@ -2003,7 +2003,7 @@ activity.  Only run if the buffer is not visible and
 	     buffers ","))
 
 (defun rcirc-short-buffer-name (buffer)
-  "Return a short name for BUFFER to use in the modeline indicator."
+  "Return a short name for BUFFER to use in the mode line indicator."
   (with-current-buffer buffer
     (or rcirc-short-buffer-name (buffer-name))))
 

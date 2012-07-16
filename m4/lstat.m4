@@ -1,6 +1,6 @@
-# serial 23
+# serial 25
 
-# Copyright (C) 1997-2001, 2003-2011 Free Software Foundation, Inc.
+# Copyright (C) 1997-2001, 2003-2012 Free Software Foundation, Inc.
 #
 # This file is free software; the Free Software Foundation
 # gives unlimited permission to copy and/or distribute it,
@@ -16,9 +16,11 @@ AC_DEFUN([gl_FUNC_LSTAT],
   AC_CHECK_FUNCS_ONCE([lstat])
   if test $ac_cv_func_lstat = yes; then
     AC_REQUIRE([gl_FUNC_LSTAT_FOLLOWS_SLASHED_SYMLINK])
-    if test $gl_cv_func_lstat_dereferences_slashed_symlink = no; then
-      REPLACE_LSTAT=1
-    fi
+    case "$gl_cv_func_lstat_dereferences_slashed_symlink" in
+      *no)
+        REPLACE_LSTAT=1
+        ;;
+    esac
   else
     HAVE_LSTAT=0
   fi
@@ -51,20 +53,25 @@ AC_DEFUN([gl_FUNC_LSTAT_FOLLOWS_SLASHED_SYMLINK],
             ]])],
          [gl_cv_func_lstat_dereferences_slashed_symlink=yes],
          [gl_cv_func_lstat_dereferences_slashed_symlink=no],
-         [# When cross-compiling, be pessimistic so we will end up using the
-          # replacement version of lstat that checks for trailing slashes and
-          # calls lstat a second time when necessary.
-          gl_cv_func_lstat_dereferences_slashed_symlink=no
+         [case "$host_os" in
+                    # Guess yes on glibc systems.
+            *-gnu*) gl_cv_func_lstat_dereferences_slashed_symlink="guessing yes" ;;
+                    # If we don't know, assume the worst.
+            *)      gl_cv_func_lstat_dereferences_slashed_symlink="guessing no" ;;
+          esac
          ])
      else
        # If the 'ln -s' command failed, then we probably don't even
        # have an lstat function.
-       gl_cv_func_lstat_dereferences_slashed_symlink=no
+       gl_cv_func_lstat_dereferences_slashed_symlink="guessing no"
      fi
      rm -f conftest.sym conftest.file
     ])
-  test $gl_cv_func_lstat_dereferences_slashed_symlink = yes &&
-    AC_DEFINE_UNQUOTED([LSTAT_FOLLOWS_SLASHED_SYMLINK], [1],
-      [Define to 1 if `lstat' dereferences a symlink specified
-       with a trailing slash.])
+  case "$gl_cv_func_lstat_dereferences_slashed_symlink" in
+    *yes)
+      AC_DEFINE_UNQUOTED([LSTAT_FOLLOWS_SLASHED_SYMLINK], [1],
+        [Define to 1 if 'lstat' dereferences a symlink specified
+         with a trailing slash.])
+      ;;
+  esac
 ])

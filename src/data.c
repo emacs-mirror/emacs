@@ -34,6 +34,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "syssignal.h"
 #include "termhooks.h"  /* For FRAME_KBOARD reference in y-or-n-p.  */
 #include "font.h"
+#include "keymap.h"
 
 #include <float.h>
 /* If IEEE_FLOATING_POINT isn't defined, default it from FLT_*.  */
@@ -92,6 +93,7 @@ Lisp_Object Qbuffer;
 static Lisp_Object Qchar_table, Qbool_vector, Qhash_table;
 static Lisp_Object Qsubrp, Qmany, Qunevalled;
 Lisp_Object Qfont_spec, Qfont_entity, Qfont_object;
+static Lisp_Object Qdefun;
 
 Lisp_Object Qinteractive_form;
 
@@ -130,7 +132,7 @@ args_out_of_range_3 (Lisp_Object a1, Lisp_Object a2, Lisp_Object a3)
 }
 
 
-/* Data type predicates */
+/* Data type predicates.  */
 
 DEFUN ("eq", Feq, Seq, 2, 2, 0,
        doc: /* Return t if the two args are the same Lisp object.  */)
@@ -656,6 +658,10 @@ determined by DEFINITION.  */)
   if (CONSP (XSYMBOL (symbol)->function)
       && EQ (XCAR (XSYMBOL (symbol)->function), Qautoload))
     LOADHIST_ATTACH (Fcons (Qt, symbol));
+  if (!NILP (Vpurify_flag)
+      /* If `definition' is a keymap, immutable (and copying) is wrong.  */
+      && !KEYMAPP (definition))
+    definition = Fpurecopy (definition);
   definition = Ffset (symbol, definition);
   LOADHIST_ATTACH (Fcons (Qdefun, symbol));
   if (!NILP (docstring))
@@ -1075,18 +1081,18 @@ let_shadows_buffer_binding_p (struct Lisp_Symbol *symbol)
 {
   struct specbinding *p;
 
-  for (p = specpdl_ptr - 1; p >= specpdl; p--)
-    if (p->func == NULL
+  for (p = specpdl_ptr; p > specpdl; )
+    if ((--p)->func == NULL
 	&& CONSP (p->symbol))
       {
 	struct Lisp_Symbol *let_bound_symbol = XSYMBOL (XCAR (p->symbol));
 	eassert (let_bound_symbol->redirect != SYMBOL_VARALIAS);
 	if (symbol == let_bound_symbol
 	    && XBUFFER (XCDR (XCDR (p->symbol))) == current_buffer)
-	  break;
+	  return 1;
       }
 
-  return p >= specpdl;
+  return 0;
 }
 
 static int
@@ -1094,11 +1100,11 @@ let_shadows_global_binding_p (Lisp_Object symbol)
 {
   struct specbinding *p;
 
-  for (p = specpdl_ptr - 1; p >= specpdl; p--)
-    if (p->func == NULL && EQ (p->symbol, symbol))
-      break;
+  for (p = specpdl_ptr; p > specpdl; )
+    if ((--p)->func == NULL && EQ (p->symbol, symbol))
+      return 1;
 
-  return p >= specpdl;
+  return 0;
 }
 
 /* Store the value NEWVAL into SYMBOL.
@@ -2064,7 +2070,7 @@ or a byte-code object.  IDX starts at 0.  */)
   if (STRINGP (array))
     {
       int c;
-      EMACS_INT idxval_byte;
+      ptrdiff_t idxval_byte;
 
       if (idxval < 0 || idxval >= SCHARS (array))
 	args_out_of_range (array, idx);
@@ -2092,7 +2098,7 @@ or a byte-code object.  IDX starts at 0.  */)
     }
   else
     {
-      int size = 0;
+      ptrdiff_t size = 0;
       if (VECTORP (array))
 	size = ASIZE (array);
       else if (COMPILEDP (array))
@@ -2156,7 +2162,8 @@ bool-vector.  IDX starts at 0.  */)
 
       if (STRING_MULTIBYTE (array))
 	{
-	  EMACS_INT idxval_byte, prev_bytes, new_bytes, nbytes;
+	  ptrdiff_t idxval_byte, nbytes;
+	  int prev_bytes, new_bytes;
 	  unsigned char workbuf[MAX_MULTIBYTE_LENGTH], *p0 = workbuf, *p1;
 
 	  nbytes = SBYTES (array);
@@ -2167,7 +2174,7 @@ bool-vector.  IDX starts at 0.  */)
 	  if (prev_bytes != new_bytes)
 	    {
 	      /* We must relocate the string data.  */
-	      EMACS_INT nchars = SCHARS (array);
+	      ptrdiff_t nchars = SCHARS (array);
 	      unsigned char *str;
 	      USE_SAFE_ALLOCA;
 
@@ -2474,9 +2481,9 @@ If the base used is not 10, STRING is always parsed as integer.  */)
   else
     {
       CHECK_NUMBER (base);
-      b = XINT (base);
-      if (b < 2 || b > 16)
+      if (! (2 <= XINT (base) && XINT (base) <= 16))
 	xsignal1 (Qargs_out_of_range, base);
+      b = XINT (base);
     }
 
   p = SSDATA (string);
@@ -2724,7 +2731,7 @@ Both must be integers or markers.  */)
   CHECK_NUMBER_COERCE_MARKER (x);
   CHECK_NUMBER_COERCE_MARKER (y);
 
-  if (XFASTINT (y) == 0)
+  if (XINT (y) == 0)
     xsignal0 (Qarith_error);
 
   XSETINT (val, XINT (x) % XINT (y));
@@ -3083,6 +3090,8 @@ syms_of_data (void)
   DEFSYM (Qchar_table, "char-table");
   DEFSYM (Qbool_vector, "bool-vector");
   DEFSYM (Qhash_table, "hash-table");
+
+  DEFSYM (Qdefun, "defun");
 
   DEFSYM (Qfont_spec, "font-spec");
   DEFSYM (Qfont_entity, "font-entity");

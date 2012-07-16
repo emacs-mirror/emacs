@@ -76,6 +76,17 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    to avoid a crash just use the Emacs implementation for that function.  */
 #define BROKEN_GET_CURRENT_DIR_NAME 1
 
+/*** BUILD 9008 - FIONREAD problem still exists in X-Windows. ***/
+#define BROKEN_FIONREAD
+/* As we define BROKEN_FIONREAD, SIGIO will be undefined in systty.h.
+   But, on AIX, SIGAIO, SIGPTY, and SIGPOLL are defined as SIGIO,
+   which causes compilation error at init_signals in sysdep.c.  So, we
+   define these macros so that syssignal.h detects them and undefine
+   SIGAIO, SIGPTY and SIGPOLL.  */
+#define BROKEN_SIGAIO
+#define BROKEN_SIGPTY
+#define BROKEN_SIGPOLL
+
 /* Conservative garbage collection has not been tested, so for now
    play it safe and stick with the old-fashioned way of marking.  */
 #define GC_MARK_STACK GC_USE_GCPROS_AS_BEFORE

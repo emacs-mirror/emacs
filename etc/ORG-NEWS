@@ -20,7 +20,7 @@ Please send Org bug reports to emacs-orgmode@gnu.org.
    :PROPERTIES:
    :OrgVersion:  7.4
    :END:
-   
+
    The variable =org-agenda-ndays= is obsolete - please use
    =org-agenda-span= instead.
 
@@ -313,7 +313,7 @@ to mean anything.
     :OrgVersion:  7.5
     :END:
 
-    You can now create links from messages.  This is particularily
+    You can now create links from messages.  This is particularly
     useful when the user wants to stored messages that he sends, for
     later check.  Thanks to Ulf Stegemann for the patch.
 
@@ -328,7 +328,7 @@ to mean anything.
 
 : Percent escaping is used in Org mode to escape certain characters
 : in links that would either break the parser (e.g. square brackets
-: in link target oder description) or are not allowed to appear in
+: in link target or description) or are not allowed to appear in
 : a particular link type (e.g. non-ascii characters in a http:
 : link).
 :

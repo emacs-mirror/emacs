@@ -1,5 +1,5 @@
 # DO NOT EDIT! GENERATED AUTOMATICALLY!
-# Copyright (C) 2002-2011 Free Software Foundation, Inc.
+# Copyright (C) 2002-2012 Free Software Foundation, Inc.
 #
 # This file is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -78,6 +78,7 @@ AC_DEFUN([gl_EARLY],
   # Code from module socklen:
   # Code from module ssize_t:
   # Code from module stat:
+  # Code from module stdalign:
   # Code from module stdarg:
   dnl Some compilers (e.g., AIX 5.3 cc) need to be in c99 mode
   dnl for the builtin va_copy to work.  With Autoconf 2.60 or later,
@@ -96,6 +97,7 @@ AC_DEFUN([gl_EARLY],
   # Code from module strtoumax:
   # Code from module symlink:
   # Code from module sys_stat:
+  # Code from module sys_types:
   # Code from module time:
   # Code from module time_r:
   # Code from module u64:
@@ -145,16 +147,23 @@ if test $REPLACE_GETOPT = 1; then
   AC_LIBOBJ([getopt])
   AC_LIBOBJ([getopt1])
   gl_PREREQ_GETOPT
+  dnl Arrange for unistd.h to include getopt.h.
+  GNULIB_GL_UNISTD_H_GETOPT=1
 fi
+AC_SUBST([GNULIB_GL_UNISTD_H_GETOPT])
 gl_MODULE_INDICATOR_FOR_TESTS([getopt-gnu])
 gl_FUNC_GETOPT_POSIX
 if test $REPLACE_GETOPT = 1; then
   AC_LIBOBJ([getopt])
   AC_LIBOBJ([getopt1])
   gl_PREREQ_GETOPT
+  dnl Arrange for unistd.h to include getopt.h.
+  GNULIB_GL_UNISTD_H_GETOPT=1
 fi
+AC_SUBST([GNULIB_GL_UNISTD_H_GETOPT])
 AC_REQUIRE([AC_C_INLINE])
 gl_INTTYPES_INCOMPLETE
+AC_REQUIRE([gl_LARGEFILE])
 gl_FUNC_LSTAT
 if test $REPLACE_LSTAT = 1; then
   AC_LIBOBJ([lstat])
@@ -183,6 +192,7 @@ gl_UNISTD_MODULE_INDICATOR([readlink])
 gl_SIGNAL_H
 gl_TYPE_SOCKLEN_T
 gt_TYPE_SSIZE_T
+gl_STDALIGN_H
 gl_STDARG_H
 AM_STDBOOL_H
 gl_STDDEF_H
@@ -191,7 +201,7 @@ gl_STDIO_H
 gl_STDLIB_H
 gl_FUNC_GNU_STRFTIME
 gl_FUNC_STRTOIMAX
-if test $ac_cv_func_strtoimax = no; then
+if test $HAVE_STRTOIMAX = 0 || test $REPLACE_STRTOIMAX = 1; then
   AC_LIBOBJ([strtoimax])
   gl_PREREQ_STRTOIMAX
 fi
@@ -209,6 +219,8 @@ fi
 gl_UNISTD_MODULE_INDICATOR([symlink])
 gl_HEADER_SYS_STAT_H
 AC_PROG_MKDIR_P
+gl_SYS_TYPES_H
+AC_PROG_MKDIR_P
 gl_HEADER_TIME_H
 gl_TIME_R
 if test $HAVE_LOCALTIME_R = 0 || test $REPLACE_LOCALTIME_R = 1; then
@@ -218,7 +230,6 @@ fi
 gl_TIME_MODULE_INDICATOR([time_r])
 AC_REQUIRE([AC_C_INLINE])
 gl_UNISTD_H
-AC_SUBST([WARN_CFLAGS])
   gl_gnulib_enabled_dosname=false
   gl_gnulib_enabled_be453cec5eecf5731a274f2de7f2db36=false
   gl_gnulib_enabled_pathmax=false
@@ -326,17 +337,17 @@ gl_STDLIB_MODULE_INDICATOR([strtoull])
   if test $HAVE_READLINK = 0 || test $REPLACE_READLINK = 1; then
     func_gl_gnulib_m4code_stat
   fi
-  if test $ac_cv_func_strtoimax = no; then
-    func_gl_gnulib_m4code_verify
-  fi
-  if test $ac_cv_func_strtoimax = no && test $ac_cv_type_long_long_int = yes; then
+  if { test $HAVE_STRTOIMAX = 0 || test $REPLACE_STRTOIMAX = 1; } && test $ac_cv_type_long_long_int = yes; then
     func_gl_gnulib_m4code_strtoll
   fi
-  if test $ac_cv_func_strtoumax = no; then
+  if test $HAVE_STRTOIMAX = 0 || test $REPLACE_STRTOIMAX = 1; then
     func_gl_gnulib_m4code_verify
   fi
   if test $ac_cv_func_strtoumax = no && test $ac_cv_type_unsigned_long_long_int = yes; then
     func_gl_gnulib_m4code_strtoull
+  fi
+  if test $ac_cv_func_strtoumax = no; then
+    func_gl_gnulib_m4code_verify
   fi
   m4_pattern_allow([^gl_GNULIB_ENABLED_])
   AM_CONDITIONAL([gl_GNULIB_ENABLED_dosname], [$gl_gnulib_enabled_dosname])
@@ -530,6 +541,7 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/signal.in.h
   lib/sigprocmask.c
   lib/stat.c
+  lib/stdalign.in.h
   lib/stdarg.in.h
   lib/stdbool.in.h
   lib/stddef.in.h
@@ -546,6 +558,7 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/strtoumax.c
   lib/symlink.c
   lib/sys_stat.in.h
+  lib/sys_types.in.h
   lib/time.in.h
   lib/time_r.c
   lib/u64.h
@@ -570,6 +583,7 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/mktime.m4
   m4/multiarch.m4
   m4/nocrash.m4
+  m4/off_t.m4
   m4/pathmax.m4
   m4/pthread_sigmask.m4
   m4/readlink.m4
@@ -582,6 +596,7 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/ssize_t.m4
   m4/st_dm_mode.m4
   m4/stat.m4
+  m4/stdalign.m4
   m4/stdarg.m4
   m4/stdbool.m4
   m4/stddef_h.m4
@@ -595,6 +610,7 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/strtoumax.m4
   m4/symlink.m4
   m4/sys_stat_h.m4
+  m4/sys_types_h.m4
   m4/time_h.m4
   m4/time_r.m4
   m4/tm_gmtoff.m4

@@ -1004,7 +1004,7 @@ _free_internal_nolock (void *ptr)
     return;
 
 #ifdef CYGWIN
-  if (ptr < _heapbase)
+  if ((char *) ptr < _heapbase)
     /* We're being asked to free something in the static heap. */
     return;
 #endif
@@ -1341,7 +1341,7 @@ _realloc_internal_nolock (void *ptr, size_t size)
     return _malloc_internal_nolock (size);
 
 #ifdef CYGWIN
-  if (ptr < _heapbase)
+  if ((char *) ptr < _heapbase)
     /* ptr points into the static heap */
     return special_realloc (ptr, size);
 #endif
@@ -1530,10 +1530,6 @@ MA 02110-1301, USA.  */
 
 extern void *__sbrk (ptrdiff_t increment);
 #endif /* __GNU_LIBRARY__ && ! defined (__UCLIBC__) */
-
-#ifndef NULL
-#define NULL 0
-#endif
 
 /* Allocate INCREMENT more bytes of data space,
    and return the start of data space, or NULL on errors.

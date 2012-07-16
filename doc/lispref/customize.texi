@@ -2,7 +2,7 @@
 @c This is part of the GNU Emacs Lisp Reference Manual.
 @c Copyright (C) 1997-2012 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
-@node Customization, Loading, Macros, Top
+@node Customization
 @chapter Customization Settings
 
 @cindex customization item

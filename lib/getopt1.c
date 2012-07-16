@@ -1,5 +1,5 @@
 /* getopt_long and getopt_long_only entry points for GNU getopt.
-   Copyright (C) 1987-1994, 1996-1998, 2004, 2006, 2009-2011 Free Software
+   Copyright (C) 1987-1994, 1996-1998, 2004, 2006, 2009-2012 Free Software
    Foundation, Inc.
    This file is part of the GNU C Library.
 
@@ -141,11 +141,11 @@ main (int argc, char **argv)
           break;
 
         case 'c':
-          printf ("option c with value `%s'\n", optarg);
+          printf ("option c with value '%s'\n", optarg);
           break;
 
         case 'd':
-          printf ("option d with value `%s'\n", optarg);
+          printf ("option d with value '%s'\n", optarg);
           break;
 
         case '?':

@@ -162,7 +162,7 @@ TAGS tags:	lib-src FRC
 	../bin/etags --include=../lisp/TAGS \
 	 --regex='/[ 	]*DEFVAR_[A-Z_ 	(]+"\([^"]+\)"/' \
 	 $(CURDIR)/src/*.c $(CURDIR)/src/*.h \
-         $(CURDIR)/src/s/msdos.h $(CURDIR)/src/m/intel386.h
+         $(CURDIR)/src/s/msdos.h
 	cd ..
 	./bin/etags --include=src/TAGS
 
@@ -299,4 +299,3 @@ bootstrap-clean: FRC
 bootstrap: bootstrap-clean FRC
 	command.com /e:2048 /c config msdos
 	$(MAKE) $(MFLAGS) info all
-

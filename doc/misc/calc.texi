@@ -557,7 +557,7 @@ these equations for the variables @expr{x} and @expr{y}.
 Type @kbd{d B} to view the solutions in more readable notation.
 Type @w{@kbd{d C}} to view them in C language notation, @kbd{d T}
 to view them in the notation for the @TeX{} typesetting system,
-and @kbd{d L} to view them in the notation for the La@TeX{} typesetting
+and @kbd{d L} to view them in the notation for the @LaTeX{} typesetting
 system.  Type @kbd{d N} to return to normal notation.
 
 @noindent
@@ -939,7 +939,7 @@ is
 Calc has added annotations to the file to help it remember the modes
 that were used for this formula.  They are formatted like comments
 in the @TeX{} typesetting language, just in case you are using @TeX{} or
-La@TeX{}. (In this example @TeX{} is not being used, so you might want
+@LaTeX{}. (In this example @TeX{} is not being used, so you might want
 to move these comments up to the top of the file or otherwise put them
 out of the way.)
 
@@ -5026,7 +5026,7 @@ One more mode that makes reading formulas easier is Big mode.
 Here things like powers, square roots, and quotients and fractions
 are displayed in a two-dimensional pictorial form.  Calc has other
 language modes as well, such as C mode, FORTRAN mode, @TeX{} mode
-and La@TeX{} mode.
+and @LaTeX{} mode.
 
 @smallexample
 @group
@@ -13842,7 +13842,7 @@ left or right as you prefer.
 @noindent
 The commands in this section change Calc to use a different notation for
 entry and display of formulas, corresponding to the conventions of some
-other common language such as Pascal or La@TeX{}.  Objects displayed on the
+other common language such as Pascal or @LaTeX{}.  Objects displayed on the
 stack or yanked from the Calculator to an editing buffer will be formatted
 in the current language; objects entered in algebraic entry or yanked from
 another buffer will be interpreted according to the current language.
@@ -13867,10 +13867,10 @@ the brackets in @samp{a[1]} and @samp{a[2]}, would not have known that
 and would have written the formula back with notations (like implicit
 multiplication) which would not have been valid for a C program.
 
-As another example, suppose you are maintaining a C program and a La@TeX{}
+As another example, suppose you are maintaining a C program and a @LaTeX{}
 document, each of which needs a copy of the same formula.  You can grab the
-formula from the program in C mode, switch to La@TeX{} mode, and yank the
-formula into the document in La@TeX{} math-mode format.
+formula from the program in C mode, switch to @LaTeX{} mode, and yank the
+formula into the document in @LaTeX{} math-mode format.
 
 Language modes are selected by typing the letter @kbd{d} followed by a
 shifted letter key.
@@ -14067,7 +14067,7 @@ convert to lower-case on input.  With a negative prefix, these modes
 convert to lower-case for display and input.
 
 @node TeX and LaTeX Language Modes, Eqn Language Mode, C FORTRAN Pascal, Language Modes
-@subsection @TeX{} and La@TeX{} Language Modes
+@subsection @TeX{} and @LaTeX{} Language Modes
 
 @noindent
 @kindex d T
@@ -14079,38 +14079,38 @@ convert to lower-case for display and input.
 The @kbd{d T} (@code{calc-tex-language}) command selects the conventions
 of ``math mode'' in Donald Knuth's @TeX{} typesetting language,
 and the @kbd{d L} (@code{calc-latex-language}) command selects the
-conventions of ``math mode'' in La@TeX{}, a typesetting language that
-uses @TeX{} as its formatting engine.  Calc's La@TeX{} language mode can
-read any formula that the @TeX{} language mode can, although La@TeX{}
+conventions of ``math mode'' in @LaTeX{}, a typesetting language that
+uses @TeX{} as its formatting engine.  Calc's @LaTeX{} language mode can
+read any formula that the @TeX{} language mode can, although @LaTeX{}
 mode may display it differently.
 
 Formulas are entered and displayed in the appropriate notation;
 @texline @math{\sin(a/b)}
 @infoline @expr{sin(a/b)}
 will appear as @samp{\sin\left( @{a \over b@} \right)} in @TeX{} mode and
-@samp{\sin\left(\frac@{a@}@{b@}\right)} in La@TeX{} mode.
+@samp{\sin\left(\frac@{a@}@{b@}\right)} in @LaTeX{} mode.
 Math formulas are often enclosed by @samp{$ $} signs in @TeX{} and
-La@TeX{}; these should be omitted when interfacing with Calc.  To Calc,
+@LaTeX{}; these should be omitted when interfacing with Calc.  To Calc,
 the @samp{$} sign has the same meaning it always does in algebraic
 formulas (a reference to an existing entry on the stack).
 
 Complex numbers are displayed as in @samp{3 + 4i}.  Fractions and
 quotients are written using @code{\over} in @TeX{} mode (as in
-@code{@{a \over b@}}) and @code{\frac} in La@TeX{} mode (as in
+@code{@{a \over b@}}) and @code{\frac} in @LaTeX{} mode (as in
 @code{\frac@{a@}@{b@}});  binomial coefficients are written with
 @code{\choose} in @TeX{} mode (as in @code{@{a \choose b@}}) and
-@code{\binom} in La@TeX{} mode (as in @code{\binom@{a@}@{b@}}).
+@code{\binom} in @LaTeX{} mode (as in @code{\binom@{a@}@{b@}}).
 Interval forms are written with @code{\ldots}, and error forms are
 written with @code{\pm}. Absolute values are written as in
 @samp{|x + 1|}, and the floor and ceiling functions are written with
 @code{\lfloor}, @code{\rfloor}, etc. The words @code{\left} and
-@code{\right} are ignored when reading formulas in @TeX{} and La@TeX{}
+@code{\right} are ignored when reading formulas in @TeX{} and @LaTeX{}
 modes.  Both @code{inf} and @code{uinf} are written as @code{\infty};
 when read, @code{\infty} always translates to @code{inf}.
 
 Function calls are written the usual way, with the function name followed
 by the arguments in parentheses.  However, functions for which @TeX{}
-and La@TeX{} have special names (like @code{\sin}) will use curly braces
+and @LaTeX{} have special names (like @code{\sin}) will use curly braces
 instead of parentheses for very simple arguments.  During input, curly
 braces and parentheses work equally well for grouping, but when the
 document is formatted the curly braces will be invisible.  Thus the
@@ -14125,14 +14125,14 @@ The @TeX{} specific unit names (@pxref{Predefined Units}) will not use
 the @samp{tex} prefix;  the unit name for a @TeX{} point will be
 @samp{pt} instead of @samp{texpt}, for example.
 
-Function and variable names not treated specially by @TeX{} and La@TeX{}
+Function and variable names not treated specially by @TeX{} and @LaTeX{}
 are simply written out as-is, which will cause them to come out in
 italic letters in the printed document.  If you invoke @kbd{d T} or
 @kbd{d L} with a positive numeric prefix argument, names of more than
 one character will instead be enclosed in a protective commands that
 will prevent them from being typeset in the math italics; they will be
 written @samp{\hbox@{@var{name}@}} in @TeX{} mode and
-@samp{\text@{@var{name}@}} in La@TeX{} mode.  The
+@samp{\text@{@var{name}@}} in @LaTeX{} mode.  The
 @samp{\hbox@{ @}} and @samp{\text@{ @}} notations are ignored during
 reading.  If you use a negative prefix argument, such function names are
 written @samp{\@var{name}}, and function names that begin with @code{\} during
@@ -14143,7 +14143,7 @@ any @TeX{} mode.)
 
 During reading, text of the form @samp{\matrix@{ ...@: @}} is replaced
 by @samp{[ ...@: ]}.  The same also applies to @code{\pmatrix} and
-@code{\bmatrix}.  In La@TeX{} mode this also applies to
+@code{\bmatrix}.  In @LaTeX{} mode this also applies to
 @samp{\begin@{matrix@} ... \end@{matrix@}},
 @samp{\begin@{bmatrix@} ... \end@{bmatrix@}},
 @samp{\begin@{pmatrix@} ... \end@{pmatrix@}}, as well as
@@ -14153,7 +14153,7 @@ and the symbols @samp{\cr} and @samp{\\} are interpreted as semicolons.
 During output, matrices are displayed in @samp{\matrix@{ a & b \\ c & d@}}
 format in @TeX{} mode and in
 @samp{\begin@{pmatrix@} a & b \\ c & d \end@{pmatrix@}} format in
-La@TeX{} mode; you may need to edit this afterwards to change to your
+@LaTeX{} mode; you may need to edit this afterwards to change to your
 preferred matrix form.  If you invoke @kbd{d T} or @kbd{d L} with an
 argument of 2 or -2, then matrices will be displayed in two-dimensional
 form, such as
@@ -14177,7 +14177,7 @@ c & d
 @end example
 
 @noindent
-While this wouldn't bother Calc, it is incorrect La@TeX{}.
+While this wouldn't bother Calc, it is incorrect @LaTeX{}.
 (Similarly for @TeX{}.)
 
 Accents like @code{\tilde} and @code{\bar} translate into function
@@ -14185,7 +14185,7 @@ calls internally (@samp{tilde(x)}, @samp{bar(x)}).  The @code{\underline}
 sequence is treated as an accent.  The @code{\vec} accent corresponds
 to the function name @code{Vec}, because @code{vec} is the name of
 a built-in Calc function.  The following table shows the accents
-in Calc, @TeX{}, La@TeX{} and @dfn{eqn} (described in the next section):
+in Calc, @TeX{}, @LaTeX{} and @dfn{eqn} (described in the next section):
 
 @ignore
 @iftex
@@ -14362,7 +14362,7 @@ reading is:
 @end example
 
 Note that, because these symbols are ignored, reading a @TeX{} or
-La@TeX{} formula into Calc and writing it back out may lose spacing and
+@LaTeX{} formula into Calc and writing it back out may lose spacing and
 font information.
 
 Also, the ``discretionary multiplication sign'' @samp{\*} is read
@@ -14528,7 +14528,7 @@ treated the same as a space in @dfn{eqn} mode, as is the @samp{~}
 symbol (these are used to introduce spaces of various widths into
 the typeset output of @dfn{eqn}).
 
-As in La@TeX{} mode, Calc's formatter omits parentheses around the
+As in @LaTeX{} mode, Calc's formatter omits parentheses around the
 arguments of functions like @code{ln} and @code{sin} if they are
 ``simple-looking''; in this case Calc surrounds the argument with
 braces, separated by a @samp{~} from the function name: @samp{sin~@{x@}}.
@@ -15939,7 +15939,7 @@ FORTRAN language mode (@kbd{d F}).
 @TeX{} language mode (@kbd{d T}; @pxref{TeX and LaTeX Language Modes}).
 
 @item LaTeX
-La@TeX{} language mode (@kbd{d L}; @pxref{TeX and LaTeX Language Modes}).
+@LaTeX{} language mode (@kbd{d L}; @pxref{TeX and LaTeX Language Modes}).
 
 @item Eqn
 @dfn{Eqn} language mode (@kbd{d E}; @pxref{Eqn Language Mode}).
@@ -28002,7 +28002,7 @@ than the point used by @TeX{}), @code{texdd} (a Didot point),
 @code{texcc} (a Cicero) and @code{texsp} (a scaled @TeX{} point,
 all dimensions representable in @TeX{} are multiples of this value).
 
-When Calc is using the @TeX{} or La@TeX{} language mode (@pxref{TeX
+When Calc is using the @TeX{} or @LaTeX{} language mode (@pxref{TeX
 and LaTeX Language Modes}), the @TeX{} specific unit names will not
 use the @samp{tex} prefix; the unit name for a @TeX{} point will be
 @samp{pt} instead of @samp{texpt}, for example.  To avoid conflicts,
@@ -28911,7 +28911,7 @@ since the evaluation step will also evaluate @code{pi}.
 @cindex @samp{=>} operator
 The special algebraic symbol @samp{=>} is known as the @dfn{evaluates-to
 operator}.  (It will show up as an @code{evalto} function call in
-other language modes like Pascal and La@TeX{}.)  This is a binary
+other language modes like Pascal and @LaTeX{}.)  This is a binary
 operator, that is, it has a lefthand and a righthand argument,
 although it can be entered with the righthand argument omitted.
 
@@ -30490,7 +30490,7 @@ are visiting your own files.
 
 Calc will try to guess an appropriate language based on the major mode
 of the editing buffer. (@xref{Language Modes}.) If the current buffer is
-in @code{latex-mode}, for example, Calc will set its language to La@TeX{}.
+in @code{latex-mode}, for example, Calc will set its language to @LaTeX{}.
 Similarly, Calc will use @TeX{} language for @code{tex-mode},
 @code{plain-tex-mode} and @code{context-mode}, C language for
 @code{c-mode} and @code{c++-mode}, FORTRAN language for
@@ -30507,7 +30507,7 @@ understands are:
 
 @enumerate
 @item
-The @TeX{} and La@TeX{} math delimiters @samp{$ $}, @samp{$$ $$},
+The @TeX{} and @LaTeX{} math delimiters @samp{$ $}, @samp{$$ $$},
 @samp{\[ \]}, and @samp{\( \)};
 @item
 Lines beginning with @samp{\begin} and @samp{\end} (except matrix delimiters);
@@ -30647,14 +30647,14 @@ you haven't done anything with this formula yet.
 When Embedded mode ``activates'' a formula, i.e., when it examines
 the formula for the first time since the buffer was created or
 loaded, Calc tries to sense the language in which the formula was
-written.  If the formula contains any La@TeX{}-like @samp{\} sequences,
-it is parsed (i.e., read) in La@TeX{} mode.  If the formula appears to
+written.  If the formula contains any @LaTeX{}-like @samp{\} sequences,
+it is parsed (i.e., read) in @LaTeX{} mode.  If the formula appears to
 be written in multi-line Big mode, it is parsed in Big mode.  Otherwise,
 it is parsed according to the current language mode.
 
 Note that Calc does not change the current language mode according
-the formula it reads in.  Even though it can read a La@TeX{} formula when
-not in La@TeX{} mode, it will immediately rewrite this formula using
+the formula it reads in.  Even though it can read a @LaTeX{} formula when
+not in @LaTeX{} mode, it will immediately rewrite this formula using
 whatever language mode is in effect.
 
 @tex
@@ -30675,8 +30675,8 @@ version.
 
 Plain formulas are preceded and followed by @samp{%%%} signs
 by default.  This notation has the advantage that the @samp{%}
-character begins a comment in @TeX{} and La@TeX{}, so if your formula is
-embedded in a @TeX{} or La@TeX{} document its plain version will be
+character begins a comment in @TeX{} and @LaTeX{}, so if your formula is
+embedded in a @TeX{} or @LaTeX{} document its plain version will be
 invisible in the final printed copy.  Certain major modes have different
 delimiters to ensure that the ``plain'' version will be
 in a comment for those modes, also.
@@ -30962,7 +30962,7 @@ a few lines that look like this:
 @noindent
 where the leading and trailing @samp{---} can be replaced by
 any suitable strings (which must be the same on all three lines)
-or omitted altogether; in a @TeX{} or La@TeX{} file, @samp{%} would be a good
+or omitted altogether; in a @TeX{} or @LaTeX{} file, @samp{%} would be a good
 leading string and no trailing string would be necessary.  In a
 C program, @samp{/*} and @samp{*/} would be good leading and
 trailing strings.
@@ -35392,7 +35392,7 @@ The simplest delimiters are blank lines.  Other delimiters that
 Embedded mode understands by default are:
 @enumerate
 @item
-The @TeX{} and La@TeX{} math delimiters @samp{$ $}, @samp{$$ $$},
+The @TeX{} and @LaTeX{} math delimiters @samp{$ $}, @samp{$$ $$},
 @samp{\[ \]}, and @samp{\( \)};
 @item
 Lines beginning with @samp{\begin} and @samp{\end} (except matrix delimiters);

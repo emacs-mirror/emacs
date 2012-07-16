@@ -1634,7 +1634,7 @@ xg_maybe_add_timer (gpointer data)
 static int
 xg_dialog_run (FRAME_PTR f, GtkWidget *w)
 {
-  int count = SPECPDL_INDEX ();
+  ptrdiff_t count = SPECPDL_INDEX ();
   struct xg_dialog_data dd;
 
   xg_set_screen (w, f);
@@ -4289,7 +4289,6 @@ xg_make_tool_item (FRAME_PTR f,
          rather than the GtkButton specific signals "enter" and
          "leave", so we can have only one callback.  The event
          will tell us what kind of event it is.  */
-      /* The EMACS_INT cast avoids a warning. */
       g_signal_connect (G_OBJECT (weventbox),
                         "enter-notify-event",
                         G_CALLBACK (xg_tool_bar_help_callback),
@@ -4415,20 +4414,17 @@ update_frame_tool_bar (FRAME_PTR f)
 
   BLOCK_INPUT;
 
-  if (INTEGERP (Vtool_bar_button_margin)
-      && XINT (Vtool_bar_button_margin) > 0)
+  if (RANGED_INTEGERP (1, Vtool_bar_button_margin, INT_MAX))
     {
       hmargin = XFASTINT (Vtool_bar_button_margin);
       vmargin = XFASTINT (Vtool_bar_button_margin);
     }
   else if (CONSP (Vtool_bar_button_margin))
     {
-      if (INTEGERP (XCAR (Vtool_bar_button_margin))
-          && XINT (XCAR (Vtool_bar_button_margin)) > 0)
+      if (RANGED_INTEGERP (1, XCAR (Vtool_bar_button_margin), INT_MAX))
         hmargin = XFASTINT (XCAR (Vtool_bar_button_margin));
 
-      if (INTEGERP (XCDR (Vtool_bar_button_margin))
-          && XINT (XCDR (Vtool_bar_button_margin)) > 0)
+      if (RANGED_INTEGERP (1, XCDR (Vtool_bar_button_margin), INT_MAX))
         vmargin = XFASTINT (XCDR (Vtool_bar_button_margin));
     }
 

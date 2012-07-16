@@ -1,4 +1,44 @@
+2012-05-31  Eli Zaretskii  <eliz@gnu.org>
+
+	* configure.bat (genmakefiles): Move the redirection away from the
+	end of the command, to avoid excess whitespace at the end of Make
+	variables created at configure time, and also avoid things like
+	"FOO1>>config.settings", where "1" gets interpreted as the file
+	descriptor and eaten up.  This fixes breakage introduced by the
+	last change, without reintroducing the bug fixed by that change.
+
+2012-05-31  Eli Zaretskii  <eliz@gnu.org>
+
+	* nmake.defs (MWINDOWS): Define as
+	"-subsystem:windows -entry:mainCRTStartup".  Suggested by Fabrice
+	Popineau <fabrice.popineau@supelec.fr>.  (Bug#11405)
+
+	* gmake.defs (MWINDOWS): Define as "-mwindows".
+
+2012-05-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* config.nt (HAVE_SYSINFO): Remove; unused.
+
+2012-05-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/stdalign.h: New file.
+
+	* configure.bat: Ensure a space between %var% expansion and
+	redirection symbol '>', which breaks when %var% ends in a digit,
+	such as 1.
+
+2012-05-22  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Remove src/m/*.
+	* config.nt: Do not include "m/intel386.h"; file was removed.
+	(BITS_PER_CHAR, BITS_PER_SHORT, BITS_PER_INT, BITS_PER_LONG):
+	Move to src/lisp.h.
+	(EMACS_INT_MAX): New macro.
+
 2012-05-19  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* config.nt (HAVE_GETDOMAINNAME, HAVE_XSETWMPROTOCOLS)
+	(HAVE_GETSOCKOPT, HAVE_SETSOCKOPT): Remove; not needed.
 
 	* config.nt (HAVE_FTIME): Remove undef; not needed.
 

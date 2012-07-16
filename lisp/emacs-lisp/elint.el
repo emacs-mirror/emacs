@@ -357,6 +357,8 @@ Returns the forms."
     (set (make-local-variable 'elint-buffer-env)
 	 (elint-init-env elint-buffer-forms))
     (if elint-preloaded-env
+        ;; FIXME: This doesn't do anything!  Should we setq the result to
+        ;; elint-buffer-env?
 	(elint-env-add-env elint-preloaded-env elint-buffer-env))
     (set (make-local-variable 'elint-last-env-time) (buffer-modified-tick))
     elint-buffer-forms))

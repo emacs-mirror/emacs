@@ -85,10 +85,6 @@ char *_getpty();
 
 #define NARROWPROTO 1
 
-#if _MIPS_SZLONG == 64		/* -mabi=64 (gcc) or -64 (MIPSpro) */
-#define _LP64			/* lisp.h takes care of the rest */
-#endif /* _MIPS_SZLONG */
-
 #undef SA_RESTART
 
 #undef TIOCSIGSEND		/* defined in usg5-4-common.h */

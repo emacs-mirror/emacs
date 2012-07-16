@@ -3315,8 +3315,14 @@ Erase echoed commands if exists."
 		     'buffer-substring-no-properties
 		     1 (min (1+ tramp-echo-mark-marker-length) (point-max))))))
       ;; No echo to be handled, now we can look for the regexp.
-      (goto-char (point-min))
-      (re-search-forward regexp nil t))))
+      ;; Sometimes, the buffer is much to huge, and we run into a
+      ;; "Stack overflow in regexp matcher".  For example, directory
+      ;; listings with some thousand files.  Therefore, we look from
+      ;; the end for the last line.  We ignore also superlong lines,
+      ;; like created with "//DIRED//".
+      (goto-char (point-max))
+      (unless (> (- (point) (point-at-bol)) 128)
+	(re-search-backward regexp (point-at-bol) t)))))
 
 (defun tramp-wait-for-regexp (proc timeout regexp)
   "Wait for a REGEXP to appear from process PROC within TIMEOUT seconds.
@@ -3857,9 +3863,6 @@ Only works for Bourne-like shells."
 ;; * Run emerge on two remote files.  Bug is described here:
 ;;   <http://www.mail-archive.com/tramp-devel@nongnu.org/msg01041.html>.
 ;;   (Bug#6850)
-;; * It would be very useful if it were possible to load or save a
-;;   buffer using Tramp in a non-blocking way so that use of Emacs on
-;;   other buffers could continue.  (Bug#9617)
 
 ;;; tramp.el ends here
 

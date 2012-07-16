@@ -474,7 +474,7 @@ int max_used_fringe_bitmap = MAX_STANDARD_FRINGE_BITMAPS;
 int
 lookup_fringe_bitmap (Lisp_Object bitmap)
 {
-  int bn;
+  EMACS_INT bn;
 
   bitmap = Fget (bitmap, Qfringe);
   if (!INTEGERP (bitmap))
@@ -696,7 +696,7 @@ static int
 get_logical_fringe_bitmap (struct window *w, Lisp_Object bitmap, int right_p, int partial_p)
 {
   Lisp_Object cmap, bm1 = Qnil, bm2 = Qnil, bm;
-  int ln1 = 0, ln2 = 0;
+  EMACS_INT ln1 = 0, ln2 = 0;
   int ix1 = right_p;
   int ix2 = ix1 + (partial_p ? 2 : 0);
 
@@ -1555,7 +1555,7 @@ If BITMAP already exists, the existing definition is replaced.  */)
   else
     {
       CHECK_NUMBER (height);
-      fb.height = min (XINT (height), 255);
+      fb.height = max (0, min (XINT (height), 255));
       if (fb.height > h)
 	{
 	  fill1 = (fb.height - h) / 2;
@@ -1568,7 +1568,7 @@ If BITMAP already exists, the existing definition is replaced.  */)
   else
     {
       CHECK_NUMBER (width);
-      fb.width = min (XINT (width), 255);
+      fb.width = max (0, min (XINT (width), 255));
     }
 
   fb.period = 0;
@@ -1704,7 +1704,7 @@ Return nil if POS is not visible in WINDOW.  */)
 {
   struct window *w;
   struct glyph_row *row;
-  int textpos;
+  ptrdiff_t textpos;
 
   if (NILP (window))
     window = selected_window;
@@ -1714,6 +1714,8 @@ Return nil if POS is not visible in WINDOW.  */)
   if (!NILP (pos))
     {
       CHECK_NUMBER_COERCE_MARKER (pos);
+      if (! (BEGV <= XINT (pos) && XINT (pos) <= ZV))
+	args_out_of_range (window, pos);
       textpos = XINT (pos);
     }
   else if (w == XWINDOW (selected_window))

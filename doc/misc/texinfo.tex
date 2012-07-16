@@ -3,11 +3,11 @@
 % Load plain if necessary, i.e., if running under initex.
 \expandafter\ifx\csname fmtname\endcsname\relax\input plain\fi
 %
-\def\texinfoversion{2011-09-23.09}
+\def\texinfoversion{2012-05-16.16}
 %
 % Copyright 1985, 1986, 1988, 1990, 1991, 1992, 1993, 1994, 1995,
 % 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
-% 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+% 2007, 2008, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
 %
 % This texinfo.tex file is free software: you can redistribute it and/or
 % modify it under the terms of the GNU General Public License as
@@ -28,9 +28,9 @@
 %
 % Please try the latest version of texinfo.tex before submitting bug
 % reports; you can get the latest version from:
-%   http://www.gnu.org/software/texinfo/ (the Texinfo home page), or
-%   ftp://tug.org/tex/texinfo.tex
-%     (and all CTAN mirrors, see http://www.ctan.org).
+%   http://ftp.gnu.org/gnu/texinfo/ (the Texinfo release area), or
+%   http://ftpmirror.gnu.org/texinfo/ (same, via a mirror), or
+%   http://www.gnu.org/software/texinfo/ (the Texinfo home page)
 % The texinfo.tex in any given distribution could well be out
 % of date, so if that's what you're using, please check.
 %
@@ -116,6 +116,7 @@
 % Set up fixed words for English if not already set.
 \ifx\putwordAppendix\undefined  \gdef\putwordAppendix{Appendix}\fi
 \ifx\putwordChapter\undefined   \gdef\putwordChapter{Chapter}\fi
+\ifx\putworderror\undefined     \gdef\putworderror{error}\fi
 \ifx\putwordfile\undefined      \gdef\putwordfile{file}\fi
 \ifx\putwordin\undefined        \gdef\putwordin{in}\fi
 \ifx\putwordIndexIsEmpty\undefined       \gdef\putwordIndexIsEmpty{(Index is empty)}\fi
@@ -228,6 +229,13 @@
   \tracingcommands3  % 3 gives us more in etex
   \errorcontextlines16
 }%
+
+% @errormsg{MSG}.  Do the index-like expansions on MSG, but if things
+% aren't perfect, it's not the end of the world, being an error message,
+% after all.
+% 
+\def\errormsg{\begingroup \indexnofonts \doerrormsg}
+\def\doerrormsg#1{\errmessage{#1}}
 
 % add check for \lastpenalty to plain's definitions.  If the last thing
 % we did was a \nobreak, we don't want to insert more space.
@@ -879,7 +887,7 @@ where each line of input produces a line of output.}
 \def\popthisfilestack{\errthisfilestackempty}
 \def\errthisfilestackempty{\errmessage{Internal error:
   the stack of filenames is empty.}}
-
+%
 \def\thisfile{}
 
 % @center line
@@ -887,36 +895,46 @@ where each line of input produces a line of output.}
 %
 \parseargdef\center{%
   \ifhmode
-    \let\next\centerH
+    \let\centersub\centerH
   \else
-    \let\next\centerV
+    \let\centersub\centerV
   \fi
-  \next{\hfil \ignorespaces#1\unskip \hfil}%
+  \centersub{\hfil \ignorespaces#1\unskip \hfil}%
+  \let\centersub\relax % don't let the definition persist, just in case
 }
-\def\centerH#1{%
-  {%
-    \hfil\break
-    \advance\hsize by -\leftskip
-    \advance\hsize by -\rightskip
-    \line{#1}%
-    \break
-  }%
+\def\centerH#1{{%
+  \hfil\break
+  \advance\hsize by -\leftskip
+  \advance\hsize by -\rightskip
+  \line{#1}%
+  \break
+}}
+%
+\newcount\centerpenalty
+\def\centerV#1{%
+  % The idea here is the same as in \startdefun, \cartouche, etc.: if
+  % @center is the first thing after a section heading, we need to wipe
+  % out the negative parskip inserted by \sectionheading, but still
+  % prevent a page break here.
+  \centerpenalty = \lastpenalty
+  \ifnum\centerpenalty>10000 \vskip\parskip \fi
+  \ifnum\centerpenalty>9999 \penalty\centerpenalty \fi
+  \line{\kern\leftskip #1\kern\rightskip}%
 }
-\def\centerV#1{\line{\kern\leftskip #1\kern\rightskip}}
 
 % @sp n   outputs n lines of vertical space
-
+%
 \parseargdef\sp{\vskip #1\baselineskip}
 
 % @comment ...line which is ignored...
 % @c is the same as @comment
 % @ignore ... @end ignore  is another way to write a comment
-
+%
 \def\comment{\begingroup \catcode`\^^M=\other%
 \catcode`\@=\other \catcode`\{=\other \catcode`\}=\other%
 \commentxxx}
 {\catcode`\^^M=\other \gdef\commentxxx#1^^M{\endgroup}}
-
+%
 \let\c=\comment
 
 % @paragraphindent NCHARS
@@ -1089,50 +1107,24 @@ where each line of input produces a line of output.}
 % for display in the outlines, and in other places.  Thus, we have to
 % double any backslashes.  Otherwise, a name like "\node" will be
 % interpreted as a newline (\n), followed by o, d, e.  Not good.
-% http://www.ntg.nl/pipermail/ntg-pdftex/2004-July/000654.html
-% (and related messages, the final outcome is that it is up to the TeX
-% user to double the backslashes and otherwise make the string valid, so
-% that's what we do).
+% 
+% See http://www.ntg.nl/pipermail/ntg-pdftex/2004-July/000654.html and
+% related messages.  The final outcome is that it is up to the TeX user
+% to double the backslashes and otherwise make the string valid, so
+% that's what we do.  pdftex 1.30.0 (ca.2005) introduced a primitive to
+% do this reliably, so we use it.
 
-% double active backslashes.
-%
-{\catcode`\@=0 \catcode`\\=\active
- @gdef@activebackslashdouble{%
-   @catcode`@\=@active
-   @let\=@doublebackslash}
-}
-
-% To handle parens, we must adopt a different approach, since parens are
-% not active characters.  hyperref.dtx (which has the same problem as
-% us) handles it with this amazing macro to replace tokens, with minor
-% changes for Texinfo.  It is included here under the GPL by permission
-% from the author, Heiko Oberdiek.
-%
-% #1 is the tokens to replace.
-% #2 is the replacement.
-% #3 is the control sequence with the string.
-%
-\def\HyPsdSubst#1#2#3{%
-  \def\HyPsdReplace##1#1##2\END{%
-    ##1%
-    \ifx\\##2\\%
-    \else
-      #2%
-      \HyReturnAfterFi{%
-        \HyPsdReplace##2\END
-      }%
-    \fi
-  }%
-  \xdef#3{\expandafter\HyPsdReplace#3#1\END}%
-}
-\long\def\HyReturnAfterFi#1\fi{\fi#1}
-
-% #1 is a control sequence in which to do the replacements.
-\def\backslashparens#1{%
-  \xdef#1{#1}% redefine it as its expansion; the definition is simply
-             % \lastnode when called from \setref -> \pdfmkdest.
-  \HyPsdSubst{(}{\realbackslash(}{#1}%
-  \HyPsdSubst{)}{\realbackslash)}{#1}%
+% #1 is a control sequence in which to do the replacements,
+% which we \xdef.
+\def\txiescapepdf#1{%
+  \ifx\pdfescapestring\relax
+    % No primitive available; should we give a warning or log?
+    % Many times it won't matter.
+  \else
+    % The expandable \pdfescapestring primitive escapes parentheses,
+    % backslashes, and other special chars.
+    \xdef#1{\pdfescapestring{#1}}%
+  \fi
 }
 
 \newhelp\nopdfimagehelp{Texinfo supports .png, .jpg, .jpeg, and .pdf images
@@ -1191,32 +1183,34 @@ output) for that.)}
   %
   % #1 is image name, #2 width (might be empty/whitespace), #3 height (ditto).
   \def\dopdfimage#1#2#3{%
-    \def\imagewidth{#2}\setbox0 = \hbox{\ignorespaces #2}%
-    \def\imageheight{#3}\setbox2 = \hbox{\ignorespaces #3}%
+    \def\pdfimagewidth{#2}\setbox0 = \hbox{\ignorespaces #2}%
+    \def\pdfimageheight{#3}\setbox2 = \hbox{\ignorespaces #3}%
     %
-    % pdftex (and the PDF format) support .png, .jpg, .pdf (among
-    % others).  Let's try in that order.
+    % pdftex (and the PDF format) support .pdf, .png, .jpg (among
+    % others).  Let's try in that order, PDF first since if
+    % someone has a scalable image, presumably better to use that than a
+    % bitmap.
     \let\pdfimgext=\empty
     \begingroup
-      \openin 1 #1.png \ifeof 1
-        \openin 1 #1.jpg \ifeof 1
-          \openin 1 #1.jpeg \ifeof 1
-            \openin 1 #1.JPG \ifeof 1
-              \openin 1 #1.pdf \ifeof 1
-                \openin 1 #1.PDF \ifeof 1
+      \openin 1 #1.pdf \ifeof 1
+        \openin 1 #1.PDF \ifeof 1
+          \openin 1 #1.png \ifeof 1
+            \openin 1 #1.jpg \ifeof 1
+              \openin 1 #1.jpeg \ifeof 1
+                \openin 1 #1.JPG \ifeof 1
                   \errhelp = \nopdfimagehelp
                   \errmessage{Could not find image file #1 for pdf}%
-                \else \gdef\pdfimgext{PDF}%
+                \else \gdef\pdfimgext{JPG}%
                 \fi
-              \else \gdef\pdfimgext{pdf}%
+              \else \gdef\pdfimgext{jpeg}%
               \fi
-            \else \gdef\pdfimgext{JPG}%
+            \else \gdef\pdfimgext{jpg}%
             \fi
-          \else \gdef\pdfimgext{jpeg}%
+          \else \gdef\pdfimgext{png}%
           \fi
-        \else \gdef\pdfimgext{jpg}%
+        \else \gdef\pdfimgext{PDF}%
         \fi
-      \else \gdef\pdfimgext{png}%
+      \else \gdef\pdfimgext{pdf}%
       \fi
       \closein 1
     \endgroup
@@ -1228,8 +1222,8 @@ output) for that.)}
     \else
       \immediate\pdfximage
     \fi
-      \ifdim \wd0 >0pt width \imagewidth \fi
-      \ifdim \wd2 >0pt height \imageheight \fi
+      \ifdim \wd0 >0pt width \pdfimagewidth \fi
+      \ifdim \wd2 >0pt height \pdfimageheight \fi
       \ifnum\pdftexversion<13
          #1.\pdfimgext
        \else
@@ -1244,10 +1238,9 @@ output) for that.)}
     % such as \, aren't expanded when present in a section title.
     \indexnofonts
     \turnoffactive
-    \activebackslashdouble
     \makevalueexpandable
     \def\pdfdestname{#1}%
-    \backslashparens\pdfdestname
+    \txiescapepdf\pdfdestname
     \safewhatsit{\pdfdest name{\pdfdestname} xyz}%
   }}
   %
@@ -1279,28 +1272,22 @@ output) for that.)}
     % page number.  We could generate a destination for the section
     % text in the case where a section has no node, but it doesn't
     % seem worth the trouble, since most documents are normally structured.
-    \def\pdfoutlinedest{#3}%
+    \edef\pdfoutlinedest{#3}%
     \ifx\pdfoutlinedest\empty
       \def\pdfoutlinedest{#4}%
     \else
-      % Doubled backslashes in the name.
-      {\activebackslashdouble \xdef\pdfoutlinedest{#3}%
-       \backslashparens\pdfoutlinedest}%
+      \txiescapepdf\pdfoutlinedest
     \fi
     %
-    % Also double the backslashes in the display string.
-    {\activebackslashdouble \xdef\pdfoutlinetext{#1}%
-     \backslashparens\pdfoutlinetext}%
+    % Also escape PDF chars in the display string.
+    \edef\pdfoutlinetext{#1}%
+    \txiescapepdf\pdfoutlinetext
     %
     \pdfoutline goto name{\pdfmkpgn{\pdfoutlinedest}}#2{\pdfoutlinetext}%
   }
   %
   \def\pdfmakeoutlines{%
     \begingroup
-      % Thanh's hack / proper braces in bookmarks
-      \edef\mylbrace{\iftrue \string{\else}\fi}\let\{=\mylbrace
-      \edef\myrbrace{\iffalse{\else\string}\fi}\let\}=\myrbrace
-      %
       % Read toc silently, to get counts of subentries for \pdfoutline.
       \def\partentry##1##2##3##4{}% ignore parts in the outlines
       \def\numchapentry##1##2##3##4{%
@@ -1356,25 +1343,41 @@ output) for that.)}
       % Latin 2 (0xea) gets translated to a | character.  Info from
       % Staszek Wawrykiewicz, 19 Jan 2004 04:09:24 +0100.
       %
-      % xx to do this right, we have to translate 8-bit characters to
-      % their "best" equivalent, based on the @documentencoding.  Right
-      % now, I guess we'll just let the pdf reader have its way.
+      % TODO this right, we have to translate 8-bit characters to
+      % their "best" equivalent, based on the @documentencoding.  Too
+      % much work for too little return.  Just use the ASCII equivalents
+      % we use for the index sort strings.
+      % 
       \indexnofonts
       \setupdatafile
+      % We can have normal brace characters in the PDF outlines, unlike
+      % Texinfo index files.  So set that up.
+      \def\{{\lbracecharliteral}%
+      \def\}{\rbracecharliteral}%
       \catcode`\\=\active \otherbackslash
       \input \tocreadfilename
     \endgroup
   }
+  {\catcode`[=1 \catcode`]=2
+   \catcode`{=\other \catcode`}=\other
+   \gdef\lbracecharliteral[{]%
+   \gdef\rbracecharliteral[}]%
+  ]
   %
   \def\skipspaces#1{\def\PP{#1}\def\D{|}%
     \ifx\PP\D\let\nextsp\relax
     \else\let\nextsp\skipspaces
-      \ifx\p\space\else\addtokens{\filename}{\PP}%
-        \advance\filenamelength by 1
-      \fi
+      \addtokens{\filename}{\PP}%
+      \advance\filenamelength by 1
     \fi
     \nextsp}
-  \def\getfilename#1{\filenamelength=0\expandafter\skipspaces#1|\relax}
+  \def\getfilename#1{%
+    \filenamelength=0
+    % If we don't expand the argument now, \skipspaces will get
+    % snagged on things like "@value{foo}".
+    \edef\temp{#1}%
+    \expandafter\skipspaces\temp|\relax
+  }
   \ifnum\pdftexversion < 14
     \let \startlink \pdfannotlink
   \else
@@ -1471,9 +1474,6 @@ output) for that.)}
 \def\ttsl{\setfontstyle{ttsl}}
 
 
-% Default leading.
-\newdimen\textleading  \textleading = 13.2pt
-
 % Set the baselineskip to #1, and the lineskip and strut size
 % correspondingly.  There is no deep meaning behind these magic numbers
 % used as factors; they just match (closely enough) what Knuth defined.
@@ -1485,6 +1485,7 @@ output) for that.)}
 % can get a sort of poor man's double spacing by redefining this.
 \def\baselinefactor{1}
 %
+\newdimen\textleading
 \def\setleading#1{%
   \dimen0 = #1\relax
   \normalbaselineskip = \baselinefactor\dimen0
@@ -1757,18 +1758,24 @@ end
 \fi\fi
 
 
-% Set the font macro #1 to the font named #2, adding on the
-% specified font prefix (normally `cm').
+% Set the font macro #1 to the font named \fontprefix#2.
 % #3 is the font's design size, #4 is a scale factor, #5 is the CMap
-% encoding (currently only OT1, OT1IT and OT1TT are allowed, pass
-% empty to omit).
+% encoding (only OT1, OT1IT and OT1TT are allowed, or empty to omit).
+% Example:
+% #1 = \textrm
+% #2 = \rmshape
+% #3 = 10
+% #4 = \mainmagstep
+% #5 = OT1
+%
 \def\setfont#1#2#3#4#5{%
   \font#1=\fontprefix#2#3 scaled #4
   \csname cmap#5\endcsname#1%
 }
 % This is what gets called when #5 of \setfont is empty.
 \let\cmap\gobble
-% emacs-page end of cmaps
+%
+% (end of cmaps)
 
 % Use cm as the default font prefix.
 % To specify the font prefix, you must define \fontprefix
@@ -1778,7 +1785,7 @@ end
 \fi
 % Support font families that don't use the same naming scheme as CM.
 \def\rmshape{r}
-\def\rmbshape{bx}               %where the normal face is bold
+\def\rmbshape{bx}               % where the normal face is bold
 \def\bfshape{b}
 \def\bxshape{bx}
 \def\ttshape{tt}
@@ -1793,8 +1800,7 @@ end
 \def\scshape{csc}
 \def\scbshape{csc}
 
-% Definitions for a main text size of 11pt.  This is the default in
-% Texinfo.
+% Definitions for a main text size of 11pt.  (The default in Texinfo.)
 %
 \def\definetextfontsizexi{%
 % Text fonts (11.2pt, magstep1).
@@ -1919,7 +1925,7 @@ end
 \textleading = 13.2pt % line spacing for 11pt CM
 \textfonts            % reset the current fonts
 \rm
-} % end of 11pt text font size definitions
+} % end of 11pt text font size definitions, \definetextfontsizexi
 
 
 % Definitions to make the main text be 10pt Computer Modern, with
@@ -2051,7 +2057,7 @@ end
 \textleading = 12pt   % line spacing for 10pt CM
 \textfonts            % reset the current fonts
 \rm
-} % end of 10pt text font size definitions
+} % end of 10pt text font size definitions, \definetextfontsizex
 
 
 % We provide the user-level command
@@ -2372,7 +2378,9 @@ end
   \else\ifx\next-%
   \else\ifx\next.%
   \else\ptexslash
-  \fi\fi\fi}
+  \fi\fi\fi
+  \aftersmartic
+}
 
 % like \smartslanted except unconditionally uses \ttsl, and no ic.
 % @var is set to this for defun arguments.
@@ -2382,9 +2390,15 @@ end
 % ttsl for book titles, do we?
 \def\cite#1{{\sl #1}\futurelet\next\smartitaliccorrection}
 
+\def\aftersmartic{}
+\def\var#1{%
+  \let\saveaftersmartic = \aftersmartic
+  \def\aftersmartic{\null\let\aftersmartic=\saveaftersmartic}%
+  \smartslanted{#1}%
+}
+
 \let\i=\smartitalic
 \let\slanted=\smartslanted
-\def\var#1{\smartslanted{#1}}
 \let\dfn=\smartslanted
 \let\emph=\smartitalic
 
@@ -2480,7 +2494,7 @@ end
     \plainfrenchspacing
     #1%
   }%
-  \null
+  \null % reset spacefactor to 1000
 }
 
 % We *must* turn on hyphenation at `-' and `_' in @code.
@@ -2762,6 +2776,7 @@ end
   \ifx\temp\empty \else
     \space ({\unsepspaces \ignorespaces \temp \unskip})%
   \fi
+  \null % reset \spacefactor=1000
 }
 
 % @abbr for "Comput. J." and the like.
@@ -2774,6 +2789,7 @@ end
   \ifx\temp\empty \else
     \space ({\unsepspaces \ignorespaces \temp \unskip})%
   \fi
+  \null % reset \spacefactor=1000
 }
 
 % @asis just yields its argument.  Used with @table, for example.
@@ -2838,20 +2854,48 @@ end
   }
 }
 
+% @inlinefmt{FMTNAME,PROCESSED-TEXT} and @inlineraw{FMTNAME,RAW-TEXT}.
+% Ignore unless FMTNAME == tex; then it is like @iftex and @tex,
+% except specified as a normal braced arg, so no newlines to worry about.
+% 
+\def\outfmtnametex{tex}
+%
+\long\def\inlinefmt#1{\doinlinefmt #1,\finish}
+\long\def\doinlinefmt#1,#2,\finish{%
+  \def\inlinefmtname{#1}%
+  \ifx\inlinefmtname\outfmtnametex \ignorespaces #2\fi
+}
+% For raw, must switch into @tex before parsing the argument, to avoid
+% setting catcodes prematurely.  Doing it this way means that, for
+% example, @inlineraw{html, foo{bar} gets a parse error instead of being
+% ignored.  But this isn't important because if people want a literal
+% *right* brace they would have to use a command anyway, so they may as
+% well use a command to get a left brace too.  We could re-use the
+% delimiter character idea from \verb, but it seems like overkill.
+% 
+\long\def\inlineraw{\tex \doinlineraw}
+\long\def\doinlineraw#1{\doinlinerawtwo #1,\finish}
+\def\doinlinerawtwo#1,#2,\finish{%
+  \def\inlinerawname{#1}%
+  \ifx\inlinerawname\outfmtnametex \ignorespaces #2\fi
+  \endgroup % close group opened by \tex.
+}
+
 
 \message{glyphs,}
 % and logos.
 
-% @@ prints an @.
+% @@ prints an @, as does @atchar{}.
 \def\@{\char64 }
+\let\atchar=\@
 
-% Used to generate quoted braces.  Unless we're in typewriter, use
-% \ecfont because the CM text fonts do not have braces, and we don't
-% want to switch into math.
+% @{ @} @lbracechar{} @rbracechar{} all generate brace characters.
+% Unless we're in typewriter, use \ecfont because the CM text fonts do
+% not have braces, and we don't want to switch into math.
 \def\mylbrace{{\ifmonospace\else\ecfont\fi \char123}}
 \def\myrbrace{{\ifmonospace\else\ecfont\fi \char125}}
-\let\{=\mylbrace
-\let\}=\myrbrace
+\let\{=\mylbrace \let\lbracechar=\{
+\let\}=\myrbrace \let\rbracechar=\}
 \begingroup
   % Definitions to produce \{ and \} commands for indices,
   % and @{ and @} for the aux/toc files.
@@ -2979,7 +3023,7 @@ end
 {\tentt \global\dimen0 = 3em}% Width of the box.
 \dimen2 = .55pt % Thickness of rules
 % The text. (`r' is open on the right, `e' somewhat less so on the left.)
-\setbox0 = \hbox{\kern-.75pt \reducedsf error\kern-1.5pt}
+\setbox0 = \hbox{\kern-.75pt \reducedsf \putworderror\kern-1.5pt}
 %
 \setbox\errorbox=\hbox to \dimen0{\hfil
    \hsize = \dimen0 \advance\hsize by -5.8pt % Space to left+right.
@@ -4409,6 +4453,7 @@ end
   \definedummyword\guillemetright
   \definedummyword\guilsinglleft
   \definedummyword\guilsinglright
+  \definedummyword\lbracechar
   \definedummyword\leq
   \definedummyword\minus
   \definedummyword\ogonek
@@ -4421,6 +4466,7 @@ end
   \definedummyword\quoteleft
   \definedummyword\quoteright
   \definedummyword\quotesinglbase
+  \definedummyword\rbracechar
   \definedummyword\result
   \definedummyword\textdegree
   %
@@ -4472,7 +4518,9 @@ end
   \definedummyword\t
   %
   % Commands that take arguments.
+  \definedummyword\abbr
   \definedummyword\acronym
+  \definedummyword\anchor
   \definedummyword\cite
   \definedummyword\code
   \definedummyword\command
@@ -4482,7 +4530,9 @@ end
   \definedummyword\emph
   \definedummyword\env
   \definedummyword\file
+  \definedummyword\image
   \definedummyword\indicateurl
+  \definedummyword\inforef
   \definedummyword\kbd
   \definedummyword\key
   \definedummyword\math
@@ -4529,7 +4579,10 @@ end
   % content at all.  So for index sorting, we map @{ and @} to strings
   % starting with |, since that ASCII character is between ASCII { and }.
   \def\{{|a}%
+  \def\lbracechar{|a}%
+  %
   \def\}{|b}%
+  \def\rbracechar{|b}%
   %
   % Non-English letters.
   \def\AA{AA}%
@@ -4705,10 +4758,9 @@ end
 %
 % ..., ready, GO:
 %
-\def\safewhatsit#1{%
-\ifhmode
+\def\safewhatsit#1{\ifhmode
   #1%
-\else
+ \else
   % \lastskip and \lastpenalty cannot both be nonzero simultaneously.
   \whatsitskip = \lastskip
   \edef\lastskipmacro{\the\lastskip}%
@@ -4732,7 +4784,6 @@ end
     % to re-insert the same penalty (values >10000 are used for various
     % signals); since we just inserted a non-discardable item, any
     % following glue (such as a \parskip) would be a breakpoint.  For example:
-    %
     %   @deffn deffn-whatever
     %   @vindex index-whatever
     %   Description.
@@ -4745,8 +4796,7 @@ end
     % (the whatsit from the \write), so we must insert a \nobreak.
     \nobreak\vskip\whatsitskip
   \fi
-\fi
-}
+\fi}
 
 % The index entry written in the file actually looks like
 %  \entry {sortstring}{page}{topic}
@@ -5849,14 +5899,15 @@ end
   %
   % We'll almost certainly start a paragraph next, so don't let that
   % glue accumulate.  (Not a breakpoint because it's preceded by a
-  % discardable item.)
+  % discardable item.)  However, when a paragraph is not started next
+  % (\startdefun, \cartouche, \center, etc.), this needs to be wiped out
+  % or the negative glue will cause weirdly wrong output, typically
+  % obscuring the section heading with something else.
   \vskip-\parskip
   %
-  % This is purely so the last item on the list is a known \penalty >
-  % 10000.  This is so \startdefun can avoid allowing breakpoints after
-  % section headings.  Otherwise, it would insert a valid breakpoint between:
-  %   @section sec-whatever
-  %   @deffn def-whatever
+  % This is so the last item on the main vertical list is a known
+  % \penalty > 10000, so \startdefun, etc., can recognize the situation
+  % and do the needful.
   \penalty 10001
 }
 
@@ -6276,7 +6327,7 @@ end
   % If this cartouche directly follows a sectioning command, we need the
   % \parskip glue (backspaced over by default) or the cartouche can
   % collide with the section heading.
-  \ifnum\lastpenalty>10000 \vskip\parskip \fi
+  \ifnum\lastpenalty>10000 \vskip\parskip \penalty\lastpenalty \fi
   %
   \vbox\bgroup
       \baselineskip=0pt\parskip=0pt\lineskip=0pt
@@ -7766,7 +7817,7 @@ end
   \fi\fi
 }
 
-
+% 
 % @xref, @pxref, and @ref generate cross-references.  For \xrefX, #1 is
 % the node name, #2 the name of the Info cross-reference, #3 the printed
 % node name, #4 the name of the Info file, #5 the name of the printed
@@ -7775,26 +7826,41 @@ end
 \def\pxref#1{\putwordsee{} \xrefX[#1,,,,,,,]}
 \def\xref#1{\putwordSee{} \xrefX[#1,,,,,,,]}
 \def\ref#1{\xrefX[#1,,,,,,,]}
+%
+\newbox\toprefbox
+\newbox\printedrefnamebox
+\newbox\infofilenamebox
+\newbox\printedmanualbox
+%
 \def\xrefX[#1,#2,#3,#4,#5,#6]{\begingroup
   \unsepspaces
-  \def\printedmanual{\ignorespaces #5}%
+  %
+  % Get args without leading/trailing spaces.
   \def\printedrefname{\ignorespaces #3}%
-  \setbox1=\hbox{\printedmanual\unskip}%
-  \setbox0=\hbox{\printedrefname\unskip}%
-  \ifdim \wd0 = 0pt
+  \setbox\printedrefnamebox = \hbox{\printedrefname\unskip}%
+  %
+  \def\infofilename{\ignorespaces #4}%
+  \setbox\infofilenamebox = \hbox{\infofilename\unskip}%
+  %
+  \def\printedmanual{\ignorespaces #5}%
+  \setbox\printedmanualbox  = \hbox{\printedmanual\unskip}%
+  %
+  % If the printed reference name (arg #3) was not explicitly given in
+  % the @xref, figure out what we want to use.
+  \ifdim \wd\printedrefnamebox = 0pt
     % No printed node name was explicitly given.
     \expandafter\ifx\csname SETxref-automatic-section-title\endcsname \relax
-      % Use the node name inside the square brackets.
+      % Not auto section-title: use node name inside the square brackets.
       \def\printedrefname{\ignorespaces #1}%
     \else
-      % Use the actual chapter/section title appear inside
-      % the square brackets.  Use the real section title if we have it.
-      \ifdim \wd1 > 0pt
-        % It is in another manual, so we don't have it.
+      % Auto section-title: use chapter/section title inside
+      % the square brackets if we have it.
+      \ifdim \wd\printedmanualbox > 0pt
+        % It is in another manual, so we don't have it; use node name.
         \def\printedrefname{\ignorespaces #1}%
       \else
         \ifhavexrefs
-          % We know the real title if we have the xref values.
+          % We (should) know the real title if we have the xref values.
           \def\printedrefname{\refx{#1-title}{}}%
         \else
           % Otherwise just copy the Info node name.
@@ -7808,13 +7874,20 @@ end
   \ifpdf
     {\indexnofonts
      \turnoffactive
+     \makevalueexpandable
      % This expands tokens, so do it after making catcode changes, so _
-     % etc. don't get their TeX definitions.
+     % etc. don't get their TeX definitions.  This ignores all spaces in
+     % #4, including (wrongly) those in the middle of the filename.
      \getfilename{#4}%
      %
-     % See comments at \activebackslashdouble.
-     {\activebackslashdouble \xdef\pdfxrefdest{#1}%
-      \backslashparens\pdfxrefdest}%
+     % This (wrongly) does not take account of leading or trailing
+     % spaces in #1, which should be ignored.
+     \edef\pdfxrefdest{#1}%
+     \ifx\pdfxrefdest\empty
+       \def\pdfxrefdest{Top}% no empty targets
+     \else
+       \txiescapepdf\pdfxrefdest  % escape PDF special chars
+     \fi
      %
      \leavevmode
      \startlink attr{/Border [0 0 0]}%
@@ -7841,29 +7914,42 @@ end
   \iffloat\Xthisreftitle
     % If the user specified the print name (third arg) to the ref,
     % print it instead of our usual "Figure 1.2".
-    \ifdim\wd0 = 0pt
+    \ifdim\wd\printedrefnamebox = 0pt
       \refx{#1-snt}{}%
     \else
       \printedrefname
     \fi
     %
-    % if the user also gave the printed manual name (fifth arg), append
+    % If the user also gave the printed manual name (fifth arg), append
     % "in MANUALNAME".
-    \ifdim \wd1 > 0pt
+    \ifdim \wd\printedmanualbox > 0pt
       \space \putwordin{} \cite{\printedmanual}%
     \fi
   \else
     % node/anchor (non-float) references.
+    % 
+    % If we use \unhbox to print the node names, TeX does not insert
+    % empty discretionaries after hyphens, which means that it will not
+    % find a line break at a hyphen in a node names.  Since some manuals
+    % are best written with fairly long node names, containing hyphens,
+    % this is a loss.  Therefore, we give the text of the node name
+    % again, so it is as if TeX is seeing it for the first time.
+    % 
+    \ifdim \wd\printedmanualbox > 0pt
+      % Cross-manual reference with a printed manual name.
+      % 
+      \crossmanualxref{\cite{\printedmanual\unskip}}%
     %
-    % If we use \unhbox0 and \unhbox1 to print the node names, TeX does not
-    % insert empty discretionaries after hyphens, which means that it will
-    % not find a line break at a hyphen in a node names.  Since some manuals
-    % are best written with fairly long node names, containing hyphens, this
-    % is a loss.  Therefore, we give the text of the node name again, so it
-    % is as if TeX is seeing it for the first time.
-    \ifdim \wd1 > 0pt
-      \putwordSection{} ``\printedrefname'' \putwordin{} \cite{\printedmanual}%
+    \else\ifdim \wd\infofilenamebox > 0pt
+      % Cross-manual reference with only an info filename (arg 4), no
+      % printed manual name (arg 5).  This is essentially the same as
+      % the case above; we output the filename, since we have nothing else.
+      % 
+      \crossmanualxref{\code{\infofilename\unskip}}%
+    %
     \else
+      % Reference within this manual.
+      %
       % _ (for example) has to be the character _ for the purposes of the
       % control sequence corresponding to the node, but it has to expand
       % into the usual \leavevmode...\vrule stuff for purposes of
@@ -7875,7 +7961,7 @@ end
        \setbox2 = \hbox{\ignorespaces \refx{#1-snt}{}}%
        \ifdim \wd2 > 0pt \refx{#1-snt}\space\fi
       }%
-      % output the `[mynode]' via a macro so it can be overridden.
+      % output the `[mynode]' via the macro below so it can be overridden.
       \xrefprintnodename\printedrefname
       %
       % But we always want a comma and a space:
@@ -7883,10 +7969,36 @@ end
       %
       % output the `page 3'.
       \turnoffactive \putwordpage\tie\refx{#1-pg}{}%
-    \fi
+    \fi\fi
   \fi
   \endlink
 \endgroup}
+
+% Output a cross-manual xref to #1.  Used just above (twice).
+% 
+% Only include the text "Section ``foo'' in" if the foo is neither
+% missing or Top.  Thus, @xref{,,,foo,The Foo Manual} outputs simply
+% "see The Foo Manual", the idea being to refer to the whole manual.
+% 
+% But, this being TeX, we can't easily compare our node name against the
+% string "Top" while ignoring the possible spaces before and after in
+% the input.  By adding the arbitrary 7sp below, we make it much less
+% likely that a real node name would have the same width as "Top" (e.g.,
+% in a monospaced font).  Hopefully it will never happen in practice.
+% 
+% For the same basic reason, we retypeset the "Top" at every
+% reference, since the current font is indeterminate.
+% 
+\def\crossmanualxref#1{%
+  \setbox\toprefbox = \hbox{Top\kern7sp}%
+  \setbox2 = \hbox{\ignorespaces \printedrefname \unskip \kern7sp}%
+  \ifdim \wd2 > 7sp  % nonempty?
+    \ifdim \wd2 = \wd\toprefbox \else  % same as Top?
+      \putwordSection{} ``\printedrefname'' \putwordin{}\space
+    \fi
+  \fi
+  #1%
+}
 
 % This macro is called from \xrefX for the `[nodename]' part of xref
 % output.  It's a separate macro only so it can be changed more easily,
@@ -8103,7 +8215,7 @@ end
 % space to prevent strange expansion errors.)
 \def\supereject{\par\penalty -20000\footnoteno =0 }
 
-% @footnotestyle is meaningful for info output only.
+% @footnotestyle is meaningful for Info output only.
 \let\footnotestyle=\comment
 
 {\catcode `\@=11
@@ -8166,6 +8278,8 @@ end
   % expands into a box, it must come within the paragraph, lest it
   % provide a place where TeX can split the footnote.
   \footstrut
+  %
+  % Invoke rest of plain TeX footnote routine.
   \futurelet\next\fo@t
 }
 }%end \catcode `\@=11
@@ -8253,7 +8367,7 @@ end
   it from ftp://tug.org/tex/epsf.tex.}
 %
 \def\image#1{%
-  \ifx\epsfbox\thisiundefined
+  \ifx\epsfbox\thisisundefined
     \ifwarnednoepsf \else
       \errhelp = \noepsfhelp
       \errmessage{epsf.tex not found, images will be ignored}%
@@ -8277,6 +8391,13 @@ end
   % If the image is by itself, center it.
   \ifvmode
     \imagevmodetrue
+  \else \ifx\centersub\centerV
+    % for @center @image, we need a vbox so we can have our vertical space
+    \imagevmodetrue
+    \vbox\bgroup % vbox has better behavior than vtop herev
+  \fi\fi
+  %
+  \ifimagevmode
     \nobreak\medskip
     % Usually we'll have text after the image which will insert
     % \parskip glue, so insert it here too to equalize the space
@@ -8286,9 +8407,13 @@ end
   \fi
   %
   % Leave vertical mode so that indentation from an enclosing
-  % environment such as @quotation is respected.  On the other hand, if
-  % it's at the top level, we don't want the normal paragraph indentation.
-  \noindent
+  %  environment such as @quotation is respected.
+  % However, if we're at the top level, we don't want the
+  %  normal paragraph indentation.
+  % On the other hand, if we are in the case of @center @image, we don't
+  %  want to start a paragraph, which will create a hsize-width box and
+  %  eradicate the centering.
+  \ifx\centersub\centerV\else \noindent \fi
   %
   % Output the image.
   \ifpdf
@@ -8300,7 +8425,10 @@ end
     \epsfbox{#1.eps}%
   \fi
   %
-  \ifimagevmode \medskip \fi  % space after the standalone image
+  \ifimagevmode
+    \medskip  % space after a standalone image
+  \fi  
+  \ifx\centersub\centerV \egroup \fi
 \endgroup}
 
 
@@ -9781,14 +9909,24 @@ directory should work if nowhere else does.}
 
 % In texinfo, backslash is an active character; it prints the backslash
 % in fixed width font.
-\catcode`\\=\active
-@def@normalbackslash{{@tt@backslashcurfont}}
+\catcode`\\=\active  % @ for escape char from now on.
+
+% The story here is that in math mode, the \char of \backslashcurfont
+% ends up printing the roman \ from the math symbol font (because \char
+% in math mode uses the \mathcode, and plain.tex sets
+% \mathcode`\\="026E).  It seems better for @backslashchar{} to always
+% print a typewriter backslash, hence we use an explicit \mathchar,
+% which is the decimal equivalent of "715c (class 7, e.g., use \fam;
+% ignored family value; char position "5C).  We can't use " for the
+% usual hex value because it has already been made active.
+@def@normalbackslash{{@tt @ifmmode @mathchar29020 @else @backslashcurfont @fi}}
+@let@backslashchar = @normalbackslash % @backslashchar{} is for user documents.
+
 % On startup, @fixbackslash assigns:
 %  @let \ = @normalbackslash
-
 % \rawbackslash defines an active \ to do \backslashcurfont.
 % \otherbackslash defines an active \ to be a literal `\' character with
-% catcode other.
+% catcode other.  We switch back and forth between these.
 @gdef@rawbackslash{@let\=@backslashcurfont}
 @gdef@otherbackslash{@let\=@realbackslash}
 
@@ -9844,9 +9982,12 @@ directory should work if nowhere else does.}
 @def@normalslash{/}
 
 % These look ok in all fonts, so just make them not special.
+% @hashchar{} gets its own user-level command, because of #line.
 @catcode`@& = @other @def@normalamp{&}
 @catcode`@# = @other @def@normalhash{#}
 @catcode`@% = @other @def@normalpercent{%}
+
+@let @hashchar = @normalhash
 
 @c Finally, make ` and ' active, so that txicodequoteundirected and
 @c txicodequotebacktick work right in, e.g., @w{@code{`foo'}}.  If we

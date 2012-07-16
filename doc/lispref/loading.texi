@@ -3,7 +3,7 @@
 @c Copyright (C) 1990-1995, 1998-1999, 2001-2012
 @c   Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
-@node Loading, Byte Compilation, Customization, Top
+@node Loading
 @chapter Loading
 @cindex loading
 @cindex library

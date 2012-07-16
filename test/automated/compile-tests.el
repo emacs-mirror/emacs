@@ -199,6 +199,8 @@
     ;; maven
     ("FooBar.java:[111,53] no interface expected here"
      1 53 111 "FooBar.java")
+    ("  [ERROR] /Users/cinsk/hello.java:[651,96] ';' expected"
+     15 96 651 "/Users/cinsk/hello.java") ;Bug#11517.
     ;; mips-1 mips-2
     ("TrimMask (255) in solomon.c may be indistinguishable from TrimMasks (93) in solomo.c due to truncation"
      11 nil 255 "solomon.c")

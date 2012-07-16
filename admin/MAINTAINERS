@@ -171,7 +171,6 @@ src/insdel.c
 src/image.c
 src/lastfile.c
 src/lread.c
-src/m/
 src/macros.c
 src/makefile.w32-in
 src/marker.c
@@ -220,4 +219,3 @@ src/xmenu.c
 src/xrdb.c
 src/xselect.c
 src/xterm.c
-

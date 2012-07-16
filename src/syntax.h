@@ -19,7 +19,7 @@ You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 
-extern void update_syntax_table (EMACS_INT, EMACS_INT, int, Lisp_Object);
+extern void update_syntax_table (ptrdiff_t, EMACS_INT, int, Lisp_Object);
 
 /* The standard syntax table is stored where it will automatically
    be used in all new buffers.  */
@@ -258,7 +258,7 @@ do									\
     else if (EQ (gl_state.object, Qt))					\
       {									\
 	gl_state.b_property = 0;					\
-	gl_state.e_property = MOST_POSITIVE_FIXNUM;			\
+	gl_state.e_property = PTRDIFF_MAX;				\
 	gl_state.offset = 0;						\
       }									\
     else								\
@@ -277,15 +277,15 @@ while (0)
 struct gl_state_s
 {
   Lisp_Object object;			/* The object we are scanning. */
-  EMACS_INT start;			/* Where to stop. */
-  EMACS_INT stop;			/* Where to stop. */
+  ptrdiff_t start;			/* Where to stop. */
+  ptrdiff_t stop;			/* Where to stop. */
   int use_global;			/* Whether to use global_code
 					   or c_s_t. */
   Lisp_Object global_code;		/* Syntax code of current char. */
   Lisp_Object current_syntax_table;	/* Syntax table for current pos. */
   Lisp_Object old_prop;			/* Syntax-table prop at prev pos. */
-  EMACS_INT b_property;			/* First index where c_s_t is valid. */
-  EMACS_INT e_property;			/* First index where c_s_t is
+  ptrdiff_t b_property;			/* First index where c_s_t is valid. */
+  ptrdiff_t e_property;			/* First index where c_s_t is
 					   not valid. */
   INTERVAL forward_i;			/* Where to start lookup on forward */
   INTERVAL backward_i;			/* or backward movement.  The
@@ -295,8 +295,8 @@ struct gl_state_s
 					   intervals too, depending
 					   on: */
   /* Offset for positions specified to UPDATE_SYNTAX_TABLE.  */
-  EMACS_INT offset;
+  ptrdiff_t offset;
 };
 
 extern struct gl_state_s gl_state;
-extern EMACS_INT scan_words (EMACS_INT, EMACS_INT);
+extern ptrdiff_t scan_words (ptrdiff_t, EMACS_INT);

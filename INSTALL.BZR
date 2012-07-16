@@ -30,7 +30,7 @@ options you can set):
 
 If you want later builds to go faster, at the expense of sometimes
 doing the wrong thing if you update the build procedure, you can
-invoke "./configure -C --disable-maintainer-mode" instead.
+invoke "./configure -C" instead.
 
 Some of the files that are included in the Emacs tarball, such as
 byte-compiled Lisp files, are not stored in Bazaar.  Therefore, to

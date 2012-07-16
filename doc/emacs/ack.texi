@@ -3,7 +3,7 @@
 @c Copyright (C) 1994-1997, 1999-2012 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @c
-@node Acknowledgments, Screen, Concept Index, Top
+@node Acknowledgments
 @unnumbered Acknowledgments
 
 Many people have contributed code included in the Free Software
@@ -264,7 +264,7 @@ He also wrote @file{dynamic-setting.el}.
 
 @item
 Carsten Dominik wrote Ref@TeX{}, a package for setting up labels and
-cross-references in La@TeX{} documents; and co-wrote IDLWAVE mode
+cross-references in @LaTeX{} documents; and co-wrote IDLWAVE mode
 (q.v.@:).  He was the original author of Org mode, for maintaining notes,
 todo lists, and project planning.  Bastien Guerry subsequently took
 over maintainership.  Benjamin Andresen, Thomas Baumann, Joel Boehland, Jan Böcker, Lennart
@@ -549,7 +549,7 @@ for the Transport Layer Security protocol.
 
 @item
 Arne Jørgensen wrote @file{latexenc.el}, a package to
-automatically guess the correct coding system in La@TeX{} files.
+automatically guess the correct coding system in @LaTeX{} files.
 
 @item
 Alexandre Julliard wrote @file{vc-git.el}, support for the Git version
@@ -567,7 +567,7 @@ control system.
 Henry Kautz wrote @file{bib-mode.el}, a mode for maintaining
 bibliography databases compatible with @code{refer} (the @code{troff}
 version) and @code{lookbib}, and @file{refbib.el}, a package to convert
-those databases to the format used by the La@TeX{} text formatting package.
+those databases to the format used by the @LaTeX{} text formatting package.
 
 @item
 Taichi Kawabata added support for Devanagari script and the Indian

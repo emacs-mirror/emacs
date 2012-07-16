@@ -204,16 +204,15 @@ patterns."
 (defvar hi-lock-interactive-patterns nil
   "Patterns provided to hi-lock by user.  Should not be changed.")
 
+(define-obsolete-variable-alias 'hi-lock-face-history
+                                'hi-lock-face-defaults "23.1")
 (defvar hi-lock-face-defaults
   '("hi-yellow" "hi-pink" "hi-green" "hi-blue" "hi-black-b"
     "hi-blue-b" "hi-red-b" "hi-green-b" "hi-black-hb")
   "Default faces for hi-lock interactive functions.")
 
-;(dolist (f hi-lock-face-defaults) (unless (facep f) (error "%s not a face" f)))
-
-(define-obsolete-variable-alias 'hi-lock-face-history
-                                'hi-lock-face-defaults
-                                "23.1")
+;;(dolist (f hi-lock-face-defaults)
+;;  (unless (facep f) (error "%s not a face" f)))
 
 (define-obsolete-variable-alias 'hi-lock-regexp-history
                                 'regexp-history

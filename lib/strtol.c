@@ -1,6 +1,6 @@
 /* Convert string representation of a number into an integer value.
 
-   Copyright (C) 1991-1992, 1994-1999, 2003, 2005-2007, 2009-2011 Free Software
+   Copyright (C) 1991-1992, 1994-1999, 2003, 2005-2007, 2009-2012 Free Software
    Foundation, Inc.
 
    NOTE: The canonical source of this file is maintained with the GNU C
@@ -40,7 +40,7 @@
 # include "../locale/localeinfo.h"
 #endif
 
-/* Nonzero if we are defining `strtoul' or `strtoull', operating on
+/* Nonzero if we are defining 'strtoul' or 'strtoull', operating on
    unsigned integers.  */
 #ifndef UNSIGNED
 # define UNSIGNED 0
@@ -110,8 +110,8 @@
 # endif
 #endif
 
-/* If QUAD is defined, we are defining `strtoll' or `strtoull',
-   operating on `long long int's.  */
+/* If QUAD is defined, we are defining 'strtoll' or 'strtoull',
+   operating on 'long long int's.  */
 #ifdef QUAD
 # define LONG long long
 # define STRTOL_LONG_MIN LLONG_MIN
@@ -227,7 +227,7 @@
 
 
 
-/* Convert NPTR to an `unsigned long int' or `long int' in base BASE.
+/* Convert NPTR to an 'unsigned long int' or 'long int' in base BASE.
    If BASE is 0 the base is determined by the presence of a leading
    zero, indicating octal or a leading "0x" or "0X", indicating hexadecimal.
    If BASE is < 2 or > 36, it is reset to 10.
@@ -380,7 +380,7 @@ INTERNAL (strtol) (const STRING_TYPE *nptr, STRING_TYPE **endptr,
 
 #if !UNSIGNED
   /* Check for a value that is within the range of
-     `unsigned LONG int', but outside the range of `LONG int'.  */
+     'unsigned LONG int', but outside the range of 'LONG int'.  */
   if (overflow == 0
       && i > (negative
               ? -((unsigned LONG int) (STRTOL_LONG_MIN + 1)) + 1
@@ -405,7 +405,7 @@ noconv:
   /* We must handle a special case here: the base is 0 or 16 and the
      first two characters are '0' and 'x', but the rest are no
      hexadecimal digits.  This is no error case.  We return 0 and
-     ENDPTR points to the `x`.  */
+     ENDPTR points to the 'x'.  */
   if (endptr != NULL)
     {
       if (save - nptr >= 2 && TOUPPER (save[-1]) == L_('X')

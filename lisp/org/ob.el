@@ -1159,7 +1159,8 @@ may be specified in the properties of the current outline entry."
 		      (substring body 0 sub-length)
 		    (or body "")))))
 	 (preserve-indentation (or org-src-preserve-indentation
-				   (string-match "-i\\>" switches))))
+				   (save-match-data
+				     (string-match "-i\\>" switches)))))
     (list lang
           ;; get block body less properties, protective commas, and indentation
           (with-temp-buffer
@@ -1498,7 +1499,7 @@ buffer or nil if no such result exists."
     (catch 'is-a-code-block
       (when (re-search-forward
 	     (concat org-babel-result-regexp
-		     "[ \t]" (regexp-quote name) "[ \t\n\f\v\r]+") nil t)
+		     "[ \t]" (regexp-quote name) "[ \t]*[\n\f\v\r]") nil t)
 	(when (and (string= "name" (downcase (match-string 1)))
 		   (or (beginning-of-line 1)
 		       (looking-at org-babel-src-block-regexp)
@@ -1957,11 +1958,16 @@ file's directory then expand relative links."
 		 (stringp (car result)) (stringp (cadr result)))
 	(format "[[file:%s][%s]]" (car result) (cadr result))))))
 
+(defvar org-babel-capitalize-examplize-region-markers nil
+  "Make true to capitalize begin/end example markers inserted by code blocks.")
+
 (defun org-babel-examplize-region (beg end &optional results-switches)
   "Comment out region using the inline '==' or ': ' org example quote."
   (interactive "*r")
   (flet ((chars-between (b e)
-			(not (string-match "^[\\s]*$" (buffer-substring b e)))))
+			(not (string-match "^[\\s]*$" (buffer-substring b e))))
+	 (maybe-cap (str) (if org-babel-capitalize-examplize-region-markers
+			      (upcase str) str)))
     (if (or (chars-between (save-excursion (goto-char beg) (point-at-bol)) beg)
 	    (chars-between end (save-excursion (goto-char end) (point-at-eol))))
 	(save-excursion
@@ -1978,10 +1984,12 @@ file's directory then expand relative links."
 		(t
 		 (goto-char beg)
 		 (insert (if results-switches
-			     (format "#+begin_example%s\n" results-switches)
-			   "#+begin_example\n"))
+			     (format "%s%s\n"
+				     (maybe-cap "#+begin_example")
+				     results-switches)
+			   (maybe-cap "#+begin_example\n")))
 		 (if (markerp end) (goto-char end) (forward-char (- end beg)))
-		 (insert "#+end_example\n"))))))))
+		 (insert (maybe-cap "#+end_example\n")))))))))
 
 (defun org-babel-update-block-body (new-body)
   "Update the body of the current code block to NEW-BODY."

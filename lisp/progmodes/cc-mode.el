@@ -1,6 +1,6 @@
 ;;; cc-mode.el --- major mode for editing C and similar languages
 
-;; Copyright (C) 1985, 1987, 1992-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1987, 1992-2012 Free Software Foundation, Inc.
 
 ;; Authors:    2003- Alan Mackenzie
 ;;             1998- Martin Stjernholm
@@ -1584,7 +1584,7 @@ Key bindings:
 (easy-menu-define c-pike-menu pike-mode-map "Pike Mode Commands"
 		  (cons "Pike" (c-lang-const c-mode-menu pike)))
 
-;;;###autoload (add-to-list 'auto-mode-alist '("\\.\\(u?lpc\\|pike\\|pmod\\(.in\\)?\\)\\'" . pike-mode))
+;;;###autoload (add-to-list 'auto-mode-alist '("\\.\\(u?lpc\\|pike\\|pmod\\(\\.in\\)?\\)\\'" . pike-mode))
 ;;;###autoload (add-to-list 'interpreter-mode-alist '("pike" . pike-mode))
 
 ;;;###autoload

@@ -957,7 +957,7 @@ into icons, regardless of the window manager."
 	  (and (eq this-command 'ediff-toggle-help)
 	       dont-iconify-ctl-frame))
 
-    ;; 1 more line for the modeline
+    ;; 1 more line for the mode line
     (setq lines (1+ (count-lines (point-min) (point-max)))
 	  fheight lines
 	  fwidth (max (+ (ediff-help-message-line-length) 2)
@@ -1141,7 +1141,7 @@ It assumes that it is called from within the control buffer."
 
 
 ;; Revise the mode line to display which difference we have selected
-;; Also resets modelines of buffers A/B, since they may be clobbered by
+;; Also resets mode lines of buffers A/B, since they may be clobbered by
 ;; other invocations of Ediff.
 (defun ediff-refresh-mode-lines ()
   (let (buf-A-state-diff buf-B-state-diff buf-C-state-diff buf-C-state-merge)

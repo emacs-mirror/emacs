@@ -52,9 +52,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define read sys_read
 #define write sys_write
 #include <windows.h>
-#ifndef NULL
-#define NULL 0
-#endif
 #endif /* not WINDOWSNT */
 
 #include <sys/types.h>
@@ -307,7 +304,7 @@ int wait_debugging EXTERNALLY_VISIBLE;
 #ifndef MSDOS
 
 static void
-wait_for_termination_1 (int pid, int interruptible)
+wait_for_termination_1 (pid_t pid, int interruptible)
 {
   while (1)
     {
@@ -355,14 +352,14 @@ wait_for_termination_1 (int pid, int interruptible)
    make sure it will get eliminated (not remain forever as a zombie) */
 
 void
-wait_for_termination (int pid)
+wait_for_termination (pid_t pid)
 {
   wait_for_termination_1 (pid, 0);
 }
 
 /* Like the above, but allow keyboard interruption. */
 void
-interruptible_wait_for_termination (int pid)
+interruptible_wait_for_termination (pid_t pid)
 {
   wait_for_termination_1 (pid, 1);
 }
@@ -1913,8 +1910,8 @@ emacs_close (int fd)
 /* Read from FILEDESC to a buffer BUF with size NBYTE, retrying if interrupted.
    Return the number of bytes read, which might be less than NBYTE.
    On error, set errno and return -1.  */
-EMACS_INT
-emacs_read (int fildes, char *buf, EMACS_INT nbyte)
+ptrdiff_t
+emacs_read (int fildes, char *buf, ptrdiff_t nbyte)
 {
   register ssize_t rtnval;
 
@@ -1930,11 +1927,11 @@ emacs_read (int fildes, char *buf, EMACS_INT nbyte)
 /* Write to FILEDES from a buffer BUF with size NBYTE, retrying if interrupted
    or if a partial write occurs.  Return the number of bytes written, setting
    errno if this is less than NBYTE.  */
-EMACS_INT
-emacs_write (int fildes, const char *buf, EMACS_INT nbyte)
+ptrdiff_t
+emacs_write (int fildes, const char *buf, ptrdiff_t nbyte)
 {
   ssize_t rtnval;
-  EMACS_INT bytes_written;
+  ptrdiff_t bytes_written;
 
   bytes_written = 0;
 
@@ -2169,7 +2166,8 @@ set_file_times (const char *filename, EMACS_TIME atime, EMACS_TIME mtime)
 int
 mkdir (char *dpath, int dmode)
 {
-  int cpid, status, fd;
+  pid_t cpid;
+  int status, fd;
   struct stat statbuf;
 
   if (stat (dpath, &statbuf) == 0)
@@ -2743,7 +2741,10 @@ system_process_attributes (Lisp_Object pid)
   char *cmdline = NULL;
   ptrdiff_t cmdsize = 0, cmdline_size;
   unsigned char c;
-  int proc_id, ppid, uid, gid, pgrp, sess, tty, tpgid, thcount;
+  printmax_t proc_id;
+  int ppid, pgrp, sess, tty, tpgid, thcount;
+  uid_t uid;
+  gid_t gid;
   unsigned long long u_time, s_time, cutime, cstime, start;
   long priority, niceness, rss;
   unsigned long minflt, majflt, cminflt, cmajflt, vsize;
@@ -2754,11 +2755,10 @@ system_process_attributes (Lisp_Object pid)
   Lisp_Object attrs = Qnil;
   Lisp_Object cmd_str, decoded_cmd, tem;
   struct gcpro gcpro1, gcpro2;
-  EMACS_INT uid_eint, gid_eint;
 
   CHECK_NUMBER_OR_FLOAT (pid);
-  proc_id = FLOATP (pid) ? XFLOAT_DATA (pid) : XINT (pid);
-  sprintf (procfn, "/proc/%u", proc_id);
+  CONS_TO_INTEGER (pid, pid_t, proc_id);
+  sprintf (procfn, "/proc/%"pMd, proc_id);
   if (stat (procfn, &st) < 0)
     return attrs;
 
@@ -2766,9 +2766,7 @@ system_process_attributes (Lisp_Object pid)
 
   /* euid egid */
   uid = st.st_uid;
-  /* Use of EMACS_INT stops GCC whining about limited range of data type.  */
-  uid_eint = uid;
-  attrs = Fcons (Fcons (Qeuid, make_fixnum_or_float (uid_eint)), attrs);
+  attrs = Fcons (Fcons (Qeuid, make_fixnum_or_float (uid)), attrs);
   BLOCK_INPUT;
   pw = getpwuid (uid);
   UNBLOCK_INPUT;
@@ -2776,8 +2774,7 @@ system_process_attributes (Lisp_Object pid)
     attrs = Fcons (Fcons (Quser, build_string (pw->pw_name)), attrs);
 
   gid = st.st_gid;
-  gid_eint = gid;
-  attrs = Fcons (Fcons (Qegid, make_fixnum_or_float (gid_eint)), attrs);
+  attrs = Fcons (Fcons (Qegid, make_fixnum_or_float (gid)), attrs);
   BLOCK_INPUT;
   gr = getgrgid (gid);
   UNBLOCK_INPUT;
@@ -3017,15 +3014,16 @@ system_process_attributes (Lisp_Object pid)
   struct psinfo pinfo;
   int fd;
   ssize_t nread;
-  int proc_id, uid, gid;
+  printmax_t proc_id;
+  uid_t uid;
+  gid_t gid;
   Lisp_Object attrs = Qnil;
   Lisp_Object decoded_cmd, tem;
   struct gcpro gcpro1, gcpro2;
-  EMACS_INT uid_eint, gid_eint;
 
   CHECK_NUMBER_OR_FLOAT (pid);
-  proc_id = FLOATP (pid) ? XFLOAT_DATA (pid) : XINT (pid);
-  sprintf (procfn, "/proc/%u", proc_id);
+  CONS_TO_INTEGER (pid, pid_t, proc_id);
+  sprintf (procfn, "/proc/%"pMd, proc_id);
   if (stat (procfn, &st) < 0)
     return attrs;
 
@@ -3033,9 +3031,7 @@ system_process_attributes (Lisp_Object pid)
 
   /* euid egid */
   uid = st.st_uid;
-  /* Use of EMACS_INT stops GCC whining about limited range of data type.  */
-  uid_eint = uid;
-  attrs = Fcons (Fcons (Qeuid, make_fixnum_or_float (uid_eint)), attrs);
+  attrs = Fcons (Fcons (Qeuid, make_fixnum_or_float (uid)), attrs);
   BLOCK_INPUT;
   pw = getpwuid (uid);
   UNBLOCK_INPUT;
@@ -3043,8 +3039,7 @@ system_process_attributes (Lisp_Object pid)
     attrs = Fcons (Fcons (Quser, build_string (pw->pw_name)), attrs);
 
   gid = st.st_gid;
-  gid_eint = gid;
-  attrs = Fcons (Fcons (Qegid, make_fixnum_or_float (gid_eint)), attrs);
+  attrs = Fcons (Fcons (Qegid, make_fixnum_or_float (gid)), attrs);
   BLOCK_INPUT;
   gr = getgrgid (gid);
   UNBLOCK_INPUT;
@@ -3111,9 +3106,10 @@ system_process_attributes (Lisp_Object pid)
 	  attrs = Fcons (Fcons (Qvsize, make_fixnum_or_float (pinfo.pr_size)), attrs);
 	  attrs = Fcons (Fcons (Qrss, make_fixnum_or_float (pinfo.pr_rssize)), attrs);
 
-	  /* pr_pctcpu and pr_pctmem are encoded as a fixed point 16 bit number in  [0 ... 1].  */
-	  attrs = Fcons (Fcons (Qpcpu, (pinfo.pr_pctcpu * 100.0) / (double)0x8000), attrs);
-	  attrs = Fcons (Fcons (Qpmem, (pinfo.pr_pctmem * 100.0) / (double)0x8000), attrs);
+	  /* pr_pctcpu and pr_pctmem are unsigned integers in the
+	     range 0 .. 2**15, representing 0.0 .. 1.0.  */
+	  attrs = Fcons (Fcons (Qpcpu, make_float (100.0 / 0x8000 * pinfo.pr_pctcpu)), attrs);
+	  attrs = Fcons (Fcons (Qpmem, make_float (100.0 / 0x8000 * pinfo.pr_pctmem)), attrs);
 
 	  decoded_cmd
 	    =  code_convert_string_norecord (make_unibyte_string (pinfo.pr_fname,
@@ -3159,7 +3155,7 @@ system_process_attributes (Lisp_Object pid)
   Lisp_Object decoded_comm;
 
   CHECK_NUMBER_OR_FLOAT (pid);
-  proc_id = FLOATP (pid) ? XFLOAT_DATA (pid) : XINT (pid);
+  CONS_TO_INTEGER (pid, int, proc_id);
   mib[3] = proc_id;
 
   if (sysctl (mib, 4, &proc, &proclen, NULL, 0) != 0)

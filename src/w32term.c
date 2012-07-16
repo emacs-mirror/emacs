@@ -3492,6 +3492,12 @@ my_destroy_window (struct frame * f, HWND hwnd)
 	       (WPARAM) hwnd, 0);
 }
 
+static void
+my_bring_window_to_top (HWND hwnd)
+{
+  SendMessage (hwnd, WM_EMACS_BRINGTOTOP, (WPARAM) hwnd, 0);
+}
+
 /* Create a scroll bar and return the scroll bar vector for it.  W is
    the Emacs window on which to create the scroll bar. TOP, LEFT,
    WIDTH and HEIGHT are the pixel coordinates and dimensions of the
@@ -5600,24 +5606,27 @@ x_raise_frame (struct frame *f)
       HDWP handle = BeginDeferWindowPos (2);
       if (handle)
 	{
-	  DeferWindowPos (handle,
-			  FRAME_W32_WINDOW (f),
-  			  HWND_TOP,
-  			  0, 0, 0, 0,
-  			  SWP_NOSIZE | SWP_NOMOVE | SWP_NOACTIVATE);
-
-	  DeferWindowPos (handle,
-			  GetForegroundWindow (),
-			  FRAME_W32_WINDOW (f),
-			  0, 0, 0, 0,
-			  SWP_NOSIZE | SWP_NOMOVE | SWP_NOACTIVATE);
-
-	  EndDeferWindowPos (handle);
+	  handle = DeferWindowPos (handle,
+				   FRAME_W32_WINDOW (f),
+				   HWND_TOP,
+				   0, 0, 0, 0,
+				   SWP_NOSIZE | SWP_NOMOVE | SWP_NOACTIVATE);
+	  if (handle)
+	    {
+	      handle = DeferWindowPos (handle,
+				       GetForegroundWindow (),
+				       FRAME_W32_WINDOW (f),
+				       0, 0, 0, 0,
+				       SWP_NOSIZE | SWP_NOMOVE |
+				       SWP_NOACTIVATE);
+	      if (handle)
+		EndDeferWindowPos (handle);
+	    }
 	}
     }
   else
     {
-      my_set_foreground_window (FRAME_W32_WINDOW (f));
+      my_bring_window_to_top (FRAME_W32_WINDOW (f));
     }
 
   UNBLOCK_INPUT;

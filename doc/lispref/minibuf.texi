@@ -3,7 +3,7 @@
 @c Copyright (C) 1990-1995, 1998-1999, 2001-2012
 @c   Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
-@node Minibuffers, Command Loop, Read and Print, Top
+@node Minibuffers
 @chapter Minibuffers
 @cindex arguments, reading
 @cindex complex arguments
@@ -1404,7 +1404,7 @@ returns the pre-inserted contents of the minibuffer.
 If the user types @key{RET} in an empty minibuffer, this function
 returns an empty string, regardless of the value of
 @var{require-match}.  This is, for instance, how the user can make the
-current buffer visit no file using @code{M-x set-visited-file-name}.
+current buffer visit no file using @kbd{M-x set-visited-file-name}.
 
 If @var{predicate} is non-@code{nil}, it specifies a function of one
 argument that decides which file names are acceptable completion

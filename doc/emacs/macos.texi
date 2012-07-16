@@ -1,7 +1,7 @@
 @c This is part of the Emacs manual.
 @c Copyright (C) 2000-2012 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
-@node Mac OS / GNUstep, Microsoft Windows, Antinews, Top
+@node Mac OS / GNUstep
 @appendix Emacs and Mac OS / GNUstep
 @cindex Mac OS X
 @cindex Macintosh
@@ -31,7 +31,7 @@ Support}), but we hope to improve it in the future.
 * GNUstep Support::             Details on status of GNUstep support.
 @end menu
 
-@node Mac / GNUstep Basics, Mac / GNUstep Customization, , Mac OS / GNUstep
+@node Mac / GNUstep Basics
 @section Basic Emacs usage under Mac OS and GNUstep
 
   By default, the @key{alt} and @key{option} keys are the same as
@@ -84,7 +84,7 @@ For the PATH and MANPATH variables, a system-wide method
 of setting PATH is recommended on Mac OS X 10.5 and later, using the
 @file{/etc/paths} files and the @file{/etc/paths.d} directory.
 
-@node Mac / GNUstep Customization, Mac / GNUstep Events, Mac / GNUstep Basics, Mac OS / GNUstep
+@node Mac / GNUstep Customization
 @section Mac / GNUstep Customization
 
 Emacs can be customized in several ways in addition to the standard
@@ -125,7 +125,7 @@ move the mouse pointer over it.  (Requires Mac OS X 10.6 or later.)
 @end table
 
 
-@node Mac / GNUstep Events, GNUstep Support, Mac / GNUstep Customization, Mac OS / GNUstep
+@node Mac / GNUstep Events
 @section Windowing System Events under Mac OS / GNUstep
 
   Nextstep applications receive a number of special events which have
@@ -202,7 +202,7 @@ and return the result as a string.  You can also use the Lisp function
 services and receive the results back.  Note that you may need to
 restart Emacs to access newly-available services.
 
-@node GNUstep Support, , Mac / GNUstep Events, Mac OS / GNUstep
+@node GNUstep Support
 @section GNUstep Support
 
 Emacs can be built and run under GNUstep, but there are still

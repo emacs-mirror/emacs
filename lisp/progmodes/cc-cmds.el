@@ -310,7 +310,7 @@ left out.
 Turning on auto-newline automatically enables electric indentation.
 
 When the auto-newline feature is enabled (indicated by \"/la\" on the
-modeline after the mode name) newlines are automatically inserted
+mode line after the mode name) newlines are automatically inserted
 after special characters such as brace, comma, semi-colon, and colon."
   (interactive "P")
   (setq c-auto-newline
@@ -329,7 +329,7 @@ positive, turns it off when negative, and just toggles it when zero or
 left out.
 
 When the hungry-delete-key feature is enabled (indicated by \"/h\" on
-the modeline after the mode name) the delete key gobbles all preceding
+the mode line after the mode name) the delete key gobbles all preceding
 whitespace in one fell swoop."
   (interactive "P")
   (setq c-hungry-delete-key (c-calculate-state arg c-hungry-delete-key))

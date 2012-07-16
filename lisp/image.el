@@ -687,6 +687,32 @@ The minimum delay between successive frames is 0.01s."
 		      image n count time-elapsed limit))))
 
 
+(defvar imagemagick-types-inhibit)
+(defvar imagemagick-enabled-types)
+
+(defun imagemagick-filter-types ()
+  "Return a list of the ImageMagick types to be treated as images, or nil.
+This is the result of `imagemagick-types', including only elements
+that match `imagemagick-enabled-types' and do not match
+`imagemagick-types-inhibit'."
+  (when (fboundp 'imagemagick-types)
+    (cond ((null imagemagick-enabled-types) nil)
+	  ((eq imagemagick-types-inhibit t) nil)
+	  (t
+	   (delq nil
+		 (mapcar
+		  (lambda (type)
+		    (unless (memq type imagemagick-types-inhibit)
+		      (if (eq imagemagick-enabled-types t) type
+			(catch 'found
+			  (dolist (enable imagemagick-enabled-types nil)
+			    (if (cond ((symbolp enable) (eq enable type))
+				      ((stringp enable)
+				       (string-match enable
+						     (symbol-name type))))
+				(throw 'found type)))))))
+		  (imagemagick-types)))))))
+
 (defvar imagemagick--file-regexp nil
   "File extension regexp for ImageMagick files, if any.
 This is the extension installed into `auto-mode-alist' and
@@ -696,55 +722,96 @@ This is the extension installed into `auto-mode-alist' and
 (defun imagemagick-register-types ()
   "Register file types that can be handled by ImageMagick.
 This function is called at startup, after loading the init file.
-It registers the ImageMagick types listed in `imagemagick-types',
-excluding those listed in `imagemagick-types-inhibit'.
+It registers the ImageMagick types returned by `imagemagick-filter-types'.
 
 Registered image types are added to `auto-mode-alist', so that
 Emacs visits them in Image mode.  They are also added to
 `image-type-file-name-regexps', so that the `image-type' function
 recognizes these files as having image type `imagemagick'.
 
-If Emacs is compiled without ImageMagick support, do nothing."
+If Emacs is compiled without ImageMagick support, this does nothing."
   (when (fboundp 'imagemagick-types)
-    (let ((re (if (eq imagemagick-types-inhibit t)
-		  ;; Use a bogus regexp to inhibit matches.
-		  "\\'a"
-		(let ((types))
-		  (dolist (type (imagemagick-types))
-		    (unless (memq type imagemagick-types-inhibit)
-		      (push (downcase (symbol-name type)) types)))
-		  (concat "\\." (regexp-opt types) "\\'"))))
-	  (ama-elt (car (member (cons imagemagick--file-regexp 'image-mode)
-				auto-mode-alist)))
-	  (itfnr-elt (car (member (cons imagemagick--file-regexp 'imagemagick)
-				  image-type-file-name-regexps))))
-      (if ama-elt
-	  (setcar ama-elt re)
-	(push (cons re 'image-mode) auto-mode-alist))
-      (if itfnr-elt
-	  (setcar itfnr-elt re)
-	(push (cons re 'imagemagick) image-type-file-name-regexps))
+    (let* ((types (mapcar (lambda (type) (downcase (symbol-name type)))
+			  (imagemagick-filter-types)))
+	   (re (if types (concat "\\." (regexp-opt types) "\\'")))
+	   (ama-elt (car (member (cons imagemagick--file-regexp 'image-mode)
+				 auto-mode-alist)))
+	   (itfnr-elt (car (member (cons imagemagick--file-regexp 'imagemagick)
+				   image-type-file-name-regexps))))
+      (if (not re)
+	  (setq auto-mode-alist (delete ama-elt auto-mode-alist)
+		image-type-file-name-regexps
+		(delete itfnr-elt image-type-file-name-regexps))
+	(if ama-elt
+	    (setcar ama-elt re)
+	  (push (cons re 'image-mode) auto-mode-alist))
+	(if itfnr-elt
+	    (setcar itfnr-elt re)
+	  (push (cons re 'imagemagick) image-type-file-name-regexps)))
       (setq imagemagick--file-regexp re))))
 
-(defcustom imagemagick-types-inhibit
-  '(C HTML HTM TXT PDF)
-  "List of ImageMagick types that should not be treated as images.
+(defcustom imagemagick-types-inhibit nil
+  "List of ImageMagick types that should never be treated as images.
 This should be a list of symbols, each of which should be one of
-the ImageMagick types listed in `imagemagick-types'.  The listed
+the ImageMagick types listed by `imagemagick-types'.  The listed
 image types are not registered by `imagemagick-register-types'.
 
 If the value is t, inhibit the use of ImageMagick for images.
+
+If you change this without using customize, you must call
+`imagemagick-register-types' afterwards.
 
 If Emacs is compiled without ImageMagick support, this variable
 has no effect."
   :type '(choice (const :tag "Support all ImageMagick types" nil)
 		 (const :tag "Disable all ImageMagick types" t)
 		 (repeat symbol))
+  :initialize 'custom-initialize-default
   :set (lambda (symbol value)
 	 (set-default symbol value)
 	 (imagemagick-register-types))
-  :version "24.1"
+  :version "24.2"
   :group 'image)
+
+(defcustom imagemagick-enabled-types
+  '(3FR ART ARW AVS BMP BMP2 BMP3 CAL CALS CIN CMYK CMYKA CR2 CRW
+    CUR CUT DCM DCR DCX DDS DJVU DNG DPX EPDF EPS EPS2 EPS3 EPSF
+    EPSI EXR FAX FITS GBR GIF GIF87 GRB HRZ ICB ICO ICON J2C JNG
+    JP2 JPC JPEG JPG JPX K25 KDC MIFF MNG MRW MSL MSVG MTV NEF
+    ORF OTB PBM PCD PCDS PCL PCT PCX PDB PEF PGM PICT PIX PJPEG
+    PNG PNG24 PNG32 PNG8 PNM PPM PSD PTIF PWP RAF RAS RBG RGB
+    RGBA RGBO RLA RLE SCR SCT SFW SGI SR2 SRF SUN SVG SVGZ TGA
+    TIFF TIFF64 TILE TIM TTF UYVY VDA VICAR VID VIFF VST WBMP WPG
+    X3F XBM XC XCF XPM XV XWD YCbCr YCbCrA YUV)
+  "List of ImageMagick types to treat as images.
+Each list element should be a string or symbol, representing one
+of the image types returned by `imagemagick-types'.  If the
+element is a string, it is handled as a regexp that enables all
+matching types.
+
+The value of `imagemagick-enabled-types' may also be t, meaning
+to enable all types that ImageMagick supports.
+
+The variable `imagemagick-types-inhibit' overrides this variable.
+
+If you change this without outside of Customize, you must call
+`imagemagick-register-types' afterwards.
+
+If Emacs is compiled without ImageMagick support, this variable
+has no effect."
+  :type '(choice (const :tag "Support all ImageMagick types" t)
+		 (const :tag "Disable all ImageMagick types" nil)
+		 (repeat :tag "List of types"
+			 (choice (symbol :tag "type")
+				 (regexp :tag "regexp"))))
+  :initialize 'custom-initialize-default
+  :set (lambda (symbol value)
+	 (set-default symbol value)
+	 (imagemagick-register-types))
+  :version "24.2"
+  :group 'image)
+
+(imagemagick-register-types)
 
 (provide 'image)
 

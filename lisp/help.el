@@ -783,7 +783,10 @@ descriptions of the minor modes, each on a separate page.
 
 For this to work correctly for a minor mode, the mode's indicator
 variable \(listed in `minor-mode-alist') must also be a function
-whose documentation describes the minor mode."
+whose documentation describes the minor mode.
+
+If called from Lisp with a non-nil BUFFER argument, display
+documentation for the major and minor modes of that buffer."
   (interactive "@")
   (unless buffer (setq buffer (current-buffer)))
   (help-setup-xref (list #'describe-mode buffer)
@@ -939,7 +942,7 @@ is currently activated with completion."
       (error "Cannot find minor mode for `%s'" indicator))))
 
 (defun lookup-minor-mode-from-indicator (indicator)
-  "Return a minor mode symbol from its indicator on the modeline."
+  "Return a minor mode symbol from its indicator on the mode line."
   ;; remove first space if existed
   (if (and (< 0 (length indicator))
 	   (eq (aref indicator 0) ?\s))

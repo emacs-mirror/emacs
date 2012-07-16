@@ -2,8 +2,7 @@
 @c This is part of the GNU Emacs Lisp Reference Manual.
 @c Copyright (C) 1990-1994, 1998-1999, 2001-2012 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
-@node Read and Print, Minibuffers, Debugging, Top
-@comment  node-name,  next,  previous,  up
+@node Read and Print
 @chapter Reading and Printing Lisp Objects
 
   @dfn{Printing} and @dfn{reading} are the operations of converting Lisp

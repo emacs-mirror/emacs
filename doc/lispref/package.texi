@@ -2,7 +2,7 @@
 @c This is part of the GNU Emacs Lisp Reference Manual.
 @c Copyright (C) 2010-2012 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
-@node Packaging, Antinews, System Interface, Top
+@node Packaging
 @chapter Preparing Lisp code for distribution
 @cindex package
 @cindex Lisp package
@@ -294,8 +294,8 @@ How to accomplish this is beyond the scope of this manual.
 
   A convenient way to set up and update a package archive is via the
 @code{package-x} library.  This is included with Emacs, but not loaded
-by default; type @kbd{M-x load-library @kbd{RET} package-x @kbd{RET}}
-to load it, or add @code{(require 'package-x)} to your init file.
+by default; type @kbd{M-x load-library @key{RET} package-x @key{RET}} to
+load it, or add @code{(require 'package-x)} to your init file.
 @xref{Lisp Libraries,, Lisp Libraries, emacs, The GNU Emacs Manual}.
 Once loaded, you can make use of the following:
 

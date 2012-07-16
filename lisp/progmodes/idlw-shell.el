@@ -481,7 +481,7 @@ line where IDL is stopped.  See also `idlwave-shell-mark-stop-line'."
 
 (defcustom idlwave-shell-electric-stop-line-face
   (prog1
-      (copy-face 'modeline 'idlwave-shell-electric-stop-line)
+      (copy-face 'mode-line 'idlwave-shell-electric-stop-line)
     (set-face-background 'idlwave-shell-electric-stop-line
 			 idlwave-shell-electric-stop-color)
     (condition-case nil

@@ -18,7 +18,7 @@
 
 @c pindex is used for .el files and Unix programs
 
-@node Index, , Standard Hooks, Top
+@node Index
 @unnumbered Index
 
 @c Print the indices

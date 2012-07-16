@@ -139,6 +139,8 @@ extern void _XEditResCheckMessages (Widget, XtPointer, XEvent *, Boolean *);
 #endif
 #endif
 
+#include "bitmaps/gray.xbm"
+
 /* Default to using XIM if available.  */
 #ifdef USE_XIM
 int use_xim = 1;
@@ -256,11 +258,7 @@ static Time last_user_time;
 /* Incremented by XTread_socket whenever it really tries to read
    events.  */
 
-#ifdef __STDC__
 static int volatile input_signal_count;
-#else
-static int input_signal_count;
-#endif
 
 /* Used locally within XTread_socket.  */
 
@@ -3700,24 +3698,23 @@ x_find_modifier_meanings (struct x_display_info *dpyinfo)
 /* Convert between the modifier bits X uses and the modifier bits
    Emacs uses.  */
 
-EMACS_INT
+int
 x_x_to_emacs_modifiers (struct x_display_info *dpyinfo, int state)
 {
-  EMACS_INT mod_meta = meta_modifier;
-  EMACS_INT mod_alt  = alt_modifier;
-  EMACS_INT mod_hyper = hyper_modifier;
-  EMACS_INT mod_super = super_modifier;
+  int mod_meta = meta_modifier;
+  int mod_alt  = alt_modifier;
+  int mod_hyper = hyper_modifier;
+  int mod_super = super_modifier;
   Lisp_Object tem;
 
   tem = Fget (Vx_alt_keysym, Qmodifier_value);
-  if (INTEGERP (tem)) mod_alt = XINT (tem);
+  if (INTEGERP (tem)) mod_alt = XINT (tem) & INT_MAX;
   tem = Fget (Vx_meta_keysym, Qmodifier_value);
-  if (INTEGERP (tem)) mod_meta = XINT (tem);
+  if (INTEGERP (tem)) mod_meta = XINT (tem) & INT_MAX;
   tem = Fget (Vx_hyper_keysym, Qmodifier_value);
-  if (INTEGERP (tem)) mod_hyper = XINT (tem);
+  if (INTEGERP (tem)) mod_hyper = XINT (tem) & INT_MAX;
   tem = Fget (Vx_super_keysym, Qmodifier_value);
-  if (INTEGERP (tem)) mod_super = XINT (tem);
-
+  if (INTEGERP (tem)) mod_super = XINT (tem) & INT_MAX;
 
   return (  ((state & (ShiftMask | dpyinfo->shift_lock_mask)) ? shift_modifier : 0)
             | ((state & ControlMask)			? ctrl_modifier	: 0)
@@ -3730,10 +3727,10 @@ x_x_to_emacs_modifiers (struct x_display_info *dpyinfo, int state)
 static int
 x_emacs_to_x_modifiers (struct x_display_info *dpyinfo, EMACS_INT state)
 {
-  int mod_meta = meta_modifier;
-  int mod_alt  = alt_modifier;
-  int mod_hyper = hyper_modifier;
-  int mod_super = super_modifier;
+  EMACS_INT mod_meta = meta_modifier;
+  EMACS_INT mod_alt  = alt_modifier;
+  EMACS_INT mod_hyper = hyper_modifier;
+  EMACS_INT mod_super = super_modifier;
 
   Lisp_Object tem;
 
@@ -4532,7 +4529,7 @@ xaw_jump_callback (Widget widget, XtPointer client_data, XtPointer call_data)
   whole = 10000000;
   portion = shown < 1 ? top * whole : 0;
 
-  if (shown < 1 && (eabs (top + shown - 1) < 1.0/height))
+  if (shown < 1 && (eabs (top + shown - 1) < 1.0f / height))
     /* Some derivatives of Xaw refuse to shrink the thumb when you reach
        the bottom, so we force the scrolling whenever we see that we're
        too close to the bottom (in x_set_toolkit_scroll_bar_thumb
@@ -4897,7 +4894,7 @@ x_set_toolkit_scroll_bar_thumb (struct scroll_bar *bar, int portion, int positio
     else
       top = old_top;
     /* Keep two pixels available for moving the thumb down.  */
-    shown = max (0, min (1 - top - (2.0 / height), shown));
+    shown = max (0, min (1 - top - (2.0f / height), shown));
 
     /* If the call to XawScrollbarSetThumb below doesn't seem to work,
        check that your system's configuration file contains a define
@@ -6492,9 +6489,10 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventptr,
 
 	  /* Now non-ASCII.  */
 	  if (HASH_TABLE_P (Vx_keysym_table)
-	      && (NATNUMP (c = Fgethash (make_number (keysym),
- 					 Vx_keysym_table,
- 					 Qnil))))
+	      && (c = Fgethash (make_number (keysym),
+				Vx_keysym_table,
+				Qnil),
+		  NATNUMP (c)))
  	    {
  	      inev.ie.kind = (SINGLE_BYTE_CHAR_P (XFASTINT (c))
                               ? ASCII_KEYSTROKE_EVENT
@@ -7772,7 +7770,7 @@ x_connection_closed (Display *dpy, const char *error_message)
 {
   struct x_display_info *dpyinfo = x_display_info_for_display (dpy);
   Lisp_Object frame, tail;
-  int idx = SPECPDL_INDEX ();
+  ptrdiff_t idx = SPECPDL_INDEX ();
 
   error_msg = (char *) alloca (strlen (error_message) + 1);
   strcpy (error_msg, error_message);
@@ -10387,8 +10385,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
   {
     dpyinfo->gray
       = XCreatePixmapFromBitmapData (dpyinfo->display, dpyinfo->root_window,
-				     gray_bitmap_bits,
-				     gray_bitmap_width, gray_bitmap_height,
+				     gray_bits, gray_width, gray_height,
 				     1, 0, 1);
   }
 

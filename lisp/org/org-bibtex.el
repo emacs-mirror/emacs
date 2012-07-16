@@ -369,7 +369,7 @@ This variable is relevant only if `org-bibtex-export-tags-as-keywords` is t."
 	    	  (progn (goto-char (match-end 1)) (insert ", "))
 	    	(bibtex-make-field "keywords" t t))
 	      (insert (mapconcat #'identity tags ", ")))
-            (bibtex-reformat) (buffer-string)))))))
+            (buffer-string)))))))
 
 (defun org-bibtex-ask (field)
   (unless (assoc field org-bibtex-fields)
@@ -661,7 +661,8 @@ This uses `bibtex-parse-entry'."
 (defun org-bibtex-export-to-kill-ring ()
   "Export current headline to kill ring as bibtex entry."
   (interactive)
-  (kill-new (org-bibtex-headline)))
+  (let ((result (org-bibtex-headline)))
+    (kill-new result) result))
 
 (defun org-bibtex-search (string)
   "Search for bibliographical entries in agenda files.

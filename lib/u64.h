@@ -1,6 +1,6 @@
 /* uint64_t-like operations that work even on hosts lacking uint64_t
 
-   Copyright (C) 2006, 2009-2011 Free Software Foundation, Inc.
+   Copyright (C) 2006, 2009-2012 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -30,6 +30,7 @@ typedef uint64_t u64;
 # define u64hilo(hi, lo) ((u64) (((u64) (hi) << 32) + (lo)))
 # define u64init(hi, lo) u64hilo (hi, lo)
 # define u64lo(x) ((u64) (x))
+# define u64size(x) u64lo (x)
 # define u64lt(x, y) ((x) < (y))
 # define u64and(x, y) ((x) & (y))
 # define u64or(x, y) ((x) | (y))
@@ -69,6 +70,16 @@ u64lo (uint32_t lo)
   u64 r;
   r.hi = 0;
   r.lo = lo;
+  return r;
+}
+
+/* Return a u64 value representing SIZE.  */
+static inline u64
+u64size (size_t size)
+{
+  u64 r;
+  r.hi = size >> 31 >> 1;
+  r.lo = size;
   return r;
 }
 

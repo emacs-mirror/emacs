@@ -1,6 +1,6 @@
 /* Get the system load averages.
 
-   Copyright (C) 1985-1989, 1991-1995, 1997, 1999-2000, 2003-2011 Free Software
+   Copyright (C) 1985-1989, 1991-1995, 1997, 1999-2000, 2003-2012 Free Software
    Foundation, Inc.
 
    NOTE: The canonical source of this file is maintained with gnulib.
@@ -46,7 +46,7 @@
    NLIST_STRUCT                 Include nlist.h, not a.out.h.
    N_NAME_POINTER               The nlist n_name element is a pointer,
                                 not an array.
-   HAVE_STRUCT_NLIST_N_UN_N_NAME `n_un.n_name' is member of `struct nlist'.
+   HAVE_STRUCT_NLIST_N_UN_N_NAME 'n_un.n_name' is member of 'struct nlist'.
    LINUX_LDAV_FILE              [__linux__, __CYGWIN__]: File containing
                                 load averages.
 
@@ -794,7 +794,7 @@ getloadavg (double loadavg[], int nelem)
 #  define LDAV_DONE
   /* This call can return -1 for an error, but with good args
      it's not supposed to fail.  The first argument is for no
-     apparent reason of type `long int *'.  */
+     apparent reason of type 'long int *'.  */
   dg_sys_info ((long int *) &load_info,
                DG_SYS_INFO_LOAD_INFO_TYPE,
                DG_SYS_INFO_LOAD_VERSION_0);

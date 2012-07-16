@@ -1915,8 +1915,7 @@ produce_special_glyphs (struct it *it, enum display_element_type what)
       else
 	SET_GLYPH_FROM_CHAR (glyph, '\\');
       if (it->dp
-	  && (gc = DISP_CONTINUE_GLYPH (it->dp), GLYPH_CODE_P (gc))
-	  && GLYPH_CODE_CHAR_VALID_P (gc))
+	  && (gc = DISP_CONTINUE_GLYPH (it->dp), GLYPH_CODE_P (gc)))
 	{
 	  /* FIXME: Should we mirror GC for R2L lines?  */
 	  SET_GLYPH_FROM_GLYPH_CODE (glyph, gc);
@@ -1928,8 +1927,7 @@ produce_special_glyphs (struct it *it, enum display_element_type what)
       /* Truncation glyph.  */
       SET_GLYPH_FROM_CHAR (glyph, '$');
       if (it->dp
-	  && (gc = DISP_TRUNC_GLYPH (it->dp), GLYPH_CODE_P (gc))
-	  && GLYPH_CODE_CHAR_VALID_P (gc))
+	  && (gc = DISP_TRUNC_GLYPH (it->dp), GLYPH_CODE_P (gc)))
 	{
 	  /* FIXME: Should we mirror GC for R2L lines?  */
 	  SET_GLYPH_FROM_GLYPH_CODE (glyph, gc);
@@ -2279,7 +2277,7 @@ set_tty_color_mode (struct tty_display_info *tty, struct frame *f)
   else
     color_mode = Qnil;
 
-  mode = INTEGERP (color_mode) ? XINT (color_mode) : 0;
+  mode = TYPE_RANGED_INTEGERP (int, color_mode) ? XINT (color_mode) : 0;
 
   if (mode != tty->previous_color_mode)
     {

@@ -3663,6 +3663,7 @@ w32_wnd_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
     case WM_EMACS_SHOWWINDOW:
       return ShowWindow ((HWND) wParam, (WPARAM) lParam);
 
+    case WM_EMACS_BRINGTOTOP:
     case WM_EMACS_SETFOREGROUND:
       {
         HWND foreground_window;
@@ -3680,6 +3681,8 @@ w32_wnd_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
           foreground_thread = 0;
 
         retval = SetForegroundWindow ((HWND) wParam);
+        if (msg == WM_EMACS_BRINGTOTOP)
+          retval = BringWindowToTop ((HWND) wParam);
 
         /* Detach from the previous foreground thread.  */
         if (foreground_thread)
@@ -4070,7 +4073,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
   int minibuffer_only = 0;
   long window_prompting = 0;
   int width, height;
-  int count = SPECPDL_INDEX ();
+  ptrdiff_t count = SPECPDL_INDEX ();
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
   Lisp_Object display;
   struct w32_display_info *dpyinfo = NULL;
@@ -5173,7 +5176,7 @@ x_create_tip_frame (struct w32_display_info *dpyinfo,
   Lisp_Object name;
   long window_prompting = 0;
   int width, height;
-  int count = SPECPDL_INDEX ();
+  ptrdiff_t count = SPECPDL_INDEX ();
   struct gcpro gcpro1, gcpro2, gcpro3;
   struct kboard *kb;
   int face_change_count_before = face_change_count;
@@ -5522,7 +5525,7 @@ Text larger than the specified size is clipped.  */)
   int i, width, height, seen_reversed_p;
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
   int old_windows_or_buffers_changed = windows_or_buffers_changed;
-  int count = SPECPDL_INDEX ();
+  ptrdiff_t count = SPECPDL_INDEX ();
 
   specbind (Qinhibit_redisplay, Qt);
 
@@ -5801,7 +5804,7 @@ DEFUN ("x-hide-tip", Fx_hide_tip, Sx_hide_tip, 0, 0, 0,
 Value is t if tooltip was open, nil otherwise.  */)
   (void)
 {
-  int count;
+  ptrdiff_t count;
   Lisp_Object deleted, frame, timer;
   struct gcpro gcpro1, gcpro2;
 
@@ -5923,7 +5926,7 @@ Otherwise, if ONLY-DIR-P is non-nil, the user can only select directories.  */)
 {
   struct frame *f = SELECTED_FRAME ();
   Lisp_Object file = Qnil;
-  int count = SPECPDL_INDEX ();
+  ptrdiff_t count = SPECPDL_INDEX ();
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5, gcpro6;
   char filename[MAX_PATH + 1];
   char init_dir[MAX_PATH + 1];

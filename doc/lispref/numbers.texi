@@ -3,7 +3,7 @@
 @c Copyright (C) 1990-1995, 1998-1999, 2001-2012
 @c   Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
-@node Numbers, Strings and Characters, Lisp Data Types, Top
+@node Numbers
 @chapter Numbers
 @cindex integers
 @cindex numbers
@@ -31,7 +31,6 @@ exact; they have a fixed, limited amount of precision.
 @end menu
 
 @node Integer Basics
-@comment  node-name,  next,  previous,  up
 @section Integer Basics
 
   The range of values for an integer depends on the machine.  The

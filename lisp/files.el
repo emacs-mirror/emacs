@@ -986,6 +986,29 @@ Tip: You can use this expansion of remote identifier components
 	(funcall handler 'file-remote-p file identification connected)
       nil)))
 
+;; Probably this entire variable should be obsolete now, in favor of
+;; something Tramp-related (?).  It is not used in many places.
+;; It's not clear what the best file for this to be in is, but given
+;; it uses custom-initialize-delay, it is easier if it is preloaded
+;; rather than autoloaded.
+(defcustom remote-shell-program
+  ;; This used to try various hard-coded places for remsh, rsh, and
+  ;; rcmd, trying to guess based on location whether "rsh" was
+  ;; "restricted shell" or "remote shell", but I don't see the point
+  ;; in this day and age.  Almost everyone will use ssh, and have
+  ;; whatever command they want to use in PATH.
+  (purecopy
+   (let ((list '("ssh" "remsh" "rcmd" "rsh")))
+     (while (and list
+		 (not (executable-find (car list)))
+		 (setq list (cdr list))))
+     (or (car list) "ssh")))
+  "Program to use to execute commands on a remote host (e.g. ssh or rsh)."
+  :version "24.2"			; ssh rather than rsh, etc
+  :initialize 'custom-initialize-delay
+  :group 'environment
+  :type 'file)
+
 (defcustom remote-file-name-inhibit-cache 10
   "Whether to use the remote file-name cache for read access.
 When `nil', never expire cached values (caution)
@@ -5125,6 +5148,24 @@ directly into NEWNAME instead."
 	    (times (and keep-time (nth 5 (file-attributes directory)))))
 	(if modes (set-file-modes newname modes))
 	(if times (set-file-times newname times))))))
+
+
+;; At time of writing, only info uses this.
+(defun prune-directory-list (dirs &optional keep reject)
+  "Return a copy of DIRS with all non-existent directories removed.
+The optional argument KEEP is a list of directories to retain even if
+they don't exist, and REJECT is a list of directories to remove from
+DIRS, even if they exist; REJECT takes precedence over KEEP.
+
+Note that membership in REJECT and KEEP is checked using simple string
+comparison."
+  (apply #'nconc
+	 (mapcar (lambda (dir)
+		   (and (not (member dir reject))
+			(or (member dir keep) (file-directory-p dir))
+			(list dir)))
+		 dirs)))
+
 
 (put 'revert-buffer-function 'permanent-local t)
 (defvar revert-buffer-function nil

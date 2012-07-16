@@ -133,7 +133,7 @@ a command, but you can think of it as canceling a command that already
 finished executing.  @xref{Undo}, for more information about the undo
 facility.
 
-@node Lossage, Bugs, Quitting, Top
+@node Lossage
 @section Dealing with Emacs Trouble
 
   This section describes how to recognize and deal with situations in
@@ -373,7 +373,7 @@ program.
 emergency escape---but there are cases where it won't work, when
 system call hangs or when Emacs is stuck in a tight loop in C code.
 
-@node Bugs, Contributing, Lossage, Top
+@node Bugs
 @section Reporting Bugs
 
 @cindex bugs
@@ -1064,7 +1064,7 @@ Please help us keep up with the workload by designing the patch in a
 form that is clearly safe to install.
 @end itemize
 
-@node Contributing, Service, Bugs, Top
+@node Contributing
 @section Contributing to Emacs Development
 @cindex contributing to Emacs
 
@@ -1089,7 +1089,7 @@ See the Emacs project page
 For more information on how to contribute, see the @file{etc/CONTRIBUTE}
 file in the Emacs distribution.
 
-@node Service, Copying, Contributing, Top
+@node Service
 @section How To Get Help with GNU Emacs
 
 If you need help installing, using or changing GNU Emacs, there are two

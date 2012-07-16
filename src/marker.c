@@ -26,12 +26,12 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Record one cached position found recently by
    buf_charpos_to_bytepos or buf_bytepos_to_charpos.  */
 
-static EMACS_INT cached_charpos;
-static EMACS_INT cached_bytepos;
+static ptrdiff_t cached_charpos;
+static ptrdiff_t cached_bytepos;
 static struct buffer *cached_buffer;
 static int cached_modiff;
 
-static void byte_char_debug_check (struct buffer *, EMACS_INT, EMACS_INT);
+static void byte_char_debug_check (struct buffer *, ptrdiff_t, ptrdiff_t);
 
 void
 clear_charpos_cache (struct buffer *b)
@@ -55,12 +55,12 @@ clear_charpos_cache (struct buffer *b)
 
 #define CONSIDER(CHARPOS, BYTEPOS)					\
 {									\
-  EMACS_INT this_charpos = (CHARPOS);					\
+  ptrdiff_t this_charpos = (CHARPOS);					\
   int changed = 0;							\
 									\
   if (this_charpos == charpos)						\
     {									\
-      EMACS_INT value = (BYTEPOS);				       	\
+      ptrdiff_t value = (BYTEPOS);				       	\
       if (byte_debug_flag)						\
 	byte_char_debug_check (b, charpos, value);			\
       return value;							\
@@ -85,7 +85,7 @@ clear_charpos_cache (struct buffer *b)
     {									\
       if (best_above - best_below == best_above_byte - best_below_byte)	\
         {								\
-	  EMACS_INT value = best_below_byte + (charpos - best_below);	\
+	  ptrdiff_t value = best_below_byte + (charpos - best_below);	\
 	  if (byte_debug_flag)						\
 	    byte_char_debug_check (b, charpos, value);			\
 	  return value;							\
@@ -94,9 +94,9 @@ clear_charpos_cache (struct buffer *b)
 }
 
 static void
-byte_char_debug_check (struct buffer *b, EMACS_INT charpos, EMACS_INT bytepos)
+byte_char_debug_check (struct buffer *b, ptrdiff_t charpos, ptrdiff_t bytepos)
 {
-  EMACS_INT nchars = 0;
+  ptrdiff_t nchars = 0;
 
   if (bytepos > BUF_GPT_BYTE (b))
     {
@@ -113,18 +113,18 @@ byte_char_debug_check (struct buffer *b, EMACS_INT charpos, EMACS_INT bytepos)
     abort ();
 }
 
-EMACS_INT
-charpos_to_bytepos (EMACS_INT charpos)
+ptrdiff_t
+charpos_to_bytepos (ptrdiff_t charpos)
 {
   return buf_charpos_to_bytepos (current_buffer, charpos);
 }
 
-EMACS_INT
-buf_charpos_to_bytepos (struct buffer *b, EMACS_INT charpos)
+ptrdiff_t
+buf_charpos_to_bytepos (struct buffer *b, ptrdiff_t charpos)
 {
   struct Lisp_Marker *tail;
-  EMACS_INT best_above, best_above_byte;
-  EMACS_INT best_below, best_below_byte;
+  ptrdiff_t best_above, best_above_byte;
+  ptrdiff_t best_below, best_below_byte;
 
   if (charpos < BUF_BEG (b) || charpos > BUF_Z (b))
     abort ();
@@ -242,12 +242,12 @@ buf_charpos_to_bytepos (struct buffer *b, EMACS_INT charpos)
 /* Used for debugging: recompute the bytepos corresponding to CHARPOS
    in the simplest, most reliable way.  */
 
-extern EMACS_INT verify_bytepos (EMACS_INT charpos) EXTERNALLY_VISIBLE;
-EMACS_INT
-verify_bytepos (EMACS_INT charpos)
+extern ptrdiff_t verify_bytepos (ptrdiff_t charpos) EXTERNALLY_VISIBLE;
+ptrdiff_t
+verify_bytepos (ptrdiff_t charpos)
 {
-  EMACS_INT below = 1;
-  EMACS_INT below_byte = 1;
+  ptrdiff_t below = 1;
+  ptrdiff_t below_byte = 1;
 
   while (below != charpos)
     {
@@ -266,12 +266,12 @@ verify_bytepos (EMACS_INT charpos)
 
 #define CONSIDER(BYTEPOS, CHARPOS)					\
 {									\
-  EMACS_INT this_bytepos = (BYTEPOS);					\
+  ptrdiff_t this_bytepos = (BYTEPOS);					\
   int changed = 0;							\
 									\
   if (this_bytepos == bytepos)						\
     {									\
-      EMACS_INT value = (CHARPOS);				       	\
+      ptrdiff_t value = (CHARPOS);				       	\
       if (byte_debug_flag)						\
 	byte_char_debug_check (b, value, bytepos);			\
       return value;							\
@@ -296,7 +296,7 @@ verify_bytepos (EMACS_INT charpos)
     {									\
       if (best_above - best_below == best_above_byte - best_below_byte)	\
 	{								\
-	  EMACS_INT value = best_below + (bytepos - best_below_byte);	\
+	  ptrdiff_t value = best_below + (bytepos - best_below_byte);	\
 	  if (byte_debug_flag)						\
 	    byte_char_debug_check (b, value, bytepos);			\
 	  return value;							\
@@ -304,12 +304,12 @@ verify_bytepos (EMACS_INT charpos)
     }									\
 }
 
-EMACS_INT
-buf_bytepos_to_charpos (struct buffer *b, EMACS_INT bytepos)
+ptrdiff_t
+buf_bytepos_to_charpos (struct buffer *b, ptrdiff_t bytepos)
 {
   struct Lisp_Marker *tail;
-  EMACS_INT best_above, best_above_byte;
-  EMACS_INT best_below, best_below_byte;
+  ptrdiff_t best_above, best_above_byte;
+  ptrdiff_t best_below, best_below_byte;
 
   if (bytepos < BUF_BEG_BYTE (b) || bytepos > BUF_Z_BYTE (b))
     abort ();
@@ -461,7 +461,8 @@ Then it no longer slows down editing in any buffer.
 Returns MARKER.  */)
   (Lisp_Object marker, Lisp_Object position, Lisp_Object buffer)
 {
-  register EMACS_INT charno, bytepos;
+  register ptrdiff_t charno;
+  register ptrdiff_t bytepos;
   register struct buffer *b;
   register struct Lisp_Marker *m;
 
@@ -502,14 +503,7 @@ Returns MARKER.  */)
     }
 
   CHECK_NUMBER_COERCE_MARKER (position);
-
-  charno = XINT (position);
-
-  if (charno < BUF_BEG (b))
-    charno = BUF_BEG (b);
-  if (charno > BUF_Z (b))
-    charno = BUF_Z (b);
-
+  charno = clip_to_bounds (BUF_BEG (b), XINT (position), BUF_Z (b));
   bytepos = buf_charpos_to_bytepos (b, charno);
 
   /* Every character is at least one byte.  */
@@ -536,7 +530,8 @@ Returns MARKER.  */)
 Lisp_Object
 set_marker_restricted (Lisp_Object marker, Lisp_Object pos, Lisp_Object buffer)
 {
-  register EMACS_INT charno, bytepos;
+  register ptrdiff_t charno;
+  register ptrdiff_t bytepos;
   register struct buffer *b;
   register struct Lisp_Marker *m;
 
@@ -577,14 +572,7 @@ set_marker_restricted (Lisp_Object marker, Lisp_Object pos, Lisp_Object buffer)
     }
 
   CHECK_NUMBER_COERCE_MARKER (pos);
-
-  charno = XINT (pos);
-
-  if (charno < BUF_BEGV (b))
-    charno = BUF_BEGV (b);
-  if (charno > BUF_ZV (b))
-    charno = BUF_ZV (b);
-
+  charno = clip_to_bounds (BUF_BEGV (b), XINT (pos), BUF_ZV (b));
   bytepos = buf_charpos_to_bytepos (b, charno);
 
   /* Every character is at least one byte.  */
@@ -609,7 +597,7 @@ set_marker_restricted (Lisp_Object marker, Lisp_Object pos, Lisp_Object buffer)
    character position and the corresponding byte position.  */
 
 Lisp_Object
-set_marker_both (Lisp_Object marker, Lisp_Object buffer, EMACS_INT charpos, EMACS_INT bytepos)
+set_marker_both (Lisp_Object marker, Lisp_Object buffer, ptrdiff_t charpos, ptrdiff_t bytepos)
 {
   register struct buffer *b;
   register struct Lisp_Marker *m;
@@ -657,7 +645,7 @@ set_marker_both (Lisp_Object marker, Lisp_Object buffer, EMACS_INT charpos, EMAC
    be outside the visible part.  */
 
 Lisp_Object
-set_marker_restricted_both (Lisp_Object marker, Lisp_Object buffer, EMACS_INT charpos, EMACS_INT bytepos)
+set_marker_restricted_both (Lisp_Object marker, Lisp_Object buffer, ptrdiff_t charpos, ptrdiff_t bytepos)
 {
   register struct buffer *b;
   register struct Lisp_Marker *m;
@@ -767,7 +755,7 @@ unchain_marker (register struct Lisp_Marker *marker)
 
 /* Return the char position of marker MARKER, as a C integer.  */
 
-EMACS_INT
+ptrdiff_t
 marker_position (Lisp_Object marker)
 {
   register struct Lisp_Marker *m = XMARKER (marker);
@@ -781,12 +769,12 @@ marker_position (Lisp_Object marker)
 
 /* Return the byte position of marker MARKER, as a C integer.  */
 
-EMACS_INT
+ptrdiff_t
 marker_byte_position (Lisp_Object marker)
 {
   register struct Lisp_Marker *m = XMARKER (marker);
   register struct buffer *buf = m->buffer;
-  register EMACS_INT i = m->bytepos;
+  register ptrdiff_t i = m->bytepos;
 
   if (!buf)
     error ("Marker does not point anywhere");
@@ -847,14 +835,9 @@ DEFUN ("buffer-has-markers-at", Fbuffer_has_markers_at, Sbuffer_has_markers_at,
   (Lisp_Object position)
 {
   register struct Lisp_Marker *tail;
-  register EMACS_INT charno;
+  register ptrdiff_t charno;
 
-  charno = XINT (position);
-
-  if (charno < BEG)
-    charno = BEG;
-  if (charno > Z)
-    charno = Z;
+  charno = clip_to_bounds (BEG, XINT (position), Z);
 
   for (tail = BUF_MARKERS (current_buffer); tail; tail = tail->next)
     if (tail->charpos == charno)

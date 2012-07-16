@@ -30,10 +30,6 @@ Boston, MA 02110-1301, USA.  */
 #include "msdos.h"
 #endif
 
-#ifndef NULL
-#define NULL (char *) 0
-#endif
-
 /* BUFSIZE is the initial size allocated for the buffer
    for reading the termcap file.
    It is not a limit.
@@ -660,10 +656,6 @@ gobble_line (int fd, register struct termcap_buffer *bufp, char *append_end)
 }
 
 #ifdef TEST
-
-#ifdef NULL
-#undef NULL
-#endif
 
 #include <stdio.h>
 

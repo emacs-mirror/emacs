@@ -56,9 +56,8 @@ lwlibdir = ../lwlib
 lispdir = ../lisp
 
 # Configuration files for .o files to depend on.
-M_FILE = @M_FILE@
 S_FILE = @S_FILE@
-config_h = config.h $(M_FILE) $(S_FILE)
+config_h = config.h $(S_FILE)
 
 bootstrap_exe = $(abs_builddir)/bootstrap-emacs$(EXEEXT)
 
@@ -113,6 +112,12 @@ TEMACS_LDFLAGS = $(LD_SWITCH_SYSTEM) $(LD_SWITCH_SYSTEM_TEMACS)
 
 ## $LDFLAGS or empty if NS_IMPL_GNUSTEP (for some reason).
 TEMACS_LDFLAGS2 = @TEMACS_LDFLAGS2@
+
+## If available, the full path to the paxctl program.
+## On grsecurity/PaX systems, unexec will fail due to a gap between
+## the bss section and the heap.  This can be prevented by disabling
+## memory randomization in temacs with "paxctl -r".  See bug#11398.
+PAXCTL = @PAXCTL@
 
 ## Some systems define this to request special libraries.
 LIBS_SYSTEM=@LIBS_SYSTEM@
@@ -404,6 +409,7 @@ emacs$(EXEEXT): temacs$(EXEEXT) $(etc)/DOC $(lisp) $(leimdir)/leim-list.el
 	    -f list-load-path-shadows || true; \
 	else \
 	  LC_ALL=C $(RUN_TEMACS) -batch -l loadup dump || exit 1; \
+	  test "X$(PAXCTL)" = X || $(PAXCTL) -zex emacs$(EXEEXT); \
 	  ln -f emacs$(EXEEXT) bootstrap-emacs$(EXEEXT); \
 	  ./emacs -batch -f list-load-path-shadows || true; \
 	fi
@@ -451,6 +457,8 @@ $(lib)/libgnu.a: $(config_h)
 temacs$(EXEEXT): $(START_FILES) stamp-oldxmenu $(obj) $(otherobj) $(lib)/libgnu.a
 	$(CC) $(LD_FIRSTFLAG) $(ALL_CFLAGS) $(TEMACS_LDFLAGS) $(TEMACS_LDFLAGS2) \
 	  -o temacs $(START_FILES) $(obj) $(otherobj) $(lib)/libgnu.a $(LIBES)
+	test "$(CANNOT_DUMP)" = "yes" || \
+	  test "X$(PAXCTL)" = X || $(PAXCTL) -r temacs$(EXEEXT)
 
 ## The following oldxmenu-related rules are only (possibly) used if
 ## HAVE_X11 && !USE_GTK, but there is no harm in always defining them
@@ -534,10 +542,10 @@ extraclean: distclean
 ctagsfiles1 = [xyzXYZ]*.[hcm]
 ctagsfiles2 = [a-wA-W]*.[hcm]
 
-TAGS: $(srcdir)/$(ctagsfiles1) $(srcdir)/$(ctagsfiles2) $(M_FILE) $(S_FILE)
+TAGS: $(srcdir)/$(ctagsfiles1) $(srcdir)/$(ctagsfiles2) $(S_FILE)
 	../lib-src/etags --include=TAGS-LISP --include=$(lwlibdir)/TAGS \
 	  --regex='/[ 	]*DEFVAR_[A-Z_ 	(]+"\([^"]+\)"/' \
-	  $(srcdir)/$(ctagsfiles1) $(srcdir)/$(ctagsfiles2) $(M_FILE) $(S_FILE)
+	  $(srcdir)/$(ctagsfiles1) $(srcdir)/$(ctagsfiles2) $(S_FILE)
 frc:
 TAGS-LISP: frc
 	$(MAKE) -f $(lispdir)/Makefile TAGS-LISP ETAGS=../lib-src/etags
@@ -598,6 +606,7 @@ bootstrap-emacs$(EXEEXT): temacs$(EXEEXT)
 	  ln -f temacs$(EXEEXT) bootstrap-emacs$(EXEEXT); \
 	else \
 	  $(RUN_TEMACS) --batch --load loadup bootstrap || exit 1; \
+	  test "X$(PAXCTL)" = X || $(PAXCTL) -zex emacs$(EXEEXT); \
 	  mv -f emacs$(EXEEXT) bootstrap-emacs$(EXEEXT); \
 	fi
 	@: Compile some files earlier to speed up further compilation.

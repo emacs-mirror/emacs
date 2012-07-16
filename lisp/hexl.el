@@ -420,8 +420,7 @@ You can use \\[hexl-find-file] to visit a file in Hexl mode.
                                   " \\(?: .+\n[a-f0-9]+: \\)?"))
              textre))
 	 bound noerror count))
-    (let ((isearch-search-fun-function nil))
-      (isearch-search-fun))))
+    (isearch-search-fun-default)))
 
 (defvar hexl-in-save-buffer nil)
 

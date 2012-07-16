@@ -83,8 +83,7 @@
 ;; implemented in subr.el.
 (add-hook 'after-load-functions (lambda (f) (garbage-collect)))
 
-;; We specify .el in case someone compiled version.el by mistake.
-(load "version.el")
+(load "version")
 
 (load "widget")
 (load "custom")
@@ -178,7 +177,7 @@
 (load "rfn-eshadow")
 
 (load "menu-bar")
-(load "paths.el")  ;Don't get confused if someone compiled paths by mistake.
+(load "paths")
 (load "emacs-lisp/lisp")
 (load "textmodes/page")
 (load "register")
@@ -318,6 +317,21 @@
 
 ;; At this point, we're ready to resume undo recording for scratch.
 (buffer-enable-undo "*scratch*")
+
+(when (hash-table-p purify-flag)
+  (let ((strings 0)
+        (vectors 0)
+        (conses 0)
+        (others 0))
+    (maphash (lambda (k v)
+               (cond
+                ((stringp k) (setq strings (1+ strings)))
+                ((vectorp k) (setq vectors (1+ vectors)))
+                ((consp k)   (setq conses  (1+ conses)))
+                (t           (setq others  (1+ others)))))
+             purify-flag)
+    (message "Pure-hashed: %d strings, %d vectors, %d conses, %d others"
+             strings vectors conses others)))
 
 ;; Avoid error if user loads some more libraries now and make sure the
 ;; hash-consing hash table is GC'd.

@@ -130,6 +130,7 @@ In case of a formatting STRING the following specifiers can be used:
 %s Summary, see `icalendar-import-format-summary'
 %t Status, see `icalendar-import-format-status'
 %u URL, see `icalendar-import-format-url'
+%U UID, see `icalendar-import-format-uid'
 
 A formatting FUNCTION will be called with a VEVENT as its only
 argument.  It must return a string.  See
@@ -176,6 +177,14 @@ replaced by the organizer."
   "Format string defining how the URL element is formatted.
 This applies only if the URL is not empty! `%s' is replaced by
 the URL."
+  :type 'string
+  :group 'icalendar)
+
+(defcustom icalendar-import-format-uid
+  "\n UID: %s"
+  "Format string defining how the UID element is formatted.
+This applies only if the UID is not empty! `%s' is replaced by
+the UID."
   :type 'string
   :group 'icalendar)
 
@@ -1017,7 +1026,8 @@ FExport diary data into iCalendar file: ")
                     (org (cdr (assoc 'org other-elements)))
                     (sta (cdr (assoc 'sta other-elements)))
                     (sum (cdr (assoc 'sum other-elements)))
-                    (url (cdr (assoc 'url other-elements))))
+                    (url (cdr (assoc 'url other-elements)))
+                    (uid (cdr (assoc 'uid other-elements))))
                 (if cla
                     (setq contents (concat contents "\nCLASS:" cla)))
                 (if des
@@ -1031,10 +1041,12 @@ FExport diary data into iCalendar file: ")
                 ;;(if sum
                 ;;    (setq contents (concat contents "\nSUMMARY:" sum)))
                 (if url
-                    (setq contents (concat contents "\nURL:" url))))
+                    (setq contents (concat contents "\nURL:" url)))
 
-	      (setq header (concat "\nBEGIN:VEVENT\nUID:"
-				   (icalendar--create-uid entry-full contents)))
+                (setq header (concat "\nBEGIN:VEVENT\nUID:"
+                                     (or uid
+                                         (icalendar--create-uid entry-full 
+                                                                contents)))))
               (setq result (concat result header contents "\nEND:VEVENT")))
           ;; handle errors
           (error
@@ -1098,7 +1110,8 @@ Returns an alist."
         ;; can't do anything
         nil
       ;; split summary-and-rest
-      (let* ((s icalendar-import-format)
+      (let* ((case-fold-search nil)
+             (s icalendar-import-format)
              (p-cla (or (string-match "%c" icalendar-import-format) -1))
              (p-des (or (string-match "%d" icalendar-import-format) -1))
              (p-loc (or (string-match "%l" icalendar-import-format) -1))
@@ -1106,9 +1119,10 @@ Returns an alist."
              (p-sum (or (string-match "%s" icalendar-import-format) -1))
              (p-sta (or (string-match "%t" icalendar-import-format) -1))
              (p-url (or (string-match "%u" icalendar-import-format) -1))
-             (p-list (sort (list p-cla p-des p-loc p-org p-sta p-sum p-url) '<))
+             (p-uid (or (string-match "%U" icalendar-import-format) -1))
+             (p-list (sort (list p-cla p-des p-loc p-org p-sta p-sum p-url p-uid) '<))
 	     (ct 0)
-             pos-cla pos-des pos-loc pos-org pos-sta pos-sum pos-url)
+             pos-cla pos-des pos-loc pos-org pos-sta pos-sum pos-url pos-uid)
         (dotimes (i (length p-list))
 	  ;; Use 'ct' to keep track of current position in list
           (cond ((and (>= p-cla 0) (= (nth i p-list) p-cla))
@@ -1131,7 +1145,10 @@ Returns an alist."
                  (setq pos-sum (* 2 ct)))
                 ((and (>= p-url 0) (= (nth i p-list) p-url))
 		 (setq ct (+ ct 1))
-                 (setq pos-url (* 2 ct)))) )
+                 (setq pos-url (* 2 ct)))
+                ((and (>= p-uid 0) (= (nth i p-list) p-uid))
+		 (setq ct (+ ct 1))
+                 (setq pos-uid (* 2 ct)))) )
         (mapc (lambda (ij)
                 (setq s (icalendar--rris (car ij) (cadr ij) s t t)))
               (list
@@ -1149,13 +1166,15 @@ Returns an alist."
                (list "%t"
                      (concat "\\(" icalendar-import-format-status "\\)??"))
                (list "%u"
-                     (concat "\\(" icalendar-import-format-url "\\)??"))))
+                     (concat "\\(" icalendar-import-format-url "\\)??"))
+               (list "%U"
+                     (concat "\\(" icalendar-import-format-uid "\\)??"))))
 	;; Need the \' regexp in order to detect multi-line items
         (setq s (concat "\\`"
 			   (icalendar--rris "%s" "\\(.*?\\)" s nil t)
                         "\\'"))
         (if (string-match s summary-and-rest)
-            (let (cla des loc org sta sum url)
+            (let (cla des loc org sta sum url uid)
               (if (and pos-sum (match-beginning pos-sum))
                   (setq sum (substring summary-and-rest
                                        (match-beginning pos-sum)
@@ -1184,13 +1203,18 @@ Returns an alist."
                   (setq url (substring summary-and-rest
                                        (match-beginning pos-url)
                                        (match-end pos-url))))
+              (if (and pos-uid (match-beginning pos-uid))
+                  (setq uid (substring summary-and-rest
+                                       (match-beginning pos-uid)
+                                       (match-end pos-uid))))
               (list (if cla (cons 'cla cla) nil)
                     (if des (cons 'des des) nil)
                     (if loc (cons 'loc loc) nil)
                     (if org (cons 'org org) nil)
                     (if sta (cons 'sta sta) nil)
                     ;;(if sum (cons 'sum sum) nil)
-                    (if url (cons 'url url) nil))))))))
+                    (if url (cons 'url url) nil)
+                    (if uid (cons 'uid uid) nil))))))))
 
 ;; subroutines for icalendar-export-region
 (defun icalendar--convert-ordinary-to-ical (nonmarker entry-main)
@@ -1864,6 +1888,7 @@ buffer `*icalendar-errors*'."
   (if (functionp icalendar-import-format)
       (funcall icalendar-import-format event)
     (let ((string icalendar-import-format)
+          (case-fold-search nil)
         (conversion-list
          '(("%c" CLASS       icalendar-import-format-class)
            ("%d" DESCRIPTION icalendar-import-format-description)
@@ -1871,7 +1896,8 @@ buffer `*icalendar-errors*'."
            ("%o" ORGANIZER   icalendar-import-format-organizer)
            ("%s" SUMMARY     icalendar-import-format-summary)
            ("%t" STATUS      icalendar-import-format-status)
-           ("%u" URL         icalendar-import-format-url))))
+           ("%u" URL         icalendar-import-format-url)
+           ("%U" UID         icalendar-import-format-uid))))
     ;; convert the specifiers in the format string
     (mapc (lambda (i)
 	    (let* ((spec (car i))

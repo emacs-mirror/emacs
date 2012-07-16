@@ -49,12 +49,12 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define if Emacs cannot be dumped on your system. */
 #undef CANNOT_DUMP
 
-/* Define to one of `_getb67', `GETB67', `getb67' for Cray-2 and Cray-YMP
-   systems. This function is required for `alloca.c' support on those systems.
+/* Define to one of '_getb67', 'GETB67', 'getb67' for Cray-2 and Cray-YMP
+   systems. This function is required for 'alloca.c' support on those systems.
    */
 #undef CRAY_STACKSEG_END
 
-/* Define to 1 if using `alloca.c'. */
+/* Define to 1 if using 'alloca.c'. */
 #undef C_ALLOCA
 
 /* Define to 1 for DGUX with <sys/dg_sys_info.h>. */
@@ -91,9 +91,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 if gettimeofday accepts only one argument. */
 #undef GETTIMEOFDAY_ONE_ARGUMENT
-
-/* Define to make the limit macros in <stdint.h> visible. */
-#undef GL_TRIGGER_STDC_LIMIT_MACROS
 
 /* enable some gnulib portability checks */
 #undef GNULIB_PORTCHECK
@@ -269,9 +266,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the `getdelim' function. */
 #undef HAVE_GETDELIM
 
-/* Define to 1 if you have the `getdomainname' function. */
-#undef HAVE_GETDOMAINNAME
-
 /* Define to 1 if you have the `getgrent' function. */
 #undef HAVE_GETGRENT
 
@@ -310,9 +304,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 if you have the `getsockname' function. */
 #undef HAVE_GETSOCKNAME
-
-/* Define to 1 if you have the `getsockopt' function. */
-#undef HAVE_GETSOCKOPT
 
 /* Define to 1 if you have the `gettimeofday' function. */
 #undef HAVE_GETTIMEOFDAY
@@ -501,9 +492,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the <linux/version.h> header file. */
 #undef HAVE_LINUX_VERSION_H
 
-/* Define to 1 if you have the <locale.h> header file. */
-#undef HAVE_LOCALE_H
-
 /* Define to 1 if you have the `localtime_r' function. */
 #undef HAVE_LOCALTIME_R
 
@@ -513,7 +501,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you support file names longer than 14 characters. */
 #undef HAVE_LONG_FILE_NAMES
 
-/* Define to 1 if the system has the type `long long int'. */
+/* Define to 1 if the system has the type 'long long int'. */
 #undef HAVE_LONG_LONG_INT
 
 /* Define to 1 if you have the `lrand48' function. */
@@ -540,23 +528,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the <malloc/malloc.h> header file. */
 #undef HAVE_MALLOC_MALLOC_H
 
-/* Define to 1 if you have the `mblen' function. */
-#undef HAVE_MBLEN
-
-/* Define to 1 if you have the `mbrlen' function. */
-#undef HAVE_MBRLEN
-
-/* Define to 1 if you have the `mbsinit' function. */
-#undef HAVE_MBSINIT
-
 /* Define to 1 if <wchar.h> declares mbstate_t. */
 #undef HAVE_MBSTATE_T
 
 /* Define to 1 if you have the <memory.h> header file. */
 #undef HAVE_MEMORY_H
-
-/* Define to 1 if you have the `mempcpy' function. */
-#undef HAVE_MEMPCPY
 
 /* Define to 1 if you have mouse menus. (This is automatic if you use X, but
    the option to specify it remains.) It is also defined with other window
@@ -574,9 +550,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define if you have mouse support. */
 #undef HAVE_MOUSE
-
-/* Define to 1 if you have the `mremap' function. */
-#undef HAVE_MREMAP
 
 /* Define to 1 if you have the <net/if_dl.h> header file. */
 #undef HAVE_NET_IF_DL_H
@@ -671,9 +644,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 if you have the `setsid' function. */
 #undef HAVE_SETSID
-
-/* Define to 1 if you have the `setsockopt' function. */
-#undef HAVE_SETSOCKOPT
 
 /* Define to 1 if you have the `shutdown' function. */
 #undef HAVE_SHUTDOWN
@@ -771,9 +741,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the `sync' function. */
 #undef HAVE_SYNC
 
-/* Define to 1 if you have the `sysinfo' function. */
-#undef HAVE_SYSINFO
-
 /* Define to 1 if you have the <sys/bitypes.h> header file. */
 #undef HAVE_SYS_BITYPES_H
 
@@ -782,9 +749,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 if you have the <sys/loadavg.h> header file. */
 #undef HAVE_SYS_LOADAVG_H
-
-/* Define to 1 if you have the <sys/mman.h> header file. */
-#undef HAVE_SYS_MMAN_H
 
 /* Define to 1 if you have the <sys/param.h> header file. */
 #undef HAVE_SYS_PARAM_H
@@ -825,9 +789,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have <sys/wait.h> that is POSIX.1 compatible. */
 #undef HAVE_SYS_WAIT_H
 
-/* Define to 1 if you have the <sys/_mbstate_t.h> header file. */
-#undef HAVE_SYS__MBSTATE_T_H
-
 /* Define to 1 if you have the <term.h> header file. */
 #undef HAVE_TERM_H
 
@@ -854,13 +815,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the `tzset' function. */
 #undef HAVE_TZSET
 
-/* Define to 1 if you have the `ualarm' function. */
-#undef HAVE_UALARM
-
 /* Define to 1 if you have the <unistd.h> header file. */
 #undef HAVE_UNISTD_H
 
-/* Define to 1 if the system has the type `unsigned long long int'. */
+/* Define to 1 if the system has the type 'unsigned long long int'. */
 #undef HAVE_UNSIGNED_LONG_LONG_INT
 
 /* Define to 1 if you have the <util.h> header file. */
@@ -936,9 +894,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the `XScreenResourceString' function. */
 #undef HAVE_XSCREENRESOURCESTRING
 
-/* Define to 1 if you have the `XSetWMProtocols' function. */
-#undef HAVE_XSETWMPROTOCOLS
-
 /* Define if you have usable i18n support. */
 #undef HAVE_X_I18N
 
@@ -972,7 +927,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if localtime caches TZ. */
 #undef LOCALTIME_CACHE
 
-/* Define to 1 if `lstat' dereferences a symlink specified with a trailing
+/* Define to 1 if 'lstat' dereferences a symlink specified with a trailing
    slash. */
 #undef LSTAT_FOLLOWS_SLASHED_SYMLINK
 
@@ -1035,13 +990,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to the version of this package. */
 #undef PACKAGE_VERSION
-
-/* Define as `void' if your compiler accepts `void *'; otherwise define as
-   `char'. */
-#undef POINTER_TYPE
-
-/* Define to 1 if the C compiler supports function prototypes. */
-#undef PROTOTYPES
 
 /* Define to 1 if pthread_sigmask(), when it fails, returns -1 and sets errno.
    */
@@ -1187,6 +1135,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* enable compile-time and run-time bounds-checking, and some warnings */
 #undef _FORTIFY_SOURCE
 
+/* Define to 1 if Gnulib overrides 'struct stat' on Windows so that struct
+   stat.st_size becomes 64-bit. */
+#undef _GL_WINDOWS_64_BIT_ST_SIZE
+
 /* Define to 1 to make fseeko visible on some hosts (e.g. glibc 2.2). */
 #undef _LARGEFILE_SOURCE
 
@@ -1199,12 +1151,13 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define if GNUstep uses ObjC exceptions. */
 #undef _NATIVE_OBJC_EXCEPTIONS
 
-/* The _Noreturn keyword of draft C1X.  */
-#ifndef _Noreturn
+/* The _Noreturn keyword of C11.  */
+#if ! (defined _Noreturn \
+       || (defined __STDC_VERSION__ && 201112 <= __STDC_VERSION__))
 # if (3 <= __GNUC__ || (__GNUC__ == 2 && 8 <= __GNUC_MINOR__) \
       || 0x5110 <= __SUNPRO_C)
 #  define _Noreturn __attribute__ ((__noreturn__))
-# elif 1200 <= _MSC_VER
+# elif defined _MSC_VER && 1200 <= _MSC_VER
 #  define _Noreturn __declspec (noreturn)
 # else
 #  define _Noreturn
@@ -1216,7 +1169,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    this defined. */
 #undef _POSIX_1_SOURCE
 
-/* Define to 1 if you need to in order for `stat' and other things to work. */
+/* Define to 1 if you need to in order for 'stat' and other things to work. */
 #undef _POSIX_SOURCE
 
 /* Define to 500 only on HP-UX. */
@@ -1252,28 +1205,12 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    used. */
 #undef __GETOPT_PREFIX
 
-/* Define like PROTOTYPES; this can be used by system headers. */
-#undef __PROTOTYPES
-
-/* Ensure that <stdint.h> defines the limit macros, since gnulib's
-   <inttypes.h> relies on them.  */
-#if defined __cplusplus && !defined __STDC_LIMIT_MACROS && GL_TRIGGER_STDC_LIMIT_MACROS
-# define __STDC_LIMIT_MACROS 1
-#endif
-
-
 /* Define to compiler's equivalent of C99 restrict keyword in array
    declarations. Define as empty for no equivalent. */
 #undef __restrict_arr
 
-/* Define to the used machine dependent file. */
-#undef config_machfile
-
 /* Define to the used os dependent file. */
 #undef config_opsysfile
-
-/* Define to empty if `const' does not conform to ANSI C. */
-#undef const
 
 /* A replacement for va_copy, if needed.  */
 #define gl_va_copy(a,b) ((a) = (b))
@@ -1368,10 +1305,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define as `fork' if `vfork' does not work. */
 #undef vfork
 
-/* Define to empty if the keyword `volatile' does not work. Warning: valid
-   code using `volatile' can become incorrect without. Disable with care. */
-#undef volatile
-
 
 /* On AIX 3 this must be included before any other include file.  */
 #include <alloca.h>
@@ -1392,11 +1325,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define subprocesses
 
-/* Include the os and machine dependent files.  */
+/* Include the os dependent file.  */
 #include config_opsysfile
-#ifdef config_machfile
-# include config_machfile
-#endif
 
 /* GNUstep needs a bit more pure memory.  Of the existing knobs,
    SYSTEM_PURESIZE_EXTRA seems like the least likely to cause problems.
@@ -1419,38 +1349,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define RE_TRANSLATE_P(TBL) (!(INTEGERP (TBL) && XINT (TBL) == 0))
 #endif
 #endif
-
-/* These default definitions are good for almost all machines.
-   Any exceptions should override them in m/MACHINE.h.
-   They must be usable in preprocessor conditionals.  */
-
-#ifndef BITS_PER_CHAR
-#define BITS_PER_CHAR 8
-#endif
-
-#ifndef BITS_PER_SHORT
-#define BITS_PER_SHORT 16
-#endif
-
-#ifndef BITS_PER_INT
-#define BITS_PER_INT 32
-#endif
-
-#ifndef BITS_PER_LONG
-#ifdef _LP64
-#define BITS_PER_LONG 64
-#else
-#define BITS_PER_LONG 32
-#endif
-#endif
-
-#if !defined BITS_PER_LONG_LONG && HAVE_LONG_LONG_INT
-#define BITS_PER_LONG_LONG 64
-#endif
-
-/* Define if the compiler supports function prototypes.  It may do so but
-   not define __STDC__ (e.g. DEC C by default) or may define it as zero.  */
-#undef PROTOTYPES
 
 #include <string.h>
 #include <stdlib.h>

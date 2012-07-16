@@ -1,4 +1,208 @@
+2012-06-03  Glenn Morris  <rgm@gnu.org>
+
+	* INSTALL, make-dist: Remove rcs-checkin.
+
+2012-06-03  Ulrich Müller  <ulm@gentoo.org>
+
+	* configure.in (PAXCTL): Check for paxctl. (Bug#11398)
+
+2012-06-01  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Remove --disable-maintainer-mode option from 'configure'.  (Bug#11555)
+	It is confusingly named and rarely useful.  See, for example,
+	<http://lists.gnu.org/archive/html/emacs-devel/2011-12/msg00089.html>.
+	* INSTALL.BZR: Don't mention --disable-maintainer-mode.
+	* Makefile.in (MAINTAINER_MODE_FLAG): Remove; all uses removed.
+	* configure.in: Remove --disable-maintainer-mode.
+	(USE_MAINTAINER_MODE, MAINT): Remove.
+
+2012-05-28  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Make 'configure' a bit smaller and faster.
+	* configure.in (INSTALL_INFO): Set it with one call to
+	AC_PATH_PROG, not three.
+	(PKG_CONFIG): Hoist this out of PKG_CHECK_MODULES, since it's
+	so likely that it'll be needed.
+	(AC_CHECK_HEADERS_ONCE): Prefer to AC_CHECK_HEADERS where either works.
+	(AC_PROG_MAKE_SET): Remove; Automake does this.
+	(sysinfo): Do not check for this function, as it's never used.
+	(tzset): Check for this function just once.
+	* m4/manywarnings.m4: Sync from gnulib, incorporating the following:
+	2012-05-27 manywarnings: remove duplicate -Wmultichar entry
+
+2012-05-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* config.bat (lib): Create/update lib/stdalign.in-h and
+	lib/sys_types.in-h.
+
+	* lib/makefile.w32-in ($(BLD)/md5.$(O)):
+	($(BLD)/sha1.$(O)):
+	($(BLD)/sha256.$(O)):
+	($(BLD)/sha512.$(O)): Depend on $(EMACS_ROOT)/nt/inc/stdalign.h.
+	Suggested by Christoph Scholtes <cschol2112@googlemail.com>.
+
+	* lib/getopt_.h: Regenerate.
+
+2012-05-27  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Assume gnulib does largefile.
+	Gnulib does the largefile configuration anyway, so when configure.in
+	invokes AC_SYS_LARGEFILE, that bloats 'configure' unnecessarily.
+	* configure.in (AC_SYS_LARGEFILE): Remove.
+	* lib/gnulib.mk: Autoupdate.
+
+2012-05-26  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Merge from gnulib.  (Bug#11527)
+
+	The build procedure now creates <stdalign.h> and <sys/types.h> for
+	older hosts that lack a working <stdalign.h> or whose
+	<sys/types.h> does not define pid_t, size_t, ssize_t, mode_t.  New
+	symbols such as WINDOWS_64_BIT_OFF_T may require attention in the
+	msdos and nt builds.
+
+	Here is a precis of gnulib changes that seem relevant; please see
+	the gnulib ChangeLog for details.
+
+	2012-05-18 crypto: fix bug in large buffer handling
+	2012-05-14 ignore-value.h: remove unused _GL_ATTRIBUTE_DEPRECATED
+	2012-05-10 _Noreturn: port config.h to gcc -Wundef
+	2012-05-08 warnings.m4: give a means to specify the program to compile
+	2012-05-07 stdint: be more consistent with glibc, SunOS libc
+	2012-04-21 Large File Support for native Windows platforms.
+	2012-04-14 stat: Bypass buggy override in mingw64.
+	2012-03-29 stdio: don't assume gets any more
+	2012-03-24 Enable common subexpression optimization in GCC.
+	2012-02-09 maint: replace FSF snail-mail addresses with URLs
+	2012-01-30 sys_stat: Fix support for mingw64 and MSVC.
+	2012-01-28 strtoimax: eliminate need for stdint.h, inttypes.h checks
+	2012-01-21 stdint: Add support for Android.
+	2012-01-15 Improve support for MSVC 9.
+	2012-01-08 mktime: Avoid compilation error on Solaris 11.
+	2012-01-05 Use ', not `, for quoting output.
+	2012-01-05 strtoimax: Don't replace systems where intmax_t is int.
+	2012-01-05 strtoimax: Work around AIX 5.1 bug.
+	2012-01-05 inttypes: Modernize.
+	2011-12-13 inttypes, stdint: add C++11 support
+	2011-11-26 Fix conflict between two instantiations of module 'unistd'.
+	2011-11-21 _Noreturn: Check that _MSC_VER is defined
+	2011-11-10 ptsname_r: Avoid compilation error on OSF/1 5.1.
+	2011-11-09 raise: fix mingw handling of SIGPIPE
+	2011-10-27 Add stdalign module and use it in other modules.
+
+	* lib/stdalign.in.h, lib/sys_types.in.h, m4/off_t.m4, m4/stdalign.m4:
+	* m4/sys_types_h.m4:
+	New files.
+	* build-aux/move-if-change, build-aux/snippet/_Noreturn.h:
+	* build-aux/snippet/arg-nonnull.h, build-aux/snippet/c++defs.h:
+	* build-aux/snippet/warn-on-use.h, doc/misc/texinfo.tex:
+	* lib/alloca.in.h, lib/allocator.h, lib/careadlinkat.c:
+	* lib/careadlinkat.h, lib/dosname.h, lib/dup2.c, lib/filemode.c:
+	* lib/filemode.h, lib/ftoastr.c, lib/ftoastr.h, lib/getloadavg.c:
+	* lib/getopt.c, lib/getopt.in.h, lib/getopt1.c, lib/getopt_int.h:
+	* lib/gettext.h, lib/gnulib.mk, lib/ignore-value.h, lib/intprops.h:
+	* lib/inttypes.in.h, lib/lstat.c, lib/md5.c, lib/md5.h, lib/mktime.c:
+	* lib/pathmax.h, lib/pthread_sigmask.c, lib/readlink.c, lib/sha1.c:
+	* lib/sha1.h, lib/sha256.c, lib/sha256.h, lib/sha512.c, lib/sha512.h:
+	* lib/signal.in.h, lib/sigprocmask.c, lib/stat.c, lib/stdarg.in.h:
+	* lib/stdbool.in.h, lib/stddef.in.h, lib/stdint.in.h, lib/stdio.in.h:
+	* lib/stdlib.in.h, lib/strftime.c, lib/strftime.h, lib/strtoimax.c:
+	* lib/strtol.c, lib/strtoll.c, lib/strtoul.c, lib/strtoull.c:
+	* lib/symlink.c, lib/sys_stat.in.h, lib/time.in.h, lib/time_r.c:
+	* lib/u64.h, lib/unistd.in.h, lib/verify.h, m4/00gnulib.m4:
+	* m4/alloca.m4, m4/c-strtod.m4, m4/dup2.m4, m4/extensions.m4:
+	* m4/filemode.m4, m4/getloadavg.m4, m4/getopt.m4, m4/gl-comp.m4:
+	* m4/gnulib-common.m4, m4/gnulib-tool.m4, m4/include_next.m4:
+	* m4/inttypes.m4, m4/largefile.m4, m4/longlong.m4, m4/lstat.m4:
+	* m4/md5.m4, m4/mktime.m4, m4/multiarch.m4, m4/nocrash.m4:
+	* m4/pathmax.m4, m4/pthread_sigmask.m4, m4/readlink.m4, m4/sha1.m4:
+	* m4/sha256.m4, m4/sha512.m4, m4/signal_h.m4, m4/signalblocking.m4:
+	* m4/socklen.m4, m4/ssize_t.m4, m4/st_dm_mode.m4, m4/stat.m4:
+	* m4/stdarg.m4, m4/stdbool.m4, m4/stddef_h.m4, m4/stdint.m4:
+	* m4/stdio_h.m4, m4/stdlib_h.m4, m4/strftime.m4, m4/strtoimax.m4:
+	* m4/strtoll.m4, m4/strtoull.m4, m4/strtoumax.m4, m4/symlink.m4:
+	* m4/sys_stat_h.m4, m4/time_h.m4, m4/time_r.m4, m4/tm_gmtoff.m4:
+	* m4/unistd_h.m4, m4/warnings.m4, m4/wchar_t.m4:
+	Update from gnulib.
+
+2012-05-22  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Remove src/m/*.
+	* configure.in: Remove all mention of src/m/*.
+	(machine, machfile, M_FILE, config_machfile, and_machfile): Remove.
+	All uses removed.
+	(BITS_PER_CHAR, BITS_PER_SHORT, BITS_PER_INT, BITS_PER_LONG)
+	(BITS_PER_LONG_LONG): Move to src/lisp.h.
+	* lib/makefile.w32-in: Remove dependencies on
+	$(EMACS_ROOT)/src/m/intel386.h.
+	* make-dist: Don't make links to src/m.
+
+2012-05-22  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* Makefile.in (ACLOCAL_INPUTS): Fix up gnulib-comp.m4 name.  (Bug#11529)
+	Without this further fix, aclocal was being invoked unnecessarily.
+
+2012-05-22  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (blessmail, install-arch-dep, uninstall):
+	Check cd lib-src works.
+	(install-arch-dep, uninstall): Remove unneeded subshells.
+
+2012-05-21  Glenn Morris  <rgm@gnu.org>
+
+	* update-subdirs: Move to build-aux/.
+	* make-dist, Makefile.in (install-arch-indep): Update for this change.
+
+	* Makefile.in (leimdir): New, set by configure.
+	(COPYDIR, COPYDESTS): Add leim directories.
+	(install-leim): Remove.
+	(install-arch-indep): Handle leim installation directly.
+
+	* vpath.sed: Remove unused file.
+	* make-dist: No more vpath.sed.
+
+2012-05-21  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use full name for m4/gnulib-comp.m4.  (Bug#11529)
+	Previously the file was named m4/gl-comp.m4 due to DOS 8+3 restrictions,
+	even though the file's name in gnulib is m4/gnulib-comp.m4.
+	This had a problem when merging from gnulib, as the code temporarily
+	renamed it to the full name, causing problems when interrupted.
+	Now the file has its full name, with the idea that we will find
+	a solution for MS-DOS that does not affect the rest of Emacs.
+	* m4/gnulib-comp.m4: Rename from m4/gl-comp.m4.
+
+	Assume C89 or later.
+	* configure.in (AC_C_PROTOTYPES, AC_C_VOLATILE, AC_C_CONST)
+	(POINTER_TYPE, PROTOTYPES): Remove.
+
+	Make merging from gnulib a script, not a makefile action.
+	Putting it in a makefile has some problems with reflection, as
+	merging from gnulib updates 'configure', which can update the makefile.
+	Putting it in a standalone script breaks this loop.
+	* Makefile.in (gnulib_srcdir, $(gnulib_srcdir), DOS_gnulib_comp.m4)
+	(GNULIB_MODULES, GNULIB_TOOL_FLAGS, sync-from-gnulib):
+	Remove, moving the actions to the script admin/merge-gnulib.
+
+2012-05-21  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in (LEIM_INSTALLDIR):
+	Rename to leimdir, treat like lispdir.
+
+2012-05-21  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (install-arch-indep, install-doc, install-info)
+	(uninstall): Scrap superfluous subshells.
+
+2012-05-19  Ulrich Mueller  <ulm@gentoo.org>
+
+	* Makefile.in (install-etc): Respect DESTDIR.  (Bug#11518)
+
 2012-05-19  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* configure.in (AC_CHECK_FUNCS): Remove XSetWMProtocols,
+	getdomainname, mblen (twice), mbrlen (twice), mbsinit, ualarm,
+	getsockopt, setsockopt, mremap, mempcpy.
 
 	* configure.in (machine): Do not set to 'vax', since src/m/vax.h
 	is being removed.
@@ -7,7 +211,6 @@
 2012-05-19  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (install-arch-indep): Remove unneeded subshell.
-	Combine some rm commands.
 
 	* Makefile.in (install-arch-indep): Remove unneeded chmod.
 	Set permissions of lisp/subdirs.el.

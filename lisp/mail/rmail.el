@@ -100,8 +100,6 @@ its character representation and its display representation.")
   "The current header display style choice, one of
 'normal (selected headers) or 'full (all headers).")
 
-;; rmail-spool-directory and rmail-file-name are defined in paths.el.
-
 (defgroup rmail nil
   "Mail reader for Emacs."
   :group 'mail)
@@ -142,6 +140,40 @@ its character representation and its display representation.")
   "Rmail editing."
   :prefix "rmail-edit-"
   :group 'rmail)
+
+;;;###autoload
+(defcustom rmail-file-name (purecopy "~/RMAIL")
+  "Name of user's primary mail file."
+  :type 'string
+  :group 'rmail
+  :version "21.1")
+
+;;;###autoload
+(put 'rmail-spool-directory 'standard-value
+     '((cond ((file-exists-p "/var/mail") "/var/mail/")
+	     ((file-exists-p "/var/spool/mail") "/var/spool/mail/")
+	     ((memq system-type '(hpux usg-unix-v irix)) "/usr/mail/")
+	     (t "/usr/spool/mail/"))))
+
+;;;###autoload
+(defcustom rmail-spool-directory
+  (purecopy
+  (cond ((file-exists-p "/var/mail")
+	 ;; SVR4 and recent BSD are said to use this.
+	 ;; Rather than trying to know precisely which systems use it,
+	 ;; let's assume this dir is never used for anything else.
+	 "/var/mail/")
+	;; Many GNU/Linux systems use this name.
+	((file-exists-p "/var/spool/mail") "/var/spool/mail/")
+	((memq system-type '(hpux usg-unix-v irix)) "/usr/mail/")
+	(t "/usr/spool/mail/")))
+  "Name of directory used by system mailer for delivering new mail.
+Its name should end with a slash."
+  :initialize 'custom-initialize-delay
+  :type 'directory
+  :group 'rmail)
+
+;;;###autoload(custom-initialize-delay 'rmail-spool-directory nil)
 
 (defcustom rmail-movemail-program nil
   "If non-nil, the file name of the `movemail' program."

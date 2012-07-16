@@ -30,8 +30,9 @@
 ##   sed -e 's/"[ )].*//' -n -e '/(load "/ s/.*load "//p' loadup.el | \
 ##   grep -vE 'site-|ldefs-boot'
 ## minus any duplicates.
-## Note that you cannot just add a ".elc" extension to every file,
-## since some of them are no-byte-compile (eg some language/ ones).
+## Note that you can generally just add a ".elc" extension to every file
+## that does not have an explicit .el extension, but beware of any
+## no-byte-compile ones.
 
 ## Confusingly, term/internal is not in loadup, but is unconditionally
 ## loaded by pc-win, which is.
@@ -53,7 +54,7 @@ lisp = \
 	$(lispsource)/emacs-lisp/byte-run.elc \
 	$(lispsource)/emacs-lisp/backquote.elc \
 	$(lispsource)/subr.elc \
-	$(lispsource)/version.el \
+	$(lispsource)/version.elc \
 	$(lispsource)/widget.elc \
 	$(lispsource)/custom.elc \
 	$(lispsource)/emacs-lisp/map-ynp.elc \
@@ -82,28 +83,28 @@ lisp = \
 	$(lispsource)/language/chinese.elc \
 	$(lispsource)/language/cyrillic.elc \
 	$(lispsource)/language/indian.elc \
-	$(lispsource)/language/sinhala.el \
-	$(lispsource)/language/english.el \
+	$(lispsource)/language/sinhala.elc \
+	$(lispsource)/language/english.elc \
 	$(lispsource)/language/ethiopic.elc \
 	$(lispsource)/language/european.elc \
-	$(lispsource)/language/czech.el \
-	$(lispsource)/language/slovak.el \
-	$(lispsource)/language/romanian.el \
-	$(lispsource)/language/greek.el \
+	$(lispsource)/language/czech.elc \
+	$(lispsource)/language/slovak.elc \
+	$(lispsource)/language/romanian.elc \
+	$(lispsource)/language/greek.elc \
 	$(lispsource)/language/hebrew.elc \
-	$(lispsource)/language/japanese.el \
-	$(lispsource)/language/korean.el \
-	$(lispsource)/language/lao.el \
-	$(lispsource)/language/tai-viet.el \
-	$(lispsource)/language/thai.el \
+	$(lispsource)/language/japanese.elc \
+	$(lispsource)/language/korean.elc \
+	$(lispsource)/language/lao.elc \
+	$(lispsource)/language/tai-viet.elc \
+	$(lispsource)/language/thai.elc \
 	$(lispsource)/language/tibetan.elc \
 	$(lispsource)/language/vietnamese.elc \
-	$(lispsource)/language/misc-lang.el \
-	$(lispsource)/language/utf-8-lang.el \
-	$(lispsource)/language/georgian.el \
-	$(lispsource)/language/khmer.el \
-	$(lispsource)/language/burmese.el \
-	$(lispsource)/language/cham.el \
+	$(lispsource)/language/misc-lang.elc \
+	$(lispsource)/language/utf-8-lang.elc \
+	$(lispsource)/language/georgian.elc \
+	$(lispsource)/language/khmer.elc \
+	$(lispsource)/language/burmese.elc \
+	$(lispsource)/language/cham.elc \
 	$(lispsource)/indent.elc \
 	$(lispsource)/window.elc \
 	$(lispsource)/frame.elc \
@@ -120,7 +121,7 @@ lisp = \
 	$(lispsource)/isearch.elc \
 	$(lispsource)/rfn-eshadow.elc \
 	$(lispsource)/menu-bar.elc \
-	$(lispsource)/paths.el \
+	$(lispsource)/paths.elc \
 	$(lispsource)/emacs-lisp/lisp.elc \
 	$(lispsource)/textmodes/page.elc \
 	$(lispsource)/register.elc \

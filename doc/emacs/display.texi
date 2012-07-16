@@ -3,7 +3,7 @@
 @c   Free Software Foundation, Inc.
 
 @c See file emacs.texi for copying conditions.
-@node Display, Search, Registers, Top
+@node Display
 @chapter Controlling the Display
 
   Since only part of a large buffer fits in the window, Emacs has to

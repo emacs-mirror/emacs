@@ -109,7 +109,7 @@ Cover art by Etienne Suvasa.
 
 
 @ifnottex
-@node Top, Distrib, (dir), (dir)
+@node Top
 @top The Emacs Editor
 
 Emacs is the extensible, customizable, self-documenting real-time
@@ -1286,7 +1286,7 @@ Windows.  @xref{Mac OS / GNUstep}, for information about using Emacs
 on Macintosh (and GNUstep).
 @end iftex
 
-@node Distrib, Intro, Top, Top
+@node Distrib
 @unnumbered Distribution
 
 GNU Emacs is @dfn{free software}; this means that everyone is free to
@@ -1343,12 +1343,12 @@ USA
 @end display
 
 @iftex
-@node Acknowledgments, Intro, Distrib, Top
+@node Acknowledgments
 @unnumberedsec Acknowledgments
 
 Contributors to GNU Emacs include Jari Aalto, Per Abrahamsen, Tomas
 Abrahamsson, Jay K.@: Adams, Alon Albert, Michael Albinus, Nagy
-Andras, Benjamin Andresen, Ralf Angeli, Joe Arceneaux, Emil Åström,
+Andras, Benjamin Andresen, Ralf Angeli, Dmitry Antipov, Joe Arceneaux, Emil Åström,
 Miles Bader, David Bakhash, Juanma Barranquero, Eli Barzilay, Thomas
 Baumann, Steven L.@: Baur, Jay Belanger, Alexander L.@: Belikoff,
 Thomas Bellman, Scott Bender, Boaz Ben-Zvi, Sergey Berezin, Karl
@@ -1450,7 +1450,7 @@ Shenghuo Zhu, Piotr Zielinski, Ian T.@: Zimmermann, Reto Zimmermann,
 Neal Ziring, Teodor Zlatanov, and Detlev Zundel.
 @end iftex
 
-@node Intro, Glossary, Distrib, Top
+@node Intro
 @unnumbered Introduction
 
   You are reading about GNU Emacs, the GNU incarnation of the
@@ -1531,11 +1531,11 @@ Lisp programming.
 @include custom.texi
 @include trouble.texi
 
-@node Copying, GNU Free Documentation License, Service, Top
+@node Copying
 @appendix GNU GENERAL PUBLIC LICENSE
 @include gpl.texi
 
-@node GNU Free Documentation License, Emacs Invocation, Copying, Top
+@node GNU Free Documentation License
 @appendix GNU Free Documentation License
 @include doclicense.texi
 
@@ -1555,43 +1555,26 @@ Lisp programming.
 @c The Option Index is produced only in the on-line version,
 @c because the index entries related to command-line options
 @c tend to point to the same pages and all begin with a dash.
-@c This, and the need to keep the node links consistent, are
-@c the reasons for the funky @iftex/@ifnottex dance below.
-@c The Option Index is _not_ before Key Index, because that
-@c would require changes in the glossary.texi's @node line.
-@c It is not after Concept Index for similar reasons.
 
-@iftex
-@node Key Index, Command Index, Glossary, Top
+@node Key Index
 @unnumbered Key (Character) Index
 @printindex ky
-@end iftex
 
 @ifnottex
-@node Key Index, Option Index, Glossary, Top
-@unnumbered Key (Character) Index
-@printindex ky
-
-@node Option Index, Command Index, Key Index, Top
+@node Option Index
 @unnumbered Command-Line Options Index
 @printindex op
-
-@node Command Index, Variable Index, Option Index, Top
-@unnumbered Command and Function Index
-@printindex fn
 @end ifnottex
 
-@iftex
-@node Command Index, Variable Index, Key Index, Top
+@node Command Index
 @unnumbered Command and Function Index
 @printindex fn
-@end iftex
 
-@node Variable Index, Concept Index, Command Index, Top
+@node Variable Index
 @unnumbered Variable Index
 @printindex vr
 
-@node Concept Index, Acknowledgments, Variable Index, Top
+@node Concept Index
 @unnumbered Concept Index
 @printindex cp
 

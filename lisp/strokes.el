@@ -212,10 +212,12 @@ static char * stroke_xpm[] = {
   :link '(emacs-commentary-link "strokes")
   :group 'mouse)
 
-(defcustom strokes-modeline-string " Strokes"
-  "Modeline identification when Strokes mode is on \(default is \" Strokes\"\)."
+(defcustom strokes-lighter " Strokes"
+  "Mode line identifier for Strokes mode."
   :type 'string
   :group 'strokes)
+
+(define-obsolete-variable-alias 'strokes-modeline-string 'strokes-lighter "24.2")
 
 (defcustom strokes-character ?@
   "Character used when drawing strokes in the strokes buffer.
@@ -1403,7 +1405,7 @@ Encode/decode your strokes with \\[strokes-encode-buffer],
 \\[strokes-decode-buffer].
 
 \\{strokes-mode-map}"
-  nil strokes-modeline-string strokes-mode-map
+  nil strokes-lighter strokes-mode-map
   :group 'strokes :global t
   (cond ((not (display-mouse-p))
 	 (error "Can't use Strokes without a mouse"))

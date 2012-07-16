@@ -35,7 +35,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 
-/* defined to be emacs_main, sys_fopen, etc. in config.h */
+/* Defined to be emacs_main, sys_fopen, etc. in config.h.  */
 #undef main
 #undef fopen
 #undef chdir
@@ -66,7 +66,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define IS_DIRECTORY_SEP(_c_) ((_c_) == DIRECTORY_SEP)
 #endif
 
-/* Use this to suppress gcc's `...may be used before initialized' warnings. */
+/* Use this to suppress gcc's `...may be used before initialized' warnings.  */
 #ifdef lint
 # define IF_LINT(Code) Code
 #else
@@ -226,7 +226,7 @@ put_filename (char *filename)
 
   for (tmp = filename; *tmp; tmp++)
     {
-      if (IS_DIRECTORY_SEP(*tmp))
+      if (IS_DIRECTORY_SEP (*tmp))
 	filename = tmp + 1;
     }
 
@@ -675,14 +675,14 @@ scan_c_file (char *filename, const char *mode)
 
   if (infile == NULL && extension == 'o')
     {
-      /* try .m */
+      /* Try .m.  */
       filename[strlen (filename) - 1] = 'm';
       infile = fopen (filename, mode);
       if (infile == NULL)
-        filename[strlen (filename) - 1] = 'c'; /* don't confuse people */
+        filename[strlen (filename) - 1] = 'c'; /* Don't confuse people.  */
     }
 
-  /* No error if non-ex input file */
+  /* No error if non-ex input file.  */
   if (infile == NULL)
     {
       perror (filename);
@@ -800,8 +800,8 @@ scan_c_file (char *filename, const char *mode)
 	      input_buffer[i++] = c;
 	      c = getc (infile);
 	    }
-	  while (! (c == ',' || c == ' ' || c == '\t' ||
-		    c == '\n' || c == '\r'));
+	  while (! (c == ',' || c == ' ' || c == '\t'
+		    || c == '\n' || c == '\r'));
 	  input_buffer[i] = '\0';
 
 	  name = xmalloc (i + 1);
@@ -820,7 +820,7 @@ scan_c_file (char *filename, const char *mode)
 	commas = 3;
       else if (defvarflag)
 	commas = 1;
-      else  /* For DEFSIMPLE and DEFPRED */
+      else  /* For DEFSIMPLE and DEFPRED.  */
 	commas = 2;
 
       while (commas)
@@ -838,9 +838,9 @@ scan_c_file (char *filename, const char *mode)
 		  if (c < 0)
 		    goto eof;
 		  ungetc (c, infile);
-		  if (commas == 2) /* pick up minargs */
+		  if (commas == 2) /* Pick up minargs.  */
 		    scanned = fscanf (infile, "%d", &minargs);
-		  else /* pick up maxargs */
+		  else /* Pick up maxargs.  */
 		    if (c == 'M' || c == 'U') /* MANY || UNEVALLED */
 		      maxargs = -1;
 		    else
@@ -893,7 +893,7 @@ scan_c_file (char *filename, const char *mode)
 	  fprintf (outfile, "%s\n", input_buffer);
 
 	  if (comment)
-	    getc (infile); 	/* Skip past `*' */
+	    getc (infile); 	/* Skip past `*'.  */
 	  c = read_c_string_or_comment (infile, 1, comment, &saw_usage);
 
 	  /* If this is a defun, find the arguments and print them.  If
@@ -979,7 +979,7 @@ scan_c_file (char *filename, const char *mode)
  problem because byte-compiler output follows this convention.
  The NAME and DOCSTRING are output.
  NAME is preceded by `F' for a function or `V' for a variable.
- An entry is output only if DOCSTRING has \ newline just after the opening "
+ An entry is output only if DOCSTRING has \ newline just after the opening ".
  */
 
 static void
@@ -1020,6 +1020,32 @@ read_lisp_symbol (FILE *infile, char *buffer)
 }
 
 static int
+search_lisp_doc_at_eol (FILE *infile)
+{
+  char c = 0, c1 = 0, c2 = 0;
+
+  /* Skip until the end of line; remember two previous chars.  */
+  while (c != '\n' && c != '\r' && c >= 0)
+    {
+      c2 = c1;
+      c1 = c;
+      c = getc (infile);
+    }
+
+  /* If two previous characters were " and \,
+     this is a doc string.  Otherwise, there is none.  */
+  if (c2 != '"' || c1 != '\\')
+    {
+#ifdef DEBUG
+      fprintf (stderr, "## non-docstring in %s (%s)\n",
+	       buffer, filename);
+#endif
+      return 0;
+    }
+  return 1;
+}
+
+static int
 scan_lisp_file (const char *filename, const char *mode)
 {
   FILE *infile;
@@ -1033,7 +1059,7 @@ scan_lisp_file (const char *filename, const char *mode)
   if (infile == NULL)
     {
       perror (filename);
-      return 0;				/* No error */
+      return 0;				/* No error.  */
     }
 
   c = '\n';
@@ -1110,7 +1136,7 @@ scan_lisp_file (const char *filename, const char *mode)
 	  type = 'F';
 	  read_lisp_symbol (infile, buffer);
 
-	  /* Skip the arguments: either "nil" or a list in parens */
+	  /* Skip the arguments: either "nil" or a list in parens.  */
 
 	  c = getc (infile);
 	  if (c == 'n') /* nil */
@@ -1154,39 +1180,18 @@ scan_lisp_file (const char *filename, const char *mode)
 	       || ! strcmp (buffer, "defconst")
 	       || ! strcmp (buffer, "defcustom"))
 	{
-	  char c1 = 0, c2 = 0;
 	  type = 'V';
 	  read_lisp_symbol (infile, buffer);
 
 	  if (saved_string == 0)
-	    {
-
-	      /* Skip until the end of line; remember two previous chars.  */
-	      while (c != '\n' && c != '\r' && c >= 0)
-		{
-		  c2 = c1;
-		  c1 = c;
-		  c = getc (infile);
-		}
-
-	      /* If two previous characters were " and \,
-		 this is a doc string.  Otherwise, there is none.  */
-	      if (c2 != '"' || c1 != '\\')
-		{
-#ifdef DEBUG
-		  fprintf (stderr, "## non-docstring in %s (%s)\n",
-			   buffer, filename);
-#endif
-		  continue;
-		}
-	    }
+	    if (!search_lisp_doc_at_eol (infile))
+	      continue;
 	}
 
       else if (! strcmp (buffer, "custom-declare-variable")
 	       || ! strcmp (buffer, "defvaralias")
 	       )
 	{
-	  char c1 = 0, c2 = 0;
 	  type = 'V';
 
 	  c = getc (infile);
@@ -1221,31 +1226,12 @@ scan_lisp_file (const char *filename, const char *mode)
 	    }
 
 	  if (saved_string == 0)
-	    {
-	      /* Skip to end of line; remember the two previous chars.  */
-	      while (c != '\n' && c != '\r' && c >= 0)
-		{
-		  c2 = c1;
-		  c1 = c;
-		  c = getc (infile);
-		}
-
-	      /* If two previous characters were " and \,
-		 this is a doc string.  Otherwise, there is none.  */
-	      if (c2 != '"' || c1 != '\\')
-		{
-#ifdef DEBUG
-		  fprintf (stderr, "## non-docstring in %s (%s)\n",
-			   buffer, filename);
-#endif
-		  continue;
-		}
-	    }
+	    if (!search_lisp_doc_at_eol (infile))
+	      continue;
 	}
 
       else if (! strcmp (buffer, "fset") || ! strcmp (buffer, "defalias"))
 	{
-	  char c1 = 0, c2 = 0;
 	  type = 'F';
 
 	  c = getc (infile);
@@ -1278,26 +1264,8 @@ scan_lisp_file (const char *filename, const char *mode)
 	    }
 
 	  if (saved_string == 0)
-	    {
-	      /* Skip to end of line; remember the two previous chars.  */
-	      while (c != '\n' && c != '\r' && c >= 0)
-		{
-		  c2 = c1;
-		  c1 = c;
-		  c = getc (infile);
-		}
-
-	      /* If two previous characters were " and \,
-		 this is a doc string.  Otherwise, there is none.  */
-	      if (c2 != '"' || c1 != '\\')
-		{
-#ifdef DEBUG
-		  fprintf (stderr, "## non-docstring in %s (%s)\n",
-			   buffer, filename);
-#endif
-		  continue;
-		}
-	    }
+	    if (!search_lisp_doc_at_eol (infile))
+	      continue;
 	}
 
       else if (! strcmp (buffer, "autoload"))
@@ -1339,23 +1307,10 @@ scan_lisp_file (const char *filename, const char *mode)
 	      continue;
 	    }
 	  read_c_string_or_comment (infile, 0, 0, 0);
-	  skip_white (infile);
 
 	  if (saved_string == 0)
-	    {
-	      /* If the next three characters aren't `dquote bslash newline'
-		 then we're not reading a docstring.  */
-	      if ((c = getc (infile)) != '"'
-		  || (c = getc (infile)) != '\\'
-		  || ((c = getc (infile)) != '\n' && c != '\r'))
-		{
-#ifdef DEBUG
-		  fprintf (stderr, "## non-docstring in %s (%s)\n",
-			   buffer, filename);
-#endif
-		  continue;
-		}
-	    }
+	    if (!search_lisp_doc_at_eol (infile))
+	      continue;
 	}
 
 #ifdef DEBUG
@@ -1373,12 +1328,10 @@ scan_lisp_file (const char *filename, const char *mode)
 	  continue;
 	}
 
-      /* At this point, we should either use the previous
-	 dynamic doc string in saved_string
-	 or gobble a doc string from the input file.
-
-	 In the latter case, the opening quote (and leading
-	 backslash-newline) have already been read.  */
+      /* At this point, we should either use the previous dynamic doc string in
+	 saved_string or gobble a doc string from the input file.
+	 In the latter case, the opening quote (and leading backslash-newline)
+	 have already been read.  */
 
       putc (037, outfile);
       putc (type, outfile);

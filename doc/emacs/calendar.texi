@@ -345,7 +345,7 @@ calendar deletes or iconifies that frame depending on the value of
 @node Writing Calendar Files
 @section Writing Calendar Files
 
-  You can write calendars and diary entries to HTML and La@TeX{} files.
+  You can write calendars and diary entries to HTML and @LaTeX{} files.
 
 @cindex calendar and HTML
   The Calendar HTML commands produce files of HTML code that contain
@@ -380,8 +380,8 @@ non-@code{nil}, then the monthly calendars show the day-of-the-year
 number. The variable @code{cal-html-year-index-cols} specifies the
 number of columns in the yearly index page.
 
-@cindex calendar and La@TeX{}
-  The Calendar La@TeX{} commands produce a buffer of La@TeX{} code that
+@cindex calendar and @LaTeX{}
+  The Calendar @LaTeX{} commands produce a buffer of @LaTeX{} code that
 prints as a calendar.  Depending on the command you use, the printed
 calendar covers the day, week, month or year that point is in.
 
@@ -441,7 +441,7 @@ the individual cal-tex functions to see which calendars support which
 features.
 
   You can use the variable @code{cal-tex-preamble-extra} to insert extra
-La@TeX{} commands in the preamble of the generated document if you need
+@LaTeX{} commands in the preamble of the generated document if you need
 to.
 
 @node Holidays

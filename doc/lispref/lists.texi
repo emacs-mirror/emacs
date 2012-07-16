@@ -2,7 +2,7 @@
 @c This is part of the GNU Emacs Lisp Reference Manual.
 @c Copyright (C) 1990-1995, 1998-1999, 2001-2012 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
-@node Lists, Sequences Arrays Vectors, Strings and Characters, Top
+@node Lists
 @chapter Lists
 @cindex lists
 @cindex element (of list)
@@ -369,7 +369,6 @@ making a copy of the list.
 @end defun
 
 @node Building Lists
-@comment  node-name,  next,  previous,  up
 @section Building Cons Cells and Lists
 @cindex cons cells
 @cindex building lists

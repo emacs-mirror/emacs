@@ -86,9 +86,11 @@ get_doc_string (Lisp_Object filepos, int unibyte, int definition)
   register int fd;
   register char *name;
   register char *p, *p1;
-  EMACS_INT minsize;
-  EMACS_INT offset, position;
+  ptrdiff_t minsize;
+  int offset;
+  EMACS_INT position;
   Lisp_Object file, tem;
+  USE_SAFE_ALLOCA;
 
   if (INTEGERP (filepos))
     {
@@ -124,7 +126,7 @@ get_doc_string (Lisp_Object filepos, int unibyte, int definition)
       /* sizeof ("../etc/") == 8 */
       if (minsize < 8)
 	minsize = 8;
-      name = (char *) alloca (minsize + SCHARS (file) + 8);
+      SAFE_ALLOCA (name, char *, minsize + SCHARS (file) + 8);
       strcpy (name, SSDATA (docdir));
       strcat (name, SSDATA (file));
     }
@@ -155,12 +157,15 @@ get_doc_string (Lisp_Object filepos, int unibyte, int definition)
   /* Make sure we read at least 1024 bytes before `position'
      so we can check the leading text for consistency.  */
   offset = min (position, max (1024, position % (8 * 1024)));
-  if (0 > lseek (fd, position - offset, 0))
+  if (TYPE_MAXIMUM (off_t) < position
+      || lseek (fd, position - offset, 0) < 0)
     {
       emacs_close (fd);
       error ("Position %"pI"d out of range in doc string file \"%s\"",
 	     position, name);
     }
+
+  SAFE_FREE ();
 
   /* Read the doc string into get_doc_string_buffer.
      P points beyond the data just read.  */
@@ -279,7 +284,7 @@ Invalid data in documentation file -- %c followed by code %03o",
   else
     {
       /* The data determines whether the string is multibyte.  */
-      EMACS_INT nchars =
+      ptrdiff_t nchars =
 	multibyte_chars_in_text (((unsigned char *) get_doc_string_buffer
 				  + offset),
 				 to - (get_doc_string_buffer + offset));
@@ -502,8 +507,7 @@ aren't strings.  */)
 /* Scanning the DOC files and placing docstring offsets into functions.  */
 
 static void
-store_function_docstring (Lisp_Object obj, EMACS_INT offset)
-/* Use EMACS_INT because we get offset from pointer subtraction.  */
+store_function_docstring (Lisp_Object obj, ptrdiff_t offset)
 {
   /* Don't use indirect_function here, or defaliases will apply their
      docstrings to the base functions (Bug#2603).  */
@@ -560,7 +564,7 @@ the same file name is found in the `doc-directory'.  */)
 {
   int fd;
   char buf[1024 + 1];
-  register EMACS_INT filled;
+  register int filled;
   register EMACS_INT pos;
   register char *p;
   Lisp_Object sym;
@@ -595,7 +599,7 @@ the same file name is found in the `doc-directory'.  */)
 
     for (beg = buildobj; *beg; beg = end)
       {
-        EMACS_INT len;
+        ptrdiff_t len;
 
         while (*beg && isspace (*beg)) ++beg;
 
@@ -643,7 +647,7 @@ the same file name is found in the `doc-directory'.  */)
               if (end - p > 4 && end[-2] == '.'
                   && (end[-1] == 'o' || end[-1] == 'c'))
                 {
-                  EMACS_INT len = end - p - 2;
+                  ptrdiff_t len = end - p - 2;
                   char *fromfile = alloca (len + 1);
                   strncpy (fromfile, &p[2], len);
                   fromfile[len] = 0;
@@ -701,18 +705,23 @@ the same file name is found in the `doc-directory'.  */)
 DEFUN ("substitute-command-keys", Fsubstitute_command_keys,
        Ssubstitute_command_keys, 1, 1, 0,
        doc: /* Substitute key descriptions for command names in STRING.
-Substrings of the form \\=\\[COMMAND] replaced by either: a keystroke
-sequence that will invoke COMMAND, or "M-x COMMAND" if COMMAND is not
-on any keys.
-Substrings of the form \\=\\{MAPVAR} are replaced by summaries
-\(made by `describe-bindings') of the value of MAPVAR, taken as a keymap.
-Substrings of the form \\=\\<MAPVAR> specify to use the value of MAPVAR
+Each substring of the form \\=\\[COMMAND] is replaced by either a
+keystroke sequence that invokes COMMAND, or "M-x COMMAND" if COMMAND
+is not on any keys.
+
+Each substring of the form \\=\\{MAPVAR} is replaced by a summary of
+the value of MAPVAR as a keymap.  This summary is similar to the one
+produced by `describe-bindings'.  The summary ends in two newlines
+\(used by the helper function `help-make-xrefs' to find the end of the
+summary).
+
+Each substring of the form \\=\\<MAPVAR> specifies the use of MAPVAR
 as the keymap for future \\=\\[COMMAND] substrings.
 \\=\\= quotes the following character and is discarded;
 thus, \\=\\=\\=\\= puts \\=\\= into the output, and \\=\\=\\=\\[ puts \\=\\[ into the output.
 
-Returns original STRING if no substitutions were made.  Otherwise,
-a new string, without any text properties, is returned.  */)
+Return the original STRING if no substitutions are made.
+Otherwise, return a new string, without any text properties.  */)
   (Lisp_Object string)
 {
   char *buf;

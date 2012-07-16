@@ -717,17 +717,17 @@ See the documentation for `calculator-mode' for more information."
       (cond
         ((not (get-buffer-window calculator-buffer))
          (let ((window-min-height 2))
-           ;; maybe leave two lines for our window because of the normal
-           ;; `raised' modeline in Emacs 21
+           ;; maybe leave two lines for our window because of the
+           ;; normal `raised' mode line
            (select-window
             (split-window-below
-             ;; If the modeline might interfere with the calculator buffer,
-             ;; use 3 lines instead.
+             ;; If the mode line might interfere with the calculator
+             ;; buffer, use 3 lines instead.
              (if (and (fboundp 'face-attr-construct)
                       (let* ((dh (plist-get (face-attr-construct 'default) :height))
-                             (mf (face-attr-construct 'modeline))
+                             (mf (face-attr-construct 'mode-line))
                              (mh (plist-get mf :height)))
-                        ;; If the modeline is shorter than the default,
+                        ;; If the mode line is shorter than the default,
                         ;; stick with 2 lines.  (It may be necessary to
                         ;; check how much shorter.)
                         (and
@@ -739,7 +739,7 @@ See the documentation for `calculator-mode' for more information."
                                    (not (integerp mh))
                                    (< mh 1))))
                          (or
-                          ;; If the modeline is taller than the default,
+                          ;; If the mode line is taller than the default,
                           ;; use 3 lines.
                           (and (integerp dh)
                                (integerp mh)
@@ -747,7 +747,7 @@ See the documentation for `calculator-mode' for more information."
                           (and (numberp mh)
                                (not (integerp mh))
                                (> mh 1))
-                          ;; If the modeline has a box with non-negative line-width,
+                          ;; If the mode line has a box with non-negative line-width,
                           ;; use 3 lines.
                           (let* ((bx (plist-get mf :box))
                                  (lh (plist-get bx :line-width)))
@@ -755,8 +755,8 @@ See the documentation for `calculator-mode' for more information."
                                  (or
                                   (not lh)
                                   (> lh 0))))
-                          ;; If the modeline has an overline, use 3 lines.
-                          (plist-get (face-attr-construct 'modeline) :overline)))))
+                          ;; If the mode line has an overline, use 3 lines.
+                          (plist-get (face-attr-construct 'mode-line) :overline)))))
                -3 -2)))
            (switch-to-buffer calculator-buffer)))
         ((not (eq (current-buffer) calculator-buffer))

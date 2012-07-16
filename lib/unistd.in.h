@@ -1,5 +1,5 @@
 /* Substitute for and wrapper around <unistd.h>.
-   Copyright (C) 2003-2011 Free Software Foundation, Inc.
+   Copyright (C) 2003-2012 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -12,8 +12,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program; if not, write to the Free Software Foundation,
-   Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.  */
+   along with this program; if not, see <http://www.gnu.org/licenses/>.  */
 
 #if __GNUC__ >= 3
 @PRAGMA_SYSTEM_HEADER@
@@ -84,12 +83,19 @@
 #endif
 
 /* Native Windows platforms declare chdir, getcwd, rmdir in
-   <io.h> and/or <direct.h>, not in <unistd.h>.  */
+   <io.h> and/or <direct.h>, not in <unistd.h>.
+   They also declare access(), chmod(), close(), dup(), dup2(), isatty(),
+   lseek(), read(), unlink(), write() in <io.h>.  */
 #if ((@GNULIB_CHDIR@ || @GNULIB_GETCWD@ || @GNULIB_RMDIR@ \
       || defined GNULIB_POSIXCHECK) \
      && ((defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__))
 # include <io.h>     /* mingw32, mingw64 */
 # include <direct.h> /* mingw64, MSVC 9 */
+#elif (@GNULIB_CLOSE@ || @GNULIB_DUP@ || @GNULIB_DUP2@ || @GNULIB_ISATTY@ \
+       || @GNULIB_LSEEK@ || @GNULIB_READ@ || @GNULIB_UNLINK@ || @GNULIB_WRITE@ \
+       || defined GNULIB_POSIXCHECK) \
+      && ((defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__)
+# include <io.h>
 #endif
 
 /* AIX and OSF/1 5.1 declare getdomainname in <netdb.h>, not in <unistd.h>.
@@ -101,8 +107,9 @@
 # include <netdb.h>
 #endif
 
-/* MSVC defines off_t in <sys/types.h>.  */
-#if !@HAVE_UNISTD_H@
+/* MSVC defines off_t in <sys/types.h>.
+   May also define off_t to a 64-bit type on native Windows.  */
+#if !@HAVE_UNISTD_H@ || @WINDOWS_64_BIT_OFF_T@
 /* Get off_t.  */
 # include <sys/types.h>
 #endif
@@ -556,10 +563,19 @@ _GL_WARN_ON_USE (fsync, "fsync is unportable - "
    Return 0 if successful, otherwise -1 and errno set.
    See the POSIX:2008 specification
    <http://pubs.opengroup.org/onlinepubs/9699919799/functions/ftruncate.html>.  */
-# if !@HAVE_FTRUNCATE@
+# if @REPLACE_FTRUNCATE@
+#  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
+#   undef ftruncate
+#   define ftruncate rpl_ftruncate
+#  endif
+_GL_FUNCDECL_RPL (ftruncate, int, (int fd, off_t length));
+_GL_CXXALIAS_RPL (ftruncate, int, (int fd, off_t length));
+# else
+#  if !@HAVE_FTRUNCATE@
 _GL_FUNCDECL_SYS (ftruncate, int, (int fd, off_t length));
-# endif
+#  endif
 _GL_CXXALIAS_SYS (ftruncate, int, (int fd, off_t length));
+# endif
 _GL_CXXALIASWARN (ftruncate);
 #elif defined GNULIB_POSIXCHECK
 # undef ftruncate
@@ -935,6 +951,27 @@ _GL_WARN_ON_USE (group_member, "group_member is unportable - "
 #endif
 
 
+#if @GNULIB_ISATTY@
+# if @REPLACE_ISATTY@
+#  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
+#   undef isatty
+#   define isatty rpl_isatty
+#  endif
+_GL_FUNCDECL_RPL (isatty, int, (int fd));
+_GL_CXXALIAS_RPL (isatty, int, (int fd));
+# else
+_GL_CXXALIAS_SYS (isatty, int, (int fd));
+# endif
+_GL_CXXALIASWARN (isatty);
+#elif defined GNULIB_POSIXCHECK
+# undef isatty
+# if HAVE_RAW_DECL_ISATTY
+_GL_WARN_ON_USE (isatty, "isatty has portability problems on native Windows - "
+                 "use gnulib module isatty for portability");
+# endif
+#endif
+
+
 #if @GNULIB_LCHOWN@
 /* Change the owner of FILE to UID (if UID is not -1) and the group of FILE
    to GID (if GID is not -1).  Do not follow symbolic links.
@@ -1264,6 +1301,33 @@ _GL_CXXALIASWARN (rmdir);
 # if HAVE_RAW_DECL_RMDIR
 _GL_WARN_ON_USE (rmdir, "rmdir is unportable - "
                  "use gnulib module rmdir for portability");
+# endif
+#endif
+
+
+#if @GNULIB_SETHOSTNAME@
+/* Set the host name of the machine.
+   The host name may or may not be fully qualified.
+
+   Put LEN bytes of NAME into the host name.
+   Return 0 if successful, otherwise, set errno and return -1.
+
+   Platforms with no ability to set the hostname return -1 and set
+   errno = ENOSYS.  */
+# if !@HAVE_SETHOSTNAME@ || !@HAVE_DECL_SETHOSTNAME@
+_GL_FUNCDECL_SYS (sethostname, int, (const char *name, size_t len)
+                                    _GL_ARG_NONNULL ((1)));
+# endif
+/* Need to cast, because on Solaris 11 2011-10, MacOS X 10.5, IRIX 6.5
+   and FreeBSD 6.4 the second parameter is int.  On Solaris 11
+   2011-10, the first parameter is not const.  */
+_GL_CXXALIAS_SYS_CAST (sethostname, int, (const char *name, size_t len));
+_GL_CXXALIASWARN (sethostname);
+#elif defined GNULIB_POSIXCHECK
+# undef sethostname
+# if HAVE_RAW_DECL_SETHOSTNAME
+_GL_WARN_ON_USE (sethostname, "sethostname is unportable - "
+                 "use gnulib module sethostname for portability");
 # endif
 #endif
 

@@ -28,6 +28,16 @@
 (eval-when-compile
   (require 'cl))
 
+(defcustom term-file-prefix (purecopy "term/")
+  "If non-nil, Emacs startup performs terminal-specific initialization.
+It does this by: (load (concat term-file-prefix (getenv \"TERM\")))
+
+You may set this variable to nil in your init file if you do not wish
+the terminal-initialization file to be loaded."
+  :type '(choice (const :tag "No terminal-specific initialization" nil)
+		 (string :tag "Name of directory with term files"))
+  :group 'terminals)
+
 (declare-function xw-defined-colors "term/common-win" (&optional frame))
 
 (defvar help-xref-stack-item)

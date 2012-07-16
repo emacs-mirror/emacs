@@ -449,25 +449,25 @@ struct coding_system
      -1 in setup_coding_system, and updated by detect_coding.  So,
      when this is equal to the byte length of the text being
      converted, we can skip the actual conversion process.  */
-  EMACS_INT head_ascii;
+  ptrdiff_t head_ascii;
 
   /* The following members are set by encoding/decoding routine.  */
-  EMACS_INT produced, produced_char, consumed, consumed_char;
+  ptrdiff_t produced, produced_char, consumed, consumed_char;
 
   /* Number of error source data found in a decoding routine.  */
   int errors;
 
   /* Store the positions of error source data.  */
-  EMACS_INT *error_positions;
+  ptrdiff_t *error_positions;
 
   /* Finish status of code conversion.  */
   enum coding_result_code result;
 
-  EMACS_INT src_pos, src_pos_byte, src_chars, src_bytes;
+  ptrdiff_t src_pos, src_pos_byte, src_chars, src_bytes;
   Lisp_Object src_object;
   const unsigned char *source;
 
-  EMACS_INT dst_pos, dst_pos_byte, dst_bytes;
+  ptrdiff_t dst_pos, dst_pos_byte, dst_bytes;
   Lisp_Object dst_object;
   unsigned char *destination;
 
@@ -704,13 +704,13 @@ extern Lisp_Object coding_inherit_eol_type (Lisp_Object, Lisp_Object);
 extern Lisp_Object complement_process_encoding_system (Lisp_Object);
 
 extern int decode_coding_gap (struct coding_system *,
-                              EMACS_INT, EMACS_INT);
+                              ptrdiff_t, ptrdiff_t);
 extern void decode_coding_object (struct coding_system *,
-                                  Lisp_Object, EMACS_INT, EMACS_INT,
-                                  EMACS_INT, EMACS_INT, Lisp_Object);
+                                  Lisp_Object, ptrdiff_t, ptrdiff_t,
+                                  ptrdiff_t, ptrdiff_t, Lisp_Object);
 extern void encode_coding_object (struct coding_system *,
-                                  Lisp_Object, EMACS_INT, EMACS_INT,
-                                  EMACS_INT, EMACS_INT, Lisp_Object);
+                                  Lisp_Object, ptrdiff_t, ptrdiff_t,
+                                  ptrdiff_t, ptrdiff_t, Lisp_Object);
 
 /* Macros for backward compatibility.  */
 

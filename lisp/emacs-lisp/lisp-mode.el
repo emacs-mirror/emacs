@@ -135,12 +135,9 @@ It has `lisp-mode-abbrev-table' as its parent."
 
 ;; This was originally in autoload.el and is still used there.
 (put 'autoload 'doc-string-elt 3)
-(put 'defun    'doc-string-elt 3)
 (put 'defmethod 'doc-string-elt 3)
 (put 'defvar   'doc-string-elt 3)
 (put 'defconst 'doc-string-elt 3)
-(put 'defmacro 'doc-string-elt 3)
-(put 'lambda 'doc-string-elt 2)
 (put 'defalias 'doc-string-elt 3)
 (put 'defvaralias 'doc-string-elt 3)
 (put 'define-category 'doc-string-elt 2)
@@ -830,10 +827,10 @@ Return the result of evaluation."
 	   (end-of-defun)
 	   (beginning-of-defun)
 	   (setq beg (point))
-	   (setq form (eval-sexp-add-defvars (read (current-buffer))))
+	   (setq form (read (current-buffer)))
 	   (setq end (point)))
 	 ;; Alter the form if necessary.
-	 (setq form (eval-defun-1 (macroexpand form)))
+	 (setq form (eval-sexp-add-defvars (eval-defun-1 (macroexpand form))))
 	 (list beg end standard-output
 	       `(lambda (ignore)
 		 ;; Skipping to the end of the specified region
@@ -1213,7 +1210,6 @@ Lisp function does not specify a special indentation."
 ;; like defun if the first form is placed on the next line, otherwise
 ;; it is indented like any other form (i.e. forms line up under first).
 
-(put 'lambda 'lisp-indent-function 'defun)
 (put 'autoload 'lisp-indent-function 'defun)
 (put 'progn 'lisp-indent-function 0)
 (put 'prog1 'lisp-indent-function 1)

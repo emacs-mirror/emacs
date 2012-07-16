@@ -3,7 +3,7 @@
 @c Copyright (C) 1990-1995, 1998-1999, 2001-2012
 @c   Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
-@node Functions, Macros, Variables, Top
+@node Functions
 @chapter Functions
 
   A Lisp program is composed mainly of Lisp functions.  This chapter
@@ -1178,12 +1178,14 @@ equivalent to the following:
 In addition, you can mark a certain a particular calling convention
 for a function as obsolete:
 
-@defun set-advertised-calling-convention function signature
+@defun set-advertised-calling-convention function signature when
 This function specifies the argument list @var{signature} as the
 correct way to call @var{function}.  This causes the Emacs byte
 compiler to issue a warning whenever it comes across an Emacs Lisp
 program that calls @var{function} any other way (however, it will
-still allow the code to be byte compiled).
+still allow the code to be byte compiled).  @var{when} should be a
+string indicating when the variable was first made obsolete (usually a
+version number string).
 
 For instance, in old versions of Emacs the @code{sit-for} function
 accepted three arguments, like this
@@ -1198,7 +1200,7 @@ this:
 
 @example
 (set-advertised-calling-convention
-  'sit-for '(seconds &optional nodisp))
+  'sit-for '(seconds &optional nodisp) "22.1")
 @end example
 @end defun
 

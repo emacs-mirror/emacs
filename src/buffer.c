@@ -154,7 +154,7 @@ Lisp_Object Qinsert_behind_hooks;
 static void alloc_buffer_text (struct buffer *, ptrdiff_t);
 static void free_buffer_text (struct buffer *b);
 static struct Lisp_Overlay * copy_overlays (struct buffer *, struct Lisp_Overlay *);
-static void modify_overlay (struct buffer *, EMACS_INT, EMACS_INT);
+static void modify_overlay (struct buffer *, ptrdiff_t, ptrdiff_t);
 static Lisp_Object buffer_lisp_local_variables (struct buffer *);
 
 /* For debugging; temporary.  See set_buffer_internal.  */
@@ -418,7 +418,7 @@ copy_overlays (struct buffer *b, struct Lisp_Overlay *list)
   for (; list; list = list->next)
     {
       Lisp_Object overlay, start, end, old_overlay;
-      EMACS_INT charpos;
+      ptrdiff_t charpos;
 
       XSETMISC (old_overlay, list);
       charpos = marker_position (OVERLAY_START (old_overlay));
@@ -852,8 +852,8 @@ it is in the sequence to be tried) even if a buffer with that name exists.  */)
   (register Lisp_Object name, Lisp_Object ignore)
 {
   register Lisp_Object gentemp, tem;
-  EMACS_INT count;
-  char number[INT_BUFSIZE_BOUND (EMACS_INT) + sizeof "<>"];
+  ptrdiff_t count;
+  char number[INT_BUFSIZE_BOUND (ptrdiff_t) + sizeof "<>"];
 
   CHECK_STRING (name);
 
@@ -867,7 +867,7 @@ it is in the sequence to be tried) even if a buffer with that name exists.  */)
   count = 1;
   while (1)
     {
-      sprintf (number, "<%"pI"d>", ++count);
+      sprintf (number, "<%"pD"d>", ++count);
       gentemp = concat2 (name, build_string (number));
       tem = Fstring_equal (gentemp, ignore);
       if (!NILP (tem))
@@ -933,6 +933,21 @@ If VARIABLE does not have a buffer-local binding in BUFFER, the value
 is the default binding of the variable. */)
   (register Lisp_Object variable, register Lisp_Object buffer)
 {
+  register Lisp_Object result = buffer_local_value_1 (variable, buffer);
+
+  if (EQ (result, Qunbound))
+    xsignal1 (Qvoid_variable, variable);
+
+  return result;
+}
+
+
+/* Like Fbuffer_local_value, but return Qunbound if the variable is
+   locally unbound.  */
+
+Lisp_Object
+buffer_local_value_1 (Lisp_Object variable, Lisp_Object buffer)
+{
   register struct buffer *buf;
   register Lisp_Object result;
   struct Lisp_Symbol *sym;
@@ -985,10 +1000,7 @@ is the default binding of the variable. */)
     default: abort ();
     }
 
-  if (!EQ (result, Qunbound))
-    return result;
-
-  xsignal1 (Qvoid_variable, variable);
+  return result;
 }
 
 /* Return an alist of the Lisp-level buffer-local bindings of
@@ -1475,7 +1487,7 @@ with SIGHUP.  */)
 
   /* Run hooks with the buffer to be killed the current buffer.  */
   {
-    int count = SPECPDL_INDEX ();
+    ptrdiff_t count = SPECPDL_INDEX ();
     Lisp_Object arglist[1];
 
     record_unwind_protect (save_excursion_restore, save_excursion_save ());
@@ -1751,7 +1763,7 @@ Use this function before selecting the buffer, since it may need to inspect
 the current buffer's major mode.  */)
   (Lisp_Object buffer)
 {
-  int count;
+  ptrdiff_t count;
   Lisp_Object function;
 
   CHECK_BUFFER (buffer);
@@ -1963,16 +1975,15 @@ validate_region (register Lisp_Object *b, register Lisp_Object *e)
       tem = *b;  *b = *e;  *e = tem;
     }
 
-  if (!(BEGV <= XINT (*b) && XINT (*b) <= XINT (*e)
-        && XINT (*e) <= ZV))
+  if (! (BEGV <= XINT (*b) && XINT (*e) <= ZV))
     args_out_of_range (*b, *e);
 }
 
 /* Advance BYTE_POS up to a character boundary
    and return the adjusted position.  */
 
-static EMACS_INT
-advance_to_char_boundary (EMACS_INT byte_pos)
+static ptrdiff_t
+advance_to_char_boundary (ptrdiff_t byte_pos)
 {
   int c;
 
@@ -1985,7 +1996,7 @@ advance_to_char_boundary (EMACS_INT byte_pos)
     {
       /* We should advance BYTE_POS only when C is a constituent of a
          multibyte sequence.  */
-      EMACS_INT orig_byte_pos = byte_pos;
+      ptrdiff_t orig_byte_pos = byte_pos;
 
       do
 	{
@@ -2051,18 +2062,18 @@ DEFUN ("buffer-swap-text", Fbuffer_swap_text, Sbuffer_swap_text,
   eassert (current_buffer->text == &current_buffer->own_text);
   eassert (other_buffer->text == &other_buffer->own_text);
 #ifdef REL_ALLOC
-  r_alloc_reset_variable ((POINTER_TYPE **) &current_buffer->own_text.beg,
-			  (POINTER_TYPE **) &other_buffer->own_text.beg);
-  r_alloc_reset_variable ((POINTER_TYPE **) &other_buffer->own_text.beg,
-			  (POINTER_TYPE **) &current_buffer->own_text.beg);
+  r_alloc_reset_variable ((void **) &current_buffer->own_text.beg,
+			  (void **) &other_buffer->own_text.beg);
+  r_alloc_reset_variable ((void **) &other_buffer->own_text.beg,
+			  (void **) &current_buffer->own_text.beg);
 #endif /* REL_ALLOC */
 
-  swapfield (pt, EMACS_INT);
-  swapfield (pt_byte, EMACS_INT);
-  swapfield (begv, EMACS_INT);
-  swapfield (begv_byte, EMACS_INT);
-  swapfield (zv, EMACS_INT);
-  swapfield (zv_byte, EMACS_INT);
+  swapfield (pt, ptrdiff_t);
+  swapfield (pt_byte, ptrdiff_t);
+  swapfield (begv, ptrdiff_t);
+  swapfield (begv_byte, ptrdiff_t);
+  swapfield (zv, ptrdiff_t);
+  swapfield (zv_byte, ptrdiff_t);
   eassert (!current_buffer->base_buffer);
   eassert (!other_buffer->base_buffer);
   current_buffer->clip_changed = 1;	other_buffer->clip_changed = 1;
@@ -2072,7 +2083,7 @@ DEFUN ("buffer-swap-text", Fbuffer_swap_text, Sbuffer_swap_text,
   other_buffer->prevent_redisplay_optimizations_p = 1;
   swapfield (overlays_before, struct Lisp_Overlay *);
   swapfield (overlays_after, struct Lisp_Overlay *);
-  swapfield (overlay_center, EMACS_INT);
+  swapfield (overlay_center, ptrdiff_t);
   swapfield_ (undo_list, Lisp_Object);
   swapfield_ (mark, Lisp_Object);
   swapfield_ (enable_multibyte_characters, Lisp_Object);
@@ -2155,7 +2166,7 @@ current buffer is cleared.  */)
 {
   struct Lisp_Marker *tail, *markers;
   struct buffer *other;
-  EMACS_INT begv, zv;
+  ptrdiff_t begv, zv;
   int narrowed = (BEG != BEGV || Z != ZV);
   int modified_p = !NILP (Fbuffer_modified_p (Qnil));
   Lisp_Object old_undo = BVAR (current_buffer, undo_list);
@@ -2187,7 +2198,7 @@ current buffer is cleared.  */)
 
   if (NILP (flag))
     {
-      EMACS_INT pos, stop;
+      ptrdiff_t pos, stop;
       unsigned char *p;
 
       /* Do this first, so it can use CHAR_TO_BYTE
@@ -2251,8 +2262,8 @@ current buffer is cleared.  */)
     }
   else
     {
-      EMACS_INT pt = PT;
-      EMACS_INT pos, stop;
+      ptrdiff_t pt = PT;
+      ptrdiff_t pos, stop;
       unsigned char *p, *pend;
 
       /* Be sure not to have a multibyte sequence striding over the GAP.
@@ -2268,7 +2279,7 @@ current buffer is cleared.  */)
 	  while (! CHAR_HEAD_P (*q) && q > BEG_ADDR) q--;
 	  if (LEADING_CODE_P (*q))
 	    {
-	      EMACS_INT new_gpt = GPT_BYTE - (GPT_ADDR - q);
+	      ptrdiff_t new_gpt = GPT_BYTE - (GPT_ADDR - q);
 
 	      move_gap_both (new_gpt, new_gpt);
 	    }
@@ -2352,8 +2363,8 @@ current buffer is cleared.  */)
 	ZV = chars_in_text (BEG_ADDR, ZV_BYTE - BEG_BYTE) + BEG;
 
       {
-	EMACS_INT byte = advance_to_char_boundary (PT_BYTE);
-	EMACS_INT position;
+	ptrdiff_t byte = advance_to_char_boundary (PT_BYTE);
+	ptrdiff_t position;
 
 	if (byte > GPT_BYTE)
 	  position = chars_in_text (GAP_END_ADDR, byte - GPT_BYTE) + GPT;
@@ -2517,20 +2528,20 @@ swap_out_buffer_local_variables (struct buffer *b)
 ptrdiff_t
 overlays_at (EMACS_INT pos, int extend, Lisp_Object **vec_ptr,
 	     ptrdiff_t *len_ptr,
-	     EMACS_INT *next_ptr, EMACS_INT *prev_ptr, int change_req)
+	     ptrdiff_t *next_ptr, ptrdiff_t *prev_ptr, int change_req)
 {
   Lisp_Object overlay, start, end;
   struct Lisp_Overlay *tail;
   ptrdiff_t idx = 0;
   ptrdiff_t len = *len_ptr;
   Lisp_Object *vec = *vec_ptr;
-  EMACS_INT next = ZV;
-  EMACS_INT prev = BEGV;
+  ptrdiff_t next = ZV;
+  ptrdiff_t prev = BEGV;
   int inhibit_storing = 0;
 
   for (tail = current_buffer->overlays_before; tail; tail = tail->next)
     {
-      EMACS_INT startpos, endpos;
+      ptrdiff_t startpos, endpos;
 
       XSETMISC (overlay, tail);
 
@@ -2578,7 +2589,7 @@ overlays_at (EMACS_INT pos, int extend, Lisp_Object **vec_ptr,
 
   for (tail = current_buffer->overlays_after; tail; tail = tail->next)
     {
-      EMACS_INT startpos, endpos;
+      ptrdiff_t startpos, endpos;
 
       XSETMISC (overlay, tail);
 
@@ -2651,21 +2662,21 @@ overlays_at (EMACS_INT pos, int extend, Lisp_Object **vec_ptr,
 static ptrdiff_t
 overlays_in (EMACS_INT beg, EMACS_INT end, int extend,
 	     Lisp_Object **vec_ptr, ptrdiff_t *len_ptr,
-	     EMACS_INT *next_ptr, EMACS_INT *prev_ptr)
+	     ptrdiff_t *next_ptr, ptrdiff_t *prev_ptr)
 {
   Lisp_Object overlay, ostart, oend;
   struct Lisp_Overlay *tail;
   ptrdiff_t idx = 0;
   ptrdiff_t len = *len_ptr;
   Lisp_Object *vec = *vec_ptr;
-  EMACS_INT next = ZV;
-  EMACS_INT prev = BEGV;
+  ptrdiff_t next = ZV;
+  ptrdiff_t prev = BEGV;
   int inhibit_storing = 0;
   int end_is_Z = end == Z;
 
   for (tail = current_buffer->overlays_before; tail; tail = tail->next)
     {
-      EMACS_INT startpos, endpos;
+      ptrdiff_t startpos, endpos;
 
       XSETMISC (overlay, tail);
 
@@ -2712,7 +2723,7 @@ overlays_in (EMACS_INT beg, EMACS_INT end, int extend,
 
   for (tail = current_buffer->overlays_after; tail; tail = tail->next)
     {
-      EMACS_INT startpos, endpos;
+      ptrdiff_t startpos, endpos;
 
       XSETMISC (overlay, tail);
 
@@ -2768,8 +2779,8 @@ overlays_in (EMACS_INT beg, EMACS_INT end, int extend,
 int
 mouse_face_overlay_overlaps (Lisp_Object overlay)
 {
-  EMACS_INT start = OVERLAY_POSITION (OVERLAY_START (overlay));
-  EMACS_INT end = OVERLAY_POSITION (OVERLAY_END (overlay));
+  ptrdiff_t start = OVERLAY_POSITION (OVERLAY_START (overlay));
+  ptrdiff_t end = OVERLAY_POSITION (OVERLAY_END (overlay));
   ptrdiff_t n, i, size;
   Lisp_Object *v, tem;
 
@@ -2795,14 +2806,14 @@ mouse_face_overlay_overlaps (Lisp_Object overlay)
 
 /* Fast function to just test if we're at an overlay boundary.  */
 int
-overlay_touches_p (EMACS_INT pos)
+overlay_touches_p (ptrdiff_t pos)
 {
   Lisp_Object overlay;
   struct Lisp_Overlay *tail;
 
   for (tail = current_buffer->overlays_before; tail; tail = tail->next)
     {
-      EMACS_INT endpos;
+      ptrdiff_t endpos;
 
       XSETMISC (overlay ,tail);
       if (!OVERLAYP (overlay))
@@ -2817,7 +2828,7 @@ overlay_touches_p (EMACS_INT pos)
 
   for (tail = current_buffer->overlays_after; tail; tail = tail->next)
     {
-      EMACS_INT startpos;
+      ptrdiff_t startpos;
 
       XSETMISC (overlay, tail);
       if (!OVERLAYP (overlay))
@@ -2835,7 +2846,7 @@ overlay_touches_p (EMACS_INT pos)
 struct sortvec
 {
   Lisp_Object overlay;
-  EMACS_INT beg, end;
+  ptrdiff_t beg, end;
   EMACS_INT priority;
 };
 
@@ -2958,7 +2969,7 @@ static void
 record_overlay_string (struct sortstrlist *ssl, Lisp_Object str,
 		       Lisp_Object str2, Lisp_Object pri, ptrdiff_t size)
 {
-  EMACS_INT nbytes;
+  ptrdiff_t nbytes;
 
   if (ssl->used == ssl->size)
     ssl->buf = xpalloc (ssl->buf, &ssl->size, 5, -1, sizeof *ssl->buf);
@@ -3008,12 +3019,12 @@ record_overlay_string (struct sortstrlist *ssl, Lisp_Object str,
    PSTR, if that variable is non-null.  The string may be overwritten by
    subsequent calls.  */
 
-EMACS_INT
-overlay_strings (EMACS_INT pos, struct window *w, unsigned char **pstr)
+ptrdiff_t
+overlay_strings (ptrdiff_t pos, struct window *w, unsigned char **pstr)
 {
   Lisp_Object overlay, window, str;
   struct Lisp_Overlay *ov;
-  EMACS_INT startpos, endpos;
+  ptrdiff_t startpos, endpos;
   int multibyte = ! NILP (BVAR (current_buffer, enable_multibyte_characters));
 
   overlay_heads.used = overlay_heads.bytes = 0;
@@ -3083,7 +3094,7 @@ overlay_strings (EMACS_INT pos, struct window *w, unsigned char **pstr)
   if (overlay_heads.bytes || overlay_tails.bytes)
     {
       Lisp_Object tem;
-      EMACS_INT i;
+      ptrdiff_t i;
       unsigned char *p;
       ptrdiff_t total;
 
@@ -3097,7 +3108,7 @@ overlay_strings (EMACS_INT pos, struct window *w, unsigned char **pstr)
       p = overlay_str_buf;
       for (i = overlay_tails.used; --i >= 0;)
 	{
-	  EMACS_INT nbytes;
+	  ptrdiff_t nbytes;
 	  tem = overlay_tails.buf[i].string;
 	  nbytes = copy_text (SDATA (tem), p,
 			      SBYTES (tem),
@@ -3106,7 +3117,7 @@ overlay_strings (EMACS_INT pos, struct window *w, unsigned char **pstr)
 	}
       for (i = 0; i < overlay_heads.used; ++i)
 	{
-	  EMACS_INT nbytes;
+	  ptrdiff_t nbytes;
 	  tem = overlay_heads.buf[i].string;
 	  nbytes = copy_text (SDATA (tem), p,
 			      SBYTES (tem),
@@ -3133,7 +3144,7 @@ overlay_strings (EMACS_INT pos, struct window *w, unsigned char **pstr)
 /* Shift overlays in BUF's overlay lists, to center the lists at POS.  */
 
 void
-recenter_overlay_lists (struct buffer *buf, EMACS_INT pos)
+recenter_overlay_lists (struct buffer *buf, ptrdiff_t pos)
 {
   Lisp_Object overlay, beg, end;
   struct Lisp_Overlay *prev, *tail, *next;
@@ -3171,7 +3182,7 @@ recenter_overlay_lists (struct buffer *buf, EMACS_INT pos)
       if (OVERLAY_POSITION (end) > pos)
 	{
 	  /* OVERLAY needs to be moved.  */
-	  EMACS_INT where = OVERLAY_POSITION (beg);
+	  ptrdiff_t where = OVERLAY_POSITION (beg);
 	  struct Lisp_Overlay *other, *other_prev;
 
 	  /* Splice the cons cell TAIL out of overlays_before.  */
@@ -3244,7 +3255,7 @@ recenter_overlay_lists (struct buffer *buf, EMACS_INT pos)
       if (OVERLAY_POSITION (end) <= pos)
 	{
 	  /* OVERLAY needs to be moved.  */
-	  EMACS_INT where = OVERLAY_POSITION (end);
+	  ptrdiff_t where = OVERLAY_POSITION (end);
 	  struct Lisp_Overlay *other, *other_prev;
 
 	  /* Splice the cons cell TAIL out of overlays_after.  */
@@ -3282,7 +3293,7 @@ recenter_overlay_lists (struct buffer *buf, EMACS_INT pos)
 }
 
 void
-adjust_overlays_for_insert (EMACS_INT pos, EMACS_INT length)
+adjust_overlays_for_insert (ptrdiff_t pos, ptrdiff_t length)
 {
   /* After an insertion, the lists are still sorted properly,
      but we may need to update the value of the overlay center.  */
@@ -3291,13 +3302,13 @@ adjust_overlays_for_insert (EMACS_INT pos, EMACS_INT length)
 }
 
 void
-adjust_overlays_for_delete (EMACS_INT pos, EMACS_INT length)
+adjust_overlays_for_delete (ptrdiff_t pos, ptrdiff_t length)
 {
   if (current_buffer->overlay_center < pos)
     /* The deletion was to our right.  No change needed; the before- and
        after-lists are still consistent.  */
     ;
-  else if (current_buffer->overlay_center > pos + length)
+  else if (current_buffer->overlay_center - pos > length)
     /* The deletion was to our left.  We need to adjust the center value
        to account for the change in position, but the lists are consistent
        given the new value.  */
@@ -3316,7 +3327,7 @@ adjust_overlays_for_delete (EMACS_INT pos, EMACS_INT length)
    Such an overlay might even have negative size at this point.
    If so, we'll make the overlay empty. */
 void
-fix_start_end_in_overlays (register EMACS_INT start, register EMACS_INT end)
+fix_start_end_in_overlays (register ptrdiff_t start, register ptrdiff_t end)
 {
   Lisp_Object overlay;
   struct Lisp_Overlay *before_list IF_LINT (= NULL);
@@ -3329,7 +3340,7 @@ fix_start_end_in_overlays (register EMACS_INT start, register EMACS_INT end)
      current_buffer->overlays_before or overlays_after, depending
      which loop we're in.  */
   struct Lisp_Overlay *tail, *parent;
-  EMACS_INT startpos, endpos;
+  ptrdiff_t startpos, endpos;
 
   /* This algorithm shifts links around instead of consing and GCing.
      The loop invariant is that before_list (resp. after_list) is a
@@ -3463,12 +3474,12 @@ fix_start_end_in_overlays (register EMACS_INT start, register EMACS_INT end)
    was at PREV, and now is at POS.  */
 
 void
-fix_overlays_before (struct buffer *bp, EMACS_INT prev, EMACS_INT pos)
+fix_overlays_before (struct buffer *bp, ptrdiff_t prev, ptrdiff_t pos)
 {
   /* If parent is nil, replace overlays_before; otherwise, parent->next.  */
   struct Lisp_Overlay *tail = bp->overlays_before, *parent = NULL, *right_pair;
   Lisp_Object tem;
-  EMACS_INT end IF_LINT (= 0);
+  ptrdiff_t end IF_LINT (= 0);
 
   /* After the insertion, the several overlays may be in incorrect
      order.  The possibility is that, in the list `overlays_before',
@@ -3626,11 +3637,11 @@ for the rear of the overlay advance when text is inserted there
 /* Mark a section of BUF as needing redisplay because of overlays changes.  */
 
 static void
-modify_overlay (struct buffer *buf, EMACS_INT start, EMACS_INT end)
+modify_overlay (struct buffer *buf, ptrdiff_t start, ptrdiff_t end)
 {
   if (start > end)
     {
-      EMACS_INT temp = start;
+      ptrdiff_t temp = start;
       start = end;
       end = temp;
     }
@@ -3677,9 +3688,10 @@ If BUFFER is omitted, and OVERLAY is in no buffer, put it in the current
 buffer.  */)
   (Lisp_Object overlay, Lisp_Object beg, Lisp_Object end, Lisp_Object buffer)
 {
-  struct buffer *b, *ob;
+  struct buffer *b, *ob = 0;
   Lisp_Object obuffer;
-  int count = SPECPDL_INDEX ();
+  ptrdiff_t count = SPECPDL_INDEX ();
+  ptrdiff_t n_beg, n_end, o_beg IF_LINT (= 0), o_end IF_LINT (= 0);
 
   CHECK_OVERLAY (overlay);
   if (NILP (buffer))
@@ -3687,6 +3699,9 @@ buffer.  */)
   if (NILP (buffer))
     XSETBUFFER (buffer, current_buffer);
   CHECK_BUFFER (buffer);
+
+  if (NILP (Fbuffer_live_p (buffer)))
+    error ("Attempt to move overlay to a dead buffer");
 
   if (MARKERP (beg)
       && ! EQ (Fmarker_buffer (beg), buffer))
@@ -3698,9 +3713,6 @@ buffer.  */)
   CHECK_NUMBER_COERCE_MARKER (beg);
   CHECK_NUMBER_COERCE_MARKER (end);
 
-  if (XINT (beg) == XINT (end) && ! NILP (Foverlay_get (overlay, Qevaporate)))
-    return Fdelete_overlay (overlay);
-
   if (XINT (beg) > XINT (end))
     {
       Lisp_Object temp;
@@ -3711,61 +3723,57 @@ buffer.  */)
 
   obuffer = Fmarker_buffer (OVERLAY_START (overlay));
   b = XBUFFER (buffer);
-  ob = BUFFERP (obuffer) ? XBUFFER (obuffer) : (struct buffer *) 0;
+
+  if (!NILP (obuffer))
+    {
+      ob = XBUFFER (obuffer);
+
+      o_beg = OVERLAY_POSITION (OVERLAY_START (overlay));
+      o_end = OVERLAY_POSITION (OVERLAY_END (overlay));
+
+      ob->overlays_before =
+        unchain_overlay (ob->overlays_before, XOVERLAY (overlay));
+      ob->overlays_after =
+        unchain_overlay (ob->overlays_after, XOVERLAY (overlay));
+      eassert (XOVERLAY (overlay)->next == NULL);
+    }
+
+  /* Set the overlay boundaries, which may clip them.  */
+  Fset_marker (OVERLAY_START (overlay), beg, buffer);
+  Fset_marker (OVERLAY_END (overlay), end, buffer);
+
+  n_beg = marker_position (OVERLAY_START (overlay));
+  n_end = marker_position (OVERLAY_END (overlay));
 
   /* If the overlay has changed buffers, do a thorough redisplay.  */
   if (!EQ (buffer, obuffer))
     {
       /* Redisplay where the overlay was.  */
-      if (!NILP (obuffer))
-	{
-	  EMACS_INT o_beg;
-	  EMACS_INT o_end;
-
-	  o_beg = OVERLAY_POSITION (OVERLAY_START (overlay));
-	  o_end = OVERLAY_POSITION (OVERLAY_END (overlay));
-
-	  modify_overlay (ob, o_beg, o_end);
-	}
+      if (ob)
+        modify_overlay (ob, o_beg, o_end);
 
       /* Redisplay where the overlay is going to be.  */
-      modify_overlay (b, XINT (beg), XINT (end));
+      modify_overlay (b, n_beg, n_end);
     }
   else
     /* Redisplay the area the overlay has just left, or just enclosed.  */
     {
-      EMACS_INT o_beg, o_end;
-
-      o_beg = OVERLAY_POSITION (OVERLAY_START (overlay));
-      o_end = OVERLAY_POSITION (OVERLAY_END (overlay));
-
-      if (o_beg == XINT (beg))
-	modify_overlay (b, o_end, XINT (end));
-      else if (o_end == XINT (end))
-	modify_overlay (b, o_beg, XINT (beg));
+      if (o_beg == n_beg)
+	modify_overlay (b, o_end, n_end);
+      else if (o_end == n_end)
+	modify_overlay (b, o_beg, n_beg);
       else
-	{
-	  if (XINT (beg) < o_beg) o_beg = XINT (beg);
-	  if (XINT (end) > o_end) o_end = XINT (end);
-	  modify_overlay (b, o_beg, o_end);
-	}
+	modify_overlay (b, min (o_beg, n_beg), max (o_end, n_end));
     }
 
-  if (!NILP (obuffer))
-    {
-      ob->overlays_before
-	= unchain_overlay (ob->overlays_before, XOVERLAY (overlay));
-      ob->overlays_after
-	= unchain_overlay (ob->overlays_after, XOVERLAY (overlay));
-      eassert (XOVERLAY (overlay)->next == NULL);
-    }
+  /* Delete the overlay if it is empty after clipping and has the
+     evaporate property.  */
+  if (n_beg == n_end && !NILP (Foverlay_get (overlay, Qevaporate)))
+    return unbind_to (count, Fdelete_overlay (overlay));
 
-  Fset_marker (OVERLAY_START (overlay), beg, buffer);
-  Fset_marker (OVERLAY_END   (overlay), end, buffer);
-
-  /* Put the overlay on the wrong list.  */
-  end = OVERLAY_END (overlay);
-  if (OVERLAY_POSITION (end) < b->overlay_center)
+  /* Put the overlay into the new buffer's overlay lists, first on the
+     wrong list.  */
+  if (n_end < b->overlay_center)
     {
       XOVERLAY (overlay)->next = b->overlays_after;
       b->overlays_after = XOVERLAY (overlay);
@@ -3788,7 +3796,7 @@ DEFUN ("delete-overlay", Fdelete_overlay, Sdelete_overlay, 1, 1, 0,
 {
   Lisp_Object buffer;
   struct buffer *b;
-  int count = SPECPDL_INDEX ();
+  ptrdiff_t count = SPECPDL_INDEX ();
 
   CHECK_OVERLAY (overlay);
 
@@ -3799,9 +3807,12 @@ DEFUN ("delete-overlay", Fdelete_overlay, Sdelete_overlay, 1, 1, 0,
   b = XBUFFER (buffer);
   specbind (Qinhibit_quit, Qt);
 
-  b->overlays_before = unchain_overlay (b->overlays_before,XOVERLAY (overlay));
-  b->overlays_after  = unchain_overlay (b->overlays_after, XOVERLAY (overlay));
+  b->overlays_before
+    = unchain_overlay (b->overlays_before, XOVERLAY (overlay));
+  b->overlays_after
+    = unchain_overlay (b->overlays_after, XOVERLAY (overlay));
   eassert (XOVERLAY (overlay)->next == NULL);
+
   modify_overlay (b,
 		  marker_position (OVERLAY_START (overlay)),
 		  marker_position (OVERLAY_END   (overlay)));
@@ -3879,7 +3890,7 @@ DEFUN ("overlays-at", Foverlays_at, Soverlays_at, 1, 1, 0,
   /* Put all the overlays we want in a vector in overlay_vec.
      Store the length in len.  */
   noverlays = overlays_at (XINT (pos), 1, &overlay_vec, &len,
-			   (EMACS_INT *) 0, (EMACS_INT *) 0, 0);
+			   0, 0, 0);
 
   /* Make a list of them all.  */
   result = Flist (noverlays, overlay_vec);
@@ -3927,7 +3938,7 @@ the value is (point-max).  */)
   (Lisp_Object pos)
 {
   ptrdiff_t i, len, noverlays;
-  EMACS_INT endpos;
+  ptrdiff_t endpos;
   Lisp_Object *overlay_vec;
 
   CHECK_NUMBER_COERCE_MARKER (pos);
@@ -3939,14 +3950,14 @@ the value is (point-max).  */)
      Store the length in len.
      endpos gets the position where the next overlay starts.  */
   noverlays = overlays_at (XINT (pos), 1, &overlay_vec, &len,
-			   &endpos, (EMACS_INT *) 0, 1);
+			   &endpos, 0, 1);
 
   /* If any of these overlays ends before endpos,
      use its ending point instead.  */
   for (i = 0; i < noverlays; i++)
     {
       Lisp_Object oend;
-      EMACS_INT oendpos;
+      ptrdiff_t oendpos;
 
       oend = OVERLAY_END (overlay_vec[i]);
       oendpos = OVERLAY_POSITION (oend);
@@ -3965,7 +3976,7 @@ If there are no overlay boundaries from (point-min) to POS,
 the value is (point-min).  */)
   (Lisp_Object pos)
 {
-  EMACS_INT prevpos;
+  ptrdiff_t prevpos;
   Lisp_Object *overlay_vec;
   ptrdiff_t len;
 
@@ -3983,7 +3994,7 @@ the value is (point-min).  */)
      Store the length in len.
      prevpos gets the position of the previous change.  */
   overlays_at (XINT (pos), 1, &overlay_vec, &len,
-	       (EMACS_INT *) 0, &prevpos, 1);
+	       0, &prevpos, 1);
 
   xfree (overlay_vec);
   return make_number (prevpos);
@@ -4021,9 +4032,11 @@ That makes overlay lookup faster for positions near POS (but perhaps slower
 for positions far away from POS).  */)
   (Lisp_Object pos)
 {
+  ptrdiff_t p;
   CHECK_NUMBER_COERCE_MARKER (pos);
 
-  recenter_overlay_lists (current_buffer, XINT (pos));
+  p = clip_to_bounds (PTRDIFF_MIN, XINT (pos), PTRDIFF_MAX);
+  recenter_overlay_lists (current_buffer, p);
   return Qnil;
 }
 
@@ -4090,7 +4103,7 @@ VALUE will be returned.*/)
 static Lisp_Object last_overlay_modification_hooks;
 
 /* Number of elements actually used in last_overlay_modification_hooks.  */
-static int last_overlay_modification_hooks_used;
+static ptrdiff_t last_overlay_modification_hooks_used;
 
 /* Add one functionlist/overlay pair
    to the end of last_overlay_modification_hooks.  */
@@ -4098,11 +4111,11 @@ static int last_overlay_modification_hooks_used;
 static void
 add_overlay_mod_hooklist (Lisp_Object functionlist, Lisp_Object overlay)
 {
-  int oldsize = ASIZE (last_overlay_modification_hooks);
+  ptrdiff_t oldsize = ASIZE (last_overlay_modification_hooks);
 
-  if (last_overlay_modification_hooks_used == oldsize)
-    last_overlay_modification_hooks = larger_vector
-      (last_overlay_modification_hooks, oldsize * 2, Qnil);
+  if (oldsize - 1 <= last_overlay_modification_hooks_used)
+    last_overlay_modification_hooks =
+      larger_vector (last_overlay_modification_hooks, 2, -1);
   ASET (last_overlay_modification_hooks, last_overlay_modification_hooks_used,
 	functionlist); last_overlay_modification_hooks_used++;
   ASET (last_overlay_modification_hooks, last_overlay_modification_hooks_used,
@@ -4151,7 +4164,7 @@ report_overlay_modification (Lisp_Object start, Lisp_Object end, int after,
       last_overlay_modification_hooks_used = 0;
       for (tail = current_buffer->overlays_before; tail; tail = tail->next)
 	{
-	  EMACS_INT startpos, endpos;
+	  ptrdiff_t startpos, endpos;
 	  Lisp_Object ostart, oend;
 
 	  XSETMISC (overlay, tail);
@@ -4188,7 +4201,7 @@ report_overlay_modification (Lisp_Object start, Lisp_Object end, int after,
 
       for (tail = current_buffer->overlays_after; tail; tail = tail->next)
 	{
-	  EMACS_INT startpos, endpos;
+	  ptrdiff_t startpos, endpos;
 	  Lisp_Object ostart, oend;
 
 	  XSETMISC (overlay, tail);
@@ -4229,9 +4242,9 @@ report_overlay_modification (Lisp_Object start, Lisp_Object end, int after,
     /* Call the functions recorded in last_overlay_modification_hooks.
        First copy the vector contents, in case some of these hooks
        do subsequent modification of the buffer.  */
-    int size = last_overlay_modification_hooks_used;
+    ptrdiff_t size = last_overlay_modification_hooks_used;
     Lisp_Object *copy = (Lisp_Object *) alloca (size * sizeof (Lisp_Object));
-    int i;
+    ptrdiff_t i;
 
     memcpy (copy, XVECTOR (last_overlay_modification_hooks)->contents,
 	    size * sizeof (Lisp_Object));
@@ -4271,7 +4284,7 @@ call_overlay_mod_hooks (Lisp_Object list, Lisp_Object overlay, int after,
 /* Delete any zero-sized overlays at position POS, if the `evaporate'
    property is set.  */
 void
-evaporate_overlays (EMACS_INT pos)
+evaporate_overlays (ptrdiff_t pos)
 {
   Lisp_Object overlay, hit_list;
   struct Lisp_Overlay *tail;
@@ -4280,7 +4293,7 @@ evaporate_overlays (EMACS_INT pos)
   if (pos <= current_buffer->overlay_center)
     for (tail = current_buffer->overlays_before; tail; tail = tail->next)
       {
-	EMACS_INT endpos;
+	ptrdiff_t endpos;
 	XSETMISC (overlay, tail);
 	endpos = OVERLAY_POSITION (OVERLAY_END (overlay));
 	if (endpos < pos)
@@ -4292,7 +4305,7 @@ evaporate_overlays (EMACS_INT pos)
   else
     for (tail = current_buffer->overlays_after; tail; tail = tail->next)
       {
-	EMACS_INT startpos;
+	ptrdiff_t startpos;
 	XSETMISC (overlay, tail);
 	startpos = OVERLAY_POSITION (OVERLAY_START (overlay));
 	if (startpos > pos)
@@ -4383,7 +4396,7 @@ struct mmap_region
   /* Pointer to the location holding the address of the memory
      allocated with the mmap'd block.  The variable actually points
      after this structure.  */
-  POINTER_TYPE **var;
+  void **var;
 
   /* Next and previous in list of all mmap'd regions.  */
   struct mmap_region *next, *prev;
@@ -4430,7 +4443,7 @@ static int mmap_initialized_p;
    to the start of the user-visible part of the region.  */
 
 #define MMAP_USER_AREA(P) \
-     ((POINTER_TYPE *) ((char *) (P) + MMAP_REGION_STRUCT_SIZE))
+     ((void *) ((char *) (P) + MMAP_REGION_STRUCT_SIZE))
 
 #define MEM_ALIGN	sizeof (double)
 
@@ -4479,7 +4492,7 @@ mmap_init (void)
    is at END - 1.  */
 
 static struct mmap_region *
-mmap_find (POINTER_TYPE *start, POINTER_TYPE *end)
+mmap_find (void *start, void *end)
 {
   struct mmap_region *r;
   char *s = (char *) start, *e = (char *) end;
@@ -4517,7 +4530,7 @@ mmap_free_1 (struct mmap_region *r)
   else
     mmap_regions = r->next;
 
-  if (munmap ((POINTER_TYPE *) r, r->nbytes_mapped) == -1)
+  if (munmap (r, r->nbytes_mapped) == -1)
     {
       fprintf (stderr, "munmap: %s\n", emacs_strerror (errno));
       return 0;
@@ -4559,13 +4572,13 @@ mmap_enlarge (struct mmap_region *r, int npages)
 	 I'm not sure this is worth doing, let's see.  */
       if (!MMAP_ALLOCATED_P (region_end, region_end + nbytes))
 	{
-	  POINTER_TYPE *p;
+	  void *p;
 
 	  p = mmap (region_end, nbytes, PROT_READ | PROT_WRITE,
 		    MAP_ANON | MAP_PRIVATE | MAP_FIXED, mmap_fd, 0);
 	  if (p == MAP_FAILED)
 	    ; /* fprintf (stderr, "mmap: %s\n", emacs_strerror (errno)); */
-	  else if (p != (POINTER_TYPE *) region_end)
+	  else if (p != region_end)
 	    {
 	      /* Kernels are free to choose a different address.  In
 		 that case, unmap what we've mapped above; we have
@@ -4627,8 +4640,8 @@ mmap_set_vars (int restore_p)
    If we can't allocate the necessary memory, set *VAR to null, and
    return null.  */
 
-static POINTER_TYPE *
-mmap_alloc (POINTER_TYPE **var, size_t nbytes)
+static void *
+mmap_alloc (void **var, size_t nbytes)
 {
   void *p;
   size_t map;
@@ -4669,7 +4682,7 @@ mmap_alloc (POINTER_TYPE **var, size_t nbytes)
    PTR.  Store 0 in *PTR to show there's no block allocated.  */
 
 static void
-mmap_free (POINTER_TYPE **var)
+mmap_free (void **var)
 {
   mmap_init ();
 
@@ -4686,10 +4699,10 @@ mmap_free (POINTER_TYPE **var)
    and return this value.  If more memory cannot be allocated, then
    leave *VAR unchanged, and return null.  */
 
-static POINTER_TYPE *
-mmap_realloc (POINTER_TYPE **var, size_t nbytes)
+static void *
+mmap_realloc (void **var, size_t nbytes)
 {
-  POINTER_TYPE *result;
+  void *result;
 
   mmap_init ();
 
@@ -4708,7 +4721,7 @@ mmap_realloc (POINTER_TYPE **var, size_t nbytes)
       if (room < nbytes)
 	{
 	  /* Must enlarge.  */
-	  POINTER_TYPE *old_ptr = *var;
+	  void *old_ptr = *var;
 
 	  /* Try to map additional pages at the end of the region.
 	     If that fails, allocate a new region,  copy data
@@ -4770,13 +4783,13 @@ mmap_realloc (POINTER_TYPE **var, size_t nbytes)
 static void
 alloc_buffer_text (struct buffer *b, ptrdiff_t nbytes)
 {
-  POINTER_TYPE *p;
+  void *p;
 
   BLOCK_INPUT;
 #if defined USE_MMAP_FOR_BUFFERS
-  p = mmap_alloc ((POINTER_TYPE **) &b->text->beg, nbytes);
+  p = mmap_alloc ((void **) &b->text->beg, nbytes);
 #elif defined REL_ALLOC
-  p = r_alloc ((POINTER_TYPE **) &b->text->beg, nbytes);
+  p = r_alloc ((void **) &b->text->beg, nbytes);
 #else
   p = xmalloc (nbytes);
 #endif
@@ -4795,16 +4808,16 @@ alloc_buffer_text (struct buffer *b, ptrdiff_t nbytes)
    shrink it.  */
 
 void
-enlarge_buffer_text (struct buffer *b, EMACS_INT delta)
+enlarge_buffer_text (struct buffer *b, ptrdiff_t delta)
 {
-  POINTER_TYPE *p;
+  void *p;
   ptrdiff_t nbytes = (BUF_Z_BYTE (b) - BUF_BEG_BYTE (b) + BUF_GAP_SIZE (b) + 1
 		      + delta);
   BLOCK_INPUT;
 #if defined USE_MMAP_FOR_BUFFERS
-  p = mmap_realloc ((POINTER_TYPE **) &b->text->beg, nbytes);
+  p = mmap_realloc ((void **) &b->text->beg, nbytes);
 #elif defined REL_ALLOC
-  p = r_re_alloc ((POINTER_TYPE **) &b->text->beg, nbytes);
+  p = r_re_alloc ((void **) &b->text->beg, nbytes);
 #else
   p = xrealloc (b->text->beg, nbytes);
 #endif
@@ -4828,9 +4841,9 @@ free_buffer_text (struct buffer *b)
   BLOCK_INPUT;
 
 #if defined USE_MMAP_FOR_BUFFERS
-  mmap_free ((POINTER_TYPE **) &b->text->beg);
+  mmap_free ((void **) &b->text->beg);
 #elif defined REL_ALLOC
-  r_alloc_free ((POINTER_TYPE **) &b->text->beg);
+  r_alloc_free ((void **) &b->text->beg);
 #else
   xfree (b->text->beg);
 #endif
@@ -5328,31 +5341,40 @@ the mode line appears at the bottom.  */);
   DEFVAR_PER_BUFFER ("mode-line-format", &BVAR (current_buffer, mode_line_format),
 		     Qnil,
 		     doc: /* Template for displaying mode line for current buffer.
-Each buffer has its own value of this variable.
-Value may be nil, a string, a symbol or a list or cons cell.
+
+The value may be nil, a string, a symbol or a list.
+
 A value of nil means don't display a mode line.
-For a symbol, its value is used (but it is ignored if t or nil).
- A string appearing directly as the value of a symbol is processed verbatim
- in that the %-constructs below are not recognized.
- Note that unless the symbol is marked as a `risky-local-variable', all
- properties in any strings, as well as all :eval and :propertize forms
- in the value of that symbol will be ignored.
-For a list of the form `(:eval FORM)', FORM is evaluated and the result
- is used as a mode line element.  Be careful--FORM should not load any files,
- because that can cause an infinite recursion.
-For a list of the form `(:propertize ELT PROPS...)', ELT is displayed
- with the specified properties PROPS applied.
-For a list whose car is a symbol, the symbol's value is taken,
- and if that is non-nil, the cadr of the list is processed recursively.
- Otherwise, the caddr of the list (if there is one) is processed.
-For a list whose car is a string or list, each element is processed
- recursively and the results are effectively concatenated.
-For a list whose car is an integer, the cdr of the list is processed
-  and padded (if the number is positive) or truncated (if negative)
-  to the width specified by that number.
+
+For any symbol other than t or nil, the symbol's value is processed as
+ a mode line construct.  As a special exception, if that value is a
+ string, the string is processed verbatim, without handling any
+ %-constructs (see below).  Also, unless the symbol has a non-nil
+ `risky-local-variable' property, all properties in any strings, as
+ well as all :eval and :propertize forms in the value, are ignored.
+
+A list whose car is a string or list is processed by processing each
+ of the list elements recursively, as separate mode line constructs,
+ and concatenating the results.
+
+A list of the form `(:eval FORM)' is processed by evaluating FORM and
+ using the result as a mode line construct.  Be careful--FORM should
+ not load any files, because that can cause an infinite recursion.
+
+A list of the form `(:propertize ELT PROPS...)' is processed by
+ processing ELT as the mode line construct, and adding the text
+ properties PROPS to the result.
+
+A list whose car is a symbol is processed by examining the symbol's
+ value, and, if that value is non-nil, processing the cadr of the list
+ recursively; and if that value is nil, processing the caddr of the
+ list recursively.
+
+A list whose car is an integer is processed by processing the cadr of
+ the list, and padding (if the number is positive) or truncating (if
+ negative) to the width specified by that number.
+
 A string is printed verbatim in the mode line except for %-constructs:
-  (%-constructs are allowed when the string is the entire mode-line-format
-   or when it is found in a cons-cell or a list)
   %b -- print buffer name.      %f -- print visited file name.
   %F -- print frame name.
   %* -- print %, * or hyphen.   %+ -- print *, % or hyphen.

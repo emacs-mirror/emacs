@@ -2,7 +2,7 @@
 @c This is part of the GNU Emacs Lisp Reference Manual.
 @c Copyright (C) 1990-1995, 1998-2012 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
-@node Positions, Markers, Frames, Top
+@node Positions
 @chapter Positions
 @cindex position (in buffer)
 
@@ -614,7 +614,6 @@ beginning of the first screen line.  @xref{Minibuffer Contents}.
 @end defun
 
 @node List Motion
-@comment  node-name,  next,  previous,  up
 @subsection Moving over Balanced Expressions
 @cindex sexp motion
 @cindex Lisp expression motion
@@ -725,7 +724,6 @@ of using its normal method.
 @end defvar
 
 @node Skipping Characters
-@comment  node-name,  next,  previous,  up
 @subsection Skipping Characters
 @cindex skipping characters
 

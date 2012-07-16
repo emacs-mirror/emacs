@@ -2,7 +2,7 @@
 @c This is part of the GNU Emacs Lisp Reference Manual.
 @c Copyright (C) 1990-1994, 2001-2012 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
-@node Byte Compilation, Advising Functions, Loading, Top
+@node Byte Compilation
 @chapter Byte Compilation
 @cindex byte compilation
 @cindex byte-code
@@ -80,7 +80,6 @@ whereas the byte-compiled code required less than 4 seconds.  These
 results are representative, but actual results may vary.
 
 @node Compilation Functions
-@comment  node-name,  next,  previous,  up
 @section Byte-Compilation Functions
 @cindex compilation functions
 
@@ -290,10 +289,10 @@ is by adding this string to the file's first line:
 -*-byte-compile-dynamic-docstrings: nil;-*-
 @end example
 
-@defvar byte-compile-dynamic-docstrings
+@defopt byte-compile-dynamic-docstrings
 If this is non-@code{nil}, the byte compiler generates compiled files
 that are set up for dynamic loading of documentation strings.
-@end defvar
+@end defopt
 
 @node Dynamic Loading
 @section Dynamic Loading of Individual Functions

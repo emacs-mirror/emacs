@@ -2,7 +2,7 @@
 @c Copyright (C) 1987, 1993-1995, 1997, 2001-2012
 @c   Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
-@node X Resources, Antinews, Emacs Invocation, Top
+@node X Resources
 @appendix X Options and Resources
 
   You can customize some X-related aspects of Emacs behavior using X

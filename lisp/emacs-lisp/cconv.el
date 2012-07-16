@@ -73,8 +73,6 @@
 ;;   since afterwards they can because obnoxious (warnings about an "unused
 ;;   variable" should not be emitted when the variable use has simply been
 ;;   optimized away).
-;; - turn defun and defmacro into macros (and remove special handling of
-;;   `declare' afterwards).
 ;; - let macros specify that some let-bindings come from the same source,
 ;;   so the unused warning takes all uses into account.
 ;; - let interactive specs return a function to build the args (to stash into
@@ -410,20 +408,6 @@ places where they originally did not directly appear."
             . ,(mapcar (lambda (form) (cconv-convert form env extend))
                        forms)))
 
-					;defun, defmacro
-    (`(,(and sym (or `defun `defmacro))
-       ,func ,args . ,body)
-     (assert (equal body (caar cconv-freevars-alist)))
-     (assert (null (cdar cconv-freevars-alist)))
-
-     (let ((new (cconv--convert-function args body env form)))
-       (pcase new
-         (`(function (lambda ,newargs . ,new-body))
-          (assert (equal args newargs))
-          `(,sym ,func ,args . ,new-body))
-         (t (byte-compile-report-error
-             (format "Internal error in cconv of (%s %s ...)" sym func))))))
-
 					;condition-case
     (`(condition-case ,var ,protected-form . ,handlers)
      (let ((newform (cconv--convert-function
@@ -617,15 +601,6 @@ and updates the data stored in ENV."
 
        (dolist (vardata newvars)
          (cconv--analyse-use vardata form "variable"))))
-
-					; defun special form
-    (`(,(or `defun `defmacro) ,func ,vrs . ,body-forms)
-     (when env
-       (byte-compile-log-warning
-        (format "Function %S will ignore its context %S"
-                func (mapcar #'car env))
-        t :warning))
-     (cconv--analyse-function vrs body-forms nil form))
 
     (`(function (lambda ,vrs . ,body-forms))
      (cconv--analyse-function vrs body-forms env form))

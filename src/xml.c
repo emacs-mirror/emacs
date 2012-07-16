@@ -180,8 +180,8 @@ parse_region (Lisp_Object start, Lisp_Object end, Lisp_Object base_url, int html
   xmlDoc *doc;
   Lisp_Object result = Qnil;
   const char *burl = "";
-  EMACS_INT bytes;
-  EMACS_INT istart, iend;
+  ptrdiff_t bytes;
+  ptrdiff_t istart, iend;
 
   fn_xmlCheckVersion (LIBXML_VERSION);
 

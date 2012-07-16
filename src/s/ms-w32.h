@@ -122,7 +122,6 @@ struct sigaction {
 
 #define HAVE_GETTIMEOFDAY 1
 #define HAVE_GETHOSTNAME 1
-#undef  HAVE_GETDOMAINNAME
 #define HAVE_DUP2 1
 #define HAVE_RENAME 1
 #define HAVE_CLOSEDIR 1
@@ -381,6 +380,8 @@ extern int getloadavg (double *, int);
 
 /* We need a little extra space, see ../../lisp/loadup.el.  */
 #define SYSTEM_PURESIZE_EXTRA 50000
+
+#define DATA_START 	get_data_start ()
 
 /* For unexec to work on Alpha systems, we need to put Emacs'
    initialized data into a separate section from the CRT initialized

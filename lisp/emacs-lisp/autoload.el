@@ -1,4 +1,4 @@
-;; autoload.el --- maintain autoloads in loaddefs.el
+;; autoload.el --- maintain autoloads in loaddefs.el  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1991-1997, 2001-2012  Free Software Foundation, Inc.
 
@@ -86,28 +86,67 @@ that text will be copied verbatim to `generated-autoload-file'.")
 
 (defvar autoload-modified-buffers)      ;Dynamically scoped var.
 
-(defun make-autoload (form file)
+(defun make-autoload (form file &optional expansion)
   "Turn FORM into an autoload or defvar for source file FILE.
 Returns nil if FORM is not a special autoload form (i.e. a function definition
-or macro definition or a defcustom)."
+or macro definition or a defcustom).
+If EXPANSION is non-nil, we're processing the macro expansion of an
+expression, in which case we want to handle forms differently."
   (let ((car (car-safe form)) expand)
     (cond
+     ((and expansion (eq car 'defalias))
+      (pcase-let*
+          ((`(,_ ,_ ,arg . ,rest) form)
+           ;; `type' is non-nil if it defines a macro.
+           ;; `fun' is the function part of `arg' (defaults to `arg').
+           ((or (and (or `(cons 'macro ,fun) `'(macro . ,fun)) (let type t))
+                (and (let fun arg) (let type nil)))
+            arg)
+           ;; `lam' is the lambda expression in `fun' (or nil if not
+           ;; recognized).
+           (lam (if (memq (car-safe fun) '(quote function)) (cadr fun)))
+           ;; `args' is the list of arguments (or t if not recognized).
+           ;; `body' is the body of `lam' (or t if not recognized).
+           ((or `(lambda ,args . ,body)
+                (and (let args t) (let body t)))
+            lam)
+           ;; Get the `doc' from `body' or `rest'.
+           (doc (cond ((stringp (car-safe body)) (car body))
+                      ((stringp (car-safe rest)) (car rest))))
+           ;; Look for an interactive spec.
+           (interactive (pcase body
+                          ((or `((interactive . ,_) . ,_)
+                               `(,_ (interactive . ,_) . ,_)) t))))
+        ;; Add the usage form at the end where describe-function-1
+        ;; can recover it.
+        (when (listp args) (setq doc (help-add-fundoc-usage doc args)))
+        ;; (message "autoload of %S" (nth 1 form))
+        `(autoload ,(nth 1 form) ,file ,doc ,interactive ,type)))
+
+     ((and expansion (memq car '(progn prog1)))
+      (let ((end (memq :autoload-end form)))
+	(when end             ;Cut-off anything after the :autoload-end marker.
+          (setq form (copy-sequence form))
+          (setcdr (memq :autoload-end form) nil))
+        (let ((exps (delq nil (mapcar (lambda (form)
+                                        (make-autoload form file expansion))
+                                      (cdr form)))))
+          (when exps (cons 'progn exps)))))
+
      ;; For complex cases, try again on the macro-expansion.
      ((and (memq car '(easy-mmode-define-global-mode define-global-minor-mode
-		       define-globalized-minor-mode
+                       define-globalized-minor-mode defun defmacro
+                       ;; FIXME: we'd want `defmacro*' here as well, so as
+                       ;; to handle its `declare', but when autoload is run
+                       ;; CL is not loaded so macroexpand doesn't know how
+                       ;; to expand it!
 		       easy-mmode-define-minor-mode define-minor-mode))
 	   (setq expand (let ((load-file-name file)) (macroexpand form)))
-	   (eq (car expand) 'progn)
-	   (memq :autoload-end expand))
-      (let ((end (memq :autoload-end expand)))
-	;; Cut-off anything after the :autoload-end marker.
-	(setcdr end nil)
-	(cons 'progn
-	      (mapcar (lambda (form) (make-autoload form file))
-		      (cdr expand)))))
+	   (memq (car expand) '(progn prog1 defalias)))
+      (make-autoload expand file 'expansion)) ;Recurse on the expansion.
 
      ;; For special function-like operators, use the `autoload' function.
-     ((memq car '(defun define-skeleton defmacro define-derived-mode
+     ((memq car '(define-skeleton define-derived-mode
                    define-compilation-mode define-generic-mode
 		   easy-mmode-define-global-mode define-global-minor-mode
 		   define-globalized-minor-mode
@@ -124,40 +163,21 @@ or macro definition or a defcustom)."
                      (t)))
 	     (body (nthcdr (get car 'doc-string-elt) form))
 	     (doc (if (stringp (car body)) (pop body))))
-	(when (listp args)
-	  ;; Add the usage form at the end where describe-function-1
-	  ;; can recover it.
-	  (setq doc (help-add-fundoc-usage doc args)))
-        (let ((exp
-               ;; `define-generic-mode' quotes the name, so take care of that
-               (list 'autoload (if (listp name) name (list 'quote name))
-                     file doc
-                     (or (and (memq car '(define-skeleton define-derived-mode
-                                           define-generic-mode
-                                           easy-mmode-define-global-mode
-                                           define-global-minor-mode
-                                           define-globalized-minor-mode
-                                           easy-mmode-define-minor-mode
-                                           define-minor-mode)) t)
-                         (eq (car-safe (car body)) 'interactive))
-                     (if macrop (list 'quote 'macro) nil))))
-          (when macrop
-            ;; Special case to autoload some of the macro's declarations.
-            (let ((decls (nth (if (stringp (nth 3 form)) 4 3) form))
-                  (exps '()))
-              (when (eq (car-safe decls) 'declare)
-                ;; FIXME: We'd like to reuse macro-declaration-function,
-                ;; but we can't since it doesn't return anything.
-                (dolist (decl decls)
-                  (case (car-safe decl)
-                    (indent
-                     (push `(put ',name 'lisp-indent-function ',(cadr decl))
-                           exps))
-                    (doc-string
-                     (push `(put ',name 'doc-string-elt ',(cadr decl)) exps))))
-                (when exps
-                  (setq exp `(progn ,exp ,@exps))))))
-          exp)))
+        ;; Add the usage form at the end where describe-function-1
+        ;; can recover it.
+	(when (listp args) (setq doc (help-add-fundoc-usage doc args)))
+        ;; `define-generic-mode' quotes the name, so take care of that
+        (list 'autoload (if (listp name) name (list 'quote name))
+              file doc
+              (or (and (memq car '(define-skeleton define-derived-mode
+                                    define-generic-mode
+                                    easy-mmode-define-global-mode
+                                    define-global-minor-mode
+                                    define-globalized-minor-mode
+                                    easy-mmode-define-minor-mode
+                                    define-minor-mode)) t)
+                  (eq (car-safe (car body)) 'interactive))
+              (if macrop (list 'quote 'macro) nil))))
 
      ;; For defclass forms, use `eieio-defclass-autoload'.
      ((eq car 'defclass)
@@ -189,6 +209,11 @@ or macro definition or a defcustom)."
         `(let ((loads (get ',groupname 'custom-loads)))
            (if (member ',file loads) nil
              (put ',groupname 'custom-loads (cons ',file loads))))))
+
+     ;; When processing a macro expansion, any expression
+     ;; before a :autoload-end should be included.  These are typically (put
+     ;; 'fun 'prop val) and things like that.
+     ((and expansion (consp form)) form)
 
      ;; nil here indicates that this is not a special autoload form.
      (t nil))))
@@ -481,7 +506,7 @@ Return non-nil if and only if FILE adds no autoloads to OUTFILE
                   (search-forward generate-autoload-cookie)
                   (skip-chars-forward " \t")
                   (if (eolp)
-                      (condition-case err
+                      (condition-case-unless-debug err
                           ;; Read the next form and make an autoload.
                           (let* ((form (prog1 (read (current-buffer))
                                          (or (bolp) (forward-line 1))))
@@ -671,9 +696,9 @@ file binds `generated-autoload-file' as a file-local variable,
 write its autoloads into the specified file instead."
   (interactive "DUpdate autoloads from directory: ")
   (let* ((files-re (let ((tmp nil))
-		     (dolist (suf (get-load-suffixes)
-				  (concat "^[^=.].*" (regexp-opt tmp t) "\\'"))
-		       (unless (string-match "\\.elc" suf) (push suf tmp)))))
+		     (dolist (suf (get-load-suffixes))
+		       (unless (string-match "\\.elc" suf) (push suf tmp)))
+                     (concat "^[^=.].*" (regexp-opt tmp t) "\\'")))
 	 (files (apply 'nconc
 		       (mapcar (lambda (dir)
 				 (directory-files (expand-file-name dir)

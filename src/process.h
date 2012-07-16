@@ -95,9 +95,9 @@ struct Lisp_Process
     /* Descriptor by which we write to this process */
     int outfd;
     /* Event-count of last event in which this process changed status.  */
-    int tick;
+    EMACS_INT tick;
     /* Event-count of last such event reported.  */
-    int update_tick;
+    EMACS_INT update_tick;
     /* Size of carryover in decoding.  */
     int decoding_carryover;
     /* Hysteresis to try to read process output in larger blocks.

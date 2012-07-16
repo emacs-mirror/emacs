@@ -165,10 +165,10 @@
 ;; There are also the following useful commands:
 ;;
 ;; `whitespace-newline-mode'
-;;    Toggle NEWLINE minor mode visualization ("nl" on modeline).
+;;    Toggle NEWLINE minor mode visualization ("nl" on mode line).
 ;;
 ;; `global-whitespace-newline-mode'
-;;    Toggle NEWLINE global minor mode visualization ("NL" on modeline).
+;;    Toggle NEWLINE global minor mode visualization ("NL" on mode line).
 ;;
 ;; `whitespace-report'
 ;;    Report some blank problems in buffer.
@@ -1533,8 +1533,7 @@ documentation."
 	(when (memq 'empty whitespace-style)
 	  (let (overwrite-mode)		; enforce no overwrite
 	    (goto-char (point-min))
-	    (when (re-search-forward
-		   (concat "\\`" whitespace-empty-at-bob-regexp) nil t)
+	    (when (looking-at whitespace-empty-at-bob-regexp)
 	      (delete-region (match-beginning 1) (match-end 1)))
 	    (when (re-search-forward
 		   (concat whitespace-empty-at-eob-regexp "\\'") nil t)

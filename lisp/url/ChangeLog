@@ -1,3 +1,7 @@
+2012-05-25  Leo Liu  <sdl.web@gmail.com>
+
+	* url-http.el (url-http-codes): Fix mal-formed defconst.
+
 2012-05-15  Ian Eure  <ian@simplegeo.com>
 
 	* url-util.el (url-build-query-string): New function (Bug#8706).

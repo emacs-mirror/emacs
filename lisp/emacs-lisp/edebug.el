@@ -527,6 +527,7 @@ the minibuffer."
            (setq face-new-frame-defaults
                  (assq-delete-all (nth 1 form) face-new-frame-defaults))
            (put (nth 1 form) 'face-defface-spec nil)
+           (put (nth 1 form) 'face-documentation (nth 3 form))
 	   ;; See comments in `eval-defun-1' for purpose of code below
 	   (setq form (prog1 `(prog1 ,form
 				(put ',(nth 1 form) 'saved-face
@@ -1938,7 +1939,6 @@ expressions; a `progn' form will be returned enclosing these forms."
 
 ;;;; Edebug Form Specs
 ;;; ==========================================================
-;;; See cl-specs.el for common lisp specs.
 
 ;;;;* Spec for def-edebug-spec
 ;;; Out of date.
@@ -2010,12 +2010,6 @@ expressions; a `progn' form will be returned enclosing these forms."
 ;; function expects a symbol or a lambda or macro expression
 ;; A macro is allowed by Emacs.
 (def-edebug-spec function (&or symbolp lambda-expr))
-
-;; lambda is a macro in emacs 19.
-(def-edebug-spec lambda (&define lambda-list
-				 [&optional stringp]
-				 [&optional ("interactive" interactive)]
-				 def-body))
 
 ;; A macro expression is a lambda expression with "macro" prepended.
 (def-edebug-spec macro (&define "lambda" lambda-list def-body))
@@ -4436,13 +4430,6 @@ With prefix argument, make it a temporary breakpoint."
 
 
 ;;; Autoloading of Edebug accessories
-
-(if (featurep 'cl)
-    (add-hook 'edebug-setup-hook
-	      (function (lambda () (require 'cl-specs))))
-  ;; The following causes cl-specs to be loaded if you load cl.el.
-  (add-hook 'cl-load-hook
-	    (function (lambda () (require 'cl-specs)))))
 
 ;; edebug-cl-read and cl-read are available from liberte@cs.uiuc.edu
 (if (featurep 'cl-read)

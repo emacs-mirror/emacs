@@ -235,11 +235,11 @@ MAJOR-MODE, the major mode of the code in the grammar's actions, is the
 value of `antlr-language' if the first group in the string matched by
 REGEXP in `antlr-language-limit-n-regexp' is one of the OPTION-VALUEs.
 An OPTION-VALUE of nil denotes the fallback element.  MODELINE-STRING is
-also displayed in the modeline next to \"Antlr\"."
+also displayed in the mode line next to \"Antlr\"."
   :group 'antlr
   :type '(repeat (group :value (java-mode "")
 			(function :tag "Major mode")
-			(string :tag "Modeline string")
+			(string :tag "Mode line string")
 			(repeat :tag "ANTLR language option" :inline t
 				(choice (const :tag "Default" nil)
 					string )))))

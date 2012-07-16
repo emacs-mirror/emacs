@@ -2,7 +2,7 @@
 @c Copyright (C) 1985-1987, 1993-1995, 1997, 1999-2012
 @c   Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
-@node Files, Buffers, Keyboard Macros, Top
+@node Files
 @chapter File Handling
 @cindex files
 

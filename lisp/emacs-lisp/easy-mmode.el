@@ -99,7 +99,7 @@ the mode if the argument is `toggle'.  If DOC is nil this
 function adds a basic doc-string stating these facts.
 
 Optional INIT-VALUE is the initial value of the mode's variable.
-Optional LIGHTER is displayed in the modeline when the mode is on.
+Optional LIGHTER is displayed in the mode line when the mode is on.
 Optional KEYMAP is the default keymap bound to the mode keymap.
   If non-nil, it should be a variable name (whose value is a keymap),
   or an expression that returns either a keymap or a list of
@@ -229,6 +229,7 @@ For example, you could write
          (variable nil)
          ((not globalp)
           `(progn
+             :autoload-end
              (defvar ,mode ,init-value ,(format "Non-nil if %s is enabled.
 Use the command `%s' to change this variable." pretty-name mode))
              (make-variable-buffer-local ',mode)))
@@ -366,8 +367,10 @@ call another major mode in their body."
 				"-mode\\'" "" (symbol-name mode))))))
 
     `(progn
-       (defvar ,MODE-major-mode nil)
-       (make-variable-buffer-local ',MODE-major-mode)
+       (progn
+         :autoload-end
+         (defvar ,MODE-major-mode nil)
+         (make-variable-buffer-local ',MODE-major-mode))
        ;; The actual global minor-mode
        (define-minor-mode ,global-mode
 	 ;; Very short lines to avoid too long lines in the generated

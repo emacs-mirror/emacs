@@ -1,7 +1,6 @@
 @c -*-texinfo-*-
 
-@node GPL, Tips, GNU Free Documentation License, Top
-@comment  node-name,  next,  previous,  up
+@node GPL
 @appendix GNU General Public License
 @c The GNU General Public License.
 @center Version 3, 29 June 2007

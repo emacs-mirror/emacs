@@ -66,10 +66,8 @@ CDPATH=
 
 # ==================== Things `configure' Might Edit ====================
 
-MAINTAINER_MODE_FLAG = --disable-maintainer-mode
-@MAINT@MAINTAINER_MODE_FLAG = --enable-maintainer-mode
 cache_file = @cache_file@
-CONFIGURE_FLAGS = --cache-file=$(cache_file) $(MAINTAINER_MODE_FLAG)
+CONFIGURE_FLAGS = --cache-file=$(cache_file)
 
 CC=@CC@
 CFLAGS=@CFLAGS@
@@ -181,11 +179,12 @@ iconsrcdir=$(srcdir)/etc/images/icons
 # These variables hold the values Emacs will actually use.  They are
 # based on the values of the standard Make variables above.
 
-# Where to install the lisp files distributed with
+# Where to install the lisp, leim files distributed with
 # Emacs.  This includes the Emacs version, so that the
 # lisp files for different versions of Emacs will install
 # themselves in separate directories.
 lispdir=@lispdir@
+leimdir=@leimdir@
 
 # Directories Emacs should search for lisp files specific
 # to this site (i.e. customizations), before consulting
@@ -267,12 +266,11 @@ SUBDIR_MAKEFILES = `echo $(SUBDIR_MAKEFILES_IN:.in=) | sed 's|$(srcdir)/||g'`
 
 # Subdirectories to install, and where they'll go.
 # lib-src's makefile knows how to install it, so we don't do that here.
-# leim's makefile also knows how to install it, so we don't do that here.
-# When installing the info files, we need to do special things to
-# avoid nuking an existing dir file, so we don't do that here;
-# instead, we have written out explicit code in the `install' targets.
-COPYDIR = ${srcdir}/etc ${srcdir}/lisp
-COPYDESTS = $(DESTDIR)${etcdir} $(DESTDIR)${lispdir}
+# Directories that cannot simply be copied, eg info,
+# are treated separately.
+# quail appears twice because in out-of-tree builds, it exists twice.
+COPYDIR = ${srcdir}/etc ${srcdir}/lisp ${srcdir}/leim/ja-dic ${srcdir}/leim/quail leim/quail
+COPYDESTS = $(DESTDIR)${etcdir} $(DESTDIR)${lispdir} $(DESTDIR)${leimdir}/ja-dic $(DESTDIR)${leimdir}/quail $(DESTDIR)${leimdir}/quail
 
 all: ${SUBDIR}
 
@@ -309,43 +307,6 @@ src:	lib-src FRC
 # and `leim'.
 lisp leim: src
 
-# Maintainers can put a copy of gnulib into $(gnulib_srcdir).
-gnulib_srcdir = ../gnulib
-$(gnulib_srcdir):
-	git clone git://git.savannah.gnu.org/gnulib.git $@
-
-# A shorter name that satisfies MS-DOS 8+3 constraints.
-DOS_gnulib_comp.m4 = gl-comp.m4
-
-# Update modules from gnulib, for maintainers, who should have it in
-# $(gnulib_srcdir) (relative to $(srcdir) and should have build tools
-# as per $(gnulib_srcdir)/DEPENDENCIES.
-GNULIB_MODULES = \
-  alloca-opt \
-  careadlinkat crypto/md5 crypto/sha1 crypto/sha256 crypto/sha512 dtoastr \
-  dup2 \
-  filemode getloadavg getopt-gnu ignore-value intprops lstat \
-  manywarnings mktime pthread_sigmask readlink \
-  socklen stdarg stdio strftime strtoimax strtoumax symlink sys_stat \
-  warnings
-GNULIB_TOOL_FLAGS = \
- --avoid=msvc-inval --avoid=msvc-nothrow \
- --avoid=raise --avoid=threadlib \
- --conditional-dependencies --import --no-changelog --no-vc-files \
- --makefile-name=gnulib.mk
-sync-from-gnulib: $(gnulib_srcdir)
-	-cd $(srcdir)/m4 && cp $(DOS_gnulib_comp.m4) gnulib-comp.m4
-	cd $(srcdir) && \
-	  $(gnulib_srcdir)/gnulib-tool $(GNULIB_TOOL_FLAGS) $(GNULIB_MODULES)
-	cd $(srcdir)/m4 && rm gnulib-cache.m4 warn-on-use.m4
-	cd $(srcdir)/m4 && mv gnulib-comp.m4 $(DOS_gnulib_comp.m4)
-	cp $(gnulib_srcdir)/build-aux/texinfo.tex $(srcdir)/doc/misc
-	cp \
-	  $(gnulib_srcdir)/build-aux/move-if-change \
-	  $(srcdir)/build-aux
-	cd $(srcdir) && autoreconf -i -I m4
-.PHONY: sync-from-gnulib
-
 # These targets should be "${SUBDIR} without `src'".
 lib lib-src lisp leim: Makefile FRC
 	cd $@ && $(MAKE) all $(MFLAGS)                         \
@@ -377,7 +338,7 @@ src: Makefile FRC
 	  VCSWITNESS="$$vcswitness"
 
 blessmail: Makefile src FRC
-	cd lib-src; $(MAKE) maybe-blessmail $(MFLAGS) \
+	cd lib-src && $(MAKE) maybe-blessmail $(MFLAGS) \
 	  MAKE='${MAKE}' archlibdir='$(archlibdir)'
 
 # We used to have one rule per */Makefile.in, but that leads to race
@@ -397,16 +358,17 @@ config.status: ${srcdir}/configure ${srcdir}/lisp/version.el
 	    ./configure $(CONFIGURE_FLAGS); \
 	fi
 
-AUTOCONF_INPUTS = @MAINT@ $(srcdir)/configure.in $(srcdir)/aclocal.m4
+AUTOCONF_INPUTS = $(srcdir)/configure.in $(srcdir)/aclocal.m4
 
 $(srcdir)/configure: $(AUTOCONF_INPUTS)
 	cd ${srcdir} && autoconf
 
-ACLOCAL_INPUTS = @MAINT@ $(srcdir)/m4/$(DOS_gnulib_comp.m4)
+ACLOCAL_INPUTS = $(srcdir)/m4/gnulib-comp.m4
 $(srcdir)/aclocal.m4: $(ACLOCAL_INPUTS)
 	cd $(srcdir) && aclocal -I m4
 
-AUTOMAKE_INPUTS = @MAINT@ $(srcdir)/aclocal.m4 $(srcdir)/lib/Makefile.am $(srcdir)/lib/gnulib.mk
+AUTOMAKE_INPUTS = $(srcdir)/aclocal.m4 $(srcdir)/lib/Makefile.am \
+  $(srcdir)/lib/gnulib.mk
 $(srcdir)/lib/Makefile.in: $(AUTOMAKE_INPUTS)
 	cd $(srcdir) && automake --gnu -a -c lib/Makefile
 am--refresh: $(srcdir)/aclocal.m4 $(srcdir)/configure $(srcdir)/src/config.in
@@ -454,11 +416,11 @@ write_subdir=if [ -f $${subdir}/subdirs.el ]; \
 ### Lisp files and DOC file to work properly.
 install-arch-dep: install-arch-indep install-doc
 	umask 022; ${MKDIR_P} $(DESTDIR)${bindir}
-	(cd lib-src; \
+	cd lib-src && \
 	  $(MAKE) install $(MFLAGS) prefix=${prefix} \
 	    exec_prefix=${exec_prefix} bindir=${bindir} \
 	    libexecdir=${libexecdir} archlibdir=${archlibdir} \
-	    INSTALL_STRIP=${INSTALL_STRIP})
+	    INSTALL_STRIP=${INSTALL_STRIP}
 	if test "${ns_self_contained}" = "no"; then \
 	  ${INSTALL_PROGRAM} $(INSTALL_STRIP) src/emacs${EXEEXT} $(DESTDIR)${bindir}/$(EMACSFULL) || exit 1 ; \
 	  chmod 1755 $(DESTDIR)${bindir}/$(EMACSFULL) ; \
@@ -511,7 +473,15 @@ set_installuser=for installuser in $${LOGNAME} $${USERNAME} $${USER} \
 ## Is it really Emacs's job to create those directories?
 ## Should we also be ensuring they contain subdirs.el files?
 ## It would be easy to do, just use write_subdir.
-install-arch-indep: install-leim install-info install-man ${INSTALL_ARCH_INDEP_EXTRA}
+
+## Note that we use tar instead of plain old cp -R/-r because the latter
+## is apparently not portable (even in 2012!).
+## http://lists.gnu.org/archive/html/emacs-devel/2012-05/msg00278.html
+## I have no idea which platforms Emacs supports where cp -R does not
+## work correctly, and therefore no idea when tar can be replaced.
+## See also these comments from 2004 about cp -r working fine:
+## http://lists.gnu.org/archive/html/autoconf-patches/2004-11/msg00005.html
+install-arch-indep: install-info install-man ${INSTALL_ARCH_INDEP_EXTRA}
 	umask 022 ; \
 	  $(MKDIR_P) $(DESTDIR)`echo ${locallisppath} | sed 's,:, $(DESTDIR),g'`
 	-set ${COPYDESTS} ; \
@@ -521,27 +491,38 @@ install-arch-indep: install-leim install-info install-man ${INSTALL_ARCH_INDEP_E
 	  [ -d $${dir} ] || exit 1 ; \
 	  dest=$$1 ; shift ; \
 	  [ -d $${dest} ] && \
-	    [ `(cd $${dest} && /bin/pwd)` = `(cd $${dir} && /bin/pwd)` ] && \
+	    [ `cd $${dest} && /bin/pwd` = `cd $${dir} && /bin/pwd` ] && \
 	    continue ; \
-	  rm -rf $${dest} ; \
-	  umask 022; ${MKDIR_P} $${dest} ; \
+	  if [ "$${dir}" = "leim/quail" ]; then \
+	    [ `cd $${dir} && /bin/pwd` = `cd ${srcdir}/leim/quail && /bin/pwd` ] && \
+	      continue ; \
+	  else \
+	    rm -rf $${dest} ; \
+	    umask 022; ${MKDIR_P} $${dest} ; \
+	  fi ; \
 	  echo "Copying $${dir} to $${dest}..." ; \
 	  (cd $${dir}; tar -chf - . ) \
 	    | (cd $${dest}; umask 022; \
 	       tar -xvf - && cat > /dev/null) || exit 1; \
 	  [ "$${dir}" != "${srcdir}/etc" ] || rm -f $${dest}/DOC* ; \
 	  for subdir in `find $${dest} -type d -print` ; do \
-	    rm -f $${subdir}/.gitignore $${subdir}/.arch-inventory \
-	      $${subdir}/.DS_Store  $${subdir}/ChangeLog* \
-	      $${subdir}/\#*        $${subdir}/.\#*  \
-	      $${subdir}/*~         $${subdir}/*.orig ; \
+	    rm -f $${subdir}/.gitignore ; \
+	    rm -f $${subdir}/.arch-inventory ; \
+	    rm -f $${subdir}/.DS_Store ; \
+	    rm -f $${subdir}/\#* ; \
+	    rm -f $${subdir}/.\#* ; \
+	    rm -f $${subdir}/*~ ; \
+	    rm -f $${subdir}/*.orig ; \
+	    rm -f $${subdir}/ChangeLog* ; \
 	    [ "$${dir}" != "${srcdir}/etc" ] && \
-	     rm -f $${subdir}/[mM]akefile*[.-]in $${subdir}/[mM]akefile ; \
+	      rm -f $${subdir}/[mM]akefile*[.-]in $${subdir}/[mM]akefile ; \
 	  done ; \
 	  find $${dest} -exec chown $${installuser} {} ';' ;\
 	done
+	-rm -f $(DESTDIR)${leimdir}/leim-list.el
+	${INSTALL_DATA} leim/leim-list.el $(DESTDIR)${leimdir}/leim-list.el
 	-rm -f $(DESTDIR)${lispdir}/subdirs.el
-	umask 022; $(srcdir)/update-subdirs $(DESTDIR)${lispdir}
+	umask 022; $(srcdir)/build-aux/update-subdirs $(DESTDIR)${lispdir}
 	subdir=$(DESTDIR)${datadir}/emacs/${version}/site-lisp ; \
 	  ${write_subdir}
 	subdir=$(DESTDIR)${datadir}/emacs/site-lisp ; \
@@ -549,9 +530,13 @@ install-arch-indep: install-leim install-info install-man ${INSTALL_ARCH_INDEP_E
 	[ -z "${GZIP_PROG}" ] || \
 	  ( echo "Compressing *.el ..." ; \
 	    unset CDPATH; \
-	    cd $(DESTDIR)${lispdir}; \
-	    for f in `find . -name "*.elc" -print`; do \
-	      ${GZIP_PROG} -9n `echo $$f|sed 's/.elc$$/.el/'` ; \
+	    thisdir=`/bin/pwd`; \
+	    for dir in $(DESTDIR)${lispdir} $(DESTDIR)${leimdir}; do \
+	      cd $${thisdir} ; \
+	      cd $${dir} || exit 1 ; \
+	      for f in `find . -name "*.elc" -print`; do \
+	        ${GZIP_PROG} -9n `echo $$f|sed 's/.elc$$/.el/'` ; \
+	      done ; \
 	    done )
 	-chmod -R a+r $(DESTDIR)${datadir}/emacs/${version} ${COPYDESTS}
 
@@ -566,7 +551,7 @@ install-arch-indep: install-leim install-info install-man ${INSTALL_ARCH_INDEP_E
 install-doc: install-arch-indep
 	-unset CDPATH; \
 	umask 022; ${MKDIR_P} $(DESTDIR)${docdir} ; \
-	if [ `(cd ./etc; /bin/pwd)` != `(cd $(DESTDIR)${docdir}; /bin/pwd)` ]; \
+	if [ `cd ./etc; /bin/pwd` != `cd $(DESTDIR)${docdir}; /bin/pwd` ]; \
 	then \
 	   fullversion=`./src/emacs --version | sed -n '1 s/GNU Emacs *//p'`; \
 	   if [ -f "./etc/DOC-$${fullversion}" ]; \
@@ -585,7 +570,7 @@ install-info: info
 	umask 022; ${MKDIR_P} $(DESTDIR)${infodir}
 	-unset CDPATH; \
 	thisdir=`/bin/pwd`; \
-	[ `(cd ${srcdir}/info && /bin/pwd)` = `(cd $(DESTDIR)${infodir} && /bin/pwd)` ] || \
+	[ `cd ${srcdir}/info && /bin/pwd` = `cd $(DESTDIR)${infodir} && /bin/pwd` ] || \
 	  (cd $(DESTDIR)${infodir};  \
 	   [ -f dir ] || \
 	     (cd $${thisdir}; \
@@ -626,21 +611,14 @@ install-etc:
 	cd ${iconsrcdir} || exit 1; umask 022 ; \
 	for dir in */*/apps */*/mimetypes; do \
 	  [ -d $${dir} ] || continue ; \
-	  ( cd $${thisdir}; ${MKDIR_P} ${icondir}/$${dir} ) ; \
+	  ( cd $${thisdir}; ${MKDIR_P} $(DESTDIR)${icondir}/$${dir} ) ; \
 	  for icon in $${dir}/*.*; do \
 	    [ -r $${icon} ] || continue ; \
 	    ( cd $${thisdir}; \
-	      ${INSTALL_DATA} ${iconsrcdir}/$${icon} ${icondir}/$${icon} ) \
+	      ${INSTALL_DATA} ${iconsrcdir}/$${icon} $(DESTDIR)${icondir}/$${icon} ) \
 	    || exit 1; \
 	  done ; \
 	done
-
-### Install LEIM files.  Although they are machine-independent, we
-### have separate target here instead of including it in
-### `install-arch-indep'.  People who extracted LEIM files after they
-### installed Emacs itself can install only LEIM files by this target.
-install-leim: leim/Makefile
-	cd leim && $(MAKE) $(MFLAGS) install
 
 ### Build Emacs and install it, stripping binaries while installing them.
 install-strip:
@@ -651,15 +629,15 @@ install-strip:
 ###
 ### Don't delete the lisp and etc directories if they're in the source tree.
 uninstall:
-	(cd lib-src; 					\
+	cd lib-src && 					\
 	 $(MAKE) $(MFLAGS) uninstall			\
 	    prefix=${prefix} exec_prefix=${exec_prefix}	\
-	    bindir=${bindir} libexecdir=${libexecdir} archlibdir=${archlibdir})
+	    bindir=${bindir} libexecdir=${libexecdir} archlibdir=${archlibdir}
 	-unset CDPATH; \
 	for dir in $(DESTDIR)${lispdir} $(DESTDIR)${etcdir} ; do 	\
 	  if [ -d $${dir} ]; then			\
-	    case `(cd $${dir} ; /bin/pwd)` in		\
-	      `(cd ${srcdir} ; /bin/pwd)`* ) ;;		\
+	    case `cd $${dir} ; /bin/pwd` in		\
+	      `cd ${srcdir} ; /bin/pwd`* ) ;;		\
 	      * ) rm -rf $${dir} ;;			\
 	    esac ;					\
 	    case $${dir} in				\

@@ -102,7 +102,7 @@ visited and a warning displayed."
   :group 'vc)
 
 (defcustom vc-display-status t
-  "If non-nil, display revision number and lock status in modeline.
+  "If non-nil, display revision number and lock status in mode line.
 Otherwise, not displayed."
   :type 'boolean
   :group 'vc)
@@ -790,7 +790,7 @@ If BACKEND is passed use it as the VC backend when computing the result."
   backend)
 
 (defun vc-default-mode-line-string (backend file)
-  "Return string for placement in modeline by `vc-mode-line' for FILE.
+  "Return a string for `vc-mode-line' to put in the mode line for FILE.
 Format:
 
   \"BACKEND-REV\"        if the file is up-to-date
@@ -866,7 +866,7 @@ current, and kill the buffer that visits the link."
     (let (backend)
       (cond
        ((setq backend (with-demoted-errors (vc-backend buffer-file-name)))
-	;; Compute the state and put it in the modeline.
+	;; Compute the state and put it in the mode line.
 	(vc-mode-line buffer-file-name backend)
 	(unless vc-make-backup-files
 	  ;; Use this variable, not make-backup-files,

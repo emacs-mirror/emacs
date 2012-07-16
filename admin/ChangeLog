@@ -1,4 +1,44 @@
+2012-06-03  Glenn Morris  <rgm@gnu.org>
+
+	* quick-install-emacs (PUBLIC_LIBSRC_SCRIPTS): Remove rcs-checkin.
+
+2012-06-01  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Remove --disable-maintainer-mode option from 'configure'.  (Bug#11555)
+	* make-tarball.txt: Don't worry about maintainer mode.
+
+2012-05-28  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* CPP-DEFINES: Remove HAVE_SYSINFO.
+
+2012-05-27  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Assume gnulib does largefile.
+	* merge-gnulib (GNULIB_MODULES): Add largefile.
+
+2012-05-22  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Remove src/m/*.
+	* CPP-DEFINES: Do not mention src/m/*.h.
+	(BITS_PER_EMACS_INT, BITS_PER_LONG, BITS_PER_CHAR)
+	(BITS_PER_SHORT, BITS_PER_INT): Remove.
+	* MAINTAINERS: Remove src/m/.
+
+2012-05-21  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use full name for m4/gnulib-comp.m4.  (Bug#11529)
+	* merge-gnulib: Leave m4/gnulib-comp.m4's name alone.
+
+	Assume C89 or later.
+	* CPP-DEFINES: Remove NULL, const.
+
+	Make merging from gnulib a script, not a makefile action.
+	* merge-gnulib: New script, with actions moved here from
+	../Makefile.in.
+
 2012-05-19  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* CPP-DEFINES (HAVE_GETDOMAINNAME): Remove.
 
 	* CPP-DEFINES (HAVE_FTIME): Remove.
 

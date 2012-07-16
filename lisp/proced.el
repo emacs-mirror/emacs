@@ -1651,8 +1651,8 @@ After updating a displayed Proced buffer run the normal hook
           (goto-char new-pos)
         (goto-char (point-min))
         (proced-move-to-goal-column)))
-    ;; update modeline
-    ;; Does the long `mode-name' clutter the modeline?  It would be nice
+    ;; update mode line
+    ;; Does the long `mode-name' clutter the mode line?  It would be nice
     ;; to have some other location for displaying the values of the various
     ;; flags that affect the behavior of proced (flags one might want
     ;; to change on the fly).  Where??

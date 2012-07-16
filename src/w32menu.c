@@ -383,7 +383,7 @@ set_frame_menubar (FRAME_PTR f, int first_time, int deep_p)
 
       struct buffer *prev = current_buffer;
       Lisp_Object buffer;
-      int specpdl_count = SPECPDL_INDEX ();
+      ptrdiff_t specpdl_count = SPECPDL_INDEX ();
       int previous_menu_items_used = f->menu_bar_items_used;
       Lisp_Object *previous_items
 	= (Lisp_Object *) alloca (previous_menu_items_used

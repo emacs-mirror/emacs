@@ -2,7 +2,7 @@
 @c This is part of the GNU Emacs Lisp Reference Manual.
 @c Copyright (C) 1990-1995, 1998-2012 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
-@node Display, System Interface, Processes, Top
+@node Display
 @chapter Emacs Display
 
   This chapter describes a number of features related to the display
@@ -413,7 +413,7 @@ This function calls @code{progress-reporter-update}, so the first
 message is printed immediately.
 @end defun
 
-@defun progress-reporter-update reporter value
+@defun progress-reporter-update reporter &optional value
 This function does the main work of reporting progress of your
 operation.  It displays the message of @var{reporter}, followed by
 progress percentage determined by @var{value}.  If percentage is zero,
@@ -434,7 +434,7 @@ try to reduce the number of calls to it: resulting overhead will most
 likely negate your effort.
 @end defun
 
-@defun progress-reporter-force-update reporter value &optional new-message
+@defun progress-reporter-force-update reporter &optional value new-message
 This function is similar to @code{progress-reporter-update} except
 that it prints a message in the echo area unconditionally.
 
@@ -2662,11 +2662,13 @@ makes @code{modeline} an alias for the @code{mode-line} face.
 (put 'modeline 'face-alias 'mode-line)
 @end example
 
-@defun define-obsolete-face-alias obsolete-face current-face &optional when
-This function defines a face alias and marks it as obsolete, indicating
-that it may be removed in future.  The optional string @var{when}
-indicates when the face was made obsolete (for example, a release number).
-@end defun
+@defmac define-obsolete-face-alias obsolete-face current-face when
+This macro defines @code{obsolete-face} as an alias for
+@var{current-face}, and also marks it as obsolete, indicating that it
+may be removed in future.  @var{when} should be a string indicating
+when @code{obsolete-face} was made obsolete (usually a version number
+string).
+@end defmac
 
 @node Auto Faces
 @subsection Automatic Face Assignment
@@ -4904,7 +4906,7 @@ create animation.  Currently, Emacs only supports animated GIF files.
 The following functions related to animated images are available.
 
 @defun image-animated-p image
-This function returns non-nil if @var{image} can be animated.
+This function returns non-@code{nil} if @var{image} can be animated.
 The actual return value is a cons @code{(@var{nimages} . @var{delay})}, 
 where @var{nimages} is the number of frames and @var{delay} is the
 delay in seconds between them.

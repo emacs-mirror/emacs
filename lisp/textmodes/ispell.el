@@ -254,6 +254,10 @@ full featured `looking-back' function is missing."
     (save-excursion
       (re-search-backward (concat "\\(?:" regexp "\\)\\=") limit t))))
 
+;;; XEmacs21 does not have `with-no-warnings'. Taken from org mode.
+(defmacro ispell-with-no-warnings (&rest body)
+  (cons (if (fboundp 'with-no-warnings) 'with-no-warnings 'progn) body))
+
 ;;; Code:
 
 (defvar mail-yank-prefix)
@@ -293,9 +297,7 @@ error is highlighted lazily using isearch lazy highlighting (see
   :version "22.1")
 
 (defcustom ispell-highlight-face (if ispell-lazy-highlight 'isearch 'highlight)
-  "The face used for Ispell highlighting.  For Emacsen with overlays.
-Possible values are `highlight', `modeline', `secondary-selection',
-`region', and `underline'.
+  "Face used for Ispell highlighting.
 This variable can be set by the user to whatever face they desire.
 It's most convenient if the cursor color and highlight color are
 slightly different."
@@ -968,9 +970,9 @@ Internal use.")
     ;; Ensure aspell's alias dictionary will override standard
     ;; definitions.
     (setq found (ispell-aspell-add-aliases found))
-    ;; Merge into FOUND any elements from the standard ispell-dictionary-alist
+    ;; Merge into FOUND any elements from the standard ispell-dictionary-base-alist
     ;; which have no element in FOUND at all.
-    (dolist (dict ispell-dictionary-alist)
+    (dolist (dict ispell-dictionary-base-alist)
       (unless (assoc (car dict) found)
 	(setq found (nconc found (list dict)))))
     (setq ispell-aspell-dictionary-alist found)
@@ -1703,7 +1705,12 @@ nil           word is correct or spelling is accepted.
 quit          spell session exited."
   (interactive (list ispell-following-word ispell-quietly current-prefix-arg t))
   (cond
-   ((and region (use-region-p))
+   ((and region
+	 (if (featurep 'emacs)
+	     (use-region-p)
+	   (and (boundp 'transient-mark-mode) transient-mark-mode
+		(boundp 'mark-active) mark-active
+		(not (eq (region-beginning) (region-end))))))
     (ispell-region (region-beginning) (region-end)))
    (continue (ispell-continue))
    (t
@@ -1929,7 +1936,7 @@ Global `ispell-quit' set to start location to continue spell session."
              "  --  dict: " (or ispell-current-dictionary "default")
              "  --  prog: " (file-name-nondirectory ispell-program-name)))
       ;; XEmacs: no need for horizontal scrollbar in choices window
-      (with-no-warnings
+      (ispell-with-no-warnings
        (and (fboundp 'set-specifier)
 	    (boundp 'horizontal-scrollbar-visible-p)
 	    (set-specifier horizontal-scrollbar-visible-p nil
@@ -2707,7 +2714,8 @@ Keeps argument list for future Ispell invocations for no async support."
 	(setq ispell-filter nil ispell-filter-continue nil)
       ;; may need to restart to select new personal dictionary.
       (ispell-kill-ispell t)
-      (message "Starting new Ispell process [%s] ..."
+      (message "Starting new Ispell process [%s::%s] ..."
+	       ispell-program-name
 	       (or ispell-local-dictionary ispell-dictionary "default"))
       (sit-for 0)
       (setq ispell-library-directory (ispell-check-version)
@@ -2787,7 +2795,10 @@ With CLEAR, buffer session localwords are cleaned."
   ;; This hook is typically used by flyspell to flush some variables used
   ;; to optimize the common cases.
   (run-hooks 'ispell-kill-ispell-hook)
-  (if (or clear (interactive-p))
+  (if (or clear
+	  (if (featurep 'xemacs)
+	      (interactive-p)
+	    (called-interactively-p 'interactive)))
       (setq ispell-buffer-session-localwords nil))
   (if (not (and ispell-process
 		(eq (ispell-process-status) 'run)))
@@ -2836,7 +2847,9 @@ By just answering RET you can find out what the current dictionary is."
 	 ;; Specified dictionary is the default already. Could reload
 	 ;; the dictionaries if needed.
 	 (ispell-internal-change-dictionary)
-	 (and (interactive-p)
+	 (and (if (featurep 'xemacs)
+		  (interactive-p)
+		(called-interactively-p 'interactive))
 	      (message "No change, using %s dictionary" dict)))
 	(t				; reset dictionary!
 	 (if (or (assoc dict ispell-local-dictionary-alist)
@@ -3707,23 +3720,23 @@ You can bind this to the key C-c i in GNUS or mail by adding to
 	   (cite-regexp			;Prefix of quoted text
 	    (cond
 	     ((functionp 'sc-cite-regexp)	; sc 3.0
-	      (with-no-warnings
-		(concat "\\(" (sc-cite-regexp) "\\)" "\\|"
-			(ispell-non-empty-string sc-reference-tag-string))))
+	      (ispell-with-no-warnings
+	       (concat "\\(" (sc-cite-regexp) "\\)" "\\|"
+		       (ispell-non-empty-string sc-reference-tag-string))))
 	     ((boundp 'sc-cite-regexp)		; sc 2.3
 	      (concat "\\(" sc-cite-regexp "\\)" "\\|"
-		      (with-no-warnings
+		      (ispell-with-no-warnings
 		       (ispell-non-empty-string sc-reference-tag-string))))
 	     ((or (equal major-mode 'news-reply-mode) ;GNUS 4 & below
 		  (equal major-mode 'message-mode))   ;GNUS 5
 	      (concat "In article <" "\\|"
 		      "[^,;&+=\n]+ <[^,;&+=]+> writes:" "\\|"
-		      (with-no-warnings message-cite-prefix-regexp)
+		      (ispell-with-no-warnings message-cite-prefix-regexp)
 		      "\\|"
 		      default-prefix))
 	     ((equal major-mode 'mh-letter-mode) ; mh mail message
 	      (concat "[^,;&+=\n]+ writes:" "\\|"
-		      (with-no-warnings
+		      (ispell-with-no-warnings
 		       (ispell-non-empty-string mh-ins-buf-prefix))))
 	     ((not internal-messagep)	; Assume nn sent us this message.
 	      (concat "In [a-zA-Z.]+ you write:" "\\|"
@@ -4022,7 +4035,7 @@ Both should not be used to define a buffer-local dictionary."
 ; LocalWords:  alists minibuffer bufferp autoload loaddefs aff Dansk KOI SPC op
 ; LocalWords:  Francais Nederlands charset autoloaded popup nonmenu regexp num
 ; LocalWords:  AMStex hspace includeonly nocite epsfig displaymath eqnarray reg
-; LocalWords:  minipage modeline pers dict unhighlight buf grep sync prev inc
+; LocalWords:  minipage pers dict unhighlight buf grep sync prev inc
 ; LocalWords:  fn oldot NB AIX msg init read's bufs pt cmd Quinlan eg
 ; LocalWords:  uuencoded unidiff sc nn VM SGML eval IspellPersDict
 ; LocalWords:  lns XEmacs HTML casechars Multibyte
