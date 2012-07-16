@@ -53,8 +53,6 @@
 ;; `python-nav-backward-statement', `python-nav-statement-start',
 ;; `python-nav-statement-end', `python-nav-block-start' and
 ;; `python-nav-block-end' are included but no bound to any key.
-;; `python-nav-jump-to-defun' is provided and allows jumping to a
-;; function or class definition quickly in the current buffer.
 
 ;; Shell interaction: is provided and allows you to execute easily any
 ;; block of code of your current buffer in an inferior Python process.
@@ -168,10 +166,10 @@
 ;; might guessed you should run `python-shell-send-buffer' from time
 ;; to time to get better results too.
 
-;; imenu: This mode supports imenu.  It builds a plain or tree menu
-;; depending on the value of `python-imenu-make-tree'.  Also you can
-;; customize if menu items should include its type using
-;; `python-imenu-include-defun-type'.
+;; imenu: This mode supports imenu in its most basic form, letting it
+;; build the necessary alist via `imenu-default-create-index-function'
+;; by having set `imenu-extract-index-name-function' to
+;; `python-info-current-defun'.
 
 ;; If you used python-mode.el you probably will miss auto-indentation
 ;; when inserting newlines.  To achieve the same behavior you have
@@ -234,7 +232,7 @@
     (substitute-key-definition 'forward-sentence
                                'python-nav-forward-block
                                map global-map)
-    (define-key map "\C-c\C-j" 'python-nav-jump-to-defun)
+    (define-key map "\C-c\C-j" 'imenu)
     ;; Indent specific
     (define-key map "\177" 'python-indent-dedent-line-backspace)
     (define-key map (kbd "<backtab>") 'python-indent-dedent-line)
@@ -275,7 +273,7 @@
          :help "Go to end of definition around point"]
         ["Mark def/class" mark-defun
          :help "Mark outermost definition around point"]
-        ["Jump to def/class" python-nav-jump-to-defun
+        ["Jump to def/class" imenu
          :help "Jump to a class or function definition"]
         "--"
         ("Skeletons")
@@ -1303,62 +1301,6 @@ move backward N times."
                    (goto-char parent-block-ending-pos)))))
             (t (python-nav-block-start))))
     (setq arg (1+ arg))))
-
-(defvar python-nav-list-defun-positions-cache nil)
-(make-variable-buffer-local 'python-nav-list-defun-positions-cache)
-
-(defun python-nav-list-defun-positions (&optional include-type rescan)
-  "Make an Alist of defun names and point markers for current buffer.
-When optional argument INCLUDE-TYPE is non-nil the type is
-included the defun name.  With optional argument RESCAN the
-`python-nav-list-defun-positions-cache' is invalidated and the
-list of defun is regenerated again."
-  (if (and python-nav-list-defun-positions-cache (not rescan))
-      python-nav-list-defun-positions-cache
-    (let ((defs))
-      (save-restriction
-        (widen)
-        (save-excursion
-          (goto-char (point-max))
-          (while (re-search-backward python-nav-beginning-of-defun-regexp nil t)
-            (when (and (not (python-info-ppss-context 'string))
-                       (not (python-info-ppss-context 'comment))
-                       (not (python-info-ppss-context 'parent)))
-              (add-to-list
-               'defs (cons
-                      (python-info-current-defun include-type)
-                      (point-marker)))))
-          (setq python-nav-list-defun-positions-cache defs))))))
-
-(defun python-nav-read-defun (&optional rescan)
-  "Read a defun name of current buffer and return its point marker.
-A cons cell with the form (DEFUN-NAME . POINT-MARKER) is returned
-when defun is completed, else nil.  With optional argument RESCAN
-forces `python-nav-list-defun-positions' to invalidate its
-cache."
-  (let ((defs (python-nav-list-defun-positions nil rescan)))
-    (minibuffer-with-setup-hook
-        (lambda ()
-          (setq minibuffer-completion-table (mapcar 'car defs)))
-      (let ((stringdef
-             (read-from-minibuffer
-              "Jump to definition: " nil
-              minibuffer-local-must-match-map)))
-        (when (not (string= stringdef ""))
-          (assoc-string stringdef defs))))))
-
-(defun python-nav-jump-to-defun (def)
-  "Jump to the definition of DEF in current file.
-Locations are cached; use a `C-u' prefix argument to force a
-rescan."
-  (interactive
-   (list (python-nav-read-defun current-prefix-arg)))
-  (when (not (called-interactively-p 'interactive))
-    (setq def (assoc-string def (python-nav-list-defun-positions))))
-  (let ((def-marker (cdr def)))
-    (when (markerp def-marker)
-      (goto-char (marker-position def-marker))
-      (back-to-indentation))))
 
 
 ;;; Shell integration
@@ -2602,119 +2544,6 @@ Interactively, prompt for symbol."
       (message (python-eldoc--get-doc-at-point symbol process)))))
 
 
-;;; Imenu
-
-(defcustom python-imenu-include-defun-type t
-  "Non-nil make imenu items to include its type."
-  :type 'boolean
-  :group 'python
-  :safe 'booleanp)
-
-(defcustom python-imenu-make-tree t
-  "Non-nil make imenu to build a tree menu.
-Set to nil for speed."
-  :type 'boolean
-  :group 'python
-  :safe 'booleanp)
-
-(defcustom python-imenu-subtree-root-label "<Jump to %s>"
-  "Label displayed to navigate to root from a subtree.
-It can contain a \"%s\" which will be replaced with the root name."
-  :type 'string
-  :group 'python
-  :safe 'stringp)
-
-(defvar python-imenu-index-alist nil
-  "Calculated index tree for imenu.")
-
-(defun python-imenu-tree-assoc (keylist tree)
-  "Using KEYLIST traverse TREE."
-  (if keylist
-      (python-imenu-tree-assoc (cdr keylist)
-                               (ignore-errors (assoc (car keylist) tree)))
-    tree))
-
-(defun python-imenu-make-element-tree (element-list full-element plain-index)
-  "Make a tree from plain alist of module names.
-ELEMENT-LIST is the defun name split by \".\" and FULL-ELEMENT
-is the same thing, the difference is that FULL-ELEMENT remains
-untouched in all recursive calls.
-Argument PLAIN-INDEX is the calculated plain index used to build the tree."
-  (when (not (python-imenu-tree-assoc full-element python-imenu-index-alist))
-    (when element-list
-      (let* ((subelement-point (cdr (assoc
-                                     (mapconcat #'identity full-element ".")
-                                     plain-index)))
-             (subelement-name (car element-list))
-             (subelement-position (python-util-position
-                                   subelement-name full-element))
-             (subelement-path (when subelement-position
-                                (butlast
-                                 full-element
-                                 (- (length full-element)
-                                    subelement-position)))))
-        (let ((path-ref (python-imenu-tree-assoc subelement-path
-                                                 python-imenu-index-alist)))
-          (if (not path-ref)
-              (push (cons subelement-name subelement-point)
-                    python-imenu-index-alist)
-            (when (not (listp (cdr path-ref)))
-              ;; Modify root cdr to be a list.
-              (setcdr path-ref
-                      (list (cons (format python-imenu-subtree-root-label
-                                          (car path-ref))
-                                  (cdr (assoc
-                                        (mapconcat #'identity
-                                                   subelement-path ".")
-                                        plain-index))))))
-            (when (not (assoc subelement-name path-ref))
-              (push (cons subelement-name subelement-point) (cdr path-ref))))))
-      (python-imenu-make-element-tree (cdr element-list)
-                                      full-element plain-index))))
-
-(defun python-imenu-make-tree (index)
-  "Build the imenu alist tree from plain INDEX.
-
-The idea of this function is that given the alist:
-
- '((\"Test\" . 100)
-   (\"Test.__init__\" . 200)
-   (\"Test.some_method\" . 300)
-   (\"Test.some_method.another\" . 400)
-   (\"Test.something_else\" . 500)
-   (\"test\" . 600)
-   (\"test.reprint\" . 700)
-   (\"test.reprint\" . 800))
-
-This tree gets built:
-
- '((\"Test\" . ((\"jump to...\" . 100)
-                (\"__init__\" . 200)
-                (\"some_method\" . ((\"jump to...\" . 300)
-                                    (\"another\" . 400)))
-                (\"something_else\" . 500)))
-   (\"test\" . ((\"jump to...\" . 600)
-                (\"reprint\" . 700)
-                (\"reprint\" . 800))))
-
-Internally it uses `python-imenu-make-element-tree' to create all
-branches for each element."
-  (setq python-imenu-index-alist nil)
-  (mapc (lambda (element)
-          (python-imenu-make-element-tree element element index))
-        (mapcar (lambda (element)
-                  (split-string (car element) "\\." t)) index))
-  python-imenu-index-alist)
-
-(defun python-imenu-create-index ()
-  "`imenu-create-index-function' for Python."
-  (let ((index
-         (python-nav-list-defun-positions python-imenu-include-defun-type)))
-    (if python-imenu-make-tree
-        (python-imenu-make-tree index)
-      index)))
-
-
 ;;; Misc helpers
 
 (defun python-info-current-defun (&optional include-type)
@@ -3019,7 +2848,8 @@ if that value is non-nil."
   (add-hook 'post-self-insert-hook
             'python-indent-post-self-insert-function nil 'local)
 
-  (setq imenu-create-index-function #'python-imenu-create-index)
+  (set (make-local-variable 'imenu-extract-index-name-function)
+       #'python-info-current-defun)
 
   (set (make-local-variable 'add-log-current-defun-function)
        #'python-info-current-defun)

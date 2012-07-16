@@ -1,5 +1,21 @@
 2012-07-16  Fabián Ezequiel Gallina  <fgallina@cuca>
 
+	* progmodes/python.el: Simplified imenu implementation.
+	(python-nav-jump-to-defun): Remove command.
+	(python-mode-map): Use `imenu' instead.
+	(python-nav-list-defun-positions-cache)
+	(python-imenu-include-defun-type, python-imenu-make-tree)
+	(python-imenu-subtree-root-label, python-imenu-index-alist):
+	Remove vars.
+	(python-nav-list-defun-positions, python-nav-read-defun)
+	(python-imenu-tree-assoc, python-imenu-make-element-tree)
+	(python-imenu-make-tree, python-imenu-create-index): Remove
+	functions.
+	(python-mode): Update to interact with imenu by setting
+	`imenu-extract-index-name-function' only.
+
+2012-07-16  Fabián Ezequiel Gallina  <fgallina@cuca>
+
 	* progmodes/python.el: Enhancements to navigation commands.
 	(python-nav-backward-sentence)
 	(python-nav-forward-sentence): Remove.
