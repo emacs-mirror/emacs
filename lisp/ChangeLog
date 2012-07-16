@@ -1,3 +1,10 @@
+2012-07-16  Michael Albinus  <michael.albinus@gmx.de>
+
+	* vc/ediff.el (ediff-directories): Add trailing space to prompts.
+
+	* vc/ediff-diff.el (ediff-same-file-contents): Handle the case,
+	when F1 and F2 are located on different hosts.
+
 2012-07-14  Chong Yidong  <cyd@gnu.org>
 
 	* xt-mouse.el: Implement extended mouse coordinates (Bug#10642).
