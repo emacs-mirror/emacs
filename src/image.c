@@ -8951,8 +8951,3 @@ The options are:
 #endif
 
 }
-
-void
-init_image (void)
-{
-}

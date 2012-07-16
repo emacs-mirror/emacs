@@ -1,5 +1,17 @@
 2012-07-16  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	Remove empty and useless init functions.
+	* lisp.h (init_character_once, init_fns, init_image)
+	(init_filelock, init_sound): Remove prototype.
+	* character.c (init_character_once): Remove.
+	* filelock.c (init_filelock): Likewise.
+	* fns.c (init_fns): Likewise.
+	* image.c (init_image): Likewise.
+	* sound.c (init_sound): Likewise.
+	* emacs.c (main): Adjust accordingly.
+
+2012-07-16  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	* gtkutil.h: Tiny cleanups.
 	(use_old_gtk_file_dialog): Remove useless declaration.
 	(xg_uses_old_file_dialog): Add suggested const attribute.

@@ -1473,10 +1473,4 @@ syms_of_sound (void)
   defsubr (&Splay_sound_internal);
 }
 
-
-void
-init_sound (void)
-{
-}
-
 #endif /* HAVE_SOUND */

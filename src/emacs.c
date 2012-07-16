@@ -1254,7 +1254,6 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
       init_alloc_once ();
       init_obarray ();
       init_eval_once ();
-      init_character_once ();
       init_charset_once ();
       init_coding_once ();
       init_syntax_once ();	/* Create standard syntax table.  */
@@ -1307,9 +1306,6 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
 
   init_eval ();
   init_data ();
-#ifdef CLASH_DETECTION
-  init_filelock ();
-#endif
   init_atimer ();
   running_asynch_code = 0;
 
@@ -1602,17 +1598,12 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
   init_keyboard ();	/* This too must precede init_sys_modes.  */
   if (!noninteractive)
     init_display ();	/* Determine terminal type.  Calls init_sys_modes.  */
-  init_fns ();
   init_xdisp ();
 #ifdef HAVE_WINDOW_SYSTEM
   init_fringe ();
-  init_image ();
 #endif /* HAVE_WINDOW_SYSTEM */
   init_macros ();
   init_floatfns ();
-#ifdef HAVE_SOUND
-  init_sound ();
-#endif
   init_window ();
   init_font ();
 

@@ -5022,9 +5022,3 @@ this variable.  */);
   defsubr (&Ssecure_hash);
   defsubr (&Slocale_info);
 }
-
-
-void
-init_fns (void)
-{
-}

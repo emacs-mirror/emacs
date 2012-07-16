@@ -708,15 +708,6 @@ t if it is locked by you, else a string saying which user has locked it.  */)
 
   return ret;
 }
-
-/* Initialization functions.  */
-
-void
-init_filelock (void)
-{
-  boot_time = 0;
-  boot_time_initialized = 0;
-}
 
 #endif /* CLASH_DETECTION */
 

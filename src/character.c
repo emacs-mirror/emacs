@@ -1010,12 +1010,6 @@ character is not ASCII nor 8-bit character, an error is signaled.  */)
   return make_number (c);
 }
 
-
-void
-init_character_once (void)
-{
-}
-
 #ifdef emacs
 
 void
