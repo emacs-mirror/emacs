@@ -312,7 +312,7 @@ instead."
   (let ((insert-func 'eshell-buffered-print)
 	(error-func 'eshell-error)
 	(flush-func 'eshell-flush))
-    (eshell-do-ls args)))
+    (apply 'eshell-do-ls args)))
 
 (put 'eshell/ls 'eshell-no-numeric-conversions t)
 

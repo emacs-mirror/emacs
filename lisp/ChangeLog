@@ -1,5 +1,10 @@
 2012-07-16  Michael Albinus  <michael.albinus@gmx.de>
 
+	* eshell/em-ls.el (eshell/ls): Use `apply'.
+
+	* eshell/em-unix.el (eshell/su, eshell/sudo): Apply Tramp's ad-hoc
+	multi-hops, instead of Tramp internals.
+
 	* vc/ediff.el (ediff-directories): Add trailing space to prompts.
 
 	* vc/ediff-diff.el (ediff-same-file-contents): Handle the case,
