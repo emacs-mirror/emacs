@@ -1,5 +1,14 @@
 2012-07-17  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	Simple free memory accounting feature.
+	* alloc.c (bytes_free, total_free_vector_bytes): New variable.
+	(sweep_vectors): Accumulate size of free vectors.
+	(Fgarbage_collect): Setup bytes_free.
+	(Fmemory_free): New function.
+	(syms_of_alloc): Register it.
+
+2012-07-17  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	Cleanup overlays checking.
 	* buffer.h (OVERLAY_VALID): Remove as useless synonym of OVERLAYP.
 	* buffer.c (overlay_touches_p, recenter_overlay_lists): Change to

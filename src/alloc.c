@@ -84,6 +84,10 @@ extern void *sbrk ();
 
 #define MMAP_MAX_AREAS 100000000
 
+/* Value of mallinfo ().fordblks as seen at the end of last GC.  */
+
+static int bytes_free;
+
 #else /* not DOUG_LEA_MALLOC */
 
 /* The following come from gmalloc.c.  */
@@ -191,7 +195,7 @@ int abort_on_gc;
 
 static EMACS_INT total_conses, total_markers, total_symbols, total_vector_size;
 static EMACS_INT total_free_conses, total_free_markers, total_free_symbols;
-static EMACS_INT total_free_floats, total_floats;
+static EMACS_INT total_free_floats, total_floats, total_free_vector_bytes;
 
 /* Points to memory space allocated as "spare", to be freed if we run
    out of memory.  We keep one large block, four cons-blocks, and
@@ -3048,7 +3052,7 @@ sweep_vectors (void)
   struct vector_block *block = vector_blocks, **bprev = &vector_blocks;
   struct Lisp_Vector *vector, *next, **vprev = &large_vectors;
 
-  total_vector_size = 0;
+  total_free_vector_bytes = total_vector_size = 0;
   memset (vector_free_lists, 0, sizeof (vector_free_lists));
 
   /* Looking through vector blocks.  */
@@ -3095,6 +3099,7 @@ sweep_vectors (void)
 	      else
 		{
 		  int tmp;
+		  total_free_vector_bytes += total_bytes;
 		  SETUP_ON_FREE_LIST (vector, total_bytes, tmp);
 		}
 	    }
@@ -5605,6 +5610,10 @@ See Info node `(elisp)Garbage Collection'.  */)
   total[7] = Fcons (make_number (total_strings),
 		    make_number (total_free_strings));
 
+#ifdef DOUG_LEA_MALLOC
+  bytes_free = mallinfo ().fordblks;
+#endif
+
 #if GC_MARK_STACK == GC_USE_GCPROS_CHECK_ZOMBIES
   {
     /* Compute average percentage of zombies.  */
@@ -6549,6 +6558,37 @@ We divide the value by 1024 to make sure it fits in a Lisp integer.  */)
   return end;
 }
 
+DEFUN ("memory-free", Fmemory_free, Smemory_free, 0, 0, 0,
+       doc: /* Return a list of two counters that measure how much free memory
+is hold by the Emacs process.  Both counters are in KBytes.  First
+counter shows how much memory holds in a free lists maintained by
+the Emacs itself.  Second counter shows how much free memory is in
+the heap (freed by Emacs but not released back to the operating
+system).  If the second counter is zero, heap statistics is not
+available.  Since both counters are updated after each garbage
+collection, use (progn (garbage-collect) (memory-free)) to get 
+accurate numbers.  */)
+     (void)
+{
+  Lisp_Object data[2];
+  
+  data[0] = make_number
+    (min (MOST_POSITIVE_FIXNUM,
+	  (total_free_conses * sizeof (struct Lisp_Cons)
+	   + total_free_markers * sizeof (union Lisp_Misc)
+	   + total_free_symbols * sizeof (struct Lisp_Symbol)
+	   + total_free_floats * sizeof (struct Lisp_Float)
+	   + total_free_intervals * sizeof (struct interval)
+	   + total_free_strings * sizeof (struct Lisp_String)
+	   + total_free_vector_bytes) / 1024));
+#ifdef DOUG_LEA_MALLOC
+  data[1] = make_number (min (MOST_POSITIVE_FIXNUM, bytes_free / 1024));
+#else
+  data[1] = make_number (0);
+#endif
+  return Flist (2, data);
+}
+
 DEFUN ("memory-use-counts", Fmemory_use_counts, Smemory_use_counts, 0, 0, 0,
        doc: /* Return a list of counters that measure how much consing there has been.
 Each of these counters increments for a certain kind of object.
@@ -6785,6 +6825,7 @@ The time is in seconds as a floating point value.  */);
   defsubr (&Spurecopy);
   defsubr (&Sgarbage_collect);
   defsubr (&Smemory_limit);
+  defsubr (&Smemory_free);
   defsubr (&Smemory_use_counts);
 
 #if GC_MARK_STACK == GC_USE_GCPROS_CHECK_ZOMBIES
