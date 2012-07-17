@@ -1,3 +1,8 @@
+2012-07-17  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* shr.el (shr-expand-url): Handle URL starting with `//'.
+
+2012-07-17  Toke Høiland-Jørgensen  <toke@toke.dk>  (tiny change)
 2012-07-13  Chong Yidong  <cyd@gnu.org>
 
 	* smime.el (smime-certificate-info): Set buffer-read-only directly,

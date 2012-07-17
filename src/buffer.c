@@ -153,7 +153,7 @@ static void alloc_buffer_text (struct buffer *, ptrdiff_t);
 static void free_buffer_text (struct buffer *b);
 static struct Lisp_Overlay * copy_overlays (struct buffer *, struct Lisp_Overlay *);
 static void modify_overlay (struct buffer *, ptrdiff_t, ptrdiff_t);
-static Lisp_Object buffer_lisp_local_variables (struct buffer *);
+static Lisp_Object buffer_lisp_local_variables (struct buffer *, int);
 
 /* For debugging; temporary.  See set_buffer_internal.  */
 /* Lisp_Object Qlisp_mode, Vcheck_symbol; */
@@ -487,7 +487,7 @@ clone_per_buffer_values (struct buffer *from, struct buffer *to)
 
   /* Get (a copy of) the alist of Lisp-level local variables of FROM
      and install that in TO.  */
-  BVAR (to, local_var_alist) = buffer_lisp_local_variables (from);
+  BVAR (to, local_var_alist) = buffer_lisp_local_variables (from, 1);
 }
 
 
@@ -1012,10 +1012,12 @@ buffer_local_value_1 (Lisp_Object variable, Lisp_Object buffer)
 
 /* Return an alist of the Lisp-level buffer-local bindings of
    buffer BUF.  That is, don't include the variables maintained
-   in special slots in the buffer object.  */
+   in special slots in the buffer object.
+   If CLONE is zero elements of the form (VAR . unbound) are replaced
+   by VAR.  */
 
 static Lisp_Object
-buffer_lisp_local_variables (struct buffer *buf)
+buffer_lisp_local_variables (struct buffer *buf, int clone)
 {
   Lisp_Object result = Qnil;
   register Lisp_Object tail;
@@ -1035,7 +1037,7 @@ buffer_lisp_local_variables (struct buffer *buf)
       if (buf != current_buffer)
 	val = XCDR (elt);
 
-      result = Fcons (EQ (val, Qunbound)
+      result = Fcons (!clone && EQ (val, Qunbound)
 		      ? XCAR (elt)
 		      : Fcons (XCAR (elt), val),
 		      result);
@@ -1064,7 +1066,7 @@ No argument or nil as argument means use current buffer as BUFFER.  */)
       buf = XBUFFER (buffer);
     }
 
-  result = buffer_lisp_local_variables (buf);
+  result = buffer_lisp_local_variables (buf, 0);
 
   /* Add on all the variables stored in special slots.  */
   {

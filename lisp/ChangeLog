@@ -1,5 +1,11 @@
 2012-07-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* progmodes/sh-script.el (sh-syntax-propertize-function): Fix last
+	change (bug#11826).
+
+2012-07-17  Glenn Morris  <rgm@gnu.org>
+2012-07-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
 	* progmodes/cc-engine.el (c-forward-sws, c-backward-sws):
 	Avoid spuriously marking the buffer as modified because of c-is-sws.
 
@@ -340,6 +346,12 @@
 	read-file-name-completion-ignore-case is non-nil.  Don't use
 	case-fold-search for this purpose.  (Bug#11827)
 
+2012-07-17  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* calendar/cal-dst.el (calendar-current-time-zone):
+	Return calendar-current-time-zone-cache if non-nil.
+
+2012-07-17  Masatake YAMATO  <yamato@redhat.com>
 2012-07-06  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* calendar/cal-dst.el (calendar-current-time-zone):
