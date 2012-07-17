@@ -1,3 +1,9 @@
+2012-07-17  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Fix toolkit configuration report.
+	* configure.ac (USE_X_TOOLKIT): Report toolkit as GTK3 if
+	--with-x-toolkit=gtk3 is used.
+
 2012-07-17  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix regression with pthread_sigmask on FreeBSD (Bug#11884).
