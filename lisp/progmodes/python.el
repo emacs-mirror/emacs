@@ -50,9 +50,12 @@
 ;; `python-nav-forward-block', `python-nav-backward-block'
 ;; respectively which navigate between beginning of blocks of code.
 ;; Extra functions `python-nav-forward-statement',
-;; `python-nav-backward-statement', `python-nav-statement-start',
-;; `python-nav-statement-end', `python-nav-block-start' and
-;; `python-nav-block-end' are included but no bound to any key.
+;; `python-nav-backward-statement',
+;; `python-nav-beginning-of-statement', `python-nav-end-of-statement',
+;; `python-nav-beginning-of-block' and `python-nav-end-of-block' are
+;; included but no bound to any key.  At last but not least the
+;; specialized `python-nav-forward-sexp-function' allows easy
+;; navigation between code blocks.
 
 ;; Shell interaction: is provided and allows you to execute easily any
 ;; block of code of your current buffer in an inferior Python process.
@@ -664,7 +667,7 @@ START is the buffer position where the sexp starts."
         ((setq start (save-excursion
                        (back-to-indentation)
                        (python-util-forward-comment -1)
-                       (python-nav-statement-start)
+                       (python-nav-beginning-of-statement)
                        (point-marker)))
          'after-line)
         ;; Do not indent
@@ -1097,7 +1100,7 @@ Returns nil if point is not in a def or class."
                       (python-info-ppss-context-type))
             (forward-line 1)))))))
 
-(defun python-nav-statement-start ()
+(defun python-nav-beginning-of-statement ()
   "Move to start of current statement."
   (interactive "^")
   (while (and (or (back-to-indentation) t)
@@ -1110,7 +1113,7 @@ Returns nil if point is not in a def or class."
                      (python-info-ppss-context 'paren))
                 (forward-line -1)))))
 
-(defun python-nav-statement-end ()
+(defun python-nav-end-of-statement ()
   "Move to end of current statement."
   (interactive "^")
   (while (and (goto-char (line-end-position))
@@ -1135,29 +1138,29 @@ backward to previous statement."
   (interactive "^p")
   (or arg (setq arg 1))
   (while (> arg 0)
-    (python-nav-statement-end)
+    (python-nav-end-of-statement)
     (python-util-forward-comment)
-    (python-nav-statement-start)
+    (python-nav-beginning-of-statement)
     (setq arg (1- arg)))
   (while (< arg 0)
-    (python-nav-statement-start)
+    (python-nav-beginning-of-statement)
     (python-util-forward-comment -1)
-    (python-nav-statement-start)
+    (python-nav-beginning-of-statement)
     (setq arg (1+ arg))))
 
-(defun python-nav-block-start ()
+(defun python-nav-beginning-of-block ()
   "Move to start of current block."
   (interactive "^")
   (let ((starting-pos (point))
         (block-regexp (python-rx
                        line-start (* whitespace) block-start)))
     (if (progn
-          (python-nav-statement-start)
+          (python-nav-beginning-of-statement)
           (looking-at (python-rx block-start)))
         (point-marker)
       ;; Go to first line beginning a statement
       (while (and (not (bobp))
-                  (or (and (python-nav-statement-start) nil)
+                  (or (and (python-nav-beginning-of-statement) nil)
                       (python-info-current-line-comment-p)
                       (python-info-current-line-empty-p)))
         (forward-line -1))
@@ -1171,16 +1174,16 @@ backward to previous statement."
             (point-marker)
           (and (goto-char starting-pos) nil))))))
 
-(defun python-nav-block-end ()
+(defun python-nav-end-of-block ()
   "Move to end of current block."
   (interactive "^")
-  (when (python-nav-block-start)
+  (when (python-nav-beginning-of-block)
     (let ((block-indentation (current-indentation)))
-      (python-nav-statement-end)
+      (python-nav-end-of-statement)
       (while (and (forward-line 1)
                   (not (eobp))
                   (or (and (> (current-indentation) block-indentation)
-                           (or (python-nav-statement-end) t))
+                           (or (python-nav-end-of-statement) t))
                       (python-info-current-line-comment-p)
                       (python-info-current-line-empty-p))))
       (python-util-forward-comment -1)
@@ -1203,7 +1206,7 @@ backward to previous block."
          (python-rx line-start (* whitespace) block-start))
         (starting-pos (point)))
     (while (> arg 0)
-      (python-nav-statement-end)
+      (python-nav-end-of-statement)
       (while (and
               (re-search-forward block-start-regexp nil t)
               (or (python-info-ppss-context 'string)
@@ -1211,14 +1214,14 @@ backward to previous block."
                   (python-info-ppss-context 'paren))))
       (setq arg (1- arg)))
     (while (< arg 0)
-      (python-nav-statement-start)
+      (python-nav-beginning-of-statement)
       (while (and
               (re-search-backward block-start-regexp nil t)
               (or (python-info-ppss-context 'string)
                   (python-info-ppss-context 'comment)
                   (python-info-ppss-context 'paren))))
       (setq arg (1+ arg)))
-    (python-nav-statement-start)
+    (python-nav-beginning-of-statement)
     (if (not (looking-at (python-rx block-start)))
         (and (goto-char starting-pos) nil)
       (and (not (= (point) starting-pos)) (point-marker)))))
@@ -1231,9 +1234,9 @@ move backward N times."
   (or arg (setq arg 1))
   (while (> arg 0)
     (let ((block-starting-pos
-           (save-excursion (python-nav-block-start)))
+           (save-excursion (python-nav-beginning-of-block)))
           (block-ending-pos
-           (save-excursion (python-nav-block-end)))
+           (save-excursion (python-nav-end-of-block)))
           (next-block-starting-pos
            (save-excursion (python-nav-forward-block))))
       (cond ((not block-starting-pos)
@@ -1241,39 +1244,39 @@ move backward N times."
             ((= (point) block-starting-pos)
              (if (or (not next-block-starting-pos)
                      (< block-ending-pos next-block-starting-pos))
-                 (python-nav-block-end)
+                 (python-nav-end-of-block)
                (python-nav-forward-block)))
             ((= block-ending-pos (point))
              (let ((parent-block-end-pos
                     (save-excursion
                       (python-util-forward-comment)
-                      (python-nav-block-start)
-                      (python-nav-block-end))))
+                      (python-nav-beginning-of-block)
+                      (python-nav-end-of-block))))
                (if (and parent-block-end-pos
                         (or (not next-block-starting-pos)
                             (> next-block-starting-pos parent-block-end-pos)))
                    (goto-char parent-block-end-pos)
                  (python-nav-forward-block))))
-            (t (python-nav-block-end))))
+            (t (python-nav-end-of-block))))
       (setq arg (1- arg)))
   (while (< arg 0)
     (let* ((block-starting-pos
-            (save-excursion (python-nav-block-start)))
+            (save-excursion (python-nav-beginning-of-block)))
            (block-ending-pos
-            (save-excursion (python-nav-block-end)))
+            (save-excursion (python-nav-end-of-block)))
            (prev-block-ending-pos
             (save-excursion (when (python-nav-backward-block)
-                              (python-nav-block-end))))
+                              (python-nav-end-of-block))))
            (prev-block-parent-ending-pos
             (save-excursion
               (when prev-block-ending-pos
                 (goto-char prev-block-ending-pos)
                 (python-util-forward-comment)
-                (python-nav-block-start)
-                (python-nav-block-end)))))
+                (python-nav-beginning-of-block)
+                (python-nav-end-of-block)))))
       (cond ((not block-ending-pos)
              (and (python-nav-backward-block)
-                  (python-nav-block-end)))
+                  (python-nav-end-of-block)))
             ((= (point) block-ending-pos)
              (let ((candidates))
                (dolist (name
@@ -1286,7 +1289,7 @@ move backward N times."
                    (add-to-list 'candidates (symbol-value name))))
                (goto-char (apply 'max candidates))))
             ((> (point) block-ending-pos)
-             (python-nav-block-end))
+             (python-nav-end-of-block))
             ((= (point) block-starting-pos)
              (if (not (> (point) (or prev-block-ending-pos (point))))
                  (python-nav-backward-block)
@@ -1299,7 +1302,7 @@ move backward N times."
                  (when (and parent-block-ending-pos
                             (> parent-block-ending-pos prev-block-ending-pos))
                    (goto-char parent-block-ending-pos)))))
-            (t (python-nav-block-start))))
+            (t (python-nav-beginning-of-block))))
     (setq arg (1+ arg))))
 
 

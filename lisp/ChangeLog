@@ -1,4 +1,14 @@
 2012-07-17  Fabián Ezequiel Gallina  <fgallina@cuca>
+	Final renames and doc fixes for movement commands (bug#11899).
+	* progmodes/python.el (python-nav-beginning-of-statement): Rename
+	from python-nav-statement-start.
+	(python-nav-end-of-statement): Rename from
+	python-nav-statement-end.
+	(python-nav-beginning-of-block): Rename from
+	python-nav-block-start.
+	(python-nav-end-of-block): Rename from python-nav-block-end.
+
+2012-07-17  Fabián Ezequiel Gallina  <fgallina@cuca>
 
 	* progmodes/python.el (python-shell-send-string-no-output): Allow
 	accept-process-output to quit, keeping shell process ready for
