@@ -1,5 +1,8 @@
 2012-07-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* progmodes/cc-engine.el (c-forward-sws, c-backward-sws):
+	Avoid spuriously marking the buffer as modified because of c-is-sws.
+
 	* progmodes/sh-script.el (sh-syntax-propertize-function): Mark "${#VAR"
 	as not-a-comment (bug#11946).
 

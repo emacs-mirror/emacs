@@ -1688,6 +1688,7 @@ comment at the start of cc-engine.el for more info."
 	;; high as possible.
 	(setq rung-pos (point)))
 
+      (with-silent-modifications
       (while
 	  (progn
 	    (while
@@ -1843,7 +1844,7 @@ comment at the start of cc-engine.el for more info."
 		(1- last-put-in-sws-pos))
 	       (c-remove-is-and-in-sws (1- last-put-in-sws-pos)
 				       last-put-in-sws-pos))))
-      )))
+      ))))
 
 (defun c-backward-sws ()
   ;; Used by `c-backward-syntactic-ws' to implement the unbounded search.
@@ -1881,6 +1882,7 @@ comment at the start of cc-engine.el for more info."
 	  (goto-char (setq rung-pos rung-is-marked))
 	(goto-char simple-ws-beg))
 
+      (with-silent-modifications
       (while
 	  (progn
 	    (while
@@ -2066,7 +2068,7 @@ comment at the start of cc-engine.el for more info."
 		last-put-in-sws-pos)
 	       (c-remove-is-and-in-sws last-put-in-sws-pos
 				       (1+ last-put-in-sws-pos)))))
-      )))
+      ))))
 
 
 ;; Other whitespace tools
