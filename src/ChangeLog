@@ -1,3 +1,8 @@
+2012-07-17  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* alloc.c (Fmemory_free): Account for memory-free's own storage.
+	Round up, not down.  Improve doc.
+
 2012-07-17  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Restore old code in allocate_string_data to avoid Faset breakage.

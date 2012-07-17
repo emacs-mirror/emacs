@@ -6581,33 +6581,35 @@ We divide the value by 1024 to make sure it fits in a Lisp integer.  */)
 }
 
 DEFUN ("memory-free", Fmemory_free, Smemory_free, 0, 0, 0,
-       doc: /* Return a list of two counters that measure how much free memory
-is hold by the Emacs process.  Both counters are in KBytes.  First
-counter shows how much memory holds in a free lists maintained by
-the Emacs itself.  Second counter shows how much free memory is in
-the heap (freed by Emacs but not released back to the operating
-system).  If the second counter is zero, heap statistics is not
-available.  */)
+       doc: /* Return a list (E H) of two measures of free memory.
+E counts free lists maintained by Emacs itself.  H counts the heap,
+freed by Emacs but not released to the operating system; this is zero
+if heap statistics are not available.  Both counters are in units of
+1024 bytes, rounded up.  */)
      (void)
 {
-  Lisp_Object data[2];
-  
-  data[0] = make_number
-    (min (MOST_POSITIVE_FIXNUM,
-	  (total_free_conses * sizeof (struct Lisp_Cons)
-	   + total_free_markers * sizeof (union Lisp_Misc)
-	   + total_free_symbols * sizeof (struct Lisp_Symbol)
-	   + total_free_floats * sizeof (struct Lisp_Float)
-	   + total_free_intervals * sizeof (struct interval)
-	   + total_free_strings * sizeof (struct Lisp_String)
-	   + total_free_vector_bytes) / 1024));
+  /* Make the return value first, so that its storage is accounted for.  */
+  Lisp_Object val = Fmake_list (make_number (2), make_number (0));
+
+  XSETCAR (val,
+	   (make_number
+	    (min (MOST_POSITIVE_FIXNUM,
+		  ((total_free_conses * sizeof (struct Lisp_Cons)
+		    + total_free_markers * sizeof (union Lisp_Misc)
+		    + total_free_symbols * sizeof (struct Lisp_Symbol)
+		    + total_free_floats * sizeof (struct Lisp_Float)
+		    + total_free_intervals * sizeof (struct interval)
+		    + total_free_strings * sizeof (struct Lisp_String)
+		    + total_free_vector_bytes
+		    + 1023)
+		   >> 10)))));
+
 #ifdef DOUG_LEA_MALLOC
-  data[1] = make_number
-    (min (MOST_POSITIVE_FIXNUM, mallinfo ().fordblks / 1024));
-#else
-  data[1] = make_number (0);
+  XSETCAR (XCDR (val),
+	   make_number (min (MOST_POSITIVE_FIXNUM,
+			     (mallinfo ().fordblks + 1023) >> 10)));
 #endif
-  return Flist (2, data);
+  return val;
 }
 
 DEFUN ("memory-use-counts", Fmemory_use_counts, Smemory_use_counts, 0, 0, 0,
