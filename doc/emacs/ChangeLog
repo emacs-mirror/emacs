@@ -1,3 +1,10 @@
+2012-07-17  Chong Yidong  <cyd@gnu.org>
+
+	* basic.texi (Inserting Text): Replace ucs-insert with
+	insert-char.  Provide more details of input.
+
+	* mule.texi (International Chars, Input Methods): Likewise.
+
 2012-07-13  Chong Yidong  <cyd@gnu.org>
 
 	* custom.texi (Examining): Update C-h v message.

@@ -401,19 +401,23 @@ ends at the insertion point, the inserted text falls inside that
 overlay.
 @end defun
 
-@defun insert-char character count &optional inherit
-This function inserts @var{count} instances of @var{character} into the
-current buffer before point.  The argument @var{count} should be an
-integer, and @var{character} must be a character.  The value is @code{nil}.
+@deffn Command insert-char character &optional count inherit
+This command inserts @var{count} instances of @var{character} into the
+current buffer before point.  The argument @var{count} must be an
+integer, and @var{character} must be a character.
+
+If called interactively, this command prompts for @var{character}
+using its Unicode name or its code point.  @xref{Inserting Text,,,
+emacs, The GNU Emacs Manual}.
 
 This function does not convert unibyte character codes 128 through 255
 to multibyte characters, not even if the current buffer is a multibyte
 buffer.  @xref{Converting Representations}.
 
-If @var{inherit} is non-@code{nil}, then the inserted characters inherit
+If @var{inherit} is non-@code{nil}, the inserted characters inherit
 sticky text properties from the two characters before and after the
 insertion point.  @xref{Sticky Properties}.
-@end defun
+@end deffn
 
 @defun insert-buffer-substring from-buffer-or-name &optional start end
 This function inserts a portion of buffer @var{from-buffer-or-name}

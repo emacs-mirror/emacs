@@ -1,3 +1,7 @@
+2012-07-17  Chong Yidong  <cyd@gnu.org>
+
+	* text.texi (Insertion): Document insert-char changes.
+
 2012-07-15  Leo Liu  <sdl.web@gmail.com>
 
 	* display.texi (Fringe Bitmaps): Add exclamation-mark.

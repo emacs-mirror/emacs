@@ -1,3 +1,7 @@
+2012-07-17  Chong Yidong  <cyd@gnu.org>
+
+	* editfns.c (Finsert_char): Doc fix.
+
 2012-07-17  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Fix previous change to make Fmemory_free always accurate.
