@@ -1,3 +1,9 @@
+2012-07-17  Fabián Ezequiel Gallina  <fgallina@cuca>
+
+	* progmodes/python.el (python-shell-send-string-no-output): Allow
+	accept-process-output to quit, keeping shell process ready for
+	future interactions (Bug#11868).
+
 2012-07-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/cl-macs.el (cl-progv): Use a properly prefixed var name.

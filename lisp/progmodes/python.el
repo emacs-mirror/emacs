@@ -1701,24 +1701,29 @@ When MSG is non-nil messages the first line of STRING."
   "Send STRING to PROCESS and inhibit output.
 When MSG is non-nil messages the first line of STRING.  Return
 the output."
-  (let* ((output-buffer)
+  (let* ((output-buffer "")
          (process (or process (python-shell-get-or-create-process)))
          (comint-preoutput-filter-functions
           (append comint-preoutput-filter-functions
                   '(ansi-color-filter-apply
                     (lambda (string)
                       (setq output-buffer (concat output-buffer string))
-                      "")))))
-    (python-shell-send-string string process msg)
-    (accept-process-output process)
-    (replace-regexp-in-string
-     (if (> (length python-shell-prompt-output-regexp) 0)
-         (format "\n*%s$\\|^%s\\|\n$"
-                 python-shell-prompt-regexp
-                 (or python-shell-prompt-output-regexp ""))
-       (format "\n*$\\|^%s\\|\n$"
-               python-shell-prompt-regexp))
-     "" output-buffer)))
+                      ""))))
+         (inhibit-quit t))
+    (or
+     (with-local-quit
+       (python-shell-send-string string process msg)
+       (accept-process-output process)
+       (replace-regexp-in-string
+        (if (> (length python-shell-prompt-output-regexp) 0)
+            (format "\n*%s$\\|^%s\\|\n$"
+                    python-shell-prompt-regexp
+                    (or python-shell-prompt-output-regexp ""))
+          (format "\n*$\\|^%s\\|\n$"
+                  python-shell-prompt-regexp))
+        "" output-buffer))
+     (with-current-buffer (process-buffer process)
+       (comint-interrupt-subjob)))))
 
 (defun python-shell-internal-send-string (string)
   "Send STRING to the Internal Python interpreter.
