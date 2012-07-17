@@ -545,8 +545,17 @@ offer a smarter default choice of shell command."
 (defun dired-do-async-shell-command (command &optional arg file-list)
   "Run a shell command COMMAND on the marked files asynchronously.
 
-Like `dired-do-shell-command' but if COMMAND doesn't end in ampersand,
-adds `* &' surrounded by whitespace and executes the command asynchronously.
+Like `dired-do-shell-command', but adds `&' at the end of COMMAND
+to execute it asynchronously.
+
+When operating on multiple files, asynchronous commands
+are executed in the background on each file in parallel.
+In shell syntax this means separating the individual commands
+with `&'.  However, when COMMAND ends in `;' or `;&' then commands
+are executed in the background on each file sequentially waiting
+for each command to terminate before running the next command.
+In shell syntax this means separating the individual commands with `;'.
+
 The output appears in the buffer `*Async Shell Command*'."
   (interactive
    (let ((files (dired-get-marked-files t current-prefix-arg)))
@@ -555,18 +564,14 @@ The output appears in the buffer `*Async Shell Command*'."
       (dired-read-shell-command "& on %s: " current-prefix-arg files)
       current-prefix-arg
       files)))
-  (unless (string-match "[*?][ \t]*\\'" command)
-    (setq command (concat command " *")))
   (unless (string-match "&[ \t]*\\'" command)
     (setq command (concat command " &")))
   (dired-do-shell-command command arg file-list))
 
-;; The in-background argument is only needed in Emacs 18 where
-;; shell-command doesn't understand an appended ampersand `&'.
 ;;;###autoload
 (defun dired-do-shell-command (command &optional arg file-list)
   "Run a shell command COMMAND on the marked files.
-If no files are marked or a specific numeric prefix arg is given,
+If no files are marked or a numeric prefix arg is given,
 the next ARG files are used.  Just \\[universal-argument] means the current file.
 The prompt mentions the file(s) or the marker, as appropriate.
 
@@ -588,7 +593,17 @@ If you want to use `*' as a shell wildcard with whitespace around
 it, write `*\"\"' in place of just `*'.  This is equivalent to just
 `*' in the shell, but avoids Dired's special handling.
 
-If COMMAND produces output, it goes to a separate buffer.
+If COMMAND ends in `&', `;', or `;&', it is executed in the
+background asynchronously, and the output appears in the buffer
+`*Async Shell Command*'.  When operating on multiple files and COMMAND
+ends in `&', the shell command is executed on each file in parallel.
+However, when COMMAND ends in `;' or `;&' then commands are executed
+in the background on each file sequentially waiting for each command
+to terminate before running the next command.  You can also use
+`dired-do-async-shell-command' that automatically adds `&'.
+
+Otherwise, COMMAND is executed synchronously, and the output
+appears in the buffer `*Shell Command Output*'.
 
 This feature does not try to redisplay Dired buffers afterward, as
 there's no telling what files COMMAND may have changed.
@@ -607,10 +622,7 @@ can be produced by `dired-get-marked-files', for example."
    (let ((files (dired-get-marked-files t current-prefix-arg)))
      (list
       ;; Want to give feedback whether this file or marked files are used:
-      (dired-read-shell-command (concat "! on "
-					"%s: ")
-				current-prefix-arg
-				files)
+      (dired-read-shell-command "! on %s: " current-prefix-arg files)
       current-prefix-arg
       files)))
   (let* ((on-each (not (string-match dired-star-subst-regexp command)))
@@ -654,23 +666,34 @@ can be produced by `dired-get-marked-files', for example."
 ;; Might be redefined for smarter things and could then use RAW-ARG
 ;; (coming from interactive P and currently ignored) to decide what to do.
 ;; Smart would be a way to access basename or extension of file names.
-  (let ((stuff-it
-	 (if (or (string-match dired-star-subst-regexp command)
-		 (string-match dired-quark-subst-regexp command))
-	     (lambda (x)
-	       (let ((retval command))
-		 (while (string-match
-			 "\\(^\\|[ \t]\\)\\([*?]\\)\\([ \t]\\|$\\)" retval)
-		   (setq retval (replace-match x t t retval 2)))
-		 retval))
-	   (lambda (x) (concat command dired-mark-separator x)))))
-    (if on-each
-	(mapconcat stuff-it (mapcar 'shell-quote-argument file-list) ";")
-      (let ((files (mapconcat 'shell-quote-argument
-			      file-list dired-mark-separator)))
-	(if (> (length file-list) 1)
-	    (setq files (concat dired-mark-prefix files dired-mark-postfix)))
-	(funcall stuff-it files)))))
+  (let* ((in-background (string-match "[ \t]*&[ \t]*\\'" command))
+	 (command (if in-background
+		      (substring command 0 (match-beginning 0))
+		    command))
+	 (sequentially (string-match "[ \t]*;[ \t]*\\'" command))
+	 (command (if sequentially
+		      (substring command 0 (match-beginning 0))
+		    command))
+	 (stuff-it
+	  (if (or (string-match dired-star-subst-regexp command)
+		  (string-match dired-quark-subst-regexp command))
+	      (lambda (x)
+		(let ((retval command))
+		  (while (string-match
+			  "\\(^\\|[ \t]\\)\\([*?]\\)\\([ \t]\\|$\\)" retval)
+		    (setq retval (replace-match x t t retval 2)))
+		  retval))
+	    (lambda (x) (concat command dired-mark-separator x)))))
+    (concat
+     (if on-each
+	 (mapconcat stuff-it (mapcar 'shell-quote-argument file-list)
+		    (if (and in-background (not sequentially)) "&" ";"))
+       (let ((files (mapconcat 'shell-quote-argument
+			       file-list dired-mark-separator)))
+	 (if (> (length file-list) 1)
+	     (setq files (concat dired-mark-prefix files dired-mark-postfix)))
+	 (funcall stuff-it files)))
+     (if in-background "&" ""))))
 
 ;; This is an extra function so that it can be redefined by ange-ftp.
 ;;;###autoload

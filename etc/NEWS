@@ -274,12 +274,12 @@ The variable `diff-use-changed-face' defines whether to use
 the face `diff-changed', or `diff-removed' and `diff-added'
 to highlight changes in context diffs.
 
+** Ediff now uses the same color scheme as Diff mode
+on high color displays.
+
 ** Flymake uses fringe bitmaps to indicate errors and warnings.
 See flymake-fringe-indicator-position, flymake-error-bitmap and
 flymake-warning-bitmap.
-
-** Ediff now uses the same color scheme as Diff mode
-on high color displays.
 
 ** `sh-script'
 *** Pairing of parens/quotes uses electric-pair-mode instead of skeleton-pair.
@@ -347,6 +347,12 @@ these commands now).
 
 ** erc will look up server/channel names via auth-source and use the
 channel keys found, if any.
+
+** Dired
+
+*** `dired-do-async-shell-command' executes each file sequentially
+if the command ends in `;' (when operating on multiple files).
+Othwerwise, it executes the command on each file in parallel.
 
 ** FFAP
 

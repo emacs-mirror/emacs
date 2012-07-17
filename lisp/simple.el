@@ -2247,9 +2247,11 @@ to `shell-command-history'."
 (defun async-shell-command (command &optional output-buffer error-buffer)
   "Execute string COMMAND asynchronously in background.
 
-Like `shell-command' but if COMMAND doesn't end in ampersand, adds `&'
-surrounded by whitespace and executes the command asynchronously.
+Like `shell-command', but adds `&' at the end of COMMAND
+to execute it asynchronously.
+
 The output appears in the buffer `*Async Shell Command*'.
+That buffer is in shell mode.
 
 In Elisp, you will often be better served by calling `start-process'
 directly, since it offers more control and does not impose the use of a
@@ -2257,8 +2259,12 @@ shell (with its need to quote arguments)."
   (interactive
    (list
     (read-shell-command "Async shell command: " nil nil
-			(and buffer-file-name
-			     (file-relative-name buffer-file-name)))
+			(let ((filename
+			       (cond
+				(buffer-file-name)
+				((eq major-mode 'dired-mode)
+				 (dired-get-filename nil t)))))
+			  (and filename (file-relative-name filename))))
     current-prefix-arg
     shell-command-default-error-buffer))
   (unless (string-match "&[ \t]*\\'" command)
@@ -2269,9 +2275,10 @@ shell (with its need to quote arguments)."
   "Execute string COMMAND in inferior shell; display output, if any.
 With prefix argument, insert the COMMAND's output at point.
 
-If COMMAND ends in ampersand, execute it asynchronously.
+If COMMAND ends in `&', execute it asynchronously.
 The output appears in the buffer `*Async Shell Command*'.
-That buffer is in shell mode.
+That buffer is in shell mode.  You can also use
+`async-shell-command' that automatically adds `&'.
 
 Otherwise, COMMAND is executed synchronously.  The output appears in
 the buffer `*Shell Command Output*'.  If the output is short enough to

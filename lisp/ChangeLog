@@ -1,5 +1,20 @@
 2012-07-17  Juri Linkov  <juri@jurta.org>
 
+	* dired-aux.el (dired-do-async-shell-command): Doc fix.
+	(dired-do-async-shell-command): Don't add `*' at the end of the
+	command (Bug#11815).
+	(dired-do-shell-command): Doc fix.
+	(dired-shell-stuff-it): Strip the trailing "&" and ";" if any.
+	Join the individual commands using either "&" or ";" as the
+	separator depending on the values of these trailing characters.
+	At the end re-add the trailing "&".  (Bug#10598)
+
+	* simple.el (async-shell-command): Sync the interactive spec with
+	`shell-command'.  Doc fix.
+	(shell-command): Doc fix.
+
+2012-07-17  Juri Linkov  <juri@jurta.org>
+
 	* descr-text.el (describe-char): Fix format args.  (Bug#10129)
 
 2012-07-17  Fabián Ezequiel Gallina  <fgallina@cuca>
