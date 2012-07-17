@@ -46,6 +46,8 @@
 
 ;;; Code:
 
+(require 'help-fns)
+
 (defgroup elint nil
   "Linting for Emacs Lisp."
   :prefix "elint-"
@@ -713,14 +715,8 @@ Returns `unknown' if we couldn't find arguments."
 (defun elint-find-args-in-code (code)
   "Extract the arguments from CODE.
 CODE can be a lambda expression, a macro, or byte-compiled code."
-  (cond
-   ((byte-code-function-p code)
-    (aref code 0))
-   ((and (listp code) (eq (car code) 'lambda))
-    (car (cdr code)))
-   ((and (listp code) (eq (car code) 'macro))
-    (elint-find-args-in-code (cdr code)))
-   (t 'unknown)))
+  (let ((args (help-function-arglist code)))
+    (if (listp args) args 'unknown)))
 
 ;;;
 ;;; Functions to check some special forms

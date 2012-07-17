@@ -1,5 +1,8 @@
 2012-07-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/elint.el (elint-find-args-in-code):
+	Use help-function-arglist, so as to handle lexical byte-code.
+
 	* progmodes/sh-script.el (sh-syntax-propertize-function): Fix last
 	change (bug#11826).
 
