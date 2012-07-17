@@ -1547,7 +1547,7 @@ second list (or made unbound if VALUES is shorter than SYMBOLS); then the
 BODY forms are executed and their result is returned.  This is much like
 a `let' form, except that the list of symbols can be computed at run-time."
   (declare (indent 2) (debug (form form body)))
-  (let ((bodyfun (make-symbol "body"))
+  (let ((bodyfun (make-symbol "cl--progv-body"))
         (binds (make-symbol "binds"))
         (syms (make-symbol "syms"))
         (vals (make-symbol "vals")))

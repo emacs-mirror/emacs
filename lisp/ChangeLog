@@ -1,12 +1,13 @@
 2012-07-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/cl-macs.el (cl-progv): Use a properly prefixed var name.
+
 	* emacs-lisp/elint.el (elint-find-args-in-code):
 	Use help-function-arglist, so as to handle lexical byte-code.
 
 	* progmodes/sh-script.el (sh-syntax-propertize-function): Fix last
 	change (bug#11826).
 
-2012-07-17  Glenn Morris  <rgm@gnu.org>
 2012-07-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/cc-engine.el (c-forward-sws, c-backward-sws):
