@@ -629,8 +629,7 @@ find_interval (register INTERVAL tree, register ptrdiff_t position)
 	relative_position -= BUF_BEG (XBUFFER (parent));
     }
 
-  if (relative_position > TOTAL_LENGTH (tree))
-    abort ();			/* Paranoia */
+  eassert (relative_position <= TOTAL_LENGTH (tree));
 
   if (!handling_signal)
     tree = balance_possible_root_interval (tree);
@@ -785,68 +784,6 @@ update_interval (register INTERVAL i, ptrdiff_t pos)
     }
 }
 
-
-#if 0
-/* Traverse a path down the interval tree TREE to the interval
-   containing POSITION, adjusting all nodes on the path for
-   an addition of LENGTH characters.  Insertion between two intervals
-   (i.e., point == i->position, where i is second interval) means
-   text goes into second interval.
-
-   Modifications are needed to handle the hungry bits -- after simply
-   finding the interval at position (don't add length going down),
-   if it's the beginning of the interval, get the previous interval
-   and check the hungry bits of both.  Then add the length going back up
-   to the root.  */
-
-static INTERVAL
-adjust_intervals_for_insertion (INTERVAL tree, ptrdiff_t position,
-				ptrdiff_t length)
-{
-  register ptrdiff_t relative_position;
-  register INTERVAL this;
-
-  if (TOTAL_LENGTH (tree) == 0)	/* Paranoia */
-    abort ();
-
-  /* If inserting at point-max of a buffer, that position
-     will be out of range */
-  if (position > TOTAL_LENGTH (tree))
-    position = TOTAL_LENGTH (tree);
-  relative_position = position;
-  this = tree;
-
-  while (1)
-    {
-      if (relative_position <= LEFT_TOTAL_LENGTH (this))
-	{
-	  this->total_length += length;
-	  CHECK_TOTAL_LENGTH (this);
-	  this = this->left;
-	}
-      else if (relative_position > (TOTAL_LENGTH (this)
-				    - RIGHT_TOTAL_LENGTH (this)))
-	{
-	  relative_position -= (TOTAL_LENGTH (this)
-				- RIGHT_TOTAL_LENGTH (this));
-	  this->total_length += length;
-	  CHECK_TOTAL_LENGTH (this);
-	  this = this->right;
-	}
-      else
-	{
-	  /* If we are to use zero-length intervals as buffer pointers,
-	     then this code will have to change.  */
-	  this->total_length += length;
-	  CHECK_TOTAL_LENGTH (this);
-	  this->position = LEFT_TOTAL_LENGTH (this)
-	                   + position - relative_position + 1;
-	  return tree;
-	}
-    }
-}
-#endif
-
 /* Effect an adjustment corresponding to the addition of LENGTH characters
    of text.  Do this by finding the interval containing POSITION in the
    interval tree TREE, and then adjusting all of its ancestors by adding
@@ -870,8 +807,7 @@ adjust_intervals_for_insertion (INTERVAL tree,
   Lisp_Object parent;
   ptrdiff_t offset;
 
-  if (TOTAL_LENGTH (tree) == 0)	/* Paranoia */
-    abort ();
+  eassert (TOTAL_LENGTH (tree) > 0);
 
   GET_INTERVAL_OBJECT (parent, tree);
   offset = (BUFFERP (parent) ? BUF_BEG (XBUFFER (parent)) : 0);
@@ -1262,8 +1198,7 @@ delete_interval (register INTERVAL i)
   register INTERVAL parent;
   ptrdiff_t amt = LENGTH (i);
 
-  if (amt > 0)			/* Only used on zero-length intervals now.  */
-    abort ();
+  eassert (amt == 0);		/* Only used on zero-length intervals now.  */
 
   if (ROOT_INTERVAL_P (i))
     {
@@ -1386,9 +1321,8 @@ adjust_intervals_for_deletion (struct buffer *buffer,
   if (NULL_INTERVAL_P (tree))
     return;
 
-  if (start > offset + TOTAL_LENGTH (tree)
-      || start + length > offset + TOTAL_LENGTH (tree))
-    abort ();
+  eassert (start <= offset + TOTAL_LENGTH (tree)
+	   && start + length <= offset + TOTAL_LENGTH (tree));
 
   if (length == TOTAL_LENGTH (tree))
     {
@@ -1592,49 +1526,6 @@ reproduce_tree_obj (INTERVAL source, Lisp_Object parent)
 
   return t;
 }
-
-#if 0
-/* Nobody calls this.  Perhaps it's a vestige of an earlier design.  */
-
-/* Make a new interval of length LENGTH starting at START in the
-   group of intervals INTERVALS, which is actually an interval tree.
-   Returns the new interval.
-
-   Generate an error if the new positions would overlap an existing
-   interval.  */
-
-static INTERVAL
-make_new_interval (INTERVAL intervals, ptrdiff_t start, ptrdiff_t length)
-{
-  INTERVAL slot;
-
-  slot = find_interval (intervals, start);
-  if (start + length > slot->position + LENGTH (slot))
-    error ("Interval would overlap");
-
-  if (start == slot->position && length == LENGTH (slot))
-    return slot;
-
-  if (slot->position == start)
-    {
-      /* New right node.  */
-      split_interval_right (slot, length);
-      return slot;
-    }
-
-  if (slot->position + LENGTH (slot) == start + length)
-    {
-      /* New left node.  */
-      split_interval_left (slot, LENGTH (slot) - length);
-      return slot;
-    }
-
-  /* Convert interval SLOT into three intervals.  */
-  split_interval_left (slot, start - slot->position);
-  split_interval_right (slot, length);
-  return slot;
-}
-#endif
 
 /* Insert the intervals of SOURCE into BUFFER at POSITION.
    LENGTH is the length of the text in SOURCE.
@@ -1725,14 +1616,12 @@ graft_intervals_into_buffer (INTERVAL source, ptrdiff_t position,
 	XSETBUFFER (buf, buffer);
 	tree = create_root_interval (buf);
       }
-  /* Paranoia -- the text has already been added, so this buffer
-     should be of non-zero length.  */
-  else if (TOTAL_LENGTH (tree) == 0)
-    abort ();
+  /* Paranoia -- the text has already been added, so
+     this buffer should be of non-zero length.  */
+  eassert (TOTAL_LENGTH (tree) > 0);
 
   this = under = find_interval (tree, position);
-  if (NULL_INTERVAL_P (under))	/* Paranoia.  */
-    abort ();
+  eassert (!NULL_INTERVAL_P (under));
   over = find_interval (source, interval_start_pos (source));
 
   /* Here for insertion in the middle of an interval.
@@ -1867,15 +1756,11 @@ temp_set_point_both (struct buffer *buffer,
 		     ptrdiff_t charpos, ptrdiff_t bytepos)
 {
   /* In a single-byte buffer, the two positions must be equal.  */
-  if (BUF_ZV (buffer) == BUF_ZV_BYTE (buffer)
-      && charpos != bytepos)
-    abort ();
+  if (BUF_ZV (buffer) == BUF_ZV_BYTE (buffer))
+    eassert (charpos == bytepos);
 
-  if (charpos > bytepos)
-    abort ();
-
-  if (charpos > BUF_ZV (buffer) || charpos < BUF_BEGV (buffer))
-    abort ();
+  eassert (charpos <= bytepos);
+  eassert (charpos <= BUF_ZV (buffer) || BUF_BEGV (buffer) <= charpos);
 
   SET_BUF_PT_BOTH (buffer, charpos, bytepos);
 }
@@ -2340,8 +2225,7 @@ copy_intervals (INTERVAL tree, ptrdiff_t start, ptrdiff_t length)
     return NULL_INTERVAL;
 
   i = find_interval (tree, start);
-  if (NULL_INTERVAL_P (i) || LENGTH (i) == 0)
-    abort ();
+  eassert (!NULL_INTERVAL_P (i) && LENGTH (i) > 0);
 
   /* If there is only one interval and it's the default, return nil.  */
   if ((start - i->position + 1 + length) < LENGTH (i)

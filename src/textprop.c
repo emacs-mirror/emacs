@@ -487,21 +487,6 @@ remove_properties (Lisp_Object plist, Lisp_Object list, INTERVAL i, Lisp_Object 
     i->plist = current_plist;
   return changed;
 }
-
-#if 0
-/* Remove all properties from interval I.  Return non-zero
-   if this changes the interval.  */
-
-static inline int
-erase_properties (INTERVAL i)
-{
-  if (NILP (i->plist))
-    return 0;
-
-  i->plist = Qnil;
-  return 1;
-}
-#endif
 
 /* Returns the interval of POSITION in OBJECT.
    POSITION is BEG-based.  */
@@ -1183,8 +1168,7 @@ Return t if any property value actually changed, nil otherwise.  */)
   /* We are at the beginning of interval I, with LEN chars to scan.  */
   for (;;)
     {
-      if (i == 0)
-	abort ();
+      eassert (i != 0);
 
       if (LENGTH (i) >= len)
 	{
@@ -1383,8 +1367,7 @@ set_text_properties_1 (Lisp_Object start, Lisp_Object end, Lisp_Object propertie
   /* We are starting at the beginning of an interval I.  LEN is positive.  */
   do
     {
-      if (i == 0)
-	abort ();
+      eassert (i != 0);
 
       if (LENGTH (i) >= len)
 	{
@@ -1472,8 +1455,7 @@ Use `set-text-properties' if you want to remove all text properties.  */)
   /* We are at the beginning of an interval, with len to scan */
   for (;;)
     {
-      if (i == 0)
-	abort ();
+      eassert (i != 0);
 
       if (LENGTH (i) >= len)
 	{
@@ -1562,8 +1544,7 @@ Return t if any property was actually removed, nil otherwise.  */)
      and we call signal_after_change before returning if modified != 0. */
   for (;;)
     {
-      if (i == 0)
-	abort ();
+      eassert (i != 0);
 
       if (LENGTH (i) >= len)
 	{

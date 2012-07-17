@@ -1,3 +1,19 @@
+2012-07-17  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Cleanup and convert miscellaneous checks to eassert.
+	* alloc.c (mark_interval): Fix comment, partially rephrase
+	old comment from intervals.h (see below).
+	* intervals.c (find_interval, adjust_intervals_for_insertion)
+	(delete_interval, adjust_intervals_for_deletion)
+	(graft_intervals_into_buffer, temp_set_point_both, copy_intervals):
+	Convert to eassert.
+	(adjust_intervals_for_insertion, make_new_interval):
+	Remove obsolete and unused code.
+	* intervals.h (struct interval): Remove obsolete comment.
+	* textprotp.c (erase_properties): Remove unused code.
+	(Fadd_text_properties, set_text_properties_1, Fremove_text_properties)
+	(Fremove_list_of_text_properties): Convert to eassert.
+
 2012-07-17  Chong Yidong  <cyd@gnu.org>
 
 	* editfns.c (Finsert_char): Doc fix.

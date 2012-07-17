@@ -56,12 +56,7 @@ struct interval
   unsigned int front_sticky : 1;    /* Non-zero means text inserted just
 				       before this interval goes into it.  */
   unsigned int rear_sticky : 1;	    /* Likewise for just after it.  */
-
-  /* Properties of this interval.
-     The mark bit on this field says whether this particular interval
-     tree node has been visited.  Since intervals should never be
-     shared, GC aborts if it seems to have visited an interval twice.  */
-  Lisp_Object plist;
+  Lisp_Object plist;		    /* Other properties.  */
 };
 
 /* These are macros for dealing with the interval tree.  */
