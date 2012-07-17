@@ -1104,12 +1104,8 @@ case $opsys in
 esac
 
 
-# Configure gnulib before invoking PKG_CHECK_MODULES, as the latter might
-# for example add -lrt to RSVG_LIBS, which would then cause gnulib to
-# incorrectly conclude that -lrt is not needed to link clock_gettime.
-gl_ASSERT_NO_GNULIB_POSIXCHECK
-gl_ASSERT_NO_GNULIB_TESTS
-gl_INIT
+pre_PKG_CONFIG_CFLAGS=$CFLAGS
+pre_PKG_CONFIG_LIBS=$LIBS
 
 AC_PATH_PROG(PKG_CONFIG, pkg-config, no)
 
@@ -3156,7 +3152,7 @@ case $opsys in
   aix4-2)
     dnl Unfortunately without libXmu we cannot support EditRes.
     if test x$ac_cv_lib_Xmu_XmuConvertStandardSelection != xyes; then
-      AC_DEFINE(NO_EDITRES, 1)    
+      AC_DEFINE(NO_EDITRES, 1)
     fi
     ;;
 
@@ -3405,7 +3401,7 @@ case $opsys in
     dnl Not used, because PTY_ITERATION is defined.
     AC_DEFINE(FIRST_PTY_LETTER, ['q'])
     AC_DEFINE(PTY_OPEN, [ { struct sigaction ocstat, cstat; struct stat stb; char * name; sigemptyset(&cstat.sa_mask); cstat.sa_handler = SIG_DFL; cstat.sa_flags = 0; sigaction(SIGCLD, &cstat, &ocstat); name = _getpty (&fd, O_RDWR | O_NDELAY, 0600, 0); sigaction(SIGCLD, &ocstat, (struct sigaction *)0); if (name == 0) return -1; if (fd < 0) return -1; if (fstat (fd, &stb) < 0) return -1; strcpy (pty_name, name); }] )
-    dnl No need to get the pty name at all. 
+    dnl No need to get the pty name at all.
     AC_DEFINE(PTY_NAME_SPRINTF, [] )
     dnl No need to use sprintf to get the tty name--we get that from _getpty.
     AC_DEFINE(PTY_TTY_NAME_SPRINTF, [] )
@@ -3450,7 +3446,7 @@ case $opsys in
     AC_DEFINE(SIGNALS_VIA_CHARACTERS, 1)
     ;;
 
-  dnl 21 Jun 06: Eric Hanchrow <offby1@blarg.net> says this works. 
+  dnl 21 Jun 06: Eric Hanchrow <offby1@blarg.net> says this works.
   dnl FIXME Does gnu-kfreebsd have linux/version.h?  It seems unlikely...
   gnu-linux | gnu-kfreebsd )
 
@@ -4005,6 +4001,24 @@ fi
 AC_SUBST(CYGWIN_OBJ)
 AC_SUBST(PRE_ALLOC_OBJ)
 AC_SUBST(POST_ALLOC_OBJ)
+
+# Configure gnulib.  Although this does not affect CFLAGS or LIBS permanently.
+# it temporarily reverts them to their pre-pkg-config values,
+# because gnulib needs to work with both src (which uses the
+# pkg-config stuff) and lib-src (which does not).  For example, gnulib
+# may need to determine whether LIB_CLOCK_GETTIME should contain -lrt,
+# and it therefore needs to run in an environment where LIBS does not
+# already contain -lrt merely because 'pkg-config --libs' printed '-lrt'
+# for some package unrelated to lib-src.
+SAVE_CFLAGS=$CFLAGS
+SAVE_LIBS=$LIBS
+CFLAGS=$pre_PKG_CONFIG_CFLAGS
+LIBS="$LIB_PTHREAD $pre_PKG_CONFIG_LIBS"
+gl_ASSERT_NO_GNULIB_POSIXCHECK
+gl_ASSERT_NO_GNULIB_TESTS
+gl_INIT
+CFLAGS=$SAVE_CFLAGS
+LIBS=$SAVE_LIBS
 
 case "$opsys" in
   aix4-2) LD_SWITCH_SYSTEM_TEMACS="-Wl,-bnodelcsect" ;;

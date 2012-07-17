@@ -1,3 +1,15 @@
+2012-07-17  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix regression with pthread_sigmask on FreeBSD (Bug#11884).
+	* configure.ac: Configure gnulib at the end, not before running
+	pkg-config.  This restores the behavior before 2012-06-22, when
+	higher-resolution time stamps were added, and fixes a bug whereby
+	LIB_PTHREAD was not used and gnulib's part of 'configure'
+	therefore incorrectly assumed that pthread_sigmask wasn't working.
+	Fix the problem with -lrt and clock_gettime a different way.
+	This should complete the fix for Bug#11884.
+	(pre_PKG_CONFIG_CFLAGS, pre_PKG_CONFIG_LIBS): New shell vars.
+
 2012-07-15  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Merge from gnulib, incorporating:
