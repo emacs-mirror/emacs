@@ -1,3 +1,9 @@
+2012-07-17  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* floatfns.c (Fabs): Do not wrap fabs inside IN_FLOAT (Bug#11913).
+	Unlike the other wrapped functions, fabs has an unspecified
+	effect on errno.
+
 2012-07-16  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsterm.m (keyDown): Interpret flags without left/right bits
