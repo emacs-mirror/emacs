@@ -1,5 +1,8 @@
 2012-07-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* progmodes/sh-script.el (sh-syntax-propertize-function): Mark "${#VAR"
+	as not-a-comment (bug#11946).
+
 	* emacs-lisp/macroexp.el (macroexp-let2): Use more informative names
 	for uninterned vars.
 

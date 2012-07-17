@@ -1,8 +1,16 @@
 #!/bin/sh
+# -*- eval: (bug-reference-mode 1) -*-
 
 setlock -n /tmp/getmail.lock && echo getmail isn\'t running
 
 # adsgsdg
+
+declare -a VERSION
+for i in $(ls "$PREFIX/sbin") ; do
+    echo -e $N')' $i
+    VERSION[${#VERSION[*]}]=$i         #bug#11946.
+    N=$(($N + 1))
+done
 
 foo () {
 

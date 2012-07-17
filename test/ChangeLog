@@ -1,5 +1,7 @@
 2012-07-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* indent/shell.sh: Add test case for ${#VAR}.
+
 	* indent/latex-mode.tex: New file.
 
 2012-07-11  Stefan Monnier  <monnier@iro.umontreal.ca>
