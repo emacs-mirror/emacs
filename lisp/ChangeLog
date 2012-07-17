@@ -1,3 +1,7 @@
+2012-07-17  Juri Linkov  <juri@jurta.org>
+
+	* descr-text.el (describe-char): Fix format args.  (Bug#10129)
+
 2012-07-17  Fabián Ezequiel Gallina  <fgallina@cuca>
 	Final renames and doc fixes for movement commands (bug#11899).
 	* progmodes/python.el (python-nav-beginning-of-statement): Rename
@@ -4197,7 +4201,7 @@
 
 2012-04-16  Chong Yidong  <cyd@gnu.org>
 
-	* image.el (imagemagick--extension-regexp): New variable.
+	* image.el (imagemagick--file-regexp): New variable.
 	(imagemagick-register-types): Use it.
 	(imagemagick-types-inhibit): Add :set function.  Allow new value
 	of t to inhibit all types.

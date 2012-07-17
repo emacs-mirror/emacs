@@ -533,7 +533,7 @@ relevant to POS."
                        (col      (current-column)))
                   (if (or (/= beg 1)  (/= end (1+ total)))
                       (format "%d of %d (%d%%), restriction: <%d-%d>, column: %d%s"
-                              pos total percent col beg end hscroll)
+                              pos total percent beg end col hscroll)
                     (if (= pos end)
                         (format "%d of %d (EOB), column: %d%s" pos total col hscroll)
                       (format "%d of %d (%d%%), column: %d%s"
