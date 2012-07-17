@@ -1,5 +1,16 @@
 2012-07-17  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	Fix previous change to make Fmemory_free always accurate.
+	* alloc.c (make_interval): Update total_free_intervals.
+	(make_float): Likewise for total_free_floats.
+	(free_cons, Fcons): Likewise for total_free_conses.
+	(SETUP_ON_FREE_LIST, allocate_vector_from_block):
+	Likewise for total_free_vector_bytes.
+	(Fmake_symbol): Likewise for total_free_symbols.
+	(bytes_free): Remove.
+
+2012-07-17  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	Simple free memory accounting feature.
 	* alloc.c (bytes_free, total_free_vector_bytes): New variable.
 	(sweep_vectors): Accumulate size of free vectors.

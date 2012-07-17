@@ -84,10 +84,6 @@ extern void *sbrk ();
 
 #define MMAP_MAX_AREAS 100000000
 
-/* Value of mallinfo ().fordblks as seen at the end of last GC.  */
-
-static int bytes_free;
-
 #else /* not DOUG_LEA_MALLOC */
 
 /* The following come from gmalloc.c.  */
@@ -1516,6 +1512,7 @@ make_interval (void)
 	  newi->next = interval_block;
 	  interval_block = newi;
 	  interval_block_index = 0;
+	  total_free_intervals += INTERVAL_BLOCK_SIZE;
 	}
       val = &interval_block->intervals[interval_block_index++];
     }
@@ -1524,6 +1521,7 @@ make_interval (void)
 
   consing_since_gc += sizeof (struct interval);
   intervals_consed++;
+  total_free_intervals--;
   RESET_INTERVAL (val);
   val->gcmarkbit = 0;
   return val;
@@ -2607,6 +2605,7 @@ make_float (double float_value)
 	  memset (new->gcmarkbits, 0, sizeof new->gcmarkbits);
 	  float_block = new;
 	  float_block_index = 0;
+	  total_free_floats += FLOAT_BLOCK_SIZE;
 	}
       XSETFLOAT (val, &float_block->floats[float_block_index]);
       float_block_index++;
@@ -2618,6 +2617,7 @@ make_float (double float_value)
   eassert (!FLOAT_MARKED_P (XFLOAT (val)));
   consing_since_gc += sizeof (struct Lisp_Float);
   floats_consed++;
+  total_free_floats--;
   return val;
 }
 
@@ -2683,6 +2683,7 @@ free_cons (struct Lisp_Cons *ptr)
   ptr->car = Vdead;
 #endif
   cons_free_list = ptr;
+  total_free_conses++;
 }
 
 DEFUN ("cons", Fcons, Scons, 2, 2, 0,
@@ -2712,6 +2713,7 @@ DEFUN ("cons", Fcons, Scons, 2, 2, 0,
 	  new->next = cons_block;
 	  cons_block = new;
 	  cons_block_index = 0;
+	  total_free_conses += CONS_BLOCK_SIZE;
 	}
       XSETCONS (val, &cons_block->conses[cons_block_index]);
       cons_block_index++;
@@ -2723,6 +2725,7 @@ DEFUN ("cons", Fcons, Scons, 2, 2, 0,
   XSETCDR (val, cdr);
   eassert (!CONS_MARKED_P (XCONS (val)));
   consing_since_gc += sizeof (struct Lisp_Cons);
+  total_free_conses--;
   cons_cells_consed++;
   return val;
 }
@@ -2909,6 +2912,7 @@ verify (VECTOR_BLOCK_SIZE <= (1 << PSEUDOVECTOR_SIZE_BITS));
     eassert ((index) < VECTOR_MAX_FREE_LIST_INDEX);		\
     (v)->header.next.vector = vector_free_lists[index];		\
     vector_free_lists[index] = (v);				\
+    total_free_vector_bytes += (nbytes);			\
   } while (0)
 
 struct vector_block
@@ -2979,6 +2983,7 @@ allocate_vector_from_block (size_t nbytes)
       vector = vector_free_lists[index];
       vector_free_lists[index] = vector->header.next.vector;
       vector->header.next.nbytes = nbytes;
+      total_free_vector_bytes -= nbytes;
       return vector;
     }
 
@@ -2993,6 +2998,7 @@ allocate_vector_from_block (size_t nbytes)
 	vector = vector_free_lists[index];
 	vector_free_lists[index] = vector->header.next.vector;
 	vector->header.next.nbytes = nbytes;
+	total_free_vector_bytes -= nbytes;
 
 	/* Excess bytes are used for the smaller vector,
 	   which should be set on an appropriate free list.  */
@@ -3099,7 +3105,6 @@ sweep_vectors (void)
 	      else
 		{
 		  int tmp;
-		  total_free_vector_bytes += total_bytes;
 		  SETUP_ON_FREE_LIST (vector, total_bytes, tmp);
 		}
 	    }
@@ -3447,6 +3452,7 @@ Its value and function definition are void, and its property list is nil.  */)
 	  new->next = symbol_block;
 	  symbol_block = new;
 	  symbol_block_index = 0;
+	  total_free_symbols += SYMBOL_BLOCK_SIZE;
 	}
       XSETSYMBOL (val, &symbol_block->symbols[symbol_block_index].s);
       symbol_block_index++;
@@ -3467,6 +3473,7 @@ Its value and function definition are void, and its property list is nil.  */)
   p->declared_special = 0;
   consing_since_gc += sizeof (struct Lisp_Symbol);
   symbols_consed++;
+  total_free_symbols--;
   return val;
 }
 
@@ -5610,10 +5617,6 @@ See Info node `(elisp)Garbage Collection'.  */)
   total[7] = Fcons (make_number (total_strings),
 		    make_number (total_free_strings));
 
-#ifdef DOUG_LEA_MALLOC
-  bytes_free = mallinfo ().fordblks;
-#endif
-
 #if GC_MARK_STACK == GC_USE_GCPROS_CHECK_ZOMBIES
   {
     /* Compute average percentage of zombies.  */
@@ -6565,9 +6568,7 @@ counter shows how much memory holds in a free lists maintained by
 the Emacs itself.  Second counter shows how much free memory is in
 the heap (freed by Emacs but not released back to the operating
 system).  If the second counter is zero, heap statistics is not
-available.  Since both counters are updated after each garbage
-collection, use (progn (garbage-collect) (memory-free)) to get 
-accurate numbers.  */)
+available.  */)
      (void)
 {
   Lisp_Object data[2];
@@ -6582,7 +6583,8 @@ accurate numbers.  */)
 	   + total_free_strings * sizeof (struct Lisp_String)
 	   + total_free_vector_bytes) / 1024));
 #ifdef DOUG_LEA_MALLOC
-  data[1] = make_number (min (MOST_POSITIVE_FIXNUM, bytes_free / 1024));
+  data[1] = make_number
+    (min (MOST_POSITIVE_FIXNUM, mallinfo ().fordblks / 1024));
 #else
   data[1] = make_number (0);
 #endif
