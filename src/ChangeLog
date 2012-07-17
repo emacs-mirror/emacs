@@ -1,3 +1,11 @@
+2012-07-17  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Cleanup overlays checking.
+	* buffer.h (OVERLAY_VALID): Remove as useless synonym of OVERLAYP.
+	* buffer.c (overlay_touches_p, recenter_overlay_lists): Change to
+	eassert and OVERLAYP.
+	(sort_overlays): Change to use OVERLAYP.
+
 2012-07-16  René Kyllingstad  <Rene@Kyllingstad.com>  (tiny change)
 
 	* editfns.c (Finsert_char): Make it interactive, and make the

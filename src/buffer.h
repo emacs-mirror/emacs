@@ -971,10 +971,6 @@ BUF_FETCH_MULTIBYTE_CHAR (struct buffer *buf, ptrdiff_t pos)
 
 /* Overlays */
 
-/* 1 if the OV is an overlay object.  */
-
-#define OVERLAY_VALID(OV) (OVERLAYP (OV))
-
 /* Return the marker that stands for where OV starts in the buffer.  */
 
 #define OVERLAY_START(OV) (XOVERLAY (OV)->start)

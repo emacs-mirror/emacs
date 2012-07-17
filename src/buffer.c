@@ -2827,8 +2827,7 @@ overlay_touches_p (ptrdiff_t pos)
       ptrdiff_t endpos;
 
       XSETMISC (overlay ,tail);
-      if (!OVERLAYP (overlay))
-	abort ();
+      eassert (OVERLAYP (overlay));
 
       endpos = OVERLAY_POSITION (OVERLAY_END (overlay));
       if (endpos < pos)
@@ -2842,8 +2841,7 @@ overlay_touches_p (ptrdiff_t pos)
       ptrdiff_t startpos;
 
       XSETMISC (overlay, tail);
-      if (!OVERLAYP (overlay))
-	abort ();
+      eassert (OVERLAYP (overlay));
 
       startpos = OVERLAY_POSITION (OVERLAY_START (overlay));
       if (pos < startpos)
@@ -2898,7 +2896,7 @@ sort_overlays (Lisp_Object *overlay_vec, ptrdiff_t noverlays, struct window *w)
       Lisp_Object overlay;
 
       overlay = overlay_vec[i];
-      if (OVERLAY_VALID (overlay)
+      if (OVERLAYP (overlay)
 	  && OVERLAY_POSITION (OVERLAY_START (overlay)) > 0
 	  && OVERLAY_POSITION (OVERLAY_END (overlay)) > 0)
 	{
@@ -3169,22 +3167,7 @@ recenter_overlay_lists (struct buffer *buf, ptrdiff_t pos)
     {
       next = tail->next;
       XSETMISC (overlay, tail);
-
-      /* If the overlay is not valid, get rid of it.  */
-      if (!OVERLAY_VALID (overlay))
-#if 1
-	abort ();
-#else
-	{
-	  /* Splice the cons cell TAIL out of overlays_before.  */
-	  if (!NILP (prev))
-	    XCDR (prev) = next;
-	  else
-	    buf->overlays_before = next;
-	  tail = prev;
-	  continue;
-	}
-#endif
+      eassert (OVERLAYP (overlay));
 
       beg = OVERLAY_START (overlay);
       end = OVERLAY_END (overlay);
@@ -3209,7 +3192,7 @@ recenter_overlay_lists (struct buffer *buf, ptrdiff_t pos)
 	      Lisp_Object otherbeg, otheroverlay;
 
 	      XSETMISC (otheroverlay, other);
-	      eassert (OVERLAY_VALID (otheroverlay));
+	      eassert (OVERLAYP (otheroverlay));
 
 	      otherbeg = OVERLAY_START (otheroverlay);
 	      if (OVERLAY_POSITION (otherbeg) >= where)
@@ -3237,22 +3220,7 @@ recenter_overlay_lists (struct buffer *buf, ptrdiff_t pos)
     {
       next = tail->next;
       XSETMISC (overlay, tail);
-
-      /* If the overlay is not valid, get rid of it.  */
-      if (!OVERLAY_VALID (overlay))
-#if 1
-	abort ();
-#else
-	{
-	  /* Splice the cons cell TAIL out of overlays_after.  */
-	  if (!NILP (prev))
-	    XCDR (prev) = next;
-	  else
-	    buf->overlays_after = next;
-	  tail = prev;
-	  continue;
-	}
-#endif
+      eassert (OVERLAYP (overlay));
 
       beg = OVERLAY_START (overlay);
       end = OVERLAY_END (overlay);
@@ -3282,7 +3250,7 @@ recenter_overlay_lists (struct buffer *buf, ptrdiff_t pos)
 	      Lisp_Object otherend, otheroverlay;
 
 	      XSETMISC (otheroverlay, other);
-	      eassert (OVERLAY_VALID (otheroverlay));
+	      eassert (OVERLAYP (otheroverlay));
 
 	      otherend = OVERLAY_END (otheroverlay);
 	      if (OVERLAY_POSITION (otherend) <= where)
