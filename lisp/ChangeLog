@@ -1,5 +1,11 @@
 2012-07-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/macroexp.el (macroexp-let2): Use more informative names
+	for uninterned vars.
+
+	* xt-mouse.el (xterm-mouse-translate-1, xterm-mouse-event-read):
+	Use read-event since we don't really want to read chars but bytes.
+
 	* textmodes/tex-mode.el (tex-font-lock-keywords-1): Highlight not only
 	$$..$$ but also $..$ using regexps (bug#11953).
 	Use tex-verbatim for \url and \path.

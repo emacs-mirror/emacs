@@ -78,13 +78,13 @@ http://invisible-island.net/xterm/ctlseqs/ctlseqs.html)."
 	;; Retrieve the expected preface for the up-event.
 	(unless is-click
 	  (unless (cond ((null extension)
-			 (and (eq (read-char) ?\e)
-			      (eq (read-char) ?\[)
-			      (eq (read-char) ?M)))
+			 (and (eq (read-event) ?\e)
+			      (eq (read-event) ?\[)
+			      (eq (read-event) ?M)))
 			((eq extension 1006)
-			 (and (eq (read-char) ?\e)
-			      (eq (read-char) ?\[)
-			      (eq (read-char) ?<))))
+			 (and (eq (read-event) ?\e)
+			      (eq (read-event) ?\[)
+			      (eq (read-event) ?<))))
 	    (error "Unexpected escape sequence from XTerm")))
 
 	;; Process the up-event.
@@ -139,7 +139,7 @@ http://invisible-island.net/xterm/ctlseqs/ctlseqs.html)."
 (defun xterm-mouse-event-read ()
   ;; We get the characters decoded by the keyboard coding system.  Try
   ;; to recover the raw character.
-  (let ((c (read-char)))
+  (let ((c (read-event)))
     (cond ;; If meta-flag is t we get a meta character
 	  ((>= c ?\M-\^@)
 	   (- c (- ?\M-\^@ 128)))

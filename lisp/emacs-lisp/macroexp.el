@@ -274,7 +274,7 @@ be skipped; if nil, as is usual, `macroexp-const-p' is used."
         (expsym (make-symbol "exp")))
     `(let* ((,expsym ,exp)
             (,var (if (funcall #',(or test #'macroexp-const-p) ,expsym)
-                      ,expsym (make-symbol "x")))
+                      ,expsym (make-symbol ,(symbol-name var))))
             (,bodysym ,(macroexp-progn exps)))
        (if (eq ,var ,expsym) ,bodysym
          (macroexp-let* (list (list ,var ,expsym))
