@@ -1,3 +1,10 @@
+2012-07-17  Fabián Ezequiel Gallina  <fgallina@cuca>
+
+	New utility functions + python-info-ppss-context fix (Bug#11910).
+	* progmodes/python.el (python-info-beginning-of-block-statement-p)
+	(python-info-ppss-comment-or-string-p): New functions.
+	(python-info-ppss-context): Small fix for string check.
+
 2012-07-17  Juri Linkov  <juri@jurta.org>
 
 	* dired-aux.el (dired-do-async-shell-command): Doc fix.

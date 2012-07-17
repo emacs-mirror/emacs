@@ -2584,6 +2584,12 @@ not inside a defun."
     (when names
       (mapconcat (lambda (string) string) names "."))))
 
+(defsubst python-info-beginning-of-block-statement-p ()
+  "Return non-nil if current statement opens a block."
+  (save-excursion
+    (python-nav-beginning-of-statement)
+    (looking-at (python-rx block-start))))
+
 (defun python-info-closing-block ()
   "Return the point of the block the current line closes."
   (let ((closing-word (save-excursion
@@ -2736,7 +2742,8 @@ character address of the specified TYPE."
        (and (nth 4 ppss)
             (nth 8 ppss)))
       ('string
-       (nth 8 ppss))
+       (and (not (nth 4 ppss))
+            (nth 8 ppss)))
       ('paren
        (nth 1 ppss))
       (t nil))))
@@ -2754,6 +2761,10 @@ The type returned can be 'comment, 'string or 'paren."
      ((nth 1 ppss)
       'paren)
      (t nil))))
+
+(defsubst python-info-ppss-comment-or-string-p ()
+  "Return non-nil if point is inside 'comment or 'string."
+  (car (member (python-info-ppss-context-type) '(string comment))))
 
 (defun python-info-looking-at-beginning-of-defun (&optional syntax-ppss)
   "Check if point is at `beginning-of-defun' using SYNTAX-PPSS."
