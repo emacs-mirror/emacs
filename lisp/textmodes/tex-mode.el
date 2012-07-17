@@ -476,46 +476,51 @@ An alternative value is \" . \", if you use a font with a narrow period."
 		      '("input" "include" "includeonly" "bibliography"
 			"epsfig" "psfig" "epsf" "nofiles" "usepackage"
 			"documentstyle" "documentclass" "verbatiminput"
-			"includegraphics" "includegraphics*"
-			"url" "nolinkurl")
+			"includegraphics" "includegraphics*")
 		      t))
+           (verbish (regexp-opt '("url" "nolinkurl" "path") t))
 	   ;; Miscellany.
 	   (slash "\\\\")
 	   (opt " *\\(\\[[^]]*\\] *\\)*")
 	   ;; This would allow highlighting \newcommand\CMD but requires
 	   ;; adapting subgroup numbers below.
 	   ;; (arg "\\(?:{\\(\\(?:[^{}\\]+\\|\\\\.\\|{[^}]*}\\)+\\)\\|\\\\[a-z*]+\\)"))
-	   (arg "{\\(\\(?:[^{}\\]+\\|\\\\.\\|{[^}]*}\\)+\\)"))
-      (list
-       ;; display $$ math $$
-       ;; We only mark the match between $$ and $$ because the $$ delimiters
-       ;; themselves have already been marked (along with $..$) by syntactic
-       ;; fontification.  Also this is done at the very beginning so as to
-       ;; interact with the other keywords in the same way as $...$ does.
-       (list "\\$\\$\\([^$]+\\)\\$\\$" 1 'tex-math-face)
-       ;; Heading args.
-       (list (concat slash headings "\\*?" opt arg)
-	     ;; If ARG ends up matching too much (if the {} don't match, e.g.)
-	     ;; jit-lock will do funny things: when updating the buffer
-	     ;; the re-highlighting is only done locally so it will just
-	     ;; match the local line, but defer-contextually will
-	     ;; match more lines at a time, so ARG will end up matching
-	     ;; a lot more, which might suddenly include a comment
-	     ;; so you get things highlighted bold when you type them
-	     ;; but they get turned back to normal a little while later
-	     ;; because "there's already a face there".
-	     ;; Using `keep' works around this un-intuitive behavior as well
-	     ;; as improves the behavior in the very rare case where you do
-	     ;; have a comment in ARG.
-	     3 'font-lock-function-name-face 'keep)
-       (list (concat slash "\\(?:provide\\|\\(?:re\\)?new\\)command\\** *\\(\\\\[A-Za-z@]+\\)")
-	     1 'font-lock-function-name-face 'keep)
-       ;; Variable args.
-       (list (concat slash variables " *" arg) 2 'font-lock-variable-name-face)
-       ;; Include args.
-       (list (concat slash includes opt arg) 3 'font-lock-builtin-face)
-       ;; Definitions.  I think.
-       '("^[ \t]*\\\\def *\\\\\\(\\(\\w\\|@\\)+\\)"
+           (inbraces-re (lambda (re)
+                          (concat "\\(?:[^{}\\]\\|\\\\.\\|" re "\\)")))
+	   (arg (concat "{\\(" (funcall inbraces-re "{[^}]*}") "+\\)")))
+      `( ;; Highlight $$math$$ and $math$.
+        ;; This is done at the very beginning so as to interact with the other
+        ;; keywords in the same way as comments and strings.
+        (,(concat "\\$\\$?\\(?:[^$\\{}]\\|\\\\.\\|{"
+                  (funcall inbraces-re
+                           (concat "{" (funcall inbraces-re "{[^}]*}") "*}"))
+                  "*}\\)+\\$?\\$")
+         (0 tex-math-face))
+        ;; Heading args.
+        (,(concat slash headings "\\*?" opt arg)
+         ;; If ARG ends up matching too much (if the {} don't match, e.g.)
+         ;; jit-lock will do funny things: when updating the buffer
+         ;; the re-highlighting is only done locally so it will just
+         ;; match the local line, but defer-contextually will
+         ;; match more lines at a time, so ARG will end up matching
+         ;; a lot more, which might suddenly include a comment
+         ;; so you get things highlighted bold when you type them
+         ;; but they get turned back to normal a little while later
+         ;; because "there's already a face there".
+         ;; Using `keep' works around this un-intuitive behavior as well
+         ;; as improves the behavior in the very rare case where you do
+         ;; have a comment in ARG.
+         3 font-lock-function-name-face keep)
+        (,(concat slash "\\(?:provide\\|\\(?:re\\)?new\\)command\\** *\\(\\\\[A-Za-z@]+\\)")
+         1 font-lock-function-name-face keep)
+        ;; Variable args.
+        (,(concat slash variables " *" arg) 2 font-lock-variable-name-face)
+        ;; Include args.
+        (,(concat slash includes opt arg) 3 font-lock-builtin-face)
+        ;; Verbatim-like args.
+        (,(concat slash verbish opt arg) 3 'tex-verbatim)
+        ;; Definitions.  I think.
+        ("^[ \t]*\\\\def *\\\\\\(\\(\\w\\|@\\)+\\)"
 	 1 font-lock-function-name-face))))
   "Subdued expressions to highlight in TeX modes.")
 
@@ -629,7 +634,7 @@ An alternative value is \" . \", if you use a font with a narrow period."
 	     (1 (tex-font-lock-suscript (match-beginning 0)) append))))
   "Experimental expressions to highlight in TeX modes.")
 
-(defvar tex-font-lock-keywords tex-font-lock-keywords-1
+(defconst tex-font-lock-keywords tex-font-lock-keywords-1
   "Default expressions to highlight in TeX modes.")
 
 (defvar tex-verbatim-environments
@@ -1219,7 +1224,7 @@ Entering SliTeX mode runs the hook `text-mode-hook', then the hook
   (set (make-local-variable 'font-lock-defaults)
        '((tex-font-lock-keywords tex-font-lock-keywords-1
 	  tex-font-lock-keywords-2 tex-font-lock-keywords-3)
-	 nil nil ((?$ . "\"")) nil
+	 nil nil nil nil
 	 ;; Who ever uses that anyway ???
 	 (font-lock-mark-block-function . mark-paragraph)
 	 (font-lock-syntactic-face-function

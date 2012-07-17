@@ -1,3 +1,7 @@
+2012-07-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* indent/latex-mode.tex: New file.
+
 2012-07-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* eshell.el: Use cl-lib.

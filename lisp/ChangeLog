@@ -1,3 +1,11 @@
+2012-07-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* textmodes/tex-mode.el (tex-font-lock-keywords-1): Highlight not only
+	$$..$$ but also $..$ using regexps (bug#11953).
+	Use tex-verbatim for \url and \path.
+	(tex-font-lock-keywords): Define as defconst like the others.
+	(tex-common-initialization): Don't use font-lock-syntax-table any more.
+
 2012-07-16  René Kyllingstad  <Rene@Kyllingstad.com>  (tiny change)
 
 	* international/mule-cmds.el (ucs-insert): Make it an obsolete
@@ -14,8 +22,8 @@
 	Remove vars.
 	(python-nav-list-defun-positions, python-nav-read-defun)
 	(python-imenu-tree-assoc, python-imenu-make-element-tree)
-	(python-imenu-make-tree, python-imenu-create-index): Remove
-	functions.
+	(python-imenu-make-tree, python-imenu-create-index):
+	Remove functions.
 	(python-mode): Update to interact with imenu by setting
 	`imenu-extract-index-name-function' only.
 
@@ -56,8 +64,8 @@
 	(xterm-mouse-event): New arg specifying mouse protocol.
 	(turn-on-xterm-mouse-tracking-on-terminal)
 	(turn-off-xterm-mouse-tracking-on-terminal): Send DEC 1006
-	sequence to toggle extended coordinates on newer XTerms.  This
-	appears to be harmless on terminals which do not support this.
+	sequence to toggle extended coordinates on newer XTerms.
+	This appears to be harmless on terminals which do not support this.
 
 2012-07-14  Leo Liu  <sdl.web@gmail.com>
 
@@ -81,8 +89,8 @@
 
 2012-07-14  Chong Yidong  <cyd@gnu.org>
 
-	* bindings.el: Consolidate ctl-x-r-map bindings.  Bind
-	copy-rectangle-as-kill to C-x r w.
+	* bindings.el: Consolidate ctl-x-r-map bindings.
+	Bind copy-rectangle-as-kill to C-x r w.
 
 	* rect.el, register.el: Move bindings to bindings.el.
 
@@ -123,8 +131,8 @@
 	Remove toggle-read-only.
 
 	* bs.el (bs-toggle-readonly):
-	* buff-menu.el (Buffer-menu-toggle-read-only): Remove
-	with-no-warnings around toggle-read-only.
+	* buff-menu.el (Buffer-menu-toggle-read-only):
+	Remove with-no-warnings around toggle-read-only.
 
 	* ffap.el (ffap--toggle-read-only): Accept a list of buffers.
 	Remove with-no-warnings around toggle-read-only.
