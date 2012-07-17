@@ -1,3 +1,8 @@
+2012-07-16  René Kyllingstad  <Rene@Kyllingstad.com>  (tiny change)
+
+	* international/mule-cmds.el (ucs-insert): Make it an obsolete
+	alias for insert-char.
+
 2012-07-16  Fabián Ezequiel Gallina  <fgallina@cuca>
 
 	* progmodes/python.el: Simplified imenu implementation.

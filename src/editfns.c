@@ -2368,11 +2368,28 @@ usage: (insert-before-markers-and-inherit &rest ARGS)  */)
   return Qnil;
 }
 
-DEFUN ("insert-char", Finsert_char, Sinsert_char, 2, 3, 0,
+DEFUN ("insert-char", Finsert_char, Sinsert_char, 1, 3,
+       "(list (read-char-by-name \"Unicode (name or hex): \")\
+	 (prefix-numeric-value current-prefix-arg)\
+	 t))",
        doc: /* Insert COUNT copies of CHARACTER.
+Interactively, prompts for a Unicode character name or a hex number
+using `read-char-by-name'.
+
+You can type a few of the first letters of the Unicode name and
+use completion.  If you type a substring of the Unicode name
+preceded by an asterisk `*' and use completion, it will show all
+the characters whose names include that substring, not necessarily
+at the beginning of the name.
+
+This function also accepts a hexadecimal number of Unicode code
+point or a number in hash notation, e.g. #o21430 for octal,
+#x2318 for hex, or #10r8984 for decimal.
+
 Point, and before-insertion markers, are relocated as in the function `insert'.
 The optional third arg INHERIT, if non-nil, says to inherit text properties
-from adjoining text, if those properties are sticky.  */)
+from adjoining text, if those properties are sticky.  If called
+interactively, INHERIT is t.  */)
   (Lisp_Object character, Lisp_Object count, Lisp_Object inherit)
 {
   int i, stringlen;
@@ -2382,6 +2399,8 @@ from adjoining text, if those properties are sticky.  */)
   char string[4000];
 
   CHECK_CHARACTER (character);
+  if (NILP (count))
+    XSETFASTINT (count, 1);
   CHECK_NUMBER (count);
   c = XFASTINT (character);
 

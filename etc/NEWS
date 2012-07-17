@@ -140,6 +140,9 @@ invokes `set-buffer-file-coding-system'.
 ** Setting `enable-remote-dir-locals' to non-nil allows directory
 local variables on remote hosts.
 
+** `insert-char' is now a command, and `ucs-insert' an obsolete alias
+for it.
+
 
 * Editing Changes in Emacs 24.2
 

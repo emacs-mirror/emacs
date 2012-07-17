@@ -2954,43 +2954,7 @@ point or a number in hash notation, e.g. #o21430 for octal,
      (t
       (cdr (assoc-string input (ucs-names) t))))))
 
-(defun ucs-insert (character &optional count inherit)
-  "Insert COUNT copies of CHARACTER of the given Unicode code point.
-Interactively, prompts for a Unicode character name or a hex number
-using `read-char-by-name'.
-
-You can type a few of the first letters of the Unicode name and
-use completion.  If you type a substring of the Unicode name
-preceded by an asterisk `*' and use completion, it will show all
-the characters whose names include that substring, not necessarily
-at the beginning of the name.
-
-This function also accepts a hexadecimal number of Unicode code
-point or a number in hash notation, e.g. #o21430 for octal,
-#x2318 for hex, or #10r8984 for decimal.
-
-The optional third arg INHERIT (non-nil when called interactively),
-says to inherit text properties from adjoining text, if those
-properties are sticky."
-  (interactive
-   (list (read-char-by-name "Unicode (name or hex): ")
-	 (prefix-numeric-value current-prefix-arg)
-	 t))
-  (unless count (setq count 1))
-  (if (and (stringp character)
-	   (string-match-p "\\`[0-9a-fA-F]+\\'" character))
-      (setq character (string-to-number character 16)))
-  (cond
-   ((null character)
-    (error "Not a Unicode character"))
-   ((not (integerp character))
-    (error "Not a Unicode character code: %S" character))
-   ((or (< character 0) (> character #x10FFFF))
-    (error "Not a Unicode character code: 0x%X" character)))
-  (if inherit
-      (dotimes (i count) (insert-and-inherit character))
-    (dotimes (i count) (insert character))))
-
-(define-key ctl-x-map "8\r" 'ucs-insert)
+(define-obsolete-variable-alias 'ucs-insert 'insert-char "24.2")
+(define-key ctl-x-map "8\r" 'insert-char)
 
 ;;; mule-cmds.el ends here

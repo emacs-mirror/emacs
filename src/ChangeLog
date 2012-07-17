@@ -1,3 +1,9 @@
+2012-07-16  René Kyllingstad  <Rene@Kyllingstad.com>  (tiny change)
+
+	* editfns.c (Finsert_char): Make it interactive, and make the
+	second arg optional.  Copy interactive spec and docstring from
+	ucs-insert.
+
 2012-07-17  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* floatfns.c (Fabs): Do not wrap fabs inside IN_FLOAT (Bug#11913).
