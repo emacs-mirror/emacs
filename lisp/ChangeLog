@@ -1,3 +1,11 @@
+2012-07-18  Chong Yidong  <cyd@gnu.org>
+
+	* isearch.el (isearch-mode-map): Handle C-x 8 key translations,
+	and make C-x 8 RET exit isearch (Bug#11439).
+
+	* international/iso-transl.el: Move isearch-mode-map key
+	definitions to isearch.el.
+
 2012-07-18  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/eieio.el: Adapt further to gv.el (bug#11970).

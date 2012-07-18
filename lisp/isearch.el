@@ -511,6 +511,13 @@ This is like `describe-bindings', but displays only Isearch keys."
     (define-key map "\M-so" 'isearch-occur)
     (define-key map "\M-shr" 'isearch-highlight-regexp)
 
+    ;; The key translations defined in the C-x 8 prefix should insert
+    ;; characters into the search string.  See iso-transl.el.
+    (define-key map "\C-x" nil)
+    (define-key map [?\C-x t] 'isearch-other-control-char)
+    (define-key map "\C-x8" nil)
+    (define-key map "\C-x8\r" 'isearch-other-control-char)
+
     map)
   "Keymap for `isearch-mode'.")
 

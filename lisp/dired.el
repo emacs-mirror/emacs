@@ -3736,7 +3736,7 @@ Ask means pop up a menu for the user to select one of copy, move or link."
 ;;;;;;  dired-run-shell-command dired-do-shell-command dired-do-async-shell-command
 ;;;;;;  dired-clean-directory dired-do-print dired-do-touch dired-do-chown
 ;;;;;;  dired-do-chgrp dired-do-chmod dired-compare-directories dired-backup-diff
-;;;;;;  dired-diff) "dired-aux" "dired-aux.el" "91d39bd8f7e9ce93dc752fe74bea78c2")
+;;;;;;  dired-diff) "dired-aux" "dired-aux.el" "9499f79f5853da0aa93d26465c7bf3a1")
 ;;; Generated autoloads from dired-aux.el
 
 (autoload 'dired-diff "dired-aux" "\
@@ -3829,15 +3829,24 @@ with a prefix argument.
 (autoload 'dired-do-async-shell-command "dired-aux" "\
 Run a shell command COMMAND on the marked files asynchronously.
 
-Like `dired-do-shell-command' but if COMMAND doesn't end in ampersand,
-adds `* &' surrounded by whitespace and executes the command asynchronously.
+Like `dired-do-shell-command', but adds `&' at the end of COMMAND
+to execute it asynchronously.
+
+When operating on multiple files, asynchronous commands
+are executed in the background on each file in parallel.
+In shell syntax this means separating the individual commands
+with `&'.  However, when COMMAND ends in `;' or `;&' then commands
+are executed in the background on each file sequentially waiting
+for each command to terminate before running the next command.
+In shell syntax this means separating the individual commands with `;'.
+
 The output appears in the buffer `*Async Shell Command*'.
 
 \(fn COMMAND &optional ARG FILE-LIST)" t nil)
 
 (autoload 'dired-do-shell-command "dired-aux" "\
 Run a shell command COMMAND on the marked files.
-If no files are marked or a specific numeric prefix arg is given,
+If no files are marked or a numeric prefix arg is given,
 the next ARG files are used.  Just \\[universal-argument] means the current file.
 The prompt mentions the file(s) or the marker, as appropriate.
 
@@ -3859,7 +3868,17 @@ If you want to use `*' as a shell wildcard with whitespace around
 it, write `*\"\"' in place of just `*'.  This is equivalent to just
 `*' in the shell, but avoids Dired's special handling.
 
-If COMMAND produces output, it goes to a separate buffer.
+If COMMAND ends in `&', `;', or `;&', it is executed in the
+background asynchronously, and the output appears in the buffer
+`*Async Shell Command*'.  When operating on multiple files and COMMAND
+ends in `&', the shell command is executed on each file in parallel.
+However, when COMMAND ends in `;' or `;&' then commands are executed
+in the background on each file sequentially waiting for each command
+to terminate before running the next command.  You can also use
+`dired-do-async-shell-command' that automatically adds `&'.
+
+Otherwise, COMMAND is executed synchronously, and the output
+appears in the buffer `*Shell Command Output*'.
 
 This feature does not try to redisplay Dired buffers afterward, as
 there's no telling what files COMMAND may have changed.
