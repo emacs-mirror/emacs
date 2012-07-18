@@ -986,7 +986,11 @@ END, without printing any message."
 	((use-region-p)
 	 (call-interactively 'count-words-region))
 	(t
-	 (count-words--message "Buffer" (point-min) (point-max)))))
+	 (count-words--message
+	  (if (= (point-max) (1+ (buffer-size)))
+	      "Buffer"
+	    "Narrowed part of buffer")
+	  (point-min) (point-max)))))
 
 (defun count-words--message (str start end)
   (let ((lines (count-lines start end))
