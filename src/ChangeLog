@@ -1,3 +1,8 @@
+2012-07-18  Chong Yidong  <cyd@gnu.org>
+
+	* frame.c (x_set_frame_parameters): Revert bogus change introduced
+	in 2012-05-25 commit by Paul Eggert (Bug#11738).
+
 2012-07-18  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Return more descriptive data from Fgarbage_collect.

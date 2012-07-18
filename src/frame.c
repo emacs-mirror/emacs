@@ -2868,7 +2868,7 @@ x_set_frame_parameters (FRAME_PTR f, Lisp_Object alist)
     }
 
   /* Don't die if just one of these was set.  */
-  if (! TYPE_RANGED_INTEGERP (int, left))
+  if (EQ (left, Qunbound))
     {
       left_no_change = 1;
       if (f->left_pos < 0)
@@ -2876,7 +2876,7 @@ x_set_frame_parameters (FRAME_PTR f, Lisp_Object alist)
       else
 	XSETINT (left, f->left_pos);
     }
-  if (! TYPE_RANGED_INTEGERP (int, top))
+  if (EQ (top, Qunbound))
     {
       top_no_change = 1;
       if (f->top_pos < 0)
