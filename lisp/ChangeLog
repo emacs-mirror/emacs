@@ -1,3 +1,8 @@
+2012-07-18  Tassilo Horn  <tassilo@member.fsf.org>
+
+	* window.el (split-window-sensibly): Make WINDOW argument
+	optional.
+
 2012-07-18  Chong Yidong  <cyd@gnu.org>
 
 	* isearch.el (isearch-mode-map): Handle C-x 8 key translations,
