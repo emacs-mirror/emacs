@@ -1,3 +1,12 @@
+2012-07-18  Julien Danjou  <julien@danjou.info>
+
+	* sieve-mode.el (sieve-mode-map): Bind C-c C-c to
+	`sieve-upload-and-kill'.
+
+	* sieve.el (sieve-bury-buffer): Remove function.
+	(sieve-manage-mode-map): Map "q" to `kill-buffer'.
+	(sieve-upload-and-kill): New function, mapped to C-c C-c.
+
 2012-07-17  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* shr.el (shr-expand-url): Handle URL starting with `//'.

@@ -173,7 +173,7 @@
 (defvar sieve-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map "\C-c\C-l" 'sieve-upload)
-    (define-key map "\C-c\C-c" 'sieve-upload-and-bury)
+    (define-key map "\C-c\C-c" 'sieve-upload-and-kill)
     (define-key map "\C-c\C-m" 'sieve-manage)
     map)
   "Key map used in sieve mode.")

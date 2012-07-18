@@ -109,7 +109,7 @@ require \"fileinto\";
     ;; various
     (define-key map "?" 'sieve-help)
     (define-key map "h" 'sieve-help)
-    (define-key map "q" 'sieve-bury-buffer)
+    (define-key map "q" 'kill-buffer)
     ;; activating
     (define-key map "m" 'sieve-activate)
     (define-key map "u" 'sieve-deactivate)
@@ -250,29 +250,6 @@ Used to bracket operations which move point in the sieve-buffer."
     (message "%s" (substitute-command-keys
 	      "`\\[sieve-edit-script]':edit `\\[sieve-activate]':activate `\\[sieve-deactivate]':deactivate `\\[sieve-remove]':remove"))))
 
-(defun sieve-bury-buffer (buf &optional mainbuf)
-  "Hide the buffer BUF that was temporarily popped up.
-BUF is assumed to be a temporary buffer used from the buffer MAINBUF."
-  (interactive (list (current-buffer)))
-  (save-current-buffer
-    (let ((win (if (eq buf (window-buffer (selected-window))) (selected-window)
-		 (get-buffer-window buf t))))
-      (when win
-	(if (window-dedicated-p win)
-	    (condition-case ()
-		(delete-window win)
-	      (error (iconify-frame (window-frame win))))
-	  (if (and mainbuf (get-buffer-window mainbuf))
-	      (delete-window win)))))
-    (with-current-buffer buf
-      (bury-buffer (unless (and (eq buf (window-buffer (selected-window)))
-				(not (window-dedicated-p (selected-window))))
-		     buf)))
-    (when mainbuf
-      (let ((mainwin (or (get-buffer-window mainbuf)
-			 (get-buffer-window mainbuf 'visible))))
-	(when mainwin (select-window mainwin))))))
-
 ;; Create buffer:
 
 (defun sieve-setup-buffer (server port)
@@ -388,6 +365,12 @@ Server  : " server ":" (or port "2000") "
   (interactive)
   (sieve-upload name)
   (bury-buffer))
+
+;;;###autoload
+(defun sieve-upload-and-kill (&optional name)
+  (interactive)
+  (sieve-upload name)
+  (kill-buffer))
 
 (provide 'sieve)
 
