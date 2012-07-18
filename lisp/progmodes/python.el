@@ -2487,46 +2487,19 @@ Runs COMMAND, a shell command, as if by `compile'.  See
 
 (defun python-eldoc--get-doc-at-point (&optional force-input force-process)
   "Internal implementation to get documentation at point.
-If not FORCE-INPUT is passed then what `current-word' returns
-will be used.  If not FORCE-PROCESS is passed what
-`python-shell-get-process' returns is used."
+If not FORCE-INPUT is passed then what
+`python-info-current-symbol' returns will be used.  If not
+FORCE-PROCESS is passed what `python-shell-get-process' returns
+is used."
   (let ((process (or force-process (python-shell-get-process))))
     (if (not process)
-        "Eldoc needs an inferior Python process running."
-      (let* ((current-defun (python-info-current-defun))
-             (input (or force-input
-                        (with-syntax-table python-dotty-syntax-table
-                          (if (not current-defun)
-                              (current-word)
-                            (concat current-defun "." (current-word))))))
-             (ppss (syntax-ppss))
-             (help (when (and
-                          input
-                          (not (string= input (concat current-defun ".")))
-                          (not (or (python-info-ppss-context 'string ppss)
-                                   (python-info-ppss-context 'comment ppss))))
-                     (when (string-match
-                            (concat
-                             (regexp-quote (concat current-defun "."))
-                             "self\\.") input)
-                       (with-temp-buffer
-                         (insert input)
-                         (goto-char (point-min))
-                         (forward-word)
-                         (forward-char)
-                         (delete-region
-                          (point-marker) (search-forward "self."))
-                         (setq input (buffer-substring
-                                      (point-min) (point-max)))))
-                     (python-shell-send-string-no-output
-                      (format python-eldoc-string-code input) process))))
-        (with-current-buffer (process-buffer process)
-          (when comint-last-prompt-overlay
-            (delete-region comint-last-input-end
-                           (overlay-start comint-last-prompt-overlay))))
-        (when (and help
-                   (not (string= help "\n")))
-          help)))))
+        (error "Eldoc needs an inferior Python process running")
+      (let ((input (or force-input
+                       (python-info-current-symbol t))))
+        (and input
+             (python-shell-send-string-no-output
+              (format python-eldoc-string-code input)
+              process))))))
 
 (defun python-eldoc-function ()
   "`eldoc-documentation-function' for Python.
@@ -2539,17 +2512,16 @@ inferior python process is updated properly."
   "Get help on SYMBOL using `help'.
 Interactively, prompt for symbol."
   (interactive
-   (let ((symbol (with-syntax-table python-dotty-syntax-table
-                   (current-word)))
+   (let ((symbol (python-info-current-symbol t))
          (enable-recursive-minibuffers t))
      (list (read-string (if symbol
                             (format "Describe symbol (default %s): " symbol)
                           "Describe symbol: ")
                         nil nil symbol))))
-  (let ((process (python-shell-get-process)))
-    (if (not process)
-        (message "Eldoc needs an inferior Python process running.")
-      (message (python-eldoc--get-doc-at-point symbol process)))))
+  (message (python-eldoc--get-doc-at-point symbol)))
+
+(add-to-list 'debug-ignored-errors
+             "^Eldoc needs an inferior Python process running.")
 
 
 ;;; Misc helpers
@@ -2561,18 +2533,27 @@ This function is compatible to be used as
 `add-log-current-defun-function' since it returns nil if point is
 not inside a defun."
   (let ((names '())
-        (min-indent)
+        (starting-indentation)
+        (starting-point)
         (first-run t))
     (save-restriction
       (widen)
       (save-excursion
+        (setq starting-point (point-marker))
+        (setq starting-indentation (save-excursion
+                                     (python-nav-beginning-of-statement)
+                                     (current-indentation)))
         (end-of-line 1)
-        (setq min-indent (current-indentation))
         (while (python-beginning-of-defun-function 1)
-          (when (or (< (current-indentation) min-indent)
-                    first-run)
+          (when (or (< (current-indentation) starting-indentation)
+                    (and first-run
+                         (<
+                          starting-point
+                          (save-excursion
+                            (python-end-of-defun-function)
+                            (point-marker)))))
             (setq first-run nil)
-            (setq min-indent (current-indentation))
+            (setq starting-indentation (current-indentation))
             (looking-at python-nav-beginning-of-defun-regexp)
             (setq names (cons
                          (if (not include-type)
@@ -2583,6 +2564,30 @@ not inside a defun."
                          names))))))
     (when names
       (mapconcat (lambda (string) string) names "."))))
+
+(defun python-info-current-symbol (&optional replace-self)
+  "Return current symbol using dotty syntax.
+With optional argument REPLACE-SELF convert \"self\" to current
+parent defun name."
+  (let ((name
+         (and (not (python-info-ppss-comment-or-string-p))
+              (with-syntax-table python-dotty-syntax-table
+                (let ((sym (symbol-at-point)))
+                  (and sym
+                       (substring-no-properties (symbol-name sym))))))))
+    (when name
+      (if (not replace-self)
+          name
+        (let ((current-defun (python-info-current-defun)))
+          (if (not current-defun)
+              name
+            (replace-regexp-in-string
+             (python-rx line-start word-start "self" word-end ?.)
+             (concat
+              (mapconcat 'identity
+                         (butlast (split-string current-defun "\\."))
+                         ".") ".")
+             name)))))))
 
 (defsubst python-info-beginning-of-block-statement-p ()
   "Return non-nil if current statement opens a block."

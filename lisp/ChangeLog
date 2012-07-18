@@ -1,3 +1,12 @@
+2012-07-18  Fabián Ezequiel Gallina  <fgallina@cuca>
+
+	* progmodes/python.el: Enhancements to eldoc support.
+	(python-info-current-symbol): New function.
+	(python-eldoc-at-point): Use python-info-current-symbol.
+	(python-info-current-defun): Fix cornercase on first defun scan.
+	(python-eldoc--get-doc-at-point): Use python-info-current-symbol
+	and signal error when no inferior python process is available.
+
 2012-07-18  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* vc/vc-git.el (vc-git-state): Don't call `vc-git-registered',
