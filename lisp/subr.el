@@ -732,7 +732,7 @@ Subkeymaps may be modified but are not canonicalized."
 (put 'keyboard-translate-table 'char-table-extra-slots 0)
 
 (defun keyboard-translate (from to)
-  "Translate character FROM to TO at a low level.
+  "Translate character FROM to TO on the current terminal.
 This function creates a `keyboard-translate-table' if necessary
 and then modifies one entry in it."
   (or (char-table-p keyboard-translate-table)

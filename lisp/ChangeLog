@@ -5,6 +5,8 @@
 
 2012-07-18  Chong Yidong  <cyd@gnu.org>
 
+	* subr.el (keyboard-translate): Doc fix (Bug#7261).
+
 	* isearch.el (isearch-mode-map): Handle C-x 8 key translations,
 	and make C-x 8 RET exit isearch (Bug#11439).
 
