@@ -1,5 +1,9 @@
 2012-07-18  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* userlock.el, emacs-lisp/map-ynp.el: Declare part of `emacs' package.
+	* progmodes/bug-reference.el, misearch.el: Provide themselves
+	(bug#11915).
+
 	* progmodes/cperl-mode.el (cperl-unwind-to-safe): Don't inf-loop at end
 	of narrowed buffer (bug#11966).
 
