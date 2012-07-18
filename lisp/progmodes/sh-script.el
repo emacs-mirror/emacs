@@ -327,8 +327,15 @@ shell it really is."
 (defcustom sh-imenu-generic-expression
   `((sh
      . ((nil
-         "^\\s-*\\(function\\s-+\\)?\\([[:alpha:]_][[:alnum:]_]+\\)\\s-*()"
-         2))))
+	 ;; function FOO
+	 ;; function FOO()
+         "^\\s-*function\\s-+\\\([[:alpha:]_][[:alnum:]_]+\\)\\s-*\\(?:()\\)?"
+         1)
+	;; FOO()
+	(nil
+	 "^\\s-*\\([[:alpha:]_][[:alnum:]_]+\\)\\s-*()"
+	 1)
+	)))
   "Alist of regular expressions for recognizing shell function definitions.
 See `sh-feature' and `imenu-generic-expression'."
   :type '(alist :key-type (symbol :tag "Shell")
