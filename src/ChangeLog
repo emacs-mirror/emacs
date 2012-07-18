@@ -1,5 +1,9 @@
 2012-07-18  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* alloc.c (Fmake_bool_vector): Fix off-by-8 bug
+	when invoking (make-bool-vector N t) and N is a positive
+	multiple of 8 -- the last 8 bits were mistakenly cleared.
+
 	Remove some struct layout assumptions in bool vectors.
 	* alloc.c (bool_header_size): New constant.
 	(header_size, word_size): Move earlier, as they're now used earlier.

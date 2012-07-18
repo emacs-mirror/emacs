@@ -2389,7 +2389,7 @@ LENGTH must be a number.  INIT matters only in whether it is t or nil.  */)
 
       /* Clear any extraneous bits in the last byte.  */
       p->data[length_in_chars - 1]
-	&= (1 << (XINT (length) % BOOL_VECTOR_BITS_PER_CHAR)) - 1;
+	&= (1 << ((XFASTINT (length) - 1) % BOOL_VECTOR_BITS_PER_CHAR + 1)) - 1;
     }
 
   return val;
