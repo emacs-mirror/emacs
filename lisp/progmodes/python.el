@@ -1,4 +1,4 @@
-;;; python.el --- Python's flying circus support for Emacs -*- coding: utf-8 -*-
+;;; python.el --- Python's flying circus support for Emacs
 
 ;; Copyright (C) 2003-2012  Free Software Foundation, Inc.
 
@@ -2262,7 +2262,7 @@ be added to `python-mode-abbrev-table'."
          (function-name (intern (concat "python-skeleton-" name))))
     `(progn
        (define-abbrev python-mode-abbrev-table ,name "" ',function-name
-	 :system t)
+         :system t)
        (setq python-skeleton-available
              (cons ',function-name python-skeleton-available))
        (define-skeleton ,function-name
@@ -2911,4 +2911,10 @@ if that value is non-nil."
 
 
 (provide 'python)
+
+;; Local Variables:
+;; coding: utf-8
+;; indent-tabs-mode: nil
+;; End:
+
 ;;; python.el ends here
