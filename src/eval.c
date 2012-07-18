@@ -691,18 +691,6 @@ usage: (defvar SYMBOL &optional INITVALUE DOCSTRING)  */)
       /* Do it before evaluating the initial value, for self-references.  */
       XSYMBOL (sym)->declared_special = 1;
 
-      if (SYMBOL_CONSTANT_P (sym))
-	{
-	  /* For upward compatibility, allow (defvar :foo (quote :foo)).  */
-	  Lisp_Object tem1 = Fcar (tail);
-	  if (! (CONSP (tem1)
-		 && EQ (XCAR (tem1), Qquote)
-		 && CONSP (XCDR (tem1))
-		 && EQ (XCAR (XCDR (tem1)), sym)))
-	    error ("Constant symbol `%s' specified in defvar",
-		   SDATA (SYMBOL_NAME (sym)));
-	}
-
       if (NILP (tem))
 	Fset_default (sym, eval_sub (Fcar (tail)));
       else

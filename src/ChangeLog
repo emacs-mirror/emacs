@@ -1,5 +1,8 @@
 2012-07-18  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* eval.c (Fdefvar): Don't check constants since we only set the var if
+	it's not yet defined anyway (bug#11904).
+
 	* lisp.h (last_undo_boundary): Declare new var.
 	* keyboard.c (command_loop_1): Set it.
 	* cmds.c (Fself_insert_command): Use it to only remove boundaries that
