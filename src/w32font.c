@@ -75,7 +75,7 @@ static Lisp_Object Qgurmukhi, Qgujarati, Qoriya, Qtamil, Qtelugu;
 static Lisp_Object Qkannada, Qmalayalam, Qsinhala, Qthai, Qlao;
 static Lisp_Object Qtibetan, Qmyanmar, Qgeorgian, Qhangul, Qethiopic;
 static Lisp_Object Qcherokee, Qcanadian_aboriginal, Qogham, Qrunic;
-static Lisp_Object Qkhmer, Qmongolian, Qsymbol, Qbraille, Qhan;
+static Lisp_Object Qkhmer, Qmongolian, Qbraille, Qhan;
 static Lisp_Object Qideographic_description, Qcjk_misc, Qkana, Qbopomofo;
 static Lisp_Object Qkanbun, Qyi, Qbyzantine_musical_symbol;
 static Lisp_Object Qmusical_symbol, Qmathematical, Qcham, Qphonetic;
@@ -2634,7 +2634,6 @@ syms_of_w32font (void)
   DEFSYM (Qrunic, "runic");
   DEFSYM (Qkhmer, "khmer");
   DEFSYM (Qmongolian, "mongolian");
-  DEFSYM (Qsymbol, "symbol");
   DEFSYM (Qbraille, "braille");
   DEFSYM (Qhan, "han");
   DEFSYM (Qideographic_description, "ideographic-description");
