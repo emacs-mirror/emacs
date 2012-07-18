@@ -1,3 +1,11 @@
+2012-07-18  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* vc/vc-git.el (vc-git-state): Don't call `vc-git-registered',
+	assume it's always t.
+	(vc-git-registered): Remove caching, the function is only called
+	once.
+	(vc-git-branches): Use `vc-git--call' instead of `call-process'.
+
 2012-07-18  Chong Yidong  <cyd@gnu.org>
 
 	* subr.el (last-input-char, last-command-char): Remove (Bug#9195).

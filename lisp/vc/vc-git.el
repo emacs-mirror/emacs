@@ -173,31 +173,28 @@ matching the resulting Git log output, and KEYWORDS is a list of
 
 (defun vc-git-registered (file)
   "Check whether FILE is registered with git."
-  (or (vc-file-getprop file 'git-registered)
-      (vc-file-setprop
-       file 'git-registered
-       (let ((dir (vc-git-root file)))
-	 (when dir
-	   (with-temp-buffer
-	     (let* (process-file-side-effects
-		    ;; Do not use the `file-name-directory' here: git-ls-files
-		    ;; sometimes fails to return the correct status for relative
-		    ;; path specs.
-		    ;; See also: http://marc.info/?l=git&m=125787684318129&w=2
-		    (name (file-relative-name file dir))
-		    (str (ignore-errors
-			   (cd dir)
-			   (vc-git--out-ok "ls-files" "-c" "-z" "--" name)
-			   ;; If result is empty, use ls-tree to check for deleted
-			   ;; file.
-			   (when (eq (point-min) (point-max))
-			     (vc-git--out-ok "ls-tree" "--name-only" "-z" "HEAD"
-					     "--" name))
-			   (buffer-string))))
-	       (and str
-		    (> (length str) (length name))
-		    (string= (substring str 0 (1+ (length name)))
-			     (concat name "\0"))))))))))
+  (let ((dir (vc-git-root file)))
+    (when dir
+      (with-temp-buffer
+        (let* (process-file-side-effects
+               ;; Do not use the `file-name-directory' here: git-ls-files
+               ;; sometimes fails to return the correct status for relative
+               ;; path specs.
+               ;; See also: http://marc.info/?l=git&m=125787684318129&w=2
+               (name (file-relative-name file dir))
+               (str (ignore-errors
+                      (cd dir)
+                      (vc-git--out-ok "ls-files" "-c" "-z" "--" name)
+                      ;; If result is empty, use ls-tree to check for deleted
+                      ;; file.
+                      (when (eq (point-min) (point-max))
+                        (vc-git--out-ok "ls-tree" "--name-only" "-z" "HEAD"
+                                        "--" name))
+                      (buffer-string))))
+          (and str
+               (> (length str) (length name))
+               (string= (substring str 0 (1+ (length name)))
+                        (concat name "\0"))))))))
 
 (defun vc-git--state-code (code)
   "Convert from a string to a added/deleted/modified state."
@@ -218,23 +215,24 @@ matching the resulting Git log output, and KEYWORDS is a list of
   ;; is direct ancestor of corresponding upstream branch, and the file
   ;; was modified upstream.  But we can't check that without a network
   ;; operation.
-  (if (not (vc-git-registered file))
-      'unregistered
-    (let ((diff (vc-git--run-command-string
-                 file "diff-index" "-p" "--raw" "-z" "HEAD" "--")))
-      (if (and diff
-	       (string-match ":[0-7]\\{6\\} [0-7]\\{6\\} [0-9a-f]\\{40\\} [0-9a-f]\\{40\\} \\([ADMUT]\\)\0[^\0]+\0\\(.*\n.\\)?"
-			     diff))
-          (let ((diff-letter (match-string 1 diff)))
-            (if (not (match-beginning 2))
-                ;; Empty diff: file contents is the same as the HEAD
-                ;; revision, but timestamps are different (eg, file
-                ;; was "touch"ed).  Update timestamp in index:
-                (prog1 'up-to-date
-                  (vc-git--call nil "add" "--refresh" "--"
-                                (file-relative-name file)))
-              (vc-git--state-code diff-letter)))
-	(if (vc-git--empty-db-p) 'added 'up-to-date)))))
+  ;; This assumes that status is known to be not `unregistered' because
+  ;; we've been successfully dispatched here from `vc-state', that
+  ;; means `vc-git-registered' returned t earlier once.  Bug#11757
+  (let ((diff (vc-git--run-command-string
+               file "diff-index" "-p" "--raw" "-z" "HEAD" "--")))
+    (if (and diff
+             (string-match ":[0-7]\\{6\\} [0-7]\\{6\\} [0-9a-f]\\{40\\} [0-9a-f]\\{40\\} \\([ADMUT]\\)\0[^\0]+\0\\(.*\n.\\)?"
+                           diff))
+        (let ((diff-letter (match-string 1 diff)))
+          (if (not (match-beginning 2))
+              ;; Empty diff: file contents is the same as the HEAD
+              ;; revision, but timestamps are different (eg, file
+              ;; was "touch"ed).  Update timestamp in index:
+              (prog1 'up-to-date
+                (vc-git--call nil "add" "--refresh" "--"
+                              (file-relative-name file)))
+            (vc-git--state-code diff-letter)))
+      (if (vc-git--empty-db-p) 'added 'up-to-date))))
 
 (defun vc-git-working-revision (_file)
   "Git-specific version of `vc-working-revision'."
@@ -576,7 +574,7 @@ or an empty string if none."
   "Return the existing branches, as a list of strings.
 The car of the list is the current branch."
   (with-temp-buffer
-    (call-process vc-git-program nil t nil "branch")
+    (vc-git--call t "branch")
     (goto-char (point-min))
     (let (current-branch branches)
       (while (not (eobp))
