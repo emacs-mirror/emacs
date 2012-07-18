@@ -3152,11 +3152,27 @@ sweep_vectors (void)
 	{
 	  VECTOR_UNMARK (vector);
 	  total_vectors++;
-	  /* All pseudovectors are small enough to be allocated from
-	     vector blocks.  This code should be redesigned if some
-	     pseudovector type grows beyond VBLOCK_BYTES_MAX.  */
-	  eassert (!(vector->header.size & PSEUDOVECTOR_FLAG));
-	  total_vector_bytes += header_size + vector->header.size * word_size;
+	  if (vector->header.size & PSEUDOVECTOR_FLAG)
+	    {
+	      if (((vector->header.size & PVEC_TYPE_MASK)
+		   >> PSEUDOVECTOR_SIZE_BITS) == PVEC_BOOL_VECTOR)
+		{
+		  struct Lisp_Bool_Vector *b
+		    = (struct Lisp_Bool_Vector *) vector;
+		  total_vector_bytes += header_size + sizeof (b->size)
+		    + (b->size + BOOL_VECTOR_BITS_PER_CHAR - 1)
+		    / BOOL_VECTOR_BITS_PER_CHAR;
+		}
+	      else
+		/* All other pseudovectors are small enough to be
+		   allocated from vector blocks.  This code should
+		   be redesigned if some pseudovector type grows
+		   beyond VBLOCK_BYTES_MAX.  */
+		abort ();
+	    }
+	  else
+	    total_vector_bytes
+	      += header_size + vector->header.size * word_size;
 	  vprev = &vector->header.next.vector;
 	}
       else

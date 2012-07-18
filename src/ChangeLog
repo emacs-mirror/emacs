@@ -1,3 +1,9 @@
+2012-07-18  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Fix sweep_vectors to handle large bool vectors correctly.
+	* alloc.c (sweep_vectors): Account total_vector_bytes for
+	bool vectors larger than VBLOCK_BYTES_MAX.
+
 2012-07-18  Chong Yidong  <cyd@gnu.org>
 
 	* frame.c (x_set_frame_parameters): Revert bogus change introduced
