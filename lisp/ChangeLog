@@ -1,3 +1,9 @@
+2012-07-18  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Reflect recent changes in Fgarbage_collect.
+	* emacs-lisp/chart.el (chart-emacs-storage): Change to
+	reflect new format of data returned by Fgarbage_collect.
+
 2012-07-17  Fabián Ezequiel Gallina  <fgallina@cuca>
 
 	New utility functions + python-info-ppss-context fix (Bug#11910).

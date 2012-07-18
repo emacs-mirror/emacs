@@ -2332,7 +2332,8 @@ extern Lisp_Object Qoverflow_error, Qunderflow_error;
 extern Lisp_Object Qfloatp;
 extern Lisp_Object Qnumberp, Qnumber_or_marker_p;
 
-extern Lisp_Object Qinteger;
+extern Lisp_Object Qinteger, Qinterval, Qsymbol, Qstring;
+extern Lisp_Object Qmisc, Qvector, Qfloat, Qcons, Qbuffer;
 
 extern Lisp_Object Qfont_spec, Qfont_entity, Qfont_object;
 

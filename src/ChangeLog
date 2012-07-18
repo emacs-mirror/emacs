@@ -1,3 +1,23 @@
+2012-07-18  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Return more descriptive data from Fgarbage_collect.
+	Suggested by Stefan Monnier in
+	http://lists.gnu.org/archive/html/emacs-devel/2012-07/msg00369.html.
+	* alloc.c (bounded_number): New function.
+	(total_buffers, total_vectors): New variable.
+	(total_string_size): Rename to total_string_bytes, adjust users.
+	(total_vector_size): Rename to total_vector_bytes, adjust users.
+	(sweep_vectors): Account total_vectors and total_vector_bytes.
+	(Fgarbage_collect): New return value.  Adjust documentation.
+	(gc_sweep): Account total_buffers.
+	(Fmemory_free, Fmemory_use_counts): Use bounded_number.
+	(VECTOR_SIZE): Remove.
+	* data.c (Qfloat, Qvector, Qsymbol, Qstring, Qcons): Make global.
+	(Qinterval, Qmisc): New symbols.
+	(syms_of_data): Initialize them.
+	* lisp.h (Qinterval, Qsymbol, Qstring, Qmisc, Qvector, Qfloat)
+	(Qcons, Qbuffer): New declarations.
+
 2012-07-17  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* alloc.c (Fmemory_free): Account for memory-free's own storage.

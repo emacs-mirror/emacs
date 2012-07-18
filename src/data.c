@@ -83,12 +83,12 @@ Lisp_Object Qoverflow_error, Qunderflow_error;
 Lisp_Object Qfloatp;
 Lisp_Object Qnumberp, Qnumber_or_marker_p;
 
-Lisp_Object Qinteger;
-static Lisp_Object Qsymbol, Qstring, Qcons, Qmarker, Qoverlay;
+Lisp_Object Qinteger, Qinterval, Qfloat, Qvector;
+Lisp_Object Qsymbol, Qstring, Qcons, Qmisc;
 Lisp_Object Qwindow;
-static Lisp_Object Qfloat, Qwindow_configuration;
-static Lisp_Object Qprocess;
-static Lisp_Object Qcompiled_function, Qframe, Qvector;
+static Lisp_Object Qoverlay, Qwindow_configuration;
+static Lisp_Object Qprocess, Qmarker;
+static Lisp_Object Qcompiled_function, Qframe;
 Lisp_Object Qbuffer;
 static Lisp_Object Qchar_table, Qbool_vector, Qhash_table;
 static Lisp_Object Qsubrp, Qmany, Qunevalled;
@@ -3083,7 +3083,6 @@ syms_of_data (void)
   DEFSYM (Qwindow_configuration, "window-configuration");
   DEFSYM (Qprocess, "process");
   DEFSYM (Qwindow, "window");
-  /* DEFSYM (Qsubr, "subr"); */
   DEFSYM (Qcompiled_function, "compiled-function");
   DEFSYM (Qbuffer, "buffer");
   DEFSYM (Qframe, "frame");
@@ -3091,6 +3090,9 @@ syms_of_data (void)
   DEFSYM (Qchar_table, "char-table");
   DEFSYM (Qbool_vector, "bool-vector");
   DEFSYM (Qhash_table, "hash-table");
+  /* Used by Fgarbage_collect.  */
+  DEFSYM (Qinterval, "interval");
+  DEFSYM (Qmisc, "misc");
 
   DEFSYM (Qdefun, "defun");
 

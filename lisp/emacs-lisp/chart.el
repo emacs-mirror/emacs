@@ -676,23 +676,25 @@ SORT-PRED if desired."
   "Chart the current storage requirements of Emacs."
   (interactive)
   (let* ((data (garbage-collect))
-	 (names '("strings/2" "vectors"
-		  "conses" "free cons"
-		  "syms" "free syms"
-		  "markers" "free mark"
-		  ;; "floats" "free flt"
-		  ))
-	 (nums (list (/ (nth 3 data) 2)
-		     (nth 4 data)
-		     (car (car data))	; conses
-		     (cdr (car data))
-		     (car (nth 1 data)) ; syms
-		     (cdr (nth 1 data))
-		     (car (nth 2 data))	; markers
-		     (cdr (nth 2 data))
-		     ;(car (nth 5 data)) ; floats are Emacs only
-		     ;(cdr (nth 5 data))
-		     )))
+	 (cons-info (nth 0 data))
+	 (symbol-info (nth 1 data))
+	 (misc-info (nth 2 data))
+	 (string-info (nth 3 data))
+	 (vector-info (nth 4 data))
+	 (float-info (nth 5 data))
+	 (interval-info (nth 6 data))
+	 (buffer-info (nth 7 data))
+	 (names '("conses" "symbols" "miscs" "strings"
+		  "vectors" "floats" "intervals" "buffers"))
+	 (nums (list (* (nth 1 cons-info) (nth 2 cons-info))
+		     (* (nth 1 symbol-info) (nth 2 symbol-info))
+		     (* (nth 1 misc-info) (nth 2 misc-info))
+		     (+ (* (nth 1 string-info) (nth 2 string-info))
+			(nth 3 string-info))
+		     (nth 3 vector-info)
+		     (* (nth 1 float-info) (nth 2 float-info))
+		     (* (nth 1 interval-info) (nth 2 interval-info))
+		     (* (nth 1 buffer-info) (nth 2 buffer-info)))))
     ;; Let's create the chart!
     (chart-bar-quickie 'vertical "Emacs Runtime Storage Usage"
 		       names "Storage Items"
