@@ -281,6 +281,14 @@ static void sweep_strings (void);
 static void free_misc (Lisp_Object);
 extern Lisp_Object which_symbols (Lisp_Object, EMACS_INT) EXTERNALLY_VISIBLE;
 
+/* Handy constants for vectorlike objects.  */
+enum
+  {
+    header_size = offsetof (struct Lisp_Vector, contents),
+    bool_header_size = offsetof (struct Lisp_Bool_Vector, data),
+    word_size = sizeof (Lisp_Object)
+  };
+
 /* When scanning the C stack for live Lisp objects, Emacs keeps track
    of what memory allocated via lisp_malloc is intended for what
    purpose.  This enumeration specifies the type of memory.  */
@@ -2356,6 +2364,8 @@ LENGTH must be a number.  INIT matters only in whether it is t or nil.  */)
   ptrdiff_t length_in_chars;
   EMACS_INT length_in_elts;
   int bits_per_value;
+  int extra_bool_elts = ((bool_header_size - header_size + word_size - 1)
+			 / word_size);
 
   CHECK_NATNUM (length);
 
@@ -2363,9 +2373,7 @@ LENGTH must be a number.  INIT matters only in whether it is t or nil.  */)
 
   length_in_elts = (XFASTINT (length) + bits_per_value - 1) / bits_per_value;
 
-  /* We must allocate one more elements than LENGTH_IN_ELTS for the
-     slot `size' of the struct Lisp_Bool_Vector.  */
-  val = Fmake_vector (make_number (length_in_elts + 1), Qnil);
+  val = Fmake_vector (make_number (length_in_elts + extra_bool_elts), Qnil);
 
   /* No Lisp_Object to trace in there.  */
   XSETPVECTYPESIZE (XVECTOR (val), PVEC_BOOL_VECTOR, 0);
@@ -2874,12 +2882,10 @@ DEFUN ("make-list", Fmake_list, Smake_list, 2, 2, 0,
 
 #define VECTOR_BLOCK_SIZE 4096
 
-/* Handy constants for vectorlike objects.  */
+/* Align allocation request sizes to be a multiple of ROUNDUP_SIZE.  */
 enum
   {
-    header_size = offsetof (struct Lisp_Vector, contents),
-    word_size = sizeof (Lisp_Object),
-    roundup_size = COMMON_MULTIPLE (sizeof (Lisp_Object),
+    roundup_size = COMMON_MULTIPLE (word_size,
 				    USE_LSB_TAG ? 1 << GCTYPEBITS : 1)
   };
 
@@ -2905,7 +2911,7 @@ verify (VECTOR_BLOCK_SIZE <= (1 << PSEUDOVECTOR_SIZE_BITS));
 /* Size of the largest vector allocated from block.  */
 
 #define VBLOCK_BYTES_MAX					\
-  vroundup ((VECTOR_BLOCK_BYTES / 2) - sizeof (Lisp_Object))
+  vroundup ((VECTOR_BLOCK_BYTES / 2) - word_size)
 
 /* We maintain one free list for each possible block-allocated
    vector size, and this is the number of free lists we have.  */
@@ -3154,25 +3160,21 @@ sweep_vectors (void)
 	  total_vectors++;
 	  if (vector->header.size & PSEUDOVECTOR_FLAG)
 	    {
-	      if (((vector->header.size & PVEC_TYPE_MASK)
-		   >> PSEUDOVECTOR_SIZE_BITS) == PVEC_BOOL_VECTOR)
-		{
-		  struct Lisp_Bool_Vector *b
-		    = (struct Lisp_Bool_Vector *) vector;
-		  total_vector_bytes += header_size + sizeof (b->size)
-		    + (b->size + BOOL_VECTOR_BITS_PER_CHAR - 1)
-		    / BOOL_VECTOR_BITS_PER_CHAR;
-		}
-	      else
-		/* All other pseudovectors are small enough to be
-		   allocated from vector blocks.  This code should
-		   be redesigned if some pseudovector type grows
-		   beyond VBLOCK_BYTES_MAX.  */
-		abort ();
+	      struct Lisp_Bool_Vector *b = (struct Lisp_Bool_Vector *) vector;
+
+	      /* All non-bool pseudovectors are small enough to be allocated
+		 from vector blocks.  This code should be redesigned if some
+		 pseudovector type grows beyond VBLOCK_BYTES_MAX.  */
+	      eassert (PSEUDOVECTOR_TYPEP (&vector->header, PVEC_BOOL_VECTOR));
+
+	      total_vector_bytes
+		+= (bool_header_size
+		    + ((b->size + BOOL_VECTOR_BITS_PER_CHAR - 1)
+		       / BOOL_VECTOR_BITS_PER_CHAR));
 	    }
 	  else
-	    total_vector_bytes
-	      += header_size + vector->header.size * word_size;
+	    total_vector_bytes += (header_size
+				   + vector->header.size * word_size);
 	  vprev = &vector->header.next.vector;
 	}
       else
@@ -5261,8 +5263,7 @@ make_pure_vector (ptrdiff_t len)
 {
   Lisp_Object new;
   struct Lisp_Vector *p;
-  size_t size = (offsetof (struct Lisp_Vector, contents)
-		 + len * sizeof (Lisp_Object));
+  size_t size = header_size + len * word_size;
 
   p = (struct Lisp_Vector *) pure_alloc (size, Lisp_Vectorlike);
   XSETVECTOR (new, p);

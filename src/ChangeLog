@@ -1,3 +1,14 @@
+2012-07-18  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Remove some struct layout assumptions in bool vectors.
+	* alloc.c (bool_header_size): New constant.
+	(header_size, word_size): Move earlier, as they're now used earlier.
+	Use 'word_size' in a few more places, where it's appropriate.
+	(Fmake_bool_vector, sweep_vectors): Don't assume that there is no
+	padding before the data member of a bool vector.
+	(sweep_vectors): Use PSEUDOVECTOR_TYPEP, in an eassert, rather
+	than doing the check by hand with an abort ().
+
 2012-07-18  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* eval.c (Fdefvar): Don't check constants since we only set the var if
