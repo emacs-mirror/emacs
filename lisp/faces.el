@@ -1549,8 +1549,12 @@ If SPEC is nil, return nil."
 			   (display-graphic-p frame))
 		'(:family "default" :foundry "default" :width normal
 		  :height 1 :weight normal :slant normal
-		  :foreground "unspecified-fg"
-		  :background "unspecified-bg")))
+		  :foreground (if (frame-parameter nil 'reverse)
+				  "unspecified-bg"
+				"unspecified-fg")
+		  :background (if (frame-parameter nil 'reverse)
+				  "unspecified-fg"
+				"unspecified-bg"))))
 	   ;; For all other faces, unspecify all attributes.
 	   (apply 'append
 		  (mapcar (lambda (x) (list (car x) 'unspecified))

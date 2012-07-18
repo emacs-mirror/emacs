@@ -1,3 +1,7 @@
+2012-07-18  Chong Yidong  <cyd@gnu.org>
+
+	* faces.el (face-spec-reset-face): Handle reverse video (Bug#4238).
+
 2012-07-18  Masatake YAMATO  <yamato@redhat.com>
 
 	* progmodes/sh-script.el (sh-imenu-generic-expression):
