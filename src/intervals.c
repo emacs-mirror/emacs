@@ -1391,10 +1391,6 @@ merge_interval_right (register INTERVAL i)
   register ptrdiff_t absorb = LENGTH (i);
   register INTERVAL successor;
 
-  /* Zero out this interval.  */
-  i->total_length -= absorb;
-  CHECK_TOTAL_LENGTH (i);
-
   /* Find the succeeding interval.  */
   if (! NULL_RIGHT_CHILD (i))      /* It's below us.  Add absorb
 				      as we descend.  */
@@ -1412,6 +1408,10 @@ merge_interval_right (register INTERVAL i)
       delete_interval (i);
       return successor;
     }
+
+  /* Zero out this interval.  */
+  i->total_length -= absorb;
+  CHECK_TOTAL_LENGTH (i);
 
   successor = i;
   while (! NULL_PARENT (successor))	   /* It's above us.  Subtract as
@@ -1447,10 +1447,6 @@ merge_interval_left (register INTERVAL i)
   register ptrdiff_t absorb = LENGTH (i);
   register INTERVAL predecessor;
 
-  /* Zero out this interval.  */
-  i->total_length -= absorb;
-  CHECK_TOTAL_LENGTH (i);
-
   /* Find the preceding interval.  */
   if (! NULL_LEFT_CHILD (i))	/* It's below us. Go down,
 				   adding ABSORB as we go.  */
@@ -1469,9 +1465,13 @@ merge_interval_left (register INTERVAL i)
       return predecessor;
     }
 
+  /* Zero out this interval.  */
+  i->total_length -= absorb;
+  CHECK_TOTAL_LENGTH (i);
+
   predecessor = i;
   while (! NULL_PARENT (predecessor))	/* It's above us.  Go up,
-				   subtracting ABSORB.  */
+					   subtracting ABSORB.  */
     {
       if (AM_RIGHT_CHILD (predecessor))
 	{
