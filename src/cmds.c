@@ -296,7 +296,10 @@ At the end, it runs `post-self-insert-hook'.  */)
 
   if (remove_boundary
       && CONSP (BVAR (current_buffer, undo_list))
-      && NILP (XCAR (BVAR (current_buffer, undo_list))))
+      && NILP (XCAR (BVAR (current_buffer, undo_list)))
+      /* Only remove auto-added boundaries, not boundaries
+	 added be explicit calls to undo-boundary.  */
+      && EQ (BVAR (current_buffer, undo_list), last_undo_boundary))
     /* Remove the undo_boundary that was just pushed.  */
     BVAR (current_buffer, undo_list) = XCDR (BVAR (current_buffer, undo_list));
 

@@ -2921,7 +2921,7 @@ extern ptrdiff_t find_before_next_newline (ptrdiff_t, ptrdiff_t, ptrdiff_t);
 extern void syms_of_search (void);
 extern void clear_regexp_cache (void);
 
-/* Defined in minibuf.c */
+/* Defined in minibuf.c.  */
 
 extern Lisp_Object Qcompletion_ignore_case;
 extern Lisp_Object Vminibuffer_list;
@@ -2930,25 +2930,25 @@ extern Lisp_Object get_minibuffer (EMACS_INT);
 extern void init_minibuf_once (void);
 extern void syms_of_minibuf (void);
 
-/* Defined in callint.c */
+/* Defined in callint.c.  */
 
 extern Lisp_Object Qminus, Qplus;
 extern Lisp_Object Qwhen;
 extern Lisp_Object Qcall_interactively, Qmouse_leave_buffer_hook;
 extern void syms_of_callint (void);
 
-/* Defined in casefiddle.c */
+/* Defined in casefiddle.c.  */
 
 extern Lisp_Object Qidentity;
 extern void syms_of_casefiddle (void);
 extern void keys_of_casefiddle (void);
 
-/* Defined in casetab.c */
+/* Defined in casetab.c.  */
 
 extern void init_casetab_once (void);
 extern void syms_of_casetab (void);
 
-/* Defined in keyboard.c */
+/* Defined in keyboard.c.  */
 
 extern Lisp_Object echo_message_buffer;
 extern struct kboard *echo_kboard;
@@ -2956,6 +2956,7 @@ extern void cancel_echoing (void);
 extern Lisp_Object Qdisabled, QCfilter;
 extern Lisp_Object Qup, Qdown, Qbottom;
 extern Lisp_Object Qtop;
+extern Lisp_Object last_undo_boundary;
 extern int input_pending;
 extern Lisp_Object menu_bar_items (Lisp_Object);
 extern Lisp_Object tool_bar_items (Lisp_Object, int *);
@@ -2976,13 +2977,13 @@ extern void init_keyboard (void);
 extern void syms_of_keyboard (void);
 extern void keys_of_keyboard (void);
 
-/* Defined in indent.c */
+/* Defined in indent.c.  */
 extern ptrdiff_t current_column (void);
 extern void invalidate_current_column (void);
 extern int indented_beyond_p (ptrdiff_t, ptrdiff_t, EMACS_INT);
 extern void syms_of_indent (void);
 
-/* Defined in frame.c */
+/* Defined in frame.c.  */
 extern Lisp_Object Qonly;
 extern Lisp_Object Qvisible;
 extern void store_frame_param (struct frame *, Lisp_Object, Lisp_Object);
@@ -2995,7 +2996,7 @@ extern Lisp_Object frame_buffer_predicate (Lisp_Object);
 extern void frames_discard_buffer (Lisp_Object);
 extern void syms_of_frame (void);
 
-/* Defined in emacs.c */
+/* Defined in emacs.c.  */
 extern char **initial_argv;
 extern int initial_argc;
 #if defined (HAVE_X_WINDOWS) || defined (HAVE_NS)
