@@ -1278,9 +1278,6 @@ to reread, so it now uses nil to mean `no event', instead of -1."
 ;; existing "for compatibility with Emacs version 18".
 (define-obsolete-variable-alias 'last-input-char 'last-input-event
   "at least 19.34")
-(define-obsolete-variable-alias 'last-command-char 'last-command-event
-  "at least 19.34")
-
 
 ;;;; Alternate names for functions - these are not being phased out.
 

@@ -1,5 +1,7 @@
 2012-07-18  Chong Yidong  <cyd@gnu.org>
 
+	* subr.el (last-input-char, last-command-char): Remove (Bug#9195).
+
 	* simple.el (count-words): Report on narrowing (Bug#9959).
 
 	* bindings.el: Bind M-= to count-words.
