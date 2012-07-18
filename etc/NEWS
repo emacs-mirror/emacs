@@ -493,6 +493,7 @@ still be supported for Emacs 24.x.
 
 *** `facemenu-unlisted-faces'
 *** `rmail-decode-mime-charset'
+*** `last-input-char' and `last-command-char'
 
 
 * Lisp changes in Emacs 24.2
