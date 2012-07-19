@@ -1,3 +1,17 @@
+2012-07-19  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	New macro to iterate over all buffers, miscellaneous cleanups.
+	* lisp.h (all_buffers): Remove declaration.
+	* buffer.h (all_buffers): Add declaration, with comment.
+	(for_each_buffer): New macro.
+	* alloc.c (Fgarbage_collect, mark_object): Use it.
+	* buffer.c (Fkill_buffer, Fbuffer_swap_text, Fset_buffer_multibyte)
+	(init_buffer): Likewise.
+	* data.c (Fset_default): Likewise.
+	* coding.c (code_conversion_restore): Remove redundant check
+	for dead buffer.
+	* buffer.c (Fkill_buffer): Likewise.  Remove obsolete comment.
+
 2012-07-18  Andreas Schwab  <schwab@linux-m68k.org>
 
 	Fix bug that created negative-length intervals.
@@ -110,7 +124,6 @@
 	* gnutls.c (emacs_gnutls_handshake): Only retry if
 	GNUTLS_E_INTERRUPTED.
 
-2012-07-17  Eli Zaretskii  <eliz@gnu.org>
 2012-07-17  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Cleanup and convert miscellaneous checks to eassert.

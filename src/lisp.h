@@ -2858,7 +2858,6 @@ extern Lisp_Object set_buffer_if_live (Lisp_Object);
 extern Lisp_Object other_buffer_safely (Lisp_Object);
 extern Lisp_Object Qpriority, Qwindow, Qbefore_string, Qafter_string;
 extern Lisp_Object get_truename_buffer (Lisp_Object);
-extern struct buffer *all_buffers;
 extern void init_buffer_once (void);
 extern void init_buffer (void);
 extern void syms_of_buffer (void);

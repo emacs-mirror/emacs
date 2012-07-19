@@ -1532,10 +1532,8 @@ cleaning up all windows currently displaying the buffer to be killed. */)
 
       GCPRO1 (buffer);
 
-      for (other = all_buffers; other; other = other->header.next.buffer)
-	/* all_buffers contains dead buffers too;
-	   don't re-kill them.  */
-	if (other->base_buffer == b && !NILP (BVAR (other, name)))
+      for_each_buffer (other)
+	if (other->base_buffer == b)
 	  {
 	    Lisp_Object buf;
 	    XSETBUFFER (buf, other);
@@ -2052,7 +2050,7 @@ DEFUN ("buffer-swap-text", Fbuffer_swap_text, Sbuffer_swap_text,
 
   { /* This is probably harder to make work.  */
     struct buffer *other;
-    for (other = all_buffers; other; other = other->header.next.buffer)
+    for_each_buffer (other)
       if (other->base_buffer == other_buffer
 	  || other->base_buffer == current_buffer)
 	error ("One of the buffers to swap has indirect buffers");
@@ -2429,7 +2427,7 @@ current buffer is cleared.  */)
 
   /* Copy this buffer's new multibyte status
      into all of its indirect buffers.  */
-  for (other = all_buffers; other; other = other->header.next.buffer)
+  for_each_buffer (other)
     if (other->base_buffer == current_buffer && !NILP (BVAR (other, name)))
       {
 	BVAR (other, enable_multibyte_characters)
@@ -5035,7 +5033,7 @@ init_buffer (void)
       Map new memory.  */
    struct buffer *b;
 
-   for (b = all_buffers; b; b = b->header.next.buffer)
+   for_each_buffer (b)
      if (b->text->beg == NULL)
        enlarge_buffer_text (b, 0);
  }

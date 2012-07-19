@@ -857,6 +857,15 @@ struct buffer
 };
 
 
+/* Chain of all buffers, including killed ones.  */
+
+extern struct buffer *all_buffers;
+
+/* Used to iterate over the chain above.  */
+
+#define for_each_buffer(b) \
+  for ((b) = all_buffers; (b); (b) = (b)->header.next.buffer)
+
 /* This points to the current buffer.  */
 
 extern struct buffer *current_buffer;

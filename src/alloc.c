@@ -5392,6 +5392,7 @@ See Info node `(elisp)Garbage Collection'.  */)
   (void)
 {
   register struct specbinding *bind;
+  register struct buffer *nextb;
   char stack_top_variable;
   ptrdiff_t i;
   int message_p;
@@ -5411,40 +5412,34 @@ See Info node `(elisp)Garbage Collection'.  */)
 
   /* Don't keep undo information around forever.
      Do this early on, so it is no problem if the user quits.  */
-  {
-    register struct buffer *nextb = all_buffers;
+  for_each_buffer (nextb)
+    {
+      /* If a buffer's undo list is Qt, that means that undo is
+	 turned off in that buffer.  Calling truncate_undo_list on
+	 Qt tends to return NULL, which effectively turns undo back on.
+	 So don't call truncate_undo_list if undo_list is Qt.  */
+      if (! NILP (nextb->BUFFER_INTERNAL_FIELD (name))
+	  && ! EQ (nextb->BUFFER_INTERNAL_FIELD (undo_list), Qt))
+	truncate_undo_list (nextb);
 
-    while (nextb)
-      {
-	/* If a buffer's undo list is Qt, that means that undo is
-	   turned off in that buffer.  Calling truncate_undo_list on
-	   Qt tends to return NULL, which effectively turns undo back on.
-	   So don't call truncate_undo_list if undo_list is Qt.  */
-	if (! NILP (nextb->BUFFER_INTERNAL_FIELD (name))
-	    && ! EQ (nextb->BUFFER_INTERNAL_FIELD (undo_list), Qt))
-	  truncate_undo_list (nextb);
+      /* Shrink buffer gaps, but skip indirect and dead buffers.  */
+      if (nextb->base_buffer == 0 && !NILP (nextb->BUFFER_INTERNAL_FIELD (name))
+	  && ! nextb->text->inhibit_shrinking)
+	{
+	  /* If a buffer's gap size is more than 10% of the buffer
+	     size, or larger than 2000 bytes, then shrink it
+	     accordingly.  Keep a minimum size of 20 bytes.  */
+	  int size = min (2000, max (20, (nextb->text->z_byte / 10)));
 
-	/* Shrink buffer gaps, but skip indirect and dead buffers.  */
-	if (nextb->base_buffer == 0 && !NILP (nextb->BUFFER_INTERNAL_FIELD (name))
-	    && ! nextb->text->inhibit_shrinking)
-	  {
-	    /* If a buffer's gap size is more than 10% of the buffer
-	       size, or larger than 2000 bytes, then shrink it
-	       accordingly.  Keep a minimum size of 20 bytes.  */
-	    int size = min (2000, max (20, (nextb->text->z_byte / 10)));
-
-	    if (nextb->text->gap_size > size)
-	      {
-		struct buffer *save_current = current_buffer;
-		current_buffer = nextb;
-		make_gap (-(nextb->text->gap_size - size));
-		current_buffer = save_current;
-	      }
-	  }
-
-	nextb = nextb->header.next.buffer;
-      }
-  }
+	  if (nextb->text->gap_size > size)
+	    {
+	      struct buffer *save_current = current_buffer;
+	      current_buffer = nextb;
+	      make_gap (-(nextb->text->gap_size - size));
+	      current_buffer = save_current;
+	    }
+	}
+    }
 
   t1 = current_emacs_time ();
 
@@ -5558,48 +5553,42 @@ See Info node `(elisp)Garbage Collection'.  */)
      Look thru every buffer's undo list
      for elements that update markers that were not marked,
      and delete them.  */
-  {
-    register struct buffer *nextb = all_buffers;
-
-    while (nextb)
-      {
-	/* If a buffer's undo list is Qt, that means that undo is
-	   turned off in that buffer.  Calling truncate_undo_list on
-	   Qt tends to return NULL, which effectively turns undo back on.
-	   So don't call truncate_undo_list if undo_list is Qt.  */
-	if (! EQ (nextb->BUFFER_INTERNAL_FIELD (undo_list), Qt))
-	  {
-	    Lisp_Object tail, prev;
-	    tail = nextb->BUFFER_INTERNAL_FIELD (undo_list);
-	    prev = Qnil;
-	    while (CONSP (tail))
-	      {
-		if (CONSP (XCAR (tail))
-		    && MARKERP (XCAR (XCAR (tail)))
-		    && !XMARKER (XCAR (XCAR (tail)))->gcmarkbit)
-		  {
-		    if (NILP (prev))
-		      nextb->BUFFER_INTERNAL_FIELD (undo_list) = tail = XCDR (tail);
-		    else
-		      {
-			tail = XCDR (tail);
-			XSETCDR (prev, tail);
-		      }
-		  }
-		else
-		  {
-		    prev = tail;
-		    tail = XCDR (tail);
-		  }
-	      }
-	  }
-	/* Now that we have stripped the elements that need not be in the
-	   undo_list any more, we can finally mark the list.  */
-	mark_object (nextb->BUFFER_INTERNAL_FIELD (undo_list));
-
-	nextb = nextb->header.next.buffer;
-      }
-  }
+  for_each_buffer (nextb)
+    {
+      /* If a buffer's undo list is Qt, that means that undo is
+	 turned off in that buffer.  Calling truncate_undo_list on
+	 Qt tends to return NULL, which effectively turns undo back on.
+	 So don't call truncate_undo_list if undo_list is Qt.  */
+      if (! EQ (nextb->BUFFER_INTERNAL_FIELD (undo_list), Qt))
+	{
+	  Lisp_Object tail, prev;
+	  tail = nextb->BUFFER_INTERNAL_FIELD (undo_list);
+	  prev = Qnil;
+	  while (CONSP (tail))
+	    {
+	      if (CONSP (XCAR (tail))
+		  && MARKERP (XCAR (XCAR (tail)))
+		  && !XMARKER (XCAR (XCAR (tail)))->gcmarkbit)
+		{
+		  if (NILP (prev))
+		    nextb->BUFFER_INTERNAL_FIELD (undo_list) = tail = XCDR (tail);
+		  else
+		    {
+		      tail = XCDR (tail);
+		      XSETCDR (prev, tail);
+		    }
+		}
+	      else
+		{
+		  prev = tail;
+		  tail = XCDR (tail);
+		}
+	    }
+	}
+      /* Now that we have stripped the elements that need not be in the
+	 undo_list any more, we can finally mark the list.  */
+      mark_object (nextb->BUFFER_INTERNAL_FIELD (undo_list));
+    }
 
   gc_sweep ();
 
@@ -5987,9 +5976,10 @@ mark_object (Lisp_Object arg)
 #ifdef GC_CHECK_MARKED_OBJECTS
 	    if (po != &buffer_defaults && po != &buffer_local_symbols)
 	      {
-		struct buffer *b = all_buffers;
-		for (; b && b != po; b = b->header.next.buffer)
-		  ;
+		struct buffer *b;
+		for_each_buffer (b)
+		  if (b == po)
+		    break;
 		if (b == NULL)
 		  abort ();
 	      }

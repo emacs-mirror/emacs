@@ -7588,7 +7588,7 @@ code_conversion_restore (Lisp_Object arg)
     {
       if (EQ (workbuf, Vcode_conversion_reused_workbuf))
 	reused_workbuf_in_use = 0;
-      else if (! NILP (Fbuffer_live_p (workbuf)))
+      else
 	Fkill_buffer (workbuf);
     }
   set_buffer_internal (XBUFFER (current));
