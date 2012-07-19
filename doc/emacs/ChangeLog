@@ -1,3 +1,7 @@
+2012-07-19  Chong Yidong  <cyd@gnu.org>
+
+	* emacs.texi: Update ISBN.
+
 2012-06-29  Chong Yidong  <cyd@gnu.org>
 
 	* maintaining.texi (Basic VC Editing, VC Pull, Merging):
