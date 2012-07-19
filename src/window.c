@@ -484,9 +484,7 @@ for future use.  */)
   (Lisp_Object window, Lisp_Object limit)
 {
   register struct window *w = decode_any_window (window);
-
   w->combination_limit = limit;
-
   return w->combination_limit;
 }
 
@@ -800,6 +798,8 @@ of just the text area, use `window-inside-absolute-pixel-edges'.  */)
 {
   register struct window *w = decode_any_window (window);
   int add_x, add_y;
+
+  CHECK_LIVE_FRAME (w->frame);
   calc_absolute_offset (w, &add_x, &add_y);
 
   return Fcons (make_number (WINDOW_LEFT_EDGE_X (w) + add_x),
@@ -2568,6 +2568,7 @@ window-start value is reasonable when this function is called.  */)
   Mouse_HLInfo *hlinfo;
 
   w = decode_any_window (window);
+  CHECK_LIVE_FRAME (w->frame);
   XSETWINDOW (window, w);
   f = XFRAME (w->frame);
 
@@ -2581,6 +2582,7 @@ window-start value is reasonable when this function is called.  */)
     /* ROOT must be an ancestor of WINDOW.  */
     {
       r = decode_any_window (root);
+      CHECK_LIVE_FRAME (r->frame);
       pwindow = XWINDOW (window)->parent;
       while (!NILP (pwindow))
 	if (EQ (pwindow, root))
