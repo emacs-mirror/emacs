@@ -1434,14 +1434,59 @@ No argument or nil as argument means do this for the current buffer.  */)
   return Qnil;
 }
 
-/*
-  DEFVAR_LISP ("kill-buffer-hook", ..., "\
-Hook to be run (by `run-hooks', which see) when a buffer is killed.\n\
-The buffer being killed will be current while the hook is running.\n\
+/* Truncate undo list and shrink the gap of BUFFER.  */
 
-Functions run by this hook are supposed to not change the current
-buffer.  See `kill-buffer'."
-*/
+int
+compact_buffer (struct buffer *buffer)
+{
+  /* Skip dead buffers, indirect buffers and buffers
+     which aren't changed since last compaction.  */
+  if (!NILP (buffer->BUFFER_INTERNAL_FIELD (name))
+      && (buffer->base_buffer == NULL)
+      && (buffer->text->compact != buffer->text->modiff))
+    {
+      /* If a buffer's undo list is Qt, that means that undo is
+	 turned off in that buffer.  Calling truncate_undo_list on
+	 Qt tends to return NULL, which effectively turns undo back on.
+	 So don't call truncate_undo_list if undo_list is Qt.  */
+      if (!EQ (buffer->BUFFER_INTERNAL_FIELD (undo_list), Qt))
+	truncate_undo_list (buffer);
+
+      /* Shrink buffer gaps.  */
+      if (!buffer->text->inhibit_shrinking)
+	{
+	  /* If a buffer's gap size is more than 10% of the buffer
+	     size, or larger than 2000 bytes, then shrink it
+	     accordingly.  Keep a minimum size of 20 bytes.  */
+	  int size = min (2000, max (20, (buffer->text->z_byte / 10)));
+
+	  if (buffer->text->gap_size > size)
+	    {
+	      struct buffer *save_current = current_buffer;
+	      current_buffer = buffer;
+	      make_gap (-(buffer->text->gap_size - size));
+	      current_buffer = save_current;
+	    }
+	}
+      buffer->text->compact = buffer->text->modiff;
+      return 1;
+    }
+  return 0;
+}
+
+DEFUN ("compact-buffer", Fcompact_buffer, Scompact_buffer, 0, 1, 0,
+       doc: /* Compact BUFFER by truncating undo list and shrinking the gap.
+If buffer is nil, compact current buffer.  Compaction is performed
+only if buffer was changed since last compaction.  Return t if
+buffer compaction was performed, and nil otherwise.  */)
+  (Lisp_Object buffer)
+{
+  if (NILP (buffer))
+    XSETBUFFER (buffer, current_buffer);
+  CHECK_BUFFER (buffer);
+  return compact_buffer (XBUFFER (buffer)) ? Qt : Qnil;
+}
+
 DEFUN ("kill-buffer", Fkill_buffer, Skill_buffer, 0, 1, "bKill buffer: ",
        doc: /* Kill the buffer specified by BUFFER-OR-NAME.
 The argument may be a buffer or the name of an existing buffer.
@@ -5992,7 +6037,6 @@ and `bury-buffer-internal'.  */);
   defsubr (&Smake_indirect_buffer);
   defsubr (&Sgenerate_new_buffer_name);
   defsubr (&Sbuffer_name);
-/*defsubr (&Sbuffer_number);*/
   defsubr (&Sbuffer_file_name);
   defsubr (&Sbuffer_base_buffer);
   defsubr (&Sbuffer_local_value);
@@ -6004,6 +6048,7 @@ and `bury-buffer-internal'.  */);
   defsubr (&Srename_buffer);
   defsubr (&Sother_buffer);
   defsubr (&Sbuffer_enable_undo);
+  defsubr (&Scompact_buffer);
   defsubr (&Skill_buffer);
   defsubr (&Sbury_buffer_internal);
   defsubr (&Sset_buffer_major_mode);

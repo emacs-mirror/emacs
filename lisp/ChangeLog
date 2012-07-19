@@ -1,3 +1,8 @@
+2012-07-19  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Compact buffers when idle.
+	* compact.el: New file.
+
 2012-07-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* subr.el (eventp): Presume that if it looks vaguely like an event,

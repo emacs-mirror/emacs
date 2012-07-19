@@ -1,5 +1,14 @@
 2012-07-19  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	Buffer compaction primitive which may be used from Lisp.
+	* buffer.c (compact_buffer, Fcompact_buffer): New function.
+	(syms_of_buffer): Register Fcompact_buffer.
+	* alloc.c (Fgarbage_collect): Use compact_buffer.
+	* buffer.h (compact_buffer): New prototype.
+	(struct buffer_text): New member.
+
+2012-07-19  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	New macro to iterate over all buffers, miscellaneous cleanups.
 	* lisp.h (all_buffers): Remove declaration.
 	* buffer.h (all_buffers): Add declaration, with comment.

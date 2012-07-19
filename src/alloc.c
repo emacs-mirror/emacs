@@ -5413,33 +5413,7 @@ See Info node `(elisp)Garbage Collection'.  */)
   /* Don't keep undo information around forever.
      Do this early on, so it is no problem if the user quits.  */
   for_each_buffer (nextb)
-    {
-      /* If a buffer's undo list is Qt, that means that undo is
-	 turned off in that buffer.  Calling truncate_undo_list on
-	 Qt tends to return NULL, which effectively turns undo back on.
-	 So don't call truncate_undo_list if undo_list is Qt.  */
-      if (! NILP (nextb->BUFFER_INTERNAL_FIELD (name))
-	  && ! EQ (nextb->BUFFER_INTERNAL_FIELD (undo_list), Qt))
-	truncate_undo_list (nextb);
-
-      /* Shrink buffer gaps, but skip indirect and dead buffers.  */
-      if (nextb->base_buffer == 0 && !NILP (nextb->BUFFER_INTERNAL_FIELD (name))
-	  && ! nextb->text->inhibit_shrinking)
-	{
-	  /* If a buffer's gap size is more than 10% of the buffer
-	     size, or larger than 2000 bytes, then shrink it
-	     accordingly.  Keep a minimum size of 20 bytes.  */
-	  int size = min (2000, max (20, (nextb->text->z_byte / 10)));
-
-	  if (nextb->text->gap_size > size)
-	    {
-	      struct buffer *save_current = current_buffer;
-	      current_buffer = nextb;
-	      make_gap (-(nextb->text->gap_size - size));
-	      current_buffer = save_current;
-	    }
-	}
-    }
+    compact_buffer (nextb);
 
   t1 = current_emacs_time ();
 

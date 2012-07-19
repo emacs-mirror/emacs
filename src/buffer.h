@@ -436,6 +436,9 @@ struct buffer_text
 
     EMACS_INT overlay_modiff;	/* Counts modifications to overlays.  */
 
+    EMACS_INT compact;		/* Set to modiff each time when compact_buffer
+				   is called for this buffer.  */
+
     /* Minimum value of GPT - BEG since last redisplay that finished.  */
     ptrdiff_t beg_unchanged;
 
@@ -903,6 +906,7 @@ extern struct buffer buffer_local_symbols;
 
 extern void delete_all_overlays (struct buffer *);
 extern void reset_buffer (struct buffer *);
+extern int compact_buffer (struct buffer *);
 extern void evaporate_overlays (ptrdiff_t);
 extern ptrdiff_t overlays_at (EMACS_INT pos, int extend, Lisp_Object **vec_ptr,
 			      ptrdiff_t *len_ptr, ptrdiff_t *next_ptr,
