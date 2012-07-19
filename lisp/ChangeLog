@@ -1,5 +1,10 @@
 2012-07-19  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	Next round of tweaks caused by Fgarbage_collect changes.
+	* emacs-lisp/chart.el (chart-emacs-storage): Adjust again.
+
+2012-07-19  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	Compact buffers when idle.
 	* compact.el: New file.
 

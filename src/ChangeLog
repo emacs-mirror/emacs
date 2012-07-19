@@ -1,5 +1,18 @@
 2012-07-19  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	Tweak the value returned from Fgarbage_collect again.
+	* alloc.c (Fgarbage_collect): New return value, as confirmed in
+	http://lists.gnu.org/archive/html/emacs-devel/2012-07/msg00418.html.
+	Adjust documentation.
+	(total_vector_bytes): Rename to total_vector_slots, adjust
+	accounting.
+	(total_free_vector_bytes): Rename to total_free_vector_slots,
+	adjust accounting.
+	(Qstring_bytes, Qvector_slots): New symbols.
+	(syms_of_alloc): DEFSYM them.
+
+2012-07-19  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	Buffer compaction primitive which may be used from Lisp.
 	* buffer.c (compact_buffer, Fcompact_buffer): New function.
 	(syms_of_buffer): Register Fcompact_buffer.
