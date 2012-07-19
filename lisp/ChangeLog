@@ -1,3 +1,8 @@
+2012-07-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/chart.el: Use lexical-binding.
+	(chart-emacs-storage): Don't hardcode the list of entries.
+
 2012-07-19  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Next round of tweaks caused by Fgarbage_collect changes.

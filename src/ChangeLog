@@ -1,3 +1,7 @@
+2012-07-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* alloc.c (Fgarbage_collect): Tweak docstring.
+
 2012-07-19  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Tweak the value returned from Fgarbage_collect again.

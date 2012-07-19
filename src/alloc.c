@@ -5378,17 +5378,14 @@ DEFUN ("garbage-collect", Fgarbage_collect, Sgarbage_collect, 0, 0, "",
        doc: /* Reclaim storage for Lisp objects no longer needed.
 Garbage collection happens automatically if you cons more than
 `gc-cons-threshold' bytes of Lisp data since previous garbage collection.
-`garbage-collect' normally returns a list with info on amount of space in use:
- ((CONS INTERNAL-SIZE USED-CONSES FREE-CONSES)
-  (SYMBOL INTERNAL-SIZE USED-SYMBOLS FREE-SYMBOLS)
-  (MISC INTERNAL-SIZE USED-MISCS FREE-MISCS)
-  (STRING INTERNAL-SIZE USED-STRINGS FREE-STRING)
-  (STRING-BYTES 1 USED-STRING-BYTES)
-  (VECTOR INTERNAL-SIZE USED-VECTORS)
-  (VECTOR-SLOTS INTERNAL-SIZE USED-VECTOR-SLOTS FREE-VECTOR-SLOTS)
-  (FLOAT INTERNAL-SIZE USED-FLOATS FREE-FLOATS)
-  (INTERVAL INTERNAL-SIZE USED-INTERVALS FREE-INTERVALS)
-  (BUFFER INTERNAL-SIZE USED-BUFFERS))
+`garbage-collect' normally returns a list with info on amount of space in use,
+where each entry has the form (NAME SIZE USED FREE), where:
+- NAME is a symbol describing the kind of objects this entry represents,
+- SIZE is the number of bytes used by each one,
+- USED is the number of those objects that were found live in the heap,
+- FREE is the number of those objects that are not live but that Emacs
+  keeps around for future allocations (maybe because it does not know how
+  to return them to the OS).
 However, if there was overflow in pure space, `garbage-collect'
 returns nil, because real GC can't be done.
 See Info node `(elisp)Garbage Collection'.  */)

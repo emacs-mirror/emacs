@@ -1,4 +1,4 @@
-;;; chart.el --- Draw charts (bar charts, etc)
+;;; chart.el --- Draw charts (bar charts, etc)  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1996, 1998-1999, 2001, 2004-2005, 2007-2012
 ;;   Free Software Foundation, Inc.
@@ -156,7 +156,7 @@ Returns the newly created buffer."
    )
   "Superclass for all charts to be displayed in an Emacs buffer.")
 
-(defmethod initialize-instance :AFTER ((obj chart) &rest fields)
+(defmethod initialize-instance :AFTER ((obj chart) &rest _fields)
   "Initialize the chart OBJ being created with FIELDS.
 Make sure the width/height is correct."
   (oset obj x-width (- (window-width) 10))
@@ -276,7 +276,7 @@ START and END represent the boundary."
 		       (float (- (cdr range) (car range)))))))))
   )
 
-(defmethod chart-axis-draw ((a chart-axis-range) &optional dir margin zone start end)
+(defmethod chart-axis-draw ((a chart-axis-range) &optional dir margin zone _start _end)
   "Draw axis information based upon a range to be spread along the edge.
 A is the chart to draw.  DIR is the direction.
 MARGIN, ZONE, START, and END specify restrictions in chart space."
@@ -329,7 +329,7 @@ Automatically compensates for direction."
 	  (+ m -1 (round (* lpn (+ 1.0 (float n))))))
     ))
 
-(defmethod chart-axis-draw ((a chart-axis-names) &optional dir margin zone start end)
+(defmethod chart-axis-draw ((a chart-axis-names) &optional dir margin zone _start _end)
   "Draw axis information based upon A range to be spread along the edge.
 Optional argument DIR is the direction of the chart.
 Optional arguments MARGIN, ZONE, START and END specify boundaries of the drawing."
@@ -675,32 +675,14 @@ SORT-PRED if desired."
 (defun chart-emacs-storage ()
   "Chart the current storage requirements of Emacs."
   (interactive)
-  (let* ((data (garbage-collect))
-	 (cons-info (nth 0 data))
-	 (symbol-info (nth 1 data))
-	 (misc-info (nth 2 data))
-	 (string-info (nth 3 data))
-	 (string-bytes-info (nth 4 data))
-	 ;; (nth 5 data) is not used
-	 (vector-slots-info (nth 6 data))
-	 (float-info (nth 7 data))
-	 (interval-info (nth 8 data))
-	 (buffer-info (nth 9 data))
-	 (names '("conses" "symbols" "miscs" "strings"
-		  "vectors" "floats" "intervals" "buffers"))
-	 (nums (list (* (nth 1 cons-info) (nth 2 cons-info))
-		     (* (nth 1 symbol-info) (nth 2 symbol-info))
-		     (* (nth 1 misc-info) (nth 2 misc-info))
-		     (+ (* (nth 1 string-info) (nth 2 string-info))
-			(nth 2 string-bytes-info))
-		     (* (nth 1 vector-slots-info) (nth 2 vector-slots-info))
-		     (* (nth 1 float-info) (nth 2 float-info))
-		     (* (nth 1 interval-info) (nth 2 interval-info))
-		     (* (nth 1 buffer-info) (nth 2 buffer-info)))))
+  (let* ((data (garbage-collect)))
     ;; Let's create the chart!
     (chart-bar-quickie 'vertical "Emacs Runtime Storage Usage"
-		       names "Storage Items"
-		       nums "Objects")))
+		       (mapcar (lambda (x) (symbol-name (car x))) data)
+                       "Storage Items"
+		       (mapcar (lambda (x) (* (nth 1 x) (nth 2 x)))
+                               data)
+                       "Bytes")))
 
 (defun chart-emacs-lists ()
   "Chart out the size of various important lists."

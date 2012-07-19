@@ -679,19 +679,17 @@ popup_activate_callback (Widget widget, LWLIB_ID id, XtPointer client_data)
 /* This callback is invoked when a dialog or menu is finished being
    used and has been unposted.  */
 
+static void
+popup_deactivate_callback (
 #ifdef USE_GTK
-static void
-popup_deactivate_callback (GtkWidget *widget, gpointer client_data)
-{
-  popup_activated_flag = 0;
-}
+			   GtkWidget *widget, gpointer client_data
 #else
-static void
-popup_deactivate_callback (Widget widget, LWLIB_ID id, XtPointer client_data)
+			   Widget widget, LWLIB_ID id, XtPointer client_data
+#endif
+			   )
 {
   popup_activated_flag = 0;
 }
-#endif
 
 
 /* Function that finds the frame for WIDGET and shows the HELP text
