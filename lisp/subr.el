@@ -909,17 +909,9 @@ The normal global definition of the character C-x indirects to this keymap.")
 
 (defsubst eventp (obj)
   "True if the argument is an event object."
-  (or (and (integerp obj)
-           ;; FIXME: Why bother?
-	   ;; Filter out integers too large to be events.
-	   ;; M is the biggest modifier.
-	   (zerop (logand obj (lognot (1- (lsh ?\M-\^@ 1)))))
-	   (characterp (event-basic-type obj)))
-      (and (symbolp obj)
-	   (get obj 'event-symbol-elements))
-      (and (consp obj)
-	   (symbolp (car obj))
-	   (get (car obj) 'event-symbol-elements))))
+  (or (integerp obj)
+      (and (symbolp obj) obj (not (keywordp obj)))
+      (and (consp obj) (symbolp (car obj)))))
 
 (defun event-modifiers (event)
   "Return a list of symbols representing the modifier keys in event EVENT.

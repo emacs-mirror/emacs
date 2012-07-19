@@ -1,3 +1,8 @@
+2012-07-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* subr.el (eventp): Presume that if it looks vaguely like an event,
+	it's an event (bug#10190).
+
 2012-07-19  Fabián Ezequiel Gallina  <fgallina@cuca>
 
 	Enhancements to ppss related code (thanks Stefan).
@@ -5,7 +10,7 @@
 	(python-indent-calculate-indentation, python-indent-dedent-line)
 	(python-indent-electric-colon, python-nav-forward-block)
 	(python-mode-abbrev-table)
-	(python-info-assignment-continuation-line-p): Simplified checks
+	(python-info-assignment-continuation-line-p): Simplify checks
 	for ppss context.
 	(python-info-continuation-line-p): Cleanup.
 	(python-info-ppss-context): Do not catch 'quote.
