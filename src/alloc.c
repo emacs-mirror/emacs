@@ -5412,7 +5412,7 @@ See Info node `(elisp)Garbage Collection'.  */)
 
   /* Don't keep undo information around forever.
      Do this early on, so it is no problem if the user quits.  */
-  for_each_buffer (nextb)
+  FOR_EACH_BUFFER (nextb)
     compact_buffer (nextb);
 
   t1 = current_emacs_time ();
@@ -5527,7 +5527,7 @@ See Info node `(elisp)Garbage Collection'.  */)
      Look thru every buffer's undo list
      for elements that update markers that were not marked,
      and delete them.  */
-  for_each_buffer (nextb)
+  FOR_EACH_BUFFER (nextb)
     {
       /* If a buffer's undo list is Qt, that means that undo is
 	 turned off in that buffer.  Calling truncate_undo_list on
@@ -5955,7 +5955,7 @@ mark_object (Lisp_Object arg)
 	    if (po != &buffer_defaults && po != &buffer_local_symbols)
 	      {
 		struct buffer *b;
-		for_each_buffer (b)
+		FOR_EACH_BUFFER (b)
 		  if (b == po)
 		    break;
 		if (b == NULL)

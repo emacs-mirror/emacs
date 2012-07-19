@@ -1,3 +1,12 @@
+2012-07-19  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* buffer.h (FOR_EACH_BUFFER): Rename from 'for_each_buffer'.
+	(FOR_EACH_PER_BUFFER_OBJECT_AT): Rename from
+	'for_each_per_buffer_object_at'.
+	All uses changed.  It's better to use upper-case for macros that
+	cannot be implemented as functions, to give the reader a clue
+	that they're special.
+
 2012-07-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* alloc.c (Fgarbage_collect): Tweak docstring.

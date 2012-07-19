@@ -460,7 +460,7 @@ clone_per_buffer_values (struct buffer *from, struct buffer *to)
 {
   int offset;
 
-  for_each_per_buffer_object_at (offset)
+  FOR_EACH_PER_BUFFER_OBJECT_AT (offset)
     {
       Lisp_Object obj;
 
@@ -612,7 +612,7 @@ CLONE nil means the indirect buffer's state is reset to default values.  */)
       eassert (NILP (BVAR (b->base_buffer, begv_marker)));
       eassert (NILP (BVAR (b->base_buffer, zv_marker)));
 
-      BVAR (b->base_buffer, pt_marker) 
+      BVAR (b->base_buffer, pt_marker)
 	= build_marker (b->base_buffer, b->base_buffer->pt, b->base_buffer->pt_byte);
 
       BVAR (b->base_buffer, begv_marker)
@@ -817,7 +817,7 @@ reset_buffer_local_variables (register struct buffer *b, int permanent_too)
       SET_PER_BUFFER_VALUE_P (b, i, 0);
 
   /* For each slot that has a default value, copy that into the slot.  */
-  for_each_per_buffer_object_at (offset)
+  FOR_EACH_PER_BUFFER_OBJECT_AT (offset)
     {
       int idx = PER_BUFFER_IDX (offset);
       if ((idx > 0
@@ -862,7 +862,7 @@ is first appended to NAME, to speed up finding a non-existent buffer.  */)
     {
       /* Note fileio.c:make_temp_name does random differently.  */
       tem2 = concat2 (name, make_formatted_string
-		      (number, "-%"pI"d", 
+		      (number, "-%"pI"d",
 		       XFASTINT (Frandom (make_number (999999)))));
       tem = Fget_buffer (tem2);
       if (NILP (tem))
@@ -1072,7 +1072,7 @@ No argument or nil as argument means use current buffer as BUFFER.  */)
   {
     int offset, idx;
 
-    for_each_per_buffer_object_at (offset)
+    FOR_EACH_PER_BUFFER_OBJECT_AT (offset)
       {
 	idx = PER_BUFFER_IDX (offset);
 	if ((idx == -1 || PER_BUFFER_VALUE_P (buf, idx))
@@ -1577,7 +1577,7 @@ cleaning up all windows currently displaying the buffer to be killed. */)
 
       GCPRO1 (buffer);
 
-      for_each_buffer (other)
+      FOR_EACH_BUFFER (other)
 	if (other->base_buffer == b)
 	  {
 	    Lisp_Object buf;
@@ -2095,7 +2095,7 @@ DEFUN ("buffer-swap-text", Fbuffer_swap_text, Sbuffer_swap_text,
 
   { /* This is probably harder to make work.  */
     struct buffer *other;
-    for_each_buffer (other)
+    FOR_EACH_BUFFER (other)
       if (other->base_buffer == other_buffer
 	  || other->base_buffer == current_buffer)
 	error ("One of the buffers to swap has indirect buffers");
@@ -2472,7 +2472,7 @@ current buffer is cleared.  */)
 
   /* Copy this buffer's new multibyte status
      into all of its indirect buffers.  */
-  for_each_buffer (other)
+  FOR_EACH_BUFFER (other)
     if (other->base_buffer == current_buffer && !NILP (BVAR (other, name)))
       {
 	BVAR (other, enable_multibyte_characters)
@@ -5078,7 +5078,7 @@ init_buffer (void)
       Map new memory.  */
    struct buffer *b;
 
-   for_each_buffer (b)
+   FOR_EACH_BUFFER (b)
      if (b->text->beg == NULL)
        enlarge_buffer_text (b, 0);
  }

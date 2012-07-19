@@ -866,7 +866,7 @@ extern struct buffer *all_buffers;
 
 /* Used to iterate over the chain above.  */
 
-#define for_each_buffer(b) \
+#define FOR_EACH_BUFFER(b) \
   for ((b) = all_buffers; (b); (b) = (b)->header.next.buffer)
 
 /* This points to the current buffer.  */
@@ -1021,7 +1021,7 @@ extern int last_per_buffer_idx;
    Lisp_Objects except undo_list).  If you add, remove, or reorder
    Lisp_Objects in a struct buffer, make sure that this is still correct.  */
 
-#define for_each_per_buffer_object_at(offset)				 \
+#define FOR_EACH_PER_BUFFER_OBJECT_AT(offset)				 \
   for (offset = PER_BUFFER_VAR_OFFSET (name);				 \
        offset <= PER_BUFFER_VAR_OFFSET (cursor_in_non_selected_windows); \
        offset += sizeof (Lisp_Object))
