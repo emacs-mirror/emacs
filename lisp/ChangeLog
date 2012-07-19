@@ -1,3 +1,17 @@
+2012-07-19  Fabián Ezequiel Gallina  <fgallina@cuca>
+
+	Enhancements to ppss related code (thanks Stefan).
+	* progmodes/python.el (python-indent-context)
+	(python-indent-calculate-indentation, python-indent-dedent-line)
+	(python-indent-electric-colon, python-nav-forward-block)
+	(python-mode-abbrev-table)
+	(python-info-assignment-continuation-line-p): Simplified checks
+	for ppss context.
+	(python-info-continuation-line-p): Cleanup.
+	(python-info-ppss-context): Do not catch 'quote.
+	(python-info-ppss-context-type)
+	(python-info-ppss-comment-or-string-p): Simplify.
+
 2012-07-18  Fabián Ezequiel Gallina  <fgallina@cuca>
 
 	* progmodes/python.el: Enhancements to eldoc support.
