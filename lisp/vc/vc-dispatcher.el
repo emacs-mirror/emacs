@@ -386,6 +386,17 @@ Display the buffer in some window, but don't select it."
 	(set-window-start window new-window-start))
     buffer))
 
+(defun vc-compilation-mode (backend)
+  "Setup `compilation-mode' after with the appropriate `compilation-error-regexp-alist'."
+  (let* ((error-regexp-alist
+          (vc-make-backend-sym backend 'error-regexp-alist))
+         (compilation-error-regexp-alist
+          (and (boundp error-regexp-alist)
+               (symbol-value error-regexp-alist))))
+    (compilation-mode)
+    (set (make-local-variable 'compilation-error-regexp-alist)
+         compilation-error-regexp-alist)))
+
 (defun vc-set-async-update (process-buffer)
   "Set a `vc-exec-after' action appropriate to the current buffer.
 This action will update the current buffer after the current

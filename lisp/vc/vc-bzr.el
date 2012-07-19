@@ -311,7 +311,7 @@ in the repository root directory of FILE."
     (when rootdir
          (file-relative-name filename* rootdir))))
 
-(defvar vc-bzr-error-regex-alist
+(defvar vc-bzr-error-regexp-alist
   '(("^\\( M[* ]\\|+N \\|-D \\|\\|  \\*\\|R[M ] \\) \\(.+\\)" 2 nil nil 1)
     ("^C  \\(.+\\)" 2)
     ("^Text conflict in \\(.+\\)" 1 nil nil 2)
@@ -347,14 +347,7 @@ prompt for the Bzr command to run."
 	    command        (cadr args)
 	    args           (cddr args)))
     (let ((buf (apply 'vc-bzr-async-command command args)))
-      (with-current-buffer buf
-	(vc-exec-after
-	 `(progn
-	    (let ((compilation-error-regexp-alist
-		   vc-bzr-error-regex-alist))
-	      (compilation-mode))
-	    (set (make-local-variable 'compilation-error-regexp-alist)
-		 vc-bzr-error-regex-alist))))
+      (with-current-buffer buf (vc-exec-after '(vc-compilation-mode 'bzr)))
       (vc-set-async-update buf))))
 
 (defun vc-bzr-merge-branch ()
@@ -385,14 +378,7 @@ default if it is available."
 	 (command        (cadr cmd))
 	 (args           (cddr cmd)))
     (let ((buf (apply 'vc-bzr-async-command command args)))
-      (with-current-buffer buf
-	(vc-exec-after
-	 `(progn
-	    (let ((compilation-error-regexp-alist
-		   vc-bzr-error-regex-alist))
-	      (compilation-mode))
-	    (set (make-local-variable 'compilation-error-regexp-alist)
-		 vc-bzr-error-regex-alist))))
+      (with-current-buffer buf (vc-exec-after '(vc-compilation-mode 'bzr)))
       (vc-set-async-update buf))))
 
 (defun vc-bzr-status (file)

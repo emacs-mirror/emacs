@@ -1,3 +1,15 @@
+2012-07-19  Sam Steingold  <sds@gnu.org>
+
+	* vc/vc-dispatcher.el (vc-compilation-mode): Add, based on
+	vc-bzr-pull & vc-bzr-merge-branch.
+	* vc/vc-bzr.el (vc-bzr-pull, vc-bzr-merge-branch): Use it.
+	(vc-bzr-error-regexp-alist): Rename from vc-bzr-error-regex-alist
+	for consistency with compilation-error-regexp-alist.
+	* vc/vc-git.el (vc-git-error-regexp-alist): Add.
+	(vc-git-pull, vc-git-merge-branch): Call vc-compilation-mode.
+	* vc/vc-hg.el (vc-hg-error-regexp-alist): Add.
+	(vc-hg-pull, vc-hg-merge-branch): Call vc-compilation-mode.
+
 2012-07-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/chart.el: Use lexical-binding.

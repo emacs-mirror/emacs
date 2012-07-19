@@ -646,6 +646,10 @@ The car of the list is the current branch."
     (vc-git-command nil 0 file "reset" "-q" "--")
     (vc-git-command nil nil file "checkout" "-q" "--")))
 
+(defvar vc-git-error-regexp-alist
+  '(("^ \\(.+\\) |" 1 nil nil 0))
+  "Value of `compilation-error-regexp-alist' in *vc-git* buffers.")
+
 (defun vc-git-pull (prompt)
   "Pull changes into the current Git branch.
 Normally, this runs \"git pull\".  If PROMPT is non-nil, prompt
@@ -666,6 +670,7 @@ for the Git command to run."
 	    command     (cadr args)
 	    args        (cddr args)))
     (apply 'vc-do-async-command buffer root git-program command args)
+    (with-current-buffer buffer (vc-exec-after '(vc-compilation-mode 'git)))
     (vc-set-async-update buffer)))
 
 (defun vc-git-merge-branch ()
@@ -685,6 +690,7 @@ This prompts for a branch to merge from."
 			   nil t)))
     (apply 'vc-do-async-command buffer root vc-git-program "merge"
 	   (list merge-source))
+    (with-current-buffer buffer (vc-exec-after '(vc-compilation-mode 'git)))
     (vc-set-async-update buffer)))
 
 ;;; HISTORY FUNCTIONS
