@@ -594,7 +594,7 @@ and `\\' when preceded by `?'."
         (goto-char pnt))
        ((looking-at ":\\(['\"]\\)")
         (goto-char (match-beginning 1))
-        (ruby-forward-string (buffer-substring (match-beginning 1) (match-end 1)) end))
+        (ruby-forward-string (match-string 1) end t))
        ((looking-at ":\\([-,.+*/%&|^~<>]=?\\|===?\\|<=>\\|![~=]?\\)")
         (goto-char (match-end 0)))
        ((looking-at ":\\([a-zA-Z_][a-zA-Z_0-9]*[!?=]?\\)?")
