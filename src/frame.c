@@ -3167,16 +3167,14 @@ x_set_font (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
       fontset = fs_query_fontset (arg, 0);
       if (fontset < 0)
 	{
-	  font_object = font_open_by_name (f, SSDATA (arg), SBYTES (arg));
+	  font_object = font_open_by_name (f, arg);
 	  if (NILP (font_object))
 	    error ("Font `%s' is not defined", SSDATA (arg));
 	  arg = AREF (font_object, FONT_NAME_INDEX);
 	}
       else if (fontset > 0)
 	{
-	  Lisp_Object ascii_font = fontset_ascii (fontset);
-
-	  font_object = font_open_by_name (f, SSDATA (ascii_font), SBYTES (ascii_font));
+	  font_object = font_open_by_name (f, fontset_ascii (fontset));
 	  if (NILP (font_object))
 	    error ("Font `%s' is not defined", SDATA (arg));
 	  arg = AREF (font_object, FONT_NAME_INDEX);

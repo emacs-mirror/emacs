@@ -2609,6 +2609,15 @@ extern Lisp_Object make_string (const char *, ptrdiff_t);
 extern Lisp_Object make_formatted_string (char *, const char *, ...)
   ATTRIBUTE_FORMAT_PRINTF (2, 3);
 extern Lisp_Object make_unibyte_string (const char *, ptrdiff_t);
+
+/* Make unibyte string from C string when the length isn't known.  */
+
+static inline Lisp_Object
+build_unibyte_string (const char *str)
+{
+  return make_unibyte_string (str, strlen (str));
+}
+
 extern Lisp_Object make_multibyte_string (const char *, ptrdiff_t, ptrdiff_t);
 extern Lisp_Object make_event_array (int, Lisp_Object *);
 extern Lisp_Object make_uninit_string (EMACS_INT);

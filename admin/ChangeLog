@@ -1,3 +1,8 @@
+2012-07-20  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* coccinelle/unibyte_string.cocci: Semantic patch to convert from
+	make_unibyte_string to build_unibyte_string where appropriate.
+
 2012-07-17  Eli Zaretskii  <eliz@gnu.org>
 
 	* CPP-DEFINES: Remove FILE_SYSTEM_CASE.
@@ -5,6 +10,7 @@
 2012-07-17  Chong Yidong  <cyd@gnu.org>
 
 	* Version 24.1 released.
+
 2012-07-11  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Assume mkdir, perror, rename, rmdir, strerror.

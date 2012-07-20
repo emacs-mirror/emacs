@@ -211,7 +211,7 @@ ftfont_pattern_entity (FcPattern *p, Lisp_Object extra)
     return Qnil;
 
   file = (char *) str;
-  key = Fcons (make_unibyte_string (file, strlen (file)), make_number (idx));
+  key = Fcons (build_unibyte_string (file), make_number (idx));
   cache = ftfont_lookup_cache (key, FTFONT_CACHE_FOR_ENTITY);
   entity = XCAR (cache);
   if (! NILP (entity))

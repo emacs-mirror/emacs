@@ -1,5 +1,16 @@
 2012-07-20  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	Simple wrapper for make_unibyte_string, adjust font_open_by_name.
+	* lisp.h (build_unibyte_string): New function.
+	* dosfns.c, fileio.c, fns.c, ftfont.c, process.c:
+	* sysdep.c, w32fns.c, xfns.c: Use it.
+	* font.c (font_open_by_name): Change 2nd and 3rd args to the only arg
+	of type Lisp_Object to avoid redundant calls to make_unibyte_string.
+	Adjust users accordingly.
+	* font.h (font_open_by_name): Adjust prototype.
+
+2012-07-20  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	Cleanup calls to Fgarbage_collect.
 	* lisp.h (maybe_gc): New prototype.
 	(consing_since_gc, gc_relative_threshold, memory_full_cons_threshold):

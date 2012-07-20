@@ -159,8 +159,7 @@ report_file_error (const char *string, Lisp_Object data)
 
   synchronize_system_messages_locale ();
   str = strerror (errorno);
-  errstring = code_convert_string_norecord (make_unibyte_string (str,
-								 strlen (str)),
+  errstring = code_convert_string_norecord (build_unibyte_string (str),
 					    Vlocale_coding_system, 0);
 
   while (1)
@@ -1658,7 +1657,7 @@ those `/' is discarded.  */)
 	       env variables twice should be acceptable. Note that
 	       decoding may cause a garbage collect.  */
 	    Lisp_Object orig, decoded;
-	    orig = make_unibyte_string (o, strlen (o));
+	    orig = build_unibyte_string (o);
 	    decoded = DECODE_FILE (orig);
 	    total += SBYTES (decoded);
 	    substituted = 1;

@@ -4036,7 +4036,7 @@ x_default_font_parameter (struct frame *f, Lisp_Object parms)
 
       for (i = 0; names[i]; i++)
         {
-          font = font_open_by_name (f, names[i], strlen (names[i]));
+          font = font_open_by_name (f, build_unibyte_string (names[i]));
           if (! NILP (font))
             break;
         }
@@ -6197,8 +6197,7 @@ an integer representing a ShowWindow flag:
   if (!NILP (Vlocale_coding_system))
     {
       Lisp_Object decoded =
-	code_convert_string_norecord (make_unibyte_string (errstr,
-							   strlen (errstr)),
+	code_convert_string_norecord (build_unibyte_string (errstr),
 				      Vlocale_coding_system, 0);
       errstr = SSDATA (decoded);
     }

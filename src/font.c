@@ -3350,13 +3350,13 @@ font_open_by_spec (FRAME_PTR f, Lisp_Object spec)
    found, return Qnil.  */
 
 Lisp_Object
-font_open_by_name (FRAME_PTR f, const char *name, ptrdiff_t len)
+font_open_by_name (FRAME_PTR f, Lisp_Object name)
 {
   Lisp_Object args[2];
   Lisp_Object spec, ret;
 
   args[0] = QCname;
-  args[1] = make_unibyte_string (name, len);
+  args[1] = name;
   spec = Ffont_spec (2, args);
   ret = font_open_by_spec (f, spec);
   /* Do not lose name originally put in.  */
@@ -4878,7 +4878,7 @@ If the named font is not yet loaded, return nil.  */)
 
       if (fontset >= 0)
 	name = fontset_ascii (fontset);
-      font_object = font_open_by_name (f, SSDATA (name), SBYTES (name));
+      font_object = font_open_by_name (f, name);
     }
   else if (FONT_OBJECT_P (name))
     font_object = name;

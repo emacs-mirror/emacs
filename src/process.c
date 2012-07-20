@@ -497,7 +497,7 @@ status_message (struct Lisp_Process *p)
 	{
 	  int c1, c2;
 
-	  string = make_unibyte_string (signame, strlen (signame));
+	  string = build_unibyte_string (signame);
 	  if (! NILP (Vlocale_coding_system))
 	    string = (code_convert_string_norecord
 		      (string, Vlocale_coding_system, 0));

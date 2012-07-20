@@ -3092,7 +3092,7 @@ system_process_attributes (Lisp_Object pid)
 
       decoded_comm =
 	(code_convert_string_norecord
-	 (make_unibyte_string (args, strlen (args)),
+	 (build_unibyte_string (args),
 	  Vlocale_coding_system, 0));
 
       attrs = Fcons (Fcons (Qargs, decoded_comm), attrs);
