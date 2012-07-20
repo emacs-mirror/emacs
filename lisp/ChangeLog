@@ -1,3 +1,9 @@
+2012-07-20  Eli Zaretskii  <eliz@gnu.org>
+
+	* startup.el (fancy-startup-text): Read the whole tutorial, not
+	just its first 256 bytes.  Prevents gibberish in display of the
+	tutorial title.
+
 2012-07-20  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Drop idle buffer compaction due to an absence of the

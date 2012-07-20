@@ -1,3 +1,9 @@
+2012-07-20  Eli Zaretskii  <eliz@gnu.org>
+
+	* tutorials/TUTORIAL.he: Make the first sentence display correctly
+	in a left-to-right paragraph, such as what is shown on the fancy
+	splash screen.
+
 2012-07-15  Leo Liu  <sdl.web@gmail.com>
 
 	* NEWS: Mention exclamation-mark and flymake.

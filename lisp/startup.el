@@ -1311,7 +1311,15 @@ If this is nil, no message will be displayed."
 	      (title (with-temp-buffer
 		       (insert-file-contents
 			(expand-file-name tut tutorial-directory)
-			nil 0 256)
+			;; We used to read only the first 256 bytes of
+			;; the tutorial, but that prevents the coding:
+			;; setting, if any, in file-local variables
+			;; section to be seen by insert-file-contents,
+			;; and results in gibberish when the language
+			;; environment's preferred encoding is
+			;; different from what the file-local variable
+			;; says.  One case in point is Hebrew.
+			nil)
 		       (search-forward ".")
 		       (buffer-substring (point-min) (1- (point))))))
 	 ;; If there is a specific tutorial for the current language
