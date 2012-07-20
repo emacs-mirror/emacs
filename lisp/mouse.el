@@ -102,7 +102,8 @@ point at the click position."
 MENU can be a keymap, an easymenu-style menu or a list of keymaps as for
 `x-popup-menu'.
 POSITION can be a click event or ((XOFFSET YOFFSET) WINDOW) and defaults to
-  the current mouse position.
+  the current mouse position. If POSITION is a symbol, `point' the current point
+position is used.
 PREFIX is the prefix argument (if any) to pass to the command."
   (let* ((map (cond
 	       ((keymapp menu) menu)
@@ -112,9 +113,17 @@ PREFIX is the prefix argument (if any) to pass to the command."
 				   (plist-get (get map 'menu-prop) :filter))))
 		    (if filter (funcall filter (symbol-function map)) map)))))
 	 event cmd)
-    (unless position
-      (let ((mp (mouse-pixel-position)))
-	(setq position (list (list (cadr mp) (cddr mp)) (car mp)))))
+  (setq position
+	(cond
+	 ((eq position 'point)
+	  (let* ((pp (posn-at-point pos window))
+                 (xy (posn-x-y pp)))
+	    (list (list (car xy) (cdr xy)) (posn-window pp))))
+	 ((not position)
+	  (let ((mp (mouse-pixel-position)))
+	    (list (list (cadr mp) (cddr mp)) (car mp))))
+	 (t
+	  position)))
     ;; The looping behavior was taken from lmenu's popup-menu-popup
     (while (and map (setq event
 			  ;; map could be a prefix key, in which case

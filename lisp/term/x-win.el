@@ -1305,12 +1305,18 @@ Request data types in the order specified by `x-select-request-type'."
 (declare-function accelerate-menu "xmenu.c" (&optional frame) t)
 
 (defun x-menu-bar-open (&optional frame)
-  "Open the menu bar if `menu-bar-mode' is on, otherwise call `tmm-menubar'."
+  "Open the menu bar if it is shown.
+`popup-menu' is used if it is off "
   (interactive "i")
-  (if (and menu-bar-mode
-	   (fboundp 'accelerate-menu))
-      (accelerate-menu frame)
-    (tmm-menubar)))
+  (cond
+   ((and (not (zerop (or (frame-parameter nil 'menu-bar-lines) 0)))
+	 (fboundp 'accelerate-menu))
+    (accelerate-menu frame))
+   (t
+    (popup-menu (mouse-menu-bar-map)
+		(if (listp last-nonmenu-event)
+		    nil
+		  'point)))))
 
 
 ;;; Window system initialization.

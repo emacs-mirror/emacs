@@ -1,3 +1,10 @@
+2012-07-20  Masatake YAMATO  <yamato@redhat.com>
+
+	* term/x-win.el (x-menu-bar-open): Use `frame-parameter'
+	to check whether menu-bar is shown or not.  If not shown,
+	show the menu-bar as a popup menu instead of using tmm.
+	* mouse.el (popup-menu): Accept `point' as `position' argument.
+
 2012-07-20  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* progmodes/ruby-mode.el (ruby-parse-partial): No error when end
