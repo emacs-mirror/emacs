@@ -1,5 +1,17 @@
 2012-07-20  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	Make maybe_gc inline.
+	Verify that inlining is always possible (GCC 4.7.1, -O3 -Winline).
+	* lisp.h (consing_since_gc, gc_relative_threshold)
+	(memory_full_cons_threshold): Revert declaration.
+	(maybe_gc): Remove prototype, define as inline.
+	* alloc.c: Remove old commented-out code.
+	(consing_since_gc, gc_relative_threshold)
+	(memory_full_cons_threshold): Revert to global.
+	(maybe_gc): Remove.
+
+2012-07-20  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	Simple wrapper for make_unibyte_string, adjust font_open_by_name.
 	* lisp.h (build_unibyte_string): New function.
 	* dosfns.c, fileio.c, fns.c, ftfont.c, process.c:

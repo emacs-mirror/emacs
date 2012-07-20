@@ -2593,10 +2593,12 @@ extern void mark_object (Lisp_Object);
 #if defined REL_ALLOC && !defined SYSTEM_MALLOC
 extern void refill_memory_reserve (void);
 #endif
-extern void maybe_gc (void);
 extern const char *pending_malloc_warning;
 extern Lisp_Object zero_vector;
 extern Lisp_Object *stack_base;
+extern EMACS_INT consing_since_gc;
+extern EMACS_INT gc_relative_threshold;
+extern EMACS_INT memory_full_cons_threshold;
 extern Lisp_Object list1 (Lisp_Object);
 extern Lisp_Object list2 (Lisp_Object, Lisp_Object);
 extern Lisp_Object list3 (Lisp_Object, Lisp_Object, Lisp_Object);
@@ -3433,5 +3435,17 @@ extern Lisp_Object safe_alloca_unwind (Lisp_Object);
 
 
 #include "globals.h"
+
+/* Check whether it's time for GC, and run it if so.  */
+
+static inline void
+maybe_gc (void)
+{
+  if ((consing_since_gc > gc_cons_threshold
+       && consing_since_gc > gc_relative_threshold)
+      || (!NILP (Vmemory_full)
+	  && consing_since_gc > memory_full_cons_threshold))
+    Fgarbage_collect ();
+}
 
 #endif /* EMACS_LISP_H */

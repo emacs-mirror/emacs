@@ -166,16 +166,16 @@ struct emacs_globals globals;
 
 /* Number of bytes of consing done since the last gc.  */
 
-static EMACS_INT consing_since_gc;
+EMACS_INT consing_since_gc;
 
 /* Similar minimum, computed from Vgc_cons_percentage.  */
 
-static EMACS_INT gc_relative_threshold;
+EMACS_INT gc_relative_threshold;
 
 /* Minimum number of bytes of consing since GC before next GC,
    when memory is full.  */
 
-static EMACS_INT memory_full_cons_threshold;
+EMACS_INT memory_full_cons_threshold;
 
 /* Nonzero during GC.  */
 
@@ -5374,18 +5374,6 @@ bounded_number (EMACS_INT number)
   return make_number (min (MOST_POSITIVE_FIXNUM, number));
 }
 
-/* Check whether it's time for GC, and run it if so.  */
-
-void
-maybe_gc (void)
-{
-  if ((consing_since_gc > gc_cons_threshold
-       && consing_since_gc > gc_relative_threshold)
-      || (!NILP (Vmemory_full)
-	  && consing_since_gc > memory_full_cons_threshold))
-    Fgarbage_collect ();
-}
-
 DEFUN ("garbage-collect", Fgarbage_collect, Sgarbage_collect, 0, 0, "",
        doc: /* Reclaim storage for Lisp objects no longer needed.
 Garbage collection happens automatically if you cons more than
@@ -5473,8 +5461,6 @@ See Info node `(elisp)Garbage Collection'.  */)
   shrink_regexp_cache ();
 
   gc_in_progress = 1;
-
-  /* clear_marks (); */
 
   /* Mark all the special slots that serve as the roots of accessibility.  */
 
@@ -5592,7 +5578,6 @@ See Info node `(elisp)Garbage Collection'.  */)
 
   CHECK_CONS_LIST ();
 
-  /* clear_marks (); */
   gc_in_progress = 0;
 
   consing_since_gc = 0;
