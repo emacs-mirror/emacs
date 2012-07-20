@@ -1826,14 +1826,16 @@ with a brace block."
 	    ;; DEFFLAGSET(syslog_opt_flags,LOG_PID ...) ==> syslog_opt_flags
 	    (match-string-no-properties 1))
 
-	   ;; Objective-C method starting with + or -.
-	   ((and (derived-mode-p 'objc-mode)
-		 (looking-at "[-+]\s*("))
-	    (when (c-syntactic-re-search-forward ")\s*" nil t)
-	      (c-forward-token-2)
-	      (setq name-end (point))
-	      (c-backward-token-2)
-	      (buffer-substring-no-properties (point) name-end)))
+	   ;; Objc selectors.
+	   ((assq 'objc-method-intro (c-guess-basic-syntax))
+	    (let ((bound (save-excursion (c-end-of-statement) (point)))
+		  (kw-re (concat "\\(?:" c-symbol-key "\\)?:"))
+		  (stretches))
+	      (when (c-syntactic-re-search-forward c-symbol-key bound t t t)
+		(push (match-string 0) stretches)
+		(while (c-syntactic-re-search-forward kw-re bound t t t)
+		  (push (match-string 0) stretches)))
+	      (apply 'concat (nreverse stretches))))
 
 	   (t
 	    ;; Normal function or initializer.
