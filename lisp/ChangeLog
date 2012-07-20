@@ -1,3 +1,9 @@
+2012-07-20  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Drop idle buffer compaction due to an absence of the
+	proved efficiency.
+	* compact.el: Remove.
+
 2012-07-19  Sam Steingold  <sds@gnu.org>
 
 	* vc/vc-dispatcher.el (vc-compilation-mode): Add, based on
