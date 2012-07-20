@@ -775,6 +775,11 @@ struct buffer
      In an ordinary buffer, it is 0.  */
   struct buffer *base_buffer;
 
+  /* In an indirect buffer, this is -1. In an ordinary buffer,
+     it's the number of indirect buffers which shares our text;
+     zero means that we're the only owner of this text.  */
+  int indirections;
+
   /* A non-zero value in slot IDX means that per-buffer variable
      with index IDX has a local value in this buffer.  The index IDX
      for a buffer-local variable is stored in that variable's slot

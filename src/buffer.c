@@ -329,7 +329,9 @@ even if it is dead.  The return value is never nil.  */)
 
   /* An ordinary buffer uses its own struct buffer_text.  */
   b->text = &b->own_text;
-  b->base_buffer = 0;
+  b->base_buffer = NULL;
+  /* No one shares the text with us now.  */
+  b->indirections = 0;
 
   BUF_GAP_SIZE (b) = 20;
   BLOCK_INPUT;
@@ -568,12 +570,18 @@ CLONE nil means the indirect buffer's state is reset to default values.  */)
 
   b = allocate_buffer ();
 
+  /* No double indirection - if base buffer is indirect,
+     new buffer becomes an indirect to base's base.  */
   b->base_buffer = (XBUFFER (base_buffer)->base_buffer
 		    ? XBUFFER (base_buffer)->base_buffer
 		    : XBUFFER (base_buffer));
 
   /* Use the base buffer's text object.  */
   b->text = b->base_buffer->text;
+  /* We have no own text.  */
+  b->indirections = -1;
+  /* Notify base buffer that we share the text now.  */
+  b->base_buffer->indirections++;
 
   b->pt = b->base_buffer->pt;
   b->begv = b->base_buffer->begv;
@@ -1439,6 +1447,15 @@ No argument or nil as argument means do this for the current buffer.  */)
 int
 compact_buffer (struct buffer *buffer)
 {
+  /* Verify indirection counters.  */
+  if (buffer->base_buffer)
+    {
+      eassert (buffer->indirections == -1);
+      eassert (buffer->base_buffer->indirections > 0);
+    }
+  else
+    eassert (buffer->indirections >= 0);
+
   /* Skip dead buffers, indirect buffers and buffers
      which aren't changed since last compaction.  */
   if (!NILP (buffer->BUFFER_INTERNAL_FIELD (name))
@@ -1555,10 +1572,19 @@ cleaning up all windows currently displaying the buffer to be killed. */)
   if (EQ (buffer, XWINDOW (minibuf_window)->buffer))
     return Qnil;
 
-  /* When we kill a base buffer, kill all its indirect buffers.
+  /* Notify our base buffer that we don't share the text anymore.  */
+  if (b->base_buffer)
+    {
+      eassert (b->indirections == -1);
+      b->base_buffer->indirections--;
+      eassert (b->base_buffer->indirections >= 0);
+    }
+
+  /* When we kill an ordinary buffer which shares it's buffer text
+     with indirect buffer(s), we must kill indirect buffer(s) too.
      We do it at this stage so nothing terrible happens if they
      ask questions or their hooks get errors.  */
-  if (! b->base_buffer)
+  if (!b->base_buffer && b->indirections > 0)
     {
       struct buffer *other;
 

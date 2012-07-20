@@ -1,5 +1,16 @@
 2012-07-20  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	Add indirection counting to speed up Fkill_buffer.
+	* buffer.h (struct buffer): New member.
+	* buffer.c (Fget_buffer_create): Set indirection counter to 0.
+	(Fmake_indirect_buffer): Set indirection counter to -1, increment
+	base buffer indirection counter.
+	(compact_buffer): If ENABLE_CHECKING, verify indirection counters.
+	(Fkill_buffer): Adjust indirection counters as needed, don't walk
+	through buffer list if indirection counter is 0.
+
+2012-07-20  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	Extend the value returned by Fgarbage_collect with heap statistics.
 	* alloc.c (Qheap): New symbol.
 	(syms_of_alloc): DEFSYM it.
