@@ -3209,17 +3209,28 @@ highlighted range in the spreadsheet."
 				   new-name)))
 	(error "Already a bound cell name")))
   (let* ((rowcol (ses-sym-rowcol ses--curcell))
-	 (cell (ses-get-cell (car rowcol) (cdr rowcol))))
+	 (row (car rowcol))
+	 (col (cdr rowcol))
+	 (cell (ses-get-cell  row  col)))
     (put new-name 'ses-cell rowcol)
-    (dolist (reference (ses-cell-references (car rowcol) (cdr rowcol)))
-      (let* ((rowcol (ses-sym-rowcol reference))
-	     (cell  (ses-get-cell (car rowcol) (cdr rowcol))))
+    ;; replace name by new name in formula of cells refering to renamed cell
+    (dolist (ref (ses-cell-references cell))
+      (let* ((x (ses-sym-rowcol ref))
+	     (xcell  (ses-get-cell (car x) (cdr x))))
 	(ses-cell-set-formula (car rowcol)
 			      (cdr rowcol)
 			      (ses-replace-name-in-formula
-			       (ses-cell-formula cell)
+			       (ses-cell-formula xcell)
 			       ses--curcell
 			       new-name))))
+    ;; replace name by new name in reference list of cells to which renamed cell refers to
+    (dolist (ref (ses-formula-references (ses-cell-formula cell)))
+      (let* ((x (ses-sym-rowcol ref))
+	     (xrow (car x))
+	     (xcol (cdr x)))
+	(ses-set-cell xrow xcol 'references 
+             (cons new-name (delq ses--curcell 
+				  (ses-cell-references xrow xcol))))))
     (push new-name ses--renamed-cell-symb-list)
     (set new-name (symbol-value ses--curcell))
     (aset cell 0 new-name)
