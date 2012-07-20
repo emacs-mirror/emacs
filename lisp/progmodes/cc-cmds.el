@@ -1826,6 +1826,15 @@ with a brace block."
 	    ;; DEFFLAGSET(syslog_opt_flags,LOG_PID ...) ==> syslog_opt_flags
 	    (match-string-no-properties 1))
 
+	   ;; Objective-C method starting with + or -.
+	   ((and (derived-mode-p 'objc-mode)
+		 (looking-at "[-+]\s*("))
+	    (when (c-syntactic-re-search-forward ")\s*" nil t)
+	      (c-forward-token-2)
+	      (setq name-end (point))
+	      (c-backward-token-2)
+	      (buffer-substring-no-properties (point) name-end)))
+
 	   (t
 	    ;; Normal function or initializer.
 	    (when (c-syntactic-re-search-forward "[{(]" nil t)
