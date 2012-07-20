@@ -2040,15 +2040,7 @@ eval_sub (Lisp_Object form)
     return form;
 
   QUIT;
-  if ((consing_since_gc > gc_cons_threshold
-       && consing_since_gc > gc_relative_threshold)
-      ||
-      (!NILP (Vmemory_full) && consing_since_gc > memory_full_cons_threshold))
-    {
-      GCPRO1 (form);
-      Fgarbage_collect ();
-      UNGCPRO;
-    }
+  maybe_gc ();
 
   if (++lisp_eval_depth > max_lisp_eval_depth)
     {
@@ -2737,11 +2729,7 @@ usage: (funcall FUNCTION &rest ARGUMENTS)  */)
   ptrdiff_t i;
 
   QUIT;
-  if ((consing_since_gc > gc_cons_threshold
-       && consing_since_gc > gc_relative_threshold)
-      ||
-      (!NILP (Vmemory_full) && consing_since_gc > memory_full_cons_threshold))
-    Fgarbage_collect ();
+  maybe_gc ();
 
   if (++lisp_eval_depth > max_lisp_eval_depth)
     {

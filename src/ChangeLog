@@ -1,3 +1,17 @@
+2012-07-20  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Cleanup calls to Fgarbage_collect.
+	* lisp.h (maybe_gc): New prototype.
+	(consing_since_gc, gc_relative_threshold, memory_full_cons_threshold):
+	Remove declarations.
+	* alloc.c (maybe_gc): New function.
+	(consing_since_gc, gc_relative_threshold, memory_full_cons_threshold):
+	Make them static.
+	* bytecode.c (MAYBE_GC): Use maybe_gc.
+	* eval.c (eval_sub, Ffuncall): Likewise.
+	* keyboard.c (read_char): Likewise.  Adjust call to maybe_gc
+	to avoid dependency from auto-save feature.
+
 2012-07-19  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* buffer.h (FOR_EACH_BUFFER): Rename from 'for_each_buffer'.

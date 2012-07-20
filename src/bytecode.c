@@ -423,15 +423,11 @@ unmark_byte_stack (void)
 /* Garbage collect if we have consed enough since the last time.
    We do this at every branch, to avoid loops that never GC.  */
 
-#define MAYBE_GC()					\
- do {							\
-  if (consing_since_gc > gc_cons_threshold		\
-      && consing_since_gc > gc_relative_threshold)	\
-    {							\
-      BEFORE_POTENTIAL_GC ();				\
-      Fgarbage_collect ();				\
-      AFTER_POTENTIAL_GC ();				\
-    }							\
+#define MAYBE_GC()		\
+  do {				\
+   BEFORE_POTENTIAL_GC ();	\
+   maybe_gc ();			\
+   AFTER_POTENTIAL_GC ();	\
  } while (0)
 
 /* Check for jumping out of range.  */

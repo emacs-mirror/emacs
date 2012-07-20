@@ -2091,14 +2091,6 @@ extern void process_quit_flag (void);
 extern Lisp_Object Vascii_downcase_table;
 extern Lisp_Object Vascii_canon_table;
 
-/* Number of bytes of structure consed since last GC.  */
-
-extern EMACS_INT consing_since_gc;
-
-extern EMACS_INT gc_relative_threshold;
-
-extern EMACS_INT memory_full_cons_threshold;
-
 /* Structure for recording stack slots that need marking.  */
 
 /* This is a chain of structures, each of which points at a Lisp_Object
@@ -2601,6 +2593,7 @@ extern void mark_object (Lisp_Object);
 #if defined REL_ALLOC && !defined SYSTEM_MALLOC
 extern void refill_memory_reserve (void);
 #endif
+extern void maybe_gc (void);
 extern const char *pending_malloc_warning;
 extern Lisp_Object zero_vector;
 extern Lisp_Object *stack_base;

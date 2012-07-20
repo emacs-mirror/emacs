@@ -2705,17 +2705,13 @@ read_char (int commandflag, ptrdiff_t nmaps, Lisp_Object *maps,
 	      && ! CONSP (Vunread_command_events))
 	    {
 	      Fdo_auto_save (Qnil, Qnil);
-
-	      /* If we have auto-saved and there is still no input
-		 available, garbage collect if there has been enough
-		 consing going on to make it worthwhile.  */
-	      if (!detect_input_pending_run_timers (0)
-		  && consing_since_gc > gc_cons_threshold / 2)
-		Fgarbage_collect ();
-
 	      redisplay ();
 	    }
 	}
+
+      /* If there is still no input available, ask for GC.  */
+      if (!detect_input_pending_run_timers (0))
+	maybe_gc ();
     }
 
   /* Notify the caller if an autosave hook, or a timer, sentinel or

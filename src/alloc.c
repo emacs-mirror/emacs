@@ -166,16 +166,16 @@ struct emacs_globals globals;
 
 /* Number of bytes of consing done since the last gc.  */
 
-EMACS_INT consing_since_gc;
+static EMACS_INT consing_since_gc;
 
 /* Similar minimum, computed from Vgc_cons_percentage.  */
 
-EMACS_INT gc_relative_threshold;
+static EMACS_INT gc_relative_threshold;
 
 /* Minimum number of bytes of consing since GC before next GC,
    when memory is full.  */
 
-EMACS_INT memory_full_cons_threshold;
+static EMACS_INT memory_full_cons_threshold;
 
 /* Nonzero during GC.  */
 
@@ -5372,6 +5372,18 @@ static inline Lisp_Object
 bounded_number (EMACS_INT number)
 {
   return make_number (min (MOST_POSITIVE_FIXNUM, number));
+}
+
+/* Check whether it's time for GC, and run it if so.  */
+
+void
+maybe_gc (void)
+{
+  if ((consing_since_gc > gc_cons_threshold
+       && consing_since_gc > gc_relative_threshold)
+      || (!NILP (Vmemory_full)
+	  && consing_since_gc > memory_full_cons_threshold))
+    Fgarbage_collect ();
 }
 
 DEFUN ("garbage-collect", Fgarbage_collect, Sgarbage_collect, 0, 0, "",
