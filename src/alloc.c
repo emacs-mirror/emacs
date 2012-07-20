@@ -258,7 +258,7 @@ static char *stack_copy;
 static ptrdiff_t stack_copy_size;
 #endif
 
-static Lisp_Object Qstring_bytes, Qvector_slots;
+static Lisp_Object Qstring_bytes, Qvector_slots, Qheap;
 static Lisp_Object Qgc_cons_threshold;
 Lisp_Object Qchar_table_extra_slots;
 
@@ -5396,7 +5396,7 @@ See Info node `(elisp)Garbage Collection'.  */)
   char stack_top_variable;
   ptrdiff_t i;
   int message_p;
-  Lisp_Object total[10];
+  Lisp_Object total[11];
   ptrdiff_t count = SPECPDL_INDEX ();
   EMACS_TIME t1;
 
@@ -5654,6 +5654,15 @@ See Info node `(elisp)Garbage Collection'.  */)
 
   total[9] = list3 (Qbuffer, make_number (sizeof (struct buffer)),
 		    bounded_number (total_buffers));
+
+  total[10] = list4 (Qheap, make_number (1024),
+#ifdef DOUG_LEA_MALLOC
+		     bounded_number ((mallinfo ().uordblks + 1023) >> 10),
+		     bounded_number ((mallinfo ().fordblks + 1023) >> 10)
+#else
+		     Qnil, Qnil
+#endif
+		     );
 
 #if GC_MARK_STACK == GC_USE_GCPROS_CHECK_ZOMBIES
   {
@@ -6602,33 +6611,6 @@ We divide the value by 1024 to make sure it fits in a Lisp integer.  */)
   return end;
 }
 
-DEFUN ("memory-free", Fmemory_free, Smemory_free, 0, 0, 0,
-       doc: /* Return a list (E H) of two measures of free memory.
-E counts free lists maintained by Emacs itself.  H counts the heap,
-freed by Emacs but not released to the operating system; this is zero
-if heap statistics are not available.  Both counters are in units of
-1024 bytes, rounded up.  */)
-     (void)
-{
-  /* Make the return value first, so that its storage is accounted for.  */
-  Lisp_Object val = Fmake_list (make_number (2), make_number (0));
-
-  XSETCAR (val,
-	   bounded_number
-	   ((total_free_conses * sizeof (struct Lisp_Cons)
-	     + total_free_markers * sizeof (union Lisp_Misc)
-	     + total_free_symbols * sizeof (struct Lisp_Symbol)
-	     + total_free_floats * sizeof (struct Lisp_Float)
-	     + total_free_intervals * sizeof (struct interval)
-	     + total_free_strings * sizeof (struct Lisp_String)
-	     + total_free_vector_slots * word_size
-	     + 1023) >> 10));
-#ifdef DOUG_LEA_MALLOC
-  XSETCAR (XCDR (val), bounded_number ((mallinfo ().fordblks + 1023) >> 10));
-#endif
-  return val;
-}
-
 DEFUN ("memory-use-counts", Fmemory_use_counts, Smemory_use_counts, 0, 0, 0,
        doc: /* Return a list of counters that measure how much consing there has been.
 Each of these counters increments for a certain kind of object.
@@ -6845,6 +6827,7 @@ do hash-consing of the objects allocated to pure space.  */);
 
   DEFSYM (Qstring_bytes, "string-bytes");
   DEFSYM (Qvector_slots, "vector-slots");
+  DEFSYM (Qheap, "heap");
 
   DEFSYM (Qgc_cons_threshold, "gc-cons-threshold");
   DEFSYM (Qchar_table_extra_slots, "char-table-extra-slots");
@@ -6868,7 +6851,6 @@ The time is in seconds as a floating point value.  */);
   defsubr (&Spurecopy);
   defsubr (&Sgarbage_collect);
   defsubr (&Smemory_limit);
-  defsubr (&Smemory_free);
   defsubr (&Smemory_use_counts);
 
 #if GC_MARK_STACK == GC_USE_GCPROS_CHECK_ZOMBIES

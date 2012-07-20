@@ -1,5 +1,16 @@
 2012-07-20  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	Extend the value returned by Fgarbage_collect with heap statistics.
+	* alloc.c (Qheap): New symbol.
+	(syms_of_alloc): DEFSYM it.
+	(Fgarbage_collect): If DOUG_LEA_MALLOC, add mallinfo data.
+	(Fmemory_free): Remove.
+	(syms_of_alloc): Don't defsubr it.
+	* buffer.c (Fcompact_buffer): Remove.
+	(syms_of_buffer): Don't defsubr it.
+
+2012-07-20  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	Make maybe_gc inline.
 	Verify that inlining is always possible (GCC 4.7.1, -O3 -Winline).
 	* lisp.h (consing_since_gc, gc_relative_threshold)
