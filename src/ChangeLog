@@ -1,3 +1,8 @@
+2012-07-21  Chong Yidong  <cyd@gnu.org>
+
+	* window.c (decode_any_window): Signal an error if the window is
+	on a dead frame (Bug#11984).
+
 2012-07-20  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Add indirection counting to speed up Fkill_buffer.
