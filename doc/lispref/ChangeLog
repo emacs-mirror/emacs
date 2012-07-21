@@ -1,3 +1,10 @@
+2012-07-21  Eli Zaretskii  <eliz@gnu.org>
+
+	* commands.texi (Special Events): Mention language-change event.
+	(Input Events, Interactive Codes):
+	* keymaps.texi (Key Sequences): Mention events that are
+	non-keyboard but also non-mouse events.
+
 2012-07-17  Chong Yidong  <cyd@gnu.org>
 
 	* text.texi (Insertion): Document insert-char changes.

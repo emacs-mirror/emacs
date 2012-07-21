@@ -45,7 +45,8 @@ is found.  The whole process is called @dfn{key lookup}.
 
   A @dfn{key sequence}, or @dfn{key} for short, is a sequence of one
 or more input events that form a unit.  Input events include
-characters, function keys, and mouse actions (@pxref{Input Events}).
+characters, function keys, mouse actions, or system events external to
+Emacs, such as @code{iconify-frame} (@pxref{Input Events}).
 The Emacs Lisp representation for a key sequence is a string or
 vector.  Unless otherwise stated, any Emacs Lisp function that accepts
 a key sequence as an argument can handle both representations.
@@ -62,9 +63,10 @@ sequence is the concatenation of the string representations of the
 constituent events; thus, @code{"\C-xl"} represents the key sequence
 @kbd{C-x l}.
 
-  Key sequences containing function keys, mouse button events, or
-non-@acronym{ASCII} characters such as @kbd{C-=} or @kbd{H-a} cannot be
-represented as strings; they have to be represented as vectors.
+  Key sequences containing function keys, mouse button events, system
+events, or non-@acronym{ASCII} characters such as @kbd{C-=} or
+@kbd{H-a} cannot be represented as strings; they have to be
+represented as vectors.
 
   In the vector representation, each element of the vector represents
 an input event, in its Lisp form.  @xref{Input Events}.  For example,
