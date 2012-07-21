@@ -1,3 +1,24 @@
+2012-07-21  Leo Liu  <sdl.web@gmail.com>
+
+	* progmodes/cc-cmds.el (c-defun-name): Use
+	match-string-no-properties instead for consistency.
+
+2012-07-20  Leo Liu  <sdl.web@gmail.com>
+
+	* progmodes/cc-cmds.el (c-defun-name): Handle objc selectors properly.
+	(Bug#7879)
+
+	* progmodes/cc-langs.el (c-symbol-start): Include char _ (bug#11986).
+
+2012-07-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* userlock.el, emacs-lisp/map-ynp.el: Declare part of `emacs' package.
+	* progmodes/bug-reference.el, misearch.el: Provide themselves
+	(bug#11915).
+
+	* progmodes/cperl-mode.el (cperl-unwind-to-safe): Don't inf-loop at end
+	of narrowed buffer (bug#11966).
+
 2012-07-20  Vincent Belaïche  <vincentb1@users.sourceforge.net>
 
 	* ses.el (ses-rename-cell): Set new name also in reference list of

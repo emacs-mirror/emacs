@@ -3497,7 +3497,8 @@ Works before syntax recognition is done."
     (if end
 	;; Do the same for end, going small steps
 	(save-excursion
-	  (while (and end (get-text-property end 'syntax-type))
+	  (while (and end (< end (point-max))
+		      (get-text-property end 'syntax-type))
 	    (setq pos end
 		  end (next-single-property-change end 'syntax-type nil (point-max)))
 	    (if end (progn (goto-char end)
