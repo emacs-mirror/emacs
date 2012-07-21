@@ -55,7 +55,7 @@ GNUstep port and post-20 update by Adrian Robert (arobert@cogsci.ucsd.edu)
 
 #include "window.h"
 #include "keyboard.h"
-
+#include "buffer.h"
 #include "font.h"
 
 /* call tracing */
@@ -6037,6 +6037,61 @@ ns_term_shutdown (int sig)
    ========================================================================== */
 
 @implementation EmacsWindow
+
+- (id)accessibilityAttributeValue:(NSString *)attribute
+{
+  Lisp_Object str = Qnil;
+  struct frame *f = SELECTED_FRAME ();
+  struct buffer *curbuf = XBUFFER (XWINDOW (f->selected_window)->buffer);
+ 
+  if ([attribute isEqualToString:NSAccessibilityRoleAttribute])
+    return NSAccessibilityTextFieldRole;
+
+  if ([attribute isEqualToString:NSAccessibilitySelectedTextAttribute]
+      && curbuf && ! NILP (BVAR (curbuf, mark_active)))
+    {
+      str = ns_get_local_selection (QPRIMARY, QUTF8_STRING);
+    }
+  else if (curbuf && [attribute isEqualToString:NSAccessibilityValueAttribute])
+    {
+      if (! NILP (BVAR (curbuf, mark_active)))
+          str = ns_get_local_selection (QPRIMARY, QUTF8_STRING);
+      
+      if (NILP (str))
+        {
+          ptrdiff_t start_byte = BUF_BEGV_BYTE (curbuf);
+          ptrdiff_t byte_range = BUF_ZV_BYTE (curbuf) - start_byte;
+          ptrdiff_t range = BUF_ZV (curbuf) - BUF_BEGV (curbuf);
+          
+          if (! NILP (BVAR (curbuf, enable_multibyte_characters)))
+            str = make_uninit_multibyte_string (range, byte_range);
+          else
+            str = make_uninit_string (range);
+          /* To check: This returns emacs-utf-8, which is a superset of utf-8.
+             Is this a problem?  */
+          memcpy (SDATA (str), BYTE_POS_ADDR (start_byte), byte_range);
+        }
+    }
+  
+  
+  if (! NILP (str)) 
+    {
+      if (CONSP (str) && SYMBOLP (XCAR (str)))
+        {
+          str = XCDR (str);
+          if (CONSP (str) && NILP (XCDR (str)))
+            str = XCAR (str);
+        }
+      if (STRINGP (str))
+        {
+          const char *utfStr = SSDATA (str);
+          NSString *nsStr = [NSString stringWithUTF8String: utfStr];
+          return nsStr;
+        }
+    }
+  
+  return [super accessibilityAttributeValue:attribute];
+}
 
 /* If we have multiple monitors, one above the other, we don't want to
    restrict the height to just one monitor.  So we override this.  */
