@@ -6038,6 +6038,7 @@ ns_term_shutdown (int sig)
 
 @implementation EmacsWindow
 
+#ifdef NS_IMPL_COCOA
 - (id)accessibilityAttributeValue:(NSString *)attribute
 {
   Lisp_Object str = Qnil;
@@ -6092,6 +6093,7 @@ ns_term_shutdown (int sig)
   
   return [super accessibilityAttributeValue:attribute];
 }
+#endif /* NS_IMPL_COCOA */
 
 /* If we have multiple monitors, one above the other, we don't want to
    restrict the height to just one monitor.  So we override this.  */

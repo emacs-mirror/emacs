@@ -2,6 +2,7 @@
 
 	* nsterm.m (accessibilityAttributeValue): New function. (Bug#11134).
 	(conversationIdentifier): Return value is NSInteger.
+	* nsterm.m (accessibilityAttributeValue): Surround with NS_IMPL_COCOA.
 
 2012-07-21  Chong Yidong  <cyd@gnu.org>
 
