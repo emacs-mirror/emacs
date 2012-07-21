@@ -1,6 +1,7 @@
 2012-07-21  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsterm.m (accessibilityAttributeValue): New function. (Bug#11134).
+	(conversationIdentifier): Return value is NSInteger.
 
 2012-07-21  Chong Yidong  <cyd@gnu.org>
 

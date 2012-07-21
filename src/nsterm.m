@@ -5059,9 +5059,9 @@ ns_term_shutdown (int sig)
 }
 
 
-- (long)conversationIdentifier
+- (NSInteger)conversationIdentifier
 {
-  return (long)self;
+  return (NSInteger)self;
 }
 
 
