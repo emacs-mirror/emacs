@@ -1832,9 +1832,9 @@ with a brace block."
 		  (kw-re (concat "\\(?:" c-symbol-key "\\)?:"))
 		  (stretches))
 	      (when (c-syntactic-re-search-forward c-symbol-key bound t t t)
-		(push (match-string 0) stretches)
+		(push (match-string-no-properties 0) stretches)
 		(while (c-syntactic-re-search-forward kw-re bound t t t)
-		  (push (match-string 0) stretches)))
+		  (push (match-string-no-properties 0) stretches)))
 	      (apply 'concat (nreverse stretches))))
 
 	   (t
