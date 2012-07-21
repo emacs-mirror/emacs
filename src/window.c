@@ -484,9 +484,7 @@ for future use.  */)
   (Lisp_Object window, Lisp_Object limit)
 {
   register struct window *w = decode_any_window (window);
-
   w->combination_limit = limit;
-
   return w->combination_limit;
 }
 

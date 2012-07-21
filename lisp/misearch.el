@@ -373,5 +373,5 @@ whose file names match the specified wildcard."
 
 
 (provide 'multi-isearch)
-
+(provide 'misearch)
 ;;; misearch.el ends here
