@@ -1,3 +1,9 @@
+2012-07-21  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32menu.c (add_menu_item): Cast to UINT_PTR when assigning
+	info.dwItemData.  Fixes crashes on 64-bit Windows.  Suggested by
+	Fabrice Popineau <fabrice.popineau@supelec.fr>.
+
 2012-07-21  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsterm.m (accessibilityAttributeValue): New function. (Bug#11134).
