@@ -1,5 +1,10 @@
 2012-07-21  Eli Zaretskii  <eliz@gnu.org>
 
+	* keyboard.c (keys_of_keyboard): Bind language-change to 'ignore'
+	in special-event-map.  See the discussion at
+	http://lists.gnu.org/archive/html/emacs-devel/2012-06/msg00417.html
+	for the reasons.
+
 	* w32menu.c (add_menu_item): Cast to UINT_PTR when assigning
 	info.dwItemData.  Fixes crashes on 64-bit Windows.  Suggested by
 	Fabrice Popineau <fabrice.popineau@supelec.fr>.

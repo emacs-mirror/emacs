@@ -12232,6 +12232,10 @@ keys_of_keyboard (void)
 
   initial_define_lispy_key (Vspecial_event_map, "config-changed-event",
 			    "ignore");
+#if defined (WINDOWSNT)
+  initial_define_lispy_key (Vspecial_event_map, "language-change",
+			    "ignore");
+#endif
 }
 
 /* Mark the pointers in the kboard objects.
