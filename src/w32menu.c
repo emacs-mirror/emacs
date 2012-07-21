@@ -1536,10 +1536,10 @@ add_menu_item (HMENU menu, widget_value *wv, HMENU item)
 	    {
 	      /* As of Jul-2012, w32api headers say that dwItemData
 		 has DWORD type, but that's a bug: it should actually
-		 be UINT_PTR, which is correct for 32-bit and 64-bit
+		 be ULONG_PTR, which is correct for 32-bit and 64-bit
 		 Windows alike.  MSVC headers get it right; hopefully,
 		 MinGW headers will, too.  */
-	      info.dwItemData = (UINT_PTR) XLI (wv->help);
+	      info.dwItemData = (ULONG_PTR) XLI (wv->help);
 	    }
 	  if (wv->button_type == BUTTON_TYPE_RADIO)
 	    {

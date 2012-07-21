@@ -5,7 +5,7 @@
 	http://lists.gnu.org/archive/html/emacs-devel/2012-06/msg00417.html
 	for the reasons.
 
-	* w32menu.c (add_menu_item): Cast to UINT_PTR when assigning
+	* w32menu.c (add_menu_item): Cast to ULONG_PTR when assigning
 	info.dwItemData.  Fixes crashes on 64-bit Windows.  Suggested by
 	Fabrice Popineau <fabrice.popineau@supelec.fr>.
 
