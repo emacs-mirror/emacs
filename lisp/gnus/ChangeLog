@@ -1,3 +1,9 @@
+2012-07-21  Julien Danjou  <julien@danjou.info>
+
+	* message.el (message-dont-reply-to-names): Replace deprecated
+	`rmail-dont-reply-to-names' with `mail-dont-reply-to-names'.
+	(message-get-reply-headers): Ditto.
+
 2012-07-18  Julien Danjou  <julien@danjou.info>
 
 	* sieve-mode.el (sieve-mode-map): Bind C-c C-c to

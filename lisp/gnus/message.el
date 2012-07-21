@@ -1332,11 +1332,11 @@ If nil, you might be asked to input the charset."
   :type 'symbol)
 
 (defcustom message-dont-reply-to-names
-  (and (boundp 'rmail-dont-reply-to-names) rmail-dont-reply-to-names)
+  (and (boundp 'mail-dont-reply-to-names) mail-dont-reply-to-names)
   "*Addresses to prune when doing wide replies.
 This can be a regexp or a list of regexps.  Also, a value of nil means
 exclude your own user name only."
-  :version "21.1"
+  :version "24.2"
   :group 'message
   :link '(custom-manual "(message)Wide Reply")
   :type '(choice (const :tag "Yourself" nil)
@@ -1933,7 +1933,7 @@ You must have the \"hashcash\" binary installed, see `hashcash-path'."
 (autoload 'nndraft-request-associate-buffer "nndraft")
 (autoload 'nndraft-request-expire-articles "nndraft")
 (autoload 'nnvirtual-find-group-art "nnvirtual")
-(autoload 'rmail-dont-reply-to "mail-utils")
+(autoload 'mail-dont-reply-to "mail-utils")
 (autoload 'rmail-msg-is-pruned "rmail")
 (autoload 'rmail-output "rmailout")
 
@@ -6802,9 +6802,9 @@ want to get rid of this query permanently.")))
       ;; Squeeze whitespace.
       (while (string-match "[ \t][ \t]+" recipients)
 	(setq recipients (replace-match " " t t recipients)))
-      ;; Remove addresses that match `rmail-dont-reply-to-names'.
-      (let ((rmail-dont-reply-to-names (message-dont-reply-to-names)))
-	(setq recipients (rmail-dont-reply-to recipients)))
+      ;; Remove addresses that match `mail-dont-reply-to-names'.
+      (let ((mail-dont-reply-to-names (message-dont-reply-to-names)))
+	(setq recipients (mail-dont-reply-to recipients)))
       ;; Perhaps "Mail-Copies-To: never" removed the only address?
       (if (string-equal recipients "")
 	  (setq recipients author))
