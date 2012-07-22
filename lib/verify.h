@@ -125,13 +125,17 @@
        extern int (*dummy (void)) [sizeof (struct {...})];
 
    * GCC warns about duplicate declarations of the dummy function if
-     -Wredundant_decls is used.  GCC 4.3 and later have a builtin
+     -Wredundant-decls is used.  GCC 4.3 and later have a builtin
      __COUNTER__ macro that can let us generate unique identifiers for
      each dummy function, to suppress this warning.
 
    * This implementation exploits the fact that older versions of GCC,
      which do not support _Static_assert, also do not warn about the
      last declaration mentioned above.
+
+   * GCC warns if -Wnested-externs is enabled and verify() is used
+     within a function body; but inside a function, you can always
+     arrange to use verify_expr() instead.
 
    * In C++, any struct definition inside sizeof is invalid.
      Use a template type to work around the problem.  */
