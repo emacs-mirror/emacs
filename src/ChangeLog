@@ -1,5 +1,12 @@
 2012-07-22  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	Adjust consing_since_gc when objects are explicitly freed.
+	* alloc.c (GC_DEFAULT_THRESHOLD): New macro.
+	(Fgarbage_collect): Use it.  Change minimum to 1/10 of default.
+	(free_cons, free_misc): Subtract object size from consing_since_gc.
+
+2012-07-22  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	Simplify and cleanup markers positioning code.
 	* marker.c (attach_marker): More useful eassert.
 	(live_buffer, set_marker_internal): New function.

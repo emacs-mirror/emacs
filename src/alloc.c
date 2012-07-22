@@ -161,6 +161,10 @@ static pthread_mutex_t alloc_mutex;
 
 #define GC_STRING_BYTES(S)	(STRING_BYTES (S))
 
+/* Default value of gc_cons_threshold (see below).  */
+
+#define GC_DEFAULT_THRESHOLD (100000 * sizeof (Lisp_Object))
+
 /* Global variables.  */
 struct emacs_globals globals;
 
@@ -2711,6 +2715,7 @@ free_cons (struct Lisp_Cons *ptr)
   ptr->car = Vdead;
 #endif
   cons_free_list = ptr;
+  consing_since_gc -= sizeof *ptr;
   total_free_conses++;
 }
 
@@ -3606,7 +3611,7 @@ free_misc (Lisp_Object misc)
   XMISCTYPE (misc) = Lisp_Misc_Free;
   XMISC (misc)->u_free.chain = marker_free_list;
   marker_free_list = XMISC (misc);
-
+  consing_since_gc -= sizeof (union Lisp_Misc);
   total_free_markers++;
 }
 
@@ -5581,8 +5586,8 @@ See Info node `(elisp)Garbage Collection'.  */)
   gc_in_progress = 0;
 
   consing_since_gc = 0;
-  if (gc_cons_threshold < 10000)
-    gc_cons_threshold = 10000;
+  if (gc_cons_threshold < GC_DEFAULT_THRESHOLD / 10)
+    gc_cons_threshold = GC_DEFAULT_THRESHOLD / 10;
 
   gc_relative_threshold = 0;
   if (FLOATP (Vgc_cons_percentage))
@@ -6731,7 +6736,7 @@ init_alloc_once (void)
 #endif
 
   refill_memory_reserve ();
-  gc_cons_threshold = 100000 * sizeof (Lisp_Object);
+  gc_cons_threshold = GC_DEFAULT_THRESHOLD;
 }
 
 void
