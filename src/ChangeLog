@@ -1,3 +1,13 @@
+2012-07-22  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsmenu.m (Popdown_data): New struct.
+	(pop_down_menu): p->pointer is Popdown_data.  Release the pool and
+	free Popdown_data.
+	(ns_popup_dialog): Use NSAutoreleasePool and pass it to pop_down_menu.
+	(initWithContentRect): Make imgView and contentView non-static
+	and autorelease them.  Also autorelease img and matrix (Bug#12005).
+	(dealloc): Remove (Bug#12005).
+
 2012-07-22  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Adjust consing_since_gc when objects are explicitly freed.
