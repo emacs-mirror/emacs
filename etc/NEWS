@@ -354,7 +354,7 @@ channel keys found, if any.
 
 *** `dired-do-async-shell-command' executes each file sequentially
 if the command ends in `;' (when operating on multiple files).
-Othwerwise, it executes the command on each file in parallel.
+Otherwise, it executes the command on each file in parallel.
 
 ** FFAP
 

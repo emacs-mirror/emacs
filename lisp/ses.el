@@ -3213,7 +3213,7 @@ highlighted range in the spreadsheet."
 	 (col (cdr rowcol))
 	 (cell (ses-get-cell  row  col)))
     (put new-name 'ses-cell rowcol)
-    ;; replace name by new name in formula of cells refering to renamed cell
+    ;; Replace name by new name in formula of cells referring to renamed cell.
     (dolist (ref (ses-cell-references cell))
       (let* ((x (ses-sym-rowcol ref))
 	     (xcell  (ses-get-cell (car x) (cdr x))))
@@ -3228,8 +3228,8 @@ highlighted range in the spreadsheet."
       (let* ((x (ses-sym-rowcol ref))
 	     (xrow (car x))
 	     (xcol (cdr x)))
-	(ses-set-cell xrow xcol 'references 
-             (cons new-name (delq ses--curcell 
+	(ses-set-cell xrow xcol 'references
+             (cons new-name (delq ses--curcell
 				  (ses-cell-references xrow xcol))))))
     (push new-name ses--renamed-cell-symb-list)
     (set new-name (symbol-value ses--curcell))
