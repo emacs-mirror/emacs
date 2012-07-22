@@ -1,3 +1,14 @@
+2012-07-22  Vincent Belaïche  <vincentb1@users.sourceforge.net>
+
+	* ses.el (ses-cell-formula-aset): New macro.
+	(ses-cell-references-aset): New macro.
+	(ses-cell-p): New function.
+	(ses-rename-cell): Do no longer rely on complex operations like
+	ses-cell-set-formula or ses-set-cell to change the cell and handle
+	the undo at the same time, but rather use lower level new macros
+	`ses-cell-formula-aset' and `ses-cell-references-aset' and handle
+	the undo directly. Refresh the mode line.
+
 2012-07-21  Leo Liu  <sdl.web@gmail.com>
 
 	* progmodes/cc-cmds.el (c-defun-name): Use
