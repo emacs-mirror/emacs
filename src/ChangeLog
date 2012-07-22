@@ -1,3 +1,8 @@
+2012-07-22  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* buffer.h (struct buffer.indirections): Now ptrdiff_t, not int,
+	as it's limited by the amount of memory, not by INT_MAX.
+
 2012-07-21  Eli Zaretskii  <eliz@gnu.org>
 
 	* keyboard.c (keys_of_keyboard): Bind language-change to 'ignore'
