@@ -1,3 +1,11 @@
+2012-07-22  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Simplify and cleanup markers positioning code.
+	* marker.c (attach_marker): More useful eassert.
+	(live_buffer, set_marker_internal): New function.
+	(Fset_marker, set_marker_restricted): Use set_marker_internal.
+	(set_marker_both, set_marker_restricted_both): Use live_buffer.
+
 2012-07-22  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* buffer.h (struct buffer.indirections): Now ptrdiff_t, not int,
