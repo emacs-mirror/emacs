@@ -1,3 +1,8 @@
+2012-07-23  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* nnir.el ("nnir"): Revert last change, that's premature to merge from
+	Gnus master.
+
 2012-07-22  Andrew Cohen  <cohen@bu.edu>
 
 	* nnir.el ("nnir"): Add 'virtual ability to nnir backend.
