@@ -3564,10 +3564,10 @@ static int marker_block_index = MARKER_BLOCK_SIZE;
 
 static union Lisp_Misc *marker_free_list;
 
-/* Return a newly allocated Lisp_Misc object, with no substructure.  */
+/* Return a newly allocated Lisp_Misc object of specified TYPE.  */
 
-Lisp_Object
-allocate_misc (void)
+static Lisp_Object
+allocate_misc (enum Lisp_Misc_Type type)
 {
   Lisp_Object val;
 
@@ -3599,6 +3599,7 @@ allocate_misc (void)
   --total_free_markers;
   consing_since_gc += sizeof (union Lisp_Misc);
   misc_objects_consed++;
+  XMISCTYPE (val) = type;
   XMISCANY (val)->gcmarkbit = 0;
   return val;
 }
@@ -3625,13 +3626,27 @@ make_save_value (void *pointer, ptrdiff_t integer)
   register Lisp_Object val;
   register struct Lisp_Save_Value *p;
 
-  val = allocate_misc ();
-  XMISCTYPE (val) = Lisp_Misc_Save_Value;
+  val = allocate_misc (Lisp_Misc_Save_Value);
   p = XSAVE_VALUE (val);
   p->pointer = pointer;
   p->integer = integer;
   p->dogc = 0;
   return val;
+}
+
+/* Return a Lisp_Misc_Overlay object with specified START, END and PLIST.  */
+
+Lisp_Object
+build_overlay (Lisp_Object start, Lisp_Object end, Lisp_Object plist)
+{
+  register Lisp_Object overlay;
+
+  overlay = allocate_misc (Lisp_Misc_Overlay);
+  OVERLAY_START (overlay) = start;
+  OVERLAY_END (overlay) = end;
+  OVERLAY_PLIST (overlay) = plist;
+  XOVERLAY (overlay)->next = NULL;
+  return overlay;
 }
 
 DEFUN ("make-marker", Fmake_marker, Smake_marker, 0, 0, 0,
@@ -3641,8 +3656,7 @@ DEFUN ("make-marker", Fmake_marker, Smake_marker, 0, 0, 0,
   register Lisp_Object val;
   register struct Lisp_Marker *p;
 
-  val = allocate_misc ();
-  XMISCTYPE (val) = Lisp_Misc_Marker;
+  val = allocate_misc (Lisp_Misc_Marker);
   p = XMARKER (val);
   p->buffer = 0;
   p->bytepos = 0;
@@ -3667,8 +3681,7 @@ build_marker (struct buffer *buf, ptrdiff_t charpos, ptrdiff_t bytepos)
   /* Every character is at least one byte.  */
   eassert (charpos <= bytepos);
 
-  obj = allocate_misc ();
-  XMISCTYPE (obj) = Lisp_Misc_Marker;
+  obj = allocate_misc (Lisp_Misc_Marker);
   m = XMARKER (obj);
   m->buffer = buf;
   m->charpos = charpos;

@@ -1,4 +1,15 @@
-2012-07-22  Dmitry Antipov  <dmantipov@yandex.ru>
+2012-07-23  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Cleanup miscellaneous objects allocation and initialization.
+	* alloc.c (allocate_misc): Change to static.  Add argument to
+	specify the subtype.  Adjust comment and users.
+	(build_overlay): New function.
+	* buffer.c (copy_overlays, Fmake_overlay): Use it.
+	* lisp.h (struct Lisp_Overlay): Remove obsolete comment.
+	(allocate_misc): Remove prototype.
+	(build_overlay): Add prototype.
+
+2012-07-23  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Swap buffer text indirection counters in Fbuffer_swap_text.
 	* buffer.c (Fbuffer_swap_text): Swap indirections too.

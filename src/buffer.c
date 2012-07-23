@@ -433,12 +433,8 @@ copy_overlays (struct buffer *b, struct Lisp_Overlay *list)
       XMARKER (end)->insertion_type
 	= XMARKER (OVERLAY_END (old_overlay))->insertion_type;
 
-      overlay = allocate_misc ();
-      XMISCTYPE (overlay) = Lisp_Misc_Overlay;
-      OVERLAY_START (overlay) = start;
-      OVERLAY_END (overlay) = end;
-      OVERLAY_PLIST (overlay) = Fcopy_sequence (OVERLAY_PLIST (old_overlay));
-      XOVERLAY (overlay)->next = NULL;
+      overlay = build_overlay
+	(start, end, Fcopy_sequence (OVERLAY_PLIST (old_overlay)));
 
       if (tail)
 	tail = tail->next = XOVERLAY (overlay);
@@ -3640,12 +3636,7 @@ for the rear of the overlay advance when text is inserted there
   if (!NILP (rear_advance))
     XMARKER (end)->insertion_type = 1;
 
-  overlay = allocate_misc ();
-  XMISCTYPE (overlay) = Lisp_Misc_Overlay;
-  XOVERLAY (overlay)->start = beg;
-  XOVERLAY (overlay)->end = end;
-  XOVERLAY (overlay)->plist = Qnil;
-  XOVERLAY (overlay)->next = NULL;
+  overlay = build_overlay (beg, end, Qnil);
 
   /* Put the new overlay on the wrong list.  */
   end = OVERLAY_END (overlay);
