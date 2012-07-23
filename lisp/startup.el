@@ -1001,7 +1001,9 @@ Amongst another things, it parses the command-line arguments."
 	    nil
 	  (display-warning 'initialization
 			   (format "User %s has no home directory"
-				   init-file-user)
+				   (if (equal init-file-user "")
+				       (user-real-login-name)
+				     init-file-user))
 			   :error))))
 
     ;; Load that user's init file, or the default one, or none.
