@@ -1,3 +1,7 @@
+2012-07-22  Andrew Cohen  <cohen@bu.edu>
+
+	* nnir.el ("nnir"): Add 'virtual ability to nnir backend.
+
 2012-07-21  Julien Danjou  <julien@danjou.info>
 
 	* message.el (message-dont-reply-to-names): Replace deprecated
