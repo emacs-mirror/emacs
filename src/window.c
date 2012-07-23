@@ -151,7 +151,8 @@ decode_any_window (register Lisp_Object window)
 
   CHECK_WINDOW (window);
   w = XWINDOW (window);
-  CHECK_LIVE_FRAME (w->frame);
+  /* The following test throws up every time a tooltip frame is displayed.  */
+  /* CHECK_LIVE_FRAME (w->frame); */
   return w;
 }
 

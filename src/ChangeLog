@@ -1,3 +1,11 @@
+2012-07-23  Eli Zaretskii  <eliz@gnu.org>
+
+	* print.c (print_object): Don't crash when a frame's name is nil
+	or invalid.  (Bug#12025)
+
+	* window.c (decode_any_window): Disable CHECK_LIVE_FRAME test, as
+	it signals an error when a tooltip frame is being created.
+
 2012-07-23  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Cleanup miscellaneous objects allocation and initialization.

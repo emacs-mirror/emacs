@@ -1897,10 +1897,21 @@ print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag
       else if (FRAMEP (obj))
 	{
 	  int len;
+	  Lisp_Object frame_name = XFRAME (obj)->name;
+
 	  strout ((FRAME_LIVE_P (XFRAME (obj))
 		   ? "#<frame " : "#<dead frame "),
 		  -1, -1, printcharfun);
-	  print_string (XFRAME (obj)->name, printcharfun);
+	  if (!STRINGP (frame_name))
+	    {
+	      /* A frame could be too young and have no name yet;
+		 don't crash.  */
+	      if (SYMBOLP (frame_name))
+		frame_name = Fsymbol_name (frame_name);
+	      else	/* can't happen: name should be either nil or string */
+		frame_name = build_string ("*INVALID*FRAME*NAME*");
+	    }
+	  print_string (frame_name, printcharfun);
 	  len = sprintf (buf, " %p", XFRAME (obj));
 	  strout (buf, len, len, printcharfun);
 	  PRINTCHAR ('>');
