@@ -2145,6 +2145,7 @@ DEFUN ("buffer-swap-text", Fbuffer_swap_text, Sbuffer_swap_text,
   swapfield (zv_byte, ptrdiff_t);
   eassert (!current_buffer->base_buffer);
   eassert (!other_buffer->base_buffer);
+  swapfield (indirections, ptrdiff_t);
   current_buffer->clip_changed = 1;	other_buffer->clip_changed = 1;
   swapfield (newline_cache, struct region_cache *);
   swapfield (width_run_cache, struct region_cache *);

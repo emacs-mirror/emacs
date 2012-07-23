@@ -1,3 +1,10 @@
+2012-07-22  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Swap buffer text indirection counters in Fbuffer_swap_text.
+	* buffer.c (Fbuffer_swap_text): Swap indirections too.
+	This avoids crash reported by Christoph Scholtes at
+	http://lists.gnu.org/archive/html/bug-gnu-emacs/2012-07/msg00785.html.
+
 2012-07-22  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsmenu.m (Popdown_data): New struct.
