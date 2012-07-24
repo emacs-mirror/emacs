@@ -1852,15 +1852,6 @@ textual parts.")
 	  (forward-line 1)))
       (buffer-substring (point) end))))
 
-(defun nnimap-get-responses (sequences)
-  (let (responses)
-    (dolist (sequence sequences)
-      (goto-char (point-min))
-      (when (re-search-forward (format "^%d " sequence) nil t)
-	(push (list sequence (nnimap-parse-response))
-	      responses)))
-    responses))
-
 (defvar nnimap-incoming-split-list nil)
 
 (defun nnimap-fetch-inbox (articles)

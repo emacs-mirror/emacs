@@ -1457,33 +1457,6 @@ See `gnus-summary-mail-forward' for ARG."
 	(when (gnus-y-or-n-p "Send this complaint? ")
 	  (message-send-and-exit))))))
 
-(defun gnus-mail-parse-comma-list ()
-  (let (accumulated
-	beg)
-    (skip-chars-forward " ")
-    (while (not (eobp))
-      (setq beg (point))
-      (skip-chars-forward "^,")
-      (while (zerop
-	      (save-excursion
-		(save-restriction
-		  (let ((i 0))
-		    (narrow-to-region beg (point))
-		    (goto-char beg)
-		    (logand (progn
-			      (while (search-forward "\"" nil t)
-				(incf i))
-			      (if (zerop i) 2 i))
-			    2)))))
-	(skip-chars-forward ",")
-	(skip-chars-forward "^,"))
-      (skip-chars-backward " ")
-      (push (buffer-substring beg (point))
-	    accumulated)
-      (skip-chars-forward "^,")
-      (skip-chars-forward ", "))
-    accumulated))
-
 (defun gnus-inews-add-to-address (group)
   (let ((to-address (mail-fetch-field "to")))
     (when (and to-address
@@ -1493,41 +1466,6 @@ See `gnus-summary-mail-forward' for ARG."
       (when (gnus-y-or-n-p
 	     (format "Do you want to add this as `to-list': %s? " to-address))
 	(gnus-group-add-parameter group (cons 'to-list to-address))))))
-
-(defun gnus-put-message ()
-  "Put the current message in some group and return to Gnus."
-  (interactive)
-  (let ((reply gnus-article-reply)
-	(winconf gnus-prev-winconf)
-	(group gnus-newsgroup-name))
-    (unless (and group
-		 (not (gnus-group-read-only-p group)))
-      (setq group (read-string "Put in group: " nil (gnus-writable-groups))))
-
-    (when (gnus-group-entry group)
-      (error "No such group: %s" group))
-    (save-excursion
-      (save-restriction
-	(widen)
-	(message-narrow-to-headers)
-	(let ((gnus-deletable-headers nil))
-	  (message-generate-headers
-	   (if (message-news-p)
-	       message-required-news-headers
-	     message-required-mail-headers)))
-	(goto-char (point-max))
-	(if (string-match " " group)
-	    (insert "Gcc: \"" group "\"\n")
-	  (insert "Gcc: " group "\n"))
-	(widen)))
-    (gnus-inews-do-gcc)
-    (when (and (get-buffer gnus-group-buffer)
-	       (gnus-buffer-exists-p (car-safe reply))
-	       (cdr reply))
-      (set-buffer (car reply))
-      (gnus-summary-mark-article-as-replied (cdr reply)))
-    (when winconf
-      (set-window-configuration winconf))))
 
 (defun gnus-article-mail (yank)
   "Send a reply to the address near point.

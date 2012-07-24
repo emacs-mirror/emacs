@@ -2967,12 +2967,6 @@ When FORCE, rebuild the tool bar."
 	(setq gnus-summary-tool-bar-map map))))
   (set (make-local-variable 'tool-bar-map) gnus-summary-tool-bar-map))
 
-(defun gnus-score-set-default (var value)
-  "A version of set that updates the GNU Emacs menu-bar."
-  (set var value)
-  ;; It is the message that forces the active status to be updated.
-  (message ""))
-
 (defun gnus-make-score-map (type)
   "Make a summary score map of type TYPE."
   (if t
@@ -3258,13 +3252,6 @@ The following commands are available:
   "Say whether this article is a sparse article or not."
   `(memq ,article gnus-newsgroup-ancient))
 
-(defun gnus-article-parent-p (number)
-  "Say whether this article is a parent or not."
-  (let ((data (gnus-data-find-list number)))
-    (and (cdr data)              ; There has to be an article after...
-	 (< (gnus-data-level (car data)) ; And it has to have a higher level.
-	    (gnus-data-level (nth 1 data))))))
-
 (defun gnus-article-children (number)
   "Return a list of all children to NUMBER."
   (let* ((data (gnus-data-find-list number))
@@ -3285,14 +3272,6 @@ The following commands are available:
 (defmacro gnus-summary-article-intangible-p ()
   "Say whether this article is intangible or not."
   '(get-text-property (point) 'gnus-intangible))
-
-(defun gnus-article-read-p (article)
-  "Say whether ARTICLE is read or not."
-  (not (or (memq article gnus-newsgroup-marked)
-	   (memq article gnus-newsgroup-spam-marked)
-	   (memq article gnus-newsgroup-unreads)
-	   (memq article gnus-newsgroup-unselected)
-	   (memq article gnus-newsgroup-dormant))))
 
 ;; Some summary mode macros.
 
@@ -5925,17 +5904,6 @@ If SELECT-ARTICLES, only select those articles from GROUP."
       (setq articles (cdr articles)))
     out))
 
-(defun gnus-uncompress-marks (marks)
-  "Uncompress the mark ranges in MARKS."
-  (let ((uncompressed '(score bookmark))
-	out)
-    (while marks
-      (if (memq (caar marks) uncompressed)
-	  (push (car marks) out)
-	(push (cons (caar marks) (gnus-uncompress-range (cdar marks))) out))
-      (setq marks (cdr marks)))
-    out))
-
 (defun gnus-article-mark-to-type (mark)
   "Return the type of MARK."
   (or (cadr (assq mark gnus-article-special-mark-lists))
@@ -7753,10 +7721,6 @@ be displayed."
 						  "multipart/encrypted")
 					    gnus-buttonized-mime-types)))
     (gnus-summary-select-article nil 'force)))
-
-(defun gnus-summary-set-current-mark (&optional current-mark)
-  "Obsolete function."
-  nil)
 
 (defun gnus-summary-next-article (&optional unread subject backward push)
   "Select the next article.

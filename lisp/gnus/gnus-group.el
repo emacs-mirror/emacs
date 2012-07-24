@@ -4450,12 +4450,6 @@ and the second element is the address."
 			     (gnus-list-of-unread-articles (car info))))))
 	(error "No such group: %s" (gnus-info-group info))))))
 
-(defun gnus-group-set-method-info (group select-method)
-  (gnus-group-set-info select-method group 'method))
-
-(defun gnus-group-set-params-info (group params)
-  (gnus-group-set-info params group 'params))
-
 ;; Ad-hoc function for inserting data from a different newsrc.eld
 ;; file.  Use with caution, if at all.
 (defun gnus-import-other-newsrc-file (file)

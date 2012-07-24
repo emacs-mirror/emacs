@@ -1230,30 +1230,6 @@ If SEND-IF-FORCE, only send authinfo to the server if the
 		     (read-passwd (format "NNTP (%s@%s) password: "
 					  user nntp-address))))))))))
 
-(defun nntp-send-nosy-authinfo ()
-  "Send the AUTHINFO to the nntp server."
-  (let ((user (read-string (format "NNTP (%s) user name: " nntp-address))))
-    (unless (member user '(nil ""))
-      (nntp-send-command "^3.*\r?\n" "AUTHINFO USER" user)
-      (when t				;???Should check if AUTHINFO succeeded
-	(nntp-send-command "^2.*\r?\n" "AUTHINFO PASS"
-			   (read-passwd (format "NNTP (%s@%s) password: "
-						user nntp-address)))))))
-
-(defun nntp-send-authinfo-from-file ()
-  "Send the AUTHINFO to the nntp server.
-
-The authinfo login name is taken from the user's login name and the
-password contained in '~/.nntp-authinfo'."
-  (when (file-exists-p "~/.nntp-authinfo")
-    (with-temp-buffer
-      (insert-file-contents "~/.nntp-authinfo")
-      (goto-char (point-min))
-      (nntp-send-command "^3.*\r?\n" "AUTHINFO USER" (user-login-name))
-      (nntp-send-command
-       "^2.*\r?\n" "AUTHINFO PASS"
-       (buffer-substring (point) (point-at-eol))))))
-
 ;;; Internal functions.
 
 (defun nntp-handle-authinfo (process)
@@ -1379,14 +1355,6 @@ password contained in '~/.nntp-authinfo'."
 	  nntp-process-callback callback
 	  nntp-process-start-point (point-max))
     (setq after-change-functions '(nntp-after-change-function))))
-
-(defun nntp-async-timer-handler ()
-  (mapcar
-   (lambda (proc)
-     (if (memq (process-status proc) '(open run))
-	 (nntp-async-trigger proc)
-       (nntp-async-stop proc)))
-   nntp-async-process-list))
 
 (defun nntp-async-stop (proc)
   (setq nntp-async-process-list (delq proc nntp-async-process-list))

@@ -4011,28 +4011,6 @@ This function strips off the signature from the original message."
 	(forward-char -1)
 	nil))))
 
-(defun message-remove-signature ()
-  "Remove the signature from the text between point and mark.
-The text will also be indented the normal way."
-  (save-excursion
-    (let ((start (point))
-	  mark)
-      (if (not (re-search-forward message-signature-separator (mark t) t))
-	  ;; No signature here, so we just indent the cited text.
-	  (message-indent-citation)
-	;; Find the last non-empty line.
-	(forward-line -1)
-	(while (looking-at "[ \t]*$")
-	  (forward-line -1))
-	(forward-line 1)
-	(setq mark (set-marker (make-marker) (point)))
-	(goto-char start)
-	(message-indent-citation)
-	;; Enable undoing the deletion.
-	(undo-boundary)
-	(delete-region mark (mark t))
-	(set-marker mark nil)))))
-
 
 
 ;;;
@@ -5805,12 +5783,6 @@ give as trustworthy answer as possible."
       (concat system-name
 	      ".i-did-not-set--mail-host-address--so-tickle-me")))))
 
-(defun message-make-host-name ()
-  "Return the name of the host."
-  (let ((fqdn (message-make-fqdn)))
-    (string-match "^[^.]+\\." fqdn)
-    (substring fqdn 0 (1- (match-end 0)))))
-
 (defun message-make-domain ()
   "Return the domain name."
   (or mail-host-address
@@ -6133,13 +6105,6 @@ Headers already prepared in the buffer are not modified."
       (unless (= (point) end)
 	(forward-char 1)))
     (skip-chars-forward " \t\n")))
-
-(defun message-fill-address (header value)
-  (insert (capitalize (symbol-name header))
-	  ": "
-	  (if (consp value) (car value) value)
-	  "\n")
-  (message-fill-field-address))
 
 (defun message-split-line ()
   "Split current line, moving portion beyond point vertically down.

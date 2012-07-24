@@ -1,3 +1,70 @@
+2012-07-24  Julien Danjou  <julien@danjou.info>
+
+	* mail-source.el (mail-source-movemail-and-remove): Remove, unused.
+
+	* nntp.el (nntp-send-nosy-authinfo, nntp-send-authinfo-from-file)
+	(nntp-async-timer-handler): Remove, unused.
+
+	* nnimap.el (nnimap-get-responses): Remove, unused.
+
+	* nnheader.el (mail-header-set-extra): Remove, unused.
+
+	* mm-view.el (mm-view-sound-file): Remove, unused.
+
+	* mm-url.el (mm-url-fetch-simple, mm-url-fetch-form)
+	(mm-url-encode-multipart-form-data): Remove, unused.
+
+	* message.el (message-remove-signature, message-make-host-name)
+	(message-fill-address): Remove, unused.
+
+	* gnus.el (gnus-writable-groups, gnus-group-guess-prefixed-name)
+	(gnus-group-guess-full-name, gnus-group-guess-prefixed-name): Remove,
+	unused.
+
+	* gnus-uu.el (gnus-uu-find-name-in-shar): Remove, unused.
+
+	* gnus-util.el (gnus-extract-address-component-name)
+	(gnus-extract-address-component-email, gnus-sortable-date)
+	(gnus-alist-to-hashtable, gnus-hashtable-to-alist)
+	(gnus-process-live-p): Remove, unused.
+
+	* gnus-topic.el (gnus-group-parent-topic): Remove, unused.
+
+	* gnus-sum.el (gnus-score-set-default, gnus-article-parent-p)
+	(gnus-article-read-p, gnus-uncompress-marks): Remove, unused.
+	(gnus-summary-set-current-mark): Remove obsolete, empty and unused
+	function.
+
+	* gnus-start.el (gnus-kill-newsgroup): Remove unused obsolete function.
+
+	* gnus-score.el (gnus-summary-score-crossposting)
+	(gnus-score-regexp-bad-p): Remove, unused.
+
+	* gnus-salt.el (gnus-tree-goto-article): Remove, unused.
+
+	* gnus-range.el (gnus-sublist-p): Remove, unused.
+
+	* gnus-msg.el (gnus-mail-parse-comma-list, gnus-put-message): Remove,
+	unused.
+
+	* gnus-kill.el (gnus-Newsgroup-kill-file): Remove, unused.
+
+	* gnus-int.el (gnus-list-active-group, gnus-request-group-articles)
+	(gnus-request-associate-buffer): Remove, unused.
+
+	* gnus-group.el (gnus-group-set-method-info)
+	(gnus-group-set-params-info): Remove, unused.
+
+	* gnus-fun.el (gnus-shell-command-to-string)
+	(gnus-shell-command-on-region): Remove, unused.
+
+	* gnus-cite.el (gnus-cited-line-p): Remove, unused.
+
+	* gnus-art.el (gnus-article-text-type-exists-p)
+	(article-translate-characters, gnus-article-hide-text-of-type)
+	(gnus-kill-sticky-article-buffers, gnus-article-maybe-highlight):
+	Remove, unused.
+
 2012-07-23  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* nnir.el ("nnir"): Revert last change, that's premature to merge from
