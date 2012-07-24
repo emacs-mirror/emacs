@@ -1,3 +1,9 @@
+2012-07-24  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Simplify copy_overlay.
+	* buffer.c (copy_overlay): Simplify, use build_marker.
+	* lisp.h (struct Lisp_Overlay): Restore comment with minor tweaks.
+
 2012-07-23  Eli Zaretskii  <eliz@gnu.org>
 
 	* print.c (print_object): Don't crash when a frame's name is nil

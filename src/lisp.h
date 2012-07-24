@@ -1286,6 +1286,17 @@ struct Lisp_Marker
 /* START and END are markers in the overlay's buffer, and
    PLIST is the overlay's property list.  */
 struct Lisp_Overlay
+/* An overlay's real data content is:
+   - plist
+   - buffer (really there are two buffer pointers, one per marker,
+     and both points to the same buffer)
+   - insertion type of both ends (per-marker fields)
+   - start & start byte (of start marker)
+   - end & end byte (of end marker)
+   - next (singly linked list of overlays)
+   - next fields of start and end markers (singly linked list of markers).
+   I.e. 9words plus 2 bits, 3words of which are for external linked lists.
+*/
   {
     ENUM_BF (Lisp_Misc_Type) type : 16;	/* = Lisp_Misc_Overlay */
     unsigned gcmarkbit : 1;

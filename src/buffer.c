@@ -410,32 +410,24 @@ even if it is dead.  The return value is never nil.  */)
 static struct Lisp_Overlay *
 copy_overlays (struct buffer *b, struct Lisp_Overlay *list)
 {
-  Lisp_Object buffer;
   struct Lisp_Overlay *result = NULL, *tail = NULL;
-
-  XSETBUFFER (buffer, b);
 
   for (; list; list = list->next)
     {
-      Lisp_Object overlay, start, end, old_overlay;
-      ptrdiff_t charpos;
+      Lisp_Object overlay, start, end;
+      struct Lisp_Marker *m;
 
-      XSETMISC (old_overlay, list);
-      charpos = marker_position (OVERLAY_START (old_overlay));
-      start = Fmake_marker ();
-      Fset_marker (start, make_number (charpos), buffer);
-      XMARKER (start)->insertion_type
-	= XMARKER (OVERLAY_START (old_overlay))->insertion_type;
+      eassert (MARKERP (list->start));
+      m = XMARKER (list->start);
+      start = build_marker (b, m->charpos, m->bytepos);
+      XMARKER (start)->insertion_type = m->insertion_type;
 
-      charpos = marker_position (OVERLAY_END (old_overlay));
-      end = Fmake_marker ();
-      Fset_marker (end, make_number (charpos), buffer);
-      XMARKER (end)->insertion_type
-	= XMARKER (OVERLAY_END (old_overlay))->insertion_type;
+      eassert (MARKERP (list->end));
+      m = XMARKER (list->end);
+      end = build_marker (b, m->charpos, m->bytepos);
+      XMARKER (end)->insertion_type = m->insertion_type;
 
-      overlay = build_overlay
-	(start, end, Fcopy_sequence (OVERLAY_PLIST (old_overlay)));
-
+      overlay = build_overlay (start, end, Fcopy_sequence (list->plist));
       if (tail)
 	tail = tail->next = XOVERLAY (overlay);
       else
