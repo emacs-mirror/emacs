@@ -2733,20 +2733,25 @@ init_iterator (struct it *it, struct window *w,
 
   /* Get dimensions of truncation and continuation glyphs.  These are
      displayed as fringe bitmaps under X, but we need them for such
-     frames when the fringes are turned off.  */
-  if (it->line_wrap == TRUNCATE)
+     frames when the fringes are turned off.  But leave the dimensions
+     zero for tooltip frames, as these glyphs look ugly there and also
+     sabotage calculations of tooltip dimensions in x-show-tip.  */
+  if (!(FRAMEP (tip_frame) && it->f == XFRAME (tip_frame)))
     {
-      /* We will need the truncation glyph.  */
-      eassert (it->glyph_row == NULL);
-      produce_special_glyphs (it, IT_TRUNCATION);
-      it->truncation_pixel_width = it->pixel_width;
-    }
-  else
-    {
-      /* We will need the continuation glyph.  */
-      eassert (it->glyph_row == NULL);
-      produce_special_glyphs (it, IT_CONTINUATION);
-      it->continuation_pixel_width = it->pixel_width;
+      if (it->line_wrap == TRUNCATE)
+	{
+	  /* We will need the truncation glyph.  */
+	  eassert (it->glyph_row == NULL);
+	  produce_special_glyphs (it, IT_TRUNCATION);
+	  it->truncation_pixel_width = it->pixel_width;
+	}
+      else
+	{
+	  /* We will need the continuation glyph.  */
+	  eassert (it->glyph_row == NULL);
+	  produce_special_glyphs (it, IT_CONTINUATION);
+	  it->continuation_pixel_width = it->pixel_width;
+	}
     }
 
   /* Reset these values to zero because the produce_special_glyphs
