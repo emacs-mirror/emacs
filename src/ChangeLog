@@ -1,3 +1,8 @@
+2012-07-25  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.m (ns_read_socket): Return early if there is a modal
+	window (Bug#12043).
+
 2012-07-25  Martin Rudalics  <rudalics@gmx.at>
 
 	* frame.c (Fredirect_frame_focus): In doc-string don't mention

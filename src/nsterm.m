@@ -3411,6 +3411,9 @@ ns_read_socket (struct terminal *terminal, int expected,
 
 /* NSTRACE (ns_read_socket); */
 
+  if ([NSApp modalWindow] != nil)
+    return -1;
+
   if (interrupt_input_blocked)
     {
       interrupt_input_pending = 1;
