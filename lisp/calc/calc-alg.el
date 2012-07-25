@@ -530,7 +530,10 @@
                            (not (Math-realp (nth 1 math-simplify-expr))))
 		       (math-common-constant-factor (nth 1 math-simplify-expr))))
 	  (if (and (eq (car-safe nn) 'frac) (eq (nth 1 nn) 1) (not n))
-	      (progn
+	      (unless (and (eq (car-safe math-simplify-expr) 'calcFunc-eq)
+                           (eq (car-safe (nth 1 math-simplify-expr)) 'var)
+                           (not (math-expr-contains (nth 2 math-simplify-expr) 
+                                                    (nth 1 math-simplify-expr))))
 		(setcar (cdr math-simplify-expr)
                         (math-mul (nth 2 nn) (nth 1 math-simplify-expr)))
 		(setcar (cdr (cdr math-simplify-expr))
