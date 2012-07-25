@@ -1,3 +1,7 @@
+2012-07-25  Julien Danjou  <julien@danjou.info>
+
+	* gnus-art.el (gnus-kill-sticky-article-buffers): Reintroduce.
+
 2012-07-25  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* nnimap.el (nnimap-get-responses): Don't remove, still used.

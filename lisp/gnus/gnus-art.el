@@ -4775,6 +4775,18 @@ If none is given, assume the current buffer and kill it if it has
     (when (eq major-mode 'gnus-sticky-article-mode)
       (gnus-kill-buffer buffer))))
 
+(defun gnus-kill-sticky-article-buffers (arg)
+  "Kill all sticky article buffers.
+If a prefix ARG is given, ask for confirmation."
+  (interactive "P")
+  (dolist (buf (gnus-buffers))
+    (with-current-buffer buf
+      (when (eq major-mode 'gnus-sticky-article-mode)
+       (if (not arg)
+           (gnus-kill-buffer buf)
+         (when (yes-or-no-p (concat "Kill buffer " (buffer-name buf) "? "))
+           (gnus-kill-buffer buf)))))))
+
 ;;;
 ;;; Gnus MIME viewing functions
 ;;;
