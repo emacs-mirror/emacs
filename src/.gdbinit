@@ -1190,9 +1190,7 @@ end
 
 define xreload
   set $tagmask = ((1 << gdb_gctypebits) - 1)
-  # The consing_since_gc business widens the 1 to EMACS_INT,
-  # a symbol not directly visible to GDB.
-  set $valmask = gdb_use_lsb ? ~($tagmask) : ((consing_since_gc - consing_since_gc + 1) << gdb_valbits) - 1
+  set $valmask = gdb_use_lsb ? ~($tagmask) : ((EMACS_INT) 1 << gdb_valbits) - 1
 end
 document xreload
   When starting Emacs a second time in the same gdb session under

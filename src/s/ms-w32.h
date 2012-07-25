@@ -388,7 +388,8 @@ extern int getloadavg (double *, int);
 # ifdef WIDE_EMACS_INT
 
 /* Use pre-C99-style 64-bit integers.  */
-# define EMACS_INT __int64
+typedef __int64 EMACS_INT;
+typedef unsigned __int64 EMACS_UINT;
 # define EMACS_INT_MAX _I64_MAX
 # define pI "I64"
 

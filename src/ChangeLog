@@ -1,3 +1,12 @@
+2012-07-25  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use typedef for EMACS_INT, EMACS_UINT.
+	* lisp.h, s/ms-w32.h (EMACS_INT, EMACS_UINT): Use typedefs rather
+	than macros.  This simplifies debugging in the usual case, since
+	it lets GDB show addresses as 'EMACS_INT *' rather than 'long int *'
+	and it allows expressions involving EMACS_INT casts.
+	* .gdbinit (xreload): Simplify by using EMACS_INT cast.
+
 2012-07-25  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsterm.m (ns_read_socket): Return early if there is a modal
