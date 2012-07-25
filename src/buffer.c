@@ -1560,14 +1560,6 @@ cleaning up all windows currently displaying the buffer to be killed. */)
   if (EQ (buffer, XWINDOW (minibuf_window)->buffer))
     return Qnil;
 
-  /* Notify our base buffer that we don't share the text anymore.  */
-  if (b->base_buffer)
-    {
-      eassert (b->indirections == -1);
-      b->base_buffer->indirections--;
-      eassert (b->base_buffer->indirections >= 0);
-    }
-
   /* When we kill an ordinary buffer which shares it's buffer text
      with indirect buffer(s), we must kill indirect buffer(s) too.
      We do it at this stage so nothing terrible happens if they
@@ -1708,7 +1700,15 @@ cleaning up all windows currently displaying the buffer to be killed. */)
   BVAR (b, name) = Qnil;
 
   BLOCK_INPUT;
-  if (! b->base_buffer)
+  if (b->base_buffer)
+    {
+      /* Notify our base buffer that we don't share the text anymore.  */
+      eassert (b->indirections == -1);
+      b->base_buffer->indirections--;
+      eassert (b->base_buffer->indirections >= 0);
+    }
+  else
+    /* No one shares our buffer text, can free it.  */
     free_buffer_text (b);
 
   if (b->newline_cache)
@@ -4897,6 +4897,9 @@ init_buffer_once (void)
   /* Prevent GC from getting confused.  */
   buffer_defaults.text = &buffer_defaults.own_text;
   buffer_local_symbols.text = &buffer_local_symbols.own_text;
+  /* No one will share the text with these buffers, but let's play it safe.  */
+  buffer_defaults.indirections = 0;
+  buffer_local_symbols.indirections = 0;
   BUF_INTERVALS (&buffer_defaults) = 0;
   BUF_INTERVALS (&buffer_local_symbols) = 0;
   XSETPVECTYPESIZE (&buffer_defaults, PVEC_BUFFER, pvecsize);
