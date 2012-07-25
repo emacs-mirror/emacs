@@ -1,3 +1,8 @@
+2012-07-25  Chong Yidong  <cyd@gnu.org>
+
+	* mouse.el (mouse-drag-track): Do not set the mark if the user
+	releases the mouse without selecting anything (Bug#11588).
+
 2012-07-21  Leo Liu  <sdl.web@gmail.com>
 
 	* progmodes/cc-cmds.el (c-defun-name): Use
