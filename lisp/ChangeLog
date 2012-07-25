@@ -1,3 +1,8 @@
+2012-07-25  Christopher Schmidt  <christopher@ch.ristopher.com>
+
+	* emacs-lisp/pp.el (pp-display-expression): Select old selected
+	window only if it is still live (Bug#12034).
+
 2012-07-25  Martin Rudalics  <rudalics@gmx.at>
 
 	* subr.el (redirect-frame-focus): Add advertised calling
