@@ -279,7 +279,7 @@
 ;; can be used by other packages to read a buffer name, a file name,
 ;; or a directory name in the `ido' way.
 
-;;; Acknowledgements
+;;; Acknowledgments
 
 ;; Infinite amounts of gratitude goes to Stephen Eglen <stephen@cns.ed.ac.uk>
 ;; who wrote iswitch-buffer mode - from which I ripped off 99% of the code

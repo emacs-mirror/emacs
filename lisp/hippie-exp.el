@@ -156,7 +156,7 @@
 ;;  opposite situation to occur, that `hippie-expand' misses some
 ;;  suggestion because it thinks it has already tried it.
 ;;
-;;  Acknowledgement
+;;  Acknowledgment
 ;;
 ;;  I want to thank Mikael Djurfeldt in discussions with whom the idea
 ;;  of this function took form.

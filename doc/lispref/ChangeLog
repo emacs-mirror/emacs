@@ -1,3 +1,8 @@
+2012-07-25  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Prefer typical American spelling for "acknowledgment".
+	* intro.texi (Acknowledgments): Rename from Acknowledgements.
+
 2012-07-21  Eli Zaretskii  <eliz@gnu.org>
 
 	* commands.texi (Special Events): Mention language-change event.

@@ -83,7 +83,7 @@
 ;; Useful settings for VM
 ;; vm-auto-get-new-mail should be t (the default).
 
-;; Acknowledgements
+;; Acknowledgments
 ;; Thanks to jond@mitre.org (Jonathan Doughty) for help with code for
 ;; setting up vm-spool-files.
 

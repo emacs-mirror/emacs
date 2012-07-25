@@ -772,7 +772,7 @@ for the --graph option."
 	   (list (cons (nth 1 vc-git-root-log-format)
 		       (nth 2 vc-git-root-log-format)))
 	 (append
-	  `((,log-view-message-re (1 'change-log-acknowledgement)))
+	  `((,log-view-message-re (1 'change-log-acknowledgment)))
 	  ;; Handle the case:
 	  ;; user: foo@bar
 	  '(("^Author:[ \t]+\\([A-Za-z0-9_.+-]+@[A-Za-z0-9_.-]+\\)"
@@ -788,8 +788,8 @@ for the --graph option."
 	     (1 'change-log-name)
 	     (2 'change-log-email))
 	    ("^Merge: \\([0-9a-z]+\\) \\([0-9a-z]+\\)"
-	     (1 'change-log-acknowledgement)
-	     (2 'change-log-acknowledgement))
+	     (1 'change-log-acknowledgment)
+	     (2 'change-log-acknowledgment))
 	    ("^Date:   \\(.+\\)" (1 'change-log-date))
 	    ("^summary:[ \t]+\\(.+\\)" (1 'log-view-message)))))))
 

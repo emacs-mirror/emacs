@@ -103,8 +103,8 @@
 ;;  (require 'viper)
 ;;
 
-;;; Acknowledgements:
-;;  -----------------
+;;; Acknowledgments:
+;;  ----------------
 ;;  Bug reports and ideas contributed by many users have helped
 ;;  improve Viper and the various versions of VIP.
 ;;  See the on-line manual for a complete list of contributors.

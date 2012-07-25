@@ -368,8 +368,8 @@
 ;; http://cm.bell-labs.com/7thEdMan/
 
 
-;; Acknowledgements
-;; ================
+;; Acknowledgments
+;; ===============
 
 ;; For Heather, Kathryn and Madelyn, the women in my life
 ;; (although they will probably never use it)!

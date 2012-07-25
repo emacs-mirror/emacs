@@ -80,7 +80,7 @@
 ;;   making comments visible in the expansion.
 ;; - All work is done in core memory, no need for temporary files.
 
-;; ACKNOWLEDGEMENTS ==================================================
+;; ACKNOWLEDGMENTS ===================================================
 
 ;; A lot of thanks to Don Maszle who did a great work of testing, bug
 ;; reporting and suggestion of new features.  This work has been

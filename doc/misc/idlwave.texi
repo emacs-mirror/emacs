@@ -71,7 +71,7 @@ Interactive Data Language (IDL), and running IDL as an inferior shell.
 * Getting Started::             Tutorial
 * The IDLWAVE Major Mode::      The mode for editing IDL programs
 * The IDLWAVE Shell::           The mode for running IDL as an inferior program
-* Acknowledgements::            Who did what
+* Acknowledgments::             Who did what
 * Sources of Routine Info::     How does IDLWAVE know about routine XYZ
 * HTML Help Browser Tips::
 * Configuration Examples::      The user is king
@@ -2361,7 +2361,7 @@ Normal hook.  Executed when a buffer is put into @code{idlwave-mode}.
 Normal hook.  Executed when @file{idlwave.el} is loaded.
 @end defopt
 
-@node The IDLWAVE Shell, Acknowledgements, The IDLWAVE Major Mode, Top
+@node The IDLWAVE Shell, Acknowledgments, The IDLWAVE Major Mode, Top
 @chapter The IDLWAVE Shell
 @cindex IDLWAVE shell
 @cindex Major mode, @code{idlwave-shell-mode}
@@ -3273,9 +3273,9 @@ examine command strings to send, after all instances of @code{___}
 (three underscores) are replaced by the indicated expression.
 @end defopt
 
-@node Acknowledgements, Sources of Routine Info, The IDLWAVE Shell, Top
-@chapter Acknowledgements
-@cindex Acknowledgements
+@node Acknowledgments, Sources of Routine Info, The IDLWAVE Shell, Top
+@chapter Acknowledgments
+@cindex Acknowledgments
 @cindex Maintainer, of IDLWAVE
 @cindex Authors, of IDLWAVE
 @cindex Contributors, to IDLWAVE
@@ -3352,7 +3352,7 @@ scripts and documentation to interface with the IDL Assistant.
 @noindent
 Thanks to everyone!
 
-@node Sources of Routine Info, HTML Help Browser Tips, Acknowledgements, Top
+@node Sources of Routine Info, HTML Help Browser Tips, Acknowledgments, Top
 @appendix Sources of Routine Info
 
 @cindex Sources of routine information

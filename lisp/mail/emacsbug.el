@@ -212,7 +212,7 @@ Prompts for bug subject.  Leaves you in a mail buffer."
 
 	(insert ".  Please check that
 the From: line contains a valid email address.  After a delay of up
-to one day, you should receive an acknowledgement at that address.
+to one day, you should receive an acknowledgment at that address.
 
 Please write in English if possible, as the Emacs maintainers
 usually do not have translators for other languages.\n\n")))

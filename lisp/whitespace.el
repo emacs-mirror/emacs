@@ -309,8 +309,8 @@
 ;;				buffer is visited or written.
 ;;
 ;;
-;; Acknowledgements
-;; ----------------
+;; Acknowledgments
+;; ---------------
 ;;
 ;; Thanks to felix (EmacsWiki) for keeping highlight when switching between
 ;; major modes on a file.

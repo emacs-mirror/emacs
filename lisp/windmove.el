@@ -118,7 +118,7 @@
 ;;     (setq windmove-window-distance-delta 2)
 ;;
 
-;; Acknowledgements:
+;; Acknowledgments:
 ;;
 ;; Special thanks to Julian Assange (proff@iq.org), whose
 ;; change-windows-intuitively.el predates Windmove, and provided the

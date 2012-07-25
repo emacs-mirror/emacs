@@ -254,7 +254,7 @@ Introduction
 * Lisp History::            Emacs Lisp is descended from Maclisp.
 * Conventions::             How the manual is formatted.
 * Version Info::            Which Emacs version is running?
-* Acknowledgements::        The authors, editors, and sponsors of this manual.
+* Acknowledgments::         The authors, editors, and sponsors of this manual.
 
 Conventions
 

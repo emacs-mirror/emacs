@@ -221,7 +221,7 @@ for more details.@refill
 @cindex nested citations
 @cindex citation
 
-A @dfn{citation} is the acknowledgement of the original author of a mail
+A @dfn{citation} is the acknowledgment of the original author of a mail
 message in the body of the reply.  There are two basic citation styles
 which Supercite supports.  The first, called @dfn{nested citations} is
 an anonymous form of citation; in other words, an indication is made

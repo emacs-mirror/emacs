@@ -233,7 +233,7 @@
 
 ;;; TODO
 
-;;; Acknowledgements
+;;; Acknowledgments
 
 ;; Thanks to Jari Aalto <jari.aalto@poboxes.com> for help with the
 ;; first version of this package, iswitch-buffer.  Thanks also to many

@@ -33,7 +33,7 @@
 ;;
 ;;   this is intended as a replacement for mailto.el
 ;;
-;; acknowledgements:
+;; acknowledgments:
 ;;
 ;;   the functions that deal w/ unhexifying in this file were basically
 ;; taken from w3 -- i hope to replace them w/ something else soon OR

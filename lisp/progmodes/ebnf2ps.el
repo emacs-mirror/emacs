@@ -1128,8 +1128,8 @@ Please send all bug fixes and enhancements to
 ;; . Optimizations...
 ;;
 ;;
-;; Acknowledgements
-;; ----------------
+;; Acknowledgments
+;; ---------------
 ;;
 ;; Thanks to Eli Zaretskii <eliz@gnu.org> for some doc fixes.
 ;;

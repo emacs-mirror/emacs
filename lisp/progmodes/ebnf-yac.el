@@ -73,8 +73,8 @@
 ;; example: this_is_a_valid.name, Another_EXAMPLE, mIxEd.CaSe.
 ;;
 ;;
-;; Acknowledgements
-;; ----------------
+;; Acknowledgments
+;; ---------------
 ;;
 ;; Thanks to Matthew K. Junker <junker@alum.mit.edu> for the suggestion to deal
 ;; with %right, %left and %prec pragmas.  His suggestion was extended to deal

@@ -218,7 +218,7 @@ and what are the various ways that it can be used.
 * Notations Used in This Manual::
 * Demonstration of Calc::
 * Using Calc::
-* History and Acknowledgements::
+* History and Acknowledgments::
 @end menu
 
 @node What is Calc, About This Manual, Getting Started, Getting Started
@@ -582,7 +582,7 @@ about the @w{@kbd{t N}} command, @kbd{h f sqrt @key{RET}} to read about the
 Press @key{DEL} repeatedly to remove any leftover results from the stack.
 To exit from Calc, press @kbd{q} or @kbd{C-x * c} again.
 
-@node Using Calc, History and Acknowledgements, Demonstration of Calc, Getting Started
+@node Using Calc, History and Acknowledgments, Demonstration of Calc, Getting Started
 @section Using Calc
 
 @noindent
@@ -1148,8 +1148,8 @@ and record them as the current keyboard macro.
 its initial state:  Empty stack, and initial mode settings.
 @end table
 
-@node History and Acknowledgements,  , Using Calc, Getting Started
-@section History and Acknowledgements
+@node History and Acknowledgments,  , Using Calc, Getting Started
+@section History and Acknowledgments
 
 @noindent
 Calc was originally started as a two-week project to occupy a lull
@@ -27779,7 +27779,7 @@ acres per meter-second.)  Remainder units are expressed in terms of
 input units.
 
 If you want to disallow using inconsistent units, you can set the customizable variable
-@code{calc-ensure-consistent-units} to @code{t} (@pxref{Customizing Calc}).  In this case, 
+@code{calc-ensure-consistent-units} to @code{t} (@pxref{Customizing Calc}).  In this case,
 if you request units which are inconsistent with the original units, you will be warned about
 it and no conversion will occur.
 
@@ -35597,15 +35597,15 @@ of @code{calc-multiplication-has-precedence} is @code{t}.
 @end defvar
 
 @defvar calc-ensure-consistent-units
-When converting units, the variable @code{calc-ensure-consistent-units} 
-determines whether or not the target units need to be consistent with the 
+When converting units, the variable @code{calc-ensure-consistent-units}
+determines whether or not the target units need to be consistent with the
 original units.  If @code{calc-ensure-consistent-units} is @code{nil}, then
-the target units don't need to have the same dimensions as the original units; 
-for example, converting @samp{100 ft/s} to @samp{m} will produce @samp{30.48 m/s}.   
-If  @code{calc-ensure-consistent-units} is non-@code{nil}, then the target units 
-need to have the same dimensions as the original units; for example, converting 
-@samp{100 ft/s} to @samp{m} will result in an error, since @samp{ft/s} and @samp{m} 
-have different dimensions. The default value of @code{calc-ensure-consistent-units} 
+the target units don't need to have the same dimensions as the original units;
+for example, converting @samp{100 ft/s} to @samp{m} will produce @samp{30.48 m/s}.
+If @code{calc-ensure-consistent-units} is non-@code{nil}, then the target units
+need to have the same dimensions as the original units; for example, converting
+@samp{100 ft/s} to @samp{m} will result in an error, since @samp{ft/s} and @samp{m}
+have different dimensions. The default value of @code{calc-ensure-consistent-units}
 is @code{nil}.
 @end defvar
 
