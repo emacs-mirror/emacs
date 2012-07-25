@@ -1184,6 +1184,7 @@ is converted into a string by expressing it in decimal."
 (set-advertised-calling-convention
  'all-completions '(string collection &optional predicate) "23.1")
 (set-advertised-calling-convention 'unintern '(name obarray) "23.3")
+(set-advertised-calling-convention 'redirect-frame-focus '(frame focus-frame) "24.2")
 
 ;;;; Obsolescence declarations for variables, and aliases.
 

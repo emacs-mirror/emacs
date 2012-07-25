@@ -1,3 +1,8 @@
+2012-07-25  Martin Rudalics  <rudalics@gmx.at>
+
+	* subr.el (redirect-frame-focus): Add advertised calling
+	convention (Bug#12030).
+
 2012-07-25  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Prefer typical American spelling for "acknowledgment".
@@ -570,7 +575,7 @@
 2012-07-06  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* window.el (quit-window): Always restore window height when
-	it's saved in quit-restore parameter.
+	it's saved in quit-restore parameter (Bug#11810).
 
 2012-07-06  Glenn Morris  <rgm@gnu.org>
 

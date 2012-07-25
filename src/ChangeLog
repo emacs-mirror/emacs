@@ -1,3 +1,8 @@
+2012-07-25  Martin Rudalics  <rudalics@gmx.at>
+
+	* frame.c (Fredirect_frame_focus): In doc-string don't mention
+	that FOCUS-FRAME can be omitted.
+
 2012-07-25  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Adjust buffer text indirection counters at the end of Fkill_buffer.
