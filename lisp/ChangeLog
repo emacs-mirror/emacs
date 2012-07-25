@@ -1,3 +1,8 @@
+2012-07-25  Alp Aker  <alp.tekin.aker@gmail.com>
+
+	* international/mule-cmds.el (ucs-insert): Mark it as an obsolete
+	function, not an obsolete variable (Bug#12046).
+
 2012-07-25  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* faces.el (face-spec-reset-face): Fix last change.  (Bug#12042)

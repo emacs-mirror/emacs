@@ -2954,7 +2954,7 @@ point or a number in hash notation, e.g. #o21430 for octal,
      (t
       (cdr (assoc-string input (ucs-names) t))))))
 
-(define-obsolete-variable-alias 'ucs-insert 'insert-char "24.2")
+(define-obsolete-function-alias 'ucs-insert 'insert-char "24.2")
 (define-key ctl-x-map "8\r" 'insert-char)
 
 ;;; mule-cmds.el ends here
