@@ -1,3 +1,7 @@
+2012-07-25  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* faces.el (face-spec-reset-face): Fix last change.  (Bug#12042)
+
 2012-07-25  Christopher Schmidt  <christopher@ch.ristopher.com>
 
 	* emacs-lisp/pp.el (pp-display-expression): Select old selected
