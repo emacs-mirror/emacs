@@ -1,3 +1,7 @@
+2012-07-25  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* nnimap.el (nnimap-get-responses): Don't remove, still used.
+
 2012-07-24  Julien Danjou  <julien@danjou.info>
 
 	* mail-source.el (mail-source-movemail-and-remove): Remove, unused.
