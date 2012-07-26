@@ -7,7 +7,8 @@
 	the fix for 12036 would have avoided some of the problems noted in
 	<http://bugs.gnu.org/12036#13> by Eli Zaretskii, as the scope problems
 	would have been more obvious.
-	* emacs.c (gdb_CHECK_LISP_OBJECT_TYPE, gdb_DATA_SEG_BITS)
+	* emacs.c: Do not include <verify.h>; no longer needed.
+	(gdb_CHECK_LISP_OBJECT_TYPE, gdb_DATA_SEG_BITS)
 	(gdb_GCTYPEBITS, gdb_USE_LSB_TAG)
 	(CHECK_LISP_OBJECT_TYPE, DATA_SEG_BITS, GCTYPEBITS, USE_LSB_TAG):
 	Remove; now done in lisp.h.
