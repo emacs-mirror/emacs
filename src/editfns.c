@@ -3379,6 +3379,10 @@ save_restriction_restore (Lisp_Object data)
 
 	  buf->clip_changed = 1; /* Remember that the narrowing changed. */
 	}
+      /* These aren't needed anymore, so don't wait for GC.  */
+      free_marker (XCAR (data));
+      free_marker (XCDR (data));
+      free_cons (XCONS (data));
     }
   else
     /* A buffer, which means that there was no old restriction.  */

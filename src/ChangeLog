@@ -1,3 +1,8 @@
+2012-07-26  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Explicitly free restriction data that are not needed anymore.
+	* editfns.c (save_restriction_restore): Free restriction data.
+
 2012-07-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* eval.c (Fautoload_do_load): Rename from do_autoload, export to Lisp,
