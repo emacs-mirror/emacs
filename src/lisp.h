@@ -155,7 +155,7 @@ extern int suppress_checking EXTERNALLY_VISIBLE;
    variable VAR of type TYPE with the added requirement that it be
    TYPEBITS-aligned.  */
 
-/* Number of bits in a Lisp_Obect tag.  This can be used in #if.  */
+/* Number of bits in a Lisp_Object tag.  This can be used in #if.  */
 #define GCTYPEBITS 3
 
 /* Number of bits in a Lisp_Object value, not counting the tag.  */
