@@ -783,6 +783,7 @@ $(BLD)/emacs.$(O) : \
 	$(SRC)/w32heap.h \
 	$(NT_INC)/sys/file.h \
 	$(NT_INC)/unistd.h \
+	$(GNU_LIB)/verify.h \
 	$(BLOCKINPUT_H) \
 	$(BUFFER_H) \
 	$(CHARACTER_H) \
