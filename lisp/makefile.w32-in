@@ -393,7 +393,7 @@ compile-first: 	$(lisp)/emacs-lisp/bytecomp.elc $(lisp)/emacs-lisp/byte-opt.elc 
 recompile: compile-first autoloads doit $(lisp)/progmodes/cc-mode.elc
 	$(emacs) --eval $(ARGQUOTE)(batch-byte-recompile-directory 0)$(ARGQUOTE) $(lisp)
 
-$(lisp)/calendar/cal-loaddefs.el:
+$(lisp)/calendar/cal-loaddefs.el: update-subdirs
 	"$(EMACS)" $(EMACSOPT) -l autoload \
 	   --eval "(setq generate-autoload-cookie \";;;###cal-autoload\")" \
 	   --eval "(setq find-file-suppress-same-file-warnings t)" \
@@ -401,7 +401,7 @@ $(lisp)/calendar/cal-loaddefs.el:
 	   -f w32-batch-update-autoloads "$(lisp)/calendar/cal-loaddefs.el" \
 	      $(MAKE) ./calendar
 
-$(lisp)/calendar/diary-loaddefs.el:
+$(lisp)/calendar/diary-loaddefs.el: update-subdirs
 	"$(EMACS)" $(EMACSOPT) -l autoload \
 	   --eval "(setq generate-autoload-cookie \";;;###diary-autoload\")" \
 	   --eval "(setq find-file-suppress-same-file-warnings t)" \
@@ -409,7 +409,7 @@ $(lisp)/calendar/diary-loaddefs.el:
 	   -f w32-batch-update-autoloads $(lisp)/calendar/diary-loaddefs.el \
 	      $(MAKE) ./calendar
 
-$(lisp)/calendar/hol-loaddefs.el:
+$(lisp)/calendar/hol-loaddefs.el: update-subdirs
 	"$(EMACS)" $(EMACSOPT) -l autoload \
 	   --eval "(setq generate-autoload-cookie \";;;###holiday-autoload\")" \
 	   --eval "(setq find-file-suppress-same-file-warnings t)" \
@@ -437,7 +437,7 @@ MH_E_SRC = $(lisp)/mh-e/mh-acros.el $(lisp)/mh-e/mh-alias.el	\
 # See the commentary for autoloads above for why we use ./mh-e below
 # instead of $(lisp)/mh-e.
 mh-autoloads: $(lisp)/mh-e/mh-loaddefs.el
-$(lisp)/mh-e/mh-loaddefs.el: $(MH_E_SRC)
+$(lisp)/mh-e/mh-loaddefs.el: $(MH_E_SRC) update-subdirs
 	"$(EMACS)" $(EMACSOPT) \
 	   -l autoload \
 	   --eval $(ARGQUOTE)(setq generate-autoload-cookie $(DQUOTE);;;###mh-autoload$(DQUOTE))$(ARGQUOTE) \
@@ -456,7 +456,7 @@ TRAMP_SRC = $(lisp)/net/tramp.el  $(lisp)/net/tramp-cache.el  \
 	$(lisp)/net/tramp-smb.el  $(lisp)/net/tramp-uu.el     \
 	$(lisp)/net/trampver.el
 
-$(lisp)/net/tramp-loaddefs.el: $(TRAMP_SRC)
+$(lisp)/net/tramp-loaddefs.el: $(TRAMP_SRC) update-subdirs
 	"$(EMACS)" $(EMACSOPT) \
 	   -l autoload \
 	   --eval $(ARGQUOTE)(setq generate-autoload-cookie $(DQUOTE);;;###tramp-autoload$(DQUOTE))$(ARGQUOTE) \
