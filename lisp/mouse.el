@@ -116,7 +116,7 @@ PREFIX is the prefix argument (if any) to pass to the command."
   (setq position
 	(cond
 	 ((eq position 'point)
-	  (let* ((pp (posn-at-point pos window))
+	  (let* ((pp (posn-at-point))
                  (xy (posn-x-y pp)))
 	    (list (list (car xy) (cdr xy)) (posn-window pp))))
 	 ((not position)

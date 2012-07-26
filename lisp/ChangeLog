@@ -1,5 +1,9 @@
 2012-07-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* mouse.el (popup-menu): Fix last change.
+
+2012-07-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
 	Autoload from Lisp with more care.  Follow aliases when looking for
 	function properties.
 	* subr.el (autoloadp): New function.
@@ -30,7 +34,6 @@
 	* emacs-lisp/cl-macs.el (cl-compiler-macroexpand):
 	* emacs-lisp/byte-opt.el (byte-compile-inline-expand):
 	* calc/calc.el (name): Use autoloadp & autoload-do-load.
-
 
 2012-07-25  Alp Aker  <alp.tekin.aker@gmail.com>
 
@@ -88,8 +91,8 @@
 
 2012-07-21  Leo Liu  <sdl.web@gmail.com>
 
-	* progmodes/cc-cmds.el (c-defun-name): Use
-	match-string-no-properties instead for consistency.
+	* progmodes/cc-cmds.el (c-defun-name):
+	Use match-string-no-properties instead for consistency.
 
 2012-07-20  Leo Liu  <sdl.web@gmail.com>
 
