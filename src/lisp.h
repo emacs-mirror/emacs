@@ -64,6 +64,12 @@ typedef unsigned int EMACS_UINT;
 # endif
 #endif
 
+/* If an enum type is not used, the enum symbols are not put into the
+   executable so the debugger cannot see them on many systems, e.g.,
+   GCC 4.7.1 + GDB 7.4.1 + GNU/Linux.  Work around this problem by
+   explicitly using the names in the integer constant expression EXPR.  */
+#define PUBLISH_TO_GDB(expr) extern int (*gdb_dummy (int))[(expr) || 1]
+
 /* Number of bits in some machine integer types.  */
 enum
   {
@@ -155,7 +161,10 @@ extern int suppress_checking EXTERNALLY_VISIBLE;
    variable VAR of type TYPE with the added requirement that it be
    TYPEBITS-aligned.  */
 
-/* Number of bits in a Lisp_Object tag.  This can be used in #if.  */
+/* Number of bits in a Lisp_Object tag.  This can be used in #if,
+   and for GDB's sake also as a regular symbol.  */
+enum { GCTYPEBITS = 3 };
+PUBLISH_TO_GDB (GCTYPEBITS);
 #define GCTYPEBITS 3
 
 /* Number of bits in a Lisp_Object value, not counting the tag.  */
@@ -202,7 +211,16 @@ enum { VALBITS = BITS_PER_EMACS_INT - GCTYPEBITS };
 #  endif
 # endif
 #endif
-#ifndef USE_LSB_TAG
+/* USE_LSB_TAG can be used in #if; default it to 0 and make it visible
+   to GDB.  */
+#ifdef USE_LSB_TAG
+# undef USE_LSB_TAG
+enum { USE_LSB_TAG = 1 };
+PUBLISH_TO_GDB (USE_LSB_TAG);
+# define USE_LSB_TAG 1
+#else
+enum { USE_LSB_TAG = 0 };
+PUBLISH_TO_GDB (USE_LSB_TAG);
 # define USE_LSB_TAG 0
 #endif
 
@@ -317,6 +335,8 @@ LISP_MAKE_RVALUE (Lisp_Object o)
 }
 
 #define LISP_INITIALLY_ZERO {0}
+#undef CHECK_LISP_OBJECT_TYPE
+enum { CHECK_LISP_OBJECT_TYPE = 1 };
 
 #else /* CHECK_LISP_OBJECT_TYPE */
 
@@ -327,8 +347,9 @@ typedef EMACS_INT Lisp_Object;
 #define XIL(i) (i)
 #define LISP_MAKE_RVALUE(o) (0+(o))
 #define LISP_INITIALLY_ZERO 0
-#define CHECK_LISP_OBJECT_TYPE 0
+enum { CHECK_LISP_OBJECT_TYPE = 0 };
 #endif /* CHECK_LISP_OBJECT_TYPE */
+PUBLISH_TO_GDB (CHECK_LISP_OBJECT_TYPE);
 
 /* In the size word of a vector, this bit means the vector has been marked.  */
 
@@ -368,6 +389,7 @@ enum pvec_type
   PVEC_SUB_CHAR_TABLE		= 0x30,
   PVEC_FONT			= 0x40
 };
+PUBLISH_TO_GDB ((enum pvec_type) 0);  /* This also publishes PVEC_*.  */
 
 /* For convenience, we also store the number of elements in these bits.
    Note that this size is not necessarily the memory-footprint size, but
@@ -386,10 +408,16 @@ enum
 enum { BOOL_VECTOR_BITS_PER_CHAR = 8 };
 
 /* DATA_SEG_BITS forces extra bits to be or'd in with any pointers
-   which were stored in a Lisp_Object */
-#ifndef DATA_SEG_BITS
-# define DATA_SEG_BITS 0
+   which were stored in a Lisp_Object.  It is not needed in #if, so
+   for GDB's sake change it from a macro to a regular symbol.  */
+#ifdef DATA_SEG_BITS
+enum { gdb_DATA_SEG_BITS = DATA_SEG_BITS };
+# undef DATA_SEG_BITS
+enum { DATA_SEG_BITS = gdb_DATA_SEG_BITS };
+#else
+enum { DATA_SEG_BITS = 0 };
 #endif
+PUBLISH_TO_GDB (DATA_SEG_BITS);
 
 /* These macros extract various sorts of values from a Lisp_Object.
  For example, if tem is a Lisp_Object whose type is Lisp_Cons,

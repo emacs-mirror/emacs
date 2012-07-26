@@ -1,3 +1,24 @@
+2012-07-26  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix export of symbols to GDB (Bug#12036).
+	* alloc.c (ARRAY_MARK_FLAG_VAL, PSEUDOVECTOR_FLAG_VAL, VALMASK_VAL)
+	(ARRAY_MARK_FLAG, PSEUDOVECTOR_FLAG, VALMASK): Move these here from
+	emacs.c, as this is a more-suitable home.  Had this been done earlier
+	the fix for 12036 would have avoided some of the problems noted in
+	<http://bugs.gnu.org/12036#13> by Eli Zaretskii, as the scope problems
+	would have been more obvious.
+	* emacs.c (gdb_CHECK_LISP_OBJECT_TYPE, gdb_DATA_SEG_BITS)
+	(gdb_GCTYPEBITS, gdb_USE_LSB_TAG)
+	(CHECK_LISP_OBJECT_TYPE, DATA_SEG_BITS, GCTYPEBITS, USE_LSB_TAG):
+	Remove; now done in lisp.h.
+	* lisp.h (PUBLISH_TO_GDB): New macro.
+	(GCTYPEBITS, USE_LSB_TAG, CHECK_LISP_OBJECT_TYPE, enum pvec_type)
+	(DATA_SEG_BITS): Use it.
+	(GCTYPEBITS, USE_LSB_TAG): Now also an enum, for GDB.
+	(CHECK_LISP_OBJECT_TYPE, DATA_SEG_BITS): Now just an enum, for GDB.
+	* mem-limits.h (EXCEEDS_LISP_PTR): Redo so that DATA_SEG_BITS need
+	not be usable in #if.  This simplifies things.
+
 2012-07-26  Juanma Barranquero  <lekktu@gmail.com>
 
 	* makefile.w32-in ($(BLD)/emacs.$(O)): Update dependencies.

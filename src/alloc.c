@@ -6875,3 +6875,29 @@ The time is in seconds as a floating point value.  */);
   defsubr (&Sgc_status);
 #endif
 }
+
+/* Make some symbols visible to GDB.  These cannot be done as enums, like
+   GCTYPEBITS or USE_LSB_TAG, since values might not be in 'int' range.
+   Each symbol X has a corresponding X_VAL symbol, verified to have
+   the correct value.
+
+   This is last, so that the #undef lines don't mess up later code.  */
+
+#define ARRAY_MARK_FLAG_VAL PTRDIFF_MIN
+#define PSEUDOVECTOR_FLAG_VAL (PTRDIFF_MAX - PTRDIFF_MAX / 2)
+#define VALMASK_VAL (USE_LSB_TAG ? -1 << GCTYPEBITS : VAL_MAX)
+
+verify (ARRAY_MARK_FLAG_VAL == ARRAY_MARK_FLAG);
+verify (PSEUDOVECTOR_FLAG_VAL == PSEUDOVECTOR_FLAG);
+verify (VALMASK_VAL == VALMASK);
+
+#undef ARRAY_MARK_FLAG
+#undef PSEUDOVECTOR_FLAG
+#undef VALMASK
+
+ptrdiff_t const EXTERNALLY_VISIBLE
+  ARRAY_MARK_FLAG = ARRAY_MARK_FLAG_VAL,
+  PSEUDOVECTOR_FLAG = PSEUDOVECTOR_FLAG_VAL;
+
+EMACS_INT const EXTERNALLY_VISIBLE
+  VALMASK = VALMASK_VAL;
