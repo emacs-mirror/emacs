@@ -1,6 +1,6 @@
 2012-07-26  Paul Eggert  <eggert@cs.ucla.edu>
 
-	Simplify export of symbols to GDB; fix related .gdbinit bugs.
+	Simplify export of symbols to GDB (Bug#12036).
 	* .gdbinit (xgetptr, xgetint, xgettype): Don't use "set $bugfix =
 	$bugfix.i", as this doesn't work (with GDB 7.4.1, anyway).
 	(xgetptr, xgetint, xgettype, xcoding, xcharset, xprintbytestr):
