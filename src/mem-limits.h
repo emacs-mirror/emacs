@@ -36,7 +36,7 @@ extern int etext;
 extern char *start_of_data (void) ATTRIBUTE_CONST;
 #if USE_LSB_TAG || UINTPTR_MAX <= VAL_MAX
 #define EXCEEDS_LISP_PTR(ptr) 0
-#elif defined DATA_SEG_BITS
+#elif DATA_SEG_BITS
 #define EXCEEDS_LISP_PTR(ptr) \
   (((uintptr_t) (ptr) & ~DATA_SEG_BITS) >> VALBITS)
 #else

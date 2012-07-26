@@ -29,6 +29,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <setjmp.h>
 #include <unistd.h>
 
+#include <verify.h>
+
 #include "lisp.h"
 
 #ifdef WINDOWSNT
@@ -95,31 +97,6 @@ extern void moncontrol (int mode);
 
 static const char emacs_version[] = VERSION;
 static const char emacs_copyright[] = "Copyright (C) 2012 Free Software Foundation, Inc.";
-
-/* Make these values available in GDB, which doesn't see macros.  */
-
-#if USE_LSB_TAG
-int gdb_use_lsb EXTERNALLY_VISIBLE = 1;
-#else
-int gdb_use_lsb EXTERNALLY_VISIBLE = 0;
-#endif
-#ifndef CHECK_LISP_OBJECT_TYPE
-int gdb_use_struct EXTERNALLY_VISIBLE = 0;
-#else
-int gdb_use_struct EXTERNALLY_VISIBLE = 1;
-#endif
-int gdb_valbits EXTERNALLY_VISIBLE = VALBITS;
-int gdb_gctypebits EXTERNALLY_VISIBLE = GCTYPEBITS;
-#if defined DATA_SEG_BITS && !USE_LSB_TAG
-uintptr_t gdb_data_seg_bits EXTERNALLY_VISIBLE = DATA_SEG_BITS;
-#else
-uintptr_t gdb_data_seg_bits EXTERNALLY_VISIBLE = 0;
-#endif
-ptrdiff_t PVEC_FLAG EXTERNALLY_VISIBLE = PSEUDOVECTOR_FLAG;
-ptrdiff_t gdb_array_mark_flag EXTERNALLY_VISIBLE = ARRAY_MARK_FLAG;
-/* GDB might say "No enum type named pvec_type" if we don't have at
-   least one symbol with that type, and then xbacktrace could fail.  */
-enum pvec_type const gdb_pvec_type EXTERNALLY_VISIBLE = 0;
 
 /* Empty lisp strings.  To avoid having to build any others.  */
 Lisp_Object empty_unibyte_string, empty_multibyte_string;
@@ -2513,3 +2490,50 @@ libraries; only those already known by Emacs will be loaded.  */);
   /* Make sure IS_DAEMON starts up as false.  */
   daemon_pipe[1] = 0;
 }
+
+/* Make these values available in GDB, which doesn't see macros.
+   This is last, so that the #undef lines don't mess up later code.  */
+
+enum
+  {
+    gdb_CHECK_LISP_OBJECT_TYPE = CHECK_LISP_OBJECT_TYPE,
+    gdb_DATA_SEG_BITS = DATA_SEG_BITS,
+    gdb_GCTYPEBITS = GCTYPEBITS,
+    gdb_USE_LSB_TAG = USE_LSB_TAG
+  };
+
+#undef CHECK_LISP_OBJECT_TYPE
+#undef DATA_SEG_BITS
+#undef GCTYPEBITS
+#undef USE_LSB_TAG
+
+enum
+  {
+    CHECK_LISP_OBJECT_TYPE = gdb_CHECK_LISP_OBJECT_TYPE,
+    DATA_SEG_BITS = gdb_DATA_SEG_BITS,
+    GCTYPEBITS = gdb_GCTYPEBITS,
+    USE_LSB_TAG = gdb_USE_LSB_TAG
+  };
+
+/* These are trickier since they might fall out of int range.  Each
+   symbol X has a corresponding X_VAL symbol, verified to have the
+   correct value.  */
+
+#define ARRAY_MARK_FLAG_VAL PTRDIFF_MIN
+#define PSEUDOVECTOR_FLAG_VAL (PTRDIFF_MAX - PTRDIFF_MAX / 2)
+#define VALMASK_VAL (USE_LSB_TAG ? -1 << GCTYPEBITS : VAL_MAX)
+
+verify (ARRAY_MARK_FLAG_VAL == ARRAY_MARK_FLAG);
+verify (PSEUDOVECTOR_FLAG_VAL == PSEUDOVECTOR_FLAG);
+verify (VALMASK_VAL == VALMASK);
+
+#undef ARRAY_MARK_FLAG
+#undef PSEUDOVECTOR_FLAG
+#undef VALMASK
+
+ptrdiff_t const EXTERNALLY_VISIBLE
+  ARRAY_MARK_FLAG = ARRAY_MARK_FLAG_VAL,
+  PSEUDOVECTOR_FLAG = PSEUDOVECTOR_FLAG_VAL;
+
+EMACS_INT const EXTERNALLY_VISIBLE
+  VALMASK = VALMASK_VAL;

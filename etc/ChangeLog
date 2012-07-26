@@ -1,3 +1,12 @@
+2012-07-26  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Simplify export of symbols to GDB.
+	* emacs-buffer.gdb ($tagmask, $valmask): Remove.
+	(ygetptr): Adjust to recent changes in lisp.h and emacs.c,
+	by using VALMASK instead of $valmask, CHECK_LISP_OBJECT_TYPE
+	instead of gdb_use_union, and DATA_SEG_BITS instead of
+	gdb_data_seg_bits.  Also, use $ptr.i rather than $ptr.u.val.
+
 2012-07-20  Eli Zaretskii  <eliz@gnu.org>
 
 	* tutorials/TUTORIAL.he: Make the first sentence display correctly

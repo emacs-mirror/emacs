@@ -1,3 +1,40 @@
+2012-07-26  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Simplify export of symbols to GDB; fix related .gdbinit bugs.
+	* .gdbinit (xgetptr, xgetint, xgettype): Don't use "set $bugfix =
+	$bugfix.i", as this doesn't work (with GDB 7.4.1, anyway).
+	(xgetptr, xgetint, xgettype, xcoding, xcharset, xprintbytestr):
+	Adjust to changes in lisp.h and emacs.c, by using
+	CHECK_LISP_OBJECT_TYPE rather than gdb_use_struct, VALMASK instead
+	of $valmask, DATA_SEG_BITS instead of gdb_data_seg_bits,
+	INTTYPEBITS instead of gdb_gctypebits - 1, USE_LSB_TAG instead of
+	gdb_use_lsb, (1 << GCTYPEBITS) - 1 instead of $tagmask, VALBITS
+	instead of gdb_valbits.
+	(xvectype, xvector, xpr, xprintstr, xbacktrace): Similarly, use
+	PSEUDOVECTOR_FLAG instead of PVEC_FLAG, and ARRAY_MARK_FLAG
+	instead of gdb_array_mark_flag.
+	(xboolvector): Get size from $->size, not $->header.size.
+	Use BOOL_VECTOR_BITS_PER_CHAR rather than mystery constants.
+	(xreload, hook-run, hookpost-run): Remove.
+	* emacs.c: Include <verify.h>.
+	(gdb_use_lsb, gdb_use_struct, gdb_valbits, gdb_gctypebits)
+	(gdb_data_seg_bits, PVEC_FLAG, gdb_array_mark_flag, gdb_pvec_type):
+	Remove.
+	(gdb_CHECK_LISP_OBJECT_TYPE, gdb_DATA_SEG_BITS, gdb_GCTYPEBITS)
+	(gdb_USE_LSB_TAG): New enum constants.
+	(CHECK_LISP_OBJECT_TYPE, DATA_SEG_BITS, GCTYPEBITS, USE_LSB_TAG):
+	Also define these as enum constants, so they're visible to GDB.
+	(ARRAY_MARK_FLAG_VAL, PSEUDOVECTOR_FLAG_VAL, VALMASK_VAL): New macros.
+	(ARRAY_MARK_FLAG, PSEUDOVECTOR_FLAG, VALMASK): Also define these
+	as constants, so they're visible to GDB.
+	* lisp.h (VALBITS, INTTYPEBITS, FIXNUM_BITS, PSEUDOVECTOR_SIZE_BITS)
+	(PSEUDOVECTOR_SIZE_MASK, PVEC_TYPE_MASK, BOOL_VECTOR_BITS_PER_CHAR):
+	Now enum constants, not macros, so they're visible to GDB.
+	(CHECK_LISP_OBJECT_TYPE, DATA_SEG_BITS): Default to 0, as this is
+	more convenient now.  All uses changed.
+	(VALMASK) [USE_LSB_TAG]: Also define in this case.
+	* mem-limits.h (EXCEEDS_LISP_PTR): Adjust to DATA_SEG_BITS change.
+
 2012-07-26  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Explicitly free restriction data that are not needed anymore.

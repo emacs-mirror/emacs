@@ -155,8 +155,11 @@ extern int suppress_checking EXTERNALLY_VISIBLE;
    variable VAR of type TYPE with the added requirement that it be
    TYPEBITS-aligned.  */
 
+/* Number of bits in a Lisp_Obect tag.  This can be used in #if.  */
 #define GCTYPEBITS 3
-#define VALBITS (BITS_PER_EMACS_INT - GCTYPEBITS)
+
+/* Number of bits in a Lisp_Object value, not counting the tag.  */
+enum { VALBITS = BITS_PER_EMACS_INT - GCTYPEBITS };
 
 /* The maximum value that can be stored in a EMACS_INT, assuming all
    bits other than the type bits contribute to a nonnegative signed value.
@@ -218,8 +221,8 @@ extern int suppress_checking EXTERNALLY_VISIBLE;
 
 /* Lisp integers use 2 tags, to give them one extra bit, thus
    extending their range from, e.g., -2^28..2^28-1 to -2^29..2^29-1.  */
-#define INTTYPEBITS (GCTYPEBITS - 1)
-#define FIXNUM_BITS (VALBITS + 1)
+enum { INTTYPEBITS = GCTYPEBITS - 1 };
+enum { FIXNUM_BITS = VALBITS + 1 };
 #define INTMASK (EMACS_INT_MAX >> (INTTYPEBITS - 1))
 #define LISP_INT_TAG Lisp_Int0
 #define case_Lisp_Int case Lisp_Int0: case Lisp_Int1
@@ -324,6 +327,7 @@ typedef EMACS_INT Lisp_Object;
 #define XIL(i) (i)
 #define LISP_MAKE_RVALUE(o) (0+(o))
 #define LISP_INITIALLY_ZERO 0
+#define CHECK_LISP_OBJECT_TYPE 0
 #endif /* CHECK_LISP_OBJECT_TYPE */
 
 /* In the size word of a vector, this bit means the vector has been marked.  */
@@ -370,13 +374,22 @@ enum pvec_type
    only the number of Lisp_Object fields (that need to be traced by the GC).
    The distinction is used e.g. by Lisp_Process which places extra
    non-Lisp_Object fields at the end of the structure.  */
-#define PSEUDOVECTOR_SIZE_BITS 16
-#define PSEUDOVECTOR_SIZE_MASK ((1 << PSEUDOVECTOR_SIZE_BITS) - 1)
-#define PVEC_TYPE_MASK (0x0fff << PSEUDOVECTOR_SIZE_BITS)
+enum
+  {
+    PSEUDOVECTOR_SIZE_BITS = 16,
+    PSEUDOVECTOR_SIZE_MASK = (1 << PSEUDOVECTOR_SIZE_BITS) - 1,
+    PVEC_TYPE_MASK = 0x0fff << PSEUDOVECTOR_SIZE_BITS
+  };
 
 /* Number of bits to put in each character in the internal representation
    of bool vectors.  This should not vary across implementations.  */
-#define BOOL_VECTOR_BITS_PER_CHAR 8
+enum { BOOL_VECTOR_BITS_PER_CHAR = 8 };
+
+/* DATA_SEG_BITS forces extra bits to be or'd in with any pointers
+   which were stored in a Lisp_Object */
+#ifndef DATA_SEG_BITS
+# define DATA_SEG_BITS 0
+#endif
 
 /* These macros extract various sorts of values from a Lisp_Object.
  For example, if tem is a Lisp_Object whose type is Lisp_Cons,
@@ -387,6 +400,7 @@ enum pvec_type
 
 #if USE_LSB_TAG
 
+#define VALMASK (-1 << GCTYPEBITS)
 #define TYPEMASK ((1 << GCTYPEBITS) - 1)
 #define XTYPE(a) ((enum Lisp_Type) (XLI (a) & TYPEMASK))
 #define XINT(a) (XLI (a) >> INTTYPEBITS)
@@ -421,7 +435,7 @@ enum pvec_type
   ((var) = XIL ((EMACS_INT) ((EMACS_UINT) (type) << VALBITS)  \
 		+ ((intptr_t) (ptr) & VALMASK)))
 
-#ifdef DATA_SEG_BITS
+#if DATA_SEG_BITS
 /* DATA_SEG_BITS forces extra bits to be or'd in with any pointers
    which were stored in a Lisp_Object */
 #define XPNTR(a) ((uintptr_t) ((XLI (a) & VALMASK)) | DATA_SEG_BITS))
