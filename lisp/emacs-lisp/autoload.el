@@ -163,23 +163,23 @@ expression, in which case we want to handle forms differently."
                      ((or `define-generic-mode `define-derived-mode
                           `define-compilation-mode) nil)
                      (_ t)))
-	     (body (nthcdr (or (get car 'doc-string-elt) 3) form))
+	     (body (nthcdr (or (function-get car 'doc-string-elt) 3) form))
 	     (doc (if (stringp (car body)) (pop body))))
         ;; Add the usage form at the end where describe-function-1
         ;; can recover it.
 	(when (listp args) (setq doc (help-add-fundoc-usage doc args)))
         ;; `define-generic-mode' quotes the name, so take care of that
-        (list 'autoload (if (listp name) name (list 'quote name))
-              file doc
-              (or (and (memq car '(define-skeleton define-derived-mode
-                                    define-generic-mode
-                                    easy-mmode-define-global-mode
-                                    define-global-minor-mode
-                                    define-globalized-minor-mode
-                                    easy-mmode-define-minor-mode
-                                    define-minor-mode)) t)
-                  (eq (car-safe (car body)) 'interactive))
-              (if macrop (list 'quote 'macro) nil))))
+        `(autoload ,(if (listp name) name (list 'quote name))
+           ,file ,doc
+           ,(or (and (memq car '(define-skeleton define-derived-mode
+                                  define-generic-mode
+                                  easy-mmode-define-global-mode
+                                  define-global-minor-mode
+                                  define-globalized-minor-mode
+                                  easy-mmode-define-minor-mode
+                                  define-minor-mode)) t)
+                (eq (car-safe (car body)) 'interactive))
+           ,(if macrop ''macro nil))))
 
      ;; For defclass forms, use `eieio-defclass-autoload'.
      ((eq car 'defclass)
@@ -277,7 +277,7 @@ put the output in."
    ;; Symbols at the toplevel are meaningless.
    ((symbolp form) nil)
    (t
-    (let ((doc-string-elt (get (car-safe form) 'doc-string-elt))
+    (let ((doc-string-elt (function-get (car-safe form) 'doc-string-elt))
 	  (outbuf autoload-print-form-outbuf))
       (if (and doc-string-elt (stringp (nth doc-string-elt form)))
 	  ;; We need to hack the printing because the
@@ -356,7 +356,7 @@ not be relied upon."
   "Insert the section-header line,
 which lists the file name and which functions are in it, etc."
   (insert generate-autoload-section-header)
-  (prin1 (list 'autoloads autoloads load-name file time)
+  (prin1 `(autoloads ,autoloads ,load-name ,file ,time)
 	 outbuf)
   (terpri outbuf)
   ;; Break that line at spaces, to avoid very long lines.

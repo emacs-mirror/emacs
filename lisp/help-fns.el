@@ -150,7 +150,7 @@ the same names as used in the original source code, when possible."
                     arglist)))
           (unless (zerop rest) (push '&rest arglist) (push 'rest arglist))
           (nreverse arglist))))
-   ((and (eq (car-safe def) 'autoload) (not (eq (nth 4 def) 'keymap)))
+   ((and (autoloadp def) (not (eq (nth 4 def) 'keymap)))
     "[Arg list not available until function definition is loaded.]")
    (t t)))
 
@@ -288,7 +288,7 @@ defined.  If several such files exist, preference is given to a file
 found via `load-path'.  The return value can also be `C-source', which
 means that OBJECT is a function or variable defined in C.  If no
 suitable file is found, return nil."
-  (let* ((autoloaded (eq (car-safe type) 'autoload))
+  (let* ((autoloaded (autoloadp type))
 	 (file-name (or (and autoloaded (nth 1 type))
 			(symbol-file
 			 object (if (memq type (list 'defvar 'defface))
@@ -468,7 +468,7 @@ FILE is the file where FUNCTION was probably defined."
 		  (concat beg "Lisp macro"))
 		 ((eq (car-safe def) 'closure)
 		  (concat beg "Lisp closure"))
-		 ((eq (car-safe def) 'autoload)
+		 ((autoloadp def)
 		  (format "%s autoloaded %s"
 			  (if (commandp def) "an interactive" "an")
 			  (if (eq (nth 4 def) 'keymap) "keymap"
@@ -563,7 +563,7 @@ FILE is the file where FUNCTION was probably defined."
 	     ;; If the function is autoloaded, and its docstring has
 	     ;; key substitution constructs, load the library.
 	     (doc (progn
-		    (and (eq (car-safe real-def) 'autoload)
+		    (and (autoloadp real-def)
 			 help-enable-auto-load
 			 (string-match "\\([^\\]=\\|[^=]\\|\\`\\)\\\\[[{<]"
 				       doc-raw)

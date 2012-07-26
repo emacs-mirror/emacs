@@ -320,16 +320,7 @@
                ))
   (let ((new (if (consp fun) (prog1 (cdr fun) (setq fun (car fun)))
                (intern (format "cl-%s" fun)))))
-    (defalias fun new)
-    ;; If `cl-foo' is declare inline, then make `foo' inline as well, and
-    ;; similarly.  Same for edebug specifications, indent rules and
-    ;; doc-string position.
-    ;; FIXME: For most of them, we should instead follow aliases
-    ;; where applicable.
-    (dolist (prop '(byte-optimizer doc-string-elt edebug-form-spec
-                    lisp-indent-function))
-      (if (get new prop)
-        (put fun prop (get new prop))))))
+    (defalias fun new)))
 
 ;;; Features provided a bit differently in Elisp.
 

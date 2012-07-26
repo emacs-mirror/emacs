@@ -914,7 +914,7 @@ Used by `calc-user-invocation'.")
 
 ;; Set up the autoloading linkage.
 (let ((name (and (fboundp 'calc-dispatch)
-                 (eq (car-safe (symbol-function 'calc-dispatch)) 'autoload)
+                 (autoloadp (symbol-function 'calc-dispatch))
                  (nth 1 (symbol-function 'calc-dispatch))))
       (p load-path))
 

@@ -158,7 +158,8 @@ It has `lisp-mode-abbrev-table' as its parent."
                                   (goto-char listbeg)
                                   (and (looking-at "([ \t\n]*\\(\\(\\sw\\|\\s_\\)+\\)")
                                        (match-string 1)))))
-                 (docelt (and firstsym (get (intern-soft firstsym)
+                 (docelt (and firstsym
+                              (function-get (intern-soft firstsym)
                                             lisp-doc-string-elt-property))))
             (if (and docelt
                      ;; It's a string in a form that can have a docstring.
@@ -1135,7 +1136,8 @@ Lisp function does not specify a special indentation."
       (let ((function (buffer-substring (point)
 					(progn (forward-sexp 1) (point))))
 	    method)
-	(setq method (or (get (intern-soft function) 'lisp-indent-function)
+	(setq method (or (function-get (intern-soft function)
+                                       'lisp-indent-function)
 			 (get (intern-soft function) 'lisp-indent-hook)))
 	(cond ((or (eq method 'defun)
 		   (and (null method)

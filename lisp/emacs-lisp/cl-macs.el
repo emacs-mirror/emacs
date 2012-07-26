@@ -2420,8 +2420,8 @@ and then returning foo."
 	(while (and (symbolp func)
 		    (not (setq handler (get func 'compiler-macro)))
 		    (fboundp func)
-		    (or (not (eq (car-safe (symbol-function func)) 'autoload))
-			(load (nth 1 (symbol-function func)))))
+		    (or (not (autoloadp (symbol-function func)))
+			(autoload-do-load (symbol-function func) func)))
 	  (setq func (symbol-function func)))
 	(and handler
 	     (not (eq form (setq form (apply handler form (cdr form))))))))

@@ -225,7 +225,7 @@ when reading a key-sequence to be looked-up in this keymap.  */)
    Fdefine_key should cause keymaps to be autoloaded.
 
    This function can GC when AUTOLOAD is non-zero, because it calls
-   do_autoload which can GC.  */
+   Fautoload_do_load which can GC.  */
 
 Lisp_Object
 get_keymap (Lisp_Object object, int error_if_not_keymap, int autoload)
@@ -259,7 +259,7 @@ get_keymap (Lisp_Object object, int error_if_not_keymap, int autoload)
 		  struct gcpro gcpro1, gcpro2;
 
 		  GCPRO2 (tem, object);
-		  do_autoload (tem, object);
+		  Fautoload_do_load (tem, object, Qnil);
 		  UNGCPRO;
 
 		  goto autoload_retry;

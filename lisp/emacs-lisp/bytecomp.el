@@ -1355,7 +1355,7 @@ extra args."
 	    nums sig min max)
 	(when calls
           (when (and (symbolp name)
-                     (eq (get name 'byte-optimizer)
+                     (eq (function-get name 'byte-optimizer)
                          'byte-compile-inline-expand))
             (byte-compile-warn "defsubst `%s' was used before it was defined"
 		       name))

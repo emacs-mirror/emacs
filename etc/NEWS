@@ -498,6 +498,10 @@ still be supported for Emacs 24.x.
 
 * Lisp changes in Emacs 24.2
 
+** New functions `autoloadp' and `autoload-do-load'.
+
+** `function-get' fetches the property of a function, following aliases.
+
 ** `toggle-read-only' accepts a second argument specifying whether to
 print a message, if called from Lisp.
 

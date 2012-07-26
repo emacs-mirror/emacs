@@ -1,3 +1,37 @@
+2012-07-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Autoload from Lisp with more care.  Follow aliases when looking for
+	function properties.
+	* subr.el (autoloadp): New function.
+	(symbol-file): Use it.
+	(function-get): New function.
+	* emacs-lisp/macroexp.el (macroexp--expand-all): Use function-get and
+	autoload-do-load.
+	* emacs-lisp/lisp-mode.el (lisp-font-lock-syntactic-face-function)
+	(lisp-indent-function):
+	* emacs-lisp/gv.el (gv-get):
+	* emacs-lisp/edebug.el (get-edebug-spec, edebug-basic-spec):
+	* emacs-lisp/byte-opt.el (byte-optimize-form):
+	* emacs-lisp/bytecomp.el (byte-compile-arglist-warn):
+	* emacs-lisp/autoload.el (make-autoload, autoload-print-form):
+	Use function-get.
+	* emacs-lisp/cl.el: Don't propagate function properties any more.
+
+	* speedbar.el (speedbar-add-localized-speedbar-support):
+	* emacs-lisp/disass.el (disassemble-internal):
+	* desktop.el (desktop-load-file):
+	* help-fns.el (help-function-arglist, find-lisp-object-file-name)
+	(describe-function-1):
+	* emacs-lisp/find-func.el (find-function-noselect):
+	* emacs-lisp/elp.el (elp-instrument-function):
+	* emacs-lisp/advice.el (ad-has-proper-definition):
+	* apropos.el (apropos-safe-documentation, apropos-macrop):
+	* emacs-lisp/debug.el (debug-on-entry):
+	* emacs-lisp/cl-macs.el (cl-compiler-macroexpand):
+	* emacs-lisp/byte-opt.el (byte-compile-inline-expand):
+	* calc/calc.el (name): Use autoloadp & autoload-do-load.
+
+
 2012-07-25  Alp Aker  <alp.tekin.aker@gmail.com>
 
 	* international/mule-cmds.el (ucs-insert): Mark it as an obsolete

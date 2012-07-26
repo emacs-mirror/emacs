@@ -1691,6 +1691,23 @@ If TOGGLE has a `:menu-tag', that is used for the menu item's label."
 
 ;;; Load history
 
+(defsubst autoloadp (object)
+  "Non-nil if OBJECT is an autoload."
+  (eq 'autoload (car-safe object)))
+
+;; (defun autoload-type (object)
+;;   "Returns the type of OBJECT or `function' or `command' if the type is nil.
+;; OBJECT should be an autoload object."
+;;   (when (autoloadp object)
+;;     (let ((type (nth 3 object)))
+;;       (cond ((null type) (if (nth 2 object) 'command 'function))
+;;             ((eq 'keymap t) 'macro)
+;;             (type)))))
+
+;; (defalias 'autoload-file #'cadr
+;;   "Return the name of the file from which AUTOLOAD will be loaded.
+;; \n\(fn AUTOLOAD)")
+
 (defun symbol-file (symbol &optional type)
   "Return the name of the file that defined SYMBOL.
 The value is normally an absolute file name.  It can also be nil,
@@ -1703,7 +1720,7 @@ TYPE is `defun', `defvar', or `defface', that specifies function
 definition, variable definition, or face definition only."
   (if (and (or (null type) (eq type 'defun))
 	   (symbolp symbol) (fboundp symbol)
-	   (eq 'autoload (car-safe (symbol-function symbol))))
+	   (autoloadp (symbol-function symbol)))
       (nth 1 (symbol-function symbol))
     (let ((files load-history)
 	  file)
@@ -2752,6 +2769,20 @@ computing the hash.  If BINARY is non-nil, return a string in binary
 form."
   (secure-hash 'sha1 object start end binary))
 
+(defun function-get (f prop &optional autoload)
+  "Return the value of property PROP of function F.
+If AUTOLOAD is non-nil and F is an autoloaded macro, try to autoload
+the macro in the hope that it will set PROP."
+  (let ((val nil))
+    (while (and (symbolp f)
+                (null (setq val (get f prop)))
+                (fboundp f))
+      (let ((fundef (symbol-function f)))
+        (if (and autoload (autoloadp fundef)
+                 (not (equal fundef (autoload-do-load fundef f 'macro))))
+            nil                         ;Re-try `get' on the same `f'.
+          (setq f fundef))))
+    val))
 
 ;;;; Support for yanking and text properties.
 

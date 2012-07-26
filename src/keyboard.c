@@ -8827,18 +8827,12 @@ access_keymap_keyremap (Lisp_Object map, Lisp_Object key, Lisp_Object prompt,
 
   next = access_keymap (map, key, 1, 0, 1);
 
-  /* Handle symbol with autoload definition.  */
-  if (SYMBOLP (next) && !NILP (Ffboundp (next))
-      && CONSP (XSYMBOL (next)->function)
-      && EQ (XCAR (XSYMBOL (next)->function), Qautoload))
-    do_autoload (XSYMBOL (next)->function, next);
-
   /* Handle a symbol whose function definition is a keymap
      or an array.  */
   if (SYMBOLP (next) && !NILP (Ffboundp (next))
       && (ARRAYP (XSYMBOL (next)->function)
 	  || KEYMAPP (XSYMBOL (next)->function)))
-    next = XSYMBOL (next)->function;
+    next = Fautoload_do_load (XSYMBOL (next)->function, next, Qnil);
 
   /* If the keymap gives a function, not an
      array, then call the function with one arg and use
@@ -10282,7 +10276,7 @@ a special event, so ignore the prefix argument and don't clear it.  */)
 	  struct gcpro gcpro1, gcpro2;
 
 	  GCPRO2 (cmd, prefixarg);
-	  do_autoload (final, cmd);
+	  Fautoload_do_load (final, cmd, Qnil);
 	  UNGCPRO;
 	}
       else

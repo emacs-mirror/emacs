@@ -1864,9 +1864,7 @@ of the special mode functions."
 	      ;; If it is autoloaded, we need to load it now so that
 	      ;; we have access to the variable -speedbar-menu-items.
 	      ;; Is this XEmacs safe?
-	      (let ((sf (symbol-function v)))
-		(if (and (listp sf) (eq (car sf) 'autoload))
-		    (load-library (car (cdr sf)))))
+              (autoload-do-load (symbol-function v) v)
 	      (setq speedbar-special-mode-expansion-list (list v))
 	      (setq v (intern-soft (concat ms "-speedbar-key-map")))
 	      (if (not v)

@@ -80,14 +80,10 @@ redefine OBJECT if it is a symbol."
 	    obj (symbol-function obj)))
     (if (subrp obj)
 	(error "Can't disassemble #<subr %s>" name))
-    (when (and (listp obj) (eq (car obj) 'autoload))
-      (load (nth 1 obj))
-      (setq obj (symbol-function name)))
-    (if (eq (car-safe obj) 'macro)	;handle macros
+    (setq obj (autoload-do-load obj name))
+    (if (eq (car-safe obj) 'macro)	;Handle macros.
 	(setq macro t
 	      obj (cdr obj)))
-    (when (and (listp obj) (eq (car obj) 'closure))
-      (error "Don't know how to compile an interpreted closure"))
     (if (and (listp obj) (eq (car obj) 'byte-code))
 	(setq obj (list 'lambda nil obj)))
     (if (and (listp obj) (not (eq (car obj) 'lambda)))

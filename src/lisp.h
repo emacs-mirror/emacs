@@ -2822,7 +2822,6 @@ extern Lisp_Object unbind_to (ptrdiff_t, Lisp_Object);
 extern _Noreturn void error (const char *, ...) ATTRIBUTE_FORMAT_PRINTF (1, 2);
 extern _Noreturn void verror (const char *, va_list)
   ATTRIBUTE_FORMAT_PRINTF (1, 0);
-extern void do_autoload (Lisp_Object, Lisp_Object);
 extern Lisp_Object un_autoload (Lisp_Object);
 extern void init_eval_once (void);
 extern Lisp_Object safe_call (ptrdiff_t, Lisp_Object *);
@@ -2834,7 +2833,7 @@ extern void mark_backtrace (void);
 #endif
 extern void syms_of_eval (void);
 
-/* Defined in editfns.c */
+/* Defined in editfns.c.  */
 extern Lisp_Object Qfield;
 extern void insert1 (Lisp_Object);
 extern Lisp_Object format2 (const char *, Lisp_Object, Lisp_Object);
@@ -2851,7 +2850,7 @@ const char *get_system_name (void);
 extern void syms_of_editfns (void);
 extern void set_time_zone_rule (const char *);
 
-/* Defined in buffer.c */
+/* Defined in buffer.c.  */
 extern int mouse_face_overlay_overlaps (Lisp_Object);
 extern _Noreturn void nsberror (Lisp_Object);
 extern void adjust_overlays_for_insert (ptrdiff_t, ptrdiff_t);
@@ -2870,7 +2869,7 @@ extern void init_buffer (void);
 extern void syms_of_buffer (void);
 extern void keys_of_buffer (void);
 
-/* Defined in marker.c */
+/* Defined in marker.c.  */
 
 extern ptrdiff_t marker_position (Lisp_Object);
 extern ptrdiff_t marker_byte_position (Lisp_Object);

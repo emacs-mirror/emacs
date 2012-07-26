@@ -805,9 +805,9 @@ Redefining FUNCTION also cancels it."
 			,(interactive-form (symbol-function function))
 			(apply ',(symbol-function function)
 			       debug-on-entry-args)))
-    (when (eq (car-safe (symbol-function function)) 'autoload)
+    (when (autoloadp (symbol-function function))
       ;; The function is autoloaded.  Load its real definition.
-      (load (cadr (symbol-function function)) nil noninteractive nil t))
+      (autoload-do-load (symbol-function function) function))
     (when (or (not (consp (symbol-function function)))
 	      (and (eq (car (symbol-function function)) 'macro)
 		   (not (consp (cdr (symbol-function function))))))

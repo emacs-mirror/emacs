@@ -84,14 +84,7 @@ DO must return an Elisp expression."
   (if (symbolp place)
       (funcall do place (lambda (v) `(setq ,place ,v)))
     (let* ((head (car place))
-           (gf (get head 'gv-expander)))
-      ;; Autoload the head, if applicable, since that might define
-      ;; `gv-expander'.
-      (when (and (null gf) (fboundp head)
-                 (eq 'autoload (car-safe (symbol-function head))))
-        (with-demoted-errors
-          (load (nth 1 (symbol-function head)) 'noerror 'nomsg)
-          (setq gf (get head 'gv-expander))))
+           (gf (function-get head 'gv-expander 'autoload)))
       (if gf (apply gf do (cdr place))
         (let ((me (macroexpand place    ;FIXME: expand one step at a time!
                                ;; (append macroexpand-all-environment

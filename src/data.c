@@ -761,7 +761,7 @@ Value, if non-nil, is a list \(interactive SPEC).  */)
 	{
 	  struct gcpro gcpro1;
 	  GCPRO1 (cmd);
-	  do_autoload (fun, cmd);
+	  Fautoload_do_load (fun, cmd, Qnil);
 	  UNGCPRO;
 	  return Finteractive_form (cmd);
 	}
@@ -2059,7 +2059,7 @@ function chain of symbols.  */)
   return Qnil;
 }
 
-/* Extract and set vector and string elements */
+/* Extract and set vector and string elements.  */
 
 DEFUN ("aref", Faref, Saref, 2, 2, 0,
        doc: /* Return the element of ARRAY at index IDX.
