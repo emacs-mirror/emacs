@@ -1,3 +1,9 @@
+2012-07-26  Martin Rudalics  <rudalics@gmx.at>
+
+	* mouse.el (popup-menu): Fix doc-string and re-indent code.
+	(mouse-drag-line): Don't exit tracking when a switch-frame or
+	switch-window event occurs (Bug#12006).
+
 2012-07-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* mouse.el (popup-menu): Fix last change.
