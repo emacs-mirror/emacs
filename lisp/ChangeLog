@@ -1,3 +1,10 @@
+2012-07-27  Albinus Michael  <michael.albinus@gmx.de>
+
+	* notifications.el (notifications-on-action-signal)
+	(notifications-on-closed-signal): Use also the bus address for the map.
+	(notifications-notify, notifications-close-notification)
+	(notifications-get-capabilities):  Add optional argument BUS.
+
 2012-07-27  Tassilo Horn  <tsdh@gnu.org>
 
 	* textmodes/reftex-vars.el (reftex-label-alist-builtin): Add

@@ -93,8 +93,9 @@
 
 (defun notifications-on-action-signal (id action)
   "Dispatch signals to callback functions from `notifications-on-action-map'."
-  (let* ((unique-name (dbus-event-service-name last-input-event))
-	 (entry (assoc (cons unique-name id) notifications-on-action-map)))
+  (let* ((bus (dbus-event-bus-name last-input-event))
+	 (unique-name (dbus-event-service-name last-input-event))
+	 (entry (assoc (list bus unique-name id) notifications-on-action-map)))
     (when entry
       (funcall (cadr entry) id action)
       (when (and (not (setq notifications-on-action-map
@@ -107,8 +108,9 @@
   "Dispatch signals to callback functions from `notifications-on-closed-map'."
   ;; notification-daemon prior 0.4.0 does not send a reason.  So we
   ;; make it optional, and assume `undefined' as default.
-  (let* ((unique-name (dbus-event-service-name last-input-event))
-	 (entry (assoc (cons unique-name id) notifications-on-close-map))
+  (let* ((bus (dbus-event-bus-name last-input-event))
+	 (unique-name (dbus-event-service-name last-input-event))
+	 (entry (assoc (list bus unique-name id) notifications-on-close-map))
 	 (reason (or reason 4)))
     (when entry
       (funcall (cadr entry)
@@ -123,6 +125,7 @@
   "Send notification via D-Bus using the Freedesktop notification protocol.
 Various PARAMS can be set:
 
+ :bus            The D-Bus bus, if different from `:session'.
  :title          The notification title.
  :body           The notification body text.
  :app-name       The name of the application sending the notification.
@@ -196,7 +199,8 @@ This function returns a notification id, an integer, which can be
 used to manipulate the notification item with
 `notifications-close-notification' or the `:replaces-id' argument
 of another `notifications-notify' call."
-  (let ((title (plist-get params :title))
+  (let ((bus (or (plist-get params :bus) :session))
+	(title (plist-get params :title))
         (body (plist-get params :body))
         (app-name (plist-get params :app-name))
         (replaces-id (plist-get params :replaces-id))
@@ -272,9 +276,9 @@ of another `notifications-notify' call."
     (when y
       (add-to-list 'hints `(:dict-entry "y" (:variant :int32 ,y)) t))
 
-    ;; Call Notify method
+    ;; Call Notify method.
     (setq id
-          (dbus-call-method :session
+          (dbus-call-method bus
                             notifications-service
                             notifications-path
                             notifications-interface
@@ -302,14 +306,14 @@ of another `notifications-notify' call."
     ;; restarted.
     (let ((on-action (plist-get params :on-action))
           (on-close (plist-get params :on-close))
-	  (unique-name (dbus-get-name-owner :session notifications-service)))
+	  (unique-name (dbus-get-name-owner bus notifications-service)))
       (when on-action
         (add-to-list 'notifications-on-action-map
-		     (list (cons unique-name id) on-action))
+		     (list (list bus unique-name id) on-action))
 	(unless notifications-on-action-object
 	  (setq notifications-on-action-object
 		(dbus-register-signal
-		 :session
+		 bus
 		 nil
 		 notifications-path
 		 notifications-interface
@@ -318,11 +322,11 @@ of another `notifications-notify' call."
 
       (when on-close
         (add-to-list 'notifications-on-close-map
-		     (list (cons unique-name id) on-close))
+		     (list (list bus unique-name id) on-close))
 	(unless notifications-on-close-object
 	  (setq notifications-on-close-object
 		(dbus-register-signal
-		 :session
+		 bus
 		 nil
 		 notifications-path
 		 notifications-interface
@@ -332,9 +336,10 @@ of another `notifications-notify' call."
     ;; Return notification id
     id))
 
-(defun notifications-close-notification (id)
-  "Close a notification with identifier ID."
-  (dbus-call-method :session
+(defun notifications-close-notification (id &optional bus)
+  "Close a notification with identifier ID.
+BUS can be a string denoting a D-Bus connection, the default is `:session'."
+  (dbus-call-method (or bus :session)
                     notifications-service
                     notifications-path
                     notifications-interface
@@ -343,8 +348,9 @@ of another `notifications-notify' call."
 
 (defvar dbus-debug) ; used in the macroexpansion of dbus-ignore-errors
 
-(defun notifications-get-capabilities ()
+(defun notifications-get-capabilities (&optional bus)
   "Return the capabilities of the notification server, a list of strings.
+BUS can be a string denoting a D-Bus connection, the default is `:session'.
 The following capabilities can be expected:
 
   :actions         The server will provide the specified actions
@@ -367,7 +373,7 @@ Further vendor-specific caps start with `:x-vendor', like `:x-gnome-foo-cap'."
   (dbus-ignore-errors
    (mapcar
     (lambda (x) (intern (concat ":" x)))
-    (dbus-call-method :session
+    (dbus-call-method (or bus :session)
 		      notifications-service
 		      notifications-path
 		      notifications-interface
