@@ -250,6 +250,7 @@
     (define-key map "\C-c\C-tt" 'python-skeleton-try)
     (define-key map "\C-c\C-tw" 'python-skeleton-while)
     ;; Shell interaction
+    (define-key map "\C-c\C-p" 'run-python)
     (define-key map "\C-c\C-s" 'python-shell-send-string)
     (define-key map "\C-c\C-r" 'python-shell-send-region)
     (define-key map "\C-\M-x" 'python-shell-send-defun)
@@ -1571,30 +1572,33 @@ non-nil the buffer is shown."
           (with-current-buffer buffer
             (inferior-python-mode)
             (python-util-clone-local-variables current-buffer))))
-      (when pop
-        (pop-to-buffer proc-buffer-name))
+      (and pop (pop-to-buffer proc-buffer-name t))
       proc-buffer-name)))
 
-(defun run-python (dedicated cmd)
+;;;###autoload
+(defun run-python (cmd &optional dedicated show)
   "Run an inferior Python process.
 Input and output via buffer named after
 `python-shell-buffer-name'.  If there is a process already
 running in that buffer, just switch to it.
-With argument, allows you to define DEDICATED, so a dedicated
-process for the current buffer is open, and define CMD so you can
-edit the command used to call the interpreter (default is value
-of `python-shell-interpreter' and arguments defined in
-`python-shell-interpreter-args').  Runs the hook
-`inferior-python-mode-hook' (after the `comint-mode-hook' is
-run).
-\(Type \\[describe-mode] in the process buffer for a list of commands.)"
+
+With argument, allows you to define CMD so you can edit the
+command used to call the interpreter and define DEDICATED, so a
+dedicated process for the current buffer is open.  When numeric
+prefix arg is other than 0 or 4 do not SHOW.
+
+Runs the hook `inferior-python-mode-hook' (after the
+`comint-mode-hook' is run).  \(Type \\[describe-mode] in the
+process buffer for a list of commands.)"
   (interactive
    (if current-prefix-arg
        (list
+        (read-string "Run Python: " (python-shell-parse-command))
         (y-or-n-p "Make dedicated process? ")
-        (read-string "Run Python: " (python-shell-parse-command)))
-     (list nil (python-shell-parse-command))))
-  (python-shell-make-comint cmd (python-shell-get-process-name dedicated))
+        (= (prefix-numeric-value current-prefix-arg) 4))
+     (list (python-shell-parse-command) nil t)))
+  (python-shell-make-comint
+   cmd (python-shell-get-process-name dedicated) show)
   dedicated)
 
 (defun run-python-internal ()
@@ -1611,7 +1615,6 @@ with user shells.  Runs the hook
 `inferior-python-mode-hook' (after the `comint-mode-hook' is
 run).  \(Type \\[describe-mode] in the process buffer for a list
 of commands.)"
-  (interactive)
   (set-process-query-on-exit-flag
    (get-buffer-process
     (python-shell-make-comint
@@ -1638,7 +1641,7 @@ of commands.)"
          (global-proc-buffer-name (format "*%s*" global-proc-name))
          (dedicated-running (comint-check-proc dedicated-proc-buffer-name))
          (global-running (comint-check-proc global-proc-buffer-name))
-         (current-prefix-arg 4))
+         (current-prefix-arg 16))
     (when (and (not dedicated-running) (not global-running))
       (if (call-interactively 'run-python)
           (setq dedicated-running t)

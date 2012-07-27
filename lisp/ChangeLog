@@ -1,3 +1,12 @@
+2012-07-27  Fabián Ezequiel Gallina  <fgallina@cuca>
+
+	* progmodes/python.el (python-mode-map): Added keybinding for
+	run-python.
+	(python-shell-make-comint): Fix pop-to-buffer call.
+	(run-python): Autoload.  New arg SHOW.
+	(python-shell-get-or-create-process): Do not pop python process
+	buffer.
+
 2012-07-27  Michael Albinus  <michael.albinus@gmx.de>
 
 	* notifications.el (notifications-on-action-signal)
