@@ -1,3 +1,10 @@
+2012-07-27  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Adjust GDB to reflect pvec_type changes (Bug#12036).
+	* .gdbinit (xvectype, xpr, xbacktrace): Adjust to reflect the
+	2012-07-04 changes to pseudovector representation.  Problem
+	reported by Eli Zaretskii in <http://bugs.gnu.org/12036#30>.
+
 2012-07-27  Michael Albinus  <michael.albinus@gmx.de>
 
 	* dbusbind.c (XD_DBUS_VALIDATE_BUS_ADDRESS): Canonicalize session

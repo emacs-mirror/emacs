@@ -653,7 +653,11 @@ end
 define xvectype
   xgetptr $
   set $size = ((struct Lisp_Vector *) $ptr)->header.size
-  output ($size & PSEUDOVECTOR_FLAG) ? (enum pvec_type) ($size & PVEC_TYPE_MASK) : $size & ~ARRAY_MARK_FLAG
+  if ($size & PSEUDOVECTOR_FLAG)
+    output (enum pvec_type) (($size & PVEC_TYPE_MASK) >> PSEUDOVECTOR_SIZE_BITS)
+  else
+    output $size & ~ARRAY_MARK_FLAG
+  end
   echo \n
 end
 document xvectype
@@ -992,7 +996,7 @@ define xpr
   if $type == Lisp_Vectorlike
     set $size = ((struct Lisp_Vector *) $ptr)->header.size
     if ($size & PSEUDOVECTOR_FLAG)
-      set $vec = (enum pvec_type) ($size & PVEC_TYPE_MASK)
+      set $vec = (enum pvec_type) (($size & PVEC_TYPE_MASK) >> PSEUDOVECTOR_SIZE_BITS)
       if $vec == PVEC_NORMAL_VECTOR
 	xvector
       end
@@ -1127,7 +1131,11 @@ define xbacktrace
       if $type == Lisp_Vectorlike
 	xgetptr (*$bt->function)
         set $size = ((struct Lisp_Vector *) $ptr)->header.size
-        output ($size & PSEUDOVECTOR_FLAG) ? (enum pvec_type) ($size & PVEC_TYPE_MASK) : $size & ~ARRAY_MARK_FLAG
+        if ($size & PSEUDOVECTOR_FLAG)
+	  output (enum pvec_type) (($size & PVEC_TYPE_MASK) >> PSEUDOVECTOR_SIZE_BITS)
+	else
+	  output $size & ~ARRAY_MARK_FLAG
+	end
       else
         printf "Lisp type %d", $type
       end
