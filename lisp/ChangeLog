@@ -1,3 +1,8 @@
+2012-07-27  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calccomp.el (math-compose-expr): Use parentheses when
+	there is a product in the denominator of a fraction.
+
 2012-07-26  Eli Zaretskii  <eliz@gnu.org>
 
 	* makefile.w32-in ($(lisp)/calendar/cal-loaddefs.el)
