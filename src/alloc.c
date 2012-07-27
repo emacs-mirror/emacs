@@ -6910,12 +6910,25 @@ The time is in seconds as a floating point value.  */);
 #endif
 }
 
-/* Make some symbols visible to GDB.  These cannot be done as enums, like
-   GCTYPEBITS or USE_LSB_TAG, since values might not be in 'int' range.
-   Each symbol X has a corresponding X_VAL symbol, verified to have
-   the correct value.
+/* Make some symbols visible to GDB.  This section is last, so that
+   the #undef lines don't mess up later code.  */
 
-   This is last, so that the #undef lines don't mess up later code.  */
+/* When compiled with GCC, GDB might say "No enum type named
+   pvec_type" if we don't have at least one symbol with that type, and
+   then xbacktrace could fail.  Similarly for the other enums and
+   their values.  */
+union
+{
+  enum CHECK_LISP_OBJECT_TYPE CHECK_LISP_OBJECT_TYPE;
+  enum enum_USE_LSB_TAG enum_USE_LSB_TAG;
+  enum Lisp_Bits Lisp_Bits;
+  enum More_Lisp_Bits More_Lisp_Bits;
+  enum pvec_type pvec_type;
+} const EXTERNALLY_VISIBLE gdb_make_enums_visible = {0};
+
+/* These symbols cannot be done as enums, since values might not be
+   in 'int' range.  Each symbol X has a corresponding X_VAL symbol,
+   verified to have the correct value.  */
 
 #define ARRAY_MARK_FLAG_VAL PTRDIFF_MIN
 #define PSEUDOVECTOR_FLAG_VAL (PTRDIFF_MAX - PTRDIFF_MAX / 2)

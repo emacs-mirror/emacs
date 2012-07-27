@@ -1,3 +1,20 @@
+2012-07-27  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Improve GDB symbol export (Bug#12036).
+	* .gdbinit (xgetptr, xgetint, xgettype): Set $bugfix in different
+	arms of an 'if', not using conditional expressions; otherwise GDB
+	complains about the types in the unevaluated arm when the argument
+	is an integer literal.
+	(xgetint): Simplify expression.
+	* alloc.c (gdb_make_enums_visible): New constant.  This ports to
+	GCC 3.4.2 the export of symbols to GDB.  Problem reported by Eli
+	Zaretskii in <http://bugs.gnu.org/12036#13>.
+	* lisp.h (PUBLISH_TO_GDB): Remove.  All uses removed.  No longer
+	needed now that we have gdb_make_enums_visible.
+	(enum CHECK_LISP_OBJECT_TYPE, enum Lisp_Bits, enum More_Lisp_Bits)
+	(enum enum_USE_LSB_TAG):
+	New enum types, packaging up enums that need to be exported to GDB.
+
 2012-07-27  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Utility function to make a list from specified amount of objects.

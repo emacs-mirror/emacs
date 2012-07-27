@@ -64,12 +64,6 @@ typedef unsigned int EMACS_UINT;
 # endif
 #endif
 
-/* If an enum type is not used, the enum symbols are not put into the
-   executable so the debugger cannot see them on many systems, e.g.,
-   GCC 4.7.1 + GDB 7.4.1 + GNU/Linux.  Work around this problem by
-   explicitly using the names in the integer constant expression EXPR.  */
-#define PUBLISH_TO_GDB(expr) extern int (*gdb_dummy (int))[(expr) || 1]
-
 /* Number of bits in some machine integer types.  */
 enum
   {
@@ -161,14 +155,23 @@ extern int suppress_checking EXTERNALLY_VISIBLE;
    variable VAR of type TYPE with the added requirement that it be
    TYPEBITS-aligned.  */
 
-/* Number of bits in a Lisp_Object tag.  This can be used in #if,
-   and for GDB's sake also as a regular symbol.  */
-enum { GCTYPEBITS = 3 };
-PUBLISH_TO_GDB (GCTYPEBITS);
+enum Lisp_Bits
+  {
+    /* Number of bits in a Lisp_Object tag.  This can be used in #if,
+       and for GDB's sake also as a regular symbol.  */
+    GCTYPEBITS =
 #define GCTYPEBITS 3
+	GCTYPEBITS,
 
-/* Number of bits in a Lisp_Object value, not counting the tag.  */
-enum { VALBITS = BITS_PER_EMACS_INT - GCTYPEBITS };
+    /* Number of bits in a Lisp_Object value, not counting the tag.  */
+    VALBITS = BITS_PER_EMACS_INT - GCTYPEBITS,
+
+    /* Number of bits in a Lisp fixnum tag.  */
+    INTTYPEBITS = GCTYPEBITS - 1,
+
+    /* Number of bits in a Lisp fixnum value, not counting the tag.  */
+    FIXNUM_BITS = VALBITS + 1
+  };
 
 /* The maximum value that can be stored in a EMACS_INT, assuming all
    bits other than the type bits contribute to a nonnegative signed value.
@@ -211,16 +214,12 @@ enum { VALBITS = BITS_PER_EMACS_INT - GCTYPEBITS };
 #  endif
 # endif
 #endif
-/* USE_LSB_TAG can be used in #if; default it to 0 and make it visible
-   to GDB.  */
 #ifdef USE_LSB_TAG
 # undef USE_LSB_TAG
-enum { USE_LSB_TAG = 1 };
-PUBLISH_TO_GDB (USE_LSB_TAG);
+enum enum_USE_LSB_TAG { USE_LSB_TAG = 1 };
 # define USE_LSB_TAG 1
 #else
-enum { USE_LSB_TAG = 0 };
-PUBLISH_TO_GDB (USE_LSB_TAG);
+enum enum_USE_LSB_TAG { USE_LSB_TAG = 0 };
 # define USE_LSB_TAG 0
 #endif
 
@@ -239,8 +238,6 @@ PUBLISH_TO_GDB (USE_LSB_TAG);
 
 /* Lisp integers use 2 tags, to give them one extra bit, thus
    extending their range from, e.g., -2^28..2^28-1 to -2^29..2^29-1.  */
-enum { INTTYPEBITS = GCTYPEBITS - 1 };
-enum { FIXNUM_BITS = VALBITS + 1 };
 #define INTMASK (EMACS_INT_MAX >> (INTTYPEBITS - 1))
 #define LISP_INT_TAG Lisp_Int0
 #define case_Lisp_Int case Lisp_Int0: case Lisp_Int1
@@ -335,9 +332,9 @@ LISP_MAKE_RVALUE (Lisp_Object o)
 }
 
 #define LISP_INITIALLY_ZERO {0}
-#undef CHECK_LISP_OBJECT_TYPE
-enum { CHECK_LISP_OBJECT_TYPE = 1 };
 
+#undef CHECK_LISP_OBJECT_TYPE
+enum CHECK_LISP_OBJECT_TYPE { CHECK_LISP_OBJECT_TYPE = 1 };
 #else /* CHECK_LISP_OBJECT_TYPE */
 
 /* If a struct type is not wanted, define Lisp_Object as just a number.  */
@@ -347,9 +344,8 @@ typedef EMACS_INT Lisp_Object;
 #define XIL(i) (i)
 #define LISP_MAKE_RVALUE(o) (0+(o))
 #define LISP_INITIALLY_ZERO 0
-enum { CHECK_LISP_OBJECT_TYPE = 0 };
+enum CHECK_LISP_OBJECT_TYPE { CHECK_LISP_OBJECT_TYPE = 0 };
 #endif /* CHECK_LISP_OBJECT_TYPE */
-PUBLISH_TO_GDB (CHECK_LISP_OBJECT_TYPE);
 
 /* In the size word of a vector, this bit means the vector has been marked.  */
 
@@ -390,35 +386,32 @@ enum pvec_type
   PVEC_SUB_CHAR_TABLE		= 0x30,
   PVEC_FONT			= 0x40
 };
-PUBLISH_TO_GDB ((enum pvec_type) 0);  /* This also publishes PVEC_*.  */
-
-/* For convenience, we also store the number of elements in these bits.
-   Note that this size is not necessarily the memory-footprint size, but
-   only the number of Lisp_Object fields (that need to be traced by the GC).
-   The distinction is used e.g. by Lisp_Process which places extra
-   non-Lisp_Object fields at the end of the structure.  */
-enum
-  {
-    PSEUDOVECTOR_SIZE_BITS = 16,
-    PSEUDOVECTOR_SIZE_MASK = (1 << PSEUDOVECTOR_SIZE_BITS) - 1,
-    PVEC_TYPE_MASK = 0x0fff << PSEUDOVECTOR_SIZE_BITS
-  };
-
-/* Number of bits to put in each character in the internal representation
-   of bool vectors.  This should not vary across implementations.  */
-enum { BOOL_VECTOR_BITS_PER_CHAR = 8 };
 
 /* DATA_SEG_BITS forces extra bits to be or'd in with any pointers
-   which were stored in a Lisp_Object.  It is not needed in #if, so
-   for GDB's sake change it from a macro to a regular symbol.  */
-#ifdef DATA_SEG_BITS
-enum { gdb_DATA_SEG_BITS = DATA_SEG_BITS };
-# undef DATA_SEG_BITS
-enum { DATA_SEG_BITS = gdb_DATA_SEG_BITS };
-#else
-enum { DATA_SEG_BITS = 0 };
+   which were stored in a Lisp_Object.  */
+#ifndef DATA_SEG_BITS
+# define DATA_SEG_BITS 0
 #endif
-PUBLISH_TO_GDB (DATA_SEG_BITS);
+enum { gdb_DATA_SEG_BITS = DATA_SEG_BITS };
+#undef DATA_SEG_BITS
+
+enum More_Lisp_Bits
+  {
+    DATA_SEG_BITS = gdb_DATA_SEG_BITS,
+
+    /* For convenience, we also store the number of elements in these bits.
+       Note that this size is not necessarily the memory-footprint size, but
+       only the number of Lisp_Object fields (that need to be traced by GC).
+       The distinction is used, e.g., by Lisp_Process, which places extra
+       non-Lisp_Object fields at the end of the structure.  */
+    PSEUDOVECTOR_SIZE_BITS = 16,
+    PSEUDOVECTOR_SIZE_MASK = (1 << PSEUDOVECTOR_SIZE_BITS) - 1,
+    PVEC_TYPE_MASK = 0x0fff << PSEUDOVECTOR_SIZE_BITS,
+
+    /* Number of bits to put in each character in the internal representation
+       of bool vectors.  This should not vary across implementations.  */
+    BOOL_VECTOR_BITS_PER_CHAR = 8
+  };
 
 /* These macros extract various sorts of values from a Lisp_Object.
  For example, if tem is a Lisp_Object whose type is Lisp_Cons,
