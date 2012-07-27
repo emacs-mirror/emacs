@@ -3685,10 +3685,17 @@ DEFUN ("make-marker", Fmake_marker, Smake_marker, 0, 0, 0,
        doc: /* Return a newly allocated marker which does not point at any place.  */)
   (void)
 {
-  register Lisp_Object marker = allocate_misc (Lisp_Misc_Marker);
+  register Lisp_Object val;
+  register struct Lisp_Marker *p;
 
-  init_marker (XMARKER (marker), NULL, 0, 0, 0);
-  return marker;
+  val = allocate_misc (Lisp_Misc_Marker);
+  p = XMARKER (val);
+  p->buffer = 0;
+  p->bytepos = 0;
+  p->charpos = 0;
+  p->next = NULL;
+  p->insertion_type = 0;
+  return val;
 }
 
 /* Return a newly allocated marker which points into BUF
@@ -3697,23 +3704,24 @@ DEFUN ("make-marker", Fmake_marker, Smake_marker, 0, 0, 0,
 Lisp_Object
 build_marker (struct buffer *buf, ptrdiff_t charpos, ptrdiff_t bytepos)
 {
-  register Lisp_Object marker = allocate_misc (Lisp_Misc_Marker);
-
-  /* Use Fmake_marker to create marker points to nowhere.  */
-  eassert (buf != NULL);
+  Lisp_Object obj;
+  struct Lisp_Marker *m;
 
   /* No dead buffers here.  */
   eassert (!NILP (BVAR (buf, name)));
 
-  /* In a single-byte buffer, two positions must be equal.
-     Otherwise, every character is at least one byte.  */
-  if (BUF_Z (buf) == BUF_Z_BYTE (buf))
-    eassert (charpos == bytepos);
-  else
-    eassert (charpos <= bytepos);
+  /* Every character is at least one byte.  */
+  eassert (charpos <= bytepos);
 
-  init_marker (XMARKER (marker), buf, charpos, bytepos, 0);
-  return marker;
+  obj = allocate_misc (Lisp_Misc_Marker);
+  m = XMARKER (obj);
+  m->buffer = buf;
+  m->charpos = charpos;
+  m->bytepos = bytepos;
+  m->insertion_type = 0;
+  m->next = BUF_MARKERS (buf);
+  BUF_MARKERS (buf) = m;
+  return obj;
 }
 
 /* Put MARKER back on the free list after using it temporarily.  */
@@ -6079,19 +6087,6 @@ mark_object (Lisp_Object arg)
 	    break;
 
 	  case PVEC_SUBR:
-	    break;
-
-	  case PVEC_EXCURSION:
-	    {
-	      struct Lisp_Excursion *e = (struct Lisp_Excursion *) ptr;
-	      /* No Lisp_Objects but two special pointers to mark here.  */
-	      eassert (e->buffer != NULL);
-	      eassert (e->window != NULL);
-	      if (!VECTOR_MARKED_P (e->buffer))
-		mark_buffer (e->buffer);
-	      if (!VECTOR_MARKED_P (e->window))
-		mark_vectorlike ((struct Lisp_Vector *) e->window);
-	    }
 	    break;
 
 	  case PVEC_FREE:

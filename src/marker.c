@@ -425,28 +425,9 @@ Returns nil if MARKER points nowhere.  */)
   return Qnil;
 }
 
-/* Initialize just allocated Lisp_Marker.  */
-
-void
-init_marker (struct Lisp_Marker *m, struct buffer *b,
-	     ptrdiff_t charpos, ptrdiff_t bytepos, int type)
-{
-  m->buffer = b;
-  m->charpos = charpos;
-  m->bytepos = bytepos;
-  m->insertion_type = type;
-  if (b)
-    {
-      m->next = BUF_MARKERS (b);
-      BUF_MARKERS (b) = m;
-    }
-  else
-    m->next = NULL;
-}
-
 /* Change M so it points to B at CHARPOS and BYTEPOS.  */
 
-void
+static inline void
 attach_marker (struct Lisp_Marker *m, struct buffer *b,
 	       ptrdiff_t charpos, ptrdiff_t bytepos)
 {
