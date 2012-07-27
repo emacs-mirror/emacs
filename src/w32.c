@@ -1724,9 +1724,9 @@ init_environment (char ** argv)
 		if (!strcmp (env_vars[i].name, "HOME") && !appdata)
 		  Vdelayed_warnings_list 
 		    = Fcons (listn (HEAP, 2,
-				    intern ("initialization");
+				    intern ("initialization"),
 				    build_string ("Setting HOME to C:\\ by default is deprecated")),
-			       Vdelayed_warnings_list);
+			     Vdelayed_warnings_list);
 	      }
 
 	    if (lpval)
