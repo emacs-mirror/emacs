@@ -379,6 +379,7 @@ enum pvec_type
   PVEC_TERMINAL,
   PVEC_WINDOW_CONFIGURATION,
   PVEC_SUBR,
+  PVEC_EXCURSION,
   PVEC_OTHER,
   /* These last 4 are special because we OR them in fns.c:internal_equal,
      so they have to use a disjoint bit pattern:
@@ -551,6 +552,8 @@ clip_to_bounds (ptrdiff_t lower, EMACS_INT num, ptrdiff_t upper)
 		      (struct terminal *) XUNTAG (a, Lisp_Vectorlike))
 #define XSUBR(a) (eassert (SUBRP (a)), \
 		  (struct Lisp_Subr *) XUNTAG (a, Lisp_Vectorlike))
+#define XEXCURSION(a) (eassert (EXCURSIONP (a)), \
+		       (struct Lisp_Excursion *) XUNTAG (a, Lisp_Vectorlike))
 #define XBUFFER(a) (eassert (BUFFERP (a)), \
 		    (struct buffer *) XUNTAG (a, Lisp_Vectorlike))
 #define XCHAR_TABLE(a) (eassert (CHAR_TABLE_P (a)), \
@@ -603,9 +606,12 @@ clip_to_bounds (ptrdiff_t lower, EMACS_INT num, ptrdiff_t upper)
 #define XSETPROCESS(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_PROCESS))
 #define XSETWINDOW(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_WINDOW))
 #define XSETTERMINAL(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_TERMINAL))
-/* XSETSUBR is special since Lisp_Subr lacks struct vectorlike_header.  */
+/* These are special because both Lisp_Subr and Lisp_Excursion lacks
+   struct vectorlike_header.  */
 #define XSETSUBR(a, b) \
   XSETTYPED_PSEUDOVECTOR (a, b, XSUBR (a)->size, PVEC_SUBR)
+#define XSETEXCURSION(a, b) \
+  XSETTYPED_PSEUDOVECTOR (a, b, XEXCURSION (a)->size, PVEC_EXCURSION)
 #define XSETCOMPILED(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_COMPILED))
 #define XSETBUFFER(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_BUFFER))
 #define XSETCHAR_TABLE(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_CHAR_TABLE))
@@ -1522,6 +1528,33 @@ struct Lisp_Float
 #define XFLOAT_INIT(f,n) (XFLOAT (f)->u.data = (n))
 #endif
 
+/* This structure is used to record buffer state for Fsave_excursion.
+   It's mostly treated as Lisp_Vector but allocated and freed explicitly
+   with xmalloc and xfree, so there is no vectorlike_header here.  */
+
+struct Lisp_Excursion
+{
+  ptrdiff_t size;
+
+  /* Saved value of XWINDOW (selected_window).  */
+  struct window *window;
+
+  /* Buffer where this excursion is in effect.  */
+  struct buffer *buffer;
+
+  /* Non-zero if the window above has displayed the buffer.  */
+  unsigned visible : 1;
+
+  /* Non-zero if this buffer has the mark active.  */
+  unsigned active : 1;
+
+  /* Saved point.  */
+  struct Lisp_Marker point;
+
+  /* Saved mark.  May point to nowhere.  */
+  struct Lisp_Marker mark;
+};
+
 /* A character, declared with the following typedef, is a member
    of some character set associated with the current buffer.  */
 #ifndef _UCHAR_T  /* Protect against something in ctab.h on AIX.  */
@@ -1704,8 +1737,10 @@ typedef struct {
 #define PROCESSP(x) PSEUDOVECTORP (x, PVEC_PROCESS)
 #define WINDOWP(x) PSEUDOVECTORP (x, PVEC_WINDOW)
 #define TERMINALP(x) PSEUDOVECTORP (x, PVEC_TERMINAL)
-/* SUBRP is special since Lisp_Subr lacks struct vectorlike_header.  */
+/* These are special because both Lisp_Subr and Lisp_Excursion lacks
+   struct vectorlike_header.  */
 #define SUBRP(x) TYPED_PSEUDOVECTORP (x, Lisp_Subr, PVEC_SUBR)
+#define EXCURSIONP(x) TYPED_PSEUDOVECTORP (x, Lisp_Excursion, PVEC_EXCURSION)
 #define COMPILEDP(x) PSEUDOVECTORP (x, PVEC_COMPILED)
 #define BUFFERP(x) PSEUDOVECTORP (x, PVEC_BUFFER)
 #define CHAR_TABLE_P(x) PSEUDOVECTORP (x, PVEC_CHAR_TABLE)
@@ -2919,11 +2954,15 @@ extern void clear_charpos_cache (struct buffer *);
 extern ptrdiff_t charpos_to_bytepos (ptrdiff_t);
 extern ptrdiff_t buf_charpos_to_bytepos (struct buffer *, ptrdiff_t);
 extern ptrdiff_t buf_bytepos_to_charpos (struct buffer *, ptrdiff_t);
-extern void unchain_marker (struct Lisp_Marker *marker);
+extern void unchain_marker (struct Lisp_Marker *);
 extern Lisp_Object set_marker_restricted (Lisp_Object, Lisp_Object, Lisp_Object);
 extern Lisp_Object set_marker_both (Lisp_Object, Lisp_Object, ptrdiff_t, ptrdiff_t);
 extern Lisp_Object set_marker_restricted_both (Lisp_Object, Lisp_Object,
-                                               ptrdiff_t, ptrdiff_t);
+					       ptrdiff_t, ptrdiff_t);
+extern void init_marker (struct Lisp_Marker *, struct buffer *,
+			 ptrdiff_t, ptrdiff_t, int);
+extern void attach_marker (struct Lisp_Marker *, struct buffer *,
+			   ptrdiff_t, ptrdiff_t);
 extern Lisp_Object build_marker (struct buffer *, ptrdiff_t, ptrdiff_t);
 extern void syms_of_marker (void);
 

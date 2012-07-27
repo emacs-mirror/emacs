@@ -1,3 +1,20 @@
+2012-07-27  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Fast save_excursion_save and save_excursion_restore.
+	* lisp.h (struct Lisp_Excursion): New data type.
+	(PVEC_EXCURSION): New pseudovector type.
+	(XEXCURSION, XSETEXCURSION, EXCURSIONP): Convenient macros
+	to deal with it.  Adjust comments.
+	(init_marker, attach_marker): New prototype.
+	(unchain_marker): Adjust prototype.
+	* marker.c (attach_marker): Change to global.
+	(init_marker): New function.
+	* alloc.c (Fmake_marker, build_marker): Use it.
+	(build_marker): More easserts.
+	(mark_object): Handle struct Lisp_Excursion.
+	* editfns.c (save_excursion_save, save_excursion_restore):
+	Reimplement to use struct Lisp_Excursion.  Add comments.
+
 2012-07-26  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix export of symbols to GDB (Bug#12036).

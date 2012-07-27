@@ -821,104 +821,104 @@ This function does not move point.  */)
 			      Qnil, Qt, Qnil);
 }
 
-
+/* Record buffer state before entering Fsave_excursion. */
+
 Lisp_Object
 save_excursion_save (void)
 {
-  int visible = (XBUFFER (XWINDOW (selected_window)->buffer)
-		 == current_buffer);
+  Lisp_Object excursion;
+  struct buffer *b = current_buffer;
+  struct window *w = XWINDOW (selected_window);
+  struct Lisp_Excursion *ex = xmalloc (sizeof *ex);
+  struct Lisp_Marker *m = XMARKER (BVAR (b, mark));
 
-  return Fcons (Fpoint_marker (),
-		Fcons (Fcopy_marker (BVAR (current_buffer, mark), Qnil),
-		       Fcons (visible ? Qt : Qnil,
-			      Fcons (BVAR (current_buffer, mark_active),
-				     selected_window))));
+  ex->size = 0;
+  ex->buffer = b;
+  ex->window = w;
+  ex->visible = (XBUFFER (w->buffer) == b);
+  ex->active = !NILP (BVAR (b, mark_active));
+
+  /* We do not initialize type and gcmarkbit since this marker
+     is never referenced via Lisp_Object and invisible for GC.  */
+  init_marker (&ex->point, b, PT, PT_BYTE, 0);
+
+  /* Likewise.  Note that charpos and bytepos may be zero.  */
+  init_marker (&ex->mark, m->buffer, m->charpos, 
+	       m->bytepos, m->insertion_type);
+
+  /* Make it a pseudovector and return excursion object.  */
+  XSETTYPED_PVECTYPE (ex, size, PVEC_EXCURSION);
+  XSETEXCURSION (excursion, ex);
+  return excursion;
 }
 
+/* Restore buffer state before leaving Fsave_excursion.  */
+
 Lisp_Object
-save_excursion_restore (Lisp_Object info)
+save_excursion_restore (Lisp_Object obj)
 {
-  Lisp_Object tem, tem1, omark, nmark;
-  struct gcpro gcpro1, gcpro2, gcpro3;
-  int visible_p;
+  struct Lisp_Excursion *ex = XEXCURSION (obj);
+  struct buffer *b = ex->buffer;
 
-  tem = Fmarker_buffer (XCAR (info));
-  /* If buffer being returned to is now deleted, avoid error */
-  /* Otherwise could get error here while unwinding to top level
-     and crash */
-  /* In that case, Fmarker_buffer returns nil now.  */
-  if (NILP (tem))
-    return Qnil;
+  eassert (b != NULL);
+  eassert (ex->window != NULL);
 
-  omark = nmark = Qnil;
-  GCPRO3 (info, omark, nmark);
+  /* Restore buffer state only if the buffer is live.
+     Otherwise, just cancel an excursion state.  */
 
-  Fset_buffer (tem);
-
-  /* Point marker.  */
-  tem = XCAR (info);
-  Fgoto_char (tem);
-  unchain_marker (XMARKER (tem));
-
-  /* Mark marker.  */
-  info = XCDR (info);
-  tem = XCAR (info);
-  omark = Fmarker_position (BVAR (current_buffer, mark));
-  Fset_marker (BVAR (current_buffer, mark), tem, Fcurrent_buffer ());
-  nmark = Fmarker_position (tem);
-  unchain_marker (XMARKER (tem));
-
-  /* visible */
-  info = XCDR (info);
-  visible_p = !NILP (XCAR (info));
-
-#if 0 /* We used to make the current buffer visible in the selected window
-	 if that was true previously.  That avoids some anomalies.
-	 But it creates others, and it wasn't documented, and it is simpler
-	 and cleaner never to alter the window/buffer connections.  */
-  tem1 = Fcar (tem);
-  if (!NILP (tem1)
-      && current_buffer != XBUFFER (XWINDOW (selected_window)->buffer))
-    Fswitch_to_buffer (Fcurrent_buffer (), Qnil);
-#endif /* 0 */
-
-  /* Mark active */
-  info = XCDR (info);
-  tem = XCAR (info);
-  tem1 = BVAR (current_buffer, mark_active);
-  BVAR (current_buffer, mark_active) = tem;
-
-  /* If mark is active now, and either was not active
-     or was at a different place, run the activate hook.  */
-  if (! NILP (tem))
+  if (!NILP (BVAR (b, name)))
     {
-      if (! EQ (omark, nmark))
-        {
-          tem = intern ("activate-mark-hook");
-          Frun_hooks (1, &tem);
-        }
-    }
-  /* If mark has ceased to be active, run deactivate hook.  */
-  else if (! NILP (tem1))
-    {
-      tem = intern ("deactivate-mark-hook");
-      Frun_hooks (1, &tem);
+      int active;
+      struct Lisp_Marker *m;
+      ptrdiff_t oldpos, newpos;
+
+      /* Restore current buffer.  */
+      set_buffer_internal (b);
+
+      /* Restore buffer position.  */
+      SET_PT_BOTH (clip_to_bounds (BEGV, ex->point.charpos, ZV),
+		   clip_to_bounds (BEGV_BYTE, ex->point.bytepos, ZV_BYTE));
+      unchain_marker (&ex->point);
+
+      /* Restore mark if it was non-zero.  */
+      m = XMARKER (BVAR (b, mark));
+      oldpos = m->charpos;
+      if (BEGV <= ex->mark.charpos)
+	attach_marker (m, b, ex->mark.charpos, ex->mark.bytepos);
+      newpos = ex->mark.charpos;
+      unchain_marker (&ex->mark);
+
+      /* If mark and region was active, restore them.  */
+      active = !NILP (BVAR (b, mark_active));
+      BVAR (b, mark_active) = ex->active ? Qt : Qnil;
+
+      /* If mark is active now, and either was not active
+	 or was at a different place, run the activate hook.  */
+      if (ex->active && oldpos != newpos)
+	{
+	  obj = intern ("activate-mark-hook");
+	  Frun_hooks (1, &obj);
+	}
+      /* If mark has ceased to be active, run deactivate hook.  */
+      else if (active)
+	{
+	  obj = intern ("deactivate-mark-hook");
+	  Frun_hooks (1, &obj);
+	}
+
+      /* If buffer was visible in a window, and a different window
+	 was selected, and the old selected window is still showing
+	 this buffer, restore point in that window.  */
+      if (ex->visible)
+	{
+	  struct window *w = ex->window;
+
+	  if (w != XWINDOW (selected_window) && XBUFFER (w->buffer) == b)
+	    attach_marker (XMARKER (w->pointm), b, PT, PT_BYTE);
+	}
     }
 
-  /* If buffer was visible in a window, and a different window was
-     selected, and the old selected window is still showing this
-     buffer, restore point in that window.  */
-  tem = XCDR (info);
-  if (visible_p
-      && !EQ (tem, selected_window)
-      && (tem1 = XWINDOW (tem)->buffer,
-	  (/* Window is live...  */
-	   BUFFERP (tem1)
-	   /* ...and it shows the current buffer.  */
-	   && XBUFFER (tem1) == current_buffer)))
-    Fset_window_point (tem, make_number (PT));
-
-  UNGCPRO;
+  xfree (ex);
   return Qnil;
 }
 
