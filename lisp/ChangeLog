@@ -1,3 +1,11 @@
+2012-07-27  Tassilo Horn  <tsdh@gnu.org>
+
+	* textmodes/reftex-vars.el (reftex-label-alist-builtin): Add
+	support for the lstlisting and minted environments, and for the
+	ctable macro.
+	* textmodes/reftex.el (reftex-compile-variables): Also recognize
+	labels written in keyvals syntax.
+
 2012-07-27  Jay Belanger  <jay.p.belanger@gmail.com>
 
 	* calc/calccomp.el (math-compose-expr): Use parentheses when

@@ -122,7 +122,14 @@
       ;;("\\label{*}" nil nil nil nil)
       ))
 
-    )
+    (ctable	"The ctable package"
+     (("\\ctable[]{}{}{}" ?t "tab:" "\\ref{%s}" 1 ("table" "Tabelle"))))
+
+    (listings	"The listings package"
+      (("lstlisting" ?l "lst:" "~\\ref{%s}" nil (regexp "[Ll]isting"))))
+
+    (minted	"The minted package"
+      (("minted" ?l "lst:" "~\\ref{%s}" nil (regexp "[Ll]isting")))))
   "The default label environment descriptions.
 Lower-case symbols correspond to a style file of the same name in the LaTeX
 distribution.  Mixed-case symbols are convenience aliases.")
