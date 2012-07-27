@@ -2603,7 +2603,7 @@ Point is left at the beginning of the narrowed-to region."
   (interactive)
   (let ((start (point)))
     (message-skip-to-next-address)
-    (kill-region start (point))))
+    (kill-region start (if (bolp) (1- (point)) (point)))))
 
 
 (autoload 'Info-goto-node "info")
@@ -6099,7 +6099,7 @@ Headers already prepared in the buffer are not modified."
     (while (and (not (= (point) end))
 		(or (not (eq char ?,))
 		    quoted))
-      (skip-chars-forward "^,\"" (point-max))
+      (skip-chars-forward "^,\"" end)
       (when (eq (setq char (following-char)) ?\")
 	(setq quoted (not quoted)))
       (unless (= (point) end)
@@ -6136,17 +6136,22 @@ If the current line has `message-yank-prefix', insert it on the new line."
       (point-max))))
 
 (defun message-fill-field-address ()
-  (while (not (eobp))
-    (message-skip-to-next-address)
-    (let (last)
-      (if (and (> (current-column) 78)
-	       last)
-	  (progn
-	    (save-excursion
-	      (goto-char last)
-	      (insert "\n\t"))
-	    (setq last (1+ (point))))
-	(setq last (1+ (point)))))))
+  (let (end last)
+    (while (not end)
+      (message-skip-to-next-address)
+      (cond ((bolp)
+	     (end-of-line 0)
+	     (setq end 1))
+	    ((eobp)
+	     (setq end 0)))
+      (when (and (> (current-column) 78)
+		 last)
+	(save-excursion
+	  (goto-char last)
+	  (delete-char (- (skip-chars-backward " \t")))
+	  (insert "\n\t")))
+      (setq last (point)))
+    (forward-line end)))
 
 (defun message-fill-field-general ()
   (let ((begin (point))

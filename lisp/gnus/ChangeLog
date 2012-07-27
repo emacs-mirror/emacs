@@ -1,3 +1,9 @@
+2012-07-27  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* message.el (message-kill-address): Don't kill last newline.
+	(message-skip-to-next-address): Don't move to the next header.
+	(message-fill-field-address): Work properly.
+
 2012-07-25  Julien Danjou  <julien@danjou.info>
 
 	* gnus-art.el (gnus-kill-sticky-article-buffers): Reintroduce.
