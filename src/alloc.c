@@ -2832,7 +2832,7 @@ listn (enum constype type, ptrdiff_t count, Lisp_Object arg, ...)
     objp[i] = va_arg (ap, Lisp_Object);
   va_end (ap);
 
-  for (i = 0, val = Qnil; i < count; i++)
+  for (val = Qnil, i = count - 1; i >= 0; i--)
     {
       if (type == CONSTYPE_PURE)
 	val = pure_cons (objp[i], val);

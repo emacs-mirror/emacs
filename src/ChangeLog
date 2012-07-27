@@ -1,5 +1,8 @@
 2012-07-27  Eli Zaretskii  <eliz@gnu.org>
 
+	* alloc.c (listn): Fix the order the arguments are consed onto the
+	list.
+
 	* lisp.h (enum constype): Use CONSTYPE_HEAP and CONSTYPE_PURE for
 	enumeration constants, as PURE and HEAP are too general, and clash
 	with other headers and sources, such as gmalloc.c and the
