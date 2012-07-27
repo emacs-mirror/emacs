@@ -1,3 +1,9 @@
+2012-07-27  Albinus Michael  <michael.albinus@gmx.de>
+
+	* dbusbind.c (XD_DBUS_VALIDATE_BUS_ADDRESS): Canonicalize session
+	bus address.
+	(xd_close_bus, Fdbus_init_bus): Handle reference counter properly.
+
 2012-07-27  Eli Zaretskii  <eliz@gnu.org>
 
 	* alloc.c (listn): Fix the order the arguments are consed onto the
