@@ -3702,7 +3702,7 @@ syms_of_keymap (void)
   Fset (intern_c_string ("ctl-x-map"), control_x_map);
   Ffset (intern_c_string ("Control-X-prefix"), control_x_map);
 
-  exclude_keys = listn (PURE, 5,
+  exclude_keys = listn (CONSTYPE_PURE, 5,
 			pure_cons (build_pure_c_string ("DEL"), build_pure_c_string ("\\d")),
 			pure_cons (build_pure_c_string ("TAB"), build_pure_c_string ("\\t")),
 			pure_cons (build_pure_c_string ("RET"), build_pure_c_string ("\\r")),
@@ -3760,7 +3760,7 @@ be preferred.  */);
   where_is_preferred_modifier = 0;
 
   staticpro (&Vmouse_events);
-  Vmouse_events = listn (PURE, 9,
+  Vmouse_events = listn (CONSTYPE_PURE, 9,
 			 intern_c_string ("menu-bar"),
 			 intern_c_string ("tool-bar"),
 			 intern_c_string ("header-line"),

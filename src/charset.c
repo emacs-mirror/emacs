@@ -1283,7 +1283,7 @@ define_charset_internal (Lisp_Object name,
   args[charset_arg_unify_map] = Qnil;
 
   args[charset_arg_plist] =
-    listn (HEAP, 14,
+    listn (CONSTYPE_HEAP, 14,
 	   intern_c_string (":name"),
 	   args[charset_arg_name],
 	   intern_c_string (":dimension"),

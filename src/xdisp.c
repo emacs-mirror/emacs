@@ -28932,10 +28932,10 @@ and is used only on frames for which no explicit name has been set
 \(see `modify-frame-parameters').  */);
   Vicon_title_format
     = Vframe_title_format
-    = listn (PURE, 3,
+    = listn (CONSTYPE_PURE, 3,
 	     intern_c_string ("multiple-frames"),
 	     build_pure_c_string ("%b"),
-	     listn (PURE, 4,
+	     listn (CONSTYPE_PURE, 4,
 		    empty_unibyte_string,
 		    intern_c_string ("invocation-name"),
 		    build_pure_c_string ("@"),

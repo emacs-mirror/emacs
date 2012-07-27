@@ -6544,7 +6544,7 @@ The following %-sequences are provided:
 	  remain = build_string (buffer);
 	}
 
-      status = listn (HEAP, 8,
+      status = listn (CONSTYPE_HEAP, 8,
 		      Fcons (make_number ('L'), line_status),
 		      Fcons (make_number ('B'), battery_status),
 		      Fcons (make_number ('b'), battery_status_symbol),
@@ -6794,7 +6794,7 @@ syms_of_w32fns (void)
 
 
   Fput (Qundefined_color, Qerror_conditions,
-	listn (PURE, 2, Qundefined_color, Qerror));
+	listn (CONSTYPE_PURE, 2, Qundefined_color, Qerror));
   Fput (Qundefined_color, Qerror_message,
 	build_pure_c_string ("Undefined color"));
 

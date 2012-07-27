@@ -2813,7 +2813,7 @@ list5 (Lisp_Object arg1, Lisp_Object arg2, Lisp_Object arg3, Lisp_Object arg4, L
 
 /* Make a list of COUNT Lisp_Objects, where ARG is the
    first one.  Allocate conses from pure space if TYPE
-   is PURE, or allocate as usual if type is HEAP.  */
+   is CONSTYPE_PURE, or allocate as usual if type is CONSTYPE_HEAP.  */
 
 Lisp_Object
 listn (enum constype type, ptrdiff_t count, Lisp_Object arg, ...)
@@ -2834,9 +2834,9 @@ listn (enum constype type, ptrdiff_t count, Lisp_Object arg, ...)
 
   for (i = 0, val = Qnil; i < count; i++)
     {
-      if (type == PURE)
+      if (type == CONSTYPE_PURE)
 	val = pure_cons (objp[i], val);
-      else if (type == HEAP)
+      else if (type == CONSTYPE_HEAP)
 	val = Fcons (objp[i], val);
       else
 	abort ();
@@ -6676,7 +6676,7 @@ Frames, windows, buffers, and subprocesses count as vectors
   (but the contents of a buffer's text do not count here).  */)
   (void)
 {
-  return listn (HEAP, 8,
+  return listn (CONSTYPE_HEAP, 8,
 		bounded_number (cons_cells_consed),
 		bounded_number (floats_consed),
 		bounded_number (vector_cells_consed),
@@ -6865,7 +6865,7 @@ do hash-consing of the objects allocated to pure space.  */);
   /* We build this in advance because if we wait until we need it, we might
      not be able to allocate the memory to hold it.  */
   Vmemory_signal_data
-    = listn (PURE, 2, Qerror,
+    = listn (CONSTYPE_PURE, 2, Qerror,
 	     build_pure_c_string ("Memory exhausted--use M-x save-some-buffers then exit and restart Emacs"));
 
   DEFVAR_LISP ("memory-full", Vmemory_full,

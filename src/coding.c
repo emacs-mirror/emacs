@@ -10411,7 +10411,7 @@ syms_of_coding (void)
 
   DEFSYM (Qcoding_system_error, "coding-system-error");
   Fput (Qcoding_system_error, Qerror_conditions,
-	listn (PURE, 2, Qcoding_system_error, Qerror));
+	listn (CONSTYPE_PURE, 2, Qcoding_system_error, Qerror));
   Fput (Qcoding_system_error, Qerror_message,
 	build_pure_c_string ("Invalid coding system"));
 

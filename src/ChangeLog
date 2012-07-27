@@ -1,3 +1,10 @@
+2012-07-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* lisp.h (enum constype): Use CONSTYPE_HEAP and CONSTYPE_PURE for
+	enumeration constants, as PURE and HEAP are too general, and clash
+	with other headers and sources, such as gmalloc.c and the
+	MS-Windows system headers.  All users changed.
+
 2012-07-27  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Revert last save_excursion_save and save_excursion_restore changes.
