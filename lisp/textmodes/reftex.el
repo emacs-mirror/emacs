@@ -1320,7 +1320,7 @@ This enforces rescanning the buffer on next use."
                     "\\)\\([[{][^]}]*[]}]\\)*[[{]\\(%s\\)[]}]"))
            (find-label-re-format
             (concat "\\("
-		    "\\[[^]]*label[[:space:]]*=[[:space:]]*{?\\(?1:[^],}]+\\)}?[^[]*\\]"
+		    "label[[:space:]]*=[[:space:]]*"
 		    "\\|"
                     (mapconcat 'regexp-quote (append '("\\label")
                                                      macros-with-labels) "\\|")
