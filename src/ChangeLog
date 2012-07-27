@@ -1,5 +1,24 @@
 2012-07-27  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	Utility function to make a list from specified amount of objects.
+	* lisp.h (enum constype): New datatype.
+	(listn): New prototype.
+	* alloc.c (listn): New function.
+	(Fmemory_use_count, syms_of_alloc): Use it.
+	* buffer.c (syms_of_buffer): Likewise.
+	* callint.c (syms_of_callint): Likewise.
+	* charset.c (define_charset_internal): Likewise.
+	* coding.c (syms_of_coding): Likewise.
+	* keymap.c (syms_of_keymap): Likewise.
+	* search.c (syms_of_search): Likewise.
+	* syntax.c (syms_of_syntax): Likewise.
+	* w32.c (init_environment): Likewise.
+	* w32fns.c (Fw32_battery_status, syms_of_w32fns): Likewise.
+	* xdisp.c (syms_of_xdisp): Likewise.
+	* xfns.c (syms_of_xfns): Likewise.
+
+2012-07-27  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	Fast save_excursion_save and save_excursion_restore.
 	* lisp.h (struct Lisp_Excursion): New data type.
 	(PVEC_EXCURSION): New pseudovector type.

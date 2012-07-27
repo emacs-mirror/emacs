@@ -3054,12 +3054,12 @@ syms_of_search (void)
   DEFSYM (Qinvalid_regexp, "invalid-regexp");
 
   Fput (Qsearch_failed, Qerror_conditions,
-	pure_cons (Qsearch_failed, pure_cons (Qerror, Qnil)));
+	listn (PURE, 2, Qsearch_failed, Qerror));
   Fput (Qsearch_failed, Qerror_message,
 	build_pure_c_string ("Search failed"));
 
   Fput (Qinvalid_regexp, Qerror_conditions,
-	pure_cons (Qinvalid_regexp, pure_cons (Qerror, Qnil)));
+	listn (PURE, 2, Qinvalid_regexp, Qerror));
   Fput (Qinvalid_regexp, Qerror_message,
 	build_pure_c_string ("Invalid regexp"));
 

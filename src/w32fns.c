@@ -6470,7 +6470,6 @@ The following %-sequences are provided:
     {
       Lisp_Object line_status, battery_status, battery_status_symbol;
       Lisp_Object load_percentage, seconds, minutes, hours, remain;
-      Lisp_Object sequences[8];
 
       long seconds_left = (long) system_status.BatteryLifeTime;
 
@@ -6544,16 +6543,16 @@ The following %-sequences are provided:
 	  _snprintf (buffer, 16, "%ld:%02ld", m / 60, m % 60);
 	  remain = build_string (buffer);
 	}
-      sequences[0] = Fcons (make_number ('L'), line_status);
-      sequences[1] = Fcons (make_number ('B'), battery_status);
-      sequences[2] = Fcons (make_number ('b'), battery_status_symbol);
-      sequences[3] = Fcons (make_number ('p'), load_percentage);
-      sequences[4] = Fcons (make_number ('s'), seconds);
-      sequences[5] = Fcons (make_number ('m'), minutes);
-      sequences[6] = Fcons (make_number ('h'), hours);
-      sequences[7] = Fcons (make_number ('t'), remain);
 
-      status = Flist (8, sequences);
+      status = listn (HEAP, 8,
+		      Fcons (make_number ('L'), line_status),
+		      Fcons (make_number ('B'), battery_status),
+		      Fcons (make_number ('b'), battery_status_symbol),
+		      Fcons (make_number ('p'), load_percentage),
+		      Fcons (make_number ('s'), seconds),
+		      Fcons (make_number ('m'), minutes),
+		      Fcons (make_number ('h'), hours),
+		      Fcons (make_number ('t'), remain));
     }
   return status;
 }
@@ -6795,7 +6794,7 @@ syms_of_w32fns (void)
 
 
   Fput (Qundefined_color, Qerror_conditions,
-	pure_cons (Qundefined_color, pure_cons (Qerror, Qnil)));
+	listn (PURE, 2, Qundefined_color, Qerror);
   Fput (Qundefined_color, Qerror_message,
 	build_pure_c_string ("Undefined color"));
 

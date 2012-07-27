@@ -888,10 +888,11 @@ syms_of_callint (void)
   callint_message = Qnil;
   staticpro (&callint_message);
 
-  preserved_fns = pure_cons (intern_c_string ("region-beginning"),
-			 pure_cons (intern_c_string ("region-end"),
-				pure_cons (intern_c_string ("point"),
-				       pure_cons (intern_c_string ("mark"), Qnil))));
+  preserved_fns = listn (PURE, 4,
+			 intern_c_string ("region-beginning"),
+			 intern_c_string ("region-end"),
+			 intern_c_string ("point"),
+			 intern_c_string ("mark"));
 
   DEFSYM (Qlist, "list");
   DEFSYM (Qlet, "let");

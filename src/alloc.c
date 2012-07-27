@@ -2811,6 +2811,38 @@ list5 (Lisp_Object arg1, Lisp_Object arg2, Lisp_Object arg3, Lisp_Object arg4, L
 						       Fcons (arg5, Qnil)))));
 }
 
+/* Make a list of COUNT Lisp_Objects, where ARG is the
+   first one.  Allocate conses from pure space if TYPE
+   is PURE, or allocate as usual if type is HEAP.  */
+
+Lisp_Object
+listn (enum constype type, ptrdiff_t count, Lisp_Object arg, ...)
+{
+  va_list ap;
+  ptrdiff_t i;
+  Lisp_Object val, *objp;
+
+  /* Change to SAFE_ALLOCA if you hit this eassert.  */
+  eassert (count <= MAX_ALLOCA / sizeof (Lisp_Object));
+
+  objp = alloca (count * sizeof (Lisp_Object));
+  objp[0] = arg;
+  va_start (ap, arg);
+  for (i = 1; i < count; i++)
+    objp[i] = va_arg (ap, Lisp_Object);
+  va_end (ap);
+
+  for (i = 0, val = Qnil; i < count; i++)
+    {
+      if (type == PURE)
+	val = pure_cons (objp[i], val);
+      else if (type == HEAP)
+	val = Fcons (objp[i], val);
+      else
+	abort ();
+    }
+  return val;
+}
 
 DEFUN ("list", Flist, Slist, 0, MANY, 0,
        doc: /* Return a newly created list with specified arguments as elements.
@@ -6649,18 +6681,15 @@ Frames, windows, buffers, and subprocesses count as vectors
   (but the contents of a buffer's text do not count here).  */)
   (void)
 {
-  Lisp_Object consed[8];
-
-  consed[0] = bounded_number (cons_cells_consed);
-  consed[1] = bounded_number (floats_consed);
-  consed[2] = bounded_number (vector_cells_consed);
-  consed[3] = bounded_number (symbols_consed);
-  consed[4] = bounded_number (string_chars_consed);
-  consed[5] = bounded_number (misc_objects_consed);
-  consed[6] = bounded_number (intervals_consed);
-  consed[7] = bounded_number (strings_consed);
-
-  return Flist (8, consed);
+  return listn (HEAP, 8,
+		bounded_number (cons_cells_consed),
+		bounded_number (floats_consed),
+		bounded_number (vector_cells_consed),
+		bounded_number (symbols_consed),
+		bounded_number (string_chars_consed),
+		bounded_number (misc_objects_consed),
+		bounded_number (intervals_consed),
+		bounded_number (strings_consed));
 }
 
 /* Find at most FIND_MAX symbols which have OBJ as their value or
@@ -6841,8 +6870,8 @@ do hash-consing of the objects allocated to pure space.  */);
   /* We build this in advance because if we wait until we need it, we might
      not be able to allocate the memory to hold it.  */
   Vmemory_signal_data
-    = pure_cons (Qerror,
-		 pure_cons (build_pure_c_string ("Memory exhausted--use M-x save-some-buffers then exit and restart Emacs"), Qnil));
+    = listn (PURE, 2, Qerror,
+	     build_pure_c_string ("Memory exhausted--use M-x save-some-buffers then exit and restart Emacs"));
 
   DEFVAR_LISP ("memory-full", Vmemory_full,
 	       doc: /* Non-nil means Emacs cannot get much more Lisp memory.  */);

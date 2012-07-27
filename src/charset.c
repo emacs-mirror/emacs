@@ -1257,7 +1257,6 @@ define_charset_internal (Lisp_Object name,
 {
   const unsigned char *code_space = (const unsigned char *) code_space_chars;
   Lisp_Object args[charset_arg_max];
-  Lisp_Object plist[14];
   Lisp_Object val;
   int i;
 
@@ -1283,22 +1282,22 @@ define_charset_internal (Lisp_Object name,
   args[charset_arg_superset] = Qnil;
   args[charset_arg_unify_map] = Qnil;
 
-  plist[0] = intern_c_string (":name");
-  plist[1] = args[charset_arg_name];
-  plist[2] = intern_c_string (":dimension");
-  plist[3] = args[charset_arg_dimension];
-  plist[4] = intern_c_string (":code-space");
-  plist[5] = args[charset_arg_code_space];
-  plist[6] = intern_c_string (":iso-final-char");
-  plist[7] = args[charset_arg_iso_final];
-  plist[8] = intern_c_string (":emacs-mule-id");
-  plist[9] = args[charset_arg_emacs_mule_id];
-  plist[10] = intern_c_string (":ascii-compatible-p");
-  plist[11] = args[charset_arg_ascii_compatible_p];
-  plist[12] = intern_c_string (":code-offset");
-  plist[13] = args[charset_arg_code_offset];
-
-  args[charset_arg_plist] = Flist (14, plist);
+  args[charset_arg_plist] =
+    listn (HEAP, 14,
+	   intern_c_string (":name"),
+	   args[charset_arg_name],
+	   intern_c_string (":dimension"),
+	   args[charset_arg_dimension],
+	   intern_c_string (":code-space"),
+	   args[charset_arg_code_space],
+	   intern_c_string (":iso-final-char"),
+	   args[charset_arg_iso_final],
+	   intern_c_string (":emacs-mule-id"),
+	   args[charset_arg_emacs_mule_id],
+	   intern_c_string (":ascii-compatible-p"),
+	   args[charset_arg_ascii_compatible_p],
+	   intern_c_string (":code-offset"),
+	   args[charset_arg_code_offset]);
   Fdefine_charset_internal (charset_arg_max, args);
 
   return XINT (CHARSET_SYMBOL_ID (name));

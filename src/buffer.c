@@ -5212,7 +5212,7 @@ syms_of_buffer (void)
   DEFSYM (Qkill_buffer_query_functions, "kill-buffer-query-functions");
 
   Fput (Qprotected_field, Qerror_conditions,
-	pure_cons (Qprotected_field, pure_cons (Qerror, Qnil)));
+	listn (PURE, 2, Qprotected_field, Qerror));
   Fput (Qprotected_field, Qerror_message,
 	build_pure_c_string ("Attempt to modify a protected field"));
 

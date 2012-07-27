@@ -1722,13 +1722,11 @@ init_environment (char ** argv)
 		dwType = REG_EXPAND_SZ;
 		dont_free = 1;
 		if (!strcmp (env_vars[i].name, "HOME") && !appdata)
-		  {
-		    Lisp_Object warning[2];
-		    warning[0] = intern ("initialization");
-		    warning[1] = build_string ("Setting HOME to C:\\ by default is deprecated");
-		    Vdelayed_warnings_list = Fcons (Flist (2, warning),
-						    Vdelayed_warnings_list);
-		  }
+		  Vdelayed_warnings_list 
+		    = Fcons (listn (HEAP, 2,
+				    intern ("initialization");
+				    build_string ("Setting HOME to C:\\ by default is deprecated")),
+			       Vdelayed_warnings_list);
 	      }
 
 	    if (lpval)

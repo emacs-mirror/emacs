@@ -3702,13 +3702,12 @@ syms_of_keymap (void)
   Fset (intern_c_string ("ctl-x-map"), control_x_map);
   Ffset (intern_c_string ("Control-X-prefix"), control_x_map);
 
-  exclude_keys
-    = pure_cons (pure_cons (build_pure_c_string ("DEL"), build_pure_c_string ("\\d")),
-		 pure_cons (pure_cons (build_pure_c_string ("TAB"), build_pure_c_string ("\\t")),
-		    pure_cons (pure_cons (build_pure_c_string ("RET"), build_pure_c_string ("\\r")),
-			   pure_cons (pure_cons (build_pure_c_string ("ESC"), build_pure_c_string ("\\e")),
-				  pure_cons (pure_cons (build_pure_c_string ("SPC"), build_pure_c_string (" ")),
-					 Qnil)))));
+  exclude_keys = listn (PURE, 5,
+			pure_cons (build_pure_c_string ("DEL"), build_pure_c_string ("\\d")),
+			pure_cons (build_pure_c_string ("TAB"), build_pure_c_string ("\\t")),
+			pure_cons (build_pure_c_string ("RET"), build_pure_c_string ("\\r")),
+			pure_cons (build_pure_c_string ("ESC"), build_pure_c_string ("\\e")),
+			pure_cons (build_pure_c_string ("SPC"), build_pure_c_string (" ")));
   staticpro (&exclude_keys);
 
   DEFVAR_LISP ("define-key-rebound-commands", Vdefine_key_rebound_commands,
@@ -3761,16 +3760,16 @@ be preferred.  */);
   where_is_preferred_modifier = 0;
 
   staticpro (&Vmouse_events);
-  Vmouse_events = pure_cons (intern_c_string ("menu-bar"),
-		  pure_cons (intern_c_string ("tool-bar"),
-		  pure_cons (intern_c_string ("header-line"),
-		  pure_cons (intern_c_string ("mode-line"),
-		  pure_cons (intern_c_string ("mouse-1"),
-		  pure_cons (intern_c_string ("mouse-2"),
-		  pure_cons (intern_c_string ("mouse-3"),
-		  pure_cons (intern_c_string ("mouse-4"),
-		  pure_cons (intern_c_string ("mouse-5"),
-			     Qnil)))))))));
+  Vmouse_events = listn (PURE, 9,
+			 intern_c_string ("menu-bar"),
+			 intern_c_string ("tool-bar"),
+			 intern_c_string ("header-line"),
+			 intern_c_string ("mode-line"),
+			 intern_c_string ("mouse-1"),
+			 intern_c_string ("mouse-2"),
+			 intern_c_string ("mouse-3"),
+			 intern_c_string ("mouse-4"),
+			 intern_c_string ("mouse-5"));
 
   DEFSYM (Qsingle_key_description, "single-key-description");
   DEFSYM (Qkey_description, "key-description");
