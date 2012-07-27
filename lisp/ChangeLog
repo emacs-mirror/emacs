@@ -1,3 +1,11 @@
+2012-07-27  Fabián Ezequiel Gallina  <fgallina@cuca>
+
+	Consistent completion in inferior python with emacs -nw.
+	* progmodes/python.el (inferior-python-mode): replace "<tab>"
+	binding in inferior-python-mode-map with "\t".
+	(python-shell-completion-complete-at-point)
+	(python-completion-complete-at-point): Remove interactive spec.
+
 2012-07-27  Jay Belanger  <jay.p.belanger@gmail.com>
 
 	* calc/calccomp.el (math-compose-expr): Undo previous change.

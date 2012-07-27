@@ -1545,7 +1545,7 @@ variable.
             'python-shell-completion-complete-at-point nil 'local)
   (add-to-list (make-local-variable 'comint-dynamic-complete-functions)
                'python-shell-completion-complete-at-point)
-  (define-key inferior-python-mode-map (kbd "<tab>")
+  (define-key inferior-python-mode-map "\t"
     'python-shell-completion-complete-or-indent)
   (when python-shell-enable-font-lock
     (set (make-local-variable 'font-lock-defaults)
@@ -1948,7 +1948,6 @@ completions on the current context."
 
 (defun python-shell-completion-complete-at-point ()
   "Perform completion at point in inferior Python process."
-  (interactive)
   (and comint-last-prompt-overlay
        (> (point-marker) (overlay-end comint-last-prompt-overlay))
        (python-shell-completion--do-completion-at-point
@@ -2063,7 +2062,6 @@ Argument OUTPUT is a string with the output from the comint process."
 For this to work the best as possible you should call
 `python-shell-send-buffer' from time to time so context in
 inferior python process is updated properly."
-  (interactive)
   (let ((process (python-shell-get-process)))
     (if (not process)
         (error "Completion needs an inferior Python process running")
