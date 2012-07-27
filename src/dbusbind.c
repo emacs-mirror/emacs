@@ -274,8 +274,9 @@ xd_symbol_to_dbus_type (Lisp_Object object)
 	dbus_error_free (&derror);					\
 	dbus_address_entries_free (entries);				\
 	/* Canonicalize session bus address.  */			\
-	if (session_bus_address != NULL					\
-	    && Fstring_equal (bus, build_string (session_bus_address)))	\
+	if ((session_bus_address != NULL)				\
+	    && (!NILP (Fstring_equal					\
+		       (bus, build_string (session_bus_address)))))	\
 	  bus = QCdbus_session_bus;					\
       }									\
 									\
