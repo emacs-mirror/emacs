@@ -1,3 +1,15 @@
+2012-07-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (custom-deps, finder-data, updates, compile)
+	(compile-always, compile-first)
+	($(lisp)/calendar/cal-loaddefs.el)
+	($(lisp)/calendar/diary-loaddefs.el)
+	($(lisp)/calendar/hol-loaddefs.el, $(lisp)/mh-e/mh-loaddefs.el)
+	($(lisp)/net/tramp-loaddefs.el, bootstrap)
+	($(lisp)/progmodes/cc-mode.elc): Depend on $(lisp)subdirs.el,
+	instead of on update-subdirs.
+	(bootstrap-clean): Delete $(lisp)/subdirs.el.
+
 2012-07-28  Chong Yidong  <cyd@gnu.org>
 
 	* simple.el (delete-trailing-lines): New option.
