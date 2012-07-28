@@ -4044,13 +4044,13 @@ Emacs Manual}.  For more sophisticated methods,
 @cindex Right-to-left alphabets
 @cindex Hebrew, handling with Emacs
 @cindex Semitic alphabets
-@cindex Arabic alphabets
-@cindex Bidirectional text
+@cindex Arabic
+@cindex Farsi
+@cindex bidirectional scripts
 
-Emacs supports Hebrew characters (ISO 8859-8) since version 20, but does
-not yet support right-to-left character entry and display.  The
-@uref{http://lists.gnu.org/mailman/listinfo/emacs-bidi, emacs-bidi
-mailing list} discusses development of support for this feature.
+Emacs supports display and editing of bidirectional scripts, such as
+Arabic, Farsi, and Hebrew, since version 24.1.
+@xref{New in Emacs 24, bidirectional display}.
 
 
 @node How to add fonts
