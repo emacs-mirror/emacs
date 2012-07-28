@@ -1,3 +1,16 @@
+2012-07-28  David Engster  <deng@randomsample.de>
+
+	* url-dav.el (url-dav-supported-p): Added doc-string and remove
+	check for feature `xml' and function `xml-expand-namespace' which
+	never existed in Emacs proper.
+	(url-dav-process-response): Remove all indentation and newlines
+	from XML before parsing.  Change call to `xml-parse-region' to do
+	namespace expansion with simple qualified names (Bug#11916).
+	(url-dav-request): Add autoload.
+	(url-dav-directory-files): Properly deal with empty directories.
+	Unhex URL before generating relative URLs.
+	(url-dav-file-directory-p): Fix check for 'DAV:collection.
+
 2012-07-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* url.el, url-queue.el, url-parse.el, url-http.el, url-future.el:
