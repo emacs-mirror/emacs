@@ -1,3 +1,7 @@
+2012-07-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* nonascii.texi (Character Sets): Fix a typo.  (Bug#12062)
+
 2012-07-25  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Prefer typical American spelling for "acknowledgment".

@@ -606,7 +606,7 @@ The value is a list of all defined character set names.
 @end defvar
 
 @defun charset-priority-list &optional highestp
-This functions returns a list of all defined character sets ordered by
+This function returns a list of all defined character sets ordered by
 their priority.  If @var{highestp} is non-@code{nil}, the function
 returns a single character set of the highest priority.
 @end defun
