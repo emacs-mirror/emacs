@@ -1,3 +1,7 @@
+2012-07-28  Juanma Barranquero  <lekktu@gmail.com>
+
+	* NEWS: Fix typo.
+
 2012-07-26  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Simplify export of symbols to GDB.
