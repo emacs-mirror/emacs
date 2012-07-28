@@ -147,6 +147,10 @@ for it.
 
 * Editing Changes in Emacs 24.2
 
+** New option `delete-trailing-lines' specifies whether the
+M-x delete-trailing-lines command should delete trailing lines at the
+end of the buffer.  It defaults to t.
+
 ** Search changes
 
 *** Global `M-s _' starts a symbol (identifier) incremental search,

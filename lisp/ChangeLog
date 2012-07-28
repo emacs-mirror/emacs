@@ -1,3 +1,8 @@
+2012-07-28  Chong Yidong  <cyd@gnu.org>
+
+	* simple.el (delete-trailing-lines): New option.
+	(delete-trailing-whitespace): Obey it (Bug#11879).
+
 2012-07-28  David Engster  <deng@randomsample.de>
 
 	* xml.el (xml-node-name, xml-parse-file, xml-parse-region):
