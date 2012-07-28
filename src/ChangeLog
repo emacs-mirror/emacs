@@ -1,5 +1,23 @@
 2012-07-28  Eli Zaretskii  <eliz@gnu.org>
 
+	Fix non-ASCII input in non-GUI frames on MS-Windows.  (Bug#12055)
+	* w32inevt.c: Include w32inevt.h.
+	(w32_read_console_input): New inline function, calls either
+	ReadConsoleInputA or ReadConsoleInputW, depending on the value of
+	w32_console_unicode_input.
+	(fill_queue): Call w32_read_console_input instead of ReadConsoleInput.
+	(w32_kbd_patch_key, key_event): Use the codepage returned by
+	GetConsoleCP, rather than the ANSI codepage returned by GetLocaleInfo.
+	(key_event): use uChar.UnicodeChar only if
+	w32_console_unicode_input is non-zero.
+
+	* w32console.c: Include w32heap.h.
+	<w32_console_unicode_input>: New global variable.
+	(initialize_w32_display): Set w32_console_unicode_input to 1 on NT
+	family of Windows, zero otherwise.
+
+	* w32inevt.h: Declare w32_console_unicode_input.
+
 	* xdisp.c (init_iterator): Don't reference tip_frame in a build
 	--without-x.  (Bug#11742)
 

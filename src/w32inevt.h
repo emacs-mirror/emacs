@@ -19,6 +19,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifndef EMACS_W32INEVT_H
 #define EMACS_W32INEVT_H
 
+extern int w32_console_unicode_input;
+
 extern int w32_console_read_socket (struct terminal *term, int numchars,
 				    struct input_event *hold_quit);
 extern void w32_console_mouse_position (FRAME_PTR *f, int insist,

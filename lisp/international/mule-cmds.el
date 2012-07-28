@@ -2655,23 +2655,32 @@ See also `locale-charset-language-names', `locale-language-names',
 
     ;; On Windows, override locale-coding-system,
     ;; default-file-name-coding-system, keyboard-coding-system,
-    ;; terminal-coding-system with system codepage.
+    ;; terminal-coding-system with the appropriate codepages.
     (when (boundp 'w32-ansi-code-page)
-      (let ((code-page-coding (intern (format "cp%d" w32-ansi-code-page))))
-	(when (coding-system-p code-page-coding)
-	  (unless frame (setq locale-coding-system code-page-coding))
-	  (set-keyboard-coding-system code-page-coding frame)
-	  (set-terminal-coding-system code-page-coding frame)
-	  ;; Set default-file-name-coding-system last, so that Emacs
-	  ;; doesn't try to use cpNNNN when it defines keyboard and
-	  ;; terminal encoding.  That's because the above two lines
-	  ;; will want to load code-pages.el, where cpNNNN are
-	  ;; defined; if default-file-name-coding-system were set to
-	  ;; cpNNNN while these two lines run, Emacs will want to use
-	  ;; it for encoding the file name it wants to load.  And that
-	  ;; will fail, since cpNNNN is not yet usable until
-	  ;; code-pages.el finishes loading.
-	  (setq default-file-name-coding-system code-page-coding))))
+      (let ((ansi-code-page-coding (intern (format "cp%d" w32-ansi-code-page)))
+	    (oem-code-page-coding
+	     (intern (format "cp%d" (w32-get-console-codepage))))
+	    (oem-code-page-output-coding
+	     (intern (format "cp%d" (w32-get-console-output-codepage))))
+	    ansi-cs-p oem-cs-p oem-o-cs-p)
+	(setq ansi-cs-p (coding-system-p ansi-code-page-coding))
+	(setq oem-cs-p (coding-system-p oem-code-page-coding))
+	(setq oem-o-cs-p (coding-system-p oem-code-page-output-coding))
+	;; Set the keyboard and display encoding to either the current
+	;; ANSI codepage of the OEM codepage, depending on whether
+	;; this is a GUI or a TTY frame.
+	(when ansi-cs-p
+	  (unless frame (setq locale-coding-system ansi-code-page-coding))
+	  (when (display-graphic-p frame)
+	    (set-keyboard-coding-system ansi-code-page-coding frame)
+	    (set-terminal-coding-system ansi-code-page-coding frame))
+	  (setq default-file-name-coding-system ansi-code-page-coding))
+	(when oem-cs-p
+	  (unless (display-graphic-p frame)
+	    (set-keyboard-coding-system oem-code-page-coding frame)
+	    (set-terminal-coding-system
+	     (if oem-o-cs-p oem-code-page-output-coding oem-code-page-coding)
+	     frame)))))
 
     (when (eq system-type 'darwin)
       ;; On Darwin, file names are always encoded in utf-8, no matter

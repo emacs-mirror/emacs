@@ -1,3 +1,10 @@
+2012-07-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* international/mule-cmds.el (set-locale-environment): In a
+	console session on MS-Windows, set up keyboard and terminal
+	encoding from the OEM codepage, not the ANSI codepage.
+	(Bug#12055)
+
 2012-07-28  Chong Yidong  <cyd@gnu.org>
 
 	* progmodes/gdb-mi.el (gdb-place-breakpoints): Fix the call to
