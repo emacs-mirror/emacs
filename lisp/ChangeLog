@@ -1,3 +1,11 @@
+2012-07-28  David Engster  <deng@randomsample.de>
+
+	* xml.el (xml-node-name, xml-parse-file, xml-parse-region):
+	Explanation of new 'symbol-qnames feature in doc-strings.
+	(xml-maybe-do-ns): Return expanded names as plain symbols if
+	'symbol-qnames was provided in XML-NS argument (Bug#11916).
+	(xml-parse-tag-1): Deal with new definition of PARSE-NS argument.
+
 2012-07-27  Fabián Ezequiel Gallina  <fgallina@cuca>
 
 	Consistent completion in inferior python with emacs -nw.
