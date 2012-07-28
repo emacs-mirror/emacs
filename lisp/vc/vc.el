@@ -1757,10 +1757,15 @@ saving the buffer."
       (call-interactively 'vc-version-diff)
     (when buffer-file-name (vc-buffer-sync not-urgent))
     (let ((backend (vc-deduce-backend))
+	  (default-directory default-directory)
 	  rootdir working-revision)
-      (unless backend
-	(error "Buffer is not version controlled"))
-      (setq rootdir (vc-call-backend backend 'root default-directory))
+      (if backend
+	  (setq rootdir (vc-call-backend backend 'root default-directory))
+	(setq rootdir (read-directory-name "Directory for VC root-diff: "))
+	(setq backend (vc-responsible-backend rootdir))
+	(if backend
+	    (setq default-directory rootdir)
+	  (error "Directory is not version controlled")))
       (setq working-revision (vc-working-revision rootdir))
       ;; VC diff for the root directory produces output that is
       ;; relative to it.  Bind default-directory to the root directory
@@ -2213,10 +2218,15 @@ When called interactively with a prefix argument, prompt for LIMIT."
     (t
      (list (when (> vc-log-show-limit 0) vc-log-show-limit)))))
   (let ((backend (vc-deduce-backend))
+	(default-directory default-directory)
 	rootdir working-revision)
-    (unless backend
-      (error "Buffer is not version controlled"))
-    (setq rootdir (vc-call-backend backend 'root default-directory))
+    (if backend
+	(setq rootdir (vc-call-backend backend 'root default-directory))
+      (setq rootdir (read-directory-name "Directory for VC root-log: "))
+      (setq backend (vc-responsible-backend rootdir))
+      (if backend
+	  (setq default-directory rootdir)
+	(error "Directory is not version controlled")))
     (setq working-revision (vc-working-revision rootdir))
     (vc-print-log-internal backend (list rootdir) working-revision nil limit)))
 

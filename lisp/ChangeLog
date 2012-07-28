@@ -12,6 +12,9 @@
 
 2012-07-28  Chong Yidong  <cyd@gnu.org>
 
+	* vc/vc.el (vc-root-diff, vc-print-root-log): Prompt for a
+	directory if vc-deduce-backend returns nil (Bug#7350).
+
 	* simple.el (delete-trailing-lines): New option.
 	(delete-trailing-whitespace): Obey it (Bug#11879).
 
