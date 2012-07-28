@@ -1933,9 +1933,12 @@ You must have the \"hashcash\" binary installed, see `hashcash-path'."
 (autoload 'nndraft-request-associate-buffer "nndraft")
 (autoload 'nndraft-request-expire-articles "nndraft")
 (autoload 'nnvirtual-find-group-art "nnvirtual")
-(autoload 'mail-dont-reply-to "mail-utils")
 (autoload 'rmail-msg-is-pruned "rmail")
 (autoload 'rmail-output "rmailout")
+
+;; Emacs < 24.1 do not have mail-dont-reply-to
+(unless (fboundp 'mail-dont-reply-to)
+  (defalias 'mail-dont-reply-to 'rmail-dont-reply-to))
 
 
 

@@ -1,3 +1,8 @@
+2012-07-27  Julien Danjou  <jd@dex.adm.naquadah.org>
+
+	* message.el (fboundp): Add a defalias on `mail-dont-reply-to' for
+	Emacs < 24.1
+
 2012-07-27  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* message.el (message-kill-address): Don't kill last newline.
