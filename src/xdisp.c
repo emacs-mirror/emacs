@@ -2736,7 +2736,11 @@ init_iterator (struct it *it, struct window *w,
      frames when the fringes are turned off.  But leave the dimensions
      zero for tooltip frames, as these glyphs look ugly there and also
      sabotage calculations of tooltip dimensions in x-show-tip.  */
-  if (!(FRAMEP (tip_frame) && it->f == XFRAME (tip_frame)))
+#ifdef HAVE_WINDOW_SYSTEM
+  if (!(FRAME_WINDOW_P (it->f)
+	&& FRAMEP (tip_frame)
+	&& it->f == XFRAME (tip_frame)))
+#endif
     {
       if (it->line_wrap == TRUNCATE)
 	{
