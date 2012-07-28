@@ -1,3 +1,8 @@
+2012-07-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* faq.texi (Right-to-left alphabets): Update for Emacs 24.
+	(Bug#12073)
+
 2012-06-19  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in: Rename infodir to buildinfodir throughout.  (Bug#11737)
