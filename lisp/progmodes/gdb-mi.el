@@ -2487,20 +2487,23 @@ HANDLER-NAME handler uses customization of CUSTOM-DEFUN. See
         (let ((file (bindat-get-field breakpoint 'fullname))
               (flag (bindat-get-field breakpoint 'enabled))
               (bptno (bindat-get-field breakpoint 'number)))
-          (unless (file-exists-p file)
+          (unless (and file (file-exists-p file))
             (setq file (cdr (assoc bptno gdb-location-alist))))
-          (if (and file
-                   (not (string-equal file "File not found")))
-              (with-current-buffer
-                  (find-file-noselect file 'nowarn)
-                (gdb-init-buffer)
-                ;; Only want one breakpoint icon at each location.
-                (gdb-put-breakpoint-icon (string-equal flag "y") bptno
-                                         (string-to-number line)))
-            (gdb-input (concat "list " file ":1") 'ignore)
-            (gdb-input "-file-list-exec-source-file"
-		       `(lambda () (gdb-get-location
-				    ,bptno ,line ,flag)))))))))
+	  (if (or (null file)
+		  (string-equal file "File not found"))
+	      ;; If the full filename is not recorded in the
+	      ;; breakpoint structure or in `gdb-location-alist', use
+	      ;; -file-list-exec-source-file to extract it.
+	      (when (setq file (bindat-get-field breakpoint 'file))
+		(gdb-input (concat "list " file ":1") 'ignore)
+		(gdb-input "-file-list-exec-source-file"
+			   `(lambda () (gdb-get-location
+					,bptno ,line ,flag))))
+	    (with-current-buffer (find-file-noselect file 'nowarn)
+	      (gdb-init-buffer)
+	      ;; Only want one breakpoint icon at each location.
+	      (gdb-put-breakpoint-icon (string-equal flag "y") bptno
+				       (string-to-number line)))))))))
 
 (defvar gdb-source-file-regexp "fullname=\"\\(.*?\\)\"")
 
