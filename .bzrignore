@@ -86,6 +86,7 @@ lib/arg-nonnull.h
 lib/c++defs.h
 lib/getopt.h
 lib/inttypes.h
+lib/stdalign.h
 lib/stdbool.h
 lib/stdio.h
 lib/stdint.h

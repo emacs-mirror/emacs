@@ -56,7 +56,7 @@ struct buffer *all_buffers;
    Setting the default value also goes through the alist of buffers
    and stores into each buffer that does not say it has a local value.  */
 
-DECL_ALIGN (struct buffer, buffer_defaults);
+struct buffer alignas (GCALIGNMENT) buffer_defaults;
 
 /* A Lisp_Object pointer to the above, used for staticpro */
 
@@ -83,7 +83,7 @@ struct buffer buffer_local_flags;
 /* This structure holds the names of symbols whose values may be
    buffer-local.  It is indexed and accessed in the same way as the above. */
 
-DECL_ALIGN (struct buffer, buffer_local_symbols);
+struct buffer alignas (GCALIGNMENT) buffer_local_symbols;
 
 /* A Lisp_Object pointer to the above, used for staticpro */
 static Lisp_Object Vbuffer_local_symbols;

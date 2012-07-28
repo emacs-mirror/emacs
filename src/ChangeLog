@@ -1,3 +1,15 @@
+2012-07-28  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use Gnulib stdalign module (Bug#9772, Bug#9960).
+	* alloc.c (XMALLOC_BASE_ALIGNMENT, GC_POINTER_ALIGNMENT, pure_alloc):
+	Simplify by using alignof.
+	(pure_alloc) [! USE_LSB_TAG]: Don't over-align EMACS_INT values.
+	* lisp.h: Include <stdalign.h>.
+	(GCALIGNMENT): New macro and constant.
+	(DECL_ALIGN): Remove.  All uses replaced by alignas (GCALIGNMENT).
+	(USE_LSB_TAG): ifdef on alignas, not on DECL_ALIGN.
+	(stdalign): New macro, if not already defined.
+
 2012-07-28  Eli Zaretskii  <eliz@gnu.org>
 
 	Fix non-ASCII input in non-GUI frames on MS-Windows.  (Bug#12055)

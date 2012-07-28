@@ -1298,19 +1298,6 @@ AC_CHECK_MEMBERS([struct ifreq.ifr_flags, struct ifreq.ifr_hwaddr,
 dnl Check for endianness.
 dnl AC_C_BIGENDIAN is done by gnulib.
 
-AC_CACHE_CHECK([for  __attribute__ ((__aligned__ (expr)))],
-  [emacs_cv_attribute_aligned],
-  [AC_COMPILE_IFELSE(
-     [AC_LANG_PROGRAM(
-	[[char __attribute__ ((__aligned__ (1 << 3))) c;]],
-	[[]])],
-     [emacs_cv_attribute_aligned=yes],
-     [emacs_cv_attribute_aligned=no])])
-if test $emacs_cv_attribute_aligned = yes; then
-  AC_DEFINE([HAVE_ATTRIBUTE_ALIGNED], 1,
-    [Define to 1 if GCC-style __attribute__ ((__aligned__ (expr))) works.])
-fi
-
 dnl check for Make feature
 dnl AC_PROG_MAKE_SET is done by Automake.
 

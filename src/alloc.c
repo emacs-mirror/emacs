@@ -533,12 +533,7 @@ buffer_memory_full (ptrdiff_t nbytes)
    hold a size_t value and (2) the header size is a multiple of the
    alignment that Emacs needs for C types and for USE_LSB_TAG.  */
 #define XMALLOC_BASE_ALIGNMENT				\
-  offsetof (						\
-    struct {						\
-      union { long double d; intmax_t i; void *p; } u;	\
-      char c;						\
-    },							\
-    c)
+  alignof (union { long double d; intmax_t i; void *p; })
 
 #if USE_LSB_TAG
 # define XMALLOC_HEADER_ALIGNMENT \
@@ -4652,10 +4647,10 @@ mark_maybe_pointer (void *p)
 }
 
 
-/* Alignment of pointer values.  Use offsetof, as it sometimes returns
+/* Alignment of pointer values.  Use alignof, as it sometimes returns
    a smaller alignment than GCC's __alignof__ and mark_memory might
    miss objects if __alignof__ were used.  */
-#define GC_POINTER_ALIGNMENT offsetof (struct {char a; void *b;}, b)
+#define GC_POINTER_ALIGNMENT alignof (void *)
 
 /* Define POINTERS_MIGHT_HIDE_IN_OBJECTS to 1 if marking via C pointers does
    not suffice, which is the typical case.  A host where a Lisp_Object is
@@ -5103,17 +5098,11 @@ pure_alloc (size_t size, int type)
 #if USE_LSB_TAG
   size_t alignment = (1 << GCTYPEBITS);
 #else
-  size_t alignment = sizeof (EMACS_INT);
+  size_t alignment = alignof (EMACS_INT);
 
   /* Give Lisp_Floats an extra alignment.  */
   if (type == Lisp_Float)
-    {
-#if defined __GNUC__ && __GNUC__ >= 2
-      alignment = __alignof (struct Lisp_Float);
-#else
-      alignment = sizeof (struct Lisp_Float);
-#endif
-    }
+    alignment = alignof (struct Lisp_Float);
 #endif
 
  again:

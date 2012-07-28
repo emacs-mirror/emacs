@@ -1,3 +1,18 @@
+2012-07-28  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use Gnulib environ module (Bug#9772).
+	* m4/environ.m4: New file, from gnulib.
+	* lib/gnulib.mk, m4/gnulib-comp.m4: Regenerate.
+
+	Use Gnulib stdalign module (Bug#9772, Bug#9960).
+	This should improve portability of macros like alignof and DECL_ALIGN.
+	* lib/stdalign.in.h, m4/stdalign.m4: New files, from gnulib.
+	* .bzrignore: Add lib/stdalign.h.
+	* config.bat: Do not set NO_DECL_ALIGN; no longer needed.
+	Copy lib/stdalign.in.h to lib/stdalign.in-h as needed.
+	* configure.ac (HAVE_ATTRIBUTE_ALIGNED): Remove the code that
+	fiddles with this, as gnulib now does this for us.
+
 2012-07-17  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Fix toolkit configuration report.

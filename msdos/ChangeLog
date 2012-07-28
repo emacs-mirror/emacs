@@ -1,3 +1,10 @@
+2012-07-28  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use Gnulib stdalign module (Bug#9772, Bug#9960).
+	* sed2v2.inp (HAVE_ATTRIBUTE_ALIGNED): Remove edit.
+	* sedlibmk.inp (STDALIGN_H, @GL_GENERATE_STDALIGN_H_TRUE@)
+	(GL_GENERATE_STDALIGN_H_FALSE): New edits.
+
 2012-07-14  Eli Zaretskii  <eliz@gnu.org>
 
 	* sed1v2.inp: In the recipe for $(leimdir)/leim-list.el, edit the

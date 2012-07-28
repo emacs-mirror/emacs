@@ -35,7 +35,6 @@
 /^#undef HAVE_FREXP *$/s/^.*$/#define HAVE_FREXP 1/
 /^#undef HAVE_FMOD *$/s/^.*$/#define HAVE_FMOD 1/
 /^#undef HAVE_RINT *$/s/^.*$/#define HAVE_RINT 1/
-/^#undef HAVE_ATTRIBUTE_ALIGNED *$/s/^.*$/#define HAVE_ATTRIBUTE_ALIGNED 1/
 /^#undef HAVE_C99_STRTOLD *$/s/^.*$/#define HAVE_C99_STRTOLD 1/
 /^#undef HAVE_CBRT *$/s/^.*$/#define HAVE_CBRT 1/
 /^#undef HAVE_DIFFTIME *$/s/^.*$/#define HAVE_DIFFTIME 1/

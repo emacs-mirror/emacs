@@ -52,6 +52,7 @@ AC_DEFUN([gl_EARLY],
   # Code from module dtoastr:
   # Code from module dtotimespec:
   # Code from module dup2:
+  # Code from module environ:
   # Code from module extensions:
   AC_REQUIRE([gl_USE_SYSTEM_EXTENSIONS])
   # Code from module filemode:
@@ -148,6 +149,8 @@ if test $HAVE_DUP2 = 0 || test $REPLACE_DUP2 = 1; then
   gl_PREREQ_DUP2
 fi
 gl_UNISTD_MODULE_INDICATOR([dup2])
+gl_ENVIRON
+gl_UNISTD_MODULE_INDICATOR([environ])
 gl_FILEMODE
 gl_GETLOADAVG
 if test $HAVE_GETLOADAVG = 0; then
@@ -598,6 +601,7 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/c-strtod.m4
   m4/clock_time.m4
   m4/dup2.m4
+  m4/environ.m4
   m4/extensions.m4
   m4/filemode.m4
   m4/getloadavg.m4

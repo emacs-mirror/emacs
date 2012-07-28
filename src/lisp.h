@@ -20,6 +20,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifndef EMACS_LISP_H
 #define EMACS_LISP_H
 
+#include <stdalign.h>
 #include <stdarg.h>
 #include <stddef.h>
 #include <inttypes.h>
@@ -151,10 +152,6 @@ extern int suppress_checking EXTERNALLY_VISIBLE;
    on the few static Lisp_Objects used: all the defsubr as well
    as the two special buffers buffer_defaults and buffer_local_symbols.  */
 
-/* First, try and define DECL_ALIGN(type,var) which declares a static
-   variable VAR of type TYPE with the added requirement that it be
-   TYPEBITS-aligned.  */
-
 enum Lisp_Bits
   {
     /* Number of bits in a Lisp_Object tag.  This can be used in #if,
@@ -162,6 +159,12 @@ enum Lisp_Bits
     GCTYPEBITS =
 #define GCTYPEBITS 3
 	GCTYPEBITS,
+
+    /* 2**GCTYPEBITS.  This must also be a macro that expands to a
+       literal integer constant, for MSVC.  */
+    GCALIGNMENT =
+#define GCALIGNMENT 8
+	GCALIGNMENT,
 
     /* Number of bits in a Lisp_Object value, not counting the tag.  */
     VALBITS = BITS_PER_EMACS_INT - GCTYPEBITS,
@@ -173,28 +176,14 @@ enum Lisp_Bits
     FIXNUM_BITS = VALBITS + 1
   };
 
+#if GCALIGNMENT != 1 << GCTYPEBITS
+# error "GCALIGNMENT and GCTYPEBITS are inconsistent"
+#endif
+
 /* The maximum value that can be stored in a EMACS_INT, assuming all
    bits other than the type bits contribute to a nonnegative signed value.
    This can be used in #if, e.g., '#if VAL_MAX < UINTPTR_MAX' below.  */
 #define VAL_MAX (EMACS_INT_MAX >> (GCTYPEBITS - 1))
-
-#ifndef NO_DECL_ALIGN
-# ifndef DECL_ALIGN
-#  if HAVE_ATTRIBUTE_ALIGNED
-#   define DECL_ALIGN(type, var) \
-     type __attribute__ ((__aligned__ (1 << GCTYPEBITS))) var
-#  elif defined(_MSC_VER)
-#   define ALIGN_GCTYPEBITS 8
-#   if (1 << GCTYPEBITS) != ALIGN_GCTYPEBITS
-#    error ALIGN_GCTYPEBITS is wrong!
-#   endif
-#   define DECL_ALIGN(type, var) \
-     type __declspec(align(ALIGN_GCTYPEBITS)) var
-#  else
-     /* What directives do other compilers use?  */
-#  endif
-# endif
-#endif
 
 /* Unless otherwise specified, use USE_LSB_TAG on systems where:  */
 #ifndef USE_LSB_TAG
@@ -202,7 +191,7 @@ enum Lisp_Bits
 # if (defined GNU_MALLOC || defined DOUG_LEA_MALLOC || defined __GLIBC__ \
       || defined DARWIN_OS || defined __sun)
 /* 2.  We can specify multiple-of-8 alignment on static variables.  */
-#  ifdef DECL_ALIGN
+#  ifdef alignas
 /* 3.  Pointers-as-ints exceed VAL_MAX.
    On hosts where pointers-as-ints do not exceed VAL_MAX, USE_LSB_TAG is:
     a. unnecessary, because the top bits of an EMACS_INT are unused, and
@@ -223,12 +212,11 @@ enum enum_USE_LSB_TAG { USE_LSB_TAG = 0 };
 # define USE_LSB_TAG 0
 #endif
 
-/* If we cannot use 8-byte alignment, make DECL_ALIGN a no-op.  */
-#ifndef DECL_ALIGN
+#ifndef alignas
+# define alignas(alignment) /* empty */
 # if USE_LSB_TAG
-#  error "USE_LSB_TAG used without defining DECL_ALIGN"
+#  error "USE_LSB_TAG requires alignas"
 # endif
-# define DECL_ALIGN(type, var) type var
 #endif
 
 
@@ -1882,7 +1870,7 @@ typedef struct {
 #ifdef _MSC_VER
 #define DEFUN(lname, fnname, sname, minargs, maxargs, intspec, doc)	\
    Lisp_Object fnname DEFUN_ARGS_ ## maxargs ;				\
-   static DECL_ALIGN (struct Lisp_Subr, sname) =			\
+   static struct Lisp_Subr alignas (GCALIGNMENT) sname =		\
    { (PVEC_SUBR << PSEUDOVECTOR_SIZE_BITS)				\
      | (sizeof (struct Lisp_Subr) / sizeof (EMACS_INT)),		\
       { (Lisp_Object (__cdecl *)(void))fnname },                        \
@@ -1891,7 +1879,7 @@ typedef struct {
 #else  /* not _MSC_VER */
 #define DEFUN(lname, fnname, sname, minargs, maxargs, intspec, doc)	\
    Lisp_Object fnname DEFUN_ARGS_ ## maxargs ;				\
-   static DECL_ALIGN (struct Lisp_Subr, sname) =			\
+   static struct Lisp_Subr alignas (GCALIGNMENT) sname =		\
      { PVEC_SUBR << PSEUDOVECTOR_SIZE_BITS,				\
       { .a ## maxargs = fnname },					\
        minargs, maxargs, lname, intspec, 0};				\

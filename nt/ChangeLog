@@ -1,3 +1,8 @@
+2012-07-28  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use Gnulib stdalign module (Bug#9772, Bug#9960).
+	* config.nt (HAVE_ATTRIBUTE_ALIGNED): Remove.
+
 2012-07-14  Juanma Barranquero  <lekktu@gmail.com>
 
 	* config.nt: Sync with autogen/config.in.

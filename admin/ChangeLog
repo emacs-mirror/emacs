@@ -1,3 +1,8 @@
+2012-07-28  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use Gnulib environ and stdalign modules (Bug#9772, Bug#9960).
+	* merge-gnulib: Add environ, stdalign.
+
 2012-07-20  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* coccinelle/unibyte_string.cocci: Semantic patch to convert from
