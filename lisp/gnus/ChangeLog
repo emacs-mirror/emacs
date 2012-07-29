@@ -8,6 +8,7 @@
 	auth-source.el through the /usr/bin/security utility.
 	(auth-sources): Fix syntax error.
 	(auth-source-macos-keychain-result-append): Fix variable name.
+	(auth-sources, auth-source-macos-keychain-result-append): More fixes.
 
 2012-07-27  Julien Danjou  <jd@dex.adm.naquadah.org>
 
