@@ -1,3 +1,12 @@
+2012-07-29  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Generalize marker debugging code under MARKER_DEBUG and use eassert.
+	* insdel.c (CHECK_MARKERS, check_markers_debug_flag): Remove.
+	(gap_left, gap_right, adjust_markers_for_delete, insert_1_both)
+	(insert_from_string_1, insert_from_gap, insert_from_buffer_1)
+	(replace_range, replace_range_2, del_range_2): Change to eassert.
+	* marker.c (byte_char_debug_check): Adjust style.
+
 2012-07-29  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Don't use the abbreviation "win" to refer to Windows (Bug#10421).

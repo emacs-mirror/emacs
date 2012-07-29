@@ -64,7 +64,7 @@ byte_char_debug_check (struct buffer *b, ptrdiff_t charpos, ptrdiff_t bytepos)
 
 #else /* not MARKER_DEBUG */
 
-#define byte_char_debug_check(b,charpos,bytepos) do { } while (0)
+#define byte_char_debug_check(b, charpos, bytepos) do { } while (0)
 
 #endif /* MARKER_DEBUG */
  
