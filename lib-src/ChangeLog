@@ -1,3 +1,7 @@
+2012-07-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in ($(BLD)/profile.$(O)): Depend on stamp_BLD.
+
 2012-07-12  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* movemail.c: Add missing 'defined'.

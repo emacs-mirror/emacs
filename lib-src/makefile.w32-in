@@ -467,4 +467,4 @@ $(BLD)/test-distrib.$(O) $(MOVEMAILOBJS): stamp_BLD
 
 $(BLD)/emacsclient.$(O) $(BLD)/etags.$(O) $(BLD)/regex.$(O): stamp_BLD
 
-$(BLD)/ebrowse.$(O) $(BLD)/ctags.$(O): stamp_BLD
+$(BLD)/ebrowse.$(O) $(BLD)/ctags.$(O) $(BLD)/profile.$(O): stamp_BLD
