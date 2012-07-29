@@ -1,3 +1,15 @@
+2012-07-29  Chong Yidong  <cyd@gnu.org>
+
+	* simple.el (indicate-copied-region): New function.
+	(kill-ring-save): Split off from here.
+
+	* rect.el (copy-rectangle-as-kill): Call indicate-copied-region.
+	(kill-rectangle): Set deactivate-mark to t on read-only error.
+
+	* register.el (copy-to-register, copy-rectangle-to-register):
+	Deactivate the mark, and use indicate-copied-region (Bug#10056).
+	(append-to-register, prepend-to-register): Call
+
 2012-07-29  Juri Linkov  <juri@jurta.org>
 
 	* simple.el (async-shell-command-buffer): New defcustom.

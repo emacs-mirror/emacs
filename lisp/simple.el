@@ -3408,38 +3408,50 @@ This command is similar to `copy-region-as-kill', except that it gives
 visual feedback indicating the extent of the region being copied."
   (interactive "r")
   (copy-region-as-kill beg end)
-  ;; This use of called-interactively-p is correct
-  ;; because the code it controls just gives the user visual feedback.
+  ;; This use of called-interactively-p is correct because the code it
+  ;; controls just gives the user visual feedback.
   (if (called-interactively-p 'interactive)
-      (let ((other-end (if (= (point) beg) end beg))
-	    (opoint (point))
-	    ;; Inhibit quitting so we can make a quit here
-	    ;; look like a C-g typed as a command.
-	    (inhibit-quit t))
-	(if (pos-visible-in-window-p other-end (selected-window))
-            ;; Swap point-and-mark quickly so as to show the region that
-            ;; was selected.  Don't do it if the region is highlighted.
-	    (unless (and (region-active-p)
-			 (face-background 'region))
-	      ;; Swap point and mark.
-	      (set-marker (mark-marker) (point) (current-buffer))
-	      (goto-char other-end)
-	      (sit-for blink-matching-delay)
-	      ;; Swap back.
-	      (set-marker (mark-marker) other-end (current-buffer))
-	      (goto-char opoint)
-	      ;; If user quit, deactivate the mark
-	      ;; as C-g would as a command.
-	      (and quit-flag mark-active
-		   (deactivate-mark)))
-	  (let* ((killed-text (current-kill 0))
-		 (message-len (min (length killed-text) 40)))
-	    (if (= (point) beg)
-		;; Don't say "killed"; that is misleading.
-		(message "Saved text until \"%s\""
-			(substring killed-text (- message-len)))
-	      (message "Saved text from \"%s\""
-		      (substring killed-text 0 message-len))))))))
+      (indicate-copied-region)))
+
+(defun indicate-copied-region (&optional message-len)
+  "Indicate that the region text has been copied interactively.
+If the mark is visible in the selected window, blink the cursor
+between point and mark if there is currently no active region
+highlighting.
+
+If the mark lies outside the selected window, display an
+informative message containing a sample of the copied text.  The
+optional argument MESSAGE-LEN, if non-nil, specifies the length
+of this sample text; it defaults to 40."
+  (let ((mark (mark t))
+	(point (point))
+	;; Inhibit quitting so we can make a quit here
+	;; look like a C-g typed as a command.
+	(inhibit-quit t))
+    (if (pos-visible-in-window-p mark (selected-window))
+	;; Swap point-and-mark quickly so as to show the region that
+	;; was selected.  Don't do it if the region is highlighted.
+	(unless (and (region-active-p)
+		     (face-background 'region))
+	  ;; Swap point and mark.
+	  (set-marker (mark-marker) (point) (current-buffer))
+	  (goto-char mark)
+	  (sit-for blink-matching-delay)
+	  ;; Swap back.
+	  (set-marker (mark-marker) mark (current-buffer))
+	  (goto-char point)
+	  ;; If user quit, deactivate the mark
+	  ;; as C-g would as a command.
+	  (and quit-flag mark-active
+	       (deactivate-mark)))
+      (let ((len (min (abs (- mark point))
+		      (or message-len 40))))
+	(if (< point mark)
+	    ;; Don't say "killed"; that is misleading.
+	    (message "Saved text until \"%s\""
+		     (buffer-substring-no-properties (- mark len) mark))
+	  (message "Saved text from \"%s\""
+		   (buffer-substring-no-properties mark (+ mark len))))))))
 
 (defun append-next-kill (&optional interactive)
   "Cause following command, if it kills, to append to previous kill.
