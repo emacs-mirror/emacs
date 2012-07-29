@@ -1,3 +1,8 @@
+2012-07-29  Paul Eggert  <eggert@cs.ucla.edu>
+
+	deactive->inactive, inactivate->deactivate spelling fixes (Bug#10150)
+	* NEWS: Document these changes.
+
 2012-07-28  Juanma Barranquero  <lekktu@gmail.com>
 
 	* NEWS: Fix typo.

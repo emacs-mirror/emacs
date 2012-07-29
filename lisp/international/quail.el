@@ -540,32 +540,36 @@ non-Quail commands."
   (if (and (overlayp quail-conv-overlay) (overlay-start quail-conv-overlay))
       (delete-overlay quail-conv-overlay)))
 
-(defun quail-inactivate ()
-  "Inactivate Quail input method.
+(defun quail-deactivate ()
+  "Deactivate Quail input method.
 
-This function runs the normal hook `quail-inactivate-hook'."
+This function runs the normal hook `quail-deactivate-hook'."
   (interactive)
   (quail-activate -1))
+
+(define-obsolete-function-alias 'quail-inactivate 'quail-deactivate "24.2")
 
 (defun quail-activate (&optional arg)
   "Activate Quail input method.
 With ARG, activate Quail input method if and only if arg is positive.
 
 This function runs `quail-activate-hook' if it activates the input
-method, `quail-inactivate-hook' if it deactivates it.
+method, `quail-deactivate-hook' if it deactivates it.
 
 While this input method is active, the variable
 `input-method-function' is bound to the function `quail-input-method'."
   (if (and arg
 	  (< (prefix-numeric-value arg) 0))
-      ;; Let's inactivate Quail input method.
+      ;; Let's deactivate Quail input method.
       (unwind-protect
 	  (progn
 	    (quail-delete-overlays)
 	    (setq describe-current-input-method-function nil)
 	    (quail-hide-guidance)
 	    (remove-hook 'post-command-hook 'quail-show-guidance t)
-	    (run-hooks 'quail-inactivate-hook))
+	    (run-hooks
+	     'quail-inactivate-hook ; for backward compatibility
+	     'quail-deactivate-hook))
 	(kill-local-variable 'input-method-function))
     ;; Let's activate Quail input method.
     (if (null quail-current-package)
@@ -575,7 +579,7 @@ While this input method is active, the variable
 	      (setq name (car (car quail-package-alist)))
 	    (error "No Quail package loaded"))
 	  (quail-select-package name)))
-    (setq inactivate-current-input-method-function 'quail-inactivate)
+    (setq deactivate-current-input-method-function 'quail-deactivate)
     (setq describe-current-input-method-function 'quail-help)
     (quail-delete-overlays)
     (setq quail-guidance-str "")
@@ -589,8 +593,12 @@ While this input method is active, the variable
     (make-local-variable 'input-method-function)
     (setq input-method-function 'quail-input-method)))
 
+(define-obsolete-variable-alias
+  'quail-inactivate-hook
+  'quail-deactivate-hook "24.2")
+
 (defun quail-exit-from-minibuffer ()
-  (inactivate-input-method)
+  (deactivate-input-method)
   (if (<= (minibuffer-depth) 1)
       (remove-hook 'minibuffer-exit-hook 'quail-exit-from-minibuffer)))
 

@@ -334,8 +334,8 @@ property `follow-mode-use-cache' to non-nil.")
 (defvar follow-active-menu nil
   "The menu visible when Follow mode is active.")
 
-(defvar follow-deactive-menu nil
-  "The menu visible when Follow mode is deactivated.")
+(defvar follow-inactive-menu nil
+  "The menu visible when Follow mode is inactive.")
 
 (defvar follow-inside-post-command-hook nil
   "Non-nil when inside Follow modes `post-command-hook'.

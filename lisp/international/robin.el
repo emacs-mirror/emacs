@@ -390,11 +390,13 @@ A nil value means no package is selected.")
     (setq robin-current-package-name name)
     (robin-activate)))
 
-(defun robin-inactivate ()
-  "Inactivate robin input method."
+(defun robin-deactivate ()
+  "Deactivate robin input method."
 
   (interactive)
   (robin-activate -1))
+
+(define-obsolete-function-alias 'robin-inactivate 'robin-deactivate "24.2")
 
 (defun robin-activate (&optional arg)
   "Activate robin input method.
@@ -406,18 +408,20 @@ While this input method is active, the variable
   (if (and arg
 	   (< (prefix-numeric-value arg) 0))
 
-      ;; inactivate robin input method.
+      ;; deactivate robin input method.
       (unwind-protect
 	  (progn
 	    (setq robin-mode nil)
 	    (setq describe-current-input-method-function nil)
-	    (run-hooks 'robin-inactivate-hook))
+	    (run-hooks
+	     'robin-inactivate-hook ; for backward compatibility
+	     'robin-deactivate-hook))
 	(kill-local-variable 'input-method-function))
 
     ;; activate robin input method.
     (setq robin-mode t
       	  describe-current-input-method-function 'robin-help
-	  inactivate-current-input-method-function 'robin-inactivate)
+	  deactivate-current-input-method-function 'robin-deactivate)
     (if (eq (selected-window) (minibuffer-window))
 	(add-hook 'minibuffer-exit-hook 'robin-exit-from-minibuffer))
     (run-hooks 'input-method-activate-hook
@@ -425,8 +429,12 @@ While this input method is active, the variable
     (set (make-local-variable 'input-method-function)
 	 'robin-input-method)))
 
+(define-obsolete-variable-alias
+  'robin-inactivate-hook
+  'robin-deactivate-hook "24.2")
+
 (defun robin-exit-from-minibuffer ()
-  (inactivate-input-method)
+  (deactivate-input-method)
   (if (<= (minibuffer-depth) 1)
       (remove-hook 'minibuffer-exit-hook 'robin-exit-from-minibuffer)))
 

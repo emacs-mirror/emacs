@@ -316,7 +316,7 @@ Use `M-x viper-set-expert-level' to change this.")
     ))
 
 ;; viper hook to run on input-method deactivation
-(defun viper-inactivate-input-method-action ()
+(defun viper-deactivate-input-method-action ()
   (if (null viper-mule-hook-flag)
       ()
     (setq viper-special-input-method nil)
@@ -328,9 +328,9 @@ Use `M-x viper-set-expert-level' to change this.")
 			     (or current-input-method default-input-method))
 		   "")))))
 
-(defun viper-inactivate-input-method ()
-  (cond ((and (featurep 'emacs) (fboundp 'inactivate-input-method))
-	 (inactivate-input-method))
+(defun viper-deactivate-input-method ()
+  (cond ((and (featurep 'emacs) (fboundp 'deactivate-input-method))
+	 (deactivate-input-method))
 	((and (featurep 'xemacs) (boundp 'current-input-method))
 	 ;; XEmacs had broken quail-mode for some time, so we are working around
 	 ;; it here
@@ -339,7 +339,9 @@ Use `M-x viper-set-expert-level' to change this.")
 	     (quail-delete-overlays))
 	 (setq describe-current-input-method-function nil)
 	 (setq current-input-method nil)
-	 (run-hooks 'input-method-inactivate-hook)
+	 (run-hooks
+	  'input-method-inactivate-hook ; for backward compatibility
+	  'input-method-deactivate-hook)
 	 (force-mode-line-update))
 	))
 (defun viper-activate-input-method ()
@@ -356,7 +358,7 @@ Use `M-x viper-set-expert-level' to change this.")
 	   ;; activate input method
 	   (viper-activate-input-method))
 	  (t ; deactivate input method
-	   (viper-inactivate-input-method)))
+	   (viper-deactivate-input-method)))
     ))
 
 

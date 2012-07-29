@@ -92,7 +92,7 @@
     (bindings--define-key map [set-keyboard-coding-system]
       '(menu-item "For Keyboard" set-keyboard-coding-system
         :help "How to decode keyboard input"))
-    
+
     (bindings--define-key map [separator-2] menu-bar-separator)
     (bindings--define-key map [set-file-name-coding-system]
       '(menu-item "For File Name" set-file-name-coding-system
@@ -128,7 +128,7 @@
       `(menu-item "Describe Language Environment"
             ,describe-language-environment-map
             :help "Show multilingual settings for a specific language"))
-    
+
     (bindings--define-key map [separator-coding-system] menu-bar-separator)
     (bindings--define-key map [view-hello-file]
       '(menu-item "Show Multilingual Sample Text" view-hello-file
@@ -1331,15 +1331,15 @@ of `history-length', which see.")
 (make-variable-buffer-local 'input-method-history)
 (put 'input-method-history 'permanent-local t)
 
-(defvar inactivate-current-input-method-function nil
-  "Function to call for inactivating the current input method.
+(defvar deactivate-current-input-method-function nil
+  "Function to call for deactivating the current input method.
 Every input method should set this to an appropriate value when activated.
 This function is called with no argument.
 
 This function should never change the value of `current-input-method'.
-It is set to nil by the function `inactivate-input-method'.")
-(make-variable-buffer-local 'inactivate-current-input-method-function)
-(put 'inactivate-current-input-method-function 'permanent-local t)
+It is set to nil by the function `deactivate-input-method'.")
+(make-variable-buffer-local 'deactivate-current-input-method-function)
+(put 'deactivate-current-input-method-function 'permanent-local t)
 
 (defvar describe-current-input-method-function nil
   "Function to call for describing the current input method.
@@ -1426,7 +1426,7 @@ If INPUT-METHOD is nil, deactivate any current input method."
       (setq input-method (symbol-name input-method)))
   (if (and current-input-method
 	   (not (string= current-input-method input-method)))
-      (inactivate-input-method))
+      (deactivate-input-method))
   (unless (or current-input-method (null input-method))
     (let ((slot (assoc input-method input-method-alist)))
       (if (null slot)
@@ -1447,7 +1447,7 @@ If INPUT-METHOD is nil, deactivate any current input method."
 	  (run-hooks 'input-method-activate-hook)
 	(force-mode-line-update)))))
 
-(defun inactivate-input-method ()
+(defun deactivate-input-method ()
   "Turn off the current input method."
   (when current-input-method
     (if input-method-history
@@ -1460,9 +1460,11 @@ If INPUT-METHOD is nil, deactivate any current input method."
 	(progn
 	  (setq input-method-function nil
 		current-input-method-title nil)
-	  (funcall inactivate-current-input-method-function))
+	  (funcall deactivate-current-input-method-function))
       (unwind-protect
-	  (run-hooks 'input-method-inactivate-hook)
+	  (run-hooks
+	   'input-method-inactivate-hook ; for backward compatibility
+	   'input-method-deactivate-hook)
 	(setq current-input-method nil)
 	(force-mode-line-update)))))
 
@@ -1476,7 +1478,7 @@ When called interactively, the optional arg INTERACTIVE is non-nil,
 which marks the variable `default-input-method' as set for Custom buffers.
 
 To deactivate the input method interactively, use \\[toggle-input-method].
-To deactivate it programmatically, use `inactivate-input-method'."
+To deactivate it programmatically, use `deactivate-input-method'."
   (interactive
    (let* ((default (or (car input-method-history) default-input-method)))
      (list (read-input-method-name
@@ -1513,7 +1515,7 @@ which marks the variable `default-input-method' as set for Custom buffers."
   (if toggle-input-method-active
       (error "Recursive use of `toggle-input-method'"))
   (if (and current-input-method (not arg))
-      (inactivate-input-method)
+      (deactivate-input-method)
     (let ((toggle-input-method-active t)
 	  (default (or (car input-method-history) default-input-method)))
       (if (and arg default (equal current-input-method default)
@@ -1640,13 +1642,18 @@ just activated."
   :type 'hook
   :group 'mule)
 
-(defcustom input-method-inactivate-hook nil
-  "Normal hook run just after an input method is inactivated.
+(define-obsolete-variable-alias
+  'input-method-inactivate-hook
+  'input-method-deactivate-hook "24.2")
+
+(defcustom input-method-deactivate-hook nil
+  "Normal hook run just after an input method is deactivated.
 
 The variable `current-input-method' still keeps the input method name
-just inactivated."
+just deactivated."
   :type 'hook
-  :group 'mule)
+  :group 'mule
+  :version "24.2")
 
 (defcustom input-method-after-insert-chunk-hook nil
   "Normal hook run just after an input method insert some chunk of text."

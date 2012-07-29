@@ -41,7 +41,7 @@
   "Turn on or off a Korean text input method for the current buffer."
   (interactive)
   (if current-input-method
-      (inactivate-input-method)
+      (deactivate-input-method)
     (activate-input-method
      (concat "korean-hangul" default-korean-keyboard))))
 

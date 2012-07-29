@@ -512,7 +512,7 @@ When a Korean input method is off, convert the following hangul character."
   "Activate Hangul input method INPUT-METHOD.
 FUNC is a function to handle input key.
 HELP-TEXT is a text set in `hangul-input-method-help-text'."
-  (setq inactivate-current-input-method-function 'hangul-input-method-inactivate
+  (setq deactivate-current-input-method-function 'hangul-input-method-deactivate
 	describe-current-input-method-function 'hangul-input-method-help
 	hangul-input-method-help-text help-text)
   (quail-delete-overlays)
@@ -520,8 +520,8 @@ HELP-TEXT is a text set in `hangul-input-method-help-text'."
       (add-hook 'minibuffer-exit-hook 'quail-exit-from-minibuffer))
   (set (make-local-variable 'input-method-function) func))
 
-(defun hangul-input-method-inactivate ()
-  "Inactivate the current Hangul input method."
+(defun hangul-input-method-deactivate ()
+  "Deactivate the current Hangul input method."
   (interactive)
   (unwind-protect
       (progn
@@ -529,6 +529,10 @@ HELP-TEXT is a text set in `hangul-input-method-help-text'."
         (quail-delete-overlays)
         (setq describe-current-input-method-function nil))
     (kill-local-variable 'input-method-function)))
+
+(define-obsolete-function-alias
+  'hangul-input-method-inactivate
+  'hangul-input-method-deactivate "24.2")
 
 (defun hangul-input-method-help ()
   "Describe the current Hangul input method."

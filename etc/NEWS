@@ -499,6 +499,35 @@ third argument is a frame (that usage was obsolete since Emacs 22.2).
 but keywords or keyword-string pairs.  The old argument list will
 still be supported for Emacs 24.x.
 
+** Spelling changes.
+Some Lisp symbols have been renamed to avoid problems with spelling
+that is incorrect or inconsistent with how Emacs normally spells a word.
+
+*** Renamed functions
+
+**** hangul-input-method-inactivate -> hangul-input-method-deactivate
+**** inactivate-input-method -> deactivate-input-method
+**** quail-inactivate -> quail-deactivate
+**** robin-inactivate -> robin-deactivate
+**** viper-inactivate-input-method -> viper-deactivate-input-method
+**** viper-inactivate-input-method-action ->
+     viper-deactivate-input-method-action
+**** ucs-input-inactivate -> ucs-input-deactivate
+
+*** Renamed hooks
+The old hooks are still supported for backward compatibility, but they
+are deprecated and will be removed eventually.
+
+**** input-method-inactivate-hook -> input-method-deactivate-hook
+**** robin-inactivate-hook -> robin-deactivate-hook
+**** quail-inactivate-hook -> quail-deactivate-hook
+
+*** Renamed Lisp variables
+
+**** follow-deactive-menu -> follow-inactive-menu
+**** inactivate-current-input-method-function ->
+     deactivate-current-input-method-function
+
 ** The following obsolete variables and varaliases have been removed:
 
 *** `facemenu-unlisted-faces'

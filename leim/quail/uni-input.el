@@ -99,7 +99,7 @@ While this input method is active, the variable
 	    (quail-delete-overlays)
 	    (setq describe-current-input-method-function nil))
 	(kill-local-variable 'input-method-function))
-    (setq inactivate-current-input-method-function 'ucs-input-inactivate)
+    (setq deactivate-current-input-method-function 'ucs-input-deactivate)
     (setq describe-current-input-method-function 'ucs-input-help)
     (quail-delete-overlays)
     (if (eq (selected-window) (minibuffer-window))
@@ -107,10 +107,14 @@ While this input method is active, the variable
     (set (make-local-variable 'input-method-function)
 	 'ucs-input-method)))
 
-(defun ucs-input-inactivate ()
-  "Inactivate UCS input method."
+(defun ucs-input-deactivate ()
+  "Deactivate UCS input method."
   (interactive)
   (ucs-input-activate -1))
+
+(define-obsolete-function-alias
+  'ucs-input-inactivate
+  'ucs-input-deactivate "24.2")
 
 (defun ucs-input-help ()
   (interactive)

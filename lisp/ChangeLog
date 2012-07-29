@@ -1,3 +1,25 @@
+2012-07-29  Paul Eggert  <eggert@cs.ucla.edu>
+
+	deactive->inactive, inactivate->deactivate spelling fixes (Bug#10150)
+	* emulation/viper-init.el (viper-deactivate-input-method-action):
+	Rename from viper-inactivate-input-method-action.
+	(viper-deactivate-input-method):
+	Rename from viper-inactivate-input-method.
+	* follow.el (follow-inactive-menu): Rename from follow-deactive-menu.
+	* international/mule-cmds.el (deactivate-input-method):
+	Rename from inactivate-input-method.
+	Also run input-method-deactivate-hook.
+	(deactivate-current-input-method-function):
+	Rename from inactivate-current-input-method-function.
+	(input-method-deactivate-hook): New hook.
+	(input-method-inactivate-hook): Mark obsolete.
+	* international/quail.el (quail-activate):
+	Also run quail-deactivate-hook.
+	(quail-deactivate): Rename from quail-inactivate.
+	* international/robin.el (robin-activate):
+	Also run robin-deactivate-hook.
+	(robin-deactivate): Rename from robin-inactivate.
+
 2012-07-29  Chong Yidong  <cyd@gnu.org>
 
 	* simple.el (indicate-copied-region): New function.

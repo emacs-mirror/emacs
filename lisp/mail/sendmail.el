@@ -616,7 +616,7 @@ This also saves the value of `send-mail-function' via Customize."
   ;; (kill-local-variable 'enable-multibyte-characters)
   (set-buffer-multibyte (default-value 'enable-multibyte-characters))
   (if current-input-method
-      (inactivate-input-method))
+      (deactivate-input-method))
 
   ;; Local variables for Mail mode.
   (setq mail-send-actions actions)
