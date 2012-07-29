@@ -285,9 +285,9 @@ removenullpaths=sed -e 's/^://g' -e 's/:$$//g' -e 's/::/:/g'
 # to just letting configure generate epaths.h from epaths.in in a
 # similar way to how Makefile is made from Makefile.in.
 epaths-force: FRC
-	@(standardlisppath=`echo ${standardlisppath} | ${removenullpaths}` ; \
-	  locallisppath=`echo ${locallisppath} | ${removenullpaths}` ; \
-	  buildlisppath=`echo ${buildlisppath} | ${removenullpaths}` ;	\
+	@(standardlisppath=`echo "${standardlisppath}" | ${removenullpaths}` ; \
+	  locallisppath=`echo "${locallisppath}" | ${removenullpaths}` ; \
+	  buildlisppath=`echo "${buildlisppath}" | ${removenullpaths}` ; \
 	  x_default_search_path=`echo ${x_default_search_path}`; \
 	  gamedir=`echo ${gamedir}`; \
 	  sed < ${srcdir}/src/epaths.in > epaths.h.$$$$		\
@@ -489,7 +489,8 @@ set_installuser=for installuser in $${LOGNAME} $${USERNAME} $${USER} \
 ## http://lists.gnu.org/archive/html/autoconf-patches/2004-11/msg00005.html
 install-arch-indep: install-info install-man ${INSTALL_ARCH_INDEP_EXTRA}
 	umask 022 ; \
-	  $(MKDIR_P) $(DESTDIR)`echo ${locallisppath} | sed 's,:, $(DESTDIR),g'`
+	  eval sh -x $(MKDIR_P) \
+	    "'$(DESTDIR)`echo ${locallisppath}|sed \"s,:,' '$(DESTDIR),g\"`'"
 	-set ${COPYDESTS} ; \
 	unset CDPATH; \
 	$(set_installuser); \

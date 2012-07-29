@@ -1,3 +1,8 @@
+2012-07-29  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* lread.c (init_lread): Remove if-statement in ifdef HAVE_NS before
+	setting sitelisp (Bug#12010).
+
 2012-07-29  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32heap.h (OS_9X): Renamed from OS_WINDOWS_95.

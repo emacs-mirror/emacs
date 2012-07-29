@@ -1,3 +1,7 @@
+2012-07-29  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* Makefile.in (install-arch-indep): Handle space in locallisppath.
+
 2012-07-28  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Use Gnulib environ module (Bug#9772).

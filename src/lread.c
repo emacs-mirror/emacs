@@ -4121,12 +4121,7 @@ init_lread (void)
    difference between initialized and !initialized in this case,
    so we'll have to do it unconditionally when Vinstallation_directory
    is non-nil.  */
-#ifdef HAVE_NS
-  /* loadpath already includes the app-bundle's site-lisp.  */
-  if (!no_site_lisp && !egetenv ("EMACSLOADPATH") && !loadpath)
-#else
   if (!no_site_lisp && !egetenv ("EMACSLOADPATH"))
-#endif
     {
       Lisp_Object sitelisp;
       sitelisp = decode_env_path (0, PATH_SITELOADSEARCH);
@@ -4270,12 +4265,7 @@ init_lread (void)
           load_path_check ();
 
           /* Add the site-lisp directories at the front.  */
-#ifdef HAVE_NS
-          /* loadpath already includes the app-bundle's site-lisp.  */
-          if (!no_site_lisp && !loadpath)
-#else
           if (!no_site_lisp)
-#endif
             {
               Lisp_Object sitelisp;
               sitelisp = decode_env_path (0, PATH_SITELOADSEARCH);
