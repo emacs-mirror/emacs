@@ -5437,7 +5437,7 @@ See Info node `(elisp)Garbage Collection'.  */)
   int message_p;
   Lisp_Object total[11];
   ptrdiff_t count = SPECPDL_INDEX ();
-  EMACS_TIME t1;
+  EMACS_TIME start;
 
   if (abort_on_gc)
     abort ();
@@ -5454,7 +5454,7 @@ See Info node `(elisp)Garbage Collection'.  */)
   FOR_EACH_BUFFER (nextb)
     compact_buffer (nextb);
 
-  t1 = current_emacs_time ();
+  start = current_emacs_time ();
 
   /* In case user calls debug_print during GC,
      don't let that cause a recursive GC.  */
@@ -5706,18 +5706,16 @@ See Info node `(elisp)Garbage Collection'.  */)
 #if GC_MARK_STACK == GC_USE_GCPROS_CHECK_ZOMBIES
   {
     /* Compute average percentage of zombies.  */
-    double nlive = 0;
-
-    for (i = 0; i < 7; ++i)
-      if (CONSP (total[i]))
-	nlive += XFASTINT (XCAR (total[i]));
+    double nlive = 
+      total_conses + total_symbols + total_markers + total_strings
+      + total_vectors + total_floats + total_intervals + total_buffers;
 
     avg_live = (avg_live * ngcs + nlive) / (ngcs + 1);
     max_live = max (nlive, max_live);
     avg_zombies = (avg_zombies * ngcs + nzombies) / (ngcs + 1);
     max_zombies = max (nzombies, max_zombies);
     ++ngcs;
-    }
+  }
 #endif
 
   if (!NILP (Vpost_gc_hook))
@@ -5729,12 +5727,9 @@ See Info node `(elisp)Garbage Collection'.  */)
 
   /* Accumulate statistics.  */
   if (FLOATP (Vgc_elapsed))
-    {
-      EMACS_TIME t2 = current_emacs_time ();
-      EMACS_TIME t3 = sub_emacs_time (t2, t1);
-      Vgc_elapsed = make_float (XFLOAT_DATA (Vgc_elapsed)
-				+ EMACS_TIME_TO_DOUBLE (t3));
-    }
+    Vgc_elapsed = make_float
+      (XFLOAT_DATA (Vgc_elapsed) + EMACS_TIME_TO_DOUBLE
+       (sub_emacs_time (current_emacs_time (), start)));
 
   gcs_done++;
 

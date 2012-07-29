@@ -1,5 +1,11 @@
 2012-07-29  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	Cleanup statistics calculation in Fgarbage_collect.
+	* alloc.c (Fgarbage_collect): Rename t1 to meaningful start.  Fix
+	zombies percentage calculation.  Simplify elapsed time calculation.
+
+2012-07-29  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	Generalize marker debugging code under MARKER_DEBUG and use eassert.
 	* insdel.c (CHECK_MARKERS, check_markers_debug_flag): Remove.
 	(gap_left, gap_right, adjust_markers_for_delete, insert_1_both)
