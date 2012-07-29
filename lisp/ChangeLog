@@ -1,3 +1,8 @@
+2012-07-29  Juri Linkov  <juri@jurta.org>
+
+	* simple.el (async-shell-command-buffer): New defcustom.
+	(shell-command): Use it.  (Bug#4719)
+
 2012-07-28  Eli Zaretskii  <eliz@gnu.org>
 
 	* international/mule-cmds.el (set-locale-environment): In a

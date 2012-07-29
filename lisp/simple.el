@@ -2264,6 +2264,33 @@ to `shell-command-history'."
 	   (or hist 'shell-command-history)
 	   args)))
 
+(defcustom async-shell-command-buffer 'confirm-new-buffer
+  "What to do when the output buffer is used by another shell command.
+This option specifies how to resolve the conflict where a new command
+wants to direct its output to the buffer `*Async Shell Command*',
+but this buffer is already taken by another running shell command.
+
+The value `confirm-kill-process' is used to ask for confirmation before
+killing the already running process and running a new process
+in the same buffer, `confirm-new-buffer' for confirmation before running
+the command in a new buffer with a name other than the default buffer name,
+`new-buffer' for doing the same without confirmation,
+`confirm-rename-buffer' for confirmation before renaming the existing
+output buffer and running a new command in the default buffer,
+`rename-buffer' for doing the same without confirmation."
+  :type '(choice (const :tag "Confirm killing of running command"
+			confirm-kill-process)
+		 (const :tag "Confirm creation of a new buffer"
+			confirm-new-buffer)
+		 (const :tag "Create a new buffer"
+			new-buffer)
+		 (const :tag "Confirm renaming of existing buffer"
+			confirm-rename-buffer)
+		 (const :tag "Rename the existing buffer"
+			rename-buffer))
+  :group 'shell
+  :version "24.2")
+
 (defun async-shell-command (command &optional output-buffer error-buffer)
   "Execute string COMMAND asynchronously in background.
 
@@ -2418,12 +2445,40 @@ the use of a shell (with its need to quote arguments)."
 		    proc)
 		;; Remove the ampersand.
 		(setq command (substring command 0 (match-beginning 0)))
-		;; If will kill a process, query first.
+		;; Ask the user what to do with already running process.
 		(setq proc (get-buffer-process buffer))
-		(if proc
-		    (if (yes-or-no-p "A command is running.  Kill it? ")
+		(when proc
+		  (cond
+		   ((eq async-shell-command-buffer 'confirm-kill-process)
+		    ;; If will kill a process, query first.
+		    (if (yes-or-no-p "A command is running in the default buffer.  Kill it? ")
 			(kill-process proc)
 		      (error "Shell command in progress")))
+		   ((eq async-shell-command-buffer 'confirm-new-buffer)
+		    ;; If will create a new buffer, query first.
+		    (if (yes-or-no-p "A command is running in the default buffer.  Use a new buffer? ")
+			(setq buffer (generate-new-buffer
+				      (or output-buffer "*Async Shell Command*")))
+		      (error "Shell command in progress")))
+		   ((eq async-shell-command-buffer 'new-buffer)
+		    ;; It will create a new buffer.
+		    (setq buffer (generate-new-buffer
+				  (or output-buffer "*Async Shell Command*"))))
+		   ((eq async-shell-command-buffer 'confirm-rename-buffer)
+		    ;; If will rename the buffer, query first.
+		    (if (yes-or-no-p "A command is running in the default buffer.  Rename it? ")
+			(progn
+			  (with-current-buffer buffer
+			    (rename-uniquely))
+			  (setq buffer (get-buffer-create
+					(or output-buffer "*Async Shell Command*"))))
+		      (error "Shell command in progress")))
+		   ((eq async-shell-command-buffer 'rename-buffer)
+		    ;; It will rename the buffer.
+		    (with-current-buffer buffer
+		      (rename-uniquely))
+		    (setq buffer (get-buffer-create
+				  (or output-buffer "*Async Shell Command*"))))))
 		(with-current-buffer buffer
 		  (setq buffer-read-only nil)
 		  ;; Setting buffer-read-only to nil doesn't suffice
