@@ -13,6 +13,8 @@
 	Rename from inactivate-current-input-method-function.
 	(input-method-deactivate-hook): New hook.
 	(input-method-inactivate-hook): Mark obsolete.
+	(inactivate-input-method): Mark obsolete.
+
 	* international/quail.el (quail-activate):
 	Also run quail-deactivate-hook.
 	(quail-deactivate): Rename from quail-inactivate.

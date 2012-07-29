@@ -1468,6 +1468,10 @@ If INPUT-METHOD is nil, deactivate any current input method."
 	(setq current-input-method nil)
 	(force-mode-line-update)))))
 
+(define-obsolete-function-alias
+  'inactivate-input-method
+  'deactivate-input-method "24.2")
+
 (defun set-input-method (input-method &optional interactive)
   "Select and activate input method INPUT-METHOD for the current buffer.
 This also sets the default input method to the one you specify.
