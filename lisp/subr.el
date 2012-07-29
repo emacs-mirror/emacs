@@ -2188,23 +2188,27 @@ by doing (clear-string STRING)."
   "Read a numeric value in the minibuffer, prompting with PROMPT.
 DEFAULT specifies a default value to return if the user just types RET.
 The value of DEFAULT is inserted into PROMPT."
-  (let ((n nil))
-    (when default
+  (let ((n nil)
+	(default1 (if (consp default) (car default) default)))
+    (when default1
       (setq prompt
 	    (if (string-match "\\(\\):[ \t]*\\'" prompt)
-		(replace-match (format " (default %s)" default) t t prompt 1)
+		(replace-match (format " (default %s)" default1) t t prompt 1)
 	      (replace-regexp-in-string "[ \t]*\\'"
-					(format " (default %s) " default)
+					(format " (default %s) " default1)
 					prompt t t))))
     (while
 	(progn
-	  (let ((str (read-from-minibuffer prompt nil nil nil nil
-					   (and default
-						(number-to-string default)))))
+	  (let ((str (read-from-minibuffer
+		      prompt nil nil nil nil
+		      (when default
+			(if (consp default)
+			    (mapcar 'number-to-string (delq nil default))
+			  (number-to-string default))))))
 	    (condition-case nil
 		(setq n (cond
-			 ((zerop (length str)) default)
-			 ((stringp str) (read str))))
+			 ((zerop (length str)) default1)
+			 ((stringp str) (string-to-number str))))
 	      (error nil)))
 	  (unless (numberp n)
 	    (message "Please enter a number.")

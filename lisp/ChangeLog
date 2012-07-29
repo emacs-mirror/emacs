@@ -1,3 +1,14 @@
+2012-07-29  Juri Linkov  <juri@jurta.org>
+
+	* simple.el (goto-line): Don't display default line number in the
+	prompt because it should be displayed by `read-number' (bug#9952).
+	Add the current line number to the defaults of `goto-line' to
+	allow its easier modification by users with `M-n' (bug#9201).
+
+	* subr.el (read-number): Support multiple default values like in
+	other minibuffer reading functions.  Replace `read' with
+	`string-to-number' for consistency with `number-to-string'.
+
 2012-07-29  Paul Eggert  <eggert@cs.ucla.edu>
 
 	deactive->inactive, inactivate->deactivate spelling fixes (Bug#10150)

@@ -948,11 +948,8 @@ rather than line counts."
 		 (concat " in " (buffer-name buffer))
 	       "")))
        ;; Read the argument, offering that number (if any) as default.
-       (list (read-number (format (if default "Goto line%s (%s): "
-                                    "Goto line%s: ")
-                                  buffer-prompt
-                                  default)
-                          default)
+       (list (read-number (format "Goto line%s: " buffer-prompt)
+                          (list default (line-number-at-pos)))
 	     buffer))))
   ;; Switch to the desired buffer, one way or another.
   (if buffer
