@@ -1,3 +1,14 @@
+2012-07-29  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* auth-source.el (auth-sources, auth-source-backend-parse)
+	(auth-source-macos-keychain-search)
+	(auth-source-macos-keychain-search-items)
+	(auth-source-macos-keychain-result-append)
+	(auth-source-macos-keychain-create): Support Mac OS X Keychains in
+	auth-source.el through the /usr/bin/security utility.
+	(auth-sources): Fix syntax error.
+	(auth-source-macos-keychain-result-append): Fix variable name.
+
 2012-07-27  Julien Danjou  <jd@dex.adm.naquadah.org>
 
 	* message.el (fboundp): Add a defalias on `mail-dont-reply-to' for
