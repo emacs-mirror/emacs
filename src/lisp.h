@@ -28,20 +28,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <intprops.h>
 
-/* Use the configure flag --enable-checking[=LIST] to enable various
-   types of run time checks for Lisp objects.  */
-
-#ifdef GC_CHECK_CONS_LIST
-extern void check_cons_list (void);
-#define CHECK_CONS_LIST() check_cons_list ()
-#else
-#define CHECK_CONS_LIST() ((void) 0)
-#endif
-
-/* Temporarily disable wider-than-pointer integers until they're tested more.
-   Build with CFLAGS='-DWIDE_EMACS_INT' to try them out.  */
-/* #undef WIDE_EMACS_INT */
-
 /* EMACS_INT - signed integer wide enough to hold an Emacs value
    EMACS_INT_MAX - maximum value of EMACS_INT; can be used in #if
    pI - printf length modifier for EMACS_INT
@@ -642,21 +628,12 @@ struct Lisp_Cons
   {
     /* Please do not use the names of these elements in code other
        than the core lisp implementation.  Use XCAR and XCDR below.  */
-#ifdef HIDE_LISP_IMPLEMENTATION
-    Lisp_Object car_;
-    union
-    {
-      Lisp_Object cdr_;
-      struct Lisp_Cons *chain;
-    } u;
-#else
     Lisp_Object car;
     union
     {
       Lisp_Object cdr;
       struct Lisp_Cons *chain;
     } u;
-#endif
   };
 
 /* Take the car or cdr of something known to be a cons cell.  */
@@ -666,13 +643,8 @@ struct Lisp_Cons
    fields are not accessible as lvalues.  (What if we want to switch to
    a copying collector someday?  Cached cons cell field addresses may be
    invalidated at arbitrary points.)  */
-#ifdef HIDE_LISP_IMPLEMENTATION
-#define XCAR_AS_LVALUE(c) (XCONS ((c))->car_)
-#define XCDR_AS_LVALUE(c) (XCONS ((c))->u.cdr_)
-#else
 #define XCAR_AS_LVALUE(c) (XCONS ((c))->car)
 #define XCDR_AS_LVALUE(c) (XCONS ((c))->u.cdr)
-#endif
 
 /* Use these from normal code.  */
 #define XCAR(c)	LISP_MAKE_RVALUE (XCAR_AS_LVALUE (c))
@@ -1485,23 +1457,13 @@ struct Lisp_Float
   {
     union
     {
-#ifdef HIDE_LISP_IMPLEMENTATION
-      double data_;
-#else
       double data;
-#endif
       struct Lisp_Float *chain;
     } u;
   };
 
-#ifdef HIDE_LISP_IMPLEMENTATION
-#define XFLOAT_DATA(f)	(0 ? XFLOAT (f)->u.data_ : XFLOAT (f)->u.data_)
-#else
-#define XFLOAT_DATA(f)	(0 ? XFLOAT (f)->u.data :  XFLOAT (f)->u.data)
-/* This should be used only in alloc.c, which always disables
-   HIDE_LISP_IMPLEMENTATION.  */
-#define XFLOAT_INIT(f,n) (XFLOAT (f)->u.data = (n))
-#endif
+#define XFLOAT_DATA(f) (0 ? XFLOAT (f)->u.data :  XFLOAT (f)->u.data)
+#define XFLOAT_INIT(f, n) (XFLOAT (f)->u.data = (n))
 
 /* A character, declared with the following typedef, is a member
    of some character set associated with the current buffer.  */
@@ -2702,6 +2664,11 @@ extern void init_alloc (void);
 extern void syms_of_alloc (void);
 extern struct buffer * allocate_buffer (void);
 extern int valid_lisp_object_p (Lisp_Object);
+#ifdef GC_CHECK_CONS_LIST
+extern void check_cons_list (void);
+#else
+#define check_cons_list() ((void) 0)
+#endif
 
 #ifdef REL_ALLOC
 /* Defined in ralloc.c */

@@ -1,3 +1,10 @@
+2012-07-29  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Remove HIDE_LISP_IMPLEMENTATION and cleanup cons free list check.
+	* lisp.h (HIDE_LISP_IMPLEMENTATION): Remove as useless for a long
+	time.  Adjust users.
+	(CHECK_CONS_LIST): Remove.  Convert all users to check_cons_list.
+
 2012-07-29  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* lread.c (init_lread): Remove if-statement in ifdef HAVE_NS before

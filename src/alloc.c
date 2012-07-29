@@ -29,11 +29,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <pthread.h>
 #endif
 
-/* This file is part of the core Lisp implementation, and thus must
-   deal with the real data structures.  If the Lisp implementation is
-   replaced, this file likely will not be used.  */
-
-#undef HIDE_LISP_IMPLEMENTATION
 #include "lisp.h"
 #include "process.h"
 #include "intervals.h"
@@ -5447,7 +5442,7 @@ See Info node `(elisp)Garbage Collection'.  */)
   if (pure_bytes_used_before_overflow)
     return Qnil;
 
-  CHECK_CONS_LIST ();
+  check_cons_list ();
 
   /* Don't keep undo information around forever.
      Do this early on, so it is no problem if the user quits.  */
@@ -5615,7 +5610,7 @@ See Info node `(elisp)Garbage Collection'.  */)
 
   UNBLOCK_INPUT;
 
-  CHECK_CONS_LIST ();
+  check_cons_list ();
 
   gc_in_progress = 0;
 
