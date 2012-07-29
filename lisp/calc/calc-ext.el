@@ -454,12 +454,12 @@
   (define-key calc-mode-map "mv" 'calc-matrix-mode)
   (define-key calc-mode-map "mw" 'calc-working)
   (define-key calc-mode-map "mx" 'calc-always-load-extensions)
-  (define-key calc-mode-map "mA" 'calc-alg-simplify-mode)
   (define-key calc-mode-map "mB" 'calc-bin-simplify-mode)
   (define-key calc-mode-map "mC" 'calc-auto-recompute)
   (define-key calc-mode-map "mD" 'calc-default-simplify-mode)
   (define-key calc-mode-map "mE" 'calc-ext-simplify-mode)
   (define-key calc-mode-map "mF" 'calc-settings-file-name)
+  (define-key calc-mode-map "mL" 'calc-lim-simplify-mode)
   (define-key calc-mode-map "mM" 'calc-more-recursion-depth)
   (define-key calc-mode-map "mN" 'calc-num-simplify-mode)
   (define-key calc-mode-map "mO" 'calc-no-simplify-mode)
@@ -1093,7 +1093,7 @@ calc-pi calc-radians-mode calc-sec calc-sech
 calc-sin calc-sincos calc-sinh calc-sqrt
 calc-tan calc-tanh calc-to-degrees calc-to-radians)
 
- ("calc-mode" calc-alg-simplify-mode calc-algebraic-mode
+ ("calc-mode" calc-lim-simplify-mode calc-algebraic-mode
 calc-always-load-extensions calc-auto-recompute calc-auto-why
 calc-bin-simplify-mode calc-break-vectors calc-center-justify
 calc-default-simplify-mode calc-display-raw calc-eng-notation

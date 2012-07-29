@@ -698,11 +698,11 @@ If `C' is present, display outer brackets for matrices (centered).")
 (defcalcmodevar calc-previous-modulo nil
   "Most recently used value of M in a modulo form.")
 
-(defcalcmodevar calc-simplify-mode nil
+(defcalcmodevar calc-simplify-mode 'alg
   "Type of simplification applied to results.
 If `none', results are not simplified when pushed on the stack.
 If `num', functions are simplified only when args are constant.
-If nil, only fast simplifications are applied.
+If nil, only limited simplifications are applied.
 If `binary', `math-clip' is applied if appropriate.
 If `alg', `math-simplify' is applied.
 If `ext', `math-simplify-extended' is applied.
@@ -1757,10 +1757,10 @@ See calc-keypad for details."
 			   ((eq calc-simplify-mode 'num) "NumSimp ")
 			   ((eq calc-simplify-mode 'binary)
 			    (format "BinSimp%d " calc-word-size))
-			   ((eq calc-simplify-mode 'alg) "AlgSimp ")
+			   ((eq calc-simplify-mode 'alg) "")
 			   ((eq calc-simplify-mode 'ext) "ExtSimp ")
 			   ((eq calc-simplify-mode 'units) "UnitSimp ")
-			   (t ""))
+			   (t "LimSimp "))
 
 		     ;; Display modes
 		     (cond ((= calc-number-radix 10) "")

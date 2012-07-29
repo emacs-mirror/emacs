@@ -1,5 +1,19 @@
 2012-07-29  Jay Belanger  <jay.p.belanger@gmail.com>
 
+	* calc/calc.el (calc-simplify-mode): Make 'alg the default value.
+	(calc-set-mode-line): Don't display "AlgSimp ".
+
+	* calc/calc-mode.el (calc-alg-simplify-mode): Remove function.
+	(calc-lim-simplify-mode): New function.
+	(calc-set-simplify-mode): Default to 'alg.
+	(calc-default-simplify-mode): Make algebraic simplifications
+	the default.
+
+	* calc/calc-ext.el (calc-init-extensions): Remove binding for
+	`calc-alg-simplify-mode'.  Add binding for `calc-lim-simplify-mode'.
+
+	* calc/README: Mention new default simplification mode.
+
 	* calc/calc.el (math-normalize-error): New variable.
 	(math-normalize): Set `math-normalize-error' to t
 	when there's an error.
