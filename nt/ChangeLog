@@ -1,3 +1,7 @@
+2012-07-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/stdalign.h (_Alignas, alignas): Define.
+
 2012-07-28  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Use Gnulib stdalign module (Bug#9772, Bug#9960).

@@ -1,3 +1,7 @@
+2012-07-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (LISP_H): Add $(NT_INC)/stdalign.h.
+
 2012-07-29  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Cleanup statistics calculation in Fgarbage_collect.

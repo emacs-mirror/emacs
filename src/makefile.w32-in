@@ -438,6 +438,7 @@ LANGINFO_H     = $(NT_INC)/langinfo.h \
 LISP_H         = $(SRC)/lisp.h \
 		 $(SRC)/globals.h \
 		 $(GNU_LIB)/intprops.h \
+		 $(NT_INC)/stdalign.h \
 		 $(INTTYPES_H)
 MD5_H          = $(GNU_LIB)/md5.h \
 		 $(NT_INC)/stdint.h
