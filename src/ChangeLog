@@ -1,3 +1,8 @@
+2012-07-29  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in (LISP_H, $(BLD)/emacs.$(O), $(BLD)/w32inevt.$(O))
+	($(BLD)/w32console.$(O)): Update dependencies.
+
 2012-07-29  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Remove HIDE_LISP_IMPLEMENTATION and cleanup cons free list check.

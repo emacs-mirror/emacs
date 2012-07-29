@@ -438,8 +438,8 @@ LANGINFO_H     = $(NT_INC)/langinfo.h \
 LISP_H         = $(SRC)/lisp.h \
 		 $(SRC)/globals.h \
 		 $(GNU_LIB)/intprops.h \
-		 $(NT_INC)/stdalign.h \
-		 $(INTTYPES_H)
+		 $(INTTYPES_H) \
+		 $(NT_INC)/stdalign.h
 MD5_H          = $(GNU_LIB)/md5.h \
 		 $(NT_INC)/stdint.h
 MENU_H         = $(SRC)/menu.h \
@@ -784,7 +784,6 @@ $(BLD)/emacs.$(O) : \
 	$(SRC)/w32heap.h \
 	$(NT_INC)/sys/file.h \
 	$(NT_INC)/unistd.h \
-	$(GNU_LIB)/verify.h \
 	$(BLOCKINPUT_H) \
 	$(BUFFER_H) \
 	$(CHARACTER_H) \
@@ -1165,6 +1164,7 @@ $(BLD)/w32inevt.$(O) : \
 	$(SRC)/w32inevt.c \
 	$(SRC)/termchar.h \
 	$(SRC)/w32heap.h \
+	$(SRC)/w32inevt.h \
 	$(BLOCKINPUT_H) \
 	$(CONFIG_H) \
 	$(DISPEXTERN_H) \
@@ -1196,6 +1196,7 @@ $(BLD)/w32console.$(O) : \
 	$(SRC)/w32console.c \
 	$(SRC)/disptab.h \
 	$(SRC)/termchar.h \
+	$(SRC)/w32heap.h \
 	$(SRC)/w32inevt.h \
 	$(CHARACTER_H) \
 	$(CODING_H) \
