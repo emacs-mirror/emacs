@@ -213,11 +213,8 @@ enum enum_USE_LSB_TAG { USE_LSB_TAG = 0 };
 /* Lisp integers use 2 tags, to give them one extra bit, thus
    extending their range from, e.g., -2^28..2^28-1 to -2^29..2^29-1.  */
 #define INTMASK (EMACS_INT_MAX >> (INTTYPEBITS - 1))
-#define LISP_INT_TAG Lisp_Int0
 #define case_Lisp_Int case Lisp_Int0: case Lisp_Int1
-#define LISP_INT1_TAG (USE_LSB_TAG ? 1 << INTTYPEBITS : 1)
-#define LISP_STRING_TAG (5 - LISP_INT1_TAG)
-#define LISP_INT_TAG_P(x) (((x) & ~LISP_INT1_TAG) == 0)
+#define LISP_INT_TAG_P(x) (((x) & ~Lisp_Int1) == 0)
 
 /* Stolen from GDB.  The only known compiler that doesn't support
    enums in bitfields is MSVC.  */
@@ -232,7 +229,7 @@ enum Lisp_Type
   {
     /* Integer.  XINT (obj) is the integer value.  */
     Lisp_Int0 = 0,
-    Lisp_Int1 = LISP_INT1_TAG,
+    Lisp_Int1 = USE_LSB_TAG ? 1 << INTTYPEBITS : 1,
 
     /* Symbol.  XSYMBOL (object) points to a struct Lisp_Symbol.  */
     Lisp_Symbol = 2,
@@ -243,7 +240,7 @@ enum Lisp_Type
 
     /* String.  XSTRING (object) points to a struct Lisp_String.
        The length of the string, and its contents, are stored therein.  */
-    Lisp_String = LISP_STRING_TAG,
+    Lisp_String = USE_LSB_TAG ? 1 : 1 << INTTYPEBITS,
 
     /* Vector of Lisp objects, or something resembling it.
        XVECTOR (object) points to a struct Lisp_Vector, which contains

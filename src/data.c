@@ -928,7 +928,7 @@ store_symval_forwarding (union Lisp_Fwd *valcontents, register Lisp_Object newva
 	Lisp_Object type = XBUFFER_OBJFWD (valcontents)->slottype;
 
 	if (!(NILP (type) || NILP (newval)
-	      || (XINT (type) == LISP_INT_TAG
+	      || (XINT (type) == Lisp_Int0
 		  ? INTEGERP (newval)
 		  : XTYPE (newval) == XINT (type))))
 	  buffer_slot_type_mismatch (newval, XINT (type));

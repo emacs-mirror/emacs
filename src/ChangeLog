@@ -1,3 +1,10 @@
+2012-07-29  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* lisp.h (LISP_INT_TAG, LISP_INT1_TAG, LISP_STRING_TAG): Remove.
+	These macros are confusing and no longer need to be defined, as
+	the enum values now suffice.  All uses replaced with definiens.
+	(Lisp_Int1, Lisp_String): Define directly; this is clearer.
+
 2012-07-29  Juanma Barranquero  <lekktu@gmail.com>
 
 	* makefile.w32-in (LISP_H, $(BLD)/emacs.$(O), $(BLD)/w32inevt.$(O))
