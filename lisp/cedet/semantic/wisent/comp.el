@@ -550,7 +550,7 @@ S must be a vector of integers."
               N  Ns)))
     (setq N Np)))
 
-(defun wisent-inaccessable-symbols ()
+(defun wisent-inaccessible-symbols ()
   "Find out which productions are reachable and which symbols are used."
   ;; Starting with an empty set of productions and a set of symbols
   ;; which only has the start symbol in it, iterate over all
@@ -709,7 +709,7 @@ S must be a vector of integers."
         nuseless-productions  0)
 
   (wisent-useless-nonterminals)
-  (wisent-inaccessable-symbols)
+  (wisent-inaccessible-symbols)
 
   (when (> (+ nuseless-nonterminals nuseless-productions) 0)
     (wisent-total-useless)

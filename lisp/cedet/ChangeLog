@@ -1,3 +1,10 @@
+2012-07-29  Paul Eggert  <eggert@cs.ucla.edu>
+
+	inaccessable -> inaccessible spelling fix (Bug#10052)
+	* semantic/wisent/comp.el (wisent-inaccessible-symbols):
+	Rename from wisent-inaccessable-symbols, fixing a misspelling.
+	Caller changed.
+
 2012-07-09  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* ede/project-am.el: Fix typo.
