@@ -1,4 +1,4 @@
-/* Graphical user interface functions for the Microsoft W32 API.
+/* Graphical user interface functions for the Microsoft Windows API.
 
 Copyright (C) 1989, 1992-2012  Free Software Foundation, Inc.
 
@@ -6575,7 +6575,7 @@ If the underlying system call fails, value is nil.  */)
   value = Qnil;
 
   /* Determining the required information on Windows turns out, sadly,
-     to be more involved than one would hope.  The original Win32 api
+     to be more involved than one would hope.  The original Windows API
      call for this will return bogus information on some systems, but we
      must dynamically probe for the replacement api, since that was
      added rather late on.  */

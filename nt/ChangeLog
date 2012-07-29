@@ -905,7 +905,7 @@
 
 2008-04-04  Jason Rumney  <jasonr@gnu.org>
 
-	* INSTALL: Update W32 API requirements.
+	* INSTALL: Update Windows API requirements.
 
 2008-04-03  Jason Rumney  <jasonr@gnu.org>
 
@@ -2322,7 +2322,7 @@
 	* makefile.def (CP_DIR): Use platform independent switches for xcopy.
 
 	* makefile.nt (install, fast_install, real_install, clean):
-	Don't use switches to del not supported by Win95.
+	Don't use switches to del not supported by Windows 95.
 
 1995-11-07  Kevin Gallo  <kgallo@microsoft.com>
 
@@ -2376,7 +2376,7 @@
 1995-05-27  Geoff Voelker  <voelker@cs.washington.edu>
 
 	* ebuild.bat, emacs.bat, fast-install.bat, install.bat:
-	Add carriage returns; necessary for batch files on Win95.
+	Add carriage returns; necessary for batch files on Windows 95.
 
 1995-05-25  Geoff Voelker  <voelker@cs.washington.edu>
 

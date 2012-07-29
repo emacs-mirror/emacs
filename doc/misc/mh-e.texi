@@ -7901,7 +7901,7 @@ PATH=$PATH:/usr/bin/mh
 MAILDIR=$HOME/`mhparam Path`
 
 #
-# Filter messages with win32 executables/virii.
+# Filter messages with w32 executables/virii.
 #
 # These attachments are base64 and have a TVqQAAMAAAAEAAAA//8AALg
 # pattern. The string "this program cannot be run in MS-DOS mode"
@@ -9060,5 +9060,3 @@ Bill Wohler, August 2008
 @c Local Variables:
 @c sentence-end-double-space: nil
 @c End:
-
-

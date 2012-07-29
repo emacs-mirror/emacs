@@ -3994,7 +3994,8 @@
 
 2010-09-24  Juanma Barranquero  <lekktu@gmail.com>
 
-	Remove W32 API function pointer unused since 2005-02-15 (revno 60055).
+	Remove Windows API function pointer unused since 2005-02-15 (revno
+	60055).
 	* w32fns.c (clipboard_sequence_fn): Don't declare.
 	(globals_of_w32fns): Don't initialize it.
 

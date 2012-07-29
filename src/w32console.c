@@ -1,4 +1,4 @@
-/* Terminal hooks for GNU Emacs on the Microsoft W32 API.
+/* Terminal hooks for GNU Emacs on the Microsoft Windows API.
    Copyright (C) 1992, 1999, 2001-2012  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -515,7 +515,7 @@ w32con_set_terminal_modes (struct terminal *t)
 {
   CONSOLE_CURSOR_INFO cci;
 
-  /* make cursor big and visible (100 on Win95 makes it disappear)  */
+  /* make cursor big and visible (100 on Windows 95 makes it disappear)  */
   cci.dwSize = 99;
   cci.bVisible = TRUE;
   (void) SetConsoleCursorInfo (cur_screen, &cci);

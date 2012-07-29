@@ -2141,7 +2141,7 @@ Useful links:
   `http://bama.ua.edu/cgi-bin/man-cgi?lp'
   `http://www.mediacollege.com/cgi-bin/man/page.cgi?section=all&topic=lp'
 
-* GNU utilities for Win32 (cp.exe)
+* GNU utilities for w32 (cp.exe)
   `http://unxutils.sourceforge.net/'
 "
   :type '(repeat

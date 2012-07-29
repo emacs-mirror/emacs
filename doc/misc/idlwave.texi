@@ -4020,7 +4020,7 @@ user is King!
 @end example
 
 @html
-<A NAME="WIN_MAC"></A>
+<A NAME="WINDOWS_MAC"></A>
 @end html
 @node Windows and MacOS, Troubleshooting, Configuration Examples, Top
 @appendix Windows and MacOS

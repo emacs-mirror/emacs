@@ -9493,9 +9493,9 @@
 	* mh-utils.el (mh-find-progs): Run PATH search only when mh-progs,
 	mh-lib and mh-lib-progs are not all already set.  This allows the
 	user to set them using a simple setq prior to loading mh-e.  This
-	is useful for implementation of mh-e on win32.  Note that many
+	is useful for implementation of mh-e on w32.  Note that many
 	commands still call mh-find-path which also parses the mh_profile
-	file (that may still fail on win32), so this is still done often.
+	file (that may still fail on w32), so this is still done often.
 	But it lets us change the mh_profile file and have mh-e see the
 	changed file without exiting emacs and starting over so I left
 	that in.

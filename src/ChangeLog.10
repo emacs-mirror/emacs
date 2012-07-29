@@ -15825,7 +15825,7 @@
 	* w32term.c (w32_draw_fringe_bitmap): Copy unadapted code from
 	xterm.c to handle overlaid fringe bitmaps and to use cursor color
 	for displaying cursor in fringe.
-	(w32_define_fringe_bitmap, w32_destroy_fringe_bitmap): New W32
+	(w32_define_fringe_bitmap, w32_destroy_fringe_bitmap): New Windows
 	specific functions to define and destroy fringe bitmaps in fringe_bmp.
 	(w32_redisplay_interface): Add them to redisplay_interface.
 	(w32_term_init): Call w32_init_fringe instead of explicitly
@@ -21476,7 +21476,7 @@
 	"Emacs built on Windows 9x/ME crashes at startup on Windows XP,
 	or Emacs builtpart of on XP crashes at startup on Windows 9x/ME."
 
-	* w32.c: Added wrapper functions around the win32 API functions
+	* w32.c: Added wrapper functions around the Windows API functions
 	OpenProcessToken, GetTokenInformation, LookupAccountSid, and
 	GetSidIdentifierAuthority.  These wrapper functions serve two
 	purposes:
@@ -21490,7 +21490,7 @@
 	the version of advapi32.dll that is found in the 9x branch of
 	Microsoft Windows.
 
-	* w32.c (init_user_info): Replace the calls to the win32 API
+	* w32.c (init_user_info): Replace the calls to the Windows API
 	functions OpenProcessToken, GetTokenInformation, LookupAccountSid,
 	and GetSidIdentifierAuthority with calls to the newly added
 	wrapper functions.

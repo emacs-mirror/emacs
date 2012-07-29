@@ -1,3 +1,11 @@
+2012-07-29  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Don't use the abbreviation "win" to refer to Windows (Bug#10421).
+	* regex.c (MAX_BUF_SIZE): Remove some incorrect and
+	long-ago-commented-out code that talks about "WIN32".
+	* w32heap.h (OS_WINDOWS_95): Rename from OS_WIN95.
+	All uses changed.
+
 2012-07-28  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Use Gnulib stdalign module (Bug#9772, Bug#9960).

@@ -1,4 +1,4 @@
-/* Font backend for the Microsoft W32 API.
+/* Font backend for the Microsoft Windows API.
    Copyright (C) 2007-2012 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -292,7 +292,7 @@ intern_font_name (char * string)
   Lisp_Object str = DECODE_SYSTEM (build_string (string));
   int len = SCHARS (str);
   Lisp_Object obarray = check_obarray (Vobarray);
-  Lisp_Object tem = oblookup (obarray, SDATA (str), len, len);  
+  Lisp_Object tem = oblookup (obarray, SDATA (str), len, len);
   /* This code is similar to intern function from lread.c.  */
   return SYMBOLP (tem) ? tem : Fintern (str, obarray);
 }
@@ -1394,7 +1394,7 @@ font_matches_spec (DWORD type, NEWTEXTMETRICEX *font,
                    currently appear in fontset.el, so it isn't worth
                    creating a mapping table of codepages/scripts to languages
                    or opening the font to see if there are any language tags
-                   in it that the W32 API does not expose. Fontset
+                   in it that the Windows API does not expose. Fontset
 		   spec should have a fallback, as some backends do
 		   not recognize language at all.  */
 		return 0;

@@ -1,4 +1,4 @@
-/* Input event support for Emacs on the Microsoft W32 API.
+/* Input event support for Emacs on the Microsoft Windows API.
    Copyright (C) 1992-1993, 1995, 2001-2012  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.

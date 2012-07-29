@@ -1,4 +1,4 @@
-/* Utility and Unix shadow routines for GNU Emacs on the Microsoft W32 API.
+/* Utility and Unix shadow routines for GNU Emacs on the Microsoft Windows API.
    Copyright (C) 1994-1995, 2000-2012  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -2011,7 +2011,7 @@ fdutimens (int fd, char const *file, struct timespec const timespec[2])
 
 
 /* ------------------------------------------------------------------------- */
-/* IO support and wrapper functions for W32 API. */
+/* IO support and wrapper functions for the Windows API. */
 /* ------------------------------------------------------------------------- */
 
 /* Place a wrapper around the MSVC version of ctime.  It returns NULL
@@ -2929,7 +2929,7 @@ sys_rename (const char * oldname, const char * newname)
   /* volume_info is set indirectly by map_w32_filename.  */
   oldname_dev = volume_info.serialnum;
 
-  if (os_subtype == OS_WIN95)
+  if (os_subtype == OS_WINDOWS_95)
     {
       char * o;
       char * p;

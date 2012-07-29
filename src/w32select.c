@@ -1,4 +1,4 @@
-/* Selection processing for Emacs on the Microsoft W32 API.
+/* Selection processing for Emacs on the Microsoft Windows API.
 
 Copyright (C) 1993-1994, 2001-2012  Free Software Foundation, Inc.
 

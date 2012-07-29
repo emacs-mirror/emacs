@@ -1,4 +1,4 @@
-/* Definitions and headers for communication on the Microsoft W32 API.
+/* Definitions and headers for communication on the Microsoft Windows API.
    Copyright (C) 1995, 2001-2012  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.

@@ -2334,7 +2334,7 @@ mapped to mostly alphanumerics for safety."
     (if (and is-fqm is-in-this-dir)
 	(setq filename buffer-file-name)
       (setq filename (feedmail-create-queue-filename queue-directory)))
-    ;; make binary file on DOS/Win95/WinNT, etc
+    ;; make binary file on DOS/Windows 95/Windows NT, etc
     (let ((buffer-file-type feedmail-force-binary-write))
       (write-file filename))
     ;; convenient for moving from draft to q, for example

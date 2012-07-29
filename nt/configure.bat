@@ -23,7 +23,7 @@ rem   YOU'LL NEED THE FOLLOWING UTILITIES TO MAKE EMACS:
 rem
 rem   + MS Windows 95, NT or later
 rem   + either MSVC 2.x or later, or gcc-2.95 or later (with GNU make 3.75
-rem     or later) and the Mingw32 and W32 API headers and libraries.
+rem     or later) and the Mingw32 and Windows API headers and libraries.
 rem   + Visual Studio 2005 is not supported at this time.
 rem
 rem For reference, here is a list of which builds of GNU make are known to
@@ -426,7 +426,7 @@ rem   problem).  The gcc/mingw32 2.95.2 headers are okay, as are distros
 rem   of w32api-xxx.zip from Anders Norlander since 1999-11-18 at least.
 rem   Beginning with Emacs 23, we need usp10.h.
 rem
-echo Checking whether W32 API headers are too old...
+echo Checking whether Windows API headers are too old...
 echo #include "windows.h" >junk.c
 echo #include "usp10.h" >>junk.c
 echo test(PIMAGE_NT_HEADERS pHeader) >>junk.c
@@ -469,7 +469,7 @@ goto end
 echo.
 echo Configure failed.
 echo To configure Emacs for Windows, you need to have either
-echo gcc-2.95 or later with Mingw32 and the W32 API headers,
+echo gcc-2.95 or later with Mingw32 and the Windows API headers,
 echo or MSVC 2.x or later.
 del junk.c
 goto end

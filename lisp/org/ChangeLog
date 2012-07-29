@@ -1,3 +1,12 @@
+2012-07-29  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Don't use the abbreviation "win" to refer to Windows (Bug#10421).
+	* ob-lilypond.el (ly-w32-ly-path): Rename from ly-win32-ly-path.
+	(ly-w32-pdf-path): Rename from ly-win32-pdf-path.
+	(ly-w32-midi-path): Rename from ly-win32-midi-path.
+	(ly-determine-ly-path, ly-determine-pdf-path, ly-determine-midi-path):
+	Check for "windows-nt", not "win32", in system-type.
+
 2012-06-02  Chong Yidong  <cyd@gnu.org>
 
 	* org-clock.el (org-clock-string-limit)

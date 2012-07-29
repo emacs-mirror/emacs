@@ -986,7 +986,7 @@ static int
 xd_find_watch_fd (DBusWatch *watch)
 {
 #if HAVE_DBUS_WATCH_GET_UNIX_FD
-  /* TODO: Reverse these on Win32, which prefers the opposite.  */
+  /* TODO: Reverse these on w32, which prefers the opposite.  */
   int fd = dbus_watch_get_unix_fd (watch);
   if (fd == -1)
     fd = dbus_watch_get_socket (watch);

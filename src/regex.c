@@ -1739,20 +1739,6 @@ static int analyse_first (re_char *p, re_char *pend,
    be too small, many things would have to change.  */
 # define MAX_BUF_SIZE (1L << 15)
 
-#if 0  /* This is when we thought it could be 2^16 bytes.  */
-/* Any other compiler which, like MSC, has allocation limit below 2^16
-   bytes will have to use approach similar to what was done below for
-   MSC and drop MAX_BUF_SIZE a bit.  Otherwise you may end up
-   reallocating to 0 bytes.  Such thing is not going to work too well.
-   You have been warned!!  */
-#if defined _MSC_VER  && !defined WIN32
-/* Microsoft C 16-bit versions limit malloc to approx 65512 bytes.  */
-# define MAX_BUF_SIZE  65500L
-#else
-# define MAX_BUF_SIZE (1L << 16)
-#endif
-#endif /* 0 */
-
 /* Extend the buffer by twice its current size via realloc and
    reset the pointers that pointed into the old block to point to the
    correct places in the new one.  If extending the buffer results in it

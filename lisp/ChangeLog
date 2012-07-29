@@ -10434,7 +10434,7 @@
 	(tramp-completion-file-name-regexp-unified)
 	(tramp-completion-file-name-regexp-separate)
 	(tramp-completion-file-name-regexp-url): Don't use leading volume
-	letter on win32 systems.  (Bug#5303, Bug#9311)
+	letter on w32 systems.  (Bug#5303, Bug#9311)
 	(tramp-drop-volume-letter): Simplify definition.
 	Suggested by Stefan Monnier <monnier@iro.umontreal.ca>.
 

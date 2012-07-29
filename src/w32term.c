@@ -1,4 +1,4 @@
-/* Implementation of GUI terminal on the Microsoft W32 API.
+/* Implementation of GUI terminal on the Microsoft Windows API.
 
 Copyright (C) 1989, 1993-2012 Free Software Foundation, Inc.
 
