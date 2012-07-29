@@ -1,3 +1,8 @@
+2012-07-29  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt: Sync with autogen/config.in.
+	(HAVE_ENVIRON_DECL): New macro.
+
 2012-07-29  Eli Zaretskii  <eliz@gnu.org>
 
 	* inc/stdalign.h (_Alignas, alignas): Define.
