@@ -220,9 +220,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if ALSA is available. */
 #undef HAVE_ALSA
 
-/* Define to 1 if GCC-style __attribute__ ((__aligned__ (expr))) works. */
-#undef HAVE_ATTRIBUTE_ALIGNED
-
 /* Define to 1 if strtold conforms to C99. */
 #undef HAVE_C99_STRTOLD
 
@@ -334,6 +331,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 if you have the `endpwent' function. */
 #undef HAVE_ENDPWENT
+
+/* Define if you have the declaration of environ. */
+#undef HAVE_ENVIRON_DECL
 
 /* Define to 1 if you have the `euidaccess' function. */
 #undef HAVE_EUIDACCESS

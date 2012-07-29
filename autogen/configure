@@ -6948,6 +6948,7 @@ esac
   # Code from module dtoastr:
   # Code from module dtotimespec:
   # Code from module dup2:
+  # Code from module environ:
   # Code from module extensions:
 
   # Code from module filemode:
@@ -8946,37 +8947,6 @@ _ACEOF
 fi
 
 
-
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for  __attribute__ ((__aligned__ (expr)))" >&5
-$as_echo_n "checking for  __attribute__ ((__aligned__ (expr)))... " >&6; }
-if test "${emacs_cv_attribute_aligned+set}" = set; then :
-  $as_echo_n "(cached) " >&6
-else
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-char __attribute__ ((__aligned__ (1 << 3))) c;
-int
-main ()
-{
-
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_compile "$LINENO"; then :
-  emacs_cv_attribute_aligned=yes
-else
-  emacs_cv_attribute_aligned=no
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $emacs_cv_attribute_aligned" >&5
-$as_echo "$emacs_cv_attribute_aligned" >&6; }
-if test $emacs_cv_attribute_aligned = yes; then
-
-$as_echo "#define HAVE_ATTRIBUTE_ALIGNED 1" >>confdefs.h
-
-fi
 
 
 DEPFLAGS=
@@ -16268,6 +16238,57 @@ $as_echo "#define HAVE_C99_STRTOLD 1" >>confdefs.h
   UNISTD_H_HAVE_WINSOCK2_H_AND_USE_SOCKETS=0;
 
 
+
+
+
+
+
+
+
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking if environ is properly declared" >&5
+$as_echo_n "checking if environ is properly declared... " >&6; }
+  if test "${gt_cv_var_environ_declaration+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+
+    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#if HAVE_UNISTD_H
+     #include <unistd.h>
+     #endif
+     /* mingw, BeOS, Haiku declare environ in <stdlib.h>, not in <unistd.h>.  */
+     #include <stdlib.h>
+
+           extern struct { int foo; } environ;
+int
+main ()
+{
+environ.foo = 1;
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+  gt_cv_var_environ_declaration=no
+else
+  gt_cv_var_environ_declaration=yes
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+fi
+
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $gt_cv_var_environ_declaration" >&5
+$as_echo "$gt_cv_var_environ_declaration" >&6; }
+  if test $gt_cv_var_environ_declaration = yes; then
+
+$as_echo "#define HAVE_ENVIRON_DECL 1" >>confdefs.h
+
+  fi
+
+
+  if test $gt_cv_var_environ_declaration != yes; then
+    HAVE_DECL_ENVIRON=0
+  fi
+
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for st_dm_mode in struct stat" >&5
 $as_echo_n "checking for st_dm_mode in struct stat... " >&6; }
 if test "${ac_cv_struct_st_dm_mode+set}" = set; then :
@@ -19886,6 +19907,18 @@ fi
 
 
           GNULIB_DUP2=1
+
+
+
+
+
+
+
+
+
+
+
+          GNULIB_ENVIRON=1
 
 
 
