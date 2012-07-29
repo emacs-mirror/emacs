@@ -1,3 +1,11 @@
+2012-07-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32heap.h (OS_9X): Renamed from OS_WINDOWS_95.
+
+	* w32heap.c (cache_system_info):
+	* w32.c (sys_rename):
+	* w32proc.c (find_child_console, sys_kill): All users changed.
+
 2012-07-29  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* alloc.c (Fgarbage_collect): Indent as per usual Emacs style.

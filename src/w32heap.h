@@ -51,7 +51,7 @@ extern int    	      w32_minor_version;
 extern int    	      w32_build_number;
 
 enum {
-  OS_WINDOWS_95 = 1,
+  OS_9X = 1,
   OS_NT
 };
 

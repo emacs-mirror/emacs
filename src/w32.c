@@ -2929,7 +2929,7 @@ sys_rename (const char * oldname, const char * newname)
   /* volume_info is set indirectly by map_w32_filename.  */
   oldname_dev = volume_info.serialnum;
 
-  if (os_subtype == OS_WINDOWS_95)
+  if (os_subtype == OS_9X)
     {
       char * o;
       char * p;

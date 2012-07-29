@@ -1386,7 +1386,7 @@ find_child_console (HWND hwnd, LPARAM arg)
 
       GetClassName (hwnd, window_class, sizeof (window_class));
       if (strcmp (window_class,
-		  (os_subtype == OS_WINDOWS_95)
+		  (os_subtype == OS_9X)
 		  ? "tty"
 		  : "ConsoleWindowClass") == 0)
 	{
@@ -1517,7 +1517,7 @@ sys_kill (int pid, int sig)
       if (NILP (Vw32_start_process_share_console) && cp && cp->hwnd)
 	{
 #if 1
-	  if (os_subtype == OS_WINDOWS_95)
+	  if (os_subtype == OS_9X)
 	    {
 /*
    Another possibility is to try terminating the VDM out-right by
