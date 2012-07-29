@@ -2583,7 +2583,11 @@ largest Emacs integer.")
 ;;; Reduce an object to canonical (normalized) form.  [O o; Z Z] [Public]
 
 (defvar math-normalize-a)
+(defvar math-normalize-error nil
+  "Non-nil if the last call the `math-normalize' returned an error.")
+
 (defun math-normalize (math-normalize-a)
+  (setq math-normalize-error nil)
   (cond
    ((not (consp math-normalize-a))
     (if (integerp math-normalize-a)
@@ -2672,31 +2676,38 @@ largest Emacs integer.")
 					(fboundp (car math-normalize-a))))
 			       (apply (car math-normalize-a) args)))))
 		(wrong-number-of-arguments
+                 (setq math-normalize-error t)
 		 (calc-record-why "*Wrong number of arguments"
 				  (cons (car math-normalize-a) args))
 		 nil)
 		(wrong-type-argument
+                 (setq math-normalize-error t)
 		 (or calc-next-why
                      (calc-record-why "Wrong type of argument"
                                       (cons (car math-normalize-a) args)))
 		 nil)
 		(args-out-of-range
+                 (setq math-normalize-error t)
 		 (calc-record-why "*Argument out of range"
                                   (cons (car math-normalize-a) args))
 		 nil)
 		(inexact-result
+                 (setq math-normalize-error t)
 		 (calc-record-why "No exact representation for result"
 				  (cons (car math-normalize-a) args))
 		 nil)
 		(math-overflow
+                 (setq math-normalize-error t)
 		 (calc-record-why "*Floating-point overflow occurred"
 				  (cons (car math-normalize-a) args))
 		 nil)
 		(math-underflow
+                 (setq math-normalize-error t)
 		 (calc-record-why "*Floating-point underflow occurred"
 				  (cons (car math-normalize-a) args))
 		 nil)
 		(void-variable
+                 (setq math-normalize-error t)
 		 (if (eq (nth 1 err) 'var-EvalRules)
 		     (progn
 		       (setq var-EvalRules nil)
