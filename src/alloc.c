@@ -5706,9 +5706,9 @@ See Info node `(elisp)Garbage Collection'.  */)
 #if GC_MARK_STACK == GC_USE_GCPROS_CHECK_ZOMBIES
   {
     /* Compute average percentage of zombies.  */
-    double nlive = 
-      total_conses + total_symbols + total_markers + total_strings
-      + total_vectors + total_floats + total_intervals + total_buffers;
+    double nlive =
+      (total_conses + total_symbols + total_markers + total_strings
+       + total_vectors + total_floats + total_intervals + total_buffers);
 
     avg_live = (avg_live * ngcs + nlive) / (ngcs + 1);
     max_live = max (nlive, max_live);
@@ -5727,9 +5727,11 @@ See Info node `(elisp)Garbage Collection'.  */)
 
   /* Accumulate statistics.  */
   if (FLOATP (Vgc_elapsed))
-    Vgc_elapsed = make_float
-      (XFLOAT_DATA (Vgc_elapsed) + EMACS_TIME_TO_DOUBLE
-       (sub_emacs_time (current_emacs_time (), start)));
+    {
+      EMACS_TIME since_start = sub_emacs_time (current_emacs_time (), start);
+      Vgc_elapsed = make_float (XFLOAT_DATA (Vgc_elapsed)
+				+ EMACS_TIME_TO_DOUBLE (since_start));
+    }
 
   gcs_done++;
 
