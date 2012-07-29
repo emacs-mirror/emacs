@@ -35,7 +35,7 @@ xd
 xex
 fx
 " "\
-5 matches for \"x\" in buffer:  *temp*<2>
+5 matches for \"x\" in buffer:  *test-occur*
       1:xa
       3:cx
       4:xd
@@ -52,7 +52,7 @@ a
 a
 a
 " "\
-2 matches for \"a^Ja\" in buffer:  *temp*<2>
+2 matches for \"a^Ja\" in buffer:  *test-occur*
       1:a
        :a
       3:a
@@ -68,7 +68,7 @@ c
 a
 b
 " "\
-2 matches for \"a^Jb\" in buffer:  *temp*<2>
+2 matches for \"a^Jb\" in buffer:  *test-occur*
       1:a
        :b
       4:a
@@ -82,7 +82,7 @@ c
 a
 
 " "\
-2 matches for \"a^J\" in buffer:  *temp*<2>
+2 matches for \"a^J\" in buffer:  *test-occur*
       1:a
        :
       4:a
@@ -97,7 +97,7 @@ d
 ex
 fx
 " "\
-2 matches for \"x^J.x^J\" in buffer:  *temp*<2>
+2 matches for \"x^J.x^J\" in buffer:  *test-occur*
       1:ax
        :bx
        :c
@@ -116,7 +116,7 @@ f
 g
 hx
 " "\
-3 matches for \"x\" in buffer:  *temp*<2>
+3 matches for \"x\" in buffer:  *test-occur*
       1:ax
        :b
 -------
@@ -136,7 +136,7 @@ d
 ex
 f
 " "\
-2 matches for \"x\" in buffer:  *temp*<2>
+2 matches for \"x\" in buffer:  *test-occur*
        :a
       2:bx
        :c
@@ -159,7 +159,7 @@ i
 j
 kx
 " "\
-5 matches for \"x\" in buffer:  *temp*<2>
+5 matches for \"x\" in buffer:  *test-occur*
       1:ax
       2:bx
        :c
@@ -184,7 +184,7 @@ gx
 h
 i
 " "\
-2 matches for \"x\" in buffer:  *temp*<2>
+2 matches for \"x\" in buffer:  *test-occur*
        :a
        :b
       3:cx
@@ -207,7 +207,7 @@ gx
 h
 
 " "\
-2 matches for \"x\" in buffer:  *temp*<2>
+2 matches for \"x\" in buffer:  *test-occur*
        :
        :b
       3:cx
@@ -232,7 +232,7 @@ i
 jx
 kx
 " "\
-3 matches for \"x^J.x\" in buffer:  *temp*<2>
+3 matches for \"x^J.x\" in buffer:  *test-occur*
       1:ax
        :bx
        :c
@@ -256,7 +256,7 @@ f
 gx
 hx
 " "\
-2 matches for \"x^J.x\" in buffer:  *temp*<2>
+2 matches for \"x^J.x\" in buffer:  *test-occur*
       1:ax
        :bx
        :c
@@ -279,7 +279,7 @@ g
 h
 ix
 " "\
-3 matches for \"x\" in buffer:  *temp*<2>
+3 matches for \"x\" in buffer:  *test-occur*
        :a
       2:bx
 -------
@@ -302,7 +302,7 @@ f
 gx
 h
 " "\
-3 matches for \"x\" in buffer:  *temp*<2>
+3 matches for \"x\" in buffer:  *test-occur*
        :a
       2:bx
        :c
@@ -321,14 +321,19 @@ Each element has the format:
   (let ((regexp (nth 0 test))
         (nlines (nth 1 test))
         (input-buffer-string (nth 2 test))
-        (output-buffer-string (nth 3 test)))
-    (save-window-excursion
-      (with-temp-buffer
-        (insert input-buffer-string)
-        (occur regexp nlines)
-        (equal output-buffer-string
-               (with-current-buffer "*Occur*"
-                 (buffer-string)))))))
+        (output-buffer-string (nth 3 test))
+        (temp-buffer (get-buffer-create " *test-occur*")))
+    (unwind-protect
+        (save-window-excursion
+          (with-current-buffer temp-buffer
+            (erase-buffer)
+            (insert input-buffer-string)
+            (occur regexp nlines)
+            (equal output-buffer-string
+                   (with-current-buffer "*Occur*"
+                     (buffer-string)))))
+      (and (buffer-name temp-buffer)
+           (kill-buffer temp-buffer)))))
 
 (ert-deftest occur-tests ()
   "Test the functionality of `occur'.
