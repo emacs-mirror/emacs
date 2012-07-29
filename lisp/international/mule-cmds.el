@@ -2673,15 +2673,6 @@ See also `locale-charset-language-names', `locale-language-names',
 	  (unless frame (setq locale-coding-system code-page-coding))
 	  (set-keyboard-coding-system code-page-coding frame)
 	  (set-terminal-coding-system code-page-coding frame)
-	  ;; Set default-file-name-coding-system last, so that Emacs
-	  ;; doesn't try to use cpNNNN when it defines keyboard and
-	  ;; terminal encoding.  That's because the above two lines
-	  ;; will want to load code-pages.el, where cpNNNN are
-	  ;; defined; if default-file-name-coding-system were set to
-	  ;; cpNNNN while these two lines run, Emacs will want to use
-	  ;; it for encoding the file name it wants to load.  And that
-	  ;; will fail, since cpNNNN is not yet usable until
-	  ;; code-pages.el finishes loading.
 	  (setq default-file-name-coding-system code-page-coding))))
 
     (when (eq system-type 'darwin)
