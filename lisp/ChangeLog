@@ -12,6 +12,9 @@
 	* calc/calc-ext.el (calc-init-extensions): Remove binding for
 	`calc-alg-simplify-mode'.  Add binding for `calc-lim-simplify-mode'.
 
+	* calc/calc-help (calc-m-prefix-help): Change messages to
+	indicate new simplification modes.
+
 	* calc/README: Mention new default simplification mode.
 
 	* calc/calc.el (math-normalize-error): New variable.
