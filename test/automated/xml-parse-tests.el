@@ -74,6 +74,25 @@
     "<f¿>abc</f¿>")
   "List of XML strings that should signal an error in the parser")
 
+(defvar xml-parse-tests--qnames
+  '( ;; Test data for name expansion
+    ("<?xml version=\"1.0\" encoding=\"UTF-8\"?><D:multistatus xmlns:D=\"DAV:\"><D:response><D:href>/calendar/events/</D:href><D:propstat><D:status>HTTP/1.1 200 OK</D:status></D:propstat></D:response></D:multistatus>"
+    ;; Result with qnames as cons
+    ((("DAV:" . "multistatus")
+      ((("http://www.w3.org/2000/xmlns/" . "D") . "DAV:"))
+      (("DAV:" . "response") nil (("DAV:" . "href") nil "/calendar/events/")
+       (("DAV:" . "propstat") nil (("DAV:" . "status") nil "HTTP/1.1 200 OK")))))
+    ;; Result with qnames as symbols
+    ((DAV:multistatus
+      ((("http://www.w3.org/2000/xmlns/" . "D") . "DAV:"))
+      (DAV:response nil (DAV:href nil "/calendar/events/")
+		    (DAV:propstat nil (DAV:status nil "HTTP/1.1 200 OK"))))))
+    ("<?xml version=\"1.0\" encoding=\"UTF-8\"?><F:something>hi there</F:something>"
+     ((("FOOBAR:" . "something") nil "hi there"))
+     ((FOOBAR:something nil "hi there"))))
+  "List of strings which are parsed using namespace expansion.
+Parser is called with and without 'symbol-qnames argument.")
+
 (ert-deftest xml-parse-tests ()
   "Test XML parsing."
   (with-temp-buffer
@@ -85,7 +104,29 @@
       (dolist (test xml-parse-tests--bad-data)
 	(erase-buffer)
 	(insert test)
-	(should-error (xml-parse-region))))))
+	(should-error (xml-parse-region))))
+    (let ((testdata (car xml-parse-tests--qnames)))
+      (erase-buffer)
+      (insert (car testdata))
+      (should (equal (nth 1 testdata)
+		     (xml-parse-region nil nil nil nil t)))
+      (should (equal (nth 2 testdata)
+		     (xml-parse-region nil nil nil nil 'symbol-qnames))))
+    (let ((testdata (nth 1 xml-parse-tests--qnames)))
+      (erase-buffer)
+      (insert (car testdata))
+      ;; Provide additional namespace-URI mapping
+      (should (equal (nth 1 testdata)
+		     (xml-parse-region
+		      nil nil nil nil
+		      (append xml-default-ns
+			      '(("F" . "FOOBAR:"))))))
+      (should (equal (nth 2 testdata)
+		     (xml-parse-region
+		      nil nil nil nil
+		      (cons 'symbol-qnames
+			    (append xml-default-ns
+				    '(("F" . "FOOBAR:"))))))))))
 
 ;; Local Variables:
 ;; no-byte-compile: t

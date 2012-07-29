@@ -1,3 +1,9 @@
+2012-07-29  David Engster  <deng@randomsample.de>
+
+	* automated/xml-parse-tests.el (xml-parse-tests--qnames): New
+	variable to hold test data for name expansion.
+	(xml-parse-tests): Test the two different types of name expansion.
+
 2012-07-29  Juri Linkov  <juri@jurta.org>
 
 	* automated/occur-tests.el (occur-test-case): Use predefined
