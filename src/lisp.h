@@ -715,12 +715,12 @@ extern ptrdiff_t string_bytes (struct Lisp_String *);
    would expose alloc.c internal details that we'd rather keep
    private.
 
-   This is a macros for use in static initializers, and a constant for
+   This is a macro for use in static initializers, and a constant for
    visibility to GDB.  The cast to ptrdiff_t ensures that
-   STRING_BYTES_BOUND is signed.  */
+   the macro is signed.  */
 static ptrdiff_t const STRING_BYTES_BOUND =
 #define STRING_BYTES_BOUND  \
-  min (MOST_POSITIVE_FIXNUM, (ptrdiff_t) min (SIZE_MAX, PTRDIFF_MAX) - 1)
+  ((ptrdiff_t) min (MOST_POSITIVE_FIXNUM, min (SIZE_MAX, PTRDIFF_MAX) - 1))
 	STRING_BYTES_BOUND;
 
 /* Mark STR as a unibyte string.  */
@@ -1517,7 +1517,7 @@ enum char_bits
     CHAR_META = 0x8000000,
 
     CHAR_MODIFIER_MASK =
-     (CHAR_ALT | CHAR_SUPER | CHAR_HYPER | CHAR_SHIFT | CHAR_CTL | CHAR_META),
+      CHAR_ALT | CHAR_SUPER | CHAR_HYPER | CHAR_SHIFT | CHAR_CTL | CHAR_META,
 
     /* Actually, the current Emacs uses 22 bits for the character value
        itself.  */

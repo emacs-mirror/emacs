@@ -1,3 +1,8 @@
+2012-07-30  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* lisp.h (STRING_BYTES_BOUND): Cast entire result to ptrdiff_t.
+	This is a bit clearer.  Fix some commentary typos.
+
 2012-07-30  Glenn Morris  <rgm@gnu.org>
 
 	* s/netbsd.h: Let configure include signal.h if needed.
@@ -53,7 +58,7 @@
 	(enum maxargs, enum FLOAT_TO_STRING_BUFSIZE, enum MAX_ALLOCA):
 	New enums, for gdb_make_enums_visible.
 	(GLYPH_MODE_LINE_FACE): Remove; unused.
-	* alloc.c (STRING_BYTES_MAX): Now a constant, now a macro.
+	* alloc.c (STRING_BYTES_MAX): Now a constant, not a macro.
 	(gdb_make_enums_visible): Add enum CHARTAB_SIZE_BITS, enum
 	CHAR_TABLE_STANDARD_SLOTS, enum char_bits, enum DEFAULT_HASH_SIZE,
 	enum FLOAT_TO_STRING_BUFSIZE, enum Lisp_Bits, enum Lisp_Compiled,
