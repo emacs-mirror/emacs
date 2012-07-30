@@ -103,6 +103,8 @@
 
 ;;; Code:
 
+;; FIXME: Add proper ";;;###autoload" comments.
+
 ;; FIXME: When 24.1 is common place remove use of `lexical-let' and put "-*-
 ;;        lexical-binding: t -*-" in the first line.
 
@@ -123,7 +125,7 @@
 (defun rst-some (seq &optional pred)
   "Return non-nil if any element of SEQ yields non-nil when PRED is applied.
 Apply PRED to each element of list SEQ until the first non-nil
-result is yielded and return this result. PRED defaults to
+result is yielded and return this result.  PRED defaults to
 `identity'."
   (unless pred
     (setq pred 'identity))
@@ -171,7 +173,7 @@ and before TAIL-RE and DELIM-RE in VAR or DEFAULT for no match."
 ;; Use CVSHeader to really get information from CVS and not other version
 ;; control systems.
 (defconst rst-cvs-header
-  "$CVSHeader: sm/rst_el/rst.el,v 1.287 2012-06-16 09:41:47 stefan Exp $")
+  "$CVSHeader: sm/rst_el/rst.el,v 1.301 2012-07-30 19:29:46 stefan Exp $")
 (defconst rst-cvs-rev
   (rst-extract-version "\\$" "CVSHeader: \\S + " "[0-9]+\\(?:\\.[0-9]+\\)+"
 		       " .*" rst-cvs-header "0.0")
@@ -185,22 +187,22 @@ and before TAIL-RE and DELIM-RE in VAR or DEFAULT for no match."
 ;; Use LastChanged... to really get information from SVN.
 (defconst rst-svn-rev
   (rst-extract-version "\\$" "LastChangedRevision: " "[0-9]+" " "
-		       "$LastChangedRevision: 7444 $")
+		       "$LastChangedRevision: 7490 $")
   "The SVN revision of this file.
 SVN revision is the upstream (docutils) revision.")
 (defconst rst-svn-timestamp
   (rst-extract-version "\\$" "LastChangedDate: " ".+?+" " "
-		       "$LastChangedDate: 2012-06-16 11:41:40 +0200 (Sat, 16 Jun 2012) $")
+		       "$LastChangedDate: 2012-07-30 21:29:33 +0200 (Mon, 30 Jul 2012) $")
   "The SVN time stamp of this file.")
 
 ;; Maintained by the release process.
 (defconst rst-official-version
   (rst-extract-version "%" "OfficialVersion: " "[0-9]+\\(?:\\.[0-9]+\\)+" " "
-		       "%OfficialVersion: 1.3.0 %")
+		       "%OfficialVersion: 1.3.1 %")
   "Official version of the package.")
 (defconst rst-official-cvs-rev
   (rst-extract-version "[%$]" "Revision: " "[0-9]+\\(?:\\.[0-9]+\\)+" " "
-		       "%Revision: 1.287 %")
+		       "%Revision: 1.301 %")
   "CVS revision of this file in the official version.")
 
 (defconst rst-version
@@ -217,7 +219,9 @@ in parentheses follows the development revision and the time stamp.")
     ("1.1.0" . "24.2")
     ("1.2.0" . "24.2")
     ("1.2.1" . "24.2")
-    ("1.3.0" . "24.2")))
+    ("1.3.0" . "24.2")
+    ("1.3.1" . "24.2")
+    ))
 
 (unless (assoc rst-official-version rst-package-emacs-version-alist)
   (error "Version %s not listed in `rst-package-emacs-version-alist'"
@@ -580,10 +584,13 @@ well but give an additional message."
     ;;
     ;; The adjustment function that adorns or rotates a section title.
     (rst-define-key map [?\C-c ?\C-=] 'rst-adjust [?\C-c ?\C-a t])
-    (rst-define-key map [?\C-=] 'rst-adjust) ; (Does not work on the Mac OSX.)
+    (rst-define-key map [?\C-=] 'rst-adjust) ; Does not work on the Mac OSX and
+					     ; on consoles.
 
     ;; \C-c \C-a is the keymap for adornments.
     (rst-define-key map [?\C-c ?\C-a ?\C-h] 'describe-prefix-bindings)
+    ;; Another binding which works with all types of input.
+    (rst-define-key map [?\C-c ?\C-a ?\C-a] 'rst-adjust)
     ;; Display the hierarchy of adornments implied by the current document
     ;; contents.
     (rst-define-key map [?\C-c ?\C-a ?\C-d] 'rst-display-adornments-hierarchy)
@@ -3954,7 +3961,9 @@ An association list of the tool-set to a list of the (command to use,
 extension of produced filename, options to the tool (nil or a
 string)) to be used for converting the document."
   ;; FIXME: These are not options but symbols which may be referenced by
-  ;;        `rst-compile-*-toolset` below.
+  ;;        `rst-compile-*-toolset` below. The `:validate' keyword of
+  ;;        `defcustom' may help to define this properly in newer Emacs
+  ;;        versions (> 23.1).
   :type '(alist :options (html latex newlatex pseudoxml xml pdf s5)
                 :key-type symbol
                 :value-type (list :tag "Specification"
