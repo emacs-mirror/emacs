@@ -87,12 +87,14 @@
 
 #ifdef MPS_PF_W3I6MV
 #define PRIuLONGEST "llu"
+#define SCNuLONGEST "llu"
 #define PRIXLONGEST "llX"
 #define PRIwWORD "16"
 typedef unsigned long long ulongest_t;
 #define MPS_WORD_CONST(n) (n##ull)
 #else
 #define PRIuLONGEST "lu"
+#define SCNuLONGEST "lu"
 #define PRIXLONGEST "lX"
 #define PRIwWORD "8"
 typedef unsigned long ulongest_t;
