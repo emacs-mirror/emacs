@@ -4,7 +4,7 @@
 	(opsysfile): Set to empty on netbsd, openbsd.
 	(AH_BOTTOM): Include signal.h if SIGNAL_H_AHB is defined.
 
-	* configure.ac (_longjmp, _setjmp): Move here from src/s.
+	* configure.ac (_longjmp, _setjmp, TIOCSIGSEND): Move here from src/s.
 
 2012-07-30  Jan Djärv  <jan.h.d@swipnet.se>
 

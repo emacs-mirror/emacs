@@ -3631,12 +3631,17 @@ else
   esac
 fi                              dnl GCC?
 
+
 case $opsys in
   sol2* | unixware )
     dnl setjmp and longjmp can safely replace _setjmp and _longjmp,
     dnl but they will run more slowly.
     AC_DEFINE(_setjmp, setjmp, [Some platforms redefine this.])
     AC_DEFINE(_longjmp, longjmp, [Some platforms redefine this.])
+    dnl TIOCGPGRP is broken in SysVr4, so we can't send signals to PTY
+    dnl subprocesses the usual way.  But TIOCSIGNAL does work for PTYs,
+    dnl and this is all we need.
+    AC_DEFINE(TIOCSIGSEND, TIOCSIGNAL, [Some platforms redefine this.])
     ;;
 esac
 

@@ -42,8 +42,3 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
   waitpid ((pid_t) -1, (status), (options))
 #define WRETCODE(w) (w >> 8)
 
-/* TIOCGPGRP is broken in SysVr4, so we can't send signals to PTY
-   subprocesses the usual way.  But TIOCSIGNAL does work for PTYs, and
-   this is all we need.  */
-#define TIOCSIGSEND TIOCSIGNAL
-
