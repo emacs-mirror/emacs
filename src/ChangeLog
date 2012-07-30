@@ -1,5 +1,8 @@
 2012-07-30  Glenn Morris  <rgm@gnu.org>
 
+	* s/aix4-2.h (sigmask): No need to undefine it, since syssignal.h
+	does that unconditionally.
+
 	* s/freebsd.h, s/gnu-linux.h, s/sol2-6.h, s/unixware.h:
 	Remove empty files.
 
