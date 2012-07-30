@@ -3641,11 +3641,18 @@ case $opsys in
 esac
 
 
-dnl Used in xfaces.c.
 case $opsys in
   hpux* | sol2* )
+    dnl Used in xfaces.c.
     AC_DEFINE(XOS_NEEDS_TIME_H, 1, [Compensate for a bug in Xos.h on
       some systems, where it requires time.h.])
+    ;;
+
+  netbsd | openbsd )
+    dnl Greg A. Woods <woods@weird.com> says we must include signal.h
+    dnl before syssignal.h is included, to work around interface conflicts
+    dnl that are handled with CPP __RENAME() macro in signal.h.
+    AC_DEFINE(SIGNAL_H_AHB, 1, [Define if AH_BOTTOM should include signal.h.])
     ;;
 esac
 
@@ -3772,7 +3779,7 @@ case $opsys in
       should not call setpgrp.])
     ;;
 
-  openbsd) opsysfile="s/netbsd.h" ;;
+  netbsd | openbsd ) opsysfile= ;;
 
   sol2-10)
     AC_DEFINE(_STRUCTURED_PROC, 1, [Needed for system_process_attributes
@@ -4186,11 +4193,17 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define EMACS_CONFIG_H
 ])dnl
 
+dnl FIXME undefs in here get commented out by autoconf.  :(
 AH_BOTTOM([
 /* On AIX 3 this must be included before any other include file.  */
 #include <alloca.h>
 #if ! HAVE_ALLOCA
 # error "alloca not available on this machine"
+#endif
+
+#ifdef SIGNAL_H_AHB
+#undef SIGNAL_H_AHB
+#include <signal.h>
 #endif
 
 /* This silences a few compilation warnings on FreeBSD.  */
