@@ -2141,7 +2141,7 @@ The `kbd' macro is an approximate inverse of this.  */)
 		continue;
 	    }
 	  else
-	    XSETINT (key, (XINT (key) | meta_modifier) & ~0x80);
+	    XSETINT (key, XINT (key) | meta_modifier);
 	  add_meta = 0;
 	}
       else if (EQ (key, meta_prefix_char))

@@ -1,3 +1,8 @@
+2012-07-30  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* keymap.c (Fkey_description): Don't remove 0x80 bit from
+	non-single-byte char when adding meta modifier.  (Bug#12090)
+
 2012-07-30  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Convert safe_call to use variable number of arguments.
