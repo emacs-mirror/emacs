@@ -667,6 +667,9 @@ extern void x_delete_display (struct w32_display_info *dpyinfo);
 #define RIGHT_WIN_PRESSED      0x4000
 #define APPS_PRESSED           0x2000
 
+/* The current ANSI input codepage for GUI sessions.  */
+extern int w32_keyboard_codepage;
+
 /* When compiling on Windows 9x/ME and NT 3.x, the following are not defined
    (even though they are supported on 98 and ME.  */
 #ifndef WM_MOUSELEAVE

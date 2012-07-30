@@ -1,3 +1,17 @@
+2012-07-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32fns.c (w32_wnd_proc): Pass w32_keyboard_codepage to
+	w32_kbd_patch_key as the 2nd arg.  (Bug#12082)
+
+	* w32term.c <w32_keyboard_codepage>: Renamed from
+	keyboard_codepage and now external.  All users changed.
+
+	* w32term.h: Add declaration of w32_keyboard_codepage.
+
+	* w32inevt.c (w32_kbd_patch_key): Accept an additional argument --
+	the codepage to translate keys to Unicode.  If this argument is
+	-1, use the value returned by GetConsoleCP.  All callers changed.
+
 2012-07-30  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Update .PHONY listings in makefiles.

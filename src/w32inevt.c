@@ -185,9 +185,11 @@ is_dead_key (int wparam)
 }
 #endif
 
-/* The return code indicates key code size. */
+/* The return code indicates key code size.  cpID is the codepage to
+   use for translation to Unicode; -1 means use the current console
+   input codepage.  */
 int
-w32_kbd_patch_key (KEY_EVENT_RECORD *event)
+w32_kbd_patch_key (KEY_EVENT_RECORD *event, int cpId)
 {
   unsigned int key_code = event->wVirtualKeyCode;
   unsigned int mods = event->dwControlKeyState;
@@ -243,7 +245,11 @@ w32_kbd_patch_key (KEY_EVENT_RECORD *event)
 			  keystate, buf, 128, 0);
       if (isdead > 0)
 	{
-	  int cpId = GetConsoleCP ();
+	  /* When we are called from the GUI message processing code,
+	     we are passed the current keyboard codepage, a positive
+	     number, to use below.  */
+	  if (cpId == -1)
+	    cpId = GetConsoleCP ();
 
 	  event->uChar.UnicodeChar = buf[isdead - 1];
 	  isdead = WideCharToMultiByte (cpId, 0, buf, isdead,
@@ -442,7 +448,7 @@ key_event (KEY_EVENT_RECORD *event, struct input_event *emacs_ev, int *isdead)
              base character (ie. translating the base key plus shift
              modifier).  */
 	  else if (event->uChar.AsciiChar == 0)
-	    w32_kbd_patch_key (event);
+	    w32_kbd_patch_key (event, -1);
 	}
 
       if (event->uChar.AsciiChar == 0)

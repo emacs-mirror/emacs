@@ -2882,7 +2882,7 @@ w32_wnd_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		      key.uChar.AsciiChar = 0;
 		      key.dwControlKeyState = modifiers;
 
-		      add = w32_kbd_patch_key (&key);
+		      add = w32_kbd_patch_key (&key, w32_keyboard_codepage);
 		      /* 0 means an unrecognized keycode, negative means
 			 dead key.  Ignore both.  */
 		      while (--add >= 0)
@@ -2892,7 +2892,7 @@ w32_wnd_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			    (hwnd, WM_CHAR,
                              (unsigned char) key.uChar.AsciiChar, lParam,
 			     w32_get_key_modifiers (wParam, lParam));
-			  w32_kbd_patch_key (&key);
+			  w32_kbd_patch_key (&key, w32_keyboard_codepage);
 			}
 		      return 0;
 		    }

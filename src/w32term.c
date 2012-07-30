@@ -155,6 +155,9 @@ int vertical_scroll_bar_bottom_border;
 
 int last_scroll_bar_drag_pos;
 
+/* Keyboard code page - may be changed by language-change events.  */
+int w32_keyboard_codepage;
+
 /* Mouse movement. */
 
 /* Where the mouse was last time we reported a mouse event.  */
@@ -187,9 +190,6 @@ static int volatile input_signal_count;
 #else
 static int input_signal_count;
 #endif
-
-/* Keyboard code page - may be changed by language-change events.  */
-static int keyboard_codepage;
 
 static void x_update_window_end (struct window *, int, int);
 static void w32_handle_tool_bar_click (struct frame *,
@@ -4235,14 +4235,14 @@ w32_read_socket (struct terminal *terminal, int expected,
 
 	  /* lParam contains the input language ID in its low 16 bits.
 	     Use it to update our record of the keyboard codepage.  */
-	  keyboard_codepage = codepage_for_locale ((LCID)(msg.msg.lParam
-							  & 0xffff));
+	  w32_keyboard_codepage = codepage_for_locale ((LCID)(msg.msg.lParam
+							      & 0xffff));
 
 	  if (f)
 	    {
 	      inev.kind = LANGUAGE_CHANGE_EVENT;
 	      XSETFRAME (inev.frame_or_window, f);
-	      inev.code = keyboard_codepage;
+	      inev.code = w32_keyboard_codepage;
 	      inev.modifiers = msg.msg.lParam & 0xffff;
 	    }
 	  break;
@@ -4308,7 +4308,7 @@ w32_read_socket (struct terminal *terminal, int expected,
                     {
                       dbcs[0] = dbcs_lead;
                       dbcs_lead = 0;
-                      if (!MultiByteToWideChar (keyboard_codepage, 0,
+                      if (!MultiByteToWideChar (w32_keyboard_codepage, 0,
 						dbcs, 2, &code, 1))
                         {
                           /* Garbage */
@@ -4318,7 +4318,7 @@ w32_read_socket (struct terminal *terminal, int expected,
                           break;
                         }
                     }
-                  else if (IsDBCSLeadByteEx (keyboard_codepage,
+                  else if (IsDBCSLeadByteEx (w32_keyboard_codepage,
 					     (BYTE) msg.msg.wParam))
                     {
                       dbcs_lead = (char) msg.msg.wParam;
@@ -4327,7 +4327,7 @@ w32_read_socket (struct terminal *terminal, int expected,
                     }
                   else
                     {
-                      if (!MultiByteToWideChar (keyboard_codepage, 0,
+                      if (!MultiByteToWideChar (w32_keyboard_codepage, 0,
 						&dbcs[1], 1, &code, 1))
                         {
                           /* What to do with garbage? */
@@ -6426,7 +6426,8 @@ w32_initialize (void)
 
   {
     DWORD input_locale_id = (DWORD) GetKeyboardLayout (0);
-    keyboard_codepage = codepage_for_locale ((LCID) (input_locale_id & 0xffff));
+    w32_keyboard_codepage =
+      codepage_for_locale ((LCID) (input_locale_id & 0xffff));
   }
 
   /* Create the window thread - it will terminate itself when the app
