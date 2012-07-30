@@ -489,7 +489,7 @@ set_installuser=for installuser in $${LOGNAME} $${USERNAME} $${USER} \
 ## http://lists.gnu.org/archive/html/autoconf-patches/2004-11/msg00005.html
 install-arch-indep: install-info install-man ${INSTALL_ARCH_INDEP_EXTRA}
 	umask 022 ; \
-	  eval sh -x $(MKDIR_P) \
+	  eval $(MKDIR_P) \
 	    "'$(DESTDIR)`echo ${locallisppath}|sed \"s,:,' '$(DESTDIR),g\"`'"
 	-set ${COPYDESTS} ; \
 	unset CDPATH; \

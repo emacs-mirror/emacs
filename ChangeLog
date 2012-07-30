@@ -1,3 +1,7 @@
+2012-07-30  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* Makefile.in (install-arch-indep): Remove sh -x.
+
 2012-07-30  Glenn Morris  <rgm@gnu.org>
 
 	* configure.ac (opsysfile): Tweak message for null case.
