@@ -1,3 +1,10 @@
+2012-07-30  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc.texi (Getting Started, Tutorial): Change simulated
+	Calc output to match actual output.
+	(Simplifying Formulas): Mention that algebraic simplification is now
+	the default.
+
 2012-07-28  Eli Zaretskii  <eliz@gnu.org>
 
 	* faq.texi (Right-to-left alphabets): Update for Emacs 24.
