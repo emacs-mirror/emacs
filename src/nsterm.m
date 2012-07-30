@@ -195,6 +195,7 @@ static int n_emacs_events_pending = 0;
 static NSMutableArray *ns_pending_files, *ns_pending_service_names,
   *ns_pending_service_args;
 static BOOL inNsSelect = 0;
+static BOOL ns_do_open_file = NO;
 
 /* Convert modifiers in a NeXTstep event to emacs style modifiers.  */
 #define NS_FUNCTION_KEY_MASK 0x800000
@@ -4025,7 +4026,7 @@ ns_term_init (Lisp_Object display_name)
   ns_pending_service_names = [[NSMutableArray alloc] init];
   ns_pending_service_args = [[NSMutableArray alloc] init];
 
-  /* Start app and create the main menu, window, view.
+/* Start app and create the main menu, window, view.
      Needs to be here because ns_initialize_display_info () uses AppKit classes.
      The view will then ask the NSApp to stop and return to Emacs. */
   [EmacsApp sharedApplication];
@@ -4205,7 +4206,7 @@ ns_term_init (Lisp_Object display_name)
 #endif /* MAC OS X menu setup */
 
   [NSApp run];
-
+  ns_do_open_file = YES;
   return dpyinfo;
 }
 
@@ -4446,7 +4447,8 @@ ns_term_shutdown (int sig)
 /*   Notification from the Workspace to open a file */
 - (BOOL)application: sender openFile: (NSString *)file
 {
-  [ns_pending_files addObject: file];
+  if (ns_do_open_file)
+    [ns_pending_files addObject: file];
   return YES;
 }
 
@@ -4454,7 +4456,8 @@ ns_term_shutdown (int sig)
 /*   Open a file as a temporary file */
 - (BOOL)application: sender openTempFile: (NSString *)file
 {
-  [ns_pending_files addObject: file];
+  if (ns_do_open_file)
+    [ns_pending_files addObject: file];
   return YES;
 }
 
@@ -4462,7 +4465,8 @@ ns_term_shutdown (int sig)
 /*   Notification from the Workspace to open a file noninteractively (?) */
 - (BOOL)application: sender openFileWithoutUI: (NSString *)file
 {
-  [ns_pending_files addObject: file];
+  if (ns_do_open_file)
+    [ns_pending_files addObject: file];
   return YES;
 }
 
@@ -4470,11 +4474,17 @@ ns_term_shutdown (int sig)
 /*   Notification from the Workspace to open multiple files */
 - (void)application: sender openFiles: (NSArray *)fileList
 {
-  NSEnumerator *files = [fileList objectEnumerator];
-  NSString *file;
-  while ((file = [files nextObject]) != nil)
-    [ns_pending_files addObject: file];
-
+  /* Don't open files from the command line, Cocoa parses the command line
+     wrong anyway, --option value tries to open value if --option is the last
+     option.  */
+  if (ns_ignore_open_file)
+    {
+      NSEnumerator *files = [fileList objectEnumerator];
+      NSString *file;
+      while ((file = [files nextObject]) != nil)
+        [ns_pending_files addObject: file];
+    }
+  
   [self replyToOpenOrPrint: NSApplicationDelegateReplySuccess];
 
 }
