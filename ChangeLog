@@ -1,5 +1,7 @@
 2012-07-30  Glenn Morris  <rgm@gnu.org>
 
+	* configure.ac (opsysfile): Tweak message for null case.
+
 	* configure.ac (opsysfile): Set to empty on freebsd, gnu-linux,
 	gnu-kfreebsd; and to usg5-4-common.h on sol2*, unixware.
 
