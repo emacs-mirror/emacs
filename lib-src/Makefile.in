@@ -180,6 +180,8 @@ CPP_CFLAGS = ${BASE_CFLAGS} ${PROFILING_CFLAGS} ${CPPFLAGS} ${CFLAGS}
 
 all: ${EXE_FILES} ${SCRIPTS} ${INSTALLABLE_SCRIPTS}
 
+.PHONY: all need-blessmail maybe-blessmail
+
 LOADLIBES = ../lib/libgnu.a $(LIBS_SYSTEM)
 $(EXE_FILES): ../lib/libgnu.a
 
@@ -230,6 +232,9 @@ $(DESTDIR)${archlibdir}: all
 	    $(INSTALL_SCRIPT) ${srcdir}/$$file $(DESTDIR)${archlibdir}/$$file; \
 	  done ; \
 	fi
+
+.PHONY: install uninstall mostlyclean clean distclean maintainer-clean
+.PHONY: extraclean check tags
 
 install: $(DESTDIR)${archlibdir}
 	@echo

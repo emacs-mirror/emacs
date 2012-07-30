@@ -1,3 +1,12 @@
+2012-07-30  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Update .PHONY listings in makefiles.
+	* Makefile.in (.PHONY): Add all, doit, custom-deps, finder-data,
+	autoloads, update-subdirs, updates, bzr-update, update-authors,
+	compile-onefile, compile-calc, backup-compiled-files,
+	compile-after-backup, compile-one-process, mh-autoloads,
+	bootstrap-clean, distclean, maintainer-clean.
+
 2012-07-29  Jay Belanger  <jay.p.belanger@gmail.com>
 
 	* calc/calc.el (calc-simplify-mode): Make 'alg the default value.

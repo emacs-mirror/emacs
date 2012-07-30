@@ -1,5 +1,10 @@
 2012-07-30  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Update .PHONY listings in makefiles.
+	* Makefile.in (.PHONY): Add all, mostlyclean, clean,
+	bootstrap-clean, distclean, maintainer-clean, versioclean,
+	extraclean, frc.
+
 	* lisp.h (STRING_BYTES_BOUND): Cast entire result to ptrdiff_t.
 	This is a bit clearer.  Fix some commentary typos.
 

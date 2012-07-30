@@ -278,6 +278,8 @@ COPYDESTS = $(DESTDIR)${etcdir} $(DESTDIR)${lispdir} $(DESTDIR)${leimdir}/ja-dic
 
 all: ${SUBDIR}
 
+.PHONY: all ${SUBDIR} blessmail epaths-force FRC
+
 removenullpaths=sed -e 's/^://g' -e 's/:$$//g' -e 's/::/:/g'
 
 # Generate epaths.h from epaths.in.  This target is invoked by `configure'.
@@ -306,8 +308,6 @@ epaths-force: FRC
 lib-src src: lib
 
 src:	lib-src FRC
-
-.RECURSIVE: ${SUBDIR}
 
 # We need to build `emacs' in `src' to compile the *.elc files in `lisp'
 # and `leim'.
@@ -393,11 +393,12 @@ $(srcdir)/src/stamp-h.in: $(AUTOCONF_INPUTS)
 
 # ==================== Installation ====================
 
+.PHONY: install install-arch-dep install-arch-indep install-doc install-info
+.PHONY: install-man install-etc install-strip uninstall
+
 ## If we let lib-src do its own installation, that means we
 ## don't have to duplicate the list of utilities to install in
 ## this Makefile as well.
-
-.PHONY: install
 
 install: all install-arch-indep install-doc install-arch-dep blessmail
 	@true
@@ -681,7 +682,7 @@ FRC:
 
 # ==================== Cleaning up and miscellanea ====================
 
-.PHONY: mostlyclean clean distclean maintainer-clean extraclean
+.PHONY: mostlyclean clean distclean bootstrap-clean maintainer-clean extraclean
 
 ### `mostlyclean'
 ###      Like `clean', but may refrain from deleting a few files that people
@@ -798,6 +799,7 @@ extraclean:
 
 # The src subdir knows how to do the right thing
 # even when the build directory and source dir are different.
+.PHONY: TAGS tags
 TAGS tags: lib lib-src src
 	cd src; $(MAKE) $(MFLAGS) tags
 
@@ -812,7 +814,7 @@ check:
 dist:
 	cd ${srcdir}; ./make-dist
 
-.PHONY: info dvi dist check html
+.PHONY: info dvi dist check html info-real force-info check-info-dir
 
 info-real:
 	(cd doc/emacs; $(MAKE) $(MFLAGS) info)

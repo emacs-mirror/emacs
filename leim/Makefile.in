@@ -82,6 +82,7 @@ TIT_MISC=${CHINESE_TIT} ${MISC}
 	@${RUN_EMACS} -l ${buildlisppath}/international/quail -f batch-byte-compile $<
 
 all: leim-list.el compile-main
+.PHONY: all
 
 TIT_SOURCES= \
 	${srcdir}/CXTERM-DIC/4Corner.tit \
@@ -154,6 +155,7 @@ compile-targets: $(TARGETS)
 
 # Compile all the Elisp files that need it.  Beware: it approximates
 # `no-byte-compile', so watch out for false-positives!
+.PHONY: compile-main
 compile-main: ${TIT_MISC}
 	@($(setwins); \
 	els=`echo "$$wins " | sed -e 's| |/*.el |g'`; \
@@ -165,6 +167,8 @@ compile-main: ${TIT_MISC}
 	while read chunk; do \
 	  $(MAKE) $(MFLAGS) compile-targets EMACS="$(EMACS)" TARGETS="$$chunk"; \
 	done
+
+.PHONY: clean mostlyclean bootstrap-clean distclean maintainer-clean extraclean
 
 clean mostlyclean:
 	rm -f ${TIT_MISC} ${TIT_MISC:.el=.elc} \

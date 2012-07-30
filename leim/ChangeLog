@@ -1,3 +1,9 @@
+2012-07-30  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Update .PHONY listings in makefiles.
+	* Makefile.in (.PHONY): Add all, compile-main, clean, mostlyclean,
+	bootstrap-clean, distclean, maintainer-clean, extraclean.
+
 2012-07-29  Paul Eggert  <eggert@cs.ucla.edu>
 
 	deactive->inactive, inactivate->deactivate spelling fixes (Bug#10150)
