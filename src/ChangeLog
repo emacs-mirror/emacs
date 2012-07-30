@@ -1,3 +1,12 @@
+2012-07-30  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Convert safe_call to use variable number of arguments.
+	* xdisp.c (safe_call): Convert to use varargs.  Adjust users.
+	(safe_call2): Fix comment.
+	* lisp.h (safe_call): Adjust prototype.
+	* coding.c (encode_coding_object): Change to use safe_call2.
+	* xfaces.c (merge_face_heights): Change to use safe_call1.
+
 2012-07-30  Glenn Morris  <rgm@gnu.org>
 
 	* s/aix4-2.h (sigmask): No need to undefine it, since syssignal.h

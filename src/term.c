@@ -2209,11 +2209,10 @@ set_tty_color_mode (struct tty_display_info *tty, struct frame *f)
 
   if (mode != tty->previous_color_mode)
     {
-      Lisp_Object funsym = intern ("tty-set-up-initial-frame-faces");
       tty->previous_color_mode = mode;
       tty_setup_colors (tty , mode);
       /*  This recomputes all the faces given the new color definitions.  */
-      safe_call (1, &funsym);
+      safe_call (1, intern ("tty-set-up-initial-frame-faces"));
     }
 }
 

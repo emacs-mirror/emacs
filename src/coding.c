@@ -7931,15 +7931,12 @@ encode_coding_object (struct coding_system *coding,
 	}
 
       {
-	Lisp_Object args[3];
 	struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5;
 
 	GCPRO5 (coding->src_object, coding->dst_object, src_object, dst_object,
 		old_deactivate_mark);
-	args[0] = CODING_ATTR_PRE_WRITE (attrs);
-	args[1] = make_number (BEG);
-	args[2] = make_number (Z);
-	safe_call (3, args);
+	safe_call2 (CODING_ATTR_PRE_WRITE (attrs),
+		    make_number (BEG), make_number (Z));
 	UNGCPRO;
       }
       if (XBUFFER (coding->src_object) != current_buffer)

@@ -2403,16 +2403,12 @@ safe_eval_handler (Lisp_Object arg)
   return Qnil;
 }
 
-
-/* Evaluate SEXPR and return the result, or nil if something went
+/* Call function FUNC with the rest of NARGS - 1 arguments
+   following.  Return the result, or nil if something went
    wrong.  Prevent redisplay during the evaluation.  */
 
-/* Call function ARGS[0] with arguments ARGS[1] to ARGS[NARGS - 1].
-   Return the result, or nil if something went wrong.  Prevent
-   redisplay during the evaluation.  */
-
 Lisp_Object
-safe_call (ptrdiff_t nargs, Lisp_Object *args)
+safe_call (ptrdiff_t nargs, Lisp_Object func, ...)
 {
   Lisp_Object val;
 
@@ -2420,8 +2416,17 @@ safe_call (ptrdiff_t nargs, Lisp_Object *args)
     val = Qnil;
   else
     {
+      va_list ap;
+      ptrdiff_t i;
       ptrdiff_t count = SPECPDL_INDEX ();
       struct gcpro gcpro1;
+      Lisp_Object *args = alloca (nargs * sizeof (Lisp_Object));
+
+      args[0] = func;
+      va_start (ap, func);
+      for (i = 1; i < nargs; i++)
+	args[i] = va_arg (ap, Lisp_Object);
+      va_end (ap);
 
       GCPRO1 (args[0]);
       gcpro1.nvars = nargs;
@@ -2444,10 +2449,7 @@ safe_call (ptrdiff_t nargs, Lisp_Object *args)
 Lisp_Object
 safe_call1 (Lisp_Object fn, Lisp_Object arg)
 {
-  Lisp_Object args[2];
-  args[0] = fn;
-  args[1] = arg;
-  return safe_call (2, args);
+  return safe_call (2, fn, arg);
 }
 
 static Lisp_Object Qeval;
@@ -2458,17 +2460,13 @@ safe_eval (Lisp_Object sexpr)
   return safe_call1 (Qeval, sexpr);
 }
 
-/* Call function FN with one argument ARG.
+/* Call function FN with two arguments ARG1 and ARG2.
    Return the result, or nil if something went wrong.  */
 
 Lisp_Object
 safe_call2 (Lisp_Object fn, Lisp_Object arg1, Lisp_Object arg2)
 {
-  Lisp_Object args[3];
-  args[0] = fn;
-  args[1] = arg1;
-  args[2] = arg2;
-  return safe_call (3, args);
+  return safe_call (3, fn, arg1, arg2);
 }
 
 
