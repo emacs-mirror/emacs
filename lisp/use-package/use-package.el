@@ -392,9 +392,12 @@
                               ,(if (file-name-absolute-p path)
                                    path
                                  (expand-file-name path user-emacs-directory))))
-            (if (stringp pkg-load-path)
-                (list pkg-load-path)
-              pkg-load-path))
+            (cond ((stringp pkg-load-path)
+                   (list pkg-load-path))
+                  ((functionp pkg-load-path)
+                   (funcall pkg-load-path))
+                  (t
+                   pkg-load-path)))
 
          (when byte-compile-current-file
            ,@defines-eval
