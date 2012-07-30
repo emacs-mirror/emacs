@@ -1,3 +1,8 @@
+2012-07-30  Glenn Morris  <rgm@gnu.org>
+
+	* configure.ac (opsysfile): Set to empty on freebsd, gnu-linux,
+	gnu-kfreebsd; and to usg5-4-common.h on sol2*, unixware.
+
 2012-07-30  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Merge from gnulib, incorporating:

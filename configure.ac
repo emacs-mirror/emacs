@@ -3677,6 +3677,7 @@ case $opsys in
     ;;
 
   freebsd)
+    opsysfile=
     AC_DEFINE(BSD4_2, [])
     dnl Hack to avoid calling AC_PREPROC_IFELSE multiple times.
     dnl Would not be needed with autoconf >= 2.67, where the
@@ -3694,6 +3695,7 @@ case $opsys in
     ;;
 
   gnu-linux | gnu-kfreebsd )
+    opsysfile=
     AC_DEFINE(USG, [])
     AC_DEFINE(GNU_LINUX, [], [Define if ths system is compatible with GNU/Linux.])
     ;;
@@ -3711,12 +3713,14 @@ case $opsys in
     ;;
 
   sol2*)
+    opsysfile="s/usg5-4-common.h"
     AC_DEFINE(USG, [])
     AC_DEFINE(USG5, [])
     AC_DEFINE(SOLARIS2, [], [Define if the system is Solaris.])
     ;;
 
   unixware)
+    opsysfile="s/usg5-4-common.h"
     AC_DEFINE(USG, [])
     AC_DEFINE(USG5, [])
     ;;
@@ -3735,8 +3739,6 @@ case $opsys in
     ;;
 
   gnu) opsysfile= ;;
-
-  gnu-kfreebsd) opsysfile="s/gnu-linux.h" ;;
 
   hpux11)
     dnl See comments in sysdep.c:sys_signal.
