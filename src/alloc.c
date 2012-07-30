@@ -150,12 +150,6 @@ static pthread_mutex_t alloc_mutex;
 #define VECTOR_UNMARK(V)	((V)->header.size &= ~ARRAY_MARK_FLAG)
 #define VECTOR_MARKED_P(V)	(((V)->header.size & ARRAY_MARK_FLAG) != 0)
 
-/* Value is the number of bytes of S, a pointer to a struct Lisp_String.
-   Be careful during GC, because S->size contains the mark bit for
-   strings.  */
-
-#define GC_STRING_BYTES(S)	(STRING_BYTES (S))
-
 /* Default value of gc_cons_threshold (see below).  */
 
 #define GC_DEFAULT_THRESHOLD (100000 * sizeof (Lisp_Object))
@@ -1802,10 +1796,8 @@ init_strings (void)
 
 static int check_string_bytes_count;
 
-#define CHECK_STRING_BYTES(S)	STRING_BYTES (S)
-
-
-/* Like GC_STRING_BYTES, but with debugging check.  */
+/* Like STRING_BYTES, but with debugging check.  Can be
+   called during GC, so pay attention to the mark bit.  */
 
 ptrdiff_t
 string_bytes (struct Lisp_String *s)
@@ -1837,15 +1829,8 @@ check_sblock (struct sblock *b)
 
       /* Check that the string size recorded in the string is the
 	 same as the one recorded in the sdata structure.  */
-      if (from->string)
-	CHECK_STRING_BYTES (from->string);
-
-      if (from->string)
-	nbytes = GC_STRING_BYTES (from->string);
-      else
-	nbytes = SDATA_NBYTES (from);
-
-      nbytes = SDATA_SIZE (nbytes);
+      nbytes = SDATA_SIZE (from->string ? string_bytes (from->string)
+			   : SDATA_NBYTES (from));
       from_end = (struct sdata *) ((char *) from + nbytes + GC_STRING_EXTRA);
     }
 }
@@ -1866,7 +1851,7 @@ check_string_bytes (int all_p)
 	{
 	  struct Lisp_String *s = b->first_data.string;
 	  if (s)
-	    CHECK_STRING_BYTES (s);
+	    string_bytes (s);
 	}
 
       for (b = oldest_sblock; b; b = b->next)
@@ -1875,6 +1860,10 @@ check_string_bytes (int all_p)
   else if (current_sblock)
     check_sblock (current_sblock);
 }
+
+#else /* not GC_CHECK_STRING_BYTES */
+
+#define check_string_bytes(all) ((void) 0)
 
 #endif /* GC_CHECK_STRING_BYTES */
 
@@ -1987,7 +1976,7 @@ allocate_string_data (struct Lisp_String *s,
   if (s->data)
     {
       old_data = SDATA_OF_STRING (s);
-      old_nbytes = GC_STRING_BYTES (s);
+      old_nbytes = STRING_BYTES (s);
     }
   else
     old_data = NULL;
@@ -2121,10 +2110,10 @@ sweep_strings (void)
 		     how large that is.  Reset the sdata's string
 		     back-pointer so that we know it's free.  */
 #ifdef GC_CHECK_STRING_BYTES
-		  if (GC_STRING_BYTES (s) != SDATA_NBYTES (data))
+		  if (string_bytes (s) != SDATA_NBYTES (data))
 		    abort ();
 #else
-		  data->u.nbytes = GC_STRING_BYTES (s);
+		  data->u.nbytes = STRING_BYTES (s);
 #endif
 		  data->string = NULL;
 
@@ -2227,22 +2216,17 @@ compact_small_strings (void)
 	  /* Compute the next FROM here because copying below may
 	     overwrite data we need to compute it.  */
 	  ptrdiff_t nbytes;
+	  struct Lisp_String *s = from->string;
 
 #ifdef GC_CHECK_STRING_BYTES
 	  /* Check that the string size recorded in the string is the
 	     same as the one recorded in the sdata structure. */
-	  if (from->string
-	      && GC_STRING_BYTES (from->string) != SDATA_NBYTES (from))
+	  if (s && string_bytes (s) != SDATA_NBYTES (from))
 	    abort ();
 #endif /* GC_CHECK_STRING_BYTES */
 
-	  if (from->string)
-	    nbytes = GC_STRING_BYTES (from->string);
-	  else
-	    nbytes = SDATA_NBYTES (from);
-
-	  if (nbytes > LARGE_STRING_BYTES)
-	    abort ();
+	  nbytes = s ? STRING_BYTES (s) : SDATA_NBYTES (from);
+	  eassert (nbytes <= LARGE_STRING_BYTES);
 
 	  nbytes = SDATA_SIZE (nbytes);
 	  from_end = (struct sdata *) ((char *) from + nbytes + GC_STRING_EXTRA);
@@ -2254,8 +2238,8 @@ compact_small_strings (void)
 	    abort ();
 #endif
 
-	  /* FROM->string non-null means it's alive.  Copy its data.  */
-	  if (from->string)
+	  /* Non-NULL S means it's alive.  Copy its data.  */
+	  if (s)
 	    {
 	      /* If TB is full, proceed with the next sblock.  */
 	      to_end = (struct sdata *) ((char *) to + nbytes + GC_STRING_EXTRA);
@@ -5955,7 +5939,7 @@ mark_object (Lisp_Object arg)
 #ifdef GC_CHECK_STRING_BYTES
 	/* Check that the string size recorded in the string is the
 	   same as the one recorded in the sdata structure.  */
-	CHECK_STRING_BYTES (ptr);
+	string_bytes (ptr);
 #endif /* GC_CHECK_STRING_BYTES */
       }
       break;
@@ -6294,10 +6278,7 @@ gc_sweep (void)
   sweep_weak_hash_tables ();
 
   sweep_strings ();
-#ifdef GC_CHECK_STRING_BYTES
-  if (!noninteractive)
-    check_string_bytes (1);
-#endif
+  check_string_bytes (!noninteractive);
 
   /* Put all unmarked conses on free list */
   {
@@ -6617,11 +6598,7 @@ gc_sweep (void)
   }
 
   sweep_vectors ();
-
-#ifdef GC_CHECK_STRING_BYTES
-  if (!noninteractive)
-    check_string_bytes (1);
-#endif
+  check_string_bytes (!noninteractive);
 }
 
 

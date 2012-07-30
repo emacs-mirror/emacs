@@ -1,3 +1,11 @@
+2012-07-30  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Cleanup string bytes checking.
+	* alloc.c (GC_STRING_BYTES, CHECK_STRING_BYTES): Remove.  Convert
+	all users to STRING_BYTES or string_bytes if GC_CHECK_STRING_BYTES.
+	(check_string_bytes): Define to empty if not GC_CHECK_STRING_BYTES.
+	(check_sblock, compact_small_strings): Simplify.
+
 2012-07-29  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* lisp.h (LISP_INT_TAG, LISP_INT1_TAG, LISP_STRING_TAG): Remove.
