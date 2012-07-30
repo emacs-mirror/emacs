@@ -1774,13 +1774,13 @@ static char const string_overrun_cookie[GC_STRING_OVERRUN_COOKIE_SIZE] =
    STRING_BYTES_BOUND, nor can it be so long that the size_t
    arithmetic in allocate_string_data would overflow while it is
    calculating a value to be passed to malloc.  */
-#define STRING_BYTES_MAX					  \
-  min (STRING_BYTES_BOUND,					  \
-       ((SIZE_MAX - XMALLOC_OVERRUN_CHECK_OVERHEAD		  \
-	 - GC_STRING_EXTRA					  \
-	 - offsetof (struct sblock, first_data)			  \
-	 - SDATA_DATA_OFFSET)					  \
-	& ~(sizeof (EMACS_INT) - 1)))
+static ptrdiff_t const STRING_BYTES_MAX =
+  min (STRING_BYTES_BOUND,
+       ((SIZE_MAX - XMALLOC_OVERRUN_CHECK_OVERHEAD
+	 - GC_STRING_EXTRA
+	 - offsetof (struct sblock, first_data)
+	 - SDATA_DATA_OFFSET)
+	& ~(sizeof (EMACS_INT) - 1)));
 
 /* Initialize string allocation.  Called from init_alloc_once.  */
 
@@ -6863,41 +6863,23 @@ The time is in seconds as a floating point value.  */);
 #endif
 }
 
-/* Make some symbols visible to GDB.  This section is last, so that
-   the #undef lines don't mess up later code.  */
-
 /* When compiled with GCC, GDB might say "No enum type named
    pvec_type" if we don't have at least one symbol with that type, and
    then xbacktrace could fail.  Similarly for the other enums and
    their values.  */
 union
 {
+  enum CHARTAB_SIZE_BITS CHARTAB_SIZE_BITS;
+  enum CHAR_TABLE_STANDARD_SLOTS CHAR_TABLE_STANDARD_SLOTS;
+  enum char_bits char_bits;
   enum CHECK_LISP_OBJECT_TYPE CHECK_LISP_OBJECT_TYPE;
+  enum DEFAULT_HASH_SIZE DEFAULT_HASH_SIZE;
   enum enum_USE_LSB_TAG enum_USE_LSB_TAG;
+  enum FLOAT_TO_STRING_BUFSIZE FLOAT_TO_STRING_BUFSIZE;
   enum Lisp_Bits Lisp_Bits;
+  enum Lisp_Compiled Lisp_Compiled;
+  enum maxargs maxargs;
+  enum MAX_ALLOCA MAX_ALLOCA;
   enum More_Lisp_Bits More_Lisp_Bits;
   enum pvec_type pvec_type;
 } const EXTERNALLY_VISIBLE gdb_make_enums_visible = {0};
-
-/* These symbols cannot be done as enums, since values might not be
-   in 'int' range.  Each symbol X has a corresponding X_VAL symbol,
-   verified to have the correct value.  */
-
-#define ARRAY_MARK_FLAG_VAL PTRDIFF_MIN
-#define PSEUDOVECTOR_FLAG_VAL (PTRDIFF_MAX - PTRDIFF_MAX / 2)
-#define VALMASK_VAL (USE_LSB_TAG ? -1 << GCTYPEBITS : VAL_MAX)
-
-verify (ARRAY_MARK_FLAG_VAL == ARRAY_MARK_FLAG);
-verify (PSEUDOVECTOR_FLAG_VAL == PSEUDOVECTOR_FLAG);
-verify (VALMASK_VAL == VALMASK);
-
-#undef ARRAY_MARK_FLAG
-#undef PSEUDOVECTOR_FLAG
-#undef VALMASK
-
-ptrdiff_t const EXTERNALLY_VISIBLE
-  ARRAY_MARK_FLAG = ARRAY_MARK_FLAG_VAL,
-  PSEUDOVECTOR_FLAG = PSEUDOVECTOR_FLAG_VAL;
-
-EMACS_INT const EXTERNALLY_VISIBLE
-  VALMASK = VALMASK_VAL;

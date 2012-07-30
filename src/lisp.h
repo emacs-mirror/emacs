@@ -28,6 +28,12 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <intprops.h>
 
+/* The ubiquitous max and min macros.  */
+#undef min
+#undef max
+#define max(a, b) ((a) > (b) ? (a) : (b))
+#define min(a, b) ((a) < (b) ? (a) : (b))
+
 /* EMACS_INT - signed integer wide enough to hold an Emacs value
    EMACS_INT_MAX - maximum value of EMACS_INT; can be used in #if
    pI - printf length modifier for EMACS_INT
@@ -212,7 +218,7 @@ enum enum_USE_LSB_TAG { USE_LSB_TAG = 0 };
 
 /* Lisp integers use 2 tags, to give them one extra bit, thus
    extending their range from, e.g., -2^28..2^28-1 to -2^29..2^29-1.  */
-#define INTMASK (EMACS_INT_MAX >> (INTTYPEBITS - 1))
+static EMACS_INT const INTMASK = EMACS_INT_MAX >> (INTTYPEBITS - 1);
 #define case_Lisp_Int case Lisp_Int0: case Lisp_Int1
 #define LISP_INT_TAG_P(x) (((x) & ~Lisp_Int1) == 0)
 
@@ -320,11 +326,11 @@ enum CHECK_LISP_OBJECT_TYPE { CHECK_LISP_OBJECT_TYPE = 0 };
 
 /* In the size word of a vector, this bit means the vector has been marked.  */
 
-#define ARRAY_MARK_FLAG PTRDIFF_MIN
+static ptrdiff_t const ARRAY_MARK_FLAG = PTRDIFF_MIN;
 
 /* In the size word of a struct Lisp_Vector, this bit means it's really
    some other vector-like object.  */
-#define PSEUDOVECTOR_FLAG (PTRDIFF_MAX - PTRDIFF_MAX / 2)
+static ptrdiff_t const PSEUDOVECTOR_FLAG = PTRDIFF_MAX - PTRDIFF_MAX / 2;
 
 /* In a pseudovector, the size field actually contains a word with one
    PSEUDOVECTOR_FLAG bit set, and exactly one of the following bits to
@@ -392,7 +398,7 @@ enum More_Lisp_Bits
 
 #if USE_LSB_TAG
 
-#define VALMASK (-1 << GCTYPEBITS)
+static int const VALMASK = -1 << GCTYPEBITS;
 #define TYPEMASK ((1 << GCTYPEBITS) - 1)
 #define XTYPE(a) ((enum Lisp_Type) (XLI (a) & TYPEMASK))
 #define XINT(a) (XLI (a) >> INTTYPEBITS)
@@ -407,7 +413,7 @@ enum More_Lisp_Bits
 
 #else  /* not USE_LSB_TAG */
 
-#define VALMASK VAL_MAX
+static EMACS_INT const VALMASK = VAL_MAX;
 
 #define XTYPE(a) ((enum Lisp_Type) ((EMACS_UINT) XLI (a) >> VALBITS))
 
@@ -455,9 +461,14 @@ enum More_Lisp_Bits
 #define EQ(x, y) (XHASH (x) == XHASH (y))
 
 /* Largest and smallest representable fixnum values.  These are the C
-   values.  */
+   values.  They are macros for use in static initializers, and
+   constants for visibility to GDB.  */
+static EMACS_INT const MOST_POSITIVE_FIXNUM =
 #define MOST_POSITIVE_FIXNUM (EMACS_INT_MAX >> INTTYPEBITS)
+	MOST_POSITIVE_FIXNUM;
+static EMACS_INT const MOST_NEGATIVE_FIXNUM =
 #define MOST_NEGATIVE_FIXNUM (-1 - MOST_POSITIVE_FIXNUM)
+	MOST_NEGATIVE_FIXNUM;
 
 /* Value is non-zero if I doesn't fit into a Lisp fixnum.  It is
    written this way so that it also works if I is of unsigned
@@ -702,10 +713,15 @@ extern ptrdiff_t string_bytes (struct Lisp_String *);
    Although the actual size limit (see STRING_BYTES_MAX in alloc.c)
    may be a bit smaller than STRING_BYTES_BOUND, calculating it here
    would expose alloc.c internal details that we'd rather keep
-   private.  The cast to ptrdiff_t ensures that STRING_BYTES_BOUND is
-   signed.  */
+   private.
+
+   This is a macros for use in static initializers, and a constant for
+   visibility to GDB.  The cast to ptrdiff_t ensures that
+   STRING_BYTES_BOUND is signed.  */
+static ptrdiff_t const STRING_BYTES_BOUND =
 #define STRING_BYTES_BOUND  \
   min (MOST_POSITIVE_FIXNUM, (ptrdiff_t) min (SIZE_MAX, PTRDIFF_MAX) - 1)
+	STRING_BYTES_BOUND;
 
 /* Mark STR as a unibyte string.  */
 #define STRING_SET_UNIBYTE(STR)  \
@@ -814,16 +830,6 @@ struct Lisp_Vector
    of a char-table, and there's no way to access it directly from
    Emacs Lisp program.  */
 
-/* This is the number of slots that every char table must have.  This
-   counts the ordinary slots and the top, defalt, parent, and purpose
-   slots.  */
-#define CHAR_TABLE_STANDARD_SLOTS (VECSIZE (struct Lisp_Char_Table) - 1)
-
-/* Return the number of "extra" slots in the char table CT.  */
-
-#define CHAR_TABLE_EXTRA_SLOTS(CT)	\
-  (((CT)->header.size & PSEUDOVECTOR_SIZE_MASK) - CHAR_TABLE_STANDARD_SLOTS)
-
 #ifdef __GNUC__
 
 #define CHAR_TABLE_REF_ASCII(CT, IDX)					\
@@ -885,10 +891,13 @@ struct Lisp_Vector
    ? XSUB_CHAR_TABLE (XCHAR_TABLE (CT)->ascii)->contents[IDX] = VAL	\
    : char_table_set (CT, IDX, VAL))
 
-#define CHARTAB_SIZE_BITS_0 6
-#define CHARTAB_SIZE_BITS_1 4
-#define CHARTAB_SIZE_BITS_2 5
-#define CHARTAB_SIZE_BITS_3 7
+enum CHARTAB_SIZE_BITS
+  {
+    CHARTAB_SIZE_BITS_0 = 6,
+    CHARTAB_SIZE_BITS_1 = 4,
+    CHARTAB_SIZE_BITS_2 = 5,
+    CHARTAB_SIZE_BITS_3 = 7
+  };
 
 extern const int chartab_size[4];
 
@@ -986,6 +995,19 @@ struct Lisp_Subr
     const char *intspec;
     const char *doc;
   };
+
+/* This is the number of slots that every char table must have.  This
+   counts the ordinary slots and the top, defalt, parent, and purpose
+   slots.  */
+enum CHAR_TABLE_STANDARD_SLOTS
+  {
+    CHAR_TABLE_STANDARD_SLOTS = VECSIZE (struct Lisp_Char_Table) - 1
+  };
+
+/* Return the number of "extra" slots in the char table CT.  */
+
+#define CHAR_TABLE_EXTRA_SLOTS(CT)	\
+  (((CT)->header.size & PSEUDOVECTOR_SIZE_MASK) - CHAR_TABLE_STANDARD_SLOTS)
 
 
 /***********************************************************************
@@ -1214,7 +1236,7 @@ struct Lisp_Hash_Table
 
 /* Default size for hash tables if not specified.  */
 
-#define DEFAULT_HASH_SIZE 65
+enum DEFAULT_HASH_SIZE { DEFAULT_HASH_SIZE = 65 };
 
 /* Default threshold specifying when to resize a hash table.  The
    value gives the ratio of current entries in the hash table and the
@@ -1471,31 +1493,38 @@ typedef unsigned char UCHAR;
 
 /* Meanings of slots in a Lisp_Compiled:  */
 
-#define COMPILED_ARGLIST 0
-#define COMPILED_BYTECODE 1
-#define COMPILED_CONSTANTS 2
-#define COMPILED_STACK_DEPTH 3
-#define COMPILED_DOC_STRING 4
-#define COMPILED_INTERACTIVE 5
+enum Lisp_Compiled
+  {
+    COMPILED_ARGLIST = 0,
+    COMPILED_BYTECODE = 1,
+    COMPILED_CONSTANTS = 2,
+    COMPILED_STACK_DEPTH = 3,
+    COMPILED_DOC_STRING = 4,
+    COMPILED_INTERACTIVE = 5
+  };
 
 /* Flag bits in a character.  These also get used in termhooks.h.
    Richard Stallman <rms@gnu.ai.mit.edu> thinks that MULE
    (MUlti-Lingual Emacs) might need 22 bits for the character value
    itself, so we probably shouldn't use any bits lower than 0x0400000.  */
-#define CHAR_ALT   (0x0400000)
-#define CHAR_SUPER (0x0800000)
-#define CHAR_HYPER (0x1000000)
-#define CHAR_SHIFT (0x2000000)
-#define CHAR_CTL   (0x4000000)
-#define CHAR_META  (0x8000000)
+enum char_bits
+  {
+    CHAR_ALT = 0x0400000,
+    CHAR_SUPER = 0x0800000,
+    CHAR_HYPER = 0x1000000,
+    CHAR_SHIFT = 0x2000000,
+    CHAR_CTL = 0x4000000,
+    CHAR_META = 0x8000000,
 
-#define CHAR_MODIFIER_MASK \
-  (CHAR_ALT | CHAR_SUPER | CHAR_HYPER  | CHAR_SHIFT | CHAR_CTL | CHAR_META)
+    CHAR_MODIFIER_MASK =
+     (CHAR_ALT | CHAR_SUPER | CHAR_HYPER | CHAR_SHIFT | CHAR_CTL | CHAR_META),
+
+    /* Actually, the current Emacs uses 22 bits for the character value
+       itself.  */
+    CHARACTERBITS = 22
+  };
 
 
-/* Actually, the current Emacs uses 22 bits for the character value
-   itself.  */
-#define CHARACTERBITS 22
 
 
 /* The glyph datatype, used to represent characters on the display.
@@ -1552,9 +1581,6 @@ typedef struct {
 		   (XINT (gc) >> CHARACTERBITS));			\
     }									\
   while (0)
-
-/* The ID of the mode line highlighting face.  */
-#define GLYPH_MODE_LINE_FACE 1
 
 /* Structure to hold mouse highlight data.  This is here because other
    header files need it for defining struct x_output etc.  */
@@ -1874,8 +1900,11 @@ typedef struct {
    is how we define the symbol for function `name' at start-up time.  */
 extern void defsubr (struct Lisp_Subr *);
 
-#define MANY -2
-#define UNEVALLED -1
+enum maxargs
+  {
+    MANY = -2,
+    UNEVALLED = -1
+  };
 
 extern void defvar_lisp (struct Lisp_Objfwd *, const char *, Lisp_Object *);
 extern void defvar_lisp_nopro (struct Lisp_Objfwd *, const char *, Lisp_Object *);
@@ -2708,7 +2737,7 @@ extern void print_error_message (Lisp_Object, Lisp_Object, const char *,
 				 Lisp_Object);
 extern Lisp_Object internal_with_output_to_temp_buffer
         (const char *, Lisp_Object (*) (Lisp_Object), Lisp_Object);
-#define FLOAT_TO_STRING_BUFSIZE 350
+enum FLOAT_TO_STRING_BUFSIZE { FLOAT_TO_STRING_BUFSIZE = 350 };
 extern int float_to_string (char *, double);
 extern void syms_of_print (void);
 
@@ -3304,15 +3333,6 @@ extern void init_system_name (void);
 # define lint_assume(cond) ((void) (0 && (cond)))
 #endif
 
-/* The ubiquitous min and max macros.  */
-
-#ifdef max
-#undef max
-#undef min
-#endif
-#define min(a, b)	((a) < (b) ? (a) : (b))
-#define max(a, b)	((a) > (b) ? (a) : (b))
-
 /* We used to use `abs', but that clashes with system headers on some
    platforms, and using a name reserved by Standard C is a bad idea
    anyway.  */
@@ -3355,7 +3375,7 @@ extern void init_system_name (void);
 /* SAFE_ALLOCA normally allocates memory on the stack, but if size is
    larger than MAX_ALLOCA, use xmalloc to avoid overflowing the stack.  */
 
-#define MAX_ALLOCA 16*1024
+enum MAX_ALLOCA { MAX_ALLOCA = 16*1024 };
 
 extern Lisp_Object safe_alloca_unwind (Lisp_Object);
 

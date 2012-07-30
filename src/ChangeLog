@@ -1,3 +1,35 @@
+2012-07-30  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Export to GDB most of lisp.h's remaining object-like macros.
+	* lisp.h (min, max): Move earlier, because they're used earlier now.
+	(INTMASK, ARRAY_MARK_FLAG, PSEUDOVECTOR_FLAG, VALMASK)
+	(CHAR_TABLE_STANDARD_SLOTS, CHARTAB_SIZE_BITS_0)
+	(CHARTAB_SIZE_BITS_1, CHARTAB_SIZE_BITS_2, CHARTAB_SIZE_BITS_3)
+	(DEFAULT_HASH_SIZE, COMPILED_ARGLIST, COMPILED_BYTECODE)
+	(COMPILED_CONSTANTS, COMPILED_STACK_DEPTH, COMPILED_DOC_STRING)
+	(COMPILED_INTERACTIVE, CHAR_ALT, CHAR_SUPER, CHAR_HYPER, CHAR_SHIFT)
+	(CHAR_CTL, CHAR_META, CHAR_MODIFIER_MASK, CHARACTERBITS)
+	(MANY, UNEVALLED, FLOAT_TO_STRING_BUFSIZE, MAX_ALLOCA):
+	Now constants, for GDB.  They need not be macros.
+	(MOST_POSITIVE_FIXNUM, MOST_NEGATIVE_FIXNUM, STRING_BYTES_BOUND):
+	Now constants, for GDB, as well as macros, for static initializers.
+	(CHAR_TABLE_STANDARD_SLOTS, CHAR_TABLE_EXTRA_SLOTS):
+	Move to after the definition of struct Lisp_Char_Table,
+	since the former now needs that type defined.
+	(enum CHARTAB_SIZE_BITS, enum CHAR_TABLE_STANDARD_SLOTS)
+	(enum DEFAULT_HASH_SIZE, enum Lisp_Compiled, enum char_bits)
+	(enum maxargs, enum FLOAT_TO_STRING_BUFSIZE, enum MAX_ALLOCA):
+	New enums, for gdb_make_enums_visible.
+	(GLYPH_MODE_LINE_FACE): Remove; unused.
+	* alloc.c (STRING_BYTES_MAX): Now a constant, now a macro.
+	(gdb_make_enums_visible): Add enum CHARTAB_SIZE_BITS, enum
+	CHAR_TABLE_STANDARD_SLOTS, enum char_bits, enum DEFAULT_HASH_SIZE,
+	enum FLOAT_TO_STRING_BUFSIZE, enum Lisp_Bits, enum Lisp_Compiled,
+	enum maxargs, enum MAX_ALLOCA.
+	(ARRAY_MARK_FLAG_VAL, PSEUDOVECTOR_FLAG_VAL, VALMASK_VAL): Remove.
+	(ARRAY_MARK_FLAG, PSEUDOVECTOR_FLAG, VALMASK): Remove;
+	no longer needed, now that they are done in lisp.h.
+
 2012-07-30  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Cleanup string bytes checking.
