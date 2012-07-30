@@ -79,27 +79,45 @@
 
 #include "mpstd.h"
 
+/* Mac OS X on 32-bit Intel built with Clang */
+
 #if defined(MPS_PF_XCI3LL)
 
-#include "lockix.c"
-#include "than.c"
-#include "vmix.c"
-#include "protix.c"
-#include "protsgix.c"
-#include "prmcan.c"
-#include "span.c"
-#include "ssixi3.c"
+#include "lockix.c"     /* Posix locks */
+#include "than.c"       /* generic single threading */
+#include "vmix.c"       /* Posix virtual memory */
+#include "protix.c"     /* Posix protection */
+#include "protsgix.c"   /* Posix signal handling */
+#include "prmcan.c"     /* generic mutator context */
+#include "span.c"       /* generic stack probe */
+#include "ssixi3.c"     /* Posix on 32-bit Intel stack scan */
+
+/* Mac OS X on 64-bit Intel build with Clang */
 
 #elif defined(MPS_PF_XCI6LL)
 
-#include "lockix.c"
-#include "than.c"
-#include "vmix.c"
-#include "protix.c"
-#include "protsgix.c"
-#include "prmcan.c"
-#include "span.c"
-#include "ssixi6.c"
+#include "lockix.c"     /* Posix locks */
+#include "than.c"       /* generic single threading */
+#include "vmix.c"       /* Posix virtual memory */
+#include "protix.c"     /* Posix protection */
+#include "protsgix.c"   /* Posix signal handling */
+#include "prmcan.c"     /* generic mutator context */
+#include "span.c"       /* generic stack probe */
+#include "ssixi6.c"     /* Posix on 64-bit Intel stack scan */
+
+/* FreeBSD on 32-bit Intel built with GCC */
+
+#elif defined(MPS_PF_FRI4GC)
+
+#include "lockix.c"     /* Posix locks */
+#include "thfri4.c"     /* FreeBSD on 32-bit Intel threading */
+#include "pthrdext.c"   /* Posix thread extensions */
+#include "vmix.c"       /* Posix virtual memory */
+#include "protix.c"     /* Posix protection */
+#include "protsgix.c"   /* Posix signal handling */
+#include "prmcan.c"     /* generic mutator context */
+#include "span.c"       /* generic stack probe */
+#include "ssixi3.c"     /* Posix on 32-bit Intel stack scan */
 
 #else
 
