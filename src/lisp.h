@@ -398,8 +398,11 @@ enum More_Lisp_Bits
 
 #if USE_LSB_TAG
 
-static int const VALMASK = -1 << GCTYPEBITS;
-#define TYPEMASK ((1 << GCTYPEBITS) - 1)
+enum lsb_bits
+  {
+    TYPEMASK = (1 << GCTYPEBITS) - 1,
+    VALMASK = ~ TYPEMASK
+  };
 #define XTYPE(a) ((enum Lisp_Type) (XLI (a) & TYPEMASK))
 #define XINT(a) (XLI (a) >> INTTYPEBITS)
 #define XUINT(a) ((EMACS_UINT) XLI (a) >> INTTYPEBITS)
@@ -3301,7 +3304,7 @@ extern void init_system_name (void);
    in addition to a device separator.  Set the path separator
    to '/', and don't test for a device separator in IS_ANY_SEP.  */
 
-#define DIRECTORY_SEP '/'
+static char const DIRECTORY_SEP = '/';
 #ifndef IS_DIRECTORY_SEP
 #define IS_DIRECTORY_SEP(_c_) ((_c_) == DIRECTORY_SEP)
 #endif

@@ -1,3 +1,12 @@
+2012-07-30  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Export DIRECTORY_SEP, TYPEMASK, VALMASK to GDB.
+	* alloc.c (gdb_make_enums_visible) [USE_LSB_TAG]: Add lsb_bits.
+	* lisp.h (enum lsb_bits) [USE_LSB_TAG]: New enum, for
+	gdb_make_enums_visible.
+	(TYPEMASK, VALMASK) [USE_LSB_TAGS]: Now enum constants, not macros.
+	(DIRECTORY_SEP): Now a constant, not a macro.
+
 2012-07-30  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32fns.c (w32_wnd_proc): Pass w32_keyboard_codepage to

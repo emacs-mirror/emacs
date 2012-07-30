@@ -6882,4 +6882,7 @@ union
   enum MAX_ALLOCA MAX_ALLOCA;
   enum More_Lisp_Bits More_Lisp_Bits;
   enum pvec_type pvec_type;
+#if USE_LSB_TAG
+  enum lsb_bits lsb_bits;
+#endif
 } const EXTERNALLY_VISIBLE gdb_make_enums_visible = {0};
