@@ -152,7 +152,7 @@ static void print_M(size_t bytes)
   Mfrac = (double)(bytes % bPerM);
   Mfrac = (Mfrac / bPerM);
 
-  printf("%1lum%03.f", M, Mfrac * 1000);
+  printf("%1"PRIuLONGEST"m%03.f", (ulongest_t)M, Mfrac * 1000);
 }
 
 
@@ -638,13 +638,14 @@ static void testscriptC(mps_arena_t arena, mps_ap_t ap, const char *script)
         break;
       }
       case 'B': {
-        size_t big = 0;
+        ulongest_t big = 0;
         char small_ref = ' ';
-        si = sscanf(script, "BigdropSmall(big %lu, small %c)%n",
-                       &big, &small_ref, &sb);
+        si = sscanf(script, "BigdropSmall(big %"SCNuLONGEST", small %c)%n",
+                    &big, &small_ref, &sb);
         checksi(si, 2, script, scriptAll);
         script += sb;
-        printf("  BigdropSmall(big %lu, small %c)\n", big, small_ref);
+        printf("  BigdropSmall(big %"PRIuLONGEST", small %c)\n",
+               big, small_ref);
         BigdropSmall(arena, ap, big, small_ref);
         break;
       }
