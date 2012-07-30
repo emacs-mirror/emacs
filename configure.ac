@@ -4464,7 +4464,7 @@ dnl by configure.  This also explains the `move-if-change' test and
 dnl the use of force in the `epaths-force' rule in Makefile.in.
 AC_CONFIG_COMMANDS([epaths], [
 echo creating src/epaths.h
-${MAKE-make} epaths-force
+${MAKE-make} MAKEFILE_NAME=do-not-make-Makefile epaths-force
 ], [GCC="$GCC" CPPFLAGS="$CPPFLAGS"])
 
 AC_CONFIG_COMMANDS([gdbinit], [

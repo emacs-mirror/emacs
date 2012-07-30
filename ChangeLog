@@ -1,5 +1,12 @@
 2012-07-30  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Do not overwrite config.status while executing it (Bug#11214).
+	* Makefile.in (MAKEFILE_NAME): New macro.
+	($(MAKEFILE_NAME)): Rename rule from Makefile.
+	* configure.ac (epaths): Set MAKEFILE_NAME to a bogus value,
+	so that GNU 'make' isn't tempted to make the Makefile and then
+	regenerate config.status while config.status is running.
+
 	Update .PHONY listings in makefiles.
 	* Makefile.in (.PHONY): Add all, ${SUBDIR}, blessmail, epath-force,
 	FRC, install-arch-dep, install-arch-indep, install-doc,

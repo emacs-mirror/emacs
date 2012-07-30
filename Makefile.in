@@ -350,7 +350,12 @@ blessmail: Makefile src FRC
 # We used to have one rule per */Makefile.in, but that leads to race
 # conditions with parallel makes, so let's assume that the time stamp on
 # ./Makefile is representative of the time stamp on all the other Makefiles.
-Makefile: config.status $(srcdir)/src/config.in \
+#
+# config.status overrides MAKEFILE_NAME with a bogus name when creating
+# src/epaths.h, so that 'make epaths-force' does not recursively invoke
+# config.status and overwrite config.status while executing it (Bug#11214).
+MAKEFILE_NAME = Makefile
+$(MAKEFILE_NAME): config.status $(srcdir)/src/config.in \
           $(srcdir)/Makefile.in $(SUBDIR_MAKEFILES_IN)
 	./config.status
 
