@@ -20414,7 +20414,7 @@ display_mode_element (struct it *it, int depth, int field_width, int precision,
 
   depth++;
 
-  switch (SWITCH_ENUM_CAST (XTYPE (elt)))
+  switch (XTYPE (elt))
     {
     case Lisp_String:
       {

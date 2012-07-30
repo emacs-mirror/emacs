@@ -3319,8 +3319,6 @@ static char const DIRECTORY_SEP = '/';
 #define IS_ANY_SEP(_c_) (IS_DIRECTORY_SEP (_c_))
 #endif
 
-#define SWITCH_ENUM_CAST(x) (x)
-
 /* Use this to suppress gcc's warnings.  */
 #ifdef lint
 

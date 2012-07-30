@@ -61,8 +61,6 @@ SYSTEM_TYPE
 ** Misc macros
 USER_FULL_NAME   If defined, overrides the default pw->pw_gecos for getting at the full user name.  Only MSDOS overrides the default.
 
-** Replace, the definition is trivial: SWITCH_ENUM_CAST
-
 ** Defines from src/s/*.h.  Some of these might not be used in the code anymore, so they can be removed.  The HAVE_* definitions are probably handled by autoconf, so it might be possible to just remove them from src/s/*.h.
 
 

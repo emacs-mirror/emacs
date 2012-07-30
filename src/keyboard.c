@@ -5319,7 +5319,7 @@ make_lispy_event (struct input_event *event)
 {
   int i;
 
-  switch (SWITCH_ENUM_CAST (event->kind))
+  switch (event->kind)
     {
       /* A simple keystroke.  */
     case ASCII_KEYSTROKE_EVENT:

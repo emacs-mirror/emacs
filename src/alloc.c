@@ -5926,7 +5926,7 @@ mark_object (Lisp_Object arg)
 
 #endif /* not GC_CHECK_MARKED_OBJECTS */
 
-  switch (SWITCH_ENUM_CAST (XTYPE (obj)))
+  switch (XTYPE (obj))
     {
     case Lisp_String:
       {
