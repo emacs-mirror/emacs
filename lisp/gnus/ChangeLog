@@ -10,7 +10,7 @@
 	(auth-source-macos-keychain-result-append): Fix variable name.
 	(auth-sources, auth-source-macos-keychain-result-append): More fixes.
 
-2012-07-27  Julien Danjou  <jd@dex.adm.naquadah.org>
+2012-07-27  Julien Danjou  <julien@danjou.info>
 
 	* message.el (fboundp): Add a defalias on `mail-dont-reply-to' for
 	Emacs < 24.1
