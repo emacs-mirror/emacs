@@ -1,3 +1,9 @@
+2012-07-30  Glenn Morris  <rgm@gnu.org>
+
+	* conf_post.h: New, split from configure.ac's AH_BOTTOM.
+	* Makefile.in (config_h): Add conf_post.h.
+	* makefile.w32-in (CONFIG_H): Add conf_post.h.
+
 2012-07-30  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsterm.m (ns_do_open_file): New variable.
