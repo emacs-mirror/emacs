@@ -259,18 +259,16 @@
    define what signal number to use, and what si_code value to check.
 */
 
-#if defined(MPS_OS_O1) || defined(MPS_OS_SO)
+#if defined(MPS_OS_O1) || defined(MPS_OS_SO) || defined(MPS_OS_FR)
 #define PROT_SIGNAL (SIGSEGV)
-#elif defined(MPS_OS_FR) || defined(MPS_OS_XC)
+#elif defined(MPS_OS_XC)
 #define PROT_SIGNAL (SIGBUS)
 #endif
 
 #if defined(MPS_OS_XC)
 #define PROT_SIGINFO_GOOD(info) (1)
-#elif defined(MPS_OS_O1)
+#elif defined(MPS_OS_O1) || defined(MPS_OS_FR)
 #define PROT_SIGINFO_GOOD(info) ((info)->si_code == SEGV_ACCERR)
-#elif defined(MPS_OS_FR)
-#define PROT_SIGINFO_GOOD(info) ((info)->si_code == BUS_PAGE_FAULT)
 #endif
 
 
