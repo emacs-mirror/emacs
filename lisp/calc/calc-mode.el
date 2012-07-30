@@ -542,7 +542,7 @@
 			   (format "Binary simplification occurs by default (word size=%d)"
 				   calc-word-size))))
 
-(defun calc-lim-simplify-mode (arg)
+(defun calc-limited-simplify-mode (arg)
   (interactive "P")
   (calc-wrapper
    (calc-set-simplify-mode nil arg
