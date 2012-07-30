@@ -1,3 +1,8 @@
+2012-07-30  Glenn Morris  <rgm@gnu.org>
+
+	* s/usg5-4-common.h (_longjmp, _setjmp): Let configure set them.
+	* s/irix6-5.h (_longjmp, _setjmp): No more need to undefine.
+
 2012-07-30  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* keymap.c (Fkey_description): Don't remove 0x80 bit from

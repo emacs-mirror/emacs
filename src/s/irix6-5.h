@@ -19,9 +19,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include "usg5-4-common.h"
 
-#undef _longjmp /* use system versions, not conservative aliases */
-#undef _setjmp
-
 #ifdef emacs
 char *_getpty();
 #endif

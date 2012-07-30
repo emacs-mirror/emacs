@@ -1,3 +1,7 @@
+2012-07-30  Glenn Morris  <rgm@gnu.org>
+
+	* configure.ac (_longjmp, _setjmp): Move here from src/s.
+
 2012-07-30  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* Makefile.in (install-arch-indep): Remove sh -x.
