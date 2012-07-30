@@ -1,3 +1,8 @@
+2012-07-30  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Merge from gnulib, incorporating:
+	* doc/misc/texinfo.tex: Update to 2012-07-29.17 version.
+
 2012-07-29  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* Makefile.in (install-arch-indep): Handle space in locallisppath.

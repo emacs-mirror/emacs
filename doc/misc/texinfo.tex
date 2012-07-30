@@ -3,7 +3,7 @@
 % Load plain if necessary, i.e., if running under initex.
 \expandafter\ifx\csname fmtname\endcsname\relax\input plain\fi
 %
-\def\texinfoversion{2012-07-03.16}
+\def\texinfoversion{2012-07-29.17}
 %
 % Copyright 1985, 1986, 1988, 1990, 1991, 1992, 1993, 1994, 1995,
 % 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
@@ -2448,34 +2448,12 @@ end
 % @samp.
 \def\samp#1{{\setupmarkupstyle{samp}\lq\tclose{#1}\rq\null}}
 
-% definition of @key that produces a lozenge.  Doesn't adjust to text size.
-%\setfont\keyrm\rmshape{8}{1000}{OT1}
-%\font\keysy=cmsy9
-%\def\key#1{{\keyrm\textfont2=\keysy \leavevmode\hbox{%
-%  \raise0.4pt\hbox{\angleleft}\kern-.08em\vtop{%
-%    \vbox{\hrule\kern-0.4pt
-%     \hbox{\raise0.4pt\hbox{\vphantom{\angleleft}}#1}}%
-%    \kern-0.4pt\hrule}%
-%  \kern-.06em\raise0.4pt\hbox{\angleright}}}}
+% @indicateurl is \samp, that is, with quotes.
+\let\indicateurl=\samp
 
-% definition of @key with no lozenge.  If the current font is already
-% monospace, don't change it; that way, we respect @kbdinputstyle.  But
-% if it isn't monospace, then use \tt.
-%
-\def\key#1{{\setupmarkupstyle{key}%
-  \nohyphenation
-  \ifmonospace\else\tt\fi
-  #1}\null}
-
-% ctrl is no longer a Texinfo command.
-\def\ctrl #1{{\tt \rawbackslash \hat}#1}
-
-% @file, @option are the same as @samp.
-\let\file=\samp
-\let\option=\samp
-
-% @code is a modification of @t,
-% which makes spaces the same size as normal in the surrounding text.
+% @code (and similar) prints in typewriter, but with spaces the same
+% size as normal in the surrounding text, without hyphenation, etc.
+% This is a subroutine for that.
 \def\tclose#1{%
   {%
     % Change normal interword space to be same as for the current font.
@@ -2500,7 +2478,7 @@ end
 % We *must* turn on hyphenation at `-' and `_' in @code.
 % Otherwise, it is too hard to avoid overfull hboxes
 % in the Emacs manual, the Library manual, etc.
-
+%
 % Unfortunately, TeX uses one parameter (\hyphenchar) to control
 % both hyphenation at - and hyphenation within words.
 % We must therefore turn them both off (\tclose does that)
@@ -2563,6 +2541,13 @@ end
     \errmessage{Unknown @allowcodebreaks option `\txiarg', must be true|false}%
   \fi\fi
 }
+
+% For @command, @env, @file, @option quotes seem unnecessary,
+% so use \code rather than \samp.
+\let\command=\code
+\let\env=\code
+\let\file=\code
+\let\option=\code
 
 % @uref (abbreviation for `urlref') takes an optional (comma-separated)
 % second argument specifying the text to display and an optional third
@@ -2743,10 +2728,24 @@ end
 \else{\tclose{\kbdfont\setupmarkupstyle{kbd}\look}}\fi
 \else{\tclose{\kbdfont\setupmarkupstyle{kbd}\look}}\fi}
 
-% For @indicateurl, @env, @command quotes seem unnecessary, so use \code.
-\let\indicateurl=\code
-\let\env=\code
-\let\command=\code
+% definition of @key that produces a lozenge.  Doesn't adjust to text size.
+%\setfont\keyrm\rmshape{8}{1000}{OT1}
+%\font\keysy=cmsy9
+%\def\key#1{{\keyrm\textfont2=\keysy \leavevmode\hbox{%
+%  \raise0.4pt\hbox{\angleleft}\kern-.08em\vtop{%
+%    \vbox{\hrule\kern-0.4pt
+%     \hbox{\raise0.4pt\hbox{\vphantom{\angleleft}}#1}}%
+%    \kern-0.4pt\hrule}%
+%  \kern-.06em\raise0.4pt\hbox{\angleright}}}}
+
+% definition of @key with no lozenge.  If the current font is already
+% monospace, don't change it; that way, we respect @kbdinputstyle.  But
+% if it isn't monospace, then use \tt.
+%
+\def\key#1{{\setupmarkupstyle{key}%
+  \nohyphenation
+  \ifmonospace\else\tt\fi
+  #1}\null}
 
 % @clicksequence{File @click{} Open ...}
 \def\clicksequence#1{\begingroup #1\endgroup}
@@ -2853,6 +2852,9 @@ end
     \let' = \ptexquoteright
   }
 }
+
+% ctrl is no longer a Texinfo command, but leave this definition for fun.
+\def\ctrl #1{{\tt \rawbackslash \hat}#1}
 
 % @inlinefmt{FMTNAME,PROCESSED-TEXT} and @inlineraw{FMTNAME,RAW-TEXT}.
 % Ignore unless FMTNAME == tex; then it is like @iftex and @tex,
