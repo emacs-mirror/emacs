@@ -3650,6 +3650,7 @@ AH_TEMPLATE(USG5, [Define if the system is compatible with System V.])
 
 case $opsys in
   aix4-2)
+    opsysfile=
     AC_DEFINE(USG, [])
     AC_DEFINE(USG5, [])
     dnl This symbol should be defined on AIX Version 3  ???????
