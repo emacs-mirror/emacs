@@ -88,17 +88,17 @@ void mps_lib_assert_fail(const char *message)
 }
 
 
-void *mps_lib_memset(void *s, int c, size_t n)
+void *(mps_lib_memset)(void *s, int c, size_t n)
 {
   return memset(s, c, n);
 }
 
-void *mps_lib_memcpy(void *s1, const void *s2, size_t n)
+void *(mps_lib_memcpy)(void *s1, const void *s2, size_t n)
 {
   return memcpy(s1, s2, n);
 }
 
-int mps_lib_memcmp(const void *s1, const void *s2, size_t n)
+int (mps_lib_memcmp)(const void *s1, const void *s2, size_t n)
 {
   return memcmp(s1, s2, n);
 }
