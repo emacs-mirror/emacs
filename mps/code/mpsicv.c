@@ -481,7 +481,7 @@ static void *test(void *arg, size_t s)
 
     if(collections != c) {
       collections = c;
-      printf("\nCollection %u, %lu objects.\n", c, i);
+      printf("\nCollection %"PRIuLONGEST", %lu objects.\n", (ulongest_t)c, i);
       for(r = 0; r < exactRootsCOUNT; ++r) {
         cdie(exactRoots[r] == objNULL || dylan_check(exactRoots[r]),
              "all roots check");
