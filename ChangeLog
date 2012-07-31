@@ -1,5 +1,7 @@
 2012-07-31  Glenn Morris  <rgm@gnu.org>
 
+	* configure.ac (wait3, WRETCODE): Move here from src/s/usg5-4-common.h.
+
 	* configure.ac (opsysfile): Set to empty on hpux*, darwin;
 	and to s/usg5-4-common.h on irix6-5.
 

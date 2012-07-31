@@ -3645,6 +3645,23 @@ case $opsys in
     ;;
 esac
 
+dnl Used in process.c.
+case $opsys in
+  irix6-5 | sol2* | unixware )
+    dnl It is possible to receive SIGCHLD when there are no children
+    dnl waiting, because a previous waitsys(2) cleaned up the carcass
+    dnl of child without clearing the SIGCHLD pending info.  So, use a
+    dnl non-blocking wait3 instead, which maps to waitpid(2) in SysVr4.
+    AC_DEFINE(wait3(status, options, rusage),
+      [waitpid ((pid_t) -1, (status), (options))],
+      [Some platforms redefine this.])
+    dnl FIXME this makes no sense, because WRETCODE is only used in
+    dnl process.c, which includes syswait.h aftet config.h, and the
+    dnl former unconditionally redefines WRETCODE.
+    AC_DEFINE(WRETCODE(w), [(w >> 8)], [Some platforms redefine this.])
+    ;;
+esac
+
 
 case $opsys in
   hpux* | sol2* )

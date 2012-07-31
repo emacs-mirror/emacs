@@ -33,12 +33,3 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <sys/stropts.h>
 #include <sys/termios.h>
 #endif
-
-/* It is possible to receive SIGCHLD when there are no children
-   waiting, because a previous waitsys(2) cleaned up the carcass of child
-   without clearing the SIGCHLD pending info.  So, use a non-blocking
-   wait3 instead, which maps to waitpid(2) in SysVr4. */
-#define wait3(status, options, rusage) \
-  waitpid ((pid_t) -1, (status), (options))
-#define WRETCODE(w) (w >> 8)
-
