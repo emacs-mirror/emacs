@@ -115,25 +115,6 @@
 ;; package will over-write the WoMan binding to "w", whereas (by
 ;; default) WoMan will not overwrite the `dired-x' binding.)
 
-;; The following is based on suggestions by Guy Gascoigne-Piggford and
-;; Juanma Barranquero.  If you really want to square the man-woman
-;; circle then you might care to define the following bash function in
-;; .bashrc:
-
-;;   man() { gnudoit -q '(raise-frame (selected-frame)) (woman' \"$1\" ')' ; }
-
-;; If you use Microsoft COMMAND.COM then you can create a file called
-;; man.bat somewhere in your path containing the two lines:
-
-;;   @echo off
-;;   gnudoit -q (raise-frame (selected-frame)) (woman \"%1\")
-
-;; and then (e.g. from a command prompt or the Run... option in the
-;; Start menu) just execute
-
-;;   man man_page_name
-
-
 ;; Using the word at point as the default topic
 ;; ============================================
 
