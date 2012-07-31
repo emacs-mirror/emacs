@@ -234,7 +234,6 @@ static Bool loSegFindFree(Addr *bReturn, Addr *lReturn,
   Index baseIndex, limitIndex;
   LO lo;
   Seg seg;
-  Arena arena;
   Count agrains;
   Count bits;
   Addr segBase;
@@ -246,7 +245,6 @@ static Bool loSegFindFree(Addr *bReturn, Addr *lReturn,
   lo = loseg->lo;
   seg = LOSegSeg(loseg);
   AVER(SizeIsAligned(size, LOPool(lo)->alignment));
-  arena = PoolArena(LOPool(lo));
 
   /* agrains is the number of grains corresponding to the size */
   /* of the allocation request */
@@ -547,7 +545,6 @@ static Res LOBufferFill(Addr *baseReturn, Addr *limitReturn,
   Ring node, nextNode;
   LO lo;
   LOSeg loseg;
-  Arena arena;
   Addr base, limit;
 
   AVER(baseReturn != NULL);
@@ -561,8 +558,6 @@ static Res LOBufferFill(Addr *baseReturn, Addr *limitReturn,
   AVER(size > 0);
   AVER(SizeIsAligned(size, PoolAlignment(pool)));
   AVER(BoolCheck(withReservoirPermit));
-
-  arena = PoolArena(pool);
 
   /* Try to find a segment with enough space already. */
   RING_FOR(node, &pool->segRing, nextNode) {
@@ -619,7 +614,6 @@ static void LOBufferEmpty(Pool pool, Buffer buffer, Addr init, Addr limit)
   Seg seg;
   LOSeg loseg;
   Index baseIndex, initIndex, limitIndex;
-  Arena arena;
 
   AVERT(Pool, pool);
   lo = PARENT(LOStruct, poolStruct, pool);
@@ -634,7 +628,6 @@ static void LOBufferEmpty(Pool pool, Buffer buffer, Addr init, Addr limit)
   AVERT(LOSeg, loseg);
   AVER(loseg->lo == lo);
 
-  arena = PoolArena(pool);
   base = BufferBase(buffer);
   segBase = SegBase(seg);
 
