@@ -433,7 +433,8 @@ static void *test(void *arg, size_t s)
     }
 
     printf("Allocation statistics:\n");
-    printf("  %ld objects (%ld bytes) allocated.\n", objs, alloc_bytes);
+    printf("  %"PRIuLONGEST" objects (%"PRIuLONGEST" bytes) allocated.\n",
+           (ulongest_t)objs, (ulongest_t)alloc_bytes);
     printf("  Commit failed %ld times.\n", commit_failures);
 
     printf("Timings:\n");
