@@ -4353,9 +4353,6 @@ case "${srcdir}" in
   *  ) srcdir="`(cd ${srcdir}; pwd)`" ;;
 esac
 
-#### Given the configuration name, set opsysfile to the
-#### name of s/*.h file we should use.
-
 ### Canonicalize the configuration name.
 
 # Make sure we can run config.sub.
@@ -4603,8 +4600,6 @@ if test $unported = yes; then
   as_fn_error "Emacs hasn't been ported to \`${canonical}' systems.
 Check \`etc/MACHINES' for recognized configuration names." "$LINENO" 5
 fi
-
-opsysfile="s/${opsys}.h"
 
 
 #### Choose a compiler.
@@ -15164,9 +15159,41 @@ else
 fi
 
 case $opsys in
+  sol2* | unixware )
+
+$as_echo "#define _setjmp setjmp" >>confdefs.h
+
+
+$as_echo "#define _longjmp longjmp" >>confdefs.h
+
+
+$as_echo "#define TIOCSIGSEND TIOCSIGNAL" >>confdefs.h
+
+    ;;
+esac
+
+case $opsys in
+  irix6-5 | sol2* | unixware )
+
+$as_echo "#define wait3(status, options, rusage) waitpid ((pid_t) -1, (status), (options))" >>confdefs.h
+
+
+$as_echo "#define WRETCODE(w) (w >> 8)" >>confdefs.h
+
+    ;;
+esac
+
+
+case $opsys in
   hpux* | sol2* )
 
 $as_echo "#define XOS_NEEDS_TIME_H 1" >>confdefs.h
+
+    ;;
+
+  netbsd | openbsd )
+
+$as_echo "#define SIGNAL_H_AHB 1" >>confdefs.h
 
     ;;
 esac
@@ -15177,9 +15204,9 @@ esac
 
 
 
+
 case $opsys in
   aix4-2)
-    opsysfile=
     $as_echo "#define USG /**/" >>confdefs.h
 
     $as_echo "#define USG5 /**/" >>confdefs.h
@@ -15210,7 +15237,6 @@ rm -f conftest.err conftest.$ac_ext
     ;;
 
   cygwin)
-    opsysfile=
 
 $as_echo "#define CYGWIN 1" >>confdefs.h
 
@@ -15227,7 +15253,6 @@ $as_echo "#define DARWIN_OS /**/" >>confdefs.h
     ;;
 
   freebsd)
-    opsysfile=
     $as_echo "#define BSD4_2 /**/" >>confdefs.h
 
 
@@ -15263,7 +15288,6 @@ rm -f conftest.err conftest.$ac_ext
     ;;
 
   gnu-linux | gnu-kfreebsd )
-    opsysfile=
     $as_echo "#define USG /**/" >>confdefs.h
 
 
@@ -15286,16 +15310,19 @@ $as_echo "#define HPUX /**/" >>confdefs.h
 
     $as_echo "#define USG5 /**/" >>confdefs.h
 
+    $as_echo "#define USG5_4 /**/" >>confdefs.h
+
 
 $as_echo "#define IRIX6_5 /**/" >>confdefs.h
 
     ;;
 
   sol2*)
-    opsysfile="s/usg5-4-common.h"
     $as_echo "#define USG /**/" >>confdefs.h
 
     $as_echo "#define USG5 /**/" >>confdefs.h
+
+    $as_echo "#define USG5_4 /**/" >>confdefs.h
 
 
 $as_echo "#define SOLARIS2 /**/" >>confdefs.h
@@ -15303,10 +15330,11 @@ $as_echo "#define SOLARIS2 /**/" >>confdefs.h
     ;;
 
   unixware)
-    opsysfile="s/usg5-4-common.h"
     $as_echo "#define USG /**/" >>confdefs.h
 
     $as_echo "#define USG5 /**/" >>confdefs.h
+
+    $as_echo "#define USG5_4 /**/" >>confdefs.h
 
     ;;
 esac
@@ -15319,8 +15347,6 @@ $as_echo "#define G_SLICE_ALWAYS_MALLOC 1" >>confdefs.h
 
     ;;
 
-  gnu) opsysfile= ;;
-
   hpux11)
 
 $as_echo "#define BROKEN_SA_RESTART 1" >>confdefs.h
@@ -15328,8 +15354,6 @@ $as_echo "#define BROKEN_SA_RESTART 1" >>confdefs.h
 
 $as_echo "#define USG_SUBTTY_WORKS 1" >>confdefs.h
 
-
-    opsysfile="s/hpux10-20.h"
     ;;
 
   irix6-5)
@@ -15341,13 +15365,10 @@ $as_echo "#define SETPGRP_RELEASES_CTTY 1" >>confdefs.h
 
     ;;
 
-  openbsd) opsysfile="s/netbsd.h" ;;
-
   sol2-10)
 
 $as_echo "#define _STRUCTURED_PROC 1" >>confdefs.h
 
-    opsysfile="s/sol2-6.h"
     ;;
 esac
 
@@ -15401,11 +15422,7 @@ version=$PACKAGE_VERSION
 
 ## Used in lwlib/Makefile.in.
 
-if test -n "${opsysfile}"; then
-  S_FILE="\$(srcdir)/${opsysfile}"
-else
-  S_FILE=
-fi
+S_FILE=
 
 
 
@@ -15424,11 +15441,9 @@ cat >>confdefs.h <<_ACEOF
 #define EMACS_CONFIG_OPTIONS "${ac_configure_args}"
 _ACEOF
 
-if test -n "$opsysfile"; then
+if test -z "No longer used"; then
 
-cat >>confdefs.h <<_ACEOF
-#define config_opsysfile "${opsysfile}"
-_ACEOF
+$as_echo "#define config_opsysfile /**/" >>confdefs.h
 
 fi
 
@@ -23787,7 +23802,6 @@ echo "
 Configured for \`${canonical}'.
 
   Where should the build process find the source code?    ${srcdir}
-  What operating system file should Emacs use?            ${opsysfile:-none}
   What compiler should emacs be built with?               ${CC} ${CFLAGS}
   Should Emacs use the GNU version of malloc?             ${GNU_MALLOC}${GNU_MALLOC_reason}
   Should Emacs use a relocating allocator for buffers?    ${REL_ALLOC}
@@ -25450,7 +25464,7 @@ done
  ;;
     "epaths":C)
 echo creating src/epaths.h
-${MAKE-make} epaths-force
+${MAKE-make} MAKEFILE_NAME=do-not-make-Makefile epaths-force
  ;;
     "gdbinit":C)
 if test ! -f src/.gdbinit && test -f $srcdir/src/.gdbinit; then
