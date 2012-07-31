@@ -868,7 +868,7 @@ names or descriptions.  The pattern argument is usually an
    (list (let* ((default-entry (Man-default-man-entry))
 		;; ignore case because that's friendly for bizarre
 		;; caps things like the X11 function names and because
-		;; "man" itself is case-sensitive on the command line
+		;; "man" itself is case-insensitive on the command line
 		;; so you're accustomed not to bother about the case
 		;; ("man -k" is case-insensitive similarly, so the
 		;; table has everything available to complete)
