@@ -163,12 +163,6 @@ extern int synch_process_termsig;
    this is exit code of synchronous subprocess.  */
 extern int synch_process_retcode;
 
-/* The name of the file open to get a null file, or a data sink.
-   MS-DOS, and OS/2 redefine this.  */
-#ifndef NULL_DEVICE
-#define NULL_DEVICE "/dev/null"
-#endif
-
 /* Nonzero means don't run process sentinels.  This is used
    when exiting.  */
 extern int inhibit_sentinels;

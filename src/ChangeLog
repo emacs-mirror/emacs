@@ -1,5 +1,9 @@
 2012-07-31  Glenn Morris  <rgm@gnu.org>
 
+	* process.h (NULL_DEVICE):
+	* emacs.c (SEPCHAR):
+	* editfns.c (USER_FULL_NAME): Let configure set them.
+
 	* s/README, s/template.h: Remove files.
 
 	* conf_post.h [HPUX]: Undefine HAVE_RANDOM and HAVE_RINT.

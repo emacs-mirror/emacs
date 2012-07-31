@@ -3147,8 +3147,15 @@ dnl Compare with HAVE_INET_SOCKETS (which is unused...) above.
 AC_DEFINE(HAVE_SOCKETS, 1, [Define if the system supports
   4.2-compatible sockets.])
 
+AC_DEFINE(NULL_DEVICE, ["/dev/null"], [Name of the file to open to get
+  a null file, or a data sink.])
+
+AC_DEFINE(SEPCHAR, [':'], [Character that separates PATH elements.])
+
 dnl Everybody supports this, except MS-DOS.
 AC_DEFINE(subprocesses, 1, [Define to enable asynchronous subprocesses.])
+
+AC_DEFINE(USER_FULL_NAME, [pw->pw_gecos], [How to get a user's full name.])
 
 
 AH_TEMPLATE(NO_EDITRES, [Define if XEditRes should not be used.])

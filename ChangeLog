@@ -1,5 +1,8 @@
 2012-07-31  Glenn Morris  <rgm@gnu.org>
 
+	* configure.ac (NULL_DEVICE, SEPCHAR, USER_FULL_NAME):
+	Move here from src.
+
 	* configure.ac (AMPERSAND_FULL_NAME, subprocesses):
 	Move here from conf_post.h.
 
