@@ -1,3 +1,7 @@
+2012-07-31  Chong Yidong  <cyd@gnu.org>
+
+	* emacs.texi: Fix ISBN (Bug#12080).
+
 2012-07-21  Eli Zaretskii  <eliz@gnu.org>
 
 	* frames.texi (Mouse Commands): Fix the description of mouse-2.
