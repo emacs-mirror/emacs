@@ -1,5 +1,8 @@
 2012-07-31  Glenn Morris  <rgm@gnu.org>
 
+	* configure.ac (opsysfile): Forgot to set it to empty on sol2-10
+	when removing src/s/sol2-6.h yesterday.
+
 	* configure.ac (USG5_4): Reintroduce this.
 	(opsysfile): Set to empty on irix6-5, sol2*, and unixware.
 

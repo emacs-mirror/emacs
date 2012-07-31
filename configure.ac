@@ -3811,7 +3811,7 @@ case $opsys in
   sol2-10)
     AC_DEFINE(_STRUCTURED_PROC, 1, [Needed for system_process_attributes
       on Solaris.])
-    opsysfile="s/sol2-6.h"
+    opsysfile=
     ;;
 esac
 
