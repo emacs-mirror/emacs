@@ -1,5 +1,9 @@
 2012-07-31  Glenn Morris  <rgm@gnu.org>
 
+	* conf_post.h (config_opsysfile): Move earlier, so that WINDOWSNT
+	is available.
+	(alloca.h) [WINDOWSNT]: Don't include it on MS Windows.
+
 	* process.h (NULL_DEVICE):
 	* emacs.c (SEPCHAR):
 	* editfns.c (USER_FULL_NAME): Let configure set them.

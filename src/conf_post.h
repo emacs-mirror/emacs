@@ -27,10 +27,17 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Code: */
 
+/* Include any platform specific configuration file.  */
+#ifdef config_opsysfile
+# include config_opsysfile
+#endif
+
+#ifndef WINDOWSNT
 /* On AIX 3 this must be included before any other include file.  */
 #include <alloca.h>
 #if ! HAVE_ALLOCA
 # error "alloca not available on this machine"
+#endif
 #endif
 
 #ifdef SIGNAL_H_AHB
@@ -106,11 +113,6 @@ char *_getpty();
 #include <sys/termios.h>
 #endif
 #endif  /* USG5_4 */
-
-/* Include the os dependent file.  */
-#ifdef config_opsysfile
-# include config_opsysfile
-#endif
 
 /* Mac OS X / GNUstep need a bit more pure memory.  Of the existing knobs,
    SYSTEM_PURESIZE_EXTRA seems like the least likely to cause problems.  */
