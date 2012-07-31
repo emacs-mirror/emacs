@@ -1,3 +1,7 @@
+2012-07-31  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.el (gnus-valid-select-methods): Fix custom type.
+
 2012-07-29  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* auth-source.el (auth-sources, auth-source-backend-parse)

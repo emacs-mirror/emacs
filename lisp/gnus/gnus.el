@@ -1647,12 +1647,13 @@ this variable.  I think."
 					     (const :format "%v " mail)
 					     (const :format "%v " none)
 					     (const post-mail))
-			(checklist :inline t
+			(checklist :inline t :greedy t
 				   (const :format "%v " address)
 				   (const :format "%v " prompt-address)
 				   (const :format "%v " physical-address)
-				   (const :format "%v " virtual)
-				   (const respool))))
+				   (const virtual)
+				   (const :format "%v " respool)
+				   (const server-marks))))
   :version "24.1")
 
 (defun gnus-redefine-select-method-widget ()
