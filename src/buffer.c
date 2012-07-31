@@ -191,9 +191,9 @@ followed by the rest of the buffers.  */)
       Lisp_Object args[3];
 
       CHECK_FRAME (frame);
-      framelist = Fcopy_sequence (XFRAME (frame)->buffer_list);
+      framelist = Fcopy_sequence (FVAR (XFRAME (frame), buffer_list));
       prevlist = Fnreverse (Fcopy_sequence
-			    (XFRAME (frame)->buried_buffer_list));
+			    (FVAR (XFRAME (frame), buried_buffer_list)));
 
       /* Remove from GENERAL any buffer that duplicates one in
          FRAMELIST or PREVLIST.  */
@@ -1324,7 +1324,7 @@ exists, return the buffer `*scratch*' (creating it if necessary).  */)
 
   pred = frame_buffer_predicate (frame);
   /* Consider buffers that have been seen in the frame first.  */
-  tail = XFRAME (frame)->buffer_list;
+  tail = FVAR (XFRAME (frame), buffer_list);
   for (; CONSP (tail); tail = XCDR (tail))
     {
       buf = XCAR (tail);
@@ -1446,7 +1446,7 @@ compact_buffer (struct buffer *buffer)
 
   /* Skip dead buffers, indirect buffers and buffers
      which aren't changed since last compaction.  */
-  if (!NILP (buffer->BUFFER_INTERNAL_FIELD (name))
+  if (!NILP (buffer->INTERNAL_FIELD (name))
       && (buffer->base_buffer == NULL)
       && (buffer->text->compact != buffer->text->modiff))
     {
@@ -1454,7 +1454,7 @@ compact_buffer (struct buffer *buffer)
 	 turned off in that buffer.  Calling truncate_undo_list on
 	 Qt tends to return NULL, which effectively turns undo back on.
 	 So don't call truncate_undo_list if undo_list is Qt.  */
-      if (!EQ (buffer->BUFFER_INTERNAL_FIELD (undo_list), Qt))
+      if (!EQ (buffer->INTERNAL_FIELD (undo_list), Qt))
 	truncate_undo_list (buffer);
 
       /* Shrink buffer gaps.  */
@@ -1764,8 +1764,8 @@ record_buffer (Lisp_Object buffer)
   Vinhibit_quit = tem;
 
   /* Update buffer list of selected frame.  */
-  f->buffer_list = Fcons (buffer, Fdelq (buffer, f->buffer_list));
-  f->buried_buffer_list = Fdelq (buffer, f->buried_buffer_list);
+  FVAR (f, buffer_list) = Fcons (buffer, Fdelq (buffer, FVAR (f, buffer_list)));
+  FVAR (f, buried_buffer_list) = Fdelq (buffer, FVAR (f, buried_buffer_list));
 
   /* Run buffer-list-update-hook.  */
   if (!NILP (Vrun_hooks))
@@ -1802,8 +1802,9 @@ DEFUN ("bury-buffer-internal", Fbury_buffer_internal, Sbury_buffer_internal,
   Vinhibit_quit = tem;
 
   /* Update buffer lists of selected frame.  */
-  f->buffer_list = Fdelq (buffer, f->buffer_list);
-  f->buried_buffer_list = Fcons (buffer, Fdelq (buffer, f->buried_buffer_list));
+  FVAR (f, buffer_list) = Fdelq (buffer, FVAR (f, buffer_list));
+  FVAR (f, buried_buffer_list)
+    = Fcons (buffer, Fdelq (buffer, FVAR (f, buried_buffer_list)));
 
   /* Run buffer-list-update-hook.  */
   if (!NILP (Vrun_hooks))

@@ -586,12 +586,12 @@ x_set_title (struct frame *f, Lisp_Object name, Lisp_Object old_name)
 {
   NSTRACE (x_set_title);
   /* Don't change the title if it's already NAME.  */
-  if (EQ (name, f->title))
+  if (EQ (name, FVAR (f, title)))
     return;
 
   update_mode_lines = 1;
 
-  f->title = name;
+  FVAR (f, title) = name;
 
   if (NILP (name))
     name = f->name;

@@ -277,7 +277,7 @@ menubar_selection_callback (FRAME_PTR f, void * client_data)
     return;
   entry = Qnil;
   subprefix_stack = (Lisp_Object *) alloca (f->menu_bar_items_used * sizeof (Lisp_Object));
-  vector = f->menu_bar_vector;
+  vector = FVAR (f, menu_bar_vector);
   prefix = Qnil;
   i = 0;
   while (i < f->menu_bar_items_used)
@@ -419,14 +419,14 @@ set_frame_menubar (FRAME_PTR f, int first_time, int deep_p)
 
       /* Save the frame's previous menu bar contents data.  */
       if (previous_menu_items_used)
-	memcpy (previous_items, XVECTOR (f->menu_bar_vector)->contents,
+	memcpy (previous_items, XVECTOR (FVAR (f, menu_bar_vector))->contents,
 		previous_menu_items_used * sizeof (Lisp_Object));
 
       /* Fill in menu_items with the current menu bar contents.
 	 This can evaluate Lisp code.  */
       save_menu_items ();
 
-      menu_items = f->menu_bar_vector;
+      menu_items = FVAR (f, menu_bar_vector);
       menu_items_allocated = VECTORP (menu_items) ? ASIZE (menu_items) : 0;
       submenu_start = (int *) alloca (ASIZE (items) * sizeof (int));
       submenu_end = (int *) alloca (ASIZE (items) * sizeof (int));
@@ -500,7 +500,7 @@ set_frame_menubar (FRAME_PTR f, int first_time, int deep_p)
 	  return;
 	}
 
-      f->menu_bar_vector = menu_items;
+      FVAR (f, menu_bar_vector) = menu_items;
       f->menu_bar_items_used = menu_items_used;
 
       /* This undoes save_menu_items.  */
@@ -854,7 +854,7 @@ w32_menu_show (FRAME_PTR f, int x, int y, int for_click, int keymaps,
 
       wv_title->name = SSDATA (title);
       wv_title->enabled = TRUE;
-      wv_title->title = TRUE;
+      FVAR (wv_title, title) = TRUE;
       wv_title->button_type = BUTTON_TYPE_NONE;
       wv_title->help = Qnil;
       wv_title->next = wv_sep;

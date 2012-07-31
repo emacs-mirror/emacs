@@ -1,3 +1,8 @@
+2012-07-31  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* coccinelle/frame.cocci: Semantic patch to replace direct
+	access to Lisp_Object members of struct frame to FVAR.
+
 2012-07-28  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Use Gnulib environ and stdalign modules (Bug#9772, Bug#9960).

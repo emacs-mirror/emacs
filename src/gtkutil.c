@@ -1148,8 +1148,10 @@ xg_create_frame_widgets (FRAME_PTR f)
   gtk_widget_set_name (wfixed, SSDATA (Vx_resource_name));
 
   /* If this frame has a title or name, set it in the title bar.  */
-  if (! NILP (f->title)) title = SSDATA (ENCODE_UTF_8 (f->title));
-  else if (! NILP (f->name)) title = SSDATA (ENCODE_UTF_8 (f->name));
+  if (! NILP (FVAR (f, title)))
+    title = SSDATA (ENCODE_UTF_8 (FVAR (f, title)));
+  else if (! NILP (FVAR (f, name)))
+    title = SSDATA (ENCODE_UTF_8 (FVAR (f, name)));
 
   if (title) gtk_window_set_title (GTK_WINDOW (wtop), title);
 
@@ -2059,7 +2061,7 @@ make_cl_data (xg_menu_cb_data *cl_data, FRAME_PTR f, GCallback highlight_cb)
     {
       cl_data = xmalloc (sizeof *cl_data);
       cl_data->f = f;
-      cl_data->menu_bar_vector = f->menu_bar_vector;
+      cl_data->menu_bar_vector = FVAR (f, menu_bar_vector);
       cl_data->menu_bar_items_used = f->menu_bar_items_used;
       cl_data->highlight_cb = highlight_cb;
       cl_data->ref_count = 0;
@@ -2091,7 +2093,7 @@ update_cl_data (xg_menu_cb_data *cl_data,
   if (cl_data)
     {
       cl_data->f = f;
-      cl_data->menu_bar_vector = f->menu_bar_vector;
+      cl_data->menu_bar_vector = FVAR (f, menu_bar_vector);
       cl_data->menu_bar_items_used = f->menu_bar_items_used;
       cl_data->highlight_cb = highlight_cb;
     }
@@ -3808,12 +3810,12 @@ xg_tool_bar_callback (GtkWidget *w, gpointer client_data)
   struct input_event event;
   EVENT_INIT (event);
 
-  if (! f || ! f->n_tool_bar_items || NILP (f->tool_bar_items))
+  if (! f || ! f->n_tool_bar_items || NILP (FVAR (f, tool_bar_items)))
     return;
 
   idx *= TOOL_BAR_ITEM_NSLOTS;
 
-  key = AREF (f->tool_bar_items, idx + TOOL_BAR_ITEM_KEY);
+  key = AREF (FVAR (f, tool_bar_items), idx + TOOL_BAR_ITEM_KEY);
   XSETFRAME (frame, f);
 
   /* We generate two events here.  The first one is to set the prefix
@@ -4084,16 +4086,16 @@ xg_tool_bar_help_callback (GtkWidget *w,
   FRAME_PTR f = (FRAME_PTR) g_object_get_data (G_OBJECT (w), XG_FRAME_DATA);
   Lisp_Object help, frame;
 
-  if (! f || ! f->n_tool_bar_items || NILP (f->tool_bar_items))
+  if (! f || ! f->n_tool_bar_items || NILP (FVAR (f, tool_bar_items)))
     return FALSE;
 
   if (event->type == GDK_ENTER_NOTIFY)
     {
       idx *= TOOL_BAR_ITEM_NSLOTS;
-      help = AREF (f->tool_bar_items, idx + TOOL_BAR_ITEM_HELP);
+      help = AREF (FVAR (f, tool_bar_items), idx + TOOL_BAR_ITEM_HELP);
 
       if (NILP (help))
-        help = AREF (f->tool_bar_items, idx + TOOL_BAR_ITEM_CAPTION);
+        help = AREF (FVAR (f, tool_bar_items), idx + TOOL_BAR_ITEM_CAPTION);
     }
   else
     help = Qnil;
@@ -4221,7 +4223,7 @@ xg_create_tool_bar (FRAME_PTR f)
 }
 
 
-#define PROP(IDX) AREF (f->tool_bar_items, i * TOOL_BAR_ITEM_NSLOTS + (IDX))
+#define PROP(IDX) AREF (FVAR (f, tool_bar_items), i * TOOL_BAR_ITEM_NSLOTS + (IDX))
 
 /* Find the right-to-left image named by RTL in the tool bar images for F.
    Returns IMAGE if RTL is not found.  */
@@ -4704,7 +4706,7 @@ update_frame_tool_bar (FRAME_PTR f)
   if (f->n_tool_bar_items != 0)
     {
       if (pack_tool_bar)
-        xg_pack_tool_bar (f, f->tool_bar_position);
+        xg_pack_tool_bar (f, FVAR (f, tool_bar_position));
       gtk_widget_show_all (GTK_WIDGET (x->handlebox_widget));
       if (xg_update_tool_bar_sizes (f))
         xg_height_or_width_changed (f);

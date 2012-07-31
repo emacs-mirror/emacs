@@ -2192,7 +2192,7 @@ set_tty_color_mode (struct tty_display_info *tty, struct frame *f)
   Lisp_Object tty_color_mode_alist
     = Fintern_soft (build_string ("tty-color-mode-alist"), Qnil);
 
-  tem = assq_no_quit (Qtty_color_mode, f->param_alist);
+  tem = assq_no_quit (Qtty_color_mode, FVAR (f, param_alist));
   val = CONSP (tem) ? XCDR (tem) : Qnil;
 
   if (INTEGERP (val))

@@ -2125,8 +2125,8 @@ ns_after_update_window_line (struct glyph_row *desired_row)
       int y = WINDOW_TO_FRAME_PIXEL_Y (w, max (0, desired_row->y));
 
       /* Internal border is drawn below the tool bar.  */
-      if (WINDOWP (f->tool_bar_window)
-	  && w == XWINDOW (f->tool_bar_window))
+      if (WINDOWP (FVAR (f, tool_bar_window))
+	  && w == XWINDOW (FVAR (f, tool_bar_window)))
 	y -= width;
       /* end copy from other terms */
 

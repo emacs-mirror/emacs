@@ -19,14 +19,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "systime.h"		/* for EMACS_TIME, Time */
 #include "coding.h"             /* for ENCODE_UTF_8 and ENCODE_SYSTEM */
 
-/* Lisp fields in struct keyboard are hidden from most code and accessed
-   via the KVAR macro, below.  Only select pieces of code, like the GC,
-   are allowed to use KBOARD_INTERNAL_FIELD.  */
-#define KBOARD_INTERNAL_FIELD(field) field ## _
+/* Most code should use this macro to access Lisp fields in struct kboard.  */
 
-/* Most code should use this macro to access Lisp fields in struct
-   kboard.  */
-#define KVAR(kboard, field) ((kboard)->KBOARD_INTERNAL_FIELD (field))
+#define KVAR(kboard, field) ((kboard)->INTERNAL_FIELD (field))
 
 /* Each KBOARD represents one logical input stream from which Emacs
    gets input.  If we are using ordinary terminals, it has one KBOARD
@@ -79,32 +74,32 @@ struct kboard
        can effectively wait for input in the any-kboard state, and hence
        avoid blocking out the other KBOARDs.  See universal-argument in
        lisp/simple.el for an example.  */
-    Lisp_Object KBOARD_INTERNAL_FIELD (Voverriding_terminal_local_map);
+    Lisp_Object INTERNAL_FIELD (Voverriding_terminal_local_map);
 
     /* Last command executed by the editor command loop, not counting
        commands that set the prefix argument.  */
-    Lisp_Object KBOARD_INTERNAL_FIELD (Vlast_command);
+    Lisp_Object INTERNAL_FIELD (Vlast_command);
 
     /* Normally same as last-command, but never modified by other commands.  */
-    Lisp_Object KBOARD_INTERNAL_FIELD (Vreal_last_command);
+    Lisp_Object INTERNAL_FIELD (Vreal_last_command);
 
     /* User-supplied table to translate input characters through.  */
-    Lisp_Object KBOARD_INTERNAL_FIELD (Vkeyboard_translate_table);
+    Lisp_Object INTERNAL_FIELD (Vkeyboard_translate_table);
 
     /* Last command that may be repeated by `repeat'.  */
-    Lisp_Object KBOARD_INTERNAL_FIELD (Vlast_repeatable_command);
+    Lisp_Object INTERNAL_FIELD (Vlast_repeatable_command);
 
     /* The prefix argument for the next command, in raw form.  */
-    Lisp_Object KBOARD_INTERNAL_FIELD (Vprefix_arg);
+    Lisp_Object INTERNAL_FIELD (Vprefix_arg);
 
     /* Saved prefix argument for the last command, in raw form.  */
-    Lisp_Object KBOARD_INTERNAL_FIELD (Vlast_prefix_arg);
+    Lisp_Object INTERNAL_FIELD (Vlast_prefix_arg);
 
     /* Unread events specific to this kboard.  */
-    Lisp_Object KBOARD_INTERNAL_FIELD (kbd_queue);
+    Lisp_Object INTERNAL_FIELD (kbd_queue);
 
     /* Non-nil while a kbd macro is being defined.  */
-    Lisp_Object KBOARD_INTERNAL_FIELD (defining_kbd_macro);
+    Lisp_Object INTERNAL_FIELD (defining_kbd_macro);
 
     /* The start of storage for the current keyboard macro.  */
     Lisp_Object *kbd_macro_buffer;
@@ -126,28 +121,28 @@ struct kboard
     ptrdiff_t kbd_macro_bufsize;
 
     /* Last anonymous kbd macro defined.  */
-    Lisp_Object KBOARD_INTERNAL_FIELD (Vlast_kbd_macro);
+    Lisp_Object INTERNAL_FIELD (Vlast_kbd_macro);
 
     /* Alist of system-specific X windows key symbols.  */
-    Lisp_Object KBOARD_INTERNAL_FIELD (Vsystem_key_alist);
+    Lisp_Object INTERNAL_FIELD (Vsystem_key_alist);
 
     /* Cache for modify_event_symbol.  */
-    Lisp_Object KBOARD_INTERNAL_FIELD (system_key_syms);
+    Lisp_Object INTERNAL_FIELD (system_key_syms);
 
     /* The kind of display: x, w32, ...  */
-    Lisp_Object KBOARD_INTERNAL_FIELD (Vwindow_system);
+    Lisp_Object INTERNAL_FIELD (Vwindow_system);
 
     /* Keymap mapping keys to alternative preferred forms.
        See the DEFVAR for more documentation.  */
-    Lisp_Object KBOARD_INTERNAL_FIELD (Vlocal_function_key_map);
+    Lisp_Object INTERNAL_FIELD (Vlocal_function_key_map);
 
     /* Keymap mapping ASCII function key sequences onto their preferred
        forms.  Initialized by the terminal-specific lisp files.  See the
        DEFVAR for more documentation.  */
-    Lisp_Object KBOARD_INTERNAL_FIELD (Vinput_decode_map);
+    Lisp_Object INTERNAL_FIELD (Vinput_decode_map);
 
     /* Minibufferless frames on this display use this frame's minibuffer.  */
-    Lisp_Object KBOARD_INTERNAL_FIELD (Vdefault_minibuffer_frame);
+    Lisp_Object INTERNAL_FIELD (Vdefault_minibuffer_frame);
 
     /* Number of displays using this KBOARD.  Normally 1, but can be
        larger when you have multiple screens on a single X display.  */
@@ -155,7 +150,7 @@ struct kboard
 
     /* The text we're echoing in the modeline - partial key sequences,
        usually.  This is nil when not echoing.  */
-    Lisp_Object KBOARD_INTERNAL_FIELD (echo_string);
+    Lisp_Object INTERNAL_FIELD (echo_string);
 
     /* This flag indicates that events were put into kbd_queue
        while Emacs was running for some other KBOARD.

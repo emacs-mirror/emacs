@@ -4424,7 +4424,7 @@ live_buffer_p (struct mem_node *m, void *p)
      must not have been killed.  */
   return (m->type == MEM_TYPE_BUFFER
 	  && p == m->start
-	  && !NILP (((struct buffer *) p)->BUFFER_INTERNAL_FIELD (name)));
+	  && !NILP (((struct buffer *) p)->INTERNAL_FIELD (name)));
 }
 
 #endif /* GC_MARK_STACK || defined GC_MALLOC_CHECK */
@@ -5549,10 +5549,10 @@ See Info node `(elisp)Garbage Collection'.  */)
 	 turned off in that buffer.  Calling truncate_undo_list on
 	 Qt tends to return NULL, which effectively turns undo back on.
 	 So don't call truncate_undo_list if undo_list is Qt.  */
-      if (! EQ (nextb->BUFFER_INTERNAL_FIELD (undo_list), Qt))
+      if (! EQ (nextb->INTERNAL_FIELD (undo_list), Qt))
 	{
 	  Lisp_Object tail, prev;
-	  tail = nextb->BUFFER_INTERNAL_FIELD (undo_list);
+	  tail = nextb->INTERNAL_FIELD (undo_list);
 	  prev = Qnil;
 	  while (CONSP (tail))
 	    {
@@ -5561,7 +5561,7 @@ See Info node `(elisp)Garbage Collection'.  */)
 		  && !XMARKER (XCAR (XCAR (tail)))->gcmarkbit)
 		{
 		  if (NILP (prev))
-		    nextb->BUFFER_INTERNAL_FIELD (undo_list) = tail = XCDR (tail);
+		    nextb->INTERNAL_FIELD (undo_list) = tail = XCDR (tail);
 		  else
 		    {
 		      tail = XCDR (tail);
@@ -5577,7 +5577,7 @@ See Info node `(elisp)Garbage Collection'.  */)
 	}
       /* Now that we have stripped the elements that need not be in the
 	 undo_list any more, we can finally mark the list.  */
-      mark_object (nextb->BUFFER_INTERNAL_FIELD (undo_list));
+      mark_object (nextb->INTERNAL_FIELD (undo_list));
     }
 
   gc_sweep ();

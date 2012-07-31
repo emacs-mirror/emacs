@@ -460,14 +460,14 @@ struct window
 /* 1 if W is a menu bar window.  */
 
 #define WINDOW_MENU_BAR_P(W) \
-  (WINDOWP (WINDOW_XFRAME (W)->menu_bar_window) \
-   && (W) == XWINDOW (WINDOW_XFRAME (W)->menu_bar_window))
+  (WINDOWP (FVAR (WINDOW_XFRAME (W), menu_bar_window)) \
+   && (W) == XWINDOW (FVAR (WINDOW_XFRAME (W), menu_bar_window)))
 
 /* 1 if W is a tool bar window.  */
 
 #define WINDOW_TOOL_BAR_P(W) \
-  (WINDOWP (WINDOW_XFRAME (W)->tool_bar_window) \
-   && (W) == XWINDOW (WINDOW_XFRAME (W)->tool_bar_window))
+  (WINDOWP (FVAR (WINDOW_XFRAME (W), tool_bar_window)) \
+   && (W) == XWINDOW (FVAR (WINDOW_XFRAME (W), tool_bar_window)))
 
 /* Return the frame y-position at which window W starts.
    This includes a header line, if any.  */

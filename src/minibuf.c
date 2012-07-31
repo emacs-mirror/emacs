@@ -102,14 +102,14 @@ choose_minibuf_frame (void)
 {
   if (FRAMEP (selected_frame)
       && FRAME_LIVE_P (XFRAME (selected_frame))
-      && !EQ (minibuf_window, XFRAME (selected_frame)->minibuffer_window))
+      && !EQ (minibuf_window, FVAR (XFRAME (selected_frame), minibuffer_window)))
     {
       struct frame *sf = XFRAME (selected_frame);
       Lisp_Object buffer;
 
       /* I don't think that any frames may validly have a null minibuffer
 	 window anymore.  */
-      if (NILP (sf->minibuffer_window))
+      if (NILP (FVAR (sf, minibuffer_window)))
 	abort ();
 
       /* Under X, we come here with minibuf_window being the
@@ -117,8 +117,8 @@ choose_minibuf_frame (void)
 	 init_window_once.  That window doesn't have a buffer.  */
       buffer = XWINDOW (minibuf_window)->buffer;
       if (BUFFERP (buffer))
-	Fset_window_buffer (sf->minibuffer_window, buffer, Qnil);
-      minibuf_window = sf->minibuffer_window;
+	Fset_window_buffer (FVAR (sf, minibuffer_window), buffer, Qnil);
+      minibuf_window = FVAR (sf, minibuffer_window);
     }
 
   /* Make sure no other frame has a minibuffer as its selected window,

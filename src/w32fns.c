@@ -1489,7 +1489,7 @@ x_set_icon_name (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
   else if (!NILP (arg) || NILP (oldval))
     return;
 
-  f->icon_name = arg;
+  FVAR (f, icon_name) = arg;
 
 #if 0
   if (f->output_data.w32->icon_bitmap != 0)
@@ -1498,11 +1498,11 @@ x_set_icon_name (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
   BLOCK_INPUT;
 
   result = x_text_icon (f,
-			SSDATA ((!NILP (f->icon_name)
-				 ? f->icon_name
-				 : !NILP (f->title)
-				 ? f->title
-				 : f->name)));
+			SSDATA ((!NILP (FVAR (f, icon_name))
+				 ? FVAR (f, icon_name)
+				 : !NILP (FVAR (f, title))
+				 ? FVAR (f, title)
+				 : FVAR (f, name))));
 
   if (result)
     {
@@ -1631,8 +1631,8 @@ x_set_tool_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
       }
       UNBLOCK_INPUT;
 
-      if (WINDOWP (f->tool_bar_window))
-	clear_glyph_matrix (XWINDOW (f->tool_bar_window)->current_matrix);
+      if (WINDOWP (FVAR (f, tool_bar_window)))
+	clear_glyph_matrix (XWINDOW (FVAR (f, tool_bar_window))->current_matrix);
     }
 
   run_window_configuration_change_hook (f);
@@ -1674,7 +1674,7 @@ x_set_name (struct frame *f, Lisp_Object name, int explicit)
       /* Check for no change needed in this very common case
 	 before we do any consing.  */
       if (!strcmp (FRAME_W32_DISPLAY_INFO (f)->w32_id_name,
-		   SDATA (f->name)))
+		   SDATA (FVAR (f, name))))
 	return;
       name = build_string (FRAME_W32_DISPLAY_INFO (f)->w32_id_name);
     }
@@ -1682,15 +1682,15 @@ x_set_name (struct frame *f, Lisp_Object name, int explicit)
     CHECK_STRING (name);
 
   /* Don't change the name if it's already NAME.  */
-  if (! NILP (Fstring_equal (name, f->name)))
+  if (! NILP (Fstring_equal (name, FVAR (f, name))))
     return;
 
-  f->name = name;
+  FVAR (f, name) = name;
 
   /* For setting the frame title, the title parameter should override
      the name parameter.  */
-  if (! NILP (f->title))
-    name = f->title;
+  if (! NILP (FVAR (f, title)))
+    name = FVAR (f, title);
 
   if (FRAME_W32_WINDOW (f))
     {
@@ -1728,15 +1728,15 @@ void
 x_set_title (struct frame *f, Lisp_Object name, Lisp_Object old_name)
 {
   /* Don't change the title if it's already NAME.  */
-  if (EQ (name, f->title))
+  if (EQ (name, FVAR (f, title)))
     return;
 
   update_mode_lines = 1;
 
-  f->title = name;
+  FVAR (f, title) = name;
 
   if (NILP (name))
-    name = f->name;
+    name = FVAR (f, name);
 
   if (FRAME_W32_WINDOW (f))
     {
@@ -3896,8 +3896,8 @@ w32_window (struct frame *f, long window_prompting, int minibuffer_only)
     int explicit = f->explicit_name;
 
     f->explicit_name = 0;
-    name = f->name;
-    f->name = Qnil;
+    name = FVAR (f, name);
+    FVAR (f, name) = Qnil;
     x_set_name (f, name, explicit);
   }
 
@@ -3944,9 +3944,9 @@ x_icon (struct frame *f, Lisp_Object parms)
 	 ? IconicState
 	 : NormalState));
 
-  x_text_icon (f, SSDATA ((!NILP (f->icon_name)
-			   ? f->icon_name
-			   : f->name)));
+  x_text_icon (f, SSDATA ((!NILP (FVAR (f, icon_name))
+			   ? FVAR (f, icon_name)
+			   : FVAR (f, name))));
 #endif
 
   UNBLOCK_INPUT;
@@ -4146,11 +4146,11 @@ This function is an internal primitive--use `make-frame' instead.  */)
   f->output_data.w32 = xzalloc (sizeof (struct w32_output));
   FRAME_FONTSET (f) = -1;
 
-  f->icon_name
+  FVAR (f, icon_name)
     = x_get_arg (dpyinfo, parameters, Qicon_name, "iconName", "Title",
                    RES_TYPE_STRING);
-  if (! STRINGP (f->icon_name))
-    f->icon_name = Qnil;
+  if (! STRINGP (FVAR (f, icon_name)))
+    FVAR (f, icon_name) = Qnil;
 
 /*  FRAME_W32_DISPLAY_INFO (f) = dpyinfo; */
 
@@ -4179,12 +4179,12 @@ This function is an internal primitive--use `make-frame' instead.  */)
      be set.  */
   if (EQ (name, Qunbound) || NILP (name))
     {
-      f->name = build_string (dpyinfo->w32_id_name);
+      FVAR (f, name) = build_string (dpyinfo->w32_id_name);
       f->explicit_name = 0;
     }
   else
     {
-      f->name = name;
+      FVAR (f, name) = name;
       f->explicit_name = 1;
       /* use the frame's title when getting resources for this frame.  */
       specbind (Qx_resource_name, name);
@@ -4359,7 +4359,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
      by x_get_arg and friends, now go in the misc. alist of the frame.  */
   for (tem = parameters; CONSP (tem); tem = XCDR (tem))
     if (CONSP (XCAR (tem)) && !NILP (XCAR (XCAR (tem))))
-      f->param_alist = Fcons (XCAR (tem), f->param_alist);
+      FVAR (f, param_alist) = Fcons (XCAR (tem), FVAR (f, param_alist));
 
   UNGCPRO;
 
@@ -5231,7 +5231,7 @@ x_create_tip_frame (struct w32_display_info *dpyinfo,
   f->output_data.w32 = xzalloc (sizeof (struct w32_output));
 
   FRAME_FONTSET (f)  = -1;
-  f->icon_name = Qnil;
+  FVAR (f, icon_name) = Qnil;
 
 #ifdef GLYPH_DEBUG
   image_cache_refcount =
@@ -5246,12 +5246,12 @@ x_create_tip_frame (struct w32_display_info *dpyinfo,
      be set.  */
   if (EQ (name, Qunbound) || NILP (name))
     {
-      f->name = build_string (dpyinfo->w32_id_name);
+      FVAR (f, name) = build_string (dpyinfo->w32_id_name);
       f->explicit_name = 0;
     }
   else
     {
-      f->name = name;
+      FVAR (f, name) = name;
       f->explicit_name = 1;
       /* use the frame's title when getting resources for this frame.  */
       specbind (Qx_resource_name, name);

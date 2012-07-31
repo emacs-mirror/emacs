@@ -6357,7 +6357,7 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventptr,
 	 mouse highlighting.  */
       if (!hlinfo->mouse_face_hidden && INTEGERP (Vmouse_highlight)
 	  && (f == 0
-	      || !EQ (f->tool_bar_window, hlinfo->mouse_face_window)))
+	      || !EQ (FVAR (f, tool_bar_window), hlinfo->mouse_face_window)))
         {
           clear_mouse_face (hlinfo);
           hlinfo->mouse_face_hidden = 1;
@@ -6904,15 +6904,15 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventptr,
         if (f)
           {
             /* Is this in the tool-bar?  */
-            if (WINDOWP (f->tool_bar_window)
-                && WINDOW_TOTAL_LINES (XWINDOW (f->tool_bar_window)))
+            if (WINDOWP (FVAR (f, tool_bar_window))
+                && WINDOW_TOTAL_LINES (XWINDOW (FVAR (f, tool_bar_window))))
               {
                 Lisp_Object window;
                 int x = event.xbutton.x;
                 int y = event.xbutton.y;
 
                 window = window_from_coordinates (f, x, y, 0, 1);
-                tool_bar_p = EQ (window, f->tool_bar_window);
+                tool_bar_p = EQ (window, FVAR (f, tool_bar_window));
 
                 if (tool_bar_p && event.xbutton.button < 4)
                   {
@@ -7503,7 +7503,7 @@ x_draw_window_cursor (struct window *w, struct glyph_row *glyph_row, int x, int 
 	}
 
 #ifdef HAVE_X_I18N
-      if (w == XWINDOW (f->selected_window))
+      if (w == XWINDOW (FVAR (f, selected_window)))
 	if (FRAME_XIC (f) && (FRAME_XIC_STYLE (f) & XIMPreeditPosition))
 	  xic_set_preeditarea (w, x, y);
 #endif
@@ -8154,7 +8154,7 @@ xim_instantiate_callback (Display *display, XPointer client_data, XPointer call_
 		  xic_set_statusarea (f);
 		if (FRAME_XIC_STYLE (f) & XIMPreeditPosition)
 		  {
-		    struct window *w = XWINDOW (f->selected_window);
+		    struct window *w = XWINDOW (FVAR (f, selected_window));
 		    xic_set_preeditarea (w, w->cursor.x, w->cursor.y);
 		  }
 	      }
@@ -8942,7 +8942,7 @@ x_set_window_size (struct frame *f, int change_gravity, int cols, int rows)
 #endif /* not USE_GTK */
 
   /* If cursor was outside the new size, mark it as off.  */
-  mark_window_cursors_off (XWINDOW (f->root_window));
+  mark_window_cursors_off (XWINDOW (FVAR (f, root_window)));
 
   /* Clear out any recollection of where the mouse highlighting was,
      since it might be in a place that's outside the new frame size.
@@ -10399,13 +10399,10 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 
   connection = ConnectionNumber (dpyinfo->display);
   dpyinfo->connection = connection;
-
-  {
-    dpyinfo->gray
-      = XCreatePixmapFromBitmapData (dpyinfo->display, dpyinfo->root_window,
-				     gray_bits, gray_width, gray_height,
-				     1, 0, 1);
-  }
+  dpyinfo->gray
+    = XCreatePixmapFromBitmapData (dpyinfo->display, dpyinfo->root_window,
+				   gray_bits, gray_width, gray_height,
+				   1, 0, 1);
 
 #ifdef HAVE_X_I18N
   xim_initialize (dpyinfo, resource_name);

@@ -80,6 +80,10 @@ struct terminal;
 
 struct font_driver_list;
 
+/* Most code should use this macro to access Lisp fields in struct frame.  */
+
+#define FVAR(frame, field) ((frame)->INTERNAL_FIELD (field))
+
 struct frame
 {
   struct vectorlike_header header;
@@ -89,15 +93,15 @@ struct frame
 
   /* Name of this frame: a Lisp string.  It is used for looking up resources,
      as well as for the title in some cases.  */
-  Lisp_Object name;
+  Lisp_Object INTERNAL_FIELD (name);
 
   /* The name to use for the icon, the last time
      it was refreshed.  nil means not explicitly specified.  */
-  Lisp_Object icon_name;
+  Lisp_Object INTERNAL_FIELD (icon_name);
 
   /* This is the frame title specified explicitly, if any.
      Usually it is nil.  */
-  Lisp_Object title;
+  Lisp_Object INTERNAL_FIELD (title);
 
   /* The frame which should receive keystrokes that occur in this
      frame, or nil if they should go to the frame itself.  This is
@@ -110,29 +114,29 @@ struct frame
      to shift from one frame to the other, any redirections to the
      original frame are shifted to the newly selected frame; if
      focus_frame is nil, Fselect_frame will leave it alone.  */
-  Lisp_Object focus_frame;
+  Lisp_Object INTERNAL_FIELD (focus_frame);
 
   /* This frame's root window.  Every frame has one.
      If the frame has only a minibuffer window, this is it.
      Otherwise, if the frame has a minibuffer window, this is its sibling.  */
-  Lisp_Object root_window;
+  Lisp_Object INTERNAL_FIELD (root_window);
 
   /* This frame's selected window.
      Each frame has its own window hierarchy
      and one of the windows in it is selected within the frame.
      The selected window of the selected frame is Emacs's selected window.  */
-  Lisp_Object selected_window;
+  Lisp_Object INTERNAL_FIELD (selected_window);
 
   /* This frame's minibuffer window.
      Most frames have their own minibuffer windows,
      but only the selected frame's minibuffer window
      can actually appear to exist.  */
-  Lisp_Object minibuffer_window;
+  Lisp_Object INTERNAL_FIELD (minibuffer_window);
 
   /* Parameter alist of this frame.
      These are the parameters specified when creating the frame
      or modified with modify-frame-parameters.  */
-  Lisp_Object param_alist;
+  Lisp_Object INTERNAL_FIELD (param_alist);
 
   /* List of scroll bars on this frame.
      Actually, we don't specify exactly what is stored here at all; the
@@ -141,50 +145,51 @@ struct frame
      instead of in the `device' structure so that the garbage
      collector doesn't need to look inside the window-system-dependent
      structure.  */
-  Lisp_Object scroll_bars;
-  Lisp_Object condemned_scroll_bars;
+  Lisp_Object INTERNAL_FIELD (scroll_bars);
+  Lisp_Object INTERNAL_FIELD (condemned_scroll_bars);
 
   /* Vector describing the items to display in the menu bar.
      Each item has four elements in this vector.
      They are KEY, STRING, SUBMAP, and HPOS.
      (HPOS is not used in when the X toolkit is in use.)
      There are four additional elements of nil at the end, to terminate.  */
-  Lisp_Object menu_bar_items;
+  Lisp_Object INTERNAL_FIELD (menu_bar_items);
 
   /* Alist of elements (FACE-NAME . FACE-VECTOR-DATA).  */
-  Lisp_Object face_alist;
+  Lisp_Object INTERNAL_FIELD (face_alist);
 
   /* A vector that records the entire structure of this frame's menu bar.
      For the format of the data, see extensive comments in xmenu.c.
      Only the X toolkit version uses this.  */
-  Lisp_Object menu_bar_vector;
+  Lisp_Object INTERNAL_FIELD (menu_bar_vector);
 
   /* Predicate for selecting buffers for other-buffer.  */
-  Lisp_Object buffer_predicate;
+  Lisp_Object INTERNAL_FIELD (buffer_predicate);
 
   /* List of buffers viewed in this frame, for other-buffer.  */
-  Lisp_Object buffer_list;
+  Lisp_Object INTERNAL_FIELD (buffer_list);
 
   /* List of buffers that were viewed, then buried in this frame.  The
      most recently buried buffer is first.  For last-buffer.  */
-  Lisp_Object buried_buffer_list;
+  Lisp_Object INTERNAL_FIELD (buried_buffer_list);
 
   /* A dummy window used to display menu bars under X when no X
      toolkit support is available.  */
-  Lisp_Object menu_bar_window;
+  Lisp_Object INTERNAL_FIELD (menu_bar_window);
 
   /* A window used to display the tool-bar of a frame.  */
-  Lisp_Object tool_bar_window;
+  Lisp_Object INTERNAL_FIELD (tool_bar_window);
 
   /* Desired and current tool-bar items.  */
-  Lisp_Object tool_bar_items;
+  Lisp_Object INTERNAL_FIELD (tool_bar_items);
 
   /* Where tool bar is, can be left, right, top or bottom.  The native
      tool bar only supports top.  */
-  Lisp_Object tool_bar_position;
+  Lisp_Object INTERNAL_FIELD (tool_bar_position);
 
   /* Desired and current contents displayed in tool_bar_window.  */
-  Lisp_Object desired_tool_bar_string, current_tool_bar_string;
+  Lisp_Object INTERNAL_FIELD (desired_tool_bar_string);
+  Lisp_Object INTERNAL_FIELD (current_tool_bar_string);
 
   /* Beyond here, there should be no more Lisp_Object components.  */
 
@@ -635,13 +640,13 @@ typedef struct frame *FRAME_PTR;
 #define FRAME_WINDOW_SIZES_CHANGED(f) (f)->window_sizes_changed
 
 /* The minibuffer window of frame F, if it has one; otherwise nil.  */
-#define FRAME_MINIBUF_WINDOW(f) (f)->minibuffer_window
+#define FRAME_MINIBUF_WINDOW(f) FVAR (f, minibuffer_window)
 
 /* The root window of the window tree of frame F.  */
-#define FRAME_ROOT_WINDOW(f) (f)->root_window
+#define FRAME_ROOT_WINDOW(f) FVAR (f, root_window)
 
 /* The currently selected window of the window tree of frame F.  */
-#define FRAME_SELECTED_WINDOW(f) (f)->selected_window
+#define FRAME_SELECTED_WINDOW(f) FVAR (f, selected_window)
 
 #define FRAME_INSERT_COST(f) (f)->insert_line_cost
 #define FRAME_DELETE_COST(f) (f)->delete_line_cost
@@ -649,7 +654,7 @@ typedef struct frame *FRAME_PTR;
 #define FRAME_DELETEN_COST(f) (f)->delete_n_lines_cost
 #define FRAME_MESSAGE_BUF(f) (f)->message_buf
 #define FRAME_SCROLL_BOTTOM_VPOS(f) (f)->scroll_bottom_vpos
-#define FRAME_FOCUS_FRAME(f) (f)->focus_frame
+#define FRAME_FOCUS_FRAME(f) FVAR (f, focus_frame)
 
 /* Nonzero if frame F supports scroll bars.
    If this is zero, then it is impossible to enable scroll bars
@@ -750,10 +755,10 @@ typedef struct frame *FRAME_PTR;
 
 /* Nonzero if frame F has scroll bars.  */
 
-#define FRAME_SCROLL_BARS(f) ((f)->scroll_bars)
+#define FRAME_SCROLL_BARS(f) (FVAR (f, scroll_bars))
 
-#define FRAME_CONDEMNED_SCROLL_BARS(f) ((f)->condemned_scroll_bars)
-#define FRAME_MENU_BAR_ITEMS(f) ((f)->menu_bar_items)
+#define FRAME_CONDEMNED_SCROLL_BARS(f) (FVAR (f, condemned_scroll_bars))
+#define FRAME_MENU_BAR_ITEMS(f) (FVAR (f, menu_bar_items))
 #define FRAME_COST_BAUD_RATE(f) ((f)->cost_calculation_baud_rate)
 
 #define FRAME_DESIRED_CURSOR(f) ((f)->desired_cursor)

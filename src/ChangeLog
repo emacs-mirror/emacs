@@ -1,5 +1,20 @@
 2012-07-31  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	Generalize INTERNAL_FIELD between buffers, keyboards and frames.
+	* lisp.h (INTERNAL_FIELD): New macro.
+	* buffer.h (BUFFER_INTERNAL_FIELD): Removed.
+	(BVAR): Change to use INTERNAL_FIELD.
+	* keyboard.h (KBOARD_INTERNAL_FIELD): Likewise.
+	(KVAR): Change to use INTERNAL_FIELD.
+	* frame.h (FVAR): New macro.
+	(struct frame): Use INTERNAL_FIELD for all Lisp_Object fields.
+	* alloc.c, buffer.c, data.c, dispnew.c, dosfns.c, eval.c, frame.c
+	* fringe.c, gtkutil.c, minibuf.c, nsfns.m, nsterm.m, print.c
+	* term.c, w32fns.c, w32menu.c, w32term.c, window.c, window.h,
+	* xdisp.c, xfaces.c, xfns.c, xmenu.c, xterm.c: Users changed.
+
+2012-07-31  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	Miscellaneous fixes for non-default X toolkits.
 	* xfns.c (Fx_file_dialog): Change to SSDATA to avoid warnings.
 	* xterm.c (x_frame_of_widget): Remove redundant prototype.

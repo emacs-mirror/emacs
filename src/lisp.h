@@ -622,8 +622,13 @@ clip_to_bounds (ptrdiff_t lower, EMACS_INT num, ptrdiff_t upper)
 #define CHECK_TYPE(ok, Qxxxp, x) \
   do { if (!(ok)) wrong_type_argument (Qxxxp, (x)); } while (0)
 
+/* Lisp fields are usually hidden from most code and accessed
+   via special macros.  Only select pieces of code, like the GC,
+   are allowed to use INTERNAL_FIELD directly.  Objects which
+   aren't using this convention should be fixed.  */
 
-
+#define INTERNAL_FIELD(field) field ## _
+
 /* See the macros in intervals.h.  */
 
 typedef struct interval *INTERVAL;
