@@ -667,13 +667,6 @@ running the `configure' program, you have to perform the following steps.
 
 1) Copy `./src/config.in' to `./src/config.h'.
 
-2) Consult `./etc/MACHINES' to see what configuration name you should
-use for your system.  Look at the code of the `configure' script to
-see which operating system and architecture description files from
-`src/s' and `src/m' should be used for that configuration name.  Edit
-`src/config.h', and change the two `#include' directives to include
-the appropriate system and architecture description files.
-
 2) Edit `./src/config.h' to set the right options for your system.
 
 3) Create `Makefile' files in various directories from the
