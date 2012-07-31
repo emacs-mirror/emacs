@@ -1,5 +1,7 @@
 2012-07-31  Glenn Morris  <rgm@gnu.org>
 
+	* conf_post.h [HPUX]: Undefine HAVE_RANDOM and HAVE_RINT.
+
 	* conf_post.h (AMPERSAND_FULL_NAME, subprocesses):
 	Move to configure.ac.
 

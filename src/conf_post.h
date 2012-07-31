@@ -71,11 +71,16 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    renaming the functions via macros.  The system's stdlib.h has fully
    prototyped declarations, which yields a conflicting definition of
    srand48; it tries to redeclare what was once srandom to be srand48.
-   So we go with HAVE_LRAND48 being defined.  Note we also undef
-   HAVE_RANDOM via configure.  */
+   So we go with HAVE_LRAND48 being defined.  */
 #ifdef HPUX
 #undef srandom
 #undef random
+/* We try to avoid checking for random and rint on hpux in
+   configure.ac, but some other configure test might check for them as
+   a dependency, so to be safe we also undefine them here.
+ */
+#undef HAVE_RANDOM
+#undef HAVE_RINT
 #endif
 
 #ifdef IRIX6_5

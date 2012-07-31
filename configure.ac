@@ -2725,7 +2725,6 @@ if test $opsys != unixware; then
   AC_CHECK_FUNCS(getwd)
 fi
 
-dnl FIXME Fragile: see above.
 ## Eric Backus <ericb@lsid.hp.com> says, HP-UX 9.x on HP 700 machines
 ## has a broken `rint' in some library versions including math library
 ## version number A.09.05.
