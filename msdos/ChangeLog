@@ -1,3 +1,7 @@
+2012-07-31  Glenn Morris  <rgm@gnu.org>
+
+	* sed1v2.inp (S_FILE): Update for format change.
+
 2012-07-28  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Use Gnulib stdalign module (Bug#9772, Bug#9960).

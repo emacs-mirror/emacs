@@ -129,7 +129,7 @@ s/\.h\.in/.h-in/
 /^MKDEPDIR *=/s/@MKDEPDIR@//
 /^version *=/s/@[^@\n]*@//
 /^M_FILE *=/s!@M_FILE@!$(srcdir)/m/intel386.h!
-/^S_FILE *=/s!@S_FILE@!$(srcdir)/s/msdos.h!
+/^S_FILE *=/s!=!= $(srcdir)/s/msdos.h!
 /^@SET_MAKE@$/s/@SET_MAKE@//
 /^	[ 	]*\$(libsrc)\/make-docfile.*>.*\/DOC/s!make-docfile!make-docfile -o $(etc)/DOC!
 /^	[ 	]*\$(libsrc)\/make-docfile.*>.*gl-tmp/s!make-docfile!make-docfile -o gl-tmp!

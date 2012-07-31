@@ -1,5 +1,7 @@
 2012-07-31  Glenn Morris  <rgm@gnu.org>
 
+	* Makefile.in (S_FILE): No longer set by configure.
+
 	* conf_post.h (config_opsysfile): Move earlier, so that WINDOWSNT
 	is available.
 	(alloca.h) [WINDOWSNT]: Don't include it on MS Windows.

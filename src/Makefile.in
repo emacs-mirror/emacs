@@ -56,7 +56,8 @@ lwlibdir = ../lwlib
 lispdir = ../lisp
 
 # Configuration files for .o files to depend on.
-S_FILE = @S_FILE@
+# MS-DOS sets S_FILE non-nil.
+S_FILE = 
 config_h = config.h conf_post.h $(S_FILE)
 
 bootstrap_exe = $(abs_builddir)/bootstrap-emacs$(EXEEXT)

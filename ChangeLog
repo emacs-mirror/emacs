@@ -1,5 +1,7 @@
 2012-07-31  Glenn Morris  <rgm@gnu.org>
 
+	* configure.ac (S_FILE): Remove output variable.
+
 	* configure.ac (opsysfile): Use AH_TEMPLATE.  Doc fix.
 
 	* configure.ac (NULL_DEVICE, SEPCHAR, USER_FULL_NAME):
