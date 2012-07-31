@@ -84,7 +84,23 @@ char *_getpty();
 #endif
 
 #undef SA_RESTART     /* not the same as defining BROKEN_SA_RESTART */
+#endif /* IRIX6_5 */
+
+#ifdef USG5_4
+/* Get FIONREAD from <sys/filio.h>.  Get <sys/ttold.h> to get struct tchars.
+   But get <termio.h> first to make sure ttold.h doesn't interfere.  */
+#include <sys/wait.h>
+
+#ifdef emacs
+#include <sys/filio.h>
+#include <termio.h>
+#include <sys/ttold.h>
+#include <signal.h>
+#include <sys/stream.h>
+#include <sys/stropts.h>
+#include <sys/termios.h>
 #endif
+#endif  /* USG5_4 */
 
 /* Define AMPERSAND_FULL_NAME if you use the convention
    that & in the full name stands for the login id.  */

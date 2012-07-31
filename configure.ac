@@ -3685,6 +3685,7 @@ AH_TEMPLATE(BSD4_2, [Define if the system is compatible with BSD 4.2.])
 AH_TEMPLATE(BSD_SYSTEM, [Define if the system is compatible with BSD 4.2.])
 AH_TEMPLATE(USG, [Define if the system is compatible with System III.])
 AH_TEMPLATE(USG5, [Define if the system is compatible with System V.])
+AH_TEMPLATE(USG5_4, [Define if the system is compatible with System V Release 4.])
 
 case $opsys in
   aix4-2)
@@ -3748,23 +3749,26 @@ case $opsys in
     ;;
 
   irix6-5)
-    opsysfile="s/usg5-4-common.h"
+    opsysfile=
     AC_DEFINE(USG, [])
     AC_DEFINE(USG5, [])
+    AC_DEFINE(USG5_4, [])
     AC_DEFINE(IRIX6_5, [], [Define if the system is IRIX.])
     ;;
 
   sol2*)
-    opsysfile="s/usg5-4-common.h"
+    opsysfile=
     AC_DEFINE(USG, [])
     AC_DEFINE(USG5, [])
+    AC_DEFINE(USG5_4, [])
     AC_DEFINE(SOLARIS2, [], [Define if the system is Solaris.])
     ;;
 
   unixware)
-    opsysfile="s/usg5-4-common.h"
+    opsysfile=
     AC_DEFINE(USG, [])
     AC_DEFINE(USG5, [])
+    AC_DEFINE(USG5_4, [])
     ;;
 esac
 

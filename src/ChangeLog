@@ -10,6 +10,10 @@
 
 	* s/usg5-4-common.h (wait3, WRETCODE): Let configure set them.
 
+	* conf_post.h [USG5_4]:
+	Move remaining contents of s/usg5-4-common.h here.
+	* s/usg5-4-common.h: Remove file.
+
 	* conf_post.h [IRIX6_5]: Move remaining contents of s/irix6-5.h here.
 	* s/irix6-5.h: Remove file.
 
