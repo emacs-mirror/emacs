@@ -1,3 +1,10 @@
+2012-07-31  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32menu.c (w32_menu_show): Revert bogus introduction of FVAR.
+
+	* fontset.c (dump_fontset): Fix compilation with ENABLE_CHECKING
+	after introduction of FVAR.
+
 2012-07-31  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsmenu.m (update_frame_tool_bar): Change key from NSObject* to id.

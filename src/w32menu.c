@@ -854,7 +854,7 @@ w32_menu_show (FRAME_PTR f, int x, int y, int for_click, int keymaps,
 
       wv_title->name = SSDATA (title);
       wv_title->enabled = TRUE;
-      FVAR (wv_title, title) = TRUE;
+      wv_title->title = TRUE;
       wv_title->button_type = BUTTON_TYPE_NONE;
       wv_title->help = Qnil;
       wv_title->next = wv_sep;

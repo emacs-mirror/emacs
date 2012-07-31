@@ -2117,7 +2117,8 @@ dump_fontset (Lisp_Object fontset)
 
 	  if (FRAME_LIVE_P (f))
 	    ASET (vec, 1,
-		  Fcons (FONTSET_NAME (FONTSET_BASE (fontset)), f->name));
+		  Fcons (FONTSET_NAME (FONTSET_BASE (fontset)),
+			 FVAR (f, name)));
 	  else
 	    ASET (vec, 1,
 		  Fcons (FONTSET_NAME (FONTSET_BASE (fontset)), Qnil));
