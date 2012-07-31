@@ -1136,7 +1136,6 @@ compute_motion (ptrdiff_t from, EMACS_INT fromvpos, EMACS_INT fromhpos, int did_
   ptrdiff_t width_run_end   = from;
   ptrdiff_t width_run_width = 0;
   Lisp_Object *width_table;
-  Lisp_Object buffer;
 
   /* The next buffer pos where we should consult the width run cache. */
   ptrdiff_t next_width_run = from;
@@ -1156,7 +1155,6 @@ compute_motion (ptrdiff_t from, EMACS_INT fromvpos, EMACS_INT fromhpos, int did_
 
   struct composition_it cmp_it;
 
-  XSETBUFFER (buffer, current_buffer);
   XSETWINDOW (window, win);
 
   width_run_cache_on_off ();
