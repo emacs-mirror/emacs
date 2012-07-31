@@ -32,7 +32,7 @@
 2012-07-30  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsterm.m (ns_do_open_file): New variable.
-	(ns_term_init): Set ns_do_open_file to NO after run returns.
+	(ns_term_init): Set ns_do_open_file to YES after run returns.
 	(openFile, openTempFile, openFileWithoutUI, openFiles): Open
 	files only if ns_do_open_file.
 
