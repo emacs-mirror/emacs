@@ -1,3 +1,8 @@
+2012-07-31  Glenn Morris  <rgm@gnu.org>
+
+	* conf_post.h (AMPERSAND_FULL_NAME, subprocesses):
+	Move to configure.ac.
+
 2012-07-31  Eli Zaretskii  <eliz@gnu.org>
 
 	* .gdbinit (xframe): Adapt to introduction of FVAR and the

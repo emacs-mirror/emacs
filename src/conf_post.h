@@ -102,19 +102,6 @@ char *_getpty();
 #endif
 #endif  /* USG5_4 */
 
-/* Define AMPERSAND_FULL_NAME if you use the convention
-   that & in the full name stands for the login id.  */
-/* Turned on June 1996 supposing nobody will mind it.  */
-#define AMPERSAND_FULL_NAME
-
-/* `subprocesses' should be defined if you want to
-   have code for asynchronous subprocesses
-   (as used in M-x compile and M-x shell).
-   Only MSDOS does not support this (it overrides
-   this in its config_opsysfile below).  */
-
-#define subprocesses
-
 /* Include the os dependent file.  */
 #ifdef config_opsysfile
 # include config_opsysfile

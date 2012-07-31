@@ -3125,6 +3125,10 @@ dnl                                and macros for terminal control.])
 dnl    AC_DEFINE(HAVE_TCATTR, 1, [Define to 1 if you have tcgetattr and tcsetattr.])
 dnl fi
 
+dnl Turned on June 1996 supposing nobody will mind it.
+AC_DEFINE(AMPERSAND_FULL_NAME, 1, [Define to use the convention that &
+  in the full name stands for the login id.])
+
 dnl Every platform that uses configure (ie every non-MS platform)
 dnl supports this.  There is a create-lockfiles option you can
 dnl customize if you do not want the lock files to be written.
@@ -3143,6 +3147,9 @@ dnl Seems like the kind of thing we should be testing for, though.
 dnl Compare with HAVE_INET_SOCKETS (which is unused...) above.
 AC_DEFINE(HAVE_SOCKETS, 1, [Define if the system supports
   4.2-compatible sockets.])
+
+dnl Everybody supports this, except MS-DOS.
+AC_DEFINE(subprocesses, 1, [Define to enable asynchronous subprocesses.])
 
 
 AH_TEMPLATE(NO_EDITRES, [Define if XEditRes should not be used.])

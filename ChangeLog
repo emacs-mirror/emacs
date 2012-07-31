@@ -1,3 +1,8 @@
+2012-07-31  Glenn Morris  <rgm@gnu.org>
+
+	* configure.ac (AMPERSAND_FULL_NAME, subprocesses):
+	Move here from conf_post.h.
+
 2012-07-31  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Improve OpenMotif detection on GNU/Linux systems.
