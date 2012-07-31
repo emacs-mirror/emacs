@@ -211,9 +211,7 @@ static void test(mps_ap_t leafap, mps_ap_t exactap, mps_ap_t weakap,
 
   for(j = 0; j < ITERATIONS; ++j) {
     for(i = 0; i < TABLE_SLOTS; ++i) {
-      mps_word_t *string;
-
-      string = alloc_string("spong", leafap);
+      (void)alloc_string("spong", leafap);
     }
   }
 

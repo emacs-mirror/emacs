@@ -176,13 +176,11 @@ static void *test(void *arg, size_t s)
           die(mps_arena_collect(arena), "collect");
           printf(" Done.\n");
           while (mps_message_poll(arena)) {
-                  mps_word_t obj;
                   mps_addr_t objaddr;
                   cdie(mps_message_get(&message, arena,
                                        mps_message_type_finalization()),
                        "get");
                   mps_message_finalization_ref(&objaddr, arena, message);
-                  obj = (mps_word_t)objaddr;
                   mps_message_discard(arena, message);
                   ++ final_this_time;
           }
@@ -216,13 +214,11 @@ static void *test(void *arg, size_t s)
           die(mps_arena_collect(arena), "collect");
           printf(" Done.\n");
           while (mps_message_poll(arena)) {
-                  mps_word_t obj;
                   mps_addr_t objaddr;
                   cdie(mps_message_get(&message, arena,
                                        mps_message_type_finalization()),
                        "get");
                   mps_message_finalization_ref(&objaddr, arena, message);
-                  obj = (mps_word_t)objaddr;
                   mps_message_discard(arena, message);
                   ++ final_this_time;
           }
