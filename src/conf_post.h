@@ -51,6 +51,22 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 #endif
 
+#ifdef DARWIN_OS
+#ifdef emacs
+#define malloc unexec_malloc
+#define realloc unexec_realloc
+#define free unexec_free
+/* Don't use posix_memalign because it is not compatible with unexmacosx.c.  */
+#undef HAVE_POSIX_MEMALIGN
+#endif
+/* The following solves the problem that Emacs hangs when evaluating
+   (make-comint "test0" "/nodir/nofile" nil "") when /nodir/nofile
+   does not exist.  Also, setsid is not allowed in the vfork child's
+   context as of Darwin 9/Mac OS X 10.5.  */
+#undef HAVE_WORKING_VFORK
+#define vfork fork
+#endif  /* DARWIN_OS */
+
 /* We have to go this route, rather than the old hpux9 approach of
    renaming the functions via macros.  The system's stdlib.h has fully
    prototyped declarations, which yields a conflicting definition of

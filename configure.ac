@@ -3688,6 +3688,7 @@ case $opsys in
     ;;
 
   darwin)
+    opsysfile=
     dnl BSD4_3 and BSD4_4 are already defined in sys/param.h.
     AC_DEFINE(BSD4_2, [])
     AC_DEFINE(BSD_SYSTEM, [])

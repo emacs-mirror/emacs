@@ -1,5 +1,8 @@
 2012-07-31  Glenn Morris  <rgm@gnu.org>
 
+	* conf_post.h [DARWIN_OS]: Move remaining contents of s/darwin.h here.
+	* s/darwin.h: Remove file.
+
 	* conf_post.h [HPUX]: Move random, srandom here from s/hpux10-20.h.
 	* s/hpux10-20.h: Remove file, which is now empty.
 
