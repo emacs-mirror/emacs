@@ -1,3 +1,7 @@
+2012-07-31  Jan Djärv  <jan.h.d@swipnet.se>
+
+	*  nsfns.m, nsmenu.m, msterm.m: Adopt to struct frame/FVAR changes.
+
 2012-07-31  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Generalize INTERNAL_FIELD between buffers, keyboards and frames.

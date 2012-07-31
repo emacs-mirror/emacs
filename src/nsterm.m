@@ -1306,7 +1306,7 @@ x_set_window_size (struct frame *f, int change_grav, int cols, int rows)
   FRAME_PIXEL_HEIGHT (f) = pixelheight;
 /*  SET_FRAME_GARBAGED (f); // this short-circuits expose call in drawRect */
 
-  mark_window_cursors_off (XWINDOW (f->root_window));
+  mark_window_cursors_off (XWINDOW (FVAR (f, root_window)));
   cancel_mouse_face (f);
 
   UNBLOCK_INPUT;
@@ -5535,7 +5535,7 @@ ns_term_shutdown (int sig)
   if (ns_drag_types)
     [self registerForDraggedTypes: ns_drag_types];
 
-  tem = f->name;
+  tem = FVAR (f, name);
   name = [NSString stringWithUTF8String:
                    NILP (tem) ? "Emacs" : SSDATA (tem)];
   [win setTitle: name];
@@ -5553,7 +5553,7 @@ ns_term_shutdown (int sig)
 #endif
   FRAME_TOOLBAR_HEIGHT (f) = 0;
 
-  tem = f->icon_name;
+  tem = FVAR (f, icon_name);
   if (!NILP (tem))
     [win setMiniwindowTitle:
            [NSString stringWithUTF8String: SSDATA (tem)]];
@@ -5734,7 +5734,7 @@ ns_term_shutdown (int sig)
     {
       NSInteger tag = [sender tag];
       find_and_call_menu_selection (emacsframe, emacsframe->menu_bar_items_used,
-                                    emacsframe->menu_bar_vector,
+                                    FVAR (emacsframe, menu_bar_vector),
                                     (void *)tag);
     }
 
@@ -5768,7 +5768,7 @@ ns_term_shutdown (int sig)
 
   emacs_event->kind = TOOL_BAR_EVENT;
 /*   XSETINT (emacs_event->code, 0); */
-  emacs_event->arg = AREF (emacsframe->tool_bar_items,
+  emacs_event->arg = AREF (FVAR (emacsframe, tool_bar_items),
                           idx + TOOL_BAR_ITEM_KEY);
   emacs_event->modifiers = EV_MODIFIERS (theEvent);
   EV_TRAILER (theEvent);
@@ -6056,7 +6056,8 @@ ns_term_shutdown (int sig)
 {
   Lisp_Object str = Qnil;
   struct frame *f = SELECTED_FRAME ();
-  struct buffer *curbuf = XBUFFER (XWINDOW (f->selected_window)->buffer);
+  struct buffer *curbuf
+    = XBUFFER (XWINDOW (FVAR (f, selected_window))->buffer);
  
   if ([attribute isEqualToString:NSAccessibilityRoleAttribute])
     return NSAccessibilityTextFieldRole;
