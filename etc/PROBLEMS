@@ -388,7 +388,7 @@ There are two different protocols in general use.  One of them uses
 the `flock' system call.  The other involves creating a lock file;
 `movemail' must be able to write in /usr/spool/mail in order to do
 this.  You control which one is used by defining, or not defining,
-the macro MAIL_USE_FLOCK in config.h or the m/ or s/ file it includes.
+the macro MAIL_USE_FLOCK in config.h.
 IF YOU DON'T USE THE FORM OF INTERLOCKING THAT IS NORMAL ON YOUR
 SYSTEM, YOU CAN LOSE MAIL!
 
@@ -2903,10 +2903,6 @@ should do.
 
 pen@lysator.liu.se says (Feb 1998) that the Compose key does work
 if you link with the MIT X11 libraries instead of the Solaris X11 libraries.
-
-*** HP/UX 10: Large file support is disabled.
-(HP/UX 10 was end-of-lifed in May 1999.)
-See the comments in src/s/hpux10-20.h.
 
 *** HP/UX: Emacs is slow using X11R5.
 
