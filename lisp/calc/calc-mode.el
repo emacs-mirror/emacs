@@ -504,7 +504,7 @@
 			   mode)))
   (message "%s" (if (eq calc-simplify-mode mode)
 	       msg
-	     "Default algebraic simplifications enabled")))
+	     "Algebraic simplification occurs by default")))
 
 (defun calc-no-simplify-mode (arg)
   (interactive "P")

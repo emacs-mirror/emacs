@@ -3,7 +3,8 @@
 	* calc-mode.el (calc-basic-simplification-mode): Rename from
 	`calc-limited-simplification-mode'.
 	(calc-alg-simplification-mode): New function.
-
+	(calc-set-simplify-mode):  Adjust message.
+	
 	* calc.el (calc-set-mode-line): Adjust mode line display for
 	basic simplification mode.
 
