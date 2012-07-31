@@ -2730,7 +2730,7 @@ fi
 ## version number A.09.05.
 ## You can fix the math library by installing patch number PHSS_4630.
 ## But we can fix it more reliably for Emacs by just not using rint.
-## We also skip HAVE_RANDOM - see comments in src/s/hpux10-20.h.
+## We also skip HAVE_RANDOM - see comments in src/conf_post.h.
 case $opsys in
    hpux*) : ;;
    *) AC_CHECK_FUNCS(random rint) ;;
