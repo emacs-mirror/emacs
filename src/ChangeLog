@@ -8,6 +8,9 @@
 
 2012-07-31  Glenn Morris  <rgm@gnu.org>
 
+	* conf_post.h [IRIX6_5]: Move remaining contents of s/irix6-5.h here.
+	* s/irix6-5.h: Remove file.
+
 	* conf_post.h [DARWIN_OS]: Move remaining contents of s/darwin.h here.
 	* s/darwin.h: Remove file.
 

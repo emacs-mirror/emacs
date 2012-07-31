@@ -3731,6 +3731,7 @@ case $opsys in
     ;;
 
   irix6-5)
+    opsysfile="s/usg5-4-common.h"
     AC_DEFINE(USG, [])
     AC_DEFINE(USG5, [])
     AC_DEFINE(IRIX6_5, [], [Define if the system is IRIX.])

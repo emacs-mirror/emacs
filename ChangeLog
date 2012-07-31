@@ -1,6 +1,7 @@
 2012-07-31  Glenn Morris  <rgm@gnu.org>
 
-	* configure.ac (opsysfile): Set to empty on hpux*, darwin.
+	* configure.ac (opsysfile): Set to empty on hpux*, darwin;
+	and to s/usg5-4-common.h on irix6-5.
 
 2012-07-30  Glenn Morris  <rgm@gnu.org>
 

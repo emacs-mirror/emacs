@@ -78,6 +78,14 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #undef random
 #endif
 
+#ifdef IRIX6_5
+#ifdef emacs
+char *_getpty();
+#endif
+
+#undef SA_RESTART     /* not the same as defining BROKEN_SA_RESTART */
+#endif
+
 /* Define AMPERSAND_FULL_NAME if you use the convention
    that & in the full name stands for the login id.  */
 /* Turned on June 1996 supposing nobody will mind it.  */
