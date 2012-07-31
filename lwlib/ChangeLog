@@ -1,3 +1,8 @@
+2012-07-31  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Avoid unused variable warning if --with-x-toolkit=motif.
+	* lwlib-Xm.c (make_menu_in_widget): Remove unused variable.
+
 2012-07-06  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Use c_strcasecmp for ASCII case-insensitive comparison (Bug#11786).

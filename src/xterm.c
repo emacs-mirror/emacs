@@ -1438,12 +1438,12 @@ x_draw_glyphless_glyph_string_foreground (struct glyph_string *s)
 
 #ifdef USE_X_TOOLKIT
 
-static struct frame *x_frame_of_widget (Widget);
 static Boolean cvt_string_to_pixel (Display *, XrmValue *, Cardinal *,
                                     XrmValue *, XrmValue *, XtPointer *);
 static void cvt_pixel_dtor (XtAppContext, XrmValue *, XtPointer,
                             XrmValue *, Cardinal *);
 
+#ifdef USE_LUCID
 
 /* Return the frame on which widget WIDGET is used.. Abort if frame
    cannot be determined.  */
@@ -1478,9 +1478,6 @@ x_frame_of_widget (Widget widget)
   abort ();
 }
 
-
-#ifdef USE_LUCID
-
 /* Allocate a color which is lighter or darker than *PIXEL by FACTOR
    or DELTA.  Try a color with RGB values multiplied by FACTOR first.
    If this produces the same color as PIXEL, try a color where all RGB
@@ -1496,7 +1493,7 @@ x_alloc_lighter_color_for_widget (Widget widget, Display *display, Colormap cmap
   return x_alloc_lighter_color (f, display, cmap, pixel, factor, delta);
 }
 
-#endif
+#endif /* USE_LUCID */
 
 
 /* Structure specifying which arguments should be passed by Xt to
@@ -4635,7 +4632,7 @@ x_create_toolkit_scroll_bar (struct frame *f, struct scroll_bar *bar)
   Widget widget;
   Arg av[20];
   int ac = 0;
-  char const *scroll_bar_name = SCROLL_BAR_NAME;
+  const char *scroll_bar_name = SCROLL_BAR_NAME;
   unsigned long pixel;
 
   BLOCK_INPUT;
@@ -4665,7 +4662,7 @@ x_create_toolkit_scroll_bar (struct frame *f, struct scroll_bar *bar)
     }
 
   widget = XmCreateScrollBar (f->output_data.x->edit_widget,
-			      scroll_bar_name, av, ac);
+			      (char *) scroll_bar_name, av, ac);
 
   /* Add one callback for everything that can happen.  */
   XtAddCallback (widget, XmNdecrementCallback, xm_scroll_callback,

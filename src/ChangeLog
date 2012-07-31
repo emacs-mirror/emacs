@@ -1,3 +1,12 @@
+2012-07-31  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Miscellaneous fixes for non-default X toolkits.
+	* xfns.c (Fx_file_dialog): Change to SSDATA to avoid warnings.
+	* xterm.c (x_frame_of_widget): Remove redundant prototype.
+	Move under #ifdef USE_LUCID.
+	(x_create_toolkit_scroll_bar): Adjust scroll_bar_name
+	definition and usage to avoid warnings.
+
 2012-07-31  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsterm.m (openFiles): Fix previous checkin.

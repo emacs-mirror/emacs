@@ -1,3 +1,9 @@
+2012-07-31  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Improve OpenMotif detection on GNU/Linux systems.
+	* configure.ac (MOTIF): Check for /usr/include/openmotif
+	and /usr/(lib|lib64)/openmotif if --with-x-toolkit=motif.
+
 2012-07-31  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* Makefile.in (install-arch-indep): Avoid eval.

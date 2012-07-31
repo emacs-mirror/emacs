@@ -5382,7 +5382,7 @@ Otherwise, if ONLY-DIR-P is non-nil, the user can only select directories.  */)
   /* Create the dialog with PROMPT as title, using DIR as initial
      directory and using "*" as pattern.  */
   dir = Fexpand_file_name (dir, Qnil);
-  dir_xmstring = XmStringCreateLocalized (SDATA (dir));
+  dir_xmstring = XmStringCreateLocalized (SSDATA (dir));
   pattern_xmstring = XmStringCreateLocalized ("*");
 
   XtSetArg (al[ac], XmNtitle, SDATA (prompt)); ++ac;
@@ -5435,12 +5435,12 @@ Otherwise, if ONLY-DIR-P is non-nil, the user can only select directories.  */)
 
       XmTextPosition last_pos = XmTextFieldGetLastPosition (wtext);
       XmTextFieldReplace (wtext, 0, last_pos,
-                          (SDATA (Ffile_name_nondirectory (default_filename))));
+                          (SSDATA (Ffile_name_nondirectory (default_filename))));
 
       /* Select DEFAULT_FILENAME in the files list box.  DEFAULT_FILENAME
          must include the path for this to work.  */
 
-      default_xmstring = XmStringCreateLocalized (SDATA (default_filename));
+      default_xmstring = XmStringCreateLocalized (SSDATA (default_filename));
 
       if (XmListItemExists (list, default_xmstring))
         {

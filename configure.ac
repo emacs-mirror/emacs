@@ -2139,7 +2139,21 @@ fi
 
 LIBXP=
 if test "${USE_X_TOOLKIT}" = "MOTIF"; then
-  AC_CACHE_CHECK(for Motif version 2.1, emacs_cv_motif_version_2_1,
+  # OpenMotif may be installed in such a way on some GNU/Linux systems.
+  if test -d /usr/include/openmotif; then
+    CPPFLAGS="-I/usr/include/openmotif $CPPFLAGS"
+    emacs_cv_openmotif=yes
+    case "$canonical" in
+      x86_64-*-linux-gnu* | powerpc64-*-linux-gnu* | sparc64-*-linux-gnu*)
+      test -d /usr/lib64/openmotif && LDFLAGS="-L/usr/lib64/openmotif $LDFLAGS"
+      ;;
+      *)
+      test -d /usr/lib/openmotif && LDFLAGS="-L/usr/lib/openmotif $LDFLAGS"
+    esac
+  else
+    emacs_cv_openmotif=no
+  fi
+  AC_CACHE_CHECK(for (Open)Motif version 2.1, emacs_cv_motif_version_2_1,
   [AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <Xm/Xm.h>]],
     [[#if XmVERSION > 2 || (XmVERSION == 2 && XmREVISION >= 1)
 int x = 5;
@@ -2149,6 +2163,9 @@ Motif version prior to 2.1.
     emacs_cv_motif_version_2_1=yes, emacs_cv_motif_version_2_1=no)])
   if test $emacs_cv_motif_version_2_1 = yes; then
     AC_CHECK_LIB(Xp, XpCreateContext, LIBXP=-lXp)
+    if test x$emacs_cv_openmotif = xyes; then
+      REAL_CPPFLAGS="-I/usr/include/openmotif $REAL_CPPFLAGS"
+    fi
   else
     AC_CACHE_CHECK(for LessTif where some systems put it, emacs_cv_lesstif,
     # We put this in CFLAGS temporarily to precede other -I options
