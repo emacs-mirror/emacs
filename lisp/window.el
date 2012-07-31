@@ -2669,6 +2669,8 @@ that is already visible in another window on the same frame."
 (defun switch-to-prev-buffer (&optional window bury-or-kill)
   "In WINDOW switch to previous buffer.
 WINDOW must be a live window and defaults to the selected one.
+Return the buffer switched to, nil if no suitable buffer could be
+found.
 
 Optional argument BURY-OR-KILL non-nil means the buffer currently
 shown in WINDOW is about to be buried or killed and consequently
@@ -2679,7 +2681,7 @@ shall not be switched to in future invocations of this command."
 	 (old-buffer (window-buffer window))
 	 ;; Save this since it's destroyed by `set-window-buffer'.
 	 (next-buffers (window-next-buffers window))
-	 entry new-buffer killed-buffers visible)
+	 entry buffer new-buffer killed-buffers visible)
     (when (window-dedicated-p window)
       (error "Window %s is dedicated to buffer %s" window old-buffer))
 
@@ -2687,20 +2689,20 @@ shall not be switched to in future invocations of this command."
       ;; Scan WINDOW's previous buffers first, skipping entries of next
       ;; buffers.
       (dolist (entry (window-prev-buffers window))
-	(when (and (setq new-buffer (car entry))
-		   (or (buffer-live-p new-buffer)
+	(when (and (setq buffer (car entry))
+		   (or (buffer-live-p buffer)
 		       (not (setq killed-buffers
-				  (cons new-buffer killed-buffers))))
-		   (not (eq new-buffer old-buffer))
-                   (or bury-or-kill
-		       (not (memq new-buffer next-buffers))))
+				  (cons buffer killed-buffers))))
+		   (not (eq buffer old-buffer))
+                   (or bury-or-kill (not (memq buffer next-buffers))))
 	  (if (and (not switch-to-visible-buffer)
-		   (get-buffer-window new-buffer frame))
+		   (get-buffer-window buffer frame))
 	      ;; Try to avoid showing a buffer visible in some other window.
-	      (setq visible new-buffer)
-          (set-window-buffer-start-and-point
-           window new-buffer (nth 1 entry) (nth 2 entry))
-          (throw 'found t))))
+	      (setq visible buffer)
+	    (setq new-buffer buffer)
+	    (set-window-buffer-start-and-point
+	     window new-buffer (nth 1 entry) (nth 2 entry))
+	    (throw 'found t))))
       ;; Scan reverted buffer list of WINDOW's frame next, skipping
       ;; entries of next buffers.  Note that when we bury or kill a
       ;; buffer we don't reverse the global buffer list to avoid showing
@@ -2767,13 +2769,15 @@ shall not be switched to in future invocations of this command."
 
 (defun switch-to-next-buffer (&optional window)
   "In WINDOW switch to next buffer.
-WINDOW must be a live window and defaults to the selected one."
+WINDOW must be a live window and defaults to the selected one.
+Return the buffer switched to, nil if no suitable buffer could be
+found."
   (interactive)
   (let* ((window (window-normalize-window window t))
 	 (frame (window-frame window))
 	 (old-buffer (window-buffer window))
 	 (next-buffers (window-next-buffers window))
-	 new-buffer entry killed-buffers visible)
+	 buffer new-buffer entry killed-buffers visible)
     (when (window-dedicated-p window)
       (error "Window %s is dedicated to buffer %s" window old-buffer))
 
@@ -2804,16 +2808,17 @@ WINDOW must be a live window and defaults to the selected one."
       ;; Scan WINDOW's reverted previous buffers last (must not use
       ;; nreverse here!)
       (dolist (entry (reverse (window-prev-buffers window)))
-	(when (and (setq new-buffer (car entry))
-		   (or (buffer-live-p new-buffer)
+	(when (and (setq buffer (car entry))
+		   (or (buffer-live-p buffer)
 		       (not (setq killed-buffers
-				  (cons new-buffer killed-buffers))))
-		   (not (eq new-buffer old-buffer)))
+				  (cons buffer killed-buffers))))
+		   (not (eq buffer old-buffer)))
 	  (if (and (not switch-to-visible-buffer)
-		   (get-buffer-window new-buffer frame))
+		   (get-buffer-window buffer frame))
 	      ;; Try to avoid showing a buffer visible in some other window.
 	      (unless visible
-		(setq visible new-buffer))
+		(setq visible buffer))
+	    (setq new-buffer buffer)
 	    (set-window-buffer-start-and-point
 	     window new-buffer (nth 1 entry) (nth 2 entry))
 	    (throw 'found t))))

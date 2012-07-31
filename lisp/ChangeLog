@@ -1,3 +1,8 @@
+2012-07-31  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (switch-to-prev-buffer, switch-to-next-buffer):
+	Don't return a non-nil value when no suitable buffer was found.
+
 2012-07-31  Fabián Ezequiel Gallina  <fgallina@cuca>
 
 	* progmodes/python.el (run-python-internal): Disable font lock for
