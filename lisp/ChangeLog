@@ -1,3 +1,15 @@
+2012-07-31  Fabián Ezequiel Gallina  <fgallina@cuca>
+
+	Shell processes: enhancements to startup and CEDET compatibility.
+	* progmodes/python.el (python-shell-send-setup-max-wait): Delete var.
+	(python-shell-make-comint): accept-process-output at startup.
+	(run-python-internal): Set inferior-python-mode-hook to nil.
+	(python-shell-internal-get-or-create-process): call sit-for.
+	(python-preoutput-result): Add obsolete alias.
+	(python-shell-internal-send-string): Use it.
+	(python-shell-send-setup-code): Remove call to
+	accept-process-output.
+
 2012-07-31  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* buff-menu.el (list-buffers-noselect): Use prefix-numeric-value.
