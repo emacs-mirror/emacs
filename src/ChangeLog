@@ -1,5 +1,8 @@
 2012-07-31  Eli Zaretskii  <eliz@gnu.org>
 
+	* .gdbinit (xframe): Adapt to introduction of FVAR and the
+	resulting renaming of 'struct frame' members.
+
 	* w32menu.c (w32_menu_show): Revert bogus introduction of FVAR.
 
 	* fontset.c (dump_fontset): Fix compilation with ENABLE_CHECKING

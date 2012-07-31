@@ -765,7 +765,7 @@ end
 define xframe
   xgetptr $
   print (struct frame *) $ptr
-  xgetptr $->name
+  xgetptr $->name_
   set $ptr = (struct Lisp_String *) $ptr
   xprintstr $ptr
   echo \n
