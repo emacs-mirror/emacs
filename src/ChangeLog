@@ -1,3 +1,8 @@
+2012-07-31  Glenn Morris  <rgm@gnu.org>
+
+	* conf_post.h [HPUX]: Move random, srandom here from s/hpux10-20.h.
+	* s/hpux10-20.h: Remove file, which is now empty.
+
 2012-07-30  Glenn Morris  <rgm@gnu.org>
 
 	* conf_post.h: New, split from configure.ac's AH_BOTTOM.

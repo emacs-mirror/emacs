@@ -3723,6 +3723,7 @@ case $opsys in
     ;;
 
   hpux*)
+    opsysfile=
     AC_DEFINE(USG, [])
     AC_DEFINE(USG5, [])
     AC_DEFINE(HPUX, [], [Define if the system is HPUX.])
@@ -3773,8 +3774,6 @@ case $opsys in
     AC_DEFINE(USG_SUBTTY_WORKS, 1, [Define for USG systems where it
       works to open a pty's tty in the parent process, then close and
       reopen it in the child.])
-
-    opsysfile="s/hpux10-20.h"
     ;;
 
   irix6-5)

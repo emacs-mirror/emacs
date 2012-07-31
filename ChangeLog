@@ -1,3 +1,7 @@
+2012-07-31  Glenn Morris  <rgm@gnu.org>
+
+	* configure.ac (opsysfile): Set to empty on hpux*.
+
 2012-07-30  Glenn Morris  <rgm@gnu.org>
 
 	* configure.ac (AH_BOTTOM): Use an include file, so that the
