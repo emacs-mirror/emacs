@@ -259,18 +259,16 @@
    define what signal number to use, and what si_code value to check.
 */
 
-#if defined(MPS_OS_O1) || defined(MPS_OS_SO)
+#if defined(MPS_OS_O1) || defined(MPS_OS_SO) || defined(MPS_OS_FR)
 #define PROT_SIGNAL (SIGSEGV)
-#elif defined(MPS_OS_FR) || defined(MPS_OS_XC)
+#elif defined(MPS_OS_XC)
 #define PROT_SIGNAL (SIGBUS)
 #endif
 
 #if defined(MPS_OS_XC)
 #define PROT_SIGINFO_GOOD(info) (1)
-#elif defined(MPS_OS_O1)
+#elif defined(MPS_OS_O1) || defined(MPS_OS_FR)
 #define PROT_SIGINFO_GOOD(info) ((info)->si_code == SEGV_ACCERR)
-#elif defined(MPS_OS_FR)
-#define PROT_SIGINFO_GOOD(info) ((info)->si_code == BUS_PAGE_FAULT)
 #endif
 
 
@@ -325,9 +323,9 @@
 
 #if defined(MPS_PF_W3I3MV)
 /* MSVC on Intel inlines mem* when optimizing */
-#define mps_lib_memset memset
-#define mps_lib_memcpy memcpy
-#define mps_lib_memcmp memcmp
+#define mps_lib_memset(p, c, l) memset(p, c, l)
+#define mps_lib_memcpy(p, q, s) memcpy(p, q, s)
+#define mps_lib_memcmp(p, q, s) memcmp(p, q, s)
 /* get prototypes for ANSI mem* */
 #include <string.h>
 #endif

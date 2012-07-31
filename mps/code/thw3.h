@@ -10,6 +10,9 @@
  * DWORD
  */
 
+#ifndef thw3_h
+#define thw3_h
+
 #include "mpm.h"
 
 #if !defined(MPS_OS_W3) /* .nt */
@@ -27,6 +30,8 @@ typedef struct ThreadStruct {   /* Win32 thread structure */
                                  * <code/thw3.c#thread.handle> */
   DWORD id;                     /* Thread id of thread */
 } ThreadStruct;
+
+#endif /* thw3_h */
 
 /* C. COPYRIGHT AND LICENSE
  *

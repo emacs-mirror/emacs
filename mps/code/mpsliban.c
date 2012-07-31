@@ -88,17 +88,17 @@ void mps_lib_assert_fail(const char *message)
 }
 
 
-void *mps_lib_memset(void *s, int c, size_t n)
+void *(mps_lib_memset)(void *s, int c, size_t n)
 {
   return memset(s, c, n);
 }
 
-void *mps_lib_memcpy(void *s1, const void *s2, size_t n)
+void *(mps_lib_memcpy)(void *s1, const void *s2, size_t n)
 {
   return memcpy(s1, s2, n);
 }
 
-int mps_lib_memcmp(const void *s1, const void *s2, size_t n)
+int (mps_lib_memcmp)(const void *s1, const void *s2, size_t n)
 {
   return memcmp(s1, s2, n);
 }
@@ -117,6 +117,12 @@ mps_clock_t mps_clocks_per_sec(void)
   return (unsigned long)CLOCKS_PER_SEC;
 }
 
+
+#ifdef MPS_BUILD_MV
+/* MSVC warning 4996 = stdio / C runtime 'unsafe' */
+/* Objects to: getenv.  See job001934. */
+#pragma warning( disable : 4996 )
+#endif
 
 unsigned long mps_lib_telemetry_control(void)
 {
