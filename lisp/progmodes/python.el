@@ -1615,11 +1615,12 @@ with user shells.  Runs the hook
 `inferior-python-mode-hook' (after the `comint-mode-hook' is
 run).  \(Type \\[describe-mode] in the process buffer for a list
 of commands.)"
-  (set-process-query-on-exit-flag
-   (get-buffer-process
-    (python-shell-make-comint
-     (python-shell-parse-command)
-     (python-shell-internal-get-process-name))) nil))
+  (let ((python-shell-enable-font-lock nil))
+    (set-process-query-on-exit-flag
+     (get-buffer-process
+      (python-shell-make-comint
+       (python-shell-parse-command)
+       (python-shell-internal-get-process-name))) nil)))
 
 (defun python-shell-get-process ()
   "Get inferior Python process for current buffer and return it."

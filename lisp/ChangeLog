@@ -1,3 +1,8 @@
+2012-07-31  Fabián Ezequiel Gallina  <fgallina@cuca>
+
+	* progmodes/python.el (run-python-internal): Disable font lock for
+	internal shells.
+
 2012-07-30  Stefan Merten  <smerten@oekonux.de>
 
 	* rst.el: Silence `checkdoc-ispell'.
