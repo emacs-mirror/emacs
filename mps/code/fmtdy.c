@@ -129,24 +129,30 @@ int dylan_wrapper_check(mps_word_t *w)
   /* The first field is traceable, the second field can be traced, */
   /* but doesn't need to be. */
   assert((ww[WP] == 1) || (ww[WP] == 3));
-
+  unused(ww);
+  
   /* Unpack the wrapper. */
 
   class = w[WC];         /* class */
+  unused(class);
   fh = w[WF];            /* fixed part header word */
   fl = fh >> 2;         /* fixed part length */
   ff = fh & 3;          /* fixed part format code */
   vh = w[WV];            /* variable part header */
   version = (vh >> (MPS_WORD_WIDTH - 8)) & 0xff;
   assert(version == 2); /* Code in this file only works for version 2 */
+  unused(version);
   reserved = (vh >> 8) & 0xff;
   assert(reserved == 0);
+  unused(reserved);
   vb = (vh >> 16) & 0xff;
+  unused(vb);
   es = (vh & 0xff) >> 3;/* element size */
   vf = vh & 7;          /* variable part format code */
   vt = w[WS];            /* vector total word (Dylan-tagged) */
   t = vt >> 2;          /* vector total length */
-
+  unused(t);
+  
   /* The second word is the class of the wrapped object. */
   /* It would be good to check which pool this is in. */
 
@@ -160,23 +166,26 @@ int dylan_wrapper_check(mps_word_t *w)
 
   /* Fixed part format 3 is reserved. */
   assert(ff != 3);
+  unused(ff);
 
   /* Zero length fixed part is only legal in format 0. */
   /* Current Dylan run-time does not honour this so I remove it for now */
   /* We probably want this check as then we can scan without having to */
   /* check for 0 fixed length fields as a special case */
   /* assert(ff == 0 || fl != 0); */
-
+  unused(fl);
   /* The fourth word contains the variable part format and element */
   /* size.  This assumes that DylanWorks is only going to use byte */
   /* vectors in the non-word case. */
 
   /* Variable part format 6 is reserved. */
   assert(vf != 6);
-
+  unused(vf);
+  
   /* There should be no shift in word vector formats. */
   assert((vf & 6) == 4 || es == 0);
-
+  unused(es);
+  
   /* The fifth word is the number of patterns in the pattern */
   /* vector.  This can be calculated from the fixed part length. */
   /* The word is also tagged like a DylanWorks integer. */
@@ -247,9 +256,11 @@ extern mps_addr_t dylan_weak_dependent(mps_addr_t parent)
   ff = fword & 3;
   /* traceable fixed part */
   assert(ff == 1);
+  unused(ff);
   fl = fword & ~(mps_word_t)3;
   /* at least one fixed field */
   assert(fl >= 1);
+  unused(fl);
   return (mps_addr_t) object[1];
 }
 
@@ -555,7 +566,8 @@ extern mps_res_t dylan_scan1_weak(mps_ss_t mps_ss, mps_addr_t *object_io)
   h = (mps_word_t)p[0];
   /* object should not be forwarded (as there is no forwarding method) */
   assert((h & 3) == 0);
-
+  unused(h);
+  
   res = mps_fix(mps_ss, p);
   if ( res != MPS_RES_OK ) return res;
 
@@ -576,7 +588,8 @@ extern mps_res_t dylan_scan1_weak(mps_ss_t mps_ss, mps_addr_t *object_io)
 
   /* weak vectors should have traceable fixed format */
   assert(ff == 1);
-
+  unused(ff);
+  
   assoc = (mps_addr_t *)p[0];
 
   vword = w[WV];
@@ -585,7 +598,8 @@ extern mps_res_t dylan_scan1_weak(mps_ss_t mps_ss, mps_addr_t *object_io)
 
   /* weak vectors should be non-stretchy traceable */
   assert(vf == 2);
-
+  unused(vf);
+  
   /* q is end of the object.  There are fl fixed fields, vl variable */
   /* fields and another slot that contains the vector length */
   q = p + fl + vl + 1;

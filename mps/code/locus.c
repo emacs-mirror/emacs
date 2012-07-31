@@ -300,7 +300,8 @@ Res ChainCondemnAuto(double *mortalityReturn, Chain chain, Trace trace)
     " (of $U)", (WriteFU)chain->genCount,
     " of this chain $P.", (WriteFP)chain,
     NULL ));
-
+  UNUSED(topCondemnedGenSerial); /* only used for DIAG */
+  
   /* Condemn everything in these zones. */
   if (condemnedSet != ZoneSetEMPTY) {
     res = TraceCondemnZones(trace, condemnedSet);

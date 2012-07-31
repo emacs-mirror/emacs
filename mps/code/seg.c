@@ -231,8 +231,8 @@ static void SegFinish(Seg seg)
   /* See <code/shield.c#shield.flush> */
   ShieldFlush(PoolArena(SegPool(seg)));
 
-  base = SegBase(seg);
   limit = SegLimit(seg);
+  
   TRACT_TRACT_FOR(tract, addr, arena, seg->firstTract, limit) {
     AVER(TractCheck(tract));  /* <design/check/#type.no-sig> */
     TractSetWhite(tract, TraceSetEMPTY);
