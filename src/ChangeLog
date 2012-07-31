@@ -1,5 +1,11 @@
 2012-07-31  Jan Djärv  <jan.h.d@swipnet.se>
 
+	* nsmenu.m (update_frame_tool_bar): Change key from NSObject* to id.
+
+	* nsterm.m (ns_draw_fringe_bitmap, ns_dumpglyphs_image): Use drawInRect
+	instead of compositeToPoint.
+	(applicationShouldTerminate): Pass NS String literal to NSRunAlertPanel.
+
 	*  nsfns.m, nsmenu.m, msterm.m: Adopt to struct frame/FVAR changes.
 
 2012-07-31  Dmitry Antipov  <dmantipov@yandex.ru>

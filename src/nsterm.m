@@ -2267,7 +2267,6 @@ ns_draw_fringe_bitmap (struct window *w, struct glyph_row *row,
   if (p->which)
     {
       NSRect r = NSMakeRect (p->x+xAdjust, p->y, p->wd, p->h);
-      NSPoint pt = r.origin;
       EmacsImage *img = bimgs[p->which - 1];
 
       if (!img)
@@ -2290,9 +2289,13 @@ ns_draw_fringe_bitmap (struct window *w, struct glyph_row *row,
          to erase the whole background. */
       [ns_lookup_indexed_color(face->background, f) set];
       NSRectFill (r);
-      pt.y += p->h;
       [img setXBMColor: ns_lookup_indexed_color(face->foreground, f)];
-      [img compositeToPoint: pt operation: NSCompositeSourceOver];
+      [img drawInRect: r
+              fromRect: NSZeroRect
+             operation: NSCompositeSourceOver
+              fraction: 1.0
+           respectFlipped: YES
+                hints: nil];
     }
   ns_unfocus (f);
 }
@@ -3035,8 +3038,12 @@ ns_dumpglyphs_image (struct glyph_string *s, NSRect r)
 
   /* Draw the image.. do we need to draw placeholder if img ==nil? */
   if (img != nil)
-    [img compositeToPoint: NSMakePoint (x, y + s->slice.height)
-                operation: NSCompositeSourceOver];
+      [img drawInRect: br
+              fromRect: NSZeroRect
+             operation: NSCompositeSourceOver
+              fraction: 1.0
+           respectFlipped: YES
+                hints: nil];
 
   if (s->hl == DRAW_CURSOR)
     {
@@ -4433,7 +4440,7 @@ ns_term_shutdown (int sig)
     return NSTerminateNow;
 
     ret = NSRunAlertPanel(ns_app_name,
-                          [NSString stringWithUTF8String:"Exit requested.  Would you like to Save Buffers and Exit, or Cancel the request?"],
+                          @"Exit requested.  Would you like to Save Buffers and Exit, or Cancel the request?",
                           @"Save Buffers and Exit", @"Cancel", nil);
 
     if (ret == NSAlertDefaultReturn)

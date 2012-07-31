@@ -1102,7 +1102,7 @@ update_frame_tool_bar (FRAME_PTR f)
       NSDictionary *dict = [toolbar configurationDictionary];
       NSMutableDictionary *newDict = [dict mutableCopy];
       NSEnumerator *keys = [[dict allKeys] objectEnumerator];
-      NSObject *key;
+      id key;
       while ((key = [keys nextObject]) != nil)
         {
           NSObject *val = [dict objectForKey: key];
