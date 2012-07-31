@@ -31,6 +31,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define if building universal (internal helper macro) */
 #undef AC_APPLE_UNIVERSAL_BUILD
 
+/* Define to use the convention that & in the full name stands for the login
+   id. */
+#undef AMPERSAND_FULL_NAME
+
 /* Define to the number of bits in type 'ptrdiff_t'. */
 #undef BITSIZEOF_PTRDIFF_T
 
@@ -1155,6 +1159,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you are using NS windowing under GNUstep. */
 #undef NS_IMPL_GNUSTEP
 
+/* Name of the file to open to get a null file, or a data sink. */
+#undef NULL_DEVICE
+
 /* Define to 1 if the nlist n_name member is a pointer */
 #undef N_NAME_POINTER
 
@@ -1236,6 +1243,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define if emacs.c needs to call run_time_remap; for HPUX. */
 #undef RUN_TIME_REMAP
+
+/* Character that separates PATH elements. */
+#undef SEPCHAR
 
 /* Define if process.c:child_setup should not call setpgrp. */
 #undef SETPGRP_RELEASES_CTTY
@@ -1320,6 +1330,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define if the system has Unix98 PTYs. */
 #undef UNIX98_PTYS
+
+/* How to get a user's full name. */
+#undef USER_FULL_NAME
 
 /* Define to 1 if using GTK. */
 #undef USE_GTK
@@ -1556,6 +1569,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define as a signed type of the same size as size_t. */
 #undef ssize_t
+
+/* Define to enable asynchronous subprocesses. */
+#undef subprocesses
 
 /* Define to any substitute for sys_siglist. */
 #undef sys_siglist

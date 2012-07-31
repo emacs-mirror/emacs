@@ -11283,8 +11283,22 @@ fi
 
 LIBXP=
 if test "${USE_X_TOOLKIT}" = "MOTIF"; then
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for Motif version 2.1" >&5
-$as_echo_n "checking for Motif version 2.1... " >&6; }
+  # OpenMotif may be installed in such a way on some GNU/Linux systems.
+  if test -d /usr/include/openmotif; then
+    CPPFLAGS="-I/usr/include/openmotif $CPPFLAGS"
+    emacs_cv_openmotif=yes
+    case "$canonical" in
+      x86_64-*-linux-gnu* | powerpc64-*-linux-gnu* | sparc64-*-linux-gnu*)
+      test -d /usr/lib64/openmotif && LDFLAGS="-L/usr/lib64/openmotif $LDFLAGS"
+      ;;
+      *)
+      test -d /usr/lib/openmotif && LDFLAGS="-L/usr/lib/openmotif $LDFLAGS"
+    esac
+  else
+    emacs_cv_openmotif=no
+  fi
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for (Open)Motif version 2.1" >&5
+$as_echo_n "checking for (Open)Motif version 2.1... " >&6; }
 if test "${emacs_cv_motif_version_2_1+set}" = set; then :
   $as_echo_n "(cached) " >&6
 else
@@ -11353,6 +11367,9 @@ if test "x$ac_cv_lib_Xp_XpCreateContext" = x""yes; then :
   LIBXP=-lXp
 fi
 
+    if test x$emacs_cv_openmotif = xyes; then
+      REAL_CPPFLAGS="-I/usr/include/openmotif $REAL_CPPFLAGS"
+    fi
   else
     { $as_echo "$as_me:${as_lineno-$LINENO}: checking for LessTif where some systems put it" >&5
 $as_echo_n "checking for LessTif where some systems put it... " >&6; }
@@ -13031,7 +13048,7 @@ fi
 ## version number A.09.05.
 ## You can fix the math library by installing patch number PHSS_4630.
 ## But we can fix it more reliably for Emacs by just not using rint.
-## We also skip HAVE_RANDOM - see comments in src/s/hpux10-20.h.
+## We also skip HAVE_RANDOM - see comments in src/conf_post.h.
 case $opsys in
    hpux*) : ;;
    *) for ac_func in random rint
@@ -14625,6 +14642,10 @@ fi
 
 
 
+$as_echo "#define AMPERSAND_FULL_NAME 1" >>confdefs.h
+
+
+
 $as_echo "#define CLASH_DETECTION 1" >>confdefs.h
 
 
@@ -14635,6 +14656,22 @@ $as_echo "#define HAVE_PTYS 1" >>confdefs.h
 
 
 $as_echo "#define HAVE_SOCKETS 1" >>confdefs.h
+
+
+
+$as_echo "#define NULL_DEVICE \"/dev/null\"" >>confdefs.h
+
+
+
+$as_echo "#define SEPCHAR ':'" >>confdefs.h
+
+
+
+$as_echo "#define subprocesses 1" >>confdefs.h
+
+
+
+$as_echo "#define USER_FULL_NAME pw->pw_gecos" >>confdefs.h
 
 
 
