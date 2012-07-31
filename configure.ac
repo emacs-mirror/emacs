@@ -3889,9 +3889,8 @@ AC_DEFINE_UNQUOTED(EMACS_CONFIGURATION,  "${canonical}",
 		   [Define to the canonical Emacs configuration name.])
 AC_DEFINE_UNQUOTED(EMACS_CONFIG_OPTIONS, "${ac_configure_args}",
 		   [Define to the options passed to configure.])
-if test -z "No longer used"; then
-  AC_DEFINE(config_opsysfile, [], [Define to the used os dependent file.])
-fi
+AH_TEMPLATE(config_opsysfile, [Some platforms that do not use configure
+  define this to include extra configuration information.])
 
 XMENU_OBJ=
 XOBJ=
