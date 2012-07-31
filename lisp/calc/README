@@ -74,7 +74,7 @@ Emacs 24.2
 
 Algebraic simplification mode is now the default.
 To restrict to the limited simplifications given by the former
-default simplification mode, use `m L'.
+default simplification mode, use `m I'.
 
 Emacs 24.1
 

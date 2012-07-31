@@ -642,7 +642,7 @@ C-w  Describe how there is no warranty for Calc."
    '("Deg, Rad, HMS; Frac; Polar; Inf; Alg, Total; Symb; Vec/mat"
      "Working; Xtensions; Mode-save; preserve Embedded modes"
      "SHIFT + Shifted-prefixes, mode-Filename; Record; reCompute"
-     "SHIFT + simplify: Off, Num, Limited, Default, Bin, Ext, Units")
+     "SHIFT + simplify: Off, Num, basIc, Algebraic, Bin, Ext, Units")
    "mode" ?m))
 
 

@@ -510,24 +510,24 @@
   (interactive "P")
   (calc-wrapper
    (calc-set-simplify-mode 'none arg
-			   "All default simplifications are disabled")))
+			   "Simplification is disabled")))
 
 (defun calc-num-simplify-mode (arg)
   (interactive "P")
   (calc-wrapper
    (calc-set-simplify-mode 'num arg
-			   "Default simplifications apply only if arguments are numeric")))
+			   "Basic simplifications apply only if arguments are numeric")))
 
 (defun calc-default-simplify-mode (arg)
   (interactive "P")
   (cond ((or (not arg) (= arg 3))
          (calc-wrapper
 	  (calc-set-simplify-mode
-	   'alg nil "Default algebraic simplifications enabled")))
+	   'alg nil "Algebraic simplification occurs by default")))
          ((= arg 1)
 	 (calc-wrapper
 	  (calc-set-simplify-mode
-	   nil nil "Limited simplifications occur by default")))
+	   nil nil "Only basic simplifications occur by default")))
 	((= arg 0) (calc-num-simplify-mode 1))
 	((< arg 0) (calc-no-simplify-mode 1))
 	((= arg 2) (calc-bin-simplify-mode 1))
@@ -542,11 +542,17 @@
 			   (format "Binary simplification occurs by default (word size=%d)"
 				   calc-word-size))))
 
-(defun calc-limited-simplify-mode (arg)
+(defun calc-basic-simplify-mode (arg)
   (interactive "P")
   (calc-wrapper
    (calc-set-simplify-mode nil arg
-			   "Limited simplifications occur by default")))
+			   "Only basic simplifications occur by default")))
+
+(defun calc-alg-simplify-mode (arg)
+  (interactive "P")
+  (calc-wrapper
+   (calc-set-simplify-mode 'alg arg
+			   "Algebraic simplification occurs by default")))
 
 (defun calc-ext-simplify-mode (arg)
   (interactive "P")

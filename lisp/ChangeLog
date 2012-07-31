@@ -1,3 +1,17 @@
+2012-07-31  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc-mode.el (calc-basic-simplification-mode): Rename from
+	`calc-limited-simplification-mode'.
+	(calc-alg-simplification-mode): New function.
+
+	* calc.el (calc-set-mode-line): Adjust mode line display for
+	basic simplification mode.
+
+	* calc-help.el (calc-m-prefix-help): Update help message.
+
+	* calc-ext.el (calc-init-extensions): Add bindings and autoloads
+	for `calc-basic-simplify-mode' and `calc-alg-simplify-mode'.
+
 2012-07-31  Bastien Guerry  <bzg@gnu.org>
 
 	* man.el (man): Fix comment.  (bug#12101)

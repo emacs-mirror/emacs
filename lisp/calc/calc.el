@@ -1760,7 +1760,7 @@ See calc-keypad for details."
 			   ((eq calc-simplify-mode 'alg) "")
 			   ((eq calc-simplify-mode 'ext) "ExtSimp ")
 			   ((eq calc-simplify-mode 'units) "UnitSimp ")
-			   (t "LimSimp "))
+			   (t "BasicSimp "))
 
 		     ;; Display modes
 		     (cond ((= calc-number-radix 10) "")
