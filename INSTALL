@@ -674,10 +674,7 @@ see which operating system and architecture description files from
 `src/config.h', and change the two `#include' directives to include
 the appropriate system and architecture description files.
 
-2) Edit `./src/config.h' to set the right options for your system.  If
-you need to override any of the definitions in the s/*.h and m/*.h
-files for your system and machine, do so by editing config.h, not by
-changing the s/*.h and m/*.h files.
+2) Edit `./src/config.h' to set the right options for your system.
 
 3) Create `Makefile' files in various directories from the
 corresponding `Makefile.in' files.  This isn't so hard, just a matter
