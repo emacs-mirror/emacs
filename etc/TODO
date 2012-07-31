@@ -614,6 +614,15 @@ http://lists.gnu.org/archive/html/emacs-devel/2008-02/msg02234.html
 
 *** Bugs
 
+**** The event loop relies on polling and that hurts performance.
+     A better strategy is to have the select part in its own thread and let
+     the main thread communicate with that thread (see how Gdk does it for
+     inspiration).  A problem is that redraw don't happen during resize,
+     because we can't break out from the NSapp loop during resize.
+     There is a special trick to detect mouse press in the lower right
+     corner and track mouse movements, but this does not work well, and is
+     not scalable to the new Lion "resize on every window edge" behavior.
+
 **** (mouse-avoidance-mode 'banish) then minimize Emacs, will pop window back
 up on top of all others
 

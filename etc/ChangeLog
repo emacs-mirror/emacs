@@ -1,3 +1,7 @@
+2012-07-31  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* TODO (NS port): Add text about event loop.
+
 2012-07-29  Paul Eggert  <eggert@cs.ucla.edu>
 
 	deactive->inactive, inactivate->deactivate spelling fixes (Bug#10150)
