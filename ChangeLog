@@ -1,3 +1,7 @@
+2012-07-31  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* Makefile.in (install-arch-indep): Avoid eval.
+
 2012-07-31  Glenn Morris  <rgm@gnu.org>
 
 	* configure.ac (opsysfile, S_FILE): Now they are always empty.
