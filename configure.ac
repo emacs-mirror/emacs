@@ -365,9 +365,6 @@ case "${srcdir}" in
   *  ) srcdir="`(cd ${srcdir}; pwd)`" ;;
 esac
 
-#### Given the configuration name, set opsysfile to the
-#### name of s/*.h file we should use.
-
 ### Canonicalize the configuration name.
 
 AC_CANONICAL_HOST
@@ -554,8 +551,6 @@ if test $unported = yes; then
   AC_MSG_ERROR([Emacs hasn't been ported to `${canonical}' systems.
 Check `etc/MACHINES' for recognized configuration names.])
 fi
-
-opsysfile="s/${opsys}.h"
 
 
 #### Choose a compiler.
@@ -3689,7 +3684,6 @@ AH_TEMPLATE(USG5_4, [Define if the system is compatible with System V Release 4.
 
 case $opsys in
   aix4-2)
-    opsysfile=
     AC_DEFINE(USG, [])
     AC_DEFINE(USG5, [])
     dnl This symbol should be defined on AIX Version 3  ???????
@@ -3701,12 +3695,10 @@ case $opsys in
     ;;
 
   cygwin)
-    opsysfile=
     AC_DEFINE(CYGWIN, 1, [Define if the system is Cygwin.])
     ;;
 
   darwin)
-    opsysfile=
     dnl BSD4_3 and BSD4_4 are already defined in sys/param.h.
     AC_DEFINE(BSD4_2, [])
     AC_DEFINE(BSD_SYSTEM, [])
@@ -3718,7 +3710,6 @@ case $opsys in
     ;;
 
   freebsd)
-    opsysfile=
     AC_DEFINE(BSD4_2, [])
     dnl Hack to avoid calling AC_PREPROC_IFELSE multiple times.
     dnl Would not be needed with autoconf >= 2.67, where the
@@ -3736,20 +3727,17 @@ case $opsys in
     ;;
 
   gnu-linux | gnu-kfreebsd )
-    opsysfile=
     AC_DEFINE(USG, [])
     AC_DEFINE(GNU_LINUX, [], [Define if ths system is compatible with GNU/Linux.])
     ;;
 
   hpux*)
-    opsysfile=
     AC_DEFINE(USG, [])
     AC_DEFINE(USG5, [])
     AC_DEFINE(HPUX, [], [Define if the system is HPUX.])
     ;;
 
   irix6-5)
-    opsysfile=
     AC_DEFINE(USG, [])
     AC_DEFINE(USG5, [])
     AC_DEFINE(USG5_4, [])
@@ -3757,7 +3745,6 @@ case $opsys in
     ;;
 
   sol2*)
-    opsysfile=
     AC_DEFINE(USG, [])
     AC_DEFINE(USG5, [])
     AC_DEFINE(USG5_4, [])
@@ -3765,7 +3752,6 @@ case $opsys in
     ;;
 
   unixware)
-    opsysfile=
     AC_DEFINE(USG, [])
     AC_DEFINE(USG5, [])
     AC_DEFINE(USG5_4, [])
@@ -3783,8 +3769,6 @@ case $opsys in
       G_SLICE environment variable to "always-malloc" at startup, if
       using GTK.])
     ;;
-
-  gnu) opsysfile= ;;
 
   hpux11)
     dnl See comments in sysdep.c:sys_signal.
@@ -3806,12 +3790,9 @@ case $opsys in
       should not call setpgrp.])
     ;;
 
-  netbsd | openbsd ) opsysfile= ;;
-
   sol2-10)
     AC_DEFINE(_STRUCTURED_PROC, 1, [Needed for system_process_attributes
       on Solaris.])
-    opsysfile=
     ;;
 esac
 
@@ -3865,11 +3846,7 @@ AC_SUBST(GNUSTEP_CFLAGS)
 AC_SUBST(CFLAGS)
 ## Used in lwlib/Makefile.in.
 AC_SUBST(X_TOOLKIT_TYPE)
-if test -n "${opsysfile}"; then
-  S_FILE="\$(srcdir)/${opsysfile}"
-else
-  S_FILE=
-fi
+S_FILE=
 AC_SUBST(S_FILE)
 AC_SUBST(ns_appdir)
 AC_SUBST(ns_appbindir)
@@ -3882,9 +3859,8 @@ AC_DEFINE_UNQUOTED(EMACS_CONFIGURATION,  "${canonical}",
 		   [Define to the canonical Emacs configuration name.])
 AC_DEFINE_UNQUOTED(EMACS_CONFIG_OPTIONS, "${ac_configure_args}",
 		   [Define to the options passed to configure.])
-if test -n "$opsysfile"; then
-  AC_DEFINE_UNQUOTED(config_opsysfile, "${opsysfile}",
-		     [Define to the used os dependent file.])
+if test -z "No longer used"; then
+  AC_DEFINE(config_opsysfile, [], [Define to the used os dependent file.])
 fi
 
 XMENU_OBJ=
@@ -4247,7 +4223,6 @@ echo "
 Configured for \`${canonical}'.
 
   Where should the build process find the source code?    ${srcdir}
-  What operating system file should Emacs use?            ${opsysfile:-none}
   What compiler should emacs be built with?               ${CC} ${CFLAGS}
   Should Emacs use the GNU version of malloc?             ${GNU_MALLOC}${GNU_MALLOC_reason}
   Should Emacs use a relocating allocator for buffers?    ${REL_ALLOC}

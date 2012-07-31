@@ -1,5 +1,7 @@
 2012-07-31  Glenn Morris  <rgm@gnu.org>
 
+	* configure.ac (opsysfile, S_FILE): Now they are always empty.
+
 	* configure.ac (opsysfile): Forgot to set it to empty on sol2-10
 	when removing src/s/sol2-6.h yesterday.
 
