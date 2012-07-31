@@ -564,7 +564,8 @@ means list those buffers and no others."
 	(buffer (get-buffer-create "*Buffer List*")))
     (with-current-buffer buffer
       (Buffer-menu-mode)
-      (setq Buffer-menu-files-only (and files-only (>= files-only 0)))
+      (setq Buffer-menu-files-only
+	    (and files-only (>= (prefix-numeric-value files-only) 0)))
       (list-buffers--refresh buffer-list old-buffer)
       (tabulated-list-print))
     buffer))

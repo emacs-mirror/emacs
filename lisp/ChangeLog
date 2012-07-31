@@ -1,10 +1,15 @@
+2012-07-31  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* buff-menu.el (list-buffers-noselect): Use prefix-numeric-value.
+	(Bug#12108)
+
 2012-07-31  Jay Belanger  <jay.p.belanger@gmail.com>
 
 	* calc-mode.el (calc-basic-simplification-mode): Rename from
 	`calc-limited-simplification-mode'.
 	(calc-alg-simplification-mode): New function.
 	(calc-set-simplify-mode):  Adjust message.
-	
+
 	* calc.el (calc-set-mode-line): Adjust mode line display for
 	basic simplification mode.
 
@@ -3862,7 +3867,7 @@
 	* cus-edit.el (custom-variable-documentation): Simplify with format.
 
 2012-05-01  Aaron S. Hawley  <aaron.s.hawley@gmail.com>
-            Stefan Monnier  <monnier@iro.umontreal.ca>
+	    Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* simple.el (suggest-key-bindings, execute-extended-command):
 	Move from keyboard.c.
@@ -6190,7 +6195,7 @@
 	(save-place-to-alist): Use it.
 
 2012-02-17  Lawrence Mitchell  <wence@gmx.li>
-            Stefan Monnier  <monnier@iro.umontreal.ca>
+	    Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* newcomment.el (uncomment-region-default): Don't leave extra space
 	when an arg is provided (bug#8150).
@@ -14645,7 +14650,7 @@
 	* textmodes/reftex-dcr.el (reftex-view-crossref): at at -> at a
 
 2011-05-10  Glenn Morris  <rgm@gnu.org>
-            Stefan Monnier  <monnier@iro.umontreal.ca>
+	    Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* files.el (hack-one-local-variable-eval-safep):
 	Consider "eval: (foo-mode)" to be safe.  (Bug#8613)
