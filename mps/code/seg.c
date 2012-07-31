@@ -210,7 +210,7 @@ failInit:
 static void SegFinish(Seg seg)
 {
   Arena arena;
-  Addr addr, base, limit;
+  Addr addr, limit;
   Tract tract;
   SegClass class;
 
