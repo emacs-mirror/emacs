@@ -1,3 +1,7 @@
+2012-07-31  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.m (openFiles): Fix previous checkin.
+
 2012-07-31  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* indent.c (compute_motion): Remove unused local.

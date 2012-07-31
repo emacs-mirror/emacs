@@ -4477,7 +4477,7 @@ ns_term_shutdown (int sig)
   /* Don't open files from the command line, Cocoa parses the command line
      wrong anyway, --option value tries to open value if --option is the last
      option.  */
-  if (ns_ignore_open_file)
+  if (ns_do_open_file)
     {
       NSEnumerator *files = [fileList objectEnumerator];
       NSString *file;
