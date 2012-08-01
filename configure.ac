@@ -3158,6 +3158,20 @@ AC_DEFINE(subprocesses, 1, [Define to enable asynchronous subprocesses.])
 AC_DEFINE(USER_FULL_NAME, [pw->pw_gecos], [How to get a user's full name.])
 
 
+dnl Only used on MS platforms.
+AH_TEMPLATE(DEVICE_SEP, [Character that separates a device in a file name.])
+
+AC_DEFINE(IS_DEVICE_SEP(_c_), 0,
+  [Returns true if character is a device separator.])
+
+AC_DEFINE(IS_DIRECTORY_SEP(_c_), [((_c_) == DIRECTORY_SEP)],
+  [Returns true if character is a directory separator.])
+
+dnl On MS, this also accepts IS_DEVICE_SEP.
+AC_DEFINE(IS_ANY_SEP(_c_), [(IS_DIRECTORY_SEP (_c_))],
+  [Returns true if character is any form of separator.])
+
+
 AH_TEMPLATE(NO_EDITRES, [Define if XEditRes should not be used.])
 
 case $opsys in
