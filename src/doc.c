@@ -508,7 +508,7 @@ store_function_docstring (Lisp_Object obj, ptrdiff_t offset)
 {
   /* Don't use indirect_function here, or defaliases will apply their
      docstrings to the base functions (Bug#2603).  */
-  Lisp_Object fun = SYMBOLP (obj) ? XSYMBOL (obj)->function : obj;
+  Lisp_Object fun = SYMBOLP (obj) ? SVAR (XSYMBOL (obj), function) : obj;
 
   /* The type determines where the docstring is stored.  */
 

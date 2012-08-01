@@ -3922,13 +3922,13 @@ init_obarray (void)
   /* Fmake_symbol inits fields of new symbols with Qunbound and Qnil,
      so those two need to be fixed manually.  */
   SET_SYMBOL_VAL (XSYMBOL (Qunbound), Qunbound);
-  XSYMBOL (Qunbound)->function = Qunbound;
-  XSYMBOL (Qunbound)->plist = Qnil;
+  SVAR (XSYMBOL (Qunbound), function) = Qunbound;
+  SVAR (XSYMBOL (Qunbound), plist) = Qnil;
   /* XSYMBOL (Qnil)->function = Qunbound; */
   SET_SYMBOL_VAL (XSYMBOL (Qnil), Qnil);
   XSYMBOL (Qnil)->constant = 1;
   XSYMBOL (Qnil)->declared_special = 1;
-  XSYMBOL (Qnil)->plist = Qnil;
+  SVAR (XSYMBOL (Qnil), plist) = Qnil;
 
   Qt = intern_c_string ("t");
   SET_SYMBOL_VAL (XSYMBOL (Qt), Qt);
@@ -3950,7 +3950,7 @@ defsubr (struct Lisp_Subr *sname)
   Lisp_Object sym;
   sym = intern_c_string (sname->symbol_name);
   XSETTYPED_PVECTYPE (sname, size, PVEC_SUBR);
-  XSETSUBR (XSYMBOL (sym)->function, sname);
+  XSETSUBR (SVAR (XSYMBOL (sym), function), sname);
 }
 
 #ifdef NOTDEF /* Use fset in subr.el now!  */

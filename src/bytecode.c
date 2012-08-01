@@ -818,7 +818,7 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 		&& !EQ (val, Qunbound)
 		&& !XSYMBOL (sym)->redirect
 		&& !SYMBOL_CONSTANT_P (sym))
-	      XSYMBOL (sym)->val.value = val;
+	      SVAR (XSYMBOL (sym), val.value) = val;
 	    else
 	      {
 		BEFORE_POTENTIAL_GC ();

@@ -3518,11 +3518,11 @@ Its value and function definition are void, and its property list is nil.  */)
   MALLOC_UNBLOCK_INPUT;
 
   p = XSYMBOL (val);
-  p->xname = name;
-  p->plist = Qnil;
+  SVAR (p, xname) = name;
+  SVAR (p, plist) = Qnil;
   p->redirect = SYMBOL_PLAINVAL;
   SET_SYMBOL_VAL (p, Qunbound);
-  p->function = Qunbound;
+  SVAR (p, function) = Qunbound;
   p->next = NULL;
   p->gcmarkbit = 0;
   p->interned = SYMBOL_UNINTERNED;
@@ -4321,7 +4321,7 @@ live_symbol_p (struct mem_node *m, void *p)
 	      && offset < (SYMBOL_BLOCK_SIZE * sizeof b->symbols[0])
 	      && (b != symbol_block
 		  || offset / sizeof b->symbols[0] < symbol_block_index)
-	      && !EQ (((struct Lisp_Symbol *) p)->function, Vdead));
+	      && !EQ (SVAR (((struct Lisp_Symbol *)p), function), Vdead));
     }
   else
     return 0;
@@ -6073,8 +6073,8 @@ mark_object (Lisp_Object arg)
 	  break;
 	CHECK_ALLOCATED_AND_LIVE (live_symbol_p);
 	ptr->gcmarkbit = 1;
-	mark_object (ptr->function);
-	mark_object (ptr->plist);
+	mark_object (SVAR (ptr, function));
+	mark_object (SVAR (ptr, plist));
 	switch (ptr->redirect)
 	  {
 	  case SYMBOL_PLAINVAL: mark_object (SYMBOL_VAL (ptr)); break;
@@ -6105,9 +6105,9 @@ mark_object (Lisp_Object arg)
 	    break;
 	  default: abort ();
 	  }
-	if (!PURE_POINTER_P (XSTRING (ptr->xname)))
-	  MARK_STRING (XSTRING (ptr->xname));
-	MARK_INTERVAL_TREE (STRING_INTERVALS (ptr->xname));
+	if (!PURE_POINTER_P (XSTRING (SVAR (ptr, xname))))
+	  MARK_STRING (XSTRING (SVAR (ptr, xname)));
+	MARK_INTERVAL_TREE (STRING_INTERVALS (SVAR (ptr, xname)));
 
 	ptr = ptr->next;
 	if (ptr)
@@ -6473,7 +6473,7 @@ gc_sweep (void)
 	    /* Check if the symbol was created during loadup.  In such a case
 	       it might be pointed to by pure bytecode which we don't trace,
 	       so we conservatively assume that it is live.  */
-	    int pure_p = PURE_POINTER_P (XSTRING (sym->s.xname));
+	    int pure_p = PURE_POINTER_P (XSTRING (sym->s.INTERNAL_FIELD (xname)));
 
 	    if (!sym->s.gcmarkbit && !pure_p)
 	      {
@@ -6482,7 +6482,7 @@ gc_sweep (void)
 		sym->s.next = symbol_free_list;
 		symbol_free_list = &sym->s;
 #if GC_MARK_STACK
-		symbol_free_list->function = Vdead;
+		SVAR (symbol_free_list, function) = Vdead;
 #endif
 		++this_free;
 	      }
@@ -6490,7 +6490,7 @@ gc_sweep (void)
 	      {
 		++num_used;
 		if (!pure_p)
-		  UNMARK_STRING (XSTRING (sym->s.xname));
+		  UNMARK_STRING (XSTRING (sym->s.INTERNAL_FIELD (xname)));
 		sym->s.gcmarkbit = 0;
 	      }
 	  }
@@ -6675,10 +6675,10 @@ which_symbols (Lisp_Object obj, EMACS_INT find_max)
 	       XSETSYMBOL (tem, sym);
 	       val = find_symbol_value (tem);
 	       if (EQ (val, obj)
-		   || EQ (sym->function, obj)
-		   || (!NILP (sym->function)
-		       && COMPILEDP (sym->function)
-		       && EQ (AREF (sym->function, COMPILED_BYTECODE), obj))
+		   || EQ (SVAR (sym, function), obj)
+		   || (!NILP (SVAR (sym, function))
+		       && COMPILEDP (SVAR (sym, function))
+		       && EQ (AREF (SVAR (sym, function), COMPILED_BYTECODE), obj))
 		   || (!NILP (val)
 		       && COMPILEDP (val)
 		       && EQ (AREF (val, COMPILED_BYTECODE), obj)))

@@ -1868,7 +1868,7 @@ This is the last value stored with `(put SYMBOL PROPNAME VALUE)'.  */)
   (Lisp_Object symbol, Lisp_Object propname)
 {
   CHECK_SYMBOL (symbol);
-  return Fplist_get (XSYMBOL (symbol)->plist, propname);
+  return Fplist_get (SVAR (XSYMBOL (symbol), plist), propname);
 }
 
 DEFUN ("plist-put", Fplist_put, Splist_put, 3, 3, 0,
@@ -1910,8 +1910,8 @@ It can be retrieved with `(get SYMBOL PROPNAME)'.  */)
   (Lisp_Object symbol, Lisp_Object propname, Lisp_Object value)
 {
   CHECK_SYMBOL (symbol);
-  XSYMBOL (symbol)->plist
-    = Fplist_put (XSYMBOL (symbol)->plist, propname, value);
+  SVAR (XSYMBOL (symbol), plist)
+    = Fplist_put (SVAR (XSYMBOL (symbol), plist), propname, value);
   return value;
 }
 

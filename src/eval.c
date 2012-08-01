@@ -976,7 +976,7 @@ definitions to shadow the loaded ones for use in file byte-compilation.  */)
 	  tem = Fassq (sym, environment);
 	  if (NILP (tem))
 	    {
-	      def = XSYMBOL (sym)->function;
+	      def = SVAR (XSYMBOL (sym), function);
 	      if (!EQ (def, Qunbound))
 		continue;
 	    }
@@ -1893,9 +1893,9 @@ this does nothing and returns nil.  */)
   CHECK_STRING (file);
 
   /* If function is defined and not as an autoload, don't override.  */
-  if (!EQ (XSYMBOL (function)->function, Qunbound)
-      && !(CONSP (XSYMBOL (function)->function)
-	   && EQ (XCAR (XSYMBOL (function)->function), Qautoload)))
+  if (!EQ (SVAR (XSYMBOL (function), function), Qunbound)
+      && !(CONSP (SVAR (XSYMBOL (function), function))
+	   && EQ (XCAR (SVAR (XSYMBOL (function), function)), Qautoload)))
     return Qnil;
 
   if (NILP (Vpurify_flag))
@@ -2081,7 +2081,7 @@ eval_sub (Lisp_Object form)
   /* Optimize for no indirection.  */
   fun = original_fun;
   if (SYMBOLP (fun) && !EQ (fun, Qunbound)
-      && (fun = XSYMBOL (fun)->function, SYMBOLP (fun)))
+      && (fun = SVAR (XSYMBOL (fun), function), SYMBOLP (fun)))
     fun = indirect_function (fun);
 
   if (SUBRP (fun))
@@ -2266,7 +2266,7 @@ usage: (apply FUNCTION &rest ARGUMENTS)  */)
 
   /* Optimize for no indirection.  */
   if (SYMBOLP (fun) && !EQ (fun, Qunbound)
-      && (fun = XSYMBOL (fun)->function, SYMBOLP (fun)))
+      && (fun = SVAR (XSYMBOL (fun), function), SYMBOLP (fun)))
     fun = indirect_function (fun);
   if (EQ (fun, Qunbound))
     {
@@ -2771,7 +2771,7 @@ usage: (funcall FUNCTION &rest ARGUMENTS)  */)
   /* Optimize for no indirection.  */
   fun = original_fun;
   if (SYMBOLP (fun) && !EQ (fun, Qunbound)
-      && (fun = XSYMBOL (fun)->function, SYMBOLP (fun)))
+      && (fun = SVAR (XSYMBOL (fun), function), SYMBOLP (fun)))
     fun = indirect_function (fun);
 
   if (SUBRP (fun))

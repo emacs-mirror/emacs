@@ -1039,6 +1039,11 @@ enum symbol_redirect
   SYMBOL_FORWARDED = 3
 };
 
+/* Most code should use this macro to access
+   Lisp fields in struct Lisp_Symbol.  */
+
+#define SVAR(sym, field) ((sym)->INTERNAL_FIELD (field))
+
 struct Lisp_Symbol
 {
   unsigned gcmarkbit : 1;
@@ -1066,22 +1071,22 @@ struct Lisp_Symbol
   /* The symbol's name, as a Lisp string.
      The name "xname" is used to intentionally break code referring to
      the old field "name" of type pointer to struct Lisp_String.  */
-  Lisp_Object xname;
+  Lisp_Object INTERNAL_FIELD (xname);
 
   /* Value of the symbol or Qunbound if unbound.  Which alternative of the
      union is used depends on the `redirect' field above.  */
   union {
-    Lisp_Object value;
+    Lisp_Object INTERNAL_FIELD (value);
     struct Lisp_Symbol *alias;
     struct Lisp_Buffer_Local_Value *blv;
     union Lisp_Fwd *fwd;
   } val;
 
   /* Function value of the symbol or Qunbound if not fboundp.  */
-  Lisp_Object function;
+  Lisp_Object INTERNAL_FIELD (function);
 
   /* The symbol's property list.  */
-  Lisp_Object plist;
+  Lisp_Object INTERNAL_FIELD (plist);
 
   /* Next symbol in obarray bucket, if the symbol is interned.  */
   struct Lisp_Symbol *next;
@@ -1090,7 +1095,7 @@ struct Lisp_Symbol
 /* Value is name of symbol.  */
 
 #define SYMBOL_VAL(sym)   \
-  (eassert ((sym)->redirect == SYMBOL_PLAINVAL),  (sym)->val.value)
+  (eassert ((sym)->redirect == SYMBOL_PLAINVAL),  SVAR (sym, val.value))
 #define SYMBOL_ALIAS(sym) \
   (eassert ((sym)->redirect == SYMBOL_VARALIAS),  (sym)->val.alias)
 #define SYMBOL_BLV(sym)   \
@@ -1098,7 +1103,7 @@ struct Lisp_Symbol
 #define SYMBOL_FWD(sym)   \
   (eassert ((sym)->redirect == SYMBOL_FORWARDED), (sym)->val.fwd)
 #define SET_SYMBOL_VAL(sym, v)     \
-  (eassert ((sym)->redirect == SYMBOL_PLAINVAL),  (sym)->val.value = (v))
+  (eassert ((sym)->redirect == SYMBOL_PLAINVAL),  SVAR (sym, val.value) = (v))
 #define SET_SYMBOL_ALIAS(sym, v)   \
   (eassert ((sym)->redirect == SYMBOL_VARALIAS),  (sym)->val.alias = (v))
 #define SET_SYMBOL_BLV(sym, v)     \
@@ -1107,7 +1112,7 @@ struct Lisp_Symbol
   (eassert ((sym)->redirect == SYMBOL_FORWARDED), (sym)->val.fwd = (v))
 
 #define SYMBOL_NAME(sym)  \
-     LISP_MAKE_RVALUE (XSYMBOL (sym)->xname)
+     LISP_MAKE_RVALUE (SVAR (XSYMBOL (sym), xname))
 
 /* Value is non-zero if SYM is an interned symbol.  */
 
