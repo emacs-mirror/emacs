@@ -1,3 +1,7 @@
+2012-08-01  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (config_h): Add conf_post.h.
+
 2012-07-31  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Avoid unused variable warning if --with-x-toolkit=motif.
