@@ -1,3 +1,7 @@
+2012-08-01  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (try_window_id): Use WVAR in IF_DEBUG code.
+
 2012-08-01  Glenn Morris  <rgm@gnu.org>
 
 	* s/msdos.h: Remove file.

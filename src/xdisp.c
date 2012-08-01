@@ -17834,8 +17834,8 @@ try_window_id (struct window *w)
   else
     abort ();
 
-  IF_DEBUG (debug_end_pos = XFASTINT (w->window_end_pos);
-	    debug_end_vpos = XFASTINT (w->window_end_vpos));
+  IF_DEBUG (debug_end_pos = XFASTINT (WVAR (w, window_end_pos));
+	    debug_end_vpos = XFASTINT (WVAR (w, window_end_vpos)));
 
   /* Record that display has not been completed.  */
   WVAR (w, window_end_valid) = Qnil;
