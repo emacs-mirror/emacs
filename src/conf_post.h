@@ -74,6 +74,22 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define vfork fork
 #endif  /* DARWIN_OS */
 
+/* We have to go this route, rather than the old hpux9 approach of
+   renaming the functions via macros.  The system's stdlib.h has fully
+   prototyped declarations, which yields a conflicting definition of
+   srand48; it tries to redeclare what was once srandom to be srand48.
+   So we go with HAVE_LRAND48 being defined.  */
+#ifdef HPUX
+#undef srandom
+#undef random
+/* We try to avoid checking for random and rint on hpux in
+   configure.ac, but some other configure test might check for them as
+   a dependency, so to be safe we also undefine them here.
+ */
+#undef HAVE_RANDOM
+#undef HAVE_RINT
+#endif  /* HPUX */
+
 #ifdef MSDOS
 #ifndef __DJGPP__
 You lose; /* Emacs for DOS must be compiled with DJGPP */
@@ -113,22 +129,6 @@ You lose; /* Emacs for DOS must be compiled with DJGPP */
 #define SYSTEM_PURESIZE_EXTRA (-170000+65000)
 #endif
 #endif  /* MSDOS */
-
-/* We have to go this route, rather than the old hpux9 approach of
-   renaming the functions via macros.  The system's stdlib.h has fully
-   prototyped declarations, which yields a conflicting definition of
-   srand48; it tries to redeclare what was once srandom to be srand48.
-   So we go with HAVE_LRAND48 being defined.  */
-#ifdef HPUX
-#undef srandom
-#undef random
-/* We try to avoid checking for random and rint on hpux in
-   configure.ac, but some other configure test might check for them as
-   a dependency, so to be safe we also undefine them here.
- */
-#undef HAVE_RANDOM
-#undef HAVE_RINT
-#endif
 
 #ifdef IRIX6_5
 #ifdef emacs
