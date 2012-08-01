@@ -637,17 +637,22 @@ typedef struct interval *INTERVAL;
 #define CHECK_STRING_OR_BUFFER(x) \
   CHECK_TYPE (STRINGP (x) || BUFFERP (x), Qbuffer_or_string_p, x)
 
-
-/* In a cons, the markbit of the car is the gc mark bit */
+/* Most code should use this macro to
+   access Lisp fields in struct Lisp_Cons.  */
+
+#define CVAR(cons, field) ((cons)->INTERNAL_FIELD (field))
 
 struct Lisp_Cons
   {
-    /* Please do not use the names of these elements in code other
-       than the core lisp implementation.  Use XCAR and XCDR below.  */
-    Lisp_Object car;
+    /* Car of this cons cell.  */
+    Lisp_Object INTERNAL_FIELD (car);
+
     union
     {
-      Lisp_Object cdr;
+      /* Cdr of this cons cell.  */
+      Lisp_Object INTERNAL_FIELD (cdr);
+
+      /* Used to chain conses on a free list.  */
       struct Lisp_Cons *chain;
     } u;
   };
@@ -659,8 +664,8 @@ struct Lisp_Cons
    fields are not accessible as lvalues.  (What if we want to switch to
    a copying collector someday?  Cached cons cell field addresses may be
    invalidated at arbitrary points.)  */
-#define XCAR_AS_LVALUE(c) (XCONS ((c))->car)
-#define XCDR_AS_LVALUE(c) (XCONS ((c))->u.cdr)
+#define XCAR_AS_LVALUE(c) (CVAR (XCONS (c), car))
+#define XCDR_AS_LVALUE(c) (CVAR (XCONS (c), u.cdr))
 
 /* Use these from normal code.  */
 #define XCAR(c)	LISP_MAKE_RVALUE (XCAR_AS_LVALUE (c))
@@ -1261,7 +1266,11 @@ enum DEFAULT_HASH_SIZE { DEFAULT_HASH_SIZE = 65 };
 
 #define DEFAULT_REHASH_SIZE 1.5
 
-
+/* Most code should use this macro to access
+   Lisp fields in a different misc objects.  */
+
+#define MVAR(misc, field) ((misc)->INTERNAL_FIELD (field))
+
 /* These structures are used for various misc types.  */
 
 struct Lisp_Misc_Any		/* Supertype of all Misc types.  */
@@ -1331,7 +1340,9 @@ struct Lisp_Overlay
     unsigned gcmarkbit : 1;
     int spacer : 15;
     struct Lisp_Overlay *next;
-    Lisp_Object start, end, plist;
+    Lisp_Object INTERNAL_FIELD (start);
+    Lisp_Object INTERNAL_FIELD (end);
+    Lisp_Object INTERNAL_FIELD (plist);
   };
 
 /* Hold a C pointer for later use.

@@ -986,15 +986,15 @@ BUF_FETCH_MULTIBYTE_CHAR (struct buffer *buf, ptrdiff_t pos)
 
 /* Return the marker that stands for where OV starts in the buffer.  */
 
-#define OVERLAY_START(OV) (XOVERLAY (OV)->start)
+#define OVERLAY_START(OV) MVAR (XOVERLAY (OV), start)
 
 /* Return the marker that stands for where OV ends in the buffer.  */
 
-#define OVERLAY_END(OV) (XOVERLAY (OV)->end)
+#define OVERLAY_END(OV) MVAR (XOVERLAY (OV), end)
 
 /* Return the plist of overlay OV.  */
 
-#define OVERLAY_PLIST(OV) XOVERLAY ((OV))->plist
+#define OVERLAY_PLIST(OV) MVAR (XOVERLAY (OV), plist)
 
 /* Return the actual buffer position for the marker P.
    We assume you know which buffer it's pointing into.  */

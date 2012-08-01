@@ -2686,7 +2686,7 @@ free_cons (struct Lisp_Cons *ptr)
 {
   ptr->u.chain = cons_free_list;
 #if GC_MARK_STACK
-  ptr->car = Vdead;
+  CVAR (ptr, car) = Vdead;
 #endif
   cons_free_list = ptr;
   consing_since_gc -= sizeof *ptr;
@@ -4295,7 +4295,7 @@ live_cons_p (struct mem_node *m, void *p)
 	      && offset < (CONS_BLOCK_SIZE * sizeof b->conses[0])
 	      && (b != cons_block
 		  || offset / sizeof b->conses[0] < cons_block_index)
-	      && !EQ (((struct Lisp_Cons *) p)->car, Vdead));
+	      && !EQ (CVAR ((struct Lisp_Cons *) p, car), Vdead));
     }
   else
     return 0;
@@ -5837,9 +5837,9 @@ mark_overlay (struct Lisp_Overlay *ptr)
   for (; ptr && !ptr->gcmarkbit; ptr = ptr->next)
     {
       ptr->gcmarkbit = 1;
-      mark_object (ptr->start);
-      mark_object (ptr->end);
-      mark_object (ptr->plist);
+      mark_object (MVAR (ptr, start));
+      mark_object (MVAR (ptr, end));
+      mark_object (MVAR (ptr, plist));
     }
 }
 
@@ -6169,14 +6169,14 @@ mark_object (Lisp_Object arg)
 	CHECK_ALLOCATED_AND_LIVE (live_cons_p);
 	CONS_MARK (ptr);
 	/* If the cdr is nil, avoid recursion for the car.  */
-	if (EQ (ptr->u.cdr, Qnil))
+	if (EQ (CVAR (ptr, u.cdr), Qnil))
 	  {
-	    obj = ptr->car;
+	    obj = CVAR (ptr, car);
 	    cdr_count = 0;
 	    goto loop;
 	  }
-	mark_object (ptr->car);
-	obj = ptr->u.cdr;
+	mark_object (CVAR (ptr, car));
+	obj = CVAR (ptr, u.cdr);
 	cdr_count++;
 	if (cdr_count == mark_object_loop_halt)
 	  abort ();
@@ -6325,7 +6325,7 @@ gc_sweep (void)
 			cblk->conses[pos].u.chain = cons_free_list;
 			cons_free_list = &cblk->conses[pos];
 #if GC_MARK_STACK
-			cons_free_list->car = Vdead;
+			CVAR (cons_free_list, car) = Vdead;
 #endif
 		      }
 		    else

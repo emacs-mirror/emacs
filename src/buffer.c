@@ -417,17 +417,17 @@ copy_overlays (struct buffer *b, struct Lisp_Overlay *list)
       Lisp_Object overlay, start, end;
       struct Lisp_Marker *m;
 
-      eassert (MARKERP (list->start));
-      m = XMARKER (list->start);
+      eassert (MARKERP (MVAR (list, start)));
+      m = XMARKER (MVAR (list, start));
       start = build_marker (b, m->charpos, m->bytepos);
       XMARKER (start)->insertion_type = m->insertion_type;
 
-      eassert (MARKERP (list->end));
-      m = XMARKER (list->end);
+      eassert (MARKERP (MVAR (list, end)));
+      m = XMARKER (MVAR (list, end));
       end = build_marker (b, m->charpos, m->bytepos);
       XMARKER (end)->insertion_type = m->insertion_type;
 
-      overlay = build_overlay (start, end, Fcopy_sequence (list->plist));
+      overlay = build_overlay (start, end, Fcopy_sequence (MVAR (list, plist)));
       if (tail)
 	tail = tail->next = XOVERLAY (overlay);
       else
@@ -657,10 +657,11 @@ CLONE nil means the indirect buffer's state is reset to default values.  */)
 static void
 drop_overlay (struct buffer *b, struct Lisp_Overlay *ov)
 {
-  eassert (b == XBUFFER (Fmarker_buffer (ov->start)));
-  modify_overlay (b, marker_position (ov->start), marker_position (ov->end));
-  Fset_marker (ov->start, Qnil, Qnil);
-  Fset_marker (ov->end, Qnil, Qnil);
+  eassert (b == XBUFFER (Fmarker_buffer (MVAR (ov, start))));
+  modify_overlay (b, marker_position (MVAR (ov, start)),
+		  marker_position (MVAR (ov, end)));
+  Fset_marker (MVAR (ov, start), Qnil, Qnil);
+  Fset_marker (MVAR (ov, end), Qnil, Qnil);
 
 }
 
@@ -3886,7 +3887,7 @@ OVERLAY.  */)
 {
   CHECK_OVERLAY (overlay);
 
-  return Fcopy_sequence (XOVERLAY (overlay)->plist);
+  return Fcopy_sequence (MVAR (XOVERLAY (overlay), plist));
 }
 
 
@@ -4062,7 +4063,7 @@ DEFUN ("overlay-get", Foverlay_get, Soverlay_get, 2, 2, 0,
   (Lisp_Object overlay, Lisp_Object prop)
 {
   CHECK_OVERLAY (overlay);
-  return lookup_char_property (XOVERLAY (overlay)->plist, prop, 0);
+  return lookup_char_property (MVAR (XOVERLAY (overlay), plist), prop, 0);
 }
 
 DEFUN ("overlay-put", Foverlay_put, Soverlay_put, 3, 3, 0,
@@ -4077,7 +4078,7 @@ VALUE will be returned.*/)
 
   buffer = Fmarker_buffer (OVERLAY_START (overlay));
 
-  for (tail = XOVERLAY (overlay)->plist;
+  for (tail = MVAR (XOVERLAY (overlay), plist);
        CONSP (tail) && CONSP (XCDR (tail));
        tail = XCDR (XCDR (tail)))
     if (EQ (XCAR (tail), prop))
@@ -4088,8 +4089,8 @@ VALUE will be returned.*/)
       }
   /* It wasn't in the list, so add it to the front.  */
   changed = !NILP (value);
-  XOVERLAY (overlay)->plist
-    = Fcons (prop, Fcons (value, XOVERLAY (overlay)->plist));
+  MVAR (XOVERLAY (overlay), plist)
+    = Fcons (prop, Fcons (value, MVAR (XOVERLAY (overlay), plist)));
  found:
   if (! NILP (buffer))
     {

@@ -1,5 +1,14 @@
 2012-08-01  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	Use INTERNAL_FIELD for conses and overlays.
+	* lisp.h (struct Lisp_Cons): Use INTERNAL_FIELD.
+	Remove obsolete comment.
+	(MVAR): New macro.
+	(struct Lisp_Overlay): Use INTERNAL_FIELD.
+	* alloc.c, buffer.c, buffer.h, fns.c: Adjust users.
+
+2012-08-01  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	Use INTERNAL_FIELD for symbols.
 	* lisp.h (SVAR): New macro.  Adjust users.
 	* alloc.c, bytecode.c, cmds.c, data.c, doc.c, eval.c:

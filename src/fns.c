@@ -2053,8 +2053,8 @@ internal_equal (register Lisp_Object o1, register Lisp_Object o2, int depth, int
 	      || !internal_equal (OVERLAY_END (o1), OVERLAY_END (o2),
 				  depth + 1, props))
 	    return 0;
-	  o1 = XOVERLAY (o1)->plist;
-	  o2 = XOVERLAY (o2)->plist;
+	  o1 = MVAR (XOVERLAY (o1), plist);
+	  o2 = MVAR (XOVERLAY (o2), plist);
 	  goto tail_recurse;
 	}
       if (MARKERP (o1))

@@ -1,5 +1,10 @@
 2012-08-01  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	* coccinelle/overlay.cocci: Semantic patch to replace direct
+	access to Lisp_Object members of struct Lisp_Overlay to MVAR.
+
+2012-08-01  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	* coccinelle/symbol.cocci: Semantic patch to replace direct
 	access to Lisp_Object members of struct Lisp_Symbol to SVAR.
 
