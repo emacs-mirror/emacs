@@ -161,8 +161,7 @@ TAGS tags:	lib-src FRC
 	cd src
 	../bin/etags --include=../lisp/TAGS \
 	 --regex='/[ 	]*DEFVAR_[A-Z_ 	(]+"\([^"]+\)"/' \
-	 $(CURDIR)/src/*.c $(CURDIR)/src/*.h \
-         $(CURDIR)/src/s/msdos.h
+	 $(CURDIR)/src/*.c $(CURDIR)/src/*.h
 	cd ..
 	./bin/etags --include=src/TAGS
 

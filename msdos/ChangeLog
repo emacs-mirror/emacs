@@ -1,3 +1,13 @@
+2012-08-01  Glenn Morris  <rgm@gnu.org>
+
+	* sed2v2.inp (MSDOS, DOS_NT, FLOAT_CHECK_DOMAIN)
+	(HAVE_INVERSE_HYPERBOLIC, DEVICE_SEP, IS_DIRECTORY_SEP, IS_ANY_SEP)
+	(INTERNAL_TERMINAL, NULL_DEVICE, SEPCHAR, USER_FULL_NAME)
+	(_setjmp, _longjmp): Move here from src/s/msdos.h.
+	(config_opsysfile, config_machfile): Remove.
+	* sed1v2.inp (M_FILE, S_FILE): Remove.
+	* mainmake.v2 (TAGS tags): Remove src/s/msdos.h.
+
 2012-07-31  Glenn Morris  <rgm@gnu.org>
 
 	* sed1v2.inp (S_FILE): Update for format change.
