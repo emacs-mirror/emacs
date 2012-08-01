@@ -112,7 +112,7 @@ You lose; /* Emacs for DOS must be compiled with DJGPP */
    enlarging Emacs footprint by another 100+ KBytes.  */
 #define SYSTEM_PURESIZE_EXTRA (-170000+65000)
 #endif
-#endif MSDOS                    /* MSDOS */
+#endif  /* MSDOS */
 
 /* We have to go this route, rather than the old hpux9 approach of
    renaming the functions via macros.  The system's stdlib.h has fully
