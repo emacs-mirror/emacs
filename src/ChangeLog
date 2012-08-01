@@ -47,7 +47,7 @@
 	instead of compositeToPoint.
 	(applicationShouldTerminate): Pass NS String literal to NSRunAlertPanel.
 
-	*  nsfns.m, nsmenu.m, msterm.m: Adopt to struct frame/FVAR changes.
+	* nsfns.m, nsmenu.m, nsterm.m: Adopt to struct frame/FVAR changes.
 
 2012-07-31  Dmitry Antipov  <dmantipov@yandex.ru>
 
@@ -1077,7 +1077,7 @@
 
 2012-07-13  Glenn Morris  <rgm@gnu.org>
 
-	* s/bsd-common, s/cygwin.h: Remove empty files.
+	* s/bsd-common.h, s/cygwin.h: Remove empty files.
 	* s/freebsd.h, s/netbsd.h: Do not include bsd-common.h.
 
 	* s/usg5-4-common.h (USG, USG5):

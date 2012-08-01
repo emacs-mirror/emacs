@@ -125,7 +125,7 @@
 
 2012-06-08  Dmitry Antipov  <dmantipov@yandex.ru>
 
-	* internals.text (Garbage Collection): Document new
+	* internals.texi (Garbage Collection): Document new
 	vector management code and vectorlike_header structure.
 
 2012-06-03  Chong Yidong  <cyd@gnu.org>
