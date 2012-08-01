@@ -1119,7 +1119,6 @@ ns_appsrc
 ns_appresdir
 ns_appbindir
 ns_appdir
-S_FILE
 X_TOOLKIT_TYPE
 GNUSTEP_CFLAGS
 C_SWITCH_X_SITE
@@ -8169,8 +8168,8 @@ case $opsys in
     START_FILES='pre-crt0.o'
     ;;
   freebsd )
-    LIB_STANDARD='-lgcc -lc -lgcc $(CRT_DIR)/crtend.o $(CRT_DIR)/crtn.o'
-    START_FILES='pre-crt0.o $(CRT_DIR)/crt1.o $(CRT_DIR)/crti.o $(CRT_DIR)/crtbegin.o'
+    LIB_STANDARD='-lgcc -lc -lgcc $(CRT_DIR)/crtn.o'
+    START_FILES='pre-crt0.o $(CRT_DIR)/crt1.o $(CRT_DIR)/crti.o'
     SYSTEM_TYPE=berkeley-unix
     ;;
   gnu-linux | gnu-kfreebsd )
@@ -14649,6 +14648,10 @@ $as_echo "#define AMPERSAND_FULL_NAME 1" >>confdefs.h
 $as_echo "#define CLASH_DETECTION 1" >>confdefs.h
 
 
+
+
+
+
 ## Note: PTYs are broken on darwin <6.  Use at your own risk.
 
 $as_echo "#define HAVE_PTYS 1" >>confdefs.h
@@ -14656,6 +14659,8 @@ $as_echo "#define HAVE_PTYS 1" >>confdefs.h
 
 
 $as_echo "#define HAVE_SOCKETS 1" >>confdefs.h
+
+
 
 
 
@@ -14672,6 +14677,21 @@ $as_echo "#define subprocesses 1" >>confdefs.h
 
 
 $as_echo "#define USER_FULL_NAME pw->pw_gecos" >>confdefs.h
+
+
+
+
+
+
+$as_echo "#define IS_DEVICE_SEP(_c_) 0" >>confdefs.h
+
+
+
+$as_echo "#define IS_DIRECTORY_SEP(_c_) ((_c_) == DIRECTORY_SEP)" >>confdefs.h
+
+
+
+$as_echo "#define IS_ANY_SEP(_c_) (IS_DIRECTORY_SEP (_c_))" >>confdefs.h
 
 
 
@@ -15459,8 +15479,6 @@ version=$PACKAGE_VERSION
 
 ## Used in lwlib/Makefile.in.
 
-S_FILE=
-
 
 
 
@@ -15478,11 +15496,7 @@ cat >>confdefs.h <<_ACEOF
 #define EMACS_CONFIG_OPTIONS "${ac_configure_args}"
 _ACEOF
 
-if test -z "No longer used"; then
 
-$as_echo "#define config_opsysfile /**/" >>confdefs.h
-
-fi
 
 XMENU_OBJ=
 XOBJ=

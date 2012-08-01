@@ -117,6 +117,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Name of the default sound device. */
 #undef DEFAULT_SOUND_DEVICE
 
+/* Character that separates a device in a file name. */
+#undef DEVICE_SEP
+
 /* Define to 1 for DGUX with <sys/dg_sys_info.h>. */
 #undef DGUX
 
@@ -141,6 +144,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Letter to use in finding device name of first PTY, if PTYs are supported.
    */
 #undef FIRST_PTY_LETTER
+
+/* Define if the float library doesn't handle errors by either setting errno,
+   or signaling SIGFPE/SIGILL. */
+#undef FLOAT_CHECK_DOMAIN
 
 /* Define to 1 if futimesat mishandles a NULL file name. */
 #undef FUTIMESAT_NULL_BUG
@@ -513,6 +520,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 if you have the <inttypes.h> header file. */
 #undef HAVE_INTTYPES_H
+
+/* Define if you have the functions acosh, asinh, and atanh. */
+#undef HAVE_INVERSE_HYPERBOLIC
 
 /* Define to 1 if you have the jpeg library (-ljpeg). */
 #undef HAVE_JPEG
@@ -1091,11 +1101,23 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define if the system is HPUX. */
 #undef HPUX
 
+/* This is substituted when $TERM is "internal". */
+#undef INTERNAL_TERMINAL
+
 /* Define to read input using SIGIO. */
 #undef INTERRUPT_INPUT
 
 /* Define if the system is IRIX. */
 #undef IRIX6_5
+
+/* Returns true if character is any form of separator. */
+#undef IS_ANY_SEP
+
+/* Returns true if character is a device separator. */
+#undef IS_DEVICE_SEP
+
+/* Returns true if character is a directory separator. */
+#undef IS_DIRECTORY_SEP
 
 /* Define to support Kerberos-authenticated POP mail retrieval. */
 #undef KERBEROS
@@ -1504,7 +1526,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Some platforms redefine this. */
 #undef _setjmp
 
-/* Define to the used os dependent file. */
+/* Some platforms that do not use configure define this to include extra
+   configuration information. */
 #undef config_opsysfile
 
 /* A replacement for va_copy, if needed.  */
