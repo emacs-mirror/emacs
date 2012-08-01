@@ -90,6 +90,14 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #undef HAVE_RINT
 #endif  /* HPUX */
 
+#ifdef IRIX6_5
+#ifdef emacs
+char *_getpty();
+#endif
+
+#undef SA_RESTART     /* not the same as defining BROKEN_SA_RESTART */
+#endif /* IRIX6_5 */
+
 #ifdef MSDOS
 #ifndef __DJGPP__
 You lose; /* Emacs for DOS must be compiled with DJGPP */
@@ -129,14 +137,6 @@ You lose; /* Emacs for DOS must be compiled with DJGPP */
 #define SYSTEM_PURESIZE_EXTRA (-170000+65000)
 #endif
 #endif  /* MSDOS */
-
-#ifdef IRIX6_5
-#ifdef emacs
-char *_getpty();
-#endif
-
-#undef SA_RESTART     /* not the same as defining BROKEN_SA_RESTART */
-#endif /* IRIX6_5 */
 
 #ifdef USG5_4
 /* Get FIONREAD from <sys/filio.h>.  Get <sys/ttold.h> to get struct tchars.
