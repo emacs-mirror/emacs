@@ -74,13 +74,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    your system and must be used only through an encapsulation (which
    you should place, by convention, in sysdep.c).  */
 
-/* Define this to be the separator between devices and paths.  */
-#define DEVICE_SEP ':'
-
-/* We'll support either convention on NT.  */
-#define IS_DIRECTORY_SEP(_c_) ((_c_) == '/' || (_c_) == '\\')
-#define IS_ANY_SEP(_c_) (IS_DIRECTORY_SEP (_c_) || IS_DEVICE_SEP (_c_))
-
 #ifdef __GNUC__
 #ifndef __cplusplus
 #undef inline

@@ -1,3 +1,8 @@
+2012-08-01  Juanma Barranquero  <lekktu@gmail.com>
+
+	* s/ms-w32.h (DEVICE_SEP, IS_DIRECTORY_SEP, IS_ANY_SEP):
+	Remove; moved to nt/config.nt.
+
 2012-08-01  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Use INTERNAL_FIELD for conses and overlays.
