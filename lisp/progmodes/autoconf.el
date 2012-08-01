@@ -43,12 +43,12 @@
   "Hook run by `autoconf-mode'.")
 
 (defconst autoconf-definition-regexp
-  "AC_\\(SUBST\\|DEFINE\\(_UNQUOTED\\)?\\)(\\[*\\(\\sw+\\)\\]*")
+  "A\\(?:H_TEMPLATE\\|C_\\(?:SUBST\\|DEFINE\\(?:_UNQUOTED\\)?\\)\\)(\\[*\\(\\sw+\\)\\]*")
 
 (defvar autoconf-font-lock-keywords
   `(("\\_<A[CHMS]_\\sw+" . font-lock-keyword-face)
     (,autoconf-definition-regexp
-     3 font-lock-function-name-face)
+     1 font-lock-function-name-face)
     ;; Are any other M4 keywords really appropriate for configure.ac,
     ;; given that we do `dnl'?
     ("changequote" . font-lock-keyword-face)))
@@ -61,7 +61,7 @@
     table))
 
 (defvar autoconf-imenu-generic-expression
-  (list (list nil autoconf-definition-regexp 3)))
+  (list (list nil autoconf-definition-regexp 1)))
 
 ;; It's not clear how best to implement this.
 (defun autoconf-current-defun-function ()
@@ -71,10 +71,11 @@ searching backwards at another AC_... command."
   (save-excursion
     (with-syntax-table (copy-syntax-table autoconf-mode-syntax-table)
       (modify-syntax-entry ?_ "w")
+      (skip-syntax-forward "w" (line-end-position))
       (if (re-search-backward autoconf-definition-regexp
 			      (save-excursion (beginning-of-defun) (point))
 			      t)
-	  (match-string-no-properties 3)))))
+	  (match-string-no-properties 1)))))
 
 ;;;###autoload
 (define-derived-mode autoconf-mode prog-mode "Autoconf"

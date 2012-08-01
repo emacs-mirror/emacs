@@ -1,3 +1,11 @@
+2012-08-01  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/autoconf.el (autoconf-definition-regexp):
+	Add AH_TEMPLATE, adjust submatch numbering.
+	(autoconf-font-lock-keywords, autoconf-imenu-generic-expression)
+	(autoconf-current-defun-function): Update for above change.
+	(autoconf-current-defun-function): First skip to end of current word.
+
 2012-08-01  Rupert Swarbrick  <rswarbrick@gmail.com>  (tiny change)
 
 	* calendar/cal-html.el (cal-html-insert-agenda-days):
