@@ -8,7 +8,7 @@
 	(_setjmp, _longjmp): Move here from src/s/msdos.h.
 	(config_opsysfile, config_machfile): Remove.
 	* sed1v2.inp (M_FILE, S_FILE): Remove.
-	* mainmake.v2 (TAGS tags): Remove src/s/msdos.h.
+	* mainmake.v2 (TAGS, tags): Remove src/s/msdos.h.
 
 2012-07-31  Glenn Morris  <rgm@gnu.org>
 
