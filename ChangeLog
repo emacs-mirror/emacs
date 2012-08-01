@@ -1,3 +1,8 @@
+2012-08-01  Ulrich Müller  <ulm@gentoo.org>
+
+	* configure.ac (LIB_STANDARD, START_FILES) [FreeBSD]:
+	Don't include crtbegin.o and crtend.o.  (Bug#12047)
+
 2012-08-01  Glenn Morris  <rgm@gnu.org>
 
 	* configure.ac (FLOAT_CHECK_DOMAIN, HAVE_INVERSE_HYPERBOLIC)
