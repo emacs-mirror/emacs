@@ -1062,7 +1062,7 @@ w32_dialog_show (FRAME_PTR f, int keymaps,
 	if (!NILP (descrip))
 	  wv->key = SSDATA (descrip);
 	wv->value = SSDATA (item_name);
-	wv->call_data = (void *) &AREF (menu_items, i);
+	wv->call_data = aref_addr (menu_items, i);
 	wv->enabled = !NILP (enable);
 	wv->help = Qnil;
 	prev_wv = wv;

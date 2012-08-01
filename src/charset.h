@@ -325,6 +325,13 @@ extern int emacs_mule_charset[256];
 #define CHARSET_DEUNIFIER(charset)	\
   (CHARSET_ATTR_DEUNIFIER (CHARSET_ATTRIBUTES (charset)))
 
+static inline void
+set_charset_attr (struct charset *charset, enum charset_attr_index idx,
+		  Lisp_Object val)
+{
+  ASET (CHARSET_ATTRIBUTES (charset), idx, val);
+}
+
 
 /* Nonzero if OBJ is a valid charset symbol.  */
 #define CHARSETP(obj) (CHARSET_SYMBOL_HASH_INDEX (obj) >= 0)

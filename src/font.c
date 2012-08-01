@@ -4722,7 +4722,7 @@ the corresponding element is nil.  */)
 	  Lisp_Object elt = AREF (object, XFASTINT (from) + i);
 	  CHECK_CHARACTER (elt);
 	}
-      chars = &(AREF (object, XFASTINT (from)));
+      chars = aref_addr (object, XFASTINT (from));
     }
 
   vec = Fmake_vector (make_number (len), Qnil);

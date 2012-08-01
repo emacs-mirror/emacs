@@ -3715,7 +3715,7 @@ it defaults to the value of `obarray'.  */)
       SET_SYMBOL_VAL (XSYMBOL (sym), sym);
     }
 
-  ptr = &AREF (obarray, XINT(tem));
+  ptr = aref_addr (obarray, XINT(tem));
   if (SYMBOLP (*ptr))
     XSYMBOL (sym)->next = XSYMBOL (*ptr);
   else
@@ -3797,9 +3797,13 @@ OBARRAY defaults to the value of the variable `obarray'.  */)
   if (EQ (AREF (obarray, hash), tem))
     {
       if (XSYMBOL (tem)->next)
-	XSETSYMBOL (AREF (obarray, hash), XSYMBOL (tem)->next);
+	{
+	  Lisp_Object sym;
+	  XSETSYMBOL (sym, XSYMBOL (tem)->next);
+	  ASET (obarray, hash, sym);
+	}
       else
-	XSETINT (AREF (obarray, hash), 0);
+	ASET (obarray, hash, make_number (0));
     }
   else
     {

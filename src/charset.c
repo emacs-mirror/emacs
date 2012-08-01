@@ -272,8 +272,8 @@ load_charset_map (struct charset *charset, struct charset_map_entries *entries, 
 		{
 		  int n = CODE_POINT_TO_INDEX (charset, max_code) + 1;
 
-		  vec = CHARSET_DECODER (charset)
-		    = Fmake_vector (make_number (n), make_number (-1));
+		  vec = Fmake_vector (make_number (n), make_number (-1));
+		  set_charset_attr (charset, charset_decoder, vec);
 		}
 	      else
 		{
@@ -285,10 +285,10 @@ load_charset_map (struct charset *charset, struct charset_map_entries *entries, 
 	  else
 	    {
 	      table = Fmake_char_table (Qnil, Qnil);
-	      if (charset->method == CHARSET_METHOD_MAP)
-		CHARSET_ENCODER (charset) = table;
-	      else
-		CHARSET_DEUNIFIER (charset) = table;
+	      set_charset_attr (charset,
+				(charset->method == CHARSET_METHOD_MAP
+				 ? charset_encoder : charset_deunifier),
+				table);
 	    }
 	}
       else
@@ -1133,7 +1133,7 @@ usage: (define-charset-internal ...)  */)
     {
       new_definition_p = 0;
       id = XFASTINT (CHARSET_SYMBOL_ID (args[charset_arg_name]));
-      HASH_VALUE (hash_table, charset.hash_index) = attrs;
+      set_hash_value (hash_table, charset.hash_index, attrs);
     }
   else
     {
@@ -1336,7 +1336,7 @@ DEFUN ("set-charset-plist", Fset_charset_plist, Sset_charset_plist, 2, 2, 0,
   Lisp_Object attrs;
 
   CHECK_CHARSET_GET_ATTR (charset, attrs);
-  CHARSET_ATTR_PLIST (attrs) = plist;
+  ASET (attrs, charset_plist, plist);
   return plist;
 }
 
@@ -1375,7 +1375,7 @@ Optional third argument DEUNIFY, if non-nil, means to de-unify CHARSET.  */)
 	{
 	  if (! STRINGP (unify_map) && ! VECTORP (unify_map))
 	    signal_error ("Bad unify-map", unify_map);
-	  CHARSET_UNIFY_MAP (cs) = unify_map;
+	  set_charset_attr (cs, charset_unify_map, unify_map);
 	}
       if (NILP (Vchar_unify_table))
 	Vchar_unify_table = Fmake_char_table (Qnil, Qnil);

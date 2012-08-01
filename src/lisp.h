@@ -598,7 +598,7 @@ clip_to_bounds (ptrdiff_t lower, EMACS_INT num, ptrdiff_t upper)
 #define ASET(ARRAY, IDX, VAL)	\
   (eassert ((IDX) == (IDX)),				\
    eassert ((IDX) >= 0 && (IDX) < ASIZE (ARRAY)),	\
-   AREF ((ARRAY), (IDX)) = (VAL))
+   XVECTOR (ARRAY)->contents[IDX] = (VAL))
 
 /* Convenience macros for dealing with Lisp strings.  */
 
@@ -2335,6 +2335,44 @@ void staticpro (Lisp_Object *);
 /* Forward declarations for prototypes.  */
 struct window;
 struct frame;
+
+/* Simple access functions.  */
+
+static inline Lisp_Object *
+aref_addr (Lisp_Object array, ptrdiff_t idx)
+{
+  return & XVECTOR (array)->contents[idx];
+}
+
+static inline void
+set_hash_key (struct Lisp_Hash_Table *h, ptrdiff_t idx, Lisp_Object val)
+{
+  ASET (h->key_and_value, 2 * idx, val);
+}
+
+static inline void
+set_hash_value (struct Lisp_Hash_Table *h, ptrdiff_t idx, Lisp_Object val)
+{
+  ASET (h->key_and_value, 2 * idx + 1, val);
+}
+
+static inline void
+set_hash_next (struct Lisp_Hash_Table *h, ptrdiff_t idx, Lisp_Object val)
+{
+  ASET (h->next, idx, val);
+}
+
+static inline void
+set_hash_hash (struct Lisp_Hash_Table *h, ptrdiff_t idx, Lisp_Object val)
+{
+  ASET (h->hash, idx, val);
+}
+
+static inline void
+set_hash_index (struct Lisp_Hash_Table *h, ptrdiff_t idx, Lisp_Object val)
+{
+  ASET (h->index, idx, val);
+}
 
 /* Defined in data.c.  */
 extern Lisp_Object Qnil, Qt, Qquote, Qlambda, Qunbound;

@@ -222,7 +222,7 @@ ns_update_menubar (struct frame *f, int deep_p, EmacsMenu *submenu)
 
       /* Save the frame's previous menu bar contents data */
       if (previous_menu_items_used)
-	memcpy (previous_items, &AREF (FVAR (f, menu_bar_vector), 0),
+	memcpy (previous_items, aref_addr (FVAR (f, menu_bar_vector), 0),
 		previous_menu_items_used * sizeof (Lisp_Object));
 
       /* parse stage 1: extract from lisp */
@@ -939,8 +939,7 @@ ns_menu_show (FRAME_PTR f, int x, int y, int for_click, int keymaps,
 	  /* If this item has a null value,
 	     make the call_data null so that it won't display a box
 	     when the mouse is on it.  */
-	  wv->call_data
-	      = !NILP (def) ? (void *) &AREF (menu_items, i) : 0;
+	  wv->call_data = !NILP (def) ? aref_addr (menu_items, i) : 0;
 	  wv->enabled = !NILP (enable);
 
 	  if (NILP (type))
@@ -1453,7 +1452,7 @@ ns_popup_dialog (Lisp_Object position, Lisp_Object contents, Lisp_Object header)
 
     unwind_data->pool = pool;
     unwind_data->dialog = dialog;
-    
+
     record_unwind_protect (pop_down_menu, make_save_value (unwind_data, 0));
     popup_activated_flag = 1;
     tem = [dialog runDialogAt: p];

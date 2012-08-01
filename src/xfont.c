@@ -463,11 +463,11 @@ xfont_list_pattern (Display *display, const char *pattern,
 		list = Fcons (entity, list);
 	      continue;
 	    }
-	  if (memcmp (props, &(AREF (entity, FONT_FOUNDRY_INDEX)),
+	  if (memcmp (props, aref_addr (entity, FONT_FOUNDRY_INDEX),
 		      sizeof (Lisp_Object) * 7)
 	      || ! EQ (AREF (entity, FONT_SPACING_INDEX), props[7]))
 	    {
-	      memcpy (props, &(AREF (entity, FONT_FOUNDRY_INDEX)),
+	      memcpy (props, aref_addr (entity, FONT_FOUNDRY_INDEX),
 		      sizeof (Lisp_Object) * 7);
 	      props[7] = AREF (entity, FONT_SPACING_INDEX);
 	      scripts = xfont_supported_scripts (display, indices[i],

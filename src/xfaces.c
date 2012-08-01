@@ -2182,14 +2182,14 @@ set_lface_from_font (struct frame *f, Lisp_Object lface,
     {
       Lisp_Object family = AREF (font_object, FONT_FAMILY_INDEX);
 
-      LFACE_FAMILY (lface) = SYMBOL_NAME (family);
+      ASET (lface, LFACE_FAMILY_INDEX, SYMBOL_NAME (family));
     }
 
   if (force_p || UNSPECIFIEDP (LFACE_FOUNDRY (lface)))
     {
       Lisp_Object foundry = AREF (font_object, FONT_FOUNDRY_INDEX);
 
-      LFACE_FOUNDRY (lface) = SYMBOL_NAME (foundry);
+      ASET (lface, LFACE_FOUNDRY_INDEX, SYMBOL_NAME (foundry));
     }
 
   if (force_p || UNSPECIFIEDP (LFACE_HEIGHT (lface)))
@@ -2197,26 +2197,26 @@ set_lface_from_font (struct frame *f, Lisp_Object lface,
       int pt = PIXEL_TO_POINT (font->pixel_size * 10, f->resy);
 
       eassert (pt > 0);
-      LFACE_HEIGHT (lface) = make_number (pt);
+      ASET (lface, LFACE_HEIGHT_INDEX, make_number (pt));
     }
 
   if (force_p || UNSPECIFIEDP (LFACE_WEIGHT (lface)))
     {
       val = FONT_WEIGHT_FOR_FACE (font_object);
-      LFACE_WEIGHT (lface) = ! NILP (val) ? val :Qnormal;
+      ASET (lface, LFACE_WEIGHT_INDEX, ! NILP (val) ? val :Qnormal);
     }
   if (force_p || UNSPECIFIEDP (LFACE_SLANT (lface)))
     {
       val = FONT_SLANT_FOR_FACE (font_object);
-      LFACE_SLANT (lface) = ! NILP (val) ? val : Qnormal;
+      ASET (lface, LFACE_SLANT_INDEX, ! NILP (val) ? val : Qnormal);
     }
   if (force_p || UNSPECIFIEDP (LFACE_SWIDTH (lface)))
     {
       val = FONT_WIDTH_FOR_FACE (font_object);
-      LFACE_SWIDTH (lface) = ! NILP (val) ? val : Qnormal;
+      ASET (lface, LFACE_SWIDTH_INDEX, ! NILP (val) ? val : Qnormal);
     }
 
-  LFACE_FONT (lface) = font_object;
+  ASET (lface, LFACE_FONT_INDEX, font_object);
   return 1;
 }
 
@@ -2851,7 +2851,7 @@ FRAME 0 means change the face on all frames, and change the default
 	    signal_error ("Invalid face family", value);
 	}
       old_value = LFACE_FAMILY (lface);
-      LFACE_FAMILY (lface) = value;
+      ASET (lface, LFACE_FAMILY_INDEX, value);
       prop_index = FONT_FAMILY_INDEX;
     }
   else if (EQ (attr, QCfoundry))
@@ -2863,7 +2863,7 @@ FRAME 0 means change the face on all frames, and change the default
 	    signal_error ("Invalid face foundry", value);
 	}
       old_value = LFACE_FOUNDRY (lface);
-      LFACE_FOUNDRY (lface) = value;
+      ASET (lface, LFACE_FOUNDRY_INDEX, value);
       prop_index = FONT_FOUNDRY_INDEX;
     }
   else if (EQ (attr, QCheight))
@@ -2891,7 +2891,7 @@ FRAME 0 means change the face on all frames, and change the default
 	}
 
       old_value = LFACE_HEIGHT (lface);
-      LFACE_HEIGHT (lface) = value;
+      ASET (lface, LFACE_HEIGHT_INDEX, value);
       prop_index = FONT_SIZE_INDEX;
     }
   else if (EQ (attr, QCweight))
@@ -2903,7 +2903,7 @@ FRAME 0 means change the face on all frames, and change the default
 	    signal_error ("Invalid face weight", value);
 	}
       old_value = LFACE_WEIGHT (lface);
-      LFACE_WEIGHT (lface) = value;
+      ASET (lface, LFACE_WEIGHT_INDEX, value);
       prop_index = FONT_WEIGHT_INDEX;
     }
   else if (EQ (attr, QCslant))
@@ -2915,7 +2915,7 @@ FRAME 0 means change the face on all frames, and change the default
 	    signal_error ("Invalid face slant", value);
 	}
       old_value = LFACE_SLANT (lface);
-      LFACE_SLANT (lface) = value;
+      ASET (lface, LFACE_SLANT_INDEX, value);
       prop_index = FONT_SLANT_INDEX;
     }
   else if (EQ (attr, QCunderline))
@@ -2969,7 +2969,7 @@ FRAME 0 means change the face on all frames, and change the default
         signal_error ("Invalid face underline", value);
 
       old_value = LFACE_UNDERLINE (lface);
-      LFACE_UNDERLINE (lface) = value;
+      ASET (lface, LFACE_UNDERLINE_INDEX, value);
     }
   else if (EQ (attr, QCoverline))
     {
@@ -2983,7 +2983,7 @@ FRAME 0 means change the face on all frames, and change the default
 	  signal_error ("Invalid face overline", value);
 
       old_value = LFACE_OVERLINE (lface);
-      LFACE_OVERLINE (lface) = value;
+      ASET (lface, LFACE_OVERLINE_INDEX, value);
     }
   else if (EQ (attr, QCstrike_through))
     {
@@ -2997,7 +2997,7 @@ FRAME 0 means change the face on all frames, and change the default
 	  signal_error ("Invalid face strike-through", value);
 
       old_value = LFACE_STRIKE_THROUGH (lface);
-      LFACE_STRIKE_THROUGH (lface) = value;
+      ASET (lface, LFACE_STRIKE_THROUGH_INDEX, value);
     }
   else if (EQ (attr, QCbox))
     {
@@ -3060,7 +3060,7 @@ FRAME 0 means change the face on all frames, and change the default
 	signal_error ("Invalid face box", value);
 
       old_value = LFACE_BOX (lface);
-      LFACE_BOX (lface) = value;
+      ASET (lface, LFACE_BOX_INDEX, value);
     }
   else if (EQ (attr, QCinverse_video)
 	   || EQ (attr, QCreverse_video))
@@ -3072,7 +3072,7 @@ FRAME 0 means change the face on all frames, and change the default
 	    signal_error ("Invalid inverse-video face attribute value", value);
 	}
       old_value = LFACE_INVERSE (lface);
-      LFACE_INVERSE (lface) = value;
+      ASET (lface, LFACE_INVERSE_INDEX, value);
     }
   else if (EQ (attr, QCforeground))
     {
@@ -3089,7 +3089,7 @@ FRAME 0 means change the face on all frames, and change the default
 	    signal_error ("Empty foreground color value", value);
 	}
       old_value = LFACE_FOREGROUND (lface);
-      LFACE_FOREGROUND (lface) = value;
+      ASET (lface, LFACE_FOREGROUND_INDEX, value);
     }
   else if (EQ (attr, QCbackground))
     {
@@ -3106,7 +3106,7 @@ FRAME 0 means change the face on all frames, and change the default
 	    signal_error ("Empty background color value", value);
 	}
       old_value = LFACE_BACKGROUND (lface);
-      LFACE_BACKGROUND (lface) = value;
+      ASET (lface, LFACE_BACKGROUND_INDEX, value);
     }
   else if (EQ (attr, QCstipple))
     {
@@ -3116,7 +3116,7 @@ FRAME 0 means change the face on all frames, and change the default
 	  && NILP (Fbitmap_spec_p (value)))
 	signal_error ("Invalid stipple attribute", value);
       old_value = LFACE_STIPPLE (lface);
-      LFACE_STIPPLE (lface) = value;
+      ASET (lface, LFACE_STIPPLE_INDEX, value);
 #endif /* HAVE_X_WINDOWS || HAVE_NS */
     }
   else if (EQ (attr, QCwidth))
@@ -3128,7 +3128,7 @@ FRAME 0 means change the face on all frames, and change the default
 	    signal_error ("Invalid face width", value);
 	}
       old_value = LFACE_SWIDTH (lface);
-      LFACE_SWIDTH (lface) = value;
+      ASET (lface, LFACE_SWIDTH_INDEX, value);
       prop_index = FONT_WIDTH_INDEX;
     }
   else if (EQ (attr, QCfont))
@@ -3174,7 +3174,7 @@ FRAME 0 means change the face on all frames, and change the default
 	      set_lface_from_font (f, lface, value, 1);
 	    }
 	  else
-	    LFACE_FONT (lface) = value;
+	    ASET (lface, LFACE_FONT_INDEX, value);
 	}
 #endif /* HAVE_WINDOW_SYSTEM */
     }
@@ -3189,7 +3189,7 @@ FRAME 0 means change the face on all frames, and change the default
 	  tmp = Fquery_fontset (value, Qnil);
 	  if (NILP (tmp))
 	    signal_error ("Invalid fontset name", value);
-	  LFACE_FONTSET (lface) = value = tmp;
+	  ASET (lface, LFACE_FONTSET_INDEX, value = tmp);
 	}
 #endif /* HAVE_WINDOW_SYSTEM */
     }
@@ -3203,21 +3203,21 @@ FRAME 0 means change the face on all frames, and change the default
 	  if (!SYMBOLP (XCAR (tail)))
 	    break;
       if (NILP (tail))
-	LFACE_INHERIT (lface) = value;
+	ASET (lface, LFACE_INHERIT_INDEX, value);
       else
 	signal_error ("Invalid face inheritance", value);
     }
   else if (EQ (attr, QCbold))
     {
       old_value = LFACE_WEIGHT (lface);
-      LFACE_WEIGHT (lface) = NILP (value) ? Qnormal : Qbold;
+      ASET (lface, LFACE_WEIGHT_INDEX, NILP (value) ? Qnormal : Qbold);
       prop_index = FONT_WEIGHT_INDEX;
     }
   else if (EQ (attr, QCitalic))
     {
       attr = QCslant;
       old_value = LFACE_SLANT (lface);
-      LFACE_SLANT (lface) = NILP (value) ? Qnormal : Qitalic;
+      ASET (lface, LFACE_SLANT_INDEX, NILP (value) ? Qnormal : Qitalic);
       prop_index = FONT_SLANT_INDEX;
     }
   else
@@ -3365,8 +3365,8 @@ update_face_from_frame_parameter (struct frame *f, Lisp_Object param,
     {
       face = Qdefault;
       lface = lface_from_face_name (f, face, 1);
-      LFACE_FOREGROUND (lface) = (STRINGP (new_value)
-				  ? new_value : Qunspecified);
+      ASET (lface, LFACE_FOREGROUND_INDEX,
+	    (STRINGP (new_value) ? new_value : Qunspecified));
       realize_basic_faces (f);
     }
   else if (EQ (param, Qbackground_color))
@@ -3381,8 +3381,8 @@ update_face_from_frame_parameter (struct frame *f, Lisp_Object param,
 
       face = Qdefault;
       lface = lface_from_face_name (f, face, 1);
-      LFACE_BACKGROUND (lface) = (STRINGP (new_value)
-				  ? new_value : Qunspecified);
+      ASET (lface, LFACE_BACKGROUND_INDEX,
+	    (STRINGP (new_value) ? new_value : Qunspecified));
       realize_basic_faces (f);
     }
 #ifdef HAVE_WINDOW_SYSTEM
@@ -3390,22 +3390,22 @@ update_face_from_frame_parameter (struct frame *f, Lisp_Object param,
     {
       face = Qborder;
       lface = lface_from_face_name (f, face, 1);
-      LFACE_BACKGROUND (lface) = (STRINGP (new_value)
-				  ? new_value : Qunspecified);
+      ASET (lface, LFACE_BACKGROUND_INDEX,
+	    (STRINGP (new_value) ? new_value : Qunspecified));
     }
   else if (EQ (param, Qcursor_color))
     {
       face = Qcursor;
       lface = lface_from_face_name (f, face, 1);
-      LFACE_BACKGROUND (lface) = (STRINGP (new_value)
-				  ? new_value : Qunspecified);
+      ASET (lface, LFACE_BACKGROUND_INDEX,
+	    (STRINGP (new_value) ? new_value : Qunspecified));
     }
   else if (EQ (param, Qmouse_color))
     {
       face = Qmouse;
       lface = lface_from_face_name (f, face, 1);
-      LFACE_BACKGROUND (lface) = (STRINGP (new_value)
-				  ? new_value : Qunspecified);
+      ASET (lface, LFACE_BACKGROUND_INDEX,
+	    (STRINGP (new_value) ? new_value : Qunspecified));
     }
 #endif
 
@@ -3445,7 +3445,7 @@ set_font_frame_param (Lisp_Object frame, Lisp_Object lface)
 	  font = font_load_for_lface (f, XVECTOR (lface)->contents, font);
 	  if (NILP (font))
 	    return;
-	  LFACE_FONT (lface) = font;
+	  ASET (lface, LFACE_FONT_INDEX, font);
 	}
       f->default_face_done_p = 0;
       Fmodify_frame_parameters (frame, Fcons (Fcons (Qfont, font), Qnil));
@@ -5366,39 +5366,39 @@ realize_default_face (struct frame *f)
 
       XSETFONT (font_object, FRAME_FONT (f));
       set_lface_from_font (f, lface, font_object, f->default_face_done_p);
-      LFACE_FONTSET (lface) = fontset_name (FRAME_FONTSET (f));
+      ASET (lface, LFACE_FONTSET_INDEX, fontset_name (FRAME_FONTSET (f)));
       f->default_face_done_p = 1;
     }
 #endif /* HAVE_WINDOW_SYSTEM */
 
   if (!FRAME_WINDOW_P (f))
     {
-      LFACE_FAMILY (lface) = build_string ("default");
-      LFACE_FOUNDRY (lface) = LFACE_FAMILY (lface);
-      LFACE_SWIDTH (lface) = Qnormal;
-      LFACE_HEIGHT (lface) = make_number (1);
+      ASET (lface, LFACE_FAMILY_INDEX, build_string ("default"));
+      ASET (lface, LFACE_FOUNDRY_INDEX, LFACE_FAMILY (lface));
+      ASET (lface, LFACE_SWIDTH_INDEX, Qnormal);
+      ASET (lface, LFACE_HEIGHT_INDEX, make_number (1));
       if (UNSPECIFIEDP (LFACE_WEIGHT (lface)))
-	LFACE_WEIGHT (lface) = Qnormal;
+	ASET (lface, LFACE_WEIGHT_INDEX, Qnormal);
       if (UNSPECIFIEDP (LFACE_SLANT (lface)))
-	LFACE_SLANT (lface) = Qnormal;
+	ASET (lface, LFACE_SLANT_INDEX, Qnormal);
       if (UNSPECIFIEDP (LFACE_FONTSET (lface)))
-	LFACE_FONTSET (lface) = Qnil;
+	ASET (lface, LFACE_FONTSET_INDEX, Qnil);
     }
 
   if (UNSPECIFIEDP (LFACE_UNDERLINE (lface)))
-    LFACE_UNDERLINE (lface) = Qnil;
+    ASET (lface, LFACE_UNDERLINE_INDEX, Qnil);
 
   if (UNSPECIFIEDP (LFACE_OVERLINE (lface)))
-    LFACE_OVERLINE (lface) = Qnil;
+    ASET (lface, LFACE_OVERLINE_INDEX, Qnil);
 
   if (UNSPECIFIEDP (LFACE_STRIKE_THROUGH (lface)))
-    LFACE_STRIKE_THROUGH (lface) = Qnil;
+    ASET (lface, LFACE_STRIKE_THROUGH_INDEX, Qnil);
 
   if (UNSPECIFIEDP (LFACE_BOX (lface)))
-    LFACE_BOX (lface) = Qnil;
+    ASET (lface, LFACE_BOX_INDEX, Qnil);
 
   if (UNSPECIFIEDP (LFACE_INVERSE (lface)))
-    LFACE_INVERSE (lface) = Qnil;
+    ASET (lface, LFACE_INVERSE_INDEX, Qnil);
 
   if (UNSPECIFIEDP (LFACE_FOREGROUND (lface)))
     {
@@ -5407,11 +5407,11 @@ realize_default_face (struct frame *f)
       Lisp_Object color = Fassq (Qforeground_color, FVAR (f, param_alist));
 
       if (CONSP (color) && STRINGP (XCDR (color)))
-	LFACE_FOREGROUND (lface) = XCDR (color);
+	ASET (lface, LFACE_FOREGROUND_INDEX, XCDR (color));
       else if (FRAME_WINDOW_P (f))
 	return 0;
       else if (FRAME_INITIAL_P (f) || FRAME_TERMCAP_P (f) || FRAME_MSDOS_P (f))
-	LFACE_FOREGROUND (lface) = build_string (unspecified_fg);
+	ASET (lface, LFACE_FOREGROUND_INDEX, build_string (unspecified_fg));
       else
 	abort ();
     }
@@ -5422,17 +5422,17 @@ realize_default_face (struct frame *f)
 	 set in the frame parameter list.  */
       Lisp_Object color = Fassq (Qbackground_color, FVAR (f, param_alist));
       if (CONSP (color) && STRINGP (XCDR (color)))
-	LFACE_BACKGROUND (lface) = XCDR (color);
+	ASET (lface, LFACE_BACKGROUND_INDEX, XCDR (color));
       else if (FRAME_WINDOW_P (f))
 	return 0;
       else if (FRAME_INITIAL_P (f) || FRAME_TERMCAP_P (f) || FRAME_MSDOS_P (f))
-	LFACE_BACKGROUND (lface) = build_string (unspecified_bg);
+	ASET (lface, LFACE_BACKGROUND_INDEX, build_string (unspecified_bg));
       else
 	abort ();
     }
 
   if (UNSPECIFIEDP (LFACE_STIPPLE (lface)))
-    LFACE_STIPPLE (lface) = Qnil;
+    ASET (lface, LFACE_STIPPLE_INDEX, Qnil);
 
   /* Realize the face; it must be fully-specified now.  */
   eassert (lface_fully_specified_p (XVECTOR (lface)->contents));

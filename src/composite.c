@@ -762,7 +762,7 @@ composition_gstring_width (Lisp_Object gstring, ptrdiff_t from, ptrdiff_t to,
 	}
       metrics->width = metrics->lbearing = metrics->rbearing = 0;
     }
-  for (glyph = &LGSTRING_GLYPH (gstring, from); from < to; from++, glyph++)
+  for (glyph = lgstring_glyph_addr (gstring, from); from < to; from++, glyph++)
     {
       int x;
 

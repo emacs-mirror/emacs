@@ -1006,7 +1006,7 @@ find_and_return_menu_selection (FRAME_PTR f, int keymaps, void *client_data)
         {
           entry
             = AREF (menu_items, i + MENU_ITEMS_ITEM_VALUE);
-          if (&AREF (menu_items, i) == client_data)
+          if (aref_addr (menu_items, i) == client_data)
             {
               if (keymaps != 0)
                 {

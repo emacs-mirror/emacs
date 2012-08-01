@@ -1782,8 +1782,7 @@ xmenu_show (FRAME_PTR f, int x, int y, int for_click, int keymaps,
 	  /* If this item has a null value,
 	     make the call_data null so that it won't display a box
 	     when the mouse is on it.  */
-	  wv->call_data
-	    = (!NILP (def) ? (void *) &AREF (menu_items, i) : 0);
+	  wv->call_data = !NILP (def) ? aref_addr (menu_items, i) : 0;
 	  wv->enabled = !NILP (enable);
 
 	  if (NILP (type))
@@ -1884,7 +1883,7 @@ xmenu_show (FRAME_PTR f, int x, int y, int for_click, int keymaps,
 	    {
 	      entry
 		= AREF (menu_items, i + MENU_ITEMS_ITEM_VALUE);
-	      if (menu_item_selection == &AREF (menu_items, i))
+	      if (menu_item_selection == aref_addr (menu_items, i))
 		{
 		  if (keymaps != 0)
 		    {
@@ -2104,7 +2103,7 @@ xdialog_show (FRAME_PTR f,
 	if (!NILP (descrip))
 	  wv->key = SSDATA (descrip);
 	wv->value = SSDATA (item_name);
-	wv->call_data = (void *) &AREF (menu_items, i);
+	wv->call_data = aref_addr (menu_items, i);
 	wv->enabled = !NILP (enable);
 	wv->help = Qnil;
 	prev_wv = wv;
@@ -2187,7 +2186,7 @@ xdialog_show (FRAME_PTR f,
 	    {
 	      entry
 		= AREF (menu_items, i + MENU_ITEMS_ITEM_VALUE);
-	      if (menu_item_selection == &AREF (menu_items, i))
+	      if (menu_item_selection == aref_addr (menu_items, i))
 		{
 		  if (keymaps != 0)
 		    {
