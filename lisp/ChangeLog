@@ -1,3 +1,8 @@
+2012-08-01  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc-mode.el (calc-set-simplify-mode): Use `cond' instead
+	of nested `if's.
+
 2012-08-01  Glenn Morris  <rgm@gnu.org>
 
 	* progmodes/autoconf.el (autoconf-definition-regexp):

@@ -497,11 +497,11 @@
 
 (defun calc-set-simplify-mode (mode arg msg)
   (calc-change-mode 'calc-simplify-mode
-		    (if arg
-			(and (> (prefix-numeric-value arg) 0)
-			     mode)
-		      (and (not (eq calc-simplify-mode mode))
-			   mode)))
+                    (cond
+                     (arg mode)
+                     ((eq calc-simplify-mode mode)
+                      'alg)
+                     (t mode)))
   (message "%s" (if (eq calc-simplify-mode mode)
 	       msg
 	     "Algebraic simplification occurs by default")))
