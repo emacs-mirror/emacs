@@ -3730,6 +3730,8 @@ dnl Define symbols to identify the version of Unix this is.
 dnl Define all the symbols that apply correctly.
 AH_TEMPLATE(BSD4_2, [Define if the system is compatible with BSD 4.2.])
 AH_TEMPLATE(BSD_SYSTEM, [Define if the system is compatible with BSD 4.2.])
+AH_TEMPLATE(DOS_NT, [Define if the system is MS DOS or MS Windows.])
+AH_TEMPLATE(MSDOS, [Define if the system is MS DOS.])
 AH_TEMPLATE(USG, [Define if the system is compatible with System III.])
 AH_TEMPLATE(USG5, [Define if the system is compatible with System V.])
 AH_TEMPLATE(USG5_4, [Define if the system is compatible with System V Release 4.])
