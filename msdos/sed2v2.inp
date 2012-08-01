@@ -83,7 +83,7 @@
 /^#undef HAVE_SIGNED_SIG_ATOMIC_T *$/s/^.*$/#define HAVE_SIGNED_SIG_ATOMIC_T 1/
 /^#undef HAVE_SIGNED_WINT_T *$/s/^.*$/#define HAVE_SIGNED_WINT_T 1/
 /^#undef HAVE_UNSIGNED_LONG_LONG_INT *$/s/^.*$/#define HAVE_UNSIGNED_LONG_LONG_INT 1/
-/^#under HAVE_WCHAR_H *$/s/^.*$/#define HAVE_WCHAR_H 1/
+/^#undef HAVE_WCHAR_H *$/s/^.*$/#define HAVE_WCHAR_H 1/
 /^#undef DEVICE_SEP *$/s/^.*$/#define DEVICE_SEP ':'/
 /^#undef IS_DIRECTORY_SEP *$/s/^.*$/#define IS_DIRECTORY_SEP(_c_) ((_c_) == '/' || (_c_) == '\\\\')/
 /^#undef IS_ANY_SEP *$/s/^.*$/#define IS_ANY_SEP(_c_) (IS_DIRECTORY_SEP (_c_) || IS_DEVICE_SEP (_c_))/
