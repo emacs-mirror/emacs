@@ -177,7 +177,6 @@ enum coding_attr_index
 #define CODING_ATTR_PRE_WRITE(attrs)	AREF (attrs, coding_attr_pre_write)
 #define CODING_ATTR_DEFAULT_CHAR(attrs)	AREF (attrs, coding_attr_default_char)
 #define CODING_ATTR_FOR_UNIBYTE(attrs)	AREF (attrs, coding_attr_for_unibyte)
-#define CODING_ATTR_FLUSHING(attrs)	AREF (attrs, coding_attr_flushing)
 #define CODING_ATTR_PLIST(attrs)	AREF (attrs, coding_attr_plist)
 #define CODING_ATTR_CATEGORY(attrs)	AREF (attrs, coding_attr_category)
 #define CODING_ATTR_SAFE_CHARSETS(attrs)AREF (attrs, coding_attr_safe_charsets)
