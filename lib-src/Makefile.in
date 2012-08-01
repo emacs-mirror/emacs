@@ -178,6 +178,9 @@ ALL_CFLAGS = ${BASE_CFLAGS} ${PROFILING_CFLAGS} ${LDFLAGS} ${CPPFLAGS} ${CFLAGS}
 LINK_CFLAGS = ${BASE_CFLAGS} ${LDFLAGS} ${CFLAGS}
 CPP_CFLAGS = ${BASE_CFLAGS} ${PROFILING_CFLAGS} ${CPPFLAGS} ${CFLAGS}
 
+# Configuration files for .o files to depend on.
+config_h = ../src/config.h $(srcdir)/../src/conf_post.h
+
 all: ${EXE_FILES} ${SCRIPTS} ${INSTALLABLE_SCRIPTS}
 
 .PHONY: all need-blessmail maybe-blessmail
@@ -289,19 +292,19 @@ test-distrib${EXEEXT}: ${srcdir}/test-distrib.c
 	$(CC) ${ALL_CFLAGS} -o test-distrib ${srcdir}/test-distrib.c
 	./test-distrib ${srcdir}/testfile
 
-../lib/libgnu.a: ../src/config.h
+../lib/libgnu.a: $(config_h)
 	cd ../lib && $(MAKE) libgnu.a
 
-regex.o: $(srcdir)/../src/regex.c $(srcdir)/../src/regex.h ../src/config.h
+regex.o: $(srcdir)/../src/regex.c $(srcdir)/../src/regex.h $(config_h)
 	${CC} -c ${CPP_CFLAGS} -DCONFIG_BROKETS -DINHIBIT_STRING_HEADER \
 	  ${srcdir}/../src/regex.c
 
-etags${EXEEXT}: ${srcdir}/etags.c regex.o ../src/config.h
+etags${EXEEXT}: ${srcdir}/etags.c regex.o $(config_h)
 	$(CC) ${ALL_CFLAGS} -DEMACS_NAME="\"GNU Emacs\"" \
 	  -DVERSION="\"${version}\"" ${srcdir}/etags.c \
 	  regex.o $(LOADLIBES) -o etags
 
-ebrowse${EXEEXT}: ${srcdir}/ebrowse.c ${srcdir}/../lib/min-max.h ../src/config.h
+ebrowse${EXEEXT}: ${srcdir}/ebrowse.c ${srcdir}/../lib/min-max.h $(config_h)
 	$(CC) ${ALL_CFLAGS} -DVERSION="\"${version}\"" \
 	  ${srcdir}/ebrowse.c $(LOADLIBES) -o ebrowse
 
@@ -312,30 +315,30 @@ ctags${EXEEXT}: etags${EXEEXT}
 	  -DVERSION="\"${version}\"" ${srcdir}/etags.c \
 	  regex.o $(LOADLIBES) -o ctags
 
-profile${EXEEXT}: ${srcdir}/profile.c ../src/config.h
+profile${EXEEXT}: ${srcdir}/profile.c $(config_h)
 	$(CC) ${ALL_CFLAGS} ${srcdir}/profile.c \
 	  $(LOADLIBES) $(LIB_CLOCK_GETTIME) -o profile
 
-make-docfile${EXEEXT}: ${srcdir}/make-docfile.c ../src/config.h
+make-docfile${EXEEXT}: ${srcdir}/make-docfile.c $(config_h)
 	$(CC) ${ALL_CFLAGS} ${srcdir}/make-docfile.c $(LOADLIBES) \
 	  -o make-docfile
 
-movemail${EXEEXT}: ${srcdir}/movemail.c pop.o ../src/config.h
+movemail${EXEEXT}: ${srcdir}/movemail.c pop.o $(config_h)
 	$(CC) ${ALL_CFLAGS} ${MOVE_FLAGS} ${srcdir}/movemail.c pop.o \
 	  $(LOADLIBES) $(LIBS_MOVE) -o movemail
 
-pop.o: ${srcdir}/pop.c ${srcdir}/../lib/min-max.h ../src/config.h
+pop.o: ${srcdir}/pop.c ${srcdir}/../lib/min-max.h $(config_h)
 	$(CC) -c ${CPP_CFLAGS} ${MOVE_FLAGS} ${srcdir}/pop.c
 
-emacsclient${EXEEXT}: ${srcdir}/emacsclient.c ../src/config.h
+emacsclient${EXEEXT}: ${srcdir}/emacsclient.c $(config_h)
 	$(CC) ${ALL_CFLAGS} ${srcdir}/emacsclient.c \
 	   -DVERSION="\"${version}\"" \
 	   $(LOADLIBES) -o emacsclient
 
-hexl${EXEEXT}: ${srcdir}/hexl.c ../src/config.h
+hexl${EXEEXT}: ${srcdir}/hexl.c $(config_h)
 	$(CC) ${ALL_CFLAGS} ${srcdir}/hexl.c $(LOADLIBES) -o hexl
 
-update-game-score${EXEEXT}: ${srcdir}/update-game-score.c ../src/config.h
+update-game-score${EXEEXT}: ${srcdir}/update-game-score.c $(config_h)
 	$(CC) ${ALL_CFLAGS} -DHAVE_SHARED_GAME_DIR="\"$(gamedir)\"" \
 	  ${srcdir}/update-game-score.c $(LOADLIBES) -o update-game-score
 
