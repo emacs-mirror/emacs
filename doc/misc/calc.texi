@@ -10123,7 +10123,7 @@ formula that goes onto the stack.  (Thus @kbd{' pi @key{RET}} pushes
 the variable @samp{pi}, but @kbd{' pi M-@key{RET}} pushes 3.1415.)
 
 If you finish your algebraic entry by pressing @key{LFD} (or @kbd{C-j})
-instead of @key{RET}, Calc disables the default simplifications
+instead of @key{RET}, Calc disables simplification
 (as if by @kbd{m O}; @pxref{Simplification Modes}) while the entry
 is being pushed on the stack.  Thus @kbd{' 1+2 @key{RET}} pushes 3
 on the stack, but @kbd{' 1+2 @key{LFD}} pushes the formula @expr{1+2};
@@ -12613,12 +12613,12 @@ fast algebraic simplifications such as @expr{a+0} to @expr{a}, and
 
 @kindex m B
 @pindex calc-bin-simplify-mode
-The @kbd{m B} (@code{calc-bin-simplify-mode}) mode applies the limited
+The @kbd{m B} (@code{calc-bin-simplify-mode}) mode applies the basic
 simplifications to a result and then, if the result is an integer,
 uses the @kbd{b c} (@code{calc-clip}) command to clip the integer according
 to the current binary word size.  @xref{Binary Functions}.  Real numbers
 are rounded to the nearest integer and then clipped; other kinds of
-results (after the default simplifications) are left alone.
+results (after the basic simplifications) are left alone.
 
 @kindex m A
 @pindex calc-alg-simplify-mode
@@ -16714,10 +16714,10 @@ produced!)  Integers and fractions are generally unaffected by this
 operation.  Vectors and formulas are cleaned by cleaning each component
 number (i.e., pervasively).
 
-If the simplification mode is set below the limited level, it is raised
-to the limited level for the purposes of this command.  Thus, @kbd{c c}
-applies the limited simplifications even if their automatic application
-is disabled.  @xref{Simplification Modes}.
+If the simplification mode is set below basic simplification, it is raised
+for the purposes of this command.  Thus, @kbd{c c} applies the basic
+simplifications even if their automatic application is disabled.
+@xref{Simplification Modes}. 
 
 @cindex Roundoff errors, correcting
 A numeric prefix argument to @kbd{c c} sets the floating-point precision
@@ -22124,7 +22124,7 @@ now to take the cosine of the selected part.)
 @kindex j v
 @pindex calc-sel-evaluate
 The @kbd{j v} (@code{calc-sel-evaluate}) command performs the
-limited simplifications on the selected sub-formula.
+basic simplifications on the selected sub-formula.
 These simplifications would normally be done automatically
 on all results, but may have been partially inhibited by
 previous selection-related operations, or turned off altogether
@@ -22412,14 +22412,14 @@ a serious user of Calc's algebra facilities.
 
 As well as the simplifications described here, if you have stored
 any rewrite rules in the variable @code{EvalRules} then these rules
-will also be applied before any built-in default simplifications.
+will also be applied before any of the basic simplifications.
 @xref{Automatic Rewrites}, for details.
 
 @tex
 \bigskip
 @end tex
 
-And now, on with the limited set of simplifications:
+And now, on with the basic simplifications:
 
 Arithmetic operators like @kbd{+} and @kbd{*} always take two
 arguments in Calc's internal form.  Sums and products of three or
@@ -22737,7 +22737,7 @@ of terms including non-adjacent ones.
 
 Products are sorted into a canonical order using the commutative
 law.  For example, @expr{b c a} is commuted to @expr{a b c}.
-This allows easier comparison of products; for example, the limited
+This allows easier comparison of products; for example, the basic
 simplifications will not change @expr{x y + y x} to @expr{2 x y},
 but the algebraic simplifications; it first rewrites the sum to
 @expr{x y + x y} which can then be recognized as a sum of identical
@@ -22796,10 +22796,10 @@ simplified successfully.
 Integer powers of the variable @code{i} are simplified according
 to the identity @expr{i^2 = -1}.  If you store a new value other
 than the complex number @expr{(0,1)} in @code{i}, this simplification
-will no longer occur.  This is not done by the limited
+will no longer occur.  This is not done by the basic
 simplifications; in case someone (unwisely) wants to use the name
 @code{i} for a variable unrelated to complex numbers, they can use
-limited simplifications.
+basic simplification mode.
 
 Square roots of integer or rational arguments are simplified in
 several ways.  (Note that these will be left unevaluated only in

@@ -1,6 +1,7 @@
 2012-08-01  Jay Belanger  <jay.p.belanger@gmail.com>
 
-	* calc.texi (Simplification modes): Mention "basic" simplification.
+	* calc.texi (Simplification modes, Conversions)
+	(Operating on Selections): Mention "basic" simplification.
 	(The Calc Mode Line): Mention the mode line display for Basic
 	simplification mode.
 	(Simplify Formulas): Refer to 'algebraic' rather than 'default'
@@ -14,6 +15,7 @@
 	(Trigonometric/Hyperbolic Functions, Reducing and Mapping)
 	(Kinds of Declarations, Functions for Declarations):  Mention
 	"algebraic simplifications" instead of `a s'.
+	(Algebraic Entry): Remove mention of default simplifications.
 
 2012-07-30  Jay Belanger  <jay.p.belanger@gmail.com>
 
