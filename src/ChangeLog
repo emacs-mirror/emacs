@@ -1,5 +1,9 @@
 2012-08-01  Eli Zaretskii  <eliz@gnu.org>
 
+	* .gdbinit (xcar, xcdr, xlist, xwindow, nextcons, xprintsym):
+	Adapt to latest changes in field names of the corresponding Lisp
+	objects
+
 	* xdisp.c (try_window_id): Use WVAR in IF_DEBUG code.
 
 2012-08-01  Glenn Morris  <rgm@gnu.org>
