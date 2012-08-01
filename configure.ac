@@ -3153,6 +3153,8 @@ dnl Compare with HAVE_INET_SOCKETS (which is unused...) above.
 AC_DEFINE(HAVE_SOCKETS, 1, [Define if the system supports
   4.2-compatible sockets.])
 
+AH_TEMPLATE(INTERNAL_TERMINAL, [This is substituted when $TERM is "internal".])
+
 AC_DEFINE(NULL_DEVICE, ["/dev/null"], [Name of the file to open to get
   a null file, or a data sink.])
 
