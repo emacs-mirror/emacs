@@ -6144,7 +6144,7 @@ serial_configure (struct Lisp_Process *p, Lisp_Object contact)
     error ("Not a serial process");
   hnd = fd_info[ p->outfd ].hnd;
 
-  childp2 = Fcopy_sequence (p->childp);
+  childp2 = Fcopy_sequence (PVAR (p, childp));
 
   /* Initialize timeouts for blocking read and blocking write.  */
   if (!GetCommTimeouts (hnd, &ct))
@@ -6173,7 +6173,7 @@ serial_configure (struct Lisp_Process *p, Lisp_Object contact)
   if (!NILP (Fplist_member (contact, QCspeed)))
     tem = Fplist_get (contact, QCspeed);
   else
-    tem = Fplist_get (p->childp, QCspeed);
+    tem = Fplist_get (PVAR (p, childp), QCspeed);
   CHECK_NUMBER (tem);
   dcb.BaudRate = XINT (tem);
   childp2 = Fplist_put (childp2, QCspeed, tem);
@@ -6182,7 +6182,7 @@ serial_configure (struct Lisp_Process *p, Lisp_Object contact)
   if (!NILP (Fplist_member (contact, QCbytesize)))
     tem = Fplist_get (contact, QCbytesize);
   else
-    tem = Fplist_get (p->childp, QCbytesize);
+    tem = Fplist_get (PVAR (p, childp), QCbytesize);
   if (NILP (tem))
     tem = make_number (8);
   CHECK_NUMBER (tem);
@@ -6196,7 +6196,7 @@ serial_configure (struct Lisp_Process *p, Lisp_Object contact)
   if (!NILP (Fplist_member (contact, QCparity)))
     tem = Fplist_get (contact, QCparity);
   else
-    tem = Fplist_get (p->childp, QCparity);
+    tem = Fplist_get (PVAR (p, childp), QCparity);
   if (!NILP (tem) && !EQ (tem, Qeven) && !EQ (tem, Qodd))
     error (":parity must be nil (no parity), `even', or `odd'");
   dcb.fParity = FALSE;
@@ -6226,7 +6226,7 @@ serial_configure (struct Lisp_Process *p, Lisp_Object contact)
   if (!NILP (Fplist_member (contact, QCstopbits)))
     tem = Fplist_get (contact, QCstopbits);
   else
-    tem = Fplist_get (p->childp, QCstopbits);
+    tem = Fplist_get (PVAR (p, childp), QCstopbits);
   if (NILP (tem))
     tem = make_number (1);
   CHECK_NUMBER (tem);
@@ -6243,7 +6243,7 @@ serial_configure (struct Lisp_Process *p, Lisp_Object contact)
   if (!NILP (Fplist_member (contact, QCflowcontrol)))
     tem = Fplist_get (contact, QCflowcontrol);
   else
-    tem = Fplist_get (p->childp, QCflowcontrol);
+    tem = Fplist_get (PVAR (p, childp), QCflowcontrol);
   if (!NILP (tem) && !EQ (tem, Qhw) && !EQ (tem, Qsw))
     error (":flowcontrol must be nil (no flowcontrol), `hw', or `sw'");
   dcb.fOutxCtsFlow	= FALSE;
@@ -6277,7 +6277,7 @@ serial_configure (struct Lisp_Process *p, Lisp_Object contact)
     error ("SetCommState() failed");
 
   childp2 = Fplist_put (childp2, QCsummary, build_string (summary));
-  p->childp = childp2;
+  PVAR (p, childp) = childp2;
 }
 
 #ifdef HAVE_GNUTLS

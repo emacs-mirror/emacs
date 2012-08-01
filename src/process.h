@@ -26,59 +26,78 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "gnutls.h"
 #endif
 
-/* This structure records information about a subprocess
-   or network connection.
+/* Most code should use this macro to access
+   Lisp fields in struct Lisp_Process.  */
 
-   Every field in this structure except for the header
-   must be a Lisp_Object, for GC's sake.  */
+#define PVAR(w, field) ((w)->INTERNAL_FIELD (field))
+
+/* This structure records information about a subprocess
+   or network connection.  */
 
 struct Lisp_Process
   {
     struct vectorlike_header header;
 
     /* Name of subprocess terminal.  */
-    Lisp_Object tty_name;
+    Lisp_Object INTERNAL_FIELD (tty_name);
+
     /* Name of this process */
-    Lisp_Object name;
+    Lisp_Object INTERNAL_FIELD (name);
+
     /* List of command arguments that this process was run with.
        Is set to t for a stopped network process; nil otherwise. */
-    Lisp_Object command;
+    Lisp_Object INTERNAL_FIELD (command);
+
     /* (funcall FILTER PROC STRING)  (if FILTER is non-nil)
        to dispose of a bunch of chars from the process all at once */
-    Lisp_Object filter;
+    Lisp_Object INTERNAL_FIELD (filter);
+
     /* (funcall SENTINEL PROCESS) when process state changes */
-    Lisp_Object sentinel;
+    Lisp_Object INTERNAL_FIELD (sentinel);
+
     /* (funcall LOG SERVER CLIENT MESSAGE) when a server process
        accepts a connection from a client.  */
-    Lisp_Object log;
+    Lisp_Object INTERNAL_FIELD (log);
+
     /* Buffer that output is going to */
-    Lisp_Object buffer;
+    Lisp_Object INTERNAL_FIELD (buffer);
+
     /* t if this is a real child process.  For a network or serial
        connection, it is a plist based on the arguments to
        make-network-process or make-serial-process.  */
-    Lisp_Object childp;
+
+    Lisp_Object INTERNAL_FIELD (childp);
+
     /* Plist for programs to keep per-process state information, parameters, etc.  */
-    Lisp_Object plist;
+    Lisp_Object INTERNAL_FIELD (plist);
+
     /* Symbol indicating the type of process: real, network, serial  */
-    Lisp_Object type;
+    Lisp_Object INTERNAL_FIELD (type);
+
     /* Marker set to end of last buffer-inserted output from this process */
-    Lisp_Object mark;
+    Lisp_Object INTERNAL_FIELD (mark);
+
     /* Symbol indicating status of process.
        This may be a symbol: run, open, or closed.
        Or it may be a list, whose car is stop, exit or signal
        and whose cdr is a pair (EXIT_CODE . COREDUMP_FLAG)
        or (SIGNAL_NUMBER . COREDUMP_FLAG).  */
-    Lisp_Object status;
+    Lisp_Object INTERNAL_FIELD (status);
+
     /* Coding-system for decoding the input from this process.  */
-    Lisp_Object decode_coding_system;
+    Lisp_Object INTERNAL_FIELD (decode_coding_system);
+
     /* Working buffer for decoding.  */
-    Lisp_Object decoding_buf;
+    Lisp_Object INTERNAL_FIELD (decoding_buf);
+
     /* Coding-system for encoding the output to this process.  */
-    Lisp_Object encode_coding_system;
+    Lisp_Object INTERNAL_FIELD (encode_coding_system);
+
     /* Working buffer for encoding.  */
-    Lisp_Object encoding_buf;
+    Lisp_Object INTERNAL_FIELD (encoding_buf);
+
     /* Queue for storing waiting writes */
-    Lisp_Object write_queue;
+    Lisp_Object INTERNAL_FIELD (write_queue);
 
 #ifdef HAVE_GNUTLS
     Lisp_Object gnutls_cred_type;

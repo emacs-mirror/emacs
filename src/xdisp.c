@@ -21678,10 +21678,10 @@ decode_mode_spec (struct window *w, register int c, int field_width,
 	obj = Fget_buffer_process (Fcurrent_buffer ());
 	if (PROCESSP (obj))
 	  {
-	    p = decode_mode_spec_coding (XPROCESS (obj)->decode_coding_system,
-					 p, eol_flag);
-	    p = decode_mode_spec_coding (XPROCESS (obj)->encode_coding_system,
-					 p, eol_flag);
+	    p = decode_mode_spec_coding
+	      (PVAR (XPROCESS (obj), decode_coding_system), p, eol_flag);
+	    p = decode_mode_spec_coding
+	      (PVAR (XPROCESS (obj), encode_coding_system), p, eol_flag);
 	  }
 #endif /* subprocesses */
 #endif /* 0 */

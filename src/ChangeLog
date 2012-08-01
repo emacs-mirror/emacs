@@ -1,5 +1,12 @@
 2012-08-01  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	Use INTERNAL_FIELD for processes.
+	* process.h (PVAR): New macro.  Adjust style.
+	(struct Lisp_Process): Change Lisp_Object members to INTERNAL_FIELD.
+	* print.c, process.c, sysdep.c, w32.c, xdisp.c: Users changed.
+
+2012-08-01  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	Use INTERNAL_FIELD for windows.
 	* window.h (WVAR): New macro.
 	(struct window): Change Lisp_Object members to INTERNAL_FIELD.
