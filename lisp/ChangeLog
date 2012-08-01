@@ -1,3 +1,8 @@
+2012-08-01  Rupert Swarbrick  <rswarbrick@gmail.com>  (tiny change)
+
+	* calendar/cal-html.el (cal-html-insert-agenda-days):
+	Fix typo.  (Bug#12018)
+
 2012-07-31  Fabián Ezequiel Gallina  <fgallina@cuca>
 
 	Shell processes: enhancements to startup and CEDET compatibility.

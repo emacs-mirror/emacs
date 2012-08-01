@@ -396,7 +396,7 @@ holidays in HOLIDAY-LIST."
        ;; Diary entries.
        cal-html-b-tabledata-string
        (cal-html-htmlify-list holiday-list date t)
-       (and holiday-list diary-list "<BR>\n")
+       (if (and holiday-list diary-list) "<BR>\n" "")
        (cal-html-htmlify-list diary-list date)
        cal-html-e-tabledata-string
        cal-html-e-tablerow-string)
