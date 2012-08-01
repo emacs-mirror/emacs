@@ -6031,7 +6031,7 @@ face_at_buffer_position (struct window *w, ptrdiff_t pos,
 			 ptrdiff_t *endptr, ptrdiff_t limit,
 			 int mouse, int base_face_id)
 {
-  struct frame *f = XFRAME (w->frame);
+  struct frame *f = XFRAME (WVAR (w, frame));
   Lisp_Object attrs[LFACE_VECTOR_SIZE];
   Lisp_Object prop, position;
   ptrdiff_t i, noverlays;
@@ -6055,9 +6055,9 @@ face_at_buffer_position (struct window *w, ptrdiff_t pos,
 
   /* Get the `face' or `mouse_face' text property at POS, and
      determine the next position at which the property changes.  */
-  prop = Fget_text_property (position, propname, w->buffer);
+  prop = Fget_text_property (position, propname, WVAR (w, buffer));
   XSETFASTINT (limit1, (limit < endpos ? limit : endpos));
-  end = Fnext_single_property_change (position, propname, w->buffer, limit1);
+  end = Fnext_single_property_change (position, propname, WVAR (w, buffer), limit1);
   if (INTEGERP (end))
     endpos = XINT (end);
 
@@ -6143,7 +6143,7 @@ face_for_overlay_string (struct window *w, ptrdiff_t pos,
 			 ptrdiff_t *endptr, ptrdiff_t limit,
 			 int mouse, Lisp_Object overlay)
 {
-  struct frame *f = XFRAME (w->frame);
+  struct frame *f = XFRAME (WVAR (w, frame));
   Lisp_Object attrs[LFACE_VECTOR_SIZE];
   Lisp_Object prop, position;
   Lisp_Object frame;
@@ -6165,9 +6165,9 @@ face_for_overlay_string (struct window *w, ptrdiff_t pos,
 
   /* Get the `face' or `mouse_face' text property at POS, and
      determine the next position at which the property changes.  */
-  prop = Fget_text_property (position, propname, w->buffer);
+  prop = Fget_text_property (position, propname, WVAR (w, buffer));
   XSETFASTINT (limit1, (limit < endpos ? limit : endpos));
-  end = Fnext_single_property_change (position, propname, w->buffer, limit1);
+  end = Fnext_single_property_change (position, propname, WVAR (w, buffer), limit1);
   if (INTEGERP (end))
     endpos = XINT (end);
 

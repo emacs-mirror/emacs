@@ -669,7 +669,7 @@ ns_update_window_end (struct window *w, int cursor_on_p,
    external (RIF) call; for one window called before update_end
    -------------------------------------------------------------------------- */
 {
-  Mouse_HLInfo *hlinfo = MOUSE_HL_INFO (XFRAME (w->frame));
+  Mouse_HLInfo *hlinfo = MOUSE_HL_INFO (XFRAME (WVAR (w, frame)));
 
   /* note: this fn is nearly identical in all terms */
   if (!w->pseudo_window_p)
@@ -2037,7 +2037,7 @@ ns_scroll_run (struct window *w, struct run *run)
     External (RIF):  Insert or delete n lines at line vpos
    -------------------------------------------------------------------------- */
 {
-  struct frame *f = XFRAME (w->frame);
+  struct frame *f = XFRAME (WVAR (w, frame));
   int x, y, width, height, from_y, to_y, bottom_y;
 
   NSTRACE (ns_scroll_run);
@@ -2116,7 +2116,7 @@ ns_after_update_window_line (struct glyph_row *desired_row)
      full-width rows stays visible in the internal border.
      Under NS this is drawn inside the fringes. */
   if (windows_or_buffers_changed
-      && (f = XFRAME (w->frame),
+      && (f = XFRAME (WVAR (w, frame)),
 	  width = FRAME_INTERNAL_BORDER_WIDTH (f),
 	  width != 0)
       && (height = desired_row->visible_height,

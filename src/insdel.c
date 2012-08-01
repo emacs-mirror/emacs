@@ -1820,7 +1820,7 @@ prepare_to_modify_buffer (ptrdiff_t start, ptrdiff_t end,
 
   /* Let redisplay consider other windows than selected_window
      if modifying another buffer.  */
-  if (XBUFFER (XWINDOW (selected_window)->buffer) != current_buffer)
+  if (XBUFFER (WVAR (XWINDOW (selected_window), buffer)) != current_buffer)
     ++windows_or_buffers_changed;
 
   if (BUF_INTERVALS (current_buffer) != 0)

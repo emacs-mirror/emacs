@@ -366,7 +366,7 @@ get_pos_property (Lisp_Object position, register Lisp_Object prop, Lisp_Object o
   if (NILP (object))
     XSETBUFFER (object, current_buffer);
   else if (WINDOWP (object))
-    object = XWINDOW (object)->buffer;
+    object = WVAR (XWINDOW (object), buffer);
 
   if (!BUFFERP (object))
     /* pos-property only makes sense in buffers right now, since strings
@@ -821,7 +821,7 @@ This function does not move point.  */)
 Lisp_Object
 save_excursion_save (void)
 {
-  int visible = (XBUFFER (XWINDOW (selected_window)->buffer)
+  int visible = (XBUFFER (WVAR (XWINDOW (selected_window), buffer))
 		 == current_buffer);
 
   return Fcons (Fpoint_marker (),
@@ -874,7 +874,7 @@ save_excursion_restore (Lisp_Object info)
 	 and cleaner never to alter the window/buffer connections.  */
   tem1 = Fcar (tem);
   if (!NILP (tem1)
-      && current_buffer != XBUFFER (XWINDOW (selected_window)->buffer))
+      && current_buffer != XBUFFER (WVAR (XWINDOW (selected_window), buffer)))
     Fswitch_to_buffer (Fcurrent_buffer (), Qnil);
 #endif /* 0 */
 
@@ -907,7 +907,7 @@ save_excursion_restore (Lisp_Object info)
   tem = XCDR (info);
   if (visible_p
       && !EQ (tem, selected_window)
-      && (tem1 = XWINDOW (tem)->buffer,
+      && (tem1 = WVAR (XWINDOW (tem), buffer),
 	  (/* Window is live...  */
 	   BUFFERP (tem1)
 	   /* ...and it shows the current buffer.  */

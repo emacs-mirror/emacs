@@ -3665,7 +3665,7 @@ font_at (int c, ptrdiff_t pos, struct face *face, struct window *w,
 	}
     }
 
-  f = XFRAME (w->frame);
+  f = XFRAME (WVAR (w, frame));
   if (! FRAME_WINDOW_P (f))
     return Qnil;
   if (! face)
@@ -3723,7 +3723,7 @@ font_range (ptrdiff_t pos, ptrdiff_t *limit, struct window *w, struct face *face
 
 	  face_id = face_at_buffer_position (w, pos, 0, 0, &ignore,
 					     *limit, 0, -1);
-	  face = FACE_FROM_ID (XFRAME (w->frame), face_id);
+	  face = FACE_FROM_ID (XFRAME (WVAR (w, frame)), face_id);
 	}
     }
   else

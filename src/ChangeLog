@@ -1,3 +1,14 @@
+2012-08-01  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Use INTERNAL_FIELD for windows.
+	* window.h (WVAR): New macro.
+	(struct window): Change Lisp_Object members to INTERNAL_FIELD.
+	* alloc.c, buffer.c, composite.c, dispextern.h, dispnew.c, editfns.c:
+	* fileio.c, font.c, fontset.c, frame.c, frame.h, fringe.c, indent.c:
+	* insdel.c, keyboard.c, keymap.c, lisp.h, minibuf.c, nsterm.m, print.c:
+	* textprop.c, w32fns.c, w32menu.c, w32term.c, window.c, xdisp.c:
+	* xfaces.c, xfns.c, xmenu.c, xterm.c: Users changed.
+
 2012-08-01  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* coding.h (CODING_ATTR_FLUSHING): Remove; unused and wouldn't work.
@@ -63,9 +74,9 @@
 	(KVAR): Change to use INTERNAL_FIELD.
 	* frame.h (FVAR): New macro.
 	(struct frame): Use INTERNAL_FIELD for all Lisp_Object fields.
-	* alloc.c, buffer.c, data.c, dispnew.c, dosfns.c, eval.c, frame.c
-	* fringe.c, gtkutil.c, minibuf.c, nsfns.m, nsterm.m, print.c
-	* term.c, w32fns.c, w32menu.c, w32term.c, window.c, window.h,
+	* alloc.c, buffer.c, data.c, dispnew.c, dosfns.c, eval.c, frame.c:
+	* fringe.c, gtkutil.c, minibuf.c, nsfns.m, nsterm.m, print.c:
+	* term.c, w32fns.c, w32menu.c, w32term.c, window.c, window.h:
 	* xdisp.c, xfaces.c, xfns.c, xmenu.c, xterm.c: Users changed.
 
 2012-07-31  Dmitry Antipov  <dmantipov@yandex.ru>

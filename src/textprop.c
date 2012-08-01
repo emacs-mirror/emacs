@@ -587,7 +587,7 @@ get_char_property_and_overlay (Lisp_Object position, register Lisp_Object prop, 
   if (WINDOWP (object))
     {
       w = XWINDOW (object);
-      object = w->buffer;
+      object = WVAR (w, buffer);
     }
   if (BUFFERP (object))
     {

@@ -906,7 +906,7 @@ static Lisp_Object
 autocmp_chars (Lisp_Object rule, ptrdiff_t charpos, ptrdiff_t bytepos, ptrdiff_t limit, struct window *win, struct face *face, Lisp_Object string)
 {
   ptrdiff_t count = SPECPDL_INDEX ();
-  FRAME_PTR f = XFRAME (win->frame);
+  FRAME_PTR f = XFRAME (WVAR (win, frame));
   Lisp_Object pos = make_number (charpos);
   ptrdiff_t to;
   ptrdiff_t pt = PT, pt_byte = PT_BYTE;
@@ -942,7 +942,7 @@ autocmp_chars (Lisp_Object rule, ptrdiff_t charpos, ptrdiff_t bytepos, ptrdiff_t
     }
   else
 #endif	/* not HAVE_WINDOW_SYSTEM */
-    font_object = win->frame;
+    font_object = WVAR (win, frame);
   lgstring = Fcomposition_get_gstring (pos, make_number (to), font_object,
 				       string);
   if (NILP (LGSTRING_ID (lgstring)))

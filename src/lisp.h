@@ -1748,7 +1748,8 @@ typedef struct {
    vchild, and hchild members are all nil.  */
 
 #define CHECK_LIVE_WINDOW(x) \
-  CHECK_TYPE (WINDOWP (x) && !NILP (XWINDOW (x)->buffer), Qwindow_live_p, x)
+  CHECK_TYPE (WINDOWP (x) && !NILP (WVAR (XWINDOW (x), buffer)), \
+	      Qwindow_live_p, x)
 
 #define CHECK_PROCESS(x) \
   CHECK_TYPE (PROCESSP (x), Qprocessp, x)

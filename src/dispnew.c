@@ -265,9 +265,9 @@ add_window_display_history (struct window *w, const char *msg, int paused_p)
 	    "%"pMu": window %p (`%s')%s\n%s",
 	    history_tick++,
 	    w,
-	    ((BUFFERP (w->buffer)
-	      && STRINGP (BVAR (XBUFFER (w->buffer), name)))
-	     ? SSDATA (BVAR (XBUFFER (w->buffer), name))
+	    ((BUFFERP (WVAR (w, buffer))
+	      && STRINGP (BVAR (XBUFFER (WVAR (w, buffer)), name)))
+	     ? SSDATA (BVAR (XBUFFER (WVAR (w, buffer)), name))
 	     : "???"),
 	    paused_p ? " ***paused***" : "",
 	    msg);
@@ -405,7 +405,7 @@ margin_glyphs_to_reserve (struct window *w, int total_glyphs, Lisp_Object margin
 
   if (NUMBERP (margin))
     {
-      int width = XFASTINT (w->total_cols);
+      int width = XFASTINT (WVAR (w, total_cols));
       double d = max (0, XFLOATINT (margin));
       d = min (width / 2 - 1, d);
       n = (int) ((double) total_glyphs / width * d);
@@ -475,8 +475,8 @@ adjust_glyph_matrix (struct window *w, struct glyph_matrix *matrix, int x, int y
      the matrix means preventing redisplay.  */
   if (matrix->pool == NULL)
     {
-      left = margin_glyphs_to_reserve (w, dim.width, w->left_margin_cols);
-      right = margin_glyphs_to_reserve (w, dim.width, w->right_margin_cols);
+      left = margin_glyphs_to_reserve (w, dim.width, WVAR (w, left_margin_cols));
+      right = margin_glyphs_to_reserve (w, dim.width, WVAR (w, right_margin_cols));
       eassert (left >= 0 && right >= 0);
       marginal_areas_changed_p = (left != matrix->left_margin_glyphs
 				  || right != matrix->right_margin_glyphs);
@@ -515,9 +515,9 @@ adjust_glyph_matrix (struct window *w, struct glyph_matrix *matrix, int x, int y
       if (w)
 	{
 	  left = margin_glyphs_to_reserve (w, dim.width,
-					   w->left_margin_cols);
+					   WVAR (w, left_margin_cols));
 	  right = margin_glyphs_to_reserve (w, dim.width,
-					    w->right_margin_cols);
+					    WVAR (w, right_margin_cols));
 	}
       else
 	left = right = 0;
@@ -640,9 +640,9 @@ adjust_glyph_matrix (struct window *w, struct glyph_matrix *matrix, int x, int y
 
 	      /* Window end is invalid, if inside of the rows that
 		 are invalidated below.  */
-	      if (INTEGERP (w->window_end_vpos)
-		  && XFASTINT (w->window_end_vpos) >= i)
-		w->window_end_valid = Qnil;
+	      if (INTEGERP (WVAR (w, window_end_vpos))
+		  && XFASTINT (WVAR (w, window_end_vpos)) >= i)
+		WVAR (w, window_end_valid) = Qnil;
 
 	      while (i < matrix->nrows)
 		matrix->rows[i++].enabled_p = 0;
@@ -882,15 +882,15 @@ clear_window_matrices (struct window *w, int desired_p)
 {
   while (w)
     {
-      if (!NILP (w->hchild))
+      if (!NILP (WVAR (w, hchild)))
 	{
-	  eassert (WINDOWP (w->hchild));
-	  clear_window_matrices (XWINDOW (w->hchild), desired_p);
+	  eassert (WINDOWP (WVAR (w, hchild)));
+	  clear_window_matrices (XWINDOW (WVAR (w, hchild)), desired_p);
 	}
-      else if (!NILP (w->vchild))
+      else if (!NILP (WVAR (w, vchild)))
 	{
-	  eassert (WINDOWP (w->vchild));
-	  clear_window_matrices (XWINDOW (w->vchild), desired_p);
+	  eassert (WINDOWP (WVAR (w, vchild)));
+	  clear_window_matrices (XWINDOW (WVAR (w, vchild)), desired_p);
 	}
       else
 	{
@@ -899,11 +899,11 @@ clear_window_matrices (struct window *w, int desired_p)
 	  else
 	    {
 	      clear_glyph_matrix (w->current_matrix);
-	      w->window_end_valid = Qnil;
+	      WVAR (w, window_end_valid) = Qnil;
 	    }
 	}
 
-      w = NILP (w->next) ? 0 : XWINDOW (w->next);
+      w = NILP (WVAR (w, next)) ? 0 : XWINDOW (WVAR (w, next));
     }
 }
 
@@ -967,7 +967,7 @@ blank_row (struct window *w, struct glyph_row *row, int y)
   clear_glyph_row (row);
   row->y = y;
   row->ascent = row->phys_ascent = 0;
-  row->height = row->phys_height = FRAME_LINE_HEIGHT (XFRAME (w->frame));
+  row->height = row->phys_height = FRAME_LINE_HEIGHT (XFRAME (WVAR (w, frame)));
   row->visible_height = row->height;
 
   if (row->y < min_y)
@@ -1513,7 +1513,7 @@ check_matrix_invariants (struct window *w)
   struct glyph_row *row = matrix->rows;
   struct glyph_row *last_text_row = NULL;
   struct buffer *saved = current_buffer;
-  struct buffer *buffer = XBUFFER (w->buffer);
+  struct buffer *buffer = XBUFFER (WVAR (w, buffer));
   int c;
 
   /* This can sometimes happen for a fresh window.  */
@@ -1676,8 +1676,8 @@ allocate_matrices_for_frame_redisplay (Lisp_Object window, int x, int y,
      points to the mini-buffer window, if any, which is arranged
      vertically below other windows.  */
   in_horz_combination_p
-    = (!NILP (XWINDOW (window)->parent)
-       && !NILP (XWINDOW (XWINDOW (window)->parent)->hchild));
+    = (!NILP (WVAR (XWINDOW (window), parent))
+       && !NILP (WVAR (XWINDOW (WVAR (XWINDOW (window), parent)), hchild)));
 
   /* For WINDOW and all windows on the same level.  */
   do
@@ -1686,12 +1686,12 @@ allocate_matrices_for_frame_redisplay (Lisp_Object window, int x, int y,
 
       /* Get the dimension of the window sub-matrix for W, depending
 	 on whether this is a combination or a leaf window.  */
-      if (!NILP (w->hchild))
-	dim = allocate_matrices_for_frame_redisplay (w->hchild, x, y,
+      if (!NILP (WVAR (w, hchild)))
+	dim = allocate_matrices_for_frame_redisplay (WVAR (w, hchild), x, y,
 						     dim_only_p,
 						     window_change_flags);
-      else if (!NILP (w->vchild))
-	dim = allocate_matrices_for_frame_redisplay (w->vchild, x, y,
+      else if (!NILP (WVAR (w, vchild)))
+	dim = allocate_matrices_for_frame_redisplay (WVAR (w, vchild), x, y,
 						     dim_only_p,
 						     window_change_flags);
       else
@@ -1715,10 +1715,10 @@ allocate_matrices_for_frame_redisplay (Lisp_Object window, int x, int y,
 	      || dim.width != w->desired_matrix->matrix_w
 	      || dim.height != w->desired_matrix->matrix_h
 	      || (margin_glyphs_to_reserve (w, dim.width,
-					    w->left_margin_cols)
+					    WVAR (w, left_margin_cols))
 		  != w->desired_matrix->left_margin_glyphs)
 	      || (margin_glyphs_to_reserve (w, dim.width,
-					    w->right_margin_cols)
+					    WVAR (w, right_margin_cols))
 		  != w->desired_matrix->right_margin_glyphs))
 	    *window_change_flags |= CHANGED_LEAF_MATRIX;
 
@@ -1747,7 +1747,7 @@ allocate_matrices_for_frame_redisplay (Lisp_Object window, int x, int y,
       hmax = max (hmax, dim.height);
 
       /* Next window on same level.  */
-      window = w->next;
+      window = WVAR (w, next);
     }
   while (!NILP (window));
 
@@ -1778,7 +1778,7 @@ static int
 required_matrix_height (struct window *w)
 {
 #ifdef HAVE_WINDOW_SYSTEM
-  struct frame *f = XFRAME (w->frame);
+  struct frame *f = XFRAME (WVAR (w, frame));
 
   if (FRAME_WINDOW_P (f))
     {
@@ -1804,7 +1804,7 @@ static int
 required_matrix_width (struct window *w)
 {
 #ifdef HAVE_WINDOW_SYSTEM
-  struct frame *f = XFRAME (w->frame);
+  struct frame *f = XFRAME (WVAR (w, frame));
   if (FRAME_WINDOW_P (f))
     {
       int ch_width = FRAME_SMALLEST_CHAR_WIDTH (f);
@@ -1821,7 +1821,7 @@ required_matrix_width (struct window *w)
     }
 #endif /* HAVE_WINDOW_SYSTEM */
 
-  return XINT (w->total_cols);
+  return XINT (WVAR (w, total_cols));
 }
 
 
@@ -1833,10 +1833,10 @@ allocate_matrices_for_window_redisplay (struct window *w)
 {
   while (w)
     {
-      if (!NILP (w->vchild))
-	allocate_matrices_for_window_redisplay (XWINDOW (w->vchild));
-      else if (!NILP (w->hchild))
-	allocate_matrices_for_window_redisplay (XWINDOW (w->hchild));
+      if (!NILP (WVAR (w, vchild)))
+	allocate_matrices_for_window_redisplay (XWINDOW (WVAR (w, vchild)));
+      else if (!NILP (WVAR (w, hchild)))
+	allocate_matrices_for_window_redisplay (XWINDOW (WVAR (w, hchild)));
       else
 	{
 	  /* W is a leaf window.  */
@@ -1855,7 +1855,7 @@ allocate_matrices_for_window_redisplay (struct window *w)
 	  adjust_glyph_matrix (w, w->current_matrix, 0, 0, dim);
 	}
 
-      w = NILP (w->next) ? NULL : XWINDOW (w->next);
+      w = NILP (WVAR (w, next)) ? NULL : XWINDOW (WVAR (w, next));
     }
 }
 
@@ -1902,20 +1902,20 @@ adjust_frame_glyphs_initially (void)
 {
   struct frame *sf = SELECTED_FRAME ();
   struct window *root = XWINDOW (FVAR (sf, root_window));
-  struct window *mini = XWINDOW (root->next);
+  struct window *mini = XWINDOW (WVAR (root, next));
   int frame_lines = FRAME_LINES (sf);
   int frame_cols = FRAME_COLS (sf);
   int top_margin = FRAME_TOP_MARGIN (sf);
 
   /* Do it for the root window.  */
-  XSETFASTINT (root->top_line, top_margin);
-  XSETFASTINT (root->total_lines, frame_lines - 1 - top_margin);
-  XSETFASTINT (root->total_cols, frame_cols);
+  XSETFASTINT (WVAR (root, top_line), top_margin);
+  XSETFASTINT (WVAR (root, total_lines), frame_lines - 1 - top_margin);
+  XSETFASTINT (WVAR (root, total_cols), frame_cols);
 
   /* Do it for the mini-buffer window.  */
-  XSETFASTINT (mini->top_line, frame_lines - 1);
-  XSETFASTINT (mini->total_lines, 1);
-  XSETFASTINT (mini->total_cols, frame_cols);
+  XSETFASTINT (WVAR (mini, top_line), frame_lines - 1);
+  XSETFASTINT (WVAR (mini, total_lines), 1);
+  XSETFASTINT (WVAR (mini, total_cols), frame_cols);
 
   adjust_frame_glyphs (sf);
   glyphs_initialized_initially_p = 1;
@@ -1947,21 +1947,21 @@ showing_window_margins_p (struct window *w)
 {
   while (w)
     {
-      if (!NILP (w->hchild))
+      if (!NILP (WVAR (w, hchild)))
 	{
-	  if (showing_window_margins_p (XWINDOW (w->hchild)))
+	  if (showing_window_margins_p (XWINDOW (WVAR (w, hchild))))
 	    return 1;
 	}
-      else if (!NILP (w->vchild))
+      else if (!NILP (WVAR (w, vchild)))
 	{
-	  if (showing_window_margins_p (XWINDOW (w->vchild)))
+	  if (showing_window_margins_p (XWINDOW (WVAR (w, vchild))))
 	    return 1;
 	}
-      else if (!NILP (w->left_margin_cols)
-	       || !NILP (w->right_margin_cols))
+      else if (!NILP (WVAR (w, left_margin_cols))
+	       || !NILP (WVAR (w, right_margin_cols)))
 	return 1;
 
-      w = NILP (w->next) ? 0 : XWINDOW (w->next);
+      w = NILP (WVAR (w, next)) ? 0 : XWINDOW (WVAR (w, next));
     }
   return 0;
 }
@@ -1975,18 +1975,18 @@ fake_current_matrices (Lisp_Object window)
 {
   struct window *w;
 
-  for (; !NILP (window); window = w->next)
+  for (; !NILP (window); window = WVAR (w, next))
     {
       w = XWINDOW (window);
 
-      if (!NILP (w->hchild))
-	fake_current_matrices (w->hchild);
-      else if (!NILP (w->vchild))
-	fake_current_matrices (w->vchild);
+      if (!NILP (WVAR (w, hchild)))
+	fake_current_matrices (WVAR (w, hchild));
+      else if (!NILP (WVAR (w, vchild)))
+	fake_current_matrices (WVAR (w, vchild));
       else
 	{
 	  int i;
-	  struct frame *f = XFRAME (w->frame);
+	  struct frame *f = XFRAME (WVAR (w, frame));
 	  struct glyph_matrix *m = w->current_matrix;
 	  struct glyph_matrix *fm = f->current_matrix;
 
@@ -2188,7 +2188,7 @@ adjust_frame_glyphs_for_window_redisplay (struct frame *f)
       {
 	FVAR (f, menu_bar_window) = make_window ();
 	w = XWINDOW (FVAR (f, menu_bar_window));
-	XSETFRAME (w->frame, f);
+	XSETFRAME (WVAR (w, frame), f);
 	w->pseudo_window_p = 1;
       }
     else
@@ -2196,10 +2196,10 @@ adjust_frame_glyphs_for_window_redisplay (struct frame *f)
 
     /* Set window dimensions to frame dimensions and allocate or
        adjust glyph matrices of W.  */
-    XSETFASTINT (w->top_line, 0);
-    XSETFASTINT (w->left_col, 0);
-    XSETFASTINT (w->total_lines, FRAME_MENU_BAR_LINES (f));
-    XSETFASTINT (w->total_cols, FRAME_TOTAL_COLS (f));
+    XSETFASTINT (WVAR (w, top_line), 0);
+    XSETFASTINT (WVAR (w, left_col), 0);
+    XSETFASTINT (WVAR (w, total_lines), FRAME_MENU_BAR_LINES (f));
+    XSETFASTINT (WVAR (w, total_cols), FRAME_TOTAL_COLS (f));
     allocate_matrices_for_window_redisplay (w);
   }
 #endif /* not USE_X_TOOLKIT && not USE_GTK */
@@ -2214,16 +2214,16 @@ adjust_frame_glyphs_for_window_redisplay (struct frame *f)
       {
 	FVAR (f, tool_bar_window) = make_window ();
 	w = XWINDOW (FVAR (f, tool_bar_window));
-	XSETFRAME (w->frame, f);
+	XSETFRAME (WVAR (w, frame), f);
 	w->pseudo_window_p = 1;
       }
     else
       w = XWINDOW (FVAR (f, tool_bar_window));
 
-    XSETFASTINT (w->top_line, FRAME_MENU_BAR_LINES (f));
-    XSETFASTINT (w->left_col, 0);
-    XSETFASTINT (w->total_lines, FRAME_TOOL_BAR_LINES (f));
-    XSETFASTINT (w->total_cols, FRAME_TOTAL_COLS (f));
+    XSETFASTINT (WVAR (w, top_line), FRAME_MENU_BAR_LINES (f));
+    XSETFASTINT (WVAR (w, left_col), 0);
+    XSETFASTINT (WVAR (w, total_lines), FRAME_TOOL_BAR_LINES (f));
+    XSETFASTINT (WVAR (w, total_cols), FRAME_TOTAL_COLS (f));
     allocate_matrices_for_window_redisplay (w);
   }
 #endif
@@ -2333,10 +2333,10 @@ free_window_matrices (struct window *w)
 {
   while (w)
     {
-      if (!NILP (w->hchild))
-	free_window_matrices (XWINDOW (w->hchild));
-      else if (!NILP (w->vchild))
-	free_window_matrices (XWINDOW (w->vchild));
+      if (!NILP (WVAR (w, hchild)))
+	free_window_matrices (XWINDOW (WVAR (w, hchild)));
+      else if (!NILP (WVAR (w, vchild)))
+	free_window_matrices (XWINDOW (WVAR (w, vchild)));
       else
 	{
 	  /* This is a leaf window.  Free its memory and reset fields
@@ -2348,7 +2348,7 @@ free_window_matrices (struct window *w)
 	}
 
       /* Next window on same level.  */
-      w = NILP (w->next) ? 0 : XWINDOW (w->next);
+      w = NILP (WVAR (w, next)) ? 0 : XWINDOW (WVAR (w, next));
     }
 }
 
@@ -2469,14 +2469,14 @@ build_frame_matrix_from_window_tree (struct glyph_matrix *matrix, struct window 
 {
   while (w)
     {
-      if (!NILP (w->hchild))
-	build_frame_matrix_from_window_tree (matrix, XWINDOW (w->hchild));
-      else if (!NILP (w->vchild))
-	build_frame_matrix_from_window_tree (matrix, XWINDOW (w->vchild));
+      if (!NILP (WVAR (w, hchild)))
+	build_frame_matrix_from_window_tree (matrix, XWINDOW (WVAR (w, hchild)));
+      else if (!NILP (WVAR (w, vchild)))
+	build_frame_matrix_from_window_tree (matrix, XWINDOW (WVAR (w, vchild)));
       else
 	build_frame_matrix_from_leaf_window (matrix, w);
 
-      w = NILP (w->next) ? 0 : XWINDOW (w->next);
+      w = NILP (WVAR (w, next)) ? 0 : XWINDOW (WVAR (w, next));
     }
 }
 
@@ -2615,7 +2615,7 @@ spec_glyph_lookup_face (struct window *w, GLYPH *glyph)
   /* Convert the glyph's specified face to a realized (cache) face.  */
   if (lface_id > 0)
     {
-      int face_id = merge_faces (XFRAME (w->frame),
+      int face_id = merge_faces (XFRAME (WVAR (w, frame)),
 				 Qt, lface_id, DEFAULT_FACE_ID);
       SET_GLYPH_FACE (*glyph, face_id);
     }
@@ -2736,10 +2736,10 @@ mirror_make_current (struct window *w, int frame_row)
 {
   while (w)
     {
-      if (!NILP (w->hchild))
- 	mirror_make_current (XWINDOW (w->hchild), frame_row);
-      else if (!NILP (w->vchild))
-	mirror_make_current (XWINDOW (w->vchild), frame_row);
+      if (!NILP (WVAR (w, hchild)))
+ 	mirror_make_current (XWINDOW (WVAR (w, hchild)), frame_row);
+      else if (!NILP (WVAR (w, vchild)))
+	mirror_make_current (XWINDOW (WVAR (w, vchild)), frame_row);
       else
 	{
 	  /* Row relative to window W.  Don't use FRAME_TO_WINDOW_VPOS
@@ -2772,7 +2772,7 @@ mirror_make_current (struct window *w, int frame_row)
 	    }
 	}
 
-      w = NILP (w->next) ? 0 : XWINDOW (w->next);
+      w = NILP (WVAR (w, next)) ? 0 : XWINDOW (WVAR (w, next));
     }
 }
 
@@ -2831,16 +2831,16 @@ mirrored_line_dance (struct glyph_matrix *matrix, int unchanged_at_top, int nlin
 static void
 sync_window_with_frame_matrix_rows (struct window *w)
 {
-  struct frame *f = XFRAME (w->frame);
+  struct frame *f = XFRAME (WVAR (w, frame));
   struct glyph_row *window_row, *window_row_end, *frame_row;
   int left, right, x, width;
 
   /* Preconditions: W must be a leaf window on a tty frame.  */
-  eassert (NILP (w->hchild) && NILP (w->vchild));
+  eassert (NILP (WVAR (w, hchild)) && NILP (WVAR (w, vchild)));
   eassert (!FRAME_WINDOW_P (f));
 
-  left = margin_glyphs_to_reserve (w, 1, w->left_margin_cols);
-  right = margin_glyphs_to_reserve (w, 1, w->right_margin_cols);
+  left = margin_glyphs_to_reserve (w, 1, WVAR (w, left_margin_cols));
+  right = margin_glyphs_to_reserve (w, 1, WVAR (w, right_margin_cols));
   x = w->current_matrix->matrix_x;
   width = w->current_matrix->matrix_w;
 
@@ -2872,15 +2872,15 @@ frame_row_to_window (struct window *w, int row)
 
   while (w && !found)
     {
-      if (!NILP (w->hchild))
- 	found = frame_row_to_window (XWINDOW (w->hchild), row);
-      else if (!NILP (w->vchild))
-	found = frame_row_to_window (XWINDOW (w->vchild), row);
+      if (!NILP (WVAR (w, hchild)))
+ 	found = frame_row_to_window (XWINDOW (WVAR (w, hchild)), row);
+      else if (!NILP (WVAR (w, vchild)))
+	found = frame_row_to_window (XWINDOW (WVAR (w, vchild)), row);
       else if (row >= WINDOW_TOP_EDGE_LINE (w)
 	       && row < WINDOW_BOTTOM_EDGE_LINE (w))
 	found = w;
 
-      w = NILP (w->next) ? 0 : XWINDOW (w->next);
+      w = NILP (WVAR (w, next)) ? 0 : XWINDOW (WVAR (w, next));
     }
 
   return found;
@@ -2903,11 +2903,11 @@ mirror_line_dance (struct window *w, int unchanged_at_top, int nlines, int *copy
 {
   while (w)
     {
-      if (!NILP (w->hchild))
-	mirror_line_dance (XWINDOW (w->hchild), unchanged_at_top,
+      if (!NILP (WVAR (w, hchild)))
+	mirror_line_dance (XWINDOW (WVAR (w, hchild)), unchanged_at_top,
 			   nlines, copy_from, retained_p);
-      else if (!NILP (w->vchild))
-	mirror_line_dance (XWINDOW (w->vchild), unchanged_at_top,
+      else if (!NILP (WVAR (w, vchild)))
+	mirror_line_dance (XWINDOW (WVAR (w, vchild)), unchanged_at_top,
 			   nlines, copy_from, retained_p);
       else
 	{
@@ -2963,7 +2963,7 @@ mirror_line_dance (struct window *w, int unchanged_at_top, int nlines, int *copy
 		{
 		  /* A copy between windows.  This is an infrequent
 		     case not worth optimizing.  */
-		  struct frame *f = XFRAME (w->frame);
+		  struct frame *f = XFRAME (WVAR (w, frame));
 		  struct window *root = XWINDOW (FRAME_ROOT_WINDOW (f));
 		  struct window *w2;
 		  struct glyph_matrix *m2;
@@ -3000,7 +3000,7 @@ mirror_line_dance (struct window *w, int unchanged_at_top, int nlines, int *copy
 	}
 
       /* Next window on same level.  */
-      w = NILP (w->next) ? 0 : XWINDOW (w->next);
+      w = NILP (WVAR (w, next)) ? 0 : XWINDOW (WVAR (w, next));
     }
 }
 
@@ -3018,18 +3018,18 @@ check_window_matrix_pointers (struct window *w)
 {
   while (w)
     {
-      if (!NILP (w->hchild))
-	check_window_matrix_pointers (XWINDOW (w->hchild));
-      else if (!NILP (w->vchild))
-	check_window_matrix_pointers (XWINDOW (w->vchild));
+      if (!NILP (WVAR (w, hchild)))
+	check_window_matrix_pointers (XWINDOW (WVAR (w, hchild)));
+      else if (!NILP (WVAR (w, vchild)))
+	check_window_matrix_pointers (XWINDOW (WVAR (w, vchild)));
       else
 	{
-	  struct frame *f = XFRAME (w->frame);
+	  struct frame *f = XFRAME (WVAR (w, frame));
 	  check_matrix_pointers (w->desired_matrix, f->desired_matrix);
 	  check_matrix_pointers (w->current_matrix, f->current_matrix);
 	}
 
-      w = NILP (w->next) ? 0 : XWINDOW (w->next);
+      w = NILP (WVAR (w, next)) ? 0 : XWINDOW (WVAR (w, next));
     }
 }
 
@@ -3077,10 +3077,10 @@ check_matrix_pointers (struct glyph_matrix *window_matrix,
 static int
 window_to_frame_vpos (struct window *w, int vpos)
 {
-  eassert (!FRAME_WINDOW_P (XFRAME (w->frame)));
+  eassert (!FRAME_WINDOW_P (XFRAME (WVAR (w, frame))));
   eassert (vpos >= 0 && vpos <= w->desired_matrix->nrows);
   vpos += WINDOW_TOP_EDGE_LINE (w);
-  eassert (vpos >= 0 && vpos <= FRAME_LINES (XFRAME (w->frame)));
+  eassert (vpos >= 0 && vpos <= FRAME_LINES (XFRAME (WVAR (w, frame))));
   return vpos;
 }
 
@@ -3091,7 +3091,7 @@ window_to_frame_vpos (struct window *w, int vpos)
 static int
 window_to_frame_hpos (struct window *w, int hpos)
 {
-  eassert (!FRAME_WINDOW_P (XFRAME (w->frame)));
+  eassert (!FRAME_WINDOW_P (XFRAME (WVAR (w, frame))));
   hpos += WINDOW_LEFT_EDGE_COL (w);
   return hpos;
 }
@@ -3311,14 +3311,14 @@ update_window_tree (struct window *w, int force_p)
 
   while (w && !paused_p)
     {
-      if (!NILP (w->hchild))
-	paused_p |= update_window_tree (XWINDOW (w->hchild), force_p);
-      else if (!NILP (w->vchild))
-	paused_p |= update_window_tree (XWINDOW (w->vchild), force_p);
+      if (!NILP (WVAR (w, hchild)))
+	paused_p |= update_window_tree (XWINDOW (WVAR (w, hchild)), force_p);
+      else if (!NILP (WVAR (w, vchild)))
+	paused_p |= update_window_tree (XWINDOW (WVAR (w, vchild)), force_p);
       else if (w->must_be_updated_p)
 	paused_p |= update_window (w, force_p);
 
-      w = NILP (w->next) ? 0 : XWINDOW (w->next);
+      w = NILP (WVAR (w, next)) ? 0 : XWINDOW (WVAR (w, next));
     }
 
   return paused_p;
@@ -3806,7 +3806,7 @@ update_text_area (struct window *w, int vpos)
 	      struct glyph *glyph = &current_row->glyphs[TEXT_AREA][i - 1];
 	      int left, right;
 
-	      rif->get_glyph_overhangs (glyph, XFRAME (w->frame),
+	      rif->get_glyph_overhangs (glyph, XFRAME (WVAR (w, frame)),
 					&left, &right);
 	      can_skip_p = (right == 0 && !abort_skipping);
 	    }
@@ -3838,7 +3838,8 @@ update_text_area (struct window *w, int vpos)
 		{
 		  int left, right;
 
-		  rif->get_glyph_overhangs (current_glyph, XFRAME (w->frame),
+		  rif->get_glyph_overhangs (current_glyph,
+					    XFRAME (WVAR (w, frame)),
 					    &left, &right);
 		  while (left > 0 && i > 0)
 		    {
@@ -3981,7 +3982,7 @@ update_window_line (struct window *w, int vpos, int *mouse_face_overwritten_p)
 
       /* Update display of the left margin area, if there is one.  */
       if (!desired_row->full_width_p
-	  && !NILP (w->left_margin_cols))
+	  && !NILP (WVAR (w, left_margin_cols)))
 	{
 	  changed_p = 1;
 	  update_marginal_area (w, LEFT_MARGIN_AREA, vpos);
@@ -3997,7 +3998,7 @@ update_window_line (struct window *w, int vpos, int *mouse_face_overwritten_p)
 
       /* Update display of the right margin area, if there is one.  */
       if (!desired_row->full_width_p
-	  && !NILP (w->right_margin_cols))
+	  && !NILP (WVAR (w, right_margin_cols)))
 	{
 	  changed_p = 1;
 	  update_marginal_area (w, RIGHT_MARGIN_AREA, vpos);
@@ -4030,7 +4031,7 @@ update_window_line (struct window *w, int vpos, int *mouse_face_overwritten_p)
 static void
 set_window_cursor_after_update (struct window *w)
 {
-  struct frame *f = XFRAME (w->frame);
+  struct frame *f = XFRAME (WVAR (w, frame));
   struct redisplay_interface *rif = FRAME_RIF (f);
   int cx, cy, vpos, hpos;
 
@@ -4116,14 +4117,14 @@ set_window_update_flags (struct window *w, int on_p)
 {
   while (w)
     {
-      if (!NILP (w->hchild))
-	set_window_update_flags (XWINDOW (w->hchild), on_p);
-      else if (!NILP (w->vchild))
-	set_window_update_flags (XWINDOW (w->vchild), on_p);
+      if (!NILP (WVAR (w, hchild)))
+	set_window_update_flags (XWINDOW (WVAR (w, hchild)), on_p);
+      else if (!NILP (WVAR (w, vchild)))
+	set_window_update_flags (XWINDOW (WVAR (w, vchild)), on_p);
       else
 	w->must_be_updated_p = on_p;
 
-      w = NILP (w->next) ? 0 : XWINDOW (w->next);
+      w = NILP (WVAR (w, next)) ? 0 : XWINDOW (WVAR (w, next));
     }
 }
 
@@ -4806,8 +4807,8 @@ update_frame_1 (struct frame *f, int force_p, int inhibit_id_p)
 	      int x = WINDOW_TO_FRAME_HPOS (w, w->cursor.hpos);
 	      int y = WINDOW_TO_FRAME_VPOS (w, w->cursor.vpos);
 
-	      if (INTEGERP (w->left_margin_cols))
-		x += XFASTINT (w->left_margin_cols);
+	      if (INTEGERP (WVAR (w, left_margin_cols)))
+		x += XFASTINT (WVAR (w, left_margin_cols));
 
 	      /* x = max (min (x, FRAME_TOTAL_COLS (f) - 1), 0); */
 	      cursor_to (f, y, x);
@@ -5297,9 +5298,9 @@ buffer_posn_from_coords (struct window *w, int *x, int *y, struct display_pos *p
 
   /* We used to set current_buffer directly here, but that does the
      wrong thing with `face-remapping-alist' (bug#2044).  */
-  Fset_buffer (w->buffer);
+  Fset_buffer (WVAR (w, buffer));
   itdata = bidi_shelve_cache ();
-  SET_TEXT_POS_FROM_MARKER (startp, w->start);
+  SET_TEXT_POS_FROM_MARKER (startp, WVAR (w, start));
   CHARPOS (startp) = min (ZV, max (BEGV, CHARPOS (startp)));
   BYTEPOS (startp) = min (ZV_BYTE, max (BEGV_BYTE, BYTEPOS (startp)));
   start_display (&it, w, startp);
@@ -5343,7 +5344,7 @@ buffer_posn_from_coords (struct window *w, int *x, int *y, struct display_pos *p
   *dx = x0 + it.first_visible_x - it.current_x;
   *dy = *y - it.current_y;
 
-  string =  w->buffer;
+  string =  WVAR (w, buffer);
   if (STRINGP (it.string))
     string = it.string;
   *pos = it.current;
@@ -5361,7 +5362,7 @@ buffer_posn_from_coords (struct window *w, int *x, int *y, struct display_pos *p
       if (STRINGP (it.string))
 	BYTEPOS (pos->pos) = string_char_to_byte (string, CHARPOS (pos->pos));
       else
-	BYTEPOS (pos->pos) = buf_charpos_to_bytepos (XBUFFER (w->buffer),
+	BYTEPOS (pos->pos) = buf_charpos_to_bytepos (XBUFFER (WVAR (w, buffer)),
 						     CHARPOS (pos->pos));
     }
 
@@ -5761,7 +5762,7 @@ change_frame_size_1 (register struct frame *f, int newheight, int newwidth, int 
 	FrameCols (FRAME_TTY (f)) = newwidth;
 
       if (WINDOWP (FVAR (f, tool_bar_window)))
-	XSETFASTINT (XWINDOW (FVAR (f, tool_bar_window))->total_cols, newwidth);
+	XSETFASTINT (WVAR (XWINDOW (FVAR (f, tool_bar_window)), total_cols), newwidth);
     }
 
   FRAME_LINES (f) = newheight;

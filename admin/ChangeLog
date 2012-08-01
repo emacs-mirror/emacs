@@ -1,3 +1,8 @@
+2012-08-01  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* coccinelle/window.cocci: Semantic patch to replace direct
+	access to Lisp_Object members of struct window to WVAR.
+
 2012-07-31  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* coccinelle/frame.cocci: Semantic patch to replace direct

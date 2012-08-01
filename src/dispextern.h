@@ -1374,7 +1374,7 @@ struct glyph_string
       ? current_mode_line_height				\
       : (MATRIX_MODE_LINE_HEIGHT ((W)->current_matrix)		\
 	 ? MATRIX_MODE_LINE_HEIGHT ((W)->current_matrix)	\
-	 : estimate_mode_line_height (XFRAME ((W)->frame),	\
+	 : estimate_mode_line_height (XFRAME (WVAR (W, frame)),	\
 				      CURRENT_MODE_LINE_FACE_ID (W))))
 
 /* Return the current height of the header line of window W.  If not
@@ -1387,7 +1387,7 @@ struct glyph_string
        ? current_header_line_height				\
        : (MATRIX_HEADER_LINE_HEIGHT ((W)->current_matrix)	\
 	  ? MATRIX_HEADER_LINE_HEIGHT ((W)->current_matrix)	\
-	  : estimate_mode_line_height (XFRAME ((W)->frame),	\
+	  : estimate_mode_line_height (XFRAME (WVAR (W, frame)),\
 				       HEADER_LINE_FACE_ID)))
 
 /* Return the height of the desired mode line of window W.  */
@@ -1406,8 +1406,8 @@ struct glyph_string
      (!MINI_WINDOW_P ((W))						\
       && !(W)->pseudo_window_p						\
       && FRAME_WANTS_MODELINE_P (XFRAME (WINDOW_FRAME ((W))))		\
-      && BUFFERP ((W)->buffer)						\
-      && !NILP (BVAR (XBUFFER ((W)->buffer), mode_line_format))		\
+      && BUFFERP (WVAR (W, buffer))					\
+      && !NILP (BVAR (XBUFFER (WVAR (W, buffer)), mode_line_format))	\
       && WINDOW_TOTAL_LINES (W) > 1)
 
 /* Value is non-zero if window W wants a header line.  */
@@ -1416,9 +1416,10 @@ struct glyph_string
      (!MINI_WINDOW_P ((W))						\
       && !(W)->pseudo_window_p						\
       && FRAME_WANTS_MODELINE_P (XFRAME (WINDOW_FRAME ((W))))		\
-      && BUFFERP ((W)->buffer)						\
-      && !NILP (BVAR (XBUFFER ((W)->buffer), header_line_format))		\
-      && WINDOW_TOTAL_LINES (W) > 1 + !NILP (BVAR (XBUFFER ((W)->buffer), mode_line_format)))
+      && BUFFERP (WVAR (W, buffer))					\
+      && !NILP (BVAR (XBUFFER (WVAR (W, buffer)), header_line_format))	\
+      && WINDOW_TOTAL_LINES (W) > 1					\
+      + !NILP (BVAR (XBUFFER (WVAR (W, buffer)), mode_line_format)))
 
 
 /* Return proper value to be used as baseline offset of font that has

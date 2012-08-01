@@ -115,7 +115,7 @@ choose_minibuf_frame (void)
       /* Under X, we come here with minibuf_window being the
 	 minibuffer window of the unused termcap window created in
 	 init_window_once.  That window doesn't have a buffer.  */
-      buffer = XWINDOW (minibuf_window)->buffer;
+      buffer = WVAR (XWINDOW (minibuf_window), buffer);
       if (BUFFERP (buffer))
 	Fset_window_buffer (FVAR (sf, minibuffer_window), buffer, Qnil);
       minibuf_window = FVAR (sf, minibuffer_window);
@@ -612,7 +612,7 @@ read_minibuf (Lisp_Object map, Lisp_Object initial, Lisp_Object prompt,
   FOR_EACH_FRAME (dummy, frame)
     {
       Lisp_Object root_window = Fframe_root_window (frame);
-      Lisp_Object mini_window = XWINDOW (root_window)->next;
+      Lisp_Object mini_window = WVAR (XWINDOW (root_window), next);
 
       if (! NILP (mini_window) && ! EQ (mini_window, minibuf_window)
 	  && !NILP (Fwindow_minibuffer_p (mini_window)))
@@ -687,7 +687,7 @@ read_minibuf (Lisp_Object map, Lisp_Object initial, Lisp_Object prompt,
       XWINDOW (minibuf_window)->must_be_updated_p = 1;
       update_frame (XFRAME (selected_frame), 1, 1);
       {
-        struct frame *f = XFRAME (XWINDOW (minibuf_window)->frame);
+        struct frame *f = XFRAME (WVAR (XWINDOW (minibuf_window), frame));
         struct redisplay_interface *rif = FRAME_RIF (f);
         if (rif && rif->flush_display)
           rif->flush_display (f);
@@ -844,7 +844,7 @@ read_minibuf_unwind (Lisp_Object data)
   window = minibuf_window;
   /* To keep things predictable, in case it matters, let's be in the
      minibuffer when we reset the relevant variables.  */
-  Fset_buffer (XWINDOW (window)->buffer);
+  Fset_buffer (WVAR (XWINDOW (window), buffer));
 
   /* Restore prompt, etc, from outer minibuffer level.  */
   minibuf_prompt = Fcar (minibuf_save_list);

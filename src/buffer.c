@@ -1557,7 +1557,7 @@ cleaning up all windows currently displaying the buffer to be killed. */)
      since anything can happen within do_yes_or_no_p.  */
 
   /* Don't kill the minibuffer now current.  */
-  if (EQ (buffer, XWINDOW (minibuf_window)->buffer))
+  if (EQ (buffer, WVAR (XWINDOW (minibuf_window), buffer)))
     return Qnil;
 
   /* When we kill an ordinary buffer which shares it's buffer text
@@ -1608,7 +1608,7 @@ cleaning up all windows currently displaying the buffer to be killed. */)
   /* If the buffer now current is shown in the minibuffer and our buffer
      is the sole other buffer give up.  */
   XSETBUFFER (tem, current_buffer);
-  if (EQ (tem, XWINDOW (minibuf_window)->buffer)
+  if (EQ (tem, WVAR (XWINDOW (minibuf_window), buffer))
       && EQ (buffer, Fother_buffer (buffer, Qnil, Qnil)))
     return Qnil;
 
@@ -2190,12 +2190,13 @@ DEFUN ("buffer-swap-text", Fbuffer_swap_text, Sbuffer_swap_text,
     while (NILP (Fmemq (w, ws)))
       {
 	ws = Fcons (w, ws);
-	if (MARKERP (XWINDOW (w)->pointm)
-	    && (EQ (XWINDOW (w)->buffer, buf1)
-		|| EQ (XWINDOW (w)->buffer, buf2)))
-	  Fset_marker (XWINDOW (w)->pointm,
-		       make_number (BUF_BEGV (XBUFFER (XWINDOW (w)->buffer))),
-		       XWINDOW (w)->buffer);
+	if (MARKERP (WVAR (XWINDOW (w), pointm))
+	    && (EQ (WVAR (XWINDOW (w), buffer), buf1)
+		|| EQ (WVAR (XWINDOW (w), buffer), buf2)))
+	  Fset_marker (WVAR (XWINDOW (w), pointm),
+		       make_number
+		       (BUF_BEGV (XBUFFER (WVAR (XWINDOW (w), buffer)))),
+		       WVAR (XWINDOW (w), buffer));
 	w = Fnext_window (w, Qt, Qt);
       }
   }
@@ -3671,7 +3672,7 @@ modify_overlay (struct buffer *buf, ptrdiff_t start, ptrdiff_t end)
 
   /* If this is a buffer not in the selected window,
      we must do other windows.  */
-  if (buf != XBUFFER (XWINDOW (selected_window)->buffer))
+  if (buf != XBUFFER (WVAR (XWINDOW (selected_window), buffer)))
     windows_or_buffers_changed = 1;
   /* If multiple windows show this buffer, we must do other windows.  */
   else if (buffer_shared > 1)

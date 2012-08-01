@@ -1560,8 +1560,8 @@ like in the respective argument of `key-binding'. */)
       window = POSN_WINDOW (position);
 
       if (WINDOWP (window)
-	  && BUFFERP (XWINDOW (window)->buffer)
-	  && XBUFFER (XWINDOW (window)->buffer) != current_buffer)
+	  && BUFFERP (WVAR (XWINDOW (window), buffer))
+	  && XBUFFER (WVAR (XWINDOW (window), buffer)) != current_buffer)
 	{
 	  /* Arrange to go back to the original buffer once we're done
 	     processing the key sequence.  We don't use
@@ -1573,7 +1573,7 @@ like in the respective argument of `key-binding'. */)
 
 	  record_unwind_protect (Fset_buffer, Fcurrent_buffer ());
 
-	  set_buffer_internal (XBUFFER (XWINDOW (window)->buffer));
+	  set_buffer_internal (XBUFFER (WVAR (XWINDOW (window), buffer)));
 	}
     }
 
