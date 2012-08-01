@@ -12569,7 +12569,7 @@ are ``normalized'' when being taken from or pushed onto the stack.
 Some normalizations are unavoidable, such as rounding floating-point
 results to the current precision, and reducing fractions to simplest
 form.  Others, such as simplifying a formula like @expr{a+a} (or @expr{2+3}),
-are done by default but can be turned off when necessary.
+are done automatically but can be turned off when necessary.
 
 When you press a key like @kbd{+} when @expr{2} and @expr{3} are on the
 stack, Calc pops these numbers, normalizes them, creates the formula
@@ -12603,9 +12603,9 @@ A constant is a number or other numeric object (such as a constant
 error form or modulo form), or a vector all of whose
 elements are constant.
 
-@kindex m L
-@pindex calc-limited-simplify-mode
-The @kbd{m L} (@code{calc-limited-simplify-mode}) command does limited
+@kindex m I
+@pindex calc-basic-simplify-mode
+The @kbd{m I} (@code{calc-basic-simplify-mode}) command does some basic
 simplifications for all formulas.  This includes many easy and
 fast algebraic simplifications such as @expr{a+0} to @expr{a}, and
 @expr{a + 2 a} to @expr{3 a}, as well as evaluating functions like
@@ -12620,23 +12620,21 @@ to the current binary word size.  @xref{Binary Functions}.  Real numbers
 are rounded to the nearest integer and then clipped; other kinds of
 results (after the default simplifications) are left alone.
 
-@kindex m D
-@pindex calc-default-simplify-mode
-The @kbd{m D} (@code{calc-default-simplify-mode}) mode does standard
+@kindex m A
+@pindex calc-alg-simplify-mode
+The @kbd{m A} (@code{calc-alg-simplify-mode}) mode does standard
 algebraic simplifications.  @xref{Algebraic Simplifications}.
 
 @kindex m E
 @pindex calc-ext-simplify-mode
-The @kbd{m E} (@code{calc-ext-simplify-mode}) mode does ``extended''
-algebraic simplification, as by the @kbd{a e} (@code{calc-simplify-extended})
-command.  @xref{Unsafe Simplifications}.
+The @kbd{m E} (@code{calc-ext-simplify-mode}) mode does ``extended'', or
+``unsafe'', algebraic simplification.  @xref{Unsafe Simplifications}.
 
 @kindex m U
 @pindex calc-units-simplify-mode
 The @kbd{m U} (@code{calc-units-simplify-mode}) mode does units
-simplification; it applies the command @kbd{u s}
-(@code{calc-simplify-units}), which in turn
-is a superset of @kbd{a s}.  In this mode, variable names which
+simplification.  @xref{Simplification of Units}.  These include the
+algebraic simplifications, plus variable names which
 are identifiable as unit names (like @samp{mm} for ``millimeters'')
 are simplified with their unit definitions in mind.
 
@@ -12853,8 +12851,8 @@ roots (if any) will be included in the list.
 only when certain values are integers (such as @samp{(x^y)^z}
 shown above).
 
-Another command that makes use of declarations is @kbd{a s}, when
-simplifying equations and inequalities.  It will cancel @code{x}
+Calc's algebraic simplifications also make use of declarations when
+simplifying equations and inequalities.  They will cancel @code{x}
 from both sides of @samp{a x = b x} only if it is sure @code{x}
 is non-zero, say, because it has a @code{pos} declaration.
 To declare specifically that @code{x} is real and non-zero,
@@ -12992,10 +12990,10 @@ i.e., is mathematically equal to a real number times @expr{i}.
 The @code{dpos} function checks for positive (but nonzero) reals.
 The @code{dneg} function checks for negative reals.  The @code{dnonneg}
 function checks for nonnegative reals, i.e., reals greater than or
-equal to zero.  Note that the @kbd{a s} command can simplify an
-expression like @expr{x > 0} to 1 or 0 using @code{dpos}, and that
-@kbd{a s} is effectively applied to all conditions in rewrite rules,
-so the actual functions @code{dpos}, @code{dneg}, and @code{dnonneg}
+equal to zero.  Note that Calc's algebraic simplifications, which are
+effectively applied to all conditions in rewrite rules, can simplify
+an expression like @expr{x > 0} to 1 or 0 using @code{dpos}.  
+So the actual functions @code{dpos}, @code{dneg}, and @code{dnonneg}
 are rarely necessary.
 
 @ignore
@@ -13021,7 +13019,7 @@ also the set of objects considered ``true'' in conditional contexts.)
 The @code{deven} function returns 1 if its argument is known to be
 an even integer (or integer-valued float); it returns 0 if its argument
 is known not to be even (because it is known to be odd or a non-integer).
-The @kbd{a s} command uses this to simplify a test of the form
+Calc's algebraic simplifications use this to simplify a test of the form
 @samp{x % 2 = 0}.  There is also an analogous @code{dodd} function.
 
 @ignore
@@ -15648,7 +15646,7 @@ The exact sequence of events is as follows:  When Calc tries a
 rule, it first matches the pattern as usual.  It then substitutes
 @samp{#1}, @samp{#2}, etc., in the conditions, if any.  Next, the
 conditions are simplified and evaluated in order from left to right,
-as if by the @w{@kbd{a s}} algebra command (@pxref{Simplifying Formulas}).
+using the algebraic simplifications (@pxref{Simplifying Formulas}).
 Each result is true if it is a nonzero number, or an expression
 that can be proven to be nonzero (@pxref{Declarations}).  If the
 results of all conditions are true, the expression (such as
@@ -15876,8 +15874,8 @@ Default simplifications for numeric arguments only (@kbd{m N}).
 @item BinSimp@var{w}
 Binary-integer simplification mode; word size @var{w} (@kbd{m B}, @kbd{b w}).
 
-@item LimSimp
-Limited simplification mode (@kbd{m L}).
+@item BasicSimp
+Basic simplification mode (@kbd{m I}).
 
 @item ExtSimp
 Extended algebraic simplification mode (@kbd{m E}).
@@ -18328,7 +18326,7 @@ reason why changing built-in variables is a bad idea.  Arguments of
 the form @expr{x} plus a multiple of @cpiover{2} are also simplified.
 Calc includes similar formulas for @code{cos} and @code{tan}.
 
-The @kbd{a s} command knows all angles which are integer multiples of
+Calc's algebraic simplifications know all angles which are integer multiples of
 @cpiover{12}, @cpiover{10}, or @cpiover{8} radians.  In Degrees mode,
 analogous simplifications occur for integer multiples of 15 or 18
 degrees, and for arguments plus multiples of 90 degrees.
@@ -22178,9 +22176,9 @@ but which also substitutes stored values for variables in the formula.
 Use @kbd{a v} if you want the variables to ignore their stored values.
 
 If you give a numeric prefix argument of 2 to @kbd{a v}, it simplifies
-as if in Algebraic Simplification mode.  This is equivalent to typing
-@kbd{a s}; @pxref{Simplifying Formulas}.  If you give a numeric prefix
-of 3 or more, it uses Extended Simplification mode (@kbd{a e}).
+using Calc's algebraic simplifications; @pxref{Simplifying Formulas}.
+If you give a numeric prefix of 3 or more, it uses Extended
+Simplification mode (@kbd{a e}). 
 
 If you give a negative prefix argument @mathit{-1}, @mathit{-2}, or @mathit{-3},
 it simplifies in the corresponding mode but only works on the top-level
@@ -22253,8 +22251,8 @@ If inequalities with opposite direction (e.g., @samp{<} and @samp{>})
 are mapped, the direction of the second inequality is reversed to
 match the first:  Using @kbd{a M +} on @samp{a < b} and @samp{a > 2}
 reverses the latter to get @samp{2 < a}, which then allows the
-combination @samp{a + 2 < b + a}, which the @kbd{a s} command can
-then simplify to get @samp{2 < b}.
+combination @samp{a + 2 < b + a}, which the algebraic simplifications 
+can reduce to @samp{2 < b}.
 
 Using @kbd{a M *}, @kbd{a M /}, @kbd{a M n}, or @kbd{a M &} to negate
 or invert an inequality will reverse the direction of the inequality.
@@ -22334,19 +22332,20 @@ and rewrite rules.  @xref{Rearranging with Selections}.
 @xref{Rewrite Rules}.
 
 @xref{Simplification Modes}, for commands to control what level of
-simplification occurs automatically.  Normally only the default
-algebraic simplifications occur.  If you have turned on a
-simplification mode which does not do these default simplifications,
-you can still perform them on a formula with the @kbd{a s} command.
+simplification occurs automatically.  Normally the algebraic
+simplifications described below occur.  If you have turned on a
+simplification mode which does not do these algebraic simplifications,
+you can still apply them to a formula with the @kbd{a s}
+(@code{calc-simplify}) [@code{simplify}] command.
 
 There are some simplifications that, while sometimes useful, are never
 done automatically.  For example, the @kbd{I} prefix can be given to
 @kbd{a s}; the @kbd{I a s} command will change any trigonometric
 function to the appropriate combination of @samp{sin}s and @samp{cos}s
 before simplifying.  This can be useful in simplifying even mildly
-complicated trigonometric expressions.  For example, while @kbd{a s}
-can reduce @samp{sin(x) csc(x)} to @samp{1}, it will not simplify
-@samp{sin(x)^2 csc(x)}.  The command @kbd{I a s} can be used to
+complicated trigonometric expressions.  For example, while the algebraic
+simplifications can reduce @samp{sin(x) csc(x)} to @samp{1}, they will not
+simplify @samp{sin(x)^2 csc(x)}.  The command @kbd{I a s} can be used to
 simplify this latter expression; it will transform @samp{sin(x)^2
 csc(x)} into @samp{sin(x)}.  However, @kbd{I a s} will also perform
 some ``simplifications'' which may not be desired; for example, it
@@ -22357,21 +22356,22 @@ combinations of @samp{sinh}s and @samp{cosh}s before simplifying.
 
 
 @menu
-* Limited Simplifications::
+* Basic Simplifications::
 * Algebraic Simplifications::
 * Unsafe Simplifications::
 * Simplification of Units::
 @end menu
 
-@node Limited Simplifications, Algebraic Simplifications, Simplifying Formulas, Simplifying Formulas
-@subsection Limited Simplifications
+@node Basic Simplifications, Algebraic Simplifications, Simplifying Formulas, Simplifying Formulas
+@subsection Basic Simplifications
 
 @noindent
-@cindex Limited simplifications
-This section describes a limited set of simplifications.  These, as
-well as those described in the next section, are normally applied to
-all results.  You can type @kbd{m L} to restrict the simplifications
-done on the stack to this limited set.
+@cindex Basic simplifications
+This section describes basic simplifications which Calc performs in many
+situations.  For example, both binary simplifications and algebraic
+simplifications begin by performing these basic simplifications.  You
+can type @kbd{m I} to restrict the simplifications done on the stack to
+these simplifications.
 
 The most basic simplification is the evaluation of functions.
 For example, @expr{2 + 3} is evaluated to @expr{5}, and @expr{@tfn{sqrt}(9)}
@@ -22391,7 +22391,7 @@ operator) do not evaluate their arguments, @code{if} (the @code{? :}
 operator) does not evaluate all of its arguments, and @code{evalto}
 does not evaluate its lefthand argument.
 
-Most commands apply at least these limited simplifications to all
+Most commands apply at least these basic simplifications to all
 arguments they take from the stack, perform a particular operation,
 then simplify the result before pushing it back on the stack.  In the
 common special case of regular arithmetic commands like @kbd{+} and
@@ -22400,7 +22400,7 @@ and collected into a suitable function call, which is then simplified
 (the arguments being simplified first as part of the process, as
 described above). 
 
-Even the limited set of simplifications are too numerous to describe
+Even the basic set of simplifications are too numerous to describe
 completely here, but this section will describe the ones that apply to the
 major arithmetic operators.  This list will be rather technical in
 nature, and will probably be interesting to you only if you are
@@ -22438,11 +22438,11 @@ commutative law (@expr{a + b} to @expr{b + a}) except in a few
 special cases described below.  Some algebra programs always
 rearrange terms into a canonical order, which enables them to
 see that @expr{a b + b a} can be simplified to @expr{2 a b}.
-Calc assumes you have put the terms into the order you want
-and generally leaves that order alone, with the consequence
-that formulas like the above will only be simplified if you
-explicitly give the @kbd{a s} command.  @xref{Algebraic
-Simplifications}.
+If you are using Basic Simplification mode, Calc assumes you have put
+the terms into the order you want and generally leaves that order alone,
+with the consequence that formulas like the above will only be
+simplified if you explicitly give the @kbd{a s} command.
+@xref{Algebraic Simplifications}.
 
 Differences @expr{a - b} are treated like sums @expr{a + (-b)}
 for purposes of simplification; one of the default simplifications
@@ -22473,9 +22473,8 @@ for adjacent terms in a larger sum.  Thus @expr{a + b + b + c}
 is simplified to @expr{a + 2 b + c}, but @expr{a + b + c + b}
 is not simplified.  The reason is that comparing all terms of a
 sum with one another would require time proportional to the
-square of the number of terms; Calc relegates potentially slow
-operations like this to commands that have to be invoked
-explicitly, like @kbd{a s}.
+square of the number of terms; Calc omits potentially slow
+operations like this in basic simplification mode.
 
 Finally, @expr{a + 0} and @expr{0 + a} are simplified to @expr{a}.
 A consequence of the above rules is that @expr{0 - a} is simplified
@@ -22672,9 +22671,9 @@ and @expr{b} are known to be real.
 
 Functions like @code{sin} and @code{arctan} generally don't have
 any default simplifications beyond simply evaluating the functions
-for suitable numeric arguments and infinity.  The @kbd{a s} command
-described in the next section does provide some simplifications for
-these functions, though.
+for suitable numeric arguments and infinity.  The algebraic
+simplifications described in the next section do provide some
+simplifications for these functions, though.
 
 One important simplification that does occur is that
 @expr{@tfn{ln}(@tfn{e})} is simplified to 1, and @expr{@tfn{ln}(@tfn{e}^x)} is
@@ -22689,25 +22688,23 @@ and reversing the inequality.  While it might seem reasonable to simplify
 @expr{!!x} to @expr{x}, this would not be valid in general because
 @expr{!!2} is 1, not 2.
 
-Most other Calc functions have few if any default simplifications
+Most other Calc functions have few if any basic simplifications
 defined, aside of course from evaluation when the arguments are
 suitable numbers.
 
-@node Algebraic Simplifications, Unsafe Simplifications, Limited Simplifications, Simplifying Formulas
+@node Algebraic Simplifications, Unsafe Simplifications, Basic Simplifications, Simplifying Formulas
 @subsection Algebraic Simplifications
 
 @noindent
 @cindex Algebraic simplifications
 @kindex a s
-@kindex I a s
-@kindex H a s
-@pindex calc-simplify
-@tindex simplify
+@kindex m A
 This section describes all simplifications that are performed by
-the default algebraic simplification mode.  If you have switched to a different
-simplification mode, you can switch back with the @kbd{m D} command.
-Even in other simplification modes, the @kbd{a s} command will use
-these algebraic simplifications to simplifies the formula.
+the algebraic simplification mode, which is the default simplification
+mode.  If you have switched to a different simplification mode, you can
+switch back with the @kbd{m A} command. Even in other simplification
+modes, the @kbd{a s} command will use these algebraic simplifications to
+simplify the formula. 
 
 There is a variable, @code{AlgSimpRules}, in which you can put rewrites
 to be applied. Its use is analogous to @code{EvalRules},
@@ -22715,7 +22712,7 @@ but without the special restrictions.  Basically, the simplifier does
 @samp{@w{a r} AlgSimpRules} with an infinite repeat count on the whole
 expression being simplified, then it traverses the expression applying
 the built-in rules described below.  If the result is different from
-the original expression, the process repeats with the limited
+the original expression, the process repeats with the basic
 simplifications (including @code{EvalRules}), then @code{AlgSimpRules},
 then the built-in simplifications, and so on.
 
@@ -22731,8 +22728,8 @@ commuted to @expr{-x + 2}.
 
 Also, terms of sums are combined by the distributive law, as in
 @expr{x + y + 2 x} to @expr{y + 3 x}.  This always occurs for
-adjacent terms, but @kbd{a s} compares all pairs of terms including
-non-adjacent ones.
+adjacent terms, but Calc's algebraic simplifications compare all pairs
+of terms including non-adjacent ones.
 
 @tex
 \bigskip
@@ -22935,21 +22932,26 @@ as is @expr{x^2 >= 0} if @expr{x} is known to be real.
 @cindex Unsafe simplifications
 @cindex Extended simplification
 @kindex a e
+@kindex m E
 @pindex calc-simplify-extended
 @ignore
 @mindex esimpl@idots
 @end ignore
 @tindex esimplify
-The @kbd{a e} (@code{calc-simplify-extended}) [@code{esimplify}] command
-is like @kbd{a s}
-except that it applies some additional simplifications which are not
-``safe'' in all cases.  Use this only if you know the values in your
-formula lie in the restricted ranges for which these simplifications
-are valid.  The symbolic integrator uses @kbd{a e};
-one effect of this is that the integrator's results must be used with
-caution.  Where an integral table will often attach conditions like
-``for positive @expr{a} only,'' Calc (like most other symbolic
-integration programs) will simply produce an unqualified result.
+Calc is capable of performing some simplifications which may sometimes
+be desired but which are not ``safe'' in all cases.  The @kbd{a e}
+(@code{calc-simplify-extended}) [@code{esimplify}] command 
+applies the algebraic simplifications as well as these extended, or
+``unsafe'', simplifications.  Use this only if you know the values in
+your formula lie in the restricted ranges for which these
+simplifications are valid.  You can use Extended Simplification mode
+(@kbd{m E}) to have these simplifications done automatically.
+
+The symbolic integrator uses these extended simplifications; one effect
+of this is that the integrator's results must be used with caution.
+Where an integral table will often attach conditions like ``for positive
+@expr{a} only,'' Calc (like most other symbolic integration programs)
+will simply produce an unqualified result.
 
 Because @kbd{a e}'s simplifications are unsafe, it is sometimes better
 to type @kbd{C-u -3 a v}, which does extended simplification only
@@ -22957,21 +22959,20 @@ on the top level of the formula without affecting the sub-formulas.
 In fact, @kbd{C-u -3 j v} allows you to target extended simplification
 to any specific part of a formula.
 
-The variable @code{ExtSimpRules} contains rewrites to be applied by
-the @kbd{a e} command.  These are applied in addition to
+The variable @code{ExtSimpRules} contains rewrites to be applied when
+the extended simplifications are used.  These are applied in addition to
 @code{EvalRules} and @code{AlgSimpRules}.  (The @kbd{a r AlgSimpRules}
 step described above is simply followed by an @kbd{a r ExtSimpRules} step.)
 
-Following is a complete list of ``unsafe'' simplifications performed
-by @kbd{a e}.
+Following is a complete list of the ``unsafe'' simplifications.
 
 @tex
 \bigskip
 @end tex
 
 Inverse trigonometric or hyperbolic functions, called with their
-corresponding non-inverse functions as arguments, are simplified
-by @kbd{a e}.  For example, @expr{@tfn{arcsin}(@tfn{sin}(x))} changes
+corresponding non-inverse functions as arguments, are simplified.
+For example, @expr{@tfn{arcsin}(@tfn{sin}(x))} changes
 to @expr{x}.  Also, @expr{@tfn{arcsin}(@tfn{cos}(x))} and
 @expr{@tfn{arccos}(@tfn{sin}(x))} both change to @expr{@tfn{pi}/2 - x}.
 These simplifications are unsafe because they are valid only for
@@ -23011,8 +23012,8 @@ simplifications are safe if @expr{x} is known to be real).
 Common factors are canceled from products on both sides of an
 equation, even if those factors may be zero:  @expr{a x / b x}
 to @expr{a / b}.  Such factors are never canceled from
-inequalities:  Even @kbd{a e} is not bold enough to reduce
-@expr{a x < b x} to @expr{a < b} (or @expr{a > b}, depending
+inequalities:  Even the extended simplifications are not bold enough to
+reduce @expr{a x < b x} to @expr{a < b} (or @expr{a > b}, depending
 on whether you believe @expr{x} is positive or negative).
 The @kbd{a M /} command can be used to divide a factor out of
 both sides of an inequality.
@@ -23021,13 +23022,14 @@ both sides of an inequality.
 @subsection Simplification of Units
 
 @noindent
-The simplifications described in this section are applied by the
-@kbd{u s} (@code{calc-simplify-units}) command.  These are in addition
-to the regular @kbd{a s} (but not @kbd{a e}) simplifications described
-earlier.  @xref{Basic Operations on Units}.
+The simplifications described in this section (as well as the algebraic
+simplifications) are applied when units need to be simplified.  They can
+be applied using the @kbd{u s} (@code{calc-simplify-units}) command, or
+will be done automatically in Units Simplification mode (@kbd{m U}).
+@xref{Basic Operations on Units}.
 
 The variable @code{UnitSimpRules} contains rewrites to be applied by
-the @kbd{u s} command.  These are applied in addition to @code{EvalRules}
+units simplifications.  These are applied in addition to @code{EvalRules}
 and @code{AlgSimpRules}.
 
 Scalar mode is automatically put into effect when simplifying units.
@@ -23581,10 +23583,11 @@ forever!)
 
 @vindex IntegSimpRules
 Another set of rules, stored in @code{IntegSimpRules}, are applied
-every time the integrator uses @kbd{a s} to simplify an intermediate
-result.  For example, putting the rule @samp{twice(x) := 2 x} into
-@code{IntegSimpRules} would tell Calc to convert the @code{twice}
-function into a form it knows whenever integration is attempted.
+every time the integrator uses algebraic simplifications to simplify an
+intermediate result.  For example, putting the rule 
+@samp{twice(x) := 2 x} into  @code{IntegSimpRules} would tell Calc to
+convert the @code{twice} function into a form it knows whenever
+integration is attempted. 
 
 One more way to influence the integrator is to define a function with
 the @kbd{Z F} command (@pxref{Algebraic Definitions}).  Calc's
@@ -23602,8 +23605,8 @@ above to try to hint at a more direct path to the desired result, or
 you can use @code{IntegAfterRules}.  This is an extra rule set that
 runs after the main integrator returns its result; basically, Calc does
 an @kbd{a r IntegAfterRules} on the result before showing it to you.
-(It also does an @kbd{a s}, without @code{IntegSimpRules}, after that
-to further simplify the result.)  For example, Calc's integrator
+(It also does algebraic simplifications, without @code{IntegSimpRules},
+after that to further simplify the result.)  For example, Calc's integrator
 sometimes produces expressions of the form @samp{ln(1+x) - ln(1-x)};
 the default @code{IntegAfterRules} rewrite this into the more readable
 form @samp{2 arctanh(x)}.  Note that, unlike @code{IntegRules},
@@ -25414,7 +25417,7 @@ The limits of a sum do not need to be integers.  For example,
 @samp{sum(a_k, k, 0, 2 n, n)} produces @samp{a_0 + a_n + a_(2 n)}.
 Calc computes the number of iterations using the formula
 @samp{1 + (@var{high} - @var{low}) / @var{step}}, which must,
-after simplification as if by @kbd{a s}, evaluate to an integer.
+after algebraic simplification, evaluate to an integer.
 
 If the number of iterations according to the above formula does
 not come out to an integer, the sum is invalid and will be left
@@ -26038,7 +26041,7 @@ rule, this is an additional condition that must be satisfied before
 the rule is accepted.  Once @var{old} has been successfully matched
 to the target expression, @var{cond} is evaluated (with all the
 meta-variables substituted for the values they matched) and simplified
-with @kbd{a s} (@code{calc-simplify}).  If the result is a nonzero
+with Calc's algebraic simplifications.  If the result is a nonzero
 number or any other object known to be nonzero (@pxref{Declarations}),
 the rule is accepted.  If the result is zero or if it is a symbolic
 formula that is not known to be nonzero, the rule is rejected.
@@ -26718,7 +26721,7 @@ whereas @samp{eval(cons(2+3, []))} will be converted to @samp{[5]}.
 @end ignore
 @tindex evalsimp
 The formula @expr{x} has meta-variables substituted in the usual
-way, then algebraically simplified as if by the @kbd{a s} command.
+way, then algebraically simplified.
 
 @item evalextsimp(x)
 @ignore
@@ -26741,15 +26744,15 @@ There are also some special functions you can use in conditions.
 @end ignore
 @tindex let
 The expression @expr{x} is evaluated with meta-variables substituted.
-The @kbd{a s} command's simplifications are @emph{not} applied by
+The algebraic simplifications are @emph{not} applied by
 default, but @expr{x} can include calls to @code{evalsimp} or
 @code{evalextsimp} as described above to invoke higher levels
-of simplification.  The
-result of @expr{x} is then bound to the meta-variable @expr{v}.  As
-usual, if this meta-variable has already been matched to something
-else the two values must be equal; if the meta-variable is new then
-it is bound to the result of the expression.  This variable can then
-appear in later conditions, and on the righthand side of the rule.
+of simplification.  The result of @expr{x} is then bound to the
+meta-variable @expr{v}.  As usual, if this meta-variable has already
+been matched to something else the two values must be equal; if the
+meta-variable is new then it is bound to the result of the expression.
+This variable can then appear in later conditions, and on the righthand
+side of the rule. 
 In fact, @expr{v} may be any pattern in which case the result of
 evaluating @expr{x} is matched to that pattern, binding any
 meta-variables that appear in that pattern.  Note that @code{let}
@@ -27499,17 +27502,19 @@ with @code{apply} as the top-level pattern must be tested against
 @cindex @code{AlgSimpRules} variable
 @vindex AlgSimpRules
 Suppose you want @samp{sin(a + b)} to be expanded out not all the time,
-but only when @kbd{a s} is used to simplify the formula.  The variable
-@code{AlgSimpRules} holds rules for this purpose.  The @kbd{a s} command
-will apply @code{EvalRules} and @code{AlgSimpRules} to the formula, as
-well as all of its built-in simplifications.
+but only when algebraic simplifications are used to simplify the
+formula.  The variable @code{AlgSimpRules} holds rules for this purpose.
+The @kbd{a s} command will apply @code{EvalRules} and
+@code{AlgSimpRules} to the formula, as well as all of its built-in
+simplifications. 
 
 Most of the special limitations for @code{EvalRules} don't apply to
 @code{AlgSimpRules}.  Calc simply does an @kbd{a r AlgSimpRules}
-command with an infinite repeat count as the first step of @kbd{a s}.
-It then applies its own built-in simplifications throughout the
-formula, and then repeats these two steps (along with applying the
-default simplifications) until no further changes are possible.
+command with an infinite repeat count as the first step of algebraic
+simplifications. It then applies its own built-in simplifications
+throughout the formula, and then repeats these two steps (along with
+applying the default simplifications) until no further changes are
+possible. 
 
 @cindex @code{ExtSimpRules} variable
 @cindex @code{UnitSimpRules} variable
@@ -27689,7 +27694,7 @@ to hit the apostrophe key every time you wish to enter units.
 @tindex usimplify
 The @kbd{u s} (@code{calc-simplify-units}) [@code{usimplify}] command
 simplifies a units
-expression.  It uses @kbd{a s} (@code{calc-simplify}) to simplify the
+expression.  It uses Calc's algebraic simplifications to simplify the
 expression first as a regular algebraic formula; it then looks for
 features that can be further simplified by converting one object's units
 to be compatible with another's.  For example, @samp{5 m + 23 mm} will
@@ -28773,7 +28778,7 @@ Edit @code{AlgSimpRules}.  @xref{Algebraic Simplifications}.
 @item s D
 Edit @code{Decls}.  @xref{Declarations}.
 @item s E
-Edit @code{EvalRules}.  @xref{Limited Simplifications}.
+Edit @code{EvalRules}.  @xref{Basic Simplifications}.
 @item s F
 Edit @code{FitRules}.  @xref{Curve Fitting}.
 @item s G
@@ -28943,19 +28948,16 @@ to select the lefthand side, execute your commands, then type
 
 All current modes apply when an @samp{=>} operator is computed,
 including the current simplification mode.  Recall that the
-formula @samp{x + y + x} is not handled by Calc's default
-simplifications, but the @kbd{a s} command will reduce it to
-the simpler form @samp{y + 2 x}.  You can also type @kbd{m A}
-to enable an Algebraic Simplification mode in which the
-equivalent of @kbd{a s} is used on all of Calc's results.
-If you enter @samp{x + y + x =>} normally, the result will
-be @samp{x + y + x => x + y + x}.  If you change to
-Algebraic Simplification mode, the result will be
-@samp{x + y + x => y + 2 x}.  However, just pressing @kbd{a s}
-once will have no effect on @samp{x + y + x => x + y + x},
+formula @samp{arcsin(sin(x))} will not be handled by Calc's algebraic
+simplifications, but Calc's unsafe simplifications will reduce it to 
+@samp{x}.   If you enter @samp{arcsin(sin(x)) =>} normally, the result
+will be @samp{arcsin(sin(x)) => arcsin(sin(x))}.  If you change to 
+Extended Simplification mode, the result will be
+@samp{arcsin(sin(x)) => x}.  However, just pressing @kbd{a e}
+once will have no effect on @samp{arcsin(sin(x)) => arcsin(sin(x))},
 because the righthand side depends only on the lefthand side
 and the current mode settings, and the lefthand side is not
-affected by commands like @kbd{a s}.
+affected by commands like @kbd{a e}.
 
 The ``let'' command (@kbd{s l}) has an interesting interaction
 with the @samp{=>} operator.  The @kbd{s l} command evaluates the
@@ -33756,8 +33758,9 @@ will be the same as @code{lessp}.  But whereas @code{lessp} considers
 other types of objects to be unordered, @code{beforep} puts any two
 objects into a definite, consistent order.  The @code{beforep}
 function is used by the @kbd{V S} vector-sorting command, and also
-by @kbd{a s} to put the terms of a product into canonical order:
-This allows @samp{x y + y x} to be simplified easily to @samp{2 x y}.
+by Calc's algebraic simplifications to put the terms of a product into
+canonical order: This allows @samp{x y + y x} to be simplified easily to
+@samp{2 x y}. 
 @end defun
 
 @defun equal x y
@@ -34426,10 +34429,9 @@ sub-formula that is @code{eq} to @var{old} replaced by @var{new}.
 @end defun
 
 @defun simplify expr
-Simplify the expression @var{expr} by applying various algebraic rules.
-This is what the @w{@kbd{a s}} (@code{calc-simplify}) command uses.  This
-always returns a copy of the expression; the structure @var{expr} points
-to remains unchanged in memory.
+Simplify the expression @var{expr} by applying Calc's algebraic
+simplifications.  This  always returns a copy of the expression; the
+structure @var{expr} points to remains unchanged in memory.
 
 More precisely, here is what @code{simplify} does:  The expression is
 first normalized and evaluated by calling @code{normalize}.  If any
@@ -36562,7 +36564,7 @@ A plain @kbd{C-u} prefix means to prompt for the step size.
 @c 7
 @item
 A prefix argument specifies simplification level and depth.
-1=Default, 2=like @kbd{a s}, 3=like @kbd{a e}.
+1=Basic simplifications, 2=Algebraic simplifications, 3=Extended simplifications
 
 @c 8
 @item
