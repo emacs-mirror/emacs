@@ -1,3 +1,8 @@
+2012-08-01  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in (CONFIG_H): Update dependencies.
+	(CONF_POST_H): New macro.
+
 2012-07-30  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Update .PHONY listings in makefiles.

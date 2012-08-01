@@ -1,3 +1,10 @@
+2012-08-01  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in (CONFIG_H): Update dependencies.
+	(CONF_POST_H): New macro.
+
+	* s/ms-w32.h (SEPCHAR, NULL_DEVICE): Remove; moved to nt/config.nt.
+
 2012-07-31  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (S_FILE): No longer set by configure.

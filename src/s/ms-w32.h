@@ -52,10 +52,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define MAIL_USE_SYSTEM_LOCK 1
 
-/* If the character used to separate elements of the executable path
-   is not ':', #define this to be the appropriate character constant.  */
-#define SEPCHAR ';'
-
 /* Define to 1 if GCC-style __attribute__ ((__aligned__ (expr))) works. */
 #ifdef __GNUC__
 #define HAVE_ATTRIBUTE_ALIGNED 1
@@ -140,9 +136,6 @@ struct sigaction {
 #define SIG_BLOCK       1
 #define SIG_SETMASK     2
 #define SIG_UNBLOCK     3
-
-/* The null device on Windows NT.  */
-#define NULL_DEVICE     "NUL:"
 
 #ifndef MAXPATHLEN
 #define MAXPATHLEN      _MAX_PATH

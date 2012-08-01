@@ -1,3 +1,8 @@
+2012-08-01  Juanma Barranquero  <lekktu@gmail.com>
+
+	* lib/makefile.w32-in (CONFIG_H): Update dependencies.
+	(CONF_POST_H): New macro.
+
 2012-07-31  Glenn Morris  <rgm@gnu.org>
 
 	* configure.ac (S_FILE): Remove output variable.

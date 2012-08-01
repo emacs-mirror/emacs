@@ -405,9 +405,10 @@ CODING_H       = $(SRC)/coding.h \
 		 $(SRC)/composite.h
 MS_W32_H       = $(SRC)/s/ms-w32.h \
 		 $(NT_INC)/sys/stat.h
-CONFIG_H       = $(SRC)/config.h \
-		 $(SRC)/conf_post.h \
+CONF_POST_H    = $(SRC)/conf_post.h \
 		 $(MS_W32_H)
+CONFIG_H       = $(SRC)/config.h \
+		 $(CONF_POST_H)
 DIR_H          = $(NT_INC)/sys/dir.h \
 		 $(SRC)/ndir.h
 W32GUI_H       = $(SRC)/w32gui.h \

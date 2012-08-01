@@ -1,3 +1,10 @@
+2012-08-01  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt: Sync with autogen/config.in.
+	Remove code moved to conf_post.h and include <conf_post.h>
+	(NULL_DEVICE, SEPCHAR, SIGNAL_H_AHB, TIOCSIGSEND, USER_FULL_NAME)
+	(USG5_4, WRETCODE, _longjmp, _setjmp, wait3): New macros.
+
 2012-07-29  Juanma Barranquero  <lekktu@gmail.com>
 
 	* config.nt: Sync with autogen/config.in.
