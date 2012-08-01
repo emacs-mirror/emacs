@@ -3136,6 +3136,12 @@ AC_DEFINE(CLASH_DETECTION, 1, [Define if you want lock files to be written,
   so that Emacs can tell instantly when you try to modify a file that
   someone else has modified in his/her Emacs.])
 
+AH_TEMPLATE(FLOAT_CHECK_DOMAIN, [Define if the float library doesn't
+  handle errors by either setting errno, or signaling SIGFPE/SIGILL.])
+
+AH_TEMPLATE(HAVE_INVERSE_HYPERBOLIC, [Define if you have the functions
+  acosh, asinh, and atanh.])
+
 dnl Everybody supports this, except MS.
 dnl Seems like the kind of thing we should be testing for, though.
 ## Note: PTYs are broken on darwin <6.  Use at your own risk.

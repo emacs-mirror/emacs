@@ -1,5 +1,7 @@
 2012-08-01  Glenn Morris  <rgm@gnu.org>
 
+	* configure.ac (FLOAT_CHECK_DOMAIN, HAVE_INVERSE_HYPERBOLIC): New.
+
 	* configure.ac (DEVICE_SEP, IS_DEVICE_SEP, IS_DIRECTORY_SEP)
 	(IS_ANY_SEP): Move here from src/lisp.h.
 
