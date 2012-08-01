@@ -2,7 +2,7 @@
 
 	* .gdbinit (xcar, xcdr, xlist, xwindow, nextcons, xprintsym):
 	Adapt to latest changes in field names of the corresponding Lisp
-	objects
+	objects.
 
 	* xdisp.c (try_window_id): Use WVAR in IF_DEBUG code.
 
