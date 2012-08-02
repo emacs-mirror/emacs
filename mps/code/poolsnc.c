@@ -643,8 +643,8 @@ static void SNCWalk(Pool pool, Seg seg, FormattedObjectsStepMethod f,
       limit = SegLimit(seg);
 
     while(object < limit) {
-      (*f)(object, pool->format, pool, p, s);
-      nextObject = (*pool->format->skip)(object);
+      (*f)(object, format, pool, p, s);
+      nextObject = (*format->skip)(object);
       AVER(nextObject > object);
       object = nextObject;
     }

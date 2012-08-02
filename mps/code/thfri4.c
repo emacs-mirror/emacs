@@ -36,7 +36,7 @@
  * assumed to be recorded in the context at pointer-aligned boundaries.
  */
 
-#include "prmcfr.h"
+#include "prmcix.h"
 #include "mpm.h"
 
 #if !defined(MPS_OS_FR) || !defined(MPS_ARCH_I4)

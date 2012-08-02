@@ -477,9 +477,6 @@ static MessageClassStruct MRGMessageClassStruct = {
  */
 static void MRGSegPairDestroy(MRGRefSeg refseg, MRG mrg)
 {
-  Pool pool;
-
-  pool = MRG2Pool(mrg);
   RingRemove(&refseg->mrgRing);
   RingFinish(&refseg->mrgRing);
   refseg->sig = SigInvalid;

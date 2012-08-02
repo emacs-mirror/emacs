@@ -22,6 +22,8 @@
  *
  * .source.callees.saves: Set of callee-saved registers taken from
  * CALL_USED_REGISTERS in <gcc-sources>/config/i386/i386.h.
+ * ebp added to the list because gcc now doesn't always use it as
+ * a frame pointer so it could contain a root.
  *
  * ASSUMPTIONS
  *
@@ -49,19 +51,22 @@ SRCID(ssixi3, "$Id$");
 
 Res StackScan(ScanState ss, Addr *stackBot)
 {
+  Addr calleeSaveRegs[4];
   Addr *stackTop;
   Res res;
 
   /* .assume.asm.stack */
-  ASMV("push %ebx");    /* These registers are callee-saved */
-  ASMV("push %esi");    /* and so may contain roots.  They are pushed */
-  ASMV("push %edi");    /* for scanning.  See .source.callees.saves. */
+  /* Store the callee save registers on the stack so they get scanned 
+   * as they may contain roots.
+   */
+  ASMV("mov %%ebx, %0" : "=m" (calleeSaveRegs[0]));
+  ASMV("mov %%esi, %0" : "=m" (calleeSaveRegs[1]));
+  ASMV("mov %%edi, %0" : "=m" (calleeSaveRegs[2]));
+  ASMV("mov %%ebp, %0" : "=m" (calleeSaveRegs[3]));
   ASMV("mov %%esp, %0" : "=r" (stackTop) :);    /* stackTop = esp */
 
   AVER(AddrIsAligned((Addr)stackTop, sizeof(Addr)));  /* .assume.align */
   res = TraceScanArea(ss, stackTop, stackBot);
-
-  ASMV("add $12, %esp");  /* pop 3 regs to restore the stack pointer */
 
   return res;
 }
