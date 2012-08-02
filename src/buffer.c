@@ -19,6 +19,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 
+#define BUFFER_INLINE EXTERN_INLINE
+
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/param.h>

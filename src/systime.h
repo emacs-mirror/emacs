@@ -21,6 +21,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <timespec.h>
 
+INLINE_HEADER_BEGIN
+#ifndef SYSTIME_INLINE
+# define SYSTIME_INLINE INLINE
+#endif
+
 #ifdef emacs
 # ifdef HAVE_X_WINDOWS
 #  include <X11/X.h>
@@ -54,12 +59,12 @@ enum { LOG10_EMACS_TIME_RESOLUTION = 9 };
 /* EMACS_SECS (TIME) is the seconds component of TIME.
    EMACS_NSECS (TIME) is the nanoseconds component of TIME.
    emacs_secs_addr (PTIME) is the address of *PTIME's seconds component.  */
-static inline time_t EMACS_SECS (EMACS_TIME t) { return t.tv_sec; }
-static inline int EMACS_NSECS (EMACS_TIME t) { return t.tv_nsec; }
-static inline time_t *emacs_secs_addr (EMACS_TIME *t) { return &t->tv_sec; }
+SYSTIME_INLINE time_t EMACS_SECS (EMACS_TIME t) { return t.tv_sec; }
+SYSTIME_INLINE int EMACS_NSECS (EMACS_TIME t) { return t.tv_nsec; }
+SYSTIME_INLINE time_t *emacs_secs_addr (EMACS_TIME *t) { return &t->tv_sec; }
 
 /* Return an Emacs time with seconds S and nanoseconds NS.  */
-static inline EMACS_TIME
+SYSTIME_INLINE EMACS_TIME
 make_emacs_time (time_t s, int ns)
 {
   EMACS_TIME r = { s, ns };
@@ -67,7 +72,7 @@ make_emacs_time (time_t s, int ns)
 }
 
 /* Return an invalid Emacs time.  */
-static inline EMACS_TIME
+SYSTIME_INLINE EMACS_TIME
 invalid_emacs_time (void)
 {
   EMACS_TIME r = { 0, -1 };
@@ -75,7 +80,7 @@ invalid_emacs_time (void)
 }
 
 /* Return current system time.  */
-static inline EMACS_TIME
+SYSTIME_INLINE EMACS_TIME
 current_emacs_time (void)
 {
   EMACS_TIME r;
@@ -92,12 +97,12 @@ current_emacs_time (void)
    be used with their first argument an absolute time since the epoch
    and the second argument a non-negative offset.  Do NOT use them for
    anything else.  */
-static inline EMACS_TIME
+SYSTIME_INLINE EMACS_TIME
 add_emacs_time (EMACS_TIME a, EMACS_TIME b)
 {
   return timespec_add (a, b);
 }
-static inline EMACS_TIME
+SYSTIME_INLINE EMACS_TIME
 sub_emacs_time (EMACS_TIME a, EMACS_TIME b)
 {
   return timespec_sub (a, b);
@@ -106,14 +111,14 @@ sub_emacs_time (EMACS_TIME a, EMACS_TIME b)
 /* Return the sign of the valid time stamp TIME, either -1, 0, or 1.
    Note: this can only return a negative value if time_t is a signed
    data type.  */
-static inline int
+SYSTIME_INLINE int
 EMACS_TIME_SIGN (EMACS_TIME t)
 {
   return timespec_sign (t);
 }
 
 /* Return 1 if TIME is a valid time stamp.  */
-static inline int
+SYSTIME_INLINE int
 EMACS_TIME_VALID_P (EMACS_TIME t)
 {
   return 0 <= t.tv_nsec;
@@ -123,14 +128,14 @@ EMACS_TIME_VALID_P (EMACS_TIME t)
    On overflow, return an extremal value; in particular, if time_t is
    an unsigned data type and D is negative, return zero.  Return the
    minimum EMACS_TIME if D is not a number.  */
-static inline EMACS_TIME
+SYSTIME_INLINE EMACS_TIME
 EMACS_TIME_FROM_DOUBLE (double d)
 {
   return dtotimespec (d);
 }
 
 /* Convert the Emacs time T to an approximate double value D.  */
-static inline double
+SYSTIME_INLINE double
 EMACS_TIME_TO_DOUBLE (EMACS_TIME t)
 {
   return timespectod (t);
@@ -155,35 +160,37 @@ extern EMACS_TIME lisp_time_argument (Lisp_Object);
 #endif
 
 /* Compare times T1 and T2 for equality, inequality etc.  */
-static inline int
+SYSTIME_INLINE int
 EMACS_TIME_EQ (EMACS_TIME t1, EMACS_TIME t2)
 {
   return timespec_cmp (t1, t2) == 0;
 }
-static inline int
+SYSTIME_INLINE int
 EMACS_TIME_NE (EMACS_TIME t1, EMACS_TIME t2)
 {
   return timespec_cmp (t1, t2) != 0;
 }
-static inline int
+SYSTIME_INLINE int
 EMACS_TIME_GT (EMACS_TIME t1, EMACS_TIME t2)
 {
   return timespec_cmp (t1, t2) > 0;
 }
-static inline int
+SYSTIME_INLINE int
 EMACS_TIME_GE (EMACS_TIME t1, EMACS_TIME t2)
 {
   return timespec_cmp (t1, t2) >= 0;
 }
-static inline int
+SYSTIME_INLINE int
 EMACS_TIME_LT (EMACS_TIME t1, EMACS_TIME t2)
 {
   return timespec_cmp (t1, t2) < 0;
 }
-static inline int
+SYSTIME_INLINE int
 EMACS_TIME_LE (EMACS_TIME t1, EMACS_TIME t2)
 {
   return timespec_cmp (t1, t2) <= 0;
 }
+
+INLINE_HEADER_END
 
 #endif /* EMACS_SYSTIME_H */

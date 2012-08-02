@@ -1,3 +1,8 @@
+2012-08-02  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use C99-style 'extern inline' if available.
+	* profile.c (SYSTIME_INLINE): Define.
+
 2012-08-02  Glenn Morris  <rgm@gnu.org>
 
 	* makefile.w32-in (MS_W32_H): Update for new ms-w32.h location.

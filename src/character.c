@@ -29,6 +29,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <config.h>
 #endif
 
+#define CHARACTER_INLINE EXTERN_INLINE
+
 #include <stdio.h>
 
 #ifdef emacs

@@ -25,6 +25,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <verify.h>
 
+INLINE_HEADER_BEGIN
+#ifndef CHARACTER_INLINE
+# define CHARACTER_INLINE INLINE
+#endif
+
 /* character code	1st byte   byte sequence
    --------------	--------   -------------
         0-7F		00..7F	   0xxxxxxx
@@ -570,7 +575,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define SANE_TAB_WIDTH(buf) \
   sanitize_tab_width (XFASTINT (BVAR (buf, tab_width)))
-static inline int
+CHARACTER_INLINE int
 sanitize_tab_width (EMACS_INT width)
 {
   return 0 < width && width <= 1000 ? width : 8;
@@ -591,7 +596,7 @@ sanitize_tab_width (EMACS_INT width)
 
 /* Return a non-outlandish value for a character width.  */
 
-static inline int
+CHARACTER_INLINE int
 sanitize_char_width (EMACS_INT width)
 {
   return 0 <= width && width <= 1000 ? width : 1000;
@@ -694,5 +699,7 @@ extern Lisp_Object string_escape_byte8 (Lisp_Object);
 /* Return a translation table of id number ID.  */
 #define GET_TRANSLATION_TABLE(id) \
   (XCDR(XVECTOR(Vtranslation_table_vector)->contents[(id)]))
+
+INLINE_HEADER_END
 
 #endif /* EMACS_CHARACTER_H */

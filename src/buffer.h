@@ -21,6 +21,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <sys/types.h> /* for off_t, time_t */
 #include "systime.h" /* for EMACS_TIME */
 
+INLINE_HEADER_BEGIN
+#ifndef BUFFER_INLINE
+# define BUFFER_INLINE INLINE
+#endif
+
 /* Accessing the parameters of the current buffer.  */
 
 /* These macros come in pairs, one for the char position
@@ -961,7 +966,7 @@ extern Lisp_Object Qfirst_change_hook;
    the buffer to the next character after fetching this one.  Instead,
    use either FETCH_CHAR_ADVANCE or STRING_CHAR_AND_LENGTH.  */
 
-static inline int
+BUFFER_INLINE int
 FETCH_MULTIBYTE_CHAR (ptrdiff_t pos)
 {
   unsigned char *p = ((pos >= GPT_BYTE ? GAP_SIZE : 0)
@@ -973,7 +978,7 @@ FETCH_MULTIBYTE_CHAR (ptrdiff_t pos)
    If POS doesn't point the head of valid multi-byte form, only the byte at
    POS is returned.  No range checking.  */
 
-static inline int
+BUFFER_INLINE int
 BUF_FETCH_MULTIBYTE_CHAR (struct buffer *buf, ptrdiff_t pos)
 {
   unsigned char *p
@@ -1090,7 +1095,7 @@ extern int last_per_buffer_idx;
       (*(Lisp_Object *)((OFFSET) + (char *) (BUFFER)))
 
 /* Downcase a character C, or make no change if that cannot be done.  */
-static inline int
+BUFFER_INLINE int
 downcase (int c)
 {
   Lisp_Object downcase_table = BVAR (current_buffer, downcase_table);
@@ -1099,10 +1104,10 @@ downcase (int c)
 }
 
 /* 1 if C is upper case.  */
-static inline int uppercasep (int c) { return downcase (c) != c; }
+BUFFER_INLINE int uppercasep (int c) { return downcase (c) != c; }
 
 /* Upcase a character C known to be not upper case.  */
-static inline int
+BUFFER_INLINE int
 upcase1 (int c)
 {
   Lisp_Object upcase_table = BVAR (current_buffer, upcase_table);
@@ -1111,8 +1116,10 @@ upcase1 (int c)
 }
 
 /* 1 if C is lower case.  */
-static inline int lowercasep (int c)
+BUFFER_INLINE int lowercasep (int c)
 { return !uppercasep (c) && upcase1 (c) != c; }
 
 /* Upcase a character C, or make no change if that cannot be done.  */
-static inline int upcase (int c) { return uppercasep (c) ? c : upcase1 (c); }
+BUFFER_INLINE int upcase (int c) { return uppercasep (c) ? c : upcase1 (c); }
+
+INLINE_HEADER_END

@@ -53,6 +53,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    The second extra slot is a version number of the category table.
    But, for the moment, we are not using this slot.  */
 
+INLINE_HEADER_BEGIN
+#ifndef CATEGORY_INLINE
+# define CATEGORY_INLINE INLINE
+#endif
+
 #define CATEGORYP(x) RANGED_INTEGERP (0x20, x, 0x7E)
 
 #define CHECK_CATEGORY(x) \
@@ -79,7 +84,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
     >> ((category) % 8)) & 1)
 
 /* Return 1 if category set of CH contains CATEGORY, else return 0.  */
-static inline int
+CATEGORY_INLINE int
 CHAR_HAS_CATEGORY (int ch, int category)
 {
   Lisp_Object category_set = CATEGORY_SET (ch);
@@ -108,3 +113,5 @@ CHAR_HAS_CATEGORY (int ch, int category)
    && word_boundary_p (c1, c2))
 
 extern int word_boundary_p (int, int);
+
+INLINE_HEADER_END

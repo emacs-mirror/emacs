@@ -29,6 +29,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    table.  Read comments in the file category.h to understand them.  */
 
 #include <config.h>
+
+#define CATEGORY_INLINE EXTERN_INLINE
+
 #include <ctype.h>
 #include <setjmp.h>
 #include "lisp.h"

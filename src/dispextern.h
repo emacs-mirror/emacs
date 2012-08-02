@@ -46,8 +46,13 @@ typedef struct {
 #include "msdos.h"
 #endif
 
+INLINE_HEADER_BEGIN
+#ifndef DISPEXTERN_INLINE
+# define DISPEXTERN_INLINE INLINE
+#endif
+
 #include <c-strcase.h>
-static inline int
+DISPEXTERN_INLINE int
 xstrcasecmp (char const *a, char const *b)
 {
   return c_strcasecmp (a, b);
@@ -3399,5 +3404,7 @@ extern Lisp_Object x_default_parameter (struct frame *, Lisp_Object,
                                         enum resource_types);
 
 #endif /* HAVE_WINDOW_SYSTEM */
+
+INLINE_HEADER_END
 
 #endif /* not DISPEXTERN_H_INCLUDED */

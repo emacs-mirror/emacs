@@ -28,6 +28,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <intprops.h>
 
+INLINE_HEADER_BEGIN
+#ifndef LISP_INLINE
+# define LISP_INLINE INLINE
+#endif
+
 /* The ubiquitous max and min macros.  */
 #undef min
 #undef max
@@ -295,14 +300,14 @@ enum Lisp_Fwd_Type
 typedef struct { EMACS_INT i; } Lisp_Object;
 
 #define XLI(o) (o).i
-static inline Lisp_Object
+LISP_INLINE Lisp_Object
 XIL (EMACS_INT i)
 {
   Lisp_Object o = { i };
   return o;
 }
 
-static inline Lisp_Object
+LISP_INLINE Lisp_Object
 LISP_MAKE_RVALUE (Lisp_Object o)
 {
     return o;
@@ -330,7 +335,9 @@ static ptrdiff_t const ARRAY_MARK_FLAG = PTRDIFF_MIN;
 
 /* In the size word of a struct Lisp_Vector, this bit means it's really
    some other vector-like object.  */
-static ptrdiff_t const PSEUDOVECTOR_FLAG = PTRDIFF_MAX - PTRDIFF_MAX / 2;
+static ptrdiff_t const PSEUDOVECTOR_FLAG
+#define PSEUDOVECTOR_FLAG (PTRDIFF_MAX - PTRDIFF_MAX / 2)
+      = PSEUDOVECTOR_FLAG;
 
 /* In a pseudovector, the size field actually contains a word with one
    PSEUDOVECTOR_FLAG bit set, and exactly one of the following bits to
@@ -480,7 +487,7 @@ static EMACS_INT const MOST_NEGATIVE_FIXNUM =
 #define FIXNUM_OVERFLOW_P(i) \
   (! ((0 <= (i) || MOST_NEGATIVE_FIXNUM <= (i)) && (i) <= MOST_POSITIVE_FIXNUM))
 
-static inline ptrdiff_t
+LISP_INLINE ptrdiff_t
 clip_to_bounds (ptrdiff_t lower, EMACS_INT num, ptrdiff_t upper)
 {
   return num < lower ? lower : num <= upper ? num : upper;
@@ -2338,37 +2345,37 @@ struct frame;
 
 /* Simple access functions.  */
 
-static inline Lisp_Object *
+LISP_INLINE Lisp_Object *
 aref_addr (Lisp_Object array, ptrdiff_t idx)
 {
   return & XVECTOR (array)->contents[idx];
 }
 
-static inline void
+LISP_INLINE void
 set_hash_key (struct Lisp_Hash_Table *h, ptrdiff_t idx, Lisp_Object val)
 {
   ASET (h->key_and_value, 2 * idx, val);
 }
 
-static inline void
+LISP_INLINE void
 set_hash_value (struct Lisp_Hash_Table *h, ptrdiff_t idx, Lisp_Object val)
 {
   ASET (h->key_and_value, 2 * idx + 1, val);
 }
 
-static inline void
+LISP_INLINE void
 set_hash_next (struct Lisp_Hash_Table *h, ptrdiff_t idx, Lisp_Object val)
 {
   ASET (h->next, idx, val);
 }
 
-static inline void
+LISP_INLINE void
 set_hash_hash (struct Lisp_Hash_Table *h, ptrdiff_t idx, Lisp_Object val)
 {
   ASET (h->hash, idx, val);
 }
 
-static inline void
+LISP_INLINE void
 set_hash_index (struct Lisp_Hash_Table *h, ptrdiff_t idx, Lisp_Object val)
 {
   ASET (h->index, idx, val);
@@ -2692,7 +2699,7 @@ extern Lisp_Object make_unibyte_string (const char *, ptrdiff_t);
 
 /* Make unibyte string from C string when the length isn't known.  */
 
-static inline Lisp_Object
+LISP_INLINE Lisp_Object
 build_unibyte_string (const char *str)
 {
   return make_unibyte_string (str, strlen (str));
@@ -2710,7 +2717,7 @@ extern Lisp_Object make_pure_c_string (const char *, ptrdiff_t);
 
 /* Make a string allocated in pure space, use STR as string data.  */
 
-static inline Lisp_Object
+LISP_INLINE Lisp_Object
 build_pure_c_string (const char *str)
 {
   return make_pure_c_string (str, strlen (str));
@@ -2719,7 +2726,7 @@ build_pure_c_string (const char *str)
 /* Make a string from the data at STR, treating it as multibyte if the
    data warrants.  */
 
-static inline Lisp_Object
+LISP_INLINE Lisp_Object
 build_string (const char *str)
 {
   return make_string (str, strlen (str));
@@ -2838,13 +2845,13 @@ extern void init_obarray (void);
 extern void init_lread (void);
 extern void syms_of_lread (void);
 
-static inline Lisp_Object
+LISP_INLINE Lisp_Object
 intern (const char *str)
 {
   return intern_1 (str, strlen (str));
 }
 
-static inline Lisp_Object
+LISP_INLINE Lisp_Object
 intern_c_string (const char *str)
 {
   return intern_c_string_1 (str, strlen (str));
@@ -3493,7 +3500,7 @@ extern Lisp_Object safe_alloca_unwind (Lisp_Object);
 
 /* Check whether it's time for GC, and run it if so.  */
 
-static inline void
+LISP_INLINE void
 maybe_gc (void)
 {
   if ((consing_since_gc > gc_cons_threshold
@@ -3502,5 +3509,7 @@ maybe_gc (void)
 	  && consing_since_gc > memory_full_cons_threshold))
     Fgarbage_collect ();
 }
+
+INLINE_HEADER_END
 
 #endif /* EMACS_LISP_H */

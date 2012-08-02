@@ -1,3 +1,33 @@
+2012-08-02  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use C99-style 'extern inline' if available.
+	* buffer.h (BUFFER_INLINE):
+	* category.h (CATEGORY_INLINE):
+	* character.h (CHARACTER_INLINE):
+	* charset.h (CHARSET_INLINE):
+	* composite.h (COMPOSITE_INLINE):
+	* dispextern.h (DISPEXTERN_INLINE):
+	* lisp.h (LISP_INLINE):
+	* systime.h (SYSTIME_INLINE):
+	New macro, replacing 'static inline' in this header.
+	* buffer.h, category.h, character.h, charset.h, composite.h:
+	* dispextern.h, lisp.h, systime.h:
+	Use INLINE_HEADER_BEGIN, INLINE_HEADER_END.
+	* alloc.c (LISP_INLINE):
+	* buffer.c (BUFFER_INLINE):
+	* category.c (CATEGORY_INLINE):
+	* character.c (CHARACTER_INLINE):
+	* charset.c (CHARSET_INLINE):
+	* composite.c (COMPOSITE_INLINE):
+	* dispnew.c (DISPEXTERN_INLINE):
+	* sysdep.c (SYSTIME_INLINE):
+	Define to EXTERN_INLINE, so that the corresponding functions
+	are compiled into code.
+	* conf_post.h (INLINE, EXTERN_INLINE, INLINE_HEADER_BEGIN)
+	(INLINE_HEADER_END): New macros.
+	* lisp.h (PSEUDOVECTOR_FLAG): Now a macro as well as a constant,
+	since it's used in non-static inline functions now.
+
 2012-08-02  Glenn Morris  <rgm@gnu.org>
 
 	* s/: Remove empty directory.

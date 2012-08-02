@@ -213,4 +213,9 @@ You lose; /* Emacs for DOS must be compiled with DJGPP */
 #undef noinline
 #endif
 
+#define INLINE _GL_INLINE
+#define EXTERN_INLINE _GL_EXTERN_INLINE
+#define INLINE_HEADER_BEGIN _GL_INLINE_HEADER_BEGIN
+#define INLINE_HEADER_END _GL_INLINE_HEADER_END
+
 /* conf_post.h ends here */
