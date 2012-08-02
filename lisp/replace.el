@@ -1140,8 +1140,8 @@ contain \\& and \\N which convention follows `replace-match'.
 For example, providing \"defun\\s +\\(\\S +\\)\" for REGEXP and
 \"\\1\" for NLINES collects all the function names in a lisp
 program.  When there is no parenthesized subexpressions in REGEXP
-the entire match is collected.  In any case the searched buffers
-are not modified."
+the entire match is collected.  In any case the searched buffer
+is not modified."
   (interactive (occur-read-primary-args))
   (occur-1 regexp nlines (list (current-buffer))))
 

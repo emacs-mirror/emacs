@@ -1,3 +1,7 @@
+2012-08-02  Bastien Guerry  <bzg@gnu.org>
+
+	* replace.el (occur): Fix docstring (bug#12122).
+
 2012-08-02  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/authors.el (authors-renamed-files-alist): Add ms-w32.h.
