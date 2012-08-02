@@ -329,8 +329,7 @@ ns_exec_path (void)
   NSString *binDir = [bundle bundlePath];
   NSString *resourcePath, *resourcePaths;
   NSRange range;
-  BOOL onWindows = NO;       /* FIXME determine this somehow  */
-  NSString *pathSeparator = onWindows ? @";" : @":";
+  NSString *pathSeparator = [NSString stringWithFormat: @"%c", SEPCHAR];
   NSFileManager *fileManager = [NSFileManager defaultManager];
   NSArray *paths;
   NSEnumerator *pathEnum;
@@ -377,8 +376,7 @@ ns_load_path (void)
   NSBundle *bundle = [NSBundle mainBundle];
   NSString *resourceDir = [bundle resourcePath];
   NSString *resourcePath, *resourcePaths;
-  BOOL onWindows = NO;          /* FIXME determine this somehow */
-  NSString *pathSeparator = onWindows ? @";" : @":";
+  NSString *pathSeparator = [NSString stringWithFormat: @"%c", SEPCHAR];
   NSFileManager *fileManager = [NSFileManager defaultManager];
   BOOL isDir;
   NSArray *paths = [resourceDir stringsByAppendingPaths:
