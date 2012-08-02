@@ -6101,7 +6101,7 @@ face_at_buffer_position (struct window *w, ptrdiff_t pos,
   for (i = 0; i < noverlays; i++)
     {
       Lisp_Object oend;
-      int oendpos;
+      ptrdiff_t oendpos;
 
       prop = Foverlay_get (overlay_vec[i], propname);
       if (!NILP (prop))
@@ -6145,7 +6145,7 @@ face_for_overlay_string (struct window *w, ptrdiff_t pos,
   Lisp_Object attrs[LFACE_VECTOR_SIZE];
   Lisp_Object prop, position;
   Lisp_Object frame;
-  int endpos;
+  ptrdiff_t endpos;
   Lisp_Object propname = mouse ? Qmouse_face : Qface;
   Lisp_Object limit1, end;
   struct face *default_face;
