@@ -441,7 +441,7 @@ status_convert (int w)
   if (WIFSTOPPED (w))
     return Fcons (Qstop, Fcons (make_number (WSTOPSIG (w)), Qnil));
   else if (WIFEXITED (w))
-    return Fcons (Qexit, Fcons (make_number (WRETCODE (w)),
+    return Fcons (Qexit, Fcons (make_number (WEXITSTATUS (w)),
 				WCOREDUMP (w) ? Qt : Qnil));
   else if (WIFSIGNALED (w))
     return Fcons (Qsignal, Fcons (make_number (WTERMSIG (w)),
@@ -4287,7 +4287,7 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
   FD_ZERO (&Writeok);
 
   if (time_limit == 0 && nsecs == 0 && wait_proc && !NILP (Vinhibit_quit)
-      && !(CONSP (PVAR (wait_proc, status)) 
+      && !(CONSP (PVAR (wait_proc, status))
 	   && EQ (XCAR (PVAR (wait_proc, status)), Qexit)))
     message ("Blocking call to accept-process-output with quit inhibited!!");
 
@@ -4887,7 +4887,7 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 		  if (p->pid == -2)
 		    {
 		      /* If the EIO occurs on a pty, sigchld_handler's
-			 wait3() will not find the process object to
+			 waitpid() will not find the process object to
 			 delete.  Do it here.  */
 		      p->tick = ++process_tick;
 		      PVAR (p, status) = Qfailed;
@@ -4959,7 +4959,7 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 	      if (xerrno)
 		{
 		  p->tick = ++process_tick;
-		  PVAR (p, status) 
+		  PVAR (p, status)
 		    = Fcons (Qfailed, Fcons (make_number (xerrno), Qnil));
 		  deactivate_process (proc);
 		}
@@ -6352,7 +6352,7 @@ sigchld_handler (int signo)
       do
 	{
 	  errno = 0;
-	  pid = wait3 (&w, WNOHANG | WUNTRACED, 0);
+	  pid = waitpid (-1, &w, WNOHANG | WUNTRACED);
 	}
       while (pid < 0 && errno == EINTR);
 
@@ -6440,7 +6440,7 @@ sigchld_handler (int signo)
 
 	  /* Report the status of the synchronous process.  */
 	  if (WIFEXITED (w))
-	    synch_process_retcode = WRETCODE (w);
+	    synch_process_retcode = WEXITSTATUS (w);
 	  else if (WIFSIGNALED (w))
 	    synch_process_termsig = WTERMSIG (w);
 
@@ -6746,7 +6746,7 @@ suppressed.  */)
   CHECK_PROCESS (process);
   p = XPROCESS (process);
   if (NILP (flag))
-    PVAR (p, decode_coding_system) 
+    PVAR (p, decode_coding_system)
       = raw_text_coding_system (PVAR (p, decode_coding_system));
   setup_process_coding_systems (process);
 

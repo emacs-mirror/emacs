@@ -560,8 +560,8 @@ main (int argc, char **argv)
   wait (&wait_status);
   if (!WIFEXITED (wait_status))
     exit (EXIT_FAILURE);
-  else if (WRETCODE (wait_status) != 0)
-    exit (WRETCODE (wait_status));
+  else if (WEXITSTATUS (wait_status) != 0)
+    exit (WEXITSTATUS (wait_status));
 
 #if !defined (MAIL_USE_MMDF) && !defined (MAIL_USE_SYSTEM_LOCK)
 #ifdef MAIL_USE_MAILLOCK

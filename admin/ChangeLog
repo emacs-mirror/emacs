@@ -1,3 +1,8 @@
+2012-08-02  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Port to Solaris 8.
+	* CPP-DEFINES (WRETCODE): Remove.
+
 2012-08-01  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* coccinelle/overlay.cocci: Semantic patch to replace direct

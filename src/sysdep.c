@@ -294,7 +294,7 @@ wait_for_termination_1 (pid_t pid, int interruptible)
 #if (defined (BSD_SYSTEM) || defined (HPUX)) && !defined (__GNU__)
       /* Note that kill returns -1 even if the process is just a zombie now.
 	 But inevitably a SIGCHLD interrupt should be generated
-	 and child_sig will do wait3 and make the process go away. */
+	 and child_sig will do waitpid and make the process go away.  */
       /* There is some indication that there is a bug involved with
 	 termination of subprocesses, perhaps involving a kernel bug too,
 	 but no idea what it is.  Just as a hunch we signal SIGCHLD to see

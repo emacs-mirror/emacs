@@ -549,7 +549,7 @@ get_result:
 
       /* Report the status of the synchronous process.  */
       if (WIFEXITED (retval))
-	synch_process_retcode = WRETCODE (retval);
+	synch_process_retcode = WEXITSTATUS (retval);
       else if (WIFSIGNALED (retval))
 	{
 	  int code = WTERMSIG (retval);
