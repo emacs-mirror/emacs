@@ -331,7 +331,9 @@ enum CHECK_LISP_OBJECT_TYPE { CHECK_LISP_OBJECT_TYPE = 0 };
 
 /* In the size word of a vector, this bit means the vector has been marked.  */
 
-static ptrdiff_t const ARRAY_MARK_FLAG = PTRDIFF_MIN;
+static ptrdiff_t const ARRAY_MARK_FLAG
+#define ARRAY_MARK_FLAG PTRDIFF_MIN
+      = ARRAY_MARK_FLAG;
 
 /* In the size word of a struct Lisp_Vector, this bit means it's really
    some other vector-like object.  */
@@ -606,7 +608,7 @@ clip_to_bounds (ptrdiff_t lower, EMACS_INT num, ptrdiff_t upper)
 /* The IDX==IDX tries to detect when the macro argument is side-effecting.  */
 #define ASET(ARRAY, IDX, VAL)	\
   (eassert ((IDX) == (IDX)),				\
-   eassert ((IDX) >= 0 && (IDX) < ASIZE (ARRAY)),	\
+   eassert ((IDX) >= 0 && (IDX) < (ASIZE (ARRAY) & ~ARRAY_MARK_FLAG)),	\
    XVECTOR (ARRAY)->contents[IDX] = (VAL))
 
 /* Convenience macros for dealing with Lisp strings.  */
