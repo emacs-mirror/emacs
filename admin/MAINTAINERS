@@ -34,7 +34,6 @@ Eli Zaretskii
 	    src/msdos.[ch]
 	    src/dosfns.[ch]
 	    src/w16select.c
-	    src/s/msdos.h
 	    lisp/term/internal.el
 	    lisp/term/pc-win.el
 	    lisp/dos-fns.el
@@ -183,7 +182,6 @@ src/print.c
 src/process.c
 src/ralloc.c
 src/region-cache.c
-src/s/
 src/scroll.c
 src/search.c
 src/sound.c
