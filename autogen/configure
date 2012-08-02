@@ -6945,6 +6945,7 @@ esac
   # Code from module environ:
   # Code from module extensions:
 
+  # Code from module extern-inline:
   # Code from module filemode:
   # Code from module getloadavg:
   # Code from module getopt-gnu:
@@ -15229,17 +15230,6 @@ $as_echo "#define TIOCSIGSEND TIOCSIGNAL" >>confdefs.h
     ;;
 esac
 
-case $opsys in
-  irix6-5 | sol2* | unixware )
-
-$as_echo "#define wait3(status, options, rusage) waitpid ((pid_t) -1, (status), (options))" >>confdefs.h
-
-
-$as_echo "#define WRETCODE(w) (w >> 8)" >>confdefs.h
-
-    ;;
-esac
-
 
 case $opsys in
   hpux* | sol2* )
@@ -15254,6 +15244,8 @@ $as_echo "#define SIGNAL_H_AHB 1" >>confdefs.h
 
     ;;
 esac
+
+
 
 
 
@@ -16357,6 +16349,10 @@ $as_echo "#define HAVE_ENVIRON_DECL 1" >>confdefs.h
   if test $gt_cv_var_environ_declaration != yes; then
     HAVE_DECL_ENVIRON=0
   fi
+
+
+
+
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for st_dm_mode in struct stat" >&5
 $as_echo_n "checking for st_dm_mode in struct stat... " >&6; }
@@ -19999,6 +19995,7 @@ fi
 
 
 
+
 # Persuade glibc <stdlib.h> to declare getloadavg().
 
 
@@ -23118,7 +23115,6 @@ fi
 
 
           GNULIB_TIME_R=1
-
 
 
 
