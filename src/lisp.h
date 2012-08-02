@@ -423,7 +423,9 @@ enum lsb_bits
 
 #else  /* not USE_LSB_TAG */
 
-static EMACS_INT const VALMASK = VAL_MAX;
+static EMACS_INT const VALMASK
+#define VALMASK VAL_MAX
+      = VALMASK;
 
 #define XTYPE(a) ((enum Lisp_Type) ((EMACS_UINT) XLI (a) >> VALBITS))
 

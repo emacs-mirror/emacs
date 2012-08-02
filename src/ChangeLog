@@ -30,6 +30,7 @@
 	(INLINE_HEADER_END): New macros.
 	* lisp.h (PSEUDOVECTOR_FLAG): Now a macro as well as a constant,
 	since it's used in non-static inline functions now.
+	(VALMASK) [!USE_LSB_TAG]: Likewise.
 
 2012-08-02  Glenn Morris  <rgm@gnu.org>
 
