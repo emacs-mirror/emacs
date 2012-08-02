@@ -209,6 +209,10 @@ echo "Your system has the required tools, running autoreconf..."
 ## Let autoreconf figure out what, if anything, needs doing.
 autoreconf -i -I m4 || exit $?
 
+## Create a timestamp, so that './autogen.sh; make' doesn't
+## cause 'make' to needlessly run 'autoheader'.
+echo timestamp > src/stamp-h.in || exit
+
 echo "You can now run \`./configure'."
 
 exit 0

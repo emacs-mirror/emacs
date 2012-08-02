@@ -143,6 +143,7 @@ src/epaths.h
 src/gdb.ini
 src/prefix-args*
 src/stamp-oldxmenu
+src/stamp-h.in
 src/temacs
 test/indent/*.new
 +*
