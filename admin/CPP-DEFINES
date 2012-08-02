@@ -1,10 +1,21 @@
 Here are some of the cpp macros used, together with some short explanation
 of their use.  Feel free to add more macros and more categories.
+Most of these are from config.in, so it's probably better to put the
+explanations in that file.  Ideally, everything would be defined and
+documented in config.in, and this file would not be necessary.
+
 
 ** Distinguishing OSes **
 
+AIX
+_AIX
+BSD4_2
+BSD_SYSTEM
 CYGWIN		Compiling the Cygwin port.
 __CYGWIN__	Ditto
+GNU_LINUX
+HPUX
+IRIX6_5
 MSDOS		Compiling the MS-DOS port.
 __MSDOS__	Ditto.
 __DJGPP_MINOR__ Minor version number of the DJGPP library; used only in msdos.c and dosfns.c.
@@ -13,6 +24,10 @@ WINDOWSNT	Compiling the native MS-Windows (W32) port.
 __MINGW32__	Compiling the W32 port with the MinGW port of GCC.
 _MSC_VER	Compiling the W32 port with the Microsoft C compiler.
 DARWIN_OS	Compiling on Mac OS X or pure Darwin (and using s/darwin.h).
+SOLARIS2
+USG
+USG5
+USG5_4
 
 ** Distinguishing GUIs **
 
@@ -45,12 +60,12 @@ HAVE_PROCFS     The /proc filesystem is supported.
 
 REL_ALLOC	Compile in the relocatable memory allocator ralloc.c.
 SYSTEM_MALLOC	Use the system library's malloc.
-subprocesses    System can use subprocesses (for M-x shell for example).  Defined by default, only MSDOS undefines it.
-DEBUG_LISP_OBJECT_TYPE Define it in lisp.h enable compile time checks on Lisp_Object use.
+subprocesses    System can use subprocesses (for M-x shell for example).
+                Defined by default, only MSDOS undefines it.
+DEBUG_LISP_OBJECT_TYPE Define it in lisp.h enable compile time checks
+                       on Lisp_Object use.
 
-** System specific macros, described in detail in src/s/template.h
-CLASH_DETECTION
-COFF
+** System specific macros
 FIRST_PTY_LETTER
 HAVE_PTYS
 INTERRUPT_INPUT
@@ -59,12 +74,12 @@ SEPCHAR
 SYSTEM_TYPE
 
 ** Misc macros
-USER_FULL_NAME   If defined, overrides the default pw->pw_gecos for getting at the full user name.  Only MSDOS overrides the default.
+USER_FULL_NAME   If defined, overrides the default pw->pw_gecos for
+getting at the full user name.  Only MSDOS overrides the default.
 
-** Defines from src/s/*.h.  Some of these might not be used in the code anymore, so they can be removed.  The HAVE_* definitions are probably handled by autoconf, so it might be possible to just remove them from src/s/*.h.
+** Miscellaneous defines.  Some of these might not be used in the code
+anymore, so they can be removed.
 
-
-AIX
 AMPERSAND_FULL_NAME
 BROKEN_DATAGRAM_SOCKETS
 BROKEN_FIONREAD
@@ -76,8 +91,6 @@ BROKEN_SIGAIO
 BROKEN_SIGIO
 BROKEN_SIGPOLL
 BROKEN_SIGPTY
-BSD4_2
-BSD_SYSTEM
 CLASH_DETECTION
 DATA_SEG_BITS
 DATA_START
@@ -100,7 +113,6 @@ GC_MARK_STACK
 GC_SETJMP_WORKS
 GMALLOC_INHIBIT_VALLOC
 GNU_LIBRARY_PENDING_OUTPUT_COUNT
-GNU_LINUX
 GNU_MALLOC
 HAVE_AIX_SMT_EXP
 HAVE_CBRT
@@ -159,20 +171,16 @@ HAVE_UTIME_H
 HAVE_WINDOW_SYSTEM
 HAVE_WORKING_VFORK
 HAVE_XRMSETDATABASE
-HPUX
 INTERNAL_TERMINAL
 IS_ANY_SEP
 IS_DIRECTORY_SEP
-LINKER
 LINUX_VERSION_CODE
-LNOFLSH
 LOCALTIME_CACHE
 MAIL_USE_FLOCK
 MAIL_USE_LOCKF
 MAIL_USE_POP
 MAIL_USE_SYSTEM_LOCK
 MAXPATHLEN
-MIN_PTY_KERNEL_VERSION -- only used on Mac
 MODE_LINE_BINARY_TEXT
 MUST_UNDEF__STDC__
 NLIST_STRUCT
@@ -208,7 +216,6 @@ SIGNALS_VIA_CHARACTERS
 SIGPIPE
 SIGQUIT
 SIGTRAP
-SOLARIS2
 STDC_HEADERS
 SYSTEM_PURESIZE_EXTRA
 SYSTEM_MALLOC
@@ -223,13 +230,9 @@ ULIMIT_BREAK_VALUE
 UNIX98_PTYS
 USE_CRT_DLL
 USE_TOOLKIT_SCROLL_BARS
-USG
-USG5
 USG_SUBTTY_WORKS
 VALBITS
 XOS_NEEDS_TIME_H
-_AIX
-_ARCH_PPC64
 _FILE_OFFSET_BITS
 _LP64
 _MALLOC_INTERNAL
