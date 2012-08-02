@@ -39,9 +39,6 @@ SRCID(protlii3, "$Id$");
 static struct sigaction sigNext;
 
 
-typedef void (*__real_lii3_sighandler_t)(int, struct sigcontext);
-
-
 /* sigHandle -- protection signal handler
  *
  *  This is the signal handler installed by ProtSetup to deal with
@@ -100,7 +97,9 @@ static void sigHandle(int sig, siginfo_t *info, void *context)  /* .sigh.args */
   }
 
   /* The exception was not handled by any known protection structure, */
-  /* so throw it to the previously installed handler. */
+  /* so throw it to the previously installed handler.  That handler won't */
+  /* get an accurate context (the MPS would fail if it were the second in */
+  /* line) but it's the best we can do. */
 
   e = sigaction(PROT_SIGNAL, &sigNext, &sa);
   AVER(e == 0);
