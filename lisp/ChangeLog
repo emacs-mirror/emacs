@@ -1,13 +1,10 @@
-2012-08-02  Tassilo Horn  <horn@thinkpad.tsdh.de>
-
-	* textmodes/reftex-vars.el (reftex-label-alist): Docfix.
-
 2012-08-02  Tassilo Horn  <tsdh@gnu.org>
 
 	* textmodes/reftex-vars.el (reftex-default-label-alist-entries):
 	Add listings, minted, and ctable packages.
 	(reftex-label-alist-builtin): Move listings, minted, and ctable
 	entries before LaTeX.
+	(reftex-label-alist): Docfix.
 
 2012-08-02  Bastien Guerry  <bzg@gnu.org>
 
