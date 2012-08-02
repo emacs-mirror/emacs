@@ -1,3 +1,8 @@
+2012-08-02  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* lib/Makefile.am (DEFAULT_INCLUDES): Add -I$(top_srcdir)/lib for
+	out-of-tree build.
+
 2012-08-02  Glenn Morris  <rgm@gnu.org>
 
 	* make-dist: Remove src/s.
