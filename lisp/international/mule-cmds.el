@@ -1331,6 +1331,9 @@ of `history-length', which see.")
 (make-variable-buffer-local 'input-method-history)
 (put 'input-method-history 'permanent-local t)
 
+(define-obsolete-variable-alias
+  'inactivate-current-input-method-function
+  'deactivate-current-input-method-function "24.2")
 (defvar deactivate-current-input-method-function nil
   "Function to call for deactivating the current input method.
 Every input method should set this to an appropriate value when activated.

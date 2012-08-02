@@ -1,3 +1,11 @@
+2012-08-02  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Obsolete alias inactivate-current-input-method-function (Bug#10150).
+	* international/mule-cmds.el: Create
+	inactivate-current-input-method-function as an obsolete alias for
+	deactivate-current-input-method-function.  See Katsumi Yamaoka in
+	<http://bugs.gnu.org/10150#46>.
+
 2012-08-01  Jay Belanger  <jay.p.belanger@gmail.com>
 
 	* calc/calc-mode.el (calc-set-simplify-mode): Use `cond' instead
