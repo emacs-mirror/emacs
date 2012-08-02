@@ -6144,7 +6144,6 @@ face_for_overlay_string (struct window *w, ptrdiff_t pos,
   struct frame *f = XFRAME (WVAR (w, frame));
   Lisp_Object attrs[LFACE_VECTOR_SIZE];
   Lisp_Object prop, position;
-  Lisp_Object frame;
   ptrdiff_t endpos;
   Lisp_Object propname = mouse ? Qmouse_face : Qface;
   Lisp_Object limit1, end;
@@ -6154,7 +6153,6 @@ face_for_overlay_string (struct window *w, ptrdiff_t pos,
      to use the frame and buffer of W, but right now it doesn't.  */
   /* eassert (XBUFFER (w->buffer) == current_buffer); */
 
-  XSETFRAME (frame, f);
   XSETFASTINT (position, pos);
 
   endpos = ZV;
