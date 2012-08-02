@@ -35,9 +35,8 @@
 ;; that the `repeat' form can't have multiple regexp args.
 
 ;; Now alternative forms are provided for a degree of compatibility
-;; with Shivers' attempted definitive SRE notation
-;; <URL:http://www.ai.mit.edu/~/shivers/sre.txt>.  SRE forms not
-;; catered for include: dsm, uncase, w/case, w/nocase, ,@<exp>,
+;; with Olin Shivers' attempted definitive SRE notation.  SRE forms
+;; not catered for include: dsm, uncase, w/case, w/nocase, ,@<exp>,
 ;; ,<exp>, (word ...), word+, posix-string, and character class forms.
 ;; Some forms are inconsistent with SRE, either for historical reasons
 ;; or because of the implementation -- simple translation into Emacs
