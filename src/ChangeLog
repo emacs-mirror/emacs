@@ -1,5 +1,7 @@
 2012-08-02  Glenn Morris  <rgm@gnu.org>
 
+	* s/: Remove empty directory.
+
 	* s/ms-w32.h: Move to ../nt/inc.
 	* makefile.w32-in (TAGS, TAGS-gmake, MS_W32_H):
 	Update for new ms-w32.h location.

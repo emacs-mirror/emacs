@@ -282,7 +282,7 @@ for subdir in site-lisp \
 	      leim leim/CXTERM-DIC leim/MISC-DIC \
 	      leim/SKK-DIC leim/ja-dic leim/quail \
 	      build-aux build-aux/snippet \
-	      src src/s src/bitmaps lib lib-src oldXMenu lwlib \
+	      src src/bitmaps lib lib-src oldXMenu lwlib \
 	      nt nt/inc nt/inc/sys nt/inc/arpa nt/inc/netinet nt/icons \
 	      `find etc lisp admin -type d` \
 	      doc doc/emacs doc/misc doc/man doc/lispref doc/lispintro \
@@ -358,10 +358,6 @@ echo "Making links to \`src'"
 echo "Making links to \`src/bitmaps'"
 (cd src/bitmaps
  ln README *.xbm ../../${tempdir}/src/bitmaps)
-
-echo "Making links to \`src/s'"
-(cd src/s
- ln README [a-zA-Z0-9]*.h ../../${tempdir}/src/s)
 
 echo "Making links to \`lib'"
 (snippet_h=`(cd build-aux/snippet && ls *.h)`
