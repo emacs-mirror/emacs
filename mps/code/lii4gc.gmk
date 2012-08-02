@@ -8,7 +8,9 @@ PFM = lii4gc
 THREADSRC = lockli.c thlii4.c pthrdext.c
 THREADLIB = -lpthread
 
-PFMDEFS = -D_REENTRANT
+# _XOPEN_SOURCE is to get the modern POSIX signal handling
+# _GNU_SOURCE is to get register numbers in prmci3li.c
+PFMDEFS = -D_REENTRANT -D_XOPEN_SOURCE=500 -D_GNU_SOURCE
 
 MPMPF = ${THREADSRC} vmix.c \
         protix.c protlii3.c proti3.c prmci3li.c ssixi3.c span.c
@@ -23,7 +25,7 @@ CC = cc
 # Suppress some warnings (SuSE).
 #   .void: -Wpointer-arith cannot be used because the string.h header does
 #   arithmetic on void*.
-CFLAGSCOMPILER := $(subst -Wpointer-arith,,$(CFLAGSCOMPILER))
+CFLAGSCOMPILER := -pthread $(subst -Wpointer-arith,,$(CFLAGSCOMPILER))
 
 include comm.gmk
 

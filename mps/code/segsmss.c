@@ -433,14 +433,10 @@ static Bool AMSSegRegionIsFree(Seg seg, Addr base, Addr limit)
  */
 static void AMSUnallocateRange(Seg seg, Addr base, Addr limit)
 {
-  Pool pool;
-  AMS ams;
   AMSSeg amsseg;
   Index baseIndex, limitIndex;
   /* parameters checked by caller */
 
-  pool = SegPool(seg);
-  ams = Pool2AMS(pool);
   amsseg = Seg2AMSSeg(seg);
 
   baseIndex = AMS_ADDR_INDEX(seg, base);
@@ -475,14 +471,10 @@ static void AMSUnallocateRange(Seg seg, Addr base, Addr limit)
  */
 static void AMSAllocateRange(Seg seg, Addr base, Addr limit)
 {
-  Pool pool;
-  AMS ams;
   AMSSeg amsseg;
   Index baseIndex, limitIndex;
   /* parameters checked by caller */
 
-  pool = SegPool(seg);
-  ams = Pool2AMS(pool);
   amsseg = Seg2AMSSeg(seg);
 
   baseIndex = AMS_ADDR_INDEX(seg, base);

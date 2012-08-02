@@ -1583,7 +1583,6 @@ static Res amcScanNailed(Bool *totalReturn, ScanState ss, Pool pool,
 static Res AMCScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
 {
   Addr base, limit;
-  Arena arena;
   Format format;
   AMC amc;
   Res res;
@@ -1597,7 +1596,6 @@ static Res AMCScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
 
 
   format = pool->format;
-  arena = pool->arena;
 
   if(amcSegHasNailboard(seg)) {
     return amcScanNailed(totalReturn, ss, pool, seg, amc);

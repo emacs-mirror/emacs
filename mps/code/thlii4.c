@@ -1,4 +1,4 @@
-/* thlii3.c: Threads Manager for Intel x86 systems with LinuxThreads
+/* thlii4.c: Threads Manager for Intel x86 systems with LinuxThreads
  *
  *  $Id$
  *  Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
@@ -36,7 +36,7 @@
  * assumed to be recorded in the context at pointer-aligned boundaries.
  */
 
-#include "prmcli.h"
+#include "prmcix.h"
 #include "mpm.h"
 
 #if !defined(MPS_OS_LI) || !defined(MPS_ARCH_I4)
@@ -243,18 +243,18 @@ Res ThreadScan(ScanState ss, Thread thread, void *stackBot)
     if(res != ResOK)
       return res;
   } else {
-    struct sigcontext *scp;
+    MutatorFaultContext mfc;
     Addr *stackBase, *stackLimit, stackPtr;
-
-    scp = thread->mfc->scp;
-    if(scp == NULL) {
+    mcontext_t *mc;
+    mfc = thread->mfc;
+    if(mfc == NULL) {
       /* .error.suspend */
       /* We assume that the thread must have been destroyed. */
       /* We ignore the situation by returning immediately. */
       return ResOK;
     }
 
-    stackPtr  = (Addr)scp->esp;   /* .i3.sp */
+    stackPtr  = (Addr)mfc->ucontext->uc_stack.ss_sp;   /* .i3.sp */
     /* .stack.align */
     stackBase  = (Addr *)AddrAlignUp(stackPtr, sizeof(Addr));
     stackLimit = (Addr *)stackBot;
@@ -273,8 +273,9 @@ Res ThreadScan(ScanState ss, Thread thread, void *stackBot)
      * unecessarily scans the rest of the context.  The optimisation
      * to scan only relevent parts would be machine dependent.
      */
-    res = TraceScanAreaTagged(ss, (Addr *)scp,
-           (Addr *)((char *)scp + sizeof(*scp)));
+    mc = &mfc->ucontext->uc_mcontext;
+    res = TraceScanAreaTagged(ss, (Addr *)mc,
+           (Addr *)((char *)mc + sizeof(*mc)));
     if(res != ResOK)
       return res;
   }

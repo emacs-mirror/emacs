@@ -1,4 +1,4 @@
-/* prmcli.h:  PROTECTION MUTATOR CONTEXT (Linux)
+/* prmcix.h:  PROTECTION MUTATOR CONTEXT (UNIX)
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
@@ -6,24 +6,20 @@
  * .readership: MPS developers.
  */
 
-#ifndef prmcli_h
-#define prmcli_h
-
-
-/* open sesame magic */
-#define _BSD_SOURCE 1
-#define _XOPEN_SOURCE 500
+#ifndef prmcix_h
+#define prmcix_h
 
 #include "mpm.h"
 
-#include <signal.h>
+#include <ucontext.h>
 
 typedef struct MutatorFaultContextStruct { /* Protection fault context data */
-  struct sigcontext *scp;                   /* Linux sigcontext */
+  siginfo_t *info;
+  ucontext_t *ucontext;
 } MutatorFaultContextStruct;
 
 
-#endif /* prmcli_h */
+#endif /* prmcix_h */
 
 
 /* C. COPYRIGHT AND LICENSE
