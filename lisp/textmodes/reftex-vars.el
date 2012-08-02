@@ -91,13 +91,13 @@
      (("wrapfigure" ?f nil nil caption)))
 
     (ctable	"The ctable package"
-		(("\\ctable[]{}{}{}" ?t "tab:" "\\ref{%s}" 1 ("table" "Tabelle"))))
+     (("\\ctable[]{}{}{}" ?t "tab:" "\\ref{%s}" 1 ("table" "Tabelle"))))
 
     (listings	"The listings package"
-      (("lstlisting" ?l "lst:" "~\\ref{%s}" nil (regexp "[Ll]isting"))))
+     (("lstlisting" ?l "lst:" "~\\ref{%s}" nil (regexp "[Ll]isting"))))
 
     (minted	"The minted package"
-      (("minted" ?l "lst:" "~\\ref{%s}" nil (regexp "[Ll]isting"))))
+     (("minted" ?l "lst:" "~\\ref{%s}" nil (regexp "[Ll]isting"))))
 
     ;; The LaTeX core stuff
     (LaTeX       "LaTeX default environments"
@@ -584,7 +584,7 @@ will use
 Any list entry may also be a symbol.  If that has an association in
 `reftex-label-alist-builtin', the cddr of that association is spliced into the
 list.  However, builtin defaults should normally be set with the variable
-`reftex-default-label-alist-entries."
+`reftex-default-label-alist-entries'."
   :group 'reftex-defining-label-environments
   :set 'reftex-set-dirty
   :type

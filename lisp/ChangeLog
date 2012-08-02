@@ -1,3 +1,7 @@
+2012-08-02  Tassilo Horn  <horn@thinkpad.tsdh.de>
+
+	* textmodes/reftex-vars.el (reftex-label-alist): Docfix.
+
 2012-08-02  Tassilo Horn  <tsdh@gnu.org>
 
 	* textmodes/reftex-vars.el (reftex-default-label-alist-entries):
