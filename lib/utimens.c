@@ -21,6 +21,7 @@
 
 #include <config.h>
 
+#define _GL_UTIMENS_INLINE _GL_EXTERN_INLINE
 #include "utimens.h"
 
 #include <assert.h>

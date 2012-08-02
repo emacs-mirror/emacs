@@ -465,6 +465,7 @@ EXTRA_libgnu_a_SOURCES += stat.c
 
 ## begin gnulib module stat-time
 
+libgnu_a_SOURCES += stat-time.c
 
 EXTRA_DIST += stat-time.h
 
@@ -1092,6 +1093,7 @@ EXTRA_libgnu_a_SOURCES += time_r.c
 
 ## begin gnulib module timespec
 
+libgnu_a_SOURCES += timespec.c
 
 EXTRA_DIST += timespec.h
 
@@ -1111,6 +1113,7 @@ libgnu_a_SOURCES += timespec-sub.c
 
 ## begin gnulib module u64
 
+libgnu_a_SOURCES += u64.c
 
 EXTRA_DIST += u64.h
 
