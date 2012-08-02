@@ -168,7 +168,7 @@ Res ABQPeek(ABQ abq, CBSBlock *blockReturn)
 /* ABQDelete -- delete a block from the ABQ */
 Res ABQDelete(ABQ abq, CBSBlock block)
 {
-  Index index, next, elements, in;
+  Index index, next, in;
   CBSBlock *queue;
 
   AVERT(ABQ, abq);
@@ -178,7 +178,6 @@ Res ABQDelete(ABQ abq, CBSBlock block)
 
   index = abq->out;
   in = abq->in;
-  elements = abq->elements;
   queue = abq->queue;
  
   while (index != in) {

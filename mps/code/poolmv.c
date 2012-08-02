@@ -824,7 +824,6 @@ size_t mps_mv_size(mps_pool_t mps_pool)
   Pool pool;
   MV mv;
   MVSpan span;
-  Arena arena;
   Size f = 0;
   Ring spans, node = NULL, nextNode; /* gcc whinge stop */
 
@@ -833,7 +832,6 @@ size_t mps_mv_size(mps_pool_t mps_pool)
   AVERT(Pool, pool);
   mv = Pool2MV(pool);
   AVERT(MV, mv);
-  arena = PoolArena(pool);
 
   spans = &mv->spans;
   RING_FOR(node, spans, nextNode) {

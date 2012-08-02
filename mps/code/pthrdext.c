@@ -15,12 +15,6 @@
 
 #include "mpm.h"
 
-#if defined(MPS_OS_LI)
-/* open sesame magic */
-#define _BSD_SOURCE 1
-#define _XOPEN_SOURCE 500
-#endif
-
 #include <pthread.h>
 #include <sched.h>
 #include <signal.h>
@@ -79,34 +73,7 @@ static RingStruct suspendedRing;            /* PThreadext suspend ring */
  * suspend protocol.
  */
 
-#if defined(MPS_OS_LI)
-
-#include "prmcli.h"
-
-static void suspendSignalHandler(int sig, struct sigcontext scp)
-{
-    sigset_t signal_set;
-    MutatorFaultContextStruct mfContext;
-
-    AVER(sig == PTHREADEXT_SIGSUSPEND);
-    UNUSED(sig);
-
-    AVER(suspendingVictim != NULL);
-    mfContext.scp = &scp;
-    suspendingVictim->suspendedMFC = &mfContext;
-    /* Block all signals except PTHREADEXT_SIGRESUME while suspended. */
-    sigfillset(&signal_set);
-    sigdelset(&signal_set, PTHREADEXT_SIGRESUME);
-    sem_post(&pthreadextSem);
-    sigsuspend(&signal_set);
-
-    /* Once here, the resume signal handler has run to completion. */
-    return;
-}
-
-#elif defined(MPS_OS_FR)
-
-#include "prmcfr.h"
+#include "prmcix.h"
 
 static void suspendSignalHandler(int sig,
                                  siginfo_t *info,
@@ -134,8 +101,6 @@ static void suspendSignalHandler(int sig,
     /* Once here, the resume signal handler has run to completion. */
     return;
 }
-
-#endif
 
 
 /* resumeSignalHandler -- signal handler called when resuming a thread
@@ -184,15 +149,8 @@ static void PThreadextModuleInit(void)
     status = sigaddset(&pthreadext_sigsuspend.sa_mask, PTHREADEXT_SIGRESUME);
     AVER(status == 0);
 
-#if defined(MPS_OS_LI)
-    pthreadext_sigsuspend.sa_flags = 0;
-    pthreadext_sigsuspend.sa_handler = (__sighandler_t)suspendSignalHandler;
-
-#elif defined(MPS_OS_FR)
     pthreadext_sigsuspend.sa_flags = SA_SIGINFO;
     pthreadext_sigsuspend.sa_sigaction = suspendSignalHandler;
-#endif
-
     pthreadext_sigresume.sa_flags = 0;
     pthreadext_sigresume.sa_handler = resumeSignalHandler;
     status = sigemptyset(&pthreadext_sigresume.sa_mask);

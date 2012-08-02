@@ -11,7 +11,7 @@
  * .source.linux.kernel: Linux kernel source files.
  */
 
-#include "prmcli.h"
+#include "prmcix.h"
 
 #ifndef MPS_OS_LI
 #error "protlii3.c is Linux-specific, but MPS_OS_LI is not set"
@@ -27,28 +27,16 @@
 #include <stddef.h>
 #include <stdlib.h>
 #include <signal.h>
+#include <unistd.h>
 
 SRCID(protlii3, "$Id$");
 
-
-/* Useful stuff that doesn't appear to be in any header files. */
-
-/* Interrupt number 14 is Page Fault. */
-#define TRAPNO_PAGE_FAULT 14
-
-/* Bits in err field of sigcontext for interrupt 14 (page fault) */
-#define PAGE_FAULT_ERR_PAGEPROT   0x1
-#define PAGE_FAULT_ERR_WRITE      0x2
-#define PAGE_FAULT_ERR_USERMODE   0x4
 
 
 /* The previously-installed signal action, as returned by */
 /* sigaction(3).  See ProtSetup. */
 
 static struct sigaction sigNext;
-
-
-typedef void (*__real_lii3_sighandler_t)(int, struct sigcontext);
 
 
 /* sigHandle -- protection signal handler
@@ -62,39 +50,44 @@ typedef void (*__real_lii3_sighandler_t)(int, struct sigcontext);
  *  then sigHandle does its best to pass the signal on to the
  *  previously installed signal handler (sigNext).
  *
- *  .sigh.args: There is no officially documented way of getting the
- *  sigcontext, but on x86 Linux at least it is passed BY VALUE as a
- *  second argument to the signal handler.  The prototype doesn't
- *  include this arg.
- *  See .source.linux.kernel (linux/arch/i386/kernel/signal.c).
- *
- *  .sigh.context: We only know how to handle interrupt 14, where
- *  context.err gives the page fault error code and context.cr2 gives
- *  the fault address.  See .source.i486 (9.9.14) and
+ *  .sigh.context: We check si_code for being a memory access
+ *  si_addr gives the fault address.  See 
  *  .source.linux.kernel (linux/arch/i386/mm/fault.c).
  *
  *  .sigh.addr: We assume that the OS decodes the address to something
  *  sensible
  */
+/* This is defined here to keep the sources closer to those in protsgix.c
+ * They can't be merged yet because protsgix doesn't pass the context to
+ * ArenaAccess */
 
-static void sigHandle(int sig, struct sigcontext context)  /* .sigh.args */
+#define PROT_SIGNAL SIGSEGV
+
+static void sigHandle(int sig, siginfo_t *info, void *context)  /* .sigh.args */
 {
-  AVER(sig == SIGSEGV);
+  int e;
+  /* sigset renamed to asigset due to clash with global on Darwin. */
+  sigset_t asigset, oldset;
+  struct sigaction sa;
 
-  if(context.trapno == TRAPNO_PAGE_FAULT) {  /* .sigh.context */
+  AVER(sig == PROT_SIGNAL);
+
+  if(info->si_code == SEGV_ACCERR) {  /* .sigh.context */
     AccessSet mode;
-    Addr base, limit;
+    Addr base;
+    ucontext_t *ucontext;
     MutatorFaultContextStruct mfContext;
 
-    mfContext.scp = &context;
+    ucontext = (ucontext_t *)context;
+    mfContext.ucontext = ucontext;
+    mfContext.info = info;
 
-    mode = ((context.err & PAGE_FAULT_ERR_WRITE) != 0)  /* .sigh.context */
-             ? (AccessREAD | AccessWRITE)
-             : AccessREAD;
+    /* on linux we used to be able to tell whether this was a read or a write */
+    mode = AccessREAD | AccessWRITE;
 
     /* We assume that the access is for one word at the address. */
-    base = (Addr)context.cr2;   /* .sigh.addr */
-    limit = AddrAdd(base, (Size)sizeof(Addr));
+    base = (Addr)info->si_addr;   /* .sigh.addr */
+    /* limit = AddrAdd(base, (Size)sizeof(Addr)); */
 
     /* Offer each protection structure the opportunity to handle the */
     /* exception.  If it succeeds, then allow the mutator to continue. */
@@ -104,23 +97,21 @@ static void sigHandle(int sig, struct sigcontext context)  /* .sigh.args */
   }
 
   /* The exception was not handled by any known protection structure, */
-  /* so throw it to the previously installed handler. */
+  /* so throw it to the previously installed handler.  That handler won't */
+  /* get an accurate context (the MPS would fail if it were the second in */
+  /* line) but it's the best we can do. */
 
-  /* @@@@ This is really weak. */
-  /* Need to implement rest of the contract of sigaction */
-  /* We might also want to set SA_RESETHAND in the flags and explicitly */
-  /* reinstall the handler from withint itself so the SIG_DFL/SIG_IGN */
-  /* case can work properly by just returning. */
-  switch ((int)sigNext.sa_handler) {
-  case (int)SIG_DFL:
-  case (int)SIG_IGN:
-    abort();
-    NOTREACHED;
-    break;
-  default:
-    (*(__real_lii3_sighandler_t)sigNext.sa_handler)(sig, context);
-    break;
-  }
+  e = sigaction(PROT_SIGNAL, &sigNext, &sa);
+  AVER(e == 0);
+  sigemptyset(&asigset);
+  sigaddset(&asigset, PROT_SIGNAL);
+  e = sigprocmask(SIG_UNBLOCK, &asigset, &oldset);
+  AVER(e == 0);
+  kill(getpid(), PROT_SIGNAL);
+  e = sigprocmask(SIG_SETMASK, &oldset, NULL);
+  AVER(e == 0);
+  e = sigaction(PROT_SIGNAL, &sa, NULL);
+  AVER(e == 0);
 }
 
 
@@ -142,14 +133,13 @@ void ProtSetup(void)
   struct sigaction sa;
   int result;
 
-  sa.sa_handler = (__sighandler_t)sigHandle;  /* .sigh.args */
+  sa.sa_sigaction = sigHandle;
   sigemptyset(&sa.sa_mask);
-  sa.sa_flags = 0;
+  sa.sa_flags = SA_SIGINFO;
 
-  result = sigaction(SIGSEGV, &sa, &sigNext);
+  result = sigaction(PROT_SIGNAL, &sa, &sigNext);
   AVER(result == 0);
 }
-
 
 /* C. COPYRIGHT AND LICENSE
  *
