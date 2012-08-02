@@ -1,3 +1,10 @@
+2012-08-02  Tassilo Horn  <tsdh@gnu.org>
+
+	* textmodes/reftex-vars.el (reftex-default-label-alist-entries):
+	Add listings, minted, and ctable packages.
+	(reftex-label-alist-builtin): Move listings, minted, and ctable
+	entries before LaTeX.
+
 2012-08-02  Bastien Guerry  <bzg@gnu.org>
 
 	* replace.el (occur): Fix docstring (bug#12122).
