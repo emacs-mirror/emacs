@@ -1,3 +1,7 @@
+2012-08-02  Glenn Morris  <rgm@gnu.org>
+
+	* makefile.w32-in (MS_W32_H): Update for new ms-w32.h location.
+
 2012-08-01  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (config_h): New variable.

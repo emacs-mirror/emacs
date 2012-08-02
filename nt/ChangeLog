@@ -1,3 +1,8 @@
+2012-08-02  Glenn Morris  <rgm@gnu.org>
+
+	* inc/ms-w32.h: Move here from ../src/s.
+	* config.nt (config_opsysfile): Change to <ms-w32.h>.
+
 2012-08-01  Juanma Barranquero  <lekktu@gmail.com>
 
 	* config.nt: Sync with autogen/config.in.

@@ -339,7 +339,7 @@ cleanall:	clean
 ##
 ## This works only with GNU Make.
 
-TAGS: $(OBJ0) $(OBJ1) $(OBJ2) $(CURDIR)/s/ms-w32.h
+TAGS: $(OBJ0) $(OBJ1) $(OBJ2) $(CURDIR)/../nt/inc/ms-w32.h
 	$(MAKE) $(MFLAGS) TAGS-$(MAKETYPE)
 
 TAGS-LISP: $(OBJ0) $(OBJ1) $(OBJ2)
@@ -353,7 +353,7 @@ TAGS-gmake:
 	  $(OBJ1_c)
 	../lib-src/$(BLD)/etags.exe -a --regex=@../nt/emacs-src.tags \
 	  $(OBJ2_c) \
-	  $(CURDIR)/*.h $(CURDIR)/s/ms-w32.h
+	  $(CURDIR)/*.h $(CURDIR)/../nt/inc/ms-w32.h
 
 TAGS-nmake:
 	echo This target is not supported with NMake
@@ -403,7 +403,7 @@ CHARSET_H      = $(SRC)/charset.h \
 		 $(GNU_LIB)/verify.h
 CODING_H       = $(SRC)/coding.h \
 		 $(SRC)/composite.h
-MS_W32_H       = $(SRC)/s/ms-w32.h \
+MS_W32_H       = $(NT_INC)/ms-w32.h \
 		 $(NT_INC)/sys/stat.h
 CONF_POST_H    = $(SRC)/conf_post.h \
 		 $(MS_W32_H)

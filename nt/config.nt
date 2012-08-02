@@ -22,7 +22,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    This file is intentionally kept in sync with autogen/config.in to
    ease maintenance.  Please do not remove non-Windows related stuff
    unless strictly necessary.  Also, before adding anything here
-   consider whether src/s/ms-w32.h would be a better place; this is
+   consider whether inc/ms-w32.h would be a better place; this is
    particularly true for gcc vs. MSVC conditional defines, MinGW or
    MSVC specific code, and macros not already defined in config.in.  */
 
@@ -1538,7 +1538,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Some platforms that do not use configure define this to include extra
    configuration information. */
-#define config_opsysfile "s/ms-w32.h"
+#define config_opsysfile <ms-w32.h>
 
 /* A replacement for va_copy, if needed.  */
 #define gl_va_copy(a,b) ((a) = (b))
