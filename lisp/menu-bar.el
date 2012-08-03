@@ -1490,8 +1490,6 @@ mail status in mode line"))
     (bindings--define-key menu [separator-vc]
       menu-bar-separator)
 
-    (bindings--define-key menu [pcl-cvs]
-      '(menu-item "PCL-CVS" cvs-global-menu))
     (bindings--define-key menu [vc] nil) ;Create the place for the VC menu.
 
     (bindings--define-key menu [separator-compare]

@@ -1,5 +1,7 @@
 2012-08-03  Chong Yidong  <cyd@gnu.org>
 
+	* menu-bar.el (menu-bar-tools-menu): Remove PCL-CVS.
+
 	* sort.el (sort-regexp-fields): Doc fix.
 
 2012-08-03  Tassilo Horn  <tsdh@gnu.org>
