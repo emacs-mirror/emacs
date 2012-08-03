@@ -23,9 +23,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifndef WINDOWSNT
 #define WINDOWSNT
 #endif
-#ifndef DOS_NT
-#define DOS_NT 	/* MSDOS or WINDOWSNT */
-#endif
 
 /* #undef const */
 

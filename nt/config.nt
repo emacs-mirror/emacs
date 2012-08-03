@@ -133,6 +133,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    we did ioctl TIOCSCTTY). */
 #undef DONT_REOPEN_PTY
 
+/* Define if the system is MS DOS or MS Windows. */
+#define DOS_NT
+
 /* Define to 1 if you are using the GNU C Library. */
 #undef DOUG_LEA_MALLOC
 
@@ -1161,6 +1164,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to support POP mail retrieval. */
 #define MAIL_USE_POP 1
 
+/* Define if the system is MS DOS. */
+#undef MSDOS
+
 /* Define if system's imake configuration file defines `NeedWidePrototypes' as
    `NO'. */
 #undef NARROWPROTO
@@ -1427,9 +1433,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 # endif
 #endif
 
-/* Some platforms redefine this. */
-#undef WRETCODE
-
 /* Define this to check for malloc buffer overrun. */
 #undef XMALLOC_OVERRUN_CHECK
 
@@ -1670,9 +1673,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define as `fork' if `vfork' does not work. */
 #undef vfork
-
-/* Some platforms redefine this. */
-#undef wait3
 
 #include <conf_post.h>
 

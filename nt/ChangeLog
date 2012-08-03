@@ -1,3 +1,11 @@
+2012-08-03  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt: Sync with autogen/config.in.
+	(DOS_NT, MSDOS): New macros.
+	(WRETCODE, wait3): Remove.
+
+	* inc/ms-w32.h (DOS_NT): Remove; defined in config.nt.
+
 2012-08-03  Eli Zaretskii  <eliz@gnu.org>
 
 	* inc/sys/stat.h (S_IFLNK): Define.
