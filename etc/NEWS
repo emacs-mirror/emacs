@@ -596,6 +596,8 @@ is detected.
 Emacs now supports mouse highlight, help-echo (in the echo area), and
 mouse-autoselect-window.
 
+** On MS-Windows Vista and later Emacs now supports symbolic links.
+
 
 * Installation Changes in Emacs 24.1
 

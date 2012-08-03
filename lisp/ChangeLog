@@ -1,3 +1,11 @@
+2012-08-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* files.el (file-truename): Don't skip symlink-chasing part on
+	windows-nt.  Incorporate the resolution of 8+3 short aliases on
+	Windows into the loop that recursively chases symlinks.  Compare
+	directory and its parent case-insensitively on MS-Windows and
+	MS-DOS.
+
 2012-08-03  Chong Yidong  <cyd@gnu.org>
 
 	* menu-bar.el (menu-bar-tools-menu): Remove PCL-CVS.

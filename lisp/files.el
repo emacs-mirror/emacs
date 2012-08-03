@@ -1079,9 +1079,7 @@ containing it, until no links are left at any level.
 	     (delq (rassq 'ange-ftp-completion-hook-function tem) tem)))))
     (or prev-dirs (setq prev-dirs (list nil)))
 
-    ;; andrewi@harlequin.co.uk - none of the following code (except for
-    ;; invoking the file-name handler) currently applies on Windows
-    ;; (ie. there are no native symlinks), but there is an issue with
+    ;; andrewi@harlequin.co.uk - on Windows, there is an issue with
     ;; case differences being ignored by the OS, and short "8.3 DOS"
     ;; name aliases existing for all files.  (The short names are not
     ;; reported by directory-files, but can be used to refer to files.)
@@ -1091,31 +1089,15 @@ containing it, until no links are left at any level.
     ;; it is stored on disk (expanding short name aliases with the full
     ;; name in the process).
     (if (eq system-type 'windows-nt)
-      (let ((handler (find-file-name-handler filename 'file-truename)))
-	;; For file name that has a special handler, call handler.
-	;; This is so that ange-ftp can save time by doing a no-op.
-	(if handler
-	    (setq filename (funcall handler 'file-truename filename))
-	  ;; If filename contains a wildcard, newname will be the old name.
-	  (unless (string-match "[[*?]" filename)
-	    ;; If filename exists, use the long name.  If it doesn't exist,
-            ;; drill down until we find a directory that exists, and use
-            ;; the long name of that, with the extra non-existent path
-            ;; components concatenated.
-            (let ((longname (w32-long-file-name filename))
-                  missing rest)
-              (if longname
-                  (setq filename longname)
-                ;; Include the preceding directory separator in the missing
-                ;; part so subsequent recursion on the rest works.
-                (setq missing (concat "/" (file-name-nondirectory filename)))
-		(let ((length (length missing)))
-		  (setq rest
-			(if (> length (length filename))
-			    ""
-			  (substring filename 0 (- length)))))
-                (setq filename (concat (file-truename rest) missing))))))
-	(setq done t)))
+	(unless (string-match "[[*?]" filename)
+	  ;; If filename exists, use its long name.  If it doesn't
+	  ;; exist, the recursion below on the directory of filename
+	  ;; will drill down until we find a directory that exists,
+	  ;; and use the long name of that, with the extra
+	  ;; non-existent path components concatenated.
+	  (let ((longname (w32-long-file-name filename)))
+	    (if longname
+		(setq filename longname)))))
 
     ;; If this file directly leads to a link, process that iteratively
     ;; so that we don't use lots of stack.
@@ -1135,6 +1117,8 @@ containing it, until no links are left at any level.
 	    (setq dirfile (directory-file-name dir))
 	    ;; If these are equal, we have the (or a) root directory.
 	    (or (string= dir dirfile)
+		(and (memq system-type '(windows-nt ms-dos cygwin))
+		     (eq (compare-strings dir 0 nil dirfile 0 nil t) t))
 		;; If this is the same dir we last got the truename for,
 		;; save time--don't recalculate.
 		(if (assoc dir (car prev-dirs))

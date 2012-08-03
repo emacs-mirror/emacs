@@ -1,3 +1,9 @@
+2012-08-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/sys/stat.h (S_IFLNK): Define.
+	(S_ISLNK): A non-trivial definition.
+	(lstat): Prototype instead of a macro that redirects to 'stat'.
+
 2012-08-02  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Use C99-style 'extern inline' if available.

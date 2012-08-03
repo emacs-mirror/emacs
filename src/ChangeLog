@@ -1,3 +1,36 @@
+2012-08-03  Eli Zaretskii  <eliz@gnu.org>
+
+	Support symlinks on latest versions of MS-Windows.
+	* w32.c: Include winioctl.h and aclapi.h.
+	(is_symlink, chase_symlinks, enable_privilege, restore_privilege)
+	(revert_to_self): Forward declarations of static functions.
+	<static BOOL g_b_init_get_security_info>:
+	<g_b_init_create_symbolic_link>: New static flags.
+	(globals_of_w32): Initialize them to zero.
+	(GetSecurityInfo_Proc, CreateSymbolicLink_Proc): New typedefs.
+	(map_w32_filename): Improve commentary.  Simplify switch.
+	(SYMBOLIC_LINK_FLAG_DIRECTORY): Define if not defined in system
+	headers (most versions of MinGW w32api don't).
+	(get_security_info, create_symbolic_link)
+	(get_file_security_desc_by_handle, is_symlink, chase_symlinks):
+	New functions.
+	(sys_access, sys_chmod): Call 'chase_symlinks' to resolve symlinks
+	in the argument file name.
+	(sys_access): Call unc_volume_file_attributes only if
+	GetFileAttributes fails with network-related error codes.
+	(sys_rename): Diagnose renaming of a symlink when the user doesn't
+	have the required privileges.
+	(get_file_security_desc_by_name): Renamed from
+	get_file_security_desc.
+	(stat_worker): New function, with most of the guts of 'stat', and
+	with addition of handling of symlinks and support for 'lstat'.  If
+	possible, get file's attributes and security information by
+	handle, not by name.  Produce S_IFLNK bit for symlinks, when
+	called from 'lstat'.
+	(stat, lstat): New functions, call 'stat_worker'.
+	(symlink, readlink, careadlinkat): Rewritten to create and resolve
+	symlinks when the underlying filesystem supports them.
+
 2012-08-02  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix macroexp crash on Windows with debugging (Bug#12118).
