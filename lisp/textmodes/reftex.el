@@ -1291,7 +1291,7 @@ This enforces rescanning the buffer on next use."
 			     ;; keyvals [..., label = {foo}, ...]
 			     ;; forms used by ctable, listings,
 			     ;; minted, ...
-			     "\\[[^]]*label[[:space:]]*=[[:space:]]*{?\\(?1:[^],}]+\\)}?[^[]*\\]"
+			     "\\[[^]]*label[[:space:]]*=[[:space:]]*{?\\(?1:[^],}]+\\)}?"
 			     "\\)"))
            (include-re (concat wbol
                                "\\\\\\("

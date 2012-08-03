@@ -1,3 +1,8 @@
+2012-08-03  Tassilo Horn  <tsdh@gnu.org>
+
+	* textmodes/reftex.el (reftex-compile-variables): Make keyvals
+	labels regex position point at the expected place.
+
 2012-08-03  MON KEY  <monkey@sandpframing.com>
 
 	* net/imap.el (imap-interactive-login, imap-authenticate)
