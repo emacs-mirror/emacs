@@ -927,17 +927,13 @@ Used when `whitespace-style' includes `lines' or `lines-tail'."
   '(
     (space-mark   ?\     [?\u00B7]     [?.])		; space - centered dot
     (space-mark   ?\xA0  [?\u00A4]     [?_])		; hard space - currency
-    (space-mark   ?\x8A0 [?\x8A4]      [?_])		; hard space - currency
-    (space-mark   ?\x920 [?\x924]      [?_])		; hard space - currency
-    (space-mark   ?\xE20 [?\xE24]      [?_])		; hard space - currency
-    (space-mark   ?\xF20 [?\xF24]      [?_])		; hard space - currency
     ;; NEWLINE is displayed using the face `whitespace-newline'
     (newline-mark ?\n    [?$ ?\n])			; eol - dollar sign
     ;; (newline-mark ?\n    [?\u21B5 ?\n] [?$ ?\n])	; eol - downwards arrow
     ;; (newline-mark ?\n    [?\u00B6 ?\n] [?$ ?\n])	; eol - pilcrow
-    ;; (newline-mark ?\n    [?\x8AF ?\n]  [?$ ?\n])	; eol - overscore
-    ;; (newline-mark ?\n    [?\x8AC ?\n]  [?$ ?\n])	; eol - negation
-    ;; (newline-mark ?\n    [?\x8B0 ?\n]  [?$ ?\n])	; eol - grade
+    ;; (newline-mark ?\n    [?\u00AF ?\n]  [?$ ?\n])	; eol - overscore
+    ;; (newline-mark ?\n    [?\u00AC ?\n]  [?$ ?\n])	; eol - negation
+    ;; (newline-mark ?\n    [?\u00B0 ?\n]  [?$ ?\n])	; eol - degrees
     ;;
     ;; WARNING: the mapping below has a problem.
     ;; When a TAB occupies exactly one column, it will display the

@@ -1,5 +1,10 @@
 2012-08-03  Eli Zaretskii  <eliz@gnu.org>
 
+	* whitespace.el (whitespace-display-mappings): Use Unicode
+	codepoints, instead of emacs-mule codepoints.  See
+	http://lists.gnu.org/archive/html/help-gnu-emacs/2012-07/msg00366.html
+	for the details.
+
 	* files.el (file-truename): Don't skip symlink-chasing part on
 	windows-nt.  Incorporate the resolution of 8+3 short aliases on
 	Windows into the loop that recursively chases symlinks.  Compare
