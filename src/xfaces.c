@@ -1559,8 +1559,10 @@ static enum font_property_index font_props_for_sorting[FONT_SIZE_INDEX];
 static int
 compare_fonts_by_sort_order (const void *v1, const void *v2)
 {
-  Lisp_Object font1 = *(Lisp_Object *) v1;
-  Lisp_Object font2 = *(Lisp_Object *) v2;
+  Lisp_Object const *p1 = v1;
+  Lisp_Object const *p2 = v2;
+  Lisp_Object font1 = *p1;
+  Lisp_Object font2 = *p2;
   int i;
 
   for (i = 0; i < FONT_SIZE_INDEX; i++)

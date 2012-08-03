@@ -2031,7 +2031,7 @@ closedir (DIR *dirp /* stream from opendir */)
   int rtnval;
 
   rtnval = emacs_close (dirp->dd_fd);
-  xfree ((char *) dirp);
+  xfree (dirp);
 
   return rtnval;
 }

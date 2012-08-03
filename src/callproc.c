@@ -427,8 +427,7 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
       && SREF (path, 1) == ':')
     path = Fsubstring (path, make_number (2), Qnil);
 
-  SAFE_ALLOCA (new_argv, const unsigned char **,
-	       (nargs > 4 ? nargs - 2 : 2) * sizeof *new_argv);
+  new_argv = SAFE_ALLOCA ((nargs > 4 ? nargs - 2 : 2) * sizeof *new_argv);
   if (nargs > 4)
     {
       ptrdiff_t i;
@@ -978,8 +977,7 @@ usage: (call-process-region START END PROGRAM &optional DELETE BUFFER DISPLAY &r
   Lisp_Object coding_systems;
   Lisp_Object val, *args2;
   ptrdiff_t i;
-  char *tempfile;
-  Lisp_Object tmpdir, pattern;
+  Lisp_Object tmpdir;
 
   if (STRINGP (Vtemporary_file_directory))
     tmpdir = Vtemporary_file_directory;
@@ -1003,8 +1001,8 @@ usage: (call-process-region START END PROGRAM &optional DELETE BUFFER DISPLAY &r
 
   {
     USE_SAFE_ALLOCA;
-    pattern = Fexpand_file_name (Vtemp_file_name_pattern, tmpdir);
-    SAFE_ALLOCA (tempfile, char *, SBYTES (pattern) + 1);
+    Lisp_Object pattern = Fexpand_file_name (Vtemp_file_name_pattern, tmpdir);
+    char *tempfile = SAFE_ALLOCA (SBYTES (pattern) + 1);
     memcpy (tempfile, SDATA (pattern), SBYTES (pattern) + 1);
     coding_systems = Qt;
 

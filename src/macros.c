@@ -72,8 +72,8 @@ macro before appending to it. */)
       if (current_kboard->kbd_macro_bufsize > 200)
 	{
 	  current_kboard->kbd_macro_buffer
-	    = (Lisp_Object *)xrealloc (current_kboard->kbd_macro_buffer,
-				       30 * sizeof (Lisp_Object));
+	    = xrealloc (current_kboard->kbd_macro_buffer,
+			30 * sizeof (Lisp_Object));
 	  current_kboard->kbd_macro_bufsize = 30;
 	}
       current_kboard->kbd_macro_ptr = current_kboard->kbd_macro_buffer;

@@ -503,8 +503,7 @@ load_charset_map_from_file (struct charset *charset, Lisp_Object mapfile, int co
 
   /* Use SAFE_ALLOCA instead of alloca, as `charset_map_entries' is
      large (larger than MAX_ALLOCA).  */
-  SAFE_ALLOCA (head, struct charset_map_entries *,
-	       sizeof (struct charset_map_entries));
+  head = SAFE_ALLOCA (sizeof *head);
   entries = head;
   memset (entries, 0, sizeof (struct charset_map_entries));
 
@@ -535,8 +534,7 @@ load_charset_map_from_file (struct charset *charset, Lisp_Object mapfile, int co
 
       if (n_entries > 0 && (n_entries % 0x10000) == 0)
 	{
-	  SAFE_ALLOCA (entries->next, struct charset_map_entries *,
-		       sizeof (struct charset_map_entries));
+	  entries->next = SAFE_ALLOCA (sizeof *entries->next);
 	  entries = entries->next;
 	  memset (entries, 0, sizeof (struct charset_map_entries));
 	  n_entries = 0;
@@ -572,8 +570,7 @@ load_charset_map_from_vector (struct charset *charset, Lisp_Object vec, int cont
 
   /* Use SAFE_ALLOCA instead of alloca, as `charset_map_entries' is
      large (larger than MAX_ALLOCA).  */
-  SAFE_ALLOCA (head, struct charset_map_entries *,
-	       sizeof (struct charset_map_entries));
+  head = SAFE_ALLOCA (sizeof *head);
   entries = head;
   memset (entries, 0, sizeof (struct charset_map_entries));
 
@@ -604,8 +601,7 @@ load_charset_map_from_vector (struct charset *charset, Lisp_Object vec, int cont
 
       if (n_entries > 0 && (n_entries % 0x10000) == 0)
 	{
-	  SAFE_ALLOCA (entries->next, struct charset_map_entries *,
-		       sizeof (struct charset_map_entries));
+	  entries->next = SAFE_ALLOCA (sizeof *entries->next);
 	  entries = entries->next;
 	  memset (entries, 0, sizeof (struct charset_map_entries));
 	}

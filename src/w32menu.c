@@ -1243,7 +1243,7 @@ simple_dialog_show (FRAME_PTR f, Lisp_Object contents, Lisp_Object header)
 	     one utf16 word, so we cannot simply use the character
 	     length of temp.  */
 	  int utf8_len = strlen (utf8_text);
-	  SAFE_ALLOCA (text, WCHAR *, (utf8_len + 1) * sizeof (WCHAR));
+	  text = SAFE_ALLOCA ((utf8_len + 1) * sizeof (WCHAR));
 	  utf8to16 (utf8_text, utf8_len, text);
 	}
       else
@@ -1386,8 +1386,7 @@ add_menu_item (HMENU menu, widget_value *wv, HMENU item)
 
       if (wv->key != NULL)
 	{
-	  SAFE_ALLOCA (out_string, char *,
-		       strlen (wv->name) + strlen (wv->key) + 2);
+	  out_string = SAFE_ALLOCA (strlen (wv->name) + strlen (wv->key) + 2);
 	  strcpy (out_string, wv->name);
 	  strcat (out_string, "\t");
 	  strcat (out_string, wv->key);
@@ -1421,7 +1420,7 @@ add_menu_item (HMENU menu, widget_value *wv, HMENU item)
       if (nlen > orig_len)
         {
           p = out_string;
-          SAFE_ALLOCA (out_string, char *, nlen + 1);
+          out_string = SAFE_ALLOCA (nlen + 1);
           q = out_string;
           while (*p)
             {
@@ -1481,7 +1480,7 @@ add_menu_item (HMENU menu, widget_value *wv, HMENU item)
       if (fuFlags & MF_OWNERDRAW)
 	utf16_string = local_alloc ((utf8_len + 1) * sizeof (WCHAR));
       else
-	SAFE_ALLOCA (utf16_string, WCHAR *, (utf8_len + 1) * sizeof (WCHAR));
+	utf16_string = SAFE_ALLOCA ((utf8_len + 1) * sizeof (WCHAR));
 
       utf8to16 (out_string, utf8_len, utf16_string);
       return_value = unicode_append_menu (menu, fuFlags,

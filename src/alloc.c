@@ -898,6 +898,16 @@ safe_alloca_unwind (Lisp_Object arg)
   return Qnil;
 }
 
+/* Return a newly allocated memory block of SIZE bytes, remembering
+   to free it when unwinding.  */
+void *
+record_xmalloc (size_t size)
+{
+  void *p = xmalloc (size);
+  record_unwind_protect (safe_alloca_unwind, make_save_value (p, 0));
+  return p;
+}
+
 
 /* Like malloc but used for allocating Lisp data.  NBYTES is the
    number of bytes to allocate, TYPE describes the intended use of the
@@ -5210,13 +5220,11 @@ make_pure_string (const char *data,
 		  ptrdiff_t nchars, ptrdiff_t nbytes, int multibyte)
 {
   Lisp_Object string;
-  struct Lisp_String *s;
-
-  s = (struct Lisp_String *) pure_alloc (sizeof *s, Lisp_String);
+  struct Lisp_String *s = pure_alloc (sizeof *s, Lisp_String);
   s->data = (unsigned char *) find_string_data_in_pure (data, nbytes);
   if (s->data == NULL)
     {
-      s->data = (unsigned char *) pure_alloc (nbytes + 1, -1);
+      s->data = pure_alloc (nbytes + 1, -1);
       memcpy (s->data, data, nbytes);
       s->data[nbytes] = '\0';
     }
@@ -5234,9 +5242,7 @@ Lisp_Object
 make_pure_c_string (const char *data, ptrdiff_t nchars)
 {
   Lisp_Object string;
-  struct Lisp_String *s;
-
-  s = (struct Lisp_String *) pure_alloc (sizeof *s, Lisp_String);
+  struct Lisp_String *s = pure_alloc (sizeof *s, Lisp_String);
   s->size = nchars;
   s->size_byte = -1;
   s->data = (unsigned char *) data;
@@ -5251,10 +5257,8 @@ make_pure_c_string (const char *data, ptrdiff_t nchars)
 Lisp_Object
 pure_cons (Lisp_Object car, Lisp_Object cdr)
 {
-  register Lisp_Object new;
-  struct Lisp_Cons *p;
-
-  p = (struct Lisp_Cons *) pure_alloc (sizeof *p, Lisp_Cons);
+  Lisp_Object new;
+  struct Lisp_Cons *p = pure_alloc (sizeof *p, Lisp_Cons);
   XSETCONS (new, p);
   XSETCAR (new, Fpurecopy (car));
   XSETCDR (new, Fpurecopy (cdr));
@@ -5267,10 +5271,8 @@ pure_cons (Lisp_Object car, Lisp_Object cdr)
 static Lisp_Object
 make_pure_float (double num)
 {
-  register Lisp_Object new;
-  struct Lisp_Float *p;
-
-  p = (struct Lisp_Float *) pure_alloc (sizeof *p, Lisp_Float);
+  Lisp_Object new;
+  struct Lisp_Float *p = pure_alloc (sizeof *p, Lisp_Float);
   XSETFLOAT (new, p);
   XFLOAT_INIT (new, num);
   return new;
@@ -5284,10 +5286,8 @@ static Lisp_Object
 make_pure_vector (ptrdiff_t len)
 {
   Lisp_Object new;
-  struct Lisp_Vector *p;
   size_t size = header_size + len * word_size;
-
-  p = (struct Lisp_Vector *) pure_alloc (size, Lisp_Vectorlike);
+  struct Lisp_Vector *p = pure_alloc (size, Lisp_Vectorlike);
   XSETVECTOR (new, p);
   XVECTOR (new)->header.size = len;
   return new;

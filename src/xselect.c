@@ -216,7 +216,7 @@ x_stop_queuing_selection_requests (void)
       TRACE1 ("RESTORE SELECTION EVENT %p", queue_tmp);
       kbd_buffer_unget_event (&queue_tmp->event);
       selection_queue = queue_tmp->next;
-      xfree ((char *)queue_tmp);
+      xfree (queue_tmp);
     }
 }
 
@@ -1321,7 +1321,7 @@ x_get_window_property (Display *display, Window window, Atom property,
     goto done;
 
   /* This was allocated by Xlib, so use XFree.  */
-  XFree ((char *) tmp_data);
+  XFree (tmp_data);
 
   if (*actual_type_ret == None || *actual_format_ret == 0)
     goto done;
@@ -1403,7 +1403,7 @@ x_get_window_property (Display *display, Window window, Atom property,
       offset += bytes_gotten;
 
       /* This was allocated by Xlib, so use XFree.  */
-      XFree ((char *) tmp_data);
+      XFree (tmp_data);
     }
 
   XFlush (display);
@@ -1568,7 +1568,7 @@ x_get_window_property_as_lisp_data (Display *display, Window window,
       BLOCK_INPUT;
       /* Use xfree, not XFree, because x_get_window_property
 	 calls xmalloc itself.  */
-      xfree ((char *) data);
+      xfree (data);
       UNBLOCK_INPUT;
       receive_incremental_selection (display, window, property, target_type,
 				     min_size_bytes, &data, &bytes,
@@ -1589,7 +1589,7 @@ x_get_window_property_as_lisp_data (Display *display, Window window,
 
   /* Use xfree, not XFree, because x_get_window_property
      calls xmalloc itself.  */
-  xfree ((char *) data);
+  xfree (data);
   return val;
 }
 

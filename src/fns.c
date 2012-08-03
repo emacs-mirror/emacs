@@ -903,7 +903,7 @@ string_make_multibyte (Lisp_Object string)
   if (nbytes == SBYTES (string))
     return string;
 
-  SAFE_ALLOCA (buf, unsigned char *, nbytes);
+  buf = SAFE_ALLOCA (nbytes);
   copy_text (SDATA (string), buf, SBYTES (string),
 	     0, 1);
 
@@ -935,7 +935,7 @@ string_to_multibyte (Lisp_Object string)
   if (nbytes == SBYTES (string))
     return make_multibyte_string (SSDATA (string), nbytes, nbytes);
 
-  SAFE_ALLOCA (buf, unsigned char *, nbytes);
+  buf = SAFE_ALLOCA (nbytes);
   memcpy (buf, SDATA (string), SBYTES (string));
   str_to_multibyte (buf, nbytes, SBYTES (string));
 
@@ -961,7 +961,7 @@ string_make_unibyte (Lisp_Object string)
 
   nchars = SCHARS (string);
 
-  SAFE_ALLOCA (buf, unsigned char *, nchars);
+  buf = SAFE_ALLOCA (nchars);
   copy_text (SDATA (string), buf, SBYTES (string),
 	     1, 0);
 
@@ -2972,7 +2972,7 @@ into shorter lines.  */)
   allength = length + length/3 + 1;
   allength += allength / MIME_LINE_LENGTH + 1 + 6;
 
-  SAFE_ALLOCA (encoded, char *, allength);
+  encoded = SAFE_ALLOCA (allength);
   encoded_length = base64_encode_1 ((char *) BYTE_POS_ADDR (ibeg),
 				    encoded, length, NILP (no_line_break),
 				    !NILP (BVAR (current_buffer, enable_multibyte_characters)));
@@ -3027,7 +3027,7 @@ into shorter lines.  */)
   allength += allength / MIME_LINE_LENGTH + 1 + 6;
 
   /* We need to allocate enough room for decoding the text. */
-  SAFE_ALLOCA (encoded, char *, allength);
+  encoded = SAFE_ALLOCA (allength);
 
   encoded_length = base64_encode_1 (SSDATA (string),
 				    encoded, length, NILP (no_line_break),
@@ -3171,7 +3171,7 @@ If the region can't be decoded, signal an error and don't modify the buffer.  */
      working on a multibyte buffer, each decoded code may occupy at
      most two bytes.  */
   allength = multibyte ? length * 2 : length;
-  SAFE_ALLOCA (decoded, char *, allength);
+  decoded = SAFE_ALLOCA (allength);
 
   move_gap_both (XFASTINT (beg), ibeg);
   decoded_length = base64_decode_1 ((char *) BYTE_POS_ADDR (ibeg),
@@ -3222,7 +3222,7 @@ DEFUN ("base64-decode-string", Fbase64_decode_string, Sbase64_decode_string,
 
   length = SBYTES (string);
   /* We need to allocate enough room for decoding the text. */
-  SAFE_ALLOCA (decoded, char *, length);
+  decoded = SAFE_ALLOCA (length);
 
   /* The decoded result should be unibyte. */
   decoded_length = base64_decode_1 (SSDATA (string), decoded, length,

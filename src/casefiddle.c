@@ -114,12 +114,11 @@ casify_object (enum case_action flag, Lisp_Object obj)
       ptrdiff_t i, i_byte, size = SCHARS (obj);
       int len;
       USE_SAFE_ALLOCA;
-      unsigned char *dst, *o;
       ptrdiff_t o_size = (size < STRING_BYTES_BOUND / MAX_MULTIBYTE_LENGTH
 			  ? size * MAX_MULTIBYTE_LENGTH
 			  : STRING_BYTES_BOUND);
-      SAFE_ALLOCA (dst, void *, o_size);
-      o = dst;
+      unsigned char *dst = SAFE_ALLOCA (o_size);
+      unsigned char *o = dst;
 
       for (i = i_byte = 0; i < size; i++, i_byte += len)
 	{

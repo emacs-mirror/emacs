@@ -810,9 +810,8 @@ file_name_completion_stat (Lisp_Object dirname, DIRENTRY *dp, struct stat *st_ad
   ptrdiff_t len = NAMLEN (dp);
   ptrdiff_t pos = SCHARS (dirname);
   int value;
-  char *fullname;
   USE_SAFE_ALLOCA;
-  SAFE_ALLOCA (fullname, char *, len + pos + 2);
+  char *fullname = SAFE_ALLOCA (len + pos + 2);
 
 #ifdef MSDOS
   /* Some fields of struct stat are *very* expensive to compute on MS-DOS,

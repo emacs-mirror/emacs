@@ -920,12 +920,10 @@ usage: (unibyte-string &rest BYTES)  */)
   (ptrdiff_t n, Lisp_Object *args)
 {
   ptrdiff_t i;
-  unsigned char *buf, *p;
   Lisp_Object str;
   USE_SAFE_ALLOCA;
-
-  SAFE_ALLOCA (buf, unsigned char *, n);
-  p = buf;
+  unsigned char *buf = SAFE_ALLOCA (n);
+  unsigned char *p = buf;
 
   for (i = 0; i < n; i++)
     {

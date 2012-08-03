@@ -5200,7 +5200,7 @@ auto_save_error (Lisp_Object error_val)
   msg = Fformat (3, args);
   GCPRO1 (msg);
   nbytes = SBYTES (msg);
-  SAFE_ALLOCA (msgbuf, char *, nbytes);
+  msgbuf = SAFE_ALLOCA (nbytes);
   memcpy (msgbuf, SDATA (msg), nbytes);
 
   for (i = 0; i < 3; ++i)

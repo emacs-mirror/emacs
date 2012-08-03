@@ -520,7 +520,7 @@ x_set_frame_alpha (struct frame *f)
     if (rc == Success && actual != None)
       {
         unsigned long value = *(unsigned long *)data;
-	XFree ((void *) data);
+	XFree (data);
 	if (value == opac)
 	  {
 	    x_uncatch_errors ();
@@ -3710,7 +3710,7 @@ x_find_modifier_meanings (struct x_display_info *dpyinfo)
       dpyinfo->alt_mod_mask &= ~dpyinfo->meta_mod_mask;
     }
 
-  XFree ((char *) syms);
+  XFree (syms);
   XFreeModifiermap (mods);
 }
 

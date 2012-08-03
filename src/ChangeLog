@@ -1,5 +1,29 @@
 2012-08-03  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Remove unnecessary casts involving pointers.
+	These casts are no longer needed now that we assume C89 or later,
+	since they involve casting to or from void *.
+	* alloc.c (make_pure_string, make_pure_c_string, pure_cons)
+	(make_pure_float, make_pure_vector):
+	* lisp.h (SAFE_ALLOCA, SAFE_ALLOCA_LISP):
+	* macros.c (Fstart_kbd_macro):
+	* menu.c (find_and_return_menu_selection):
+	* minibuf.c (read_minibuf_noninteractive):
+	* sysdep.c (closedir):
+	* xdisp.c (x_produce_glyphs):
+	* xfaces.c (compare_fonts_by_sort_order):
+	* xfns.c (x_real_positions, select_visual):
+	* xselect.c (x_stop_queuing_selection_requests)
+	(x_get_window_property, x_get_window_property_as_lisp_data):
+	* xterm.c (x_set_frame_alpha, x_find_modifier_meanings):
+	Remove unnecessary pointer casts.
+	* alloc.c (record_xmalloc): New function.
+	* lisp.h (record_xmalloc): New decl.
+	(SAFE_ALLOCA): Now takes just one arg -- the size -- and acts
+	more like a function.  This is because the pointer cast is not
+	needed.  All uses changed.
+	* print.c (print_string, print_error_message): Avoid length recalc.
+
 	Improve fix for macroexp crash with debugging (Bug#12118).
 	* lisp.h (ASET) [ENABLE_CHECKING]: Pay attention to
 	ARRAY_MARK_FLAG when checking subscripts, because ASET is

@@ -3441,24 +3441,16 @@ static char const DIRECTORY_SEP = '/';
 enum MAX_ALLOCA { MAX_ALLOCA = 16*1024 };
 
 extern Lisp_Object safe_alloca_unwind (Lisp_Object);
+extern void *record_xmalloc (size_t);
 
 #define USE_SAFE_ALLOCA			\
   ptrdiff_t sa_count = SPECPDL_INDEX (); int sa_must_free = 0
 
 /* SAFE_ALLOCA allocates a simple buffer.  */
 
-#define SAFE_ALLOCA(buf, type, size)			  \
-  do {							  \
-    if ((size) < MAX_ALLOCA)				  \
-      buf = (type) alloca (size);			  \
-    else						  \
-      {							  \
-	buf = xmalloc (size);				  \
-	sa_must_free = 1;				  \
-	record_unwind_protect (safe_alloca_unwind,	  \
-			       make_save_value (buf, 0)); \
-      }							  \
-  } while (0)
+#define SAFE_ALLOCA(size) ((size) < MAX_ALLOCA	\
+			   ? alloca (size)	\
+			   : (sa_must_free = 1, record_xmalloc (size)))
 
 /* SAFE_NALLOCA sets BUF to a newly allocated array of MULTIPLIER *
    NITEMS items, each of the same type as *BUF.  MULTIPLIER must
@@ -3493,7 +3485,7 @@ extern Lisp_Object safe_alloca_unwind (Lisp_Object);
 #define SAFE_ALLOCA_LISP(buf, nelt)			  \
   do {							  \
     if ((nelt) < MAX_ALLOCA / sizeof (Lisp_Object))	  \
-      buf = (Lisp_Object *) alloca ((nelt) * sizeof (Lisp_Object));	\
+      buf = alloca ((nelt) * sizeof (Lisp_Object));	  \
     else if ((nelt) < min (PTRDIFF_MAX, SIZE_MAX) / sizeof (Lisp_Object)) \
       {							  \
 	Lisp_Object arg_;				  \

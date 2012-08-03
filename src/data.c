@@ -2179,10 +2179,9 @@ bool-vector.  IDX starts at 0.  */)
 	    {
 	      /* We must relocate the string data.  */
 	      ptrdiff_t nchars = SCHARS (array);
-	      unsigned char *str;
 	      USE_SAFE_ALLOCA;
+	      unsigned char *str = SAFE_ALLOCA (nbytes);
 
-	      SAFE_ALLOCA (str, unsigned char *, nbytes);
 	      memcpy (str, SDATA (array), nbytes);
 	      allocate_string_data (XSTRING (array), nchars,
 				    nbytes + new_bytes - prev_bytes);

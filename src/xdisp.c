@@ -2660,9 +2660,9 @@ init_iterator (struct it *it, struct window *w,
      is invisible.  >0 means lines indented more than this value are
      invisible.  */
   it->selective = (INTEGERP (BVAR (current_buffer, selective_display))
-		   ? clip_to_bounds 
-		   (-1, XINT (BVAR (current_buffer, selective_display)),
-		    PTRDIFF_MAX)
+		   ? (clip_to_bounds
+		      (-1, XINT (BVAR (current_buffer, selective_display)),
+		       PTRDIFF_MAX))
 		   : (!NILP (BVAR (current_buffer, selective_display))
 		      ? -1 : 0));
   it->selective_display_ellipsis_p
@@ -9268,7 +9268,7 @@ add_to_log (const char *format, Lisp_Object arg1, Lisp_Object arg2)
   msg = Fformat (3, args);
 
   len = SBYTES (msg) + 1;
-  SAFE_ALLOCA (buffer, char *, len);
+  buffer = SAFE_ALLOCA (len);
   memcpy (buffer, SDATA (msg), len);
 
   message_dolog (buffer, len - 1, 1, 0);
@@ -9595,10 +9595,8 @@ message3 (Lisp_Object m, ptrdiff_t nbytes, int multibyte)
   message_log_maybe_newline ();
   if (STRINGP (m))
     {
-      char *buffer;
       USE_SAFE_ALLOCA;
-
-      SAFE_ALLOCA (buffer, char *, nbytes);
+      char *buffer = SAFE_ALLOCA (nbytes);
       memcpy (buffer, SDATA (m), nbytes);
       message_dolog (buffer, nbytes, 1, multibyte);
       SAFE_FREE ();
@@ -11173,7 +11171,7 @@ prepare_menu_bars (void)
 #ifdef HAVE_NS
           if (windows_or_buffers_changed
 	      && FRAME_NS_P (f))
-            ns_set_doc_edited 
+            ns_set_doc_edited
 	      (f, Fbuffer_modified_p
 	       (WVAR (XWINDOW (FVAR (f, selected_window)), buffer)));
 #endif
@@ -11478,8 +11476,9 @@ update_tool_bar (struct frame *f, int save_match_data)
 	  selected_frame = frame;
 
 	  /* Build desired tool-bar items from keymaps.  */
-          new_tool_bar = tool_bar_items 
-	    (Fcopy_sequence (FVAR (f, tool_bar_items)), &new_n_tool_bar);
+          new_tool_bar
+	    = tool_bar_items (Fcopy_sequence (FVAR (f, tool_bar_items)),
+			      &new_n_tool_bar);
 
 	  /* Redisplay the tool-bar if we changed it.  */
 	  if (new_n_tool_bar != f->n_tool_bar_items
@@ -24956,7 +24955,7 @@ x_produce_glyphs (struct it *it)
 	  font_descent = FONT_DESCENT (font) - boff;
 	  font_height = FONT_HEIGHT (font);
 
-	  cmp->font = (void *) font;
+	  cmp->font = font;
 
 	  pcm = NULL;
 	  if (! font_not_found_p)

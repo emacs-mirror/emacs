@@ -392,16 +392,14 @@ print_string (Lisp_Object string, Lisp_Object printcharfun)
 	{
 	  /* Output to echo area.  */
 	  ptrdiff_t nbytes = SBYTES (string);
-	  char *buffer;
 
 	  /* Copy the string contents so that relocation of STRING by
 	     GC does not cause trouble.  */
 	  USE_SAFE_ALLOCA;
-
-	  SAFE_ALLOCA (buffer, char *, nbytes);
+	  char *buffer = SAFE_ALLOCA (nbytes);
 	  memcpy (buffer, SDATA (string), nbytes);
 
-	  strout (buffer, chars, SBYTES (string), printcharfun);
+	  strout (buffer, chars, nbytes, printcharfun);
 
 	  SAFE_FREE ();
 	}
@@ -862,11 +860,11 @@ print_error_message (Lisp_Object data, Lisp_Object stream, const char *context,
   if (!NILP (caller) && SYMBOLP (caller))
     {
       Lisp_Object cname = SYMBOL_NAME (caller);
-      char *name;
+      ptrdiff_t cnamelen = SBYTES (cname);
       USE_SAFE_ALLOCA;
-      SAFE_ALLOCA (name, char *, SBYTES (cname));
-      memcpy (name, SDATA (cname), SBYTES (cname));
-      message_dolog (name, SBYTES (cname), 0, 0);
+      char *name = SAFE_ALLOCA (cnamelen);
+      memcpy (name, SDATA (cname), cnamelen);
+      message_dolog (name, cnamelen, 0, 0);
       message_dolog (": ", 2, 0, 0);
       SAFE_FREE ();
     }

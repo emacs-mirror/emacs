@@ -337,31 +337,22 @@ fill_in_lock_file_name (register char *lockfile, register Lisp_Object fn)
 static int
 lock_file_1 (char *lfname, int force)
 {
-  register int err;
-  printmax_t boot, pid;
-  const char *user_name;
-  const char *host_name;
-  char *lock_info_str;
-  ptrdiff_t lock_info_size;
+  int err;
   int symlink_errno;
   USE_SAFE_ALLOCA;
 
   /* Call this first because it can GC.  */
-  boot = get_boot_time ();
+  printmax_t boot = get_boot_time ();
 
-  if (STRINGP (Fuser_login_name (Qnil)))
-    user_name = SSDATA (Fuser_login_name (Qnil));
-  else
-    user_name = "";
-  if (STRINGP (Fsystem_name ()))
-    host_name = SSDATA (Fsystem_name ());
-  else
-    host_name = "";
-  lock_info_size = (strlen (user_name) + strlen (host_name)
-		    + 2 * INT_STRLEN_BOUND (printmax_t)
-		    + sizeof "@.:");
-  SAFE_ALLOCA (lock_info_str, char *, lock_info_size);
-  pid = getpid ();
+  Lisp_Object luser_name = Fuser_login_name (Qnil);
+  char const *user_name = STRINGP (luser_name) ? SSDATA (luser_name) : "";
+  Lisp_Object lhost_name = Fsystem_name ();
+  char const *host_name = STRINGP (lhost_name) ? SSDATA (lhost_name) : "";
+  ptrdiff_t lock_info_size = (strlen (user_name) + strlen (host_name)
+			      + 2 * INT_STRLEN_BOUND (printmax_t)
+			      + sizeof "@.:");
+  char *lock_info_str = SAFE_ALLOCA (lock_info_size);
+  printmax_t pid = getpid ();
 
   esprintf (lock_info_str, boot ? "%s@%s.%"pMd":%"pMd : "%s@%s.%"pMd,
 	    user_name, host_name, pid, boot);
@@ -593,7 +584,7 @@ lock_file (Lisp_Object fn)
   locker_size = (strlen (lock_info.user) + strlen (lock_info.host)
 		 + INT_STRLEN_BOUND (printmax_t)
 		 + sizeof "@ (pid )");
-  SAFE_ALLOCA (locker, char *, locker_size);
+  locker = SAFE_ALLOCA (locker_size);
   pid = lock_info.pid;
   esprintf (locker, "%s@%s (pid %"pMd")",
 	    lock_info.user, lock_info.host, pid);

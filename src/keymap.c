@@ -2304,11 +2304,10 @@ around function keys and event symbols.  */)
     {
       if (NILP (no_angles))
 	{
-	  char *buffer;
 	  Lisp_Object result;
 	  USE_SAFE_ALLOCA;
-	  SAFE_ALLOCA (buffer, char *,
-		       sizeof "<>" + SBYTES (SYMBOL_NAME (key)));
+	  char *buffer = SAFE_ALLOCA (sizeof "<>"
+				      + SBYTES (SYMBOL_NAME (key)));
 	  esprintf (buffer, "<%s>", SDATA (SYMBOL_NAME (key)));
 	  result = build_string (buffer);
 	  SAFE_FREE ();

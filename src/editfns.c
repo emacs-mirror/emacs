@@ -1793,7 +1793,7 @@ format_time_string (char const *format, ptrdiff_t formatlen,
       if (STRING_BYTES_BOUND <= len)
 	string_overflow ();
       size = len + 1;
-      SAFE_ALLOCA (buf, char *, size);
+      buf = SAFE_ALLOCA (size);
     }
 
   UNBLOCK_INPUT;
@@ -2072,7 +2072,7 @@ the data it can't find.  */)
 	  int m = offset / 60;
 	  int am = offset < 0 ? - m : m;
 	  char buf[sizeof "+00" + INT_STRLEN_BOUND (int)];
-	  zone_name = make_formatted_string (buf, "%c%02d%02d", 
+	  zone_name = make_formatted_string (buf, "%c%02d%02d",
 					     (offset < 0 ? '-' : '+'),
 					     am / 60, am % 60);
 	}
@@ -3686,7 +3686,7 @@ usage: (format STRING &rest OBJECTS)  */)
     ptrdiff_t i;
     if ((SIZE_MAX - formatlen) / sizeof (struct info) <= nargs)
       memory_full (SIZE_MAX);
-    SAFE_ALLOCA (info, struct info *, (nargs + 1) * sizeof *info + formatlen);
+    info = SAFE_ALLOCA ((nargs + 1) * sizeof *info + formatlen);
     discarded = (char *) &info[nargs + 1];
     for (i = 0; i < nargs + 1; i++)
       {
@@ -4645,7 +4645,7 @@ Transposing beyond buffer boundaries is an error.  */)
         {
 	  USE_SAFE_ALLOCA;
 
-	  SAFE_ALLOCA (temp, unsigned char *, len2_byte);
+	  temp = SAFE_ALLOCA (len2_byte);
 
 	  /* Don't precompute these addresses.  We have to compute them
 	     at the last minute, because the relocating allocator might
@@ -4663,7 +4663,7 @@ Transposing beyond buffer boundaries is an error.  */)
         {
 	  USE_SAFE_ALLOCA;
 
-	  SAFE_ALLOCA (temp, unsigned char *, len1_byte);
+	  temp = SAFE_ALLOCA (len1_byte);
 	  start1_addr = BYTE_POS_ADDR (start1_byte);
 	  start2_addr = BYTE_POS_ADDR (start2_byte);
           memcpy (temp, start1_addr, len1_byte);
@@ -4703,7 +4703,7 @@ Transposing beyond buffer boundaries is an error.  */)
 	  if (!NULL_INTERVAL_P (tmp_interval3))
 	    set_text_properties_1 (startr2, endr2, Qnil, buf, tmp_interval3);
 
-	  SAFE_ALLOCA (temp, unsigned char *, len1_byte);
+	  temp = SAFE_ALLOCA (len1_byte);
 	  start1_addr = BYTE_POS_ADDR (start1_byte);
 	  start2_addr = BYTE_POS_ADDR (start2_byte);
           memcpy (temp, start1_addr, len1_byte);
@@ -4733,7 +4733,7 @@ Transposing beyond buffer boundaries is an error.  */)
 	    set_text_properties_1 (startr1, endr2, Qnil, buf, tmp_interval3);
 
 	  /* holds region 2 */
-	  SAFE_ALLOCA (temp, unsigned char *, len2_byte);
+	  temp = SAFE_ALLOCA (len2_byte);
 	  start1_addr = BYTE_POS_ADDR (start1_byte);
 	  start2_addr = BYTE_POS_ADDR (start2_byte);
           memcpy (temp, start2_addr, len2_byte);
@@ -4766,7 +4766,7 @@ Transposing beyond buffer boundaries is an error.  */)
 	    set_text_properties_1 (startr1, endr2, Qnil, buf, tmp_interval3);
 
 	  /* holds region 1 */
-	  SAFE_ALLOCA (temp, unsigned char *, len1_byte);
+	  temp = SAFE_ALLOCA (len1_byte);
 	  start1_addr = BYTE_POS_ADDR (start1_byte);
 	  start2_addr = BYTE_POS_ADDR (start2_byte);
           memcpy (temp, start1_addr, len1_byte);

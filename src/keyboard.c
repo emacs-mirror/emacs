@@ -6480,7 +6480,7 @@ modify_event_symbol (ptrdiff_t symbol_num, int modifiers, Lisp_Object symbol_kin
 	  ptrdiff_t len = (SBYTES (name_alist_or_stem)
 			   + sizeof "-" + INT_STRLEN_BOUND (EMACS_INT));
 	  USE_SAFE_ALLOCA;
-	  SAFE_ALLOCA (buf, char *, len);
+	  buf = SAFE_ALLOCA (len);
 	  esprintf (buf, "%s-%"pI"d", SDATA (name_alist_or_stem),
 		    XINT (symbol_int) + 1);
 	  value = intern (buf);
@@ -7465,7 +7465,7 @@ menu_bar_items (Lisp_Object old)
     if (!NILP (Voverriding_local_map_menu_flag))
       {
 	/* Yes, use them (if non-nil) as well as the global map.  */
-	maps = (Lisp_Object *) alloca (3 * sizeof (maps[0]));
+	maps = alloca (3 * sizeof (maps[0]));
 	nmaps = 0;
 	if (!NILP (KVAR (current_kboard, Voverriding_terminal_local_map)))
 	  maps[nmaps++] = KVAR (current_kboard, Voverriding_terminal_local_map);

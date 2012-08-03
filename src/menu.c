@@ -976,8 +976,7 @@ find_and_return_menu_selection (FRAME_PTR f, int keymaps, void *client_data)
 
   prefix = entry = Qnil;
   i = 0;
-  subprefix_stack =
-    (Lisp_Object *)alloca (menu_items_used * sizeof (Lisp_Object));
+  subprefix_stack = alloca (menu_items_used * sizeof (Lisp_Object));
 
   while (i < menu_items_used)
     {

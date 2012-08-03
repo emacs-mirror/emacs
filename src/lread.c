@@ -4317,12 +4317,10 @@ dir_warning (const char *format, Lisp_Object dirname)
   /* Don't log the warning before we've initialized!!  */
   if (initialized)
     {
-      char *buffer;
-      ptrdiff_t message_len;
       USE_SAFE_ALLOCA;
-      SAFE_ALLOCA (buffer, char *,
-		   SBYTES (dirname) + strlen (format) - (sizeof "%s" - 1) + 1);
-      message_len = esprintf (buffer, format, SDATA (dirname));
+      char *buffer = SAFE_ALLOCA (SBYTES (dirname)
+				  + strlen (format) - (sizeof "%s" - 1) + 1);
+      ptrdiff_t message_len = esprintf (buffer, format, SDATA (dirname));
       message_dolog (buffer, message_len, 0, STRING_MULTIBYTE (dirname));
       SAFE_FREE ();
     }
