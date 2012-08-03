@@ -608,7 +608,7 @@ clip_to_bounds (ptrdiff_t lower, EMACS_INT num, ptrdiff_t upper)
 /* The IDX==IDX tries to detect when the macro argument is side-effecting.  */
 #define ASET(ARRAY, IDX, VAL)	\
   (eassert ((IDX) == (IDX)),				\
-   eassert ((IDX) >= 0 && (IDX) < (ASIZE (ARRAY) & ~ARRAY_MARK_FLAG)),	\
+   eassert ((IDX) >= 0 && (IDX) < ASIZE (ARRAY)),	\
    XVECTOR (ARRAY)->contents[IDX] = (VAL))
 
 /* Convenience macros for dealing with Lisp strings.  */
@@ -2356,33 +2356,41 @@ aref_addr (Lisp_Object array, ptrdiff_t idx)
 }
 
 LISP_INLINE void
+gc_aset (Lisp_Object array, ptrdiff_t idx, Lisp_Object val)
+{
+  /* Like ASET, but also can be used in the garbage collector.  */
+  eassert (0 <= idx && idx < (ASIZE (array) & ~ARRAY_MARK_FLAG));
+  XVECTOR (array)->contents[idx] = val;
+}
+
+LISP_INLINE void
 set_hash_key (struct Lisp_Hash_Table *h, ptrdiff_t idx, Lisp_Object val)
 {
-  ASET (h->key_and_value, 2 * idx, val);
+  gc_aset (h->key_and_value, 2 * idx, val);
 }
 
 LISP_INLINE void
 set_hash_value (struct Lisp_Hash_Table *h, ptrdiff_t idx, Lisp_Object val)
 {
-  ASET (h->key_and_value, 2 * idx + 1, val);
+  gc_aset (h->key_and_value, 2 * idx + 1, val);
 }
 
 LISP_INLINE void
 set_hash_next (struct Lisp_Hash_Table *h, ptrdiff_t idx, Lisp_Object val)
 {
-  ASET (h->next, idx, val);
+  gc_aset (h->next, idx, val);
 }
 
 LISP_INLINE void
 set_hash_hash (struct Lisp_Hash_Table *h, ptrdiff_t idx, Lisp_Object val)
 {
-  ASET (h->hash, idx, val);
+  gc_aset (h->hash, idx, val);
 }
 
 LISP_INLINE void
 set_hash_index (struct Lisp_Hash_Table *h, ptrdiff_t idx, Lisp_Object val)
 {
-  ASET (h->index, idx, val);
+  gc_aset (h->index, idx, val);
 }
 
 /* Defined in data.c.  */

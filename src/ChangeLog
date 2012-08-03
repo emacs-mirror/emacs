@@ -1,3 +1,15 @@
+2012-08-03  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Improve fix for macroexp crash with debugging (Bug#12118).
+	* lisp.h (ASET) [ENABLE_CHECKING]: Pay attention to
+	ARRAY_MARK_FLAG when checking subscripts, because ASET is
+	not supposed to be invoked from the garbage collector.
+	See Andreas Schwab in <http://bugs.gnu.org/12118#25>.
+	(gc_aset): New function, which is like ASET but can be
+	used in the garbage collector.
+	(set_hash_key, set_hash_value, set_hash_next, set_hash_hash)
+	(set_hash_index): Use it instead of ASET.
+
 2012-08-03  Eli Zaretskii  <eliz@gnu.org>
 
 	Support symlinks on latest versions of MS-Windows.
