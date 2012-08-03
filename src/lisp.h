@@ -2358,7 +2358,8 @@ aref_addr (Lisp_Object array, ptrdiff_t idx)
 LISP_INLINE void
 gc_aset (Lisp_Object array, ptrdiff_t idx, Lisp_Object val)
 {
-  /* Like ASET, but also can be used in the garbage collector.  */
+  /* Like ASET, but also can be used in the garbage collector:
+     sweep_weak_table calls set_hash_key etc. while the table is marked.  */
   eassert (0 <= idx && idx < (ASIZE (array) & ~ARRAY_MARK_FLAG));
   XVECTOR (array)->contents[idx] = val;
 }
