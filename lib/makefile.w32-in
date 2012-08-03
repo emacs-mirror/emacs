@@ -39,6 +39,9 @@ GNULIBOBJS = $(BLD)/c-ctype.$(O) \
 	     $(BLD)/sha1.$(O) \
 	     $(BLD)/sha256.$(O) \
 	     $(BLD)/sha512.$(O) \
+	     $(BLD)/stat-time.$(O) \
+	     $(BLD)/timespec.$(O) \
+	     $(BLD)/u64.$(O) \
 	     $(BLD)/filemode.$(O)
 
 #
@@ -96,8 +99,7 @@ SHA256_H       = $(GNU_LIB)/sha256.h \
 U64_H          = $(GNU_LIB)/u64.h \
 		 $(NT_INC)/stdint.h
 SHA512_H       = $(GNU_LIB)/sha512.h \
-		 $(U64_H) \
-		 $(GNU_LIB)/u64.h
+		 $(U64_H)
 
 $(BLD)/c-ctype.$(O) : \
 	$(GNU_LIB)/c-ctype.c \
@@ -195,6 +197,19 @@ $(BLD)/sha512.$(O) : \
 	$(NT_INC)/stdint.h \
 	$(CONFIG_H) \
 	$(SHA512_H)
+
+$(BLD)/stat-time.$(O) : \
+	$(GNU_LIB)/stat-time.h \
+	$(NT_INC)/sys/stat.h \
+	$(CONFIG_H)
+
+$(BLD)/timespec.$(O) : \
+	$(GNU_LIB)/timespec.h \
+	$(CONFIG_H)
+
+$(BLD)/u64.$(O) : \
+	$(U64_H) \
+	$(CONFIG_H)
 
 $(BLD)/filemode.$(O) : \
 	$(GNU_LIB)/filemode.c \

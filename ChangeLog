@@ -1,3 +1,11 @@
+2012-08-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* lib/makefile.w32-in (GNULIBOBJS): Add $(BLD)/stat-time.$(O),
+	$(BLD)/timespec.$(O), and $(BLD)/u64.$(O).
+	(SHA512_H): Don't mention u64.h twice.
+	($(BLD)/stat-time.$(O), ($(BLD)/timespec.$(O), ($(BLD)/u64.$(O)):
+	New targets.
+
 2012-08-03  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Merge from gnulib, incorporating:
