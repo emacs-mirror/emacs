@@ -144,7 +144,7 @@ to read these, or poke about in them, under restrictions which should be
 documented.  The most important is probably the allocation point (mps_ap_s) 
 which is part of allocation buffers.  The transparent structures must be binary 
 compatible with corresponding internal structures.  For example, the fields of 
-mps_ap_s must corredpond with APStruct internally.  This is checked by mpsi.c 
+mps_ap_s must correspond with APStruct internally.  This is checked by mpsi.c 
 in mps_check().
 
 <a id="type.pseudo" name="type.pseudo">.type.pseudo</a>: Some pseudo-opaque structures are defined.  These only exist so 
@@ -263,7 +263,7 @@ NOTES
 The file mpstd.h is the MPS target detection header.  It decodes
 preprocessor symbols which are predefined by build environments in order to
 determine the target platform, and then defines uniform symbols, such as
-MPS_ARCH_I3, for use internall by the MPS.
+MPS_ARCH_I3, for use internally by the MPS.
 
 There is a design document for the mps interface, design.mps.interface, but
 it was written before we had the idea of having a C interface layer.  It is

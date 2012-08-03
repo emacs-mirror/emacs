@@ -39,7 +39,7 @@ design.mps.vm) using services provided by the ANSI C Library (standard.ansic.7)
 (malloc and free as it happens).
 
 <a id="align" name="align">.align</a>: The VM is aligned to VMAN_ALIGN (defined in impl.h.mpmconf) by adding 
-VMAN_ALIGN to the reqested size, mallocing a block that large, then rounding 
+VMAN_ALIGN to the requested size, mallocing a block that large, then rounding 
 the pointer to the base of the block.  vm-&gt;base is the aligned pointer, 
 vm-&gt;block is the pointer returned by malloc (used when during VMDestroy).
 

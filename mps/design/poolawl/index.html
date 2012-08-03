@@ -129,10 +129,10 @@ as it will get collected by being in the same zone as another pool/generation
 that is being collected (which it does arrange to be, see the use of the gen 
 field in .poolstruct.gen below and .fun.awlsegcreate.where below).
 <a id="poolstruct.gen" name="poolstruct.gen">.poolstruct.gen</a>: This part of the mechanism by which the pool arranges to be in 
-a particular zone and arranges to be collected simulataneously with other 
+a particular zone and arranges to be collected simultaneously with other 
 cohorts in the system.  gen is the generation that is used in expressing a 
 generation preference when allocating a segment.  The intention is that this 
-pool will get collected simulataneously with any other segments that are also 
+pool will get collected simultaneously with any other segments that are also 
 allocated using this generation preference (when using the VM arena, generation 
 preferences get mapped more or less to zones, each generation to a unique set 
 of zones in the ideal case).  Whilst AWL is not generational it is expected 
@@ -371,7 +371,7 @@ referenced grain is allocated.
 
 The bit in the marked table corresponding to the referenced grain will be 
 read.  If it is already marked then fix returns.  Otherwise (the grain is 
-unmakred), ss-&gt;wasMarked is set to FALSE, the remaining actions depend on 
+unmarked), ss-&gt;wasMarked is set to FALSE, the remaining actions depend on 
 whether the rank (ss-&gt;rank) is Weak or not.  If the rank is weak then the 
 reference is adjusted to 0 (see design.mps.weakness) and fix returns.  If the 
 rank is something else then the mark bit corresponding to the referenced grain 
@@ -421,7 +421,7 @@ Creates a segment of class AWLSegClass of size at least size.
 requesting the segment.  <a id="fun.awlsegcreate.size.round.justify" name="fun.awlsegcreate.size.round.justify">.fun.awlsegcreate.size.round.justify</a>: The arena 
 requires that all segment sizes are aligned to the ArenaAlign.  
 <a id="fun.awlsegcreate.where" name="fun.awlsegcreate.where">.fun.awlsegcreate.where</a>: The segment is allocated using a generation 
-perference, using the generation number stored in the AWLStruct (the gen 
+preference, using the generation number stored in the AWLStruct (the gen 
 field), see .poolstruct.gen above.  
 
 <a id="fun.awlseginit" name="fun.awlseginit">.fun.awlseginit</a>:
@@ -461,8 +461,8 @@ Bool AWLDependentObject(Addr *objReturn, Addr parent);
 
 This function abstracts the association between an object and its linked 
 dependent (see .req.obj-format).  It currently assumes that objects are Dylan 
-Object formatted according to deisng.dylan.container (see 
-analsys.mps.poolawl.dependent.abstract for suggested improvements).  An object 
+Object formatted according to design.dylan.container (see 
+analysis.mps.poolawl.dependent.abstract for suggested improvements).  An object 
 has a dependent object iff the 2nd word of the object (ie (((Word *)parent)[1]) 
 ) is non-NULL.  The dependent object is the object referenced by the 2nd word 
 and must be a valid object.

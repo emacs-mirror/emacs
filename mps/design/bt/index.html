@@ -403,8 +403,8 @@ limit).  Meets .req.ops.copy.simple.
 extern void BTCopyOffsetRange(BT fromBT, BT toBT, Index fromBase, Index 
 fromLimit, Index toBase, Index toLimit);
 
-overwrites the ith bit of toBT with the jth bit of fromBT, for all i in [toB
-ase, toLimit) and corresponding j in [fromBase, fromLimit).  Each of these 2 
+overwrites the ith bit of toBT with the jth bit of fromBT, for all i in [toBase,
+toLimit) and corresponding j in [fromBase, fromLimit).  Each of these 2 
 ranges must be the same size. This might be significantly less efficient than 
 BTCopyRange. Meets .req.ops.copy.offset.
 
@@ -426,7 +426,7 @@ implementing an ADT as a structure with a signature etc (see
 guide.impl.c.adt(0)).  <a id="datastructure.words.justify" name="datastructure.words.justify">.datastructure.words.justify</a>: Words are used as these 
 will probably map to the object that can be most efficiently accessed on any 
 particular platform.  <a id="datastructure.non-adt.justify" name="datastructure.non-adt.justify">.datastructure.non-adt.justify</a>: The usual ADT conventions 
-are not followed because a) The initial designed (drj) was lazy, b) Bit Tables 
+are not followed because a) The initial design (drj) was lazy, b) Bit Tables 
 are more likely to come in convenient powers of two with the extra one or two 
 words overhead.  However, the loss of checking is severe.  Perhaps it would be 
 better to use the usual ADT style.
@@ -545,7 +545,7 @@ are reset.
 <a id="fun.test.range.same" name="fun.test.range.same">.fun.test.range.same</a>: BTRangesSame
 As for BTIsSetRange (.fun.test.range.set above) but testing whether 
 corresponding ranges in the two Bit Tables are the same.  Note there are no 
-speed requirements, but ACT_ON_RANGE is used for simplicitly and uniformity.
+speed requirements, but ACT_ON_RANGE is used for simplicity and uniformity.
 
 <a id="fun.find" name="fun.find">.fun.find</a>: The four external find functions (BTFindShortResRange, 
 BTFindShortResRangeHigh, BTFindLongResRange, BTFindLongResRangeHigh) simply 

@@ -122,7 +122,7 @@ buffer from any memory and prepare the buffer for destruction.  The class is
 expected to release the resources associated with the buffer structure, and any 
 unreserved memory in the buffer may be recycled.  It is illegal for a buffer to 
 be destroyed when there are pending allocations on it (ie an allocation has 
-been reserved, but not commited) and this is checked in the generic function.  
+been reserved, but not committed) and this is checked in the generic function.  
 This method should be provided if and only if bufferCreate is provided. [there 
 is no bufferCreate -- drj 1997-08-19]
 
@@ -156,7 +156,7 @@ little bit (see design.mps.poolasm.summary for a pedagogical example).  Classes
 are not required to provide this method, and not doing so indicates that all 
 instances of this class will have no fixable or traceable reference in them.  
 [scan method now takes an extra return parameter which classes should use to 
-indicate whether they scanned all objects in segment or not.  Classes shoudl 
+indicate whether they scanned all objects in segment or not.  Classes should 
 return summary only of object they scanned.  Caller of this method (ie 
 TraceScan) is responsible for updating summaries correctly when not a total 
 scan.  Hence no jumping through hoops required.  drj 1998-01-30]
@@ -167,7 +167,7 @@ and the class should consider the object live.  There is provision for
 adjusting the value of the reference (to allow for classes that move objects).  
 Classes are not required to provide this method, and not doing so indicates 
 that the class is not automatic style (ie it does not use global tracing to 
-determin liveness).
+determine liveness).
 
 The reclaim field is used to reclaim memory.  This method is called via the 
 generic function PoolReclaim.  It indicates that the trace has fixed all 
@@ -185,7 +185,7 @@ request trapped due to a protection state.  The class should perform any work
 necessary to remove the protection whilst still preserving appropriate 
 invariants (typically this will be scanning work).  Classes are not required to 
 provide this method, and not doing
-so indicates they never protect any memory manged by the pool.  [access is no 
+so indicates they never protect any memory managed by the pool.  [access is no 
 longer present -- drj 1997-08-19]
 
 <a id="method.act" name="method.act">.method.act</a>: Act is called when the MPM has decided to execute an action that 

@@ -75,7 +75,7 @@ other fields).
 returns (or there is no assert handler), then this is taken to mean "ignore and 
 continue", and the check function hence returns TRUE.
 
-<a id="macro" name="macro">.macro</a>: Checking is implemented by invoking four macros in impl<a id="h.assert" name="h.assert">.h.assert</a>:
+<a id="macro" name="macro">.macro</a>: Checking is implemented by invoking four macros in impl <a id="h.assert" name="h.assert">.h.assert</a>:
   <a id="macro.sig" name="macro.sig">.macro.sig</a>: CHECKS(type, val) checks the signature only, and should be called 
 precisely on type &lt;type&gt; and the received object pointer.
   <a id="macro.local" name="macro.local">.macro.local</a>: CHECKL(cond) checks a local field (depending on level (see 
@@ -95,7 +95,7 @@ Type is substituted for the name of the type (eg, PoolCheck), and the
 expression obj-&gt;sig must be a valid value of type Sig whenever obj is a valid 
 value of type Type.
 
-<a id="type.no-sig" name="type.no-sig">.type.no-sig</a>: This tag is to be referenced in implementations whenver the form 
+<a id="type.no-sig" name="type.no-sig">.type.no-sig</a>: This tag is to be referenced in implementations whenever the form 
 CHECKL(ThingCheck(thing)) is used instead of CHECK{U,D}(Thing, thing) because 
 Thing is not a fully fledged type (.full-type).
 </pre>

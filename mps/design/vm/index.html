@@ -116,7 +116,7 @@ NOTES
 <a id="testing" name="testing">.testing</a>: It is important to test that a VM implementation will work in extreme 
 cases.  <a id="testing.large" name="testing.large">.testing.large</a>: It must be able to reserve a large address space.  
 Clients will want multi-GB spaces, more than that OSs will allow.  If they ask 
-for too much, mps_arena_create (and hence VMCreat4e) must fail in a predictable 
+for too much, mps_arena_create (and hence VMCreate) must fail in a predictable 
 way.  <a id="testing.larger" name="testing.larger">.testing.larger</a>: It must be possible to allocate in a large space; 
 sometimes commiting will fail, because there's not enough space to replace the 
 "reserve" mapping.  See request.epcore.160201 for details.  <a id="testing.lots" name="testing.lots">.testing.lots</a>: It 
