@@ -195,7 +195,7 @@
 
 <p>Full collections are easy: all pools can trigger a full collection (see <a href="#triggering">"Triggering"</a> above).  Automatic pools must have a chain with a GenDesc 0 PoolGen, so that their objects get condemned by a full collection (see <a href="full_collection">"Full collection"</a> above).</p>
 
-<p>Minor collections are trickier.  They are triggered by an over-capacity Gen 0.  Automatic pools only trigger a minor collection if they are incrementing the newSize in PoolGen 0, and the GenDesc 0 capacity is set to an achieveable value.</p>
+<p>Minor collections are trickier.  They are triggered by an over-capacity Gen 0.  Automatic pools only trigger a minor collection if they are incrementing the newSize in PoolGen 0, and the GenDesc 0 capacity is set to an achievable value.</p>
 
 <p>A minor collection condemns a set of zones.  To control which minor collections it participates in (has its dead objects collected by), an automatic pool should make sure its segments are in suitable zones, such as by calling SegAlloc with a SegPrefGen-number that matches one used by a pool that is going to trigger minor collections (such as AMC).</p>
 

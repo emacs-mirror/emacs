@@ -239,7 +239,7 @@ JUNKBYTE=0x39, etc.
    _WIN32              --&gt;  mpstd.h   --&gt; MPS_OS_W3, etc.
 
 <a id="impl.dep" name="impl.dep">.impl.dep</a>: No source code, other than the directives in impl.h.config and 
-impl.h.mpstd, should depend on any build parameters.  That is, identifers 
+impl.h.mpstd, should depend on any build parameters.  That is, identifiers 
 beginning "CONFIG_" should only appear in impl.h.config.  Code may depend on 
 configuration parameters in certain, limited ways, as defined below (.conf).
 
@@ -371,7 +371,7 @@ Configuration Parameters
 
 Abstract and Concrete Module Interfaces
 
-Basic principle: the caller musn't be affected by configuration of a module.  
+Basic principle: the caller must not be affected by configuration of a module.  
 This reduces complexity and dependency of configuration.
 
 All callers use the same abstract interface.  Caller code does not change.

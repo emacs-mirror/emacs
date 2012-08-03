@@ -50,7 +50,7 @@ PURPOSE
 
 <a id="purpose.code-maintain" name="purpose.code-maintain">.purpose.code-maintain</a>: The purpose of the protocol inheritance design is to 
 ensure that the MPS code base can make use of the benefits of OO class 
-inheritance to maximize code reuse, minimize code maintainance and minimize the 
+inheritance to maximize code reuse, minimize code maintenance and minimize the 
 use of "boiler plate" code. 
 
 <a id="purpose.related" name="purpose.related">.purpose.related</a>: For related discussion, see mail.tony.1998-08-28.16-26(0), 
@@ -373,7 +373,7 @@ DEFINE_CLASS(EPDLDebugPoolClass, this)
   this-&gt;sig = EPDLDebugSig;
 }
 
-<a id="example.fail" name="example.fail">.example.fail</a>: The following example shows the implemenation of failure-case 
+<a id="example.fail" name="example.fail">.example.fail</a>: The following example shows the implementation of failure-case 
 code for an "init" method, making use of the "finish" anti-method:-
 
 static Res mySegInit(Seg seg, Pool pool, Addr base, Size size, 
@@ -448,7 +448,7 @@ have a client.  The class must not be initialized again when this has happened,
 because the state is not necessarily consistent in the middle of an 
 initialization function.  The initialization state for each class is stored in 
 a boolean "guardian" variable whose name is derived from the class name (see 
-.impl.derived-names).  This ensures the initialization hapens only once.  The 
+.impl.derived-names).  This ensures the initialization happens only once.  The 
 path through the EnsureSomeClass function should be very fast for the common 
 case when this variable is TRUE, and the class has already been initialized, as 
 the canonical static storage can simply be returned in that case.  However, 

@@ -115,7 +115,7 @@ the segment then it cannot contain black or grey references.
 <a id="field.rankSet.start" name="field.rankSet.start">.field.rankSet.start</a>: If references are stored in the segment then it must be 
 updated, along with the summary (.field.summary.start).
 
-<a id="field.depth" name="field.depth">.field.depth</a>: The "depth" field is used by the Sheild (impl.c.shield) to manage 
+<a id="field.depth" name="field.depth">.field.depth</a>: The "depth" field is used by the Shield (impl.c.shield) to manage 
 protection of the segment.  It is initialized to zero by SegInit.
 
 <a id="field.sm" name="field.sm">.field.sm</a>: The "sm" field is used by the Shield (impl.c.shield) to manage 
@@ -133,7 +133,7 @@ trace in the segment then that trace will appear in the "black" field.  It is
 initialized to TraceSetEMPTY by SegInit.
 
 <a id="field.grey" name="field.grey">.field.grey</a>: The "grey" field is the set of traces for which there may be grey 
-objects (i.e containing refrences to white objects) in the segment.  More 
+objects (i.e containing references to white objects) in the segment.  More 
 precisely, if there is a reference to a white object for a trace in the segment 
 then that trace will appear in the "grey" field.  It is initialized to 
 TraceSetEMPTY by SegInit.

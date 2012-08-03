@@ -87,7 +87,7 @@ requirements so that they are traceable to client requirements.  Most of these
 come from the architectural design (design.mps.architecture) or the fix 
 function design (design.mps.fix). -- richard 1995-08-28]
 
-These requirements are the responsiblity of the class implementations as well 
+These requirements are the responsibility of the class implementations as well 
 as the generic arena.  However, some classes (ANSI arena, arenaan.c, in 
 particular) are not intended for production use so do not have to meet all the 
 speed and space requirements.
@@ -356,8 +356,8 @@ is used by the generic arena code.  There are two uses: a getter function for
 this value is provided through the MPS interface 
 (mps_arena_spare_commit_limit_set), and by the SetSpareCommitLimit function to 
 determine whether the amount of spare committed memory needs to be reduced.  
-spareCommitLimit is mainpulated by generic arena code, however the associated 
-semantics are the reponsibility of the class.  It is the class's resposibility 
+spareCommitLimit is manipulated by generic arena code, however the associated 
+semantics are the responsibility of the class.  It is the class's responsibility 
 to ensure that it doesn't use more spare committed bytes than the value in 
 spareCommitLimit.
 
@@ -458,7 +458,7 @@ Location Dependencies
 
 <a id="ld.epoch" name="ld.epoch">.ld.epoch</a>: arena-&gt;epoch is the "current epoch".  This is the number of 'flips' 
 of traces in the arena since the arena was created.  From the mutator's point 
-of view locations chanage atomically at flip.
+of view locations change atomically at flip.
 
 <a id="ld.history" name="ld.history">.ld.history</a>: arena-&gt;history is an array of ARENA_LD_LENGTH RefSets.  These are 
 the summaries of moved objects since the last ARENA_LD_LENGTH epochs.  If e is 

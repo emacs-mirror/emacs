@@ -166,7 +166,7 @@ the process of manipulating the fields of that lock structure.
 
 <a id="threads.async.improve" name="threads.async.improve">.threads.async.improve</a>: In future it would be preferable to not have to assume 
 reentrant mutex locking and unlocking functions. By making the assumption we 
-also assume that the implementaion of mutexes in LinuxThreads will not be 
+also assume that the implementation of mutexes in LinuxThreads will not be 
 completely re-designed in future (which is not wise for the long term). An 
 alternative approach would be necessary anyway when supporting another platform 
 which doesn't offer reentrant locks (if such a platform does exist). 
@@ -180,7 +180,7 @@ is that it's not clear when it's safe to deallocate stale portions of the
 datastructure. 
 
 <a id="threads.sig-stack" name="threads.sig-stack">.threads.sig-stack</a>: We do not handle signals on a separate signal stack. 
-Separate signal stacks apparantly don't work properly with Pthreads.
+Separate signal stacks apparently don't work properly with Pthreads.
 
 
 

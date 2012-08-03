@@ -57,7 +57,7 @@ DEFINITIONS
 
 <a id="def.alloc-frame" name="def.alloc-frame">.def.alloc-frame</a>: An allocation frame is a generic name for a device which 
 groups objects together with other objects at allocation time, and which may 
-have a perent/child relationship with other allocation frames.
+have a parent/child relationship with other allocation frames.
 
 
 PURPOSE
@@ -153,7 +153,7 @@ class in the buffer to which the allocation point is attached.
 Pools may choose what the representation of a frame handle should be.  Frame 
 handles are static, and the client need not store them in a GC root.
 
-<a id="lightweight-frames" name="lightweight-frames">.lightweight-frames</a>: The design includes an extention to the allocation point 
+<a id="lightweight-frames" name="lightweight-frames">.lightweight-frames</a>: The design includes an extension to the allocation point 
 protocol, which permits the creation and destruction of allocation frames 
 without the necessity for claiming the arena lock.  Such frames are called 
 "lightweight frames".
