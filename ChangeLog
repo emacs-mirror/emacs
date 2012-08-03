@@ -1,3 +1,8 @@
+2012-08-03  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Merge from gnulib, incorporating:
+	2012-08-02 stat-time, timespec, u64: support naive out-of-dir builds
+
 2012-08-02  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* lib/Makefile.am (DEFAULT_INCLUDES): Add -I$(top_srcdir)/lib for
