@@ -1722,9 +1722,12 @@ Mark is left at original location."
   "Like `forward-sexp' but aware of multi-char elements and escaped parens."
   (interactive "P")
   (unless arg (setq arg 1))
-  (let ((pos (point)))
+  (let ((pos (point))
+	(opoint 0))
     (condition-case err
-	(while (/= arg 0)
+	(while (and (/= (point) opoint)
+		    (/= arg 0))
+	  (setq opoint (point))
 	  (setq arg
 		(if (> arg 0)
 		    (progn (latex-forward-sexp-1) (1- arg))

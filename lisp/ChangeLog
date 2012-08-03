@@ -1,3 +1,8 @@
+2012-08-03  João Távora  <joaotavora@gmail.com>
+
+	* textmodes/tex-mode.el (latex-forward-sexp): Terminate the loop
+	if sexp scanning does not move point (Bug#5734).
+
 2012-08-02  Tassilo Horn  <tsdh@gnu.org>
 
 	* textmodes/reftex-vars.el (reftex-default-label-alist-entries):
