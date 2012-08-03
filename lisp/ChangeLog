@@ -1,3 +1,11 @@
+2012-08-03  MON KEY  <monkey@sandpframing.com>
+
+	* net/imap.el (imap-interactive-login, imap-authenticate)
+	(imap-mailbox-lsub, imap-mailbox-list)
+	(imap-mailbox-status-asynch, imap-mailbox-acl-delete)
+	(imap-fetch, imap-message-flag-permanent-p, imap-envelope-from)
+	(imap-parse-response): Doc fix.
+
 2012-08-03  João Távora  <joaotavora@gmail.com>
 
 	* textmodes/tex-mode.el (latex-forward-sexp): Terminate the loop
