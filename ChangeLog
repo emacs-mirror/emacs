@@ -19,7 +19,7 @@
 	Merge from gnulib (Bug#12116), incorporating:
 	2012-08-01 extern-inline: new module
 	2012-08-01 stat-time, timespec, u64, utimens: use extern-inline
-	* lib/stat-time.c, lib/utimespec.c, lib/u64.c, m4/extern-inline.m4:
+	* lib/stat-time.c, lib/timespec.c, lib/u64.c, m4/extern-inline.m4:
 	New files.  The new .c files are for instantiating extern inline
 	functions.
 
