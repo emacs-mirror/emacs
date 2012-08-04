@@ -1271,11 +1271,11 @@ enum DEFAULT_HASH_SIZE { DEFAULT_HASH_SIZE = 65 };
    value gives the ratio of current entries in the hash table and the
    size of the hash table.  */
 
-#define DEFAULT_REHASH_THRESHOLD 0.8
+static double const DEFAULT_REHASH_THRESHOLD = 0.8;
 
 /* Default factor by which to increase the size of a hash table.  */
 
-#define DEFAULT_REHASH_SIZE 1.5
+static double const DEFAULT_REHASH_SIZE = 1.5;
 
 /* Most code should use this macro to access
    Lisp fields in a different misc objects.  */

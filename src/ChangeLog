@@ -1,3 +1,9 @@
+2012-08-04  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Export DEFAULT_REHASH_* to GDB.
+	* lisp.h (DEFAULT_REHASH_THRESHOLD, DEFAULT_REHASH_SIZE):
+	Now constants, not macros.
+
 2012-08-03  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Remove unnecessary casts involving pointers.
