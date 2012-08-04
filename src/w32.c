@@ -1709,17 +1709,19 @@ init_environment (char ** argv)
       char * def_value;
     } dflt_envvars[] =
     {
+      /* If the default value is NULL, we will use the value from the
+	 outside environment or the Registry, but will not push the
+	 variable into the Emacs environment if it is defined neither
+	 in the Registry nor in the outside environment.  */
       {"HOME", "C:/"},
       {"PRELOAD_WINSOCK", NULL},
       {"emacs_dir", "C:/emacs"},
-      {"EMACSLOADPATH", "%emacs_dir%/site-lisp;%emacs_dir%/../site-lisp;%emacs_dir%/lisp;%emacs_dir%/leim"},
+      {"EMACSLOADPATH", NULL},
       {"SHELL", "%emacs_dir%/bin/cmdproxy.exe"},
-      {"EMACSDATA", "%emacs_dir%/etc"},
-      {"EMACSPATH", "%emacs_dir%/bin"},
-      /* We no longer set INFOPATH because Info-default-directory-list
-	 is then ignored.  */
-      /*  {"INFOPATH", "%emacs_dir%/info"},  */
-      {"EMACSDOC", "%emacs_dir%/etc"},
+      {"EMACSDATA", NULL},
+      {"EMACSPATH", NULL},
+      {"INFOPATH", NULL},
+      {"EMACSDOC", NULL},
       {"TERM", "cmd"},
       {"LANG", NULL},
     };
@@ -1777,29 +1779,10 @@ init_environment (char ** argv)
         }
     }
 
-  /* When Emacs is invoked with --no-site-lisp, we must remove the
-     site-lisp directories from the default value of EMACSLOADPATH.
-     This assumes that the site-lisp entries are at the front, and
-     that additional entries do exist.  */
-  if (no_site_lisp)
-    {
-      for (i = 0; i < N_ENV_VARS; i++)
-        {
-          if (strcmp (env_vars[i].name, "EMACSLOADPATH") == 0)
-            {
-              char *site;
-              while ((site = strstr (env_vars[i].def_value, "site-lisp")))
-                env_vars[i].def_value = strchr (site, ';') + 1;
-              break;
-            }
-        }
-    }
-
 #define SET_ENV_BUF_SIZE (4 * MAX_PATH)	/* to cover EMACSLOADPATH */
 
     /* Treat emacs_dir specially: set it unconditionally based on our
-       location, if it appears that we are running from the bin subdir
-       of a standard installation.  */
+       location.  */
     {
       char *p;
       char modname[MAX_PATH];
@@ -6618,7 +6601,7 @@ w32_delayed_load (Lisp_Object libraries, Lisp_Object library_id)
 }
 
 
-static void
+void
 check_windows_init_file (void)
 {
   /* A common indication that Emacs is not installed properly is when
@@ -6630,19 +6613,14 @@ check_windows_init_file (void)
 	 loadup.el.  */
       && NILP (Vpurify_flag))
     {
-      Lisp_Object objs[2];
-      Lisp_Object full_load_path;
       Lisp_Object init_file;
       int fd;
 
-      objs[0] = Vload_path;
-      objs[1] = decode_env_path (0, (getenv ("EMACSLOADPATH")));
-      full_load_path = Fappend (2, objs);
       init_file = build_string ("term/w32-win");
-      fd = openp (full_load_path, init_file, Fget_load_suffixes (), NULL, Qnil);
+      fd = openp (Vload_path, init_file, Fget_load_suffixes (), NULL, Qnil);
       if (fd < 0)
 	{
-	  Lisp_Object load_path_print = Fprin1_to_string (full_load_path, Qnil);
+	  Lisp_Object load_path_print = Fprin1_to_string (Vload_path, Qnil);
 	  char *init_file_name = SDATA (init_file);
 	  char *load_path = SDATA (load_path_print);
 	  char *buffer = alloca (1024
@@ -6781,9 +6759,6 @@ init_ntproc (void)
     /* Reset the volume info cache.  */
     volume_cache = NULL;
   }
-
-  /* Check to see if Emacs has been installed correctly.  */
-  check_windows_init_file ();
 }
 
 /*

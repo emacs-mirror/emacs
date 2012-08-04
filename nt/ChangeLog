@@ -1,3 +1,11 @@
+2012-08-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* paths.h (PATH_LOADSEARCH, PATH_SITELOADSEARCH, PATH_EXEC)
+	(PATH_DATA, PATH_DOC): Replace dummy directory names with
+	directories relative to %emacs_dir%.
+	(PATH_EXEC): Add lib-src/oo-spd/i386 and lib-src/oo/i386, to cater
+	to the use case of running un-installed Emacs.
+
 2012-08-03  Juanma Barranquero  <lekktu@gmail.com>
 
 	* config.nt: Sync with autogen/config.in.

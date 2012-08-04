@@ -140,6 +140,7 @@ extern void syms_of_w32menu (void);
 extern void globals_of_w32menu (void);
 extern void syms_of_fontset (void);
 extern void syms_of_w32font (void);
+extern void check_windows_init_file (void);
 
 extern int _sys_read_ahead (int fd);
 extern int _sys_wait_accept (int fd);

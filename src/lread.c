@@ -4131,7 +4131,7 @@ init_lread (void)
       sitelisp = decode_env_path (0, PATH_SITELOADSEARCH);
       if (! NILP (sitelisp)) Vload_path = nconc2 (sitelisp, Vload_path);
     }
-#else
+#else  /* !CANNOT_DUMP */
   if (NILP (Vpurify_flag))
     {
       normal = PATH_LOADSEARCH;
@@ -4293,7 +4293,7 @@ init_lread (void)
          be missing unless something went extremely (and improbably)
          wrong, in which case the build will fail in obvious ways.  */
     }
-#endif  /* CANNOT_DUMP */
+#endif  /* !CANNOT_DUMP */
 
   Vvalues = Qnil;
 

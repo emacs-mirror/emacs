@@ -1,5 +1,33 @@
 2012-08-04  Eli Zaretskii  <eliz@gnu.org>
 
+	Fix startup warnings about ../site-lisp on MS-Windows.  (Bug#11959)
+	* w32.c (init_environment): Change the default values of many
+	environment variables in dflt_envvars[] to NULL, to avoid pushing
+	them into environment when they were not already defined.  Remove
+	the code that deletes site-lisp subdirectories from the default
+	value of EMACSLOADPATH, as it is no longer needed.
+	(check_windows_init_file): Now external, not static.  Use
+	Vload_path as is, without adding anything, as this function is now
+	called when Vload_path is already set up.
+
+	* w32.h (check_windows_init_file): Add prototype.
+
+	* emacs.c (init_cmdargs) [WINDOWSNT]: When running from the build
+	directory, ignore the /*/i386/ tail in Vinvocation_directory, for
+	compatibility with Posix platforms.
+	(main): Move the call to check_windows_init_file to here from
+	w32.c.
+	(decode_env_path) [WINDOWSNT]: Expand the %emacs_dir%/ prefix, if
+	any, in the DEFALT argument into the root of the Emacs build or
+	installation tree, as appropriate.
+
+	* callproc.c (init_callproc_1): Call decode_env_path instead of
+	doing its equivalent by hand.
+	(init_callproc): Replace DOS_NT condition with MSDOS, thus letting
+	the code that sets Vexec_path run on MS-Windows.
+
+	* lread.c (init_lread): Add comments to #ifdef's.
+
 	* msdos.c (dos_set_window_size, IT_update_begin)
 	(IT_frame_up_to_date, IT_set_frame_parameters): Use FVAR and WVAR
 	instead of direct references.
