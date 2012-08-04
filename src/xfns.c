@@ -1253,8 +1253,8 @@ x_set_menu_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
 	  UNBLOCK_INPUT;
 	}
 
-      if (nlines == 0 && WINDOWP (f->menu_bar_window))
-	clear_glyph_matrix (XWINDOW (f->menu_bar_window)->current_matrix);
+      if (nlines == 0 && WINDOWP (FVAR (f, menu_bar_window)))
+	clear_glyph_matrix (XWINDOW (FVAR (f, menu_bar_window))->current_matrix);
     }
 #endif /* not USE_X_TOOLKIT && not USE_GTK */
   adjust_glyphs (f);
