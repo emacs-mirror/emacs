@@ -26,7 +26,10 @@
 #define NSIG 320\
 #endif
 
-/^#undef MSDOS *$/s/^.*$/#define MSDOS/
+/^#undef MSDOS *$/c\
+#ifndef MSDOS\
+#define MSDOS\
+#endif
 /^#undef DOS_NT *$/s/^.*$/#define DOS_NT/
 /^#undef FLOAT_CHECK_DOMAIN *$/s/^.*$/#define FLOAT_CHECK_DOMAIN/
 /^#undef HAVE_ALLOCA *$/s/^.*$/#define HAVE_ALLOCA 1/
@@ -85,11 +88,12 @@
 /^#undef HAVE_UNSIGNED_LONG_LONG_INT *$/s/^.*$/#define HAVE_UNSIGNED_LONG_LONG_INT 1/
 /^#undef HAVE_WCHAR_H *$/s/^.*$/#define HAVE_WCHAR_H 1/
 /^#undef DEVICE_SEP *$/s/^.*$/#define DEVICE_SEP ':'/
-/^#undef IS_DIRECTORY_SEP *$/s/^.*$/#define IS_DIRECTORY_SEP(_c_) ((_c_) == '/' || (_c_) == '\\\\')/
+/^#undef IS_DIRECTORY_SEP *$/s,^.*$,#define IS_DIRECTORY_SEP(_c_) ((_c_) == '/' || (_c_) == '\\\\'),
+/^#undef IS_DEVICE_SEP *$/s/^.*$/#define IS_DEVICE_SEP(_c_) ((_c_) == ':')/
 /^#undef IS_ANY_SEP *$/s/^.*$/#define IS_ANY_SEP(_c_) (IS_DIRECTORY_SEP (_c_) || IS_DEVICE_SEP (_c_))/
-/^#undef INTERNAL_TERMINAL *$/s/^.*$/#define INTERNAL_TERMINAL "pc|bios|IBM PC with color display::co#80:li#25:Co#16:pa#256:km:ms:cm=<CM>:cl=<CL>:ce=<CE>::se=</SO>:so=<SO>:us=<UL>:ue=</UL>:md=<BD>:mh=<DIM>:mb=<BL>:mr=<RV>:me=<NV>::AB=<BG %d>:AF=<FG %d>:op=<DefC>:"/
+/^#undef INTERNAL_TERMINAL *$/s,^.*$,#define INTERNAL_TERMINAL "pc|bios|IBM PC with color display::co#80:li#25:Co#16:pa#256:km:ms:cm=<CM>:cl=<CL>:ce=<CE>::se=</SO>:so=<SO>:us=<UL>:ue=</UL>:md=<BD>:mh=<DIM>:mb=<BL>:mr=<RV>:me=<NV>::AB=<BG %d>:AF=<FG %d>:op=<DefC>:",
 /^#undef NULL_DEVICE *$/s/^.*$/#define NULL_DEVICE "nul"/
-/^#undef SEPCHAR *$/s/^.*$/#define SEPCHAR ';'/
+/^#undef SEPCHAR *$/s/^.*$/#define SEPCHAR '\;'/
 /^#undef USER_FULL_NAME *$/s/^.*$/#define USER_FULL_NAME (getenv ("NAME"))/
 /^#undef _setjmp/s/^.*$/#define _setjmp setjmp/
 /^#undef _longjmp/s/^.*$/#define _longjmp longjmp/

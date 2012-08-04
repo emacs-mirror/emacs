@@ -1,3 +1,13 @@
+2012-08-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* sedlibmk.inp (allocator.$(OBJEXT), careadlinkat.$(OBJEXT)): Fix
+	editing out.
+
+	* sed2v2.inp (IS_DEVICE_SEP): Edit to match ':'.
+	(IS_DIRECTORY_SEP, INTERNAL_TERMINAL): Fix Sed command syntax.
+	(MSDOS): Define only if undefined, as MSDOS is a built-in macro,
+	unless some std= switch to GCC is used.
+
 2012-08-01  Glenn Morris  <rgm@gnu.org>
 
 	* sed2v2.inp (HAVE_WCHAR_H): Fix typo.
