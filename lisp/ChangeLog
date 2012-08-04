@@ -2,6 +2,7 @@
 
 	* simple.el (list-processes--refresh): For a server use :host or
 	:local as the address.
+	(list-processes): Doc fix.
 
 2012-08-04  Michal Nazarewicz  <mina86@mina86.com>  (tiny change)
 

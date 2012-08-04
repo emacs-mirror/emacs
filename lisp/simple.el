@@ -2906,7 +2906,7 @@ the query-on-exit flag set are listed.
 Any process listed as exited or signaled is actually eliminated
 after the listing is made.
 Optional argument BUFFER specifies a buffer to use, instead of
-\"*Process List\".
+\"*Process List*\".
 The return value is always nil."
   (interactive)
   (or (fboundp 'process-list)
