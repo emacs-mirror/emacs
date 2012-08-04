@@ -2881,7 +2881,9 @@ Also, delete any process that is exited or signaled."
 				       "network")
 				     (if (plist-get contact :server)
 					 (format "server on %s"
-						 (plist-get contact :server))
+						 (or
+						  (plist-get contact :host)
+						  (plist-get contact :local)))
 				       (format "connection to %s"
 					       (plist-get contact :host))))
 			   (format "(serial port %s%s)"
