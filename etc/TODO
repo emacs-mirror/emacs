@@ -18,7 +18,7 @@ to the FSF.
   "which form of concurrency" we'll want.
 ** Overhaul of customize: sounds wonderful.
 ** better support for dynamic embedded graphics: I like this idea (my
-  mpc.el code could use it for the volume widget), tho I wonder if the
+  mpc.el code could use it for the volume widget), though I wonder if the
   resulting efficiency will be sufficient.
 ** Spread Semantic.
 ** Improve the "code snippets" support: consolidate skeleton.el, tempo.el,
