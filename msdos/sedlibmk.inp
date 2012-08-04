@@ -605,10 +605,10 @@ am__cd = cd
   s| *sys/select\.h||
   s| *sys/time\.h||
 }
-/^am_libgnu_a_OBJECTS *=/,/^[ 	]/{
+/^am_libgnu_a_OBJECTS *=/,/^[^ 	]/{
+  s/allocator\.\$(OBJEXT) //
   s/careadlinkat\.\$(OBJEXT) //
 }
-/^am_libgnu_a_OBJECTS *=/s/allocator\.\$(OBJEXT)//
 /^srcdir *=/s/@[^@\n]*@/./
 /^top_srcdir *=/s/@[^@\n]*@/../
 /^top_builddir *=/s/@[^@\n]*@/../

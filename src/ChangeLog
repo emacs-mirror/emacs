@@ -1,3 +1,9 @@
+2012-08-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* msdos.c (dos_set_window_size, IT_update_begin)
+	(IT_frame_up_to_date, IT_set_frame_parameters): Use FVAR and WVAR
+	instead of direct references.
+
 2012-08-04  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Export DEFAULT_REHASH_* to GDB.
