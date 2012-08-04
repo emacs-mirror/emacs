@@ -1,3 +1,10 @@
+2012-08-04  Michal Nazarewicz  <mina86@mina86.com>  (tiny change)
+
+	* lisp/mpc.el: Support password in host argument.
+	(mpc--proc-connect): Parse and use new password element.
+	Set mpc-proc variable instead of returning process.
+	(mpc-proc): Adjust accordingly.
+
 2012-08-03  Eli Zaretskii  <eliz@gnu.org>
 
 	* whitespace.el (whitespace-display-mappings): Use Unicode
