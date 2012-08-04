@@ -1,3 +1,21 @@
+2012-08-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* isearch.el: Misc simplification; use defstruct.
+	(isearch-mode-map): Dense maps now work like sparse ones.
+	(isearch--state): New defstruct.
+	(isearch-string-state, isearch-message-state, isearch-point-state)
+	(isearch-success-state, isearch-forward-state)
+	(isearch-other-end-state, isearch-word-state, isearch-error-state)
+	(isearch-wrapped-state, isearch-barrier-state)
+	(isearch-case-fold-search-state, isearch-pop-fun-state): Remove,
+	replaced by defstruct's accessors.
+	(isearch--set-state): Rename from isearch-top-state and change
+	calling convention.
+	(isearch-push-state): Use new isearch--get-state.
+	(isearch-toggle-word): Disable regexp when enabling word.
+	(isearch-message-prefix): Remove unused arg _c-q-hack.
+	(isearch-message-suffix): Remove unused arg _ellipsis.
+
 2012-08-04  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* simple.el (list-processes--refresh): For a server use :host or
