@@ -1009,7 +1009,7 @@ The first character of NEWENTRY should be one of the following:
   "           string quote.         \\   escape.
   $           paired delimiter.     '   expression quote or prefix operator.
   <           comment starter.      >   comment ender.
-  /           character-quote.      @   inherit from `standard-syntax-table'.
+  /           character-quote.      @   inherit from parent table.
   |           generic string fence. !   generic comment fence.
 
 Only single-character comment start and end sequences are represented thus.

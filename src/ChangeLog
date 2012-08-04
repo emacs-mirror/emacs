@@ -1,3 +1,7 @@
+2012-08-04  Chong Yidong  <cyd@gnu.org>
+
+	* syntax.c (Fmodify_syntax_entry): Doc fix.
+
 2012-08-04  Eli Zaretskii  <eliz@gnu.org>
 
 	Fix startup warnings about ../site-lisp on MS-Windows.  (Bug#11959)

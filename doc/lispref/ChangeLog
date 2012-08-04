@@ -1,3 +1,16 @@
+2012-08-04  Chong Yidong  <cyd@gnu.org>
+
+	* syntax.texi (Syntax Basics): Rearrange the text for clarity.
+	Fix description of syntax table inheritance.
+	(Syntax Table Functions): Don't refer to internal contents of
+	syntax table, since that is not explained yet.  Copyedits.
+	(Standard Syntax Tables): Node deleted.
+	(Syntax Table Internals): Misc clarifications.  Improve table
+	formatting.
+
+	* keymaps.texi (Inheritance and Keymaps):
+	* text.texi (Sticky Properties): Tweak index entry.
+
 2012-07-28  Eli Zaretskii  <eliz@gnu.org>
 
 	* nonascii.texi (Character Sets): Fix a typo.  (Bug#12062)

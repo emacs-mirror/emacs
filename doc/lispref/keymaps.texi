@@ -371,7 +371,7 @@ definition is a keymap; the same symbol appears in the new copy.
 @node Inheritance and Keymaps
 @section Inheritance and Keymaps
 @cindex keymap inheritance
-@cindex inheriting a keymap's bindings
+@cindex inheritance, keymap
 
   A keymap can inherit the bindings of another keymap, which we call the
 @dfn{parent keymap}.  Such a keymap looks like this:

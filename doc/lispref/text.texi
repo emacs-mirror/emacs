@@ -3382,7 +3382,7 @@ of the text.
 @node Sticky Properties
 @subsection Stickiness of Text Properties
 @cindex sticky text properties
-@cindex inheritance of text properties
+@cindex inheritance, text property
 
   Self-inserting characters normally take on the same properties as the
 preceding character.  This is called @dfn{inheritance} of properties.

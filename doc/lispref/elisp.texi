@@ -1241,7 +1241,6 @@ Syntax Tables
 * Motion and Syntax::       Moving over characters with certain syntaxes.
 * Parsing Expressions::     Parsing balanced expressions
                               using the syntax table.
-* Standard Syntax Tables::  Syntax tables used by various major modes.
 * Syntax Table Internals::  How syntax table information is stored.
 * Categories::              Another way of classifying character syntax.
 
