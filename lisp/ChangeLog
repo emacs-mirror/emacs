@@ -1,3 +1,7 @@
+2012-08-05  Chong Yidong  <cyd@gnu.org>
+
+	* files.el (set-auto-mode): Fix invalid setq call.
+
 2012-08-04  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* isearch.el: Misc simplification; use defstruct.
