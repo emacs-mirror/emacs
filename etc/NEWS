@@ -582,7 +582,7 @@ buffer was used.
 The search is performed using `customize-apropos'.
 To turn off the search field, set `custom-search-field' to nil.
 
-*** Custom options now start out hidden if at their default values.
+*** Options in customize group buffers start out hidden if not customized.
 Use the arrow to the left of the option name to toggle visibility.
 
 *** custom-buffer-sort-alphabetically now defaults to t.
