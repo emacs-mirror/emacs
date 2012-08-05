@@ -7870,6 +7870,29 @@ $as_echo "no" >&6; }
 fi
 
 
+  if test "X$PAXCTL" != X; then
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether binaries have a PT_PAX_FLAGS header" >&5
+$as_echo_n "checking whether binaries have a PT_PAX_FLAGS header... " >&6; }
+    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+int
+main ()
+{
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  if $PAXCTL -v conftest$EXEEXT >/dev/null 2>&1; then { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+      else { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }; PAXCTL=""; fi
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+  fi
 fi
 
 ## Need makeinfo >= 4.7 (?) to build the manuals.
