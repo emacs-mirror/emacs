@@ -1,3 +1,8 @@
+2012-08-05  Chong Yidong  <cyd@gnu.org>
+
+	* display.texi (Defining Faces): Move documentation of
+	frame-background-mode to the Emacs manual (Bug#7774).
+
 2012-08-04  Chong Yidong  <cyd@gnu.org>
 
 	* syntax.texi (Syntax Basics): Rearrange the text for clarity.

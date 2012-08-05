@@ -475,18 +475,26 @@ type @kbd{M-x list-faces-display}.  With a prefix argument, this
 prompts for a regular expression, and displays only faces with names
 matching that regular expression (@pxref{Regexps}).
 
+@vindex frame-background-mode
   It's possible for a given face to look different in different
 frames.  For instance, some text terminals do not support all face
 attributes, particularly font, height, and width, and some support a
-limited range of colors.
+limited range of colors.  In addition, most Emacs faces are defined so
+that their attributes are different on light and dark frame
+backgrounds, for reasons of legibility.  By default, Emacs
+automatically chooses which set of face attributes to display on each
+frame, based on the frame's current background color.  However, you
+can override this by giving the variable @code{frame-background-mode}
+a non-@code{nil} value.  A value of @code{dark} makes Emacs treat all
+frames as if they have a dark background, whereas a value of
+@code{light} makes it treat all frames as if they have a light
+background.
 
 @cindex background color
 @cindex default face
-  You can customize a face to alter its appearance, and save those
-changes for future Emacs sessions.  @xref{Face Customization}.  A face
-does not have to specify every single attribute; often it inherits
-most attributes from another face.  Any ultimately unspecified
-attribute is taken from the face named @code{default}.
+  You can customize a face to alter its attributes, and save those
+customizations for future Emacs sessions.  @xref{Face Customization},
+for details.
 
   The @code{default} face is the default for displaying text, and all
 of its attributes are specified.  Its background color is also used as
