@@ -187,16 +187,39 @@ with name concatenation."
 
 ;;;###autoload
 (defvar imenu-generic-expression nil
-  "The regex pattern to use for creating a buffer index.
+  "List of definition matchers for creating an Imenu index.
+Each element of this list should have the form
+
+  (MENU-TITLE REGEXP INDEX [FUNCTION] [ARGUMENTS...])
+
+MENU-TITLE should be nil (in which case the matches for this
+element are put in the top level of the buffer index) or a
+string (which specifies the title of a submenu into which the
+matches are put).
+REGEXP is a regular expression matching a definition construct
+which is to be displayed in the menu.  REGEXP may also be a
+function, called without arguments.  It is expected to search
+backwards.  It must return true and set `match-data' if it finds
+another element.
+INDEX is an integer specifying which subexpression of REGEXP
+matches the definition's name; this subexpression is displayed as
+the menu item.
+FUNCTION, if present, specifies a function to call when the index
+item is selected by the user.  This function is called with
+arguments consisting of the item name, the buffer position, and
+the ARGUMENTS.
+
+The variable `imenu-case-fold-search' determines whether or not
+the regexp matches are case sensitive, and `imenu-syntax-alist'
+can be used to alter the syntax table for the search.
 
 If non-nil this pattern is passed to `imenu--generic-function' to
-create a buffer index.  Look there for the documentation of this
-pattern's structure.
+create a buffer index.
 
-For example, see the value of `fortran-imenu-generic-expression' used by
-`fortran-mode' with `imenu-syntax-alist' set locally to give the
-characters which normally have \"symbol\" syntax \"word\" syntax
-during matching.")
+For example, see the value of `fortran-imenu-generic-expression'
+used by `fortran-mode' with `imenu-syntax-alist' set locally to
+give the characters which normally have \"symbol\" syntax
+\"word\" syntax during matching.")
 ;;;###autoload(put 'imenu-generic-expression 'risky-local-variable t)
 
 ;;;###autoload
@@ -694,46 +717,16 @@ for modes which use `imenu--generic-function'.  If it is not set, but
 ;; so it needs to be careful never to loop!
 (defun imenu--generic-function (patterns)
   "Return an index alist of the current buffer based on PATTERNS.
+PATTERNS should be an alist which has the same form as
+`imenu-generic-expression'.
 
-PATTERNS is an alist with elements that look like this:
- (MENU-TITLE REGEXP INDEX)
-or like this:
- (MENU-TITLE REGEXP INDEX FUNCTION ARGUMENTS...)
-with zero or more ARGUMENTS.  The former format creates a simple
-element in the index alist when it matches; the latter creates a
-special element of the form (INDEX-NAME POSITION-MARKER FUNCTION
-ARGUMENTS...) with FUNCTION and ARGUMENTS copied from PATTERNS.
-
-MENU-TITLE is a string used as the title for the submenu or nil
-if the entries are not nested.
-
-REGEXP is a regexp that should match a construct in the buffer
-that is to be displayed in the menu; i.e., function or variable
-definitions, etc.  It contains a substring which is the name to
-appear in the menu.  See the info section on Regexps for more
-information.  REGEXP may also be a function, called without
-arguments.  It is expected to search backwards.  It shall return
-true and set `match-data' if it finds another element.
-
-INDEX points to the substring in REGEXP that contains the
-name (of the function, variable or type) that is to appear in the
-menu.
-
-The variable `imenu-case-fold-search' determines whether or not the
-regexp matches are case sensitive, and `imenu-syntax-alist' can be
-used to alter the syntax table for the search.
-
-See `lisp-imenu-generic-expression' for an example of PATTERNS.
-
-Returns an index of the current buffer as an alist.  The elements in
-the alist look like:
+The return value is an alist of the form
  (INDEX-NAME . INDEX-POSITION)
-or like:
+or
  (INDEX-NAME INDEX-POSITION FUNCTION ARGUMENTS...)
-They may also be nested index alists like:
+The return value may also consist of nested index alists like:
  (INDEX-NAME . INDEX-ALIST)
 depending on PATTERNS."
-
   (let ((index-alist (list 'dummy))
         (case-fold-search (if (or (local-variable-p 'imenu-case-fold-search)
 				  (not (local-variable-p 'font-lock-defaults)))

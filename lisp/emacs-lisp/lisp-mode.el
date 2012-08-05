@@ -117,10 +117,15 @@ It has `lisp-mode-abbrev-table' as its parent."
 	 (purecopy (concat "^\\s-*("
 			   (eval-when-compile
 			     (regexp-opt
-			      '("defvar" "defconst" "defconstant" "defcustom"
+			      '("defconst" "defconstant" "defcustom"
 				"defparameter" "define-symbol-macro") t))
 			   "\\s-+\\(\\(\\sw\\|\\s_\\)+\\)"))
 	 2)
+   ;; For `defvar', we ignore (defvar FOO) constructs.
+   (list (purecopy "Variables")
+	 (purecopy (concat "^\\s-*(defvar\\s-+\\(\\(\\sw\\|\\s_\\)+\\)"
+			   "[[:space:]\n]+[^)]"))
+	 1)
    (list (purecopy "Types")
 	 (purecopy (concat "^\\s-*("
 			   (eval-when-compile
