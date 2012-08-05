@@ -731,6 +731,12 @@ AC_PATH_PROG(GZIP_PROG, gzip)
 if test $opsys = gnu-linux; then
   AC_PATH_PROG(PAXCTL, paxctl,,
     [$PATH$PATH_SEPARATOR/sbin$PATH_SEPARATOR/usr/sbin])
+  if test "X$PAXCTL" != X; then
+    AC_MSG_CHECKING([whether binaries have a PT_PAX_FLAGS header])
+    AC_LINK_IFELSE([AC_LANG_PROGRAM([], [])],
+      [if $PAXCTL -v conftest$EXEEXT >/dev/null 2>&1; then AC_MSG_RESULT(yes)
+      else AC_MSG_RESULT(no); PAXCTL=""; fi])
+  fi
 fi
 
 ## Need makeinfo >= 4.7 (?) to build the manuals.

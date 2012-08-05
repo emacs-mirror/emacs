@@ -1,3 +1,8 @@
+2012-08-05  Ulrich Müller  <ulm@gentoo.org>
+
+	* configure.ac: Disable paxctl if binaries don't have a
+	PT_PAX_FLAGS program header.  (Bug#11979)
+
 2012-08-03  Eli Zaretskii  <eliz@gnu.org>
 
 	* lib/makefile.w32-in (GNULIBOBJS): Add $(BLD)/stat-time.$(O),
