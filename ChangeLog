@@ -1,3 +1,7 @@
+2012-08-05  Michael Albinus  <michael.albinus@gmx.de>
+
+	* INSTALL: Explain, how to disable D-Bus at all.  (Bug#12112)
+
 2012-08-05  Ulrich Müller  <ulm@gentoo.org>
 
 	* configure.ac: Disable paxctl if binaries don't have a

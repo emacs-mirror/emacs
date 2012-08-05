@@ -280,6 +280,12 @@ You can tell configure where to search for GTK by specifying
 `--with-pkg-config-prog=PATH' where PATH is the pathname to
 pkg-config.  Note that GTK version 2.6 or newer is required for Emacs.
 
+Emacs will autolaunch a D-Bus session bus, when the environment
+variable DISPLAY is set, but no session bus is running.  This might be
+inconvenient for Emacs when running as daemon or running via a remote
+ssh connection.  In order to suppress D-Bus at all, configure Emacs
+with the options `--without-dbus --without-gconf --without-gsettings'.
+
 The Emacs mail reader RMAIL is configured to be able to read mail from
 a POP3 server by default.  Versions of the POP protocol older than
 POP3 are not supported.  For Kerberos-authenticated POP add
