@@ -235,7 +235,8 @@ Adds the given PATH to $PATH.")
 			       (getenv "PATH"))
 		     (concat (getenv "PATH") path-separator
 			     (car args))))
-	   (setq args (cdr args))))
+	   (setq args (cdr args)))
+	 (setq eshell-path-env (getenv "PATH")))
      (let ((paths (parse-colon-path (getenv "PATH"))))
        (while paths
 	 (eshell-printn (car paths))

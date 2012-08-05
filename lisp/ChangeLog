@@ -1,7 +1,11 @@
+2012-08-05  Glenn Morris  <rgm@gnu.org>
+
+	* eshell/esh-ext.el (eshell/addpath):
+	Also update eshell-path-env.  (Bug#12013)
+
 2012-08-05  Chong Yidong  <cyd@gnu.org>
 
-	* wdired.el (wdired-mode, wdired-change-to-wdired-mode): Doc
-	fixes.
+	* wdired.el (wdired-mode, wdired-change-to-wdired-mode): Doc fixes.
 
 	* fringe.el (fringe-styles): Add docstring.
 	(fringe--check-mode): New function.
