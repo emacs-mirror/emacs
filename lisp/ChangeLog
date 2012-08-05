@@ -1,4 +1,4 @@
-2012-08-05  Vegard Øye  <vegard_oye@hotmail.com>
+2012-08-05  Vegard Øye  <vegard_oye@hotmail.com>  (tiny change)
 
 	* emulation/viper-init.el (viper-deflocalvar): Add docstring and
 	indentation declaration.
