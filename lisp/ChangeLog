@@ -1,3 +1,9 @@
+2012-08-05  Vegard Øye  <vegard_oye@hotmail.com>
+
+	* emulation/viper-init.el (viper-deflocalvar): Add docstring and
+	indentation declaration.
+	(viper-loop): Add indentation declaration (Bug#7025).
+
 2012-08-05  Chong Yidong  <cyd@gnu.org>
 
 	* help-fns.el (describe-variable): Add hyperlink for

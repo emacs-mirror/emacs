@@ -96,6 +96,10 @@ In all likelihood, you don't need to bother with this setting."
 ;;; Macros
 
 (defmacro viper-deflocalvar (var default-value &optional documentation)
+  "Define VAR as a buffer-local variable.
+DEFAULT-VALUE is the default value, and DOCUMENTATION is the
+docstring.  The variable becomes buffer-local whenever set."
+  (declare (indent defun))
   `(progn
     (defvar ,var ,default-value
       ,(format "%s\n\(buffer local\)" documentation))
@@ -103,6 +107,7 @@ In all likelihood, you don't need to bother with this setting."
 
 ;; (viper-loop COUNT BODY) Execute BODY COUNT times.
 (defmacro viper-loop (count &rest body)
+  (declare (indent defun))
   `(let ((count ,count))
     (while (> count 0)
       ,@body
