@@ -3571,14 +3571,14 @@ This variable can be used by terminal emulator packages.  */);
 #endif
 
   DEFVAR_LISP ("suspend-tty-functions", Vsuspend_tty_functions,
-    doc: /* Functions to be run after suspending a tty.
+    doc: /* Functions run after suspending a tty.
 The functions are run with one argument, the terminal object to be suspended.
 See `suspend-tty'.  */);
   Vsuspend_tty_functions = Qnil;
 
 
   DEFVAR_LISP ("resume-tty-functions", Vresume_tty_functions,
-    doc: /* Functions to be run after resuming a tty.
+    doc: /* Functions run after resuming a tty.
 The functions are run with one argument, the terminal object that was revived.
 See `resume-tty'.  */);
   Vresume_tty_functions = Qnil;

@@ -1,3 +1,9 @@
+2012-08-05  Chong Yidong  <cyd@gnu.org>
+
+	* term.c (Vsuspend_tty_functions, Vresume_tty_functions):
+	* frame.c (Vdelete_frame_functions):
+	* emacs.c (Vkill_emacs_hook): Doc fix.
+
 2012-08-04  Eli Zaretskii  <eliz@gnu.org>
 
 	* xfns.c (x_set_menu_bar_lines): Fix compilation error in

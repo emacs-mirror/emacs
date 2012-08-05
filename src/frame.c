@@ -4351,7 +4351,7 @@ The pointer becomes visible again when the mouse is moved.  */);
   Vmake_pointer_invisible = Qt;
 
   DEFVAR_LISP ("delete-frame-functions", Vdelete_frame_functions,
-	       doc: /* Functions to be run before deleting a frame.
+	       doc: /* Functions run before deleting a frame.
 The functions are run with one arg, the frame to be deleted.
 See `delete-frame'.
 

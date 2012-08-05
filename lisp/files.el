@@ -1514,7 +1514,11 @@ expand wildcards (if any) and replace the file with multiple files."
       (other-window 1)
       (find-alternate-file filename wildcards))))
 
-(defvar kill-buffer-hook)  ; from buffer.c
+;; Defined and used in buffer.c, but not as a DEFVAR_LISP.
+(defvar kill-buffer-hook nil
+  "Hook run when a buffer is killed.
+The buffer being killed is current while the hook is running.
+See `kill-buffer'.")
 
 (defun find-alternate-file (filename &optional wildcards)
   "Find file FILENAME, select its buffer, kill previous buffer.

@@ -1,3 +1,7 @@
+2012-08-05  Chong Yidong  <cyd@gnu.org>
+
+	* files.el (kill-buffer-hook): Provide a defvar.
+
 2012-08-05  Glenn Morris  <rgm@gnu.org>
 
 	* eshell/esh-ext.el (eshell/addpath):
