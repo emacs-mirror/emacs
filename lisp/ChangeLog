@@ -1,5 +1,10 @@
 2012-08-05  Chong Yidong  <cyd@gnu.org>
 
+	* fringe.el (fringe-styles): Add docstring.
+	(fringe--check-mode): New function.
+	(set-fringe-mode, set-fringe-style): Use it.
+	(fringe-mode, set-fringe-style): Doc fixes (Bug#6480).
+
 	* files.el (set-auto-mode): Fix invalid setq call.
 
 2012-08-04  Stefan Monnier  <monnier@iro.umontreal.ca>
