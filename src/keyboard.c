@@ -7527,7 +7527,7 @@ menu_bar_items (Lisp_Object old)
 	    if (end > i + 4)
 	      memmove (aref_addr (menu_bar_items_vector, i),
 		       aref_addr (menu_bar_items_vector, i + 4),
-		       (end - i - 4) * sizeof (Lisp_Object));
+		       (end - i - 4) * word_size);
 	    ASET (menu_bar_items_vector, end - 4, tem0);
 	    ASET (menu_bar_items_vector, end - 3, tem1);
 	    ASET (menu_bar_items_vector, end - 2, tem2);
@@ -7577,7 +7577,7 @@ menu_bar_item (Lisp_Object key, Lisp_Object item, Lisp_Object dummy1, void *dumm
 	    if (menu_bar_items_index > i + 4)
 	      memmove (aref_addr (menu_bar_items_vector, i),
 		       aref_addr (menu_bar_items_vector, i + 4),
-		       (menu_bar_items_index - i - 4) * sizeof (Lisp_Object));
+		       (menu_bar_items_index - i - 4) * word_size);
 	    menu_bar_items_index -= 4;
 	  }
     }
@@ -8082,7 +8082,7 @@ process_tool_bar_item (Lisp_Object key, Lisp_Object def, Lisp_Object data, void 
 	      if (ntool_bar_items > i + TOOL_BAR_ITEM_NSLOTS)
 		memmove (v, v + TOOL_BAR_ITEM_NSLOTS,
 			 ((ntool_bar_items - i - TOOL_BAR_ITEM_NSLOTS)
-			  * sizeof (Lisp_Object)));
+			  * word_size));
 	      ntool_bar_items -= TOOL_BAR_ITEM_NSLOTS;
 	      break;
 	    }
@@ -10425,9 +10425,9 @@ DEFUN ("recent-keys", Frecent_keys, Srecent_keys, 0, 0, 0,
     {
       val = Fvector (NUM_RECENT_KEYS, keys);
       memcpy (XVECTOR (val)->contents, keys + recent_keys_index,
-	      (NUM_RECENT_KEYS - recent_keys_index) * sizeof (Lisp_Object));
+	      (NUM_RECENT_KEYS - recent_keys_index) * word_size);
       memcpy (XVECTOR (val)->contents + NUM_RECENT_KEYS - recent_keys_index,
-	      keys, recent_keys_index * sizeof (Lisp_Object));
+	      keys, recent_keys_index * word_size);
       return val;
     }
 }

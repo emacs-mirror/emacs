@@ -63,7 +63,7 @@ macro before appending to it. */)
 
   if (!current_kboard->kbd_macro_buffer)
     {
-      current_kboard->kbd_macro_buffer = xmalloc (30 * sizeof (Lisp_Object));
+      current_kboard->kbd_macro_buffer = xmalloc (30 * word_size);
       current_kboard->kbd_macro_bufsize = 30;
     }
   update_mode_lines++;
@@ -73,7 +73,7 @@ macro before appending to it. */)
 	{
 	  current_kboard->kbd_macro_buffer
 	    = xrealloc (current_kboard->kbd_macro_buffer,
-			30 * sizeof (Lisp_Object));
+			30 * word_size);
 	  current_kboard->kbd_macro_bufsize = 30;
 	}
       current_kboard->kbd_macro_ptr = current_kboard->kbd_macro_buffer;

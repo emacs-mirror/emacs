@@ -99,7 +99,7 @@ static Lisp_Object Vbuffer_local_symbols;
 /* Maximum length of an overlay vector.  */
 #define OVERLAY_COUNT_MAX						\
   ((ptrdiff_t) min (MOST_POSITIVE_FIXNUM,				\
-		    min (PTRDIFF_MAX, SIZE_MAX) / sizeof (Lisp_Object)))
+		    min (PTRDIFF_MAX, SIZE_MAX) / word_size))
 
 /* Flags indicating which built-in buffer-local variables
    are permanent locals.  */
@@ -4267,7 +4267,7 @@ report_overlay_modification (Lisp_Object start, Lisp_Object end, int after,
     ptrdiff_t i;
 
     memcpy (copy, XVECTOR (last_overlay_modification_hooks)->contents,
-	    size * sizeof (Lisp_Object));
+	    size * word_size);
     gcpro1.var = copy;
     gcpro1.nvars = size;
 
@@ -4886,8 +4886,7 @@ init_buffer_once (void)
      sure that this is still correct.  Otherwise, mark_vectorlike may not
      trace all Lisp_Objects in buffer_defaults and buffer_local_symbols.  */
   const int pvecsize
-    = (offsetof (struct buffer, own_text) - sizeof (struct vectorlike_header))
-    / sizeof (Lisp_Object);
+    = (offsetof (struct buffer, own_text) - header_size) / word_size;
 
   memset (buffer_permanent_local_flags, 0, sizeof buffer_permanent_local_flags);
 
@@ -4972,7 +4971,7 @@ init_buffer_once (void)
      The local flag bits are in the local_var_flags slot of the buffer.  */
 
   /* Nothing can work if this isn't true */
-  { verify (sizeof (EMACS_INT) == sizeof (Lisp_Object)); }
+  { verify (sizeof (EMACS_INT) == word_size); }
 
   /* 0 means not a lisp var, -1 means always local, else mask */
   memset (&buffer_local_flags, 0, sizeof buffer_local_flags);

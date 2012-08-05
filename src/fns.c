@@ -3569,7 +3569,7 @@ hashfn_user_defined (struct Lisp_Hash_Table *h, Lisp_Object key)
 /* An upper bound on the size of a hash table index.  It must fit in
    ptrdiff_t and be a valid Emacs fixnum.  */
 #define INDEX_SIZE_BOUND \
-  ((ptrdiff_t) min (MOST_POSITIVE_FIXNUM, PTRDIFF_MAX / sizeof (Lisp_Object)))
+  ((ptrdiff_t) min (MOST_POSITIVE_FIXNUM, PTRDIFF_MAX / word_size))
 
 /* Create and initialize a new hash table.
 

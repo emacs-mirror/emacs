@@ -429,7 +429,7 @@ reorder_font_vector (Lisp_Object font_group, struct font *font)
     }
 
   if (score_changed)
-    qsort (XVECTOR (vec)->contents, size, sizeof (Lisp_Object),
+    qsort (XVECTOR (vec)->contents, size, word_size,
 	   fontset_compare_rfontdef);
   XSETCAR (font_group, make_number (charset_ordered_list_tick));
 }
@@ -1893,7 +1893,7 @@ format is the same as above.  */)
 
   /* Recode fontsets realized on FRAME from the base fontset FONTSET
      in the table `realized'.  */
-  realized[0] = alloca (sizeof (Lisp_Object) * ASIZE (Vfontset_table));
+  realized[0] = alloca (word_size * ASIZE (Vfontset_table));
   for (i = j = 0; i < ASIZE (Vfontset_table); i++)
     {
       elt = FONTSET_FROM_ID (i);
@@ -1904,7 +1904,7 @@ format is the same as above.  */)
     }
   realized[0][j] = Qnil;
 
-  realized[1] = alloca (sizeof (Lisp_Object) * ASIZE (Vfontset_table));
+  realized[1] = alloca (word_size * ASIZE (Vfontset_table));
   for (i = j = 0; ! NILP (realized[0][i]); i++)
     {
       elt = FONTSET_DEFAULT (realized[0][i]);

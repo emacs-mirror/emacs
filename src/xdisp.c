@@ -2420,7 +2420,7 @@ safe_call (ptrdiff_t nargs, Lisp_Object func, ...)
       ptrdiff_t i;
       ptrdiff_t count = SPECPDL_INDEX ();
       struct gcpro gcpro1;
-      Lisp_Object *args = alloca (nargs * sizeof (Lisp_Object));
+      Lisp_Object *args = alloca (nargs * word_size);
 
       args[0] = func;
       va_start (ap, func);

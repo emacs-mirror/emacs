@@ -536,7 +536,7 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
   stack.byte_string = bytestr;
   stack.pc = stack.byte_string_start = SDATA (bytestr);
   stack.constants = vector;
-  if (MAX_ALLOCA / sizeof (Lisp_Object) <= XFASTINT (maxdepth))
+  if (MAX_ALLOCA / word_size <= XFASTINT (maxdepth))
     memory_full (SIZE_MAX);
   top = alloca ((XFASTINT (maxdepth) + 1) * sizeof *top);
 #if BYTE_MAINTAIN_TOP

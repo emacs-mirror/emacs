@@ -155,7 +155,7 @@ static pthread_mutex_t alloc_mutex;
 
 /* Default value of gc_cons_threshold (see below).  */
 
-#define GC_DEFAULT_THRESHOLD (100000 * sizeof (Lisp_Object))
+#define GC_DEFAULT_THRESHOLD (100000 * word_size)
 
 /* Global variables.  */
 struct emacs_globals globals;
@@ -277,14 +277,6 @@ static void free_large_strings (void);
 static void sweep_strings (void);
 static void free_misc (Lisp_Object);
 extern Lisp_Object which_symbols (Lisp_Object, EMACS_INT) EXTERNALLY_VISIBLE;
-
-/* Handy constants for vectorlike objects.  */
-enum
-  {
-    header_size = offsetof (struct Lisp_Vector, contents),
-    bool_header_size = offsetof (struct Lisp_Bool_Vector, data),
-    word_size = sizeof (Lisp_Object)
-  };
 
 /* When scanning the C stack for live Lisp objects, Emacs keeps track
    of what memory allocated via lisp_malloc is intended for what
@@ -2810,9 +2802,9 @@ listn (enum constype type, ptrdiff_t count, Lisp_Object arg, ...)
   Lisp_Object val, *objp;
 
   /* Change to SAFE_ALLOCA if you hit this eassert.  */
-  eassert (count <= MAX_ALLOCA / sizeof (Lisp_Object));
+  eassert (count <= MAX_ALLOCA / word_size);
 
-  objp = alloca (count * sizeof (Lisp_Object));
+  objp = alloca (count * word_size);
   objp[0] = arg;
   va_start (ap, arg);
   for (i = 1; i < count; i++)

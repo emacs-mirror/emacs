@@ -1029,7 +1029,7 @@ extern int last_per_buffer_idx;
 #define FOR_EACH_PER_BUFFER_OBJECT_AT(offset)				 \
   for (offset = PER_BUFFER_VAR_OFFSET (name);				 \
        offset <= PER_BUFFER_VAR_OFFSET (cursor_in_non_selected_windows); \
-       offset += sizeof (Lisp_Object))
+       offset += word_size)
 
 /* Return the index of buffer-local variable VAR.  Each per-buffer
    variable has an index > 0 associated with it, except when it always

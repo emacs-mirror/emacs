@@ -824,25 +824,49 @@ struct vectorlike_header
     } next;
   };
 
+/* Regular vector is just a header plus array of Lisp_Objects.  */
+
 struct Lisp_Vector
   {
     struct vectorlike_header header;
     Lisp_Object contents[1];
   };
 
+/* A boolvector is a kind of vectorlike, with contents are like a string.  */
+
+struct Lisp_Bool_Vector
+  {
+    /* HEADER.SIZE is the vector's size field.  It doesn't have the real size,
+       just the subtype information.  */
+    struct vectorlike_header header;
+    /* This is the size in bits.  */
+    EMACS_INT size;
+    /* This contains the actual bits, packed into bytes.  */
+    unsigned char data[1];
+  };
+
+/* Some handy constants for calculating sizes
+   and offsets, mostly of vectorlike objects.   */
+
+enum
+  {
+    header_size = offsetof (struct Lisp_Vector, contents),
+    bool_header_size = offsetof (struct Lisp_Bool_Vector, data),
+    word_size = sizeof (Lisp_Object)
+  };
+
 /* If a struct is made to look like a vector, this macro returns the length
    of the shortest vector that would hold that struct.  */
-#define VECSIZE(type) ((sizeof (type)					  \
-			- offsetof (struct Lisp_Vector, contents[0])      \
-                        + sizeof (Lisp_Object) - 1) /* Round up.  */	  \
-		       / sizeof (Lisp_Object))
+
+#define VECSIZE(type)						\
+  ((sizeof (type) - header_size + word_size - 1) / word_size)
 
 /* Like VECSIZE, but used when the pseudo-vector has non-Lisp_Object fields
    at the end and we need to compute the number of Lisp_Object fields (the
    ones that the GC needs to trace).  */
-#define PSEUDOVECSIZE(type, nonlispfield) \
-  ((offsetof (type, nonlispfield) - offsetof (struct Lisp_Vector, contents[0])) \
-   / sizeof (Lisp_Object))
+
+#define PSEUDOVECSIZE(type, nonlispfield)			\
+  ((offsetof (type, nonlispfield) - header_size) / word_size)
 
 /* A char-table is a kind of vectorlike, with contents are like a
    vector but with a few other slots.  For some purposes, it makes
@@ -976,18 +1000,6 @@ struct Lisp_Sub_Char_Table
     Lisp_Object min_char;
 
     Lisp_Object contents[1];
-  };
-
-/* A boolvector is a kind of vectorlike, with contents are like a string.  */
-struct Lisp_Bool_Vector
-  {
-    /* HEADER.SIZE is the vector's size field.  It doesn't have the real size,
-       just the subtype information.  */
-    struct vectorlike_header header;
-    /* This is the size in bits.  */
-    EMACS_INT size;
-    /* This contains the actual bits, packed into bytes.  */
-    unsigned char data[1];
   };
 
 /* This structure describes a built-in function.
@@ -3483,21 +3495,21 @@ extern void *record_xmalloc (size_t);
 
 /* SAFE_ALLOCA_LISP allocates an array of Lisp_Objects.  */
 
-#define SAFE_ALLOCA_LISP(buf, nelt)			  \
-  do {							  \
-    if ((nelt) < MAX_ALLOCA / sizeof (Lisp_Object))	  \
-      buf = alloca ((nelt) * sizeof (Lisp_Object));	  \
-    else if ((nelt) < min (PTRDIFF_MAX, SIZE_MAX) / sizeof (Lisp_Object)) \
-      {							  \
-	Lisp_Object arg_;				  \
-	buf = xmalloc ((nelt) * sizeof (Lisp_Object));	  \
-	arg_ = make_save_value (buf, nelt);		  \
-	XSAVE_VALUE (arg_)->dogc = 1;			  \
-	sa_must_free = 1;				  \
-	record_unwind_protect (safe_alloca_unwind, arg_); \
-      }							  \
-    else						  \
-      memory_full (SIZE_MAX);				  \
+#define SAFE_ALLOCA_LISP(buf, nelt)			       \
+  do {							       \
+    if ((nelt) < MAX_ALLOCA / word_size)		       \
+      buf = alloca ((nelt) * word_size);		       \
+    else if ((nelt) < min (PTRDIFF_MAX, SIZE_MAX) / word_size) \
+      {							       \
+	Lisp_Object arg_;				       \
+	buf = xmalloc ((nelt) * word_size);		       \
+	arg_ = make_save_value (buf, nelt);		       \
+	XSAVE_VALUE (arg_)->dogc = 1;			       \
+	sa_must_free = 1;				       \
+	record_unwind_protect (safe_alloca_unwind, arg_);      \
+      }							       \
+    else						       \
+      memory_full (SIZE_MAX);				       \
   } while (0)
 
 

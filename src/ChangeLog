@@ -1,3 +1,16 @@
+2012-08-05  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Generalize common compile-time constants.
+	* lisp.h (header_size, bool_header_size, word_size): Now here.
+	(struct Lisp_Vector): Add comment.
+	(struct Lisp_Bool_Vector): Move up to define handy constants.
+	(VECSIZE, PSEUDOVECSIZE): Simplify.
+	(SAFE_ALLOCA_LISP): Use new constant.  Adjust indentation.
+	* buffer.c, buffer.h, bytecode.c, callint.c, eval.c, fns.c:
+	* font.c, fontset.c, keyboard.c, keymap.c, macros.c, menu.c:
+	* msdos.c, w32menu.c, w32term.h, window.c, xdisp.c, xfaces.c:
+	* xfont.c, xmenu.c: Use word_size where appropriate.
+
 2012-08-05  Lawrence Mitchell  <wence@gmx.li>
 
 	* search.c (Freplace_match): Treat \? in the replacement text

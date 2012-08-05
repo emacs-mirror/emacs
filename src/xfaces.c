@@ -1657,7 +1657,7 @@ the face font sort order.  */)
   vec = Fvconcat (ndrivers, drivers);
   nfonts = ASIZE (vec);
 
-  qsort (XVECTOR (vec)->contents, nfonts, sizeof (Lisp_Object),
+  qsort (XVECTOR (vec)->contents, nfonts, word_size,
 	 compare_fonts_by_sort_order);
 
   result = Qnil;
@@ -2768,7 +2768,7 @@ The value is TO.  */)
     }
 
   memcpy (XVECTOR (copy)->contents, XVECTOR (lface)->contents,
-	  LFACE_VECTOR_SIZE * sizeof (Lisp_Object));
+	  LFACE_VECTOR_SIZE * word_size);
 
   /* Changing a named face means that all realized faces depending on
      that face are invalid.  Since we cannot tell which realized faces

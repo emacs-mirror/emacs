@@ -2138,7 +2138,7 @@ static Lisp_Object
 font_vconcat_entity_vectors (Lisp_Object list)
 {
   int nargs = XINT (Flength (list));
-  Lisp_Object *args = alloca (sizeof (Lisp_Object) * nargs);
+  Lisp_Object *args = alloca (word_size * nargs);
   int i;
 
   for (i = 0; i < nargs; i++, list = XCDR (list))

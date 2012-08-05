@@ -3263,7 +3263,7 @@ make_parent_window (Lisp_Object window, int horflag)
   p = allocate_window ();
   memcpy ((char *) p + sizeof (struct vectorlike_header),
 	  (char *) o + sizeof (struct vectorlike_header),
-	  sizeof (Lisp_Object) * VECSIZE (struct window));
+	  word_size * VECSIZE (struct window));
   XSETWINDOW (parent, p);
 
   p->sequence_number = ++sequence_number;

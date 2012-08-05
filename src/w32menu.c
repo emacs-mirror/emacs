@@ -276,7 +276,7 @@ menubar_selection_callback (FRAME_PTR f, void * client_data)
   if (!f)
     return;
   entry = Qnil;
-  subprefix_stack = (Lisp_Object *) alloca (f->menu_bar_items_used * sizeof (Lisp_Object));
+  subprefix_stack = (Lisp_Object *) alloca (f->menu_bar_items_used * word_size);
   vector = FVAR (f, menu_bar_vector);
   prefix = Qnil;
   i = 0;
@@ -387,7 +387,7 @@ set_frame_menubar (FRAME_PTR f, int first_time, int deep_p)
       int previous_menu_items_used = f->menu_bar_items_used;
       Lisp_Object *previous_items
 	= (Lisp_Object *) alloca (previous_menu_items_used
-				  * sizeof (Lisp_Object));
+				  * word_size);
 
       /* If we are making a new widget, its contents are empty,
 	 do always reinitialize them.  */
@@ -420,7 +420,7 @@ set_frame_menubar (FRAME_PTR f, int first_time, int deep_p)
       /* Save the frame's previous menu bar contents data.  */
       if (previous_menu_items_used)
 	memcpy (previous_items, XVECTOR (FVAR (f, menu_bar_vector))->contents,
-		previous_menu_items_used * sizeof (Lisp_Object));
+		previous_menu_items_used * word_size);
 
       /* Fill in menu_items with the current menu bar contents.
 	 This can evaluate Lisp code.  */
@@ -665,7 +665,7 @@ w32_menu_show (FRAME_PTR f, int x, int y, int for_click, int keymaps,
   widget_value **submenu_stack
     = (widget_value **) alloca (menu_items_used * sizeof (widget_value *));
   Lisp_Object *subprefix_stack
-    = (Lisp_Object *) alloca (menu_items_used * sizeof (Lisp_Object));
+    = (Lisp_Object *) alloca (menu_items_used * word_size);
   int submenu_depth = 0;
   int first_pane;
 

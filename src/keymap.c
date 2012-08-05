@@ -2069,7 +2069,7 @@ The `kbd' macro is an approximate inverse of this.  */)
     size += XINT (Flength (prefix));
 
   /* This has one extra element at the end that we don't pass to Fconcat.  */
-  if (min (PTRDIFF_MAX, SIZE_MAX) / sizeof (Lisp_Object) / 4 < size)
+  if (min (PTRDIFF_MAX, SIZE_MAX) / word_size / 4 < size)
     memory_full (SIZE_MAX);
   SAFE_ALLOCA_LISP (args, size * 4);
 

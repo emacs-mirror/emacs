@@ -465,7 +465,7 @@ invoke it.  If KEYS is omitted or nil, the return value of
     }
 
   if (min (MOST_POSITIVE_FIXNUM,
-	   min (PTRDIFF_MAX, SIZE_MAX) / sizeof (Lisp_Object))
+	   min (PTRDIFF_MAX, SIZE_MAX) / word_size)
       < nargs)
     memory_full (SIZE_MAX);
 

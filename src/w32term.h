@@ -429,7 +429,7 @@ struct scroll_bar {
 #define SCROLL_BAR_VEC_SIZE					\
   ((sizeof (struct scroll_bar)					\
     - sizeof (EMACS_INT) - sizeof (struct Lisp_Vector *))	\
-   / sizeof (Lisp_Object))
+   / word_size)
 
 /* Turning a lisp vector value into a pointer to a struct scroll_bar.  */
 #define XSCROLL_BAR(vec) ((struct scroll_bar *) XVECTOR (vec))

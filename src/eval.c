@@ -2301,7 +2301,7 @@ usage: (apply FUNCTION &rest ARGUMENTS)  */)
       gcpro1.nvars = 1 + numargs;
     }
 
-  memcpy (funcall_args, args, nargs * sizeof (Lisp_Object));
+  memcpy (funcall_args, args, nargs * word_size);
   /* Spread the last arg we got.  Its first element goes in
      the slot that it used to occupy, hence this value of I.  */
   i = nargs - 1;
@@ -2794,7 +2794,7 @@ usage: (funcall FUNCTION &rest ARGUMENTS)  */)
 	    {
 	      internal_args = alloca (XSUBR (fun)->max_args
 				      * sizeof *internal_args);
-	      memcpy (internal_args, args + 1, numargs * sizeof (Lisp_Object));
+	      memcpy (internal_args, args + 1, numargs * word_size);
 	      for (i = numargs; i < XSUBR (fun)->max_args; i++)
 		internal_args[i] = Qnil;
 	    }
