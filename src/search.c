@@ -2226,6 +2226,9 @@ Otherwise treat `\\' as special:
   `\\N' means substitute what matched the Nth `\\(...\\)'.
        If Nth parens didn't match, substitute nothing.
   `\\\\' means insert one `\\'.
+  `\\?' is treated literally
+       (for compatibility with `query-replace-regexp').
+  Any other character following `\\' signals an error.
 Case conversion does not apply to these substitutions.
 
 FIXEDCASE and LITERAL are optional arguments.
@@ -2428,7 +2431,7 @@ since only regular expressions have distinguished subexpressions.  */)
 		    }
 		  else if (c == '\\')
 		    delbackslash = 1;
-		  else
+		  else if (c != '?')
 		    error ("Invalid use of `\\' in replacement text");
 		}
 	      if (substart >= 0)

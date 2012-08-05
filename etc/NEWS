@@ -482,6 +482,10 @@ inefficiency, and not namespace-clean.
 
 * Incompatible Lisp Changes in Emacs 24.2
 
+** If the NEWTEXT arg to `replace-match' contains a substring "\?",
+that substring is inserted literally even if the LITERAL arg is
+non-nil, instead of causing an error to be signaled.
+
 +++
 ** Docstrings starting with `*' no longer indicate user options.
 Only variables defined using `defcustom' are considered user options.

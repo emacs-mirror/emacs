@@ -1,3 +1,8 @@
+2012-08-05  Lawrence Mitchell  <wence@gmx.li>
+
+	* search.c (Freplace_match): Treat \? in the replacement text
+	literally (Bug#8161).
+
 2012-08-05  Chong Yidong  <cyd@gnu.org>
 
 	* term.c (Vsuspend_tty_functions, Vresume_tty_functions):
