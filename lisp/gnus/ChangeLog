@@ -1,3 +1,8 @@
+2012-08-05  Julien Danjou  <julien@danjou.info>
+
+	* gnus-demon.el (gnus-demon-add-handler, gnus-demon-remove-handler):
+	Add autoload.
+
 2012-07-31  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus.el (gnus-valid-select-methods): Fix custom type.
