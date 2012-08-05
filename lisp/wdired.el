@@ -183,14 +183,21 @@ program `dired-chmod-program', which must exist."
 
 
 (defun wdired-mode ()
-  "Writable Dired mode.
+  "Writable Dired (WDired) mode.
 \\<wdired-mode-map>
-Press \\[wdired-finish-edit] to make the changes to take effect
-and exit.  To abort the edit, use \\[wdired-abort-changes].
+In WDired mode, you can edit the names of the files in the
+buffer, the target of the links, and the permission bits of the
+files.
 
-In this mode you can edit the names of the files, the target of
-the links and the permission bits of the files.  You can use
-\\[customize-group] RET wdired to customize WDired behavior.
+Type \\[wdired-finish-edit] to exit WDired mode, returning to
+Dired mode, and make your edits \"take effect\" by modifying the
+file and directory names, link targets, and/or file permissions
+on disk.  If you delete the filename of a file, it is flagged for
+deletion in the Dired buffer.
+
+Type \\[wdired-abort-changes] to abort your edits and exit WDired mode.
+
+Type \\[customize-group] RET wdired to customize WDired behavior.
 
 The only editable texts in a WDired buffer are filenames,
 symbolic link targets, and filenames permission."
@@ -201,16 +208,17 @@ symbolic link targets, and filenames permission."
 
 ;;;###autoload
 (defun wdired-change-to-wdired-mode ()
-  "Put a dired buffer in a mode in which filenames are editable.
+  "Put a Dired buffer in Writable Dired (WDired) mode.
 \\<wdired-mode-map>
-This mode allows the user to change the names of the files, and after
-typing \\[wdired-finish-edit] Emacs renames the files and directories
-in disk.
+In WDired mode, you can edit the names of the files in the
+buffer, the target of the links, and the permission bits of the
+files.  After typing \\[wdired-finish-edit], Emacs modifies the files and
+directories to reflect your edits.
 
 See `wdired-mode'."
   (interactive)
-  (or (eq major-mode 'dired-mode)
-      (error "Not a Dired buffer"))
+  (unless (eq major-mode 'dired-mode)
+    (error "Not a Dired buffer"))
   (set (make-local-variable 'wdired-old-content)
        (buffer-substring (point-min) (point-max)))
   (set (make-local-variable 'wdired-old-point) (point))

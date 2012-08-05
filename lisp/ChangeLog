@@ -1,5 +1,8 @@
 2012-08-05  Chong Yidong  <cyd@gnu.org>
 
+	* wdired.el (wdired-mode, wdired-change-to-wdired-mode): Doc
+	fixes.
+
 	* fringe.el (fringe-styles): Add docstring.
 	(fringe--check-mode): New function.
 	(set-fringe-mode, set-fringe-style): Use it.
