@@ -2242,8 +2242,8 @@ decode_env_path (const char *evarname, const char *defalt)
 {
   const char *path, *p;
   Lisp_Object lpath, element, tem;
-  int defaulted = 0;
 #ifdef WINDOWSNT
+  int defaulted = 0;
   const char *emacs_dir = egetenv ("emacs_dir");
   static const char *emacs_dir_env = "%emacs_dir%/";
   const size_t emacs_dir_len = strlen (emacs_dir_env);
@@ -2259,7 +2259,9 @@ decode_env_path (const char *evarname, const char *defalt)
   if (!path)
     {
       path = defalt;
+#ifdef WINDOWSNT
       defaulted = 1;
+#endif
     }
 #ifdef DOS_NT
   /* Ensure values from the environment use the proper directory separator.  */

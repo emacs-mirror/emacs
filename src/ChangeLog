@@ -1,3 +1,7 @@
+2012-08-05  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* emacs.c (decode_env_path): Only use defaulted if WINDOWSNT.
+
 2012-08-05  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Generalize common compile-time constants.
