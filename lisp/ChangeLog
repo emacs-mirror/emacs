@@ -1,5 +1,11 @@
 2012-08-05  Chong Yidong  <cyd@gnu.org>
 
+	* help-fns.el (describe-variable): Add hyperlink for
+	directory-local variables files.  Improve buffer-local and
+	permanent-local reporting; suggested by MON KEY (Bug#6644).
+
+	* help-mode.el (help-dir-local-var-def): New button type.
+
 	* files.el (kill-buffer-hook): Provide a defvar.
 
 2012-08-05  Glenn Morris  <rgm@gnu.org>

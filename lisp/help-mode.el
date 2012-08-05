@@ -265,6 +265,15 @@ The format is (FUNCTION ARGS...).")
   :supertype 'help-xref
   'help-function 'customize-create-theme
   'help-echo (purecopy "mouse-2, RET: edit this theme file"))
+
+(define-button-type 'help-dir-local-var-def
+  :supertype 'help-xref
+  'help-function (lambda (var &optional file)
+		   ;; FIXME: this should go to the point where the
+		   ;; local variable was defined.
+		   (find-file file))
+  'help-echo (purecopy "mouse-2, RET: open directory-local variables file"))
+
 
 (defvar bookmark-make-record-function)
 

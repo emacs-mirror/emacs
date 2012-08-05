@@ -713,6 +713,7 @@ it is displayed along with the global value."
 	(message "You did not specify a variable")
       (save-excursion
 	(let ((valvoid (not (with-current-buffer buffer (boundp variable))))
+	      (permanent-local (get variable 'permanent-local))
 	      val val-start-pos locus)
 	  ;; Extract the value before setting up the output buffer,
 	  ;; in case `buffer' *is* the output buffer.
@@ -752,7 +753,6 @@ it is displayed along with the global value."
 		(princ "value is ")
 		(let ((from (point))
 		      (line-beg (line-beginning-position))
-		      ;;
 		      (print-rep
 		       (let ((print-quoted t))
 			 (prin1-to-string val))))
@@ -780,9 +780,7 @@ it is displayed along with the global value."
 	    (when locus
 	      (cond
                ((bufferp locus)
-                (princ (format "%socal in buffer %s; "
-                               (if (get variable 'permanent-local)
-                                   "Permanently l" "L")
+                (princ (format "Local in buffer %s; "
                                (buffer-name))))
                ((framep locus)
                 (princ (format "It is a frame-local variable; ")))
@@ -792,20 +790,22 @@ it is displayed along with the global value."
                 (princ (format "It is local to %S" locus))))
 	      (if (not (default-boundp variable))
 		  (princ "globally void")
-		(let ((val (default-value variable)))
+		(let ((global-val (default-value variable)))
 		  (with-current-buffer standard-output
 		    (princ "global value is ")
-		    (terpri)
-		    ;; Fixme: pp can take an age if you happen to
-		    ;; ask for a very large expression.  We should
-		    ;; probably print it raw once and check it's a
-		    ;; sensible size before prettyprinting.  -- fx
-		    (let ((from (point)))
-		      (pp val)
-		      ;; See previous comment for this function.
-		      ;; (help-xref-on-pp from (point))
-		      (if (< (point) (+ from 20))
-			  (delete-region (1- from) from))))))
+		    (if (eq val global-val)
+			(princ "the same.")
+		      (terpri)
+		      ;; Fixme: pp can take an age if you happen to
+		      ;; ask for a very large expression.  We should
+		      ;; probably print it raw once and check it's a
+		      ;; sensible size before prettyprinting.  -- fx
+		      (let ((from (point)))
+			(pp global-val)
+			;; See previous comment for this function.
+			;; (help-xref-on-pp from (point))
+			(if (< (point) (+ from 20))
+			    (delete-region (1- from) from)))))))
               (terpri))
 
 	    ;; If the value is large, move it to the end.
@@ -846,18 +846,26 @@ it is displayed along with the global value."
                                  alias 'variable-documentation))
                           (error (format "Doc not found: %S" err))))
                    (extra-line nil))
-              ;; Add a note for variables that have been make-var-buffer-local.
-              (when (and (local-variable-if-set-p variable)
-                         (or (not (local-variable-p variable))
-                             (with-temp-buffer
-                               (local-variable-if-set-p variable))))
+
+	      ;; Mention if it's a local variable.
+	      (cond
+	       ((and (local-variable-if-set-p variable)
+		     (or (not (local-variable-p variable))
+			 (with-temp-buffer
+			   (local-variable-if-set-p variable))))
                 (setq extra-line t)
                 (princ "  Automatically becomes ")
-		(if (get variable 'permanent-local)
+		(if permanent-local
 		    (princ "permanently "))
 		(princ "buffer-local when set.\n"))
+	       ((not permanent-local))
+	       ((bufferp locus)
+		(princ "  This variable's buffer-local value is permanent.\n"))
+	       (t
+                (princ "  This variable's value is permanent \
+if it is given a local binding.\n")))
 
-              ;; Mention if it's an alias
+	      ;; Mention if it's an alias.
               (unless (eq alias variable)
                 (setq extra-line t)
                 (princ (format "  This variable is an alias for `%s'.\n" alias)))
@@ -879,9 +887,11 @@ it is displayed along with the global value."
                                       (not (file-remote-p (buffer-file-name)))
                                       (dir-locals-find-file
                                        (buffer-file-name))))
-                          (type "file"))
-		      (princ "  This variable is a directory local variable")
-		      (when file
+                          (dir-file t))
+		      (princ "  This variable's value is directory-local")
+		      (if (null file)
+			  (princ ".\n")
+			(princ ", set ")
                         (if (consp file) ; result from cache
                             ;; If the cache element has an mtime, we
                             ;; assume it came from a file.
@@ -889,21 +899,27 @@ it is displayed along with the global value."
                                 (setq file (expand-file-name
                                             dir-locals-file (car file)))
                               ;; Otherwise, assume it was set directly.
-                              (setq type "directory")))
-			(princ (format "\n  from the %s \"%s\"" type file)))
-		      (princ ".\n"))
-		  (princ "  This variable is a file local variable.\n")))
+                              (setq dir-file nil)))
+			(princ (if dir-file
+				   "by the file\n  `"
+				 "for the directory\n  `"))
+			(with-current-buffer standard-output
+			  (insert-text-button
+			   file 'type 'help-dir-local-var-def
+			   'help-args (list variable file)))
+			(princ "'.\n")))
+		  (princ "  This variable's value is file-local.\n")))
 
 	      (when (memq variable ignored-local-variables)
 		(setq extra-line t)
-		(princ "  This variable is ignored when used as a file local \
+		(princ "  This variable is ignored as a file-local \
 variable.\n"))
 
 	      ;; Can be both risky and safe, eg auto-fill-function.
 	      (when (risky-local-variable-p variable)
 		(setq extra-line t)
-		(princ "  This variable is potentially risky when used as a \
-file local variable.\n")
+		(princ "  This variable may be risky if used as a \
+file-local variable.\n")
 		(when (assq variable safe-local-variable-values)
 		  (princ "  However, you have added it to \
 `safe-local-variable-values'.\n")))
