@@ -1,5 +1,8 @@
 2012-08-05  Chong Yidong  <cyd@gnu.org>
 
+	* proced.el (proced): Add substitution string to docstring to
+	trigger autoloading of the proced library on C-h f (Bug#1768).
+
 	* emacs-lisp/lisp-mode.el (lisp-imenu-generic-expression): Don't
 	show defvars which have no second argument (Bug#8638).
 
