@@ -1,3 +1,8 @@
+2012-08-06  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32menu.c (set_frame_menubar, initialize_frame_menubar): Don't
+	use FRAME_MENU_BAR_ITEMS as an lvalue.
+
 2012-08-06  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* buffer.h (struct buffer): Revert `indirections' to a simple int;
