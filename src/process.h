@@ -26,10 +26,15 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "gnutls.h"
 #endif
 
-/* Most code should use this macro to access
-   Lisp fields in struct Lisp_Process.  */
+/* Most code should use these macros to access Lisp fields in
+   struct Lisp_Process.  PGET should not be used as lvalue.  */
 
-#define PVAR(w, field) ((w)->INTERNAL_FIELD (field))
+#define PGET(p, field)						\
+  (eassert (offsetof (struct Lisp_Process, field ## _)		\
+	    < offsetof (struct Lisp_Process, pid)),		\
+   ((p)->INTERNAL_FIELD (field)))
+
+#define PSET(p, field, value) ((p)->INTERNAL_FIELD (field) = (value))
 
 /* This structure records information about a subprocess
    or network connection.  */
@@ -100,7 +105,7 @@ struct Lisp_Process
     Lisp_Object INTERNAL_FIELD (write_queue);
 
 #ifdef HAVE_GNUTLS
-    Lisp_Object gnutls_cred_type;
+    Lisp_Object INTERNAL_FIELD (gnutls_cred_type);
 #endif
 
     /* After this point, there are no Lisp_Objects any more.  */

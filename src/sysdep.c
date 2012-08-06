@@ -2159,7 +2159,7 @@ serial_configure (struct Lisp_Process *p,
   int err = -1;
   char summary[4] = "???"; /* This usually becomes "8N1".  */
 
-  childp2 = Fcopy_sequence (PVAR (p, childp));
+  childp2 = Fcopy_sequence (PGET (p, childp));
 
   /* Read port attributes and prepare default configuration.  */
   err = tcgetattr (p->outfd, &attr);
@@ -2177,7 +2177,7 @@ serial_configure (struct Lisp_Process *p,
   if (!NILP (Fplist_member (contact, QCspeed)))
     tem = Fplist_get (contact, QCspeed);
   else
-    tem = Fplist_get (PVAR (p, childp), QCspeed);
+    tem = Fplist_get (PGET (p, childp), QCspeed);
   CHECK_NUMBER (tem);
   err = cfsetspeed (&attr, XINT (tem));
   if (err != 0)
@@ -2189,7 +2189,7 @@ serial_configure (struct Lisp_Process *p,
   if (!NILP (Fplist_member (contact, QCbytesize)))
     tem = Fplist_get (contact, QCbytesize);
   else
-    tem = Fplist_get (PVAR (p, childp), QCbytesize);
+    tem = Fplist_get (PGET (p, childp), QCbytesize);
   if (NILP (tem))
     tem = make_number (8);
   CHECK_NUMBER (tem);
@@ -2210,7 +2210,7 @@ serial_configure (struct Lisp_Process *p,
   if (!NILP (Fplist_member (contact, QCparity)))
     tem = Fplist_get (contact, QCparity);
   else
-    tem = Fplist_get (PVAR (p, childp), QCparity);
+    tem = Fplist_get (PGET (p, childp), QCparity);
   if (!NILP (tem) && !EQ (tem, Qeven) && !EQ (tem, Qodd))
     error (":parity must be nil (no parity), `even', or `odd'");
 #if defined (PARENB) && defined (PARODD) && defined (IGNPAR) && defined (INPCK)
@@ -2243,7 +2243,7 @@ serial_configure (struct Lisp_Process *p,
   if (!NILP (Fplist_member (contact, QCstopbits)))
     tem = Fplist_get (contact, QCstopbits);
   else
-    tem = Fplist_get (PVAR (p, childp), QCstopbits);
+    tem = Fplist_get (PGET (p, childp), QCstopbits);
   if (NILP (tem))
     tem = make_number (1);
   CHECK_NUMBER (tem);
@@ -2265,7 +2265,7 @@ serial_configure (struct Lisp_Process *p,
   if (!NILP (Fplist_member (contact, QCflowcontrol)))
     tem = Fplist_get (contact, QCflowcontrol);
   else
-    tem = Fplist_get (PVAR (p, childp), QCflowcontrol);
+    tem = Fplist_get (PGET (p, childp), QCflowcontrol);
   if (!NILP (tem) && !EQ (tem, Qhw) && !EQ (tem, Qsw))
     error (":flowcontrol must be nil (no flowcontrol), `hw', or `sw'");
 #if defined (CRTSCTS)
@@ -2307,7 +2307,7 @@ serial_configure (struct Lisp_Process *p,
     error ("tcsetattr() failed: %s", emacs_strerror (errno));
 
   childp2 = Fplist_put (childp2, QCsummary, build_string (summary));
-  PVAR (p, childp) = childp2;
+  PSET (p, childp, childp2);
 
 }
 #endif /* not DOS_NT  */

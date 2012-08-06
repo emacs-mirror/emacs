@@ -1,5 +1,11 @@
 2012-08-06  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	Separate read and write access to Lisp_Object slots of Lisp_Process.
+	* process.h (PGET, PSET): New macros similar to AREF and ASET.
+	* gnutls.c, print.c, process.c, sysdep.c, w32.c, xdisp.c: Adjust users.
+
+2012-08-06  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	Separate read and write access to Lisp_Object slots of struct window.
 	* window.h (WGET, WSET): New macros similar to AREF and ASET.
 	* alloc.c, buffer.c, composite.c, dispextern.h, dispnew.c, editfns.c:

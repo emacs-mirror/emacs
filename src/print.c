@@ -1697,11 +1697,11 @@ print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag
 	  if (escapeflag)
 	    {
 	      strout ("#<process ", -1, -1, printcharfun);
-	      print_string (PVAR (XPROCESS (obj), name), printcharfun);
+	      print_string (PGET (XPROCESS (obj), name), printcharfun);
 	      PRINTCHAR ('>');
 	    }
 	  else
-	    print_string (PVAR (XPROCESS (obj), name), printcharfun);
+	    print_string (PGET (XPROCESS (obj), name), printcharfun);
 	}
       else if (BOOL_VECTOR_P (obj))
 	{
