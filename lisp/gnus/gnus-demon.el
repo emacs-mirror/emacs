@@ -77,7 +77,6 @@ Emacs has been idle for IDLE `gnus-demon-timestep's."
 
 ;;; Functions.
 
-;;;###autoload
 (defun gnus-demon-add-handler (function time idle)
   "Add the handler FUNCTION to be run at TIME and IDLE."
   ;; First remove any old handlers that use this function.
@@ -86,7 +85,6 @@ Emacs has been idle for IDLE `gnus-demon-timestep's."
   (push (list function time idle) gnus-demon-handlers)
   (gnus-demon-init))
 
-;;;###autoload
 (defun gnus-demon-remove-handler (function &optional no-init)
   "Remove the handler FUNCTION from the list of handlers."
   (gnus-alist-pull function gnus-demon-handlers)

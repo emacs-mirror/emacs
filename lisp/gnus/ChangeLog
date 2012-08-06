@@ -1,3 +1,8 @@
+2012-08-06  Julien Danjou  <julien@danjou.info>
+
+	* gnus-demon.el (gnus-demon-add-handler, gnus-demon-remove-handler):
+	Remove autoload, already handled by gnus.el.
+
 2012-08-05  Julien Danjou  <julien@danjou.info>
 
 	* gnus-demon.el (gnus-demon-add-handler, gnus-demon-remove-handler):
