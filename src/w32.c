@@ -2395,7 +2395,6 @@ map_w32_filename (const char * name, const char ** pPath)
   char c;
   char * path;
   const char * save_name = name;
-  int is_fat = 0;
 
   if (strlen (name) >= MAX_PATH)
     {
@@ -4433,7 +4432,7 @@ chase_symlinks (const char *file)
       {
 	target[res] = '\0';
 	if (!(IS_DEVICE_SEP (target[1])
-	      || IS_DIRECTORY_SEP (target[0]) && IS_DIRECTORY_SEP (target[1])))
+	      || (IS_DIRECTORY_SEP (target[0]) && IS_DIRECTORY_SEP (target[1]))))
 	  {
 	    /* Target is relative.  Append it to the directory part of
 	       the symlink, then copy the result back to target.  */

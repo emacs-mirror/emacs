@@ -1,3 +1,9 @@
+2012-08-06  Juanma Barranquero  <lekktu@gmail.com>
+
+	* w32.c: Silence compiler warnings.
+	(map_w32_filename): Remove unused variable `is_fat'.
+	(chase_symlinks): Add parentheses around expression.
+
 2012-08-06  Glenn Morris  <rgm@gnu.org>
 
 	* sysdep.c: Respect BROKEN_GETWD.
