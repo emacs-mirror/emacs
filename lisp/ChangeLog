@@ -1,3 +1,8 @@
+2012-08-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/cl-macs.el (cl--sm-macroexpand): Fix handling of
+	re-binding a symbol that has a symbol-macro (bug#12119).
+
 2012-08-06  Mohsen BANAN  <libre@mohsen.1.banan.byname.net>
 
 	* language/persian.el: New file.  (Bug#11812)
