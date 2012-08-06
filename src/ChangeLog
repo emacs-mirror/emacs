@@ -1,5 +1,7 @@
 2012-08-06  Glenn Morris  <rgm@gnu.org>
 
+	* sysdep.c: Respect BROKEN_GETWD.
+
 	* dispnew.c (GNU_LIBRARY_PENDING_OUTPUT_COUNT, PENDING_OUTPUT_COUNT):
 	Let configure handle it.
 	(stdio_ext.h) [DISPNEW_NEEDS_STDIO_EXT]: Include it.

@@ -2724,10 +2724,11 @@ getpwent endpwent getgrent endgrent \
 touchlock \
 cfmakeraw cfsetspeed copysign __executable_start)
 
-dnl FIXME Fragile: something else may test for getwd as a dependency.
-dnl Change to defining BROKEN_xxx ?
 dnl getwd appears to be buggy on SVR4.2, so we don't use it.
-if test $opsys != unixware; then
+if test $opsys = unixware; then
+  dnl In case some other test ends up checking for getwd.
+  AC_DEFINE(BROKEN_GETWD, 1, [Define if getwd should not be used.])
+else
   AC_CHECK_FUNCS(getwd)
 fi
 

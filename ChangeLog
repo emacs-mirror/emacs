@@ -1,5 +1,7 @@
 2012-08-06  Glenn Morris  <rgm@gnu.org>
 
+	* configure.ac (BROKEN_GETWD) [unixware]: New define.
+
 	* configure.ac (GNU_LIBRARY_PENDING_OUTPUT_COUNT): Remove.
 	(PENDING_OUTPUT_COUNT): Absorb GNU_LIBRARY_PENDING_OUTPUT_COUNT.
 	(DISPNEW_NEEDS_STDIO_EXT): New define.

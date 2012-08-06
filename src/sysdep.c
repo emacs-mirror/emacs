@@ -1971,7 +1971,7 @@ emacs_readlink (char const *filename, char initial_buf[READLINK_BUFSIZE])
  *	under error conditions.
  */
 
-#ifndef HAVE_GETWD
+#if !defined (HAVE_GETWD) || defined (BROKEN_GETWD)
 
 #ifndef MAXPATHLEN
 /* In 4.1, param.h fails to define this.  */
@@ -2001,7 +2001,7 @@ getwd (char *pathname)
   return pathname;
 }
 
-#endif /* HAVE_GETWD */
+#endif /* !defined (HAVE_GETWD) || defined (BROKEN_GETWD) */
 
 /*
  *	This function will go away as soon as all the stubs fixed. (fnf)
