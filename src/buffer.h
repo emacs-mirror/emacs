@@ -778,7 +778,7 @@ struct buffer
   /* In an indirect buffer, this is -1. In an ordinary buffer,
      it's the number of indirect buffers that share our text;
      zero means that we're the only owner of this text.  */
-  ptrdiff_t indirections;
+  int indirections;
 
   /* A non-zero value in slot IDX means that per-buffer variable
      with index IDX has a local value in this buffer.  The index IDX

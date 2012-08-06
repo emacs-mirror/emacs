@@ -1,3 +1,8 @@
+2012-08-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* buffer.h (struct buffer): Revert `indirections' to a simple int;
+	that should be sufficient for everyone.
+
 2012-08-06  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* keyboard.c (timer_check_2): Add break so timer_check returns next
