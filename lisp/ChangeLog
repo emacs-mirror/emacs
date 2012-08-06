@@ -1,3 +1,8 @@
+2012-08-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/cperl-mode.el (cperl-mode): Yet another fix for
+	syntax-propertize-function (bug#10095).
+
 2012-07-28  Chong Yidong  <cyd@gnu.org>
 
 	* progmodes/gdb-mi.el (gdb-place-breakpoints): Fix the call to
@@ -15,8 +20,8 @@
 
 2012-07-21  Leo Liu  <sdl.web@gmail.com>
 
-	* progmodes/cc-cmds.el (c-defun-name): Use
-	match-string-no-properties instead for consistency.
+	* progmodes/cc-cmds.el (c-defun-name):
+	Use match-string-no-properties instead for consistency.
 
 2012-07-20  Leo Liu  <sdl.web@gmail.com>
 
