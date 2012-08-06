@@ -1,3 +1,8 @@
+2012-08-06  Mohsen BANAN  <libre@mohsen.1.banan.byname.net>
+
+	* quail/persian.el: Add some mappings.  (Bug#11812)
+	(farsi-isiri-9147, farsi-transliterate-banan): Doc fixes.
+
 2012-07-30  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Update .PHONY listings in makefiles.
