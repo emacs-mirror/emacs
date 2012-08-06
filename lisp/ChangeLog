@@ -1,5 +1,12 @@
 2012-08-06  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* help-fns.el (help-fns--key-bindings, help-fns--signature)
+	(help-fns--parent-mode, help-fns--obsolete): New funs, extracted from
+	describe-function-1.
+	(describe-function-1): Use them.  Move compiler macro after sig.
+	(help-fns--compiler-macro): Use function-get.  Assume we're already in
+	standard-output.  Adjust layout to new call order.
+
 	* emacs-lisp/cl-macs.el (cl--sm-macroexpand): Fix handling of
 	re-binding a symbol that has a symbol-macro (bug#12119).
 

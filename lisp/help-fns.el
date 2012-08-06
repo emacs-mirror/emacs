@@ -380,26 +380,125 @@ suitable file is found, return nil."
 
 (declare-function ad-get-advice-info "advice" (function))
 
+(defun help-fns--key-bindings (function)
+  (when (commandp function)
+    (let ((pt2 (with-current-buffer standard-output (point)))
+          (remapped (command-remapping function)))
+      (unless (memq remapped '(ignore undefined))
+        (let ((keys (where-is-internal
+                     (or remapped function) overriding-local-map nil nil))
+              non-modified-keys)
+          (if (and (eq function 'self-insert-command)
+                   (vectorp (car-safe keys))
+                   (consp (aref (car keys) 0)))
+              (princ "It is bound to many ordinary text characters.\n")
+            ;; Which non-control non-meta keys run this command?
+            (dolist (key keys)
+              (if (member (event-modifiers (aref key 0)) '(nil (shift)))
+                  (push key non-modified-keys)))
+            (when remapped
+              (princ "Its keys are remapped to `")
+              (princ (symbol-name remapped))
+              (princ "'.\n"))
+
+            (when keys
+              (princ (if remapped
+                         "Without this remapping, it would be bound to "
+                       "It is bound to "))
+              ;; If lots of ordinary text characters run this command,
+              ;; don't mention them one by one.
+              (if (< (length non-modified-keys) 10)
+                  (princ (mapconcat 'key-description keys ", "))
+                (dolist (key non-modified-keys)
+                  (setq keys (delq key keys)))
+                (if keys
+                    (progn
+                      (princ (mapconcat 'key-description keys ", "))
+                      (princ ", and many ordinary text characters"))
+                  (princ "many ordinary text characters"))))
+            (when (or remapped keys non-modified-keys)
+              (princ ".")
+              (terpri)))))
+
+      (with-current-buffer standard-output
+        (fill-region-as-paragraph pt2 (point))
+        (unless (looking-back "\n\n")
+          (terpri))))))
+
 (defun help-fns--compiler-macro (function)
-  (let ((handler nil))
-    ;; FIXME: Copied from macroexp.el.
-    (while (and (symbolp function)
-                (not (setq handler (get function 'compiler-macro)))
-                (fboundp function))
-      ;; Follow the sequence of aliases.
-      (setq function (symbol-function function)))
+  (let ((handler (function-get function 'compiler-macro)))
     (when handler
-      (princ "This function has a compiler macro")
+      (insert "\nThis function has a compiler macro")
       (let ((lib (get function 'compiler-macro-file)))
         ;; FIXME: rather than look at the compiler-macro-file property,
         ;; just look at `handler' itself.
         (when (stringp lib)
-          (princ (format " in `%s'" lib))
-          (with-current-buffer standard-output
-            (save-excursion
-              (re-search-backward "`\\([^`']+\\)'" nil t)
-              (help-xref-button 1 'help-function-cmacro function lib)))))
-      (princ ".\n\n"))))
+          (insert (format " in `%s'" lib))
+          (save-excursion
+            (re-search-backward "`\\([^`']+\\)'" nil t)
+            (help-xref-button 1 'help-function-cmacro function lib))))
+      (insert ".\n"))))
+
+(defun help-fns--signature (function doc real-def real-function)
+  (unless (keymapp function)    ; If definition is a keymap, skip arglist note.
+    (let* ((advertised (gethash real-def advertised-signature-table t))
+           (arglist (if (listp advertised)
+                        advertised (help-function-arglist real-def)))
+           (usage (help-split-fundoc doc function)))
+      (if usage (setq doc (cdr usage)))
+      (let* ((use (cond
+                   ((and usage (not (listp advertised))) (car usage))
+                   ((listp arglist)
+                    (format "%S" (help-make-usage function arglist)))
+                   ((stringp arglist) arglist)
+                   ;; Maybe the arglist is in the docstring of a symbol
+                   ;; this one is aliased to.
+                   ((let ((fun real-function))
+                      (while (and (symbolp fun)
+                                  (setq fun (symbol-function fun))
+                                  (not (setq usage (help-split-fundoc
+                                                    (documentation fun)
+                                                    function)))))
+                      usage)
+                    (car usage))
+                   ((or (stringp real-def)
+                        (vectorp real-def))
+                    (format "\nMacro: %s" (format-kbd-macro real-def)))
+                   (t "[Missing arglist.  Please make a bug report.]")))
+             (high (help-highlight-arguments use doc)))
+        (let ((fill-begin (point)))
+          (insert (car high) "\n")
+          (fill-region fill-begin (point)))
+        (cdr high)))))
+
+(defun help-fns--parent-mode (function)
+  ;; If this is a derived mode, link to the parent.
+  (let ((parent-mode (and (symbolp function)
+                          (get function
+                               'derived-mode-parent))))
+    (when parent-mode
+      (insert "\nParent mode: `")
+      (let ((beg (point)))
+        (insert (format "%s" parent-mode))
+        (make-text-button beg (point)
+                          'type 'help-function
+                          'help-args (list parent-mode)))
+      (insert "'.\n"))))
+
+(defun help-fns--obsolete (function)
+  (let* ((obsolete (and
+                    ;; `function' might be a lambda construct.
+                    (symbolp function)
+                    (get function 'byte-obsolete-info)))
+         (use (car obsolete)))
+    (when obsolete
+      (insert "\nThis function is obsolete")
+      (when (nth 2 obsolete)
+        (insert (format " since %s" (nth 2 obsolete))))
+      (insert (cond ((stringp use) (concat ";\n" use))
+                    (use (format ";\nuse `%s' instead." use))
+                    (t "."))
+              "\n"))))
 
 ;; We could use `symbol-file' but this is a wee bit more efficient.
 (defun help-fns--autoloaded-p (function file)
@@ -510,54 +609,8 @@ FILE is the file where FUNCTION was probably defined."
 	(fill-region-as-paragraph (save-excursion (goto-char pt1) (forward-line 0) (point))
 				  (point)))
       (terpri)(terpri)
-      (when (commandp function)
-	(let ((pt2 (with-current-buffer (help-buffer) (point)))
-	      (remapped (command-remapping function)))
-	  (unless (memq remapped '(ignore undefined))
-	    (let ((keys (where-is-internal
-			 (or remapped function) overriding-local-map nil nil))
-		  non-modified-keys)
-	      (if (and (eq function 'self-insert-command)
-		       (vectorp (car-safe keys))
-		       (consp (aref (car keys) 0)))
-		  (princ "It is bound to many ordinary text characters.\n")
-		;; Which non-control non-meta keys run this command?
-		(dolist (key keys)
-		  (if (member (event-modifiers (aref key 0)) '(nil (shift)))
-		      (push key non-modified-keys)))
-		(when remapped
-		  (princ "Its keys are remapped to `")
-		  (princ (symbol-name remapped))
-		  (princ "'.\n"))
-
-		(when keys
-		  (princ (if remapped
-			     "Without this remapping, it would be bound to "
-			   "It is bound to "))
-		  ;; If lots of ordinary text characters run this command,
-		  ;; don't mention them one by one.
-		  (if (< (length non-modified-keys) 10)
-		      (princ (mapconcat 'key-description keys ", "))
-		    (dolist (key non-modified-keys)
-		      (setq keys (delq key keys)))
-		    (if keys
-			(progn
-			  (princ (mapconcat 'key-description keys ", "))
-			  (princ ", and many ordinary text characters"))
-		      (princ "many ordinary text characters"))))
-		(when (or remapped keys non-modified-keys)
-		  (princ ".")
-		  (terpri)))))
-
-	  (with-current-buffer (help-buffer)
-	    (fill-region-as-paragraph pt2 (point))
-	    (unless (looking-back "\n\n")
-	      (terpri)))))
-      (help-fns--compiler-macro function)
-      (let* ((advertised (gethash real-def advertised-signature-table t))
-	     (arglist (if (listp advertised)
-			  advertised (help-function-arglist real-def)))
-	     (doc-raw (condition-case err
+      
+      (let* ((doc-raw (condition-case err
 			  (documentation function t)
 			(error (format "No Doc! %S" err))))
 	     ;; If the function is autoloaded, and its docstring has
@@ -568,66 +621,18 @@ FILE is the file where FUNCTION was probably defined."
 			 (string-match "\\([^\\]=\\|[^=]\\|\\`\\)\\\\[[{<]"
 				       doc-raw)
 			 (load (cadr real-def) t))
-		    (substitute-command-keys doc-raw)))
-	     (usage (help-split-fundoc doc function)))
-	(with-current-buffer standard-output
-	  ;; If definition is a keymap, skip arglist note.
-	  (unless (keymapp function)
-	    (if usage (setq doc (cdr usage)))
-	    (let* ((use (cond
-			 ((and usage (not (listp advertised))) (car usage))
-			 ((listp arglist)
-			  (format "%S" (help-make-usage function arglist)))
-			 ((stringp arglist) arglist)
-			 ;; Maybe the arglist is in the docstring of a symbol
-			 ;; this one is aliased to.
-			 ((let ((fun real-function))
-			    (while (and (symbolp fun)
-					(setq fun (symbol-function fun))
-					(not (setq usage (help-split-fundoc
-							  (documentation fun)
-							  function)))))
-			    usage)
-			  (car usage))
-			 ((or (stringp real-def)
-			      (vectorp real-def))
-			  (format "\nMacro: %s" (format-kbd-macro real-def)))
-			 (t "[Missing arglist.  Please make a bug report.]")))
-		   (high (help-highlight-arguments use doc)))
-	      (let ((fill-begin (point)))
-		(insert (car high) "\n")
-		(fill-region fill-begin (point)))
-	      (setq doc (cdr high))))
+		    (substitute-command-keys doc-raw))))
 
-	  ;; If this is a derived mode, link to the parent.
-	  (let ((parent-mode (and (symbolp real-function)
-				  (get real-function
-				       'derived-mode-parent))))
-	    (when parent-mode
-	      (with-current-buffer standard-output
-		(insert "\nParent mode: `")
-		(let ((beg (point)))
-		  (insert (format "%s" parent-mode))
-		  (make-text-button beg (point)
-				    'type 'help-function
-				    'help-args (list parent-mode))))
-	      (princ "'.\n")))
+        (help-fns--key-bindings function)
+        (with-current-buffer standard-output
+          (setq doc (help-fns--signature function doc real-def real-function))
 
-	  (let* ((obsolete (and
-			    ;; function might be a lambda construct.
-			    (symbolp function)
-			    (get function 'byte-obsolete-info)))
-		 (use (car obsolete)))
-	    (when obsolete
-	      (princ "\nThis function is obsolete")
-	      (when (nth 2 obsolete)
-		(insert (format " since %s" (nth 2 obsolete))))
-	      (insert (cond ((stringp use) (concat ";\n" use))
-			    (use (format ";\nuse `%s' instead." use))
-			    (t "."))
-		      "\n"))
-	    (insert "\n"
-		    (or doc "Not documented."))))))))
+          (help-fns--compiler-macro function)
+          (help-fns--parent-mode function)
+          (help-fns--obsolete function)
+
+          (insert "\n"
+                  (or doc "Not documented.")))))))
 
 
 ;; Variables
