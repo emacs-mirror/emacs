@@ -1,3 +1,8 @@
+2012-08-06  Glenn Morris  <rgm@gnu.org>
+
+	* eshell/esh-ext.el (eshell/addpath): Use dolist.
+	Do less getting and setting of environment variables.
+
 2012-08-05  Chong Yidong  <cyd@gnu.org>
 
 	* proced.el (proced): Add substitution string to docstring to
