@@ -1,3 +1,8 @@
+2012-08-06  Aurélien Aptel  <aurelien.aptel@gmail.com>
+
+	* url.texi (Parsed URLs): Adjust to the code's use of defstruct
+	(bug#12096).
+
 2012-07-28  Eli Zaretskii  <eliz@gnu.org>
 
 	* faq.texi (Right-to-left alphabets): Update for Emacs 24.
