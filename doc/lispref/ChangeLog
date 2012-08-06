@@ -1,3 +1,11 @@
+2012-08-06  Eli Zaretskii  <eliz@gnu.org>
+
+	* functions.texi (Closures): Put the main index entry for
+	"closures" here.  (Bug#12138)
+
+	* variables.texi (Lexical Binding): Disambiguate the index entry
+	for "closures".
+
 2012-06-19  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in: Rename infodir to buildinfodir throughout.  (Bug#11737)
