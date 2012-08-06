@@ -1,3 +1,8 @@
+2012-08-06  Glenn Morris  <rgm@gnu.org>
+
+	* config.nt (GNU_LIBRARY_PENDING_OUTPUT_COUNT): Remove.
+	(PENDING_OUTPUT_COUNT): Define it as dispnew.c used to.
+
 2012-08-04  Eli Zaretskii  <eliz@gnu.org>
 
 	* paths.h (PATH_LOADSEARCH, PATH_SITELOADSEARCH, PATH_EXEC)

@@ -211,9 +211,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    whether the gnulib module scanf shall be considered present. */
 #undef GNULIB_SCANF
 
-/* Value of PENDING_OUTPUT_COUNT if using the GNU C library. */
-#undef GNU_LIBRARY_PENDING_OUTPUT_COUNT
-
 /* Define if ths system is compatible with GNU/Linux. */
 #undef GNU_LINUX
 
@@ -1229,7 +1226,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #undef PACKAGE_VERSION
 
 /* Number of chars of output in the buffer of a stdio stream. */
-#undef PENDING_OUTPUT_COUNT
+#ifdef __GNU_LIBRARY__
+#define PENDING_OUTPUT_COUNT(FILE) ((FILE)->__bufp - (FILE)->__buffer)
+#else
+#define PENDING_OUTPUT_COUNT(FILE) ((FILE)->_ptr - (FILE)->_base)
+#endif
 
 /* Define to empty to suppress deprecation warnings when building with
    --enable-gcc-warnings and with libpng versions before 1.5, which lack
