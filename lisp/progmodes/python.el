@@ -1546,26 +1546,34 @@ variable.
          python-syntax-propertize-function))
   (compilation-shell-minor-mode 1))
 
-(defun python-shell-make-comint (cmd proc-name &optional pop)
+(defun python-shell-make-comint (cmd proc-name &optional pop internal)
   "Create a python shell comint buffer.
 CMD is the python command to be executed and PROC-NAME is the
 process name the comint buffer will get.  After the comint buffer
-is created the `inferior-python-mode' is activated.  If POP is
-non-nil the buffer is shown."
+is created the `inferior-python-mode' is activated.  When
+optional argument POP is non-nil the buffer is shown.  When
+optional argument INTERNAL is non-nil this process is run on a
+buffer with a name that starts with a space, following the Emacs
+convention for temporary/internal buffers, and also makes sure
+the user is not queried for confirmation when the process is
+killed."
   (save-excursion
-    (let* ((proc-buffer-name (format "*%s*" proc-name))
+    (let* ((proc-buffer-name
+            (format (if (not internal) "*%s*" " *%s*") proc-name))
            (process-environment (python-shell-calculate-process-environment))
            (exec-path (python-shell-calculate-exec-path)))
       (when (not (comint-check-proc proc-buffer-name))
         (let* ((cmdlist (split-string-and-unquote cmd))
-               (buffer (apply 'make-comint proc-name (car cmdlist) nil
-                              (cdr cmdlist)))
-               (current-buffer (current-buffer)))
+               (buffer (apply #'make-comint-in-buffer proc-name proc-buffer-name
+                              (car cmdlist) nil (cdr cmdlist)))
+               (current-buffer (current-buffer))
+               (process (get-buffer-process buffer)))
           (with-current-buffer buffer
             (inferior-python-mode)
             (python-util-clone-local-variables current-buffer))
-          (accept-process-output (get-buffer-process buffer))))
-      (and pop (pop-to-buffer proc-buffer-name t))
+          (accept-process-output process)
+          (and pop (pop-to-buffer buffer t))
+          (and internal (set-process-query-on-exit-flag process nil))))
       proc-buffer-name)))
 
 ;;;###autoload
@@ -1611,11 +1619,10 @@ are set to nil for these shells, so setup codes are not sent at
 startup."
   (let ((python-shell-enable-font-lock nil)
         (inferior-python-mode-hook nil))
-    (set-process-query-on-exit-flag
-     (get-buffer-process
-      (python-shell-make-comint
-       (python-shell-parse-command)
-       (python-shell-internal-get-process-name))) nil)))
+    (get-buffer-process
+     (python-shell-make-comint
+      (python-shell-parse-command)
+      (python-shell-internal-get-process-name) nil t))))
 
 (defun python-shell-get-process ()
   "Get inferior Python process for current buffer and return it."
@@ -1662,7 +1669,7 @@ there for compatibility with CEDET.")
 (defun python-shell-internal-get-or-create-process ()
   "Get or create an inferior Internal Python process."
   (let* ((proc-name (python-shell-internal-get-process-name))
-         (proc-buffer-name (format "*%s*" proc-name)))
+         (proc-buffer-name (format " *%s*" proc-name)))
     (when (not (process-live-p proc-name))
       (run-python-internal)
       (setq python-shell-internal-buffer proc-buffer-name)
