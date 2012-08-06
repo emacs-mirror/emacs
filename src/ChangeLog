@@ -1,3 +1,8 @@
+2012-08-06  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* keyboard.c (timer_check_2): Add break so timer_check returns next
+	timeout.
+
 2012-08-06  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Fix Windows build errors introduced after converting to WGET and WSET.

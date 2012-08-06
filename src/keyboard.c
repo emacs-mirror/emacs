@@ -4459,6 +4459,7 @@ timer_check_2 (void)
 	    }
 
 	  nexttime = make_emacs_time (0, 0);
+          break;
 	}
       else
 	/* When we encounter a timer that is still waiting,
