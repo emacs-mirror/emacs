@@ -1,3 +1,8 @@
+2012-08-06  Mohsen BANAN  <libre@mohsen.1.banan.byname.net>
+
+	* language/persian.el: New file.  (Bug#11812)
+	* loadup.el: Add language/persian.el.
+
 2012-08-06  Chong Yidong  <cyd@gnu.org>
 
 	* window.el (window--maybe-raise-frame): New function.
