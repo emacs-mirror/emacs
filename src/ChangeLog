@@ -1,3 +1,9 @@
+2012-08-06  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Fix Windows build errors introduced after converting to WGET and WSET.
+	* w32term.c (w32_set_vertical_scroll_bar): Change to use WSET.
+	Reported by Andy Moreton <andrewjmoreton@gmail.com>.
+
 2012-08-06  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsterm.m (ns_frame_rehighlight): Use FSET.

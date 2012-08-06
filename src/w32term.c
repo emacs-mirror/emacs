@@ -3684,6 +3684,7 @@ w32_set_vertical_scroll_bar (struct window *w,
 			     int portion, int whole, int position)
 {
   struct frame *f = XFRAME (WGET (w, frame));
+  Lisp_Object barobj;
   struct scroll_bar *bar;
   int top, height, left, sb_left, width, sb_width;
   int window_y, window_height;
@@ -3806,8 +3807,8 @@ w32_set_vertical_scroll_bar (struct window *w,
   bar->fringe_extended_p = fringe_extended_p ? Qt : Qnil;
 
   w32_set_scroll_bar_thumb (bar, portion, position, whole);
-
-  XSETVECTOR (WGET (w, vertical_scroll_bar), bar);
+  XSETVECTOR (barobj, bar);
+  WSET (w, vertical_scroll_bar, barobj);
 }
 
 
