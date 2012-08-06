@@ -2260,7 +2260,7 @@ free_frame_xic (struct frame *f)
 void
 xic_set_preeditarea (struct window *w, int x, int y)
 {
-  struct frame *f = XFRAME (WVAR (w, frame));
+  struct frame *f = XFRAME (WGET (w, frame));
   XVaNestedList attr;
   XPoint spot;
 
@@ -5069,28 +5069,29 @@ Text larger than the specified size is clipped.  */)
 
   /* Set up the frame's root window.  */
   w = XWINDOW (FRAME_ROOT_WINDOW (f));
-  WVAR (w, left_col) = WVAR (w, top_line) = make_number (0);
+  WSET (w, left_col, make_number (0));
+  WSET (w, top_line, make_number (0));
 
   if (CONSP (Vx_max_tooltip_size)
       && RANGED_INTEGERP (1, XCAR (Vx_max_tooltip_size), INT_MAX)
       && RANGED_INTEGERP (1, XCDR (Vx_max_tooltip_size), INT_MAX))
     {
-      WVAR (w, total_cols) = XCAR (Vx_max_tooltip_size);
-      WVAR (w, total_lines) = XCDR (Vx_max_tooltip_size);
+      WSET (w, total_cols, XCAR (Vx_max_tooltip_size));
+      WSET (w, total_lines, XCDR (Vx_max_tooltip_size));
     }
   else
     {
-      WVAR (w, total_cols) = make_number (80);
-      WVAR (w, total_lines) = make_number (40);
+      WSET (w, total_cols, make_number (80));
+      WSET (w, total_lines, make_number (40));
     }
 
-  FRAME_TOTAL_COLS (f) = XINT (WVAR (w, total_cols));
+  FRAME_TOTAL_COLS (f) = XINT (WGET (w, total_cols));
   adjust_glyphs (f);
   w->pseudo_window_p = 1;
 
   /* Display the tooltip text in a temporary buffer.  */
   old_buffer = current_buffer;
-  set_buffer_internal_1 (XBUFFER (WVAR (XWINDOW (FRAME_ROOT_WINDOW (f)), buffer)));
+  set_buffer_internal_1 (XBUFFER (WGET (XWINDOW (FRAME_ROOT_WINDOW (f)), buffer)));
   BVAR (current_buffer, truncate_lines) = Qnil;
   clear_glyph_matrix (w->desired_matrix);
   clear_glyph_matrix (w->current_matrix);
@@ -5151,7 +5152,7 @@ Text larger than the specified size is clipped.  */)
       /* w->total_cols and FRAME_TOTAL_COLS want the width in columns,
 	 not in pixels.  */
       width /= WINDOW_FRAME_COLUMN_WIDTH (w);
-      WVAR (w, total_cols) = make_number (width);
+      WSET (w, total_cols, make_number (width));
       FRAME_TOTAL_COLS (f) = width;
       adjust_glyphs (f);
       clear_glyph_matrix (w->desired_matrix);

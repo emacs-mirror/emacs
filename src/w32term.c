@@ -649,7 +649,7 @@ static void
 x_update_window_end (struct window *w, int cursor_on_p,
 		     int mouse_face_overwritten_p)
 {
-  Mouse_HLInfo *hlinfo = MOUSE_HL_INFO (XFRAME (WVAR (w, frame)));
+  Mouse_HLInfo *hlinfo = MOUSE_HL_INFO (XFRAME (WGET (w, frame)));
 
   if (!w->pseudo_window_p)
     {
@@ -754,7 +754,7 @@ x_after_update_window_line (struct glyph_row *desired_row)
      overhead is very small.  */
   if (windows_or_buffers_changed
       && desired_row->full_width_p
-      && (f = XFRAME (WVAR (w, frame)),
+      && (f = XFRAME (WGET (w, frame)),
 	  width = FRAME_INTERNAL_BORDER_WIDTH (f),
 	  width != 0)
       && (height = desired_row->visible_height,
@@ -2718,7 +2718,7 @@ x_ins_del_lines (struct frame *f, int vpos, int n)
 static void
 x_scroll_run (struct window *w, struct run *run)
 {
-  struct frame *f = XFRAME (WVAR (w, frame));
+  struct frame *f = XFRAME (WGET (w, frame));
   int x, y, width, height, from_y, to_y, bottom_y;
   HWND hwnd = FRAME_W32_WINDOW (f);
   HRGN expect_dirty;
@@ -3670,7 +3670,7 @@ x_scroll_bar_remove (struct scroll_bar *bar)
   my_destroy_window (f, SCROLL_BAR_W32_WINDOW (bar));
 
   /* Dissociate this scroll bar from its window.  */
-  WVAR (XWINDOW (bar->window), vertical_scroll_bar) = Qnil;
+  WSET (XWINDOW (bar->window), vertical_scroll_bar, Qnil);
 
   UNBLOCK_INPUT;
 }
@@ -3683,7 +3683,7 @@ static void
 w32_set_vertical_scroll_bar (struct window *w,
 			     int portion, int whole, int position)
 {
-  struct frame *f = XFRAME (WVAR (w, frame));
+  struct frame *f = XFRAME (WGET (w, frame));
   struct scroll_bar *bar;
   int top, height, left, sb_left, width, sb_width;
   int window_y, window_height;
@@ -3723,7 +3723,7 @@ w32_set_vertical_scroll_bar (struct window *w,
 			     || WINDOW_RIGHT_MARGIN_COLS (w) == 0));
 
   /* Does the scroll bar exist yet?  */
-  if (NILP (WVAR (w, vertical_scroll_bar)))
+  if (NILP (WGET (w, vertical_scroll_bar)))
     {
       HDC hdc;
       BLOCK_INPUT;
@@ -3745,7 +3745,7 @@ w32_set_vertical_scroll_bar (struct window *w,
       /* It may just need to be moved and resized.  */
       HWND hwnd;
 
-      bar = XSCROLL_BAR (WVAR (w, vertical_scroll_bar));
+      bar = XSCROLL_BAR (WGET (w, vertical_scroll_bar));
       hwnd = SCROLL_BAR_W32_WINDOW (bar);
 
       /* If already correctly positioned, do nothing.  */
@@ -3807,7 +3807,7 @@ w32_set_vertical_scroll_bar (struct window *w,
 
   w32_set_scroll_bar_thumb (bar, portion, position, whole);
 
-  XSETVECTOR (WVAR (w, vertical_scroll_bar), bar);
+  XSETVECTOR (WGET (w, vertical_scroll_bar), bar);
 }
 
 
@@ -3852,10 +3852,10 @@ w32_redeem_scroll_bar (struct window *window)
   struct frame *f;
 
   /* We can't redeem this window's scroll bar if it doesn't have one.  */
-  if (NILP (WVAR (window, vertical_scroll_bar)))
+  if (NILP (WGET (window, vertical_scroll_bar)))
     abort ();
 
-  bar = XSCROLL_BAR (WVAR (window, vertical_scroll_bar));
+  bar = XSCROLL_BAR (WGET (window, vertical_scroll_bar));
 
   /* Unlink it from the condemned list.  */
   f = XFRAME (WINDOW_FRAME (window));
@@ -3863,11 +3863,11 @@ w32_redeem_scroll_bar (struct window *window)
     {
       /* If the prev pointer is nil, it must be the first in one of
          the lists.  */
-      if (EQ (FRAME_SCROLL_BARS (f), WVAR (window, vertical_scroll_bar)))
+      if (EQ (FRAME_SCROLL_BARS (f), WGET (window, vertical_scroll_bar)))
         /* It's not condemned.  Everything's fine.  */
         return;
       else if (EQ (FRAME_CONDEMNED_SCROLL_BARS (f),
-                   WVAR (window, vertical_scroll_bar)))
+                   WGET (window, vertical_scroll_bar)))
         FSET (f, condemned_scroll_bars, bar->next);
       else
         /* If its prev pointer is nil, it must be at the front of
@@ -4426,8 +4426,8 @@ w32_read_socket (struct terminal *terminal, int expected,
 			 create event iff we don't leave the
 			 selected frame.  */
 		      && (focus_follows_mouse
-			  || (EQ (WVAR (XWINDOW (window), frame),
-				  WVAR (XWINDOW (selected_window), frame)))))
+			  || (EQ (WGET (XWINDOW (window), frame),
+				  WGET (XWINDOW (selected_window), frame)))))
 		    {
 		      inev.kind = SELECT_WINDOW_EVENT;
 		      inev.frame_or_window = window;
@@ -5042,7 +5042,7 @@ static void
 x_draw_bar_cursor (struct window *w, struct glyph_row *row,
 		   int width, enum text_cursor_kinds kind)
 {
-  struct frame *f = XFRAME (WVAR (w, frame));
+  struct frame *f = XFRAME (WGET (w, frame));
   struct glyph *cursor_glyph;
 
   /* If cursor is out of bounds, don't draw garbage.  This can happen

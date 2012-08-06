@@ -1,5 +1,16 @@
 2012-08-06  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	Separate read and write access to Lisp_Object slots of struct window.
+	* window.h (WGET, WSET): New macros similar to AREF and ASET.
+	* alloc.c, buffer.c, composite.c, dispextern.h, dispnew.c, editfns.c:
+	* fileio.c, font.c, fontset.c, frame.c, frame.h, fringe.c, indent.c:
+	* insdel.c, keyboard.c, keymap.c, lisp.h, minibuf.c, msdos.c, nsfns.m:
+	* nsmenu.m, nsterm.m, print.c, textprop.c, w32fns.c, w32menu.c:
+	* w32term.c, window.c, xdisp.c, xfaces.c, xfns.c, xmenu.c, xterm.c:
+	Adjust users.
+
+2012-08-06  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	Fix Windows build errors introduced after converting to FGET and FSET.
 	* w32term.c (x_frame_rehighlight, x_scroll_bar_create):
 	(w32_condemn_scroll_bars, w32_redeem_scroll_bar):

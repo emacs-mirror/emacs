@@ -985,7 +985,7 @@ set_frame_menubar (FRAME_PTR f, int first_time, int deep_p)
       if (! menubar_widget)
 	previous_menu_items_used = 0;
 
-      buffer = WVAR (XWINDOW (FRAME_SELECTED_WINDOW (f)), buffer);
+      buffer = WGET (XWINDOW (FRAME_SELECTED_WINDOW (f)), buffer);
       specbind (Qinhibit_quit, Qt);
       /* Don't let the debugger step into this code
 	 because it is not reentrant.  */
@@ -2575,7 +2575,7 @@ xmenu_show (FRAME_PTR f, int x, int y, int for_click, int keymaps,
 /* Detect if a dialog or menu has been posted.  MSDOS has its own
    implementation on msdos.c.  */
 
-int
+int ATTRIBUTE_CONST
 popup_activated (void)
 {
   return popup_activated_flag;

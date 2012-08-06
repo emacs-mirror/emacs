@@ -86,9 +86,15 @@ struct cursor_pos
   int hpos, vpos;
 };
 
-/* Most code should use this macro to access Lisp fields in struct window.  */
+/* Most code should use these macros to access Lisp fields
+   in struct window.  WGET should not be used as lvalue.  */
 
-#define WVAR(w, field) ((w)->INTERNAL_FIELD (field))
+#define WGET(f, field)						\
+  (eassert (offsetof (struct window, field ## _)		\
+	    < offsetof (struct window, current_matrix)),	\
+   ((f)->INTERNAL_FIELD (field)))
+
+#define WSET(w, field, value) ((w)->INTERNAL_FIELD (field) = (value))
 
 struct window
   {
@@ -396,13 +402,13 @@ struct window
    This includes scroll bars and fringes.  */
 
 #define WINDOW_TOTAL_COLS(W) \
-  (XFASTINT (WVAR (W, total_cols)))
+  (XFASTINT (WGET (W, total_cols)))
 
 /* Return the height of window W in canonical line units.
    This includes header and mode lines, if any.  */
 
 #define WINDOW_TOTAL_LINES(W) \
-  (XFASTINT (WVAR (W, total_lines)))
+  (XFASTINT (WGET (W, total_lines)))
 
 /* Return the total pixel width of window W.  */
 
@@ -430,7 +436,7 @@ struct window
    This includes a left-hand scroll bar, if any.  */
 
 #define WINDOW_LEFT_EDGE_COL(W) \
-  (XFASTINT (WVAR (W, left_col)))
+  (XFASTINT (WGET (W, left_col)))
 
 /* Return the canonical frame column before which window W ends.
    This includes a right-hand scroll bar, if any.  */
@@ -442,7 +448,7 @@ struct window
    This includes a header line, if any.  */
 
 #define WINDOW_TOP_EDGE_LINE(W) \
-  (XFASTINT (WVAR (W, top_line)))
+  (XFASTINT (WGET (W, top_line)))
 
 /* Return the canonical frame line before which window W ends.
    This includes a mode line, if any.  */
@@ -547,31 +553,31 @@ struct window
 /* Width of left margin area in columns.  */
 
 #define WINDOW_LEFT_MARGIN_COLS(W)			\
-  (NILP (WVAR (W, left_margin_cols))			\
+  (NILP (WGET (W, left_margin_cols))			\
    ? 0							\
-   : XINT (WVAR (W, left_margin_cols)))
+   : XINT (WGET (W, left_margin_cols)))
 
 /* Width of right marginal area in columns.  */
 
 #define WINDOW_RIGHT_MARGIN_COLS(W)			\
-  (NILP (WVAR (W, right_margin_cols))			\
+  (NILP (WGET (W, right_margin_cols))			\
    ? 0							\
-   : XINT (WVAR (W, right_margin_cols)))
+   : XINT (WGET (W, right_margin_cols)))
 
 /* Width of left margin area in pixels.  */
 
 #define WINDOW_LEFT_MARGIN_WIDTH(W)			\
-  (NILP (WVAR (W, left_margin_cols))			\
+  (NILP (WGET (W, left_margin_cols))			\
    ? 0							\
-   : (XINT (WVAR (W, left_margin_cols))			\
+   : (XINT (WGET (W, left_margin_cols))			\
       * WINDOW_FRAME_COLUMN_WIDTH (W)))
 
 /* Width of right marginal area in pixels.  */
 
 #define WINDOW_RIGHT_MARGIN_WIDTH(W)			\
-  (NILP (WVAR (W, right_margin_cols))			\
+  (NILP (WGET (W, right_margin_cols))			\
    ? 0							\
-   : (XINT (WVAR (W, right_margin_cols))		\
+   : (XINT (WGET (W, right_margin_cols))		\
       * WINDOW_FRAME_COLUMN_WIDTH (W)))
 
 /* Total width of fringes reserved for drawing truncation bitmaps,
@@ -581,8 +587,8 @@ struct window
    able to split windows horizontally nicely.  */
 
 #define WINDOW_FRINGE_COLS(W)				\
-  ((INTEGERP (WVAR (W, left_fringe_width))		\
-    || INTEGERP (WVAR (W, right_fringe_width)))		\
+  ((INTEGERP (WGET (W, left_fringe_width))		\
+    || INTEGERP (WGET (W, right_fringe_width)))		\
    ? ((WINDOW_LEFT_FRINGE_WIDTH (W)			\
        + WINDOW_RIGHT_FRINGE_WIDTH (W)			\
        + WINDOW_FRAME_COLUMN_WIDTH (W) - 1)		\
@@ -604,13 +610,13 @@ struct window
 /* Pixel-width of the left and right fringe.  */
 
 #define WINDOW_LEFT_FRINGE_WIDTH(W)			\
-  (INTEGERP (WVAR (W, left_fringe_width))		\
-   ? XFASTINT (WVAR (W, left_fringe_width))		\
+  (INTEGERP (WGET (W, left_fringe_width))		\
+   ? XFASTINT (WGET (W, left_fringe_width))		\
    : FRAME_LEFT_FRINGE_WIDTH (WINDOW_XFRAME (W)))
 
 #define WINDOW_RIGHT_FRINGE_WIDTH(W)			\
-  (INTEGERP (WVAR (W, right_fringe_width))		\
-   ? XFASTINT (WVAR (W, right_fringe_width))		\
+  (INTEGERP (WGET (W, right_fringe_width))		\
+   ? XFASTINT (WGET (W, right_fringe_width))		\
    : FRAME_RIGHT_FRINGE_WIDTH (WINDOW_XFRAME (W)))
 
 /* Total width of fringes in pixels.  */
@@ -627,36 +633,36 @@ struct window
    and which side they are on.  */
 
 #define WINDOW_VERTICAL_SCROLL_BAR_TYPE(w)		\
-  (EQ (WVAR (w, vertical_scroll_bar_type), Qt)		\
+  (EQ (WGET (w, vertical_scroll_bar_type), Qt)		\
    ? FRAME_VERTICAL_SCROLL_BAR_TYPE (WINDOW_XFRAME (w))	\
-   : EQ (WVAR (w, vertical_scroll_bar_type), Qleft)	\
+   : EQ (WGET (w, vertical_scroll_bar_type), Qleft)	\
    ? vertical_scroll_bar_left				\
-   : EQ (WVAR (w, vertical_scroll_bar_type), Qright)	\
+   : EQ (WGET (w, vertical_scroll_bar_type), Qright)	\
    ? vertical_scroll_bar_right				\
    : vertical_scroll_bar_none)				\
 
 #define WINDOW_HAS_VERTICAL_SCROLL_BAR(w)		\
-  (EQ (WVAR (w, vertical_scroll_bar_type), Qt)		\
+  (EQ (WGET (w, vertical_scroll_bar_type), Qt)		\
    ? FRAME_HAS_VERTICAL_SCROLL_BARS (WINDOW_XFRAME (w))	\
-   : !NILP (WVAR (w, vertical_scroll_bar_type)))
+   : !NILP (WGET (w, vertical_scroll_bar_type)))
 
 #define WINDOW_HAS_VERTICAL_SCROLL_BAR_ON_LEFT(w)		\
-  (EQ (WVAR (w, vertical_scroll_bar_type), Qt)			\
+  (EQ (WGET (w, vertical_scroll_bar_type), Qt)			\
    ? FRAME_HAS_VERTICAL_SCROLL_BARS_ON_LEFT (WINDOW_XFRAME (w))	\
-   : EQ (WVAR (w, vertical_scroll_bar_type), Qleft))
+   : EQ (WGET (w, vertical_scroll_bar_type), Qleft))
 
 #define WINDOW_HAS_VERTICAL_SCROLL_BAR_ON_RIGHT(w)		\
-  (EQ (WVAR (w, vertical_scroll_bar_type), Qt)			\
+  (EQ (WGET (w, vertical_scroll_bar_type), Qt)			\
    ? FRAME_HAS_VERTICAL_SCROLL_BARS_ON_RIGHT (WINDOW_XFRAME (w))\
-   : EQ (WVAR (w, vertical_scroll_bar_type), Qright))
+   : EQ (WGET (w, vertical_scroll_bar_type), Qright))
 
 /* Width that a scroll bar in window W should have, if there is one.
    Measured in pixels.  If scroll bars are turned off, this is still
    nonzero.  */
 
 #define WINDOW_CONFIG_SCROLL_BAR_WIDTH(w)		\
-  (INTEGERP (WVAR (w, scroll_bar_width))		\
-   ? XFASTINT (WVAR (w, scroll_bar_width))		\
+  (INTEGERP (WGET (w, scroll_bar_width))		\
+   ? XFASTINT (WGET (w, scroll_bar_width))		\
    : FRAME_CONFIG_SCROLL_BAR_WIDTH (WINDOW_XFRAME (w)))
 
 /* Width that a scroll bar in window W should have, if there is one.
@@ -664,8 +670,8 @@ struct window
    this is still nonzero.  */
 
 #define WINDOW_CONFIG_SCROLL_BAR_COLS(w)		\
-  (INTEGERP (WVAR (w, scroll_bar_width))		\
-   ? ((XFASTINT (WVAR (w, scroll_bar_width))		\
+  (INTEGERP (WGET (w, scroll_bar_width))		\
+   ? ((XFASTINT (WGET (w, scroll_bar_width))		\
        + WINDOW_FRAME_COLUMN_WIDTH (w) - 1)		\
       / WINDOW_FRAME_COLUMN_WIDTH (w))			\
    : FRAME_CONFIG_SCROLL_BAR_COLS (WINDOW_XFRAME (w)))
@@ -887,9 +893,8 @@ struct glyph *get_phys_cursor_glyph (struct window *w);
 
 /* Value is non-zero if WINDOW is a live window.  */
 
-#define WINDOW_LIVE_P(WINDOW) \
-  (WINDOWP ((WINDOW)) && !NILP (WVAR (XWINDOW ((WINDOW)), buffer)))
-
+#define WINDOW_LIVE_P(WINDOW)					\
+  (WINDOWP (WINDOW) && !NILP (WGET (XWINDOW (WINDOW), buffer)))
 
 /* These used to be in lisp.h.  */
 

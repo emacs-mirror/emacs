@@ -258,7 +258,7 @@ skip_invisible (ptrdiff_t pos, ptrdiff_t *next_boundary_p, ptrdiff_t to, Lisp_Ob
      the next property change */
   prop = Fget_char_property (position, Qinvisible,
 			     (!NILP (window)
-			      && EQ (WVAR (XWINDOW (window), buffer), buffer))
+			      && EQ (WGET (XWINDOW (window), buffer), buffer))
 			     ? window : buffer);
   inv_p = TEXT_PROP_MEANS_INVISIBLE (prop);
   /* When counting columns (window == nil), don't skip over ellipsis text.  */
@@ -1173,14 +1173,14 @@ compute_motion (ptrdiff_t from, EMACS_INT fromvpos, EMACS_INT fromhpos, int did_
       width = window_body_cols (win);
       /* We must make room for continuation marks if we don't have fringes.  */
 #ifdef HAVE_WINDOW_SYSTEM
-      if (!FRAME_WINDOW_P (XFRAME (WVAR (win, frame))))
+      if (!FRAME_WINDOW_P (XFRAME (WGET (win, frame))))
 #endif
 	width -= 1;
     }
 
   continuation_glyph_width = 1;
 #ifdef HAVE_WINDOW_SYSTEM
-  if (FRAME_WINDOW_P (XFRAME (WVAR (win, frame))))
+  if (FRAME_WINDOW_P (XFRAME (WGET (win, frame))))
     continuation_glyph_width = 0;  /* In the fringe.  */
 #endif
 
@@ -1787,7 +1787,7 @@ visible section of the buffer, and pass LINE and COL as TOPOS.  */)
 			 ? (window_body_cols (w)
 			    - (
 #ifdef HAVE_WINDOW_SYSTEM
-			       FRAME_WINDOW_P (XFRAME (WVAR (w, frame))) ? 0 :
+			       FRAME_WINDOW_P (XFRAME (WGET (w, frame))) ? 0 :
 #endif
 			       1))
 			 : XINT (XCAR (topos))),
@@ -1837,7 +1837,7 @@ vmotion (register ptrdiff_t from, register EMACS_INT vtarget, struct window *w)
 
   /* If the window contains this buffer, use it for getting text properties.
      Otherwise use the current buffer as arg for doing that.  */
-  if (EQ (WVAR (w, buffer), Fcurrent_buffer ()))
+  if (EQ (WGET (w, buffer), Fcurrent_buffer ()))
     text_prop_object = window;
   else
     text_prop_object = Fcurrent_buffer ();
@@ -1998,14 +1998,14 @@ whether or not it is currently displayed in some window.  */)
 
   old_buffer = Qnil;
   GCPRO3 (old_buffer, old_charpos, old_bytepos);
-  if (XBUFFER (WVAR (w, buffer)) != current_buffer)
+  if (XBUFFER (WGET (w, buffer)) != current_buffer)
     {
       /* Set the window's buffer temporarily to the current buffer.  */
-      old_buffer = WVAR (w, buffer);
-      old_charpos = XMARKER (WVAR (w, pointm))->charpos;
-      old_bytepos = XMARKER (WVAR (w, pointm))->bytepos;
-      XSETBUFFER (WVAR (w, buffer), current_buffer);
-      set_marker_both (WVAR (w, pointm), WVAR (w, buffer),
+      old_buffer = WGET (w, buffer);
+      old_charpos = XMARKER (WGET (w, pointm))->charpos;
+      old_bytepos = XMARKER (WGET (w, pointm))->bytepos;
+      WSET (w, buffer, Fcurrent_buffer ());
+      set_marker_both (WGET (w, pointm), WGET (w, buffer),
 		       BUF_PT (current_buffer), BUF_PT_BYTE (current_buffer));
     }
 
@@ -2137,7 +2137,7 @@ whether or not it is currently displayed in some window.  */)
 	    }
 	  move_it_in_display_line
 	    (&it, ZV,
-	     (int)(cols * FRAME_COLUMN_WIDTH (XFRAME (WVAR (w, frame))) + 0.5),
+	     (int)(cols * FRAME_COLUMN_WIDTH (XFRAME (WGET (w, frame))) + 0.5),
 	     MOVE_TO_X);
 	}
 
@@ -2147,8 +2147,8 @@ whether or not it is currently displayed in some window.  */)
 
   if (BUFFERP (old_buffer))
     {
-      WVAR (w, buffer) = old_buffer;
-      set_marker_both (WVAR (w, pointm), WVAR (w, buffer),
+      WSET (w, buffer, old_buffer);
+      set_marker_both (WGET (w, pointm), WGET (w, buffer),
 		       old_charpos, old_bytepos);
     }
 

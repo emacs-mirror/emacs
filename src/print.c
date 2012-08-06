@@ -1773,10 +1773,10 @@ print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag
 	  strout ("#<window ", -1, -1, printcharfun);
 	  len = sprintf (buf, "%d", XWINDOW (obj)->sequence_number);
 	  strout (buf, len, len, printcharfun);
-	  if (!NILP (WVAR (XWINDOW (obj), buffer)))
+	  if (!NILP (WGET (XWINDOW (obj), buffer)))
 	    {
 	      strout (" on ", -1, -1, printcharfun);
-	      print_string (BVAR (XBUFFER (WVAR (XWINDOW (obj), buffer)), name),
+	      print_string (BVAR (XBUFFER (WGET (XWINDOW (obj), buffer)), name),
 			    printcharfun);
 	    }
 	  PRINTCHAR ('>');

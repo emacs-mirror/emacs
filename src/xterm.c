@@ -628,7 +628,7 @@ x_draw_vertical_window_border (struct window *w, int x, int y0, int y1)
 static void
 x_update_window_end (struct window *w, int cursor_on_p, int mouse_face_overwritten_p)
 {
-  Mouse_HLInfo *hlinfo = MOUSE_HL_INFO (XFRAME (WVAR (w, frame)));
+  Mouse_HLInfo *hlinfo = MOUSE_HL_INFO (XFRAME (WGET (w, frame)));
 
   if (!w->pseudo_window_p)
     {
@@ -728,7 +728,7 @@ x_after_update_window_line (struct glyph_row *desired_row)
      overhead is very small.  */
   if (windows_or_buffers_changed
       && desired_row->full_width_p
-      && (f = XFRAME (WVAR (w, frame)),
+      && (f = XFRAME (WGET (w, frame)),
 	  width = FRAME_INTERNAL_BORDER_WIDTH (f),
 	  width != 0)
       && (height = desired_row->visible_height,
@@ -3295,7 +3295,7 @@ x_ins_del_lines (struct frame *f, int vpos, int n)
 static void
 x_scroll_run (struct window *w, struct run *run)
 {
-  struct frame *f = XFRAME (WVAR (w, frame));
+  struct frame *f = XFRAME (WGET (w, frame));
   int x, y, width, height, from_y, to_y, bottom_y;
 
   /* Get frame-relative bounding box of the text display area of W,
@@ -4244,9 +4244,9 @@ xt_action_hook (Widget widget, XtPointer client_data, String action_name,
 			       scroll_bar_end_scroll, 0, 0);
       w = XWINDOW (window_being_scrolled);
 
-      if (!NILP (XSCROLL_BAR (WVAR (w, vertical_scroll_bar))->dragging))
+      if (!NILP (XSCROLL_BAR (WGET (w, vertical_scroll_bar))->dragging))
 	{
-	  XSCROLL_BAR (WVAR (w, vertical_scroll_bar))->dragging = Qnil;
+	  XSCROLL_BAR (WGET (w, vertical_scroll_bar))->dragging = Qnil;
 	  /* The thumb size is incorrect while dragging: fix it.  */
 	  set_vertical_scroll_bar (w);
 	}
@@ -4277,7 +4277,7 @@ x_send_scroll_bar_event (Lisp_Object window, int part, int portion, int whole)
   XEvent event;
   XClientMessageEvent *ev = (XClientMessageEvent *) &event;
   struct window *w = XWINDOW (window);
-  struct frame *f = XFRAME (WVAR (w, frame));
+  struct frame *f = XFRAME (WGET (w, frame));
   ptrdiff_t i;
 
   BLOCK_INPUT;
@@ -4353,7 +4353,7 @@ x_scroll_bar_to_input_event (XEvent *event, struct input_event *ievent)
   ievent->timestamp = CurrentTime;
 #else
   ievent->timestamp =
-    XtLastTimestampProcessed (FRAME_X_DISPLAY (XFRAME (WVAR (w, frame))));
+    XtLastTimestampProcessed (FRAME_X_DISPLAY (XFRAME (WGET (w, frame))));
 #endif
   ievent->part = ev->data.l[1];
   ievent->code = ev->data.l[2];
@@ -4954,7 +4954,7 @@ x_set_toolkit_scroll_bar_thumb (struct scroll_bar *bar, int portion, int positio
 static struct scroll_bar *
 x_scroll_bar_create (struct window *w, int top, int left, int width, int height)
 {
-  struct frame *f = XFRAME (WVAR (w, frame));
+  struct frame *f = XFRAME (WGET (w, frame));
   struct scroll_bar *bar
     = ALLOCATE_PSEUDOVECTOR (struct scroll_bar, x_window, PVEC_OTHER);
   Lisp_Object barobj;
@@ -5182,7 +5182,7 @@ x_scroll_bar_remove (struct scroll_bar *bar)
 #endif
 
   /* Dissociate this scroll bar from its window.  */
-  WVAR (XWINDOW (bar->window), vertical_scroll_bar) = Qnil;
+  WSET (XWINDOW (bar->window), vertical_scroll_bar, Qnil);
 
   UNBLOCK_INPUT;
 }
@@ -5196,7 +5196,8 @@ x_scroll_bar_remove (struct scroll_bar *bar)
 static void
 XTset_vertical_scroll_bar (struct window *w, int portion, int whole, int position)
 {
-  struct frame *f = XFRAME (WVAR (w, frame));
+  struct frame *f = XFRAME (WGET (w, frame));
+  Lisp_Object barobj;
   struct scroll_bar *bar;
   int top, height, left, sb_left, width, sb_width;
   int window_y, window_height;
@@ -5247,7 +5248,7 @@ XTset_vertical_scroll_bar (struct window *w, int portion, int whole, int positio
 #endif
 
   /* Does the scroll bar exist yet?  */
-  if (NILP (WVAR (w, vertical_scroll_bar)))
+  if (NILP (WGET (w, vertical_scroll_bar)))
     {
       if (width > 0 && height > 0)
 	{
@@ -5270,7 +5271,7 @@ XTset_vertical_scroll_bar (struct window *w, int portion, int whole, int positio
       /* It may just need to be moved and resized.  */
       unsigned int mask = 0;
 
-      bar = XSCROLL_BAR (WVAR (w, vertical_scroll_bar));
+      bar = XSCROLL_BAR (WGET (w, vertical_scroll_bar));
 
       BLOCK_INPUT;
 
@@ -5394,7 +5395,8 @@ XTset_vertical_scroll_bar (struct window *w, int portion, int whole, int positio
     }
 #endif /* not USE_TOOLKIT_SCROLL_BARS */
 
-  XSETVECTOR (WVAR (w, vertical_scroll_bar), bar);
+  XSETVECTOR (barobj, bar);
+  WSET (w, vertical_scroll_bar, barobj);
 }
 
 
@@ -5439,10 +5441,10 @@ XTredeem_scroll_bar (struct window *window)
   Lisp_Object barobj;
 
   /* We can't redeem this window's scroll bar if it doesn't have one.  */
-  if (NILP (WVAR (window, vertical_scroll_bar)))
+  if (NILP (WGET (window, vertical_scroll_bar)))
     abort ();
 
-  bar = XSCROLL_BAR (WVAR (window, vertical_scroll_bar));
+  bar = XSCROLL_BAR (WGET (window, vertical_scroll_bar));
 
   /* Unlink it from the condemned list.  */
   f = XFRAME (WINDOW_FRAME (window));
@@ -5450,11 +5452,11 @@ XTredeem_scroll_bar (struct window *window)
     {
       /* If the prev pointer is nil, it must be the first in one of
 	 the lists.  */
-      if (EQ (FRAME_SCROLL_BARS (f), WVAR (window, vertical_scroll_bar)))
+      if (EQ (FRAME_SCROLL_BARS (f), WGET (window, vertical_scroll_bar)))
 	/* It's not condemned.  Everything's fine.  */
 	return;
       else if (EQ (FRAME_CONDEMNED_SCROLL_BARS (f),
-		   WVAR (window, vertical_scroll_bar)))
+		   WGET (window, vertical_scroll_bar)))
 	FSET (f, condemned_scroll_bars, bar->next);
       else
 	/* If its prev pointer is nil, it must be at the front of
@@ -5614,7 +5616,7 @@ x_scroll_bar_handle_click (struct scroll_bar *bar, XEvent *event, struct input_e
 static void
 x_scroll_bar_note_movement (struct scroll_bar *bar, XEvent *event)
 {
-  FRAME_PTR f = XFRAME (WVAR (XWINDOW (bar->window), frame));
+  FRAME_PTR f = XFRAME (WGET (XWINDOW (bar->window), frame));
 
   last_mouse_movement_time = event->xmotion.time;
 
@@ -6788,8 +6790,8 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventptr,
 		       create event iff we don't leave the
 		       selected frame.  */
 		    && (focus_follows_mouse
-			|| (EQ (WVAR (XWINDOW (window), frame),
-				WVAR (XWINDOW (selected_window), frame)))))
+			|| (EQ (WGET (XWINDOW (window), frame),
+				WGET (XWINDOW (selected_window), frame)))))
                   {
                     inev.ie.kind = SELECT_WINDOW_EVENT;
                     inev.ie.frame_or_window = window;
@@ -7338,7 +7340,7 @@ x_draw_hollow_cursor (struct window *w, struct glyph_row *row)
 static void
 x_draw_bar_cursor (struct window *w, struct glyph_row *row, int width, enum text_cursor_kinds kind)
 {
-  struct frame *f = XFRAME (WVAR (w, frame));
+  struct frame *f = XFRAME (WGET (w, frame));
   struct glyph *cursor_glyph;
 
   /* If cursor is out of bounds, don't draw garbage.  This can happen

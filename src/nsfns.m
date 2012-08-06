@@ -607,7 +607,7 @@ ns_set_name_as_filename (struct frame *f)
 {
   NSView *view;
   Lisp_Object name, filename;
-  Lisp_Object buf = WVAR (XWINDOW (FGET (f, selected_window)), buffer);
+  Lisp_Object buf = WGET (XWINDOW (FGET (f, selected_window)), buffer);
   const char *title;
   NSAutoreleasePool *pool;
   struct gcpro gcpro1;

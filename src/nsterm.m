@@ -667,7 +667,7 @@ ns_update_window_end (struct window *w, int cursor_on_p,
    external (RIF) call; for one window called before update_end
    -------------------------------------------------------------------------- */
 {
-  Mouse_HLInfo *hlinfo = MOUSE_HL_INFO (XFRAME (WVAR (w, frame)));
+  Mouse_HLInfo *hlinfo = MOUSE_HL_INFO (XFRAME (WGET (w, frame)));
 
   /* note: this fn is nearly identical in all terms */
   if (!w->pseudo_window_p)
@@ -2035,7 +2035,7 @@ ns_scroll_run (struct window *w, struct run *run)
     External (RIF):  Insert or delete n lines at line vpos
    -------------------------------------------------------------------------- */
 {
-  struct frame *f = XFRAME (WVAR (w, frame));
+  struct frame *f = XFRAME (WGET (w, frame));
   int x, y, width, height, from_y, to_y, bottom_y;
 
   NSTRACE (ns_scroll_run);
@@ -2114,7 +2114,7 @@ ns_after_update_window_line (struct glyph_row *desired_row)
      full-width rows stays visible in the internal border.
      Under NS this is drawn inside the fringes. */
   if (windows_or_buffers_changed
-      && (f = XFRAME (WVAR (w, frame)),
+      && (f = XFRAME (WGET (w, frame)),
 	  width = FRAME_INTERNAL_BORDER_WIDTH (f),
 	  width != 0)
       && (height = desired_row->visible_height,
@@ -3622,9 +3622,9 @@ ns_set_vertical_scroll_bar (struct window *window,
   EmacsScroller *bar;
 
   /* optimization; display engine sends WAY too many of these.. */
-  if (!NILP (WVAR (window, vertical_scroll_bar)))
+  if (!NILP (WGET (window, vertical_scroll_bar)))
     {
-      bar = XNS_SCROLL_BAR (WVAR (window, vertical_scroll_bar));
+      bar = XNS_SCROLL_BAR (WGET (window, vertical_scroll_bar));
       if ([bar checkSamePosition: position portion: portion whole: whole])
         {
           if (view->scrollbarsNeedingUpdate == 0)
@@ -3672,27 +3672,27 @@ ns_set_vertical_scroll_bar (struct window *window,
   /* we want at least 5 lines to display a scrollbar */
   if (WINDOW_TOTAL_LINES (window) < 5)
     {
-      if (!NILP (WVAR (window, vertical_scroll_bar)))
+      if (!NILP (WGET (window, vertical_scroll_bar)))
         {
-          bar = XNS_SCROLL_BAR (WVAR (window, vertical_scroll_bar));
+          bar = XNS_SCROLL_BAR (WGET (window, vertical_scroll_bar));
           [bar removeFromSuperview];
-          WVAR (window, vertical_scroll_bar) = Qnil;
+          WSET (window, vertical_scroll_bar, Qnil);
         }
       ns_clear_frame_area (f, sb_left, top, width, height);
       UNBLOCK_INPUT;
       return;
     }
 
-  if (NILP (WVAR (window, vertical_scroll_bar)))
+  if (NILP (WGET (window, vertical_scroll_bar)))
     {
       ns_clear_frame_area (f, sb_left, top, width, height);
       bar = [[EmacsScroller alloc] initFrame: r window: win];
-      WVAR (window, vertical_scroll_bar) = make_save_value (bar, 0);
+      WSET (window, vertical_scroll_bar, make_save_value (bar, 0));
     }
   else
     {
       NSRect oldRect;
-      bar = XNS_SCROLL_BAR (WVAR (window, vertical_scroll_bar));
+      bar = XNS_SCROLL_BAR (WGET (window, vertical_scroll_bar));
       oldRect = [bar frame];
       r.size.width = oldRect.size.width;
       if (FRAME_LIVE_P (f) && !NSEqualRects (oldRect, r))
@@ -3739,9 +3739,9 @@ ns_redeem_scroll_bar (struct window *window)
 {
   id bar;
   NSTRACE (ns_redeem_scroll_bar);
-  if (!NILP (WVAR (window, vertical_scroll_bar)))
+  if (!NILP (WGET (window, vertical_scroll_bar)))
     {
-      bar = XNS_SCROLL_BAR (WVAR (window, vertical_scroll_bar));
+      bar = XNS_SCROLL_BAR (WGET (window, vertical_scroll_bar));
       [bar reprieve];
     }
 }
@@ -6062,7 +6062,7 @@ ns_term_shutdown (int sig)
   Lisp_Object str = Qnil;
   struct frame *f = SELECTED_FRAME ();
   struct buffer *curbuf
-    = XBUFFER (WVAR (XWINDOW (FGET (f, selected_window)), buffer));
+    = XBUFFER (WGET (XWINDOW (FGET (f, selected_window)), buffer));
  
   if ([attribute isEqualToString:NSAccessibilityRoleAttribute])
     return NSAccessibilityTextFieldRole;
@@ -6237,7 +6237,7 @@ ns_term_shutdown (int sig)
   if (pixel_height == 0) pixel_height = 1;
   min_portion = 20 / pixel_height;
 
-  frame = XFRAME (WVAR (XWINDOW (win), frame));
+  frame = XFRAME (WGET (XWINDOW (win), frame));
   if (FRAME_LIVE_P (frame))
     {
       int i;
@@ -6276,7 +6276,7 @@ ns_term_shutdown (int sig)
 {
   NSTRACE (EmacsScroller_dealloc);
   if (!NILP (win))
-    WVAR (XWINDOW (win), vertical_scroll_bar) = Qnil;
+    WSET (XWINDOW (win), vertical_scroll_bar, Qnil);
   [super dealloc];
 }
 

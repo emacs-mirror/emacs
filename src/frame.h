@@ -517,7 +517,7 @@ typedef struct frame *FRAME_PTR;
 #define XSETFRAME(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_FRAME))
 
 /* Given a window, return its frame as a Lisp_Object.  */
-#define WINDOW_FRAME(w) WVAR (w, frame)
+#define WINDOW_FRAME(w) WGET (w, frame)
 
 /* Test a frame for particular kinds of display methods.  */
 #define FRAME_INITIAL_P(f) ((f)->output_method == output_initial)
