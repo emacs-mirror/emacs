@@ -1,3 +1,9 @@
+2012-08-06  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.m (ns_frame_rehighlight): Use FSET.
+
+	* nsmenu.m (ns_update_menubar): Use FSET.
+
 2012-08-06  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Separate read and write access to Lisp_Object slots of Lisp_Process.

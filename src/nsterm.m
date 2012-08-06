@@ -1018,7 +1018,7 @@ ns_frame_rehighlight (struct frame *frame)
            : dpyinfo->x_focus_frame);
       if (!FRAME_LIVE_P (dpyinfo->x_highlight_frame))
         {
-          FRAME_FOCUS_FRAME (dpyinfo->x_focus_frame) = Qnil;
+          FSET (dpyinfo->x_focus_frame, focus_frame, Qnil);
           dpyinfo->x_highlight_frame = dpyinfo->x_focus_frame;
         }
     }

@@ -215,7 +215,7 @@ ns_update_menubar (struct frame *f, int deep_p, EmacsMenu *submenu)
       if (! NILP (Vlucid_menu_bar_dirty_flag))
 	call0 (Qrecompute_lucid_menubar);
       safe_run_hooks (Qmenu_bar_update_hook);
-      FRAME_MENU_BAR_ITEMS (f) = menu_bar_items (FRAME_MENU_BAR_ITEMS (f));
+      FSET (f, menu_bar_items, menu_bar_items (FRAME_MENU_BAR_ITEMS (f)));
 
       /* Now ready to go */
       items = FRAME_MENU_BAR_ITEMS (f);
