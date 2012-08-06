@@ -1,3 +1,9 @@
+2012-08-06  Julien Danjou  <julien@danjou.info>
+
+	* erc-match.el (erc-match-exclude-server-buffer)
+	(erc-match-message): Add new option to exclude server buffer from
+	matching.
+
 2012-07-21  Julien Danjou  <julien@danjou.info>
 
 	* erc-notifications.el: New file.
