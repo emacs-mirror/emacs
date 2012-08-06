@@ -226,12 +226,12 @@ causing the user to wonder if anything's really going on..."
 Adds the given PATH to $PATH.")
    (if args
        (progn
-	 (setq eshell-path-env (getenv "PATH"))
-	 (dolist (dir (if prepend (nreverse args) args))
-	   (setq eshell-path-env
-		 (if prepend
-		     (concat dir path-separator eshell-path-env)
-		   (concat eshell-path-env path-separator dir))))
+	 (setq eshell-path-env (getenv "PATH")
+	       args (mapconcat 'identity args path-separator)
+	       eshell-path-env
+	       (if prepend
+		   (concat args path-separator eshell-path-env)
+		 (concat eshell-path-env path-separator args)))
 	 (setenv "PATH" eshell-path-env))
      (dolist (dir (parse-colon-path (getenv "PATH")))
        (eshell-printn dir)))))
