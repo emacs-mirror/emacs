@@ -110,6 +110,10 @@ treated as images.
 *** Images displayed via ImageMagick now support transparency and the
 :background image spec property.
 
+** Internationalization changes
+
+*** Added language support for Persian.
+
 ** Face underlining can now use a wave.
 See the "Face Attributes" section of the Elisp manual.
 
