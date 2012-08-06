@@ -1841,7 +1841,7 @@ replace_window (Lisp_Object old, Lisp_Object new, int setflag)
   /* If OLD is its frame's root window, then NEW is the new
      root window for that frame.  */
   if (EQ (old, FRAME_ROOT_WINDOW (XFRAME (WVAR (o, frame)))))
-    FSET (XFRAME (WVAR (o, frame)), selected_window, new);
+    FSET (XFRAME (WVAR (o, frame)), root_window, new);
 
   if (setflag)
     {
