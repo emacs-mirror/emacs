@@ -912,7 +912,9 @@ To return to ordinary Occur mode, use \\[occur-cease-edit]."
 			(line-number-at-pos (window-start))))
 	       (readonly (with-current-buffer buf buffer-read-only))
 	       (win (or (get-buffer-window buf)
-			(display-buffer buf t)))
+			(display-buffer buf
+					'(nil (inhibit-same-window . t)
+					      (inhibit-switch-frame . t)))))
 	       (line-end (line-end-position))
 	       (text (save-excursion
 		       (goto-char (next-single-property-change

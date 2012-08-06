@@ -1,3 +1,15 @@
+2012-08-06  Chong Yidong  <cyd@gnu.org>
+
+	* window.el (window--maybe-raise-frame): New function.
+	(window--display-buffer): Split off from here.
+	(display-buffer-reuse-window, display-buffer-pop-up-frame)
+	(display-buffer-pop-up-window, display-buffer-use-some-window):
+	Obey an inhibit-switch-frame action alist entry.
+	(display-buffer): Update doc.
+
+	* replace.el (occur-after-change-function): Avoid losing focus by
+	using the inhibit-switch-frame display parameter (Bug#12139).
+
 2012-08-06  Fabián Ezequiel Gallina  <fgallina@cuca>
 
 	Make internal shell process buffer names start with space.
