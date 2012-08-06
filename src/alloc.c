@@ -521,7 +521,7 @@ buffer_memory_full (ptrdiff_t nbytes)
 
 #if USE_LSB_TAG
 # define XMALLOC_HEADER_ALIGNMENT \
-    COMMON_MULTIPLE (1 << GCTYPEBITS, XMALLOC_BASE_ALIGNMENT)
+    COMMON_MULTIPLE (GCALIGNMENT, XMALLOC_BASE_ALIGNMENT)
 #else
 # define XMALLOC_HEADER_ALIGNMENT XMALLOC_BASE_ALIGNMENT
 #endif
@@ -2902,8 +2902,7 @@ DEFUN ("make-list", Fmake_list, Smake_list, 2, 2, 0,
 /* Align allocation request sizes to be a multiple of ROUNDUP_SIZE.  */
 enum
   {
-    roundup_size = COMMON_MULTIPLE (word_size,
-				    USE_LSB_TAG ? 1 << GCTYPEBITS : 1)
+    roundup_size = COMMON_MULTIPLE (word_size, USE_LSB_TAG ? GCALIGNMENT : 1)
   };
 
 /* ROUNDUP_SIZE must be a power of 2.  */
@@ -3457,8 +3456,8 @@ union aligned_Lisp_Symbol
 {
   struct Lisp_Symbol s;
 #if USE_LSB_TAG
-  unsigned char c[(sizeof (struct Lisp_Symbol) + (1 << GCTYPEBITS) - 1)
-		  & -(1 << GCTYPEBITS)];
+  unsigned char c[(sizeof (struct Lisp_Symbol) + GCALIGNMENT - 1)
+		  & -GCALIGNMENT];
 #endif
 };
 
@@ -3552,8 +3551,8 @@ union aligned_Lisp_Misc
 {
   union Lisp_Misc m;
 #if USE_LSB_TAG
-  unsigned char c[(sizeof (union Lisp_Misc) + (1 << GCTYPEBITS) - 1)
-		  & -(1 << GCTYPEBITS)];
+  unsigned char c[(sizeof (union Lisp_Misc) + GCALIGNMENT - 1)
+		  & -GCALIGNMENT];
 #endif
 };
 
@@ -4563,9 +4562,9 @@ mark_maybe_pointer (void *p)
   struct mem_node *m;
 
   /* Quickly rule out some values which can't point to Lisp data.
-     USE_LSB_TAG needs Lisp data to be aligned on multiples of 1 << GCTYPEBITS.
+     USE_LSB_TAG needs Lisp data to be aligned on multiples of GCALIGNMENT.
      Otherwise, assume that Lisp data is aligned on even addresses.  */
-  if ((intptr_t) p % (USE_LSB_TAG ? 1 << GCTYPEBITS : 2))
+  if ((intptr_t) p % (USE_LSB_TAG ? GCALIGNMENT : 2))
     return;
 
   m = mem_find (p);
@@ -5080,7 +5079,7 @@ pure_alloc (size_t size, int type)
 {
   void *result;
 #if USE_LSB_TAG
-  size_t alignment = (1 << GCTYPEBITS);
+  size_t alignment = GCALIGNMENT;
 #else
   size_t alignment = alignof (EMACS_INT);
 

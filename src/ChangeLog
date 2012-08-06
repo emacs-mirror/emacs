@@ -1,3 +1,10 @@
+2012-08-06  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Use GCALIGNMENT where appropriate.
+	* alloc.c (XMALLOC_HEADER_ALIGNMENT, roundup_size):
+	(union aligned_Lisp_Symbol, union aligned_Lisp_Misc):
+	(mark_maybe_pointer, pure_alloc): Change to use GCALIGNMENT.
+
 2012-08-06  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32menu.c (set_frame_menubar, initialize_frame_menubar): Don't
