@@ -8,7 +8,7 @@
 
 2012-08-05  Michael Albinus  <michael.albinus@gmx.de>
 
-	* INSTALL: Explain, how to disable D-Bus at all.  (Bug#12112)
+	* INSTALL: Explain how to completely disable D-Bus.  (Bug#12112)
 
 2012-08-05  Ulrich Müller  <ulm@gentoo.org>
 
