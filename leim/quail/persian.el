@@ -1,4 +1,4 @@
-;;; persian.el  --- Quail package for inputting Persian/Farsi keyboard	-*- coding: utf-8;-*-
+1;2c;;; persian.el  --- Quail package for inputting Persian/Farsi keyboard	-*- coding: utf-8;-*-
 
 ;; Copyright (C) 2011-2012  Free Software Foundation, Inc.
 
@@ -21,8 +21,6 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
-
-;; This is a Halaal Poly-Existential intended to remain perpetually Halaal.
 
 ;;; Commentary:
 ;;
