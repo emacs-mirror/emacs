@@ -1,5 +1,13 @@
 2012-08-06  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	Fix Windows build errors introduced after converting to FGET and FSET.
+	* w32term.c (x_frame_rehighlight, x_scroll_bar_create):
+	(w32_condemn_scroll_bars, w32_redeem_scroll_bar):
+	(w32_judge_scroll_bars): Change to use FSET.
+	Reported by Andy Moreton <andrewjmoreton@gmail.com>.
+
+2012-08-06  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	Fix replacement typo.
 	* window.c (replace_window): Set root_window instead of
 	selected_window.  This fixes a total window subsystem

@@ -2972,7 +2972,7 @@ x_frame_rehighlight (struct w32_display_info *dpyinfo)
 	   : dpyinfo->w32_focus_frame);
       if (! FRAME_LIVE_P (dpyinfo->x_highlight_frame))
 	{
-	  FRAME_FOCUS_FRAME (dpyinfo->w32_focus_frame) = Qnil;
+	  FSET (dpyinfo->w32_focus_frame, focus_frame, Qnil);
 	  dpyinfo->x_highlight_frame = dpyinfo->w32_focus_frame;
 	}
     }
@@ -3612,6 +3612,7 @@ x_scroll_bar_create (struct window *w, int top, int left, int width, int height)
   SCROLLINFO si;
   struct scroll_bar *bar
     = XSCROLL_BAR (Fmake_vector (make_number (SCROLL_BAR_VEC_SIZE), Qnil));
+  Lisp_Object barobj;
 
   BLOCK_INPUT;
 
@@ -3644,7 +3645,8 @@ x_scroll_bar_create (struct window *w, int top, int left, int width, int height)
   /* Add bar to its frame's list of scroll bars.  */
   bar->next = FRAME_SCROLL_BARS (f);
   bar->prev = Qnil;
-  XSETVECTOR (FRAME_SCROLL_BARS (f), bar);
+  XSETVECTOR (barobj, bar);
+  FSET (f, scroll_bars, barobj);
   if (! NILP (bar->next))
     XSETVECTOR (XSCROLL_BAR (bar->next)->prev, bar);
 
@@ -3829,12 +3831,12 @@ w32_condemn_scroll_bars (FRAME_PTR frame)
     {
       Lisp_Object bar;
       bar = FRAME_SCROLL_BARS (frame);
-      FRAME_SCROLL_BARS (frame) = XSCROLL_BAR (bar)->next;
+      FSET (frame, scroll_bars, XSCROLL_BAR (bar)->next);
       XSCROLL_BAR (bar)->next = FRAME_CONDEMNED_SCROLL_BARS (frame);
       XSCROLL_BAR (bar)->prev = Qnil;
       if (! NILP (FRAME_CONDEMNED_SCROLL_BARS (frame)))
 	XSCROLL_BAR (FRAME_CONDEMNED_SCROLL_BARS (frame))->prev = bar;
-      FRAME_CONDEMNED_SCROLL_BARS (frame) = bar;
+      FSET (frame, condemned_scroll_bars, bar);
     }
 }
 
@@ -3846,6 +3848,7 @@ static void
 w32_redeem_scroll_bar (struct window *window)
 {
   struct scroll_bar *bar;
+  Lisp_Object barobj;
   struct frame *f;
 
   /* We can't redeem this window's scroll bar if it doesn't have one.  */
@@ -3865,7 +3868,7 @@ w32_redeem_scroll_bar (struct window *window)
         return;
       else if (EQ (FRAME_CONDEMNED_SCROLL_BARS (f),
                    WVAR (window, vertical_scroll_bar)))
-        FRAME_CONDEMNED_SCROLL_BARS (f) = bar->next;
+        FSET (f, condemned_scroll_bars, bar->next);
       else
         /* If its prev pointer is nil, it must be at the front of
            one or the other!  */
@@ -3879,7 +3882,8 @@ w32_redeem_scroll_bar (struct window *window)
 
   bar->next = FRAME_SCROLL_BARS (f);
   bar->prev = Qnil;
-  XSETVECTOR (FRAME_SCROLL_BARS (f), bar);
+  XSETVECTOR (barobj, bar);
+  FSET (f, scroll_bars, barobj);
   if (! NILP (bar->next))
     XSETVECTOR (XSCROLL_BAR (bar->next)->prev, bar);
 }
@@ -3896,7 +3900,7 @@ w32_judge_scroll_bars (FRAME_PTR f)
 
   /* Clear out the condemned list now so we won't try to process any
      more events on the hapless scroll bars.  */
-  FRAME_CONDEMNED_SCROLL_BARS (f) = Qnil;
+  FSET (f, condemned_scroll_bars, Qnil);
 
   for (; ! NILP (bar); bar = next)
     {
