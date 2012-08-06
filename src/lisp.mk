@@ -95,6 +95,7 @@ lisp = \
 	$(lispsource)/language/japanese.elc \
 	$(lispsource)/language/korean.elc \
 	$(lispsource)/language/lao.elc \
+	$(lispsource)/language/persian.elc \
 	$(lispsource)/language/tai-viet.elc \
 	$(lispsource)/language/thai.elc \
 	$(lispsource)/language/tibetan.elc \

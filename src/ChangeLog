@@ -1,3 +1,7 @@
+2012-08-06  Glenn Morris  <rgm@gnu.org>
+
+	* lisp.mk (lisp): Add language/persian.elc.
+
 2012-08-06  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Separate read and write access to Lisp_Object slots of struct frame.
