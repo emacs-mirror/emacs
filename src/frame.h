@@ -80,9 +80,15 @@ struct terminal;
 
 struct font_driver_list;
 
-/* Most code should use this macro to access Lisp fields in struct frame.  */
+/* Most code should use these macros to access Lisp fields
+   in struct frame.  FGET should not be used as lvalue.  */
 
-#define FVAR(frame, field) ((frame)->INTERNAL_FIELD (field))
+#define FGET(f, field)					\
+  (eassert (offsetof (struct frame, field ## _)		\
+	    < offsetof (struct frame, face_cache)),	\
+   ((f)->INTERNAL_FIELD (field)))
+
+#define FSET(f, field, value) ((f)->INTERNAL_FIELD (field) = (value))
 
 struct frame
 {
@@ -640,13 +646,13 @@ typedef struct frame *FRAME_PTR;
 #define FRAME_WINDOW_SIZES_CHANGED(f) (f)->window_sizes_changed
 
 /* The minibuffer window of frame F, if it has one; otherwise nil.  */
-#define FRAME_MINIBUF_WINDOW(f) FVAR (f, minibuffer_window)
+#define FRAME_MINIBUF_WINDOW(f) FGET (f, minibuffer_window)
 
 /* The root window of the window tree of frame F.  */
-#define FRAME_ROOT_WINDOW(f) FVAR (f, root_window)
+#define FRAME_ROOT_WINDOW(f) FGET (f, root_window)
 
 /* The currently selected window of the window tree of frame F.  */
-#define FRAME_SELECTED_WINDOW(f) FVAR (f, selected_window)
+#define FRAME_SELECTED_WINDOW(f) FGET (f, selected_window)
 
 #define FRAME_INSERT_COST(f) (f)->insert_line_cost
 #define FRAME_DELETE_COST(f) (f)->delete_line_cost
@@ -654,7 +660,7 @@ typedef struct frame *FRAME_PTR;
 #define FRAME_DELETEN_COST(f) (f)->delete_n_lines_cost
 #define FRAME_MESSAGE_BUF(f) (f)->message_buf
 #define FRAME_SCROLL_BOTTOM_VPOS(f) (f)->scroll_bottom_vpos
-#define FRAME_FOCUS_FRAME(f) FVAR (f, focus_frame)
+#define FRAME_FOCUS_FRAME(f) FGET (f, focus_frame)
 
 /* Nonzero if frame F supports scroll bars.
    If this is zero, then it is impossible to enable scroll bars
@@ -755,10 +761,10 @@ typedef struct frame *FRAME_PTR;
 
 /* Nonzero if frame F has scroll bars.  */
 
-#define FRAME_SCROLL_BARS(f) (FVAR (f, scroll_bars))
+#define FRAME_SCROLL_BARS(f) (FGET (f, scroll_bars))
 
-#define FRAME_CONDEMNED_SCROLL_BARS(f) (FVAR (f, condemned_scroll_bars))
-#define FRAME_MENU_BAR_ITEMS(f) (FVAR (f, menu_bar_items))
+#define FRAME_CONDEMNED_SCROLL_BARS(f) (FGET (f, condemned_scroll_bars))
+#define FRAME_MENU_BAR_ITEMS(f) (FGET (f, menu_bar_items))
 #define FRAME_COST_BAUD_RATE(f) ((f)->cost_calculation_baud_rate)
 
 #define FRAME_DESIRED_CURSOR(f) ((f)->desired_cursor)

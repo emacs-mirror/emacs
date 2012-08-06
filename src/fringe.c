@@ -1338,8 +1338,8 @@ compute_fringe_widths (struct frame *f, int redraw)
   int o_right = FRAME_RIGHT_FRINGE_WIDTH (f);
   int o_cols = FRAME_FRINGE_COLS (f);
 
-  Lisp_Object left_fringe = Fassq (Qleft_fringe, FVAR (f, param_alist));
-  Lisp_Object right_fringe = Fassq (Qright_fringe, FVAR (f, param_alist));
+  Lisp_Object left_fringe = Fassq (Qleft_fringe, FGET (f, param_alist));
+  Lisp_Object right_fringe = Fassq (Qright_fringe, FGET (f, param_alist));
   int left_fringe_width, right_fringe_width;
 
   if (!NILP (left_fringe))

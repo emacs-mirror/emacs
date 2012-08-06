@@ -1304,7 +1304,7 @@ x_set_window_size (struct frame *f, int change_grav, int cols, int rows)
   FRAME_PIXEL_HEIGHT (f) = pixelheight;
 /*  SET_FRAME_GARBAGED (f); // this short-circuits expose call in drawRect */
 
-  mark_window_cursors_off (XWINDOW (FVAR (f, root_window)));
+  mark_window_cursors_off (XWINDOW (FGET (f, root_window)));
   cancel_mouse_face (f);
 
   UNBLOCK_INPUT;
@@ -2123,8 +2123,8 @@ ns_after_update_window_line (struct glyph_row *desired_row)
       int y = WINDOW_TO_FRAME_PIXEL_Y (w, max (0, desired_row->y));
 
       /* Internal border is drawn below the tool bar.  */
-      if (WINDOWP (FVAR (f, tool_bar_window))
-	  && w == XWINDOW (FVAR (f, tool_bar_window)))
+      if (WINDOWP (FGET (f, tool_bar_window))
+	  && w == XWINDOW (FGET (f, tool_bar_window)))
 	y -= width;
       /* end copy from other terms */
 
@@ -5540,7 +5540,7 @@ ns_term_shutdown (int sig)
   if (ns_drag_types)
     [self registerForDraggedTypes: ns_drag_types];
 
-  tem = FVAR (f, name);
+  tem = FGET (f, name);
   name = [NSString stringWithUTF8String:
                    NILP (tem) ? "Emacs" : SSDATA (tem)];
   [win setTitle: name];
@@ -5558,7 +5558,7 @@ ns_term_shutdown (int sig)
 #endif
   FRAME_TOOLBAR_HEIGHT (f) = 0;
 
-  tem = FVAR (f, icon_name);
+  tem = FGET (f, icon_name);
   if (!NILP (tem))
     [win setMiniwindowTitle:
            [NSString stringWithUTF8String: SSDATA (tem)]];
@@ -5739,7 +5739,7 @@ ns_term_shutdown (int sig)
     {
       NSInteger tag = [sender tag];
       find_and_call_menu_selection (emacsframe, emacsframe->menu_bar_items_used,
-                                    FVAR (emacsframe, menu_bar_vector),
+                                    FGET (emacsframe, menu_bar_vector),
                                     (void *)tag);
     }
 
@@ -5773,8 +5773,8 @@ ns_term_shutdown (int sig)
 
   emacs_event->kind = TOOL_BAR_EVENT;
 /*   XSETINT (emacs_event->code, 0); */
-  emacs_event->arg = AREF (FVAR (emacsframe, tool_bar_items),
-                          idx + TOOL_BAR_ITEM_KEY);
+  emacs_event->arg = AREF (FGET (emacsframe, tool_bar_items),
+			   idx + TOOL_BAR_ITEM_KEY);
   emacs_event->modifiers = EV_MODIFIERS (theEvent);
   EV_TRAILER (theEvent);
   return self;
@@ -6062,7 +6062,7 @@ ns_term_shutdown (int sig)
   Lisp_Object str = Qnil;
   struct frame *f = SELECTED_FRAME ();
   struct buffer *curbuf
-    = XBUFFER (WVAR (XWINDOW (FVAR (f, selected_window)), buffer));
+    = XBUFFER (WVAR (XWINDOW (FGET (f, selected_window)), buffer));
  
   if ([attribute isEqualToString:NSAccessibilityRoleAttribute])
     return NSAccessibilityTextFieldRole;

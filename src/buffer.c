@@ -193,9 +193,9 @@ followed by the rest of the buffers.  */)
       Lisp_Object args[3];
 
       CHECK_FRAME (frame);
-      framelist = Fcopy_sequence (FVAR (XFRAME (frame), buffer_list));
+      framelist = Fcopy_sequence (FGET (XFRAME (frame), buffer_list));
       prevlist = Fnreverse (Fcopy_sequence
-			    (FVAR (XFRAME (frame), buried_buffer_list)));
+			    (FGET (XFRAME (frame), buried_buffer_list)));
 
       /* Remove from GENERAL any buffer that duplicates one in
          FRAMELIST or PREVLIST.  */
@@ -1327,7 +1327,7 @@ exists, return the buffer `*scratch*' (creating it if necessary).  */)
 
   pred = frame_buffer_predicate (frame);
   /* Consider buffers that have been seen in the frame first.  */
-  tail = FVAR (XFRAME (frame), buffer_list);
+  tail = FGET (XFRAME (frame), buffer_list);
   for (; CONSP (tail); tail = XCDR (tail))
     {
       buf = XCAR (tail);
@@ -1767,8 +1767,8 @@ record_buffer (Lisp_Object buffer)
   Vinhibit_quit = tem;
 
   /* Update buffer list of selected frame.  */
-  FVAR (f, buffer_list) = Fcons (buffer, Fdelq (buffer, FVAR (f, buffer_list)));
-  FVAR (f, buried_buffer_list) = Fdelq (buffer, FVAR (f, buried_buffer_list));
+  FSET (f, buffer_list, Fcons (buffer, Fdelq (buffer, FGET (f, buffer_list))));
+  FSET (f, buried_buffer_list, Fdelq (buffer, FGET (f, buried_buffer_list)));
 
   /* Run buffer-list-update-hook.  */
   if (!NILP (Vrun_hooks))
@@ -1805,9 +1805,9 @@ DEFUN ("bury-buffer-internal", Fbury_buffer_internal, Sbury_buffer_internal,
   Vinhibit_quit = tem;
 
   /* Update buffer lists of selected frame.  */
-  FVAR (f, buffer_list) = Fdelq (buffer, FVAR (f, buffer_list));
-  FVAR (f, buried_buffer_list)
-    = Fcons (buffer, Fdelq (buffer, FVAR (f, buried_buffer_list)));
+  FSET (f, buffer_list, Fdelq (buffer, FGET (f, buffer_list)));
+  FSET (f, buried_buffer_list,
+	Fcons (buffer, Fdelq (buffer, FGET (f, buried_buffer_list))));
 
   /* Run buffer-list-update-hook.  */
   if (!NILP (Vrun_hooks))

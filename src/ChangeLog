@@ -1,3 +1,12 @@
+2012-08-06  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Separate read and write access to Lisp_Object slots of struct frame.
+	* frame.h (FGET, FSET): New macros similar to AREF and ASET.
+	* buffer.c, data.c, dispnew.c, dosfns.c, eval.c, fontset.c, frame.c:
+	* fringe.c, gtkutil.c, minibuf.c, msdos.c, nsfns.m, nsmenu.m, nsterm.m:
+	* print.c, term.c, w32fns.c, w32menu.c, w32term.c, window.c, window.h:
+	* xdisp.c, xfaces.c, xfns.c, xmenu.c, xterm.c: Adjust users.
+
 2012-08-05  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* emacs.c (decode_env_path): Only use defaulted if WINDOWSNT.

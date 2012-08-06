@@ -835,7 +835,7 @@ menubar_selection_callback (Widget widget, LWLIB_ID id, XtPointer client_data)
   if (!f)
     return;
   find_and_call_menu_selection (f, f->menu_bar_items_used,
-                                FVAR (f, menu_bar_vector), client_data);
+                                FGET (f, menu_bar_vector), client_data);
 }
 #endif /* not USE_GTK */
 
@@ -1008,20 +1008,20 @@ set_frame_menubar (FRAME_PTR f, int first_time, int deep_p)
       if (! NILP (Vlucid_menu_bar_dirty_flag))
 	call0 (Qrecompute_lucid_menubar);
       safe_run_hooks (Qmenu_bar_update_hook);
-      FRAME_MENU_BAR_ITEMS (f) = menu_bar_items (FRAME_MENU_BAR_ITEMS (f));
+      FSET (f, menu_bar_items, menu_bar_items (FRAME_MENU_BAR_ITEMS (f)));
 
       items = FRAME_MENU_BAR_ITEMS (f);
 
       /* Save the frame's previous menu bar contents data.  */
       if (previous_menu_items_used)
-	memcpy (previous_items, XVECTOR (FVAR (f, menu_bar_vector))->contents,
+	memcpy (previous_items, XVECTOR (FGET (f, menu_bar_vector))->contents,
 		previous_menu_items_used * word_size);
 
       /* Fill in menu_items with the current menu bar contents.
 	 This can evaluate Lisp code.  */
       save_menu_items ();
 
-      menu_items = FVAR (f, menu_bar_vector);
+      menu_items = FGET (f, menu_bar_vector);
       menu_items_allocated = VECTORP (menu_items) ? ASIZE (menu_items) : 0;
       subitems = ASIZE (items) / 4;
       submenu_start = alloca ((subitems + 1) * sizeof *submenu_start);
@@ -1100,7 +1100,7 @@ set_frame_menubar (FRAME_PTR f, int first_time, int deep_p)
 	}
 
       /* The menu items are different, so store them in the frame.  */
-      FVAR (f, menu_bar_vector) = menu_items;
+      FSET (f, menu_bar_vector, menu_items);
       f->menu_bar_items_used = menu_items_used;
 
       /* This undoes save_menu_items.  */
@@ -1283,7 +1283,7 @@ initialize_frame_menubar (FRAME_PTR f)
 {
   /* This function is called before the first chance to redisplay
      the frame.  It has to be, so the frame will have the right size.  */
-  FRAME_MENU_BAR_ITEMS (f) = menu_bar_items (FRAME_MENU_BAR_ITEMS (f));
+  FSET (f, menu_bar_items, menu_bar_items (FRAME_MENU_BAR_ITEMS (f)));
   set_frame_menubar (f, 1, 1);
 }
 

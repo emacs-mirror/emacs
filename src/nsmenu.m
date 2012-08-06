@@ -222,13 +222,13 @@ ns_update_menubar (struct frame *f, int deep_p, EmacsMenu *submenu)
 
       /* Save the frame's previous menu bar contents data */
       if (previous_menu_items_used)
-	memcpy (previous_items, aref_addr (FVAR (f, menu_bar_vector), 0),
+	memcpy (previous_items, aref_addr (FGET (f, menu_bar_vector), 0),
 		previous_menu_items_used * sizeof (Lisp_Object));
 
       /* parse stage 1: extract from lisp */
       save_menu_items ();
 
-      menu_items = FVAR (f, menu_bar_vector);
+      menu_items = FGET (f, menu_bar_vector);
       menu_items_allocated = VECTORP (menu_items) ? ASIZE (menu_items) : 0;
       submenu_start = alloca (ASIZE (items) * sizeof *submenu_start);
       submenu_end = alloca (ASIZE (items) * sizeof *submenu_end);
@@ -341,7 +341,7 @@ ns_update_menubar (struct frame *f, int deep_p, EmacsMenu *submenu)
         }
       /* The menu items are different, so store them in the frame */
       /* FIXME: this is not correct for single-submenu case */
-      FVAR (f, menu_bar_vector) = menu_items;
+      FSET (f, menu_bar_vector, menu_items);
       f->menu_bar_items_used = menu_items_used;
 
       /* Calls restore_menu_items, etc., as they were outside */
@@ -1040,7 +1040,7 @@ update_frame_tool_bar (FRAME_PTR f)
   /* update EmacsToolbar as in GtkUtils, build items list */
   for (i = 0; i < f->n_tool_bar_items; ++i)
     {
-#define TOOLPROP(IDX) AREF (FVAR (f, tool_bar_items), \
+#define TOOLPROP(IDX) AREF (FGET (f, tool_bar_items), \
                             i * TOOL_BAR_ITEM_NSLOTS + (IDX))
 
       BOOL enabled_p = !NILP (TOOLPROP (TOOL_BAR_ITEM_ENABLED_P));

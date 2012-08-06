@@ -468,15 +468,15 @@ void
 x_set_title (struct frame *f, Lisp_Object name)
 {
   /* Don't change the title if it's already NAME.  */
-  if (EQ (name, FVAR (f, title)))
+  if (EQ (name, FGET (f, title)))
     return;
 
   update_mode_lines = 1;
 
-  FVAR (f, title) = name;
+  FSET (f, title, name);
 
   if (NILP (name))
-    name = FVAR (f, name);
+    name = FGET (f, name);
 
   if (FRAME_MSDOS_P (f))
     {

@@ -3585,7 +3585,7 @@ x_frame_rehighlight (struct x_display_info *dpyinfo)
 	   : dpyinfo->x_focus_frame);
       if (! FRAME_LIVE_P (dpyinfo->x_highlight_frame))
 	{
-	  FRAME_FOCUS_FRAME (dpyinfo->x_focus_frame) = Qnil;
+	  FSET (dpyinfo->x_focus_frame, focus_frame, Qnil);
 	  dpyinfo->x_highlight_frame = dpyinfo->x_focus_frame;
 	}
     }
@@ -4957,6 +4957,7 @@ x_scroll_bar_create (struct window *w, int top, int left, int width, int height)
   struct frame *f = XFRAME (WVAR (w, frame));
   struct scroll_bar *bar
     = ALLOCATE_PSEUDOVECTOR (struct scroll_bar, x_window, PVEC_OTHER);
+  Lisp_Object barobj;
 
   BLOCK_INPUT;
 
@@ -5017,7 +5018,8 @@ x_scroll_bar_create (struct window *w, int top, int left, int width, int height)
   /* Add bar to its frame's list of scroll bars.  */
   bar->next = FRAME_SCROLL_BARS (f);
   bar->prev = Qnil;
-  XSETVECTOR (FRAME_SCROLL_BARS (f), bar);
+  XSETVECTOR (barobj, bar);
+  FSET (f, scroll_bars, barobj);
   if (!NILP (bar->next))
     XSETVECTOR (XSCROLL_BAR (bar->next)->prev, bar);
 
@@ -5416,12 +5418,12 @@ XTcondemn_scroll_bars (FRAME_PTR frame)
     {
       Lisp_Object bar;
       bar = FRAME_SCROLL_BARS (frame);
-      FRAME_SCROLL_BARS (frame) = XSCROLL_BAR (bar)->next;
+      FSET (frame, scroll_bars, XSCROLL_BAR (bar)->next);
       XSCROLL_BAR (bar)->next = FRAME_CONDEMNED_SCROLL_BARS (frame);
       XSCROLL_BAR (bar)->prev = Qnil;
       if (! NILP (FRAME_CONDEMNED_SCROLL_BARS (frame)))
 	XSCROLL_BAR (FRAME_CONDEMNED_SCROLL_BARS (frame))->prev = bar;
-      FRAME_CONDEMNED_SCROLL_BARS (frame) = bar;
+      FSET (frame, condemned_scroll_bars, bar);
     }
 }
 
@@ -5434,6 +5436,7 @@ XTredeem_scroll_bar (struct window *window)
 {
   struct scroll_bar *bar;
   struct frame *f;
+  Lisp_Object barobj;
 
   /* We can't redeem this window's scroll bar if it doesn't have one.  */
   if (NILP (WVAR (window, vertical_scroll_bar)))
@@ -5452,7 +5455,7 @@ XTredeem_scroll_bar (struct window *window)
 	return;
       else if (EQ (FRAME_CONDEMNED_SCROLL_BARS (f),
 		   WVAR (window, vertical_scroll_bar)))
-	FRAME_CONDEMNED_SCROLL_BARS (f) = bar->next;
+	FSET (f, condemned_scroll_bars, bar->next);
       else
 	/* If its prev pointer is nil, it must be at the front of
 	   one or the other!  */
@@ -5466,7 +5469,8 @@ XTredeem_scroll_bar (struct window *window)
 
   bar->next = FRAME_SCROLL_BARS (f);
   bar->prev = Qnil;
-  XSETVECTOR (FRAME_SCROLL_BARS (f), bar);
+  XSETVECTOR (barobj, bar);
+  FSET (f, scroll_bars, barobj);
   if (! NILP (bar->next))
     XSETVECTOR (XSCROLL_BAR (bar->next)->prev, bar);
 }
@@ -5483,7 +5487,7 @@ XTjudge_scroll_bars (FRAME_PTR f)
 
   /* Clear out the condemned list now so we won't try to process any
      more events on the hapless scroll bars.  */
-  FRAME_CONDEMNED_SCROLL_BARS (f) = Qnil;
+  FSET (f, condemned_scroll_bars, Qnil);
 
   for (; ! NILP (bar); bar = next)
     {
@@ -6357,7 +6361,7 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventptr,
 	 mouse highlighting.  */
       if (!hlinfo->mouse_face_hidden && INTEGERP (Vmouse_highlight)
 	  && (f == 0
-	      || !EQ (FVAR (f, tool_bar_window), hlinfo->mouse_face_window)))
+	      || !EQ (FGET (f, tool_bar_window), hlinfo->mouse_face_window)))
         {
           clear_mouse_face (hlinfo);
           hlinfo->mouse_face_hidden = 1;
@@ -6904,15 +6908,15 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventptr,
         if (f)
           {
             /* Is this in the tool-bar?  */
-            if (WINDOWP (FVAR (f, tool_bar_window))
-                && WINDOW_TOTAL_LINES (XWINDOW (FVAR (f, tool_bar_window))))
+            if (WINDOWP (FGET (f, tool_bar_window))
+                && WINDOW_TOTAL_LINES (XWINDOW (FGET (f, tool_bar_window))))
               {
                 Lisp_Object window;
                 int x = event.xbutton.x;
                 int y = event.xbutton.y;
 
                 window = window_from_coordinates (f, x, y, 0, 1);
-                tool_bar_p = EQ (window, FVAR (f, tool_bar_window));
+                tool_bar_p = EQ (window, FGET (f, tool_bar_window));
 
                 if (tool_bar_p && event.xbutton.button < 4)
                   {
@@ -7503,7 +7507,7 @@ x_draw_window_cursor (struct window *w, struct glyph_row *glyph_row, int x, int 
 	}
 
 #ifdef HAVE_X_I18N
-      if (w == XWINDOW (FVAR (f, selected_window)))
+      if (w == XWINDOW (FGET (f, selected_window)))
 	if (FRAME_XIC (f) && (FRAME_XIC_STYLE (f) & XIMPreeditPosition))
 	  xic_set_preeditarea (w, x, y);
 #endif
@@ -8154,7 +8158,7 @@ xim_instantiate_callback (Display *display, XPointer client_data, XPointer call_
 		  xic_set_statusarea (f);
 		if (FRAME_XIC_STYLE (f) & XIMPreeditPosition)
 		  {
-		    struct window *w = XWINDOW (FVAR (f, selected_window));
+		    struct window *w = XWINDOW (FGET (f, selected_window));
 		    xic_set_preeditarea (w, w->cursor.x, w->cursor.y);
 		  }
 	      }
@@ -8942,7 +8946,7 @@ x_set_window_size (struct frame *f, int change_gravity, int cols, int rows)
 #endif /* not USE_GTK */
 
   /* If cursor was outside the new size, mark it as off.  */
-  mark_window_cursors_off (XWINDOW (FVAR (f, root_window)));
+  mark_window_cursors_off (XWINDOW (FGET (f, root_window)));
 
   /* Clear out any recollection of where the mouse highlighting was,
      since it might be in a place that's outside the new frame size.

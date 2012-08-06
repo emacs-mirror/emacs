@@ -1006,7 +1006,8 @@ swap_in_symval_forwarding (struct Lisp_Symbol *symbol, struct Lisp_Buffer_Local_
 	XSETSYMBOL (var, symbol);
 	if (blv->frame_local)
 	  {
-	    tem1 = assq_no_quit (var, FVAR (XFRAME (selected_frame), param_alist));
+	    tem1 = assq_no_quit (var, FGET (XFRAME (selected_frame),
+                                           param_alist));
 	    blv->where = selected_frame;
 	  }
 	else
@@ -1179,7 +1180,7 @@ set_internal (register Lisp_Object symbol, register Lisp_Object newval, register
 	    XSETSYMBOL (symbol, sym); /* May have changed via aliasing.  */
 	    tem1 = Fassq (symbol,
 			  (blv->frame_local
-			   ? FVAR (XFRAME (where), param_alist)
+			   ? FGET (XFRAME (where), param_alist)
 			   : BVAR (XBUFFER (where), local_var_alist)));
 	    blv->where = where;
 	    blv->found = 1;

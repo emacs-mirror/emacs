@@ -191,13 +191,13 @@ With a window argument, return the root window of that window's frame.  */)
   Lisp_Object window;
 
   if (NILP (frame_or_window))
-    window = FVAR (SELECTED_FRAME (), root_window);
+    window = FGET (SELECTED_FRAME (), root_window);
   else if (WINDOWP (frame_or_window))
-    window = FVAR (XFRAME (WINDOW_FRAME (XWINDOW (frame_or_window))), root_window);
+    window = FGET (XFRAME (WINDOW_FRAME (XWINDOW (frame_or_window))), root_window);
   else
     {
       CHECK_LIVE_FRAME (frame_or_window);
-      window = FVAR (XFRAME (frame_or_window), root_window);
+      window = FGET (XFRAME (frame_or_window), root_window);
     }
 
   return window;
@@ -235,13 +235,13 @@ the first window of that frame.  */)
   Lisp_Object window;
 
   if (NILP (frame_or_window))
-    window = FVAR (SELECTED_FRAME (), root_window);
+    window = FGET (SELECTED_FRAME (), root_window);
   else if (WINDOWP (frame_or_window))
-    window = FVAR (XFRAME (WINDOW_FRAME (XWINDOW (frame_or_window))), root_window);
+    window = FGET (XFRAME (WINDOW_FRAME (XWINDOW (frame_or_window))), root_window);
   else
     {
       CHECK_LIVE_FRAME (frame_or_window);
-      window = FVAR (XFRAME (frame_or_window), root_window);
+      window = FGET (XFRAME (frame_or_window), root_window);
     }
 
   while (NILP (WVAR (XWINDOW (window), buffer)))
@@ -269,14 +269,14 @@ the selected window of that frame.  */)
   Lisp_Object window;
 
   if (NILP (frame_or_window))
-    window = FVAR (SELECTED_FRAME (), selected_window);
+    window = FGET (SELECTED_FRAME (), selected_window);
   else if (WINDOWP (frame_or_window))
-    window = FVAR (XFRAME (WINDOW_FRAME (XWINDOW (frame_or_window))),
+    window = FGET (XFRAME (WINDOW_FRAME (XWINDOW (frame_or_window))),
                   selected_window);
   else
     {
       CHECK_LIVE_FRAME (frame_or_window);
-      window = FVAR (XFRAME (frame_or_window), selected_window);
+      window = FGET (XFRAME (frame_or_window), selected_window);
     }
 
   return window;
@@ -304,7 +304,7 @@ Return WINDOW.  */)
   if (EQ (frame, selected_frame))
     return Fselect_window (window, norecord);
   else
-    return FVAR (XFRAME (frame), selected_window) = window;
+    return FSET (XFRAME (frame), selected_window, window);
 }
 
 DEFUN ("selected-window", Fselected_window, Sselected_window, 0, 0, 0,
@@ -347,7 +347,7 @@ select_window (Lisp_Object window, Lisp_Object norecord, int inhibit_point_swap)
   sf = SELECTED_FRAME ();
   if (XFRAME (WINDOW_FRAME (w)) != sf)
     {
-      FVAR (XFRAME (WINDOW_FRAME (w)), selected_window) = window;
+      FSET (XFRAME (WINDOW_FRAME (w)), selected_window, window);
       /* Use this rather than Fhandle_switch_frame
 	 so that FRAME_FOCUS_FRAME is moved appropriately as we
 	 move around in the state where a minibuffer in a separate
@@ -358,7 +358,7 @@ select_window (Lisp_Object window, Lisp_Object norecord, int inhibit_point_swap)
       return window;
     }
   else
-    FVAR (sf, selected_window) = window;
+    FSET (sf, selected_window, window);
 
   /* Store the current buffer's actual point into the
      old selected window.  It belongs to that window,
@@ -1220,13 +1220,13 @@ window_from_coordinates (struct frame *f, int x, int y,
      bar exists.  */
   if (NILP (window)
       && tool_bar_p
-      && WINDOWP (FVAR (f, tool_bar_window))
-      && WINDOW_TOTAL_LINES (XWINDOW (FVAR (f, tool_bar_window))) > 0
-      && (coordinates_in_window (XWINDOW (FVAR (f, tool_bar_window)), x, y)
+      && WINDOWP (FGET (f, tool_bar_window))
+      && WINDOW_TOTAL_LINES (XWINDOW (FGET (f, tool_bar_window))) > 0
+      && (coordinates_in_window (XWINDOW (FGET (f, tool_bar_window)), x, y)
 	  != ON_NOTHING))
     {
       *part = ON_TEXT;
-      window = FVAR (f, tool_bar_window);
+      window = FGET (f, tool_bar_window);
     }
 
   return window;
@@ -1841,7 +1841,7 @@ replace_window (Lisp_Object old, Lisp_Object new, int setflag)
   /* If OLD is its frame's root window, then NEW is the new
      root window for that frame.  */
   if (EQ (old, FRAME_ROOT_WINDOW (XFRAME (WVAR (o, frame)))))
-    FRAME_ROOT_WINDOW (XFRAME (WVAR (o, frame))) = new;
+    FSET (XFRAME (WVAR (o, frame)), selected_window, new);
 
   if (setflag)
     {
@@ -2323,7 +2323,7 @@ MINIBUF neither nil nor t means never include the minibuffer window.  */)
   (Lisp_Object frame, Lisp_Object minibuf, Lisp_Object window)
 {
   if (NILP (window))
-    window = FRAMEP (frame) ? FVAR (XFRAME (frame), selected_window) : selected_window;
+    window = FRAMEP (frame) ? FGET (XFRAME (frame), selected_window) : selected_window;
   CHECK_WINDOW (window);
   if (NILP (frame))
     frame = selected_frame;
@@ -2633,7 +2633,7 @@ window-start value is reasonable when this function is called.  */)
 	  if (EQ (selected_frame, WVAR (w, frame)))
 	    Fselect_window (window, Qnil);
 	  else
-	    FRAME_SELECTED_WINDOW (f) = window;
+	    FSET (f, selected_window, window);
 	}
     }
   else
@@ -2663,7 +2663,7 @@ window-start value is reasonable when this function is called.  */)
 	  if (EQ (selected_frame, WVAR (w, frame)))
 	    Fselect_window (swindow, Qnil);
 	  else
-	    FRAME_SELECTED_WINDOW (f) = swindow;
+	    FSET (f, selected_window, swindow);
 	}
     }
 
@@ -3562,9 +3562,9 @@ be applied on the Elisp level.  */)
 void
 resize_frame_windows (struct frame *f, int size, int horflag)
 {
-  Lisp_Object root = FVAR (f, root_window);
+  Lisp_Object root = FGET (f, root_window);
   struct window *r = XWINDOW (root);
-  Lisp_Object mini = FVAR (f, minibuffer_window);
+  Lisp_Object mini = FGET (f, minibuffer_window);
   struct window *m;
   /* new_size is the new size of the frame's root window.  */
   int new_size = (horflag
@@ -3612,7 +3612,7 @@ resize_frame_windows (struct frame *f, int size, int horflag)
 		{
 		  /* We lost.  Delete all windows but the frame's
 		     selected one.  */
-		  root = FVAR (f, selected_window);
+		  root = FGET (f, selected_window);
 		  Fdelete_other_windows_internal (root, Qnil);
 		  if (horflag)
 		    XSETFASTINT (WVAR (XWINDOW (root), total_cols), new_size);
@@ -3971,7 +3971,7 @@ Signal an error when WINDOW is the only window on its frame.  */)
 	  if (EQ (FRAME_SELECTED_WINDOW (f), selected_window))
 	    Fselect_window (new_selected_window, Qt);
 	  else
-	    FRAME_SELECTED_WINDOW (f) = new_selected_window;
+	    FSET (f, selected_window, new_selected_window);
 
 	  UNBLOCK_INPUT;
 
@@ -3985,7 +3985,7 @@ Signal an error when WINDOW is the only window on its frame.  */)
 	  if (EQ (FRAME_SELECTED_WINDOW (f), selected_window))
 	    Fselect_window (new_selected_window, Qnil);
 	  else
-	    FRAME_SELECTED_WINDOW (f) = new_selected_window;
+	    FSET (f, selected_window, new_selected_window);
 	}
       else
 	UNBLOCK_INPUT;
@@ -5660,7 +5660,7 @@ the return value is nil.  Otherwise the value is t.  */)
 	    }
 	}
 
-      FRAME_ROOT_WINDOW (f) = data->root_window;
+      FSET (f, root_window, data->root_window);
       /* Arrange *not* to restore point in the buffer that was
 	 current when the window configuration was saved.  */
       if (EQ (WVAR (XWINDOW (data->current_window), buffer), new_current_buffer))
@@ -6490,8 +6490,8 @@ init_window_once (void)
   struct frame *f = make_initial_frame ();
   XSETFRAME (selected_frame, f);
   Vterminal_frame = selected_frame;
-  minibuf_window = FVAR (f, minibuffer_window);
-  selected_window = FVAR (f, selected_window);
+  minibuf_window = FGET (f, minibuffer_window);
+  selected_window = FGET (f, selected_window);
   last_nonminibuf_frame = f;
 
   window_initialized = 1;

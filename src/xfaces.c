@@ -2053,7 +2053,7 @@ lface_from_face_name_no_resolve (struct frame *f, Lisp_Object face_name,
   Lisp_Object lface;
 
   if (f)
-    lface = assq_no_quit (face_name, FVAR (f, face_alist));
+    lface = assq_no_quit (face_name, FGET (f, face_alist));
   else
     lface = assq_no_quit (face_name, Vface_new_frame_defaults);
 
@@ -2680,8 +2680,8 @@ Value is a vector of face attributes.  */)
 	  lface = Fmake_vector (make_number (LFACE_VECTOR_SIZE),
 				Qunspecified);
 	  ASET (lface, 0, Qface);
-	  FVAR (f, face_alist) = Fcons (Fcons (face, lface), FVAR (f,
-                                                                 face_alist));
+	  FSET (f, face_alist,
+		Fcons (Fcons (face, lface), FGET (f, face_alist)));
 	}
       else
 	for (i = 1; i < LFACE_VECTOR_SIZE; ++i)
@@ -3360,7 +3360,7 @@ update_face_from_frame_parameter (struct frame *f, Lisp_Object param,
   /* If there are no faces yet, give up.  This is the case when called
      from Fx_create_frame, and we do the necessary things later in
      face-set-after-frame-defaults.  */
-  if (NILP (FVAR (f, face_alist)))
+  if (NILP (FGET (f, face_alist)))
     return;
 
   if (EQ (param, Qforeground_color))
@@ -4046,7 +4046,7 @@ For internal use only.  */)
   (Lisp_Object frame)
 {
   struct frame *f = frame_or_selected_frame (frame, 0);
-  return FVAR (f, face_alist);
+  return FGET (f, face_alist);
 }
 
 
@@ -4337,7 +4337,7 @@ free_realized_faces (struct face_cache *c)
 	 matrices as invalid because they will reference faces freed
 	 above.  This function is also called when a frame is
 	 destroyed.  In this case, the root window of F is nil.  */
-      if (WINDOWP (FVAR (f, root_window)))
+      if (WINDOWP (FGET (f, root_window)))
 	{
 	  clear_current_matrices (f);
 	  ++windows_or_buffers_changed;
@@ -5110,7 +5110,7 @@ face for italic.  */)
 	{
 	  frame = XCAR (fl_tail);
 	  if (!NILP (Fequal (Fcdr (Fassq (Qdisplay,
-					  FVAR (XFRAME (frame), param_alist))),
+					  FGET (XFRAME (frame), param_alist))),
 			     display)))
 	    break;
 	}
@@ -5406,7 +5406,7 @@ realize_default_face (struct frame *f)
     {
       /* This function is called so early that colors are not yet
 	 set in the frame parameter list.  */
-      Lisp_Object color = Fassq (Qforeground_color, FVAR (f, param_alist));
+      Lisp_Object color = Fassq (Qforeground_color, FGET (f, param_alist));
 
       if (CONSP (color) && STRINGP (XCDR (color)))
 	ASET (lface, LFACE_FOREGROUND_INDEX, XCDR (color));
@@ -5422,7 +5422,7 @@ realize_default_face (struct frame *f)
     {
       /* This function is called so early that colors are not yet
 	 set in the frame parameter list.  */
-      Lisp_Object color = Fassq (Qbackground_color, FVAR (f, param_alist));
+      Lisp_Object color = Fassq (Qbackground_color, FGET (f, param_alist));
       if (CONSP (color) && STRINGP (XCDR (color)))
 	ASET (lface, LFACE_BACKGROUND_INDEX, XCDR (color));
       else if (FRAME_WINDOW_P (f))

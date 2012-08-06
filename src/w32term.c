@@ -4189,7 +4189,7 @@ w32_read_socket (struct terminal *terminal, int expected,
 		  /* We may get paint messages even though the client
 		     area is clipped - these are not expose events. */
 		  DebPrint (("clipped frame %p (%s) got WM_PAINT - ignored\n", f,
-			     SDATA (FVAR (f, name))));
+			     SDATA (FGET (f, name))));
 		}
 	      else if (f->async_visible != 1)
 		{
@@ -4198,7 +4198,7 @@ w32_read_socket (struct terminal *terminal, int expected,
 		  f->async_iconified = 0;
 		  SET_FRAME_GARBAGED (f);
 		  DebPrint (("frame %p (%s) reexposed by WM_PAINT\n", f,
-			     SDATA (FVAR (f, name))));
+			     SDATA (FGET (f, name))));
 
 		  /* WM_PAINT serves as MapNotify as well, so report
 		     visibility changes properly.  */
@@ -4254,7 +4254,7 @@ w32_read_socket (struct terminal *terminal, int expected,
 	  if (f && !f->iconified)
 	    {
 	      if (!hlinfo->mouse_face_hidden && INTEGERP (Vmouse_highlight)
-		  && !EQ (FVAR (f, tool_bar_window), hlinfo->mouse_face_window))
+		  && !EQ (FGET (f, tool_bar_window), hlinfo->mouse_face_window))
 		{
 		  clear_mouse_face (hlinfo);
 		  hlinfo->mouse_face_hidden = 1;
@@ -4279,7 +4279,7 @@ w32_read_socket (struct terminal *terminal, int expected,
 	  if (f && !f->iconified)
 	    {
 	      if (!hlinfo->mouse_face_hidden && INTEGERP (Vmouse_highlight)
-		  && !EQ (FVAR (f, tool_bar_window), hlinfo->mouse_face_window))
+		  && !EQ (FGET (f, tool_bar_window), hlinfo->mouse_face_window))
 		{
 		  clear_mouse_face (hlinfo);
 		  hlinfo->mouse_face_hidden = 1;
@@ -4357,7 +4357,7 @@ w32_read_socket (struct terminal *terminal, int expected,
 	  if (f && !f->iconified)
 	    {
 	      if (!hlinfo->mouse_face_hidden && INTEGERP (Vmouse_highlight)
-		  && !EQ (FVAR (f, tool_bar_window), hlinfo->mouse_face_window))
+		  && !EQ (FGET (f, tool_bar_window), hlinfo->mouse_face_window))
 		{
 		  clear_mouse_face (hlinfo);
 		  hlinfo->mouse_face_hidden = 1;
@@ -4481,8 +4481,8 @@ w32_read_socket (struct terminal *terminal, int expected,
                 construct_mouse_click (&inev, &msg, f);
 
                 /* Is this in the tool-bar?  */
-                if (WINDOWP (FVAR (f, tool_bar_window))
-                    && WINDOW_TOTAL_LINES (XWINDOW (FVAR (f, tool_bar_window))))
+                if (WINDOWP (FGET (f, tool_bar_window))
+                    && WINDOW_TOTAL_LINES (XWINDOW (FGET (f, tool_bar_window))))
                   {
                     Lisp_Object window;
 		    int x = XFASTINT (inev.x);
@@ -4490,7 +4490,7 @@ w32_read_socket (struct terminal *terminal, int expected,
 
                     window = window_from_coordinates (f, x, y, 0, 1);
 
-                    if (EQ (window, FVAR (f, tool_bar_window)))
+                    if (EQ (window, FGET (f, tool_bar_window)))
                       {
                         w32_handle_tool_bar_click (f, &inev);
                         tool_bar_p = 1;
@@ -4935,7 +4935,7 @@ w32_read_socket (struct terminal *terminal, int expected,
 		if (!FRAME_OBSCURED_P (f))
 		  {
 		    DebPrint (("frame %p (%s) obscured\n", f,
-			       SDATA (FVAR (f, name))));
+			       SDATA (FGET (f, name))));
 		  }
 	      }
 	    else
@@ -4947,7 +4947,7 @@ w32_read_socket (struct terminal *terminal, int expected,
 		  {
 		    SET_FRAME_GARBAGED (f);
 		    DebPrint (("obscured frame %p (%s) found to be visible\n", f,
-			       SDATA (FVAR (f, name))));
+			       SDATA (FGET (f, name))));
 
 		    /* Force a redisplay sooner or later.  */
 		    record_asynch_buffer_change ();
@@ -5595,7 +5595,7 @@ x_set_window_size (struct frame *f, int change_gravity, int cols, int rows)
   SET_FRAME_GARBAGED (f);
 
   /* If cursor was outside the new size, mark it as off.  */
-  mark_window_cursors_off (XWINDOW (FVAR (f, root_window)));
+  mark_window_cursors_off (XWINDOW (FGET (f, root_window)));
 
   /* Clear out any recollection of where the mouse highlighting was,
      since it might be in a place that's outside the new frame size.

@@ -10891,7 +10891,7 @@ format_mode_line_unwind_data (struct frame *target_frame,
       /* Similarly to `with-selected-window', if the operation selects
 	 a window on another frame, we must restore that frame's
 	 selected window, and (for a tty) the top-frame.  */
-      ASET (vector, 8, FVAR (target_frame, selected_window));
+      ASET (vector, 8, FGET (target_frame, selected_window));
       if (FRAME_TERMCAP_P (target_frame))
 	ASET (vector, 9, FRAME_TTY (target_frame)->top_frame);
     }
@@ -11051,14 +11051,14 @@ x_consider_frame_title (Lisp_Object frame)
 			     format_mode_line_unwind_data
 			       (f, current_buffer, selected_window, 0));
 
-      Fselect_window (FVAR (f, selected_window), Qt);
+      Fselect_window (FGET (f, selected_window), Qt);
       set_buffer_internal_1
-	(XBUFFER (WVAR (XWINDOW (FVAR (f, selected_window)), buffer)));
+	(XBUFFER (WVAR (XWINDOW (FGET (f, selected_window)), buffer)));
       fmt = FRAME_ICONIFIED_P (f) ? Vicon_title_format : Vframe_title_format;
 
       mode_line_target = MODE_LINE_TITLE;
       title_start = MODE_LINE_NOPROP_LEN (0);
-      init_iterator (&it, XWINDOW (FVAR (f, selected_window)), -1, -1,
+      init_iterator (&it, XWINDOW (FGET (f, selected_window)), -1, -1,
 		     NULL, DEFAULT_FACE_ID);
       display_mode_element (&it, 0, -1, -1, fmt, Qnil, 0);
       len = MODE_LINE_NOPROP_LEN (title_start);
@@ -11070,9 +11070,9 @@ x_consider_frame_title (Lisp_Object frame)
 	 already wasted too much time by walking through the list with
 	 display_mode_element, then we might need to optimize at a
 	 higher level than this.)  */
-      if (! STRINGP (FVAR (f, name))
-	  || SBYTES (FVAR (f, name)) != len
-	  || memcmp (title, SDATA (FVAR (f, name)), len) != 0)
+      if (! STRINGP (FGET (f, name))
+	  || SBYTES (FGET (f, name)) != len
+	  || memcmp (title, SDATA (FGET (f, name)), len) != 0)
 	x_implicitly_set_name (f, make_string (title, len), Qnil);
     }
 }
@@ -11173,7 +11173,7 @@ prepare_menu_bars (void)
 	      && FRAME_NS_P (f))
             ns_set_doc_edited
 	      (f, Fbuffer_modified_p
-	       (WVAR (XWINDOW (FVAR (f, selected_window)), buffer)));
+	       (WVAR (XWINDOW (FGET (f, selected_window)), buffer)));
 #endif
 	  UNGCPRO;
 	}
@@ -11275,7 +11275,7 @@ update_menu_bar (struct frame *f, int save_match_data, int hooks_run)
 	    }
 
 	  XSETFRAME (Vmenu_updating_frame, f);
-	  FRAME_MENU_BAR_ITEMS (f) = menu_bar_items (FRAME_MENU_BAR_ITEMS (f));
+	  FSET (f, menu_bar_items, menu_bar_items (FRAME_MENU_BAR_ITEMS (f)));
 
 	  /* Redisplay the menu bar in case we changed it.  */
 #if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI) \
@@ -11414,8 +11414,8 @@ update_tool_bar (struct frame *f, int save_match_data)
 #if defined (USE_GTK) || defined (HAVE_NS)
   int do_update = FRAME_EXTERNAL_TOOL_BAR (f);
 #else
-  int do_update = WINDOWP (FVAR (f, tool_bar_window))
-    && WINDOW_TOTAL_LINES (XWINDOW (FVAR (f, tool_bar_window))) > 0;
+  int do_update = WINDOWP (FGET (f, tool_bar_window))
+    && WINDOW_TOTAL_LINES (XWINDOW (FGET (f, tool_bar_window))) > 0;
 #endif
 
   if (do_update)
@@ -11477,18 +11477,18 @@ update_tool_bar (struct frame *f, int save_match_data)
 
 	  /* Build desired tool-bar items from keymaps.  */
           new_tool_bar
-	    = tool_bar_items (Fcopy_sequence (FVAR (f, tool_bar_items)),
+	    = tool_bar_items (Fcopy_sequence (FGET (f, tool_bar_items)),
 			      &new_n_tool_bar);
 
 	  /* Redisplay the tool-bar if we changed it.  */
 	  if (new_n_tool_bar != f->n_tool_bar_items
-	      || NILP (Fequal (new_tool_bar, FVAR (f, tool_bar_items))))
+	      || NILP (Fequal (new_tool_bar, FGET (f, tool_bar_items))))
             {
               /* Redisplay that happens asynchronously due to an expose event
                  may access f->tool_bar_items.  Make sure we update both
                  variables within BLOCK_INPUT so no such event interrupts.  */
               BLOCK_INPUT;
-              FVAR (f, tool_bar_items) = new_tool_bar;
+              FSET (f, tool_bar_items, new_tool_bar);
               f->n_tool_bar_items = new_n_tool_bar;
               w->update_mode_line = 1;
               UNBLOCK_INPUT;
@@ -11521,22 +11521,22 @@ build_desired_tool_bar_string (struct frame *f)
      Otherwise, make a new string.  */
 
   /* The size of the string we might be able to reuse.  */
-  size = (STRINGP (FVAR (f, desired_tool_bar_string))
-	  ? SCHARS (FVAR (f, desired_tool_bar_string))
+  size = (STRINGP (FGET (f, desired_tool_bar_string))
+	  ? SCHARS (FGET (f, desired_tool_bar_string))
 	  : 0);
 
   /* We need one space in the string for each image.  */
   size_needed = f->n_tool_bar_items;
 
   /* Reuse f->desired_tool_bar_string, if possible.  */
-  if (size < size_needed || NILP (FVAR (f, desired_tool_bar_string)))
-    FVAR (f, desired_tool_bar_string)
-      = Fmake_string (make_number (size_needed), make_number (' '));
+  if (size < size_needed || NILP (FGET (f, desired_tool_bar_string)))
+    FSET (f, desired_tool_bar_string,
+         Fmake_string (make_number (size_needed), make_number (' ')));
   else
     {
       props = list4 (Qdisplay, Qnil, Qmenu_item, Qnil);
       Fremove_text_properties (make_number (0), make_number (size),
-			       props, FVAR (f, desired_tool_bar_string));
+			       props, FGET (f, desired_tool_bar_string));
     }
 
   /* Put a `display' property on the string for the images to display,
@@ -11545,7 +11545,7 @@ build_desired_tool_bar_string (struct frame *f)
   for (i = 0; i < f->n_tool_bar_items; ++i)
     {
 #define PROP(IDX) \
-  AREF (FVAR (f, tool_bar_items), i * TOOL_BAR_ITEM_NSLOTS + (IDX))
+  AREF (FGET (f, tool_bar_items), i * TOOL_BAR_ITEM_NSLOTS + (IDX))
 
       int enabled_p = !NILP (PROP (TOOL_BAR_ITEM_ENABLED_P));
       int selected_p = !NILP (PROP (TOOL_BAR_ITEM_SELECTED_P));
@@ -11654,11 +11654,11 @@ build_desired_tool_bar_string (struct frame *f)
          string.  The string can be longer than needed when we reuse a
          previous string.  */
       if (i + 1 == f->n_tool_bar_items)
-	end = SCHARS (FVAR (f, desired_tool_bar_string));
+	end = SCHARS (FGET (f, desired_tool_bar_string));
       else
 	end = i + 1;
       Fadd_text_properties (make_number (i), make_number (end),
-			    props, FVAR (f, desired_tool_bar_string));
+			    props, FGET (f, desired_tool_bar_string));
 #undef PROP
     }
 
@@ -11808,7 +11808,7 @@ display_tool_bar_line (struct it *it, int height)
 static int
 tool_bar_lines_needed (struct frame *f, int *n_rows)
 {
-  struct window *w = XWINDOW (FVAR (f, tool_bar_window));
+  struct window *w = XWINDOW (FGET (f, tool_bar_window));
   struct it it;
   /* tool_bar_lines_needed is called from redisplay_tool_bar after building
      the desired matrix, so use (unused) mode-line row as temporary row to
@@ -11820,7 +11820,7 @@ tool_bar_lines_needed (struct frame *f, int *n_rows)
   init_iterator (&it, w, -1, -1, temp_row, TOOL_BAR_FACE_ID);
   it.first_visible_x = 0;
   it.last_visible_x = FRAME_TOTAL_COLS (f) * FRAME_COLUMN_WIDTH (f);
-  reseat_to_string (&it, NULL, FVAR (f, desired_tool_bar_string), 0, 0, 0, -1);
+  reseat_to_string (&it, NULL, FGET (f, desired_tool_bar_string), 0, 0, 0, -1);
   it.paragraph_embedding = L2R;
 
   while (!ITERATOR_AT_END_P (&it))
@@ -11854,8 +11854,8 @@ DEFUN ("tool-bar-lines-needed", Ftool_bar_lines_needed, Stool_bar_lines_needed,
     CHECK_FRAME (frame);
   f = XFRAME (frame);
 
-  if (WINDOWP (FVAR (f, tool_bar_window))
-      && (w = XWINDOW (FVAR (f, tool_bar_window)),
+  if (WINDOWP (FGET (f, tool_bar_window))
+      && (w = XWINDOW (FGET (f, tool_bar_window)),
 	  WINDOW_TOTAL_LINES (w) > 0))
     {
       update_tool_bar (f, 1);
@@ -11890,8 +11890,8 @@ redisplay_tool_bar (struct frame *f)
      do anything.  This means you must start with tool-bar-lines
      non-zero to get the auto-sizing effect.  Or in other words, you
      can turn off tool-bars by specifying tool-bar-lines zero.  */
-  if (!WINDOWP (FVAR (f, tool_bar_window))
-      || (w = XWINDOW (FVAR (f, tool_bar_window)),
+  if (!WINDOWP (FGET (f, tool_bar_window))
+      || (w = XWINDOW (FGET (f, tool_bar_window)),
           WINDOW_TOTAL_LINES (w) == 0))
     return 0;
 
@@ -11903,7 +11903,7 @@ redisplay_tool_bar (struct frame *f)
 
   /* Build a string that represents the contents of the tool-bar.  */
   build_desired_tool_bar_string (f);
-  reseat_to_string (&it, NULL, FVAR (f, desired_tool_bar_string), 0, 0, 0, -1);
+  reseat_to_string (&it, NULL, FGET (f, desired_tool_bar_string), 0, 0, 0, -1);
   /* FIXME: This should be controlled by a user option.  But it
      doesn't make sense to have an R2L tool bar if the menu bar cannot
      be drawn also R2L, and making the menu bar R2L is tricky due
@@ -12060,14 +12060,14 @@ tool_bar_item_info (struct frame *f, struct glyph *glyph, int *prop_idx)
   /* This function can be called asynchronously, which means we must
      exclude any possibility that Fget_text_property signals an
      error.  */
-  charpos = min (SCHARS (FVAR (f, current_tool_bar_string)), glyph->charpos);
+  charpos = min (SCHARS (FGET (f, current_tool_bar_string)), glyph->charpos);
   charpos = max (0, charpos);
 
   /* Get the text property `menu-item' at pos. The value of that
      property is the start index of this item's properties in
      F->tool_bar_items.  */
   prop = Fget_text_property (make_number (charpos),
-			     Qmenu_item, FVAR (f, current_tool_bar_string));
+			     Qmenu_item, FGET (f, current_tool_bar_string));
   if (INTEGERP (prop))
     {
       *prop_idx = XINT (prop);
@@ -12095,7 +12095,7 @@ get_tool_bar_item (struct frame *f, int x, int y, struct glyph **glyph,
 		   int *hpos, int *vpos, int *prop_idx)
 {
   Mouse_HLInfo *hlinfo = MOUSE_HL_INFO (f);
-  struct window *w = XWINDOW (FVAR (f, tool_bar_window));
+  struct window *w = XWINDOW (FGET (f, tool_bar_window));
   int area;
 
   /* Find the glyph under X/Y.  */
@@ -12109,7 +12109,7 @@ get_tool_bar_item (struct frame *f, int x, int y, struct glyph **glyph,
     return -1;
 
   /* Is mouse on the highlighted item?  */
-  if (EQ (FVAR (f, tool_bar_window), hlinfo->mouse_face_window)
+  if (EQ (FGET (f, tool_bar_window), hlinfo->mouse_face_window)
       && *vpos >= hlinfo->mouse_face_beg_row
       && *vpos <= hlinfo->mouse_face_end_row
       && (*vpos > hlinfo->mouse_face_beg_row
@@ -12134,7 +12134,7 @@ handle_tool_bar_click (struct frame *f, int x, int y, int down_p,
 		       int modifiers)
 {
   Mouse_HLInfo *hlinfo = MOUSE_HL_INFO (f);
-  struct window *w = XWINDOW (FVAR (f, tool_bar_window));
+  struct window *w = XWINDOW (FGET (f, tool_bar_window));
   int hpos, vpos, prop_idx;
   struct glyph *glyph;
   Lisp_Object enabled_p;
@@ -12145,7 +12145,7 @@ handle_tool_bar_click (struct frame *f, int x, int y, int down_p,
     return;
 
   /* If item is disabled, do nothing.  */
-  enabled_p = AREF (FVAR (f, tool_bar_items), prop_idx + TOOL_BAR_ITEM_ENABLED_P);
+  enabled_p = AREF (FGET (f, tool_bar_items), prop_idx + TOOL_BAR_ITEM_ENABLED_P);
   if (NILP (enabled_p))
     return;
 
@@ -12166,7 +12166,7 @@ handle_tool_bar_click (struct frame *f, int x, int y, int down_p,
       show_mouse_face (hlinfo, DRAW_IMAGE_RAISED);
       hlinfo->mouse_face_image_state = DRAW_IMAGE_RAISED;
 
-      key = AREF (FVAR (f, tool_bar_items), prop_idx + TOOL_BAR_ITEM_KEY);
+      key = AREF (FGET (f, tool_bar_items), prop_idx + TOOL_BAR_ITEM_KEY);
 
       XSETFRAME (frame, f);
       event.kind = TOOL_BAR_EVENT;
@@ -12191,7 +12191,7 @@ handle_tool_bar_click (struct frame *f, int x, int y, int down_p,
 static void
 note_tool_bar_highlight (struct frame *f, int x, int y)
 {
-  Lisp_Object window = FVAR (f, tool_bar_window);
+  Lisp_Object window = FGET (f, tool_bar_window);
   struct window *w = XWINDOW (window);
   Display_Info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
   Mouse_HLInfo *hlinfo = MOUSE_HL_INFO (f);
@@ -12237,7 +12237,7 @@ note_tool_bar_highlight (struct frame *f, int x, int y)
   draw = mouse_down_p ? DRAW_IMAGE_SUNKEN : DRAW_IMAGE_RAISED;
 
   /* If tool-bar item is not enabled, don't highlight it.  */
-  enabled_p = AREF (FVAR (f, tool_bar_items), prop_idx + TOOL_BAR_ITEM_ENABLED_P);
+  enabled_p = AREF (FGET (f, tool_bar_items), prop_idx + TOOL_BAR_ITEM_ENABLED_P);
   if (!NILP (enabled_p))
     {
       /* Compute the x-position of the glyph.  In front and past the
@@ -12271,9 +12271,9 @@ note_tool_bar_highlight (struct frame *f, int x, int y)
      XTread_socket does the rest.  */
   help_echo_object = help_echo_window = Qnil;
   help_echo_pos = -1;
-  help_echo_string = AREF (FVAR (f, tool_bar_items), prop_idx + TOOL_BAR_ITEM_HELP);
+  help_echo_string = AREF (FGET (f, tool_bar_items), prop_idx + TOOL_BAR_ITEM_HELP);
   if (NILP (help_echo_string))
-    help_echo_string = AREF (FVAR (f, tool_bar_items), prop_idx + TOOL_BAR_ITEM_CAPTION);
+    help_echo_string = AREF (FGET (f, tool_bar_items), prop_idx + TOOL_BAR_ITEM_CAPTION);
 }
 
 #endif /* HAVE_WINDOW_SYSTEM */
@@ -12854,7 +12854,7 @@ select_frame_for_redisplay (Lisp_Object frame)
   selected_frame = frame;
 
   do {
-    for (tail = FVAR (XFRAME (frame), param_alist);
+    for (tail = FGET (XFRAME (frame), param_alist);
 	 CONSP (tail); tail = XCDR (tail))
       if (CONSP (XCAR (tail))
 	  && (tem = XCAR (XCAR (tail)),
@@ -13428,7 +13428,7 @@ redisplay_internal (void)
 		  if (!f->already_hscrolled_p)
 		    {
 		      f->already_hscrolled_p = 1;
-		      if (hscroll_windows (FVAR (f, root_window)))
+		      if (hscroll_windows (FGET (f, root_window)))
 			goto retry;
 		    }
 
@@ -13441,7 +13441,7 @@ redisplay_internal (void)
 		  STOP_POLLING;
 
 		  /* Update the display.  */
-		  set_window_update_flags (XWINDOW (FVAR (f, root_window)), 1);
+		  set_window_update_flags (XWINDOW (FGET (f, root_window)), 1);
 		  pending |= update_frame (f, 0, 0);
 		  f->updated_p = 1;
 		}
@@ -13454,7 +13454,7 @@ redisplay_internal (void)
 	   and selected_window to be temporarily out-of-sync but let's make
 	   sure this stays contained.  */
 	select_frame_for_redisplay (old_frame);
-      eassert (EQ (FVAR (XFRAME (selected_frame), selected_window),
+      eassert (EQ (FGET (XFRAME (selected_frame), selected_window),
 		   selected_window));
 
       if (!pending)
@@ -13467,7 +13467,7 @@ redisplay_internal (void)
 	      struct frame *f = XFRAME (frame);
               if (f->updated_p)
                 {
-                  mark_window_display_accurate (FVAR (f, root_window), 1);
+                  mark_window_display_accurate (FGET (f, root_window), 1);
                   if (FRAME_TERMINAL (f)->frame_up_to_date_hook)
                     FRAME_TERMINAL (f)->frame_up_to_date_hook (f);
                 }
@@ -16163,7 +16163,7 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
 	  if (FRAME_EXTERNAL_TOOL_BAR (f))
 	    redisplay_tool_bar (f);
 #else
-	  if (WINDOWP (FVAR (f, tool_bar_window))
+	  if (WINDOWP (FGET (f, tool_bar_window))
 	      && (FRAME_TOOL_BAR_LINES (f) > 0
 		  || !NILP (Vauto_resize_tool_bars))
 	      && redisplay_tool_bar (f))
@@ -18119,7 +18119,7 @@ GLYPH > 1 or omitted means dump glyphs in long form.  */)
   (Lisp_Object row, Lisp_Object glyphs)
 {
   struct frame *sf = SELECTED_FRAME ();
-  struct glyph_matrix *m = XWINDOW (FVAR (sf, tool_bar_window))->current_matrix;
+  struct glyph_matrix *m = XWINDOW (FGET (sf, tool_bar_window))->current_matrix;
   EMACS_INT vpos;
 
   CHECK_NUMBER (row);
@@ -20104,8 +20104,8 @@ display_menu_bar (struct window *w)
       /* Menu bar lines are displayed in the desired matrix of the
 	 dummy window menu_bar_window.  */
       struct window *menu_w;
-      eassert (WINDOWP (FVAR (f, menu_bar_window)));
-      menu_w = XWINDOW (FVAR (f, menu_bar_window));
+      eassert (WINDOWP (FGET (f, menu_bar_window)));
+      menu_w = XWINDOW (FGET (f, menu_bar_window));
       init_iterator (&it, menu_w, -1, -1, menu_w->desired_matrix->rows,
 		     MENU_FACE_ID);
       it.first_visible_x = 0;
@@ -21409,10 +21409,10 @@ decode_mode_spec (struct window *w, register int c, int field_width,
 
     case 'F':
       /* %F displays the frame name.  */
-      if (!NILP (FVAR (f, title)))
-	return SSDATA (FVAR (f, title));
+      if (!NILP (FGET (f, title)))
+	return SSDATA (FGET (f, title));
       if (f->explicit_name || ! FRAME_WINDOW_P (f))
-	return SSDATA (FVAR (f, name));
+	return SSDATA (FGET (f, name));
       return "Emacs";
 
     case 'f':
@@ -25576,7 +25576,7 @@ get_window_cursor_type (struct window *w, struct glyph *glyph, int *width,
     }
 
   /* Detect a nonselected window or nonselected frame.  */
-  else if (w != XWINDOW (FVAR (f, selected_window))
+  else if (w != XWINDOW (FGET (f, selected_window))
 	   || f != FRAME_X_DISPLAY_INFO (f)->x_highlight_frame)
     {
       *active_cursor = 0;
@@ -26118,7 +26118,7 @@ update_cursor_in_window_tree (struct window *w, int on_p)
 void
 x_update_cursor (struct frame *f, int on_p)
 {
-  update_cursor_in_window_tree (XWINDOW (FVAR (f, root_window)), on_p);
+  update_cursor_in_window_tree (XWINDOW (FGET (f, root_window)), on_p);
 }
 
 
@@ -26277,7 +26277,7 @@ show_mouse_face (Mouse_HLInfo *hlinfo, enum draw_glyphs_face draw)
   if (FRAME_WINDOW_P (f))
     {
       if (draw == DRAW_NORMAL_TEXT
-	  && !EQ (hlinfo->mouse_face_window, FVAR (f, tool_bar_window)))
+	  && !EQ (hlinfo->mouse_face_window, FGET (f, tool_bar_window)))
 	FRAME_RIF (f)->define_frame_cursor (f, FRAME_X_OUTPUT (f)->text_cursor);
       else if (draw == DRAW_MOUSE_FACE)
 	FRAME_RIF (f)->define_frame_cursor (f, FRAME_X_OUTPUT (f)->hand_cursor);
@@ -27633,7 +27633,7 @@ note_mouse_highlight (struct frame *f, int x, int y)
 #ifdef HAVE_WINDOW_SYSTEM
   /* Handle tool-bar window differently since it doesn't display a
      buffer.  */
-  if (EQ (window, FVAR (f, tool_bar_window)))
+  if (EQ (window, FGET (f, tool_bar_window)))
     {
       note_tool_bar_highlight (f, x, y);
       return;
@@ -28543,18 +28543,18 @@ expose_frame (struct frame *f, int x, int y, int w, int h)
     }
 
   TRACE ((stderr, "(%d, %d, %d, %d)\n", r.x, r.y, r.width, r.height));
-  mouse_face_overwritten_p = expose_window_tree (XWINDOW (FVAR (f, root_window)), &r);
+  mouse_face_overwritten_p = expose_window_tree (XWINDOW (FGET (f, root_window)), &r);
 
-  if (WINDOWP (FVAR (f, tool_bar_window)))
+  if (WINDOWP (FGET (f, tool_bar_window)))
     mouse_face_overwritten_p
-      |= expose_window (XWINDOW (FVAR (f, tool_bar_window)), &r);
+      |= expose_window (XWINDOW (FGET (f, tool_bar_window)), &r);
 
 #ifdef HAVE_X_WINDOWS
 #ifndef MSDOS
 #ifndef USE_X_TOOLKIT
-  if (WINDOWP (FVAR (f, menu_bar_window)))
+  if (WINDOWP (FGET (f, menu_bar_window)))
     mouse_face_overwritten_p
-      |= expose_window (XWINDOW (FVAR (f, menu_bar_window)), &r);
+      |= expose_window (XWINDOW (FGET (f, menu_bar_window)), &r);
 #endif /* not USE_X_TOOLKIT */
 #endif
 #endif
