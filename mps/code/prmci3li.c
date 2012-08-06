@@ -31,26 +31,26 @@ SRCID(prmci3li, "$Id$");
 
 MRef Prmci3AddressHoldingReg(MutatorFaultContext mfc, unsigned int regnum)
 {
-  gregset_t *gregs;
+  Word *gregs;
 
   AVER(regnum <= 7);
   AVER(regnum >= 0);
 
-  gregs = &mfc->ucontext->uc_mcontext.gregs;
+  gregs = (Word *)&mfc->ucontext->uc_mcontext.gregs;
 
   /* .source.i486 */
   /* .assume.regref */
   /* The REG_EAX etc. symbols are only present if _GNU_SOURCE is defined.
      Currently this is in lii4gc.gmk in PFMDEFS. */
   switch (regnum) {
-    case 0: return (MRef)&gregs[REG_EAX];
-    case 1: return (MRef)&gregs[REG_ECX];
-    case 2: return (MRef)&gregs[REG_EDX];
-    case 3: return (MRef)&gregs[REG_EBX];
-    case 4: return (MRef)&gregs[REG_ESP];
-    case 5: return (MRef)&gregs[REG_EBP];
-    case 6: return (MRef)&gregs[REG_ESI];
-    case 7: return (MRef)&gregs[REG_EDI];
+    case 0: return &gregs[REG_EAX];
+    case 1: return &gregs[REG_ECX];
+    case 2: return &gregs[REG_EDX];
+    case 3: return &gregs[REG_EBX];
+    case 4: return &gregs[REG_ESP];
+    case 5: return &gregs[REG_EBP];
+    case 6: return &gregs[REG_ESI];
+    case 7: return &gregs[REG_EDI];
   }
   NOTREACHED;
   return (MRef)NULL;  /* Avoids compiler warning. */
