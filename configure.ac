@@ -26,7 +26,8 @@ AC_INIT(emacs, 24.1.50)
 AC_CONFIG_HEADER(src/config.h:src/config.in)
 AC_CONFIG_SRCDIR(src/lisp.h)
 AC_CONFIG_AUX_DIR(build-aux)
-AM_INIT_AUTOMAKE
+dnl Fairly arbitrary, older versions might work too.
+AM_INIT_AUTOMAKE(1.11)
 
 dnl Support for --program-prefix, --program-suffix and
 dnl --program-transform-name options
