@@ -1326,6 +1326,7 @@ lisp_frag
 ns_frag'
 ac_user_opts='
 enable_option_checking
+enable_features
 with_pop
 with_kerberos
 with_kerberos5
@@ -2009,6 +2010,8 @@ Optional Features:
   --disable-option-checking  ignore unrecognized --enable/--with options
   --disable-FEATURE       do not include FEATURE (same as --enable-FEATURE=no)
   --enable-FEATURE[=ARG]  include FEATURE [ARG=yes]
+  --disable-features      omit almost all features and build small executable
+                          with minimal dependencies
   --disable-ns-self-contained
                           disable self contained build under NeXTstep
   --enable-locallisppath=PATH
@@ -3802,6 +3805,14 @@ archlibdir='${libexecdir}/emacs/${version}/${configuration}'
 docdir='${datadir}/emacs/${version}/etc'
 gamedir='${localstatedir}/games/emacs'
 
+# Check whether --enable-features was given.
+if test "${enable_features+set}" = set; then :
+  enableval=$enable_features; enable_features=$enableval
+else
+  enable_features=yes
+fi
+
+
 
 
 
@@ -3809,7 +3820,7 @@ gamedir='${localstatedir}/games/emacs'
 if test "${with_pop+set}" = set; then :
   withval=$with_pop;
 else
-     with_pop=yes
+     with_pop=$enable_features
 fi
 
 if test "$with_pop" = yes; then
@@ -3907,7 +3918,7 @@ fi
 if test "${with_sound+set}" = set; then :
   withval=$with_sound;
 else
-     with_sound=yes
+     with_sound=$enable_features
 fi
 
 
@@ -3916,7 +3927,7 @@ fi
 if test "${with_sync_input+set}" = set; then :
   withval=$with_sync_input;
 else
-     with_sync_input=yes
+     with_sync_input=$enable_features
 fi
 
 if test "$with_sync_input" = yes; then
@@ -3966,7 +3977,7 @@ fi
 if test "${with_xpm+set}" = set; then :
   withval=$with_xpm;
 else
-     with_xpm=yes
+     with_xpm=$enable_features
 fi
 
 
@@ -3974,7 +3985,7 @@ fi
 if test "${with_jpeg+set}" = set; then :
   withval=$with_jpeg;
 else
-     with_jpeg=yes
+     with_jpeg=$enable_features
 fi
 
 
@@ -3982,7 +3993,7 @@ fi
 if test "${with_tiff+set}" = set; then :
   withval=$with_tiff;
 else
-     with_tiff=yes
+     with_tiff=$enable_features
 fi
 
 
@@ -3990,7 +4001,7 @@ fi
 if test "${with_gif+set}" = set; then :
   withval=$with_gif;
 else
-     with_gif=yes
+     with_gif=$enable_features
 fi
 
 
@@ -3998,7 +4009,7 @@ fi
 if test "${with_png+set}" = set; then :
   withval=$with_png;
 else
-     with_png=yes
+     with_png=$enable_features
 fi
 
 
@@ -4006,7 +4017,7 @@ fi
 if test "${with_rsvg+set}" = set; then :
   withval=$with_rsvg;
 else
-     with_rsvg=yes
+     with_rsvg=$enable_features
 fi
 
 
@@ -4014,7 +4025,7 @@ fi
 if test "${with_xml2+set}" = set; then :
   withval=$with_xml2;
 else
-     with_xml2=yes
+     with_xml2=$enable_features
 fi
 
 
@@ -4022,7 +4033,7 @@ fi
 if test "${with_imagemagick+set}" = set; then :
   withval=$with_imagemagick;
 else
-     with_imagemagick=yes
+     with_imagemagick=$enable_features
 fi
 
 
@@ -4031,7 +4042,7 @@ fi
 if test "${with_xft+set}" = set; then :
   withval=$with_xft;
 else
-     with_xft=yes
+     with_xft=$enable_features
 fi
 
 
@@ -4039,7 +4050,7 @@ fi
 if test "${with_libotf+set}" = set; then :
   withval=$with_libotf;
 else
-     with_libotf=yes
+     with_libotf=$enable_features
 fi
 
 
@@ -4047,7 +4058,7 @@ fi
 if test "${with_m17n_flt+set}" = set; then :
   withval=$with_m17n_flt;
 else
-     with_m17n_flt=yes
+     with_m17n_flt=$enable_features
 fi
 
 
@@ -4056,7 +4067,7 @@ fi
 if test "${with_toolkit_scroll_bars+set}" = set; then :
   withval=$with_toolkit_scroll_bars;
 else
-     with_toolkit_scroll_bars=yes
+     with_toolkit_scroll_bars=$enable_features
 fi
 
 
@@ -4064,7 +4075,7 @@ fi
 if test "${with_xaw3d+set}" = set; then :
   withval=$with_xaw3d;
 else
-     with_xaw3d=yes
+     with_xaw3d=$enable_features
 fi
 
 
@@ -4072,7 +4083,7 @@ fi
 if test "${with_xim+set}" = set; then :
   withval=$with_xim;
 else
-     with_xim=yes
+     with_xim=$enable_features
 fi
 
 
@@ -4089,7 +4100,7 @@ fi
 if test "${with_gpm+set}" = set; then :
   withval=$with_gpm;
 else
-     with_gpm=yes
+     with_gpm=$enable_features
 fi
 
 
@@ -4097,7 +4108,7 @@ fi
 if test "${with_dbus+set}" = set; then :
   withval=$with_dbus;
 else
-     with_dbus=yes
+     with_dbus=$enable_features
 fi
 
 
@@ -4105,7 +4116,7 @@ fi
 if test "${with_gconf+set}" = set; then :
   withval=$with_gconf;
 else
-     with_gconf=yes
+     with_gconf=$enable_features
 fi
 
 
@@ -4113,7 +4124,7 @@ fi
 if test "${with_gsettings+set}" = set; then :
   withval=$with_gsettings;
 else
-     with_gsettings=yes
+     with_gsettings=$enable_features
 fi
 
 
@@ -4121,7 +4132,7 @@ fi
 if test "${with_selinux+set}" = set; then :
   withval=$with_selinux;
 else
-     with_selinux=yes
+     with_selinux=$enable_features
 fi
 
 
@@ -4129,7 +4140,7 @@ fi
 if test "${with_gnutls+set}" = set; then :
   withval=$with_gnutls;
 else
-     with_gnutls=yes
+     with_gnutls=$enable_features
 fi
 
 
@@ -4140,7 +4151,7 @@ fi
 if test "${with_makeinfo+set}" = set; then :
   withval=$with_makeinfo;
 else
-     with_makeinfo=yes
+     with_makeinfo=$enable_features
 fi
 
 
@@ -4154,7 +4165,7 @@ fi
 if test "${with_compress_info+set}" = set; then :
   withval=$with_compress_info;
 else
-     with_compress_info=yes
+     with_compress_info=$enable_features
 fi
 
 if test $with_compress_info = yes; then
@@ -13052,7 +13063,11 @@ fi
 done
 
 
-if test $opsys != unixware; then
+if test $opsys = unixware; then
+
+$as_echo "#define BROKEN_GETWD 1" >>confdefs.h
+
+else
   for ac_func in getwd
 do :
   ac_fn_c_check_func "$LINENO" "getwd" "ac_cv_func_getwd"
@@ -14997,23 +15012,42 @@ esac
 
 
 
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether we are using the GNU C library" >&5
+$as_echo_n "checking whether we are using the GNU C library... " >&6; }
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
 
+#include <features.h>
+#ifndef __GNU_LIBRARY__
+# error "this is not the GNU C library"
+#endif
 
-case $opsys in
-  cygwin | darwin | freebsd | netbsd | openbsd )
-    $as_echo "#define PENDING_OUTPUT_COUNT(FILE) ((FILE)->_p - (FILE)->_bf._base)" >>confdefs.h
+int
+main ()
+{
 
-    ;;
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_cpp "$LINENO"; then :
+  emacs_glibc=yes
+else
+  emacs_glibc=no
+fi
+rm -f conftest.err conftest.$ac_ext
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $emacs_glibc" >&5
+$as_echo "$emacs_glibc" >&6; }
 
-  unixware)
-    $as_echo "#define PENDING_OUTPUT_COUNT(FILE) ((FILE)->__ptr - (FILE)->__base)" >>confdefs.h
+if test $emacs_glibc = yes; then
 
-    ;;
+  emacs_pending_output=unknown
 
-  gnu | gnu-linux | gnu-kfreebsd )
-    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for style of pending output formalism" >&5
+  case $opsys in
+    gnu | gnu-linux | gnu-kfreebsd )
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking for style of pending output formalism" >&5
 $as_echo_n "checking for style of pending output formalism... " >&6; }
-            cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+                  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
 #include <stdio.h>
@@ -15031,8 +15065,6 @@ main ()
 _ACEOF
 if ac_fn_c_try_cpp "$LINENO"; then :
   emacs_pending_output=new
-else
-  emacs_pending_output=unknown
 fi
 rm -f conftest.err conftest.$ac_ext
 
@@ -15070,21 +15102,52 @@ $as_echo "$emacs_pending_output" >&6; }
 
       case $emacs_pending_output in
         new)
-                    $as_echo "#define GNU_LIBRARY_PENDING_OUTPUT_COUNT(FILE) ((FILE)->_IO_write_ptr - (FILE)->_IO_write_base)" >>confdefs.h
+                    $as_echo "#define PENDING_OUTPUT_COUNT(FILE) ((FILE)->_IO_write_ptr - (FILE)->_IO_write_base)" >>confdefs.h
 
           ;;
         uclibc)
-                    $as_echo "#define GNU_LIBRARY_PENDING_OUTPUT_COUNT(FILE) ((FILE)->__bufpos - (FILE)->__bufstart)" >>confdefs.h
+                    $as_echo "#define PENDING_OUTPUT_COUNT(FILE) ((FILE)->__bufpos - (FILE)->__bufstart)" >>confdefs.h
 
           ;;
         old)
-                    $as_echo "#define GNU_LIBRARY_PENDING_OUTPUT_COUNT(FILE) ((FILE)->_pptr - (FILE)->_pbase)" >>confdefs.h
+                    $as_echo "#define PENDING_OUTPUT_COUNT(FILE) ((FILE)->_pptr - (FILE)->_pbase)" >>confdefs.h
 
           ;;
       esac
     ;;
-esac
+  esac
+  if test $emacs_pending_output = unknown; then
+    $as_echo "#define PENDING_OUTPUT_COUNT(FILE) ((FILE)->__bufp - (FILE)->__buffer)" >>confdefs.h
 
+  fi
+
+else
+  case $opsys in
+    cygwin | darwin | freebsd | netbsd | openbsd )
+      $as_echo "#define PENDING_OUTPUT_COUNT(FILE) ((FILE)->_p - (FILE)->_bf._base)" >>confdefs.h
+
+      ;;
+
+    unixware)
+      $as_echo "#define PENDING_OUTPUT_COUNT(FILE) ((FILE)->__ptr - (FILE)->__base)" >>confdefs.h
+
+      ;;
+
+    *)
+            if test x$ac_cv_header_stdio_ext_h = xyes && \
+        test x$ac_cv_func___fpending = xyes; then
+        $as_echo "#define PENDING_OUTPUT_COUNT(FILE) __fpending (FILE)" >>confdefs.h
+
+
+$as_echo "#define DISPNEW_NEEDS_STDIO_EXT 1" >>confdefs.h
+
+      else
+        $as_echo "#define PENDING_OUTPUT_COUNT(FILE) ((FILE)->_ptr - (FILE)->_base)" >>confdefs.h
+
+      fi
+      ;;
+  esac
+fi
 
 
 

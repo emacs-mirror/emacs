@@ -53,6 +53,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define if FIONREAD should not be used. */
 #undef BROKEN_FIONREAD
 
+/* Define if getwd should not be used. */
+#undef BROKEN_GETWD
+
 /* Define if get_current_dir_name should not be used. */
 #undef BROKEN_GET_CURRENT_DIR_NAME
 
@@ -122,6 +125,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 for DGUX with <sys/dg_sys_info.h>. */
 #undef DGUX
+
+/* Define if dispnew.c should include stdio_ext.h. */
+#undef DISPNEW_NEEDS_STDIO_EXT
 
 /* Define if process.c does not need to close a pty to make it a controlling
    terminal (it is already a controlling terminal of the subprocess, because
@@ -203,9 +209,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to a C preprocessor expression that evaluates to 1 or 0, depending
    whether the gnulib module scanf shall be considered present. */
 #undef GNULIB_SCANF
-
-/* Value of PENDING_OUTPUT_COUNT if using the GNU C library. */
-#undef GNU_LIBRARY_PENDING_OUTPUT_COUNT
 
 /* Define if ths system is compatible with GNU/Linux. */
 #undef GNU_LINUX
