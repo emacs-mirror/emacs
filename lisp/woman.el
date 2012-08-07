@@ -2531,7 +2531,8 @@ REQUEST is the invoking directive without the leading dot."
     (cond
      ;; ((looking-at "[no]") (setq c t))     ; accept n(roff) and o(dd page)
      ;; ((looking-at "[te]") (setq c nil))   ; reject t(roff) and e(ven page)
-     ((looking-at "[ntoe]")
+     ;; Per groff ".if v" is recognised as false (it means -Tversatec).
+     ((looking-at "[ntoev]")
       (setq c (memq (following-char) woman-if-conditions-true)))
      ;; Unrecognized letter so reject:
      ((looking-at "[A-Za-z]") (setq c nil)
@@ -3569,7 +3570,7 @@ expression in parentheses.  Leaves point after the value."
       (let (n)
 	(forward-char)
 	(setq n (woman-parse-numeric-arg))
-	(skip-syntax-forward " ")
+	(skip-syntax-forward " " (line-end-position))
 	(if (eq (following-char) ?\))
 	    (forward-char)
 	  (WoMan-warn "Parenthesis confusion in numeric expression!"))
@@ -3621,7 +3622,7 @@ expression in parentheses.  Leaves point after the value."
 			(buffer-substring
 			 (point)
 			 (line-end-position)))
-	    (skip-syntax-forward "^ ")
+	    (skip-syntax-forward "^ " (line-end-position))
 	    0)
 	(goto-char (match-end 0))
 	;; Check for scale factor:

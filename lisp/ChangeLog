@@ -1,3 +1,9 @@
+2012-08-07  Kevin Ryde  <user42@zip.com.au>
+
+	* woman.el (woman0-if): Quietly treat ".if v" as false (Bug#12109).
+	(woman-parse-numeric-value): On a bad .IP line, issue a warning
+	and continue processing (Bug#12110).
+
 2012-08-06  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/cperl-mode.el (cperl-mode): Yet another fix for
