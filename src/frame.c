@@ -132,15 +132,15 @@ set_menu_bar_lines_1 (Lisp_Object window, int n)
   struct window *w = XWINDOW (window);
 
   w->last_modified = 0;
-  WSET (w, top_line, make_number (XFASTINT (WGET (w, top_line)) + n));
-  WSET (w, total_lines, make_number (XFASTINT (WGET (w, total_lines)) - n));
+  WSET (w, top_line, make_number (XFASTINT (w->top_line) + n));
+  WSET (w, total_lines, make_number (XFASTINT (w->total_lines) - n));
 
   /* Handle just the top child in a vertical split.  */
-  if (!NILP (WGET (w, vchild)))
-    set_menu_bar_lines_1 (WGET (w, vchild), n);
+  if (!NILP (w->vchild))
+    set_menu_bar_lines_1 (w->vchild, n);
 
   /* Adjust all children in a horizontal split.  */
-  for (window = WGET (w, hchild); !NILP (window); window = WGET (w, next))
+  for (window = w->hchild; !NILP (window); window = w->next)
     {
       w = XWINDOW (window);
       set_menu_bar_lines_1 (window, n);
@@ -376,7 +376,7 @@ make_frame_without_minibuffer (register Lisp_Object mini_window, KBOARD *kb, Lis
     CHECK_LIVE_WINDOW (mini_window);
 
   if (!NILP (mini_window)
-      && FRAME_KBOARD (XFRAME (WGET (XWINDOW (mini_window), frame))) != kb)
+      && FRAME_KBOARD (XFRAME (XWINDOW (mini_window)->frame)) != kb)
     error ("Frame and minibuffer must be on the same terminal");
 
   /* Make a frame containing just a root window.  */
@@ -406,7 +406,7 @@ make_frame_without_minibuffer (register Lisp_Object mini_window, KBOARD *kb, Lis
 
   /* Make the chosen minibuffer window display the proper minibuffer,
      unless it is already showing a minibuffer.  */
-  if (NILP (Fmemq (WGET (XWINDOW (mini_window), buffer), Vminibuffer_list)))
+  if (NILP (Fmemq (XWINDOW (mini_window)->buffer, Vminibuffer_list)))
     Fset_window_buffer (mini_window,
 			(NILP (Vminibuffer_list)
 			 ? get_minibuffer (0)
@@ -1241,7 +1241,7 @@ delete_frame (Lisp_Object frame, Lisp_Object force)
   if (EQ (f->minibuffer_window, minibuf_window))
     {
       Fset_window_buffer (sf->minibuffer_window,
-			  WGET (XWINDOW (minibuf_window), buffer), Qnil);
+			  XWINDOW (minibuf_window)->buffer, Qnil);
       minibuf_window = sf->minibuffer_window;
 
       /* If the dying minibuffer window was selected,
@@ -1672,17 +1672,17 @@ make_frame_visible_1 (Lisp_Object window)
 {
   struct window *w;
 
-  for (;!NILP (window); window = WGET (w, next))
+  for (;!NILP (window); window = w->next)
     {
       w = XWINDOW (window);
 
-      if (!NILP (WGET (w, buffer)))
-	BVAR (XBUFFER (WGET (w, buffer)), display_time) = Fcurrent_time ();
+      if (!NILP (w->buffer))
+	BVAR (XBUFFER (w->buffer), display_time) = Fcurrent_time ();
 
-      if (!NILP (WGET (w, vchild)))
-	make_frame_visible_1 (WGET (w, vchild));
-      if (!NILP (WGET (w, hchild)))
-	make_frame_visible_1 (WGET (w, hchild));
+      if (!NILP (w->vchild))
+	make_frame_visible_1 (w->vchild);
+      if (!NILP (w->hchild))
+	make_frame_visible_1 (w->hchild);
     }
 }
 
@@ -1714,7 +1714,7 @@ displayed in the terminal.  */)
     {
       struct frame *sf = XFRAME (selected_frame);
       Fset_window_buffer (sf->minibuffer_window,
-			  WGET (XWINDOW (minibuf_window), buffer), Qnil);
+			  XWINDOW (minibuf_window)->buffer, Qnil);
       minibuf_window = sf->minibuffer_window;
     }
 
@@ -1752,7 +1752,7 @@ If omitted, FRAME defaults to the currently selected frame.  */)
     {
       struct frame *sf = XFRAME (selected_frame);
       Fset_window_buffer (sf->minibuffer_window,
-			  WGET (XWINDOW (minibuf_window), buffer), Qnil);
+			  XWINDOW (minibuf_window)->buffer, Qnil);
       minibuf_window = sf->minibuffer_window;
     }
 

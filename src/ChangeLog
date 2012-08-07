@@ -1,3 +1,15 @@
+2012-08-07  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Drop WGET and revert read access to Lisp_Objects slots of struct window.
+	* window.h (WGET): Remove.
+	(struct window): Do not use INTERNAL_FIELD.
+	* alloc.c, buffer.c, composite.c, dispextern.h, dispnew.c, editfns.c:
+	* fileio.c, font.c, fontset.c, frame.c, frame.h, fringe.c, indent.c:
+	* insdel.c, keyboard.c, keymap.c, lisp.h, minibuf.c, msdos.c, nsfns.m:
+	* nsmenu.m, nsterm.m, print.c, textprop.c, w32fns.c, w32menu.c:
+	* w32term.c, window.c, xdisp.c, xfaces.c, xfns.c, xmenu.c, xterm.c:
+	Adjust users.
+
 2012-08-07  Chong Yidong  <cyd@gnu.org>
 
 	* window.c (Fwindow_edges, Fwindow_pixel_edges)

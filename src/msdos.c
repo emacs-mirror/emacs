@@ -594,7 +594,7 @@ dos_set_window_size (int *rows, int *cols)
       Mouse_HLInfo *hlinfo = MOUSE_HL_INFO (f);
       Lisp_Object window = hlinfo->mouse_face_window;
 
-      if (! NILP (window) && XFRAME (WGET (XWINDOW (window), frame)) == f)
+      if (! NILP (window) && XFRAME (XWINDOW (window)->frame) == f)
 	{
 	  hlinfo->mouse_face_beg_row = hlinfo->mouse_face_beg_col = -1;
 	  hlinfo->mouse_face_end_row = hlinfo->mouse_face_end_col = -1;
@@ -1255,7 +1255,7 @@ IT_update_begin (struct frame *f)
 	  /* If the mouse highlight is in the window that was deleted
 	     (e.g., if it was popped by completion), clear highlight
 	     unconditionally.  */
-	  if (NILP (WGET (w, buffer)))
+	  if (NILP (w->buffer))
 	    hlinfo->mouse_face_window = Qnil;
 	  else
 	    {
@@ -1265,7 +1265,7 @@ IT_update_begin (struct frame *f)
 		  break;
 	    }
 
-	  if (NILP (WGET (w, buffer)) || i < w->desired_matrix->nrows)
+	  if (NILP (w->buffer) || i < w->desired_matrix->nrows)
 	    clear_mouse_face (hlinfo);
 	}
     }
@@ -1327,7 +1327,7 @@ IT_frame_up_to_date (struct frame *f)
     new_cursor = frame_desired_cursor;
   else
     {
-      struct buffer *b = XBUFFER (WGET (sw, buffer));
+      struct buffer *b = XBUFFER (sw->buffer);
 
       if (EQ (BVAR (b,cursor_type), Qt))
 	new_cursor = frame_desired_cursor;

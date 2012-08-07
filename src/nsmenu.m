@@ -193,7 +193,7 @@ ns_update_menubar (struct frame *f, int deep_p, EmacsMenu *submenu)
 	= alloca (previous_menu_items_used * sizeof *previous_items);
 
       /* lisp preliminaries */
-      buffer = WGET (XWINDOW (FRAME_SELECTED_WINDOW (f)), buffer);
+      buffer = XWINDOW (FRAME_SELECTED_WINDOW (f))->buffer;
       specbind (Qinhibit_quit, Qt);
       specbind (Qdebug_on_next_call, Qnil);
       record_unwind_save_match_data ();

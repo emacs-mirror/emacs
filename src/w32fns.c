@@ -5635,13 +5635,13 @@ Text larger than the specified size is clipped.  */)
       WSET (w, total_lines, make_number (40));
     }
 
-  FRAME_TOTAL_COLS (f) = XINT (WGET (w, total_cols));
+  FRAME_TOTAL_COLS (f) = XINT (w->total_cols);
   adjust_glyphs (f);
   w->pseudo_window_p = 1;
 
   /* Display the tooltip text in a temporary buffer.  */
   old_buffer = current_buffer;
-  set_buffer_internal_1 (XBUFFER (WGET (XWINDOW (FRAME_ROOT_WINDOW (f)), buffer)));
+  set_buffer_internal_1 (XBUFFER (XWINDOW (FRAME_ROOT_WINDOW (f))->buffer));
   BVAR (current_buffer, truncate_lines) = Qnil;
   clear_glyph_matrix (w->desired_matrix);
   clear_glyph_matrix (w->current_matrix);

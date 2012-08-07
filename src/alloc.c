@@ -6014,7 +6014,7 @@ mark_object (Lisp_Object arg)
 	      /* Mark glyphs for leaf windows.  Marking window
 		 matrices is sufficient because frame matrices
 		 use the same glyph memory.  */
-	      if (NILP (WGET (w, hchild)) && NILP (WGET (w, vchild))
+	      if (NILP (w->hchild) && NILP (w->vchild)
 		  && w->current_matrix)
 		{
 		  mark_glyph_matrix (w->current_matrix);
