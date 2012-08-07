@@ -885,9 +885,6 @@ DO-MOUSE-DRAG-REGION-POST-PROCESS should only be used by
 		     (copy-region-as-kill (mark) (point)))))
 
 	  ;; Otherwise, run binding of terminating up-event.
-	  (setq foo (list (window-buffer (selected-window))
-			  (current-buffer)))
-
 	  (if do-multi-click
 	      (goto-char start-point)
 	    (deactivate-mark)
