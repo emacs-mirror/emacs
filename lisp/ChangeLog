@@ -1,3 +1,9 @@
+2012-08-07  Glenn Morris  <rgm@gnu.org>
+
+	* files.el (hack-local-variables-filter): If an eval: form is not
+	known to be safe, and enable-local-variables is :safe, then ignore
+	the form totally, as is done for non-eval forms.  (Bug#12155)
+
 2012-08-07  Chong Yidong  <cyd@gnu.org>
 
 	* mouse.el (mouse-drag-track): Deactivate the mark before popping.
