@@ -151,8 +151,6 @@ decode_any_window (register Lisp_Object window)
 
   CHECK_WINDOW (window);
   w = XWINDOW (window);
-  /* The following test throws up every time a tooltip frame is displayed.  */
-  /* CHECK_LIVE_FRAME (w->frame); */
   return w;
 }
 
@@ -746,6 +744,7 @@ just the text area, use `window-inside-edges'.  */)
   (Lisp_Object window)
 {
   register struct window *w = decode_any_window (window);
+  CHECK_LIVE_FRAME (WGET (w, frame));
 
   return Fcons (make_number (WINDOW_LEFT_EDGE_COL (w)),
 	 Fcons (make_number (WINDOW_TOP_EDGE_LINE (w)),
@@ -767,6 +766,7 @@ of just the text area, use `window-inside-pixel-edges'.  */)
   (Lisp_Object window)
 {
   register struct window *w = decode_any_window (window);
+  CHECK_LIVE_FRAME (WGET (w, frame));
 
   return Fcons (make_number (WINDOW_LEFT_EDGE_X (w)),
 	 Fcons (make_number (WINDOW_TOP_EDGE_Y (w)),
@@ -812,6 +812,8 @@ of just the text area, use `window-inside-absolute-pixel-edges'.  */)
 {
   register struct window *w = decode_any_window (window);
   int add_x, add_y;
+
+  CHECK_LIVE_FRAME (WGET (w, frame));
   calc_absolute_offset (w, &add_x, &add_y);
 
   return Fcons (make_number (WINDOW_LEFT_EDGE_X (w) + add_x),
@@ -2580,6 +2582,7 @@ window-start value is reasonable when this function is called.  */)
   int top IF_LINT (= 0), new_top, resize_failed;
 
   w = decode_any_window (window);
+  CHECK_LIVE_FRAME (WGET (w, frame));
   XSETWINDOW (window, w);
   f = XFRAME (WGET (w, frame));
 
@@ -2593,6 +2596,7 @@ window-start value is reasonable when this function is called.  */)
     /* ROOT must be an ancestor of WINDOW.  */
     {
       r = decode_any_window (root);
+      CHECK_LIVE_FRAME (WGET (r, frame));
       pwindow = WGET (XWINDOW (window), parent);
       while (!NILP (pwindow))
 	if (EQ (pwindow, root))
@@ -3837,6 +3841,8 @@ Signal an error when WINDOW is the only window on its frame.  */)
   int before_sibling = 0;
 
   w = decode_any_window (window);
+  CHECK_LIVE_FRAME (WGET (w, frame));
+
   XSETWINDOW (window, w);
   if (NILP (WGET (w, buffer))
       && NILP (WGET (w, hchild)) && NILP (WGET (w, vchild)))

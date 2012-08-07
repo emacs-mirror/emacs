@@ -1,3 +1,10 @@
+2012-08-07  Chong Yidong  <cyd@gnu.org>
+
+	* window.c (Fwindow_edges, Fwindow_pixel_edges)
+	(Fwindow_absolute_pixel_edges, Fdelete_other_windows_internal)
+	(Fdelete_window_internal): Signal an error if the window is not on
+	a live frame (Bug#12025).
+
 2012-08-07  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Drop FGET and revert read access to Lisp_Objects slots of struct frame.
