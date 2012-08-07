@@ -1,3 +1,7 @@
+2012-08-07  Glenn Morris  <rgm@gnu.org>
+
+	* automated/Makefile.in (all): Fix typo.
+
 2012-06-01  Chong Yidong  <cyd@gnu.org>
 
 	* Version 24.1 released.
