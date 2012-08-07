@@ -18,6 +18,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include "dispextern.h"
 
+INLINE_HEADER_BEGIN
+
 #define NULL_INTERVAL ((INTERVAL)0)
 #define INTERVAL_DEFAULT NULL_INTERVAL
 
@@ -60,12 +62,6 @@ struct interval
 };
 
 /* These are macros for dealing with the interval tree.  */
-
-/* Size of the structure used to represent an interval.  */
-#define INTERVAL_SIZE (sizeof (struct interval))
-
-/* Size of a pointer to an interval structure.  */
-#define INTERVAL_PTR_SIZE (sizeof (struct interval *))
 
 #define NULL_INTERVAL_P(i) ((i) == NULL_INTERVAL)
 
@@ -131,23 +127,63 @@ struct interval
 #define INTERVAL_HAS_PARENT(i) ((i)->up_obj == 0 && (i)->up.interval != 0)
 #define INTERVAL_HAS_OBJECT(i) ((i)->up_obj)
 
-/* Set/get parent of an interval.
+/* Use these macros to get parent of an interval.
 
    The choice of macros is dependent on the type needed.  Don't add
    casts to get around this, it will break some development work in
    progress.  */
-#define SET_INTERVAL_PARENT(i,p) \
-   ((i)->up_obj = 0, (i)->up.interval = (p))
-#define SET_INTERVAL_OBJECT(i,o) \
-   (eassert (BUFFERP (o) || STRINGP (o)), (i)->up_obj = 1, (i)->up.obj = (o))
-#define INTERVAL_PARENT(i) \
-   (eassert ((i) != 0 && (i)->up_obj == 0),(i)->up.interval)
-#define GET_INTERVAL_OBJECT(d,s) (eassert((s)->up_obj == 1), (d) = (s)->up.obj)
 
-/* Make the parent of D be whatever the parent of S is, regardless of
-   type.  This is used when balancing an interval tree.  */
-#define COPY_INTERVAL_PARENT(d,s) \
-   ((d)->up = (s)->up, (d)->up_obj = (s)->up_obj)
+#define INTERVAL_PARENT(i)					\
+   (eassert ((i) != 0 && (i)->up_obj == 0), (i)->up.interval)
+
+#define GET_INTERVAL_OBJECT(d,s) (eassert ((s)->up_obj == 1), (d) = (s)->up.obj)
+
+/* Use these functions to set Lisp_Object
+   or pointer slots of struct interval.  */
+
+LISP_INLINE void
+interval_set_parent (INTERVAL i, INTERVAL parent)
+{
+  i->up_obj = 0;
+  i->up.interval = parent;
+}
+
+LISP_INLINE void
+interval_set_object (INTERVAL i, Lisp_Object obj)
+{
+  eassert (BUFFERP (obj) || STRINGP (obj));
+  i->up_obj = 1;
+  i->up.obj = obj;
+}
+
+LISP_INLINE void
+interval_set_left (INTERVAL i, INTERVAL left)
+{
+  i->left = left;
+}
+
+LISP_INLINE void
+interval_set_right (INTERVAL i, INTERVAL right)
+{
+  i->right = right;
+}
+
+LISP_INLINE Lisp_Object
+interval_set_plist (INTERVAL i, Lisp_Object plist)
+{
+  i->plist = plist;
+  return plist;
+}
+
+/* Make the parent of D be whatever the parent of S is, regardless
+   of the type.  This is used when balancing an interval tree.  */
+
+LISP_INLINE void
+interval_copy_parent (INTERVAL d, INTERVAL s)
+{
+  d->up = s->up;
+  d->up_obj = s->up_obj;
+}
 
 /* Get the parent interval, if any, otherwise a null pointer.  Useful
    for walking up to the root in a "for" loop; use this to get the
@@ -165,31 +201,31 @@ struct interval
   while (0)
 
 /* Reset this interval to its vanilla, or no-property state.  */
-#define RESET_INTERVAL(i) \
-{ \
-    (i)->total_length = (i)->position = 0;    \
-    (i)->left = (i)->right = NULL_INTERVAL;   \
-    SET_INTERVAL_PARENT (i, NULL_INTERVAL);   \
-    (i)->write_protect = 0;                   \
-    (i)->visible = 0;                         \
-    (i)->front_sticky = (i)->rear_sticky = 0; \
-    (i)->plist = Qnil;         	              \
+#define RESET_INTERVAL(i)		      \
+{					      \
+  (i)->total_length = (i)->position = 0;      \
+  (i)->left = (i)->right = NULL_INTERVAL;     \
+  interval_set_parent (i, NULL_INTERVAL);     \
+  (i)->write_protect = 0;		      \
+  (i)->visible = 0;			      \
+  (i)->front_sticky = (i)->rear_sticky = 0;   \
+  interval_set_plist (i, Qnil);		      \
 }
 
 /* Copy the cached property values of interval FROM to interval TO.  */
-#define COPY_INTERVAL_CACHE(from,to) \
-{ \
-  (to)->write_protect = (from)->write_protect; \
-  (to)->visible = (from)->visible;             \
-  (to)->front_sticky = (from)->front_sticky;   \
-  (to)->rear_sticky = (from)->rear_sticky;     \
+#define COPY_INTERVAL_CACHE(from,to)		\
+{						\
+  (to)->write_protect = (from)->write_protect;	\
+  (to)->visible = (from)->visible;		\
+  (to)->front_sticky = (from)->front_sticky;	\
+  (to)->rear_sticky = (from)->rear_sticky;	\
 }
 
 /* Copy only the set bits of FROM's cache.  */
-#define MERGE_INTERVAL_CACHE(from,to) \
-{ \
+#define MERGE_INTERVAL_CACHE(from,to)		      \
+{						      \
   if ((from)->write_protect) (to)->write_protect = 1; \
-  if ((from)->visible) (to)->visible = 1;             \
+  if ((from)->visible) (to)->visible = 1;	      \
   if ((from)->front_sticky) (to)->front_sticky = 1;   \
   if ((from)->rear_sticky) (to)->rear_sticky = 1;     \
 }
@@ -326,3 +362,5 @@ extern Lisp_Object get_pos_property (Lisp_Object pos, Lisp_Object prop,
 extern void syms_of_textprop (void);
 
 #include "composite.h"
+
+INLINE_HEADER_END

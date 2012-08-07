@@ -88,7 +88,7 @@ create_root_interval (Lisp_Object parent)
       new->position = 0;
     }
 
-  SET_INTERVAL_OBJECT (new, parent);
+  interval_set_object (new, parent);
 
   return new;
 }
@@ -102,7 +102,7 @@ copy_properties (register INTERVAL source, register INTERVAL target)
     return;
 
   COPY_INTERVAL_CACHE (source, target);
-  target->plist = Fcopy_sequence (source->plist);
+  interval_set_plist (target, Fcopy_sequence (source->plist));
 }
 
 /* Merge the properties of interval SOURCE into the properties
@@ -138,7 +138,7 @@ merge_properties (register INTERVAL source, register INTERVAL target)
       if (NILP (val))
 	{
 	  val = XCAR (o);
-	  target->plist = Fcons (sym, Fcons (val, target->plist));
+	  interval_set_plist (target, Fcons (sym, Fcons (val, target->plist)));
 	}
       o = XCDR (o);
     }
@@ -320,21 +320,21 @@ rotate_right (INTERVAL interval)
   if (! ROOT_INTERVAL_P (interval))
     {
       if (AM_LEFT_CHILD (interval))
-	INTERVAL_PARENT (interval)->left = B;
+	interval_set_left (INTERVAL_PARENT (interval), B);
       else
-	INTERVAL_PARENT (interval)->right = B;
+	interval_set_right (INTERVAL_PARENT (interval), B);
     }
-  COPY_INTERVAL_PARENT (B, interval);
+  interval_copy_parent (B, interval);
 
   /* Make B the parent of A */
   i = B->right;
-  B->right = interval;
-  SET_INTERVAL_PARENT (interval, B);
+  interval_set_right (B, interval);
+  interval_set_parent (interval, B);
 
   /* Make A point to c */
-  interval->left = i;
+  interval_set_left (interval, i);
   if (! NULL_INTERVAL_P (i))
-    SET_INTERVAL_PARENT (i, interval);
+    interval_set_parent (i, interval);
 
   /* A's total length is decreased by the length of B and its left child.  */
   interval->total_length -= B->total_length - LEFT_TOTAL_LENGTH (interval);
@@ -367,21 +367,21 @@ rotate_left (INTERVAL interval)
   if (! ROOT_INTERVAL_P (interval))
     {
       if (AM_LEFT_CHILD (interval))
-	INTERVAL_PARENT (interval)->left = B;
+	interval_set_left (INTERVAL_PARENT (interval), B);
       else
-	INTERVAL_PARENT (interval)->right = B;
+	interval_set_right (INTERVAL_PARENT (interval), B);
     }
-  COPY_INTERVAL_PARENT (B, interval);
+  interval_copy_parent (B, interval);
 
   /* Make B the parent of A */
   i = B->left;
-  B->left = interval;
-  SET_INTERVAL_PARENT (interval, B);
+  interval_set_left (B, interval);
+  interval_set_parent (interval, B);
 
   /* Make A point to c */
-  interval->right = i;
+  interval_set_right (interval, i);
   if (! NULL_INTERVAL_P (i))
-    SET_INTERVAL_PARENT (i, interval);
+    interval_set_parent (i, interval);
 
   /* A's total length is decreased by the length of B and its right child.  */
   interval->total_length -= B->total_length - RIGHT_TOTAL_LENGTH (interval);
@@ -507,20 +507,20 @@ split_interval_right (INTERVAL interval, ptrdiff_t offset)
   ptrdiff_t new_length = LENGTH (interval) - offset;
 
   new->position = position + offset;
-  SET_INTERVAL_PARENT (new, interval);
+  interval_set_parent (new, interval);
 
   if (NULL_RIGHT_CHILD (interval))
     {
-      interval->right = new;
+      interval_set_right (interval, new);
       new->total_length = new_length;
       CHECK_TOTAL_LENGTH (new);
     }
   else
     {
       /* Insert the new node between INTERVAL and its right child.  */
-      new->right = interval->right;
-      SET_INTERVAL_PARENT (interval->right, new);
-      interval->right = new;
+      interval_set_right (new, interval->right);
+      interval_set_parent (interval->right, new);
+      interval_set_right (interval, new);
       new->total_length = new_length + new->right->total_length;
       CHECK_TOTAL_LENGTH (new);
       balance_an_interval (new);
@@ -552,20 +552,20 @@ split_interval_left (INTERVAL interval, ptrdiff_t offset)
 
   new->position = interval->position;
   interval->position = interval->position + offset;
-  SET_INTERVAL_PARENT (new, interval);
+  interval_set_parent (new, interval);
 
   if (NULL_LEFT_CHILD (interval))
     {
-      interval->left = new;
+      interval_set_left (interval, new);
       new->total_length = new_length;
       CHECK_TOTAL_LENGTH (new);
     }
   else
     {
       /* Insert the new node between INTERVAL and its left child.  */
-      new->left = interval->left;
-      SET_INTERVAL_PARENT (new->left, new);
-      interval->left = new;
+      interval_set_left (new, interval->left);
+      interval_set_parent (new->left, new);
+      interval_set_left (interval, new);
       new->total_length = new_length + new->left->total_length;
       CHECK_TOTAL_LENGTH (new);
       balance_an_interval (new);
@@ -940,21 +940,20 @@ adjust_intervals_for_insertion (INTERVAL tree,
 	  RESET_INTERVAL (&newi);
 	  pleft = NULL_INTERVAL_P (prev) ? Qnil : prev->plist;
 	  pright = NULL_INTERVAL_P (i) ? Qnil : i->plist;
-	  newi.plist = merge_properties_sticky (pleft, pright);
+	  interval_set_plist (&newi, merge_properties_sticky (pleft, pright));
 
 	  if (! prev) /* i.e. position == BEG */
 	    {
 	      if (! intervals_equal (i, &newi))
 		{
 		  i = split_interval_left (i, length);
-		  i->plist = newi.plist;
+		  interval_set_plist (i, newi.plist);
 		}
 	    }
 	  else if (! intervals_equal (prev, &newi))
 	    {
-	      prev = split_interval_right (prev,
-					   position - prev->position);
-	      prev->plist = newi.plist;
+	      prev = split_interval_right (prev, position - prev->position);
+	      interval_set_plist (prev, newi.plist);
 	      if (! NULL_INTERVAL_P (i)
 		  && intervals_equal (prev, i))
 		merge_interval_right (prev);
@@ -1180,8 +1179,8 @@ delete_node (register INTERVAL i)
       this->total_length += migrate_amt;
     }
   CHECK_TOTAL_LENGTH (this);
-  this->left = migrate;
-  SET_INTERVAL_PARENT (migrate, this);
+  interval_set_left (this, migrate);
+  interval_set_parent (migrate, this);
 
   return i->right;
 }
@@ -1206,7 +1205,7 @@ delete_interval (register INTERVAL i)
       GET_INTERVAL_OBJECT (owner, i);
       parent = delete_node (i);
       if (! NULL_INTERVAL_P (parent))
-	SET_INTERVAL_OBJECT (parent, owner);
+	interval_set_object (parent, owner);
 
       if (BUFFERP (owner))
 	BUF_INTERVALS (XBUFFER (owner)) = parent;
@@ -1221,15 +1220,15 @@ delete_interval (register INTERVAL i)
   parent = INTERVAL_PARENT (i);
   if (AM_LEFT_CHILD (i))
     {
-      parent->left = delete_node (i);
+      interval_set_left (parent, delete_node (i));
       if (! NULL_INTERVAL_P (parent->left))
-	SET_INTERVAL_PARENT (parent->left, parent);
+	interval_set_parent (parent->left, parent);
     }
   else
     {
-      parent->right = delete_node (i);
+      interval_set_right (parent, delete_node (i));
       if (! NULL_INTERVAL_P (parent->right))
-	SET_INTERVAL_PARENT (parent->right, parent);
+	interval_set_parent (parent->right, parent);
     }
 }
 
@@ -1500,13 +1499,13 @@ reproduce_tree (INTERVAL source, INTERVAL parent)
 {
   register INTERVAL t = make_interval ();
 
-  memcpy (t, source, INTERVAL_SIZE);
+  memcpy (t, source, sizeof *t);
   copy_properties (source, t);
-  SET_INTERVAL_PARENT (t, parent);
+  interval_set_parent (t, parent);
   if (! NULL_LEFT_CHILD (source))
-    t->left = reproduce_tree (source->left, t);
+    interval_set_left (t, reproduce_tree (source->left, t));
   if (! NULL_RIGHT_CHILD (source))
-    t->right = reproduce_tree (source->right, t);
+    interval_set_right (t, reproduce_tree (source->right, t));
 
   return t;
 }
@@ -1516,13 +1515,13 @@ reproduce_tree_obj (INTERVAL source, Lisp_Object parent)
 {
   register INTERVAL t = make_interval ();
 
-  memcpy (t, source, INTERVAL_SIZE);
+  memcpy (t, source, sizeof *t);
   copy_properties (source, t);
-  SET_INTERVAL_OBJECT (t, parent);
+  interval_set_object (t, parent);
   if (! NULL_LEFT_CHILD (source))
-    t->left = reproduce_tree (source->left, t);
+    interval_set_left (t, reproduce_tree (source->left, t));
   if (! NULL_RIGHT_CHILD (source))
-    t->right = reproduce_tree (source->right, t);
+    interval_set_right (t, reproduce_tree (source->right, t));
 
   return t;
 }
@@ -2264,7 +2263,7 @@ copy_intervals_to_string (Lisp_Object string, struct buffer *buffer,
   if (NULL_INTERVAL_P (interval_copy))
     return;
 
-  SET_INTERVAL_OBJECT (interval_copy, string);
+  interval_set_object (interval_copy, string);
   STRING_SET_INTERVALS (string, interval_copy);
 }
 
@@ -2404,13 +2403,13 @@ set_intervals_multibyte_1 (INTERVAL i, int multi_flag,
     {
       if ((i)->left)
 	{
-	  (i)->plist = (i)->left->plist;
+	  interval_set_plist (i, i->left->plist);
 	  (i)->left->total_length = 0;
 	  delete_interval ((i)->left);
 	}
       else
 	{
-	  (i)->plist = (i)->right->plist;
+	  interval_set_plist (i, i->right->plist);
 	  (i)->right->total_length = 0;
 	  delete_interval ((i)->right);
 	}

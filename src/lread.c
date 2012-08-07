@@ -3211,7 +3211,7 @@ substitute_in_interval (INTERVAL interval, Lisp_Object arg)
   Lisp_Object object      = Fcar (arg);
   Lisp_Object placeholder = Fcdr (arg);
 
-  SUBSTITUTE (interval->plist, interval->plist = true_value);
+  SUBSTITUTE (interval->plist, interval_set_plist (interval, true_value));
 }
 
 

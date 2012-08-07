@@ -1,5 +1,17 @@
 2012-08-07  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	Basic functions to set Lisp_Object and pointer slots of intervals.
+	* intervals.h (interval_set_parent, interval_set_object):
+	(interval_set_left, interval_set_right, interval_set_plist):
+	(interval_copy_parent): New function.
+	(SET_INTERVAL_OBJECT, SET_INTERVAL_PARENT, INTERVAL_PTR_SIZE): Remove.
+	(RESET_INTERVAL, COPY_INTERVAL_CACHE, MERGE_INTERVAL_CACHE): Adjust
+	indentation.
+	(INTERVAL_SIZE): Remove.  Adjust users.
+	* alloc.c, intervals.c, lread.c, textprop.c: Use new functions.
+
+2012-08-07  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	Drop PGET and revert read access to Lisp_Objects slots of Lisp_Process.
 	* process.h (PGET): Remove.
 	(struct Lisp_Process): Do not use INTERNAL_FIELD.

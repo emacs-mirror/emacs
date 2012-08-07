@@ -6416,7 +6416,7 @@ gc_sweep (void)
 	  {
 	    if (!iblk->intervals[i].gcmarkbit)
 	      {
-		SET_INTERVAL_PARENT (&iblk->intervals[i], interval_free_list);
+		interval_set_parent (&iblk->intervals[i], interval_free_list);
 		interval_free_list = &iblk->intervals[i];
 		this_free++;
 	      }

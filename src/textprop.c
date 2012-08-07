@@ -338,7 +338,7 @@ set_properties (Lisp_Object properties, INTERVAL interval, Lisp_Object object)
     }
 
   /* Store new properties.  */
-  interval->plist = Fcopy_sequence (properties);
+  interval_set_plist (interval, Fcopy_sequence (properties));
 }
 
 /* Add the properties of PLIST to the interval I, or set
@@ -411,7 +411,7 @@ add_properties (Lisp_Object plist, INTERVAL i, Lisp_Object object)
 	      record_property_change (i->position, LENGTH (i),
 				      sym1, Qnil, object);
 	    }
-	  i->plist = Fcons (sym1, Fcons (val1, i->plist));
+	  interval_set_plist (i, Fcons (sym1, Fcons (val1, i->plist)));
 	  changed++;
 	}
     }
@@ -484,7 +484,7 @@ remove_properties (Lisp_Object plist, Lisp_Object list, INTERVAL i, Lisp_Object 
     }
 
   if (changed)
-    i->plist = current_plist;
+    interval_set_plist (i, current_plist);
   return changed;
 }
 
