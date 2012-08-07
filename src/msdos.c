@@ -1318,8 +1318,8 @@ IT_frame_up_to_date (struct frame *f)
      frame parameters.  For the selected window, we use either its
      buffer-local value or the value from the frame parameters if the
      buffer doesn't define its local value for the cursor type.  */
-  sw = XWINDOW (FGET (f, selected_window));
-  frame_desired_cursor = Fcdr (Fassq (Qcursor_type, FGET (f, param_alist)));
+  sw = XWINDOW (f->selected_window);
+  frame_desired_cursor = Fcdr (Fassq (Qcursor_type, f->param_alist));
   if (cursor_in_echo_area
       && FRAME_HAS_MINIBUF_P (f)
       && EQ (FRAME_MINIBUF_WINDOW (f), echo_area_window)
@@ -1598,7 +1598,7 @@ IT_set_frame_parameters (struct frame *f, Lisp_Object alist)
   Lisp_Object *values
     = (Lisp_Object *) alloca (length * word_size);
   /* Do we have to reverse the foreground and background colors?  */
-  int reverse = EQ (Fcdr (Fassq (Qreverse, FGET (f, param_alist))), Qt);
+  int reverse = EQ (Fcdr (Fassq (Qreverse, f->param_alist)), Qt);
   int redraw = 0, fg_set = 0, bg_set = 0;
   unsigned long orig_fg, orig_bg;
   struct tty_display_info *tty = FRAME_TTY (f);

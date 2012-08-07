@@ -1123,9 +1123,9 @@ x_set_icon_type (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
   BLOCK_INPUT;
   if (NILP (arg))
     result = x_text_icon (f,
-			  SSDATA ((!NILP (FGET (f, icon_name))
-				   ? FGET (f, icon_name)
-				   : FGET (f, name))));
+			  SSDATA ((!NILP (f->icon_name)
+				   ? f->icon_name
+				   : f->name)));
   else
     result = x_bitmap_icon (f, arg);
 
@@ -1160,11 +1160,11 @@ x_set_icon_name (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
   BLOCK_INPUT;
 
   result = x_text_icon (f,
-			SSDATA ((!NILP (FGET (f, icon_name))
-				 ? FGET (f, icon_name)
-				 : !NILP (FGET (f, title))
-				 ? FGET (f, title)
-				 : FGET (f, name))));
+			SSDATA ((!NILP (f->icon_name)
+				 ? f->icon_name
+				 : !NILP (f->title)
+				 ? f->title
+				 : f->name)));
 
   if (result)
     {
@@ -1253,8 +1253,8 @@ x_set_menu_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
 	  UNBLOCK_INPUT;
 	}
 
-      if (nlines == 0 && WINDOWP (FGET (f, menu_bar_window)))
-	clear_glyph_matrix (XWINDOW (FGET (f, menu_bar_window))->current_matrix);
+      if (nlines == 0 && WINDOWP (f->menu_bar_window))
+	clear_glyph_matrix (XWINDOW (f->menu_bar_window)->current_matrix);
     }
 #endif /* not USE_X_TOOLKIT && not USE_GTK */
   adjust_glyphs (f);
@@ -1352,8 +1352,8 @@ x_set_tool_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
           UNBLOCK_INPUT;
         }
 
-      if (WINDOWP (FGET (f, tool_bar_window)))
-	clear_glyph_matrix (XWINDOW (FGET (f, tool_bar_window))->current_matrix);
+      if (WINDOWP (f->tool_bar_window))
+	clear_glyph_matrix (XWINDOW (f->tool_bar_window)->current_matrix);
     }
 
     run_window_configuration_change_hook (f);
@@ -1548,7 +1548,7 @@ x_set_name_internal (FRAME_PTR f, Lisp_Object name)
 	if (text.nitems != bytes)
 	  error ("Window name too large");
 
-	if (!STRINGP (FGET (f, icon_name)))
+	if (!STRINGP (f->icon_name))
 	  {
 	    icon = text;
 	    encoded_icon_name = encoded_name;
@@ -1556,7 +1556,7 @@ x_set_name_internal (FRAME_PTR f, Lisp_Object name)
 	else
 	  {
 	    /* See the above comment "Note: Encoding strategy".  */
-	    icon.value = x_encode_text (FGET (f, icon_name), coding_system, 0,
+	    icon.value = x_encode_text (f->icon_name, coding_system, 0,
 					&bytes, &stringp, &do_free_icon_value);
 	    icon.encoding = (stringp ? XA_STRING
 			     : FRAME_X_DISPLAY_INFO (f)->Xatom_COMPOUND_TEXT);
@@ -1565,7 +1565,7 @@ x_set_name_internal (FRAME_PTR f, Lisp_Object name)
 	    if (icon.nitems != bytes)
 	      error ("Icon name too large");
 
-	    encoded_icon_name = ENCODE_UTF_8 (FGET (f, icon_name));
+	    encoded_icon_name = ENCODE_UTF_8 (f->icon_name);
 	  }
 
 #ifdef USE_GTK
@@ -1632,7 +1632,7 @@ x_set_name (struct frame *f, Lisp_Object name, int explicit)
       /* Check for no change needed in this very common case
 	 before we do any consing.  */
       if (!strcmp (FRAME_X_DISPLAY_INFO (f)->x_id_name,
-		   SSDATA (FGET (f, name))))
+		   SSDATA (f->name)))
 	return;
       name = build_string (FRAME_X_DISPLAY_INFO (f)->x_id_name);
     }
@@ -1640,15 +1640,15 @@ x_set_name (struct frame *f, Lisp_Object name, int explicit)
     CHECK_STRING (name);
 
   /* Don't change the name if it's already NAME.  */
-  if (! NILP (Fstring_equal (name, FGET (f, name))))
+  if (! NILP (Fstring_equal (name, f->name)))
     return;
 
   FSET (f, name, name);
 
   /* For setting the frame title, the title parameter should override
      the name parameter.  */
-  if (! NILP (FGET (f, title)))
-    name = FGET (f, title);
+  if (! NILP (f->title))
+    name = f->title;
 
   x_set_name_internal (f, name);
 }
@@ -1678,7 +1678,7 @@ static void
 x_set_title (struct frame *f, Lisp_Object name, Lisp_Object old_name)
 {
   /* Don't change the title if it's already NAME.  */
-  if (EQ (name, FGET (f, title)))
+  if (EQ (name, f->title))
     return;
 
   update_mode_lines = 1;
@@ -1686,7 +1686,7 @@ x_set_title (struct frame *f, Lisp_Object name, Lisp_Object old_name)
   FSET (f, title, name);
 
   if (NILP (name))
-    name = FGET (f, name);
+    name = f->name;
   else
     CHECK_STRING (name);
 
@@ -2571,7 +2571,7 @@ x_window (struct frame *f, long window_prompting, int minibuffer_only)
     int explicit = f->explicit_name;
 
     f->explicit_name = 0;
-    name = FGET (f, name);
+    name = f->name;
     FSET (f, name, Qnil);
     x_set_name (f, name, explicit);
   }
@@ -2714,7 +2714,7 @@ x_window (struct frame *f)
     int explicit = f->explicit_name;
 
     f->explicit_name = 0;
-    name = FGET (f, name);
+    name = f->name;
     FSET (f, name, Qnil);
     x_set_name (f, name, explicit);
   }
@@ -2791,9 +2791,9 @@ x_icon (struct frame *f, Lisp_Object parms)
 	 : NormalState));
 #endif
 
-  x_text_icon (f, SSDATA ((!NILP (FGET (f, icon_name))
-			   ? FGET (f, icon_name)
-			   : FGET (f, name))));
+  x_text_icon (f, SSDATA ((!NILP (f->icon_name)
+			   ? f->icon_name
+			   : f->name)));
 
   UNBLOCK_INPUT;
 }
@@ -3138,7 +3138,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
   FSET (f, icon_name,
 	x_get_arg (dpyinfo, parms, Qicon_name, "iconName", "Title",
 		   RES_TYPE_STRING));
-  if (! STRINGP (FGET (f, icon_name)))
+  if (! STRINGP (f->icon_name))
     FSET (f, icon_name, Qnil);
 
   FRAME_X_DISPLAY_INFO (f) = dpyinfo;
@@ -3340,7 +3340,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
   x_default_parameter (f, parms, Qfullscreen, Qnil,
                        "fullscreen", "Fullscreen", RES_TYPE_SYMBOL);
   x_default_parameter (f, parms, Qtool_bar_position,
-                       FGET (f, tool_bar_position), 0, 0, RES_TYPE_SYMBOL);
+                       f->tool_bar_position, 0, 0, RES_TYPE_SYMBOL);
 
   /* Compute the size of the X window.  */
   window_prompting = x_figure_window_size (f, parms, 1);
@@ -3468,7 +3468,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
      by x_get_arg and friends, now go in the misc. alist of the frame.  */
   for (tem = parms; CONSP (tem); tem = XCDR (tem))
     if (CONSP (XCAR (tem)) && !NILP (XCAR (XCAR (tem))))
-      FSET (f, param_alist, Fcons (XCAR (tem), FGET (f, param_alist)));
+      FSET (f, param_alist, Fcons (XCAR (tem), f->param_alist));
 
   UNGCPRO;
 

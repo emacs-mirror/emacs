@@ -468,7 +468,7 @@ void
 x_set_title (struct frame *f, Lisp_Object name)
 {
   /* Don't change the title if it's already NAME.  */
-  if (EQ (name, FGET (f, title)))
+  if (EQ (name, f->title))
     return;
 
   update_mode_lines = 1;
@@ -476,7 +476,7 @@ x_set_title (struct frame *f, Lisp_Object name)
   FSET (f, title, name);
 
   if (NILP (name))
-    name = FGET (f, name);
+    name = f->name;
 
   if (FRAME_MSDOS_P (f))
     {

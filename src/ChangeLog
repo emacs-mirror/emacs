@@ -1,3 +1,13 @@
+2012-08-07  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Drop FGET and revert read access to Lisp_Objects slots of struct frame.
+	* frame.h (FGET): Remove.
+	(struct frame): Do not use INTERNAL_FIELD.
+	* buffer.c, data.c, dispnew.c, dosfns.c, eval.c, fontset.c, frame.c:
+	* fringe.c, gtkutil.c, minibuf.c, msdos.c, nsfns.m, nsmenu.m, nsterm.m:
+	* print.c, term.c, w32fns.c, w32menu.c, w32term.c, window.c, window.h:
+	* xdisp.c, xfaces.c, xfns.c, xmenu.c, xterm.c: Adjust users.
+
 2012-08-06  Juanma Barranquero  <lekktu@gmail.com>
 
 	* w32.c: Silence compiler warnings.

@@ -821,12 +821,12 @@ clear_current_matrices (register struct frame *f)
   /* Clear the matrix of the menu bar window, if such a window exists.
      The menu bar window is currently used to display menus on X when
      no toolkit support is compiled in.  */
-  if (WINDOWP (FGET (f, menu_bar_window)))
-    clear_glyph_matrix (XWINDOW (FGET (f, menu_bar_window))->current_matrix);
+  if (WINDOWP (f->menu_bar_window))
+    clear_glyph_matrix (XWINDOW (f->menu_bar_window)->current_matrix);
 
   /* Clear the matrix of the tool-bar window, if any.  */
-  if (WINDOWP (FGET (f, tool_bar_window)))
-    clear_glyph_matrix (XWINDOW (FGET (f, tool_bar_window))->current_matrix);
+  if (WINDOWP (f->tool_bar_window))
+    clear_glyph_matrix (XWINDOW (f->tool_bar_window)->current_matrix);
 
   /* Clear current window matrices.  */
   eassert (WINDOWP (FRAME_ROOT_WINDOW (f)));
@@ -842,11 +842,11 @@ clear_desired_matrices (register struct frame *f)
   if (f->desired_matrix)
     clear_glyph_matrix (f->desired_matrix);
 
-  if (WINDOWP (FGET (f, menu_bar_window)))
-    clear_glyph_matrix (XWINDOW (FGET (f, menu_bar_window))->desired_matrix);
+  if (WINDOWP (f->menu_bar_window))
+    clear_glyph_matrix (XWINDOW (f->menu_bar_window)->desired_matrix);
 
-  if (WINDOWP (FGET (f, tool_bar_window)))
-    clear_glyph_matrix (XWINDOW (FGET (f, tool_bar_window))->desired_matrix);
+  if (WINDOWP (f->tool_bar_window))
+    clear_glyph_matrix (XWINDOW (f->tool_bar_window)->desired_matrix);
 
   /* Do it for window matrices.  */
   eassert (WINDOWP (FRAME_ROOT_WINDOW (f)));
@@ -1881,7 +1881,7 @@ static void
 adjust_frame_glyphs_initially (void)
 {
   struct frame *sf = SELECTED_FRAME ();
-  struct window *root = XWINDOW (FGET (sf, root_window));
+  struct window *root = XWINDOW (sf->root_window);
   struct window *mini = XWINDOW (WGET (root, next));
   int frame_lines = FRAME_LINES (sf);
   int frame_cols = FRAME_COLS (sf);
@@ -2164,17 +2164,17 @@ adjust_frame_glyphs_for_window_redisplay (struct frame *f)
   {
     /* Allocate a dummy window if not already done.  */
     struct window *w;
-    if (NILP (FGET (f, menu_bar_window)))
+    if (NILP (f->menu_bar_window))
       {
 	Lisp_Object frame;
 	FSET (f, menu_bar_window, make_window ());
-	w = XWINDOW (FGET (f, menu_bar_window));
+	w = XWINDOW (f->menu_bar_window);
 	XSETFRAME (frame, f);
 	WSET (w, frame, frame);
 	w->pseudo_window_p = 1;
       }
     else
-      w = XWINDOW (FGET (f, menu_bar_window));
+      w = XWINDOW (f->menu_bar_window);
 
     /* Set window dimensions to frame dimensions and allocate or
        adjust glyph matrices of W.  */
@@ -2192,17 +2192,17 @@ adjust_frame_glyphs_for_window_redisplay (struct frame *f)
     /* Allocate/ reallocate matrices of the tool bar window.  If we
        don't have a tool bar window yet, make one.  */
     struct window *w;
-    if (NILP (FGET (f, tool_bar_window)))
+    if (NILP (f->tool_bar_window))
       {
 	Lisp_Object frame;
 	FSET (f, tool_bar_window, make_window ());
-	w = XWINDOW (FGET (f, tool_bar_window));
+	w = XWINDOW (f->tool_bar_window);
 	XSETFRAME (frame, f);
 	WSET (w, frame, frame);
 	w->pseudo_window_p = 1;
       }
     else
-      w = XWINDOW (FGET (f, tool_bar_window));
+      w = XWINDOW (f->tool_bar_window);
 
     WSET (w, top_line, make_number (FRAME_MENU_BAR_LINES (f)));
     WSET (w, left_col, make_number (0));
@@ -2262,14 +2262,14 @@ free_glyphs (struct frame *f)
       f->glyphs_initialized_p = 0;
 
       /* Release window sub-matrices.  */
-      if (!NILP (FGET (f, root_window)))
-        free_window_matrices (XWINDOW (FGET (f, root_window)));
+      if (!NILP (f->root_window))
+        free_window_matrices (XWINDOW (f->root_window));
 
       /* Free the dummy window for menu bars without X toolkit and its
 	 glyph matrices.  */
-      if (!NILP (FGET (f, menu_bar_window)))
+      if (!NILP (f->menu_bar_window))
 	{
-	  struct window *w = XWINDOW (FGET (f, menu_bar_window));
+	  struct window *w = XWINDOW (f->menu_bar_window);
 	  free_glyph_matrix (w->desired_matrix);
 	  free_glyph_matrix (w->current_matrix);
 	  w->desired_matrix = w->current_matrix = NULL;
@@ -2277,9 +2277,9 @@ free_glyphs (struct frame *f)
 	}
 
       /* Free the tool bar window and its glyph matrices.  */
-      if (!NILP (FGET (f, tool_bar_window)))
+      if (!NILP (f->tool_bar_window))
 	{
-	  struct window *w = XWINDOW (FGET (f, tool_bar_window));
+	  struct window *w = XWINDOW (f->tool_bar_window);
 	  free_glyph_matrix (w->desired_matrix);
 	  free_glyph_matrix (w->current_matrix);
 	  w->desired_matrix = w->current_matrix = NULL;
@@ -2706,7 +2706,7 @@ make_current (struct glyph_matrix *desired_matrix, struct glyph_matrix *current_
   /* If we are called on frame matrices, perform analogous operations
      for window matrices.  */
   if (frame_matrix_frame)
-    mirror_make_current (XWINDOW (FGET (frame_matrix_frame, root_window)), row);
+    mirror_make_current (XWINDOW (frame_matrix_frame->root_window), row);
 }
 
 
@@ -2804,7 +2804,7 @@ mirrored_line_dance (struct glyph_matrix *matrix, int unchanged_at_top, int nlin
 
   /* Do the same for window matrices, if MATRIX is a frame matrix.  */
   if (frame_matrix_frame)
-    mirror_line_dance (XWINDOW (FGET (frame_matrix_frame, root_window)),
+    mirror_line_dance (XWINDOW (frame_matrix_frame->root_window),
 		       unchanged_at_top, nlines, copy_from, retained_p);
 }
 
@@ -3167,7 +3167,7 @@ update_frame (struct frame *f, int force_p, int inhibit_hairy_id_p)
 {
   /* 1 means display has been paused because of pending input.  */
   int paused_p;
-  struct window *root_window = XWINDOW (FGET (f, root_window));
+  struct window *root_window = XWINDOW (f->root_window);
 
   if (redisplay_dont_pause)
     force_p = 1;
@@ -3202,13 +3202,13 @@ update_frame (struct frame *f, int force_p, int inhibit_hairy_id_p)
 
       /* Update the menu bar on X frames that don't have toolkit
 	 support.  */
-      if (WINDOWP (FGET (f, menu_bar_window)))
-	update_window (XWINDOW (FGET (f, menu_bar_window)), 1);
+      if (WINDOWP (f->menu_bar_window))
+	update_window (XWINDOW (f->menu_bar_window), 1);
 
       /* Update the tool-bar window, if present.  */
-      if (WINDOWP (FGET (f, tool_bar_window)))
+      if (WINDOWP (f->tool_bar_window))
 	{
-	  struct window *w = XWINDOW (FGET (f, tool_bar_window));
+	  struct window *w = XWINDOW (f->tool_bar_window);
 
 	  /* Update tool-bar window.  */
 	  if (w->must_be_updated_p)
@@ -3220,9 +3220,8 @@ update_frame (struct frame *f, int force_p, int inhibit_hairy_id_p)
 
 	      /* Swap tool-bar strings.  We swap because we want to
 		 reuse strings.  */
-	      tem = FGET (f, current_tool_bar_string);
-	      FSET (f, current_tool_bar_string,
-                   FGET (f, desired_tool_bar_string));
+	      tem = f->current_tool_bar_string;
+	      FSET (f, current_tool_bar_string, f->desired_tool_bar_string);
 	      FSET (f, desired_tool_bar_string, tem);
 	    }
 	}
@@ -5745,8 +5744,8 @@ change_frame_size_1 (register struct frame *f, int newheight, int newwidth, int 
       if ((FRAME_TERMCAP_P (f) && !pretend) || FRAME_MSDOS_P (f))
 	FrameCols (FRAME_TTY (f)) = newwidth;
 
-      if (WINDOWP (FGET (f, tool_bar_window)))
-	WSET (XWINDOW (FGET (f, tool_bar_window)),
+      if (WINDOWP (f->tool_bar_window))
+	WSET (XWINDOW (f->tool_bar_window),
 	      total_cols, make_number (newwidth));
     }
 
@@ -6071,7 +6070,7 @@ pass nil for VARIABLE.  */)
 	goto changed;
       if (vecp == end)
 	goto changed;
-      if (!EQ (*vecp++, FGET (XFRAME (frame), name)))
+      if (!EQ (*vecp++, XFRAME (frame)->name))
 	goto changed;
     }
   /* Check that the buffer info matches.  */
@@ -6128,7 +6127,7 @@ pass nil for VARIABLE.  */)
   FOR_EACH_FRAME (tail, frame)
     {
       *vecp++ = frame;
-      *vecp++ = FGET (XFRAME (frame), name);
+      *vecp++ = XFRAME (frame)->name;
     }
   for (tail = Vbuffer_alist; CONSP (tail); tail = XCDR (tail))
     {

@@ -1498,11 +1498,11 @@ x_set_icon_name (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
   BLOCK_INPUT;
 
   result = x_text_icon (f,
-			SSDATA ((!NILP (FGET (f, icon_name))
-				 ? FGET (f, icon_name)
-				 : !NILP (FGET (f, title))
-				 ? FGET (f, title)
-				 : FGET (f, name))));
+			SSDATA ((!NILP (f->icon_name)
+				 ? f->icon_name
+				 : !NILP (f->title)
+				 ? f->title
+				 : f->name)));
 
   if (result)
     {
@@ -1631,8 +1631,8 @@ x_set_tool_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
       }
       UNBLOCK_INPUT;
 
-      if (WINDOWP (FGET (f, tool_bar_window)))
-	clear_glyph_matrix (XWINDOW (FGET (f, tool_bar_window))->current_matrix);
+      if (WINDOWP (f->tool_bar_window))
+	clear_glyph_matrix (XWINDOW (f->tool_bar_window)->current_matrix);
     }
 
   run_window_configuration_change_hook (f);
@@ -1674,7 +1674,7 @@ x_set_name (struct frame *f, Lisp_Object name, int explicit)
       /* Check for no change needed in this very common case
 	 before we do any consing.  */
       if (!strcmp (FRAME_W32_DISPLAY_INFO (f)->w32_id_name,
-		   SDATA (FGET (f, name))))
+		   SDATA (f->name)))
 	return;
       name = build_string (FRAME_W32_DISPLAY_INFO (f)->w32_id_name);
     }
@@ -1682,15 +1682,15 @@ x_set_name (struct frame *f, Lisp_Object name, int explicit)
     CHECK_STRING (name);
 
   /* Don't change the name if it's already NAME.  */
-  if (! NILP (Fstring_equal (name, FGET (f, name))))
+  if (! NILP (Fstring_equal (name, f->name)))
     return;
 
   FSET (f, name, name);
 
   /* For setting the frame title, the title parameter should override
      the name parameter.  */
-  if (! NILP (FGET (f, title)))
-    name = FGET (f, title);
+  if (! NILP (f->title))
+    name = f->title;
 
   if (FRAME_W32_WINDOW (f))
     {
@@ -1728,7 +1728,7 @@ void
 x_set_title (struct frame *f, Lisp_Object name, Lisp_Object old_name)
 {
   /* Don't change the title if it's already NAME.  */
-  if (EQ (name, FGET (f, title)))
+  if (EQ (name, f->title))
     return;
 
   update_mode_lines = 1;
@@ -1736,7 +1736,7 @@ x_set_title (struct frame *f, Lisp_Object name, Lisp_Object old_name)
   FSET (f, title, name);
 
   if (NILP (name))
-    name = FGET (f, name);
+    name = f->name;
 
   if (FRAME_W32_WINDOW (f))
     {
@@ -3896,7 +3896,7 @@ w32_window (struct frame *f, long window_prompting, int minibuffer_only)
     int explicit = f->explicit_name;
 
     f->explicit_name = 0;
-    name = FGET (f, name);
+    name = f->name;
     FSET (f, name, Qnil);
     x_set_name (f, name, explicit);
   }
@@ -3944,9 +3944,9 @@ x_icon (struct frame *f, Lisp_Object parms)
 	 ? IconicState
 	 : NormalState));
 
-  x_text_icon (f, SSDATA ((!NILP (FGET (f, icon_name))
-			   ? FGET (f, icon_name)
-			   : FGET (f, name))));
+  x_text_icon (f, SSDATA ((!NILP (f->icon_name)
+			   ? f->icon_name
+			   : f->name)));
 #endif
 
   UNBLOCK_INPUT;
@@ -4149,7 +4149,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
   FSET (f, icon_name,
 	x_get_arg (dpyinfo, parameters, Qicon_name, "iconName", "Title",
                    RES_TYPE_STRING));
-  if (! STRINGP (FGET (f, icon_name)))
+  if (! STRINGP (f->icon_name))
     FSET (f, icon_name, Qnil);
 
 /*  FRAME_W32_DISPLAY_INFO (f) = dpyinfo; */
@@ -4359,7 +4359,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
      by x_get_arg and friends, now go in the misc. alist of the frame.  */
   for (tem = parameters; CONSP (tem); tem = XCDR (tem))
     if (CONSP (XCAR (tem)) && !NILP (XCAR (XCAR (tem))))
-      FSET (f, param_alist, Fcons (XCAR (tem), FGET (f, param_alist)));
+      FSET (f, param_alist, Fcons (XCAR (tem), f->param_alist));
 
   UNGCPRO;
 

@@ -277,7 +277,7 @@ menubar_selection_callback (FRAME_PTR f, void * client_data)
     return;
   entry = Qnil;
   subprefix_stack = (Lisp_Object *) alloca (f->menu_bar_items_used * word_size);
-  vector = FGET (f, menu_bar_vector);
+  vector = f->menu_bar_vector;
   prefix = Qnil;
   i = 0;
   while (i < f->menu_bar_items_used)
@@ -419,14 +419,14 @@ set_frame_menubar (FRAME_PTR f, int first_time, int deep_p)
 
       /* Save the frame's previous menu bar contents data.  */
       if (previous_menu_items_used)
-	memcpy (previous_items, XVECTOR (FGET (f, menu_bar_vector))->contents,
+	memcpy (previous_items, XVECTOR (f->menu_bar_vector)->contents,
 		previous_menu_items_used * word_size);
 
       /* Fill in menu_items with the current menu bar contents.
 	 This can evaluate Lisp code.  */
       save_menu_items ();
 
-      menu_items = FGET (f, menu_bar_vector);
+      menu_items = f->menu_bar_vector;
       menu_items_allocated = VECTORP (menu_items) ? ASIZE (menu_items) : 0;
       submenu_start = (int *) alloca (ASIZE (items) * sizeof (int));
       submenu_end = (int *) alloca (ASIZE (items) * sizeof (int));

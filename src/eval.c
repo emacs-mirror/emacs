@@ -3254,7 +3254,7 @@ unbind_to (ptrdiff_t count, Lisp_Object value)
 	     local binding, but only if that binding still exists.  */
 	  else if (BUFFERP (where)
 		   ? !NILP (Flocal_variable_p (symbol, where))
-		   : !NILP (Fassq (symbol, FGET (XFRAME (where), param_alist))))
+		   : !NILP (Fassq (symbol, XFRAME (where)->param_alist)))
 	    set_internal (symbol, this_binding.old_value, where, 1);
 	}
       /* If variable has a trivial value (no forwarding), we can

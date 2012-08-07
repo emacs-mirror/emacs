@@ -191,13 +191,13 @@ With a window argument, return the root window of that window's frame.  */)
   Lisp_Object window;
 
   if (NILP (frame_or_window))
-    window = FGET (SELECTED_FRAME (), root_window);
+    window = SELECTED_FRAME ()->root_window;
   else if (WINDOWP (frame_or_window))
-    window = FGET (XFRAME (WINDOW_FRAME (XWINDOW (frame_or_window))), root_window);
+    window = XFRAME (WINDOW_FRAME (XWINDOW (frame_or_window)))->root_window;
   else
     {
       CHECK_LIVE_FRAME (frame_or_window);
-      window = FGET (XFRAME (frame_or_window), root_window);
+      window = XFRAME (frame_or_window)->root_window;
     }
 
   return window;
@@ -235,13 +235,13 @@ the first window of that frame.  */)
   Lisp_Object window;
 
   if (NILP (frame_or_window))
-    window = FGET (SELECTED_FRAME (), root_window);
+    window = SELECTED_FRAME ()->root_window;
   else if (WINDOWP (frame_or_window))
-    window = FGET (XFRAME (WINDOW_FRAME (XWINDOW (frame_or_window))), root_window);
+    window = XFRAME (WINDOW_FRAME (XWINDOW (frame_or_window)))->root_window;
   else
     {
       CHECK_LIVE_FRAME (frame_or_window);
-      window = FGET (XFRAME (frame_or_window), root_window);
+      window = XFRAME (frame_or_window)->root_window;
     }
 
   while (NILP (WGET (XWINDOW (window), buffer)))
@@ -269,14 +269,13 @@ the selected window of that frame.  */)
   Lisp_Object window;
 
   if (NILP (frame_or_window))
-    window = FGET (SELECTED_FRAME (), selected_window);
+    window = SELECTED_FRAME ()->selected_window;
   else if (WINDOWP (frame_or_window))
-    window = FGET (XFRAME (WINDOW_FRAME (XWINDOW (frame_or_window))),
-                  selected_window);
+    window = XFRAME (WINDOW_FRAME (XWINDOW (frame_or_window)))->selected_window;
   else
     {
       CHECK_LIVE_FRAME (frame_or_window);
-      window = FGET (XFRAME (frame_or_window), selected_window);
+      window = XFRAME (frame_or_window)->selected_window;
     }
 
   return window;
@@ -1214,13 +1213,13 @@ window_from_coordinates (struct frame *f, int x, int y,
      bar exists.  */
   if (NILP (window)
       && tool_bar_p
-      && WINDOWP (FGET (f, tool_bar_window))
-      && WINDOW_TOTAL_LINES (XWINDOW (FGET (f, tool_bar_window))) > 0
-      && (coordinates_in_window (XWINDOW (FGET (f, tool_bar_window)), x, y)
+      && WINDOWP (f->tool_bar_window)
+      && WINDOW_TOTAL_LINES (XWINDOW (f->tool_bar_window)) > 0
+      && (coordinates_in_window (XWINDOW (f->tool_bar_window), x, y)
 	  != ON_NOTHING))
     {
       *part = ON_TEXT;
-      window = FGET (f, tool_bar_window);
+      window = f->tool_bar_window;
     }
 
   return window;
@@ -2314,7 +2313,7 @@ MINIBUF neither nil nor t means never include the minibuffer window.  */)
   (Lisp_Object frame, Lisp_Object minibuf, Lisp_Object window)
 {
   if (NILP (window))
-    window = FRAMEP (frame) ? FGET (XFRAME (frame), selected_window) : selected_window;
+    window = FRAMEP (frame) ? XFRAME (frame)->selected_window : selected_window;
   CHECK_WINDOW (window);
   if (NILP (frame))
     frame = selected_frame;
@@ -3553,9 +3552,9 @@ be applied on the Elisp level.  */)
 void
 resize_frame_windows (struct frame *f, int size, int horflag)
 {
-  Lisp_Object root = FGET (f, root_window);
+  Lisp_Object root = f->root_window;
   struct window *r = XWINDOW (root);
-  Lisp_Object mini = FGET (f, minibuffer_window);
+  Lisp_Object mini = f->minibuffer_window;
   struct window *m;
   /* new_size is the new size of the frame's root window.  */
   int new_size = (horflag
@@ -3603,7 +3602,7 @@ resize_frame_windows (struct frame *f, int size, int horflag)
 		{
 		  /* We lost.  Delete all windows but the frame's
 		     selected one.  */
-		  root = FGET (f, selected_window);
+		  root = f->selected_window;
 		  Fdelete_other_windows_internal (root, Qnil);
 		  if (horflag)
 		    WSET (XWINDOW (root), total_cols, make_number (new_size));
@@ -6484,8 +6483,8 @@ init_window_once (void)
   struct frame *f = make_initial_frame ();
   XSETFRAME (selected_frame, f);
   Vterminal_frame = selected_frame;
-  minibuf_window = FGET (f, minibuffer_window);
-  selected_window = FGET (f, selected_window);
+  minibuf_window = f->minibuffer_window;
+  selected_window = f->selected_window;
   last_nonminibuf_frame = f;
 
   window_initialized = 1;

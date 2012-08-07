@@ -835,7 +835,7 @@ menubar_selection_callback (Widget widget, LWLIB_ID id, XtPointer client_data)
   if (!f)
     return;
   find_and_call_menu_selection (f, f->menu_bar_items_used,
-                                FGET (f, menu_bar_vector), client_data);
+                                f->menu_bar_vector, client_data);
 }
 #endif /* not USE_GTK */
 
@@ -1014,14 +1014,14 @@ set_frame_menubar (FRAME_PTR f, int first_time, int deep_p)
 
       /* Save the frame's previous menu bar contents data.  */
       if (previous_menu_items_used)
-	memcpy (previous_items, XVECTOR (FGET (f, menu_bar_vector))->contents,
+	memcpy (previous_items, XVECTOR (f->menu_bar_vector)->contents,
 		previous_menu_items_used * word_size);
 
       /* Fill in menu_items with the current menu bar contents.
 	 This can evaluate Lisp code.  */
       save_menu_items ();
 
-      menu_items = FGET (f, menu_bar_vector);
+      menu_items = f->menu_bar_vector;
       menu_items_allocated = VECTORP (menu_items) ? ASIZE (menu_items) : 0;
       subitems = ASIZE (items) / 4;
       submenu_start = alloca ((subitems + 1) * sizeof *submenu_start);

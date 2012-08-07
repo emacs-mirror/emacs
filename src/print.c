@@ -1896,7 +1896,7 @@ print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag
       else if (FRAMEP (obj))
 	{
 	  int len;
-	  Lisp_Object frame_name = FGET (XFRAME (obj), name);
+	  Lisp_Object frame_name = XFRAME (obj)->name;
 
 	  strout ((FRAME_LIVE_P (XFRAME (obj))
 		   ? "#<frame " : "#<dead frame "),
