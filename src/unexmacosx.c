@@ -609,6 +609,21 @@ print_load_command_name (int lc)
       printf ("LC_FUNCTION_STARTS");
       break;
 #endif
+#ifdef LC_MAIN
+    case LC_MAIN:
+      printf ("LC_MAIN          ");
+      break;
+#endif
+#ifdef LC_SOURCE_VERSION
+    case LC_SOURCE_VERSION:
+      printf ("LC_SOURCE_VERSION");
+      break;
+#endif
+#ifdef LC_DYLIB_CODE_SIGN_DRS
+    case LC_DYLIB_CODE_SIGN_DRS:
+      printf ("LC_DYLIB_CODE_SIGN_DRS");
+      break;
+#endif
     default:
       printf ("unknown          ");
     }
@@ -1146,8 +1161,9 @@ copy_dyld_info (struct load_command *lc, long delta)
 #endif
 
 #ifdef LC_FUNCTION_STARTS
-/* Copy a LC_FUNCTION_STARTS load command from the input file to the
-   output file, adjusting the data offset field.  */
+/* Copy a LC_FUNCTION_STARTS/LC_DYLIB_CODE_SIGN_DRS load command from
+   the input file to the output file, adjusting the data offset
+   field.  */
 static void
 copy_linkedit_data (struct load_command *lc, long delta)
 {
@@ -1241,6 +1257,9 @@ dump_it (void)
 #endif
 #ifdef LC_FUNCTION_STARTS
       case LC_FUNCTION_STARTS:
+#ifdef LC_DYLIB_CODE_SIGN_DRS
+      case LC_DYLIB_CODE_SIGN_DRS:
+#endif
 	copy_linkedit_data (lca[i], linkedit_delta);
 	break;
 #endif

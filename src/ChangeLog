@@ -1,3 +1,9 @@
+2012-08-07  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* unexmacosx.c (print_load_command_name): Add cases LC_MAIN,
+	LC_SOURCE_VERSION, and LC_DYLIB_CODE_SIGN_DRS.
+	(dump_it) [LC_DYLIB_CODE_SIGN_DRS]: Call copy_linkedit_data.
+
 2012-07-19  Chong Yidong  <cyd@gnu.org>
 
 	* window.c (Fwindow_absolute_pixel_edges)
