@@ -1,3 +1,8 @@
+2012-08-07  Chong Yidong  <cyd@gnu.org>
+
+	* simple.el (deactivate-mark): Preserve text properties when
+	saving the primary selection (Bug#8384).
+
 2012-08-07  Kevin Ryde  <user42@zip.com.au>
 
 	* woman.el (woman0-if): Quietly treat ".if v" as false (Bug#12109).

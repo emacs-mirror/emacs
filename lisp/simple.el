@@ -3960,9 +3960,8 @@ run `deactivate-mark-hook'."
 		  (or (x-selection-owner-p 'PRIMARY)
 		      (null (x-selection-exists-p 'PRIMARY))))
 	     (x-set-selection 'PRIMARY
-			      (buffer-substring-no-properties
-			       (region-beginning)
-			       (region-end))))))
+			      (buffer-substring (region-beginning)
+						(region-end))))))
     (if (and (null force)
 	     (or (eq transient-mark-mode 'lambda)
 		 (and (eq (car-safe transient-mark-mode) 'only)
