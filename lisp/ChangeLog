@@ -1,3 +1,7 @@
+2012-08-07  Chong Yidong  <cyd@gnu.org>
+
+	* mouse.el (mouse-drag-track): Deactivate the mark before popping.
+
 2012-08-06  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/cperl-mode.el (cperl-mode): Yet another fix for
