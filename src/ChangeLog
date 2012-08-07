@@ -1,3 +1,9 @@
+2012-08-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* .gdbinit (xframe, xwindow, nextcons, xcar, xcdr, xlist): Rename
+	fields to match removal of FGET and WGET and disuse of
+	INTERNAL_FIELD in Lisp_Cons.
+
 2012-08-07  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Revert and cleanup Lisp_Cons, Lisp_Misc and Lisp_Symbol things.

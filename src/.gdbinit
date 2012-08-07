@@ -765,7 +765,7 @@ end
 define xframe
   xgetptr $
   print (struct frame *) $ptr
-  xgetptr $->name_
+  xgetptr $->name
   set $ptr = (struct Lisp_String *) $ptr
   xprintstr $ptr
   echo \n
@@ -789,13 +789,13 @@ define xwindow
   xgetptr $
   print (struct window *) $ptr
   set $window = (struct window *) $ptr
-  xgetint $window->total_cols_
+  xgetint $window->total_cols
   set $width=$int
-  xgetint $window->total_lines_
+  xgetint $window->total_lines
   set $height=$int
-  xgetint $window->left_col_
+  xgetint $window->left_col
   set $left=$int
-  xgetint $window->top_line_
+  xgetint $window->top_line
   set $top=$int
   printf "%dx%d+%d+%d\n", $width, $height, $left, $top
 end
@@ -892,7 +892,7 @@ Print the contents of $ as an Emacs Lisp cons.
 end
 
 define nextcons
-  p $.u.cdr_
+  p $.u.cdr
   xcons
 end
 document nextcons
@@ -903,7 +903,7 @@ end
 define xcar
   xgetptr $
   xgettype $
-  print/x ($type == Lisp_Cons ? ((struct Lisp_Cons *) $ptr)->car_ : 0)
+  print/x ($type == Lisp_Cons ? ((struct Lisp_Cons *) $ptr)->car : 0)
 end
 document xcar
 Assume that $ is an Emacs Lisp pair and print its car.
@@ -912,7 +912,7 @@ end
 define xcdr
   xgetptr $
   xgettype $
-  print/x ($type == Lisp_Cons ? ((struct Lisp_Cons *) $ptr)->u.cdr_ : 0)
+  print/x ($type == Lisp_Cons ? ((struct Lisp_Cons *) $ptr)->u.cdr : 0)
 end
 document xcdr
 Assume that $ is an Emacs Lisp pair and print its cdr.
@@ -925,9 +925,9 @@ define xlist
   set $nil = $ptr
   set $i = 0
   while $cons != $nil && $i < 10
-    p/x $cons->car_
+    p/x $cons->car
     xpr
-    xgetptr $cons->u.cdr_
+    xgetptr $cons->u.cdr
     set $cons = (struct Lisp_Cons *) $ptr
     set $i = $i + 1
     printf "---\n"
