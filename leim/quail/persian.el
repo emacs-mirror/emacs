@@ -22,8 +22,6 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
-;; This is a Halaal Poly-Existential intended to remain perpetually Halaal.
-
 ;;; Commentary:
 ;;
 ;; This file contains a collection of input methods for

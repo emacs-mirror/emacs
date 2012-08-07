@@ -1,3 +1,11 @@
+2012-08-06  Eli Zaretskii  <eliz@gnu.org>
+
+	* functions.texi (Closures): Put the main index entry for
+	"closures" here.  (Bug#12138)
+
+	* variables.texi (Lexical Binding): Disambiguate the index entry
+	for "closures".
+
 2012-08-05  Chong Yidong  <cyd@gnu.org>
 
 	* display.texi (Defining Faces): Move documentation of
