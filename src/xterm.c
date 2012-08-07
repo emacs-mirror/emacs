@@ -10123,7 +10123,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 	terminal->kboard->next_kboard = all_kboards;
 	all_kboards = terminal->kboard;
 
-	if (!EQ (SVAR (XSYMBOL (Qvendor_specific_keysyms), function), Qunbound))
+	if (!EQ (XSYMBOL (Qvendor_specific_keysyms)->function, Qunbound))
 	  {
 	    char *vendor = ServerVendor (dpy);
 

@@ -562,7 +562,7 @@ DEFUN ("fboundp", Ffboundp, Sfboundp, 1, 1, 0,
   (register Lisp_Object symbol)
 {
   CHECK_SYMBOL (symbol);
-  return (EQ (SVAR (XSYMBOL (symbol), function), Qunbound) ? Qnil : Qt);
+  return EQ (XSYMBOL (symbol)->function, Qunbound) ? Qnil : Qt;
 }
 
 DEFUN ("makunbound", Fmakunbound, Smakunbound, 1, 1, 0,
@@ -585,7 +585,7 @@ Return SYMBOL.  */)
   CHECK_SYMBOL (symbol);
   if (NILP (symbol) || EQ (symbol, Qt))
     xsignal1 (Qsetting_constant, symbol);
-  SVAR (XSYMBOL (symbol), function) = Qunbound;
+  set_symbol_function (symbol, Qunbound);
   return symbol;
 }
 
@@ -594,8 +594,8 @@ DEFUN ("symbol-function", Fsymbol_function, Ssymbol_function, 1, 1, 0,
   (register Lisp_Object symbol)
 {
   CHECK_SYMBOL (symbol);
-  if (!EQ (SVAR (XSYMBOL (symbol), function), Qunbound))
-    return SVAR (XSYMBOL (symbol), function);
+  if (!EQ (XSYMBOL (symbol)->function, Qunbound))
+    return XSYMBOL (symbol)->function;
   xsignal1 (Qvoid_function, symbol);
 }
 
@@ -604,7 +604,7 @@ DEFUN ("symbol-plist", Fsymbol_plist, Ssymbol_plist, 1, 1, 0,
   (register Lisp_Object symbol)
 {
   CHECK_SYMBOL (symbol);
-  return SVAR (XSYMBOL (symbol), plist);
+  return XSYMBOL (symbol)->plist;
 }
 
 DEFUN ("symbol-name", Fsymbol_name, Ssymbol_name, 1, 1, 0,
@@ -628,7 +628,7 @@ DEFUN ("fset", Ffset, Sfset, 2, 2, 0,
   if (NILP (symbol) || EQ (symbol, Qt))
     xsignal1 (Qsetting_constant, symbol);
 
-  function = SVAR (XSYMBOL (symbol), function);
+  function = XSYMBOL (symbol)->function;
 
   if (!NILP (Vautoload_queue) && !EQ (function, Qunbound))
     Vautoload_queue = Fcons (Fcons (symbol, function), Vautoload_queue);
@@ -636,13 +636,13 @@ DEFUN ("fset", Ffset, Sfset, 2, 2, 0,
   if (CONSP (function) && EQ (XCAR (function), Qautoload))
     Fput (symbol, Qautoload, XCDR (function));
 
-  SVAR (XSYMBOL (symbol), function) = definition;
+  set_symbol_function (symbol, definition);
   /* Handle automatic advice activation.  */
-  if (CONSP (SVAR (XSYMBOL (symbol), plist))
+  if (CONSP (XSYMBOL (symbol)->plist)
       && !NILP (Fget (symbol, Qad_advice_info)))
     {
       call2 (Qad_activate_internal, symbol, Qnil);
-      definition = SVAR (XSYMBOL (symbol), function);
+      definition = XSYMBOL (symbol)->function;
     }
   return definition;
 }
@@ -657,8 +657,8 @@ The return value is undefined.  */)
   (register Lisp_Object symbol, Lisp_Object definition, Lisp_Object docstring)
 {
   CHECK_SYMBOL (symbol);
-  if (CONSP (SVAR (XSYMBOL (symbol), function))
-      && EQ (XCAR (SVAR (XSYMBOL (symbol), function)), Qautoload))
+  if (CONSP (XSYMBOL (symbol)->function)
+      && EQ (XCAR (XSYMBOL (symbol)->function), Qautoload))
     LOADHIST_ATTACH (Fcons (Qt, symbol));
   if (!NILP (Vpurify_flag)
       /* If `definition' is a keymap, immutable (and copying) is wrong.  */
@@ -679,7 +679,7 @@ DEFUN ("setplist", Fsetplist, Ssetplist, 2, 2, 0,
   (register Lisp_Object symbol, Lisp_Object newplist)
 {
   CHECK_SYMBOL (symbol);
-  SVAR (XSYMBOL (symbol), plist) = newplist;
+  set_symbol_plist (symbol, newplist);
   return newplist;
 }
 
@@ -2019,12 +2019,12 @@ indirect_function (register Lisp_Object object)
     {
       if (!SYMBOLP (hare) || EQ (hare, Qunbound))
 	break;
-      hare = SVAR (XSYMBOL (hare), function);
+      hare = XSYMBOL (hare)->function;
       if (!SYMBOLP (hare) || EQ (hare, Qunbound))
 	break;
-      hare = SVAR (XSYMBOL (hare), function);
+      hare = XSYMBOL (hare)->function;
 
-      tortoise = SVAR (XSYMBOL (tortoise), function);
+      tortoise = XSYMBOL (tortoise)->function;
 
       if (EQ (hare, tortoise))
 	xsignal1 (Qcyclic_function_indirection, object);
@@ -2048,7 +2048,7 @@ function chain of symbols.  */)
   /* Optimize for no indirection.  */
   result = object;
   if (SYMBOLP (result) && !EQ (result, Qunbound)
-      && (result = SVAR (XSYMBOL (result), function), SYMBOLP (result)))
+      && (result = XSYMBOL (result)->function, SYMBOLP (result)))
     result = indirect_function (result);
   if (!EQ (result, Qunbound))
     return result;
@@ -3196,7 +3196,7 @@ syms_of_data (void)
   defsubr (&Ssubr_arity);
   defsubr (&Ssubr_name);
 
-  SVAR (XSYMBOL (Qwholenump), function) = SVAR (XSYMBOL (Qnatnump), function);
+  set_symbol_function (Qwholenump, XSYMBOL (Qnatnump)->function);
 
   DEFVAR_LISP ("most-positive-fixnum", Vmost_positive_fixnum,
 	       doc: /* The largest value that is representable in a Lisp integer.  */);

@@ -3717,9 +3717,9 @@ it defaults to the value of `obarray'.  */)
 
   ptr = aref_addr (obarray, XINT(tem));
   if (SYMBOLP (*ptr))
-    XSYMBOL (sym)->next = XSYMBOL (*ptr);
+    set_symbol_next (sym, XSYMBOL (*ptr));
   else
-    XSYMBOL (sym)->next = 0;
+    set_symbol_next (sym, NULL);
   *ptr = sym;
   return sym;
 }
@@ -3816,7 +3816,7 @@ OBARRAY defaults to the value of the variable `obarray'.  */)
 	  XSETSYMBOL (following, XSYMBOL (tail)->next);
 	  if (EQ (following, tem))
 	    {
-	      XSYMBOL (tail)->next = XSYMBOL (following)->next;
+	      set_symbol_next (tail, XSYMBOL (following)->next);
 	      break;
 	    }
 	}
@@ -3926,13 +3926,12 @@ init_obarray (void)
   /* Fmake_symbol inits fields of new symbols with Qunbound and Qnil,
      so those two need to be fixed manually.  */
   SET_SYMBOL_VAL (XSYMBOL (Qunbound), Qunbound);
-  SVAR (XSYMBOL (Qunbound), function) = Qunbound;
-  SVAR (XSYMBOL (Qunbound), plist) = Qnil;
-  /* XSYMBOL (Qnil)->function = Qunbound; */
+  set_symbol_function (Qunbound, Qunbound);
+  set_symbol_plist (Qunbound, Qnil);
   SET_SYMBOL_VAL (XSYMBOL (Qnil), Qnil);
   XSYMBOL (Qnil)->constant = 1;
   XSYMBOL (Qnil)->declared_special = 1;
-  SVAR (XSYMBOL (Qnil), plist) = Qnil;
+  set_symbol_plist (Qnil, Qnil);
 
   Qt = intern_c_string ("t");
   SET_SYMBOL_VAL (XSYMBOL (Qt), Qt);
@@ -3951,10 +3950,11 @@ init_obarray (void)
 void
 defsubr (struct Lisp_Subr *sname)
 {
-  Lisp_Object sym;
+  Lisp_Object sym, tem;
   sym = intern_c_string (sname->symbol_name);
   XSETTYPED_PVECTYPE (sname, size, PVEC_SUBR);
-  XSETSUBR (SVAR (XSYMBOL (sym), function), sname);
+  XSETSUBR (tem, sname);
+  set_symbol_function (sym, tem);
 }
 
 #ifdef NOTDEF /* Use fset in subr.el now!  */

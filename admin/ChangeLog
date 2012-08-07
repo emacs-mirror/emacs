@@ -1,3 +1,7 @@
+2012-08-07  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* coccinelle/overlay.cocci, coccinelle/symbol.cocci: Remove.
+
 2012-08-02  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Port to Solaris 8.

@@ -1047,7 +1047,7 @@ end
 define xprintsym
   xgetptr $arg0
   set $sym = (struct Lisp_Symbol *) $ptr
-  xgetptr $sym->xname_
+  xgetptr $sym->name
   set $sym_name = (struct Lisp_String *) $ptr
   xprintstr $sym_name
 end
@@ -1218,7 +1218,7 @@ xgetptr globals.f_Vsystem_type
 # $ptr is NULL in temacs
 if ($ptr != 0)
   set $tem = (struct Lisp_Symbol *) $ptr
-  xgetptr $tem->xname_
+  xgetptr $tem->name
   set $tem = (struct Lisp_String *) $ptr
   set $tem = (char *) $tem->data
 
@@ -1241,7 +1241,7 @@ commands
   silent
   xgetptr globals.f_Vinitial_window_system
   set $tem = (struct Lisp_Symbol *) $ptr
-  xgetptr $tem->xname_
+  xgetptr $tem->name
   set $tem = (struct Lisp_String *) $ptr
   set $tem = (char *) $tem->data
   # If we are running in synchronous mode, we want a chance to look

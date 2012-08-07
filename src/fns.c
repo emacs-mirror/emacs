@@ -1868,7 +1868,7 @@ This is the last value stored with `(put SYMBOL PROPNAME VALUE)'.  */)
   (Lisp_Object symbol, Lisp_Object propname)
 {
   CHECK_SYMBOL (symbol);
-  return Fplist_get (SVAR (XSYMBOL (symbol), plist), propname);
+  return Fplist_get (XSYMBOL (symbol)->plist, propname);
 }
 
 DEFUN ("plist-put", Fplist_put, Splist_put, 3, 3, 0,
@@ -1910,8 +1910,8 @@ It can be retrieved with `(get SYMBOL PROPNAME)'.  */)
   (Lisp_Object symbol, Lisp_Object propname, Lisp_Object value)
 {
   CHECK_SYMBOL (symbol);
-  SVAR (XSYMBOL (symbol), plist)
-    = Fplist_put (SVAR (XSYMBOL (symbol), plist), propname, value);
+  set_symbol_plist
+    (symbol, Fplist_put (XSYMBOL (symbol)->plist, propname, value));
   return value;
 }
 
@@ -2053,8 +2053,8 @@ internal_equal (register Lisp_Object o1, register Lisp_Object o2, int depth, int
 	      || !internal_equal (OVERLAY_END (o1), OVERLAY_END (o2),
 				  depth + 1, props))
 	    return 0;
-	  o1 = MVAR (XOVERLAY (o1), plist);
-	  o2 = MVAR (XOVERLAY (o2), plist);
+	  o1 = XOVERLAY (o1)->plist;
+	  o2 = XOVERLAY (o2)->plist;
 	  goto tail_recurse;
 	}
       if (MARKERP (o1))

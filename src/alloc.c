@@ -2691,7 +2691,7 @@ free_cons (struct Lisp_Cons *ptr)
 {
   ptr->u.chain = cons_free_list;
 #if GC_MARK_STACK
-  CVAR (ptr, car) = Vdead;
+  ptr->car = Vdead;
 #endif
   cons_free_list = ptr;
   consing_since_gc -= sizeof *ptr;
@@ -3522,12 +3522,12 @@ Its value and function definition are void, and its property list is nil.  */)
   MALLOC_UNBLOCK_INPUT;
 
   p = XSYMBOL (val);
-  SVAR (p, xname) = name;
-  SVAR (p, plist) = Qnil;
+  set_symbol_name (val, name);
+  set_symbol_plist (val, Qnil);
   p->redirect = SYMBOL_PLAINVAL;
   SET_SYMBOL_VAL (p, Qunbound);
-  SVAR (p, function) = Qunbound;
-  p->next = NULL;
+  set_symbol_function (val, Qunbound);
+  set_symbol_next (val, NULL);
   p->gcmarkbit = 0;
   p->interned = SYMBOL_UNINTERNED;
   p->constant = 0;
@@ -3654,7 +3654,7 @@ build_overlay (Lisp_Object start, Lisp_Object end, Lisp_Object plist)
   overlay = allocate_misc (Lisp_Misc_Overlay);
   OVERLAY_START (overlay) = start;
   OVERLAY_END (overlay) = end;
-  OVERLAY_PLIST (overlay) = plist;
+  set_overlay_plist (overlay, plist);
   XOVERLAY (overlay)->next = NULL;
   return overlay;
 }
@@ -4299,7 +4299,7 @@ live_cons_p (struct mem_node *m, void *p)
 	      && offset < (CONS_BLOCK_SIZE * sizeof b->conses[0])
 	      && (b != cons_block
 		  || offset / sizeof b->conses[0] < cons_block_index)
-	      && !EQ (CVAR ((struct Lisp_Cons *) p, car), Vdead));
+	      && !EQ (((struct Lisp_Cons *) p)->car, Vdead));
     }
   else
     return 0;
@@ -4325,7 +4325,7 @@ live_symbol_p (struct mem_node *m, void *p)
 	      && offset < (SYMBOL_BLOCK_SIZE * sizeof b->symbols[0])
 	      && (b != symbol_block
 		  || offset / sizeof b->symbols[0] < symbol_block_index)
-	      && !EQ (SVAR (((struct Lisp_Symbol *)p), function), Vdead));
+	      && !EQ (((struct Lisp_Symbol *)p)->function, Vdead));
     }
   else
     return 0;
@@ -5831,9 +5831,9 @@ mark_overlay (struct Lisp_Overlay *ptr)
   for (; ptr && !ptr->gcmarkbit; ptr = ptr->next)
     {
       ptr->gcmarkbit = 1;
-      mark_object (MVAR (ptr, start));
-      mark_object (MVAR (ptr, end));
-      mark_object (MVAR (ptr, plist));
+      mark_object (ptr->start);
+      mark_object (ptr->end);
+      mark_object (ptr->plist);
     }
 }
 
@@ -6067,8 +6067,8 @@ mark_object (Lisp_Object arg)
 	  break;
 	CHECK_ALLOCATED_AND_LIVE (live_symbol_p);
 	ptr->gcmarkbit = 1;
-	mark_object (SVAR (ptr, function));
-	mark_object (SVAR (ptr, plist));
+	mark_object (ptr->function);
+	mark_object (ptr->plist);
 	switch (ptr->redirect)
 	  {
 	  case SYMBOL_PLAINVAL: mark_object (SYMBOL_VAL (ptr)); break;
@@ -6099,9 +6099,9 @@ mark_object (Lisp_Object arg)
 	    break;
 	  default: abort ();
 	  }
-	if (!PURE_POINTER_P (XSTRING (SVAR (ptr, xname))))
-	  MARK_STRING (XSTRING (SVAR (ptr, xname)));
-	MARK_INTERVAL_TREE (STRING_INTERVALS (SVAR (ptr, xname)));
+	if (!PURE_POINTER_P (XSTRING (ptr->name)))
+	  MARK_STRING (XSTRING (ptr->name));
+	MARK_INTERVAL_TREE (STRING_INTERVALS (ptr->name));
 
 	ptr = ptr->next;
 	if (ptr)
@@ -6163,14 +6163,14 @@ mark_object (Lisp_Object arg)
 	CHECK_ALLOCATED_AND_LIVE (live_cons_p);
 	CONS_MARK (ptr);
 	/* If the cdr is nil, avoid recursion for the car.  */
-	if (EQ (CVAR (ptr, u.cdr), Qnil))
+	if (EQ (ptr->u.cdr, Qnil))
 	  {
-	    obj = CVAR (ptr, car);
+	    obj = ptr->car;
 	    cdr_count = 0;
 	    goto loop;
 	  }
-	mark_object (CVAR (ptr, car));
-	obj = CVAR (ptr, u.cdr);
+	mark_object (ptr->car);
+	obj = ptr->u.cdr;
 	cdr_count++;
 	if (cdr_count == mark_object_loop_halt)
 	  abort ();
@@ -6319,7 +6319,7 @@ gc_sweep (void)
 			cblk->conses[pos].u.chain = cons_free_list;
 			cons_free_list = &cblk->conses[pos];
 #if GC_MARK_STACK
-			CVAR (cons_free_list, car) = Vdead;
+			cons_free_list->car = Vdead;
 #endif
 		      }
 		    else
@@ -6467,7 +6467,7 @@ gc_sweep (void)
 	    /* Check if the symbol was created during loadup.  In such a case
 	       it might be pointed to by pure bytecode which we don't trace,
 	       so we conservatively assume that it is live.  */
-	    int pure_p = PURE_POINTER_P (XSTRING (sym->s.INTERNAL_FIELD (xname)));
+	    int pure_p = PURE_POINTER_P (XSTRING (sym->s.name));
 
 	    if (!sym->s.gcmarkbit && !pure_p)
 	      {
@@ -6476,7 +6476,7 @@ gc_sweep (void)
 		sym->s.next = symbol_free_list;
 		symbol_free_list = &sym->s;
 #if GC_MARK_STACK
-		SVAR (symbol_free_list, function) = Vdead;
+		symbol_free_list->function = Vdead;
 #endif
 		++this_free;
 	      }
@@ -6484,7 +6484,7 @@ gc_sweep (void)
 	      {
 		++num_used;
 		if (!pure_p)
-		  UNMARK_STRING (XSTRING (sym->s.INTERNAL_FIELD (xname)));
+		  UNMARK_STRING (XSTRING (sym->s.name));
 		sym->s.gcmarkbit = 0;
 	      }
 	  }
@@ -6669,10 +6669,10 @@ which_symbols (Lisp_Object obj, EMACS_INT find_max)
 	       XSETSYMBOL (tem, sym);
 	       val = find_symbol_value (tem);
 	       if (EQ (val, obj)
-		   || EQ (SVAR (sym, function), obj)
-		   || (!NILP (SVAR (sym, function))
-		       && COMPILEDP (SVAR (sym, function))
-		       && EQ (AREF (SVAR (sym, function), COMPILED_BYTECODE), obj))
+		   || EQ (sym->function, obj)
+		   || (!NILP (sym->function)
+		       && COMPILEDP (sym->function)
+		       && EQ (AREF (sym->function, COMPILED_BYTECODE), obj))
 		   || (!NILP (val)
 		       && COMPILEDP (val)
 		       && EQ (AREF (val, COMPILED_BYTECODE), obj)))

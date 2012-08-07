@@ -1,5 +1,22 @@
 2012-08-07  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	Revert and cleanup Lisp_Cons, Lisp_Misc and Lisp_Symbol things.
+	* lisp.h (struct Lisp_Symbol): Change xname to meaningful
+	name since all xname users are fixed long time ago.  Do not
+	use INTERNAL_FIELD.
+	(set_symbol_name, set_symbol_function, set_symbol_plist):
+	(set_symbol_next, set_overlay_plist): New function.
+	(struct Lisp_Cons): Do not use INTERNAL_FIELD.
+	(struct Lisp_Overlay): Likewise.
+	(CVAR, MVAR, SVAR): Remove.
+	* alloc.c, buffer.c, buffer.h, bytecode.c, cmds.c, data.c:
+	* doc.c, eval.c, fns.c, keyboard.c, lread.c, nsselect.m:
+	* xterm.c: Adjust users.
+	* .gdbinit: Change to use name field of struct Lisp_Symbol
+	where appropriate.
+
+2012-08-07  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	Basic functions to set Lisp_Object and pointer slots of intervals.
 	* intervals.h (interval_set_parent, interval_set_object):
 	(interval_set_left, interval_set_right, interval_set_plist):
