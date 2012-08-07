@@ -48,6 +48,14 @@ archlibdir='${libexecdir}/emacs/${version}/${configuration}'
 docdir='${datadir}/emacs/${version}/etc'
 gamedir='${localstatedir}/games/emacs'
 
+dnl Do not omit a lot of the nice features by default.
+AC_ARG_ENABLE(features,
+[AS_HELP_STRING([--disable-features],
+		[omit almost all features and build
+		small executable with minimal dependencies])],
+  enable_features=$enableval,
+  enable_features=yes)
+
 dnl OPTION_DEFAULT_OFF(NAME, HELP-STRING)
 dnl Create a new --with option that defaults to being disabled.
 dnl NAME is the base name of the option.  The shell variable with_NAME
@@ -63,8 +71,8 @@ AC_DEFUN([OPTION_DEFAULT_OFF], [dnl
 ])dnl
 
 dnl OPTION_DEFAULT_ON(NAME, HELP-STRING)
-dnl Create a new --with option that defaults to being enabled.  NAME
-dnl   is the base name of the option.  The shell variable with_NAME
+dnl Create a new --with option that defaults to $enable_features.
+dnl NAME is the base name of the option.  The shell variable with_NAME
 dnl   will be set either to 'no' (for a plain --without-NAME) or to
 dnl   'yes' (if the option is not specified).  Note that the shell
 dnl   variable name is constructed as autoconf does, by replacing
@@ -72,7 +80,7 @@ dnl   non-alphanumeric characters with "_".
 dnl HELP-STRING is the help text for the option.
 AC_DEFUN([OPTION_DEFAULT_ON], [dnl
   AC_ARG_WITH([$1],[AS_HELP_STRING([--without-$1],[$2])],[],[dnl
-   m4_bpatsubst([with_$1], [[^0-9a-z]], [_])=yes])dnl
+   m4_bpatsubst([with_$1], [[^0-9a-z]], [_])=$enable_features])dnl
 ])dnl
 
 OPTION_DEFAULT_ON([pop],[don't support POP mail retrieval with movemail])
