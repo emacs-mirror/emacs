@@ -1,3 +1,7 @@
+2012-07-31  Chong Yidong  <cyd@gnu.org>
+
+	* emacs.texi: Fix ISBN (Bug#12080).
+
 2012-08-05  Chong Yidong  <cyd@gnu.org>
 
 	* display.texi (Faces): Document frame-background-mode (Bug#7774).

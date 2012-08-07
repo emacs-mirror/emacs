@@ -126,10 +126,10 @@ directory in @code{user-emacs-directory}, which is normally
 @section Parsed URLs
 @cindex parsed URLs
 The library functions typically operate on @dfn{parsed} versions of
-URLs.  These are actually vectors of the form:
+URLs.  These are actually CL structures (vectors) of the form:
 
 @example
-[@var{type} @var{user} @var{password} @var{host} @var{port} @var{file} @var{target} @var{attributes} @var{full}]
+[cl-struct-url @var{type} @var{user} @var{password} @var{host} @var{port} @var{filename} @var{target} @var{attributes} @var{fullness} @var{use-cookies}]
 @end example
 
 @noindent where
@@ -144,16 +144,19 @@ is the user password associated with it, or @code{nil};
 is the host name associated with it, or @code{nil};
 @item port
 is the port number associated with it, or @code{nil};
-@item file
+@item filename
 is the ``file'' part of it, or @code{nil}.  This doesn't necessarily
 actually refer to a file;
 @item target
 is the target part, or @code{nil};
 @item attributes
 is the attributes associated with it, or @code{nil};
-@item full
+@item fullness
 is @code{t} for a fully-specified URL, with a host part indicated by
 @samp{//} after the scheme part.
+@item use-cookies
+is @code{nil} to neither send or store cookies to the server, @code{t}
+otherwise.
 @end table
 
 @findex url-type
@@ -161,23 +164,21 @@ is @code{t} for a fully-specified URL, with a host part indicated by
 @findex url-password
 @findex url-host
 @findex url-port
-@findex url-file
+@findex url-filename
 @findex url-target
 @findex url-attributes
-@findex url-full
-@findex url-set-type
-@findex url-set-user
-@findex url-set-password
-@findex url-set-host
-@findex url-set-port
-@findex url-set-file
-@findex url-set-target
-@findex url-set-attributes
-@findex url-set-full
+@findex url-fullness
 These attributes have accessors named @code{url-@var{part}}, where
 @var{part} is the name of one of the elements above, e.g.,
-@code{url-host}.  Similarly, there are setters of the form
-@code{url-set-@var{part}}.
+@code{url-host}.  These attributes can be set with the same accessors
+using @code{setf}:
+
+@example
+(setf (url-port url) 80)
+@end example
+
+If @var{port} is @var{nil}, @code{url-port} returns the default port
+of the protocol.
 
 There are functions for parsing and unparsing between the string and
 vector forms.

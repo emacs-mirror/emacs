@@ -1100,8 +1100,9 @@ named function that you create (e.g.@: with @code{defun}), as well as
 any anonymous function that you create using the @code{lambda} macro
 or the @code{function} special form or the @code{#'} syntax
 (@pxref{Anonymous Functions}), is automatically converted into a
-closure.
+@dfn{closure}.
 
+@cindex closure
   A closure is a function that also carries a record of the lexical
 environment that existed when the function was defined.  When it is
 invoked, any lexical variable references within its definition use the
