@@ -5312,11 +5312,11 @@ Examples:
         Expose children and grandchildren of first topic at current
 	level, and expose children of subsequent topics at current
 	level *except* for the last, which should be opened completely."
-  (list 'save-excursion
-	'(if (not (or (allout-goto-prefix-doublechecked)
-		      (allout-next-heading)))
-	     (error "allout-new-exposure: Can't find any outline topics"))
-	(list 'allout-expose-topic (list 'quote spec))))
+  `(save-excursion
+     (if (not (or (allout-goto-prefix-doublechecked)
+		  (allout-next-heading)))
+	 (error "allout-new-exposure: Can't find any outline topics"))
+     (allout-expose-topic ',spec)))
 
 ;;;_ #7 Systematic outline presentation -- copying, printing, flattening
 

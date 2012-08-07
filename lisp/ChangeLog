@@ -1,5 +1,18 @@
 2012-08-07  Andreas Schwab  <schwab@linux-m68k.org>
 
+	* calc/calc-prog.el (math-do-defmath): Use backquote forms.  Fix
+	handling of interactive spec when the body uses return.
+	(math-do-arg-check, math-define-function-body): Use backquote forms.
+	* calc/calc-ext.el (math-defcache): Likewise.
+	* calc/calc-rewr.el (math-rwfail, math-rweval): Likewise.
+	* allout.el (allout-new-exposure): Likewise.
+	* calc/calcalg2.el (math-tracing-integral): Likewise.
+	* info.el (Info-last-menu-item): Likewise.
+	* emulation/vip.el (vip-loop): Likewise.
+	* textmodes/artist.el (artist-funcall): Likewise.
+	* menu-bar.el (menu-bar-make-mm-toggle, menu-bar-make-toggle):
+	Construct menu-item directly.
+
 	* progmodes/autoconf.el (font-lock-syntactic-keywords): Don't
 	declare.
 

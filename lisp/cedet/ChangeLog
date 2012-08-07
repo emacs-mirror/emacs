@@ -1,3 +1,7 @@
+2012-08-07  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* ede/base.el (ede-with-projectfile): Use backquote forms.
+
 2012-07-29  Paul Eggert  <eggert@cs.ucla.edu>
 
 	inaccessable -> inaccessible spelling fix (Bug#10052)

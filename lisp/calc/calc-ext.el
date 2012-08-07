@@ -1997,51 +1997,36 @@ calc-kill calc-kill-region calc-yank))))
 	(cache-val (intern (concat (symbol-name name) "-cache")))
 	(last-prec (intern (concat (symbol-name name) "-last-prec")))
 	(last-val (intern (concat (symbol-name name) "-last"))))
-    (list 'progn
-;	  (list 'defvar cache-prec (if init (math-numdigs (nth 1 init)) -100))
-	  (list 'defvar cache-prec
-                `(cond
-                  ((consp ,init) (math-numdigs (nth 1 ,init)))
-                  (,init
-                   (nth 1 (math-numdigs (eval ,init))))
-                  (t
-                   -100)))
-	  (list 'defvar cache-val
-                `(cond
-                  ((consp ,init) ,init)
-                  (,init (eval ,init))
-                  (t ,init)))
-	  (list 'defvar last-prec -100)
-	  (list 'defvar last-val nil)
-	  (list 'setq 'math-cache-list
-		(list 'cons
-		      (list 'quote cache-prec)
-		      (list 'cons
-			    (list 'quote last-prec)
-			    'math-cache-list)))
-	  (list 'defun
-		name ()
-		(list 'or
-		      (list '= last-prec 'calc-internal-prec)
-		      (list 'setq
-			    last-val
-			    (list 'math-normalize
-				  (list 'progn
-					(list 'or
-					      (list '>= cache-prec
-						    'calc-internal-prec)
-					      (list 'setq
-						    cache-val
-						    (list 'let
-							  '((calc-internal-prec
-							     (+ calc-internal-prec
-								4)))
-							  form)
-						    cache-prec
-						    '(+ calc-internal-prec 2)))
-					cache-val))
-			    last-prec 'calc-internal-prec))
-		last-val))))
+    `(progn
+;      (defvar ,cache-prec ,(if init (math-numdigs (nth 1 init)) -100))
+       (defvar ,cache-prec (cond
+			    ((consp ,init) (math-numdigs (nth 1 ,init)))
+			    (,init
+			     (nth 1 (math-numdigs (eval ,init))))
+			    (t
+			     -100)))
+       (defvar ,cache-val (cond ((consp ,init) ,init)
+				(,init (eval ,init))
+				(t ,init)))
+       (defvar ,last-prec -100)
+       (defvar ,last-val nil)
+       (setq math-cache-list
+	     (cons ',cache-prec
+		   (cons ',last-prec
+			 math-cache-list)))
+       (defun ,name ()
+	 (or (= ,last-prec calc-internal-prec)
+	     (setq ,last-val
+		   (math-normalize
+		    (progn (or (>= ,cache-prec calc-internal-prec)
+			       (setq ,cache-val
+				     (let ((calc-internal-prec
+					    (+ calc-internal-prec 4)))
+				       ,form)
+				     ,cache-prec (+ calc-internal-prec 2)))
+			   ,cache-val))
+		   ,last-prec calc-internal-prec))
+	 ,last-val))))
 (put 'math-defcache 'lisp-indent-hook 2)
 
 ;;; Betcha didn't know that pi = 16 atan(1/5) - 4 atan(1/239).   [F] [Public]

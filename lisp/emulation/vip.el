@@ -307,10 +307,10 @@ If nil then it is bound to `delete-backward-char'."
 
 (defmacro vip-loop (count body)
   "(COUNT BODY) Execute BODY COUNT times."
-  (list 'let (list (list 'count count))
-	(list 'while (list '> 'count 0)
-	      body
-	      (list 'setq 'count (list '1- 'count)))))
+  `(let ((count ,count))
+     (while (> count 0)
+       ,body
+       (setq count (1- count)))))
 
 (defun vip-push-mark-silent (&optional location)
   "Set mark at LOCATION (point, by default) and push old mark on mark ring.

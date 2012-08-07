@@ -2854,7 +2854,7 @@ N is the digit argument used to invoke this command."
 		      (Info-extract-menu-node-name)))))
 
 (defmacro Info-no-error (&rest body)
-  (list 'condition-case nil (cons 'progn (append body '(t))) '(error nil)))
+  `(condition-case nil (progn ,@body t) (error nil)))
 
 (defun Info-next-preorder ()
   "Go to the next subnode or the next node, or go up a level."

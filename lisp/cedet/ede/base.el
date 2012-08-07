@@ -285,22 +285,18 @@ All specific project types must derive from this project."
 ;;
 (defmacro ede-with-projectfile (obj &rest forms)
   "For the project in which OBJ resides, execute FORMS."
-  (list 'save-window-excursion
-	(list 'let* (list
-		     (list 'pf
-			   (list 'if (list 'obj-of-class-p
-					   obj 'ede-target)
-				 ;; @todo -I think I can change
-				 ;; this to not need ede-load-project-file
-				 ;; but I'm not sure how to test well.
-				 (list 'ede-load-project-file
-				       (list 'oref obj 'path))
-				 obj))
-		     '(dbka (get-file-buffer (oref pf file))))
-	      '(if (not dbka) (find-file (oref pf file))
-		 (switch-to-buffer dbka))
-	      (cons 'progn forms)
-	      '(if (not dbka) (kill-buffer (current-buffer))))))
+  `(save-window-excursion
+     (let* ((pf (if (obj-of-class-p ,obj ede-target)
+		    ;; @todo -I think I can change
+		    ;; this to not need ede-load-project-file
+		    ;; but I'm not sure how to test well.
+		    (ede-load-project-file (oref ,obj path))
+		  ,obj))
+	    (dbka (get-file-buffer (oref pf file))))
+       (if (not dbka) (find-file (oref pf file))
+	 (switch-to-buffer dbka))
+       ,@forms
+       (if (not dbka) (kill-buffer (current-buffer))))))
 (put 'ede-with-projectfile 'lisp-indent-function 1)
 
 ;;; The EDE persistent cache.
