@@ -885,10 +885,12 @@ DO-MOUSE-DRAG-REGION-POST-PROCESS should only be used by
 		     (copy-region-as-kill (mark) (point)))))
 
 	  ;; Otherwise, run binding of terminating up-event.
-	  (cond
-	   (do-multi-click (goto-char start-point))
-	   (moved-off-start (deactivate-mark))
-	   (t (pop-mark)))
+	  (if do-multi-click
+	      (goto-char start-point)
+	    (deactivate-mark)
+	    (unless moved-off-start
+	      (pop-mark)))
+
 	  (when (and (functionp fun)
 		     (= start-hscroll (window-hscroll start-window))
 		     ;; Don't run the up-event handler if the window
