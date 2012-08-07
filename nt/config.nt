@@ -58,6 +58,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define if FIONREAD should not be used. */
 #undef BROKEN_FIONREAD
 
+/* Define if getwd should not be used. */
+#undef BROKEN_GETWD
+
 /* Define if get_current_dir_name should not be used. */
 #undef BROKEN_GET_CURRENT_DIR_NAME
 
@@ -127,6 +130,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 for DGUX with <sys/dg_sys_info.h>. */
 #undef DGUX
+
+/* Define if dispnew.c should include stdio_ext.h. */
+#undef DISPNEW_NEEDS_STDIO_EXT
 
 /* Define if process.c does not need to close a pty to make it a controlling
    terminal (it is already a controlling terminal of the subprocess, because
@@ -1226,11 +1232,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #undef PACKAGE_VERSION
 
 /* Number of chars of output in the buffer of a stdio stream. */
-#ifdef __GNU_LIBRARY__
-#define PENDING_OUTPUT_COUNT(FILE) ((FILE)->__bufp - (FILE)->__buffer)
-#else
-#define PENDING_OUTPUT_COUNT(FILE) ((FILE)->_ptr - (FILE)->_base)
-#endif
+#undef PENDING_OUTPUT_COUNT
 
 /* Define to empty to suppress deprecation warnings when building with
    --enable-gcc-warnings and with libpng versions before 1.5, which lack

@@ -1,3 +1,11 @@
+2012-08-07  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt: Sync with autogen/config.nt.
+	(BROKEN_GETWD, DISPNEW_NEEDS_STDIO_EXT): New macros.
+	(PENDING_OUTPUT_COUNT): Move definition to inc/ms-w32.h.
+
+	* inc/ms-w32.h (PENDING_OUTPUT_COUNT): Define.
+
 2012-08-06  Glenn Morris  <rgm@gnu.org>
 
 	* config.nt (GNU_LIBRARY_PENDING_OUTPUT_COUNT): Remove.

@@ -26,6 +26,13 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* #undef const */
 
+/* Number of chars of output in the buffer of a stdio stream. */
+#ifdef __GNU_LIBRARY__
+#define PENDING_OUTPUT_COUNT(FILE) ((FILE)->__bufp - (FILE)->__buffer)
+#else
+#define PENDING_OUTPUT_COUNT(FILE) ((FILE)->_ptr - (FILE)->_base)
+#endif
+
 /* If you are compiling with a non-C calling convention but need to
    declare vararg routines differently, put it here.  */
 #define _VARARGS_ __cdecl
