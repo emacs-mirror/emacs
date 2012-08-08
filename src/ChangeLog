@@ -1,3 +1,10 @@
+2012-08-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* xdisp.c (safe_eval_handler): Remove prototype.  Receive args describing
+	the failing expression, include them in the error message.
+	* eval.c (internal_condition_case_n): Pass nargs and args to hfun.
+	* lisp.h (internal_condition_case_n): Update declaration.
+
 2012-08-08  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Inline functions to examine and change buffer overlays.

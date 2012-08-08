@@ -1399,7 +1399,9 @@ internal_condition_case_n (Lisp_Object (*bfun) (ptrdiff_t, Lisp_Object *),
 			   ptrdiff_t nargs,
 			   Lisp_Object *args,
 			   Lisp_Object handlers,
-			   Lisp_Object (*hfun) (Lisp_Object))
+			   Lisp_Object (*hfun) (Lisp_Object err,
+						ptrdiff_t nargs,
+						Lisp_Object *args))
 {
   Lisp_Object val;
   struct catchtag c;
@@ -1417,7 +1419,7 @@ internal_condition_case_n (Lisp_Object (*bfun) (ptrdiff_t, Lisp_Object *),
   c.byte_stack = byte_stack_list;
   if (_setjmp (c.jmp))
     {
-      return (*hfun) (c.val);
+      return (*hfun) (c.val, nargs, args);
     }
   c.next = catchlist;
   catchlist = &c;

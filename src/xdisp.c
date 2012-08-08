@@ -838,7 +838,6 @@ static int string_char_and_length (const unsigned char *, int *);
 static struct text_pos display_prop_end (struct it *, Lisp_Object,
                                          struct text_pos);
 static int compute_window_start_on_continuation_line (struct window *);
-static Lisp_Object safe_eval_handler (Lisp_Object);
 static void insert_left_trunc_glyphs (struct it *);
 static struct glyph_row *get_overlay_arrow_glyph_row (struct window *,
                                                       Lisp_Object);
@@ -2397,9 +2396,10 @@ remember_mouse_glyph (struct frame *f, int gx, int gy, NativeRectangle *rect)
 /* Error handler for safe_eval and safe_call.  */
 
 static Lisp_Object
-safe_eval_handler (Lisp_Object arg)
+safe_eval_handler (Lisp_Object arg, ptrdiff_t nargs, Lisp_Object *args)
 {
-  add_to_log ("Error during redisplay: %S", arg, Qnil);
+  add_to_log ("Error during redisplay: %S signalled %S",
+	      Flist (nargs, args), arg);
   return Qnil;
 }
 
