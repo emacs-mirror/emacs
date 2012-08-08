@@ -1,5 +1,21 @@
 2012-08-08  Juri Linkov  <juri@jurta.org>
 
+	* bookmark.el: Add `defaults' property to the bookmark record.
+	(bookmark-current-buffer): Doc fix.
+	(bookmark-make-record): Add `defaults' property with default values
+	to the bookmark record.
+	(bookmark-minibuffer-read-name-map): Remove key binding "\C-u"
+	with `bookmark-insert-current-bookmark'.
+	(bookmark-set): Get `defaults' property from the bookmark record
+	and use it in `read-from-minibuffer'.
+	(bookmark-insert-current-bookmark): Remove function.
+
+	* info.el (Info-bookmark-make-record): Add `defaults' property
+	with values of canonical Info node name, the current Info file
+	name and the current Info node name.  (Bug#12107)
+
+2012-08-08  Juri Linkov  <juri@jurta.org>
+
 	* files.el (basic-save-buffer): Use `buffer-name' as the default
 	of `read-file-name' when buffer is not visiting a file (bug#12128).
 

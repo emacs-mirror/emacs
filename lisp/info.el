@@ -5020,11 +5020,18 @@ BUFFER is the buffer speedbar is requesting buttons for."
 (defun Info-bookmark-make-record ()
   "This implements the `bookmark-make-record-function' type (which see)
 for Info nodes."
-  `(,Info-current-node
-    ,@(bookmark-make-record-default 'no-file)
-    (filename . ,Info-current-file)
-    (info-node . ,Info-current-node)
-    (handler . Info-bookmark-jump)))
+  (let* ((file (and (stringp Info-current-file)
+		    (file-name-nondirectory Info-current-file)))
+	 (bookmark-name (if file
+			    (concat "(" file ") " Info-current-node)
+			  Info-current-node))
+	 (defaults (delq nil (list bookmark-name file Info-current-node))))
+    `(,bookmark-name
+      ,@(bookmark-make-record-default 'no-file)
+      (filename . ,Info-current-file)
+      (info-node . ,Info-current-node)
+      (handler . Info-bookmark-jump)
+      (defaults . ,defaults))))
 
 ;;;###autoload
 (defun Info-bookmark-jump (bmk)
