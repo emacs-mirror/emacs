@@ -1,5 +1,15 @@
 2012-08-08  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	Cleanup intervals.
+	* intervals.h (NULL_INTERVAL, DEFAULT_INTERVAL): Remove.
+	(NULL_INTERVAL_P): Likewise.  Adjust users.
+	(FRONT_STICKY_P, END_NONSTICKY_P, FRONT_NONSTICKY_P): Adjust
+	comment.  Move under #if 0.
+	* alloc.c, buffer.c, editfns.c, fns.c, insdel.c, intervals.c:
+	* print.c, syntax.c, textprop.c, xdisp.c: Adjust users.
+
+2012-08-08  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	Check total length of intervals with eassert.
 	* intervals.h (CHECK_TOTAL_LENGTH): Remove.
 	* intervals.c: Change all users to eassert.

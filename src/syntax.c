@@ -171,7 +171,7 @@ struct gl_state_s gl_state;		/* Global state of syntax parser.  */
    direction than the intervals - or in an interval.  We update the
    current syntax-table basing on the property of this interval, and
    update the interval to start further than CHARPOS - or be
-   NULL_INTERVAL.  We also update lim_property to be the next value of
+   NULL.  We also update lim_property to be the next value of
    charpos to call this subroutine again - or be before/after the
    start/end of OBJECT.  */
 
@@ -192,7 +192,7 @@ update_syntax_table (ptrdiff_t charpos, EMACS_INT count, int init,
       i = interval_of (charpos, object);
       gl_state.backward_i = gl_state.forward_i = i;
       invalidate = 0;
-      if (NULL_INTERVAL_P (i))
+      if (!i)
 	return;
       /* interval_of updates only ->position of the return value, so
 	 update the parents manually to speed up update_interval.  */
@@ -217,7 +217,7 @@ update_syntax_table (ptrdiff_t charpos, EMACS_INT count, int init,
 
   /* We are guaranteed to be called with CHARPOS either in i,
      or further off.  */
-  if (NULL_INTERVAL_P (i))
+  if (!i)
     error ("Error in syntax_table logic for to-the-end intervals");
   else if (charpos < i->position)		/* Move left.  */
     {
@@ -287,7 +287,7 @@ update_syntax_table (ptrdiff_t charpos, EMACS_INT count, int init,
 	}
     }
 
-  while (!NULL_INTERVAL_P (i))
+  while (i)
     {
       if (cnt && !EQ (tmp_table, textget (i->plist, Qsyntax_table)))
 	{
@@ -313,7 +313,7 @@ update_syntax_table (ptrdiff_t charpos, EMACS_INT count, int init,
 		/* e_property at EOB is not set to ZV but to ZV+1, so that
 		   we can do INC(from);UPDATE_SYNTAX_TABLE_FORWARD without
 		   having to check eob between the two.  */
-		+ (NULL_INTERVAL_P (next_interval (i)) ? 1 : 0);
+		+ (next_interval (i) ? 0 : 1);
 	      gl_state.forward_i = i;
 	    }
 	  else
@@ -326,7 +326,7 @@ update_syntax_table (ptrdiff_t charpos, EMACS_INT count, int init,
       cnt++;
       i = count > 0 ? next_interval (i) : previous_interval (i);
     }
-  eassert (NULL_INTERVAL_P (i)); /* This property goes to the end.  */
+  eassert (i == NULL); /* This property goes to the end.  */
   if (count > 0)
     gl_state.e_property = gl_state.stop;
   else

@@ -20,9 +20,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 INLINE_HEADER_BEGIN
 
-#define NULL_INTERVAL ((INTERVAL)0)
-#define INTERVAL_DEFAULT NULL_INTERVAL
-
 /* Basic data type for use of intervals.  */
 
 struct interval
@@ -63,28 +60,25 @@ struct interval
 
 /* These are macros for dealing with the interval tree.  */
 
-#define NULL_INTERVAL_P(i) ((i) == NULL_INTERVAL)
-
 /* True if this interval has no right child.  */
-#define NULL_RIGHT_CHILD(i) ((i)->right == NULL_INTERVAL)
+#define NULL_RIGHT_CHILD(i) ((i)->right == NULL)
 
 /* True if this interval has no left child.  */
-#define NULL_LEFT_CHILD(i) ((i)->left == NULL_INTERVAL)
+#define NULL_LEFT_CHILD(i) ((i)->left == NULL)
 
 /* True if this interval has no parent.  */
 #define NULL_PARENT(i) ((i)->up_obj || (i)->up.interval == 0)
 
 /* True if this interval is the left child of some other interval.  */
-#define AM_LEFT_CHILD(i) (! NULL_PARENT (i) \
-			  && INTERVAL_PARENT (i)->left == (i))
+#define AM_LEFT_CHILD(i)					\
+  (! NULL_PARENT (i) && INTERVAL_PARENT (i)->left == (i))
 
 /* True if this interval is the right child of some other interval.  */
-#define AM_RIGHT_CHILD(i) (! NULL_PARENT (i) \
-			   && INTERVAL_PARENT (i)->right == (i))
+#define AM_RIGHT_CHILD(i)					\
+  (! NULL_PARENT (i) && INTERVAL_PARENT (i)->right == (i))
 
 /* True if this interval has no children.  */
-#define LEAF_INTERVAL_P(i) ((i)->left == NULL_INTERVAL \
-			    && (i)->right == NULL_INTERVAL)
+#define LEAF_INTERVAL_P(i) ((i)->left == NULL && (i)->right == NULL)
 
 /* True if this interval has no parent and is therefore the root.  */
 #define ROOT_INTERVAL_P(i) (NULL_PARENT (i))
@@ -93,17 +87,16 @@ struct interval
 #define ONLY_INTERVAL_P(i) (ROOT_INTERVAL_P ((i)) && LEAF_INTERVAL_P ((i)))
 
 /* True if this interval has both left and right children.  */
-#define BOTH_KIDS_P(i) ((i)->left != NULL_INTERVAL     \
-			&& (i)->right != NULL_INTERVAL)
+#define BOTH_KIDS_P(i) ((i)->left != NULL && (i)->right != NULL)
 
 /* The total size of all text represented by this interval and all its
    children in the tree.   This is zero if the interval is null.  */
-#define TOTAL_LENGTH(i) ((i) == NULL_INTERVAL ? 0 : (i)->total_length)
+#define TOTAL_LENGTH(i) ((i) == NULL ? 0 : (i)->total_length)
 
 /* The size of text represented by this interval alone.  */
-#define LENGTH(i) ((i) == NULL_INTERVAL ? 0 : (TOTAL_LENGTH ((i))          \
-					       - TOTAL_LENGTH ((i)->right) \
-					       - TOTAL_LENGTH ((i)->left)))
+#define LENGTH(i) ((i) == NULL ? 0 : (TOTAL_LENGTH ((i))		\
+				      - TOTAL_LENGTH ((i)->right)	\
+				      - TOTAL_LENGTH ((i)->left)))
 
 /* The position of the character just past the end of I.  Note that
    the position cache i->position must be valid for this to work.  */
@@ -115,15 +108,14 @@ struct interval
 /* The total size of the right subtree of this interval.  */
 #define RIGHT_TOTAL_LENGTH(i) ((i)->right ? (i)->right->total_length : 0)
 
-
 /* These macros are for dealing with the interval properties.  */
 
 /* True if this is a default interval, which is the same as being null
    or having no properties.  */
-#define DEFAULT_INTERVAL_P(i) (NULL_INTERVAL_P (i) || EQ ((i)->plist, Qnil))
+#define DEFAULT_INTERVAL_P(i) (!i || EQ ((i)->plist, Qnil))
 
 /* Test what type of parent we have.  Three possibilities: another
-   interval, a buffer or string object, or NULL_INTERVAL.  */
+   interval, a buffer or string object, or NULL.  */
 #define INTERVAL_HAS_PARENT(i) ((i)->up_obj == 0 && (i)->up.interval != 0)
 #define INTERVAL_HAS_OBJECT(i) ((i)->up_obj)
 
@@ -187,7 +179,7 @@ interval_copy_parent (INTERVAL d, INTERVAL s)
 
 /* Get the parent interval, if any, otherwise a null pointer.  Useful
    for walking up to the root in a "for" loop; use this to get the
-   "next" value, and test the result to see if it's NULL_INTERVAL.  */
+   "next" value, and test the result to see if it's NULL.  */
 #define INTERVAL_PARENT_OR_NULL(i) \
    (INTERVAL_HAS_PARENT (i) ? INTERVAL_PARENT (i) : 0)
 
@@ -195,8 +187,8 @@ interval_copy_parent (INTERVAL d, INTERVAL s)
 #define RESET_INTERVAL(i)		      \
 {					      \
   (i)->total_length = (i)->position = 0;      \
-  (i)->left = (i)->right = NULL_INTERVAL;     \
-  interval_set_parent (i, NULL_INTERVAL);     \
+  (i)->left = (i)->right = NULL;	      \
+  interval_set_parent (i, NULL);	      \
   (i)->write_protect = 0;		      \
   (i)->visible = 0;			      \
   (i)->front_sticky = (i)->rear_sticky = 0;   \
@@ -232,39 +224,36 @@ interval_copy_parent (INTERVAL d, INTERVAL s)
 
 /* Is this interval visible?  Replace later with cache access.  */
 #define INTERVAL_VISIBLE_P(i) \
-  (! NULL_INTERVAL_P (i) && NILP (textget ((i)->plist, Qinvisible)))
+  (i && NILP (textget ((i)->plist, Qinvisible)))
 
 /* Is this interval writable?  Replace later with cache access.  */
 #define INTERVAL_WRITABLE_P(i)					\
-  (! NULL_INTERVAL_P (i)					\
-   && (NILP (textget ((i)->plist, Qread_only))			\
-       || ((CONSP (Vinhibit_read_only)				\
-	    ? !NILP (Fmemq (textget ((i)->plist, Qread_only),	\
-			    Vinhibit_read_only))		\
-	    : !NILP (Vinhibit_read_only)))))			\
+  (i && (NILP (textget ((i)->plist, Qread_only))		\
+	 || ((CONSP (Vinhibit_read_only)			\
+	      ? !NILP (Fmemq (textget ((i)->plist, Qread_only),	\
+			      Vinhibit_read_only))		\
+	      : !NILP (Vinhibit_read_only)))))			\
 
 /* Macros to tell whether insertions before or after this interval
-   should stick to it.  */
-/* Replace later with cache access */
-/*#define FRONT_STICKY_P(i) ((i)->front_sticky != 0)
-  #define END_STICKY_P(i) ((i)->rear_sticky != 0)*/
-/* As we now have Vtext_property_default_nonsticky, these macros are
-   unreliable now.  Currently, they are never used.  */
-#define FRONT_STICKY_P(i) \
-  (! NULL_INTERVAL_P (i) && ! NILP (textget ((i)->plist, Qfront_sticky)))
-#define END_NONSTICKY_P(i) \
-  (! NULL_INTERVAL_P (i) && ! NILP (textget ((i)->plist, Qrear_nonsticky)))
-#define FRONT_NONSTICKY_P(i) \
-  (! NULL_INTERVAL_P (i) && ! EQ (Qt, textget ((i)->plist, Qfront_sticky)))
+   should stick to it.  Now we have Vtext_property_default_nonsticky,
+   so these macros are unreliable now and never used.  */
 
+#if 0
+#define FRONT_STICKY_P(i)				\
+  (i && ! NILP (textget ((i)->plist, Qfront_sticky)))
+#define END_NONSTICKY_P(i)				\
+  (i && ! NILP (textget ((i)->plist, Qrear_nonsticky)))
+#define FRONT_NONSTICKY_P(i)				\
+  (i && ! EQ (Qt, textget ((i)->plist, Qfront_sticky)))
+#endif
 
 /* If PROP is the `invisible' property of a character,
    this is 1 if the character should be treated as invisible,
    and 2 if it is invisible but with an ellipsis.  */
 
-#define TEXT_PROP_MEANS_INVISIBLE(prop)				\
+#define TEXT_PROP_MEANS_INVISIBLE(prop)					\
   (EQ (BVAR (current_buffer, invisibility_spec), Qt)			\
-   ? !NILP (prop)						\
+   ? !NILP (prop)							\
    : invisible_p (prop, BVAR (current_buffer, invisibility_spec)))
 
 /* Declared in alloc.c.  */

@@ -207,10 +207,10 @@ void
 traverse_intervals_noorder (INTERVAL tree, void (*function) (INTERVAL, Lisp_Object), Lisp_Object arg)
 {
   /* Minimize stack usage.  */
-  while (!NULL_INTERVAL_P (tree))
+  while (tree)
     {
       (*function) (tree, arg);
-      if (NULL_INTERVAL_P (tree->right))
+      if (!tree->right)
 	tree = tree->left;
       else
 	{
@@ -227,7 +227,7 @@ void
 traverse_intervals (INTERVAL tree, ptrdiff_t position,
 		    void (*function) (INTERVAL, Lisp_Object), Lisp_Object arg)
 {
-  while (!NULL_INTERVAL_P (tree))
+  while (tree)
     {
       traverse_intervals (tree->left, position, function, arg);
       position += LEFT_TOTAL_LENGTH (tree);
@@ -262,7 +262,7 @@ search_for_interval (INTERVAL i, INTERVAL tree)
 {
   icount = 0;
   search_interval = i;
-  found_interval = NULL_INTERVAL;
+  found_interval = NULL;
   traverse_intervals_noorder (tree, &check_for_interval, Qnil);
   return found_interval;
 }
@@ -333,7 +333,7 @@ rotate_right (INTERVAL interval)
 
   /* Make A point to c */
   interval_set_left (interval, i);
-  if (! NULL_INTERVAL_P (i))
+  if (i)
     interval_set_parent (i, interval);
 
   /* A's total length is decreased by the length of B and its left child.  */
@@ -380,7 +380,7 @@ rotate_left (INTERVAL interval)
 
   /* Make A point to c */
   interval_set_right (interval, i);
-  if (! NULL_INTERVAL_P (i))
+  if (i)
     interval_set_parent (i, interval);
 
   /* A's total length is decreased by the length of B and its right child.  */
@@ -480,12 +480,9 @@ balance_intervals_internal (register INTERVAL tree)
 INTERVAL
 balance_intervals (INTERVAL tree)
 {
-  if (tree == NULL_INTERVAL)
-    return NULL_INTERVAL;
-
-  return balance_intervals_internal (tree);
+  return tree ? balance_intervals_internal (tree) : NULL;
 }
-
+
 /* Split INTERVAL into two pieces, starting the second piece at
    character position OFFSET (counting from 0), relative to INTERVAL.
    INTERVAL becomes the left-hand piece, and the right-hand piece
@@ -589,7 +586,7 @@ interval_start_pos (INTERVAL source)
 {
   Lisp_Object parent;
 
-  if (NULL_INTERVAL_P (source))
+  if (!source)
     return 0;
 
   if (! INTERVAL_HAS_OBJECT (source))
@@ -617,8 +614,8 @@ find_interval (register INTERVAL tree, register ptrdiff_t position)
                     to POSITION.  */
   register ptrdiff_t relative_position;
 
-  if (NULL_INTERVAL_P (tree))
-    return NULL_INTERVAL;
+  if (!tree)
+    return NULL;
 
   relative_position = position;
   if (INTERVAL_HAS_OBJECT (tree))
@@ -669,8 +666,8 @@ next_interval (register INTERVAL interval)
   register INTERVAL i = interval;
   register ptrdiff_t next_position;
 
-  if (NULL_INTERVAL_P (i))
-    return NULL_INTERVAL;
+  if (!i)
+    return NULL;
   next_position = interval->position + LENGTH (interval);
 
   if (! NULL_RIGHT_CHILD (i))
@@ -695,7 +692,7 @@ next_interval (register INTERVAL interval)
       i = INTERVAL_PARENT (i);
     }
 
-  return NULL_INTERVAL;
+  return NULL;
 }
 
 /* Find the preceding interval (lexicographically) to INTERVAL.
@@ -707,8 +704,8 @@ previous_interval (register INTERVAL interval)
 {
   register INTERVAL i;
 
-  if (NULL_INTERVAL_P (interval))
-    return NULL_INTERVAL;
+  if (!interval)
+    return NULL;
 
   if (! NULL_LEFT_CHILD (interval))
     {
@@ -733,7 +730,7 @@ previous_interval (register INTERVAL interval)
       i = INTERVAL_PARENT (i);
     }
 
-  return NULL_INTERVAL;
+  return NULL;
 }
 
 /* Find the interval containing POS given some non-NULL INTERVAL
@@ -744,8 +741,8 @@ previous_interval (register INTERVAL interval)
 INTERVAL
 update_interval (register INTERVAL i, ptrdiff_t pos)
 {
-  if (NULL_INTERVAL_P (i))
-    return NULL_INTERVAL;
+  if (!i)
+    return NULL;
 
   while (1)
     {
@@ -938,8 +935,8 @@ adjust_intervals_for_insertion (INTERVAL tree,
 	  struct interval newi;
 
 	  RESET_INTERVAL (&newi);
-	  pleft = NULL_INTERVAL_P (prev) ? Qnil : prev->plist;
-	  pright = NULL_INTERVAL_P (i) ? Qnil : i->plist;
+	  pleft = prev ? prev->plist : Qnil;
+	  pright = i ? i->plist : Qnil;
 	  interval_set_plist (&newi, merge_properties_sticky (pleft, pright));
 
 	  if (! prev) /* i.e. position == BEG */
@@ -954,8 +951,7 @@ adjust_intervals_for_insertion (INTERVAL tree,
 	    {
 	      prev = split_interval_right (prev, position - prev->position);
 	      interval_set_plist (prev, newi.plist);
-	      if (! NULL_INTERVAL_P (i)
-		  && intervals_equal (prev, i))
+	      if (i && intervals_equal (prev, i))
 		merge_interval_right (prev);
 	    }
 
@@ -1164,16 +1160,16 @@ delete_node (register INTERVAL i)
   register INTERVAL migrate, this;
   register ptrdiff_t migrate_amt;
 
-  if (NULL_INTERVAL_P (i->left))
+  if (!i->left)
     return i->right;
-  if (NULL_INTERVAL_P (i->right))
+  if (!i->right)
     return i->left;
 
   migrate = i->left;
   migrate_amt = i->left->total_length;
   this = i->right;
   this->total_length += migrate_amt;
-  while (! NULL_INTERVAL_P (this->left))
+  while (this->left)
     {
       this = this->left;
       this->total_length += migrate_amt;
@@ -1204,7 +1200,7 @@ delete_interval (register INTERVAL i)
       Lisp_Object owner;
       GET_INTERVAL_OBJECT (owner, i);
       parent = delete_node (i);
-      if (! NULL_INTERVAL_P (parent))
+      if (parent)
 	interval_set_object (parent, owner);
 
       if (BUFFERP (owner))
@@ -1221,13 +1217,13 @@ delete_interval (register INTERVAL i)
   if (AM_LEFT_CHILD (i))
     {
       interval_set_left (parent, delete_node (i));
-      if (! NULL_INTERVAL_P (parent->left))
+      if (parent->left)
 	interval_set_parent (parent->left, parent);
     }
   else
     {
       interval_set_right (parent, delete_node (i));
-      if (! NULL_INTERVAL_P (parent->right))
+      if (parent->right)
 	interval_set_parent (parent->right, parent);
     }
 }
@@ -1250,7 +1246,7 @@ interval_deletion_adjustment (register INTERVAL tree, register ptrdiff_t from,
 {
   register ptrdiff_t relative_position = from;
 
-  if (NULL_INTERVAL_P (tree))
+  if (!tree)
     return 0;
 
   /* Left branch.  */
@@ -1317,7 +1313,7 @@ adjust_intervals_for_deletion (struct buffer *buffer,
   GET_INTERVAL_OBJECT (parent, tree);
   offset = (BUFFERP (parent) ? BUF_BEG (XBUFFER (parent)) : 0);
 
-  if (NULL_INTERVAL_P (tree))
+  if (!tree)
     return;
 
   eassert (start <= offset + TOTAL_LENGTH (tree)
@@ -1325,7 +1321,7 @@ adjust_intervals_for_deletion (struct buffer *buffer,
 
   if (length == TOTAL_LENGTH (tree))
     {
-      BUF_INTERVALS (buffer) = NULL_INTERVAL;
+      BUF_INTERVALS (buffer) = NULL;
       return;
     }
 
@@ -1345,7 +1341,7 @@ adjust_intervals_for_deletion (struct buffer *buffer,
       tree = BUF_INTERVALS (buffer);
       if (left_to_delete == tree->total_length)
 	{
-	  BUF_INTERVALS (buffer) = NULL_INTERVAL;
+	  BUF_INTERVALS (buffer) = NULL;
 	  return;
 	}
     }
@@ -1363,7 +1359,7 @@ adjust_intervals_for_deletion (struct buffer *buffer,
 void
 offset_intervals (struct buffer *buffer, ptrdiff_t start, ptrdiff_t length)
 {
-  if (NULL_INTERVAL_P (BUF_INTERVALS (buffer)) || length == 0)
+  if (!BUF_INTERVALS (buffer) || length == 0)
     return;
 
   if (length > 0)
@@ -1580,17 +1576,17 @@ graft_intervals_into_buffer (INTERVAL source, ptrdiff_t position,
      becomes part of whatever interval it was inserted into.
      To prevent inheritance, we must clear out the properties
      of the newly inserted text.  */
-  if (NULL_INTERVAL_P (source))
+  if (!source)
     {
       Lisp_Object buf;
-      if (!inherit && !NULL_INTERVAL_P (tree) && length > 0)
+      if (!inherit && tree && length > 0)
 	{
 	  XSETBUFFER (buf, buffer);
 	  set_text_properties_1 (make_number (position),
 				 make_number (position + length),
 				 Qnil, buf, 0);
 	}
-      if (! NULL_INTERVAL_P (BUF_INTERVALS (buffer)))
+      if (BUF_INTERVALS (buffer))
 	/* Shouldn't be necessary.  --Stef  */
 	BUF_INTERVALS (buffer) = balance_an_interval (BUF_INTERVALS (buffer));
       return;
@@ -1608,7 +1604,7 @@ graft_intervals_into_buffer (INTERVAL source, ptrdiff_t position,
       eassert (BUF_INTERVALS (buffer)->up_obj == 1);
 	  return;
 	}
-  else if (NULL_INTERVAL_P (tree))
+  else if (!tree)
     { /* Create an interval tree in which to place a copy
 	 of the intervals of the inserted string.  */
 	Lisp_Object buf;
@@ -1620,7 +1616,7 @@ graft_intervals_into_buffer (INTERVAL source, ptrdiff_t position,
   eassert (TOTAL_LENGTH (tree) > 0);
 
   this = under = find_interval (tree, position);
-  eassert (!NULL_INTERVAL_P (under));
+  eassert (under);
   over = find_interval (source, interval_start_pos (source));
 
   /* Here for insertion in the middle of an interval.
@@ -1662,7 +1658,7 @@ graft_intervals_into_buffer (INTERVAL source, ptrdiff_t position,
      have already been copied into target intervals.
      UNDER is the next interval in the target.  */
   over_used = 0;
-  while (! NULL_INTERVAL_P (over))
+  while (over)
     {
       /* If UNDER is longer than OVER, split it.  */
       if (LENGTH (over) - over_used < LENGTH (under))
@@ -1695,7 +1691,7 @@ graft_intervals_into_buffer (INTERVAL source, ptrdiff_t position,
       under = next_interval (this);
     }
 
-  if (! NULL_INTERVAL_P (BUF_INTERVALS (buffer)))
+  if (BUF_INTERVALS (buffer))
     BUF_INTERVALS (buffer) = balance_an_interval (BUF_INTERVALS (buffer));
   return;
 }
@@ -1864,7 +1860,7 @@ set_point_both (ptrdiff_t charpos, ptrdiff_t bytepos)
 
   /* If we have no text properties and overlays,
      then we can do it quickly.  */
-  if (NULL_INTERVAL_P (BUF_INTERVALS (current_buffer)) && ! have_overlays)
+  if (!BUF_INTERVALS (current_buffer) && ! have_overlays)
     {
       temp_set_point_both (current_buffer, charpos, bytepos);
       return;
@@ -1911,7 +1907,7 @@ set_point_both (ptrdiff_t charpos, ptrdiff_t bytepos)
      with the same intangible property value,
      move forward or backward until a change in that property.  */
   if (NILP (Vinhibit_point_motion_hooks)
-      && ((! NULL_INTERVAL_P (to) && ! NULL_INTERVAL_P (toprev))
+      && ((to && toprev)
 	  || have_overlays)
       /* Intangibility never stops us from positioning at the beginning
 	 or end of the buffer, so don't bother checking in that case.  */
@@ -2134,7 +2130,7 @@ get_property_and_range (ptrdiff_t pos, Lisp_Object prop, Lisp_Object *val,
   else
     abort ();
 
-  if (NULL_INTERVAL_P (i) || (i->position + LENGTH (i) <= pos))
+  if (!i || (i->position + LENGTH (i) <= pos))
     return 0;
   *val = textget (i->plist, prop);
   if (NILP (*val))
@@ -2142,14 +2138,13 @@ get_property_and_range (ptrdiff_t pos, Lisp_Object prop, Lisp_Object *val,
 
   next = i;			/* remember it in advance */
   prev = previous_interval (i);
-  while (! NULL_INTERVAL_P (prev)
+  while (prev
 	 && EQ (*val, textget (prev->plist, prop)))
     i = prev, prev = previous_interval (prev);
   *start = i->position;
 
   next = next_interval (i);
-  while (! NULL_INTERVAL_P (next)
-	 && EQ (*val, textget (next->plist, prop)))
+  while (next && EQ (*val, textget (next->plist, prop)))
     i = next, next = next_interval (next);
   *end = i->position + LENGTH (i);
 
@@ -2220,16 +2215,16 @@ copy_intervals (INTERVAL tree, ptrdiff_t start, ptrdiff_t length)
   register INTERVAL i, new, t;
   register ptrdiff_t got, prevlen;
 
-  if (NULL_INTERVAL_P (tree) || length <= 0)
-    return NULL_INTERVAL;
+  if (!tree || length <= 0)
+    return NULL;
 
   i = find_interval (tree, start);
-  eassert (!NULL_INTERVAL_P (i) && LENGTH (i) > 0);
+  eassert (i && LENGTH (i) > 0);
 
   /* If there is only one interval and it's the default, return nil.  */
   if ((start - i->position + 1 + length) < LENGTH (i)
       && DEFAULT_INTERVAL_P (i))
-    return NULL_INTERVAL;
+    return NULL;
 
   new = make_interval ();
   new->position = 0;
@@ -2260,7 +2255,7 @@ copy_intervals_to_string (Lisp_Object string, struct buffer *buffer,
 {
   INTERVAL interval_copy = copy_intervals (BUF_INTERVALS (buffer),
 					   position, length);
-  if (NULL_INTERVAL_P (interval_copy))
+  if (!interval_copy)
     return;
 
   interval_set_object (interval_copy, string);

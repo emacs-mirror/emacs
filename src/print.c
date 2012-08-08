@@ -1408,7 +1408,7 @@ print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag
 	  if (! EQ (Vprint_charset_text_property, Qt))
 	    obj = print_prune_string_charset (obj);
 
-	  if (!NULL_INTERVAL_P (STRING_INTERVALS (obj)))
+	  if (STRING_INTERVALS (obj))
 	    {
 	      PRINTCHAR ('#');
 	      PRINTCHAR ('(');
@@ -1499,7 +1499,7 @@ print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag
 	    }
 	  PRINTCHAR ('\"');
 
-	  if (!NULL_INTERVAL_P (STRING_INTERVALS (obj)))
+	  if (STRING_INTERVALS (obj))
 	    {
 	      traverse_intervals (STRING_INTERVALS (obj),
 				  0, print_interval, printcharfun);

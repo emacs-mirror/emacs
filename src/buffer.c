@@ -360,7 +360,7 @@ even if it is dead.  The return value is never nil.  */)
   BUF_CHARS_MODIFF (b) = 1;
   BUF_OVERLAY_MODIFF (b) = 1;
   BUF_SAVE_MODIFF (b) = 1;
-  BUF_INTERVALS (b) = 0;
+  BUF_INTERVALS (b) = NULL;
   BUF_UNCHANGED_MODIFIED (b) = 1;
   BUF_OVERLAY_UNCHANGED_MODIFIED (b) = 1;
   BUF_END_UNCHANGED (b) = 0;
@@ -384,7 +384,7 @@ even if it is dead.  The return value is never nil.  */)
   BVAR (b, zv_marker) = Qnil;
 
   name = Fcopy_sequence (buffer_or_name);
-  STRING_SET_INTERVALS (name, NULL_INTERVAL);
+  STRING_SET_INTERVALS (name, NULL);
   BVAR (b, name) = name;
 
   BVAR (b, undo_list) = (SREF (name, 0) != ' ') ? Qnil : Qt;
@@ -589,7 +589,7 @@ CLONE nil means the indirect buffer's state is reset to default values.  */)
   all_buffers = b;
 
   name = Fcopy_sequence (name);
-  STRING_SET_INTERVALS (name, NULL_INTERVAL);
+  STRING_SET_INTERVALS (name, NULL);
   BVAR (b, name) = name;
 
   reset_buffer (b);
@@ -1688,7 +1688,7 @@ cleaning up all windows currently displaying the buffer to be killed. */)
 	  m = next;
 	}
       BUF_MARKERS (b) = NULL;
-      BUF_INTERVALS (b) = NULL_INTERVAL;
+      BUF_INTERVALS (b) = NULL;
 
       /* Perhaps we should explicitly free the interval tree here... */
     }
@@ -4904,8 +4904,8 @@ init_buffer_once (void)
   /* No one will share the text with these buffers, but let's play it safe.  */
   buffer_defaults.indirections = 0;
   buffer_local_symbols.indirections = 0;
-  BUF_INTERVALS (&buffer_defaults) = 0;
-  BUF_INTERVALS (&buffer_local_symbols) = 0;
+  BUF_INTERVALS (&buffer_defaults) = NULL;
+  BUF_INTERVALS (&buffer_local_symbols) = NULL;
   XSETPVECTYPESIZE (&buffer_defaults, PVEC_BUFFER, pvecsize);
   XSETBUFFER (Vbuffer_defaults, &buffer_defaults);
   XSETPVECTYPESIZE (&buffer_local_symbols, PVEC_BUFFER, pvecsize);

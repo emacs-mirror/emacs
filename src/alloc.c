@@ -1559,19 +1559,20 @@ mark_interval_tree (register INTERVAL tree)
 
 /* Mark the interval tree rooted in I.  */
 
-#define MARK_INTERVAL_TREE(i)				\
-  do {							\
-    if (!NULL_INTERVAL_P (i) && !i->gcmarkbit)		\
-      mark_interval_tree (i);				\
+#define MARK_INTERVAL_TREE(i)	\
+  do {				\
+    if (i && !i->gcmarkbit)	\
+      mark_interval_tree (i);	\
   } while (0)
 
+/* Unmark and rebalance interval tree rooted in I.  */
 
-#define UNMARK_BALANCE_INTERVALS(i)			\
-  do {							\
-   if (! NULL_INTERVAL_P (i))				\
-     (i) = balance_intervals (i);			\
+#define UNMARK_BALANCE_INTERVALS(i)	\
+  do {					\
+   if (i)				\
+     (i) = balance_intervals (i);	\
   } while (0)
-
+
 /***********************************************************************
 			  String Allocation
  ***********************************************************************/
@@ -2100,7 +2101,7 @@ sweep_strings (void)
 		  /* String is live; unmark it and its intervals.  */
 		  UNMARK_STRING (s);
 
-		  if (!NULL_INTERVAL_P (s->intervals))
+		  if (s->intervals)
 		    UNMARK_BALANCE_INTERVALS (s->intervals);
 
 		  ++total_strings;
@@ -2502,7 +2503,7 @@ make_uninit_multibyte_string (EMACS_INT nchars, EMACS_INT nbytes)
     return empty_multibyte_string;
 
   s = allocate_string ();
-  s->intervals = NULL_INTERVAL;
+  s->intervals = NULL;
   allocate_string_data (s, nchars, nbytes);
   XSETSTRING (string, s);
   string_chars_consed += nbytes;
@@ -5221,7 +5222,7 @@ make_pure_string (const char *data,
     }
   s->size = nchars;
   s->size_byte = multibyte ? nbytes : -1;
-  s->intervals = NULL_INTERVAL;
+  s->intervals = NULL;
   XSETSTRING (string, s);
   return string;
 }
@@ -5237,7 +5238,7 @@ make_pure_c_string (const char *data, ptrdiff_t nchars)
   s->size = nchars;
   s->size_byte = -1;
   s->data = (unsigned char *) data;
-  s->intervals = NULL_INTERVAL;
+  s->intervals = NULL;
   XSETSTRING (string, s);
   return string;
 }

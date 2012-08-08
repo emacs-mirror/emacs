@@ -4637,7 +4637,7 @@ Transposing beyond buffer boundaries is an error.  */)
       /* Don't use Fset_text_properties: that can cause GC, which can
 	 clobber objects stored in the tmp_intervals.  */
       tmp_interval3 = validate_interval_range (buf, &startr1, &endr2, 0);
-      if (!NULL_INTERVAL_P (tmp_interval3))
+      if (tmp_interval3)
 	set_text_properties_1 (startr1, endr2, Qnil, buf, tmp_interval3);
 
       /* First region smaller than second.  */
@@ -4696,11 +4696,11 @@ Transposing beyond buffer boundaries is an error.  */)
           tmp_interval2 = copy_intervals (cur_intv, start2, len2);
 
 	  tmp_interval3 = validate_interval_range (buf, &startr1, &endr1, 0);
-	  if (!NULL_INTERVAL_P (tmp_interval3))
+	  if (tmp_interval3)
 	    set_text_properties_1 (startr1, endr1, Qnil, buf, tmp_interval3);
 
 	  tmp_interval3 = validate_interval_range (buf, &startr2, &endr2, 0);
-	  if (!NULL_INTERVAL_P (tmp_interval3))
+	  if (tmp_interval3)
 	    set_text_properties_1 (startr2, endr2, Qnil, buf, tmp_interval3);
 
 	  temp = SAFE_ALLOCA (len1_byte);
@@ -4729,7 +4729,7 @@ Transposing beyond buffer boundaries is an error.  */)
           tmp_interval2 = copy_intervals (cur_intv, start2, len2);
 
 	  tmp_interval3 = validate_interval_range (buf, &startr1, &endr2, 0);
-	  if (!NULL_INTERVAL_P (tmp_interval3))
+	  if (tmp_interval3)
 	    set_text_properties_1 (startr1, endr2, Qnil, buf, tmp_interval3);
 
 	  /* holds region 2 */
@@ -4762,7 +4762,7 @@ Transposing beyond buffer boundaries is an error.  */)
           tmp_interval2 = copy_intervals (cur_intv, start2, len2);
 
 	  tmp_interval3 = validate_interval_range (buf, &startr1, &endr2, 0);
-	  if (!NULL_INTERVAL_P (tmp_interval3))
+	  if (tmp_interval3)
 	    set_text_properties_1 (startr1, endr2, Qnil, buf, tmp_interval3);
 
 	  /* holds region 1 */

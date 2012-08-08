@@ -3321,7 +3321,7 @@ compute_stop_pos (struct it *it)
      interval if there isn't such an interval.  */
   position = make_number (charpos);
   iv = validate_interval_range (object, &position, &position, 0);
-  if (!NULL_INTERVAL_P (iv))
+  if (iv)
     {
       Lisp_Object values_here[LAST_PROP_IDX];
       struct props *p;
@@ -3333,7 +3333,7 @@ compute_stop_pos (struct it *it)
       /* Look for an interval following iv that has different
 	 properties.  */
       for (next_iv = next_interval (iv);
-	   (!NULL_INTERVAL_P (next_iv)
+	   (next_iv
 	    && (NILP (limit)
 		|| XFASTINT (limit) > next_iv->position));
 	   next_iv = next_interval (next_iv))
@@ -3351,7 +3351,7 @@ compute_stop_pos (struct it *it)
 	    break;
 	}
 
-      if (!NULL_INTERVAL_P (next_iv))
+      if (next_iv)
 	{
 	  if (INTEGERP (limit)
 	      && next_iv->position >= XFASTINT (limit))
