@@ -26,9 +26,6 @@
 
 #include "mpstd.h"
 
-#ifdef MPS_OS_SU
-#include "ossu.h"
-#endif
 #ifdef MPS_OS_XC
 #include "osxc.h"
 #endif
@@ -37,16 +34,6 @@
 struct itimerspec; /* stop complaints from time.h */
 #endif
 #include <time.h>
-
-#ifdef MPS_OS_SU
-extern int fputc (int c, FILE *stream);
-extern int fputs (const char *s, FILE *stream);
-extern clock_t clock(void);
-extern long strtol(const char *, char **, int);
-/* @@@@ This doesn't do quite the right thing, but will get by. */
-#define strtoul(a,b,c) (unsigned long)strtol(a, b, c)
-extern void *memset(void *, int, size_t);
-#endif
 
 #include <stdlib.h>
 #include <stdio.h>

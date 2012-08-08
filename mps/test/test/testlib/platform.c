@@ -4,16 +4,6 @@
 #include "testlib.h"
 /* that includes platform.h, so we don't need to */
 
-#ifdef MPS_OS_SU
-
-void *memmove(void *to, void *from, size_t bytes)
-{
- bcopy((char *)from, (char *)to, (int)bytes);
- return to;
-}
-
-#endif
-
 #ifdef MPS_OS_W3
 
 LONG mySEHFilter(LPEXCEPTION_POINTERS info) {

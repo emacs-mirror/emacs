@@ -18,9 +18,6 @@
 #ifdef MPS_OS_W3
 #include "mpswin.h"
 #endif
-#ifdef MPS_OS_SU
-#include "ossu.h"
-#endif
 #ifdef MPS_OS_XC
 #include "osxc.h"
 #endif

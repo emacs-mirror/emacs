@@ -11,20 +11,6 @@
 
 #include "mpstd.h"
 
-#ifdef MPS_OS_SU
-
-extern int fclose (FILE *stream);
-extern int fflush (FILE *stream);
-extern size_t fwrite (const void *ptr, size_t size, size_t nmemb, FILE *stream);
-
-/* These functions are used in the macro definitions of putc and getc
- * but not declared in stdio.h.
- */
-extern int _filbuf(FILE *stream);
-extern int _flsbuf(unsigned char c, FILE *stream);
-
-#endif
-
 #ifdef MPS_OS_XC
 #include "osxc.h"
 #endif
@@ -35,6 +21,11 @@ extern int _flsbuf(unsigned char c, FILE *stream);
 
 static FILE *ioFile = NULL;
 
+#ifdef MPS_BUILD_MV
+/* MSVC warning 4996 = stdio / C runtime 'unsafe' */
+/* Objects to: fopen.  See job001934. */
+#pragma warning( disable : 4996 )
+#endif
 
 mps_res_t mps_io_create(mps_io_t *mps_io_r)
 {
