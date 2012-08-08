@@ -29,9 +29,6 @@
 #include <stdlib.h> /* for EXIT_FAILURE */
 #include <stdio.h> /* for printf */
 #include "mpstd.h"
-#ifdef MPS_OS_SU
-#include "ossu.h"
-#endif
 
 
 #ifdef MPS_PF_W3I6MV
