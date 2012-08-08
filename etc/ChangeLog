@@ -1,3 +1,7 @@
+2012-08-08  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* NEWS: Mention --without-all and --enable-link-time-optimization.
+
 2012-07-31  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* TODO (NS port): Add text about event loop.

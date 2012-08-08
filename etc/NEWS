@@ -23,6 +23,12 @@ so we will look at it and add it to the manual.
 
 * Installation Changes in Emacs 24.2
 
+** New configure option '--without-all' to disable additonal features.
+This disables most of the features that are normally enabled by default.
+
+** New configure option '--enable-link-time-optimization' to utilize
+an appropriate feature provided by GCC since version 4.5.0.
+
 ** New configure option '--enable-gcc-warnings', intended for developers.
 If building with GCC, this enables compile-time checks that warn about
 possibly-questionable C code.  On a recent GNU system there should be

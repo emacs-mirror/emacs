@@ -1,3 +1,9 @@
+2012-08-08  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* configure.ac (--disable-features): Rename to --without-all.
+	(OPTION_DEFAULT_ON): Change to use with_features.
+	* INSTALL: Fix description.
+
 2012-08-07  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* configure.ac: New option --disable-features.
