@@ -3559,26 +3559,30 @@ file exists and nonzero exit status otherwise."
     ;;                    `/usr/bin/test'.
     ;; `/usr/bin/test -e' In case `/bin/test' does not exist.
     (unless (or
-             (and (setq result (format "%s -e" (tramp-get-test-command vec)))
-		  (tramp-send-command-and-check
-		   vec (format "%s %s" result existing))
-                  (not (tramp-send-command-and-check
-			vec (format "%s %s" result nonexistent))))
-             (and (setq result "/bin/test -e")
-		  (tramp-send-command-and-check
-		   vec (format "%s %s" result existing))
-                  (not (tramp-send-command-and-check
-			vec (format "%s %s" result nonexistent))))
-             (and (setq result "/usr/bin/test -e")
-		  (tramp-send-command-and-check
-		   vec (format "%s %s" result existing))
-                  (not (tramp-send-command-and-check
-			vec (format "%s %s" result nonexistent))))
-             (and (setq result (format "%s -d" (tramp-get-ls-command vec)))
-		  (tramp-send-command-and-check
-		   vec (format "%s %s" result existing))
-                  (not (tramp-send-command-and-check
-			vec (format "%s %s" result nonexistent)))))
+	     (ignore-errors
+	       (and (setq result (format "%s -e" (tramp-get-test-command vec)))
+		    (tramp-send-command-and-check
+		     vec (format "%s %s" result existing))
+		    (not (tramp-send-command-and-check
+			  vec (format "%s %s" result nonexistent)))))
+	     (ignore-errors
+	       (and (setq result "/bin/test -e")
+		    (tramp-send-command-and-check
+		     vec (format "%s %s" result existing))
+		    (not (tramp-send-command-and-check
+			  vec (format "%s %s" result nonexistent)))))
+	     (ignore-errors
+	       (and (setq result "/usr/bin/test -e")
+		    (tramp-send-command-and-check
+		     vec (format "%s %s" result existing))
+		    (not (tramp-send-command-and-check
+			  vec (format "%s %s" result nonexistent)))))
+	     (ignore-errors
+	       (and (setq result (format "%s -d" (tramp-get-ls-command vec)))
+		    (tramp-send-command-and-check
+		     vec (format "%s %s" result existing))
+		    (not (tramp-send-command-and-check
+			  vec (format "%s %s" result nonexistent))))))
       (tramp-error
        vec 'file-error "Couldn't find command to check if file exists"))
     result))
@@ -3609,48 +3613,50 @@ file exists and nonzero exit status otherwise."
 
 (defun tramp-find-shell (vec)
   "Opens a shell on the remote host which groks tilde expansion."
-  (with-connection-property vec "remote-shell"
-    (let ((shell (tramp-get-method-parameter
-		  (tramp-file-name-method vec) 'tramp-remote-shell)))
-      (with-current-buffer (tramp-get-buffer vec)
-	;; CCC: "root" does not exist always, see QNAP 459.  Which
-	;; check could we apply instead?
-	(tramp-send-command vec "echo ~root" t)
-	(when (or (string-match "^~root$" (buffer-string))
-		  ;; The default shell (ksh93) of OpenSolaris and
-		  ;; Solaris is buggy.  We've got reports for "SunOS
-		  ;; 5.10" and "SunOS 5.11" so far.
-		  (string-match (regexp-opt '("SunOS 5.10" "SunOS 5.11"))
-				(tramp-get-connection-property vec "uname" "")))
-	  (if (setq shell
-		    (or (tramp-find-executable
-			 vec "bash" (tramp-get-remote-path vec) t t)
-			(tramp-find-executable
-			 vec "ksh" (tramp-get-remote-path vec) t t)))
-	      (progn
-		(tramp-message
-		 vec 5 "Starting remote shell `%s' for tilde expansion" shell)
-		(tramp-open-shell vec shell))
+  (with-current-buffer (tramp-get-buffer vec)
+    (let ((default-shell (tramp-get-method-parameter
+			  (tramp-file-name-method vec) 'tramp-remote-shell))
+	  shell)
+      (setq shell
+	    (with-connection-property vec "remote-shell"
+	      ;; CCC: "root" does not exist always, see QNAP 459.
+	      ;; Which check could we apply instead?
+	      (tramp-send-command vec "echo ~root" t)
+	      (if (or (string-match "^~root$" (buffer-string))
+		      ;; The default shell (ksh93) of OpenSolaris and
+		      ;; Solaris is buggy.  We've got reports for
+		      ;; "SunOS 5.10" and "SunOS 5.11" so far.
+		      (string-match (regexp-opt '("SunOS 5.10" "SunOS 5.11"))
+				    (tramp-get-connection-property
+				     vec "uname" "")))
 
-	    ;; Maybe it works at least for some other commands.
-	    (setq shell
-		  (tramp-get-method-parameter
-		   (tramp-file-name-method vec) 'tramp-remote-shell))
-	    (tramp-message
-	     vec 2
-	     (concat
-	      "Couldn't find a remote shell which groks tilde expansion, "
-	      "using `%s'")
-	     shell)))
+		  (or (tramp-find-executable
+		       vec "bash" (tramp-get-remote-path vec) t t)
+		      (tramp-find-executable
+		       vec "ksh" (tramp-get-remote-path vec) t t)
+		      ;; Maybe it works at least for some other commands.
+		      (prog1
+			  default-shell
+			(tramp-message
+			 vec 2
+			 (concat
+			  "Couldn't find a remote shell which groks tilde "
+			  "expansion, using `%s'")
+			 default-shell)))
 
-	;; Busyboxes tend to behave strange.  We check for the existence.
-	(with-connection-property vec "busybox"
-	  (tramp-send-command vec (format "%s --version" shell) t)
-	  (let ((case-fold-search t))
-	    (and (string-match "busybox" (buffer-string)) t)))
+		default-shell)))
 
-	;; Return the shell.
-	shell))))
+      ;; Open a new shell if needed.
+      (unless (string-equal shell default-shell)
+	(tramp-message
+	 vec 5 "Starting remote shell `%s' for tilde expansion" shell)
+	(tramp-open-shell vec shell))
+
+      ;; Busyboxes tend to behave strange.  We check for the existence.
+      (with-connection-property vec "busybox"
+	(tramp-send-command vec (format "%s --version" shell) t)
+	(let ((case-fold-search t))
+	  (and (string-match "busybox" (buffer-string)) t))))))
 
 ;; Utility functions.
 
@@ -3786,7 +3792,7 @@ process to set up.  VEC specifies the connection."
   (tramp-set-remote-path vec)
 
   ;; Search for a good shell before searching for a command which
-  ;; checks if a file exists. This is done because Tramp wants to use
+  ;; checks if a file exists.  This is done because Tramp wants to use
   ;; "test foo; echo $?" to check if various conditions hold, and
   ;; there are buggy /bin/sh implementations which don't execute the
   ;; "echo $?"  part if the "test" part has an error.  In particular,
