@@ -1,3 +1,7 @@
+2012-08-08  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc-misc.el (calc-record-why): Don't record a message twice.
+
 2012-08-07  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* emacs-lisp/lisp-mode.el (eval-defun-1): Handle standard value of
