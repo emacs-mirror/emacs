@@ -300,10 +300,10 @@ main (int argc, char **argv)
 	 which uses lock files for this purpose.  Some systems use other methods.
 
 	 If your system uses the `flock' system call for mail locking,
-	 define MAIL_USE_SYSTEM_LOCK in config.h or the s-*.h file
-	 and recompile movemail.  If the s- file for your system
-	 should define MAIL_USE_SYSTEM_LOCK but does not, send a bug report
-	 to bug-gnu-emacs@prep.ai.mit.edu so we can fix it.  */
+	 define MAIL_USE_SYSTEM_LOCK in config.h and recompile movemail.
+	 If your system type should always define MAIL_USE_SYSTEM_LOCK
+	 but does not, send a bug report to bug-gnu-emacs@gnu.org so we
+	 can change the default in configure.  */
 
       inname_len = strlen (inname);
       lockname = xmalloc (inname_len + sizeof ".lock");

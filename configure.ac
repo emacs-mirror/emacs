@@ -2709,6 +2709,9 @@ case "$opsys" in
     ;;
 esac
 
+dnl FIXME?  If using FLOCK, also define MAIL_USE_SYSTEM_LOCK?
+dnl Only win32 seems to use that.
+dnl See comments in lib-src/movemail.c.
 BLESSMAIL_TARGET=
 case "$mail_lock" in
   flock) AC_DEFINE(MAIL_USE_FLOCK, 1, [Define if the mailer uses flock to interlock the mail spool.]) ;;
