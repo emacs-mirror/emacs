@@ -686,6 +686,11 @@ from ARGLIST using FUNC: (define-modify-macro incf (&optional (n 1)) +)"
 (define-obsolete-function-alias 'cl-hash-table-p 'hash-table-p "24.2")
 (define-obsolete-function-alias 'cl-hash-table-count 'hash-table-count "24.2")
 
+(define-obsolete-function-alias 'cl-map-keymap-recursively
+  'cl--map-keymap-recursively "24.2")
+(define-obsolete-function-alias 'cl-map-intervals 'cl--map-intervals "24.2")
+(define-obsolete-function-alias 'cl-map-extents 'cl--map-overlays "24.2")
+
 (defun cl-maclisp-member (item list)
   (declare (obsolete member "24.2"))
   (while (and list (not (equal item (car list)))) (setq list (cdr list)))

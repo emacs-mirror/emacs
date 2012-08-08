@@ -1,3 +1,8 @@
+2012-08-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/cl.el (cl-map-keymap-recursively, cl-map-intervals)
+	(cl-map-extents): Add compatibility aliases (bug#12135).
+
 2012-08-08  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp-sh.el (tramp-find-file-exists-command): Protect the
@@ -62,8 +67,8 @@
 	* emacs-lisp/lisp-mode.el (eval-defun-1): Handle standard value of
 	a defcustom that is quoted with backquote.
 
-	* calc/calc-prog.el (math-do-defmath): Use backquote forms.  Fix
-	handling of interactive spec when the body uses return.
+	* calc/calc-prog.el (math-do-defmath): Use backquote forms.
+	Fix handling of interactive spec when the body uses return.
 	(math-do-arg-check, math-define-function-body): Use backquote forms.
 	* calc/calc-ext.el (math-defcache): Likewise.
 	* calc/calc-rewr.el (math-rwfail, math-rweval): Likewise.
@@ -75,8 +80,8 @@
 	* menu-bar.el (menu-bar-make-mm-toggle, menu-bar-make-toggle):
 	Construct menu-item directly.
 
-	* progmodes/autoconf.el (font-lock-syntactic-keywords): Don't
-	declare.
+	* progmodes/autoconf.el (font-lock-syntactic-keywords):
+	Don't declare.
 
 2012-08-07  Chong Yidong  <cyd@gnu.org>
 
@@ -142,8 +147,8 @@
 	* proced.el (proced): Add substitution string to docstring to
 	trigger autoloading of the proced library on C-h f (Bug#1768).
 
-	* emacs-lisp/lisp-mode.el (lisp-imenu-generic-expression): Don't
-	show defvars which have no second argument (Bug#8638).
+	* emacs-lisp/lisp-mode.el (lisp-imenu-generic-expression):
+	Don't show defvars which have no second argument (Bug#8638).
 
 	* imenu.el (imenu-generic-expression): Move documentation here
 	from imenu--generic-function.
@@ -221,8 +226,8 @@
 
 	* files.el (file-truename): Don't skip symlink-chasing part on
 	windows-nt.  Incorporate the resolution of 8+3 short aliases on
-	Windows into the loop that recursively chases symlinks.  Compare
-	directory and its parent case-insensitively on MS-Windows and
+	Windows into the loop that recursively chases symlinks.
+	Compare directory and its parent case-insensitively on MS-Windows and
 	MS-DOS.
 
 2012-08-03  Chong Yidong  <cyd@gnu.org>
@@ -500,7 +505,7 @@
 
 2012-07-27  Fabián Ezequiel Gallina  <fgallina@cuca>
 
-	* progmodes/python.el (python-mode-map): Added keybinding for
+	* progmodes/python.el (python-mode-map): Add keybinding for
 	run-python.
 	(python-shell-make-comint): Fix pop-to-buffer call.
 	(run-python): Autoload.  New arg SHOW.
@@ -516,8 +521,8 @@
 
 2012-07-27  Tassilo Horn  <tsdh@gnu.org>
 
-	* textmodes/reftex-vars.el (reftex-label-alist-builtin): Add
-	support for the lstlisting and minted environments, and for the
+	* textmodes/reftex-vars.el (reftex-label-alist-builtin):
+	Add support for the lstlisting and minted environments, and for the
 	ctable macro.
 	* textmodes/reftex.el (reftex-compile-variables): Also recognize
 	labels written in keyvals syntax.
@@ -532,8 +537,8 @@
 	* makefile.w32-in ($(lisp)/calendar/cal-loaddefs.el)
 	($(lisp)/calendar/diary-loaddefs.el)
 	($(lisp)/calendar/hol-loaddefs.el, $(lisp)/mh-e/mh-loaddefs.el)
-	($(lisp)/net/tramp-loaddefs.el): Depend on update-subdirs.  Fixes
-	failures in parallel bootstrap because subdirs.el is being
+	($(lisp)/net/tramp-loaddefs.el): Depend on update-subdirs.
+	Fixes failures in parallel bootstrap because subdirs.el is being
 	rewritten while the autoload files are built at the same time,
 	which needs to load subdirs.el.
 
