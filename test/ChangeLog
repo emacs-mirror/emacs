@@ -1,3 +1,7 @@
+2012-08-08  Glenn Morris  <rgm@gnu.org>
+
+	* automated/files.el: New file.
+
 2012-08-07  Glenn Morris  <rgm@gnu.org>
 
 	* automated/Makefile.in (all): Fix typo.
