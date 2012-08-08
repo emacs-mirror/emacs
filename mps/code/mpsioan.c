@@ -11,20 +11,6 @@
 
 #include "mpstd.h"
 
-#ifdef MPS_OS_SU
-
-extern int fclose (FILE *stream);
-extern int fflush (FILE *stream);
-extern size_t fwrite (const void *ptr, size_t size, size_t nmemb, FILE *stream);
-
-/* These functions are used in the macro definitions of putc and getc
- * but not declared in stdio.h.
- */
-extern int _filbuf(FILE *stream);
-extern int _flsbuf(unsigned char c, FILE *stream);
-
-#endif
-
 #ifdef MPS_OS_XC
 #include "osxc.h"
 #endif

@@ -16,9 +16,6 @@
 #include <stdarg.h>
 #include <assert.h>
 #include "mpstd.h"
-#ifdef MPS_OS_SU
-#include "ossu.h"
-#endif
 
 typedef MPS_T_WORD Word;
 typedef struct AddrStruct *Addr;

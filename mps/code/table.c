@@ -15,10 +15,6 @@
 #include <assert.h>
 #include <stdio.h>
 #include "mpstd.h"
-#ifdef MPS_OS_SU
-#include "ossu.h"
-#endif
-
 
 typedef unsigned long ulong;
 

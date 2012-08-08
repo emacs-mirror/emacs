@@ -15,9 +15,6 @@
 
 #include <stdio.h>
 #include "mpstd.h"
-#ifdef MPS_OS_SU
-#include "ossu.h"
-#endif
 #include <stdlib.h>
 #include <stdarg.h>
 #ifdef MPS_OS_IA

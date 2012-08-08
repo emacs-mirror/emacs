@@ -18,8 +18,8 @@
 
 #include "mpm.h"
 
-#if !defined(MPS_OS_XC) && !defined(MPS_OS_FR) && !defined(MPS_OS_O1)
-#error "protsgix.c is Unix-specific, currently for MPS_OS_O1 FR or XC"
+#if !defined(MPS_OS_XC) && !defined(MPS_OS_FR)
+#error "protsgix.c is Unix-specific, currently for MPS_OS_FR or XC"
 #endif
 #if defined(MPS_OS_XC) && defined(MPS_ARCH_PP)
 #error "protsgix.c does not work on Darwin on PowerPC.  Use protxcpp.c"

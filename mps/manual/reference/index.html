@@ -77,7 +77,6 @@ also no overview or protocol-oriented sections.</strong></p>
 <h2> <a id="section-3" name="section-3">3. Reference</a> </h2>
 
 <ul>
-<li> <code><a href="#MPS_ARCH_AL">MPS_ARCH_AL</a></code> </li>
 <li> function <code><a href="#mps_fix">mps_fix</a></code> </li>
 <li> macro <code><a href="#MPS_FIX1">MPS_FIX1</a></code> </li>
 <li> macro <code><a href="#MPS_FIX12">MPS_FIX12</a></code> </li>
@@ -204,87 +203,6 @@ also no overview or protocol-oriented sections.</strong></p>
 <li> function <code><a href="#mps_telemetry_label">mps_telemetry_label</a></code> </li>
 <li> type <code><a href="#mps_thr_t">mps_thr_t</a></code> </li>
 </ul>
-
-<h3><code><a id="MPS_ARCH_AL" name="MPS_ARCH_AL">MPS_ARCH_AL</a></code></h3>
-
-
-<h4>Name</h4>
-
-<p><code><a href="#MPS_ARCH_AL">MPS_ARCH_AL</a></code></p>
-
-
-<h4>Summary</h4>
-
-<p><code><a href="#MPS_ARCH_AL">MPS_ARCH_AL</a></code> is a C
-preprocessor macro that indicates, if defined, that the target
-processor architecture of the compilation is a member of the DEC Alpha
-family. It is defined, if appropriate, by "mpstd.h".</p>
-
-
-<h4>Associated Protocols</h4>
-
-<p>None.</p>
-
-
-<h4>Resources</h4>
-
-<p>mpstd.h.</p>
-
-
-<h4>Description</h4>
-
-<p>See summary.</p>
-
-
-<h4>Example</h4>
-
-<pre>
-#ifdef MPS_ARCH_AL
-
-typedef struct RegisterFile {
-  unsigned long v0;
-  unsigned long t0, t1, t2, t3, t4, t5, t6, t7;
-  unsigned long s0, s1, s2, s3, s4, s5;
-  unsigned long fp;
-  unsigned long a0, a1, a2, a3, a4, a5;
-  unsigned long t8, t9, t10, t11;
-  unsigned long ra;
-  unsigned long t12;
-  unsigned long at, gp, sp, zero;
-  unsigned long fir;
-  unsigned psr;
-} RegisterFile;
-
-#endif /* MPS_ARCH_AL */
-</pre>
-
-
-<h4>Error Handling</h4>
-
-<p>Not applicable.</p>
-
-
-<h4>See Also</h4>
-
-<p>
-
-<code>MPS_PF_*</code>,
-
-<code>MPS_OS_*</code>,
-
-<code>MPS_BUILD_*</code>,
-
-<code>MPS_ARCH_*</code></p>
-
-
-<h4>Notes</h4>
-
-
-<h4>Internal Notes</h4>
-
-<p>I'm not sure that the user ought to be using these symbols. GavinM
-1997-05-01</p>
-
 
 <h3>function <code><a id="mps_fix" name="mps_fix">mps_fix</a></code></h3>
 
@@ -10724,49 +10642,25 @@ mps_io_write
 mps_io_flush
 MPS_PF_STRING
 MPS_PF_ALIGN
-MPS_ARCH_60
 MPS_ARCH_I3
 MPS_ARCH_I4
-MPS_ARCH_M2
-MPS_ARCH_M4
 MPS_ARCH_PP
 MPS_ARCH_S8
 MPS_ARCH_S9
-MPS_BUILD_AC
-MPS_BUILD_CC
 MPS_BUILD_GC
-MPS_BUILD_LC
 MPS_BUILD_MV
-MPS_BUILD_MW
 MPS_BUILD_SC
 MPS_OS_FR
-MPS_OS_I5
-MPS_OS_IA
 MPS_OS_LI
-MPS_OS_O1
-MPS_OS_S7
 MPS_OS_SO
-MPS_OS_SU
 MPS_OS_W3
 MPS_OS_XC
 MPS_PF_FRI4GC
-MPS_PF_I5M2CC
-MPS_PF_IAM4CC
 MPS_PF_LII4GC
 MPS_PF_LIPPGC
-MPS_PF_O1ALCC
-MPS_PF_O1ALGC
-MPS_PF_S760AC
-MPS_PF_S760MW
-MPS_PF_S7PPAC
-MPS_PF_S7PPMW
 MPS_PF_SOS8GC
 MPS_PF_SOS9SC
-MPS_PF_SUS8GC
-MPS_PF_SUS8LC
-MPS_PF_W3ALMV
 MPS_PF_W3I3MV
-MPS_PF_W3PPMV
 MPS_PF_XCPPGC
 </pre>
 
