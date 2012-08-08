@@ -84,7 +84,7 @@ create_root_interval (Lisp_Object parent)
     {
       new->total_length = SCHARS (parent);
       eassert (0 <= TOTAL_LENGTH (new));
-      STRING_SET_INTERVALS (parent, new);
+      string_set_intervals (parent, new);
       new->position = 0;
     }
 
@@ -455,7 +455,7 @@ balance_possible_root_interval (register INTERVAL interval)
       if (BUFFERP (parent))
 	BUF_INTERVALS (XBUFFER (parent)) = interval;
       else if (STRINGP (parent))
-	STRING_SET_INTERVALS (parent, interval);
+	string_set_intervals (parent, interval);
     }
 
   return interval;
@@ -1206,7 +1206,7 @@ delete_interval (register INTERVAL i)
       if (BUFFERP (owner))
 	BUF_INTERVALS (XBUFFER (owner)) = parent;
       else if (STRINGP (owner))
-	STRING_SET_INTERVALS (owner, parent);
+	string_set_intervals (owner, parent);
       else
 	abort ();
 
@@ -2126,7 +2126,7 @@ get_property_and_range (ptrdiff_t pos, Lisp_Object prop, Lisp_Object *val,
   else if (BUFFERP (object))
     i = find_interval (BUF_INTERVALS (XBUFFER (object)), pos);
   else if (STRINGP (object))
-    i = find_interval (STRING_INTERVALS (object), pos);
+    i = find_interval (string_get_intervals (object), pos);
   else
     abort ();
 
@@ -2259,7 +2259,7 @@ copy_intervals_to_string (Lisp_Object string, struct buffer *buffer,
     return;
 
   interval_set_object (interval_copy, string);
-  STRING_SET_INTERVALS (string, interval_copy);
+  string_set_intervals (string, interval_copy);
 }
 
 /* Return 1 if strings S1 and S2 have identical properties; 0 otherwise.
@@ -2272,8 +2272,8 @@ compare_string_intervals (Lisp_Object s1, Lisp_Object s2)
   ptrdiff_t pos = 0;
   ptrdiff_t end = SCHARS (s1);
 
-  i1 = find_interval (STRING_INTERVALS (s1), 0);
-  i2 = find_interval (STRING_INTERVALS (s2), 0);
+  i1 = find_interval (string_get_intervals (s1), 0);
+  i2 = find_interval (string_get_intervals (s2), 0);
 
   while (pos < end)
     {

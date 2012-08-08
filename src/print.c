@@ -1194,7 +1194,7 @@ print_preprocess (Lisp_Object obj)
 	{
 	case Lisp_String:
 	  /* A string may have text properties, which can be circular.  */
-	  traverse_intervals_noorder (STRING_INTERVALS (obj),
+	  traverse_intervals_noorder (string_get_intervals (obj),
 				      print_preprocess_string, Qnil);
 	  break;
 
@@ -1297,7 +1297,7 @@ static Lisp_Object
 print_prune_string_charset (Lisp_Object string)
 {
   print_check_string_result = 0;
-  traverse_intervals (STRING_INTERVALS (string), 0,
+  traverse_intervals (string_get_intervals (string), 0,
 		      print_check_string_charset_prop, string);
   if (! (print_check_string_result & PRINT_STRING_UNSAFE_CHARSET_FOUND))
     {
@@ -1408,7 +1408,7 @@ print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag
 	  if (! EQ (Vprint_charset_text_property, Qt))
 	    obj = print_prune_string_charset (obj);
 
-	  if (STRING_INTERVALS (obj))
+	  if (string_get_intervals (obj))
 	    {
 	      PRINTCHAR ('#');
 	      PRINTCHAR ('(');
@@ -1499,9 +1499,9 @@ print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag
 	    }
 	  PRINTCHAR ('\"');
 
-	  if (STRING_INTERVALS (obj))
+	  if (string_get_intervals (obj))
 	    {
-	      traverse_intervals (STRING_INTERVALS (obj),
+	      traverse_intervals (string_get_intervals (obj),
 				  0, print_interval, printcharfun);
 	      PRINTCHAR (')');
 	    }

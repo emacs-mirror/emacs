@@ -752,12 +752,6 @@ static ptrdiff_t const STRING_BYTES_BOUND =
       (STR) = empty_multibyte_string;  \
     else XSTRING (STR)->size_byte = XSTRING (STR)->size; } while (0)
 
-/* Get text properties.  */
-#define STRING_INTERVALS(STR)  (XSTRING (STR)->intervals + 0)
-
-/* Set text properties.  */
-#define STRING_SET_INTERVALS(STR, INT) (XSTRING (STR)->intervals = (INT))
-
 /* In a string or vector, the sign bit of the `size' is the gc mark bit.  */
 
 struct Lisp_String
@@ -2418,6 +2412,22 @@ LISP_INLINE void
 set_overlay_plist (Lisp_Object overlay, Lisp_Object plist)
 {
   XOVERLAY (overlay)->plist = plist;
+}
+
+/* Get text properties of S.  */
+
+LISP_INLINE INTERVAL
+string_get_intervals (Lisp_Object s)
+{
+  return XSTRING (s)->intervals;
+}
+
+/* Set text properties of S to I.  */
+
+LISP_INLINE void
+string_set_intervals (Lisp_Object s, INTERVAL i)
+{
+  XSTRING (s)->intervals = i;
 }
 
 /* Defined in data.c.  */

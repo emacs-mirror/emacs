@@ -1,3 +1,11 @@
+2012-08-08  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Inline functions to examine and change string intervals.
+	* lisp.h (STRING_INTERVALS, STRING_SET_INTERVALS): Remove.
+	(string_get_intervals, string_set_intervals): New function.
+	* alloc.c, buffer.c, editfns.c, fns.c, insdel.c, intervals.c:
+	* lread.c, print.c, textprop.c: Adjust users.
+
 2012-08-08  Glenn Morris  <rgm@gnu.org>
 
 	* lisp.mk (lisp): Remove language/persian.elc.

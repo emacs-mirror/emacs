@@ -161,7 +161,7 @@ validate_interval_range (Lisp_Object object, Lisp_Object *begin, Lisp_Object *en
       XSETFASTINT (*begin, XFASTINT (*begin));
       if (begin != end)
 	XSETFASTINT (*end, XFASTINT (*end));
-      i = STRING_INTERVALS (object);
+      i = string_get_intervals (object);
 
       if (len == 0)
 	return NULL;
@@ -516,7 +516,7 @@ interval_of (ptrdiff_t position, Lisp_Object object)
     {
       beg = 0;
       end = SCHARS (object);
-      i = STRING_INTERVALS (object);
+      i = string_get_intervals (object);
     }
 
   if (!(beg <= position && position <= end))
@@ -1274,10 +1274,10 @@ set_text_properties (Lisp_Object start, Lisp_Object end, Lisp_Object properties,
       && XFASTINT (start) == 0
       && XFASTINT (end) == SCHARS (object))
     {
-      if (! STRING_INTERVALS (object))
+      if (!string_get_intervals (object))
 	return Qnil;
 
-      STRING_SET_INTERVALS (object, NULL);
+      string_set_intervals (object, NULL);
       return Qt;
     }
 

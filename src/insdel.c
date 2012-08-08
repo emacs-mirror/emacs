@@ -976,7 +976,7 @@ insert_from_string_1 (Lisp_Object string, ptrdiff_t pos, ptrdiff_t pos_byte,
 
   offset_intervals (current_buffer, PT, nchars);
 
-  intervals = STRING_INTERVALS (string);
+  intervals = string_get_intervals (string);
   /* Get the intervals for the part of the string we are inserting.  */
   if (nbytes < SBYTES (string))
     intervals = copy_intervals (intervals, pos, nchars);
@@ -1413,7 +1413,7 @@ replace_range (ptrdiff_t from, ptrdiff_t to, Lisp_Object new,
 
   /* Get the intervals for the part of the string we are inserting--
      not including the combined-before bytes.  */
-  intervals = STRING_INTERVALS (new);
+  intervals = string_get_intervals (new);
   /* Insert those intervals.  */
   graft_intervals_into_buffer (intervals, from, inschars,
 			       current_buffer, inherit);

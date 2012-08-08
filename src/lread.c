@@ -3189,7 +3189,7 @@ substitute_object_recurse (Lisp_Object object, Lisp_Object placeholder, Lisp_Obj
 	/* Check for text properties in each interval.
 	   substitute_in_interval contains part of the logic.  */
 
-	INTERVAL    root_interval = STRING_INTERVALS (subtree);
+	INTERVAL    root_interval = string_get_intervals (subtree);
 	Lisp_Object arg           = Fcons (object, placeholder);
 
 	traverse_intervals_noorder (root_interval,

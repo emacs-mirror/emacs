@@ -384,7 +384,7 @@ even if it is dead.  The return value is never nil.  */)
   BVAR (b, zv_marker) = Qnil;
 
   name = Fcopy_sequence (buffer_or_name);
-  STRING_SET_INTERVALS (name, NULL);
+  string_set_intervals (name, NULL);
   BVAR (b, name) = name;
 
   BVAR (b, undo_list) = (SREF (name, 0) != ' ') ? Qnil : Qt;
@@ -589,7 +589,7 @@ CLONE nil means the indirect buffer's state is reset to default values.  */)
   all_buffers = b;
 
   name = Fcopy_sequence (name);
-  STRING_SET_INTERVALS (name, NULL);
+  string_set_intervals (name, NULL);
   BVAR (b, name) = name;
 
   reset_buffer (b);

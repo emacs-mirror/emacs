@@ -6102,7 +6102,7 @@ mark_object (Lisp_Object arg)
 	  }
 	if (!PURE_POINTER_P (XSTRING (ptr->name)))
 	  MARK_STRING (XSTRING (ptr->name));
-	MARK_INTERVAL_TREE (STRING_INTERVALS (ptr->name));
+	MARK_INTERVAL_TREE (string_get_intervals (ptr->name));
 
 	ptr = ptr->next;
 	if (ptr)
