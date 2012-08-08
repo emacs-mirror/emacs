@@ -112,7 +112,7 @@ treated as images.
 
 ** Internationalization changes
 
-*** Added language support for Persian.
+*** New language environment: Persian.
 
 ** Face underlining can now use a wave.
 See the "Face Attributes" section of the Elisp manual.

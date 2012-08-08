@@ -1,3 +1,9 @@
+2012-08-08  Glenn Morris  <rgm@gnu.org>
+
+	* language/persian.el: Remove file.
+	* language/misc-lang.el: Move non-unique part of persian.el here.
+	* loadup.el: Remove language/persian.
+
 2012-08-08  Óscar Fuentes  <ofv@wanadoo.es>
 
 	* vc/diff-mode.el (diff-remove-trailing-whitespace): New function.

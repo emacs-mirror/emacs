@@ -1,3 +1,7 @@
+2012-08-08  Glenn Morris  <rgm@gnu.org>
+
+	* lisp.mk (lisp): Remove language/persian.elc.
+
 2012-08-08  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Cleanup intervals.
