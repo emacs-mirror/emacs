@@ -76,14 +76,14 @@ create_root_interval (Lisp_Object parent)
     {
       new->total_length = (BUF_Z (XBUFFER (parent))
 			   - BUF_BEG (XBUFFER (parent)));
-      CHECK_TOTAL_LENGTH (new);
+      eassert (0 <= TOTAL_LENGTH (new));
       BUF_INTERVALS (XBUFFER (parent)) = new;
       new->position = BEG;
     }
   else if (STRINGP (parent))
     {
       new->total_length = SCHARS (parent);
-      CHECK_TOTAL_LENGTH (new);
+      eassert (0 <= TOTAL_LENGTH (new));
       STRING_SET_INTERVALS (parent, new);
       new->position = 0;
     }
@@ -338,11 +338,11 @@ rotate_right (INTERVAL interval)
 
   /* A's total length is decreased by the length of B and its left child.  */
   interval->total_length -= B->total_length - LEFT_TOTAL_LENGTH (interval);
-  CHECK_TOTAL_LENGTH (interval);
+  eassert (0 <= TOTAL_LENGTH (interval));
 
   /* B must have the same total length of A.  */
   B->total_length = old_total;
-  CHECK_TOTAL_LENGTH (B);
+  eassert (0 <= TOTAL_LENGTH (B));
 
   return B;
 }
@@ -385,11 +385,11 @@ rotate_left (INTERVAL interval)
 
   /* A's total length is decreased by the length of B and its right child.  */
   interval->total_length -= B->total_length - RIGHT_TOTAL_LENGTH (interval);
-  CHECK_TOTAL_LENGTH (interval);
+  eassert (0 <= TOTAL_LENGTH (interval));
 
   /* B must have the same total length of A.  */
   B->total_length = old_total;
-  CHECK_TOTAL_LENGTH (B);
+  eassert (0 <= TOTAL_LENGTH (B));
 
   return B;
 }
@@ -513,7 +513,7 @@ split_interval_right (INTERVAL interval, ptrdiff_t offset)
     {
       interval_set_right (interval, new);
       new->total_length = new_length;
-      CHECK_TOTAL_LENGTH (new);
+      eassert (0 <= TOTAL_LENGTH (new));
     }
   else
     {
@@ -522,7 +522,7 @@ split_interval_right (INTERVAL interval, ptrdiff_t offset)
       interval_set_parent (interval->right, new);
       interval_set_right (interval, new);
       new->total_length = new_length + new->right->total_length;
-      CHECK_TOTAL_LENGTH (new);
+      eassert (0 <= TOTAL_LENGTH (new));
       balance_an_interval (new);
     }
 
@@ -558,7 +558,7 @@ split_interval_left (INTERVAL interval, ptrdiff_t offset)
     {
       interval_set_left (interval, new);
       new->total_length = new_length;
-      CHECK_TOTAL_LENGTH (new);
+      eassert (0 <= TOTAL_LENGTH (new));
     }
   else
     {
@@ -567,7 +567,7 @@ split_interval_left (INTERVAL interval, ptrdiff_t offset)
       interval_set_parent (new->left, new);
       interval_set_left (interval, new);
       new->total_length = new_length + new->left->total_length;
-      CHECK_TOTAL_LENGTH (new);
+      eassert (0 <= TOTAL_LENGTH (new));
       balance_an_interval (new);
     }
 
@@ -918,7 +918,7 @@ adjust_intervals_for_insertion (INTERVAL tree,
       for (temp = prev ? prev : i; temp; temp = INTERVAL_PARENT_OR_NULL (temp))
 	{
 	  temp->total_length += length;
-	  CHECK_TOTAL_LENGTH (temp);
+	  eassert (0 <= TOTAL_LENGTH (temp));
 	  temp = balance_possible_root_interval (temp);
 	}
 
@@ -975,7 +975,7 @@ adjust_intervals_for_insertion (INTERVAL tree,
       for (temp = i; temp; temp = INTERVAL_PARENT_OR_NULL (temp))
 	{
 	  temp->total_length += length;
-	  CHECK_TOTAL_LENGTH (temp);
+	  eassert (0 <= TOTAL_LENGTH (temp));
 	  temp = balance_possible_root_interval (temp);
 	}
     }
@@ -1178,7 +1178,7 @@ delete_node (register INTERVAL i)
       this = this->left;
       this->total_length += migrate_amt;
     }
-  CHECK_TOTAL_LENGTH (this);
+  eassert (0 <= TOTAL_LENGTH (this));
   interval_set_left (this, migrate);
   interval_set_parent (migrate, this);
 
@@ -1260,7 +1260,7 @@ interval_deletion_adjustment (register INTERVAL tree, register ptrdiff_t from,
 							 relative_position,
 							 amount);
       tree->total_length -= subtract;
-      CHECK_TOTAL_LENGTH (tree);
+      eassert (0 <= TOTAL_LENGTH (tree));
       return subtract;
     }
   /* Right branch.  */
@@ -1275,7 +1275,7 @@ interval_deletion_adjustment (register INTERVAL tree, register ptrdiff_t from,
 					       relative_position,
 					       amount);
       tree->total_length -= subtract;
-      CHECK_TOTAL_LENGTH (tree);
+      eassert (0 <= TOTAL_LENGTH (tree));
       return subtract;
     }
   /* Here -- this node.  */
@@ -1290,7 +1290,7 @@ interval_deletion_adjustment (register INTERVAL tree, register ptrdiff_t from,
 	amount = my_amount;
 
       tree->total_length -= amount;
-      CHECK_TOTAL_LENGTH (tree);
+      eassert (0 <= TOTAL_LENGTH (tree));
       if (LENGTH (tree) == 0)
 	delete_interval (tree);
 
@@ -1332,7 +1332,7 @@ adjust_intervals_for_deletion (struct buffer *buffer,
   if (ONLY_INTERVAL_P (tree))
     {
       tree->total_length -= length;
-      CHECK_TOTAL_LENGTH (tree);
+      eassert (0 <= TOTAL_LENGTH (tree));
       return;
     }
 
@@ -1398,19 +1398,19 @@ merge_interval_right (register INTERVAL i)
       while (! NULL_LEFT_CHILD (successor))
 	{
 	  successor->total_length += absorb;
-	  CHECK_TOTAL_LENGTH (successor);
+	  eassert (0 <= TOTAL_LENGTH (successor));
 	  successor = successor->left;
 	}
 
       successor->total_length += absorb;
-      CHECK_TOTAL_LENGTH (successor);
+      eassert (0 <= TOTAL_LENGTH (successor));
       delete_interval (i);
       return successor;
     }
 
   /* Zero out this interval.  */
   i->total_length -= absorb;
-  CHECK_TOTAL_LENGTH (i);
+  eassert (0 <= TOTAL_LENGTH (i));
 
   successor = i;
   while (! NULL_PARENT (successor))	   /* It's above us.  Subtract as
@@ -1425,7 +1425,7 @@ merge_interval_right (register INTERVAL i)
 
       successor = INTERVAL_PARENT (successor);
       successor->total_length -= absorb;
-      CHECK_TOTAL_LENGTH (successor);
+      eassert (0 <= TOTAL_LENGTH (successor));
     }
 
   /* This must be the rightmost or last interval and cannot
@@ -1454,19 +1454,19 @@ merge_interval_left (register INTERVAL i)
       while (! NULL_RIGHT_CHILD (predecessor))
 	{
 	  predecessor->total_length += absorb;
-	  CHECK_TOTAL_LENGTH (predecessor);
+	  eassert (0 <= TOTAL_LENGTH (predecessor));
 	  predecessor = predecessor->right;
 	}
 
       predecessor->total_length += absorb;
-      CHECK_TOTAL_LENGTH (predecessor);
+      eassert (0 <= TOTAL_LENGTH (predecessor));
       delete_interval (i);
       return predecessor;
     }
 
   /* Zero out this interval.  */
   i->total_length -= absorb;
-  CHECK_TOTAL_LENGTH (i);
+  eassert (0 <= TOTAL_LENGTH (i));
 
   predecessor = i;
   while (! NULL_PARENT (predecessor))	/* It's above us.  Go up,
@@ -1481,7 +1481,7 @@ merge_interval_left (register INTERVAL i)
 
       predecessor = INTERVAL_PARENT (predecessor);
       predecessor->total_length -= absorb;
-      CHECK_TOTAL_LENGTH (predecessor);
+      eassert (0 <= TOTAL_LENGTH (predecessor));
     }
 
   /* This must be the leftmost or first interval and cannot
@@ -2235,7 +2235,7 @@ copy_intervals (INTERVAL tree, ptrdiff_t start, ptrdiff_t length)
   new->position = 0;
   got = (LENGTH (i) - (start - i->position));
   new->total_length = length;
-  CHECK_TOTAL_LENGTH (new);
+  eassert (0 <= TOTAL_LENGTH (new));
   copy_properties (i, new);
 
   t = new;
@@ -2318,7 +2318,7 @@ set_intervals_multibyte_1 (INTERVAL i, int multi_flag,
     i->total_length = end - start;
   else
     i->total_length = end_byte - start_byte;
-  CHECK_TOTAL_LENGTH (i);
+  eassert (0 <= TOTAL_LENGTH (i));
 
   if (TOTAL_LENGTH (i) == 0)
     {

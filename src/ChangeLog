@@ -1,3 +1,9 @@
+2012-08-08  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Check total length of intervals with eassert.
+	* intervals.h (CHECK_TOTAL_LENGTH): Remove.
+	* intervals.c: Change all users to eassert.
+
 2012-08-07  Eli Zaretskii  <eliz@gnu.org>
 
 	* .gdbinit (xframe, xwindow, nextcons, xcar, xcdr, xlist): Rename

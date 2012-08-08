@@ -191,15 +191,6 @@ interval_copy_parent (INTERVAL d, INTERVAL s)
 #define INTERVAL_PARENT_OR_NULL(i) \
    (INTERVAL_HAS_PARENT (i) ? INTERVAL_PARENT (i) : 0)
 
-/* Abort if interval I's size is negative.  */
-#define CHECK_TOTAL_LENGTH(i)		     \
-  do					     \
-    {					     \
-      if ((i)->total_length < 0)	     \
-	abort ();			     \
-    }					     \
-  while (0)
-
 /* Reset this interval to its vanilla, or no-property state.  */
 #define RESET_INTERVAL(i)		      \
 {					      \
