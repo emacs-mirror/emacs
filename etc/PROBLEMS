@@ -443,8 +443,8 @@ Thus, you could start by adding this to config.h:
 #define LIBS_SYSTEM -lresolv
 
 Then if this gives you an error for redefining a macro, and you see that
-the s- file defines LIBS_SYSTEM as -lfoo -lbar, you could change config.h
-again to say this:
+config.h already defines LIBS_SYSTEM as -lfoo -lbar at some other point
+(possibly in an included file) you could change it to say this:
 
 #define LIBS_SYSTEM -lresolv -lfoo -lbar
 
