@@ -342,12 +342,12 @@ a tab, a carriage return (control-M), a newline, and `]+'."
 (defcustom Info-isearch-search t
   "If non-nil, isearch in Info searches through multiple nodes.
 Before leaving the initial Info node, where isearch was started,
-it fails once with the error message [initial node], and with
+it fails once with the error message [end of node], and with
 subsequent C-s/C-r continues through other nodes without failing
 with this error message in other nodes.  When isearch fails for
-the rest of the manual, it wraps around the whole manual and
-restarts the search from the top/final node depending on
-search direction.
+the rest of the manual, it displays the error message [end of manual],
+wraps around the whole manual and restarts the search from the top/final
+node depending on search direction.
 
 Setting this option to nil restores the default isearch behavior
 with wrapping around the current Info node."
@@ -1863,7 +1863,7 @@ If DIRECTION is `backward', search in the reverse direction."
 		 (not bound)
 		 (or give-up (and found (not (and (> found opoint-min)
 						  (< found opoint-max))))))
-	(signal 'search-failed (list regexp "initial node")))
+	(signal 'search-failed (list regexp "end of node")))
 
       ;; If no subfiles, give error now.
       (if give-up
@@ -2006,7 +2006,7 @@ If DIRECTION is `backward', search in the reverse direction."
 	   ;; Lax version of word search
 	   (let ((lax (not (or isearch-nonincremental
 			       (eq (length string)
-				   (length (isearch-string-state
+				   (length (isearch--state-string
 					    (car isearch-cmds))))))))
 	     (if (functionp isearch-word)
 		 (funcall isearch-word string lax)

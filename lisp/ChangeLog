@@ -1,3 +1,11 @@
+2012-08-08  Juri Linkov  <juri@jurta.org>
+
+	* info.el (Info-isearch-search): Doc fix.
+	(Info-search): Change search-failed message from "initial node" to
+	"end of node" (bug#12078).
+	(Info-isearch-search): Change `isearch-string-state' to
+	`isearch--state-string'.
+
 2012-08-08  Glenn Morris  <rgm@gnu.org>
 
 	* language/persian.el: Remove file.
