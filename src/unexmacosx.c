@@ -815,8 +815,24 @@ copy_data_segment (struct load_command *lc)
 	 file.  */
       if (strncmp (sectp->sectname, SECT_DATA, 16) == 0)
 	{
-	  if (!unexec_write (sectp->offset, (void *) sectp->addr, sectp->size))
+	  extern char my_edata[];
+	  unsigned long my_size;
+
+	  /* The __data section is basically dumped from memory.  But
+	     initialized data in statically linked libraries are
+	     copied from the input file.  In particular,
+	     add_image_hook.names and add_image_hook.pointers stored
+	     by libarclite_macosx.a, are restored so that they will be
+	     reinitialized when the dumped binary is executed.  */
+	  my_size = (unsigned long)my_edata - sectp->addr;
+	  if (!(sectp->addr <= (unsigned long)my_edata
+		&& my_size <= sectp->size))
+	    unexec_error ("my_edata is not in section %s", SECT_DATA);
+	  if (!unexec_write (sectp->offset, (void *) sectp->addr, my_size))
 	    unexec_error ("cannot write section %s", SECT_DATA);
+	  if (!unexec_copy (sectp->offset + my_size, old_file_offset + my_size,
+			    sectp->size - my_size))
+	    unexec_error ("cannot copy section %s", SECT_DATA);
 	  if (!unexec_write (header_offset, sectp, sizeof (struct section)))
 	    unexec_error ("cannot write section %s's header", SECT_DATA);
 	}
