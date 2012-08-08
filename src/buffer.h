@@ -193,9 +193,6 @@ INLINE_HEADER_BEGIN
 /* FIXME: should we move this into ->text->auto_save_modiff?  */
 #define BUF_AUTOSAVE_MODIFF(buf) ((buf)->auto_save_modified)
 
-/* Interval tree of buffer.  */
-#define BUF_INTERVALS(buf) ((buf)->text->intervals)
-
 /* Marker chain of buffer.  */
 #define BUF_MARKERS(buf) ((buf)->text->markers)
 
@@ -951,7 +948,25 @@ extern void mmap_set_vars (int);
 extern Lisp_Object Qbefore_change_functions;
 extern Lisp_Object Qafter_change_functions;
 extern Lisp_Object Qfirst_change_hook;
-
+
+/* Get text properties of B.  */
+
+BUFFER_INLINE INTERVAL
+buffer_get_intervals (struct buffer *b)
+{
+  eassert (b->text != NULL);
+  return b->text->intervals;
+}
+
+/* Set text properties of B to I.  */
+
+BUFFER_INLINE void
+buffer_set_intervals (struct buffer *b, INTERVAL i)
+{
+  eassert (b->text != NULL);
+  b->text->intervals = i;
+}
+
 /* Return character code of multi-byte form at byte position POS.  If POS
    doesn't point the head of valid multi-byte form, only the byte at
    POS is returned.  No range checking.

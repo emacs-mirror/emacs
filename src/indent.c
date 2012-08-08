@@ -336,7 +336,7 @@ current_column (void)
 
   /* If the buffer has overlays, text properties,
      or multibyte characters, use a more general algorithm.  */
-  if (BUF_INTERVALS (current_buffer)
+  if (buffer_get_intervals (current_buffer)
       || current_buffer->overlays_before
       || current_buffer->overlays_after
       || Z != Z_BYTE)

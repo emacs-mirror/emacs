@@ -1,5 +1,19 @@
 2012-08-08  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	Inline functions to examine and change buffer intervals.
+	* alloc.c (mark_interval_tree): Remove.
+	(MARK_INTERVAL_TREE): Simplify.
+	(UNMARK_BALANCE_INTERVALS): Remove.  Adjust users.
+	* intervals.c (buffer_balance_intervals): New function.
+	(graft_intervals_into_buffer): Adjust indentation.
+	(set_intervals_multibyte): Simplify.
+	* buffer.h (BUF_INTERVALS): Remove.
+	(buffer_get_intervals, buffer_set_intervals): New function.
+	* alloc.c, buffer.c, editfns.c, fileio.c, indent.c, insdel.c:
+	* intervals.c, textprop.c: Adjust users.
+
+2012-08-08  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	Inline functions to examine and change string intervals.
 	* lisp.h (STRING_INTERVALS, STRING_SET_INTERVALS): Remove.
 	(string_get_intervals, string_set_intervals): New function.

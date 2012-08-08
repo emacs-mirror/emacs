@@ -143,7 +143,7 @@ validate_interval_range (Lisp_Object object, Lisp_Object *begin, Lisp_Object *en
       if (!(BUF_BEGV (b) <= XINT (*begin) && XINT (*begin) <= XINT (*end)
 	    && XINT (*end) <= BUF_ZV (b)))
 	args_out_of_range (*begin, *end);
-      i = BUF_INTERVALS (b);
+      i = buffer_get_intervals (b);
 
       /* If there's no text, there are no properties.  */
       if (BUF_BEGV (b) == BUF_ZV (b))
@@ -510,7 +510,7 @@ interval_of (ptrdiff_t position, Lisp_Object object)
 
       beg = BUF_BEGV (b);
       end = BUF_ZV (b);
-      i = BUF_INTERVALS (b);
+      i = buffer_get_intervals (b);
     }
   else
     {
@@ -1338,8 +1338,8 @@ set_text_properties_1 (Lisp_Object start, Lisp_Object end, Lisp_Object propertie
   else
     return;
 
-  if (i == 0)
-    i = find_interval (BUF_INTERVALS (XBUFFER (buffer)), s);
+  if (i == NULL)
+    i = find_interval (buffer_get_intervals (XBUFFER (buffer)), s);
 
   if (i->position != s)
     {
@@ -1993,7 +1993,7 @@ void
 verify_interval_modification (struct buffer *buf,
 			      ptrdiff_t start, ptrdiff_t end)
 {
-  register INTERVAL intervals = BUF_INTERVALS (buf);
+  register INTERVAL intervals = buffer_get_intervals (buf);
   register INTERVAL i;
   Lisp_Object hooks;
   register Lisp_Object prev_mod_hooks;

@@ -4527,7 +4527,7 @@ Transposing beyond buffer boundaries is an error.  */)
   Lisp_Object buf;
 
   XSETBUFFER (buf, current_buffer);
-  cur_intv = BUF_INTERVALS (current_buffer);
+  cur_intv = buffer_get_intervals (current_buffer);
 
   validate_region (&startr1, &endr1);
   validate_region (&startr2, &endr2);

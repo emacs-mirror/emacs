@@ -1542,35 +1542,12 @@ mark_interval (register INTERVAL i, Lisp_Object dummy)
   mark_object (i->plist);
 }
 
-
-/* Mark the interval tree rooted in TREE.  Don't call this directly;
-   use the macro MARK_INTERVAL_TREE instead.  */
-
-static void
-mark_interval_tree (register INTERVAL tree)
-{
-  /* No need to test if this tree has been marked already; this
-     function is always called through the MARK_INTERVAL_TREE macro,
-     which takes care of that.  */
-
-  traverse_intervals_noorder (tree, mark_interval, Qnil);
-}
-
-
 /* Mark the interval tree rooted in I.  */
 
-#define MARK_INTERVAL_TREE(i)	\
-  do {				\
-    if (i && !i->gcmarkbit)	\
-      mark_interval_tree (i);	\
-  } while (0)
-
-/* Unmark and rebalance interval tree rooted in I.  */
-
-#define UNMARK_BALANCE_INTERVALS(i)	\
-  do {					\
-   if (i)				\
-     (i) = balance_intervals (i);	\
+#define MARK_INTERVAL_TREE(i)					\
+  do {								\
+    if (i && !i->gcmarkbit)					\
+      traverse_intervals_noorder (i, mark_interval, Qnil);	\
   } while (0)
 
 /***********************************************************************
@@ -2101,8 +2078,8 @@ sweep_strings (void)
 		  /* String is live; unmark it and its intervals.  */
 		  UNMARK_STRING (s);
 
-		  if (s->intervals)
-		    UNMARK_BALANCE_INTERVALS (s->intervals);
+		  /* Do not use string_(set|get)_intervals here.  */
+		  s->intervals = balance_intervals (s->intervals);
 
 		  ++total_strings;
 		  total_string_bytes += STRING_BYTES (s);
@@ -5848,7 +5825,7 @@ mark_buffer (struct buffer *buffer)
 
   /* ...but there are some buffer-specific things.  */
 
-  MARK_INTERVAL_TREE (BUF_INTERVALS (buffer));
+  MARK_INTERVAL_TREE (buffer_get_intervals (buffer));
 
   /* For now, we just don't mark the undo_list.  It's done later in
      a special way just before the sweep phase, and after stripping
@@ -6587,7 +6564,8 @@ gc_sweep (void)
       else
 	{
 	  VECTOR_UNMARK (buffer);
-	  UNMARK_BALANCE_INTERVALS (BUF_INTERVALS (buffer));
+	  /* Do not use buffer_(set|get)_intervals here.  */
+	  buffer->text->intervals = balance_intervals (buffer->text->intervals);
 	  total_buffers++;
 	  prev = buffer, buffer = buffer->header.next.buffer;
 	}

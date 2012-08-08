@@ -360,7 +360,7 @@ even if it is dead.  The return value is never nil.  */)
   BUF_CHARS_MODIFF (b) = 1;
   BUF_OVERLAY_MODIFF (b) = 1;
   BUF_SAVE_MODIFF (b) = 1;
-  BUF_INTERVALS (b) = NULL;
+  buffer_set_intervals (b, NULL);
   BUF_UNCHANGED_MODIFIED (b) = 1;
   BUF_OVERLAY_UNCHANGED_MODIFIED (b) = 1;
   BUF_END_UNCHANGED (b) = 0;
@@ -1688,7 +1688,7 @@ cleaning up all windows currently displaying the buffer to be killed. */)
 	  m = next;
 	}
       BUF_MARKERS (b) = NULL;
-      BUF_INTERVALS (b) = NULL;
+      buffer_set_intervals (b, NULL);
 
       /* Perhaps we should explicitly free the interval tree here... */
     }
@@ -4904,8 +4904,8 @@ init_buffer_once (void)
   /* No one will share the text with these buffers, but let's play it safe.  */
   buffer_defaults.indirections = 0;
   buffer_local_symbols.indirections = 0;
-  BUF_INTERVALS (&buffer_defaults) = NULL;
-  BUF_INTERVALS (&buffer_local_symbols) = NULL;
+  buffer_set_intervals (&buffer_defaults, NULL);
+  buffer_set_intervals (&buffer_local_symbols, NULL);
   XSETPVECTYPESIZE (&buffer_defaults, PVEC_BUFFER, pvecsize);
   XSETBUFFER (Vbuffer_defaults, &buffer_defaults);
   XSETPVECTYPESIZE (&buffer_local_symbols, PVEC_BUFFER, pvecsize);

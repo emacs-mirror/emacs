@@ -844,10 +844,10 @@ insert_1_both (const char *string,
 			     PT + nchars, PT_BYTE + nbytes,
 			     before_markers);
 
-  if (BUF_INTERVALS (current_buffer))
+  if (buffer_get_intervals (current_buffer))
     offset_intervals (current_buffer, PT, nchars);
 
-  if (!inherit && BUF_INTERVALS (current_buffer))
+  if (!inherit && buffer_get_intervals (current_buffer))
     set_text_properties (make_number (PT), make_number (PT + nchars),
 			 Qnil, Qnil, Qnil);
 
@@ -1017,7 +1017,7 @@ insert_from_gap (ptrdiff_t nchars, ptrdiff_t nbytes)
   adjust_markers_for_insert (GPT - nchars, GPT_BYTE - nbytes,
 			     GPT, GPT_BYTE, 0);
 
-  if (BUF_INTERVALS (current_buffer))
+  if (buffer_get_intervals (current_buffer))
     {
       offset_intervals (current_buffer, GPT - nchars, nchars);
       graft_intervals_into_buffer (NULL, GPT - nchars, nchars,
@@ -1157,11 +1157,11 @@ insert_from_buffer_1 (struct buffer *buf,
 			     PT_BYTE + outgoing_nbytes,
 			     0);
 
-  if (BUF_INTERVALS (current_buffer))
+  if (buffer_get_intervals (current_buffer))
     offset_intervals (current_buffer, PT, nchars);
 
   /* Get the intervals for the part of the string we are inserting.  */
-  intervals = BUF_INTERVALS (buf);
+  intervals = buffer_get_intervals (buf);
   if (nchars < BUF_Z (buf) - BUF_BEG (buf))
     {
       if (buf == current_buffer && PT <= from)
@@ -1225,10 +1225,9 @@ adjust_after_replace (ptrdiff_t from, ptrdiff_t from_byte,
     adjust_overlays_for_insert (from, len - nchars_del);
   else if (len < nchars_del)
     adjust_overlays_for_delete (from, nchars_del - len);
-  if (BUF_INTERVALS (current_buffer))
-    {
-      offset_intervals (current_buffer, from, len - nchars_del);
-    }
+
+  if (buffer_get_intervals (current_buffer))
+    offset_intervals (current_buffer, from, len - nchars_del);
 
   if (from < PT)
     adjust_point (len - nchars_del, len_byte - nbytes_del);
@@ -1823,7 +1822,7 @@ prepare_to_modify_buffer (ptrdiff_t start, ptrdiff_t end,
   if (XBUFFER (XWINDOW (selected_window)->buffer) != current_buffer)
     ++windows_or_buffers_changed;
 
-  if (BUF_INTERVALS (current_buffer))
+  if (buffer_get_intervals (current_buffer))
     {
       if (preserve_ptr)
 	{

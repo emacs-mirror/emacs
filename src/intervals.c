@@ -77,7 +77,7 @@ create_root_interval (Lisp_Object parent)
       new->total_length = (BUF_Z (XBUFFER (parent))
 			   - BUF_BEG (XBUFFER (parent)));
       eassert (0 <= TOTAL_LENGTH (new));
-      BUF_INTERVALS (XBUFFER (parent)) = new;
+      buffer_set_intervals (XBUFFER (parent), new);
       new->position = BEG;
     }
   else if (STRINGP (parent))
@@ -453,7 +453,7 @@ balance_possible_root_interval (register INTERVAL interval)
   if (have_parent)
     {
       if (BUFFERP (parent))
-	BUF_INTERVALS (XBUFFER (parent)) = interval;
+	buffer_set_intervals (XBUFFER (parent), interval);
       else if (STRINGP (parent))
 	string_set_intervals (parent, interval);
     }
@@ -481,6 +481,19 @@ INTERVAL
 balance_intervals (INTERVAL tree)
 {
   return tree ? balance_intervals_internal (tree) : NULL;
+}
+
+/* Rebalance text properties of B.  */
+
+static void
+buffer_balance_intervals (struct buffer *b)
+{
+  INTERVAL i;
+
+  eassert (b != NULL);
+  i = buffer_get_intervals (b);
+  if (i)
+    buffer_set_intervals (b, balance_an_interval (i));
 }
 
 /* Split INTERVAL into two pieces, starting the second piece at
@@ -1204,7 +1217,7 @@ delete_interval (register INTERVAL i)
 	interval_set_object (parent, owner);
 
       if (BUFFERP (owner))
-	BUF_INTERVALS (XBUFFER (owner)) = parent;
+	buffer_set_intervals (XBUFFER (owner), parent);
       else if (STRINGP (owner))
 	string_set_intervals (owner, parent);
       else
@@ -1306,7 +1319,7 @@ adjust_intervals_for_deletion (struct buffer *buffer,
 			       ptrdiff_t start, ptrdiff_t length)
 {
   register ptrdiff_t left_to_delete = length;
-  register INTERVAL tree = BUF_INTERVALS (buffer);
+  register INTERVAL tree = buffer_get_intervals (buffer);
   Lisp_Object parent;
   ptrdiff_t offset;
 
@@ -1321,7 +1334,7 @@ adjust_intervals_for_deletion (struct buffer *buffer,
 
   if (length == TOTAL_LENGTH (tree))
     {
-      BUF_INTERVALS (buffer) = NULL;
+      buffer_set_intervals (buffer, NULL);
       return;
     }
 
@@ -1338,10 +1351,10 @@ adjust_intervals_for_deletion (struct buffer *buffer,
     {
       left_to_delete -= interval_deletion_adjustment (tree, start - offset,
 						      left_to_delete);
-      tree = BUF_INTERVALS (buffer);
+      tree = buffer_get_intervals (buffer);
       if (left_to_delete == tree->total_length)
 	{
-	  BUF_INTERVALS (buffer) = NULL;
+	  buffer_set_intervals (buffer, NULL);
 	  return;
 	}
     }
@@ -1359,11 +1372,12 @@ adjust_intervals_for_deletion (struct buffer *buffer,
 void
 offset_intervals (struct buffer *buffer, ptrdiff_t start, ptrdiff_t length)
 {
-  if (!BUF_INTERVALS (buffer) || length == 0)
+  if (!buffer_get_intervals (buffer) || length == 0)
     return;
 
   if (length > 0)
-    adjust_intervals_for_insertion (BUF_INTERVALS (buffer), start, length);
+    adjust_intervals_for_insertion (buffer_get_intervals (buffer),
+				    start, length);
   else
     {
       IF_LINT (if (length < - TYPE_MAXIMUM (ptrdiff_t)) abort ();)
@@ -1570,7 +1584,7 @@ graft_intervals_into_buffer (INTERVAL source, ptrdiff_t position,
   register INTERVAL tree;
   ptrdiff_t over_used;
 
-  tree = BUF_INTERVALS (buffer);
+  tree = buffer_get_intervals (buffer);
 
   /* If the new text has no properties, then with inheritance it
      becomes part of whatever interval it was inserted into.
@@ -1586,31 +1600,34 @@ graft_intervals_into_buffer (INTERVAL source, ptrdiff_t position,
 				 make_number (position + length),
 				 Qnil, buf, 0);
 	}
-      if (BUF_INTERVALS (buffer))
-	/* Shouldn't be necessary.  --Stef  */
-	BUF_INTERVALS (buffer) = balance_an_interval (BUF_INTERVALS (buffer));
+      /* Shouldn't be necessary.  --Stef  */
+      buffer_balance_intervals (buffer);
       return;
     }
 
   eassert (length == TOTAL_LENGTH (source));
 
   if ((BUF_Z (buffer) - BUF_BEG (buffer)) == length)
-    {  /* The inserted text constitutes the whole buffer, so
+    { 
+      /* The inserted text constitutes the whole buffer, so
 	 simply copy over the interval structure.  */
-	  Lisp_Object buf;
-	  XSETBUFFER (buf, buffer);
-	  BUF_INTERVALS (buffer) = reproduce_tree_obj (source, buf);
-      BUF_INTERVALS (buffer)->position = BUF_BEG (buffer);
-      eassert (BUF_INTERVALS (buffer)->up_obj == 1);
-	  return;
-	}
+      Lisp_Object buf;
+
+      XSETBUFFER (buf, buffer);
+      buffer_set_intervals (buffer, reproduce_tree_obj (source, buf));
+      buffer_get_intervals (buffer)->position = BUF_BEG (buffer);
+      eassert (buffer_get_intervals (buffer)->up_obj == 1);
+      return;
+    }
   else if (!tree)
-    { /* Create an interval tree in which to place a copy
+    {
+      /* Create an interval tree in which to place a copy
 	 of the intervals of the inserted string.  */
 	Lisp_Object buf;
+
 	XSETBUFFER (buf, buffer);
 	tree = create_root_interval (buf);
-      }
+    }
   /* Paranoia -- the text has already been added, so
      this buffer should be of non-zero length.  */
   eassert (TOTAL_LENGTH (tree) > 0);
@@ -1691,9 +1708,7 @@ graft_intervals_into_buffer (INTERVAL source, ptrdiff_t position,
       under = next_interval (this);
     }
 
-  if (BUF_INTERVALS (buffer))
-    BUF_INTERVALS (buffer) = balance_an_interval (BUF_INTERVALS (buffer));
-  return;
+  buffer_balance_intervals (buffer);
 }
 
 /* Get the value of property PROP from PLIST,
@@ -1860,7 +1875,7 @@ set_point_both (ptrdiff_t charpos, ptrdiff_t bytepos)
 
   /* If we have no text properties and overlays,
      then we can do it quickly.  */
-  if (!BUF_INTERVALS (current_buffer) && ! have_overlays)
+  if (!buffer_get_intervals (current_buffer) && ! have_overlays)
     {
       temp_set_point_both (current_buffer, charpos, bytepos);
       return;
@@ -1869,7 +1884,7 @@ set_point_both (ptrdiff_t charpos, ptrdiff_t bytepos)
   /* Set TO to the interval containing the char after CHARPOS,
      and TOPREV to the interval containing the char before CHARPOS.
      Either one may be null.  They may be equal.  */
-  to = find_interval (BUF_INTERVALS (current_buffer), charpos);
+  to = find_interval (buffer_get_intervals (current_buffer), charpos);
   if (charpos == BEGV)
     toprev = 0;
   else if (to && to->position == charpos)
@@ -1883,7 +1898,7 @@ set_point_both (ptrdiff_t charpos, ptrdiff_t bytepos)
      and FROMPREV to the interval containing the char before PT.
      Either one may be null.  They may be equal.  */
   /* We could cache this and save time.  */
-  from = find_interval (BUF_INTERVALS (current_buffer), buffer_point);
+  from = find_interval (buffer_get_intervals (current_buffer), buffer_point);
   if (buffer_point == BEGV)
     fromprev = 0;
   else if (from && from->position == PT)
@@ -1989,7 +2004,7 @@ set_point_both (ptrdiff_t charpos, ptrdiff_t bytepos)
       /* Set TO to the interval containing the char after CHARPOS,
 	 and TOPREV to the interval containing the char before CHARPOS.
 	 Either one may be null.  They may be equal.  */
-      to = find_interval (BUF_INTERVALS (current_buffer), charpos);
+      to = find_interval (buffer_get_intervals (current_buffer), charpos);
       if (charpos == BEGV)
 	toprev = 0;
       else if (to && to->position == charpos)
@@ -2122,9 +2137,9 @@ get_property_and_range (ptrdiff_t pos, Lisp_Object prop, Lisp_Object *val,
   INTERVAL i, prev, next;
 
   if (NILP (object))
-    i = find_interval (BUF_INTERVALS (current_buffer), pos);
+    i = find_interval (buffer_get_intervals (current_buffer), pos);
   else if (BUFFERP (object))
-    i = find_interval (BUF_INTERVALS (XBUFFER (object)), pos);
+    i = find_interval (buffer_get_intervals (XBUFFER (object)), pos);
   else if (STRINGP (object))
     i = find_interval (string_get_intervals (object), pos);
   else
@@ -2253,7 +2268,7 @@ void
 copy_intervals_to_string (Lisp_Object string, struct buffer *buffer,
 			  ptrdiff_t position, ptrdiff_t length)
 {
-  INTERVAL interval_copy = copy_intervals (BUF_INTERVALS (buffer),
+  INTERVAL interval_copy = copy_intervals (buffer_get_intervals (buffer),
 					   position, length);
   if (!interval_copy)
     return;
@@ -2418,7 +2433,8 @@ set_intervals_multibyte_1 (INTERVAL i, int multi_flag,
 void
 set_intervals_multibyte (int multi_flag)
 {
-  if (BUF_INTERVALS (current_buffer))
-    set_intervals_multibyte_1 (BUF_INTERVALS (current_buffer), multi_flag,
-			       BEG, BEG_BYTE, Z, Z_BYTE);
+  INTERVAL i = buffer_get_intervals (current_buffer);
+
+  if (i)
+    set_intervals_multibyte_1 (i, multi_flag, BEG, BEG_BYTE, Z, Z_BYTE);
 }
