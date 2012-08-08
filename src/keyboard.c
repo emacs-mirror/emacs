@@ -392,7 +392,7 @@ int interrupt_input;
 /* Nonzero while interrupts are temporarily deferred during redisplay.  */
 int interrupts_deferred;
 
-/* Allow m- file to inhibit use of FIONREAD.  */
+/* Allow configure to inhibit use of FIONREAD.  */
 #ifdef BROKEN_FIONREAD
 #undef FIONREAD
 #endif
