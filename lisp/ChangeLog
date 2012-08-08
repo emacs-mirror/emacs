@@ -1,3 +1,7 @@
+2012-08-08  Óscar Fuentes  <ofv@wanadoo.es>
+
+	* vc/diff-mode.el (diff-remove-trailing-whitespace): New function.
+
 2012-08-08  Fabián Ezequiel Gallina  <fgallina@cuca>
 
 	* progmodes/python.el Fixed defsubst warning.

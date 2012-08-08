@@ -2016,6 +2016,47 @@ I.e. like `add-change-log-entry-other-window' but applied to all hunks."
       ;; When there's no more hunks, diff-hunk-next signals an error.
       (error nil))))
 
+(defun diff-remove-trailing-whitespace ()
+  "When on a buffer that contains a diff, inspects the
+differences and removes trailing whitespace (spaces, tabs) from
+the lines modified or introduced by this diff. Shows a message
+with the name of the altered buffers, which are unsaved.  If a
+file referenced on the diff has no buffer and needs to be fixed,
+a buffer visiting that file is created."
+  (interactive)
+  (goto-char (point-min))
+  (let
+      ;; We assume that the diff header has no trailing whitespace.
+      ((modified-buffers nil)
+       (white-positions nil))
+    (while (re-search-forward "^[+!>].*[ \t]+$" (point-max) t)
+      (save-excursion
+	(cl-destructuring-bind (buf line-offset pos src _dst &optional _switched)
+	    (diff-find-source-location t t)
+	  (when line-offset
+	    (set-buffer buf)
+	    (save-excursion
+	      (goto-char (+ (car pos) (cdr src)))
+	      (beginning-of-line)
+	      (when (re-search-forward "\\([ \t]+\\)$" (line-end-position) t)
+		(when (not (member buf modified-buffers))
+		  (push buf modified-buffers))
+		(goto-char (match-end 0))
+		(push (point-marker) white-positions)
+		(goto-char (match-beginning 0))
+		(push (point-marker) white-positions)
+		(push buf white-positions)))))))
+    (while white-positions
+      (save-excursion
+	(set-buffer (pop white-positions))
+	(delete-region (pop white-positions) (pop white-positions))))
+    (if modified-buffers
+	(let ((msg "Deleted new trailing whitespace from:"))
+	  (dolist (f modified-buffers)
+	    (setq msg (concat msg " `" (buffer-name f) "'")))
+	  (message "%s" msg))
+      (message "No trailing whitespace fixes needed."))))
+
 ;; provide the package
 (provide 'diff-mode)
 
