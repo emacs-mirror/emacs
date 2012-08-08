@@ -290,14 +290,13 @@ main (int argc, char **argv)
 	 On systems that use a lock file, extracting the mail without locking
 	 WILL occasionally cause loss of mail due to timing errors!
 
-	 So, if creation of the lock file fails
-	 due to access permission on the mail spool directory,
-	 you simply MUST change the permission
-	 and/or make movemail a setgid program
+	 So, if creation of the lock file fails due to access
+	 permission on the mail spool directory, you simply MUST
+	 change the permission and/or make movemail a setgid program
 	 so it can create lock files properly.
 
-	 You might also wish to verify that your system is one
-	 which uses lock files for this purpose.  Some systems use other methods.
+	 You might also wish to verify that your system is one which
+	 uses lock files for this purpose.  Some systems use other methods.
 
 	 If your system uses the `flock' system call for mail locking,
 	 define MAIL_USE_SYSTEM_LOCK in config.h and recompile movemail.
