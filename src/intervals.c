@@ -1870,8 +1870,7 @@ set_point_both (ptrdiff_t charpos, ptrdiff_t bytepos)
      whether or not there are intervals in the buffer.  */
   eassert (charpos <= ZV && charpos >= BEGV);
 
-  have_overlays = (current_buffer->overlays_before
-		   || current_buffer->overlays_after);
+  have_overlays = buffer_has_overlays ();
 
   /* If we have no text properties and overlays,
      then we can do it quickly.  */

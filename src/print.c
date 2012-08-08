@@ -498,8 +498,8 @@ temp_output_buffer_setup (const char *bufname)
   BVAR (current_buffer, read_only) = Qnil;
   BVAR (current_buffer, filename) = Qnil;
   BVAR (current_buffer, undo_list) = Qt;
-  eassert (current_buffer->overlays_before == NULL);
-  eassert (current_buffer->overlays_after == NULL);
+  eassert (buffer_get_overlays (NULL, OV_BEFORE) == NULL);
+  eassert (buffer_get_overlays (NULL, OV_AFTER) == NULL);
   BVAR (current_buffer, enable_multibyte_characters)
     = BVAR (&buffer_defaults, enable_multibyte_characters);
   specbind (Qinhibit_read_only, Qt);

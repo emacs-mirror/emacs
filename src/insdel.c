@@ -1993,7 +1993,7 @@ signal_before_change (ptrdiff_t start_int, ptrdiff_t end_int,
       XSETCDR (rvoe_arg, Qt);
     }
 
-  if (current_buffer->overlays_before || current_buffer->overlays_after)
+  if (buffer_has_overlays ())
     {
       PRESERVE_VALUE;
       report_overlay_modification (FETCH_START, FETCH_END, 0,
@@ -2029,8 +2029,7 @@ signal_after_change (ptrdiff_t charpos, ptrdiff_t lendel, ptrdiff_t lenins)
      just record the args that we were going to use.  */
   if (! NILP (Vcombine_after_change_calls)
       && NILP (Vbefore_change_functions)
-      && !current_buffer->overlays_before
-      && !current_buffer->overlays_after)
+      && !buffer_has_overlays ())
     {
       Lisp_Object elt;
 
@@ -2072,7 +2071,7 @@ signal_after_change (ptrdiff_t charpos, ptrdiff_t lendel, ptrdiff_t lenins)
       XSETCDR (rvoe_arg, Qt);
     }
 
-  if (current_buffer->overlays_before || current_buffer->overlays_after)
+  if (buffer_has_overlays ())
     report_overlay_modification (make_number (charpos),
 				 make_number (charpos + lenins),
 				 1,

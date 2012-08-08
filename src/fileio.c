@@ -3490,8 +3490,8 @@ variable `last-coding-system-used' to the coding system actually used.  */)
 		  BVAR (buf, read_only) = Qnil;
 		  BVAR (buf, filename) = Qnil;
 		  BVAR (buf, undo_list) = Qt;
-		  eassert (buf->overlays_before == NULL);
-		  eassert (buf->overlays_after == NULL);
+		  eassert (buffer_get_overlays (buf, OV_BEFORE) == NULL);
+		  eassert (buffer_get_overlays (buf, OV_AFTER) == NULL);
 
 		  set_buffer_internal (buf);
 		  Ferase_buffer ();

@@ -1,5 +1,15 @@
 2012-08-08  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	Inline functions to examine and change buffer overlays.
+	* buffer.c (unchain_both): New function.
+	* buffer.h (buffer_get_overlays, buffer_set_overlays):
+	(buffer_has_overlays): New function.
+	(enum overlay_type): New enum.
+	* alloc.c, buffer.c, editfns.c, fileio.c, indent.c:
+	* insdel.c, intervals.c, print.c, xdisp.c: Adjust users.
+
+2012-08-08  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	Inline functions to examine and change buffer intervals.
 	* alloc.c (mark_interval_tree): Remove.
 	(MARK_INTERVAL_TREE): Simplify.
