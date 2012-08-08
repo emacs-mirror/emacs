@@ -1,5 +1,10 @@
 2012-08-08  Juri Linkov  <juri@jurta.org>
 
+	* files.el (basic-save-buffer): Use `buffer-name' as the default
+	of `read-file-name' when buffer is not visiting a file (bug#12128).
+
+2012-08-08  Juri Linkov  <juri@jurta.org>
+
 	* info.el (Info-isearch-search): Doc fix.
 	(Info-search): Change search-failed message from "initial node" to
 	"end of node" (bug#12078).

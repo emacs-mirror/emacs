@@ -4488,7 +4488,8 @@ Before and after saving the buffer, this function runs
 	  (or buffer-file-name
 	      (let ((filename
 		     (expand-file-name
-		      (read-file-name "File to save in: ") nil)))
+		      (read-file-name "File to save in: "
+				      nil (expand-file-name (buffer-name))))))
 		(if (file-exists-p filename)
 		    (if (file-directory-p filename)
 			;; Signal an error if the user specified the name of an
