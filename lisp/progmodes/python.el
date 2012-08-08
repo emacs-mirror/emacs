@@ -353,6 +353,40 @@ This variant of `rx' supports common python named REGEXPS."
 
 
 ;;; Font-lock and syntax
+
+(defun python-syntax-context (type &optional syntax-ppss)
+  "Return non-nil if point is on TYPE using SYNTAX-PPSS.
+TYPE can be `comment', `string' or `paren'.  It returns the start
+character address of the specified TYPE."
+  (let ((ppss (or syntax-ppss (syntax-ppss))))
+    (case type
+      (comment (and (nth 4 ppss) (nth 8 ppss)))
+      (string (and (not (nth 4 ppss)) (nth 8 ppss)))
+      (paren (nth 1 ppss))
+      (t nil))))
+
+(defun python-syntax-context-type (&optional syntax-ppss)
+  "Return the context type using SYNTAX-PPSS.
+The type returned can be `comment', `string' or `paren'."
+  (let ((ppss (or syntax-ppss (syntax-ppss))))
+    (cond
+     ((nth 8 ppss) (if (nth 4 ppss) 'comment 'string))
+     ((nth 1 ppss) 'paren))))
+
+(defsubst python-syntax-comment-or-string-p ()
+  "Return non-nil if point is inside 'comment or 'string."
+  (nth 8 (syntax-ppss)))
+
+(define-obsolete-function-alias
+  'python-info-ppss-context #'python-syntax-context "24.2")
+
+(define-obsolete-function-alias
+  'python-info-ppss-context-type #'python-syntax-context-type "24.2")
+
+(define-obsolete-function-alias
+  'python-info-ppss-comment-or-string-p
+  #'python-syntax-comment-or-string-p "24.2")
+
 (defvar python-font-lock-keywords
   ;; Keywords
   `(,(rx symbol-start
@@ -439,9 +473,9 @@ This variant of `rx' supports common python named REGEXPS."
                              (? ?\[ (+ (not (any  ?\]))) ?\]) (* space)
                              assignment-operator)))
           (when (re-search-forward re limit t)
-            (while (and (python-info-ppss-context 'paren)
+            (while (and (python-syntax-context 'paren)
                         (re-search-forward re limit t)))
-            (if (and (not (python-info-ppss-context 'paren))
+            (if (and (not (python-syntax-context 'paren))
                      (not (equal (char-after (point-marker)) ?=)))
                 t
               (set-match-data nil)))))
@@ -454,10 +488,10 @@ This variant of `rx' supports common python named REGEXPS."
                              assignment-operator)))
           (when (and (re-search-forward re limit t)
                      (goto-char (nth 3 (match-data))))
-            (while (and (python-info-ppss-context 'paren)
+            (while (and (python-syntax-context 'paren)
                         (re-search-forward re limit t))
               (goto-char (nth 3 (match-data))))
-            (if (not (python-info-ppss-context 'paren))
+            (if (not (python-syntax-context 'paren))
                 t
               (set-match-data nil)))))
      (1 font-lock-variable-name-face nil nil))))
@@ -582,7 +616,7 @@ These make `python-indent-calculate-indentation' subtract the value of
                     (re-search-forward
                      (python-rx line-start block-start) nil t))
           (when (and
-                 (not (python-info-ppss-context-type))
+                 (not (python-syntax-context-type))
                  (progn
                    (goto-char (line-end-position))
                    (python-util-forward-comment -1)
@@ -632,14 +666,14 @@ START is the buffer position where the sexp starts."
            (bobp))
          'no-indent)
         ;; Inside a paren
-        ((setq start (python-info-ppss-context 'paren ppss))
+        ((setq start (python-syntax-context 'paren ppss))
          'inside-paren)
         ;; Inside string
-        ((setq start (python-info-ppss-context 'string ppss))
+        ((setq start (python-syntax-context 'string ppss))
          'inside-string)
         ;; After backslash
-        ((setq start (when (not (or (python-info-ppss-context 'string ppss)
-                                    (python-info-ppss-context 'comment ppss)))
+        ((setq start (when (not (or (python-syntax-context 'string ppss)
+                                    (python-syntax-context 'comment ppss)))
                        (let ((line-beg-pos (line-beginning-position)))
                          (when (python-info-line-ends-backslash-p
                                 (1- line-beg-pos))
@@ -657,7 +691,7 @@ START is the buffer position where the sexp starts."
                          (while (and (re-search-backward
                                       (python-rx block-start) nil t)
                                      (or
-                                      (python-info-ppss-context-type)
+                                      (python-syntax-context-type)
                                       (python-info-continuation-line-p))))
                          (when (looking-at (python-rx block-start))
                            (point-marker)))))
@@ -721,13 +755,13 @@ START is the buffer position where the sexp starts."
                  (while (prog2
                             (forward-line -1)
                             (and (not (bobp))
-                                 (python-info-ppss-context 'paren))))
+                                 (python-syntax-context 'paren))))
                  (goto-char (line-end-position))
                  (while (and (re-search-backward
                               "\\." (line-beginning-position) t)
-                             (python-info-ppss-context-type)))
+                             (python-syntax-context-type)))
                  (if (and (looking-at "\\.")
-                          (not (python-info-ppss-context-type)))
+                          (not (python-syntax-context-type)))
                      ;; The indentation is the same column of the
                      ;; first matching dot that's not inside a
                      ;; comment, a string or a paren
@@ -783,7 +817,7 @@ START is the buffer position where the sexp starts."
                (when (and (looking-at (regexp-opt '(")" "]" "}")))
                           (progn
                             (forward-char 1)
-                            (not (python-info-ppss-context 'paren))))
+                            (not (python-syntax-context 'paren))))
                  (goto-char context-start)
                  (current-indentation))))
             ;; If open paren is contained on a line by itself add another
@@ -883,7 +917,7 @@ See `python-indent-line' for details."
 (defun python-indent-dedent-line ()
   "De-indent current line."
   (interactive "*")
-  (when (and (not (python-info-ppss-comment-or-string-p))
+  (when (and (not (python-syntax-comment-or-string-p))
              (<= (point-marker) (save-excursion
                                   (back-to-indentation)
                                   (point-marker)))
@@ -974,7 +1008,7 @@ With numeric ARG, just insert that many colons.  With
   (when (and (not arg)
              (eolp)
              (not (equal ?: (char-after (- (point-marker) 2))))
-             (not (python-info-ppss-comment-or-string-p)))
+             (not (python-syntax-comment-or-string-p)))
     (let ((indentation (current-indentation))
           (calculated-indentation (python-indent-calculate-indentation)))
       (python-info-closing-block-message)
@@ -998,7 +1032,7 @@ automatically if needed."
       (goto-char (line-beginning-position))
       ;; If after going to the beginning of line the point
       ;; is still inside a paren it's ok to do the trick
-      (when (python-info-ppss-context 'paren)
+      (when (python-syntax-context 'paren)
         (let ((indentation (python-indent-calculate-indentation)))
           (when (< (current-indentation) indentation)
             (indent-line-to indentation)))))))
@@ -1032,7 +1066,7 @@ non-nil if point is moved to `beginning-of-defun'."
               (end-of-line 1))
             (while (and (funcall re-search-fn
                                  python-nav-beginning-of-defun-regexp nil t)
-                        (python-info-ppss-context-type)))
+                        (python-syntax-context-type)))
             (and (python-info-looking-at-beginning-of-defun)
                  (or (not (= (line-number-at-pos pos)
                              (line-number-at-pos)))
@@ -1082,15 +1116,15 @@ Returns nil if point is not in a def or class."
                       (equal (char-after (+ (point) (current-indentation))) ?#)
                       (<= (current-indentation) beg-defun-indent)
                       (looking-at (python-rx decorator))
-                      (python-info-ppss-context-type))))
+                      (python-syntax-context-type))))
       (forward-line 1)
       ;; If point falls inside a paren or string context the point is
       ;; forwarded at the end of it (or end of buffer if its not closed)
-      (let ((context-type (python-info-ppss-context-type)))
+      (let ((context-type (python-syntax-context-type)))
         (when (memq context-type '(paren string))
           ;; Slow but safe.
           (while (and (not (eobp))
-                      (python-info-ppss-context-type))
+                      (python-syntax-context-type))
             (forward-line 1)))))))
 
 (defun python-nav-beginning-of-statement ()
@@ -1102,8 +1136,8 @@ Returns nil if point is not in a def or class."
                      (save-excursion
                        (forward-line -1)
                        (python-info-line-ends-backslash-p))
-                     (python-info-ppss-context 'string)
-                     (python-info-ppss-context 'paren))
+                     (python-syntax-context 'string)
+                     (python-syntax-context 'paren))
                 (forward-line -1)))))
 
 (defun python-nav-end-of-statement ()
@@ -1113,8 +1147,8 @@ Returns nil if point is not in a def or class."
               (not (eobp))
               (when (or
                      (python-info-line-ends-backslash-p)
-                     (python-info-ppss-context 'string)
-                     (python-info-ppss-context 'paren))
+                     (python-syntax-context 'string)
+                     (python-syntax-context 'paren))
                 (forward-line 1)))))
 
 (defun python-nav-backward-statement (&optional arg)
@@ -1202,13 +1236,13 @@ backward to previous block."
       (python-nav-end-of-statement)
       (while (and
               (re-search-forward block-start-regexp nil t)
-              (python-info-ppss-context-type)))
+              (python-syntax-context-type)))
       (setq arg (1- arg)))
     (while (< arg 0)
       (python-nav-beginning-of-statement)
       (while (and
               (re-search-backward block-start-regexp nil t)
-              (python-info-ppss-context-type)))
+              (python-syntax-context-type)))
       (setq arg (1+ arg)))
     (python-nav-beginning-of-statement)
     (if (not (looking-at (python-rx block-start)))
@@ -1920,7 +1954,7 @@ completions on the current context."
                   (while (or
                           ;; honor initial paren depth
                           (> (car (syntax-ppss)) paren-depth)
-                          (python-info-ppss-context 'string))
+                          (python-syntax-context 'string))
                     (forward-char -1))))
               (point)))
            (end (point))
@@ -2140,7 +2174,7 @@ Optional argument JUSTIFY defines if the paragraph should be justified."
      ((funcall python-fill-comment-function justify))
      ;; Strings/Docstrings
      ((save-excursion (skip-chars-forward "\"'uUrR")
-                      (python-info-ppss-context 'string))
+                      (python-syntax-context 'string))
       (funcall python-fill-string-function justify))
      ;; Decorators
      ((equal (char-after (save-excursion
@@ -2148,7 +2182,7 @@ Optional argument JUSTIFY defines if the paragraph should be justified."
                            (point-marker))) ?@)
       (funcall python-fill-decorator-function justify))
      ;; Parens
-     ((or (python-info-ppss-context 'paren)
+     ((or (python-syntax-context 'paren)
           (looking-at (python-rx open-paren))
           (save-excursion
             (skip-syntax-forward "^(" (line-end-position))
@@ -2168,13 +2202,13 @@ JUSTIFY should be used (if applicable) as in `fill-paragraph'."
         (string-start-marker
          (progn
            (skip-chars-forward "\"'uUrR")
-           (goto-char (python-info-ppss-context 'string))
+           (goto-char (python-syntax-context 'string))
            (skip-chars-forward "\"'uUrR")
            (point-marker)))
         (reg-start (line-beginning-position))
         (string-end-marker
          (progn
-           (while (python-info-ppss-context 'string)
+           (while (python-syntax-context 'string)
              (goto-char (1+ (point-marker))))
            (skip-chars-backward "\"'")
            (point-marker)))
@@ -2212,16 +2246,16 @@ JUSTIFY should be used (if applicable) as in `fill-paragraph'."
 JUSTIFY should be used (if applicable) as in `fill-paragraph'."
   (save-restriction
     (narrow-to-region (progn
-                        (while (python-info-ppss-context 'paren)
+                        (while (python-syntax-context 'paren)
                           (goto-char (1- (point-marker))))
                         (point-marker)
                         (line-beginning-position))
                       (progn
-                        (when (not (python-info-ppss-context 'paren))
+                        (when (not (python-syntax-context 'paren))
                           (end-of-line)
-                          (when (not (python-info-ppss-context 'paren))
+                          (when (not (python-syntax-context 'paren))
                             (skip-syntax-backward "^)")))
-                        (while (python-info-ppss-context 'paren)
+                        (while (python-syntax-context 'paren)
                           (goto-char (1+ (point-marker))))
                         (point-marker)))
     (let ((paragraph-start "\f\\|[ \t]*$")
@@ -2259,7 +2293,7 @@ the if condition."
   ;; Only expand in code.
   :enable-function (lambda ()
                      (and
-                      (not (python-info-ppss-comment-or-string-p))
+                      (not (python-syntax-comment-or-string-p))
                       python-skeleton-autoinsert)))
 
 (defmacro python-skeleton-define (name doc &rest skel)
@@ -2579,7 +2613,7 @@ not inside a defun."
 With optional argument REPLACE-SELF convert \"self\" to current
 parent defun name."
   (let ((name
-         (and (not (python-info-ppss-comment-or-string-p))
+         (and (not (python-syntax-comment-or-string-p))
               (with-syntax-table python-dotty-syntax-table
                 (let ((sym (symbol-at-point)))
                   (and sym
@@ -2657,7 +2691,7 @@ With optional argument LINE-NUMBER, check that line instead."
         (goto-char line-number))
       (while (and (not (eobp))
                   (goto-char (line-end-position))
-                  (python-info-ppss-context 'paren)
+                  (python-syntax-context 'paren)
                   (not (equal (char-before (point)) ?\\)))
         (forward-line 1))
       (when (equal (char-before) ?\\)
@@ -2674,7 +2708,7 @@ Optional argument LINE-NUMBER forces the line number to check against."
       (when (python-info-line-ends-backslash-p)
         (while (save-excursion
                  (goto-char (line-beginning-position))
-                 (python-info-ppss-context 'paren))
+                 (python-syntax-context 'paren))
           (forward-line -1))
         (back-to-indentation)
         (point-marker)))))
@@ -2688,10 +2722,10 @@ where the continued line ends."
       (widen)
       (let* ((context-type (progn
                              (back-to-indentation)
-                             (python-info-ppss-context-type)))
+                             (python-syntax-context-type)))
              (line-start (line-number-at-pos))
              (context-start (when context-type
-                              (python-info-ppss-context context-type))))
+                              (python-syntax-context context-type))))
         (cond ((equal context-type 'paren)
                ;; Lines inside a paren are always a continuation line
                ;; (except the first one).
@@ -2736,41 +2770,13 @@ operator."
                                                     assignment-operator
                                                     not-simple-operator)
                                          (line-end-position) t)
-                      (not (python-info-ppss-context-type))))
+                      (not (python-syntax-context-type))))
         (skip-syntax-forward "\s")
         (point-marker)))))
 
-(defun python-info-ppss-context (type &optional syntax-ppss)
-  "Return non-nil if point is on TYPE using SYNTAX-PPSS.
-TYPE can be `comment', `string' or `paren'.  It returns the start
-character address of the specified TYPE."
-  (let ((ppss (or syntax-ppss (syntax-ppss))))
-    (case type
-      (comment
-       (and (nth 4 ppss)
-            (nth 8 ppss)))
-      (string
-       (and (not (nth 4 ppss))
-            (nth 8 ppss)))
-      (paren
-       (nth 1 ppss))
-      (t nil))))
-
-(defun python-info-ppss-context-type (&optional syntax-ppss)
-  "Return the context type using SYNTAX-PPSS.
-The type returned can be `comment', `string' or `paren'."
-  (let ((ppss (or syntax-ppss (syntax-ppss))))
-    (cond
-     ((nth 8 ppss) (if (nth 4 ppss) 'comment 'string))
-     ((nth 1 ppss) 'paren))))
-
-(defsubst python-info-ppss-comment-or-string-p ()
-  "Return non-nil if point is inside 'comment or 'string."
-  (nth 8 (syntax-ppss)))
-
 (defun python-info-looking-at-beginning-of-defun (&optional syntax-ppss)
   "Check if point is at `beginning-of-defun' using SYNTAX-PPSS."
-  (and (not (python-info-ppss-context-type (or syntax-ppss (syntax-ppss))))
+  (and (not (python-syntax-context-type (or syntax-ppss (syntax-ppss))))
        (save-excursion
          (beginning-of-line 1)
          (looking-at python-nav-beginning-of-defun-regexp))))
@@ -2816,7 +2822,7 @@ to \"^python-\"."
 (defun python-util-forward-comment (&optional direction)
   "Python mode specific version of `forward-comment'.
 Optional argument DIRECTION defines the direction to move to."
-  (let ((comment-start (python-info-ppss-context 'comment))
+  (let ((comment-start (python-syntax-context 'comment))
         (factor (if (< (or direction 0) 0)
                     -99999
                   99999)))

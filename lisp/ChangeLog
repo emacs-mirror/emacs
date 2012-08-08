@@ -1,3 +1,12 @@
+2012-08-08  Fabián Ezequiel Gallina  <fgallina@cuca>
+
+	* progmodes/python.el Fixed defsubst warning.
+	(python-syntax-context) Rename from python-info-ppss-context.
+	(python-syntax-context-type): Rename from
+	python-info-ppss-context-type.
+	(python-syntax-comment-or-string-p): Rename from
+	python-info-ppss-comment-or-string-p.
+
 2012-08-08  Jay Belanger  <jay.p.belanger@gmail.com>
 
 	* calc/calc-misc.el (calc-record-why): Don't record a message twice.
