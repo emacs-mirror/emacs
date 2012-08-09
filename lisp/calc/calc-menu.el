@@ -1501,7 +1501,7 @@
                :style radio
                :selected (and (integerp calc-matrix-mode) (> calc-matrix-mode 0))
                :help "Variables are assumed to be NxN matrices"]
-              ["Scalar"
+              ["Scalar mode"
                (progn
                  (require 'calc-mode)
                  (calc-matrix-mode 0))
