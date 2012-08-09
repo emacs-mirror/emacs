@@ -1326,7 +1326,7 @@ lisp_frag
 ns_frag'
 ac_user_opts='
 enable_option_checking
-enable_features
+with_all
 with_pop
 with_kerberos
 with_kerberos5
@@ -2010,8 +2010,6 @@ Optional Features:
   --disable-option-checking  ignore unrecognized --enable/--with options
   --disable-FEATURE       do not include FEATURE (same as --enable-FEATURE=no)
   --enable-FEATURE[=ARG]  include FEATURE [ARG=yes]
-  --disable-features      omit almost all features and build small executable
-                          with minimal dependencies
   --disable-ns-self-contained
                           disable self contained build under NeXTstep
   --enable-locallisppath=PATH
@@ -2044,6 +2042,8 @@ Optional Features:
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
   --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
+  --without-all           omit almost all features and build small executable
+                          with minimal dependencies
   --without-pop           don't support POP mail retrieval with movemail
   --with-kerberos         support Kerberos-authenticated POP
   --with-kerberos5        support Kerberos version 5 authenticated POP
@@ -3805,11 +3805,12 @@ archlibdir='${libexecdir}/emacs/${version}/${configuration}'
 docdir='${datadir}/emacs/${version}/etc'
 gamedir='${localstatedir}/games/emacs'
 
-# Check whether --enable-features was given.
-if test "${enable_features+set}" = set; then :
-  enableval=$enable_features; enable_features=$enableval
+
+# Check whether --with-all was given.
+if test "${with_all+set}" = set; then :
+  withval=$with_all; with_features=$withval
 else
-  enable_features=yes
+  with_features=yes
 fi
 
 
@@ -3820,7 +3821,7 @@ fi
 if test "${with_pop+set}" = set; then :
   withval=$with_pop;
 else
-     with_pop=$enable_features
+     with_pop=$with_features
 fi
 
 if test "$with_pop" = yes; then
@@ -3918,7 +3919,7 @@ fi
 if test "${with_sound+set}" = set; then :
   withval=$with_sound;
 else
-     with_sound=$enable_features
+     with_sound=$with_features
 fi
 
 
@@ -3927,7 +3928,7 @@ fi
 if test "${with_sync_input+set}" = set; then :
   withval=$with_sync_input;
 else
-     with_sync_input=$enable_features
+     with_sync_input=$with_features
 fi
 
 if test "$with_sync_input" = yes; then
@@ -3977,7 +3978,7 @@ fi
 if test "${with_xpm+set}" = set; then :
   withval=$with_xpm;
 else
-     with_xpm=$enable_features
+     with_xpm=$with_features
 fi
 
 
@@ -3985,7 +3986,7 @@ fi
 if test "${with_jpeg+set}" = set; then :
   withval=$with_jpeg;
 else
-     with_jpeg=$enable_features
+     with_jpeg=$with_features
 fi
 
 
@@ -3993,7 +3994,7 @@ fi
 if test "${with_tiff+set}" = set; then :
   withval=$with_tiff;
 else
-     with_tiff=$enable_features
+     with_tiff=$with_features
 fi
 
 
@@ -4001,7 +4002,7 @@ fi
 if test "${with_gif+set}" = set; then :
   withval=$with_gif;
 else
-     with_gif=$enable_features
+     with_gif=$with_features
 fi
 
 
@@ -4009,7 +4010,7 @@ fi
 if test "${with_png+set}" = set; then :
   withval=$with_png;
 else
-     with_png=$enable_features
+     with_png=$with_features
 fi
 
 
@@ -4017,7 +4018,7 @@ fi
 if test "${with_rsvg+set}" = set; then :
   withval=$with_rsvg;
 else
-     with_rsvg=$enable_features
+     with_rsvg=$with_features
 fi
 
 
@@ -4025,7 +4026,7 @@ fi
 if test "${with_xml2+set}" = set; then :
   withval=$with_xml2;
 else
-     with_xml2=$enable_features
+     with_xml2=$with_features
 fi
 
 
@@ -4033,7 +4034,7 @@ fi
 if test "${with_imagemagick+set}" = set; then :
   withval=$with_imagemagick;
 else
-     with_imagemagick=$enable_features
+     with_imagemagick=$with_features
 fi
 
 
@@ -4042,7 +4043,7 @@ fi
 if test "${with_xft+set}" = set; then :
   withval=$with_xft;
 else
-     with_xft=$enable_features
+     with_xft=$with_features
 fi
 
 
@@ -4050,7 +4051,7 @@ fi
 if test "${with_libotf+set}" = set; then :
   withval=$with_libotf;
 else
-     with_libotf=$enable_features
+     with_libotf=$with_features
 fi
 
 
@@ -4058,7 +4059,7 @@ fi
 if test "${with_m17n_flt+set}" = set; then :
   withval=$with_m17n_flt;
 else
-     with_m17n_flt=$enable_features
+     with_m17n_flt=$with_features
 fi
 
 
@@ -4067,7 +4068,7 @@ fi
 if test "${with_toolkit_scroll_bars+set}" = set; then :
   withval=$with_toolkit_scroll_bars;
 else
-     with_toolkit_scroll_bars=$enable_features
+     with_toolkit_scroll_bars=$with_features
 fi
 
 
@@ -4075,7 +4076,7 @@ fi
 if test "${with_xaw3d+set}" = set; then :
   withval=$with_xaw3d;
 else
-     with_xaw3d=$enable_features
+     with_xaw3d=$with_features
 fi
 
 
@@ -4083,7 +4084,7 @@ fi
 if test "${with_xim+set}" = set; then :
   withval=$with_xim;
 else
-     with_xim=$enable_features
+     with_xim=$with_features
 fi
 
 
@@ -4100,7 +4101,7 @@ fi
 if test "${with_gpm+set}" = set; then :
   withval=$with_gpm;
 else
-     with_gpm=$enable_features
+     with_gpm=$with_features
 fi
 
 
@@ -4108,7 +4109,7 @@ fi
 if test "${with_dbus+set}" = set; then :
   withval=$with_dbus;
 else
-     with_dbus=$enable_features
+     with_dbus=$with_features
 fi
 
 
@@ -4116,7 +4117,7 @@ fi
 if test "${with_gconf+set}" = set; then :
   withval=$with_gconf;
 else
-     with_gconf=$enable_features
+     with_gconf=$with_features
 fi
 
 
@@ -4124,7 +4125,7 @@ fi
 if test "${with_gsettings+set}" = set; then :
   withval=$with_gsettings;
 else
-     with_gsettings=$enable_features
+     with_gsettings=$with_features
 fi
 
 
@@ -4132,7 +4133,7 @@ fi
 if test "${with_selinux+set}" = set; then :
   withval=$with_selinux;
 else
-     with_selinux=$enable_features
+     with_selinux=$with_features
 fi
 
 
@@ -4140,7 +4141,7 @@ fi
 if test "${with_gnutls+set}" = set; then :
   withval=$with_gnutls;
 else
-     with_gnutls=$enable_features
+     with_gnutls=$with_features
 fi
 
 
@@ -4151,7 +4152,7 @@ fi
 if test "${with_makeinfo+set}" = set; then :
   withval=$with_makeinfo;
 else
-     with_makeinfo=$enable_features
+     with_makeinfo=$with_features
 fi
 
 
@@ -4165,7 +4166,7 @@ fi
 if test "${with_compress_info+set}" = set; then :
   withval=$with_compress_info;
 else
-     with_compress_info=$enable_features
+     with_compress_info=$with_features
 fi
 
 if test $with_compress_info = yes; then
