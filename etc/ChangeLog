@@ -1,3 +1,8 @@
+2012-08-09  Chong Yidong  <cyd@gnu.org>
+
+	* images/splash.svg, images/splash.png: Tweak SVG paths to improve
+	legibility.
+
 2012-08-08  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* NEWS: Mention --without-all and --enable-link-time-optimization.
