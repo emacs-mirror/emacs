@@ -452,7 +452,7 @@ It assumes that a log entry starts with a line matching
 (defun log-view-minor-wrap (buf f)
   (let ((data (with-current-buffer buf
 		(let* ((beg (point))
-		       (end (if mark-active (mark) (point)))
+		       (end (if (use-region-p) (mark) (point)))
 		       (fr (log-view-current-tag beg))
 		       (to (log-view-current-tag end)))
 		  (when (string-equal fr to)
@@ -544,8 +544,8 @@ and ends.
 Contrary to `log-view-diff-changeset', it will only show the part of the
 changeset that affected the currently considered file(s)."
   (interactive
-   (list (if mark-active (region-beginning) (point))
-         (if mark-active (region-end) (point))))
+   (list (if (use-region-p) (region-beginning) (point))
+         (if (use-region-p) (region-end) (point))))
   (let ((fr (log-view-current-tag beg))
         (to (log-view-current-tag end)))
     (when (string-equal fr to)
@@ -569,8 +569,8 @@ and ends.
 Contrary to `log-view-diff', it will show the whole changeset including
 the changes that affected other files than the currently considered file(s)."
   (interactive
-   (list (if mark-active (region-beginning) (point))
-         (if mark-active (region-end) (point))))
+   (list (if (use-region-p) (region-beginning) (point))
+         (if (use-region-p) (region-end) (point))))
   (when (eq (vc-call-backend log-view-vc-backend 'revision-granularity) 'file)
     (error "The %s backend does not support changeset diffs" log-view-vc-backend))
   (let ((fr (log-view-current-tag beg))

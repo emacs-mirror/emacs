@@ -1,5 +1,8 @@
 2012-08-09  Chong Yidong  <cyd@gnu.org>
 
+	* vc/log-view.el (log-view-diff): Use use-region-p (Bug#10133).
+	(log-view-diff-changeset, log-view-minor-wrap): Likewise.
+
 	* align.el (align-region): Delete temporary markers (Bug#10047).
 	Plus some code cleanups.
 
