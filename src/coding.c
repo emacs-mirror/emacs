@@ -9294,9 +9294,9 @@ DEFUN ("set-terminal-coding-system-internal", Fset_terminal_coding_system_intern
   terminal_coding->src_multibyte = 1;
   terminal_coding->dst_multibyte = 0;
   if (terminal_coding->common_flags & CODING_REQUIRE_ENCODING_MASK)
-    term->charset_list = coding_charset_list (terminal_coding);
+    TSET (term, charset_list, coding_charset_list (terminal_coding));
   else
-    term->charset_list = Fcons (make_number (charset_ascii), Qnil);
+    TSET (term, charset_list, Fcons (make_number (charset_ascii), Qnil));
   return Qnil;
 }
 

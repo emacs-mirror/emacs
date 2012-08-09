@@ -446,7 +446,7 @@ store_terminal_param (struct terminal *t, Lisp_Object parameter, Lisp_Object val
   Lisp_Object old_alist_elt = Fassq (parameter, t->param_alist);
   if (EQ (old_alist_elt, Qnil))
     {
-      t->param_alist = Fcons (Fcons (parameter, value), t->param_alist);
+      TSET (t, param_alist, Fcons (Fcons (parameter, value), t->param_alist));
       return Qnil;
     }
   else
