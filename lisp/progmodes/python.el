@@ -1668,6 +1668,9 @@ variable.
                'python-shell-completion-complete-at-point)
   (define-key inferior-python-mode-map "\t"
     'python-shell-completion-complete-or-indent)
+  (make-local-variable 'python-pdbtrack-buffers-to-kill)
+  (make-local-variable 'python-pdbtrack-tracked-buffer)
+  (make-local-variable 'python-shell-internal-last-output)
   (when python-shell-enable-font-lock
     (set (make-local-variable 'font-lock-defaults)
          '(python-font-lock-keywords nil nil nil nil))
@@ -1787,13 +1790,11 @@ startup."
   "Current internal shell buffer for the current buffer.
 This is really not necessary at all for the code to work but it's
 there for compatibility with CEDET.")
-(make-variable-buffer-local 'python-shell-internal-buffer)
 
 (defvar python-shell-internal-last-output nil
   "Last output captured by the internal shell.
 This is really not necessary at all for the code to work but it's
 there for compatibility with CEDET.")
-(make-variable-buffer-local 'python-shell-internal-last-output)
 
 (defun python-shell-internal-get-or-create-process ()
   "Get or create an inferior Internal Python process."
@@ -2135,11 +2136,9 @@ Used to extract the current line and module being inspected."
   "Variable containing the value of the current tracked buffer.
 Never set this variable directly, use
 `python-pdbtrack-set-tracked-buffer' instead.")
-(make-variable-buffer-local 'python-pdbtrack-tracked-buffer)
 
 (defvar python-pdbtrack-buffers-to-kill nil
   "List of buffers to be deleted after tracking finishes.")
-(make-variable-buffer-local 'python-pdbtrack-buffers-to-kill)
 
 (defun python-pdbtrack-set-tracked-buffer (file-name)
   "Set the buffer for FILE-NAME as the tracked buffer.
@@ -3003,6 +3002,8 @@ if that value is non-nil."
            (1+ (/ (current-indentation) python-indent-offset))))
 
   (python-skeleton-add-menu-items)
+
+  (make-local-variable 'python-shell-internal-buffer)
 
   (when python-indent-guess-indent-offset
     (python-indent-guess-indent-offset)))

@@ -1,5 +1,12 @@
 2012-08-09  Fabián Ezequiel Gallina  <fgallina@cuca>
 
+	* progmodes/python.el (python-pdbtrack-tracked-buffer)
+	(python-pdbtrack-buffers-to-kill, python-shell-internal-buffer)
+	(python-shell-internal-last-output): Use make-local-variable
+	instead of make-variable-buffer-local.
+
+2012-08-09  Fabián Ezequiel Gallina  <fgallina@cuca>
+
 	* progmodes/python.el: Enhancements to forward-sexp.
 	(python-nav-forward-sexp): Rename from
 	python-nav-forward-sexp-function.
