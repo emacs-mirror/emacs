@@ -9,7 +9,7 @@
 	* custom.texi (Face Customization): Move discussion of face
 	inheritance here, from Faces section.
 
-2012-07-21  Eli Zaretskii  <eliz@gnu.org>
+2012-07-28  Eli Zaretskii  <eliz@gnu.org>
 
 	* frames.texi (Mouse Commands): Fix the description of mouse-2.
 	(Bug#11958)

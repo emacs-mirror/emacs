@@ -483,7 +483,7 @@
 	* progmodes/gdb-mi.el (gdb-place-breakpoints): Fix the call to
 	gdb-get-location.
 
-2012-07-25  Leo Liu  <sdl.web@gmail.com>
+2012-07-28  Leo Liu  <sdl.web@gmail.com>
 
 	* progmodes/cc-menus.el (cc-imenu-objc-function): Avoid leaving nil in
 	the alist (bug#12029).
