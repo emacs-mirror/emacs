@@ -1,5 +1,10 @@
 2012-08-09  Chong Yidong  <cyd@gnu.org>
 
+	* man.el (Man-switches, Man-sed-command, Man-awk-command)
+	(Man-mode-hook, Man-cooked-hook, Man-untabify-command-args)
+	(Man-untabify-command, manual-program): Convert to defcustom
+	(Bug#10429).
+
 	* vc/add-log.el (change-log-mode): Bind comment-start to nil.
 
 	* descr-text.el (describe-char): Don't insert extra newlines

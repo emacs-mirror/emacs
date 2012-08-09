@@ -90,9 +90,6 @@
 
 (require 'button)
 
-;; vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
-;; empty defvars (keep the compiler quiet)
-
 (defgroup man nil
   "Browse UNIX manual pages."
   :prefix "Man-"
@@ -100,6 +97,7 @@
   :group 'help)
 
 (defvar Man-notify)
+
 (defcustom Man-filter-list nil
   "Manpage cleaning filter command phrases.
 This variable contains a list of the following form:
@@ -120,9 +118,6 @@ the manpage buffer."
   "Non-nil means use `untabify' instead of `Man-untabify-command'.")
 (defvar Man-sed-script nil
   "Script for sed to nuke backspaces and ANSI codes from manpages.")
-
-;; vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
-;; user variables
 
 (defcustom Man-fontify-manpage-flag t
   "Non-nil means make up the manpage with fonts."
@@ -236,26 +231,40 @@ Used in `bookmark-set' to get the default bookmark name."
   :version "24.1"
   :type 'string :group 'bookmark)
 
-(defvar manual-program "man"
-  "The name of the program that produces man pages.")
+(defcustom manual-program "man"
+  "Program used by `man' to produce man pages."
+  :type 'string
+  :group 'man)
 
-(defvar Man-untabify-command "pr"
-  "Command used for untabifying.")
+(defcustom Man-untabify-command "pr"
+  "Program used by `man' for untabifying."
+  :type 'string
+  :group 'man)
 
-(defvar Man-untabify-command-args (list "-t" "-e")
-  "List of arguments to be passed to `Man-untabify-command' (which see).")
+(defcustom Man-untabify-command-args (list "-t" "-e")
+  "List of arguments to be passed to `Man-untabify-command' (which see)."
+  :type '(repeat string)
+  :group 'man)
 
-(defvar Man-sed-command "sed"
-  "Command used for processing sed scripts.")
+(defcustom Man-sed-command "sed"
+  "Program used by `man' to process sed scripts."
+  :type 'string
+  :group 'man)
 
-(defvar Man-awk-command "awk"
-  "Command used for processing awk scripts.")
+(defcustom Man-awk-command "awk"
+  "Program used by `man' to process awk scripts."
+  :type 'string
+  :group 'man)
 
-(defvar Man-mode-hook nil
-  "Hook run when Man mode is enabled.")
+(defcustom Man-mode-hook nil
+  "Hook run when Man mode is enabled."
+  :type 'hook
+  :group 'man)
 
-(defvar Man-cooked-hook nil
-  "Hook run after removing backspaces but before `Man-mode' processing.")
+(defcustom Man-cooked-hook nil
+  "Hook run after removing backspaces but before `Man-mode' processing."
+  :type 'hook
+  :group 'man)
 
 (defvar Man-name-regexp "[-a-zA-Z0-9_­+][-a-zA-Z0-9_.:­+]*"
   "Regular expression describing the name of a manpage (without section).")
@@ -330,11 +339,12 @@ This regexp should not start with a `^' character.")
   (concat "\\(" Man-name-regexp "\\)\\((\\(" Man-section-regexp "\\))\\)?")
   "Regular expression describing a reference in the SEE ALSO section.")
 
-(defvar Man-switches ""
+(defcustom Man-switches ""
   "Switches passed to the man command, as a single string.
-
-If you want to be able to see all the manpages for a subject you type,
-make -a one of the switches, if your `man' program supports it.")
+For example, the -a switch lets you see all the manpages for a
+specified subject, if your `man' program supports it."
+  :type 'string
+  :group 'man)
 
 (defvar Man-specified-section-option
   (if (string-match "-solaris[0-9.]*$" system-configuration)
@@ -348,8 +358,6 @@ make -a one of the switches, if your `man' program supports it.")
 Otherwise, the value is whatever the function
 `Man-support-local-filenames' should return.")
 
-;; ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-;; end user variables
 
 ;; other variables and keymap initializations
 (defvar Man-original-frame)
