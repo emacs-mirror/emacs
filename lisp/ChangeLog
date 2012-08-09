@@ -1,3 +1,8 @@
+2012-08-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* delsel.el (delete-selection-pre-hook): Don't propagate the
+	file-supersession signals (bug#12161).
+
 2012-08-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/cl.el (cl-map-keymap-recursively, cl-map-intervals)
