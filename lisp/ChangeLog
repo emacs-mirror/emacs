@@ -1,3 +1,10 @@
+2012-08-09  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calccomp.el (math-compose-expr): Add extra argument
+	indicating that parentheses should be put around products in
+	denominators.  Give multiplication precedence over division during
+	composition.
+
 2012-08-09  Chong Yidong  <cyd@gnu.org>
 
 	* man.el (Man-switches, Man-sed-command, Man-awk-command)

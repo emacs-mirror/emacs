@@ -86,8 +86,11 @@
           (setq sn (math-to-underscores sn)))
       sn)))
 
-(defun math-compose-expr (a prec)
-  (let ((math-compose-level (1+ math-compose-level))
+;;; Give multiplication precendence when composing to avoid
+;;; writing a*(b c) instead of a b c
+(defun math-compose-expr (a prec &optional div)
+  (let ((calc-multiplication-has-precedence t)
+        (math-compose-level (1+ math-compose-level))
         (math-expr-opers (math-expr-ops))
         spfn)
     (cond
@@ -591,7 +594,9 @@
 		    (or (= (length a) 3) (eq (car a) 'calcFunc-if))
 		    (/= (nth 3 op) -1))
 	       (cond
-		((> prec (or (nth 4 op) (min (nth 2 op) (nth 3 op))))
+		((or
+                  (> prec (or (nth 4 op) (min (nth 2 op) (nth 3 op))))
+                  (and div (eq (car a) '*)))
 		 (if (and (memq calc-language '(tex latex))
 			  (not (math-tex-expr-is-flat a)))
 		     (if (eq (car-safe a) '/)
@@ -631,7 +636,7 @@
 				      nil)
 				  math-compose-level))
 			(lhs (math-compose-expr (nth 1 a) (nth 2 op)))
-			(rhs (math-compose-expr (nth 2 a) (nth 3 op))))
+			(rhs (math-compose-expr (nth 2 a) (nth 3 op) (eq (nth 1 op) '/))))
 		   (and (equal (car op) "^")
 			(eq (math-comp-first-char lhs) ?-)
 			(setq lhs (list 'horiz "(" lhs ")")))
