@@ -1,3 +1,8 @@
+2012-08-09  Glenn Morris  <rgm@gnu.org>
+
+	* ebrowse.c (PATH_LIST_SEPARATOR):
+	Remove, and replace with SEPCHAR from config.h.
+
 2012-08-03  Juanma Barranquero  <lekktu@gmail.com>
 
 	* makefile.w32-in (LOCAL_FLAGS): Remove WINDOWSNT and DOS_NT,
