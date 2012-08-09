@@ -537,12 +537,14 @@ It assumes that a log entry starts with a line matching
 
 (defun log-view-diff (beg end)
   "Get the diff between two revisions.
-If the mark is not active or the mark is on the revision at point,
-get the diff between the revision at point and its previous revision.
-Otherwise, get the diff between the revisions where the region starts
-and ends.
-Contrary to `log-view-diff-changeset', it will only show the part of the
-changeset that affected the currently considered file(s)."
+If the region is inactive or the mark is on the revision at
+point, get the diff between the revision at point and its
+previous revision.  Otherwise, get the diff between the revisions
+where the region starts and ends.
+
+Unlike `log-view-diff-changeset', this function only shows the
+part of the changeset which affected the currently considered
+file(s)."
   (interactive
    (list (if (use-region-p) (region-beginning) (point))
          (if (use-region-p) (region-end) (point))))
@@ -562,12 +564,14 @@ changeset that affected the currently considered file(s)."
 
 (defun log-view-diff-changeset (beg end)
   "Get the diff between two revisions.
-If the mark is not active or the mark is on the revision at point,
-get the diff between the revision at point and its previous revision.
-Otherwise, get the diff between the revisions where the region starts
-and ends.
-Contrary to `log-view-diff', it will show the whole changeset including
-the changes that affected other files than the currently considered file(s)."
+If the region is inactive or the mark is on the revision at
+point, get the diff between the revision at point and its
+previous revision.  Otherwise, get the diff between the revisions
+where the region starts and ends.
+
+Unlike `log-view-diff' this function shows the whole changeset,
+including changes affecting other files than the currently
+considered file(s)."
   (interactive
    (list (if (use-region-p) (region-beginning) (point))
          (if (use-region-p) (region-end) (point))))
