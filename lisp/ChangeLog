@@ -1,3 +1,8 @@
+2012-08-09  Chong Yidong  <cyd@gnu.org>
+
+	* align.el (align-region): Delete temporary markers (Bug#10047).
+	Plus some code cleanups.
+
 2012-08-09  Fabián Ezequiel Gallina  <fgallina@cuca>
 
 	* progmodes/python.el (python-pdbtrack-tracked-buffer)
