@@ -54,7 +54,7 @@
 ;; `python-nav-beginning-of-statement', `python-nav-end-of-statement',
 ;; `python-nav-beginning-of-block' and `python-nav-end-of-block' are
 ;; included but no bound to any key.  At last but not least the
-;; specialized `python-nav-forward-sexp-function' allows easy
+;; specialized `python-nav-forward-sexp' allows easy
 ;; navigation between code blocks.
 
 ;; Shell interaction: is provided and allows you to execute easily any
@@ -1249,83 +1249,178 @@ backward to previous block."
         (and (goto-char starting-pos) nil)
       (and (not (= (point) starting-pos)) (point-marker)))))
 
-(defun python-nav-forward-sexp-function (&optional arg)
+(defun python-nav-lisp-forward-sexp-safe (&optional arg)
+  "Safe version of standard `forward-sexp'.
+When ARG > 0 move forward, else if ARG is < 0."
+  (or arg (setq arg 1))
+  (let ((forward-sexp-function nil)
+        (paren-regexp
+         (if (> arg 0) (python-rx close-paren) (python-rx open-paren)))
+        (search-fn
+         (if (> arg 0) #'re-search-forward #'re-search-backward)))
+    (condition-case nil
+        (forward-sexp arg)
+      (error
+       (while (and (funcall search-fn paren-regexp nil t)
+                   (python-syntax-context 'paren)))))))
+
+(defun python-nav--forward-sexp ()
+  "Move to forward sexp."
+  (case (python-syntax-context-type)
+    (string
+     ;; Inside of a string, get out of it.
+     (while (and (re-search-forward "[\"']" nil t)
+                 (python-syntax-context 'string))))
+    (comment
+     ;; Inside of a comment, just move forward.
+     (python-util-forward-comment))
+    (paren
+     (python-nav-lisp-forward-sexp-safe 1))
+    (t
+     (if (and (not (eobp))
+              (= (syntax-class (syntax-after (point))) 4))
+         ;; Looking an open-paren
+         (python-nav-lisp-forward-sexp-safe 1)
+       (let ((block-starting-pos
+              (save-excursion (python-nav-beginning-of-block)))
+             (block-ending-pos
+              (save-excursion (python-nav-end-of-block)))
+             (next-block-starting-pos
+              (save-excursion (python-nav-forward-block))))
+         (cond
+          ((not block-starting-pos)
+           ;; Not inside a block, move to closest one.
+           (and next-block-starting-pos
+                (goto-char next-block-starting-pos)))
+          ((= (point) block-starting-pos)
+           ;; Point is at beginning of block
+           (if (and next-block-starting-pos
+                    (< next-block-starting-pos block-ending-pos))
+               ;; Beginning of next block is closer than current's
+               ;; end, move to it.
+               (goto-char next-block-starting-pos)
+             (goto-char block-ending-pos)))
+          ((= block-ending-pos (point))
+           ;; Point is at end of current block
+           (let ((parent-block-end-pos
+                  (save-excursion
+                    (python-util-forward-comment)
+                    (python-nav-beginning-of-block)
+                    (python-nav-end-of-block))))
+             (if (and parent-block-end-pos
+                      (or (not next-block-starting-pos)
+                          (> next-block-starting-pos parent-block-end-pos)))
+                 ;; If the parent block ends before next block
+                 ;; starts move to it.
+                 (goto-char parent-block-end-pos)
+               (and next-block-starting-pos
+                    (goto-char next-block-starting-pos)))))
+          (t (python-nav-end-of-block))))))))
+
+(defun python-nav--backward-sexp ()
+  "Move to backward sexp."
+  (case (python-syntax-context-type)
+    (string
+     ;; Inside of a string, get out of it.
+     (while (and (re-search-backward "[\"']" nil t)
+                 (python-syntax-context 'string))))
+    (comment
+     ;; Inside of a comment, just move backward.
+     (python-util-forward-comment -1))
+    (paren
+     ;; Handle parens like we are lisp.
+     (python-nav-lisp-forward-sexp-safe -1))
+    (t
+     (let* ((block-starting-pos
+             (save-excursion (python-nav-beginning-of-block)))
+            (block-ending-pos
+             (save-excursion (python-nav-end-of-block)))
+            (prev-block-ending-pos
+             (save-excursion (when (python-nav-backward-block)
+                               (python-nav-end-of-block))))
+            (prev-block-parent-ending-pos
+             (save-excursion
+               (when prev-block-ending-pos
+                 (goto-char prev-block-ending-pos)
+                 (python-util-forward-comment)
+                 (python-nav-beginning-of-block)
+                 (python-nav-end-of-block)))))
+       (if (and (not (bobp))
+                (= (syntax-class (syntax-after (1- (point)))) 5))
+           ;; Char before point is a paren closing char, handle it
+           ;; like we are lisp.
+           (python-nav-lisp-forward-sexp-safe -1)
+         (cond
+          ((not block-ending-pos)
+           ;; Not in and ending pos, move to end of previous block.
+           (and (python-nav-backward-block)
+                (python-nav-end-of-block)))
+          ((= (point) block-ending-pos)
+           ;; In ending pos, we need to search backwards for the
+           ;; closest point looking the list of candidates from here.
+           (let ((candidates))
+             (dolist (name
+                      '(prev-block-parent-ending-pos
+                        prev-block-ending-pos
+                        block-ending-pos
+                        block-starting-pos))
+               (when (and (symbol-value name)
+                          (< (symbol-value name) (point)))
+                 (add-to-list 'candidates (symbol-value name))))
+             (goto-char (apply 'max candidates))))
+          ((> (point) block-ending-pos)
+           ;; After an ending position, move to it.
+           (goto-char block-ending-pos))
+          ((= (point) block-starting-pos)
+           ;; On a block starting position.
+           (if (not (> (point) (or prev-block-ending-pos (point))))
+               ;; Point is after the end position of the block that
+               ;; wraps the current one, just move a block backward.
+               (python-nav-backward-block)
+             ;; If we got here we are facing a case like this one:
+             ;;
+             ;;     try:
+             ;;         return here()
+             ;;     except Exception as e:
+             ;;
+             ;; Where point is on the "except" and must move to the
+             ;; end of "here()".
+             (goto-char prev-block-ending-pos)
+             (let ((parent-block-ending-pos
+                    (save-excursion
+                      (python-nav-forward-sexp)
+                      (and (not (looking-at (python-rx block-start)))
+                           (point)))))
+               (when (and parent-block-ending-pos
+                          (> parent-block-ending-pos prev-block-ending-pos))
+                 ;; If we got here we are facing a case like this one:
+                 ;;
+                 ;;     except ImportError:
+                 ;;         if predicate():
+                 ;;             processing()
+                 ;;         here()
+                 ;;     except AttributeError:
+                 ;;
+                 ;; Where point is on the "except" and must move to
+                 ;; the end of "here()". Without this extra step we'd
+                 ;; just get to the end of processing().
+                 (goto-char parent-block-ending-pos)))))
+          (t
+           (if (and prev-block-ending-pos (< prev-block-ending-pos (point)))
+               (goto-char prev-block-ending-pos)
+             (python-nav-beginning-of-block)))))))))
+
+(defun python-nav-forward-sexp (&optional arg)
   "Move forward across one block of code.
 With ARG, do it that many times.  Negative arg -N means
 move backward N times."
   (interactive "^p")
   (or arg (setq arg 1))
   (while (> arg 0)
-    (let ((block-starting-pos
-           (save-excursion (python-nav-beginning-of-block)))
-          (block-ending-pos
-           (save-excursion (python-nav-end-of-block)))
-          (next-block-starting-pos
-           (save-excursion (python-nav-forward-block))))
-      (cond ((not block-starting-pos)
-             (python-nav-forward-block))
-            ((= (point) block-starting-pos)
-             (if (or (not next-block-starting-pos)
-                     (< block-ending-pos next-block-starting-pos))
-                 (python-nav-end-of-block)
-               (python-nav-forward-block)))
-            ((= block-ending-pos (point))
-             (let ((parent-block-end-pos
-                    (save-excursion
-                      (python-util-forward-comment)
-                      (python-nav-beginning-of-block)
-                      (python-nav-end-of-block))))
-               (if (and parent-block-end-pos
-                        (or (not next-block-starting-pos)
-                            (> next-block-starting-pos parent-block-end-pos)))
-                   (goto-char parent-block-end-pos)
-                 (python-nav-forward-block))))
-            (t (python-nav-end-of-block))))
-      (setq arg (1- arg)))
+    (python-nav--forward-sexp)
+    (setq arg (1- arg)))
   (while (< arg 0)
-    (let* ((block-starting-pos
-            (save-excursion (python-nav-beginning-of-block)))
-           (block-ending-pos
-            (save-excursion (python-nav-end-of-block)))
-           (prev-block-ending-pos
-            (save-excursion (when (python-nav-backward-block)
-                              (python-nav-end-of-block))))
-           (prev-block-parent-ending-pos
-            (save-excursion
-              (when prev-block-ending-pos
-                (goto-char prev-block-ending-pos)
-                (python-util-forward-comment)
-                (python-nav-beginning-of-block)
-                (python-nav-end-of-block)))))
-      (cond ((not block-ending-pos)
-             (and (python-nav-backward-block)
-                  (python-nav-end-of-block)))
-            ((= (point) block-ending-pos)
-             (let ((candidates))
-               (dolist (name
-                        '(prev-block-parent-ending-pos
-                          prev-block-ending-pos
-                          block-ending-pos
-                          block-starting-pos))
-                 (when (and (symbol-value name)
-                            (< (symbol-value name) (point)))
-                   (add-to-list 'candidates (symbol-value name))))
-               (goto-char (apply 'max candidates))))
-            ((> (point) block-ending-pos)
-             (python-nav-end-of-block))
-            ((= (point) block-starting-pos)
-             (if (not (> (point) (or prev-block-ending-pos (point))))
-                 (python-nav-backward-block)
-               (goto-char prev-block-ending-pos)
-               (let ((parent-block-ending-pos
-                      (save-excursion
-                        (python-nav-forward-sexp-function)
-                        (and (not (looking-at (python-rx block-start)))
-                             (point)))))
-                 (when (and parent-block-ending-pos
-                            (> parent-block-ending-pos prev-block-ending-pos))
-                   (goto-char parent-block-ending-pos)))))
-            (t (python-nav-beginning-of-block))))
+    (python-nav--backward-sexp)
     (setq arg (1+ arg))))
 
 
@@ -2848,7 +2943,7 @@ if that value is non-nil."
   (set (make-local-variable 'parse-sexp-ignore-comments) t)
 
   (set (make-local-variable 'forward-sexp-function)
-       'python-nav-forward-sexp-function)
+       'python-nav-forward-sexp)
 
   (set (make-local-variable 'font-lock-defaults)
        '(python-font-lock-keywords nil nil nil nil))
