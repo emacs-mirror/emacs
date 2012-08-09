@@ -1049,6 +1049,7 @@ Runs `change-log-mode-hook'.
 	show-trailing-whitespace t)
   (set (make-local-variable 'fill-forward-paragraph-function)
        'change-log-fill-forward-paragraph)
+  (set (make-local-variable 'comment-start) nil)
   ;; Make sure we call `change-log-indent' when filling.
   (set (make-local-variable 'fill-indent-according-to-mode) t)
   ;; Avoid that filling leaves behind a single "*" on a line.

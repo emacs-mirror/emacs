@@ -1,5 +1,7 @@
 2012-08-09  Chong Yidong  <cyd@gnu.org>
 
+	* vc/add-log.el (change-log-mode): Bind comment-start to nil.
+
 	* descr-text.el (describe-char): Don't insert extra newlines
 	(Bug#10127).
 
