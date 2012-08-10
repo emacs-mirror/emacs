@@ -1,4 +1,4 @@
-2012-08-10  Joakim Hårsman  <joakim.harsman@gmail.com>  (tiny patch)
+2012-08-10  Joakim Hårsman  <joakim.harsman@gmail.com>  (tiny change)
 	    Eli Zaretskii  <eliz@gnu.org>
 
 	Fix bug #10299 with Unicode characters sent by customized
@@ -10068,7 +10068,7 @@
 
 	* Makefile.in (SETTINGS_LIBS): Fix typo.
 
-2011-07-01  Kazuhiro Ito  <kzhr@d1.dion.ne.jp>  (tiny patch)
+2011-07-01  Kazuhiro Ito  <kzhr@d1.dion.ne.jp>  (tiny change)
 
 	* coding.c (Fencode_coding_string): Record the last coding system
 	used, as the function doc string says (bug#8738).

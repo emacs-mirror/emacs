@@ -4055,7 +4055,7 @@
 
 	* functions.texi (Function Safety): Texinfo usage fix.
 
-2009-01-04  Eduard Wiebe  <usenet@pusto.de>  (tiny patch)
+2009-01-04  Eduard Wiebe  <usenet@pusto.de>  (tiny change)
 
 	* objects.texi (General Escape Syntax): Fix typo.
 
