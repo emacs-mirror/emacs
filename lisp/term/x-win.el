@@ -1316,7 +1316,7 @@ Request data types in the order specified by `x-select-request-type'."
     (popup-menu (mouse-menu-bar-map)
 		(if (listp last-nonmenu-event)
 		    nil
-		  'point)))))
+		  (posn-at-point))))))
 
 
 ;;; Window system initialization.
