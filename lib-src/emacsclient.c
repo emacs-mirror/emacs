@@ -113,13 +113,6 @@ char *(getcwd) (char *, size_t);
 /* Additional space when allocating buffers for filenames, etc.  */
 #define EXTRA_SPACE 100
 
-/* Use this to suppress gcc's `...may be used before initialized' warnings. */
-#ifdef lint
-# define IF_LINT(Code) Code
-#else
-# define IF_LINT(Code) /* empty */
-#endif
-
 #ifdef min
 #undef min
 #endif

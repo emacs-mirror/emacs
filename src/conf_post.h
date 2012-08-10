@@ -218,4 +218,16 @@ You lose; /* Emacs for DOS must be compiled with DJGPP */
 #define INLINE_HEADER_BEGIN _GL_INLINE_HEADER_BEGIN
 #define INLINE_HEADER_END _GL_INLINE_HEADER_END
 
+/* Use this to suppress gcc's `...may be used before initialized' warnings. */
+#ifdef lint
+/* Use CODE only if lint checking is in effect.  */
+# define IF_LINT(Code) Code
+/* Assume that the expression COND is true.  This differs in intent
+   from 'assert', as it is a message from the programmer to the compiler.  */
+# define lint_assume(cond) ((cond) ? (void) 0 : abort ())
+#else
+# define IF_LINT(Code) /* empty */
+# define lint_assume(cond) ((void) (0 && (cond)))
+#endif
+
 /* conf_post.h ends here */

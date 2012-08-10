@@ -1,3 +1,8 @@
+2012-08-10  Glenn Morris  <rgm@gnu.org>
+
+	* conf_post.h (IF_LINT, lint_assume): Move here from lisp.h.
+	* lisp.h (IF_LINT, lint_assume): Move to conf_post.h.
+
 2012-08-10  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Fix last change to allow compilation with low optimization levels.

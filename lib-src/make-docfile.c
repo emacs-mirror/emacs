@@ -63,13 +63,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define READ_BINARY "r"
 #endif /* not DOS_NT */
 
-/* Use this to suppress gcc's `...may be used before initialized' warnings.  */
-#ifdef lint
-# define IF_LINT(Code) Code
-#else
-# define IF_LINT(Code) /* empty */
-#endif
-
 static int scan_file (char *filename);
 static int scan_lisp_file (const char *filename, const char *mode);
 static int scan_c_file (char *filename, const char *mode);

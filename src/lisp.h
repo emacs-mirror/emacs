@@ -3418,21 +3418,6 @@ extern char *egetenv (const char *);
 /* Set up the name of the machine we're running on.  */
 extern void init_system_name (void);
 
-/* Use this to suppress gcc's warnings.  */
-#ifdef lint
-
-/* Use CODE only if lint checking is in effect.  */
-# define IF_LINT(Code) Code
-
-/* Assume that the expression COND is true.  This differs in intent
-   from 'assert', as it is a message from the programmer to the compiler.  */
-# define lint_assume(cond) ((cond) ? (void) 0 : abort ())
-
-#else
-# define IF_LINT(Code) /* empty */
-# define lint_assume(cond) ((void) (0 && (cond)))
-#endif
-
 /* We used to use `abs', but that clashes with system headers on some
    platforms, and using a name reserved by Standard C is a bad idea
    anyway.  */
