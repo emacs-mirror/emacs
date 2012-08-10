@@ -22,7 +22,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Important notice: defining MAIL_USE_FLOCK or MAIL_USE_LOCKF *will
    cause loss of mail* if you do it on a system that does not normally
-   use flock as its way of interlocking access to inbox files.  The
+   use flock/lockf as its way of interlocking access to inbox files.  The
    setting of MAIL_USE_FLOCK and MAIL_USE_LOCKF *must agree* with the
    system's own conventions.  It is not a choice that is up to you.
 
@@ -108,6 +108,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifdef WINDOWSNT
 #include <sys/locking.h>
 #endif
+
+/* If your system uses the `flock' or `lockf' system call for mail locking,
+   define MAIL_USE_SYSTEM_LOCK.  If your system type should always define
+   MAIL_USE_LOCKF or MAIL_USE_FLOCK but configure does not do this,
+   please make a bug report.  */
 
 #ifdef MAIL_USE_LOCKF
 #define MAIL_USE_SYSTEM_LOCK
@@ -289,13 +294,7 @@ main (int argc, char **argv)
 	 so it can create lock files properly.
 
 	 You might also wish to verify that your system is one which
-	 uses lock files for this purpose.  Some systems use other methods.
-
-	 If your system uses the `flock' system call for mail locking,
-	 define MAIL_USE_SYSTEM_LOCK in config.h and recompile movemail.
-	 If your system type should always define MAIL_USE_SYSTEM_LOCK
-	 but does not, send a bug report to bug-gnu-emacs@gnu.org so we
-	 can change the default in configure.  */
+	 uses lock files for this purpose.  Some systems use other methods.  */
 
       inname_len = strlen (inname);
       lockname = xmalloc (inname_len + sizeof ".lock");
