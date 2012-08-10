@@ -1780,23 +1780,37 @@ w32_load_cursor (LPCTSTR name)
 
 static LRESULT CALLBACK w32_wnd_proc (HWND, UINT, WPARAM, LPARAM);
 
+#define INIT_WINDOW_CLASS(WC)			  \
+  (WC).style = CS_HREDRAW | CS_VREDRAW;		  \
+  (WC).lpfnWndProc = (WNDPROC) w32_wnd_proc;      \
+  (WC).cbClsExtra = 0;                            \
+  (WC).cbWndExtra = WND_EXTRA_BYTES;              \
+  (WC).hInstance = hinst;                         \
+  (WC).hIcon = LoadIcon (hinst, EMACS_CLASS);     \
+  (WC).hCursor = w32_load_cursor (IDC_ARROW);     \
+  (WC).hbrBackground = NULL;                      \
+  (WC).lpszMenuName = NULL;                       \
+
 static BOOL
 w32_init_class (HINSTANCE hinst)
 {
-  WNDCLASS wc;
 
-  wc.style = CS_HREDRAW | CS_VREDRAW;
-  wc.lpfnWndProc = (WNDPROC) w32_wnd_proc;
-  wc.cbClsExtra = 0;
-  wc.cbWndExtra = WND_EXTRA_BYTES;
-  wc.hInstance = hinst;
-  wc.hIcon = LoadIcon (hinst, EMACS_CLASS);
-  wc.hCursor = w32_load_cursor (IDC_ARROW);
-  wc.hbrBackground = NULL; /* GetStockObject (WHITE_BRUSH);  */
-  wc.lpszMenuName = NULL;
-  wc.lpszClassName = EMACS_CLASS;
+  if (os_subtype == OS_NT)
+    {
+      WNDCLASSW  uwc;
+      INIT_WINDOW_CLASS(uwc);
+      uwc.lpszClassName = L"Emacs";
 
-  return (RegisterClass (&wc));
+      return RegisterClassW (&uwc);
+    }
+  else
+    {
+      WNDCLASS  wc;
+      INIT_WINDOW_CLASS(wc);
+      wc.lpszClassName = EMACS_CLASS;
+
+      return RegisterClassA (&wc);
+    }
 }
 
 static HWND
@@ -2246,7 +2260,7 @@ w32_msg_pump (deferred_msg * msg_buf)
 
   msh_mousewheel = RegisterWindowMessage (MSH_MOUSEWHEEL);
 
-  while (GetMessage (&msg, NULL, 0, 0))
+  while ((os_subtype == OS_NT ? GetMessageW : GetMessageA) (&msg, NULL, 0, 0))
     {
       if (msg.hwnd == NULL)
 	{
@@ -2341,7 +2355,10 @@ w32_msg_pump (deferred_msg * msg_buf)
 	}
       else
 	{
-	  DispatchMessage (&msg);
+	  if (os_subtype == OS_NT)
+	    DispatchMessageW (&msg);
+	  else
+	    DispatchMessageA (&msg);
 	}
 
       /* Exit nested loop when our deferred message has completed.  */
@@ -2918,8 +2935,18 @@ w32_wnd_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
     case WM_SYSCHAR:
     case WM_CHAR:
-      post_character_message (hwnd, msg, wParam, lParam,
-			      w32_get_key_modifiers (wParam, lParam));
+      if (wParam > 255 )
+        {
+          W32Msg wmsg;
+
+          wmsg.dwModifiers = w32_get_key_modifiers (wParam, lParam);
+          signal_user_input ();
+          my_post_msg (&wmsg, hwnd, WM_UNICHAR, wParam, lParam);
+
+        }
+      else
+        post_character_message (hwnd, msg, wParam, lParam,
+                                w32_get_key_modifiers (wParam, lParam));
       break;
 
     case WM_UNICHAR:
@@ -3801,7 +3828,7 @@ w32_wnd_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	}
 
     dflt:
-      return DefWindowProc (hwnd, msg, wParam, lParam);
+      return (os_subtype == OS_NT ? DefWindowProcW :  DefWindowProcA) (hwnd, msg, wParam, lParam);
     }
 
   /* The most common default return code for handled messages is 0.  */

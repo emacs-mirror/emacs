@@ -1,3 +1,17 @@
+2012-08-10  Joakim Hårsman  <joakim.harsman@gmail.com>  (tiny patch)
+	    Eli Zaretskii  <eliz@gnu.org>
+
+	Fix bug #10299 with Unicode characters sent by customized
+	keyboards created by MSKLC.
+	* w32fns.c (INIT_WINDOW_CLASS): New macro.
+	(w32_init_class): Use it to initialize the Emacs class with either
+	ANSI or Unicode API calls.
+	(w32_msg_pump): Call GetMessageW and DispatchMessageW on NT and
+	later.
+	(w32_wnd_proc): If the character code sent by WM_CHAR or
+	WM_SYSCHAR is above 255, post a WM_UNICHAR message, not the
+	original message.  Call DefWindowProcW on NT and later.
+
 2012-08-10  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (config_h): Fix conf_post.h out-of-tree build location.
