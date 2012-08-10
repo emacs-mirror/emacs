@@ -1,5 +1,11 @@
 2012-08-10  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	Fix last change to allow compilation with low optimization levels.
+	* intervals.c (INTERVALS_INLINE): Define to EXTERN_INLINE.
+	Reported by Jan Djärv <jan.h.d@swipnet.se>.
+
+2012-08-10  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	Use common inline syntax in intervals.h.
 	* intervals.h (INTERVALS_INLINE): New macro.
 	Change all users from LISP_INLINE.
