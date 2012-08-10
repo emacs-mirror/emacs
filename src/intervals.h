@@ -19,6 +19,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "dispextern.h"
 
 INLINE_HEADER_BEGIN
+#ifndef INTERVALS_INLINE
+# define INTERVALS_INLINE INLINE
+#endif
 
 /* Basic data type for use of intervals.  */
 
@@ -133,14 +136,14 @@ struct interval
 /* Use these functions to set Lisp_Object
    or pointer slots of struct interval.  */
 
-LISP_INLINE void
+INTERVALS_INLINE void
 interval_set_parent (INTERVAL i, INTERVAL parent)
 {
   i->up_obj = 0;
   i->up.interval = parent;
 }
 
-LISP_INLINE void
+INTERVALS_INLINE void
 interval_set_object (INTERVAL i, Lisp_Object obj)
 {
   eassert (BUFFERP (obj) || STRINGP (obj));
@@ -148,19 +151,19 @@ interval_set_object (INTERVAL i, Lisp_Object obj)
   i->up.obj = obj;
 }
 
-LISP_INLINE void
+INTERVALS_INLINE void
 interval_set_left (INTERVAL i, INTERVAL left)
 {
   i->left = left;
 }
 
-LISP_INLINE void
+INTERVALS_INLINE void
 interval_set_right (INTERVAL i, INTERVAL right)
 {
   i->right = right;
 }
 
-LISP_INLINE Lisp_Object
+INTERVALS_INLINE Lisp_Object
 interval_set_plist (INTERVAL i, Lisp_Object plist)
 {
   i->plist = plist;
@@ -170,7 +173,7 @@ interval_set_plist (INTERVAL i, Lisp_Object plist)
 /* Make the parent of D be whatever the parent of S is, regardless
    of the type.  This is used when balancing an interval tree.  */
 
-LISP_INLINE void
+INTERVALS_INLINE void
 interval_copy_parent (INTERVAL d, INTERVAL s)
 {
   d->up = s->up;

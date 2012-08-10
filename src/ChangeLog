@@ -1,5 +1,11 @@
 2012-08-10  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	Use common inline syntax in intervals.h.
+	* intervals.h (INTERVALS_INLINE): New macro.
+	Change all users from LISP_INLINE.
+
+2012-08-10  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	Define Qnone once for all platforms.
 	* frame.c (Qnone): Define here.
 	(syms_of_frame): DEFSYM it.
