@@ -1,3 +1,9 @@
+2012-08-10  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Remove unused macros from intervals.h.
+	* intervals.h (MERGE_INSERTIONS, DISPLAY_INVISIBLE_GLYPH): Remove.
+	* intervals.c: Adjust comment.
+
 2012-08-10  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32fns.c <w32_unicode_gui>: New static variable.

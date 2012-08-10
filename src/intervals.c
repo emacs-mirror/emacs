@@ -1559,11 +1559,9 @@ reproduce_tree_obj (INTERVAL source, Lisp_Object parent)
    cases -- either insertion happened in the middle of some interval,
    or between two intervals.
 
-   If the text goes into the middle of an interval, then new
-   intervals are created in the middle with only the properties of
-   the new text, *unless* the macro MERGE_INSERTIONS is true, in
-   which case the new text has the union of its properties and those
-   of the text into which it was inserted.
+   If the text goes into the middle of an interval, then new intervals
+   are created in the middle, and new text has the union of its properties
+   and those of the text into which it was inserted.
 
    If the text goes between two intervals, then if neither interval
    had its appropriate sticky property set (front_sticky, rear_sticky),

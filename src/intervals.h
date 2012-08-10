@@ -213,15 +213,6 @@ interval_copy_parent (INTERVAL d, INTERVAL s)
   if ((from)->rear_sticky) (to)->rear_sticky = 1;     \
 }
 
-/* Macro determining whether the properties of an interval being
-   inserted should be merged with the properties of the text where
-   they are being inserted.  */
-#define MERGE_INSERTIONS(i) 1
-
-/* Macro determining if an invisible interval should be displayed
-   as a special glyph, or not at all.  */
-#define DISPLAY_INVISIBLE_GLYPH(i) 0
-
 /* Is this interval visible?  Replace later with cache access.  */
 #define INTERVAL_VISIBLE_P(i) \
   (i && NILP (textget ((i)->plist, Qinvisible)))
