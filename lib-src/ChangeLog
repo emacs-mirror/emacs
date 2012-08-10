@@ -1,4 +1,9 @@
-2012-08-09  Glenn Morris  <rgm@gnu.org>
+2012-08-10  Glenn Morris  <rgm@gnu.org>
+
+	* movemail.c (DIRECTORY_SEP, IS_DIRECTORY_SEP):
+	* make-docfile.c (DIRECTORY_SEP, IS_DIRECTORY_SEP):
+	* emacsclient.c (DIRECTORY_SEP, IS_DIRECTORY_SEP, IS_DEVICE_SEP):
+	Remove (they are in config.h now).
 
 	* ebrowse.c (PATH_LIST_SEPARATOR):
 	Remove, and replace with SEPCHAR from config.h.

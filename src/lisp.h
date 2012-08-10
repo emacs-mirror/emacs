@@ -3418,8 +3418,6 @@ extern char *egetenv (const char *);
 /* Set up the name of the machine we're running on.  */
 extern void init_system_name (void);
 
-static char const DIRECTORY_SEP = '/';
-
 /* Use this to suppress gcc's warnings.  */
 #ifdef lint
 

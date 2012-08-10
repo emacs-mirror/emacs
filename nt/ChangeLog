@@ -1,3 +1,7 @@
+2012-08-10  Glenn Morris  <rgm@gnu.org>
+
+	* config.nt (DIRECTORY_SEP): Move here from src/lisp.h.
+
 2012-08-07  Juanma Barranquero  <lekktu@gmail.com>
 
 	* config.nt: Sync with autogen/config.nt.

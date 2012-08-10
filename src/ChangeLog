@@ -1,3 +1,7 @@
+2012-08-10  Glenn Morris  <rgm@gnu.org>
+
+	* lisp.h (DIRECTORY_SEP): Let configure set it.
+
 2012-08-09  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Use TSET for write access to Lisp_Object slots of struct terminal.

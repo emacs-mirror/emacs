@@ -1,7 +1,6 @@
 /* GNU Emacs site configuration template file.
 
-Copyright (C) 1988, 1993-1994, 2001-2012
-  Free Software Foundation, Inc.
+Copyright (C) 1988, 1993-1994, 2001-2012 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -130,6 +129,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 for DGUX with <sys/dg_sys_info.h>. */
 #undef DGUX
+
+/* Character that separates directories in a file name. */
+#define DIRECTORY_SEP '/'
 
 /* Define if dispnew.c should include stdio_ext.h. */
 #undef DISPNEW_NEEDS_STDIO_EXT

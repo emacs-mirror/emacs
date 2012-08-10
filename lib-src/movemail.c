@@ -275,13 +275,6 @@ main (int argc, char **argv)
   else
 #endif
     {
-      #ifndef DIRECTORY_SEP
-       #define DIRECTORY_SEP '/'
-      #endif
-      #ifndef IS_DIRECTORY_SEP
-       #define IS_DIRECTORY_SEP(_c_) ((_c_) == DIRECTORY_SEP)
-      #endif
-
       /* Use a lock file named after our first argument with .lock appended:
 	 If it exists, the mail file is locked.  */
       /* Note: this locking mechanism is *required* by the mailer

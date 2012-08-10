@@ -1,6 +1,7 @@
 /* Generate doc-string file for GNU Emacs from source files.
-   Copyright (C) 1985-1986, 1992-1994, 1997, 1999-2012
-                 Free Software Foundation, Inc.
+
+Copyright (C) 1985-1986, 1992-1994, 1997, 1999-2012
+  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -36,12 +37,13 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <config.h>
 
 /* Defined to be emacs_main, sys_fopen, etc. in config.h.  */
+/* FIXME Not for ages? */
 #undef main
 #undef fopen
 #undef chdir
 
 #include <stdio.h>
-#include <stdlib.h>
+#include <stdlib.h>       /* FIXME config.h unconditionally includes this */
 #ifdef MSDOS
 #include <fcntl.h>
 #endif /* MSDOS */
@@ -58,14 +60,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define READ_BINARY "r"
 #endif /* not DOS_NT */
 
-#ifndef DIRECTORY_SEP
-#define DIRECTORY_SEP '/'
-#endif
-
-#ifndef IS_DIRECTORY_SEP
-#define IS_DIRECTORY_SEP(_c_) ((_c_) == DIRECTORY_SEP)
-#endif
-
 /* Use this to suppress gcc's `...may be used before initialized' warnings.  */
 #ifdef lint
 # define IF_LINT(Code) Code
@@ -79,6 +73,8 @@ static int scan_c_file (char *filename, const char *mode);
 static void start_globals (void);
 static void write_globals (void);
 
+/* FIXME msdos does not define this any more, and in any case we
+   undefined it for everyone just above.  */
 #ifdef MSDOS
 /* s/msdos.h defines this as sys_chdir, but we're not linking with the
    file where that function is defined.  */

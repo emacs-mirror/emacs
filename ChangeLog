@@ -1,3 +1,7 @@
+2012-08-10  Glenn Morris  <rgm@gnu.org>
+
+	* configure.ac (DIRECTORY_SEP): Move here from src/lisp.h.
+
 2012-08-08  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* configure.ac (--disable-features): Rename to --without-all.
