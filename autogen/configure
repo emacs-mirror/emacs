@@ -14721,6 +14721,10 @@ $as_echo "#define USER_FULL_NAME pw->pw_gecos" >>confdefs.h
 
 
 
+$as_echo "#define DIRECTORY_SEP '/'" >>confdefs.h
+
+
+
 
 
 $as_echo "#define IS_DEVICE_SEP(_c_) 0" >>confdefs.h

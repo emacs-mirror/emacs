@@ -126,6 +126,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 for DGUX with <sys/dg_sys_info.h>. */
 #undef DGUX
 
+/* Character that separates directories in a file name. */
+#undef DIRECTORY_SEP
+
 /* Define if dispnew.c should include stdio_ext.h. */
 #undef DISPNEW_NEEDS_STDIO_EXT
 
