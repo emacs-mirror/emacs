@@ -38,4 +38,15 @@
       (hack-local-variables)
       (should (eq files-test-var1 nil)))))
 
+(ert-deftest files-test-disable-local-variables ()
+  "Test that setting enable-local-variables to nil works."
+  (with-temp-buffer
+    (insert "text\n"
+            ";; Local Variables:\n"
+            ";; files-test-var1: t\n"
+            ";; End:\n")
+    (let ((enable-local-variables nil))
+      (hack-local-variables)
+      (should (eq files-test-var1 nil)))))
+
 ;;; files.el ends here

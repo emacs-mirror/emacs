@@ -1,3 +1,7 @@
+2012-08-10  Glenn Morris  <rgm@gnu.org>
+
+	* automated/files.el (files-test-disable-local-variables): New test.
+
 2012-08-08  Glenn Morris  <rgm@gnu.org>
 
 	* automated/files.el: New file.
