@@ -107,7 +107,9 @@
 
 ;;; Code:
 
-(defconst rx-constituents
+;; FIXME: support macros.
+
+(defvar rx-constituents              ;Not `const' because some modes extend it.
   '((and		. (rx-and 1 nil))
     (seq		. and)		; SRE
     (:			. and)		; SRE
@@ -831,27 +833,28 @@ If FORM is '(minimal-match FORM1)', non-greedy versions of `*',
 FORM is a regular expression in sexp form.
 RX-PARENT shows which type of expression calls and controls putting of
 shy groups around the result and some more in other functions."
-  (if (stringp form)
-      (rx-group-if (regexp-quote form)
-		   (if (and (eq rx-parent '*) (< 1 (length form)))
-		       rx-parent))
-    (cond ((integerp form)
-	   (regexp-quote (char-to-string form)))
-	  ((symbolp form)
-	   (let ((info (rx-info form nil)))
-	     (cond ((stringp info)
-		    info)
-		   ((null info)
-		    (error "Unknown rx form `%s'" form))
-		   (t
-		    (funcall (nth 0 info) form)))))
-	  ((consp form)
-	   (let ((info (rx-info (car form) 'head)))
-	     (unless (consp info)
-	       (error "Unknown rx form `%s'" (car form)))
-	     (funcall (nth 0 info) form)))
-	  (t
-	   (error "rx syntax error at `%s'" form)))))
+  (cond
+   ((stringp form)
+    (rx-group-if (regexp-quote form)
+                 (if (and (eq rx-parent '*) (< 1 (length form)))
+                     rx-parent)))
+   ((integerp form)
+    (regexp-quote (char-to-string form)))
+   ((symbolp form)
+    (let ((info (rx-info form nil)))
+      (cond ((stringp info)
+             info)
+            ((null info)
+             (error "Unknown rx form `%s'" form))
+            (t
+             (funcall (nth 0 info) form)))))
+   ((consp form)
+    (let ((info (rx-info (car form) 'head)))
+      (unless (consp info)
+        (error "Unknown rx form `%s'" (car form)))
+      (funcall (nth 0 info) form)))
+   (t
+    (error "rx syntax error at `%s'" form))))
 
 
 ;;;###autoload
