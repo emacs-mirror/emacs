@@ -62,7 +62,6 @@ static Lisp_Object Qserif, Qscript, Qdecorative;
 static Lisp_Object Qraster, Qoutline, Qunknown;
 
 /* antialiasing  */
-extern Lisp_Object Qnone; /* reuse from w32fns.c  */
 static Lisp_Object Qstandard, Qsubpixel, Qnatural;
 
 /* languages */

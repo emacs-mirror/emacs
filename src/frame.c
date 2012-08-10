@@ -65,7 +65,7 @@ Lisp_Object Qns_parse_geometry;
 
 Lisp_Object Qframep, Qframe_live_p;
 Lisp_Object Qicon, Qmodeline;
-Lisp_Object Qonly;
+Lisp_Object Qonly, Qnone;
 Lisp_Object Qx, Qw32, Qmac, Qpc, Qns;
 Lisp_Object Qvisible;
 Lisp_Object Qdisplay_type;
@@ -4202,6 +4202,7 @@ syms_of_frame (void)
   DEFSYM (Qminibuffer, "minibuffer");
   DEFSYM (Qmodeline, "modeline");
   DEFSYM (Qonly, "only");
+  DEFSYM (Qnone, "none");
   DEFSYM (Qwidth, "width");
   DEFSYM (Qgeometry, "geometry");
   DEFSYM (Qicon_left, "icon-left");

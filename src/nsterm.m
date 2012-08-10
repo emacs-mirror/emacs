@@ -139,7 +139,7 @@ static unsigned convert_ns_to_X_keysym[] =
 };
 
 static Lisp_Object Qmodifier_value;
-Lisp_Object Qalt, Qcontrol, Qhyper, Qmeta, Qsuper, Qnone;
+Lisp_Object Qalt, Qcontrol, Qhyper, Qmeta, Qsuper;
 extern Lisp_Object Qcursor_color, Qcursor_type, Qns, Qleft;
 
 static Lisp_Object QUTF8_STRING;
@@ -6706,7 +6706,6 @@ syms_of_nsterm (void)
   DEFSYM (Qmeta, "meta");
   DEFSYM (Qsuper, "super");
   DEFSYM (Qcontrol, "control");
-  DEFSYM (Qnone, "none");
   DEFSYM (QUTF8_STRING, "UTF8_STRING");
 
   Fput (Qalt, Qmodifier_value, make_number (alt_modifier));

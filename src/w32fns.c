@@ -93,7 +93,6 @@ static HWND hourglass_hwnd = NULL;
 
 static int w32_in_use;
 
-Lisp_Object Qnone;
 Lisp_Object Qsuppress_icon;
 Lisp_Object Qundefined_color;
 Lisp_Object Qcancel_timer;
@@ -6808,7 +6807,6 @@ syms_of_w32fns (void)
 
   w32_visible_system_caret_hwnd = NULL;
 
-  DEFSYM (Qnone, "none");
   DEFSYM (Qsuppress_icon, "suppress-icon");
   DEFSYM (Qundefined_color, "undefined-color");
   DEFSYM (Qcancel_timer, "cancel-timer");

@@ -82,7 +82,6 @@ extern Lisp_Object Qface_set_after_frame_default;
 extern Lisp_Object Qunderline, Qundefined;
 extern Lisp_Object Qheight, Qminibuffer, Qname, Qonly, Qwidth;
 extern Lisp_Object Qunsplittable, Qmenu_bar_lines, Qbuffer_predicate, Qtitle;
-extern Lisp_Object Qnone;
 
 
 Lisp_Object Qbuffered;

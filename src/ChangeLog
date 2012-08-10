@@ -1,5 +1,14 @@
 2012-08-10  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	Define Qnone once for all platforms.
+	* frame.c (Qnone): Define here.
+	(syms_of_frame): DEFSYM it.
+	* lisp.h (Qnone): New declaration.
+	* nsfns.m, nsterm.h, nsterm.m, w32fns.c, w32font.c:
+	* xfns.c: Remove duplication.  Adjust users.
+
+2012-08-10  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	Remove unused macros from intervals.h.
 	* intervals.h (MERGE_INSERTIONS, DISPLAY_INVISIBLE_GLYPH): Remove.
 	* intervals.c: Adjust comment.

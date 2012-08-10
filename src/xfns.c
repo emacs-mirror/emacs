@@ -130,7 +130,6 @@ extern LWLIB_ID widget_id_tick;
 
 int x_in_use;
 
-static Lisp_Object Qnone;
 static Lisp_Object Qsuppress_icon;
 static Lisp_Object Qundefined_color;
 static Lisp_Object Qcompound_text, Qcancel_timer;
@@ -5814,7 +5813,6 @@ syms_of_xfns (void)
   /* The section below is built by the lisp expression at the top of the file,
      just above where these variables are declared.  */
   /*&&& init symbols here &&&*/
-  DEFSYM (Qnone, "none");
   DEFSYM (Qsuppress_icon, "suppress-icon");
   DEFSYM (Qundefined_color, "undefined-color");
   DEFSYM (Qcompound_text, "compound-text");
