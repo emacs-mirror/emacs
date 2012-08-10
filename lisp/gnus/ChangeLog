@@ -1,3 +1,8 @@
+2012-08-10  Daiki Ueno  <ueno@unixuser.org>
+
+	* auth-source.el: (auth-source-plstore-search)
+	(auth-source-secrets-search): Ignore :require and :type in search spec.
+
 2012-08-06  Julien Danjou  <julien@danjou.info>
 
 	* gnus-demon.el (gnus-demon-add-handler, gnus-demon-remove-handler):

@@ -1532,7 +1532,7 @@ authentication tokens:
 
   (let* ((coll (oref backend source))
          (max (or max 5000))     ; sanity check: default to stop at 5K
-         (ignored-keys '(:create :delete :max :backend :label))
+         (ignored-keys '(:create :delete :max :backend :label :require :type))
          (search-keys (loop for i below (length spec) by 2
                             unless (memq (nth i spec) ignored-keys)
                             collect (nth i spec)))
@@ -1787,7 +1787,7 @@ entries for git.gnus.org:
   "Search the PLSTORE; spec is like `auth-source'."
   (let* ((store (oref backend data))
          (max (or max 5000))     ; sanity check: default to stop at 5K
-         (ignored-keys '(:create :delete :max :backend :require))
+         (ignored-keys '(:create :delete :max :backend :label :require :type))
          (search-keys (loop for i below (length spec) by 2
                             unless (memq (nth i spec) ignored-keys)
                             collect (nth i spec)))
