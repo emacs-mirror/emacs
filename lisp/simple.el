@@ -966,16 +966,22 @@ rather than line counts."
 	(re-search-forward "[\n\C-m]" nil 'end (1- line))
       (forward-line (1- line)))))
 
-(defun count-words-region (start end)
+(defun count-words-region (start end &optional arg)
   "Count the number of words in the region.
 If called interactively, print a message reporting the number of
-lines, words, and chars in the region.
+lines, words, and characters in the region (whether or not the
+region is active); with prefix ARG, report for the entire buffer
+rather than the region.
+
 If called from Lisp, return the number of words between positions
 START and END."
-  (interactive "r")
-  (if (called-interactively-p 'any)
-      (count-words--message "Region" start end)
-    (count-words start end)))
+  (interactive "r\nP")
+  (cond ((not (called-interactively-p 'any))
+	 (count-words start end))
+	(arg
+	 (count-words--buffer-message))
+	(t
+	 (count-words--message "Region" start end))))
 
 (defun count-words (start end)
   "Count words between START and END.
@@ -999,11 +1005,14 @@ END, without printing any message."
 	((use-region-p)
 	 (call-interactively 'count-words-region))
 	(t
-	 (count-words--message
-	  (if (= (point-max) (1+ (buffer-size)))
-	      "Buffer"
-	    "Narrowed part of buffer")
-	  (point-min) (point-max)))))
+	 (count-words--buffer-message))))
+
+(defun count-words--buffer-message ()
+  (count-words--message
+   (if (= (point-max) (1+ (buffer-size)))
+       "Buffer"
+     "Narrowed part of buffer")
+   (point-min) (point-max)))
 
 (defun count-words--message (str start end)
   (let ((lines (count-lines start end))

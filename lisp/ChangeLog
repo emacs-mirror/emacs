@@ -1,3 +1,11 @@
+2012-08-10  Chong Yidong  <cyd@gnu.org>
+
+	* bindings.el: Bind M-= back to count-words-region.
+
+	* simple.el (count-words-region): Accept a prefix arg for acting
+	on the entire buffer.
+	(count-words--buffer-message): New helper function.
+
 2012-08-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* term/x-win.el (x-menu-bar-open): Always pass last-nonmenu-event.

@@ -176,7 +176,7 @@ prompts for a column number.
 ** `mouse-avoidance-banish-position' can now be used to customize
 `mouse-avoidance-mode' further.
 
-** `M-=' is now bound to `count-words', not `count-words-region'.
+** `C-u M-=' now counts lines/words/characters in the entire buffer.
 
 ** `C-M-f' and `C-M-b' will now move to the path name separator
 character when doing minibuffer filename prompts.
