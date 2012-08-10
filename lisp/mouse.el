@@ -1,4 +1,4 @@
-;;; mouse.el --- window system-independent mouse support
+;;; mouse.el --- window system-independent mouse support  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1993-1995, 1999-2012 Free Software Foundation, Inc.
 
@@ -151,35 +151,24 @@ PREFIX is the prefix argument (if any) to pass to the command."
       (call-interactively cmd))))
 
 (defun popup-menu-normalize-position (position)
-  "Converts the POSITION to the form which `popup-menu' expects internally.
-POSITION can be nil, an click event, a posn- value, or a value having
-form ((XOFFSET YOFFSET) WINDOW).
-If nil, the current mouse position is used.
-If an click event, the value returend from `event-end' is used."
+  "Convert the POSITION to the form which `popup-menu' expects internally.
+POSITION can an event, a posn- value, a value having
+form ((XOFFSET YOFFSET) WINDOW), or nil.
+If nil, the current mouse position is used."
   (pcase position
     ;; nil -> mouse cursor position
-    ;; this pattern must be before `eventp' because
-    ;; nil is an event.
     (`nil
      (let ((mp (mouse-pixel-position)))
        (list (list (cadr mp) (cddr mp)) (car mp))))
-    ;; value returned from (event-end (read-event)) or (posn-at-point)
-    ((or `(,window ,area-or-pos (,x . ,y)
-		   ,timestamp ,object ,pos (,col . ,row)
-		   ,image (,dx . ,dy) (,width . ,height))
-	 `(,window ,pos (0 . 0) 0))
+    ;; Value returned from `event-end' or `posn-at-point'.
+    ((pred posnp)
      (let ((xy (posn-x-y position)))
        (list (list (car xy) (cdr xy))
 	     (posn-window position))))
-    ;; pattern expected by popup-menu
-    (`((,xoffset ,yoffset) ,window)
-     position)
-    ;; event
+    ;; Event.
     ((pred eventp)
      (popup-menu-normalize-position (event-end position)))
-    ;; rejects
-    (t
-     (error "Unexpected position form"))))
+    (t position)))
 
 (defun minor-mode-menu-from-indicator (indicator)
   "Show menu for minor mode specified by INDICATOR.

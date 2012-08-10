@@ -1,3 +1,12 @@
+2012-08-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* term/x-win.el (x-menu-bar-open): Always pass last-nonmenu-event.
+	* subr.el (eventp): `nil' is not an event, and eventp is not hot.
+	(event-start, event-end): Use posn-at-point to return a more
+	informative posn.
+	(posnp): New function.
+	* mouse.el (popup-menu-normalize-position): Use it.
+
 2012-08-10  Masatake YAMATO  <yamato@redhat.com>
 
 	* mouse.el (popup-menu-normalize-position): New function.

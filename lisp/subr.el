@@ -907,11 +907,12 @@ The normal global definition of the character C-x indirects to this keymap.")
 			  c)))
 	    key)))
 
-(defsubst eventp (obj)
+(defun eventp (obj)
   "True if the argument is an event object."
-  (or (integerp obj)
-      (and (symbolp obj) obj (not (keywordp obj)))
-      (and (consp obj) (symbolp (car obj)))))
+  (when obj
+    (or (integerp obj)
+        (and (symbolp obj) obj (not (keywordp obj)))
+        (and (consp obj) (symbolp (car obj))))))
 
 (defun event-modifiers (event)
   "Return a list of symbols representing the modifier keys in event EVENT.
@@ -975,7 +976,7 @@ in the current Emacs session, then this function may return nil."
   ;; is this really correct? maybe remove mouse-movement?
   (memq (event-basic-type object) '(mouse-1 mouse-2 mouse-3 mouse-movement)))
 
-(defsubst event-start (event)
+(defun event-start (event)
   "Return the starting position of EVENT.
 EVENT should be a click, drag, or key press event.
 If it is a key press event, the return value has the form
@@ -990,9 +991,10 @@ If EVENT is a mouse or key press or a mouse click, this is the
 position of the event.  If EVENT is a drag, this is the starting
 position of the drag."
   (if (consp event) (nth 1 event)
-    (list (selected-window) (point) '(0 . 0) 0)))
+    (or (posn-at-point)
+        (list (selected-window) (point) '(0 . 0) 0))))
 
-(defsubst event-end (event)
+(defun event-end (event)
   "Return the ending location of EVENT.
 EVENT should be a click, drag, or key press event.
 If EVENT is a key press event, the return value has the form
@@ -1009,7 +1011,8 @@ If EVENT is a mouse or key press or a mouse click, this is the
 position of the event.  If EVENT is a drag, this is the starting
 position of the drag."
   (if (consp event) (nth (if (consp (nth 2 event)) 2 1) event)
-    (list (selected-window) (point) '(0 . 0) 0)))
+    (or (posn-at-point)
+        (list (selected-window) (point) '(0 . 0) 0))))
 
 (defsubst event-click-count (event)
   "Return the multi-click count of EVENT, a click or drag event.
@@ -1017,6 +1020,13 @@ The return value is a positive integer."
   (if (and (consp event) (integerp (nth 2 event))) (nth 2 event) 1))
 
 ;;;; Extracting fields of the positions in an event.
+
+(defun posnp (obj)
+  "Return non-nil if OBJ appears to be a valid `posn' object."
+  (and (windowp (car-safe obj))
+       (atom (car-safe (setq obj (cdr obj))))                ;AREA-OR-POS.
+       (integerp (car-safe (car-safe (setq obj (cdr obj))))) ;XOFFSET.
+       (integerp (car-safe (cdr obj)))))                     ;TIMESTAMP.
 
 (defsubst posn-window (position)
   "Return the window in POSITION.

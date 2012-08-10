@@ -1306,17 +1306,14 @@ Request data types in the order specified by `x-select-request-type'."
 
 (defun x-menu-bar-open (&optional frame)
   "Open the menu bar if it is shown.
-`popup-menu' is used if it is off "
+`popup-menu' is used if it is off."
   (interactive "i")
   (cond
    ((and (not (zerop (or (frame-parameter nil 'menu-bar-lines) 0)))
 	 (fboundp 'accelerate-menu))
     (accelerate-menu frame))
    (t
-    (popup-menu (mouse-menu-bar-map)
-		(if (listp last-nonmenu-event)
-		    nil
-		  (posn-at-point))))))
+    (popup-menu (mouse-menu-bar-map) last-nonmenu-event))))
 
 
 ;;; Window system initialization.
