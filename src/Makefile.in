@@ -56,7 +56,7 @@ lwlibdir = ../lwlib
 lispdir = ../lisp
 
 # Configuration files for .o files to depend on.
-config_h = config.h conf_post.h
+config_h = config.h $(srcdir)/conf_post.h
 
 bootstrap_exe = $(abs_builddir)/bootstrap-emacs$(EXEEXT)
 
