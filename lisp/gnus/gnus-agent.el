@@ -354,23 +354,11 @@ manipulated as follows:
   (func LIST): Returns VALUE1
   (setf (func LIST) NEW_VALUE1): Replaces VALUE1 with NEW_VALUE1."
     `(progn (defmacro ,name (category)
-              (list (quote cdr) (list (quote assq)
-                                      (quote (quote ,prop-name)) category)))
+              (list 'cdr (list 'assq '',prop-name category)))
 
-            (define-setf-method ,name (category)
-              (let* ((--category--temp-- (make-symbol "--category--"))
-                     (--value--temp-- (make-symbol "--value--")))
-                (list (list --category--temp--) ; temporary-variables
-                      (list category)		; value-forms
-                      (list --value--temp--)	; store-variables
-                      (let* ((category --category--temp--) ; store-form
-                             (value --value--temp--))
-                        (list (quote gnus-agent-cat-set-property)
-                              category
-                              (quote (quote ,prop-name))
-                              value))
-                      (list (quote ,name) --category--temp--) ; access-form
-                      )))))
+            (defsetf ,name (category) (value)
+              (list 'gnus-agent-cat-set-property
+                    category '',prop-name value))))
   )
 
 (defmacro gnus-agent-cat-name (category)
@@ -398,22 +386,10 @@ manipulated as follows:
  gnus-agent-cat-enable-undownloaded-faces  agent-enable-undownloaded-faces)
 
 
-;; This form is equivalent to defsetf except that it calls make-symbol
-;; whereas defsetf calls gensym (Using gensym creates a run-time
-;; dependency on the CL library).
-
-(eval-and-compile
-  (define-setf-method gnus-agent-cat-groups (category)
-    (let* ((--category--temp-- (make-symbol "--category--"))
-	   (--groups--temp-- (make-symbol "--groups--")))
-      (list (list --category--temp--)
-	    (list category)
-	    (list --groups--temp--)
-	    (let* ((category --category--temp--)
-		   (groups --groups--temp--))
-	      (list (quote gnus-agent-set-cat-groups) category groups))
-	    (list (quote gnus-agent-cat-groups) --category--temp--))))
-  )
+;; This form may expand to code that uses CL functions at run-time,
+;; but that's OK since those functions will only ever be called from
+;; something like `setf', so only when CL is loaded anyway.
+(defsetf gnus-agent-cat-groups gnus-agent-set-cat-groups)
 
 (defun gnus-agent-set-cat-groups (category groups)
   (unless (eq groups 'ignore)
