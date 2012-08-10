@@ -1,5 +1,7 @@
 2012-08-10  Glenn Morris  <rgm@gnu.org>
 
+	* emacs-lisp/copyright.el (copyright-update-directory): Logic fix.
+
 	* tutorial.el (help-with-tutorial):
 	* emacs-lisp/copyright.el (copyright-update-directory):
 	* emacs-lisp/autoload.el (autoload-find-generated-file)
