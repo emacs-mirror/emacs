@@ -86,8 +86,7 @@ FTOASTR_H      = $(GNU_LIB)/ftoastr.h \
 		 $(GNU_LIB)/intprops.h
 FTOASTR_C      = $(GNU_LIB)/ftoastr.c \
 		 $(CONFIG_H) \
-		 $(FTOASTR_H) \
-		 $(GNU_LIB)/ftoastr.h
+		 $(FTOASTR_H)
 GETOPT_INT_H   = $(GNU_LIB)/getopt_int.h \
 		 $(GNU_LIB)/getopt.h
 MD5_H          = $(GNU_LIB)/md5.h \
@@ -100,6 +99,8 @@ U64_H          = $(GNU_LIB)/u64.h \
 		 $(NT_INC)/stdint.h
 SHA512_H       = $(GNU_LIB)/sha512.h \
 		 $(U64_H)
+STAT_TIME_H    = $(GNU_LIB)/stat-time.h \
+		 $(NT_INC)/sys/stat.h
 
 $(BLD)/c-ctype.$(O) : \
 	$(GNU_LIB)/c-ctype.c \
@@ -199,17 +200,19 @@ $(BLD)/sha512.$(O) : \
 	$(SHA512_H)
 
 $(BLD)/stat-time.$(O) : \
-	$(GNU_LIB)/stat-time.h \
-	$(NT_INC)/sys/stat.h \
-	$(CONFIG_H)
+	$(GNU_LIB)/stat-time.c \
+	$(CONFIG_H) \
+	$(STAT_TIME_H)
 
 $(BLD)/timespec.$(O) : \
+	$(GNU_LIB)/timespec.c \
 	$(GNU_LIB)/timespec.h \
 	$(CONFIG_H)
 
 $(BLD)/u64.$(O) : \
-	$(U64_H) \
-	$(CONFIG_H)
+	$(GNU_LIB)/u64.c \
+	$(CONFIG_H) \
+	$(U64_H)
 
 $(BLD)/filemode.$(O) : \
 	$(GNU_LIB)/filemode.c \
