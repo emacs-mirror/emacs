@@ -731,7 +731,21 @@ Valid clauses are:
   finally return EXPR, named NAME.
 
 \(fn CLAUSE...)"
-  (declare (debug (&rest &or symbolp form)))
+  (declare (debug (&rest &or
+                         ;; These are usually followed by a symbol, but it can
+                         ;; actually be any destructuring-bind pattern, which
+                         ;; would erroneously match `form'.
+                         [[&or "for" "as" "with" "and"] sexp]
+                         ;; These are followed by expressions which could
+                         ;; erroneously match `symbolp'.
+                         [[&or "from" "upfrom" "downfrom" "to" "upto" "downto"
+                               "above" "below" "by" "in" "on" "=" "across"
+                               "repeat" "while" "until" "always" "never"
+                               "thereis" "collect" "append" "nconc" "sum"
+                               "count" "maximize" "minimize" "if" "unless"
+                               "return"] form]
+                         ;; Simple default, which covers 99% of the cases.
+                         symbolp form)))
   (if (not (memq t (mapcar 'symbolp (delq nil (delq t (cl-copy-list loop-args))))))
       `(cl-block nil (while t ,@loop-args))
     (let ((cl--loop-args loop-args) (cl--loop-name nil) (cl--loop-bindings nil)

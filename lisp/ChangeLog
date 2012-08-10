@@ -1,3 +1,7 @@
+2012-08-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/cl-macs.el (cl-loop): Improve debug spec.
+
 2012-08-10  Chong Yidong  <cyd@gnu.org>
 
 	* progmodes/python.el (python-shell-get-process-name): Don't mess
