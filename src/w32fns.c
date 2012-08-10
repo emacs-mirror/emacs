@@ -189,6 +189,8 @@ static int image_cache_refcount, dpyinfo_refcount;
 
 static HWND w32_visible_system_caret_hwnd;
 
+static int w32_unicode_gui;
+
 /* From w32menu.c  */
 extern HMENU current_popup_menu;
 static int menubar_in_use = 0;
@@ -1795,7 +1797,7 @@ static BOOL
 w32_init_class (HINSTANCE hinst)
 {
 
-  if (os_subtype == OS_NT)
+  if (w32_unicode_gui)
     {
       WNDCLASSW  uwc;
       INIT_WINDOW_CLASS(uwc);
@@ -2260,7 +2262,7 @@ w32_msg_pump (deferred_msg * msg_buf)
 
   msh_mousewheel = RegisterWindowMessage (MSH_MOUSEWHEEL);
 
-  while ((os_subtype == OS_NT ? GetMessageW : GetMessageA) (&msg, NULL, 0, 0))
+  while ((w32_unicode_gui ? GetMessageW : GetMessageA) (&msg, NULL, 0, 0))
     {
       if (msg.hwnd == NULL)
 	{
@@ -2355,7 +2357,7 @@ w32_msg_pump (deferred_msg * msg_buf)
 	}
       else
 	{
-	  if (os_subtype == OS_NT)
+	  if (w32_unicode_gui)
 	    DispatchMessageW (&msg);
 	  else
 	    DispatchMessageA (&msg);
@@ -3828,7 +3830,7 @@ w32_wnd_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	}
 
     dflt:
-      return (os_subtype == OS_NT ? DefWindowProcW :  DefWindowProcA) (hwnd, msg, wParam, lParam);
+      return (w32_unicode_gui ? DefWindowProcW :  DefWindowProcA) (hwnd, msg, wParam, lParam);
     }
 
   /* The most common default return code for handled messages is 0.  */
@@ -7180,6 +7182,11 @@ globals_of_w32fns (void)
 	      w32_ansi_code_page,
 	      doc: /* The ANSI code page used by the system.  */);
   w32_ansi_code_page = GetACP ();
+
+  if (os_subtype == OS_NT)
+    w32_unicode_gui = 1;
+  else
+    w32_unicode_gui = 0;
 
   /* MessageBox does not work without this when linked to comctl32.dll 6.0.  */
   InitCommonControls ();
