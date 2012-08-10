@@ -1,5 +1,9 @@
 2012-08-10  Glenn Morris  <rgm@gnu.org>
 
+	* make-docfile.c (main):
+	(fopen) [!WINDOWSNT]:
+	(chdir) [!DOS_NT]: No more need to undef.
+
 	* movemail.c (DIRECTORY_SEP, IS_DIRECTORY_SEP):
 	* make-docfile.c (DIRECTORY_SEP, IS_DIRECTORY_SEP):
 	* emacsclient.c (DIRECTORY_SEP, IS_DIRECTORY_SEP, IS_DEVICE_SEP):

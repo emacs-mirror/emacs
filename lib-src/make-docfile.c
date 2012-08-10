@@ -36,23 +36,26 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 
-/* Defined to be emacs_main, sys_fopen, etc. in config.h.  */
-/* FIXME Not for ages? */
-#undef main
-#undef fopen
-#undef chdir
-
 #include <stdio.h>
-#include <stdlib.h>       /* FIXME config.h unconditionally includes this */
+#include <stdlib.h>   /* config.h unconditionally includes this anyway */
 #ifdef MSDOS
 #include <fcntl.h>
 #endif /* MSDOS */
 #ifdef WINDOWSNT
+/* Defined to be sys_fopen in ms-w32.h, but only #ifdef emacs, so this
+   is really just insurance.  */
+#undef fopen
 #include <fcntl.h>
 #include <direct.h>
 #endif /* WINDOWSNT */
 
 #ifdef DOS_NT
+/* Defined to be sys_chdir in ms-w32.h, but only #ifdef emacs, so this
+   is really just insurance.
+
+   Similarly, msdos defines this as sys_chdir, but we're not linking with the
+   file where that function is defined.  */
+#undef chdir
 #define READ_TEXT "rt"
 #define READ_BINARY "rb"
 #else  /* not DOS_NT */
@@ -72,14 +75,6 @@ static int scan_lisp_file (const char *filename, const char *mode);
 static int scan_c_file (char *filename, const char *mode);
 static void start_globals (void);
 static void write_globals (void);
-
-/* FIXME msdos does not define this any more, and in any case we
-   undefined it for everyone just above.  */
-#ifdef MSDOS
-/* s/msdos.h defines this as sys_chdir, but we're not linking with the
-   file where that function is defined.  */
-#undef chdir
-#endif
 
 #include <unistd.h>
 
