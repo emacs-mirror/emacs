@@ -160,7 +160,8 @@ Type `y' to skip this revision,
   (unless (file-exists-p file) (error "Bzrmerge-resolve: Can't find %s" file))
   (with-demoted-errors
     (let ((exists (find-buffer-visiting file)))
-      (with-current-buffer (let ((enable-local-variables :safe))
+      (with-current-buffer (let ((enable-local-variables :safe)
+                                 (enable-local-eval nil))
                              (find-file-noselect file))
         (if (buffer-modified-p)
             (error "Unsaved changes in %s" (current-buffer)))

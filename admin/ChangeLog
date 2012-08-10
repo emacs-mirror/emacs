@@ -1,3 +1,7 @@
+2012-08-10  Glenn Morris  <rgm@gnu.org>
+
+	* bzrmerge.el (bzrmerge-resolve): Disable local eval:.
+
 2012-07-14  Eli Zaretskii  <eliz@gnu.org>
 
 	* CPP-DEFINES: Remove FILE_SYSTEM_CASE.
