@@ -366,6 +366,7 @@ If FIX is non-nil, run `copyright-fix-years' instead."
       (find-file file)
       (let ((inhibit-read-only t)
 	    (enable-local-variables :safe)
+	    (enable-local-eval nil)
 	    copyright-query)
 	(if fix
 	    (copyright-fix-years)
