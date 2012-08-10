@@ -1,5 +1,15 @@
 2012-08-10  Chong Yidong  <cyd@gnu.org>
 
+	* progmodes/python.el (python-shell-get-process-name): Don't mess
+	with same-window-buffer-names.
+
+	* eshell/eshell.el (eshell-add-to-window-buffer-names)
+	(eshell-remove-from-window-buffer-names): Make obsolete.
+	(eshell-buffer-name, eshell-unload-hook): Don't use them.
+	(eshell): Just use pop-to-buffer-same-window instead.
+
+2012-08-10  Chong Yidong  <cyd@gnu.org>
+
 	* bindings.el: Bind M-= back to count-words-region.
 
 	* simple.el (count-words-region): Accept a prefix arg for acting
