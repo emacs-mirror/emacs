@@ -1,3 +1,9 @@
+2012-08-09  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* automated/ruby-mode-tests.el (ruby-should-indent)
+	(ruby-assert-state): New functions.
+	Add new tests.
+
 2012-07-29  David Engster  <deng@randomsample.de>
 
 	* automated/xml-parse-tests.el (xml-parse-tests--qnames): New

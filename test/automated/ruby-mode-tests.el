@@ -23,16 +23,39 @@
 
 (require 'ruby-mode)
 
-(ert-deftest indent-line-after-symbol-made-from-string-interpolation ()
+(defun ruby-should-indent (content column)
+  (with-temp-buffer
+    (insert content)
+    (ruby-mode)
+    (ruby-indent-line)
+    (should (= (current-column) column))))
+
+(defun ruby-assert-state (content &rest values-plist)
+  "Assert syntax state values at the end of CONTENT.
+
+VALUES-PLIST is a list with alternating index and value elements."
+  (with-temp-buffer
+    (insert content)
+    (ruby-mode)
+    (syntax-propertize (point))
+    (while values-plist
+      (should (eq (nth (car values-plist)
+                       (parse-partial-sexp (point-min) (point)))
+                  (cadr values-plist)))
+      (setq values-plist (cddr values-plist)))))
+
+(ert-deftest ruby-indent-after-symbol-made-from-string-interpolation ()
   "It can indent the line after symbol made using string interpolation."
-  (let ((initial-content "def foo(suffix)\n  :\"bar#{suffix}\"\n")
-        (expected-content "def foo(suffix)\n  :\"bar#{suffix}\"\n  "))
-    (with-temp-buffer
-      (insert initial-content)
-      (ruby-indent-line) ; Doesn't rely on text properties or the syntax table.
-      (let ((buffer-content (buffer-substring-no-properties (point-min)
-                                                            (point-max))))
-        (should (string= buffer-content expected-content))))))
+  (ruby-should-indent "def foo(suffix)\n  :\"bar#{suffix}\"\n"
+                      ruby-indent-level))
+
+(ert-deftest ruby-indent-after-js-style-symbol-with-block-beg-name ()
+  "JS-style hash symbol can have keyword name."
+  (ruby-should-indent "link_to \"home\", home_path, class: \"foo\"\n" 0))
+
+(ert-deftest ruby-discern-singleton-class-from-heredoc ()
+  (ruby-assert-state "foo <<asd\n" 3 ?\n)
+  (ruby-assert-state "class <<asd\n" 3 nil))
 
 (provide 'ruby-mode-tests)
 

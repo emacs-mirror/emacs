@@ -151,7 +151,6 @@ This should only be called after matching against `ruby-here-doc-beg-re'."
     (define-key map (kbd "C-M-h") 'backward-kill-word)
     (define-key map (kbd "C-j")   'reindent-then-newline-and-indent)
     (define-key map (kbd "C-m")   'newline)
-    (define-key map (kbd "C-c C-c") 'comment-region)
     map)
   "Keymap used in Ruby mode.")
 
@@ -380,11 +379,19 @@ and `\\' when preceded by `?'."
           ((and (eq c ?:) (or (not b) (eq (char-syntax b) ? ))))
           ((eq c ?\\) (eq b ??)))))
 
+(defun ruby-singleton-class-p (&optional pos)
+  (save-excursion
+    (when pos (goto-char pos))
+    (forward-word -1)
+    (and (or (bolp) (not (eq (char-before (point)) ?_)))
+         (looking-at "class\\s *<<"))))
+
 (defun ruby-expr-beg (&optional option)
   "TODO: document."
   (save-excursion
     (store-match-data nil)
-    (let ((space (skip-chars-backward " \t")))
+    (let ((space (skip-chars-backward " \t"))
+          (start (point)))
       (cond
        ((bolp) t)
        ((progn
@@ -393,7 +400,8 @@ and `\\' when preceded by `?'."
                (or (eq (char-syntax (char-before (point))) ?w)
                    (ruby-special-char-p))))
         nil)
-       ((and (eq option 'heredoc) (< space 0)) t)
+       ((and (eq option 'heredoc) (< space 0))
+        (not (progn (goto-char start) (ruby-singleton-class-p))))
        ((or (looking-at ruby-operator-re)
             (looking-at "[\\[({,;]")
             (and (looking-at "[!?]")
@@ -409,7 +417,7 @@ and `\\' when preceded by `?'."
                                         ruby-block-mid-keywords)
                                 'words))
                    (goto-char (match-end 0))
-                   (not (looking-at "\\s_")))
+                   (not (looking-at "\\s_\\|!")))
                   ((eq option 'expr-qstr)
                    (looking-at "[a-zA-Z][a-zA-z0-9_]* +%[^ \t]"))
                   ((eq option 'expr-re)
@@ -581,9 +589,7 @@ and `\\' when preceded by `?'."
                         (eq ?. w)))))
          (goto-char pnt)
          (setq w (char-after (point)))
-         (not (eq ?_ w))
          (not (eq ?! w))
-         (not (eq ?? w))
          (skip-chars-forward " \t")
          (goto-char (match-beginning 0))
          (or (not (looking-at ruby-modifier-re))
@@ -1159,7 +1165,10 @@ See `add-log-current-defun-function'."
           ("^\\(=\\)begin\\_>" (1 "!"))
           ;; Handle here documents.
           ((concat ruby-here-doc-beg-re ".*\\(\n\\)")
-           (7 (prog1 "\"" (ruby-syntax-propertize-heredoc end))))
+           (7 (unless (ruby-singleton-class-p (match-beginning 0))
+                (put-text-property (match-beginning 7) (match-end 7)
+                                   'syntax-table (string-to-syntax "\""))
+                (ruby-syntax-propertize-heredoc end))))
           ;; Handle percent literals: %w(), %q{}, etc.
           ("\\(?:^\\|[[ \t\n<+(,=]\\)\\(%\\)[qQrswWx]?\\([[:punct:]]\\)"
            (1 (prog1 "|" (ruby-syntax-propertize-general-delimiters end)))))
@@ -1174,7 +1183,8 @@ See `add-log-current-defun-function'."
               (beginning-of-line)
               (while (re-search-forward ruby-here-doc-beg-re
                                         (line-end-position) t)
-                (push (concat (ruby-here-doc-end-match) "\n") res)))
+                (unless (ruby-singleton-class-p (match-beginning 0))
+                  (push (concat (ruby-here-doc-end-match) "\n") res))))
             (let ((start (point)))
               ;; With multiple openers on the same line, we don't know in which
               ;; part `start' is, so we have to go back to the beginning.
@@ -1310,7 +1320,8 @@ isn't in a string or another comment."
       (let ((old-point (point)) (case-fold-search nil))
         (beginning-of-line)
         (catch 'found-beg
-          (while (re-search-backward ruby-here-doc-beg-re nil t)
+          (while (and (re-search-backward ruby-here-doc-beg-re nil t)
+                      (not (ruby-singleton-class-p)))
             (if (not (or (ruby-in-ppss-context-p 'anything)
                          (ruby-here-doc-find-end old-point)))
                 (throw 'found-beg t)))))))

@@ -1,3 +1,16 @@
+2012-08-09  Dmitry Gutov  <dgutov@yandex.ru>
+
+	Merge stuff from upsteam ruby-mode, part 1 (bug#12169).
+	* progmodes/ruby-mode.el (ruby-mode-map): Remove deprecated
+	binding (use `M-;' instead).
+	(ruby-expr-beg, ruby-parse-partial): ?, _, and : are symbol
+	constituents, ! is not (but kinda should be).
+	(ruby-singleton-class-p): New function.
+	(ruby-expr-beg, ruby-in-here-doc-p)
+	(ruby-syntax-propertize-heredoc): Use it.
+	(ruby-syntax-propertize-function): Adjust for changes in
+	`ruby-syntax-propertize-heredoc'.
+
 2012-08-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/cl-macs.el (cl-loop): Improve debug spec.
