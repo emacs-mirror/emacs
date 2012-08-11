@@ -1667,7 +1667,7 @@ void TraceStart(Trace trace, double mortality, double finishingTime)
     if(nPolls >= (double)LONG_MAX)
       nPolls = (double)LONG_MAX;
     /* rate equals scanning work per number of polls available */
-    trace->rate = (trace->foundation + sSurvivors) / (long)nPolls + 1;
+    trace->rate = (trace->foundation + sSurvivors) / (unsigned long)nPolls + 1;
   }
 
   /* @@ DIAG for rate of scanning here. */

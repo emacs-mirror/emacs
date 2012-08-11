@@ -347,7 +347,7 @@ static RefPart MRGRefPartOfLink(Link link, Arena arena)
   AVERT(MRGLinkSeg, linkseg);
   linkBase = (Link)SegBase(seg);
   AVER(link >= linkBase);
-  index = link - linkBase;
+  index = (Index)(link - linkBase);
   AVER(index < MRGGuardiansPerSeg(Pool2MRG(SegPool(seg))));
 
   return refPartOfIndex(linkseg->refSeg, index);
@@ -475,7 +475,7 @@ static MessageClassStruct MRGMessageClassStruct = {
  * .segpair.destroy: We don't worry about the effect that destroying
  * these segs has on any of the pool rings.
  */
-static void MRGSegPairDestroy(MRGRefSeg refseg, MRG mrg)
+static void MRGSegPairDestroy(MRGRefSeg refseg)
 {
   RingRemove(&refseg->mrgRing);
   RingFinish(&refseg->mrgRing);
@@ -678,7 +678,7 @@ static void MRGFinish(Pool pool)
 
   RING_FOR(node, &mrg->refRing, nextNode) {
     MRGRefSeg refseg = RING_ELT(MRGRefSeg, mrgRing, node);
-    MRGSegPairDestroy(refseg, mrg);
+    MRGSegPairDestroy(refseg);
   }
 
   mrg->sig = SigInvalid;

@@ -681,7 +681,7 @@ static void testscriptC(mps_arena_t arena, mps_ap_t ap, const char *script)
         checksi(si, 1, script, scriptAll);
         script += sb;
         printf("  StackScan(%u)\n", on);
-        StackScan(arena, on);
+        StackScan(arena, on != 0);
         break;
       }
       case 'Z': {
