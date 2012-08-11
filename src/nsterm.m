@@ -4448,11 +4448,20 @@ ns_term_shutdown (int sig)
     return NSTerminateNow;  /* just in case */
 }
 
+static int
+not_in_argv (NSString *arg)
+{
+  int k;
+  const char *a = [arg UTF8String];
+  for (k = 1; k < initial_argc; ++k)
+    if (strcmp (a, initial_argv[k]) == 0) return 0;
+  return 1;
+}
 
 /*   Notification from the Workspace to open a file */
 - (BOOL)application: sender openFile: (NSString *)file
 {
-  if (ns_do_open_file)
+  if (ns_do_open_file || not_in_argv (file))
     [ns_pending_files addObject: file];
   return YES;
 }
@@ -4461,7 +4470,7 @@ ns_term_shutdown (int sig)
 /*   Open a file as a temporary file */
 - (BOOL)application: sender openTempFile: (NSString *)file
 {
-  if (ns_do_open_file)
+  if (ns_do_open_file || not_in_argv (file))
     [ns_pending_files addObject: file];
   return YES;
 }
@@ -4470,25 +4479,22 @@ ns_term_shutdown (int sig)
 /*   Notification from the Workspace to open a file noninteractively (?) */
 - (BOOL)application: sender openFileWithoutUI: (NSString *)file
 {
-  if (ns_do_open_file)
+  if (ns_do_open_file || not_in_argv (file))
     [ns_pending_files addObject: file];
   return YES;
 }
 
-
 /*   Notification from the Workspace to open multiple files */
 - (void)application: sender openFiles: (NSArray *)fileList
 {
-  /* Don't open files from the command line, Cocoa parses the command line
-     wrong anyway, --option value tries to open value if --option is the last
-     option.  */
-  if (ns_do_open_file)
-    {
-      NSEnumerator *files = [fileList objectEnumerator];
-      NSString *file;
-      while ((file = [files nextObject]) != nil)
-        [ns_pending_files addObject: file];
-    }
+  NSEnumerator *files = [fileList objectEnumerator];
+  NSString *file;
+  /* Don't open files from the command line unconditionally,
+     Cocoa parses the command line wrong, --option value tries to open value
+     if --option is the last option.  */
+  while ((file = [files nextObject]) != nil) 
+    if (ns_do_open_file || not_in_argv (file))
+      [ns_pending_files addObject: file];
   
   [self replyToOpenOrPrint: NSApplicationDelegateReplySuccess];
 

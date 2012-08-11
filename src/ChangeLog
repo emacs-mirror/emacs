@@ -1,5 +1,10 @@
 2012-08-11  Jan Djärv  <jan.h.d@swipnet.se>
 
+	* nsterm.m (not_in_argv): New function.
+	(application:openFile,	application:openTempFile:):
+	(application:openFileWithoutUI:, application:openFiles:): Open file
+	if not_in_argv returns non-zero (bug#12171).
+
 	* gtkutil.c (gtk_font_chooser_dialog_new, GTK_FONT_CHOOSER)
 	(gtk_font_chooser_set_font, gtk_font_chooser_get_font): Define
 	for Gtk+ versions less than 3.2.
