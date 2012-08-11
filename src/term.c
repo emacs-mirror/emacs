@@ -2855,7 +2855,7 @@ DEFUN ("gpm-mouse-stop", Fgpm_mouse_stop, Sgpm_mouse_stop,
    contents when the menu selection changes or when the final
    selection is made and the menu should be popped down.
 
-   The idea of this implementation was suggested by Gerd  Moellmann.  */
+   The idea of this implementation was suggested by Gerd Moellmann.  */
 
 #define TTYM_FAILURE -1
 #define TTYM_SUCCESS 1
@@ -2962,15 +2962,6 @@ tty_menu_calc_size (tty_menu *menu, int *width, int *height)
 }
 
 /* Display MENU at (X,Y) using FACES.  */
-
-#define BUILD_CHAR_GLYPH(GLYPH, CODE, FACE_ID, PADDING_P)  \
-  do							   \
-    {							   \
-      (GLYPH).type = CHAR_GLYPH;			   \
-      SET_CHAR_GLYPH ((GLYPH), CODE, FACE_ID, PADDING_P);  \
-      (GLYPH).charpos = -1;				   \
-    }							   \
-  while (0)
 
 static void
 tty_menu_display (tty_menu *menu, int y, int x, int pn, int *faces,
@@ -3125,15 +3116,143 @@ tty_menu_locate (tty_menu *menu, int x, int y,
 
 struct tty_menu_state
 {
-  void *screen_behind;
+  struct glyph_matrix *screen_behind;
   tty_menu *menu;
   int pane;
   int x, y;
 };
 
+/* Restore the contents of frame F's desired frame matrix from SAVED,
+   and free memory associated with SAVED.  */
+
+static void
+restore_desired_matrix (struct frame *f, struct glyph_matrix *saved)
+{
+  int i;
+
+  for (i = 0; i < saved->nrows; ++i)
+    {
+      struct glyph_row *from = saved->rows + i;
+      struct glyph_row *to = f->desired_matrix->rows + i;
+      ptrdiff_t nbytes = from->used[TEXT_AREA] * sizeof (struct glyph);
+
+      memcpy (to->glyphs[TEXT_AREA], from->glyphs[TEXT_AREA], nbytes);
+      to->used[TEXT_AREA] = from->used[TEXT_AREA];
+      xfree (from->glyphs[TEXT_AREA]);
+      nbytes = from->used[LEFT_MARGIN_AREA];
+      if (nbytes)
+	{
+	  memcpy (to->glyphs[LEFT_MARGIN_AREA],
+		  from->glyphs[LEFT_MARGIN_AREA], nbytes);
+	  to->used[LEFT_MARGIN_AREA] = from->used[LEFT_MARGIN_AREA];
+	  xfree (from->glyphs[LEFT_MARGIN_AREA]);
+	}
+      else
+	to->used[LEFT_MARGIN_AREA] = 0;
+      nbytes = from->used[RIGHT_MARGIN_AREA];
+      if (nbytes)
+	{
+	  memcpy (to->glyphs[RIGHT_MARGIN_AREA],
+		  from->glyphs[RIGHT_MARGIN_AREA], nbytes);
+	  to->used[RIGHT_MARGIN_AREA] = from->used[RIGHT_MARGIN_AREA];
+	  xfree (from->glyphs[RIGHT_MARGIN_AREA]);
+	}
+      else
+	to->used[RIGHT_MARGIN_AREA] = 0;
+    }
+
+  xfree (saved->rows);
+  xfree (saved);
+}
+
+static void
+free_saved_screen (struct glyph_matrix *saved)
+{
+  int i;
+
+  if (!saved)
+    return;	/* already freed */
+
+  for (i = 0; i < saved->nrows; ++i)
+    {
+      struct glyph_row *from = saved->rows + i;
+
+      xfree (from->glyphs[TEXT_AREA]);
+      nbytes = from->used[LEFT_MARGIN_AREA];
+      if (nbytes)
+	xfree (from->glyphs[LEFT_MARGIN_AREA]);
+      nbytes = from->used[RIGHT_MARGIN_AREA];
+      if (nbytes)
+	xfree (from->glyphs[RIGHT_MARGIN_AREA]);
+    }
+
+  xfree (saved->rows);
+  xfree (saved);
+}
+
+/* Update the display of frame F from its saved contents.  */
+static void
+screen_update (struct frame *f, struct glyph_matrix *mtx)
+{
+  restore_desired_matrix (f, mtx);
+  update_frame_with_menu (f);
+}
+
+/* Read user input and return X and Y coordinates where that input
+   puts us.  We only consider mouse movement and click events and
+   keyboard movement commands; the rest are ignored.  */
+static void
+read_menu_input (int *x, int *y)
+{
+  Lisp_Object c;
+
+  while (1)
+    {
+      do {
+	c = read_char (-2, 0, NULL, Qnil, NULL, NULL);
+      } while (BUFFERP (c) || (INTEGERP (c) && XINT (c) == -2));
+
+      if (INTEGERP (c))
+	{
+	  int ch = XINT (c);
+	  int usable_input = 1;
+
+	  /* FIXME: Exceedingly primitive!  Can we support arrow keys?  */
+	  switch (ch && ~CHAR_MODIFIER_MASK)
+	    {
+	    case 6:	/* ^F */
+	      *x += 1;
+	      break;
+	    case 2:	/* ^B */
+	      *x -= 1;
+	      break;
+	    case 14:	/* ^N */
+	      *y += 1;
+	      break;
+	    case 16:	/* ^P */
+	      *y -= 1;
+	      break;
+	    default:
+	      usable_input = 0;
+	      break;
+	    }
+	  if (usable_input)
+	    return;
+	}
+
+      else if (EVENT_HAS_PARAMETERS (c))
+	{
+	  if (EQ (EVENT_HEAD (c), Qmouse_movement))
+	    {
+	    }
+	  else if (EQ (EVENT_HEAD_KIND (EVENT_HEAD (c)), Qmouse_click))
+	    {
+	    }
+	}
+    }
+}
 
 /* Display menu, wait for user's response, and return that response.  */
-
 int
 tty_menu_activate (tty_menu *menu, int *pane, int *selidx,
 		   int x0, int y0, char **txt,
@@ -3153,11 +3272,11 @@ tty_menu_activate (tty_menu *menu, int *pane, int *selidx,
   if (y0 <= 0)
     y0 = 1;
 
-  /* We will process all the mouse events directly, so we had
-     better prevent dos_rawgetc from stealing them from us.  */
+  /* We will process all the mouse events directly.  */
   mouse_preempted++;
 
   state = alloca (menu->panecount * sizeof (struct tty_menu_state));
+  memset (state, 0, sizeof (*state));
   screensize = screen_size * 2;
   faces[0]
     = lookup_derived_face (sf, intern ("tty-menu-disabled-face"),
@@ -3196,13 +3315,18 @@ tty_menu_activate (tty_menu *menu, int *pane, int *selidx,
      before the call to message_with_string.  */
   saved_echo_area_message = Fcurrent_message ();
 #endif
+  /* Force update of the current frame, so that the desired and the
+     current matrices are identical.  */
+  update_frame_with_menu (sf);
   state[0].menu = menu;
   mouse_off ();	/* FIXME */
-  ScreenRetrieve (state[0].screen_behind = xmalloc (screensize)); /* FIXME */
+  state[0].screen_behind = save_current_matrix (sf);
 
   /* Turn off the cursor.  Otherwise it shows through the menu
      panes, which is ugly.  */
-  show_cursor (0);	/* FIXME: need a new hook.  */
+#if 0
+  show_cursor (0);	/* FIXME: need a new hook, for w32console.  */
+#endif
 
   /* Display the menu title.  */
   tty_menu_display (menu, y0 - 1, x0 - 1, 1, title_faces, 0);
@@ -3221,17 +3345,18 @@ tty_menu_activate (tty_menu *menu, int *pane, int *selidx,
   state[0].y = y0;
   state[0].pane = onepane;
 
-  mouse_last_x = -1;  /* A hack that forces display.  */
+  x = state[0].x;
+  y = state[0].y;
+
   leave = 0;
   while (!leave)
     {
       if (!mouse_visible) mouse_on ();
-      mouse_check_moved ();
+      read_menu_input (&x, &y);
       if (sf->mouse_moved)
 	{
 	  sf->mouse_moved = 0;
 	  result = TTYM_IA_SELECT;
-	  mouse_get_xy (&x, &y);
 	  for (i = 0; i < statecount; i++)
 	    if (state[i].x <= x && x < state[i].x + state[i].menu->width + 2)
 	      {
@@ -3255,9 +3380,9 @@ tty_menu_activate (tty_menu *menu, int *pane, int *selidx,
 		      while (i != statecount - 1)
 			{
 			  statecount--;
-			  mouse_off ();
-			  ScreenUpdate (state[statecount].screen_behind);
-			  xfree (state[statecount].screen_behind);
+			  mouse_off (); /* FIXME */
+			  screen_update (state[statecount].screen_behind);
+			  state[statecount].screen_behind = NULL;
 			}
 		    if (i == statecount - 1 && state[i].menu->submenu[dy])
 		      {
@@ -3268,9 +3393,9 @@ tty_menu_activate (tty_menu *menu, int *pane, int *selidx,
 					  faces, 1);
 			state[statecount].menu = state[i].menu->submenu[dy];
 			state[statecount].pane = state[i].menu->panenumber[dy];
-			mouse_off ();
-			ScreenRetrieve (state[statecount].screen_behind
-					= xmalloc (screensize));
+			mouse_off (); /* FIXME */
+			state[statecount].screen_behind
+			  = save_current_matrix (sf);
 			state[statecount].x
 			  = state[i].x + state[i].menu->width + 2;
 			state[statecount].y = y;
@@ -3291,12 +3416,14 @@ tty_menu_activate (tty_menu *menu, int *pane, int *selidx,
 	    {
 	      help_callback (menu_help_message,
 			     menu_help_paneno, menu_help_itemno);
-	      show_cursor (0);
+#if 0
+	      show_cursor (0);	/* FIXME */
+#endif
 	      prev_menu_help_message = menu_help_message;
 	    }
 	  /* We are busy-waiting for the mouse to move, so let's be nice
 	     to other Windows applications by releasing our time slice.  */
-	  __dpmi_yield ();
+	  Sleep (20);	/* FIXME */
 	}
       for (b = 0; b < mouse_button_count && !leave; b++)
 	{
@@ -3306,16 +3433,16 @@ tty_menu_activate (tty_menu *menu, int *pane, int *selidx,
 	  if (mouse_pressed (b, &x, &y))
 	    {
 	      while (mouse_button_depressed (b, &x, &y))
-		__dpmi_yield ();
+		Sleep (20);	/* FIXME */
 	      leave = 1;
 	    }
 	  (void) mouse_released (b, &x, &y);
 	}
     }
 
-  mouse_off ();
-  ScreenUpdate (state[0].screen_behind);
-
+  mouse_off ();			/* FIXME */
+  screen_update (sf, state[0].screen_behind);
+  state[0].screen_behind = NULL;
 #if 0
   /* We have a situation here.  ScreenUpdate has just restored the
      screen contents as it was before we started drawing this menu.
@@ -3339,8 +3466,10 @@ tty_menu_activate (tty_menu *menu, int *pane, int *selidx,
   message (0);
 #endif
   while (statecount--)
-    xfree (state[statecount].screen_behind);
+    free_saved_screen (state[statecount].screen_behind);
+#if 0
   show_cursor (1);	/* turn cursor back on */
+#endif
   /* Clean up any mouse events that are waiting inside Emacs event queue.
      These events are likely to be generated before the menu was even
      displayed, probably because the user pressed and released the button

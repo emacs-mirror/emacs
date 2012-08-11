@@ -2249,6 +2249,7 @@ do { if (polling_stopped_here) start_polling ();	\
 /* read a character from the keyboard; call the redisplay if needed */
 /* commandflag 0 means do not autosave, but do redisplay.
    -1 means do not redisplay, but do autosave.
+   -2 means do neither.
    1 means do both.  */
 
 /* The arguments MAPS and NMAPS are for menu prompting.
@@ -2630,7 +2631,7 @@ read_char (int commandflag, ptrdiff_t nmaps, Lisp_Object *maps,
 
   /* Maybe auto save due to number of keystrokes.  */
 
-  if (commandflag != 0
+  if (commandflag != 0 && commandflag != -2
       && auto_save_interval > 0
       && num_nonmacro_input_events - last_auto_save > max (auto_save_interval, 20)
       && !detect_input_pending_run_timers (0))
@@ -2683,7 +2684,7 @@ read_char (int commandflag, ptrdiff_t nmaps, Lisp_Object *maps,
 	 9 at 200k, 11 at 300k, and 12 at 500k.  It is 15 at 1 meg.  */
 
       /* Auto save if enough time goes by without input.  */
-      if (commandflag != 0
+      if (commandflag != 0 && commandflag != -2
 	  && num_nonmacro_input_events > last_auto_save
 	  && INTEGERP (Vauto_save_timeout)
 	  && XINT (Vauto_save_timeout) > 0)

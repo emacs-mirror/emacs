@@ -19988,7 +19988,7 @@ display_tty_menu_item (const char *item_text, int face_id, int x, int y,
 {
   struct it it;
   struct frame *f = SELECTED_FRAME ();
-  int saved_used, saved_truncated;
+  int saved_used, saved_truncated, saved_width;
   struct glyph_row *row;
 
   xassert (FRAME_TERMCAP_P (f));
@@ -19997,6 +19997,7 @@ display_tty_menu_item (const char *item_text, int face_id, int x, int y,
   it.first_visible_x = 0;
   it.last_visible_x = FRAME_COLS (f);
   row = it.glyph_row;
+  saved_width = row->full_width_p;
   row->full_width_p = 1;
 
   /* Arrange for the menu item glyphs to start at X and have the
@@ -20031,6 +20032,7 @@ display_tty_menu_item (const char *item_text, int face_id, int x, int y,
   row->used[TEXT_AREA] = saved_used;
   row->truncated_on_right_p = saved_truncated;
   row->hash - row_hash (row);
+  row->full_width_p = saved_width;
 }
 #endif	/* HAVE_MENUS */
 
