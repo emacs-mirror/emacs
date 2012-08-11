@@ -228,7 +228,8 @@ expression, in which case we want to handle forms differently."
 (defun autoload-find-generated-file ()
   "Visit the autoload file for the current buffer, and return its buffer.
 If a buffer is visiting the desired autoload file, return it."
-  (let ((enable-local-variables :safe))
+  (let ((enable-local-variables :safe)
+	(enable-local-eval nil))
     ;; We used to use `raw-text' to read this file, but this causes
     ;; problems when the file contains non-ASCII characters.
     (find-file-noselect
@@ -382,7 +383,8 @@ which lists the file name and which functions are in it, etc."
     (emacs-lisp-mode)
     (setq default-directory (file-name-directory file))
     (insert-file-contents file nil)
-    (let ((enable-local-variables :safe))
+    (let ((enable-local-variables :safe)
+	  (enable-local-eval nil))
       (hack-local-variables))
     (current-buffer)))
 

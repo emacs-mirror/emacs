@@ -1,3 +1,18 @@
+2012-08-10  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/copyright.el (copyright-update-directory): Logic fix.
+
+	* tutorial.el (help-with-tutorial):
+	* emacs-lisp/copyright.el (copyright-update-directory):
+	* emacs-lisp/autoload.el (autoload-find-generated-file)
+	(autoload-find-file): Disable local eval: (for insurance).
+
+2012-08-07  Glenn Morris  <rgm@gnu.org>
+
+	* files.el (hack-local-variables-filter): If an eval: form is not
+	known to be safe, and enable-local-variables is :safe, then ignore
+	the form totally, as is done for non-eval forms.  (Bug#12155)
+
 2012-08-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/rx.el (rx-constituents): Don't define as constant.
