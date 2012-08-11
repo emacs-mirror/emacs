@@ -692,10 +692,14 @@ static mps_addr_t dylan_skip(mps_addr_t object)
 
 static void dylan_copy(mps_addr_t old, mps_addr_t new)
 {
-  size_t length = (char *)dylan_skip(old) - (char *)old;
+  char *base = (char *)old;
+  char *limit = (char *)dylan_skip(old);
+  size_t length;
+  assert(base < limit);
+  length = (size_t)(limit - base);
   assert(dylan_wrapper_check(*(mps_word_t **)old));
   /* .improve.memcpy: Can do better here as we know that new and old
-   * will be aligned (to MPS_PF_ALIGN) */
+     will be aligned (to MPS_PF_ALIGN) */
   (void)memcpy(new, old, length);
 }
 

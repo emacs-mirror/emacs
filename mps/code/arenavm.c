@@ -1111,7 +1111,7 @@ static Res vmArenaExtend(VMArena vmArena, Size size)
 
   /* .chunk-create.fail: If we fail, try again with a smaller size */
   {
-    int fidelity = 8;  /* max fraction of addr-space we may 'waste' */
+    unsigned fidelity = 8;  /* max fraction of addr-space we may 'waste' */
     Size chunkHalf;
     Size chunkMin = 4 * 1024;  /* typical single page */
     Size sliceSize;
