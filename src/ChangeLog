@@ -1,9 +1,7 @@
-2012-08-08  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+2012-08-11  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* unexmacosx.c (copy_data_segment): Copy initialized data in
 	statically linked libraries from input file rather than memory.
-
-2012-08-07  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* unexmacosx.c (print_load_command_name): Add cases LC_MAIN,
 	LC_SOURCE_VERSION, and LC_DYLIB_CODE_SIGN_DRS.

@@ -1,4 +1,4 @@
-2012-08-10  Glenn Morris  <rgm@gnu.org>
+2012-08-11  Glenn Morris  <rgm@gnu.org>
 
 	* bzrmerge.el (bzrmerge-resolve): Disable local eval:.
 
