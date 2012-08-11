@@ -239,7 +239,7 @@ request.")
 			 nil
 		       (let ((url-basic-auth-storage
 			      'url-http-proxy-basic-auth-storage))
-			 (url-get-authentication url-http-target-url nil 'any nil))))
+			 (url-get-authentication url-http-proxy nil 'any nil))))
 	 (real-fname (url-filename url-http-target-url))
 	 (host (url-host url-http-target-url))
 	 (auth (if (cdr-safe (assoc "Authorization" url-http-extra-headers))

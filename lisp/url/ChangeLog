@@ -1,3 +1,8 @@
+2012-08-11  Jason Rumney  <jasonr@gnu.org>
+
+	* url-http.el (url-http-create-request): Use url-http-proxy to
+	look up proxy credentials.
+
 2012-07-28  David Engster  <deng@randomsample.de>
 
 	* url-dav.el (url-dav-supported-p): Added doc-string and remove
