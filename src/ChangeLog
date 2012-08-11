@@ -1,3 +1,11 @@
+2012-08-11  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (gtk_font_chooser_dialog_new, GTK_FONT_CHOOSER)
+	(gtk_font_chooser_set_font, gtk_font_chooser_get_font): Define
+	for Gtk+ versions less than 3.2.
+	(xg_get_font_name): Use those functions/macros here.
+	Reported by Frans Oilinki <moilinki@gmail.com>.
+
 2012-08-11  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* unexmacosx.c (copy_data_segment): Copy initialized data in

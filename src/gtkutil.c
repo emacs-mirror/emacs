@@ -75,6 +75,18 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define remove_submenu(w) gtk_menu_item_remove_submenu ((w))
 #endif
 
+#if GTK_MAJOR_VERSION < 3 || \
+  (GTK_MAJOR_VERSION == 3 && GTK_MINOR_VERSION < 2)
+#define gtk_font_chooser_dialog_new(x, y) \
+  gtk_font_selection_dialog_new (x)
+#undef GTK_FONT_CHOOSER
+#define GTK_FONT_CHOOSER(x) GTK_FONT_SELECTION_DIALOG (x)
+#define  gtk_font_chooser_set_font(x, y) \
+  gtk_font_selection_dialog_set_font_name (x, y)
+#define gtk_font_chooser_get_font(x) \
+  gtk_font_selection_dialog_get_font_name (x)
+#endif
+
 #ifndef HAVE_GTK3
 #ifdef USE_GTK_TOOLTIP
 #define gdk_window_get_screen(w) gdk_drawable_get_screen (w)
@@ -2000,12 +2012,13 @@ xg_get_font_name (FRAME_PTR f, const char *default_name)
   sigblock (sigmask (__SIGRTMIN));
 #endif /* HAVE_PTHREAD */
 
-  w = gtk_font_selection_dialog_new ("Pick a font");
+  w = gtk_font_chooser_dialog_new
+    ("Pick a font", GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)));
+
   if (!default_name)
     default_name = "Monospace 10";
-  gtk_font_selection_dialog_set_font_name (GTK_FONT_SELECTION_DIALOG (w),
-                                           default_name);
 
+  gtk_font_chooser_set_font (GTK_FONT_CHOOSER (w), default_name);
   gtk_widget_set_name (w, "emacs-fontdialog");
 
   done = xg_dialog_run (f, w);
@@ -2015,8 +2028,7 @@ xg_get_font_name (FRAME_PTR f, const char *default_name)
 #endif
 
   if (done == GTK_RESPONSE_OK)
-    fontname = gtk_font_selection_dialog_get_font_name
-      (GTK_FONT_SELECTION_DIALOG (w));
+    fontname = gtk_font_chooser_get_font (GTK_FONT_CHOOSER (w));
 
   gtk_widget_destroy (w);
   return fontname;
