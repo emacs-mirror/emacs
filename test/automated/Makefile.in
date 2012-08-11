@@ -55,7 +55,7 @@ setwins=subdirs=`find . -type d -print`; \
 	   esac; \
         done
 
-all: test
+all: check
 
 doit:
 

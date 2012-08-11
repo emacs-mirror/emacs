@@ -607,6 +607,21 @@ print_load_command_name (int lc)
       printf ("LC_FUNCTION_STARTS");
       break;
 #endif
+#ifdef LC_MAIN
+    case LC_MAIN:
+      printf ("LC_MAIN          ");
+      break;
+#endif
+#ifdef LC_SOURCE_VERSION
+    case LC_SOURCE_VERSION:
+      printf ("LC_SOURCE_VERSION");
+      break;
+#endif
+#ifdef LC_DYLIB_CODE_SIGN_DRS
+    case LC_DYLIB_CODE_SIGN_DRS:
+      printf ("LC_DYLIB_CODE_SIGN_DRS");
+      break;
+#endif
     default:
       printf ("unknown          ");
     }
@@ -798,8 +813,24 @@ copy_data_segment (struct load_command *lc)
 	 file.  */
       if (strncmp (sectp->sectname, SECT_DATA, 16) == 0)
 	{
-	  if (!unexec_write (sectp->offset, (void *) sectp->addr, sectp->size))
+	  extern char my_edata[];
+	  unsigned long my_size;
+
+	  /* The __data section is basically dumped from memory.  But
+	     initialized data in statically linked libraries are
+	     copied from the input file.  In particular,
+	     add_image_hook.names and add_image_hook.pointers stored
+	     by libarclite_macosx.a, are restored so that they will be
+	     reinitialized when the dumped binary is executed.  */
+	  my_size = (unsigned long)my_edata - sectp->addr;
+	  if (!(sectp->addr <= (unsigned long)my_edata
+		&& my_size <= sectp->size))
+	    unexec_error ("my_edata is not in section %s", SECT_DATA);
+	  if (!unexec_write (sectp->offset, (void *) sectp->addr, my_size))
 	    unexec_error ("cannot write section %s", SECT_DATA);
+	  if (!unexec_copy (sectp->offset + my_size, old_file_offset + my_size,
+			    sectp->size - my_size))
+	    unexec_error ("cannot copy section %s", SECT_DATA);
 	  if (!unexec_write (header_offset, sectp, sizeof (struct section)))
 	    unexec_error ("cannot write section %s's header", SECT_DATA);
 	}
@@ -1147,8 +1178,9 @@ copy_dyld_info (struct load_command *lc, long delta)
 #endif
 
 #ifdef LC_FUNCTION_STARTS
-/* Copy a LC_FUNCTION_STARTS load command from the input file to the
-   output file, adjusting the data offset field.  */
+/* Copy a LC_FUNCTION_STARTS/LC_DYLIB_CODE_SIGN_DRS load command from
+   the input file to the output file, adjusting the data offset
+   field.  */
 static void
 copy_linkedit_data (struct load_command *lc, long delta)
 {
@@ -1242,6 +1274,9 @@ dump_it (void)
 #endif
 #ifdef LC_FUNCTION_STARTS
       case LC_FUNCTION_STARTS:
+#ifdef LC_DYLIB_CODE_SIGN_DRS
+      case LC_DYLIB_CODE_SIGN_DRS:
+#endif
 	copy_linkedit_data (lca[i], linkedit_delta);
 	break;
 #endif

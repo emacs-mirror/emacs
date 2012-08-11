@@ -1,3 +1,15 @@
+2012-08-10  Glenn Morris  <rgm@gnu.org>
+
+	* automated/files.el (files-test-disable-local-variables): New test.
+
+2012-08-08  Glenn Morris  <rgm@gnu.org>
+
+	* automated/files.el: New file.
+
+2012-08-07  Glenn Morris  <rgm@gnu.org>
+
+	* automated/Makefile.in (all): Fix typo.
+
 2012-08-10  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* automated/ruby-mode-tests.el (ruby-should-indent):
