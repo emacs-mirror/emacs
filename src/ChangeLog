@@ -1,3 +1,7 @@
+2012-08-11  BT Templeton  <bpt@hcoop.net>  (tiny change)
+
+	* lread.c (syms_of_lread): Initialize Vlexical_binding.
+
 2012-08-11  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsterm.m (not_in_argv): New function.
@@ -6,8 +10,8 @@
 	if not_in_argv returns non-zero (bug#12171).
 
 	* gtkutil.c (gtk_font_chooser_dialog_new, GTK_FONT_CHOOSER)
-	(gtk_font_chooser_set_font, gtk_font_chooser_get_font): Define
-	for Gtk+ versions less than 3.2.
+	(gtk_font_chooser_set_font, gtk_font_chooser_get_font):
+	Define for Gtk+ versions less than 3.2.
 	(xg_get_font_name): Use those functions/macros here.
 	Reported by Frans Oilinki <moilinki@gmail.com>.
 
@@ -133,8 +137,8 @@
 	Cleanup intervals.
 	* intervals.h (NULL_INTERVAL, DEFAULT_INTERVAL): Remove.
 	(NULL_INTERVAL_P): Likewise.  Adjust users.
-	(FRONT_STICKY_P, END_NONSTICKY_P, FRONT_NONSTICKY_P): Adjust
-	comment.  Move under #if 0.
+	(FRONT_STICKY_P, END_NONSTICKY_P, FRONT_NONSTICKY_P):
+	Adjust comment.  Move under #if 0.
 	* alloc.c, buffer.c, editfns.c, fns.c, insdel.c, intervals.c:
 	* print.c, syntax.c, textprop.c, xdisp.c: Adjust users.
 
@@ -146,8 +150,8 @@
 
 2012-08-07  Eli Zaretskii  <eliz@gnu.org>
 
-	* .gdbinit (xframe, xwindow, nextcons, xcar, xcdr, xlist): Rename
-	fields to match removal of FGET and WGET and disuse of
+	* .gdbinit (xframe, xwindow, nextcons, xcar, xcdr, xlist):
+	Rename fields to match removal of FGET and WGET and disuse of
 	INTERNAL_FIELD in Lisp_Cons.
 
 2012-08-07  Dmitry Antipov  <dmantipov@yandex.ru>
@@ -174,8 +178,8 @@
 	(interval_set_left, interval_set_right, interval_set_plist):
 	(interval_copy_parent): New function.
 	(SET_INTERVAL_OBJECT, SET_INTERVAL_PARENT, INTERVAL_PTR_SIZE): Remove.
-	(RESET_INTERVAL, COPY_INTERVAL_CACHE, MERGE_INTERVAL_CACHE): Adjust
-	indentation.
+	(RESET_INTERVAL, COPY_INTERVAL_CACHE, MERGE_INTERVAL_CACHE):
+	Adjust indentation.
 	(INTERVAL_SIZE): Remove.  Adjust users.
 	* alloc.c, intervals.c, lread.c, textprop.c: Use new functions.
 
@@ -238,8 +242,8 @@
 
 2012-08-06  Eli Zaretskii  <eliz@gnu.org>
 
-	* w32menu.c (set_frame_menubar, initialize_frame_menubar): Don't
-	use FRAME_MENU_BAR_ITEMS as an lvalue.
+	* w32menu.c (set_frame_menubar, initialize_frame_menubar):
+	Don't use FRAME_MENU_BAR_ITEMS as an lvalue.
 
 2012-08-06  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -351,11 +355,11 @@
 	Fix startup warnings about ../site-lisp on MS-Windows.  (Bug#11959)
 	* w32.c (init_environment): Change the default values of many
 	environment variables in dflt_envvars[] to NULL, to avoid pushing
-	them into environment when they were not already defined.  Remove
-	the code that deletes site-lisp subdirectories from the default
+	them into environment when they were not already defined.
+	Remove the code that deletes site-lisp subdirectories from the default
 	value of EMACSLOADPATH, as it is no longer needed.
-	(check_windows_init_file): Now external, not static.  Use
-	Vload_path as is, without adding anything, as this function is now
+	(check_windows_init_file): Now external, not static.
+	Use Vload_path as is, without adding anything, as this function is now
 	called when Vload_path is already set up.
 
 	* w32.h (check_windows_init_file): Add prototype.
@@ -444,11 +448,11 @@
 	GetFileAttributes fails with network-related error codes.
 	(sys_rename): Diagnose renaming of a symlink when the user doesn't
 	have the required privileges.
-	(get_file_security_desc_by_name): Renamed from
+	(get_file_security_desc_by_name): Rename from
 	get_file_security_desc.
 	(stat_worker): New function, with most of the guts of 'stat', and
-	with addition of handling of symlinks and support for 'lstat'.  If
-	possible, get file's attributes and security information by
+	with addition of handling of symlinks and support for 'lstat'.
+	If possible, get file's attributes and security information by
 	handle, not by name.  Produce S_IFLNK bit for symlinks, when
 	called from 'lstat'.
 	(stat, lstat): New functions, call 'stat_worker'.
@@ -652,7 +656,7 @@
 
 	Generalize INTERNAL_FIELD between buffers, keyboards and frames.
 	* lisp.h (INTERNAL_FIELD): New macro.
-	* buffer.h (BUFFER_INTERNAL_FIELD): Removed.
+	* buffer.h (BUFFER_INTERNAL_FIELD): Remove.
 	(BVAR): Change to use INTERNAL_FIELD.
 	* keyboard.h (KBOARD_INTERNAL_FIELD): Likewise.
 	(KVAR): Change to use INTERNAL_FIELD.
@@ -707,8 +711,8 @@
 
 	* nsterm.m (ns_do_open_file): New variable.
 	(ns_term_init): Set ns_do_open_file to YES after run returns.
-	(openFile, openTempFile, openFileWithoutUI, openFiles): Open
-	files only if ns_do_open_file.
+	(openFile, openTempFile, openFileWithoutUI, openFiles):
+	Open files only if ns_do_open_file.
 
 2012-07-30  Paul Eggert  <eggert@cs.ucla.edu>
 
@@ -845,7 +849,7 @@
 
 2012-07-29  Eli Zaretskii  <eliz@gnu.org>
 
-	* w32heap.h (OS_9X): Renamed from OS_WINDOWS_95.
+	* w32heap.h (OS_9X): Rename from OS_WINDOWS_95.
 
 	* w32heap.c (cache_system_info):
 	* w32.c (sys_rename):
@@ -862,8 +866,8 @@
 2012-07-29  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Cleanup statistics calculation in Fgarbage_collect.
-	* alloc.c (Fgarbage_collect): Rename t1 to meaningful start.  Fix
-	zombies percentage calculation.  Simplify elapsed time calculation.
+	* alloc.c (Fgarbage_collect): Rename t1 to meaningful start.
+	Fix zombies percentage calculation.  Simplify elapsed time calculation.
 
 2012-07-29  Dmitry Antipov  <dmantipov@yandex.ru>
 
@@ -921,8 +925,8 @@
 
 	Adjust GDB to reflect pvec_type changes (Bug#12036).
 	* .gdbinit (xvectype, xpr, xbacktrace): Adjust to reflect the
-	2012-07-04 changes to pseudovector representation.  Problem
-	reported by Eli Zaretskii in <http://bugs.gnu.org/12036#30>.
+	2012-07-04 changes to pseudovector representation.
+	Problem reported by Eli Zaretskii in <http://bugs.gnu.org/12036#30>.
 
 2012-07-27  Michael Albinus  <michael.albinus@gmx.de>
 
@@ -1183,8 +1187,8 @@
 	for the reasons.
 
 	* w32menu.c (add_menu_item): Cast to ULONG_PTR when assigning
-	info.dwItemData.  Fixes crashes on 64-bit Windows.  Suggested by
-	Fabrice Popineau <fabrice.popineau@supelec.fr>.
+	info.dwItemData.  Fixes crashes on 64-bit Windows.
+	Suggested by Fabrice Popineau <fabrice.popineau@supelec.fr>.
 
 2012-07-21  Jan Djärv  <jan.h.d@swipnet.se>
 
@@ -1810,8 +1814,8 @@
 	* lisp.h (intern, intern_c_string): Redefine as static inline
 	wrappers for intern_1 and intern_c_string_1, respectively.
 	(intern_1, intern_c_string_1): Rename prototypes.
-	* lread.c (intern_1, intern_c_string_1, oblookup): Simplify
-	Vobarray checking.
+	* lread.c (intern_1, intern_c_string_1, oblookup):
+	Simplify Vobarray checking.
 	* font.c (font_intern_prop): Likewise.  Adjust comment.
 	* w32font.c (intern_font_name): Likewise.
 
@@ -1880,8 +1884,8 @@
 
 	Avoid calls to strlen in font processing functions.
 	* font.c (font_parse_name, font_parse_xlfd, font_parse_fcname)
-	(font_open_by_name): Change to use length argument.  Adjust
-	users accordingly.
+	(font_open_by_name): Change to use length argument.
+	Adjust users accordingly.
 	* font.h (font_open_by_name, font_parse_xlfd, font_unparse_xlfd):
 	Adjust prototypes.
 	* xfont.c (xfont_decode_coding_xlfd, font_unparse_xlfd):
@@ -2013,8 +2017,8 @@
 	srclen argument and return the length of result.  Adjust users
 	accordingly.
 	(directory_file_name): Fix comment.  Change to add srclen argument,
-	swap 1st and 2nd arguments to obey the common convention.  Adjust
-	users accordingly.
+	swap 1st and 2nd arguments to obey the common convention.
+	Adjust users accordingly.
 	* filelock.c (fill_in_lock_file_name): Avoid calls to strlen.
 
 2012-07-10  Glenn Morris  <rgm@gnu.org>
@@ -2178,8 +2182,8 @@
 	Support truncation and continuation glyphs on GUI frames, when
 	fringes are disabled.  (Bug#11832)
 	* xdisp.c (init_iterator): Get dimensions of truncation and
-	continuation glyphs even if on GUI frames.  Adjust
-	it->last_visible_x on GUI frames when the left or right fringes,
+	continuation glyphs even if on GUI frames.
+	Adjust it->last_visible_x on GUI frames when the left or right fringes,
 	or both, are absent.
 	(start_display, move_it_in_display_line_to): Handle the case of a
 	GUI frame without a fringe to display continuation or truncation
@@ -2629,8 +2633,8 @@
 
 	Fix block vector allocation code to allow VECTOR_BLOCK_SIZE
 	values which aren't power of 2.
-	* alloc.c (VECTOR_FREE_LIST_SIZE_MASK): New macro.  Verify
-	it's value and the value of VECTOR_BLOCK_SIZE.  Adjust users
+	* alloc.c (VECTOR_FREE_LIST_SIZE_MASK): New macro.
+	Verify it's value and the value of VECTOR_BLOCK_SIZE.  Adjust users
 	accordingly.
 
 2012-07-03  Stefan Monnier  <monnier@iro.umontreal.ca>
@@ -2684,8 +2688,8 @@
 	* alloc.c (mark_buffer): Simplify.  Remove prototype.
 	(mark_object): Add comment.  Reorganize marking of vector-like
 	objects.  Use CHECK_LIVE for all vector-like objects except buffers
-	and subroutines when GC_CHECK_MARKED_OBJECTS is defined.  Avoid
-	redundant calls to mark_vectorlike for bool vectors.
+	and subroutines when GC_CHECK_MARKED_OBJECTS is defined.
+	Avoid redundant calls to mark_vectorlike for bool vectors.
 
 2012-06-30  Glenn Morris  <rgm@gnu.org>
 

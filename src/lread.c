@@ -4541,8 +4541,7 @@ to load.  See also `load-dangerous-libraries'.  */);
   Vbytecomp_version_regexp
     = build_pure_c_string ("^;;;.\\(in Emacs version\\|bytecomp version FSF\\)");
 
-  Qlexical_binding = intern ("lexical-binding");
-  staticpro (&Qlexical_binding);
+  DEFSYM (Qlexical_binding, "lexical-binding");
   DEFVAR_LISP ("lexical-binding", Vlexical_binding,
 	       doc: /* Whether to use lexical binding when evaluating code.
 Non-nil means that the code in the current buffer should be evaluated
@@ -4550,6 +4549,7 @@ with lexical binding.
 This variable is automatically set from the file variables of an
 interpreted Lisp file read using `load'.  Unlike other file local
 variables, this must be set in the first line of a file.  */);
+  Vlexical_binding = Qnil;
   Fmake_variable_buffer_local (Qlexical_binding);
 
   DEFVAR_LISP ("eval-buffer-list", Veval_buffer_list,
