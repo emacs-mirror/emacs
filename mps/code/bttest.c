@@ -289,7 +289,7 @@ static void obeyCommand(char *command)
           printf("negative integer arguments are invalid\n");
           return;
         }
-        args[argCount] = l;
+        args[argCount] = (unsigned long)l;
         if (newP == p) { /* strtoul failed */
           printf("couldn't parse an integer argument\n");
           return;

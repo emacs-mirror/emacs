@@ -116,8 +116,7 @@ Res VMCreate(VM *vmReturn, Size size)
   /* type Align. */
   AVER(pagesize > 0);
   AVER((unsigned long)pagesize <= (unsigned long)(Align)-1);
-  /* Note implicit conversion from "int" to "Align". */
-  align = pagesize;
+  align = (Align)pagesize;
   AVER(SizeIsP2(align));
   size = SizeAlignUp(size, align);
   if((size == 0) || (size > (Size)(size_t)-1))

@@ -563,7 +563,7 @@ static void find(CBS cbs, void *block, BT alloc, Size size, Bool high,
 
 extern int main(int argc, char *argv[])
 {
-  int i;
+  unsigned i;
   Addr base, limit;
   mps_arena_t mpsArena;
   Arena arena; /* the ANSI arena which we use to allocate the BT */

@@ -97,7 +97,7 @@ enum {
 
 static void *test(void *arg, size_t s)
 {
-  int i;                        /* index */
+  unsigned i;                        /* index */
   mps_ap_t ap;
   mps_fmt_t fmt;
   mps_chain_t chain;

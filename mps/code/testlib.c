@@ -258,7 +258,7 @@ void randomize(int argc, char **argv)
   } else {
     /* time_t uses an arbitrary encoding, but hopefully the low order */
     /* 31 bits will have at least one bit changed from run to run. */
-    seedt = 1 + time(NULL) % (R_m - 1);
+    seedt = 1 + (unsigned long)time(NULL) % (R_m - 1);
 
     /* The value returned by time() on some OSs may simply be a 
      * count of seconds: therefore successive runs may start with 

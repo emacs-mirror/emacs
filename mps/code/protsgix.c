@@ -79,18 +79,18 @@ static void sigHandle(int sig, siginfo_t *info, void *context)  /* .sigh.args */
   sigset_t asigset, oldset;
   struct sigaction sa;
 
+  UNUSED(context);
   AVER(sig == PROT_SIGNAL);
 
   /* .sigh.context */
   if(PROT_SIGINFO_GOOD(info)) {
     AccessSet mode;
-    Addr base, limit;
+    Addr base;
 
     mode = AccessREAD | AccessWRITE; /* .sigh.mode */
 
     /* We assume that the access is for one word at the address. */
     base = (Addr)info->si_addr;   /* .sigh.context */
-    limit = AddrAdd(base, (Size)sizeof(Addr));
 
     /* Offer each protection structure the opportunity to handle the */
     /* exception.  If it succeeds, then allow the mutator to continue. */
