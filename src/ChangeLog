@@ -1,3 +1,21 @@
+2012-08-12  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.m (ns_read_socket): Return early if there is a modal
+	window (Bug#12043).
+
+	* nsmenu.m (Popdown_data): New struct.
+	(pop_down_menu): p->pointer is Popdown_data.  Release the pool and
+	free Popdown_data.
+	(ns_popup_dialog): Use NSAutoreleasePool and pass it to pop_down_menu.
+	(initWithContentRect): Make imgView and contentView non-static
+	and autorelease them.  Also autorelease img and matrix (Bug#12005).
+	(dealloc): Remove (Bug#12005).
+
+	* nsterm.m (keyDown:): Interpret flags without left/right bits
+	as the left key (Bug#11670).
+
+	* nsmenu.m (ns_update_menubar): Add braces to ambigous if-else.
+
 2012-08-08  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* unexmacosx.c (copy_data_segment): Copy initialized data in

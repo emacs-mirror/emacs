@@ -3397,6 +3397,9 @@ ns_read_socket (struct terminal *terminal, int expected,
 
 /* NSTRACE (ns_read_socket); */
 
+  if ([NSApp modalWindow] != nil)
+    return -1;
+
   if (interrupt_input_blocked)
     {
       interrupt_input_pending = 1;
@@ -4731,6 +4734,8 @@ ns_term_shutdown (int sig)
 
   if (!processingCompose)
     {
+      int is_left_key, is_right_key;
+
       code = ([[theEvent charactersIgnoringModifiers] length] == 0) ?
         0 : [[theEvent charactersIgnoringModifiers] characterAtIndex: 0];
       /* (Carbon way: [theEvent keyCode]) */
@@ -4757,13 +4762,17 @@ ns_term_shutdown (int sig)
       if (flags & NSShiftKeyMask)
         emacs_event->modifiers |= shift_modifier;
 
-      if ((flags & NSRightCommandKeyMask) == NSRightCommandKeyMask)
+      is_right_key = (flags & NSRightCommandKeyMask) == NSRightCommandKeyMask;
+      is_left_key = (flags & NSLeftCommandKeyMask) == NSLeftCommandKeyMask
+        || (! is_right_key && (flags & NSCommandKeyMask) == NSCommandKeyMask);
+
+      if (is_right_key)
         emacs_event->modifiers |= parse_solitary_modifier
           (EQ (ns_right_command_modifier, Qleft)
            ? ns_command_modifier
            : ns_right_command_modifier);
 
-      if ((flags & NSLeftCommandKeyMask) == NSLeftCommandKeyMask)
+      if (is_left_key)
         {
           emacs_event->modifiers |= parse_solitary_modifier
             (ns_command_modifier);
@@ -4800,13 +4809,17 @@ ns_term_shutdown (int sig)
             }
         }
 
-      if ((flags & NSRightControlKeyMask) == NSRightControlKeyMask)
+      is_right_key = (flags & NSRightControlKeyMask) == NSRightControlKeyMask;
+      is_left_key = (flags & NSLeftControlKeyMask) == NSLeftControlKeyMask
+        || (! is_right_key && (flags & NSControlKeyMask) == NSControlKeyMask);
+
+      if (is_right_key)
           emacs_event->modifiers |= parse_solitary_modifier
               (EQ (ns_right_control_modifier, Qleft)
                ? ns_control_modifier
                : ns_right_control_modifier);
 
-      if ((flags & NSLeftControlKeyMask) == NSLeftControlKeyMask)
+      if (is_left_key)
         emacs_event->modifiers |= parse_solitary_modifier
           (ns_control_modifier);
 
@@ -4817,7 +4830,13 @@ ns_term_shutdown (int sig)
       left_is_none = NILP (ns_alternate_modifier)
         || EQ (ns_alternate_modifier, Qnone);
 
-      if ((flags & NSRightAlternateKeyMask) == NSRightAlternateKeyMask)
+      is_right_key = (flags & NSRightAlternateKeyMask)
+        == NSRightAlternateKeyMask;
+      is_left_key = (flags & NSLeftAlternateKeyMask) == NSLeftAlternateKeyMask
+        || (! is_right_key
+            && (flags & NSAlternateKeyMask) == NSAlternateKeyMask);
+
+      if (is_right_key)
         {
           if ((NILP (ns_right_alternate_modifier)
                || EQ (ns_right_alternate_modifier, Qnone)
@@ -4837,7 +4856,7 @@ ns_term_shutdown (int sig)
                : ns_right_alternate_modifier);
         }
 
-      if ((flags & NSLeftAlternateKeyMask) == NSLeftAlternateKeyMask) /* default = meta */
+      if (is_left_key) /* default = meta */
         {
           if (left_is_none && !fnKeysym)
             {   /* accept pre-interp alt comb */

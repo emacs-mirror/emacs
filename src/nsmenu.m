@@ -422,11 +422,13 @@ ns_update_menubar (struct frame *f, int deep_p, EmacsMenu *submenu)
               if (EQ (string, make_number (0))) // FIXME: Why???  --Stef
                 continue;
               if (NILP (string))
-                if (previous_strings[i][0])
-                  break;
-              else
-                continue;
-              if (strncmp (previous_strings[i], SDATA (string), 10))
+                {
+                  if (previous_strings[i][0])
+                    break;
+                  else
+                    continue;
+                }
+              else if (strncmp (previous_strings[i], SDATA (string), 10))
                 break;
             }
 
@@ -1346,20 +1348,32 @@ update_frame_tool_bar (FRAME_PTR f)
 
    ========================================================================== */
 
+struct Popdown_data
+{
+  NSAutoreleasePool *pool;
+  EmacsDialogPanel *dialog;
+};
 
 static Lisp_Object
 pop_down_menu (Lisp_Object arg)
 {
   struct Lisp_Save_Value *p = XSAVE_VALUE (arg);
+  struct Popdown_data *unwind_data = (struct Popdown_data *) p->pointer;
+
+  BLOCK_INPUT;
   if (popup_activated_flag)
     {
+      EmacsDialogPanel *panel = unwind_data->dialog;
       popup_activated_flag = 0;
-      BLOCK_INPUT;
       [NSApp endModalSession: popupSession];
-      [((EmacsDialogPanel *) (p->pointer)) close];
+      [panel close];
+      [unwind_data->pool release];
       [[FRAME_NS_VIEW (SELECTED_FRAME ()) window] makeKeyWindow];
-      UNBLOCK_INPUT;
     }
+
+  xfree (unwind_data);
+  UNBLOCK_INPUT;
+
   return Qnil;
 }
 
@@ -1372,6 +1386,7 @@ ns_popup_dialog (Lisp_Object position, Lisp_Object contents, Lisp_Object header)
   struct frame *f;
   NSPoint p;
   BOOL isQ;
+  NSAutoreleasePool *pool;
 
   NSTRACE (x-popup-dialog);
 
@@ -1426,11 +1441,17 @@ ns_popup_dialog (Lisp_Object position, Lisp_Object contents, Lisp_Object header)
     contents = Fcons (title, Fcons (Fcons (build_string ("Ok"), Qt), Qnil));
 
   BLOCK_INPUT;
+  pool = [[NSAutoreleasePool alloc] init];
   dialog = [[EmacsDialogPanel alloc] initFromContents: contents
                                            isQuestion: isQ];
   {
     int specpdl_count = SPECPDL_INDEX ();
-    record_unwind_protect (pop_down_menu, make_save_value (dialog, 0));
+    struct Popdown_data *unwind_data = xmalloc (sizeof (*unwind_data));
+
+    unwind_data->pool = pool;
+    unwind_data->dialog = dialog;
+
+    record_unwind_protect (pop_down_menu, make_save_value (unwind_data, 0));
     popup_activated_flag = 1;
     tem = [dialog runDialogAt: p];
     unbind_to (specpdl_count, Qnil);  /* calls pop_down_menu */
@@ -1473,24 +1494,22 @@ ns_popup_dialog (Lisp_Object position, Lisp_Object contents, Lisp_Object header)
   NSRect area;
   char this_cmd_name[80];
   id cell;
-  static NSImageView *imgView;
-  static FlippedView *contentView;
+  NSImageView *imgView;
+  FlippedView *contentView;
+  NSImage *img;
 
-  if (imgView == nil)
-    {
-      NSImage *img;
-      area.origin.x   = 3*SPACER;
-      area.origin.y   = 2*SPACER;
-      area.size.width = ICONSIZE;
-      area.size.height= ICONSIZE;
-      img = [[NSImage imageNamed: @"NSApplicationIcon"] copy];
-      [img setScalesWhenResized: YES];
-      [img setSize: NSMakeSize (ICONSIZE, ICONSIZE)];
-      imgView = [[NSImageView alloc] initWithFrame: area];
-      [imgView setImage: img];
-      [imgView setEditable: NO];
-      [img release];
-    }
+  area.origin.x   = 3*SPACER;
+  area.origin.y   = 2*SPACER;
+  area.size.width = ICONSIZE;
+  area.size.height= ICONSIZE;
+  img = [[NSImage imageNamed: @"NSApplicationIcon"] copy];
+  [img setScalesWhenResized: YES];
+  [img setSize: NSMakeSize (ICONSIZE, ICONSIZE)];
+  imgView = [[NSImageView alloc] initWithFrame: area];
+  [imgView setImage: img];
+  [imgView setEditable: NO];
+  [img autorelease];
+  [imgView autorelease];
 
   aStyle = NSTitledWindowMask;
   flag = YES;
@@ -1499,6 +1518,8 @@ ns_popup_dialog (Lisp_Object position, Lisp_Object contents, Lisp_Object header)
   [super initWithContentRect: contentRect styleMask: aStyle
                      backing: backingType defer: flag];
   contentView = [[FlippedView alloc] initWithFrame: [[self contentView] frame]];
+  [contentView autorelease];
+
   [self setContentView: contentView];
 
   [[self contentView] setAutoresizesSubviews: YES];
@@ -1550,7 +1571,7 @@ ns_popup_dialog (Lisp_Object position, Lisp_Object contents, Lisp_Object header)
                               numberOfRows: 0
                            numberOfColumns: 1];
   [[self contentView] addSubview: matrix];
-  [matrix release];
+  [matrix autorelease];
   [matrix setFrameOrigin: NSMakePoint (area.origin.x,
                                       area.origin.y + (TEXTHEIGHT+3*SPACER))];
   [matrix setIntercellSpacing: spacing];
