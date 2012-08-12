@@ -109,7 +109,7 @@ void ProtSet(Addr base, Addr limit, AccessSet mode)
 
 /* ProtSync -- synchronize protection settings with hardware
  *
- * This does nothing under Solaris.
+ * This does nothing under Posix.  See protan.c.
  */
 
 void ProtSync(Arena arena)

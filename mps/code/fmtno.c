@@ -13,14 +13,6 @@
 #include <string.h>
 #include <stdlib.h>
 
-#ifdef MPS_PF_SUS8LC
-/* .hack.stderr: builder.lc (LCC) uses Sun's header files.  Sun's
- * assert.h is broken, as it assumes it can use stderr.  We have to
- * fix it by supplying stderr.
- */
-#include <stdio.h>
-#endif
-
 
 #define notreached()    assert(0)
 #define unused(param)   ((void)param)

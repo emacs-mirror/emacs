@@ -104,27 +104,6 @@
 #define MPS_PF_ALIGN    16
 
 
-/* GCC 2.7.2.1, gcc -E -dM -traditional-cpp and <URL:http://developer.apple.c
- * om/techpubs/macosx/System/Documentation/Developer/YellowBox/Reference/DevT
- * ools/Preprocessor/Preprocessor.[ef].html>
- */
-
-#elif defined(__APPLE__) && defined(__ppc__) && defined(__MACH__) \
-      && defined(__GNUC__)
-#if defined(CONFIG_PF_STRING) && ! defined(CONFIG_PF_XCPPGC)
-#error "specified CONFIG_PF_... inconsistent with detected xcppgc"
-#endif
-#define MPS_PF_XCPPGC
-#define MPS_PF_STRING   "xcppgc"
-#define MPS_OS_XC
-#define MPS_ARCH_PP
-#define MPS_BUILD_GC
-#define MPS_T_WORD      unsigned long
-#define MPS_T_ULONGEST  unsigned long
-#define MPS_WORD_WIDTH  32
-#define MPS_WORD_SHIFT  5
-#define MPS_PF_ALIGN    8 /* .macos.ppc.align */
-
 /* GCC 4.0.1 (As supplied by Apple on Mac OS X 10.4.8 on an Intel Mac),
  * gcc -E -dM
  * And above for xcppgc.
@@ -182,45 +161,6 @@
 #define MPS_T_ULONGEST  unsigned long
 #define MPS_WORD_WIDTH  64
 #define MPS_WORD_SHIFT  6
-#define MPS_PF_ALIGN    8
-
-/* GCC 2.5.8, gcc -E -dM */
-
-#elif defined(__sun__) && defined(__sparc__) && defined(__GNUC__) \
-      && defined(__svr4__)
-#if defined(CONFIG_PF_STRING) && ! defined(CONFIG_PF_SOS8GC)
-#error "specified CONFIG_PF_... inconsistent with detected sos8gc"
-#endif
-#define MPS_PF_SOS8GC
-#define MPS_PF_STRING   "sos8gc"
-#define MPS_OS_SO
-#define MPS_ARCH_S8
-#define MPS_BUILD_GC
-#define MPS_T_WORD      unsigned long
-#define MPS_T_ULONGEST  unsigned long
-#define MPS_WORD_WIDTH  32
-#define MPS_WORD_SHIFT  5
-#define MPS_PF_ALIGN    8
-
-/* SunPro C, man cc (confirmed by grep).  Note that this doesn't
- * actually nail down UltraSPARCs; there are no compiler predefined
- * macros for that.
- */
-
-#elif defined(__sun) && defined(__SUNPRO_C) && defined(__SVR4) \
-      && defined(__sparc)
-#if defined(CONFIG_PF_STRING) && ! defined(CONFIG_PF_SOS9SC)
-#error "specified CONFIG_PF_... inconsistent with detected sos9sc"
-#endif
-#define MPS_PF_SOS9SC
-#define MPS_PF_STRING   "sos9sc"
-#define MPS_OS_SO
-#define MPS_ARCH_S9
-#define MPS_BUILD_SC
-#define MPS_T_WORD      unsigned long
-#define MPS_T_ULONGEST  unsigned long
-#define MPS_WORD_WIDTH  32
-#define MPS_WORD_SHIFT  5
 #define MPS_PF_ALIGN    8
 
 /* GCC 2.6.3, gcc -E -dM

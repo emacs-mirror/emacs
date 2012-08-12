@@ -107,7 +107,7 @@ LONG ProtSEHfilter(LPEXCEPTION_POINTERS info)
 
 /* ProtSync -- synchronize protection settings with hardware
  *
- * This does nothing under Win32.
+ * This does nothing under Win32.  See protan.c.
  */
 
 void ProtSync(Arena arena)

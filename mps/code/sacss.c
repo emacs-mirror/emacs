@@ -17,9 +17,6 @@
 #include "mpstd.h"
 #include <stdlib.h>
 #include <stdarg.h>
-#ifdef MPS_OS_IA
-struct itimerspec; /* stop complaints from time.h */
-#endif
 #include <time.h>
 
 

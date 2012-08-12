@@ -30,9 +30,6 @@
 #include "osxc.h"
 #endif
 
-#ifdef MPS_OS_IA
-struct itimerspec; /* stop complaints from time.h */
-#endif
 #include <time.h>
 
 #include <stdlib.h>
