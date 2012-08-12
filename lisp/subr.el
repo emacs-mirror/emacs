@@ -3023,6 +3023,30 @@ also `with-temp-buffer'."
      (set-buffer ,buffer-or-name)
      ,@body))
 
+(defun internal--before-with-seleted-window (window)
+  (let ((other-frame (window-frame window)))
+    (list window (selected-window)
+          ;; Selecting a window on another frame also changes that
+          ;; frame's frame-selected-window.  We must save&restore it.
+          (unless (eq (selected-frame) other-frame)
+            (frame-selected-window other-frame))
+          ;; Also remember the top-frame if on ttys.
+          (unless (eq (selected-frame) other-frame)
+            (tty-top-frame other-frame)))))
+
+(defun internal--after-with-seleted-window (state)
+  ;; First reset frame-selected-window.
+  (when (window-live-p (nth 2 state))
+    ;; We don't use set-frame-selected-window because it does not
+    ;; pass the `norecord' argument to Fselect_window.
+    (select-window (nth 2 state) 'norecord)
+    (and (frame-live-p (nth 3 state))
+         (not (eq (tty-top-frame) (nth 3 state)))
+         (select-frame (nth 3 state) 'norecord)))
+  ;; Then reset the actual selected-window.
+  (when (window-live-p (nth 2 state))
+    (select-window (nth 2 state) 'norecord)))
+
 (defmacro with-selected-window (window &rest body)
   "Execute the forms in BODY with WINDOW as the selected window.
 The value returned is the value of the last form in BODY.
@@ -3040,34 +3064,13 @@ current buffer, since otherwise its normal operation could
 potentially make a different buffer current.  It does not alter
 the buffer list ordering."
   (declare (indent 1) (debug t))
-  ;; Most of this code is a copy of save-selected-window.
-  `(let* ((save-selected-window-destination ,window)
-	  (save-selected-window-frame
-	   (window-frame save-selected-window-destination))
-          (save-selected-window-window (selected-window))
-          ;; Selecting a window on another frame also changes that
-          ;; frame's frame-selected-window.  We must save&restore it.
-          (save-selected-window-other-frame
-           (unless (eq (selected-frame) save-selected-window-frame)
-             (frame-selected-window save-selected-window-frame)))
-	  (save-selected-window-top-frame
-           (unless (eq (selected-frame) save-selected-window-frame)
-	     (tty-top-frame save-selected-window-frame))))
+  `(let ((save-selected-window--state
+          (internal--before-with-seleted-window ,window)))
      (save-current-buffer
        (unwind-protect
-           (progn (select-window save-selected-window-destination 'norecord)
+           (progn (select-window (car save-selected-window--state) 'norecord)
 		  ,@body)
-         ;; First reset frame-selected-window.
-         (when (window-live-p save-selected-window-other-frame)
-	   ;; We don't use set-frame-selected-window because it does not
-	   ;; pass the `norecord' argument to Fselect_window.
-	   (select-window save-selected-window-other-frame 'norecord)
-	   (and (frame-live-p save-selected-window-top-frame)
-		(not (eq (tty-top-frame) save-selected-window-top-frame))
-		(select-frame save-selected-window-top-frame 'norecord)))
-         ;; Then reset the actual selected-window.
-	 (when (window-live-p save-selected-window-window)
-	   (select-window save-selected-window-window 'norecord))))))
+         (internal--before-with-seleted-window save-selected-window--state)))))
 
 (defmacro with-selected-frame (frame &rest body)
   "Execute the forms in BODY with FRAME as the selected frame.
