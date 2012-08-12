@@ -164,12 +164,6 @@
 #error "Expected _MSC_VER to be defined for builder.mv"
 #endif /* _MSC_VER */
 
-/* MSVC 10.00 on PowerPC generates erroneous warnings about */
-/* uninitialized local variables, if you take their address. */
-#ifdef MPS_ARCH_PP
-#pragma warning(disable: 4701)
-#endif /* MPS_ARCH_PP */
-
 
 /* Non-checking varieties give many spurious warnings because parameters
  * are suddenly unused, etc.  We aren't interested in these
@@ -259,7 +253,7 @@
    define what signal number to use, and what si_code value to check.
 */
 
-#if defined(MPS_OS_SO) || defined(MPS_OS_FR)
+#if defined(MPS_OS_FR)
 #define PROT_SIGNAL (SIGSEGV)
 #elif defined(MPS_OS_XC)
 #define PROT_SIGNAL (SIGBUS)
