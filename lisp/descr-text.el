@@ -689,7 +689,7 @@ relevant to POS."
           (when overlays
             (save-excursion
               (goto-char (point-min))
-              (re-search-forward "character:[ \t\n]+")
+              (re-search-forward "(displayed as ")
               (let ((end (+ (point) (length char-description))))
                 (mapc (lambda (props)
                         (let ((o (make-overlay (point) end)))
