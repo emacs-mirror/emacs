@@ -150,7 +150,7 @@ This should only be called after matching against `ruby-here-doc-beg-re'."
     (define-key map (kbd "M-C-q") 'ruby-indent-exp)
     (define-key map (kbd "C-M-h") 'backward-kill-word)
     (define-key map (kbd "C-j")   'reindent-then-newline-and-indent)
-    (define-key map (kbd "C-m")   'newline)
+    (define-key map (kbd "C-c {") 'ruby-toggle-block)
     map)
   "Keymap used in Ruby mode.")
 
@@ -881,10 +881,11 @@ or blocks containing the current block."
   ;; TODO: Make this work for n > 1,
   ;; make it not loop for n = 0,
   ;; document body
-  (let (start pos done down)
-    (setq start (ruby-calculate-indent))
-    (setq down (looking-at (if (< n 0) ruby-block-end-re
-                             (concat "\\<\\(" ruby-block-beg-re "\\)\\>"))))
+  (let ((orig (point))
+        (start (ruby-calculate-indent))
+        (down (looking-at (if (< n 0) ruby-block-end-re
+                            (concat "\\<\\(" ruby-block-beg-re "\\)\\>"))))
+        pos done)
     (while (and (not done) (not (if (< n 0) (bobp) (eobp))))
       (forward-line n)
       (cond
@@ -907,8 +908,18 @@ or blocks containing the current block."
           (save-excursion
             (back-to-indentation)
             (if (looking-at (concat "\\<\\(" ruby-block-mid-re "\\)\\>"))
-                (setq done nil))))))
-  (back-to-indentation))
+                (setq done nil)))))
+    (back-to-indentation)
+    (when (< n 0)
+      (let ((eol (point-at-eol)) state next)
+        (if (< orig eol) (setq eol orig))
+        (setq orig (point))
+        (while (and (setq next (apply 'ruby-parse-partial eol state))
+                    (< (point) eol))
+          (setq state next))
+        (when (cdaadr state)
+          (goto-char (cdaadr state)))
+        (backward-word)))))
 
 (defun ruby-beginning-of-block (&optional arg)
   "Move backward to the beginning of the current block.
@@ -1115,6 +1126,47 @@ See `add-log-current-defun-function'."
           (if mname
               (if mlist (concat mlist mname) mname)
             mlist)))))
+
+(defun ruby-brace-to-do-end ()
+  (when (looking-at "{")
+    (let ((orig (point)) (end (progn (ruby-forward-sexp) (point))))
+      (when (eq (char-before) ?\})
+        (delete-char -1)
+        (if (eq (char-syntax (char-before)) ?w)
+            (insert " "))
+        (insert "end")
+        (if (eq (char-syntax (char-after)) ?w)
+            (insert " "))
+        (goto-char orig)
+        (delete-char 1)
+        (if (eq (char-syntax (char-before)) ?w)
+            (insert " "))
+        (insert "do")
+        (when (looking-at "\\sw\\||")
+          (insert " ")
+          (backward-char))
+        t))))
+
+(defun ruby-do-end-to-brace ()
+  (when (and (or (bolp)
+                 (not (memq (char-syntax (char-before)) '(?w ?_))))
+             (looking-at "\\<do\\(\\s \\|$\\)"))
+    (let ((orig (point)) (end (progn (ruby-forward-sexp) (point))))
+      (backward-char 3)
+      (when (looking-at ruby-block-end-re)
+        (delete-char 3)
+        (insert "}")
+        (goto-char orig)
+        (delete-char 2)
+        (insert "{")
+        (if (looking-at "\\s +|")
+            (delete-char (- (match-end 0) (match-beginning 0) 1)))
+        t))))
+
+(defun ruby-toggle-block ()
+  (interactive)
+  (or (ruby-brace-to-do-end)
+      (ruby-do-end-to-brace)))
 
 (declare-function ruby-syntax-propertize-heredoc "ruby-mode" (limit))
 (declare-function ruby-syntax-general-delimiters-goto-beg "ruby-mode" ())

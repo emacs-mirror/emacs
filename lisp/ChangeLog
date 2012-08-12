@@ -1,3 +1,14 @@
+2012-08-12  Nobuyoshi Nakada  <nobu@ruby-lang.org>
+
+	* progmodes/ruby-mode.el (ruby-mode-map): Remove unnecessary
+	binding for `newline'.
+	(ruby-move-to-block): When moving backward, stop at block opening,
+	not indentation.
+	* progmodes/ruby-mode.el (ruby-brace-to-do-end)
+	(ruby-do-end-to-brace, ruby-toggle-block): New functions.
+	* progmodes/ruby-mode.el (ruby-mode-map): Add binding for
+	`ruby-toggle-block'.
+
 2012-08-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* ibuffer.el (ibuffer-do-toggle-read-only):
@@ -40,16 +51,18 @@
 
 2012-08-09  Dmitry Gutov  <dgutov@yandex.ru>
 
-	Merge stuff from upsteam ruby-mode, part 1 (bug#12169).
-	* progmodes/ruby-mode.el (ruby-mode-map): Remove deprecated
-	binding (use `M-;' instead).
-	(ruby-expr-beg, ruby-parse-partial): ?, _, and : are symbol
-	constituents, ! is not (but kinda should be).
-	(ruby-singleton-class-p): New function.
-	(ruby-expr-beg, ruby-in-here-doc-p)
-	(ruby-syntax-propertize-heredoc): Use it.
+	* progmodes/ruby-mode.el (ruby-expr-beg, ruby-parse-partial):
+	?, _, and : are symbol constituents, ! is not (but kinda should be).
+	(ruby-syntax-propertize-heredoc): Use ruby-singleton-class-p.
 	(ruby-syntax-propertize-function): Adjust for changes in
 	`ruby-syntax-propertize-heredoc'.
+
+2012-08-09 Nobuyoshi Nakada  <nobu@ruby-lang.org>
+
+	* progmodes/ruby-mode.el (ruby-mode-map): Remove deprecated
+	binding (use `M-;' instead).
+	(ruby-singleton-class-p): New function.
+	(ruby-expr-beg, ruby-in-here-doc-p) Use it.
 
 2012-08-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 

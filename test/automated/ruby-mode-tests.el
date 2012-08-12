@@ -191,6 +191,32 @@ VALUES-PLIST is a list with alternating index and value elements."
    |  end
    |"))
 
+(ert-deftest ruby-move-to-block-stops-at-opening ()
+  (with-temp-buffer
+    (insert "def f\nend")
+    (beginning-of-line)
+    (ruby-mode)
+    (ruby-move-to-block -1)
+    (should (looking-at "f$"))))
+
+(ert-deftest ruby-toggle-block-to-do-end ()
+  (with-temp-buffer
+    (insert "foo {|b|\n}\n")
+    (ruby-mode)
+    (search-backward "{")
+    (ruby-toggle-block)
+    (should (string= "foo do |b|\nend\n" (buffer-substring-no-properties
+                                          (point-min) (point-max))))))
+
+(ert-deftest ruby-toggle-block-to-brace ()
+  (with-temp-buffer
+    (insert "foo do |b|\nend\n")
+    (ruby-mode)
+    (search-backward "do")
+    (ruby-toggle-block)
+    (should (string= "foo {|b|\n}\n" (buffer-substring-no-properties
+                                      (point-min) (point-max))))))
+
 (provide 'ruby-mode-tests)
 
 ;;; ruby-mode-tests.el ends here
