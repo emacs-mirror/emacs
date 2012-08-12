@@ -1279,11 +1279,11 @@ a new window in the current frame, splitting vertically."
 
 (define-ibuffer-op ibuffer-do-toggle-read-only (&optional arg)
   "Toggle read only status in marked buffers.
-With optional ARG, make read-only only if ARG is positive."
+With optional ARG, make read-only only if ARG is not negative."
   (:opstring "toggled read only status in"
    :interactive "P"
    :modifier-p t)
-  (toggle-read-only arg t))
+  (call-interactively 'toggle-read-only))
 
 (define-ibuffer-op ibuffer-do-delete ()
   "Kill marked buffers as with `kill-this-buffer'."

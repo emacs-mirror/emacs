@@ -1,3 +1,11 @@
+2012-08-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* ibuffer.el (ibuffer-do-toggle-read-only):
+	* dired.el (dired-toggle-read-only):
+	* buff-menu.el (Buffer-menu-toggle-read-only):
+	* bindings.el (mode-line-toggle-read-only):
+	* bs.el (bs-toggle-readonly): Call toggle-read-only interactively.
+
 2012-08-12  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* descr-text.el (describe-char): Put the overlays over the

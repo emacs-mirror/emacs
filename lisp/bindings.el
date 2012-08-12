@@ -40,8 +40,7 @@ corresponding to the mode line clicked."
   (interactive "e")
   (save-selected-window
     (select-window (posn-window (event-start event)))
-    (toggle-read-only nil t)
-    (force-mode-line-update)))
+    (call-interactively 'toggle-read-only)))
 
 (defun mode-line-toggle-modified (event)
   "Toggle the buffer-modified flag from the mode-line."
