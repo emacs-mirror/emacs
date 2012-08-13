@@ -373,7 +373,7 @@ select_window (Lisp_Object window, Lisp_Object norecord, int inhibit_point_swap)
 
   Fset_buffer (w->buffer);
 
-  BVAR (XBUFFER (w->buffer), last_selected_window) = window;
+  BSET (XBUFFER (w->buffer), last_selected_window, window);
 
   /* Go to the point recorded in the window.
      This is important when the buffer is in more
@@ -1812,7 +1812,7 @@ unshow_buffer (register struct window *w)
 
   if (WINDOWP (BVAR (b, last_selected_window))
       && w == XWINDOW (BVAR (b, last_selected_window)))
-    BVAR (b, last_selected_window) = Qnil;
+    BSET (b, last_selected_window, Qnil);
 }
 
 /* Put NEW into the window structure in place of OLD.  SETFLAG zero
@@ -2990,15 +2990,15 @@ set_window_buffer (Lisp_Object window, Lisp_Object buffer, int run_hooks_p, int 
   WSET (w, buffer, buffer);
 
   if (EQ (window, selected_window))
-    BVAR (b, last_selected_window) = window;
+    BSET (b, last_selected_window, window);
 
   /* Let redisplay errors through.  */
   b->display_error_modiff = 0;
 
   /* Update time stamps of buffer display.  */
   if (INTEGERP (BVAR (b, display_count)))
-    XSETINT (BVAR (b, display_count), XINT (BVAR (b, display_count)) + 1);
-  BVAR (b, display_time) = Fcurrent_time ();
+    BSET (b, display_count, make_number (XINT (BVAR (b, display_count)) + 1));
+  BSET (b, display_time, Fcurrent_time ());
 
   WSET (w, window_end_pos, make_number (0));
   WSET (w, window_end_vpos, make_number (0));
@@ -3189,7 +3189,7 @@ temp_output_buffer_show (register Lisp_Object buf)
   register Lisp_Object window;
   register struct window *w;
 
-  BVAR (XBUFFER (buf), directory) = BVAR (current_buffer, directory);
+  BSET (XBUFFER (buf), directory, BVAR (current_buffer, directory));
 
   Fset_buffer (buf);
   BUF_SAVE_MODIFF (XBUFFER (buf)) = MODIFF;

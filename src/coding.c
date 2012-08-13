@@ -7103,7 +7103,7 @@ decode_coding (struct coding_system *coding)
       if (GPT != PT)
 	move_gap_both (PT, PT_BYTE);
       undo_list = BVAR (current_buffer, undo_list);
-      BVAR (current_buffer, undo_list) = Qt;
+      BSET (current_buffer, undo_list, Qt);
     }
 
   coding->consumed = coding->consumed_char = 0;
@@ -7200,7 +7200,7 @@ decode_coding (struct coding_system *coding)
     decode_eol (coding);
   if (BUFFERP (coding->dst_object))
     {
-      BVAR (current_buffer, undo_list) = undo_list;
+      BSET (current_buffer, undo_list, undo_list);
       record_insert (coding->dst_pos, coding->produced_char);
     }
   return coding->result;
@@ -7568,8 +7568,8 @@ make_conversion_work_buffer (int multibyte)
      doesn't compile new regexps.  */
   Fset (Fmake_local_variable (Qinhibit_modification_hooks), Qt);
   Ferase_buffer ();
-  BVAR (current_buffer, undo_list) = Qt;
-  BVAR (current_buffer, enable_multibyte_characters) = multibyte ? Qt : Qnil;
+  BSET (current_buffer, undo_list, Qt);
+  BSET (current_buffer, enable_multibyte_characters, multibyte ? Qt : Qnil);
   set_buffer_internal (current);
   return workbuf;
 }

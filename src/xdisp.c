@@ -9318,7 +9318,7 @@ message_dolog (const char *m, ptrdiff_t nbytes, int nlflag, int multibyte)
       old_deactivate_mark = Vdeactivate_mark;
       oldbuf = current_buffer;
       Fset_buffer (Fget_buffer_create (Vmessages_buffer_name));
-      BVAR (current_buffer, undo_list) = Qt;
+      BSET (current_buffer, undo_list, Qt);
 
       oldpoint = message_dolog_marker1;
       set_marker_restricted (oldpoint, make_number (PT), Qnil);
@@ -9880,7 +9880,7 @@ ensure_echo_area_buffers (void)
 	old_buffer = echo_buffer[i];
 	echo_buffer[i] = Fget_buffer_create
 	  (make_formatted_string (name, " *Echo Area %d*", i));
-	BVAR (XBUFFER (echo_buffer[i]), truncate_lines) = Qnil;
+	BSET (XBUFFER (echo_buffer[i]), truncate_lines, Qnil);
 	/* to force word wrap in echo area -
 	   it was decided to postpone this*/
 	/* XBUFFER (echo_buffer[i])->word_wrap = Qt; */
@@ -9973,8 +9973,8 @@ with_echo_area_buffer (struct window *w, int which,
       set_marker_both (w->pointm, buffer, BEG, BEG_BYTE);
     }
 
-  BVAR (current_buffer, undo_list) = Qt;
-  BVAR (current_buffer, read_only) = Qnil;
+  BSET (current_buffer, undo_list, Qt);
+  BSET (current_buffer, read_only, Qnil);
   specbind (Qinhibit_read_only, Qt);
   specbind (Qinhibit_modification_hooks, Qt);
 
@@ -10087,7 +10087,7 @@ setup_echo_area_for_printing (int multibyte_p)
 
       /* Switch to that buffer and clear it.  */
       set_buffer_internal (XBUFFER (echo_area_buffer[0]));
-      BVAR (current_buffer, truncate_lines) = Qnil;
+      BSET (current_buffer, truncate_lines, Qnil);
 
       if (Z > BEG)
 	{
@@ -10130,7 +10130,7 @@ setup_echo_area_for_printing (int multibyte_p)
 	{
 	  /* Someone switched buffers between print requests.  */
 	  set_buffer_internal (XBUFFER (echo_area_buffer[0]));
-	  BVAR (current_buffer, truncate_lines) = Qnil;
+	  BSET (current_buffer, truncate_lines, Qnil);
 	}
     }
 }
@@ -10582,9 +10582,9 @@ set_message_1 (ptrdiff_t a1, Lisp_Object a2, ptrdiff_t nbytes, ptrdiff_t multiby
       != !NILP (BVAR (current_buffer, enable_multibyte_characters)))
     Fset_buffer_multibyte (message_enable_multibyte ? Qt : Qnil);
 
-  BVAR (current_buffer, truncate_lines) = message_truncate_lines ? Qt : Qnil;
+  BSET (current_buffer, truncate_lines, message_truncate_lines ? Qt : Qnil);
   if (!NILP (BVAR (current_buffer, bidi_display_reordering)))
-    BVAR (current_buffer, bidi_paragraph_direction) = Qleft_to_right;
+    BSET (current_buffer, bidi_paragraph_direction, Qleft_to_right);
 
   /* Insert new message at BEG.  */
   TEMP_SET_PT_BOTH (BEG, BEG_BYTE);

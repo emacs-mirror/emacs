@@ -836,7 +836,7 @@ One argument, a syntax table.  */)
 {
   int idx;
   check_syntax_table (table);
-  BVAR (current_buffer, syntax_table) = table;
+  BSET (current_buffer, syntax_table, table);
   /* Indicate that this buffer now has a specified syntax table.  */
   idx = PER_BUFFER_VAR_IDX (syntax_table);
   SET_PER_BUFFER_VALUE_P (current_buffer, idx, 1);

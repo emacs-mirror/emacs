@@ -1854,7 +1854,7 @@ If KEYMAP is nil, that means no local keymap.  */)
   if (!NILP (keymap))
     keymap = get_keymap (keymap, 1, 1);
 
-  BVAR (current_buffer, keymap) = keymap;
+  BSET (current_buffer, keymap, keymap);
 
   return Qnil;
 }

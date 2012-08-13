@@ -5246,7 +5246,7 @@ read_process_output (Lisp_Object proc, register int channel)
       old_begv_byte = BEGV_BYTE;
       old_zv_byte = ZV_BYTE;
 
-      BVAR (current_buffer, read_only) = Qnil;
+      BSET (current_buffer, read_only, Qnil);
 
       /* Insert new output into buffer
 	 at the current end-of-output marker,
@@ -5337,7 +5337,7 @@ read_process_output (Lisp_Object proc, register int channel)
 	Fnarrow_to_region (make_number (old_begv), make_number (old_zv));
 
 
-      BVAR (current_buffer, read_only) = old_read_only;
+      BSET (current_buffer, read_only, old_read_only);
       SET_PT_BOTH (opoint, opoint_byte);
     }
   /* Handling the process output should not deactivate the mark.  */
@@ -6671,13 +6671,13 @@ status_notify (struct Lisp_Process *deleting_process)
 	      before_byte = PT_BYTE;
 
 	      tem = BVAR (current_buffer, read_only);
-	      BVAR (current_buffer, read_only) = Qnil;
+	      BSET (current_buffer, read_only, Qnil);
 	      insert_string ("\nProcess ");
 	      { /* FIXME: temporary kludge */
 		Lisp_Object tem2 = p->name; Finsert (1, &tem2); }
 	      insert_string (" ");
 	      Finsert (1, &msg);
-	      BVAR (current_buffer, read_only) = tem;
+	      BSET (current_buffer, read_only, tem);
 	      set_marker_both (p->mark, p->buffer, PT, PT_BYTE);
 
 	      if (opoint >= before)

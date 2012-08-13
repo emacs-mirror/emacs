@@ -1211,8 +1211,8 @@ set_internal (register Lisp_Object symbol, register Lisp_Object newval, register
 		       bindings, not for frame-local bindings.  */
 		    eassert (!blv->frame_local);
 		    tem1 = Fcons (symbol, XCDR (blv->defcell));
-		    BVAR (XBUFFER (where), local_var_alist)
-		      = Fcons (tem1, BVAR (XBUFFER (where), local_var_alist));
+		    BSET (XBUFFER (where), local_var_alist,
+			  Fcons (tem1, BVAR (XBUFFER (where), local_var_alist)));
 		  }
 	      }
 
@@ -1651,9 +1651,9 @@ Instead, use `add-hook' and specify t for the LOCAL argument.  */)
 	 default value.  */
       find_symbol_value (variable);
 
-      BVAR (current_buffer, local_var_alist)
-        = Fcons (Fcons (variable, XCDR (blv->defcell)),
-		 BVAR (current_buffer, local_var_alist));
+      BSET (current_buffer, local_var_alist,
+	    Fcons (Fcons (variable, XCDR (blv->defcell)),
+		   BVAR (current_buffer, local_var_alist)));
 
       /* Make sure symbol does not think it is set up for this buffer;
 	 force it to look once again for this buffer's value.  */
@@ -1721,8 +1721,8 @@ From now on the default value will apply in this buffer.  Return VARIABLE.  */)
   XSETSYMBOL (variable, sym);	/* Propagate variable indirection.  */
   tem = Fassq (variable, BVAR (current_buffer, local_var_alist));
   if (!NILP (tem))
-    BVAR (current_buffer, local_var_alist)
-      = Fdelq (tem, BVAR (current_buffer, local_var_alist));
+    BSET (current_buffer, local_var_alist,
+	  Fdelq (tem, BVAR (current_buffer, local_var_alist)));
 
   /* If the symbol is set up with the current buffer's binding
      loaded, recompute its value.  We have to do it now, or else

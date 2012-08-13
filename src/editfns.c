@@ -882,7 +882,7 @@ save_excursion_restore (Lisp_Object info)
   info = XCDR (info);
   tem = XCAR (info);
   tem1 = BVAR (current_buffer, mark_active);
-  BVAR (current_buffer, mark_active) = tem;
+  BSET (current_buffer, mark_active, tem);
 
   /* If mark is active now, and either was not active
      or was at a different place, run the activate hook.  */
@@ -2816,13 +2816,13 @@ determines whether case is significant or ignored.  */)
 static Lisp_Object
 subst_char_in_region_unwind (Lisp_Object arg)
 {
-  return BVAR (current_buffer, undo_list) = arg;
+  return BSET (current_buffer, undo_list, arg);
 }
 
 static Lisp_Object
 subst_char_in_region_unwind_1 (Lisp_Object arg)
 {
-  return BVAR (current_buffer, filename) = arg;
+  return BSET (current_buffer, filename, arg);
 }
 
 DEFUN ("subst-char-in-region", Fsubst_char_in_region,
@@ -2896,11 +2896,11 @@ Both characters must have the same length of multi-byte form.  */)
     {
       record_unwind_protect (subst_char_in_region_unwind,
 			     BVAR (current_buffer, undo_list));
-      BVAR (current_buffer, undo_list) = Qt;
+      BSET (current_buffer, undo_list, Qt);
       /* Don't do file-locking.  */
       record_unwind_protect (subst_char_in_region_unwind_1,
 			     BVAR (current_buffer, filename));
-      BVAR (current_buffer, filename) = Qnil;
+      BSET (current_buffer, filename, Qnil);
     }
 
   if (pos_byte < GPT_BYTE)
@@ -2982,7 +2982,7 @@ Both characters must have the same length of multi-byte form.  */)
 		INC_POS (pos_byte_next);
 
 	      if (! NILP (noundo))
-		BVAR (current_buffer, undo_list) = tem;
+		BSET (current_buffer, undo_list, tem);
 
 	      UNGCPRO;
 	    }

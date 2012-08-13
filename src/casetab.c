@@ -158,10 +158,10 @@ set_case_table (Lisp_Object table, int standard)
     }
   else
     {
-      BVAR (current_buffer, downcase_table) = table;
-      BVAR (current_buffer, upcase_table) = up;
-      BVAR (current_buffer, case_canon_table) = canon;
-      BVAR (current_buffer, case_eqv_table) = eqv;
+      BSET (current_buffer, downcase_table, table);
+      BSET (current_buffer, upcase_table, up);
+      BSET (current_buffer, case_canon_table, canon);
+      BSET (current_buffer, case_eqv_table, eqv);
     }
 
   return table;

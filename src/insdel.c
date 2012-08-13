@@ -1792,7 +1792,7 @@ modify_region (struct buffer *buffer, ptrdiff_t start, ptrdiff_t end,
   if (! preserve_chars_modiff)
     CHARS_MODIFF = MODIFF;
 
-  BVAR (buffer, point_before_scroll) = Qnil;
+  BSET (buffer, point_before_scroll, Qnil);
 
   if (buffer != old_buffer)
     set_buffer_internal (old_buffer);

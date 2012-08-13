@@ -1,3 +1,12 @@
+2012-08-13  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Use BSET for write access to Lisp_Object members of struct buffer.
+	* buffer.h (BSET): New macro.
+	* buffer.c, casetab.c, cmds.c, coding.c, data.c, editfns.c:
+	* fileio.c, frame.c, indent.c, insdel.c, intervals.c, keymap.c:
+	* minibuf.c, print.c, process.c, syntax.c, undo.c, w32fns.c:
+	* window.c, xdisp.c, xfns.c: Adjust users.
+
 2012-08-11  BT Templeton  <bpt@hcoop.net>  (tiny change)
 
 	* lread.c (syms_of_lread): Initialize Vlexical_binding.

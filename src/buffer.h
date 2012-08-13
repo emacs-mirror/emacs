@@ -477,6 +477,7 @@ struct buffer_text
 /* Most code should use this macro to access Lisp fields in struct buffer.  */
 
 #define BVAR(buf, field) ((buf)->INTERNAL_FIELD (field))
+#define BSET(buf, field, value) ((buf)->INTERNAL_FIELD (field) = (value))
 
 /* This is the structure that the buffer Lisp object points to.  */
 
