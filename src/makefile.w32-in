@@ -1506,6 +1506,7 @@ $(BLD)/w32menu.$(O) : \
 	$(SRC)/w32menu.c \
 	$(SRC)/buffer.h \
 	$(SRC)/keymap.h \
+	$(SRC)/w32heap.h \
 	$(BLOCKINPUT_H) \
 	$(CHARSET_H) \
 	$(CODING_H) \

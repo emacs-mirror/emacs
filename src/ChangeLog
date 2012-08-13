@@ -1,5 +1,12 @@
 2012-08-13  Eli Zaretskii  <eliz@gnu.org>
 
+	* w32menu.c: Include w32heap.h.
+	(add_menu_item): If the call to AppendMenuW (via
+	unicode_append_menu) fails, disable Unicode menus only if we are
+	running on Windows 9X/Me.
+
+	* makefile.w32-in ($(BLD)/w32menu.$(O)): Depend on w32heap.h.
+
 	* window.c (Fdelete_other_windows_internal)
 	(Fdelete_window_internal): Don't access frame's mouse highlight
 	info of the initial frame.  (Bug#11677)
