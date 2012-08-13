@@ -1,3 +1,9 @@
+2012-08-13  Eli Zaretskii  <eliz@gnu.org>
+
+	* window.c (Fdelete_other_windows_internal)
+	(Fdelete_window_internal): Don't access frame's mouse highlight
+	info of the initial frame.  (Bug#11677)
+
 2012-08-12  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsterm.m (ns_read_socket): Return early if there is a modal
