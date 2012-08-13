@@ -1,3 +1,7 @@
+2012-08-13  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* files.el (hack-local-variables-filter): Remove useless eval.
+
 2012-08-13  Martin Rudalics  <rudalics@gmx.at>
 
 	* subr.el (with-selected-window): Fix last change.
@@ -6,7 +10,8 @@
 
 	* subr.el (internal--before-with-seleted-window)
 	(internal--after-with-seleted-window): New functions.
-	(with-selected-window): Use them, to replace dependency on tty-top-frame.
+	(with-selected-window): Use them, to replace dependency on
+	tty-top-frame.
 
 2012-08-12  Nobuyoshi Nakada  <nobu@ruby-lang.org>
 

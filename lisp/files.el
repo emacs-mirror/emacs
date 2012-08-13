@@ -3102,8 +3102,7 @@ DIR-NAME is the name of the associated directory.  Otherwise it is nil."
 	      ;; Obey `enable-local-eval'.
 	      ((eq var 'eval)
 	       (when enable-local-eval
-		 (let ((safe (or (hack-one-local-variable-eval-safep
-				  (eval (quote val)))
+		 (let ((safe (or (hack-one-local-variable-eval-safep val)
 				 ;; In case previously marked safe (bug#5636).
 				 (safe-local-variable-p var val))))
 		   ;; If not safe and e-l-v = :safe, ignore totally.
