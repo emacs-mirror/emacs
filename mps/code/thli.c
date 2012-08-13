@@ -1,4 +1,4 @@
-/* thlii4.c: Threads Manager for Intel x86 systems with LinuxThreads
+/* thli.c: Threads Manager for LinuxThreads
  *
  *  $Id$
  *  Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
@@ -31,22 +31,26 @@
  * but don't assume that the stack pointer is necessarily
  * word-aligned at the time of reading the context of another thread.
  *
- * .sp: The stack pointer in the context is ESP.
- * .context.regroots: The root regs are EDI, ESI, EBX, EDX, ECX, EAX are
+ * .sp: The stack pointer in the context is uc_stack.ss_sp.
+ * .context.regroots: The root regs are
  * assumed to be recorded in the context at pointer-aligned boundaries.
  */
 
 #include "prmcix.h"
 #include "mpm.h"
 
-#if !defined(MPS_OS_LI) || !defined(MPS_ARCH_I4)
-#error "Compiling thlii4 when MPS_OS_LI or MPS_ARCH_I4 not defined."
+#if !defined(MPS_OS_LI)
+#error "Compiling thli when MPS_OS_LI is not defined."
+#endif
+
+#if !(defined(MPS_ARCH_I4) || defined(MPS_ARCH_I6))
+#error "Need to check assumptions for thli.c are true for this architecture"
 #endif
 
 #include <pthread.h>
 #include "pthrdext.h"
 
-SRCID(thlii4, "$Id$");
+SRCID(thli, "$Id$");
 
 
 /* ThreadStruct -- thread desriptor */
@@ -254,7 +258,7 @@ Res ThreadScan(ScanState ss, Thread thread, void *stackBot)
       return ResOK;
     }
 
-    stackPtr  = (Addr)mfc->ucontext->uc_stack.ss_sp;   /* .i3.sp */
+    stackPtr  = (Addr)mfc->ucontext->uc_stack.ss_sp;   /* .sp */
     /* .stack.align */
     stackBase  = (Addr *)AddrAlignUp(stackPtr, sizeof(Addr));
     stackLimit = (Addr *)stackBot;

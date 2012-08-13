@@ -183,6 +183,23 @@
 #define MPS_WORD_SHIFT  5
 #define MPS_PF_ALIGN    4
 
+/* GCC 4.6.3, gcc -E -dM */
+
+#elif defined(__linux__) && defined(__x86_64) && defined(__GNUC__)
+#if defined(CONFIG_PF_STRING) && ! defined(CONFIG_PF_LII6GC)
+#error "specified CONFIG_PF_... inconsistent with detected lii6gc"
+#endif
+#define MPS_PF_LII6GC
+#define MPS_PF_STRING   "lii6gc"
+#define MPS_OS_LI
+#define MPS_ARCH_I6
+#define MPS_BUILD_GC
+#define MPS_T_WORD      unsigned long
+#define MPS_T_ULONGEST  unsigned long
+#define MPS_WORD_WIDTH  64
+#define MPS_WORD_SHIFT  6
+#define MPS_PF_ALIGN    8
+
 /* GCC 2.7.2, gcc -E -dM */
 
 #elif defined(__linux__) && defined(__PPC__) && defined(__GNUC__)
