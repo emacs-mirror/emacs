@@ -1,3 +1,7 @@
+2012-08-13  Martin Rudalics  <rudalics@gmx.at>
+
+	* subr.el (with-selected-window): Fix last change.
+
 2012-08-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* subr.el (internal--before-with-seleted-window)

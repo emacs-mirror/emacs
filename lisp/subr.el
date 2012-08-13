@@ -3070,7 +3070,7 @@ the buffer list ordering."
        (unwind-protect
            (progn (select-window (car save-selected-window--state) 'norecord)
 		  ,@body)
-         (internal--before-with-seleted-window save-selected-window--state)))))
+         (internal--after-with-seleted-window save-selected-window--state)))))
 
 (defmacro with-selected-frame (frame &rest body)
   "Execute the forms in BODY with FRAME as the selected frame.
