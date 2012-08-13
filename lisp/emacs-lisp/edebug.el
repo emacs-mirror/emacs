@@ -248,7 +248,7 @@ If the result is non-nil, then break.  Errors are ignored."
         (progn
           (and (symbolp indirect)
                (setq indirect
-                     (function-get indirect 'edebug-form-spec 'autoload))))
+                     (function-get indirect 'edebug-form-spec 'macro))))
       ;; (edebug-trace "indirection: %s" edebug-form-spec)
       (setq edebug-form-spec indirect))
     edebug-form-spec

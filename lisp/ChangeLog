@@ -1,5 +1,10 @@
 2012-08-13  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* subr.el (function-get): Refine `autoload' arg so it can also
+	autoload functions for gv.el (bug#12191).
+	* emacs-lisp/edebug.el (get-edebug-spec): Adjust so it only
+	autoloads macros.
+
 	* color.el (color-xyz-to-lab, color-lab-to-xyz, color-cie-de2000):
 	Prefer pcase-let over destructuring-bind.
 	* vc/diff-mode.el (diff-remove-trailing-whitespace): Same.

@@ -2785,15 +2785,19 @@ form."
 
 (defun function-get (f prop &optional autoload)
   "Return the value of property PROP of function F.
-If AUTOLOAD is non-nil and F is an autoloaded macro, try to autoload
-the macro in the hope that it will set PROP."
+If AUTOLOAD is non-nil and F is autoloaded, try to autoload it
+in the hope that it will set PROP.  If AUTOLOAD is `macro', only do it
+if it's an autoloaded macro."
   (let ((val nil))
     (while (and (symbolp f)
                 (null (setq val (get f prop)))
                 (fboundp f))
       (let ((fundef (symbol-function f)))
         (if (and autoload (autoloadp fundef)
-                 (not (equal fundef (autoload-do-load fundef f 'macro))))
+                 (not (equal fundef
+                             (autoload-do-load fundef f
+                                               (if (eq autoload 'macro)
+                                                   'macro)))))
             nil                         ;Re-try `get' on the same `f'.
           (setq f fundef))))
     val))
