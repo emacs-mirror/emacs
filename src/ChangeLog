@@ -1,5 +1,13 @@
 2012-08-13  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	Use KSET for write access to Lisp_Object members of struct kboard.
+	* keyboard.h (KSET): New macro.
+	* callint.c, category.c, frame.c, keyboard.c, keyboard.h, macros.c:
+	* msdos.c, nsfns.m, nsterm.m, term.c, w32fns.c, w32term.c, xfns.c:
+	* xterm.c: Adjust users.
+
+2012-08-13  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	Use BSET for write access to Lisp_Object members of struct buffer.
 	* buffer.h (BSET): New macro.
 	* buffer.c, casetab.c, cmds.c, coding.c, data.c, editfns.c:

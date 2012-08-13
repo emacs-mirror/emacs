@@ -393,8 +393,8 @@ make_frame_without_minibuffer (register Lisp_Object mini_window, KBOARD *kb, Lis
           XSETFRAME (frame_dummy, f);
           GCPRO1 (frame_dummy);
 	  /* If there's no minibuffer frame to use, create one.  */
-	  KVAR (kb, Vdefault_minibuffer_frame) =
-	    call1 (intern ("make-initial-minibuffer-frame"), display);
+	  KSET (kb, Vdefault_minibuffer_frame,
+		call1 (intern ("make-initial-minibuffer-frame"), display));
           UNGCPRO;
 	}
 
@@ -843,7 +843,7 @@ to that frame.  */)
   (Lisp_Object event)
 {
   /* Preserve prefix arg that the command loop just cleared.  */
-  KVAR (current_kboard, Vprefix_arg) = Vcurrent_prefix_arg;
+  KSET (current_kboard, Vprefix_arg, Vcurrent_prefix_arg);
   Frun_hooks (1, &Qmouse_leave_buffer_hook);
   return do_switch_frame (event, 0, 0, Qnil);
 }
@@ -1435,11 +1435,11 @@ delete_frame (Lisp_Object frame, Lisp_Object force)
 	  if (NILP (frame_with_minibuf))
 	    abort ();
 
-	  KVAR (kb, Vdefault_minibuffer_frame) = frame_with_minibuf;
+	  KSET (kb, Vdefault_minibuffer_frame, frame_with_minibuf);
 	}
       else
 	/* No frames left on this kboard--say no minibuffer either.  */
-	KVAR (kb, Vdefault_minibuffer_frame) = Qnil;
+	KSET (kb, Vdefault_minibuffer_frame, Qnil);
     }
 
   /* Cause frame titles to update--necessary if we now have just one frame.  */

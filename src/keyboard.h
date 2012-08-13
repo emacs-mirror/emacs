@@ -22,6 +22,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Most code should use this macro to access Lisp fields in struct kboard.  */
 
 #define KVAR(kboard, field) ((kboard)->INTERNAL_FIELD (field))
+#define KSET(kboard, field, value) ((kboard)->INTERNAL_FIELD (field) = (value))
 
 /* Each KBOARD represents one logical input stream from which Emacs
    gets input.  If we are using ordinary terminals, it has one KBOARD

@@ -1801,7 +1801,7 @@ internal_terminal_init (void)
     }
 
   tty = FRAME_TTY (sf);
-  KVAR (current_kboard, Vwindow_system) = Qpc;
+  KSET (current_kboard, Vwindow_system, Qpc);
   sf->output_method = output_msdos_raw;
   if (init_needed)
     {

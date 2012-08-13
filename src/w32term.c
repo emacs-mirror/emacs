@@ -6232,7 +6232,7 @@ w32_create_terminal (struct w32_display_info *dpyinfo)
      terminal like X does.  */
   terminal->kboard = xmalloc (sizeof (KBOARD));
   init_kboard (terminal->kboard);
-  KVAR (terminal->kboard, Vwindow_system) = intern ("w32");
+  KSET (terminal->kboard, Vwindow_system, intern ("w32"));
   terminal->kboard->next_kboard = all_kboards;
   all_kboards = terminal->kboard;
   /* Don't let the initial kboard remain current longer than necessary.
