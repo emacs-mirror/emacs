@@ -1,5 +1,11 @@
 2012-08-13  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* color.el (color-xyz-to-lab, color-lab-to-xyz, color-cie-de2000):
+	Prefer pcase-let over destructuring-bind.
+	* vc/diff-mode.el (diff-remove-trailing-whitespace): Same.
+	Also, remove whitespace as we go, rather than after accumulating the
+	various places.
+
 	* subr.el (internal--before-with-selected-window)
 	(internal--after-with-selected-window): Fix typo seleted->selected.
 	(with-selected-window): Adjust callers.
