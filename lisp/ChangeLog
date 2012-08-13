@@ -1,3 +1,8 @@
+2012-08-13  Bastien Guerry  <bzg@gnu.org>
+
+	* window.el (special-display-popup-frame): Small docstring
+	enhancement.  (Bug#12172)
+
 2012-08-13  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* tar-mode.el (tar-header-data-end): Only ignore size for files of

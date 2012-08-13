@@ -4238,7 +4238,7 @@ These supersede the values given in `default-frame-alist'."
   :group 'frames)
 
 (defun special-display-popup-frame (buffer &optional args)
-  "Display BUFFER and return the window chosen.
+  "Pop up a frame displaying BUFFER and return its window.
 If BUFFER is already displayed in a visible or iconified frame,
 raise that frame.  Otherwise, display BUFFER in a new frame.
 
