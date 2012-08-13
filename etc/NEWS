@@ -200,17 +200,31 @@ ANSI terminal colors and styles by customizing the corresponding
 `term-color-<COLOR>', `term-color-underline' and `term-color-bold'
 faces.
 
-** CL's main entry is now (require 'cl-lib).
+** CL
+*** CL's main entry is now (require 'cl-lib).
 `cl-lib' is like the old `cl' except that it uses the namespace cleanly,
-i.e. all its definitions have the "cl-" prefix.
+i.e. all its definitions have the "cl-" prefix (and internal definitions use
+the "cl--" prefix).
 
 If `cl' provided a feature under the name `foo', then `cl-lib' provides it
 under the name `cl-foo' instead, with the exceptions of the few definitions
 that had to use `foo*' to avoid conflicts with pre-existing Elisp entities,
 which have not been renamed to `cl-foo*' but just `cl-foo'.
 
-The old `cl' is now deprecated and is nothing more than a bunch of aliases that
+The old `cl' is now deprecated and is just a bunch of aliases that
 provide the old non-prefixed names.
+
+*** `cl-flet' is not like `flet' (which is deprecated).
+Instead it obeys the behavior of Common-Lisp's `flet'.
+
+*** `cl-labels' is slightly different from `labels'.
+The difference is that it relies on the `lexical-binding' machinery (as opposed
+to the `lexical-let' machinery used previously) to capture definitions in
+closures, so such closures will only work if `lexical-binding' is in use.
+
+*** `progv' was rewritten to use the `let' machinery.
+A side effect is that vars without corresponding value are bound to nil
+rather than making them unbound.
 
 ** Desktop
 

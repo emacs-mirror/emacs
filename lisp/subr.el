@@ -3023,7 +3023,7 @@ also `with-temp-buffer'."
      (set-buffer ,buffer-or-name)
      ,@body))
 
-(defun internal--before-with-seleted-window (window)
+(defun internal--before-with-selected-window (window)
   (let ((other-frame (window-frame window)))
     (list window (selected-window)
           ;; Selecting a window on another frame also changes that
@@ -3034,7 +3034,7 @@ also `with-temp-buffer'."
           (unless (eq (selected-frame) other-frame)
             (tty-top-frame other-frame)))))
 
-(defun internal--after-with-seleted-window (state)
+(defun internal--after-with-selected-window (state)
   ;; First reset frame-selected-window.
   (when (window-live-p (nth 2 state))
     ;; We don't use set-frame-selected-window because it does not
@@ -3065,12 +3065,12 @@ potentially make a different buffer current.  It does not alter
 the buffer list ordering."
   (declare (indent 1) (debug t))
   `(let ((save-selected-window--state
-          (internal--before-with-seleted-window ,window)))
+          (internal--before-with-selected-window ,window)))
      (save-current-buffer
        (unwind-protect
            (progn (select-window (car save-selected-window--state) 'norecord)
 		  ,@body)
-         (internal--after-with-seleted-window save-selected-window--state)))))
+         (internal--after-with-selected-window save-selected-window--state)))))
 
 (defmacro with-selected-frame (frame &rest body)
   "Execute the forms in BODY with FRAME as the selected frame.
