@@ -1,3 +1,8 @@
+2012-08-13  Jambunathan K  <kjambunathan@gmail.com>
+
+	* vc/vc-dir.el (vc-dir-hide-state): New command (bug#12159).
+	(vc-dir-hide-up-to-date): Route it to `vc-dir-hide-state'.
+
 2012-08-13  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* subr.el (function-get): Refine `autoload' arg so it can also

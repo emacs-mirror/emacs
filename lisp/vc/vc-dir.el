@@ -1106,9 +1106,22 @@ outside of VC) and one wants to do some operation on it."
   (interactive "fShow file: ")
   (vc-dir-update (list (list (file-relative-name file) (vc-state file))) (current-buffer)))
 
-(defun vc-dir-hide-up-to-date ()
-  "Hide up-to-date items from display."
-  (interactive)
+(defun vc-dir-hide-state (&optional state)
+  "Hide items that are in STATE from display.
+See `vc-state' for valid values of STATE.
+
+If STATE is nil, default it to up-to-date.
+
+Interactively, if `current-prefix-arg' is non-nil, set STATE to
+state of item at point.  Otherwise, set STATE to up-to-date."
+  (interactive (list
+		(and current-prefix-arg
+		     ;; Command is prefixed.  Infer STATE from point.
+		     (let ((node (ewoc-locate vc-ewoc)))
+		       (and node (vc-dir-fileinfo->state (ewoc-data node)))))))
+  ;; If STATE is un-specified, use up-to-date.
+  (setq state (or state 'up-to-date))
+  (message "Hiding items in state \"%s\"" state)
   (let ((crt (ewoc-nth vc-ewoc -1))
 	(first (ewoc-nth vc-ewoc 0)))
     ;; Go over from the last item to the first and remove the
@@ -1120,18 +1133,21 @@ outside of VC) and one wants to do some operation on it."
 	     (prev (ewoc-prev vc-ewoc crt))
 	     ;; ewoc-delete does not work without this...
 	     (inhibit-read-only t))
-	  (when (or
-		 ;; Remove directories with no child files.
-		 (and dir
-		      (or
-		       ;; Nothing follows this directory.
-		       (not next)
-		       ;; Next item is a directory.
-		       (vc-dir-fileinfo->directory (ewoc-data next))))
-		 ;; Remove files in the up-to-date state.
-		 (eq (vc-dir-fileinfo->state data) 'up-to-date))
-	    (ewoc-delete vc-ewoc crt))
-	  (setq crt prev)))))
+	(when (or
+	       ;; Remove directories with no child files.
+	       (and dir
+		    (or
+		     ;; Nothing follows this directory.
+		     (not next)
+		     ;; Next item is a directory.
+		     (vc-dir-fileinfo->directory (ewoc-data next))))
+	       ;; Remove files in specified STATE.  STATE can be a
+	       ;; symbol or a user-name.
+	       (equal (vc-dir-fileinfo->state data) state))
+	  (ewoc-delete vc-ewoc crt))
+	(setq crt prev)))))
+
+(defalias 'vc-dir-hide-up-to-date 'vc-dir-hide-state)
 
 (defun vc-dir-kill-line ()
   "Remove the current line from display."
