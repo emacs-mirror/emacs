@@ -1,3 +1,15 @@
+2012-08-13  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (xg_frame_tb_info): New struct.
+	(TB_INFO_KEY): New define.
+	(xg_free_frame_widgets): Free xg_frame_tb_info for frame if present.
+	(xg_mark_data): Mark Lisp_Objects in xg_frame_tb_info.
+	(xg_create_tool_bar): Allocate and initialize a xg_frame_tb_info
+	if not present.
+	(update_frame_tool_bar): Return early if data in xg_frame_tb_info
+	is up to date. Otherwise store new data.
+	(free_frame_tool_bar): Free xg_frame_tb_info if present.
+
 2012-08-13  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Use KSET for write access to Lisp_Object members of struct kboard.

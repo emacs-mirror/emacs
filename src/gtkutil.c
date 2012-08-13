@@ -110,6 +110,16 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 static void update_theme_scrollbar_width (void);
 
+#define TB_INFO_KEY "xg_frame_tb_info"
+struct xg_frame_tb_info
+{
+  Lisp_Object last_tool_bar;
+  Lisp_Object style;
+  int n_last_items;
+  int hmargin, vmargin;
+  GtkTextDirection dir;
+};
+
 
 /***********************************************************************
                       Display handling functions
@@ -1277,6 +1287,12 @@ xg_free_frame_widgets (FRAME_PTR f)
 #ifdef USE_GTK_TOOLTIP
       struct x_output *x = f->output_data.x;
 #endif
+      struct xg_frame_tb_info *tbinfo
+        = g_object_get_data (G_OBJECT (FRAME_GTK_OUTER_WIDGET (f)),
+                             TB_INFO_KEY);
+      if (tbinfo)
+        xfree (tbinfo);
+
       gtk_widget_destroy (FRAME_GTK_OUTER_WIDGET (f));
       FRAME_X_WINDOW (f) = 0; /* Set to avoid XDestroyWindow in xterm.c */
       FRAME_GTK_OUTER_WIDGET (f) = 0;
@@ -2144,6 +2160,24 @@ xg_mark_data (void)
 
       if (! NILP (cb_data->help))
         mark_object (cb_data->help);
+    }
+
+  Lisp_Object rest, frame;
+  FOR_EACH_FRAME (rest, frame)
+    {
+      FRAME_PTR f = XFRAME (frame);
+
+      if (FRAME_X_OUTPUT (f) && FRAME_GTK_OUTER_WIDGET (f))
+        {
+          struct xg_frame_tb_info *tbinfo
+            = g_object_get_data (G_OBJECT (FRAME_GTK_OUTER_WIDGET (f)),
+                                 TB_INFO_KEY);
+          if (tbinfo)
+            {
+              mark_object (tbinfo->last_tool_bar);
+              mark_object (tbinfo->style);
+            }
+        }
     }
 }
 
@@ -4220,6 +4254,21 @@ xg_create_tool_bar (FRAME_PTR f)
 #if GTK_CHECK_VERSION (3, 3, 6)
   GtkStyleContext *gsty;
 #endif
+  struct xg_frame_tb_info *tbinfo
+    = g_object_get_data (G_OBJECT (FRAME_GTK_OUTER_WIDGET (f)),
+                         TB_INFO_KEY);
+  if (! tbinfo)
+    {
+      tbinfo = xmalloc (sizeof (*tbinfo));
+      tbinfo->last_tool_bar = Qnil;
+      tbinfo->style = Qnil;
+      tbinfo->hmargin = tbinfo->vmargin = 0;
+      tbinfo->dir = GTK_TEXT_DIR_NONE;
+      tbinfo->n_last_items = 0;
+      g_object_set_data (G_OBJECT (FRAME_GTK_OUTER_WIDGET (f)),
+                         TB_INFO_KEY,
+                         tbinfo);
+    }
 
   x->toolbar_widget = gtk_toolbar_new ();
   x->toolbar_detached = 0;
@@ -4490,6 +4539,7 @@ update_frame_tool_bar (FRAME_PTR f)
   int pack_tool_bar = x->handlebox_widget == NULL;
   Lisp_Object style;
   int text_image, horiz;
+  struct xg_frame_tb_info *tbinfo;
 
   if (! FRAME_GTK_WIDGET (f))
     return;
@@ -4524,6 +4574,29 @@ update_frame_tool_bar (FRAME_PTR f)
   dir = gtk_widget_get_direction (GTK_WIDGET (wtoolbar));
 
   style = Ftool_bar_get_system_style ();
+
+  /* Are we up to date? */
+  tbinfo = g_object_get_data (G_OBJECT (FRAME_GTK_OUTER_WIDGET (f)),
+                              TB_INFO_KEY);
+
+  if (! NILP (tbinfo->last_tool_bar) && ! NILP (f->tool_bar_items)
+      && tbinfo->n_last_items == f->n_tool_bar_items
+      && tbinfo->hmargin == hmargin && tbinfo->vmargin == vmargin
+      && tbinfo->dir == dir
+      && Fequal (tbinfo->style, style) == Qt
+      && Fequal (tbinfo->last_tool_bar, f->tool_bar_items) == Qt)
+    {
+      UNBLOCK_INPUT;
+      return;
+    }
+
+  tbinfo->last_tool_bar = f->tool_bar_items;
+  tbinfo->n_last_items = f->n_tool_bar_items;
+  tbinfo->style = style;
+  tbinfo->hmargin = hmargin;
+  tbinfo->vmargin = vmargin;
+  tbinfo->dir = dir;
+
   text_image = EQ (style, Qtext_image_horiz);
   horiz = EQ (style, Qboth_horiz) || text_image;
 
@@ -4737,6 +4810,7 @@ free_frame_tool_bar (FRAME_PTR f)
 
   if (x->toolbar_widget)
     {
+      struct xg_frame_tb_info *tbinfo;
       int is_packed = x->handlebox_widget != 0;
       BLOCK_INPUT;
       /* We may have created the toolbar_widget in xg_create_tool_bar, but
@@ -4757,6 +4831,16 @@ free_frame_tool_bar (FRAME_PTR f)
       x->handlebox_widget = 0;
       FRAME_TOOLBAR_TOP_HEIGHT (f) = FRAME_TOOLBAR_BOTTOM_HEIGHT (f) = 0;
       FRAME_TOOLBAR_LEFT_WIDTH (f) = FRAME_TOOLBAR_RIGHT_WIDTH (f) = 0;
+
+      tbinfo = g_object_get_data (G_OBJECT (FRAME_GTK_OUTER_WIDGET (f)),
+                                  TB_INFO_KEY);
+      if (tbinfo)
+        {
+          xfree (tbinfo);
+          g_object_set_data (G_OBJECT (FRAME_GTK_OUTER_WIDGET (f)),
+                             TB_INFO_KEY,
+                             NULL);
+        }
 
       xg_height_or_width_changed (f);
 
