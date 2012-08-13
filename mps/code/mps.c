@@ -124,7 +124,7 @@
 #elif defined(MPS_PF_LII4GC)
 
 #include "lockli.c"     /* Linux locks */
-#include "thlii4.c"     /* Linux on 32-bit Intel threading */
+#include "thli.c"       /* Linux on 32-bit Intel threading */
 #include "pthrdext.c"   /* Posix thread extensions */
 #include "vmix.c"       /* Posix virtual memory */
 #include "protix.c"     /* Posix protection */
@@ -133,6 +133,21 @@
 #include "prmci3li.c"   /* 32-bit Intel for Linux mutator context */
 #include "span.c"       /* generic stack probe */
 #include "ssixi3.c"     /* Posix on 32-bit Intel stack scan */
+
+/* Linux on 64-bit Intel with GCC */
+
+#elif defined(MPS_PF_LII6GC)
+
+#include "lockli.c"     /* Linux locks */
+#include "thli.c"       /* Linux on 32-bit Intel threading */
+#include "pthrdext.c"   /* Posix thread extensions */
+#include "vmix.c"       /* Posix virtual memory */
+#include "protix.c"     /* Posix protection */
+#include "protlii6.c"   /* Linux on 32-bit Intel protection */
+#include "proti6.c"     /* 32-bit Intel mutator context */
+#include "prmci6li.c"   /* 32-bit Intel for Linux mutator context */
+#include "span.c"       /* generic stack probe */
+#include "ssixi6.c"     /* Posix on 32-bit Intel stack scan */
 
 /* Windows on 32-bit Intel with Microsoft Visual Studio */
 

@@ -1,70 +1,83 @@
-/* ssixi6.c: UNIX/x64 STACK SCANNING
+/* prmci6li.c: PROTECTION MUTATOR CONTEXT x64 (LINUX)
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
  *
- *  This scans the stack and fixes the registers which may contain
- *  roots.  See <design/thread-manager/>
+ * .purpose: This module implements the part of the protection module
+ * that decodes the MutatorFaultContext. 
  *
- *  This code was branched from ssixi3.c (32-bit Intel) initially for the
- *  port to W3I6LL (Mac OS X on x86_64 with Clang).
- *
- *  This code is common to more than one Unix implementation on
- *  Intel hardware (but is not portable Unix code).  According to Wikipedia,
- *  all the non-Windows platforms use the System V AMD64 ABI.  See
- *  .sources.callees.saves.
  *
  * SOURCES
  *
- * .sources.callees.saves:
- *  "Registers %rbp, %rbx and %r12 through %r15 "belong" to the calling
- *   function and the called function is required to preserve their values.
- *   In other words, a called function must preserve these registers’ values
- *   for its caller." -- System V AMD64 ABI
- *  <http://x86-64.org/documentation/abi.pdf>
+ * .source.linux.kernel: Linux kernel source files.
+ *
  *
  * ASSUMPTIONS
  *
- * .assume.align: The stack pointer is assumed to be aligned on a word
- * boundary.
- *
- * .assume.asm.stack: The compiler must not do wacky things with the
- * stack pointer around a call since we need to ensure that the
- * callee-save regs are visible during TraceScanArea.
- *
- * .assume.asm.order: The volatile modifier should prevent movement
- * of code, which might break .assume.asm.stack.
- *
+ * .assume.regref: The resisters in the context can be modified by
+ * storing into an MRef pointer.
  */
 
+#include "prmcix.h"
+#include "prmci6.h"
 
-#include "mpm.h"
-
-SRCID(ssixi6, "$Id$");
-
-
-/* .assume.asm.order */
-#define ASMV(x) __asm__ volatile (x)
+SRCID(prmci6li, "$Id$");
 
 
-Res StackScan(ScanState ss, Addr *stackBot)
+/* Prmci6AddressHoldingReg -- return an address of a register in a context */
+
+MRef Prmci6AddressHoldingReg(MutatorFaultContext mfc, unsigned int regnum)
 {
-  Addr calleeSaveRegs[6];
-  Addr *stackTop;
-  Res res;
+  Word *gregs;
 
-  ASMV("mov %%rbp, %0" : "=m" (calleeSaveRegs[0]));
-  ASMV("mov %%rbx, %0" : "=m" (calleeSaveRegs[1]));
-  ASMV("mov %%r12, %0" : "=m" (calleeSaveRegs[2]));
-  ASMV("mov %%r13, %0" : "=m" (calleeSaveRegs[3]));
-  ASMV("mov %%r14, %0" : "=m" (calleeSaveRegs[4]));
-  ASMV("mov %%r15, %0" : "=m" (calleeSaveRegs[5]));
-  ASMV("mov %%rsp, %0" : "=r" (stackTop) :);    /* stackTop = rsp */
+  AVER(regnum <= 15);
+  AVER(regnum >= 0);
 
-  AVER(AddrIsAligned((Addr)stackTop, sizeof(Addr)));  /* .assume.align */
-  res = TraceScanArea(ss, stackTop, stackBot);
+  gregs = (Word *)&mfc->ucontext->uc_mcontext.gregs;
 
-  return res;
+  /* .assume.regref */
+  /* The REG_EAX etc. symbols are only present if _GNU_SOURCE is defined.
+   * Currently this is in lii6gc.gmk in PFMDEFS. */
+  switch (regnum) {
+    case  0: return &gregs[REG_RAX];
+    case  1: return &gregs[REG_RCX];
+    case  2: return &gregs[REG_RDX];
+    case  3: return &gregs[REG_RBX];
+    case  4: return &gregs[REG_RSP];
+    case  5: return &gregs[REG_RBP];
+    case  6: return &gregs[REG_RSI];
+    case  7: return &gregs[REG_RDI];
+    case  8: return &gregs[REG_R8];
+    case  9: return &gregs[REG_R9];
+    case 10: return &gregs[REG_R10];
+    case 11: return &gregs[REG_R11];
+    case 12: return &gregs[REG_R12];
+    case 13: return &gregs[REG_R13];
+    case 14: return &gregs[REG_R14];
+    case 15: return &gregs[REG_R15];
+  }
+  NOTREACHED;
+  return (MRef)NULL;  /* Avoids compiler warning. */
+}
+
+
+/* Prmci3DecodeFaultContext -- decode fault to find faulting address and IP */
+
+void Prmci6DecodeFaultContext(MRef *faultmemReturn,
+                              Byte **insvecReturn,
+                              MutatorFaultContext mfc)
+{
+  /* .source.linux.kernel (linux/arch/x86/mm/fault.c). */
+  *faultmemReturn = (MRef)mfc->info->si_addr;
+  *insvecReturn = (Byte*)mfc->ucontext->uc_mcontext.gregs[REG_RIP];
+}
+
+
+/* Prmci3StepOverIns -- modify context to step over instruction */
+
+void Prmci6StepOverIns(MutatorFaultContext mfc, Size inslen)
+{
+  mfc->ucontext->uc_mcontext.gregs[REG_RIP] += (Word)inslen;
 }
 
 
