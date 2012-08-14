@@ -3146,12 +3146,17 @@ end
   % hopefully nobody will notice/care.
   \edef\ecsize{\csname\curfontsize ecsize\endcsname}%
   \edef\nominalsize{\csname\curfontsize nominalsize\endcsname}%
-  \ifx\curfontstyle\bfstylename
-    % bold:
-    \font\thisecfont = ecb\ifusingit{i}{x}\ecsize \space at \nominalsize
+  \ifmonospace
+    % typewriter:
+    \font\thisecfont = ectt\ecsize \space at \nominalsize
   \else
-    % regular:
-    \font\thisecfont = ec\ifusingit{ti}{rm}\ecsize \space at \nominalsize
+    \ifx\curfontstyle\bfstylename
+      % bold:
+      \font\thisecfont = ecb\ifusingit{i}{x}\ecsize \space at \nominalsize
+    \else
+      % regular:
+      \font\thisecfont = ec\ifusingit{ti}{rm}\ecsize \space at \nominalsize
+    \fi
   \fi
   \thisecfont
 }

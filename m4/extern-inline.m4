@@ -24,7 +24,8 @@ AC_DEFUN([gl_EXTERN_INLINE],
 # if (__GNUC__ == 4 && 6 <= __GNUC_MINOR__) || 4 < __GNUC__
 #  define _GL_INLINE_HEADER_BEGIN \
      _Pragma ("GCC diagnostic push") \
-     _Pragma ("GCC diagnostic ignored \"-Wmissing-prototypes\"")
+     _Pragma ("GCC diagnostic ignored \"-Wmissing-prototypes\"") \
+     _Pragma ("GCC diagnostic ignored \"-Wmissing-declarations\"")
 #  define _GL_INLINE_HEADER_END \
      _Pragma ("GCC diagnostic pop")
 # endif
