@@ -1,4 +1,4 @@
-/* thli.c: Threads Manager for LinuxThreads
+/* thix.c: Threads Manager for Posix threads
  *
  *  $Id$
  *  Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
@@ -35,18 +35,10 @@
 #include "prmcix.h"
 #include "mpm.h"
 
-#if !defined(MPS_OS_LI)
-#error "Compiling thli when MPS_OS_LI is not defined."
-#endif
-
-#if !(defined(MPS_ARCH_I4) || defined(MPS_ARCH_I6))
-#error "Need to check assumptions for thli.c are true for this architecture"
-#endif
-
 #include <pthread.h>
 #include "pthrdext.h"
 
-SRCID(thli, "$Id$");
+SRCID(thix, "$Id$");
 
 
 /* ThreadStruct -- thread desriptor */
