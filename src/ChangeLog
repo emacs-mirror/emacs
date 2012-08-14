@@ -1,3 +1,7 @@
+2012-08-14  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* intervals.c (offset_intervals): Remove obsolete comment.
+
 2012-08-14  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* gtkutil.c (find_rtl_image, update_frame_tool_bar): Use NILP.

@@ -1366,11 +1366,7 @@ adjust_intervals_for_deletion (struct buffer *buffer,
 /* Make the adjustments necessary to the interval tree of BUFFER to
    represent an addition or deletion of LENGTH characters starting
    at position START.  Addition or deletion is indicated by the sign
-   of LENGTH.
-
-   The two inline functions (one static) pacify Sun C 5.8, a pre-C99
-   compiler that does not allow calling a static function (here,
-   adjust_intervals_for_deletion) from a non-static inline function.  */
+   of LENGTH.  */
 
 void
 offset_intervals (struct buffer *buffer, ptrdiff_t start, ptrdiff_t length)
@@ -1609,7 +1605,7 @@ graft_intervals_into_buffer (INTERVAL source, ptrdiff_t position,
   eassert (length == TOTAL_LENGTH (source));
 
   if ((BUF_Z (buffer) - BUF_BEG (buffer)) == length)
-    { 
+    {
       /* The inserted text constitutes the whole buffer, so
 	 simply copy over the interval structure.  */
       Lisp_Object buf;
