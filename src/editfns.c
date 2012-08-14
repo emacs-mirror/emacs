@@ -3615,9 +3615,13 @@ where flags is [+ #-0]+, width is [0-9]+, and precision is .[0-9]+
 The + flag character inserts a + before any positive number, while a
 space inserts a space before any positive number; these flags only
 affect %d, %e, %f, and %g sequences, and the + flag takes precedence.
+The - and 0 flags affect the width specifier, as described below.
+
 The # flag means to use an alternate display form for %o, %x, %X, %e,
-%f, and %g sequences.  The - and 0 flags affect the width specifier,
-as described below.
+%f, and %g sequences: for %o, it ensures that the result begins with
+\"0\"; for %x and %X, it prefixes the result with \"0x\" or \"0X\";
+for %e, %f, and %g, it causes a decimal point to be included even if
+the precision is zero.
 
 The width specifier supplies a lower limit for the length of the
 printed representation.  The padding, if any, normally goes on the

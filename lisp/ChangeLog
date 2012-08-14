@@ -1,3 +1,8 @@
+2012-08-14  Chong Yidong  <cyd@gnu.org>
+
+	* emacs-lisp/regexp-opt.el (regexp-opt-charset): Doc fix
+	(Bug#12085).
+
 2012-08-14  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/bytecomp.el (byte-recompile-file): Doc fix.
