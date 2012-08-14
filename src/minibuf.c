@@ -117,7 +117,9 @@ choose_minibuf_frame (void)
 	 init_window_once.  That window doesn't have a buffer.  */
       buffer = XWINDOW (minibuf_window)->buffer;
       if (BUFFERP (buffer))
-	Fset_window_buffer (sf->minibuffer_window, buffer, Qnil);
+	/* Use set_window_buffer instead of Fset_window_buffer (see
+	   discussion of bug#11984, bug#12025, bug#12026).  */
+	set_window_buffer (sf->minibuffer_window, buffer, 0, 0);
       minibuf_window = sf->minibuffer_window;
     }
 
@@ -617,11 +619,15 @@ read_minibuf (Lisp_Object map, Lisp_Object initial, Lisp_Object prompt,
 
       if (! NILP (mini_window) && ! EQ (mini_window, minibuf_window)
 	  && !NILP (Fwindow_minibuffer_p (mini_window)))
-	Fset_window_buffer (mini_window, empty_minibuf, Qnil);
+	/* Use set_window_buffer instead of Fset_window_buffer (see
+	   discussion of bug#11984, bug#12025, bug#12026).  */
+	set_window_buffer (mini_window, empty_minibuf, 0, 0);
     }
 
   /* Display this minibuffer in the proper window.  */
-  Fset_window_buffer (minibuf_window, Fcurrent_buffer (), Qnil);
+  /* Use set_window_buffer instead of Fset_window_buffer (see
+     discussion of bug#11984, bug#12025, bug#12026).  */
+  set_window_buffer (minibuf_window, Fcurrent_buffer (), 0, 0);
   Fselect_window (minibuf_window, Qnil);
   XWINDOW (minibuf_window)->hscroll = 0;
 

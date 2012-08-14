@@ -1,3 +1,12 @@
+2012-08-14  Martin Rudalics  <rudalics@gmx.at>
+
+	* frame.c (make_frame_without_minibuffer, make_minibuffer_frame)
+	(delete_frame, Fmake_frame_invisible, Ficonify_frame):
+	* minibuf.c (choose_minibuf_frame, read_minibuf):
+	* w32fns.c (x_create_tip_frame):
+	* xfns.c (x_create_tip_frame): Call set_window_buffer instead of
+	Fset_window_buffer (Bug#11984, Bug#12025, Bug#12026).
+
 2012-08-14  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* intervals.c (offset_intervals): Remove obsolete comment.
