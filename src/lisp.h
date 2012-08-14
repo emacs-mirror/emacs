@@ -22,6 +22,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <stdalign.h>
 #include <stdarg.h>
+#include <stdbool.h>
 #include <stddef.h>
 #include <inttypes.h>
 #include <limits.h>
@@ -1394,7 +1395,7 @@ struct Lisp_Intfwd
 struct Lisp_Boolfwd
   {
     enum Lisp_Fwd_Type type;	/* = Lisp_Fwd_Bool */
-    int *boolvar;
+    bool *boolvar;
   };
 
 /* Forwarding pointer to a Lisp_Object variable.
@@ -1929,7 +1930,7 @@ enum maxargs
 
 extern void defvar_lisp (struct Lisp_Objfwd *, const char *, Lisp_Object *);
 extern void defvar_lisp_nopro (struct Lisp_Objfwd *, const char *, Lisp_Object *);
-extern void defvar_bool (struct Lisp_Boolfwd *, const char *, int *);
+extern void defvar_bool (struct Lisp_Boolfwd *, const char *, bool *);
 extern void defvar_int (struct Lisp_Intfwd *, const char *, EMACS_INT *);
 extern void defvar_kboard (struct Lisp_Kboard_Objfwd *, const char *, int);
 

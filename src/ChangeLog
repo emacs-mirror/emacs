@@ -1,3 +1,14 @@
+2012-08-14  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use bool, not int, for Lisp booleans.
+	This is more natural, and on my platform (GCC 4.7.1 x86-64) it
+	makes Emacs a bit smaller and presumably a bit faster.
+	* lisp.h: Include <stdbool.h>.
+	(struct Lisp_Boolfwd, defvar_bool):
+	* lread.c (defvar_bool): Use bool, not int, for Lisp booleans.
+	* regex.c [!emacs]: Include <stdbool.h>.
+	(false, true): Remove; <stdbool.h> does this for us now.
+
 2012-08-14  Chong Yidong  <cyd@gnu.org>
 
 	* character.c (Fcharacterp): Doc fix (Bug#12076).

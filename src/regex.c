@@ -248,6 +248,7 @@ xrealloc (void *block, size_t size)
 # endif
 # define realloc xrealloc
 
+# include <stdbool.h>
 # include <string.h>
 
 /* Define the syntax stuff for \<, \>, etc.  */
@@ -535,8 +536,6 @@ typedef const unsigned char re_char;
 #endif
 
 typedef char boolean;
-#define false 0
-#define true 1
 
 static regoff_t re_match_2_internal (struct re_pattern_buffer *bufp,
 				     re_char *string1, size_t size1,

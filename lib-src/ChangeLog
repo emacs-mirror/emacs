@@ -1,3 +1,10 @@
+2012-08-14  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* make-docfile.c (enum global_type): Sort values roughly in
+	decreasing alignment, except put functions last.
+	(compare_globals): Use this new property of enum global_type.
+	(write_globals): Use bool, not int, for booleans.
+
 2012-08-10  Glenn Morris  <rgm@gnu.org>
 
 	* make-docfile.c (IF_LINT):

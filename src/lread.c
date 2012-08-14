@@ -3987,7 +3987,7 @@ defvar_int (struct Lisp_Intfwd *i_fwd,
    nil if address contains 0.  */
 void
 defvar_bool (struct Lisp_Boolfwd *b_fwd,
-	     const char *namestring, int *address)
+	     const char *namestring, bool *address)
 {
   Lisp_Object sym;
   sym = intern_c_string (namestring);

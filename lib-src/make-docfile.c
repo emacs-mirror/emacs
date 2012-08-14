@@ -545,14 +545,15 @@ write_c_args (FILE *out, char *func, char *buf, int minargs, int maxargs)
   putc (')', out);
 }
 
-/* The types of globals.  */
+/* The types of globals.  These are sorted roughly in decreasing alignment
+   order to avoid allocation gaps, except that functions are last.  */
 enum global_type
 {
-  FUNCTION,
+  INVALID,
+  LISP_OBJECT,
   EMACS_INTEGER,
   BOOLEAN,
-  LISP_OBJECT,
-  INVALID
+  FUNCTION,
 };
 
 /* A single global.  */
@@ -601,13 +602,8 @@ compare_globals (const void *a, const void *b)
   const struct global *ga = a;
   const struct global *gb = b;
 
-  if (ga->type == FUNCTION)
-    {
-      if (gb->type != FUNCTION)
-	return 1;
-    }
-  else if (gb->type == FUNCTION)
-    return -1;
+  if (ga->type != gb->type)
+    return ga->type - gb->type;
 
   return strcmp (ga->name, gb->name);
 }
@@ -634,7 +630,7 @@ write_globals (void)
 	  type = "EMACS_INT";
 	  break;
 	case BOOLEAN:
-	  type = "int";
+	  type = "bool";
 	  break;
 	case LISP_OBJECT:
 	  type = "Lisp_Object";
