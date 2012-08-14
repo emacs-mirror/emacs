@@ -4583,8 +4583,8 @@ update_frame_tool_bar (FRAME_PTR f)
       && tbinfo->n_last_items == f->n_tool_bar_items
       && tbinfo->hmargin == hmargin && tbinfo->vmargin == vmargin
       && tbinfo->dir == dir
-      && Fequal (tbinfo->style, style) == Qt
-      && Fequal (tbinfo->last_tool_bar, f->tool_bar_items) == Qt)
+      && EQ (Fequal (tbinfo->style, style), Qt)
+      && EQ (Fequal (tbinfo->last_tool_bar, f->tool_bar_items), Qt))
     {
       UNBLOCK_INPUT;
       return;

@@ -1,3 +1,7 @@
+2012-08-14  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* gtkutil.c (update_frame_tool_bar): Use EQ where appropriate.
+
 2012-08-14  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* gtkutil.c (xg_mark_data): Don't assume C99.
