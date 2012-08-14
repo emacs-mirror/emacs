@@ -5,7 +5,7 @@
 
 PFM = lii6gc
 
-THREADSRC = lockli.c thli.c pthrdext.c
+THREADSRC = lockli.c thix.c pthrdext.c
 THREADLIB = -lpthread
 
 # _XOPEN_SOURCE is to get the modern POSIX signal handling
