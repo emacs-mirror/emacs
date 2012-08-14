@@ -1,3 +1,9 @@
+2012-08-14  Fabián Ezequiel Gallina  <fgallina@cuca>
+
+	* progmodes/python.el (python-shell-send-string):
+	(python-shell-send-setup-code): Do not use `format' with
+	`message'.
+
 2012-08-14  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* progmodes/ruby-mode.el: Improve percent literals (bug#6286).

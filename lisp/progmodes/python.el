@@ -1822,8 +1822,7 @@ When MSG is non-nil messages the first line of STRING."
   (interactive "sPython command: ")
   (let ((process (or process (python-shell-get-or-create-process)))
         (lines (split-string string "\n" t)))
-    (when msg
-      (message (format "Sent: %s..." (nth 0 lines))))
+    (and msg (message "Sent: %s..." (nth 0 lines)))
     (if (> (length lines) 1)
         (let* ((temp-file-name (make-temp-file "py"))
                (file-name (or (buffer-file-name) temp-file-name)))
@@ -1953,11 +1952,10 @@ FILE-NAME."
   "Send all setup code for shell.
 This function takes the list of setup code to send from the
 `python-shell-setup-codes' list."
-  (let ((msg "Sent %s")
-        (process (get-buffer-process (current-buffer))))
+  (let ((process (get-buffer-process (current-buffer))))
     (dolist (code python-shell-setup-codes)
       (when code
-        (message (format msg code))
+        (message "Sent %s" code)
         (python-shell-send-string
          (symbol-value code) process)))))
 
