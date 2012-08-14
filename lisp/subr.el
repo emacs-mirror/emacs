@@ -3048,8 +3048,8 @@ also `with-temp-buffer'."
          (not (eq (tty-top-frame) (nth 3 state)))
          (select-frame (nth 3 state) 'norecord)))
   ;; Then reset the actual selected-window.
-  (when (window-live-p (nth 2 state))
-    (select-window (nth 2 state) 'norecord)))
+  (when (window-live-p (nth 1 state))
+    (select-window (nth 1 state) 'norecord)))
 
 (defmacro with-selected-window (window &rest body)
   "Execute the forms in BODY with WINDOW as the selected window.

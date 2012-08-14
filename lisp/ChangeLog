@@ -1,3 +1,8 @@
+2012-08-14  Daiki Ueno  <ueno@unixuser.org>
+
+	* subr.el (internal--after-with-selected-window): Fix typo
+	(Bug#12193).
+
 2012-08-14  Fabián Ezequiel Gallina  <fgallina@cuca>
 
 	Use `completion-table-dynamic' for completion functions.
