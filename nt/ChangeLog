@@ -1,10 +1,15 @@
+2012-08-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt: Sync with autogen/config.in.
+	(_GL_INLINE_HEADER_BEGIN): Update.
+
 2012-08-10  Glenn Morris  <rgm@gnu.org>
 
 	* config.nt (DIRECTORY_SEP): Move here from src/lisp.h.
 
 2012-08-07  Juanma Barranquero  <lekktu@gmail.com>
 
-	* config.nt: Sync with autogen/config.nt.
+	* config.nt: Sync with autogen/config.in.
 	(BROKEN_GETWD, DISPNEW_NEEDS_STDIO_EXT): New macros.
 	(PENDING_OUTPUT_COUNT): Move definition to inc/ms-w32.h.
 
