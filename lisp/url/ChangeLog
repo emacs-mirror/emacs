@@ -1,3 +1,8 @@
+2012-08-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* url-http.el (url-http-parse-headers): Re-enable file-name-handlers
+	(bug#11981).
+
 2012-08-12  David Engster  <deng@randomsample.de>
 
 	* url-util.el (url-file-directory, url-file-nondirectory): Avoid

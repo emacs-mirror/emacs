@@ -508,13 +508,10 @@ should be shown to the user."
 	(class nil)
 	(success nil)
 	;; other status symbols: jewelry and luxury cars
-	(status-symbol (cadr (assq url-http-response-status url-http-codes)))
-	;; The filename part of a URL could be in remote file syntax,
-	;; see Bug#6717 for an example.  We disable file name
-	;; handlers, therefore.
-	(file-name-handler-alist nil))
+	(status-symbol (cadr (assq url-http-response-status url-http-codes))))
     (setq class (/ url-http-response-status 100))
-    (url-http-debug "Parsed HTTP headers: class=%d status=%d" class url-http-response-status)
+    (url-http-debug "Parsed HTTP headers: class=%d status=%d"
+                    class url-http-response-status)
     (when (url-use-cookies url-http-target-url)
       (url-http-handle-cookies))
 
@@ -531,7 +528,8 @@ should be shown to the user."
        ;; 101 = Switching protocols
        ;; 102 = Processing (Added by DAV)
        (url-mark-buffer-as-dead buffer)
-       (error "HTTP responses in class 1xx not supported (%d)" url-http-response-status))
+       (error "HTTP responses in class 1xx not supported (%d)"
+              url-http-response-status))
       (2				; Success
        ;; 200 Ok
        ;; 201 Created
