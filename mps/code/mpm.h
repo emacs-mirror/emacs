@@ -881,6 +881,12 @@ extern Bool ProtCanStepInstruction(MutatorFaultContext context);
 extern Res ProtStepInstruction(MutatorFaultContext context);
 
 
+/* Mutator Fault Context */
+
+extern Addr MutatorFaultContextSP(MutatorFaultContext mfc);
+extern Res MutatorFaultContextScan(ScanState ss, MutatorFaultContext mfc);
+
+
 /* Location Dependency -- see <code/ld.c> */
 
 extern void LDReset(LD ld, Arena arena);
