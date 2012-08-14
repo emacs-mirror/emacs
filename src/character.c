@@ -258,6 +258,9 @@ multibyte_char_to_unibyte_safe (int c)
 
 DEFUN ("characterp", Fcharacterp, Scharacterp, 1, 2, 0,
        doc: /* Return non-nil if OBJECT is a character.
+In Emacs Lisp, characters are represented by character codes, which
+are non-negative integers.  The function `max-char' returns the
+maximum character code.
 usage: (characterp OBJECT)  */)
   (Lisp_Object object, Lisp_Object ignore)
 {

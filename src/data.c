@@ -808,10 +808,12 @@ indirect_variable (struct Lisp_Symbol *symbol)
 
 DEFUN ("indirect-variable", Findirect_variable, Sindirect_variable, 1, 1, 0,
        doc: /* Return the variable at the end of OBJECT's variable chain.
-If OBJECT is a symbol, follow all variable indirections and return the final
-variable.  If OBJECT is not a symbol, just return it.
-Signal a cyclic-variable-indirection error if there is a loop in the
-variable chain of symbols.  */)
+If OBJECT is a symbol, follow its variable indirections (if any), and
+return the variable at the end of the chain of aliases.  See Info node
+`(elisp)Variable Aliases'.
+
+If OBJECT is not a symbol, just return it.  If there is a loop in the
+chain of aliases, signal a `cyclic-variable-indirection' error.  */)
   (Lisp_Object object)
 {
   if (SYMBOLP (object))

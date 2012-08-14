@@ -1,5 +1,7 @@
 2012-08-14  Chong Yidong  <cyd@gnu.org>
 
+	* minibuffer.el (read-file-name): Doc fix (Bug#10881).
+
 	* emacs-lisp/regexp-opt.el (regexp-opt-charset): Doc fix
 	(Bug#12085).
 

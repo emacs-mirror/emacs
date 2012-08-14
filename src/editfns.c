@@ -946,8 +946,8 @@ usage: (save-excursion &rest BODY)  */)
 }
 
 DEFUN ("save-current-buffer", Fsave_current_buffer, Ssave_current_buffer, 0, UNEVALLED, 0,
-       doc: /* Save the current buffer; execute BODY; restore the current buffer.
-Executes BODY just like `progn'.
+       doc: /* Record which buffer is current; execute BODY; make that buffer current.
+BODY is executed just like `progn'.
 usage: (save-current-buffer &rest BODY)  */)
   (Lisp_Object args)
 {

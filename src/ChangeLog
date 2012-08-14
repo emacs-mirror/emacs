@@ -1,8 +1,13 @@
 2012-08-14  Chong Yidong  <cyd@gnu.org>
 
+	* character.c (Fcharacterp): Doc fix (Bug#12076).
+
+	* data.c (Findirect_variable): Doc fix (Bug#11040).
+
 	* chartab.c (Fmap_char_table): Doc fix (Bug#12061).
 
 	* editfns.c (Fformat): Doc fix (Bug#12059).
+	(Fsave_current_buffer): Doc fix (Bug#11542).
 
 2012-08-14  Barry OReilly  <gundaetiapo@gmail.com>  (tiny change)
 
