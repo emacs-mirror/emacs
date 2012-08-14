@@ -17,6 +17,11 @@
  *
  * ASSUMPTIONS
  *
+ * .sp: The stack pointer in the context is uc_stack.ss_sp.
+ *
+ * .context.regroots: The root regs are assumed to be recorded in the context
+ * at pointer-aligned boundaries.
+ *
  * .assume.regref: The resisters in the context can be modified by
  * storing into an MRef pointer.
  */
@@ -74,6 +79,28 @@ void Prmci3DecodeFaultContext(MRef *faultmemReturn,
 void Prmci3StepOverIns(MutatorFaultContext mfc, Size inslen)
 {
   mfc->ucontext->uc_mcontext.gregs[REG_EIP] += (unsigned long)inslen;
+}
+
+
+Addr MutatorFaultContextSP(MutatorFaultContext mfc)
+{
+  return (Addr)mfc->ucontext->uc_stack.ss_sp;
+}
+
+
+Res MutatorFaultContextScan(ScanState ss, MutatorFaultContext mfc)
+{
+  mcontext_t *mc;
+  Res res;
+
+  /* This scans the root registers (.context.regroots).  It also
+     unnecessarily scans the rest of the context.  The optimisation
+     to scan only relevant parts would be machine dependent. */
+  mc = &mfc->ucontext->uc_mcontext;
+  res = TraceScanAreaTagged(ss,
+                            (Addr *)mc,
+                            (Addr *)((char *)mc + sizeof(*mc)));
+  return res;
 }
 
 

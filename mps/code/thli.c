@@ -30,10 +30,6 @@
  * .stack.align: assume roots on the stack are always word-aligned,
  * but don't assume that the stack pointer is necessarily
  * word-aligned at the time of reading the context of another thread.
- *
- * .sp: The stack pointer in the context is uc_stack.ss_sp.
- * .context.regroots: The root regs are
- * assumed to be recorded in the context at pointer-aligned boundaries.
  */
 
 #include "prmcix.h"
@@ -249,7 +245,7 @@ Res ThreadScan(ScanState ss, Thread thread, void *stackBot)
   } else {
     MutatorFaultContext mfc;
     Addr *stackBase, *stackLimit, stackPtr;
-    mcontext_t *mc;
+
     mfc = thread->mfc;
     if(mfc == NULL) {
       /* .error.suspend */
@@ -258,7 +254,7 @@ Res ThreadScan(ScanState ss, Thread thread, void *stackBot)
       return ResOK;
     }
 
-    stackPtr  = (Addr)mfc->ucontext->uc_stack.ss_sp;   /* .sp */
+    stackPtr = MutatorFaultContextSP(mfc);
     /* .stack.align */
     stackBase  = (Addr *)AddrAlignUp(stackPtr, sizeof(Addr));
     stackLimit = (Addr *)stackBot;
@@ -272,14 +268,8 @@ Res ThreadScan(ScanState ss, Thread thread, void *stackBot)
     if(res != ResOK)
       return res;
 
-    /* (.context.regroots)
-     * This scans the root registers (.context.regroots).  It also
-     * unecessarily scans the rest of the context.  The optimisation
-     * to scan only relevent parts would be machine dependent.
-     */
-    mc = &mfc->ucontext->uc_mcontext;
-    res = TraceScanAreaTagged(ss, (Addr *)mc,
-           (Addr *)((char *)mc + sizeof(*mc)));
+    /* scan the registers in the mutator fault context */
+    res = MutatorFaultContextScan(ss, mfc);
     if(res != ResOK)
       return res;
   }
