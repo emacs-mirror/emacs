@@ -1632,7 +1632,7 @@ not* compile FILENAME. If ARG is 0, that means
 compile the file even if it has never been compiled before.
 A nonzero ARG means ask the user.
 
-If LOAD is set, `load' the file after compiling.
+If LOAD is non-nil, `load' the file after compiling.
 
 The value returned is the value returned by `byte-compile-file',
 or 'no-byte-compile if the file did not need recompilation."
@@ -1665,7 +1665,8 @@ or 'no-byte-compile if the file did not need recompilation."
           (if (and noninteractive (not byte-compile-verbose))
               (message "Compiling %s..." filename))
           (byte-compile-file filename load))
-      (when load (load filename))
+      (when load
+	(load (if (file-exists-p dest) dest filename)))
       'no-byte-compile)))
 
 ;;;###autoload

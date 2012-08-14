@@ -1,3 +1,8 @@
+2012-08-14  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* emacs-lisp/bytecomp.el (byte-recompile-file): When LOAD is
+	non-nil always load the compiled file if it exists.  (Bug#12197)
+
 2012-08-14  Chong Yidong  <cyd@gnu.org>
 
 	* hi-lock.el (hi-lock-mode): Do not unilaterally enable font lock.
