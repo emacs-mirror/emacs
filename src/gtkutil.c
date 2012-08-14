@@ -2150,6 +2150,7 @@ void
 xg_mark_data (void)
 {
   xg_list_node *iter;
+  Lisp_Object rest, frame;
 
   for (iter = xg_menu_cb_list.next; iter; iter = iter->next)
     mark_object (((xg_menu_cb_data *) iter)->menu_bar_vector);
@@ -2162,7 +2163,6 @@ xg_mark_data (void)
         mark_object (cb_data->help);
     }
 
-  Lisp_Object rest, frame;
   FOR_EACH_FRAME (rest, frame)
     {
       FRAME_PTR f = XFRAME (frame);

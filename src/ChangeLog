@@ -1,3 +1,7 @@
+2012-08-14  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* gtkutil.c (xg_mark_data): Don't assume C99.
+
 2012-08-13  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (xg_frame_tb_info): New struct.
