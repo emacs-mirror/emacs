@@ -8441,7 +8441,9 @@ static Lisp_Object
 read_char_x_menu_prompt (ptrdiff_t nmaps, Lisp_Object *maps,
 			 Lisp_Object prev_event, int *used_mouse_menu)
 {
+#ifdef HAVE_MENUS
   ptrdiff_t mapno;
+#endif
 
   if (used_mouse_menu)
     *used_mouse_menu = 0;
