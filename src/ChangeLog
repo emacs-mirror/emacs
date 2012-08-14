@@ -1,3 +1,7 @@
+2012-08-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* alloc.c (Fgarbage_collect): Use plural form consistently.
+
 2012-08-14  Eli Zaretskii  <eliz@gnu.org>
 
 	* keyboard.c (command_loop_1): Reset ignore_mouse_drag_p flag each

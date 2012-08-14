@@ -228,7 +228,7 @@ static ptrdiff_t pure_bytes_used_before_overflow;
 #define PURE_POINTER_P(P)					\
   ((uintptr_t) (P) - (uintptr_t) purebeg <= pure_size)
 
-/* Index in pure at which next pure Lisp object will be allocated.. */
+/* Index in pure at which next pure Lisp object will be allocated..  */
 
 static ptrdiff_t pure_bytes_used_lisp;
 
@@ -254,6 +254,14 @@ static char *stack_copy;
 static ptrdiff_t stack_copy_size;
 #endif
 
+static Lisp_Object Qconses;
+static Lisp_Object Qsymbols;
+static Lisp_Object Qmiscs;
+static Lisp_Object Qstrings;
+static Lisp_Object Qvectors;
+static Lisp_Object Qfloats;
+static Lisp_Object Qintervals;
+static Lisp_Object Qbuffers;
 static Lisp_Object Qstring_bytes, Qvector_slots, Qheap;
 static Lisp_Object Qgc_cons_threshold;
 Lisp_Object Qchar_table_extra_slots;
@@ -5386,9 +5394,9 @@ See Info node `(elisp)Garbage Collection'.  */)
   char stack_top_variable;
   ptrdiff_t i;
   int message_p;
-  Lisp_Object total[11];
   ptrdiff_t count = SPECPDL_INDEX ();
   EMACS_TIME start;
+  Lisp_Object retval = Qnil;
 
   if (abort_on_gc)
     abort ();
@@ -5607,59 +5615,62 @@ See Info node `(elisp)Garbage Collection'.  */)
     }
 
   unbind_to (count, Qnil);
+  {
+    Lisp_Object total[11];
+    int total_size = 10;
 
-  total[0] = list4 (Qcons, make_number (sizeof (struct Lisp_Cons)),
-		    bounded_number (total_conses),
-                    bounded_number (total_free_conses));
+    total[0] = list4 (Qconses, make_number (sizeof (struct Lisp_Cons)),
+		      bounded_number (total_conses),
+		      bounded_number (total_free_conses));
 
-  total[1] = list4 (Qsymbol, make_number (sizeof (struct Lisp_Symbol)),
-		    bounded_number (total_symbols),
-                    bounded_number (total_free_symbols));
+    total[1] = list4 (Qsymbols, make_number (sizeof (struct Lisp_Symbol)),
+		      bounded_number (total_symbols),
+		      bounded_number (total_free_symbols));
 
-  total[2] = list4 (Qmisc, make_number (sizeof (union Lisp_Misc)),
-		    bounded_number (total_markers),
-		    bounded_number (total_free_markers));
+    total[2] = list4 (Qmiscs, make_number (sizeof (union Lisp_Misc)),
+		      bounded_number (total_markers),
+		      bounded_number (total_free_markers));
 
-  total[3] = list4 (Qstring, make_number (sizeof (struct Lisp_String)),
-		    bounded_number (total_strings),
-		    bounded_number (total_free_strings));
+    total[3] = list4 (Qstrings, make_number (sizeof (struct Lisp_String)),
+		      bounded_number (total_strings),
+		      bounded_number (total_free_strings));
 
-  total[4] = list3 (Qstring_bytes, make_number (1),
-		    bounded_number (total_string_bytes));
+    total[4] = list3 (Qstring_bytes, make_number (1),
+		      bounded_number (total_string_bytes));
 
-  total[5] = list3 (Qvector, make_number (sizeof (struct Lisp_Vector)),
-		    bounded_number (total_vectors));
+    total[5] = list3 (Qvectors, make_number (sizeof (struct Lisp_Vector)),
+		      bounded_number (total_vectors));
 
-  total[6] = list4 (Qvector_slots, make_number (word_size),
-		    bounded_number (total_vector_slots),
-		    bounded_number (total_free_vector_slots));
+    total[6] = list4 (Qvector_slots, make_number (word_size),
+		      bounded_number (total_vector_slots),
+		      bounded_number (total_free_vector_slots));
 
-  total[7] = list4 (Qfloat, make_number (sizeof (struct Lisp_Float)),
-		    bounded_number (total_floats),
-                    bounded_number (total_free_floats));
+    total[7] = list4 (Qfloats, make_number (sizeof (struct Lisp_Float)),
+		      bounded_number (total_floats),
+		      bounded_number (total_free_floats));
 
-  total[8] = list4 (Qinterval, make_number (sizeof (struct interval)),
-		    bounded_number (total_intervals),
-                    bounded_number (total_free_intervals));
+    total[8] = list4 (Qintervals, make_number (sizeof (struct interval)),
+		      bounded_number (total_intervals),
+		      bounded_number (total_free_intervals));
 
-  total[9] = list3 (Qbuffer, make_number (sizeof (struct buffer)),
-		    bounded_number (total_buffers));
+    total[9] = list3 (Qbuffers, make_number (sizeof (struct buffer)),
+		      bounded_number (total_buffers));
 
-  total[10] = list4 (Qheap, make_number (1024),
 #ifdef DOUG_LEA_MALLOC
-		     bounded_number ((mallinfo ().uordblks + 1023) >> 10),
-		     bounded_number ((mallinfo ().fordblks + 1023) >> 10)
-#else
-		     Qnil, Qnil
+    total_size++;
+    total[10] = list4 (Qheap, make_number (1024),
+                       bounded_number ((mallinfo ().uordblks + 1023) >> 10),
+                       bounded_number ((mallinfo ().fordblks + 1023) >> 10));
 #endif
-		     );
+    retval = Flist (total_size, total);
+  }
 
 #if GC_MARK_STACK == GC_USE_GCPROS_CHECK_ZOMBIES
   {
     /* Compute average percentage of zombies.  */
-    double nlive =
-      (total_conses + total_symbols + total_markers + total_strings
-       + total_vectors + total_floats + total_intervals + total_buffers);
+    double nlive
+      = (total_conses + total_symbols + total_markers + total_strings
+         + total_vectors + total_floats + total_intervals + total_buffers);
 
     avg_live = (avg_live * ngcs + nlive) / (ngcs + 1);
     max_live = max (nlive, max_live);
@@ -5686,7 +5697,7 @@ See Info node `(elisp)Garbage Collection'.  */)
 
   gcs_done++;
 
-  return Flist (sizeof total / sizeof *total, total);
+  return retval;
 }
 
 
@@ -6804,6 +6815,14 @@ do hash-consing of the objects allocated to pure space.  */);
 	       doc: /* Non-nil means Emacs cannot get much more Lisp memory.  */);
   Vmemory_full = Qnil;
 
+  DEFSYM (Qconses, "conses");
+  DEFSYM (Qsymbols, "symbols");
+  DEFSYM (Qmiscs, "miscs");
+  DEFSYM (Qstrings, "strings");
+  DEFSYM (Qvectors, "vectors");
+  DEFSYM (Qfloats, "floats");
+  DEFSYM (Qintervals, "intervals");
+  DEFSYM (Qbuffers, "buffers");
   DEFSYM (Qstring_bytes, "string-bytes");
   DEFSYM (Qvector_slots, "vector-slots");
   DEFSYM (Qheap, "heap");
