@@ -1,3 +1,7 @@
+2012-08-14  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/bytecomp.el (byte-recompile-file): Doc fix.
+
 2012-08-14  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp-sh.el (tramp-open-shell): Cache the shell name.
@@ -7,8 +11,7 @@
 2012-08-14  Fabián Ezequiel Gallina  <fgallina@cuca>
 
 	* progmodes/python.el (python-shell-send-string):
-	(python-shell-send-setup-code): Do not use `format' with
-	`message'.
+	(python-shell-send-setup-code): Do not use `format' with `message'.
 
 2012-08-14  Dmitry Gutov  <dgutov@yandex.ru>
 

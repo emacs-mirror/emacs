@@ -1621,21 +1621,20 @@ This is normally set in local file variables at the end of the elisp file:
   "Recompile FILENAME file if it needs recompilation.
 This happens when its `.elc' file is older than itself.
 
-If the `.elc' file exists and is up-to-date, normally this
-function *does not* compile FILENAME. However, if the
-prefix argument FORCE is set, that means do compile
-FILENAME even if the destination already exists and is
-up-to-date.
+If the `.elc' file exists and is up-to-date, normally this function
+*does not* compile FILENAME.  If the prefix argument FORCE is non-nil,
+however, it compiles FILENAME even if the destination already
+exists and is up-to-date.
 
-If the `.elc' file does not exist, normally this function *does
-not* compile FILENAME. If ARG is 0, that means
-compile the file even if it has never been compiled before.
-A nonzero ARG means ask the user.
+If the `.elc' file does not exist, normally this function *does not*
+compile FILENAME.  If optional argument ARG is 0, it compiles
+the input file even if the `.elc' file does not exist.
+Any other non-nil value of ARG means to ask the user.
 
-If LOAD is non-nil, `load' the file after compiling.
+If optional argument LOAD is non-nil, loads the file after compiling.
 
-The value returned is the value returned by `byte-compile-file',
-or 'no-byte-compile if the file did not need recompilation."
+If compilation is needed, this functions returns the result of
+`byte-compile-file'; otherwise it returns 'no-byte-compile."
   (interactive
    (let ((file buffer-file-name)
 	 (file-name nil)
