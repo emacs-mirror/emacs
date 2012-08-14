@@ -944,11 +944,16 @@ no input, and GDB is waiting for input."
 (defun gdb-tooltip-print (expr)
   (with-current-buffer (gdb-get-buffer 'gdb-partial-output-buffer)
     (goto-char (point-min))
-    (if (re-search-forward ".*value=\\(\".*\"\\)" nil t)
-        (tooltip-show
-         (concat expr " = " (read (match-string 1)))
-         (or gud-tooltip-echo-area
-             (not (display-graphic-p)))))))
+    (cond
+     ((re-search-forward ".*value=\\(\".*\"\\)" nil t)
+      (tooltip-show
+       (concat expr " = " (read (match-string 1)))
+       (or gud-tooltip-echo-area
+	   (not (display-graphic-p)))))
+     ((re-search-forward  "msg=\\(\".+\"\\)$" nil t)
+      (tooltip-show (read (match-string 1))
+       (or gud-tooltip-echo-area
+	   (not (display-graphic-p))))))))
 
 ;; If expr is a macro for a function don't print because of possible dangerous
 ;; side-effects. Also printing a function within a tooltip generates an
@@ -958,7 +963,7 @@ no input, and GDB is waiting for input."
     (goto-char (point-min))
     (if (search-forward "expands to: " nil t)
 	(unless (looking-at "\\S-+.*(.*).*")
-	  (gdb-input (concat "-data-evaluate-expression " expr)
+	  (gdb-input (concat "-data-evaluate-expression \"" expr "\"")
 		     `(lambda () (gdb-tooltip-print ,expr)))))))
 
 (defun gdb-init-buffer ()
@@ -1513,12 +1518,13 @@ DOC is an optional documentation string."
   ;; Set up inferior I/O.  Needs GDB 6.4 onwards.
   (set-process-filter proc 'gdb-inferior-filter)
   (set-process-sentinel proc 'gdb-inferior-io-sentinel)
-  (gdb-input
-   (concat "-inferior-tty-set "
-	   ;; The process can run on a remote host.
-	   (or (process-get proc 'remote-tty)
-	       (process-tty-name proc)))
-   'ignore))
+  ;; The process can run on a remote host.
+  (let ((tty (or (process-get proc 'remote-tty)
+		 (process-tty-name proc))))
+    (unless (or (null tty)
+		(string= tty ""))
+      (gdb-input
+       (concat "-inferior-tty-set " tty) 'ignore))))
 
 (defun gdb-inferior-io-sentinel (proc str)
   (when (eq (process-status proc) 'failed)
@@ -2100,13 +2106,15 @@ current thread and update GDB buffers."
   (setq gdb-filter-output
 	(gdb-concat-output
 	 gdb-filter-output
-	 (let ((error-message
-		(read output-field)))
-	   (put-text-property
-	    0 (length error-message)
-	    'face font-lock-warning-face
-	    error-message)
-	   error-message))))
+	 (if (string= output-field "\"\\n\"")
+	     ""
+	   (let ((error-message
+		  (read output-field)))
+	     (put-text-property
+	      0 (length error-message)
+	      'face font-lock-warning-face
+	      error-message)
+	     error-message)))))
 
 ;; Remove the trimmings from the console stream and send to GUD buffer
 ;; (frontend MI commands should not print to this stream)

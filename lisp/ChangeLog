@@ -1,3 +1,26 @@
+2012-08-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* tooltip.el (tooltip-identifier-from-point): Don't treat tokens
+	inside comments and strings as identifiers.
+
+	* progmodes/gud.el (gud-tooltip-print-command): Quote the
+	expression to evaluate.  This allows to evaluate expressions with
+	embedded whitespace.
+	(gud-tooltip-tips): Add a blank before the newline in the
+	message-box text, for the benefit of message-box emulation on
+	MS-Windows.
+
+	* progmodes/gdb-mi.el (gdb-tooltip-print): Don't ignore error
+	messages from GDB, pop them up in a tooltip to give feedback to
+	user.
+	(gdb-tooltip-print-1): Quote the expression to evaluate.  This
+	allows to evaluate expressions with embedded whitespace.
+	(gdb-inferior-io--init-proc): Don't send "-inferior-tty" command
+	if the TTY name is nil or empty (which happens when communicating
+	with the inferior via pipes, e.g. on MS-Windows).
+	(gdb-internals): If GDB sends a "&\n" empty debugging message,
+	don't send that to the GUD buffer.
+
 2012-08-14  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/bytecomp.el (byte-compile-setq-default):

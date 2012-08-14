@@ -3411,7 +3411,7 @@ With arg, dereference expr if ARG is positive, otherwise do not dereference."
 (defun gud-tooltip-print-command (expr)
   "Return a suitable command to print the expression EXPR."
   (pcase gud-minor-mode
-    (`gdbmi (concat "-data-evaluate-expression " expr))
+    (`gdbmi (concat "-data-evaluate-expression \"" expr "\""))
     (`dbx (concat "print " expr))
     ((or `xdb `pdb) (concat "p " expr))
     (`sdb (concat expr "/"))))
@@ -3456,7 +3456,10 @@ This function must return nil if it doesn't handle EVENT."
 	    (let ((cmd (gud-tooltip-print-command expr)))
 	      (when (and gud-tooltip-mode (eq gud-minor-mode 'gdb))
 		(gud-tooltip-mode -1)
-		(message-box "Using GUD tooltips in this mode is unsafe\n\
+		;; The blank before the newline is for MS-Windows,
+		;; whose emulation of message box removes newlines and
+		;; displays a single long line.
+		(message-box "Using GUD tooltips in this mode is unsafe \n\
 so they have been disabled."))
 	      (unless (null cmd) ; CMD can be nil if unknown debugger
 		(if (eq gud-minor-mode 'gdbmi)
