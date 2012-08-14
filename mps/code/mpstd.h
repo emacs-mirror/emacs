@@ -217,8 +217,7 @@
 #define MPS_WORD_SHIFT  5
 #define MPS_PF_ALIGN    8 /* @@@@ not tested */
 
-/* GCC 2.95.3, gcc -E -dM
- */
+/* GCC 2.95.3, gcc -E -dM */
 
 #elif defined(__FreeBSD__) && defined (__i386__) && defined (__GNUC__)
 #if defined(CONFIG_PF_STRING) && ! defined(CONFIG_PF_FRI4GC)
@@ -234,6 +233,21 @@
 #define MPS_WORD_WIDTH  32
 #define MPS_WORD_SHIFT  5
 #define MPS_PF_ALIGN    4
+
+#elif defined(__FreeBSD__) && defined (__x86_64__) && defined (__GNUC__)
+#if defined(CONFIG_PF_STRING) && ! defined(CONFIG_PF_FRI6GC)
+#error "specified CONFIG_PF_... inconsistent with detected fri6gc"
+#endif
+#define MPS_PF_FRI6GC
+#define MPS_PF_STRING   "fri6gc"
+#define MPS_OS_FR
+#define MPS_ARCH_I6
+#define MPS_BUILD_GC
+#define MPS_T_WORD      unsigned long
+#define MPS_T_ULONGEST  unsigned long
+#define MPS_WORD_WIDTH  64
+#define MPS_WORD_SHIFT  6
+#define MPS_PF_ALIGN    8
 
 #else
 #error "Unable to detect target platform"

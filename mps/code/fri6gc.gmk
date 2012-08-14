@@ -1,14 +1,14 @@
-# fri4gc.gmk: BUILD FOR FreeBSD/i386/GCC PLATFORM
+# fri6gc.gmk: BUILD FOR FreeBSD/amd64/GCC PLATFORM
 #
 # $Id$
 # Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
 
-PFM = fri4gc
+PFM = fri6gc
 
 PFMDEFS = -D_REENTRANT
 
 MPMPF = lockix.c thix.c pthrdext.c vmix.c \
-        protix.c protsgix.c prmcan.c prmci3fr.c ssixi3.c span.c
+        protix.c protsgix.c prmcan.c prmci6fr.c ssixi6.c span.c
 SWPF = than.c vmfr.c protsw.c prmcan.c ssan.c
 
 LIBS = -lm -pthread
@@ -24,7 +24,7 @@ CC = cc
 # Suppress some warnings (SuSE).
 #   .void: -Wpointer-arith cannot be used because the string.h header does
 #   arithmetic on void*.
-CFLAGSCOMPILER := $(subst -Wpointer-arith,,$(CFLAGSCOMPILER))
+#CFLAGSCOMPILER := $(subst -Wpointer-arith,,$(CFLAGSCOMPILER))
 
 include comm.gmk
 
