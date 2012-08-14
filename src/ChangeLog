@@ -1,3 +1,8 @@
+2012-08-14  Ulrich Mueller  <ulm@gentoo.org>
+
+	* systime.h (EMACS_TIME_CMP): Don't cast time_t values to long
+	(Bug#11712).
+
 2012-08-13  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32menu.c: Include w32heap.h.

@@ -147,15 +147,12 @@ extern int lisp_time_argument (Lisp_Object, time_t *, int *);
 #endif
 
 /* Compare times T1 and T2.  Value is 0 if T1 and T2 are the same.
-   Value is < 0 if T1 is less than T2.  Value is > 0 otherwise.  (Cast
-   to long is for those platforms where time_t is an unsigned
-   type, and where otherwise T1 will always be grater than T2.)  */
+   Value is < 0 if T1 is less than T2.  Value is > 0 otherwise.  */
 
 #define EMACS_TIME_CMP(T1, T2)				\
-  ((long)EMACS_SECS (T1) - (long)EMACS_SECS (T2)	\
-   + (EMACS_SECS (T1) == EMACS_SECS (T2)		\
-      ? EMACS_USECS (T1) - EMACS_USECS (T2)		\
-      : 0))
+  (EMACS_SECS (T1) == EMACS_SECS (T2)			\
+   ? EMACS_USECS (T1) - EMACS_USECS (T2)		\
+   : (EMACS_SECS (T1) < EMACS_SECS (T2) ? -1 : 1))
 
 /* Compare times T1 and T2 for equality, inequality etc.  */
 
