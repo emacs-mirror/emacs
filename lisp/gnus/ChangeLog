@@ -1,3 +1,8 @@
+2012-08-14  Chong Yidong  <cyd@gnu.org>
+
+	* gnus-art.el (article-display-face): Handle failure in
+	gnus-create-image (Bug#11802).
+
 2012-08-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* gnus-agent.el (gnus-agent-cat-defaccessor, gnus-agent-cat-groups):

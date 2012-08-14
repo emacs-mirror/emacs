@@ -2437,9 +2437,10 @@ long lines if and only if arg is positive."
 			(apply 'gnus-create-image png 'png t
 			       (cdr (assq 'png gnus-face-properties-alist))))
 		  (goto-char from)
-		  (gnus-add-wash-type 'face)
-		  (gnus-add-image 'face image)
-		  (gnus-put-image image nil 'face))))))))))
+		  (when image
+		    (gnus-add-wash-type 'face)
+		    (gnus-add-image 'face image)
+		    (gnus-put-image image nil 'face)))))))))))
 
 (defun article-display-x-face (&optional force)
   "Look for an X-Face header and display it if present."
