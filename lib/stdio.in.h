@@ -699,22 +699,11 @@ _GL_WARN_ON_USE (getline, "getline is unportable - "
 # endif
 #endif
 
-#if @GNULIB_GETS@
-# if @REPLACE_STDIO_READ_FUNCS@ && @GNULIB_STDIO_H_NONBLOCKING@
-#  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
-#   undef gets
-#   define gets rpl_gets
-#  endif
-_GL_FUNCDECL_RPL (gets, char *, (char *s) _GL_ARG_NONNULL ((1)));
-_GL_CXXALIAS_RPL (gets, char *, (char *s));
-# else
-_GL_CXXALIAS_SYS (gets, char *, (char *s));
-#  undef gets
-# endif
-_GL_CXXALIASWARN (gets);
 /* It is very rare that the developer ever has full control of stdin,
-   so any use of gets warrants an unconditional warning.  Assume it is
-   always declared, since it is required by C89.  */
+   so any use of gets warrants an unconditional warning.  Besides, C11
+   removed it.  */
+#undef gets
+#if HAVE_RAW_DECL_GETS
 _GL_WARN_ON_USE (gets, "gets is a security hole - use fgets instead");
 #endif
 
@@ -1054,7 +1043,7 @@ _GL_WARN_ON_USE (snprintf, "snprintf is unportable - "
 # endif
 #endif
 
-/* Some people would argue that sprintf should be handled like gets
+/* Some people would argue that sprintf uses should be warned about
    (for example, OpenBSD issues a link warning for both functions),
    since both can cause security holes due to buffer overruns.
    However, we believe that sprintf can be used safely, and is more

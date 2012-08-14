@@ -1,3 +1,9 @@
+2012-08-14  Ulrich Mueller  <ulm@gentoo.org>
+
+	* lib/gnulib.mk:
+	* lib/stdio.in.h:
+	* m4/stdio_h.m4: Do not assume that gets is defined (Bug#11873).
+
 2012-06-21  Ulrich Mueller  <ulm@gentoo.org>
 
 	* configure.in: Use m/intel386.h for amd64 with x32 ABI.  (Bug#11669)
