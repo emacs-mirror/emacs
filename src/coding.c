@@ -7102,6 +7102,15 @@ decode_coding (struct coding_system *coding)
 	set_buffer_internal (XBUFFER (coding->dst_object));
       if (GPT != PT)
 	move_gap_both (PT, PT_BYTE);
+
+      /* We must disable undo_list in order to record the whole insert
+	 transaction via record_insert at the end.  But doing so also
+	 disables the recording of the first change to the undo_list.
+	 Therefore we check for first change here and record it via
+	 record_first_change if needed.  */
+      if (MODIFF <= SAVE_MODIFF)
+	record_first_change ();
+
       undo_list = BVAR (current_buffer, undo_list);
       BSET (current_buffer, undo_list, Qt);
     }

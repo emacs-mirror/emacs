@@ -1,3 +1,8 @@
+2012-08-14  Gergely Risko  <gergely@risko.hu>
+
+	* coding.c (decode_coding): Record buffer modification before
+	disabling undo_list (Bug#11773).
+
 2012-08-14  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Revert and cleanup some recent overlay changes.
