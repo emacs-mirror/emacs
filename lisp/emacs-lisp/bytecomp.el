@@ -3578,20 +3578,22 @@ discarding."
 
 (defun byte-compile-setq-default (form)
   (setq form (cdr form))
-  (if (> (length form) 2)
-      (let ((setters ()))
-        (while (consp form)
-          (push `(setq-default ,(pop form) ,(pop form)) setters))
-        (byte-compile-form (cons 'progn (nreverse setters))))
-    (let ((var (car form)))
-      (and (or (not (symbolp var))
-               (macroexp--const-symbol-p var t))
-           (byte-compile-warning-enabled-p 'constants)
-           (byte-compile-warn
-            "variable assignment to %s `%s'"
-            (if (symbolp var) "constant" "nonvariable")
-            (prin1-to-string var)))
-      (byte-compile-normal-call `(set-default ',var ,@(cdr form))))))
+  (if (null form)			; (setq-default), with no arguments
+      (byte-compile-form nil byte-compile--for-effect)
+    (if (> (length form) 2)
+	(let ((setters ()))
+	  (while (consp form)
+	    (push `(setq-default ,(pop form) ,(pop form)) setters))
+	  (byte-compile-form (cons 'progn (nreverse setters))))
+      (let ((var (car form)))
+	(and (or (not (symbolp var))
+		 (macroexp--const-symbol-p var t))
+	     (byte-compile-warning-enabled-p 'constants)
+	     (byte-compile-warn
+	      "variable assignment to %s `%s'"
+	      (if (symbolp var) "constant" "nonvariable")
+	      (prin1-to-string var)))
+	(byte-compile-normal-call `(set-default ',var ,@(cdr form)))))))
 
 (byte-defop-compiler-1 set-default)
 (defun byte-compile-set-default (form)
