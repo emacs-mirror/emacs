@@ -800,7 +800,7 @@ and `\\' when preceded by `?'."
 ;;                           (not (or (eolp) (looking-at "#")
 ;;                                    (and (eq (car (nth 1 state)) ?{)
 ;;                                         (looking-at "|"))))))
-                       ;; Not a regexp or general delimited literal.
+                       ;; Not a regexp or percent literal.
                        (null (nth 0 (ruby-parse-region (or begin parse-start)
                                                        (point))))
                        (or (not (eq ?| (char-after (point))))
@@ -1169,17 +1169,22 @@ See `add-log-current-defun-function'."
       (ruby-do-end-to-brace)))
 
 (declare-function ruby-syntax-propertize-heredoc "ruby-mode" (limit))
-(declare-function ruby-syntax-general-delimiters-goto-beg "ruby-mode" ())
-(declare-function ruby-syntax-propertize-general-delimiters "ruby-mode" (limit))
+(declare-function ruby-syntax-enclosing-percent-literal "ruby-mode" (limit))
+(declare-function ruby-syntax-propertize-percent-literal "ruby-mode" (limit))
 
 (if (eval-when-compile (fboundp #'syntax-propertize-rules))
     ;; New code that works independently from font-lock.
     (progn
+      (eval-and-compile
+        (defconst ruby-percent-literal-beg-re
+          "\\(%\\)[qQrswWx]?\\([[:punct:]]\\)"
+          "Regexp to match the beginning of percent literal."))
+
       (defun ruby-syntax-propertize-function (start end)
         "Syntactic keywords for Ruby mode.  See `syntax-propertize-function'."
         (goto-char start)
         (ruby-syntax-propertize-heredoc end)
-        (ruby-syntax-general-delimiters-goto-beg)
+        (ruby-syntax-enclosing-percent-literal end)
         (funcall
          (syntax-propertize-rules
           ;; #{ }, #$hoge, #@foo are not comments.
@@ -1222,8 +1227,8 @@ See `add-log-current-defun-function'."
                                    'syntax-table (string-to-syntax "\""))
                 (ruby-syntax-propertize-heredoc end))))
           ;; Handle percent literals: %w(), %q{}, etc.
-          ("\\(?:^\\|[[ \t\n<+(,=]\\)\\(%\\)[qQrswWx]?\\([[:punct:]]\\)"
-           (1 (prog1 "|" (ruby-syntax-propertize-general-delimiters end)))))
+          ((concat "\\(?:^\\|[[ \t\n<+(,=]\\)" ruby-percent-literal-beg-re)
+           (1 (prog1 "|" (ruby-syntax-propertize-percent-literal end)))))
          (point) end))
 
       (defun ruby-syntax-propertize-heredoc (limit)
@@ -1251,40 +1256,46 @@ See `add-log-current-defun-function'."
               ;; inf-loop.
               (if (< (point) start) (goto-char start))))))
 
-      (defun ruby-syntax-general-delimiters-goto-beg ()
-        (let ((state (syntax-ppss)))
-          ;; Move to the start of the literal, in case it's multiline.
-          ;; TODO: determine the literal type more reliably here?
+      (defun ruby-syntax-enclosing-percent-literal (limit)
+        (let ((state (syntax-ppss))
+              (start (point)))
+          ;; When already inside percent literal, re-propertize it.
           (when (eq t (nth 3 state))
             (goto-char (nth 8 state))
-            (beginning-of-line))))
+            (when (looking-at ruby-percent-literal-beg-re)
+              (ruby-syntax-propertize-percent-literal limit))
+            (when (< (point) start) (goto-char start)))))
 
-      (defun ruby-syntax-propertize-general-delimiters (limit)
+      (defun ruby-syntax-propertize-percent-literal (limit)
         (goto-char (match-beginning 2))
-        (let* ((op (char-after))
-               (ops (char-to-string op))
-               (cl (or (cdr (aref (syntax-table) op))
-                       (cdr (assoc op '((?< . ?>))))))
-               parse-sexp-lookup-properties)
-          (ignore-errors
-            (if cl
-                (progn  ; Paired delimiters.
-                  ;; Delimiter pairs of the same kind can be nested
-                  ;; inside the literal, as long as they are balanced.
-                  ;; Create syntax table that ignores other characters.
-                  (with-syntax-table (make-char-table 'syntax-table nil)
-                    (modify-syntax-entry op (concat "(" (char-to-string cl)))
-                    (modify-syntax-entry cl (concat ")" ops))
-                    (modify-syntax-entry ?\\ "\\")
-                    (save-restriction
-                      (narrow-to-region (point) limit)
-                      (forward-list))))  ; skip to the paired character
-              ;; Single character delimiter.
-              (re-search-forward (concat "[^\\]\\(?:\\\\\\\\\\)*"
-                                         (regexp-quote ops)) limit nil))
-            ;; If we reached here, the closing delimiter was found.
-            (put-text-property (1- (point)) (point)
-                               'syntax-table (string-to-syntax "|")))))
+        ;; Not inside a simple string or comment.
+        (when (eq t (nth 3 (syntax-ppss)))
+          (let* ((op (char-after))
+                 (ops (char-to-string op))
+                 (cl (or (cdr (aref (syntax-table) op))
+                         (cdr (assoc op '((?< . ?>))))))
+                 parse-sexp-lookup-properties)
+            (condition-case nil
+                (progn
+                  (if cl ; Paired delimiters.
+                      ;; Delimiter pairs of the same kind can be nested
+                      ;; inside the literal, as long as they are balanced.
+                      ;; Create syntax table that ignores other characters.
+                      (with-syntax-table (make-char-table 'syntax-table nil)
+                        (modify-syntax-entry op (concat "(" (char-to-string cl)))
+                        (modify-syntax-entry cl (concat ")" ops))
+                        (modify-syntax-entry ?\\ "\\")
+                        (save-restriction
+                          (narrow-to-region (point) limit)
+                          (forward-list))) ; skip to the paired character
+                    ;; Single character delimiter.
+                    (re-search-forward (concat "[^\\]\\(?:\\\\\\\\\\)*"
+                                               (regexp-quote ops)) limit nil))
+                  ;; Found the closing delimiter.
+                  (put-text-property (1- (point)) (point) 'syntax-table
+                                     (string-to-syntax "|")))
+              ;; Unclosed literal, leave the following text unpropertized.
+              ((scan-error search-failed) (goto-char limit))))))
       )
 
   ;; For Emacsen where syntax-propertize-rules is not (yet) available,
@@ -1329,7 +1340,7 @@ This should only be called after matching against `ruby-here-doc-end-re'."
      (4 (7 . ?/))
      (6 (7 . ?/)))
     ("^=en\\(d\\)\\_>" 1 "!")
-    ;; General delimited string.
+    ;; Percent literal.
     ("\\(^\\|[[ \t\n<+(,=]\\)\\(%[xrqQwW]?\\([^<[{(a-zA-Z0-9 \n]\\)[^\n\\\\]*\\(\\\\.[^\n\\\\]*\\)*\\(\\3\\)\\)"
      (3 "\"")
      (5 "\""))

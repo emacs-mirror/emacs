@@ -1,3 +1,16 @@
+2012-08-14  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* progmodes/ruby-mode.el: Improve percent literals (bug#6286).
+	(ruby-percent-literal-beg-re): New constant.
+	(ruby-syntax-general-delimiters-goto-beg): Rename to
+	`ruby-syntax-enclosing-percent-literal', improve literal type check.
+	(ruby-syntax-propertize-general-delimiters): Rename to
+	`ruby-syntax-propertize-percent-literal', it's a shorter and more
+	popular term.  Adjust comments everywhere.
+	(ruby-syntax-propertize-percent-literal): Only propertize when not
+	inside a simple string or comment.  When the literal is unclosed,
+	leave the text after it unpropertized.
+
 2012-08-14  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* emacs-lisp/bytecomp.el (byte-recompile-file): When LOAD is
@@ -22,8 +35,8 @@
 	Use `completion-table-dynamic' for completion functions.
 	* progmodes/python.el
 	(python-shell-completion--do-completion-at-point)
-	(python-shell-completion--get-completions): Remove
-	functions.
+	(python-shell-completion--get-completions):
+	Remove functions.
 	(python-shell-completion-complete-at-point): New function.
 	(python-completion-complete-at-point): Use it.
 
