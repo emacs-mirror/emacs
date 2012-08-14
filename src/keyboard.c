@@ -1393,6 +1393,12 @@ command_loop_1 (void)
 
       Vdeactivate_mark = Qnil;
 
+      /* Don't ignore mouse movements for more than a single command
+	 loop.  (This flag is set in xdisp.c whenever the tool bar is
+	 resized, because the resize moves text up or down, and would
+	 generate false mouse drag events if we don't ignore them.)  */
+      ignore_mouse_drag_p = 0;
+
       /* If minibuffer on and echo area in use,
 	 wait a short time and redraw minibuffer.  */
 

@@ -1,3 +1,9 @@
+2012-08-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* keyboard.c (command_loop_1): Reset ignore_mouse_drag_p flag each
+	iteration through the command loop.  Fixes a problem whereby mouse
+	movements are ignored until the first mouse click.
+
 2012-08-14  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Use bool, not int, for Lisp booleans.
