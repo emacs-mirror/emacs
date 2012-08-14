@@ -1,3 +1,7 @@
+2012-08-14  Glenn Morris  <rgm@gnu.org>
+
+	* eval.c (Fcalled_interactively_p): Doc fix.  (Bug#11747)
+
 2012-08-14  Ulrich Mueller  <ulm@gentoo.org>
 
 	* systime.h (EMACS_TIME_CMP): Don't cast time_t values to long
