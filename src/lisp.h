@@ -641,7 +641,7 @@ clip_to_bounds (ptrdiff_t lower, EMACS_INT num, ptrdiff_t upper)
 
 typedef struct interval *INTERVAL;
 
-/* Complain if object is not string or buffer type */
+/* Complain if object is not string or buffer type.  */
 #define CHECK_STRING_OR_BUFFER(x) \
   CHECK_TYPE (STRINGP (x) || BUFFERP (x), Qbuffer_or_string_p, x)
 

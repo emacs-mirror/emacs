@@ -8836,7 +8836,7 @@ access_keymap_keyremap (Lisp_Object map, Lisp_Object key, Lisp_Object prompt,
   /* If the keymap gives a function, not an
      array, then call the function with one arg and use
      its value instead.  */
-  if (SYMBOLP (next) && !NILP (Ffboundp (next)) && do_funcall)
+  if (do_funcall && FUNCTIONP (next))
     {
       Lisp_Object tem;
       tem = next;

@@ -1,3 +1,8 @@
+2012-08-14  Barry OReilly  <gundaetiapo@gmail.com>  (tiny change)
+
+	* keyboard.c (access_keymap_keyremap): Accept anonymous functions
+	(bug#12022).
+
 2012-08-14  Martin Rudalics  <rudalics@gmx.at>
 
 	* frame.c (make_frame_without_minibuffer, make_minibuffer_frame)
