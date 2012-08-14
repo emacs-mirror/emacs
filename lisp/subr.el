@@ -2182,7 +2182,8 @@ by doing (clear-string STRING)."
             (set (make-local-variable 'post-self-insert-hook) nil)
             (add-hook 'after-change-functions hide-chars-fun nil 'local))
         (unwind-protect
-            (read-string prompt nil t default) ; t = "no history"
+            (let ((enable-recursive-minibuffers t))
+              (read-string prompt nil t default)) ; t = "no history"
           (when (buffer-live-p minibuf)
             (with-current-buffer minibuf
               ;; Not sure why but it seems that there might be cases where the

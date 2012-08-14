@@ -1,3 +1,7 @@
+2012-08-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* subr.el (read-passwd): Allow use from a minibuffer.
+
 2012-08-14  Eli Zaretskii  <eliz@gnu.org>
 
 	* tooltip.el (tooltip-identifier-from-point): Don't treat tokens
@@ -13,8 +17,8 @@
 	* progmodes/gdb-mi.el (gdb-tooltip-print): Don't ignore error
 	messages from GDB, pop them up in a tooltip to give feedback to
 	user.
-	(gdb-tooltip-print-1): Quote the expression to evaluate.  This
-	allows to evaluate expressions with embedded whitespace.
+	(gdb-tooltip-print-1): Quote the expression to evaluate.
+	This allows to evaluate expressions with embedded whitespace.
 	(gdb-inferior-io--init-proc): Don't send "-inferior-tty" command
 	if the TTY name is nil or empty (which happens when communicating
 	with the inferior via pipes, e.g. on MS-Windows).
