@@ -1,3 +1,9 @@
+2012-08-14  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-sh.el (tramp-open-shell): Cache the shell name.
+	(tramp-find-shell, tramp-open-connection-setup-interactive-shell):
+	Use cached shell name.
+
 2012-08-14  Fabián Ezequiel Gallina  <fgallina@cuca>
 
 	* progmodes/python.el (python-shell-send-string):

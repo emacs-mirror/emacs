@@ -3599,11 +3599,14 @@ file exists and nonzero exit status otherwise."
 	(setq item (pop alist))
 	(when (string-match (car item) shell)
 	  (setq extra-args (cdr item))))
-      (when extra-args (setq shell (concat shell " " extra-args)))
       (tramp-send-command
-       vec (format "exec env ENV='' PROMPT_COMMAND='' PS1=%s PS2='' PS3='' %s"
-		   (tramp-shell-quote-argument tramp-end-of-output) shell)
+       vec (format
+	    "exec env ENV='' PROMPT_COMMAND='' PS1=%s PS2='' PS3='' %s %s"
+	    (tramp-shell-quote-argument tramp-end-of-output)
+	    shell (or extra-args ""))
        t))
+    (tramp-set-connection-property
+     (tramp-get-connection-process vec) "remote-shell" shell)
     ;; Setting prompts.
     (tramp-send-command
      vec (format "PS1=%s" (tramp-shell-quote-argument tramp-end-of-output)) t)
@@ -3614,8 +3617,12 @@ file exists and nonzero exit status otherwise."
 (defun tramp-find-shell (vec)
   "Opens a shell on the remote host which groks tilde expansion."
   (with-current-buffer (tramp-get-buffer vec)
-    (let ((default-shell (tramp-get-method-parameter
-			  (tramp-file-name-method vec) 'tramp-remote-shell))
+    (let ((default-shell
+	    (or
+	     (tramp-get-connection-property
+	      (tramp-get-connection-process vec) "remote-shell" nil)
+	     (tramp-get-method-parameter
+	      (tramp-file-name-method vec) 'tramp-remote-shell)))
 	  shell)
       (setq shell
 	    (with-connection-property vec "remote-shell"
@@ -3692,8 +3699,9 @@ process to set up.  VEC specifies the connection."
     ;; discarded as well.
     (tramp-open-shell
      vec
-     (tramp-get-method-parameter
-      (tramp-file-name-method vec) 'tramp-remote-shell))
+     (or (tramp-get-connection-property vec "remote-shell" nil)
+	 (tramp-get-method-parameter
+	  (tramp-file-name-method vec) 'tramp-remote-shell)))
 
     ;; Disable echo.
     (tramp-message vec 5 "Setting up remote shell environment")
