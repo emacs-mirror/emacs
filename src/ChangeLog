@@ -1,5 +1,14 @@
 2012-08-14  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	Revert and cleanup some recent overlay changes.
+	* buffer.h (enum overlay_type): Remove.
+	(buffer_get_overlays, buffer_set_overlays): Likewise.
+	(buffer_set_overlays_before, buffer_set_overlays_after):
+	New function.  Adjust users.
+	(unchain_both): Add eassert.
+
+2012-08-14  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	* gtkutil.c (update_frame_tool_bar): Use EQ where appropriate.
 
 2012-08-14  Paul Eggert  <eggert@cs.ucla.edu>

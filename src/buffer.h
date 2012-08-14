@@ -946,52 +946,6 @@ extern void mmap_set_vars (int);
       }									\
   } while (0)
 
-enum overlay_type
-{
-  OV_BEFORE,
-  OV_AFTER
-};
-
-/* Get overlay list of type T and belonging to B.  */
-
-BUFFER_INLINE struct Lisp_Overlay *
-buffer_get_overlays (struct buffer *b, enum overlay_type t)
-{
-  if (!b)
-    b = current_buffer;
-  if (t == OV_BEFORE)
-    return b->overlays_before;
-  else if (t == OV_AFTER)
-    return b->overlays_after;
-  else
-    abort ();
-}
-
-/* Set overlay list of type T as belonging to B.  */
-
-BUFFER_INLINE void
-buffer_set_overlays (struct buffer *b, struct Lisp_Overlay *o,
-		     enum overlay_type t)
-{
-  if (!b)
-    b = current_buffer;
-  if (t == OV_BEFORE)
-    b->overlays_before = o;
-  else if (t == OV_AFTER)
-    b->overlays_after = o;
-  else
-    abort ();
-}
-
-/* Non-zero if current buffer has overlays.  */
-
-BUFFER_INLINE int
-buffer_has_overlays (void)
-{
-  return buffer_get_overlays (current_buffer, OV_BEFORE)
-    || buffer_get_overlays (current_buffer, OV_AFTER);
-}
-
 extern Lisp_Object Qbefore_change_functions;
 extern Lisp_Object Qafter_change_functions;
 extern Lisp_Object Qfirst_change_hook;
@@ -1012,6 +966,28 @@ buffer_set_intervals (struct buffer *b, INTERVAL i)
 {
   eassert (b->text != NULL);
   b->text->intervals = i;
+}
+
+/* Set an appropriate overlay of B.  */
+
+BUFFER_INLINE void
+buffer_set_overlays_before (struct buffer *b, struct Lisp_Overlay *o)
+{
+  b->overlays_before = o;
+}
+
+BUFFER_INLINE void
+buffer_set_overlays_after (struct buffer *b, struct Lisp_Overlay *o)
+{
+  b->overlays_after = o;
+}
+
+/* Non-zero if current buffer has overlays.  */
+
+BUFFER_INLINE int
+buffer_has_overlays (void)
+{
+  return current_buffer->overlays_before || current_buffer->overlays_after;
 }
 
 /* Return character code of multi-byte form at byte position POS.  If POS

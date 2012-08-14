@@ -5831,8 +5831,8 @@ mark_buffer (struct buffer *buffer)
      a special way just before the sweep phase, and after stripping
      some of its elements that are not needed any more.  */
 
-  mark_overlay (buffer_get_overlays (buffer, OV_BEFORE));
-  mark_overlay (buffer_get_overlays (buffer, OV_AFTER));
+  mark_overlay (buffer->overlays_before);
+  mark_overlay (buffer->overlays_after);
 
   /* If this is an indirect buffer, mark its base buffer.  */
   if (buffer->base_buffer && !VECTOR_MARKED_P (buffer->base_buffer))

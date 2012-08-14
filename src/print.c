@@ -498,10 +498,10 @@ temp_output_buffer_setup (const char *bufname)
   BSET (current_buffer, read_only, Qnil);
   BSET (current_buffer, filename, Qnil);
   BSET (current_buffer, undo_list, Qt);
-  eassert (buffer_get_overlays (NULL, OV_BEFORE) == NULL);
-  eassert (buffer_get_overlays (NULL, OV_AFTER) == NULL);
+  eassert (current_buffer->overlays_before == NULL);
+  eassert (current_buffer->overlays_after == NULL);
   BSET (current_buffer, enable_multibyte_characters,
-       BVAR (&buffer_defaults, enable_multibyte_characters));
+	BVAR (&buffer_defaults, enable_multibyte_characters));
   specbind (Qinhibit_read_only, Qt);
   specbind (Qinhibit_modification_hooks, Qt);
   Ferase_buffer ();

@@ -310,7 +310,7 @@ overlays_around (EMACS_INT pos, Lisp_Object *vec, ptrdiff_t len)
   ptrdiff_t startpos, endpos;
   ptrdiff_t idx = 0;
 
-  for (tail = buffer_get_overlays (NULL, OV_BEFORE); tail; tail = tail->next)
+  for (tail = current_buffer->overlays_before; tail; tail = tail->next)
     {
       XSETMISC (overlay, tail);
 
@@ -329,7 +329,7 @@ overlays_around (EMACS_INT pos, Lisp_Object *vec, ptrdiff_t len)
 	}
     }
 
-  for (tail = buffer_get_overlays (NULL, OV_AFTER); tail; tail = tail->next)
+  for (tail = current_buffer->overlays_after; tail; tail = tail->next)
     {
       XSETMISC (overlay, tail);
 

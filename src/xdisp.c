@@ -5445,7 +5445,7 @@ load_overlay_strings (struct it *it, ptrdiff_t charpos)
   while (0)
 
   /* Process overlay before the overlay center.  */
-  for (ov = buffer_get_overlays (NULL, OV_BEFORE); ov; ov = ov->next)
+  for (ov = current_buffer->overlays_before; ov; ov = ov->next)
     {
       XSETMISC (overlay, ov);
       eassert (OVERLAYP (overlay));
@@ -5485,7 +5485,7 @@ load_overlay_strings (struct it *it, ptrdiff_t charpos)
     }
 
   /* Process overlays after the overlay center.  */
-  for (ov = buffer_get_overlays (NULL, OV_AFTER); ov; ov = ov->next)
+  for (ov = current_buffer->overlays_after; ov; ov = ov->next)
     {
       XSETMISC (overlay, ov);
       eassert (OVERLAYP (overlay));
