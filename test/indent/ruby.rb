@@ -1,17 +1,25 @@
+# Percent literals.
+b = %Q{This is a "string"}
+c = %w!foo
+ bar
+ baz!
+d = %(hello (nested) world)
+
+# Don't propertize percent literals inside strings.
+"(%s, %s)" % [123, 456]
+
+# Or inside comments.
+x = # "tot %q/to"; =
+y = 2 / 3
+
+# Regexp after whitelisted method.
+"abc".sub /b/, 'd'
+
 # Don't mis-match "sub" at the end of words.
 a = asub / aslb + bsub / bslb;
 
-b = %Q{This is a "string"}
-c = %w(foo
- bar
- baz)
-d = %!hello!
-
-# A "do" after a slash means that slash is not a division, but it doesn't imply
-# it's a regexp-ender, since it can be a regexp-starter instead!
-x = toto / foo; if /do bar/ then
-                  toto = 1
-                end
+# Highlight the regexp after "if".
+x = toto / foo if /do bar/ =~ "dobar"
 
 # Some Cucumber code:
 Given /toto/ do

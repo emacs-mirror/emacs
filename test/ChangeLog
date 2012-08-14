@@ -1,3 +1,7 @@
+2012-08-14  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* indent/ruby.rb: Rearrange examples, add new ones.
+
 2012-08-12  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* automated/ruby-mode-tests.el (ruby-move-to-block-stops-at-opening)

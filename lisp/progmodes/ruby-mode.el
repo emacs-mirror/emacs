@@ -1178,7 +1178,13 @@ See `add-log-current-defun-function'."
       (eval-and-compile
         (defconst ruby-percent-literal-beg-re
           "\\(%\\)[qQrswWx]?\\([[:punct:]]\\)"
-          "Regexp to match the beginning of percent literal."))
+          "Regexp to match the beginning of percent literal.")
+
+        (defconst ruby-syntax-methods-before-regexp
+          '("gsub" "gsub!" "sub" "sub!" "scan" "split" "split!" "index" "match"
+            "assert_match" "Given" "Then" "When")
+          "Methods that can take regexp as the first argument.
+It will be properly highlighted even when the call omits parens."))
 
       (defun ruby-syntax-propertize-function (start end)
         "Syntactic keywords for Ruby mode.  See `syntax-propertize-function'."
@@ -1196,28 +1202,23 @@ See `add-log-current-defun-function'."
                         ;; Not within a string.
                         (nth 3 (syntax-ppss (match-beginning 0))))
                 (string-to-syntax "\\"))))
-          ;; Regexps: regexps are distinguished from division either because
-          ;; of the keyword/symbol before them, or because of the code
-          ;; following them.
+          ;; Regexps: regexps are distinguished from division because
+          ;; of the keyword, symbol, or method name before them.
           ((concat
             ;; Special tokens that can't be followed by a division operator.
-            "\\(?:\\(^\\|[[=(,~?:;<>]\\|\\(?:^\\|\\s \\)"
+            "\\(^\\|[[=(,~?:;<>]"
+            ;; Control flow keywords and operators following bol or whitespace.
+            "\\|\\(?:^\\|\\s \\)"
             (regexp-opt '("if" "elsif" "unless" "while" "until" "when" "and"
-                          "or" "&&" "||"
-                          "gsub" "gsub!" "sub" "sub!" "scan" "split" "split!"))
-            "\\)\\s *\\)?"
+                          "or" "not" "&&" "||"))
+            ;; Method name from the list.
+            "\\|\\_<"
+            (regexp-opt ruby-syntax-methods-before-regexp)
+            "\\)\\s *"
             ;; The regular expression itself.
-            "\\(/\\)[^/\n\\\\]*\\(?:\\\\.[^/\n\\\\]*\\)*\\(/\\)"
-            ;; Special code that cannot follow a division operator.
-            ;; FIXME: Just because the second slash of "/foo/ do bar" can't
-            ;; be a division, doesn't mean it can't *start* a regexp, as in
-            ;; "x = toto/foo; if /do bar/".
-            "\\([imxo]*\\s *\\(?:,\\|\\_<do\\_>\\)\\)?")
-           (2 (when (or (match-beginning 1) (match-beginning 4))
-                (string-to-syntax "\"/")))
-           (3 (if (or (match-beginning 1) (match-beginning 4))
-                  (string-to-syntax "\"/")
-                (goto-char (match-end 2)))))
+            "\\(/\\)[^/\n\\\\]*\\(?:\\\\.[^/\n\\\\]*\\)*\\(/\\)")
+           (2 (string-to-syntax "\"/"))
+           (3 (string-to-syntax "\"/")))
           ("^=en\\(d\\)\\_>" (1 "!"))
           ("^\\(=\\)begin\\_>" (1 "!"))
           ;; Handle here documents.

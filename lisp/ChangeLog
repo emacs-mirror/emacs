@@ -10,6 +10,9 @@
 	(ruby-syntax-propertize-percent-literal): Only propertize when not
 	inside a simple string or comment.  When the literal is unclosed,
 	leave the text after it unpropertized.
+	(ruby-syntax-methods-before-regexp): New constant.
+	(ruby-syntax-propertize-function): Use it to recognize regexps.
+	Don't look at the text after regexp, just use the whitelist.
 
 2012-08-14  Andreas Schwab  <schwab@linux-m68k.org>
 
