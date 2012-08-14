@@ -450,12 +450,21 @@ source release so far.
 
 5. DEVELOPING USING THE KIT
 
-The MPS can be built on a wide variety of platforms.  For Unix-like
-platforms you will need the GNU Make tool.  Some platforms (such as
-Linux and Mac OS X) have GNU Make as their default make tool.  For
-others you will need to get and install it.  (It's available free from
-<ftp://ftp.gnu.org/gnu/make/>.)  On Windows platforms the NMAKE tool is
-used.  This comes with Microsoft Visual C++.
+The MPS can be built on a wide variety of platforms.
+
+For Unix-like platforms you will need the GNU Make tool.  Some platforms
+(such as Linux) have GNU Make as their default make tool.  For others
+you will need to get and install it.  (It's available free from
+<ftp://ftp.gnu.org/gnu/make/>.)  On FreeBSD this can be done as root
+with "pkg_add -r gmake".
+
+On Windows platforms the NMAKE tool is used. This comes with Microsoft
+Visual Studio C++ or the Windows SDK.
+
+On Mac OS X the MPS is built using Xcode, either by opening the
+mps.xcodeproj file with the Xcode GUI, or using the command-line
+"xcodebuild" tool, installed from Xcode -> Preferences -> Downloads ->
+Components -> Command Line Tools.
 
 The MPS uses a 6 character platform code to express a combination of
 OS/CPU architecture/compiler toolchain.  Each 6 character code breaks
@@ -467,15 +476,17 @@ Where OS denotes the operating system, AR denotes the CPU architecture,
 and CT denotes compiler toolchain.  Table 1 lists the platforms that we
 have regular access to and on which the MPS works well.
 
-
               Table 1. MPS makefiles and platforms
 
   Makefile        OS              Architecture    Compiler
 
-  fri4gc.gmk      FreeBSD         Intel IA32      GCC
-  lii4gc.gmk      Linux           Intel IA32      GCC
-  xcppgc.gmk      Mac OS X        PowerPC         GCC
-  w3i3mv.nmk      Windows         Intel IA32      Microsoft C
+  fri4gc.gmk      FreeBSD         Intel i386      GCC
+  fri6gc.gmk      FreeBSD         Intel x86_64    GCC
+  lii4gc.gmk      Linux           Intel i386      GCC
+  lii6gc.gmk      Linux           Intel x86_64    GCC
+  mps.xcodeproj   Mac OS X        i386 + x86_64   Clang
+  w3i3mv.nmk      Windows         Intel i386      Microsoft C
+  w3i6mv.nmk      Windows         Intel x86_64    Microsoft C
 
 Historically the MPS has worked on a much wider variety of platforms and
 still would if we had access to them.  The MPS has worked on various
@@ -506,8 +517,8 @@ test on FreeBSD:
 
   gmake -f fri4gc.gmk 'VARIETY=ci' amcss
 
-On Windows platforms you need to run "VCVARS32.BAT" to initialize your
-environment variables.  Then type:
+On Windows platforms you need to run the "Visual Studio Command Prompt"
+from the Start menu.  Then type:
 
   nmake /f w3i3mv.nmk
 
@@ -515,14 +526,20 @@ To build just one target, type:
 
   nmake /f w3i3mv.nmk <target>
 
-And so on.
+To build for 64-bit Windows, you must switch the environment to use the
+64-bit toolchain.  Type:
 
-The output of the build goes to a directory named after the platform
-(e.g. "fri4gc") so that you can share the source tree across platforms
-using NFS, for example.  Building generates "mps.a" or "mps.lib" or
-equivalent, a library of object code which you can link with your
-application, subject to the MPS licensing conditions (see under
-"Licensing", below).  It also generates a number of test programs,
+  setenv /x64
+  nmake /f w3i6mv.nmk
+  
+And so on .
+
+On most platforms, the output of the build goes to a directory named
+after the platform (e.g. "fri4gc") so that you can share the source tree
+across platforms using NFS, for example.  Building generates "mps.a" or
+"mps.lib" or equivalent, a library of object code which you can link
+with your application, subject to the MPS licensing conditions (see
+under "Licensing", below).  It also generates a number of test programs,
 such as "amcss" (a stress test for the Automatic Mostly-Copying pool
 class).
 
@@ -608,6 +625,7 @@ B. DOCUMENT HISTORY
 2007-12-21  RHSK  Release 1.108.1
 2008-05-01  RHSK  Release 1.108.2
 2010-03-03  RHSK  Release 1.109.0
+2012-08-14  RB    Updating build instructions for new platforms.
 
 
 C. COPYRIGHT AND LICENSE
