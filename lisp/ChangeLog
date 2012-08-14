@@ -1,3 +1,13 @@
+2012-08-14  Fabián Ezequiel Gallina  <fgallina@cuca>
+
+	Use `completion-table-dynamic' for completion functions.
+	* progmodes/python.el
+	(python-shell-completion--do-completion-at-point)
+	(python-shell-completion--get-completions): Remove
+	functions.
+	(python-shell-completion-complete-at-point): New function.
+	(python-completion-complete-at-point): Use it.
+
 2012-08-13  Jambunathan K  <kjambunathan@gmail.com>
 
 	* vc/vc-dir.el (vc-dir-hide-state): New command (bug#12159).

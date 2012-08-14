@@ -2018,27 +2018,71 @@ and use the following as the value of this variable:
   :type 'string
   :group 'python)
 
-(defun python-shell-completion--get-completions (input process completion-code)
-  "Retrieve available completions for INPUT using PROCESS.
-Argument COMPLETION-CODE is the python code used to get
-completions on the current context."
-  (with-current-buffer (process-buffer process)
-    (let ((completions (python-shell-send-string-no-output
-                        (format completion-code input) process)))
-      (when (> (length completions) 2)
-        (split-string completions "^'\\|^\"\\|;\\|'$\\|\"$" t)))))
+(defun python-shell-completion-get-completions (process line input)
+  "Do completion at point for PROCESS.
+LINE is used to detect the context on how to complete given
+INPUT."
+  (let* ((prompt
+          ;; Get the last prompt for the inferior process
+          ;; buffer. This is used for the completion code selection
+          ;; heuristic.
+          (with-current-buffer (process-buffer process)
+            (buffer-substring-no-properties
+             (overlay-start comint-last-prompt-overlay)
+             (overlay-end comint-last-prompt-overlay))))
+         (completion-context
+          ;; Check whether a prompt matches a pdb string, an import
+          ;; statement or just the standard prompt and use the
+          ;; correct python-shell-completion-*-code string
+          (cond ((and (> (length python-shell-completion-pdb-string-code) 0)
+                      (string-match
+                       (concat "^" python-shell-prompt-pdb-regexp) prompt))
+                 'pdb)
+                ((and (>
+                       (length python-shell-completion-module-string-code) 0)
+                      (string-match
+                       (concat "^" python-shell-prompt-regexp) prompt)
+                      (string-match "^[ \t]*\\(from\\|import\\)[ \t]" line))
+                 'import)
+                ((string-match
+                  (concat "^" python-shell-prompt-regexp) prompt)
+                 'default)
+                (t nil)))
+         (completion-code
+          (case completion-context
+            (pdb python-shell-completion-pdb-string-code)
+            (import python-shell-completion-module-string-code)
+            (default python-shell-completion-string-code)
+            (t nil)))
+         (input
+          (if (eq completion-context 'import)
+              (replace-regexp-in-string "^[ \t]+" "" line)
+            input)))
+    (and completion-code
+         (> (length input) 0)
+         (with-current-buffer (process-buffer process)
+           (let ((completions (python-shell-send-string-no-output
+                               (format completion-code input) process)))
+             (and (> (length completions) 2)
+                  (split-string completions
+                                "^'\\|^\"\\|;\\|'$\\|\"$" t)))))))
 
-(defun python-shell-completion--do-completion-at-point (process)
-  "Do completion at point for PROCESS."
-  (with-syntax-table python-dotty-syntax-table
-    (let* ((beg
-            (save-excursion
+(defun python-shell-completion-complete-at-point (&optional process)
+  "Perform completion at point in inferior Python.
+Optional argument PROCESS forces completions to be retrieved
+using that one instead of current buffer's process."
+  (setq process (or process (get-buffer-process (current-buffer))))
+  (let* ((start
+          (save-excursion
+            (with-syntax-table python-dotty-syntax-table
               (let* ((paren-depth (car (syntax-ppss)))
                      (syntax-string "w_")
                      (syntax-list (string-to-syntax syntax-string)))
-                ;; Stop scanning for the beginning of the completion subject
-                ;; after the char before point matches a delimiter
-                (while (member (car (syntax-after (1- (point)))) syntax-list)
+                ;; Stop scanning for the beginning of the completion
+                ;; subject after the char before point matches a
+                ;; delimiter
+                (while (member
+                        (car (syntax-after (1- (point)))) syntax-list)
                   (skip-syntax-backward syntax-string)
                   (when (or (equal (char-before) ?\))
                             (equal (char-before) ?\"))
@@ -2047,58 +2091,15 @@ completions on the current context."
                           ;; honor initial paren depth
                           (> (car (syntax-ppss)) paren-depth)
                           (python-syntax-context 'string))
-                    (forward-char -1))))
-              (point)))
-           (end (point))
-           (line (buffer-substring-no-properties (point-at-bol) end))
-           (input (buffer-substring-no-properties beg end))
-           ;; Get the last prompt for the inferior process buffer. This is
-           ;; used for the completion code selection heuristic.
-           (prompt
-            (with-current-buffer (process-buffer process)
-              (buffer-substring-no-properties
-               (overlay-start comint-last-prompt-overlay)
-               (overlay-end comint-last-prompt-overlay))))
-           (completion-context
-            ;; Check whether a prompt matches a pdb string, an import statement
-            ;; or just the standard prompt and use the correct
-            ;; python-shell-completion-*-code string
-            (cond ((and (> (length python-shell-completion-pdb-string-code) 0)
-                        (string-match
-                         (concat "^" python-shell-prompt-pdb-regexp) prompt))
-                   'pdb)
-                  ((and (>
-                         (length python-shell-completion-module-string-code) 0)
-                        (string-match
-                         (concat "^" python-shell-prompt-regexp) prompt)
-                        (string-match "^[ \t]*\\(from\\|import\\)[ \t]" line))
-                   'import)
-                  ((string-match
-                    (concat "^" python-shell-prompt-regexp) prompt)
-                   'default)
-                  (t nil)))
-           (completion-code
-            (case completion-context
-              ('pdb python-shell-completion-pdb-string-code)
-              ('import python-shell-completion-module-string-code)
-              ('default python-shell-completion-string-code)
-              (t nil)))
-           (input
-            (if (eq completion-context 'import)
-                (replace-regexp-in-string "^[ \t]+" "" line)
-              input))
-           (completions
-            (and completion-code (> (length input) 0)
-                 (python-shell-completion--get-completions
-                  input process completion-code))))
-      (list beg end completions))))
-
-(defun python-shell-completion-complete-at-point ()
-  "Perform completion at point in inferior Python process."
-  (and comint-last-prompt-overlay
-       (> (point-marker) (overlay-end comint-last-prompt-overlay))
-       (python-shell-completion--do-completion-at-point
-        (get-buffer-process (current-buffer)))))
+                    (forward-char -1)))
+                (point)))))
+         (end (point)))
+    (list start end
+          (completion-table-dynamic
+           (apply-partially
+            #'python-shell-completion-get-completions
+            process (buffer-substring-no-properties
+                     (line-beginning-position) end))))))
 
 (defun python-shell-completion-complete-or-indent ()
   "Complete or indent depending on the context.
@@ -2210,7 +2211,7 @@ inferior python process is updated properly."
   (let ((process (python-shell-get-process)))
     (if (not process)
         (error "Completion needs an inferior Python process running")
-      (python-shell-completion--do-completion-at-point process))))
+      (python-shell-completion-complete-at-point process))))
 
 (add-to-list 'debug-ignored-errors
              "^Completion needs an inferior Python process running.")
