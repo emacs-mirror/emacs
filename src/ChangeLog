@@ -1,3 +1,7 @@
+2012-08-14  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* gtkutil.c (find_rtl_image, update_frame_tool_bar): Use NILP.
+
 2012-08-14  Gergely Risko  <gergely@risko.hu>
 
 	* coding.c (decode_coding): Record buffer modification before

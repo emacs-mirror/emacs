@@ -4306,7 +4306,7 @@ find_rtl_image (FRAME_PTR f, Lisp_Object image, Lisp_Object rtl)
         {
           file = call1 (intern ("file-name-sans-extension"),
                        Ffile_name_nondirectory (file));
-          if (EQ (Fequal (file, rtl_name), Qt))
+          if (! NILP (Fequal (file, rtl_name)))
             {
               image = rtl_image;
               break;
@@ -4583,8 +4583,8 @@ update_frame_tool_bar (FRAME_PTR f)
       && tbinfo->n_last_items == f->n_tool_bar_items
       && tbinfo->hmargin == hmargin && tbinfo->vmargin == vmargin
       && tbinfo->dir == dir
-      && EQ (Fequal (tbinfo->style, style), Qt)
-      && EQ (Fequal (tbinfo->last_tool_bar, f->tool_bar_items), Qt))
+      && ! NILP (Fequal (tbinfo->style, style))
+      && ! NILP (Fequal (tbinfo->last_tool_bar, f->tool_bar_items)))
     {
       UNBLOCK_INPUT;
       return;
