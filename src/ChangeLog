@@ -1,3 +1,7 @@
+2012-08-15  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (xg_mark_data): Use FRAME_X_P.
+
 2012-08-15  Eli Zaretskii  <eliz@gnu.org>
 
 	* region-cache.c (move_cache_gap): Update gap_len using the actual

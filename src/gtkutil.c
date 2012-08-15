@@ -2259,7 +2259,7 @@ xg_mark_data (void)
     {
       FRAME_PTR f = XFRAME (frame);
 
-      if (FRAME_X_OUTPUT (f) && FRAME_GTK_OUTER_WIDGET (f))
+      if (FRAME_X_P (f) && FRAME_GTK_OUTER_WIDGET (f))
         {
           struct xg_frame_tb_info *tbinfo
             = g_object_get_data (G_OBJECT (FRAME_GTK_OUTER_WIDGET (f)),
