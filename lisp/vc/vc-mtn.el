@@ -305,29 +305,28 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
       ids)))
 
 (defun vc-mtn-revision-completion-table (_files)
-  ;; TODO: Implement completion for selectors
-  ;; TODO: Implement completion for composite selectors.
   ;; What about using `files'?!?  --Stef
   (lambda (string pred action)
     (cond
+     ;; Special chars for composite selectors.
+     ((string-match ".*[^\\]\\(\\\\\\\\\\)*[/|;(]" string)
+      (completion-table-with-context (substring string 0 (match-end 0))
+                                     (vc-mtn-revision-completion-table nil)
+                                     (substring string (match-end 0))
+                                     pred action))
      ;; "Tag" selectors.
      ((string-match "\\`t:" string)
       (complete-with-action action
                             (mapcar (lambda (tag) (concat "t:" tag))
                                     (vc-mtn-list-tags))
                             string pred))
-     ;; "Branch" selectors.
-     ((string-match "\\`b:" string)
-      (complete-with-action action
-                            (mapcar (lambda (tag) (concat "b:" tag))
-                                    (vc-mtn-list-branches))
-                            string pred))
-     ;; "Head" selectors.  Not sure how they differ from "branch" selectors.
-     ((string-match "\\`h:" string)
-      (complete-with-action action
-                            (mapcar (lambda (tag) (concat "h:" tag))
-                                    (vc-mtn-list-branches))
-                            string pred))
+     ;; "Branch" or "Head" selectors.
+     ((string-match "\\`[hb]:" string)
+      (let ((prefix (match-string 0 string)))
+        (complete-with-action action
+                              (mapcar (lambda (tag) (concat prefix tag))
+                                      (vc-mtn-list-branches))
+                              string pred)))
      ;; "ID" selectors.
      ((string-match "\\`i:" string)
       (complete-with-action action
@@ -339,7 +338,13 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
       (complete-with-action action
                             '("t:" "b:" "h:" "i:"
                               ;; Completion not implemented for these.
-                              "a:" "c:" "d:" "e:" "l:")
+                              "c:" "a:" "k:" "d:" "m:" "e:" "l:" "i:" "p:"
+                              ;; These have no arg to complete.
+                              "u:" "w:"
+                              ;; Selector functions.
+                              "difference(" "lca(" "max(" "ancestors("
+                              "descendants(" "parents(" "children("
+                              "pick(")
                             string pred)))))
 
 

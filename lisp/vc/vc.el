@@ -1652,8 +1652,9 @@ Return t if the buffer had changes, nil otherwise."
       (setq rev1-default (vc-working-revision first)))
      ;; if the file is not locked, use last and previous revisions as defaults
      (t
-      (setq rev1-default (vc-call-backend backend 'previous-revision first
-                                          (vc-working-revision first)))
+      (setq rev1-default (ignore-errors ;If `previous-revision' doesn't work.
+                           (vc-call-backend backend 'previous-revision first
+                                            (vc-working-revision first))))
       (when (string= rev1-default "") (setq rev1-default nil))
       (setq rev2-default (vc-working-revision first))))
     ;; construct argument list

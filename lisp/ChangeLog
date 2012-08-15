@@ -1,3 +1,10 @@
+2012-08-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc/vc-mtn.el (vc-mtn-revision-completion-table): Handle completion
+	for composite selectors.
+	* vc/vc.el (vc-diff-build-argument-list-internal): Don't prevent
+	operation just because we can't find a previous revision.
+
 2012-08-15  Chong Yidong  <cyd@gnu.org>
 
 	* frame.el (set-frame-font): Accept font objects.
