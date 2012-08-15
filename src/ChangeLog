@@ -1,3 +1,9 @@
+2012-08-15  Eli Zaretskii  <eliz@gnu.org>
+
+	* region-cache.c (move_cache_gap): Update gap_len using the actual
+	growth of the boundaries array.  Do not change cache_len.
+	(Bug#12196)
+
 2012-08-15  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Generalize and cleanup font subsystem checks.

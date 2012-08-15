@@ -245,16 +245,16 @@ move_cache_gap (struct region_cache *c, ptrdiff_t pos, ptrdiff_t min_size)
      when the portion after the gap is smallest.  */
   if (gap_len < min_size)
     {
-      ptrdiff_t i;
+      ptrdiff_t i, nboundaries = c->cache_len;
 
       c->boundaries =
-	xpalloc (c->boundaries, &c->cache_len, min_size, -1,
+	xpalloc (c->boundaries, &nboundaries, min_size - gap_len, -1,
 		 sizeof *c->boundaries);
 
       /* Some systems don't provide a version of the copy routine that
          can be trusted to shift memory upward into an overlapping
          region.  memmove isn't widely available.  */
-      min_size -= gap_len;
+      min_size = nboundaries - c->cache_len - gap_len;
       for (i = c->cache_len - 1; i >= gap_start; i--)
         {
           c->boundaries[i + min_size].pos   = c->boundaries[i + gap_len].pos;
