@@ -1,5 +1,14 @@
 2012-08-15  Wolfgang Jenkner  <wjenkner@inode.at>
 
+	* man.el (Man-overstrike-face, Man-underline-face)
+	(Man-reverse-face): Remove variables.
+	(Man-overstrike, Man-underline, Man-reverse): New faces.
+	(Man-fontify-manpage): Use them instead of the variables.
+	(Man-cleanup-manpage): Comment change.
+	(Man-ansi-color-map): New variable.
+	(Man-fontify-manpage): Use it.
+	Call ansi-color-apply-on-region to replace ad hoc code (bug#12147).
+
 	Implement ANSI SGR parameters 22-27 (bug#12146).
 	* ansi-color.el (ansi-colors): Doc fix.
 	(ansi-color-context, ansi-color-context-region): Doc fix.
