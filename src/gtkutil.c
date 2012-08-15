@@ -2101,15 +2101,15 @@ xg_get_font (FRAME_PTR f, const char *default_name)
 	{
 	  Lisp_Object args[8];
 	  const char *name   = pango_font_description_get_family (desc);
+	  gint        size   = pango_font_description_get_size (desc);
 	  PangoWeight weight = pango_font_description_get_weight (desc);
-	  PangoStyle   style = pango_font_description_get_style (desc);
+	  PangoStyle  style  = pango_font_description_get_style (desc);
 
 	  args[0] = QCname;
 	  args[1] = build_string (name);
 
 	  args[2] = QCsize;
-	  args[3] = make_float (((double) pango_font_description_get_size (desc))
-				/ PANGO_SCALE);
+	  args[3] = make_float (pango_units_to_double (size));
 
 	  args[4] = QCweight;
 	  args[5] = XG_WEIGHT_TO_SYMBOL (weight);
