@@ -2,6 +2,10 @@
 
 	* Version 24.2 released.
 
+2012-08-15  Glenn Morris  <rgm@gnu.org>
+
+	* vc/log-edit.el (log-edit-font-lock-gnu-style): Mark safe if boolean.
+
 2012-08-15  Leo Liu  <sdl.web@gmail.com>
 
 	* net/rcirc.el (rcirc-split-message): Fix for buffer-local
