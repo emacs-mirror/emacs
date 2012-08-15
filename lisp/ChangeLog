@@ -1,3 +1,18 @@
+2012-08-15  Wolfgang Jenkner  <wjenkner@inode.at>
+
+	Implement ANSI SGR parameters 22-27 (bug#12146).
+	* ansi-color.el (ansi-colors): Doc fix.
+	(ansi-color-context, ansi-color-context-region): Doc fix.
+	(ansi-color--find-face): New function.
+	(ansi-color-apply, ansi-color-apply-on-region): Use it.
+	Rename the local variable `face' to `codes' since it is now a list of
+	ansi codes.  Doc fix.
+	(ansi-color-get-face): Remove.
+	(ansi-color-parse-sequence): New function, derived from
+	ansi-color-get-face.
+	(ansi-color-apply-sequence): Use it.  Rewrite, and support ansi
+	codes 22-27.
+
 2012-08-14  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* subr.el (read-passwd): Allow use from a minibuffer.
