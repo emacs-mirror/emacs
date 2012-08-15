@@ -107,7 +107,7 @@
 
 /* FreeBSD on 32-bit Intel built with GCC */
 
-#elif defined(MPS_PF_FRI4GC)
+#elif defined(MPS_PF_FRI3GC)
 
 #include "lockix.c"     /* Posix locks */
 #include "thfri4.c"     /* FreeBSD on 32-bit Intel threading */
@@ -121,7 +121,7 @@
 
 /* Linux on 32-bit Intel with GCC */
 
-#elif defined(MPS_PF_LII4GC)
+#elif defined(MPS_PF_LII3GC)
 
 #include "lockli.c"     /* Linux locks */
 #include "thix.c"       /* Posix threading */

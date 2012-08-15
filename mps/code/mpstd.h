@@ -169,13 +169,13 @@
  */
 
 #elif defined(__linux__) && defined(__i386__) && defined(__GNUC__)
-#if defined(CONFIG_PF_STRING) && ! defined(CONFIG_PF_LII4GC)
-#error "specified CONFIG_PF_... inconsistent with detected lii4gc"
+#if defined(CONFIG_PF_STRING) && ! defined(CONFIG_PF_LII3GC)
+#error "specified CONFIG_PF_... inconsistent with detected lii3gc"
 #endif
-#define MPS_PF_LII4GC
-#define MPS_PF_STRING   "lii4gc"
+#define MPS_PF_LII3GC
+#define MPS_PF_STRING   "lii3gc"
 #define MPS_OS_LI
-#define MPS_ARCH_I4
+#define MPS_ARCH_I3
 #define MPS_BUILD_GC
 #define MPS_T_WORD      unsigned long
 #define MPS_T_ULONGEST  unsigned long
@@ -220,13 +220,13 @@
 /* GCC 2.95.3, gcc -E -dM */
 
 #elif defined(__FreeBSD__) && defined (__i386__) && defined (__GNUC__)
-#if defined(CONFIG_PF_STRING) && ! defined(CONFIG_PF_FRI4GC)
-#error "specified CONFIG_PF_... inconsistent with detected fri4gc"
+#if defined(CONFIG_PF_STRING) && ! defined(CONFIG_PF_FRI3GC)
+#error "specified CONFIG_PF_... inconsistent with detected fri3gc"
 #endif
-#define MPS_PF_FRI4GC
-#define MPS_PF_STRING   "fri4gc"
+#define MPS_PF_FRI3GC
+#define MPS_PF_STRING   "fri3gc"
 #define MPS_OS_FR
-#define MPS_ARCH_I4
+#define MPS_ARCH_I3
 #define MPS_BUILD_GC
 #define MPS_T_WORD      unsigned long
 #define MPS_T_ULONGEST  unsigned long

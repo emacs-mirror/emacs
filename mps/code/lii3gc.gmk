@@ -1,9 +1,9 @@
-# lii4gc.gmk: BUILD FOR LINUX/INTEL/GCC PLATFORM
+# lii3gc.gmk: BUILD FOR LINUX/INTEL/GCC PLATFORM
 #
 # $Id$
 # Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
 
-PFM = lii4gc
+PFM = lii3gc
 
 THREADSRC = lockli.c thix.c pthrdext.c
 THREADLIB = -lpthread

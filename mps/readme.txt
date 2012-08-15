@@ -480,9 +480,9 @@ have regular access to and on which the MPS works well.
 
   Makefile        OS              Architecture    Compiler
 
-  fri4gc.gmk      FreeBSD         Intel i386      GCC
+  fri3gc.gmk      FreeBSD         Intel i386      GCC
   fri6gc.gmk      FreeBSD         Intel x86_64    GCC
-  lii4gc.gmk      Linux           Intel i386      GCC
+  lii3gc.gmk      Linux           Intel i386      GCC
   lii6gc.gmk      Linux           Intel x86_64    GCC
   mps.xcodeproj   Mac OS X        i386 + x86_64   Clang
   w3i3mv.nmk      Windows         Intel i386      Microsoft C
@@ -515,7 +515,7 @@ To build a restricted set of targets for just one variety, type:
 For example, to build just the "cool internal" variety of the "amcss"
 test on FreeBSD:
 
-  gmake -f fri4gc.gmk 'VARIETY=ci' amcss
+  gmake -f fri3gc.gmk 'VARIETY=ci' amcss
 
 On Windows platforms you need to run the "Visual Studio Command Prompt"
 from the Start menu.  Then type:
@@ -535,7 +535,7 @@ To build for 64-bit Windows, you must switch the environment to use the
 And so on .
 
 On most platforms, the output of the build goes to a directory named
-after the platform (e.g. "fri4gc") so that you can share the source tree
+after the platform (e.g. "fri3gc") so that you can share the source tree
 across platforms using NFS, for example.  Building generates "mps.a" or
 "mps.lib" or equivalent, a library of object code which you can link
 with your application, subject to the MPS licensing conditions (see
