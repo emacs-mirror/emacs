@@ -1611,7 +1611,7 @@ insert a template for the file depending on the mode of the buffer.
 
 ;;;### (autoloads (batch-update-autoloads update-directory-autoloads
 ;;;;;;  update-file-autoloads) "autoload" "emacs-lisp/autoload.el"
-;;;;;;  (20400 62402))
+;;;;;;  (20517 48515))
 ;;; Generated autoloads from emacs-lisp/autoload.el
 
 (put 'generated-autoload-file 'safe-local-variable 'stringp)
@@ -2705,7 +2705,7 @@ columns on its right towards the left.
 ;;;***
 
 ;;;### (autoloads (bug-reference-prog-mode bug-reference-mode) "bug-reference"
-;;;;;;  "progmodes/bug-reference.el" (20352 65510))
+;;;;;;  "progmodes/bug-reference.el" (20487 24216))
 ;;; Generated autoloads from progmodes/bug-reference.el
 
 (put 'bug-reference-url-format 'safe-local-variable (lambda (s) (or (stringp s) (and (symbolp s) (get s 'bug-reference-url-format)))))
@@ -2859,7 +2859,7 @@ and corresponding effects.
 
 ;;;***
 
-;;;### (autoloads nil "cal-dst" "calendar/cal-dst.el" (20352 65510))
+;;;### (autoloads nil "cal-dst" "calendar/cal-dst.el" (20461 49352))
 ;;; Generated autoloads from calendar/cal-dst.el
 
 (put 'calendar-daylight-savings-starts 'risky-local-variable t)
@@ -4748,8 +4748,8 @@ Randomly permute the elements of VECTOR (all permutations equally likely).
 ;;;***
 
 ;;;### (autoloads (copyright-update-directory copyright copyright-fix-years
-;;;;;;  copyright-update) "copyright" "emacs-lisp/copyright.el" (20400
-;;;;;;  62402))
+;;;;;;  copyright-update) "copyright" "emacs-lisp/copyright.el" (20517
+;;;;;;  48515))
 ;;; Generated autoloads from emacs-lisp/copyright.el
 (put 'copyright-at-end-flag 'safe-local-variable 'booleanp)
 (put 'copyright-names-regexp 'safe-local-variable 'stringp)
@@ -4788,7 +4788,7 @@ If FIX is non-nil, run `copyright-fix-years' instead.
 ;;;***
 
 ;;;### (autoloads (cperl-perldoc-at-point cperl-perldoc cperl-mode)
-;;;;;;  "cperl-mode" "progmodes/cperl-mode.el" (20352 65510))
+;;;;;;  "cperl-mode" "progmodes/cperl-mode.el" (20512 35261))
 ;;; Generated autoloads from progmodes/cperl-mode.el
 (put 'cperl-indent-level 'safe-local-variable 'integerp)
 (put 'cperl-brace-offset 'safe-local-variable 'integerp)
@@ -6372,7 +6372,7 @@ This requires the external program `diff' to be in your `exec-path'.
 ;;;***
 
 ;;;### (autoloads (diff-minor-mode diff-mode) "diff-mode" "vc/diff-mode.el"
-;;;;;;  (20400 62402))
+;;;;;;  (20461 49352))
 ;;; Generated autoloads from vc/diff-mode.el
 
 (autoload 'diff-mode "diff-mode" "\
@@ -8406,7 +8406,7 @@ Emerge two RCS revisions of a file, with another revision as ancestor.
 ;;;***
 
 ;;;### (autoloads (enriched-decode enriched-encode enriched-mode)
-;;;;;;  "enriched" "textmodes/enriched.el" (20352 65510))
+;;;;;;  "enriched" "textmodes/enriched.el" (20461 49352))
 ;;; Generated autoloads from textmodes/enriched.el
 
 (autoload 'enriched-mode "enriched" "\
@@ -10136,7 +10136,7 @@ This is used only in conjunction with `expand-add-abbrevs'.
 
 ;;;***
 
-;;;### (autoloads (f90-mode) "f90" "progmodes/f90.el" (20400 62402))
+;;;### (autoloads (f90-mode) "f90" "progmodes/f90.el" (20461 49352))
 ;;; Generated autoloads from progmodes/f90.el
 
 (autoload 'f90-mode "f90" "\
@@ -11366,7 +11366,7 @@ and choose the directory as the fortune-file.
 ;;;***
 
 ;;;### (autoloads (gdb gdb-enable-debug) "gdb-mi" "progmodes/gdb-mi.el"
-;;;;;;  (20400 62402))
+;;;;;;  (20500 124))
 ;;; Generated autoloads from progmodes/gdb-mi.el
 
 (defvar gdb-enable-debug nil "\
@@ -14045,7 +14045,7 @@ bound to the current value of the filter.
 ;;;***
 
 ;;;### (autoloads (ibuffer ibuffer-other-window ibuffer-list-buffers)
-;;;;;;  "ibuffer" "ibuffer.el" (20400 62402))
+;;;;;;  "ibuffer" "ibuffer.el" (20461 49352))
 ;;; Generated autoloads from ibuffer.el
 
 (autoload 'ibuffer-list-buffers "ibuffer" "\
@@ -18060,7 +18060,7 @@ The return value is always nil.
 
 ;;;### (autoloads (multi-isearch-files-regexp multi-isearch-files
 ;;;;;;  multi-isearch-buffers-regexp multi-isearch-buffers multi-isearch-setup)
-;;;;;;  "misearch" "misearch.el" (20352 65510))
+;;;;;;  "misearch" "misearch.el" (20487 24216))
 ;;; Generated autoloads from misearch.el
  (add-hook 'isearch-mode-hook 'multi-isearch-setup)
 
@@ -23745,7 +23745,7 @@ Display `quickurl-list' as a formatted list using `quickurl-list-mode'.
 ;;;***
 
 ;;;### (autoloads (rcirc-track-minor-mode rcirc-connect rcirc) "rcirc"
-;;;;;;  "net/rcirc.el" (20400 62402))
+;;;;;;  "net/rcirc.el" (20523 50225))
 ;;; Generated autoloads from net/rcirc.el
 
 (autoload 'rcirc "rcirc" "\
@@ -25825,7 +25825,7 @@ To work around that, do:
 ;;;***
 
 ;;;### (autoloads (sh-mode) "sh-script" "progmodes/sh-script.el"
-;;;;;;  (20400 62402))
+;;;;;;  (20487 24216))
 ;;; Generated autoloads from progmodes/sh-script.el
 (put 'sh-shell 'safe-local-variable 'symbolp)
 
@@ -26028,8 +26028,8 @@ Otherwise, one argument `-i' is passed to the shell.
 
 ;;;***
 
-;;;### (autoloads (shr-insert-document) "shr" "gnus/shr.el" (20352
-;;;;;;  65510))
+;;;### (autoloads (shr-insert-document) "shr" "gnus/shr.el" (20487
+;;;;;;  24216))
 ;;; Generated autoloads from gnus/shr.el
 
 (autoload 'shr-insert-document "shr" "\
@@ -29817,8 +29817,8 @@ Discard Tramp from loading remote files.
 
 ;;;***
 
-;;;### (autoloads (help-with-tutorial) "tutorial" "tutorial.el" (20400
-;;;;;;  62402))
+;;;### (autoloads (help-with-tutorial) "tutorial" "tutorial.el" (20517
+;;;;;;  48515))
 ;;; Generated autoloads from tutorial.el
 
 (autoload 'help-with-tutorial "tutorial" "\
@@ -30445,7 +30445,7 @@ accessible.
 ;;;***
 
 ;;;### (autoloads (url-http-options url-http-file-attributes url-http-file-exists-p
-;;;;;;  url-http) "url-http" "url/url-http.el" (20400 62402))
+;;;;;;  url-http) "url-http" "url/url-http.el" (20461 49352))
 ;;; Generated autoloads from url/url-http.el
 
 (autoload 'url-http "url-http" "\
@@ -30830,7 +30830,7 @@ This uses `url-current-object', set locally to the buffer.
 ;;;***
 
 ;;;### (autoloads (ask-user-about-supersession-threat ask-user-about-lock)
-;;;;;;  "userlock" "userlock.el" (20352 65510))
+;;;;;;  "userlock" "userlock.el" (20487 24216))
 ;;; Generated autoloads from userlock.el
 
 (autoload 'ask-user-about-lock "userlock" "\
@@ -32664,7 +32664,7 @@ Please submit bug reports and other feedback to the author, Neil W. Van Dyke
 ;;;***
 
 ;;;### (autoloads (which-function-mode which-func-mode) "which-func"
-;;;;;;  "progmodes/which-func.el" (20400 62402))
+;;;;;;  "progmodes/which-func.el" (20461 49352))
 ;;; Generated autoloads from progmodes/which-func.el
  (put 'which-func-format 'risky-local-variable t)
  (put 'which-func-current 'risky-local-variable t)
@@ -33754,7 +33754,7 @@ Zone out, completely.
 ;;;;;;  "vc/ediff-ptch.el" "vc/ediff-vers.el" "vc/ediff-wind.el"
 ;;;;;;  "vc/pcvs-info.el" "vc/pcvs-parse.el" "vc/pcvs-util.el" "vc/vc-dav.el"
 ;;;;;;  "vcursor.el" "vt-control.el" "vt100-led.el" "w32-fns.el"
-;;;;;;  "w32-vars.el" "x-dnd.el") (20436 19807 651595))
+;;;;;;  "w32-vars.el" "x-dnd.el") (20523 50589 129181))
 
 ;;;***
 
