@@ -21,11 +21,6 @@ CFLAGSOPT = -O -g3
 
 CC = cc
 
-# Suppress some warnings (SuSE).
-#   .void: -Wpointer-arith cannot be used because the string.h header does
-#   arithmetic on void*.
-CFLAGSCOMPILER := $(subst -Wpointer-arith,,$(CFLAGSCOMPILER))
-
 include comm.gmk
 
 
