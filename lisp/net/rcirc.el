@@ -796,22 +796,23 @@ With no argument or nil as argument, use the current buffer."
 
 (defun rcirc-split-message (message)
   "Split MESSAGE into chunks within `rcirc-max-message-length'."
-  (with-temp-buffer
-    (insert message)
-    (goto-char (point-min))
-    (let (result)
-      (while (not (eobp))
-	(goto-char (or (byte-to-position rcirc-max-message-length)
-		       (point-max)))
-	;; max message length is 512 including CRLF
-	(while (and (not (bobp))
-		    (> (length
-			(encode-coding-region (point-min) (point)
-					      rcirc-encode-coding-system t))
-		       rcirc-max-message-length))
-	  (forward-char -1))
-	(push (delete-and-extract-region (point-min) (point)) result))
-      (nreverse result))))
+  ;; `rcirc-encode-coding-system' can have buffer-local value.
+  (let ((encoding rcirc-encode-coding-system))
+    (with-temp-buffer
+      (insert message)
+      (goto-char (point-min))
+      (let (result)
+	(while (not (eobp))
+	  (goto-char (or (byte-to-position rcirc-max-message-length)
+			 (point-max)))
+	  ;; max message length is 512 including CRLF
+	  (while (and (not (bobp))
+		      (> (length (encode-coding-region
+				  (point-min) (point) encoding t))
+			 rcirc-max-message-length))
+	    (forward-char -1))
+	  (push (delete-and-extract-region (point-min) (point)) result))
+	(nreverse result)))))
 
 (defun rcirc-send-message (process target message &optional noticep silent)
   "Send TARGET associated with PROCESS a privmsg with text MESSAGE.

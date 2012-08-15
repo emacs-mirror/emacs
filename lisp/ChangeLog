@@ -1,3 +1,8 @@
+2012-08-15  Leo Liu  <sdl.web@gmail.com>
+
+	* net/rcirc.el (rcirc-split-message): Fix for buffer-local
+	rcirc-encode-coding-system.
+
 2012-08-13  Leo Liu  <sdl.web@gmail.com>
 
 	* net/rcirc.el (rcirc-split-message): New function.
