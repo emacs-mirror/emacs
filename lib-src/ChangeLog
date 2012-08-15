@@ -1,3 +1,7 @@
+2012-08-15  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* etags.c (Pascal_functions): Fix parenthesization typo.
+
 2012-08-14  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* make-docfile.c (enum global_type): Sort values roughly in
