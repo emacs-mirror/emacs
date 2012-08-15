@@ -73,7 +73,6 @@ EmacsMenu *mainMenu, *svcsMenu, *dockMenu;
 
 /* Nonzero means a menu is currently active.  */
 static int popup_activated_flag;
-static NSModalSession popupSession;
 
 /* Nonzero means we are tracking and updating menus.  */
 static int trackingMenu;
@@ -1365,8 +1364,6 @@ pop_down_menu (Lisp_Object arg)
     {
       EmacsDialogPanel *panel = unwind_data->dialog;
       popup_activated_flag = 0;
-      [NSApp endModalSession: popupSession];
-
       [panel close];
       [unwind_data->pool release];
       [[FRAME_NS_VIEW (SELECTED_FRAME ()) window] makeKeyWindow];
@@ -1756,20 +1753,40 @@ void process_dialog (id window, Lisp_Object list)
 }
 
 
+ 
+- (void)timeout_handler: (NSTimer *)timedEntry
+{
+  timer_fired = 1;
+  [NSApp abortModal];
+}
+
 - (Lisp_Object)runDialogAt: (NSPoint)p
 {
-  NSInteger ret;
+  NSInteger ret = 0;
 
-  /* initiate a session that will be ended by pop_down_menu */
-  popupSession = [NSApp beginModalSessionForWindow: self];
-  while (popup_activated_flag
-         && (ret = [NSApp runModalSession: popupSession])
-              == NSRunContinuesResponse)
+  while (popup_activated_flag)
     {
-      /* Run this for timers.el, indep of atimers; might not return.
-         TODO: use return value to avoid calling every iteration. */
-      timer_check ();
-      [NSThread sleepUntilDate: [NSDate dateWithTimeIntervalSinceNow: 0.1]];
+      NSTimer *tmo = nil;
+      EMACS_TIME next_time = timer_check ();
+
+      if (EMACS_TIME_VALID_P (next_time))
+        {
+          double time = EMACS_TIME_TO_DOUBLE (next_time);
+          tmo = [NSTimer timerWithTimeInterval: time
+                                        target: self
+                                      selector: @selector (timeout_handler:)
+                                      userInfo: 0
+                                       repeats: NO];
+          [[NSRunLoop currentRunLoop] addTimer: tmo
+                                       forMode: NSModalPanelRunLoopMode];
+        }
+      timer_fired = 0;
+      ret = [NSApp runModalForWindow: self];
+      if (! timer_fired)
+        {
+          if (tmo != nil) [tmo invalidate]; /* Cancels timer */
+          break;
+        }
     }
 
   {				/* FIXME: BIG UGLY HACK!!! */

@@ -1,5 +1,37 @@
 2012-08-15  Jan Djärv  <jan.h.d@swipnet.se>
 
+	* nsmenu.m (popupSession): Remove.
+	(pop_down_menu): Remove endModalSession.
+	(timeout_handler:): New method.
+	(runDialogAt:): Get next timeout.  Start a NSTimer with that timeout.
+	Call runModalForWindow.  Check timer_fired when it returns.
+	If not set, cancel timer and break out of loop.
+	Otherwise loop again, with a new timeout.
+
+	* nsterm.m: Include fcntl.h if present.
+	(fd_entry, t_readfds, inNsSelect): Remove.
+	(select_writefds, select_valid, select_timeout, selfds)
+	(select_mutex, apploopnr): Add.
+	(EV_TRAILER): Call kbd_buffer_store_event_hold only if q_event_ptr.
+	Otherwise call kbd_buffer_store_event.
+	(ns_send_appdefined): Remove release of fd_entry.
+	(ns_read_socket): Always send appdefined.  Remove inNsSelect check.
+	Increment and decrement apploopnr.
+	(ns_select): If no file descriptors, just do a NSTimer.
+	Otherwise copy read/write masks and start select thread (fd_handler).
+	Start main loop and wait for application defined event.
+	Inform select thread to stop selecting after main loop is exited.
+	(ns_term_init): Create selfds pipe and set non-blocking.
+	Initialize select_mutex. Start the select thread (fd_handler).
+	(fd_handler:): Loop forever, wait for info from the main thread
+	to either start or stop selecting.  When select returns, send
+	and appdefined event.
+	(sendScrollEventAtLoc:fromEvent:): Check if q_event_ptr is set.
+	If not call kbd_buffer_store_event.
+
+	* nsterm.h (EmacsApp): fd_handler takes id argument.
+	(EmacsDialogPanel): Add timer_fired and timeout_handler.
+
 	* gtkutil.c (xg_mark_data): Use FRAME_X_P.
 
 2012-08-15  Eli Zaretskii  <eliz@gnu.org>
