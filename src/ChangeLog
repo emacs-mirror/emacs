@@ -1,3 +1,16 @@
+2012-08-15  Chong Yidong  <cyd@gnu.org>
+
+	* gtkutil.c (xg_get_font): Rename from xg_get_font_name.  When
+	using the new font chooser, use gtk_font_chooser_get_font_desc to
+	extract the font descriptor instead of just the font name.  In
+	that case, return a font spec instead of a string.
+	(x_last_font_name): Move to this file from xfns.c.
+
+	* xfns.c (Fx_select_font): The return value can also be a font
+	spec.  Move x_last_font_name management to gtkutil.c.
+
+	* xfaces.c: Make font weight and style symbols non-static.
+
 2012-08-15  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* minibuf.c (read_minibuf): Ignore caller's inhibit-read-only

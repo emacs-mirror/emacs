@@ -21,7 +21,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <stdio.h>
 #include <math.h>
 #include <setjmp.h>
-#include <ctype.h>
 #include <unistd.h>
 
 /* This makes the fields of a Display accessible, in Xlib header files.  */
@@ -138,10 +137,6 @@ Lisp_Object Qfont_param;
 #ifdef GLYPH_DEBUG
 static ptrdiff_t image_cache_refcount;
 static int dpyinfo_refcount;
-#endif
-
-#if defined (USE_GTK) && defined (HAVE_FREETYPE)
-static char *x_last_font_name;
 #endif
 
 static struct x_display_info *x_display_info_for_name (Lisp_Object);
@@ -5583,14 +5578,15 @@ Otherwise, if ONLY-DIR-P is non-nil, the user can only select directories.  */)
 #ifdef HAVE_FREETYPE
 
 DEFUN ("x-select-font", Fx_select_font, Sx_select_font, 0, 2, 0,
-       doc: /* Read a font name using a GTK font selection dialog.
-Return a GTK-style font string corresponding to the selection.
+       doc: /* Read a font using a GTK dialog.
+Return either a font spec (for GTK versions >= 3.2) or a string
+containing a GTK-style font name.
 
-If FRAME is omitted or nil, it defaults to the selected frame. */)
+FRAME is the frame on which to pop up the font chooser.  If omitted or
+nil, it defaults to the selected frame. */)
   (Lisp_Object frame, Lisp_Object ignored)
 {
   FRAME_PTR f = check_x_frame (frame);
-  char *name;
   Lisp_Object font;
   Lisp_Object font_param;
   char *default_name = NULL;
@@ -5621,31 +5617,8 @@ If FRAME is omitted or nil, it defaults to the selected frame. */)
         default_name = xstrdup (SSDATA (font_param));
     }
 
-  if (default_name == NULL && x_last_font_name != NULL)
-    default_name = xstrdup (x_last_font_name);
-
-  /* Convert fontconfig names to Gtk names, i.e. remove - before number */
-  if (default_name)
-    {
-      char *p = strrchr (default_name, '-');
-      if (p)
-        {
-          char *ep = p+1;
-          while (isdigit (*ep))
-            ++ep;
-          if (*ep == '\0') *p = ' ';
-        }
-    }
-
-  name = xg_get_font_name (f, default_name);
+  font = xg_get_font (f, default_name);
   xfree (default_name);
-
-  if (name)
-    {
-      font = build_string (name);
-      g_free (x_last_font_name);
-      x_last_font_name = name;
-    }
 
   UNBLOCK_INPUT;
 
@@ -6011,7 +5984,6 @@ When using Gtk+ tooltips, the tooltip face is not used.  */);
 
 #if defined (USE_GTK) && defined (HAVE_FREETYPE)
   defsubr (&Sx_select_font);
-  x_last_font_name = NULL;
 #endif
 }
 

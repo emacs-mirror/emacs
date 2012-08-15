@@ -24,6 +24,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <signal.h>
 #include <stdio.h>
 #include <setjmp.h>
+#include <ctype.h>
 #include "lisp.h"
 #include "xterm.h"
 #include "blockinput.h"
@@ -75,16 +76,16 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define remove_submenu(w) gtk_menu_item_remove_submenu ((w))
 #endif
 
-#if GTK_MAJOR_VERSION < 3 || \
-  (GTK_MAJOR_VERSION == 3 && GTK_MINOR_VERSION < 2)
+#if GTK_MAJOR_VERSION > 3 || (GTK_MAJOR_VERSION == 3 && GTK_MINOR_VERSION >= 2)
+#define USE_NEW_GTK_FONT_CHOOSER 1
+#else
+#define USE_NEW_GTK_FONT_CHOOSER 0
 #define gtk_font_chooser_dialog_new(x, y) \
   gtk_font_selection_dialog_new (x)
 #undef GTK_FONT_CHOOSER
 #define GTK_FONT_CHOOSER(x) GTK_FONT_SELECTION_DIALOG (x)
 #define  gtk_font_chooser_set_font(x, y) \
   gtk_font_selection_dialog_set_font_name (x, y)
-#define gtk_font_chooser_get_font(x) \
-  gtk_font_selection_dialog_get_font_name (x)
 #endif
 
 #ifndef HAVE_GTK3
@@ -2007,7 +2008,39 @@ xg_get_file_name (FRAME_PTR f,
   return fn;
 }
 
+/***********************************************************************
+                      GTK font chooser
+ ***********************************************************************/
+
 #ifdef HAVE_FREETYPE
+
+#if USE_NEW_GTK_FONT_CHOOSER
+
+extern Lisp_Object Qnormal;
+extern Lisp_Object Qextra_light, Qlight, Qsemi_light, Qsemi_bold;
+extern Lisp_Object Qbold, Qextra_bold, Qultra_bold;
+extern Lisp_Object Qoblique, Qitalic;
+
+#define XG_WEIGHT_TO_SYMBOL(w)			\
+  (w <= PANGO_WEIGHT_THIN ? Qextra_light	\
+   : w <= PANGO_WEIGHT_ULTRALIGHT ? Qlight	\
+   : w <= PANGO_WEIGHT_LIGHT ? Qsemi_light	\
+   : w < PANGO_WEIGHT_MEDIUM ? Qnormal		\
+   : w <= PANGO_WEIGHT_SEMIBOLD ? Qsemi_bold	\
+   : w <= PANGO_WEIGHT_BOLD ? Qbold		\
+   : w <= PANGO_WEIGHT_HEAVY ? Qextra_bold	\
+   : Qultra_bold)
+
+#define XG_STYLE_TO_SYMBOL(s)			\
+  (s == PANGO_STYLE_OBLIQUE ? Qoblique		\
+   : s == PANGO_STYLE_ITALIC ? Qitalic		\
+   : Qnormal)
+
+#endif /* USE_NEW_GTK_FONT_CHOOSER */
+
+
+static char *x_last_font_name;
+
 /* Pop up a GTK font selector and return the name of the font the user
    selects, as a C string.  The returned font name follows GTK's own
    format:
@@ -2017,12 +2050,12 @@ xg_get_file_name (FRAME_PTR f,
    This can be parsed using font_parse_fcname in font.c.
    DEFAULT_NAME, if non-zero, is the default font name.  */
 
-char *
-xg_get_font_name (FRAME_PTR f, const char *default_name)
+Lisp_Object
+xg_get_font (FRAME_PTR f, const char *default_name)
 {
   GtkWidget *w;
-  char *fontname = NULL;
   int done = 0;
+  Lisp_Object font = Qnil;
 
 #if defined (HAVE_PTHREAD) && defined (__SIGRTMIN)
   sigblock (sigmask (__SIGRTMIN));
@@ -2031,12 +2064,26 @@ xg_get_font_name (FRAME_PTR f, const char *default_name)
   w = gtk_font_chooser_dialog_new
     ("Pick a font", GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)));
 
-  if (!default_name)
-    default_name = "Monospace 10";
+  if (default_name)
+    {
+      /* Convert fontconfig names to Gtk names, i.e. remove - before
+	 number */
+      char *p = strrchr (default_name, '-');
+      if (p)
+        {
+          char *ep = p+1;
+          while (isdigit (*ep))
+            ++ep;
+          if (*ep == '\0') *p = ' ';
+        }
+    }
+  else if (x_last_font_name)
+    default_name = x_last_font_name;
 
-  gtk_font_chooser_set_font (GTK_FONT_CHOOSER (w), default_name);
+  if (default_name)
+    gtk_font_chooser_set_font (GTK_FONT_CHOOSER (w), default_name);
+
   gtk_widget_set_name (w, "emacs-fontdialog");
-
   done = xg_dialog_run (f, w);
 
 #if defined (HAVE_PTHREAD) && defined (__SIGRTMIN)
@@ -2044,10 +2091,55 @@ xg_get_font_name (FRAME_PTR f, const char *default_name)
 #endif
 
   if (done == GTK_RESPONSE_OK)
-    fontname = gtk_font_chooser_get_font (GTK_FONT_CHOOSER (w));
+    {
+#if USE_NEW_GTK_FONT_CHOOSER
+      /* Use the GTK3 font chooser.  */
+      PangoFontDescription *desc
+	= gtk_font_chooser_get_font_desc (GTK_FONT_CHOOSER (w));
+
+      if (desc)
+	{
+	  Lisp_Object args[8];
+	  const char *name   = pango_font_description_get_family (desc);
+	  PangoWeight weight = pango_font_description_get_weight (desc);
+	  PangoStyle   style = pango_font_description_get_style (desc);
+
+	  args[0] = QCname;
+	  args[1] = build_string (name);
+
+	  args[2] = QCsize;
+	  args[3] = make_float (((double) pango_font_description_get_size (desc))
+				/ PANGO_SCALE);
+
+	  args[4] = QCweight;
+	  args[5] = XG_WEIGHT_TO_SYMBOL (weight);
+
+	  args[6] = QCslant;
+	  args[7] = XG_STYLE_TO_SYMBOL (style);
+
+	  font = Ffont_spec (8, args);
+
+	  pango_font_description_free (desc);
+	  xfree (x_last_font_name);
+	  x_last_font_name = xstrdup (name);
+	}
+
+#else /* Use old font selector, which just returns the font name.  */
+
+      char *font_name
+	= gtk_font_selection_dialog_get_font_name (GTK_FONT_CHOOSER (w));
+
+      if (font_name)
+	{
+	  font = build_string (font_name);
+	  g_free (x_last_font_name);
+	  x_last_font_name = font_name;
+	}
+#endif /* USE_NEW_GTK_FONT_CHOOSER */
+    }
 
   gtk_widget_destroy (w);
-  return fontname;
+  return font;
 }
 #endif /* HAVE_FREETYPE */
 
@@ -4928,6 +5020,8 @@ xg_initialize (void)
   gtk_binding_entry_add_signal (binding_set, GDK_KEY_g, GDK_CONTROL_MASK,
                                 "cancel", 0);
   update_theme_scrollbar_width ();
+
+  x_last_font_name = NULL;
 }
 
 #endif /* USE_GTK */
