@@ -16,8 +16,8 @@
 #ifndef MPS_OS_LI
 #error "protlii3.c is Linux-specific, but MPS_OS_LI is not set"
 #endif
-#if !defined(MPS_ARCH_I3) && !defined(MPS_ARCH_I4)
-#error "protlii3.c is Intel-specific, but MPS_ARCH_I3 or MPS_ARCH_I4 is not set"
+#if !defined(MPS_ARCH_I3)
+#error "protlii3.c is Intel-specific, but MPS_ARCH_I3 is not set"
 #endif
 #ifndef PROTECTION
 #error "protlii3.c implements protection, but PROTECTION is not set"

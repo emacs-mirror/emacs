@@ -124,20 +124,23 @@ Operating Systems
 
   OS????
 
+  fr FreeBSD
   ia Irix 6 N32 ABI
   li Linux
   o1 OSF/1 aka Tru64
+  s7 Mac OS 7 through 9
   so Solaris 5.x and successors
   su SunOS 4.x
-  s7 Mac OS 7 through 9
+  xc Mac OS X
 
 CPU Architectures
 
   ??AR??
 
   al ALPHA AXP
-  i3 Intel IA-32
-  i4 Same as i3 (a mistake)
+  i3 Intel IA-32 (a.k.a. i386)
+  i4 same as i3 (a mistake)
+  i6 Intel x86_64 (a.k.a. amd64)
   m4 MIPS IV
   pp PowerPC (32-bit)
   s8 SPARC v8
@@ -148,41 +151,49 @@ Compiler Toolchains
 
   ????CC
 
-  cc Vendor Supplied CC
-  gc GCC
-  eg EGCS
-  cx SunPro C CXREF tool
-  gp GCC with profiling
-  mv Microsoft Visual C
-  m9 Microsoft Visual C 9.0 (temporary designation)
-  sc SunPro C
   ac Apple Mr C
+  cc Vendor Supplied CC
+  cx SunPro C CXREF tool
+  eg Experimental GNU Compiler System (EGCS)
+  gc Gnu C Compiler (GCC)
+  gp GCC with profiling
+  ll Clang
+  m9 Microsoft Visual C 9.0 (temporary designation)
+  mv Microsoft Visual C
   mw Metrowerks Codewarrior
+  sc SunPro C
 
 The full list of platforms that have ever been supported:
 
-fri4gc Maintained
+fri3gc Maintained
+fri4gc corrected to fri3gc
+fri6gc Maintained
 i5m2cc Not maintained (no makefile)
-iam4cc Not maintained (no makefile in trunk)
-lii3eg Not maintained
-lii4gc Maintained
-lippgc Not maintained
-o1alcc Not maintained (no makefile in trunk)
-o1algc Not maintained (no makefile in trunk)
+iam4cc Not maintained (no makefile in master)
+lii3eg Not maintained (no makefile in master)
+lii3gc Maintained
+lii4gc corrected to lii3gc
+lii6gc Maintained
+lippgc Not maintained (no makefile in master)
+o1alcc Not maintained (no makefile in master)
+o1algc Not maintained (no makefile in master)
 s7m6mw Not maintained (no makefile)
-s7ppac Not maintained (no makefile in trunk)
-s7ppmw Not maintained (no makefile in trunk)
-sos8cx Not maintained
-sos8gc Not maintained
-sos8gp Not maintained
-sos9sc Not maintained
-sus8gc Not maintained (no makefile in trunk)
-w3almv Not maintained (no makefile in trunk)
+s7ppac Not maintained (no makefile in master)
+s7ppmw Not maintained (no makefile in master)
+sos8cx Not maintained (no makefile in master)
+sos8gc Not maintained (no makefile in master)
+sos8gp Not maintained (no makefile in master)
+sos9sc Not maintained (no makefile in master)
+sus8gc Not maintained (no makefile in master)
+w3almv Not maintained (no makefile in master)
+w3i3m9 Not maintained (no makefile in master)
 w3i3mv Maintained
-w3i3m9 Maintained
-w3ppmv Not Maintained (no makefile in trunk)
-xci3gc Maintained
-xcppgc Maintained (in sunset)
+w3i6mv Maintained
+w3ppmv Not Maintained (no makefile in master)
+xci3gc Not maintained (no makefile in master)
+xci3ll Maintained
+xci6ll Maintained
+xcppgc Not maintained (no makefile in master)
 </pre>
 <p>
 Platforms listed as "maintained" are used at Ravenbrook and the MPS

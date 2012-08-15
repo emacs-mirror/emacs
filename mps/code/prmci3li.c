@@ -46,7 +46,7 @@ MRef Prmci3AddressHoldingReg(MutatorFaultContext mfc, unsigned int regnum)
   /* .source.i486 */
   /* .assume.regref */
   /* The REG_EAX etc. symbols are only present if _GNU_SOURCE is defined.
-     Currently this is in lii4gc.gmk in PFMDEFS. */
+     Currently this is in lii3gc.gmk in PFMDEFS. */
   switch (regnum) {
     case 0: return &gregs[REG_EAX];
     case 1: return &gregs[REG_ECX];
