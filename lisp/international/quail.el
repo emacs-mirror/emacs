@@ -547,7 +547,7 @@ This function runs the normal hook `quail-deactivate-hook'."
   (interactive)
   (quail-activate -1))
 
-(define-obsolete-function-alias 'quail-inactivate 'quail-deactivate "24.2")
+(define-obsolete-function-alias 'quail-inactivate 'quail-deactivate "24.3")
 
 (defun quail-activate (&optional arg)
   "Activate Quail input method.
@@ -595,7 +595,7 @@ While this input method is active, the variable
 
 (define-obsolete-variable-alias
   'quail-inactivate-hook
-  'quail-deactivate-hook "24.2")
+  'quail-deactivate-hook "24.3")
 
 (defun quail-exit-from-minibuffer ()
   (deactivate-input-method)

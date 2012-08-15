@@ -70,7 +70,7 @@ opinions.
 Summary of changes to "Calc"
 ------- -- ------- --  ----
 
-Emacs 24.2
+Emacs 24.3
 
 Algebraic simplification mode is now the default.
 To restrict to the limited simplifications given by the former

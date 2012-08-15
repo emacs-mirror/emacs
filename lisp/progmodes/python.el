@@ -378,14 +378,14 @@ The type returned can be `comment', `string' or `paren'."
   (nth 8 (syntax-ppss)))
 
 (define-obsolete-function-alias
-  'python-info-ppss-context #'python-syntax-context "24.2")
+  'python-info-ppss-context #'python-syntax-context "24.3")
 
 (define-obsolete-function-alias
-  'python-info-ppss-context-type #'python-syntax-context-type "24.2")
+  'python-info-ppss-context-type #'python-syntax-context-type "24.3")
 
 (define-obsolete-function-alias
   'python-info-ppss-comment-or-string-p
-  #'python-syntax-comment-or-string-p "24.2")
+  #'python-syntax-comment-or-string-p "24.3")
 
 (defvar python-font-lock-keywords
   ;; Keywords
@@ -588,10 +588,10 @@ It makes underscores and dots word constituent chars.")
   :safe 'booleanp)
 
 (define-obsolete-variable-alias
-  'python-indent 'python-indent-offset "24.2")
+  'python-indent 'python-indent-offset "24.3")
 
 (define-obsolete-variable-alias
-  'python-guess-indent 'python-indent-guess-indent-offset "24.2")
+  'python-guess-indent 'python-indent-guess-indent-offset "24.3")
 
 (defvar python-indent-current-level 0
   "Current indentation level `python-indent-line-function' is using.")
@@ -1808,13 +1808,13 @@ there for compatibility with CEDET.")
     (get-buffer-process proc-buffer-name)))
 
 (define-obsolete-function-alias
-  'python-proc 'python-shell-internal-get-or-create-process "24.2")
+  'python-proc 'python-shell-internal-get-or-create-process "24.3")
 
 (define-obsolete-variable-alias
-  'python-buffer 'python-shell-internal-buffer "24.2")
+  'python-buffer 'python-shell-internal-buffer "24.3")
 
 (define-obsolete-variable-alias
-  'python-preoutput-result 'python-shell-internal-last-output "24.2")
+  'python-preoutput-result 'python-shell-internal-last-output "24.3")
 
 (defun python-shell-send-string (string &optional process msg)
   "Send STRING to inferior Python PROCESS.
@@ -1876,10 +1876,10 @@ Returns the output.  See `python-shell-send-string-no-output'."
          (python-shell-internal-get-or-create-process) nil)))
 
 (define-obsolete-function-alias
-  'python-send-receive 'python-shell-internal-send-string "24.2")
+  'python-send-receive 'python-shell-internal-send-string "24.3")
 
 (define-obsolete-function-alias
-  'python-send-string 'python-shell-internal-send-string "24.2")
+  'python-send-string 'python-shell-internal-send-string "24.3")
 
 (defun python-shell-send-region (start end)
   "Send the region delimited by START and END to inferior Python process."
@@ -2369,7 +2369,7 @@ the if condition."
   :safe 'booleanp)
 
 (define-obsolete-variable-alias
-  'python-use-skeletons 'python-skeleton-autoinsert "24.2")
+  'python-use-skeletons 'python-skeleton-autoinsert "24.3")
 
 (defvar python-skeleton-available '()
   "Internal list of available skeletons.")

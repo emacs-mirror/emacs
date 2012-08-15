@@ -2554,7 +2554,7 @@ This is usually a symbol that starts with `:'."
 (defsetf eieio-oref eieio-oset)
 
 (if (eval-when-compile (fboundp 'gv-define-expander))
-    ;; Not needed for Emacs>=24.2 since gv.el's setf expands macros and
+    ;; Not needed for Emacs>=24.3 since gv.el's setf expands macros and
     ;; follows aliases.
     nil
 (defsetf slot-value eieio-oset)

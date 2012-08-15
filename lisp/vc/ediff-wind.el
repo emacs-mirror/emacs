@@ -68,7 +68,7 @@
     'ediff-setup-windows-plain))
 
 (make-obsolete 'ediff-choose-window-setup-function-automatically
-	       'ediff-setup-windows-default "24.2")
+	       'ediff-setup-windows-default "24.3")
 
 (defcustom ediff-window-setup-function 'ediff-setup-windows-default
   "Function called to set up windows.
@@ -102,7 +102,7 @@ provided functions are written."
 		 (const :tag "Single Frame" ediff-setup-windows-plain)
 		 (function :tag "Other function"))
   :group 'ediff-window
-  :version "24.2")
+  :version "24.3")
 
 ;; indicates if we are in a multiframe setup
 (ediff-defvar-local ediff-multiframe nil "")

@@ -420,8 +420,8 @@ In interpreted code, this is entirely equivalent to `progn'."
 ;;   nil)
 
 (make-obsolete-variable 'macro-declaration-function
-                        'macro-declarations-alist "24.2")
+                        'macro-declarations-alist "24.3")
 (make-obsolete 'macro-declaration-function
-               'macro-declarations-alist "24.2")
+               'macro-declarations-alist "24.3")
 
 ;;; byte-run.el ends here

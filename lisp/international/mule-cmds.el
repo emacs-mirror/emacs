@@ -1333,7 +1333,7 @@ of `history-length', which see.")
 
 (define-obsolete-variable-alias
   'inactivate-current-input-method-function
-  'deactivate-current-input-method-function "24.2")
+  'deactivate-current-input-method-function "24.3")
 (defvar deactivate-current-input-method-function nil
   "Function to call for deactivating the current input method.
 Every input method should set this to an appropriate value when activated.
@@ -1473,7 +1473,7 @@ If INPUT-METHOD is nil, deactivate any current input method."
 
 (define-obsolete-function-alias
   'inactivate-input-method
-  'deactivate-input-method "24.2")
+  'deactivate-input-method "24.3")
 
 (defun set-input-method (input-method &optional interactive)
   "Select and activate input method INPUT-METHOD for the current buffer.
@@ -1651,7 +1651,7 @@ just activated."
 
 (define-obsolete-variable-alias
   'input-method-inactivate-hook
-  'input-method-deactivate-hook "24.2")
+  'input-method-deactivate-hook "24.3")
 
 (defcustom input-method-deactivate-hook nil
   "Normal hook run just after an input method is deactivated.
@@ -1660,7 +1660,7 @@ The variable `current-input-method' still keeps the input method name
 just deactivated."
   :type 'hook
   :group 'mule
-  :version "24.2")
+  :version "24.3")
 
 (defcustom input-method-after-insert-chunk-hook nil
   "Normal hook run just after an input method insert some chunk of text."
@@ -2959,7 +2959,7 @@ point or a number in hash notation, e.g. #o21430 for octal,
      (t
       (cdr (assoc-string input (ucs-names) t))))))
 
-(define-obsolete-function-alias 'ucs-insert 'insert-char "24.2")
+(define-obsolete-function-alias 'ucs-insert 'insert-char "24.3")
 (define-key ctl-x-map "8\r" 'insert-char)
 
 ;;; mule-cmds.el ends here

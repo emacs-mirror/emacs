@@ -229,7 +229,7 @@ Note: The search is conducted only within 10%, at the beginning of the file."
   :version "21.1"
   :group 'change-log)
 (define-obsolete-face-alias 'change-log-acknowledgement
-  'change-log-acknowledgment "24.2")
+  'change-log-acknowledgment "24.3")
 (define-obsolete-face-alias 'change-log-acknowledgement-face
   'change-log-acknowledgment "22.1")
 

@@ -4076,7 +4076,7 @@ The document is bounded by `sh-here-document-word'."
   (self-insert-command (prefix-numeric-value arg))
   (or arg (sh--maybe-here-document)))
 (make-obsolete 'sh--maybe-here-document
-               'sh-electric-here-document-mode "24.2")
+               'sh-electric-here-document-mode "24.3")
 
 (defun sh--maybe-here-document ()
   (or (not (looking-back "[^<]<<"))

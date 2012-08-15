@@ -532,7 +532,7 @@ HELP-TEXT is a text set in `hangul-input-method-help-text'."
 
 (define-obsolete-function-alias
   'hangul-input-method-inactivate
-  'hangul-input-method-deactivate "24.2")
+  'hangul-input-method-deactivate "24.3")
 
 (defun hangul-input-method-help ()
   "Describe the current Hangul input method."

@@ -684,13 +684,13 @@ starting the compilation process."
     (t (:inverse-video t :weight bold)))
   "Face for Compilation mode's \"error\" mode line indicator."
   :group 'compilation
-  :version "24.2")
+  :version "24.3")
 
 (defface compilation-mode-line-run
   '((t :inherit compilation-warning))
   "Face for Compilation mode's \"running\" mode line indicator."
   :group 'compilation
-  :version "24.2")
+  :version "24.3")
 
 (defface compilation-mode-line-exit
   '((default :inherit compilation-info)
@@ -700,7 +700,7 @@ starting the compilation process."
     (t (:weight bold)))
   "Face for Compilation mode's \"exit\" mode line indicator."
   :group 'compilation
-  :version "24.2")
+  :version "24.3")
 
 (defface compilation-line-number
   '((t :inherit font-lock-keyword-face))

@@ -174,7 +174,7 @@ specifies a group to which resent messages will be Gcc'd.  If this is
 nil, Gcc will be done according to existing Gcc header(s), if any.
 If this is `no-gcc-self', resent messages will be Gcc'd to groups that
 existing Gcc header specifies, except for the current group."
-  :version "24.2"
+  :version "24.3"
   :group 'gnus-message
   :type '(choice (const none) (const t) string (const nil)
 		 (const no-gcc-self)))

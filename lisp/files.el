@@ -1000,7 +1000,7 @@ Tip: You can use this expansion of remote identifier components
 		 (setq list (cdr list))))
      (or (car list) "ssh")))
   "Program to use to execute commands on a remote host (e.g. ssh or rsh)."
-  :version "24.2"			; ssh rather than rsh, etc
+  :version "24.3"			; ssh rather than rsh, etc
   :initialize 'custom-initialize-delay
   :group 'environment
   :type 'file)
@@ -1621,7 +1621,7 @@ Choose the buffer's name using `generate-new-buffer-name'."
   "Regexp to match the automounter prefix in a directory name."
   :group 'files
   :type 'regexp)
-(make-obsolete-variable 'automount-dir-prefix 'directory-abbrev-alist "24.2")
+(make-obsolete-variable 'automount-dir-prefix 'directory-abbrev-alist "24.3")
 
 (defvar abbreviated-home-dir nil
   "The user's homedir abbreviated according to `directory-abbrev-alist'.")
@@ -3640,7 +3640,7 @@ is found.  Returns the new class name."
 
 (defcustom enable-remote-dir-locals nil
   "Non-nil means dir-local variables will be applied to remote files."
-  :version "24.2"
+  :version "24.3"
   :type 'boolean
   :group 'find-file)
 

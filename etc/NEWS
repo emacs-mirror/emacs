@@ -21,7 +21,7 @@ When you add a new item, please add it without either +++ or ---
 so we will look at it and add it to the manual.
 
 
-* Installation Changes in Emacs 24.2
+* Installation Changes in Emacs 24.3
 
 ** New configure option '--without-all' to disable additonal features.
 This disables most of the features that are normally enabled by default.
@@ -61,7 +61,7 @@ Lisp_Object type no longer uses a union to implement the compile time
 check that this option enables.
 
 
-* Startup Changes in Emacs 24.2
+* Startup Changes in Emacs 24.3
 
 ** Emacs no longer searches for `leim-list.el' files beneath the standard
 lisp/ directory.  There should not be any there anyway.  If you have
@@ -71,7 +71,7 @@ been adding them there, put them somewhere else, eg site-lisp.
 ** The `--no-site-lisp' command line option now works for Nextstep builds.
 
 
-* Changes in Emacs 24.2
+* Changes in Emacs 24.3
 
 ** Help changes
 
@@ -158,7 +158,7 @@ for it.
 The PCL-CVS commands are still available via the keyboard.
 
 
-* Editing Changes in Emacs 24.2
+* Editing Changes in Emacs 24.3
 
 ** New option `delete-trailing-lines' specifies whether the M-x
 delete-trailing-whitespace command should delete trailing lines at the
@@ -189,7 +189,7 @@ It copies the region-rectangle as the last rectangle kill.
 ** New input method `vietnamese-vni'.
 
 
-* Changes in Specialized Modes and Packages in Emacs 24.2
+* Changes in Specialized Modes and Packages in Emacs 24.3
 
 ** Term changes
 
@@ -502,9 +502,9 @@ inefficiency, and not namespace-clean.
 *** cust-print.el
 
 
-* New Modes and Packages in Emacs 24.2
+* New Modes and Packages in Emacs 24.3
 
-* Incompatible Lisp Changes in Emacs 24.2
+* Incompatible Lisp Changes in Emacs 24.3
 
 ** The function `x-select-font' can return a font spec, instead of a
 font name as a string.  Whether it returns a font spec or a font name
@@ -570,7 +570,7 @@ are deprecated and will be removed eventually.
 *** `last-input-char' and `last-command-char'
 
 
-* Lisp changes in Emacs 24.2
+* Lisp changes in Emacs 24.3
 
 ** New functions `autoloadp' and `autoload-do-load'.
 
@@ -624,7 +624,7 @@ by the underlying C implementation.
 ** `automount-dir-prefix' is obsolete.
 ** `buffer-has-markers-at' is obsolete.
 
-* Changes in Emacs 24.2 on non-free operating systems
+* Changes in Emacs 24.3 on non-free operating systems
 
 ** New configure.bat options on MS-Windows:
 
@@ -636,6 +636,10 @@ Emacs now supports mouse highlight, help-echo (in the echo area), and
 mouse-autoselect-window.
 
 ** On MS-Windows Vista and later Emacs now supports symbolic links.
+
+* Changes in Emacs 24.2
+
+** This release mainly fixes a security issue.
 
 
 * Installation Changes in Emacs 24.1

@@ -1169,7 +1169,7 @@ be a list of the form returned by `event-start' and `event-end'."
 (define-obsolete-function-alias 'string-to-int 'string-to-number "22.1")
 
 (make-obsolete 'forward-point "use (+ (point) N) instead." "23.1")
-(make-obsolete 'buffer-has-markers-at nil "24.2")
+(make-obsolete 'buffer-has-markers-at nil "24.3")
 
 (defun insert-string (&rest args)
   "Mocklisp-compatibility insert function.
@@ -1194,7 +1194,7 @@ is converted into a string by expressing it in decimal."
 (set-advertised-calling-convention
  'all-completions '(string collection &optional predicate) "23.1")
 (set-advertised-calling-convention 'unintern '(name obarray) "23.3")
-(set-advertised-calling-convention 'redirect-frame-focus '(frame focus-frame) "24.2")
+(set-advertised-calling-convention 'redirect-frame-focus '(frame focus-frame) "24.3")
 
 ;;;; Obsolescence declarations for variables, and aliases.
 
@@ -2491,7 +2491,7 @@ This finishes the change group by reverting all of its changes."
 
 ;; For compatibility.
 (define-obsolete-function-alias 'redraw-modeline
-  'force-mode-line-update "24.2")
+  'force-mode-line-update "24.3")
 
 (defun force-mode-line-update (&optional all)
   "Force redisplay of the current buffer's mode line and header line.

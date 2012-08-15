@@ -278,9 +278,9 @@ If AUTO-SAVE is non-nil, compare the saved contents to the one last saved,
 	  (print-level nil)
 	  (print-readably t)
 	  (print-quoted t))
-      ;; During the 24.2 development, read-passwd had a bug which resulted in
+      ;; During the 24.3 development, read-passwd had a bug which resulted in
       ;; the passwords being saved by savehist.  Trim them, retroactively.
-      ;; This code can be removed after the 24.2 release.
+      ;; This code can be removed after the 24.3 release.
       (dolist (sym savehist-minibuffer-history-variables)
         (if (and (symbolp sym) (equal (symbol-name sym) "forget-history"))
             (setq savehist-minibuffer-history-variables

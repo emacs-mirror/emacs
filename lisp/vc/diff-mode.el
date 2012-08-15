@@ -1902,7 +1902,7 @@ For use in `add-log-current-defun-function'."
      :background "#aa2222"))
   "Face used for removed characters shown by `diff-refine-hunk'."
   :group 'diff-mode
-  :version "24.2")
+  :version "24.3")
 
 (defface diff-refine-added
   '((default
@@ -1913,7 +1913,7 @@ For use in `add-log-current-defun-function'."
      :background "#22aa22"))
   "Face used for added characters shown by `diff-refine-hunk'."
   :group 'diff-mode
-  :version "24.2")
+  :version "24.3")
 
 (defun diff-refine-preproc ()
   (while (re-search-forward "^[+>]" nil t)

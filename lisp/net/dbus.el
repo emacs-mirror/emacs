@@ -280,7 +280,7 @@ object is returned instead of a list containing this single Lisp object.
 
 ;; `dbus-call-method' works non-blocking now.
 (defalias 'dbus-call-method-non-blocking 'dbus-call-method)
-(make-obsolete 'dbus-call-method-non-blocking 'dbus-call-method "24.2")
+(make-obsolete 'dbus-call-method-non-blocking 'dbus-call-method "24.3")
 
 (defun dbus-call-method-asynchronously
  (bus service path interface method handler &rest args)

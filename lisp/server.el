@@ -163,7 +163,7 @@ key."
   :type '(choice
 	  (const :tag "Random" nil)
 	  (string :tag "Password"))
-  :version "24.2")
+  :version "24.3")
 
 (defcustom server-raise-frame t
   "If non-nil, raise frame when switching to a buffer."

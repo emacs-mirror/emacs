@@ -1038,7 +1038,7 @@ construct (see `substitute-command-keys'), the library is loaded,
 so that the documentation can show the right key bindings."
   :type 'boolean
   :group 'help
-  :version "24.2")
+  :version "24.3")
 
 (defun help-window-display-message (quit-part window &optional scroll)
   "Display message telling how to quit and scroll help window.

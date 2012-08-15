@@ -4,7 +4,7 @@
 
 ;; Author: Mike Williams <mdub@bigfoot.com>
 ;; Keywords: mouse
-;; Obsolete-since: 24.2
+;; Obsolete-since: 24.3
 
 ;; This file is part of GNU Emacs.
 
@@ -263,7 +263,7 @@ kill ring; mouse-1 or mouse-3 kills it."
 	      interprogram-paste-function
 	      mouse-sel-original-interprogram-paste-function))))
 
-(make-obsolete 'mouse-sel-mode "use the normal mouse modes" "24.2")
+(make-obsolete 'mouse-sel-mode "use the normal mouse modes" "24.3")
 
 ;;=== Internal Variables/Constants ========================================
 

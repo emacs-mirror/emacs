@@ -774,7 +774,7 @@ has no effect."
   :set (lambda (symbol value)
 	 (set-default symbol value)
 	 (imagemagick-register-types))
-  :version "24.2"
+  :version "24.3"
   :group 'image)
 
 (defcustom imagemagick-enabled-types
@@ -812,7 +812,7 @@ has no effect."
   :set (lambda (symbol value)
 	 (set-default symbol value)
 	 (imagemagick-register-types))
-  :version "24.2"
+  :version "24.3"
   :group 'image)
 
 (imagemagick-register-types)

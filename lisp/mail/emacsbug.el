@@ -355,7 +355,7 @@ usually do not have translators for other languages.\n\n")))
           (buffer-substring-no-properties (point-min) (point)))
     (goto-char user-point)))
 
-(define-obsolete-function-alias 'report-emacs-bug-info 'info-emacs-bug "24.2")
+(define-obsolete-function-alias 'report-emacs-bug-info 'info-emacs-bug "24.3")
 
 ;; It's the default mail mode, so it seems OK to use its features.
 (autoload 'message-bogus-recipient-p "message")

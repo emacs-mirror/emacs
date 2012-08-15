@@ -1105,7 +1105,7 @@ Each function is called with two arguments: the ERC process and
 the unprocessed output.")
 
 (define-obsolete-variable-alias 'erc-dcc-chat-filter-hook
-  'erc-dcc-chat-filter-functions "24.2")
+  'erc-dcc-chat-filter-functions "24.3")
 
 (defvar erc-dcc-chat-mode-map
   (let ((map (make-sparse-keymap)))

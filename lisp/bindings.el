@@ -143,7 +143,7 @@ message to display when the mouse is moved over the mode line.
 If the text at the mouse position has a `help-echo' text
 property, that overrides this variable."
   :type '(choice (const :tag "No help" :value nil) string)
-  :version "24.2"
+  :version "24.3"
   :group 'mode-line)
 
 (defvar mode-line-front-space '(:eval (if (display-graphic-p) " " "-"))

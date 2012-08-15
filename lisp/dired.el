@@ -3476,7 +3476,7 @@ The idea is to set this buffer-locally in special dired buffers.")
     (force-mode-line-update)))
 
 (define-obsolete-function-alias 'dired-sort-set-modeline
-  'dired-sort-set-mode-line "24.2")
+  'dired-sort-set-mode-line "24.3")
 
 (defun dired-sort-toggle-or-edit (&optional arg)
   "Toggle sorting by date, and refresh the Dired buffer.

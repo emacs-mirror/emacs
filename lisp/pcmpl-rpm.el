@@ -44,7 +44,7 @@
             (push "--nosignature" opts))))
     opts)
   "String, or list of strings, with extra options for an rpm query command."
-  :version "24.2"
+  :version "24.3"
   :type '(choice (const :tag "No options" nil)
                  (string :tag "Single option")
                  (repeat :tag "List of options" string))
@@ -52,7 +52,7 @@
 
 (defcustom pcmpl-rpm-cache t
   "Whether to cache the list of installed packages."
-  :version "24.2"
+  :version "24.3"
   :type 'boolean
   :group 'pcmpl-rpm)
 

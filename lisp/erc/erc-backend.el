@@ -396,7 +396,7 @@ isn't displayed."
 (defcustom erc-server-timestamp-format "%Y-%m-%d %T"
   "Timestamp format used with server response messages.
 This string is processed using `format-time-string'."
-  :version "24.2"
+  :version "24.3"
   :type 'string
   :group 'erc-server)
 

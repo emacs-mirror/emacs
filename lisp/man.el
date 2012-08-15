@@ -129,19 +129,19 @@ the manpage buffer."
   '((t (:inherit bold)))
   "Face to use when fontifying overstrike."
   :group 'man
-  :version "24.2")
+  :version "24.3")
 
 (defface Man-underline
   '((t (:inherit underline)))
   "Face to use when fontifying underlining."
   :group 'man
-  :version "24.2")
+  :version "24.3")
 
 (defface Man-reverse
   '((t (:inherit highlight)))
   "Face to use when fontifying reverse video."
   :group 'man
-  :version "24.2")
+  :version "24.3")
 
 (defvar Man-ansi-color-map (let ((ansi-color-faces-vector
 				  [ default Man-overstrike default Man-underline

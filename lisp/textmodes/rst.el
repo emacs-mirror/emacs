@@ -215,12 +215,12 @@ Starts with the current official version.  For developer versions
 in parentheses follows the development revision and the time stamp.")
 
 (defconst rst-package-emacs-version-alist
-  '(("1.0.0" . "24.2")
-    ("1.1.0" . "24.2")
-    ("1.2.0" . "24.2")
-    ("1.2.1" . "24.2")
-    ("1.3.0" . "24.2")
-    ("1.3.1" . "24.2")
+  '(("1.0.0" . "24.3")
+    ("1.1.0" . "24.3")
+    ("1.2.0" . "24.3")
+    ("1.2.1" . "24.3")
+    ("1.3.0" . "24.3")
+    ("1.3.1" . "24.3")
     ))
 
 (unless (assoc rst-official-version rst-package-emacs-version-alist)

@@ -217,7 +217,7 @@ static char * stroke_xpm[] = {
   :type 'string
   :group 'strokes)
 
-(define-obsolete-variable-alias 'strokes-modeline-string 'strokes-lighter "24.2")
+(define-obsolete-variable-alias 'strokes-modeline-string 'strokes-lighter "24.3")
 
 (defcustom strokes-character ?@
   "Character used when drawing strokes in the strokes buffer.

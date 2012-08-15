@@ -570,7 +570,7 @@ Trailing lines are deleted only if `delete-trailing-whitespace'
 is called on the entire buffer (rather than an active region)."
   :type 'boolean
   :group 'editing
-  :version "24.2")
+  :version "24.3")
 
 (defun delete-trailing-whitespace (&optional start end)
   "Delete trailing whitespace between START and END.
@@ -2295,7 +2295,7 @@ output buffer and running a new command in the default buffer,
 		 (const :tag "Rename the existing buffer"
 			rename-buffer))
   :group 'shell
-  :version "24.2")
+  :version "24.3")
 
 (defun async-shell-command (command &optional output-buffer error-buffer)
   "Execute string COMMAND asynchronously in background.

@@ -5,7 +5,7 @@
 ;; Author: Daniel LaLiberte <liberte@holonexus.org>
 ;; Adapted-By: ESR
 ;; Keywords: extensions
-;; Obsolete-since: 24.2
+;; Obsolete-since: 24.3
 
 ;; LCD Archive Entry:
 ;; cust-print|Daniel LaLiberte|liberte@holonexus.org

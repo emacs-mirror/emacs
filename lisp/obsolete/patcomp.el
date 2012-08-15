@@ -2,7 +2,7 @@
 
 ;; This file is part of GNU Emacs.
 
-;; Obsolete-since: 24.2
+;; Obsolete-since: 24.3
 
 ;;; Commentary:
 

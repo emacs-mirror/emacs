@@ -346,7 +346,7 @@ The constants `nxml-ascii-glyph-set', `nxml-latin1-glyph-set',
 predefined for use by `nxml-glyph-set-functions'.")
 
 (define-obsolete-variable-alias 'nxml-glyph-set-hook
-  'nxml-glyph-set-functions "24.2")
+  'nxml-glyph-set-functions "24.3")
 
 (defvar nxml-glyph-set nil
   "Used by `nxml-glyph-set-functions' to return set of glyphs in a FACE.

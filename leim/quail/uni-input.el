@@ -114,7 +114,7 @@ While this input method is active, the variable
 
 (define-obsolete-function-alias
   'ucs-input-inactivate
-  'ucs-input-deactivate "24.2")
+  'ucs-input-deactivate "24.3")
 
 (defun ucs-input-help ()
   (interactive)

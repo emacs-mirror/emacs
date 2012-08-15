@@ -88,44 +88,44 @@ include key-binding information in its output."
   '((t (:inherit bold)))
   "Face for the symbol name in Apropos output."
   :group 'apropos
-  :version "24.2")
+  :version "24.3")
 
 (defface apropos-keybinding
   '((t (:inherit underline)))
   "Face for lists of keybinding in Apropos output."
   :group 'apropos
-  :version "24.2")
+  :version "24.3")
 
 (defface apropos-property
   '((t (:inherit font-lock-builtin-face)))
   "Face for property name in apropos output, or nil for none."
   :group 'apropos
-  :version "24.2")
+  :version "24.3")
 
 (defface apropos-function-button
   '((t (:inherit (font-lock-function-name-face button))))
   "Button face indicating a function, macro, or command in Apropos."
   :group 'apropos
-  :version "24.2")
+  :version "24.3")
 
 (defface apropos-variable-button
   '((t (:inherit (font-lock-variable-name-face button))))
   "Button face indicating a variable in Apropos."
   :group 'apropos
-  :version "24.2")
+  :version "24.3")
 
 (defface apropos-misc-button
   '((t (:inherit (font-lock-constant-face button))))
   "Button face indicating a miscellaneous object type in Apropos."
   :group 'apropos
-  :version "24.2")
+  :version "24.3")
 
 (defcustom apropos-match-face 'match
   "Face for matching text in Apropos documentation/value, or nil for none.
 This applies when you look for matches in the documentation or variable value
 for the pattern; the part that matches gets displayed in this font."
   :group 'apropos
-  :version "24.2")
+  :version "24.3")
 
 (defcustom apropos-sort-by-scores nil
   "Non-nil means sort matches by scores; best match is shown first.

@@ -204,7 +204,7 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 	     (delete-by-moving-to-trash auto-save boolean "23.1")
 	     (auto-save-visited-file-name auto-save boolean)
 	     ;; filelock.c
-	     (create-lockfiles files boolean "24.2")
+	     (create-lockfiles files boolean "24.3")
 	     (temporary-file-directory
 	      ;; Darwin section added 24.1, does not seem worth :version bump.
 	      files directory nil

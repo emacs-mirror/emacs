@@ -4133,7 +4133,7 @@ For example, the function `case' has an indent property
 ;;;;;;  653810 0))
 ;;; Generated autoloads from emacs-lisp/cl-lib.el
 
-(define-obsolete-variable-alias 'custom-print-functions 'cl-custom-print-functions "24.2")
+(define-obsolete-variable-alias 'custom-print-functions 'cl-custom-print-functions "24.3")
 
 (defvar cl-custom-print-functions nil "\
 This is a list of functions that format user objects for printing.

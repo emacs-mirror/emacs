@@ -1336,7 +1336,7 @@ If nil, you might be asked to input the charset."
   "*Addresses to prune when doing wide replies.
 This can be a regexp or a list of regexps.  Also, a value of nil means
 exclude your own user name only."
-  :version "24.2"
+  :version "24.3"
   :group 'message
   :link '(custom-manual "(message)Wide Reply")
   :type '(choice (const :tag "Yourself" nil)
