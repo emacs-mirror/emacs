@@ -1,3 +1,7 @@
+2012-08-15  Chong Yidong  <cyd@gnu.org>
+
+	* Version 24.2 released.
+
 2012-06-23  Leo Liu  <sdl.web@gmail.com>
 
 	* url-http.el (url-http-codes): Fix mal-formed defconst.

@@ -1,3 +1,7 @@
+2012-08-15  Chong Yidong  <cyd@gnu.org>
+
+	* Version 24.2 released.
+
 2012-06-19  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in: Rename infodir to buildinfodir throughout.  (Bug#11737)

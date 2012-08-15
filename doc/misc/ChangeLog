@@ -1,3 +1,7 @@
+2012-08-15  Chong Yidong  <cyd@gnu.org>
+
+	* Version 24.2 released.
+
 2012-08-06  Aurélien Aptel  <aurelien.aptel@gmail.com>
 
 	* url.texi (Parsed URLs): Adjust to the code's use of defstruct
