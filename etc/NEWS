@@ -639,7 +639,7 @@ mouse-autoselect-window.
 
 * Changes in Emacs 24.2
 
-** This release mainly fixes a security issue.
+** This is mainly a bug-fix release.
 
 
 * Installation Changes in Emacs 24.1
