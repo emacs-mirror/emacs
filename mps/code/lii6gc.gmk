@@ -22,11 +22,6 @@ include gc.gmk
 
 CC = cc
 
-# Suppress some warnings (SuSE).
-#   .void: -Wpointer-arith cannot be used because the string.h header does
-#   arithmetic on void*.
-CFLAGSCOMPILER := -pthread $(subst -Wpointer-arith,,$(CFLAGSCOMPILER))
-
 include comm.gmk
 
 
