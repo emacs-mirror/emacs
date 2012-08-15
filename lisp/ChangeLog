@@ -1,3 +1,7 @@
+2012-08-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* textmodes/tex-mode.el (tex-insert-quote): ~ is a space (bug#12137).
+
 2012-08-15  Wolfgang Jenkner  <wjenkner@inode.at>
 
 	* man.el (Man-overstrike-face, Man-underline-face)

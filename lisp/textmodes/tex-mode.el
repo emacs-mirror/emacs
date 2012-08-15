@@ -1286,7 +1286,8 @@ inserts \" characters."
 	      (delete-char (length tex-open-quote))
 	      t)))
       (self-insert-command (prefix-numeric-value arg))
-    (insert (if (memq (char-syntax (preceding-char)) '(?\( ?> ?\s))
+    (insert (if (or (memq (char-syntax (preceding-char)) '(?\( ?> ?\s))
+                    (memq (preceding-char) '(?~)))
 		tex-open-quote tex-close-quote))))
 
 (defun tex-validate-buffer ()
