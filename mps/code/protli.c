@@ -1,9 +1,12 @@
-/* protlii6.c: PROTECTION FOR LINUX (x64)
+/* protli.c: PROTECTION FOR LINUX (INTEL 386)
  *
  *  $Id$
  *  Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
  *
  * SOURCES
+ *
+ * .source.i486: Intel486 Microprocessor Family Programmer's
+ * Reference Manual
  *
  * .source.linux.kernel: Linux kernel source files.
  */
@@ -11,13 +14,10 @@
 #include "prmcix.h"
 
 #ifndef MPS_OS_LI
-#error "protlii6.c is Linux-specific, but MPS_OS_LI is not set"
-#endif
-#if !defined(MPS_ARCH_I6)
-#error "protlii6.c is x64, but MPS_ARCH_I6 is not set"
+#error "protli.c is Linux-specific, but MPS_OS_LI is not set"
 #endif
 #ifndef PROTECTION
-#error "protlii6.c implements protection, but PROTECTION is not set"
+#error "protli.c implements protection, but PROTECTION is not set"
 #endif
 
 #include <limits.h>
@@ -26,7 +26,7 @@
 #include <signal.h>
 #include <unistd.h>
 
-SRCID(protlii6, "$Id$");
+SRCID(protli, "$Id$");
 
 
 
@@ -49,11 +49,13 @@ static struct sigaction sigNext;
  *
  *  .sigh.context: We check si_code for being a memory access
  *  si_addr gives the fault address.  See 
- *  .source.linux.kernel (linux/arch/x86/mm/fault.c).
+ *  .source.linux.kernel (linux/arch/i386/mm/fault.c and
+ *  linux/arch/x86/mm/fault.c).
  *
  *  .sigh.addr: We assume that the OS decodes the address to something
  *  sensible
  */
+
 /* This is defined here to keep the sources closer to those in protsgix.c
  * They can't be merged yet because protsgix doesn't pass the context to
  * ArenaAccess */

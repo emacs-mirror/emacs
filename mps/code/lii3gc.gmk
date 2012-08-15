@@ -13,7 +13,7 @@ THREADLIB = -lpthread
 PFMDEFS = -D_REENTRANT -D_XOPEN_SOURCE=500 -D_GNU_SOURCE
 
 MPMPF = ${THREADSRC} vmix.c \
-        protix.c protlii3.c proti3.c prmci3li.c ssixi3.c span.c
+        protix.c protli.c proti3.c prmci3li.c ssixi3.c span.c
 SWPF = than.c vmli.c protsw.c prmcan.c ssan.c
 
 LIBS = -lm ${THREADLIB}
