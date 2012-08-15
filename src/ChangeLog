@@ -1,3 +1,8 @@
+2012-08-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuf.c (read_minibuf): Ignore caller's inhibit-read-only
+	(bug#12117).
+
 2012-08-14  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* alloc.c (Fgarbage_collect): Use plural form consistently.
