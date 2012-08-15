@@ -59,7 +59,7 @@ xfont_get_pcm (XFontStruct *xfont, XChar2b *char2b)
   /* The result metric information.  */
   XCharStruct *pcm = NULL;
 
-  font_assert (xfont && char2b);
+  eassert (xfont && char2b);
 
   if (xfont->per_char != NULL)
     {

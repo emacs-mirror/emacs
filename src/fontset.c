@@ -1027,8 +1027,7 @@ make_fontset_for_ascii_face (FRAME_PTR f, int base_fontset_id, struct face *face
       base_fontset = FONTSET_FROM_ID (base_fontset_id);
       if (!BASE_FONTSET_P (base_fontset))
 	base_fontset = FONTSET_BASE (base_fontset);
-      if (! BASE_FONTSET_P (base_fontset))
-	abort ();
+      eassert (BASE_FONTSET_P (base_fontset));
     }
   else
     base_fontset = Vdefault_fontset;
@@ -1725,8 +1724,7 @@ fontset_from_font (Lisp_Object font_object)
   fontset_spec = copy_font_spec (font_spec);
   ASET (fontset_spec, FONT_REGISTRY_INDEX, alias);
   name = Ffont_xlfd_name (fontset_spec, Qnil);
-  if (NILP (name))
-    abort ();
+  eassert (!NILP (name));
   fontset = make_fontset (Qnil, name, Qnil);
   Vfontset_alias_alist = Fcons (Fcons (name, SYMBOL_NAME (alias)),
 				Vfontset_alias_alist);

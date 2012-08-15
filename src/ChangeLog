@@ -1,5 +1,12 @@
 2012-08-15  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	Generalize and cleanup font subsystem checks.
+	* font.h (FONT_DEBUG, font_assert): Remove.
+	* font.c, fontset.c, w32font.c, xfont.c, xftfont.c: Change
+	font_assert to eassert.  Use eassert where appropriate.
+
+2012-08-15  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	* gtkutil.c (xg_get_font): Use pango_units_to_double.
 
 2012-08-15  Chong Yidong  <cyd@gnu.org>

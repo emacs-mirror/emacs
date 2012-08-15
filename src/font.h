@@ -858,10 +858,4 @@ extern void font_deferred_log (const char *, Lisp_Object, Lisp_Object);
       font_deferred_log ((ACTION), (ARG), (RESULT));	\
   } while (0)
 
-#ifdef FONT_DEBUG
-#define font_assert(X)	do {if (!(X)) abort ();} while (0)
-#else  /* not FONT_DEBUG */
-#define font_assert(X)	(void) 0
-#endif	/* not FONT_DEBUG */
-
 #endif	/* not EMACS_FONT_H */

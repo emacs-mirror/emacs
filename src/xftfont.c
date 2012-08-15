@@ -622,8 +622,7 @@ xftfont_get_xft_draw (FRAME_PTR f)
 			       FRAME_X_VISUAL (f),
 			       FRAME_X_COLORMAP (f));
       UNBLOCK_INPUT;
-      if (! xft_draw)
-	abort ();
+      eassert (xft_draw != NULL);
       font_put_frame_data (f, &xftfont_driver, xft_draw);
     }
   return xft_draw;

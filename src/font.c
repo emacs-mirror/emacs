@@ -290,7 +290,7 @@ font_pixel_size (FRAME_PTR f, Lisp_Object spec)
     return XINT (size);
   if (NILP (size))
     return 0;
-  font_assert (FLOATP (size));
+  eassert (FLOATP (size));
   point_size = XFLOAT_DATA (size);
   val = AREF (spec, FONT_DPI_INDEX);
   if (INTEGERP (val))
@@ -354,8 +354,7 @@ font_style_to_value (enum font_property_index prop, Lisp_Object val, int noerror
 	  }
       if (! noerror)
 	return -1;
-      if (len == 255)
-	abort ();
+      eassert (len < 255);
       elt = Fmake_vector (make_number (2), make_number (100));
       ASET (elt, 1, val);
       args[0] = table;
@@ -404,10 +403,10 @@ font_style_symbolic (Lisp_Object font, enum font_property_index prop, int for_fa
   table = AREF (font_style_table, prop - FONT_WEIGHT_INDEX);
   CHECK_VECTOR (table);
   i = XINT (val) & 0xFF;
-  font_assert (((i >> 4) & 0xF) < ASIZE (table));
+  eassert (((i >> 4) & 0xF) < ASIZE (table));
   elt = AREF (table, ((i >> 4) & 0xF));
   CHECK_VECTOR (elt);
-  font_assert ((i & 0xF) + 1 < ASIZE (elt));
+  eassert ((i & 0xF) + 1 < ASIZE (elt));
   elt = (for_face ? AREF (elt, 1) : AREF (elt, (i & 0xF) + 1));
   CHECK_SYMBOL (elt);
   return elt;
@@ -1076,7 +1075,7 @@ font_parse_xlfd (char *name, ptrdiff_t len, Lisp_Object font)
 	    {
 	      double point_size = -1;
 
-	      font_assert (FONT_SPEC_P (font));
+	      eassert (FONT_SPEC_P (font));
 	      p = f[XLFD_POINT_INDEX];
 	      if (*p == '[')
 		point_size = parse_matrix (p);
@@ -1197,7 +1196,7 @@ font_unparse_xlfd (Lisp_Object font, int pixel_size, char *name, int nbytes)
   Lisp_Object val;
   int i, j, len;
 
-  font_assert (FONTP (font));
+  eassert (FONTP (font));
 
   for (i = FONT_FOUNDRY_INDEX, j = XLFD_FOUNDRY_INDEX; i <= FONT_REGISTRY_INDEX;
        i++, j++)
@@ -1248,7 +1247,7 @@ font_unparse_xlfd (Lisp_Object font, int pixel_size, char *name, int nbytes)
     }
 
   val = AREF (font, FONT_SIZE_INDEX);
-  font_assert (NUMBERP (val) || NILP (val));
+  eassert (NUMBERP (val) || NILP (val));
   if (INTEGERP (val))
     {
       EMACS_INT v = XINT (val);
@@ -1585,8 +1584,7 @@ font_unparse_fcname (Lisp_Object font, int pixel_size, char *name, int nbytes)
     }
   else
     {
-      if (! FLOATP (val))
-	abort ();
+      eassert (FLOATP (val));
       pixel_size = -1;
       point_size = (int) XFLOAT_DATA (val);
     }
@@ -2540,7 +2538,7 @@ font_finish_cache (FRAME_PTR f, struct font_driver *driver)
   val = XCDR (cache);
   while (CONSP (val) && ! EQ (XCAR (XCAR (val)), driver->type))
     cache = val, val = XCDR (val);
-  font_assert (! NILP (val));
+  eassert (! NILP (val));
   tmp = XCDR (XCAR (val));
   XSETCAR (tmp, make_number (XINT (XCAR (tmp)) - 1));
   if (XINT (XCAR (tmp)) == 0)
@@ -2557,9 +2555,9 @@ font_get_cache (FRAME_PTR f, struct font_driver *driver)
   Lisp_Object val = driver->get_cache (f);
   Lisp_Object type = driver->type;
 
-  font_assert (CONSP (val));
+  eassert (CONSP (val));
   for (val = XCDR (val); ! EQ (XCAR (XCAR (val)), type); val = XCDR (val));
-  font_assert (CONSP (val));
+  eassert (CONSP (val));
   /* VAL = ((DRIVER-TYPE NUM-FRAMES FONT-CACHE-DATA ...) ...) */
   val = XCDR (XCAR (val));
   return val;
@@ -2596,7 +2594,7 @@ font_clear_cache (FRAME_PTR f, Lisp_Object cache, struct font_driver *driver)
 
 		      if (! NILP (AREF (val, FONT_TYPE_INDEX)))
 			{
-			  font_assert (font && driver == font->driver);
+			  eassert (font && driver == font->driver);
 			  driver->close (f, font);
 			  num_fonts--;
 			}
@@ -2706,7 +2704,7 @@ font_list_entities (Lisp_Object frame, Lisp_Object spec)
   int need_filtering = 0;
   int i;
 
-  font_assert (FONT_SPEC_P (spec));
+  eassert (FONT_SPEC_P (spec));
 
   if (INTEGERP (AREF (spec, FONT_SIZE_INDEX)))
     size = XINT (AREF (spec, FONT_SIZE_INDEX));
@@ -2826,7 +2824,7 @@ font_open_entity (FRAME_PTR f, Lisp_Object entity, int pixel_size)
   int min_width, height;
   int scaled_pixel_size = pixel_size;
 
-  font_assert (FONT_ENTITY_P (entity));
+  eassert (FONT_ENTITY_P (entity));
   size = AREF (entity, FONT_SIZE_INDEX);
   if (XINT (size) != 0)
     scaled_pixel_size = pixel_size = XINT (size);
@@ -2903,7 +2901,7 @@ font_close_object (FRAME_PTR f, Lisp_Object font_object)
   FONT_ADD_LOG ("close", font_object, Qnil);
   font->driver->close (f, font);
 #ifdef HAVE_WINDOW_SYSTEM
-  font_assert (FRAME_X_DISPLAY_INFO (f)->n_fonts);
+  eassert (FRAME_X_DISPLAY_INFO (f)->n_fonts);
   FRAME_X_DISPLAY_INFO (f)->n_fonts--;
 #endif
   num_fonts--;
@@ -2933,7 +2931,7 @@ font_has_char (FRAME_PTR f, Lisp_Object font, int c)
       return driver_list->driver->has_char (font, c);
     }
 
-  font_assert (FONT_OBJECT_P (font));
+  eassert (FONT_OBJECT_P (font));
   fontp = XFONT_OBJECT (font);
   if (fontp->driver->has_char)
     {
@@ -2953,7 +2951,7 @@ font_encode_char (Lisp_Object font_object, int c)
 {
   struct font *font;
 
-  font_assert (FONT_OBJECT_P (font_object));
+  eassert (FONT_OBJECT_P (font_object));
   font = XFONT_OBJECT (font_object);
   return font->driver->encode_char (font, c);
 }
@@ -2964,7 +2962,7 @@ font_encode_char (Lisp_Object font_object, int c)
 Lisp_Object
 font_get_name (Lisp_Object font_object)
 {
-  font_assert (FONT_OBJECT_P (font_object));
+  eassert (FONT_OBJECT_P (font_object));
   return AREF (font_object, FONT_NAME_INDEX);
 }
 
@@ -3250,10 +3248,8 @@ font_open_for_lface (FRAME_PTR f, Lisp_Object entity, Lisp_Object *attrs, Lisp_O
 	{
 	  struct face *def = FACE_FROM_ID (f, DEFAULT_FACE_ID);
 	  Lisp_Object height = def->lface[LFACE_HEIGHT_INDEX];
-	  if (INTEGERP (height))
-	    pt = XINT (height);
-	  else
-	    abort (); /* We should never end up here.  */
+	  eassert (INTEGERP (height));
+	  pt = XINT (height);
 	}
 
       pt /= 10;
@@ -3728,7 +3724,7 @@ font_range (ptrdiff_t pos, ptrdiff_t *limit, struct window *w, struct face *face
     }
   else
     {
-      font_assert (face);
+      eassert (face);
       pos_byte = string_char_to_byte (string, pos);
     }
 
@@ -4268,7 +4264,7 @@ DEFUN ("clear-font-cache", Fclear_font_cache, Sclear_font_cache, 0, 0, 0,
 	    while (! NILP (val)
 		   && ! EQ (XCAR (XCAR (val)), driver_list->driver->type))
 	      val = XCDR (val);
-	    font_assert (! NILP (val));
+	    eassert (! NILP (val));
 	    tmp = XCDR (XCAR (val));
 	    if (XINT (XCAR (tmp)) == 0)
 	      {
