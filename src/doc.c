@@ -22,10 +22,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <sys/types.h>
 #include <sys/file.h>	/* Must be after sys/types.h for USG*/
-#include <ctype.h>
 #include <setjmp.h>
 #include <fcntl.h>
 #include <unistd.h>
+
+#include <c-ctype.h>
 
 #include "lisp.h"
 #include "character.h"
@@ -597,9 +598,9 @@ the same file name is found in the `doc-directory'.  */)
       {
         ptrdiff_t len;
 
-        while (*beg && isspace (*beg)) ++beg;
+        while (*beg && c_isspace (*beg)) ++beg;
 
-        for (end = beg; *end && ! isspace (*end); ++end)
+        for (end = beg; *end && ! c_isspace (*end); ++end)
           if (*end == '/') beg = end+1;  /* skip directory part  */
 
         len = end - beg;

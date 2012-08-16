@@ -302,7 +302,7 @@ static EmacsImage *ImageList = nil;
                   [bmRep release];
                   return nil;
                 }
-#define hexchar(x) (isdigit (x) ? x - '0' : x - 'a' + 10)
+#define hexchar(x) ('0' <= (x) && (x) <= '9' ? (x) - '0' : (x) - 'a' + 10)
               s1 = *s++;
               s2 = *s++;
               c = hexchar (s1) * 0x10 + hexchar (s2);
@@ -501,4 +501,3 @@ static EmacsImage *ImageList = nil;
 }
 
 @end
-

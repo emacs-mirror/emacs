@@ -28,7 +28,6 @@ Boston, MA 02110-1301, USA.  */
 #include <lisp.h>
 
 #include <stdio.h>
-#include <ctype.h>
 
 #include <sys/types.h>
 #if (defined __sun) && !(defined SUNOS41)
@@ -1858,7 +1857,7 @@ openXftFont (XlwMenuWidget mw)
       int screen = XScreenNumberOfScreen (mw->core.screen);
       int len = strlen (fname), i = len-1;
       /* Try to convert Gtk-syntax (Sans 9) to Xft syntax Sans-9.  */
-      while (i > 0 && isdigit (fname[i]))
+      while (i > 0 && '0' <= fname[i] && fname[i] <= '9')
         --i;
       if (fname[i] == ' ')
         {

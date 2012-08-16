@@ -1,3 +1,31 @@
+2012-08-16  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use ASCII tests for character types.
+	* category.c, dispnew.c, doprnt.c, editfns.c, syntax.c, term.c:
+	* xfns.c, xterm.c:
+	Don't include <ctype.h>; was not needed.
+	* charset.c, doc.c, fileio.c, font.c, frame.c, gtkutil.c, image.c:
+	* sysdep.c, xfaces.c:
+	Include <c-ctype.h> instead of <ctype.h>.
+	* nsterm.m: Include <c-ctype.h>.
+	* charset.c (read_hex):
+	* doc.c (Fsnarf_documentation):
+	* fileio.c (IS_DRIVE) [WINDOWSNT]:
+	(DRIVE_LETTER) [DOS_NT]:
+	(Ffile_name_directory, Fexpand_file_name)
+	(Fsubstitute_in_file_name):
+	* font.c (font_parse_xlfd, font_parse_fcname):
+	* frame.c (x_set_font_backend):
+	* gtkutil.c (xg_get_font):
+	* image.c (xbm_scan, xpm_scan, pbm_scan_number):
+	* nsimage.m (hexchar):
+	* nsterm.m (ns_xlfd_to_fontname):
+	* sysdep.c (system_process_attributes):
+	* xfaces.c (hash_string_case_insensitive):
+	Use C-locale tests instead of locale-specific tests for character
+	types, since we want the ASCII interpretation here, not the
+	interpretation suitable for whatever happens to be the current locale.
+
 2012-08-16  Martin Rudalics  <rudalics@gmx.at>
 
 	Consistently check windows for validity/liveness

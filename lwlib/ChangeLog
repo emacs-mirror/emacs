@@ -1,3 +1,11 @@
+2012-08-16  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use ASCII tests for character types.
+	* lwlib-Xaw.c, lwlib.c, xlwmenu.c:
+	Don't include <ctype.h>; no longer needed.
+	* lwlib-Xaw.c (openFont):
+	* xlwmenu.c (openXftFont): Test just for ASCII digits.
+
 2012-08-01  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (config_h): Add conf_post.h.

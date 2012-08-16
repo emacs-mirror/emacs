@@ -20,10 +20,12 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <config.h>
 
 #include <stdio.h>
-#include <ctype.h>
 #include <errno.h>
 #include <limits.h>
 #include <setjmp.h>
+
+#include <c-ctype.h>
+
 #include "lisp.h"
 #include "character.h"
 #ifdef HAVE_X_WINDOWS
@@ -3271,7 +3273,7 @@ x_set_font_backend (struct frame *f, Lisp_Object new_value, Lisp_Object old_valu
       new_value = Qnil;
       while (*p0)
 	{
-	  while (*p1 && ! isspace (*p1) && *p1 != ',') p1++;
+	  while (*p1 && ! c_isspace (*p1) && *p1 != ',') p1++;
 	  if (p0 < p1)
 	    new_value = Fcons (Fintern (make_string (p0, p1 - p0), Qnil),
 			       new_value);
@@ -3279,7 +3281,7 @@ x_set_font_backend (struct frame *f, Lisp_Object new_value, Lisp_Object old_valu
 	    {
 	      int c;
 
-	      while ((c = *++p1) && isspace (c));
+	      while ((c = *++p1) && c_isspace (c));
 	    }
 	  p0 = p1;
 	}

@@ -279,7 +279,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #endif /* HAVE_X_WINDOWS */
 
-#include <ctype.h>
+#include <c-ctype.h>
 
 /* Number of pt per inch (from the TeXbook).  */
 
@@ -4059,7 +4059,7 @@ hash_string_case_insensitive (Lisp_Object string)
   unsigned hash = 0;
   eassert (STRINGP (string));
   for (s = SDATA (string); *s; ++s)
-    hash = (hash << 1) ^ tolower (*s);
+    hash = (hash << 1) ^ c_tolower (*s);
   return hash;
 }
 
