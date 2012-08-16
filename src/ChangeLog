@@ -1,3 +1,8 @@
+2012-08-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* eval.c (eval_sub): Bind lexical-binding.
+	* lread.c (Qlexical_binding): Make non-static.
+
 2012-08-15  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsmenu.m (popupSession): Remove.
@@ -44,8 +49,8 @@
 
 	Generalize and cleanup font subsystem checks.
 	* font.h (FONT_DEBUG, font_assert): Remove.
-	* font.c, fontset.c, w32font.c, xfont.c, xftfont.c: Change
-	font_assert to eassert.  Use eassert where appropriate.
+	* font.c, fontset.c, w32font.c, xfont.c, xftfont.c:
+	Change font_assert to eassert.  Use eassert where appropriate.
 
 2012-08-15  Dmitry Antipov  <dmantipov@yandex.ru>
 
@@ -53,10 +58,10 @@
 
 2012-08-15  Chong Yidong  <cyd@gnu.org>
 
-	* gtkutil.c (xg_get_font): Rename from xg_get_font_name.  When
-	using the new font chooser, use gtk_font_chooser_get_font_desc to
-	extract the font descriptor instead of just the font name.  In
-	that case, return a font spec instead of a string.
+	* gtkutil.c (xg_get_font): Rename from xg_get_font_name.
+	When using the new font chooser, use gtk_font_chooser_get_font_desc to
+	extract the font descriptor instead of just the font name.
+	In that case, return a font spec instead of a string.
 	(x_last_font_name): Move to this file from xfns.c.
 
 	* xfns.c (Fx_select_font): The return value can also be a font
