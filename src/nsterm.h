@@ -450,7 +450,10 @@ struct nsfont_info
   struct font font;
 
   char *name;  /* PostScript name, uniquely identifies on NS systems */
-  float width;  /* this and following metrics stored as float rather than int */
+
+  /* The following metrics are stored as float rather than int. */
+
+  float width;  /* Maximum advance for the font.  */
   float height;
   float underpos;
   float underwidth;

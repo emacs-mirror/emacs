@@ -236,27 +236,62 @@ ns_fallback_entity (void)
 }
 
 
-/* Utility: get width of a char c in screen font sfont */
+/* Utility: get width of a char c in screen font SFONT */
 static float
 ns_char_width (NSFont *sfont, int c)
 {
-    float w;
-    NSString *cstr = [NSString stringWithFormat: @"%c", c];
+  float w = -1.0;
+  NSString *cstr = [NSString stringWithFormat: @"%c", c];
+
 #ifdef NS_IMPL_COCOA
-    NSGlyph glyph = [sfont glyphWithName: cstr];
-    if (glyph)
-      {
-	float w = [sfont advancementForGlyph: glyph].width;
-	if (w >= 1.5)
-	    return w;
-      }
+  NSGlyph glyph = [sfont glyphWithName: cstr];
+  if (glyph)
+    w = [sfont advancementForGlyph: glyph].width;
 #endif
+
+  if (w < 0.0)
     {
       NSDictionary *attrsDictionary =
         [NSDictionary dictionaryWithObject: sfont forKey: NSFontAttributeName];
       w = [cstr sizeWithAttributes: attrsDictionary].width;
     }
-    return max (w, 2.0);
+
+  return max (w, 1.0);
+}
+
+/* Return average width over ASCII printable characters for SFONT.  */
+
+static NSString *ascii_printable;
+
+static int
+ns_ascii_average_width (NSFont *sfont)
+{
+  float w = -1.0;
+
+  if (!ascii_printable)
+    {
+      char chars[95];
+      int ch;
+      for (ch = 0; ch < 95; ch++)
+	chars[ch] = ' ' + ch;
+
+      ascii_printable = [NSString initWithFormat: @"%s", chars];
+    }
+
+#ifdef NS_IMPL_COCOA
+  NSGlyph glyph = [sfont glyphWithName: ascii_printable];
+  if (glyph)
+    w = [sfont advancementForGlyph: glyph].width;
+#endif
+
+  if (w < 0.0)
+    {
+      NSDictionary *attrsDictionary =
+	[NSDictionary dictionaryWithObject: sfont forKey: NSFontAttributeName];
+      w = [ascii_printable sizeWithAttributes: attrsDictionary].width;
+    }
+
+  return lrint (w / 95.0);
 }
 
 
@@ -885,10 +920,11 @@ nsfont_open (FRAME_PTR f, Lisp_Object font_entity, int pixel_size)
     /* set up metrics portion of font struct */
     font->ascent = lrint([sfont ascender]);
     font->descent = -lrint(floor(adjusted_descender));
-    font->min_width = ns_char_width(sfont, '|');
     font->space_width = lrint (ns_char_width (sfont, ' '));
-    font->average_width = lrint (font_info->width);
     font->max_width = lrint (font_info->max_bounds.width);
+    font->min_width = font->space_width;  /* Approximate.  */
+    font->average_width = ns_ascii_average_width (sfont);
+
     font->height = lrint (font_info->height);
     font->underline_position = lrint (font_info->underpos);
     font->underline_thickness = lrint (font_info->underwidth);
@@ -1492,4 +1528,6 @@ syms_of_nsfont (void)
   DEFSYM (Qmedium, "medium");
   DEFVAR_LISP ("ns-reg-to-script", Vns_reg_to_script,
                doc: /* Internal use: maps font registry to Unicode script. */);
+
+  ascii_printable = NULL;
 }
