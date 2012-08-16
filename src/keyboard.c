@@ -11200,11 +11200,8 @@ The `posn-' functions access elements of such lists.  */)
 
   if (WINDOWP (frame_or_window))
     {
-      struct window *w;
+      struct window *w = decode_valid_window (frame_or_window);
 
-      CHECK_LIVE_WINDOW (frame_or_window);
-
-      w = XWINDOW (frame_or_window);
       XSETINT (x, (XINT (x)
 		   + WINDOW_LEFT_EDGE_X (w)
 		   + (NILP (whole)

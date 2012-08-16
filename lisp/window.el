@@ -110,14 +110,6 @@ be any window."
       (setq window (window-next-sibling window))))
   window)
 
-(defun window-valid-p (object)
-  "Return t if OBJECT denotes a live window or internal window.
-Otherwise, return nil; this includes the case where OBJECT is a
-deleted window."
-  (and (windowp object)
-       (or (window-buffer object) (window-child object))
-       t))
-
 (defun window-normalize-buffer (buffer-or-name)
   "Return buffer specified by BUFFER-OR-NAME.
 BUFFER-OR-NAME must be either a buffer or a string naming a live

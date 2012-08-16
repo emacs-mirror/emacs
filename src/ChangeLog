@@ -1,3 +1,41 @@
+2012-08-16  Martin Rudalics  <rudalics@gmx.at>
+
+	Consistently check windows for validity/liveness
+	(Bug#11984, Bug#12025, Bug#12026).
+	* lisp.h (CHECK_VALID_WINDOW): New macro.
+	* window.c (decode_window): Rename to decode_live_window.
+	(decode_valid_window, Fwindow_valid_p): New functions.
+	(Fwindow_frame, Fframe_root_window, Fwindow_minibuffer_p)
+	(Fframe_first_window, Fframe_selected_window, Fwindow_parent)
+	(Fwindow_top_child, Fwindow_left_child, Fwindow_next_sibling)
+	(Fwindow_prev_sibling, Fwindow_combination_limit)
+	(Fset_window_combination_limit, Fwindow_use_time)
+	(Fwindow_total_height, Fwindow_total_width, Fwindow_new_total)
+	(Fwindow_normal_size, Fwindow_new_normal, Fwindow_left_column)
+	(Fwindow_top_line, Fwindow_body_height, Fwindow_body_width)
+	(Fwindow_hscroll, Fset_window_hscroll)
+	(Fwindow_redisplay_end_trigger)
+	(Fset_window_redisplay_end_trigger, Fwindow_edges)
+	(Fwindow_pixel_edges, Fwindow_absolute_pixel_edges)
+	(Fwindow_inside_edges, Fwindow_inside_pixel_edges)
+	(Fcoordinates_in_window_p, Fwindow_point, Fwindow_start)
+	(Fwindow_end, Fset_window_point, Fset_window_start)
+	(Fpos_visible_in_window_p, Fwindow_line_height)
+	(Fwindow_dedicated_p, Fset_window_dedicated_p)
+	(Fwindow_prev_buffers, Fset_window_prev_buffers)
+	(Fwindow_next_buffers, Fwindow_parameters, Fwindow_parameter)
+	(Fset_window_parameter, Fwindow_display_table)
+	(Fset_window_display_table, Fdelete_other_windows_internal)
+	(Fset_window_buffer, Fset_window_new_total)
+	(Fset_window_new_normal, Fdelete_window_internal)
+	(Fwindow_text_height, Fset_window_margins, Fwindow_margins)
+	(Fset_window_fringes, Fwindow_fringes, Fset_window_scroll_bars)
+	(Fwindow_scroll_bars): Check whether argument window is a valid or
+	live window.  Update doc-strings.
+	(syms_of_window): New symbol Qwindow_valid_p.
+	* keyboard.c (Fposn_at_x_y): Check whether argument
+	frame_or_window denotes a valid window.
+
 2012-08-16  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Fix previous char table change.

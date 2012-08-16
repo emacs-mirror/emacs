@@ -1,3 +1,7 @@
+2012-08-16  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (window-valid-p): Move to window.c.
+
 2012-08-16  Phil Sainty  <psainty@orcon.net.nz>  (tiny change)
 
 	* progmodes/subword.el (subword-forward-function)

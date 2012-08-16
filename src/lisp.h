@@ -1758,15 +1758,18 @@ typedef struct {
 #define CHECK_WINDOW_CONFIGURATION(x) \
   CHECK_TYPE (WINDOW_CONFIGURATIONP (x), Qwindow_configuration_p, x)
 
-/* This macro rejects windows on the interior of the window tree as
-   "dead", which is what we want; this is an argument-checking macro, and
-   the user should never get access to interior windows.
+/* A window of any sort, leaf or interior, is "valid" if one of its
+   buffer, vchild, or hchild members is non-nil.  */
+#define CHECK_VALID_WINDOW(x)				\
+  CHECK_TYPE (WINDOWP (x)				\
+	      && (!NILP (XWINDOW (x)->buffer)		\
+		  || !NILP (XWINDOW (x)->vchild)	\
+		  || !NILP (XWINDOW (x)->hchild)),	\
+	      Qwindow_valid_p, x)
 
-   A window of any sort, leaf or interior, is dead if the buffer,
-   vchild, and hchild members are all nil.  */
-
-#define CHECK_LIVE_WINDOW(x) \
-  CHECK_TYPE (WINDOWP (x) && !NILP (XWINDOW (x)->buffer), \
+/* A window is "live" if and only if it shows a buffer.  */
+#define CHECK_LIVE_WINDOW(x)						\
+  CHECK_TYPE (WINDOWP (x) && !NILP (XWINDOW (x)->buffer),		\
 	      Qwindow_live_p, x)
 
 #define CHECK_PROCESS(x) \
