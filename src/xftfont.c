@@ -414,20 +414,25 @@ xftfont_open (FRAME_PTR f, Lisp_Object entity, int pixel_size)
 	ascii_printable[ch] = ' ' + ch;
     }
   BLOCK_INPUT;
+
+  /* Unfortunately Xft doesn't provide a way to get minimum char
+     width.  So, we set min_width to space_width.  */
+
   if (spacing != FC_PROPORTIONAL
 #ifdef FC_DUAL
       && spacing != FC_DUAL
 #endif	/* FC_DUAL */
       )
     {
-      font->min_width = font->average_width = font->space_width
-	= xftfont->max_advance_width;
+      font->min_width = font->max_width = font->average_width
+	= font->space_width = xftfont->max_advance_width;
       XftTextExtents8 (display, xftfont, ascii_printable + 1, 94, &extents);
     }
   else
     {
       XftTextExtents8 (display, xftfont, ascii_printable, 1, &extents);
-      font->space_width = extents.xOff;
+      font->min_width = font->max_width = font->space_width
+	= extents.xOff;
       if (font->space_width <= 0)
 	/* dirty workaround */
 	font->space_width = pixel_size;
@@ -469,10 +474,6 @@ xftfont_open (FRAME_PTR f, Lisp_Object entity, int pixel_size)
   xftfont_info->otf = NULL;
 #endif	/* HAVE_LIBOTF */
   xftfont_info->ft_size = ft_face->size;
-
-  /* Unfortunately Xft doesn't provide a way to get minimum char
-     width.  So, we use space_width instead.  */
-  font->min_width = font->space_width;
 
   font->baseline_offset = 0;
   font->relative_compose = 0;
@@ -763,6 +764,8 @@ syms_of_xftfont (void)
   DEFSYM (QCrgba, ":rgba");
   DEFSYM (QCembolden, ":embolden");
   DEFSYM (QClcdfilter, ":lcdfilter");
+
+  ascii_printable[0] = 0;
 
   xftfont_driver = ftfont_driver;
   xftfont_driver.type = Qxft;

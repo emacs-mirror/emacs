@@ -1,6 +1,19 @@
+2012-08-16  Chong Yidong  <cyd@gnu.org>
+
+	* xfont.c (xfont_open):
+	* xftfont.c (xftfont_open): Set the font's max_width field.
+
+	* nsfont.m (nsfont_open): Similar to the Xft backend, set
+	min_width to space_width and average_width to the average over
+	printable ASCII characters.
+	(ns_char_width): Code cleanup.
+	(ns_ascii_average_width): New utility function.
+
+	* font.h (struct font): Update comments.
+
 2012-08-16  Dmitry Antipov  <dmantipov@yandex.ru>
 
-	Simple interface to set Lisp_Object fields of chararcter tables.
+	Simple interface to set Lisp_Object fields of character tables.
 	* lisp.h (CSET): New macro.
 	(char_table_set_extras, char_table_set_contents)
 	(sub_char_table_set_contents): New function.

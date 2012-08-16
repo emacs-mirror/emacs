@@ -284,8 +284,11 @@ struct font
 
   /* Beyond here, there should be no more Lisp_Object components.  */
 
-  /* Maximum bound width over all existing characters of the font.  On
-     X window, this is same as (font->max_bounds.width).  */
+  /* Minimum and maximum glyph widths, in pixels.  Some font backends,
+     such as xft, lack the information to easily compute minimum and
+     maximum widths over all characters; in that case, these values
+     are approximate.  */
+  int min_width;
   int max_width;
 
   /* By which pixel size the font is opened.  */
@@ -301,12 +304,9 @@ struct font
 
   /* Average width of glyphs in the font.  If the font itself doesn't
      have that information but has glyphs of ASCII characters, the
-     value is the average with of those glyphs.  Otherwise, the value
+     value is the average width of those glyphs.  Otherwise, the value
      is 0.  */
   int average_width;
-
-  /* Minimum glyph width (in pixels).  */
-  int min_width;
 
   /* Ascent and descent of the font (in pixels).  */
   int ascent, descent;

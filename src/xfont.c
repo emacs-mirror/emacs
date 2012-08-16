@@ -823,6 +823,7 @@ xfont_open (FRAME_PTR f, Lisp_Object entity, int pixel_size)
   font->descent = xfont->descent;
   font->height = font->ascent + font->descent;
   font->min_width = xfont->min_bounds.width;
+  font->max_width = xfont->max_bounds.width;
   if (xfont->min_bounds.width == xfont->max_bounds.width)
     {
       /* Fixed width font.  */
