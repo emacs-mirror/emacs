@@ -923,7 +923,7 @@ enum
    8-bit European characters.  Do not check validity of CT.  */
 #define CHAR_TABLE_SET(CT, IDX, VAL)					\
   (ASCII_CHAR_P (IDX) && SUB_CHAR_TABLE_P (XCHAR_TABLE (CT)->ascii)	\
-   ? XSUB_CHAR_TABLE (XCHAR_TABLE (CT)->ascii)->contents[IDX] = VAL	\
+   ? sub_char_table_set_contents (XCHAR_TABLE (CT)->ascii, IDX, VAL)	\
    : char_table_set (CT, IDX, VAL))
 
 enum CHARTAB_SIZE_BITS

@@ -1,3 +1,9 @@
+2012-08-16  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Fix previous char table change.
+	* lisp.h (CHAR_TABLE_SET): Use sub_char_table_set_contents.
+	* chartab.c (optimize_sub_char_table): Likewise.
+
 2012-08-16  Chong Yidong  <cyd@gnu.org>
 
 	* gtkutil.c (xg_get_font): Demand an Xft font (Bug#3228).
