@@ -115,8 +115,8 @@ the char-table has no extra slot.  */)
   size = VECSIZE (struct Lisp_Char_Table) - 1 + n_extras;
   vector = Fmake_vector (make_number (size), init);
   XSETPVECTYPE (XVECTOR (vector), PVEC_CHAR_TABLE);
-  XCHAR_TABLE (vector)->parent = Qnil;
-  XCHAR_TABLE (vector)->purpose = purpose;
+  CSET (XCHAR_TABLE (vector), parent, Qnil);
+  CSET (XCHAR_TABLE (vector), purpose, purpose);
   XSETCHAR_TABLE (vector, XCHAR_TABLE (vector));
   return vector;
 }
@@ -167,9 +167,9 @@ copy_sub_char_table (Lisp_Object table)
     {
       val = XSUB_CHAR_TABLE (table)->contents[i];
       if (SUB_CHAR_TABLE_P (val))
-	XSUB_CHAR_TABLE (copy)->contents[i] = copy_sub_char_table (val);
+	sub_char_table_set_contents (copy, i, copy_sub_char_table (val));
       else
-	XSUB_CHAR_TABLE (copy)->contents[i] = val;
+	sub_char_table_set_contents (copy, i, val);
     }
 
   return copy;
@@ -185,18 +185,19 @@ copy_char_table (Lisp_Object table)
 
   copy = Fmake_vector (make_number (size), Qnil);
   XSETPVECTYPE (XVECTOR (copy), PVEC_CHAR_TABLE);
-  XCHAR_TABLE (copy)->defalt = XCHAR_TABLE (table)->defalt;
-  XCHAR_TABLE (copy)->parent = XCHAR_TABLE (table)->parent;
-  XCHAR_TABLE (copy)->purpose = XCHAR_TABLE (table)->purpose;
+  CSET (XCHAR_TABLE (copy), defalt, XCHAR_TABLE (table)->defalt);
+  CSET (XCHAR_TABLE (copy), parent, XCHAR_TABLE (table)->parent);
+  CSET (XCHAR_TABLE (copy), purpose, XCHAR_TABLE (table)->purpose);
   for (i = 0; i < chartab_size[0]; i++)
-    XCHAR_TABLE (copy)->contents[i]
-      = (SUB_CHAR_TABLE_P (XCHAR_TABLE (table)->contents[i])
-	 ? copy_sub_char_table (XCHAR_TABLE (table)->contents[i])
-	 : XCHAR_TABLE (table)->contents[i]);
-  XCHAR_TABLE (copy)->ascii = char_table_ascii (copy);
+    char_table_set_contents
+      (copy, i, 
+       (SUB_CHAR_TABLE_P (XCHAR_TABLE (table)->contents[i])
+	? copy_sub_char_table (XCHAR_TABLE (table)->contents[i])
+	: XCHAR_TABLE (table)->contents[i]));
+  CSET (XCHAR_TABLE (copy), ascii, char_table_ascii (copy));
   size -= VECSIZE (struct Lisp_Char_Table) - 1;
   for (i = 0; i < size; i++)
-    XCHAR_TABLE (copy)->extras[i] = XCHAR_TABLE (table)->extras[i];
+    char_table_set_extras (copy, i, XCHAR_TABLE (table)->extras[i]);
 
   XSETCHAR_TABLE (copy, XCHAR_TABLE (copy));
   return copy;
@@ -394,7 +395,7 @@ sub_char_table_set (Lisp_Object table, int c, Lisp_Object val, int is_uniprop)
   Lisp_Object sub;
 
   if (depth == 3)
-    tbl->contents[i] = val;
+    sub_char_table_set_contents (table, i, val);
   else
     {
       sub = tbl->contents[i];
@@ -407,7 +408,7 @@ sub_char_table_set (Lisp_Object table, int c, Lisp_Object val, int is_uniprop)
 	      sub = make_sub_char_table (depth + 1,
 					 min_char + i * chartab_chars[depth],
 					 sub);
-	      tbl->contents[i] = sub;
+	      sub_char_table_set_contents (table, i, sub);
 	    }
 	}
       sub_char_table_set (sub, c, val, is_uniprop);
@@ -421,9 +422,7 @@ char_table_set (Lisp_Object table, int c, Lisp_Object val)
 
   if (ASCII_CHAR_P (c)
       && SUB_CHAR_TABLE_P (tbl->ascii))
-    {
-      XSUB_CHAR_TABLE (tbl->ascii)->contents[c] = val;
-    }
+    sub_char_table_set_contents (tbl->ascii, c, val);
   else
     {
       int i = CHARTAB_IDX (c, 0, 0);
@@ -433,11 +432,11 @@ char_table_set (Lisp_Object table, int c, Lisp_Object val)
       if (! SUB_CHAR_TABLE_P (sub))
 	{
 	  sub = make_sub_char_table (1, i * chartab_chars[0], sub);
-	  tbl->contents[i] = sub;
+	  char_table_set_contents (table, i, sub);
 	}
       sub_char_table_set (sub, c, val, UNIPROP_TABLE_P (table));
       if (ASCII_CHAR_P (c))
-	tbl->ascii = char_table_ascii (table);
+	CSET (tbl, ascii, char_table_ascii (table));
     }
   return val;
 }
@@ -461,7 +460,7 @@ sub_char_table_set_range (Lisp_Object table, int from, int to, Lisp_Object val,
       if (c > to)
 	break;
       if (from <= c && c + chars_in_block - 1 <= to)
-	tbl->contents[i] = val;
+	sub_char_table_set_contents (table, i, val);
       else
 	{
 	  Lisp_Object sub = tbl->contents[i];
@@ -472,7 +471,7 @@ sub_char_table_set_range (Lisp_Object table, int from, int to, Lisp_Object val,
 	      else
 		{
 		  sub = make_sub_char_table (depth + 1, c, sub);
-		  tbl->contents[i] = sub;
+		  sub_char_table_set_contents (table, i, sub);
 		}
 	    }
 	  sub_char_table_set_range (sub, from, to, val, is_uniprop);
@@ -500,20 +499,20 @@ char_table_set_range (Lisp_Object table, int from, int to, Lisp_Object val)
 	  if (c > to)
 	    break;
 	  if (from <= c && c + chartab_chars[0] - 1 <= to)
-	    tbl->contents[i] = val;
+	    char_table_set_contents (table, i, val);
 	  else
 	    {
 	      Lisp_Object sub = tbl->contents[i];
 	      if (! SUB_CHAR_TABLE_P (sub))
 		{
 		  sub = make_sub_char_table (1, i * chartab_chars[0], sub);
-		  tbl->contents[i] = sub;
+		  char_table_set_contents (table, i, sub);
 		}
 	      sub_char_table_set_range (sub, from, to, val, is_uniprop);
 	    }
 	}
       if (ASCII_CHAR_P (from))
-	tbl->ascii = char_table_ascii (table);
+	CSET (tbl, ascii, char_table_ascii (table));
     }
   return val;
 }
@@ -563,7 +562,7 @@ Return PARENT.  PARENT must be either nil or another char-table.  */)
 	  error ("Attempt to make a chartable be its own parent");
     }
 
-  XCHAR_TABLE (char_table)->parent = parent;
+  CSET (XCHAR_TABLE (char_table), parent, parent);
 
   return parent;
 }
@@ -594,7 +593,8 @@ DEFUN ("set-char-table-extra-slot", Fset_char_table_extra_slot,
       || XINT (n) >= CHAR_TABLE_EXTRA_SLOTS (XCHAR_TABLE (char_table)))
     args_out_of_range (char_table, n);
 
-  return XCHAR_TABLE (char_table)->extras[XINT (n)] = value;
+  char_table_set_extras (char_table, XINT (n), value);
+  return value;
 }
 
 DEFUN ("char-table-range", Fchar_table_range, Schar_table_range,
@@ -640,12 +640,12 @@ or a character code.  Return VALUE.  */)
     {
       int i;
 
-      XCHAR_TABLE (char_table)->ascii = value;
+      CSET (XCHAR_TABLE (char_table), ascii, value);
       for (i = 0; i < chartab_size[0]; i++)
-	XCHAR_TABLE (char_table)->contents[i] = value;
+	char_table_set_contents (char_table, i, value);
     }
   else if (EQ (range, Qnil))
-    XCHAR_TABLE (char_table)->defalt = value;
+    CSET (XCHAR_TABLE (char_table), defalt, value);
   else if (CHARACTERP (range))
     char_table_set (char_table, XINT (range), value);
   else if (CONSP (range))
@@ -728,11 +728,11 @@ equivalent and can be merged.  It defaults to `equal'.  */)
     {
       elt = XCHAR_TABLE (char_table)->contents[i];
       if (SUB_CHAR_TABLE_P (elt))
-	XCHAR_TABLE (char_table)->contents[i]
-	  = optimize_sub_char_table (elt, test);
+	char_table_set_contents
+	  (char_table, i, optimize_sub_char_table (elt, test));
     }
   /* Reset the `ascii' cache, in case it got optimized away.  */
-  XCHAR_TABLE (char_table)->ascii = char_table_ascii (char_table);
+  CSET (XCHAR_TABLE (char_table), ascii, char_table_ascii (char_table));
 
   return Qnil;
 }
@@ -824,9 +824,9 @@ map_sub_char_table (void (*c_function) (Lisp_Object, Lisp_Object, Lisp_Object),
 
 		      /* This is to get a value of FROM in PARENT
 			 without checking the parent of PARENT.  */
-		      XCHAR_TABLE (parent)->parent = Qnil;
+		      CSET (XCHAR_TABLE (parent), parent, Qnil);
 		      val = CHAR_TABLE_REF (parent, from);
-		      XCHAR_TABLE (parent)->parent = temp;
+		      CSET (XCHAR_TABLE (parent), parent, temp);
 		      XSETCDR (range, make_number (c - 1));
 		      val = map_sub_char_table (c_function, function,
 						parent, arg, val, range,
@@ -906,9 +906,9 @@ map_char_table (void (*c_function) (Lisp_Object, Lisp_Object, Lisp_Object),
       temp = XCHAR_TABLE (parent)->parent;
       /* This is to get a value of FROM in PARENT without checking the
 	 parent of PARENT.  */
-      XCHAR_TABLE (parent)->parent = Qnil;
+      CSET (XCHAR_TABLE (parent), parent, Qnil);
       val = CHAR_TABLE_REF (parent, from);
-      XCHAR_TABLE (parent)->parent = temp;
+      CSET (XCHAR_TABLE (parent), parent, temp);
       val = map_sub_char_table (c_function, function, parent, arg, val, range,
 				parent);
       table = parent;
@@ -1143,10 +1143,9 @@ uniprop_table_uncompress (Lisp_Object table, int idx)
   int min_char = (XINT (XSUB_CHAR_TABLE (table)->min_char)
 		  + chartab_chars[2] * idx);
   Lisp_Object sub = make_sub_char_table (3, min_char, Qnil);
-  struct Lisp_Sub_Char_Table *subtbl = XSUB_CHAR_TABLE (sub);
   const unsigned char *p, *pend;
 
-  XSUB_CHAR_TABLE (table)->contents[idx] = sub;
+  sub_char_table_set_contents (table, idx, sub);
   p = SDATA (val), pend = p + SBYTES (val);
   if (*p == 1)
     {
@@ -1156,7 +1155,8 @@ uniprop_table_uncompress (Lisp_Object table, int idx)
       while (p < pend && idx < chartab_chars[2])
 	{
 	  int v = STRING_CHAR_ADVANCE (p);
-	  subtbl->contents[idx++] = v > 0 ? make_number (v) : Qnil;
+	  sub_char_table_set_contents
+	    (sub, idx++, v > 0 ? make_number (v) : Qnil);
 	}
     }
   else if (*p == 2)
@@ -1181,7 +1181,7 @@ uniprop_table_uncompress (Lisp_Object table, int idx)
 		}
 	    }
 	  while (count-- > 0)
-	    subtbl->contents[idx++] = make_number (v);
+	    sub_char_table_set_contents (sub, idx++, make_number (v));
 	}
     }
 /* It seems that we don't need this function because C code won't need
@@ -1284,7 +1284,7 @@ uniprop_encode_value_numeric (Lisp_Object table, Lisp_Object value)
 
       args[0] = XCHAR_TABLE (table)->extras[4];
       args[1] = Fmake_vector (make_number (1), value);
-      XCHAR_TABLE (table)->extras[4] = Fvconcat (2, args);
+      char_table_set_extras (table, 4, Fvconcat (2, args));
     }
   return make_number (i);
 }
@@ -1346,7 +1346,7 @@ uniprop_table (Lisp_Object prop)
       : ! NILP (val))
     return Qnil;
   /* Prepare ASCII values in advance for CHAR_TABLE_REF.  */
-  XCHAR_TABLE (table)->ascii = char_table_ascii (table);
+  CSET (XCHAR_TABLE (table), ascii, char_table_ascii (table));
   return table;
 }
 

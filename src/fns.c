@@ -2150,8 +2150,8 @@ ARRAY is a vector, string, char-table, or bool-vector.  */)
       int i;
 
       for (i = 0; i < (1 << CHARTAB_SIZE_BITS_0); i++)
-	XCHAR_TABLE (array)->contents[i] = item;
-      XCHAR_TABLE (array)->defalt = item;
+	char_table_set_contents (array, i, item);
+      CSET (XCHAR_TABLE (array), defalt, item);
     }
   else if (STRINGP (array))
     {

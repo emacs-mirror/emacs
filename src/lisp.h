@@ -936,7 +936,11 @@ enum CHARTAB_SIZE_BITS
 
 extern const int chartab_size[4];
 
-struct Lisp_Sub_Char_Table;
+/* Most code should use this macro to set non-array Lisp fields in struct
+   Lisp_Char_Table.  For CONTENTS and EXTRAS, use char_table_set_contents
+   and char_table_set_extras, respectively.  */
+
+#define CSET(c, field, value) ((c)->field = (value))
 
 struct Lisp_Char_Table
   {
@@ -986,6 +990,7 @@ struct Lisp_Sub_Char_Table
     /* Minimum character covered by the sub char-table.  */
     Lisp_Object min_char;
 
+    /* Use sub_char_table_set_contents to set this.  */
     Lisp_Object contents[1];
   };
 
@@ -2429,6 +2434,28 @@ LISP_INLINE void
 string_set_intervals (Lisp_Object s, INTERVAL i)
 {
   XSTRING (s)->intervals = i;
+}
+
+/* Set different slots in (sub)character tables.  */
+
+LISP_INLINE void
+char_table_set_extras (Lisp_Object table, ptrdiff_t idx, Lisp_Object val)
+{
+  eassert (0 <= idx && idx < CHAR_TABLE_EXTRA_SLOTS (XCHAR_TABLE (table)));
+  XCHAR_TABLE (table)->extras[idx] = val;
+}
+
+LISP_INLINE void
+char_table_set_contents (Lisp_Object table, ptrdiff_t idx, Lisp_Object val)
+{
+  eassert (0 <= idx && idx < (1 << CHARTAB_SIZE_BITS_0));
+  XCHAR_TABLE (table)->contents[idx] = val;
+}
+
+LISP_INLINE void
+sub_char_table_set_contents (Lisp_Object table, ptrdiff_t idx, Lisp_Object val)
+{
+  XSUB_CHAR_TABLE (table)->contents[idx] = val;
 }
 
 /* Defined in data.c.  */

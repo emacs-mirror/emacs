@@ -1916,7 +1916,7 @@ format is the same as above.  */)
   if (!EQ (fontset, Vdefault_fontset))
     {
       tables[1] = Fmake_char_table (Qnil, Qnil);
-      XCHAR_TABLE (tables[0])->extras[0] = tables[1];
+      char_table_set_extras (tables[0], 0, tables[1]);
       fontsets[1] = Vdefault_fontset;
     }
 
@@ -1979,7 +1979,7 @@ format is the same as above.  */)
 	      if (c <= MAX_5_BYTE_CHAR)
 		char_table_set_range (tables[k], c, to, alist);
 	      else
-		XCHAR_TABLE (tables[k])->defalt = alist;
+		CSET (XCHAR_TABLE (tables[k]), defalt, alist);
 
 	      /* At last, change each elements to font names.  */
 	      for (; CONSP (alist); alist = XCDR (alist))

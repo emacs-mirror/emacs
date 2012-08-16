@@ -1,3 +1,12 @@
+2012-08-16  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Simple interface to set Lisp_Object fields of chararcter tables.
+	* lisp.h (CSET): New macro.
+	(char_table_set_extras, char_table_set_contents)
+	(sub_char_table_set_contents): New function.
+	* casetab.c, category.c, chartab.c, fns.c, fontset.c, search.c:
+	* syntax.c: Adjust users.
+
 2012-08-16  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* eval.c (eval_sub): Bind lexical-binding.
