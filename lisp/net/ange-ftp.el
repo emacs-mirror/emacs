@@ -2618,7 +2618,7 @@ away in the internal cache."
 					  (format
 					   "list data file %s not readable"
 					   temp))))
-                      ;; remove ^M inserted by the win32 ftp client
+                      ;; remove ^M inserted by the w32 ftp client
                       (while (re-search-forward "\r$" nil t)
                         (replace-match ""))
                       (goto-char 1)

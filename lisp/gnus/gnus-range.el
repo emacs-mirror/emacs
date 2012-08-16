@@ -592,15 +592,6 @@ LIST is a sorted list."
 	(setq sum
 	      (+ sum (if (consp x) (- (cdr x) (car x) -1) 1))))))))
 
-(defun gnus-sublist-p (list sublist)
-  "Test whether all elements in SUBLIST are members of LIST."
-  (let ((sublistp t))
-    (while sublist
-      (unless (memq (pop sublist) list)
-	(setq sublistp nil
-	      sublist nil)))
-    sublistp))
-
 (defun gnus-range-add (range1 range2)
   "Add RANGE2 to RANGE1 (nondestructively)."
   (unless (listp (cdr range1))

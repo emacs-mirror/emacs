@@ -1,3 +1,239 @@
+2012-08-14  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Merge from gnulib, incorporating:
+	2012-08-05 extern-inline: also ignore -Wmissing-declarations
+
+2012-08-10  Juanma Barranquero  <lekktu@gmail.com>
+
+	* lib/makefile.w32-in (STAT_TIME_H): New macro.
+	(FTOASTR_C, $(BLD)/stat-time.$(O), $(BLD)/timespec.$(O))
+	($(BLD)/u64.$(O)): Update dependencies.
+
+2012-08-10  Glenn Morris  <rgm@gnu.org>
+
+	* configure.ac (DIRECTORY_SEP): Move here from src/lisp.h.
+
+2012-08-08  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* configure.ac (--disable-features): Rename to --without-all.
+	(OPTION_DEFAULT_ON): Change to use with_features.
+	* INSTALL: Fix description.
+
+2012-08-07  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* configure.ac: New option --disable-features.
+	(OPTION_DEFAULT_ON): Change to use enable_features.
+	* INSTALL: Explain --disable-features.
+
+2012-08-07  Glenn Morris  <rgm@gnu.org>
+
+	* configure.ac: Require automake 1.11 (fairly arbitrarily).
+	* autogen.sh (automake_min): Get it from configure.ac.
+
+2012-08-06  Glenn Morris  <rgm@gnu.org>
+
+	* configure.ac (BROKEN_GETWD) [unixware]: New define.
+
+	* configure.ac (GNU_LIBRARY_PENDING_OUTPUT_COUNT): Remove.
+	(PENDING_OUTPUT_COUNT): Absorb GNU_LIBRARY_PENDING_OUTPUT_COUNT.
+	(DISPNEW_NEEDS_STDIO_EXT): New define.
+
+2012-08-05  Michael Albinus  <michael.albinus@gmx.de>
+
+	* INSTALL: Explain how to completely disable D-Bus.  (Bug#12112)
+
+2012-08-05  Ulrich Müller  <ulm@gentoo.org>
+
+	* configure.ac: Disable paxctl if binaries don't have a
+	PT_PAX_FLAGS program header.  (Bug#11979)
+
+2012-08-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* lib/makefile.w32-in (GNULIBOBJS): Add $(BLD)/stat-time.$(O),
+	$(BLD)/timespec.$(O), and $(BLD)/u64.$(O).
+	(SHA512_H): Don't mention u64.h twice.
+	($(BLD)/stat-time.$(O), ($(BLD)/timespec.$(O), ($(BLD)/u64.$(O)):
+	New targets.
+
+2012-08-03  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Merge from gnulib, incorporating:
+	2012-08-02 stat-time, timespec, u64: support naive out-of-dir builds
+
+2012-08-02  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* lib/Makefile.am (DEFAULT_INCLUDES): Add -I$(top_srcdir)/lib for
+	out-of-tree build.
+
+2012-08-02  Glenn Morris  <rgm@gnu.org>
+
+	* make-dist: Remove src/s.
+
+	* lib/makefile.w32-in (MS_W32_H): Update for new ms-w32.h location.
+
+2012-08-02  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Merge from gnulib (Bug#12116), incorporating:
+	2012-08-01 extern-inline: new module
+	2012-08-01 stat-time, timespec, u64, utimens: use extern-inline
+	* lib/stat-time.c, lib/timespec.c, lib/u64.c, m4/extern-inline.m4:
+	New files.  The new .c files are for instantiating extern inline
+	functions.
+
+	Port to Solaris 8.
+	Without this change, 'configure' fails because the recently-added
+	wait3 prototype in config.h messes up later 'configure' tests.
+	Fix this problem by droping wait3 and WRETCODE, as they're
+	no longer needed on hosts that are current porting targets.
+	* configure.ac (wait3, WRETCODE): Remove, fixing a FIXME.
+	All uses changed to waitpid and WEXITSTATUS.
+
+	Avoid needless autoheader after autogen.sh.
+	* src/stamp-h.in: Remove from bzr repository; no longer needed there.
+	* .bzrignore: Add it.
+	* autogen.sh: Create it.
+
+2012-08-01  Glenn Morris  <rgm@gnu.org>
+
+	* configure.ac (DOS_NT, MSDOS): New system type templates.
+
+2012-08-01  Ulrich Müller  <ulm@gentoo.org>
+
+	* configure.ac (LIB_STANDARD, START_FILES) [FreeBSD]:
+	Don't include crtbegin.o and crtend.o.  (Bug#12047)
+
+2012-08-01  Glenn Morris  <rgm@gnu.org>
+
+	* configure.ac (FLOAT_CHECK_DOMAIN, HAVE_INVERSE_HYPERBOLIC)
+	(INTERNAL_TERMINAL): New.
+
+	* configure.ac (DEVICE_SEP, IS_DEVICE_SEP, IS_DIRECTORY_SEP)
+	(IS_ANY_SEP): Move here from src/lisp.h.
+
+2012-08-01  Juanma Barranquero  <lekktu@gmail.com>
+
+	* lib/makefile.w32-in (CONFIG_H): Update dependencies.
+	(CONF_POST_H): New macro.
+
+2012-07-31  Glenn Morris  <rgm@gnu.org>
+
+	* configure.ac (S_FILE): Remove output variable.
+
+	* configure.ac (opsysfile): Use AH_TEMPLATE.  Doc fix.
+
+	* configure.ac (NULL_DEVICE, SEPCHAR, USER_FULL_NAME):
+	Move here from src.
+
+	* configure.ac (AMPERSAND_FULL_NAME, subprocesses):
+	Move here from conf_post.h.
+
+2012-07-31  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Improve OpenMotif detection on GNU/Linux systems.
+	* configure.ac (MOTIF): Check for /usr/include/openmotif
+	and /usr/(lib|lib64)/openmotif if --with-x-toolkit=motif.
+
+2012-07-31  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* Makefile.in (install-arch-indep): Avoid eval.
+
+2012-07-31  Glenn Morris  <rgm@gnu.org>
+
+	* configure.ac (opsysfile, S_FILE): Now they are always empty.
+
+	* configure.ac (opsysfile): Forgot to set it to empty on sol2-10
+	when removing src/s/sol2-6.h yesterday.
+
+	* configure.ac (USG5_4): Reintroduce this.
+	(opsysfile): Set to empty on irix6-5, sol2*, and unixware.
+
+	* configure.ac (wait3, WRETCODE): Move here from src/s/usg5-4-common.h.
+
+	* configure.ac (opsysfile): Set to empty on hpux*, darwin;
+	and to s/usg5-4-common.h on irix6-5.
+
+2012-07-30  Glenn Morris  <rgm@gnu.org>
+
+	* configure.ac (AH_BOTTOM): Use an include file, so that the
+	contents do not get processed by autoheader.
+
+2012-07-30  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Do not overwrite config.status while executing it (Bug#11214).
+	* Makefile.in (MAKEFILE_NAME): New macro.
+	($(MAKEFILE_NAME)): Rename rule from Makefile.
+	* configure.ac (epaths): Set MAKEFILE_NAME to a bogus value,
+	so that GNU 'make' isn't tempted to make the Makefile and then
+	regenerate config.status while config.status is running.
+
+	Update .PHONY listings in makefiles.
+	* Makefile.in (.PHONY): Add all, ${SUBDIR}, blessmail, epath-force,
+	FRC, install-arch-dep, install-arch-indep, install-doc,
+	install-info, install-man, install-etc, install-strip, uninstall,
+	bootstrap-clean, TAGS, tags, info-real, force-info, check-info-dir.
+	(.RECURSIVE): Remove; hasn't been needed for years.
+
+2012-07-30  Glenn Morris  <rgm@gnu.org>
+
+	* configure.ac (SIGNAL_H_AHB): New hack macro.
+	(opsysfile): Set to empty on netbsd, openbsd.
+	(AH_BOTTOM): Include signal.h if SIGNAL_H_AHB is defined.
+
+	* configure.ac (_longjmp, _setjmp, TIOCSIGSEND): Move here from src/s.
+
+2012-07-30  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* Makefile.in (install-arch-indep): Remove sh -x.
+
+2012-07-30  Glenn Morris  <rgm@gnu.org>
+
+	* configure.ac (opsysfile): Tweak message for null case.
+
+	* configure.ac (opsysfile): Set to empty on aix4-2, freebsd,
+	gnu-linux, gnu-kfreebsd; and to usg5-4-common.h on sol2*, unixware.
+
+2012-07-30  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Merge from gnulib, incorporating:
+	* doc/misc/texinfo.tex: Update to 2012-07-29.17 version.
+
+2012-07-29  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* Makefile.in (install-arch-indep): Handle space in locallisppath.
+
+2012-07-28  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use Gnulib environ module (Bug#9772).
+	* m4/environ.m4: New file, from gnulib.
+	* lib/gnulib.mk, m4/gnulib-comp.m4: Regenerate.
+
+	Use Gnulib stdalign module (Bug#9772, Bug#9960).
+	This should improve portability of macros like alignof and DECL_ALIGN.
+	* lib/stdalign.in.h, m4/stdalign.m4: New files, from gnulib.
+	* .bzrignore: Add lib/stdalign.h.
+	* config.bat: Do not set NO_DECL_ALIGN; no longer needed.
+	Copy lib/stdalign.in.h to lib/stdalign.in-h as needed.
+	* configure.ac (HAVE_ATTRIBUTE_ALIGNED): Remove the code that
+	fiddles with this, as gnulib now does this for us.
+
+2012-07-17  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Fix toolkit configuration report.
+	* configure.ac (USE_X_TOOLKIT): Report toolkit as GTK3 if
+	--with-x-toolkit=gtk3 is used.
+
+2012-07-17  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix regression with pthread_sigmask on FreeBSD (Bug#11884).
+	* configure.ac: Configure gnulib at the end, not before running
+	pkg-config.  This restores the behavior before 2012-06-22, when
+	higher-resolution time stamps were added, and fixes a bug whereby
+	LIB_PTHREAD was not used and gnulib's part of 'configure'
+	therefore incorrectly assumed that pthread_sigmask wasn't working.
+	Fix the problem with -lrt and clock_gettime a different way.
+	This should complete the fix for Bug#11884.
+	(pre_PKG_CONFIG_CFLAGS, pre_PKG_CONFIG_LIBS): New shell vars.
+
 2012-07-15  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Merge from gnulib, incorporating:

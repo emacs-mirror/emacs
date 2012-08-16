@@ -56,8 +56,7 @@ lwlibdir = ../lwlib
 lispdir = ../lisp
 
 # Configuration files for .o files to depend on.
-S_FILE = @S_FILE@
-config_h = config.h $(S_FILE)
+config_h = config.h $(srcdir)/conf_post.h
 
 bootstrap_exe = $(abs_builddir)/bootstrap-emacs$(EXEEXT)
 
@@ -391,6 +390,7 @@ LIBES = $(LIBS) $(LIBX_BASE) $(LIBX_OTHER) $(LIBSOUND) \
    $(LIB_GCC) $(LIB_MATH) $(LIB_STANDARD) $(LIB_GCC)
 
 all: emacs$(EXEEXT) $(OTHER_FILES)
+.PHONY: all
 
 $(leimdir)/leim-list.el: bootstrap-emacs$(EXEEXT)
 	cd $(leimdir) && $(MAKE) $(MFLAGS) leim-list.el EMACS=$(bootstrap_exe)
@@ -496,6 +496,8 @@ doc.o: buildobj.h
 ## If HAVE_NS, some ns-specific rules (for OTHER_FILES) are inserted here.
 @ns_frag@
 
+.PHONY: mostlyclean clean bootstrap-clean distclean maintainer-clean
+.PHONY: versioclean extraclean frc
 
 mostlyclean:
 	rm -f temacs$(EXEEXT) core *.core \#* *.o libXMenu11.a liblw.a

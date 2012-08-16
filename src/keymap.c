@@ -225,7 +225,7 @@ when reading a key-sequence to be looked-up in this keymap.  */)
    Fdefine_key should cause keymaps to be autoloaded.
 
    This function can GC when AUTOLOAD is non-zero, because it calls
-   do_autoload which can GC.  */
+   Fautoload_do_load which can GC.  */
 
 Lisp_Object
 get_keymap (Lisp_Object object, int error_if_not_keymap, int autoload)
@@ -259,7 +259,7 @@ get_keymap (Lisp_Object object, int error_if_not_keymap, int autoload)
 		  struct gcpro gcpro1, gcpro2;
 
 		  GCPRO2 (tem, object);
-		  do_autoload (tem, object);
+		  Fautoload_do_load (tem, object, Qnil);
 		  UNGCPRO;
 
 		  goto autoload_retry;
@@ -1854,7 +1854,7 @@ If KEYMAP is nil, that means no local keymap.  */)
   if (!NILP (keymap))
     keymap = get_keymap (keymap, 1, 1);
 
-  BVAR (current_buffer, keymap) = keymap;
+  BSET (current_buffer, keymap, keymap);
 
   return Qnil;
 }
@@ -2069,7 +2069,7 @@ The `kbd' macro is an approximate inverse of this.  */)
     size += XINT (Flength (prefix));
 
   /* This has one extra element at the end that we don't pass to Fconcat.  */
-  if (min (PTRDIFF_MAX, SIZE_MAX) / sizeof (Lisp_Object) / 4 < size)
+  if (min (PTRDIFF_MAX, SIZE_MAX) / word_size / 4 < size)
     memory_full (SIZE_MAX);
   SAFE_ALLOCA_LISP (args, size * 4);
 
@@ -2141,7 +2141,7 @@ The `kbd' macro is an approximate inverse of this.  */)
 		continue;
 	    }
 	  else
-	    XSETINT (key, (XINT (key) | meta_modifier) & ~0x80);
+	    XSETINT (key, XINT (key) | meta_modifier);
 	  add_meta = 0;
 	}
       else if (EQ (key, meta_prefix_char))
@@ -2304,11 +2304,10 @@ around function keys and event symbols.  */)
     {
       if (NILP (no_angles))
 	{
-	  char *buffer;
 	  Lisp_Object result;
 	  USE_SAFE_ALLOCA;
-	  SAFE_ALLOCA (buffer, char *,
-		       sizeof "<>" + SBYTES (SYMBOL_NAME (key)));
+	  char *buffer = SAFE_ALLOCA (sizeof "<>"
+				      + SBYTES (SYMBOL_NAME (key)));
 	  esprintf (buffer, "<%s>", SDATA (SYMBOL_NAME (key)));
 	  result = build_string (buffer);
 	  SAFE_FREE ();
@@ -3702,13 +3701,12 @@ syms_of_keymap (void)
   Fset (intern_c_string ("ctl-x-map"), control_x_map);
   Ffset (intern_c_string ("Control-X-prefix"), control_x_map);
 
-  exclude_keys
-    = pure_cons (pure_cons (build_pure_c_string ("DEL"), build_pure_c_string ("\\d")),
-		 pure_cons (pure_cons (build_pure_c_string ("TAB"), build_pure_c_string ("\\t")),
-		    pure_cons (pure_cons (build_pure_c_string ("RET"), build_pure_c_string ("\\r")),
-			   pure_cons (pure_cons (build_pure_c_string ("ESC"), build_pure_c_string ("\\e")),
-				  pure_cons (pure_cons (build_pure_c_string ("SPC"), build_pure_c_string (" ")),
-					 Qnil)))));
+  exclude_keys = listn (CONSTYPE_PURE, 5,
+			pure_cons (build_pure_c_string ("DEL"), build_pure_c_string ("\\d")),
+			pure_cons (build_pure_c_string ("TAB"), build_pure_c_string ("\\t")),
+			pure_cons (build_pure_c_string ("RET"), build_pure_c_string ("\\r")),
+			pure_cons (build_pure_c_string ("ESC"), build_pure_c_string ("\\e")),
+			pure_cons (build_pure_c_string ("SPC"), build_pure_c_string (" ")));
   staticpro (&exclude_keys);
 
   DEFVAR_LISP ("define-key-rebound-commands", Vdefine_key_rebound_commands,
@@ -3761,16 +3759,16 @@ be preferred.  */);
   where_is_preferred_modifier = 0;
 
   staticpro (&Vmouse_events);
-  Vmouse_events = pure_cons (intern_c_string ("menu-bar"),
-		  pure_cons (intern_c_string ("tool-bar"),
-		  pure_cons (intern_c_string ("header-line"),
-		  pure_cons (intern_c_string ("mode-line"),
-		  pure_cons (intern_c_string ("mouse-1"),
-		  pure_cons (intern_c_string ("mouse-2"),
-		  pure_cons (intern_c_string ("mouse-3"),
-		  pure_cons (intern_c_string ("mouse-4"),
-		  pure_cons (intern_c_string ("mouse-5"),
-			     Qnil)))))))));
+  Vmouse_events = listn (CONSTYPE_PURE, 9,
+			 intern_c_string ("menu-bar"),
+			 intern_c_string ("tool-bar"),
+			 intern_c_string ("header-line"),
+			 intern_c_string ("mode-line"),
+			 intern_c_string ("mouse-1"),
+			 intern_c_string ("mouse-2"),
+			 intern_c_string ("mouse-3"),
+			 intern_c_string ("mouse-4"),
+			 intern_c_string ("mouse-5"));
 
   DEFSYM (Qsingle_key_description, "single-key-description");
   DEFSYM (Qkey_description, "key-description");

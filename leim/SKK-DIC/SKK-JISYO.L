@@ -34,7 +34,7 @@
 ;; the Free Software Foundation Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
 ;;
-;; ACKNOWLEDGEMENT
+;; ACKNOWLEDGMENT
 ;;
 ;; この辞書は、SKK 原作者の佐藤雅彦先生が、第 1 版作成のために東北大学
 ;; 電気通信研究所佐藤研究室 (当時) の学生さん達とともに scratch から作

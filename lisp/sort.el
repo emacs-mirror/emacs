@@ -401,18 +401,23 @@ the sort order."
 
 ;;;###autoload
 (defun sort-regexp-fields (reverse record-regexp key-regexp beg end)
-  "Sort the region lexicographically as specified by RECORD-REGEXP and KEY.
-RECORD-REGEXP specifies the textual units which should be sorted.
-  For example, to sort lines RECORD-REGEXP would be \"^.*$\"
-KEY specifies the part of each record (ie each match for RECORD-REGEXP)
-  is to be used for sorting.
-  If it is \"\\\\digit\" then the digit'th \"\\\\(...\\\\)\" match field from
-  RECORD-REGEXP is used.
-  If it is \"\\\\&\" then the whole record is used.
-  Otherwise, it is a regular-expression for which to search within the record.
-If a match for KEY is not found within a record then that record is ignored.
+  "Sort the text in the region region lexicographically.
+If called interactively, prompt for two regular expressions,
+RECORD-REGEXP and KEY-REGEXP.
 
-With a negative prefix arg sorts in reverse order.
+RECORD-REGEXP specifies the textual units to be sorted.
+  For example, to sort lines, RECORD-REGEXP would be \"^.*$\".
+
+KEY-REGEXP specifies the part of each record (i.e. each match for
+  RECORD-REGEXP) to be used for sorting.
+  If it is \"\\\\digit\", use the digit'th \"\\\\(...\\\\)\"
+  match field specified by RECORD-REGEXP.
+  If it is \"\\\\&\", use the whole record.
+  Otherwise, KEY-REGEXP should be a regular expression with which
+  to search within the record.  If a match for KEY-REGEXP is not
+  found within a record, that record is ignored.
+
+With a negative prefix arg, sort in reverse order.
 
 The variable `sort-fold-case' determines whether alphabetic case affects
 the sort order.

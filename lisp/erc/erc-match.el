@@ -232,6 +232,14 @@ current-nick, keyword, pal, dangerous-host, fool"
   :group 'erc-match
   :type 'hook)
 
+(defcustom erc-match-exclude-server-buffer nil
+  "If true, don't perform match on the server buffer; this is
+useful for excluding all the things like MOTDs from the server
+and other miscellaneous functions."
+  :group 'erc-match
+  :version "24.3"
+  :type 'boolean)
+
 ;; Internal variables:
 
 ;; This is exactly the same as erc-button-syntax-table.  Should we
@@ -449,7 +457,9 @@ Use this defun with `erc-insert-modify-hook'."
 					(+ 2 nick-end)
 				      (point-min))
 				    (point-max))))
-    (when vector
+    (when (and vector
+	       (not (and erc-track-exclude-server-buffer
+			 (erc-server-buffer-p))))
       (mapc
        (lambda (match-type)
 	 (goto-char (point-min))

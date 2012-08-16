@@ -1,4 +1,4 @@
-/* Heap management routines for GNU Emacs on the Microsoft W32 API.
+/* Heap management routines for GNU Emacs on the Microsoft Windows API.
    Copyright (C) 1994, 2001-2012  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -66,7 +66,7 @@ cache_system_info (void)
   w32_minor_version = version.info.minor;
 
   if (version.info.platform & 0x8000)
-    os_subtype = OS_WIN95;
+    os_subtype = OS_9X;
   else
     os_subtype = OS_NT;
 
@@ -79,7 +79,7 @@ cache_system_info (void)
   GetVersionEx (&osinfo_cache);
 
   w32_build_number = osinfo_cache.dwBuildNumber;
-  if (os_subtype == OS_WIN95)
+  if (os_subtype == OS_9X)
     w32_build_number &= 0xffff;
 }
 

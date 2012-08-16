@@ -427,8 +427,7 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
       && SREF (path, 1) == ':')
     path = Fsubstring (path, make_number (2), Qnil);
 
-  SAFE_ALLOCA (new_argv, const unsigned char **,
-	       (nargs > 4 ? nargs - 2 : 2) * sizeof *new_argv);
+  new_argv = SAFE_ALLOCA ((nargs > 4 ? nargs - 2 : 2) * sizeof *new_argv);
   if (nargs > 4)
     {
       ptrdiff_t i;
@@ -978,8 +977,7 @@ usage: (call-process-region START END PROGRAM &optional DELETE BUFFER DISPLAY &r
   Lisp_Object coding_systems;
   Lisp_Object val, *args2;
   ptrdiff_t i;
-  char *tempfile;
-  Lisp_Object tmpdir, pattern;
+  Lisp_Object tmpdir;
 
   if (STRINGP (Vtemporary_file_directory))
     tmpdir = Vtemporary_file_directory;
@@ -1003,8 +1001,8 @@ usage: (call-process-region START END PROGRAM &optional DELETE BUFFER DISPLAY &r
 
   {
     USE_SAFE_ALLOCA;
-    pattern = Fexpand_file_name (Vtemp_file_name_pattern, tmpdir);
-    SAFE_ALLOCA (tempfile, char *, SBYTES (pattern) + 1);
+    Lisp_Object pattern = Fexpand_file_name (Vtemp_file_name_pattern, tmpdir);
+    char *tempfile = SAFE_ALLOCA (SBYTES (pattern) + 1);
     memcpy (tempfile, SDATA (pattern), SBYTES (pattern) + 1);
     coding_systems = Qt;
 
@@ -1515,29 +1513,24 @@ egetenv (const char *var)
 void
 init_callproc_1 (void)
 {
-  char *data_dir = egetenv ("EMACSDATA");
-  char *doc_dir = egetenv ("EMACSDOC");
 #ifdef HAVE_NS
   const char *etc_dir = ns_etc_directory ();
   const char *path_exec = ns_exec_path ();
 #endif
 
-  Vdata_directory
-    = Ffile_name_as_directory (build_string (data_dir ? data_dir
+  Vdata_directory = decode_env_path ("EMACSDATA",
 #ifdef HAVE_NS
-                                             : (etc_dir ? etc_dir : PATH_DATA)
-#else
-                                             : PATH_DATA
+                                             etc_dir ? etc_dir :
 #endif
-                                             ));
-  Vdoc_directory
-    = Ffile_name_as_directory (build_string (doc_dir ? doc_dir
+                                             PATH_DATA);
+  Vdata_directory = Ffile_name_as_directory (Fcar (Vdata_directory));
+
+  Vdoc_directory = decode_env_path ("EMACSDOC",
 #ifdef HAVE_NS
-                                             : (etc_dir ? etc_dir : PATH_DOC)
-#else
-                                             : PATH_DOC
+                                             etc_dir ? etc_dir :
 #endif
-                                             ));
+                                             PATH_DOC);
+  Vdoc_directory = Ffile_name_as_directory (Fcar (Vdoc_directory));
 
   /* Check the EMACSPATH environment variable, defaulting to the
      PATH_EXEC path from epaths.h.  */
@@ -1578,7 +1571,7 @@ init_callproc (void)
       Lisp_Object tem;
       tem = Fexpand_file_name (build_string ("lib-src"),
 			       Vinstallation_directory);
-#ifndef DOS_NT
+#ifndef MSDOS
 	  /* MSDOS uses wrapped binaries, so don't do this.  */
       if (NILP (Fmember (tem, Vexec_path)))
 	{
@@ -1595,7 +1588,7 @@ init_callproc (void)
 	}
 
       Vexec_directory = Ffile_name_as_directory (tem);
-#endif /* not DOS_NT */
+#endif /* not MSDOS */
 
       /* Maybe use ../etc as well as ../lib-src.  */
       if (data_dir == 0)

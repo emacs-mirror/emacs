@@ -17,7 +17,7 @@
 # Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
 
-# Force loading of symbols, enough to give us gdb_valbits etc.
+# Force loading of symbols, enough to give us VALBITS etc.
 set main
 # With some compilers, we need this to give us struct Lisp_Symbol etc.:
 set Fmake_symbol
@@ -43,32 +43,33 @@ handle SIGUSR2 noprint pass
 # debugging.
 handle SIGALRM ignore
 
-# $valmask and $tagmask are mask values set up by the xreload macro below.
-
 # Use $bugfix so that the value isn't a constant.
 # Using a constant runs into GDB bugs sometimes.
 define xgetptr
-  set $bugfix = $arg0
-  if gdb_use_struct
-    set $bugfix = $bugfix.i
+  if (CHECK_LISP_OBJECT_TYPE)
+    set $bugfix = $arg0.i
+  else
+    set $bugfix = $arg0
   end
-  set $ptr = $bugfix & $valmask | gdb_data_seg_bits
+  set $ptr = ($bugfix & VALMASK) | DATA_SEG_BITS
 end
 
 define xgetint
-  set $bugfix = $arg0
-  if gdb_use_struct
-    set $bugfix = $bugfix.i
+  if (CHECK_LISP_OBJECT_TYPE)
+    set $bugfix = $arg0.i
+  else
+    set $bugfix = $arg0
   end
-  set $int = gdb_use_lsb ? $bugfix >> (gdb_gctypebits - 1) : $bugfix << (gdb_gctypebits - 1) >> (gdb_gctypebits - 1)
+  set $int = $bugfix << (USE_LSB_TAG ? 0 : INTTYPEBITS) >> INTTYPEBITS
 end
 
 define xgettype
-  set $bugfix = $arg0
-  if gdb_use_struct
-    set $bugfix = $bugfix.i
+  if (CHECK_LISP_OBJECT_TYPE)
+    set $bugfix = $arg0.i
+  else
+    set $bugfix = $arg0
   end
-  set $type = (enum Lisp_Type) (gdb_use_lsb ? $bugfix & $tagmask : $bugfix >> gdb_valbits)
+  set $type = (enum Lisp_Type) (USE_LSB_TAG ? $bugfix & (1 << GCTYPEBITS) - 1 : $bugfix >> VALBITS)
 end
 
 # Set up something to print out s-expressions.
@@ -652,7 +653,11 @@ end
 define xvectype
   xgetptr $
   set $size = ((struct Lisp_Vector *) $ptr)->header.size
-  output ($size & PVEC_FLAG) ? (enum pvec_type) ($size & PVEC_TYPE_MASK) : $size & ~gdb_array_mark_flag
+  if ($size & PSEUDOVECTOR_FLAG)
+    output (enum pvec_type) (($size & PVEC_TYPE_MASK) >> PSEUDOVECTOR_SIZE_BITS)
+  else
+    output $size & ~ARRAY_MARK_FLAG
+  end
   echo \n
 end
 document xvectype
@@ -738,7 +743,7 @@ end
 define xvector
   xgetptr $
   print (struct Lisp_Vector *) $ptr
-  output ($->header.size > 50) ? 0 : ($->contents[0])@($->header.size & ~gdb_array_mark_flag)
+  output ($->header.size > 50) ? 0 : ($->contents[0])@($->header.size & ~ARRAY_MARK_FLAG)
 echo \n
 end
 document xvector
@@ -847,7 +852,7 @@ end
 define xboolvector
   xgetptr $
   print (struct Lisp_Bool_Vector *) $ptr
-  output ($->header.size > 256) ? 0 : ($->data[0])@((($->header.size & ~gdb_array_mark_flag) + 7)/ 8)
+  output ($->size > 256) ? 0 : ($->data[0])@(($->size + BOOL_VECTOR_BITS_PER_CHAR - 1)/ BOOL_VECTOR_BITS_PER_CHAR)
   echo \n
 end
 document xboolvector
@@ -990,8 +995,8 @@ define xpr
   end
   if $type == Lisp_Vectorlike
     set $size = ((struct Lisp_Vector *) $ptr)->header.size
-    if ($size & PVEC_FLAG)
-      set $vec = (enum pvec_type) ($size & PVEC_TYPE_MASK)
+    if ($size & PSEUDOVECTOR_FLAG)
+      set $vec = (enum pvec_type) (($size & PVEC_TYPE_MASK) >> PSEUDOVECTOR_SIZE_BITS)
       if $vec == PVEC_NORMAL_VECTOR
 	xvector
       end
@@ -1036,13 +1041,13 @@ end
 
 define xprintstr
   set $data = (char *) $arg0->data
-  output ($arg0->size > 1000) ? 0 : ($data[0])@($arg0->size_byte < 0 ? $arg0->size & ~gdb_array_mark_flag : $arg0->size_byte)
+  output ($arg0->size > 1000) ? 0 : ($data[0])@($arg0->size_byte < 0 ? $arg0->size & ~ARRAY_MARK_FLAG : $arg0->size_byte)
 end
 
 define xprintsym
   xgetptr $arg0
   set $sym = (struct Lisp_Symbol *) $ptr
-  xgetptr $sym->xname
+  xgetptr $sym->name
   set $sym_name = (struct Lisp_String *) $ptr
   xprintstr $sym_name
 end
@@ -1051,8 +1056,8 @@ document xprintsym
 end
 
 define xcoding
-  set $tmp = (struct Lisp_Hash_Table *) ((Vcoding_system_hash_table & $valmask) | gdb_data_seg_bits)
-  set $tmp = (struct Lisp_Vector *) (($tmp->key_and_value & $valmask) | gdb_data_seg_bits)
+  set $tmp = (struct Lisp_Hash_Table *) ((Vcoding_system_hash_table & VALMASK) | DATA_SEG_BITS)
+  set $tmp = (struct Lisp_Vector *) (($tmp->key_and_value & VALMASK) | DATA_SEG_BITS)
   set $name = $tmp->contents[$arg0 * 2]
   print $name
   pr
@@ -1064,8 +1069,8 @@ document xcoding
 end
 
 define xcharset
-  set $tmp = (struct Lisp_Hash_Table *) ((Vcharset_hash_table & $valmask) | gdb_data_seg_bits)
-  set $tmp = (struct Lisp_Vector *) (($tmp->key_and_value & $valmask) | gdb_data_seg_bits)
+  set $tmp = (struct Lisp_Hash_Table *) ((Vcharset_hash_table & VALMASK) | DATA_SEG_BITS)
+  set $tmp = (struct Lisp_Vector *) (($tmp->key_and_value & VALMASK) | DATA_SEG_BITS)
   p $tmp->contents[charset_table[$arg0].hash_index * 2]
   pr
 end
@@ -1126,7 +1131,11 @@ define xbacktrace
       if $type == Lisp_Vectorlike
 	xgetptr (*$bt->function)
         set $size = ((struct Lisp_Vector *) $ptr)->header.size
-        output ($size & PVEC_FLAG) ? (enum pvec_type) ($size & PVEC_TYPE_MASK) : $size & ~gdb_array_mark_flag
+        if ($size & PSEUDOVECTOR_FLAG)
+	  output (enum pvec_type) (($size & PVEC_TYPE_MASK) >> PSEUDOVECTOR_SIZE_BITS)
+	else
+	  output $size & ~ARRAY_MARK_FLAG
+	end
       else
         printf "Lisp type %d", $type
       end
@@ -1144,7 +1153,7 @@ end
 define xprintbytestr
   set $data = (char *) $arg0->data
   printf "Bytecode: "
-  output/u ($arg0->size > 1000) ? 0 : ($data[0])@($arg0->size_byte < 0 ? $arg0->size & ~gdb_array_mark_flag : $arg0->size_byte)
+  output/u ($arg0->size > 1000) ? 0 : ($data[0])@($arg0->size_byte < 0 ? $arg0->size & ~ARRAY_MARK_FLAG : $arg0->size_byte)
 end
 document xprintbytestr
   Print a string of byte code.
@@ -1188,21 +1197,6 @@ define hookpost-backtrace
   end
 end
 
-define xreload
-  set $tagmask = ((1 << gdb_gctypebits) - 1)
-  # The consing_since_gc business widens the 1 to EMACS_INT,
-  # a symbol not directly visible to GDB.
-  set $valmask = gdb_use_lsb ? ~($tagmask) : ((consing_since_gc - consing_since_gc + 1) << gdb_valbits) - 1
-end
-document xreload
-  When starting Emacs a second time in the same gdb session under
-  FreeBSD 2.2.5, gdb 4.13, $valmask have lost
-  their values.  (The same happens on current (2000) versions of GNU/Linux
-  with gdb 5.0.)
-  This function reloads them.
-end
-xreload
-
 # Flush display (X only)
 define ff
   set x_flush (0)
@@ -1212,15 +1206,6 @@ Flush pending X window display updates to screen.
 Works only when an inferior emacs is executing.
 end
 
-
-define hook-run
-  xreload
-end
-
-# Call xreload if a new Emacs executable is loaded.
-define hookpost-run
-  xreload
-end
 
 set print pretty on
 set print sevenbit-strings
@@ -1233,7 +1218,7 @@ xgetptr globals.f_Vsystem_type
 # $ptr is NULL in temacs
 if ($ptr != 0)
   set $tem = (struct Lisp_Symbol *) $ptr
-  xgetptr $tem->xname
+  xgetptr $tem->name
   set $tem = (struct Lisp_String *) $ptr
   set $tem = (char *) $tem->data
 
@@ -1256,7 +1241,7 @@ commands
   silent
   xgetptr globals.f_Vinitial_window_system
   set $tem = (struct Lisp_Symbol *) $ptr
-  xgetptr $tem->xname
+  xgetptr $tem->name
   set $tem = (struct Lisp_String *) $ptr
   set $tem = (char *) $tem->data
   # If we are running in synchronous mode, we want a chance to look

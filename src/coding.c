@@ -2674,8 +2674,8 @@ encode_coding_emacs_mule (struct coding_system *coding)
   CODING_GET_INFO (coding, attrs, charset_list);
   if (! EQ (charset_list, Vemacs_mule_charset_list))
     {
-      CODING_ATTR_CHARSET_LIST (attrs)
-	= charset_list = Vemacs_mule_charset_list;
+      charset_list = Vemacs_mule_charset_list;
+      ASET (attrs, coding_attr_charset_list, charset_list);
     }
 
   while (charbuf < charbuf_end)
@@ -2967,8 +2967,8 @@ setup_iso_safe_charsets (Lisp_Object attrs)
   if ((flags & CODING_ISO_FLAG_FULL_SUPPORT)
       && ! EQ (charset_list, Viso_2022_charset_list))
     {
-      CODING_ATTR_CHARSET_LIST (attrs)
-	= charset_list = Viso_2022_charset_list;
+      charset_list = Viso_2022_charset_list;
+      ASET (attrs, coding_attr_charset_list, charset_list);
       ASET (attrs, coding_attr_safe_charsets, Qnil);
     }
 
@@ -7102,8 +7102,17 @@ decode_coding (struct coding_system *coding)
 	set_buffer_internal (XBUFFER (coding->dst_object));
       if (GPT != PT)
 	move_gap_both (PT, PT_BYTE);
+
+      /* We must disable undo_list in order to record the whole insert
+	 transaction via record_insert at the end.  But doing so also
+	 disables the recording of the first change to the undo_list.
+	 Therefore we check for first change here and record it via
+	 record_first_change if needed.  */
+      if (MODIFF <= SAVE_MODIFF)
+	record_first_change ();
+
       undo_list = BVAR (current_buffer, undo_list);
-      BVAR (current_buffer, undo_list) = Qt;
+      BSET (current_buffer, undo_list, Qt);
     }
 
   coding->consumed = coding->consumed_char = 0;
@@ -7200,7 +7209,7 @@ decode_coding (struct coding_system *coding)
     decode_eol (coding);
   if (BUFFERP (coding->dst_object))
     {
-      BVAR (current_buffer, undo_list) = undo_list;
+      BSET (current_buffer, undo_list, undo_list);
       record_insert (coding->dst_pos, coding->produced_char);
     }
   return coding->result;
@@ -7568,8 +7577,8 @@ make_conversion_work_buffer (int multibyte)
      doesn't compile new regexps.  */
   Fset (Fmake_local_variable (Qinhibit_modification_hooks), Qt);
   Ferase_buffer ();
-  BVAR (current_buffer, undo_list) = Qt;
-  BVAR (current_buffer, enable_multibyte_characters) = multibyte ? Qt : Qnil;
+  BSET (current_buffer, undo_list, Qt);
+  BSET (current_buffer, enable_multibyte_characters, multibyte ? Qt : Qnil);
   set_buffer_internal (current);
   return workbuf;
 }
@@ -7588,7 +7597,7 @@ code_conversion_restore (Lisp_Object arg)
     {
       if (EQ (workbuf, Vcode_conversion_reused_workbuf))
 	reused_workbuf_in_use = 0;
-      else if (! NILP (Fbuffer_live_p (workbuf)))
+      else
 	Fkill_buffer (workbuf);
     }
   set_buffer_internal (XBUFFER (current));
@@ -7931,15 +7940,12 @@ encode_coding_object (struct coding_system *coding,
 	}
 
       {
-	Lisp_Object args[3];
 	struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5;
 
 	GCPRO5 (coding->src_object, coding->dst_object, src_object, dst_object,
 		old_deactivate_mark);
-	args[0] = CODING_ATTR_PRE_WRITE (attrs);
-	args[1] = make_number (BEG);
-	args[2] = make_number (Z);
-	safe_call (3, args);
+	safe_call2 (CODING_ATTR_PRE_WRITE (attrs),
+		    make_number (BEG), make_number (Z));
 	UNGCPRO;
       }
       if (XBUFFER (coding->src_object) != current_buffer)
@@ -9297,9 +9303,9 @@ DEFUN ("set-terminal-coding-system-internal", Fset_terminal_coding_system_intern
   terminal_coding->src_multibyte = 1;
   terminal_coding->dst_multibyte = 0;
   if (terminal_coding->common_flags & CODING_REQUIRE_ENCODING_MASK)
-    term->charset_list = coding_charset_list (terminal_coding);
+    TSET (term, charset_list, coding_charset_list (terminal_coding));
   else
-    term->charset_list = Fcons (make_number (charset_ascii), Qnil);
+    TSET (term, charset_list, Fcons (make_number (charset_ascii), Qnil));
   return Qnil;
 }
 
@@ -9606,16 +9612,16 @@ usage: (define-coding-system-internal ...)  */)
 
   name = args[coding_arg_name];
   CHECK_SYMBOL (name);
-  CODING_ATTR_BASE_NAME (attrs) = name;
+  ASET (attrs, coding_attr_base_name, name);
 
   val = args[coding_arg_mnemonic];
   if (! STRINGP (val))
     CHECK_CHARACTER (val);
-  CODING_ATTR_MNEMONIC (attrs) = val;
+  ASET (attrs, coding_attr_mnemonic, val);
 
   coding_type = args[coding_arg_coding_type];
   CHECK_SYMBOL (coding_type);
-  CODING_ATTR_TYPE (attrs) = coding_type;
+  ASET (attrs, coding_attr_type, coding_type);
 
   charset_list = args[coding_arg_charset_list];
   if (SYMBOLP (charset_list))
@@ -9662,49 +9668,49 @@ usage: (define-coding-system-internal ...)  */)
 	    max_charset_id = charset->id;
 	}
     }
-  CODING_ATTR_CHARSET_LIST (attrs) = charset_list;
+  ASET (attrs, coding_attr_charset_list, charset_list);
 
   safe_charsets = make_uninit_string (max_charset_id + 1);
   memset (SDATA (safe_charsets), 255, max_charset_id + 1);
   for (tail = charset_list; CONSP (tail); tail = XCDR (tail))
     SSET (safe_charsets, XFASTINT (XCAR (tail)), 0);
-  CODING_ATTR_SAFE_CHARSETS (attrs) = safe_charsets;
+  ASET (attrs, coding_attr_safe_charsets, safe_charsets);
 
-  CODING_ATTR_ASCII_COMPAT (attrs) = args[coding_arg_ascii_compatible_p];
+  ASET (attrs, coding_attr_ascii_compat, args[coding_arg_ascii_compatible_p]);
 
   val = args[coding_arg_decode_translation_table];
   if (! CHAR_TABLE_P (val) && ! CONSP (val))
     CHECK_SYMBOL (val);
-  CODING_ATTR_DECODE_TBL (attrs) = val;
+  ASET (attrs, coding_attr_decode_tbl, val);
 
   val = args[coding_arg_encode_translation_table];
   if (! CHAR_TABLE_P (val) && ! CONSP (val))
     CHECK_SYMBOL (val);
-  CODING_ATTR_ENCODE_TBL (attrs) = val;
+  ASET (attrs, coding_attr_encode_tbl, val);
 
   val = args[coding_arg_post_read_conversion];
   CHECK_SYMBOL (val);
-  CODING_ATTR_POST_READ (attrs) = val;
+  ASET (attrs, coding_attr_post_read, val);
 
   val = args[coding_arg_pre_write_conversion];
   CHECK_SYMBOL (val);
-  CODING_ATTR_PRE_WRITE (attrs) = val;
+  ASET (attrs, coding_attr_pre_write, val);
 
   val = args[coding_arg_default_char];
   if (NILP (val))
-    CODING_ATTR_DEFAULT_CHAR (attrs) = make_number (' ');
+    ASET (attrs, coding_attr_default_char, make_number (' '));
   else
     {
       CHECK_CHARACTER (val);
-      CODING_ATTR_DEFAULT_CHAR (attrs) = val;
+      ASET (attrs, coding_attr_default_char, val);
     }
 
   val = args[coding_arg_for_unibyte];
-  CODING_ATTR_FOR_UNIBYTE (attrs) = NILP (val) ? Qnil : Qt;
+  ASET (attrs, coding_attr_for_unibyte, NILP (val) ? Qnil : Qt);
 
   val = args[coding_arg_plist];
   CHECK_LIST (val);
-  CODING_ATTR_PLIST (attrs) = val;
+  ASET (attrs, coding_attr_plist, val);
 
   if (EQ (coding_type, Qcharset))
     {
@@ -9729,7 +9735,7 @@ usage: (define-coding-system-internal ...)  */)
 	  int idx = (dim - 1) * 4;
 
 	  if (CHARSET_ASCII_COMPATIBLE_P (charset))
-	    CODING_ATTR_ASCII_COMPAT (attrs) = Qt;
+	    ASET (attrs, coding_attr_ascii_compat, Qt);
 
 	  for (i = charset->code_space[idx];
 	       i <= charset->code_space[idx + 1]; i++)
@@ -9827,7 +9833,7 @@ usage: (define-coding-system-internal ...)  */)
     {
       Lisp_Object bom, endian;
 
-      CODING_ATTR_ASCII_COMPAT (attrs) = Qnil;
+      ASET (attrs, coding_attr_ascii_compat, Qnil);
 
       if (nargs < coding_arg_utf16_max)
 	goto short_args;
@@ -9880,7 +9886,7 @@ usage: (define-coding-system-internal ...)  */)
 	      CHECK_CHARSET_GET_CHARSET (val, charset);
 	      ASET (initial, i, make_number (CHARSET_ID (charset)));
 	      if (i == 0 && CHARSET_ASCII_COMPATIBLE_P (charset))
-		CODING_ATTR_ASCII_COMPAT (attrs) = Qt;
+		ASET (attrs, coding_attr_ascii_compat, Qt);
 	    }
 	  else
 	    ASET (initial, i, make_number (-1));
@@ -9941,13 +9947,13 @@ usage: (define-coding-system-internal ...)  */)
 	}
       if (category != coding_category_iso_8_1
 	  && category != coding_category_iso_8_2)
-	CODING_ATTR_ASCII_COMPAT (attrs) = Qnil;
+	ASET (attrs, coding_attr_ascii_compat, Qnil);
     }
   else if (EQ (coding_type, Qemacs_mule))
     {
       if (EQ (args[coding_arg_charset_list], Qemacs_mule))
 	ASET (attrs, coding_attr_emacs_mule_full, Qt);
-      CODING_ATTR_ASCII_COMPAT (attrs) = Qt;
+      ASET (attrs, coding_attr_ascii_compat, Qt);
       category = coding_category_emacs_mule;
     }
   else if (EQ (coding_type, Qshift_jis))
@@ -9964,7 +9970,7 @@ usage: (define-coding-system-internal ...)  */)
 	error ("Dimension of charset %s is not one",
 	       SDATA (SYMBOL_NAME (CHARSET_NAME (charset))));
       if (CHARSET_ASCII_COMPATIBLE_P (charset))
-	CODING_ATTR_ASCII_COMPAT (attrs) = Qt;
+	ASET (attrs, coding_attr_ascii_compat, Qt);
 
       charset_list = XCDR (charset_list);
       charset = CHARSET_FROM_ID (XINT (XCAR (charset_list)));
@@ -10002,7 +10008,7 @@ usage: (define-coding-system-internal ...)  */)
 	error ("Dimension of charset %s is not one",
 	       SDATA (SYMBOL_NAME (CHARSET_NAME (charset))));
       if (CHARSET_ASCII_COMPATIBLE_P (charset))
-	CODING_ATTR_ASCII_COMPAT (attrs) = Qt;
+	ASET (attrs, coding_attr_ascii_compat, Qt);
 
       charset_list = XCDR (charset_list);
       charset = CHARSET_FROM_ID (XINT (XCAR (charset_list)));
@@ -10016,7 +10022,7 @@ usage: (define-coding-system-internal ...)  */)
   else if (EQ (coding_type, Qraw_text))
     {
       category = coding_category_raw_text;
-      CODING_ATTR_ASCII_COMPAT (attrs) = Qt;
+      ASET (attrs, coding_attr_ascii_compat, Qt);
     }
   else if (EQ (coding_type, Qutf_8))
     {
@@ -10036,7 +10042,7 @@ usage: (define-coding-system-internal ...)  */)
 	}
       ASET (attrs, coding_attr_utf_bom, bom);
       if (NILP (bom))
-	CODING_ATTR_ASCII_COMPAT (attrs) = Qt;
+	ASET (attrs, coding_attr_ascii_compat, Qt);
 
       category = (CONSP (bom) ? coding_category_utf_8_auto
 		  : NILP (bom) ? coding_category_utf_8_nosig
@@ -10048,14 +10054,15 @@ usage: (define-coding-system-internal ...)  */)
     error ("Invalid coding system type: %s",
 	   SDATA (SYMBOL_NAME (coding_type)));
 
-  CODING_ATTR_CATEGORY (attrs) = make_number (category);
-  CODING_ATTR_PLIST (attrs)
-    = Fcons (QCcategory, Fcons (AREF (Vcoding_category_table, category),
-				CODING_ATTR_PLIST (attrs)));
-  CODING_ATTR_PLIST (attrs)
-    = Fcons (QCascii_compatible_p,
-	     Fcons (CODING_ATTR_ASCII_COMPAT (attrs),
-		    CODING_ATTR_PLIST (attrs)));
+  ASET (attrs, coding_attr_category, make_number (category));
+  ASET (attrs, coding_attr_plist,
+	Fcons (QCcategory,
+	       Fcons (AREF (Vcoding_category_table, category),
+		      CODING_ATTR_PLIST (attrs))));
+  ASET (attrs, coding_attr_plist,
+	Fcons (QCascii_compatible_p,
+	       Fcons (CODING_ATTR_ASCII_COMPAT (attrs),
+		      CODING_ATTR_PLIST (attrs))));
 
   eol_type = args[coding_arg_eol_type];
   if (! NILP (eol_type)
@@ -10129,7 +10136,7 @@ DEFUN ("coding-system-put", Fcoding_system_put, Scoding_system_put,
     {
       if (! STRINGP (val))
 	CHECK_CHARACTER (val);
-      CODING_ATTR_MNEMONIC (attrs) = val;
+      ASET (attrs, coding_attr_mnemonic, val);
     }
   else if (EQ (prop, QCdefault_char))
     {
@@ -10137,37 +10144,37 @@ DEFUN ("coding-system-put", Fcoding_system_put, Scoding_system_put,
 	val = make_number (' ');
       else
 	CHECK_CHARACTER (val);
-      CODING_ATTR_DEFAULT_CHAR (attrs) = val;
+      ASET (attrs, coding_attr_default_char, val);
     }
   else if (EQ (prop, QCdecode_translation_table))
     {
       if (! CHAR_TABLE_P (val) && ! CONSP (val))
 	CHECK_SYMBOL (val);
-      CODING_ATTR_DECODE_TBL (attrs) = val;
+      ASET (attrs, coding_attr_decode_tbl, val);
     }
   else if (EQ (prop, QCencode_translation_table))
     {
       if (! CHAR_TABLE_P (val) && ! CONSP (val))
 	CHECK_SYMBOL (val);
-      CODING_ATTR_ENCODE_TBL (attrs) = val;
+      ASET (attrs, coding_attr_encode_tbl, val);
     }
   else if (EQ (prop, QCpost_read_conversion))
     {
       CHECK_SYMBOL (val);
-      CODING_ATTR_POST_READ (attrs) = val;
+      ASET (attrs, coding_attr_post_read, val);
     }
   else if (EQ (prop, QCpre_write_conversion))
     {
       CHECK_SYMBOL (val);
-      CODING_ATTR_PRE_WRITE (attrs) = val;
+      ASET (attrs, coding_attr_pre_write, val);
     }
   else if (EQ (prop, QCascii_compatible_p))
     {
-      CODING_ATTR_ASCII_COMPAT (attrs) = val;
+      ASET (attrs, coding_attr_ascii_compat, val);
     }
 
-  CODING_ATTR_PLIST (attrs)
-    = Fplist_put (CODING_ATTR_PLIST (attrs), prop, val);
+  ASET (attrs, coding_attr_plist,
+	Fplist_put (CODING_ATTR_PLIST (attrs), prop, val));
   return val;
 }
 
@@ -10411,7 +10418,7 @@ syms_of_coding (void)
 
   DEFSYM (Qcoding_system_error, "coding-system-error");
   Fput (Qcoding_system_error, Qerror_conditions,
-	pure_cons (Qcoding_system_error, pure_cons (Qerror, Qnil)));
+	listn (CONSTYPE_PURE, 2, Qcoding_system_error, Qerror));
   Fput (Qcoding_system_error, Qerror_message,
 	build_pure_c_string ("Invalid coding system"));
 

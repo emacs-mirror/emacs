@@ -242,10 +242,13 @@ If the result is non-nil, then break.  Errors are ignored."
 
 (defun get-edebug-spec (symbol)
   ;; Get the spec of symbol resolving all indirection.
-  (let ((edebug-form-spec (get symbol 'edebug-form-spec))
-	indirect)
-    (while (and (symbolp edebug-form-spec)
-		(setq indirect (get edebug-form-spec 'edebug-form-spec)))
+  (let ((edebug-form-spec nil)
+	(indirect symbol))
+    (while
+        (progn
+          (and (symbolp indirect)
+               (setq indirect
+                     (function-get indirect 'edebug-form-spec 'macro))))
       ;; (edebug-trace "indirection: %s" edebug-form-spec)
       (setq edebug-form-spec indirect))
     edebug-form-spec
@@ -263,7 +266,7 @@ An extant spec symbol is a symbol that is not a function and has a
 	     (setq spec (cdr spec)))
 	   t))
 	((symbolp spec)
-	 (unless (functionp spec) (get spec 'edebug-form-spec)))))
+	 (unless (functionp spec) (function-get spec 'edebug-form-spec)))))
 
 ;;; Utilities
 
@@ -3739,7 +3742,7 @@ By default, loading the `edebug' library causes these bindings to
 be installed in `emacs-lisp-mode-map'.")
 
 (define-obsolete-variable-alias 'gud-inhibit-global-bindings
-  'edebug-inhibit-emacs-lisp-mode-bindings "24.2")
+  'edebug-inhibit-emacs-lisp-mode-bindings "24.3")
 
 ;; Global GUD bindings for all emacs-lisp-mode buffers.
 (unless edebug-inhibit-emacs-lisp-mode-bindings

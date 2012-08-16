@@ -89,7 +89,8 @@ any selection."
 		 ;; head of the kill-ring that really comes from the
 		 ;; currently active region we are going to delete.
 		 ;; That would make yank a no-op.
-		 (when (and (string= (buffer-substring-no-properties (point) (mark))
+		 (when (and (string= (buffer-substring-no-properties
+                                      (point) (mark))
 				     (car kill-ring))
 			    (fboundp 'mouse-region-match)
 			    (mouse-region-match))
@@ -102,16 +103,15 @@ any selection."
 		     (setq this-command 'ignore))))
 		(type
 		 (delete-active-region)
-		 (if (and overwrite-mode (eq this-command 'self-insert-command))
+		 (if (and overwrite-mode
+                          (eq this-command 'self-insert-command))
 		   (let ((overwrite-mode nil))
-		     (self-insert-command (prefix-numeric-value current-prefix-arg))
+		     (self-insert-command
+                      (prefix-numeric-value current-prefix-arg))
 		     (setq this-command 'ignore)))))
-	(file-supersession
 	 ;; If ask-user-about-supersession-threat signals an error,
 	 ;; stop safe_run_hooks from clearing out pre-command-hook.
-	 (and (eq inhibit-quit 'pre-command-hook)
-	      (setq inhibit-quit 'delete-selection-dummy))
-	 (signal 'file-supersession (cdr data)))
+	(file-supersession (message "%s" (cadr data)) (ding))
 	(text-read-only
 	 ;; This signal may come either from `delete-active-region' or
 	 ;; `self-insert-command' (when `overwrite-mode' is non-nil).

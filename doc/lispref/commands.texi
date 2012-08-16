@@ -379,9 +379,14 @@ current buffer, @code{default-directory} (@pxref{File Name Expansion}).
 Existing, Completion, Default, Prompt.
 
 @item e
-The first or next mouse event in the key sequence that invoked the command.
-More precisely, @samp{e} gets events that are lists, so you can look at
-the data in the lists.  @xref{Input Events}.  No I/O.
+The first or next non-keyboard event in the key sequence that invoked
+the command.  More precisely, @samp{e} gets events that are lists, so
+you can look at the data in the lists.  @xref{Input Events}.  No I/O.
+
+You use @samp{e} for mouse events and for special system events
+(@pxref{Misc Events}).  The event list that the command receives
+depends on the event.  @xref{Input Events}, which describes the forms
+of the list for each event in the corresponding subsections.
 
 You can use @samp{e} more than once in a single command's interactive
 specification.  If the key sequence that invoked the command has
@@ -972,9 +977,10 @@ moving point out of these sequences is completely turned off.
 @cindex input events
 
 The Emacs command loop reads a sequence of @dfn{input events} that
-represent keyboard or mouse activity.  The events for keyboard activity
-are characters or symbols; mouse events are always lists.  This section
-describes the representation and meaning of input events in detail.
+represent keyboard or mouse activity, or system events sent to Emacs.
+The events for keyboard activity are characters or symbols; other
+events are always lists.  This section describes the representation
+and meaning of input events in detail.
 
 @defun eventp object
 This function returns non-@code{nil} if @var{object} is an input event
@@ -2840,11 +2846,11 @@ immediately after they are read, and this is the way for the event's
 definition to find the actual event.
 
   The events types @code{iconify-frame}, @code{make-frame-visible},
-@code{delete-frame}, @code{drag-n-drop}, and user signals like
-@code{sigusr1} are normally handled in this way.  The keymap which
-defines how to handle special events---and which events are
-special---is in the variable @code{special-event-map} (@pxref{Active
-Keymaps}).
+@code{delete-frame}, @code{drag-n-drop}, @code{language-change}, and
+user signals like @code{sigusr1} are normally handled in this way.
+The keymap which defines how to handle special events---and which
+events are special---is in the variable @code{special-event-map}
+(@pxref{Active Keymaps}).
 
 @node Waiting
 @section Waiting for Elapsed Time or Input

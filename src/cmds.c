@@ -296,9 +296,12 @@ At the end, it runs `post-self-insert-hook'.  */)
 
   if (remove_boundary
       && CONSP (BVAR (current_buffer, undo_list))
-      && NILP (XCAR (BVAR (current_buffer, undo_list))))
+      && NILP (XCAR (BVAR (current_buffer, undo_list)))
+      /* Only remove auto-added boundaries, not boundaries
+	 added be explicit calls to undo-boundary.  */
+      && EQ (BVAR (current_buffer, undo_list), last_undo_boundary))
     /* Remove the undo_boundary that was just pushed.  */
-    BVAR (current_buffer, undo_list) = XCDR (BVAR (current_buffer, undo_list));
+    BSET (current_buffer, undo_list, XCDR (BVAR (current_buffer, undo_list)));
 
   /* Barf if the key that invoked this was not a character.  */
   if (!CHARACTERP (last_command_event))
@@ -443,7 +446,8 @@ internal_self_insert (int c, EMACS_INT n)
       /* If we expanded an abbrev which has a hook,
 	 and the hook has a non-nil `no-self-insert' property,
 	 return right away--don't really self-insert.  */
-      if (SYMBOLP (sym) && ! NILP (sym) && ! NILP (XSYMBOL (sym)->function)
+      if (SYMBOLP (sym) && ! NILP (sym)
+	  && ! NILP (XSYMBOL (sym)->function)
 	  && SYMBOLP (XSYMBOL (sym)->function))
 	{
 	  Lisp_Object prop;

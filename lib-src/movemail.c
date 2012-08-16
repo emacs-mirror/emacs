@@ -22,7 +22,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Important notice: defining MAIL_USE_FLOCK or MAIL_USE_LOCKF *will
    cause loss of mail* if you do it on a system that does not normally
-   use flock as its way of interlocking access to inbox files.  The
+   use flock/lockf as its way of interlocking access to inbox files.  The
    setting of MAIL_USE_FLOCK and MAIL_USE_LOCKF *must agree* with the
    system's own conventions.  It is not a choice that is up to you.
 
@@ -108,6 +108,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifdef WINDOWSNT
 #include <sys/locking.h>
 #endif
+
+/* If your system uses the `flock' or `lockf' system call for mail locking,
+   define MAIL_USE_SYSTEM_LOCK.  If your system type should always define
+   MAIL_USE_LOCKF or MAIL_USE_FLOCK but configure does not do this,
+   please make a bug report.  */
 
 #ifdef MAIL_USE_LOCKF
 #define MAIL_USE_SYSTEM_LOCK
@@ -275,13 +280,6 @@ main (int argc, char **argv)
   else
 #endif
     {
-      #ifndef DIRECTORY_SEP
-       #define DIRECTORY_SEP '/'
-      #endif
-      #ifndef IS_DIRECTORY_SEP
-       #define IS_DIRECTORY_SEP(_c_) ((_c_) == DIRECTORY_SEP)
-      #endif
-
       /* Use a lock file named after our first argument with .lock appended:
 	 If it exists, the mail file is locked.  */
       /* Note: this locking mechanism is *required* by the mailer
@@ -290,20 +288,13 @@ main (int argc, char **argv)
 	 On systems that use a lock file, extracting the mail without locking
 	 WILL occasionally cause loss of mail due to timing errors!
 
-	 So, if creation of the lock file fails
-	 due to access permission on the mail spool directory,
-	 you simply MUST change the permission
-	 and/or make movemail a setgid program
+	 So, if creation of the lock file fails due to access
+	 permission on the mail spool directory, you simply MUST
+	 change the permission and/or make movemail a setgid program
 	 so it can create lock files properly.
 
-	 You might also wish to verify that your system is one
-	 which uses lock files for this purpose.  Some systems use other methods.
-
-	 If your system uses the `flock' system call for mail locking,
-	 define MAIL_USE_SYSTEM_LOCK in config.h or the s-*.h file
-	 and recompile movemail.  If the s- file for your system
-	 should define MAIL_USE_SYSTEM_LOCK but does not, send a bug report
-	 to bug-gnu-emacs@prep.ai.mit.edu so we can fix it.  */
+	 You might also wish to verify that your system is one which
+	 uses lock files for this purpose.  Some systems use other methods.  */
 
       inname_len = strlen (inname);
       lockname = xmalloc (inname_len + sizeof ".lock");
@@ -560,8 +551,8 @@ main (int argc, char **argv)
   wait (&wait_status);
   if (!WIFEXITED (wait_status))
     exit (EXIT_FAILURE);
-  else if (WRETCODE (wait_status) != 0)
-    exit (WRETCODE (wait_status));
+  else if (WEXITSTATUS (wait_status) != 0)
+    exit (WEXITSTATUS (wait_status));
 
 #if !defined (MAIL_USE_MMDF) && !defined (MAIL_USE_SYSTEM_LOCK)
 #ifdef MAIL_USE_MAILLOCK

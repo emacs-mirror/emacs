@@ -1594,9 +1594,9 @@ IT_set_frame_parameters (struct frame *f, Lisp_Object alist)
   Lisp_Object tail;
   int i, j, length = XINT (Flength (alist));
   Lisp_Object *parms
-    = (Lisp_Object *) alloca (length * sizeof (Lisp_Object));
+    = (Lisp_Object *) alloca (length * word_size);
   Lisp_Object *values
-    = (Lisp_Object *) alloca (length * sizeof (Lisp_Object));
+    = (Lisp_Object *) alloca (length * word_size);
   /* Do we have to reverse the foreground and background colors?  */
   int reverse = EQ (Fcdr (Fassq (Qreverse, f->param_alist)), Qt);
   int redraw = 0, fg_set = 0, bg_set = 0;
@@ -1801,7 +1801,7 @@ internal_terminal_init (void)
     }
 
   tty = FRAME_TTY (sf);
-  KVAR (current_kboard, Vwindow_system) = Qpc;
+  KSET (current_kboard, Vwindow_system, Qpc);
   sf->output_method = output_msdos_raw;
   if (init_needed)
     {
@@ -2435,9 +2435,9 @@ and then the scan code.  */)
     {
       val = Fvector (NUM_RECENT_DOSKEYS, keys);
       memcpy (XVECTOR (val)->contents, keys + recent_doskeys_index,
-	      (NUM_RECENT_DOSKEYS - recent_doskeys_index) * sizeof (Lisp_Object));
+	      (NUM_RECENT_DOSKEYS - recent_doskeys_index) * word_size);
       memcpy (XVECTOR (val)->contents + NUM_RECENT_DOSKEYS - recent_doskeys_index,
-	      keys, recent_doskeys_index * sizeof (Lisp_Object));
+	      keys, recent_doskeys_index * word_size);
       return val;
     }
 }

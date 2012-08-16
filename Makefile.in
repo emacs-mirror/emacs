@@ -278,6 +278,8 @@ COPYDESTS = $(DESTDIR)${etcdir} $(DESTDIR)${lispdir} $(DESTDIR)${leimdir}/ja-dic
 
 all: ${SUBDIR}
 
+.PHONY: all ${SUBDIR} blessmail epaths-force FRC
+
 removenullpaths=sed -e 's/^://g' -e 's/:$$//g' -e 's/::/:/g'
 
 # Generate epaths.h from epaths.in.  This target is invoked by `configure'.
@@ -285,9 +287,9 @@ removenullpaths=sed -e 's/^://g' -e 's/:$$//g' -e 's/::/:/g'
 # to just letting configure generate epaths.h from epaths.in in a
 # similar way to how Makefile is made from Makefile.in.
 epaths-force: FRC
-	@(standardlisppath=`echo ${standardlisppath} | ${removenullpaths}` ; \
-	  locallisppath=`echo ${locallisppath} | ${removenullpaths}` ; \
-	  buildlisppath=`echo ${buildlisppath} | ${removenullpaths}` ;	\
+	@(standardlisppath=`echo "${standardlisppath}" | ${removenullpaths}` ; \
+	  locallisppath=`echo "${locallisppath}" | ${removenullpaths}` ; \
+	  buildlisppath=`echo "${buildlisppath}" | ${removenullpaths}` ; \
 	  x_default_search_path=`echo ${x_default_search_path}`; \
 	  gamedir=`echo ${gamedir}`; \
 	  sed < ${srcdir}/src/epaths.in > epaths.h.$$$$		\
@@ -306,8 +308,6 @@ epaths-force: FRC
 lib-src src: lib
 
 src:	lib-src FRC
-
-.RECURSIVE: ${SUBDIR}
 
 # We need to build `emacs' in `src' to compile the *.elc files in `lisp'
 # and `leim'.
@@ -350,7 +350,12 @@ blessmail: Makefile src FRC
 # We used to have one rule per */Makefile.in, but that leads to race
 # conditions with parallel makes, so let's assume that the time stamp on
 # ./Makefile is representative of the time stamp on all the other Makefiles.
-Makefile: config.status $(srcdir)/src/config.in \
+#
+# config.status overrides MAKEFILE_NAME with a bogus name when creating
+# src/epaths.h, so that 'make epaths-force' does not recursively invoke
+# config.status and overwrite config.status while executing it (Bug#11214).
+MAKEFILE_NAME = Makefile
+$(MAKEFILE_NAME): config.status $(srcdir)/src/config.in \
           $(srcdir)/Makefile.in $(SUBDIR_MAKEFILES_IN)
 	./config.status
 
@@ -393,11 +398,12 @@ $(srcdir)/src/stamp-h.in: $(AUTOCONF_INPUTS)
 
 # ==================== Installation ====================
 
+.PHONY: install install-arch-dep install-arch-indep install-doc install-info
+.PHONY: install-man install-etc install-strip uninstall
+
 ## If we let lib-src do its own installation, that means we
 ## don't have to duplicate the list of utilities to install in
 ## this Makefile as well.
-
-.PHONY: install
 
 install: all install-arch-indep install-doc install-arch-dep blessmail
 	@true
@@ -489,7 +495,11 @@ set_installuser=for installuser in $${LOGNAME} $${USERNAME} $${USER} \
 ## http://lists.gnu.org/archive/html/autoconf-patches/2004-11/msg00005.html
 install-arch-indep: install-info install-man ${INSTALL_ARCH_INDEP_EXTRA}
 	umask 022 ; \
-	  $(MKDIR_P) $(DESTDIR)`echo ${locallisppath} | sed 's,:, $(DESTDIR),g'`
+	locallisppath='${locallisppath}'; \
+	IFS=:; \
+	for d in $$locallisppath; do \
+	  ${MKDIR_P} "$(DESTDIR)$$d"; \
+	done
 	-set ${COPYDESTS} ; \
 	unset CDPATH; \
 	$(set_installuser); \
@@ -680,7 +690,7 @@ FRC:
 
 # ==================== Cleaning up and miscellanea ====================
 
-.PHONY: mostlyclean clean distclean maintainer-clean extraclean
+.PHONY: mostlyclean clean distclean bootstrap-clean maintainer-clean extraclean
 
 ### `mostlyclean'
 ###      Like `clean', but may refrain from deleting a few files that people
@@ -797,6 +807,7 @@ extraclean:
 
 # The src subdir knows how to do the right thing
 # even when the build directory and source dir are different.
+.PHONY: TAGS tags
 TAGS tags: lib lib-src src
 	cd src; $(MAKE) $(MFLAGS) tags
 
@@ -811,7 +822,7 @@ check:
 dist:
 	cd ${srcdir}; ./make-dist
 
-.PHONY: info dvi dist check html
+.PHONY: info dvi dist check html info-real force-info check-info-dir
 
 info-real:
 	(cd doc/emacs; $(MAKE) $(MFLAGS) info)

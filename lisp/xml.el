@@ -126,7 +126,10 @@ tag.  For example,
 
 would be represented by
 
-    '(\"\" . \"foo\")."
+    '(\"\" . \"foo\").
+
+If you'd just like a plain symbol instead, use 'symbol-qnames in
+the PARSE-NS argument."
 
   (car node))
 
@@ -313,7 +316,22 @@ only those characters, have whitespace syntax.")
   "Parse the well-formed XML file FILE.
 Return the top node with all its children.
 If PARSE-DTD is non-nil, the DTD is parsed rather than skipped.
-If PARSE-NS is non-nil, then QNAMES are expanded."
+
+If PARSE-NS is non-nil, then QNAMES are expanded.  By default,
+the variable `xml-default-ns' is the mapping from namespaces to
+URIs, and expanded names will be returned as a cons
+
+  (\"namespace:\" . \"foo\").
+
+If PARSE-NS is an alist, it will be used as the mapping from
+namespace to URIs instead.
+
+If it is the symbol 'symbol-qnames, expanded names will be
+returned as a plain symbol 'namespace:foo instead of a cons.
+
+Both features can be combined by providing a cons cell
+
+  (symbol-qnames . ALIST)."
   (with-temp-buffer
     (insert-file-contents file)
     (xml--parse-buffer parse-dtd parse-ns)))
@@ -329,7 +347,21 @@ If END is nil, it defaults to `point-max'.
 If BUFFER is nil, it defaults to the current buffer.
 If PARSE-DTD is non-nil, parse the DTD and return it as the first
 element of the list.
-If PARSE-NS is non-nil, expand QNAMES."
+If PARSE-NS is non-nil, then QNAMES are expanded.  By default,
+the variable `xml-default-ns' is the mapping from namespaces to
+URIs, and expanded names will be returned as a cons
+
+  (\"namespace:\" . \"foo\").
+
+If PARSE-NS is an alist, it will be used as the mapping from
+namespace to URIs instead.
+
+If it is the symbol 'symbol-qnames, expanded names will be
+returned as a plain symbol 'namespace:foo instead of a cons.
+
+Both features can be combined by providing a cons cell
+
+  (symbol-qnames . ALIST)."
   ;; Use fixed syntax table to ensure regexp char classes and syntax
   ;; specs DTRT.
   (unless buffer
@@ -386,26 +418,36 @@ is nil.
 
 During namespace-aware parsing, any name without a namespace is
 put into the namespace identified by DEFAULT.  nil is used to
-specify that the name shouldn't be given a namespace."
+specify that the name shouldn't be given a namespace.
+Expanded names will by default be returned as a cons.  If you
+would like to get plain symbols instead, provide a cons cell
+
+  (symbol-qnames . ALIST)
+
+in the XML-NS argument."
   (if (consp xml-ns)
-      (let* ((nsp (string-match ":" name))
+      (let* ((symbol-qnames (eq (car-safe xml-ns) 'symbol-qnames))
+	     (nsp (string-match ":" name))
 	     (lname (if nsp (substring name (match-end 0)) name))
 	     (prefix (if nsp (substring name 0 (match-beginning 0)) default))
 	     (special (and (string-equal lname "xmlns") (not prefix)))
              ;; Setting default to nil will insure that there is not
              ;; matching cons in xml-ns.  In which case we
 	     (ns (or (cdr (assoc (if special "xmlns" prefix)
-                                 xml-ns))
+                                 (if symbol-qnames (cdr xml-ns) xml-ns)))
                      "")))
-        (cons ns (if special "" lname)))
+	(if (and symbol-qnames
+		 (not (string= prefix "xmlns")))
+	    (intern (concat ns lname))
+	  (cons ns (if special "" lname))))
     (intern name)))
 
 (defun xml-parse-tag (&optional parse-dtd parse-ns)
   "Parse the tag at point.
 If PARSE-DTD is non-nil, the DTD of the document, if any, is parsed and
 returned as the first element in the list.
-If PARSE-NS is non-nil, expand QNAMES; if the value of PARSE-NS
-is a list, use it as an alist mapping namespaces to URIs.
+If PARSE-NS is non-nil, expand QNAMES; for further details, see
+`xml-parse-region'.
 
 Return one of:
  - a list : the matching node
@@ -425,9 +467,16 @@ Return one of:
 
 (defun xml-parse-tag-1 (&optional parse-dtd parse-ns)
   "Like `xml-parse-tag', but possibly modify the buffer while working."
-  (let ((xml-validating-parser (or parse-dtd xml-validating-parser))
-	(xml-ns (cond ((consp parse-ns) parse-ns)
-		      (parse-ns xml-default-ns))))
+  (let* ((xml-validating-parser (or parse-dtd xml-validating-parser))
+	 (xml-ns
+	  (cond ((eq parse-ns 'symbol-qnames)
+		 (cons 'symbol-qnames xml-default-ns))
+		((or (consp (car-safe parse-ns))
+		     (and (eq (car-safe parse-ns) 'symbol-qnames)
+			  (listp (cdr parse-ns))))
+		 parse-ns)
+		(parse-ns
+		 xml-default-ns))))
     (cond
      ;; Processing instructions, like <?xml version="1.0"?>.
      ((looking-at "<\\?")
@@ -475,7 +524,9 @@ Return one of:
 		       (equal "http://www.w3.org/2000/xmlns/"
 			      (caar attr)))
 	      (push (cons (cdar attr) (cdr attr))
-		    xml-ns))))
+		    (if (symbolp (car xml-ns))
+			(cdr xml-ns)
+		      xml-ns)))))
 	(setq children (list attrs (xml-maybe-do-ns node-name "" xml-ns)))
 	(cond
 	 ;; is this an empty element ?

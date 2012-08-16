@@ -392,16 +392,14 @@ print_string (Lisp_Object string, Lisp_Object printcharfun)
 	{
 	  /* Output to echo area.  */
 	  ptrdiff_t nbytes = SBYTES (string);
-	  char *buffer;
 
 	  /* Copy the string contents so that relocation of STRING by
 	     GC does not cause trouble.  */
 	  USE_SAFE_ALLOCA;
-
-	  SAFE_ALLOCA (buffer, char *, nbytes);
+	  char *buffer = SAFE_ALLOCA (nbytes);
 	  memcpy (buffer, SDATA (string), nbytes);
 
-	  strout (buffer, chars, SBYTES (string), printcharfun);
+	  strout (buffer, chars, nbytes, printcharfun);
 
 	  SAFE_FREE ();
 	}
@@ -496,14 +494,14 @@ temp_output_buffer_setup (const char *bufname)
 
   Fkill_all_local_variables ();
   delete_all_overlays (current_buffer);
-  BVAR (current_buffer, directory) = BVAR (old, directory);
-  BVAR (current_buffer, read_only) = Qnil;
-  BVAR (current_buffer, filename) = Qnil;
-  BVAR (current_buffer, undo_list) = Qt;
+  BSET (current_buffer, directory, BVAR (old, directory));
+  BSET (current_buffer, read_only, Qnil);
+  BSET (current_buffer, filename, Qnil);
+  BSET (current_buffer, undo_list, Qt);
   eassert (current_buffer->overlays_before == NULL);
   eassert (current_buffer->overlays_after == NULL);
-  BVAR (current_buffer, enable_multibyte_characters)
-    = BVAR (&buffer_defaults, enable_multibyte_characters);
+  BSET (current_buffer, enable_multibyte_characters,
+	BVAR (&buffer_defaults, enable_multibyte_characters));
   specbind (Qinhibit_read_only, Qt);
   specbind (Qinhibit_modification_hooks, Qt);
   Ferase_buffer ();
@@ -862,11 +860,11 @@ print_error_message (Lisp_Object data, Lisp_Object stream, const char *context,
   if (!NILP (caller) && SYMBOLP (caller))
     {
       Lisp_Object cname = SYMBOL_NAME (caller);
-      char *name;
+      ptrdiff_t cnamelen = SBYTES (cname);
       USE_SAFE_ALLOCA;
-      SAFE_ALLOCA (name, char *, SBYTES (cname));
-      memcpy (name, SDATA (cname), SBYTES (cname));
-      message_dolog (name, SBYTES (cname), 0, 0);
+      char *name = SAFE_ALLOCA (cnamelen);
+      memcpy (name, SDATA (cname), cnamelen);
+      message_dolog (name, cnamelen, 0, 0);
       message_dolog (": ", 2, 0, 0);
       SAFE_FREE ();
     }
@@ -1196,7 +1194,7 @@ print_preprocess (Lisp_Object obj)
 	{
 	case Lisp_String:
 	  /* A string may have text properties, which can be circular.  */
-	  traverse_intervals_noorder (STRING_INTERVALS (obj),
+	  traverse_intervals_noorder (string_get_intervals (obj),
 				      print_preprocess_string, Qnil);
 	  break;
 
@@ -1299,7 +1297,7 @@ static Lisp_Object
 print_prune_string_charset (Lisp_Object string)
 {
   print_check_string_result = 0;
-  traverse_intervals (STRING_INTERVALS (string), 0,
+  traverse_intervals (string_get_intervals (string), 0,
 		      print_check_string_charset_prop, string);
   if (! (print_check_string_result & PRINT_STRING_UNSAFE_CHARSET_FOUND))
     {
@@ -1410,7 +1408,7 @@ print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag
 	  if (! EQ (Vprint_charset_text_property, Qt))
 	    obj = print_prune_string_charset (obj);
 
-	  if (!NULL_INTERVAL_P (STRING_INTERVALS (obj)))
+	  if (string_get_intervals (obj))
 	    {
 	      PRINTCHAR ('#');
 	      PRINTCHAR ('(');
@@ -1501,9 +1499,9 @@ print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag
 	    }
 	  PRINTCHAR ('\"');
 
-	  if (!NULL_INTERVAL_P (STRING_INTERVALS (obj)))
+	  if (string_get_intervals (obj))
 	    {
-	      traverse_intervals (STRING_INTERVALS (obj),
+	      traverse_intervals (string_get_intervals (obj),
 				  0, print_interval, printcharfun);
 	      PRINTCHAR (')');
 	    }
@@ -1778,7 +1776,8 @@ print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag
 	  if (!NILP (XWINDOW (obj)->buffer))
 	    {
 	      strout (" on ", -1, -1, printcharfun);
-	      print_string (BVAR (XBUFFER (XWINDOW (obj)->buffer), name), printcharfun);
+	      print_string (BVAR (XBUFFER (XWINDOW (obj)->buffer), name),
+			    printcharfun);
 	    }
 	  PRINTCHAR ('>');
 	}
@@ -1897,10 +1896,21 @@ print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag
       else if (FRAMEP (obj))
 	{
 	  int len;
+	  Lisp_Object frame_name = XFRAME (obj)->name;
+
 	  strout ((FRAME_LIVE_P (XFRAME (obj))
 		   ? "#<frame " : "#<dead frame "),
 		  -1, -1, printcharfun);
-	  print_string (XFRAME (obj)->name, printcharfun);
+	  if (!STRINGP (frame_name))
+	    {
+	      /* A frame could be too young and have no name yet;
+		 don't crash.  */
+	      if (SYMBOLP (frame_name))
+		frame_name = Fsymbol_name (frame_name);
+	      else	/* can't happen: name should be either nil or string */
+		frame_name = build_string ("*INVALID*FRAME*NAME*");
+	    }
+	  print_string (frame_name, printcharfun);
 	  len = sprintf (buf, " %p", XFRAME (obj));
 	  strout (buf, len, len, printcharfun);
 	  PRINTCHAR ('>');

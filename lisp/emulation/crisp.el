@@ -177,7 +177,7 @@ nice to the world.")
   :group 'crisp)
 
 (define-obsolete-variable-alias 'crisp-mode-modeline-string
-  'crisp-mode-mode-line-string "24.2")
+  'crisp-mode-mode-line-string "24.3")
 
 ;;;###autoload
 (defcustom crisp-mode nil

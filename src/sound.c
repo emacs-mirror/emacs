@@ -31,7 +31,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
   cause an error to be generated.
 
   The Windows implementation of play-sound is implemented via the
-  Win32 API functions mciSendString, waveOutGetVolume, and
+  Windows API functions mciSendString, waveOutGetVolume, and
   waveOutSetVolume which are exported by Winmm.dll.
 */
 

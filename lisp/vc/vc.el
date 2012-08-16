@@ -1652,8 +1652,9 @@ Return t if the buffer had changes, nil otherwise."
       (setq rev1-default (vc-working-revision first)))
      ;; if the file is not locked, use last and previous revisions as defaults
      (t
-      (setq rev1-default (vc-call-backend backend 'previous-revision first
-                                          (vc-working-revision first)))
+      (setq rev1-default (ignore-errors ;If `previous-revision' doesn't work.
+                           (vc-call-backend backend 'previous-revision first
+                                            (vc-working-revision first))))
       (when (string= rev1-default "") (setq rev1-default nil))
       (setq rev2-default (vc-working-revision first))))
     ;; construct argument list
@@ -1757,10 +1758,15 @@ saving the buffer."
       (call-interactively 'vc-version-diff)
     (when buffer-file-name (vc-buffer-sync not-urgent))
     (let ((backend (vc-deduce-backend))
+	  (default-directory default-directory)
 	  rootdir working-revision)
-      (unless backend
-	(error "Buffer is not version controlled"))
-      (setq rootdir (vc-call-backend backend 'root default-directory))
+      (if backend
+	  (setq rootdir (vc-call-backend backend 'root default-directory))
+	(setq rootdir (read-directory-name "Directory for VC root-diff: "))
+	(setq backend (vc-responsible-backend rootdir))
+	(if backend
+	    (setq default-directory rootdir)
+	  (error "Directory is not version controlled")))
       (setq working-revision (vc-working-revision rootdir))
       ;; VC diff for the root directory produces output that is
       ;; relative to it.  Bind default-directory to the root directory
@@ -2213,10 +2219,15 @@ When called interactively with a prefix argument, prompt for LIMIT."
     (t
      (list (when (> vc-log-show-limit 0) vc-log-show-limit)))))
   (let ((backend (vc-deduce-backend))
+	(default-directory default-directory)
 	rootdir working-revision)
-    (unless backend
-      (error "Buffer is not version controlled"))
-    (setq rootdir (vc-call-backend backend 'root default-directory))
+    (if backend
+	(setq rootdir (vc-call-backend backend 'root default-directory))
+      (setq rootdir (read-directory-name "Directory for VC root-log: "))
+      (setq backend (vc-responsible-backend rootdir))
+      (if backend
+	  (setq default-directory rootdir)
+	(error "Directory is not version controlled")))
     (setq working-revision (vc-working-revision rootdir))
     (vc-print-log-internal backend (list rootdir) working-revision nil limit)))
 
@@ -2793,7 +2804,7 @@ to provide the `find-revision' operation instead."
 
 
 ;; These things should probably be generally available
-(define-obsolete-function-alias 'vc-string-prefix-p 'string-prefix-p "24.2")
+(define-obsolete-function-alias 'vc-string-prefix-p 'string-prefix-p "24.3")
 
 (defun vc-file-tree-walk (dirname func &rest args)
   "Walk recursively through DIRNAME.

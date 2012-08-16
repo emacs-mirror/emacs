@@ -59,7 +59,7 @@ xfont_get_pcm (XFontStruct *xfont, XChar2b *char2b)
   /* The result metric information.  */
   XCharStruct *pcm = NULL;
 
-  font_assert (xfont && char2b);
+  eassert (xfont && char2b);
 
   if (xfont->per_char != NULL)
     {
@@ -463,12 +463,12 @@ xfont_list_pattern (Display *display, const char *pattern,
 		list = Fcons (entity, list);
 	      continue;
 	    }
-	  if (memcmp (props, &(AREF (entity, FONT_FOUNDRY_INDEX)),
-		      sizeof (Lisp_Object) * 7)
+	  if (memcmp (props, aref_addr (entity, FONT_FOUNDRY_INDEX),
+		      word_size * 7)
 	      || ! EQ (AREF (entity, FONT_SPACING_INDEX), props[7]))
 	    {
-	      memcpy (props, &(AREF (entity, FONT_FOUNDRY_INDEX)),
-		      sizeof (Lisp_Object) * 7);
+	      memcpy (props, aref_addr (entity, FONT_FOUNDRY_INDEX),
+		      word_size * 7);
 	      props[7] = AREF (entity, FONT_SPACING_INDEX);
 	      scripts = xfont_supported_scripts (display, indices[i],
 						 xfont_scratch_props, encoding);
@@ -823,6 +823,7 @@ xfont_open (FRAME_PTR f, Lisp_Object entity, int pixel_size)
   font->descent = xfont->descent;
   font->height = font->ascent + font->descent;
   font->min_width = xfont->min_bounds.width;
+  font->max_width = xfont->max_bounds.width;
   if (xfont->min_bounds.width == xfont->max_bounds.width)
     {
       /* Fixed width font.  */
@@ -1035,10 +1036,8 @@ xfont_draw (struct glyph_string *s, int from, int to, int x, int y, int with_bac
 
   if (xfont->min_byte1 == 0 && xfont->max_byte1 == 0)
     {
-      char *str;
       USE_SAFE_ALLOCA;
-
-      SAFE_ALLOCA (str, char *, len);
+      char *str = SAFE_ALLOCA (len);
       for (i = 0; i < len ; i++)
 	str[i] = XCHAR2B_BYTE2 (s->char2b + from + i);
       BLOCK_INPUT;

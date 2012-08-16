@@ -362,6 +362,10 @@ when to emit a progress message.")
   "From a CELL or a pair (ROW,COL), get the function that computes its value."
   `(aref ,(if col `(ses-get-cell ,row ,col) row) 1))
 
+(defmacro ses-cell-formula-aset (cell formula)
+  "From a CELL set the function that computes its value."
+  `(aset ,cell 1 ,formula))
+
 (defmacro ses-cell-printer (row &optional col)
   "From a CELL or a pair (ROW,COL), get the function that prints its value."
   `(aref ,(if col `(ses-get-cell ,row ,col) row) 2))
@@ -370,6 +374,19 @@ when to emit a progress message.")
   "From a CELL or a pair (ROW,COL), get the list of symbols for cells whose
 functions refer to its value."
   `(aref ,(if col `(ses-get-cell ,row ,col) row) 3))
+
+(defmacro ses-cell-references-aset (cell references)
+  "From a CELL set the list REFERENCES of symbols for cells the
+function of which refer to its value."
+  `(aset ,cell 3 ,references))
+
+(defun ses-cell-p (cell)
+  "Return non `nil' is CELL is a cell of current buffer."
+  (and (vectorp cell)
+       (= (length cell) 5)
+       (eq cell (let ((rowcol (ses-sym-rowcol (ses-cell-symbol cell))))
+		  (and (consp rowcol)
+		       (ses-get-cell (car rowcol) (cdr rowcol)))))))
 
 (defun ses-cell-property-get-fun (property-name cell)
   ;; To speed up property fetching, each time a property is found it is placed
@@ -3193,39 +3210,52 @@ highlighted range in the spreadsheet."
 	(setq formula (cdr formula))))
     new-formula))
 
-(defun ses-rename-cell (new-name)
+(defun ses-rename-cell (new-name &optional cell)
   "Rename current cell."
   (interactive "*SEnter new name: ")
-  (ses-check-curcell)
-  (or
-   (and  (local-variable-p new-name)
-	 (ses-sym-rowcol new-name)
-	 ;; this test is needed because ses-cell property of deleted cells
-	 ;; is not deleted in case of subsequent undo
-	 (memq new-name ses--renamed-cell-symb-list)
-	 (error "Already a cell name"))
-   (and (boundp new-name)
-	(null (yes-or-no-p (format "`%S' is already bound outside this buffer, continue? "
-				   new-name)))
-	(error "Already a bound cell name")))
-  (let* ((rowcol (ses-sym-rowcol ses--curcell))
-	 (cell (ses-get-cell (car rowcol) (cdr rowcol))))
+  (and  (local-variable-p new-name)
+	(ses-sym-rowcol new-name)
+	;; this test is needed because ses-cell property of deleted cells
+	;; is not deleted in case of subsequent undo
+	(memq new-name ses--renamed-cell-symb-list)
+	(error "Already a cell name"))
+  (and (boundp new-name)
+       (null (yes-or-no-p (format "`%S' is already bound outside this buffer, continue? "
+				  new-name)))
+       (error "Already a bound cell name"))
+  (let* ((sym (if (ses-cell-p cell)
+		  (ses-cell-symbol cell)
+		(setq cell nil)
+		(ses-check-curcell)
+		ses--curcell))
+	 (rowcol (ses-sym-rowcol sym))
+	 (row (car rowcol))
+	 (col (cdr rowcol)))
+    (setq cell (or cell (ses-get-cell row col)))
+    (push `(ses-rename-cell ,(ses-cell-symbol cell) ,cell) buffer-undo-list)
     (put new-name 'ses-cell rowcol)
-    (dolist (reference (ses-cell-references (car rowcol) (cdr rowcol)))
-      (let* ((rowcol (ses-sym-rowcol reference))
-	     (cell  (ses-get-cell (car rowcol) (cdr rowcol))))
-	(ses-cell-set-formula (car rowcol)
-			      (cdr rowcol)
-			      (ses-replace-name-in-formula
-			       (ses-cell-formula cell)
-			       ses--curcell
-			       new-name))))
+    ;; replace name by new name in formula of cells refering to renamed cell
+    (dolist (ref (ses-cell-references cell))
+      (let* ((x (ses-sym-rowcol ref))
+	     (xcell  (ses-get-cell (car x) (cdr x))))
+	(ses-cell-formula-aset xcell
+			       (ses-replace-name-in-formula
+				(ses-cell-formula xcell)
+				sym
+				new-name))))
+    ;; replace name by new name in reference list of cells to which renamed cell refers to
+    (dolist (ref (ses-formula-references (ses-cell-formula cell)))
+      (let* ((x (ses-sym-rowcol ref))
+	     (xcell (ses-get-cell (car x) (cdr x))))
+	(ses-cell-references-aset xcell
+				  (cons new-name (delq sym 
+						       (ses-cell-references xcell))))))
     (push new-name ses--renamed-cell-symb-list)
-    (set new-name (symbol-value ses--curcell))
+    (set new-name (symbol-value sym))
     (aset cell 0 new-name)
-    (put ses--curcell 'ses-cell nil)
-    (makunbound ses--curcell)
-    (setq ses--curcell new-name)
+    (put sym 'ses-cell nil)
+    (makunbound sym)
+    (setq sym new-name)
     (let* ((pos (point))
 	   (inhibit-read-only t)
 	   (col (current-column))
@@ -3234,7 +3264,11 @@ highlighted range in the spreadsheet."
 		  (if (eolp)
 		      (+ pos (ses-col-width col) 1)
 		    (point)))))
-      (put-text-property pos end 'intangible new-name))) )
+      (put-text-property pos end 'intangible new-name))
+    ;; update mode line
+    (setq mode-line-process (list " cell "
+				  (symbol-name sym)))
+    (force-mode-line-update)))
 
 ;;----------------------------------------------------------------------------
 ;; Checking formulas for safety

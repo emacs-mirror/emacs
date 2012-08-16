@@ -365,7 +365,7 @@ of a line.  The string is passed as the first argument to
   "When non-nil, kill channel buffers when the server buffer is killed.
 Only the channel buffers associated with the server in question
 will be killed."
-  :version "24.2"
+  :version "24.3"
   :type 'boolean
   :group 'rcirc)
 

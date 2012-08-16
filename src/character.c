@@ -29,6 +29,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <config.h>
 #endif
 
+#define CHARACTER_INLINE EXTERN_INLINE
+
 #include <stdio.h>
 
 #ifdef emacs
@@ -256,6 +258,9 @@ multibyte_char_to_unibyte_safe (int c)
 
 DEFUN ("characterp", Fcharacterp, Scharacterp, 1, 2, 0,
        doc: /* Return non-nil if OBJECT is a character.
+In Emacs Lisp, characters are represented by character codes, which
+are non-negative integers.  The function `max-char' returns the
+maximum character code.
 usage: (characterp OBJECT)  */)
   (Lisp_Object object, Lisp_Object ignore)
 {
@@ -918,12 +923,10 @@ usage: (unibyte-string &rest BYTES)  */)
   (ptrdiff_t n, Lisp_Object *args)
 {
   ptrdiff_t i;
-  unsigned char *buf, *p;
   Lisp_Object str;
   USE_SAFE_ALLOCA;
-
-  SAFE_ALLOCA (buf, unsigned char *, n);
-  p = buf;
+  unsigned char *buf = SAFE_ALLOCA (n);
+  unsigned char *p = buf;
 
   for (i = 0; i < n; i++)
     {

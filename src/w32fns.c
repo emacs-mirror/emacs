@@ -1,4 +1,4 @@
-/* Graphical user interface functions for the Microsoft W32 API.
+/* Graphical user interface functions for the Microsoft Windows API.
 
 Copyright (C) 1989, 1992-2012  Free Software Foundation, Inc.
 
@@ -93,7 +93,6 @@ static HWND hourglass_hwnd = NULL;
 
 static int w32_in_use;
 
-Lisp_Object Qnone;
 Lisp_Object Qsuppress_icon;
 Lisp_Object Qundefined_color;
 Lisp_Object Qcancel_timer;
@@ -188,6 +187,8 @@ static int image_cache_refcount, dpyinfo_refcount;
 #endif
 
 static HWND w32_visible_system_caret_hwnd;
+
+static int w32_unicode_gui;
 
 /* From w32menu.c  */
 extern HMENU current_popup_menu;
@@ -1489,7 +1490,7 @@ x_set_icon_name (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
   else if (!NILP (arg) || NILP (oldval))
     return;
 
-  f->icon_name = arg;
+  FSET (f, icon_name, arg);
 
 #if 0
   if (f->output_data.w32->icon_bitmap != 0)
@@ -1685,7 +1686,7 @@ x_set_name (struct frame *f, Lisp_Object name, int explicit)
   if (! NILP (Fstring_equal (name, f->name)))
     return;
 
-  f->name = name;
+  FSET (f, name, name);
 
   /* For setting the frame title, the title parameter should override
      the name parameter.  */
@@ -1733,7 +1734,7 @@ x_set_title (struct frame *f, Lisp_Object name, Lisp_Object old_name)
 
   update_mode_lines = 1;
 
-  f->title = name;
+  FSET (f, title, name);
 
   if (NILP (name))
     name = f->name;
@@ -1780,23 +1781,37 @@ w32_load_cursor (LPCTSTR name)
 
 static LRESULT CALLBACK w32_wnd_proc (HWND, UINT, WPARAM, LPARAM);
 
+#define INIT_WINDOW_CLASS(WC)			  \
+  (WC).style = CS_HREDRAW | CS_VREDRAW;		  \
+  (WC).lpfnWndProc = (WNDPROC) w32_wnd_proc;      \
+  (WC).cbClsExtra = 0;                            \
+  (WC).cbWndExtra = WND_EXTRA_BYTES;              \
+  (WC).hInstance = hinst;                         \
+  (WC).hIcon = LoadIcon (hinst, EMACS_CLASS);     \
+  (WC).hCursor = w32_load_cursor (IDC_ARROW);     \
+  (WC).hbrBackground = NULL;                      \
+  (WC).lpszMenuName = NULL;                       \
+
 static BOOL
 w32_init_class (HINSTANCE hinst)
 {
-  WNDCLASS wc;
 
-  wc.style = CS_HREDRAW | CS_VREDRAW;
-  wc.lpfnWndProc = (WNDPROC) w32_wnd_proc;
-  wc.cbClsExtra = 0;
-  wc.cbWndExtra = WND_EXTRA_BYTES;
-  wc.hInstance = hinst;
-  wc.hIcon = LoadIcon (hinst, EMACS_CLASS);
-  wc.hCursor = w32_load_cursor (IDC_ARROW);
-  wc.hbrBackground = NULL; /* GetStockObject (WHITE_BRUSH);  */
-  wc.lpszMenuName = NULL;
-  wc.lpszClassName = EMACS_CLASS;
+  if (w32_unicode_gui)
+    {
+      WNDCLASSW  uwc;
+      INIT_WINDOW_CLASS(uwc);
+      uwc.lpszClassName = L"Emacs";
 
-  return (RegisterClass (&wc));
+      return RegisterClassW (&uwc);
+    }
+  else
+    {
+      WNDCLASS  wc;
+      INIT_WINDOW_CLASS(wc);
+      wc.lpszClassName = EMACS_CLASS;
+
+      return RegisterClassA (&wc);
+    }
 }
 
 static HWND
@@ -2246,7 +2261,7 @@ w32_msg_pump (deferred_msg * msg_buf)
 
   msh_mousewheel = RegisterWindowMessage (MSH_MOUSEWHEEL);
 
-  while (GetMessage (&msg, NULL, 0, 0))
+  while ((w32_unicode_gui ? GetMessageW : GetMessageA) (&msg, NULL, 0, 0))
     {
       if (msg.hwnd == NULL)
 	{
@@ -2341,7 +2356,10 @@ w32_msg_pump (deferred_msg * msg_buf)
 	}
       else
 	{
-	  DispatchMessage (&msg);
+	  if (w32_unicode_gui)
+	    DispatchMessageW (&msg);
+	  else
+	    DispatchMessageA (&msg);
 	}
 
       /* Exit nested loop when our deferred message has completed.  */
@@ -2882,7 +2900,7 @@ w32_wnd_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		      key.uChar.AsciiChar = 0;
 		      key.dwControlKeyState = modifiers;
 
-		      add = w32_kbd_patch_key (&key);
+		      add = w32_kbd_patch_key (&key, w32_keyboard_codepage);
 		      /* 0 means an unrecognized keycode, negative means
 			 dead key.  Ignore both.  */
 		      while (--add >= 0)
@@ -2892,7 +2910,7 @@ w32_wnd_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			    (hwnd, WM_CHAR,
                              (unsigned char) key.uChar.AsciiChar, lParam,
 			     w32_get_key_modifiers (wParam, lParam));
-			  w32_kbd_patch_key (&key);
+			  w32_kbd_patch_key (&key, w32_keyboard_codepage);
 			}
 		      return 0;
 		    }
@@ -2918,8 +2936,18 @@ w32_wnd_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
     case WM_SYSCHAR:
     case WM_CHAR:
-      post_character_message (hwnd, msg, wParam, lParam,
-			      w32_get_key_modifiers (wParam, lParam));
+      if (wParam > 255 )
+        {
+          W32Msg wmsg;
+
+          wmsg.dwModifiers = w32_get_key_modifiers (wParam, lParam);
+          signal_user_input ();
+          my_post_msg (&wmsg, hwnd, WM_UNICHAR, wParam, lParam);
+
+        }
+      else
+        post_character_message (hwnd, msg, wParam, lParam,
+                                w32_get_key_modifiers (wParam, lParam));
       break;
 
     case WM_UNICHAR:
@@ -3801,7 +3829,7 @@ w32_wnd_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	}
 
     dflt:
-      return DefWindowProc (hwnd, msg, wParam, lParam);
+      return (w32_unicode_gui ? DefWindowProcW :  DefWindowProcA) (hwnd, msg, wParam, lParam);
     }
 
   /* The most common default return code for handled messages is 0.  */
@@ -3897,7 +3925,7 @@ w32_window (struct frame *f, long window_prompting, int minibuffer_only)
 
     f->explicit_name = 0;
     name = f->name;
-    f->name = Qnil;
+    FSET (f, name, Qnil);
     x_set_name (f, name, explicit);
   }
 
@@ -4036,7 +4064,7 @@ x_default_font_parameter (struct frame *f, Lisp_Object parms)
 
       for (i = 0; names[i]; i++)
         {
-          font = font_open_by_name (f, names[i], strlen (names[i]));
+          font = font_open_by_name (f, build_unibyte_string (names[i]));
           if (! NILP (font))
             break;
         }
@@ -4146,11 +4174,11 @@ This function is an internal primitive--use `make-frame' instead.  */)
   f->output_data.w32 = xzalloc (sizeof (struct w32_output));
   FRAME_FONTSET (f) = -1;
 
-  f->icon_name
-    = x_get_arg (dpyinfo, parameters, Qicon_name, "iconName", "Title",
-                   RES_TYPE_STRING);
+  FSET (f, icon_name,
+	x_get_arg (dpyinfo, parameters, Qicon_name, "iconName", "Title",
+                   RES_TYPE_STRING));
   if (! STRINGP (f->icon_name))
-    f->icon_name = Qnil;
+    FSET (f, icon_name, Qnil);
 
 /*  FRAME_W32_DISPLAY_INFO (f) = dpyinfo; */
 
@@ -4179,12 +4207,12 @@ This function is an internal primitive--use `make-frame' instead.  */)
      be set.  */
   if (EQ (name, Qunbound) || NILP (name))
     {
-      f->name = build_string (dpyinfo->w32_id_name);
+      FSET (f, name, build_string (dpyinfo->w32_id_name));
       f->explicit_name = 0;
     }
   else
     {
-      f->name = name;
+      FSET (f, name, name);
       f->explicit_name = 1;
       /* use the frame's title when getting resources for this frame.  */
       specbind (Qx_resource_name, name);
@@ -4353,13 +4381,13 @@ This function is an internal primitive--use `make-frame' instead.  */)
   if (FRAME_HAS_MINIBUF_P (f)
       && (!FRAMEP (KVAR (kb, Vdefault_minibuffer_frame))
           || !FRAME_LIVE_P (XFRAME (KVAR (kb, Vdefault_minibuffer_frame)))))
-    KVAR (kb, Vdefault_minibuffer_frame) = frame;
+    KSET (kb, Vdefault_minibuffer_frame, frame);
 
   /* All remaining specified parameters, which have not been "used"
      by x_get_arg and friends, now go in the misc. alist of the frame.  */
   for (tem = parameters; CONSP (tem); tem = XCDR (tem))
     if (CONSP (XCAR (tem)) && !NILP (XCAR (XCAR (tem))))
-      f->param_alist = Fcons (XCAR (tem), f->param_alist);
+      FSET (f, param_alist, Fcons (XCAR (tem), f->param_alist));
 
   UNGCPRO;
 
@@ -5209,10 +5237,12 @@ x_create_tip_frame (struct w32_display_info *dpyinfo,
   XSETFRAME (frame, f);
 
   buffer = Fget_buffer_create (build_string (" *tip*"));
-  Fset_window_buffer (FRAME_ROOT_WINDOW (f), buffer, Qnil);
+  /* Use set_window_buffer instead of Fset_window_buffer (see
+     discussion of bug#11984, bug#12025, bug#12026).  */
+  set_window_buffer (FRAME_ROOT_WINDOW (f), buffer, 0, 0);
   old_buffer = current_buffer;
   set_buffer_internal_1 (XBUFFER (buffer));
-  BVAR (current_buffer, truncate_lines) = Qnil;
+  BSET (current_buffer, truncate_lines, Qnil);
   specbind (Qinhibit_read_only, Qt);
   specbind (Qinhibit_modification_hooks, Qt);
   Ferase_buffer ();
@@ -5231,7 +5261,7 @@ x_create_tip_frame (struct w32_display_info *dpyinfo,
   f->output_data.w32 = xzalloc (sizeof (struct w32_output));
 
   FRAME_FONTSET (f)  = -1;
-  f->icon_name = Qnil;
+  FSET (f, icon_name, Qnil);
 
 #ifdef GLYPH_DEBUG
   image_cache_refcount =
@@ -5246,12 +5276,12 @@ x_create_tip_frame (struct w32_display_info *dpyinfo,
      be set.  */
   if (EQ (name, Qunbound) || NILP (name))
     {
-      f->name = build_string (dpyinfo->w32_id_name);
+      FSET (f, name, build_string (dpyinfo->w32_id_name));
       f->explicit_name = 0;
     }
   else
     {
-      f->name = name;
+      FSET (f, name, name);
       f->explicit_name = 1;
       /* use the frame's title when getting resources for this frame.  */
       specbind (Qx_resource_name, name);
@@ -5617,7 +5647,8 @@ Text larger than the specified size is clipped.  */)
 
   /* Set up the frame's root window.  */
   w = XWINDOW (FRAME_ROOT_WINDOW (f));
-  w->left_col = w->top_line = make_number (0);
+  WSET (w, left_col, make_number (0));
+  WSET (w, top_line, make_number (0));
 
   if (CONSP (Vx_max_tooltip_size)
       && INTEGERP (XCAR (Vx_max_tooltip_size))
@@ -5625,13 +5656,13 @@ Text larger than the specified size is clipped.  */)
       && INTEGERP (XCDR (Vx_max_tooltip_size))
       && XINT (XCDR (Vx_max_tooltip_size)) > 0)
     {
-      w->total_cols = XCAR (Vx_max_tooltip_size);
-      w->total_lines = XCDR (Vx_max_tooltip_size);
+      WSET (w, total_cols, XCAR (Vx_max_tooltip_size));
+      WSET (w, total_lines, XCDR (Vx_max_tooltip_size));
     }
   else
     {
-      w->total_cols = make_number (80);
-      w->total_lines = make_number (40);
+      WSET (w, total_cols, make_number (80));
+      WSET (w, total_lines, make_number (40));
     }
 
   FRAME_TOTAL_COLS (f) = XINT (w->total_cols);
@@ -5641,7 +5672,7 @@ Text larger than the specified size is clipped.  */)
   /* Display the tooltip text in a temporary buffer.  */
   old_buffer = current_buffer;
   set_buffer_internal_1 (XBUFFER (XWINDOW (FRAME_ROOT_WINDOW (f))->buffer));
-  BVAR (current_buffer, truncate_lines) = Qnil;
+  BSET (current_buffer, truncate_lines, Qnil);
   clear_glyph_matrix (w->desired_matrix);
   clear_glyph_matrix (w->current_matrix);
   SET_TEXT_POS (pos, BEGV, BEGV_BYTE);
@@ -5702,7 +5733,7 @@ Text larger than the specified size is clipped.  */)
       /* w->total_cols and FRAME_TOTAL_COLS want the width in columns,
 	 not in pixels.  */
       width /= WINDOW_FRAME_COLUMN_WIDTH (w);
-      w->total_cols = make_number (width);
+      WSET (w, total_cols, make_number (width));
       FRAME_TOTAL_COLS (f) = width;
       adjust_glyphs (f);
       w->pseudo_window_p = 1;
@@ -6197,8 +6228,7 @@ an integer representing a ShowWindow flag:
   if (!NILP (Vlocale_coding_system))
     {
       Lisp_Object decoded =
-	code_convert_string_norecord (make_unibyte_string (errstr,
-							   strlen (errstr)),
+	code_convert_string_norecord (build_unibyte_string (errstr),
 				      Vlocale_coding_system, 0);
       errstr = SSDATA (decoded);
     }
@@ -6471,7 +6501,6 @@ The following %-sequences are provided:
     {
       Lisp_Object line_status, battery_status, battery_status_symbol;
       Lisp_Object load_percentage, seconds, minutes, hours, remain;
-      Lisp_Object sequences[8];
 
       long seconds_left = (long) system_status.BatteryLifeTime;
 
@@ -6545,16 +6574,16 @@ The following %-sequences are provided:
 	  _snprintf (buffer, 16, "%ld:%02ld", m / 60, m % 60);
 	  remain = build_string (buffer);
 	}
-      sequences[0] = Fcons (make_number ('L'), line_status);
-      sequences[1] = Fcons (make_number ('B'), battery_status);
-      sequences[2] = Fcons (make_number ('b'), battery_status_symbol);
-      sequences[3] = Fcons (make_number ('p'), load_percentage);
-      sequences[4] = Fcons (make_number ('s'), seconds);
-      sequences[5] = Fcons (make_number ('m'), minutes);
-      sequences[6] = Fcons (make_number ('h'), hours);
-      sequences[7] = Fcons (make_number ('t'), remain);
 
-      status = Flist (8, sequences);
+      status = listn (CONSTYPE_HEAP, 8,
+		      Fcons (make_number ('L'), line_status),
+		      Fcons (make_number ('B'), battery_status),
+		      Fcons (make_number ('b'), battery_status_symbol),
+		      Fcons (make_number ('p'), load_percentage),
+		      Fcons (make_number ('s'), seconds),
+		      Fcons (make_number ('m'), minutes),
+		      Fcons (make_number ('h'), hours),
+		      Fcons (make_number ('t'), remain));
     }
   return status;
 }
@@ -6577,7 +6606,7 @@ If the underlying system call fails, value is nil.  */)
   value = Qnil;
 
   /* Determining the required information on Windows turns out, sadly,
-     to be more involved than one would hope.  The original Win32 api
+     to be more involved than one would hope.  The original Windows API
      call for this will return bogus information on some systems, but we
      must dynamically probe for the replacement api, since that was
      added rather late on.  */
@@ -6780,7 +6809,6 @@ syms_of_w32fns (void)
 
   w32_visible_system_caret_hwnd = NULL;
 
-  DEFSYM (Qnone, "none");
   DEFSYM (Qsuppress_icon, "suppress-icon");
   DEFSYM (Qundefined_color, "undefined-color");
   DEFSYM (Qcancel_timer, "cancel-timer");
@@ -6796,7 +6824,7 @@ syms_of_w32fns (void)
 
 
   Fput (Qundefined_color, Qerror_conditions,
-	pure_cons (Qundefined_color, pure_cons (Qerror, Qnil)));
+	listn (CONSTYPE_PURE, 2, Qundefined_color, Qerror));
   Fput (Qundefined_color, Qerror_message,
 	build_pure_c_string ("Undefined color"));
 
@@ -7154,6 +7182,11 @@ globals_of_w32fns (void)
 	      w32_ansi_code_page,
 	      doc: /* The ANSI code page used by the system.  */);
   w32_ansi_code_page = GetACP ();
+
+  if (os_subtype == OS_NT)
+    w32_unicode_gui = 1;
+  else
+    w32_unicode_gui = 0;
 
   /* MessageBox does not work without this when linked to comctl32.dll 6.0.  */
   InitCommonControls ();

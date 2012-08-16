@@ -30,6 +30,8 @@
 ;; Two minor modes are provided.  One works on any text in the buffer;
 ;; the other operates only on comments and strings.
 
+;;; Code:
+
 (defvar bug-reference-map
   (let ((map (make-sparse-keymap)))
     (define-key map [mouse-2] 'bug-reference-push-button)
@@ -154,4 +156,5 @@ the mode if ARG is omitted or nil."
       (widen)
       (bug-reference-unfontify (point-min) (point-max)))))
 
+(provide 'bug-reference)
 ;;; bug-reference.el ends here

@@ -1,3 +1,35 @@
+2012-08-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* building.texi (Debugger Operation): Correct and improve
+	documentation of the GUD Tooltip mode.
+
+2012-07-31  Chong Yidong  <cyd@gnu.org>
+
+	* emacs.texi: Fix ISBN (Bug#12080).
+
+2012-08-05  Chong Yidong  <cyd@gnu.org>
+
+	* display.texi (Faces): Document frame-background-mode (Bug#7774).
+
+	* custom.texi (Face Customization): Move discussion of face
+	inheritance here, from Faces section.
+
+2012-07-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* frames.texi (Mouse Commands): Fix the description of mouse-2.
+	(Bug#11958)
+
+2012-07-19  Chong Yidong  <cyd@gnu.org>
+
+	* emacs.texi: Update ISBN.
+
+2012-07-17  Chong Yidong  <cyd@gnu.org>
+
+	* basic.texi (Inserting Text): Replace ucs-insert with
+	insert-char.  Provide more details of input.
+
+	* mule.texi (International Chars, Input Methods): Likewise.
+
 2012-07-13  Chong Yidong  <cyd@gnu.org>
 
 	* custom.texi (Examining): Update C-h v message.

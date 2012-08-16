@@ -94,7 +94,7 @@ Mile End Road, London E1 4NS, UK
 * Log::                 The *WoMan-Log* Buffer
 * Technical::           Technical Details
 * Bugs::                Reporting Bugs
-* Acknowledgements::    Acknowledgements
+* Acknowledgments::     Acknowledgments
 * GNU Free Documentation License:: The license for this documentation.
 * Command Index::       Command Index
 * Variable Index::      Variable Index
@@ -1306,7 +1306,7 @@ is output.
 
 @c ===================================================================
 
-@node Bugs, Acknowledgements, Technical, Top
+@node Bugs, Acknowledgments, Technical, Top
 @comment  node-name,  next,  previous,  up
 @chapter Reporting Bugs
 @cindex reporting bugs
@@ -1331,10 +1331,10 @@ man source file from, but do not send it unless asked to send it.
 
 @c ===================================================================
 
-@node Acknowledgements, GNU Free Documentation License, Bugs, Top
+@node Acknowledgments, GNU Free Documentation License, Bugs, Top
 @comment  node-name,  next,  previous,  up
-@chapter Acknowledgements
-@cindex acknowledgements
+@chapter Acknowledgments
+@cindex acknowledgments
 
 For Heather, Kathryn and Madelyn, the women in my life (although they
 will probably never use it)!
@@ -1388,7 +1388,7 @@ Eli Zaretskii, @email{eliz@@is.elta.co.il}
 @page
 
 
-@node GNU Free Documentation License, Command Index, Acknowledgements, Top
+@node GNU Free Documentation License, Command Index, Acknowledgments, Top
 @appendix GNU Free Documentation License
 @include doclicense.texi
 

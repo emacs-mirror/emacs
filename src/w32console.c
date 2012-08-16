@@ -1,4 +1,4 @@
-/* Terminal hooks for GNU Emacs on the Microsoft W32 API.
+/* Terminal hooks for GNU Emacs on the Microsoft Windows API.
    Copyright (C) 1992, 1999, 2001-2012  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -37,6 +37,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "termhooks.h"
 #include "termchar.h"
 #include "dispextern.h"
+#include "w32heap.h"	/* for os_subtype */
 #include "w32inevt.h"
 
 /* from window.c */
@@ -67,6 +68,7 @@ static CONSOLE_CURSOR_INFO prev_console_cursor;
 #endif
 
 HANDLE  keyboard_handle;
+int w32_console_unicode_input;
 
 
 /* Setting this as the ctrl handler prevents emacs from being killed when
@@ -513,7 +515,7 @@ w32con_set_terminal_modes (struct terminal *t)
 {
   CONSOLE_CURSOR_INFO cci;
 
-  /* make cursor big and visible (100 on Win95 makes it disappear)  */
+  /* make cursor big and visible (100 on Windows 95 makes it disappear)  */
   cci.dwSize = 99;
   cci.bVisible = TRUE;
   (void) SetConsoleCursorInfo (cur_screen, &cci);
@@ -785,6 +787,11 @@ initialize_w32_display (struct terminal *term)
       SET_FRAME_COLS (SELECTED_FRAME (), 1 + info.srWindow.Right -
 		       info.srWindow.Left);
     }
+
+  if (os_subtype == OS_NT)
+    w32_console_unicode_input = 1;
+  else
+    w32_console_unicode_input = 0;
 
   /* Setup w32_display_info structure for this frame. */
 

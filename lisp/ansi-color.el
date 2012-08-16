@@ -83,7 +83,7 @@
   "Translating SGR control sequences to faces.
 This translation effectively colorizes strings and regions based upon
 SGR control sequences embedded in the text.  SGR (Select Graphic
-Rendition) control sequences are defined in section 3.8.117 of the
+Rendition) control sequences are defined in section 8.3.117 of the
 ECMA-48 standard \(identical to ISO/IEC 6429), which is freely available
 as a PDF file <URL:http://www.ecma.ch/ecma1/STAND/ECMA-048.HTM>."
   :version "21.1"
@@ -236,9 +236,10 @@ This is a good function to put in `comint-output-filter-functions'."
 ;; Working with strings
 (defvar ansi-color-context nil
   "Context saved between two calls to `ansi-color-apply'.
-This is a list of the form (FACES FRAGMENT) or nil.  FACES is a list of
-faces the last call to `ansi-color-apply' ended with, and FRAGMENT is a
-string starting with an escape sequence, possibly the start of a new
+This is a list of the form (CODES FRAGMENT) or nil.  CODES
+represents the state the last call to `ansi-color-apply' ended
+with, currently a list of ansi codes, and FRAGMENT is a string
+starting with an escape sequence, possibly the start of a new
 escape sequence.")
 (make-variable-buffer-local 'ansi-color-context)
 
@@ -270,6 +271,20 @@ This function can be added to `comint-preoutput-filter-functions'."
       (setq ansi-color-context (if fragment (list nil fragment))))
     result))
 
+(defun ansi-color--find-face (codes)
+  "Return the face corresponding to CODES."
+  (let (faces)
+    (while codes
+      (let ((face (ansi-color-get-face-1 (pop codes))))
+	;; In the (default underline) face, say, the value of the
+	;; "underline" attribute of the `default' face wins.
+	(unless (eq face 'default)
+	  (push face faces))))
+    ;; Avoid some long-lived conses in the common case.
+    (if (cdr faces)
+	(nreverse faces)
+      (car faces))))
+
 (defun ansi-color-apply (string)
   "Translates SGR control sequences into text properties.
 Delete all other control sequences without processing them.
@@ -280,12 +295,12 @@ are given in `ansi-color-faces-vector' and `ansi-color-names-vector'.
 See function `ansi-color-apply-sequence' for details.
 
 Every call to this function will set and use the buffer-local variable
-`ansi-color-context' to save partial escape sequences and current face.
+`ansi-color-context' to save partial escape sequences and current ansi codes.
 This information will be used for the next call to `ansi-color-apply'.
 Set `ansi-color-context' to nil if you don't want this.
 
 This function can be added to `comint-preoutput-filter-functions'."
-  (let ((face (car ansi-color-context))
+  (let ((codes (car ansi-color-context))
 	(start 0) end escape-sequence result
 	colorized-substring)
     ;; If context was saved and is a string, prepend it.
@@ -296,8 +311,8 @@ This function can be added to `comint-preoutput-filter-functions'."
     (while (setq end (string-match ansi-color-regexp string start))
       (setq escape-sequence (match-string 1 string))
       ;; Colorize the old block from start to end using old face.
-      (when face
-	(put-text-property start end 'font-lock-face face string))
+      (when codes
+	(put-text-property start end 'font-lock-face (ansi-color--find-face codes) string))
       (setq colorized-substring (substring string start end)
 	    start (match-end 0))
       ;; Eliminate unrecognized ANSI sequences.
@@ -306,10 +321,10 @@ This function can be added to `comint-preoutput-filter-functions'."
 	      (replace-match "" nil nil colorized-substring)))
       (push colorized-substring result)
       ;; Create new face, by applying escape sequence parameters.
-      (setq face (ansi-color-apply-sequence escape-sequence face)))
+      (setq codes (ansi-color-apply-sequence escape-sequence codes)))
     ;; if the rest of the string should have a face, put it there
-    (when face
-      (put-text-property start (length string) 'font-lock-face face string))
+    (when codes
+      (put-text-property start (length string) 'font-lock-face (ansi-color--find-face codes) string))
     ;; save context, add the remainder of the string to the result
     (let (fragment)
       (if (string-match "\033" string start)
@@ -317,17 +332,18 @@ This function can be added to `comint-preoutput-filter-functions'."
 	    (setq fragment (substring string pos))
 	    (push (substring string start pos) result))
 	(push (substring string start) result))
-      (setq ansi-color-context (if (or face fragment) (list face fragment))))
+      (setq ansi-color-context (if (or codes fragment) (list codes fragment))))
     (apply 'concat (nreverse result))))
 
 ;; Working with regions
 
 (defvar ansi-color-context-region nil
   "Context saved between two calls to `ansi-color-apply-on-region'.
-This is a list of the form (FACES MARKER) or nil.  FACES is a list of
-faces the last call to `ansi-color-apply-on-region' ended with, and
-MARKER is a buffer position within an escape sequence or the last
-position processed.")
+This is a list of the form (CODES MARKER) or nil.  CODES
+represents the state the last call to `ansi-color-apply-on-region'
+ended with, currently a list of ansi codes, and MARKER is a
+buffer position within an escape sequence or the last position
+processed.")
 (make-variable-buffer-local 'ansi-color-context-region)
 
 (defun ansi-color-filter-region (begin end)
@@ -365,13 +381,14 @@ between BEGIN and END, using overlays.  The colors used are given
 in `ansi-color-faces-vector' and `ansi-color-names-vector'.  See
 `ansi-color-apply-sequence' for details.
 
-Every call to this function will set and use the buffer-local variable
-`ansi-color-context-region' to save position and current face.  This
-information will be used for the next call to
-`ansi-color-apply-on-region'.  Specifically, it will override BEGIN, the
-start of the region and set the face with which to start.  Set
-`ansi-color-context-region' to nil if you don't want this."
-  (let ((face (car ansi-color-context-region))
+Every call to this function will set and use the buffer-local
+variable `ansi-color-context-region' to save position and current
+ansi codes.  This information will be used for the next call to
+`ansi-color-apply-on-region'.  Specifically, it will override
+BEGIN, the start of the region and set the face with which to
+start.  Set `ansi-color-context-region' to nil if you don't want
+this."
+  (let ((codes (car ansi-color-context-region))
 	(start-marker (or (cadr ansi-color-context-region)
 			  (copy-marker begin)))
 	(end-marker (copy-marker end))
@@ -388,28 +405,27 @@ start of the region and set the face with which to start.  Set
 	;; Colorize the old block from start to end using old face.
 	(funcall ansi-color-apply-face-function
 		 start-marker (match-beginning 0)
-		 face)
+		 (ansi-color--find-face codes))
         ;; store escape sequence and new start position
         (setq escape-sequence (match-string 1)
 	      start-marker (copy-marker (match-end 0)))
 	;; delete the escape sequence
 	(replace-match "")
-	;; create new face by applying all the parameters in the escape
-	;; sequence
-	(setq face (ansi-color-apply-sequence escape-sequence face)))
+	;; Update the list of ansi codes.
+	(setq codes (ansi-color-apply-sequence escape-sequence codes)))
       ;; search for the possible start of a new escape sequence
       (if (re-search-forward "\033" end-marker t)
 	  (progn
 	    ;; if the rest of the region should have a face, put it there
 	    (funcall ansi-color-apply-face-function
-		     start-marker (point) face)
-	    ;; save face and point
+		     start-marker (point) (ansi-color--find-face codes))
+	    ;; save codes and point
 	    (setq ansi-color-context-region
-		  (list face (copy-marker (match-beginning 0)))))
+		  (list codes (copy-marker (match-beginning 0)))))
 	;; if the rest of the region should have a face, put it there
 	(funcall ansi-color-apply-face-function
-		 start-marker end-marker face)
-	(setq ansi-color-context-region (if face (list face)))))))
+		 start-marker end-marker (ansi-color--find-face codes))
+	(setq ansi-color-context-region (if codes (list codes)))))))
 
 (defun ansi-color-apply-overlay-face (beg end face)
   "Make an overlay from BEG to END, and apply face FACE.
@@ -497,32 +513,56 @@ XEmacs uses `set-extent-face', Emacs  uses `overlay-put'."
 
 ;; Helper functions
 
-(defun ansi-color-apply-sequence (escape-sequence faces)
-  "Apply ESCAPE-SEQ to FACES and return the new list of faces.
+(defsubst ansi-color-parse-sequence (escape-seq)
+  "Return the list of all the parameters in ESCAPE-SEQ.
 
-ESCAPE-SEQ is an escape sequences parsed by `ansi-color-get-face'.
+ESCAPE-SEQ is a SGR control sequences such as \\033[34m.  The parameter
+34 is used by `ansi-color-get-face-1' to return a face definition.
 
-If the new faces start with the symbol `default', then the new
-faces are returned.  If the faces start with something else,
-they are appended to the front of the FACES list, and the new
-list of faces is returned.
+Returns nil only if there's no match for `ansi-color-parameter-regexp'."
+  (let ((i 0)
+	codes val)
+    (while (string-match ansi-color-parameter-regexp escape-seq i)
+      (setq i (match-end 0)
+	    val (string-to-number (match-string 1 escape-seq) 10))
+      ;; It so happens that (string-to-number "") => 0.
+      (push val codes))
+    (nreverse codes)))
 
-If `ansi-color-get-face' returns nil, then we either got a
-null-sequence, or we stumbled upon some garbage.  In either
-case we return nil."
-  (let ((new-faces (ansi-color-get-face escape-sequence)))
-    (cond ((null new-faces)
-	   nil)
-	  ((eq (car new-faces) 'default)
-	   (cdr new-faces))
-	  (t
-	   ;; Like (append NEW-FACES FACES)
-	   ;; but delete duplicates in FACES.
-	   (let ((modified-faces (copy-sequence faces)))
-	     (dolist (face (nreverse new-faces))
-	       (setq modified-faces (delete face modified-faces))
-	       (push face modified-faces))
-	     modified-faces)))))
+(defun ansi-color-apply-sequence (escape-sequence codes)
+  "Apply ESCAPE-SEQ to CODES and return the new list of codes.
+
+ESCAPE-SEQ is an escape sequence parsed by `ansi-color-parse-sequence'.
+
+If the new codes resulting from ESCAPE-SEQ start with 0, then the
+old codes are discarded and the remaining new codes are
+processed.  Otherwise, for each new code: if it is 21-25 or 27-29
+delete appropriate parameters from the list of codes; any other
+code that makes sense is added to the list of codes.  Finally,
+the so changed list of codes is returned."
+  (let ((new-codes (ansi-color-parse-sequence escape-sequence)))
+    (while new-codes
+      (setq codes
+	    (let ((new (pop new-codes)))
+	      (cond ((zerop new)
+		     nil)
+		    ((or (<= new 20)
+			 (>= new 30))
+		     (if (memq new codes)
+			 codes
+		       (cons new codes)))
+		    ;; The standard says `21 doubly underlined' while
+		    ;; http://en.wikipedia.org/wiki/ANSI_escape_code claims
+		    ;; `21 Bright/Bold: off or Underline: Double'.
+		    ((/= new 26)
+		     (remq (- new 20)
+			   (cond ((= new 22)
+				  (remq 1 codes))
+				 ((= new 25)
+				  (remq 6 codes))
+				 (t codes))))
+		    (t codes)))))
+    codes))
 
 (defun ansi-color-make-color-map ()
   "Creates a vector of face definitions and returns it.
@@ -587,28 +627,6 @@ ANSI-CODE is used as an index into the vector."
   (condition-case nil
       (aref ansi-color-map ansi-code)
     (args-out-of-range nil)))
-
-(defun ansi-color-get-face (escape-seq)
-  "Create a new face by applying all the parameters in ESCAPE-SEQ.
-
-Should any of the parameters result in the default face (usually this is
-the parameter 0), then the effect of all previous parameters is canceled.
-
-ESCAPE-SEQ is a SGR control sequences such as \\033[34m.  The parameter
-34 is used by `ansi-color-get-face-1' to return a face definition."
-  (let ((i 0)
-        f val)
-    (while (string-match ansi-color-parameter-regexp escape-seq i)
-      (setq i (match-end 0)
-	    val (ansi-color-get-face-1
-		 (string-to-number (match-string 1 escape-seq) 10)))
-      (cond ((not val))
-	    ((eq val 'default)
-	     (setq f (list val)))
-	    (t
-	     (unless (member val f)
-	       (push val f)))))
-    f))
 
 (provide 'ansi-color)
 

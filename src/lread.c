@@ -80,7 +80,7 @@ static Lisp_Object Qascii_character, Qload, Qload_file_name;
 Lisp_Object Qbackquote, Qcomma, Qcomma_at, Qcomma_dot, Qfunction;
 static Lisp_Object Qinhibit_file_name_operation;
 static Lisp_Object Qeval_buffer_list;
-static Lisp_Object Qlexical_binding;
+Lisp_Object Qlexical_binding;
 static Lisp_Object Qfile_truename, Qdo_after_load_evaluation; /* ACM 2006/5/16 */
 
 /* Used instead of Qget_file_char while loading *.elc files compiled
@@ -3189,7 +3189,7 @@ substitute_object_recurse (Lisp_Object object, Lisp_Object placeholder, Lisp_Obj
 	/* Check for text properties in each interval.
 	   substitute_in_interval contains part of the logic.  */
 
-	INTERVAL    root_interval = STRING_INTERVALS (subtree);
+	INTERVAL    root_interval = string_get_intervals (subtree);
 	Lisp_Object arg           = Fcons (object, placeholder);
 
 	traverse_intervals_noorder (root_interval,
@@ -3211,7 +3211,7 @@ substitute_in_interval (INTERVAL interval, Lisp_Object arg)
   Lisp_Object object      = Fcar (arg);
   Lisp_Object placeholder = Fcdr (arg);
 
-  SUBSTITUTE (interval->plist, interval->plist = true_value);
+  SUBSTITUTE (interval->plist, interval_set_plist (interval, true_value));
 }
 
 
@@ -3715,11 +3715,11 @@ it defaults to the value of `obarray'.  */)
       SET_SYMBOL_VAL (XSYMBOL (sym), sym);
     }
 
-  ptr = &AREF (obarray, XINT(tem));
+  ptr = aref_addr (obarray, XINT(tem));
   if (SYMBOLP (*ptr))
-    XSYMBOL (sym)->next = XSYMBOL (*ptr);
+    set_symbol_next (sym, XSYMBOL (*ptr));
   else
-    XSYMBOL (sym)->next = 0;
+    set_symbol_next (sym, NULL);
   *ptr = sym;
   return sym;
 }
@@ -3797,9 +3797,13 @@ OBARRAY defaults to the value of the variable `obarray'.  */)
   if (EQ (AREF (obarray, hash), tem))
     {
       if (XSYMBOL (tem)->next)
-	XSETSYMBOL (AREF (obarray, hash), XSYMBOL (tem)->next);
+	{
+	  Lisp_Object sym;
+	  XSETSYMBOL (sym, XSYMBOL (tem)->next);
+	  ASET (obarray, hash, sym);
+	}
       else
-	XSETINT (AREF (obarray, hash), 0);
+	ASET (obarray, hash, make_number (0));
     }
   else
     {
@@ -3812,7 +3816,7 @@ OBARRAY defaults to the value of the variable `obarray'.  */)
 	  XSETSYMBOL (following, XSYMBOL (tail)->next);
 	  if (EQ (following, tem))
 	    {
-	      XSYMBOL (tail)->next = XSYMBOL (following)->next;
+	      set_symbol_next (tail, XSYMBOL (following)->next);
 	      break;
 	    }
 	}
@@ -3922,13 +3926,12 @@ init_obarray (void)
   /* Fmake_symbol inits fields of new symbols with Qunbound and Qnil,
      so those two need to be fixed manually.  */
   SET_SYMBOL_VAL (XSYMBOL (Qunbound), Qunbound);
-  XSYMBOL (Qunbound)->function = Qunbound;
-  XSYMBOL (Qunbound)->plist = Qnil;
-  /* XSYMBOL (Qnil)->function = Qunbound; */
+  set_symbol_function (Qunbound, Qunbound);
+  set_symbol_plist (Qunbound, Qnil);
   SET_SYMBOL_VAL (XSYMBOL (Qnil), Qnil);
   XSYMBOL (Qnil)->constant = 1;
   XSYMBOL (Qnil)->declared_special = 1;
-  XSYMBOL (Qnil)->plist = Qnil;
+  set_symbol_plist (Qnil, Qnil);
 
   Qt = intern_c_string ("t");
   SET_SYMBOL_VAL (XSYMBOL (Qt), Qt);
@@ -3947,10 +3950,11 @@ init_obarray (void)
 void
 defsubr (struct Lisp_Subr *sname)
 {
-  Lisp_Object sym;
+  Lisp_Object sym, tem;
   sym = intern_c_string (sname->symbol_name);
   XSETTYPED_PVECTYPE (sname, size, PVEC_SUBR);
-  XSETSUBR (XSYMBOL (sym)->function, sname);
+  XSETSUBR (tem, sname);
+  set_symbol_function (sym, tem);
 }
 
 #ifdef NOTDEF /* Use fset in subr.el now!  */
@@ -3983,7 +3987,7 @@ defvar_int (struct Lisp_Intfwd *i_fwd,
    nil if address contains 0.  */
 void
 defvar_bool (struct Lisp_Boolfwd *b_fwd,
-	     const char *namestring, int *address)
+	     const char *namestring, bool *address)
 {
   Lisp_Object sym;
   sym = intern_c_string (namestring);
@@ -4121,18 +4125,13 @@ init_lread (void)
    difference between initialized and !initialized in this case,
    so we'll have to do it unconditionally when Vinstallation_directory
    is non-nil.  */
-#ifdef HAVE_NS
-  /* loadpath already includes the app-bundle's site-lisp.  */
-  if (!no_site_lisp && !egetenv ("EMACSLOADPATH") && !loadpath)
-#else
   if (!no_site_lisp && !egetenv ("EMACSLOADPATH"))
-#endif
     {
       Lisp_Object sitelisp;
       sitelisp = decode_env_path (0, PATH_SITELOADSEARCH);
       if (! NILP (sitelisp)) Vload_path = nconc2 (sitelisp, Vload_path);
     }
-#else
+#else  /* !CANNOT_DUMP */
   if (NILP (Vpurify_flag))
     {
       normal = PATH_LOADSEARCH;
@@ -4270,12 +4269,7 @@ init_lread (void)
           load_path_check ();
 
           /* Add the site-lisp directories at the front.  */
-#ifdef HAVE_NS
-          /* loadpath already includes the app-bundle's site-lisp.  */
-          if (!no_site_lisp && !loadpath)
-#else
           if (!no_site_lisp)
-#endif
             {
               Lisp_Object sitelisp;
               sitelisp = decode_env_path (0, PATH_SITELOADSEARCH);
@@ -4299,7 +4293,7 @@ init_lread (void)
          be missing unless something went extremely (and improbably)
          wrong, in which case the build will fail in obvious ways.  */
     }
-#endif  /* CANNOT_DUMP */
+#endif  /* !CANNOT_DUMP */
 
   Vvalues = Qnil;
 
@@ -4323,12 +4317,10 @@ dir_warning (const char *format, Lisp_Object dirname)
   /* Don't log the warning before we've initialized!!  */
   if (initialized)
     {
-      char *buffer;
-      ptrdiff_t message_len;
       USE_SAFE_ALLOCA;
-      SAFE_ALLOCA (buffer, char *,
-		   SBYTES (dirname) + strlen (format) - (sizeof "%s" - 1) + 1);
-      message_len = esprintf (buffer, format, SDATA (dirname));
+      char *buffer = SAFE_ALLOCA (SBYTES (dirname)
+				  + strlen (format) - (sizeof "%s" - 1) + 1);
+      ptrdiff_t message_len = esprintf (buffer, format, SDATA (dirname));
       message_dolog (buffer, message_len, 0, STRING_MULTIBYTE (dirname));
       SAFE_FREE ();
     }
@@ -4549,8 +4541,7 @@ to load.  See also `load-dangerous-libraries'.  */);
   Vbytecomp_version_regexp
     = build_pure_c_string ("^;;;.\\(in Emacs version\\|bytecomp version FSF\\)");
 
-  Qlexical_binding = intern ("lexical-binding");
-  staticpro (&Qlexical_binding);
+  DEFSYM (Qlexical_binding, "lexical-binding");
   DEFVAR_LISP ("lexical-binding", Vlexical_binding,
 	       doc: /* Whether to use lexical binding when evaluating code.
 Non-nil means that the code in the current buffer should be evaluated
@@ -4558,6 +4549,7 @@ with lexical binding.
 This variable is automatically set from the file variables of an
 interpreted Lisp file read using `load'.  Unlike other file local
 variables, this must be set in the first line of a file.  */);
+  Vlexical_binding = Qnil;
   Fmake_variable_buffer_local (Qlexical_binding);
 
   DEFVAR_LISP ("eval-buffer-list", Veval_buffer_list,

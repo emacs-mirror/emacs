@@ -25,6 +25,8 @@
 
 ;;; Code:
 
+(require 'syntax)
+
 (defvar comint-prompt-regexp)
 
 (defgroup tooltip nil
@@ -277,8 +279,11 @@ Value is nil if no identifier exists at point.  Identifier extraction
 is based on the current syntax table."
   (save-excursion
     (goto-char point)
-    (let ((start (progn (skip-syntax-backward "w_") (point))))
-      (unless (looking-at "[0-9]")
+    (let* ((start (progn (skip-syntax-backward "w_") (point)))
+	   (pstate (syntax-ppss)))
+      (unless (or (looking-at "[0-9]")
+		  (nth 3 pstate)
+		  (nth 4 pstate))
 	(skip-syntax-forward "w_")
 	(when (> (point) start)
 	  (buffer-substring start (point)))))))

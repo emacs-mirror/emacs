@@ -18,6 +18,9 @@ You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
+
+#define SYSTIME_INLINE EXTERN_INLINE
+
 #include <ctype.h>
 #include <signal.h>
 #include <stdio.h>
@@ -294,7 +297,7 @@ wait_for_termination_1 (pid_t pid, int interruptible)
 #if (defined (BSD_SYSTEM) || defined (HPUX)) && !defined (__GNU__)
       /* Note that kill returns -1 even if the process is just a zombie now.
 	 But inevitably a SIGCHLD interrupt should be generated
-	 and child_sig will do wait3 and make the process go away. */
+	 and child_sig will do waitpid and make the process go away.  */
       /* There is some indication that there is a bug involved with
 	 termination of subprocesses, perhaps involving a kernel bug too,
 	 but no idea what it is.  Just as a hunch we signal SIGCHLD to see
@@ -1968,7 +1971,7 @@ emacs_readlink (char const *filename, char initial_buf[READLINK_BUFSIZE])
  *	under error conditions.
  */
 
-#ifndef HAVE_GETWD
+#if !defined (HAVE_GETWD) || defined (BROKEN_GETWD)
 
 #ifndef MAXPATHLEN
 /* In 4.1, param.h fails to define this.  */
@@ -1998,7 +2001,7 @@ getwd (char *pathname)
   return pathname;
 }
 
-#endif /* HAVE_GETWD */
+#endif /* !defined (HAVE_GETWD) || defined (BROKEN_GETWD) */
 
 /*
  *	This function will go away as soon as all the stubs fixed. (fnf)
@@ -2028,7 +2031,7 @@ closedir (DIR *dirp /* stream from opendir */)
   int rtnval;
 
   rtnval = emacs_close (dirp->dd_fd);
-  xfree ((char *) dirp);
+  xfree (dirp);
 
   return rtnval;
 }
@@ -2304,7 +2307,7 @@ serial_configure (struct Lisp_Process *p,
     error ("tcsetattr() failed: %s", emacs_strerror (errno));
 
   childp2 = Fplist_put (childp2, QCsummary, build_string (summary));
-  p->childp = childp2;
+  PSET (p, childp, childp2);
 
 }
 #endif /* not DOS_NT  */
@@ -3092,7 +3095,7 @@ system_process_attributes (Lisp_Object pid)
 
       decoded_comm =
 	(code_convert_string_norecord
-	 (make_unibyte_string (args, strlen (args)),
+	 (build_unibyte_string (args),
 	  Vlocale_coding_system, 0));
 
       attrs = Fcons (Fcons (Qargs, decoded_comm), attrs);

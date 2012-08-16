@@ -110,7 +110,8 @@ after OUT-BUFFER-NAME."
 			 (progn
 			   (select-window window)
 			   (run-hooks 'temp-buffer-show-hook))
-		       (select-window old-selected)
+		       (when (window-live-p old-selected)
+			 (select-window old-selected))
 		       (message "See buffer %s." out-buffer-name)))
 		 (message "%s" (buffer-substring (point-min) (point)))
 		 ))))))

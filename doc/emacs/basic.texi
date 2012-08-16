@@ -97,28 +97,29 @@ To use decimal or hexadecimal instead of octal, set the variable
 the letters @kbd{a} to @kbd{f} serve as part of a character code,
 just like digits.  Case is ignored.
 
-@findex ucs-insert
+@findex insert-char
 @kindex C-x 8 RET
 @cindex Unicode characters, inserting
 @cindex insert Unicode character
 @cindex characters, inserting by name or code-point
-  Instead of @kbd{C-q}, you can use the command @kbd{C-x 8 @key{RET}}
-(@code{ucs-insert}).  This prompts for the Unicode name or code-point
+  Alternatively, you can use the command @kbd{C-x 8 @key{RET}}
+(@code{insert-char}).  This prompts for the Unicode name or code-point
 of a character, using the minibuffer.  If you enter a name, the
 command provides completion (@pxref{Completion}).  If you enter a
-code-point, it should be a hexadecimal number (which is the convention
-for Unicode).  The command then inserts the corresponding character
-into the buffer.  For example, both of the following insert the
-infinity sign (Unicode code-point @code{U+221E}):
+code-point, it should be as a hexadecimal number (the convention for
+Unicode), or a number with a specified radix, e.g.@: @code{#o23072}
+(octal); @xref{Integer Basics,,, elisp, The Emacs Lisp Reference
+Manual}.  The command then inserts the corresponding character into
+the buffer.  For example, both of the following insert the infinity
+sign (Unicode code-point @code{U+221E}):
 
 @example
 @kbd{C-x 8 @key{RET} infinity @key{RET}}
 @kbd{C-x 8 @key{RET} 221e @key{RET}}
 @end example
 
-  A numeric argument to either @kbd{C-q} or @kbd{C-x 8 @key{RET}}
-specifies how many copies of the character to insert
-(@pxref{Arguments}).
+  A numeric argument to @kbd{C-q} or @kbd{C-x 8 @key{RET}} specifies
+how many copies of the character to insert (@pxref{Arguments}).
 
 @node Moving Point
 @section Changing the Location of Point

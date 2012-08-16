@@ -976,8 +976,7 @@ find_and_return_menu_selection (FRAME_PTR f, int keymaps, void *client_data)
 
   prefix = entry = Qnil;
   i = 0;
-  subprefix_stack =
-    (Lisp_Object *)alloca (menu_items_used * sizeof (Lisp_Object));
+  subprefix_stack = alloca (menu_items_used * word_size);
 
   while (i < menu_items_used)
     {
@@ -1006,7 +1005,7 @@ find_and_return_menu_selection (FRAME_PTR f, int keymaps, void *client_data)
         {
           entry
             = AREF (menu_items, i + MENU_ITEMS_ITEM_VALUE);
-          if (&AREF (menu_items, i) == client_data)
+          if (aref_addr (menu_items, i) == client_data)
             {
               if (keymaps != 0)
                 {

@@ -559,7 +559,7 @@ parameter.  It should return nil, `warn' or `delete'."
   "Extra headers to parse.
 In addition to the standard headers, these extra headers will be
 included in NOV headers (and the like) when backends parse headers."
-  :version "24.2"
+  :version "24.3"
   :group 'nnmail
   :type '(repeat symbol))
 

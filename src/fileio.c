@@ -84,10 +84,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include "commands.h"
 
-#ifndef FILE_SYSTEM_CASE
-#define FILE_SYSTEM_CASE(filename)  (filename)
-#endif
-
 /* Nonzero during writing of auto-save files.  */
 static int auto_saving;
 
@@ -163,8 +159,7 @@ report_file_error (const char *string, Lisp_Object data)
 
   synchronize_system_messages_locale ();
   str = strerror (errorno);
-  errstring = code_convert_string_norecord (make_unibyte_string (str,
-								 strlen (str)),
+  errstring = code_convert_string_norecord (build_unibyte_string (str),
 					    Vlocale_coding_system, 0);
 
   while (1)
@@ -334,7 +329,6 @@ Given a Unix syntax file name, returns a string ending in slash.  */)
       return STRINGP (handled_name) ? handled_name : Qnil;
     }
 
-  filename = FILE_SYSTEM_CASE (filename);
 #ifdef DOS_NT
   beg = alloca (SBYTES (filename) + 1);
   memcpy (beg, SSDATA (filename), SBYTES (filename) + 1);
@@ -861,7 +855,6 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
 	UNGCPRO;
       }
   }
-  name = FILE_SYSTEM_CASE (name);
   multibyte = STRING_MULTIBYTE (name);
   if (multibyte != STRING_MULTIBYTE (default_directory))
     {
@@ -1664,7 +1657,7 @@ those `/' is discarded.  */)
 	       env variables twice should be acceptable. Note that
 	       decoding may cause a garbage collect.  */
 	    Lisp_Object orig, decoded;
-	    orig = make_unibyte_string (o, strlen (o));
+	    orig = build_unibyte_string (o);
 	    decoded = DECODE_FILE (orig);
 	    total += SBYTES (decoded);
 	    substituted = 1;
@@ -3152,12 +3145,12 @@ decide_coding_unwind (Lisp_Object unwind_data)
     set_buffer_internal (XBUFFER (buffer));
   adjust_markers_for_delete (BEG, BEG_BYTE, Z, Z_BYTE);
   adjust_overlays_for_delete (BEG, Z - BEG);
-  BUF_INTERVALS (current_buffer) = 0;
+  buffer_set_intervals (current_buffer, NULL);
   TEMP_SET_PT_BOTH (BEG, BEG_BYTE);
 
   /* Now we are safe to change the buffer's multibyteness directly.  */
-  BVAR (current_buffer, enable_multibyte_characters) = multibyte;
-  BVAR (current_buffer, undo_list) = undo_list;
+  BSET (current_buffer, enable_multibyte_characters, multibyte);
+  BSET (current_buffer, undo_list, undo_list);
 
   return Qnil;
 }
@@ -3493,16 +3486,16 @@ variable `last-coding-system-used' to the coding system actually used.  */)
 		  buf = XBUFFER (workbuf);
 
 		  delete_all_overlays (buf);
-		  BVAR (buf, directory) = BVAR (current_buffer, directory);
-		  BVAR (buf, read_only) = Qnil;
-		  BVAR (buf, filename) = Qnil;
-		  BVAR (buf, undo_list) = Qt;
+		  BSET (buf, directory, BVAR (current_buffer, directory));
+		  BSET (buf, read_only, Qnil);
+		  BSET (buf, filename, Qnil);
+		  BSET (buf, undo_list, Qt);
 		  eassert (buf->overlays_before == NULL);
 		  eassert (buf->overlays_after == NULL);
 
 		  set_buffer_internal (buf);
 		  Ferase_buffer ();
-		  BVAR (buf, enable_multibyte_characters) = Qnil;
+		  BSET (buf, enable_multibyte_characters, Qnil);
 
 		  insert_1_both ((char *) read_buf, nread, nread, 0, 0, 0);
 		  TEMP_SET_PT_BOTH (BEG, BEG_BYTE);
@@ -4111,8 +4104,8 @@ variable `last-coding-system-used' to the coding system actually used.  */)
 	  unwind_data = Fcons (BVAR (current_buffer, enable_multibyte_characters),
 			       Fcons (BVAR (current_buffer, undo_list),
 				      Fcurrent_buffer ()));
-	  BVAR (current_buffer, enable_multibyte_characters) = Qnil;
-	  BVAR (current_buffer, undo_list) = Qt;
+	  BSET (current_buffer, enable_multibyte_characters, Qnil);
+	  BSET (current_buffer, undo_list, Qt);
 	  record_unwind_protect (decide_coding_unwind, unwind_data);
 
 	  if (inserted > 0 && ! NILP (Vset_auto_coding_function))
@@ -4160,7 +4153,7 @@ variable `last-coding-system-used' to the coding system actually used.  */)
 	  && NILP (replace))
 	/* Visiting a file with these coding system makes the buffer
 	   unibyte. */
-	BVAR (current_buffer, enable_multibyte_characters) = Qnil;
+	BSET (current_buffer, enable_multibyte_characters, Qnil);
     }
 
   coding.dst_multibyte = ! NILP (BVAR (current_buffer, enable_multibyte_characters));
@@ -4203,13 +4196,13 @@ variable `last-coding-system-used' to the coding system actually used.  */)
   if (!NILP (visit))
     {
       if (!EQ (BVAR (current_buffer, undo_list), Qt) && !nochange)
-	BVAR (current_buffer, undo_list) = Qnil;
+	BSET (current_buffer, undo_list, Qnil);
 
       if (NILP (handler))
 	{
 	  current_buffer->modtime = mtime;
 	  current_buffer->modtime_size = st.st_size;
-	  BVAR (current_buffer, filename) = orig_filename;
+	  BSET (current_buffer, filename, orig_filename);
 	}
 
       SAVE_MODIFF = MODIFF;
@@ -4254,7 +4247,7 @@ variable `last-coding-system-used' to the coding system actually used.  */)
 
       /* Save old undo list and don't record undo for decoding.  */
       old_undo = BVAR (current_buffer, undo_list);
-      BVAR (current_buffer, undo_list) = Qt;
+      BSET (current_buffer, undo_list, Qt);
 
       if (NILP (replace))
 	{
@@ -4346,7 +4339,7 @@ variable `last-coding-system-used' to the coding system actually used.  */)
 
       if (NILP (visit))
 	{
-	  BVAR (current_buffer, undo_list) = old_undo;
+	  BSET (current_buffer, undo_list, old_undo);
 	  if (CONSP (old_undo) && inserted != old_inserted)
 	    {
 	      /* Adjust the last undo record for the size change during
@@ -4361,7 +4354,7 @@ variable `last-coding-system-used' to the coding system actually used.  */)
       else
 	/* If undo_list was Qt before, keep it that way.
 	   Otherwise start with an empty undo_list.  */
-	BVAR (current_buffer, undo_list) = EQ (old_undo, Qt) ? Qt : Qnil;
+	BSET (current_buffer, undo_list, EQ (old_undo, Qt) ? Qt : Qnil);
 
       unbind_to (count1, Qnil);
     }
@@ -4601,7 +4594,7 @@ This calls `write-region-annotate-functions' at the start, and
 	{
 	  SAVE_MODIFF = MODIFF;
 	  XSETFASTINT (BVAR (current_buffer, save_length), Z - BEG);
-	  BVAR (current_buffer, filename) = visit_file;
+	  BSET (current_buffer, filename, visit_file);
 	}
       UNGCPRO;
       return val;
@@ -4817,7 +4810,7 @@ This calls `write-region-annotate-functions' at the start, and
     {
       SAVE_MODIFF = MODIFF;
       XSETFASTINT (BVAR (current_buffer, save_length), Z - BEG);
-      BVAR (current_buffer, filename) = visit_file;
+      BSET (current_buffer, filename, visit_file);
       update_mode_lines++;
     }
   else if (quietly)
@@ -5207,7 +5200,7 @@ auto_save_error (Lisp_Object error_val)
   msg = Fformat (3, args);
   GCPRO1 (msg);
   nbytes = SBYTES (msg);
-  SAFE_ALLOCA (msgbuf, char *, nbytes);
+  msgbuf = SAFE_ALLOCA (nbytes);
   memcpy (msgbuf, SDATA (msg), nbytes);
 
   for (i = 0; i < 3; ++i)

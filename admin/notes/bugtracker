@@ -125,7 +125,7 @@ Resent-CC:   maintainer email address, plus any X-Debbugs-CC: entries
 
 The "maintainer email address" is "bug-gnu-emacs@gnu.org" in most cases.
 
-** To not get acknowledgement mail from the tracker,
+** To not get acknowledgment mail from the tracker,
 add an "X-Debbugs-No-Ack:" header (with any value).  If you use Gnus,
 you can add an element to gnus-posting-styles to do this automatically, eg:
 

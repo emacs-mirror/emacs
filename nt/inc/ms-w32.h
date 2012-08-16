@@ -23,11 +23,15 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifndef WINDOWSNT
 #define WINDOWSNT
 #endif
-#ifndef DOS_NT
-#define DOS_NT 	/* MSDOS or WINDOWSNT */
-#endif
 
 /* #undef const */
+
+/* Number of chars of output in the buffer of a stdio stream. */
+#ifdef __GNU_LIBRARY__
+#define PENDING_OUTPUT_COUNT(FILE) ((FILE)->__bufp - (FILE)->__buffer)
+#else
+#define PENDING_OUTPUT_COUNT(FILE) ((FILE)->_ptr - (FILE)->_base)
+#endif
 
 /* If you are compiling with a non-C calling convention but need to
    declare vararg routines differently, put it here.  */
@@ -52,10 +56,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define MAIL_USE_SYSTEM_LOCK 1
 
-/* If the character used to separate elements of the executable path
-   is not ':', #define this to be the appropriate character constant.  */
-#define SEPCHAR ';'
-
 /* Define to 1 if GCC-style __attribute__ ((__aligned__ (expr))) works. */
 #ifdef __GNUC__
 #define HAVE_ATTRIBUTE_ALIGNED 1
@@ -77,13 +77,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    that don't exist on your system, or that do different things on
    your system and must be used only through an encapsulation (which
    you should place, by convention, in sysdep.c).  */
-
-/* Define this to be the separator between devices and paths.  */
-#define DEVICE_SEP ':'
-
-/* We'll support either convention on NT.  */
-#define IS_DIRECTORY_SEP(_c_) ((_c_) == '/' || (_c_) == '\\')
-#define IS_ANY_SEP(_c_) (IS_DIRECTORY_SEP (_c_) || IS_DEVICE_SEP (_c_))
 
 #ifdef __GNUC__
 #ifndef __cplusplus
@@ -140,9 +133,6 @@ struct sigaction {
 #define SIG_BLOCK       1
 #define SIG_SETMASK     2
 #define SIG_UNBLOCK     3
-
-/* The null device on Windows NT.  */
-#define NULL_DEVICE     "NUL:"
 
 #ifndef MAXPATHLEN
 #define MAXPATHLEN      _MAX_PATH
@@ -388,7 +378,8 @@ extern int getloadavg (double *, int);
 # ifdef WIDE_EMACS_INT
 
 /* Use pre-C99-style 64-bit integers.  */
-# define EMACS_INT __int64
+typedef __int64 EMACS_INT;
+typedef unsigned __int64 EMACS_UINT;
 # define EMACS_INT_MAX _I64_MAX
 # define pI "I64"
 

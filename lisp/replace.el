@@ -912,7 +912,9 @@ To return to ordinary Occur mode, use \\[occur-cease-edit]."
 			(line-number-at-pos (window-start))))
 	       (readonly (with-current-buffer buf buffer-read-only))
 	       (win (or (get-buffer-window buf)
-			(display-buffer buf t)))
+			(display-buffer buf
+					'(nil (inhibit-same-window . t)
+					      (inhibit-switch-frame . t)))))
 	       (line-end (line-end-position))
 	       (text (save-excursion
 		       (goto-char (next-single-property-change
@@ -1140,8 +1142,8 @@ contain \\& and \\N which convention follows `replace-match'.
 For example, providing \"defun\\s +\\(\\S +\\)\" for REGEXP and
 \"\\1\" for NLINES collects all the function names in a lisp
 program.  When there is no parenthesized subexpressions in REGEXP
-the entire match is collected.  In any case the searched buffers
-are not modified."
+the entire match is collected.  In any case the searched buffer
+is not modified."
   (interactive (occur-read-primary-args))
   (occur-1 regexp nlines (list (current-buffer))))
 

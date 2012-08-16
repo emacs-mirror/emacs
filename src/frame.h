@@ -80,6 +80,10 @@ struct terminal;
 
 struct font_driver_list;
 
+/* Most code should use this macro to set Lisp field in struct frame.  */
+
+#define FSET(f, field, value) ((f)->field = (value))
+
 struct frame
 {
   struct vectorlike_header header;
@@ -184,7 +188,8 @@ struct frame
   Lisp_Object tool_bar_position;
 
   /* Desired and current contents displayed in tool_bar_window.  */
-  Lisp_Object desired_tool_bar_string, current_tool_bar_string;
+  Lisp_Object desired_tool_bar_string;
+  Lisp_Object current_tool_bar_string;
 
   /* Beyond here, there should be no more Lisp_Object components.  */
 
@@ -506,7 +511,7 @@ typedef struct frame *FRAME_PTR;
 #define XSETFRAME(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_FRAME))
 
 /* Given a window, return its frame as a Lisp_Object.  */
-#define WINDOW_FRAME(w) (w)->frame
+#define WINDOW_FRAME(w) w->frame
 
 /* Test a frame for particular kinds of display methods.  */
 #define FRAME_INITIAL_P(f) ((f)->output_method == output_initial)
@@ -635,13 +640,13 @@ typedef struct frame *FRAME_PTR;
 #define FRAME_WINDOW_SIZES_CHANGED(f) (f)->window_sizes_changed
 
 /* The minibuffer window of frame F, if it has one; otherwise nil.  */
-#define FRAME_MINIBUF_WINDOW(f) (f)->minibuffer_window
+#define FRAME_MINIBUF_WINDOW(f) f->minibuffer_window
 
 /* The root window of the window tree of frame F.  */
-#define FRAME_ROOT_WINDOW(f) (f)->root_window
+#define FRAME_ROOT_WINDOW(f) f->root_window
 
 /* The currently selected window of the window tree of frame F.  */
-#define FRAME_SELECTED_WINDOW(f) (f)->selected_window
+#define FRAME_SELECTED_WINDOW(f) f->selected_window
 
 #define FRAME_INSERT_COST(f) (f)->insert_line_cost
 #define FRAME_DELETE_COST(f) (f)->delete_line_cost
@@ -649,7 +654,7 @@ typedef struct frame *FRAME_PTR;
 #define FRAME_DELETEN_COST(f) (f)->delete_n_lines_cost
 #define FRAME_MESSAGE_BUF(f) (f)->message_buf
 #define FRAME_SCROLL_BOTTOM_VPOS(f) (f)->scroll_bottom_vpos
-#define FRAME_FOCUS_FRAME(f) (f)->focus_frame
+#define FRAME_FOCUS_FRAME(f) f->focus_frame
 
 /* Nonzero if frame F supports scroll bars.
    If this is zero, then it is impossible to enable scroll bars
@@ -750,10 +755,10 @@ typedef struct frame *FRAME_PTR;
 
 /* Nonzero if frame F has scroll bars.  */
 
-#define FRAME_SCROLL_BARS(f) ((f)->scroll_bars)
+#define FRAME_SCROLL_BARS(f) (f->scroll_bars)
 
-#define FRAME_CONDEMNED_SCROLL_BARS(f) ((f)->condemned_scroll_bars)
-#define FRAME_MENU_BAR_ITEMS(f) ((f)->menu_bar_items)
+#define FRAME_CONDEMNED_SCROLL_BARS(f) (f->condemned_scroll_bars)
+#define FRAME_MENU_BAR_ITEMS(f) (f->menu_bar_items)
 #define FRAME_COST_BAUD_RATE(f) ((f)->cost_calculation_baud_rate)
 
 #define FRAME_DESIRED_CURSOR(f) ((f)->desired_cursor)
@@ -821,10 +826,10 @@ typedef struct frame *FRAME_PTR;
    supported.  An alternate definition of the macro would expand to
    something which executes the statement once.  */
 
-#define FOR_EACH_FRAME(list_var, frame_var)			\
-  for ((list_var) = Vframe_list;				\
-       (CONSP (list_var)					\
-	&& (frame_var = XCAR (list_var), 1));		\
+#define FOR_EACH_FRAME(list_var, frame_var)	\
+  for ((list_var) = Vframe_list;		\
+       (CONSP (list_var)			\
+	&& (frame_var = XCAR (list_var), 1));	\
        list_var = XCDR (list_var))
 
 

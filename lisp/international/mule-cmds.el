@@ -92,7 +92,7 @@
     (bindings--define-key map [set-keyboard-coding-system]
       '(menu-item "For Keyboard" set-keyboard-coding-system
         :help "How to decode keyboard input"))
-    
+
     (bindings--define-key map [separator-2] menu-bar-separator)
     (bindings--define-key map [set-file-name-coding-system]
       '(menu-item "For File Name" set-file-name-coding-system
@@ -128,7 +128,7 @@
       `(menu-item "Describe Language Environment"
             ,describe-language-environment-map
             :help "Show multilingual settings for a specific language"))
-    
+
     (bindings--define-key map [separator-coding-system] menu-bar-separator)
     (bindings--define-key map [view-hello-file]
       '(menu-item "Show Multilingual Sample Text" view-hello-file
@@ -1331,15 +1331,18 @@ of `history-length', which see.")
 (make-variable-buffer-local 'input-method-history)
 (put 'input-method-history 'permanent-local t)
 
-(defvar inactivate-current-input-method-function nil
-  "Function to call for inactivating the current input method.
+(define-obsolete-variable-alias
+  'inactivate-current-input-method-function
+  'deactivate-current-input-method-function "24.3")
+(defvar deactivate-current-input-method-function nil
+  "Function to call for deactivating the current input method.
 Every input method should set this to an appropriate value when activated.
 This function is called with no argument.
 
 This function should never change the value of `current-input-method'.
-It is set to nil by the function `inactivate-input-method'.")
-(make-variable-buffer-local 'inactivate-current-input-method-function)
-(put 'inactivate-current-input-method-function 'permanent-local t)
+It is set to nil by the function `deactivate-input-method'.")
+(make-variable-buffer-local 'deactivate-current-input-method-function)
+(put 'deactivate-current-input-method-function 'permanent-local t)
 
 (defvar describe-current-input-method-function nil
   "Function to call for describing the current input method.
@@ -1426,7 +1429,7 @@ If INPUT-METHOD is nil, deactivate any current input method."
       (setq input-method (symbol-name input-method)))
   (if (and current-input-method
 	   (not (string= current-input-method input-method)))
-      (inactivate-input-method))
+      (deactivate-input-method))
   (unless (or current-input-method (null input-method))
     (let ((slot (assoc input-method input-method-alist)))
       (if (null slot)
@@ -1447,7 +1450,7 @@ If INPUT-METHOD is nil, deactivate any current input method."
 	  (run-hooks 'input-method-activate-hook)
 	(force-mode-line-update)))))
 
-(defun inactivate-input-method ()
+(defun deactivate-input-method ()
   "Turn off the current input method."
   (when current-input-method
     (if input-method-history
@@ -1460,11 +1463,17 @@ If INPUT-METHOD is nil, deactivate any current input method."
 	(progn
 	  (setq input-method-function nil
 		current-input-method-title nil)
-	  (funcall inactivate-current-input-method-function))
+	  (funcall deactivate-current-input-method-function))
       (unwind-protect
-	  (run-hooks 'input-method-inactivate-hook)
+	  (run-hooks
+	   'input-method-inactivate-hook ; for backward compatibility
+	   'input-method-deactivate-hook)
 	(setq current-input-method nil)
 	(force-mode-line-update)))))
+
+(define-obsolete-function-alias
+  'inactivate-input-method
+  'deactivate-input-method "24.3")
 
 (defun set-input-method (input-method &optional interactive)
   "Select and activate input method INPUT-METHOD for the current buffer.
@@ -1476,7 +1485,7 @@ When called interactively, the optional arg INTERACTIVE is non-nil,
 which marks the variable `default-input-method' as set for Custom buffers.
 
 To deactivate the input method interactively, use \\[toggle-input-method].
-To deactivate it programmatically, use `inactivate-input-method'."
+To deactivate it programmatically, use `deactivate-input-method'."
   (interactive
    (let* ((default (or (car input-method-history) default-input-method)))
      (list (read-input-method-name
@@ -1513,7 +1522,7 @@ which marks the variable `default-input-method' as set for Custom buffers."
   (if toggle-input-method-active
       (error "Recursive use of `toggle-input-method'"))
   (if (and current-input-method (not arg))
-      (inactivate-input-method)
+      (deactivate-input-method)
     (let ((toggle-input-method-active t)
 	  (default (or (car input-method-history) default-input-method)))
       (if (and arg default (equal current-input-method default)
@@ -1640,13 +1649,18 @@ just activated."
   :type 'hook
   :group 'mule)
 
-(defcustom input-method-inactivate-hook nil
-  "Normal hook run just after an input method is inactivated.
+(define-obsolete-variable-alias
+  'input-method-inactivate-hook
+  'input-method-deactivate-hook "24.3")
+
+(defcustom input-method-deactivate-hook nil
+  "Normal hook run just after an input method is deactivated.
 
 The variable `current-input-method' still keeps the input method name
-just inactivated."
+just deactivated."
   :type 'hook
-  :group 'mule)
+  :group 'mule
+  :version "24.3")
 
 (defcustom input-method-after-insert-chunk-hook nil
   "Normal hook run just after an input method insert some chunk of text."
@@ -2662,15 +2676,6 @@ See also `locale-charset-language-names', `locale-language-names',
 	  (unless frame (setq locale-coding-system code-page-coding))
 	  (set-keyboard-coding-system code-page-coding frame)
 	  (set-terminal-coding-system code-page-coding frame)
-	  ;; Set default-file-name-coding-system last, so that Emacs
-	  ;; doesn't try to use cpNNNN when it defines keyboard and
-	  ;; terminal encoding.  That's because the above two lines
-	  ;; will want to load code-pages.el, where cpNNNN are
-	  ;; defined; if default-file-name-coding-system were set to
-	  ;; cpNNNN while these two lines run, Emacs will want to use
-	  ;; it for encoding the file name it wants to load.  And that
-	  ;; will fail, since cpNNNN is not yet usable until
-	  ;; code-pages.el finishes loading.
 	  (setq default-file-name-coding-system code-page-coding))))
 
     (when (eq system-type 'darwin)
@@ -2954,43 +2959,7 @@ point or a number in hash notation, e.g. #o21430 for octal,
      (t
       (cdr (assoc-string input (ucs-names) t))))))
 
-(defun ucs-insert (character &optional count inherit)
-  "Insert COUNT copies of CHARACTER of the given Unicode code point.
-Interactively, prompts for a Unicode character name or a hex number
-using `read-char-by-name'.
-
-You can type a few of the first letters of the Unicode name and
-use completion.  If you type a substring of the Unicode name
-preceded by an asterisk `*' and use completion, it will show all
-the characters whose names include that substring, not necessarily
-at the beginning of the name.
-
-This function also accepts a hexadecimal number of Unicode code
-point or a number in hash notation, e.g. #o21430 for octal,
-#x2318 for hex, or #10r8984 for decimal.
-
-The optional third arg INHERIT (non-nil when called interactively),
-says to inherit text properties from adjoining text, if those
-properties are sticky."
-  (interactive
-   (list (read-char-by-name "Unicode (name or hex): ")
-	 (prefix-numeric-value current-prefix-arg)
-	 t))
-  (unless count (setq count 1))
-  (if (and (stringp character)
-	   (string-match-p "\\`[0-9a-fA-F]+\\'" character))
-      (setq character (string-to-number character 16)))
-  (cond
-   ((null character)
-    (error "Not a Unicode character"))
-   ((not (integerp character))
-    (error "Not a Unicode character code: %S" character))
-   ((or (< character 0) (> character #x10FFFF))
-    (error "Not a Unicode character code: 0x%X" character)))
-  (if inherit
-      (dotimes (i count) (insert-and-inherit character))
-    (dotimes (i count) (insert character))))
-
-(define-key ctl-x-map "8\r" 'ucs-insert)
+(define-obsolete-function-alias 'ucs-insert 'insert-char "24.3")
+(define-key ctl-x-map "8\r" 'insert-char)
 
 ;;; mule-cmds.el ends here

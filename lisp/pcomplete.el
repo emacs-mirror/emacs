@@ -165,7 +165,7 @@ A non-nil value is useful if `pcomplete-autolist' is non-nil too."
   :group 'pcomplete)
 
 (define-obsolete-variable-alias
-  'pcomplete-arg-quote-list 'comint-file-name-quote-list "24.2")
+  'pcomplete-arg-quote-list 'comint-file-name-quote-list "24.3")
 
 (defcustom pcomplete-man-function 'man
   "A function to that will be called to display a manual page.
@@ -791,7 +791,7 @@ this is `comint-dynamic-complete-functions'."
 	    pcomplete-args))))))
 
 (define-obsolete-function-alias
-  'pcomplete-quote-argument #'comint-quote-filename "24.2")
+  'pcomplete-quote-argument #'comint-quote-filename "24.3")
 
 ;; file-system completion lists
 

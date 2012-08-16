@@ -268,7 +268,7 @@ The time is bracketed by <> if you are clocked in, otherwise by [].")
 ;;; User Functions:
 
 (define-obsolete-function-alias 'timeclock-modeline-display
-  'timeclock-mode-line-display "24.2")
+  'timeclock-mode-line-display "24.3")
 
 ;;;###autoload
 (defun timeclock-mode-line-display (&optional arg)
@@ -649,7 +649,7 @@ arguments of `completing-read'."
 			     (mapcar 'list timeclock-reason-list)))
 
 (define-obsolete-function-alias 'timeclock-update-modeline
-  'timeclock-update-mode-line "24.2")
+  'timeclock-update-mode-line "24.3")
 
 (defun timeclock-update-mode-line ()
   "Update the `timeclock-mode-string' displayed in the mode line.

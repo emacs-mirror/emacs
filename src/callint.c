@@ -372,7 +372,7 @@ invoke it.  If KEYS is omitted or nil, the return value of
       Vthis_command = save_this_command;
       Vthis_original_command = save_this_original_command;
       Vreal_this_command = save_real_this_command;
-      KVAR (current_kboard, Vlast_command) = save_last_command;
+      KSET (current_kboard, Vlast_command, save_last_command);
 
       temporarily_switch_to_single_kboard (NULL);
       return unbind_to (speccount, apply1 (function, specs));
@@ -465,7 +465,7 @@ invoke it.  If KEYS is omitted or nil, the return value of
     }
 
   if (min (MOST_POSITIVE_FIXNUM,
-	   min (PTRDIFF_MAX, SIZE_MAX) / sizeof (Lisp_Object))
+	   min (PTRDIFF_MAX, SIZE_MAX) / word_size)
       < nargs)
     memory_full (SIZE_MAX);
 
@@ -843,7 +843,7 @@ invoke it.  If KEYS is omitted or nil, the return value of
   Vthis_command = save_this_command;
   Vthis_original_command = save_this_original_command;
   Vreal_this_command = save_real_this_command;
-  KVAR (current_kboard, Vlast_command) = save_last_command;
+  KSET (current_kboard, Vlast_command, save_last_command);
 
   {
     Lisp_Object val;
@@ -888,10 +888,11 @@ syms_of_callint (void)
   callint_message = Qnil;
   staticpro (&callint_message);
 
-  preserved_fns = pure_cons (intern_c_string ("region-beginning"),
-			 pure_cons (intern_c_string ("region-end"),
-				pure_cons (intern_c_string ("point"),
-				       pure_cons (intern_c_string ("mark"), Qnil))));
+  preserved_fns = listn (CONSTYPE_PURE, 4,
+			 intern_c_string ("region-beginning"),
+			 intern_c_string ("region-end"),
+			 intern_c_string ("point"),
+			 intern_c_string ("mark"));
 
   DEFSYM (Qlist, "list");
   DEFSYM (Qlet, "let");

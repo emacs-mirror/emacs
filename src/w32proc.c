@@ -1,4 +1,4 @@
-/* Process support for GNU Emacs on the Microsoft W32 API.
+/* Process support for GNU Emacs on the Microsoft Windows API.
    Copyright (C) 1992, 1995, 1999-2012  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -549,7 +549,7 @@ get_result:
 
       /* Report the status of the synchronous process.  */
       if (WIFEXITED (retval))
-	synch_process_retcode = WRETCODE (retval);
+	synch_process_retcode = WEXITSTATUS (retval);
       else if (WIFSIGNALED (retval))
 	{
 	  int code = WTERMSIG (retval);
@@ -799,7 +799,7 @@ sys_spawnve (int mode, char *cmdname, char **argv, char **envp)
   unixtodos_filename (cmdname);
   argv[0] = cmdname;
 
-  /* Determine whether program is a 16-bit DOS executable, or a w32
+  /* Determine whether program is a 16-bit DOS executable, or a 32-bit Windows
      executable that is implicitly linked to the Cygnus dll (implying it
      was compiled with the Cygnus GNU toolchain and hence relies on
      cygwin.dll to parse the command line - we use this to decide how to
@@ -1386,7 +1386,7 @@ find_child_console (HWND hwnd, LPARAM arg)
 
       GetClassName (hwnd, window_class, sizeof (window_class));
       if (strcmp (window_class,
-		  (os_subtype == OS_WIN95)
+		  (os_subtype == OS_9X)
 		  ? "tty"
 		  : "ConsoleWindowClass") == 0)
 	{
@@ -1517,7 +1517,7 @@ sys_kill (int pid, int sig)
       if (NILP (Vw32_start_process_share_console) && cp && cp->hwnd)
 	{
 #if 1
-	  if (os_subtype == OS_WIN95)
+	  if (os_subtype == OS_9X)
 	    {
 /*
    Another possibility is to try terminating the VDM out-right by
@@ -1536,7 +1536,7 @@ sys_kill (int pid, int sig)
 
 */
 #if 0
-	      /* On Win95, posting WM_QUIT causes the 16-bit subsystem
+	      /* On Windows 95, posting WM_QUIT causes the 16-bit subsystem
 		 to hang when cmdproxy is used in conjunction with
 		 command.com for an interactive shell.  Posting
 		 WM_CLOSE pops up a dialog that, when Yes is selected,
@@ -1810,7 +1810,7 @@ If successful, the return value is t, otherwise nil.  */)
       CHECK_NUMBER (process);
 
       /* Allow pid to be an internally generated one, or one obtained
-	 externally.  This is necessary because real pids on Win95 are
+	 externally.  This is necessary because real pids on Windows 95 are
 	 negative.  */
 
       pid = XINT (process);

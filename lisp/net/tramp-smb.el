@@ -249,21 +249,21 @@ If it isn't found in the local $PATH, the absolute path of winexe
 shall be given.  This is needed for remote processes."
   :group 'tramp
   :type 'string
-  :version "24.2")
+  :version "24.3")
 
 (defcustom tramp-smb-winexe-shell-command "powershell.exe"
   "Shell to be used for processes on remote machines.
 This must be Powershell V2 compatible."
   :group 'tramp
   :type 'string
-  :version "24.2")
+  :version "24.3")
 
 (defcustom tramp-smb-winexe-shell-command-switch "-file -"
   "Command switch used together with `tramp-smb-winexe-shell-command'.
 This can be used to disable echo etc."
   :group 'tramp
   :type 'string
-  :version "24.2")
+  :version "24.3")
 
 ;;;###tramp-autoload
 (defsubst tramp-smb-file-name-p (filename)

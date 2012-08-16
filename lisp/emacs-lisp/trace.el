@@ -285,7 +285,7 @@ Activation is performed with `ad-update', hence remaining advice will get
 activated only if the advice of FUNCTION is currently active.  If FUNCTION
 was not traced this is a noop."
   (interactive
-   (list (ad-read-advised-function "Untrace function: " 'trace-is-traced)))
+   (list (ad-read-advised-function "Untrace function" 'trace-is-traced)))
   (when (trace-is-traced function)
     (ad-remove-advice function 'around trace-advice-name)
     (ad-update function)))

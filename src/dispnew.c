@@ -18,6 +18,9 @@ You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
+
+#define DISPEXTERN_INLINE EXTERN_INLINE
+
 #include <signal.h>
 #include <stdio.h>
 #include <ctype.h>
@@ -62,32 +65,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "systime.h"
 #include <errno.h>
 
-/* Get number of chars of output now in the buffer of a stdio stream.
-   This ought to be built in stdio, but it isn't.  Some s- files
-   override this because their stdio internals differ.  */
-#ifdef __GNU_LIBRARY__
-
-/* The s- file might have overridden the definition with one that
-   works for the system's C library.  But we are using the GNU C
-   library, so this is the right definition for every system.  */
-#ifdef GNU_LIBRARY_PENDING_OUTPUT_COUNT
-#define PENDING_OUTPUT_COUNT GNU_LIBRARY_PENDING_OUTPUT_COUNT
-#else
-#undef	PENDING_OUTPUT_COUNT
-#define	PENDING_OUTPUT_COUNT(FILE) ((FILE)->__bufp - (FILE)->__buffer)
-#endif
-
-/* not __GNU_LIBRARY__ and no PENDING_OUTPUT_COUNT defined  */
-#elif !defined (PENDING_OUTPUT_COUNT)
-
-#if HAVE_STDIO_EXT_H && HAVE___FPENDING
+#ifdef DISPNEW_NEEDS_STDIO_EXT
 #include <stdio_ext.h>
-#define PENDING_OUTPUT_COUNT(FILE) __fpending (FILE)
-#else
-#define PENDING_OUTPUT_COUNT(FILE) ((FILE)->_ptr - (FILE)->_base)
 #endif
-
-#endif /* not __GNU_LIBRARY__ and no PENDING_OUTPUT_COUNT defined */
 
 #if defined (HAVE_TERM_H) && defined (GNU_LINUX)
 #include <term.h>		/* for tgetent */
@@ -642,7 +622,7 @@ adjust_glyph_matrix (struct window *w, struct glyph_matrix *matrix, int x, int y
 		 are invalidated below.  */
 	      if (INTEGERP (w->window_end_vpos)
 		  && XFASTINT (w->window_end_vpos) >= i)
-		w->window_end_valid = Qnil;
+		WSET (w, window_end_valid, Qnil);
 
 	      while (i < matrix->nrows)
 		matrix->rows[i++].enabled_p = 0;
@@ -899,7 +879,7 @@ clear_window_matrices (struct window *w, int desired_p)
 	  else
 	    {
 	      clear_glyph_matrix (w->current_matrix);
-	      w->window_end_valid = Qnil;
+	      WSET (w, window_end_valid, Qnil);
 	    }
 	}
 
@@ -1908,14 +1888,14 @@ adjust_frame_glyphs_initially (void)
   int top_margin = FRAME_TOP_MARGIN (sf);
 
   /* Do it for the root window.  */
-  XSETFASTINT (root->top_line, top_margin);
-  XSETFASTINT (root->total_lines, frame_lines - 1 - top_margin);
-  XSETFASTINT (root->total_cols, frame_cols);
+  WSET (root, top_line, make_number (top_margin));
+  WSET (root, total_lines, make_number (frame_lines - 1 - top_margin));
+  WSET (root, total_cols, make_number (frame_cols));
 
   /* Do it for the mini-buffer window.  */
-  XSETFASTINT (mini->top_line, frame_lines - 1);
-  XSETFASTINT (mini->total_lines, 1);
-  XSETFASTINT (mini->total_cols, frame_cols);
+  WSET (mini, top_line, make_number (frame_lines - 1));
+  WSET (mini, total_lines, make_number (1));
+  WSET (mini, total_cols, make_number (frame_cols));
 
   adjust_frame_glyphs (sf);
   glyphs_initialized_initially_p = 1;
@@ -2186,9 +2166,11 @@ adjust_frame_glyphs_for_window_redisplay (struct frame *f)
     struct window *w;
     if (NILP (f->menu_bar_window))
       {
-	f->menu_bar_window = make_window ();
+	Lisp_Object frame;
+	FSET (f, menu_bar_window, make_window ());
 	w = XWINDOW (f->menu_bar_window);
-	XSETFRAME (w->frame, f);
+	XSETFRAME (frame, f);
+	WSET (w, frame, frame);
 	w->pseudo_window_p = 1;
       }
     else
@@ -2196,10 +2178,10 @@ adjust_frame_glyphs_for_window_redisplay (struct frame *f)
 
     /* Set window dimensions to frame dimensions and allocate or
        adjust glyph matrices of W.  */
-    XSETFASTINT (w->top_line, 0);
-    XSETFASTINT (w->left_col, 0);
-    XSETFASTINT (w->total_lines, FRAME_MENU_BAR_LINES (f));
-    XSETFASTINT (w->total_cols, FRAME_TOTAL_COLS (f));
+    WSET (w, top_line, make_number (0));
+    WSET (w, left_col, make_number (0));
+    WSET (w, total_lines, make_number (FRAME_MENU_BAR_LINES (f)));
+    WSET (w, total_cols, make_number (FRAME_TOTAL_COLS (f)));
     allocate_matrices_for_window_redisplay (w);
   }
 #endif /* not USE_X_TOOLKIT && not USE_GTK */
@@ -2212,18 +2194,20 @@ adjust_frame_glyphs_for_window_redisplay (struct frame *f)
     struct window *w;
     if (NILP (f->tool_bar_window))
       {
-	f->tool_bar_window = make_window ();
+	Lisp_Object frame;
+	FSET (f, tool_bar_window, make_window ());
 	w = XWINDOW (f->tool_bar_window);
-	XSETFRAME (w->frame, f);
+	XSETFRAME (frame, f);
+	WSET (w, frame, frame);
 	w->pseudo_window_p = 1;
       }
     else
       w = XWINDOW (f->tool_bar_window);
 
-    XSETFASTINT (w->top_line, FRAME_MENU_BAR_LINES (f));
-    XSETFASTINT (w->left_col, 0);
-    XSETFASTINT (w->total_lines, FRAME_TOOL_BAR_LINES (f));
-    XSETFASTINT (w->total_cols, FRAME_TOTAL_COLS (f));
+    WSET (w, top_line, make_number (FRAME_MENU_BAR_LINES (f)));
+    WSET (w, left_col, make_number (0));
+    WSET (w, total_lines, make_number (FRAME_TOOL_BAR_LINES (f)));
+    WSET (w, total_cols, make_number (FRAME_TOTAL_COLS (f)));
     allocate_matrices_for_window_redisplay (w);
   }
 #endif
@@ -2289,7 +2273,7 @@ free_glyphs (struct frame *f)
 	  free_glyph_matrix (w->desired_matrix);
 	  free_glyph_matrix (w->current_matrix);
 	  w->desired_matrix = w->current_matrix = NULL;
-	  f->menu_bar_window = Qnil;
+	  FSET (f, menu_bar_window, Qnil);
 	}
 
       /* Free the tool bar window and its glyph matrices.  */
@@ -2299,7 +2283,7 @@ free_glyphs (struct frame *f)
 	  free_glyph_matrix (w->desired_matrix);
 	  free_glyph_matrix (w->current_matrix);
 	  w->desired_matrix = w->current_matrix = NULL;
-	  f->tool_bar_window = Qnil;
+	  FSET (f, tool_bar_window, Qnil);
 	}
 
       /* Release frame glyph matrices.  Reset fields to zero in
@@ -3237,8 +3221,8 @@ update_frame (struct frame *f, int force_p, int inhibit_hairy_id_p)
 	      /* Swap tool-bar strings.  We swap because we want to
 		 reuse strings.  */
 	      tem = f->current_tool_bar_string;
-	      f->current_tool_bar_string = f->desired_tool_bar_string;
-	      f->desired_tool_bar_string = tem;
+	      FSET (f, current_tool_bar_string, f->desired_tool_bar_string);
+	      FSET (f, desired_tool_bar_string, tem);
 	    }
 	}
 
@@ -3837,7 +3821,8 @@ update_text_area (struct window *w, int vpos)
 		{
 		  int left, right;
 
-		  rif->get_glyph_overhangs (current_glyph, XFRAME (w->frame),
+		  rif->get_glyph_overhangs (current_glyph,
+					    XFRAME (w->frame),
 					    &left, &right);
 		  while (left > 0 && i > 0)
 		    {
@@ -5760,7 +5745,7 @@ change_frame_size_1 (register struct frame *f, int newheight, int newwidth, int 
 	FrameCols (FRAME_TTY (f)) = newwidth;
 
       if (WINDOWP (f->tool_bar_window))
-	XSETFASTINT (XWINDOW (f->tool_bar_window)->total_cols, newwidth);
+	WSET (XWINDOW (f->tool_bar_window), total_cols, make_number (newwidth));
     }
 
   FRAME_LINES (f) = newheight;

@@ -141,7 +141,7 @@ recompute_width_table (struct buffer *buf, struct Lisp_Char_Table *disptab)
   struct Lisp_Vector *widthtab;
 
   if (!VECTORP (BVAR (buf, width_table)))
-    BVAR (buf, width_table) = Fmake_vector (make_number (256), make_number (0));
+    BSET (buf, width_table, Fmake_vector (make_number (256), make_number (0)));
   widthtab = XVECTOR (BVAR (buf, width_table));
   if (widthtab->header.size != 256)
     abort ();
@@ -166,7 +166,7 @@ width_run_cache_on_off (void)
         {
           free_region_cache (current_buffer->width_run_cache);
           current_buffer->width_run_cache = 0;
-          BVAR (current_buffer, width_table) = Qnil;
+          BSET (current_buffer, width_table, Qnil);
         }
     }
   else
@@ -336,9 +336,8 @@ current_column (void)
 
   /* If the buffer has overlays, text properties,
      or multibyte characters, use a more general algorithm.  */
-  if (BUF_INTERVALS (current_buffer)
-      || current_buffer->overlays_before
-      || current_buffer->overlays_after
+  if (buffer_get_intervals (current_buffer)
+      || buffer_has_overlays ()
       || Z != Z_BYTE)
     return current_column_1 ();
 
@@ -1136,7 +1135,6 @@ compute_motion (ptrdiff_t from, EMACS_INT fromvpos, EMACS_INT fromhpos, int did_
   ptrdiff_t width_run_end   = from;
   ptrdiff_t width_run_width = 0;
   Lisp_Object *width_table;
-  Lisp_Object buffer;
 
   /* The next buffer pos where we should consult the width run cache. */
   ptrdiff_t next_width_run = from;
@@ -1156,7 +1154,6 @@ compute_motion (ptrdiff_t from, EMACS_INT fromvpos, EMACS_INT fromhpos, int did_
 
   struct composition_it cmp_it;
 
-  XSETBUFFER (buffer, current_buffer);
   XSETWINDOW (window, win);
 
   width_run_cache_on_off ();
@@ -2006,9 +2003,9 @@ whether or not it is currently displayed in some window.  */)
       old_buffer = w->buffer;
       old_charpos = XMARKER (w->pointm)->charpos;
       old_bytepos = XMARKER (w->pointm)->bytepos;
-      XSETBUFFER (w->buffer, current_buffer);
-      set_marker_both
-	(w->pointm, w->buffer, BUF_PT (current_buffer), BUF_PT_BYTE (current_buffer));
+      WSET (w, buffer, Fcurrent_buffer ());
+      set_marker_both (w->pointm, w->buffer,
+		       BUF_PT (current_buffer), BUF_PT_BYTE (current_buffer));
     }
 
   if (noninteractive)
@@ -2149,8 +2146,9 @@ whether or not it is currently displayed in some window.  */)
 
   if (BUFFERP (old_buffer))
     {
-      w->buffer = old_buffer;
-      set_marker_both (w->pointm, w->buffer, old_charpos, old_bytepos);
+      WSET (w, buffer, old_buffer);
+      set_marker_both (w->pointm, w->buffer,
+		       old_charpos, old_bytepos);
     }
 
   RETURN_UNGCPRO (make_number (it.vpos));

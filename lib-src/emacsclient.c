@@ -1,5 +1,6 @@
 /* Client process that communicates with GNU Emacs acting as server.
-   Copyright (C) 1986-1987, 1994, 1999-2012 Free Software Foundation, Inc.
+
+Copyright (C) 1986-1987, 1994, 1999-2012 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -112,13 +113,6 @@ char *(getcwd) (char *, size_t);
 /* Additional space when allocating buffers for filenames, etc.  */
 #define EXTRA_SPACE 100
 
-/* Use this to suppress gcc's `...may be used before initialized' warnings. */
-#ifdef lint
-# define IF_LINT(Code) Code
-#else
-# define IF_LINT(Code) /* empty */
-#endif
-
 #ifdef min
 #undef min
 #endif
@@ -212,21 +206,6 @@ xmalloc (size_t size)
 
 /* From sysdep.c */
 #if !defined (HAVE_GET_CURRENT_DIR_NAME) || defined (BROKEN_GET_CURRENT_DIR_NAME)
-
-/* From lisp.h */
-#ifndef DIRECTORY_SEP
-#define DIRECTORY_SEP '/'
-#endif
-#ifndef IS_DIRECTORY_SEP
-#define IS_DIRECTORY_SEP(_c_) ((_c_) == DIRECTORY_SEP)
-#endif
-#ifndef IS_DEVICE_SEP
-#ifndef DEVICE_SEP
-#define IS_DEVICE_SEP(_c_) 0
-#else
-#define IS_DEVICE_SEP(_c_) ((_c_) == DEVICE_SEP)
-#endif
-#endif
 
 char *get_current_dir_name (void);
 

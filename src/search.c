@@ -278,8 +278,8 @@ looking_at_1 (Lisp_Object string, int posix)
     save_search_regs ();
 
   /* This is so set_image_of_range_1 in regex.c can find the EQV table.  */
-  XCHAR_TABLE (BVAR (current_buffer, case_canon_table))->extras[2]
-    = BVAR (current_buffer, case_eqv_table);
+  char_table_set_extras (BVAR (current_buffer, case_canon_table), 2,
+			 BVAR (current_buffer, case_eqv_table));
 
   CHECK_STRING (string);
   bufp = compile_pattern (string,
@@ -393,8 +393,8 @@ string_match_1 (Lisp_Object regexp, Lisp_Object string, Lisp_Object start, int p
     }
 
   /* This is so set_image_of_range_1 in regex.c can find the EQV table.  */
-  XCHAR_TABLE (BVAR (current_buffer, case_canon_table))->extras[2]
-    = BVAR (current_buffer, case_eqv_table);
+  char_table_set_extras (BVAR (current_buffer, case_canon_table), 2,
+			 BVAR (current_buffer, case_eqv_table));
 
   bufp = compile_pattern (regexp,
 			  (NILP (Vinhibit_changing_match_data)
@@ -990,8 +990,8 @@ search_command (Lisp_Object string, Lisp_Object bound, Lisp_Object noerror,
     }
 
   /* This is so set_image_of_range_1 in regex.c can find the EQV table.  */
-  XCHAR_TABLE (BVAR (current_buffer, case_canon_table))->extras[2]
-    = BVAR (current_buffer, case_eqv_table);
+  char_table_set_extras (BVAR (current_buffer, case_canon_table), 2,
+			 BVAR (current_buffer, case_eqv_table));
 
   np = search_buffer (string, PT, PT_BYTE, lim, lim_byte, n, RE,
 		      (!NILP (BVAR (current_buffer, case_fold_search))
@@ -2226,6 +2226,9 @@ Otherwise treat `\\' as special:
   `\\N' means substitute what matched the Nth `\\(...\\)'.
        If Nth parens didn't match, substitute nothing.
   `\\\\' means insert one `\\'.
+  `\\?' is treated literally
+       (for compatibility with `query-replace-regexp').
+  Any other character following `\\' signals an error.
 Case conversion does not apply to these substitutions.
 
 FIXEDCASE and LITERAL are optional arguments.
@@ -2428,7 +2431,7 @@ since only regular expressions have distinguished subexpressions.  */)
 		    }
 		  else if (c == '\\')
 		    delbackslash = 1;
-		  else
+		  else if (c != '?')
 		    error ("Invalid use of `\\' in replacement text");
 		}
 	      if (substart >= 0)
@@ -3054,12 +3057,12 @@ syms_of_search (void)
   DEFSYM (Qinvalid_regexp, "invalid-regexp");
 
   Fput (Qsearch_failed, Qerror_conditions,
-	pure_cons (Qsearch_failed, pure_cons (Qerror, Qnil)));
+	listn (CONSTYPE_PURE, 2, Qsearch_failed, Qerror));
   Fput (Qsearch_failed, Qerror_message,
 	build_pure_c_string ("Search failed"));
 
   Fput (Qinvalid_regexp, Qerror_conditions,
-	pure_cons (Qinvalid_regexp, pure_cons (Qerror, Qnil)));
+	listn (CONSTYPE_PURE, 2, Qinvalid_regexp, Qerror));
   Fput (Qinvalid_regexp, Qerror_message,
 	build_pure_c_string ("Invalid regexp"));
 

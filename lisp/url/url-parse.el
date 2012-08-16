@@ -105,7 +105,7 @@ If the specified port number is the default, return nil."
                              (concat (car x) "=" (cdr x))
                            (car x)))
                        (url-attributes urlobj) ";"))))
-(make-obsolete 'url-recreate-url-attributes nil "24.2")
+(make-obsolete 'url-recreate-url-attributes nil "24.3")
 
 ;;;###autoload
 (defun url-generic-parse-url (url)

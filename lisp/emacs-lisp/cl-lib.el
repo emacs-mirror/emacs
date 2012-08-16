@@ -99,8 +99,8 @@
 ;;;###autoload
 (define-obsolete-variable-alias
   ;; This alias is needed for compatibility with .elc files that use defstruct
-  ;; and were compiled with Emacs<24.2.
-  'custom-print-functions 'cl-custom-print-functions "24.2")
+  ;; and were compiled with Emacs<24.3.
+  'custom-print-functions 'cl-custom-print-functions "24.3")
 
 ;;;###autoload
 (defvar cl-custom-print-functions nil

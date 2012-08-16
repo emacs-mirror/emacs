@@ -325,13 +325,10 @@ write-date, checksum, link-type, and link-name."
 (defun tar-header-data-end (descriptor)
   (let* ((data-start (tar-header-data-start descriptor))
          (link-type (tar-header-link-type descriptor))
-         (size (tar-header-size descriptor))
-         (fudge (cond
-                 ;; Foo.  There's an extra empty block after these.
-                 ((memq link-type '(20 55)) 512)
-                 (t 0))))
-    (+ data-start fudge
-       (if (and (null link-type) (> size 0))
+         (size (tar-header-size descriptor)))
+    (+ data-start
+       ;; Ignore size for files of type 1-6
+       (if (and (not (memq link-type '(1 2 3 4 5 6))) (> size 0))
            (tar-roundup-512 size)
          0))))
 
@@ -445,7 +442,8 @@ MODE should be an integer which is a file mode value."
 		  ((eq type 29) ?M)	; multivolume continuation
 		  ((eq type 35) ?S)	; sparse
 		  ((eq type 38) ?V)	; volume header
-		  ((eq type 55) ?H)	; extended pax header
+		  ((eq type 55) ?H)	; pax global extended header
+		  ((eq type 72) ?X)	; pax extended header
 		  (t ?\s)
 		  )
 	    (tar-grind-file-mode mode)
@@ -751,7 +749,8 @@ tar-file's buffer."
 		     ((eq link-p 29) "a multivolume-continuation")
 		     ((eq link-p 35) "a sparse entry")
 		     ((eq link-p 38) "a volume header")
-		     ((eq link-p 55) "an extended pax header")
+		     ((eq link-p 55) "a pax global extended header")
+		     ((eq link-p 72) "a pax extended header")
 		     (t "a link"))))
     (if (zerop size) (message "This is a zero-length file"))
     descriptor))

@@ -145,13 +145,6 @@ See Info node `(gnus)Formatting Variables'."
       (setq alist (cdr alist)))
     out))
 
-(defun gnus-group-parent-topic (group)
-  "Return the topic GROUP is member of by looking at the group buffer."
-  (with-current-buffer gnus-group-buffer
-    (if (gnus-group-goto-group group)
-	(gnus-current-topic)
-      (gnus-group-topic group))))
-
 (defun gnus-topic-goto-topic (topic)
   (when topic
     (gnus-goto-char (text-property-any (point-min) (point-max)

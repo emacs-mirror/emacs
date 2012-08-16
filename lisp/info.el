@@ -342,12 +342,12 @@ a tab, a carriage return (control-M), a newline, and `]+'."
 (defcustom Info-isearch-search t
   "If non-nil, isearch in Info searches through multiple nodes.
 Before leaving the initial Info node, where isearch was started,
-it fails once with the error message [initial node], and with
+it fails once with the error message [end of node], and with
 subsequent C-s/C-r continues through other nodes without failing
 with this error message in other nodes.  When isearch fails for
-the rest of the manual, it wraps around the whole manual and
-restarts the search from the top/final node depending on
-search direction.
+the rest of the manual, it displays the error message [end of manual],
+wraps around the whole manual and restarts the search from the top/final
+node depending on search direction.
 
 Setting this option to nil restores the default isearch behavior
 with wrapping around the current Info node."
@@ -1863,7 +1863,7 @@ If DIRECTION is `backward', search in the reverse direction."
 		 (not bound)
 		 (or give-up (and found (not (and (> found opoint-min)
 						  (< found opoint-max))))))
-	(signal 'search-failed (list regexp "initial node")))
+	(signal 'search-failed (list regexp "end of node")))
 
       ;; If no subfiles, give error now.
       (if give-up
@@ -2006,7 +2006,7 @@ If DIRECTION is `backward', search in the reverse direction."
 	   ;; Lax version of word search
 	   (let ((lax (not (or isearch-nonincremental
 			       (eq (length string)
-				   (length (isearch-string-state
+				   (length (isearch--state-string
 					    (car isearch-cmds))))))))
 	     (if (functionp isearch-word)
 		 (funcall isearch-word string lax)
@@ -2854,7 +2854,7 @@ N is the digit argument used to invoke this command."
 		      (Info-extract-menu-node-name)))))
 
 (defmacro Info-no-error (&rest body)
-  (list 'condition-case nil (cons 'progn (append body '(t))) '(error nil)))
+  `(condition-case nil (progn ,@body t) (error nil)))
 
 (defun Info-next-preorder ()
   "Go to the next subnode or the next node, or go up a level."
@@ -5020,11 +5020,18 @@ BUFFER is the buffer speedbar is requesting buttons for."
 (defun Info-bookmark-make-record ()
   "This implements the `bookmark-make-record-function' type (which see)
 for Info nodes."
-  `(,Info-current-node
-    ,@(bookmark-make-record-default 'no-file)
-    (filename . ,Info-current-file)
-    (info-node . ,Info-current-node)
-    (handler . Info-bookmark-jump)))
+  (let* ((file (and (stringp Info-current-file)
+		    (file-name-nondirectory Info-current-file)))
+	 (bookmark-name (if file
+			    (concat "(" file ") " Info-current-node)
+			  Info-current-node))
+	 (defaults (delq nil (list bookmark-name file Info-current-node))))
+    `(,bookmark-name
+      ,@(bookmark-make-record-default 'no-file)
+      (filename . ,Info-current-file)
+      (info-node . ,Info-current-node)
+      (handler . Info-bookmark-jump)
+      (defaults . ,defaults))))
 
 ;;;###autoload
 (defun Info-bookmark-jump (bmk)

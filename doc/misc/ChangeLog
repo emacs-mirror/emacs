@@ -1,3 +1,48 @@
+2012-08-06  Aurélien Aptel  <aurelien.aptel@gmail.com>
+
+	* url.texi (Parsed URLs): Adjust to the code's use of defstruct
+	(bug#12096).
+
+2012-08-01  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc.texi (Simplification modes, Conversions)
+	(Operating on Selections): Mention "basic" simplification.
+	(The Calc Mode Line): Mention the mode line display for Basic
+	simplification mode.
+	(Simplify Formulas): Refer to 'algebraic' rather than 'default'
+	simplifications.
+	(Basic Simplifications): Rename from "Limited Simplifications"
+	Replace "limited" by "basic" throughout.
+	(Algebraic Simplifications):  Indicate that the algebraic
+	simplifications are done by default.
+	(Unsafe Simplifications):  Mention `m E'.
+	(Simplification of Units): Mention `m U'.
+	(Trigonometric/Hyperbolic Functions, Reducing and Mapping)
+	(Kinds of Declarations, Functions for Declarations):  Mention
+	"algebraic simplifications" instead of `a s'.
+	(Algebraic Entry): Remove mention of default simplifications.
+
+2012-07-30  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc.texi (Getting Started, Tutorial): Change simulated
+	Calc output to match actual output.
+	(Simplifying Formulas): Mention that algebraic simplification is now
+	the default.
+
+2012-07-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* faq.texi (Right-to-left alphabets): Update for Emacs 24.
+	(Bug#12073)
+
+2012-07-25  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Prefer typical American spelling for "acknowledgment".
+	* calc.texi (History and Acknowledgments): Rename from
+	History and Acknowledgements.
+	* idlwave.texi (Acknowledgments):
+	* ses.texi (Acknowledgments):
+	* woman.texi (Acknowledgments): Rename from Acknowledgements.
+
 2012-07-09  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Rename configure.in to configure.ac (Bug#11603).
@@ -4705,7 +4750,7 @@
 2007-11-07  Michael Albinus  <michael.albinus@gmx.de>
 
 	* tramp.texi (Overview): Mention also the PuTTY integration under
-	Win32.  Remove paragraphs about Tramp's experimental status.
+	w32.  Remove paragraphs about Tramp's experimental status.
 	(Frequently Asked Questions): Add code example for highlighting the
 	mode line.
 

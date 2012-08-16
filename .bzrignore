@@ -86,6 +86,7 @@ lib/arg-nonnull.h
 lib/c++defs.h
 lib/getopt.h
 lib/inttypes.h
+lib/stdalign.h
 lib/stdbool.h
 lib/stdio.h
 lib/stdint.h
@@ -142,6 +143,7 @@ src/epaths.h
 src/gdb.ini
 src/prefix-args*
 src/stamp-oldxmenu
+src/stamp-h.in
 src/temacs
 test/indent/*.new
 +*

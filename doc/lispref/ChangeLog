@@ -1,3 +1,49 @@
+2012-08-06  Eli Zaretskii  <eliz@gnu.org>
+
+	* functions.texi (Closures): Put the main index entry for
+	"closures" here.  (Bug#12138)
+
+	* variables.texi (Lexical Binding): Disambiguate the index entry
+	for "closures".
+
+2012-08-05  Chong Yidong  <cyd@gnu.org>
+
+	* display.texi (Defining Faces): Move documentation of
+	frame-background-mode to the Emacs manual (Bug#7774).
+
+2012-08-04  Chong Yidong  <cyd@gnu.org>
+
+	* syntax.texi (Syntax Basics): Rearrange the text for clarity.
+	Fix description of syntax table inheritance.
+	(Syntax Table Functions): Don't refer to internal contents of
+	syntax table, since that is not explained yet.  Copyedits.
+	(Standard Syntax Tables): Node deleted.
+	(Syntax Table Internals): Misc clarifications.  Improve table
+	formatting.
+
+	* keymaps.texi (Inheritance and Keymaps):
+	* text.texi (Sticky Properties): Tweak index entry.
+
+2012-07-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* nonascii.texi (Character Sets): Fix a typo.  (Bug#12062)
+
+2012-07-25  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Prefer typical American spelling for "acknowledgment".
+	* intro.texi (Acknowledgments): Rename from Acknowledgements.
+
+2012-07-21  Eli Zaretskii  <eliz@gnu.org>
+
+	* commands.texi (Special Events): Mention language-change event.
+	(Input Events, Interactive Codes):
+	* keymaps.texi (Key Sequences): Mention events that are
+	non-keyboard but also non-mouse events.
+
+2012-07-17  Chong Yidong  <cyd@gnu.org>
+
+	* text.texi (Insertion): Document insert-char changes.
+
 2012-07-15  Leo Liu  <sdl.web@gmail.com>
 
 	* display.texi (Fringe Bitmaps): Add exclamation-mark.
@@ -105,7 +151,7 @@
 
 2012-06-08  Dmitry Antipov  <dmantipov@yandex.ru>
 
-	* internals.text (Garbage Collection): Document new
+	* internals.texi (Garbage Collection): Document new
 	vector management code and vectorlike_header structure.
 
 2012-06-03  Chong Yidong  <cyd@gnu.org>
@@ -4009,7 +4055,7 @@
 
 	* functions.texi (Function Safety): Texinfo usage fix.
 
-2009-01-04  Eduard Wiebe  <usenet@pusto.de>  (tiny patch)
+2009-01-04  Eduard Wiebe  <usenet@pusto.de>  (tiny change)
 
 	* objects.texi (General Escape Syntax): Fix typo.
 

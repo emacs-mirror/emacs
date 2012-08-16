@@ -1355,7 +1355,7 @@ extra args."
 	    nums sig min max)
 	(when calls
           (when (and (symbolp name)
-                     (eq (get name 'byte-optimizer)
+                     (eq (function-get name 'byte-optimizer)
                          'byte-compile-inline-expand))
             (byte-compile-warn "defsubst `%s' was used before it was defined"
 		       name))
@@ -1621,21 +1621,20 @@ This is normally set in local file variables at the end of the elisp file:
   "Recompile FILENAME file if it needs recompilation.
 This happens when its `.elc' file is older than itself.
 
-If the `.elc' file exists and is up-to-date, normally this
-function *does not* compile FILENAME. However, if the
-prefix argument FORCE is set, that means do compile
-FILENAME even if the destination already exists and is
-up-to-date.
+If the `.elc' file exists and is up-to-date, normally this function
+*does not* compile FILENAME.  If the prefix argument FORCE is non-nil,
+however, it compiles FILENAME even if the destination already
+exists and is up-to-date.
 
-If the `.elc' file does not exist, normally this function *does
-not* compile FILENAME. If ARG is 0, that means
-compile the file even if it has never been compiled before.
-A nonzero ARG means ask the user.
+If the `.elc' file does not exist, normally this function *does not*
+compile FILENAME.  If optional argument ARG is 0, it compiles
+the input file even if the `.elc' file does not exist.
+Any other non-nil value of ARG means to ask the user.
 
-If LOAD is set, `load' the file after compiling.
+If optional argument LOAD is non-nil, loads the file after compiling.
 
-The value returned is the value returned by `byte-compile-file',
-or 'no-byte-compile if the file did not need recompilation."
+If compilation is needed, this functions returns the result of
+`byte-compile-file'; otherwise it returns 'no-byte-compile."
   (interactive
    (let ((file buffer-file-name)
 	 (file-name nil)
@@ -1665,7 +1664,8 @@ or 'no-byte-compile if the file did not need recompilation."
           (if (and noninteractive (not byte-compile-verbose))
               (message "Compiling %s..." filename))
           (byte-compile-file filename load))
-      (when load (load filename))
+      (when load
+	(load (if (file-exists-p dest) dest filename)))
       'no-byte-compile)))
 
 ;;;###autoload
@@ -3578,20 +3578,22 @@ discarding."
 
 (defun byte-compile-setq-default (form)
   (setq form (cdr form))
-  (if (> (length form) 2)
-      (let ((setters ()))
-        (while (consp form)
-          (push `(setq-default ,(pop form) ,(pop form)) setters))
-        (byte-compile-form (cons 'progn (nreverse setters))))
-    (let ((var (car form)))
-      (and (or (not (symbolp var))
-               (macroexp--const-symbol-p var t))
-           (byte-compile-warning-enabled-p 'constants)
-           (byte-compile-warn
-            "variable assignment to %s `%s'"
-            (if (symbolp var) "constant" "nonvariable")
-            (prin1-to-string var)))
-      (byte-compile-normal-call `(set-default ',var ,@(cdr form))))))
+  (if (null form)			; (setq-default), with no arguments
+      (byte-compile-form nil byte-compile--for-effect)
+    (if (> (length form) 2)
+	(let ((setters ()))
+	  (while (consp form)
+	    (push `(setq-default ,(pop form) ,(pop form)) setters))
+	  (byte-compile-form (cons 'progn (nreverse setters))))
+      (let ((var (car form)))
+	(and (or (not (symbolp var))
+		 (macroexp--const-symbol-p var t))
+	     (byte-compile-warning-enabled-p 'constants)
+	     (byte-compile-warn
+	      "variable assignment to %s `%s'"
+	      (if (symbolp var) "constant" "nonvariable")
+	      (prin1-to-string var)))
+	(byte-compile-normal-call `(set-default ',var ,@(cdr form)))))))
 
 (byte-defop-compiler-1 set-default)
 (defun byte-compile-set-default (form)

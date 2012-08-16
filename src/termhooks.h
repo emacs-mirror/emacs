@@ -321,6 +321,10 @@ struct ns_display_info;
 struct x_display_info;
 struct w32_display_info;
 
+/* Most code should use this macro to set Lisp field in struct terminal.  */
+
+#define TSET(f, field, value) ((f)->field = (value))
+
 /* Terminal-local parameters. */
 struct terminal
 {

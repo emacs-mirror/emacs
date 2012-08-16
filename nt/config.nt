@@ -1,7 +1,6 @@
 /* GNU Emacs site configuration template file.
 
-Copyright (C) 1988, 1993-1994, 2001-2012
-  Free Software Foundation, Inc.
+Copyright (C) 1988, 1993-1994, 2001-2012 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -22,7 +21,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    This file is intentionally kept in sync with autogen/config.in to
    ease maintenance.  Please do not remove non-Windows related stuff
    unless strictly necessary.  Also, before adding anything here
-   consider whether src/s/ms-w32.h would be a better place; this is
+   consider whether inc/ms-w32.h would be a better place; this is
    particularly true for gcc vs. MSVC conditional defines, MinGW or
    MSVC specific code, and macros not already defined in config.in.  */
 
@@ -35,6 +34,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define if building universal (internal helper macro) */
 #undef AC_APPLE_UNIVERSAL_BUILD
+
+/* Define to use the convention that & in the full name stands for the login
+   id. */
+#undef AMPERSAND_FULL_NAME
 
 /* Define to the number of bits in type 'ptrdiff_t'. */
 #undef BITSIZEOF_PTRDIFF_T
@@ -53,6 +56,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define if FIONREAD should not be used. */
 #undef BROKEN_FIONREAD
+
+/* Define if getwd should not be used. */
+#undef BROKEN_GETWD
 
 /* Define if get_current_dir_name should not be used. */
 #undef BROKEN_GET_CURRENT_DIR_NAME
@@ -118,13 +124,25 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Name of the default sound device. */
 #undef DEFAULT_SOUND_DEVICE
 
+/* Character that separates a device in a file name. */
+#define DEVICE_SEP ':'
+
 /* Define to 1 for DGUX with <sys/dg_sys_info.h>. */
 #undef DGUX
+
+/* Character that separates directories in a file name. */
+#define DIRECTORY_SEP '/'
+
+/* Define if dispnew.c should include stdio_ext.h. */
+#undef DISPNEW_NEEDS_STDIO_EXT
 
 /* Define if process.c does not need to close a pty to make it a controlling
    terminal (it is already a controlling terminal of the subprocess, because
    we did ioctl TIOCSCTTY). */
 #undef DONT_REOPEN_PTY
+
+/* Define if the system is MS DOS or MS Windows. */
+#define DOS_NT
 
 /* Define to 1 if you are using the GNU C Library. */
 #undef DOUG_LEA_MALLOC
@@ -142,6 +160,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Letter to use in finding device name of first PTY, if PTYs are supported.
    */
 #define FIRST_PTY_LETTER 'a'
+
+/* Define if the float library doesn't handle errors by either setting errno,
+   or signaling SIGFPE/SIGILL. */
+#undef FLOAT_CHECK_DOMAIN
 
 /* Define to 1 if futimesat mishandles a NULL file name. */
 #undef FUTIMESAT_NULL_BUG
@@ -197,9 +219,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    whether the gnulib module scanf shall be considered present. */
 #undef GNULIB_SCANF
 
-/* Value of PENDING_OUTPUT_COUNT if using the GNU C library. */
-#undef GNU_LIBRARY_PENDING_OUTPUT_COUNT
-
 /* Define if ths system is compatible with GNU/Linux. */
 #undef GNU_LINUX
 
@@ -226,9 +245,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 if ALSA is available. */
 #undef HAVE_ALSA
-
-/* Define to 1 if GCC-style __attribute__ ((__aligned__ (expr))) works. */
-#undef HAVE_ATTRIBUTE_ALIGNED
 
 /* Define to 1 if strtold conforms to C99. */
 #undef HAVE_C99_STRTOLD
@@ -341,6 +357,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 if you have the `endpwent' function. */
 #undef HAVE_ENDPWENT
+
+/* Define if you have the declaration of environ. */
+#undef HAVE_ENVIRON_DECL
 
 /* Define to 1 if you have the `euidaccess' function. */
 #undef HAVE_EUIDACCESS
@@ -519,6 +538,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 if you have the <inttypes.h> header file. */
 #undef HAVE_INTTYPES_H
+
+/* Define if you have the functions acosh, asinh, and atanh. */
+#undef HAVE_INVERSE_HYPERBOLIC
 
 /* Define to 1 if you have the jpeg library (-ljpeg). */
 #undef HAVE_JPEG
@@ -1098,11 +1120,23 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define if the system is HPUX. */
 #undef HPUX
 
+/* This is substituted when $TERM is "internal". */
+#undef INTERNAL_TERMINAL
+
 /* Define to read input using SIGIO. */
 #undef INTERRUPT_INPUT
 
 /* Define if the system is IRIX. */
 #undef IRIX6_5
+
+/* Returns true if character is any form of separator. */
+#define IS_ANY_SEP(_c_) (IS_DIRECTORY_SEP (_c_) || IS_DEVICE_SEP (_c_))
+
+/* Returns true if character is a device separator. */
+#define IS_DEVICE_SEP(_c_) ((_c_) == DEVICE_SEP)
+
+/* Returns true if character is a directory separator. */
+#define IS_DIRECTORY_SEP(_c_) ((_c_) == '/' || (_c_) == '\\')
 
 /* Define to support Kerberos-authenticated POP mail retrieval. */
 #undef KERBEROS
@@ -1135,6 +1169,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to support POP mail retrieval. */
 #define MAIL_USE_POP 1
 
+/* Define if the system is MS DOS. */
+#undef MSDOS
+
 /* Define if system's imake configuration file defines `NeedWidePrototypes' as
    `NO'. */
 #undef NARROWPROTO
@@ -1165,6 +1202,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 if you are using NS windowing under GNUstep. */
 #undef NS_IMPL_GNUSTEP
+
+/* Name of the file to open to get a null file, or a data sink. */
+#define NULL_DEVICE "NUL:"
 
 /* Define to 1 if the nlist n_name member is a pointer */
 #undef N_NAME_POINTER
@@ -1248,6 +1288,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define if emacs.c needs to call run_time_remap; for HPUX. */
 #undef RUN_TIME_REMAP
 
+/* Character that separates PATH elements. */
+#define SEPCHAR ';'
+
 /* Define if process.c:child_setup should not call setpgrp. */
 #undef SETPGRP_RELEASES_CTTY
 
@@ -1256,6 +1299,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Make process_send_signal work by "typing" a signal character on the pty. */
 #undef SIGNALS_VIA_CHARACTERS
+
+/* Define if AH_BOTTOM should include signal.h. */
+#undef SIGNAL_H_AHB
 
 /* Define to l, ll, u, ul, ull, etc., as suitable for constants of type
    'sig_atomic_t'. */
@@ -1306,6 +1352,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you can safely include both <sys/time.h> and <time.h>. */
 #define TIME_WITH_SYS_TIME 1
 
+/* Some platforms redefine this. */
+#undef TIOCSIGSEND
+
 /* Define to 1 if your <sys/time.h> declares `struct tm'. */
 #undef TM_IN_SYS_TIME
 
@@ -1325,6 +1374,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define if the system has Unix98 PTYs. */
 #undef UNIX98_PTYS
+
+/* How to get a user's full name. */
+#define USER_FULL_NAME pw->pw_gecos
 
 /* Define to 1 if using GTK. */
 #undef USE_GTK
@@ -1353,12 +1405,15 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define if the system is compatible with System V. */
 #undef USG5
 
+/* Define if the system is compatible with System V Release 4. */
+#undef USG5_4
+
 /* Define for USG systems where it works to open a pty's tty in the parent
    process, then close and reopen it in the child. */
 #undef USG_SUBTTY_WORKS
 
 /* Version number of package */
-#define VERSION "24.1.50"
+#define VERSION "24.2.50"
 
 /* Define to l, ll, u, ul, ull, etc., as suitable for constants of type
    'wchar_t'. */
@@ -1483,8 +1538,45 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    declarations. Define as empty for no equivalent. */
 #undef __restrict_arr
 
-/* Define to the used os dependent file. */
-#define config_opsysfile "s/ms-w32.h"
+/* Some platforms redefine this. */
+#undef _longjmp
+
+/* Some platforms redefine this. */
+#undef _setjmp
+
+/* Some platforms that do not use configure define this to include extra
+   configuration information. */
+#define config_opsysfile <ms-w32.h>
+
+/* _GL_INLINE is a portable alternative to ISO C99 plain 'inline'.
+   _GL_EXTERN_INLINE is a portable alternative to 'extern inline'.
+   _GL_INLINE_HEADER_BEGIN contains useful stuff to put
+     in an include file, before uses of _GL_INLINE.
+     It suppresses GCC's bogus "no previous prototype for 'FOO'" diagnostic,
+     when FOO is an inline function in the header; see
+     <http://gcc.gnu.org/bugzilla/show_bug.cgi?id=54113>.
+   _GL_INLINE_HEADER_END contains useful stuff to put
+     in the same include file, after uses of _GL_INLINE.  */
+#if __GNUC__ ? __GNUC_STDC_INLINE__ : 199901L <= __STDC_VERSION__
+# define _GL_INLINE inline
+# define _GL_EXTERN_INLINE extern inline
+# if (__GNUC__ == 4 && 6 <= __GNUC_MINOR__) || 4 < __GNUC__
+#  define _GL_INLINE_HEADER_BEGIN \
+     _Pragma ("GCC diagnostic push") \
+     _Pragma ("GCC diagnostic ignored \"-Wmissing-prototypes\"") \
+     _Pragma ("GCC diagnostic ignored \"-Wmissing-declarations\"")
+#  define _GL_INLINE_HEADER_END \
+     _Pragma ("GCC diagnostic pop")
+# endif
+#else
+# define _GL_INLINE static inline
+# define _GL_EXTERN_INLINE static inline
+#endif
+
+#ifndef _GL_INLINE_HEADER_BEGIN
+# define _GL_INLINE_HEADER_BEGIN
+# define _GL_INLINE_HEADER_END
+#endif
 
 /* A replacement for va_copy, if needed.  */
 #define gl_va_copy(a,b) ((a) = (b))
@@ -1549,6 +1641,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define as a signed type of the same size as size_t. */
 #undef ssize_t
 
+/* Define to enable asynchronous subprocesses. */
+#define subprocesses
+
 /* Define to any substitute for sys_siglist. */
 #undef sys_siglist
 
@@ -1585,104 +1680,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define as `fork' if `vfork' does not work. */
 #undef vfork
 
-
-/* Not valid on Windows.  */
-#if 0
-/* On AIX 3 this must be included before any other include file.  */
-#include <alloca.h>
-#if ! HAVE_ALLOCA
-# error "alloca not available on this machine"
-#endif
-#endif
-
-/* This silences a few compilation warnings on FreeBSD.  */
-#ifdef BSD_SYSTEM_AHB
-#undef BSD_SYSTEM_AHB
-#undef BSD_SYSTEM
-#if __FreeBSD__ == 1
-#define BSD_SYSTEM 199103
-#elif __FreeBSD__ == 2
-#define BSD_SYSTEM 199306
-#elif __FreeBSD__ >= 3
-#define BSD_SYSTEM 199506
-#endif
-#endif
-
-/* Define AMPERSAND_FULL_NAME if you use the convention
-   that & in the full name stands for the login id.  */
-#undef AMPERSAND_FULL_NAME
-
-/* `subprocesses' should be defined if you want to
-   have code for asynchronous subprocesses
-   (as used in M-x compile and M-x shell).
-   Only MSDOS does not support this (it overrides
-   this in its config_opsysfile below).  */
-
-#define subprocesses
-
-/* Include the os dependent file.  */
-#ifdef config_opsysfile
-# include config_opsysfile
-#endif
-
-/* Mac OS X / GNUstep need a bit more pure memory.  Of the existing knobs,
-   SYSTEM_PURESIZE_EXTRA seems like the least likely to cause problems.  */
-#ifdef HAVE_NS
-#if defined NS_IMPL_GNUSTEP
-#  define SYSTEM_PURESIZE_EXTRA 30000
-#elif defined DARWIN_OS
-#  define SYSTEM_PURESIZE_EXTRA 200000
-#endif
-#endif
-
-#ifdef emacs /* Don't do this for lib-src.  */
-/* Tell regex.c to use a type compatible with Emacs.  */
-#define RE_TRANSLATE_TYPE Lisp_Object
-#define RE_TRANSLATE(TBL, C) CHAR_TABLE_TRANSLATE (TBL, C)
-#ifdef make_number
-/* If make_number is a macro, use it.  */
-#define RE_TRANSLATE_P(TBL) (!EQ (TBL, make_number (0)))
-#else
-/* If make_number is a function, avoid it.  */
-#define RE_TRANSLATE_P(TBL) (!(INTEGERP (TBL) && XINT (TBL) == 0))
-#endif
-#endif
-
-#include <string.h>
-#include <stdlib.h>
-
-#if __GNUC__ >= 3  /* On GCC 3.0 we might get a warning.  */
-#define NO_INLINE __attribute__((noinline))
-#else
-#define NO_INLINE
-#endif
-
-#if (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 1))
-#define EXTERNALLY_VISIBLE __attribute__((externally_visible))
-#else
-#define EXTERNALLY_VISIBLE
-#endif
-
-#if __GNUC__ > 2 || (__GNUC__ == 2 && __GNUC_MINOR__ >= 7)
-# define ATTRIBUTE_FORMAT(spec) __attribute__ ((__format__ spec))
-#else
-# define ATTRIBUTE_FORMAT(spec) /* empty */
-#endif
-
-#if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 4)
-# define ATTRIBUTE_FORMAT_PRINTF(formatstring_parameter, first_argument) \
-   ATTRIBUTE_FORMAT ((__gnu_printf__, formatstring_parameter, first_argument))
-#else
-# define ATTRIBUTE_FORMAT_PRINTF(formatstring_parameter, first_argument) \
-   ATTRIBUTE_FORMAT ((__printf__, formatstring_parameter, first_argument))
-#endif
-
-#define ATTRIBUTE_CONST _GL_ATTRIBUTE_CONST
-
-/* Some versions of GNU/Linux define noinline in their headers.  */
-#ifdef noinline
-#undef noinline
-#endif
+#include <conf_post.h>
 
 #endif /* EMACS_CONFIG_H */
 

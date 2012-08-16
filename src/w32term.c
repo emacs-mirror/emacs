@@ -1,4 +1,4 @@
-/* Implementation of GUI terminal on the Microsoft W32 API.
+/* Implementation of GUI terminal on the Microsoft Windows API.
 
 Copyright (C) 1989, 1993-2012 Free Software Foundation, Inc.
 
@@ -155,6 +155,9 @@ int vertical_scroll_bar_bottom_border;
 
 int last_scroll_bar_drag_pos;
 
+/* Keyboard code page - may be changed by language-change events.  */
+int w32_keyboard_codepage;
+
 /* Mouse movement. */
 
 /* Where the mouse was last time we reported a mouse event.  */
@@ -187,9 +190,6 @@ static int volatile input_signal_count;
 #else
 static int input_signal_count;
 #endif
-
-/* Keyboard code page - may be changed by language-change events.  */
-static int keyboard_codepage;
 
 static void x_update_window_end (struct window *, int, int);
 static void w32_handle_tool_bar_click (struct frame *,
@@ -2972,7 +2972,7 @@ x_frame_rehighlight (struct w32_display_info *dpyinfo)
 	   : dpyinfo->w32_focus_frame);
       if (! FRAME_LIVE_P (dpyinfo->x_highlight_frame))
 	{
-	  FRAME_FOCUS_FRAME (dpyinfo->w32_focus_frame) = Qnil;
+	  FSET (dpyinfo->w32_focus_frame, focus_frame, Qnil);
 	  dpyinfo->x_highlight_frame = dpyinfo->w32_focus_frame;
 	}
     }
@@ -3612,6 +3612,7 @@ x_scroll_bar_create (struct window *w, int top, int left, int width, int height)
   SCROLLINFO si;
   struct scroll_bar *bar
     = XSCROLL_BAR (Fmake_vector (make_number (SCROLL_BAR_VEC_SIZE), Qnil));
+  Lisp_Object barobj;
 
   BLOCK_INPUT;
 
@@ -3644,7 +3645,8 @@ x_scroll_bar_create (struct window *w, int top, int left, int width, int height)
   /* Add bar to its frame's list of scroll bars.  */
   bar->next = FRAME_SCROLL_BARS (f);
   bar->prev = Qnil;
-  XSETVECTOR (FRAME_SCROLL_BARS (f), bar);
+  XSETVECTOR (barobj, bar);
+  FSET (f, scroll_bars, barobj);
   if (! NILP (bar->next))
     XSETVECTOR (XSCROLL_BAR (bar->next)->prev, bar);
 
@@ -3668,7 +3670,7 @@ x_scroll_bar_remove (struct scroll_bar *bar)
   my_destroy_window (f, SCROLL_BAR_W32_WINDOW (bar));
 
   /* Dissociate this scroll bar from its window.  */
-  XWINDOW (bar->window)->vertical_scroll_bar = Qnil;
+  WSET (XWINDOW (bar->window), vertical_scroll_bar, Qnil);
 
   UNBLOCK_INPUT;
 }
@@ -3682,6 +3684,7 @@ w32_set_vertical_scroll_bar (struct window *w,
 			     int portion, int whole, int position)
 {
   struct frame *f = XFRAME (w->frame);
+  Lisp_Object barobj;
   struct scroll_bar *bar;
   int top, height, left, sb_left, width, sb_width;
   int window_y, window_height;
@@ -3804,8 +3807,8 @@ w32_set_vertical_scroll_bar (struct window *w,
   bar->fringe_extended_p = fringe_extended_p ? Qt : Qnil;
 
   w32_set_scroll_bar_thumb (bar, portion, position, whole);
-
-  XSETVECTOR (w->vertical_scroll_bar, bar);
+  XSETVECTOR (barobj, bar);
+  WSET (w, vertical_scroll_bar, barobj);
 }
 
 
@@ -3829,12 +3832,12 @@ w32_condemn_scroll_bars (FRAME_PTR frame)
     {
       Lisp_Object bar;
       bar = FRAME_SCROLL_BARS (frame);
-      FRAME_SCROLL_BARS (frame) = XSCROLL_BAR (bar)->next;
+      FSET (frame, scroll_bars, XSCROLL_BAR (bar)->next);
       XSCROLL_BAR (bar)->next = FRAME_CONDEMNED_SCROLL_BARS (frame);
       XSCROLL_BAR (bar)->prev = Qnil;
       if (! NILP (FRAME_CONDEMNED_SCROLL_BARS (frame)))
 	XSCROLL_BAR (FRAME_CONDEMNED_SCROLL_BARS (frame))->prev = bar;
-      FRAME_CONDEMNED_SCROLL_BARS (frame) = bar;
+      FSET (frame, condemned_scroll_bars, bar);
     }
 }
 
@@ -3846,6 +3849,7 @@ static void
 w32_redeem_scroll_bar (struct window *window)
 {
   struct scroll_bar *bar;
+  Lisp_Object barobj;
   struct frame *f;
 
   /* We can't redeem this window's scroll bar if it doesn't have one.  */
@@ -3865,7 +3869,7 @@ w32_redeem_scroll_bar (struct window *window)
         return;
       else if (EQ (FRAME_CONDEMNED_SCROLL_BARS (f),
                    window->vertical_scroll_bar))
-        FRAME_CONDEMNED_SCROLL_BARS (f) = bar->next;
+        FSET (f, condemned_scroll_bars, bar->next);
       else
         /* If its prev pointer is nil, it must be at the front of
            one or the other!  */
@@ -3879,7 +3883,8 @@ w32_redeem_scroll_bar (struct window *window)
 
   bar->next = FRAME_SCROLL_BARS (f);
   bar->prev = Qnil;
-  XSETVECTOR (FRAME_SCROLL_BARS (f), bar);
+  XSETVECTOR (barobj, bar);
+  FSET (f, scroll_bars, barobj);
   if (! NILP (bar->next))
     XSETVECTOR (XSCROLL_BAR (bar->next)->prev, bar);
 }
@@ -3896,7 +3901,7 @@ w32_judge_scroll_bars (FRAME_PTR f)
 
   /* Clear out the condemned list now so we won't try to process any
      more events on the hapless scroll bars.  */
-  FRAME_CONDEMNED_SCROLL_BARS (f) = Qnil;
+  FSET (f, condemned_scroll_bars, Qnil);
 
   for (; ! NILP (bar); bar = next)
     {
@@ -4235,14 +4240,14 @@ w32_read_socket (struct terminal *terminal, int expected,
 
 	  /* lParam contains the input language ID in its low 16 bits.
 	     Use it to update our record of the keyboard codepage.  */
-	  keyboard_codepage = codepage_for_locale ((LCID)(msg.msg.lParam
-							  & 0xffff));
+	  w32_keyboard_codepage = codepage_for_locale ((LCID)(msg.msg.lParam
+							      & 0xffff));
 
 	  if (f)
 	    {
 	      inev.kind = LANGUAGE_CHANGE_EVENT;
 	      XSETFRAME (inev.frame_or_window, f);
-	      inev.code = keyboard_codepage;
+	      inev.code = w32_keyboard_codepage;
 	      inev.modifiers = msg.msg.lParam & 0xffff;
 	    }
 	  break;
@@ -4308,7 +4313,7 @@ w32_read_socket (struct terminal *terminal, int expected,
                     {
                       dbcs[0] = dbcs_lead;
                       dbcs_lead = 0;
-                      if (!MultiByteToWideChar (keyboard_codepage, 0,
+                      if (!MultiByteToWideChar (w32_keyboard_codepage, 0,
 						dbcs, 2, &code, 1))
                         {
                           /* Garbage */
@@ -4318,7 +4323,7 @@ w32_read_socket (struct terminal *terminal, int expected,
                           break;
                         }
                     }
-                  else if (IsDBCSLeadByteEx (keyboard_codepage,
+                  else if (IsDBCSLeadByteEx (w32_keyboard_codepage,
 					     (BYTE) msg.msg.wParam))
                     {
                       dbcs_lead = (char) msg.msg.wParam;
@@ -4327,7 +4332,7 @@ w32_read_socket (struct terminal *terminal, int expected,
                     }
                   else
                     {
-                      if (!MultiByteToWideChar (keyboard_codepage, 0,
+                      if (!MultiByteToWideChar (w32_keyboard_codepage, 0,
 						&dbcs[1], 1, &code, 1))
                         {
                           /* What to do with garbage? */
@@ -5488,7 +5493,7 @@ x_set_offset (struct frame *f, register int xoff, register int yoff,
 
 
 /* Check if we need to resize the frame due to a fullscreen request.
-   If so needed, resize the frame. */
+   If so needed, resize the frame.  */
 static void
 x_check_fullscreen (struct frame *f)
 {
@@ -5508,7 +5513,7 @@ x_check_fullscreen (struct frame *f)
           SET_FRAME_GARBAGED (f);
           cancel_mouse_face (f);
 
-          /* Wait for the change of frame size to occur */
+          /* Wait for the change of frame size to occur.  */
           f->want_fullscreen |= FULLSCREEN_WAIT;
         }
     }
@@ -6227,7 +6232,7 @@ w32_create_terminal (struct w32_display_info *dpyinfo)
      terminal like X does.  */
   terminal->kboard = xmalloc (sizeof (KBOARD));
   init_kboard (terminal->kboard);
-  KVAR (terminal->kboard, Vwindow_system) = intern ("w32");
+  KSET (terminal->kboard, Vwindow_system, intern ("w32"));
   terminal->kboard->next_kboard = all_kboards;
   all_kboards = terminal->kboard;
   /* Don't let the initial kboard remain current longer than necessary.
@@ -6426,7 +6431,8 @@ w32_initialize (void)
 
   {
     DWORD input_locale_id = (DWORD) GetKeyboardLayout (0);
-    keyboard_codepage = codepage_for_locale ((LCID) (input_locale_id & 0xffff));
+    w32_keyboard_codepage =
+      codepage_for_locale ((LCID) (input_locale_id & 0xffff));
   }
 
   /* Create the window thread - it will terminate itself when the app

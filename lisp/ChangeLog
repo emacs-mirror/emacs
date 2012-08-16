@@ -1,3 +1,1232 @@
+2012-08-16  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (window-valid-p): Move to window.c.
+
+2012-08-16  Phil Sainty  <psainty@orcon.net.nz>  (tiny change)
+
+	* progmodes/subword.el (subword-forward-function)
+	(subword-backward-function, subword-forward-regexp)
+	(subword-backward-regexp): New variables.
+	(subword-forward, subword-forward-internal, subword-backward-internal):
+	Use new variables, eg so that different "word" definitions
+	can be easily used.  (Bug#11411)
+
+2012-08-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc/vc-mtn.el (vc-mtn-revision-completion-table): Handle completion
+	for composite selectors.
+	* vc/vc.el (vc-diff-build-argument-list-internal): Don't prevent
+	operation just because we can't find a previous revision.
+
+2012-08-15  Chong Yidong  <cyd@gnu.org>
+
+	* frame.el (set-frame-font): Accept font objects.
+
+2012-08-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* textmodes/tex-mode.el (tex-insert-quote): ~ is a space (bug#12137).
+
+2012-08-15  Wolfgang Jenkner  <wjenkner@inode.at>
+
+	* man.el (Man-overstrike-face, Man-underline-face)
+	(Man-reverse-face): Remove variables.
+	(Man-overstrike, Man-underline, Man-reverse): New faces.
+	(Man-fontify-manpage): Use them instead of the variables.
+	(Man-cleanup-manpage): Comment change.
+	(Man-ansi-color-map): New variable.
+	(Man-fontify-manpage): Use it.
+	Call ansi-color-apply-on-region to replace ad hoc code (bug#12147).
+
+	Implement ANSI SGR parameters 22-27 (bug#12146).
+	* ansi-color.el (ansi-colors): Doc fix.
+	(ansi-color-context, ansi-color-context-region): Doc fix.
+	(ansi-color--find-face): New function.
+	(ansi-color-apply, ansi-color-apply-on-region): Use it.
+	Rename the local variable `face' to `codes' since it is now a list of
+	ansi codes.  Doc fix.
+	(ansi-color-get-face): Remove.
+	(ansi-color-parse-sequence): New function, derived from
+	ansi-color-get-face.
+	(ansi-color-apply-sequence): Use it.  Rewrite, and support ansi
+	codes 22-27.
+
+2012-08-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* subr.el (read-passwd): Allow use from a minibuffer.
+
+2012-08-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* tooltip.el (tooltip-identifier-from-point): Don't treat tokens
+	inside comments and strings as identifiers.
+
+	* progmodes/gud.el (gud-tooltip-print-command): Quote the
+	expression to evaluate.  This allows to evaluate expressions with
+	embedded whitespace.
+	(gud-tooltip-tips): Add a blank before the newline in the
+	message-box text, for the benefit of message-box emulation on
+	MS-Windows.
+
+	* progmodes/gdb-mi.el (gdb-tooltip-print): Don't ignore error
+	messages from GDB, pop them up in a tooltip to give feedback to
+	user.
+	(gdb-tooltip-print-1): Quote the expression to evaluate.
+	This allows to evaluate expressions with embedded whitespace.
+	(gdb-inferior-io--init-proc): Don't send "-inferior-tty" command
+	if the TTY name is nil or empty (which happens when communicating
+	with the inferior via pipes, e.g. on MS-Windows).
+	(gdb-internals): If GDB sends a "&\n" empty debugging message,
+	don't send that to the GUD buffer.
+
+2012-08-14  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/bytecomp.el (byte-compile-setq-default):
+	Optimize away setq-default with no args, as for setq.  (Bug#12195)
+
+2012-08-14  Chong Yidong  <cyd@gnu.org>
+
+	* minibuffer.el (read-file-name): Doc fix (Bug#10881).
+
+	* emacs-lisp/regexp-opt.el (regexp-opt-charset): Doc fix
+	(Bug#12085).
+
+2012-08-14  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/bytecomp.el (byte-recompile-file): Doc fix.
+
+2012-08-14  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-sh.el (tramp-open-shell): Cache the shell name.
+	(tramp-find-shell, tramp-open-connection-setup-interactive-shell):
+	Use cached shell name.
+
+2012-08-14  Fabián Ezequiel Gallina  <fgallina@cuca>
+
+	* progmodes/python.el (python-shell-send-string):
+	(python-shell-send-setup-code): Do not use `format' with `message'.
+
+2012-08-14  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* progmodes/ruby-mode.el: Improve percent literals (bug#6286).
+	(ruby-percent-literal-beg-re): New constant.
+	(ruby-syntax-general-delimiters-goto-beg): Rename to
+	`ruby-syntax-enclosing-percent-literal', improve literal type check.
+	(ruby-syntax-propertize-general-delimiters): Rename to
+	`ruby-syntax-propertize-percent-literal', it's a shorter and more
+	popular term.  Adjust comments everywhere.
+	(ruby-syntax-propertize-percent-literal): Only propertize when not
+	inside a simple string or comment.  When the literal is unclosed,
+	leave the text after it unpropertized.
+	(ruby-syntax-methods-before-regexp): New constant.
+	(ruby-syntax-propertize-function): Use it to recognize regexps.
+	Don't look at the text after regexp, just use the whitelist.
+
+2012-08-14  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* emacs-lisp/bytecomp.el (byte-recompile-file): When LOAD is
+	non-nil always load the compiled file if it exists.  (Bug#12197)
+
+2012-08-14  Chong Yidong  <cyd@gnu.org>
+
+	* hi-lock.el (hi-lock-mode): Do not unilaterally enable font lock.
+	(hi-lock-set-pattern): When deciding whether to use font lock or
+	overlays, look at font-lock-mode instead of font-lock-fontified
+	(Bug#12168).
+	(hi-lock-mode, hi-lock-line-face-buffer, hi-lock-unface-buffer)
+	(hi-lock-face-buffer, hi-lock-face-phrase-buffer): Doc fix.
+
+2012-08-14  Daiki Ueno  <ueno@unixuser.org>
+
+	* subr.el (internal--after-with-selected-window): Fix typo
+	(Bug#12193).
+
+2012-08-14  Fabián Ezequiel Gallina  <fgallina@cuca>
+
+	Use `completion-table-dynamic' for completion functions.
+	* progmodes/python.el
+	(python-shell-completion--do-completion-at-point)
+	(python-shell-completion--get-completions):
+	Remove functions.
+	(python-shell-completion-complete-at-point): New function.
+	(python-completion-complete-at-point): Use it.
+
+2012-08-13  Jambunathan K  <kjambunathan@gmail.com>
+
+	* vc/vc-dir.el (vc-dir-hide-state): New command (bug#12159).
+	(vc-dir-hide-up-to-date): Route it to `vc-dir-hide-state'.
+
+2012-08-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* subr.el (function-get): Refine `autoload' arg so it can also
+	autoload functions for gv.el (bug#12191).
+	* emacs-lisp/edebug.el (get-edebug-spec): Adjust so it only
+	autoloads macros.
+
+	* color.el (color-xyz-to-lab, color-lab-to-xyz, color-cie-de2000):
+	Prefer pcase-let over destructuring-bind.
+	* vc/diff-mode.el (diff-remove-trailing-whitespace): Same.
+	Also, remove whitespace as we go, rather than after accumulating the
+	various places.
+
+	* subr.el (internal--before-with-selected-window)
+	(internal--after-with-selected-window): Fix typo seleted->selected.
+	(with-selected-window): Adjust callers.
+	Reported by Dmitry Gutov <dgutov@yandex.ru>.
+
+2012-08-13  Bastien Guerry  <bzg@gnu.org>
+
+	* window.el (special-display-popup-frame): Small docstring
+	enhancement.  (Bug#12172)
+
+2012-08-13  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* tar-mode.el (tar-header-data-end): Only ignore size for files of
+	type 1-6.
+	(tar-header-block-summarize, tar-get-descriptor): Handle pax
+	extended headers.
+
+	* files.el (hack-local-variables-filter): Remove useless eval.
+
+2012-08-13  Martin Rudalics  <rudalics@gmx.at>
+
+	* subr.el (with-selected-window): Fix last change.
+
+2012-08-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* subr.el (internal--before-with-seleted-window)
+	(internal--after-with-seleted-window): New functions.
+	(with-selected-window): Use them, to replace dependency on
+	tty-top-frame.
+
+2012-08-12  Nobuyoshi Nakada  <nobu@ruby-lang.org>
+
+	* progmodes/ruby-mode.el (ruby-mode-map): Remove unnecessary
+	binding for `newline'.
+	(ruby-move-to-block): When moving backward, stop at block opening,
+	not indentation.
+	* progmodes/ruby-mode.el (ruby-brace-to-do-end)
+	(ruby-do-end-to-brace, ruby-toggle-block): New functions.
+	* progmodes/ruby-mode.el (ruby-mode-map): Add binding for
+	`ruby-toggle-block'.
+
+2012-08-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* ibuffer.el (ibuffer-do-toggle-read-only):
+	* dired.el (dired-toggle-read-only):
+	* buff-menu.el (Buffer-menu-toggle-read-only):
+	* bindings.el (mode-line-toggle-read-only):
+	* bs.el (bs-toggle-readonly): Call toggle-read-only interactively.
+
+2012-08-12  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* descr-text.el (describe-char): Put the overlays over the
+	"displayed as" character.
+
+2012-08-12  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc-units.el (math-default-units-table): Give an
+	initial value.
+	(math-put-default-units): Add options to put composite units and
+	unit systems in the default units table.
+	(calc-convert-units): Send composite units to
+	`math-put-default-units' when appropriate.
+
+2012-08-11  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/copyright.el (copyright-update-directory): Logic fix.
+
+	* tutorial.el (help-with-tutorial):
+	* emacs-lisp/copyright.el (copyright-update-directory):
+	* emacs-lisp/autoload.el (autoload-find-generated-file)
+	(autoload-find-file): Disable local eval: (for insurance).
+
+	* files.el (hack-local-variables-filter): If an eval: form is not
+	known to be safe, and enable-local-variables is :safe, then ignore
+	the form totally, as is done for non-eval forms.  (Bug#12155)
+
+2012-08-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/rx.el (rx-constituents): Don't define as constant.
+	(rx-form): Simplify.
+
+2012-08-09  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* progmodes/ruby-mode.el (ruby-expr-beg, ruby-parse-partial):
+	?, _, and : are symbol constituents, ! is not (but kinda should be).
+	(ruby-syntax-propertize-heredoc): Use ruby-singleton-class-p.
+	(ruby-syntax-propertize-function): Adjust for changes in
+	`ruby-syntax-propertize-heredoc'.
+
+2012-08-09 Nobuyoshi Nakada  <nobu@ruby-lang.org>
+
+	* progmodes/ruby-mode.el (ruby-mode-map): Remove deprecated
+	binding (use `M-;' instead).
+	(ruby-singleton-class-p): New function.
+	(ruby-expr-beg, ruby-in-here-doc-p) Use it.
+
+2012-08-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/cl-macs.el (cl-loop): Improve debug spec.
+
+2012-08-10  Chong Yidong  <cyd@gnu.org>
+
+	* progmodes/python.el (python-shell-get-process-name): Don't mess
+	with same-window-buffer-names.
+
+	* eshell/eshell.el (eshell-add-to-window-buffer-names)
+	(eshell-remove-from-window-buffer-names): Make obsolete.
+	(eshell-buffer-name, eshell-unload-hook): Don't use them.
+	(eshell): Just use pop-to-buffer-same-window instead.
+
+2012-08-10  Chong Yidong  <cyd@gnu.org>
+
+	* bindings.el: Bind M-= back to count-words-region.
+
+	* simple.el (count-words-region): Accept a prefix arg for acting
+	on the entire buffer.
+	(count-words--buffer-message): New helper function.
+
+2012-08-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* term/x-win.el (x-menu-bar-open): Always pass last-nonmenu-event.
+	* subr.el (eventp): `nil' is not an event, and eventp is not hot.
+	(event-start, event-end): Use posn-at-point to return a more
+	informative posn.
+	(posnp): New function.
+	* mouse.el (popup-menu-normalize-position): Use it.
+
+2012-08-10  Masatake YAMATO  <yamato@redhat.com>
+
+	* mouse.el (popup-menu-normalize-position): New function.
+	(popup-menu): Use `popup-menu-normalize-position' to normalize
+	the form for POSITION argument.
+
+	* term/x-win.el (x-menu-bar-open):
+	Use the value returend from (posn-at-point) as position
+	passed to `popup-menu'.
+
+2012-08-09  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calccomp.el (math-compose-expr): Add extra argument
+	indicating that parentheses should be put around products in
+	denominators.  Give multiplication precedence over division during
+	composition.
+
+2012-08-09  Chong Yidong  <cyd@gnu.org>
+
+	* man.el (Man-switches, Man-sed-command, Man-awk-command)
+	(Man-mode-hook, Man-cooked-hook, Man-untabify-command-args)
+	(Man-untabify-command, manual-program): Convert to defcustom
+	(Bug#10429).
+
+	* vc/add-log.el (change-log-mode): Bind comment-start to nil.
+
+	* descr-text.el (describe-char): Don't insert extra newlines
+	(Bug#10127).
+
+	* vc/log-view.el (log-view-diff): Use use-region-p (Bug#10133).
+	(log-view-diff-changeset, log-view-minor-wrap): Likewise.
+
+	* align.el (align-region): Delete temporary markers (Bug#10047).
+	Plus some code cleanups.
+
+2012-08-09  Fabián Ezequiel Gallina  <fgallina@cuca>
+
+	* progmodes/python.el (python-pdbtrack-tracked-buffer)
+	(python-pdbtrack-buffers-to-kill, python-shell-internal-buffer)
+	(python-shell-internal-last-output): Use make-local-variable
+	instead of make-variable-buffer-local.
+
+2012-08-09  Fabián Ezequiel Gallina  <fgallina@cuca>
+
+	* progmodes/python.el: Enhancements to forward-sexp.
+	(python-nav-forward-sexp): Rename from
+	python-nav-forward-sexp-function.
+	(python-nav--forward-sexp, python-nav--backward-sexp):
+	New functions.
+
+2012-08-09  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc-menu.el (calc-modes-menu): Add entries for matrix
+	modes and simplification modes.
+
+2012-08-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* delsel.el (delete-selection-pre-hook): Don't propagate the
+	file-supersession signals (bug#12161).
+
+2012-08-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/cl.el (cl-map-keymap-recursively, cl-map-intervals)
+	(cl-map-extents): Add compatibility aliases (bug#12135).
+
+2012-08-08  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-sh.el (tramp-find-file-exists-command): Protect the
+	tests by `ignore-error'.
+	(tramp-find-shell): Open also a new shell, when cache is already
+	set.  Reported by Carsten Bormann <cabo@tzi.org>.  (Bug#12148)
+
+2012-08-08  Juri Linkov  <juri@jurta.org>
+
+	* bookmark.el: Add `defaults' property to the bookmark record.
+	(bookmark-current-buffer): Doc fix.
+	(bookmark-make-record): Add `defaults' property with default values
+	to the bookmark record.
+	(bookmark-minibuffer-read-name-map): Remove key binding "\C-u"
+	with `bookmark-insert-current-bookmark'.
+	(bookmark-set): Get `defaults' property from the bookmark record
+	and use it in `read-from-minibuffer'.
+	(bookmark-insert-current-bookmark): Remove function.
+
+	* info.el (Info-bookmark-make-record): Add `defaults' property
+	with values of canonical Info node name, the current Info file
+	name and the current Info node name.  (Bug#12107)
+
+2012-08-08  Juri Linkov  <juri@jurta.org>
+
+	* files.el (basic-save-buffer): Use `buffer-name' as the default
+	of `read-file-name' when buffer is not visiting a file (bug#12128).
+
+2012-08-08  Juri Linkov  <juri@jurta.org>
+
+	* info.el (Info-isearch-search): Doc fix.
+	(Info-search): Change search-failed message from "initial node" to
+	"end of node" (bug#12078).
+	(Info-isearch-search): Change `isearch-string-state' to
+	`isearch--state-string'.
+
+2012-08-08  Glenn Morris  <rgm@gnu.org>
+
+	* language/persian.el: Remove file.
+	* language/misc-lang.el: Move unique part of persian.el here.
+	* loadup.el: Remove language/persian.
+
+2012-08-08  Óscar Fuentes  <ofv@wanadoo.es>
+
+	* vc/diff-mode.el (diff-remove-trailing-whitespace): New function.
+
+2012-08-08  Fabián Ezequiel Gallina  <fgallina@cuca>
+
+	* progmodes/python.el Fixed defsubst warning.
+	(python-syntax-context) Rename from python-info-ppss-context.
+	(python-syntax-context-type): Rename from
+	python-info-ppss-context-type.
+	(python-syntax-comment-or-string-p): Rename from
+	python-info-ppss-comment-or-string-p.
+
+2012-08-08  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc-misc.el (calc-record-why): Don't record a message twice.
+
+2012-08-07  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* emacs-lisp/lisp-mode.el (eval-defun-1): Handle standard value of
+	a defcustom that is quoted with backquote.
+
+	* calc/calc-prog.el (math-do-defmath): Use backquote forms.
+	Fix handling of interactive spec when the body uses return.
+	(math-do-arg-check, math-define-function-body): Use backquote forms.
+	* calc/calc-ext.el (math-defcache): Likewise.
+	* calc/calc-rewr.el (math-rwfail, math-rweval): Likewise.
+	* allout.el (allout-new-exposure): Likewise.
+	* calc/calcalg2.el (math-tracing-integral): Likewise.
+	* info.el (Info-last-menu-item): Likewise.
+	* emulation/vip.el (vip-loop): Likewise.
+	* textmodes/artist.el (artist-funcall): Likewise.
+	* menu-bar.el (menu-bar-make-mm-toggle, menu-bar-make-toggle):
+	Construct menu-item directly.
+
+	* progmodes/autoconf.el (font-lock-syntactic-keywords):
+	Don't declare.
+
+2012-08-07  Chong Yidong  <cyd@gnu.org>
+
+	* simple.el (deactivate-mark): Preserve text properties when
+	saving the primary selection (Bug#8384).
+
+2012-08-07  Kevin Ryde  <user42@zip.com.au>
+
+	* woman.el (woman0-if): Quietly treat ".if v" as false (Bug#12109).
+	(woman-parse-numeric-value): On a bad .IP line, issue a warning
+	and continue processing (Bug#12110).
+
+2012-08-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/cperl-mode.el (cperl-mode): Yet another fix for
+	syntax-propertize-function (bug#10095).
+
+2012-08-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* help-fns.el (help-fns--key-bindings, help-fns--signature)
+	(help-fns--parent-mode, help-fns--obsolete): New funs, extracted from
+	describe-function-1.
+	(describe-function-1): Use them.  Move compiler macro after sig.
+	(help-fns--compiler-macro): Use function-get.  Assume we're already in
+	standard-output.  Adjust layout to new call order.
+
+	* emacs-lisp/cl-macs.el (cl--sm-macroexpand): Fix handling of
+	re-binding a symbol that has a symbol-macro (bug#12119).
+
+2012-08-06  Mohsen BANAN  <libre@mohsen.1.banan.byname.net>
+
+	* language/persian.el: New file.  (Bug#11812)
+	* loadup.el: Add language/persian.el.
+
+2012-08-06  Chong Yidong  <cyd@gnu.org>
+
+	* window.el (window--maybe-raise-frame): New function.
+	(window--display-buffer): Split off from here.
+	(display-buffer-reuse-window, display-buffer-pop-up-frame)
+	(display-buffer-pop-up-window, display-buffer-use-some-window):
+	Obey an inhibit-switch-frame action alist entry.
+	(display-buffer): Update doc.
+
+	* replace.el (occur-after-change-function): Avoid losing focus by
+	using the inhibit-switch-frame display parameter (Bug#12139).
+
+2012-08-06  Fabián Ezequiel Gallina  <fgallina@cuca>
+
+	Make internal shell process buffer names start with space.
+	* progmodes/python.el (python-shell-make-comint): Add optional
+	argument INTERNAL.
+	(run-python-internal): Use it.
+	(python-shell-internal-get-or-create-process): Check for new
+	internal buffer names.
+
+2012-08-06  Glenn Morris  <rgm@gnu.org>
+
+	* eshell/esh-ext.el (eshell/addpath): Use dolist and mapconcat.
+	Do less getting and setting of environment variables.
+
+2012-08-05  Chong Yidong  <cyd@gnu.org>
+
+	* proced.el (proced): Add substitution string to docstring to
+	trigger autoloading of the proced library on C-h f (Bug#1768).
+
+	* emacs-lisp/lisp-mode.el (lisp-imenu-generic-expression):
+	Don't show defvars which have no second argument (Bug#8638).
+
+	* imenu.el (imenu-generic-expression): Move documentation here
+	from imenu--generic-function.
+	(imenu--generic-function): Refer to imenu-generic-expression.
+
+2012-08-05  Vegard Øye  <vegard_oye@hotmail.com>  (tiny change)
+
+	* emulation/viper-init.el (viper-deflocalvar): Add docstring and
+	indentation declaration.
+	(viper-loop): Add indentation declaration (Bug#7025).
+
+2012-08-05  Chong Yidong  <cyd@gnu.org>
+
+	* help-fns.el (describe-variable): Add hyperlink for
+	directory-local variables files.  Improve buffer-local and
+	permanent-local reporting; suggested by MON KEY (Bug#6644).
+
+	* help-mode.el (help-dir-local-var-def): New button type.
+
+	* files.el (kill-buffer-hook): Provide a defvar.
+
+2012-08-05  Glenn Morris  <rgm@gnu.org>
+
+	* eshell/esh-ext.el (eshell/addpath):
+	Also update eshell-path-env.  (Bug#12013)
+
+2012-08-05  Chong Yidong  <cyd@gnu.org>
+
+	* wdired.el (wdired-mode, wdired-change-to-wdired-mode): Doc fixes.
+
+	* fringe.el (fringe-styles): Add docstring.
+	(fringe--check-mode): New function.
+	(set-fringe-mode, set-fringe-style): Use it.
+	(fringe-mode, set-fringe-style): Doc fixes (Bug#6480).
+
+	* files.el (set-auto-mode): Fix invalid setq call.
+
+2012-08-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* isearch.el: Misc simplification; use defstruct.
+	(isearch-mode-map): Dense maps now work like sparse ones.
+	(isearch--state): New defstruct.
+	(isearch-string-state, isearch-message-state, isearch-point-state)
+	(isearch-success-state, isearch-forward-state)
+	(isearch-other-end-state, isearch-word-state, isearch-error-state)
+	(isearch-wrapped-state, isearch-barrier-state)
+	(isearch-case-fold-search-state, isearch-pop-fun-state): Remove,
+	replaced by defstruct's accessors.
+	(isearch--set-state): Rename from isearch-top-state and change
+	calling convention.
+	(isearch-push-state): Use new isearch--get-state.
+	(isearch-toggle-word): Disable regexp when enabling word.
+	(isearch-message-prefix): Remove unused arg _c-q-hack.
+	(isearch-message-suffix): Remove unused arg _ellipsis.
+
+2012-08-04  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* simple.el (list-processes--refresh): For a server use :host or
+	:local as the address.
+	(list-processes): Doc fix.
+
+2012-08-04  Michal Nazarewicz  <mina86@mina86.com>  (tiny change)
+
+	* lisp/mpc.el: Support password in host argument.
+	(mpc--proc-connect): Parse and use new password element.
+	Set mpc-proc variable instead of returning process.
+	(mpc-proc): Adjust accordingly.
+
+2012-08-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* whitespace.el (whitespace-display-mappings): Use Unicode
+	codepoints, instead of emacs-mule codepoints.  See
+	http://lists.gnu.org/archive/html/help-gnu-emacs/2012-07/msg00366.html
+	for the details.
+
+	* files.el (file-truename): Don't skip symlink-chasing part on
+	windows-nt.  Incorporate the resolution of 8+3 short aliases on
+	Windows into the loop that recursively chases symlinks.
+	Compare directory and its parent case-insensitively on MS-Windows and
+	MS-DOS.
+
+2012-08-03  Chong Yidong  <cyd@gnu.org>
+
+	* menu-bar.el (menu-bar-tools-menu): Remove PCL-CVS.
+
+	* sort.el (sort-regexp-fields): Doc fix.
+
+2012-08-03  Tassilo Horn  <tsdh@gnu.org>
+
+	* textmodes/reftex.el (reftex-compile-variables): Make keyvals
+	labels regex position point at the expected place.
+
+2012-08-03  MON KEY  <monkey@sandpframing.com>
+
+	* net/imap.el (imap-interactive-login, imap-authenticate)
+	(imap-mailbox-lsub, imap-mailbox-list)
+	(imap-mailbox-status-asynch, imap-mailbox-acl-delete)
+	(imap-fetch, imap-message-flag-permanent-p, imap-envelope-from)
+	(imap-parse-response): Doc fix.
+
+2012-08-03  João Távora  <joaotavora@gmail.com>
+
+	* textmodes/tex-mode.el (latex-forward-sexp): Terminate the loop
+	if sexp scanning does not move point (Bug#5734).
+
+2012-08-02  Tassilo Horn  <tsdh@gnu.org>
+
+	* textmodes/reftex-vars.el (reftex-default-label-alist-entries):
+	Add listings, minted, and ctable packages.
+	(reftex-label-alist-builtin): Move listings, minted, and ctable
+	entries before LaTeX.
+	(reftex-label-alist): Docfix.
+
+2012-08-02  Bastien Guerry  <bzg@gnu.org>
+
+	* replace.el (occur): Fix docstring (bug#12122).
+
+2012-08-02  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/authors.el (authors-renamed-files-alist): Add ms-w32.h.
+
+2012-08-02  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Obsolete alias inactivate-current-input-method-function (Bug#10150).
+	* international/mule-cmds.el: Create
+	inactivate-current-input-method-function as an obsolete alias for
+	deactivate-current-input-method-function.  See Katsumi Yamaoka in
+	<http://bugs.gnu.org/10150#46>.
+
+2012-08-01  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc-mode.el (calc-set-simplify-mode): Use `cond' instead
+	of nested `if's.
+
+2012-08-01  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/autoconf.el (autoconf-definition-regexp):
+	Add AH_TEMPLATE, adjust submatch numbering.
+	(autoconf-font-lock-keywords, autoconf-imenu-generic-expression)
+	(autoconf-current-defun-function): Update for above change.
+	(autoconf-current-defun-function): First skip to end of current word.
+
+2012-08-01  Rupert Swarbrick  <rswarbrick@gmail.com>  (tiny change)
+
+	* calendar/cal-html.el (cal-html-insert-agenda-days):
+	Fix typo.  (Bug#12018)
+
+2012-07-31  Fabián Ezequiel Gallina  <fgallina@cuca>
+
+	Shell processes: enhancements to startup and CEDET compatibility.
+	* progmodes/python.el (python-shell-send-setup-max-wait): Delete var.
+	(python-shell-make-comint): accept-process-output at startup.
+	(run-python-internal): Set inferior-python-mode-hook to nil.
+	(python-shell-internal-get-or-create-process): call sit-for.
+	(python-preoutput-result): Add obsolete alias.
+	(python-shell-internal-send-string): Use it.
+	(python-shell-send-setup-code): Remove call to
+	accept-process-output.
+
+2012-07-31  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* buff-menu.el (list-buffers-noselect): Use prefix-numeric-value.
+	(Bug#12108)
+
+2012-07-31  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc-mode.el (calc-basic-simplification-mode): Rename from
+	`calc-limited-simplification-mode'.
+	(calc-alg-simplification-mode): New function.
+	(calc-set-simplify-mode):  Adjust message.
+
+	* calc.el (calc-set-mode-line): Adjust mode line display for
+	basic simplification mode.
+
+	* calc-help.el (calc-m-prefix-help): Update help message.
+
+	* calc-ext.el (calc-init-extensions): Add bindings and autoloads
+	for `calc-basic-simplify-mode' and `calc-alg-simplify-mode'.
+
+2012-07-31  Bastien Guerry  <bzg@gnu.org>
+
+	* man.el (man): Fix comment.  (bug#12101)
+
+2012-07-31  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (switch-to-prev-buffer, switch-to-next-buffer):
+	Don't return a non-nil value when no suitable buffer was found.
+
+2012-07-31  Fabián Ezequiel Gallina  <fgallina@cuca>
+
+	* progmodes/python.el (run-python-internal): Disable font lock for
+	internal shells.
+
+2012-07-30  Stefan Merten  <smerten@oekonux.de>
+
+	* rst.el: Silence `checkdoc-ispell'.
+	(rst-cvs-header, rst-svn-rev, rst-svn-timestamp)
+	(rst-official-version, rst-official-cvs-rev)
+	(rst-package-emacs-version-alist): Update to upstream V1.3.1.
+	(rst-mode-map): New key binding.
+
+2012-07-30  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Update .PHONY listings in makefiles.
+	* Makefile.in (.PHONY): Add all, doit, custom-deps, finder-data,
+	autoloads, update-subdirs, updates, bzr-update, update-authors,
+	compile-onefile, compile-calc, backup-compiled-files,
+	compile-after-backup, compile-one-process, mh-autoloads,
+	bootstrap-clean, distclean, maintainer-clean.
+
+2012-07-29  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc.el (calc-simplify-mode): Make 'alg the default value.
+	(calc-set-mode-line): Don't display "AlgSimp ".
+
+	* calc/calc-mode.el (calc-alg-simplify-mode): Remove function.
+	(calc-lim-simplify-mode): New function.
+	(calc-set-simplify-mode): Default to 'alg.
+	(calc-default-simplify-mode): Make algebraic simplifications
+	the default.
+
+	* calc/calc-ext.el (calc-init-extensions): Remove binding for
+	`calc-alg-simplify-mode'.  Add binding for `calc-lim-simplify-mode'.
+
+	* calc/calc-help.el (calc-m-prefix-help): Change messages to
+	indicate new simplification modes.
+
+	* calc/README: Mention new default simplification mode.
+
+	* calc/calc.el (math-normalize-error): New variable.
+	(math-normalize): Set `math-normalize-error' to t
+	when there's an error.
+
+	* calc/calc-alg.el (math-simplify): Don't simplify when
+	`math-normalize' returns an error.
+
+2012-07-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* international/mule-cmds.el (set-locale-environment): Revert last
+	change, since display-graphic-p returns nil when this function is
+	called during startup.  Instead...
+
+	* term/w32console.el (terminal-init-w32console): ...setup the
+	keyboard and terminal encoding for TTY sessions here.  (Bug#12082)
+
+2012-07-29  Juri Linkov  <juri@jurta.org>
+
+	* simple.el (goto-line): Don't display default line number in the
+	prompt because it should be displayed by `read-number' (bug#9952).
+	Add the current line number to the defaults of `goto-line' to
+	allow its easier modification by users with `M-n' (bug#9201).
+
+	* subr.el (read-number): Support multiple default values like in
+	other minibuffer reading functions.  Replace `read' with
+	`string-to-number' for consistency with `number-to-string'.
+
+2012-07-29  Paul Eggert  <eggert@cs.ucla.edu>
+
+	deactive->inactive, inactivate->deactivate spelling fixes (Bug#10150)
+	* emulation/viper-init.el (viper-deactivate-input-method-action):
+	Rename from viper-inactivate-input-method-action.
+	(viper-deactivate-input-method):
+	Rename from viper-inactivate-input-method.
+	* follow.el (follow-inactive-menu): Rename from follow-deactive-menu.
+	* international/mule-cmds.el (deactivate-input-method):
+	Rename from inactivate-input-method.
+	Also run input-method-deactivate-hook.
+	(deactivate-current-input-method-function):
+	Rename from inactivate-current-input-method-function.
+	(input-method-deactivate-hook): New hook.
+	(input-method-inactivate-hook): Mark obsolete.
+	(inactivate-input-method): Mark obsolete.
+
+	* international/quail.el (quail-activate):
+	Also run quail-deactivate-hook.
+	(quail-deactivate): Rename from quail-inactivate.
+	* international/robin.el (robin-activate):
+	Also run robin-deactivate-hook.
+	(robin-deactivate): Rename from robin-inactivate.
+
+2012-07-29  Chong Yidong  <cyd@gnu.org>
+
+	* simple.el (indicate-copied-region): New function.
+	(kill-ring-save): Split off from here.
+
+	* rect.el (copy-rectangle-as-kill): Call indicate-copied-region.
+	(kill-rectangle): Set deactivate-mark to t on read-only error.
+
+	* register.el (copy-to-register, copy-rectangle-to-register):
+	Deactivate the mark, and use indicate-copied-region (Bug#10056).
+	(append-to-register, prepend-to-register):
+	Call 2012-07-29  Juri Linkov  <juri@jurta.org>
+
+	* simple.el (async-shell-command-buffer): New defcustom.
+	(shell-command): Use it.  (Bug#4719)
+
+2012-07-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* international/mule-cmds.el (set-locale-environment): In a
+	console session on MS-Windows, set up keyboard and terminal
+	encoding from the OEM codepage, not the ANSI codepage.
+	(Bug#12055)
+
+2012-07-28  Chong Yidong  <cyd@gnu.org>
+
+	* progmodes/gdb-mi.el (gdb-place-breakpoints): Fix the call to
+	gdb-get-location.
+
+2012-07-28  Leo Liu  <sdl.web@gmail.com>
+
+	* progmodes/cc-menus.el (cc-imenu-objc-function): Avoid leaving nil in
+	the alist (bug#12029).
+
+2012-07-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (custom-deps, finder-data, updates, compile)
+	(compile-always, compile-first)
+	($(lisp)/calendar/cal-loaddefs.el)
+	($(lisp)/calendar/diary-loaddefs.el)
+	($(lisp)/calendar/hol-loaddefs.el, $(lisp)/mh-e/mh-loaddefs.el)
+	($(lisp)/net/tramp-loaddefs.el, bootstrap)
+	($(lisp)/progmodes/cc-mode.elc): Depend on $(lisp)subdirs.el,
+	instead of on update-subdirs.
+	(bootstrap-clean): Delete $(lisp)/subdirs.el.
+
+2012-07-28  Chong Yidong  <cyd@gnu.org>
+
+	* vc/vc.el (vc-root-diff, vc-print-root-log): Prompt for a
+	directory if vc-deduce-backend returns nil (Bug#7350).
+
+	* simple.el (delete-trailing-lines): New option.
+	(delete-trailing-whitespace): Obey it (Bug#11879).
+
+2012-07-28  David Engster  <deng@randomsample.de>
+
+	* xml.el (xml-node-name, xml-parse-file, xml-parse-region):
+	Explanation of new 'symbol-qnames feature in doc-strings.
+	(xml-maybe-do-ns): Return expanded names as plain symbols if
+	'symbol-qnames was provided in XML-NS argument (Bug#11916).
+	(xml-parse-tag-1): Deal with new definition of PARSE-NS argument.
+
+2012-07-27  Fabián Ezequiel Gallina  <fgallina@cuca>
+
+	Consistent completion in inferior python with emacs -nw.
+	* progmodes/python.el (inferior-python-mode): replace "<tab>"
+	binding in inferior-python-mode-map with "\t".
+	(python-shell-completion-complete-at-point)
+	(python-completion-complete-at-point): Remove interactive spec.
+
+2012-07-27  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calccomp.el (math-compose-expr): Undo previous change.
+
+2012-07-27  Fabián Ezequiel Gallina  <fgallina@cuca>
+
+	* progmodes/python.el (python-mode-map): Add keybinding for
+	run-python.
+	(python-shell-make-comint): Fix pop-to-buffer call.
+	(run-python): Autoload.  New arg SHOW.
+	(python-shell-get-or-create-process): Do not pop python process
+	buffer.
+
+2012-07-27  Michael Albinus  <michael.albinus@gmx.de>
+
+	* notifications.el (notifications-on-action-signal)
+	(notifications-on-closed-signal): Use also the bus address for the map.
+	(notifications-notify, notifications-close-notification)
+	(notifications-get-capabilities):  Add optional argument BUS.
+
+2012-07-27  Tassilo Horn  <tsdh@gnu.org>
+
+	* textmodes/reftex-vars.el (reftex-label-alist-builtin):
+	Add support for the lstlisting and minted environments, and for the
+	ctable macro.
+	* textmodes/reftex.el (reftex-compile-variables): Also recognize
+	labels written in keyvals syntax.
+
+2012-07-27  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calccomp.el (math-compose-expr): Use parentheses when
+	there is a product in the denominator of a fraction.
+
+2012-07-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in ($(lisp)/calendar/cal-loaddefs.el)
+	($(lisp)/calendar/diary-loaddefs.el)
+	($(lisp)/calendar/hol-loaddefs.el, $(lisp)/mh-e/mh-loaddefs.el)
+	($(lisp)/net/tramp-loaddefs.el): Depend on update-subdirs.
+	Fixes failures in parallel bootstrap because subdirs.el is being
+	rewritten while the autoload files are built at the same time,
+	which needs to load subdirs.el.
+
+2012-07-26  Martin Rudalics  <rudalics@gmx.at>
+
+	* mouse.el (popup-menu): Fix doc-string and re-indent code.
+	(mouse-drag-line): Don't exit tracking when a switch-frame or
+	switch-window event occurs (Bug#12006).
+
+2012-07-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* mouse.el (popup-menu): Fix last change.
+
+2012-07-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Autoload from Lisp with more care.  Follow aliases when looking for
+	function properties.
+	* subr.el (autoloadp): New function.
+	(symbol-file): Use it.
+	(function-get): New function.
+	* emacs-lisp/macroexp.el (macroexp--expand-all): Use function-get and
+	autoload-do-load.
+	* emacs-lisp/lisp-mode.el (lisp-font-lock-syntactic-face-function)
+	(lisp-indent-function):
+	* emacs-lisp/gv.el (gv-get):
+	* emacs-lisp/edebug.el (get-edebug-spec, edebug-basic-spec):
+	* emacs-lisp/byte-opt.el (byte-optimize-form):
+	* emacs-lisp/bytecomp.el (byte-compile-arglist-warn):
+	* emacs-lisp/autoload.el (make-autoload, autoload-print-form):
+	Use function-get.
+	* emacs-lisp/cl.el: Don't propagate function properties any more.
+
+	* speedbar.el (speedbar-add-localized-speedbar-support):
+	* emacs-lisp/disass.el (disassemble-internal):
+	* desktop.el (desktop-load-file):
+	* help-fns.el (help-function-arglist, find-lisp-object-file-name)
+	(describe-function-1):
+	* emacs-lisp/find-func.el (find-function-noselect):
+	* emacs-lisp/elp.el (elp-instrument-function):
+	* emacs-lisp/advice.el (ad-has-proper-definition):
+	* apropos.el (apropos-safe-documentation, apropos-macrop):
+	* emacs-lisp/debug.el (debug-on-entry):
+	* emacs-lisp/cl-macs.el (cl-compiler-macroexpand):
+	* emacs-lisp/byte-opt.el (byte-compile-inline-expand):
+	* calc/calc.el (name): Use autoloadp & autoload-do-load.
+
+2012-07-25  Alp Aker  <alp.tekin.aker@gmail.com>
+
+	* international/mule-cmds.el (ucs-insert): Mark it as an obsolete
+	function, not an obsolete variable (Bug#12046).
+
+2012-07-25  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* faces.el (face-spec-reset-face): Fix last change.  (Bug#12042)
+
+2012-07-25  Christopher Schmidt  <christopher@ch.ristopher.com>
+
+	* emacs-lisp/pp.el (pp-display-expression): Select old selected
+	window only if it is still live (Bug#12034).
+
+2012-07-25  Martin Rudalics  <rudalics@gmx.at>
+
+	* subr.el (redirect-frame-focus): Add advertised calling
+	convention (Bug#12030).
+
+2012-07-25  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Prefer typical American spelling for "acknowledgment".
+	* vc/add-log.el (change-log-acknowledgment): Rename from
+	change-log-acknowledgement, with an alias for the old name.
+
+2012-07-25  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc-alg.el (math-simplify-divide): Don't cross multiply
+	in an equation when the lhs is a variable.
+
+2012-07-24  Julien Danjou  <julien@danjou.info>
+
+	* net/netrc.el (netrc-find-service-number, netrc-store-data):
+	Remove, unused.
+
+2012-07-23  Eli Zaretskii  <eliz@gnu.org>
+
+	* startup.el (command-line): Don't display an empty user name in
+	the error message about non-existent home directory, when
+	init-file-user was set to an empty string.  See
+	http://lists.gnu.org/archive/html/bug-gnu-emacs/2012-07/msg00835.html
+	for the details and context.
+
+2012-07-22  Vincent Belaïche  <vincentb1@users.sourceforge.net>
+
+	* ses.el (ses-cell-formula-aset): New macro.
+	(ses-cell-references-aset): New macro.
+	(ses-cell-p): New function.
+	(ses-rename-cell): Do no longer rely on complex operations like
+	ses-cell-set-formula or ses-set-cell to change the cell and handle
+	the undo at the same time, but rather use lower level new macros
+	`ses-cell-formula-aset' and `ses-cell-references-aset' and handle
+	the undo directly. Refresh the mode line.
+
+2012-07-21  Leo Liu  <sdl.web@gmail.com>
+
+	* progmodes/cc-cmds.el (c-defun-name):
+	Use match-string-no-properties instead for consistency.
+
+2012-07-20  Leo Liu  <sdl.web@gmail.com>
+
+	* progmodes/cc-cmds.el (c-defun-name): Handle objc selectors properly.
+	(Bug#7879)
+
+	* progmodes/cc-langs.el (c-symbol-start): Include char _ (bug#11986).
+
+2012-07-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* userlock.el, emacs-lisp/map-ynp.el: Declare part of `emacs' package.
+	* progmodes/bug-reference.el, misearch.el: Provide themselves
+	(bug#11915).
+
+	* progmodes/cperl-mode.el (cperl-unwind-to-safe): Don't inf-loop at end
+	of narrowed buffer (bug#11966).
+
+2012-07-20  Vincent Belaïche  <vincentb1@users.sourceforge.net>
+
+	* ses.el (ses-rename-cell): Set new name also in reference list of
+	cells of which the renamed cell depends.
+
+2012-07-20  Masatake YAMATO  <yamato@redhat.com>
+
+	* term/x-win.el (x-menu-bar-open): Use `frame-parameter'
+	to check whether menu-bar is shown or not.  If not shown,
+	show the menu-bar as a popup menu instead of using tmm.
+	* mouse.el (popup-menu): Accept `point' as `position' argument.
+
+2012-07-20  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* progmodes/ruby-mode.el (ruby-parse-partial): No error when end
+	up inside string symbol literal (bug#11923).
+
+2012-07-20  Eli Zaretskii  <eliz@gnu.org>
+
+	* startup.el (fancy-startup-text): Read the whole tutorial, not
+	just its first 256 bytes.  Prevents gibberish in display of the
+	tutorial title.
+
+2012-07-20  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Drop idle buffer compaction due to an absence of the
+	proved efficiency.
+	* compact.el: Remove.
+
+2012-07-19  Sam Steingold  <sds@gnu.org>
+
+	* vc/vc-dispatcher.el (vc-compilation-mode): Add, based on
+	vc-bzr-pull & vc-bzr-merge-branch.
+	* vc/vc-bzr.el (vc-bzr-pull, vc-bzr-merge-branch): Use it.
+	(vc-bzr-error-regexp-alist): Rename from vc-bzr-error-regex-alist
+	for consistency with compilation-error-regexp-alist.
+	* vc/vc-git.el (vc-git-error-regexp-alist): Add.
+	(vc-git-pull, vc-git-merge-branch): Call vc-compilation-mode.
+	* vc/vc-hg.el (vc-hg-error-regexp-alist): Add.
+	(vc-hg-pull, vc-hg-merge-branch): Call vc-compilation-mode.
+
+2012-07-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/chart.el: Use lexical-binding.
+	(chart-emacs-storage): Don't hardcode the list of entries.
+
+2012-07-19  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Next round of tweaks caused by Fgarbage_collect changes.
+	* emacs-lisp/chart.el (chart-emacs-storage): Adjust again.
+
+2012-07-19  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Compact buffers when idle.
+	* compact.el: New file.
+
+2012-07-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* subr.el (eventp): Presume that if it looks vaguely like an event,
+	it's an event (bug#10190).
+
+2012-07-19  Fabián Ezequiel Gallina  <fgallina@cuca>
+
+	Enhancements to ppss related code (thanks Stefan).
+	* progmodes/python.el (python-indent-context)
+	(python-indent-calculate-indentation, python-indent-dedent-line)
+	(python-indent-electric-colon, python-nav-forward-block)
+	(python-mode-abbrev-table)
+	(python-info-assignment-continuation-line-p): Simplify checks
+	for ppss context.
+	(python-info-continuation-line-p): Cleanup.
+	(python-info-ppss-context): Do not catch 'quote.
+	(python-info-ppss-context-type)
+	(python-info-ppss-comment-or-string-p): Simplify.
+
+2012-07-18  Fabián Ezequiel Gallina  <fgallina@cuca>
+
+	* progmodes/python.el: Enhancements to eldoc support.
+	(python-info-current-symbol): New function.
+	(python-eldoc-at-point): Use python-info-current-symbol.
+	(python-info-current-defun): Fix cornercase on first defun scan.
+	(python-eldoc--get-doc-at-point): Use python-info-current-symbol
+	and signal error when no inferior python process is available.
+
+2012-07-18  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* vc/vc-git.el (vc-git-state): Don't call `vc-git-registered',
+	assume it's always t.
+	(vc-git-registered): Remove caching, the function is only called
+	once.
+	(vc-git-branches): Use `vc-git--call' instead of `call-process'.
+
+2012-07-18  Chong Yidong  <cyd@gnu.org>
+
+	* subr.el (last-input-char, last-command-char): Remove (Bug#9195).
+
+	* simple.el (count-words): Report on narrowing (Bug#9959).
+
+	* bindings.el: Bind M-= to count-words.
+
+	* faces.el (face-spec-reset-face): Handle reverse video (Bug#4238).
+
+2012-07-18  Masatake YAMATO  <yamato@redhat.com>
+
+	* progmodes/sh-script.el (sh-imenu-generic-expression):
+	Capture a function with `function' keyword and without parentheses
+	like "function FOO" (bug#11856).
+
+2012-07-18  Tassilo Horn  <tassilo@member.fsf.org>
+
+	* window.el (split-window-sensibly): Make WINDOW argument
+	optional.
+
+2012-07-18  Chong Yidong  <cyd@gnu.org>
+
+	* subr.el (keyboard-translate): Doc fix (Bug#7261).
+
+	* isearch.el (isearch-mode-map): Handle C-x 8 key translations,
+	and make C-x 8 RET exit isearch (Bug#11439).
+
+	* international/iso-transl.el: Move isearch-mode-map key
+	definitions to isearch.el.
+
+2012-07-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/eieio.el: Adapt further to gv.el (bug#11970).
+	(eieio-defclass): Use gv-define-setter when possible.
+
+2012-07-18  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Reflect recent changes in Fgarbage_collect.
+	* emacs-lisp/chart.el (chart-emacs-storage): Change to
+	reflect new format of data returned by Fgarbage_collect.
+
+2012-07-17  Fabián Ezequiel Gallina  <fgallina@cuca>
+
+	New utility functions + python-info-ppss-context fix (Bug#11910).
+	* progmodes/python.el (python-info-beginning-of-block-statement-p)
+	(python-info-ppss-comment-or-string-p): New functions.
+	(python-info-ppss-context): Small fix for string check.
+
+2012-07-17  Juri Linkov  <juri@jurta.org>
+
+	* dired-aux.el (dired-do-async-shell-command): Doc fix.
+	(dired-do-async-shell-command): Don't add `*' at the end of the
+	command (Bug#11815).
+	(dired-do-shell-command): Doc fix.
+	(dired-shell-stuff-it): Strip the trailing "&" and ";" if any.
+	Join the individual commands using either "&" or ";" as the
+	separator depending on the values of these trailing characters.
+	At the end re-add the trailing "&".  (Bug#10598)
+
+	* simple.el (async-shell-command): Sync the interactive spec with
+	`shell-command'.  Doc fix.
+	(shell-command): Doc fix.
+
+2012-07-17  Juri Linkov  <juri@jurta.org>
+
+	* descr-text.el (describe-char): Fix format args.  (Bug#10129)
+
+2012-07-17  Fabián Ezequiel Gallina  <fgallina@cuca>
+
+	Final renames and doc fixes for movement commands (bug#11899).
+	* progmodes/python.el (python-nav-beginning-of-statement):
+	Rename from python-nav-statement-start.
+	(python-nav-end-of-statement): Rename from
+	python-nav-statement-end.
+	(python-nav-beginning-of-block): Rename from
+	python-nav-block-start.
+	(python-nav-end-of-block): Rename from python-nav-block-end.
+
+2012-07-17  Fabián Ezequiel Gallina  <fgallina@cuca>
+
+	* progmodes/python.el (python-shell-send-string-no-output):
+	Allow accept-process-output to quit, keeping shell process ready for
+	future interactions (Bug#11868).
+
+2012-07-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/cl-macs.el (cl-progv): Use a properly prefixed var name.
+
+	* emacs-lisp/elint.el (elint-find-args-in-code):
+	Use help-function-arglist, so as to handle lexical byte-code.
+
+	* progmodes/sh-script.el (sh-syntax-propertize-function): Fix last
+	change (bug#11826).
+
+2012-07-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/cc-engine.el (c-forward-sws, c-backward-sws):
+	Avoid spuriously marking the buffer as modified because of c-is-sws.
+
+	* progmodes/sh-script.el (sh-syntax-propertize-function): Mark "${#VAR"
+	as not-a-comment (bug#11946).
+
+	* emacs-lisp/macroexp.el (macroexp-let2): Use more informative names
+	for uninterned vars.
+
+	* xt-mouse.el (xterm-mouse-translate-1, xterm-mouse-event-read):
+	Use read-event since we don't really want to read chars but bytes.
+
+	* textmodes/tex-mode.el (tex-font-lock-keywords-1): Highlight not only
+	$$..$$ but also $..$ using regexps (bug#11953).
+	Use tex-verbatim for \url and \path.
+	(tex-font-lock-keywords): Define as defconst like the others.
+	(tex-common-initialization): Don't use font-lock-syntax-table any more.
+
+2012-07-16  René Kyllingstad  <Rene@Kyllingstad.com>  (tiny change)
+
+	* international/mule-cmds.el (ucs-insert): Make it an obsolete
+	alias for insert-char.
+
 2012-07-16  Fabián Ezequiel Gallina  <fgallina@cuca>
 
 	* progmodes/python.el: Simplified imenu implementation.
@@ -9,8 +1238,8 @@
 	Remove vars.
 	(python-nav-list-defun-positions, python-nav-read-defun)
 	(python-imenu-tree-assoc, python-imenu-make-element-tree)
-	(python-imenu-make-tree, python-imenu-create-index): Remove
-	functions.
+	(python-imenu-make-tree, python-imenu-create-index):
+	Remove functions.
 	(python-mode): Update to interact with imenu by setting
 	`imenu-extract-index-name-function' only.
 
@@ -51,8 +1280,8 @@
 	(xterm-mouse-event): New arg specifying mouse protocol.
 	(turn-on-xterm-mouse-tracking-on-terminal)
 	(turn-off-xterm-mouse-tracking-on-terminal): Send DEC 1006
-	sequence to toggle extended coordinates on newer XTerms.  This
-	appears to be harmless on terminals which do not support this.
+	sequence to toggle extended coordinates on newer XTerms.
+	This appears to be harmless on terminals which do not support this.
 
 2012-07-14  Leo Liu  <sdl.web@gmail.com>
 
@@ -76,8 +1305,8 @@
 
 2012-07-14  Chong Yidong  <cyd@gnu.org>
 
-	* bindings.el: Consolidate ctl-x-r-map bindings.  Bind
-	copy-rectangle-as-kill to C-x r w.
+	* bindings.el: Consolidate ctl-x-r-map bindings.
+	Bind copy-rectangle-as-kill to C-x r w.
 
 	* rect.el, register.el: Move bindings to bindings.el.
 
@@ -118,8 +1347,8 @@
 	Remove toggle-read-only.
 
 	* bs.el (bs-toggle-readonly):
-	* buff-menu.el (Buffer-menu-toggle-read-only): Remove
-	with-no-warnings around toggle-read-only.
+	* buff-menu.el (Buffer-menu-toggle-read-only):
+	Remove with-no-warnings around toggle-read-only.
 
 	* ffap.el (ffap--toggle-read-only): Accept a list of buffers.
 	Remove with-no-warnings around toggle-read-only.
@@ -302,7 +1531,7 @@
 2012-07-06  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* window.el (quit-window): Always restore window height when
-	it's saved in quit-restore parameter.
+	it's saved in quit-restore parameter (Bug#11810).
 
 2012-07-06  Glenn Morris  <rgm@gnu.org>
 
@@ -315,6 +1544,12 @@
 	read-file-name-completion-ignore-case is non-nil.  Don't use
 	case-fold-search for this purpose.  (Bug#11827)
 
+2012-07-17  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* calendar/cal-dst.el (calendar-current-time-zone):
+	Return calendar-current-time-zone-cache if non-nil.
+
+2012-07-17  Masatake YAMATO  <yamato@redhat.com>
 2012-07-06  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* calendar/cal-dst.el (calendar-current-time-zone):
@@ -3297,7 +4532,7 @@
 	* cus-edit.el (custom-variable-documentation): Simplify with format.
 
 2012-05-01  Aaron S. Hawley  <aaron.s.hawley@gmail.com>
-            Stefan Monnier  <monnier@iro.umontreal.ca>
+	    Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* simple.el (suggest-key-bindings, execute-extended-command):
 	Move from keyboard.c.
@@ -4140,7 +5375,7 @@
 
 2012-04-16  Chong Yidong  <cyd@gnu.org>
 
-	* image.el (imagemagick--extension-regexp): New variable.
+	* image.el (imagemagick--file-regexp): New variable.
 	(imagemagick-register-types): Use it.
 	(imagemagick-types-inhibit): Add :set function.  Allow new value
 	of t to inhibit all types.
@@ -5625,7 +6860,7 @@
 	(save-place-to-alist): Use it.
 
 2012-02-17  Lawrence Mitchell  <wence@gmx.li>
-            Stefan Monnier  <monnier@iro.umontreal.ca>
+	    Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* newcomment.el (uncomment-region-default): Don't leave extra space
 	when an arg is provided (bug#8150).
@@ -9963,7 +11198,7 @@
 	(tramp-completion-file-name-regexp-unified)
 	(tramp-completion-file-name-regexp-separate)
 	(tramp-completion-file-name-regexp-url): Don't use leading volume
-	letter on win32 systems.  (Bug#5303, Bug#9311)
+	letter on w32 systems.  (Bug#5303, Bug#9311)
 	(tramp-drop-volume-letter): Simplify definition.
 	Suggested by Stefan Monnier <monnier@iro.umontreal.ca>.
 
@@ -14080,7 +15315,7 @@
 	* textmodes/reftex-dcr.el (reftex-view-crossref): at at -> at a
 
 2011-05-10  Glenn Morris  <rgm@gnu.org>
-            Stefan Monnier  <monnier@iro.umontreal.ca>
+	    Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* files.el (hack-one-local-variable-eval-safep):
 	Consider "eval: (foo-mode)" to be safe.  (Bug#8613)

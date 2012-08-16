@@ -4651,7 +4651,7 @@ Pascal_functions (FILE *inf)
 	  /* Check if this is an "extern" declaration. */
 	  if (*dbp == '\0')
 	    continue;
-	  if (lowcase (*dbp == 'e'))
+	  if (lowcase (*dbp) == 'e')
 	    {
 	      if (nocase_tail ("extern")) /* superfluous, really! */
 		{

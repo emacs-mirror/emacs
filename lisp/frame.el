@@ -1051,10 +1051,12 @@ If FRAME is omitted, describe the currently selected frame."
 
 (define-obsolete-function-alias 'set-default-font 'set-frame-font "23.1")
 
-(defun set-frame-font (font-name &optional keep-size frames)
-  "Set the default font to FONT-NAME.
+(defun set-frame-font (font &optional keep-size frames)
+  "Set the default font to FONT.
 When called interactively, prompt for the name of a font, and use
-that font on the selected frame.
+that font on the selected frame.  When called from Lisp, FONT
+should be a font name (a string), a font object, font entity, or
+font spec.
 
 If KEEP-SIZE is nil, keep the number of frame lines and columns
 fixed.  If KEEP-SIZE is non-nil (or with a prefix argument), try
@@ -1076,7 +1078,7 @@ this session\", so that the font is applied to future frames."
                                  nil nil nil nil
                                  (frame-parameter nil 'font))))
      (list font current-prefix-arg nil)))
-  (when (stringp font-name)
+  (when (or (stringp font) (fontp font))
     (let* ((this-frame (selected-frame))
 	   ;; FRAMES nil means affect the selected frame.
 	   (frame-list (cond ((null frames)
@@ -1097,7 +1099,7 @@ this session\", so that the font is applied to future frames."
 	  ;; (:width, :weight, etc.) so reset them too (Bug#2476).
 	  (set-face-attribute 'default f
 			      :width 'normal :weight 'normal
-			      :slant 'normal :font font-name)
+			      :slant 'normal :font font)
 	  (if keep-size
 	      (modify-frame-parameters
 	       f
@@ -1649,7 +1651,7 @@ terminals, cursor blinking is controlled by the terminal."
 
 ;; Misc.
 
-;; Only marked as obsolete in 24.2.
+;; Only marked as obsolete in 24.3.
 (define-obsolete-variable-alias 'automatic-hscrolling
   'auto-hscroll-mode "22.1")
 

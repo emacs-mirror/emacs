@@ -429,7 +429,7 @@ reorder_font_vector (Lisp_Object font_group, struct font *font)
     }
 
   if (score_changed)
-    qsort (XVECTOR (vec)->contents, size, sizeof (Lisp_Object),
+    qsort (XVECTOR (vec)->contents, size, word_size,
 	   fontset_compare_rfontdef);
   XSETCAR (font_group, make_number (charset_ordered_list_tick));
 }
@@ -1027,8 +1027,7 @@ make_fontset_for_ascii_face (FRAME_PTR f, int base_fontset_id, struct face *face
       base_fontset = FONTSET_FROM_ID (base_fontset_id);
       if (!BASE_FONTSET_P (base_fontset))
 	base_fontset = FONTSET_BASE (base_fontset);
-      if (! BASE_FONTSET_P (base_fontset))
-	abort ();
+      eassert (BASE_FONTSET_P (base_fontset));
     }
   else
     base_fontset = Vdefault_fontset;
@@ -1725,8 +1724,7 @@ fontset_from_font (Lisp_Object font_object)
   fontset_spec = copy_font_spec (font_spec);
   ASET (fontset_spec, FONT_REGISTRY_INDEX, alias);
   name = Ffont_xlfd_name (fontset_spec, Qnil);
-  if (NILP (name))
-    abort ();
+  eassert (!NILP (name));
   fontset = make_fontset (Qnil, name, Qnil);
   Vfontset_alias_alist = Fcons (Fcons (name, SYMBOL_NAME (alias)),
 				Vfontset_alias_alist);
@@ -1893,7 +1891,7 @@ format is the same as above.  */)
 
   /* Recode fontsets realized on FRAME from the base fontset FONTSET
      in the table `realized'.  */
-  realized[0] = alloca (sizeof (Lisp_Object) * ASIZE (Vfontset_table));
+  realized[0] = alloca (word_size * ASIZE (Vfontset_table));
   for (i = j = 0; i < ASIZE (Vfontset_table); i++)
     {
       elt = FONTSET_FROM_ID (i);
@@ -1904,7 +1902,7 @@ format is the same as above.  */)
     }
   realized[0][j] = Qnil;
 
-  realized[1] = alloca (sizeof (Lisp_Object) * ASIZE (Vfontset_table));
+  realized[1] = alloca (word_size * ASIZE (Vfontset_table));
   for (i = j = 0; ! NILP (realized[0][i]); i++)
     {
       elt = FONTSET_DEFAULT (realized[0][i]);
@@ -1918,7 +1916,7 @@ format is the same as above.  */)
   if (!EQ (fontset, Vdefault_fontset))
     {
       tables[1] = Fmake_char_table (Qnil, Qnil);
-      XCHAR_TABLE (tables[0])->extras[0] = tables[1];
+      char_table_set_extras (tables[0], 0, tables[1]);
       fontsets[1] = Vdefault_fontset;
     }
 
@@ -1981,7 +1979,7 @@ format is the same as above.  */)
 	      if (c <= MAX_5_BYTE_CHAR)
 		char_table_set_range (tables[k], c, to, alist);
 	      else
-		XCHAR_TABLE (tables[k])->defalt = alist;
+		CSET (XCHAR_TABLE (tables[k]), defalt, alist);
 
 	      /* At last, change each elements to font names.  */
 	      for (; CONSP (alist); alist = XCDR (alist))
@@ -2117,7 +2115,8 @@ dump_fontset (Lisp_Object fontset)
 
 	  if (FRAME_LIVE_P (f))
 	    ASET (vec, 1,
-		  Fcons (FONTSET_NAME (FONTSET_BASE (fontset)), f->name));
+		  Fcons (FONTSET_NAME (FONTSET_BASE (fontset)),
+			 f->name));
 	  else
 	    ASET (vec, 1,
 		  Fcons (FONTSET_NAME (FONTSET_BASE (fontset)), Qnil));

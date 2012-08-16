@@ -1,3 +1,22 @@
+2012-08-06  Mohsen BANAN  <libre@mohsen.1.banan.byname.net>
+
+	* quail/persian.el: Add some mappings.  (Bug#11812)
+	(farsi-isiri-9147, farsi-transliterate-banan): Doc fixes.
+
+2012-07-30  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Update .PHONY listings in makefiles.
+	* Makefile.in (.PHONY): Add all, compile-main, clean, mostlyclean,
+	bootstrap-clean, distclean, maintainer-clean, extraclean.
+
+2012-07-29  Paul Eggert  <eggert@cs.ucla.edu>
+
+	deactive->inactive, inactivate->deactivate spelling fixes (Bug#10150)
+	* quail/uni-input.el (ucs-input-deactivate):
+	Rename from ucs-input-inactivate.
+	* quail/hangul.el (hangul-input-method-deactivate):
+	Rename from hangul-input-method-inactivate.
+
 2012-07-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* quail/ipa.el: Use cl-lib.

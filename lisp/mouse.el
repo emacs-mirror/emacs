@@ -1,4 +1,4 @@
-;;; mouse.el --- window system-independent mouse support
+;;; mouse.el --- window system-independent mouse support  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1993-1995, 1999-2012 Free Software Foundation, Inc.
 
@@ -101,8 +101,8 @@ point at the click position."
   "Popup the given menu and call the selected option.
 MENU can be a keymap, an easymenu-style menu or a list of keymaps as for
 `x-popup-menu'.
-POSITION can be a click event or ((XOFFSET YOFFSET) WINDOW) and defaults to
-  the current mouse position.
+The menu is shown at the place where POSITION specifies. About
+the form of POSITION, see `popup-menu-normalize-position'.
 PREFIX is the prefix argument (if any) to pass to the command."
   (let* ((map (cond
 	       ((keymapp menu) menu)
@@ -111,10 +111,8 @@ PREFIX is the prefix argument (if any) to pass to the command."
 			 (filter (when (symbolp map)
 				   (plist-get (get map 'menu-prop) :filter))))
 		    (if filter (funcall filter (symbol-function map)) map)))))
-	 event cmd)
-    (unless position
-      (let ((mp (mouse-pixel-position)))
-	(setq position (list (list (cadr mp) (cddr mp)) (car mp)))))
+	 event cmd
+	 (position (popup-menu-normalize-position position)))
     ;; The looping behavior was taken from lmenu's popup-menu-popup
     (while (and map (setq event
 			  ;; map could be a prefix key, in which case
@@ -132,7 +130,7 @@ PREFIX is the prefix argument (if any) to pass to the command."
 		      binding)
 		  (while (and map (null binding))
 		    (setq binding (lookup-key (car map) mouse-click))
-		    (if (numberp binding) ; `too long'
+		    (if (numberp binding)	; `too long'
 			(setq binding nil))
 		    (setq map (cdr map)))
 		  binding)
@@ -151,6 +149,26 @@ PREFIX is the prefix argument (if any) to pass to the command."
       (setq last-command-event (car (last event)))
       ;; mouse-major-mode-menu was using `command-execute' instead.
       (call-interactively cmd))))
+
+(defun popup-menu-normalize-position (position)
+  "Convert the POSITION to the form which `popup-menu' expects internally.
+POSITION can an event, a posn- value, a value having
+form ((XOFFSET YOFFSET) WINDOW), or nil.
+If nil, the current mouse position is used."
+  (pcase position
+    ;; nil -> mouse cursor position
+    (`nil
+     (let ((mp (mouse-pixel-position)))
+       (list (list (cadr mp) (cddr mp)) (car mp))))
+    ;; Value returned from `event-end' or `posn-at-point'.
+    ((pred posnp)
+     (let ((xy (posn-x-y position)))
+       (list (list (car xy) (cdr xy))
+	     (posn-window position))))
+    ;; Event.
+    ((pred eventp)
+     (popup-menu-normalize-position (event-end position)))
+    (t position)))
 
 (defun minor-mode-menu-from-indicator (indicator)
   "Show menu for minor mode specified by INDICATOR.
@@ -438,17 +456,39 @@ must be one of the symbols `header', `mode', or `vertical'."
 
     ;; Start tracking.
     (track-mouse
-      ;; Loop reading events and sampling the position of the mouse,
-      ;; until there is a non-mouse-movement event.  Also,
-      ;; scroll-bar-movement events are the same as mouse movement for
-      ;; our purposes.  (Why? -- cyd)
-      (while (progn
-	       (setq event (read-event))
-	       (memq (car-safe event) '(mouse-movement scroll-bar-movement)))
+      ;; Loop reading events and sampling the position of the mouse.
+      (while draggable
+	(setq event (read-event))
 	(setq position (mouse-position))
+	;; Do nothing if
+	;;   - there is a switch-frame event.
+	;;   - the mouse isn't in the frame that we started in
+	;;   - the mouse isn't in any Emacs frame
+	;; Drag if
+	;;   - there is a mouse-movement event
+	;;   - there is a scroll-bar-movement event (Why? -- cyd)
+	;;     (same as mouse movement for our purposes)
+	;; Quit if
+	;;   - there is a keyboard event or some other unknown event.
 	(cond
+	 ((not (consp event))
+	  (setq draggable nil))
+	 ((memq (car event) '(switch-frame select-window))
+	  nil)
+	 ((not (memq (car event) '(mouse-movement scroll-bar-movement)))
+	  (when (consp event)
+	    ;; Do not unread a drag-mouse-1 event to avoid selecting
+	    ;; some other window.  For vertical line dragging do not
+	    ;; unread mouse-1 events either (but only if we dragged at
+	    ;; least once to allow mouse-1 clicks get through.
+	    (unless (and dragged
+			 (if (eq line 'vertical)
+			     (memq (car event) '(drag-mouse-1 mouse-1))
+			   (eq (car event) 'drag-mouse-1)))
+	      (push event unread-command-events)))
+	  (setq draggable nil))
 	 ((or (not (eq (car position) frame))
-	      (null (cadr position)))
+	      (null (car (cdr position))))
 	  nil)
 	 ((eq line 'vertical)
 	  ;; Drag vertical divider.
@@ -479,7 +519,6 @@ must be one of the symbols `header', `mode', or `vertical'."
       (put 'mouse-2 'event-kind 'mouse-click)
       (setcar event 'mouse-2))
     (push event unread-command-events)))
-
 
 (defun mouse-drag-mode-line (start-event)
   "Change the height of a window by dragging on the mode line."

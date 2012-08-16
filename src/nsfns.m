@@ -82,7 +82,6 @@ extern Lisp_Object Qface_set_after_frame_default;
 extern Lisp_Object Qunderline, Qundefined;
 extern Lisp_Object Qheight, Qminibuffer, Qname, Qonly, Qwidth;
 extern Lisp_Object Qunsplittable, Qmenu_bar_lines, Qbuffer_predicate, Qtitle;
-extern Lisp_Object Qnone;
 
 
 Lisp_Object Qbuffered;
@@ -448,7 +447,7 @@ x_set_icon_name (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
   else if (!STRINGP (oldval) && EQ (oldval, Qnil) == EQ (arg, Qnil))
     return;
 
-  f->icon_name = arg;
+  FSET (f, icon_name, arg);
 
   if (NILP (arg))
     {
@@ -540,7 +539,7 @@ ns_set_name (struct frame *f, Lisp_Object name, int explicit)
   if (! NILP (Fstring_equal (name, f->name)))
     return;
 
-  f->name = name;
+  FSET (f, name, name);
 
   /* title overrides explicit name */
   if (! NILP (f->title))
@@ -591,7 +590,7 @@ x_set_title (struct frame *f, Lisp_Object name, Lisp_Object old_name)
 
   update_mode_lines = 1;
 
-  f->title = name;
+  FSET (f, title, name);
 
   if (NILP (name))
     name = f->name;
@@ -677,7 +676,7 @@ ns_set_name_as_filename (struct frame *f)
 
       [[view window] setRepresentedFilename: fstr];
       [[view window] setTitle: str];
-      f->name = name;
+      FSET (f, name, name);
     }
 
   [pool release];
@@ -1205,10 +1204,11 @@ This function is an internal primitive--use `make-frame' instead.  */)
 
   FRAME_FONTSET (f) = -1;
 
-  f->icon_name = x_get_arg (dpyinfo, parms, Qicon_name, "iconName", "Title",
-                            RES_TYPE_STRING);
+  FSET (f, icon_name, x_get_arg (dpyinfo, parms, Qicon_name,
+				 "iconName", "Title",
+				 RES_TYPE_STRING));
   if (! STRINGP (f->icon_name))
-    f->icon_name = Qnil;
+    FSET (f, icon_name, Qnil);
 
   FRAME_NS_DISPLAY_INFO (f) = dpyinfo;
 
@@ -1231,12 +1231,12 @@ This function is an internal primitive--use `make-frame' instead.  */)
      be set.  */
   if (EQ (name, Qunbound) || NILP (name) || ! STRINGP (name))
     {
-      f->name = build_string ([ns_app_name UTF8String]);
+      FSET (f, name, build_string ([ns_app_name UTF8String]));
       f->explicit_name = 0;
     }
   else
     {
-      f->name = name;
+      FSET (f, name, name);
       f->explicit_name = 1;
       specbind (Qx_resource_name, name);
     }
@@ -1391,13 +1391,13 @@ This function is an internal primitive--use `make-frame' instead.  */)
   if (FRAME_HAS_MINIBUF_P (f)
       && (!FRAMEP (KVAR (kb, Vdefault_minibuffer_frame))
           || !FRAME_LIVE_P (XFRAME (KVAR (kb, Vdefault_minibuffer_frame)))))
-    KVAR (kb, Vdefault_minibuffer_frame) = frame;
+    KSET (kb, Vdefault_minibuffer_frame, frame);
 
   /* All remaining specified parameters, which have not been "used"
      by x_get_arg and friends, now go in the misc. alist of the frame.  */
   for (tem = parms; CONSP (tem); tem = XCDR (tem))
     if (CONSP (XCAR (tem)) && !NILP (XCAR (XCAR (tem))))
-      f->param_alist = Fcons (XCAR (tem), f->param_alist);
+      FSET (f, param_alist, Fcons (XCAR (tem), f->param_alist));
 
   UNGCPRO;
 

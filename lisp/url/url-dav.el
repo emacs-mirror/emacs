@@ -53,10 +53,10 @@
 
 ;;;###autoload
 (defun url-dav-supported-p (url)
-  (and (featurep 'xml)
-       (fboundp 'xml-expand-namespace)
-       (url-intersection url-dav-supported-protocols
-			 (plist-get (url-http-options url) 'dav))))
+  "Return WebDAV protocol version supported by URL.
+Returns nil if WebDAV is not supported."
+  (url-intersection url-dav-supported-protocols
+		    (plist-get (url-http-options url) 'dav)))
 
 (defun url-dav-node-text (node)
   "Return the text data from the XML node NODE."
@@ -385,7 +385,12 @@ XML document."
     (when buffer
       (unwind-protect
 	  (with-current-buffer buffer
+	    ;; First remove all indentation and line endings
 	    (goto-char url-http-end-of-headers)
+	    (indent-rigidly (point) (point-max) -1000)
+	    (save-excursion
+	      (while (re-search-forward "\r?\n" nil t)
+		(replace-match "")))
 	    (setq overall-status url-http-response-status)
 
 	    ;; XML documents can be transferred as either text/xml or
@@ -395,7 +400,7 @@ XML document."
 		 url-http-content-type
 		 (string-match "\\`\\(text\\|application\\)/xml"
 			       url-http-content-type))
-		(setq tree (xml-parse-region (point) (point-max)))))
+		(setq tree (xml-parse-region (point) (point-max) nil nil 'symbol-qnames))))
 	;; Clean up after ourselves.
 	(kill-buffer buffer)))
 
@@ -411,6 +416,7 @@ XML document."
 	;; nobody but us needs to know the difference.
 	(list (cons url properties))))))
 
+;;;###autoload
 (defun url-dav-request (url method tag body
 				 &optional depth headers namespaces)
   "Perform WebDAV operation METHOD on URL.  Return the parsed responses.
@@ -768,8 +774,8 @@ files in the collection as well."
 (defun url-dav-directory-files (url &optional full match nosort files-only)
   "Return a list of names of files in URL.
 There are three optional arguments:
-If FULL is non-nil, return absolute file names.  Otherwise return names
- that are relative to the specified directory.
+If FULL is non-nil, return absolute URLs.  Otherwise return names
+ that are relative to the specified URL.
 If MATCH is non-nil, mention only file names that match the regexp MATCH.
 If NOSORT is non-nil, the list is not sorted--its order is unpredictable.
  NOSORT is useful if you plan to sort the result yourself."
@@ -779,8 +785,9 @@ If NOSORT is non-nil, the list is not sorted--its order is unpredictable.
 	(files nil)
 	(parsed-url (url-generic-parse-url url)))
 
-    (if (= (length properties) 1)
-	(signal 'file-error (list "Opening directory" "not a directory" url)))
+    (when (and (= (length properties) 1)
+	       (not (url-dav-file-directory-p url)))
+      (signal 'file-error (list "Opening directory" "not a directory" url)))
 
     (while properties
       (setq child-props (pop properties)
@@ -794,7 +801,9 @@ If NOSORT is non-nil, the list is not sorted--its order is unpredictable.
 	;; are not supposed to return fully-qualified names.
 	(setq child-url (url-expand-file-name child-url parsed-url))
 	(if (not full)
-	    (setq child-url (substring child-url (length url))))
+	    ;; Parts of the URL might be hex'ed.
+	    (setq child-url (substring (url-unhex-string child-url)
+				       (length url))))
 
 	;; We don't want '/' as the last character in filenames...
 	(if (string-match "/$" child-url)
@@ -814,7 +823,8 @@ If NOSORT is non-nil, the list is not sorted--its order is unpredictable.
 (defun url-dav-file-directory-p (url)
   "Return t if URL names an existing DAV collection."
   (let ((properties (cdar (url-dav-get-properties url '(DAV:resourcetype)))))
-    (eq (plist-get properties 'DAV:resourcetype) 'DAV:collection)))
+    (when (member 'DAV:collection (plist-get properties 'DAV:resourcetype))
+      t)))
 
 (defun url-dav-make-directory (url &optional parents)
   "Create the directory DIR and any nonexistent parent dirs."

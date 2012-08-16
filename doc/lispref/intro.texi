@@ -44,7 +44,7 @@ corresponding to Emacs version @value{EMACSVER}.
 * Lisp History::        Emacs Lisp is descended from Maclisp.
 * Conventions::         How the manual is formatted.
 * Version Info::        Which Emacs version is running?
-* Acknowledgements::    The authors, editors, and sponsors of this manual.
+* Acknowledgments::     The authors, editors, and sponsors of this manual.
 @end menu
 
 @node Caveats
@@ -523,8 +523,8 @@ The minor version number of Emacs, as an integer.  For Emacs version
 23.1, the value is 1.
 @end defvar
 
-@node Acknowledgements
-@section Acknowledgements
+@node Acknowledgments
+@section Acknowledgments
 
   This manual was originally written by Robert Krawitz, Bil Lewis, Dan
 LaLiberte, Richard@tie{}M. Stallman and Chris Welty, the volunteers of

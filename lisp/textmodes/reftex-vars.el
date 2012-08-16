@@ -90,6 +90,15 @@
     (wrapfig     "The wrapfigure environment"
      (("wrapfigure" ?f nil nil caption)))
 
+    (ctable	"The ctable package"
+     (("\\ctable[]{}{}{}" ?t "tab:" "\\ref{%s}" 1 ("table" "Tabelle"))))
+
+    (listings	"The listings package"
+     (("lstlisting" ?l "lst:" "~\\ref{%s}" nil (regexp "[Ll]isting"))))
+
+    (minted	"The minted package"
+     (("minted" ?l "lst:" "~\\ref{%s}" nil (regexp "[Ll]isting"))))
+
     ;; The LaTeX core stuff
     (LaTeX       "LaTeX default environments"
      (("section"   ?s "%S" "~\\ref{%s}" (nil . t)
@@ -120,9 +129,7 @@
 
       ;; The label macro is hard coded, but it *could* be defined like this:
       ;;("\\label{*}" nil nil nil nil)
-      ))
-
-    )
+      )))
   "The default label environment descriptions.
 Lower-case symbols correspond to a style file of the same name in the LaTeX
 distribution.  Mixed-case symbols are convenience aliases.")
@@ -423,7 +430,8 @@ When nil, follow-mode will be suspended for stuff in unvisited files."
 
 (defcustom reftex-default-label-alist-entries
   '(amsmath endnotes fancybox floatfig longtable picinpar
-            rotating sidecap subfigure supertab wrapfig LaTeX)
+            rotating sidecap subfigure supertab wrapfig
+	    listings minted ctable LaTeX)
   "Default label alist specifications.  LaTeX should always be the last entry.
 The value of this variable is a list of symbols with associations in the
 constant `reftex-label-alist-builtin'.  Check that constant for a full list
@@ -576,7 +584,7 @@ will use
 Any list entry may also be a symbol.  If that has an association in
 `reftex-label-alist-builtin', the cddr of that association is spliced into the
 list.  However, builtin defaults should normally be set with the variable
-`reftex-default-label-alist-entries."
+`reftex-default-label-alist-entries'."
   :group 'reftex-defining-label-environments
   :set 'reftex-set-dirty
   :type

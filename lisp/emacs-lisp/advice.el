@@ -2542,7 +2542,7 @@ definition (see the code for `documentation')."
 For that it has to be fbound with a non-autoload definition."
   (and (symbolp function)
        (fboundp function)
-       (not (eq (car-safe (symbol-function function)) 'autoload))))
+       (not (autoloadp (symbol-function function)))))
 
 ;; The following two are necessary for the sake of packages such as
 ;; ange-ftp which redefine functions via fcell indirection:

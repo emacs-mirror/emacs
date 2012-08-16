@@ -637,11 +637,11 @@ FNAME is the minor mode's name (variable and function).
 DOC is the text to use for the menu entry.
 HELP is the text to use for the tooltip.
 PROPS are additional properties."
-  `(list 'menu-item ,doc ',fname
-	 ,@(mapcar (lambda (p) (list 'quote p)) props)
-	 :help ,help
-	 :button '(:toggle . (and (default-boundp ',fname)
-				  (default-value ',fname)))))
+  `'(menu-item ,doc ,fname
+	       ,@props
+	       :help ,help
+	       :button (:toggle . (and (default-boundp ',fname)
+				       (default-value ',fname)))))
 
 (defmacro menu-bar-make-toggle (name variable doc message help &rest body)
   `(progn
@@ -664,10 +664,10 @@ by \"Save Options\" in Custom buffers.")
        ;; a candidate for "Save Options", and we do not want to save options
        ;; the user have already set explicitly in his init file.
        (if interactively (customize-mark-as-set ',variable)))
-     (list 'menu-item ,doc ',name
-	   :help ,help
-	   :button '(:toggle . (and (default-boundp ',variable)
-				    (default-value ',variable))))))
+     '(menu-item ,doc ,name
+		 :help ,help
+		 :button (:toggle . (and (default-boundp ',variable)
+					 (default-value ',variable))))))
 
 ;; Function for setting/saving default font.
 
@@ -1490,8 +1490,6 @@ mail status in mode line"))
     (bindings--define-key menu [separator-vc]
       menu-bar-separator)
 
-    (bindings--define-key menu [pcl-cvs]
-      '(menu-item "PCL-CVS" cvs-global-menu))
     (bindings--define-key menu [vc] nil) ;Create the place for the VC menu.
 
     (bindings--define-key menu [separator-compare]

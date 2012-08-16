@@ -138,7 +138,7 @@ Used in `smerge-diff-base-mine' and related functions."
     (t :inverse-video t))
   "Face used for removed characters shown by `smerge-refine'."
   :group 'smerge
-  :version "24.2")
+  :version "24.3")
 
 (defface smerge-refined-added
   '((default
@@ -150,7 +150,7 @@ Used in `smerge-diff-base-mine' and related functions."
     (t :inverse-video t))
   "Face used for added characters shown by `smerge-refine'."
   :group 'smerge
-  :version "24.2")
+  :version "24.3")
 
 (easy-mmode-defmap smerge-basic-map
   `(("n" . smerge-next)

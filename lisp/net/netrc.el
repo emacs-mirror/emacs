@@ -215,26 +215,6 @@ MODE can be \"login\" or \"password\", suitable for passing to
 			  (eq type (car (cddr service)))))))
     (car service)))
 
-(defun netrc-find-service-number (name &optional type)
-  (let ((services (netrc-parse-services))
-	service)
-    (setq type (or type 'tcp))
-    (while (and (setq service (pop services))
-		(not (and (string= name (car service))
-			  (eq type (car (cddr service)))))))
-    (cadr service)))
-
-(defun netrc-store-data (file host port user password)
-  (with-temp-buffer
-    (when (file-exists-p file)
-      (insert-file-contents file))
-    (goto-char (point-max))
-    (unless (bolp)
-      (insert "\n"))
-    (insert (format "machine %s login %s password %s port %s\n"
-		    host user password port))
-    (write-region (point-min) (point-max) file nil 'silent)))
-
 ;;;###autoload
 (defun netrc-credentials (machine &rest ports)
   "Return a user name/password pair.

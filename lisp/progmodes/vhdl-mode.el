@@ -102,7 +102,7 @@
 ;; VHDL Mode distribution.
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Acknowledgements
+;; Acknowledgments
 
 ;; Electrification ideas by Bob Pack <rlpst@cislabs.pitt.edu>
 ;; and Steve Grout.
@@ -4499,7 +4499,7 @@ Usage:
     (mra) architecture is selected.  If another architecture is desired, it
     can be marked as most-recently-analyzed (speedbar menu) before
     generating the configuration.
- 
+
       Note: Configurations of subcomponents (i.e. hierarchical configuration
     declarations) are currently not considered when displaying
     configurations in speedbar.
@@ -6979,7 +6979,7 @@ is not moved."
 		     (save-excursion
 		       (goto-char new)
 		       (eq new (progn (back-to-indentation) (point)))))
-		(setq placeholder new)))	
+		(setq placeholder new)))
 	  (vhdl-add-syntax 'statement-cont placeholder)
 	  (if begin-after-ip
 	      (vhdl-add-syntax 'block-open)))

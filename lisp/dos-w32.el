@@ -361,7 +361,7 @@ filesystem mounted on drive Z:, FILESYSTEM could be \"Z:\"."
 	  (apply 'call-process lpr-prog nil errbuf nil rest))
 	 ;; Run command.com to access printer port on Windows 9x, unless
 	 ;; we are supposed to append to an existing (non-empty) file,
-	 ;; to work around a bug in Windows 9x that prevents Win32
+	 ;; to work around a bug in Windows 9x that prevents Windows
 	 ;; programs from accessing LPT ports reliably.
 	 ((and (eq system-type 'windows-nt)
 	       (getenv "winbootdir")

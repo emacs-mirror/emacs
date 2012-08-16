@@ -536,12 +536,6 @@ Two predefined functions are available:
     (when pos
       (cons pos (next-single-property-change pos 'gnus-number)))))
 
-(defun gnus-tree-goto-article (article)
-  (let ((pos (text-property-any
-	      (point-min) (point-max) 'gnus-number article)))
-    (when pos
-      (goto-char pos))))
-
 (defun gnus-tree-recenter ()
   "Center point in the tree window."
   (let ((selected (selected-window))

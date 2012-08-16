@@ -698,11 +698,11 @@ If `C' is present, display outer brackets for matrices (centered).")
 (defcalcmodevar calc-previous-modulo nil
   "Most recently used value of M in a modulo form.")
 
-(defcalcmodevar calc-simplify-mode nil
+(defcalcmodevar calc-simplify-mode 'alg
   "Type of simplification applied to results.
 If `none', results are not simplified when pushed on the stack.
 If `num', functions are simplified only when args are constant.
-If nil, only fast simplifications are applied.
+If nil, only limited simplifications are applied.
 If `binary', `math-clip' is applied if appropriate.
 If `alg', `math-simplify' is applied.
 If `ext', `math-simplify-extended' is applied.
@@ -914,7 +914,7 @@ Used by `calc-user-invocation'.")
 
 ;; Set up the autoloading linkage.
 (let ((name (and (fboundp 'calc-dispatch)
-                 (eq (car-safe (symbol-function 'calc-dispatch)) 'autoload)
+                 (autoloadp (symbol-function 'calc-dispatch))
                  (nth 1 (symbol-function 'calc-dispatch))))
       (p load-path))
 
@@ -1757,10 +1757,10 @@ See calc-keypad for details."
 			   ((eq calc-simplify-mode 'num) "NumSimp ")
 			   ((eq calc-simplify-mode 'binary)
 			    (format "BinSimp%d " calc-word-size))
-			   ((eq calc-simplify-mode 'alg) "AlgSimp ")
+			   ((eq calc-simplify-mode 'alg) "")
 			   ((eq calc-simplify-mode 'ext) "ExtSimp ")
 			   ((eq calc-simplify-mode 'units) "UnitSimp ")
-			   (t ""))
+			   (t "BasicSimp "))
 
 		     ;; Display modes
 		     (cond ((= calc-number-radix 10) "")
@@ -2583,7 +2583,11 @@ largest Emacs integer.")
 ;;; Reduce an object to canonical (normalized) form.  [O o; Z Z] [Public]
 
 (defvar math-normalize-a)
+(defvar math-normalize-error nil
+  "Non-nil if the last call the `math-normalize' returned an error.")
+
 (defun math-normalize (math-normalize-a)
+  (setq math-normalize-error nil)
   (cond
    ((not (consp math-normalize-a))
     (if (integerp math-normalize-a)
@@ -2672,31 +2676,38 @@ largest Emacs integer.")
 					(fboundp (car math-normalize-a))))
 			       (apply (car math-normalize-a) args)))))
 		(wrong-number-of-arguments
+                 (setq math-normalize-error t)
 		 (calc-record-why "*Wrong number of arguments"
 				  (cons (car math-normalize-a) args))
 		 nil)
 		(wrong-type-argument
+                 (setq math-normalize-error t)
 		 (or calc-next-why
                      (calc-record-why "Wrong type of argument"
                                       (cons (car math-normalize-a) args)))
 		 nil)
 		(args-out-of-range
+                 (setq math-normalize-error t)
 		 (calc-record-why "*Argument out of range"
                                   (cons (car math-normalize-a) args))
 		 nil)
 		(inexact-result
+                 (setq math-normalize-error t)
 		 (calc-record-why "No exact representation for result"
 				  (cons (car math-normalize-a) args))
 		 nil)
 		(math-overflow
+                 (setq math-normalize-error t)
 		 (calc-record-why "*Floating-point overflow occurred"
 				  (cons (car math-normalize-a) args))
 		 nil)
 		(math-underflow
+                 (setq math-normalize-error t)
 		 (calc-record-why "*Floating-point underflow occurred"
 				  (cons (car math-normalize-a) args))
 		 nil)
 		(void-variable
+                 (setq math-normalize-error t)
 		 (if (eq (nth 1 err) 'var-EvalRules)
 		     (progn
 		       (setq var-EvalRules nil)

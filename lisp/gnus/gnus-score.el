@@ -947,25 +947,6 @@ EXTRA is the possible non-standard header."
 		 (gnus-summary-raise-score score))))
 	(beginning-of-line 2))))
   (gnus-set-mode-line 'summary))
-
-(defun gnus-summary-score-crossposting (score date)
-  ;; Enter score file entry for current crossposting.
-  ;; SCORE is the score to add.
-  ;; DATE is the expire date.
-  (let ((xref (gnus-summary-header "xref"))
-	(start 0)
-	group)
-    (unless xref
-      (error "This article is not crossposted"))
-    (while (string-match " \\([^ \t]+\\):" xref start)
-      (setq start (match-end 0))
-      (when (not (string=
-		  (setq group
-			(substring xref (match-beginning 1) (match-end 1)))
-		  gnus-newsgroup-name))
-	(gnus-summary-score-entry
-	 "xref" (concat " " group ":") nil score date t)))))
-
 
 ;;;
 ;;; Gnus Score Files
@@ -3055,62 +3036,6 @@ If ADAPT, return the home adaptive file instead."
 				 (cdr (cdr kill)))))))))
     ;; Return whether this score file needs to be saved.  By Je-haysuss!
     updated))
-
-(defun gnus-score-regexp-bad-p (regexp)
-  "Test whether REGEXP is safe for Gnus scoring.
-A regexp is unsafe if it matches newline or a buffer boundary.
-
-If the regexp is good, return nil.  If the regexp is bad, return a
-cons cell (SYM . STRING), where the symbol SYM is `new' or `bad'.
-In the `new' case, the string is a safe replacement for REGEXP.
-In the `bad' case, the string is a unsafe subexpression of REGEXP,
-and we do not have a simple replacement to suggest.
-
-See Info node `(gnus)Scoring Tips' for examples of good regular expressions."
-  (let (case-fold-search)
-    (and
-     ;; First, try a relatively fast necessary condition.
-     ;; Notice ranges (like [^:] or [\t-\r]), \s>, \Sw, \W, \', \`:
-     (string-match "\n\\|\\\\[SsW`']\\|\\[\\^\\|[\0-\n]-" regexp)
-     ;; Now break the regexp into tokens, and check each:
-     (let ((tail regexp)		; remaining regexp to check
-	   tok				; current token
-	   bad				; nil, or bad subexpression
-	   new				; nil, or replacement regexp so far
-	   end)				; length of current token
-       (while (and (not bad)
-		   (string-match
-		    "\\`\\(\\\\[sS]?.\\|\\[\\^?]?[^]]*]\\|[^\\]\\)"
-		    tail))
-	 (setq end (match-end 0)
-	       tok (substring tail 0 end)
-	       tail (substring tail end))
-	 (if;; Is token `bad' (matching newline or buffer ends)?
-	     (or (member tok '("\n" "\\W" "\\`" "\\'"))
-		 ;; This next handles "[...]", "\\s.", and "\\S.":
-		 (and (> end 2) (string-match tok "\n")))
-	     (let ((newtok
-		    ;; Try to suggest a replacement for tok ...
-		    (cond ((string-equal tok "\\`") "^") ; or "\\(^\\)"
-			  ((string-equal tok "\\'") "$") ; or "\\($\\)"
-			  ((string-match "\\[\\^" tok) ; very common
-			   (concat (substring tok 0 -1) "\n]")))))
-	       (if newtok
-		   (setq new
-			 (concat
-			  (or new
-			      ;; good prefix so far:
-			      (substring regexp 0 (- (+ (length tail) end))))
-			  newtok))
-		 ;; No replacement idea, so give up:
-		 (setq bad tok)))
-	   ;; tok is good, may need to extend new
-	   (and new (setq new (concat new tok)))))
-       ;; Now return a value:
-       (cond
-	(bad (cons 'bad bad))
-	(new (cons 'new new))
-	(t nil))))))
 
 (provide 'gnus-score)
 

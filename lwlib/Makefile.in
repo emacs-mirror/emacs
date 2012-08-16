@@ -69,7 +69,7 @@ liblw.a: $(OBJS)
 	$(RANLIB) $@
 
 ## Generated files in ../src, non-generated in $(srcdir)/../src.
-config_h = ../src/config.h
+config_h = ../src/config.h $(srcdir)/../src/conf_post.h
 lisp_h = $(srcdir)/../src/lisp.h
 ## lisp.h includes this.
 globals_h = ../src/globals.h

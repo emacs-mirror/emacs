@@ -509,7 +509,7 @@ If nil, continued arguments are aligned with the first argument."
   "Non-nil means that non-block ()-, {}- and []-groups are indented as blocks.
 The closing bracket is aligned with the line of the opening bracket,
 not the contents of the brackets."
-  :version "24.2"
+  :version "24.3"
   :type 'boolean
   :group 'perl)
 

@@ -962,7 +962,7 @@ Default is `bs--current-sort-function'."
 Uses function `toggle-read-only'."
   (interactive)
   (with-current-buffer (bs--current-buffer)
-    (toggle-read-only))
+    (call-interactively 'toggle-read-only))
   (bs--update-current-line))
 
 (defun bs-clear-modified ()

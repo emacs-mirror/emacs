@@ -731,7 +731,21 @@ Valid clauses are:
   finally return EXPR, named NAME.
 
 \(fn CLAUSE...)"
-  (declare (debug (&rest &or symbolp form)))
+  (declare (debug (&rest &or
+                         ;; These are usually followed by a symbol, but it can
+                         ;; actually be any destructuring-bind pattern, which
+                         ;; would erroneously match `form'.
+                         [[&or "for" "as" "with" "and"] sexp]
+                         ;; These are followed by expressions which could
+                         ;; erroneously match `symbolp'.
+                         [[&or "from" "upfrom" "downfrom" "to" "upto" "downto"
+                               "above" "below" "by" "in" "on" "=" "across"
+                               "repeat" "while" "until" "always" "never"
+                               "thereis" "collect" "append" "nconc" "sum"
+                               "count" "maximize" "minimize" "if" "unless"
+                               "return"] form]
+                         ;; Simple default, which covers 99% of the cases.
+                         symbolp form)))
   (if (not (memq t (mapcar 'symbolp (delq nil (delq t (cl-copy-list loop-args))))))
       `(cl-block nil (while t ,@loop-args))
     (let ((cl--loop-args loop-args) (cl--loop-name nil) (cl--loop-bindings nil)
@@ -1547,7 +1561,7 @@ second list (or made unbound if VALUES is shorter than SYMBOLS); then the
 BODY forms are executed and their result is returned.  This is much like
 a `let' form, except that the list of symbols can be computed at run-time."
   (declare (indent 2) (debug (form form body)))
-  (let ((bodyfun (make-symbol "body"))
+  (let ((bodyfun (make-symbol "cl--progv-body"))
         (binds (make-symbol "binds"))
         (syms (make-symbol "syms"))
         (vals (make-symbol "vals")))
@@ -1668,31 +1682,86 @@ This is like `cl-flet', but for macros instead of functions.
       cl--old-macroexpand
     (symbol-function 'macroexpand)))
 
-(defun cl--sm-macroexpand (cl-macro &optional cl-env)
+(defun cl--sm-macroexpand (exp &optional env)
   "Special macro expander used inside `cl-symbol-macrolet'.
 This function replaces `macroexpand' during macro expansion
 of `cl-symbol-macrolet', and does the same thing as `macroexpand'
 except that it additionally expands symbol macros."
-  (let ((macroexpand-all-environment cl-env))
+  (let ((macroexpand-all-environment env))
     (while
         (progn
-          (setq cl-macro (funcall cl--old-macroexpand cl-macro cl-env))
-          (cond
-           ((symbolp cl-macro)
-            ;; Perform symbol-macro expansion.
-            (when (cdr (assq (symbol-name cl-macro) cl-env))
-              (setq cl-macro (cadr (assq (symbol-name cl-macro) cl-env)))))
-           ((eq 'setq (car-safe cl-macro))
-            ;; Convert setq to setf if required by symbol-macro expansion.
-            (let* ((args (mapcar (lambda (f) (cl--sm-macroexpand f cl-env))
-                                 (cdr cl-macro)))
-                   (p args))
-              (while (and p (symbolp (car p))) (setq p (cddr p)))
-              (if p (setq cl-macro (cons 'setf args))
-                (setq cl-macro (cons 'setq args))
-                ;; Don't loop further.
-                nil))))))
-    cl-macro))
+          (setq exp (funcall cl--old-macroexpand exp env))
+          (pcase exp
+            ((pred symbolp)
+             ;; Perform symbol-macro expansion.
+             (when (cdr (assq (symbol-name exp) env))
+               (setq exp (cadr (assq (symbol-name exp) env)))))
+            (`(setq . ,_)
+             ;; Convert setq to setf if required by symbol-macro expansion.
+             (let* ((args (mapcar (lambda (f) (cl--sm-macroexpand f env))
+                                  (cdr exp)))
+                    (p args))
+               (while (and p (symbolp (car p))) (setq p (cddr p)))
+               (if p (setq exp (cons 'setf args))
+                 (setq exp (cons 'setq args))
+                 ;; Don't loop further.
+                 nil)))
+            (`(,(or `let `let*) . ,(or `(,bindings . ,body) dontcare))
+             ;; CL's symbol-macrolet treats re-bindings as candidates for
+             ;; expansion (turning the let into a letf if needed), contrary to
+             ;; Common-Lisp where such re-bindings hide the symbol-macro.
+             (let ((letf nil) (found nil) (nbs ()))
+               (dolist (binding bindings)
+                 (let* ((var (if (symbolp binding) binding (car binding)))
+                        (sm (assq (symbol-name var) env)))
+                   (push (if (not (cdr sm))
+                             binding
+                           (let ((nexp (cadr sm)))
+                             (setq found t)
+                             (unless (symbolp nexp) (setq letf t))
+                             (cons nexp (cdr-safe binding))))
+                         nbs)))
+               (when found
+                 (setq exp `(,(if letf
+                                  (if (eq (car exp) 'let) 'cl-letf 'cl-letf*)
+                                (car exp))
+                             ,(nreverse nbs)
+                             ,@body)))))
+            ;; FIXME: The behavior of CL made sense in a dynamically scoped
+            ;; language, but for lexical scoping, Common-Lisp's behavior might
+            ;; make more sense (and indeed, CL behaves like Common-Lisp w.r.t
+            ;; lexical-let), so maybe we should adjust the behavior based on
+            ;; the use of lexical-binding.
+            ;; (`(,(or `let `let*) . ,(or `(,bindings . ,body) dontcare))
+            ;;  (let ((nbs ()) (found nil))
+            ;;    (dolist (binding bindings)
+            ;;      (let* ((var (if (symbolp binding) binding (car binding)))
+            ;;             (name (symbol-name var))
+            ;;             (val (and found (consp binding) (eq 'let* (car exp))
+            ;;                       (list (macroexpand-all (cadr binding)
+            ;;                                              env)))))
+            ;;        (push (if (assq name env)
+            ;;                  ;; This binding should hide its symbol-macro,
+            ;;                  ;; but given the way macroexpand-all works, we
+            ;;                  ;; can't prevent application of `env' to the
+            ;;                  ;; sub-expressions, so we need to α-rename this
+            ;;                  ;; variable instead.
+            ;;                  (let ((nvar (make-symbol
+            ;;                               (copy-sequence name))))
+            ;;                    (setq found t)
+            ;;                    (push (list name nvar) env)
+            ;;                    (cons nvar (or val (cdr-safe binding))))
+            ;;                (if val (cons var val) binding))
+            ;;              nbs)))
+            ;;    (when found
+            ;;      (setq exp `(,(car exp)
+            ;;                  ,(nreverse nbs)
+            ;;                  ,@(macroexp-unprogn
+            ;;                     (macroexpand-all (macroexp-progn body)
+            ;;                                      env)))))
+            ;;    nil))
+            )))
+    exp))
 
 ;;;###autoload
 (defmacro cl-symbol-macrolet (bindings &rest body)
@@ -2420,8 +2489,8 @@ and then returning foo."
 	(while (and (symbolp func)
 		    (not (setq handler (get func 'compiler-macro)))
 		    (fboundp func)
-		    (or (not (eq (car-safe (symbol-function func)) 'autoload))
-			(load (nth 1 (symbol-function func)))))
+		    (or (not (autoloadp (symbol-function func)))
+			(autoload-do-load (symbol-function func) func)))
 	  (setq func (symbol-function func)))
 	(and handler
 	     (not (eq form (setq form (apply handler form (cdr form))))))))

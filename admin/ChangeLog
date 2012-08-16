@@ -1,3 +1,66 @@
+2012-08-14  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use bool for Emacs Lisp booleans.
+	* merge-gnulib (GNULIB_MODULES): Add stdbool.  This documents a
+	new direct dependency; stdbool was already being used indirectly
+	via other gnulib modules.
+
+2012-08-11  Glenn Morris  <rgm@gnu.org>
+
+	* bzrmerge.el (bzrmerge-resolve): Disable local eval:.
+
+2012-08-07  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* coccinelle/overlay.cocci, coccinelle/symbol.cocci: Remove.
+
+2012-08-02  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Port to Solaris 8.
+	* CPP-DEFINES (WRETCODE): Remove.
+
+2012-08-01  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* coccinelle/overlay.cocci: Semantic patch to replace direct
+	access to Lisp_Object members of struct Lisp_Overlay to MVAR.
+
+2012-08-01  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* coccinelle/symbol.cocci: Semantic patch to replace direct
+	access to Lisp_Object members of struct Lisp_Symbol to SVAR.
+
+2012-08-01  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* coccinelle/process.cocci: Semantic patch to replace direct
+	access to Lisp_Object members of struct Lisp_Process to PVAR.
+
+2012-08-01  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* coccinelle/window.cocci: Semantic patch to replace direct
+	access to Lisp_Object members of struct window to WVAR.
+
+2012-07-31  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* coccinelle/frame.cocci: Semantic patch to replace direct
+	access to Lisp_Object members of struct frame to FVAR.
+
+2012-07-28  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use Gnulib environ and stdalign modules (Bug#9772, Bug#9960).
+	* merge-gnulib: Add environ, stdalign.
+
+2012-07-20  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* coccinelle/unibyte_string.cocci: Semantic patch to convert from
+	make_unibyte_string to build_unibyte_string where appropriate.
+
+2012-07-17  Eli Zaretskii  <eliz@gnu.org>
+
+	* CPP-DEFINES: Remove FILE_SYSTEM_CASE.
+
+2012-07-17  Chong Yidong  <cyd@gnu.org>
+
+	* Version 24.1 released.
+
 2012-07-11  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Assume mkdir, perror, rename, rmdir, strerror.

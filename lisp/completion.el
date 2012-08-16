@@ -228,7 +228,7 @@
 ;; superior to that of the LISPM version.
 ;;
 ;;-----------------------------------------------
-;; Acknowledgements
+;; Acknowledgments
 ;;-----------------------------------------------
 ;;  Cliff Lasser (cal@think.com), Kevin Herbert (kph@cisco.com),
 ;;  eero@media-lab, kgk@cs.brown.edu, jla@ai.mit.edu,

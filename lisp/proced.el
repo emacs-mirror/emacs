@@ -659,11 +659,14 @@ After displaying or updating a Proced buffer, Proced runs the normal hook
 ;;;###autoload
 (defun proced (&optional arg)
   "Generate a listing of UNIX system processes.
-If invoked with optional ARG the window displaying the process
-information will be displayed but not selected.
-Runs the normal hook `proced-post-display-hook'.
+\\<proced-mode-map>
+If invoked with optional ARG, do not select the window displaying
+the process information.
 
-See `proced-mode' for a description of features available in Proced buffers."
+This function runs the normal hook `proced-post-display-hook'.
+
+See `proced-mode' for a description of features available in
+Proced buffers."
   (interactive "P")
   (unless proced-available
     (error "Proced is not available on this system"))

@@ -413,7 +413,7 @@ This is a list of regular expressions, which denote hosts running
 a registered shell like \"rbash\".  Those hosts can be used as
 proxies only, see `tramp-default-proxies-alist'.  If the local
 host runs a registered shell, it shall be added to this list, too."
-  :version "24.2"
+  :version "24.3"
   :group 'tramp
   :type '(repeat (regexp :tag "Host regexp")))
 

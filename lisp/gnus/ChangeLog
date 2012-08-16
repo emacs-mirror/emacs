@@ -1,3 +1,159 @@
+2012-08-14  Chong Yidong  <cyd@gnu.org>
+
+	* gnus-art.el (article-display-face): Handle failure in
+	gnus-create-image (Bug#11802).
+
+2012-08-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* gnus-agent.el (gnus-agent-cat-defaccessor, gnus-agent-cat-groups):
+	Use defsetf.
+
+2012-08-10  Daiki Ueno  <ueno@unixuser.org>
+
+	* auth-source.el: (auth-source-plstore-search)
+	(auth-source-secrets-search): Ignore :require and :type in search spec.
+
+2012-08-06  Julien Danjou  <julien@danjou.info>
+
+	* gnus-demon.el (gnus-demon-add-handler, gnus-demon-remove-handler):
+	Remove autoload, already handled by gnus.el.
+
+2012-08-05  Julien Danjou  <julien@danjou.info>
+
+	* gnus-demon.el (gnus-demon-add-handler, gnus-demon-remove-handler):
+	Add autoload.
+
+2012-07-31  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.el (gnus-valid-select-methods): Fix custom type.
+
+2012-07-29  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* auth-source.el (auth-sources, auth-source-backend-parse)
+	(auth-source-macos-keychain-search)
+	(auth-source-macos-keychain-search-items)
+	(auth-source-macos-keychain-result-append)
+	(auth-source-macos-keychain-create): Support Mac OS X Keychains in
+	auth-source.el through the /usr/bin/security utility.
+	(auth-sources): Fix syntax error.
+	(auth-source-macos-keychain-result-append): Fix variable name.
+	(auth-sources, auth-source-macos-keychain-result-append): More fixes.
+
+2012-07-27  Julien Danjou  <julien@danjou.info>
+
+	* message.el (fboundp): Add a defalias on `mail-dont-reply-to' for
+	Emacs < 24.1
+
+2012-07-27  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* message.el (message-kill-address): Don't kill last newline.
+	(message-skip-to-next-address): Don't move to the next header.
+	(message-fill-field-address): Work properly.
+
+2012-07-25  Julien Danjou  <julien@danjou.info>
+
+	* gnus-art.el (gnus-kill-sticky-article-buffers): Reintroduce.
+
+2012-07-25  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* nnimap.el (nnimap-get-responses): Don't remove, still used.
+
+2012-07-24  Julien Danjou  <julien@danjou.info>
+
+	* mail-source.el (mail-source-movemail-and-remove): Remove, unused.
+
+	* nntp.el (nntp-send-nosy-authinfo, nntp-send-authinfo-from-file)
+	(nntp-async-timer-handler): Remove, unused.
+
+	* nnimap.el (nnimap-get-responses): Remove, unused.
+
+	* nnheader.el (mail-header-set-extra): Remove, unused.
+
+	* mm-view.el (mm-view-sound-file): Remove, unused.
+
+	* mm-url.el (mm-url-fetch-simple, mm-url-fetch-form)
+	(mm-url-encode-multipart-form-data): Remove, unused.
+
+	* message.el (message-remove-signature, message-make-host-name)
+	(message-fill-address): Remove, unused.
+
+	* gnus.el (gnus-writable-groups, gnus-group-guess-prefixed-name)
+	(gnus-group-guess-full-name, gnus-group-guess-prefixed-name): Remove,
+	unused.
+
+	* gnus-uu.el (gnus-uu-find-name-in-shar): Remove, unused.
+
+	* gnus-util.el (gnus-extract-address-component-name)
+	(gnus-extract-address-component-email, gnus-sortable-date)
+	(gnus-alist-to-hashtable, gnus-hashtable-to-alist)
+	(gnus-process-live-p): Remove, unused.
+
+	* gnus-topic.el (gnus-group-parent-topic): Remove, unused.
+
+	* gnus-sum.el (gnus-score-set-default, gnus-article-parent-p)
+	(gnus-article-read-p, gnus-uncompress-marks): Remove, unused.
+	(gnus-summary-set-current-mark): Remove obsolete, empty and unused
+	function.
+
+	* gnus-start.el (gnus-kill-newsgroup): Remove unused obsolete function.
+
+	* gnus-score.el (gnus-summary-score-crossposting)
+	(gnus-score-regexp-bad-p): Remove, unused.
+
+	* gnus-salt.el (gnus-tree-goto-article): Remove, unused.
+
+	* gnus-range.el (gnus-sublist-p): Remove, unused.
+
+	* gnus-msg.el (gnus-mail-parse-comma-list, gnus-put-message): Remove,
+	unused.
+
+	* gnus-kill.el (gnus-Newsgroup-kill-file): Remove, unused.
+
+	* gnus-int.el (gnus-list-active-group, gnus-request-group-articles)
+	(gnus-request-associate-buffer): Remove, unused.
+
+	* gnus-group.el (gnus-group-set-method-info)
+	(gnus-group-set-params-info): Remove, unused.
+
+	* gnus-fun.el (gnus-shell-command-to-string)
+	(gnus-shell-command-on-region): Remove, unused.
+
+	* gnus-cite.el (gnus-cited-line-p): Remove, unused.
+
+	* gnus-art.el (gnus-article-text-type-exists-p)
+	(article-translate-characters, gnus-article-hide-text-of-type)
+	(gnus-kill-sticky-article-buffers, gnus-article-maybe-highlight):
+	Remove, unused.
+
+2012-07-23  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* nnir.el ("nnir"): Revert last change, that's premature to merge from
+	Gnus master.
+
+2012-07-22  Andrew Cohen  <cohen@bu.edu>
+
+	* nnir.el ("nnir"): Add 'virtual ability to nnir backend.
+
+2012-07-21  Julien Danjou  <julien@danjou.info>
+
+	* message.el (message-dont-reply-to-names): Replace deprecated
+	`rmail-dont-reply-to-names' with `mail-dont-reply-to-names'.
+	(message-get-reply-headers): Ditto.
+
+2012-07-18  Julien Danjou  <julien@danjou.info>
+
+	* sieve-mode.el (sieve-mode-map): Bind C-c C-c to
+	`sieve-upload-and-kill'.
+
+	* sieve.el (sieve-bury-buffer): Remove function.
+	(sieve-manage-mode-map): Map "q" to `kill-buffer'.
+	(sieve-upload-and-kill): New function, mapped to C-c C-c.
+
+2012-07-17  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* shr.el (shr-expand-url): Handle URL starting with `//'.
+
+2012-07-17  Toke Høiland-Jørgensen  <toke@toke.dk>  (tiny change)
 2012-07-13  Chong Yidong  <cyd@gnu.org>
 
 	* smime.el (smime-certificate-info): Set buffer-read-only directly,

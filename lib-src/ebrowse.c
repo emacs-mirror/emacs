@@ -43,17 +43,12 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define READ_CHUNK_SIZE (100 * 1024)
 
-/* The character used as a separator in path lists (like $PATH).  */
-
 #if defined (__MSDOS__)
-#define PATH_LIST_SEPARATOR ';'
 #define FILENAME_EQ(X,Y)    (strcasecmp (X,Y) == 0)
 #else
 #if defined (WINDOWSNT)
-#define PATH_LIST_SEPARATOR ';'
 #define FILENAME_EQ(X,Y)    (stricmp (X,Y) == 0)
 #else
-#define PATH_LIST_SEPARATOR ':'
 #define FILENAME_EQ(X,Y)    (streq (X,Y))
 #endif
 #endif
@@ -3417,7 +3412,7 @@ add_search_path (char *path_list)
       char *start = path_list;
       struct search_path *p;
 
-      while (*path_list && *path_list != PATH_LIST_SEPARATOR)
+      while (*path_list && *path_list != SEPCHAR)
         ++path_list;
 
       p = (struct search_path *) xmalloc (sizeof *p);
@@ -3434,7 +3429,7 @@ add_search_path (char *path_list)
       else
         search_path = search_path_tail = p;
 
-      while (*path_list == PATH_LIST_SEPARATOR)
+      while (*path_list == SEPCHAR)
         ++path_list;
     }
 }

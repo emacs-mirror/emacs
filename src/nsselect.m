@@ -62,7 +62,7 @@ symbol_to_nsstring (Lisp_Object sym)
   if (EQ (sym, QPRIMARY))     return NXPrimaryPboard;
   if (EQ (sym, QSECONDARY))   return NXSecondaryPboard;
   if (EQ (sym, QTEXT))        return NSStringPboardType;
-  return [NSString stringWithUTF8String: SSDATA (XSYMBOL (sym)->xname)];
+  return [NSString stringWithUTF8String: SSDATA (SYMBOL_NAME (sym))];
 }
 
 static NSPasteboard *

@@ -287,12 +287,19 @@ With a prefix argument ARG, enable Hi Lock mode if ARG is
 positive, and disable it otherwise.  If called from Lisp, enable
 the mode if ARG is omitted or nil.
 
-Issuing one the highlighting commands listed below will
-automatically enable Hi Lock mode.  To enable Hi Lock mode in all
-buffers, use `global-hi-lock-mode' or add (global-hi-lock-mode 1)
-to your init file.  When Hi Lock mode is enabled, a \"Regexp
-Highlighting\" submenu is added to the \"Edit\" menu.  The
-commands in the submenu, which can be called interactively, are:
+Hi Lock mode is automatically enabled when you invoke any of the
+highlighting commands listed below, such as \\[highlight-regexp].
+To enable Hi Lock mode in all buffers, use `global-hi-lock-mode'
+or add (global-hi-lock-mode 1) to your init file.
+
+In buffers where Font Lock mode is enabled, patterns are
+highlighted using font lock.  In buffers where Font Lock mode is
+disabled, patterns are applied using overlays; in this case, the
+highlighting will not be updated as you type.
+
+When Hi Lock mode is enabled, a \"Regexp Highlighting\" submenu
+is added to the \"Edit\" menu.  The commands in the submenu,
+which can be called interactively, are:
 
 \\[highlight-regexp] REGEXP FACE
   Highlight matches of pattern REGEXP in current buffer with FACE.
@@ -326,12 +333,12 @@ When hi-lock is started and if the mode is not excluded or patterns
 rejected, the beginning of the buffer is searched for lines of the
 form:
   Hi-lock: FOO
-where FOO is a list of patterns.  These are added to the font lock
-keywords already present.  The patterns must start before position
-\(number of characters into buffer) `hi-lock-file-patterns-range'.
-Patterns will be read until
- Hi-lock: end
-is found.  A mode is excluded if it's in the list `hi-lock-exclude-modes'."
+
+where FOO is a list of patterns.  The patterns must start before
+position \(number of characters into buffer)
+`hi-lock-file-patterns-range'.  Patterns will be read until
+Hi-lock: end is found.  A mode is excluded if it's in the list
+`hi-lock-exclude-modes'."
   :group 'hi-lock
   :lighter (:eval (if (or hi-lock-interactive-patterns
 			  hi-lock-file-patterns)
@@ -358,7 +365,6 @@ versions before 22 use the following in your .emacs file:
   (if hi-lock-mode
       ;; Turned on.
       (progn
-	(unless font-lock-mode (font-lock-mode 1))
 	(define-key-after menu-bar-edit-menu [hi-lock]
 	  (cons "Regexp Highlighting" hi-lock-menu))
 	(hi-lock-find-patterns)
@@ -392,12 +398,13 @@ versions before 22 use the following in your .emacs file:
 ;;;###autoload
 (defun hi-lock-line-face-buffer (regexp &optional face)
   "Set face of all lines containing a match of REGEXP to FACE.
+Interactively, prompt for REGEXP then FACE, using a buffer-local
+history list for REGEXP and a global history list for FACE.
 
-Interactively, prompt for REGEXP then FACE.  Buffer-local history
-list maintained for regexps, global history maintained for faces.
-\\<minibuffer-local-map>Use \\[previous-history-element] to retrieve previous history items,
-and \\[next-history-element] to retrieve default values.
-\(See info node `Minibuffer History'.)"
+If Font Lock mode is enabled in the buffer, it is used to
+highlight REGEXP.  If Font Lock mode is disabled, overlays are
+used for highlighting; in this case, the highlighting will not be
+updated as you type."
   (interactive
    (list
     (hi-lock-regexp-okay
@@ -416,12 +423,13 @@ and \\[next-history-element] to retrieve default values.
 ;;;###autoload
 (defun hi-lock-face-buffer (regexp &optional face)
   "Set face of each match of REGEXP to FACE.
+Interactively, prompt for REGEXP then FACE, using a buffer-local
+history list for REGEXP and a global history list for FACE.
 
-Interactively, prompt for REGEXP then FACE.  Buffer-local history
-list maintained for regexps, global history maintained for faces.
-\\<minibuffer-local-map>Use \\[previous-history-element] to retrieve previous history items,
-and \\[next-history-element] to retrieve default values.
-\(See info node `Minibuffer History'.)"
+If Font Lock mode is enabled in the buffer, it is used to
+highlight REGEXP.  If Font Lock mode is disabled, overlays are
+used for highlighting; in this case, the highlighting will not be
+updated as you type."
   (interactive
    (list
     (hi-lock-regexp-okay
@@ -436,9 +444,13 @@ and \\[next-history-element] to retrieve default values.
 ;;;###autoload
 (defun hi-lock-face-phrase-buffer (regexp &optional face)
   "Set face of each match of phrase REGEXP to FACE.
-
 Whitespace in REGEXP converted to arbitrary whitespace and initial
-lower-case letters made case insensitive."
+lower-case letters made case insensitive.
+
+If Font Lock mode is enabled in the buffer, it is used to
+highlight REGEXP.  If Font Lock mode is disabled, overlays are
+used for highlighting; in this case, the highlighting will not be
+updated as you type."
   (interactive
    (list
     (hi-lock-regexp-okay
@@ -456,12 +468,8 @@ lower-case letters made case insensitive."
 ;;;###autoload
 (defun hi-lock-unface-buffer (regexp)
   "Remove highlighting of each match to REGEXP set by hi-lock.
-
-Interactively, prompt for REGEXP.  Buffer-local history of inserted
-regexp's maintained.  Will accept only regexps inserted by hi-lock
-interactive functions.  \(See `hi-lock-interactive-patterns'.\)
-\\<minibuffer-local-must-match-map>Use \\[minibuffer-complete] to complete a partially typed regexp.
-\(See info node `Minibuffer History'.\)"
+Interactively, prompt for REGEXP, accepting only regexps
+previously inserted by hi-lock interactive functions."
   (interactive
    (if (and (display-popup-menus-p)
 	    (listp last-nonmenu-event)
@@ -573,7 +581,7 @@ not suitable."
   (let ((pattern (list regexp (list 0 (list 'quote face) t))))
     (unless (member pattern hi-lock-interactive-patterns)
       (push pattern hi-lock-interactive-patterns)
-      (if font-lock-fontified
+      (if font-lock-mode
 	  (progn
 	    (font-lock-add-keywords nil (list pattern) t)
 	    (font-lock-fontify-buffer))

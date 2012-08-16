@@ -146,7 +146,7 @@ displayed on your terminal, they appear as @samp{?} or as hollow boxes
 used, generally don't have keys for all the characters in them.  You
 can insert characters that your keyboard does not support, using
 @kbd{C-q} (@code{quoted-insert}) or @kbd{C-x 8 @key{RET}}
-(@code{ucs-insert}).  @xref{Inserting Text}.  Emacs also supports
+(@code{insert-char}).  @xref{Inserting Text}.  Emacs also supports
 various @dfn{input methods}, typically one for each script or
 language, which make it easier to type characters in the script.
 @xref{Input Methods}.
@@ -548,7 +548,7 @@ possible characters to type next is displayed in the echo area (but
 not when you are in the minibuffer).
 
   Another facility for typing characters not on your keyboard is by
-using @kbd{C-x 8 @key{RET}} (@code{ucs-insert}) to insert a single
+using @kbd{C-x 8 @key{RET}} (@code{insert-char}) to insert a single
 character based on its Unicode name or code-point; see @ref{Inserting
 Text}.
 

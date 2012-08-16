@@ -83,12 +83,12 @@ Lisp_Object Qoverflow_error, Qunderflow_error;
 Lisp_Object Qfloatp;
 Lisp_Object Qnumberp, Qnumber_or_marker_p;
 
-Lisp_Object Qinteger;
-static Lisp_Object Qsymbol, Qstring, Qcons, Qmarker, Qoverlay;
+Lisp_Object Qinteger, Qinterval, Qfloat, Qvector;
+Lisp_Object Qsymbol, Qstring, Qcons, Qmisc;
 Lisp_Object Qwindow;
-static Lisp_Object Qfloat, Qwindow_configuration;
-static Lisp_Object Qprocess;
-static Lisp_Object Qcompiled_function, Qframe, Qvector;
+static Lisp_Object Qoverlay, Qwindow_configuration;
+static Lisp_Object Qprocess, Qmarker;
+static Lisp_Object Qcompiled_function, Qframe;
 Lisp_Object Qbuffer;
 static Lisp_Object Qchar_table, Qbool_vector, Qhash_table;
 static Lisp_Object Qsubrp, Qmany, Qunevalled;
@@ -562,7 +562,7 @@ DEFUN ("fboundp", Ffboundp, Sfboundp, 1, 1, 0,
   (register Lisp_Object symbol)
 {
   CHECK_SYMBOL (symbol);
-  return (EQ (XSYMBOL (symbol)->function, Qunbound) ? Qnil : Qt);
+  return EQ (XSYMBOL (symbol)->function, Qunbound) ? Qnil : Qt;
 }
 
 DEFUN ("makunbound", Fmakunbound, Smakunbound, 1, 1, 0,
@@ -585,7 +585,7 @@ Return SYMBOL.  */)
   CHECK_SYMBOL (symbol);
   if (NILP (symbol) || EQ (symbol, Qt))
     xsignal1 (Qsetting_constant, symbol);
-  XSYMBOL (symbol)->function = Qunbound;
+  set_symbol_function (symbol, Qunbound);
   return symbol;
 }
 
@@ -636,7 +636,7 @@ DEFUN ("fset", Ffset, Sfset, 2, 2, 0,
   if (CONSP (function) && EQ (XCAR (function), Qautoload))
     Fput (symbol, Qautoload, XCDR (function));
 
-  XSYMBOL (symbol)->function = definition;
+  set_symbol_function (symbol, definition);
   /* Handle automatic advice activation.  */
   if (CONSP (XSYMBOL (symbol)->plist)
       && !NILP (Fget (symbol, Qad_advice_info)))
@@ -679,7 +679,7 @@ DEFUN ("setplist", Fsetplist, Ssetplist, 2, 2, 0,
   (register Lisp_Object symbol, Lisp_Object newplist)
 {
   CHECK_SYMBOL (symbol);
-  XSYMBOL (symbol)->plist = newplist;
+  set_symbol_plist (symbol, newplist);
   return newplist;
 }
 
@@ -761,7 +761,7 @@ Value, if non-nil, is a list \(interactive SPEC).  */)
 	{
 	  struct gcpro gcpro1;
 	  GCPRO1 (cmd);
-	  do_autoload (fun, cmd);
+	  Fautoload_do_load (fun, cmd, Qnil);
 	  UNGCPRO;
 	  return Finteractive_form (cmd);
 	}
@@ -808,10 +808,12 @@ indirect_variable (struct Lisp_Symbol *symbol)
 
 DEFUN ("indirect-variable", Findirect_variable, Sindirect_variable, 1, 1, 0,
        doc: /* Return the variable at the end of OBJECT's variable chain.
-If OBJECT is a symbol, follow all variable indirections and return the final
-variable.  If OBJECT is not a symbol, just return it.
-Signal a cyclic-variable-indirection error if there is a loop in the
-variable chain of symbols.  */)
+If OBJECT is a symbol, follow its variable indirections (if any), and
+return the variable at the end of the chain of aliases.  See Info node
+`(elisp)Variable Aliases'.
+
+If OBJECT is not a symbol, just return it.  If there is a loop in the
+chain of aliases, signal a `cyclic-variable-indirection' error.  */)
   (Lisp_Object object)
 {
   if (SYMBOLP (object))
@@ -928,7 +930,7 @@ store_symval_forwarding (union Lisp_Fwd *valcontents, register Lisp_Object newva
 	Lisp_Object type = XBUFFER_OBJFWD (valcontents)->slottype;
 
 	if (!(NILP (type) || NILP (newval)
-	      || (XINT (type) == LISP_INT_TAG
+	      || (XINT (type) == Lisp_Int0
 		  ? INTEGERP (newval)
 		  : XTYPE (newval) == XINT (type))))
 	  buffer_slot_type_mismatch (newval, XINT (type));
@@ -1211,8 +1213,8 @@ set_internal (register Lisp_Object symbol, register Lisp_Object newval, register
 		       bindings, not for frame-local bindings.  */
 		    eassert (!blv->frame_local);
 		    tem1 = Fcons (symbol, XCDR (blv->defcell));
-		    BVAR (XBUFFER (where), local_var_alist)
-		      = Fcons (tem1, BVAR (XBUFFER (where), local_var_alist));
+		    BSET (XBUFFER (where), local_var_alist,
+			  Fcons (tem1, BVAR (XBUFFER (where), local_var_alist)));
 		  }
 	      }
 
@@ -1401,7 +1403,7 @@ for this variable.  */)
 	      {
 		struct buffer *b;
 
-		for (b = all_buffers; b; b = b->header.next.buffer)
+		FOR_EACH_BUFFER (b)
 		  if (!PER_BUFFER_VALUE_P (b, idx))
 		    PER_BUFFER_VALUE (b, offset) = value;
 	      }
@@ -1651,9 +1653,9 @@ Instead, use `add-hook' and specify t for the LOCAL argument.  */)
 	 default value.  */
       find_symbol_value (variable);
 
-      BVAR (current_buffer, local_var_alist)
-        = Fcons (Fcons (variable, XCDR (blv->defcell)),
-		 BVAR (current_buffer, local_var_alist));
+      BSET (current_buffer, local_var_alist,
+	    Fcons (Fcons (variable, XCDR (blv->defcell)),
+		   BVAR (current_buffer, local_var_alist)));
 
       /* Make sure symbol does not think it is set up for this buffer;
 	 force it to look once again for this buffer's value.  */
@@ -1721,8 +1723,8 @@ From now on the default value will apply in this buffer.  Return VARIABLE.  */)
   XSETSYMBOL (variable, sym);	/* Propagate variable indirection.  */
   tem = Fassq (variable, BVAR (current_buffer, local_var_alist));
   if (!NILP (tem))
-    BVAR (current_buffer, local_var_alist)
-      = Fdelq (tem, BVAR (current_buffer, local_var_alist));
+    BSET (current_buffer, local_var_alist,
+	  Fdelq (tem, BVAR (current_buffer, local_var_alist)));
 
   /* If the symbol is set up with the current buffer's binding
      loaded, recompute its value.  We have to do it now, or else
@@ -2059,7 +2061,7 @@ function chain of symbols.  */)
   return Qnil;
 }
 
-/* Extract and set vector and string elements */
+/* Extract and set vector and string elements.  */
 
 DEFUN ("aref", Faref, Saref, 2, 2, 0,
        doc: /* Return the element of ARRAY at index IDX.
@@ -2179,10 +2181,9 @@ bool-vector.  IDX starts at 0.  */)
 	    {
 	      /* We must relocate the string data.  */
 	      ptrdiff_t nchars = SCHARS (array);
-	      unsigned char *str;
 	      USE_SAFE_ALLOCA;
+	      unsigned char *str = SAFE_ALLOCA (nbytes);
 
-	      SAFE_ALLOCA (str, unsigned char *, nbytes);
 	      memcpy (str, SDATA (array), nbytes);
 	      allocate_string_data (XSTRING (array), nchars,
 				    nbytes + new_bytes - prev_bytes);
@@ -2522,7 +2523,7 @@ arith_driver (enum arithop code, ptrdiff_t nargs, Lisp_Object *args)
   ptrdiff_t ok_args;
   EMACS_INT ok_accum;
 
-  switch (SWITCH_ENUM_CAST (code))
+  switch (code)
     {
     case Alogior:
     case Alogxor:
@@ -2557,7 +2558,7 @@ arith_driver (enum arithop code, ptrdiff_t nargs, Lisp_Object *args)
 				   nargs, args);
       args[argnum] = val;
       next = XINT (args[argnum]);
-      switch (SWITCH_ENUM_CAST (code))
+      switch (code)
 	{
 	case Aadd:
 	  if (INT_ADD_OVERFLOW (accum, next))
@@ -2643,7 +2644,7 @@ float_arith_driver (double accum, ptrdiff_t argnum, enum arithop code,
 	  args[argnum] = val;    /* runs into a compiler bug. */
 	  next = XINT (args[argnum]);
 	}
-      switch (SWITCH_ENUM_CAST (code))
+      switch (code)
 	{
 	case Aadd:
 	  accum += next;
@@ -3083,7 +3084,6 @@ syms_of_data (void)
   DEFSYM (Qwindow_configuration, "window-configuration");
   DEFSYM (Qprocess, "process");
   DEFSYM (Qwindow, "window");
-  /* DEFSYM (Qsubr, "subr"); */
   DEFSYM (Qcompiled_function, "compiled-function");
   DEFSYM (Qbuffer, "buffer");
   DEFSYM (Qframe, "frame");
@@ -3091,6 +3091,9 @@ syms_of_data (void)
   DEFSYM (Qchar_table, "char-table");
   DEFSYM (Qbool_vector, "bool-vector");
   DEFSYM (Qhash_table, "hash-table");
+  /* Used by Fgarbage_collect.  */
+  DEFSYM (Qinterval, "interval");
+  DEFSYM (Qmisc, "misc");
 
   DEFSYM (Qdefun, "defun");
 
@@ -3195,7 +3198,7 @@ syms_of_data (void)
   defsubr (&Ssubr_arity);
   defsubr (&Ssubr_name);
 
-  XSYMBOL (Qwholenump)->function = XSYMBOL (Qnatnump)->function;
+  set_symbol_function (Qwholenump, XSYMBOL (Qnatnump)->function);
 
   DEFVAR_LISP ("most-positive-fixnum", Vmost_positive_fixnum,
 	       doc: /* The largest value that is representable in a Lisp integer.  */);

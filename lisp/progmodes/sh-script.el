@@ -327,8 +327,15 @@ shell it really is."
 (defcustom sh-imenu-generic-expression
   `((sh
      . ((nil
-         "^\\s-*\\(function\\s-+\\)?\\([[:alpha:]_][[:alnum:]_]+\\)\\s-*()"
-         2))))
+	 ;; function FOO
+	 ;; function FOO()
+         "^\\s-*function\\s-+\\\([[:alpha:]_][[:alnum:]_]+\\)\\s-*\\(?:()\\)?"
+         1)
+	;; FOO()
+	(nil
+	 "^\\s-*\\([[:alpha:]_][[:alnum:]_]+\\)\\s-*()"
+	 1)
+	)))
   "Alist of regular expressions for recognizing shell function definitions.
 See `sh-feature' and `imenu-generic-expression'."
   :type '(alist :key-type (symbol :tag "Shell")
@@ -1087,7 +1094,7 @@ subshells can nest."
     ;; metacharacters.  The list of special chars is taken from
     ;; the single-unix spec of the shell command language (under
     ;; `quoting') but with `$' removed.
-    ("[^|&;<>()`\\\"' \t\n]\\(#+\\)" (1 "_"))
+    ("\\(?:[^|&;<>()`\\\"' \t\n]\\|\\${\\)\\(#+\\)" (1 "_"))
     ;; In a '...' the backslash is not escaping.
     ("\\(\\\\\\)'" (1 (sh-font-lock-backslash-quote)))
     ;; Make sure $@ and $? are correctly recognized as sexps.
@@ -1096,12 +1103,12 @@ subshells can nest."
     (")" (0 (sh-font-lock-paren (match-beginning 0))))
     ;; Highlight (possibly nested) subshells inside "" quoted
     ;; regions correctly.
-    ("\"\\(?:\\(?:[^\\\"]\\|\\)*?[^\\]\\(?:\\\\\\\\\\)*\\)??\\(\\$(\\|`\\)"
+    ("\"\\(?:\\(?:[^\\\"]\\|\\\\.\\)*?\\)??\\(\\$(\\|`\\)"
      (1 (ignore
-         ;; Save excursion because we want to also apply other
-         ;; syntax-propertize rules within the affected region.
-         (if (nth 8 (syntax-ppss))
+         (if (nth 8 (save-excursion (syntax-ppss (match-beginning 0))))
              (goto-char (1+ (match-beginning 0)))
+           ;; Save excursion because we want to also apply other
+           ;; syntax-propertize rules within the affected region.
            (save-excursion
              (sh-font-lock-quoted-subshell end)))))))
    (point) end))
@@ -4069,7 +4076,7 @@ The document is bounded by `sh-here-document-word'."
   (self-insert-command (prefix-numeric-value arg))
   (or arg (sh--maybe-here-document)))
 (make-obsolete 'sh--maybe-here-document
-               'sh-electric-here-document-mode "24.2")
+               'sh-electric-here-document-mode "24.3")
 
 (defun sh--maybe-here-document ()
   (or (not (looking-back "[^<]<<"))

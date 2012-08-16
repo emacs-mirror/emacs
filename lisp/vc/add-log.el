@@ -223,13 +223,15 @@ Note: The search is conducted only within 10%, at the beginning of the file."
 (define-obsolete-face-alias 'change-log-function-face
   'change-log-function "22.1")
 
-(defface change-log-acknowledgement
+(defface change-log-acknowledgment
   '((t (:inherit font-lock-comment-face)))
   "Face for highlighting acknowledgments."
   :version "21.1"
   :group 'change-log)
+(define-obsolete-face-alias 'change-log-acknowledgement
+  'change-log-acknowledgment "24.3")
 (define-obsolete-face-alias 'change-log-acknowledgement-face
-  'change-log-acknowledgement "22.1")
+  'change-log-acknowledgment "22.1")
 
 (defconst change-log-file-names-re "^\\( +\\|\t\\)\\* \\([^ ,:([\n]+\\)")
 (defconst change-log-start-entry-re "^\\sw.........[0-9:+ ]*")
@@ -271,14 +273,14 @@ Note: The search is conducted only within 10%, at the beginning of the file."
     ;; Function of change.
     ("<\\([^>\n]+\\)>\\(:\\| (\\)" (1 'change-log-function))
     ;;
-    ;; Acknowledgements.
+    ;; Acknowledgments.
     ;; Don't include plain "From" because that is vague;
     ;; we want to encourage people to say something more specific.
     ;; Note that the FSF does not use "Patches by"; our convention
     ;; is to put the name of the author of the changes at the top
     ;; of the change log entry.
     ("\\(^\\( +\\|\t\\)\\|  \\)\\(Thanks to\\|Patch\\(es\\)? by\\|Report\\(ed by\\| from\\)\\|Suggest\\(ed by\\|ion from\\)\\)"
-     3 'change-log-acknowledgement))
+     3 'change-log-acknowledgment))
   "Additional expressions to highlight in Change Log mode.")
 
 (defun change-log-search-file-name (where)
@@ -1047,6 +1049,7 @@ Runs `change-log-mode-hook'.
 	show-trailing-whitespace t)
   (set (make-local-variable 'fill-forward-paragraph-function)
        'change-log-fill-forward-paragraph)
+  (set (make-local-variable 'comment-start) nil)
   ;; Make sure we call `change-log-indent' when filling.
   (set (make-local-variable 'fill-indent-according-to-mode) t)
   ;; Avoid that filling leaves behind a single "*" on a line.

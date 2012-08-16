@@ -139,6 +139,8 @@ all: compile-main $(lisp)/cus-load.el $(lisp)/finder-inf.el
 
 doit:
 
+.PHONY: all doit custom-deps finder-data autoloads update-subdirs
+
 # custom-deps and finder-data both used to scan _all_ the *.el files.
 # This could lead to problems in parallel builds if automatically
 # generated *.el files (eg loaddefs etc) were being changed at the same time.
@@ -184,6 +186,8 @@ update-subdirs: doit
 	   $(top_srcdir)/build-aux/update-subdirs $$file; \
 	done;
 
+.PHONY: updates bzr-update update-authors
+
 # Some modes of make-dist use this.
 updates: update-subdirs autoloads finder-data custom-deps
 
@@ -215,6 +219,7 @@ TAGS TAGS-LISP: $(lisptagsfiles1) $(lisptagsfiles2) $(lisptagsfiles3) $(lisptags
 # src/Makefile.in to rebuild a particular Lisp file, no questions asked.
 # Use byte-compile-refresh-preloaded to try and work around some of
 # the most common problems of not bootstrapping from a clean state.
+.PHONY: compile-onefile
 compile-onefile:
 	@echo Compiling $(THEFILE)
 	@# Use byte-compile-refresh-preloaded to try and work around some of
@@ -302,6 +307,8 @@ compile-always: doit
 	cd $(lisp); rm -f *.elc */*.elc */*/*.elc */*/*/*.elc
 	$(MAKE) $(MFLAGS) compile EMACS=$(EMACS)
 
+.PHONY: compile-calc backup-compiled-files compile-after-backup
+
 compile-calc:
 	for el in $(lisp)/calc/*.el; do \
 	  echo Compiling $$el; \
@@ -334,6 +341,7 @@ compile-after-backup: backup-compiled-files compile-always
 # files that use byte-compile-dynamic are updated.
 # There is no reason to use this rule unless you only have a single
 # core and CPU time is an issue.
+.PHONY: compile-one-process
 compile-one-process: doit $(LOADDEFS) compile-first $(lisp)/progmodes/cc-mode.elc
 	$(emacs) $(BYTE_COMPILE_FLAGS) \
 	    --eval "(batch-byte-recompile-directory 0)" $(lisp)
@@ -356,6 +364,7 @@ MH_E_SRC = $(MH_E_DIR)/mh-acros.el $(MH_E_DIR)/mh-alias.el    \
 	$(MH_E_DIR)/mh-tool-bar.el $(MH_E_DIR)/mh-utils.el    \
 	$(MH_E_DIR)/mh-xface.el
 
+.PHONY: mh-autoloads
 mh-autoloads: $(MH_E_DIR)/mh-loaddefs.el
 $(MH_E_DIR)/mh-loaddefs.el: $(MH_E_SRC)
 	$(emacs) -l autoload \
@@ -417,6 +426,8 @@ $(CAL_DIR)/hol-loaddefs.el: $(CAL_SRC)
 	   --eval "(setq generated-autoload-file \"$@\")" \
 	   --eval "(setq make-backup-files nil)" \
 	   -f batch-update-autoloads $(CAL_DIR)
+
+.PHONY: bootstrap-clean distclean maintainer-clean
 
 bootstrap-clean:
 	cd $(lisp); rm -f *.elc */*.elc */*/*.elc */*/*/*.elc $(AUTOGENEL)

@@ -185,12 +185,7 @@ Assumes the caller has bound `macroexpand-all-environment'."
        ;; Macro expand compiler macros.  This cannot be delayed to
        ;; byte-optimize-form because the output of the compiler-macro can
        ;; use macros.
-       (let ((handler nil))
-         (while (and (symbolp func)
-                     (not (setq handler (get func 'compiler-macro)))
-                     (fboundp func))
-           ;; Follow the sequence of aliases.
-           (setq func (symbol-function func)))
+       (let ((handler (function-get func 'compiler-macro)))
          (if (null handler)
              ;; No compiler macro.  We just expand each argument (for
              ;; setq/setq-default this works alright because the variable names
@@ -198,12 +193,9 @@ Assumes the caller has bound `macroexpand-all-environment'."
              (macroexp--all-forms form 1)
            ;; If the handler is not loaded yet, try (auto)loading the
            ;; function itself, which may in turn load the handler.
-           (when (and (not (functionp handler))
-                      (fboundp func) (eq (car-safe (symbol-function func))
-                                         'autoload))
+           (unless (functionp handler)
              (ignore-errors
-               (load (nth 1 (symbol-function func))
-                     'noerror 'nomsg)))
+               (autoload-do-load (indirect-function func) func)))
            (let ((newform (macroexp--compiler-macro handler form)))
              (if (eq form newform)
                  ;; The compiler macro did not find anything to do.
@@ -274,7 +266,7 @@ be skipped; if nil, as is usual, `macroexp-const-p' is used."
         (expsym (make-symbol "exp")))
     `(let* ((,expsym ,exp)
             (,var (if (funcall #',(or test #'macroexp-const-p) ,expsym)
-                      ,expsym (make-symbol "x")))
+                      ,expsym (make-symbol ,(symbol-name var))))
             (,bodysym ,(macroexp-progn exps)))
        (if (eq ,var ,expsym) ,bodysym
          (macroexp-let* (list (list ,var ,expsym))

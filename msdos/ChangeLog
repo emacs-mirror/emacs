@@ -1,3 +1,36 @@
+2012-08-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* sedlibmk.inp (allocator.$(OBJEXT), careadlinkat.$(OBJEXT)): Fix
+	editing out.
+
+	* sed2v2.inp (IS_DEVICE_SEP): Edit to match ':'.
+	(IS_DIRECTORY_SEP, INTERNAL_TERMINAL): Fix Sed command syntax.
+	(MSDOS): Define only if undefined, as MSDOS is a built-in macro,
+	unless some std= switch to GCC is used.
+
+2012-08-01  Glenn Morris  <rgm@gnu.org>
+
+	* sed2v2.inp (HAVE_WCHAR_H): Fix typo.
+
+	* sed2v2.inp (MSDOS, DOS_NT, FLOAT_CHECK_DOMAIN)
+	(HAVE_INVERSE_HYPERBOLIC, DEVICE_SEP, IS_DIRECTORY_SEP, IS_ANY_SEP)
+	(INTERNAL_TERMINAL, NULL_DEVICE, SEPCHAR, USER_FULL_NAME)
+	(_setjmp, _longjmp): Move here from src/s/msdos.h.
+	(config_opsysfile, config_machfile): Remove.
+	* sed1v2.inp (M_FILE, S_FILE): Remove.
+	* mainmake.v2 (TAGS, tags): Remove src/s/msdos.h.
+
+2012-07-31  Glenn Morris  <rgm@gnu.org>
+
+	* sed1v2.inp (S_FILE): Update for format change.
+
+2012-07-28  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use Gnulib stdalign module (Bug#9772, Bug#9960).
+	* sed2v2.inp (HAVE_ATTRIBUTE_ALIGNED): Remove edit.
+	* sedlibmk.inp (STDALIGN_H, @GL_GENERATE_STDALIGN_H_TRUE@)
+	(GL_GENERATE_STDALIGN_H_FALSE): New edits.
+
 2012-07-14  Eli Zaretskii  <eliz@gnu.org>
 
 	* sed1v2.inp: In the recipe for $(leimdir)/leim-list.el, edit the

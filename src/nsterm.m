@@ -39,6 +39,10 @@ GNUstep port and post-20 update by Adrian Robert (arobert@cogsci.ucsd.edu)
 #include <c-strcase.h>
 #include <ftoastr.h>
 
+#ifdef HAVE_FCNTL_H
+#include <fcntl.h>
+#endif
+
 #include "lisp.h"
 #include "blockinput.h"
 #include "sysselect.h"
@@ -55,7 +59,7 @@ GNUstep port and post-20 update by Adrian Robert (arobert@cogsci.ucsd.edu)
 
 #include "window.h"
 #include "keyboard.h"
-
+#include "buffer.h"
 #include "font.h"
 
 /* call tracing */
@@ -139,7 +143,7 @@ static unsigned convert_ns_to_X_keysym[] =
 };
 
 static Lisp_Object Qmodifier_value;
-Lisp_Object Qalt, Qcontrol, Qhyper, Qmeta, Qsuper, Qnone;
+Lisp_Object Qalt, Qcontrol, Qhyper, Qmeta, Qsuper;
 extern Lisp_Object Qcursor_color, Qcursor_type, Qns, Qleft;
 
 static Lisp_Object QUTF8_STRING;
@@ -184,17 +188,21 @@ static BOOL ns_menu_bar_is_hidden = NO;
 static BOOL send_appdefined = YES;
 static NSEvent *last_appdefined_event = 0;
 static NSTimer *timed_entry = 0;
-static NSTimer *fd_entry = nil;
 static NSTimer *scroll_repeat_entry = nil;
-static fd_set select_readfds, t_readfds;
-static int select_nfds;
+static fd_set select_readfds, select_writefds;
+enum { SELECT_HAVE_READ = 1, SELECT_HAVE_WRITE = 2, SELECT_HAVE_TMO = 4 };
+static int select_nfds = 0, select_valid = 0;
+static EMACS_TIME select_timeout = { 0, 0 };
+static int selfds[2] = { -1, -1 };
+static pthread_mutex_t select_mutex;
+static int apploopnr = 0;
 static NSAutoreleasePool *outerpool;
 static struct input_event *emacs_event = NULL;
 static struct input_event *q_event_ptr = NULL;
 static int n_emacs_events_pending = 0;
 static NSMutableArray *ns_pending_files, *ns_pending_service_names,
   *ns_pending_service_args;
-static BOOL inNsSelect = 0;
+static BOOL ns_do_open_file = NO;
 
 /* Convert modifiers in a NeXTstep event to emacs style modifiers.  */
 #define NS_FUNCTION_KEY_MASK 0x800000
@@ -251,15 +259,20 @@ static BOOL inNsSelect = 0;
 
 /* This is a piece of code which is common to all the event handling
    methods.  Maybe it should even be a function.  */
-#define EV_TRAILER(e)                                         \
-  {                                                           \
-  XSETFRAME (emacs_event->frame_or_window, emacsframe);       \
-  if (e) emacs_event->timestamp = EV_TIMESTAMP (e);           \
-  n_emacs_events_pending++;                                   \
-  kbd_buffer_store_event_hold (emacs_event, q_event_ptr);     \
-  EVENT_INIT (*emacs_event);                                  \
-  ns_send_appdefined (-1);                                    \
-  }
+#define EV_TRAILER(e)                                                   \
+    {                                                                   \
+      XSETFRAME (emacs_event->frame_or_window, emacsframe);             \
+      if (e) emacs_event->timestamp = EV_TIMESTAMP (e);                 \
+      if (q_event_ptr)                                                  \
+        {                                                               \
+          n_emacs_events_pending++;                                     \
+          kbd_buffer_store_event_hold (emacs_event, q_event_ptr);       \
+        }                                                               \
+      else                                                              \
+        kbd_buffer_store_event (emacs_event);                           \
+      EVENT_INIT (*emacs_event);                                        \
+      ns_send_appdefined (-1);                                          \
+    }
 
 void x_set_cursor_type (struct frame *, Lisp_Object, Lisp_Object);
 
@@ -328,8 +341,7 @@ ns_exec_path (void)
   NSString *binDir = [bundle bundlePath];
   NSString *resourcePath, *resourcePaths;
   NSRange range;
-  BOOL onWindows = NO;       /* FIXME determine this somehow  */
-  NSString *pathSeparator = onWindows ? @";" : @":";
+  NSString *pathSeparator = [NSString stringWithFormat: @"%c", SEPCHAR];
   NSFileManager *fileManager = [NSFileManager defaultManager];
   NSArray *paths;
   NSEnumerator *pathEnum;
@@ -376,8 +388,7 @@ ns_load_path (void)
   NSBundle *bundle = [NSBundle mainBundle];
   NSString *resourceDir = [bundle resourcePath];
   NSString *resourcePath, *resourcePaths;
-  BOOL onWindows = NO;          /* FIXME determine this somehow */
-  NSString *pathSeparator = onWindows ? @";" : @":";
+  NSString *pathSeparator = [NSString stringWithFormat: @"%c", SEPCHAR];
   NSFileManager *fileManager = [NSFileManager defaultManager];
   BOOL isDir;
   NSArray *paths = [resourceDir stringsByAppendingPaths:
@@ -1019,7 +1030,7 @@ ns_frame_rehighlight (struct frame *frame)
            : dpyinfo->x_focus_frame);
       if (!FRAME_LIVE_P (dpyinfo->x_highlight_frame))
         {
-          FRAME_FOCUS_FRAME (dpyinfo->x_focus_frame) = Qnil;
+          FSET (dpyinfo->x_focus_frame, focus_frame, Qnil);
           dpyinfo->x_highlight_frame = dpyinfo->x_focus_frame;
         }
     }
@@ -2266,7 +2277,6 @@ ns_draw_fringe_bitmap (struct window *w, struct glyph_row *row,
   if (p->which)
     {
       NSRect r = NSMakeRect (p->x+xAdjust, p->y, p->wd, p->h);
-      NSPoint pt = r.origin;
       EmacsImage *img = bimgs[p->which - 1];
 
       if (!img)
@@ -2289,9 +2299,13 @@ ns_draw_fringe_bitmap (struct window *w, struct glyph_row *row,
          to erase the whole background. */
       [ns_lookup_indexed_color(face->background, f) set];
       NSRectFill (r);
-      pt.y += p->h;
       [img setXBMColor: ns_lookup_indexed_color(face->foreground, f)];
-      [img compositeToPoint: pt operation: NSCompositeSourceOver];
+      [img drawInRect: r
+              fromRect: NSZeroRect
+             operation: NSCompositeSourceOver
+              fraction: 1.0
+           respectFlipped: YES
+                hints: nil];
     }
   ns_unfocus (f);
 }
@@ -3034,8 +3048,12 @@ ns_dumpglyphs_image (struct glyph_string *s, NSRect r)
 
   /* Draw the image.. do we need to draw placeholder if img ==nil? */
   if (img != nil)
-    [img compositeToPoint: NSMakePoint (x, y + s->slice.height)
-                operation: NSCompositeSourceOver];
+      [img drawInRect: br
+              fromRect: NSZeroRect
+             operation: NSCompositeSourceOver
+              fraction: 1.0
+           respectFlipped: YES
+                hints: nil];
 
   if (s->hl == DRAW_CURSOR)
     {
@@ -3371,14 +3389,6 @@ ns_send_appdefined (int value)
           timed_entry = nil;
         }
 
-      /* Ditto for file descriptor poller */
-      if (fd_entry)
-        {
-          [fd_entry invalidate];
-          [fd_entry release];
-          fd_entry = nil;
-        }
-
       nxev = [NSEvent otherEventWithType: NSApplicationDefined
                                 location: NSMakePoint (0, 0)
                            modifierFlags: 0
@@ -3396,7 +3406,6 @@ ns_send_appdefined (int value)
     }
 }
 
-
 static int
 ns_read_socket (struct terminal *terminal, int expected,
                 struct input_event *hold_quit)
@@ -3410,6 +3419,9 @@ ns_read_socket (struct terminal *terminal, int expected,
   int nevents;
 
 /* NSTRACE (ns_read_socket); */
+
+  if ([NSApp modalWindow] != nil)
+    return -1;
 
   if (interrupt_input_blocked)
     {
@@ -3457,24 +3469,14 @@ ns_read_socket (struct terminal *terminal, int expected,
       /* Run and wait for events.  We must always send one NX_APPDEFINED event
          to ourself, otherwise [NXApp run] will never exit.  */
       send_appdefined = YES;
+      ns_send_appdefined (-1);
 
-      /* If called via ns_select, this is called once with expected=1,
-         because we expect either the timeout or file descriptor activity.
-         In this case the first event through will either be real input or
-         one of these.  read_avail_input() then calls once more with expected=0
-         and in that case we need to return quickly if there is nothing.
-         If we're being called outside of that, it's also OK to return quickly
-         after one iteration through the event loop, since other terms do
-         this and emacs expects it. */
-      if (!(inNsSelect && expected))
+      if (++apploopnr != 1)
         {
-          /* Post an application defined event on the event queue.  When this is
-             received the [NXApp run] will return, thus having processed all
-             events which are currently queued, if any.  */
-          ns_send_appdefined (-1);
+          abort ();
         }
-
       [NSApp run];
+      --apploopnr;
     }
 
   nevents = n_emacs_events_pending;
@@ -3494,65 +3496,89 @@ ns_select (int nfds, fd_set *readfds, fd_set *writefds,
    -------------------------------------------------------------------------- */
 {
   int result;
-  double time;
   NSEvent *ev;
-  struct timespec select_timeout;
+  int k, nr = 0;
+  struct input_event event;
+  char c;
 
 /*  NSTRACE (ns_select); */
 
-  if (NSApp == nil || inNsSelect == 1 /* || ([NSApp isActive] == NO &&
-                      [NSApp nextEventMatchingMask:NSAnyEventMask untilDate:nil
- inMode:NSDefaultRunLoopMode dequeue:NO] == nil) */)
+  for (k = 0; readfds && k < nfds+1; k++)
+    if (FD_ISSET(k, readfds)) ++nr;
+
+  if (NSApp == nil
+      || (timeout && timeout->tv_sec == 0 && timeout->tv_nsec == 0))
     return pselect (nfds, readfds, writefds, exceptfds, timeout, sigmask);
 
-  /* Save file descriptor set, which gets overwritten in calls to select ()
-     Note, this is called from process.c, and only readfds is ever set */
-  if (readfds)
+  [outerpool release];
+  outerpool = [[NSAutoreleasePool alloc] init];
+
+  
+  send_appdefined = YES;
+  if (nr > 0)
     {
-      memcpy (&select_readfds, readfds, sizeof (fd_set));
+      pthread_mutex_lock (&select_mutex);
       select_nfds = nfds;
+      select_valid = 0;
+      if (readfds)
+        {
+          select_readfds = *readfds;
+          select_valid += SELECT_HAVE_READ;
+        }
+      if (writefds)
+        {
+          select_writefds = *writefds;
+          select_valid += SELECT_HAVE_WRITE;
+        }
+
+      if (timeout)
+        {
+          select_timeout = *timeout;
+          select_valid += SELECT_HAVE_TMO;
+        }
+
+      pthread_mutex_unlock (&select_mutex);
+
+      /* Inform fd_handler that select should be called */
+      c = 'g';
+      write (selfds[1], &c, 1);
     }
-  else
-    select_nfds = 0;
+  else if (nr == 0 && timeout)
+    {
+      /* No file descriptor, just a timeout, no need to wake fd_handler  */
+      double time = EMACS_TIME_TO_DOUBLE (*timeout);
+      timed_entry = [[NSTimer scheduledTimerWithTimeInterval: time
+                                                      target: NSApp
+                                                    selector:
+                                  @selector (timeout_handler:)
+                                                    userInfo: 0
+                                                     repeats: NO]
+                      retain];
+    }
+  else /* No timeout and no file descriptors, can this happen?  */
+    {
+      /* Send appdefined so we exit from the loop */
+      ns_send_appdefined (-1);
+    }
 
-    /* Try an initial select for pending data on input files */
-  select_timeout.tv_sec = select_timeout.tv_nsec = 0;
-  result = pselect (nfds, readfds, writefds, exceptfds,
-		    &select_timeout, sigmask);
-  if (result)
-    return result;
+  EVENT_INIT (event);
+  BLOCK_INPUT;
+  emacs_event = &event;
+  if (++apploopnr != 1)
+    {
+      abort();
+    }
+  [NSApp run];
+  --apploopnr;
+  emacs_event = NULL;
+  if (nr > 0 && readfds)
+    {
+      c = 's';
+      write (selfds[1], &c, 1);
+    }
+  UNBLOCK_INPUT;
 
-  /* if (!timeout || timed_entry || fd_entry)
-       fprintf (stderr, "assertion failed: timeout null or timed_entry/fd_entry non-null in ns_select\n"); */
-
-    /* set a timeout and run the main AppKit event loop while continuing
-       to monitor the files */
-  time = EMACS_TIME_TO_DOUBLE (*timeout);
-  timed_entry = [[NSTimer scheduledTimerWithTimeInterval: time
-                                           target: NSApp
-                                         selector: @selector (timeout_handler:)
-                                         userInfo: 0
-                                          repeats: YES] /* for safe removal */
-                                                         retain];
-
-  /* set a periodic task to try the pselect () again */
-  fd_entry = [[NSTimer scheduledTimerWithTimeInterval: 0.1
-                                               target: NSApp
-                                             selector: @selector (fd_handler:)
-                                             userInfo: 0
-                                              repeats: YES]
-               retain];
-
-  /* Let Application dispatch events until it receives an event of the type
-     NX_APPDEFINED, which should only be sent by timeout_handler.
-     We tell read_avail_input() that input is "expected" because we do expect
-     either the timeout or fd handler to fire, and if they don't, the original
-     call from process.c that got us here expects us to wait until some input
-     comes. */
-  inNsSelect = 1;
-  gobble_input (1);
   ev = last_appdefined_event;
-  inNsSelect = 0;
 
   if (ev)
     {
@@ -3566,25 +3592,28 @@ ns_select (int nfds, fd_set *readfds, fd_set *writefds,
       if (t == -2)
         {
           /* The NX_APPDEFINED event we received was a timeout. */
-          return 0;
+          result = 0;
         }
       else if (t == -1)
         {
           /* The NX_APPDEFINED event we received was the result of
              at least one real input event arriving.  */
           errno = EINTR;
-          return -1;
+          result = -1;
         }
       else
         {
-          /* Received back from pselect () in fd_handler; copy the results */
-          if (readfds)
-            memcpy (readfds, &select_readfds, sizeof (fd_set));
-          return t;
+          /* Received back from select () in fd_handler; copy the results */
+          pthread_mutex_lock (&select_mutex);
+          if (readfds) *readfds = select_readfds;
+          if (writefds) *writefds = select_writefds;
+          if (timeout) *timeout = select_timeout;
+          pthread_mutex_unlock (&select_mutex);
+          result = t;
         }
     }
-  /* never reached, shut compiler up */
-  return 0;
+
+  return result;
 }
 
 
@@ -3667,7 +3696,7 @@ ns_set_vertical_scroll_bar (struct window *window,
         {
           bar = XNS_SCROLL_BAR (window->vertical_scroll_bar);
           [bar removeFromSuperview];
-          window->vertical_scroll_bar = Qnil;
+          WSET (window, vertical_scroll_bar, Qnil);
         }
       ns_clear_frame_area (f, sb_left, top, width, height);
       UNBLOCK_INPUT;
@@ -3678,7 +3707,7 @@ ns_set_vertical_scroll_bar (struct window *window,
     {
       ns_clear_frame_area (f, sb_left, top, width, height);
       bar = [[EmacsScroller alloc] initFrame: r window: win];
-      window->vertical_scroll_bar = make_save_value (bar, 0);
+      WSET (window, vertical_scroll_bar, make_save_value (bar, 0));
     }
   else
     {
@@ -3732,7 +3761,7 @@ ns_redeem_scroll_bar (struct window *window)
   NSTRACE (ns_redeem_scroll_bar);
   if (!NILP (window->vertical_scroll_bar))
     {
-      bar =XNS_SCROLL_BAR (window->vertical_scroll_bar);
+      bar = XNS_SCROLL_BAR (window->vertical_scroll_bar);
       [bar reprieve];
     }
 }
@@ -4015,6 +4044,21 @@ ns_term_init (Lisp_Object display_name)
     {
       baud_rate = 38400;
       Fset_input_interrupt_mode (Qnil);
+
+      if (selfds[0] == -1)
+        {
+          if (pipe (selfds) == -1)
+            {
+              fprintf (stderr, "Failed to create pipe: %s\n",
+                       emacs_strerror (errno));
+              abort ();
+            }
+
+          fcntl (selfds[0], F_SETFL, O_NONBLOCK|fcntl (selfds[0], F_GETFL));
+          FD_ZERO (&select_readfds);
+          FD_ZERO (&select_writefds);
+          pthread_mutex_init (&select_mutex, NULL);
+        }
       ns_initialized = 1;
     }
 
@@ -4022,13 +4066,18 @@ ns_term_init (Lisp_Object display_name)
   ns_pending_service_names = [[NSMutableArray alloc] init];
   ns_pending_service_args = [[NSMutableArray alloc] init];
 
-  /* Start app and create the main menu, window, view.
+/* Start app and create the main menu, window, view.
      Needs to be here because ns_initialize_display_info () uses AppKit classes.
      The view will then ask the NSApp to stop and return to Emacs. */
   [EmacsApp sharedApplication];
   if (NSApp == nil)
     return NULL;
   [NSApp setDelegate: NSApp];
+
+  /* Start the select thread.  */
+  [NSThread detachNewThreadSelector:@selector (fd_handler:)
+                           toTarget:NSApp
+                         withObject:nil];
 
   /* debugging: log all notifications */
   /*   [[NSNotificationCenter defaultCenter] addObserver: NSApp
@@ -4042,7 +4091,7 @@ ns_term_init (Lisp_Object display_name)
 
   terminal->kboard = xmalloc (sizeof *terminal->kboard);
   init_kboard (terminal->kboard);
-  KVAR (terminal->kboard, Vwindow_system) = Qns;
+  KSET (terminal->kboard, Vwindow_system, Qns);
   terminal->kboard->next_kboard = all_kboards;
   all_kboards = terminal->kboard;
   /* Don't let the initial kboard remain current longer than necessary.
@@ -4202,7 +4251,7 @@ ns_term_init (Lisp_Object display_name)
 #endif /* MAC OS X menu setup */
 
   [NSApp run];
-
+  ns_do_open_file = YES;
   return dpyinfo;
 }
 
@@ -4429,7 +4478,7 @@ ns_term_shutdown (int sig)
     return NSTerminateNow;
 
     ret = NSRunAlertPanel(ns_app_name,
-                          [NSString stringWithUTF8String:"Exit requested.  Would you like to Save Buffers and Exit, or Cancel the request?"],
+                          @"Exit requested.  Would you like to Save Buffers and Exit, or Cancel the request?",
                           @"Save Buffers and Exit", @"Cancel", nil);
 
     if (ret == NSAlertDefaultReturn)
@@ -4439,11 +4488,21 @@ ns_term_shutdown (int sig)
     return NSTerminateNow;  /* just in case */
 }
 
+static int
+not_in_argv (NSString *arg)
+{
+  int k;
+  const char *a = [arg UTF8String];
+  for (k = 1; k < initial_argc; ++k)
+    if (strcmp (a, initial_argv[k]) == 0) return 0;
+  return 1;
+}
 
 /*   Notification from the Workspace to open a file */
 - (BOOL)application: sender openFile: (NSString *)file
 {
-  [ns_pending_files addObject: file];
+  if (ns_do_open_file || not_in_argv (file))
+    [ns_pending_files addObject: file];
   return YES;
 }
 
@@ -4451,7 +4510,8 @@ ns_term_shutdown (int sig)
 /*   Open a file as a temporary file */
 - (BOOL)application: sender openTempFile: (NSString *)file
 {
-  [ns_pending_files addObject: file];
+  if (ns_do_open_file || not_in_argv (file))
+    [ns_pending_files addObject: file];
   return YES;
 }
 
@@ -4459,19 +4519,23 @@ ns_term_shutdown (int sig)
 /*   Notification from the Workspace to open a file noninteractively (?) */
 - (BOOL)application: sender openFileWithoutUI: (NSString *)file
 {
-  [ns_pending_files addObject: file];
+  if (ns_do_open_file || not_in_argv (file))
+    [ns_pending_files addObject: file];
   return YES;
 }
-
 
 /*   Notification from the Workspace to open multiple files */
 - (void)application: sender openFiles: (NSArray *)fileList
 {
   NSEnumerator *files = [fileList objectEnumerator];
   NSString *file;
-  while ((file = [files nextObject]) != nil)
-    [ns_pending_files addObject: file];
-
+  /* Don't open files from the command line unconditionally,
+     Cocoa parses the command line wrong, --option value tries to open value
+     if --option is the last option.  */
+  while ((file = [files nextObject]) != nil) 
+    if (ns_do_open_file || not_in_argv (file))
+      [ns_pending_files addObject: file];
+  
   [self replyToOpenOrPrint: NSApplicationDelegateReplySuccess];
 
 }
@@ -4523,26 +4587,91 @@ ns_term_shutdown (int sig)
   ns_send_appdefined (-2);
 }
 
-- (void)fd_handler: (NSTimer *) fdEntry
+- (void)fd_handler:(id)unused
 /* --------------------------------------------------------------------------
      Check data waiting on file descriptors and terminate if so
    -------------------------------------------------------------------------- */
 {
   int result;
-  struct timespec select_timeout;
+  int waiting = 1, nfds;
+  char c;
+
+  SELECT_TYPE readfds, writefds, *wfds;
+  EMACS_TIME timeout, *tmo;
+
   /* NSTRACE (fd_handler); */
 
-  if (select_nfds == 0)
-    return;
-
-  memcpy (&t_readfds, &select_readfds, sizeof (fd_set));
-
-  select_timeout.tv_sec = select_timeout.tv_nsec = 0;
-  result = pselect (select_nfds, &t_readfds, NULL, NULL, &select_timeout, NULL);
-  if (result)
+  for (;;) 
     {
-      memcpy (&select_readfds, &t_readfds, sizeof (fd_set));
-      ns_send_appdefined (result);
+      if (waiting)
+        {
+          SELECT_TYPE fds;
+
+          FD_SET (selfds[0], &fds);
+          result = select (selfds[0]+1, &fds, NULL, NULL, NULL);
+          if (result > 0)
+            {
+              read (selfds[0], &c, 1);
+              if (c == 'g') waiting = 0;
+            }
+        }
+      else
+        {
+          pthread_mutex_lock (&select_mutex);
+          nfds = select_nfds;
+
+          if (select_valid & SELECT_HAVE_READ)
+            readfds = select_readfds;
+          else
+            FD_ZERO (&readfds);
+
+          if (select_valid & SELECT_HAVE_WRITE)
+            {
+              writefds = select_writefds;
+              wfds = &writefds;
+            }
+          else
+            wfds = NULL;
+          if (select_valid & SELECT_HAVE_TMO)
+            {
+              timeout = select_timeout;
+              tmo = &timeout;
+            }
+          else
+            tmo = NULL;
+
+          pthread_mutex_unlock (&select_mutex);
+
+          FD_SET (selfds[0], &readfds);
+          if (selfds[0] >= nfds) nfds = selfds[0]+1;
+
+          result = pselect (nfds, &readfds, wfds, NULL, tmo, NULL);
+
+          if (result == 0)
+            ns_send_appdefined (-2);
+          else if (result > 0)
+            {
+              if (FD_ISSET (selfds[0], &readfds))
+                {
+                  read (selfds[0], &c, 1);
+                  if (c == 's') waiting = 1;
+                }
+              else
+                {
+                  pthread_mutex_lock (&select_mutex);
+                  if (select_valid & SELECT_HAVE_READ)
+                    select_readfds = readfds;
+                  if (select_valid & SELECT_HAVE_WRITE)
+                    select_writefds = writefds;
+                  if (select_valid & SELECT_HAVE_TMO)
+                    select_timeout = timeout;
+                  pthread_mutex_unlock (&select_mutex);
+
+                  ns_send_appdefined (result);
+                }
+            }
+          waiting = 1;
+        }
     }
 }
 
@@ -5059,9 +5188,9 @@ ns_term_shutdown (int sig)
 }
 
 
-- (long)conversationIdentifier
+- (NSInteger)conversationIdentifier
 {
-  return (long)self;
+  return (NSInteger)self;
 }
 
 
@@ -5756,7 +5885,7 @@ ns_term_shutdown (int sig)
   emacs_event->kind = TOOL_BAR_EVENT;
 /*   XSETINT (emacs_event->code, 0); */
   emacs_event->arg = AREF (emacsframe->tool_bar_items,
-                          idx + TOOL_BAR_ITEM_KEY);
+			   idx + TOOL_BAR_ITEM_KEY);
   emacs_event->modifiers = EV_MODIFIERS (theEvent);
   EV_TRAILER (theEvent);
   return self;
@@ -6038,6 +6167,63 @@ ns_term_shutdown (int sig)
 
 @implementation EmacsWindow
 
+#ifdef NS_IMPL_COCOA
+- (id)accessibilityAttributeValue:(NSString *)attribute
+{
+  Lisp_Object str = Qnil;
+  struct frame *f = SELECTED_FRAME ();
+  struct buffer *curbuf = XBUFFER (XWINDOW (f->selected_window)->buffer);
+ 
+  if ([attribute isEqualToString:NSAccessibilityRoleAttribute])
+    return NSAccessibilityTextFieldRole;
+
+  if ([attribute isEqualToString:NSAccessibilitySelectedTextAttribute]
+      && curbuf && ! NILP (BVAR (curbuf, mark_active)))
+    {
+      str = ns_get_local_selection (QPRIMARY, QUTF8_STRING);
+    }
+  else if (curbuf && [attribute isEqualToString:NSAccessibilityValueAttribute])
+    {
+      if (! NILP (BVAR (curbuf, mark_active)))
+          str = ns_get_local_selection (QPRIMARY, QUTF8_STRING);
+      
+      if (NILP (str))
+        {
+          ptrdiff_t start_byte = BUF_BEGV_BYTE (curbuf);
+          ptrdiff_t byte_range = BUF_ZV_BYTE (curbuf) - start_byte;
+          ptrdiff_t range = BUF_ZV (curbuf) - BUF_BEGV (curbuf);
+          
+          if (! NILP (BVAR (curbuf, enable_multibyte_characters)))
+            str = make_uninit_multibyte_string (range, byte_range);
+          else
+            str = make_uninit_string (range);
+          /* To check: This returns emacs-utf-8, which is a superset of utf-8.
+             Is this a problem?  */
+          memcpy (SDATA (str), BYTE_POS_ADDR (start_byte), byte_range);
+        }
+    }
+  
+  
+  if (! NILP (str)) 
+    {
+      if (CONSP (str) && SYMBOLP (XCAR (str)))
+        {
+          str = XCDR (str);
+          if (CONSP (str) && NILP (XCDR (str)))
+            str = XCAR (str);
+        }
+      if (STRINGP (str))
+        {
+          const char *utfStr = SSDATA (str);
+          NSString *nsStr = [NSString stringWithUTF8String: utfStr];
+          return nsStr;
+        }
+    }
+  
+  return [super accessibilityAttributeValue:attribute];
+}
+#endif /* NS_IMPL_COCOA */
+
 /* If we have multiple monitors, one above the other, we don't want to
    restrict the height to just one monitor.  So we override this.  */
 - (NSRect)constrainFrameRect:(NSRect)frameRect toScreen:(NSScreen *)screen
@@ -6200,7 +6386,7 @@ ns_term_shutdown (int sig)
 {
   NSTRACE (EmacsScroller_dealloc);
   if (!NILP (win))
-    XWINDOW (win)->vertical_scroll_bar = Qnil;
+    WSET (XWINDOW (win), vertical_scroll_bar, Qnil);
   [super dealloc];
 }
 
@@ -6323,8 +6509,13 @@ ns_term_shutdown (int sig)
   XSETINT (emacs_event->x, loc * pixel_height);
   XSETINT (emacs_event->y, pixel_height-20);
 
-  n_emacs_events_pending++;
-  kbd_buffer_store_event_hold (emacs_event, q_event_ptr);
+  if (q_event_ptr)
+    {
+      n_emacs_events_pending++;
+      kbd_buffer_store_event_hold (emacs_event, q_event_ptr);
+    }
+  else
+    kbd_buffer_store_event (emacs_event);
   EVENT_INIT (*emacs_event);
   ns_send_appdefined (-1);
 }
@@ -6631,7 +6822,6 @@ syms_of_nsterm (void)
   DEFSYM (Qmeta, "meta");
   DEFSYM (Qsuper, "super");
   DEFSYM (Qcontrol, "control");
-  DEFSYM (Qnone, "none");
   DEFSYM (QUTF8_STRING, "UTF8_STRING");
 
   Fput (Qalt, Qmodifier_value, make_number (alt_modifier));

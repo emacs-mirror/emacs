@@ -473,7 +473,7 @@ x_set_title (struct frame *f, Lisp_Object name)
 
   update_mode_lines = 1;
 
-  f->title = name;
+  FSET (f, title, name);
 
   if (NILP (name))
     name = f->name;
@@ -562,7 +562,7 @@ system_process_attributes (Lisp_Object pid)
 	attrs = Fcons (Fcons (Qgroup, build_string (gr->gr_name)), attrs);
       strcpy (cmd, basename (__crt0_argv[0]));
       /* Command name is encoded in locale-coding-system; decode it.  */
-      cmd_str = make_unibyte_string (cmd, strlen (cmd));
+      cmd_str = build_unibyte_string (cmd);
       decoded_cmd = code_convert_string_norecord (cmd_str,
 						  Vlocale_coding_system, 0);
       attrs = Fcons (Fcons (Qcomm, decoded_cmd), attrs);
@@ -630,7 +630,7 @@ system_process_attributes (Lisp_Object pid)
 	q[-1] = '\0';
 
       /* Command line is encoded in locale-coding-system; decode it.  */
-      cmd_str = make_unibyte_string (cmdline, strlen (cmdline));
+      cmd_str = build_unibyte_string (cmdline);
       decoded_cmd = code_convert_string_norecord (cmd_str,
 						  Vlocale_coding_system, 0);
       xfree (cmdline);

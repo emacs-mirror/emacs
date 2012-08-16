@@ -5,6 +5,7 @@
 ;; Author: Roland McGrath <roland@gnu.org>
 ;; Maintainer: FSF
 ;; Keywords: lisp, extensions
+;; Package: emacs
 
 ;; This file is part of GNU Emacs.
 

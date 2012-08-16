@@ -1,3 +1,40 @@
+2012-08-09  Chong Yidong  <cyd@gnu.org>
+
+	* images/splash.svg, images/splash.png: Tweak SVG paths to improve
+	legibility.
+
+2012-08-08  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* NEWS: Mention --without-all and --enable-link-time-optimization.
+
+2012-07-31  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* TODO (NS port): Add text about event loop.
+
+2012-07-29  Paul Eggert  <eggert@cs.ucla.edu>
+
+	deactive->inactive, inactivate->deactivate spelling fixes (Bug#10150)
+	* NEWS: Document these changes.
+
+2012-07-28  Juanma Barranquero  <lekktu@gmail.com>
+
+	* NEWS: Fix typo.
+
+2012-07-26  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Simplify export of symbols to GDB.
+	* emacs-buffer.gdb ($tagmask, $valmask): Remove.
+	(ygetptr): Adjust to recent changes in lisp.h and emacs.c,
+	by using VALMASK instead of $valmask, CHECK_LISP_OBJECT_TYPE
+	instead of gdb_use_union, and DATA_SEG_BITS instead of
+	gdb_data_seg_bits.  Also, use $ptr.i rather than $ptr.u.val.
+
+2012-07-20  Eli Zaretskii  <eliz@gnu.org>
+
+	* tutorials/TUTORIAL.he: Make the first sentence display correctly
+	in a left-to-right paragraph, such as what is shown on the fancy
+	splash screen.
+
 2012-07-15  Leo Liu  <sdl.web@gmail.com>
 
 	* NEWS: Mention exclamation-mark and flymake.

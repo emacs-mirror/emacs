@@ -96,31 +96,6 @@ extern void moncontrol (int mode);
 static const char emacs_version[] = VERSION;
 static const char emacs_copyright[] = "Copyright (C) 2012 Free Software Foundation, Inc.";
 
-/* Make these values available in GDB, which doesn't see macros.  */
-
-#if USE_LSB_TAG
-int gdb_use_lsb EXTERNALLY_VISIBLE = 1;
-#else
-int gdb_use_lsb EXTERNALLY_VISIBLE = 0;
-#endif
-#ifndef CHECK_LISP_OBJECT_TYPE
-int gdb_use_struct EXTERNALLY_VISIBLE = 0;
-#else
-int gdb_use_struct EXTERNALLY_VISIBLE = 1;
-#endif
-int gdb_valbits EXTERNALLY_VISIBLE = VALBITS;
-int gdb_gctypebits EXTERNALLY_VISIBLE = GCTYPEBITS;
-#if defined DATA_SEG_BITS && !USE_LSB_TAG
-uintptr_t gdb_data_seg_bits EXTERNALLY_VISIBLE = DATA_SEG_BITS;
-#else
-uintptr_t gdb_data_seg_bits EXTERNALLY_VISIBLE = 0;
-#endif
-ptrdiff_t PVEC_FLAG EXTERNALLY_VISIBLE = PSEUDOVECTOR_FLAG;
-ptrdiff_t gdb_array_mark_flag EXTERNALLY_VISIBLE = ARRAY_MARK_FLAG;
-/* GDB might say "No enum type named pvec_type" if we don't have at
-   least one symbol with that type, and then xbacktrace could fail.  */
-enum pvec_type const gdb_pvec_type EXTERNALLY_VISIBLE = 0;
-
 /* Empty lisp strings.  To avoid having to build any others.  */
 Lisp_Object empty_unibyte_string, empty_multibyte_string;
 
@@ -447,6 +422,16 @@ init_cmdargs (int argc, char **argv, int skip_args)
   if (!NILP (Vinvocation_directory))
     {
       dir = Vinvocation_directory;
+#ifdef WINDOWSNT
+      /* If we are running from the build directory, set DIR to the
+	 src subdirectory of the Emacs tree, like on Posix
+	 platforms.  */
+      if (SBYTES (dir) > sizeof ("/i386/") - 1
+	  && 0 == strcmp (SSDATA (dir) + SBYTES (dir) - sizeof ("/i386/") + 1,
+			  "/i386/"))
+	dir = Fexpand_file_name (build_string ("../.."), dir);
+#else  /* !WINDOWSNT */
+#endif
       name = Fexpand_file_name (Vinvocation_name, dir);
       while (1)
 	{
@@ -1459,6 +1444,10 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
 
   init_callproc ();	/* Must follow init_cmdargs but not init_sys_modes.  */
   init_lread ();
+#ifdef WINDOWSNT
+  /* Check to see if Emacs has been installed correctly.  */
+  check_windows_init_file ();
+#endif
 
   /* Intern the names of all standard functions and variables;
      define standard keys.  */
@@ -2247,15 +2236,18 @@ synchronize_system_messages_locale (void)
 }
 #endif /* HAVE_SETLOCALE */
 
-#ifndef SEPCHAR
-#define SEPCHAR ':'
-#endif
 
 Lisp_Object
 decode_env_path (const char *evarname, const char *defalt)
 {
   const char *path, *p;
   Lisp_Object lpath, element, tem;
+#ifdef WINDOWSNT
+  int defaulted = 0;
+  const char *emacs_dir = egetenv ("emacs_dir");
+  static const char *emacs_dir_env = "%emacs_dir%/";
+  const size_t emacs_dir_len = strlen (emacs_dir_env);
+#endif
 
   /* It's okay to use getenv here, because this function is only used
      to initialize variables when Emacs starts up, and isn't called
@@ -2265,7 +2257,12 @@ decode_env_path (const char *evarname, const char *defalt)
   else
     path = 0;
   if (!path)
-    path = defalt;
+    {
+      path = defalt;
+#ifdef WINDOWSNT
+      defaulted = 1;
+#endif
+    }
 #ifdef DOS_NT
   /* Ensure values from the environment use the proper directory separator.  */
   if (path)
@@ -2284,6 +2281,16 @@ decode_env_path (const char *evarname, const char *defalt)
 	p = path + strlen (path);
       element = (p - path ? make_string (path, p - path)
 		 : build_string ("."));
+#ifdef WINDOWSNT
+      /* Relative file names in the default path are interpreted as
+	 being relative to $emacs_dir.  */
+      if (emacs_dir && defaulted
+	  && strncmp (path, emacs_dir_env, emacs_dir_len) == 0)
+	element = Fexpand_file_name (Fsubstring (element,
+						 make_number (emacs_dir_len),
+						 Qnil),
+				     build_string (emacs_dir));
+#endif
 
       /* Add /: to the front of the name
 	 if it would otherwise be treated as magic.  */
@@ -2403,7 +2410,7 @@ Special values:
 Anything else (in Emacs 24.1, the possibilities are: aix, berkeley-unix,
 hpux, irix, usg-unix-v) indicates some sort of Unix system.  */);
   Vsystem_type = intern_c_string (SYSTEM_TYPE);
-  /* The above values are from SYSTEM_TYPE in include files under src/s.  */
+  /* See configure.ac (and config.nt) for the possible SYSTEM_TYPEs.  */
 
   DEFVAR_LISP ("system-configuration", Vsystem_configuration,
 	       doc: /* Value is string indicating configuration Emacs was built for.
@@ -2419,7 +2426,7 @@ Emacs is running.  */);
 	       doc: /* Non-nil means Emacs is running without interactive terminal.  */);
 
   DEFVAR_LISP ("kill-emacs-hook", Vkill_emacs_hook,
-	       doc: /* Hook to be run when `kill-emacs' is called.
+	       doc: /* Hook run when `kill-emacs' is called.
 Since `kill-emacs' may be invoked when the terminal is disconnected (or
 in other similar situations), functions placed on this hook should not
 expect to be able to interact with the user.  To ask for confirmation,

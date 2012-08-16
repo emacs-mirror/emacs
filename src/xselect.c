@@ -216,7 +216,7 @@ x_stop_queuing_selection_requests (void)
       TRACE1 ("RESTORE SELECTION EVENT %p", queue_tmp);
       kbd_buffer_unget_event (&queue_tmp->event);
       selection_queue = queue_tmp->next;
-      xfree ((char *)queue_tmp);
+      xfree (queue_tmp);
     }
 }
 
@@ -353,8 +353,8 @@ x_own_selection (Lisp_Object selection_name, Lisp_Object selection_value,
 			    INTEGER_TO_CONS (timestamp), frame);
     prev_value = LOCAL_SELECTION (selection_name, dpyinfo);
 
-    dpyinfo->terminal->Vselection_alist
-      = Fcons (selection_data, dpyinfo->terminal->Vselection_alist);
+    TSET (dpyinfo->terminal, Vselection_alist,
+	  Fcons (selection_data, dpyinfo->terminal->Vselection_alist));
 
     /* If we already owned the selection, remove the old selection
        data.  Don't use Fdelq as that may QUIT.  */
@@ -989,7 +989,7 @@ x_handle_selection_clear (struct input_event *event)
 	    break;
 	  }
     }
-  dpyinfo->terminal->Vselection_alist = Vselection_alist;
+  TSET (dpyinfo->terminal, Vselection_alist, Vselection_alist);
 
   /* Run the `x-lost-selection-functions' abnormal hook.  */
   {
@@ -1039,7 +1039,7 @@ x_clear_frame_selections (FRAME_PTR f)
       args[1] = Fcar (Fcar (t->Vselection_alist));
       Frun_hook_with_args (2, args);
 
-      t->Vselection_alist = XCDR (t->Vselection_alist);
+      TSET (t, Vselection_alist, XCDR (t->Vselection_alist));
     }
 
   /* Delete elements after the beginning of Vselection_alist.  */
@@ -1321,7 +1321,7 @@ x_get_window_property (Display *display, Window window, Atom property,
     goto done;
 
   /* This was allocated by Xlib, so use XFree.  */
-  XFree ((char *) tmp_data);
+  XFree (tmp_data);
 
   if (*actual_type_ret == None || *actual_format_ret == 0)
     goto done;
@@ -1403,7 +1403,7 @@ x_get_window_property (Display *display, Window window, Atom property,
       offset += bytes_gotten;
 
       /* This was allocated by Xlib, so use XFree.  */
-      XFree ((char *) tmp_data);
+      XFree (tmp_data);
     }
 
   XFlush (display);
@@ -1568,7 +1568,7 @@ x_get_window_property_as_lisp_data (Display *display, Window window,
       BLOCK_INPUT;
       /* Use xfree, not XFree, because x_get_window_property
 	 calls xmalloc itself.  */
-      xfree ((char *) data);
+      xfree (data);
       UNBLOCK_INPUT;
       receive_incremental_selection (display, window, property, target_type,
 				     min_size_bytes, &data, &bytes,
@@ -1589,7 +1589,7 @@ x_get_window_property_as_lisp_data (Display *display, Window window,
 
   /* Use xfree, not XFree, because x_get_window_property
      calls xmalloc itself.  */
-  xfree ((char *) data);
+  xfree (data);
   return val;
 }
 

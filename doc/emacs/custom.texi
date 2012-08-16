@@ -450,11 +450,14 @@ attribute; an empty checkbox, @samp{[ ]}, means that the face does not
 specify any special value for the attribute.  You can activate a
 checkbox to specify or unspecify its attribute.
 
-  Most faces only specify a few attributes (in the above example,
-@code{font-lock-comment-face} only specifies the foreground color).
-Emacs has a special face, @code{default}, whose attributes are all
-specified; it determines the attributes left unspecified by other
-faces.
+  A face does not have to specify every single attribute; in fact,
+most faces only specify a few attributes.  In the above example,
+@code{font-lock-comment-face} only specifies the foreground color.
+Any unspecified attribute is taken from the special face named
+@code{default}, whose attributes are all specified.  The
+@code{default} face is the face used to display any text that does not
+have an explicitly-assigned face; furthermore, its background color
+attribute serves as the background color of the frame.
 
   The @samp{Hide Unused Attributes} button, at the end of the
 attribute list, hides the unspecified attributes of the face.  When

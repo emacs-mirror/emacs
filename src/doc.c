@@ -123,7 +123,7 @@ get_doc_string (Lisp_Object filepos, int unibyte, int definition)
       /* sizeof ("../etc/") == 8 */
       if (minsize < 8)
 	minsize = 8;
-      SAFE_ALLOCA (name, char *, minsize + SCHARS (file) + 8);
+      name = SAFE_ALLOCA (minsize + SCHARS (file) + 8);
       strcpy (name, SSDATA (docdir));
       strcat (name, SSDATA (file));
     }

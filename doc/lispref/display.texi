@@ -2040,14 +2040,6 @@ function, which is used to apply customized face settings.
 specify a face to use.  In the vast majority of cases, this is not
 necessary; it is preferable to simply use faces directly.
 
-@defopt frame-background-mode
-This option, if non-@code{nil}, specifies the background type to use for
-interpreting face definitions.  If it is @code{dark}, then Emacs treats
-all frames as if they had a dark background, regardless of their actual
-background colors.  If it is @code{light}, then Emacs treats all frames
-as if they had a light background.
-@end defopt
-
 @node Face Attributes
 @subsection Face Attributes
 @cindex face attributes

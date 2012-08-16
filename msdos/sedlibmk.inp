@@ -605,10 +605,10 @@ am__cd = cd
   s| *sys/select\.h||
   s| *sys/time\.h||
 }
-/^am_libgnu_a_OBJECTS *=/,/^[ 	]/{
+/^am_libgnu_a_OBJECTS *=/,/^[^ 	]/{
+  s/allocator\.\$(OBJEXT) //
   s/careadlinkat\.\$(OBJEXT) //
 }
-/^am_libgnu_a_OBJECTS *=/s/allocator\.\$(OBJEXT)//
 /^srcdir *=/s/@[^@\n]*@/./
 /^top_srcdir *=/s/@[^@\n]*@/../
 /^top_builddir *=/s/@[^@\n]*@/../
@@ -647,6 +647,8 @@ s/^@GL_GENERATE_ALLOCA_H_TRUE@//
 s/^@GL_GENERATE_ALLOCA_H_FALSE@/\#/
 s/^@GL_GENERATE_STDBOOL_H_TRUE@/\#/
 s/^@GL_GENERATE_STDBOOL_H_FALSE@//
+s/^@GL_GENERATE_STDALIGN_H_TRUE@//
+s/^@GL_GENERATE_STDALIGN_H_FALSE@/\#/
 s/^@GL_GENERATE_STDARG_H_TRUE@/\#/
 s/^@GL_GENERATE_STDARG_H_FALSE@/\#/
 s/^@GL_GENERATE_STDDEF_H_TRUE@/\#/

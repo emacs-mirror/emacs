@@ -247,8 +247,9 @@ Will not do anything if `url-show-status' is nil."
   (cond
    ((null file) "")
    ((string-match "\\?" file)
-    (file-name-directory (substring file 0 (match-beginning 0))))
-   (t (file-name-directory file))))
+    (url-file-directory (substring file 0 (match-beginning 0))))
+   ((string-match "\\(.*\\(/\\|%2[fF]\\)\\)" file)
+    (match-string 1 file))))
 
 ;;;###autoload
 (defun url-file-nondirectory (file)
@@ -256,8 +257,10 @@ Will not do anything if `url-show-status' is nil."
   (cond
    ((null file) "")
    ((string-match "\\?" file)
-    (file-name-nondirectory (substring file 0 (match-beginning 0))))
-   (t (file-name-nondirectory file))))
+    (url-file-nondirectory (substring file 0 (match-beginning 0))))
+   ((string-match ".*\\(?:/\\|%2[fF]\\)\\(.*\\)" file)
+    (match-string 1 file))
+   (t file)))
 
 ;;;###autoload
 (defun url-parse-query-string (query &optional downcase allow-newlines)

@@ -1269,7 +1269,7 @@
 	"light", "extralight", and "thin" fonts.
 	(x_to_win32_charset, win32_to_x_charset): New functions.
 	(win32_to_x_font): Use new height units.  Use win32_to_x_charset.
-	(x_to_win32_font): Use x_to_win32_charset.  Support Win32 font names
+	(x_to_win32_font): Use x_to_win32_charset.  Support w32 font names
 	in addition to X font names.
 
 	(win32_load_font, Fx_list_fonts, Fx_display_color_cells)
@@ -3625,11 +3625,11 @@
 
 	* xdisp.c [HAVE_NTGUI] (set_menu_framebar): Declare external.
 	[HAVE_NTGUI] (frame_title_buf, frame_title_ptr): Include variables
-	for Win32 window system.
+	for w32 window system.
 	[HAVE_NTGUI] (store_frame_title, x_consider_frame_title): Include
-	procedures for Win32 window system.
-	[HAVE_NTGUI] (x_consider_frame_title): Test for Win32 frame.
-	[HAVE_NTGUI] (display_text_line): Test for Win32 frame on face change.
+	procedures for w32 window system.
+	[HAVE_NTGUI] (x_consider_frame_title): Test for w32 frame.
+	[HAVE_NTGUI] (display_text_line): Test for w32 frame on face change.
 	[HAVE_NTGUI] (display_menu_bar): Perform no-op for NT window system.
 
 	* window.c [HAVE_NTGUI] (Fset_window_configuration): Set menu
@@ -3659,7 +3659,7 @@
 	(make_lispy_event): Use FUNCTION_KEY_OFFSET to modify event codes
 	before applying modifiers.
 
-	* frame.c [HAVE_NTGUI]: Test for a Win32 frame in procedures
+	* frame.c [HAVE_NTGUI]: Test for a w32 frame in procedures
 	that test for an X frame.
 
 	* frame.h (output_method): New method: output_win32.
@@ -3673,13 +3673,13 @@
 	* emacs.c [HAVE_NTGUI]: Declare Vwindow_system.
 	[HAVE_NTGUI] (main): Enable inhibit_window_system.
 	Initialize environment from registry.
-	Declare syms of Win32 windowing modules.
+	Declare syms of w32 windowing modules.
 
 	* dispnew.c [HAVE_NTGUI]: Include w32term.h.
 	Include dispextern.h before cm.h since dispextern.h includes windows.h.
 	[HAVE_NTGUI] (make_frame_glyphs, free_frame_glyphs, scroll_frame_lines)
-	(update_frame, update_line): Test for WIN32 frame.
-	[HAVE_NTGUI] (init_display): Initialize WIN32 window system.
+	(update_frame, update_line): Test for w32 frame.
+	[HAVE_NTGUI] (init_display): Initialize w32 window system.
 
 	* dispextern.h [HAVE_NTGUI]: Include win32.h.
 	[HAVE_NTGUI] (struct frame_glyphs): Include pixel fields.

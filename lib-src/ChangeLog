@@ -1,3 +1,70 @@
+2012-08-15  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* etags.c (Pascal_functions): Fix parenthesization typo.
+
+2012-08-14  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* make-docfile.c (enum global_type): Sort values roughly in
+	decreasing alignment, except put functions last.
+	(compare_globals): Use this new property of enum global_type.
+	(write_globals): Use bool, not int, for booleans.
+
+2012-08-10  Glenn Morris  <rgm@gnu.org>
+
+	* make-docfile.c (IF_LINT):
+	* emacsclient.c (IF_LINT): Remove (in config.h now).
+
+	* make-docfile.c (main):
+	(fopen) [!WINDOWSNT]:
+	(chdir) [!DOS_NT]: No more need to undef.
+
+	* movemail.c (DIRECTORY_SEP, IS_DIRECTORY_SEP):
+	* make-docfile.c (DIRECTORY_SEP, IS_DIRECTORY_SEP):
+	* emacsclient.c (DIRECTORY_SEP, IS_DIRECTORY_SEP, IS_DEVICE_SEP):
+	Remove (they are in config.h now).
+
+	* ebrowse.c (PATH_LIST_SEPARATOR):
+	Remove, and replace with SEPCHAR from config.h.
+
+2012-08-03  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in (LOCAL_FLAGS): Remove WINDOWSNT and DOS_NT,
+	they are always defined in config.h.
+
+2012-08-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* ntlib.c (lstat): New function, calls 'stat'.
+
+2012-08-02  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use C99-style 'extern inline' if available.
+	* profile.c (SYSTIME_INLINE): Define.
+
+2012-08-02  Glenn Morris  <rgm@gnu.org>
+
+	* makefile.w32-in (MS_W32_H): Update for new ms-w32.h location.
+
+2012-08-01  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (config_h): New variable.
+	Use throughout in place of ../src/config.h.
+
+2012-08-01  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in (CONFIG_H): Update dependencies.
+	(CONF_POST_H): New macro.
+
+2012-07-30  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Update .PHONY listings in makefiles.
+	* Makefile.in (.PHONY): Add all, need-blessmail, maybe-blessmail,
+	install, uninstall, mostlyclean, clean, distclean,
+	maintainer-clean, extraclean, check, tags.
+
+2012-07-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in ($(BLD)/profile.$(O)): Depend on stamp_BLD.
+
 2012-07-12  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* movemail.c: Add missing 'defined'.

@@ -241,37 +241,31 @@ shells such as bash, zsh, rc, 4dos."
 ;; The following user options modify the behavior of Eshell overall.
 (defvar eshell-buffer-name)
 
-(defsubst eshell-add-to-window-buffer-names ()
+(defun eshell-add-to-window-buffer-names ()
   "Add `eshell-buffer-name' to `same-window-buffer-names'."
   (add-to-list 'same-window-buffer-names eshell-buffer-name))
+(make-obsolete 'eshell-add-to-window-buffer-names
+	       "no longer needed." "24.3")
 
-(defsubst eshell-remove-from-window-buffer-names ()
+(defun eshell-remove-from-window-buffer-names ()
   "Remove `eshell-buffer-name' from `same-window-buffer-names'."
   (setq same-window-buffer-names
 	(delete eshell-buffer-name same-window-buffer-names)))
+(make-obsolete 'eshell-remove-from-window-buffer-names
+	       "no longer needed." "24.3")
 
 (defcustom eshell-load-hook nil
   "A hook run once Eshell has been loaded."
   :type 'hook
   :group 'eshell)
 
-(defcustom eshell-unload-hook
-  '(eshell-remove-from-window-buffer-names
-    eshell-unload-all-modules)
+(defcustom eshell-unload-hook '(eshell-unload-all-modules)
   "A hook run when Eshell is unloaded from memory."
   :type 'hook
   :group 'eshell)
 
 (defcustom eshell-buffer-name "*eshell*"
   "The basename used for Eshell buffers."
-  :set (lambda (symbol value)
-	 ;; remove the old value of `eshell-buffer-name', if present
-	 (if (boundp 'eshell-buffer-name)
-	     (eshell-remove-from-window-buffer-names))
-	 (set symbol value)
-	 ;; add the new value
-	 (eshell-add-to-window-buffer-names)
-	 value)
   :type 'string
   :group 'eshell)
 
@@ -307,13 +301,8 @@ buffer selected (or created)."
 		    (generate-new-buffer eshell-buffer-name))
 		   (t
 		    (get-buffer-create eshell-buffer-name)))))
-    ;; Simply calling `pop-to-buffer' will not mimic the way that
-    ;; shell-mode buffers appear, since they always reuse the same
-    ;; window that that command was invoked from.  To achieve this,
-    ;; it's necessary to add `eshell-buffer-name' to the variable
-    ;; `same-window-buffer-names', which is done when Eshell is loaded
     (cl-assert (and buf (buffer-live-p buf)))
-    (pop-to-buffer buf)
+    (pop-to-buffer-same-window buf)
     (unless (eq major-mode 'eshell-mode)
       (eshell-mode))
     buf))

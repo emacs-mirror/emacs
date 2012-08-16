@@ -25,6 +25,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifndef EMACS_COMPOSITE_H
 #define EMACS_COMPOSITE_H
 
+INLINE_HEADER_BEGIN
+#ifndef COMPOSITE_INLINE
+# define COMPOSITE_INLINE INLINE
+#endif
+
 /* Methods to display a sequence of components of a composition.  */
 enum composition_method {
   /* Compose relatively without alternate characters.  */
@@ -247,6 +252,11 @@ extern void compose_text (ptrdiff_t, ptrdiff_t, Lisp_Object, Lisp_Object,
 #define LGSTRING_GLYPH_LEN(lgs) (ASIZE ((lgs)) - 2)
 #define LGSTRING_GLYPH(lgs, idx) AREF ((lgs), (idx) + 2)
 #define LGSTRING_SET_GLYPH(lgs, idx, val) ASET ((lgs), (idx) + 2, (val))
+COMPOSITE_INLINE Lisp_Object *
+lgstring_glyph_addr (Lisp_Object lgs, ptrdiff_t idx)
+{
+  return aref_addr (lgs, idx + 2);
+}
 
 /* Vector size of Lispy glyph.  */
 enum lglyph_indices
@@ -315,5 +325,7 @@ extern int composition_update_it (struct composition_it *,
                                   ptrdiff_t, ptrdiff_t, Lisp_Object);
 
 extern ptrdiff_t composition_adjust_point (ptrdiff_t, ptrdiff_t);
+
+INLINE_HEADER_END
 
 #endif /* not EMACS_COMPOSITE_H */

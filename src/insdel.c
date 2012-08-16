@@ -59,14 +59,10 @@ static Lisp_Object combine_after_change_buffer;
 Lisp_Object Qinhibit_modification_hooks;
 
 static void signal_before_change (ptrdiff_t, ptrdiff_t, ptrdiff_t *);
-
-#define CHECK_MARKERS()				\
-  do						\
-    {						\
-      if (check_markers_debug_flag)		\
-	check_markers ();			\
-    }						\
-  while (0)
+
+/* Also used in marker.c to enable expensive marker checks.  */
+
+#ifdef MARKER_DEBUG
 
 static void
 check_markers (void)
@@ -86,7 +82,13 @@ check_markers (void)
 	abort ();
     }
 }
-
+
+#else /* not MARKER_DEBUG */
+
+#define check_markers() do { } while (0)
+
+#endif /* MARKER_DEBUG */
+
 /* Move gap to position CHARPOS.
    Note that this can quit!  */
 
@@ -158,8 +160,7 @@ gap_left (ptrdiff_t charpos, ptrdiff_t bytepos, int newgap)
      was specified or may be where a quit was detected.  */
   GPT_BYTE = bytepos;
   GPT = charpos;
-  if (bytepos < charpos)
-    abort ();
+  eassert (charpos <= bytepos);
   if (GAP_SIZE > 0) *(GPT_ADDR) = 0; /* Put an anchor.  */
   QUIT;
 }
@@ -209,8 +210,7 @@ gap_right (ptrdiff_t charpos, ptrdiff_t bytepos)
 
   GPT = charpos;
   GPT_BYTE = bytepos;
-  if (bytepos < charpos)
-    abort ();
+  eassert (charpos <= bytepos);
   if (GAP_SIZE > 0) *(GPT_ADDR) = 0; /* Put an anchor.  */
   QUIT;
 }
@@ -233,9 +233,7 @@ adjust_markers_for_delete (ptrdiff_t from, ptrdiff_t from_byte,
   for (m = BUF_MARKERS (current_buffer); m; m = m->next)
     {
       charpos = m->charpos;
-
-      if (charpos > Z)
-	abort ();
+      eassert (charpos <= Z);
 
       /* If the marker is after the deletion,
 	 relocate by number of chars / bytes deleted.  */
@@ -375,7 +373,7 @@ adjust_markers_for_replace (ptrdiff_t from, ptrdiff_t from_byte,
 	}
     }
 
-  CHECK_MARKERS ();
+  check_markers ();
 }
 
 
@@ -835,8 +833,7 @@ insert_1_both (const char *string,
   Z_BYTE += nbytes;
   if (GAP_SIZE > 0) *(GPT_ADDR) = 0; /* Put an anchor.  */
 
-  if (GPT_BYTE < GPT)
-    abort ();
+  eassert (GPT <= GPT_BYTE);
 
   /* The insert may have been in the unchanged region, so check again. */
   if (Z - GPT < END_UNCHANGED)
@@ -847,16 +844,16 @@ insert_1_both (const char *string,
 			     PT + nchars, PT_BYTE + nbytes,
 			     before_markers);
 
-  if (BUF_INTERVALS (current_buffer) != 0)
+  if (buffer_get_intervals (current_buffer))
     offset_intervals (current_buffer, PT, nchars);
 
-  if (!inherit && BUF_INTERVALS (current_buffer) != 0)
+  if (!inherit && buffer_get_intervals (current_buffer))
     set_text_properties (make_number (PT), make_number (PT + nchars),
 			 Qnil, Qnil, Qnil);
 
   adjust_point (nchars, nbytes);
 
-  CHECK_MARKERS ();
+  check_markers ();
 }
 
 /* Insert the part of the text of STRING, a Lisp object assumed to be
@@ -966,8 +963,7 @@ insert_from_string_1 (Lisp_Object string, ptrdiff_t pos, ptrdiff_t pos_byte,
   Z_BYTE += outgoing_nbytes;
   if (GAP_SIZE > 0) *(GPT_ADDR) = 0; /* Put an anchor.  */
 
-  if (GPT_BYTE < GPT)
-    abort ();
+  eassert (GPT <= GPT_BYTE);
 
   /* The insert may have been in the unchanged region, so check again. */
   if (Z - GPT < END_UNCHANGED)
@@ -980,7 +976,7 @@ insert_from_string_1 (Lisp_Object string, ptrdiff_t pos, ptrdiff_t pos_byte,
 
   offset_intervals (current_buffer, PT, nchars);
 
-  intervals = STRING_INTERVALS (string);
+  intervals = string_get_intervals (string);
   /* Get the intervals for the part of the string we are inserting.  */
   if (nbytes < SBYTES (string))
     intervals = copy_intervals (intervals, pos, nchars);
@@ -991,7 +987,7 @@ insert_from_string_1 (Lisp_Object string, ptrdiff_t pos, ptrdiff_t pos_byte,
 
   adjust_point (nchars, outgoing_nbytes);
 
-  CHECK_MARKERS ();
+  check_markers ();
 }
 
 /* Insert a sequence of NCHARS chars which occupy NBYTES bytes
@@ -1015,24 +1011,23 @@ insert_from_gap (ptrdiff_t nchars, ptrdiff_t nbytes)
   Z_BYTE += nbytes;
   if (GAP_SIZE > 0) *(GPT_ADDR) = 0; /* Put an anchor.  */
 
-  if (GPT_BYTE < GPT)
-    abort ();
+  eassert (GPT <= GPT_BYTE);
 
   adjust_overlays_for_insert (GPT - nchars, nchars);
   adjust_markers_for_insert (GPT - nchars, GPT_BYTE - nbytes,
 			     GPT, GPT_BYTE, 0);
 
-  if (BUF_INTERVALS (current_buffer) != 0)
+  if (buffer_get_intervals (current_buffer))
     {
       offset_intervals (current_buffer, GPT - nchars, nchars);
-      graft_intervals_into_buffer (NULL_INTERVAL, GPT - nchars, nchars,
+      graft_intervals_into_buffer (NULL, GPT - nchars, nchars,
 				   current_buffer, 0);
     }
 
   if (GPT - nchars < PT)
     adjust_point (nchars, nbytes);
 
-  CHECK_MARKERS ();
+  check_markers ();
 }
 
 /* Insert text from BUF, NCHARS characters starting at CHARPOS, into the
@@ -1151,8 +1146,7 @@ insert_from_buffer_1 (struct buffer *buf,
   Z_BYTE += outgoing_nbytes;
   if (GAP_SIZE > 0) *(GPT_ADDR) = 0; /* Put an anchor.  */
 
-  if (GPT_BYTE < GPT)
-    abort ();
+  eassert (GPT <= GPT_BYTE);
 
   /* The insert may have been in the unchanged region, so check again. */
   if (Z - GPT < END_UNCHANGED)
@@ -1163,11 +1157,11 @@ insert_from_buffer_1 (struct buffer *buf,
 			     PT_BYTE + outgoing_nbytes,
 			     0);
 
-  if (BUF_INTERVALS (current_buffer) != 0)
+  if (buffer_get_intervals (current_buffer))
     offset_intervals (current_buffer, PT, nchars);
 
   /* Get the intervals for the part of the string we are inserting.  */
-  intervals = BUF_INTERVALS (buf);
+  intervals = buffer_get_intervals (buf);
   if (nchars < BUF_Z (buf) - BUF_BEG (buf))
     {
       if (buf == current_buffer && PT <= from)
@@ -1231,10 +1225,9 @@ adjust_after_replace (ptrdiff_t from, ptrdiff_t from_byte,
     adjust_overlays_for_insert (from, len - nchars_del);
   else if (len < nchars_del)
     adjust_overlays_for_delete (from, nchars_del - len);
-  if (BUF_INTERVALS (current_buffer) != 0)
-    {
-      offset_intervals (current_buffer, from, len - nchars_del);
-    }
+
+  if (buffer_get_intervals (current_buffer))
+    offset_intervals (current_buffer, from, len - nchars_del);
 
   if (from < PT)
     adjust_point (len - nchars_del, len_byte - nbytes_del);
@@ -1243,7 +1236,7 @@ adjust_after_replace (ptrdiff_t from, ptrdiff_t from_byte,
   if (Z - GPT < END_UNCHANGED)
     END_UNCHANGED = Z - GPT;
 
-  CHECK_MARKERS ();
+  check_markers ();
 
   if (len == 0)
     evaporate_overlays (from);
@@ -1296,7 +1289,7 @@ replace_range (ptrdiff_t from, ptrdiff_t to, Lisp_Object new,
   ptrdiff_t outgoing_insbytes = insbytes;
   Lisp_Object deletion;
 
-  CHECK_MARKERS ();
+  check_markers ();
 
   GCPRO1 (new);
   deletion = Qnil;
@@ -1357,8 +1350,7 @@ replace_range (ptrdiff_t from, ptrdiff_t to, Lisp_Object new,
   GPT_BYTE = from_byte;
   if (GAP_SIZE > 0) *(GPT_ADDR) = 0; /* Put an anchor.  */
 
-  if (GPT_BYTE < GPT)
-    abort ();
+  eassert (GPT <= GPT_BYTE);
 
   if (GPT - BEG < BEG_UNCHANGED)
     BEG_UNCHANGED = GPT - BEG;
@@ -1404,8 +1396,7 @@ replace_range (ptrdiff_t from, ptrdiff_t to, Lisp_Object new,
   Z_BYTE += outgoing_insbytes;
   if (GAP_SIZE > 0) *(GPT_ADDR) = 0; /* Put an anchor.  */
 
-  if (GPT_BYTE < GPT)
-    abort ();
+  eassert (GPT <= GPT_BYTE);
 
   /* Adjust the overlay center as needed.  This must be done after
      adjusting the markers that bound the overlays.  */
@@ -1421,7 +1412,7 @@ replace_range (ptrdiff_t from, ptrdiff_t to, Lisp_Object new,
 
   /* Get the intervals for the part of the string we are inserting--
      not including the combined-before bytes.  */
-  intervals = STRING_INTERVALS (new);
+  intervals = string_get_intervals (new);
   /* Insert those intervals.  */
   graft_intervals_into_buffer (intervals, from, inschars,
 			       current_buffer, inherit);
@@ -1435,7 +1426,7 @@ replace_range (ptrdiff_t from, ptrdiff_t to, Lisp_Object new,
   if (outgoing_insbytes == 0)
     evaporate_overlays (from);
 
-  CHECK_MARKERS ();
+  check_markers ();
 
   MODIFF++;
   CHARS_MODIFF = MODIFF;
@@ -1465,7 +1456,7 @@ replace_range_2 (ptrdiff_t from, ptrdiff_t from_byte,
 {
   ptrdiff_t nbytes_del, nchars_del;
 
-  CHECK_MARKERS ();
+  check_markers ();
 
   nchars_del = to - from;
   nbytes_del = to_byte - from_byte;
@@ -1488,8 +1479,7 @@ replace_range_2 (ptrdiff_t from, ptrdiff_t from_byte,
   GPT_BYTE = from_byte;
   if (GAP_SIZE > 0) *(GPT_ADDR) = 0; /* Put an anchor.  */
 
-  if (GPT_BYTE < GPT)
-    abort ();
+  eassert (GPT <= GPT_BYTE);
 
   if (GPT - BEG < BEG_UNCHANGED)
     BEG_UNCHANGED = GPT - BEG;
@@ -1522,8 +1512,7 @@ replace_range_2 (ptrdiff_t from, ptrdiff_t from_byte,
   Z_BYTE += insbytes;
   if (GAP_SIZE > 0) *(GPT_ADDR) = 0; /* Put an anchor.  */
 
-  if (GPT_BYTE < GPT)
-    abort ();
+  eassert (GPT <= GPT_BYTE);
 
   /* Adjust the overlay center as needed.  This must be done after
      adjusting the markers that bound the overlays.  */
@@ -1554,7 +1543,7 @@ replace_range_2 (ptrdiff_t from, ptrdiff_t from_byte,
   if (insbytes == 0)
     evaporate_overlays (from);
 
-  CHECK_MARKERS ();
+  check_markers ();
 
   MODIFF++;
   CHARS_MODIFF = MODIFF;
@@ -1705,7 +1694,7 @@ del_range_2 (ptrdiff_t from, ptrdiff_t from_byte,
   register ptrdiff_t nbytes_del, nchars_del;
   Lisp_Object deletion;
 
-  CHECK_MARKERS ();
+  check_markers ();
 
   nchars_del = to - from;
   nbytes_del = to_byte - from_byte;
@@ -1761,15 +1750,14 @@ del_range_2 (ptrdiff_t from, ptrdiff_t from_byte,
        needs to access the previous gap contents.  */
     *(GPT_ADDR) = 0;
 
-  if (GPT_BYTE < GPT)
-    abort ();
+  eassert (GPT <= GPT_BYTE);
 
   if (GPT - BEG < BEG_UNCHANGED)
     BEG_UNCHANGED = GPT - BEG;
   if (Z - GPT < END_UNCHANGED)
     END_UNCHANGED = Z - GPT;
 
-  CHECK_MARKERS ();
+  check_markers ();
 
   evaporate_overlays (from);
 
@@ -1804,7 +1792,7 @@ modify_region (struct buffer *buffer, ptrdiff_t start, ptrdiff_t end,
   if (! preserve_chars_modiff)
     CHARS_MODIFF = MODIFF;
 
-  BVAR (buffer, point_before_scroll) = Qnil;
+  BSET (buffer, point_before_scroll, Qnil);
 
   if (buffer != old_buffer)
     set_buffer_internal (old_buffer);
@@ -1834,7 +1822,7 @@ prepare_to_modify_buffer (ptrdiff_t start, ptrdiff_t end,
   if (XBUFFER (XWINDOW (selected_window)->buffer) != current_buffer)
     ++windows_or_buffers_changed;
 
-  if (BUF_INTERVALS (current_buffer) != 0)
+  if (buffer_get_intervals (current_buffer))
     {
       if (preserve_ptr)
 	{
@@ -2005,7 +1993,7 @@ signal_before_change (ptrdiff_t start_int, ptrdiff_t end_int,
       XSETCDR (rvoe_arg, Qt);
     }
 
-  if (current_buffer->overlays_before || current_buffer->overlays_after)
+  if (buffer_has_overlays ())
     {
       PRESERVE_VALUE;
       report_overlay_modification (FETCH_START, FETCH_END, 0,
@@ -2041,8 +2029,7 @@ signal_after_change (ptrdiff_t charpos, ptrdiff_t lendel, ptrdiff_t lenins)
      just record the args that we were going to use.  */
   if (! NILP (Vcombine_after_change_calls)
       && NILP (Vbefore_change_functions)
-      && !current_buffer->overlays_before
-      && !current_buffer->overlays_after)
+      && !buffer_has_overlays ())
     {
       Lisp_Object elt;
 
@@ -2084,7 +2071,7 @@ signal_after_change (ptrdiff_t charpos, ptrdiff_t lendel, ptrdiff_t lenins)
       XSETCDR (rvoe_arg, Qt);
     }
 
-  if (current_buffer->overlays_before || current_buffer->overlays_after)
+  if (buffer_has_overlays ())
     report_overlay_modification (make_number (charpos),
 				 make_number (charpos + lenins),
 				 1,
@@ -2201,9 +2188,6 @@ syms_of_insdel (void)
   combine_after_change_list = Qnil;
   combine_after_change_buffer = Qnil;
 
-  DEFVAR_BOOL ("check-markers-debug-flag", check_markers_debug_flag,
-	       doc: /* Non-nil means enable debugging checks for invalid marker positions.  */);
-  check_markers_debug_flag = 0;
   DEFVAR_LISP ("combine-after-change-calls", Vcombine_after_change_calls,
 	       doc: /* Used internally by the `combine-after-change-calls' macro.  */);
   Vcombine_after_change_calls = Qnil;

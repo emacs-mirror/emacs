@@ -1790,7 +1790,7 @@ info-variant-part."
 ;;
 (defmacro artist-funcall (fn &rest args)
   "Call function FN with ARGS, if FN is not nil."
-  (list 'if fn (cons 'funcall (cons fn args))))
+  `(if ,fn (funcall ,fn ,@args)))
 
 (defun artist-uniq (l)
   "Remove consecutive duplicates in list L.  Comparison is done with `equal'."
@@ -2384,8 +2384,8 @@ in the coord."
 ;;
 (defmacro artist-put-pixel (point-list x y)
   "In POINT-LIST, store a ``pixel'' at coord X,Y."
-  (list 'setq point-list
-	(list 'append point-list (list 'list (list 'artist-new-coord x y)))))
+  `(setq ,point-list
+	 (append ,point-list (list (artist-new-coord ,x ,y)))))
 
 ;; Calculate list of points using eight point algorithm
 ;; return a list of coords

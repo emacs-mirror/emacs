@@ -347,8 +347,7 @@ in `load-path'."
     (if aliases
 	(message "%s" aliases))
     (let ((library
-	   (cond ((eq (car-safe def) 'autoload)
-		  (nth 1 def))
+	   (cond ((autoloadp def) (nth 1 def))
 		 ((subrp def)
 		  (if lisp-only
 		      (error "%s is a built-in function" function))

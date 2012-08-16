@@ -57,23 +57,23 @@ the name column is assigned width `Buffer-menu-buffer+size-width'
 minus `Buffer-menu-size-width'.  This use is deprecated."
   :type 'number
   :group 'Buffer-menu
-  :version "24.2")
+  :version "24.3")
 
 (make-obsolete-variable 'Buffer-menu-buffer+size-width
 			"`Buffer-menu-name-width' and `Buffer-menu-size-width'"
-			"24.2")
+			"24.3")
 
 (defcustom Buffer-menu-name-width 19
   "Width of buffer size column in the Buffer Menu."
   :type 'number
   :group 'Buffer-menu
-  :version "24.2")
+  :version "24.3")
 
 (defcustom Buffer-menu-size-width 7
   "Width of buffer name column in the Buffer Menu."
   :type 'number
   :group 'Buffer-menu
-  :version "24.2")
+  :version "24.3")
 
 (defcustom Buffer-menu-mode-width 16
   "Width of mode name column in the Buffer Menu."
@@ -518,10 +518,10 @@ The current window remains selected."
   "Toggle read-only status of buffer on this line.
 This behaves like invoking \\[toggle-read-only] in that buffer."
   (interactive)
-  (let (read-only)
-    (with-current-buffer (Buffer-menu-buffer t)
-      (toggle-read-only)
-      (setq read-only buffer-read-only))
+  (let ((read-only
+         (with-current-buffer (Buffer-menu-buffer t)
+           (call-interactively 'toggle-read-only)
+           buffer-read-only)))
     (tabulated-list-set-col 1 (if read-only "%" " ") t)))
 
 (defun Buffer-menu-bury ()
@@ -564,7 +564,8 @@ means list those buffers and no others."
 	(buffer (get-buffer-create "*Buffer List*")))
     (with-current-buffer buffer
       (Buffer-menu-mode)
-      (setq Buffer-menu-files-only (and files-only (>= files-only 0)))
+      (setq Buffer-menu-files-only
+	    (and files-only (>= (prefix-numeric-value files-only) 0)))
       (list-buffers--refresh buffer-list old-buffer)
       (tabulated-list-print))
     buffer))

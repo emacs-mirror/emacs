@@ -1647,12 +1647,13 @@ this variable.  I think."
 					     (const :format "%v " mail)
 					     (const :format "%v " none)
 					     (const post-mail))
-			(checklist :inline t
+			(checklist :inline t :greedy t
 				   (const :format "%v " address)
 				   (const :format "%v " prompt-address)
 				   (const :format "%v " physical-address)
-				   (const :format "%v " virtual)
-				   (const respool))))
+				   (const virtual)
+				   (const :format "%v " respool)
+				   (const server-marks))))
   :version "24.1")
 
 (defun gnus-redefine-select-method-widget ()
@@ -3412,15 +3413,6 @@ that that variable is buffer-local to the summary buffers."
 	(t				;Has positive number
 	 (eq (gnus-request-type group article) 'news)))) ;use it.
 
-;; Returns a list of writable groups.
-(defun gnus-writable-groups ()
-  (let ((alist gnus-newsrc-alist)
-	groups group)
-    (while (setq group (car (pop alist)))
-      (unless (gnus-group-read-only-p group)
-	(push group groups)))
-    (nreverse groups)))
-
 ;; Check whether to use long file names.
 (defun gnus-use-long-file-name (symbol)
   ;; The variable has to be set...
@@ -3696,20 +3688,9 @@ server is native)."
       group
     (concat (gnus-method-to-server-name method) ":" group)))
 
-(defun gnus-group-guess-prefixed-name (group)
-  "Guess the whole name from GROUP and METHOD."
-  (gnus-group-prefixed-name group (gnus-find-method-for-group
-			       group)))
-
 (defun gnus-group-full-name (group method)
   "Return the full name from GROUP and METHOD, even if the method is native."
   (gnus-group-prefixed-name group method t))
-
-(defun gnus-group-guess-full-name (group)
-  "Guess the full name from GROUP, even if the method is native."
-  (if (gnus-group-prefixed-p group)
-      group
-    (gnus-group-full-name group (gnus-find-method-for-group group))))
 
 (defun gnus-group-guess-full-name-from-command-method (group)
   "Guess the full name from GROUP, even if the method is native."

@@ -679,19 +679,17 @@ popup_activate_callback (Widget widget, LWLIB_ID id, XtPointer client_data)
 /* This callback is invoked when a dialog or menu is finished being
    used and has been unposted.  */
 
+static void
+popup_deactivate_callback (
 #ifdef USE_GTK
-static void
-popup_deactivate_callback (GtkWidget *widget, gpointer client_data)
-{
-  popup_activated_flag = 0;
-}
+			   GtkWidget *widget, gpointer client_data
 #else
-static void
-popup_deactivate_callback (Widget widget, LWLIB_ID id, XtPointer client_data)
+			   Widget widget, LWLIB_ID id, XtPointer client_data
+#endif
+			   )
 {
   popup_activated_flag = 0;
 }
-#endif
 
 
 /* Function that finds the frame for WIDGET and shows the HELP text
@@ -1010,14 +1008,14 @@ set_frame_menubar (FRAME_PTR f, int first_time, int deep_p)
       if (! NILP (Vlucid_menu_bar_dirty_flag))
 	call0 (Qrecompute_lucid_menubar);
       safe_run_hooks (Qmenu_bar_update_hook);
-      FRAME_MENU_BAR_ITEMS (f) = menu_bar_items (FRAME_MENU_BAR_ITEMS (f));
+      FSET (f, menu_bar_items, menu_bar_items (FRAME_MENU_BAR_ITEMS (f)));
 
       items = FRAME_MENU_BAR_ITEMS (f);
 
       /* Save the frame's previous menu bar contents data.  */
       if (previous_menu_items_used)
 	memcpy (previous_items, XVECTOR (f->menu_bar_vector)->contents,
-		previous_menu_items_used * sizeof (Lisp_Object));
+		previous_menu_items_used * word_size);
 
       /* Fill in menu_items with the current menu bar contents.
 	 This can evaluate Lisp code.  */
@@ -1102,7 +1100,7 @@ set_frame_menubar (FRAME_PTR f, int first_time, int deep_p)
 	}
 
       /* The menu items are different, so store them in the frame.  */
-      f->menu_bar_vector = menu_items;
+      FSET (f, menu_bar_vector, menu_items);
       f->menu_bar_items_used = menu_items_used;
 
       /* This undoes save_menu_items.  */
@@ -1285,7 +1283,7 @@ initialize_frame_menubar (FRAME_PTR f)
 {
   /* This function is called before the first chance to redisplay
      the frame.  It has to be, so the frame will have the right size.  */
-  FRAME_MENU_BAR_ITEMS (f) = menu_bar_items (FRAME_MENU_BAR_ITEMS (f));
+  FSET (f, menu_bar_items, menu_bar_items (FRAME_MENU_BAR_ITEMS (f)));
   set_frame_menubar (f, 1, 1);
 }
 
@@ -1784,8 +1782,7 @@ xmenu_show (FRAME_PTR f, int x, int y, int for_click, int keymaps,
 	  /* If this item has a null value,
 	     make the call_data null so that it won't display a box
 	     when the mouse is on it.  */
-	  wv->call_data
-	    = (!NILP (def) ? (void *) &AREF (menu_items, i) : 0);
+	  wv->call_data = !NILP (def) ? aref_addr (menu_items, i) : 0;
 	  wv->enabled = !NILP (enable);
 
 	  if (NILP (type))
@@ -1886,7 +1883,7 @@ xmenu_show (FRAME_PTR f, int x, int y, int for_click, int keymaps,
 	    {
 	      entry
 		= AREF (menu_items, i + MENU_ITEMS_ITEM_VALUE);
-	      if (menu_item_selection == &AREF (menu_items, i))
+	      if (menu_item_selection == aref_addr (menu_items, i))
 		{
 		  if (keymaps != 0)
 		    {
@@ -2106,7 +2103,7 @@ xdialog_show (FRAME_PTR f,
 	if (!NILP (descrip))
 	  wv->key = SSDATA (descrip);
 	wv->value = SSDATA (item_name);
-	wv->call_data = (void *) &AREF (menu_items, i);
+	wv->call_data = aref_addr (menu_items, i);
 	wv->enabled = !NILP (enable);
 	wv->help = Qnil;
 	prev_wv = wv;
@@ -2189,7 +2186,7 @@ xdialog_show (FRAME_PTR f,
 	    {
 	      entry
 		= AREF (menu_items, i + MENU_ITEMS_ITEM_VALUE);
-	      if (menu_item_selection == &AREF (menu_items, i))
+	      if (menu_item_selection == aref_addr (menu_items, i))
 		{
 		  if (keymaps != 0)
 		    {
@@ -2578,7 +2575,7 @@ xmenu_show (FRAME_PTR f, int x, int y, int for_click, int keymaps,
 /* Detect if a dialog or menu has been posted.  MSDOS has its own
    implementation on msdos.c.  */
 
-int
+int ATTRIBUTE_CONST
 popup_activated (void)
 {
   return popup_activated_flag;

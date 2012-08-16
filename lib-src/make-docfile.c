@@ -1,6 +1,7 @@
 /* Generate doc-string file for GNU Emacs from source files.
-   Copyright (C) 1985-1986, 1992-1994, 1997, 1999-2012
-                 Free Software Foundation, Inc.
+
+Copyright (C) 1985-1986, 1992-1994, 1997, 1999-2012
+  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -35,22 +36,26 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 
-/* Defined to be emacs_main, sys_fopen, etc. in config.h.  */
-#undef main
-#undef fopen
-#undef chdir
-
 #include <stdio.h>
-#include <stdlib.h>
+#include <stdlib.h>   /* config.h unconditionally includes this anyway */
 #ifdef MSDOS
 #include <fcntl.h>
 #endif /* MSDOS */
 #ifdef WINDOWSNT
+/* Defined to be sys_fopen in ms-w32.h, but only #ifdef emacs, so this
+   is really just insurance.  */
+#undef fopen
 #include <fcntl.h>
 #include <direct.h>
 #endif /* WINDOWSNT */
 
 #ifdef DOS_NT
+/* Defined to be sys_chdir in ms-w32.h, but only #ifdef emacs, so this
+   is really just insurance.
+
+   Similarly, msdos defines this as sys_chdir, but we're not linking with the
+   file where that function is defined.  */
+#undef chdir
 #define READ_TEXT "rt"
 #define READ_BINARY "rb"
 #else  /* not DOS_NT */
@@ -58,32 +63,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define READ_BINARY "r"
 #endif /* not DOS_NT */
 
-#ifndef DIRECTORY_SEP
-#define DIRECTORY_SEP '/'
-#endif
-
-#ifndef IS_DIRECTORY_SEP
-#define IS_DIRECTORY_SEP(_c_) ((_c_) == DIRECTORY_SEP)
-#endif
-
-/* Use this to suppress gcc's `...may be used before initialized' warnings.  */
-#ifdef lint
-# define IF_LINT(Code) Code
-#else
-# define IF_LINT(Code) /* empty */
-#endif
-
 static int scan_file (char *filename);
 static int scan_lisp_file (const char *filename, const char *mode);
 static int scan_c_file (char *filename, const char *mode);
 static void start_globals (void);
 static void write_globals (void);
-
-#ifdef MSDOS
-/* s/msdos.h defines this as sys_chdir, but we're not linking with the
-   file where that function is defined.  */
-#undef chdir
-#endif
 
 #include <unistd.h>
 
@@ -561,14 +545,15 @@ write_c_args (FILE *out, char *func, char *buf, int minargs, int maxargs)
   putc (')', out);
 }
 
-/* The types of globals.  */
+/* The types of globals.  These are sorted roughly in decreasing alignment
+   order to avoid allocation gaps, except that functions are last.  */
 enum global_type
 {
-  FUNCTION,
+  INVALID,
+  LISP_OBJECT,
   EMACS_INTEGER,
   BOOLEAN,
-  LISP_OBJECT,
-  INVALID
+  FUNCTION,
 };
 
 /* A single global.  */
@@ -617,13 +602,8 @@ compare_globals (const void *a, const void *b)
   const struct global *ga = a;
   const struct global *gb = b;
 
-  if (ga->type == FUNCTION)
-    {
-      if (gb->type != FUNCTION)
-	return 1;
-    }
-  else if (gb->type == FUNCTION)
-    return -1;
+  if (ga->type != gb->type)
+    return ga->type - gb->type;
 
   return strcmp (ga->name, gb->name);
 }
@@ -650,7 +630,7 @@ write_globals (void)
 	  type = "EMACS_INT";
 	  break;
 	case BOOLEAN:
-	  type = "int";
+	  type = "bool";
 	  break;
 	case LISP_OBJECT:
 	  type = "Lisp_Object";

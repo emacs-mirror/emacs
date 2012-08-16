@@ -320,16 +320,7 @@
                ))
   (let ((new (if (consp fun) (prog1 (cdr fun) (setq fun (car fun)))
                (intern (format "cl-%s" fun)))))
-    (defalias fun new)
-    ;; If `cl-foo' is declare inline, then make `foo' inline as well, and
-    ;; similarly.  Same for edebug specifications, indent rules and
-    ;; doc-string position.
-    ;; FIXME: For most of them, we should instead follow aliases
-    ;; where applicable.
-    (dolist (prop '(byte-optimizer doc-string-elt edebug-form-spec
-                    lisp-indent-function))
-      (if (get new prop)
-        (put fun prop (get new prop))))))
+    (defalias fun new)))
 
 ;;; Features provided a bit differently in Elisp.
 
@@ -461,7 +452,7 @@ definitions, or lack thereof).
 
 \(fn ((FUNC ARGLIST BODY...) ...) FORM...)"
   (declare (indent 1) (debug cl-flet)
-           (obsolete "Use either `cl-flet' or `cl-letf'."  "24.2"))
+           (obsolete "Use either `cl-flet' or `cl-letf'."  "24.3"))
   `(letf ,(mapcar
            (lambda (x)
              (if (or (and (fboundp (car x))
@@ -489,7 +480,7 @@ will not work - use `labels' instead" (symbol-name (car x))))
   "Make temporary function bindings.
 Like `cl-labels' except that the lexical scoping is handled via `lexical-let'
 rather than relying on `lexical-binding'."
-  (declare (indent 1) (debug cl-flet) (obsolete cl-labels "24.2"))
+  (declare (indent 1) (debug cl-flet) (obsolete cl-labels "24.3"))
   (let ((vars nil) (sets nil) (newenv macroexpand-all-environment))
     (dolist (binding bindings)
       ;; It's important that (not (eq (symbol-name var1) (symbol-name var2)))
@@ -530,7 +521,7 @@ Like `cl-letf', but with some extra backward compatibility."
 
 (defun cl--gv-adapt (cl-gv do)
   ;; This function is used by all .elc files that use define-setf-expander and
-  ;; were compiled with Emacs>=24.2.
+  ;; were compiled with Emacs>=24.3.
   (let ((vars (nth 0 cl-gv))
         (vals (nth 1 cl-gv))
         (binds ())
@@ -641,7 +632,7 @@ Example:
 ;;                      `(,witness ,getter ,(funcall setter witness)))))
 ;;     ...find "let prefix" of expansion, extract getter and setter from
 ;;     ...the rest, and build the 5-tuple))
-(make-obsolete 'get-setf-method 'gv-letplace "24.2")
+(make-obsolete 'get-setf-method 'gv-letplace "24.3")
 
 (defmacro define-modify-macro (name arglist func &optional doc)
   "Define a `setf'-like modify macro.
@@ -662,47 +653,52 @@ from ARGLIST using FUNC: (define-modify-macro incf (&optional (n 1)) +)"
 ;;; Additional compatibility code.
 ;; For names that were clean but really aren't needed any more.
 
-(define-obsolete-function-alias 'cl-macroexpand 'macroexpand "24.2")
+(define-obsolete-function-alias 'cl-macroexpand 'macroexpand "24.3")
 (define-obsolete-variable-alias 'cl-macro-environment
-  'macroexpand-all-environment "24.2")
-(define-obsolete-function-alias 'cl-macroexpand-all 'macroexpand-all "24.2")
+  'macroexpand-all-environment "24.3")
+(define-obsolete-function-alias 'cl-macroexpand-all 'macroexpand-all "24.3")
 
 ;;; Hash tables.
 ;; This is just kept for compatibility with code byte-compiled by Emacs-20.
 
 ;; No idea if this might still be needed.
 (defun cl-not-hash-table (x &optional y &rest _z)
-  (declare (obsolete nil "24.2"))
+  (declare (obsolete nil "24.3"))
   (signal 'wrong-type-argument (list 'cl-hash-table-p (or y x))))
 
 (defvar cl-builtin-gethash (symbol-function 'gethash))
-(make-obsolete-variable 'cl-builtin-gethash nil "24.2")
+(make-obsolete-variable 'cl-builtin-gethash nil "24.3")
 (defvar cl-builtin-remhash (symbol-function 'remhash))
-(make-obsolete-variable 'cl-builtin-remhash nil "24.2")
+(make-obsolete-variable 'cl-builtin-remhash nil "24.3")
 (defvar cl-builtin-clrhash (symbol-function 'clrhash))
-(make-obsolete-variable 'cl-builtin-clrhash nil "24.2")
+(make-obsolete-variable 'cl-builtin-clrhash nil "24.3")
 (defvar cl-builtin-maphash (symbol-function 'maphash))
 
-(make-obsolete-variable 'cl-builtin-maphash nil "24.2")
-(define-obsolete-function-alias 'cl-map-keymap 'map-keymap "24.2")
-(define-obsolete-function-alias 'cl-copy-tree 'copy-tree "24.2")
-(define-obsolete-function-alias 'cl-gethash 'gethash "24.2")
-(define-obsolete-function-alias 'cl-puthash 'puthash "24.2")
-(define-obsolete-function-alias 'cl-remhash 'remhash "24.2")
-(define-obsolete-function-alias 'cl-clrhash 'clrhash "24.2")
-(define-obsolete-function-alias 'cl-maphash 'maphash "24.2")
-(define-obsolete-function-alias 'cl-make-hash-table 'make-hash-table "24.2")
-(define-obsolete-function-alias 'cl-hash-table-p 'hash-table-p "24.2")
-(define-obsolete-function-alias 'cl-hash-table-count 'hash-table-count "24.2")
+(make-obsolete-variable 'cl-builtin-maphash nil "24.3")
+(define-obsolete-function-alias 'cl-map-keymap 'map-keymap "24.3")
+(define-obsolete-function-alias 'cl-copy-tree 'copy-tree "24.3")
+(define-obsolete-function-alias 'cl-gethash 'gethash "24.3")
+(define-obsolete-function-alias 'cl-puthash 'puthash "24.3")
+(define-obsolete-function-alias 'cl-remhash 'remhash "24.3")
+(define-obsolete-function-alias 'cl-clrhash 'clrhash "24.3")
+(define-obsolete-function-alias 'cl-maphash 'maphash "24.3")
+(define-obsolete-function-alias 'cl-make-hash-table 'make-hash-table "24.3")
+(define-obsolete-function-alias 'cl-hash-table-p 'hash-table-p "24.3")
+(define-obsolete-function-alias 'cl-hash-table-count 'hash-table-count "24.3")
+
+(define-obsolete-function-alias 'cl-map-keymap-recursively
+  'cl--map-keymap-recursively "24.3")
+(define-obsolete-function-alias 'cl-map-intervals 'cl--map-intervals "24.3")
+(define-obsolete-function-alias 'cl-map-extents 'cl--map-overlays "24.3")
 
 (defun cl-maclisp-member (item list)
-  (declare (obsolete member "24.2"))
+  (declare (obsolete member "24.3"))
   (while (and list (not (equal item (car list)))) (setq list (cdr list)))
   list)
 
 ;; Used in the expansion of the old `defstruct'.
 (defun cl-struct-setf-expander (x name accessor pred-form pos)
-  (declare (obsolete nil "24.2"))
+  (declare (obsolete nil "24.3"))
   (let* ((temp (make-symbol "--cl-x--")) (store (make-symbol "--cl-store--")))
     (list (list temp) (list x) (list store)
 	  `(progn

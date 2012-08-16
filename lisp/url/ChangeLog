@@ -1,3 +1,31 @@
+2012-08-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* url-http.el (url-http-parse-headers): Re-enable file-name-handlers
+	(bug#11981).
+
+2012-08-12  David Engster  <deng@randomsample.de>
+
+	* url-util.el (url-file-directory, url-file-nondirectory): Avoid
+	file-name-directory and file-name-nondirectory internally (bug#11981).
+
+2012-08-11  Jason Rumney  <jasonr@gnu.org>
+
+	* url-http.el (url-http-create-request): Use url-http-proxy to
+	look up proxy credentials (Bug#12069).
+
+2012-07-28  David Engster  <deng@randomsample.de>
+
+	* url-dav.el (url-dav-supported-p): Add doc-string and remove
+	check for feature `xml' and function `xml-expand-namespace' which
+	never existed in Emacs proper.
+	(url-dav-process-response): Remove all indentation and newlines
+	from XML before parsing.  Change call to `xml-parse-region' to do
+	namespace expansion with simple qualified names (Bug#11916).
+	(url-dav-request): Add autoload.
+	(url-dav-directory-files): Properly deal with empty directories.
+	Unhex URL before generating relative URLs.
+	(url-dav-file-directory-p): Fix check for 'DAV:collection.
+
 2012-07-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* url.el, url-queue.el, url-parse.el, url-http.el, url-future.el:
@@ -45,8 +73,8 @@
 
 2012-05-10  Chong Yidong  <cyd@gnu.org>
 
-	* url-parse.el (url-path-and-query, url-port-if-non-default): New
-	functions.
+	* url-parse.el (url-path-and-query, url-port-if-non-default):
+	New functions.
 	(url-generic-parse-url): Don't set the portspec slot if it is not
 	specified; that is what `url-port' is for.
 	(url-port): Only require the scheme to be specified to call

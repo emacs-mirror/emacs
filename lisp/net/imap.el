@@ -68,7 +68,7 @@
 ;; imap-body-lines
 ;;
 ;; It is my hope that these commands should be pretty self
-;; explanatory for someone that know IMAP.  All functions have
+;; explanatory for someone who knows IMAP.  All functions have
 ;; additional documentation on how to invoke them.
 ;;
 ;; imap.el supports RFC1730/2060/RFC3501 (IMAP4/IMAP4rev1).  The implemented
@@ -838,9 +838,10 @@ sure of changing the value of `foo'."
 
 (defun imap-interactive-login (buffer loginfunc)
   "Login to server in BUFFER.
-LOGINFUNC is passed a username and a password, it should return t if
-it where successful authenticating itself to the server, nil otherwise.
-Returns t if login was successful, nil otherwise."
+Return t if login was successful, nil otherwise.
+
+LOGINFUNC is passed a username and a password.  It should return
+t if it successfully authenticates, nil otherwise."
   (with-current-buffer buffer
     (make-local-variable 'imap-username)
     (make-local-variable 'imap-password)
@@ -1187,11 +1188,12 @@ respond.  If BUFFER is nil, the current buffer is used."
 
 (defun imap-authenticate (&optional user passwd buffer)
   "Authenticate to server in BUFFER, using current buffer if nil.
-It uses the authenticator specified when opening the server.  If the
-authenticator requires username/passwords, they are queried from the
-user and optionally stored in the buffer.  If USER and/or PASSWD is
-specified, the user will not be questioned and the username and/or
-password is remembered in the buffer."
+It uses the authenticator specified when opening the server.
+
+Optional arguments USER and PASSWD specify the username and
+password to use if the authenticator requires a username and/or
+password.  If omitted or nil, the authenticator may query the
+user for a username and/or password."
   (with-current-buffer (or buffer (current-buffer))
     (if (not (eq imap-state 'nonauth))
 	(or (eq imap-state 'auth)
@@ -1475,7 +1477,7 @@ If BUFFER is nil the current buffer is assumed."
 (defun imap-mailbox-lsub (&optional root reference add-delimiter buffer)
   "Return a list of subscribed mailboxes on server in BUFFER.
 If ROOT is non-nil, only list matching mailboxes.  If ADD-DELIMITER is
-non-nil, a hierarchy delimiter is added to root.  REFERENCE is a
+non-nil, a hierarchy delimiter is added to root.  REFERENCE is an
 implementation-specific string that has to be passed to lsub command."
   (with-current-buffer (or buffer (current-buffer))
     ;; Make sure we know the hierarchy separator for root's hierarchy
@@ -1499,7 +1501,7 @@ implementation-specific string that has to be passed to lsub command."
 (defun imap-mailbox-list (root &optional reference add-delimiter buffer)
   "Return a list of mailboxes matching ROOT on server in BUFFER.
 If ADD-DELIMITER is non-nil, a hierarchy delimiter is added to
-root.  REFERENCE is a implementation-specific string that has to be
+root.  REFERENCE is an implementation-specific string that has to be
 passed to list command."
   (with-current-buffer (or buffer (current-buffer))
     ;; Make sure we know the hierarchy separator for root's hierarchy
@@ -1559,7 +1561,7 @@ returned, if ITEMS is a symbol only its value is returned."
 	(imap-mailbox-get items mailbox)))))
 
 (defun imap-mailbox-status-asynch (mailbox items &optional buffer)
-  "Send status item request ITEM on MAILBOX to server in BUFFER.
+  "Send status item requests ITEMS on MAILBOX to server in BUFFER.
 ITEMS can be a symbol or a list of symbols, valid symbols are one of
 the STATUS data items -- i.e. 'messages, 'recent, 'uidnext, 'uidvalidity
 or 'unseen.  The IMAP command tag is returned."
@@ -1596,7 +1598,7 @@ or 'unseen.  The IMAP command tag is returned."
 				     rights))))))
 
 (defun imap-mailbox-acl-delete (identifier &optional mailbox buffer)
-  "Remove any <identifier,rights> pair for IDENTIFIER in MAILBOX from server in BUFFER."
+  "Remove <id,rights> pairs for IDENTIFIER from MAILBOX on server in BUFFER."
   (let ((mailbox (imap-utf7-encode mailbox)))
     (with-current-buffer (or buffer (current-buffer))
       (imap-ok-p
@@ -1642,8 +1644,8 @@ or 'unseen.  The IMAP command tag is returned."
 
 (defun imap-fetch (uids props &optional receive nouidfetch buffer)
   "Fetch properties PROPS from message set UIDS from server in BUFFER.
-UIDS can be a string, number or a list of numbers.  If RECEIVE
-is non-nil return these properties."
+UIDS can be a string, number or a list of numbers.  If RECEIVE is
+non-nil, return these properties."
   (with-current-buffer (or buffer (current-buffer))
     (when (imap-ok-p (imap-send-command-wait
 		      (format "%sFETCH %s %s" (if nouidfetch "" "UID ")
@@ -1743,7 +1745,8 @@ is non-nil return these properties."
 	(imap-mailbox-get-1 'search imap-current-mailbox)))))
 
 (defun imap-message-flag-permanent-p (flag &optional mailbox buffer)
-  "Return t if FLAG can be permanently (between IMAP sessions) saved on articles, in MAILBOX on server in BUFFER."
+  "Return t if FLAG can be permanently saved on articles.
+MAILBOX specifies a mailbox on the server in BUFFER."
   (with-current-buffer (or buffer (current-buffer))
     (or (member "\\*" (imap-mailbox-get 'permanentflags mailbox))
 	(member flag (imap-mailbox-get 'permanentflags mailbox)))))
@@ -1918,7 +1921,7 @@ on failure."
     0))
 
 (defun imap-envelope-from (from)
-  "Return a from string line."
+  "Return a FROM string line."
   (and from
        (concat (aref from 0)
 	       (if (aref from 0) " <")
@@ -2285,7 +2288,7 @@ Return nil if no complete line has arrived."
 ;;                       ; capability.
 
 (defun imap-parse-response ()
-  "Parse a IMAP command response."
+  "Parse an IMAP command response."
   (let (token)
     (case (setq token (read (current-buffer)))
       (+ (setq imap-continuation

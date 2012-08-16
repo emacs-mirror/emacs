@@ -41,7 +41,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Special cases - inhibiting the use of certain features.  */
 
-/* Allow m- file to inhibit use of FIONREAD.  */
+/* Allow configure to inhibit use of FIONREAD.  */
 #ifdef BROKEN_FIONREAD
 #undef FIONREAD
 #undef ASYNC

@@ -23,6 +23,9 @@ You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
+
+#define COMPOSITE_INLINE EXTERN_INLINE
+
 #include <setjmp.h>
 #include "lisp.h"
 #include "character.h"
@@ -762,7 +765,7 @@ composition_gstring_width (Lisp_Object gstring, ptrdiff_t from, ptrdiff_t to,
 	}
       metrics->width = metrics->lbearing = metrics->rbearing = 0;
     }
-  for (glyph = &LGSTRING_GLYPH (gstring, from); from < to; from++, glyph++)
+  for (glyph = lgstring_glyph_addr (gstring, from); from < to; from++, glyph++)
     {
       int x;
 
@@ -947,20 +950,12 @@ autocmp_chars (Lisp_Object rule, ptrdiff_t charpos, ptrdiff_t bytepos, ptrdiff_t
 				       string);
   if (NILP (LGSTRING_ID (lgstring)))
     {
-      Lisp_Object args[6];
-
       /* Save point as marker before calling out to lisp.  */
       if (NILP (string))
 	record_unwind_protect (restore_point_unwind,
 			       build_marker (current_buffer, pt, pt_byte));
-
-      args[0] = Vauto_composition_function;
-      args[1] = AREF (rule, 2);
-      args[2] = pos;
-      args[3] = make_number (to);
-      args[4] = font_object;
-      args[5] = string;
-      lgstring = safe_call (6, args);
+      lgstring = safe_call (6, Vauto_composition_function, AREF (rule, 2),
+			    pos, make_number (to), font_object, string);
     }
   return unbind_to (count, lgstring);
 }

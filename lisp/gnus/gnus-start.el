@@ -1369,11 +1369,6 @@ for new groups, and subscribe the new groups as zombies."
 	(funcall gnus-group-change-level-function
 		 group level oldlevel previous)))))
 
-(defun gnus-kill-newsgroup (newsgroup)
-  "Obsolete function.  Kills a newsgroup."
-  (gnus-group-change-level
-   (gnus-group-entry newsgroup) gnus-level-killed))
-
 (defun gnus-check-bogus-newsgroups (&optional confirm)
   "Remove bogus newsgroups.
 If CONFIRM is non-nil, the user has to confirm the deletion of every

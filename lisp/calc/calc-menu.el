@@ -1201,6 +1201,63 @@
          :keys "v ."
          :style toggle
          :selected (not calc-full-vectors)]
+        (list "Simplification"
+              ["No simplification mode"
+               (progn
+                 (require 'calc-mode)
+                 (calc-no-simplify-mode t))
+               :keys "m O"
+               :style radio
+               :selected (eq calc-simplify-mode 'none)
+               :help "No simplifications are done automatically"]
+              ["Numeric simplification mode"
+               (progn
+                 (require 'calc-mode)
+                 (calc-num-simplify-mode t))
+               :keys "m N"
+               :style radio
+               :selected (eq calc-simplify-mode 'num)
+               :help "Only numeric simplifications are done automatically"]
+              ["Basic simplification mode"
+               (progn
+                 (require 'calc-mode)
+                 (calc-basic-simplify-mode t))
+               :keys "m I"
+               :style radio
+               :selected (eq calc-simplify-mode nil)
+               :help "Only basic simplifications are done automatically"]
+              ["Binary simplification mode"
+               (progn
+                 (require 'calc-mode)
+                 (calc-bin-simplify-mode t))
+               :keys "m B"
+               :style radio
+               :selected (eq calc-simplify-mode 'binary)
+               :help "Basic simplifications with binary clipping are done automatically"]
+              ["Algebraic simplification mode"
+               (progn
+                 (require 'calc-mode)
+                 (calc-alg-simplify-mode t))
+               :keys "m A"
+               :style radio
+               :selected (eq calc-simplify-mode 'alg)
+               :help "Standard algebraic simplifications are done automatically"]
+              ["Extended simplification mode"
+               (progn
+                 (require 'calc-mode)
+                 (calc-ext-simplify-mode t))
+               :keys "m E"
+               :style radio
+               :selected (eq calc-simplify-mode 'ext)
+               :help "Extended (unsafe) simplifications are done automatically"]
+              ["Units simplification mode"
+               (progn
+                 (require 'calc-mode)
+                 (calc-units-simplify-mode t))
+               :keys "m U"
+               :style radio
+               :selected (eq calc-simplify-mode 'units)
+               :help "Algebraic and unit simplifications are done automatically"])
         (list "Angle Measure"
               ["Radians"
                (progn
@@ -1412,6 +1469,45 @@
                :style radio
                :selected (eq calc-algebraic-mode 'total)
                :help "All regular letters and punctuation begin algebraic entry"])
+        (list "Matrix"
+              ["Off"
+               (progn
+                 (require 'calc-mode)
+                 (calc-matrix-mode -1))
+               :style radio
+               :selected (eq calc-matrix-mode nil)
+               :help "Variables are not assumed to be matrix or scalar"]
+              ["Matrix mode"
+               (progn
+                 (require 'calc-mode)
+                 (calc-matrix-mode -2))
+               :style radio
+               :selected (eq calc-matrix-mode 'matrix)
+               :help "Variables are assumed to be matrices"]
+              ["Square matrix mode"
+               (progn
+                 (require 'calc-mode)
+                 (calc-matrix-mode '(4)))
+               :style radio
+               :selected (eq calc-matrix-mode 'sqmatrix)
+               :help "Variables are assumed to be square matrices"]
+              ["Dimensioned matrix mode"
+               (let ((dim (string-to-number (read-from-minibuffer "Dimension: "))))
+                 (if (natnump dim)
+                     (progn
+                       (require 'calc-mode)
+                       (calc-matrix-mode dim))
+                   (error "The dimension must be a positive integer")))
+               :style radio
+               :selected (and (integerp calc-matrix-mode) (> calc-matrix-mode 0))
+               :help "Variables are assumed to be NxN matrices"]
+              ["Scalar mode"
+               (progn
+                 (require 'calc-mode)
+                 (calc-matrix-mode 0))
+               :style radio
+               :selected (eq calc-matrix-mode 'scalar)
+               :help "Variables are assumed to be scalars"])
         (list "Language"
               ["Normal"
                (progn

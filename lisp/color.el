@@ -1,4 +1,4 @@
-;;; color.el --- Color manipulation library -*- coding: utf-8; -*-
+;;; color.el --- Color manipulation library -*- coding: utf-8; lexical-binding:t -*-
 
 ;; Copyright (C) 2010-2012 Free Software Foundation, Inc.
 
@@ -85,7 +85,7 @@ resulting list."
 	 (g-step (/ (- (nth 1 stop) g) (1+ step-number)))
 	 (b-step (/ (- (nth 2 stop) b) (1+ step-number)))
 	 result)
-    (dotimes (n step-number)
+    (dotimes (_ step-number)
       (push (list (setq r (+ r r-step))
 		  (setq g (+ g g-step))
 		  (setq b (+ b b-step)))
@@ -226,44 +226,44 @@ RED, BLUE and GREEN must be between 0 and 1, inclusive."
   "Convert CIE XYZ to CIE L*a*b*.
 WHITE-POINT specifies the (X Y Z) white point for the
 conversion. If omitted or nil, use `color-d65-xyz'."
-  (destructuring-bind (Xr Yr Zr) (or white-point color-d65-xyz)
-      (let* ((xr (/ X Xr))
-             (yr (/ Y Yr))
-             (zr (/ Z Zr))
-             (fx (if (> xr color-cie-ε)
-                     (expt xr (/ 1 3.0))
-                   (/ (+ (* color-cie-κ xr) 16) 116.0)))
-             (fy (if (> yr color-cie-ε)
-                     (expt yr (/ 1 3.0))
-                   (/ (+ (* color-cie-κ yr) 16) 116.0)))
-             (fz (if (> zr color-cie-ε)
-                     (expt zr (/ 1 3.0))
-                   (/ (+ (* color-cie-κ zr) 16) 116.0))))
-        (list
-         (- (* 116 fy) 16)                  ; L
-         (* 500 (- fx fy))                  ; a
-         (* 200 (- fy fz))))))              ; b
+  (pcase-let* ((`(,Xr ,Yr ,Zr) (or white-point color-d65-xyz))
+               (xr (/ X Xr))
+               (yr (/ Y Yr))
+               (zr (/ Z Zr))
+               (fx (if (> xr color-cie-ε)
+                       (expt xr (/ 1 3.0))
+                     (/ (+ (* color-cie-κ xr) 16) 116.0)))
+               (fy (if (> yr color-cie-ε)
+                       (expt yr (/ 1 3.0))
+                     (/ (+ (* color-cie-κ yr) 16) 116.0)))
+               (fz (if (> zr color-cie-ε)
+                       (expt zr (/ 1 3.0))
+                     (/ (+ (* color-cie-κ zr) 16) 116.0))))
+    (list
+     (- (* 116 fy) 16)                ; L
+     (* 500 (- fx fy))                ; a
+     (* 200 (- fy fz)))))             ; b
 
 (defun color-lab-to-xyz (L a b &optional white-point)
   "Convert CIE L*a*b* to CIE XYZ.
 WHITE-POINT specifies the (X Y Z) white point for the
 conversion. If omitted or nil, use `color-d65-xyz'."
-  (destructuring-bind (Xr Yr Zr) (or white-point color-d65-xyz)
-      (let* ((fy (/ (+ L 16) 116.0))
-             (fz (- fy (/ b 200.0)))
-             (fx (+ (/ a 500.0) fy))
-             (xr (if (> (expt fx 3.0) color-cie-ε)
-                     (expt fx 3.0)
-               (/ (- (* fx 116) 16) color-cie-κ)))
-             (yr (if (> L (* color-cie-κ color-cie-ε))
-                     (expt (/ (+ L 16) 116.0) 3.0)
-                   (/ L color-cie-κ)))
-             (zr (if (> (expt fz 3) color-cie-ε)
-                     (expt fz 3.0)
-                   (/ (- (* 116 fz) 16) color-cie-κ))))
-        (list (* xr Xr)                 ; X
-              (* yr Yr)                 ; Y
-              (* zr Zr)))))             ; Z
+  (pcase-let* ((`(,Xr ,Yr ,Zr) (or white-point color-d65-xyz))
+               (fy (/ (+ L 16) 116.0))
+               (fz (- fy (/ b 200.0)))
+               (fx (+ (/ a 500.0) fy))
+               (xr (if (> (expt fx 3.0) color-cie-ε)
+                       (expt fx 3.0)
+                     (/ (- (* fx 116) 16) color-cie-κ)))
+               (yr (if (> L (* color-cie-κ color-cie-ε))
+                       (expt (/ (+ L 16) 116.0) 3.0)
+                     (/ L color-cie-κ)))
+               (zr (if (> (expt fz 3) color-cie-ε)
+                       (expt fz 3.0)
+                     (/ (- (* 116 fz) 16) color-cie-κ))))
+    (list (* xr Xr)                   ; X
+          (* yr Yr)                   ; Y
+          (* zr Zr))))                ; Z
 
 (defun color-srgb-to-lab (red green blue)
   "Convert RGB to CIE L*a*b*."
@@ -277,67 +277,72 @@ conversion. If omitted or nil, use `color-d65-xyz'."
   "Return the CIEDE2000 color distance between COLOR1 and COLOR2.
 Both COLOR1 and COLOR2 should be in CIE L*a*b* format, as
 returned by `color-srgb-to-lab' or `color-xyz-to-lab'."
-  (destructuring-bind (L₁ a₁ b₁) color1
-    (destructuring-bind (L₂ a₂ b₂) color2
-      (let* ((kL (or kL 1))
-             (kC (or kC 1))
-             (kH (or kH 1))
-             (C₁ (sqrt (+ (expt a₁ 2.0) (expt b₁ 2.0))))
-             (C₂ (sqrt (+ (expt a₂ 2.0) (expt b₂ 2.0))))
-             (C̄ (/ (+ C₁ C₂) 2.0))
-             (G (* 0.5 (- 1 (sqrt (/ (expt C̄ 7.0) (+ (expt C̄ 7.0) (expt 25 7.0)))))))
-             (a′₁ (* (+ 1 G) a₁))
-             (a′₂ (* (+ 1 G) a₂))
-             (C′₁ (sqrt (+ (expt a′₁ 2.0) (expt b₁ 2.0))))
-             (C′₂ (sqrt (+ (expt a′₂ 2.0) (expt b₂ 2.0))))
-             (h′₁ (if (and (= b₁ 0) (= a′₁ 0))
-                      0
-                    (let ((v (atan b₁ a′₁)))
-                      (if (< v 0)
-                          (+ v (* 2 float-pi))
-                        v))))
-             (h′₂ (if (and (= b₂ 0) (= a′₂ 0))
-                      0
-                    (let ((v (atan b₂ a′₂)))
-                      (if (< v 0)
-                          (+ v (* 2 float-pi))
-                        v))))
-             (ΔL′ (- L₂ L₁))
-             (ΔC′ (- C′₂ C′₁))
-             (Δh′ (cond ((= (* C′₁ C′₂) 0)
-                         0)
-                        ((<= (abs (- h′₂ h′₁)) float-pi)
-                         (- h′₂ h′₁))
-                        ((> (- h′₂ h′₁) float-pi)
-                         (- (- h′₂ h′₁) (* 2 float-pi)))
-                        ((< (- h′₂ h′₁) (- float-pi))
-                         (+ (- h′₂ h′₁) (* 2 float-pi)))))
-             (ΔH′ (* 2 (sqrt (* C′₁ C′₂)) (sin (/ Δh′ 2.0))))
-             (L̄′ (/ (+ L₁ L₂) 2.0))
-             (C̄′ (/ (+ C′₁ C′₂) 2.0))
-             (h̄′ (cond ((= (* C′₁ C′₂) 0)
-                        (+ h′₁ h′₂))
-                       ((<= (abs (- h′₁ h′₂)) float-pi)
-                        (/ (+ h′₁ h′₂) 2.0))
-                       ((< (+ h′₁ h′₂) (* 2 float-pi))
-                        (/ (+ h′₁ h′₂ (* 2 float-pi)) 2.0))
-                       ((>= (+ h′₁ h′₂) (* 2 float-pi))
-                        (/ (+ h′₁ h′₂ (* -2 float-pi)) 2.0))))
-             (T (+ 1
-                   (- (* 0.17 (cos (- h̄′ (degrees-to-radians 30)))))
-                   (* 0.24 (cos (* h̄′ 2)))
-                   (* 0.32 (cos (+ (* h̄′ 3) (degrees-to-radians 6))))
-                   (- (* 0.20 (cos (- (* h̄′ 4) (degrees-to-radians 63)))))))
-             (Δθ (* (degrees-to-radians 30) (exp (- (expt (/ (- h̄′ (degrees-to-radians 275)) (degrees-to-radians 25)) 2.0)))))
-             (Rc (* 2 (sqrt (/ (expt C̄′ 7.0) (+ (expt C̄′ 7.0) (expt 25.0 7.0))))))
-             (Sl (+ 1 (/ (* 0.015 (expt (- L̄′ 50) 2.0)) (sqrt (+ 20 (expt (- L̄′ 50) 2.0))))))
-             (Sc (+ 1 (* C̄′ 0.045)))
-             (Sh (+ 1 (* 0.015 C̄′ T)))
-             (Rt (- (* (sin (* Δθ 2)) Rc))))
+  (pcase-let*
+      ((`(,L₁ ,a₁ ,b₁) color1)
+       (`(,L₂ ,a₂ ,b₂) color2)
+       (kL (or kL 1))
+       (kC (or kC 1))
+       (kH (or kH 1))
+       (C₁ (sqrt (+ (expt a₁ 2.0) (expt b₁ 2.0))))
+       (C₂ (sqrt (+ (expt a₂ 2.0) (expt b₂ 2.0))))
+       (C̄ (/ (+ C₁ C₂) 2.0))
+       (G (* 0.5 (- 1 (sqrt (/ (expt C̄ 7.0)
+                               (+ (expt C̄ 7.0) (expt 25 7.0)))))))
+       (a′₁ (* (+ 1 G) a₁))
+       (a′₂ (* (+ 1 G) a₂))
+       (C′₁ (sqrt (+ (expt a′₁ 2.0) (expt b₁ 2.0))))
+       (C′₂ (sqrt (+ (expt a′₂ 2.0) (expt b₂ 2.0))))
+       (h′₁ (if (and (= b₁ 0) (= a′₁ 0))
+                0
+              (let ((v (atan b₁ a′₁)))
+                (if (< v 0)
+                    (+ v (* 2 float-pi))
+                  v))))
+       (h′₂ (if (and (= b₂ 0) (= a′₂ 0))
+                0
+              (let ((v (atan b₂ a′₂)))
+                (if (< v 0)
+                    (+ v (* 2 float-pi))
+                  v))))
+       (ΔL′ (- L₂ L₁))
+       (ΔC′ (- C′₂ C′₁))
+       (Δh′ (cond ((= (* C′₁ C′₂) 0)
+                   0)
+                  ((<= (abs (- h′₂ h′₁)) float-pi)
+                   (- h′₂ h′₁))
+                  ((> (- h′₂ h′₁) float-pi)
+                   (- (- h′₂ h′₁) (* 2 float-pi)))
+                  ((< (- h′₂ h′₁) (- float-pi))
+                   (+ (- h′₂ h′₁) (* 2 float-pi)))))
+       (ΔH′ (* 2 (sqrt (* C′₁ C′₂)) (sin (/ Δh′ 2.0))))
+       (L̄′ (/ (+ L₁ L₂) 2.0))
+       (C̄′ (/ (+ C′₁ C′₂) 2.0))
+       (h̄′ (cond ((= (* C′₁ C′₂) 0)
+                  (+ h′₁ h′₂))
+                 ((<= (abs (- h′₁ h′₂)) float-pi)
+                  (/ (+ h′₁ h′₂) 2.0))
+                 ((< (+ h′₁ h′₂) (* 2 float-pi))
+                  (/ (+ h′₁ h′₂ (* 2 float-pi)) 2.0))
+                 ((>= (+ h′₁ h′₂) (* 2 float-pi))
+                  (/ (+ h′₁ h′₂ (* -2 float-pi)) 2.0))))
+       (T (+ 1
+             (- (* 0.17 (cos (- h̄′ (degrees-to-radians 30)))))
+             (* 0.24 (cos (* h̄′ 2)))
+             (* 0.32 (cos (+ (* h̄′ 3) (degrees-to-radians 6))))
+             (- (* 0.20 (cos (- (* h̄′ 4) (degrees-to-radians 63)))))))
+       (Δθ (* (degrees-to-radians 30)
+              (exp (- (expt (/ (- h̄′ (degrees-to-radians 275))
+                               (degrees-to-radians 25)) 2.0)))))
+       (Rc (* 2 (sqrt (/ (expt C̄′ 7.0) (+ (expt C̄′ 7.0) (expt 25.0 7.0))))))
+       (Sl (+ 1 (/ (* 0.015 (expt (- L̄′ 50) 2.0))
+                   (sqrt (+ 20 (expt (- L̄′ 50) 2.0))))))
+       (Sc (+ 1 (* C̄′ 0.045)))
+       (Sh (+ 1 (* 0.015 C̄′ T)))
+       (Rt (- (* (sin (* Δθ 2)) Rc))))
         (sqrt (+ (expt (/ ΔL′ (* Sl kL)) 2.0)
                  (expt (/ ΔC′ (* Sc kC)) 2.0)
                  (expt (/ ΔH′ (* Sh kH)) 2.0)
-                 (* Rt (/ ΔC′ (* Sc kC)) (/ ΔH′ (* Sh kH)))))))))
+                 (* Rt (/ ΔC′ (* Sc kC)) (/ ΔH′ (* Sh kH)))))))
 
 (defun color-clamp (value)
   "Make sure VALUE is a number between 0.0 and 1.0 inclusive."

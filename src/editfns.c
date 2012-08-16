@@ -59,10 +59,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "window.h"
 #include "blockinput.h"
 
-#ifndef USER_FULL_NAME
-#define USER_FULL_NAME pw->pw_gecos
-#endif
-
 #ifndef USE_CRT_DLL
 extern char **environ;
 #endif
@@ -886,7 +882,7 @@ save_excursion_restore (Lisp_Object info)
   info = XCDR (info);
   tem = XCAR (info);
   tem1 = BVAR (current_buffer, mark_active);
-  BVAR (current_buffer, mark_active) = tem;
+  BSET (current_buffer, mark_active, tem);
 
   /* If mark is active now, and either was not active
      or was at a different place, run the activate hook.  */
@@ -950,8 +946,8 @@ usage: (save-excursion &rest BODY)  */)
 }
 
 DEFUN ("save-current-buffer", Fsave_current_buffer, Ssave_current_buffer, 0, UNEVALLED, 0,
-       doc: /* Save the current buffer; execute BODY; restore the current buffer.
-Executes BODY just like `progn'.
+       doc: /* Record which buffer is current; execute BODY; make that buffer current.
+BODY is executed just like `progn'.
 usage: (save-current-buffer &rest BODY)  */)
   (Lisp_Object args)
 {
@@ -1797,7 +1793,7 @@ format_time_string (char const *format, ptrdiff_t formatlen,
       if (STRING_BYTES_BOUND <= len)
 	string_overflow ();
       size = len + 1;
-      SAFE_ALLOCA (buf, char *, size);
+      buf = SAFE_ALLOCA (size);
     }
 
   UNBLOCK_INPUT;
@@ -2076,7 +2072,7 @@ the data it can't find.  */)
 	  int m = offset / 60;
 	  int am = offset < 0 ? - m : m;
 	  char buf[sizeof "+00" + INT_STRLEN_BOUND (int)];
-	  zone_name = make_formatted_string (buf, "%c%02d%02d", 
+	  zone_name = make_formatted_string (buf, "%c%02d%02d",
 					     (offset < 0 ? '-' : '+'),
 					     am / 60, am % 60);
 	}
@@ -2368,11 +2364,35 @@ usage: (insert-before-markers-and-inherit &rest ARGS)  */)
   return Qnil;
 }
 
-DEFUN ("insert-char", Finsert_char, Sinsert_char, 2, 3, 0,
+DEFUN ("insert-char", Finsert_char, Sinsert_char, 1, 3,
+       "(list (read-char-by-name \"Insert character (Unicode name or hex): \")\
+	 (prefix-numeric-value current-prefix-arg)\
+	 t))",
        doc: /* Insert COUNT copies of CHARACTER.
-Point, and before-insertion markers, are relocated as in the function `insert'.
-The optional third arg INHERIT, if non-nil, says to inherit text properties
-from adjoining text, if those properties are sticky.  */)
+Interactively, prompt for CHARACTER.  You can specify CHARACTER in one
+of these ways:
+
+ - As its Unicode character name, e.g. \"LATIN SMALL LETTER A\".
+   Completion is available; if you type a substring of the name
+   preceded by an asterisk `*', Emacs shows all names which include
+   that substring, not necessarily at the beginning of the name.
+
+ - As a hexadecimal code point, e.g. 263A.  Note that code points in
+   Emacs are equivalent to Unicode up to 10FFFF (which is the limit of
+   the Unicode code space).
+
+ - As a code point with a radix specified with #, e.g. #o21430
+   (octal), #x2318 (hex), or #10r8984 (decimal).
+
+If called interactively, COUNT is given by the prefix argument.  If
+omitted or nil, it defaults to 1.
+
+Inserting the character(s) relocates point and before-insertion
+markers in the same ways as the function `insert'.
+
+The optional third argument INHERIT, if non-nil, says to inherit text
+properties from adjoining text, if those properties are sticky.  If
+called interactively, INHERIT is t.  */)
   (Lisp_Object character, Lisp_Object count, Lisp_Object inherit)
 {
   int i, stringlen;
@@ -2382,6 +2402,8 @@ from adjoining text, if those properties are sticky.  */)
   char string[4000];
 
   CHECK_CHARACTER (character);
+  if (NILP (count))
+    XSETFASTINT (count, 1);
   CHECK_NUMBER (count);
   c = XFASTINT (character);
 
@@ -2794,13 +2816,13 @@ determines whether case is significant or ignored.  */)
 static Lisp_Object
 subst_char_in_region_unwind (Lisp_Object arg)
 {
-  return BVAR (current_buffer, undo_list) = arg;
+  return BSET (current_buffer, undo_list, arg);
 }
 
 static Lisp_Object
 subst_char_in_region_unwind_1 (Lisp_Object arg)
 {
-  return BVAR (current_buffer, filename) = arg;
+  return BSET (current_buffer, filename, arg);
 }
 
 DEFUN ("subst-char-in-region", Fsubst_char_in_region,
@@ -2874,11 +2896,11 @@ Both characters must have the same length of multi-byte form.  */)
     {
       record_unwind_protect (subst_char_in_region_unwind,
 			     BVAR (current_buffer, undo_list));
-      BVAR (current_buffer, undo_list) = Qt;
+      BSET (current_buffer, undo_list, Qt);
       /* Don't do file-locking.  */
       record_unwind_protect (subst_char_in_region_unwind_1,
 			     BVAR (current_buffer, filename));
-      BVAR (current_buffer, filename) = Qnil;
+      BSET (current_buffer, filename, Qnil);
     }
 
   if (pos_byte < GPT_BYTE)
@@ -2960,7 +2982,7 @@ Both characters must have the same length of multi-byte form.  */)
 		INC_POS (pos_byte_next);
 
 	      if (! NILP (noundo))
-		BVAR (current_buffer, undo_list) = tem;
+		BSET (current_buffer, undo_list, tem);
 
 	      UNGCPRO;
 	    }
@@ -3353,6 +3375,10 @@ save_restriction_restore (Lisp_Object data)
 
 	  buf->clip_changed = 1; /* Remember that the narrowing changed. */
 	}
+      /* These aren't needed anymore, so don't wait for GC.  */
+      free_marker (XCAR (data));
+      free_marker (XCDR (data));
+      free_cons (XCONS (data));
     }
   else
     /* A buffer, which means that there was no old restriction.  */
@@ -3589,9 +3615,13 @@ where flags is [+ #-0]+, width is [0-9]+, and precision is .[0-9]+
 The + flag character inserts a + before any positive number, while a
 space inserts a space before any positive number; these flags only
 affect %d, %e, %f, and %g sequences, and the + flag takes precedence.
+The - and 0 flags affect the width specifier, as described below.
+
 The # flag means to use an alternate display form for %o, %x, %X, %e,
-%f, and %g sequences.  The - and 0 flags affect the width specifier,
-as described below.
+%f, and %g sequences: for %o, it ensures that the result begins with
+\"0\"; for %x and %X, it prefixes the result with \"0x\" or \"0X\";
+for %e, %f, and %g, it causes a decimal point to be included even if
+the precision is zero.
 
 The width specifier supplies a lower limit for the length of the
 printed representation.  The padding, if any, normally goes on the
@@ -3660,7 +3690,7 @@ usage: (format STRING &rest OBJECTS)  */)
     ptrdiff_t i;
     if ((SIZE_MAX - formatlen) / sizeof (struct info) <= nargs)
       memory_full (SIZE_MAX);
-    SAFE_ALLOCA (info, struct info *, (nargs + 1) * sizeof *info + formatlen);
+    info = SAFE_ALLOCA ((nargs + 1) * sizeof *info + formatlen);
     discarded = (char *) &info[nargs + 1];
     for (i = 0; i < nargs + 1; i++)
       {
@@ -3907,7 +3937,7 @@ usage: (format STRING &rest OBJECTS)  */)
 
 		  /* If this argument has text properties, record where
 		     in the result string it appears.  */
-		  if (STRING_INTERVALS (args[n]))
+		  if (string_get_intervals (args[n]))
 		    info[n].intervals = arg_intervals = 1;
 
 		  continue;
@@ -4251,7 +4281,7 @@ usage: (format STRING &rest OBJECTS)  */)
      arguments has text properties, set up text properties of the
      result string.  */
 
-  if (STRING_INTERVALS (args[0]) || arg_intervals)
+  if (string_get_intervals (args[0]) || arg_intervals)
     {
       Lisp_Object len, new_len, props;
       struct gcpro gcpro1;
@@ -4501,7 +4531,7 @@ Transposing beyond buffer boundaries is an error.  */)
   Lisp_Object buf;
 
   XSETBUFFER (buf, current_buffer);
-  cur_intv = BUF_INTERVALS (current_buffer);
+  cur_intv = buffer_get_intervals (current_buffer);
 
   validate_region (&startr1, &endr1);
   validate_region (&startr2, &endr2);
@@ -4611,7 +4641,7 @@ Transposing beyond buffer boundaries is an error.  */)
       /* Don't use Fset_text_properties: that can cause GC, which can
 	 clobber objects stored in the tmp_intervals.  */
       tmp_interval3 = validate_interval_range (buf, &startr1, &endr2, 0);
-      if (!NULL_INTERVAL_P (tmp_interval3))
+      if (tmp_interval3)
 	set_text_properties_1 (startr1, endr2, Qnil, buf, tmp_interval3);
 
       /* First region smaller than second.  */
@@ -4619,7 +4649,7 @@ Transposing beyond buffer boundaries is an error.  */)
         {
 	  USE_SAFE_ALLOCA;
 
-	  SAFE_ALLOCA (temp, unsigned char *, len2_byte);
+	  temp = SAFE_ALLOCA (len2_byte);
 
 	  /* Don't precompute these addresses.  We have to compute them
 	     at the last minute, because the relocating allocator might
@@ -4637,7 +4667,7 @@ Transposing beyond buffer boundaries is an error.  */)
         {
 	  USE_SAFE_ALLOCA;
 
-	  SAFE_ALLOCA (temp, unsigned char *, len1_byte);
+	  temp = SAFE_ALLOCA (len1_byte);
 	  start1_addr = BYTE_POS_ADDR (start1_byte);
 	  start2_addr = BYTE_POS_ADDR (start2_byte);
           memcpy (temp, start1_addr, len1_byte);
@@ -4670,14 +4700,14 @@ Transposing beyond buffer boundaries is an error.  */)
           tmp_interval2 = copy_intervals (cur_intv, start2, len2);
 
 	  tmp_interval3 = validate_interval_range (buf, &startr1, &endr1, 0);
-	  if (!NULL_INTERVAL_P (tmp_interval3))
+	  if (tmp_interval3)
 	    set_text_properties_1 (startr1, endr1, Qnil, buf, tmp_interval3);
 
 	  tmp_interval3 = validate_interval_range (buf, &startr2, &endr2, 0);
-	  if (!NULL_INTERVAL_P (tmp_interval3))
+	  if (tmp_interval3)
 	    set_text_properties_1 (startr2, endr2, Qnil, buf, tmp_interval3);
 
-	  SAFE_ALLOCA (temp, unsigned char *, len1_byte);
+	  temp = SAFE_ALLOCA (len1_byte);
 	  start1_addr = BYTE_POS_ADDR (start1_byte);
 	  start2_addr = BYTE_POS_ADDR (start2_byte);
           memcpy (temp, start1_addr, len1_byte);
@@ -4703,11 +4733,11 @@ Transposing beyond buffer boundaries is an error.  */)
           tmp_interval2 = copy_intervals (cur_intv, start2, len2);
 
 	  tmp_interval3 = validate_interval_range (buf, &startr1, &endr2, 0);
-	  if (!NULL_INTERVAL_P (tmp_interval3))
+	  if (tmp_interval3)
 	    set_text_properties_1 (startr1, endr2, Qnil, buf, tmp_interval3);
 
 	  /* holds region 2 */
-	  SAFE_ALLOCA (temp, unsigned char *, len2_byte);
+	  temp = SAFE_ALLOCA (len2_byte);
 	  start1_addr = BYTE_POS_ADDR (start1_byte);
 	  start2_addr = BYTE_POS_ADDR (start2_byte);
           memcpy (temp, start2_addr, len2_byte);
@@ -4736,11 +4766,11 @@ Transposing beyond buffer boundaries is an error.  */)
           tmp_interval2 = copy_intervals (cur_intv, start2, len2);
 
 	  tmp_interval3 = validate_interval_range (buf, &startr1, &endr2, 0);
-	  if (!NULL_INTERVAL_P (tmp_interval3))
+	  if (tmp_interval3)
 	    set_text_properties_1 (startr1, endr2, Qnil, buf, tmp_interval3);
 
 	  /* holds region 1 */
-	  SAFE_ALLOCA (temp, unsigned char *, len1_byte);
+	  temp = SAFE_ALLOCA (len1_byte);
 	  start1_addr = BYTE_POS_ADDR (start1_byte);
 	  start2_addr = BYTE_POS_ADDR (start2_byte);
           memcpy (temp, start1_addr, len1_byte);

@@ -399,14 +399,10 @@ Example:
 		str2 "@protocol")))
 	(setq str (cc-imenu-objc-remove-white-space str))
 	(setq methodlist (cons (cons str2
-			      (match-beginning langnum))
+				     (match-beginning langnum))
 			       methodlist))
-	(setq toplist (cons nil (cons (cons str
-					  methodlist) toplist))
+	(setq toplist (cons (cons str methodlist) toplist)
 	      methodlist nil))))
-    ;;
-    (if (eq (car toplist) nil)
-	(setq toplist (cdr toplist)))
 
     ;; In this buffer, there is only one or zero @{interface|implementation|protocol}.
     (if (< classcount 2)

@@ -117,7 +117,9 @@ choose_minibuf_frame (void)
 	 init_window_once.  That window doesn't have a buffer.  */
       buffer = XWINDOW (minibuf_window)->buffer;
       if (BUFFERP (buffer))
-	Fset_window_buffer (sf->minibuffer_window, buffer, Qnil);
+	/* Use set_window_buffer instead of Fset_window_buffer (see
+	   discussion of bug#11984, bug#12025, bug#12026).  */
+	set_window_buffer (sf->minibuffer_window, buffer, 0, 0);
       minibuf_window = sf->minibuffer_window;
     }
 
@@ -264,7 +266,7 @@ read_minibuf_noninteractive (Lisp_Object map, Lisp_Object initial,
 	      if (STRING_BYTES_BOUND / 2 < size)
 		memory_full (SIZE_MAX);
 	      size *= 2;
-	      line = (char *) xrealloc (line, size);
+	      line = xrealloc (line, size);
 	    }
 	  line[len++] = c;
 	}
@@ -406,6 +408,7 @@ read_minibuf (Lisp_Object map, Lisp_Object initial, Lisp_Object prompt,
   Lisp_Object dummy, frame;
 
   specbind (Qminibuffer_default, defalt);
+  specbind (intern ("inhibit-read-only"), Qnil);
 
   /* If Vminibuffer_completing_file_name is `lambda' on entry, it was t
      in previous recursive minibuffer, but was not set explicitly
@@ -562,11 +565,11 @@ read_minibuf (Lisp_Object map, Lisp_Object initial, Lisp_Object prompt,
 
   /* Defeat (setq-default truncate-lines t), since truncated lines do
      not work correctly in minibuffers.  (Bug#5715, etc)  */
-  BVAR (current_buffer, truncate_lines) = Qnil;
+  BSET (current_buffer, truncate_lines, Qnil);
 
   /* If appropriate, copy enable-multibyte-characters into the minibuffer.  */
   if (inherit_input_method)
-    BVAR (current_buffer, enable_multibyte_characters) = enable_multibyte;
+    BSET (current_buffer, enable_multibyte_characters, enable_multibyte);
 
   /* The current buffer's default directory is usually the right thing
      for our minibuffer here.  However, if you're typing a command at
@@ -577,7 +580,7 @@ read_minibuf (Lisp_Object map, Lisp_Object initial, Lisp_Object prompt,
      you think of something better to do?  Find another buffer with a
      better directory, and use that one instead.  */
   if (STRINGP (ambient_dir))
-    BVAR (current_buffer, directory) = ambient_dir;
+    BSET (current_buffer, directory, ambient_dir);
   else
     {
       Lisp_Object buf_list;
@@ -591,7 +594,8 @@ read_minibuf (Lisp_Object map, Lisp_Object initial, Lisp_Object prompt,
 	  other_buf = XCDR (XCAR (buf_list));
 	  if (STRINGP (BVAR (XBUFFER (other_buf), directory)))
 	    {
-	      BVAR (current_buffer, directory) = BVAR (XBUFFER (other_buf), directory);
+	      BSET (current_buffer, directory,
+                   BVAR (XBUFFER (other_buf), directory));
 	      break;
 	    }
 	}
@@ -616,11 +620,15 @@ read_minibuf (Lisp_Object map, Lisp_Object initial, Lisp_Object prompt,
 
       if (! NILP (mini_window) && ! EQ (mini_window, minibuf_window)
 	  && !NILP (Fwindow_minibuffer_p (mini_window)))
-	Fset_window_buffer (mini_window, empty_minibuf, Qnil);
+	/* Use set_window_buffer instead of Fset_window_buffer (see
+	   discussion of bug#11984, bug#12025, bug#12026).  */
+	set_window_buffer (mini_window, empty_minibuf, 0, 0);
     }
 
   /* Display this minibuffer in the proper window.  */
-  Fset_window_buffer (minibuf_window, Fcurrent_buffer (), Qnil);
+  /* Use set_window_buffer instead of Fset_window_buffer (see
+     discussion of bug#11984, bug#12025, bug#12026).  */
+  set_window_buffer (minibuf_window, Fcurrent_buffer (), 0, 0);
   Fselect_window (minibuf_window, Qnil);
   XWINDOW (minibuf_window)->hscroll = 0;
 
@@ -664,7 +672,7 @@ read_minibuf (Lisp_Object map, Lisp_Object initial, Lisp_Object prompt,
     }
 
   clear_message (1, 1);
-  BVAR (current_buffer, keymap) = map;
+  BSET (current_buffer, keymap, map);
 
   /* Turn on an input method stored in INPUT_METHOD if any.  */
   if (STRINGP (input_method) && !NILP (Ffboundp (Qactivate_input_method)))
@@ -673,7 +681,7 @@ read_minibuf (Lisp_Object map, Lisp_Object initial, Lisp_Object prompt,
   Frun_hooks (1, &Qminibuffer_setup_hook);
 
   /* Don't allow the user to undo past this point.  */
-  BVAR (current_buffer, undo_list) = Qnil;
+  BSET (current_buffer, undo_list, Qnil);
 
   recursive_edit_1 ();
 

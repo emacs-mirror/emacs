@@ -1295,7 +1295,8 @@ aligner would have dealt with are."
 	(report (and (not func) align-large-region beg end
 		     (>= (- end beg) align-large-region)))
 	(rule-index 1)
-	(rule-count (length rules)))
+	(rule-count (length rules))
+	markers)
     (if (and align-indent-before-aligning real-beg end-mark)
 	(indent-region real-beg end-mark nil))
     (while rules
@@ -1315,14 +1316,14 @@ aligner would have dealt with are."
 		 (thissep (if rulesep (cdr rulesep) separate))
 		 same (eol 0)
 		 search-start
-		 group group-c
+		 groups group-c
 		 spacing spacing-c
 		 tab-stop tab-stop-c
 		 repeat repeat-c
 		 valid valid-c
 		 first
 		 regions index
-		 last-point b e
+		 last-point
 		 save-match-data
 		 exclude-p
 		 align-props)
@@ -1386,7 +1387,7 @@ aligner would have dealt with are."
 	      (when (or (not func)
 			(funcall func beg end rule))
 		(unwind-protect
-		    (let (exclude-areas)
+		    (let (rule-beg exclude-areas)
 		      ;; determine first of all where the exclusions
 		      ;; lie in this region
 		      (when exclude-rules
@@ -1451,11 +1452,10 @@ aligner would have dealt with are."
 			;; lookup the `group' attribute the first time
 			;; that we need it
 			(unless group-c
-			  (setq group (or (cdr (assq 'group rule)) 1))
-			  (if (listp group)
-			      (setq first (car group))
-			    (setq first group group (list group)))
-			  (setq group-c t))
+			  (setq groups (or (cdr (assq 'group rule)) 1))
+			  (unless (listp groups)
+			    (setq groups (list groups)))
+			  (setq first (car groups)))
 
 			(unless spacing-c
 			  (setq spacing (cdr (assq 'spacing rule))
@@ -1464,19 +1464,19 @@ aligner would have dealt with are."
 			(unless tab-stop-c
 			  (setq tab-stop
 				(let ((rule-ts (assq 'tab-stop rule)))
-				  (if rule-ts
-				      (cdr rule-ts)
-				    (if (symbolp align-to-tab-stop)
-					(symbol-value align-to-tab-stop)
-				      align-to-tab-stop)))
+				  (cond (rule-ts
+					 (cdr rule-ts))
+					((symbolp align-to-tab-stop)
+					 (symbol-value align-to-tab-stop))
+					(t
+					 align-to-tab-stop)))
 				tab-stop-c t))
 
 			;; test whether we have found a match on the same
 			;; line as a previous match
-			(if (> (point) eol)
-			    (progn
-                              (setq same nil)
-                              (align--set-marker eol (line-end-position))))
+			(when (> (point) eol)
+			  (setq same nil)
+			  (align--set-marker eol (line-end-position)))
 
 			;; lookup the `repeat' attribute the first time
 			(or repeat-c
@@ -1492,7 +1492,7 @@ aligner would have dealt with are."
 			;; match, and save the match-data, since either
 			;; the `valid' form, or the code that searches for
 			;; section separation, might alter it
-			(setq b (match-beginning first)
+			(setq rule-beg (match-beginning first)
 			      save-match-data (match-data))
 
 			;; unless the `valid' attribute is set, and tells
@@ -1504,15 +1504,13 @@ aligner would have dealt with are."
 			  ;; section.  If so, we should align what we've
 			  ;; collected so far, and then begin collecting
 			  ;; anew for the next alignment section
-			  (if (and last-point
-				   (align-new-section-p last-point b
-							thissep))
-			      (progn
-				(align-regions regions align-props
-					       rule func)
-				(setq regions nil)
-                                (setq align-props nil)))
-                          (align--set-marker last-point b t)
+			  (when (and last-point
+				     (align-new-section-p last-point rule-beg
+							  thissep))
+			    (align-regions regions align-props rule func)
+			    (setq regions nil)
+			    (setq align-props nil))
+                          (align--set-marker last-point rule-beg t)
 
 			  ;; restore the match data
 			  (set-match-data save-match-data)
@@ -1522,62 +1520,60 @@ aligner would have dealt with are."
 			  (let ((excls exclude-areas))
 			    (setq exclude-p nil)
 			    (while excls
-			      (if (and (< (match-beginning (car group))
+			      (if (and (< (match-beginning (car groups))
 					  (cdar excls))
-				       (> (match-end (car (last group)))
+				       (> (match-end (car (last groups)))
 					  (caar excls)))
 				  (setq exclude-p t
 					excls nil)
 				(setq excls (cdr excls)))))
 
-			  ;; go through the list of parenthesis groups
-			  ;; matching whitespace text to be
-			  ;; contracted/expanded (or possibly
-			  ;; justified, if the `justify' attribute was
-			  ;; set)
+			  ;; go through the parenthesis groups
+			  ;; matching whitespace to be contracted or
+			  ;; expanded (or possibly justified, if the
+			  ;; `justify' attribute was set)
 			  (unless exclude-p
-			    (let ((g group))
-			      (while g
-
-				;; we have to use markers, since
-				;; `align-areas' may modify the buffer
-				(setq b (copy-marker
-					 (match-beginning (car g)) t)
-				      e (copy-marker (match-end (car g)) t))
-
-				;; record this text region for alignment
+			    (dolist (g groups)
+			      ;; We must use markers, since
+			      ;; `align-areas' may modify the buffer.
+			      ;; Avoid polluting the markers.
+			      (let* ((group-beg (copy-marker
+						 (match-beginning g) t))
+				     (group-end (copy-marker
+						 (match-end g) t))
+				     (region (cons group-beg group-end))
+				     (props (cons (if (listp spacing)
+						      (car spacing)
+						    spacing)
+						  (if (listp tab-stop)
+						      (car tab-stop)
+						    tab-stop))))
+				(push group-beg markers)
+				(push group-end markers)
 				(setq index (if same (1+ index) 0))
-				(let ((region (cons b e))
-				      (props (cons
-					      (if (listp spacing)
-						  (car spacing)
-						spacing)
-					      (if (listp tab-stop)
-						  (car tab-stop)
-						tab-stop))))
-				  (if (nth index regions)
-				      (setcar (nthcdr index regions)
-					      (cons region
-						    (nth index regions)))
-				    (if regions
-					(progn
-					  (nconc regions
-						 (list (list region)))
-					  (nconc align-props (list props)))
-				      (setq regions
-					    (list (list region)))
-				      (setq align-props (list props)))))
-
-				;; if any further rule matches are
-				;; found before `eol', then they are
-				;; on the same line as this one; this
-				;; can only happen if the `repeat'
-				;; attribute is non-nil
-				(if (listp spacing)
-				    (setq spacing (cdr spacing)))
-				(if (listp tab-stop)
-				    (setq tab-stop (cdr tab-stop)))
-				(setq same t g (cdr g))))
+				(cond
+				 ((nth index regions)
+				  (setcar (nthcdr index regions)
+					  (cons region
+						(nth index regions))))
+				 (regions
+				  (nconc regions
+					 (list (list region)))
+				  (nconc align-props (list props)))
+				 (t
+				  (setq regions
+					(list (list region)))
+				  (setq align-props (list props)))))
+			      ;; If any further rule matches are found
+			      ;; before `eol', they are on the same
+			      ;; line as this one; this can only
+			      ;; happen if the `repeat' attribute is
+			      ;; non-nil.
+			      (if (listp spacing)
+				  (setq spacing (cdr spacing)))
+			      (if (listp tab-stop)
+				  (setq tab-stop (cdr tab-stop)))
+			      (setq same t))
 
 			    ;; if `repeat' has not been set, move to
 			    ;; the next line; don't bother searching
@@ -1598,6 +1594,11 @@ aligner would have dealt with are."
 		  (setq case-fold-search current-case-fold)))))))
       (setq rules (cdr rules)
 	    rule-index (1+ rule-index)))
+    ;; This function can use a lot of temporary markers, so instead of
+    ;; waiting for the next GC we delete them immediately (Bug#10047).
+    (set-marker end-mark nil)
+    (dolist (m markers)
+      (set-marker m nil))
 
     (if report
 	(message "Aligning...done"))))

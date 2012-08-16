@@ -336,7 +336,11 @@ Called from program, takes four args: REGISTER, START, END and DELETE-FLAG.
 START and END are buffer positions indicating what to copy."
   (interactive "cCopy to register: \nr\nP")
   (set-register register (filter-buffer-substring start end))
-  (if delete-flag (delete-region start end)))
+  (setq deactivate-mark t)
+  (cond (delete-flag
+	 (delete-region start end))
+	((called-interactively-p 'interactive)
+	 (indicate-copied-region))))
 
 (defun append-to-register (register start end &optional delete-flag)
   "Append region to text in register REGISTER.
@@ -350,7 +354,10 @@ START and END are buffer positions indicating what to append."
      register (cond ((not reg) text)
                     ((stringp reg) (concat reg text))
                     (t (error "Register does not contain text")))))
-  (if delete-flag (delete-region start end)))
+  (cond (delete-flag
+	 (delete-region start end))
+	((called-interactively-p 'interactive)
+	 (indicate-copied-region))))
 
 (defun prepend-to-register (register start end &optional delete-flag)
   "Prepend region to text in register REGISTER.
@@ -364,7 +371,10 @@ START and END are buffer positions indicating what to prepend."
      register (cond ((not reg) text)
                     ((stringp reg) (concat text reg))
                     (t (error "Register does not contain text")))))
-  (if delete-flag (delete-region start end)))
+  (cond (delete-flag
+	 (delete-region start end))
+	((called-interactively-p 'interactive)
+	 (indicate-copied-region))))
 
 (defun copy-rectangle-to-register (register start end &optional delete-flag)
   "Copy rectangular region into register REGISTER.
@@ -374,10 +384,15 @@ To insert this register in the buffer, use \\[insert-register].
 Called from a program, takes four args: REGISTER, START, END and DELETE-FLAG.
 START and END are buffer positions giving two corners of rectangle."
   (interactive "cCopy rectangle to register: \nr\nP")
-  (set-register register
-		(if delete-flag
-		    (delete-extract-rectangle start end)
-		  (extract-rectangle start end))))
+  (let ((rectangle (if delete-flag
+		       (delete-extract-rectangle start end)
+		     (extract-rectangle start end))))
+    (set-register register rectangle)
+    (when (and (null delete-flag)
+	       (called-interactively-p 'interactive))
+      (setq deactivate-mark t)
+      (indicate-copied-region (length (car rectangle))))))
+
 
 (provide 'register)
 ;;; register.el ends here

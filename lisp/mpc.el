@@ -184,7 +184,7 @@ numerically rather than lexicographically."
                     (abs res))
                 res))))))))
 
-(define-obsolete-function-alias 'mpc-string-prefix-p 'string-prefix-p "24.2")
+(define-obsolete-function-alias 'mpc-string-prefix-p 'string-prefix-p "24.3")
 
 ;; This can speed up mpc--song-search significantly.  The table may grow
 ;; very large, tho.  It's only bounded by the fact that it gets flushed
@@ -199,9 +199,10 @@ numerically rather than lexicographically."
 (defcustom mpc-host
   (concat (or (getenv "MPD_HOST") "localhost")
           (if (getenv "MPD_PORT") (concat ":" (getenv "MPD_PORT"))))
-  "Host (and port) where the Music Player Daemon is running.
-The format is \"HOST\" or \"HOST:PORT\" where PORT defaults to 6600
-and HOST defaults to localhost."
+  "Host (and port) where the Music Player Daemon is running.  The
+format is \"HOST\", \"HOST:PORT\", \"PASSWORD@HOST\" or
+\"PASSWORD@HOST:PORT\" where PASSWORD defaults to no password, PORT
+defaults to 6600 and HOST defaults to localhost."
   :type 'string)
 
 (defvar mpc-proc nil)
@@ -252,20 +253,30 @@ and HOST defaults to localhost."
                 (funcall callback)))))))))
 
 (defun mpc--proc-connect (host)
-  (mpc--debug "Connecting to %s..." host)
-  (with-current-buffer (get-buffer-create (format " *mpc-%s*" host))
-    ;; (pop-to-buffer (current-buffer))
-    (let (proc)
-      (while (and (setq proc (get-buffer-process (current-buffer)))
-                  (progn ;; (debug)
-                         (delete-process proc)))))
-    (erase-buffer)
-    (let ((port 6600))
-      (when (string-match ":[^.]+\\'" host)
-        (setq port (substring host (1+ (match-beginning 0))))
-        (setq host (substring host 0 (match-beginning 0)))
-        (unless (string-match "[^[:digit:]]" port)
-          (setq port (string-to-number port))))
+  (let ((port 6600)
+        pass)
+
+    (when (string-match "\\`\\(?:\\(.*\\)@\\)?\\(.*?\\)\\(?::\\(.*\\)\\)?\\'"
+                        host)
+      (let ((v (match-string 1 host)))
+        (when (and (stringp v) (not (string= "" v)))
+          (setq pass v)))
+      (let ((v (match-string 3 host)))
+        (setq host (match-string 2 host))
+        (when (and (stringp v) (not (string= "" v)))
+          (setq port
+                (if (string-match "[^[:digit:]]" v)
+                    (string-to-number v)
+                  v)))))
+
+    (mpc--debug "Connecting to %s:%s..." host port)
+    (with-current-buffer (get-buffer-create (format " *mpc-%s:%s*" host port))
+      ;; (pop-to-buffer (current-buffer))
+      (let (proc)
+        (while (and (setq proc (get-buffer-process (current-buffer)))
+                    (progn ;; (debug)
+                      (delete-process proc)))))
+      (erase-buffer)
       (let* ((coding-system-for-read 'utf-8-unix)
              (coding-system-for-write 'utf-8-unix)
              (proc (open-network-stream "MPC" (current-buffer) host port)))
@@ -282,7 +293,9 @@ and HOST defaults to localhost."
         (set-process-query-on-exit-flag proc nil)
         ;; This may be called within a process filter ;-(
         (with-local-quit (mpc-proc-sync proc))
-        proc))))
+        (setq mpc-proc proc)
+        (when pass
+          (mpc-proc-cmd (list "password" pass) nil))))))
 
 (defun mpc--proc-quote-string (s)
   (if (numberp s) (number-to-string s)
@@ -306,11 +319,11 @@ and HOST defaults to localhost."
     (nreverse alists)))
 
 (defun mpc-proc ()
-  (or (and mpc-proc
-           (buffer-live-p (process-buffer mpc-proc))
-           (not (memq (process-status mpc-proc) '(closed)))
-           mpc-proc)
-      (setq mpc-proc (mpc--proc-connect mpc-host))))
+  (unless (and mpc-proc
+               (buffer-live-p (process-buffer mpc-proc))
+               (not (memq (process-status mpc-proc) '(closed))))
+    (mpc--proc-connect mpc-host))
+  mpc-proc)
 
 (defun mpc-proc-check (proc)
   (let ((error-text (process-get proc 'mpc-proc-error)))

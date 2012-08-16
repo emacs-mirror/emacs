@@ -283,7 +283,7 @@ Python's PEP8 for example recommends two spaces, so you could do:
    (lambda () (set (make-local-variable 'comment-inline-offset) 2)))
 
 See `comment-padding' for whole-line comments."
-  :version "24.2"
+  :version "24.3"
   :type 'integer
   :group 'comment)
 

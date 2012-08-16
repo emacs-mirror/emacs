@@ -44,8 +44,7 @@
 
 ;;; Code:
 
-(eval-when-compile
-  (require 'cl))
+(eval-when-compile (require 'cl))       ;FIXME: Use cl-lib!
 
 (defvar eieio-version "1.3"
   "Current version of EIEIO.")
@@ -431,10 +430,10 @@ See `defclass' for more information."
   (run-hooks 'eieio-hook)
   (setq eieio-hook nil)
 
-  (if (not (symbolp cname)) (signal 'wrong-type-argument '(symbolp cname)))
-  (if (not (listp superclasses)) (signal 'wrong-type-argument '(listp superclasses)))
+  (if (not (listp superclasses))
+      (signal 'wrong-type-argument '(listp superclasses)))
 
-  (let* ((pname (if superclasses superclasses nil))
+  (let* ((pname superclasses)
 	 (newc (make-vector class-num-slots nil))
 	 (oldc (when (class-p cname) (class-v cname)))
 	 (groups nil) ;; list of groups id'd from slots
@@ -553,8 +552,8 @@ See `defclass' for more information."
       (put cname 'cl-deftype-handler
 	   (list 'lambda () `(list 'satisfies (quote ,csym)))))
 
-    ;; before adding new slots, let's add all the methods and classes
-    ;; in from the parent class
+    ;; Before adding new slots, let's add all the methods and classes
+    ;; in from the parent class.
     (eieio-copy-parents-into-subclass newc superclasses)
 
     ;; Store the new class vector definition into the symbol.  We need to
@@ -652,9 +651,9 @@ See `defclass' for more information."
 	;; We need to id the group, and store them in a group list attribute.
 	(mapc (lambda (cg) (add-to-list 'groups cg)) customg)
 
-	;; anyone can have an accessor function.  This creates a function
+	;; Anyone can have an accessor function.  This creates a function
 	;; of the specified name, and also performs a `defsetf' if applicable
-	;; so that users can `setf' the space returned by this function
+	;; so that users can `setf' the space returned by this function.
 	(if acces
 	    (progn
 	      (eieio--defmethod
@@ -668,18 +667,26 @@ See `defclass' for more information."
 			    ;; Else - Some error?  nil?
 			    nil)))
 
-	      ;; Provide a setf method.  It would be cleaner to use
-	      ;; defsetf, but that would require CL at runtime.
-	      (put acces 'setf-method
-		   `(lambda (widget)
-		      (let* ((--widget-sym-- (make-symbol "--widget--"))
-			     (--store-sym-- (make-symbol "--store--")))
-			(list
-			 (list --widget-sym--)
-			 (list widget)
-			 (list --store-sym--)
-			 (list 'eieio-oset --widget-sym-- '',name --store-sym--)
-			 (list 'getfoo --widget-sym--)))))))
+              (if (fboundp 'gv-define-setter)
+                  ;; FIXME: We should move more of eieio-defclass into the
+                  ;; defclass macro so we don't have to use `eval' and require
+                  ;; `gv' at run-time.
+                  (eval `(gv-define-setter ,acces (eieio--store eieio--object)
+                           (list 'eieio-oset eieio--object '',name
+                                 eieio--store)))
+                ;; Provide a setf method.  It would be cleaner to use
+                ;; defsetf, but that would require CL at runtime.
+                (put acces 'setf-method
+                     `(lambda (widget)
+                        (let* ((--widget-sym-- (make-symbol "--widget--"))
+                               (--store-sym-- (make-symbol "--store--")))
+                          (list
+                           (list --widget-sym--)
+                           (list widget)
+                           (list --store-sym--)
+                           (list 'eieio-oset --widget-sym-- '',name
+                                 --store-sym--)
+                           (list 'getfoo --widget-sym--))))))))
 
 	;; If a writer is defined, then create a generic method of that
 	;; name whose purpose is to set the value of the slot.
@@ -702,7 +709,8 @@ See `defclass' for more information."
 	)
       (setq slots (cdr slots)))
 
-    ;; Now that everything has been loaded up, all our lists are backwards!  Fix that up now.
+    ;; Now that everything has been loaded up, all our lists are backwards!
+    ;; Fix that up now.
     (aset newc class-public-a (nreverse (aref newc class-public-a)))
     (aset newc class-public-d (nreverse (aref newc class-public-d)))
     (aset newc class-public-doc (nreverse (aref newc class-public-doc)))
@@ -2544,11 +2552,14 @@ This is usually a symbol that starts with `:'."
 ;;
 
 (defsetf eieio-oref eieio-oset)
-;; FIXME: Not needed for Emacs>=24.2 since setf follows function aliases.
+
+(if (eval-when-compile (fboundp 'gv-define-expander))
+    ;; Not needed for Emacs>=24.3 since gv.el's setf expands macros and
+    ;; follows aliases.
+    nil
 (defsetf slot-value eieio-oset)
 
 ;; The below setf method was written by Arnd Kohrs <kohrs@acm.org>
-;; FIXME: Not needed for Emacs>=24.2 since setf expands macros.
 (define-setf-method oref (obj slot)
   (with-no-warnings
     (require 'cl)
@@ -2560,7 +2571,7 @@ This is usually a symbol that starts with `:'."
 	    (list store-temp)
 	    (list 'set-slot-value obj-temp slot-temp
 		  store-temp)
-	    (list 'slot-value obj-temp slot-temp)))))
+	    (list 'slot-value obj-temp slot-temp))))))
 
 
 ;;;

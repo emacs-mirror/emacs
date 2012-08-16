@@ -26,7 +26,14 @@
 #define NSIG 320\
 #endif
 
+/^#undef MSDOS *$/c\
+#ifndef MSDOS\
+#define MSDOS\
+#endif
+/^#undef DOS_NT *$/s/^.*$/#define DOS_NT/
+/^#undef FLOAT_CHECK_DOMAIN *$/s/^.*$/#define FLOAT_CHECK_DOMAIN/
 /^#undef HAVE_ALLOCA *$/s/^.*$/#define HAVE_ALLOCA 1/
+/^#undef HAVE_INVERSE_HYPERBOLIC *$/s/^.*$/#define HAVE_INVERSE_HYPERBOLIC/
 /^#undef HAVE_SETITIMER *$/s/^.*$/#define HAVE_SETITIMER 1/
 /^#undef HAVE_STRUCT_UTIMBUF *$/s/^.*$/#define HAVE_STRUCT_UTIMBUF 1/
 /^#undef LOCALTIME_CACHE *$/s/^.*$/#define LOCALTIME_CACHE 1/
@@ -35,7 +42,6 @@
 /^#undef HAVE_FREXP *$/s/^.*$/#define HAVE_FREXP 1/
 /^#undef HAVE_FMOD *$/s/^.*$/#define HAVE_FMOD 1/
 /^#undef HAVE_RINT *$/s/^.*$/#define HAVE_RINT 1/
-/^#undef HAVE_ATTRIBUTE_ALIGNED *$/s/^.*$/#define HAVE_ATTRIBUTE_ALIGNED 1/
 /^#undef HAVE_C99_STRTOLD *$/s/^.*$/#define HAVE_C99_STRTOLD 1/
 /^#undef HAVE_CBRT *$/s/^.*$/#define HAVE_CBRT 1/
 /^#undef HAVE_DIFFTIME *$/s/^.*$/#define HAVE_DIFFTIME 1/
@@ -64,7 +70,7 @@
 /^#undef PACKAGE_STRING/s/^.*$/#define PACKAGE_STRING ""/
 /^#undef PACKAGE_TARNAME/s/^.*$/#define PACKAGE_TARNAME ""/
 /^#undef PACKAGE_VERSION/s/^.*$/#define PACKAGE_VERSION ""/
-/^#undef VERSION/s/^.*$/#define VERSION "24.1.50"/
+/^#undef VERSION/s/^.*$/#define VERSION "24.2.50"/
 /^#undef SYSTEM_TYPE/s/^.*$/#define SYSTEM_TYPE "ms-dos"/
 /^#undef HAVE_DECL_GETENV/s/^.*$/#define HAVE_DECL_GETENV 1/
 /^#undef SYS_SIGLIST_DECLARED/s/^.*$/#define SYS_SIGLIST_DECLARED 1/
@@ -80,7 +86,17 @@
 /^#undef HAVE_SIGNED_SIG_ATOMIC_T *$/s/^.*$/#define HAVE_SIGNED_SIG_ATOMIC_T 1/
 /^#undef HAVE_SIGNED_WINT_T *$/s/^.*$/#define HAVE_SIGNED_WINT_T 1/
 /^#undef HAVE_UNSIGNED_LONG_LONG_INT *$/s/^.*$/#define HAVE_UNSIGNED_LONG_LONG_INT 1/
-/^#under HAVE_WCHAR_H *$/s/^.*$/#define HAVE_WCHAR_H 1/
+/^#undef HAVE_WCHAR_H *$/s/^.*$/#define HAVE_WCHAR_H 1/
+/^#undef DEVICE_SEP *$/s/^.*$/#define DEVICE_SEP ':'/
+/^#undef IS_DIRECTORY_SEP *$/s,^.*$,#define IS_DIRECTORY_SEP(_c_) ((_c_) == '/' || (_c_) == '\\\\'),
+/^#undef IS_DEVICE_SEP *$/s/^.*$/#define IS_DEVICE_SEP(_c_) ((_c_) == ':')/
+/^#undef IS_ANY_SEP *$/s/^.*$/#define IS_ANY_SEP(_c_) (IS_DIRECTORY_SEP (_c_) || IS_DEVICE_SEP (_c_))/
+/^#undef INTERNAL_TERMINAL *$/s,^.*$,#define INTERNAL_TERMINAL "pc|bios|IBM PC with color display::co#80:li#25:Co#16:pa#256:km:ms:cm=<CM>:cl=<CL>:ce=<CE>::se=</SO>:so=<SO>:us=<UL>:ue=</UL>:md=<BD>:mh=<DIM>:mb=<BL>:mr=<RV>:me=<NV>::AB=<BG %d>:AF=<FG %d>:op=<DefC>:",
+/^#undef NULL_DEVICE *$/s/^.*$/#define NULL_DEVICE "nul"/
+/^#undef SEPCHAR *$/s/^.*$/#define SEPCHAR '\;'/
+/^#undef USER_FULL_NAME *$/s/^.*$/#define USER_FULL_NAME (getenv ("NAME"))/
+/^#undef _setjmp/s/^.*$/#define _setjmp setjmp/
+/^#undef _longjmp/s/^.*$/#define _longjmp longjmp/
 /^#undef inline/s/^.*$/#define inline __inline__/
 /^#undef my_strftime/s/^.*$/#define my_strftime nstrftime/
 /^#undef restrict/s/^.*$/#define restrict __restrict/
@@ -91,8 +107,6 @@
 s/^#undef STACK_DIRECTION *$/#define STACK_DIRECTION -1/
 s/^#undef EMACS_CONFIGURATION *$/#define EMACS_CONFIGURATION "i386-pc-msdosdjgpp"/
 s/^#undef EMACS_CONFIG_OPTIONS *$/#define EMACS_CONFIG_OPTIONS "msdos"/
-s!^#undef config_opsysfile *$!#define config_opsysfile "s/msdos.h"!
-s!^#undef config_machfile *$!#define config_machfile "m/intel386.h"!
 s/^#undef PROTOTYPES *$/#define PROTOTYPES 1/
 s/^#undef POINTER_TYPE *$/#define POINTER_TYPE void/
 /^#undef HAVE_INTTYPES_H/c\

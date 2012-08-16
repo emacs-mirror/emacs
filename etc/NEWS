@@ -21,7 +21,13 @@ When you add a new item, please add it without either +++ or ---
 so we will look at it and add it to the manual.
 
 
-* Installation Changes in Emacs 24.2
+* Installation Changes in Emacs 24.3
+
+** New configure option '--without-all' to disable additonal features.
+This disables most of the features that are normally enabled by default.
+
+** New configure option '--enable-link-time-optimization' to utilize
+an appropriate feature provided by GCC since version 4.5.0.
 
 ** New configure option '--enable-gcc-warnings', intended for developers.
 If building with GCC, this enables compile-time checks that warn about
@@ -55,7 +61,7 @@ Lisp_Object type no longer uses a union to implement the compile time
 check that this option enables.
 
 
-* Startup Changes in Emacs 24.2
+* Startup Changes in Emacs 24.3
 
 ** Emacs no longer searches for `leim-list.el' files beneath the standard
 lisp/ directory.  There should not be any there anyway.  If you have
@@ -65,7 +71,7 @@ been adding them there, put them somewhere else, eg site-lisp.
 ** The `--no-site-lisp' command line option now works for Nextstep builds.
 
 
-* Changes in Emacs 24.2
+* Changes in Emacs 24.3
 
 ** Help changes
 
@@ -110,6 +116,10 @@ treated as images.
 *** Images displayed via ImageMagick now support transparency and the
 :background image spec property.
 
+** Internationalization changes
+
+*** New language environment: Persian.
+
 ** Face underlining can now use a wave.
 See the "Face Attributes" section of the Elisp manual.
 
@@ -140,8 +150,19 @@ invokes `set-buffer-file-coding-system'.
 ** Setting `enable-remote-dir-locals' to non-nil allows directory
 local variables on remote hosts.
 
++++
+** `insert-char' is now a command, and `ucs-insert' an obsolete alias
+for it.
+
+** The entry for PCL-CVS has been removed from the Tools menu.
+The PCL-CVS commands are still available via the keyboard.
+
 
-* Editing Changes in Emacs 24.2
+* Editing Changes in Emacs 24.3
+
+** New option `delete-trailing-lines' specifies whether the M-x
+delete-trailing-whitespace command should delete trailing lines at the
+end of the buffer.  It defaults to t.
 
 ** Search changes
 
@@ -155,6 +176,8 @@ prompts for a column number.
 ** `mouse-avoidance-banish-position' can now be used to customize
 `mouse-avoidance-mode' further.
 
+** `C-u M-=' now counts lines/words/characters in the entire buffer.
+
 ** `C-M-f' and `C-M-b' will now move to the path name separator
 character when doing minibuffer filename prompts.
 
@@ -166,7 +189,7 @@ It copies the region-rectangle as the last rectangle kill.
 ** New input method `vietnamese-vni'.
 
 
-* Changes in Specialized Modes and Packages in Emacs 24.2
+* Changes in Specialized Modes and Packages in Emacs 24.3
 
 ** Term changes
 
@@ -177,17 +200,31 @@ ANSI terminal colors and styles by customizing the corresponding
 `term-color-<COLOR>', `term-color-underline' and `term-color-bold'
 faces.
 
-** CL's main entry is now (require 'cl-lib).
+** CL
+*** CL's main entry is now (require 'cl-lib).
 `cl-lib' is like the old `cl' except that it uses the namespace cleanly,
-i.e. all its definitions have the "cl-" prefix.
+i.e. all its definitions have the "cl-" prefix (and internal definitions use
+the "cl--" prefix).
 
 If `cl' provided a feature under the name `foo', then `cl-lib' provides it
 under the name `cl-foo' instead, with the exceptions of the few definitions
 that had to use `foo*' to avoid conflicts with pre-existing Elisp entities,
 which have not been renamed to `cl-foo*' but just `cl-foo'.
 
-The old `cl' is now deprecated and is nothing more than a bunch of aliases that
+The old `cl' is now deprecated and is just a bunch of aliases that
 provide the old non-prefixed names.
+
+*** `cl-flet' is not like `flet' (which is deprecated).
+Instead it obeys the behavior of Common-Lisp's `flet'.
+
+*** `cl-labels' is slightly different from `labels'.
+The difference is that it relies on the `lexical-binding' machinery (as opposed
+to the `lexical-let' machinery used previously) to capture definitions in
+closures, so such closures will only work if `lexical-binding' is in use.
+
+*** `progv' was rewritten to use the `let' machinery.
+A side effect is that vars without corresponding value are bound to nil
+rather than making them unbound.
 
 ** Desktop
 
@@ -270,12 +307,12 @@ The variable `diff-use-changed-face' defines whether to use
 the face `diff-changed', or `diff-removed' and `diff-added'
 to highlight changes in context diffs.
 
+** Ediff now uses the same color scheme as Diff mode
+on high color displays.
+
 ** Flymake uses fringe bitmaps to indicate errors and warnings.
 See flymake-fringe-indicator-position, flymake-error-bitmap and
 flymake-warning-bitmap.
-
-** Ediff now uses the same color scheme as Diff mode
-on high color displays.
 
 ** `sh-script'
 *** Pairing of parens/quotes uses electric-pair-mode instead of skeleton-pair.
@@ -343,6 +380,18 @@ these commands now).
 
 ** erc will look up server/channel names via auth-source and use the
 channel keys found, if any.
+
+** Dired
+
+*** `dired-do-async-shell-command' executes each file sequentially
+if the command ends in `;' (when operating on multiple files).
+Otherwise, it executes the command on each file in parallel.
+
+** Shell
+
+*** New option `async-shell-command-buffer' specifies what buffer to use
+for a new asynchronous shell command when the default output buffer
+`*Async Shell Command*' is already taken by another running command.
 
 ** FFAP
 
@@ -453,9 +502,17 @@ inefficiency, and not namespace-clean.
 *** cust-print.el
 
 
-* New Modes and Packages in Emacs 24.2
+* New Modes and Packages in Emacs 24.3
 
-* Incompatible Lisp Changes in Emacs 24.2
+* Incompatible Lisp Changes in Emacs 24.3
+
+** The function `x-select-font' can return a font spec, instead of a
+font name as a string.  Whether it returns a font spec or a font name
+depends on the graphical library.
+
+** If the NEWTEXT arg to `replace-match' contains a substring "\?",
+that substring is inserted literally even if the LITERAL arg is
+non-nil, instead of causing an error to be signaled.
 
 +++
 ** Docstrings starting with `*' no longer indicate user options.
@@ -477,13 +534,49 @@ third argument is a frame (that usage was obsolete since Emacs 22.2).
 but keywords or keyword-string pairs.  The old argument list will
 still be supported for Emacs 24.x.
 
+** Spelling changes.
+Some Lisp symbols have been renamed to avoid problems with spelling
+that is incorrect or inconsistent with how Emacs normally spells a word.
+
+*** Renamed functions
+
+**** hangul-input-method-inactivate -> hangul-input-method-deactivate
+**** inactivate-input-method -> deactivate-input-method
+**** quail-inactivate -> quail-deactivate
+**** robin-inactivate -> robin-deactivate
+**** viper-inactivate-input-method -> viper-deactivate-input-method
+**** viper-inactivate-input-method-action ->
+     viper-deactivate-input-method-action
+**** ucs-input-inactivate -> ucs-input-deactivate
+
+*** Renamed hooks
+The old hooks are still supported for backward compatibility, but they
+are deprecated and will be removed eventually.
+
+**** input-method-inactivate-hook -> input-method-deactivate-hook
+**** robin-inactivate-hook -> robin-deactivate-hook
+**** quail-inactivate-hook -> quail-deactivate-hook
+
+*** Renamed Lisp variables
+
+**** follow-deactive-menu -> follow-inactive-menu
+**** inactivate-current-input-method-function ->
+     deactivate-current-input-method-function
+
 ** The following obsolete variables and varaliases have been removed:
 
 *** `facemenu-unlisted-faces'
 *** `rmail-decode-mime-charset'
+*** `last-input-char' and `last-command-char'
 
 
-* Lisp changes in Emacs 24.2
+* Lisp changes in Emacs 24.3
+
+** New functions `autoloadp' and `autoload-do-load'.
+
+** New function `posnp' to test if an object is a `posn'.
+
+** `function-get' fetches the property of a function, following aliases.
 
 ** `toggle-read-only' accepts a second argument specifying whether to
 print a message, if called from Lisp.
@@ -502,8 +595,13 @@ The interpretation of the DECLS is determined by `defun-declarations-alist'.
 
 ** New error type and new function `user-error'.  Doesn't trigger the debugger.
 
-** The functions get-lru-window, get-mru-window and get-largest-window
+** Window changes
+
+*** The functions get-lru-window, get-mru-window and get-largest-window
 now accept a third argument to avoid choosing the selected window.
+
+*** New display action alist `inhibit-switch-frame', if non-nil, tells
+display action functions to avoid changing which frame is selected.
 
 ** Completion
 
@@ -526,7 +624,7 @@ by the underlying C implementation.
 ** `automount-dir-prefix' is obsolete.
 ** `buffer-has-markers-at' is obsolete.
 
-* Changes in Emacs 24.2 on non-free operating systems
+* Changes in Emacs 24.3 on non-free operating systems
 
 ** New configure.bat options on MS-Windows:
 
@@ -536,6 +634,12 @@ is detected.
 ** When invoked with the -nw switch to run on the Windows text-mode terminal,
 Emacs now supports mouse highlight, help-echo (in the echo area), and
 mouse-autoselect-window.
+
+** On MS-Windows Vista and later Emacs now supports symbolic links.
+
+* Changes in Emacs 24.2
+
+** This is mainly a bug-fix release.
 
 
 * Installation Changes in Emacs 24.1
@@ -1105,7 +1209,7 @@ buffer was used.
 The search is performed using `customize-apropos'.
 To turn off the search field, set `custom-search-field' to nil.
 
-*** Custom options now start out hidden if at their default values.
+*** Options in customize group buffers start out hidden if not customized.
 Use the arrow to the left of the option name to toggle visibility.
 
 *** custom-buffer-sort-alphabetically now defaults to t.

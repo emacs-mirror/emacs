@@ -51,7 +51,7 @@ extern int    	      w32_minor_version;
 extern int    	      w32_build_number;
 
 enum {
-  OS_WIN95 = 1,
+  OS_9X = 1,
   OS_NT
 };
 
@@ -92,4 +92,3 @@ IMAGE_SECTION_HEADER * find_section (char * name, IMAGE_NT_HEADERS * nt_header);
 IMAGE_SECTION_HEADER * rva_to_section (DWORD rva, IMAGE_NT_HEADERS * nt_header);
 
 #endif /* NTHEAP_H_ */
-

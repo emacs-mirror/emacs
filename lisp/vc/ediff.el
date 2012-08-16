@@ -101,7 +101,7 @@
 ;;  and on any buffer.
 
 
-;;; Acknowledgements:
+;;; Acknowledgments:
 
 ;; Ediff was inspired by Dale R. Worley's <drw@math.mit.edu> emerge.el.
 ;; Ediff would not have been possible without the help and encouragement of

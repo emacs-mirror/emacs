@@ -1,4 +1,4 @@
-/* Font backend for the Microsoft W32 API.
+/* Font backend for the Microsoft Windows API.
    Copyright (C) 2007-2012 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -62,7 +62,6 @@ static Lisp_Object Qserif, Qscript, Qdecorative;
 static Lisp_Object Qraster, Qoutline, Qunknown;
 
 /* antialiasing  */
-extern Lisp_Object Qnone; /* reuse from w32fns.c  */
 static Lisp_Object Qstandard, Qsubpixel, Qnatural;
 
 /* languages */
@@ -75,7 +74,7 @@ static Lisp_Object Qgurmukhi, Qgujarati, Qoriya, Qtamil, Qtelugu;
 static Lisp_Object Qkannada, Qmalayalam, Qsinhala, Qthai, Qlao;
 static Lisp_Object Qtibetan, Qmyanmar, Qgeorgian, Qhangul, Qethiopic;
 static Lisp_Object Qcherokee, Qcanadian_aboriginal, Qogham, Qrunic;
-static Lisp_Object Qkhmer, Qmongolian, Qsymbol, Qbraille, Qhan;
+static Lisp_Object Qkhmer, Qmongolian, Qbraille, Qhan;
 static Lisp_Object Qideographic_description, Qcjk_misc, Qkana, Qbopomofo;
 static Lisp_Object Qkanbun, Qyi, Qbyzantine_musical_symbol;
 static Lisp_Object Qmusical_symbol, Qmathematical, Qcham, Qphonetic;
@@ -235,8 +234,7 @@ get_outline_metrics_w(HDC hdc, UINT cbData, LPOUTLINETEXTMETRICW lpotmw)
 	s_pfn_Get_Outline_Text_MetricsW = (GetOutlineTextMetricsW_Proc)
 	  GetProcAddress (hm_unicows, "GetOutlineTextMetricsW");
     }
-  if (s_pfn_Get_Outline_Text_MetricsW == NULL)
-    abort ();	/* cannot happen */
+  eassert (s_pfn_Get_Outline_Text_MetricsW != NULL);
   return s_pfn_Get_Outline_Text_MetricsW (hdc, cbData, lpotmw);
 }
 
@@ -253,8 +251,7 @@ get_text_metrics_w(HDC hdc, LPTEXTMETRICW lptmw)
 	s_pfn_Get_Text_MetricsW = (GetTextMetricsW_Proc)
 	  GetProcAddress (hm_unicows, "GetTextMetricsW");
     }
-  if (s_pfn_Get_Text_MetricsW == NULL)
-    abort ();	/* cannot happen */
+  eassert (s_pfn_Get_Text_MetricsW != NULL);
   return s_pfn_Get_Text_MetricsW (hdc, lptmw);
 }
 
@@ -272,8 +269,7 @@ get_glyph_outline_w (HDC hdc, UINT uChar, UINT uFormat, LPGLYPHMETRICS lpgm,
 	s_pfn_Get_Glyph_OutlineW = (GetGlyphOutlineW_Proc)
 	  GetProcAddress (hm_unicows, "GetGlyphOutlineW");
     }
-  if (s_pfn_Get_Glyph_OutlineW == NULL)
-    abort ();	/* cannot happen */
+  eassert (s_pfn_Get_Glyph_OutlineW != NULL);
   return s_pfn_Get_Glyph_OutlineW (hdc, uChar, uFormat, lpgm, cbBuffer,
 				   lpvBuffer, lpmat2);
 }
@@ -292,7 +288,7 @@ intern_font_name (char * string)
   Lisp_Object str = DECODE_SYSTEM (build_string (string));
   int len = SCHARS (str);
   Lisp_Object obarray = check_obarray (Vobarray);
-  Lisp_Object tem = oblookup (obarray, SDATA (str), len, len);  
+  Lisp_Object tem = oblookup (obarray, SDATA (str), len, len);
   /* This code is similar to intern function from lread.c.  */
   return SYMBOLP (tem) ? tem : Fintern (str, obarray);
 }
@@ -1394,7 +1390,7 @@ font_matches_spec (DWORD type, NEWTEXTMETRICEX *font,
                    currently appear in fontset.el, so it isn't worth
                    creating a mapping table of codepages/scripts to languages
                    or opening the font to see if there are any language tags
-                   in it that the W32 API does not expose. Fontset
+                   in it that the Windows API does not expose. Fontset
 		   spec should have a fallback, as some backends do
 		   not recognize language at all.  */
 		return 0;
@@ -2634,7 +2630,6 @@ syms_of_w32font (void)
   DEFSYM (Qrunic, "runic");
   DEFSYM (Qkhmer, "khmer");
   DEFSYM (Qmongolian, "mongolian");
-  DEFSYM (Qsymbol, "symbol");
   DEFSYM (Qbraille, "braille");
   DEFSYM (Qhan, "han");
   DEFSYM (Qideographic_description, "ideographic-description");

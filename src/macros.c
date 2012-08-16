@@ -63,7 +63,7 @@ macro before appending to it. */)
 
   if (!current_kboard->kbd_macro_buffer)
     {
-      current_kboard->kbd_macro_buffer = xmalloc (30 * sizeof (Lisp_Object));
+      current_kboard->kbd_macro_buffer = xmalloc (30 * word_size);
       current_kboard->kbd_macro_bufsize = 30;
     }
   update_mode_lines++;
@@ -72,8 +72,8 @@ macro before appending to it. */)
       if (current_kboard->kbd_macro_bufsize > 200)
 	{
 	  current_kboard->kbd_macro_buffer
-	    = (Lisp_Object *)xrealloc (current_kboard->kbd_macro_buffer,
-				       30 * sizeof (Lisp_Object));
+	    = xrealloc (current_kboard->kbd_macro_buffer,
+			30 * word_size);
 	  current_kboard->kbd_macro_bufsize = 30;
 	}
       current_kboard->kbd_macro_ptr = current_kboard->kbd_macro_buffer;
@@ -127,7 +127,7 @@ macro before appending to it. */)
 
       message ("Appending to kbd macro...");
     }
-  KVAR (current_kboard, defining_kbd_macro) = Qt;
+  KSET (current_kboard, defining_kbd_macro, Qt);
 
   return Qnil;
 }
@@ -137,12 +137,12 @@ macro before appending to it. */)
 void
 end_kbd_macro (void)
 {
-  KVAR (current_kboard, defining_kbd_macro) = Qnil;
+  KSET (current_kboard, defining_kbd_macro, Qnil);
   update_mode_lines++;
-  KVAR (current_kboard, Vlast_kbd_macro)
-    = make_event_array ((current_kboard->kbd_macro_end
-			 - current_kboard->kbd_macro_buffer),
-			current_kboard->kbd_macro_buffer);
+  KSET (current_kboard, Vlast_kbd_macro,
+	make_event_array ((current_kboard->kbd_macro_end 
+			   - current_kboard->kbd_macro_buffer),
+			  current_kboard->kbd_macro_buffer));
 }
 
 DEFUN ("end-kbd-macro", Fend_kbd_macro, Send_kbd_macro, 0, 2, "p",
@@ -330,7 +330,7 @@ each iteration of the macro.  Iteration stops if LOOPFUNC returns nil.  */)
       executing_kbd_macro = final;
       executing_kbd_macro_index = 0;
 
-      KVAR (current_kboard, Vprefix_arg) = Qnil;
+      KSET (current_kboard, Vprefix_arg, Qnil);
 
       if (!NILP (loopfunc))
 	{

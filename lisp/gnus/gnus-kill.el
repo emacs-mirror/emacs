@@ -328,24 +328,6 @@ If NEWSGROUP is nil, the global kill file is selected."
 
 ;; For kill files
 
-(defun gnus-Newsgroup-kill-file (newsgroup)
-  "Return the name of a kill file for NEWSGROUP.
-If NEWSGROUP is nil, return the global kill file instead."
-  (cond ((or (null newsgroup)
-	     (string-equal newsgroup ""))
-	 ;; The global kill file is placed at top of the directory.
-	 (expand-file-name gnus-kill-file-name gnus-kill-files-directory))
-	(gnus-use-long-file-name
-	 ;; Append ".KILL" to capitalized newsgroup name.
-	 (expand-file-name (concat (gnus-capitalize-newsgroup newsgroup)
-				   "." gnus-kill-file-name)
-			   gnus-kill-files-directory))
-	(t
-	 ;; Place "KILL" under the hierarchical directory.
-	 (expand-file-name (concat (gnus-newsgroup-directory-form newsgroup)
-				   "/" gnus-kill-file-name)
-			   gnus-kill-files-directory))))
-
 (defun gnus-expunge (marks)
   "Remove lines marked with MARKS."
   (with-current-buffer gnus-summary-buffer

@@ -1,5 +1,9 @@
 /* Utility and Unix shadow routines for GNU Emacs support programs on NT.
-   Copyright (C) 1994, 2001-2012  Free Software Foundation, Inc.
+
+Copyright (C) 1994, 2001-2012 Free Software Foundation, Inc.
+
+Author: Geoff Voelker (voelker@cs.washington.edu)
+Created: 10-8-94
 
 This file is part of GNU Emacs.
 
@@ -14,11 +18,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
-
-
-   Geoff Voelker (voelker@cs.washington.edu)                         10-8-94
-*/
+along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <windows.h>
 #include <stdlib.h>
@@ -260,6 +260,7 @@ is_exec (const char * name)
 	 stricmp (p, ".cmd") == 0));
 }
 
+/* FIXME?  This is in config.nt now - is this still needed?  */
 #define IS_DIRECTORY_SEP(x) ((x) == '/' || (x) == '\\')
 
 /* We need this because nt/inc/sys/stat.h defines struct stat that is
@@ -372,5 +373,11 @@ stat (const char * path, struct stat * buf)
   buf->st_mode |= permission | (permission >> 3) | (permission >> 6);
 
   return 0;
+}
+
+int
+lstat (const char * path, struct stat * buf)
+{
+  return stat (path, buf);
 }
 

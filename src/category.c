@@ -29,6 +29,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    table.  Read comments in the file category.h to understand them.  */
 
 #include <config.h>
+
+#define CATEGORY_INLINE EXTERN_INLINE
+
 #include <ctype.h>
 #include <setjmp.h>
 #include "lisp.h"
@@ -68,11 +71,12 @@ hash_get_category_set (Lisp_Object table, Lisp_Object category_set)
   EMACS_UINT hash;
 
   if (NILP (XCHAR_TABLE (table)->extras[1]))
-    XCHAR_TABLE (table)->extras[1]
-      = make_hash_table (Qequal, make_number (DEFAULT_HASH_SIZE),
-			 make_float (DEFAULT_REHASH_SIZE),
-			 make_float (DEFAULT_REHASH_THRESHOLD),
-			 Qnil, Qnil, Qnil);
+    char_table_set_extras
+      (table, 1,
+       make_hash_table (Qequal, make_number (DEFAULT_HASH_SIZE),
+			make_float (DEFAULT_REHASH_SIZE),
+			make_float (DEFAULT_REHASH_THRESHOLD),
+			Qnil, Qnil, Qnil));
   h = XHASH_TABLE (XCHAR_TABLE (table)->extras[1]);
   i = hash_lookup (h, category_set, &hash);
   if (i >= 0)
@@ -235,10 +239,10 @@ copy_category_table (Lisp_Object table)
   table = copy_char_table (table);
 
   if (! NILP (XCHAR_TABLE (table)->defalt))
-    XCHAR_TABLE (table)->defalt
-      = Fcopy_sequence (XCHAR_TABLE (table)->defalt);
-  XCHAR_TABLE (table)->extras[0]
-    = Fcopy_sequence (XCHAR_TABLE (table)->extras[0]);
+    CSET (XCHAR_TABLE (table), defalt,
+	  Fcopy_sequence (XCHAR_TABLE (table)->defalt));
+  char_table_set_extras
+    (table, 0, Fcopy_sequence (XCHAR_TABLE (table)->extras[0]));
   map_char_table (copy_category_entry, Qnil, table, table);
 
   return table;
@@ -267,9 +271,9 @@ DEFUN ("make-category-table", Fmake_category_table, Smake_category_table,
   int i;
 
   val = Fmake_char_table (Qcategory_table, Qnil);
-  XCHAR_TABLE (val)->defalt = MAKE_CATEGORY_SET;
+  CSET (XCHAR_TABLE (val), defalt, MAKE_CATEGORY_SET);
   for (i = 0; i < (1 << CHARTAB_SIZE_BITS_0); i++)
-    XCHAR_TABLE (val)->contents[i] = MAKE_CATEGORY_SET;
+    char_table_set_contents (val, i, MAKE_CATEGORY_SET);
   Fset_char_table_extra_slot (val, make_number (0),
 			      Fmake_vector (make_number (95), Qnil));
   return val;
@@ -282,7 +286,7 @@ Return TABLE.  */)
 {
   int idx;
   table = check_category_table (table);
-  BVAR (current_buffer, category_table) = table;
+  BSET (current_buffer, category_table, table);
   /* Indicate that this buffer now has a specified category table.  */
   idx = PER_BUFFER_VAR_IDX (category_table);
   SET_PER_BUFFER_VALUE_P (current_buffer, idx, 1);
@@ -463,7 +467,7 @@ init_category_once (void)
 
   Vstandard_category_table = Fmake_char_table (Qcategory_table, Qnil);
   /* Set a category set which contains nothing to the default.  */
-  XCHAR_TABLE (Vstandard_category_table)->defalt = MAKE_CATEGORY_SET;
+  CSET (XCHAR_TABLE (Vstandard_category_table), defalt, MAKE_CATEGORY_SET);
   Fset_char_table_extra_slot (Vstandard_category_table, make_number (0),
 			      Fmake_vector (make_number (95), Qnil));
 }

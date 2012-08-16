@@ -52,8 +52,10 @@ AC_DEFUN([gl_EARLY],
   # Code from module dtoastr:
   # Code from module dtotimespec:
   # Code from module dup2:
+  # Code from module environ:
   # Code from module extensions:
   AC_REQUIRE([gl_USE_SYSTEM_EXTENSIONS])
+  # Code from module extern-inline:
   # Code from module filemode:
   # Code from module getloadavg:
   # Code from module getopt-gnu:
@@ -148,6 +150,9 @@ if test $HAVE_DUP2 = 0 || test $REPLACE_DUP2 = 1; then
   gl_PREREQ_DUP2
 fi
 gl_UNISTD_MODULE_INDICATOR([dup2])
+gl_ENVIRON
+gl_UNISTD_MODULE_INDICATOR([environ])
+AC_REQUIRE([gl_EXTERN_INLINE])
 gl_FILEMODE
 gl_GETLOADAVG
 if test $HAVE_GETLOADAVG = 0; then
@@ -258,7 +263,6 @@ if test $HAVE_LOCALTIME_R = 0 || test $REPLACE_LOCALTIME_R = 1; then
 fi
 gl_TIME_MODULE_INDICATOR([time_r])
 gl_TIMESPEC
-AC_REQUIRE([AC_C_INLINE])
 gl_UNISTD_H
 gl_UTIMENS
   gl_gnulib_enabled_dosname=false
@@ -562,6 +566,7 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/sha512.c
   lib/sha512.h
   lib/signal.in.h
+  lib/stat-time.c
   lib/stat-time.h
   lib/stat.c
   lib/stdalign.in.h
@@ -587,7 +592,9 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/time_r.c
   lib/timespec-add.c
   lib/timespec-sub.c
+  lib/timespec.c
   lib/timespec.h
+  lib/u64.c
   lib/u64.h
   lib/unistd.in.h
   lib/utimens.c
@@ -598,7 +605,9 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/c-strtod.m4
   m4/clock_time.m4
   m4/dup2.m4
+  m4/environ.m4
   m4/extensions.m4
+  m4/extern-inline.m4
   m4/filemode.m4
   m4/getloadavg.m4
   m4/getopt.m4

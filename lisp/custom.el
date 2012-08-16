@@ -611,7 +611,7 @@ property, or (ii) an alias for another customizable variable."
     (or (get variable 'standard-value)
 	(get variable 'custom-autoload))))
 
-(define-obsolete-function-alias 'user-variable-p 'custom-variable-p "24.2")
+(define-obsolete-function-alias 'user-variable-p 'custom-variable-p "24.3")
 
 (defun custom-note-var-changed (variable)
   "Inform Custom that VARIABLE has been set (changed).

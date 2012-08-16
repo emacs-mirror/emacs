@@ -1541,7 +1541,7 @@ that option."
 This button will have a menu with all three reset operations."
   :type 'boolean
   :group 'custom-buffer
-  :version "24.2")
+  :version "24.3")
 
 (defcustom custom-buffer-verbose-help t
   "If non-nil, include explanatory text in the customization buffer."

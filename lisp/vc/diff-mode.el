@@ -1902,7 +1902,7 @@ For use in `add-log-current-defun-function'."
      :background "#aa2222"))
   "Face used for removed characters shown by `diff-refine-hunk'."
   :group 'diff-mode
-  :version "24.2")
+  :version "24.3")
 
 (defface diff-refine-added
   '((default
@@ -1913,7 +1913,7 @@ For use in `add-log-current-defun-function'."
      :background "#22aa22"))
   "Face used for added characters shown by `diff-refine-hunk'."
   :group 'diff-mode
-  :version "24.2")
+  :version "24.3")
 
 (defun diff-refine-preproc ()
   (while (re-search-forward "^[+>]" nil t)
@@ -2015,6 +2015,36 @@ I.e. like `add-change-log-entry-other-window' but applied to all hunks."
             (add-change-log-entry nil nil t nil t)))
       ;; When there's no more hunks, diff-hunk-next signals an error.
       (error nil))))
+
+(defun diff-remove-trailing-whitespace ()
+  "When on a buffer that contains a diff, inspects the
+differences and removes trailing whitespace (spaces, tabs) from
+the lines modified or introduced by this diff. Shows a message
+with the name of the altered buffers, which are unsaved.  If a
+file referenced on the diff has no buffer and needs to be fixed,
+a buffer visiting that file is created."
+  (interactive)
+  ;; We assume that the diff header has no trailing whitespace.
+  (let ((modified-buffers nil))
+    (save-excursion
+      (goto-char (point-min))
+      (while (re-search-forward "^[+!>].*[ \t]+$" (point-max) t)
+        (pcase-let ((`(,buf ,line-offset ,pos ,src ,_dst ,_switched)
+                     (diff-find-source-location t t)))
+          (when line-offset
+            (with-current-buffer buf
+              (save-excursion
+                (goto-char (+ (car pos) (cdr src)))
+                (beginning-of-line)
+                (when (re-search-forward "\\([ \t]+\\)$" (line-end-position) t)
+                  (unless (memq buf modified-buffers)
+                    (push buf modified-buffers))
+                  (replace-match ""))))))))
+    (if modified-buffers
+        (message "Deleted new trailing whitespace from: %s"
+                 (mapconcat (lambda (buf) (concat "`" (buffer-name buf) "'"))
+                            modified-buffers " "))
+      (message "No trailing whitespace fixes needed."))))
 
 ;; provide the package
 (provide 'diff-mode)

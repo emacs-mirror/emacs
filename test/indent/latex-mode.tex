@@ -1,0 +1,11 @@
+\documentclass{article}         % -*- eval: (bug-reference-mode 1) -*-
+
+\usepackage[utf8]{inputenc}
+
+\begin{document}
+
+To fix this, remove the \url{sn9c102.ko} from where it appears in
+\url{/lib/modules/$(uname -r)},  %bug#11953.
+and install the appropriate \url{gspca-modules} package.
+
+\end{document}

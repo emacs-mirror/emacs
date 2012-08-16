@@ -248,14 +248,13 @@ xrealloc (void *block, size_t size)
 # endif
 # define realloc xrealloc
 
+# include <stdbool.h>
 # include <string.h>
 
 /* Define the syntax stuff for \<, \>, etc.  */
 
 /* Sword must be nonzero for the wordchar pattern commands in re_match_2.  */
 enum syntaxcode { Swhitespace = 0, Sword = 1, Ssymbol = 2 };
-
-#  define SWITCH_ENUM_CAST(x) (x)
 
 /* Dummy macros for non-Emacs environments.  */
 # define CHAR_CHARSET(c) 0
@@ -537,8 +536,6 @@ typedef const unsigned char re_char;
 #endif
 
 typedef char boolean;
-#define false 0
-#define true 1
 
 static regoff_t re_match_2_internal (struct re_pattern_buffer *bufp,
 				     re_char *string1, size_t size1,
@@ -1738,20 +1735,6 @@ static int analyse_first (re_char *p, re_char *pend,
    into the pattern are two bytes long.  So if 2^15 bytes turns out to
    be too small, many things would have to change.  */
 # define MAX_BUF_SIZE (1L << 15)
-
-#if 0  /* This is when we thought it could be 2^16 bytes.  */
-/* Any other compiler which, like MSC, has allocation limit below 2^16
-   bytes will have to use approach similar to what was done below for
-   MSC and drop MAX_BUF_SIZE a bit.  Otherwise you may end up
-   reallocating to 0 bytes.  Such thing is not going to work too well.
-   You have been warned!!  */
-#if defined _MSC_VER  && !defined WIN32
-/* Microsoft C 16-bit versions limit malloc to approx 65512 bytes.  */
-# define MAX_BUF_SIZE  65500L
-#else
-# define MAX_BUF_SIZE (1L << 16)
-#endif
-#endif /* 0 */
 
 /* Extend the buffer by twice its current size via realloc and
    reset the pointers that pointed into the old block to point to the
@@ -3927,7 +3910,7 @@ analyse_first (const re_char *p, const re_char *pend, char *fastmap, const int m
 	 as used for the *? operator.  */
       re_char *p1 = p;
 
-      switch (SWITCH_ENUM_CAST ((re_opcode_t) *p++))
+      switch (*p++)
 	{
 	case succeed:
 	  return 1;
@@ -4102,7 +4085,7 @@ analyse_first (const re_char *p, const re_char *pend, char *fastmap, const int m
 	       visited.  `re_compile' should make sure this is true.  */
 	    break;
 	  p += j;
-	  switch (SWITCH_ENUM_CAST ((re_opcode_t) *p))
+	  switch (*p)
 	    {
 	    case on_failure_jump:
 	    case on_failure_keep_string_jump:
@@ -4635,7 +4618,7 @@ static int bcmp_translate (re_char *s1, re_char *s2,
 static re_char *
 skip_one_char (const re_char *p)
 {
-  switch (SWITCH_ENUM_CAST (*p++))
+  switch (*p++)
     {
     case anychar:
       break;
@@ -4680,7 +4663,7 @@ skip_noops (const re_char *p, const re_char *pend)
   int mcnt;
   while (p < pend)
     {
-      switch (SWITCH_ENUM_CAST ((re_opcode_t) *p))
+      switch (*p)
 	{
 	case start_memory:
 	case stop_memory:
@@ -4725,7 +4708,7 @@ mutually_exclusive_p (struct re_pattern_buffer *bufp, const re_char *p1, const r
 
   op2 = p2 == pend ? succeed : *p2;
 
-  switch (SWITCH_ENUM_CAST (op2))
+  switch (op2)
     {
     case succeed:
     case endbuf:
@@ -4849,7 +4832,7 @@ mutually_exclusive_p (struct re_pattern_buffer *bufp, const re_char *p1, const r
       break;
 
     case charset_not:
-      switch (SWITCH_ENUM_CAST (*p1))
+      switch (*p1)
 	{
 	case exactn:
 	case charset:
@@ -5327,7 +5310,7 @@ re_match_2_internal (struct re_pattern_buffer *bufp, const re_char *string1,
 	}
 
       /* Otherwise match next pattern command.  */
-      switch (SWITCH_ENUM_CAST ((re_opcode_t) *p++))
+      switch (*p++)
 	{
 	/* Ignore these.  Used to ignore the n of succeed_n's which
 	   currently have n == 0.  */
@@ -6249,7 +6232,7 @@ re_match_2_internal (struct re_pattern_buffer *bufp, const re_char *string1,
 	  /* A restart point is known.  Restore to that state.  */
 	  DEBUG_PRINT1 ("\nFAIL:\n");
 	  POP_FAILURE_POINT (str, pat);
-	  switch (SWITCH_ENUM_CAST ((re_opcode_t) *pat++))
+	  switch (*pat++)
 	    {
 	    case on_failure_keep_string_jump:
 	      assert (str == NULL);

@@ -171,7 +171,7 @@ struct gl_state_s gl_state;		/* Global state of syntax parser.  */
    direction than the intervals - or in an interval.  We update the
    current syntax-table basing on the property of this interval, and
    update the interval to start further than CHARPOS - or be
-   NULL_INTERVAL.  We also update lim_property to be the next value of
+   NULL.  We also update lim_property to be the next value of
    charpos to call this subroutine again - or be before/after the
    start/end of OBJECT.  */
 
@@ -192,7 +192,7 @@ update_syntax_table (ptrdiff_t charpos, EMACS_INT count, int init,
       i = interval_of (charpos, object);
       gl_state.backward_i = gl_state.forward_i = i;
       invalidate = 0;
-      if (NULL_INTERVAL_P (i))
+      if (!i)
 	return;
       /* interval_of updates only ->position of the return value, so
 	 update the parents manually to speed up update_interval.  */
@@ -217,7 +217,7 @@ update_syntax_table (ptrdiff_t charpos, EMACS_INT count, int init,
 
   /* We are guaranteed to be called with CHARPOS either in i,
      or further off.  */
-  if (NULL_INTERVAL_P (i))
+  if (!i)
     error ("Error in syntax_table logic for to-the-end intervals");
   else if (charpos < i->position)		/* Move left.  */
     {
@@ -287,7 +287,7 @@ update_syntax_table (ptrdiff_t charpos, EMACS_INT count, int init,
 	}
     }
 
-  while (!NULL_INTERVAL_P (i))
+  while (i)
     {
       if (cnt && !EQ (tmp_table, textget (i->plist, Qsyntax_table)))
 	{
@@ -313,7 +313,7 @@ update_syntax_table (ptrdiff_t charpos, EMACS_INT count, int init,
 		/* e_property at EOB is not set to ZV but to ZV+1, so that
 		   we can do INC(from);UPDATE_SYNTAX_TABLE_FORWARD without
 		   having to check eob between the two.  */
-		+ (NULL_INTERVAL_P (next_interval (i)) ? 1 : 0);
+		+ (next_interval (i) ? 0 : 1);
 	      gl_state.forward_i = i;
 	    }
 	  else
@@ -326,7 +326,7 @@ update_syntax_table (ptrdiff_t charpos, EMACS_INT count, int init,
       cnt++;
       i = count > 0 ? next_interval (i) : previous_interval (i);
     }
-  eassert (NULL_INTERVAL_P (i)); /* This property goes to the end.  */
+  eassert (i == NULL); /* This property goes to the end.  */
   if (count > 0)
     gl_state.e_property = gl_state.stop;
   else
@@ -819,7 +819,7 @@ It is a copy of the TABLE, which defaults to the standard syntax table.  */)
 
   /* Only the standard syntax table should have a default element.
      Other syntax tables should inherit from parents instead.  */
-  XCHAR_TABLE (copy)->defalt = Qnil;
+  CSET (XCHAR_TABLE (copy), defalt, Qnil);
 
   /* Copied syntax tables should all have parents.
      If we copied one with no parent, such as the standard syntax table,
@@ -836,7 +836,7 @@ One argument, a syntax table.  */)
 {
   int idx;
   check_syntax_table (table);
-  BVAR (current_buffer, syntax_table) = table;
+  BSET (current_buffer, syntax_table, table);
   /* Indicate that this buffer now has a specified syntax table.  */
   idx = PER_BUFFER_VAR_IDX (syntax_table);
   SET_PER_BUFFER_VALUE_P (current_buffer, idx, 1);
@@ -1009,7 +1009,7 @@ The first character of NEWENTRY should be one of the following:
   "           string quote.         \\   escape.
   $           paired delimiter.     '   expression quote or prefix operator.
   <           comment starter.      >   comment ender.
-  /           character-quote.      @   inherit from `standard-syntax-table'.
+  /           character-quote.      @   inherit from parent table.
   |           generic string fence. !   generic comment fence.
 
 Only single-character comment start and end sequences are represented thus.
@@ -1152,7 +1152,7 @@ DEFUN ("internal-describe-syntax-value", Finternal_describe_syntax_value,
 
   insert_string ("\twhich means: ");
 
-  switch (SWITCH_ENUM_CAST (code))
+  switch (code)
     {
     case Swhitespace:
       insert_string ("whitespace"); break;
@@ -2525,7 +2525,7 @@ scan_lists (register EMACS_INT from, EMACS_INT count, EMACS_INT depth, int sexpf
 	  if (prefix)
 	    continue;
 
-	  switch (SWITCH_ENUM_CAST (code))
+	  switch (code)
 	    {
 	    case Sescape:
 	    case Scharquote:
@@ -2702,7 +2702,7 @@ scan_lists (register EMACS_INT from, EMACS_INT count, EMACS_INT depth, int sexpf
 	  else if (SYNTAX_FLAGS_PREFIX (syntax))
 	    continue;
 
-	  switch (SWITCH_ENUM_CAST (code))
+	  switch (code)
 	    {
 	    case Sword:
 	    case Ssymbol:
@@ -3123,7 +3123,7 @@ do { prev_from = from;				\
 
       if (SYNTAX_FLAGS_PREFIX (prev_from_syntax))
 	continue;
-      switch (SWITCH_ENUM_CAST (code))
+      switch (code)
 	{
 	case Sescape:
 	case Scharquote:
@@ -3473,7 +3473,7 @@ syms_of_syntax (void)
 
   DEFSYM (Qscan_error, "scan-error");
   Fput (Qscan_error, Qerror_conditions,
-	pure_cons (Qscan_error, pure_cons (Qerror, Qnil)));
+	listn (CONSTYPE_PURE, 2, Qscan_error, Qerror));
   Fput (Qscan_error, Qerror_message,
 	build_pure_c_string ("Scan error"));
 

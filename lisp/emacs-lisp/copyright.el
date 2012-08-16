@@ -362,10 +362,11 @@ If FIX is non-nil, run `copyright-fix-years' instead."
   (dolist (file (directory-files directory t match nil))
     (unless (file-directory-p file)
       (message "Updating file `%s'" file)
-      (find-file file)
-      (let ((inhibit-read-only t)
-	    (enable-local-variables :safe)
-	    copyright-query)
+      ;; FIXME we should not use find-file+save+kill.
+      (let ((enable-local-variables :safe)
+	    (enable-local-eval nil))
+	(find-file file))
+      (let ((inhibit-read-only t))
 	(if fix
 	    (copyright-fix-years)
 	  (copyright-update)))

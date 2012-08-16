@@ -967,11 +967,11 @@ wants the current value of a variable, it looks first in the lexical
 environment; if the variable is not specified in there, it looks in
 the symbol's value cell, where the dynamic value is stored.
 
-@cindex closures
+@cindex closures, example of using
   Lexical bindings have indefinite extent.  Even after a binding
 construct has finished executing, its lexical environment can be
 ``kept around'' in Lisp objects called @dfn{closures}.  A closure is
-created when you create a named or anonymous function with lexical
+created when you define a named or anonymous function with lexical
 binding enabled.  @xref{Closures}, for details.
 
   When a closure is called as a function, any lexical variable

@@ -23,7 +23,6 @@ Mode}) and the various complex movement commands (@pxref{Motion}).
 * Motion and Syntax::        Moving over characters with certain syntaxes.
 * Parsing Expressions::      Parsing balanced expressions
                                 using the syntax table.
-* Standard Syntax Tables::   Syntax tables used by various major modes.
 * Syntax Table Internals::   How syntax table information is stored.
 * Categories::               Another way of classifying character syntax.
 @end menu
@@ -31,43 +30,65 @@ Mode}) and the various complex movement commands (@pxref{Motion}).
 @node Syntax Basics
 @section Syntax Table Concepts
 
-  A syntax table is a char-table (@pxref{Char-Tables}).  The element at
-index @var{c} describes the character with code @var{c}.  The element's
-value should be a list that encodes the syntax of the character in
-question.
+  A syntax table is a data structure which can be used to look up the
+@dfn{syntax class} and other syntactic properties of each character.
+Syntax tables are used by Lisp programs for scanning and moving across
+text.
 
-  Syntax tables are used only for moving across text, not for the Emacs
-Lisp reader.  Emacs Lisp uses built-in syntactic rules when reading Lisp
-expressions, and these rules cannot be changed.  (Some Lisp systems
-provide ways to redefine the read syntax, but we decided to leave this
-feature out of Emacs Lisp for simplicity.)
-
-  Each buffer has its own major mode, and each major mode has its own
-idea of the syntactic class of various characters.  For example, in
-Lisp mode, the character @samp{;} begins a comment, but in C mode, it
-terminates a statement.  To support these variations, Emacs makes the
-syntax table local to each buffer.  Typically, each major mode has its
-own syntax table and installs that table in each buffer that uses that
-mode.  Changing this table alters the syntax in all those buffers as
-well as in any buffers subsequently put in that mode.  Occasionally
-several similar modes share one syntax table.  @xref{Example Major
-Modes}, for an example of how to set up a syntax table.
-
-A syntax table can inherit the data for some characters from the
-standard syntax table, while specifying other characters itself.  The
-``inherit'' syntax class means ``inherit this character's syntax from
-the standard syntax table''.  Just changing the standard syntax for a
-character affects all syntax tables that inherit from it.
+  Internally, a syntax table is a char-table (@pxref{Char-Tables}).
+The element at index @var{c} describes the character with code
+@var{c}; its value is a cons cell which specifies the syntax of the
+character in question.  @xref{Syntax Table Internals}, for details.
+However, instead of using @code{aset} and @code{aref} to modify and
+inspect syntax table contents, you should usually use the higher-level
+functions @code{char-syntax} and @code{modify-syntax-entry}, which are
+described in @ref{Syntax Table Functions}.
 
 @defun syntax-table-p object
 This function returns @code{t} if @var{object} is a syntax table.
 @end defun
 
+  Each buffer has its own major mode, and each major mode has its own
+idea of the syntax class of various characters.  For example, in Lisp
+mode, the character @samp{;} begins a comment, but in C mode, it
+terminates a statement.  To support these variations, the syntax table
+is local to each buffer.  Typically, each major mode has its own
+syntax table, which it installs in all buffers that use that mode.
+For example, the variable @code{emacs-lisp-mode-syntax-table} holds
+the syntax table used by Emacs Lisp mode, and
+@code{c-mode-syntax-table} holds the syntax table used by C mode.
+Changing a major mode's syntax table alters the syntax in all of that
+mode's buffers, as well as in any buffers subsequently put in that
+mode.  Occasionally, several similar modes share one syntax table.
+@xref{Example Major Modes}, for an example of how to set up a syntax
+table.
+
+@cindex standard syntax table
+@cindex inheritance, syntax table
+  A syntax table can @dfn{inherit} from another syntax table, which is
+called its @dfn{parent syntax table}.  A syntax table can leave the
+syntax class of some characters unspecified, by giving them the
+``inherit'' syntax class; such a character then acquires the syntax
+class specified by the parent syntax table (@pxref{Syntax Class
+Table}).  Emacs defines a @dfn{standard syntax table}, which is the
+default parent syntax table, and is also the syntax table used by
+Fundamental mode.
+
+@defun standard-syntax-table
+This function returns the standard syntax table, which is the syntax
+table used in Fundamental mode.
+@end defun
+
+  Syntax tables are not used by the Emacs Lisp reader, which has its
+own built-in syntactic rules which cannot be changed.  (Some Lisp
+systems provide ways to redefine the read syntax, but we decided to
+leave this feature out of Emacs Lisp for simplicity.)
+
 @node Syntax Descriptors
 @section Syntax Descriptors
 @cindex syntax class
 
-  The syntactic role of a character is called its @dfn{syntax class}.
+  The @dfn{syntax class} of a character describes its syntactic role.
 Each syntax table specifies the syntax class of each character.  There
 is no necessary relationship between the class of a character in one
 syntax table and its class in any other table.
@@ -81,21 +102,23 @@ independent of what syntax that character currently has.  Thus,
 syntax, regardless of whether the @samp{\} character actually has that
 syntax in the current syntax table.
 @ifnottex
-@xref{Syntax Class Table}, for a list of syntax classes.
+@xref{Syntax Class Table}, for a list of syntax classes and their
+designator characters.
 @end ifnottex
 
 @cindex syntax descriptor
   A @dfn{syntax descriptor} is a Lisp string that describes the syntax
-classes and other syntactic properties of a character.  When you want
-to modify the syntax of a character, that is done by calling the
-function @code{modify-syntax-entry} and passing a syntax descriptor as
-one of its arguments (@pxref{Syntax Table Functions}).
+class and other syntactic properties of a character.  When you want to
+modify the syntax of a character, that is done by calling the function
+@code{modify-syntax-entry} and passing a syntax descriptor as one of
+its arguments (@pxref{Syntax Table Functions}).
 
-  The first character in a syntax descriptor designates the syntax
-class.  The second character specifies a matching character (e.g.@: in
-Lisp, the matching character for @samp{(} is @samp{)}); if there is no
-matching character, put a space there.  Then come the characters for
-any desired flags.
+  The first character in a syntax descriptor must be a syntax class
+designator character.  The second character, if present, specifies a
+matching character (e.g.@: in Lisp, the matching character for
+@samp{(} is @samp{)}); a space specifies that there is no matching
+character.  Then come characters specifying additional syntax
+properties (@pxref{Syntax Flags}).
 
   If no matching character or flags are needed, only one character
 (specifying the syntax class) is sufficient.
@@ -348,7 +371,6 @@ character does not have the @samp{b} flag.
 @end table
 
 @item
-@c Emacs 19 feature
 @samp{p} identifies an additional ``prefix character'' for Lisp syntax.
 These characters are treated as whitespace when they appear between
 expressions.  When they appear within an expression, they are handled
@@ -366,21 +388,20 @@ prefix (@samp{'}).  @xref{Motion and Syntax}.
 altering syntax tables.
 
 @defun make-syntax-table &optional table
-This function creates a new syntax table, with all values initialized
-to @code{nil}.  If @var{table} is non-@code{nil}, it becomes the
-parent of the new syntax table, otherwise the standard syntax table is
-the parent.  Like all char-tables, a syntax table inherits from its
-parent.  Thus the original syntax of all characters in the returned
-syntax table is determined by the parent.  @xref{Char-Tables}.
+This function creates a new syntax table.  If @var{table} is
+non-@code{nil}, the parent of the new syntax table is @var{table};
+otherwise, the parent is the standard syntax table.
 
-Most major mode syntax tables are created in this way.
+In the new syntax table, all characters are initially given the
+``inherit'' (@samp{@@}) syntax class, i.e.@: their syntax is inherited
+from the parent table (@pxref{Syntax Class Table}).
 @end defun
 
 @defun copy-syntax-table &optional table
 This function constructs a copy of @var{table} and returns it.  If
-@var{table} is not supplied (or is @code{nil}), it returns a copy of the
-standard syntax table.  Otherwise, an error is signaled if @var{table} is
-not a syntax table.
+@var{table} is omitted or @code{nil}, it returns a copy of the
+standard syntax table.  Otherwise, an error is signaled if @var{table}
+is not a syntax table.
 @end defun
 
 @deffn Command modify-syntax-entry char syntax-descriptor  &optional table
@@ -393,11 +414,11 @@ between @var{min} and @var{max}, inclusive.
 The syntax is changed only for @var{table}, which defaults to the
 current buffer's syntax table, and not in any other syntax table.
 
-The argument @var{syntax-descriptor} is a syntax descriptor for the
-desired syntax (i.e.@: a string beginning with a class designator
-character, and optionally containing a matching character and syntax
-flags).  An error is signaled if the first character is not one of the
-seventeen syntax class designators.  @xref{Syntax Descriptors}.
+The argument @var{syntax-descriptor} is a syntax descriptor, i.e.@: a
+string whose first character is a syntax class designator and whose
+second and subsequent characters optionally specify a matching
+character and syntax flags.  @xref{Syntax Descriptors}.  An error is
+signaled if @var{syntax-descriptor} is not a valid syntax descriptor.
 
 This function always returns @code{nil}.  The old syntax information in
 the table for this character is discarded.
@@ -438,38 +459,37 @@ the table for this character is discarded.
 
 @defun char-syntax character
 This function returns the syntax class of @var{character}, represented
-by its mnemonic designator character.  This returns @emph{only} the
-class, not any matching parenthesis or flags.
+by its designator character (@pxref{Syntax Class Table}).  This
+returns @emph{only} the class, not its matching character or syntax
+flags.
 
-An error is signaled if @var{char} is not a character.
-
-The following examples apply to C mode.  The first example shows that
-the syntax class of space is whitespace (represented by a space).  The
-second example shows that the syntax of @samp{/} is punctuation.  This
-does not show the fact that it is also part of comment-start and -end
-sequences.  The third example shows that open parenthesis is in the class
-of open parentheses.  This does not show the fact that it has a matching
-character, @samp{)}.
+The following examples apply to C mode.  (We use @code{string} to make
+it easier to see the character returned by @code{char-syntax}.)
 
 @example
 @group
+;; Space characters have whitespace syntax class.
 (string (char-syntax ?\s))
      @result{} " "
 @end group
 
 @group
+;; Forward slash characters have punctuation syntax.  Note that this
+;; @code{char-syntax} call does not reveal that it is also part of
+;; comment-start and -end sequences.
 (string (char-syntax ?/))
      @result{} "."
 @end group
 
 @group
+;; Open parenthesis characters have open parenthesis syntax.  Note
+;; that this @code{char-syntax} call does not reveal that it has a
+;; matching character, @samp{)}.
 (string (char-syntax ?\())
      @result{} "("
 @end group
 @end example
 
-We use @code{string} to make it easier to see the character returned by
-@code{char-syntax}.
 @end defun
 
 @defun set-syntax-table table
@@ -905,135 +925,70 @@ The behavior of @code{parse-partial-sexp} is also affected by
 You can use @code{forward-comment} to move forward or backward over
 one comment or several comments.
 
-@node Standard Syntax Tables
-@section Some Standard Syntax Tables
-
-  Most of the major modes in Emacs have their own syntax tables.  Here
-are several of them:
-
-@defun standard-syntax-table
-This function returns the standard syntax table, which is the syntax
-table used in Fundamental mode.
-@end defun
-
-@defvar text-mode-syntax-table
-The value of this variable is the syntax table used in Text mode.
-@end defvar
-
-@defvar c-mode-syntax-table
-The value of this variable is the syntax table for C-mode buffers.
-@end defvar
-
-@defvar emacs-lisp-mode-syntax-table
-The value of this variable is the syntax table used in Emacs Lisp mode
-by editing commands.  (It has no effect on the Lisp @code{read}
-function.)
-@end defvar
-
 @node Syntax Table Internals
 @section Syntax Table Internals
 @cindex syntax table internals
 
-  Lisp programs don't usually work with the elements directly; the
-Lisp-level syntax table functions usually work with syntax descriptors
-(@pxref{Syntax Descriptors}).  Nonetheless, here we document the
-internal format.  This format is used mostly when manipulating
-syntax properties.
+  Syntax tables are implemented as char-tables (@pxref{Char-Tables}),
+but most Lisp programs don't work directly with their elements.
+Syntax tables do not store syntax data as syntax descriptors
+(@pxref{Syntax Descriptors}); they use an internal format, which is
+documented in this section.  This internal format can also be assigned
+as syntax properties (@pxref{Syntax Properties}).
 
-  Each element of a syntax table is a cons cell of the form
-@code{(@var{syntax-code} . @var{matching-char})}.  The @sc{car},
-@var{syntax-code}, is an integer that encodes the syntax class, and any
-flags.  The @sc{cdr}, @var{matching-char}, is non-@code{nil} if
-a character to match was specified.
+@cindex syntax code
+  Each entry in a syntax table is a cons cell of the form
+@code{(@var{syntax-code} . @var{matching-char})}.  @var{syntax-code}
+is an integer that encodes the syntax class and syntax flags,
+according to the table below.  @var{matching-char}, if non-@code{nil},
+specifies a matching character (similar to the second character in a
+syntax descriptor).
 
-  This table gives the value of @var{syntax-code} which corresponds
-to each syntactic type.
-
-@multitable @columnfractions .05 .3 .3 .31
+@multitable @columnfractions .2 .3 .2 .3
 @item
-@tab
-@i{Integer} @i{Class}
-@tab
-@i{Integer} @i{Class}
-@tab
-@i{Integer} @i{Class}
+@i{Syntax code} @tab @i{Class} @tab @i{Syntax code} @tab @i{Class}
 @item
-@tab
-0 @ @  whitespace
-@tab
-5 @ @  close parenthesis
-@tab
-10 @ @  character quote
+0 @tab whitespace @tab 8 @tab paired delimiter
 @item
-@tab
-1 @ @  punctuation
-@tab
-6 @ @  expression prefix
-@tab
-11 @ @  comment-start
+1 @tab punctuation @tab 9 @tab escape
 @item
-@tab
-2 @ @  word
-@tab
-7 @ @  string quote
-@tab
-12 @ @  comment-end
+2 @tab word @tab 10 @tab character quote
 @item
-@tab
-3 @ @  symbol
-@tab
-8 @ @  paired delimiter
-@tab
-13 @ @  inherit
+3 @tab symbol @tab 11 @tab comment-start
 @item
-@tab
-4 @ @  open parenthesis
-@tab
-9 @ @  escape
-@tab
-14 @ @  generic comment
+4 @tab open parenthesis @tab 12 @tab comment-end
 @item
-@tab
-15 @  generic string
+5 @tab close parenthesis @tab 13 @tab inherit
+@item
+6 @tab expression prefix @tab 14 @tab generic comment
+@item
+7 @tab string quote @tab 15 @tab generic string
 @end multitable
 
-  For example, the usual syntax value for @samp{(} is @code{(4 . 41)}.
-(41 is the character code for @samp{)}.)
+@noindent
+For example, in the standard syntax table, the entry for @samp{(} is
+@code{(4 . 41)}.  (41 is the character code for @samp{)}.)
 
-  The flags are encoded in higher order bits, starting 16 bits from the
-least significant bit.  This table gives the power of two which
+  Syntax flags are encoded in higher order bits, starting 16 bits from
+the least significant bit.  This table gives the power of two which
 corresponds to each syntax flag.
 
-@multitable @columnfractions .05 .3 .3 .3
+@multitable @columnfractions .15 .3 .15 .3
 @item
-@tab
-@i{Prefix} @i{Flag}
-@tab
-@i{Prefix} @i{Flag}
-@tab
-@i{Prefix} @i{Flag}
+@i{Prefix} @tab @i{Flag} @tab @i{Prefix} @tab @i{Flag}
 @item
-@tab
-@samp{1} @ @  @code{(lsh 1 16)}
-@tab
-@samp{4} @ @  @code{(lsh 1 19)}
-@tab
-@samp{b} @ @  @code{(lsh 1 21)}
+@samp{1} @tab @code{(lsh 1 16)} @tab @samp{p} @tab @code{(lsh 1 20)}
 @item
-@tab
-@samp{2} @ @  @code{(lsh 1 17)}
-@tab
-@samp{p} @ @  @code{(lsh 1 20)}
-@tab
-@samp{n} @ @  @code{(lsh 1 22)}
+@samp{2} @tab @code{(lsh 1 17)} @tab @samp{b} @tab @code{(lsh 1 21)}
 @item
-@tab
-@samp{3} @ @  @code{(lsh 1 18)}
+@samp{3} @tab @code{(lsh 1 18)} @tab @samp{n} @tab @code{(lsh 1 22)}
+@item
+@samp{4} @tab @code{(lsh 1 19)}
 @end multitable
 
 @defun string-to-syntax @var{desc}
-This function returns the internal form corresponding to the syntax
-descriptor @var{desc}, a cons cell @code{(@var{syntax-code}
+Given a syntax descriptor @var{desc}, this function returns the
+corresponding internal form, a cons cell @code{(@var{syntax-code}
 . @var{matching-char})}.
 @end defun
 

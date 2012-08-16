@@ -1,4 +1,4 @@
-/* Shared GDI and Uniscribe Font backend declarations for the W32 API.
+/* Shared GDI and Uniscribe Font backend declarations for the Windows API.
    Copyright (C) 2007-2012 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.

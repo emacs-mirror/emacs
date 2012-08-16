@@ -51,9 +51,4 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define WTERMSIG(status) ((status) & 0x7f)
 #endif
 
-#undef WRETCODE
-#define WRETCODE(status) WEXITSTATUS (status)
-
-
 #endif /* EMACS_SYSWAIT_H */
-

@@ -114,7 +114,8 @@ QPatterns for vectors are not implemented yet.
 
 PRED can take the form
   FUNCTION	     in which case it gets called with one argument.
-  (FUN ARG1 .. ARGN) in which case it gets called with N+1 arguments.
+  (FUN ARG1 .. ARGN) in which case it gets called with an N+1'th argument
+                        which is the value being matched.
 A PRED of the form FUNCTION is equivalent to one of the form (FUNCTION).
 PRED patterns can refer to variables bound earlier in the pattern.
 E.g. you can match pairs where the cdr is larger than the car with a pattern

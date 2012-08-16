@@ -105,7 +105,7 @@ text_read_only (Lisp_Object propval)
    Fprevious_property_change which call this function with BEGIN == END.
    Handle this case specially.
 
-   If FORCE is soft (0), it's OK to return NULL_INTERVAL.  Otherwise,
+   If FORCE is soft (0), it's OK to return NULL.  Otherwise,
    create an interval tree for OBJECT if one doesn't exist, provided
    the object actually contains text.  In the current design, if there
    is no text, there can be no text properties.  */
@@ -126,7 +126,7 @@ validate_interval_range (Lisp_Object object, Lisp_Object *begin, Lisp_Object *en
   /* If we are asked for a point, but from a subr which operates
      on a range, then return nothing.  */
   if (EQ (*begin, *end) && begin != end)
-    return NULL_INTERVAL;
+    return NULL;
 
   if (XINT (*begin) > XINT (*end))
     {
@@ -143,11 +143,11 @@ validate_interval_range (Lisp_Object object, Lisp_Object *begin, Lisp_Object *en
       if (!(BUF_BEGV (b) <= XINT (*begin) && XINT (*begin) <= XINT (*end)
 	    && XINT (*end) <= BUF_ZV (b)))
 	args_out_of_range (*begin, *end);
-      i = BUF_INTERVALS (b);
+      i = buffer_get_intervals (b);
 
       /* If there's no text, there are no properties.  */
       if (BUF_BEGV (b) == BUF_ZV (b))
-	return NULL_INTERVAL;
+	return NULL;
 
       searchpos = XINT (*begin);
     }
@@ -161,15 +161,15 @@ validate_interval_range (Lisp_Object object, Lisp_Object *begin, Lisp_Object *en
       XSETFASTINT (*begin, XFASTINT (*begin));
       if (begin != end)
 	XSETFASTINT (*end, XFASTINT (*end));
-      i = STRING_INTERVALS (object);
+      i = string_get_intervals (object);
 
       if (len == 0)
-	return NULL_INTERVAL;
+	return NULL;
 
       searchpos = XINT (*begin);
     }
 
-  if (NULL_INTERVAL_P (i))
+  if (!i)
     return (force ? create_root_interval (object) : i);
 
   return find_interval (i, searchpos);
@@ -338,7 +338,7 @@ set_properties (Lisp_Object properties, INTERVAL interval, Lisp_Object object)
     }
 
   /* Store new properties.  */
-  interval->plist = Fcopy_sequence (properties);
+  interval_set_plist (interval, Fcopy_sequence (properties));
 }
 
 /* Add the properties of PLIST to the interval I, or set
@@ -411,7 +411,7 @@ add_properties (Lisp_Object plist, INTERVAL i, Lisp_Object object)
 	      record_property_change (i->position, LENGTH (i),
 				      sym1, Qnil, object);
 	    }
-	  i->plist = Fcons (sym1, Fcons (val1, i->plist));
+	  interval_set_plist (i, Fcons (sym1, Fcons (val1, i->plist)));
 	  changed++;
 	}
     }
@@ -484,24 +484,9 @@ remove_properties (Lisp_Object plist, Lisp_Object list, INTERVAL i, Lisp_Object 
     }
 
   if (changed)
-    i->plist = current_plist;
+    interval_set_plist (i, current_plist);
   return changed;
 }
-
-#if 0
-/* Remove all properties from interval I.  Return non-zero
-   if this changes the interval.  */
-
-static inline int
-erase_properties (INTERVAL i)
-{
-  if (NILP (i->plist))
-    return 0;
-
-  i->plist = Qnil;
-  return 1;
-}
-#endif
 
 /* Returns the interval of POSITION in OBJECT.
    POSITION is BEG-based.  */
@@ -515,7 +500,7 @@ interval_of (ptrdiff_t position, Lisp_Object object)
   if (NILP (object))
     XSETBUFFER (object, current_buffer);
   else if (EQ (object, Qt))
-    return NULL_INTERVAL;
+    return NULL;
 
   CHECK_STRING_OR_BUFFER (object);
 
@@ -525,19 +510,19 @@ interval_of (ptrdiff_t position, Lisp_Object object)
 
       beg = BUF_BEGV (b);
       end = BUF_ZV (b);
-      i = BUF_INTERVALS (b);
+      i = buffer_get_intervals (b);
     }
   else
     {
       beg = 0;
       end = SCHARS (object);
-      i = STRING_INTERVALS (object);
+      i = string_get_intervals (object);
     }
 
   if (!(beg <= position && position <= end))
     args_out_of_range (make_number (position), make_number (position));
-  if (beg == end || NULL_INTERVAL_P (i))
-    return NULL_INTERVAL;
+  if (beg == end || !i)
+    return NULL;
 
   return find_interval (i, position);
 }
@@ -557,7 +542,7 @@ If POSITION is at the end of OBJECT, the value is nil.  */)
     XSETBUFFER (object, current_buffer);
 
   i = validate_interval_range (object, &position, &position, soft);
-  if (NULL_INTERVAL_P (i))
+  if (!i)
     return Qnil;
   /* If POSITION is at the end of the interval,
      it means it's the end of OBJECT.
@@ -937,12 +922,12 @@ past position LIMIT; return LIMIT if nothing is found before LIMIT.  */)
      bother checking further intervals.  */
   if (EQ (limit, Qt))
     {
-      if (NULL_INTERVAL_P (i))
+      if (!i)
 	next = i;
       else
 	next = next_interval (i);
 
-      if (NULL_INTERVAL_P (next))
+      if (!next)
 	XSETFASTINT (position, (STRINGP (object)
 				? SCHARS (object)
 				: BUF_ZV (XBUFFER (object))));
@@ -951,16 +936,16 @@ past position LIMIT; return LIMIT if nothing is found before LIMIT.  */)
       return position;
     }
 
-  if (NULL_INTERVAL_P (i))
+  if (!i)
     return limit;
 
   next = next_interval (i);
 
-  while (!NULL_INTERVAL_P (next) && intervals_equal (i, next)
+  while (next && intervals_equal (i, next)
 	 && (NILP (limit) || next->position < XFASTINT (limit)))
     next = next_interval (next);
 
-  if (NULL_INTERVAL_P (next)
+  if (!next
       || (next->position
 	  >= (INTEGERP (limit)
 	      ? XFASTINT (limit)
@@ -998,17 +983,17 @@ past position LIMIT; return LIMIT if nothing is found before LIMIT.  */)
     CHECK_NUMBER_COERCE_MARKER (limit);
 
   i = validate_interval_range (object, &position, &position, soft);
-  if (NULL_INTERVAL_P (i))
+  if (!i)
     return limit;
 
   here_val = textget (i->plist, prop);
   next = next_interval (i);
-  while (! NULL_INTERVAL_P (next)
+  while (next
 	 && EQ (here_val, textget (next->plist, prop))
 	 && (NILP (limit) || next->position < XFASTINT (limit)))
     next = next_interval (next);
 
-  if (NULL_INTERVAL_P (next)
+  if (!next
       || (next->position
 	  >= (INTEGERP (limit)
 	      ? XFASTINT (limit)
@@ -1044,7 +1029,7 @@ back past position LIMIT; return LIMIT if nothing is found until LIMIT.  */)
     CHECK_NUMBER_COERCE_MARKER (limit);
 
   i = validate_interval_range (object, &position, &position, soft);
-  if (NULL_INTERVAL_P (i))
+  if (!i)
     return limit;
 
   /* Start with the interval containing the char before point.  */
@@ -1052,12 +1037,12 @@ back past position LIMIT; return LIMIT if nothing is found until LIMIT.  */)
     i = previous_interval (i);
 
   previous = previous_interval (i);
-  while (!NULL_INTERVAL_P (previous) && intervals_equal (previous, i)
+  while (previous && intervals_equal (previous, i)
 	 && (NILP (limit)
 	     || (previous->position + LENGTH (previous) > XFASTINT (limit))))
     previous = previous_interval (previous);
 
-  if (NULL_INTERVAL_P (previous)
+  if (!previous
       || (previous->position + LENGTH (previous)
 	  <= (INTEGERP (limit)
 	      ? XFASTINT (limit)
@@ -1095,21 +1080,21 @@ back past position LIMIT; return LIMIT if nothing is found until LIMIT.  */)
   i = validate_interval_range (object, &position, &position, soft);
 
   /* Start with the interval containing the char before point.  */
-  if (!NULL_INTERVAL_P (i) && i->position == XFASTINT (position))
+  if (i && i->position == XFASTINT (position))
     i = previous_interval (i);
 
-  if (NULL_INTERVAL_P (i))
+  if (!i)
     return limit;
 
   here_val = textget (i->plist, prop);
   previous = previous_interval (i);
-  while (!NULL_INTERVAL_P (previous)
+  while (previous
 	 && EQ (here_val, textget (previous->plist, prop))
 	 && (NILP (limit)
 	     || (previous->position + LENGTH (previous) > XFASTINT (limit))))
     previous = previous_interval (previous);
 
-  if (NULL_INTERVAL_P (previous)
+  if (!previous
       || (previous->position + LENGTH (previous)
 	  <= (INTEGERP (limit)
 	      ? XFASTINT (limit)
@@ -1145,7 +1130,7 @@ Return t if any property value actually changed, nil otherwise.  */)
     XSETBUFFER (object, current_buffer);
 
   i = validate_interval_range (object, &start, &end, hard);
-  if (NULL_INTERVAL_P (i))
+  if (!i)
     return Qnil;
 
   s = XINT (start);
@@ -1183,8 +1168,7 @@ Return t if any property value actually changed, nil otherwise.  */)
   /* We are at the beginning of interval I, with LEN chars to scan.  */
   for (;;)
     {
-      if (i == 0)
-	abort ();
+      eassert (i != 0);
 
       if (LENGTH (i) >= len)
 	{
@@ -1290,16 +1274,16 @@ set_text_properties (Lisp_Object start, Lisp_Object end, Lisp_Object properties,
       && XFASTINT (start) == 0
       && XFASTINT (end) == SCHARS (object))
     {
-      if (! STRING_INTERVALS (object))
+      if (!string_get_intervals (object))
 	return Qnil;
 
-      STRING_SET_INTERVALS (object, NULL_INTERVAL);
+      string_set_intervals (object, NULL);
       return Qt;
     }
 
   i = validate_interval_range (object, &start, &end, soft);
 
-  if (NULL_INTERVAL_P (i))
+  if (!i)
     {
       /* If buffer has no properties, and we want none, return now.  */
       if (NILP (properties))
@@ -1312,7 +1296,7 @@ set_text_properties (Lisp_Object start, Lisp_Object end, Lisp_Object properties,
 
       i = validate_interval_range (object, &start, &end, hard);
       /* This can return if start == end.  */
-      if (NULL_INTERVAL_P (i))
+      if (!i)
 	return Qnil;
     }
 
@@ -1337,7 +1321,7 @@ set_text_properties (Lisp_Object start, Lisp_Object end, Lisp_Object properties,
 void
 set_text_properties_1 (Lisp_Object start, Lisp_Object end, Lisp_Object properties, Lisp_Object buffer, INTERVAL i)
 {
-  register INTERVAL prev_changed = NULL_INTERVAL;
+  register INTERVAL prev_changed = NULL;
   register ptrdiff_t s, len;
   INTERVAL unchanged;
 
@@ -1354,8 +1338,8 @@ set_text_properties_1 (Lisp_Object start, Lisp_Object end, Lisp_Object propertie
   else
     return;
 
-  if (i == 0)
-    i = find_interval (BUF_INTERVALS (XBUFFER (buffer)), s);
+  if (i == NULL)
+    i = find_interval (buffer_get_intervals (XBUFFER (buffer)), s);
 
   if (i->position != s)
     {
@@ -1383,8 +1367,7 @@ set_text_properties_1 (Lisp_Object start, Lisp_Object end, Lisp_Object propertie
   /* We are starting at the beginning of an interval I.  LEN is positive.  */
   do
     {
-      if (i == 0)
-	abort ();
+      eassert (i != 0);
 
       if (LENGTH (i) >= len)
 	{
@@ -1395,7 +1378,7 @@ set_text_properties_1 (Lisp_Object start, Lisp_Object end, Lisp_Object propertie
 	     merge the intervals, so as to make the undo records
 	     and cause redisplay to happen.  */
 	  set_properties (properties, i, buffer);
-	  if (!NULL_INTERVAL_P (prev_changed))
+	  if (prev_changed)
 	    merge_interval_left (i);
 	  return;
 	}
@@ -1406,7 +1389,7 @@ set_text_properties_1 (Lisp_Object start, Lisp_Object end, Lisp_Object propertie
 	 merge the intervals, so as to make the undo records
 	 and cause redisplay to happen.  */
       set_properties (properties, i, buffer);
-      if (NULL_INTERVAL_P (prev_changed))
+      if (!prev_changed)
 	prev_changed = i;
       else
 	prev_changed = i = merge_interval_left (i);
@@ -1438,7 +1421,7 @@ Use `set-text-properties' if you want to remove all text properties.  */)
     XSETBUFFER (object, current_buffer);
 
   i = validate_interval_range (object, &start, &end, soft);
-  if (NULL_INTERVAL_P (i))
+  if (!i)
     return Qnil;
 
   s = XINT (start);
@@ -1472,8 +1455,7 @@ Use `set-text-properties' if you want to remove all text properties.  */)
   /* We are at the beginning of an interval, with len to scan */
   for (;;)
     {
-      if (i == 0)
-	abort ();
+      eassert (i != 0);
 
       if (LENGTH (i) >= len)
 	{
@@ -1526,7 +1508,7 @@ Return t if any property was actually removed, nil otherwise.  */)
     XSETBUFFER (object, current_buffer);
 
   i = validate_interval_range (object, &start, &end, soft);
-  if (NULL_INTERVAL_P (i))
+  if (!i)
     return Qnil;
 
   s = XINT (start);
@@ -1562,8 +1544,7 @@ Return t if any property was actually removed, nil otherwise.  */)
      and we call signal_after_change before returning if modified != 0. */
   for (;;)
     {
-      if (i == 0)
-	abort ();
+      eassert (i != 0);
 
       if (LENGTH (i) >= len)
 	{
@@ -1632,11 +1613,11 @@ markers).  If OBJECT is a string, START and END are 0-based indices into it.  */
   if (NILP (object))
     XSETBUFFER (object, current_buffer);
   i = validate_interval_range (object, &start, &end, soft);
-  if (NULL_INTERVAL_P (i))
+  if (!i)
     return (!NILP (value) || EQ (start, end) ? Qnil : start);
   e = XINT (end);
 
-  while (! NULL_INTERVAL_P (i))
+  while (i)
     {
       if (i->position >= e)
 	break;
@@ -1668,12 +1649,12 @@ markers).  If OBJECT is a string, START and END are 0-based indices into it.  */
   if (NILP (object))
     XSETBUFFER (object, current_buffer);
   i = validate_interval_range (object, &start, &end, soft);
-  if (NULL_INTERVAL_P (i))
+  if (!i)
     return (NILP (value) || EQ (start, end)) ? Qnil : start;
   s = XINT (start);
   e = XINT (end);
 
-  while (! NULL_INTERVAL_P (i))
+  while (i)
     {
       if (i->position >= e)
 	break;
@@ -1778,7 +1759,7 @@ copy_text_properties (Lisp_Object start, Lisp_Object end, Lisp_Object src, Lisp_
   struct gcpro gcpro1, gcpro2;
 
   i = validate_interval_range (src, &start, &end, soft);
-  if (NULL_INTERVAL_P (i))
+  if (!i)
     return Qnil;
 
   CHECK_NUMBER_COERCE_MARKER (pos);
@@ -1830,7 +1811,7 @@ copy_text_properties (Lisp_Object start, Lisp_Object end, Lisp_Object src, Lisp_
 	}
 
       i = next_interval (i);
-      if (NULL_INTERVAL_P (i))
+      if (!i)
 	break;
 
       p += len;
@@ -1871,7 +1852,7 @@ text_property_list (Lisp_Object object, Lisp_Object start, Lisp_Object end, Lisp
   result = Qnil;
 
   i = validate_interval_range (object, &start, &end, soft);
-  if (!NULL_INTERVAL_P (i))
+  if (i)
     {
       ptrdiff_t s = XINT (start);
       ptrdiff_t e = XINT (end);
@@ -1903,7 +1884,7 @@ text_property_list (Lisp_Object object, Lisp_Object start, Lisp_Object end, Lisp
 			    result);
 
 	  i = next_interval (i);
-	  if (NULL_INTERVAL_P (i))
+	  if (!i)
 	    break;
 	  s = i->position;
 	}
@@ -2012,7 +1993,7 @@ void
 verify_interval_modification (struct buffer *buf,
 			      ptrdiff_t start, ptrdiff_t end)
 {
-  register INTERVAL intervals = BUF_INTERVALS (buf);
+  register INTERVAL intervals = buffer_get_intervals (buf);
   register INTERVAL i;
   Lisp_Object hooks;
   register Lisp_Object prev_mod_hooks;
@@ -2026,7 +2007,7 @@ verify_interval_modification (struct buffer *buf,
   interval_insert_behind_hooks = Qnil;
   interval_insert_in_front_hooks = Qnil;
 
-  if (NULL_INTERVAL_P (intervals))
+  if (!intervals)
     return;
 
   if (start > end)
@@ -2067,7 +2048,7 @@ verify_interval_modification (struct buffer *buf,
 	     indirectly defined via the category property.  */
 	  if (i != prev)
 	    {
-	      if (! NULL_INTERVAL_P (i))
+	      if (i)
 		{
 		  after = textget (i->plist, Qread_only);
 
@@ -2087,7 +2068,7 @@ verify_interval_modification (struct buffer *buf,
 		    }
 		}
 
-	      if (! NULL_INTERVAL_P (prev))
+	      if (prev)
 		{
 		  before = textget (prev->plist, Qread_only);
 
@@ -2107,7 +2088,7 @@ verify_interval_modification (struct buffer *buf,
 		    }
 		}
 	    }
-	  else if (! NULL_INTERVAL_P (i))
+	  else if (i)
 	    {
 	      after = textget (i->plist, Qread_only);
 
@@ -2134,10 +2115,10 @@ verify_interval_modification (struct buffer *buf,
 	}
 
       /* Run both insert hooks (just once if they're the same).  */
-      if (!NULL_INTERVAL_P (prev))
+      if (prev)
 	interval_insert_behind_hooks
 	  = textget (prev->plist, Qinsert_behind_hooks);
-      if (!NULL_INTERVAL_P (i))
+      if (i)
 	interval_insert_in_front_hooks
 	  = textget (i->plist, Qinsert_in_front_hooks);
     }
@@ -2165,7 +2146,7 @@ verify_interval_modification (struct buffer *buf,
 	  i = next_interval (i);
 	}
       /* Keep going thru the interval containing the char before END.  */
-      while (! NULL_INTERVAL_P (i) && i->position < end);
+      while (i && i->position < end);
 
       if (!inhibit_modification_hooks)
 	{

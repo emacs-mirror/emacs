@@ -73,7 +73,6 @@ EmacsMenu *mainMenu, *svcsMenu, *dockMenu;
 
 /* Nonzero means a menu is currently active.  */
 static int popup_activated_flag;
-static NSModalSession popupSession;
 
 /* Nonzero means we are tracking and updating menus.  */
 static int trackingMenu;
@@ -215,14 +214,14 @@ ns_update_menubar (struct frame *f, int deep_p, EmacsMenu *submenu)
       if (! NILP (Vlucid_menu_bar_dirty_flag))
 	call0 (Qrecompute_lucid_menubar);
       safe_run_hooks (Qmenu_bar_update_hook);
-      FRAME_MENU_BAR_ITEMS (f) = menu_bar_items (FRAME_MENU_BAR_ITEMS (f));
+      FSET (f, menu_bar_items, menu_bar_items (FRAME_MENU_BAR_ITEMS (f)));
 
       /* Now ready to go */
       items = FRAME_MENU_BAR_ITEMS (f);
 
       /* Save the frame's previous menu bar contents data */
       if (previous_menu_items_used)
-	memcpy (previous_items, &AREF (f->menu_bar_vector, 0),
+	memcpy (previous_items, aref_addr (f->menu_bar_vector, 0),
 		previous_menu_items_used * sizeof (Lisp_Object));
 
       /* parse stage 1: extract from lisp */
@@ -341,7 +340,7 @@ ns_update_menubar (struct frame *f, int deep_p, EmacsMenu *submenu)
         }
       /* The menu items are different, so store them in the frame */
       /* FIXME: this is not correct for single-submenu case */
-      f->menu_bar_vector = menu_items;
+      FSET (f, menu_bar_vector, menu_items);
       f->menu_bar_items_used = menu_items_used;
 
       /* Calls restore_menu_items, etc., as they were outside */
@@ -939,8 +938,7 @@ ns_menu_show (FRAME_PTR f, int x, int y, int for_click, int keymaps,
 	  /* If this item has a null value,
 	     make the call_data null so that it won't display a box
 	     when the mouse is on it.  */
-	  wv->call_data
-	      = !NILP (def) ? (void *) &AREF (menu_items, i) : 0;
+	  wv->call_data = !NILP (def) ? aref_addr (menu_items, i) : 0;
 	  wv->enabled = !NILP (enable);
 
 	  if (NILP (type))
@@ -1102,7 +1100,7 @@ update_frame_tool_bar (FRAME_PTR f)
       NSDictionary *dict = [toolbar configurationDictionary];
       NSMutableDictionary *newDict = [dict mutableCopy];
       NSEnumerator *keys = [[dict allKeys] objectEnumerator];
-      NSObject *key;
+      id key;
       while ((key = [keys nextObject]) != nil)
         {
           NSObject *val = [dict objectForKey: key];
@@ -1349,20 +1347,31 @@ update_frame_tool_bar (FRAME_PTR f)
 
    ========================================================================== */
 
+struct Popdown_data
+{
+  NSAutoreleasePool *pool;
+  EmacsDialogPanel *dialog;
+};
 
 static Lisp_Object
 pop_down_menu (Lisp_Object arg)
 {
   struct Lisp_Save_Value *p = XSAVE_VALUE (arg);
+  struct Popdown_data *unwind_data = (struct Popdown_data *) p->pointer;
+
+  BLOCK_INPUT;
   if (popup_activated_flag)
     {
+      EmacsDialogPanel *panel = unwind_data->dialog;
       popup_activated_flag = 0;
-      BLOCK_INPUT;
-      [NSApp endModalSession: popupSession];
-      [((EmacsDialogPanel *) (p->pointer)) close];
+      [panel close];
+      [unwind_data->pool release];
       [[FRAME_NS_VIEW (SELECTED_FRAME ()) window] makeKeyWindow];
-      UNBLOCK_INPUT;
     }
+
+  xfree (unwind_data);
+  UNBLOCK_INPUT;
+
   return Qnil;
 }
 
@@ -1375,6 +1384,7 @@ ns_popup_dialog (Lisp_Object position, Lisp_Object contents, Lisp_Object header)
   struct frame *f;
   NSPoint p;
   BOOL isQ;
+  NSAutoreleasePool *pool;
 
   NSTRACE (x-popup-dialog);
 
@@ -1429,15 +1439,23 @@ ns_popup_dialog (Lisp_Object position, Lisp_Object contents, Lisp_Object header)
     contents = Fcons (title, Fcons (Fcons (build_string ("Ok"), Qt), Qnil));
 
   BLOCK_INPUT;
+  pool = [[NSAutoreleasePool alloc] init];
   dialog = [[EmacsDialogPanel alloc] initFromContents: contents
                                            isQuestion: isQ];
+
   {
     ptrdiff_t specpdl_count = SPECPDL_INDEX ();
-    record_unwind_protect (pop_down_menu, make_save_value (dialog, 0));
+    struct Popdown_data *unwind_data = xmalloc (sizeof (*unwind_data));
+
+    unwind_data->pool = pool;
+    unwind_data->dialog = dialog;
+
+    record_unwind_protect (pop_down_menu, make_save_value (unwind_data, 0));
     popup_activated_flag = 1;
     tem = [dialog runDialogAt: p];
     unbind_to (specpdl_count, Qnil);  /* calls pop_down_menu */
   }
+
   UNBLOCK_INPUT;
 
   return tem;
@@ -1475,24 +1493,22 @@ ns_popup_dialog (Lisp_Object position, Lisp_Object contents, Lisp_Object header)
   NSSize spacing = {SPACER, SPACER};
   NSRect area;
   id cell;
-  static NSImageView *imgView;
-  static FlippedView *contentView;
+  NSImageView *imgView;
+  FlippedView *contentView;
+  NSImage *img;
 
-  if (imgView == nil)
-    {
-      NSImage *img;
-      area.origin.x   = 3*SPACER;
-      area.origin.y   = 2*SPACER;
-      area.size.width = ICONSIZE;
-      area.size.height= ICONSIZE;
-      img = [[NSImage imageNamed: @"NSApplicationIcon"] copy];
-      [img setScalesWhenResized: YES];
-      [img setSize: NSMakeSize (ICONSIZE, ICONSIZE)];
-      imgView = [[NSImageView alloc] initWithFrame: area];
-      [imgView setImage: img];
-      [imgView setEditable: NO];
-      [img release];
-    }
+  area.origin.x   = 3*SPACER;
+  area.origin.y   = 2*SPACER;
+  area.size.width = ICONSIZE;
+  area.size.height= ICONSIZE;
+  img = [[NSImage imageNamed: @"NSApplicationIcon"] copy];
+  [img setScalesWhenResized: YES];
+  [img setSize: NSMakeSize (ICONSIZE, ICONSIZE)];
+  imgView = [[NSImageView alloc] initWithFrame: area];
+  [imgView setImage: img];
+  [imgView setEditable: NO];
+  [img autorelease];
+  [imgView autorelease];
 
   aStyle = NSTitledWindowMask;
   flag = YES;
@@ -1501,6 +1517,8 @@ ns_popup_dialog (Lisp_Object position, Lisp_Object contents, Lisp_Object header)
   [super initWithContentRect: contentRect styleMask: aStyle
                      backing: backingType defer: flag];
   contentView = [[FlippedView alloc] initWithFrame: [[self contentView] frame]];
+  [contentView autorelease];
+
   [self setContentView: contentView];
 
   [[self contentView] setAutoresizesSubviews: YES];
@@ -1551,12 +1569,12 @@ ns_popup_dialog (Lisp_Object position, Lisp_Object contents, Lisp_Object header)
                                  prototype: cell
                               numberOfRows: 0
                            numberOfColumns: 1];
-  [[self contentView] addSubview: matrix];
-  [matrix release];
   [matrix setFrameOrigin: NSMakePoint (area.origin.x,
                                       area.origin.y + (TEXTHEIGHT+3*SPACER))];
   [matrix setIntercellSpacing: spacing];
+  [matrix autorelease];
 
+  [[self contentView] addSubview: matrix];
   [self setOneShot: YES];
   [self setReleasedWhenClosed: YES];
   [self setHidesOnDeactivate: YES];
@@ -1735,26 +1753,40 @@ void process_dialog (id window, Lisp_Object list)
 }
 
 
-- (void)dealloc
+ 
+- (void)timeout_handler: (NSTimer *)timedEntry
 {
-  { [super dealloc]; return; };
+  timer_fired = 1;
+  [NSApp abortModal];
 }
-
 
 - (Lisp_Object)runDialogAt: (NSPoint)p
 {
-  NSInteger ret;
+  NSInteger ret = 0;
 
-  /* initiate a session that will be ended by pop_down_menu */
-  popupSession = [NSApp beginModalSessionForWindow: self];
-  while (popup_activated_flag
-         && (ret = [NSApp runModalSession: popupSession])
-              == NSRunContinuesResponse)
+  while (popup_activated_flag)
     {
-      /* Run this for timers.el, indep of atimers; might not return.
-         TODO: use return value to avoid calling every iteration. */
-      timer_check ();
-      [NSThread sleepUntilDate: [NSDate dateWithTimeIntervalSinceNow: 0.1]];
+      NSTimer *tmo = nil;
+      EMACS_TIME next_time = timer_check ();
+
+      if (EMACS_TIME_VALID_P (next_time))
+        {
+          double time = EMACS_TIME_TO_DOUBLE (next_time);
+          tmo = [NSTimer timerWithTimeInterval: time
+                                        target: self
+                                      selector: @selector (timeout_handler:)
+                                      userInfo: 0
+                                       repeats: NO];
+          [[NSRunLoop currentRunLoop] addTimer: tmo
+                                       forMode: NSModalPanelRunLoopMode];
+        }
+      timer_fired = 0;
+      ret = [NSApp runModalForWindow: self];
+      if (! timer_fired)
+        {
+          if (tmo != nil) [tmo invalidate]; /* Cancels timer */
+          break;
+        }
     }
 
   {				/* FIXME: BIG UGLY HACK!!! */

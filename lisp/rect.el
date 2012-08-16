@@ -219,6 +219,7 @@ even beep.)"
   (condition-case nil
       (setq killed-rectangle (delete-extract-rectangle start end fill))
     ((buffer-read-only text-read-only)
+     (setq deactivate-mark t)
      (setq killed-rectangle (extract-rectangle start end))
      (if kill-read-only-ok
 	 (progn (message "Read only text copied to kill ring") nil)
@@ -230,7 +231,9 @@ even beep.)"
   "Copy the region-rectangle and save it as the last killed one."
   (interactive "r")
   (setq killed-rectangle (extract-rectangle start end))
-  (setq deactivate-mark t))
+  (setq deactivate-mark t)
+  (if (called-interactively-p 'interactive)
+      (indicate-copied-region (length (car killed-rectangle)))))
 
 ;;;###autoload
 (defun yank-rectangle ()

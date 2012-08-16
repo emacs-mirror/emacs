@@ -115,25 +115,6 @@
 ;; package will over-write the WoMan binding to "w", whereas (by
 ;; default) WoMan will not overwrite the `dired-x' binding.)
 
-;; The following is based on suggestions by Guy Gascoigne-Piggford and
-;; Juanma Barranquero.  If you really want to square the man-woman
-;; circle then you might care to define the following bash function in
-;; .bashrc:
-
-;;   man() { gnudoit -q '(raise-frame (selected-frame)) (woman' \"$1\" ')' ; }
-
-;; If you use Microsoft COMMAND.COM then you can create a file called
-;; man.bat somewhere in your path containing the two lines:
-
-;;   @echo off
-;;   gnudoit -q (raise-frame (selected-frame)) (woman \"%1\")
-
-;; and then (e.g. from a command prompt or the Run... option in the
-;; Start menu) just execute
-
-;;   man man_page_name
-
-
 ;; Using the word at point as the default topic
 ;; ============================================
 
@@ -368,8 +349,8 @@
 ;; http://cm.bell-labs.com/7thEdMan/
 
 
-;; Acknowledgements
-;; ================
+;; Acknowledgments
+;; ===============
 
 ;; For Heather, Kathryn and Madelyn, the women in my life
 ;; (although they will probably never use it)!
@@ -2550,7 +2531,8 @@ REQUEST is the invoking directive without the leading dot."
     (cond
      ;; ((looking-at "[no]") (setq c t))     ; accept n(roff) and o(dd page)
      ;; ((looking-at "[te]") (setq c nil))   ; reject t(roff) and e(ven page)
-     ((looking-at "[ntoe]")
+     ;; Per groff ".if v" is recognised as false (it means -Tversatec).
+     ((looking-at "[ntoev]")
       (setq c (memq (following-char) woman-if-conditions-true)))
      ;; Unrecognized letter so reject:
      ((looking-at "[A-Za-z]") (setq c nil)
@@ -3588,7 +3570,7 @@ expression in parentheses.  Leaves point after the value."
       (let (n)
 	(forward-char)
 	(setq n (woman-parse-numeric-arg))
-	(skip-syntax-forward " ")
+	(skip-syntax-forward " " (line-end-position))
 	(if (eq (following-char) ?\))
 	    (forward-char)
 	  (WoMan-warn "Parenthesis confusion in numeric expression!"))
@@ -3640,7 +3622,7 @@ expression in parentheses.  Leaves point after the value."
 			(buffer-substring
 			 (point)
 			 (line-end-position)))
-	    (skip-syntax-forward "^ ")
+	    (skip-syntax-forward "^ " (line-end-position))
 	    0)
 	(goto-char (match-end 0))
 	;; Check for scale factor:

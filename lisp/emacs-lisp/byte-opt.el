@@ -249,8 +249,8 @@
   (let* ((name (car form))
          (localfn (cdr (assq name byte-compile-function-environment)))
 	 (fn (or localfn (and (fboundp name) (symbol-function name)))))
-    (when (and (consp fn) (eq (car fn) 'autoload))
-      (load (nth 1 fn))
+    (when (autoloadp fn)
+      (autoload-do-load fn)
       (setq fn (or (and (fboundp name) (symbol-function name))
                    (cdr (assq name byte-compile-function-environment)))))
     (pcase fn
@@ -586,10 +586,11 @@
   (let (opt new)
     (if (and (consp form)
 	     (symbolp (car form))
-	     (or (and for-effect
-		      ;; we don't have any of these yet, but we might.
-		      (setq opt (get (car form) 'byte-for-effect-optimizer)))
-		 (setq opt (get (car form) 'byte-optimizer)))
+	     (or ;; (and for-effect
+		 ;;      ;; We don't have any of these yet, but we might.
+		 ;;      (setq opt (get (car form)
+                 ;;                     'byte-for-effect-optimizer)))
+		 (setq opt (function-get (car form) 'byte-optimizer)))
 	     (not (eq form (setq new (funcall opt form)))))
 	(progn
 ;;	  (if (equal form new) (error "bogus optimizer -- %s" opt))

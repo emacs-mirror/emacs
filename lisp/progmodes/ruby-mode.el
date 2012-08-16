@@ -150,8 +150,7 @@ This should only be called after matching against `ruby-here-doc-beg-re'."
     (define-key map (kbd "M-C-q") 'ruby-indent-exp)
     (define-key map (kbd "C-M-h") 'backward-kill-word)
     (define-key map (kbd "C-j")   'reindent-then-newline-and-indent)
-    (define-key map (kbd "C-m")   'newline)
-    (define-key map (kbd "C-c C-c") 'comment-region)
+    (define-key map (kbd "C-c {") 'ruby-toggle-block)
     map)
   "Keymap used in Ruby mode.")
 
@@ -380,11 +379,19 @@ and `\\' when preceded by `?'."
           ((and (eq c ?:) (or (not b) (eq (char-syntax b) ? ))))
           ((eq c ?\\) (eq b ??)))))
 
+(defun ruby-singleton-class-p (&optional pos)
+  (save-excursion
+    (when pos (goto-char pos))
+    (forward-word -1)
+    (and (or (bolp) (not (eq (char-before (point)) ?_)))
+         (looking-at "class\\s *<<"))))
+
 (defun ruby-expr-beg (&optional option)
   "TODO: document."
   (save-excursion
     (store-match-data nil)
-    (let ((space (skip-chars-backward " \t")))
+    (let ((space (skip-chars-backward " \t"))
+          (start (point)))
       (cond
        ((bolp) t)
        ((progn
@@ -393,7 +400,8 @@ and `\\' when preceded by `?'."
                (or (eq (char-syntax (char-before (point))) ?w)
                    (ruby-special-char-p))))
         nil)
-       ((and (eq option 'heredoc) (< space 0)) t)
+       ((and (eq option 'heredoc) (< space 0))
+        (not (progn (goto-char start) (ruby-singleton-class-p))))
        ((or (looking-at ruby-operator-re)
             (looking-at "[\\[({,;]")
             (and (looking-at "[!?]")
@@ -409,7 +417,7 @@ and `\\' when preceded by `?'."
                                         ruby-block-mid-keywords)
                                 'words))
                    (goto-char (match-end 0))
-                   (not (looking-at "\\s_")))
+                   (not (looking-at "\\s_\\|!")))
                   ((eq option 'expr-qstr)
                    (looking-at "[a-zA-Z][a-zA-z0-9_]* +%[^ \t]"))
                   ((eq option 'expr-re)
@@ -581,9 +589,7 @@ and `\\' when preceded by `?'."
                         (eq ?. w)))))
          (goto-char pnt)
          (setq w (char-after (point)))
-         (not (eq ?_ w))
          (not (eq ?! w))
-         (not (eq ?? w))
          (skip-chars-forward " \t")
          (goto-char (match-beginning 0))
          (or (not (looking-at ruby-modifier-re))
@@ -594,7 +600,7 @@ and `\\' when preceded by `?'."
         (goto-char pnt))
        ((looking-at ":\\(['\"]\\)")
         (goto-char (match-beginning 1))
-        (ruby-forward-string (buffer-substring (match-beginning 1) (match-end 1)) end))
+        (ruby-forward-string (match-string 1) end t))
        ((looking-at ":\\([-,.+*/%&|^~<>]=?\\|===?\\|<=>\\|![~=]?\\)")
         (goto-char (match-end 0)))
        ((looking-at ":\\([a-zA-Z_][a-zA-Z_0-9]*[!?=]?\\)?")
@@ -794,7 +800,7 @@ and `\\' when preceded by `?'."
 ;;                           (not (or (eolp) (looking-at "#")
 ;;                                    (and (eq (car (nth 1 state)) ?{)
 ;;                                         (looking-at "|"))))))
-                       ;; Not a regexp or general delimited literal.
+                       ;; Not a regexp or percent literal.
                        (null (nth 0 (ruby-parse-region (or begin parse-start)
                                                        (point))))
                        (or (not (eq ?| (char-after (point))))
@@ -875,10 +881,11 @@ or blocks containing the current block."
   ;; TODO: Make this work for n > 1,
   ;; make it not loop for n = 0,
   ;; document body
-  (let (start pos done down)
-    (setq start (ruby-calculate-indent))
-    (setq down (looking-at (if (< n 0) ruby-block-end-re
-                             (concat "\\<\\(" ruby-block-beg-re "\\)\\>"))))
+  (let ((orig (point))
+        (start (ruby-calculate-indent))
+        (down (looking-at (if (< n 0) ruby-block-end-re
+                            (concat "\\<\\(" ruby-block-beg-re "\\)\\>"))))
+        pos done)
     (while (and (not done) (not (if (< n 0) (bobp) (eobp))))
       (forward-line n)
       (cond
@@ -901,8 +908,18 @@ or blocks containing the current block."
           (save-excursion
             (back-to-indentation)
             (if (looking-at (concat "\\<\\(" ruby-block-mid-re "\\)\\>"))
-                (setq done nil))))))
-  (back-to-indentation))
+                (setq done nil)))))
+    (back-to-indentation)
+    (when (< n 0)
+      (let ((eol (point-at-eol)) state next)
+        (if (< orig eol) (setq eol orig))
+        (setq orig (point))
+        (while (and (setq next (apply 'ruby-parse-partial eol state))
+                    (< (point) eol))
+          (setq state next))
+        (when (cdaadr state)
+          (goto-char (cdaadr state)))
+        (backward-word)))))
 
 (defun ruby-beginning-of-block (&optional arg)
   "Move backward to the beginning of the current block.
@@ -1110,18 +1127,70 @@ See `add-log-current-defun-function'."
               (if mlist (concat mlist mname) mname)
             mlist)))))
 
+(defun ruby-brace-to-do-end ()
+  (when (looking-at "{")
+    (let ((orig (point)) (end (progn (ruby-forward-sexp) (point))))
+      (when (eq (char-before) ?\})
+        (delete-char -1)
+        (if (eq (char-syntax (char-before)) ?w)
+            (insert " "))
+        (insert "end")
+        (if (eq (char-syntax (char-after)) ?w)
+            (insert " "))
+        (goto-char orig)
+        (delete-char 1)
+        (if (eq (char-syntax (char-before)) ?w)
+            (insert " "))
+        (insert "do")
+        (when (looking-at "\\sw\\||")
+          (insert " ")
+          (backward-char))
+        t))))
+
+(defun ruby-do-end-to-brace ()
+  (when (and (or (bolp)
+                 (not (memq (char-syntax (char-before)) '(?w ?_))))
+             (looking-at "\\<do\\(\\s \\|$\\)"))
+    (let ((orig (point)) (end (progn (ruby-forward-sexp) (point))))
+      (backward-char 3)
+      (when (looking-at ruby-block-end-re)
+        (delete-char 3)
+        (insert "}")
+        (goto-char orig)
+        (delete-char 2)
+        (insert "{")
+        (if (looking-at "\\s +|")
+            (delete-char (- (match-end 0) (match-beginning 0) 1)))
+        t))))
+
+(defun ruby-toggle-block ()
+  (interactive)
+  (or (ruby-brace-to-do-end)
+      (ruby-do-end-to-brace)))
+
 (declare-function ruby-syntax-propertize-heredoc "ruby-mode" (limit))
-(declare-function ruby-syntax-general-delimiters-goto-beg "ruby-mode" ())
-(declare-function ruby-syntax-propertize-general-delimiters "ruby-mode" (limit))
+(declare-function ruby-syntax-enclosing-percent-literal "ruby-mode" (limit))
+(declare-function ruby-syntax-propertize-percent-literal "ruby-mode" (limit))
 
 (if (eval-when-compile (fboundp #'syntax-propertize-rules))
     ;; New code that works independently from font-lock.
     (progn
+      (eval-and-compile
+        (defconst ruby-percent-literal-beg-re
+          "\\(%\\)[qQrswWx]?\\([[:punct:]]\\)"
+          "Regexp to match the beginning of percent literal.")
+
+        (defconst ruby-syntax-methods-before-regexp
+          '("gsub" "gsub!" "sub" "sub!" "scan" "split" "split!" "index" "match"
+            "assert_match" "Given" "Then" "When")
+          "Methods that can take regexp as the first argument.
+It will be properly highlighted even when the call omits parens."))
+
       (defun ruby-syntax-propertize-function (start end)
         "Syntactic keywords for Ruby mode.  See `syntax-propertize-function'."
         (goto-char start)
         (ruby-syntax-propertize-heredoc end)
-        (ruby-syntax-general-delimiters-goto-beg)
+        (ruby-syntax-enclosing-percent-literal end)
         (funcall
          (syntax-propertize-rules
           ;; #{ }, #$hoge, #@foo are not comments.
@@ -1133,36 +1202,34 @@ See `add-log-current-defun-function'."
                         ;; Not within a string.
                         (nth 3 (syntax-ppss (match-beginning 0))))
                 (string-to-syntax "\\"))))
-          ;; Regexps: regexps are distinguished from division either because
-          ;; of the keyword/symbol before them, or because of the code
-          ;; following them.
+          ;; Regexps: regexps are distinguished from division because
+          ;; of the keyword, symbol, or method name before them.
           ((concat
             ;; Special tokens that can't be followed by a division operator.
-            "\\(?:\\(^\\|[[=(,~?:;<>]\\|\\(?:^\\|\\s \\)"
+            "\\(^\\|[[=(,~?:;<>]"
+            ;; Control flow keywords and operators following bol or whitespace.
+            "\\|\\(?:^\\|\\s \\)"
             (regexp-opt '("if" "elsif" "unless" "while" "until" "when" "and"
-                          "or" "&&" "||"
-                          "gsub" "gsub!" "sub" "sub!" "scan" "split" "split!"))
-            "\\)\\s *\\)?"
+                          "or" "not" "&&" "||"))
+            ;; Method name from the list.
+            "\\|\\_<"
+            (regexp-opt ruby-syntax-methods-before-regexp)
+            "\\)\\s *"
             ;; The regular expression itself.
-            "\\(/\\)[^/\n\\\\]*\\(?:\\\\.[^/\n\\\\]*\\)*\\(/\\)"
-            ;; Special code that cannot follow a division operator.
-            ;; FIXME: Just because the second slash of "/foo/ do bar" can't
-            ;; be a division, doesn't mean it can't *start* a regexp, as in
-            ;; "x = toto/foo; if /do bar/".
-            "\\([imxo]*\\s *\\(?:,\\|\\_<do\\_>\\)\\)?")
-           (2 (when (or (match-beginning 1) (match-beginning 4))
-                (string-to-syntax "\"/")))
-           (3 (if (or (match-beginning 1) (match-beginning 4))
-                  (string-to-syntax "\"/")
-                (goto-char (match-end 2)))))
+            "\\(/\\)[^/\n\\\\]*\\(?:\\\\.[^/\n\\\\]*\\)*\\(/\\)")
+           (2 (string-to-syntax "\"/"))
+           (3 (string-to-syntax "\"/")))
           ("^=en\\(d\\)\\_>" (1 "!"))
           ("^\\(=\\)begin\\_>" (1 "!"))
           ;; Handle here documents.
           ((concat ruby-here-doc-beg-re ".*\\(\n\\)")
-           (7 (prog1 "\"" (ruby-syntax-propertize-heredoc end))))
+           (7 (unless (ruby-singleton-class-p (match-beginning 0))
+                (put-text-property (match-beginning 7) (match-end 7)
+                                   'syntax-table (string-to-syntax "\""))
+                (ruby-syntax-propertize-heredoc end))))
           ;; Handle percent literals: %w(), %q{}, etc.
-          ("\\(?:^\\|[[ \t\n<+(,=]\\)\\(%\\)[qQrswWx]?\\([[:punct:]]\\)"
-           (1 (prog1 "|" (ruby-syntax-propertize-general-delimiters end)))))
+          ((concat "\\(?:^\\|[[ \t\n<+(,=]\\)" ruby-percent-literal-beg-re)
+           (1 (prog1 "|" (ruby-syntax-propertize-percent-literal end)))))
          (point) end))
 
       (defun ruby-syntax-propertize-heredoc (limit)
@@ -1174,7 +1241,8 @@ See `add-log-current-defun-function'."
               (beginning-of-line)
               (while (re-search-forward ruby-here-doc-beg-re
                                         (line-end-position) t)
-                (push (concat (ruby-here-doc-end-match) "\n") res)))
+                (unless (ruby-singleton-class-p (match-beginning 0))
+                  (push (concat (ruby-here-doc-end-match) "\n") res))))
             (let ((start (point)))
               ;; With multiple openers on the same line, we don't know in which
               ;; part `start' is, so we have to go back to the beginning.
@@ -1189,40 +1257,46 @@ See `add-log-current-defun-function'."
               ;; inf-loop.
               (if (< (point) start) (goto-char start))))))
 
-      (defun ruby-syntax-general-delimiters-goto-beg ()
-        (let ((state (syntax-ppss)))
-          ;; Move to the start of the literal, in case it's multiline.
-          ;; TODO: determine the literal type more reliably here?
+      (defun ruby-syntax-enclosing-percent-literal (limit)
+        (let ((state (syntax-ppss))
+              (start (point)))
+          ;; When already inside percent literal, re-propertize it.
           (when (eq t (nth 3 state))
             (goto-char (nth 8 state))
-            (beginning-of-line))))
+            (when (looking-at ruby-percent-literal-beg-re)
+              (ruby-syntax-propertize-percent-literal limit))
+            (when (< (point) start) (goto-char start)))))
 
-      (defun ruby-syntax-propertize-general-delimiters (limit)
+      (defun ruby-syntax-propertize-percent-literal (limit)
         (goto-char (match-beginning 2))
-        (let* ((op (char-after))
-               (ops (char-to-string op))
-               (cl (or (cdr (aref (syntax-table) op))
-                       (cdr (assoc op '((?< . ?>))))))
-               parse-sexp-lookup-properties)
-          (ignore-errors
-            (if cl
-                (progn  ; Paired delimiters.
-                  ;; Delimiter pairs of the same kind can be nested
-                  ;; inside the literal, as long as they are balanced.
-                  ;; Create syntax table that ignores other characters.
-                  (with-syntax-table (make-char-table 'syntax-table nil)
-                    (modify-syntax-entry op (concat "(" (char-to-string cl)))
-                    (modify-syntax-entry cl (concat ")" ops))
-                    (modify-syntax-entry ?\\ "\\")
-                    (save-restriction
-                      (narrow-to-region (point) limit)
-                      (forward-list))))  ; skip to the paired character
-              ;; Single character delimiter.
-              (re-search-forward (concat "[^\\]\\(?:\\\\\\\\\\)*"
-                                         (regexp-quote ops)) limit nil))
-            ;; If we reached here, the closing delimiter was found.
-            (put-text-property (1- (point)) (point)
-                               'syntax-table (string-to-syntax "|")))))
+        ;; Not inside a simple string or comment.
+        (when (eq t (nth 3 (syntax-ppss)))
+          (let* ((op (char-after))
+                 (ops (char-to-string op))
+                 (cl (or (cdr (aref (syntax-table) op))
+                         (cdr (assoc op '((?< . ?>))))))
+                 parse-sexp-lookup-properties)
+            (condition-case nil
+                (progn
+                  (if cl ; Paired delimiters.
+                      ;; Delimiter pairs of the same kind can be nested
+                      ;; inside the literal, as long as they are balanced.
+                      ;; Create syntax table that ignores other characters.
+                      (with-syntax-table (make-char-table 'syntax-table nil)
+                        (modify-syntax-entry op (concat "(" (char-to-string cl)))
+                        (modify-syntax-entry cl (concat ")" ops))
+                        (modify-syntax-entry ?\\ "\\")
+                        (save-restriction
+                          (narrow-to-region (point) limit)
+                          (forward-list))) ; skip to the paired character
+                    ;; Single character delimiter.
+                    (re-search-forward (concat "[^\\]\\(?:\\\\\\\\\\)*"
+                                               (regexp-quote ops)) limit nil))
+                  ;; Found the closing delimiter.
+                  (put-text-property (1- (point)) (point) 'syntax-table
+                                     (string-to-syntax "|")))
+              ;; Unclosed literal, leave the following text unpropertized.
+              ((scan-error search-failed) (goto-char limit))))))
       )
 
   ;; For Emacsen where syntax-propertize-rules is not (yet) available,
@@ -1267,7 +1341,7 @@ This should only be called after matching against `ruby-here-doc-end-re'."
      (4 (7 . ?/))
      (6 (7 . ?/)))
     ("^=en\\(d\\)\\_>" 1 "!")
-    ;; General delimited string.
+    ;; Percent literal.
     ("\\(^\\|[[ \t\n<+(,=]\\)\\(%[xrqQwW]?\\([^<[{(a-zA-Z0-9 \n]\\)[^\n\\\\]*\\(\\\\.[^\n\\\\]*\\)*\\(\\3\\)\\)"
      (3 "\"")
      (5 "\""))
@@ -1310,7 +1384,8 @@ isn't in a string or another comment."
       (let ((old-point (point)) (case-fold-search nil))
         (beginning-of-line)
         (catch 'found-beg
-          (while (re-search-backward ruby-here-doc-beg-re nil t)
+          (while (and (re-search-backward ruby-here-doc-beg-re nil t)
+                      (not (ruby-singleton-class-p)))
             (if (not (or (ruby-in-ppss-context-p 'anything)
                          (ruby-here-doc-find-end old-point)))
                 (throw 'found-beg t)))))))

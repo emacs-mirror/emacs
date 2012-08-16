@@ -254,6 +254,13 @@ can get pretty complex."
                   (const :tag "Default Secrets API Collection" 'default)
                   (const :tag "Login Secrets API Collection" "secrets:Login")
                   (const :tag "Temp Secrets API Collection" "secrets:session")
+
+                  (const :tag "Default internet Mac OS Keychain"
+                         'macos-keychain-internet)
+
+                  (const :tag "Default generic Mac OS Keychain"
+                         'macos-keychain-generic)
+
                   (list :tag "Source definition"
                         (const :format "" :value :source)
                         (choice :tag "Authentication backend choice"
@@ -266,7 +273,21 @@ can get pretty complex."
                                          (const :tag "Default" 'default)
                                          (const :tag "Login" "Login")
                                          (const
-                                          :tag "Temporary" "session"))))
+                                          :tag "Temporary" "session")))
+                                (list
+                                 :tag "Mac OS internet Keychain"
+                                 (const :format ""
+                                        :value :macos-keychain-internet)
+                                 (choice :tag "Collection to use"
+                                         (string :tag "internet Keychain path")
+                                         (const :tag "default" 'default)))
+                                (list
+                                 :tag "Mac OS generic Keychain"
+                                 (const :format ""
+                                        :value :macos-keychain-generic)
+                                 (choice :tag "Collection to use"
+                                         (string :tag "generic Keychain path")
+                                         (const :tag "default" 'default))))
                         (repeat :tag "Extra Parameters" :inline t
                                 (choice :tag "Extra parameter"
                                         (list
@@ -377,6 +398,10 @@ with \"[a/b/c] \" if CHOICES is '\(?a ?b ?c\)."
 ;; (auth-source-backend-parse "myfile.gpg")
 ;; (auth-source-backend-parse 'default)
 ;; (auth-source-backend-parse "secrets:Login")
+;; (auth-source-backend-parse 'macos-keychain-internet)
+;; (auth-source-backend-parse 'macos-keychain-generic)
+;; (auth-source-backend-parse "macos-keychain-internet:/path/here.keychain")
+;; (auth-source-backend-parse "macos-keychain-generic:/path/here.keychain")
 
 (defun auth-source-backend-parse (entry)
   "Creates an auth-source-backend from an ENTRY in `auth-sources'."
@@ -391,6 +416,28 @@ with \"[a/b/c] \" if CHOICES is '\(?a ?b ?c\)."
     ;; matching any user, host, and protocol
     ((and (stringp entry) (string-match "^secrets:\\(.+\\)" entry))
      (auth-source-backend-parse `(:source (:secrets ,(match-string 1 entry)))))
+
+    ;; take 'macos-keychain-internet and recurse to get it as a Mac OS
+    ;; Keychain collection matching any user, host, and protocol
+    ((eq entry 'macos-keychain-internet)
+     (auth-source-backend-parse '(:source (:macos-keychain-internet default))))
+    ;; take 'macos-keychain-generic and recurse to get it as a Mac OS
+    ;; Keychain collection matching any user, host, and protocol
+    ((eq entry 'macos-keychain-generic)
+     (auth-source-backend-parse '(:source (:macos-keychain-generic default))))
+    ;; take macos-keychain-internet:XYZ and recurse to get it as MacOS
+    ;; Keychain "XYZ" matching any user, host, and protocol
+    ((and (stringp entry) (string-match "^macos-keychain-internet:\\(.+\\)"
+                                        entry))
+     (auth-source-backend-parse `(:source (:macos-keychain-internet
+                                           ,(match-string 1 entry)))))
+    ;; take macos-keychain-generic:XYZ and recurse to get it as MacOS
+    ;; Keychain "XYZ" matching any user, host, and protocol
+    ((and (stringp entry) (string-match "^macos-keychain-generic:\\(.+\\)"
+                                        entry))
+     (auth-source-backend-parse `(:source (:macos-keychain-generic
+                                           ,(match-string 1 entry)))))
+
     ;; take just a file name and recurse to get it as a netrc file
     ;; matching any user, host, and protocol
     ((stringp entry)
@@ -412,6 +459,33 @@ with \"[a/b/c] \" if CHOICES is '\(?a ?b ?c\)."
         :type 'netrc
         :search-function 'auth-source-netrc-search
         :create-function 'auth-source-netrc-create)))
+
+    ;; the MacOS Keychain
+    ((and
+      (not (null (plist-get entry :source))) ; the source must not be nil
+      (listp (plist-get entry :source))      ; and it must be a list
+      (or
+       (plist-get (plist-get entry :source) :macos-keychain-generic)
+       (plist-get (plist-get entry :source) :macos-keychain-internet)))
+
+     (let* ((source-spec (plist-get entry :source))
+            (keychain-generic (plist-get source-spec :macos-keychain-generic))
+            (keychain-type (if keychain-generic
+                               'macos-keychain-generic
+                             'macos-keychain-internet))
+            (source (plist-get source-spec (if keychain-generic
+                                               :macos-keychain-generic
+                                             :macos-keychain-internet))))
+
+       (when (symbolp source)
+         (setq source (symbol-name source)))
+
+       (auth-source-backend
+        (format "Mac OS Keychain (%s)" source)
+        :source source
+        :type keychain-type
+        :search-function 'auth-source-macos-keychain-search
+        :create-function 'auth-source-macos-keychain-create)))
 
     ;; the Secrets API.  We require the package, in order to have a
     ;; defined value for `secrets-enabled'.
@@ -694,6 +768,7 @@ must call it to obtain the actual value."
         (let* ((bmatches (apply
                           (slot-value backend 'search-function)
                           :backend backend
+                          :type (slot-value backend :type)
                           ;; note we're overriding whatever the spec
                           ;; has for :require, :create, and :delete
                           :require require
@@ -1457,7 +1532,7 @@ authentication tokens:
 
   (let* ((coll (oref backend source))
          (max (or max 5000))     ; sanity check: default to stop at 5K
-         (ignored-keys '(:create :delete :max :backend :label))
+         (ignored-keys '(:create :delete :max :backend :label :require :type))
          (search-keys (loop for i below (length spec) by 2
                             unless (memq (nth i spec) ignored-keys)
                             collect (nth i spec)))
@@ -1515,6 +1590,193 @@ authentication tokens:
   ;; (apply 'secrets-create-item (auth-get-source entry) name passwd spec)
   (debug spec))
 
+;;; Backend specific parsing: Mac OS Keychain (using /usr/bin/security) backend
+
+;; (let ((auth-sources '(macos-keychain-internet))) (auth-source-search :max 1 :create t))
+;; (let ((auth-sources '(macos-keychain-internet))) (auth-source-search :max 1 :delete t))
+;; (let ((auth-sources '(macos-keychain-internet))) (auth-source-search :max 1))
+;; (let ((auth-sources '(macos-keychain-internet))) (auth-source-search))
+
+;; (let ((auth-sources '(macos-keychain-generic))) (auth-source-search :max 1 :create t))
+;; (let ((auth-sources '(macos-keychain-generic))) (auth-source-search :max 1 :delete t))
+;; (let ((auth-sources '(macos-keychain-generic))) (auth-source-search :max 1))
+;; (let ((auth-sources '(macos-keychain-generic))) (auth-source-search))
+
+;; (let ((auth-sources '("macos-keychain-internet:/Users/tzz/Library/Keychains/login.keychain"))) (auth-source-search :max 1))
+;; (let ((auth-sources '("macos-keychain-generic:Login"))) (auth-source-search :max 1 :host "git.gnus.org"))
+
+(defun* auth-source-macos-keychain-search (&rest
+                                    spec
+                                    &key backend create delete label
+                                    type max host user port
+                                    &allow-other-keys)
+  "Search the MacOS Keychain; spec is like `auth-source'.
+
+All search keys must match exactly.  If you need substring
+matching, do a wider search and narrow it down yourself.
+
+You'll get back all the properties of the token as a plist.
+
+The :type key is either 'macos-keychain-internet or
+'macos-keychain-generic.
+
+For the internet keychain type, the :label key searches the
+item's labels (\"-l LABEL\" passed to \"/usr/bin/security\").
+Similarly, :host maps to \"-s HOST\", :user maps to \"-a USER\",
+and :port maps to \"-P PORT\" or \"-r PROT\"
+(note PROT has to be a 4-character string).
+
+For the generic keychain type, the :label key searches the item's
+labels (\"-l LABEL\" passed to \"/usr/bin/security\").
+Similarly, :host maps to \"-c HOST\" (the \"creator\" keychain
+field), :user maps to \"-a USER\", and :port maps to \"-s PORT\".
+
+Here's an example that looks for the first item in the default
+generic MacOS Keychain:
+
+ \(let ((auth-sources '(macos-keychain-generic)))
+    (auth-source-search :max 1)
+
+Here's another that looks for the first item in the internet
+MacOS Keychain collection whose label is 'gnus':
+
+ \(let ((auth-sources '(macos-keychain-internet)))
+    (auth-source-search :max 1 :label \"gnus\")
+
+And this one looks for the first item in the internet keychain
+entries for git.gnus.org:
+
+ \(let ((auth-sources '(macos-keychain-internet\")))
+    (auth-source-search :max 1 :host \"git.gnus.org\"))
+"
+  ;; TODO
+  (assert (not create) nil
+          "The MacOS Keychain auth-source backend doesn't support creation yet")
+  ;; TODO
+  ;; (macos-keychain-delete-item coll elt)
+  (assert (not delete) nil
+          "The MacOS Keychain auth-source backend doesn't support deletion yet")
+
+  (let* ((coll (oref backend source))
+         (max (or max 5000))     ; sanity check: default to stop at 5K
+         (ignored-keys '(:create :delete :max :backend :label))
+         (search-keys (loop for i below (length spec) by 2
+                            unless (memq (nth i spec) ignored-keys)
+                            collect (nth i spec)))
+         ;; build a search spec without the ignored keys
+         ;; if a search key is nil or t (match anything), we skip it
+         (search-spec (apply 'append (mapcar
+                                      (lambda (k)
+                                        (if (or (null (plist-get spec k))
+                                                (eq t (plist-get spec k)))
+                                            nil
+                                          (list k (plist-get spec k))))
+                                      search-keys)))
+         ;; needed keys (always including host, login, port, and secret)
+         (returned-keys (mm-delete-duplicates (append
+                                               '(:host :login :port :secret)
+                                               search-keys)))
+         (items (apply 'auth-source-macos-keychain-search-items
+                       coll
+                       type
+                       max
+                       search-spec))
+
+         ;; ensure each item has each key in `returned-keys'
+         (items (mapcar (lambda (plist)
+                          (append
+                           (apply 'append
+                                  (mapcar (lambda (req)
+                                            (if (plist-get plist req)
+                                                nil
+                                              (list req nil)))
+                                          returned-keys))
+                           plist))
+                        items)))
+    items))
+
+(defun* auth-source-macos-keychain-search-items (coll type max
+                                                      &rest spec
+                                                      &key label type
+                                                      host user port
+                                                      &allow-other-keys)
+
+  (let* ((keychain-generic (eq type 'macos-keychain-generic))
+         (args `(,(if keychain-generic
+                      "find-generic-password"
+                    "find-internet-password")
+                 "-g"))
+         (ret (list :type type)))
+    (when label
+      (setq args (append args (list "-l" label))))
+    (when host
+      (setq args (append args (list (if keychain-generic "-c" "-s") host))))
+    (when user
+      (setq args (append args (list "-a" user))))
+
+    (when port
+      (if keychain-generic
+          (setq args (append args (list "-s" port)))
+        (setq args (append args (list
+                                 (if (string-match "[0-9]+" port) "-P" "-r")
+                                 port)))))
+
+      (unless (equal coll "default")
+        (setq args (append args (list coll))))
+
+      (with-temp-buffer
+        (apply 'call-process "/usr/bin/security" nil t nil args)
+        (goto-char (point-min))
+        (while (not (eobp))
+          (cond
+           ((looking-at "^password: \"\\(.+\\)\"$")
+            (auth-source-macos-keychain-result-append
+             ret
+             keychain-generic
+             "secret"
+             (lexical-let ((v (match-string 1)))
+               (lambda () v))))
+           ;; TODO: check if this is really the label
+           ;; match 0x00000007 <blob>="AppleID"
+           ((looking-at "^[ ]+0x00000007 <blob>=\"\\(.+\\)\"")
+            (auth-source-macos-keychain-result-append
+             ret
+             keychain-generic
+             "label"
+             (match-string 1)))
+           ;; match "crtr"<uint32>="aapl"
+           ;; match "svce"<blob>="AppleID"
+           ((looking-at "^[ ]+\"\\([a-z]+\\)\"[^=]+=\"\\(.+\\)\"")
+            (auth-source-macos-keychain-result-append
+             ret
+             keychain-generic
+             (match-string 1)
+             (match-string 2))))
+            (forward-line)))
+      ;; return `ret' iff it has the :secret key
+      (and (plist-get ret :secret) (list ret))))
+
+(defun auth-source-macos-keychain-result-append (result generic k v)
+  (push v result)
+  (setq k (cond
+           ((equal k "acct") "user")
+           ;; for generic keychains, creator is host, service is port
+           ((and generic (equal k "crtr")) "host")
+           ((and generic (equal k "svce")) "port")
+           ;; for internet keychains, protocol is port, server is host
+           ((and (not generic) (equal k "ptcl")) "port")
+           ((and (not generic) (equal k "srvr")) "host")
+           (t k)))
+
+  (push (intern (format ":%s" k)) result))
+
+(defun* auth-source-macos-keychain-create (&rest
+                                           spec
+                                           &key backend type max host user port
+                                           &allow-other-keys)
+  ;; TODO
+  (debug spec))
+
 ;;; Backend specific parsing: PLSTORE backend
 
 (defun* auth-source-plstore-search (&rest
@@ -1525,7 +1787,7 @@ authentication tokens:
   "Search the PLSTORE; spec is like `auth-source'."
   (let* ((store (oref backend data))
          (max (or max 5000))     ; sanity check: default to stop at 5K
-         (ignored-keys '(:create :delete :max :backend :require))
+         (ignored-keys '(:create :delete :max :backend :label :require :type))
          (search-keys (loop for i below (length spec) by 2
                             unless (memq (nth i spec) ignored-keys)
                             collect (nth i spec)))

@@ -1,4 +1,4 @@
-/* Input event support for Emacs on the Microsoft W32 API.
+/* Input event support for Emacs on the Microsoft Windows API.
    Copyright (C) 1992-1993, 1995, 2001-2012  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -41,6 +41,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "termchar.h"
 #include "w32heap.h"
 #include "w32term.h"
+#include "w32inevt.h"
 
 /* stdin, from w32console.c */
 extern HANDLE keyboard_handle;
@@ -61,6 +62,15 @@ static INPUT_RECORD *queue_ptr = event_queue, *queue_end = event_queue;
 /* Temporarily store lead byte of DBCS input sequences.  */
 static char dbcs_lead = 0;
 
+static inline BOOL
+w32_read_console_input (HANDLE h, INPUT_RECORD *rec, DWORD recsize,
+			DWORD *waiting)
+{
+  return (w32_console_unicode_input
+	  ? ReadConsoleInputW (h, rec, recsize, waiting)
+	  : ReadConsoleInputA (h, rec, recsize, waiting));
+}
+
 static int
 fill_queue (BOOL block)
 {
@@ -80,8 +90,8 @@ fill_queue (BOOL block)
 	return 0;
     }
 
-  rc = ReadConsoleInput (keyboard_handle, event_queue, EVENT_QUEUE_SIZE,
-			 &events_waiting);
+  rc = w32_read_console_input (keyboard_handle, event_queue, EVENT_QUEUE_SIZE,
+			       &events_waiting);
   if (!rc)
     return -1;
   queue_ptr = event_queue;
@@ -175,9 +185,11 @@ is_dead_key (int wparam)
 }
 #endif
 
-/* The return code indicates key code size. */
+/* The return code indicates key code size.  cpID is the codepage to
+   use for translation to Unicode; -1 means use the current console
+   input codepage.  */
 int
-w32_kbd_patch_key (KEY_EVENT_RECORD *event)
+w32_kbd_patch_key (KEY_EVENT_RECORD *event, int cpId)
 {
   unsigned int key_code = event->wVirtualKeyCode;
   unsigned int mods = event->dwControlKeyState;
@@ -224,7 +236,7 @@ w32_kbd_patch_key (KEY_EVENT_RECORD *event)
 #endif
 
   /* On NT, call ToUnicode instead and then convert to the current
-     locale's default codepage.  */
+     console input codepage.  */
   if (os_subtype == OS_NT)
     {
       WCHAR buf[128];
@@ -233,14 +245,13 @@ w32_kbd_patch_key (KEY_EVENT_RECORD *event)
 			  keystate, buf, 128, 0);
       if (isdead > 0)
 	{
-	  char cp[20];
-	  int cpId;
+	  /* When we are called from the GUI message processing code,
+	     we are passed the current keyboard codepage, a positive
+	     number, to use below.  */
+	  if (cpId == -1)
+	    cpId = GetConsoleCP ();
 
 	  event->uChar.UnicodeChar = buf[isdead - 1];
-
-	  GetLocaleInfo (GetThreadLocale (),
-			 LOCALE_IDEFAULTANSICODEPAGE, cp, 20);
-	  cpId = atoi (cp);
 	  isdead = WideCharToMultiByte (cpId, 0, buf, isdead,
 					ansi_code, 4, NULL, NULL);
 	}
@@ -437,7 +448,7 @@ key_event (KEY_EVENT_RECORD *event, struct input_event *emacs_ev, int *isdead)
              base character (ie. translating the base key plus shift
              modifier).  */
 	  else if (event->uChar.AsciiChar == 0)
-	    w32_kbd_patch_key (event);
+	    w32_kbd_patch_key (event, -1);
 	}
 
       if (event->uChar.AsciiChar == 0)
@@ -447,26 +458,34 @@ key_event (KEY_EVENT_RECORD *event, struct input_event *emacs_ev, int *isdead)
 	}
       else if (event->uChar.AsciiChar > 0)
 	{
+	  /* Pure ASCII characters < 128.  */
 	  emacs_ev->kind = ASCII_KEYSTROKE_EVENT;
 	  emacs_ev->code = event->uChar.AsciiChar;
 	}
-      else if (event->uChar.UnicodeChar > 0)
+      else if (event->uChar.UnicodeChar > 0
+	       && w32_console_unicode_input)
 	{
+	  /* Unicode codepoint; only valid if we are using Unicode
+	     console input mode.  */
 	  emacs_ev->kind = MULTIBYTE_CHAR_KEYSTROKE_EVENT;
 	  emacs_ev->code = event->uChar.UnicodeChar;
 	}
       else
 	{
-	  /* Fallback for non-Unicode versions of Windows.  */
+	  /* Fallback handling of non-ASCII characters for non-Unicode
+	     versions of Windows, and for non-Unicode input on NT
+	     family of Windows.  Only characters in the current
+	     console codepage are supported by this fallback.  */
 	  wchar_t code;
 	  char dbcs[2];
-          char cp[20];
           int cpId;
 
-	  /* Get the codepage to interpret this key with.  */
-          GetLocaleInfo (GetThreadLocale (),
-			 LOCALE_IDEFAULTANSICODEPAGE, cp, 20);
-          cpId = atoi (cp);
+	  /* Get the current console input codepage to interpret this
+	     key with.  Note that the system defaults for the OEM
+	     codepage could have been changed by calling SetConsoleCP
+	     or w32-set-console-codepage, so using GetLocaleInfo to
+	     get LOCALE_IDEFAULTCODEPAGE is not TRT here.  */
+          cpId = GetConsoleCP ();
 
 	  dbcs[0] = dbcs_lead;
 	  dbcs[1] = event->uChar.AsciiChar;
@@ -501,6 +520,7 @@ key_event (KEY_EVENT_RECORD *event, struct input_event *emacs_ev, int *isdead)
     }
   else
     {
+      /* Function keys and other non-character keys.  */
       emacs_ev->kind = NON_ASCII_KEYSTROKE_EVENT;
       emacs_ev->code = event->wVirtualKeyCode;
     }

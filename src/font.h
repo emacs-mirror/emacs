@@ -284,8 +284,11 @@ struct font
 
   /* Beyond here, there should be no more Lisp_Object components.  */
 
-  /* Maximum bound width over all existing characters of the font.  On
-     X window, this is same as (font->max_bounds.width).  */
+  /* Minimum and maximum glyph widths, in pixels.  Some font backends,
+     such as xft, lack the information to easily compute minimum and
+     maximum widths over all characters; in that case, these values
+     are approximate.  */
+  int min_width;
   int max_width;
 
   /* By which pixel size the font is opened.  */
@@ -301,12 +304,9 @@ struct font
 
   /* Average width of glyphs in the font.  If the font itself doesn't
      have that information but has glyphs of ASCII characters, the
-     value is the average with of those glyphs.  Otherwise, the value
+     value is the average width of those glyphs.  Otherwise, the value
      is 0.  */
   int average_width;
-
-  /* Minimum glyph width (in pixels).  */
-  int min_width;
 
   /* Ascent and descent of the font (in pixels).  */
   int ascent, descent;
@@ -771,7 +771,7 @@ extern void font_prepare_for_face (FRAME_PTR f, struct face *face);
 extern void font_done_for_face (FRAME_PTR f, struct face *face);
 
 extern Lisp_Object font_open_by_spec (FRAME_PTR f, Lisp_Object spec);
-extern Lisp_Object font_open_by_name (FRAME_PTR f, const char *name, ptrdiff_t len);
+extern Lisp_Object font_open_by_name (FRAME_PTR f, Lisp_Object name);
 
 extern Lisp_Object font_intern_prop (const char *str, ptrdiff_t len,
 				     int force_symbol);
@@ -857,11 +857,5 @@ extern void font_deferred_log (const char *, Lisp_Object, Lisp_Object);
     if (! EQ (Vfont_log, Qt))				\
       font_deferred_log ((ACTION), (ARG), (RESULT));	\
   } while (0)
-
-#ifdef FONT_DEBUG
-#define font_assert(X)	do {if (!(X)) abort ();} while (0)
-#else  /* not FONT_DEBUG */
-#define font_assert(X)	(void) 0
-#endif	/* not FONT_DEBUG */
 
 #endif	/* not EMACS_FONT_H */
