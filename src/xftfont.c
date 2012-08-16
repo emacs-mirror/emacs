@@ -39,7 +39,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Xft font driver.  */
 
-static Lisp_Object Qxft;
+Lisp_Object Qxft;
 static Lisp_Object QChinting, QCautohint, QChintstyle, QCrgba, QCembolden,
   QClcdfilter;
 
