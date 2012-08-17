@@ -18,6 +18,9 @@ You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
+
+#define KEYBOARD_INLINE EXTERN_INLINE
+
 #include <signal.h>
 #include <stdio.h>
 #include <setjmp.h>
@@ -469,6 +472,53 @@ static void handle_user_signal (int);
 static char *find_user_signal_name (int);
 static int store_user_signal_events (void);
 
+/* These setters are used only in this file, so they can be private.  */
+static inline void
+kset_echo_string (struct kboard *kb, Lisp_Object val)
+{
+  kb->INTERNAL_FIELD (echo_string) = val;
+}
+static inline void
+kset_kbd_queue (struct kboard *kb, Lisp_Object val)
+{
+  kb->INTERNAL_FIELD (kbd_queue) = val;
+}
+static inline void
+kset_keyboard_translate_table (struct kboard *kb, Lisp_Object val)
+{
+  kb->INTERNAL_FIELD (Vkeyboard_translate_table) = val;
+}
+static inline void
+kset_last_prefix_arg (struct kboard *kb, Lisp_Object val)
+{
+  kb->INTERNAL_FIELD (Vlast_prefix_arg) = val;
+}
+static inline void
+kset_last_repeatable_command (struct kboard *kb, Lisp_Object val)
+{
+  kb->INTERNAL_FIELD (Vlast_repeatable_command) = val;
+}
+static inline void
+kset_local_function_key_map (struct kboard *kb, Lisp_Object val)
+{
+  kb->INTERNAL_FIELD (Vlocal_function_key_map) = val;
+}
+static inline void
+kset_overriding_terminal_local_map (struct kboard *kb, Lisp_Object val)
+{
+  kb->INTERNAL_FIELD (Voverriding_terminal_local_map) = val;
+}
+static inline void
+kset_real_last_command (struct kboard *kb, Lisp_Object val)
+{
+  kb->INTERNAL_FIELD (Vreal_last_command) = val;
+}
+static inline void
+kset_system_key_syms (struct kboard *kb, Lisp_Object val)
+{
+  kb->INTERNAL_FIELD (system_key_syms) = val;
+}
+
 
 /* Add C to the echo string, if echoing is going on.
    C can be a character, which is printed prettily ("M-C-x" and all that
@@ -551,8 +601,9 @@ echo_char (Lisp_Object c)
       else if (STRINGP (echo_string))
 	echo_string = concat2 (echo_string, build_string (" "));
 
-      KSET (current_kboard, echo_string,
-	    concat2 (echo_string, make_string (buffer, ptr - buffer)));
+      kset_echo_string
+	(current_kboard,
+	 concat2 (echo_string, make_string (buffer, ptr - buffer)));
 
       echo_now ();
     }
@@ -597,8 +648,9 @@ echo_dash (void)
 
   /* Put a dash at the end of the buffer temporarily,
      but make it go away when the next character is added.  */
-  KSET (current_kboard, echo_string,
-	concat2 (KVAR (current_kboard, echo_string), build_string ("-")));
+  kset_echo_string
+    (current_kboard,
+     concat2 (KVAR (current_kboard, echo_string), build_string ("-")));
   echo_now ();
 }
 
@@ -660,7 +712,7 @@ cancel_echoing (void)
 {
   current_kboard->immediate_echo = 0;
   current_kboard->echo_after_prompt = -1;
-  KSET (current_kboard, echo_string, Qnil);
+  kset_echo_string (current_kboard, Qnil);
   ok_to_echo_at_next_pause = NULL;
   echo_kboard = NULL;
   echo_message_buffer = Qnil;
@@ -684,9 +736,9 @@ static void
 echo_truncate (ptrdiff_t nchars)
 {
   if (STRINGP (KVAR (current_kboard, echo_string)))
-    KSET (current_kboard, echo_string,
-	  Fsubstring (KVAR (current_kboard, echo_string),
-		      make_number (0), make_number (nchars)));
+    kset_echo_string (current_kboard,
+		      Fsubstring (KVAR (current_kboard, echo_string),
+				  make_number (0), make_number (nchars)));
   truncate_echo_area (nchars);
 }
 
@@ -1016,8 +1068,8 @@ cmd_error (Lisp_Object data)
   Vstandard_input = Qt;
   Vexecuting_kbd_macro = Qnil;
   executing_kbd_macro = Qnil;
-  KSET (current_kboard, Vprefix_arg, Qnil);
-  KSET (current_kboard, Vlast_prefix_arg, Qnil);
+  kset_prefix_arg (current_kboard, Qnil);
+  kset_last_prefix_arg (current_kboard, Qnil);
   cancel_echoing ();
 
   /* Avoid unquittable loop if data contains a circular list.  */
@@ -1338,8 +1390,8 @@ command_loop_1 (void)
 #endif
   int already_adjusted = 0;
 
-  KSET (current_kboard, Vprefix_arg, Qnil);
-  KSET (current_kboard, Vlast_prefix_arg, Qnil);
+  kset_prefix_arg (current_kboard, Qnil);
+  kset_last_prefix_arg (current_kboard, Qnil);
   Vdeactivate_mark = Qnil;
   waiting_for_input = 0;
   cancel_echoing ();
@@ -1371,10 +1423,10 @@ command_loop_1 (void)
     }
 
   /* Do this after running Vpost_command_hook, for consistency.  */
-  KSET (current_kboard, Vlast_command, Vthis_command);
-  KSET (current_kboard, Vreal_last_command, Vreal_this_command);
+  kset_last_command (current_kboard, Vthis_command);
+  kset_real_last_command (current_kboard, Vreal_this_command);
   if (!CONSP (last_command_event))
-    KSET (current_kboard, Vlast_repeatable_command, Vreal_this_command);
+    kset_last_repeatable_command (current_kboard, Vreal_this_command);
 
   while (1)
     {
@@ -1546,7 +1598,7 @@ command_loop_1 (void)
 	  keys = Fkey_description (keys, Qnil);
 	  bitch_at_user ();
 	  message_with_string ("%s is undefined", keys, 0);
-	  KSET (current_kboard, defining_kbd_macro, Qnil);
+	  kset_defining_kbd_macro (current_kboard, Qnil);
 	  update_mode_lines = 1;
 	  /* If this is a down-mouse event, don't reset prefix-arg;
 	     pass it to the command run by the up event.  */
@@ -1556,10 +1608,10 @@ command_loop_1 (void)
 		= parse_modifiers (EVENT_HEAD (last_command_event));
 	      int modifiers = XINT (XCAR (XCDR (breakdown)));
 	      if (!(modifiers & down_modifier))
-		KSET (current_kboard, Vprefix_arg, Qnil);
+		kset_prefix_arg (current_kboard, Qnil);
 	    }
 	  else
-	    KSET (current_kboard, Vprefix_arg, Qnil);
+	    kset_prefix_arg (current_kboard, Qnil);
 	}
       else
 	{
@@ -1596,7 +1648,7 @@ command_loop_1 (void)
             unbind_to (scount, Qnil);
 #endif
           }
-      KSET (current_kboard, Vlast_prefix_arg, Vcurrent_prefix_arg);
+      kset_last_prefix_arg (current_kboard, Vcurrent_prefix_arg);
 
       safe_run_hooks (Qpost_command_hook);
 
@@ -1627,10 +1679,10 @@ command_loop_1 (void)
       if (NILP (KVAR (current_kboard, Vprefix_arg))
 	  || CONSP (last_command_event))
 	{
-	  KSET (current_kboard, Vlast_command, Vthis_command);
-	  KSET (current_kboard, Vreal_last_command, Vreal_this_command);
+	  kset_last_command (current_kboard, Vthis_command);
+	  kset_real_last_command (current_kboard, Vreal_this_command);
 	  if (!CONSP (last_command_event))
-	    KSET (current_kboard, Vlast_repeatable_command, Vreal_this_command);
+	    kset_last_repeatable_command (current_kboard, Vreal_this_command);
 	  cancel_echoing ();
 	  this_command_key_count = 0;
 	  this_command_key_count_reset = 0;
@@ -2573,7 +2625,7 @@ read_char (int commandflag, ptrdiff_t nmaps, Lisp_Object *maps,
 		  abort ();
 	      }
 	    if (!CONSP (last))
-	      KSET (kb, kbd_queue, Fcons (c, Qnil));
+	      kset_kbd_queue (kb, Fcons (c, Qnil));
 	    else
 	      XSETCDR (last, Fcons (c, Qnil));
 	    kb->kbd_queue_has_data = 1;
@@ -2745,8 +2797,8 @@ read_char (int commandflag, ptrdiff_t nmaps, Lisp_Object *maps,
 	  if (!CONSP (KVAR (current_kboard, kbd_queue)))
 	    abort ();
 	  c = XCAR (KVAR (current_kboard, kbd_queue));
-	  KSET (current_kboard, kbd_queue,
-		XCDR (KVAR (current_kboard, kbd_queue)));
+	  kset_kbd_queue (current_kboard,
+			  XCDR (KVAR (current_kboard, kbd_queue)));
 	  if (NILP (KVAR (current_kboard, kbd_queue)))
 	    current_kboard->kbd_queue_has_data = 0;
 	  input_pending = readable_events (0);
@@ -2813,7 +2865,7 @@ read_char (int commandflag, ptrdiff_t nmaps, Lisp_Object *maps,
 		abort ();
 	    }
 	  if (!CONSP (last))
-	    KSET (kb, kbd_queue, Fcons (c, Qnil));
+	    kset_kbd_queue (kb, Fcons (c, Qnil));
 	  else
 	    XSETCDR (last, Fcons (c, Qnil));
 	  kb->kbd_queue_has_data = 1;
@@ -3071,7 +3123,7 @@ read_char (int commandflag, ptrdiff_t nmaps, Lisp_Object *maps,
 
       cancel_echoing ();
       ok_to_echo_at_next_pause = saved_ok_to_echo;
-      KSET (current_kboard, echo_string, saved_echo_string);
+      kset_echo_string (current_kboard, saved_echo_string);
       current_kboard->echo_after_prompt = saved_echo_after_prompt;
       if (saved_immediate_echo)
 	echo_now ();
@@ -3542,9 +3594,9 @@ kbd_buffer_store_event_hold (register struct input_event *event,
 
 	  if (single_kboard && kb != current_kboard)
 	    {
-	      KSET (kb, kbd_queue,
-		    Fcons (make_lispy_switch_frame (event->frame_or_window),
-			   Fcons (make_number (c), Qnil)));
+	      kset_kbd_queue
+		(kb, Fcons (make_lispy_switch_frame (event->frame_or_window),
+			    Fcons (make_number (c), Qnil)));
 	      kb->kbd_queue_has_data = 1;
 	      for (sp = kbd_fetch_ptr; sp != kbd_store_ptr; sp++)
 		{
@@ -5416,7 +5468,7 @@ make_lispy_event (struct input_event *event)
 	  /* We need to use an alist rather than a vector as the cache
 	     since we can't make a vector long enough.  */
 	  if (NILP (KVAR (current_kboard, system_key_syms)))
-	    KSET (current_kboard, system_key_syms, Fcons (Qnil, Qnil));
+	    kset_system_key_syms (current_kboard, Fcons (Qnil, Qnil));
 	  return modify_event_symbol (event->code,
 				      event->modifiers,
 				      Qfunction_key,
@@ -8739,11 +8791,11 @@ read_char_minibuf_menu_prompt (int commandflag,
 	 is not used on replay.
 	 */
       orig_defn_macro = KVAR (current_kboard, defining_kbd_macro);
-      KSET (current_kboard, defining_kbd_macro, Qnil);
+      kset_defining_kbd_macro (current_kboard, Qnil);
       do
 	obj = read_char (commandflag, 0, 0, Qt, 0, NULL);
       while (BUFFERP (obj));
-      KSET (current_kboard, defining_kbd_macro, orig_defn_macro);
+      kset_defining_kbd_macro (current_kboard, orig_defn_macro);
 
       if (!INTEGERP (obj))
 	return obj;
@@ -9099,7 +9151,7 @@ read_key_sequence (Lisp_Object *keybuf, int bufsize, Lisp_Object prompt,
 	  /* Install the string STR as the beginning of the string of
 	     echoing, so that it serves as a prompt for the next
 	     character.  */
-	  KSET (current_kboard, echo_string, prompt);
+	  kset_echo_string (current_kboard, prompt);
 	  current_kboard->echo_after_prompt = SCHARS (prompt);
 	  echo_now ();
 	}
@@ -9345,15 +9397,17 @@ read_key_sequence (Lisp_Object *keybuf, int bufsize, Lisp_Object prompt,
 
 		if (!NILP (delayed_switch_frame))
 		  {
-		    KSET (interrupted_kboard, kbd_queue,
-			  Fcons (delayed_switch_frame,
-				 KVAR (interrupted_kboard, kbd_queue)));
+		    kset_kbd_queue
+		      (interrupted_kboard,
+		       Fcons (delayed_switch_frame,
+			      KVAR (interrupted_kboard, kbd_queue)));
 		    delayed_switch_frame = Qnil;
 		  }
 
 		while (t > 0)
-		  KSET (interrupted_kboard, kbd_queue,
-			Fcons (keybuf[--t], KVAR (interrupted_kboard, kbd_queue)));
+		  kset_kbd_queue
+		    (interrupted_kboard,
+		     Fcons (keybuf[--t], KVAR (interrupted_kboard, kbd_queue)));
 
 		/* If the side queue is non-empty, ensure it begins with a
 		   switch-frame, so we'll replay it in the right context.  */
@@ -9365,9 +9419,10 @@ read_key_sequence (Lisp_Object *keybuf, int bufsize, Lisp_Object prompt,
 		  {
 		    Lisp_Object frame;
 		    XSETFRAME (frame, interrupted_frame);
-		    KSET (interrupted_kboard, kbd_queue,
-			  Fcons (make_lispy_switch_frame (frame),
-				 KVAR (interrupted_kboard, kbd_queue)));
+		    kset_kbd_queue
+		      (interrupted_kboard,
+		       Fcons (make_lispy_switch_frame (frame),
+			      KVAR (interrupted_kboard, kbd_queue)));
 		  }
 		mock_input = 0;
 		orig_local_map = get_local_map (PT, current_buffer, Qlocal_map);
@@ -10261,7 +10316,7 @@ a special event, so ignore the prefix argument and don't clear it.  */)
     {
       prefixarg = KVAR (current_kboard, Vprefix_arg);
       Vcurrent_prefix_arg = prefixarg;
-      KSET (current_kboard, Vprefix_arg, Qnil);
+      kset_prefix_arg (current_kboard, Qnil);
     }
   else
     prefixarg = Qnil;
@@ -11256,30 +11311,30 @@ The `posn-' functions access elements of such lists.  */)
 void
 init_kboard (KBOARD *kb)
 {
-  KSET (kb, Voverriding_terminal_local_map, Qnil);
-  KSET (kb, Vlast_command, Qnil);
-  KSET (kb, Vreal_last_command, Qnil);
-  KSET (kb, Vkeyboard_translate_table, Qnil);
-  KSET (kb, Vlast_repeatable_command, Qnil);
-  KSET (kb, Vprefix_arg, Qnil);
-  KSET (kb, Vlast_prefix_arg, Qnil);
-  KSET (kb, kbd_queue, Qnil);
+  kset_overriding_terminal_local_map (kb, Qnil);
+  kset_last_command (kb, Qnil);
+  kset_real_last_command (kb, Qnil);
+  kset_keyboard_translate_table (kb, Qnil);
+  kset_last_repeatable_command (kb, Qnil);
+  kset_prefix_arg (kb, Qnil);
+  kset_last_prefix_arg (kb, Qnil);
+  kset_kbd_queue (kb, Qnil);
   kb->kbd_queue_has_data = 0;
   kb->immediate_echo = 0;
-  KSET (kb, echo_string, Qnil);
+  kset_echo_string (kb, Qnil);
   kb->echo_after_prompt = -1;
   kb->kbd_macro_buffer = 0;
   kb->kbd_macro_bufsize = 0;
-  KSET (kb, defining_kbd_macro, Qnil);
-  KSET (kb, Vlast_kbd_macro, Qnil);
+  kset_defining_kbd_macro (kb, Qnil);
+  kset_last_kbd_macro (kb, Qnil);
   kb->reference_count = 0;
-  KSET (kb, Vsystem_key_alist, Qnil);
-  KSET (kb, system_key_syms, Qnil);
-  KSET (kb, Vwindow_system, Qt);	/* Unset.  */
-  KSET (kb, Vinput_decode_map, Fmake_sparse_keymap (Qnil));
-  KSET (kb, Vlocal_function_key_map, Fmake_sparse_keymap (Qnil));
+  kset_system_key_alist (kb, Qnil);
+  kset_system_key_syms (kb, Qnil);
+  kset_window_system (kb, Qt);	/* Unset.  */
+  kset_input_decode_map (kb, Fmake_sparse_keymap (Qnil));
+  kset_local_function_key_map (kb, Fmake_sparse_keymap (Qnil));
   Fset_keymap_parent (KVAR (kb, Vlocal_function_key_map), Vfunction_key_map);
-  KSET (kb, Vdefault_minibuffer_frame, Qnil);
+  kset_default_minibuffer_frame (kb, Qnil);
 }
 
 /*
@@ -11355,7 +11410,7 @@ init_keyboard (void)
   init_kboard (current_kboard);
   /* A value of nil for Vwindow_system normally means a tty, but we also use
      it for the initial terminal since there is no window system there.  */
-  KSET (current_kboard, Vwindow_system, Qnil);
+  kset_window_system (current_kboard, Qnil);
 
   if (!noninteractive)
     {

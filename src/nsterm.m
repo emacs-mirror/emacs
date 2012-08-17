@@ -4093,7 +4093,7 @@ ns_term_init (Lisp_Object display_name)
 
   terminal->kboard = xmalloc (sizeof *terminal->kboard);
   init_kboard (terminal->kboard);
-  KSET (terminal->kboard, Vwindow_system, Qns);
+  kset_window_system (terminal->kboard, Qns);
   terminal->kboard->next_kboard = all_kboards;
   all_kboards = terminal->kboard;
   /* Don't let the initial kboard remain current longer than necessary.

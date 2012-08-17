@@ -19,10 +19,14 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "systime.h"		/* for EMACS_TIME, Time */
 #include "coding.h"             /* for ENCODE_UTF_8 and ENCODE_SYSTEM */
 
+INLINE_HEADER_BEGIN
+#ifndef KEYBOARD_INLINE
+# define KEYBOARD_INLINE INLINE
+#endif
+
 /* Most code should use this macro to access Lisp fields in struct kboard.  */
 
 #define KVAR(kboard, field) ((kboard)->INTERNAL_FIELD (field))
-#define KSET(kboard, field, value) ((kboard)->INTERNAL_FIELD (field) = (value))
 
 /* Each KBOARD represents one logical input stream from which Emacs
    gets input.  If we are using ordinary terminals, it has one KBOARD
@@ -172,6 +176,47 @@ struct kboard
        this is its length in characters.  Otherwise this is -1.  */
     char echo_after_prompt;
   };
+
+KEYBOARD_INLINE void
+kset_default_minibuffer_frame (struct kboard *kb, Lisp_Object val)
+{
+  kb->INTERNAL_FIELD (Vdefault_minibuffer_frame) = val;
+}
+KEYBOARD_INLINE void
+kset_defining_kbd_macro (struct kboard *kb, Lisp_Object val)
+{
+  kb->INTERNAL_FIELD (defining_kbd_macro) = val;
+}
+KEYBOARD_INLINE void
+kset_input_decode_map (struct kboard *kb, Lisp_Object val)
+{
+  kb->INTERNAL_FIELD (Vinput_decode_map) = val;
+}
+KEYBOARD_INLINE void
+kset_last_command (struct kboard *kb, Lisp_Object val)
+{
+  kb->INTERNAL_FIELD (Vlast_command) = val;
+}
+KEYBOARD_INLINE void
+kset_last_kbd_macro (struct kboard *kb, Lisp_Object val)
+{
+  kb->INTERNAL_FIELD (Vlast_kbd_macro) = val;
+}
+KEYBOARD_INLINE void
+kset_prefix_arg (struct kboard *kb, Lisp_Object val)
+{
+  kb->INTERNAL_FIELD (Vprefix_arg) = val;
+}
+KEYBOARD_INLINE void
+kset_system_key_alist (struct kboard *kb, Lisp_Object val)
+{
+  kb->INTERNAL_FIELD (Vsystem_key_alist) = val;
+}
+KEYBOARD_INLINE void
+kset_window_system (struct kboard *kb, Lisp_Object val)
+{
+  kb->INTERNAL_FIELD (Vwindow_system) = val;
+}
 
 /* Temporarily used before a frame has been opened. */
 extern KBOARD *initial_kboard;
@@ -510,3 +555,5 @@ extern void mark_kboards (void);
 #ifdef WINDOWSNT
 extern const char *const lispy_function_keys[];
 #endif
+
+INLINE_HEADER_END

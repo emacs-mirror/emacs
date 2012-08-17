@@ -1,5 +1,22 @@
 2012-08-17  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* keyboard.h (KSET): Remove (Bug#12215).
+	Replace all uses with calls to new setter functions.
+	Use INLINE_HEADER_BEGIN, INLINE_HEADER_END.
+	(KEYBOARD_INLINE): New macro.
+	(kset_default_minibuffer_frame, kset_defining_kbd_macro)
+	(kset_input_decode_map, kset_last_command, kset_last_kbd_macro)
+	(kset_prefix_arg, kset_system_key_alist, kset_window_system):
+	New setter functions.
+	* keyboard.c (KEYBOARD_INLINE):
+	Define to EXTERN_INLINE, so that the corresponding functions
+	are compiled into code.
+	(kset_echo_string, kset_kbd_queue)
+	(kset_keyboard_translate_table, kset_last_prefix_arg)
+	(kset_last_repeatable_command, kset_local_function_key_map)
+	(kset_overriding_terminal_local_map, kset_real_last_command)
+	(kset_system_key_syms): New setter functions.
+
 	* frame.h (FSET): Remove (Bug#12215).
 	Replace all uses with calls to new setter functions.
 	Use INLINE_HEADER_BEGIN, INLINE_HEADER_END.

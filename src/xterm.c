@@ -7834,7 +7834,7 @@ x_connection_closed (Display *dpy, const char *error_message)
       {
 	/* Set this to t so that delete_frame won't get confused
 	   trying to find a replacement.  */
-	KSET (FRAME_KBOARD (XFRAME (frame)), Vdefault_minibuffer_frame, Qt);
+	kset_default_minibuffer_frame (FRAME_KBOARD (XFRAME (frame)), Qt);
 	delete_frame (frame, Qnoelisp);
       }
 
@@ -10114,7 +10114,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
       {
 	terminal->kboard = xmalloc (sizeof *terminal->kboard);
 	init_kboard (terminal->kboard);
-	KSET (terminal->kboard, Vwindow_system, Qx);
+	kset_window_system (terminal->kboard, Qx);
 
 	/* Add the keyboard to the list before running Lisp code (via
            Qvendor_specific_keysyms below), since these are not traced
@@ -10136,9 +10136,10 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 	    /* Temporarily hide the partially initialized terminal.  */
 	    terminal_list = terminal->next_terminal;
 	    UNBLOCK_INPUT;
-	    KSET (terminal->kboard, Vsystem_key_alist,
-		  call1 (Qvendor_specific_keysyms,
-			 vendor ? build_string (vendor) : empty_unibyte_string));
+	    kset_system_key_alist
+	      (terminal->kboard,
+	       call1 (Qvendor_specific_keysyms,
+		      vendor ? build_string (vendor) : empty_unibyte_string));
 	    BLOCK_INPUT;
 	    terminal->next_terminal = terminal_list;
  	    terminal_list = terminal;
