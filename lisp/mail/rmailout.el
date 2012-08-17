@@ -34,7 +34,6 @@
   :type 'boolean
   :group 'rmail-output)
 
-;; FIXME risky?
 (defcustom rmail-output-file-alist nil
   "Alist matching regexps to suggested output Rmail files.
 This is a list of elements of the form (REGEXP . NAME-EXP).
@@ -47,6 +46,7 @@ a file name as a string."
 			       (string :tag "File Name")
 			       sexp)))
   :group 'rmail-output)
+;; This is risky because NAME-EXP gets evalled.
 ;;;###autoload(put 'rmail-output-file-alist 'risky-local-variable t)
 
 (defcustom rmail-fields-not-to-output nil
@@ -58,35 +58,46 @@ The function `rmail-delete-unwanted-fields' uses this, ignoring case."
 
 (defun rmail-output-read-file-name ()
   "Read the file name to use for `rmail-output'.
-Set `rmail-default-file' to this name as well as returning it."
-  (let ((default-file
-	  (let (answer tail)
-	    (setq tail rmail-output-file-alist)
-	    ;; Suggest a file based on a pattern match.
-	    (while (and tail (not answer))
-	      (save-excursion
-		(goto-char (point-min))
-		(if (re-search-forward (car (car tail)) nil t)
-		    (setq answer (eval (cdr (car tail)))))
-		(setq tail (cdr tail))))
-	    ;; If no suggestion, use same file as last time.
-	    (or answer rmail-default-file))))
-    (let ((read-file
-	   (expand-file-name
-	    (read-file-name
-	     (concat "Output message to mail file (default "
-		     (file-name-nondirectory default-file)
-		     "): ")
-	     (file-name-directory default-file)
-	     (abbreviate-file-name default-file))
-	    (file-name-directory default-file))))
-      (setq rmail-default-file
-	    (if (file-directory-p read-file)
-		(expand-file-name (file-name-nondirectory default-file)
-				  read-file)
-	      (expand-file-name
-	       (or read-file (file-name-nondirectory default-file))
-	       (file-name-directory default-file)))))))
+Set `rmail-default-file' to this name as well as returning it.
+This uses `rmail-output-file-alist'."
+  (let* ((default-file
+	   (when rmail-output-file-alist
+	     (or rmail-buffer (error "There is no Rmail buffer"))
+	     (save-current-buffer
+	       (set-buffer rmail-buffer)
+	       (let ((beg (rmail-msgbeg rmail-current-message))
+		     (end (rmail-msgend rmail-current-message)))
+		 (if (rmail-buffers-swapped-p) (set-buffer rmail-view-buffer))
+		 (save-excursion
+		   (save-restriction
+		     (widen)
+		     (narrow-to-region beg end)
+		     (let ((tail rmail-output-file-alist)
+			   answer)
+		       ;; Suggest a file based on a pattern match.
+		       (while (and tail (not answer))
+			 (goto-char (point-min))
+			 (if (re-search-forward (caar tail) nil t)
+			     (setq answer (eval (cdar tail))))
+			 (setq tail (cdr tail)))
+		       ;; If no suggestion, use same file as last time.
+		       (or answer rmail-default-file))))))))
+	 (read-file
+	  (expand-file-name
+	   (read-file-name
+	    (concat "Output message to mail file (default "
+		    (file-name-nondirectory default-file)
+		    "): ")
+	    (file-name-directory default-file)
+	    (abbreviate-file-name default-file))
+	   (file-name-directory default-file))))
+    (setq rmail-default-file
+	  (if (file-directory-p read-file)
+	      (expand-file-name (file-name-nondirectory default-file)
+				read-file)
+	    (expand-file-name
+	     (or read-file (file-name-nondirectory default-file))
+	     (file-name-directory default-file))))))
 
 (defun rmail-delete-unwanted-fields (preserve)
   "Delete all headers matching `rmail-fields-not-to-output'.

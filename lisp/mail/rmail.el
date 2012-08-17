@@ -663,6 +663,7 @@ Element N specifies the summary line for message N+1.")
 (defvar rmail-last-regexp nil)
 (put 'rmail-last-regexp 'permanent-local t)
 
+;; Note that rmail-output-read-file-name modifies this.
 (defcustom rmail-default-file "~/xmail"
   "Default file name for \\[rmail-output]."
   :type 'file

@@ -1,3 +1,9 @@
+2012-08-17  Glenn Morris  <rgm@gnu.org>
+
+	* mail/rmailout.el (rmail-output-read-file-name):
+	Check rmail-output-file-alist against the full message body
+	in the correct rmail buffer.  (Bug#12214)
+
 2012-08-17  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp-sh.el (tramp-sh-handle-start-file-process): Eliminate
