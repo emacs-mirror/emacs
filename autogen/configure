@@ -13258,12 +13258,14 @@ done
 
 
 # PTY-related GNU extensions.
-for ac_func in getpt
+for ac_func in getpt posix_openpt
 do :
-  ac_fn_c_check_func "$LINENO" "getpt" "ac_cv_func_getpt"
-if test "x$ac_cv_func_getpt" = x""yes; then :
+  as_ac_var=`$as_echo "ac_cv_func_$ac_func" | $as_tr_sh`
+ac_fn_c_check_func "$LINENO" "$ac_func" "$as_ac_var"
+eval as_val=\$$as_ac_var
+   if test "x$as_val" = x""yes; then :
   cat >>confdefs.h <<_ACEOF
-#define HAVE_GETPT 1
+#define `$as_echo "HAVE_$ac_func" | $as_tr_cpp` 1
 _ACEOF
 
 fi
@@ -14883,7 +14885,7 @@ case $opsys in
 
     ;;
 
-  darwin )
+    darwin )
     $as_echo "#define PTY_ITERATION int i; for (i = 0; i < 1; i++)" >>confdefs.h
 
         $as_echo "#define FIRST_PTY_LETTER 'p'" >>confdefs.h
@@ -14896,12 +14898,12 @@ case $opsys in
 
     ;;
 
-  gnu | freebsd | netbsd | openbsd )
+  gnu | openbsd )
     $as_echo "#define FIRST_PTY_LETTER 'p'" >>confdefs.h
 
     ;;
 
-  gnu-linux | gnu-kfreebsd )
+  gnu-linux | gnu-kfreebsd | freebsd | netbsd )
         if test "x$ac_cv_func_grantpt" = xyes; then
 
 $as_echo "#define UNIX98_PTYS 1" >>confdefs.h
@@ -14910,7 +14912,12 @@ $as_echo "#define UNIX98_PTYS 1" >>confdefs.h
 
                   $as_echo "#define PTY_TTY_NAME_SPRINTF { char *ptyname; sigblock (sigmask (SIGCHLD)); if (grantpt (fd) == -1 || unlockpt (fd) == -1 || !(ptyname = ptsname(fd))) { sigunblock (sigmask (SIGCHLD)); close (fd); return -1; } snprintf (pty_name, sizeof pty_name, \"%s\", ptyname); sigunblock (sigmask (SIGCHLD)); }" >>confdefs.h
 
-            if test "x$ac_cv_func_getpt" = xyes; then
+            if test "x$ac_cv_func_posix_openpt" = xyes; then
+        $as_echo "#define PTY_OPEN fd = posix_openpt (O_RDWR | O_NOCTTY)" >>confdefs.h
+
+        $as_echo "#define PTY_NAME_SPRINTF /**/" >>confdefs.h
+
+            elif test "x$ac_cv_func_getpt" = xyes; then
         $as_echo "#define PTY_OPEN fd = getpt ()" >>confdefs.h
 
         $as_echo "#define PTY_NAME_SPRINTF /**/" >>confdefs.h
