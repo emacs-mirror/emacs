@@ -1,5 +1,11 @@
 2012-08-17  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* lisp.h (set_char_table_extras): Rename from char_table_set_extras.
+	(set_char_table_contents): Rename from char_table_set_contents.
+	(set_sub_char_table_contents): Rename from sub_char_table_sub_contents.
+	All uses changed.  See the end of
+	<http://lists.gnu.org/archive/html/emacs-devel/2012-08/msg00549.html>.
+
 	* lisp.h (CSET): Remove (Bug#12215).
 	(set_char_table_ascii, set_char_table_defalt, set_char_table_parent)
 	(set_char_table_purpose): New functions,

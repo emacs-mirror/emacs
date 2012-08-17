@@ -1916,7 +1916,7 @@ format is the same as above.  */)
   if (!EQ (fontset, Vdefault_fontset))
     {
       tables[1] = Fmake_char_table (Qnil, Qnil);
-      char_table_set_extras (tables[0], 0, tables[1]);
+      set_char_table_extras (tables[0], 0, tables[1]);
       fontsets[1] = Vdefault_fontset;
     }
 

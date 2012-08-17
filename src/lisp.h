@@ -923,7 +923,7 @@ enum
    8-bit European characters.  Do not check validity of CT.  */
 #define CHAR_TABLE_SET(CT, IDX, VAL)					\
   (ASCII_CHAR_P (IDX) && SUB_CHAR_TABLE_P (XCHAR_TABLE (CT)->ascii)	\
-   ? sub_char_table_set_contents (XCHAR_TABLE (CT)->ascii, IDX, VAL)	\
+   ? set_sub_char_table_contents (XCHAR_TABLE (CT)->ascii, IDX, VAL)	\
    : char_table_set (CT, IDX, VAL))
 
 enum CHARTAB_SIZE_BITS
@@ -984,7 +984,7 @@ struct Lisp_Sub_Char_Table
     /* Minimum character covered by the sub char-table.  */
     Lisp_Object min_char;
 
-    /* Use sub_char_table_set_contents to set this.  */
+    /* Use set_sub_char_table_contents to set this.  */
     Lisp_Object contents[1];
   };
 
@@ -2498,21 +2498,21 @@ set_char_table_purpose (Lisp_Object table, Lisp_Object val)
 /* Set different slots in (sub)character tables.  */
 
 LISP_INLINE void
-char_table_set_extras (Lisp_Object table, ptrdiff_t idx, Lisp_Object val)
+set_char_table_extras (Lisp_Object table, ptrdiff_t idx, Lisp_Object val)
 {
   eassert (0 <= idx && idx < CHAR_TABLE_EXTRA_SLOTS (XCHAR_TABLE (table)));
   XCHAR_TABLE (table)->extras[idx] = val;
 }
 
 LISP_INLINE void
-char_table_set_contents (Lisp_Object table, ptrdiff_t idx, Lisp_Object val)
+set_char_table_contents (Lisp_Object table, ptrdiff_t idx, Lisp_Object val)
 {
   eassert (0 <= idx && idx < (1 << CHARTAB_SIZE_BITS_0));
   XCHAR_TABLE (table)->contents[idx] = val;
 }
 
 LISP_INLINE void
-sub_char_table_set_contents (Lisp_Object table, ptrdiff_t idx, Lisp_Object val)
+set_sub_char_table_contents (Lisp_Object table, ptrdiff_t idx, Lisp_Object val)
 {
   XSUB_CHAR_TABLE (table)->contents[idx] = val;
 }

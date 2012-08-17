@@ -278,7 +278,7 @@ looking_at_1 (Lisp_Object string, int posix)
     save_search_regs ();
 
   /* This is so set_image_of_range_1 in regex.c can find the EQV table.  */
-  char_table_set_extras (BVAR (current_buffer, case_canon_table), 2,
+  set_char_table_extras (BVAR (current_buffer, case_canon_table), 2,
 			 BVAR (current_buffer, case_eqv_table));
 
   CHECK_STRING (string);
@@ -393,7 +393,7 @@ string_match_1 (Lisp_Object regexp, Lisp_Object string, Lisp_Object start, int p
     }
 
   /* This is so set_image_of_range_1 in regex.c can find the EQV table.  */
-  char_table_set_extras (BVAR (current_buffer, case_canon_table), 2,
+  set_char_table_extras (BVAR (current_buffer, case_canon_table), 2,
 			 BVAR (current_buffer, case_eqv_table));
 
   bufp = compile_pattern (regexp,
@@ -990,7 +990,7 @@ search_command (Lisp_Object string, Lisp_Object bound, Lisp_Object noerror,
     }
 
   /* This is so set_image_of_range_1 in regex.c can find the EQV table.  */
-  char_table_set_extras (BVAR (current_buffer, case_canon_table), 2,
+  set_char_table_extras (BVAR (current_buffer, case_canon_table), 2,
 			 BVAR (current_buffer, case_eqv_table));
 
   np = search_buffer (string, PT, PT_BYTE, lim, lim_byte, n, RE,
