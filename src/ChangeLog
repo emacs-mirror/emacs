@@ -1,3 +1,10 @@
+2012-08-17  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Do not use memcpy for copying intervals.
+	* intervals.c (reproduce_interval): New function.
+	(reproduce_tree, reproduce_tree_obj): Use it.
+	(reproduce_tree_obj): Remove prototype.
+
 2012-08-17  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* lisp.h (duration_to_sec_usec): Remove unused decl.
