@@ -1,3 +1,8 @@
+2012-08-17  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt: Sync with autogen/config.in.
+	(HAVE_POSIX_OPENPT): New macro.
+
 2012-08-14  Juanma Barranquero  <lekktu@gmail.com>
 
 	* config.nt: Sync with autogen/config.in.
