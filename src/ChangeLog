@@ -1,5 +1,21 @@
 2012-08-17  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* frame.h (FSET): Remove (Bug#12215).
+	Replace all uses with calls to new setter functions.
+	Use INLINE_HEADER_BEGIN, INLINE_HEADER_END.
+	(FRAME_INLINE): New macro.
+	(fset_buffer_list, fset_buried_buffer_list, fset_condemned_scroll_bars)
+	(fset_current_tool_bar_string, fset_desired_tool_bar_string)
+	(fset_face_alist, fset_focus_frame, fset_icon_name, fset_menu_bar_items)
+	(fset_menu_bar_vector, fset_menu_bar_window, fset_name)
+	(fset_param_alist, fset_root_window, fset_scroll_bars)
+	(fset_selected_window, fset_title, fset_tool_bar_items)
+	(fset_tool_bar_position, fset_tool_bar_window): New functions.
+	* frame.c (FRAME_INLINE):
+	Define to EXTERN_INLINE, so that the corresponding functions
+	are compiled into code.
+	(fset_buffer_predicate, fset_minibuffer_window): New setter functions.
+
 	A few more naming-convention fixes for getters and setters.
 	* buffer.c (set_buffer_overlays_before): Move here from buffer.h,
 	and rename from buffer_overlays_set_before.

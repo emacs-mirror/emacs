@@ -322,7 +322,10 @@ Return WINDOW.  */)
   if (EQ (frame, selected_frame))
     return Fselect_window (window, norecord);
   else
-    return FSET (XFRAME (frame), selected_window, window);
+    {
+      fset_selected_window (XFRAME (frame), window);
+      return window;
+    }
 }
 
 DEFUN ("selected-window", Fselected_window, Sselected_window, 0, 0, 0,
@@ -365,7 +368,7 @@ select_window (Lisp_Object window, Lisp_Object norecord, int inhibit_point_swap)
   sf = SELECTED_FRAME ();
   if (XFRAME (WINDOW_FRAME (w)) != sf)
     {
-      FSET (XFRAME (WINDOW_FRAME (w)), selected_window, window);
+      fset_selected_window (XFRAME (WINDOW_FRAME (w)), window);
       /* Use this rather than Fhandle_switch_frame
 	 so that FRAME_FOCUS_FRAME is moved appropriately as we
 	 move around in the state where a minibuffer in a separate
@@ -376,7 +379,7 @@ select_window (Lisp_Object window, Lisp_Object norecord, int inhibit_point_swap)
       return window;
     }
   else
-    FSET (sf, selected_window, window);
+    fset_selected_window (sf, window);
 
   /* Store the current buffer's actual point into the
      old selected window.  It belongs to that window,
@@ -1863,7 +1866,7 @@ replace_window (Lisp_Object old, Lisp_Object new, int setflag)
   /* If OLD is its frame's root window, then NEW is the new
      root window for that frame.  */
   if (EQ (old, FRAME_ROOT_WINDOW (XFRAME (o->frame))))
-    FSET (XFRAME (o->frame), root_window, new);
+    fset_root_window (XFRAME (o->frame), new);
 
    if (setflag)
      {
@@ -2146,7 +2149,7 @@ decode_next_window_args (Lisp_Object *window, Lisp_Object *minibuf, Lisp_Object 
 
   /* ALL_FRAMES nil doesn't specify which frames to include.  */
   if (NILP (*all_frames))
-    *all_frames 
+    *all_frames
       = (!EQ (*minibuf, Qlambda)
 	 ? FRAME_MINIBUF_WINDOW (XFRAME (XWINDOW (*window)->frame))
 	 : Qnil);
@@ -2659,7 +2662,7 @@ window-start value is reasonable when this function is called.  */)
 	  if (EQ (selected_frame, w->frame))
 	    Fselect_window (window, Qnil);
 	  else
-	    FSET (f, selected_window, window);
+	    fset_selected_window (f, window);
 	}
     }
   else
@@ -2689,7 +2692,7 @@ window-start value is reasonable when this function is called.  */)
 	  if (EQ (selected_frame, w->frame))
 	    Fselect_window (swindow, Qnil);
 	  else
-	    FSET (f, selected_window, swindow);
+	    fset_selected_window (f, swindow);
 	}
     }
 
@@ -2741,8 +2744,8 @@ window-start value is reasonable when this function is called.  */)
       if (!resize_failed)
 	{
 	  WSET (w, left_col, r->left_col);
-	  XSETINT (delta, XINT (r->total_cols) 
-		   - XINT (w->total_cols));
+	  XSETINT (delta,
+		   XINT (r->total_cols) - XINT (w->total_cols));
 	  WSET (w, left_col, r->left_col);
 	  resize_root_window (window, delta, Qt, Qnil);
 	  if (window_resize_check (w, 1))
@@ -2915,7 +2918,7 @@ adjust_window_margins (struct window *w)
       if (WINDOW_LEFT_MARGIN_COLS (w) > 0)
 	{
 	  WSET (w, left_margin_cols, make_number (margin_cols / 2));
-	  WSET (w, right_margin_cols, make_number (margin_cols / 2));	
+	  WSET (w, right_margin_cols, make_number (margin_cols / 2));
 	}
       else
 	WSET (w, right_margin_cols, make_number (margin_cols));
@@ -3612,7 +3615,7 @@ resize_frame_windows (struct frame *f, int size, int horflag)
   else
     {
       /* old_size is the old size of the frame's root window.  */
-      int old_size = XFASTINT (horflag ? r->total_cols 
+      int old_size = XFASTINT (horflag ? r->total_cols
 			       : r->total_lines);
       Lisp_Object delta;
 
@@ -4000,7 +4003,7 @@ Signal an error when WINDOW is the only window on its frame.  */)
 	  if (EQ (FRAME_SELECTED_WINDOW (f), selected_window))
 	    Fselect_window (new_selected_window, Qt);
 	  else
-	    FSET (f, selected_window, new_selected_window);
+	    fset_selected_window (f, new_selected_window);
 
 	  UNBLOCK_INPUT;
 
@@ -4014,7 +4017,7 @@ Signal an error when WINDOW is the only window on its frame.  */)
 	  if (EQ (FRAME_SELECTED_WINDOW (f), selected_window))
 	    Fselect_window (new_selected_window, Qnil);
 	  else
-	    FSET (f, selected_window, new_selected_window);
+	    fset_selected_window (f, new_selected_window);
 	}
       else
 	UNBLOCK_INPUT;
@@ -5542,7 +5545,7 @@ the return value is nil.  Otherwise the value is t.  */)
 	  WSET (w, next, Qnil);
 
 	  if (!NILP (p->parent))
-	    WSET (w, parent, SAVED_WINDOW_N 
+	    WSET (w, parent, SAVED_WINDOW_N
 		  (saved_windows, XFASTINT (p->parent))->window);
 	  else
 	    WSET (w, parent, Qnil);
@@ -5650,7 +5653,7 @@ the return value is nil.  Otherwise the value is t.  */)
 		 set_marker_restricted (w->start, make_number (0),
 					w->buffer);
 	       if (XMARKER (w->pointm)->buffer == 0)
-		 set_marker_restricted_both 
+		 set_marker_restricted_both
 		   (w->pointm, w->buffer,
 		    BUF_PT (XBUFFER (w->buffer)),
 		    BUF_PT_BYTE (XBUFFER (w->buffer)));
@@ -5690,7 +5693,7 @@ the return value is nil.  Otherwise the value is t.  */)
 	    }
 	}
 
-      FSET (f, root_window, data->root_window);
+      fset_root_window (f, data->root_window);
       /* Arrange *not* to restore point in the buffer that was
 	 current when the window configuration was saved.  */
       if (EQ (XWINDOW (data->current_window)->buffer, new_current_buffer))

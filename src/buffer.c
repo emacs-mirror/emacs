@@ -1783,8 +1783,8 @@ record_buffer (Lisp_Object buffer)
   Vinhibit_quit = tem;
 
   /* Update buffer list of selected frame.  */
-  FSET (f, buffer_list, Fcons (buffer, Fdelq (buffer, f->buffer_list)));
-  FSET (f, buried_buffer_list, Fdelq (buffer, f->buried_buffer_list));
+  fset_buffer_list (f, Fcons (buffer, Fdelq (buffer, f->buffer_list)));
+  fset_buried_buffer_list (f, Fdelq (buffer, f->buried_buffer_list));
 
   /* Run buffer-list-update-hook.  */
   if (!NILP (Vrun_hooks))
@@ -1821,9 +1821,9 @@ DEFUN ("bury-buffer-internal", Fbury_buffer_internal, Sbury_buffer_internal,
   Vinhibit_quit = tem;
 
   /* Update buffer lists of selected frame.  */
-  FSET (f, buffer_list, Fdelq (buffer, f->buffer_list));
-  FSET (f, buried_buffer_list,
-	Fcons (buffer, Fdelq (buffer, f->buried_buffer_list)));
+  fset_buffer_list (f, Fdelq (buffer, f->buffer_list));
+  fset_buried_buffer_list
+    (f, Fcons (buffer, Fdelq (buffer, f->buried_buffer_list)));
 
   /* Run buffer-list-update-hook.  */
   if (!NILP (Vrun_hooks))

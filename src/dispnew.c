@@ -2166,7 +2166,7 @@ adjust_frame_glyphs_for_window_redisplay (struct frame *f)
     if (NILP (f->menu_bar_window))
       {
 	Lisp_Object frame;
-	FSET (f, menu_bar_window, make_window ());
+	fset_menu_bar_window (f, make_window ());
 	w = XWINDOW (f->menu_bar_window);
 	XSETFRAME (frame, f);
 	WSET (w, frame, frame);
@@ -2194,7 +2194,7 @@ adjust_frame_glyphs_for_window_redisplay (struct frame *f)
     if (NILP (f->tool_bar_window))
       {
 	Lisp_Object frame;
-	FSET (f, tool_bar_window, make_window ());
+	fset_tool_bar_window (f, make_window ());
 	w = XWINDOW (f->tool_bar_window);
 	XSETFRAME (frame, f);
 	WSET (w, frame, frame);
@@ -2272,7 +2272,7 @@ free_glyphs (struct frame *f)
 	  free_glyph_matrix (w->desired_matrix);
 	  free_glyph_matrix (w->current_matrix);
 	  w->desired_matrix = w->current_matrix = NULL;
-	  FSET (f, menu_bar_window, Qnil);
+	  fset_menu_bar_window (f, Qnil);
 	}
 
       /* Free the tool bar window and its glyph matrices.  */
@@ -2282,7 +2282,7 @@ free_glyphs (struct frame *f)
 	  free_glyph_matrix (w->desired_matrix);
 	  free_glyph_matrix (w->current_matrix);
 	  w->desired_matrix = w->current_matrix = NULL;
-	  FSET (f, tool_bar_window, Qnil);
+	  fset_tool_bar_window (f, Qnil);
 	}
 
       /* Release frame glyph matrices.  Reset fields to zero in
@@ -3220,8 +3220,8 @@ update_frame (struct frame *f, int force_p, int inhibit_hairy_id_p)
 	      /* Swap tool-bar strings.  We swap because we want to
 		 reuse strings.  */
 	      tem = f->current_tool_bar_string;
-	      FSET (f, current_tool_bar_string, f->desired_tool_bar_string);
-	      FSET (f, desired_tool_bar_string, tem);
+	      fset_current_tool_bar_string (f, f->desired_tool_bar_string);
+	      fset_desired_tool_bar_string (f, tem);
 	    }
 	}
 

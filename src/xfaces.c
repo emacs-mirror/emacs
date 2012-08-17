@@ -2695,7 +2695,7 @@ Value is a vector of face attributes.  */)
 	  lface = Fmake_vector (make_number (LFACE_VECTOR_SIZE),
 				Qunspecified);
 	  ASET (lface, 0, Qface);
-	  FSET (f, face_alist, Fcons (Fcons (face, lface), f->face_alist));
+	  fset_face_alist (f, Fcons (Fcons (face, lface), f->face_alist));
 	}
       else
 	for (i = 1; i < LFACE_VECTOR_SIZE; ++i)

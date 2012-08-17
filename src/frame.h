@@ -25,6 +25,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include "dispextern.h"
 
+INLINE_HEADER_BEGIN
+#ifndef FRAME_INLINE
+# define FRAME_INLINE INLINE
+#endif
+
 
 /* Miscellanea.  */
 
@@ -79,10 +84,6 @@ enum fullscreen_type
 struct terminal;
 
 struct font_driver_list;
-
-/* Most code should use this macro to set Lisp field in struct frame.  */
-
-#define FSET(f, field, value) ((f)->field = (value))
 
 struct frame
 {
@@ -498,6 +499,109 @@ struct frame
   unsigned long background_pixel;
   unsigned long foreground_pixel;
 };
+
+/* Most code should use these functions to set Lisp fields in struct frame.  */
+
+FRAME_INLINE void
+fset_buffer_list (struct frame *f, Lisp_Object val)
+{
+  f->buffer_list = val;
+}
+FRAME_INLINE void
+fset_buried_buffer_list (struct frame *f, Lisp_Object val)
+{
+  f->buried_buffer_list = val;
+}
+FRAME_INLINE void
+fset_condemned_scroll_bars (struct frame *f, Lisp_Object val)
+{
+  f->condemned_scroll_bars = val;
+}
+FRAME_INLINE void
+fset_current_tool_bar_string (struct frame *f, Lisp_Object val)
+{
+  f->current_tool_bar_string = val;
+}
+FRAME_INLINE void
+fset_desired_tool_bar_string (struct frame *f, Lisp_Object val)
+{
+  f->desired_tool_bar_string = val;
+}
+FRAME_INLINE void
+fset_face_alist (struct frame *f, Lisp_Object val)
+{
+  f->face_alist = val;
+}
+FRAME_INLINE void
+fset_focus_frame (struct frame *f, Lisp_Object val)
+{
+  f->focus_frame = val;
+}
+FRAME_INLINE void
+fset_icon_name (struct frame *f, Lisp_Object val)
+{
+  f->icon_name = val;
+}
+FRAME_INLINE void
+fset_menu_bar_items (struct frame *f, Lisp_Object val)
+{
+  f->menu_bar_items = val;
+}
+FRAME_INLINE void
+fset_menu_bar_vector (struct frame *f, Lisp_Object val)
+{
+  f->menu_bar_vector = val;
+}
+FRAME_INLINE void
+fset_menu_bar_window (struct frame *f, Lisp_Object val)
+{
+  f->menu_bar_window = val;
+}
+FRAME_INLINE void
+fset_name (struct frame *f, Lisp_Object val)
+{
+  f->name = val;
+}
+FRAME_INLINE void
+fset_param_alist (struct frame *f, Lisp_Object val)
+{
+  f->param_alist = val;
+}
+FRAME_INLINE void
+fset_root_window (struct frame *f, Lisp_Object val)
+{
+  f->root_window = val;
+}
+FRAME_INLINE void
+fset_scroll_bars (struct frame *f, Lisp_Object val)
+{
+  f->scroll_bars = val;
+}
+FRAME_INLINE void
+fset_selected_window (struct frame *f, Lisp_Object val)
+{
+  f->selected_window = val;
+}
+FRAME_INLINE void
+fset_title (struct frame *f, Lisp_Object val)
+{
+  f->title = val;
+}
+FRAME_INLINE void
+fset_tool_bar_items (struct frame *f, Lisp_Object val)
+{
+  f->tool_bar_items = val;
+}
+FRAME_INLINE void
+fset_tool_bar_position (struct frame *f, Lisp_Object val)
+{
+  f->tool_bar_position = val;
+}
+FRAME_INLINE void
+fset_tool_bar_window (struct frame *f, Lisp_Object val)
+{
+  f->tool_bar_window = val;
+}
 
 #define FRAME_KBOARD(f) ((f)->terminal->kboard)
 
@@ -1145,5 +1249,7 @@ extern char *x_get_resource_string (const char *, const char *);
 extern void set_frame_menubar (FRAME_PTR, int, int);
 
 #endif /* HAVE_WINDOW_SYSTEM */
+
+INLINE_HEADER_END
 
 #endif /* not EMACS_FRAME_H */

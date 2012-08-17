@@ -473,7 +473,7 @@ x_set_title (struct frame *f, Lisp_Object name)
 
   update_mode_lines = 1;
 
-  FSET (f, title, name);
+  fset_title (f, name);
 
   if (NILP (name))
     name = f->name;

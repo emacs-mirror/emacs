@@ -11274,7 +11274,7 @@ update_menu_bar (struct frame *f, int save_match_data, int hooks_run)
 	    }
 
 	  XSETFRAME (Vmenu_updating_frame, f);
-	  FSET (f, menu_bar_items, menu_bar_items (FRAME_MENU_BAR_ITEMS (f)));
+	  fset_menu_bar_items (f, menu_bar_items (FRAME_MENU_BAR_ITEMS (f)));
 
 	  /* Redisplay the menu bar in case we changed it.  */
 #if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI) \
@@ -11487,7 +11487,7 @@ update_tool_bar (struct frame *f, int save_match_data)
                  may access f->tool_bar_items.  Make sure we update both
                  variables within BLOCK_INPUT so no such event interrupts.  */
               BLOCK_INPUT;
-              FSET (f, tool_bar_items, new_tool_bar);
+              fset_tool_bar_items (f, new_tool_bar);
               f->n_tool_bar_items = new_n_tool_bar;
               w->update_mode_line = 1;
               UNBLOCK_INPUT;
@@ -11529,8 +11529,8 @@ build_desired_tool_bar_string (struct frame *f)
 
   /* Reuse f->desired_tool_bar_string, if possible.  */
   if (size < size_needed || NILP (f->desired_tool_bar_string))
-    FSET (f, desired_tool_bar_string,
-	  Fmake_string (make_number (size_needed), make_number (' ')));
+    fset_desired_tool_bar_string
+      (f, Fmake_string (make_number (size_needed), make_number (' ')));
   else
     {
       props = list4 (Qdisplay, Qnil, Qmenu_item, Qnil);
