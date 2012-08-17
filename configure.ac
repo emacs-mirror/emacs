@@ -3425,7 +3425,7 @@ case $opsys in
       dnl if HAVE_POSIX_OPENPT
       if test "x$ac_cv_func_posix_openpt" = xyes; then
         AC_DEFINE(PTY_OPEN, [fd = posix_openpt (O_RDWR | O_NOCTTY)])
-        AC_DEFINE(PTY_NAME_SPRINTF, [] )
+        AC_DEFINE(PTY_NAME_SPRINTF, [])
       dnl if HAVE_GETPT
       elif test "x$ac_cv_func_getpt" = xyes; then
         AC_DEFINE(PTY_OPEN, [fd = getpt ()])
