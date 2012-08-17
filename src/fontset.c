@@ -1979,7 +1979,7 @@ format is the same as above.  */)
 	      if (c <= MAX_5_BYTE_CHAR)
 		char_table_set_range (tables[k], c, to, alist);
 	      else
-		CSET (XCHAR_TABLE (tables[k]), defalt, alist);
+		set_char_table_defalt (tables[k], alist);
 
 	      /* At last, change each elements to font names.  */
 	      for (; CONSP (alist); alist = XCDR (alist))

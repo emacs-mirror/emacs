@@ -260,7 +260,7 @@ init_casetab_once (void)
 
   down = Fmake_char_table (Qcase_table, Qnil);
   Vascii_downcase_table = down;
-  CSET (XCHAR_TABLE (down), purpose, Qcase_table);
+  set_char_table_purpose (down, Qcase_table);
 
   for (i = 0; i < 128; i++)
     {

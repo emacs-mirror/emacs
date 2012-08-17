@@ -1,3 +1,14 @@
+2012-08-17  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* lisp.h (CSET): Remove (Bug#12215).
+	(set_char_table_ascii, set_char_table_defalt, set_char_table_parent)
+	(set_char_table_purpose): New functions,
+	replacing CSET.  All uses changed.  For example, replace
+	"CSET (XCHAR_TABLE (char_table), parent, parent);" with
+	"char_table_set_parent (char_table, parent);".
+	The old version was confusing because it used the same name
+	'parent' for two different things.
+
 2012-08-17  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Functions to get and set Lisp_Object fields of buffer-local variables.

@@ -238,8 +238,8 @@ copy_category_table (Lisp_Object table)
   table = copy_char_table (table);
 
   if (! NILP (XCHAR_TABLE (table)->defalt))
-    CSET (XCHAR_TABLE (table), defalt,
-	  Fcopy_sequence (XCHAR_TABLE (table)->defalt));
+    set_char_table_defalt (table,
+			   Fcopy_sequence (XCHAR_TABLE (table)->defalt));
   char_table_set_extras
     (table, 0, Fcopy_sequence (XCHAR_TABLE (table)->extras[0]));
   map_char_table (copy_category_entry, Qnil, table, table);
@@ -270,7 +270,7 @@ DEFUN ("make-category-table", Fmake_category_table, Smake_category_table,
   int i;
 
   val = Fmake_char_table (Qcategory_table, Qnil);
-  CSET (XCHAR_TABLE (val), defalt, MAKE_CATEGORY_SET);
+  set_char_table_defalt (val, MAKE_CATEGORY_SET);
   for (i = 0; i < (1 << CHARTAB_SIZE_BITS_0); i++)
     char_table_set_contents (val, i, MAKE_CATEGORY_SET);
   Fset_char_table_extra_slot (val, make_number (0),
@@ -466,7 +466,7 @@ init_category_once (void)
 
   Vstandard_category_table = Fmake_char_table (Qcategory_table, Qnil);
   /* Set a category set which contains nothing to the default.  */
-  CSET (XCHAR_TABLE (Vstandard_category_table), defalt, MAKE_CATEGORY_SET);
+  set_char_table_defalt (Vstandard_category_table, MAKE_CATEGORY_SET);
   Fset_char_table_extra_slot (Vstandard_category_table, make_number (0),
 			      Fmake_vector (make_number (95), Qnil));
 }

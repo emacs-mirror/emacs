@@ -115,8 +115,8 @@ the char-table has no extra slot.  */)
   size = VECSIZE (struct Lisp_Char_Table) - 1 + n_extras;
   vector = Fmake_vector (make_number (size), init);
   XSETPVECTYPE (XVECTOR (vector), PVEC_CHAR_TABLE);
-  CSET (XCHAR_TABLE (vector), parent, Qnil);
-  CSET (XCHAR_TABLE (vector), purpose, purpose);
+  set_char_table_parent (vector, Qnil);
+  set_char_table_purpose (vector, purpose);
   XSETCHAR_TABLE (vector, XCHAR_TABLE (vector));
   return vector;
 }
@@ -185,16 +185,16 @@ copy_char_table (Lisp_Object table)
 
   copy = Fmake_vector (make_number (size), Qnil);
   XSETPVECTYPE (XVECTOR (copy), PVEC_CHAR_TABLE);
-  CSET (XCHAR_TABLE (copy), defalt, XCHAR_TABLE (table)->defalt);
-  CSET (XCHAR_TABLE (copy), parent, XCHAR_TABLE (table)->parent);
-  CSET (XCHAR_TABLE (copy), purpose, XCHAR_TABLE (table)->purpose);
+  set_char_table_defalt (copy, XCHAR_TABLE (table)->defalt);
+  set_char_table_parent (copy, XCHAR_TABLE (table)->parent);
+  set_char_table_purpose (copy, XCHAR_TABLE (table)->purpose);
   for (i = 0; i < chartab_size[0]; i++)
     char_table_set_contents
-      (copy, i, 
+      (copy, i,
        (SUB_CHAR_TABLE_P (XCHAR_TABLE (table)->contents[i])
 	? copy_sub_char_table (XCHAR_TABLE (table)->contents[i])
 	: XCHAR_TABLE (table)->contents[i]));
-  CSET (XCHAR_TABLE (copy), ascii, char_table_ascii (copy));
+  set_char_table_ascii (copy, char_table_ascii (copy));
   size -= VECSIZE (struct Lisp_Char_Table) - 1;
   for (i = 0; i < size; i++)
     char_table_set_extras (copy, i, XCHAR_TABLE (table)->extras[i]);
@@ -436,7 +436,7 @@ char_table_set (Lisp_Object table, int c, Lisp_Object val)
 	}
       sub_char_table_set (sub, c, val, UNIPROP_TABLE_P (table));
       if (ASCII_CHAR_P (c))
-	CSET (tbl, ascii, char_table_ascii (table));
+	set_char_table_ascii (table, char_table_ascii (table));
     }
   return val;
 }
@@ -512,7 +512,7 @@ char_table_set_range (Lisp_Object table, int from, int to, Lisp_Object val)
 	    }
 	}
       if (ASCII_CHAR_P (from))
-	CSET (tbl, ascii, char_table_ascii (table));
+	set_char_table_ascii (table, char_table_ascii (table));
     }
   return val;
 }
@@ -562,7 +562,7 @@ Return PARENT.  PARENT must be either nil or another char-table.  */)
 	  error ("Attempt to make a chartable be its own parent");
     }
 
-  CSET (XCHAR_TABLE (char_table), parent, parent);
+  set_char_table_parent (char_table, parent);
 
   return parent;
 }
@@ -640,12 +640,12 @@ or a character code.  Return VALUE.  */)
     {
       int i;
 
-      CSET (XCHAR_TABLE (char_table), ascii, value);
+      set_char_table_ascii (char_table, value);
       for (i = 0; i < chartab_size[0]; i++)
 	char_table_set_contents (char_table, i, value);
     }
   else if (EQ (range, Qnil))
-    CSET (XCHAR_TABLE (char_table), defalt, value);
+    set_char_table_defalt (char_table, value);
   else if (CHARACTERP (range))
     char_table_set (char_table, XINT (range), value);
   else if (CONSP (range))
@@ -736,7 +736,7 @@ equivalent and can be merged.  It defaults to `equal'.  */)
 	  (char_table, i, optimize_sub_char_table (elt, test));
     }
   /* Reset the `ascii' cache, in case it got optimized away.  */
-  CSET (XCHAR_TABLE (char_table), ascii, char_table_ascii (char_table));
+  set_char_table_ascii (char_table, char_table_ascii (char_table));
 
   return Qnil;
 }
@@ -828,9 +828,9 @@ map_sub_char_table (void (*c_function) (Lisp_Object, Lisp_Object, Lisp_Object),
 
 		      /* This is to get a value of FROM in PARENT
 			 without checking the parent of PARENT.  */
-		      CSET (XCHAR_TABLE (parent), parent, Qnil);
+		      set_char_table_parent (parent, Qnil);
 		      val = CHAR_TABLE_REF (parent, from);
-		      CSET (XCHAR_TABLE (parent), parent, temp);
+		      set_char_table_parent (parent, temp);
 		      XSETCDR (range, make_number (c - 1));
 		      val = map_sub_char_table (c_function, function,
 						parent, arg, val, range,
@@ -910,9 +910,9 @@ map_char_table (void (*c_function) (Lisp_Object, Lisp_Object, Lisp_Object),
       temp = XCHAR_TABLE (parent)->parent;
       /* This is to get a value of FROM in PARENT without checking the
 	 parent of PARENT.  */
-      CSET (XCHAR_TABLE (parent), parent, Qnil);
+      set_char_table_parent (parent, Qnil);
       val = CHAR_TABLE_REF (parent, from);
-      CSET (XCHAR_TABLE (parent), parent, temp);
+      set_char_table_parent (parent, temp);
       val = map_sub_char_table (c_function, function, parent, arg, val, range,
 				parent);
       table = parent;
@@ -1350,7 +1350,7 @@ uniprop_table (Lisp_Object prop)
       : ! NILP (val))
     return Qnil;
   /* Prepare ASCII values in advance for CHAR_TABLE_REF.  */
-  CSET (XCHAR_TABLE (table), ascii, char_table_ascii (table));
+  set_char_table_ascii (table, char_table_ascii (table));
   return table;
 }
 

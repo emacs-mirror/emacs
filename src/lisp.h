@@ -936,12 +936,6 @@ enum CHARTAB_SIZE_BITS
 
 extern const int chartab_size[4];
 
-/* Most code should use this macro to set non-array Lisp fields in struct
-   Lisp_Char_Table.  For CONTENTS and EXTRAS, use char_table_set_contents
-   and char_table_set_extras, respectively.  */
-
-#define CSET(c, field, value) ((c)->field = (value))
-
 struct Lisp_Char_Table
   {
     /* HEADER.SIZE is the vector's size field, which also holds the
@@ -2475,6 +2469,30 @@ LISP_INLINE void
 string_set_intervals (Lisp_Object s, INTERVAL i)
 {
   XSTRING (s)->intervals = i;
+}
+
+/* Set a Lisp slot in TABLE to VAL.  Most code should use this instead
+   of setting slots directly.  */
+
+LISP_INLINE void
+set_char_table_ascii (Lisp_Object table, Lisp_Object val)
+{
+  XCHAR_TABLE (table)->ascii = val;
+}
+LISP_INLINE void
+set_char_table_defalt (Lisp_Object table, Lisp_Object val)
+{
+  XCHAR_TABLE (table)->defalt = val;
+}
+LISP_INLINE void
+set_char_table_parent (Lisp_Object table, Lisp_Object val)
+{
+  XCHAR_TABLE (table)->parent = val;
+}
+LISP_INLINE void
+set_char_table_purpose (Lisp_Object table, Lisp_Object val)
+{
+  XCHAR_TABLE (table)->purpose = val;
 }
 
 /* Set different slots in (sub)character tables.  */

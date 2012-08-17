@@ -818,7 +818,7 @@ It is a copy of the TABLE, which defaults to the standard syntax table.  */)
 
   /* Only the standard syntax table should have a default element.
      Other syntax tables should inherit from parents instead.  */
-  CSET (XCHAR_TABLE (copy), defalt, Qnil);
+  set_char_table_defalt (copy, Qnil);
 
   /* Copied syntax tables should all have parents.
      If we copied one with no parent, such as the standard syntax table,
