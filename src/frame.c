@@ -2098,7 +2098,7 @@ store_frame_param (struct frame *f, Lisp_Object prop, Lisp_Object val)
 	case SYMBOL_PLAINVAL: case SYMBOL_FORWARDED: break;
 	case SYMBOL_LOCALIZED:
 	  { struct Lisp_Buffer_Local_Value *blv = sym->val.blv;
-	    if (blv->frame_local && BLV_FOUND (blv) && XFRAME (blv->where) == f)
+	    if (blv->frame_local && blv_found (blv) && XFRAME (blv->where) == f)
 	      swap_in_global_binding (sym);
 	    break;
 	  }

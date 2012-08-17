@@ -3169,12 +3169,12 @@ specbind (Lisp_Object symbol, Lisp_Object value)
 	    if (!NILP (Flocal_variable_p (symbol, Qnil)))
 	      {
 		eassert (sym->redirect != SYMBOL_LOCALIZED
-			 || (BLV_FOUND (SYMBOL_BLV (sym))
+			 || (blv_found (SYMBOL_BLV (sym))
 			     && EQ (cur_buf, SYMBOL_BLV (sym)->where)));
 		where = cur_buf;
 	      }
 	    else if (sym->redirect == SYMBOL_LOCALIZED
-		     && BLV_FOUND (SYMBOL_BLV (sym)))
+		     && blv_found (SYMBOL_BLV (sym)))
 	      where = SYMBOL_BLV (sym)->where;
 	    else
 	      where = Qnil;

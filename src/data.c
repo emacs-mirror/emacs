@@ -543,7 +543,7 @@ DEFUN ("boundp", Fboundp, Sboundp, 1, 1, 0,
 	else
 	  {
 	    swap_in_symval_forwarding (sym, blv);
-	    valcontents = BLV_VALUE (blv);
+	    valcontents = blv_value (blv);
 	  }
 	break;
       }
@@ -964,16 +964,16 @@ swap_in_global_binding (struct Lisp_Symbol *symbol)
 
   /* Unload the previously loaded binding.  */
   if (blv->fwd)
-    SET_BLV_VALUE (blv, do_symval_forwarding (blv->fwd));
+    set_blv_value (blv, do_symval_forwarding (blv->fwd));
 
   /* Select the global binding in the symbol.  */
-  blv->valcell = blv->defcell;
+  set_blv_valcell (blv, blv->defcell);
   if (blv->fwd)
     store_symval_forwarding (blv->fwd, XCDR (blv->defcell), NULL);
 
   /* Indicate that the global binding is set up now.  */
-  blv->where = Qnil;
-  SET_BLV_FOUND (blv, 0);
+  set_blv_where (blv, Qnil);
+  set_blv_found (blv, 0);
 }
 
 /* Set up the buffer-local symbol SYMBOL for validity in the current buffer.
@@ -1001,7 +1001,7 @@ swap_in_symval_forwarding (struct Lisp_Symbol *symbol, struct Lisp_Buffer_Local_
       /* Unload the previously loaded binding.  */
       tem1 = blv->valcell;
       if (blv->fwd)
-	SET_BLV_VALUE (blv, do_symval_forwarding (blv->fwd));
+	set_blv_value (blv, do_symval_forwarding (blv->fwd));
       /* Choose the new binding.  */
       {
 	Lisp_Object var;
@@ -1009,7 +1009,7 @@ swap_in_symval_forwarding (struct Lisp_Symbol *symbol, struct Lisp_Buffer_Local_
 	if (blv->frame_local)
 	  {
 	    tem1 = assq_no_quit (var, XFRAME (selected_frame)->param_alist);
-	    blv->where = selected_frame;
+	    set_blv_where (blv, selected_frame);
 	  }
 	else
 	  {
@@ -1021,9 +1021,9 @@ swap_in_symval_forwarding (struct Lisp_Symbol *symbol, struct Lisp_Buffer_Local_
 	tem1 = blv->defcell;
 
       /* Load the new binding.  */
-      blv->valcell = tem1;
+      set_blv_valcell (blv, tem1);
       if (blv->fwd)
-	store_symval_forwarding (blv->fwd, BLV_VALUE (blv), NULL);
+	store_symval_forwarding (blv->fwd, blv_value (blv), NULL);
     }
 }
 
@@ -1050,7 +1050,7 @@ find_symbol_value (Lisp_Object symbol)
       {
 	struct Lisp_Buffer_Local_Value *blv = SYMBOL_BLV (sym);
 	swap_in_symval_forwarding (sym, blv);
-	return blv->fwd ? do_symval_forwarding (blv->fwd) : BLV_VALUE (blv);
+	return blv->fwd ? do_symval_forwarding (blv->fwd) : blv_value (blv);
       }
       /* FALLTHROUGH */
     case SYMBOL_FORWARDED:
@@ -1175,7 +1175,7 @@ set_internal (register Lisp_Object symbol, register Lisp_Object newval, register
 
 	    /* Write out `realvalue' to the old loaded binding.  */
 	    if (blv->fwd)
-	      SET_BLV_VALUE (blv, do_symval_forwarding (blv->fwd));
+	      set_blv_value (blv, do_symval_forwarding (blv->fwd));
 
 	    /* Find the new binding.  */
 	    XSETSYMBOL (symbol, sym); /* May have changed via aliasing.  */
@@ -1183,8 +1183,8 @@ set_internal (register Lisp_Object symbol, register Lisp_Object newval, register
 			  (blv->frame_local
 			   ? XFRAME (where)->param_alist
 			   : BVAR (XBUFFER (where), local_var_alist)));
-	    blv->where = where;
-	    blv->found = 1;
+	    set_blv_where (blv, where);
+	    set_blv_found (blv, 1);
 
 	    if (NILP (tem1))
 	      {
@@ -1199,7 +1199,7 @@ set_internal (register Lisp_Object symbol, register Lisp_Object newval, register
 		if (bindflag || !blv->local_if_set
 		    || let_shadows_buffer_binding_p (sym))
 		  {
-		    blv->found = 0;
+		    set_blv_found (blv, 0);
 		    tem1 = blv->defcell;
 		  }
 		/* If it's a local_if_set, being set not bound,
@@ -1219,11 +1219,11 @@ set_internal (register Lisp_Object symbol, register Lisp_Object newval, register
 	      }
 
 	    /* Record which binding is now loaded.  */
-	    blv->valcell = tem1;
+	    set_blv_valcell (blv, tem1);
 	  }
 
 	/* Store the new value in the cons cell.  */
-	SET_BLV_VALUE (blv, newval);
+	set_blv_value (blv, newval);
 
 	if (blv->fwd)
 	  {
@@ -1479,12 +1479,12 @@ make_blv (struct Lisp_Symbol *sym, int forwarded, union Lisp_Val_Fwd valcontents
   eassert (!(forwarded && BUFFER_OBJFWDP (valcontents.fwd)));
   eassert (!(forwarded && KBOARD_OBJFWDP (valcontents.fwd)));
   blv->fwd = forwarded ? valcontents.fwd : NULL;
-  blv->where = Qnil;
+  set_blv_where (blv, Qnil);
   blv->frame_local = 0;
   blv->local_if_set = 0;
-  blv->defcell = tem;
-  blv->valcell = tem;
-  SET_BLV_FOUND (blv, 0);
+  set_blv_defcell (blv, tem);
+  set_blv_valcell (blv, tem);
+  set_blv_found (blv, 0);
   return blv;
 }
 
@@ -1660,10 +1660,8 @@ Instead, use `add-hook' and specify t for the LOCAL argument.  */)
       /* Make sure symbol does not think it is set up for this buffer;
 	 force it to look once again for this buffer's value.  */
       if (current_buffer == XBUFFER (blv->where))
-	blv->where = Qnil;
-      /* blv->valcell = blv->defcell;
-       * SET_BLV_FOUND (blv, 0); */
-      blv->found = 0;
+	set_blv_where (blv, Qnil);
+      set_blv_found (blv, 0);
     }
 
   /* If the symbol forwards into a C variable, then load the binding
@@ -1733,10 +1731,8 @@ From now on the default value will apply in this buffer.  Return VARIABLE.  */)
     Lisp_Object buf; XSETBUFFER (buf, current_buffer);
     if (EQ (buf, blv->where))
       {
-	blv->where = Qnil;
-	/* blv->valcell = blv->defcell;
-	 * SET_BLV_FOUND (blv, 0); */
-	blv->found = 0;
+	set_blv_where (blv, Qnil);
+	set_blv_found (blv, 0);
 	find_symbol_value (variable);
       }
   }
@@ -1857,11 +1853,11 @@ BUFFER defaults to the current buffer.  */)
 	    if (EQ (variable, XCAR (elt)))
 	      {
 		eassert (!blv->frame_local);
-		eassert (BLV_FOUND (blv) || !EQ (blv->where, tmp));
+		eassert (blv_found (blv) || !EQ (blv->where, tmp));
 		return Qt;
 	      }
 	  }
-	eassert (!BLV_FOUND (blv) || !EQ (blv->where, tmp));
+	eassert (!blv_found (blv) || !EQ (blv->where, tmp));
 	return Qnil;
       }
     case SYMBOL_FORWARDED:
@@ -1951,7 +1947,7 @@ If the current binding is global (the default), the value is nil.  */)
       if (!NILP (Flocal_variable_p (variable, Qnil)))
 	return Fcurrent_buffer ();
       else if (sym->redirect == SYMBOL_LOCALIZED
-	       && BLV_FOUND (SYMBOL_BLV (sym)))
+	       && blv_found (SYMBOL_BLV (sym)))
 	return SYMBOL_BLV (sym)->where;
       else
 	return Qnil;

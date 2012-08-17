@@ -1472,14 +1472,6 @@ struct Lisp_Buffer_Local_Value
     Lisp_Object valcell;
   };
 
-#define BLV_FOUND(blv) \
-  (eassert ((blv)->found == !EQ ((blv)->defcell, (blv)->valcell)), (blv)->found)
-#define SET_BLV_FOUND(blv, v) \
-  (eassert ((v) == !EQ ((blv)->defcell, (blv)->valcell)), (blv)->found = (v))
-
-#define BLV_VALUE(blv) (XCDR ((blv)->valcell))
-#define SET_BLV_VALUE(blv, v) (XSETCDR ((blv)->valcell, v))
-
 /* Like Lisp_Objfwd except that value lives in a slot in the
    current kboard.  */
 struct Lisp_Kboard_Objfwd
@@ -2413,6 +2405,52 @@ LISP_INLINE void
 set_symbol_next (Lisp_Object sym, struct Lisp_Symbol *next)
 {
   XSYMBOL (sym)->next = next;
+}
+
+/* Buffer-local (also frame-local) variable access functions.  */
+
+LISP_INLINE int
+blv_found (struct Lisp_Buffer_Local_Value *blv)
+{
+  eassert (blv->found == !EQ (blv->defcell, blv->valcell));
+  return blv->found;
+}
+
+LISP_INLINE void
+set_blv_found (struct Lisp_Buffer_Local_Value *blv, int found)
+{
+  eassert (found == !EQ (blv->defcell, blv->valcell));
+  blv->found = found;
+}
+
+LISP_INLINE Lisp_Object
+blv_value (struct Lisp_Buffer_Local_Value *blv)
+{
+  return XCDR (blv->valcell);
+}
+
+LISP_INLINE void
+set_blv_value (struct Lisp_Buffer_Local_Value *blv, Lisp_Object val)
+{
+  XSETCDR (blv->valcell, val);
+}
+
+LISP_INLINE void
+set_blv_where (struct Lisp_Buffer_Local_Value *blv, Lisp_Object val)
+{
+  blv->where = val;
+}
+
+LISP_INLINE void
+set_blv_defcell (struct Lisp_Buffer_Local_Value *blv, Lisp_Object val)
+{
+  blv->defcell = val;
+}
+
+LISP_INLINE void
+set_blv_valcell (struct Lisp_Buffer_Local_Value *blv, Lisp_Object val)
+{
+  blv->valcell = val;
 }
 
 /* Set overlay's property list.  */

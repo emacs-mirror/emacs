@@ -1,3 +1,11 @@
+2012-08-17  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Functions to get and set Lisp_Object fields of buffer-local variables.
+	* lisp.h (blv_found, set_blv_found, blv_value, set_blv_value)
+	(set_blv_where, set_blv_defcell, set_blv_valcell): New functions.
+	(BLV_FOUND, SET_BLV_FOUND, BLV_VALUE, SET_BLV_VALUE): Remove.
+	* data.c, eval.c, frame.c: Adjust users.
+
 2012-08-17  Chong Yidong  <cyd@gnu.org>
 
 	* xfaces.c (merge_face_vectors): If the target font specfies a
