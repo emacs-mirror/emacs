@@ -2281,6 +2281,7 @@ merge_face_vectors (struct frame *f, Lisp_Object *from, Lisp_Object *to,
 		    struct named_merge_point *named_merge_points)
 {
   int i;
+  Lisp_Object font = Qnil;
 
   /* If FROM inherits from some other faces, merge their attributes into
      TO before merging FROM's direct attributes.  Note that an :inherit
@@ -2291,24 +2292,13 @@ merge_face_vectors (struct frame *f, Lisp_Object *from, Lisp_Object *to,
       && !NILP (from[LFACE_INHERIT_INDEX]))
     merge_face_ref (f, from[LFACE_INHERIT_INDEX], to, 0, named_merge_points);
 
-  i = LFACE_FONT_INDEX;
-  if (!UNSPECIFIEDP (from[i]))
+  if (FONT_SPEC_P (from[LFACE_FONT_INDEX]))
     {
-      if (!UNSPECIFIEDP (to[i]))
-	to[i] = merge_font_spec (from[i], to[i]);
+      if (!UNSPECIFIEDP (to[LFACE_FONT_INDEX]))
+	font = merge_font_spec (from[LFACE_FONT_INDEX], to[LFACE_FONT_INDEX]);
       else
-	to[i] = copy_font_spec (from[i]);
-      if (! NILP (AREF (to[i], FONT_FOUNDRY_INDEX)))
-	to[LFACE_FOUNDRY_INDEX] = SYMBOL_NAME (AREF (to[i], FONT_FOUNDRY_INDEX));
-      if (! NILP (AREF (to[i], FONT_FAMILY_INDEX)))
-	to[LFACE_FAMILY_INDEX] = SYMBOL_NAME (AREF (to[i], FONT_FAMILY_INDEX));
-      if (! NILP (AREF (to[i], FONT_WEIGHT_INDEX)))
-	to[LFACE_WEIGHT_INDEX] = FONT_WEIGHT_FOR_FACE (to[i]);
-      if (! NILP (AREF (to[i], FONT_SLANT_INDEX)))
-	to[LFACE_SLANT_INDEX] = FONT_SLANT_FOR_FACE (to[i]);
-      if (! NILP (AREF (to[i], FONT_WIDTH_INDEX)))
-	to[LFACE_SWIDTH_INDEX] = FONT_WIDTH_FOR_FACE (to[i]);
-      ASET (to[i], FONT_SIZE_INDEX, Qnil);
+	font = copy_font_spec (from[LFACE_FONT_INDEX]);
+      to[LFACE_FONT_INDEX] = font;
     }
 
   for (i = 1; i < LFACE_VECTOR_SIZE; ++i)
@@ -2319,8 +2309,7 @@ merge_face_vectors (struct frame *f, Lisp_Object *from, Lisp_Object *to,
 	    to[i] = merge_face_heights (from[i], to[i], to[i]);
 	    font_clear_prop (to, FONT_SIZE_INDEX);
 	  }
-	else if (i != LFACE_FONT_INDEX
-		 && ! EQ (to[i], from[i]))
+	else if (i != LFACE_FONT_INDEX && ! EQ (to[i], from[i]))
 	  {
 	    to[i] = from[i];
 	    if (i >= LFACE_FAMILY_INDEX && i <=LFACE_SLANT_INDEX)
@@ -2333,6 +2322,25 @@ merge_face_vectors (struct frame *f, Lisp_Object *from, Lisp_Object *to,
 				: FONT_SLANT_INDEX));
 	  }
       }
+
+  /* If FROM specifies a font spec, make its contents take precedence
+     over :family and other attributes.  This is needed for face
+     remapping using :font to work.  */
+
+  if (!NILP (font))
+    {
+      if (! NILP (AREF (font, FONT_FOUNDRY_INDEX)))
+	to[LFACE_FOUNDRY_INDEX] = SYMBOL_NAME (AREF (font, FONT_FOUNDRY_INDEX));
+      if (! NILP (AREF (font, FONT_FAMILY_INDEX)))
+	to[LFACE_FAMILY_INDEX] = SYMBOL_NAME (AREF (font, FONT_FAMILY_INDEX));
+      if (! NILP (AREF (font, FONT_WEIGHT_INDEX)))
+	to[LFACE_WEIGHT_INDEX] = FONT_WEIGHT_FOR_FACE (font);
+      if (! NILP (AREF (font, FONT_SLANT_INDEX)))
+	to[LFACE_SLANT_INDEX] = FONT_SLANT_FOR_FACE (font);
+      if (! NILP (AREF (font, FONT_WIDTH_INDEX)))
+	to[LFACE_SWIDTH_INDEX] = FONT_WIDTH_FOR_FACE (font);
+      ASET (font, FONT_SIZE_INDEX, Qnil);
+    }
 
   /* TO is always an absolute face, which should inherit from nothing.
      We blindly copy the :inherit attribute above and fix it up here.  */
@@ -2572,6 +2580,13 @@ merge_face_ref (struct frame *f, Lisp_Object face_ref, Lisp_Object *to,
 		      to[LFACE_SWIDTH_INDEX] = value;
 		      font_clear_prop (to, FONT_WIDTH_INDEX);
 		    }
+		  else
+		    err = 1;
+		}
+	      else if (EQ (keyword, QCfont))
+		{
+		  if (FONTP (value))
+		    to[LFACE_FONT_INDEX] = value;
 		  else
 		    err = 1;
 		}

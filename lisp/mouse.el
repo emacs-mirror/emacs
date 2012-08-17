@@ -1951,12 +1951,14 @@ choose a font."
 	      (choice
 	       ;; Either choice == 'x-select-font, or choice is a
 	       ;; symbol whose name is a font.
-	       (buffer-face-mode-invoke (font-face-attributes
-					 (if (eq choice 'x-select-font)
-					     (x-select-font)
-					   (symbol-name choice)))
-					t
-					(called-interactively-p 'interactive))))))))
+	       (let ((font (if (eq choice 'x-select-font)
+			       (x-select-font)
+			     (symbol-name choice))))
+		 (buffer-face-mode-invoke
+		  (if (fontp font 'font-spec)
+		      (list :font font)
+		    (font-face-attributes font))
+		  t (called-interactively-p 'interactive)))))))))
 
 
 ;;; Bindings for mouse commands.

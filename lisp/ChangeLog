@@ -1,3 +1,8 @@
+2012-08-17  Chong Yidong  <cyd@gnu.org>
+
+	* mouse.el (mouse-appearance-menu): If x-select-font returns a
+	font spec, set the font directly (Bug#3228).
+
 2012-08-17  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (delete-window): Fix last fix.

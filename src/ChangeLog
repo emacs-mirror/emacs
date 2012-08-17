@@ -1,3 +1,10 @@
+2012-08-17  Chong Yidong  <cyd@gnu.org>
+
+	* xfaces.c (merge_face_vectors): If the target font specfies a
+	font spec, make the font's attributes take precedence over
+	directly-specified attributes.
+	(merge_face_ref): Recognize :font.
+
 2012-08-17  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Do not use memcpy for copying intervals.
