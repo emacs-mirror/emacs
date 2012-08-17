@@ -5,7 +5,7 @@
 	(set_char_table_purpose): New functions,
 	replacing CSET.  All uses changed.  For example, replace
 	"CSET (XCHAR_TABLE (char_table), parent, parent);" with
-	"char_table_set_parent (char_table, parent);".
+	"set_char_table_parent (char_table, parent);".
 	The old version was confusing because it used the same name
 	'parent' for two different things.
 
