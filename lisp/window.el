@@ -2459,9 +2459,7 @@ that is its frame's root window."
 		 (not (eq (window-parameter parent 'window-side) 'none))))
 	(error "Attempt to delete last non-side window"))
        ((not parent)
-	(error "Attempt to delete minibuffer or sole ordinary window"))
-       ((eq window (window--major-non-side-window frame))
-	(error "Attempt to delete last non-side window")))
+	(error "Attempt to delete minibuffer or sole ordinary window")))
 
       (let* ((horizontal (window-left-child parent))
 	     (size (window-total-size window horizontal))
