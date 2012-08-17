@@ -395,6 +395,8 @@ BLOCKINPUT_H   = $(SRC)/blockinput.h \
 		 $(ATIMER_H)
 BUFFER_H       = $(SRC)/buffer.h \
 		 $(SYSTIME_H)
+C_CTYPE_H      = $(GNU_LIB)/c-ctype.h \
+		 $(NT_INC)/stdbool.h
 CAREADLINKAT_H = $(GNU_LIB)/careadlinkat.h \
 		 $(NT_INC)/unistd.h
 CHARACTER_H    = $(SRC)/character.h \
@@ -441,7 +443,8 @@ LISP_H         = $(SRC)/lisp.h \
 		 $(SRC)/globals.h \
 		 $(GNU_LIB)/intprops.h \
 		 $(INTTYPES_H) \
-		 $(NT_INC)/stdalign.h
+		 $(NT_INC)/stdalign.h \
+		 $(NT_INC)/stdbool.h
 MD5_H          = $(GNU_LIB)/md5.h \
 		 $(NT_INC)/stdint.h
 MENU_H         = $(SRC)/menu.h \
@@ -626,6 +629,7 @@ $(BLD)/charset.$(O) : \
 	$(CHARSET_H) \
 	$(CODING_H) \
 	$(CONFIG_H) \
+	$(C_CTYPE_H) \
 	$(LISP_H)
 
 $(BLD)/chartab.$(O) : \
@@ -747,6 +751,7 @@ $(BLD)/doc.$(O) : \
 	$(BUFFER_H) \
 	$(CHARACTER_H) \
 	$(CONFIG_H) \
+	$(C_CTYPE_H) \
 	$(KEYBOARD_H) \
 	$(LISP_H)
 
@@ -820,6 +825,7 @@ $(BLD)/fileio.$(O) : \
 	$(CHARACTER_H) \
 	$(CODING_H) \
 	$(CONFIG_H) \
+	$(C_CTYPE_H) \
 	$(DISPEXTERN_H) \
 	$(FRAME_H) \
 	$(INTERVALS_H) \
@@ -881,6 +887,7 @@ $(BLD)/font.$(O) : \
 	$(CHARACTER_H) \
 	$(CHARSET_H) \
 	$(CONFIG_H) \
+	$(C_CTYPE_H) \
 	$(DISPEXTERN_H) \
 	$(FONT_H) \
 	$(FRAME_H) \
@@ -916,6 +923,7 @@ $(BLD)/frame.$(O) : \
 	$(BUFFER_H) \
 	$(CHARACTER_H) \
 	$(CONFIG_H) \
+	$(C_CTYPE_H) \
 	$(DISPEXTERN_H) \
 	$(FONT_H) \
 	$(FRAME_H) \
@@ -967,6 +975,7 @@ $(BLD)/image.$(O) : \
 	$(CHARACTER_H) \
 	$(CODING_H) \
 	$(CONFIG_H) \
+	$(C_CTYPE_H) \
 	$(DISPEXTERN_H) \
 	$(FONT_H) \
 	$(FRAME_H) \
@@ -1354,6 +1363,7 @@ $(BLD)/sysdep.$(O) : \
 	$(BLOCKINPUT_H) \
 	$(CAREADLINKAT_H) \
 	$(CONFIG_H) \
+	$(C_CTYPE_H) \
 	$(DISPEXTERN_H) \
 	$(FRAME_H) \
 	$(GRP_H) \
@@ -1499,6 +1509,7 @@ $(BLD)/xfaces.$(O) : \
 	$(CHARACTER_H) \
 	$(CHARSET_H) \
 	$(CONFIG_H) \
+	$(C_CTYPE_H) \
 	$(DISPEXTERN_H) \
 	$(FONT_H) \
 	$(FRAME_H) \
