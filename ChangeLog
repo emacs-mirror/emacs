@@ -1,3 +1,8 @@
+2012-08-17  Jan Beich  <jbeich@tormail.org>  (tiny change)
+
+	* configure.ac (PTY_OPEN): Try posix_openpt on gnu-linux,
+	gnu-kfreebsd, freebsd, and netbsd.  (Bug#12040)
+
 2012-08-14  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Merge from gnulib, incorporating:
