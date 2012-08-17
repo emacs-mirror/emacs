@@ -1,3 +1,7 @@
+2012-08-17  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* lisp.h (duration_to_sec_usec): Remove unused decl.
+
 2012-08-17  Alp Aker  <alp.tekin.aker@gmail.com>
 
 	* nsfont.m (ns_ascii_average_width): Send initWithFormat selector
@@ -3451,6 +3455,7 @@
 	has at least microseconds now.  All uses removed.
 	(update_frame, update_single_window, update_window, update_frame_1)
 	(Fsleep_for, sit_for): Port to higher-resolution time stamps.
+	(duration_to_sec_usec): Remove; no longer needed.
 
 	* editfns.c (time_overflow): Now extern.
 	(Fcurrent_time, Fget_internal_run_time, make_time, lisp_time_argument)
