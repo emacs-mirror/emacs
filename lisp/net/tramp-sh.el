@@ -2738,51 +2738,64 @@ the result will be a local, non-Tramp, filename."
 	  (bmp (and (buffer-live-p buffer) (buffer-modified-p buffer)))
 	  (name1 name)
 	  (i 0))
-      (unwind-protect
-	  (save-excursion
-	    (save-restriction
-	      (unless buffer
-		;; BUFFER can be nil.  We use a temporary buffer.
-		(setq buffer (generate-new-buffer tramp-temp-buffer-name)))
-	      (while (get-process name1)
-		;; NAME must be unique as process name.
-		(setq i (1+ i)
-		      name1 (format "%s<%d>" name i)))
-	      (setq name name1)
-	      ;; Set the new process properties.
-	      (tramp-set-connection-property v "process-name" name)
-	      (tramp-set-connection-property v "process-buffer" buffer)
-	      ;; Activate narrowing in order to save BUFFER contents.
-	      ;; Clear also the modification time; otherwise we might
-	      ;; be interrupted by `verify-visited-file-modtime'.
-	      (with-current-buffer (tramp-get-connection-buffer v)
-		(let ((buffer-undo-list t))
+
+      (unless buffer
+	;; BUFFER can be nil.  We use a temporary buffer.
+	(setq buffer (generate-new-buffer tramp-temp-buffer-name)))
+      (while (get-process name1)
+	;; NAME must be unique as process name.
+	(setq i (1+ i)
+	      name1 (format "%s<%d>" name i)))
+      (setq name name1)
+      ;; Set the new process properties.
+      (tramp-set-connection-property v "process-name" name)
+      (tramp-set-connection-property v "process-buffer" buffer)
+
+      (with-current-buffer (tramp-get-connection-buffer v)
+	(unwind-protect
+	    (save-excursion
+	      (save-restriction
+		;; Activate narrowing in order to save BUFFER
+		;; contents.  Clear also the modification time;
+		;; otherwise we might be interrupted by
+		;; `verify-visited-file-modtime'.
+		(let ((buffer-undo-list t)
+		      (buffer-read-only nil)
+		      (mark (point)))
 		  (clear-visited-file-modtime)
 		  (narrow-to-region (point-max) (point-max))
+		  ;; We call `tramp-maybe-open-connection', in order
+		  ;; to cleanup the prompt afterwards.
+		  (tramp-maybe-open-connection v)
+		  (widen)
+		  (delete-region mark (point))
+		  (narrow-to-region (point-max) (point-max))
+		  ;; Now do it.
 		  (if command
 		      ;; Send the command.
 		      (tramp-send-command v command nil t) ; nooutput
 		    ;; Check, whether a pty is associated.
-		    (tramp-maybe-open-connection v)
 		    (unless (tramp-compat-process-get
 			     (tramp-get-connection-process v) 'remote-tty)
 		      (tramp-error
 		       v 'file-error
-		       "pty association is not supported for `%s'" name)))))
-	      (let ((p (tramp-get-connection-process v)))
-		;; Set query flag for this process.
-		(tramp-compat-set-process-query-on-exit-flag p t)
-		;; Return process.
-		p)))
-	;; Save exit.
-	(with-current-buffer (tramp-get-connection-buffer v)
+		       "pty association is not supported for `%s'" name))))
+		(let ((p (tramp-get-connection-process v)))
+		  ;; Set query flag for this process.  We ignore errors,
+		  ;; because the process could have finished already.
+		  (ignore-errors
+		    (tramp-compat-set-process-query-on-exit-flag p t))
+		  ;; Return process.
+		  p)))
+
+	  ;; Save exit.
 	  (if (string-match tramp-temp-buffer-name (buffer-name))
 	      (progn
 		(set-process-buffer (tramp-get-connection-process v) nil)
 		(kill-buffer (current-buffer)))
-	    (set-buffer-modified-p bmp)))
-	(tramp-set-connection-property v "process-name" nil)
-	(tramp-set-connection-property v "process-buffer" nil)))))
+	    (set-buffer-modified-p bmp))
+	  (tramp-set-connection-property v "process-name" nil)
+	  (tramp-set-connection-property v "process-buffer" nil))))))
 
 (defun tramp-sh-handle-process-file
   (program &optional infile destination display &rest args)

@@ -1,3 +1,8 @@
+2012-08-17  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-sh.el (tramp-sh-handle-start-file-process): Eliminate
+	superfluous prompt.  (Bug#12203)
+
 2012-08-17  Chong Yidong  <cyd@gnu.org>
 
 	* mouse.el (mouse-appearance-menu): If x-select-font returns a
