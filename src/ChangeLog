@@ -1,5 +1,27 @@
 2012-08-17  Paul Eggert  <eggert@cs.ucla.edu>
 
+	A few more naming-convention fixes for getters and setters.
+	* buffer.c (set_buffer_overlays_before): Move here from buffer.h,
+	and rename from buffer_overlays_set_before.
+	(set_buffer_overlays_after): Move here from buffer.h, and rename
+	from buffer_overlays_set_after.
+	* buffer.h (buffer_intervals): Rename from buffer_get_intervals.
+	All uses changed.
+	(set_buffer_intervals): Rename from buffer_set_intervals.
+	* intervals.c (set_interval_object): Move here from intervals.h,
+	and rename from interval_set_object.
+	(set_interval_left): Move here from intervals.h, and rename from
+	interval_set_left.
+	(set_interval_right): Move here from intervals.h, and rename from
+	interval_set_right.
+	(copy_interval_parent): Move here from intervals.h, and rename from
+	interval_copy_parent.
+	* intervals.h (set_interval_parent): Rename from interval_set_parent.
+	(set_interval_plist): Rename from interval_set_plist.
+	Return void, not Lisp_Object, since no caller uses the result.
+	* lisp.h (string_intervals): Rename from string_get_intervals.
+	(set_string_intervals): Rename from string_set_intervals.
+
 	* lisp.h (set_char_table_extras): Rename from char_table_set_extras.
 	(set_char_table_contents): Rename from char_table_set_contents.
 	(set_sub_char_table_contents): Rename from sub_char_table_set_contents.

@@ -360,7 +360,7 @@ even if it is dead.  The return value is never nil.  */)
   BUF_CHARS_MODIFF (b) = 1;
   BUF_OVERLAY_MODIFF (b) = 1;
   BUF_SAVE_MODIFF (b) = 1;
-  buffer_set_intervals (b, NULL);
+  set_buffer_intervals (b, NULL);
   BUF_UNCHANGED_MODIFIED (b) = 1;
   BUF_OVERLAY_UNCHANGED_MODIFIED (b) = 1;
   BUF_END_UNCHANGED (b) = 0;
@@ -384,7 +384,7 @@ even if it is dead.  The return value is never nil.  */)
   BSET (b, zv_marker, Qnil);
 
   name = Fcopy_sequence (buffer_or_name);
-  string_set_intervals (name, NULL);
+  set_string_intervals (name, NULL);
   BSET (b, name, name);
 
   BSET (b, undo_list, (SREF (name, 0) != ' ') ? Qnil : Qt);
@@ -439,6 +439,19 @@ copy_overlays (struct buffer *b, struct Lisp_Overlay *list)
   return result;
 }
 
+/* Set an appropriate overlay of B.  */
+
+static inline void
+set_buffer_overlays_before (struct buffer *b, struct Lisp_Overlay *o)
+{
+  b->overlays_before = o;
+}
+
+static inline void
+set_buffer_overlays_after (struct buffer *b, struct Lisp_Overlay *o)
+{
+  b->overlays_after = o;
+}
 
 /* Clone per-buffer values of buffer FROM.
 
@@ -474,8 +487,8 @@ clone_per_buffer_values (struct buffer *from, struct buffer *to)
 
   memcpy (to->local_flags, from->local_flags, sizeof to->local_flags);
 
-  buffer_set_overlays_before (to, copy_overlays (to, from->overlays_before));
-  buffer_set_overlays_after (to, copy_overlays (to, from->overlays_after));
+  set_buffer_overlays_before (to, copy_overlays (to, from->overlays_before));
+  set_buffer_overlays_after (to, copy_overlays (to, from->overlays_after));
 
   /* Get (a copy of) the alist of Lisp-level local variables of FROM
      and install that in TO.  */
@@ -589,7 +602,7 @@ CLONE nil means the indirect buffer's state is reset to default values.  */)
   all_buffers = b;
 
   name = Fcopy_sequence (name);
-  string_set_intervals (name, NULL);
+  set_string_intervals (name, NULL);
   BSET (b, name, name);
 
   reset_buffer (b);
@@ -688,8 +701,8 @@ delete_all_overlays (struct buffer *b)
       ov->next = NULL;
     }
 
-  buffer_set_overlays_before (b, NULL);
-  buffer_set_overlays_after (b, NULL);
+  set_buffer_overlays_before (b, NULL);
+  set_buffer_overlays_after (b, NULL);
 }
 
 /* Reinitialize everything about a buffer except its name and contents
@@ -718,8 +731,8 @@ reset_buffer (register struct buffer *b)
   b->auto_save_failure_time = 0;
   BSET (b, auto_save_file_name, Qnil);
   BSET (b, read_only, Qnil);
-  buffer_set_overlays_before (b, NULL);
-  buffer_set_overlays_after (b, NULL);
+  set_buffer_overlays_before (b, NULL);
+  set_buffer_overlays_after (b, NULL);
   b->overlay_center = BEG;
   BSET (b, mark_active, Qnil);
   BSET (b, point_before_scroll, Qnil);
@@ -1691,7 +1704,7 @@ cleaning up all windows currently displaying the buffer to be killed. */)
 	  m = next;
 	}
       BUF_MARKERS (b) = NULL;
-      buffer_set_intervals (b, NULL);
+      set_buffer_intervals (b, NULL);
 
       /* Perhaps we should explicitly free the interval tree here... */
     }
@@ -3238,7 +3251,7 @@ recenter_overlay_lists (struct buffer *buf, ptrdiff_t pos)
 	  if (prev)
 	    prev->next = next;
 	  else
-	    buffer_set_overlays_before (buf, next);
+	    set_buffer_overlays_before (buf, next);
 
 	  /* Search thru overlays_after for where to put it.  */
 	  other_prev = NULL;
@@ -3260,7 +3273,7 @@ recenter_overlay_lists (struct buffer *buf, ptrdiff_t pos)
 	  if (other_prev)
 	    other_prev->next = tail;
 	  else
-	    buffer_set_overlays_after (buf, tail);
+	    set_buffer_overlays_after (buf, tail);
 	  tail = prev;
 	}
       else
@@ -3296,7 +3309,7 @@ recenter_overlay_lists (struct buffer *buf, ptrdiff_t pos)
 	  if (prev)
 	    prev->next = next;
 	  else
-	    buffer_set_overlays_after (buf, next);
+	    set_buffer_overlays_after (buf, next);
 
 	  /* Search thru overlays_before for where to put it.  */
 	  other_prev = NULL;
@@ -3318,7 +3331,7 @@ recenter_overlay_lists (struct buffer *buf, ptrdiff_t pos)
 	  if (other_prev)
 	    other_prev->next = tail;
 	  else
-	    buffer_set_overlays_before (buf, tail);
+	    set_buffer_overlays_before (buf, tail);
 	  tail = prev;
 	}
     }
@@ -3423,7 +3436,7 @@ fix_start_end_in_overlays (register ptrdiff_t start, register ptrdiff_t end)
 	      beforep = tail;
 	    }
 	  if (!parent)
-	    buffer_set_overlays_before (current_buffer, tail->next);
+	    set_buffer_overlays_before (current_buffer, tail->next);
 	  else
 	    parent->next = tail->next;
 	  tail = tail->next;
@@ -3469,7 +3482,7 @@ fix_start_end_in_overlays (register ptrdiff_t start, register ptrdiff_t end)
 	      beforep = tail;
 	    }
 	  if (!parent)
-	    buffer_set_overlays_after (current_buffer, tail->next);
+	    set_buffer_overlays_after (current_buffer, tail->next);
 	  else
 	    parent->next = tail->next;
 	  tail = tail->next;
@@ -3483,14 +3496,14 @@ fix_start_end_in_overlays (register ptrdiff_t start, register ptrdiff_t end)
   if (beforep)
     {
       beforep->next = current_buffer->overlays_before;
-      buffer_set_overlays_before (current_buffer, before_list);
+      set_buffer_overlays_before (current_buffer, before_list);
     }
   recenter_overlay_lists (current_buffer, current_buffer->overlay_center);
 
   if (afterp)
     {
       afterp->next = current_buffer->overlays_after;
-      buffer_set_overlays_after (current_buffer, after_list);
+      set_buffer_overlays_after (current_buffer, after_list);
     }
   recenter_overlay_lists (current_buffer, current_buffer->overlay_center);
 }
@@ -3567,7 +3580,7 @@ fix_overlays_before (struct buffer *bp, ptrdiff_t prev, ptrdiff_t pos)
 	  if (!right_pair)
 	    {
 	      found->next = bp->overlays_before;
-	      buffer_set_overlays_before (bp, found);
+	      set_buffer_overlays_before (bp, found);
 	    }
 	  else
 	    {
@@ -3645,13 +3658,13 @@ for the rear of the overlay advance when text is inserted there
     {
       if (b->overlays_after)
 	XOVERLAY (overlay)->next = b->overlays_after;
-      buffer_set_overlays_after (b, XOVERLAY (overlay));
+      set_buffer_overlays_after (b, XOVERLAY (overlay));
     }
   else
     {
       if (b->overlays_before)
 	XOVERLAY (overlay)->next = b->overlays_before;
-      buffer_set_overlays_before (b, XOVERLAY (overlay));
+      set_buffer_overlays_before (b, XOVERLAY (overlay));
     }
 
   /* This puts it in the right list, and in the right order.  */
@@ -3716,8 +3729,8 @@ unchain_both (struct buffer *b, Lisp_Object overlay)
 {
   struct Lisp_Overlay *ov = XOVERLAY (overlay);
 
-  buffer_set_overlays_before (b, unchain_overlay (b->overlays_before, ov));
-  buffer_set_overlays_after (b, unchain_overlay (b->overlays_after, ov));
+  set_buffer_overlays_before (b, unchain_overlay (b->overlays_before, ov));
+  set_buffer_overlays_after (b, unchain_overlay (b->overlays_after, ov));
   eassert (XOVERLAY (overlay)->next == NULL);
 }
 
@@ -3812,12 +3825,12 @@ buffer.  */)
   if (n_end < b->overlay_center)
     {
       XOVERLAY (overlay)->next = b->overlays_after;
-      buffer_set_overlays_after (b, XOVERLAY (overlay));
+      set_buffer_overlays_after (b, XOVERLAY (overlay));
     }
   else
     {
       XOVERLAY (overlay)->next = b->overlays_before;
-      buffer_set_overlays_before (b, XOVERLAY (overlay));
+      set_buffer_overlays_before (b, XOVERLAY (overlay));
     }
 
   /* This puts it in the right list, and in the right order.  */
@@ -4913,8 +4926,8 @@ init_buffer_once (void)
   /* No one will share the text with these buffers, but let's play it safe.  */
   buffer_defaults.indirections = 0;
   buffer_local_symbols.indirections = 0;
-  buffer_set_intervals (&buffer_defaults, NULL);
-  buffer_set_intervals (&buffer_local_symbols, NULL);
+  set_buffer_intervals (&buffer_defaults, NULL);
+  set_buffer_intervals (&buffer_local_symbols, NULL);
   XSETPVECTYPESIZE (&buffer_defaults, PVEC_BUFFER, pvecsize);
   XSETBUFFER (Vbuffer_defaults, &buffer_defaults);
   XSETPVECTYPESIZE (&buffer_local_symbols, PVEC_BUFFER, pvecsize);
@@ -4938,8 +4951,8 @@ init_buffer_once (void)
   BSET (&buffer_defaults, mark_active, Qnil);
   BSET (&buffer_defaults, file_format, Qnil);
   BSET (&buffer_defaults, auto_save_file_format, Qt);
-  buffer_set_overlays_before (&buffer_defaults, NULL);
-  buffer_set_overlays_after (&buffer_defaults, NULL);
+  set_buffer_overlays_before (&buffer_defaults, NULL);
+  set_buffer_overlays_after (&buffer_defaults, NULL);
   buffer_defaults.overlay_center = BEG;
 
   XSETFASTINT (BVAR (&buffer_defaults, tab_width), 8);

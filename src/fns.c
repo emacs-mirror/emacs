@@ -628,7 +628,7 @@ concat (ptrdiff_t nargs, Lisp_Object *args,
 	  ptrdiff_t thislen_byte = SBYTES (this);
 
 	  memcpy (SDATA (val) + toindex_byte, SDATA (this), SBYTES (this));
-	  if (string_get_intervals (this))
+	  if (string_intervals (this))
 	    {
 	      textprops[num_textprops].argnum = argnum;
 	      textprops[num_textprops].from = 0;
@@ -640,7 +640,7 @@ concat (ptrdiff_t nargs, Lisp_Object *args,
       /* Copy a single-byte string to a multibyte string.  */
       else if (STRINGP (this) && STRINGP (val))
 	{
-	  if (string_get_intervals (this))
+	  if (string_intervals (this))
 	    {
 	      textprops[num_textprops].argnum = argnum;
 	      textprops[num_textprops].from = 0;
@@ -1060,7 +1060,7 @@ If you're not sure, whether to use `string-as-multibyte' or
 	str_as_multibyte (SDATA (new_string), nbytes,
 			  SBYTES (string), NULL);
       string = new_string;
-      string_set_intervals (string, NULL);
+      set_string_intervals (string, NULL);
     }
   return string;
 }

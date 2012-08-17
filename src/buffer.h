@@ -953,7 +953,7 @@ extern Lisp_Object Qfirst_change_hook;
 /* Get text properties of B.  */
 
 BUFFER_INLINE INTERVAL
-buffer_get_intervals (struct buffer *b)
+buffer_intervals (struct buffer *b)
 {
   eassert (b->text != NULL);
   return b->text->intervals;
@@ -962,24 +962,10 @@ buffer_get_intervals (struct buffer *b)
 /* Set text properties of B to I.  */
 
 BUFFER_INLINE void
-buffer_set_intervals (struct buffer *b, INTERVAL i)
+set_buffer_intervals (struct buffer *b, INTERVAL i)
 {
   eassert (b->text != NULL);
   b->text->intervals = i;
-}
-
-/* Set an appropriate overlay of B.  */
-
-BUFFER_INLINE void
-buffer_set_overlays_before (struct buffer *b, struct Lisp_Overlay *o)
-{
-  b->overlays_before = o;
-}
-
-BUFFER_INLINE void
-buffer_set_overlays_after (struct buffer *b, struct Lisp_Overlay *o)
-{
-  b->overlays_after = o;
 }
 
 /* Non-zero if current buffer has overlays.  */

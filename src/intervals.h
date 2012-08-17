@@ -137,47 +137,16 @@ struct interval
    or pointer slots of struct interval.  */
 
 INTERVALS_INLINE void
-interval_set_parent (INTERVAL i, INTERVAL parent)
+set_interval_parent (INTERVAL i, INTERVAL parent)
 {
   i->up_obj = 0;
   i->up.interval = parent;
 }
 
 INTERVALS_INLINE void
-interval_set_object (INTERVAL i, Lisp_Object obj)
-{
-  eassert (BUFFERP (obj) || STRINGP (obj));
-  i->up_obj = 1;
-  i->up.obj = obj;
-}
-
-INTERVALS_INLINE void
-interval_set_left (INTERVAL i, INTERVAL left)
-{
-  i->left = left;
-}
-
-INTERVALS_INLINE void
-interval_set_right (INTERVAL i, INTERVAL right)
-{
-  i->right = right;
-}
-
-INTERVALS_INLINE Lisp_Object
-interval_set_plist (INTERVAL i, Lisp_Object plist)
+set_interval_plist (INTERVAL i, Lisp_Object plist)
 {
   i->plist = plist;
-  return plist;
-}
-
-/* Make the parent of D be whatever the parent of S is, regardless
-   of the type.  This is used when balancing an interval tree.  */
-
-INTERVALS_INLINE void
-interval_copy_parent (INTERVAL d, INTERVAL s)
-{
-  d->up = s->up;
-  d->up_obj = s->up_obj;
 }
 
 /* Get the parent interval, if any, otherwise a null pointer.  Useful
@@ -191,11 +160,11 @@ interval_copy_parent (INTERVAL d, INTERVAL s)
 {					      \
   (i)->total_length = (i)->position = 0;      \
   (i)->left = (i)->right = NULL;	      \
-  interval_set_parent (i, NULL);	      \
+  set_interval_parent (i, NULL);	      \
   (i)->write_protect = 0;		      \
   (i)->visible = 0;			      \
   (i)->front_sticky = (i)->rear_sticky = 0;   \
-  interval_set_plist (i, Qnil);		      \
+  set_interval_plist (i, Qnil);		      \
 }
 
 /* Copy the cached property values of interval FROM to interval TO.  */

@@ -3936,7 +3936,7 @@ usage: (format STRING &rest OBJECTS)  */)
 
 		  /* If this argument has text properties, record where
 		     in the result string it appears.  */
-		  if (string_get_intervals (args[n]))
+		  if (string_intervals (args[n]))
 		    info[n].intervals = arg_intervals = 1;
 
 		  continue;
@@ -4280,7 +4280,7 @@ usage: (format STRING &rest OBJECTS)  */)
      arguments has text properties, set up text properties of the
      result string.  */
 
-  if (string_get_intervals (args[0]) || arg_intervals)
+  if (string_intervals (args[0]) || arg_intervals)
     {
       Lisp_Object len, new_len, props;
       struct gcpro gcpro1;
@@ -4530,7 +4530,7 @@ Transposing beyond buffer boundaries is an error.  */)
   Lisp_Object buf;
 
   XSETBUFFER (buf, current_buffer);
-  cur_intv = buffer_get_intervals (current_buffer);
+  cur_intv = buffer_intervals (current_buffer);
 
   validate_region (&startr1, &endr1);
   validate_region (&startr2, &endr2);

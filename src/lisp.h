@@ -2458,7 +2458,7 @@ set_overlay_plist (Lisp_Object overlay, Lisp_Object plist)
 /* Get text properties of S.  */
 
 LISP_INLINE INTERVAL
-string_get_intervals (Lisp_Object s)
+string_intervals (Lisp_Object s)
 {
   return XSTRING (s)->intervals;
 }
@@ -2466,7 +2466,7 @@ string_get_intervals (Lisp_Object s)
 /* Set text properties of S to I.  */
 
 LISP_INLINE void
-string_set_intervals (Lisp_Object s, INTERVAL i)
+set_string_intervals (Lisp_Object s, INTERVAL i)
 {
   XSTRING (s)->intervals = i;
 }

@@ -3146,7 +3146,7 @@ decide_coding_unwind (Lisp_Object unwind_data)
     set_buffer_internal (XBUFFER (buffer));
   adjust_markers_for_delete (BEG, BEG_BYTE, Z, Z_BYTE);
   adjust_overlays_for_delete (BEG, Z - BEG);
-  buffer_set_intervals (current_buffer, NULL);
+  set_buffer_intervals (current_buffer, NULL);
   TEMP_SET_PT_BOTH (BEG, BEG_BYTE);
 
   /* Now we are safe to change the buffer's multibyteness directly.  */

@@ -5836,7 +5836,7 @@ mark_buffer (struct buffer *buffer)
 
   /* ...but there are some buffer-specific things.  */
 
-  MARK_INTERVAL_TREE (buffer_get_intervals (buffer));
+  MARK_INTERVAL_TREE (buffer_intervals (buffer));
 
   /* For now, we just don't mark the undo_list.  It's done later in
      a special way just before the sweep phase, and after stripping
@@ -6090,7 +6090,7 @@ mark_object (Lisp_Object arg)
 	  }
 	if (!PURE_POINTER_P (XSTRING (ptr->name)))
 	  MARK_STRING (XSTRING (ptr->name));
-	MARK_INTERVAL_TREE (string_get_intervals (ptr->name));
+	MARK_INTERVAL_TREE (string_intervals (ptr->name));
 
 	ptr = ptr->next;
 	if (ptr)
@@ -6405,7 +6405,7 @@ gc_sweep (void)
 	  {
 	    if (!iblk->intervals[i].gcmarkbit)
 	      {
-		interval_set_parent (&iblk->intervals[i], interval_free_list);
+		set_interval_parent (&iblk->intervals[i], interval_free_list);
 		interval_free_list = &iblk->intervals[i];
 		this_free++;
 	      }
