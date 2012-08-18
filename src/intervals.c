@@ -1887,7 +1887,7 @@ set_point_both (ptrdiff_t charpos, ptrdiff_t bytepos)
   int have_overlays;
   ptrdiff_t original_position;
 
-  BSET (current_buffer, point_before_scroll, Qnil);
+  bset_point_before_scroll (current_buffer, Qnil);
 
   if (charpos == PT)
     return;

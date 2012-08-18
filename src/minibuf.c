@@ -565,11 +565,11 @@ read_minibuf (Lisp_Object map, Lisp_Object initial, Lisp_Object prompt,
 
   /* Defeat (setq-default truncate-lines t), since truncated lines do
      not work correctly in minibuffers.  (Bug#5715, etc)  */
-  BSET (current_buffer, truncate_lines, Qnil);
+  bset_truncate_lines (current_buffer, Qnil);
 
   /* If appropriate, copy enable-multibyte-characters into the minibuffer.  */
   if (inherit_input_method)
-    BSET (current_buffer, enable_multibyte_characters, enable_multibyte);
+    bset_enable_multibyte_characters (current_buffer, enable_multibyte);
 
   /* The current buffer's default directory is usually the right thing
      for our minibuffer here.  However, if you're typing a command at
@@ -580,7 +580,7 @@ read_minibuf (Lisp_Object map, Lisp_Object initial, Lisp_Object prompt,
      you think of something better to do?  Find another buffer with a
      better directory, and use that one instead.  */
   if (STRINGP (ambient_dir))
-    BSET (current_buffer, directory, ambient_dir);
+    bset_directory (current_buffer, ambient_dir);
   else
     {
       Lisp_Object buf_list;
@@ -594,8 +594,8 @@ read_minibuf (Lisp_Object map, Lisp_Object initial, Lisp_Object prompt,
 	  other_buf = XCDR (XCAR (buf_list));
 	  if (STRINGP (BVAR (XBUFFER (other_buf), directory)))
 	    {
-	      BSET (current_buffer, directory,
-                   BVAR (XBUFFER (other_buf), directory));
+	      bset_directory (current_buffer,
+			      BVAR (XBUFFER (other_buf), directory));
 	      break;
 	    }
 	}
@@ -672,7 +672,7 @@ read_minibuf (Lisp_Object map, Lisp_Object initial, Lisp_Object prompt,
     }
 
   clear_message (1, 1);
-  BSET (current_buffer, keymap, map);
+  bset_keymap (current_buffer, map);
 
   /* Turn on an input method stored in INPUT_METHOD if any.  */
   if (STRINGP (input_method) && !NILP (Ffboundp (Qactivate_input_method)))
@@ -681,7 +681,7 @@ read_minibuf (Lisp_Object map, Lisp_Object initial, Lisp_Object prompt,
   Frun_hooks (1, &Qminibuffer_setup_hook);
 
   /* Don't allow the user to undo past this point.  */
-  BSET (current_buffer, undo_list, Qnil);
+  bset_undo_list (current_buffer, Qnil);
 
   recursive_edit_1 ();
 

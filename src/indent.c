@@ -141,7 +141,7 @@ recompute_width_table (struct buffer *buf, struct Lisp_Char_Table *disptab)
   struct Lisp_Vector *widthtab;
 
   if (!VECTORP (BVAR (buf, width_table)))
-    BSET (buf, width_table, Fmake_vector (make_number (256), make_number (0)));
+    bset_width_table (buf, Fmake_vector (make_number (256), make_number (0)));
   widthtab = XVECTOR (BVAR (buf, width_table));
   if (widthtab->header.size != 256)
     abort ();
@@ -166,7 +166,7 @@ width_run_cache_on_off (void)
         {
           free_region_cache (current_buffer->width_run_cache);
           current_buffer->width_run_cache = 0;
-          BSET (current_buffer, width_table, Qnil);
+          bset_width_table (current_buffer, Qnil);
         }
     }
   else

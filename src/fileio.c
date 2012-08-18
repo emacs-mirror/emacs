@@ -3150,8 +3150,8 @@ decide_coding_unwind (Lisp_Object unwind_data)
   TEMP_SET_PT_BOTH (BEG, BEG_BYTE);
 
   /* Now we are safe to change the buffer's multibyteness directly.  */
-  BSET (current_buffer, enable_multibyte_characters, multibyte);
-  BSET (current_buffer, undo_list, undo_list);
+  bset_enable_multibyte_characters (current_buffer, multibyte);
+  bset_undo_list (current_buffer, undo_list);
 
   return Qnil;
 }
@@ -3487,16 +3487,16 @@ variable `last-coding-system-used' to the coding system actually used.  */)
 		  buf = XBUFFER (workbuf);
 
 		  delete_all_overlays (buf);
-		  BSET (buf, directory, BVAR (current_buffer, directory));
-		  BSET (buf, read_only, Qnil);
-		  BSET (buf, filename, Qnil);
-		  BSET (buf, undo_list, Qt);
+		  bset_directory (buf, BVAR (current_buffer, directory));
+		  bset_read_only (buf, Qnil);
+		  bset_filename (buf, Qnil);
+		  bset_undo_list (buf, Qt);
 		  eassert (buf->overlays_before == NULL);
 		  eassert (buf->overlays_after == NULL);
 
 		  set_buffer_internal (buf);
 		  Ferase_buffer ();
-		  BSET (buf, enable_multibyte_characters, Qnil);
+		  bset_enable_multibyte_characters (buf, Qnil);
 
 		  insert_1_both ((char *) read_buf, nread, nread, 0, 0, 0);
 		  TEMP_SET_PT_BOTH (BEG, BEG_BYTE);
@@ -4105,8 +4105,8 @@ variable `last-coding-system-used' to the coding system actually used.  */)
 	  unwind_data = Fcons (BVAR (current_buffer, enable_multibyte_characters),
 			       Fcons (BVAR (current_buffer, undo_list),
 				      Fcurrent_buffer ()));
-	  BSET (current_buffer, enable_multibyte_characters, Qnil);
-	  BSET (current_buffer, undo_list, Qt);
+	  bset_enable_multibyte_characters (current_buffer, Qnil);
+	  bset_undo_list (current_buffer, Qt);
 	  record_unwind_protect (decide_coding_unwind, unwind_data);
 
 	  if (inserted > 0 && ! NILP (Vset_auto_coding_function))
@@ -4154,7 +4154,7 @@ variable `last-coding-system-used' to the coding system actually used.  */)
 	  && NILP (replace))
 	/* Visiting a file with these coding system makes the buffer
 	   unibyte. */
-	BSET (current_buffer, enable_multibyte_characters, Qnil);
+	bset_enable_multibyte_characters (current_buffer, Qnil);
     }
 
   coding.dst_multibyte = ! NILP (BVAR (current_buffer, enable_multibyte_characters));
@@ -4197,13 +4197,13 @@ variable `last-coding-system-used' to the coding system actually used.  */)
   if (!NILP (visit))
     {
       if (!EQ (BVAR (current_buffer, undo_list), Qt) && !nochange)
-	BSET (current_buffer, undo_list, Qnil);
+	bset_undo_list (current_buffer, Qnil);
 
       if (NILP (handler))
 	{
 	  current_buffer->modtime = mtime;
 	  current_buffer->modtime_size = st.st_size;
-	  BSET (current_buffer, filename, orig_filename);
+	  bset_filename (current_buffer, orig_filename);
 	}
 
       SAVE_MODIFF = MODIFF;
@@ -4248,7 +4248,7 @@ variable `last-coding-system-used' to the coding system actually used.  */)
 
       /* Save old undo list and don't record undo for decoding.  */
       old_undo = BVAR (current_buffer, undo_list);
-      BSET (current_buffer, undo_list, Qt);
+      bset_undo_list (current_buffer, Qt);
 
       if (NILP (replace))
 	{
@@ -4340,7 +4340,7 @@ variable `last-coding-system-used' to the coding system actually used.  */)
 
       if (NILP (visit))
 	{
-	  BSET (current_buffer, undo_list, old_undo);
+	  bset_undo_list (current_buffer, old_undo);
 	  if (CONSP (old_undo) && inserted != old_inserted)
 	    {
 	      /* Adjust the last undo record for the size change during
@@ -4355,7 +4355,7 @@ variable `last-coding-system-used' to the coding system actually used.  */)
       else
 	/* If undo_list was Qt before, keep it that way.
 	   Otherwise start with an empty undo_list.  */
-	BSET (current_buffer, undo_list, EQ (old_undo, Qt) ? Qt : Qnil);
+	bset_undo_list (current_buffer, EQ (old_undo, Qt) ? Qt : Qnil);
 
       unbind_to (count1, Qnil);
     }
@@ -4595,7 +4595,7 @@ This calls `write-region-annotate-functions' at the start, and
 	{
 	  SAVE_MODIFF = MODIFF;
 	  XSETFASTINT (BVAR (current_buffer, save_length), Z - BEG);
-	  BSET (current_buffer, filename, visit_file);
+	  bset_filename (current_buffer, visit_file);
 	}
       UNGCPRO;
       return val;
@@ -4811,7 +4811,7 @@ This calls `write-region-annotate-functions' at the start, and
     {
       SAVE_MODIFF = MODIFF;
       XSETFASTINT (BVAR (current_buffer, save_length), Z - BEG);
-      BSET (current_buffer, filename, visit_file);
+      bset_filename (current_buffer, visit_file);
       update_mode_lines++;
     }
   else if (quietly)

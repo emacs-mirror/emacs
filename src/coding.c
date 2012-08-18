@@ -7112,7 +7112,7 @@ decode_coding (struct coding_system *coding)
 	record_first_change ();
 
       undo_list = BVAR (current_buffer, undo_list);
-      BSET (current_buffer, undo_list, Qt);
+      bset_undo_list (current_buffer, Qt);
     }
 
   coding->consumed = coding->consumed_char = 0;
@@ -7209,7 +7209,7 @@ decode_coding (struct coding_system *coding)
     decode_eol (coding);
   if (BUFFERP (coding->dst_object))
     {
-      BSET (current_buffer, undo_list, undo_list);
+      bset_undo_list (current_buffer, undo_list);
       record_insert (coding->dst_pos, coding->produced_char);
     }
   return coding->result;
@@ -7577,8 +7577,8 @@ make_conversion_work_buffer (int multibyte)
      doesn't compile new regexps.  */
   Fset (Fmake_local_variable (Qinhibit_modification_hooks), Qt);
   Ferase_buffer ();
-  BSET (current_buffer, undo_list, Qt);
-  BSET (current_buffer, enable_multibyte_characters, multibyte ? Qt : Qnil);
+  bset_undo_list (current_buffer, Qt);
+  bset_enable_multibyte_characters (current_buffer, multibyte ? Qt : Qnil);
   set_buffer_internal (current);
   return workbuf;
 }

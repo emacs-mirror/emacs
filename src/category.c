@@ -40,6 +40,13 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "category.h"
 #include "keymap.h"
 
+/* This setter is used only in this file, so it can be private.  */
+static inline void
+bset_category_table (struct buffer *b, Lisp_Object val)
+{
+  b->INTERNAL_FIELD (category_table) = val;
+}
+
 /* The version number of the latest category table.  Each category
    table has a unique version number.  It is assigned a new number
    also when it is modified.  When a regular expression is compiled
@@ -285,7 +292,7 @@ Return TABLE.  */)
 {
   int idx;
   table = check_category_table (table);
-  BSET (current_buffer, category_table, table);
+  bset_category_table (current_buffer, table);
   /* Indicate that this buffer now has a specified category table.  */
   idx = PER_BUFFER_VAR_IDX (category_table);
   SET_PER_BUFFER_VALUE_P (current_buffer, idx, 1);

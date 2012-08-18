@@ -494,14 +494,14 @@ temp_output_buffer_setup (const char *bufname)
 
   Fkill_all_local_variables ();
   delete_all_overlays (current_buffer);
-  BSET (current_buffer, directory, BVAR (old, directory));
-  BSET (current_buffer, read_only, Qnil);
-  BSET (current_buffer, filename, Qnil);
-  BSET (current_buffer, undo_list, Qt);
+  bset_directory (current_buffer, BVAR (old, directory));
+  bset_read_only (current_buffer, Qnil);
+  bset_filename (current_buffer, Qnil);
+  bset_undo_list (current_buffer, Qt);
   eassert (current_buffer->overlays_before == NULL);
   eassert (current_buffer->overlays_after == NULL);
-  BSET (current_buffer, enable_multibyte_characters,
-	BVAR (&buffer_defaults, enable_multibyte_characters));
+  bset_enable_multibyte_characters
+    (current_buffer, BVAR (&buffer_defaults, enable_multibyte_characters));
   specbind (Qinhibit_read_only, Qt);
   specbind (Qinhibit_modification_hooks, Qt);
   Ferase_buffer ();
