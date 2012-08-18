@@ -2003,7 +2003,7 @@ whether or not it is currently displayed in some window.  */)
       old_buffer = w->buffer;
       old_charpos = XMARKER (w->pointm)->charpos;
       old_bytepos = XMARKER (w->pointm)->bytepos;
-      WSET (w, buffer, Fcurrent_buffer ());
+      wset_buffer (w, Fcurrent_buffer ());
       set_marker_both (w->pointm, w->buffer,
 		       BUF_PT (current_buffer), BUF_PT_BYTE (current_buffer));
     }
@@ -2146,7 +2146,7 @@ whether or not it is currently displayed in some window.  */)
 
   if (BUFFERP (old_buffer))
     {
-      WSET (w, buffer, old_buffer);
+      wset_buffer (w, old_buffer);
       set_marker_both (w->pointm, w->buffer,
 		       old_charpos, old_bytepos);
     }

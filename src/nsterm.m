@@ -3698,7 +3698,7 @@ ns_set_vertical_scroll_bar (struct window *window,
         {
           bar = XNS_SCROLL_BAR (window->vertical_scroll_bar);
           [bar removeFromSuperview];
-          WSET (window, vertical_scroll_bar, Qnil);
+          wset_vertical_scroll_bar (window, Qnil);
         }
       ns_clear_frame_area (f, sb_left, top, width, height);
       UNBLOCK_INPUT;
@@ -3709,7 +3709,7 @@ ns_set_vertical_scroll_bar (struct window *window,
     {
       ns_clear_frame_area (f, sb_left, top, width, height);
       bar = [[EmacsScroller alloc] initFrame: r window: win];
-      WSET (window, vertical_scroll_bar, make_save_value (bar, 0));
+      wset_vertical_scroll_bar (window, make_save_value (bar, 0));
     }
   else
     {
@@ -6388,7 +6388,7 @@ not_in_argv (NSString *arg)
 {
   NSTRACE (EmacsScroller_dealloc);
   if (!NILP (win))
-    WSET (XWINDOW (win), vertical_scroll_bar, Qnil);
+    wset_vertical_scroll_bar (XWINDOW (win), Qnil);
   [super dealloc];
 }
 

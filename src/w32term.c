@@ -3670,7 +3670,7 @@ x_scroll_bar_remove (struct scroll_bar *bar)
   my_destroy_window (f, SCROLL_BAR_W32_WINDOW (bar));
 
   /* Dissociate this scroll bar from its window.  */
-  WSET (XWINDOW (bar->window), vertical_scroll_bar, Qnil);
+  wset_vertical_scroll_bar (XWINDOW (bar->window), Qnil);
 
   UNBLOCK_INPUT;
 }
@@ -3808,7 +3808,7 @@ w32_set_vertical_scroll_bar (struct window *w,
 
   w32_set_scroll_bar_thumb (bar, portion, position, whole);
   XSETVECTOR (barobj, bar);
-  WSET (w, vertical_scroll_bar, barobj);
+  wset_vertical_scroll_bar (w, barobj);
 }
 
 

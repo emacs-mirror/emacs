@@ -1,5 +1,29 @@
 2012-08-18  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* window.h (WSET): Remove (Bug#12215).
+	Replace all uses with calls to new setter functions.
+	Use INLINE_HEADER_BEGIN, INLINE_HEADER_END.
+	(WINDOW_INLINE): New macro.
+	(wset_buffer, wset_frame, wset_left_col, wset_next, wset_prev)
+	(wset_redisplay_end_trigger, wset_top_line, wset_total_cols)
+	(wset_total_lines, wset_vertical_scroll_bar)
+	(wset_window_end_pos, wset_window_end_valid)
+	(wset_window_end_vpos): New setter functions.
+	* window.c (WINDOW_INLINE):
+	Define to EXTERN_INLINE, so that the corresponding functions
+	are compiled into code.
+	(wset_combination_limit, wset_dedicated, wset_display_table)
+	(wset_hchild, wset_left_fringe_width, wset_left_margin_cols)
+	(wset_new_normal, wset_new_total, wset_next_buffers)
+	(wset_normal_cols, wset_normal_lines, wset_parent, wset_pointm)
+	(wset_prev_buffers, wset_right_fringe_width)
+	(wset_right_margin_cols, wset_scroll_bar_width, wset_start)
+	(wset_temslot, wset_vchild, wset_vertical_scroll_bar_type)
+	(wset_window_parameters):
+	* xdisp.c (wset_base_line_number, wset_base_line_pos)
+	(wset_column_number_displayed, wset_region_showing):
+	New setter functions.
+
 	* termhooks.h (TSET): Remove (Bug#12215).
 	Replace all uses with calls to new setter functions.
 	Use INLINE_HEADER_BEGIN, INLINE_HEADER_END.

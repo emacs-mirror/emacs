@@ -365,6 +365,28 @@ Lisp_Object Qcenter;
 static Lisp_Object Qmargin, Qpointer;
 static Lisp_Object Qline_height;
 
+/* These setters are used only in this file, so they can be private.  */
+static inline void
+wset_base_line_number (struct window *w, Lisp_Object val)
+{
+  w->base_line_number = val;
+}
+static inline void
+wset_base_line_pos (struct window *w, Lisp_Object val)
+{
+  w->base_line_pos = val;
+}
+static inline void
+wset_column_number_displayed (struct window *w, Lisp_Object val)
+{
+  w->column_number_displayed = val;
+}
+static inline void
+wset_region_showing (struct window *w, Lisp_Object val)
+{
+  w->region_showing = val;
+}
+
 #ifdef HAVE_WINDOW_SYSTEM
 
 /* Test if overflow newline into fringe.  Called with iterator IT
@@ -7981,7 +8003,7 @@ run_redisplay_end_trigger_hook (struct it *it)
 
   /* Since we are *trying* to run these functions, don't try to run
      them again, even if they get an error.  */
-  WSET (it->w, redisplay_end_trigger, Qnil);
+  wset_redisplay_end_trigger (it->w, Qnil);
   Frun_hook_with_args (3, args);
 
   /* Notice if it changed the face of the character we are on.  */
@@ -9969,7 +9991,7 @@ with_echo_area_buffer (struct window *w, int which,
   set_buffer_internal_1 (XBUFFER (buffer));
   if (w)
     {
-      WSET (w, buffer, buffer);
+      wset_buffer (w, buffer);
       set_marker_both (w->pointm, buffer, BEG, BEG_BYTE);
     }
 
@@ -10054,7 +10076,7 @@ unwind_with_echo_area_buffer (Lisp_Object vector)
       charpos = AREF (vector, 5);
       bytepos = AREF (vector, 6);
 
-      WSET (w, buffer, buffer);
+      wset_buffer (w, buffer);
       set_marker_both (w->pointm, buffer,
 		       XFASTINT (charpos), XFASTINT (bytepos));
     }
@@ -13266,12 +13288,12 @@ redisplay_internal (void)
 	      if ((it.glyph_row - 1)->displays_text_p)
 		{
 		  if (XFASTINT (w->window_end_vpos) < this_line_vpos)
-		    WSET (w, window_end_vpos, make_number (this_line_vpos));
+		    wset_window_end_vpos (w, make_number (this_line_vpos));
 		}
 	      else if (XFASTINT (w->window_end_vpos) == this_line_vpos
 		       && this_line_vpos > 0)
-		WSET (w, window_end_vpos, make_number (this_line_vpos - 1));
-	      WSET (w, window_end_valid, Qnil);
+		wset_window_end_vpos (w, make_number (this_line_vpos - 1));
+	      wset_window_end_valid (w, Qnil);
 
 	      /* Update hint: No need to try to scroll in update_window.  */
 	      w->desired_matrix->no_scrolling_p = 1;
@@ -13737,7 +13759,7 @@ mark_window_display_accurate_1 (struct window *w, int accurate_p)
 
   if (accurate_p)
     {
-      WSET (w, window_end_valid, w->buffer);
+      wset_window_end_valid (w, w->buffer);
       w->update_mode_line = 0;
     }
 }
@@ -14845,7 +14867,7 @@ try_scrolling (Lisp_Object window, int just_this_one_p,
       if (!just_this_one_p
 	  || current_buffer->clip_changed
 	  || BEG_UNCHANGED < CHARPOS (startp))
-	WSET (w, base_line_number, Qnil);
+	wset_base_line_number (w, Qnil);
 
       /* If cursor ends up on a partially visible line,
 	 treat that as being off the bottom of the screen.  */
@@ -15470,7 +15492,7 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
       if (XMARKER (w->start)->buffer == current_buffer)
 	compute_window_start_on_continuation_line (w);
 
-      WSET (w, window_end_valid, Qnil);
+      wset_window_end_valid (w, Qnil);
     }
 
   /* Some sanity checks.  */
@@ -15581,11 +15603,11 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
 
       w->force_start = 0;
       w->vscroll = 0;
-      WSET (w, window_end_valid, Qnil);
+      wset_window_end_valid (w, Qnil);
 
       /* Forget any recorded base line for line number display.  */
       if (!buffer_unchanged_p)
-	WSET (w, base_line_number, Qnil);
+	wset_base_line_number (w, Qnil);
 
       /* Redisplay the mode line.  Select the buffer properly for that.
 	 Also, run the hook window-scroll-functions
@@ -15799,7 +15821,7 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
 	      || current_buffer->clip_changed
 	      || BEG_UNCHANGED < CHARPOS (startp))
 	    /* Forget any recorded base line for line number display.  */
-	    WSET (w, base_line_number, Qnil);
+	    wset_base_line_number (w, Qnil);
 
 	  if (!cursor_row_fully_visible_p (w, 1, 0))
 	    {
@@ -15870,7 +15892,7 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
 
   /* Forget any previously recorded base line for line number display.  */
   if (!buffer_unchanged_p)
-    WSET (w, base_line_number, Qnil);
+    wset_base_line_number (w, Qnil);
 
   /* Determine the window start relative to point.  */
   init_iterator (&it, w, PT, PT_BYTE, NULL, DEFAULT_FACE_ID);
@@ -16128,8 +16150,8 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
   if (!line_number_displayed
       && !BUFFERP (w->base_line_pos))
     {
-      WSET (w, base_line_pos, Qnil);
-      WSET (w, base_line_number, Qnil);
+      wset_base_line_pos (w, Qnil);
+      wset_base_line_number (w, Qnil);
     }
 
  finish_menu_bars:
@@ -16306,10 +16328,10 @@ try_window (Lisp_Object window, struct text_pos pos, int flags)
       eassert (MATRIX_ROW_DISPLAYS_TEXT_P (last_text_row));
       w->window_end_bytepos
 	= Z_BYTE - MATRIX_ROW_END_BYTEPOS (last_text_row);
-      WSET (w, window_end_pos,
-	    make_number (Z - MATRIX_ROW_END_CHARPOS (last_text_row)));
-      WSET (w, window_end_vpos,
-	    make_number (MATRIX_ROW_VPOS (last_text_row, w->desired_matrix)));
+      wset_window_end_pos
+	(w, make_number (Z - MATRIX_ROW_END_CHARPOS (last_text_row)));
+      wset_window_end_vpos
+	(w, make_number (MATRIX_ROW_VPOS (last_text_row, w->desired_matrix)));
       eassert
 	(MATRIX_ROW (w->desired_matrix,
 		     XFASTINT (w->window_end_vpos))->displays_text_p);
@@ -16317,12 +16339,12 @@ try_window (Lisp_Object window, struct text_pos pos, int flags)
   else
     {
       w->window_end_bytepos = Z_BYTE - ZV_BYTE;
-      WSET (w, window_end_pos, make_number (Z - ZV));
-      WSET (w, window_end_vpos, make_number (0));
+      wset_window_end_pos (w, make_number (Z - ZV));
+      wset_window_end_vpos (w, make_number (0));
     }
 
   /* But that is not valid info until redisplay finishes.  */
-  WSET (w, window_end_valid, Qnil);
+  wset_window_end_valid (w, Qnil);
   return 1;
 }
 
@@ -16546,28 +16568,31 @@ try_window_reusing_current_matrix (struct window *w)
 	{
 	  w->window_end_bytepos
 	    = Z_BYTE - MATRIX_ROW_END_BYTEPOS (last_reused_text_row);
-	  WSET (w, window_end_pos,
-		make_number (Z - MATRIX_ROW_END_CHARPOS (last_reused_text_row)));
-	  WSET (w, window_end_vpos,
-		make_number (MATRIX_ROW_VPOS (last_reused_text_row, w->current_matrix)));
+	  wset_window_end_pos
+	    (w, make_number (Z
+			     - MATRIX_ROW_END_CHARPOS (last_reused_text_row)));
+	  wset_window_end_vpos
+	    (w, make_number (MATRIX_ROW_VPOS (last_reused_text_row,
+					      w->current_matrix)));
 	}
       else if (last_text_row)
 	{
 	  w->window_end_bytepos
 	    = Z_BYTE - MATRIX_ROW_END_BYTEPOS (last_text_row);
-	  WSET (w, window_end_pos,
-		make_number (Z - MATRIX_ROW_END_CHARPOS (last_text_row)));
-	  WSET (w, window_end_vpos,
-		make_number (MATRIX_ROW_VPOS (last_text_row, w->desired_matrix)));
+	  wset_window_end_pos
+	    (w, make_number (Z - MATRIX_ROW_END_CHARPOS (last_text_row)));
+	  wset_window_end_vpos
+	    (w, make_number (MATRIX_ROW_VPOS (last_text_row,
+					      w->desired_matrix)));
 	}
       else
 	{
 	  /* This window must be completely empty.  */
 	  w->window_end_bytepos = Z_BYTE - ZV_BYTE;
-	  WSET (w, window_end_pos, make_number (Z - ZV));
-	  WSET (w, window_end_vpos, make_number (0));
+	  wset_window_end_pos (w, make_number (Z - ZV));
+	  wset_window_end_vpos (w, make_number (0));
 	}
-      WSET (w, window_end_valid, Qnil);
+      wset_window_end_valid (w, Qnil);
 
       /* Update hint: don't try scrolling again in update_window.  */
       w->desired_matrix->no_scrolling_p = 1;
@@ -16748,18 +16773,19 @@ try_window_reusing_current_matrix (struct window *w)
 	{
 	  w->window_end_bytepos
 	    = Z_BYTE - MATRIX_ROW_END_BYTEPOS (last_text_row);
-	  WSET (w, window_end_pos,
-		make_number (Z - MATRIX_ROW_END_CHARPOS (last_text_row)));
-	  WSET (w, window_end_vpos,
-		make_number (MATRIX_ROW_VPOS (last_text_row, w->desired_matrix)));
+	  wset_window_end_pos
+	    (w, make_number (Z - MATRIX_ROW_END_CHARPOS (last_text_row)));
+	  wset_window_end_vpos
+	    (w, make_number (MATRIX_ROW_VPOS (last_text_row,
+					      w->desired_matrix)));
 	}
       else
 	{
-	  WSET (w, window_end_vpos,
-		make_number (XFASTINT (w->window_end_vpos) - nrows_scrolled));
+	  wset_window_end_vpos
+	    (w, make_number (XFASTINT (w->window_end_vpos) - nrows_scrolled));
 	}
 
-      WSET (w, window_end_valid, Qnil);
+      wset_window_end_valid (w, Qnil);
       w->desired_matrix->no_scrolling_p = 1;
 
 #ifdef GLYPH_DEBUG
@@ -17331,8 +17357,8 @@ try_window_id (struct window *w)
 	{
 	  /* We have to compute the window end anew since text
 	     could have been added/removed after it.  */
-	  WSET (w, window_end_pos,
-               make_number (Z - MATRIX_ROW_END_CHARPOS (row)));
+	  wset_window_end_pos
+	    (w, make_number (Z - MATRIX_ROW_END_CHARPOS (row)));
 	  w->window_end_bytepos
 	    = Z_BYTE - MATRIX_ROW_END_BYTEPOS (row);
 
@@ -17766,21 +17792,22 @@ try_window_id (struct window *w)
 					   first_unchanged_at_end_row);
       eassert (row && MATRIX_ROW_DISPLAYS_TEXT_P (row));
 
-      WSET (w, window_end_pos, make_number (Z - MATRIX_ROW_END_CHARPOS (row)));
+      wset_window_end_pos (w, make_number (Z - MATRIX_ROW_END_CHARPOS (row)));
       w->window_end_bytepos = Z_BYTE - MATRIX_ROW_END_BYTEPOS (row);
-      WSET (w, window_end_vpos,
-	    make_number (MATRIX_ROW_VPOS (row, w->current_matrix)));
+      wset_window_end_vpos
+	(w, make_number (MATRIX_ROW_VPOS (row, w->current_matrix)));
       eassert (w->window_end_bytepos >= 0);
       IF_DEBUG (debug_method_add (w, "A"));
     }
   else if (last_text_row_at_end)
     {
-      WSET (w, window_end_pos,
-	    make_number (Z - MATRIX_ROW_END_CHARPOS (last_text_row_at_end)));
+      wset_window_end_pos
+	(w, make_number (Z - MATRIX_ROW_END_CHARPOS (last_text_row_at_end)));
       w->window_end_bytepos
 	= Z_BYTE - MATRIX_ROW_END_BYTEPOS (last_text_row_at_end);
-      WSET (w, window_end_vpos,
-	    make_number (MATRIX_ROW_VPOS (last_text_row_at_end, desired_matrix)));
+      wset_window_end_vpos
+	(w, make_number (MATRIX_ROW_VPOS (last_text_row_at_end,
+					  desired_matrix)));
       eassert (w->window_end_bytepos >= 0);
       IF_DEBUG (debug_method_add (w, "B"));
     }
@@ -17789,12 +17816,12 @@ try_window_id (struct window *w)
       /* We have displayed either to the end of the window or at the
 	 end of the window, i.e. the last row with text is to be found
 	 in the desired matrix.  */
-      WSET (w, window_end_pos,
-	    make_number (Z - MATRIX_ROW_END_CHARPOS (last_text_row)));
+      wset_window_end_pos
+	(w, make_number (Z - MATRIX_ROW_END_CHARPOS (last_text_row)));
       w->window_end_bytepos
 	= Z_BYTE - MATRIX_ROW_END_BYTEPOS (last_text_row);
-      WSET (w, window_end_vpos,
-	    make_number (MATRIX_ROW_VPOS (last_text_row, desired_matrix)));
+      wset_window_end_vpos
+	(w, make_number (MATRIX_ROW_VPOS (last_text_row, desired_matrix)));
       eassert (w->window_end_bytepos >= 0);
     }
   else if (first_unchanged_at_end_row == NULL
@@ -17822,8 +17849,8 @@ try_window_id (struct window *w)
 	}
 
       eassert (row != NULL);
-      WSET (w, window_end_vpos, make_number (vpos + 1));
-      WSET (w, window_end_pos, make_number (Z - MATRIX_ROW_END_CHARPOS (row)));
+      wset_window_end_vpos (w, make_number (vpos + 1));
+      wset_window_end_pos (w, make_number (Z - MATRIX_ROW_END_CHARPOS (row)));
       w->window_end_bytepos = Z_BYTE - MATRIX_ROW_END_BYTEPOS (row);
       eassert (w->window_end_bytepos >= 0);
       IF_DEBUG (debug_method_add (w, "C"));
@@ -17835,7 +17862,7 @@ try_window_id (struct window *w)
 	    debug_end_vpos = XFASTINT (w->window_end_vpos));
 
   /* Record that display has not been completed.  */
-  WSET (w, window_end_valid, Qnil);
+  wset_window_end_valid (w, Qnil);
   w->desired_matrix->no_scrolling_p = 1;
   return 3;
 
@@ -19248,7 +19275,7 @@ display_line (struct it *it)
     }
 
   /* Is IT->w showing the region?  */
-  WSET (it->w, region_showing, it->region_beg_charpos > 0 ? Qt : Qnil);
+  wset_region_showing (it->w, it->region_beg_charpos > 0 ? Qt : Qnil);
 
   /* Clear the result glyph row and enable it.  */
   prepare_desired_row (row);
@@ -20252,7 +20279,7 @@ display_mode_lines (struct window *w)
 
   /* These will be set while the mode line specs are processed.  */
   line_number_displayed = 0;
-  WSET (w, column_number_displayed, Qnil);
+  wset_column_number_displayed (w, Qnil);
 
   if (WINDOW_WANTS_MODELINE_P (w))
     {
@@ -21388,7 +21415,7 @@ decode_mode_spec (struct window *w, register int c, int field_width,
       else
 	{
 	  ptrdiff_t col = current_column ();
-	  WSET (w, column_number_displayed, make_number (col));
+	  wset_column_number_displayed (w, make_number (col));
 	  pint2str (decode_mode_spec_buf, field_width, col);
 	  return decode_mode_spec_buf;
 	}
@@ -21451,14 +21478,14 @@ decode_mode_spec (struct window *w, register int c, int field_width,
 	  goto no_value;
 	/* But do forget it, if the window shows a different buffer now.  */
 	else if (BUFFERP (w->base_line_pos))
-	  WSET (w, base_line_pos, Qnil);
+	  wset_base_line_pos (w, Qnil);
 
 	/* If the buffer is very big, don't waste time.  */
 	if (INTEGERP (Vline_number_display_limit)
 	    && BUF_ZV (b) - BUF_BEGV (b) > XINT (Vline_number_display_limit))
 	  {
-	    WSET (w, base_line_pos, Qnil);
-	    WSET (w, base_line_number, Qnil);
+	    wset_base_line_pos (w, Qnil);
+	    wset_base_line_number (w, Qnil);
 	    goto no_value;
 	  }
 
@@ -21490,8 +21517,8 @@ decode_mode_spec (struct window *w, register int c, int field_width,
 	   go back past it.  */
 	if (startpos == BUF_BEGV (b))
 	  {
-	    WSET (w, base_line_number, make_number (topline));
-	    WSET (w, base_line_pos, make_number (BUF_BEGV (b)));
+	    wset_base_line_number (w, make_number (topline));
+	    wset_base_line_pos (w, make_number (BUF_BEGV (b)));
 	  }
 	else if (nlines < height + 25 || nlines > height * 3 + 50
 		 || linepos == BUF_BEGV (b))
@@ -21517,13 +21544,13 @@ decode_mode_spec (struct window *w, register int c, int field_width,
 	       give up on line numbers for this window.  */
 	    if (position == limit_byte && limit == startpos - distance)
 	      {
-		WSET (w, base_line_pos, w->buffer);
-		WSET (w, base_line_number, Qnil);
+		wset_base_line_pos (w, w->buffer);
+		wset_base_line_number (w, Qnil);
 		goto no_value;
 	      }
 
-	    WSET (w, base_line_number, make_number (topline - nlines));
-	    WSET (w, base_line_pos, make_number (BYTE_TO_CHAR (position)));
+	    wset_base_line_number (w, make_number (topline - nlines));
+	    wset_base_line_pos (w, make_number (BYTE_TO_CHAR (position)));
 	  }
 
 	/* Now count lines from the start pos to point.  */
@@ -29288,12 +29315,13 @@ init_xdisp (void)
 
       echo_area_window = minibuf_window;
 
-      WSET (r, top_line, make_number (FRAME_TOP_MARGIN (f)));
-      WSET (r, total_lines, make_number (FRAME_LINES (f) - 1 - FRAME_TOP_MARGIN (f)));
-      WSET (r, total_cols, make_number (FRAME_COLS (f)));
-      WSET (m, top_line, make_number (FRAME_LINES (f) - 1));
-      WSET (m, total_lines, make_number (1));
-      WSET (m, total_cols, make_number (FRAME_COLS (f)));
+      wset_top_line (r, make_number (FRAME_TOP_MARGIN (f)));
+      wset_total_lines
+	(r, make_number (FRAME_LINES (f) - 1 - FRAME_TOP_MARGIN (f)));
+      wset_total_cols (r, make_number (FRAME_COLS (f)));
+      wset_top_line (m, make_number (FRAME_LINES (f) - 1));
+      wset_total_lines (m, make_number (1));
+      wset_total_cols (m, make_number (FRAME_COLS (f)));
 
       scratch_glyph_row.glyphs[TEXT_AREA] = scratch_glyphs;
       scratch_glyph_row.glyphs[TEXT_AREA + 1]

@@ -5064,20 +5064,20 @@ Text larger than the specified size is clipped.  */)
 
   /* Set up the frame's root window.  */
   w = XWINDOW (FRAME_ROOT_WINDOW (f));
-  WSET (w, left_col, make_number (0));
-  WSET (w, top_line, make_number (0));
+  wset_left_col (w, make_number (0));
+  wset_top_line (w, make_number (0));
 
   if (CONSP (Vx_max_tooltip_size)
       && RANGED_INTEGERP (1, XCAR (Vx_max_tooltip_size), INT_MAX)
       && RANGED_INTEGERP (1, XCDR (Vx_max_tooltip_size), INT_MAX))
     {
-      WSET (w, total_cols, XCAR (Vx_max_tooltip_size));
-      WSET (w, total_lines, XCDR (Vx_max_tooltip_size));
+      wset_total_cols (w, XCAR (Vx_max_tooltip_size));
+      wset_total_lines (w, XCDR (Vx_max_tooltip_size));
     }
   else
     {
-      WSET (w, total_cols, make_number (80));
-      WSET (w, total_lines, make_number (40));
+      wset_total_cols (w, make_number (80));
+      wset_total_lines (w, make_number (40));
     }
 
   FRAME_TOTAL_COLS (f) = XINT (w->total_cols);
@@ -5147,7 +5147,7 @@ Text larger than the specified size is clipped.  */)
       /* w->total_cols and FRAME_TOTAL_COLS want the width in columns,
 	 not in pixels.  */
       width /= WINDOW_FRAME_COLUMN_WIDTH (w);
-      WSET (w, total_cols, make_number (width));
+      wset_total_cols (w, make_number (width));
       FRAME_TOTAL_COLS (f) = width;
       adjust_glyphs (f);
       clear_glyph_matrix (w->desired_matrix);

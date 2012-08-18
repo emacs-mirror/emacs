@@ -148,8 +148,8 @@ set_menu_bar_lines_1 (Lisp_Object window, int n)
   struct window *w = XWINDOW (window);
 
   w->last_modified = 0;
-  WSET (w, top_line, make_number (XFASTINT (w->top_line) + n));
-  WSET (w, total_lines, make_number (XFASTINT (w->total_lines) - n));
+  wset_top_line (w, make_number (XFASTINT (w->top_line) + n));
+  wset_total_lines (w, make_number (XFASTINT (w->total_lines) - n));
 
   /* Handle just the top child in a vertical split.  */
   if (!NILP (w->vchild))
@@ -305,20 +305,20 @@ make_frame (int mini_p)
   if (mini_p)
     {
       mini_window = make_window ();
-      WSET (XWINDOW (root_window), next, mini_window);
-      WSET (XWINDOW (mini_window), prev, root_window);
+      wset_next (XWINDOW (root_window), mini_window);
+      wset_prev (XWINDOW (mini_window), root_window);
       XWINDOW (mini_window)->mini = 1;
-      WSET (XWINDOW (mini_window), frame, frame);
+      wset_frame (XWINDOW (mini_window), frame);
       fset_minibuffer_window (f, mini_window);
     }
   else
     {
       mini_window = Qnil;
-      WSET (XWINDOW (root_window), next, Qnil);
+      wset_next (XWINDOW (root_window), Qnil);
       fset_minibuffer_window (f, Qnil);
     }
 
-  WSET (XWINDOW (root_window), frame, frame);
+  wset_frame (XWINDOW (root_window), frame);
 
   /* 10 is arbitrary,
      just so that there is "something there."
@@ -327,21 +327,21 @@ make_frame (int mini_p)
   SET_FRAME_COLS (f, 10);
   FRAME_LINES (f) = 10;
 
-  WSET (XWINDOW (root_window), total_cols, make_number (10));
-  WSET (XWINDOW (root_window), total_lines, make_number (mini_p ? 9 : 10));
+  wset_total_cols (XWINDOW (root_window), make_number (10));
+  wset_total_lines (XWINDOW (root_window), make_number (mini_p ? 9 : 10));
 
   if (mini_p)
     {
-      WSET (XWINDOW (mini_window), total_cols, make_number (10));
-      WSET (XWINDOW (mini_window), top_line, make_number (9));
-      WSET (XWINDOW (mini_window), total_lines, make_number (1));
+      wset_total_cols (XWINDOW (mini_window), make_number (10));
+      wset_top_line (XWINDOW (mini_window), make_number (9));
+      wset_total_lines (XWINDOW (mini_window), make_number (1));
     }
 
   /* Choose a buffer for the frame's root window.  */
   {
     Lisp_Object buf;
 
-    WSET (XWINDOW (root_window), buffer, Qt);
+    wset_buffer (XWINDOW (root_window), Qt);
     buf = Fcurrent_buffer ();
     /* If buf is a 'hidden' buffer (i.e. one whose name starts with
        a space), try to find another one.  */
@@ -360,7 +360,7 @@ make_frame (int mini_p)
 
   if (mini_p)
     {
-      WSET (XWINDOW (mini_window), buffer, Qt);
+      wset_buffer (XWINDOW (mini_window), Qt);
       set_window_buffer (mini_window,
 			 (NILP (Vminibuffer_list)
 			  ? get_minibuffer (0)
@@ -458,9 +458,9 @@ make_minibuffer_frame (void)
   mini_window = f->root_window;
   fset_minibuffer_window (f, mini_window);
   XWINDOW (mini_window)->mini = 1;
-  WSET (XWINDOW (mini_window), next, Qnil);
-  WSET (XWINDOW (mini_window), prev, Qnil);
-  WSET (XWINDOW (mini_window), frame, frame);
+  wset_next (XWINDOW (mini_window), Qnil);
+  wset_prev (XWINDOW (mini_window), Qnil);
+  wset_frame (XWINDOW (mini_window), frame);
 
   /* Put the proper buffer in that window.  */
 
