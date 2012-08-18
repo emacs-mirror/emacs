@@ -2915,9 +2915,8 @@ extern Lisp_Object copy_char_table (Lisp_Object);
 extern Lisp_Object char_table_ref (Lisp_Object, int);
 extern Lisp_Object char_table_ref_and_range (Lisp_Object, int,
                                              int *, int *);
-extern Lisp_Object char_table_set (Lisp_Object, int, Lisp_Object);
-extern Lisp_Object char_table_set_range (Lisp_Object, int, int,
-                                         Lisp_Object);
+extern void char_table_set (Lisp_Object, int, Lisp_Object);
+extern void char_table_set_range (Lisp_Object, int, int, Lisp_Object);
 extern int char_table_translate (Lisp_Object, int);
 extern void map_char_table (void (*) (Lisp_Object, Lisp_Object,
                             Lisp_Object),

@@ -411,7 +411,7 @@ sub_char_table_set (Lisp_Object table, int c, Lisp_Object val, int is_uniprop)
     }
 }
 
-Lisp_Object
+void
 char_table_set (Lisp_Object table, int c, Lisp_Object val)
 {
   struct Lisp_Char_Table *tbl = XCHAR_TABLE (table);
@@ -434,7 +434,6 @@ char_table_set (Lisp_Object table, int c, Lisp_Object val)
       if (ASCII_CHAR_P (c))
 	set_char_table_ascii (table, char_table_ascii (table));
     }
-  return val;
 }
 
 static void
@@ -476,7 +475,7 @@ sub_char_table_set_range (Lisp_Object table, int from, int to, Lisp_Object val,
 }
 
 
-Lisp_Object
+void
 char_table_set_range (Lisp_Object table, int from, int to, Lisp_Object val)
 {
   struct Lisp_Char_Table *tbl = XCHAR_TABLE (table);
@@ -510,7 +509,6 @@ char_table_set_range (Lisp_Object table, int from, int to, Lisp_Object val)
       if (ASCII_CHAR_P (from))
 	set_char_table_ascii (table, char_table_ascii (table));
     }
-  return val;
 }
 
 
