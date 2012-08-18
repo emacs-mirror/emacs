@@ -1,3 +1,9 @@
+2012-08-18  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* lib/sigprocmask.c, m4/signalblocking.m4: Remove.
+	These files have been unused since the 2012-06-22 patch that
+	introduced high-resolution time stamps.
+
 2012-08-17  Jan Beich  <jbeich@tormail.org>  (tiny change)
 
 	* configure.ac (PTY_OPEN): Try posix_openpt on gnu-linux,
