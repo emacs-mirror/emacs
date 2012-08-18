@@ -22,6 +22,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include "systime.h" /* for Time */
 
+INLINE_HEADER_BEGIN
+#ifndef TERMHOOKS_INLINE
+# define TERMHOOKS_INLINE INLINE
+#endif
+
 struct glyph;
 struct frame;
 
@@ -320,10 +325,6 @@ extern struct tty_display_info *gpm_tty;
 struct ns_display_info;
 struct x_display_info;
 struct w32_display_info;
-
-/* Most code should use this macro to set Lisp field in struct terminal.  */
-
-#define TSET(f, field, value) ((f)->field = (value))
 
 /* Terminal-local parameters. */
 struct terminal
@@ -631,6 +632,18 @@ struct terminal
   void (*delete_terminal_hook) (struct terminal *);
 };
 
+/* Most code should use these functions to set Lisp fields in struct
+   terminal.  */
+TERMHOOKS_INLINE void
+tset_charset_list (struct terminal *t, Lisp_Object val)
+{
+  t->charset_list = val;
+}
+TERMHOOKS_INLINE void
+tset_selection_alist (struct terminal *t, Lisp_Object val)
+{
+  t->Vselection_alist = val;
+}
 
 /* Chain of all terminal devices currently in use. */
 extern struct terminal *terminal_list;
@@ -669,3 +682,5 @@ extern unsigned char *encode_terminal_code (struct glyph *, int,
 #ifdef HAVE_GPM
 extern void close_gpm (int gpm_fd);
 #endif
+
+INLINE_HEADER_END

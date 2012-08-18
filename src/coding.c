@@ -9302,10 +9302,10 @@ DEFUN ("set-terminal-coding-system-internal", Fset_terminal_coding_system_intern
   terminal_coding->common_flags &= ~CODING_ANNOTATE_COMPOSITION_MASK;
   terminal_coding->src_multibyte = 1;
   terminal_coding->dst_multibyte = 0;
-  if (terminal_coding->common_flags & CODING_REQUIRE_ENCODING_MASK)
-    TSET (term, charset_list, coding_charset_list (terminal_coding));
-  else
-    TSET (term, charset_list, Fcons (make_number (charset_ascii), Qnil));
+  tset_charset_list
+    (term, (terminal_coding->common_flags & CODING_REQUIRE_ENCODING_MASK
+	    ? coding_charset_list (terminal_coding)
+	    : Fcons (make_number (charset_ascii), Qnil)));
   return Qnil;
 }
 

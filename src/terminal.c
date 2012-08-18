@@ -17,6 +17,9 @@ You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
+
+#define TERMHOOKS_INLINE EXTERN_INLINE
+
 #include <stdio.h>
 #include <setjmp.h>
 
@@ -38,6 +41,13 @@ static int next_terminal_id;
 struct terminal *initial_terminal;
 
 static void delete_initial_terminal (struct terminal *);
+
+/* This setter is used only in this file, so it can be private.  */
+static inline void
+tset_param_alist (struct terminal *t, Lisp_Object val)
+{
+  t->param_alist = val;
+}
 
 
 
@@ -446,7 +456,7 @@ store_terminal_param (struct terminal *t, Lisp_Object parameter, Lisp_Object val
   Lisp_Object old_alist_elt = Fassq (parameter, t->param_alist);
   if (EQ (old_alist_elt, Qnil))
     {
-      TSET (t, param_alist, Fcons (Fcons (parameter, value), t->param_alist));
+      tset_param_alist (t, Fcons (Fcons (parameter, value), t->param_alist));
       return Qnil;
     }
   else

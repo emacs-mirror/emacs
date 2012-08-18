@@ -1,3 +1,15 @@
+2012-08-18  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* termhooks.h (TSET): Remove (Bug#12215).
+	Replace all uses with calls to new setter functions.
+	Use INLINE_HEADER_BEGIN, INLINE_HEADER_END.
+	(TERMHOOKS_INLINE): New macro.
+	(tset_charset_list, tset_selection_alist): New setter functions.
+	* terminal.c (TERMHOOKS_INLINE):
+	Define to EXTERN_INLINE, so that the corresponding functions
+	are compiled into code.
+	(tset_param_alist): New setter function.
+
 2012-08-17  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* keyboard.h (KSET): Remove (Bug#12215).
