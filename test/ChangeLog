@@ -1,3 +1,7 @@
+2012-08-18  Chong Yidong  <cyd@gnu.org>
+
+	* redisplay-testsuite.el (test-redisplay-4): New test (Bug#3874).
+
 2012-08-14  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* indent/ruby.rb: Rearrange examples, add new ones.

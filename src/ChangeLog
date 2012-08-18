@@ -1,3 +1,8 @@
+2012-08-18  Chong Yidong  <cyd@gnu.org>
+
+	* xdisp.c (handle_invisible_prop): Obey TEXT_PROP_MEANS_INVISIBLE
+	for the string case (Bug#3874).
+
 2012-08-18  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* buffer.h (BSET): Remove (Bug#12215).

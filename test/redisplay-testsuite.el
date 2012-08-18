@@ -113,7 +113,7 @@
   (insert "\n\n"))
 
 (defun test-redisplay-3 ()
-  (insert "Test 3: Overlay with before/after strings and images:\n\n")
+  (insert "Test 3: Overlay with strings and images:\n\n")
   (let ((img-data "#define x_width 8
 #define x_height 8
 static unsigned char x_bits[] = {0xff, 0x81, 0xbd, 0xa5, 0xa5, 0xbd, 0x81, 0xff };"))
@@ -165,6 +165,95 @@ static unsigned char x_bits[] = {0xff, 0x81, 0xbd, 0xa5, 0xa5, 0xbd, 0x81, 0xff 
 	(overlay-put ov2 'before-string "C")
 	(overlay-put ov3 'display `(image :data ,img-data :type xbm))))))
 
+(defun test-redisplay-4 ()
+  (insert "Test 4: Overlay strings and invisibility:\n\n")
+  ;; Before and after strings with non-nil `invisibility'.
+  (insert "  Expected: ABC\n")
+  (insert "    Result: ")
+  (let ((opoint (point)))
+    (insert "ABC\n")
+    (let ((ov (make-overlay (1+ opoint) (+ 2 opoint))))
+      (overlay-put ov 'before-string
+		   (propertize "XX" 'invisible
+			       'test-redisplay--simple-invis))
+      (overlay-put ov 'after-string
+		   (propertize "XX" 'invisible
+			       'test-redisplay--simple-invis))))
+
+  ;; Before and after strings bogus `invisibility' property (value is
+  ;; not listed in `buffer-invisibility-spec').
+  (insert "\n  Expected: ABC")
+  (insert "\n    Result: ")
+  (let ((opoint (point)))
+    (insert "B\n")
+    (let ((ov (make-overlay opoint (1+ opoint))))
+      (overlay-put ov 'before-string
+		   (propertize "A" 'invisible 'bogus-invis-spec))
+      (overlay-put ov 'after-string
+		   (propertize "C" 'invisible 'bogus-invis-spec))))
+
+  ;; Before/after string with ellipsis `invisibility' property.
+  (insert "\n  Expected: ...B...")
+  (insert "\n    Result: ")
+  (let ((opoint (point)))
+    (insert "B\n")
+    (let ((ov (make-overlay opoint (1+ opoint))))
+      (overlay-put ov 'before-string
+		   (propertize "A" 'invisible 'test-redisplay--ellipsis-invis))
+      (overlay-put ov 'after-string
+		   (propertize "C" 'invisible 'test-redisplay--ellipsis-invis))))
+
+  ;; Before/after string with partial ellipsis `invisibility' property.
+  (insert "\n  Expected: A...ABC...C")
+  (insert "\n    Result: ")
+  (let ((opoint (point)))
+    (insert "B\n")
+    (let ((ov (make-overlay opoint (1+ opoint)))
+	  (a "AAA")
+	  (c "CCC"))
+      (put-text-property 1 2 'invisible 'test-redisplay--ellipsis-invis a)
+      (put-text-property 1 2 'invisible 'test-redisplay--ellipsis-invis c)
+      (overlay-put ov 'before-string a)
+      (overlay-put ov 'after-string  c)))
+
+  ;; Display string with `invisibility' property.
+  (insert "\n  Expected: ABC")
+  (insert "\n    Result: ")
+  (let ((opoint (point)))
+    (insert "AYBC\n")
+    (let ((ov (make-overlay (1+ opoint) (+ 2 opoint))))
+      (overlay-put ov 'display
+		   (propertize "XX" 'invisible
+			       'test-redisplay--simple-invis))))
+  ;; Display string with bogus `invisibility' property.
+  (insert "\n  Expected: ABC")
+  (insert "\n    Result: ")
+  (let ((opoint (point)))
+    (insert "AXC\n")
+    (let ((ov (make-overlay (1+ opoint) (+ 2 opoint))))
+      (overlay-put ov 'display
+		   (propertize "B" 'invisible 'bogus-invis-spec))))
+  ;; Display string with ellipsis `invisibility' property.
+  (insert "\n  Expected: A...C")
+  (insert "\n    Result: ")
+  (let ((opoint (point)))
+    (insert "AXC\n")
+    (let ((ov (make-overlay (1+ opoint) (+ 2 opoint))))
+      (overlay-put ov 'display
+		   (propertize "B" 'invisible
+			       'test-redisplay--ellipsis-invis))))
+  ;; Display string with partial `invisibility' property.
+  (insert "\n  Expected: A...C")
+  (insert "\n    Result: ")
+  (let ((opoint (point)))
+    (insert "X\n")
+    (let ((ov  (make-overlay opoint (1+ opoint)))
+	  (str "ABC"))
+      (put-text-property 1 2 'invisible 'test-redisplay--ellipsis-invis str)
+      (overlay-put ov 'display str)))
+
+  (insert "\n"))
+
 
 (defun test-redisplay ()
   (interactive)
@@ -173,8 +262,12 @@ static unsigned char x_bits[] = {0xff, 0x81, 0xbd, 0xa5, 0xa5, 0xbd, 0x81, 0xff 
 	(kill-buffer buf))
     (pop-to-buffer (get-buffer-create "*Redisplay Test*"))
     (erase-buffer)
+    (setq buffer-invisibility-spec
+	  '(test-redisplay--simple-invis
+	    (test-redisplay--ellipsis-invis . t)))
     (test-redisplay-1)
     (test-redisplay-2)
     (test-redisplay-3)
+    (test-redisplay-4)
     (goto-char (point-min))))
 

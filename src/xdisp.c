@@ -4069,38 +4069,56 @@ static enum prop_handled
 handle_invisible_prop (struct it *it)
 {
   enum prop_handled handled = HANDLED_NORMALLY;
+  int invis_p;
+  Lisp_Object prop;
 
   if (STRINGP (it->string))
     {
-      Lisp_Object prop, end_charpos, limit, charpos;
+      Lisp_Object end_charpos, limit, charpos;
 
       /* Get the value of the invisible text property at the
 	 current position.  Value will be nil if there is no such
 	 property.  */
       charpos = make_number (IT_STRING_CHARPOS (*it));
       prop = Fget_text_property (charpos, Qinvisible, it->string);
+      invis_p = TEXT_PROP_MEANS_INVISIBLE (prop);
 
-      if (!NILP (prop)
-	  && IT_STRING_CHARPOS (*it) < it->end_charpos)
+      if (invis_p && IT_STRING_CHARPOS (*it) < it->end_charpos)
 	{
+	  /* Record whether we have to display an ellipsis for the
+	     invisible text.  */
+	  int display_ellipsis_p = (invis_p == 2);
 	  ptrdiff_t endpos;
 
 	  handled = HANDLED_RECOMPUTE_PROPS;
 
-	  /* Get the position at which the next change of the
-	     invisible text property can be found in IT->string.
-	     Value will be nil if the property value is the same for
-	     all the rest of IT->string.  */
+	  /* Get the position at which the next visible text can be
+	     found in IT->string, if any.  */
 	  XSETINT (limit, SCHARS (it->string));
-	  end_charpos = Fnext_single_property_change (charpos, Qinvisible,
-						      it->string, limit);
+	  do
+	    {
+	      end_charpos = Fnext_single_property_change (charpos, Qinvisible,
+							  it->string, limit);
+	      if (!NILP (end_charpos))
+		{
+		  prop = Fget_text_property (end_charpos, Qinvisible, it->string);
+		  invis_p = TEXT_PROP_MEANS_INVISIBLE (prop);
+		  if (invis_p == 2)
+		    display_ellipsis_p = 1;
+		}
+	    }
+	  while (!NILP (end_charpos) && invis_p);
 
-	  /* Text at current position is invisible.  The next
-	     change in the property is at position end_charpos.
-	     Move IT's current position to that position.  */
+	  if (display_ellipsis_p)
+	    {
+	      it->ellipsis_p = 1;
+	      handled = HANDLED_RETURN;
+	    }
+
 	  if (INTEGERP (end_charpos)
 	      && (endpos = XFASTINT (end_charpos)) < XFASTINT (limit))
 	    {
+	      /* Text at END_CHARPOS is visible.  Move IT there.  */
 	      struct text_pos old;
 	      ptrdiff_t oldpos;
 
@@ -4153,9 +4171,8 @@ handle_invisible_prop (struct it *it)
     }
   else
     {
-      int invis_p;
       ptrdiff_t newpos, next_stop, start_charpos, tem;
-      Lisp_Object pos, prop, overlay;
+      Lisp_Object pos, overlay;
 
       /* First of all, is there invisible text at this position?  */
       tem = start_charpos = IT_CHARPOS (*it);
@@ -6032,7 +6049,7 @@ back_to_previous_visible_line_start (struct it *it)
       {
 	Lisp_Object prop;
 	prop = Fget_char_property (make_number (IT_CHARPOS (*it) - 1),
-				     Qinvisible, it->window);
+				   Qinvisible, it->window);
 	if (TEXT_PROP_MEANS_INVISIBLE (prop))
 	  continue;
       }
