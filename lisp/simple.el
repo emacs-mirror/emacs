@@ -3474,16 +3474,36 @@ The argument is used for internal purposes; do not supply one."
 
 ;; Yanking.
 
+(defcustom yank-handled-properties
+  '((font-lock-face . yank-handle-font-lock-face-property)
+    (category . yank-handle-category-property))
+  "List of special text property handling conditions for yanking.
+Each element should have the form (PROP . FUN), where PROP is a
+property symbol and FUN is a function.  When the `yank' command
+inserts text into the buffer, it scans the inserted text for
+stretches of text that have `eq' values of the text property
+PROP; for each such stretch of text, FUN is called with three
+arguments: the property's value in that text, and the start and
+end positions of the text.
+
+This is done prior to removing the properties specified by
+`yank-excluded-properties'."
+  :group 'killing
+  :version "24.3")
+
 ;; This is actually used in subr.el but defcustom does not work there.
 (defcustom yank-excluded-properties
-  '(read-only invisible intangible field mouse-face help-echo local-map keymap
-    yank-handler follow-link fontified)
+  '(category field follow-link fontified font-lock-face help-echo
+    intangible invisible keymap local-map mouse-face read-only
+    yank-handler)
   "Text properties to discard when yanking.
 The value should be a list of text properties to discard or t,
-which means to discard all text properties."
+which means to discard all text properties.
+
+See also `yank-handled-properties'."
   :type '(choice (const :tag "All" t) (repeat symbol))
   :group 'killing
-  :version "22.1")
+  :version "24.3")
 
 (defvar yank-window-start nil)
 (defvar yank-undo-function nil
@@ -3535,15 +3555,16 @@ doc string for `insert-for-yank-1', which see."
 
 (defun yank (&optional arg)
   "Reinsert (\"paste\") the last stretch of killed text.
-More precisely, reinsert the stretch of killed text most recently
-killed OR yanked.  Put point at end, and set mark at beginning.
-With just \\[universal-argument] as argument, same but put point at beginning (and mark at end).
-With argument N, reinsert the Nth most recently killed stretch of killed
-text.
+More precisely, reinsert the most recent kill, which is the
+stretch of killed text most recently killed OR yanked.  Put point
+at the end, and set mark at the beginning without activating it.
+With just \\[universal-argument] as argument, put point at beginning, and mark at end.
+With argument N, reinsert the Nth most recent kill.
 
-When this command inserts killed text into the buffer, it honors
-`yank-excluded-properties' and `yank-handler' as described in the
-doc string for `insert-for-yank-1', which see.
+When this command inserts text into the buffer, it honors the
+`yank-handled-properties' and `yank-excluded-properties'
+variables, and the `yank-handler' text property.  See
+`insert-for-yank-1' for details.
 
 See also the command `yank-pop' (\\[yank-pop])."
   (interactive "*P")

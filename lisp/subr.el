@@ -2805,35 +2805,24 @@ if it's an autoloaded macro."
 
 ;;;; Support for yanking and text properties.
 
+(defvar yank-handled-properties)
 (defvar yank-excluded-properties)
 
 (defun remove-yank-excluded-properties (start end)
-  "Remove `yank-excluded-properties' between START and END positions.
-Replaces `category' properties with their defined properties."
+  "Process text properties between START and END, inserted for a `yank'.
+Perform the handling specified by `yank-handled-properties', then
+remove properties specified by `yank-excluded-properties'."
   (let ((inhibit-read-only t))
-    ;; Replace any `category' property with the properties it stands
-    ;; for.  This is to remove `mouse-face' properties that are placed
-    ;; on categories in *Help* buffers' buttons.  See
-    ;; http://lists.gnu.org/archive/html/emacs-devel/2002-04/msg00648.html
-    ;; for the details.
-    (unless (memq yank-excluded-properties '(t nil))
-      (save-excursion
-	(goto-char start)
-	(while (< (point) end)
-	  (let ((cat (get-text-property (point) 'category))
-		run-end)
-	    (setq run-end
-		  (next-single-property-change (point) 'category nil end))
-	    (when cat
-	      (let (run-end2 original)
-		(remove-list-of-text-properties (point) run-end '(category))
-		(while (< (point) run-end)
-		  (setq run-end2 (next-property-change (point) nil run-end))
-		  (setq original (text-properties-at (point)))
-		  (set-text-properties (point) run-end2 (symbol-plist cat))
-		  (add-text-properties (point) run-end2 original)
-		  (goto-char run-end2))))
-	    (goto-char run-end)))))
+    (dolist (handler yank-handled-properties)
+      (let ((prop (car handler))
+	    (fun  (cdr handler))
+	    (run-start start))
+	(while (< run-start end)
+	  (let ((value (get-text-property run-start prop))
+		(run-end (next-single-property-change
+			  run-start prop nil end)))
+	    (funcall fun value run-start run-end)
+	    (setq run-start run-end)))))
     (if (eq yank-excluded-properties t)
 	(set-text-properties start end nil)
       (remove-list-of-text-properties start end yank-excluded-properties))))
@@ -2851,29 +2840,31 @@ See `insert-for-yank-1' for more details."
   (insert-for-yank-1 string))
 
 (defun insert-for-yank-1 (string)
-  "Insert STRING at point, stripping some text properties.
+  "Insert STRING at point for the `yank' command.
+This function is like `insert', except it honors the variables
+`yank-handled-properties' and `yank-excluded-properties', and the
+`yank-handler' text property.
 
-Strip text properties from the inserted text according to
-`yank-excluded-properties'.  Otherwise just like (insert STRING).
+Properties listed in `yank-handled-properties' are processed,
+then those listed in `yank-excluded-properties' are discarded.
 
-If STRING has a non-nil `yank-handler' property on the first character,
-the normal insert behavior is modified in various ways.  The value of
-the yank-handler property must be a list with one to four elements
-with the following format:  (FUNCTION PARAM NOEXCLUDE UNDO).
-When FUNCTION is present and non-nil, it is called instead of `insert'
- to insert the string.  FUNCTION takes one argument--the object to insert.
-If PARAM is present and non-nil, it replaces STRING as the object
- passed to FUNCTION (or `insert'); for example, if FUNCTION is
- `yank-rectangle', PARAM may be a list of strings to insert as a
- rectangle.
-If NOEXCLUDE is present and non-nil, the normal removal of the
+If STRING has a non-nil `yank-handler' property on its first
+character, the normal insert behavior is altered.  The value of
+the `yank-handler' property must be a list of one to four
+elements, of the form (FUNCTION PARAM NOEXCLUDE UNDO).
+FUNCTION, if non-nil, should be a function of one argument, an
+ object to insert; it is called instead of `insert'.
+PARAM, if present and non-nil, replaces STRING as the argument to
+ FUNCTION or `insert'; e.g. if FUNCTION is `yank-rectangle', PARAM
+ may be a list of strings to insert as a rectangle.
+If NOEXCLUDE is present and non-nil, the normal removal of
  `yank-excluded-properties' is not performed; instead FUNCTION is
- responsible for removing those properties.  This may be necessary
- if FUNCTION adjusts point before or after inserting the object.
-If UNDO is present and non-nil, it is a function that will be called
+ responsible for the removal.  This may be necessary if FUNCTION
+ adjusts point before or after inserting the object.
+UNDO, if present and non-nil, should be a function to be called
  by `yank-pop' to undo the insertion of the current object.  It is
- called with two arguments, the start and end of the current region.
- FUNCTION may set `yank-undo-function' to override the UNDO value."
+ given two arguments, the start and end of the region.  FUNCTION
+ may set `yank-undo-function' to override UNDO."
   (let* ((handler (and (stringp string)
 		       (get-text-property 0 'yank-handler string)))
 	 (param (or (nth 1 handler) string))
@@ -2882,7 +2873,7 @@ If UNDO is present and non-nil, it is a function that will be called
 	 end)
 
     (setq yank-undo-function t)
-    (if (nth 0 handler) ;; FUNCTION
+    (if (nth 0 handler) ; FUNCTION
 	(funcall (car handler) param)
       (insert param))
     (setq end (point))
@@ -2891,34 +2882,17 @@ If UNDO is present and non-nil, it is a function that will be called
     ;; following text property changes.
     (setq inhibit-read-only t)
 
-    ;; What should we do with `font-lock-face' properties?
-    (if font-lock-defaults
-	;; No, just wipe them.
-	(remove-list-of-text-properties opoint end '(font-lock-face))
-      ;; Convert them to `face'.
-      (save-excursion
-	(goto-char opoint)
-	(while (< (point) end)
-	  (let ((face (get-text-property (point) 'font-lock-face))
-		run-end)
-	    (setq run-end
-		  (next-single-property-change (point) 'font-lock-face nil end))
-	    (when face
-	      (remove-text-properties (point) run-end '(font-lock-face nil))
-	      (put-text-property (point) run-end 'face face))
-	    (goto-char run-end)))))
-
-    (unless (nth 2 handler) ;; NOEXCLUDE
-      (remove-yank-excluded-properties opoint (point)))
+    (unless (nth 2 handler) ; NOEXCLUDE
+      (remove-yank-excluded-properties opoint end))
 
     ;; If last inserted char has properties, mark them as rear-nonsticky.
     (if (and (> end opoint)
 	     (text-properties-at (1- end)))
 	(put-text-property (1- end) end 'rear-nonsticky t))
 
-    (if (eq yank-undo-function t)		   ;; not set by FUNCTION
-	(setq yank-undo-function (nth 3 handler))) ;; UNDO
-    (if (nth 4 handler)				   ;; COMMAND
+    (if (eq yank-undo-function t)		   ; not set by FUNCTION
+	(setq yank-undo-function (nth 3 handler))) ; UNDO
+    (if (nth 4 handler)				   ; COMMAND
 	(setq this-command (nth 4 handler)))))
 
 (defun insert-buffer-substring-no-properties (buffer &optional start end)
@@ -2943,6 +2917,27 @@ Strip text properties from the inserted text according to
   (let ((opoint (point)))
     (insert-buffer-substring buffer start end)
     (remove-yank-excluded-properties opoint (point))))
+
+(defun yank-handle-font-lock-face-property (face start end)
+  "If `font-lock-defaults' is nil, apply FACE as a `face' property.
+START and END denote the start and end of the text to act on.
+Do nothing if FACE is nil."
+  (and face
+       (null font-lock-defaults)
+       (put-text-property start end 'face face)))
+
+;; This removes `mouse-face' properties in *Help* buffer buttons:
+;; http://lists.gnu.org/archive/html/emacs-devel/2002-04/msg00648.html
+(defun yank-handle-category-property (category start end)
+  "Apply property category CATEGORY's properties between START and END."
+  (when category
+    (let ((start2 start))
+      (while (< start2 end)
+	(let ((end2     (next-property-change start2 nil end))
+	      (original (text-properties-at start2)))
+	  (set-text-properties start2 end2 (symbol-plist category))
+	  (add-text-properties start2 end2 original)
+	  (setq start2 end2))))))
 
 
 ;;;; Synchronous shell commands.

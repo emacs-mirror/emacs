@@ -1,3 +1,16 @@
+2012-08-18  Chong Yidong  <cyd@gnu.org>
+
+	* simple.el (yank-handled-properties): New defcustom.
+	(yank-excluded-properties): Add font-lock-face and category.
+	(yank): Doc fix.
+
+	* subr.el (remove-yank-excluded-properties): Obey
+	yank-handled-properties.  The special handling of font-lock-face
+	and category is now done this way, instead of being hard-coded.
+	(insert-for-yank-1): Remove font-lock-face handling.
+	(yank-handle-font-lock-face-property)
+	(yank-handle-category-property): New function.
+
 2012-08-17  Glenn Morris  <rgm@gnu.org>
 
 	* mail/rmailout.el (rmail-output-read-file-name):
