@@ -2307,8 +2307,7 @@ serial_configure (struct Lisp_Process *p,
     error ("tcsetattr() failed: %s", emacs_strerror (errno));
 
   childp2 = Fplist_put (childp2, QCsummary, build_string (summary));
-  PSET (p, childp, childp2);
-
+  pset_childp (p, childp2);
 }
 #endif /* not DOS_NT  */
 

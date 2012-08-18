@@ -1,5 +1,20 @@
 2012-08-18  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* process.h (PSET): Remove (Bug#12215).
+	Replace all uses with calls to new setter functions.
+	Use INLINE_HEADER_BEGIN, INLINE_HEADER_END.
+	(PROCESS_INLINE): New macro.
+	(pset_childp): New setter function.
+	(pset_gnutls_cred_type) [HAVE_GNUTLS]: New setter function.
+	* process.c (PROCESS_INLINE):
+	Define to EXTERN_INLINE, so that the corresponding functions
+	are compiled into code.
+	(pset_buffer, pset_command, pset_decode_coding_system)
+	(pset_decoding_buf, pset_encode_coding_system)
+	(pset_encoding_buf, pset_filter, pset_log, pset_mark, pset_name)
+	(pset_plist, pset_sentinel, pset_status, pset_tty_name)
+	(pset_type, pset_write_queue): New setter functions.
+
 	* window.h (WSET): Remove (Bug#12215).
 	Replace all uses with calls to new setter functions.
 	Use INLINE_HEADER_BEGIN, INLINE_HEADER_END.
