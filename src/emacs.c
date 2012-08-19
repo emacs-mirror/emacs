@@ -642,10 +642,6 @@ argmatch (char **argv, int argc, const char *sstr, const char *lstr,
 static void
 malloc_initialize_hook (void)
 {
-#ifndef USE_CRT_DLL
-  extern char **environ;
-#endif
-
   if (initialized)
     {
       if (!malloc_using_checking)

@@ -1623,9 +1623,6 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
   /* Use volatile to protect variables from being clobbered by longjmp.  */
   volatile int forkin, forkout;
   volatile int pty_flag = 0;
-#ifndef USE_CRT_DLL
-  extern char **environ;
-#endif
 
   inchannel = outchannel = -1;
 

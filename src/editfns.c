@@ -58,10 +58,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "window.h"
 #include "blockinput.h"
 
-#ifndef USE_CRT_DLL
-extern char **environ;
-#endif
-
 #define TM_YEAR_BASE 1900
 
 #ifdef WINDOWSNT

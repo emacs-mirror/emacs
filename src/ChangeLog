@@ -1,5 +1,12 @@
 2012-08-19  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Rely on <unistd.h> to declare 'environ',
+	as gnulib does this if the system doesn't.
+	* callproc.c, editfns.c, process.c (environ) [!USE_CRT_DLL]:
+	* emacs.c (environ) [DOUG_LEA_MALLOC]:
+	* vm-limit.c (environ) [ORDINARY_LINK]: Remove decl.
+	* vm-limit.c: Include <unistd.h>, for 'environ'.
+
 	* unexaix.c, unexcoff.c: Include "mem-limits.h".
 	(start_of_data): Remove decl; mem-limits.h provides it.
 
