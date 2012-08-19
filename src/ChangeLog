@@ -1,3 +1,9 @@
+2012-08-18  Alp Aker  <alp.tekin.aker@gmail.com>
+
+	* nsfont.m (ns_ascii_average_width): Ensure the string
+	ascii_printable is initialized with a null-terminated character
+	array.  Otherwise, it can contain undesired extra characters.
+
 2012-08-18  Paul Eggert  <eggert@cs.ucla.edu>
 
 	port new setting code to Sun C 5.8 2005/10/13
