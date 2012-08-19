@@ -1011,13 +1011,25 @@ The first line is indented with the optional INDENT-STRING."
 (defalias 'xml-print 'xml-debug-print)
 
 (defun xml-escape-string (string)
-  "Return STRING with entity substitutions made from `xml-entity-alist'."
-  (mapconcat (lambda (byte)
-               (let ((char (char-to-string byte)))
-                 (if (rassoc char xml-entity-alist)
-                     (concat "&" (car (rassoc char xml-entity-alist)) ";")
-                   char)))
-             string ""))
+  "Convert STRING into a string containing valid XML character data.
+Replace occurrences of &<>'\" in STRING with their default XML
+entity references (e.g. replace each & with &amp;).
+
+XML character data must not contain & or < characters, nor the >
+character under some circumstances.  The XML spec does not impose
+restriction on \" or ', but we just substitute for these too
+\(as is permitted by the spec)."
+  (with-temp-buffer
+    (insert string)
+    (dolist (substitution '(("&" . "&amp;")
+			    ("<" . "&lt;")
+			    (">" . "&gt;")
+			    ("'" . "&apos;")
+			    ("\"" . "&quot;")))
+      (goto-char (point-min))
+      (while (search-forward (car substitution) nil t)
+	(replace-match (cdr substitution) t t nil)))
+    (buffer-string)))
 
 (defun xml-debug-print-internal (xml indent-string)
   "Outputs the XML tree in the current buffer.
