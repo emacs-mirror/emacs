@@ -1,3 +1,10 @@
+2012-08-19  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Merge from gnulib, incorporating:
+	2012-08-19 ignore-value, stat-time, timespec: omit AC_C_INLINE
+	2012-08-19 mktime, sys_select: avoid 'static inline'
+	2012-08-19 gnulib-tool: Fix indentation.
+
 2012-08-18  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* lib/sigprocmask.c, m4/signalblocking.m4: Remove.

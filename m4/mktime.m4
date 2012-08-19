@@ -1,4 +1,4 @@
-# serial 23
+# serial 24
 dnl Copyright (C) 2002-2003, 2005-2007, 2009-2012 Free Software Foundation,
 dnl Inc.
 dnl This file is free software; the Free Software Foundation
@@ -247,7 +247,4 @@ AC_DEFUN([gl_FUNC_MKTIME_INTERNAL], [
 ])
 
 # Prerequisites of lib/mktime.c.
-AC_DEFUN([gl_PREREQ_MKTIME],
-[
-  AC_REQUIRE([AC_C_INLINE])
-])
+AC_DEFUN([gl_PREREQ_MKTIME], [:])

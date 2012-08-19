@@ -130,7 +130,7 @@
 
 /* Re-define FD_ISSET to avoid a WSA call while we are not using
    network sockets.  */
-static inline int
+static int
 rpl_fd_isset (SOCKET fd, fd_set * set)
 {
   u_int i;

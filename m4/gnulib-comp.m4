@@ -136,135 +136,134 @@ AC_DEFUN([gl_INIT],
   m4_pushdef([gl_LIBSOURCES_DIR], [])
   gl_COMMON
   gl_source_base='lib'
-gl_FUNC_ALLOCA
-AC_CHECK_FUNCS_ONCE([readlinkat])
-gl_CLOCK_TIME
-gl_MD5
-gl_SHA1
-gl_SHA256
-gl_SHA512
-AC_REQUIRE([gl_C99_STRTOLD])
-gl_FUNC_DUP2
-if test $HAVE_DUP2 = 0 || test $REPLACE_DUP2 = 1; then
-  AC_LIBOBJ([dup2])
-  gl_PREREQ_DUP2
-fi
-gl_UNISTD_MODULE_INDICATOR([dup2])
-gl_ENVIRON
-gl_UNISTD_MODULE_INDICATOR([environ])
-AC_REQUIRE([gl_EXTERN_INLINE])
-gl_FILEMODE
-gl_GETLOADAVG
-if test $HAVE_GETLOADAVG = 0; then
-  AC_LIBOBJ([getloadavg])
-  gl_PREREQ_GETLOADAVG
-fi
-gl_STDLIB_MODULE_INDICATOR([getloadavg])
-gl_FUNC_GETOPT_GNU
-if test $REPLACE_GETOPT = 1; then
-  AC_LIBOBJ([getopt])
-  AC_LIBOBJ([getopt1])
-  gl_PREREQ_GETOPT
-  dnl Arrange for unistd.h to include getopt.h.
-  GNULIB_GL_UNISTD_H_GETOPT=1
-fi
-AC_SUBST([GNULIB_GL_UNISTD_H_GETOPT])
-gl_MODULE_INDICATOR_FOR_TESTS([getopt-gnu])
-gl_FUNC_GETOPT_POSIX
-if test $REPLACE_GETOPT = 1; then
-  AC_LIBOBJ([getopt])
-  AC_LIBOBJ([getopt1])
-  gl_PREREQ_GETOPT
-  dnl Arrange for unistd.h to include getopt.h.
-  GNULIB_GL_UNISTD_H_GETOPT=1
-fi
-AC_SUBST([GNULIB_GL_UNISTD_H_GETOPT])
-gl_GETTIME
-gl_FUNC_GETTIMEOFDAY
-if test $HAVE_GETTIMEOFDAY = 0 || test $REPLACE_GETTIMEOFDAY = 1; then
-  AC_LIBOBJ([gettimeofday])
-  gl_PREREQ_GETTIMEOFDAY
-fi
-gl_SYS_TIME_MODULE_INDICATOR([gettimeofday])
-AC_REQUIRE([AC_C_INLINE])
-gl_INTTYPES_INCOMPLETE
-AC_REQUIRE([gl_LARGEFILE])
-gl_FUNC_LSTAT
-if test $REPLACE_LSTAT = 1; then
-  AC_LIBOBJ([lstat])
-  gl_PREREQ_LSTAT
-fi
-gl_SYS_STAT_MODULE_INDICATOR([lstat])
-gl_FUNC_MKTIME
-if test $REPLACE_MKTIME = 1; then
-  AC_LIBOBJ([mktime])
-  gl_PREREQ_MKTIME
-fi
-gl_TIME_MODULE_INDICATOR([mktime])
-gl_MULTIARCH
-gl_FUNC_PSELECT
-if test $HAVE_PSELECT = 0 || test $REPLACE_PSELECT = 1; then
-  AC_LIBOBJ([pselect])
-fi
-gl_SYS_SELECT_MODULE_INDICATOR([pselect])
-gl_FUNC_PTHREAD_SIGMASK
-if test $HAVE_PTHREAD_SIGMASK = 0 || test $REPLACE_PTHREAD_SIGMASK = 1; then
-  AC_LIBOBJ([pthread_sigmask])
-  gl_PREREQ_PTHREAD_SIGMASK
-fi
-gl_SIGNAL_MODULE_INDICATOR([pthread_sigmask])
-gl_FUNC_READLINK
-if test $HAVE_READLINK = 0 || test $REPLACE_READLINK = 1; then
-  AC_LIBOBJ([readlink])
-  gl_PREREQ_READLINK
-fi
-gl_UNISTD_MODULE_INDICATOR([readlink])
-gl_SIGNAL_H
-gl_TYPE_SOCKLEN_T
-gt_TYPE_SSIZE_T
-gl_STAT_TIME
-gl_STAT_BIRTHTIME
-gl_STDALIGN_H
-gl_STDARG_H
-AM_STDBOOL_H
-gl_STDDEF_H
-gl_STDINT_H
-gl_STDIO_H
-gl_STDLIB_H
-gl_FUNC_GNU_STRFTIME
-gl_FUNC_STRTOIMAX
-if test $HAVE_STRTOIMAX = 0 || test $REPLACE_STRTOIMAX = 1; then
-  AC_LIBOBJ([strtoimax])
-  gl_PREREQ_STRTOIMAX
-fi
-gl_INTTYPES_MODULE_INDICATOR([strtoimax])
-gl_FUNC_STRTOUMAX
-if test $ac_cv_func_strtoumax = no; then
-  AC_LIBOBJ([strtoumax])
-  gl_PREREQ_STRTOUMAX
-fi
-gl_INTTYPES_MODULE_INDICATOR([strtoumax])
-gl_FUNC_SYMLINK
-if test $HAVE_SYMLINK = 0 || test $REPLACE_SYMLINK = 1; then
-  AC_LIBOBJ([symlink])
-fi
-gl_UNISTD_MODULE_INDICATOR([symlink])
-gl_HEADER_SYS_SELECT
-AC_PROG_MKDIR_P
-gl_HEADER_SYS_STAT_H
-AC_PROG_MKDIR_P
-gl_HEADER_SYS_TIME_H
-AC_PROG_MKDIR_P
-gl_HEADER_TIME_H
-gl_TIME_R
-if test $HAVE_LOCALTIME_R = 0 || test $REPLACE_LOCALTIME_R = 1; then
-  AC_LIBOBJ([time_r])
-  gl_PREREQ_TIME_R
-fi
-gl_TIME_MODULE_INDICATOR([time_r])
-gl_TIMESPEC
-gl_UNISTD_H
-gl_UTIMENS
+  gl_FUNC_ALLOCA
+  AC_CHECK_FUNCS_ONCE([readlinkat])
+  gl_CLOCK_TIME
+  gl_MD5
+  gl_SHA1
+  gl_SHA256
+  gl_SHA512
+  AC_REQUIRE([gl_C99_STRTOLD])
+  gl_FUNC_DUP2
+  if test $HAVE_DUP2 = 0 || test $REPLACE_DUP2 = 1; then
+    AC_LIBOBJ([dup2])
+    gl_PREREQ_DUP2
+  fi
+  gl_UNISTD_MODULE_INDICATOR([dup2])
+  gl_ENVIRON
+  gl_UNISTD_MODULE_INDICATOR([environ])
+  AC_REQUIRE([gl_EXTERN_INLINE])
+  gl_FILEMODE
+  gl_GETLOADAVG
+  if test $HAVE_GETLOADAVG = 0; then
+    AC_LIBOBJ([getloadavg])
+    gl_PREREQ_GETLOADAVG
+  fi
+  gl_STDLIB_MODULE_INDICATOR([getloadavg])
+  gl_FUNC_GETOPT_GNU
+  if test $REPLACE_GETOPT = 1; then
+    AC_LIBOBJ([getopt])
+    AC_LIBOBJ([getopt1])
+    gl_PREREQ_GETOPT
+    dnl Arrange for unistd.h to include getopt.h.
+    GNULIB_GL_UNISTD_H_GETOPT=1
+  fi
+  AC_SUBST([GNULIB_GL_UNISTD_H_GETOPT])
+  gl_MODULE_INDICATOR_FOR_TESTS([getopt-gnu])
+  gl_FUNC_GETOPT_POSIX
+  if test $REPLACE_GETOPT = 1; then
+    AC_LIBOBJ([getopt])
+    AC_LIBOBJ([getopt1])
+    gl_PREREQ_GETOPT
+    dnl Arrange for unistd.h to include getopt.h.
+    GNULIB_GL_UNISTD_H_GETOPT=1
+  fi
+  AC_SUBST([GNULIB_GL_UNISTD_H_GETOPT])
+  gl_GETTIME
+  gl_FUNC_GETTIMEOFDAY
+  if test $HAVE_GETTIMEOFDAY = 0 || test $REPLACE_GETTIMEOFDAY = 1; then
+    AC_LIBOBJ([gettimeofday])
+    gl_PREREQ_GETTIMEOFDAY
+  fi
+  gl_SYS_TIME_MODULE_INDICATOR([gettimeofday])
+  gl_INTTYPES_INCOMPLETE
+  AC_REQUIRE([gl_LARGEFILE])
+  gl_FUNC_LSTAT
+  if test $REPLACE_LSTAT = 1; then
+    AC_LIBOBJ([lstat])
+    gl_PREREQ_LSTAT
+  fi
+  gl_SYS_STAT_MODULE_INDICATOR([lstat])
+  gl_FUNC_MKTIME
+  if test $REPLACE_MKTIME = 1; then
+    AC_LIBOBJ([mktime])
+    gl_PREREQ_MKTIME
+  fi
+  gl_TIME_MODULE_INDICATOR([mktime])
+  gl_MULTIARCH
+  gl_FUNC_PSELECT
+  if test $HAVE_PSELECT = 0 || test $REPLACE_PSELECT = 1; then
+    AC_LIBOBJ([pselect])
+  fi
+  gl_SYS_SELECT_MODULE_INDICATOR([pselect])
+  gl_FUNC_PTHREAD_SIGMASK
+  if test $HAVE_PTHREAD_SIGMASK = 0 || test $REPLACE_PTHREAD_SIGMASK = 1; then
+    AC_LIBOBJ([pthread_sigmask])
+    gl_PREREQ_PTHREAD_SIGMASK
+  fi
+  gl_SIGNAL_MODULE_INDICATOR([pthread_sigmask])
+  gl_FUNC_READLINK
+  if test $HAVE_READLINK = 0 || test $REPLACE_READLINK = 1; then
+    AC_LIBOBJ([readlink])
+    gl_PREREQ_READLINK
+  fi
+  gl_UNISTD_MODULE_INDICATOR([readlink])
+  gl_SIGNAL_H
+  gl_TYPE_SOCKLEN_T
+  gt_TYPE_SSIZE_T
+  gl_STAT_TIME
+  gl_STAT_BIRTHTIME
+  gl_STDALIGN_H
+  gl_STDARG_H
+  AM_STDBOOL_H
+  gl_STDDEF_H
+  gl_STDINT_H
+  gl_STDIO_H
+  gl_STDLIB_H
+  gl_FUNC_GNU_STRFTIME
+  gl_FUNC_STRTOIMAX
+  if test $HAVE_STRTOIMAX = 0 || test $REPLACE_STRTOIMAX = 1; then
+    AC_LIBOBJ([strtoimax])
+    gl_PREREQ_STRTOIMAX
+  fi
+  gl_INTTYPES_MODULE_INDICATOR([strtoimax])
+  gl_FUNC_STRTOUMAX
+  if test $ac_cv_func_strtoumax = no; then
+    AC_LIBOBJ([strtoumax])
+    gl_PREREQ_STRTOUMAX
+  fi
+  gl_INTTYPES_MODULE_INDICATOR([strtoumax])
+  gl_FUNC_SYMLINK
+  if test $HAVE_SYMLINK = 0 || test $REPLACE_SYMLINK = 1; then
+    AC_LIBOBJ([symlink])
+  fi
+  gl_UNISTD_MODULE_INDICATOR([symlink])
+  gl_HEADER_SYS_SELECT
+  AC_PROG_MKDIR_P
+  gl_HEADER_SYS_STAT_H
+  AC_PROG_MKDIR_P
+  gl_HEADER_SYS_TIME_H
+  AC_PROG_MKDIR_P
+  gl_HEADER_TIME_H
+  gl_TIME_R
+  if test $HAVE_LOCALTIME_R = 0 || test $REPLACE_LOCALTIME_R = 1; then
+    AC_LIBOBJ([time_r])
+    gl_PREREQ_TIME_R
+  fi
+  gl_TIME_MODULE_INDICATOR([time_r])
+  gl_TIMESPEC
+  gl_UNISTD_H
+  gl_UTIMENS
   gl_gnulib_enabled_dosname=false
   gl_gnulib_enabled_be453cec5eecf5731a274f2de7f2db36=false
   gl_gnulib_enabled_pathmax=false
@@ -281,27 +280,27 @@ gl_UTIMENS
   func_gl_gnulib_m4code_be453cec5eecf5731a274f2de7f2db36 ()
   {
     if ! $gl_gnulib_enabled_be453cec5eecf5731a274f2de7f2db36; then
-AC_SUBST([LIBINTL])
-AC_SUBST([LTLIBINTL])
+      AC_SUBST([LIBINTL])
+      AC_SUBST([LTLIBINTL])
       gl_gnulib_enabled_be453cec5eecf5731a274f2de7f2db36=true
     fi
   }
   func_gl_gnulib_m4code_pathmax ()
   {
     if ! $gl_gnulib_enabled_pathmax; then
-gl_PATHMAX
+      gl_PATHMAX
       gl_gnulib_enabled_pathmax=true
     fi
   }
   func_gl_gnulib_m4code_stat ()
   {
     if ! $gl_gnulib_enabled_stat; then
-gl_FUNC_STAT
-if test $REPLACE_STAT = 1; then
-  AC_LIBOBJ([stat])
-  gl_PREREQ_STAT
-fi
-gl_SYS_STAT_MODULE_INDICATOR([stat])
+      gl_FUNC_STAT
+      if test $REPLACE_STAT = 1; then
+        AC_LIBOBJ([stat])
+        gl_PREREQ_STAT
+      fi
+      gl_SYS_STAT_MODULE_INDICATOR([stat])
       gl_gnulib_enabled_stat=true
       if test $REPLACE_STAT = 1; then
         func_gl_gnulib_m4code_dosname
@@ -317,24 +316,24 @@ gl_SYS_STAT_MODULE_INDICATOR([stat])
   func_gl_gnulib_m4code_strtoll ()
   {
     if ! $gl_gnulib_enabled_strtoll; then
-gl_FUNC_STRTOLL
-if test $HAVE_STRTOLL = 0; then
-  AC_LIBOBJ([strtoll])
-  gl_PREREQ_STRTOLL
-fi
-gl_STDLIB_MODULE_INDICATOR([strtoll])
+      gl_FUNC_STRTOLL
+      if test $HAVE_STRTOLL = 0; then
+        AC_LIBOBJ([strtoll])
+        gl_PREREQ_STRTOLL
+      fi
+      gl_STDLIB_MODULE_INDICATOR([strtoll])
       gl_gnulib_enabled_strtoll=true
     fi
   }
   func_gl_gnulib_m4code_strtoull ()
   {
     if ! $gl_gnulib_enabled_strtoull; then
-gl_FUNC_STRTOULL
-if test $HAVE_STRTOULL = 0; then
-  AC_LIBOBJ([strtoull])
-  gl_PREREQ_STRTOULL
-fi
-gl_STDLIB_MODULE_INDICATOR([strtoull])
+      gl_FUNC_STRTOULL
+      if test $HAVE_STRTOULL = 0; then
+        AC_LIBOBJ([strtoull])
+        gl_PREREQ_STRTOULL
+      fi
+      gl_STDLIB_MODULE_INDICATOR([strtoull])
       gl_gnulib_enabled_strtoull=true
     fi
   }

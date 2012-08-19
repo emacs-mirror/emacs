@@ -1,4 +1,4 @@
-#serial 14
+#serial 15
 
 # Copyright (C) 2000-2001, 2003-2007, 2009-2012 Free Software Foundation, Inc.
 
@@ -8,8 +8,4 @@
 
 dnl From Jim Meyering
 
-AC_DEFUN([gl_TIMESPEC],
-[
-  dnl Prerequisites of lib/timespec.h.
-  AC_REQUIRE([AC_C_INLINE])
-])
+AC_DEFUN([gl_TIMESPEC], [:])
