@@ -1,3 +1,8 @@
+2012-08-19  Chong Yidong  <cyd@gnu.org>
+
+	* xdisp.c (handle_invisible_prop): Fix ellipses at overlay string
+	ends (Bug#3874).
+
 2012-08-19  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* .gdbinit: Use call instead of set when calling a function in the

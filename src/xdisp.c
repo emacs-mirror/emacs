@@ -4088,35 +4088,33 @@ handle_invisible_prop (struct it *it)
 	  /* Record whether we have to display an ellipsis for the
 	     invisible text.  */
 	  int display_ellipsis_p = (invis_p == 2);
-	  ptrdiff_t endpos;
+	  ptrdiff_t len, endpos;
 
 	  handled = HANDLED_RECOMPUTE_PROPS;
 
 	  /* Get the position at which the next visible text can be
 	     found in IT->string, if any.  */
-	  XSETINT (limit, SCHARS (it->string));
+	  len = SCHARS (it->string);
+	  XSETINT (limit, len);
 	  do
 	    {
 	      end_charpos = Fnext_single_property_change (charpos, Qinvisible,
 							  it->string, limit);
-	      if (!NILP (end_charpos))
+	      if (INTEGERP (end_charpos))
 		{
+		  endpos = XFASTINT (end_charpos);
 		  prop = Fget_text_property (end_charpos, Qinvisible, it->string);
 		  invis_p = TEXT_PROP_MEANS_INVISIBLE (prop);
 		  if (invis_p == 2)
 		    display_ellipsis_p = 1;
 		}
 	    }
-	  while (!NILP (end_charpos) && invis_p);
+	  while (invis_p && INTEGERP (end_charpos) && endpos < len);
 
 	  if (display_ellipsis_p)
-	    {
-	      it->ellipsis_p = 1;
-	      handled = HANDLED_RETURN;
-	    }
+	    it->ellipsis_p = 1;
 
-	  if (INTEGERP (end_charpos)
-	      && (endpos = XFASTINT (end_charpos)) < XFASTINT (limit))
+	  if (INTEGERP (end_charpos) && endpos < len)
 	    {
 	      /* Text at END_CHARPOS is visible.  Move IT there.  */
 	      struct text_pos old;
@@ -4154,7 +4152,8 @@ handle_invisible_prop (struct it *it)
 	      /* The rest of the string is invisible.  If this is an
 		 overlay string, proceed with the next overlay string
 		 or whatever comes and return a character from there.  */
-	      if (it->current.overlay_string_index >= 0)
+	      if (it->current.overlay_string_index >= 0
+		  && !display_ellipsis_p)
 		{
 		  next_overlay_string (it);
 		  /* Don't check for overlay strings when we just

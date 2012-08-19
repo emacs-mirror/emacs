@@ -260,7 +260,7 @@ static unsigned char x_bits[] = {0xff, 0x81, 0xbd, 0xa5, 0xa5, 0xbd, 0x81, 0xff 
   (let ((buf (get-buffer "*Redisplay Test*")))
     (if buf
 	(kill-buffer buf))
-    (pop-to-buffer (get-buffer-create "*Redisplay Test*"))
+    (switch-to-buffer (get-buffer-create "*Redisplay Test*"))
     (erase-buffer)
     (setq buffer-invisibility-spec
 	  '(test-redisplay--simple-invis

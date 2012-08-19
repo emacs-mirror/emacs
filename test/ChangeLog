@@ -1,3 +1,7 @@
+2012-08-19  Chong Yidong  <cyd@gnu.org>
+
+	* redisplay-testsuite.el (test-redisplay): Use switch-to-buffer.
+
 2012-08-18  Chong Yidong  <cyd@gnu.org>
 
 	* redisplay-testsuite.el (test-redisplay-4): New test (Bug#3874).
