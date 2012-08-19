@@ -1,5 +1,8 @@
 2012-08-19  Andreas Schwab  <schwab@linux-m68k.org>
 
+	* .gdbinit: Use call instead of set when calling a function in the
+	inferior.
+
 	* data.c (set_internal): Don't use set_blv_found.
 	(Fkill_local_variable): Likewise.
 

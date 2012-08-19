@@ -89,7 +89,7 @@ define pp
   set $tmp = $arg0
   set $output_debug = print_output_debug_flag
   set print_output_debug_flag = 0
-  set safe_debug_print ($tmp)
+  call safe_debug_print ($tmp)
   set print_output_debug_flag = $output_debug
 end
 document pp
@@ -102,7 +102,7 @@ define pv
   set $tmp = "$arg0"
   set $output_debug = print_output_debug_flag
   set print_output_debug_flag = 0
-  set safe_debug_print (find_symbol_value (intern ($tmp)))
+  call safe_debug_print (find_symbol_value (intern ($tmp)))
   set print_output_debug_flag = $output_debug
 end
 document pv
@@ -1162,7 +1162,7 @@ end
 define xwhichsymbols
   set $output_debug = print_output_debug_flag
   set print_output_debug_flag = 0
-  set safe_debug_print (which_symbols ($arg0, $arg1))
+  call safe_debug_print (which_symbols ($arg0, $arg1))
   set print_output_debug_flag = $output_debug
 end
 document xwhichsymbols
