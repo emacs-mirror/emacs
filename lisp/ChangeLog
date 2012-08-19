@@ -1,3 +1,8 @@
+2012-08-19  Glenn Morris  <rgm@gnu.org>
+
+	* mail/rmailout.el (rmail-output-read-file-name):
+	Fix previous change (when the alist is nil or does not match).
+
 2012-08-19  Chong Yidong  <cyd@gnu.org>
 
 	* xml.el (xml-escape-string): Don't refer to xml-entity-alist

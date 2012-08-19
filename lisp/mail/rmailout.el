@@ -61,27 +61,30 @@ The function `rmail-delete-unwanted-fields' uses this, ignoring case."
 Set `rmail-default-file' to this name as well as returning it.
 This uses `rmail-output-file-alist'."
   (let* ((default-file
-	   (when rmail-output-file-alist
-	     (or rmail-buffer (error "There is no Rmail buffer"))
-	     (save-current-buffer
-	       (set-buffer rmail-buffer)
-	       (let ((beg (rmail-msgbeg rmail-current-message))
-		     (end (rmail-msgend rmail-current-message)))
-		 (if (rmail-buffers-swapped-p) (set-buffer rmail-view-buffer))
-		 (save-excursion
-		   (save-restriction
-		     (widen)
-		     (narrow-to-region beg end)
-		     (let ((tail rmail-output-file-alist)
-			   answer)
-		       ;; Suggest a file based on a pattern match.
-		       (while (and tail (not answer))
-			 (goto-char (point-min))
-			 (if (re-search-forward (caar tail) nil t)
-			     (setq answer (eval (cdar tail))))
-			 (setq tail (cdr tail)))
-		       ;; If no suggestion, use same file as last time.
-		       (or answer rmail-default-file))))))))
+	   (or
+	    (when rmail-output-file-alist
+	      (or rmail-buffer (error "There is no Rmail buffer"))
+	      (save-current-buffer
+		(set-buffer rmail-buffer)
+		(let ((beg (rmail-msgbeg rmail-current-message))
+		      (end (rmail-msgend rmail-current-message)))
+		  (if (rmail-buffers-swapped-p) (set-buffer rmail-view-buffer))
+		  (save-excursion
+		    (save-restriction
+		      (widen)
+		      (narrow-to-region beg end)
+		      (let ((tail rmail-output-file-alist)
+			    answer)
+			;; Suggest a file based on a pattern match.
+			(while (and tail (not answer))
+			  (goto-char (point-min))
+			  (if (re-search-forward (caar tail) nil t)
+			      ;; FIXME trap and report any errors.
+			      (setq answer (eval (cdar tail))))
+			  (setq tail (cdr tail)))
+			answer))))))
+	    ;; If no suggestion, use same file as last time.
+	    rmail-default-file))
 	 (read-file
 	  (expand-file-name
 	   (read-file-name
