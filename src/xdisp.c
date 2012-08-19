@@ -4094,7 +4094,7 @@ handle_invisible_prop (struct it *it)
 
 	  /* Get the position at which the next visible text can be
 	     found in IT->string, if any.  */
-	  len = SCHARS (it->string);
+	  endpos = len = SCHARS (it->string);
 	  XSETINT (limit, len);
 	  do
 	    {
@@ -4109,12 +4109,12 @@ handle_invisible_prop (struct it *it)
 		    display_ellipsis_p = 1;
 		}
 	    }
-	  while (invis_p && INTEGERP (end_charpos) && endpos < len);
+	  while (invis_p && endpos < len);
 
 	  if (display_ellipsis_p)
 	    it->ellipsis_p = 1;
 
-	  if (INTEGERP (end_charpos) && endpos < len)
+	  if (endpos < len)
 	    {
 	      /* Text at END_CHARPOS is visible.  Move IT there.  */
 	      struct text_pos old;

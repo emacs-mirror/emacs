@@ -1,3 +1,8 @@
+2012-08-19  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* xdisp.c (handle_invisible_prop): Make it a bit faster
+	and avoid a gcc -Wmaybe-uninitialized diagnostic.
+
 2012-08-19  Chong Yidong  <cyd@gnu.org>
 
 	* xdisp.c (handle_invisible_prop): Fix ellipses at overlay string
