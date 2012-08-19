@@ -1,5 +1,8 @@
 2012-08-19  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* unexaix.c, unexcoff.c: Include "mem-limits.h".
+	(start_of_data): Remove decl; mem-limits.h provides it.
+
 	* xdisp.c (handle_invisible_prop): Make it a bit faster
 	and avoid a gcc -Wmaybe-uninitialized diagnostic.
 
