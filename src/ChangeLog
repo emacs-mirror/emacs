@@ -1,3 +1,8 @@
+2012-08-19  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* data.c (set_internal): Don't use set_blv_found.
+	(Fkill_local_variable): Likewise.
+
 2012-08-18  Alp Aker  <alp.tekin.aker@gmail.com>
 
 	* nsfont.m (ns_ascii_average_width): Ensure the string

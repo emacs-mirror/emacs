@@ -1184,7 +1184,7 @@ set_internal (register Lisp_Object symbol, register Lisp_Object newval, register
 			   ? XFRAME (where)->param_alist
 			   : BVAR (XBUFFER (where), local_var_alist)));
 	    set_blv_where (blv, where);
-	    set_blv_found (blv, 1);
+	    blv->found = 1;
 
 	    if (NILP (tem1))
 	      {
@@ -1199,7 +1199,7 @@ set_internal (register Lisp_Object symbol, register Lisp_Object newval, register
 		if (bindflag || !blv->local_if_set
 		    || let_shadows_buffer_binding_p (sym))
 		  {
-		    set_blv_found (blv, 0);
+		    blv->found = 0;
 		    tem1 = blv->defcell;
 		  }
 		/* If it's a local_if_set, being set not bound,
@@ -1735,7 +1735,7 @@ From now on the default value will apply in this buffer.  Return VARIABLE.  */)
     if (EQ (buf, blv->where))
       {
 	set_blv_where (blv, Qnil);
-	set_blv_found (blv, 0);
+	blv->found = 0;
 	find_symbol_value (variable);
       }
   }
