@@ -1,3 +1,8 @@
+2012-08-20  Edward Reingold  <reingold@iit.edu>
+
+	* calendar/cal-tex.el (cal-tex-cursor-week-at-a-glance):
+	New function.  (Bug12160)
+
 2012-08-19  Glenn Morris  <rgm@gnu.org>
 
 	* mail/rmailout.el (rmail-output-read-file-name):
