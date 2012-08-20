@@ -3663,7 +3663,7 @@ make_hash_table (Lisp_Object test, Lisp_Object size, Lisp_Object rehash_size,
 
   /* Set up the free list.  */
   for (i = 0; i < sz - 1; ++i)
-    set_hash_next (h, i, make_number (i + 1));
+    set_hash_next_slot (h, i, make_number (i + 1));
   h->next_free = make_number (0);
 
   XSET_HASH_TABLE (table, h);
@@ -3760,17 +3760,17 @@ maybe_resize_hash_table (struct Lisp_Hash_Table *h)
 	}
 #endif
 
-      h->key_and_value = larger_vector (h->key_and_value,
-					2 * (new_size - old_size), -1);
-      h->next = larger_vector (h->next, new_size - old_size, -1);
-      h->hash = larger_vector (h->hash, new_size - old_size, -1);
-      h->index = Fmake_vector (make_number (index_size), Qnil);
+      set_hash_key_and_value (h, larger_vector (h->key_and_value,
+						2 * (new_size - old_size), -1));
+      set_hash_next (h, larger_vector (h->next, new_size - old_size, -1));
+      set_hash_hash (h, larger_vector (h->hash, new_size - old_size, -1));
+      set_hash_index (h, Fmake_vector (make_number (index_size), Qnil));
 
       /* Update the free list.  Do it so that new entries are added at
          the end of the free list.  This makes some operations like
          maphash faster.  */
       for (i = old_size; i < new_size - 1; ++i)
-	set_hash_next (h, i, make_number (i + 1));
+	set_hash_next_slot (h, i, make_number (i + 1));
 
       if (!NILP (h->next_free))
 	{
@@ -3781,7 +3781,7 @@ maybe_resize_hash_table (struct Lisp_Hash_Table *h)
 		 !NILP (next))
 	    last = next;
 
-	  set_hash_next (h, XFASTINT (last), make_number (old_size));
+	  set_hash_next_slot (h, XFASTINT (last), make_number (old_size));
 	}
       else
 	XSETFASTINT (h->next_free, old_size);
@@ -3792,8 +3792,8 @@ maybe_resize_hash_table (struct Lisp_Hash_Table *h)
 	  {
 	    EMACS_UINT hash_code = XUINT (HASH_HASH (h, i));
 	    ptrdiff_t start_of_bucket = hash_code % ASIZE (h->index);
-	    set_hash_next (h, i, HASH_INDEX (h, start_of_bucket));
-	    set_hash_index (h, start_of_bucket, make_number (i));
+	    set_hash_next_slot (h, i, HASH_INDEX (h, start_of_bucket));
+	    set_hash_index_slot (h, start_of_bucket, make_number (i));
 	  }
     }
 }
@@ -3852,16 +3852,16 @@ hash_put (struct Lisp_Hash_Table *h, Lisp_Object key, Lisp_Object value,
   /* Store key/value in the key_and_value vector.  */
   i = XFASTINT (h->next_free);
   h->next_free = HASH_NEXT (h, i);
-  set_hash_key (h, i, key);
-  set_hash_value (h, i, value);
+  set_hash_key_slot (h, i, key);
+  set_hash_value_slot (h, i, value);
 
   /* Remember its hash code.  */
-  set_hash_hash (h, i, make_number (hash));
+  set_hash_hash_slot (h, i, make_number (hash));
 
   /* Add new entry to its collision chain.  */
   start_of_bucket = hash % ASIZE (h->index);
-  set_hash_next (h, i, HASH_INDEX (h, start_of_bucket));
-  set_hash_index (h, start_of_bucket, make_number (i));
+  set_hash_next_slot (h, i, HASH_INDEX (h, start_of_bucket));
+  set_hash_index_slot (h, start_of_bucket, make_number (i));
   return i;
 }
 
@@ -3892,16 +3892,16 @@ hash_remove_from_table (struct Lisp_Hash_Table *h, Lisp_Object key)
 	{
 	  /* Take entry out of collision chain.  */
 	  if (NILP (prev))
-	    set_hash_index (h, start_of_bucket, HASH_NEXT (h, i));
+	    set_hash_index_slot (h, start_of_bucket, HASH_NEXT (h, i));
 	  else
-	    set_hash_next (h, XFASTINT (prev), HASH_NEXT (h, i));
+	    set_hash_next_slot (h, XFASTINT (prev), HASH_NEXT (h, i));
 
 	  /* Clear slots in key_and_value and add the slots to
 	     the free list.  */
-	  set_hash_key (h, i, Qnil);
-	  set_hash_value (h, i, Qnil);
-	  set_hash_hash (h, i, Qnil);
-	  set_hash_next (h, i, h->next_free);
+	  set_hash_key_slot (h, i, Qnil);
+	  set_hash_value_slot (h, i, Qnil);
+	  set_hash_hash_slot (h, i, Qnil);
+	  set_hash_next_slot (h, i, h->next_free);
 	  h->next_free = make_number (i);
 	  h->count--;
 	  eassert (h->count >= 0);
@@ -3927,10 +3927,10 @@ hash_clear (struct Lisp_Hash_Table *h)
 
       for (i = 0; i < size; ++i)
 	{
-	  set_hash_next (h, i, i < size - 1 ? make_number (i + 1) : Qnil);
-	  set_hash_key (h, i, Qnil);
-	  set_hash_value (h, i, Qnil);
-	  set_hash_hash (h, i, Qnil);
+	  set_hash_next_slot (h, i, i < size - 1 ? make_number (i + 1) : Qnil);
+	  set_hash_key_slot (h, i, Qnil);
+	  set_hash_value_slot (h, i, Qnil);
+	  set_hash_hash_slot (h, i, Qnil);
 	}
 
       for (i = 0; i < ASIZE (h->index); ++i)
@@ -3994,18 +3994,18 @@ sweep_weak_table (struct Lisp_Hash_Table *h, int remove_entries_p)
 		{
 		  /* Take out of collision chain.  */
 		  if (NILP (prev))
-		    set_hash_index (h, bucket, next);
+		    set_hash_index_slot (h, bucket, next);
 		  else
-		    set_hash_next (h, XFASTINT (prev), next);
+		    set_hash_next_slot (h, XFASTINT (prev), next);
 
 		  /* Add to free list.  */
-		  set_hash_next (h, i, h->next_free);
+		  set_hash_next_slot (h, i, h->next_free);
 		  h->next_free = idx;
 
 		  /* Clear key, value, and hash.  */
-		  set_hash_key (h, i, Qnil);
-		  set_hash_value (h, i, Qnil);
-		  set_hash_hash (h, i, Qnil);
+		  set_hash_key_slot (h, i, Qnil);
+		  set_hash_value_slot (h, i, Qnil);
+		  set_hash_hash_slot (h, i, Qnil);
 
 		  h->count--;
 		}
@@ -4512,7 +4512,7 @@ VALUE.  In any case, return VALUE.  */)
 
   i = hash_lookup (h, key, &hash);
   if (i >= 0)
-    set_hash_value (h, i, value);
+    set_hash_value_slot (h, i, value);
   else
     hash_put (h, key, value, hash);
 

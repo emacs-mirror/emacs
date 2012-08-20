@@ -1131,7 +1131,7 @@ usage: (define-charset-internal ...)  */)
     {
       new_definition_p = 0;
       id = XFASTINT (CHARSET_SYMBOL_ID (args[charset_arg_name]));
-      set_hash_value (hash_table, charset.hash_index, attrs);
+      set_hash_value_slot (hash_table, charset.hash_index, attrs);
     }
   else
     {

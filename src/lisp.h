@@ -2345,31 +2345,55 @@ gc_aset (Lisp_Object array, ptrdiff_t idx, Lisp_Object val)
 }
 
 LISP_INLINE void
-set_hash_key (struct Lisp_Hash_Table *h, ptrdiff_t idx, Lisp_Object val)
+set_hash_key_and_value (struct Lisp_Hash_Table *h, Lisp_Object key_and_value)
+{
+  h->key_and_value = key_and_value;
+}
+
+LISP_INLINE void
+set_hash_key_slot (struct Lisp_Hash_Table *h, ptrdiff_t idx, Lisp_Object val)
 {
   gc_aset (h->key_and_value, 2 * idx, val);
 }
 
 LISP_INLINE void
-set_hash_value (struct Lisp_Hash_Table *h, ptrdiff_t idx, Lisp_Object val)
+set_hash_value_slot (struct Lisp_Hash_Table *h, ptrdiff_t idx, Lisp_Object val)
 {
   gc_aset (h->key_and_value, 2 * idx + 1, val);
 }
 
 LISP_INLINE void
-set_hash_next (struct Lisp_Hash_Table *h, ptrdiff_t idx, Lisp_Object val)
+set_hash_next (struct Lisp_Hash_Table *h, Lisp_Object next)
+{
+  h->next = next;
+}
+
+LISP_INLINE void
+set_hash_next_slot (struct Lisp_Hash_Table *h, ptrdiff_t idx, Lisp_Object val)
 {
   gc_aset (h->next, idx, val);
 }
 
 LISP_INLINE void
-set_hash_hash (struct Lisp_Hash_Table *h, ptrdiff_t idx, Lisp_Object val)
+set_hash_hash (struct Lisp_Hash_Table *h, Lisp_Object hash)
+{
+  h->hash = hash;
+}
+
+LISP_INLINE void
+set_hash_hash_slot (struct Lisp_Hash_Table *h, ptrdiff_t idx, Lisp_Object val)
 {
   gc_aset (h->hash, idx, val);
 }
 
 LISP_INLINE void
-set_hash_index (struct Lisp_Hash_Table *h, ptrdiff_t idx, Lisp_Object val)
+set_hash_index (struct Lisp_Hash_Table *h, Lisp_Object index)
+{
+  h->index = index;
+}
+
+LISP_INLINE void
+set_hash_index_slot (struct Lisp_Hash_Table *h, ptrdiff_t idx, Lisp_Object val)
 {
   gc_aset (h->index, idx, val);
 }
