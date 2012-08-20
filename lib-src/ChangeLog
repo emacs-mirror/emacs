@@ -1,6 +1,6 @@
 2012-08-19  Paul Eggert  <eggert@cs.ucla.edu>
 
-	Rely on <unistd.h> to declare 'environ'.
+	Rely on <config.h> + <unistd.h> to declare 'environ'.
 	* emacsclient.c (environ): Remove decl.
 
 2012-08-17  Juanma Barranquero  <lekktu@gmail.com>

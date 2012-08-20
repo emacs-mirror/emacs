@@ -4,7 +4,7 @@
 
 2012-08-19  Paul Eggert  <eggert@cs.ucla.edu>
 
-	Rely on <unistd.h> to declare 'environ',
+	Rely on <config.h> + <unistd.h> to declare 'environ',
 	as gnulib does this if the system doesn't.
 	* callproc.c, editfns.c, process.c (environ) [!USE_CRT_DLL]:
 	* emacs.c (environ) [DOUG_LEA_MALLOC]:
