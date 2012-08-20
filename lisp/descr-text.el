@@ -140,7 +140,7 @@ otherwise."
 
 (defun describe-text-properties-1 (pos output-buffer)
   (let* ((properties (text-properties-at pos))
-	 (overlays (overlays-at pos))
+	 (overlays (overlays-in pos (1+ pos)))
 	 (wid-field (get-char-property pos 'field))
 	 (wid-button (get-char-property pos 'button))
 	 (wid-doc (get-char-property pos 'widget-doc))
