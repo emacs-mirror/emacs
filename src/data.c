@@ -847,7 +847,7 @@ do_symval_forwarding (register union Lisp_Fwd *valcontents)
       return *XOBJFWD (valcontents)->objvar;
 
     case Lisp_Fwd_Buffer_Obj:
-      return PER_BUFFER_VALUE (current_buffer,
+      return per_buffer_value (current_buffer,
 			       XBUFFER_OBJFWD (valcontents)->offset);
 
     case Lisp_Fwd_Kboard_Obj:
@@ -919,7 +919,7 @@ store_symval_forwarding (union Lisp_Fwd *valcontents, register Lisp_Object newva
 	      b = XBUFFER (lbuf);
 
 	      if (! PER_BUFFER_VALUE_P (b, idx))
-		PER_BUFFER_VALUE (b, offset) = newval;
+		set_per_buffer_value (b, offset, newval);
 	    }
 	}
       break;
@@ -937,7 +937,7 @@ store_symval_forwarding (union Lisp_Fwd *valcontents, register Lisp_Object newva
 
 	if (buf == NULL)
 	  buf = current_buffer;
-	PER_BUFFER_VALUE (buf, offset) = newval;
+	set_per_buffer_value (buf, offset, newval);
       }
       break;
 
@@ -1309,7 +1309,7 @@ default_value (Lisp_Object symbol)
 	  {
 	    int offset = XBUFFER_OBJFWD (valcontents)->offset;
 	    if (PER_BUFFER_IDX (offset) != 0)
-	      return PER_BUFFER_DEFAULT (offset);
+	      return per_buffer_default (offset);
 	  }
 
 	/* For other variables, get the current value.  */
@@ -1396,7 +1396,7 @@ for this variable.  */)
 	    int offset = XBUFFER_OBJFWD (valcontents)->offset;
 	    int idx = PER_BUFFER_IDX (offset);
 
-	    PER_BUFFER_DEFAULT (offset) = value;
+	    set_per_buffer_default (offset, value);
 
 	    /* If this variable is not always local in all buffers,
 	       set it in the buffers that don't nominally have a local value.  */
@@ -1406,7 +1406,7 @@ for this variable.  */)
 
 		FOR_EACH_BUFFER (b)
 		  if (!PER_BUFFER_VALUE_P (b, idx))
-		    PER_BUFFER_VALUE (b, offset) = value;
+		    set_per_buffer_value (b, offset, value);
 	      }
 	    return value;
 	  }
@@ -1705,8 +1705,8 @@ From now on the default value will apply in this buffer.  Return VARIABLE.  */)
 	    if (idx > 0)
 	      {
 		SET_PER_BUFFER_VALUE_P (current_buffer, idx, 0);
-		PER_BUFFER_VALUE (current_buffer, offset)
-		  = PER_BUFFER_DEFAULT (offset);
+		set_per_buffer_value (current_buffer, offset,
+				      per_buffer_default (offset));
 	      }
 	  }
 	return variable;

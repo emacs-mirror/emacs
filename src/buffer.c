@@ -695,7 +695,7 @@ clone_per_buffer_values (struct buffer *from, struct buffer *to)
       if (offset == PER_BUFFER_VAR_OFFSET (name))
 	continue;
 
-      obj = PER_BUFFER_VALUE (from, offset);
+      obj = per_buffer_value (from, offset);
       if (MARKERP (obj) && XMARKER (obj)->buffer == from)
 	{
 	  struct Lisp_Marker *m = XMARKER (obj);
@@ -704,7 +704,7 @@ clone_per_buffer_values (struct buffer *from, struct buffer *to)
 	  XMARKER (obj)->insertion_type = m->insertion_type;
 	}
 
-      PER_BUFFER_VALUE (to, offset) = obj;
+      set_per_buffer_value (to, offset, obj);
     }
 
   memcpy (to->local_flags, from->local_flags, sizeof to->local_flags);
@@ -1063,7 +1063,7 @@ reset_buffer_local_variables (register struct buffer *b, int permanent_too)
       if ((idx > 0
 	   && (permanent_too
 	       || buffer_permanent_local_flags[idx] == 0)))
-	PER_BUFFER_VALUE (b, offset) = PER_BUFFER_DEFAULT (offset);
+	set_per_buffer_value (b, offset, per_buffer_default (offset));
     }
 }
 
@@ -1239,7 +1239,7 @@ buffer_local_value_1 (Lisp_Object variable, Lisp_Object buffer)
       {
 	union Lisp_Fwd *fwd = SYMBOL_FWD (sym);
 	if (BUFFER_OBJFWDP (fwd))
-	  result = PER_BUFFER_VALUE (buf, XBUFFER_OBJFWD (fwd)->offset);
+	  result = per_buffer_value (buf, XBUFFER_OBJFWD (fwd)->offset);
 	else
 	  result = Fdefault_value (variable);
 	break;
@@ -1319,7 +1319,7 @@ No argument or nil as argument means use current buffer as BUFFER.  */)
 	    && SYMBOLP (PER_BUFFER_SYMBOL (offset)))
 	  {
 	    Lisp_Object sym = PER_BUFFER_SYMBOL (offset);
-	    Lisp_Object val = PER_BUFFER_VALUE (buf, offset);
+	    Lisp_Object val = per_buffer_value (buf, offset);
 	    result = Fcons (EQ (val, Qunbound) ? sym : Fcons (sym, val),
 			    result);
 	  }
