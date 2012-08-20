@@ -731,6 +731,7 @@ dnl AC_PROG_MKDIR_P
 dnl if test "x$RANLIB" = x; then
 dnl   AC_PROG_RANLIB
 dnl fi
+AC_PROG_LN_S
 
 AC_PATH_PROG(INSTALL_INFO, install-info, :,
   $PATH$PATH_SEPARATOR/usr/sbin$PATH_SEPARATOR/sbin)

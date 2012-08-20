@@ -1,3 +1,9 @@
+2012-08-20  Glenn Morris  <rgm@gnu.org>
+
+	* configure.ac (AC_PROG_LN_S): Test for ln.
+	* Makefile.in (LN_S): New, set by configure.
+	(install-arch-dep): Use $LN_S.
+
 2012-08-19  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Merge from gnulib, incorporating:
