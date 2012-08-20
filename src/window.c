@@ -477,6 +477,9 @@ select_window (Lisp_Object window, Lisp_Object norecord, int inhibit_point_swap)
       record_buffer (w->buffer);
     }
 
+  /* Make the selected window's buffer current.  */
+  Fset_buffer (w->buffer);
+
   if (EQ (window, selected_window) && !inhibit_point_swap)
     return window;
 
@@ -496,9 +499,9 @@ select_window (Lisp_Object window, Lisp_Object norecord, int inhibit_point_swap)
   else
     fset_selected_window (sf, window);
 
-  /* Store the current buffer's actual point into the
-     old selected window.  It belongs to that window,
-     and when the window is not selected, must be in the window.  */
+  /* Store the old selected window's buffer's point in pointm of the old
+     selected window.  It belongs to that window, and when the window is
+     not selected, must be in the window.  */
   if (!inhibit_point_swap)
     {
       ow = XWINDOW (selected_window);
@@ -509,9 +512,6 @@ select_window (Lisp_Object window, Lisp_Object norecord, int inhibit_point_swap)
     }
 
   selected_window = window;
-
-  Fset_buffer (w->buffer);
-
   bset_last_selected_window (XBUFFER (w->buffer), window);
 
   /* Go to the point recorded in the window.
