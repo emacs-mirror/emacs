@@ -74,13 +74,21 @@ This uses `rmail-output-file-alist'."
 		      (widen)
 		      (narrow-to-region beg end)
 		      (let ((tail rmail-output-file-alist)
-			    answer)
+			    answer err)
 			;; Suggest a file based on a pattern match.
 			(while (and tail (not answer))
 			  (goto-char (point-min))
 			  (if (re-search-forward (caar tail) nil t)
-			      ;; FIXME trap and report any errors.
-			      (setq answer (eval (cdar tail))))
+			      (setq answer
+				    (condition-case err
+					(eval (cdar tail))
+				      (error
+				       (display-warning
+					:error
+					(format "Error evaluating \
+`rmail-output-file-alist' element:\nregexp: %s\naction: %s\nerror: %S\n"
+						(caar tail) (cdar tail) err))
+				       nil))))
 			  (setq tail (cdr tail)))
 			answer))))))
 	    ;; If no suggestion, use same file as last time.

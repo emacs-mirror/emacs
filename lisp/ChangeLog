@@ -1,5 +1,8 @@
 2012-08-20  Glenn Morris  <rgm@gnu.org>
 
+	* mail/rmailout.el (rmail-output-read-file-name):
+	Trap and report errors in rmail-output-file-alist elements.
+
 	* font-lock.el (font-lock-add-keywords): Doc fix (quote face names
 	since most non-font-lock faces are not also variables).
 
