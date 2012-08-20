@@ -360,10 +360,10 @@ automatically."
              'log-edit-header)
          nil lax)))))
 
-;; Used in Emacs 24.3+, and in Emacs's .dir-locals.el file.
-;; This is a convenience setting so that people committing files
-;; to Emacs trunk with Emacs 24point2 do not always get queried
-;; about this variable being potentially unsafe.
+;; Used in Emacs 24.3+, and in Emacs's .dir-locals.el file.  This is a
+;; convenience setting so that people committing files to Emacs trunk
+;; with Emacs 24.2 do not always get queried about this variable being
+;; potentially unsafe.
 (put 'log-edit-font-lock-gnu-style 'safe-local-variable 'booleanp)
 
 ;;;###autoload
