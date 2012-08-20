@@ -408,6 +408,8 @@ element (using `match-beginning') before calling `hs-forward-sexp-func'.")
 
 (defvar hs-block-end-regexp nil
   "Regexp for end of block.")
+(make-variable-buffer-local 'hs-block-end-regexp)
+
 
 (defvar hs-forward-sexp-func 'forward-sexp
   "Function used to do a `forward-sexp'.
