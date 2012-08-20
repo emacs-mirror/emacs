@@ -42,6 +42,8 @@
 	Rely on <config.h> + <unistd.h> to declare 'environ',
 	as gnulib does this if the system doesn't.
 	* callproc.c, editfns.c, process.c (environ) [!USE_CRT_DLL]:
+	Remove declaration.  MS-Windows declares it on stdlib.h which is
+	included by conf_post.h.
 	* emacs.c (environ) [DOUG_LEA_MALLOC]:
 	* vm-limit.c (environ) [ORDINARY_LINK]: Remove decl.
 	* vm-limit.c: Include <unistd.h>, for 'environ'.
