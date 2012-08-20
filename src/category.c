@@ -143,7 +143,7 @@ the current buffer's category table.  */)
     error ("Category `%c' is already defined", (int) XFASTINT (category));
   if (!NILP (Vpurify_flag))
     docstring = Fpurecopy (docstring);
-  CATEGORY_DOCSTRING (table, XFASTINT (category)) = docstring;
+  SET_CATEGORY_DOCSTRING (table, XFASTINT (category), docstring);
 
   return Qnil;
 }

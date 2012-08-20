@@ -96,8 +96,12 @@ CHAR_HAS_CATEGORY (int ch, int category)
 #define Vstandard_category_table BVAR (&buffer_defaults, category_table)
 
 /* Return the doc string of CATEGORY in category table TABLE.  */
-#define CATEGORY_DOCSTRING(table, category) \
-  XVECTOR (Fchar_table_extra_slot (table, make_number (0)))->contents[(category) - ' ']
+#define CATEGORY_DOCSTRING(table, category)				\
+  AREF (Fchar_table_extra_slot (table, make_number (0)), ((category) - ' '))
+
+/* Set the doc string of CATEGORY to VALUE in category table TABLE.  */
+#define SET_CATEGORY_DOCSTRING(table, category, value)			\
+  ASET (Fchar_table_extra_slot (table, make_number (0)), ((category) - ' '), value)
 
 /* Return the version number of category table TABLE.  Not used for
    the moment.  */
