@@ -402,11 +402,13 @@ $(leimdir)/leim-list.el: bootstrap-emacs$(EXEEXT)
 ## on all of $lisp, and emacs depends on DOC, so it is ok to use $lisp here.
 emacs$(EXEEXT): temacs$(EXEEXT) $(etc)/DOC $(lisp) $(leimdir)/leim-list.el
 	if test "$(CANNOT_DUMP)" = "yes"; then \
-	  ln -f temacs$(EXEEXT) emacs$(EXEEXT); \
+	  rm -f emacs$(EXEEXT); \
+	  ln temacs$(EXEEXT) emacs$(EXEEXT); \
 	else \
 	  LC_ALL=C $(RUN_TEMACS) -batch -l loadup dump || exit 1; \
 	  test "X$(PAXCTL)" = X || $(PAXCTL) -zex emacs$(EXEEXT); \
-	  ln -f emacs$(EXEEXT) bootstrap-emacs$(EXEEXT); \
+	  rm -f bootstrap-emacs$(EXEEXT); \
+	  ln emacs$(EXEEXT) bootstrap-emacs$(EXEEXT); \
 	fi
 
 ## We run make-docfile twice because the command line may get too long
@@ -600,7 +602,8 @@ $(lispsource)/loaddefs.el: $(BOOTSTRAPEMACS) $(VCSWITNESS)
 bootstrap-emacs$(EXEEXT): temacs$(EXEEXT)
 	cd ../lisp; $(MAKE) $(MFLAGS) update-subdirs
 	if test "$(CANNOT_DUMP)" = "yes"; then \
-	  ln -f temacs$(EXEEXT) bootstrap-emacs$(EXEEXT); \
+	  rm -f bootstrap-emacs$(EXEEXT); \
+	  ln temacs$(EXEEXT) bootstrap-emacs$(EXEEXT); \
 	else \
 	  $(RUN_TEMACS) --batch --load loadup bootstrap || exit 1; \
 	  test "X$(PAXCTL)" = X || $(PAXCTL) -zex emacs$(EXEEXT); \

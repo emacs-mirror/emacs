@@ -1,3 +1,8 @@
+2012-08-20  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (emacs$(EXEEXT), bootstrap-emacs$(EXEEXT)):
+	Don't assume that `ln -f' works.
+
 2012-08-20  Eli Zaretskii  <eliz@gnu.org>
 
 	* .gdbinit: Use "set $dummy = ..." to avoid warnings from GDB 7.5
