@@ -1,3 +1,8 @@
+2012-08-20  Glenn Morris  <rgm@gnu.org>
+
+	* font-lock.el (font-lock-add-keywords): Doc fix (quote face names
+	since most non-font-lock faces are not also variables).
+
 2012-08-20  Edward Reingold  <reingold@iit.edu>
 
 	* calendar/cal-tex.el (cal-tex-cursor-week-at-a-glance):
