@@ -18,9 +18,9 @@
 # Boston, MA 02110-1301, USA.
 
 # Force loading of symbols, enough to give us VALBITS etc.
-set main
+set $dummy = main + 8
 # With some compilers, we need this to give us struct Lisp_Symbol etc.:
-set Fmake_symbol
+set $dummy = Fmake_symbol + 8
 
 # Find lwlib source files too.
 dir ../lwlib
