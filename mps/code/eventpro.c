@@ -10,6 +10,7 @@
 
 #include "table.h"
 
+#include "eventdef.h"
 #include "eventcom.h"
 #include "eventpro.h"
 #include "misc.h"
@@ -76,11 +77,10 @@ typedef struct {
 
 static eventRecord eventTypes[] = {
   {0, "(unused)", 0, 0, "0"},
-#define RELATION(name, code, always, kind, format) \
+#define EVENT_INIT(X, name, code, always, kind, format) \
   {Event##name, #name, code, \
    EventSizeAlign(sizeof(Event##format##Struct)), #format},
-#include "eventdef.h"
-#undef RELATION
+  EVENT_LIST(EVENT_INIT, X)
 };
 
 #define eventTypeCount (sizeof(eventTypes) / sizeof(eventRecord))

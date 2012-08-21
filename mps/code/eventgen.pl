@@ -30,7 +30,7 @@ $ID = substr(q$Id$, 4, -1);
 
 open(C, "<eventdef.h") || die "Can't open $_";
 while(<C>) {
-  if(/RELATION\([^,]*,[^,]*,[^,]*,[^,]*, ([A-Z]+)\)/) {
+  if(/EVENT\(X,[^,]*,[^,]*,[^,]*,[^,]*, ([A-Z]+)\)/) {
     $Formats{$1} = 1 if(!defined($Formats{$1}));
   }
 }

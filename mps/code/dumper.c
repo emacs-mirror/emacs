@@ -21,6 +21,7 @@ typedef MPS_T_WORD Word;
 typedef struct AddrStruct *Addr;
 
 #include "eventcom.h"
+#include "eventdef.h"
 
 
 #ifdef MPS_PF_W3I6MV
@@ -32,12 +33,6 @@ typedef unsigned long long ulongest_t;
 #define PRIXPTR     "08lX"
 typedef unsigned long ulongest_t;
 #endif
-
-
-#define RELATION(type, code, always, kind, format) \
-  case Event ## type: \
-    readEvent(#type, #format, header[0], header[1], header[2]); \
-    break;
 
 
 #define AVER(test) \
@@ -141,7 +136,12 @@ int main(int argc, char *argv[]) {
       }
      
       switch(header[0]) {
-#include "eventdef.h"
+#define EVENT_CASE(X, type, code, always, kind, format) \
+  case Event ## type: \
+    readEvent(#type, #format, header[0], header[1], header[2]); \
+    break;
+        EVENT_LIST(EVENT_CASE, X)
+
       default:
         error("Unknown event code %"PRIXPTR, (ulongest_t)header[0]);
       }
