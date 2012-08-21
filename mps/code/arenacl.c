@@ -236,7 +236,7 @@ static Res ClientArenaInit(Arena *arenaReturn, ArenaClass class,
   /* arena if the size is not a power of 2. */
   arena->zoneShift = SizeFloorLog2(size >> MPS_WORD_SHIFT);
 
-  EVENT_PWA(ArenaCreateCL, arena, size, base);
+  EVENT3(ArenaCreateCL, arena, size, base);
   AVERT(ClientArena, clientArena);
   *arenaReturn = arena;
   return ResOK;

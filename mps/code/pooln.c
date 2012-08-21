@@ -39,7 +39,7 @@ static Res NInit(Pool pool, va_list args)
   /* Initialize pool-specific structures. */
 
   AVERT(PoolN, poolN);
-  EVENT_PPP(PoolInit, pool, PoolArena(pool), ClassOfPool(pool));
+  EVENT3(PoolInit, pool, PoolArena(pool), ClassOfPool(pool));
   return ResOK;
 }
 
