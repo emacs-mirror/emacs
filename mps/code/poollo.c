@@ -502,7 +502,7 @@ static Res LOInit(Pool pool, va_list arg)
 
   lo->sig = LOSig;
   AVERT(LO, lo);
-  EVENT_PP(PoolInitLO, pool, format);
+  EVENT2(PoolInitLO, pool, format);
   return ResOK;
 
 failGenInit:

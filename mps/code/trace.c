@@ -531,7 +531,7 @@ static void traceFlip(Trace trace)
   AVER(trace->state == TraceUNFLIPPED);
   AVER(!TraceSetIsMember(arena->flippedTraces, trace));
 
-  EVENT_PP(TraceFlipBegin, trace, arena);
+  EVENT2(TraceFlipBegin, trace, arena);
 
   traceFlipBuffers(ArenaGlobals(arena));
 
@@ -586,7 +586,7 @@ static void traceFlip(Trace trace)
   trace->state = TraceFLIPPED;
   arena->flippedTraces = TraceSetAdd(arena->flippedTraces, trace);
 
-  EVENT_PP(TraceFlipEnd, trace, arena);
+  EVENT2(TraceFlipEnd, trace, arena);
 
   ShieldResume(arena);
 
@@ -736,7 +736,7 @@ void TraceDestroy(Trace trace)
     ChainEndGC(trace->chain, trace);
   }
 
-  STATISTIC_STAT(EVENT_PWWWWWWWWWWWW
+  STATISTIC_STAT(EVENT13
                   (TraceStatScan, trace,
                    trace->rootScanCount, trace->rootScanSize,
                    trace->rootCopiedSize,
@@ -746,7 +746,7 @@ void TraceDestroy(Trace trace)
                    trace->singleCopiedSize,
                    trace->readBarrierHitCount, trace->greySegMax,
                    trace->pointlessScanCount));
-  STATISTIC_STAT(EVENT_PWWWWWWWWW
+  STATISTIC_STAT(EVENT10
                   (TraceStatFix, trace,
                    trace->fixRefCount, trace->segRefCount,
                    trace->whiteSegRefCount,
@@ -754,14 +754,14 @@ void TraceDestroy(Trace trace)
                    trace->forwardedCount, trace->forwardedSize,
                    trace->preservedInPlaceCount,
                    trace->preservedInPlaceSize));
-  STATISTIC_STAT(EVENT_PWW
+  STATISTIC_STAT(EVENT3
                   (TraceStatReclaim, trace,
                    trace->reclaimCount, trace->reclaimSize));
 
   trace->sig = SigInvalid;
   trace->arena->busyTraces = TraceSetDel(trace->arena->busyTraces, trace);
   trace->arena->flippedTraces = TraceSetDel(trace->arena->flippedTraces, trace);
-  EVENT_P(TraceDestroy, trace);
+  EVENT1(TraceDestroy, trace);
 }
 
 
@@ -775,7 +775,7 @@ static void traceReclaim(Trace trace)
 
   AVER(trace->state == TraceRECLAIM);
 
-  EVENT_P(TraceReclaim, trace);
+  EVENT1(TraceReclaim, trace);
   arena = trace->arena;
   if(SegFirst(&seg, arena)) {
     Addr base;
@@ -1034,7 +1034,7 @@ static Res traceScanSegRes(TraceSet ts, Rank rank, Arena arena, Seg seg)
 
   /* The reason for scanning a segment is that it's grey. */
   AVER(TraceSetInter(ts, SegGrey(seg)) != TraceSetEMPTY);
-  EVENT_UUPP(TraceScanSeg, ts, rank, arena, seg);
+  EVENT4(TraceScanSeg, ts, rank, arena, seg);
 
   white = traceSetWhiteUnion(ts, arena);
 
@@ -1140,7 +1140,7 @@ void TraceSegAccess(Arena arena, Seg seg, AccessSet mode)
   /* RefSetUNIV). */
   AVER((mode & SegSM(seg) & AccessWRITE) == 0 || SegSummary(seg) != RefSetUNIV);
 
-  EVENT_PPU(TraceAccess, arena, seg, mode);
+  EVENT3(TraceAccess, arena, seg, mode);
 
   if((mode & SegSM(seg) & AccessREAD) != 0) {   /* read barrier? */
     /* Pick set of traces to scan for: */
@@ -1192,7 +1192,7 @@ Res TraceFix(ScanState ss, Ref *refIO)
   ref = *refIO;
 
   STATISTIC(++ss->fixRefCount);
-  EVENT_PPAU(TraceFix, ss, refIO, ref, ss->rank);
+  EVENT4(TraceFix, ss, refIO, ref, ss->rank);
 
   TRACT_OF_ADDR(&tract, ss->arena, ref);
   if(tract) {
@@ -1202,8 +1202,8 @@ Res TraceFix(ScanState ss, Ref *refIO)
         Res res;
         STATISTIC(++ss->segRefCount);
         STATISTIC(++ss->whiteSegRefCount);
-        EVENT_P(TraceFixSeg, seg);
-        EVENT_0(TraceFixWhite);
+        EVENT1(TraceFixSeg, seg);
+        EVENT0(TraceFixWhite);
         pool = TractPool(tract);
         /* Could move the rank switch here from the class-specific */
         /* fix methods. */
@@ -1228,7 +1228,7 @@ Res TraceFix(ScanState ss, Ref *refIO)
           Seg seg;
           if(TRACT_SEG(&seg, tract)) {
             ++ss->segRefCount;
-            EVENT_P(TraceFixSeg, seg);
+            EVENT1(TraceFixSeg, seg);
           }
         });
     }
@@ -1259,7 +1259,7 @@ Res TraceFixEmergency(ScanState ss, Ref *refIO)
   ref = *refIO;
 
   STATISTIC(++ss->fixRefCount);
-  EVENT_PPAU(TraceFix, ss, refIO, ref, ss->rank);
+  EVENT4(TraceFix, ss, refIO, ref, ss->rank);
 
   TRACT_OF_ADDR(&tract, ss->arena, ref);
   if(tract) {
@@ -1268,8 +1268,8 @@ Res TraceFixEmergency(ScanState ss, Ref *refIO)
       if(TRACT_SEG(&seg, tract)) {
         STATISTIC(++ss->segRefCount);
         STATISTIC(++ss->whiteSegRefCount);
-        EVENT_P(TraceFixSeg, seg);
-        EVENT_0(TraceFixWhite);
+        EVENT1(TraceFixSeg, seg);
+        EVENT0(TraceFixWhite);
         pool = TractPool(tract);
         PoolFixEmergency(pool, ss, seg, refIO);
       }
@@ -1281,7 +1281,7 @@ Res TraceFixEmergency(ScanState ss, Ref *refIO)
           Seg seg;
           if(TRACT_SEG(&seg, tract)) {
             ++ss->segRefCount;
-            EVENT_P(TraceFixSeg, seg);
+            EVENT1(TraceFixSeg, seg);
           }
         });
     }
@@ -1308,7 +1308,7 @@ static Res traceScanSingleRefRes(TraceSet ts, Rank rank, Arena arena,
   Res res;
   ScanStateStruct ss;
 
-  EVENT_UUPA(TraceScanSingleRef, ts, rank, arena, (Addr)refIO);
+  EVENT4(TraceScanSingleRef, ts, rank, arena, (Addr)refIO);
 
   white = traceSetWhiteUnion(ts, arena);
   if(ZoneSetInter(SegSummary(seg), white) == ZoneSetEMPTY) {
@@ -1379,7 +1379,7 @@ Res TraceScanArea(ScanState ss, Addr *base, Addr *limit)
   AVER(limit != NULL);
   AVER(base < limit);
 
-  EVENT_PPP(TraceScanArea, ss, base, limit);
+  EVENT3(TraceScanArea, ss, base, limit);
 
   TRACE_SCAN_BEGIN(ss) {
     p = base;
@@ -1427,7 +1427,7 @@ Res TraceScanAreaMasked(ScanState ss, Addr *base, Addr *limit, Word mask)
   AVER(limit != NULL);
   AVER(base < limit);
 
-  EVENT_PPP(TraceScanAreaTagged, ss, base, limit);
+  EVENT3(TraceScanAreaTagged, ss, base, limit);
 
   TRACE_SCAN_BEGIN(ss) {
     p = base;
@@ -1652,7 +1652,7 @@ void TraceStart(Trace trace, double mortality, double finishingTime)
   res = RootsIterate(ArenaGlobals(arena), rootGrey, (void *)trace);
   AVER(res == ResOK);
 
-  STATISTIC_STAT(EVENT_PW(ArenaWriteFaults, arena, arena->writeBarrierHitCount));
+  STATISTIC_STAT(EVENT2(ArenaWriteFaults, arena, arena->writeBarrierHitCount));
 
   /* Calculate the rate of scanning. */
   {
@@ -1672,7 +1672,7 @@ void TraceStart(Trace trace, double mortality, double finishingTime)
 
   /* @@ DIAG for rate of scanning here. */
 
-  STATISTIC_STAT(EVENT_PWWWWDD(TraceStatCondemn, trace,
+  STATISTIC_STAT(EVENT7(TraceStatCondemn, trace,
                                trace->condemned, trace->notCondemned,
                                trace->foundation, trace->rate,
                                mortality, finishingTime));

@@ -312,7 +312,7 @@ static Res MVTInit(Pool pool, va_list arg)
   mvt->sig = MVTSig;
 
   AVERT(MVT, mvt);
-  EVENT_PWWWWW(PoolInitMVT, pool, minSize, meanSize, maxSize,
+  EVENT6(PoolInitMVT, pool, minSize, meanSize, maxSize,
                reserveDepth, fragLimit);
   return ResOK;
 

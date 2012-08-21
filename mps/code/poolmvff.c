@@ -473,7 +473,7 @@ static Res MVFFInit(Pool pool, va_list arg)
 
   mvff->sig = MVFFSig;
   AVERT(MVFF, mvff);
-  EVENT_PPWWWUUU(PoolInitMVFF, pool, arena, extendBy, avgSize, align,
+  EVENT8(PoolInitMVFF, pool, arena, extendBy, avgSize, align,
                  slotHigh, arenaHigh, firstFit);
   return ResOK;
 

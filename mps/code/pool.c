@@ -250,7 +250,7 @@ void PoolFinish(Pool pool)
   RingFinish(&pool->bufferRing);
   RingFinish(&pool->arenaRing);
  
-  EVENT_P(PoolFinish, pool);
+  EVENT1(PoolFinish, pool);
 }
 
 
@@ -311,7 +311,7 @@ Res PoolAlloc(Addr *pReturn, Pool pool, Size size,
   pool->fillMutatorSize += size;
   ArenaGlobals(PoolArena(pool))->fillMutatorSize += size;
 
-  EVENT_PAW(PoolAlloc, pool, *pReturn, size);
+  EVENT3(PoolAlloc, pool, *pReturn, size);
 
   return ResOK;
 }
@@ -328,7 +328,7 @@ void PoolFree(Pool pool, Addr old, Size size)
   AVER(size > 0);
   (*pool->class->free)(pool, old, size);
  
-  EVENT_PAW(PoolFree, pool, old, size);
+  EVENT3(PoolFree, pool, old, size);
 }
 
 

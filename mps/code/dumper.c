@@ -136,7 +136,7 @@ int main(int argc, char *argv[]) {
       }
      
       switch(header[0]) {
-#define EVENT_CASE(X, type, code, always, kind, format) \
+#define EVENT_CASE(X, type, code, always, kind, count, format) \
   case Event ## type: \
     readEvent(#type, #format, header[0], header[1], header[2]); \
     break;

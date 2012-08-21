@@ -749,7 +749,7 @@ static Res AMSInit(Pool pool, va_list args)
   /* references, the alloc and white tables cannot be shared. */
   res = AMSInitInternal(Pool2AMS(pool), format, chain, !supportAmbiguous);
   if (res == ResOK) {
-    EVENT_PPP(PoolInitAMS, pool, PoolArena(pool), format);
+    EVENT3(PoolInitAMS, pool, PoolArena(pool), format);
   }
   return res;
 }

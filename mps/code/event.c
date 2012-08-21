@@ -37,7 +37,6 @@ static char eventBuffer[EventBufferSIZE];
 static Count eventUserCount;
 static Serial EventInternSerial;
 
-EventUnion EventMould; /* Used by macros in <code/event.h> */
 char *EventNext, *EventLimit; /* Used by macros in <code/event.h> */
 Word EventKindControl; /* Bit set used to control output. */
 
@@ -145,7 +144,7 @@ Word EventInternString(const char *label)
 
   id = (Word)EventInternSerial;
   ++EventInternSerial;
-  EVENT_WS(Intern, id, StringLength(label), label);
+  EVENT2S(Intern, id, StringLength(label), label);
   return id;
 }
 
@@ -160,7 +159,7 @@ Word EventInternGenString(size_t len, const char *label)
 
   id = (Word)EventInternSerial;
   ++EventInternSerial;
-  EVENT_WS(Intern, id, len, label);
+  EVENT2S(Intern, id, len, label);
   return id;
 }
 
@@ -171,7 +170,7 @@ void EventLabelAddr(Addr addr, Word id)
 {
   AVER((Serial)id < EventInternSerial);
 
-  EVENT_AW(Label, addr, id);
+  EVENT2(Label, addr, id);
 }
 
 

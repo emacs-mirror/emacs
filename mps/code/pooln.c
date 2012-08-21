@@ -39,7 +39,7 @@ static Res NInit(Pool pool, va_list args)
   /* Initialize pool-specific structures. */
 
   AVERT(PoolN, poolN);
-  EVENT_PPP(PoolInit, pool, PoolArena(pool), ClassOfPool(pool));
+  EVENT3(PoolInit, pool, PoolArena(pool), ClassOfPool(pool));
   return ResOK;
 }
 
@@ -248,6 +248,20 @@ static void NReclaim(Pool pool, Trace trace, Seg seg)
 }
 
 
+/* NTraceEnd -- trace end method for class N */
+
+static void NTraceEnd(Pool pool, Trace trace)
+{
+  PoolN poolN;
+
+  AVERT(Pool, pool);
+  poolN = PoolPoolN(pool);
+  AVERT(PoolN, poolN);
+
+  AVERT(Trace, trace);
+}
+
+
 /* NPoolClass -- pool class definition for N */
 
 DEFINE_POOL_CLASS(NPoolClass, this)
@@ -271,6 +285,7 @@ DEFINE_POOL_CLASS(NPoolClass, this)
   this->fix = NFix;
   this->fixEmergency = NFix;
   this->reclaim = NReclaim;
+  this->traceEnd = NTraceEnd;
   this->describe = NDescribe;
 }
 
