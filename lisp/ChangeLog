@@ -9,6 +9,11 @@
 
 2012-08-21  Glenn Morris  <rgm@gnu.org>
 
+	* calendar/cal-tex.el (cal-tex-rightday): Add optional funcname arg.
+	(cal-tex-shortday): New function.
+	(cal-tex-cursor-week-at-a-glance, cal-tex-cursor-filofax-week)
+	(cal-tex-cursor-filofax-daily): Use the above.
+
 	* calendar/cal-tex.el (cal-tex-leftday, cal-tex-rightday):
 	New functions.
 	(cal-tex-cursor-week-at-a-glance, cal-tex-cursor-filofax-2week)

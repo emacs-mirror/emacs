@@ -268,6 +268,7 @@ Optional string ARGS are included as options for the article document class."
                     "")))
   (if (stringp cal-tex-preamble-extra)
       (insert cal-tex-preamble-extra "\n"))
+  ;; FIXME boxwidth and boxheight unused?
   (insert "\\hbadness 20000
 \\hfuzz=1000pt
 \\vbadness 20000
@@ -381,9 +382,9 @@ landscape mode with three rows of four months each."
           \\hbox to \\textwidth{\\vbox {\\noindent \\footnotesize \\em #4}}%
           \\hbox to \\textwidth{\\vbox to 0pt {\\noindent \\footnotesize #3}}}}\\\\}\n"))
 
-(defun cal-tex-rightday (height)
+(defun cal-tex-rightday (height &optional funcname)
   "Insert LaTeX code for rightday function."
-  (insert "\\long\\def\\rightday#1#2#3#4#5{%
+  (insert "\\long\\def\\" (or funcname "rightday") "#1#2#3#4#5{%
    \\rule{\\textwidth}{0.3pt}\\\\%
    \\hbox to \\textwidth{%
      \\vbox to " height "{%
@@ -391,6 +392,19 @@ landscape mode with three rows of four months each."
           \\hbox to \\textwidth{\\small #5 \\hfill #1 {\\normalsize \\bf #2}}%
           \\hbox to \\textwidth{\\vbox {\\raggedleft \\footnotesize \\em #4}}%
           \\hbox to \\textwidth{\\vbox to 0pt {\\noindent \\footnotesize #3}}}}\\\\}\n"))
+
+(defun cal-tex-shortday (funcname)
+  "Insert LaTeX code for a short day function."
+  (insert "\\long\\def\\" funcname "#1#2#3{%
+   \\rule{\\textwidth}{0.3pt}\\\\%
+   \\hbox to \\textwidth{%
+     \\vbox {%
+          \\vspace*{2pt}%
+          \\hbox to \\textwidth{\\hfill \\small #3 \\hfill}%
+          \\hbox to \\textwidth{\\vbox {\\"
+          (if (string-equal funcname "rightday") "raggedleft" "noindent")
+          " \\em #2}}%
+          \\hbox to \\textwidth{\\vbox {\\noindent \\footnotesize #1}}}}}\n"))
 
 ;;;###cal-autoload
 (defun cal-tex-cursor-filofax-year (&optional n event)
@@ -1083,16 +1097,7 @@ position to use instead of point."
 ")
     (insert cal-tex-righthead)
     (cal-tex-rightday "2.75in")
-    ;; FIXME this is just (cal-tex-rightday "1.8in").
-    (insert "\\long\\def\\weekend#1#2#3#4#5{%
-   \\rule{\\textwidth}{0.3pt}\\\\%
-   \\hbox to \\textwidth{%
-     \\vbox to 1.8in{%
-          \\vspace*{2pt}%
-          \\hbox to \\textwidth{\\small #5 \\hfill #1 {\\normalsize \\bf #2}}%
-          \\hbox to \\textwidth{\\vbox {\\raggedleft \\footnotesize \\em #4}}%
-          \\hbox to \\textwidth{\\vbox to 0pt {\\noindent \\footnotesize #3}}}}\\\\}
-")
+    (cal-tex-rightday "1.8in" "weekend")
     (insert cal-tex-lefthead)
     (cal-tex-leftday "2.75in")
     (cal-tex-b-document)
@@ -1295,16 +1300,7 @@ Optional EVENT indicates a buffer position to use instead of point."
     (cal-tex-filofax-paper)
     (insert cal-tex-righthead)
     (cal-tex-rightday "1.85in")
-    ;; FIXME this is just (cal-tex-rightday "0.8in").
-    (insert "\\long\\def\\weekend#1#2#3#4#5{%
-   \\rule{\\textwidth}{0.3pt}\\\\%
-   \\hbox to \\textwidth{%
-     \\vbox to .8in{%
-          \\vspace*{2pt}%
-          \\hbox to \\textwidth{\\small #5 \\hfill #1 {\\normalsize \\bf #2}}%
-          \\hbox to \\textwidth{\\vbox {\\raggedleft \\footnotesize \\em #4}}%
-          \\hbox to \\textwidth{\\vbox to 0pt {\\noindent \\footnotesize #3}}}}\\\\}
-")
+    (cal-tex-rightday "0.8in" "weekend")
     (insert cal-tex-lefthead)
     (cal-tex-leftday "1.85in")
     (cal-tex-b-document)
@@ -1413,37 +1409,10 @@ Optional EVENT indicates a buffer position to use instead of point."
     (cal-tex-preamble "twoside")
     (cal-tex-filofax-paper)
     (insert cal-tex-righthead)
-    ;; Not quite cal-tex-rightday.
-    (insert "\\long\\def\\rightday#1#2#3{%
-   \\rule{\\textwidth}{0.3pt}\\\\%
-   \\hbox to \\textwidth{%
-     \\vbox {%
-          \\vspace*{2pt}%
-          \\hbox to \\textwidth{\\hfill \\small #3 \\hfill}%
-          \\hbox to \\textwidth{\\vbox {\\raggedleft \\em #2}}%
-          \\hbox to \\textwidth{\\vbox {\\noindent \\footnotesize #1}}}}}
-")
-    ;; FIXME this is just \rightday from above.
-    (insert "\\long\\def\\weekend#1#2#3{%
-   \\rule{\\textwidth}{0.3pt}\\\\%
-   \\hbox to \\textwidth{%
-     \\vbox {%
-          \\vspace*{2pt}%
-          \\hbox to \\textwidth{\\hfill \\small #3 \\hfill}%
-          \\hbox to \\textwidth{\\vbox {\\noindent \\em #2}}%
-          \\hbox to \\textwidth{\\vbox {\\noindent \\footnotesize #1}}}}}
-")
+    (cal-tex-shortday "rightday")
+    (cal-tex-shortday "weekend")
     (insert cal-tex-lefthead)
-    ;; Not quite cal-tex-leftday.
-    (insert "\\long\\def\\leftday#1#2#3{%
-   \\rule{\\textwidth}{0.3pt}\\\\%
-   \\hbox to \\textwidth{%
-     \\vbox {%
-          \\vspace*{2pt}%
-          \\hbox to \\textwidth{\\hfill \\small #3 \\hfill}%
-          \\hbox to \\textwidth{\\vbox {\\noindent \\em #2}}%
-          \\hbox to \\textwidth{\\vbox {\\noindent \\footnotesize #1}}}}}
-")
+    (cal-tex-shortday "leftday")
     (insert "\\newbox\\LineBox
 \\setbox\\LineBox=\\hbox to\\textwidth{%
 \\vrule height.2in width0pt\\leaders\\hrule\\hfill}
