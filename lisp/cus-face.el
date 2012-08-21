@@ -136,12 +136,36 @@
 	     :help-echo "Control text underlining."
 	     (const :tag "Off" nil)
 	     (list :tag "On"
+		   :value (:color foreground-color :style line)
 		   (const :format "" :value :color)
-		   (choice :tag "Color" (const :tag "Foreground Color" foreground-color) color)
-                   (const :format "" :value :style)
-                   (choice :tag "Style"
-                           (const :tag "Line" line)
-                           (const :tag "Wave" wave)))))
+		   (choice :tag "Color"
+			   (const :tag "Foreground Color" foreground-color)
+			   color)
+		   (const :format "" :value :style)
+		   (choice :tag "Style"
+			   (const :tag "Line" line)
+			   (const :tag "Wave" wave))))
+     ;; filter to make value suitable for customize
+     (lambda (real-value)
+       (and real-value
+	    (let ((color
+		   (or (and (consp real-value) (plist-get real-value :color))
+		       (and (stringp real-value) real-value)
+		       'foreground-color))
+		  (style
+		   (or (and (consp real-value) (plist-get real-value :style))
+		       'line)))
+	      (list :color color :style style))))
+     ;; filter to make customized-value suitable for storing
+     (lambda (cus-value)
+       (and cus-value
+	    (let ((color (plist-get cus-value :color))
+		  (style (plist-get cus-value :style)))
+	      (cond ((eq style 'line)
+		     ;; Use simple value for default style
+		     (if (eq color 'foreground-color) t color))
+		    (t
+		     `(:color ,color :style ,style)))))))
 
     (:overline
      (choice :tag "Overline"
