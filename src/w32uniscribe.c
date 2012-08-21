@@ -320,7 +320,23 @@ uniscribe_shape (Lisp_Object lgstring)
 	    }
           if (SUCCEEDED (result))
 	    {
-	      int j, from, to;
+	      int j, from, to, adj_offset = 0;
+
+	      /* For RTL text, the Uniscribe shaper prepares the
+		 values in ADVANCES array for layout in reverse order,
+		 whereby "advance width" is applied to move the pen in
+		 reverse direction and _before_ drawing the glyph.
+		 Since we draw glyphs in their normal left-to-right
+		 order, we need to adjust the coordinates of each
+		 non-base glyph in a grapheme cluster via X-OFF
+		 component of the gstring's ADJUSTMENT sub-vector.
+		 This loop computes the initial value of the
+		 adjustment for the base character, which is then
+		 updated for each successive glyph in the grapheme
+		 cluster.  */
+	      if (items[i].a.fRTL)
+		for (j = 1; j < nglyphs; j++)
+		  adj_offset += advances[j];
 
 	      from = 0;
 	      to = from;
@@ -392,9 +408,11 @@ uniscribe_shape (Lisp_Object lgstring)
 
 		  if (SUCCEEDED (result))
 		    {
-		      LGLYPH_SET_LBEARING (lglyph, char_metric.abcA);
-		      LGLYPH_SET_RBEARING (lglyph, (char_metric.abcA
-						    + char_metric.abcB));
+		      int lbearing = char_metric.abcA;
+		      int rbearing = char_metric.abcA + char_metric.abcB;
+
+		      LGLYPH_SET_LBEARING (lglyph, lbearing);
+		      LGLYPH_SET_RBEARING (lglyph, rbearing);
 		    }
 		  else
 		    {
@@ -402,18 +420,43 @@ uniscribe_shape (Lisp_Object lgstring)
 		      LGLYPH_SET_RBEARING (lglyph, advances[j]);
 		    }
 
-		  if (offsets[j].du || offsets[j].dv)
+		  if (offsets[j].du || offsets[j].dv
+		      /* For non-base glyphs of RTL grapheme clusters,
+			 adjust the X offset even if both DU and DV
+			 are zero.  */
+		      || (!attributes[j].fClusterStart && items[i].a.fRTL))
 		    {
 		      Lisp_Object vec;
 		      vec = Fmake_vector (make_number (3), Qnil);
-		      ASET (vec, 0, make_number (offsets[j].du));
+		      if (items[i].a.fRTL)
+			{
+			  /* Empirically, it looks like Uniscribe
+			     interprets DU in reverse direction for
+			     RTL clusters.  E.g., if we don't reverse
+			     the direction, the Hebrew point HOLAM is
+			     drawn above the right edge of the base
+			     consonant, instead of above the left edge.  */
+			  ASET (vec, 0, make_number (-offsets[j].du
+						     + adj_offset));
+			  /* Update the adjustment value for the width
+			     advance of the glyph we just emitted.  */
+			  adj_offset -= 2 * advances[j];
+			}
+		      else
+			ASET (vec, 0, make_number (offsets[j].du + adj_offset));
 		      ASET (vec, 1, make_number (offsets[j].dv));
 		      /* Based on what ftfont.c does... */
 		      ASET (vec, 2, make_number (advances[j]));
 		      LGLYPH_SET_ADJUSTMENT (lglyph, vec);
 		    }
 		  else
-		    LGLYPH_SET_ADJUSTMENT (lglyph, Qnil);
+		    {
+		      LGLYPH_SET_ADJUSTMENT (lglyph, Qnil);
+		      /* Update the adjustment value to compensate for
+			 the width of the base character.  */
+		      if (items[i].a.fRTL)
+			adj_offset -= advances[j];
+		    }
 		}
 	    }
 	}
