@@ -1224,6 +1224,7 @@ HAVE_MAKEINFO
 PAXCTL
 GZIP_PROG
 INSTALL_INFO
+LN_S
 GNULIB_WARN_CFLAGS
 WARN_CFLAGS
 WERROR_CFLAGS
@@ -7757,6 +7758,17 @@ $as_echo "#define GNULIB_PORTCHECK 1" >>confdefs.h
 fi
 
 
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether ln -s works" >&5
+$as_echo_n "checking whether ln -s works... " >&6; }
+LN_S=$as_ln_s
+if test "$LN_S" = "ln -s"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no, using $LN_S" >&5
+$as_echo "no, using $LN_S" >&6; }
+fi
 
 
 # Extract the first word of "install-info", so it can be a program name with args.
