@@ -1006,12 +1006,13 @@ shown are hard-coded to 8-12, 13-17."
      (cal-tex-e-framebox)
      (cal-tex-hspace "1cm")))
 
+;;;###cal-autoload
 (defun cal-tex-cursor-week-at-a-glance (&optional n event)
   "One-week-at-a-glance full page calendar for week indicated by cursor.
 Optional prefix argument N specifies number of weeks (default 1),
 starting on Mondays.  The calendar shows holiday and diary entries
 if `cal-tex-holidays' and `cal-tex-diary', respectively, are non-nil.
-It does not show hours of the day. Optional EVENT indicates a buffer
+It does not show hours of the day.  Optional EVENT indicates a buffer
 position to use instead of point."
   (interactive (list (prefix-numeric-value current-prefix-arg)
                      last-nonmenu-event))
@@ -1031,7 +1032,6 @@ position to use instead of point."
          (diary-list (if cal-tex-diary
                          (cal-tex-list-diary-entries d1 d2))))
     (cal-tex-preamble "twoside,12pt")
-    (cal-tex-cmd "\\usepackage{color}")
     (cal-tex-cmd "\\textwidth   7in")
     (cal-tex-cmd "\\textheight 10.5in")
     (cal-tex-cmd "\\oddsidemargin 0in")
@@ -1047,16 +1047,16 @@ position to use instead of point."
      \\vbox to 2.75in{%
           \\vspace*{2pt}%
           \\hbox to \\textwidth{\\small #5 \\hfill #1 {\\normalsize \\bf #2}}%
-          \\hbox to \\textwidth{\\vbox {\\raggedleft \\footnotesize \\em \\textcolor{red}{#4}}}%
-          \\hbox to \\textwidth{\\vbox to 0pt {\\noindent \\footnotesize \\textcolor{blue}{#3}}}}}\\\\}
+          \\hbox to \\textwidth{\\vbox {\\raggedleft \\footnotesize \\em #4}}%
+          \\hbox to \\textwidth{\\vbox to 0pt {\\noindent \\footnotesize #3}}}}\\\\}
 \\long\\def\\weekend#1#2#3#4#5{%
    \\rule{\\textwidth}{0.3pt}\\\\%
    \\hbox to \\textwidth{%
      \\vbox to 1.8in{%
           \\vspace*{2pt}%
           \\hbox to \\textwidth{\\small #5 \\hfill #1 {\\normalsize \\bf #2}}%
-          \\hbox to \\textwidth{\\vbox {\\raggedleft \\footnotesize \\em \\textcolor{red}{#4}}}%
-          \\hbox to \\textwidth{\\vbox to 0pt {\\noindent \\footnotesize \\textcolor{blue}{#3}}}}}\\\\}
+          \\hbox to \\textwidth{\\vbox {\\raggedleft \\footnotesize \\em #4}}%
+          \\hbox to \\textwidth{\\vbox to 0pt {\\noindent \\footnotesize #3}}}}\\\\}
 \\def\\lefthead#1{\\noindent {\\normalsize \\bf #1}\\hfill\\\\[-6pt]}
 \\long\\def\\leftday#1#2#3#4#5{%
    \\rule{\\textwidth}{0.3pt}\\\\%
@@ -1064,8 +1064,8 @@ position to use instead of point."
      \\vbox to 2.75in{%
           \\vspace*{2pt}%
           \\hbox to \\textwidth{\\noindent {\\normalsize \\bf #2} \\small #1 \\hfill #5}%
-          \\hbox to \\textwidth{\\vbox {\\noindent \\footnotesize \\em \\textcolor{red}{#4}}}%
-          \\hbox to \\textwidth{\\vbox to 0pt {\\noindent \\footnotesize \\textcolor{blue}{#3}}}}}\\\\}
+          \\hbox to \\textwidth{\\vbox {\\noindent \\footnotesize \\em #4}}%
+          \\hbox to \\textwidth{\\vbox to 0pt {\\noindent \\footnotesize #3}}}}\\\\}
 ")
     (cal-tex-b-document)
     (cal-tex-cmd "\\pagestyle{empty}\\ ")
