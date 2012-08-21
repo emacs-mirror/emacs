@@ -370,6 +370,28 @@ landscape mode with three rows of four months each."
 \\footskip 0.125in
 ")))
 
+(defun cal-tex-leftday (height)
+  "Insert LaTeX code for leftday function."
+  (insert "\\long\\def\\leftday#1#2#3#4#5{%
+   \\rule{\\textwidth}{0.3pt}\\\\%
+   \\hbox to \\textwidth{%
+     \\vbox to " height "{%
+          \\vspace*{2pt}%
+          \\hbox to \\textwidth{\\noindent {\\normalsize \\bf #2} \\small #1 \\hfill #5}%
+          \\hbox to \\textwidth{\\vbox {\\noindent \\footnotesize \\em #4}}%
+          \\hbox to \\textwidth{\\vbox to 0pt {\\noindent \\footnotesize #3}}}}\\\\}\n"))
+
+(defun cal-tex-rightday (height)
+  "Insert LaTeX code for rightday function."
+  (insert "\\long\\def\\rightday#1#2#3#4#5{%
+   \\rule{\\textwidth}{0.3pt}\\\\%
+   \\hbox to \\textwidth{%
+     \\vbox to " height "{%
+          \\vspace*{2pt}%
+          \\hbox to \\textwidth{\\small #5 \\hfill #1 {\\normalsize \\bf #2}}%
+          \\hbox to \\textwidth{\\vbox {\\raggedleft \\footnotesize \\em #4}}%
+          \\hbox to \\textwidth{\\vbox to 0pt {\\noindent \\footnotesize #3}}}}\\\\}\n"))
+
 ;;;###cal-autoload
 (defun cal-tex-cursor-filofax-year (&optional n event)
   "Make a Filofax one page yearly calendar of year indicated by cursor.
@@ -1060,15 +1082,8 @@ position to use instead of point."
 \\footskip .125in
 ")
     (insert cal-tex-righthead)
-    (insert "\\long\\def\\rightday#1#2#3#4#5{%
-   \\rule{\\textwidth}{0.3pt}\\\\%
-   \\hbox to \\textwidth{%
-     \\vbox to 2.75in{%
-          \\vspace*{2pt}%
-          \\hbox to \\textwidth{\\small #5 \\hfill #1 {\\normalsize \\bf #2}}%
-          \\hbox to \\textwidth{\\vbox {\\raggedleft \\footnotesize \\em #4}}%
-          \\hbox to \\textwidth{\\vbox to 0pt {\\noindent \\footnotesize #3}}}}\\\\}
-")
+    (cal-tex-rightday "2.75in")
+    ;; FIXME this is just (cal-tex-rightday "1.8in").
     (insert "\\long\\def\\weekend#1#2#3#4#5{%
    \\rule{\\textwidth}{0.3pt}\\\\%
    \\hbox to \\textwidth{%
@@ -1079,15 +1094,7 @@ position to use instead of point."
           \\hbox to \\textwidth{\\vbox to 0pt {\\noindent \\footnotesize #3}}}}\\\\}
 ")
     (insert cal-tex-lefthead)
-    (insert "\\long\\def\\leftday#1#2#3#4#5{%
-   \\rule{\\textwidth}{0.3pt}\\\\%
-   \\hbox to \\textwidth{%
-     \\vbox to 2.75in{%
-          \\vspace*{2pt}%
-          \\hbox to \\textwidth{\\noindent {\\normalsize \\bf #2} \\small #1 \\hfill #5}%
-          \\hbox to \\textwidth{\\vbox {\\noindent \\footnotesize \\em #4}}%
-          \\hbox to \\textwidth{\\vbox to 0pt {\\noindent \\footnotesize #3}}}}\\\\}
-")
+    (cal-tex-leftday "2.75in")
     (cal-tex-b-document)
     (cal-tex-cmd "\\pagestyle" "empty")
     (dotimes (i n)
@@ -1215,25 +1222,9 @@ Optional EVENT indicates a buffer position to use instead of point."
     (cal-tex-preamble "twoside")
     (cal-tex-filofax-paper)
     (insert cal-tex-righthead)
-    (insert "\\long\\def\\rightday#1#2#3#4#5{%
-   \\rule{\\textwidth}{0.3pt}\\\\%
-   \\hbox to \\textwidth{%
-     \\vbox to 0.7in{%
-          \\vspace*{2pt}%
-          \\hbox to \\textwidth{\\small #5 \\hfill #1 {\\normalsize \\bf #2}}%
-          \\hbox to \\textwidth{\\vbox {\\raggedleft \\footnotesize \\em #4}}%
-          \\hbox to \\textwidth{\\vbox to 0pt {\\noindent \\footnotesize #3}}}}\\\\}
-")
+    (cal-tex-rightday "0.7in")
     (insert cal-tex-lefthead)
-    (insert "\\long\\def\\leftday#1#2#3#4#5{%
-   \\rule{\\textwidth}{0.3pt}\\\\%
-   \\hbox to \\textwidth{%
-     \\vbox to 0.7in{%
-          \\vspace*{2pt}%
-          \\hbox to \\textwidth{\\noindent {\\normalsize \\bf #2} \\small #1 \\hfill #5}%
-          \\hbox to \\textwidth{\\vbox {\\noindent \\footnotesize \\em #4}}%
-          \\hbox to \\textwidth{\\vbox to 0pt {\\noindent \\footnotesize #3}}}}\\\\}
-")
+    (cal-tex-leftday "0.7in")
     (cal-tex-b-document)
     (cal-tex-cmd "\\pagestyle" "empty")
     (dotimes (i n)
@@ -1303,15 +1294,8 @@ Optional EVENT indicates a buffer position to use instead of point."
     (cal-tex-preamble "twoside")
     (cal-tex-filofax-paper)
     (insert cal-tex-righthead)
-    (insert "\\long\\def\\rightday#1#2#3#4#5{%
-   \\rule{\\textwidth}{0.3pt}\\\\%
-   \\hbox to \\textwidth{%
-     \\vbox to 1.85in{%
-          \\vspace*{2pt}%
-          \\hbox to \\textwidth{\\small #5 \\hfill #1 {\\normalsize \\bf #2}}%
-          \\hbox to \\textwidth{\\vbox {\\raggedleft \\footnotesize \\em #4}}%
-          \\hbox to \\textwidth{\\vbox to 0pt {\\noindent \\footnotesize #3}}}}\\\\}
-")
+    (cal-tex-rightday "1.85in")
+    ;; FIXME this is just (cal-tex-rightday "0.8in").
     (insert "\\long\\def\\weekend#1#2#3#4#5{%
    \\rule{\\textwidth}{0.3pt}\\\\%
    \\hbox to \\textwidth{%
@@ -1322,15 +1306,7 @@ Optional EVENT indicates a buffer position to use instead of point."
           \\hbox to \\textwidth{\\vbox to 0pt {\\noindent \\footnotesize #3}}}}\\\\}
 ")
     (insert cal-tex-lefthead)
-    (insert "\\long\\def\\leftday#1#2#3#4#5{%
-   \\rule{\\textwidth}{0.3pt}\\\\%
-   \\hbox to \\textwidth{%
-     \\vbox to 1.85in{%
-          \\vspace*{2pt}%
-          \\hbox to \\textwidth{\\noindent {\\normalsize \\bf #2} \\small #1 \\hfill #5}%
-          \\hbox to \\textwidth{\\vbox {\\noindent \\footnotesize \\em #4}}%
-          \\hbox to \\textwidth{\\vbox to 0pt {\\noindent \\footnotesize #3}}}}\\\\}
-")
+    (cal-tex-leftday "1.85in")
     (cal-tex-b-document)
     (cal-tex-cmd "\\pagestyle" "empty")
     (dotimes (i n)
@@ -1437,6 +1413,7 @@ Optional EVENT indicates a buffer position to use instead of point."
     (cal-tex-preamble "twoside")
     (cal-tex-filofax-paper)
     (insert cal-tex-righthead)
+    ;; Not quite cal-tex-rightday.
     (insert "\\long\\def\\rightday#1#2#3{%
    \\rule{\\textwidth}{0.3pt}\\\\%
    \\hbox to \\textwidth{%
@@ -1446,6 +1423,7 @@ Optional EVENT indicates a buffer position to use instead of point."
           \\hbox to \\textwidth{\\vbox {\\raggedleft \\em #2}}%
           \\hbox to \\textwidth{\\vbox {\\noindent \\footnotesize #1}}}}}
 ")
+    ;; FIXME this is just \rightday from above.
     (insert "\\long\\def\\weekend#1#2#3{%
    \\rule{\\textwidth}{0.3pt}\\\\%
    \\hbox to \\textwidth{%
@@ -1456,6 +1434,7 @@ Optional EVENT indicates a buffer position to use instead of point."
           \\hbox to \\textwidth{\\vbox {\\noindent \\footnotesize #1}}}}}
 ")
     (insert cal-tex-lefthead)
+    ;; Not quite cal-tex-leftday.
     (insert "\\long\\def\\leftday#1#2#3{%
    \\rule{\\textwidth}{0.3pt}\\\\%
    \\hbox to \\textwidth{%

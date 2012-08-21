@@ -1,5 +1,10 @@
 2012-08-21  Glenn Morris  <rgm@gnu.org>
 
+	* calendar/cal-tex.el (cal-tex-leftday, cal-tex-rightday):
+	New functions.
+	(cal-tex-cursor-week-at-a-glance, cal-tex-cursor-filofax-2week)
+	(cal-tex-cursor-filofax-week): Use them.
+
 	* calendar/cal-tex.el (cal-tex-lefthead, cal-tex-righthead):
 	New constants.
 	(cal-tex-cursor-week-at-a-glance, cal-tex-cursor-filofax-2week)
