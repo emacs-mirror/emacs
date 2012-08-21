@@ -4,6 +4,8 @@
 	Use cal-tex-vspace.
 	(cal-tex-vspace, cal-tex-hspace, cal-tex-em, cal-tex-bf)
 	(cal-tex-Huge-bf, cal-tex-large-bf): Use cal-tex-cmd.
+	(cal-tex-scriptsize, cal-tex-huge, cal-tex-Huge, cal-tex-large):
+	Use cal-tex-arg.
 
 	* calendar/cal-tex.el (cal-tex-cursor-filofax-year)
 	(cal-tex-cursor-week, cal-tex-cursor-week2)

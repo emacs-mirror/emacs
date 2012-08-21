@@ -1928,15 +1928,15 @@ Add trailing COMMENT if present."
 
 (defun cal-tex-scriptsize (string)
   "Insert STRING in scriptsize font."
-  (insert "{\\scriptsize " string "}"))
+  (cal-tex-arg (concat "\\scriptsize " string)))
 
 (defun cal-tex-huge (string)
   "Insert STRING in huge font."
-  (insert "{\\huge " string "}"))
+  (cal-tex-arg (concat "\\huge " string)))
 
 (defun cal-tex-Huge (string)
   "Insert STRING in Huge font."
-  (insert "{\\Huge " string "}"))
+  (cal-tex-arg (concat "\\Huge " string)))
 
 (defun cal-tex-Huge-bf (string)
   "Insert STRING in Huge bf font."
@@ -1944,7 +1944,7 @@ Add trailing COMMENT if present."
 
 (defun cal-tex-large (string)
   "Insert STRING in large font."
-  (insert "{\\large " string "}"))
+  (cal-tex-arg (concat "\\large " string)))
 
 (defun cal-tex-large-bf (string)
   "Insert STRING in large bf font."
