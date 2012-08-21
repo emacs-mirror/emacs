@@ -58,7 +58,9 @@ struct EventProcStruct {
  * of the structure.  This has to agree with the writing (EVENT_END).
  */
 
-#define EventSizeAlign(size) sizeAlignUp(size, sizeof(Word))
+/* FIXME: MPS_PF_ALIGN should be read from event file header? */
+
+#define EventSizeAlign(size) sizeAlignUp(size, MPS_PF_ALIGN)
 
 
 
@@ -75,11 +77,33 @@ typedef struct {
   char *format;
 } eventRecord;
 
+#define EVENT0_FORMAT() ""
+/* for i in range(1,20): print "#define EVENT%d_FORMAT(%s) %s" % (i, ", ".join(["p%d" % j for j in range(0, i)]), " ".join(["#p%d" % j for j in range(0, i)])) */
+#define EVENT1_FORMAT(p0) #p0
+#define EVENT2_FORMAT(p0, p1) #p0 #p1
+#define EVENT3_FORMAT(p0, p1, p2) #p0 #p1 #p2
+#define EVENT4_FORMAT(p0, p1, p2, p3) #p0 #p1 #p2 #p3
+#define EVENT5_FORMAT(p0, p1, p2, p3, p4) #p0 #p1 #p2 #p3 #p4
+#define EVENT6_FORMAT(p0, p1, p2, p3, p4, p5) #p0 #p1 #p2 #p3 #p4 #p5
+#define EVENT7_FORMAT(p0, p1, p2, p3, p4, p5, p6) #p0 #p1 #p2 #p3 #p4 #p5 #p6
+#define EVENT8_FORMAT(p0, p1, p2, p3, p4, p5, p6, p7) #p0 #p1 #p2 #p3 #p4 #p5 #p6 #p7
+#define EVENT9_FORMAT(p0, p1, p2, p3, p4, p5, p6, p7, p8) #p0 #p1 #p2 #p3 #p4 #p5 #p6 #p7 #p8
+#define EVENT10_FORMAT(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9) #p0 #p1 #p2 #p3 #p4 #p5 #p6 #p7 #p8 #p9
+#define EVENT11_FORMAT(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10) #p0 #p1 #p2 #p3 #p4 #p5 #p6 #p7 #p8 #p9 #p10
+#define EVENT12_FORMAT(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11) #p0 #p1 #p2 #p3 #p4 #p5 #p6 #p7 #p8 #p9 #p10 #p11
+#define EVENT13_FORMAT(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12) #p0 #p1 #p2 #p3 #p4 #p5 #p6 #p7 #p8 #p9 #p10 #p11 #p12
+#define EVENT14_FORMAT(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13) #p0 #p1 #p2 #p3 #p4 #p5 #p6 #p7 #p8 #p9 #p10 #p11 #p12 #p13
+#define EVENT15_FORMAT(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14) #p0 #p1 #p2 #p3 #p4 #p5 #p6 #p7 #p8 #p9 #p10 #p11 #p12 #p13 #p14
+#define EVENT16_FORMAT(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15) #p0 #p1 #p2 #p3 #p4 #p5 #p6 #p7 #p8 #p9 #p10 #p11 #p12 #p13 #p14 #p15
+#define EVENT17_FORMAT(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16) #p0 #p1 #p2 #p3 #p4 #p5 #p6 #p7 #p8 #p9 #p10 #p11 #p12 #p13 #p14 #p15 #p16
+#define EVENT18_FORMAT(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16, p17) #p0 #p1 #p2 #p3 #p4 #p5 #p6 #p7 #p8 #p9 #p10 #p11 #p12 #p13 #p14 #p15 #p16 #p17
+#define EVENT19_FORMAT(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16, p17, p18) #p0 #p1 #p2 #p3 #p4 #p5 #p6 #p7 #p8 #p9 #p10 #p11 #p12 #p13 #p14 #p15 #p16 #p17 #p18
+
 static eventRecord eventTypes[] = {
   {0, "(unused)", 0, 0, "0"},
-#define EVENT_INIT(X, name, code, always, kind, format) \
+#define EVENT_INIT(X, name, code, always, kind, count, format) \
   {Event##name, #name, code, \
-   EventSizeAlign(sizeof(Event##format##Struct)), #format},
+   EventSizeAlign(sizeof(Event##name##Struct)), EVENT##count##_FORMAT format},
   EVENT_LIST(EVENT_INIT, X)
 };
 
@@ -246,7 +270,7 @@ EventString LabelText(EventProc proc, Word id)
 
 /* EventRead -- read one event from the file and allocate descriptor */
 
-#define internStrOffset (offsetof(EventWSStruct, s1.str))
+#define internStrOffset (offsetof(EventInternStruct, f1.str))
 
 Res EventRead(Event *eventReturn, EventProc proc)
 {
@@ -278,9 +302,9 @@ Res EventRead(Event *eventReturn, EventProc proc)
                        internStrOffset - sizeof(EventType));
     if (res != ResOK) return res;
     /* read the rest */
-    res = proc->reader(proc->readerP, &(event->ws.s1.str),
+    res = proc->reader(proc->readerP, &event->Intern.f1.str,
                        /* Length must agree with EVENT_WS. */
-                       EventSizeAlign(internStrOffset + event->ws.s1.len)
+                       EventSizeAlign(internStrOffset + event->Intern.f1.len)
                        - internStrOffset);
     if (res != ResOK) return res;
   } else {
@@ -308,8 +332,8 @@ Res EventRecord(EventProc proc, Event event, Word etime)
     Symbol sym = malloc(sizeof(symbolStruct));
 
     if (sym == NULL) return ResMEMORY;
-    sym->id = event->ws.w0;
-    res = eventStringCopy(&(sym->name), &(event->ws.s1));
+    sym->id = event->Intern.f0;
+    res = eventStringCopy(&sym->name, &event->Intern.f1);
     if (res != ResOK) {
       free(sym);
       return res;
@@ -321,12 +345,12 @@ Res EventRecord(EventProc proc, Event event, Word etime)
     void *entry;
 
     if (label == NULL) return ResMEMORY;
-    label->id = event->aw.w1;
+    label->id = event->Label.f1;
     if (!proc->partialLog) {
       assert(TableLookup(&entry, proc->internTable, label->id));
     }
     label->time = etime;
-    label->addr = event->aw.a0;
+    label->addr = event->Label.f0;
     if (TableLookup(&entry, proc->labelTable, (Word)label->addr))
       res = TableRedefine(proc->labelTable, (Word)label->addr, label);
     else
@@ -383,8 +407,8 @@ Res EventProcCreate(EventProc *procReturn, Bool partial,
   if (proc == NULL) return ResMEMORY;
 
   /* check event struct access */
-  assert(CHECKFIELD(EventUnion, any.code, EventWSStruct, code));
-  assert(CHECKFIELD(EventUnion, any.clock, EventWSStruct, clock));
+  assert(CHECKFIELD(EventUnion, any.code, EventInternStruct, code));
+  assert(CHECKFIELD(EventUnion, any.clock, EventInternStruct, clock));
   /* check use of labelTable */
 #if !defined(MPS_OS_FR)
   /* GCC -ansi -pedantic -Werror on FreeBSD will fail here

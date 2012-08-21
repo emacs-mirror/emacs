@@ -459,79 +459,79 @@ static void readLog(EventProc proc)
      case EventLabel: {
        switch (style) {
        case '\0': case 'C': {
-         EventString sym = LabelText(proc, event->aw.w1);
+         EventString sym = LabelText(proc, event->Label.f1);
          printf(style == '\0' ?
                 " %08"PRIXLONGEST" " :
                 ", %"PRIuLONGEST", ",
-                (ulongest_t)event->aw.a0);
+                (ulongest_t)event->Label.f0);
          if (sym != NULL) {
            printStr(sym, (style == 'C'));
          } else {
            printf(style == '\0' ?
                   "sym %05"PRIXLONGEST :
                   "sym %"PRIXLONGEST"\"",
-                  (ulongest_t)event->aw.w1);
+                  (ulongest_t)event->Label.f1);
          }
        } break;
        case 'L': {
          printf(" %"PRIXLONGEST" %"PRIXLONGEST,
-                (ulongest_t)event->aw.a0,
-                (ulongest_t)event->aw.w1);
+                (ulongest_t)event->Label.f0,
+                (ulongest_t)event->Label.f1);
        } break;
        }
      } break;
      case EventMeterValues: {
        switch (style) {
        case '\0': {
-         if (event->pddwww.w3 == 0) {
+         if (event->MeterValues.f3 == 0) {
            printf(" %08"PRIXLONGEST"        0      N/A      N/A      N/A      N/A",
-                  (ulongest_t)event->pddwww.p0);
+                  (ulongest_t)event->MeterValues.f0);
          } else {
-           double mean = event->pddwww.d1 / (double)event->pddwww.w3;
+           double mean = event->MeterValues.f1 / (double)event->MeterValues.f3;
            /* .stddev: stddev = sqrt(meanSquared - mean^2), but see */
            /* <code/meter.c#limitation.variance>. */
-           double stddev = sqrt(fabs(event->pddwww.d2
+           double stddev = sqrt(fabs(event->MeterValues.f2
                                      - (mean * mean)));
            printf(" %08"PRIXLONGEST" %8u %8u %8u %#8.3g %#8.3g",
-                  (ulongest_t)event->pddwww.p0, (uint)event->pddwww.w3,
-                  (uint)event->pddwww.w4, (uint)event->pddwww.w5,
+                  (ulongest_t)event->MeterValues.f0, (uint)event->MeterValues.f3,
+                  (uint)event->MeterValues.f4, (uint)event->MeterValues.f5,
                   mean, stddev);
          }
-         printAddr(proc, (Addr)event->pddwww.p0);
+         printAddr(proc, (Addr)event->MeterValues.f0);
        } break;
        case 'C': {
          putchar(',');
-         printAddr(proc, (Addr)event->pddwww.p0);
+         printAddr(proc, (Addr)event->MeterValues.f0);
          printf(", %.10G, %.10G, %u, %u, %u",
-                event->pddwww.d1, event->pddwww.d2,
-                (uint)event->pddwww.w3, (uint)event->pddwww.w4,
-                (uint)event->pddwww.w5);
+                event->MeterValues.f1, event->MeterValues.f2,
+                (uint)event->MeterValues.f3, (uint)event->MeterValues.f4,
+                (uint)event->MeterValues.f5);
        } break;
        case 'L': {
          printf(" %"PRIXLONGEST" %#.10G %#.10G %X %X %X",
-                (ulongest_t)event->pddwww.p0,
-                event->pddwww.d1, event->pddwww.d2,
-                (uint)event->pddwww.w3, (uint)event->pddwww.w4,
-                (uint)event->pddwww.w5);
+                (ulongest_t)event->MeterValues.f0,
+                event->MeterValues.f1, event->MeterValues.f2,
+                (uint)event->MeterValues.f3, (uint)event->MeterValues.f4,
+                (uint)event->MeterValues.f5);
        } break;
        }
      } break;
      case EventPoolInit: { /* pool, arena, class */
-       printf(styleConv, (ulongest_t)event->ppp.p0);
-       printf(styleConv, (ulongest_t)event->ppp.p1);
+       printf(styleConv, (ulongest_t)event->PoolInit.f0);
+       printf(styleConv, (ulongest_t)event->PoolInit.f1);
        /* class is a Pointer, but we label them, so call printAddr */
        if (style != 'L') {
          if (style == 'C') putchar(',');
-         printAddr(proc, (Addr)event->ppp.p2);
+         printAddr(proc, (Addr)event->PoolInit.f2);
        } else
-         printf(styleConv, (ulongest_t)event->ppp.p2);
+         printf(styleConv, (ulongest_t)event->PoolInit.f2);
      } break;
      default:
        for (i = 0; i < argCount; ++i) {
          switch(code) {
-#define EVENT_CASE(X, name, code, always, kind, format) \
+#define EVENT_CASE(X, name, code, always, kind, count, format) \
   case code: { \
-    printArg(proc, EVENT_##format##_FIELD_PTR(event, i), \
+    printArg(proc, EVENT##count##_FIELD_PTR(name, event, i), \
              eventFormat[i], styleConv); \
   } break;
          EVENT_LIST(EVENT_CASE, X)

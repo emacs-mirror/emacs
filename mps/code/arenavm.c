@@ -529,9 +529,9 @@ static Res VMArenaInit(Arena *arenaReturn, ArenaClass class, va_list args)
 
   AVERT(VMArena, vmArena);
   if ((ArenaClass)mps_arena_class_vm() == class)
-    EVENT_PWW(ArenaCreateVM, arena, userSize, chunkSize);
+    EVENT3(ArenaCreateVM, arena, userSize, chunkSize);
   else
-    EVENT_PWW(ArenaCreateVMNZ, arena, userSize, chunkSize);
+    EVENT3(ArenaCreateVMNZ, arena, userSize, chunkSize);
   *arenaReturn = arena;
   return ResOK;
 
@@ -573,7 +573,7 @@ static void VMArenaFinish(Arena arena)
 
   VMUnmap(arenaVM, VMBase(arenaVM), VMLimit(arenaVM));
   VMDestroy(arenaVM);
-  EVENT_P(ArenaDestroy, vmArena);
+  EVENT1(ArenaDestroy, vmArena);
 }
 
 

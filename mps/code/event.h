@@ -58,13 +58,12 @@ extern Res EventFlush(void);
  */
 
 /* Note that enum values can be up to fifteen bits long portably. */
-#define EVENT_ENUM(X, type, code, always, kind, format) \
+#define EVENT_ENUM(X, type, code, always, kind, count, format) \
   enum { \
     Event##type##High = ((code >> 8) & 0xFF), \
     Event##type##Low = (code & 0xFF), \
     Event##type##Always = always, \
-    Event##type##Kind = EventKind##kind, \
-    Event##type##Format = EventFormat##format \
+    Event##type##Kind = EventKind##kind \
   };
 
 EVENT_LIST(EVENT_ENUM, X)
@@ -72,27 +71,24 @@ EVENT_LIST(EVENT_ENUM, X)
 
 /* Event writing support */
 
-extern EventUnion EventMould;
+/* extern EventUnion EventMould; */
 extern char *EventNext, *EventLimit;
 extern Word EventKindControl;
 
-#define EVENT_BEGIN(type) \
+#define EVENT_BEGIN(name, size) \
   BEGIN \
-    if(BS_IS_MEMBER(EventKindControl, ((Index)Event##type##Kind))) { \
-      size_t _length;
+    if(BS_IS_MEMBER(EventKindControl, ((Index)Event##name##Kind))) { \
+      Event##name##Struct *_event; \
+      size_t _size = size_tAlignUp(size, MPS_PF_ALIGN); \
+      if (_size > (size_t)(EventLimit - EventNext)) \
+        EventFlush(); \
+      AVER(_size <= (size_t)(EventLimit - EventNext)); \
+      _event = (void *)EventNext; \
+      _event->code = Event##name; \
+      _event->clock = mps_clock();
 
-#define EVENT_END(type, format, length) \
-      AVER(EventFormat##format == Event##type##Format); \
-      /* @@@@ As an interim measure, send the old event codes */ \
-      EventMould.any.code = Event##type; \
-      EventMould.any.clock = mps_clock(); \
-      AVER(EventNext <= EventLimit); \
-      _length = size_tAlignUp(length, sizeof(Word)); \
-      if(_length > (size_t)(EventLimit - EventNext)) \
-        EventFlush(); /* @@@@ should pass length */ \
-      AVER(_length <= (size_t)(EventLimit - EventNext)); \
-      mps_lib_memcpy(EventNext, &EventMould, _length); \
-      EventNext += _length; \
+#define EVENT_END(name, size) \
+      EventNext += _size; \
     } \
   END
 
