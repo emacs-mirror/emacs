@@ -6044,8 +6044,7 @@ pass nil for VARIABLE.  */)
   (Lisp_Object variable)
 {
   Lisp_Object state, tail, frame, buf;
-  Lisp_Object *vecp, *end;
-  ptrdiff_t n;
+  ptrdiff_t n, idx;
 
   if (! NILP (variable))
     {
@@ -6057,18 +6056,16 @@ pass nil for VARIABLE.  */)
   else
     state = frame_and_buffer_state;
 
-  vecp = XVECTOR (state)->contents;
-  end = vecp + ASIZE (state);
-
+  idx = 0;
   FOR_EACH_FRAME (tail, frame)
     {
-      if (vecp == end)
+      if (idx == ASIZE (state))
 	goto changed;
-      if (!EQ (*vecp++, frame))
+      if (!EQ (AREF (state, idx++), frame))
 	goto changed;
-      if (vecp == end)
+      if (idx == ASIZE (state))
 	goto changed;
-      if (!EQ (*vecp++, XFRAME (frame)->name))
+      if (!EQ (AREF (state, idx++), XFRAME (frame)->name))
 	goto changed;
     }
   /* Check that the buffer info matches.  */
@@ -6078,23 +6075,23 @@ pass nil for VARIABLE.  */)
       /* Ignore buffers that aren't included in buffer lists.  */
       if (SREF (BVAR (XBUFFER (buf), name), 0) == ' ')
 	continue;
-      if (vecp == end)
+      if (idx == ASIZE (state))
 	goto changed;
-      if (!EQ (*vecp++, buf))
+      if (!EQ (AREF (state, idx++), buf))
 	goto changed;
-      if (vecp == end)
+      if (idx == ASIZE (state))
 	goto changed;
-      if (!EQ (*vecp++, BVAR (XBUFFER (buf), read_only)))
+      if (!EQ (AREF (state, idx++), BVAR (XBUFFER (buf), read_only)))
 	goto changed;
-      if (vecp == end)
+      if (idx == ASIZE (state))
 	goto changed;
-      if (!EQ (*vecp++, Fbuffer_modified_p (buf)))
+      if (!EQ (AREF (state, idx++), Fbuffer_modified_p (buf)))
 	goto changed;
     }
-  if (vecp == end)
+  if (idx == ASIZE (state))
     goto changed;
   /* Detect deletion of a buffer at the end of the list.  */
-  if (EQ (*vecp, Qlambda))
+  if (EQ (AREF (state, idx), Qlambda))
     return Qnil;
 
   /* Come here if we decide the data has changed.  */
@@ -6121,11 +6118,13 @@ pass nil for VARIABLE.  */)
     }
 
   /* Record the new data in the (possibly reallocated) vector.  */
-  vecp = XVECTOR (state)->contents;
+  idx = 0;
   FOR_EACH_FRAME (tail, frame)
     {
-      *vecp++ = frame;
-      *vecp++ = XFRAME (frame)->name;
+      ASET (state, idx, frame);
+      idx++;
+      ASET (state, idx, XFRAME (frame)->name);
+      idx++;
     }
   for (tail = Vbuffer_alist; CONSP (tail); tail = XCDR (tail))
     {
@@ -6133,19 +6132,23 @@ pass nil for VARIABLE.  */)
       /* Ignore buffers that aren't included in buffer lists.  */
       if (SREF (BVAR (XBUFFER (buf), name), 0) == ' ')
 	continue;
-      *vecp++ = buf;
-      *vecp++ = BVAR (XBUFFER (buf), read_only);
-      *vecp++ = Fbuffer_modified_p (buf);
+      ASET (state, idx, buf);
+      idx++;
+      ASET (state, idx, BVAR (XBUFFER (buf), read_only));
+      idx++;
+      ASET (state, idx, Fbuffer_modified_p (buf));
+      idx++;
     }
   /* Fill up the vector with lambdas (always at least one).  */
-  *vecp++ = Qlambda;
-  while (vecp - XVECTOR (state)->contents
-	 < ASIZE (state))
-    *vecp++ = Qlambda;
+  ASET (state, idx, Qlambda);
+  idx++;
+  while (idx < ASIZE (state))
+    {
+      ASET (state, idx, Qlambda);
+      idx++;
+    }
   /* Make sure we didn't overflow the vector.  */
-  if (vecp - XVECTOR (state)->contents
-      > ASIZE (state))
-    abort ();
+  eassert (idx <= ASIZE (state));
   return Qt;
 }
 

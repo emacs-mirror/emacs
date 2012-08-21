@@ -4419,7 +4419,6 @@ timer_check_2 (void)
 
   while (CONSP (timers) || CONSP (idle_timers))
     {
-      Lisp_Object *vector;
       Lisp_Object timer = Qnil, idle_timer = Qnil;
       EMACS_TIME timer_time, idle_timer_time;
       EMACS_TIME difference;
@@ -4495,15 +4494,14 @@ timer_check_2 (void)
       /* If timer is ripe, run it if it hasn't been run.  */
       if (ripe)
 	{
-	  vector = XVECTOR (chosen_timer)->contents;
-	  if (NILP (vector[0]))
+	  if (NILP (AREF (chosen_timer, 0)))
 	    {
 	      ptrdiff_t count = SPECPDL_INDEX ();
 	      Lisp_Object old_deactivate_mark = Vdeactivate_mark;
 
 	      /* Mark the timer as triggered to prevent problems if the lisp
 		 code fails to reschedule it right.  */
-	      vector[0] = Qt;
+	      ASET (chosen_timer, 0, Qt);
 
 	      specbind (Qinhibit_quit, Qt);
 
@@ -8447,7 +8445,6 @@ init_tool_bar_items (Lisp_Object reuse)
 static void
 append_tool_bar_item (void)
 {
-  Lisp_Object *to, *from;
   ptrdiff_t incr =
     (ntool_bar_items
      - (ASIZE (tool_bar_items_vector) - TOOL_BAR_ITEM_NSLOTS));
@@ -8459,9 +8456,8 @@ append_tool_bar_item (void)
 
   /* Append entries from tool_bar_item_properties to the end of
      tool_bar_items_vector.  */
-  to = XVECTOR (tool_bar_items_vector)->contents + ntool_bar_items;
-  from = XVECTOR (tool_bar_item_properties)->contents;
-  memcpy (to, from, TOOL_BAR_ITEM_NSLOTS * sizeof *to);
+  vcopy (tool_bar_items_vector, ntool_bar_items, 
+	 XVECTOR (tool_bar_item_properties)->contents, TOOL_BAR_ITEM_NSLOTS);
   ntool_bar_items += TOOL_BAR_ITEM_NSLOTS;
 }
 
@@ -10490,10 +10486,10 @@ DEFUN ("recent-keys", Frecent_keys, Srecent_keys, 0, 0, 0,
   else
     {
       val = Fvector (NUM_RECENT_KEYS, keys);
-      memcpy (XVECTOR (val)->contents, keys + recent_keys_index,
-	      (NUM_RECENT_KEYS - recent_keys_index) * word_size);
-      memcpy (XVECTOR (val)->contents + NUM_RECENT_KEYS - recent_keys_index,
-	      keys, recent_keys_index * word_size);
+      vcopy (val, 0, keys + recent_keys_index,
+	     NUM_RECENT_KEYS - recent_keys_index);
+      vcopy (val, NUM_RECENT_KEYS - recent_keys_index,
+	     keys, recent_keys_index);
       return val;
     }
 }

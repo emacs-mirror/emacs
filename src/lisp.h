@@ -2344,6 +2344,20 @@ gc_aset (Lisp_Object array, ptrdiff_t idx, Lisp_Object val)
   XVECTOR (array)->contents[idx] = val;
 }
 
+/* Copy COUNT Lisp_Objects from ARGS to contents of V starting from OFFSET.  */
+
+LISP_INLINE void
+vcopy (Lisp_Object v, ptrdiff_t offset, Lisp_Object *args, ptrdiff_t count)
+{
+  ptrdiff_t i;
+
+  eassert (offset + count <= ASIZE (v));
+  for (i = 0; i < count; i++)
+    ASET (v, offset + i, args[i]);
+}
+
+/* Functions to modify hash tables.  */
+
 LISP_INLINE void
 set_hash_key_and_value (struct Lisp_Hash_Table *h, Lisp_Object key_and_value)
 {

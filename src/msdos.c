@@ -2434,10 +2434,10 @@ and then the scan code.  */)
   else
     {
       val = Fvector (NUM_RECENT_DOSKEYS, keys);
-      memcpy (XVECTOR (val)->contents, keys + recent_doskeys_index,
-	      (NUM_RECENT_DOSKEYS - recent_doskeys_index) * word_size);
-      memcpy (XVECTOR (val)->contents + NUM_RECENT_DOSKEYS - recent_doskeys_index,
-	      keys, recent_doskeys_index * word_size);
+      vcopy (val, 0, keys + recent_doskeys_index,
+	     NUM_RECENT_DOSKEYS - recent_doskeys_index);
+      vcopy (val, NUM_RECENT_DOSKEYS - recent_doskeys_index,
+	     keys, recent_doskeys_index);
       return val;
     }
 }

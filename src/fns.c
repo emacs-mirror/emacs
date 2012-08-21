@@ -2139,12 +2139,8 @@ ARRAY is a vector, string, char-table, or bool-vector.  */)
   register ptrdiff_t size, idx;
 
   if (VECTORP (array))
-    {
-      register Lisp_Object *p = XVECTOR (array)->contents;
-      size = ASIZE (array);
-      for (idx = 0; idx < size; idx++)
-	p[idx] = item;
-    }
+    for (idx = 0, size = ASIZE (array); idx < size; idx++)
+      ASET (array, idx, item);
   else if (CHAR_TABLE_P (array))
     {
       int i;

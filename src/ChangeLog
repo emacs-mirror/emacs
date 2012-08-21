@@ -1,3 +1,17 @@
+2012-08-21  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Avoid direct writes to contents member of struct Lisp_Vector.
+	* lisp.h (vcopy): New function to copy data into vector.
+	* dispnew.c (Fframe_or_buffer_changed_p): Use AREF and ASET.
+	* fns.c (Ffillarray): Use ASET.
+	* keyboard.c (timer_check_2): Use AREF and ASET.
+	(append_tool_bar_item, Frecent_keys): Use vcopy.
+	* lread.c (read_vector): Use ASET.
+	* msdos.c (Frecent_doskeys): Use vcopy.
+	* xface.c (Finternal_copy_lisp_face): Use vcopy.
+	(Finternal_merge_in_global_face): Use ASET and vcopy.
+	* xfont.c (xfont_list_pattern): Likewise.
+
 2012-08-21  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.c (Fwindow_point): For the selected window always return

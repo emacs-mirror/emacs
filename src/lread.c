@@ -3406,7 +3406,7 @@ read_vector (Lisp_Object readcharfun, int bytecodeflag)
 	      /* Delay handling the bytecode slot until we know whether
 		 it is lazily-loaded (we can tell by whether the
 		 constants slot is nil).  */
-	      ptr[COMPILED_CONSTANTS] = item;
+	      ASET (vector, COMPILED_CONSTANTS, item);
 	      item = Qnil;
 	    }
 	  else if (i == COMPILED_CONSTANTS)
@@ -3432,7 +3432,7 @@ read_vector (Lisp_Object readcharfun, int bytecodeflag)
 		}
 
 	      /* Now handle the bytecode slot.  */
-	      ptr[COMPILED_BYTECODE] = bytestr;
+	      ASET (vector, COMPILED_BYTECODE, bytestr);
 	    }
 	  else if (i == COMPILED_DOC_STRING
 		   && STRINGP (item)
@@ -3444,7 +3444,7 @@ read_vector (Lisp_Object readcharfun, int bytecodeflag)
 		item = Fstring_as_multibyte (item);
 	    }
 	}
-      ptr[i] = item;
+      ASET (vector, i, item);
       otem = XCONS (tem);
       tem = Fcdr (tem);
       free_cons (otem);
