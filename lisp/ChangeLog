@@ -1,5 +1,8 @@
 2012-08-21  Glenn Morris  <rgm@gnu.org>
 
+	* calendar/cal-tex.el (cal-tex-preamble): Generate new buffers.
+	(cal-tex-end-document): Don't rely on buffer name.
+
 	* calendar/cal-tex.el (cal-tex-cursor-filofax-year):
 	Use cal-tex-vspace.
 	(cal-tex-vspace, cal-tex-hspace, cal-tex-em, cal-tex-bf)

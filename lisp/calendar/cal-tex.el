@@ -253,8 +253,7 @@ This definition is the heart of the calendar!")
   "Insert the LaTeX calendar preamble into `cal-tex-buffer'.
 Preamble includes initial definitions for various LaTeX commands.
 Optional string ARGS are included as options for the article document class."
-  ;; FIXME use generate-new-buffer, and adjust cal-tex-end-document.
-  (set-buffer (get-buffer-create cal-tex-buffer))
+  (set-buffer (generate-new-buffer cal-tex-buffer))
   (insert (format "\\documentclass%s{article}\n"
                   (if (stringp args)
                       (format "[%s]" args)
@@ -1712,7 +1711,7 @@ informative header, and run HOOK."
           ;; FIXME latin1 might not always be right.
           (insert "\\usepackage[latin1]{inputenc}\n"))))
   (latex-mode)
-  (pop-to-buffer cal-tex-buffer)
+  (pop-to-buffer (current-buffer))
   (goto-char (point-min))
   ;; FIXME auctex equivalents?
   (cal-tex-comment
