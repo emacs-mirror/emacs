@@ -1,3 +1,12 @@
+2012-08-21  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (window-point-1, set-window-point-1): Remove.
+	(window-in-direction, record-window-buffer)
+	(set-window-buffer-start-and-point, split-window-below)
+	(window--state-get-1, display-buffer-record-window): Replace
+	calls to window-point-1 and set-window-point-1 by calls to
+	window-point and set-window-point respectively.
+
 2012-08-21  Glenn Morris  <rgm@gnu.org>
 
 	* calendar/cal-tex.el (cal-tex-leftday, cal-tex-rightday):

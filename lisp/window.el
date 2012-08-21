@@ -1062,32 +1062,6 @@ windows nor the buffer list."
     (dolist (walk-windows-window (window-list-1 nil minibuf all-frames))
       (funcall fun walk-windows-window))))
 
-(defun window-point-1 (&optional window)
-  "Return value of WINDOW's point.
-WINDOW can be any live window and defaults to the selected one.
-
-This function is like `window-point' with one exception: If
-WINDOW is selected, it returns the value of `point' of WINDOW's
-buffer regardless of whether that buffer is current or not."
-  (setq window (window-normalize-window window t))
-  (if (eq window (selected-window))
-      (with-current-buffer (window-buffer window)
-	(point))
-    (window-point window)))
-
-(defun set-window-point-1 (window pos)
-  "Set value of WINDOW's point to POS.
-WINDOW can be any live window and defaults to the selected one.
-
-This function is like `set-window-point' with one exception: If
-WINDOW is selected, it moves `point' of WINDOW's buffer to POS
-regardless of whether that buffer is current or not."
-  (setq window (window-normalize-window window t))
-  (if (eq window (selected-window))
-      (with-current-buffer (window-buffer window)
-	(goto-char pos))
-    (set-window-point window pos)))
-
 (defun window-at-side-p (&optional window side)
   "Return t if WINDOW is at SIDE of its containing frame.
 WINDOW must be a valid window and defaults to the selected one.
@@ -1146,7 +1120,7 @@ IGNORE non-nil means a window can be returned even if its
 	 (last (+ first (if hor
 			    (window-total-width window)
 			  (window-total-height window))))
-	 (posn-cons (nth 6 (posn-at-point (window-point-1 window) window)))
+	 (posn-cons (nth 6 (posn-at-point (window-point window) window)))
 	 ;; The column / row value of `posn-at-point' can be nil for the
 	 ;; mini-window, guard against that.
 	 (posn (if hor
@@ -2613,7 +2587,7 @@ WINDOW must be a live window and defaults to the selected one."
       ;; Add an entry for buffer to WINDOW's previous buffers.
       (with-current-buffer buffer
 	(let ((start (window-start window))
-	      (point (window-point-1 window)))
+	      (point (window-point window)))
 	  (setq entry
 		(cons buffer
 		      (if entry
@@ -2657,7 +2631,7 @@ before was current this also makes BUFFER the current buffer."
       ;; Don't force window-start here (even if POINT is nil).
       (set-window-start window start t))
     (when point
-      (set-window-point-1 window point))))
+      (set-window-point window point))))
 
 (defcustom switch-to-visible-buffer t
   "If non-nil, allow switching to an already visible buffer.
@@ -3393,7 +3367,7 @@ Otherwise, the window starts are chosen so as to minimize the
 amount of redisplay; this is convenient on slow terminals."
   (interactive "P")
   (let ((old-window (selected-window))
-	(old-point (window-point-1))
+	(old-point (window-point))
 	(size (and size (prefix-numeric-value size)))
         moved-by-window-height moved new-window bottom)
     (when (and size (< size 0) (< (- size) window-min-height))
@@ -3418,7 +3392,7 @@ amount of redisplay; this is convenient on slow terminals."
 	  (setq bottom (point)))
 	(and moved-by-window-height
 	     (<= bottom (point))
-	     (set-window-point-1 old-window (1- bottom)))
+	     (set-window-point old-window (1- bottom)))
 	(and moved-by-window-height
 	     (<= (window-start new-window) old-point)
 	     (set-window-point new-window old-point)
@@ -3727,7 +3701,7 @@ specific buffers."
                   `((parameters . ,list))))
             ,@(when buffer
                 ;; All buffer related things go in here.
-		(let ((point (window-point-1 window))
+		(let ((point (window-point window))
 		      (start (window-start window)))
 		  `((buffer
 		     ,(buffer-name buffer)
@@ -4020,7 +3994,7 @@ element is BUFFER."
        (list 'other
 	     ;; A quadruple of WINDOW's buffer, start, point and height.
 	     (list (window-buffer window) (window-start window)
-		   (window-point-1 window) (window-total-size window))
+		   (window-point window) (window-total-size window))
 	     (selected-window) buffer))))
    ((eq type 'window)
     ;; WINDOW has been created on an existing frame.

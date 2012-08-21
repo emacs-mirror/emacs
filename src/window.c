@@ -1407,22 +1407,21 @@ DEFUN ("window-point", Fwindow_point, Swindow_point, 0, 1, 0,
        doc: /* Return current value of point in WINDOW.
 WINDOW must be a live window and defaults to the selected one.
 
-For a nonselected window, this is the value point would have
-if that window were selected.
+For a nonselected window, this is the value point would have if that
+window were selected.
 
-Note that, when WINDOW is the selected window and its buffer
-is also currently selected, the value returned is the same as (point).
-It would be more strictly correct to return the `top-level' value
-of point, outside of any save-excursion forms.
-But that is hard to define.  */)
+Note that, when WINDOW is selected, the value returned is the same as
+that returned by `point' for WINDOW's buffer.  It would be more strictly
+correct to return the `top-level' value of `point', outside of any
+`save-excursion' forms.  But that is hard to define.  */)
   (Lisp_Object window)
 {
   register struct window *w = decode_live_window (window);
 
-  if (w == XWINDOW (selected_window)
-      && current_buffer == XBUFFER (w->buffer))
-    return Fpoint ();
-  return Fmarker_position (w->pointm);
+  if (w == XWINDOW (selected_window))
+    return make_number (BUF_PT (XBUFFER (w->buffer)));
+  else
+    return Fmarker_position (w->pointm);
 }
 
 DEFUN ("window-start", Fwindow_start, Swindow_start, 0, 1, 0,
@@ -1532,16 +1531,27 @@ Return POS.  */)
   register struct window *w = decode_live_window (window);
 
   CHECK_NUMBER_COERCE_MARKER (pos);
-  if (w == XWINDOW (selected_window)
-      && XBUFFER (w->buffer) == current_buffer)
-    Fgoto_char (pos);
-  else
-    set_marker_restricted (w->pointm, pos, w->buffer);
 
-  /* We have to make sure that redisplay updates the window to show
-     the new value of point.  */
-  if (!EQ (window, selected_window))
-    ++windows_or_buffers_changed;
+  if (w == XWINDOW (selected_window))
+    {
+      if (XBUFFER (w->buffer) == current_buffer)
+	Fgoto_char (pos);
+      else
+	{
+	  struct buffer *old_buffer = current_buffer;
+
+	  set_buffer_internal (XBUFFER (w->buffer));
+	  Fgoto_char (pos);
+	  set_buffer_internal (old_buffer);
+	}
+    }
+  else
+    {
+      set_marker_restricted (w->pointm, pos, w->buffer);
+      /* We have to make sure that redisplay updates the window to show
+	 the new value of point.  */
+      ++windows_or_buffers_changed;
+    }
 
   return pos;
 }
