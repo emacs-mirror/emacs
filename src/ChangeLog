@@ -1,3 +1,13 @@
+2012-08-21  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Make recently-introduced setters macros.
+	* fontset.c (set_fontset_id, set_fontset_name, set_fontset_ascii)
+	(set_fontset_base, set_fontset_frame, set_fontset_nofont_face)
+	(set_fontset_default, set_fontset_fallback): Rename from their
+	upper-case counterparts, and make them functions rather than macros.
+	This is more consistent with the other recently-introduced setters.
+	These don't need to be inline, since they're local.
+
 2012-08-21  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsterm.m (fd_handler:): Alloc and release a NSAutoreleasePool in
