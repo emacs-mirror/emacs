@@ -1,3 +1,9 @@
+2012-08-21  Martin Rudalics  <rudalics@gmx.at>
+
+	* windows.texi (Window Point): Document recent changes in
+	window-point and set-window-point.
+	(Selecting Windows): Document recent change in select-window.
+
 2012-08-06  Eli Zaretskii  <eliz@gnu.org>
 
 	* functions.texi (Closures): Put the main index entry for
