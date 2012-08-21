@@ -1,5 +1,10 @@
 2012-08-21  Glenn Morris  <rgm@gnu.org>
 
+	* calendar/cal-tex.el (cal-tex-cursor-filofax-year):
+	Use cal-tex-vspace.
+	(cal-tex-vspace, cal-tex-hspace, cal-tex-em, cal-tex-bf)
+	(cal-tex-Huge-bf, cal-tex-large-bf): Use cal-tex-cmd.
+
 	* calendar/cal-tex.el (cal-tex-cursor-filofax-year)
 	(cal-tex-cursor-week, cal-tex-cursor-week2)
 	(cal-tex-cursor-week-iso, cal-tex-cursor-week-at-a-glance)

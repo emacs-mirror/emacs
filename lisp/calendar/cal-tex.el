@@ -377,7 +377,7 @@ Optional EVENT indicates a buffer position to use instead of point."
     (cal-tex-cmd "\\fboxsep 0.5mm")
     (cal-tex-cmd "\\pagestyle" "empty")
     (cal-tex-b-document)
-    (cal-tex-cmd "\\vspace*" "0.25in")
+    (cal-tex-vspace "0.25in")
     (dotimes (j n)
       (insert (format "\\hfil \\textbf{\\Large %s} \\hfil\\\\\n" year))
       (cal-tex-b-center)
@@ -405,7 +405,7 @@ Optional EVENT indicates a buffer position to use instead of point."
       (if (= j (1- n))
           (cal-tex-end-document)
         (cal-tex-newpage)
-        (cal-tex-cmd "\\vspace*" "0.25in"))
+        (cal-tex-vspace "0.25in"))
       (run-hooks 'cal-tex-year-hook))
     (run-hooks 'cal-tex-hook)))
 
@@ -1809,13 +1809,11 @@ non-nil, means add to end of buffer without erasing current contents."
 
 (defun cal-tex-vspace (space)
   "Insert vspace command to move SPACE vertically."
-  (insert "\\vspace*{" space "}")
-  (cal-tex-comment))
+  (cal-tex-cmd "\\vspace*" space))
 
 (defun cal-tex-hspace (space)
   "Insert hspace command to move SPACE horizontally."
-  (insert "\\hspace*{" space "}")
-  (cal-tex-comment))
+  (cal-tex-cmd "\\hspace*" space))
 
 (defun cal-tex-comment (&optional comment)
   "Insert `% ', followed by optional string COMMENT, followed by newline.
@@ -1922,11 +1920,11 @@ Add trailing COMMENT if present."
 
 (defun cal-tex-em (string)
   "Insert STRING in italic font."
-  (insert "\\textit{" string "}"))
+  (cal-tex-cmd "\\textit" string))
 
 (defun cal-tex-bf (string)
   "Insert STRING in bf font."
-  (insert "\\textbf{ " string "}"))
+  (cal-tex-cmd "\\textbf" string))
 
 (defun cal-tex-scriptsize (string)
   "Insert STRING in scriptsize font."
@@ -1942,7 +1940,7 @@ Add trailing COMMENT if present."
 
 (defun cal-tex-Huge-bf (string)
   "Insert STRING in Huge bf font."
-  (insert "\\textbf{\\Huge " string "}"))
+  (cal-tex-cmd "\\textbf" (concat "\\Huge " string)))
 
 (defun cal-tex-large (string)
   "Insert STRING in large font."
@@ -1950,7 +1948,7 @@ Add trailing COMMENT if present."
 
 (defun cal-tex-large-bf (string)
   "Insert STRING in large bf font."
-  (insert "\\textbf{\\large " string "}"))
+  (cal-tex-cmd "\\textbf" (concat "\\large " string)))
 
 
 (provide 'cal-tex)
