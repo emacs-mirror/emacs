@@ -4600,11 +4600,15 @@ not_in_argv (NSString *arg)
 
   SELECT_TYPE readfds, writefds, *wfds;
   EMACS_TIME timeout, *tmo;
+  NSAutoreleasePool *pool = nil;
 
   /* NSTRACE (fd_handler); */
 
   for (;;) 
     {
+      [pool release];
+      pool = [[NSAutoreleasePool alloc] init];
+
       if (waiting)
         {
           SELECT_TYPE fds;

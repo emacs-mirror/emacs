@@ -1,3 +1,8 @@
+2012-08-21  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.m (fd_handler:): Alloc and release a NSAutoreleasePool in
+	the loop (Bug#12247).
+
 2012-08-21  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* lisp.h (vcopy): Use memcpy rather than our own loop.
