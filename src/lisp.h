@@ -2349,11 +2349,8 @@ gc_aset (Lisp_Object array, ptrdiff_t idx, Lisp_Object val)
 LISP_INLINE void
 vcopy (Lisp_Object v, ptrdiff_t offset, Lisp_Object *args, ptrdiff_t count)
 {
-  ptrdiff_t i;
-
-  eassert (offset + count <= ASIZE (v));
-  for (i = 0; i < count; i++)
-    ASET (v, offset + i, args[i]);
+  eassert (0 <= offset && 0 <= count && offset + count <= ASIZE (v));
+  memcpy (XVECTOR (v)->contents + offset, args, count * sizeof *args);
 }
 
 /* Functions to modify hash tables.  */

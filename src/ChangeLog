@@ -1,3 +1,11 @@
+2012-08-21  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* lisp.h (vcopy): Use memcpy rather than our own loop.
+	This fixes a performance regression introduced by the recent
+	addition of vcopy.  This means 'vcopy' will need to be modified
+	for a copying collector, but that's OK.  Also, tighten the
+	checking in the assertion.
+
 2012-08-21  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32uniscribe.c (uniscribe_shape): Fix producing gstring
