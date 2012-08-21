@@ -344,6 +344,25 @@ landscape mode with three rows of four months each."
     (run-hooks 'cal-tex-year-hook))
   (run-hooks 'cal-tex-hook))
 
+
+(defun cal-tex-filofax-paper (&optional year)
+  "Insert some page size settings for filofax layouts."
+  (insert "\\textwidth 3.25in
+\\textheight 6.5in
+\\headheight -0.875in
+\\topmargin 0pt
+")
+  (insert
+   ;; Why is this one subtly different?  Who knows...
+   (if year "\\oddsidemargin 1.675in
+\\evensidemargin 1.675in
+"
+     "\\oddsidemargin 1.75in
+\\evensidemargin 1.5in
+\\headsep 0.125in
+\\footskip 0.125in
+")))
+
 ;;;###cal-autoload
 (defun cal-tex-cursor-filofax-year (&optional n event)
   "Make a Filofax one page yearly calendar of year indicated by cursor.
@@ -354,12 +373,7 @@ Optional EVENT indicates a buffer position to use instead of point."
   (or n (setq n 1))
   (let ((year (calendar-extract-year (calendar-cursor-to-date t event))))
     (cal-tex-preamble "twoside")
-    (cal-tex-cmd "\\textwidth 3.25in")
-    (cal-tex-cmd "\\textheight 6.5in")
-    (cal-tex-cmd "\\oddsidemargin 1.675in")
-    (cal-tex-cmd "\\evensidemargin 1.675in")
-    (cal-tex-cmd "\\topmargin 0pt")
-    (cal-tex-cmd "\\headheight -0.875in")
+    (cal-tex-filofax-paper 'year)
     (cal-tex-cmd "\\fboxsep 0.5mm")
     (cal-tex-cmd "\\pagestyle{empty}")
     (cal-tex-b-document)
@@ -653,6 +667,15 @@ this is only an upper bound."
 {\\makebox[2em]{\\rule{0cm}{#2ex}#1}\\rule{3in}{.15mm}}\n"
   "One hour and a line on the right.")
 
+(defun cal-tex-weekly-paper (&optional nomargins)
+  "Insert some page size settings for weekly layouts."
+  (insert "\\textwidth 6.5in
+\\textheight 10.5in
+")
+  (or nomargins (insert "\\oddsidemargin 0in
+\\evensidemargin 0in
+")))
+
 ;; TODO cal-tex-diary-support.
 ;; TODO respect cal-tex-daily-start,end (see cal-tex-week-hours).
 ;;;###cal-autoload
@@ -677,10 +700,7 @@ entries are not shown).  The calendar shows the hours 8-12am, 1-5pm."
          (holidays (if cal-tex-holidays
                        (holiday-in-range d1 d2))))
     (cal-tex-preamble "11pt")
-    (cal-tex-cmd "\\textwidth   6.5in")
-    (cal-tex-cmd "\\textheight 10.5in")
-    (cal-tex-cmd "\\oddsidemargin 0in")
-    (cal-tex-cmd "\\evensidemargin 0in")
+    (cal-tex-weekly-paper)
     (insert cal-tex-LaTeX-hourbox)
     (cal-tex-b-document)
     (cal-tex-cmd "\\pagestyle{empty}")
@@ -732,10 +752,7 @@ Optional EVENT indicates a buffer position to use instead of point."
          (holidays (if cal-tex-holidays
                        (holiday-in-range d1 d2))))
     (cal-tex-preamble "12pt")
-    (cal-tex-cmd "\\textwidth   6.5in")
-    (cal-tex-cmd "\\textheight 10.5in")
-    (cal-tex-cmd "\\oddsidemargin 0in")
-    (cal-tex-cmd "\\evensidemargin 0in")
+    (cal-tex-weekly-paper)
     (insert cal-tex-LaTeX-hourbox)
     (cal-tex-b-document)
     (cal-tex-cmd "\\pagestyle{empty}")
@@ -819,10 +836,7 @@ position to use instead of point."
                          (cal-tex-list-diary-entries d1 d2)))
          s)
     (cal-tex-preamble "11pt")
-    (cal-tex-cmd "\\textwidth 6.5in")
-    (cal-tex-cmd "\\textheight 10.5in")
-    (cal-tex-cmd "\\oddsidemargin 0in")
-    (cal-tex-cmd "\\evensidemargin 0in")
+    (cal-tex-weekly-paper)
     (cal-tex-b-document)
     (cal-tex-cmd "\\pagestyle{empty}")
     (dotimes (i n)
@@ -941,10 +955,7 @@ to use instead of point."
                 (calendar-absolute-from-gregorian
                  (calendar-cursor-to-date t event))))))
     (cal-tex-preamble "11pt")
-    (cal-tex-cmd "\\textwidth   6.5in")
-    (cal-tex-cmd "\\textheight 10.5in")
-    (cal-tex-cmd "\\oddsidemargin 0in")
-    (cal-tex-cmd "\\evensidemargin 0in")
+    (cal-tex-weekly-paper)
     (cal-tex-b-document)
     (dotimes (i n)
       (cal-tex-vspace "-1cm")
@@ -1192,14 +1203,7 @@ Optional EVENT indicates a buffer position to use instead of point."
          (diary-list (if cal-tex-diary
                          (cal-tex-list-diary-entries d1 d2))))
     (cal-tex-preamble "twoside")
-    (cal-tex-cmd "\\textwidth 3.25in")
-    (cal-tex-cmd "\\textheight 6.5in")
-    (cal-tex-cmd "\\oddsidemargin 1.75in")
-    (cal-tex-cmd "\\evensidemargin 1.5in")
-    (cal-tex-cmd "\\topmargin 0pt")
-    (cal-tex-cmd "\\headheight -0.875in")
-    (cal-tex-cmd "\\headsep 0.125in")
-    (cal-tex-cmd "\\footskip .125in")
+    (cal-tex-filofax-paper)
     (insert "\\def\\righthead#1{\\hfill {\\normalsize \\bf #1}\\\\[-6pt]}
 \\long\\def\\rightday#1#2#3#4#5{%
    \\rule{\\textwidth}{0.3pt}\\\\%
@@ -1286,14 +1290,7 @@ Optional EVENT indicates a buffer position to use instead of point."
          (diary-list (if cal-tex-diary
                          (cal-tex-list-diary-entries d1 d2))))
     (cal-tex-preamble "twoside")
-    (cal-tex-cmd "\\textwidth 3.25in")
-    (cal-tex-cmd "\\textheight 6.5in")
-    (cal-tex-cmd "\\oddsidemargin 1.75in")
-    (cal-tex-cmd "\\evensidemargin 1.5in")
-    (cal-tex-cmd "\\topmargin 0pt")
-    (cal-tex-cmd "\\headheight -0.875in")
-    (cal-tex-cmd "\\headsep 0.125in")
-    (cal-tex-cmd "\\footskip .125in")
+    (cal-tex-filofax-paper)
     (insert "\\def\\righthead#1{\\hfill {\\normalsize \\bf #1}\\\\[-6pt]}
 \\long\\def\\rightday#1#2#3#4#5{%
    \\rule{\\textwidth}{0.3pt}\\\\%
@@ -1425,14 +1422,7 @@ Optional EVENT indicates a buffer position to use instead of point."
          (diary-list (if cal-tex-diary
                          (cal-tex-list-diary-entries d1 d2))))
     (cal-tex-preamble "twoside")
-    (cal-tex-cmd "\\textwidth 3.25in")
-    (cal-tex-cmd "\\textheight 6.5in")
-    (cal-tex-cmd "\\oddsidemargin 1.75in")
-    (cal-tex-cmd "\\evensidemargin 1.5in")
-    (cal-tex-cmd "\\topmargin 0pt")
-    (cal-tex-cmd "\\headheight -0.875in")
-    (cal-tex-cmd "\\headsep 0.125in")
-    (cal-tex-cmd "\\footskip .125in")
+    (cal-tex-filofax-paper)
     (insert "\\def\\righthead#1{\\hfill {\\normalsize \\bf #1}\\\\[-6pt]}
 \\long\\def\\rightday#1#2#3{%
    \\rule{\\textwidth}{0.3pt}\\\\%
@@ -1525,8 +1515,7 @@ a buffer position to use instead of point."
   (let ((date (calendar-absolute-from-gregorian
                (calendar-cursor-to-date t event))))
     (cal-tex-preamble "12pt")
-    (cal-tex-cmd "\\textwidth 6.5in")
-    (cal-tex-cmd "\\textheight 10.5in")
+    (cal-tex-weekly-paper 'nomargins)
     (cal-tex-b-document)
     (cal-tex-cmd "\\pagestyle{empty}")
     (dotimes (i n)
