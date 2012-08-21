@@ -124,7 +124,7 @@ extern _Noreturn void die (const char *, const char *, int);
    eassert macro altogether, e.g., if XSTRING (x) uses eassert to test
    STRINGP (x), but a particular use of XSTRING is invoked only after
    testing that STRINGP (x) is true, making the test redundant.  */
-extern int suppress_checking EXTERNALLY_VISIBLE;
+extern bool suppress_checking EXTERNALLY_VISIBLE;
 
 # define eassert(cond)						\
    ((cond) || suppress_checking					\
@@ -702,7 +702,7 @@ struct Lisp_Cons
 #define CDR_SAFE(c)				\
   (CONSP ((c)) ? XCDR ((c)) : Qnil)
 
-/* Nonzero if STR is a multibyte string.  */
+/* True if STR is a multibyte string.  */
 #define STRING_MULTIBYTE(STR)  \
   (XSTRING (STR)->size_byte >= 0)
 
@@ -2799,7 +2799,7 @@ extern Lisp_Object echo_area_buffer[2];
 extern void add_to_log (const char *, Lisp_Object, Lisp_Object);
 extern void check_message_stack (void);
 extern void setup_echo_area_for_printing (int);
-extern int push_message (void);
+extern bool push_message (void);
 extern Lisp_Object pop_message_unwind (Lisp_Object);
 extern Lisp_Object restore_message_unwind (Lisp_Object);
 extern void restore_message (void);
@@ -2842,7 +2842,7 @@ extern void uninterrupt_malloc (void);
 extern void malloc_warning (const char *);
 extern _Noreturn void memory_full (size_t);
 extern _Noreturn void buffer_memory_full (ptrdiff_t);
-extern int survives_gc_p (Lisp_Object);
+extern bool survives_gc_p (Lisp_Object);
 extern void mark_object (Lisp_Object);
 #if defined REL_ALLOC && !defined SYSTEM_MALLOC
 extern void refill_memory_reserve (void);
@@ -2881,8 +2881,8 @@ extern Lisp_Object make_uninit_string (EMACS_INT);
 extern Lisp_Object make_uninit_multibyte_string (EMACS_INT, EMACS_INT);
 extern Lisp_Object make_string_from_bytes (const char *, ptrdiff_t, ptrdiff_t);
 extern Lisp_Object make_specified_string (const char *,
-					  ptrdiff_t, ptrdiff_t, int);
-extern Lisp_Object make_pure_string (const char *, ptrdiff_t, ptrdiff_t, int);
+					  ptrdiff_t, ptrdiff_t, bool);
+extern Lisp_Object make_pure_string (const char *, ptrdiff_t, ptrdiff_t, bool);
 extern Lisp_Object make_pure_c_string (const char *, ptrdiff_t);
 
 /* Make a string allocated in pure space, use STR as string data.  */
@@ -2916,8 +2916,8 @@ extern struct window *allocate_window (void);
 extern struct frame *allocate_frame (void);
 extern struct Lisp_Process *allocate_process (void);
 extern struct terminal *allocate_terminal (void);
-extern int gc_in_progress;
-extern int abort_on_gc;
+extern bool gc_in_progress;
+extern bool abort_on_gc;
 extern Lisp_Object make_float (double);
 extern void display_malloc_warning (void);
 extern ptrdiff_t inhibit_garbage_collection (void);

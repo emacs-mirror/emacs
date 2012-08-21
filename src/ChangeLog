@@ -1,5 +1,32 @@
 2012-08-21  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* alloc.c: Use bool for booleans.
+	(gc_in_progress, abort_on_gc)
+	(setjmp_tested_p) [!GC_SAVE_REGISTERS_ON_STACK && !GC_SETJMP_WORKS]:
+	(dont_register_blocks) [GC_MALLOC_CHECK]:
+	(suppress_checking) [ENABLE_CHECKING]: Now bool, not int.
+	(check_string_bytes, make_specified_string, memory_full)
+	(live_string_p, live_cons_p, live_symbol_p, live_float_p)
+	(live_misc_p, live_vector_p, live_buffer_p, mark_maybe_object)
+	(mark_stack, valid_pointer_p, make_pure_string)
+	(Fgarbage_collect, survives_gc_p, gc_sweep):
+	Use bool for booleans, instead of int.
+	(test_setjmp) [!GC_SAVE_REGISTERS_ON_STACK && !GC_SETJMP_WORKS]:
+	Remove unused local.
+	* alloc.c (PURE_POINTER_P):
+	* lisp.h (STRING_MULTIBYTE): Document that it returns a boolean.
+	* editfns.c (Fformat):
+	* fileio.c (Fexpand_file_name, Fsubstitute_in_file_name)
+	(Fdo_auto_save):
+	* fns.c (sweep_weak_table):
+	* lisp.h (suppress_checking, push_message, survives_gc_p)
+	(make_pure_string, gc_in_progress, abort_on_gc):
+	* lread.c (readchar, read1):
+	* print.c (Fprin1_to_string):
+	* xdisp.c (push_message):
+	Use bool for booleans affected directly or indirectly by
+	alloc.c's changes.
+
 	Make recently-introduced setters macros.
 	* fontset.c (set_fontset_id, set_fontset_name, set_fontset_ascii)
 	(set_fontset_base, set_fontset_frame, set_fontset_nofont_face)

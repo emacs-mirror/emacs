@@ -3967,8 +3967,8 @@ sweep_weak_table (struct Lisp_Hash_Table *h, int remove_entries_p)
       for (idx = HASH_INDEX (h, bucket); !NILP (idx); idx = next)
 	{
 	  ptrdiff_t i = XFASTINT (idx);
-	  int key_known_to_survive_p = survives_gc_p (HASH_KEY (h, i));
-	  int value_known_to_survive_p = survives_gc_p (HASH_VALUE (h, i));
+	  bool key_known_to_survive_p = survives_gc_p (HASH_KEY (h, i));
+	  bool value_known_to_survive_p = survives_gc_p (HASH_VALUE (h, i));
 	  int remove_p;
 
 	  if (EQ (h->weak, Qkey))

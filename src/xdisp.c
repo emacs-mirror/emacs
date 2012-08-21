@@ -10480,11 +10480,10 @@ current_message_1 (ptrdiff_t a1, Lisp_Object a2, ptrdiff_t a3, ptrdiff_t a4)
    empty.  This is a relatively infrequent operation, so it's not
    worth optimizing.  */
 
-int
+bool
 push_message (void)
 {
-  Lisp_Object msg;
-  msg = current_message ();
+  Lisp_Object msg = current_message ();
   Vmessage_stack = Fcons (msg, Vmessage_stack);
   return STRINGP (msg);
 }

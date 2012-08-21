@@ -189,7 +189,7 @@ static int readbyte_from_string (int, Lisp_Object);
 static int unread_char;
 
 static int
-readchar (Lisp_Object readcharfun, int *multibyte)
+readchar (Lisp_Object readcharfun, bool *multibyte)
 {
   Lisp_Object tem;
   register int c;
@@ -2354,9 +2354,9 @@ read_integer (Lisp_Object readcharfun, EMACS_INT radix)
 static Lisp_Object
 read1 (register Lisp_Object readcharfun, int *pch, int first_in_list)
 {
-  register int c;
-  unsigned uninterned_symbol = 0;
-  int multibyte;
+  int c;
+  bool uninterned_symbol = 0;
+  bool multibyte;
 
   *pch = 0;
   load_each_byte = 0;

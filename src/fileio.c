@@ -766,7 +766,7 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
 #endif /* DOS_NT */
   ptrdiff_t length;
   Lisp_Object handler, result, handled_name;
-  int multibyte;
+  bool multibyte;
   Lisp_Object hdir;
 
   CHECK_STRING (name);
@@ -1566,7 +1566,7 @@ those `/' is discarded.  */)
   char *target = NULL;
   int total = 0;
   int substituted = 0;
-  int multibyte;
+  bool multibyte;
   char *xnm;
   Lisp_Object handler;
 
@@ -5306,7 +5306,7 @@ A non-nil CURRENT-ONLY argument means save only current buffer.  */)
   FILE *stream = NULL;
   ptrdiff_t count = SPECPDL_INDEX ();
   int orig_minibuffer_auto_raise = minibuffer_auto_raise;
-  int old_message_p = 0;
+  bool old_message_p = 0;
   struct gcpro gcpro1, gcpro2;
 
   if (max_specpdl_size < specpdl_size + 40)

@@ -173,15 +173,15 @@ EMACS_INT gc_relative_threshold;
 
 EMACS_INT memory_full_cons_threshold;
 
-/* Nonzero during GC.  */
+/* True during GC.  */
 
-int gc_in_progress;
+bool gc_in_progress;
 
-/* Nonzero means abort if try to GC.
+/* True means abort if try to GC.
    This is for code which is written on the assumption that
    no GC will happen, so as to verify that assumption.  */
 
-int abort_on_gc;
+bool abort_on_gc;
 
 /* Number of live and free conses etc.  */
 
@@ -223,7 +223,7 @@ static ptrdiff_t pure_size;
 
 static ptrdiff_t pure_bytes_used_before_overflow;
 
-/* Value is non-zero if P points into pure space.  */
+/* True if P points into pure space.  */
 
 #define PURE_POINTER_P(P)					\
   ((uintptr_t) (P) - (uintptr_t) purebeg <= pure_size)
@@ -392,13 +392,13 @@ static struct mem_node mem_z;
 static struct Lisp_Vector *allocate_vectorlike (ptrdiff_t);
 static void lisp_free (void *);
 static void mark_stack (void);
-static int live_vector_p (struct mem_node *, void *);
-static int live_buffer_p (struct mem_node *, void *);
-static int live_string_p (struct mem_node *, void *);
-static int live_cons_p (struct mem_node *, void *);
-static int live_symbol_p (struct mem_node *, void *);
-static int live_float_p (struct mem_node *, void *);
-static int live_misc_p (struct mem_node *, void *);
+static bool live_vector_p (struct mem_node *, void *);
+static bool live_buffer_p (struct mem_node *, void *);
+static bool live_string_p (struct mem_node *, void *);
+static bool live_cons_p (struct mem_node *, void *);
+static bool live_symbol_p (struct mem_node *, void *);
+static bool live_float_p (struct mem_node *, void *);
+static bool live_misc_p (struct mem_node *, void *);
 static void mark_maybe_object (Lisp_Object);
 static void mark_memory (void *, void *);
 #if GC_MARK_STACK || defined GC_MALLOC_CHECK
@@ -1241,7 +1241,7 @@ static void (*old_free_hook) (void*, const void*);
 #endif
 
 #ifdef GC_MALLOC_CHECK
-static int dont_register_blocks;
+static bool dont_register_blocks;
 #endif
 
 static size_t bytes_used_when_reconsidered;
@@ -1828,11 +1828,11 @@ check_sblock (struct sblock *b)
 
 
 /* Check validity of Lisp strings' string_bytes member.  ALL_P
-   non-zero means check all strings, otherwise check only most
+   means check all strings, otherwise check only most
    recently allocated strings.  Used for hunting a bug.  */
 
 static void
-check_string_bytes (int all_p)
+check_string_bytes (bool all_p)
 {
   if (all_p)
     {
@@ -2437,9 +2437,9 @@ make_string_from_bytes (const char *contents,
 
 Lisp_Object
 make_specified_string (const char *contents,
-		       ptrdiff_t nchars, ptrdiff_t nbytes, int multibyte)
+		       ptrdiff_t nchars, ptrdiff_t nbytes, bool multibyte)
 {
-  register Lisp_Object val;
+  Lisp_Object val;
 
   if (nchars < 0)
     {
@@ -3094,7 +3094,7 @@ sweep_vectors (void)
 
   for (block = vector_blocks; block; block = *bprev)
     {
-      int free_this_block = 0;
+      bool free_this_block = 0;
 
       for (vector = (struct Lisp_Vector *) block->data;
 	   VECTOR_IN_BLOCK (vector, block); vector = next)
@@ -3753,7 +3753,7 @@ void
 memory_full (size_t nbytes)
 {
   /* Do not go into hysterics merely because a large request failed.  */
-  int enough_free_memory = 0;
+  bool enough_free_memory = 0;
   if (SPARE_MEMORY < nbytes)
     {
       void *p;
@@ -4246,7 +4246,7 @@ mem_delete_fixup (struct mem_node *x)
 /* Value is non-zero if P is a pointer to a live Lisp string on
    the heap.  M is a pointer to the mem_block for P.  */
 
-static inline int
+static inline bool
 live_string_p (struct mem_node *m, void *p)
 {
   if (m->type == MEM_TYPE_STRING)
@@ -4269,7 +4269,7 @@ live_string_p (struct mem_node *m, void *p)
 /* Value is non-zero if P is a pointer to a live Lisp cons on
    the heap.  M is a pointer to the mem_block for P.  */
 
-static inline int
+static inline bool
 live_cons_p (struct mem_node *m, void *p)
 {
   if (m->type == MEM_TYPE_CONS)
@@ -4295,7 +4295,7 @@ live_cons_p (struct mem_node *m, void *p)
 /* Value is non-zero if P is a pointer to a live Lisp symbol on
    the heap.  M is a pointer to the mem_block for P.  */
 
-static inline int
+static inline bool
 live_symbol_p (struct mem_node *m, void *p)
 {
   if (m->type == MEM_TYPE_SYMBOL)
@@ -4321,7 +4321,7 @@ live_symbol_p (struct mem_node *m, void *p)
 /* Value is non-zero if P is a pointer to a live Lisp float on
    the heap.  M is a pointer to the mem_block for P.  */
 
-static inline int
+static inline bool
 live_float_p (struct mem_node *m, void *p)
 {
   if (m->type == MEM_TYPE_FLOAT)
@@ -4345,7 +4345,7 @@ live_float_p (struct mem_node *m, void *p)
 /* Value is non-zero if P is a pointer to a live Lisp Misc on
    the heap.  M is a pointer to the mem_block for P.  */
 
-static inline int
+static inline bool
 live_misc_p (struct mem_node *m, void *p)
 {
   if (m->type == MEM_TYPE_MISC)
@@ -4371,7 +4371,7 @@ live_misc_p (struct mem_node *m, void *p)
 /* Value is non-zero if P is a pointer to a live vector-like object.
    M is a pointer to the mem_block for P.  */
 
-static inline int
+static inline bool
 live_vector_p (struct mem_node *m, void *p)
 {
   if (m->type == MEM_TYPE_VECTOR_BLOCK)
@@ -4407,7 +4407,7 @@ live_vector_p (struct mem_node *m, void *p)
 /* Value is non-zero if P is a pointer to a live buffer.  M is a
    pointer to the mem_block for P.  */
 
-static inline int
+static inline bool
 live_buffer_p (struct mem_node *m, void *p)
 {
   /* P must point to the start of the block, and the buffer
@@ -4487,7 +4487,7 @@ mark_maybe_object (Lisp_Object obj)
 
   if (m != MEM_NIL)
     {
-      int mark_p = 0;
+      bool mark_p = 0;
 
       switch (XTYPE (obj))
 	{
@@ -4707,7 +4707,8 @@ mark_memory (void *start, void *end)
 
 #if !defined GC_SAVE_REGISTERS_ON_STACK && !defined GC_SETJMP_WORKS
 
-static int setjmp_tested_p, longjmps_done;
+static bool setjmp_tested_p;
+static int longjmps_done;
 
 #define SETJMP_WILL_LIKELY_WORK "\
 \n\
@@ -4751,7 +4752,6 @@ test_setjmp (void)
   char buf[10];
   register int x;
   jmp_buf jbuf;
-  int result = 0;
 
   /* Arrange for X to be put in a register.  */
   sprintf (buf, "1");
@@ -4891,7 +4891,7 @@ mark_stack (void)
     Lisp_Object o;
     jmp_buf j;
   } j;
-  volatile int stack_grows_down_p = (char *) &j > (char *) stack_base;
+  volatile bool stack_grows_down_p = (char *) &j > (char *) stack_base;
 #endif
   /* This trick flushes the register windows so that all the state of
      the process is contained in the stack.  */
@@ -4965,7 +4965,7 @@ valid_pointer_p (void *p)
 
   if (pipe (fd) == 0)
     {
-      int valid = (emacs_write (fd[1], (char *) p, 16) == 16);
+      bool valid = emacs_write (fd[1], (char *) p, 16) == 16;
       emacs_close (fd[1]);
       emacs_close (fd[0]);
       return valid;
@@ -5186,7 +5186,7 @@ find_string_data_in_pure (const char *data, ptrdiff_t nbytes)
 
 /* Return a string allocated in pure space.  DATA is a buffer holding
    NCHARS characters, and NBYTES bytes of string data.  MULTIBYTE
-   non-zero means make the result string multibyte.
+   means make the result string multibyte.
 
    Must get an error if pure storage is full, since if it cannot hold
    a large string it may be able to hold conses that point to that
@@ -5194,7 +5194,7 @@ find_string_data_in_pure (const char *data, ptrdiff_t nbytes)
 
 Lisp_Object
 make_pure_string (const char *data,
-		  ptrdiff_t nchars, ptrdiff_t nbytes, int multibyte)
+		  ptrdiff_t nchars, ptrdiff_t nbytes, bool multibyte)
 {
   Lisp_Object string;
   struct Lisp_String *s = pure_alloc (sizeof *s, Lisp_String);
@@ -5389,11 +5389,11 @@ returns nil, because real GC can't be done.
 See Info node `(elisp)Garbage Collection'.  */)
   (void)
 {
-  register struct specbinding *bind;
-  register struct buffer *nextb;
+  struct specbinding *bind;
+  struct buffer *nextb;
   char stack_top_variable;
   ptrdiff_t i;
-  int message_p;
+  bool message_p;
   ptrdiff_t count = SPECPDL_INDEX ();
   EMACS_TIME start;
   Lisp_Object retval = Qnil;
@@ -6208,10 +6208,10 @@ mark_terminals (void)
 /* Value is non-zero if OBJ will survive the current GC because it's
    either marked or does not need to be marked to survive.  */
 
-int
+bool
 survives_gc_p (Lisp_Object obj)
 {
-  int survives_p;
+  bool survives_p;
 
   switch (XTYPE (obj))
     {
@@ -6456,7 +6456,7 @@ gc_sweep (void)
 	    /* Check if the symbol was created during loadup.  In such a case
 	       it might be pointed to by pure bytecode which we don't trace,
 	       so we conservatively assume that it is live.  */
-	    int pure_p = PURE_POINTER_P (XSTRING (sym->s.name));
+	    bool pure_p = PURE_POINTER_P (XSTRING (sym->s.name));
 
 	    if (!sym->s.gcmarkbit && !pure_p)
 	      {
@@ -6681,7 +6681,7 @@ which_symbols (Lisp_Object obj, EMACS_INT find_max)
 }
 
 #ifdef ENABLE_CHECKING
-int suppress_checking;
+bool suppress_checking;
 
 void
 die (const char *msg, const char *file, int line)

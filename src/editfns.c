@@ -3642,13 +3642,13 @@ usage: (format STRING &rest OBJECTS)  */)
   ptrdiff_t max_bufsize = STRING_BYTES_BOUND + 1;
   char *p;
   Lisp_Object buf_save_value IF_LINT (= {0});
-  register char *format, *end, *format_start;
+  char *format, *end, *format_start;
   ptrdiff_t formatlen, nchars;
-  /* Nonzero if the format is multibyte.  */
-  int multibyte_format = 0;
-  /* Nonzero if the output should be a multibyte string,
+  /* True if the format is multibyte.  */
+  bool multibyte_format = 0;
+  /* True if the output should be a multibyte string,
      which is true if any of the inputs is one.  */
-  int multibyte = 0;
+  bool multibyte = 0;
   /* When we make a multibyte string, we must pay attention to the
      byte combining problem, i.e., a byte may be combined with a
      multibyte character of the previous string.  This flag tells if we
