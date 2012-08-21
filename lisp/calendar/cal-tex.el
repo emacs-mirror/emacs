@@ -816,10 +816,7 @@ position to use instead of point."
          (holidays (if cal-tex-holidays
                        (holiday-in-range d1 d2)))
          (diary-list (if cal-tex-diary
-                         (cal-tex-list-diary-entries
-                          ;; FIXME d1?
-                          (calendar-absolute-from-gregorian (list month 1 year))
-                          d2)))
+                         (cal-tex-list-diary-entries d1 d2)))
          s)
     (cal-tex-preamble "11pt")
     (cal-tex-cmd "\\textwidth 6.5in")
@@ -1194,10 +1191,7 @@ Optional EVENT indicates a buffer position to use instead of point."
          (holidays (if cal-tex-holidays
                        (holiday-in-range d1 d2)))
          (diary-list (if cal-tex-diary
-                         (cal-tex-list-diary-entries
-                          ;; FIXME d1?
-                          (calendar-absolute-from-gregorian (list month 1 year))
-                          d2))))
+                         (cal-tex-list-diary-entries d1 d2))))
     (cal-tex-preamble "twoside")
     (cal-tex-cmd "\\textwidth 3.25in")
     (cal-tex-cmd "\\textheight 6.5in")
@@ -1291,10 +1285,7 @@ Optional EVENT indicates a buffer position to use instead of point."
          (holidays (if cal-tex-holidays
                        (holiday-in-range d1 d2)))
          (diary-list (if cal-tex-diary
-                         (cal-tex-list-diary-entries
-                          ;; FIXME d1?
-                          (calendar-absolute-from-gregorian (list month 1 year))
-                          d2))))
+                         (cal-tex-list-diary-entries d1 d2))))
     (cal-tex-preamble "twoside")
     (cal-tex-cmd "\\textwidth 3.25in")
     (cal-tex-cmd "\\textheight 6.5in")
@@ -1434,10 +1425,7 @@ Optional EVENT indicates a buffer position to use instead of point."
          (holidays (if cal-tex-holidays
                        (holiday-in-range d1 d2)))
          (diary-list (if cal-tex-diary
-                         (cal-tex-list-diary-entries
-                          ;; FIXME d1?
-                          (calendar-absolute-from-gregorian (list month 1 year))
-                          d2))))
+                         (cal-tex-list-diary-entries d1 d2))))
     (cal-tex-preamble "twoside")
     (cal-tex-cmd "\\textwidth 3.25in")
     (cal-tex-cmd "\\textheight 6.5in")

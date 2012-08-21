@@ -1,3 +1,9 @@
+2012-08-21  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/cal-tex.el (cal-tex-cursor-week-iso)
+	(cal-tex-cursor-filofax-2week, cal-tex-cursor-filofax-week)
+	(cal-tex-cursor-filofax-daily): Correct start date for diary entries.
+
 2012-08-21  Juri Linkov  <juri@jurta.org>
 
 	* info.el (Info-file-attributes): New variable.
