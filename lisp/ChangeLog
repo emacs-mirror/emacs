@@ -1,5 +1,8 @@
 2012-08-21  Glenn Morris  <rgm@gnu.org>
 
+	* calendar/cal-tex.el (cal-tex-cursor-week-at-a-glance)
+	(cal-tex-cursor-filofax-week): Remove leading blank page.
+
 	* calendar/cal-tex.el (cal-tex-cursor-week-at-a-glance):
 	Add autoload cookie.  For now at least, don't use color, since
 	no other cal-tex function does.

@@ -1069,7 +1069,6 @@ position to use instead of point."
 ")
     (cal-tex-b-document)
     (cal-tex-cmd "\\pagestyle{empty}\\ ")
-    (cal-tex-newpage)
     (dotimes (i n)
       (insert "\\lefthead")
       (cal-tex-arg
@@ -1324,7 +1323,6 @@ Optional EVENT indicates a buffer position to use instead of point."
 ")
     (cal-tex-b-document)
     (cal-tex-cmd "\\pagestyle{empty}\\ ")
-    (cal-tex-newpage)
     (dotimes (i n)
       (insert "\\lefthead")
       (cal-tex-arg
