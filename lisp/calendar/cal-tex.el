@@ -237,6 +237,14 @@ The names are taken from `calendar-day-name-array'.")
   "LaTeX code to insert one box with date info in calendar.
 This definition is the heart of the calendar!")
 
+(defconst cal-tex-lefthead
+  "\\def\\lefthead#1{\\noindent {\\normalsize \\bf #1}\\hfill\\\\[-6pt]}\n"
+  "LaTeX code for left header.")
+
+(defconst cal-tex-righthead
+  "\\def\\righthead#1{\\hfill {\\normalsize \\bf #1}\\\\[-6pt]}\n"
+  "LaTeX code for right header.")
+
 (autoload 'holiday-in-range "holidays")
 
 (define-obsolete-function-alias 'cal-tex-list-holidays 'holiday-in-range "24.3")
@@ -1051,8 +1059,8 @@ position to use instead of point."
 \\headsep 0.125in
 \\footskip .125in
 ")
-    (insert "\\def\\righthead#1{\\hfill {\\normalsize \\bf #1}\\\\[-6pt]}
-\\long\\def\\rightday#1#2#3#4#5{%
+    (insert cal-tex-righthead)
+    (insert "\\long\\def\\rightday#1#2#3#4#5{%
    \\rule{\\textwidth}{0.3pt}\\\\%
    \\hbox to \\textwidth{%
      \\vbox to 2.75in{%
@@ -1060,7 +1068,8 @@ position to use instead of point."
           \\hbox to \\textwidth{\\small #5 \\hfill #1 {\\normalsize \\bf #2}}%
           \\hbox to \\textwidth{\\vbox {\\raggedleft \\footnotesize \\em #4}}%
           \\hbox to \\textwidth{\\vbox to 0pt {\\noindent \\footnotesize #3}}}}\\\\}
-\\long\\def\\weekend#1#2#3#4#5{%
+")
+    (insert "\\long\\def\\weekend#1#2#3#4#5{%
    \\rule{\\textwidth}{0.3pt}\\\\%
    \\hbox to \\textwidth{%
      \\vbox to 1.8in{%
@@ -1068,8 +1077,9 @@ position to use instead of point."
           \\hbox to \\textwidth{\\small #5 \\hfill #1 {\\normalsize \\bf #2}}%
           \\hbox to \\textwidth{\\vbox {\\raggedleft \\footnotesize \\em #4}}%
           \\hbox to \\textwidth{\\vbox to 0pt {\\noindent \\footnotesize #3}}}}\\\\}
-\\def\\lefthead#1{\\noindent {\\normalsize \\bf #1}\\hfill\\\\[-6pt]}
-\\long\\def\\leftday#1#2#3#4#5{%
+")
+    (insert cal-tex-lefthead)
+    (insert "\\long\\def\\leftday#1#2#3#4#5{%
    \\rule{\\textwidth}{0.3pt}\\\\%
    \\hbox to \\textwidth{%
      \\vbox to 2.75in{%
@@ -1204,8 +1214,8 @@ Optional EVENT indicates a buffer position to use instead of point."
                          (cal-tex-list-diary-entries d1 d2))))
     (cal-tex-preamble "twoside")
     (cal-tex-filofax-paper)
-    (insert "\\def\\righthead#1{\\hfill {\\normalsize \\bf #1}\\\\[-6pt]}
-\\long\\def\\rightday#1#2#3#4#5{%
+    (insert cal-tex-righthead)
+    (insert "\\long\\def\\rightday#1#2#3#4#5{%
    \\rule{\\textwidth}{0.3pt}\\\\%
    \\hbox to \\textwidth{%
      \\vbox to 0.7in{%
@@ -1213,8 +1223,9 @@ Optional EVENT indicates a buffer position to use instead of point."
           \\hbox to \\textwidth{\\small #5 \\hfill #1 {\\normalsize \\bf #2}}%
           \\hbox to \\textwidth{\\vbox {\\raggedleft \\footnotesize \\em #4}}%
           \\hbox to \\textwidth{\\vbox to 0pt {\\noindent \\footnotesize #3}}}}\\\\}
-\\def\\lefthead#1{\\noindent {\\normalsize \\bf #1}\\hfill\\\\[-6pt]}
-\\long\\def\\leftday#1#2#3#4#5{%
+")
+    (insert cal-tex-lefthead)
+    (insert "\\long\\def\\leftday#1#2#3#4#5{%
    \\rule{\\textwidth}{0.3pt}\\\\%
    \\hbox to \\textwidth{%
      \\vbox to 0.7in{%
@@ -1291,8 +1302,8 @@ Optional EVENT indicates a buffer position to use instead of point."
                          (cal-tex-list-diary-entries d1 d2))))
     (cal-tex-preamble "twoside")
     (cal-tex-filofax-paper)
-    (insert "\\def\\righthead#1{\\hfill {\\normalsize \\bf #1}\\\\[-6pt]}
-\\long\\def\\rightday#1#2#3#4#5{%
+    (insert cal-tex-righthead)
+    (insert "\\long\\def\\rightday#1#2#3#4#5{%
    \\rule{\\textwidth}{0.3pt}\\\\%
    \\hbox to \\textwidth{%
      \\vbox to 1.85in{%
@@ -1300,7 +1311,8 @@ Optional EVENT indicates a buffer position to use instead of point."
           \\hbox to \\textwidth{\\small #5 \\hfill #1 {\\normalsize \\bf #2}}%
           \\hbox to \\textwidth{\\vbox {\\raggedleft \\footnotesize \\em #4}}%
           \\hbox to \\textwidth{\\vbox to 0pt {\\noindent \\footnotesize #3}}}}\\\\}
-\\long\\def\\weekend#1#2#3#4#5{%
+")
+    (insert "\\long\\def\\weekend#1#2#3#4#5{%
    \\rule{\\textwidth}{0.3pt}\\\\%
    \\hbox to \\textwidth{%
      \\vbox to .8in{%
@@ -1308,8 +1320,9 @@ Optional EVENT indicates a buffer position to use instead of point."
           \\hbox to \\textwidth{\\small #5 \\hfill #1 {\\normalsize \\bf #2}}%
           \\hbox to \\textwidth{\\vbox {\\raggedleft \\footnotesize \\em #4}}%
           \\hbox to \\textwidth{\\vbox to 0pt {\\noindent \\footnotesize #3}}}}\\\\}
-\\def\\lefthead#1{\\noindent {\\normalsize \\bf #1}\\hfill\\\\[-6pt]}
-\\long\\def\\leftday#1#2#3#4#5{%
+")
+    (insert cal-tex-lefthead)
+    (insert "\\long\\def\\leftday#1#2#3#4#5{%
    \\rule{\\textwidth}{0.3pt}\\\\%
    \\hbox to \\textwidth{%
      \\vbox to 1.85in{%
@@ -1423,8 +1436,8 @@ Optional EVENT indicates a buffer position to use instead of point."
                          (cal-tex-list-diary-entries d1 d2))))
     (cal-tex-preamble "twoside")
     (cal-tex-filofax-paper)
-    (insert "\\def\\righthead#1{\\hfill {\\normalsize \\bf #1}\\\\[-6pt]}
-\\long\\def\\rightday#1#2#3{%
+    (insert cal-tex-righthead)
+    (insert "\\long\\def\\rightday#1#2#3{%
    \\rule{\\textwidth}{0.3pt}\\\\%
    \\hbox to \\textwidth{%
      \\vbox {%
@@ -1432,7 +1445,8 @@ Optional EVENT indicates a buffer position to use instead of point."
           \\hbox to \\textwidth{\\hfill \\small #3 \\hfill}%
           \\hbox to \\textwidth{\\vbox {\\raggedleft \\em #2}}%
           \\hbox to \\textwidth{\\vbox {\\noindent \\footnotesize #1}}}}}
-\\long\\def\\weekend#1#2#3{%
+")
+    (insert "\\long\\def\\weekend#1#2#3{%
    \\rule{\\textwidth}{0.3pt}\\\\%
    \\hbox to \\textwidth{%
      \\vbox {%
@@ -1440,8 +1454,9 @@ Optional EVENT indicates a buffer position to use instead of point."
           \\hbox to \\textwidth{\\hfill \\small #3 \\hfill}%
           \\hbox to \\textwidth{\\vbox {\\noindent \\em #2}}%
           \\hbox to \\textwidth{\\vbox {\\noindent \\footnotesize #1}}}}}
-\\def\\lefthead#1{\\noindent {\\normalsize \\bf #1}\\hfill\\\\[-6pt]}
-\\long\\def\\leftday#1#2#3{%
+")
+    (insert cal-tex-lefthead)
+    (insert "\\long\\def\\leftday#1#2#3{%
    \\rule{\\textwidth}{0.3pt}\\\\%
    \\hbox to \\textwidth{%
      \\vbox {%
@@ -1449,7 +1464,8 @@ Optional EVENT indicates a buffer position to use instead of point."
           \\hbox to \\textwidth{\\hfill \\small #3 \\hfill}%
           \\hbox to \\textwidth{\\vbox {\\noindent \\em #2}}%
           \\hbox to \\textwidth{\\vbox {\\noindent \\footnotesize #1}}}}}
-\\newbox\\LineBox
+")
+    (insert "\\newbox\\LineBox
 \\setbox\\LineBox=\\hbox to\\textwidth{%
 \\vrule height.2in width0pt\\leaders\\hrule\\hfill}
 \\def\\linesfill{\\par\\leaders\\copy\\LineBox\\vfill}
