@@ -8,6 +8,7 @@
 /* override variety setting for EVENT */
 #define EVENT
 
+#include "eventdef.h"
 #include "eventcom.h"
 #include "eventpro.h"
 #include "mpmtypes.h"
@@ -367,13 +368,6 @@ static void printArg(EventProc proc,
 }
 
 
-#define RELATION(name, code, always, kind, format) \
-  case code: { \
-    printArg(proc, EVENT_##format##_FIELD_PTR(event, i), \
-             eventFormat[i], styleConv); \
-  } break;
-
-
 static void readLog(EventProc proc)
 {
   EventCode c;
@@ -535,8 +529,12 @@ static void readLog(EventProc proc)
      default:
        for (i = 0; i < argCount; ++i) {
          switch(code) {
-#include "eventdef.h"
-#undef RELATION
+#define EVENT_CASE(X, name, code, always, kind, format) \
+  case code: { \
+    printArg(proc, EVENT_##format##_FIELD_PTR(event, i), \
+             eventFormat[i], styleConv); \
+  } break;
+         EVENT_LIST(EVENT_CASE, X)
          }
        }
      }
@@ -615,7 +613,7 @@ int main(int argc, char *argv[])
   assert(CHECKCONV(ulongest_t, Word));
   assert(CHECKCONV(ulongest_t, Addr));
   assert(CHECKCONV(ulongest_t, void *));
-  assert(CHECKCONV(unsigned, EventCode));
+  assert(CHECKCONV(ulongest_t, EventCode));
   assert(CHECKCONV(Addr, void *)); /* for labelled pointers */
 #endif
 

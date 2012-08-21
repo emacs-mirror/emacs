@@ -17,6 +17,7 @@
 
 #include "eventcom.h"
 #include "mpm.h"
+#include "eventdef.h"
 
 
 extern Res EventSync(void);
@@ -57,7 +58,7 @@ extern Res EventFlush(void);
  */
 
 /* Note that enum values can be up to fifteen bits long portably. */
-#define RELATION(type, code, always, kind, format) \
+#define EVENT_ENUM(X, type, code, always, kind, format) \
   enum { \
     Event##type##High = ((code >> 8) & 0xFF), \
     Event##type##Low = (code & 0xFF), \
@@ -65,10 +66,8 @@ extern Res EventFlush(void);
     Event##type##Kind = EventKind##kind, \
     Event##type##Format = EventFormat##format \
   };
- 
-#include "eventdef.h"
 
-#undef RELATION
+EVENT_LIST(EVENT_ENUM, X)
 
 
 /* Event writing support */
