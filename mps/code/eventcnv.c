@@ -608,16 +608,11 @@ int main(int argc, char *argv[])
   EventProc proc;
   Res res;
 
-#if !defined(MPS_OS_FR)
-  /* GCC -ansi -pedantic -Werror on FreeBSD will fail here
-   * with the warning "statement with no effect". */
-
   assert(CHECKCONV(ulongest_t, Word));
   assert(CHECKCONV(ulongest_t, Addr));
   assert(CHECKCONV(ulongest_t, void *));
   assert(CHECKCONV(unsigned, EventCode));
   assert(CHECKCONV(Addr, void *)); /* for labelled pointers */
-#endif
 
   filename = parseArgs(argc, argv);
 
