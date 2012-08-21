@@ -214,26 +214,46 @@ fontset_id_valid_p (int id)
 #define FONTSET_FROM_ID(id) AREF (Vfontset_table, id)
 
 /* Macros to access special values of FONTSET.  */
-#define FONTSET_ID(fontset)		XCHAR_TABLE (fontset)->extras[0]
+
+#define FONTSET_ID(fontset) XCHAR_TABLE (fontset)->extras[0]
+#define SET_FONTSET_ID(fontset, id)		\
+  set_char_table_extras ((fontset), 0, (id))
 
 /* Macros to access special values of (base) FONTSET.  */
-#define FONTSET_NAME(fontset)		XCHAR_TABLE (fontset)->extras[1]
-#define FONTSET_ASCII(fontset)		XCHAR_TABLE (fontset)->extras[4]
-/* #define FONTSET_SPEC(fontset)	XCHAR_TABLE (fontset)->extras[5] */
+
+#define FONTSET_NAME(fontset) XCHAR_TABLE (fontset)->extras[1]
+#define SET_FONTSET_NAME(fontset, name)		\
+  set_char_table_extras ((fontset), 1, (name))
+
+#define FONTSET_ASCII(fontset) XCHAR_TABLE (fontset)->extras[4]
+#define SET_FONTSET_ASCII(fontset, ascii)	\
+  set_char_table_extras ((fontset), 4, (ascii))
 
 /* Macros to access special values of (realized) FONTSET.  */
-#define FONTSET_BASE(fontset)		XCHAR_TABLE (fontset)->extras[2]
-#define FONTSET_FRAME(fontset)		XCHAR_TABLE (fontset)->extras[3]
-/* #define FONTSET_OBJLIST(fontset)	XCHAR_TABLE (fontset)->extras[4] */
-#define FONTSET_NOFONT_FACE(fontset)	XCHAR_TABLE (fontset)->extras[5]
-/* #define FONTSET_REPERTORY(fontset)	XCHAR_TABLE (fontset)->extras[6] */
-#define FONTSET_DEFAULT(fontset)	XCHAR_TABLE (fontset)->extras[7]
+
+#define FONTSET_BASE(fontset) XCHAR_TABLE (fontset)->extras[2]
+#define SET_FONTSET_BASE(fontset, base)		\
+  set_char_table_extras ((fontset), 2, (base))
+
+#define FONTSET_FRAME(fontset) XCHAR_TABLE (fontset)->extras[3]
+#define SET_FONTSET_FRAME(fontset, frame)	\
+  set_char_table_extras ((fontset), 3, (frame))
+
+#define FONTSET_NOFONT_FACE(fontset) XCHAR_TABLE (fontset)->extras[5]
+#define SET_FONTSET_NOFONT_FACE(fontset, face)	\
+  set_char_table_extras ((fontset), 5, (face))
+
+#define FONTSET_DEFAULT(fontset) XCHAR_TABLE (fontset)->extras[7]
+#define SET_FONTSET_DEFAULT(fontset, def)	\
+  set_char_table_extras ((fontset), 7, (def))
 
 /* For both base and realized fontset.  */
-#define FONTSET_FALLBACK(fontset)	XCHAR_TABLE (fontset)->extras[8]
 
-#define BASE_FONTSET_P(fontset)		(NILP (FONTSET_BASE (fontset)))
+#define FONTSET_FALLBACK(fontset) XCHAR_TABLE (fontset)->extras[8]
+#define SET_FONTSET_FALLBACK(fontset, fallback)		\
+  set_char_table_extras ((fontset), 8, (fallback))
 
+#define BASE_FONTSET_P(fontset) (NILP (FONTSET_BASE (fontset)))
 
 /* Macros for FONT-DEF and RFONT-DEF of fontset.  */
 #define FONT_DEF_NEW(font_def, font_spec, encoding, repertory)	\
@@ -265,7 +285,7 @@ fontset_id_valid_p (int id)
 #define RFONT_DEF_NEW(rfont_def, font_def)		\
   do {							\
     (rfont_def) = Fmake_vector (make_number (4), Qnil);	\
-    ASET ((rfont_def), 1, (font_def));		\
+    ASET ((rfont_def), 1, (font_def));			\
     RFONT_DEF_SET_SCORE ((rfont_def), 0);		\
   } while (0)
 
@@ -307,12 +327,13 @@ fontset_ref (Lisp_Object fontset, int c)
    replace with ELT, if ADD is `prepend', prepend ELT, otherwise,
    append ELT.  */
 
-#define FONTSET_ADD(fontset, range, elt, add)				     \
-  (NILP (add)								     \
-   ? (NILP (range)							     \
-      ? (FONTSET_FALLBACK (fontset) = Fmake_vector (make_number (1), (elt))) \
-      : Fset_char_table_range ((fontset), (range),			     \
-			       Fmake_vector (make_number (1), (elt))))	     \
+#define FONTSET_ADD(fontset, range, elt, add)				\
+  (NILP (add)								\
+   ? (NILP (range)							\
+      ? (SET_FONTSET_FALLBACK						\
+	 (fontset, Fmake_vector (make_number (1), (elt))))		\
+      : Fset_char_table_range ((fontset), (range),			\
+			       Fmake_vector (make_number (1), (elt))))	\
    : fontset_add ((fontset), (range), (elt), (add)))
 
 static Lisp_Object
@@ -341,8 +362,8 @@ fontset_add (Lisp_Object fontset, Lisp_Object range, Lisp_Object elt, Lisp_Objec
   else
     {
       args[idx] = FONTSET_FALLBACK (fontset);
-      FONTSET_FALLBACK (fontset)
-	= NILP (args[idx]) ? args[1 - idx] : Fvconcat (2, args);
+      SET_FONTSET_FALLBACK
+	(fontset, NILP (args[idx]) ? args[1 - idx] : Fvconcat (2, args));
     }
   return Qnil;
 }
@@ -485,7 +506,7 @@ fontset_get_font_group (Lisp_Object fontset, int c)
   if (c >= 0)
     char_table_set_range (fontset, from, to, font_group);
   else
-    FONTSET_FALLBACK (fontset) = font_group;
+    SET_FONTSET_FALLBACK (fontset, font_group);
   return font_group;
 }
 
@@ -720,8 +741,9 @@ fontset_font (Lisp_Object fontset, int c, struct face *face, int id)
   if (! EQ (base_fontset, Vdefault_fontset))
     {
       if (NILP (FONTSET_DEFAULT (fontset)))
-	FONTSET_DEFAULT (fontset)
-	  = make_fontset (FONTSET_FRAME (fontset), Qnil, Vdefault_fontset);
+	SET_FONTSET_DEFAULT
+	  (fontset,
+	   make_fontset (FONTSET_FRAME (fontset), Qnil, Vdefault_fontset));
       FONT_DEFERRED_LOG ("default fontset: font for", make_number (c), Qnil);
       default_rfont_def
 	= fontset_find_font (FONTSET_DEFAULT (fontset), c, face, id, 0);
@@ -781,16 +803,14 @@ make_fontset (Lisp_Object frame, Lisp_Object name, Lisp_Object base)
 
   fontset = Fmake_char_table (Qfontset, Qnil);
 
-  FONTSET_ID (fontset) = make_number (id);
+  SET_FONTSET_ID (fontset, make_number (id));
   if (NILP (base))
-    {
-      FONTSET_NAME (fontset) = name;
-    }
+    SET_FONTSET_NAME (fontset, name);
   else
     {
-      FONTSET_NAME (fontset) = Qnil;
-      FONTSET_FRAME (fontset) = frame;
-      FONTSET_BASE (fontset) = base;
+      SET_FONTSET_NAME (fontset, Qnil);
+      SET_FONTSET_FRAME (fontset, frame);
+      SET_FONTSET_BASE (fontset, base);
     }
 
   ASET (Vfontset_table, id, fontset);
@@ -958,7 +978,7 @@ face_for_char (FRAME_PTR f, struct face *face, int c, int pos, Lisp_Object objec
       else
 	{
 	  face_id = face_for_font (f, Qnil, face);
-	  FONTSET_NOFONT_FACE (fontset) = make_number (face_id);
+	  SET_FONTSET_NOFONT_FACE (fontset, make_number (face_id));
 	}
     }
   eassert (face_id >= 0);
@@ -1580,7 +1600,7 @@ appended.  By default, FONT-SPEC overrides the previous settings.  */)
       Lisp_Object tail, fr, alist;
       int fontset_id = XINT (FONTSET_ID (fontset));
 
-      FONTSET_ASCII (fontset) = fontname;
+      SET_FONTSET_ASCII (fontset, fontname);
       name = FONTSET_NAME (fontset);
       FOR_EACH_FRAME (tail, fr)
 	{
@@ -1658,7 +1678,7 @@ FONT-SPEC is a vector, a cons, or a string.  See the documentation of
       len = font_unparse_xlfd (font_spec, 0, xlfd, 256);
       if (len < 0)
 	error ("Invalid fontset name (perhaps too long): %s", SDATA (name));
-      FONTSET_ASCII (fontset) = make_unibyte_string (xlfd, len);
+      SET_FONTSET_ASCII (fontset, make_unibyte_string (xlfd, len));
     }
   else
     {
@@ -1744,7 +1764,7 @@ fontset_from_font (Lisp_Object font_object)
     Fset_fontset_font (name, Qnil, font_spec, Qnil, Qnil);
   }
 
-  FONTSET_ASCII (fontset) = font_name;
+  SET_FONTSET_ASCII (fontset, font_name);
 
   return XINT (FONTSET_ID (fontset));
 }
@@ -2161,9 +2181,10 @@ syms_of_fontset (void)
 
   Vdefault_fontset = Fmake_char_table (Qfontset, Qnil);
   staticpro (&Vdefault_fontset);
-  FONTSET_ID (Vdefault_fontset) = make_number (0);
-  FONTSET_NAME (Vdefault_fontset)
-    = build_pure_c_string ("-*-*-*-*-*-*-*-*-*-*-*-*-fontset-default");
+  SET_FONTSET_ID (Vdefault_fontset, make_number (0));
+  SET_FONTSET_NAME 
+    (Vdefault_fontset,
+     build_pure_c_string ("-*-*-*-*-*-*-*-*-*-*-*-*-fontset-default"));
   ASET (Vfontset_table, 0, Vdefault_fontset);
   next_fontset_id = 1;
 

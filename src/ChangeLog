@@ -1,3 +1,11 @@
+2012-08-21  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Setter macros for fontsets.
+	* fontset.c (SET_FONTSET_ID, SET_FONTSET_NAME, SET_FONTSET_ASCII)
+	(SET_FONTSET_BASE, SET_FONTSET_FRAME, SET_FONTSET_NOFONT_FACE)
+	(SET_FONTSET_DEFAULT, SET_FONTSET_FALLBACK): New macros.
+	Adjust users.
+
 2012-08-20  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (emacs$(EXEEXT), bootstrap-emacs$(EXEEXT)):
