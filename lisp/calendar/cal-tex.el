@@ -375,9 +375,9 @@ Optional EVENT indicates a buffer position to use instead of point."
     (cal-tex-preamble "twoside")
     (cal-tex-filofax-paper 'year)
     (cal-tex-cmd "\\fboxsep 0.5mm")
-    (cal-tex-cmd "\\pagestyle{empty}")
+    (cal-tex-cmd "\\pagestyle" "empty")
     (cal-tex-b-document)
-    (cal-tex-cmd "\\vspace*{0.25in}")
+    (cal-tex-cmd "\\vspace*" "0.25in")
     (dotimes (j n)
       (insert (format "\\hfil \\textbf{\\Large %s} \\hfil\\\\\n" year))
       (cal-tex-b-center)
@@ -405,7 +405,7 @@ Optional EVENT indicates a buffer position to use instead of point."
       (if (= j (1- n))
           (cal-tex-end-document)
         (cal-tex-newpage)
-        (cal-tex-cmd "\\vspace*{0.25in}"))
+        (cal-tex-cmd "\\vspace*" "0.25in"))
       (run-hooks 'cal-tex-year-hook))
     (run-hooks 'cal-tex-hook)))
 
@@ -703,7 +703,7 @@ entries are not shown).  The calendar shows the hours 8-12am, 1-5pm."
     (cal-tex-weekly-paper)
     (insert cal-tex-LaTeX-hourbox)
     (cal-tex-b-document)
-    (cal-tex-cmd "\\pagestyle{empty}")
+    (cal-tex-cmd "\\pagestyle" "empty")
     (dotimes (i n)
       (cal-tex-vspace "-1.5in")
       (cal-tex-b-center)
@@ -755,7 +755,7 @@ Optional EVENT indicates a buffer position to use instead of point."
     (cal-tex-weekly-paper)
     (insert cal-tex-LaTeX-hourbox)
     (cal-tex-b-document)
-    (cal-tex-cmd "\\pagestyle{empty}")
+    (cal-tex-cmd "\\pagestyle" "empty")
     (dotimes (i n)
       (cal-tex-vspace "-1.5in")
       (cal-tex-b-center)
@@ -838,7 +838,7 @@ position to use instead of point."
     (cal-tex-preamble "11pt")
     (cal-tex-weekly-paper)
     (cal-tex-b-document)
-    (cal-tex-cmd "\\pagestyle{empty}")
+    (cal-tex-cmd "\\pagestyle" "empty")
     (dotimes (i n)
       (cal-tex-vspace "-1.5in")
       (cal-tex-b-center)
@@ -1043,14 +1043,15 @@ position to use instead of point."
          (diary-list (if cal-tex-diary
                          (cal-tex-list-diary-entries d1 d2))))
     (cal-tex-preamble "twoside,12pt")
-    (cal-tex-cmd "\\textwidth   7in")
-    (cal-tex-cmd "\\textheight 10.5in")
-    (cal-tex-cmd "\\oddsidemargin 0in")
-    (cal-tex-cmd "\\evensidemargin 0in")
-    (cal-tex-cmd "\\topmargin 0pt")
-    (cal-tex-cmd "\\headheight -0.875in")
-    (cal-tex-cmd "\\headsep 0.125in")
-    (cal-tex-cmd "\\footskip .125in")
+    (insert "\\textwidth 7in
+\\textheight 10.5in
+\\oddsidemargin 0in
+\\evensidemargin 0in
+\\topmargin 0pt
+\\headheight -0.875in
+\\headsep 0.125in
+\\footskip .125in
+")
     (insert "\\def\\righthead#1{\\hfill {\\normalsize \\bf #1}\\\\[-6pt]}
 \\long\\def\\rightday#1#2#3#4#5{%
    \\rule{\\textwidth}{0.3pt}\\\\%
@@ -1079,7 +1080,7 @@ position to use instead of point."
           \\hbox to \\textwidth{\\vbox to 0pt {\\noindent \\footnotesize #3}}}}\\\\}
 ")
     (cal-tex-b-document)
-    (cal-tex-cmd "\\pagestyle{empty}\\ ")
+    (cal-tex-cmd "\\pagestyle" "empty")
     (dotimes (i n)
       (insert "\\lefthead")
       (cal-tex-arg
@@ -1224,7 +1225,7 @@ Optional EVENT indicates a buffer position to use instead of point."
           \\hbox to \\textwidth{\\vbox to 0pt {\\noindent \\footnotesize #3}}}}\\\\}
 ")
     (cal-tex-b-document)
-    (cal-tex-cmd "\\pagestyle{empty}")
+    (cal-tex-cmd "\\pagestyle" "empty")
     (dotimes (i n)
       (if (zerop (mod i 2))
           (insert "\\righthead")
@@ -1319,7 +1320,7 @@ Optional EVENT indicates a buffer position to use instead of point."
           \\hbox to \\textwidth{\\vbox to 0pt {\\noindent \\footnotesize #3}}}}\\\\}
 ")
     (cal-tex-b-document)
-    (cal-tex-cmd "\\pagestyle{empty}\\ ")
+    (cal-tex-cmd "\\pagestyle" "empty")
     (dotimes (i n)
       (insert "\\lefthead")
       (cal-tex-arg
@@ -1455,7 +1456,7 @@ Optional EVENT indicates a buffer position to use instead of point."
 \\def\\linesfill{\\par\\leaders\\copy\\LineBox\\vfill}
 ")
     (cal-tex-b-document)
-    (cal-tex-cmd "\\pagestyle{empty}")
+    (cal-tex-cmd "\\pagestyle" "empty")
     (dotimes (i n)
       (dotimes (j 4)
         (let ((even (zerop (% j 2))))
@@ -1517,7 +1518,7 @@ a buffer position to use instead of point."
     (cal-tex-preamble "12pt")
     (cal-tex-weekly-paper 'nomargins)
     (cal-tex-b-document)
-    (cal-tex-cmd "\\pagestyle{empty}")
+    (cal-tex-cmd "\\pagestyle" "empty")
     (dotimes (i n)
       (cal-tex-vspace "-1.7in")
       (cal-tex-daily-page (calendar-gregorian-from-absolute date))
@@ -1736,16 +1737,16 @@ non-nil, means add to end of buffer without erasing current contents."
       (if (not landscape)
           (progn
             (cal-tex-cmd "\\oddsidemargin -1.75cm")
-            (cal-tex-cmd "\\def\\holidaymult{.06}"))
-        (cal-tex-cmd "\\special{landscape}")
+            (cal-tex-cmd "\\def\\holidaymult" ".06"))
+        (cal-tex-cmd "\\special" "landscape")
         (cal-tex-cmd "\\textwidth 9.5in")
         (cal-tex-cmd "\\textheight 7in")
         (cal-tex-comment)
-        (cal-tex-cmd "\\def\\holidaymult{.08}"))
+        (cal-tex-cmd "\\def\\holidaymult" ".08"))
       (cal-tex-cmd cal-tex-caldate)
       (cal-tex-cmd cal-tex-myday)
       (cal-tex-b-document)
-      (cal-tex-cmd "\\pagestyle{empty}"))
+      (cal-tex-cmd "\\pagestyle" "empty"))
     (cal-tex-cmd "\\setlength{\\cellwidth}" width)
     (insert (format "\\setlength{\\cellwidth}{%f\\cellwidth}\n"
                     (/ 1.1 (length cal-tex-which-days))))
@@ -1853,20 +1854,20 @@ Add trailing COMMENT if present."
 
 (defun cal-tex-b-document ()
   "Insert beginning of document."
-  (cal-tex-cmd "\\begin{document}"))
+  (cal-tex-cmd "\\begin" "document"))
 
 (defun cal-tex-e-document ()
   "Insert end of document."
-  (cal-tex-cmd "\\end{document}"))
+  (cal-tex-cmd "\\end" "document"))
 
 (defun cal-tex-b-center ()
   "Insert beginning of centered block."
-  (cal-tex-cmd "\\begin{center}"))
+  (cal-tex-cmd "\\begin" "center"))
 
 (defun cal-tex-e-center ()
   "Insert end of centered block."
   (cal-tex-comment)
-  (cal-tex-cmd "\\end{center}"))
+  (cal-tex-cmd "\\end" "center"))
 
 
 ;;;
