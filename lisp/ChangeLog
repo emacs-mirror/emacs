@@ -1,3 +1,13 @@
+2012-08-21  Juri Linkov  <juri@jurta.org>
+
+	* info.el (Info-file-attributes): New variable.
+	(info-insert-file-contents): Add file attributes to
+	`Info-file-attributes'.  Clear the caches `Info-index-nodes' and
+	`Info-toc-nodes' when previous modtime of the Info file is less
+	than new modtime.
+	(Info-toc-nodes, Info-index-nodes): Move definitions up to the top
+	of info.el.  (Bug#12230)
+
 2012-08-20  Glenn Morris  <rgm@gnu.org>
 
 	* calendar/diary-lib.el (diary-include-files, diary-sexp-entry):
