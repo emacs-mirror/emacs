@@ -1080,8 +1080,8 @@ shown are hard-coded to 8-12, 13-17."
           (cal-tex-longday "weekend" "0.8in")
           (insert cal-tex-lefthead)
           (cal-tex-longday "leftday" "1.85in"))
-    (cal-tex-preamble "twoside,12pt")
-    (insert "\\textwidth 7in
+      (cal-tex-preamble "twoside,12pt")
+      (insert "\\textwidth 7in
 \\textheight 10.5in
 \\oddsidemargin 0in
 \\evensidemargin 0in
@@ -1090,13 +1090,19 @@ shown are hard-coded to 8-12, 13-17."
 \\headsep 0.125in
 \\footskip .125in
 ")
-    (insert cal-tex-righthead)
-    (cal-tex-longday "rightday" "2.75in")
-    (cal-tex-longday "weekend" "1.8in")
-    (insert cal-tex-lefthead)
-    (cal-tex-longday "leftday" "2.75in"))
+      (insert cal-tex-righthead)
+      (cal-tex-longday "rightday" "2.75in")
+      (cal-tex-longday "weekend" "1.8in")
+      (insert cal-tex-lefthead)
+      (cal-tex-longday "leftday" "2.75in"))
     (cal-tex-b-document)
     (cal-tex-cmd "\\pagestyle" "empty")
+    ;; Let's assume this is something to with twopage documents.
+    ;; It has the downside that we start with a blank page.
+    ;; It doesn't make obvious sense when oddside and evenside margins
+    ;; are the same (non-filofax), but consider the left and right
+    ;; versions of various functions as applicable to even and odd pages.
+    (cal-tex-newpage)
     (dotimes (i n)
       (insert "\\lefthead")
       (cal-tex-arg

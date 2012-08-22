@@ -1,3 +1,8 @@
+2012-08-22  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/cal-tex.el (cal-tex-weekly-common):
+	Restore leading blank page.
+
 2012-08-22  Le Wang  <l26wang@gmail.com>  (tiny change)
 
 	* misc.el (forward-to-word, backward-to-word): Activate or extend
