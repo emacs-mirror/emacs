@@ -1,3 +1,10 @@
+2012-08-17  Daniel Bergey  <bergey@alum.mit.edu>  (tiny change)
+
+	* quail/indian.el (quail-define-inscript-package):
+	Set kbd-translate for all Inscript layouts.  It's a positional
+	layout: vowels should be on the left hand regardless of the
+	underlying characters produced by those keys.  (Bug#12072)
+
 2012-08-06  Mohsen BANAN  <libre@mohsen.1.banan.byname.net>
 
 	* quail/persian.el: Add some mappings.  (Bug#11812)

@@ -30,13 +30,14 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <pwd.h>
 #endif
 
-#include <ctype.h>
 #include <errno.h>
 
 #ifdef HAVE_LIBSELINUX
 #include <selinux/selinux.h>
 #include <selinux/context.h>
 #endif
+
+#include <c-ctype.h>
 
 #include "lisp.h"
 #include "intervals.h"
@@ -67,12 +68,12 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define IS_DRIVE(x) ((x) >= 'A' && (x) <= 'z')
 #endif
 #ifdef WINDOWSNT
-#define IS_DRIVE(x) isalpha ((unsigned char) (x))
+#define IS_DRIVE(x) c_isalpha (x)
 #endif
 /* Need to lower-case the drive letter, or else expanded
    filenames will sometimes compare unequal, because
    `expand-file-name' doesn't always down-case the drive letter.  */
-#define DRIVE_LETTER(x) (tolower ((unsigned char) (x)))
+#define DRIVE_LETTER(x) c_tolower (x)
 #endif
 
 #include "systime.h"
@@ -364,7 +365,7 @@ Given a Unix syntax file name, returns a string ending in slash.  */)
 	  r += 2;
 	}
 
-      if (getdefdir (toupper ((unsigned char) *beg) - 'A' + 1, r))
+      if (getdefdir (c_toupper (*beg) - 'A' + 1, r))
 	{
 	  if (!IS_DIRECTORY_SEP (res[strlen (res) - 1]))
 	    strcat (res, "/");
@@ -1053,7 +1054,7 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
       if (!IS_DIRECTORY_SEP (nm[0]))
 	{
 	  adir = alloca (MAXPATHLEN + 1);
-	  if (!getdefdir (toupper (drive) - 'A' + 1, adir))
+	  if (!getdefdir (c_toupper (drive) - 'A' + 1, adir))
 	    adir = NULL;
 	}
       if (!adir)
@@ -1129,7 +1130,7 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
 	  adir = alloca (MAXPATHLEN + 1);
 	  if (drive)
 	    {
-	      if (!getdefdir (toupper (drive) - 'A' + 1, adir))
+	      if (!getdefdir (c_toupper (drive) - 'A' + 1, adir))
 		newdir = "/";
 	    }
 	  else
@@ -1635,7 +1636,7 @@ those `/' is discarded.  */)
 	else
 	  {
 	    o = p;
-	    while (p != endp && (isalnum (*p) || *p == '_')) p++;
+	    while (p != endp && (c_isalnum (*p) || *p == '_')) p++;
 	    s = p;
 	  }
 
@@ -1698,7 +1699,7 @@ those `/' is discarded.  */)
 	else
 	  {
 	    o = p;
-	    while (p != endp && (isalnum (*p) || *p == '_')) p++;
+	    while (p != endp && (c_isalnum (*p) || *p == '_')) p++;
 	    s = p;
 	  }
 

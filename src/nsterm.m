@@ -36,6 +36,8 @@ GNUstep port and post-20 update by Adrian Robert (arobert@cogsci.ucsd.edu)
 #include <signal.h>
 #include <unistd.h>
 #include <setjmp.h>
+
+#include <c-ctype.h>
 #include <c-strcase.h>
 #include <ftoastr.h>
 
@@ -6785,20 +6787,20 @@ ns_xlfd_to_fontname (const char *xlfd)
 
   /* undo hack in ns_fontname_to_xlfd, converting '$' to '-', '_' to ' '
      also uppercase after '-' or ' ' */
-  name[0] = toupper (name[0]);
+  name[0] = c_toupper (name[0]);
   for (len =strlen (name), i =0; i<len; i++)
     {
       if (name[i] == '$')
         {
           name[i] = '-';
           if (i+1<len)
-            name[i+1] = toupper (name[i+1]);
+            name[i+1] = c_toupper (name[i+1]);
         }
       else if (name[i] == '_')
         {
           name[i] = ' ';
           if (i+1<len)
-            name[i+1] = toupper (name[i+1]);
+            name[i+1] = c_toupper (name[i+1]);
         }
     }
 /*fprintf (stderr, "converted '%s' to '%s'\n",xlfd,name);  */

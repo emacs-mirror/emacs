@@ -2773,7 +2773,7 @@ AC_FUNC_GETPGRP
 AC_CHECK_FUNCS(grantpt)
 
 # PTY-related GNU extensions.
-AC_CHECK_FUNCS(getpt)
+AC_CHECK_FUNCS(getpt posix_openpt)
 
 # Check this now, so that we will NOT find the above functions in ncurses.
 # That is because we have not set up to link ncurses in lib-src.
@@ -3397,6 +3397,7 @@ case $opsys in
     AC_DEFINE(PTY_TTY_NAME_SPRINTF, [])
     ;;
 
+  dnl FIXME?  Maybe use same as freebsd - see bug#12040.
   darwin )
     AC_DEFINE(PTY_ITERATION, [int i; for (i = 0; i < 1; i++)])
     dnl Not used, because PTY_ITERATION is defined.
@@ -3409,11 +3410,11 @@ case $opsys in
     AC_DEFINE(PTY_TTY_NAME_SPRINTF, [])
     ;;
 
-  gnu | freebsd | netbsd | openbsd )
+  gnu | openbsd )
     AC_DEFINE(FIRST_PTY_LETTER, ['p'])
     ;;
 
-  gnu-linux | gnu-kfreebsd )
+  gnu-linux | gnu-kfreebsd | freebsd | netbsd )
     dnl if HAVE_GRANTPT
     if test "x$ac_cv_func_grantpt" = xyes; then
       AC_DEFINE(UNIX98_PTYS, 1, [Define if the system has Unix98 PTYs.])
@@ -3421,8 +3422,12 @@ case $opsys in
       dnl Note that grantpt and unlockpt may fork.  We must block SIGCHLD
       dnl to prevent sigchld_handler from intercepting the child's death.
       AC_DEFINE(PTY_TTY_NAME_SPRINTF, [{ char *ptyname; sigblock (sigmask (SIGCHLD)); if (grantpt (fd) == -1 || unlockpt (fd) == -1 || !(ptyname = ptsname(fd))) { sigunblock (sigmask (SIGCHLD)); close (fd); return -1; } snprintf (pty_name, sizeof pty_name, "%s", ptyname); sigunblock (sigmask (SIGCHLD)); }])
+      dnl if HAVE_POSIX_OPENPT
+      if test "x$ac_cv_func_posix_openpt" = xyes; then
+        AC_DEFINE(PTY_OPEN, [fd = posix_openpt (O_RDWR | O_NOCTTY)])
+        AC_DEFINE(PTY_NAME_SPRINTF, [])
       dnl if HAVE_GETPT
-      if test "x$ac_cv_func_getpt" = xyes; then
+      elif test "x$ac_cv_func_getpt" = xyes; then
         AC_DEFINE(PTY_OPEN, [fd = getpt ()])
         AC_DEFINE(PTY_NAME_SPRINTF, [])
       else

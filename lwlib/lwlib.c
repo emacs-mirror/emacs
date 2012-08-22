@@ -28,7 +28,6 @@ Boston, MA 02110-1301, USA.  */
 
 #include <sys/types.h>
 #include <stdio.h>
-#include <ctype.h>
 #include "lwlib-int.h"
 #include "lwlib-utils.h"
 #include <X11/StringDefs.h>

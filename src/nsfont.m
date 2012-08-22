@@ -275,7 +275,7 @@ ns_ascii_average_width (NSFont *sfont)
       for (ch = 0; ch < 95; ch++)
 	chars[ch] = ' ' + ch;
 
-      ascii_printable = [NSString initWithFormat: @"%s", chars];
+      ascii_printable = [[NSString alloc] initWithFormat: @"%s", chars];
     }
 
 #ifdef NS_IMPL_COCOA

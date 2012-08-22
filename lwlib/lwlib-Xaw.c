@@ -24,7 +24,6 @@ Boston, MA 02110-1301, USA.  */
 
 #include <stdio.h>
 #include <setjmp.h>
-#include <ctype.h>
 
 #include <lisp.h>
 
@@ -125,7 +124,7 @@ openFont (Widget widget, char *name)
   XftFont *fn;
 
   /* Try to convert Gtk-syntax (Sans 9) to Xft syntax Sans-9.  */
-  while (i > 0 && isdigit (fname[i]))
+  while (i > 0 && '0' <= fname[i] && fname[i] <= '9')
     --i;
   if (fname[i] == ' ')
     {

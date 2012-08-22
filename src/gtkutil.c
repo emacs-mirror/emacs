@@ -24,7 +24,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <signal.h>
 #include <stdio.h>
 #include <setjmp.h>
-#include <ctype.h>
+
+#include <c-ctype.h>
+
 #include "lisp.h"
 #include "xterm.h"
 #include "blockinput.h"
@@ -2072,7 +2074,7 @@ xg_get_font (FRAME_PTR f, const char *default_name)
       if (p)
         {
           char *ep = p+1;
-          while (isdigit (*ep))
+          while (c_isdigit (*ep))
             ++ep;
           if (*ep == '\0') *p = ' ';
         }

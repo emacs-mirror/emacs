@@ -23,8 +23,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <config.h>
 #include <float.h>
 #include <stdio.h>
-#include <ctype.h>
 #include <setjmp.h>
+
+#include <c-ctype.h>
 
 #include "lisp.h"
 #include "character.h"
@@ -1079,7 +1080,7 @@ font_parse_xlfd (char *name, ptrdiff_t len, Lisp_Object font)
 	      p = f[XLFD_POINT_INDEX];
 	      if (*p == '[')
 		point_size = parse_matrix (p);
-	      else if (isdigit (*p))
+	      else if (c_isdigit (*p))
 		point_size = atoi (p), point_size /= 10;
 	      if (point_size >= 0)
 		ASET (font, FONT_SIZE_INDEX, make_float (point_size));
@@ -1346,7 +1347,7 @@ font_parse_fcname (char *name, ptrdiff_t len, Lisp_Object font)
 	{
 	  int decimal = 0, size_found = 1;
 	  for (q = p + 1; *q && *q != ':'; q++)
-	    if (! isdigit (*q))
+	    if (! c_isdigit (*q))
 	      {
 		if (*q != '.' || decimal)
 		  {
@@ -1474,7 +1475,7 @@ font_parse_fcname (char *name, ptrdiff_t len, Lisp_Object font)
 
       /* Scan backwards from the end, looking for a size.  */
       for (p = name + len - 1; p >= name; p--)
-	if (!isdigit (*p))
+	if (!c_isdigit (*p))
 	  break;
 
       if ((p < name + len - 1) && ((p + 1 == name) || *p == ' '))

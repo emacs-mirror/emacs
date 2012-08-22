@@ -20,7 +20,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <config.h>
 #include <stdio.h>
 #include <math.h>
-#include <ctype.h>
 #include <unistd.h>
 
 #ifdef HAVE_PNG
@@ -32,6 +31,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 
 #include <setjmp.h>
+
+#include <c-ctype.h>
 
 /* This makes the fields of a Display accessible, in Xlib header files.  */
 
@@ -2405,12 +2406,12 @@ xbm_scan (unsigned char **s, unsigned char *end, char *sval, int *ival)
  loop:
 
   /* Skip white space.  */
-  while (*s < end && (c = *(*s)++, isspace (c)))
+  while (*s < end && (c = *(*s)++, c_isspace (c)))
     ;
 
   if (*s >= end)
     c = 0;
-  else if (isdigit (c))
+  else if (c_isdigit (c))
     {
       int value = 0, digit;
 
@@ -2422,7 +2423,7 @@ xbm_scan (unsigned char **s, unsigned char *end, char *sval, int *ival)
 	      while (*s < end)
 		{
 		  c = *(*s)++;
-		  if (isdigit (c))
+		  if (c_isdigit (c))
 		    digit = c - '0';
 		  else if (c >= 'a' && c <= 'f')
 		    digit = c - 'a' + 10;
@@ -2433,11 +2434,11 @@ xbm_scan (unsigned char **s, unsigned char *end, char *sval, int *ival)
 		  value = 16 * value + digit;
 		}
 	    }
-	  else if (isdigit (c))
+	  else if (c_isdigit (c))
 	    {
 	      value = c - '0';
 	      while (*s < end
-		     && (c = *(*s)++, isdigit (c)))
+		     && (c = *(*s)++, c_isdigit (c)))
 		value = 8 * value + c - '0';
 	    }
 	}
@@ -2445,7 +2446,7 @@ xbm_scan (unsigned char **s, unsigned char *end, char *sval, int *ival)
 	{
 	  value = c - '0';
 	  while (*s < end
-		 && (c = *(*s)++, isdigit (c)))
+		 && (c = *(*s)++, c_isdigit (c)))
 	    value = 10 * value + c - '0';
 	}
 
@@ -2454,11 +2455,11 @@ xbm_scan (unsigned char **s, unsigned char *end, char *sval, int *ival)
       *ival = value;
       c = XBM_TK_NUMBER;
     }
-  else if (isalpha (c) || c == '_')
+  else if (c_isalpha (c) || c == '_')
     {
       *sval++ = c;
       while (*s < end
-	     && (c = *(*s)++, (isalnum (c) || c == '_')))
+	     && (c = *(*s)++, (c_isalnum (c) || c == '_')))
 	*sval++ = c;
       *sval = 0;
       if (*s < end)
@@ -3661,16 +3662,17 @@ xpm_scan (const unsigned char **s,
   while (*s < end)
     {
       /* Skip white-space.  */
-      while (*s < end && (c = *(*s)++, isspace (c)))
+      while (*s < end && (c = *(*s)++, c_isspace (c)))
 	;
 
       /* gnus-pointer.xpm uses '-' in its identifier.
 	 sb-dir-plus.xpm uses '+' in its identifier.  */
-      if (isalpha (c) || c == '_' || c == '-' || c == '+')
+      if (c_isalpha (c) || c == '_' || c == '-' || c == '+')
 	{
 	  *beg = *s - 1;
 	  while (*s < end
-		 && (c = **s, isalnum (c) || c == '_' || c == '-' || c == '+'))
+		 && (c = **s, c_isalnum (c)
+		     || c == '_' || c == '-' || c == '+'))
 	      ++*s;
 	  *len = *s - *beg;
 	  return XPM_TK_IDENT;
@@ -5014,7 +5016,7 @@ pbm_scan_number (unsigned char **s, unsigned char *end)
   while (*s < end)
     {
       /* Skip white-space.  */
-      while (*s < end && (c = *(*s)++, isspace (c)))
+      while (*s < end && (c = *(*s)++, c_isspace (c)))
 	;
 
       if (c == '#')
@@ -5023,11 +5025,11 @@ pbm_scan_number (unsigned char **s, unsigned char *end)
 	  while (*s < end && (c = *(*s)++, c != '\n'))
 	    ;
 	}
-      else if (isdigit (c))
+      else if (c_isdigit (c))
 	{
 	  /* Read decimal number.  */
 	  val = c - '0';
-	  while (*s < end && (c = *(*s)++, isdigit (c)))
+	  while (*s < end && (c = *(*s)++, c_isdigit (c)))
 	    val = 10 * val + c - '0';
 	  break;
 	}
@@ -8554,7 +8556,7 @@ gs_load (struct frame *f, struct image *img)
      don't either.  Let the Lisp loader use `unwind-protect' instead.  */
   printnum1 = FRAME_X_WINDOW (f);
   printnum2 = img->pixmap;
-  window_and_pixmap_id 
+  window_and_pixmap_id
     = make_formatted_string (buffer, "%"pMu" %"pMu, printnum1, printnum2);
 
   printnum1 = FRAME_FOREGROUND_PIXEL (f);

@@ -30,10 +30,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <stdio.h>
 #include <unistd.h>
-#include <ctype.h>
 #include <limits.h>
 #include <sys/types.h>
 #include <setjmp.h>
+#include <c-ctype.h>
 #include "lisp.h"
 #include "character.h"
 #include "charset.h"
@@ -446,7 +446,7 @@ read_hex (FILE *fp, int *eof, int *overflow)
       return 0;
     }
   n = 0;
-  while (isxdigit (c = getc (fp)))
+  while (c_isxdigit (c = getc (fp)))
     {
       if (UINT_MAX >> 4 < n)
 	*overflow = 1;

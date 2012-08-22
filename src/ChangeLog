@@ -1,3 +1,61 @@
+2012-08-17  Chong Yidong  <cyd@gnu.org>
+
+	* xfaces.c (merge_face_vectors): If the target font specfies a
+	font spec, make the font's attributes take precedence over
+	directly-specified attributes.
+	(merge_face_ref): Recognize :font.
+
+2012-08-17  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Do not use memcpy for copying intervals.
+	* intervals.c (reproduce_interval): New function.
+	(reproduce_tree, reproduce_tree_obj): Use it.
+	(reproduce_tree_obj): Remove prototype.
+
+2012-08-17  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* lisp.h (duration_to_sec_usec): Remove unused decl.
+
+2012-08-17  Alp Aker  <alp.tekin.aker@gmail.com>
+
+	* nsfont.m (ns_ascii_average_width): Send initWithFormat selector
+	to an allocated instance of NSString, not to the class itself.
+
+2012-08-17  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in (C_CTYPE_H): New macro.
+	(LISP_H, $(BLD)/ccl.$(O), $(BLD)/doc.$(O), $(BLD)/w32console.$(O)):
+	($(BLD)/fontset.$(O), $(BLD)/frame.$(O), $(BLD)/composite.$(O)):
+	($(BLD)/sysdep.$(O), $(BLD)/w32uniscribe.$(O)): Update dependencies.
+
+2012-08-16  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use ASCII tests for character types.
+	* category.c, dispnew.c, doprnt.c, editfns.c, syntax.c, term.c:
+	* xfns.c, xterm.c:
+	Don't include <ctype.h>; was not needed.
+	* charset.c, doc.c, fileio.c, font.c, frame.c, gtkutil.c, image.c:
+	* sysdep.c, xfaces.c:
+	Include <c-ctype.h> instead of <ctype.h>.
+	* nsterm.m: Include <c-ctype.h>.
+	* charset.c (read_hex):
+	* doc.c (Fsnarf_documentation):
+	* fileio.c (IS_DRIVE) [WINDOWSNT]:
+	(DRIVE_LETTER) [DOS_NT]:
+	(Ffile_name_directory, Fexpand_file_name)
+	(Fsubstitute_in_file_name):
+	* font.c (font_parse_xlfd, font_parse_fcname):
+	* frame.c (x_set_font_backend):
+	* gtkutil.c (xg_get_font):
+	* image.c (xbm_scan, xpm_scan, pbm_scan_number):
+	* nsimage.m (hexchar):
+	* nsterm.m (ns_xlfd_to_fontname):
+	* sysdep.c (system_process_attributes):
+	* xfaces.c (hash_string_case_insensitive):
+	Use C-locale tests instead of locale-specific tests for character
+	types, since we want the ASCII interpretation here, not the
+	interpretation suitable for whatever happens to be the current locale.
+
 2012-08-16  Martin Rudalics  <rudalics@gmx.at>
 
 	Consistently check windows for validity/liveness
@@ -3411,6 +3469,7 @@
 	has at least microseconds now.  All uses removed.
 	(update_frame, update_single_window, update_window, update_frame_1)
 	(Fsleep_for, sit_for): Port to higher-resolution time stamps.
+	(duration_to_sec_usec): Remove; no longer needed.
 
 	* editfns.c (time_overflow): Now extern.
 	(Fcurrent_time, Fget_internal_run_time, make_time, lisp_time_argument)

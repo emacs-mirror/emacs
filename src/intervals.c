@@ -59,7 +59,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 static Lisp_Object merge_properties_sticky (Lisp_Object, Lisp_Object);
 static INTERVAL merge_interval_right (INTERVAL);
 static INTERVAL reproduce_tree (INTERVAL, INTERVAL);
-static INTERVAL reproduce_tree_obj (INTERVAL, Lisp_Object);
 
 /* Utility functions for intervals.  */
 
@@ -1498,6 +1497,26 @@ merge_interval_left (register INTERVAL i)
   abort ();
 }
 
+/* Create a copy of SOURCE but with the default value of UP.  */
+
+static INTERVAL
+reproduce_interval (INTERVAL source)
+{
+  register INTERVAL target = make_interval ();
+
+  target->total_length = source->total_length;
+  target->position = source->position;
+
+  copy_properties (source, target);
+
+  if (! NULL_LEFT_CHILD (source))
+    interval_set_left (target, reproduce_tree (source->left, target));
+  if (! NULL_RIGHT_CHILD (source))
+    interval_set_right (target, reproduce_tree (source->right, target));
+
+  return target;
+}
+
 /* Make an exact copy of interval tree SOURCE which descends from
    PARENT.  This is done by recursing through SOURCE, copying
    the current interval and its properties, and then adjusting
@@ -1506,33 +1525,19 @@ merge_interval_left (register INTERVAL i)
 static INTERVAL
 reproduce_tree (INTERVAL source, INTERVAL parent)
 {
-  register INTERVAL t = make_interval ();
+  register INTERVAL target = reproduce_interval (source);
 
-  memcpy (t, source, sizeof *t);
-  copy_properties (source, t);
-  interval_set_parent (t, parent);
-  if (! NULL_LEFT_CHILD (source))
-    interval_set_left (t, reproduce_tree (source->left, t));
-  if (! NULL_RIGHT_CHILD (source))
-    interval_set_right (t, reproduce_tree (source->right, t));
-
-  return t;
+  interval_set_parent (target, parent);
+  return target;
 }
 
 static INTERVAL
 reproduce_tree_obj (INTERVAL source, Lisp_Object parent)
 {
-  register INTERVAL t = make_interval ();
+  register INTERVAL target = reproduce_interval (source);
 
-  memcpy (t, source, sizeof *t);
-  copy_properties (source, t);
-  interval_set_object (t, parent);
-  if (! NULL_LEFT_CHILD (source))
-    interval_set_left (t, reproduce_tree (source->left, t));
-  if (! NULL_RIGHT_CHILD (source))
-    interval_set_right (t, reproduce_tree (source->right, t));
-
-  return t;
+  interval_set_object (target, parent);
+  return target;
 }
 
 /* Insert the intervals of SOURCE into BUFFER at POSITION.

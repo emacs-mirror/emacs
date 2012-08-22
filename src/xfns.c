@@ -49,7 +49,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #ifdef HAVE_X_WINDOWS
 
-#include <ctype.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 

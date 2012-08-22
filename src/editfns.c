@@ -44,7 +44,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <sys/resource.h>
 #endif
 
-#include <ctype.h>
 #include <float.h>
 #include <limits.h>
 #include <intprops.h>

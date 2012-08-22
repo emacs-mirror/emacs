@@ -91,11 +91,13 @@ be any window."
   (and window (window-parent window) (window-prev-sibling window)))
 
 (defun window-child (window)
-  "Return WINDOW's first child window."
+  "Return WINDOW's first child window.
+WINDOW can be any window."
   (or (window-top-child window) (window-left-child window)))
 
 (defun window-child-count (window)
-  "Return number of WINDOW's child windows."
+  "Return number of WINDOW's child windows.
+WINDOW can be any window."
   (let ((count 0))
     (when (and (windowp window) (setq window (window-child window)))
       (while window
@@ -104,7 +106,8 @@ be any window."
     count))
 
 (defun window-last-child (window)
-  "Return last child window of WINDOW."
+  "Return last child window of WINDOW.
+WINDOW can be any window."
   (when (and (windowp window) (setq window (window-child window)))
     (while (window-next-sibling window)
       (setq window (window-next-sibling window))))
@@ -135,20 +138,22 @@ FRAME must be a live frame and defaults to the selected frame."
     (selected-frame)))
 
 (defun window-normalize-window (window &optional live-only)
-  "Return window specified by WINDOW.
-If WINDOW is nil, return `selected-window'.
-If WINDOW is a live window or internal window, return WINDOW;
- if LIVE-ONLY is non-nil, return WINDOW for a live window only.
+  "Return the window specified by WINDOW.
+If WINDOW is nil, return the selected window.  Otherwise, if
+WINDOW is a live or an internal window, return WINDOW; if
+LIVE-ONLY is non-nil, return WINDOW for a live window only.
 Otherwise, signal an error."
-  (cond ((null window)
-	 (selected-window))
-	(live-only
-	 (if (window-live-p window)
-	     window
-	   (error "%s is not a live window" window)))
-	((if (window-valid-p window)
-	     window
-	   (error "%s is not a window" window)))))
+  (cond
+   ((null window)
+    (selected-window))
+   (live-only
+    (if (window-live-p window)
+	window
+      (error "%s is not a live window" window)))
+   ((window-valid-p window)
+    window)
+   (t
+    (error "%s is not a valid window" window))))
 
 (defvar ignore-window-parameters nil
   "If non-nil, standard functions ignore window parameters.
@@ -199,7 +204,7 @@ narrower, explicitly specify the SIZE argument of that function."
 
 (defun window-combined-p (&optional window horizontal)
   "Return non-nil if WINDOW has siblings in a given direction.
-If WINDOW is omitted or nil, it defaults to the selected window.
+WINDOW must be a valid window and defaults to the selected one.
 
 HORIZONTAL determines a direction for the window combination.
 If HORIZONTAL is omitted or nil, return non-nil if WINDOW is part
@@ -215,7 +220,7 @@ horizontal window combination."
 
 (defun window-combinations (window &optional horizontal)
   "Return largest number of windows vertically arranged within WINDOW.
-If WINDOW is omitted or nil, it defaults to the selected window.
+WINDOW must be a valid window and defaults to the selected one.
 If HORIZONTAL is non-nil, return the largest number of
 windows horizontally arranged within WINDOW."
   (setq window (window-normalize-window window))
@@ -313,7 +318,7 @@ too."
 ;;; Atomic windows.
 (defun window-atom-root (&optional window)
   "Return root of atomic window WINDOW is a part of.
-WINDOW can be any window and defaults to the selected one.
+WINDOW must be a valid window and defaults to the selected one.
 Return nil if WINDOW is not part of an atomic window."
   (setq window (window-normalize-window window))
   (let (root)
@@ -517,10 +522,10 @@ window).")
 
 (defun window-min-size (&optional window horizontal ignore)
   "Return the minimum size of WINDOW.
-WINDOW can be an arbitrary window and defaults to the selected
-one.  Optional argument HORIZONTAL non-nil means return the
-minimum number of columns of WINDOW; otherwise return the minimum
-number of WINDOW's lines.
+WINDOW must be a valid window and defaults to the selected one.
+Optional argument HORIZONTAL non-nil means return the minimum
+number of columns of WINDOW; otherwise return the minimum number
+of WINDOW's lines.
 
 Optional argument IGNORE, if non-nil, means ignore restrictions
 imposed by fixed size windows, `window-min-height' or
@@ -600,6 +605,7 @@ means ignore all of the above restrictions for all windows."
 
 (defun window-sizable (window delta &optional horizontal ignore)
   "Return DELTA if DELTA lines can be added to WINDOW.
+WINDOW must be a valid window and defaults to the selected one.
 Optional argument HORIZONTAL non-nil means return DELTA if DELTA
 columns can be added to WINDOW.  A return value of zero means
 that no lines (or columns) can be added to WINDOW.
@@ -641,6 +647,7 @@ ignore all of the above restrictions for all windows."
 
 (defun window-sizable-p (window delta &optional horizontal ignore)
   "Return t if WINDOW can be resized by DELTA lines.
+WINDOW must be a valid window and defaults to the selected one.
 For the meaning of the arguments of this function see the
 doc-string of `window-sizable'."
   (setq window (window-normalize-window window))
@@ -683,9 +690,9 @@ doc-string of `window-sizable'."
 
 (defun window-size-fixed-p (&optional window horizontal)
   "Return non-nil if WINDOW's height is fixed.
-WINDOW can be an arbitrary window and defaults to the selected
-window.  Optional argument HORIZONTAL non-nil means return
-non-nil if WINDOW's width is fixed.
+WINDOW must be a valid window and defaults to the selected one.
+Optional argument HORIZONTAL non-nil means return non-nil if
+WINDOW's width is fixed.
 
 If this function returns nil, this does not necessarily mean that
 WINDOW can be resized in the desired direction.  The function
@@ -733,8 +740,8 @@ WINDOW can be resized in the desired direction.  The function
 
 (defun window-min-delta (&optional window horizontal ignore trail noup nodown)
   "Return number of lines by which WINDOW can be shrunk.
-WINDOW can be an arbitrary window and defaults to the selected
-window.  Return zero if WINDOW cannot be shrunk.
+WINDOW must be a valid window and defaults to the selected one.
+Return zero if WINDOW cannot be shrunk.
 
 Optional argument HORIZONTAL non-nil means return number of
 columns by which WINDOW can be shrunk.
@@ -815,8 +822,8 @@ at least one other window can be enlarged appropriately."
 
 (defun window-max-delta (&optional window horizontal ignore trail noup nodown)
   "Return maximum number of lines by which WINDOW can be enlarged.
-WINDOW can be an arbitrary window and defaults to the selected
-window.  The return value is zero if WINDOW cannot be enlarged.
+WINDOW must be a valid window and defaults to the selected one.
+The return value is zero if WINDOW cannot be enlarged.
 
 Optional argument HORIZONTAL non-nil means return maximum number
 of columns by which WINDOW can be enlarged.
@@ -853,6 +860,7 @@ only whether other windows can be shrunk appropriately."
 ;; Make NOUP also inhibit the min-size check.
 (defun window--resizable (window delta &optional horizontal ignore trail noup nodown)
   "Return DELTA if WINDOW can be resized vertically by DELTA lines.
+WINDOW must be a valid window and defaults to the selected one.
 Optional argument HORIZONTAL non-nil means return DELTA if WINDOW
 can be resized horizontally by DELTA columns.  A return value of
 zero means that WINDOW is not resizable.
@@ -899,6 +907,7 @@ violate size restrictions of WINDOW or its child windows."
 
 (defun window--resizable-p (window delta &optional horizontal ignore trail noup nodown)
   "Return t if WINDOW can be resized vertically by DELTA lines.
+WINDOW must be a valid window and defaults to the selected one.
 For the meaning of the arguments of this function see the
 doc-string of `window--resizable'."
   (setq window (window-normalize-window window))
@@ -910,6 +919,7 @@ doc-string of `window--resizable'."
 
 (defun window-resizable (window delta &optional horizontal ignore)
   "Return DELTA if WINDOW can be resized vertically by DELTA lines.
+WINDOW must be a valid window and defaults to the selected one.
 Optional argument HORIZONTAL non-nil means return DELTA if WINDOW
 can be resized horizontally by DELTA columns.  A return value of
 zero means that WINDOW is not resizable.
@@ -936,7 +946,7 @@ means ignore all of the above restrictions for all windows."
 
 (defun window-total-size (&optional window horizontal)
   "Return the total height or width of WINDOW.
-If WINDOW is omitted or nil, it defaults to the selected window.
+WINDOW must be a valid window and defaults to the selected one.
 
 If HORIZONTAL is omitted or nil, return the total height of
 WINDOW, in lines, like `window-total-height'.  Otherwise return
@@ -953,8 +963,8 @@ the total width, in columns, like `window-total-width'."
   "Return t if WINDOW is as high as its containing frame.
 More precisely, return t if and only if the total height of
 WINDOW equals the total height of the root window of WINDOW's
-frame.  WINDOW can be any window and defaults to the selected
-one."
+frame.  WINDOW must be a valid window and defaults to the
+selected one."
   (setq window (window-normalize-window window))
   (= (window-total-size window)
      (window-total-size (frame-root-window window))))
@@ -963,15 +973,14 @@ one."
   "Return t if WINDOW is as wide as its containing frame.
 More precisely, return t if and only if the total width of WINDOW
 equals the total width of the root window of WINDOW's frame.
-WINDOW can be any window and defaults to the selected one."
+WINDOW must be a valid window and defaults to the selected one."
   (setq window (window-normalize-window window))
   (= (window-total-size window t)
      (window-total-size (frame-root-window window) t)))
 
 (defun window-body-size (&optional window horizontal)
   "Return the height or width of WINDOW's text area.
-If WINDOW is omitted or nil, it defaults to the selected window.
-Signal an error if the window is not live.
+WINDOW must be a live window and defaults to the selected one.
 
 If HORIZONTAL is omitted or nil, return the height of the text
 area, like `window-body-height'.  Otherwise, return the width of
@@ -1081,9 +1090,9 @@ regardless of whether that buffer is current or not."
 
 (defun window-at-side-p (&optional window side)
   "Return t if WINDOW is at SIDE of its containing frame.
-WINDOW can be any window and defaults to the selected one.  SIDE
-can be any of the symbols `left', `top', `right' or `bottom'.
-The default value nil is handled like `bottom'."
+WINDOW must be a valid window and defaults to the selected one.
+SIDE can be any of the symbols `left', `top', `right' or
+`bottom'.  The default value nil is handled like `bottom'."
   (setq window (window-normalize-window window))
   (let ((edge
 	 (cond
@@ -2019,7 +2028,8 @@ any windows."
 (defun adjust-window-trailing-edge (window delta &optional horizontal)
   "Move WINDOW's bottom edge by DELTA lines.
 Optional argument HORIZONTAL non-nil means move WINDOW's right
-edge by DELTA columns.  WINDOW defaults to the selected window.
+edge by DELTA columns.  WINDOW must be a valid window and
+defaults to the selected one.
 
 If DELTA is greater than zero, move the edge downwards or to the
 right.  If DELTA is less than zero, move the edge upwards or to
@@ -2203,7 +2213,7 @@ Return nil."
 (defun maximize-window (&optional window)
   "Maximize WINDOW.
 Make WINDOW as large as possible without deleting any windows.
-WINDOW can be any window and defaults to the selected window."
+WINDOW must be a valid window and defaults to the selected one."
   (interactive)
   (setq window (window-normalize-window window))
   (window-resize window (window-max-delta window))
@@ -2212,7 +2222,7 @@ WINDOW can be any window and defaults to the selected window."
 (defun minimize-window (&optional window)
   "Minimize WINDOW.
 Make WINDOW as small as possible without deleting any windows.
-WINDOW can be any window and defaults to the selected window."
+WINDOW must be a valid window and defaults to the selected one."
   (interactive)
   (setq window (window-normalize-window window))
   (window-resize window (- (window-min-delta window)))
@@ -2368,8 +2378,8 @@ and no others."
 ;;; Deleting windows.
 (defun window-deletable-p (&optional window)
   "Return t if WINDOW can be safely deleted from its frame.
-Return `frame' if deleting WINDOW should also delete its
-frame."
+WINDOW must be a valid window and defaults to the selected one.
+Return `frame' if deleting WINDOW should also delete its frame."
   (setq window (window-normalize-window window))
 
   (unless ignore-window-parameters
@@ -2407,8 +2417,8 @@ frame."
 
 (defun delete-window (&optional window)
   "Delete WINDOW.
-WINDOW can be an arbitrary window and defaults to the selected
-one.  Return nil.
+WINDOW must be a valid window and defaults to the selected one.
+Return nil.
 
 If the variable `ignore-window-parameters' is non-nil or the
 `delete-window' parameter of WINDOW equals t, do not process any
@@ -2419,8 +2429,9 @@ function.
 
 Otherwise, if WINDOW is part of an atomic window, call
 `delete-window' with the root of the atomic window as its
-argument.  If WINDOW is the only window on its frame or the last
-non-side window, signal an error."
+argument.  Signal an error if WINDOW is either the only window on
+its frame, the last non-side window, or part of an atomic window
+that is its frame's root window."
   (interactive)
   (setq window (window-normalize-window window))
   (let* ((frame (window-frame window))
@@ -2487,7 +2498,7 @@ non-side window, signal an error."
 
 (defun delete-other-windows (&optional window)
   "Make WINDOW fill its frame.
-WINDOW may be any window and defaults to the selected one.
+WINDOW must be a valid window and defaults to the selected one.
 Return nil.
 
 If the variable `ignore-window-parameters' is non-nil or the
@@ -2630,11 +2641,13 @@ WINDOW."
 
 (defun set-window-buffer-start-and-point (window buffer &optional start point)
   "Set WINDOW's buffer to BUFFER.
+WINDOW must be a live window and defaults to the selected one.
 Optional argument START non-nil means set WINDOW's start position
 to START.  Optional argument POINT non-nil means set WINDOW's
 point to POINT.  If WINDOW is selected this also sets BUFFER's
 `point' to POINT.  If WINDOW is selected and the buffer it showed
 before was current this also makes BUFFER the current buffer."
+  (setq window (window-normalize-window window t))
   (let ((selected (eq window (selected-window)))
 	(current (eq (window-buffer window) (current-buffer))))
     (set-window-buffer window buffer)
@@ -2948,16 +2961,24 @@ displayed there."
 (defun next-buffer ()
   "In selected window switch to next buffer."
   (interactive)
-  (if (window-minibuffer-p)
-      (error "Cannot switch buffers in minibuffer window"))
-  (switch-to-next-buffer))
+  (cond
+   ((window-minibuffer-p)
+    (error "Cannot switch buffers in minibuffer window"))
+   ((eq (window-dedicated-p) t)
+    (error "Window is strongly dedicated to its buffer"))
+   (t
+    (switch-to-next-buffer))))
 
 (defun previous-buffer ()
   "In selected window switch to previous buffer."
   (interactive)
-  (if (window-minibuffer-p)
-      (error "Cannot switch buffers in minibuffer window"))
-  (switch-to-prev-buffer))
+  (cond
+   ((window-minibuffer-p)
+    (error "Cannot switch buffers in minibuffer window"))
+   ((eq (window-dedicated-p) t)
+    (error "Window is strongly dedicated to its buffer"))
+   (t
+    (switch-to-prev-buffer))))
 
 (defun delete-windows-on (&optional buffer-or-name frame)
   "Delete all windows showing BUFFER-OR-NAME.
@@ -3130,7 +3151,7 @@ Optional argument HORIZONTAL non-nil means return minimum width."
 
 (defun split-window (&optional window size side)
   "Make a new window adjacent to WINDOW.
-WINDOW can be any window and defaults to the selected one.
+WINDOW must be a valid window and defaults to the selected one.
 Return the new window which is always a live window.
 
 Optional argument SIZE a positive number means make WINDOW SIZE
@@ -3451,7 +3472,7 @@ right, if any."
 (defun balance-windows-2 (window horizontal)
   "Subroutine of `balance-windows-1'.
 WINDOW must be a vertical combination (horizontal if HORIZONTAL
-is non-nil."
+is non-nil)."
   (let* ((first (window-child window))
 	 (sub first)
 	 (number-of-children 0)
@@ -5179,9 +5200,9 @@ documentation for additional customization information."
 
 (defun set-window-text-height (window height)
   "Set the height in lines of the text display area of WINDOW to HEIGHT.
-WINDOW must be a live window.  HEIGHT doesn't include the mode
-line or header line, if any, or any partial-height lines in the
-text display area.
+WINDOW must be a live window and defaults to the selected one.
+HEIGHT doesn't include the mode line or header line, if any, or
+any partial-height lines in the text display area.
 
 Note that the current implementation of this function cannot
 always set the height exactly, but attempts to be conservative,
@@ -5248,7 +5269,9 @@ in some window."
         (1+ (vertical-motion (buffer-size) window))))))
 
 (defun window-buffer-height (window)
-  "Return the height (in screen lines) of the buffer that WINDOW is displaying."
+  "Return the height (in screen lines) of the buffer that WINDOW is displaying.
+WINDOW must be a live window and defaults to the selected one."
+  (setq window (window-normalize-window window t))
   (with-current-buffer (window-buffer window)
     (max 1
 	 (count-screen-lines (point-min) (point-max)
@@ -5260,7 +5283,7 @@ in some window."
 ;;; Resizing buffers to fit their contents exactly.
 (defun fit-window-to-buffer (&optional window max-height min-height override)
   "Adjust height of WINDOW to display its buffer's contents exactly.
-WINDOW can be any live window and defaults to the selected one.
+WINDOW must be a live window and defaults to the selected one.
 
 Optional argument MAX-HEIGHT specifies the maximum height of
 WINDOW and defaults to the height of WINDOW's frame.  Optional
@@ -5379,7 +5402,7 @@ WINDOW defaults to the selected window."
   "Shrink height of WINDOW if its buffer doesn't need so many lines.
 More precisely, shrink WINDOW vertically to be as small as
 possible, while still showing the full contents of its buffer.
-WINDOW defaults to the selected window.
+WINDOW must be a live window and defaults to the selected one.
 
 Do not shrink WINDOW to less than `window-min-height' lines.  Do
 nothing if the buffer contains more lines than the present window
@@ -5801,13 +5824,12 @@ is active.  This function is run by `mouse-autoselect-window-timer'."
 
 (defun truncated-partial-width-window-p (&optional window)
   "Return non-nil if lines in WINDOW are specifically truncated due to its width.
-WINDOW defaults to the selected window.
+WINDOW must be a live window and defaults to the selected one.
 Return nil if WINDOW is not a partial-width window
  (regardless of the value of `truncate-lines').
 Otherwise, consult the value of `truncate-partial-width-windows'
  for the buffer shown in WINDOW."
-  (unless window
-    (setq window (selected-window)))
+  (setq window (window-normalize-window window t))
   (unless (window-full-width-p window)
     (let ((t-p-w-w (buffer-local-value 'truncate-partial-width-windows
 				       (window-buffer window))))
