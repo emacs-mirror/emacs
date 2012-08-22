@@ -1,3 +1,9 @@
+2012-08-22  Bastien Guerry  <bzg@altern.org>
+
+	* progmodes/executable.el (executable-prefix): Set to "#!" instead
+	of "#! ".  http://www.in-ulm.de/~mascheck/various/shebang/#details
+	gives details on why the space is never needed.
+
 2012-08-22  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (walk-window-tree, window-with-parameter): New
@@ -400,7 +406,7 @@
 
 2012-08-13  Bastien Guerry  <bzg@gnu.org>
 
-	* window.el (special-display-popup-frame): Small docstring
+	* window.el (special-display-popup-frame): Minor docstring
 	enhancement.  (Bug#12172)
 
 2012-08-13  Andreas Schwab  <schwab@linux-m68k.org>

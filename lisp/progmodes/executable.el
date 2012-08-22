@@ -84,7 +84,7 @@ When this is `function', only ask when called non-interactively."
   :group 'executable)
 
 
-(defcustom executable-prefix "#! "
+(defcustom executable-prefix "#!"
   "Interpreter magic number prefix inserted when there was no magic number."
   :type 'string
   :group 'executable)
