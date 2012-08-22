@@ -371,27 +371,21 @@ landscape mode with three rows of four months each."
 \\footskip 0.125in
 ")))
 
-(defun cal-tex-leftday (height)
-  "Insert LaTeX code for leftday function."
-  (insert "\\long\\def\\leftday#1#2#3#4#5{%
+(defun cal-tex-longday (funcname height)
+  "Insert LaTeX code for a long day function."
+  (insert "\\long\\def\\" funcname "#1#2#3#4#5{%
    \\rule{\\textwidth}{0.3pt}\\\\%
    \\hbox to \\textwidth{%
      \\vbox to " height "{%
-          \\vspace*{2pt}%
-          \\hbox to \\textwidth{\\noindent {\\normalsize \\bf #2} \\small #1 \\hfill #5}%
-          \\hbox to \\textwidth{\\vbox {\\noindent \\footnotesize \\em #4}}%
-          \\hbox to \\textwidth{\\vbox to 0pt {\\noindent \\footnotesize #3}}}}\\\\}\n"))
-
-(defun cal-tex-rightday (height &optional funcname)
-  "Insert LaTeX code for rightday function."
-  (insert "\\long\\def\\" (or funcname "rightday") "#1#2#3#4#5{%
-   \\rule{\\textwidth}{0.3pt}\\\\%
-   \\hbox to \\textwidth{%
-     \\vbox to " height "{%
-          \\vspace*{2pt}%
-          \\hbox to \\textwidth{\\small #5 \\hfill #1 {\\normalsize \\bf #2}}%
-          \\hbox to \\textwidth{\\vbox {\\raggedleft \\footnotesize \\em #4}}%
-          \\hbox to \\textwidth{\\vbox to 0pt {\\noindent \\footnotesize #3}}}}\\\\}\n"))
+       \\vspace*{2pt}%
+       \\hbox to \\textwidth{"
+     (if (string-equal funcname "leftday")
+         "\\noindent {\\normalsize \\bf #2} \\small #1 \\hfill #5}%\n"
+       "\\small #5 \\hfill #1 {\\normalsize \\bf #2}}%\n")
+     "       \\hbox to \\textwidth{\\vbox {\\"
+     (if (string-equal funcname "leftday") "noindent" "raggedleft")
+     " \\footnotesize \\em #4}}%
+       \\hbox to \\textwidth{\\vbox to 0pt {\\noindent \\footnotesize #3}}}}\\\\}\n"))
 
 (defun cal-tex-shortday (funcname)
   "Insert LaTeX code for a short day function."
@@ -1082,10 +1076,10 @@ shown are hard-coded to 8-12, 13-17."
           (cal-tex-preamble "twoside")
           (cal-tex-filofax-paper)
           (insert cal-tex-righthead)
-          (cal-tex-rightday "1.85in")
-          (cal-tex-rightday "0.8in" "weekend")
+          (cal-tex-longday "rightday" "1.85in")
+          (cal-tex-longday "weekend" "0.8in")
           (insert cal-tex-lefthead)
-          (cal-tex-leftday "1.85in"))
+          (cal-tex-longday "leftday" "1.85in"))
     (cal-tex-preamble "twoside,12pt")
     (insert "\\textwidth 7in
 \\textheight 10.5in
@@ -1097,10 +1091,10 @@ shown are hard-coded to 8-12, 13-17."
 \\footskip .125in
 ")
     (insert cal-tex-righthead)
-    (cal-tex-rightday "2.75in")
-    (cal-tex-rightday "1.8in" "weekend")
+    (cal-tex-longday "rightday" "2.75in")
+    (cal-tex-longday "weekend" "1.8in")
     (insert cal-tex-lefthead)
-    (cal-tex-leftday "2.75in"))
+    (cal-tex-longday "leftday" "2.75in"))
     (cal-tex-b-document)
     (cal-tex-cmd "\\pagestyle" "empty")
     (dotimes (i n)
@@ -1241,9 +1235,9 @@ Optional EVENT indicates a buffer position to use instead of point."
     (cal-tex-preamble "twoside")
     (cal-tex-filofax-paper)
     (insert cal-tex-righthead)
-    (cal-tex-rightday "0.7in")
+    (cal-tex-longday "rightday" "0.7in")
     (insert cal-tex-lefthead)
-    (cal-tex-leftday "0.7in")
+    (cal-tex-longday "leftday" "0.7in")
     (cal-tex-b-document)
     (cal-tex-cmd "\\pagestyle" "empty")
     (dotimes (i n)

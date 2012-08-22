@@ -1,3 +1,10 @@
+2012-08-22  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/cal-tex.el (cal-tex-longday): New function, replacing...
+	(cal-tex-leftday, cal-tex-rightday): Remove functions.
+	(cal-tex-weekly-common, cal-tex-cursor-filofax-2week):
+	Update for above change.
+
 2012-08-21  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* cus-face.el (custom-face-attributes): Fix customize type for the
