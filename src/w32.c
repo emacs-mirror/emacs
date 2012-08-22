@@ -7023,7 +7023,7 @@ serial_configure (struct Lisp_Process *p, Lisp_Object contact)
     error ("SetCommState() failed");
 
   childp2 = Fplist_put (childp2, QCsummary, build_string (summary));
-  PSET (p, childp, childp2);
+  pset_childp (p, childp2);
 }
 
 #ifdef HAVE_GNUTLS

@@ -246,6 +246,7 @@ INSTALL_INFO = @INSTALL_INFO@
 # By default, we uphold the dignity of our programs.
 INSTALL_STRIP =
 MKDIR_P = @MKDIR_P@
+LN_S = @LN_S@
 
 # We use gzip to compress installed .el files.
 GZIP_PROG = @GZIP_PROG@
@@ -436,8 +437,10 @@ install-arch-dep: install-arch-indep install-doc
 	if test "${ns_self_contained}" = "no"; then \
 	  ${INSTALL_PROGRAM} $(INSTALL_STRIP) src/emacs${EXEEXT} $(DESTDIR)${bindir}/$(EMACSFULL) || exit 1 ; \
 	  chmod 1755 $(DESTDIR)${bindir}/$(EMACSFULL) ; \
-	  rm -f $(DESTDIR)${bindir}/$(EMACS) ; \
-	  ln $(DESTDIR)${bindir}/$(EMACSFULL) $(DESTDIR)${bindir}/$(EMACS) || true ; \
+	  if test "x${NO_BIN_LINK}" = x; then \
+	    rm -f $(DESTDIR)${bindir}/$(EMACS) ; \
+	    cd $(DESTDIR)${bindir} && $(LN_S) $(EMACSFULL) $(EMACS); \
+	  fi; \
 	else \
 	  subdir=${ns_appresdir}/site-lisp; \
 	  ${write_subdir} || exit 1; \

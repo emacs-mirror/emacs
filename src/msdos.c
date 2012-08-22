@@ -520,8 +520,8 @@ dos_set_window_size (int *rows, int *cols)
 
   /* If the user specified a special video mode for these dimensions,
      use that mode.  */
-  video_mode 
-    = Fsymbol_value (Fintern_soft (make_formatted_string 
+  video_mode
+    = Fsymbol_value (Fintern_soft (make_formatted_string
 				   (video_name, "screen-dimensions-%dx%d",
 				    *rows, *cols), Qnil));
 
@@ -1801,7 +1801,7 @@ internal_terminal_init (void)
     }
 
   tty = FRAME_TTY (sf);
-  KSET (current_kboard, Vwindow_system, Qpc);
+  kset_window_system (current_kboard, Qpc);
   sf->output_method = output_msdos_raw;
   if (init_needed)
     {
@@ -2434,10 +2434,10 @@ and then the scan code.  */)
   else
     {
       val = Fvector (NUM_RECENT_DOSKEYS, keys);
-      memcpy (XVECTOR (val)->contents, keys + recent_doskeys_index,
-	      (NUM_RECENT_DOSKEYS - recent_doskeys_index) * word_size);
-      memcpy (XVECTOR (val)->contents + NUM_RECENT_DOSKEYS - recent_doskeys_index,
-	      keys, recent_doskeys_index * word_size);
+      vcopy (val, 0, keys + recent_doskeys_index,
+	     NUM_RECENT_DOSKEYS - recent_doskeys_index);
+      vcopy (val, NUM_RECENT_DOSKEYS - recent_doskeys_index,
+	     keys, recent_doskeys_index);
       return val;
     }
 }

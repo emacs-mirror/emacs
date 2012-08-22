@@ -214,7 +214,7 @@ ns_update_menubar (struct frame *f, int deep_p, EmacsMenu *submenu)
       if (! NILP (Vlucid_menu_bar_dirty_flag))
 	call0 (Qrecompute_lucid_menubar);
       safe_run_hooks (Qmenu_bar_update_hook);
-      FSET (f, menu_bar_items, menu_bar_items (FRAME_MENU_BAR_ITEMS (f)));
+      fset_menu_bar_items (f, menu_bar_items (FRAME_MENU_BAR_ITEMS (f)));
 
       /* Now ready to go */
       items = FRAME_MENU_BAR_ITEMS (f);
@@ -340,7 +340,7 @@ ns_update_menubar (struct frame *f, int deep_p, EmacsMenu *submenu)
         }
       /* The menu items are different, so store them in the frame */
       /* FIXME: this is not correct for single-submenu case */
-      FSET (f, menu_bar_vector, menu_items);
+      fset_menu_bar_vector (f, menu_items);
       f->menu_bar_items_used = menu_items_used;
 
       /* Calls restore_menu_items, etc., as they were outside */

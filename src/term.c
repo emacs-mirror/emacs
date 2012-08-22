@@ -1332,7 +1332,7 @@ term_get_fkeys_1 (void)
 
   /* This can happen if CANNOT_DUMP or with strange options.  */
   if (!KEYMAPP (KVAR (kboard, Vinput_decode_map)))
-    KSET (kboard, Vinput_decode_map, Fmake_sparse_keymap (Qnil));
+    kset_input_decode_map (kboard, Fmake_sparse_keymap (Qnil));
 
   for (i = 0; i < (sizeof (keys)/sizeof (keys[0])); i++)
     {
@@ -3280,7 +3280,7 @@ use the Bourne shell command `TERM=... export TERM' (C-shell:\n\
 
   terminal->kboard = xmalloc (sizeof *terminal->kboard);
   init_kboard (terminal->kboard);
-  KSET (terminal->kboard, Vwindow_system, Qnil);
+  kset_window_system (terminal->kboard, Qnil);
   terminal->kboard->next_kboard = all_kboards;
   all_kboards = terminal->kboard;
   terminal->kboard->reference_count++;

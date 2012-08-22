@@ -128,13 +128,13 @@ set_case_table (Lisp_Object table, int standard)
       up = Fmake_char_table (Qcase_table, Qnil);
       map_char_table (set_identity, Qnil, table, up);
       map_char_table (shuffle, Qnil, table, up);
-      char_table_set_extras (table, 0, up);
+      set_char_table_extras (table, 0, up);
     }
 
   if (NILP (canon))
     {
       canon = Fmake_char_table (Qcase_table, Qnil);
-      char_table_set_extras (table, 1, canon);
+      set_char_table_extras (table, 1, canon);
       map_char_table (set_canon, Qnil, table, table);
     }
 
@@ -143,11 +143,11 @@ set_case_table (Lisp_Object table, int standard)
       eqv = Fmake_char_table (Qcase_table, Qnil);
       map_char_table (set_identity, Qnil, canon, eqv);
       map_char_table (shuffle, Qnil, canon, eqv);
-      char_table_set_extras (table, 2, eqv);
+      set_char_table_extras (table, 2, eqv);
     }
 
   /* This is so set_image_of_range_1 in regex.c can find the EQV table.  */
-  char_table_set_extras (canon, 2, eqv);
+  set_char_table_extras (canon, 2, eqv);
 
   if (standard)
     {
@@ -158,10 +158,10 @@ set_case_table (Lisp_Object table, int standard)
     }
   else
     {
-      BSET (current_buffer, downcase_table, table);
-      BSET (current_buffer, upcase_table, up);
-      BSET (current_buffer, case_canon_table, canon);
-      BSET (current_buffer, case_eqv_table, eqv);
+      bset_downcase_table (current_buffer, table);
+      bset_upcase_table (current_buffer, up);
+      bset_case_canon_table (current_buffer, canon);
+      bset_case_eqv_table (current_buffer, eqv);
     }
 
   return table;
@@ -260,7 +260,7 @@ init_casetab_once (void)
 
   down = Fmake_char_table (Qcase_table, Qnil);
   Vascii_downcase_table = down;
-  CSET (XCHAR_TABLE (down), purpose, Qcase_table);
+  set_char_table_purpose (down, Qcase_table);
 
   for (i = 0; i < 128; i++)
     {
@@ -268,10 +268,10 @@ init_casetab_once (void)
       CHAR_TABLE_SET (down, i, make_number (c));
     }
 
-  char_table_set_extras (down, 1, Fcopy_sequence (down));
+  set_char_table_extras (down, 1, Fcopy_sequence (down));
 
   up = Fmake_char_table (Qcase_table, Qnil);
-  char_table_set_extras (down, 0, up);
+  set_char_table_extras (down, 0, up);
 
   for (i = 0; i < 128; i++)
     {
@@ -281,7 +281,7 @@ init_casetab_once (void)
       CHAR_TABLE_SET (up, i, make_number (c));
     }
 
-  char_table_set_extras (down, 2, Fcopy_sequence (up));
+  set_char_table_extras (down, 2, Fcopy_sequence (up));
 
   /* Fill in what isn't filled in.  */
   set_case_table (down, 1);

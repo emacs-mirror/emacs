@@ -146,8 +146,8 @@
 ;; fontified automagically.  In your ~/.emacs there could be:
 ;;
 ;;  (defvar foo-font-lock-keywords
-;;    '(("\\<\\(one\\|two\\|three\\)\\>" . font-lock-keyword-face)
-;;      ("\\<\\(four\\|five\\|six\\)\\>" . font-lock-type-face))
+;;    '(("\\<\\(one\\|two\\|three\\)\\>" . 'font-lock-keyword-face)
+;;      ("\\<\\(four\\|five\\|six\\)\\>" . 'font-lock-type-face))
 ;;    "Default expressions to highlight in Foo mode.")
 ;;
 ;;  (add-hook 'foo-mode-hook
@@ -167,8 +167,8 @@
 ;; could be:
 ;;
 ;;  (defvar bar-font-lock-keywords
-;;    '(("\\<\\(uno\\|due\\|tre\\)\\>" . font-lock-keyword-face)
-;;      ("\\<\\(quattro\\|cinque\\|sei\\)\\>" . font-lock-type-face))
+;;    '(("\\<\\(uno\\|due\\|tre\\)\\>" . 'font-lock-keyword-face)
+;;      ("\\<\\(quattro\\|cinque\\|sei\\)\\>" . 'font-lock-type-face))
 ;;    "Default expressions to highlight in Bar mode.")
 ;;
 ;; and within `bar-mode' there could be:
@@ -679,8 +679,8 @@ end of the current highlighting list.
 For example:
 
  (font-lock-add-keywords 'c-mode
-  '((\"\\\\\\=<\\\\(FIXME\\\\):\" 1 font-lock-warning-face prepend)
-    (\"\\\\\\=<\\\\(and\\\\|or\\\\|not\\\\)\\\\\\=>\" . font-lock-keyword-face)))
+  '((\"\\\\\\=<\\\\(FIXME\\\\):\" 1 'font-lock-warning-face prepend)
+    (\"\\\\\\=<\\\\(and\\\\|or\\\\|not\\\\)\\\\\\=>\" . 'font-lock-keyword-face)))
 
 adds two fontification patterns for C mode, to fontify `FIXME:' words, even in
 comments, and to fontify `and', `or' and `not' words as keywords.
@@ -694,9 +694,9 @@ For example:
  (add-hook 'c-mode-hook
   (lambda ()
    (font-lock-add-keywords nil
-    '((\"\\\\\\=<\\\\(FIXME\\\\):\" 1 font-lock-warning-face prepend)
+    '((\"\\\\\\=<\\\\(FIXME\\\\):\" 1 'font-lock-warning-face prepend)
       (\"\\\\\\=<\\\\(and\\\\|or\\\\|not\\\\)\\\\\\=>\" .
-       font-lock-keyword-face)))))
+       'font-lock-keyword-face)))))
 
 The above procedure may fail to add keywords to derived modes if
 some involved major mode does not follow the standard conventions.

@@ -133,7 +133,21 @@ Lisp_Object inhibit_lisp_code;
 static Lisp_Object funcall_lambda (Lisp_Object, ptrdiff_t, Lisp_Object *);
 static int interactive_p (int);
 static Lisp_Object apply_lambda (Lisp_Object fun, Lisp_Object args);
-
+
+/* Functions to set Lisp_Object slots of struct specbinding.  */
+
+static inline void
+set_specpdl_symbol (Lisp_Object symbol)
+{
+  specpdl_ptr->symbol = symbol;
+}
+
+static inline void
+set_specpdl_old_value (Lisp_Object oldval)
+{
+  specpdl_ptr->old_value = oldval;
+}
+
 void
 init_eval_once (void)
 {
@@ -3136,8 +3150,8 @@ specbind (Lisp_Object symbol, Lisp_Object value)
     case SYMBOL_PLAINVAL:
       /* The most common case is that of a non-constant symbol with a
 	 trivial value.  Make that as fast as we can.  */
-      specpdl_ptr->symbol = symbol;
-      specpdl_ptr->old_value = SYMBOL_VAL (sym);
+      set_specpdl_symbol (symbol);
+      set_specpdl_old_value (SYMBOL_VAL (sym));
       specpdl_ptr->func = NULL;
       ++specpdl_ptr;
       if (!sym->constant)
@@ -3152,7 +3166,7 @@ specbind (Lisp_Object symbol, Lisp_Object value)
       {
 	Lisp_Object ovalue = find_symbol_value (symbol);
 	specpdl_ptr->func = 0;
-	specpdl_ptr->old_value = ovalue;
+	set_specpdl_old_value (ovalue);
 
 	eassert (sym->redirect != SYMBOL_LOCALIZED
 		 || (EQ (SYMBOL_BLV (sym)->where,
@@ -3169,12 +3183,12 @@ specbind (Lisp_Object symbol, Lisp_Object value)
 	    if (!NILP (Flocal_variable_p (symbol, Qnil)))
 	      {
 		eassert (sym->redirect != SYMBOL_LOCALIZED
-			 || (BLV_FOUND (SYMBOL_BLV (sym))
+			 || (blv_found (SYMBOL_BLV (sym))
 			     && EQ (cur_buf, SYMBOL_BLV (sym)->where)));
 		where = cur_buf;
 	      }
 	    else if (sym->redirect == SYMBOL_LOCALIZED
-		     && BLV_FOUND (SYMBOL_BLV (sym)))
+		     && blv_found (SYMBOL_BLV (sym)))
 	      where = SYMBOL_BLV (sym)->where;
 	    else
 	      where = Qnil;
@@ -3186,7 +3200,7 @@ specbind (Lisp_Object symbol, Lisp_Object value)
 	       let_shadows_buffer_binding_p which is itself only used
 	       in set_internal for local_if_set.  */
 	    eassert (NILP (where) || EQ (where, cur_buf));
-	    specpdl_ptr->symbol = Fcons (symbol, Fcons (where, cur_buf));
+	    set_specpdl_symbol (Fcons (symbol, Fcons (where, cur_buf)));
 
 	    /* If SYMBOL is a per-buffer variable which doesn't have a
 	       buffer-local value here, make the `let' change the global
@@ -3203,7 +3217,7 @@ specbind (Lisp_Object symbol, Lisp_Object value)
 	      }
 	  }
 	else
-	  specpdl_ptr->symbol = symbol;
+	  set_specpdl_symbol (symbol);
 
 	specpdl_ptr++;
 	set_internal (symbol, value, Qnil, 1);
@@ -3221,8 +3235,8 @@ record_unwind_protect (Lisp_Object (*function) (Lisp_Object), Lisp_Object arg)
   if (specpdl_ptr == specpdl + specpdl_size)
     grow_specpdl ();
   specpdl_ptr->func = function;
-  specpdl_ptr->symbol = Qnil;
-  specpdl_ptr->old_value = arg;
+  set_specpdl_symbol (Qnil);
+  set_specpdl_old_value (arg);
   specpdl_ptr++;
 }
 

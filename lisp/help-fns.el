@@ -397,9 +397,11 @@ suitable file is found, return nil."
               (if (member (event-modifiers (aref key 0)) '(nil (shift)))
                   (push key non-modified-keys)))
             (when remapped
-              (princ "Its keys are remapped to `")
-              (princ (symbol-name remapped))
-              (princ "'.\n"))
+              (princ "Its keys are remapped to ")
+              (princ (if (symbolp remapped)
+			 (concat "`" (symbol-name remapped) "'")
+		       "an anonymous command"))
+              (princ ".\n"))
 
             (when keys
               (princ (if remapped

@@ -458,17 +458,20 @@ with descriptive strings such as
 (defun calendar-holiday-list ()
   "Form the list of holidays that occur on dates in the calendar window.
 The holidays are those in the list `calendar-holidays'."
-  (let (res h)
+  (let (res h err)
     (sort
      (dolist (p calendar-holidays res)
        (if (setq h (if calendar-debug-sexp
                        (let ((debug-on-error t))
                          (eval p))
-                     (condition-case nil
+                     (condition-case err
                          (eval p)
-                       (error (beep)
-                              (message "Bad holiday list item: %s" p)
-                              (sleep-for 2)))))
+                       (error
+                        (display-warning
+                         :error
+                         (format "Bad holiday list item: %s\nError: %s\n"
+                                 p err))
+                        nil))))
            (setq res (append h res))))
      'calendar-date-compare)))
 

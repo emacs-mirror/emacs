@@ -270,10 +270,11 @@ ns_ascii_average_width (NSFont *sfont)
 
   if (!ascii_printable)
     {
-      char chars[95];
+      char chars[96];
       int ch;
       for (ch = 0; ch < 95; ch++)
 	chars[ch] = ' ' + ch;
+      chars[95] = '\0';
 
       ascii_printable = [[NSString alloc] initWithFormat: @"%s", chars];
     }

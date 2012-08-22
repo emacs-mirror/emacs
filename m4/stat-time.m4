@@ -19,7 +19,6 @@ dnl From Paul Eggert.
 
 AC_DEFUN([gl_STAT_TIME],
 [
-  AC_REQUIRE([AC_C_INLINE])
   AC_REQUIRE([gl_USE_SYSTEM_EXTENSIONS])
   AC_CHECK_HEADERS_ONCE([sys/time.h])
 
@@ -70,7 +69,6 @@ AC_DEFUN([gl_STAT_TIME],
 #
 AC_DEFUN([gl_STAT_BIRTHTIME],
 [
-  AC_REQUIRE([AC_C_INLINE])
   AC_REQUIRE([gl_USE_SYSTEM_EXTENSIONS])
   AC_CHECK_HEADERS_ONCE([sys/time.h])
   AC_CHECK_MEMBERS([struct stat.st_birthtimespec.tv_nsec], [],

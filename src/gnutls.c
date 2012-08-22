@@ -830,7 +830,7 @@ one trustfile (usually a CA bundle).  */)
   XPROCESS (proc)->gnutls_state = NULL;
   XPROCESS (proc)->gnutls_x509_cred = NULL;
   XPROCESS (proc)->gnutls_anon_cred = NULL;
-  PSET (XPROCESS (proc), gnutls_cred_type, type);
+  pset_gnutls_cred_type (XPROCESS (proc), type);
   GNUTLS_INITSTAGE (proc) = GNUTLS_STAGE_EMPTY;
 
   GNUTLS_LOG (1, max_log_level, "allocating credentials");

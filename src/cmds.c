@@ -301,7 +301,7 @@ At the end, it runs `post-self-insert-hook'.  */)
 	 added be explicit calls to undo-boundary.  */
       && EQ (BVAR (current_buffer, undo_list), last_undo_boundary))
     /* Remove the undo_boundary that was just pushed.  */
-    BSET (current_buffer, undo_list, XCDR (BVAR (current_buffer, undo_list)));
+    bset_undo_list (current_buffer, XCDR (BVAR (current_buffer, undo_list)));
 
   /* Barf if the key that invoked this was not a character.  */
   if (!CHARACTERP (last_command_event))

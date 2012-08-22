@@ -1331,16 +1331,16 @@ DIRED-FILENAME WINDOW-POINT)."
   "Mark all files remembered in ALIST.
 Each element of ALIST looks like (FILE . MARKERCHAR)."
   (let (elt fil chr)
-    (while alist
-      (setq elt (car alist)
-	    alist (cdr alist)
-	    fil (car elt)
-	    chr (cdr elt))
-      (if (dired-goto-file fil)
-	  (save-excursion
-	    (beginning-of-line)
-	    (delete-char 1)
-	    (insert chr))))))
+    (save-excursion
+      (while alist
+	(setq elt (car alist)
+	      alist (cdr alist)
+	      fil (car elt)
+	      chr (cdr elt))
+	(when (dired-goto-file fil)
+	  (beginning-of-line)
+	  (delete-char 1)
+	  (insert chr))))))
 
 (defun dired-remember-hidden ()
   "Return a list of names of subdirs currently hidden."

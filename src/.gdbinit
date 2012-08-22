@@ -18,9 +18,9 @@
 # Boston, MA 02110-1301, USA.
 
 # Force loading of symbols, enough to give us VALBITS etc.
-set main
+set $dummy = main + 8
 # With some compilers, we need this to give us struct Lisp_Symbol etc.:
-set Fmake_symbol
+set $dummy = Fmake_symbol + 8
 
 # Find lwlib source files too.
 dir ../lwlib
@@ -89,7 +89,7 @@ define pp
   set $tmp = $arg0
   set $output_debug = print_output_debug_flag
   set print_output_debug_flag = 0
-  set safe_debug_print ($tmp)
+  call safe_debug_print ($tmp)
   set print_output_debug_flag = $output_debug
 end
 document pp
@@ -102,7 +102,7 @@ define pv
   set $tmp = "$arg0"
   set $output_debug = print_output_debug_flag
   set print_output_debug_flag = 0
-  set safe_debug_print (find_symbol_value (intern ($tmp)))
+  call safe_debug_print (find_symbol_value (intern ($tmp)))
   set print_output_debug_flag = $output_debug
 end
 document pv
@@ -1162,7 +1162,7 @@ end
 define xwhichsymbols
   set $output_debug = print_output_debug_flag
   set print_output_debug_flag = 0
-  set safe_debug_print (which_symbols ($arg0, $arg1))
+  call safe_debug_print (which_symbols ($arg0, $arg1))
   set print_output_debug_flag = $output_debug
 end
 document xwhichsymbols

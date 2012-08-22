@@ -1,3 +1,368 @@
+2012-08-22  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* fontset.c (FONTSET_ADD): Return void, not Lisp_Object.
+	Otherwise, the compiler complains about (A?B:C) where B is void
+	and C is Lisp_Object.  This fixes an incompatibility with Sun C	5.12.
+	(fontset_add): Return void, for FONTSET_ADD.
+
+2012-08-21  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* alloc.c: Use bool for booleans.
+	(gc_in_progress, abort_on_gc)
+	(setjmp_tested_p) [!GC_SAVE_REGISTERS_ON_STACK && !GC_SETJMP_WORKS]:
+	(dont_register_blocks) [GC_MALLOC_CHECK]:
+	(suppress_checking) [ENABLE_CHECKING]: Now bool, not int.
+	(check_string_bytes, make_specified_string, memory_full)
+	(live_string_p, live_cons_p, live_symbol_p, live_float_p)
+	(live_misc_p, live_vector_p, live_buffer_p, mark_maybe_object)
+	(mark_stack, valid_pointer_p, make_pure_string)
+	(Fgarbage_collect, survives_gc_p, gc_sweep):
+	Use bool for booleans, instead of int.
+	(test_setjmp) [!GC_SAVE_REGISTERS_ON_STACK && !GC_SETJMP_WORKS]:
+	Remove unused local.
+	* alloc.c (PURE_POINTER_P):
+	* lisp.h (STRING_MULTIBYTE): Document that it returns a boolean.
+	* editfns.c (Fformat):
+	* fileio.c (Fexpand_file_name, Fsubstitute_in_file_name)
+	(Fdo_auto_save):
+	* fns.c (sweep_weak_table):
+	* lisp.h (suppress_checking, push_message, survives_gc_p)
+	(make_pure_string, gc_in_progress, abort_on_gc):
+	* lread.c (readchar, read1):
+	* print.c (Fprin1_to_string):
+	* xdisp.c (push_message):
+	Use bool for booleans affected directly or indirectly by
+	alloc.c's changes.
+
+	Make recently-introduced setters macros.
+	* fontset.c (set_fontset_id, set_fontset_name, set_fontset_ascii)
+	(set_fontset_base, set_fontset_frame, set_fontset_nofont_face)
+	(set_fontset_default, set_fontset_fallback): Rename from their
+	upper-case counterparts, and make them functions rather than macros.
+	This is more consistent with the other recently-introduced setters.
+	These don't need to be inline, since they're local.
+
+2012-08-21  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.m (fd_handler:): Alloc and release a NSAutoreleasePool in
+	the loop (Bug#12247).
+
+2012-08-21  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* lisp.h (vcopy): Use memcpy rather than our own loop.
+	This fixes a performance regression introduced by the recent
+	addition of vcopy.  This means 'vcopy' will need to be modified
+	for a copying collector, but that's OK.  Also, tighten the
+	checking in the assertion.
+
+2012-08-21  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32uniscribe.c (uniscribe_shape): Fix producing gstring
+	components for RTL text (Bug#11860).  Adjust X-OFFSET of each
+	non-base glyph for the width of the base character, according to
+	what x_draw_composite_glyph_string_foreground expects.  Generate
+	WADJUST value according to composition_gstring_width's
+	expectations, to produce correct width of the composed character.
+	Reverse the sign of the DU offset produced by ScriptPlace.
+
+2012-08-21  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* dbusbind.c (xd_remove_watch): Do not assume C99 comments.
+
+2012-08-21  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Avoid direct writes to contents member of struct Lisp_Vector.
+	* lisp.h (vcopy): New function to copy data into vector.
+	* dispnew.c (Fframe_or_buffer_changed_p): Use AREF and ASET.
+	* fns.c (Ffillarray): Use ASET.
+	* keyboard.c (timer_check_2): Use AREF and ASET.
+	(append_tool_bar_item, Frecent_keys): Use vcopy.
+	* lread.c (read_vector): Use ASET.
+	* msdos.c (Frecent_doskeys): Use vcopy.
+	* xface.c (Finternal_copy_lisp_face): Use vcopy.
+	(Finternal_merge_in_global_face): Use ASET and vcopy.
+	* xfont.c (xfont_list_pattern): Likewise.
+
+2012-08-21  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.c (Fwindow_point): For the selected window always return
+	the position of its buffer's point.
+	(Fset_window_point): For the selected window always go in its
+	buffer to the specified position.
+
+2012-08-21  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Setter macros for fontsets.
+	* fontset.c (SET_FONTSET_ID, SET_FONTSET_NAME, SET_FONTSET_ASCII)
+	(SET_FONTSET_BASE, SET_FONTSET_FRAME, SET_FONTSET_NOFONT_FACE)
+	(SET_FONTSET_DEFAULT, SET_FONTSET_FALLBACK): New macros.
+	Adjust users.
+
+2012-08-20  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (emacs$(EXEEXT), bootstrap-emacs$(EXEEXT)):
+	Don't assume that `ln -f' works.
+
+2012-08-20  Eli Zaretskii  <eliz@gnu.org>
+
+	* .gdbinit: Use "set $dummy = ..." to avoid warnings from GDB 7.5
+	and later about non-assignments with no effect.  See discussion at
+	http://sourceware.org/ml/gdb-patches/2012-08/msg00518.html for
+	details.
+
+2012-08-20  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Inline setter functions for Lisp_Objects slots of struct specbinding.
+	* eval.c (set_specpdl_symbol, set_specpdl_old_value): New functions.
+	Adjust users.
+
+2012-08-20  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.c (select_window): Always make selected window's buffer
+	current.
+
+2012-08-20  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Use AREF and ASET for docstrings of category tables.
+	* category.h (CATEGORY_DOCSTRING): Use AREF.
+	(SET_CATEGORY_DOCSTRING): Use ASET.
+	* category.c (Fdefine_category): Use SET_CATEGORY_DOCSTRING.
+
+2012-08-20  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Inline setter functions for hash table members.
+	* lisp.h (set_hash_key, set_hash_value, set_hash_next)
+	(set_hash_hash, set_hash_index): Rename with _slot suffix.
+	(set_hash_key_and_value, set_hash_index, set_hash_next)
+	(set_hash_hash): New functions.
+	* charset.c, fns.c: Adjust users.
+
+2012-08-20  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Inline getter and setter functions for per-buffer values.
+	* buffer.h (per_buffer_default, set_per_buffer_default)
+	(per_buffer_value, set_per_buffer_value): New functions.
+	(PER_BUFFER_VALUE, PER_BUFFER_DEFAULT): Remove.
+	* buffer.c, data.c: Adjust users.
+
+2012-08-20  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in ($(BLD)/vm-limit.$(O)): Update dependencies.
+
+2012-08-19  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Rely on <config.h> + <unistd.h> to declare 'environ',
+	as gnulib does this if the system doesn't.
+	* callproc.c, editfns.c, process.c (environ) [!USE_CRT_DLL]:
+	Remove declaration.  MS-Windows declares it on stdlib.h which is
+	included by conf_post.h.
+	* emacs.c (environ) [DOUG_LEA_MALLOC]:
+	* vm-limit.c (environ) [ORDINARY_LINK]: Remove decl.
+	* vm-limit.c: Include <unistd.h>, for 'environ'.
+
+	* unexaix.c, unexcoff.c: Include "mem-limits.h".
+	(start_of_data): Remove decl; mem-limits.h provides it.
+
+	* xdisp.c (handle_invisible_prop): Make it a bit faster
+	and avoid a gcc -Wmaybe-uninitialized diagnostic.
+
+2012-08-19  Chong Yidong  <cyd@gnu.org>
+
+	* xdisp.c (handle_invisible_prop): Fix ellipses at overlay string
+	ends (Bug#3874).
+
+2012-08-19  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* .gdbinit: Use call instead of set when calling a function in the
+	inferior.
+
+	* data.c (set_internal): Don't use set_blv_found.
+	(Fkill_local_variable): Likewise.
+
+2012-08-18  Alp Aker  <alp.tekin.aker@gmail.com>
+
+	* nsfont.m (ns_ascii_average_width): Ensure the string
+	ascii_printable is initialized with a null-terminated character
+	array.  Otherwise, it can contain undesired extra characters.
+
+2012-08-18  Paul Eggert  <eggert@cs.ucla.edu>
+
+	port new setting code to Sun C 5.8 2005/10/13
+	* chartab.c, lisp.h (char_table_set, char_table_set_range):
+	Return void, not Lisp_Object.  Otherwise, the compiler
+	complains about (A?B:C) where B is void and C is Lisp_Object
+	when compiling CHAR_TABLE_SET, due to the recent change to
+	the API of sub_char_table_set_contents.
+
+2012-08-18  Chong Yidong  <cyd@gnu.org>
+
+	* xdisp.c (handle_invisible_prop): Obey TEXT_PROP_MEANS_INVISIBLE
+	for the string case (Bug#3874).
+
+2012-08-18  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* buffer.h (BSET): Remove (Bug#12215).
+	Replace all uses with calls to new setter functions.
+	(bset_bidi_paragraph_direction, bset_case_canon_table)
+	(bset_case_eqv_table, bset_directory, bset_display_count)
+	(bset_display_time, bset_downcase_table)
+	(bset_enable_multibyte_characters, bset_filename, bset_keymap)
+	(bset_last_selected_window, bset_local_var_alist)
+	(bset_mark_active, bset_point_before_scroll, bset_read_only)
+	(bset_truncate_lines, bset_undo_list, bset_upcase_table)
+	(bset_width_table):
+	* buffer.c (bset_abbrev_mode, bset_abbrev_table)
+	(bset_auto_fill_function, bset_auto_save_file_format)
+	(bset_auto_save_file_name, bset_backed_up, bset_begv_marker)
+	(bset_bidi_display_reordering, bset_buffer_file_coding_system)
+	(bset_cache_long_line_scans, bset_case_fold_search)
+	(bset_ctl_arrow, bset_cursor_in_non_selected_windows)
+	(bset_cursor_type, bset_display_table, bset_extra_line_spacing)
+	(bset_file_format, bset_file_truename, bset_fringe_cursor_alist)
+	(bset_fringe_indicator_alist, bset_fringes_outside_margins)
+	(bset_header_line_format, bset_indicate_buffer_boundaries)
+	(bset_indicate_empty_lines, bset_invisibility_spec)
+	(bset_left_fringe_width, bset_major_mode, bset_mark)
+	(bset_minor_modes, bset_mode_line_format, bset_mode_name)
+	(bset_name, bset_overwrite_mode, bset_pt_marker)
+	(bset_right_fringe_width, bset_save_length)
+	(bset_scroll_bar_width, bset_scroll_down_aggressively)
+	(bset_scroll_up_aggressively, bset_selective_display)
+	(bset_selective_display_ellipses, bset_vertical_scroll_bar_type)
+	(bset_word_wrap, bset_zv_marker):
+	* category.c (bset_category_table):
+	* syntax.c (bset_syntax_table):
+	New setter functions.
+
+	* process.h (PSET): Remove (Bug#12215).
+	Replace all uses with calls to new setter functions.
+	Use INLINE_HEADER_BEGIN, INLINE_HEADER_END.
+	(PROCESS_INLINE): New macro.
+	(pset_childp): New setter function.
+	(pset_gnutls_cred_type) [HAVE_GNUTLS]: New setter function.
+	* process.c (PROCESS_INLINE):
+	Define to EXTERN_INLINE, so that the corresponding functions
+	are compiled into code.
+	(pset_buffer, pset_command, pset_decode_coding_system)
+	(pset_decoding_buf, pset_encode_coding_system)
+	(pset_encoding_buf, pset_filter, pset_log, pset_mark, pset_name)
+	(pset_plist, pset_sentinel, pset_status, pset_tty_name)
+	(pset_type, pset_write_queue): New setter functions.
+
+	* window.h (WSET): Remove (Bug#12215).
+	Replace all uses with calls to new setter functions.
+	Use INLINE_HEADER_BEGIN, INLINE_HEADER_END.
+	(WINDOW_INLINE): New macro.
+	(wset_buffer, wset_frame, wset_left_col, wset_next, wset_prev)
+	(wset_redisplay_end_trigger, wset_top_line, wset_total_cols)
+	(wset_total_lines, wset_vertical_scroll_bar)
+	(wset_window_end_pos, wset_window_end_valid)
+	(wset_window_end_vpos): New setter functions.
+	* window.c (WINDOW_INLINE):
+	Define to EXTERN_INLINE, so that the corresponding functions
+	are compiled into code.
+	(wset_combination_limit, wset_dedicated, wset_display_table)
+	(wset_hchild, wset_left_fringe_width, wset_left_margin_cols)
+	(wset_new_normal, wset_new_total, wset_next_buffers)
+	(wset_normal_cols, wset_normal_lines, wset_parent, wset_pointm)
+	(wset_prev_buffers, wset_right_fringe_width)
+	(wset_right_margin_cols, wset_scroll_bar_width, wset_start)
+	(wset_temslot, wset_vchild, wset_vertical_scroll_bar_type)
+	(wset_window_parameters):
+	* xdisp.c (wset_base_line_number, wset_base_line_pos)
+	(wset_column_number_displayed, wset_region_showing):
+	New setter functions.
+
+	* termhooks.h (TSET): Remove (Bug#12215).
+	Replace all uses with calls to new setter functions.
+	Use INLINE_HEADER_BEGIN, INLINE_HEADER_END.
+	(TERMHOOKS_INLINE): New macro.
+	(tset_charset_list, tset_selection_alist): New setter functions.
+	* terminal.c (TERMHOOKS_INLINE):
+	Define to EXTERN_INLINE, so that the corresponding functions
+	are compiled into code.
+	(tset_param_alist): New setter function.
+
+2012-08-17  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* keyboard.h (KSET): Remove (Bug#12215).
+	Replace all uses with calls to new setter functions.
+	Use INLINE_HEADER_BEGIN, INLINE_HEADER_END.
+	(KEYBOARD_INLINE): New macro.
+	(kset_default_minibuffer_frame, kset_defining_kbd_macro)
+	(kset_input_decode_map, kset_last_command, kset_last_kbd_macro)
+	(kset_prefix_arg, kset_system_key_alist, kset_window_system):
+	New setter functions.
+	* keyboard.c (KEYBOARD_INLINE):
+	Define to EXTERN_INLINE, so that the corresponding functions
+	are compiled into code.
+	(kset_echo_string, kset_kbd_queue)
+	(kset_keyboard_translate_table, kset_last_prefix_arg)
+	(kset_last_repeatable_command, kset_local_function_key_map)
+	(kset_overriding_terminal_local_map, kset_real_last_command)
+	(kset_system_key_syms): New setter functions.
+
+	* frame.h (FSET): Remove (Bug#12215).
+	Replace all uses with calls to new setter functions.
+	Use INLINE_HEADER_BEGIN, INLINE_HEADER_END.
+	(FRAME_INLINE): New macro.
+	(fset_buffer_list, fset_buried_buffer_list, fset_condemned_scroll_bars)
+	(fset_current_tool_bar_string, fset_desired_tool_bar_string)
+	(fset_face_alist, fset_focus_frame, fset_icon_name, fset_menu_bar_items)
+	(fset_menu_bar_vector, fset_menu_bar_window, fset_name)
+	(fset_param_alist, fset_root_window, fset_scroll_bars)
+	(fset_selected_window, fset_title, fset_tool_bar_items)
+	(fset_tool_bar_position, fset_tool_bar_window): New functions.
+	* frame.c (FRAME_INLINE):
+	Define to EXTERN_INLINE, so that the corresponding functions
+	are compiled into code.
+	(fset_buffer_predicate, fset_minibuffer_window): New setter functions.
+
+	A few more naming-convention fixes for getters and setters.
+	* buffer.c (set_buffer_overlays_before): Move here from buffer.h,
+	and rename from buffer_overlays_set_before.
+	(set_buffer_overlays_after): Move here from buffer.h, and rename
+	from buffer_overlays_set_after.
+	* buffer.h (buffer_intervals): Rename from buffer_get_intervals.
+	All uses changed.
+	(set_buffer_intervals): Rename from buffer_set_intervals.
+	* intervals.c (set_interval_object): Move here from intervals.h,
+	and rename from interval_set_object.
+	(set_interval_left): Move here from intervals.h, and rename from
+	interval_set_left.
+	(set_interval_right): Move here from intervals.h, and rename from
+	interval_set_right.
+	(copy_interval_parent): Move here from intervals.h, and rename from
+	interval_copy_parent.
+	* intervals.h (set_interval_parent): Rename from interval_set_parent.
+	(set_interval_plist): Rename from interval_set_plist.
+	Return void, not Lisp_Object, since no caller uses the result.
+	* lisp.h (string_intervals): Rename from string_get_intervals.
+	(set_string_intervals): Rename from string_set_intervals.
+
+	* lisp.h (set_char_table_extras): Rename from char_table_set_extras.
+	(set_char_table_contents): Rename from char_table_set_contents.
+	(set_sub_char_table_contents): Rename from sub_char_table_set_contents.
+	All uses changed.  See the end of
+	<http://lists.gnu.org/archive/html/emacs-devel/2012-08/msg00549.html>.
+
+	* lisp.h (CSET): Remove (Bug#12215).
+	(set_char_table_ascii, set_char_table_defalt, set_char_table_parent)
+	(set_char_table_purpose): New functions,
+	replacing CSET.  All uses changed.  For example, replace
+	"CSET (XCHAR_TABLE (char_table), parent, parent);" with
+	"set_char_table_parent (char_table, parent);".
+	The old version was confusing because it used the same name
+	'parent' for two different things.
+
+2012-08-17  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Functions to get and set Lisp_Object fields of buffer-local variables.
+	* lisp.h (blv_found, set_blv_found, blv_value, set_blv_value)
+	(set_blv_where, set_blv_defcell, set_blv_valcell): New functions.
+	(BLV_FOUND, SET_BLV_FOUND, BLV_VALUE, SET_BLV_VALUE): Remove.
+	* data.c, eval.c, frame.c: Adjust users.
+
 2012-08-17  Chong Yidong  <cyd@gnu.org>
 
 	* xfaces.c (merge_face_vectors): If the target font specfies a

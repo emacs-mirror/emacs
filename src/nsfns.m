@@ -447,7 +447,7 @@ x_set_icon_name (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
   else if (!STRINGP (oldval) && EQ (oldval, Qnil) == EQ (arg, Qnil))
     return;
 
-  FSET (f, icon_name, arg);
+  fset_icon_name (f, arg);
 
   if (NILP (arg))
     {
@@ -539,7 +539,7 @@ ns_set_name (struct frame *f, Lisp_Object name, int explicit)
   if (! NILP (Fstring_equal (name, f->name)))
     return;
 
-  FSET (f, name, name);
+  fset_name (f, name);
 
   /* title overrides explicit name */
   if (! NILP (f->title))
@@ -590,7 +590,7 @@ x_set_title (struct frame *f, Lisp_Object name, Lisp_Object old_name)
 
   update_mode_lines = 1;
 
-  FSET (f, title, name);
+  fset_title (f, name);
 
   if (NILP (name))
     name = f->name;
@@ -676,7 +676,7 @@ ns_set_name_as_filename (struct frame *f)
 
       [[view window] setRepresentedFilename: fstr];
       [[view window] setTitle: str];
-      FSET (f, name, name);
+      fset_name (f, name);
     }
 
   [pool release];
@@ -1204,11 +1204,11 @@ This function is an internal primitive--use `make-frame' instead.  */)
 
   FRAME_FONTSET (f) = -1;
 
-  FSET (f, icon_name, x_get_arg (dpyinfo, parms, Qicon_name,
-				 "iconName", "Title",
-				 RES_TYPE_STRING));
+  fset_icon_name (f, x_get_arg (dpyinfo, parms, Qicon_name,
+				"iconName", "Title",
+				RES_TYPE_STRING));
   if (! STRINGP (f->icon_name))
-    FSET (f, icon_name, Qnil);
+    fset_icon_name (f, Qnil);
 
   FRAME_NS_DISPLAY_INFO (f) = dpyinfo;
 
@@ -1231,12 +1231,12 @@ This function is an internal primitive--use `make-frame' instead.  */)
      be set.  */
   if (EQ (name, Qunbound) || NILP (name) || ! STRINGP (name))
     {
-      FSET (f, name, build_string ([ns_app_name UTF8String]));
+      fset_name (f, build_string ([ns_app_name UTF8String]));
       f->explicit_name = 0;
     }
   else
     {
-      FSET (f, name, name);
+      fset_name (f, name);
       f->explicit_name = 1;
       specbind (Qx_resource_name, name);
     }
@@ -1391,13 +1391,13 @@ This function is an internal primitive--use `make-frame' instead.  */)
   if (FRAME_HAS_MINIBUF_P (f)
       && (!FRAMEP (KVAR (kb, Vdefault_minibuffer_frame))
           || !FRAME_LIVE_P (XFRAME (KVAR (kb, Vdefault_minibuffer_frame)))))
-    KSET (kb, Vdefault_minibuffer_frame, frame);
+    kset_default_minibuffer_frame (kb, frame);
 
   /* All remaining specified parameters, which have not been "used"
      by x_get_arg and friends, now go in the misc. alist of the frame.  */
   for (tem = parms; CONSP (tem); tem = XCDR (tem))
     if (CONSP (XCAR (tem)) && !NILP (XCAR (XCAR (tem))))
-      FSET (f, param_alist, Fcons (XCAR (tem), f->param_alist));
+      fset_param_alist (f, Fcons (XCAR (tem), f->param_alist));
 
   UNGCPRO;
 

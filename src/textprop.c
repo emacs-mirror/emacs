@@ -143,7 +143,7 @@ validate_interval_range (Lisp_Object object, Lisp_Object *begin, Lisp_Object *en
       if (!(BUF_BEGV (b) <= XINT (*begin) && XINT (*begin) <= XINT (*end)
 	    && XINT (*end) <= BUF_ZV (b)))
 	args_out_of_range (*begin, *end);
-      i = buffer_get_intervals (b);
+      i = buffer_intervals (b);
 
       /* If there's no text, there are no properties.  */
       if (BUF_BEGV (b) == BUF_ZV (b))
@@ -161,7 +161,7 @@ validate_interval_range (Lisp_Object object, Lisp_Object *begin, Lisp_Object *en
       XSETFASTINT (*begin, XFASTINT (*begin));
       if (begin != end)
 	XSETFASTINT (*end, XFASTINT (*end));
-      i = string_get_intervals (object);
+      i = string_intervals (object);
 
       if (len == 0)
 	return NULL;
@@ -338,7 +338,7 @@ set_properties (Lisp_Object properties, INTERVAL interval, Lisp_Object object)
     }
 
   /* Store new properties.  */
-  interval_set_plist (interval, Fcopy_sequence (properties));
+  set_interval_plist (interval, Fcopy_sequence (properties));
 }
 
 /* Add the properties of PLIST to the interval I, or set
@@ -411,7 +411,7 @@ add_properties (Lisp_Object plist, INTERVAL i, Lisp_Object object)
 	      record_property_change (i->position, LENGTH (i),
 				      sym1, Qnil, object);
 	    }
-	  interval_set_plist (i, Fcons (sym1, Fcons (val1, i->plist)));
+	  set_interval_plist (i, Fcons (sym1, Fcons (val1, i->plist)));
 	  changed++;
 	}
     }
@@ -484,7 +484,7 @@ remove_properties (Lisp_Object plist, Lisp_Object list, INTERVAL i, Lisp_Object 
     }
 
   if (changed)
-    interval_set_plist (i, current_plist);
+    set_interval_plist (i, current_plist);
   return changed;
 }
 
@@ -510,13 +510,13 @@ interval_of (ptrdiff_t position, Lisp_Object object)
 
       beg = BUF_BEGV (b);
       end = BUF_ZV (b);
-      i = buffer_get_intervals (b);
+      i = buffer_intervals (b);
     }
   else
     {
       beg = 0;
       end = SCHARS (object);
-      i = string_get_intervals (object);
+      i = string_intervals (object);
     }
 
   if (!(beg <= position && position <= end))
@@ -1274,10 +1274,10 @@ set_text_properties (Lisp_Object start, Lisp_Object end, Lisp_Object properties,
       && XFASTINT (start) == 0
       && XFASTINT (end) == SCHARS (object))
     {
-      if (!string_get_intervals (object))
+      if (!string_intervals (object))
 	return Qnil;
 
-      string_set_intervals (object, NULL);
+      set_string_intervals (object, NULL);
       return Qt;
     }
 
@@ -1339,7 +1339,7 @@ set_text_properties_1 (Lisp_Object start, Lisp_Object end, Lisp_Object propertie
     return;
 
   if (i == NULL)
-    i = find_interval (buffer_get_intervals (XBUFFER (buffer)), s);
+    i = find_interval (buffer_intervals (XBUFFER (buffer)), s);
 
   if (i->position != s)
     {
@@ -1993,10 +1993,10 @@ void
 verify_interval_modification (struct buffer *buf,
 			      ptrdiff_t start, ptrdiff_t end)
 {
-  register INTERVAL intervals = buffer_get_intervals (buf);
-  register INTERVAL i;
+  INTERVAL intervals = buffer_intervals (buf);
+  INTERVAL i;
   Lisp_Object hooks;
-  register Lisp_Object prev_mod_hooks;
+  Lisp_Object prev_mod_hooks;
   Lisp_Object mod_hooks;
   struct gcpro gcpro1;
 

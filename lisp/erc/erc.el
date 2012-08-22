@@ -100,6 +100,10 @@
   "Ignoring certain messages"
   :group 'erc)
 
+(defgroup erc-lurker nil
+  "Hide specified message types sent by lurkers"
+  :group 'erc-ignore)
+
 (defgroup erc-query nil
   "Using separate buffers for private discussions"
   :group 'erc)
@@ -2455,6 +2459,174 @@ See also `erc-make-notice'."
 	  string)
 	 string)))
 
+(defvar erc-lurker-state nil
+  "Track the time of the last PRIVMSG for each (server,nick) pair.
+
+This is implemented as a hash of hashes, where the outer key is
+the canonicalized server name (as returned by
+`erc-canonicalize-server-name') and the outer value is a hash
+table mapping nicks (as returned by `erc-lurker-maybe-trim') to
+the times of their most recently received PRIVMSG on any channel
+on the given server.")
+
+(defcustom erc-lurker-trim-nicks t
+  "If t, trim trailing `erc-lurker-ignore-chars' from nicks.
+
+This causes e.g. nick and nick` to be considered as the same
+individual for activity tracking and lurkiness detection
+purposes."
+  :group 'erc-lurker
+  :type 'boolean)
+
+(defun erc-lurker-maybe-trim (nick)
+  "Maybe trim trailing `erc-lurker-ignore-chars' from NICK.
+
+Returns NICK unmodified unless `erc-lurker-trim-nicks' is
+non-nil."
+  (if erc-lurker-trim-nicks
+      (replace-regexp-in-string
+       (format "[%s]"
+               (mapconcat (lambda (char)
+                            (regexp-quote (char-to-string char)))
+                          erc-lurker-ignore-chars ""))
+       "" nick)
+    nick))
+
+(defcustom erc-lurker-ignore-chars "`_"
+  "Characters at the end of a nick to strip for activity tracking purposes.
+
+See also `erc-lurker-trim-nicks'."
+  :group 'erc-lurker
+  :type 'string)
+
+(defcustom erc-lurker-hide-list nil
+  "List of IRC type messages to hide when sent by lurkers.
+
+A typical value would be '(\"JOIN\" \"PART\" \"QUIT\").
+See also `erc-lurker-p' and `erc-hide-list'."
+  :group 'erc-lurker
+  :type 'erc-message-type)
+
+(defcustom erc-lurker-threshold-time (* 60 60 24) ; 24h by default
+  "Nicks from which no PRIVMSGs have been received within this
+interval (in units of seconds) are considered lurkers by
+`erc-lurker-p' and as a result their messages of types in
+`erc-lurker-hide-list' will be hidden."
+  :group 'erc-lurker
+  :type 'integer)
+
+(defun erc-lurker-initialize ()
+  "Initialize ERC lurker tracking functionality.
+
+This function adds `erc-lurker-update-status' to
+`erc-insert-pre-hook' in order to record the time of each nick's
+most recent PRIVMSG as well as initializing the state variable
+storing this information."
+  (setq erc-lurker-state (make-hash-table :test 'equal))
+  (add-hook 'erc-insert-pre-hook 'erc-lurker-update-status))
+
+(defun erc-lurker-cleanup ()
+  "Remove all last PRIVMSG state older than `erc-lurker-threshold-time'.
+
+This should be called regularly to avoid excessive resource
+consumption for long-lived IRC or Emacs sessions."
+  (maphash
+   (lambda (server hash)
+     (maphash
+      (lambda (nick last-PRIVMSG-time)
+	(when
+	    (> (time-to-seconds (time-subtract
+				 (current-time)
+				 last-PRIVMSG-time))
+	       erc-lurker-threshold-time)
+	  (remhash nick hash)))
+      hash)
+     (if (zerop (hash-table-count hash))
+	 (remhash server erc-lurker-state)))
+   erc-lurker-state))
+
+(defvar erc-lurker-cleanup-count 0
+  "Internal counter variable for use with `erc-lurker-cleanup-interval'.")
+
+(defvar erc-lurker-cleanup-interval 100
+  "Specifies frequency of cleaning up stale erc-lurker state.
+
+`erc-lurker-update-status' calls `erc-lurker-cleanup' once for
+every `erc-lurker-cleanup-interval' updates to
+`erc-lurker-state'.  This is designed to limit the memory
+consumption of lurker state during long Emacs sessions and/or ERC
+sessions with large numbers of incoming PRIVMSGs.")
+
+(defun erc-lurker-update-status (message)
+  "Update `erc-lurker-state' if necessary.
+
+This function is called from `erc-insert-pre-hook'.  If the
+current message is a PRIVMSG, update `erc-lurker-state' to
+reflect the fact that its sender has issued a PRIVMSG at the
+current time.  Otherwise, take no action.
+
+This function depends on the fact that `erc-display-message'
+dynamically binds `parsed', which is used to check if the current
+message is a PRIVMSG and to determine its sender.  See also
+`erc-lurker-trim-nicks' and `erc-lurker-ignore-chars'.
+
+In order to limit memory consumption, this function also calls
+`erc-lurker-cleanup' once every `erc-lurker-cleanup-interval'
+updates of `erc-lurker-state'."
+  (when (and (boundp 'parsed) (erc-response-p parsed))
+    (let* ((command (erc-response.command parsed))
+           (sender
+            (erc-lurker-maybe-trim
+             (car (erc-parse-user (erc-response.sender parsed)))))
+           (server
+            (erc-canonicalize-server-name erc-server-announced-name)))
+      (when (equal command "PRIVMSG")
+        (when (>= (incf erc-lurker-cleanup-count) erc-lurker-cleanup-interval)
+          (setq erc-lurker-cleanup-count 0)
+          (erc-lurker-cleanup))
+        (unless (gethash server erc-lurker-state)
+          (puthash server (make-hash-table :test 'equal) erc-lurker-state))
+        (puthash sender (current-time)
+                 (gethash server erc-lurker-state))))))
+
+(defun erc-lurker-p (nick)
+  "Predicate indicating NICK's lurking status on the current server.
+
+Lurking is the condition where NICK has issued no PRIVMSG on this
+server within `erc-lurker-threshold-time'.  See also
+`erc-lurker-trim-nicks' and `erc-lurker-ignore-chars'."
+  (unless erc-lurker-state (erc-lurker-initialize))
+    (let* ((server
+	    (erc-canonicalize-server-name erc-server-announced-name))
+	   (last-PRIVMSG-time
+	    (gethash (erc-lurker-maybe-trim nick)
+		     (gethash server erc-lurker-state (make-hash-table)))))
+      (or (null last-PRIVMSG-time)
+	  (> (time-to-seconds
+	      (time-subtract (current-time) last-PRIVMSG-time))
+           erc-lurker-threshold-time))))
+
+(defun erc-canonicalize-server-name (server)
+  "Returns the canonical network name for SERVER if any,
+otherwise `erc-server-announced-name'.  SERVER is matched against
+`erc-common-server-suffixes'."
+  (when server
+    (or (cdar (erc-remove-if-not
+	       (lambda (net) (string-match (car net) server))
+	       erc-common-server-suffixes))
+        erc-server-announced-name)))
+
+(defun erc-hide-current-message-p (parsed)
+  "Predicate indicating whether the parsed ERC response PARSED should be hidden.
+
+Messages are always hidden if the message type of PARSED appears in
+`erc-hide-list'.  In addition, messages whose type is a member of
+`erc-lurker-hide-list' are hidden if `erc-lurker-p' returns true."
+  (let* ((command (erc-response.command parsed))
+         (sender (car (erc-parse-user (erc-response.sender parsed)))))
+    (or (member command erc-hide-list)
+        (and (member command erc-lurker-hide-list) (erc-lurker-p sender)))))
+
 (defun erc-display-message (parsed type buffer msg &rest args)
   "Display MSG in BUFFER.
 
@@ -2479,7 +2651,7 @@ See also `erc-format-message' and `erc-display-line'."
 
     (if (not (erc-response-p parsed))
 	(erc-display-line string buffer)
-      (unless (member (erc-response.command parsed) erc-hide-list)
+      (unless (erc-hide-current-message-p parsed)
 	(erc-put-text-property 0 (length string) 'erc-parsed parsed string)
 	(erc-put-text-property 0 (length string) 'rear-sticky t string)
 	(erc-display-line string buffer)))))

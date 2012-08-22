@@ -127,7 +127,7 @@ macro before appending to it. */)
 
       message ("Appending to kbd macro...");
     }
-  KSET (current_kboard, defining_kbd_macro, Qt);
+  kset_defining_kbd_macro (current_kboard, Qt);
 
   return Qnil;
 }
@@ -137,12 +137,13 @@ macro before appending to it. */)
 void
 end_kbd_macro (void)
 {
-  KSET (current_kboard, defining_kbd_macro, Qnil);
+  kset_defining_kbd_macro (current_kboard, Qnil);
   update_mode_lines++;
-  KSET (current_kboard, Vlast_kbd_macro,
-	make_event_array ((current_kboard->kbd_macro_end 
-			   - current_kboard->kbd_macro_buffer),
-			  current_kboard->kbd_macro_buffer));
+  kset_last_kbd_macro
+    (current_kboard,
+     make_event_array ((current_kboard->kbd_macro_end
+			- current_kboard->kbd_macro_buffer),
+		       current_kboard->kbd_macro_buffer));
 }
 
 DEFUN ("end-kbd-macro", Fend_kbd_macro, Send_kbd_macro, 0, 2, "p",
@@ -330,7 +331,7 @@ each iteration of the macro.  Iteration stops if LOOPFUNC returns nil.  */)
       executing_kbd_macro = final;
       executing_kbd_macro_index = 0;
 
-      KSET (current_kboard, Vprefix_arg, Qnil);
+      kset_prefix_arg (current_kboard, Qnil);
 
       if (!NILP (loopfunc))
 	{

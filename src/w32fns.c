@@ -1490,7 +1490,7 @@ x_set_icon_name (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
   else if (!NILP (arg) || NILP (oldval))
     return;
 
-  FSET (f, icon_name, arg);
+  fset_icon_name (f, arg);
 
 #if 0
   if (f->output_data.w32->icon_bitmap != 0)
@@ -1686,7 +1686,7 @@ x_set_name (struct frame *f, Lisp_Object name, int explicit)
   if (! NILP (Fstring_equal (name, f->name)))
     return;
 
-  FSET (f, name, name);
+  fset_name (f, name);
 
   /* For setting the frame title, the title parameter should override
      the name parameter.  */
@@ -1734,7 +1734,7 @@ x_set_title (struct frame *f, Lisp_Object name, Lisp_Object old_name)
 
   update_mode_lines = 1;
 
-  FSET (f, title, name);
+  fset_title (f, name);
 
   if (NILP (name))
     name = f->name;
@@ -3925,7 +3925,7 @@ w32_window (struct frame *f, long window_prompting, int minibuffer_only)
 
     f->explicit_name = 0;
     name = f->name;
-    FSET (f, name, Qnil);
+    fset_name (f, Qnil);
     x_set_name (f, name, explicit);
   }
 
@@ -4174,11 +4174,11 @@ This function is an internal primitive--use `make-frame' instead.  */)
   f->output_data.w32 = xzalloc (sizeof (struct w32_output));
   FRAME_FONTSET (f) = -1;
 
-  FSET (f, icon_name,
-	x_get_arg (dpyinfo, parameters, Qicon_name, "iconName", "Title",
+  fset_icon_name
+    (f, x_get_arg (dpyinfo, parameters, Qicon_name, "iconName", "Title",
                    RES_TYPE_STRING));
   if (! STRINGP (f->icon_name))
-    FSET (f, icon_name, Qnil);
+    fset_icon_name (f, Qnil);
 
 /*  FRAME_W32_DISPLAY_INFO (f) = dpyinfo; */
 
@@ -4207,12 +4207,12 @@ This function is an internal primitive--use `make-frame' instead.  */)
      be set.  */
   if (EQ (name, Qunbound) || NILP (name))
     {
-      FSET (f, name, build_string (dpyinfo->w32_id_name));
+      fset_name (f, build_string (dpyinfo->w32_id_name));
       f->explicit_name = 0;
     }
   else
     {
-      FSET (f, name, name);
+      fset_name (f, name);
       f->explicit_name = 1;
       /* use the frame's title when getting resources for this frame.  */
       specbind (Qx_resource_name, name);
@@ -4381,13 +4381,13 @@ This function is an internal primitive--use `make-frame' instead.  */)
   if (FRAME_HAS_MINIBUF_P (f)
       && (!FRAMEP (KVAR (kb, Vdefault_minibuffer_frame))
           || !FRAME_LIVE_P (XFRAME (KVAR (kb, Vdefault_minibuffer_frame)))))
-    KSET (kb, Vdefault_minibuffer_frame, frame);
+    kset_default_minibuffer_frame (kb, frame);
 
   /* All remaining specified parameters, which have not been "used"
      by x_get_arg and friends, now go in the misc. alist of the frame.  */
   for (tem = parameters; CONSP (tem); tem = XCDR (tem))
     if (CONSP (XCAR (tem)) && !NILP (XCAR (XCAR (tem))))
-      FSET (f, param_alist, Fcons (XCAR (tem), f->param_alist));
+      fset_param_alist (f, Fcons (XCAR (tem), f->param_alist));
 
   UNGCPRO;
 
@@ -5242,7 +5242,7 @@ x_create_tip_frame (struct w32_display_info *dpyinfo,
   set_window_buffer (FRAME_ROOT_WINDOW (f), buffer, 0, 0);
   old_buffer = current_buffer;
   set_buffer_internal_1 (XBUFFER (buffer));
-  BSET (current_buffer, truncate_lines, Qnil);
+  bset_truncate_lines (current_buffer, Qnil);
   specbind (Qinhibit_read_only, Qt);
   specbind (Qinhibit_modification_hooks, Qt);
   Ferase_buffer ();
@@ -5261,7 +5261,7 @@ x_create_tip_frame (struct w32_display_info *dpyinfo,
   f->output_data.w32 = xzalloc (sizeof (struct w32_output));
 
   FRAME_FONTSET (f)  = -1;
-  FSET (f, icon_name, Qnil);
+  fset_icon_name (f, Qnil);
 
 #ifdef GLYPH_DEBUG
   image_cache_refcount =
@@ -5276,12 +5276,12 @@ x_create_tip_frame (struct w32_display_info *dpyinfo,
      be set.  */
   if (EQ (name, Qunbound) || NILP (name))
     {
-      FSET (f, name, build_string (dpyinfo->w32_id_name));
+      fset_name (f, build_string (dpyinfo->w32_id_name));
       f->explicit_name = 0;
     }
   else
     {
-      FSET (f, name, name);
+      fset_name (f, name);
       f->explicit_name = 1;
       /* use the frame's title when getting resources for this frame.  */
       specbind (Qx_resource_name, name);
@@ -5647,8 +5647,8 @@ Text larger than the specified size is clipped.  */)
 
   /* Set up the frame's root window.  */
   w = XWINDOW (FRAME_ROOT_WINDOW (f));
-  WSET (w, left_col, make_number (0));
-  WSET (w, top_line, make_number (0));
+  wset_left_col (w, make_number (0));
+  wset_top_line (w, make_number (0));
 
   if (CONSP (Vx_max_tooltip_size)
       && INTEGERP (XCAR (Vx_max_tooltip_size))
@@ -5656,13 +5656,13 @@ Text larger than the specified size is clipped.  */)
       && INTEGERP (XCDR (Vx_max_tooltip_size))
       && XINT (XCDR (Vx_max_tooltip_size)) > 0)
     {
-      WSET (w, total_cols, XCAR (Vx_max_tooltip_size));
-      WSET (w, total_lines, XCDR (Vx_max_tooltip_size));
+      wset_total_cols (w, XCAR (Vx_max_tooltip_size));
+      wset_total_lines (w, XCDR (Vx_max_tooltip_size));
     }
   else
     {
-      WSET (w, total_cols, make_number (80));
-      WSET (w, total_lines, make_number (40));
+      wset_total_cols (w, make_number (80));
+      wset_total_lines (w, make_number (40));
     }
 
   FRAME_TOTAL_COLS (f) = XINT (w->total_cols);
@@ -5672,7 +5672,7 @@ Text larger than the specified size is clipped.  */)
   /* Display the tooltip text in a temporary buffer.  */
   old_buffer = current_buffer;
   set_buffer_internal_1 (XBUFFER (XWINDOW (FRAME_ROOT_WINDOW (f))->buffer));
-  BSET (current_buffer, truncate_lines, Qnil);
+  bset_truncate_lines (current_buffer, Qnil);
   clear_glyph_matrix (w->desired_matrix);
   clear_glyph_matrix (w->current_matrix);
   SET_TEXT_POS (pos, BEGV, BEGV_BYTE);
@@ -5733,7 +5733,7 @@ Text larger than the specified size is clipped.  */)
       /* w->total_cols and FRAME_TOTAL_COLS want the width in columns,
 	 not in pixels.  */
       width /= WINDOW_FRAME_COLUMN_WIDTH (w);
-      WSET (w, total_cols, make_number (width));
+      wset_total_cols (w, make_number (width));
       FRAME_TOTAL_COLS (f) = width;
       adjust_glyphs (f);
       w->pseudo_window_p = 1;

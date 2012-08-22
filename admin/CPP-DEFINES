@@ -508,9 +508,6 @@ dup2
 lib/signal.h:
 signal
 
-lib/sigprocmask.c:
-signal
-
 lib/stdio.h:
 fdopen
 fopen

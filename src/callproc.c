@@ -65,10 +65,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "nsterm.h"
 #endif
 
-#ifndef USE_CRT_DLL
-extern char **environ;
-#endif
-
 #ifdef HAVE_SETPGID
 #if !defined (USG)
 #undef setpgrp

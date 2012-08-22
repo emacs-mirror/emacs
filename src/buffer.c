@@ -157,6 +157,228 @@ static struct Lisp_Overlay * copy_overlays (struct buffer *, struct Lisp_Overlay
 static void modify_overlay (struct buffer *, ptrdiff_t, ptrdiff_t);
 static Lisp_Object buffer_lisp_local_variables (struct buffer *, int);
 
+/* These setters are used only in this file, so they can be private.  */
+static inline void
+bset_abbrev_mode (struct buffer *b, Lisp_Object val)
+{
+  b->INTERNAL_FIELD (abbrev_mode) = val;
+}
+static inline void
+bset_abbrev_table (struct buffer *b, Lisp_Object val)
+{
+  b->INTERNAL_FIELD (abbrev_table) = val;
+}
+static inline void
+bset_auto_fill_function (struct buffer *b, Lisp_Object val)
+{
+  b->INTERNAL_FIELD (auto_fill_function) = val;
+}
+static inline void
+bset_auto_save_file_format (struct buffer *b, Lisp_Object val)
+{
+  b->INTERNAL_FIELD (auto_save_file_format) = val;
+}
+static inline void
+bset_auto_save_file_name (struct buffer *b, Lisp_Object val)
+{
+  b->INTERNAL_FIELD (auto_save_file_name) = val;
+}
+static inline void
+bset_backed_up (struct buffer *b, Lisp_Object val)
+{
+  b->INTERNAL_FIELD (backed_up) = val;
+}
+static inline void
+bset_begv_marker (struct buffer *b, Lisp_Object val)
+{
+  b->INTERNAL_FIELD (begv_marker) = val;
+}
+static inline void
+bset_bidi_display_reordering (struct buffer *b, Lisp_Object val)
+{
+  b->INTERNAL_FIELD (bidi_display_reordering) = val;
+}
+static inline void
+bset_buffer_file_coding_system (struct buffer *b, Lisp_Object val)
+{
+  b->INTERNAL_FIELD (buffer_file_coding_system) = val;
+}
+static inline void
+bset_cache_long_line_scans (struct buffer *b, Lisp_Object val)
+{
+  b->INTERNAL_FIELD (cache_long_line_scans) = val;
+}
+static inline void
+bset_case_fold_search (struct buffer *b, Lisp_Object val)
+{
+  b->INTERNAL_FIELD (case_fold_search) = val;
+}
+static inline void
+bset_ctl_arrow (struct buffer *b, Lisp_Object val)
+{
+  b->INTERNAL_FIELD (ctl_arrow) = val;
+}
+static inline void
+bset_cursor_in_non_selected_windows (struct buffer *b, Lisp_Object val)
+{
+  b->INTERNAL_FIELD (cursor_in_non_selected_windows) = val;
+}
+static inline void
+bset_cursor_type (struct buffer *b, Lisp_Object val)
+{
+  b->INTERNAL_FIELD (cursor_type) = val;
+}
+static inline void
+bset_display_table (struct buffer *b, Lisp_Object val)
+{
+  b->INTERNAL_FIELD (display_table) = val;
+}
+static inline void
+bset_extra_line_spacing (struct buffer *b, Lisp_Object val)
+{
+  b->INTERNAL_FIELD (extra_line_spacing) = val;
+}
+static inline void
+bset_file_format (struct buffer *b, Lisp_Object val)
+{
+  b->INTERNAL_FIELD (file_format) = val;
+}
+static inline void
+bset_file_truename (struct buffer *b, Lisp_Object val)
+{
+  b->INTERNAL_FIELD (file_truename) = val;
+}
+static inline void
+bset_fringe_cursor_alist (struct buffer *b, Lisp_Object val)
+{
+  b->INTERNAL_FIELD (fringe_cursor_alist) = val;
+}
+static inline void
+bset_fringe_indicator_alist (struct buffer *b, Lisp_Object val)
+{
+  b->INTERNAL_FIELD (fringe_indicator_alist) = val;
+}
+static inline void
+bset_fringes_outside_margins (struct buffer *b, Lisp_Object val)
+{
+  b->INTERNAL_FIELD (fringes_outside_margins) = val;
+}
+static inline void
+bset_header_line_format (struct buffer *b, Lisp_Object val)
+{
+  b->INTERNAL_FIELD (header_line_format) = val;
+}
+static inline void
+bset_indicate_buffer_boundaries (struct buffer *b, Lisp_Object val)
+{
+  b->INTERNAL_FIELD (indicate_buffer_boundaries) = val;
+}
+static inline void
+bset_indicate_empty_lines (struct buffer *b, Lisp_Object val)
+{
+  b->INTERNAL_FIELD (indicate_empty_lines) = val;
+}
+static inline void
+bset_invisibility_spec (struct buffer *b, Lisp_Object val)
+{
+  b->INTERNAL_FIELD (invisibility_spec) = val;
+}
+static inline void
+bset_left_fringe_width (struct buffer *b, Lisp_Object val)
+{
+  b->INTERNAL_FIELD (left_fringe_width) = val;
+}
+static inline void
+bset_major_mode (struct buffer *b, Lisp_Object val)
+{
+  b->INTERNAL_FIELD (major_mode) = val;
+}
+static inline void
+bset_mark (struct buffer *b, Lisp_Object val)
+{
+  b->INTERNAL_FIELD (mark) = val;
+}
+static inline void
+bset_minor_modes (struct buffer *b, Lisp_Object val)
+{
+  b->INTERNAL_FIELD (minor_modes) = val;
+}
+static inline void
+bset_mode_line_format (struct buffer *b, Lisp_Object val)
+{
+  b->INTERNAL_FIELD (mode_line_format) = val;
+}
+static inline void
+bset_mode_name (struct buffer *b, Lisp_Object val)
+{
+  b->INTERNAL_FIELD (mode_name) = val;
+}
+static inline void
+bset_name (struct buffer *b, Lisp_Object val)
+{
+  b->INTERNAL_FIELD (name) = val;
+}
+static inline void
+bset_overwrite_mode (struct buffer *b, Lisp_Object val)
+{
+  b->INTERNAL_FIELD (overwrite_mode) = val;
+}
+static inline void
+bset_pt_marker (struct buffer *b, Lisp_Object val)
+{
+  b->INTERNAL_FIELD (pt_marker) = val;
+}
+static inline void
+bset_right_fringe_width (struct buffer *b, Lisp_Object val)
+{
+  b->INTERNAL_FIELD (right_fringe_width) = val;
+}
+static inline void
+bset_save_length (struct buffer *b, Lisp_Object val)
+{
+  b->INTERNAL_FIELD (save_length) = val;
+}
+static inline void
+bset_scroll_bar_width (struct buffer *b, Lisp_Object val)
+{
+  b->INTERNAL_FIELD (scroll_bar_width) = val;
+}
+static inline void
+bset_scroll_down_aggressively (struct buffer *b, Lisp_Object val)
+{
+  b->INTERNAL_FIELD (scroll_down_aggressively) = val;
+}
+static inline void
+bset_scroll_up_aggressively (struct buffer *b, Lisp_Object val)
+{
+  b->INTERNAL_FIELD (scroll_up_aggressively) = val;
+}
+static inline void
+bset_selective_display (struct buffer *b, Lisp_Object val)
+{
+  b->INTERNAL_FIELD (selective_display) = val;
+}
+static inline void
+bset_selective_display_ellipses (struct buffer *b, Lisp_Object val)
+{
+  b->INTERNAL_FIELD (selective_display_ellipses) = val;
+}
+static inline void
+bset_vertical_scroll_bar_type (struct buffer *b, Lisp_Object val)
+{
+  b->INTERNAL_FIELD (vertical_scroll_bar_type) = val;
+}
+static inline void
+bset_word_wrap (struct buffer *b, Lisp_Object val)
+{
+  b->INTERNAL_FIELD (word_wrap) = val;
+}
+static inline void
+bset_zv_marker (struct buffer *b, Lisp_Object val)
+{
+  b->INTERNAL_FIELD (zv_marker) = val;
+}
+
 /* For debugging; temporary.  See set_buffer_internal.  */
 /* Lisp_Object Qlisp_mode, Vcheck_symbol; */
 
@@ -360,7 +582,7 @@ even if it is dead.  The return value is never nil.  */)
   BUF_CHARS_MODIFF (b) = 1;
   BUF_OVERLAY_MODIFF (b) = 1;
   BUF_SAVE_MODIFF (b) = 1;
-  buffer_set_intervals (b, NULL);
+  set_buffer_intervals (b, NULL);
   BUF_UNCHANGED_MODIFIED (b) = 1;
   BUF_OVERLAY_UNCHANGED_MODIFIED (b) = 1;
   BUF_END_UNCHANGED (b) = 0;
@@ -370,7 +592,7 @@ even if it is dead.  The return value is never nil.  */)
 
   b->newline_cache = 0;
   b->width_run_cache = 0;
-  BSET (b, width_table, Qnil);
+  bset_width_table (b, Qnil);
   b->prevent_redisplay_optimizations_p = 1;
 
   /* Put this on the chain of all buffers including killed ones.  */
@@ -379,20 +601,20 @@ even if it is dead.  The return value is never nil.  */)
 
   /* An ordinary buffer normally doesn't need markers
      to handle BEGV and ZV.  */
-  BSET (b, pt_marker, Qnil);
-  BSET (b, begv_marker, Qnil);
-  BSET (b, zv_marker, Qnil);
+  bset_pt_marker (b, Qnil);
+  bset_begv_marker (b, Qnil);
+  bset_zv_marker (b, Qnil);
 
   name = Fcopy_sequence (buffer_or_name);
-  string_set_intervals (name, NULL);
-  BSET (b, name, name);
+  set_string_intervals (name, NULL);
+  bset_name (b, name);
 
-  BSET (b, undo_list, (SREF (name, 0) != ' ') ? Qnil : Qt);
+  bset_undo_list (b, SREF (name, 0) != ' ' ? Qnil : Qt);
 
   reset_buffer (b);
   reset_buffer_local_variables (b, 1);
 
-  BSET (b, mark, Fmake_marker ());
+  bset_mark (b, Fmake_marker ());
   BUF_MARKERS (b) = NULL;
 
   /* Put this in the alist of all live buffers.  */
@@ -439,6 +661,19 @@ copy_overlays (struct buffer *b, struct Lisp_Overlay *list)
   return result;
 }
 
+/* Set an appropriate overlay of B.  */
+
+static inline void
+set_buffer_overlays_before (struct buffer *b, struct Lisp_Overlay *o)
+{
+  b->overlays_before = o;
+}
+
+static inline void
+set_buffer_overlays_after (struct buffer *b, struct Lisp_Overlay *o)
+{
+  b->overlays_after = o;
+}
 
 /* Clone per-buffer values of buffer FROM.
 
@@ -460,7 +695,7 @@ clone_per_buffer_values (struct buffer *from, struct buffer *to)
       if (offset == PER_BUFFER_VAR_OFFSET (name))
 	continue;
 
-      obj = PER_BUFFER_VALUE (from, offset);
+      obj = per_buffer_value (from, offset);
       if (MARKERP (obj) && XMARKER (obj)->buffer == from)
 	{
 	  struct Lisp_Marker *m = XMARKER (obj);
@@ -469,17 +704,17 @@ clone_per_buffer_values (struct buffer *from, struct buffer *to)
 	  XMARKER (obj)->insertion_type = m->insertion_type;
 	}
 
-      PER_BUFFER_VALUE (to, offset) = obj;
+      set_per_buffer_value (to, offset, obj);
     }
 
   memcpy (to->local_flags, from->local_flags, sizeof to->local_flags);
 
-  buffer_set_overlays_before (to, copy_overlays (to, from->overlays_before));
-  buffer_set_overlays_after (to, copy_overlays (to, from->overlays_after));
+  set_buffer_overlays_before (to, copy_overlays (to, from->overlays_before));
+  set_buffer_overlays_after (to, copy_overlays (to, from->overlays_after));
 
   /* Get (a copy of) the alist of Lisp-level local variables of FROM
      and install that in TO.  */
-  BSET (to, local_var_alist, buffer_lisp_local_variables (from, 1));
+  bset_local_var_alist (to, buffer_lisp_local_variables (from, 1));
 }
 
 
@@ -582,15 +817,15 @@ CLONE nil means the indirect buffer's state is reset to default values.  */)
 
   b->newline_cache = 0;
   b->width_run_cache = 0;
-  BSET (b, width_table, Qnil);
+  bset_width_table (b, Qnil);
 
   /* Put this on the chain of all buffers including killed ones.  */
   b->header.next.buffer = all_buffers;
   all_buffers = b;
 
   name = Fcopy_sequence (name);
-  string_set_intervals (name, NULL);
-  BSET (b, name, name);
+  set_string_intervals (name, NULL);
+  bset_name (b, name);
 
   reset_buffer (b);
   reset_buffer_local_variables (b, 1);
@@ -599,10 +834,11 @@ CLONE nil means the indirect buffer's state is reset to default values.  */)
   XSETBUFFER (buf, b);
   Vbuffer_alist = nconc2 (Vbuffer_alist, Fcons (Fcons (name, buf), Qnil));
 
-  BSET (b, mark, Fmake_marker ());
+  bset_mark (b, Fmake_marker ());
 
   /* The multibyte status belongs to the base buffer.  */
-  BSET (b, enable_multibyte_characters, BVAR (b->base_buffer, enable_multibyte_characters));
+  bset_enable_multibyte_characters
+    (b, BVAR (b->base_buffer, enable_multibyte_characters));
 
   /* Make sure the base buffer has markers for its narrowing.  */
   if (NILP (BVAR (b->base_buffer, pt_marker)))
@@ -610,14 +846,17 @@ CLONE nil means the indirect buffer's state is reset to default values.  */)
       eassert (NILP (BVAR (b->base_buffer, begv_marker)));
       eassert (NILP (BVAR (b->base_buffer, zv_marker)));
 
-      BSET (b->base_buffer, pt_marker,
-	    build_marker (b->base_buffer, b->base_buffer->pt, b->base_buffer->pt_byte));
+      bset_pt_marker (b->base_buffer,
+		      build_marker (b->base_buffer, b->base_buffer->pt,
+				    b->base_buffer->pt_byte));
 
-      BSET (b->base_buffer, begv_marker,
-	    build_marker (b->base_buffer, b->base_buffer->begv, b->base_buffer->begv_byte));
+      bset_begv_marker (b->base_buffer,
+			build_marker (b->base_buffer, b->base_buffer->begv,
+				      b->base_buffer->begv_byte));
 
-      BSET (b->base_buffer, zv_marker,
-	    build_marker (b->base_buffer, b->base_buffer->zv, b->base_buffer->zv_byte));
+      bset_zv_marker (b->base_buffer,
+		      build_marker (b->base_buffer, b->base_buffer->zv,
+				    b->base_buffer->zv_byte));
 
       XMARKER (BVAR (b->base_buffer, zv_marker))->insertion_type = 1;
     }
@@ -625,9 +864,9 @@ CLONE nil means the indirect buffer's state is reset to default values.  */)
   if (NILP (clone))
     {
       /* Give the indirect buffer markers for its narrowing.  */
-      BSET (b, pt_marker, build_marker (b, b->pt, b->pt_byte));
-      BSET (b, begv_marker, build_marker (b, b->begv, b->begv_byte));
-      BSET (b, zv_marker, build_marker (b, b->zv, b->zv_byte));
+      bset_pt_marker (b, build_marker (b, b->pt, b->pt_byte));
+      bset_begv_marker (b, build_marker (b, b->begv, b->begv_byte));
+      bset_zv_marker (b, build_marker (b, b->zv, b->zv_byte));
       XMARKER (BVAR (b, zv_marker))->insertion_type = 1;
     }
   else
@@ -635,11 +874,11 @@ CLONE nil means the indirect buffer's state is reset to default values.  */)
       struct buffer *old_b = current_buffer;
 
       clone_per_buffer_values (b->base_buffer, b);
-      BSET (b, filename, Qnil);
-      BSET (b, file_truename, Qnil);
-      BSET (b, display_count, make_number (0));
-      BSET (b, backed_up, Qnil);
-      BSET (b, auto_save_file_name, Qnil);
+      bset_filename (b, Qnil);
+      bset_file_truename (b, Qnil);
+      bset_display_count (b, make_number (0));
+      bset_backed_up (b, Qnil);
+      bset_auto_save_file_name (b, Qnil);
       set_buffer_internal_1 (b);
       Fset (intern ("buffer-save-without-query"), Qnil);
       Fset (intern ("buffer-file-number"), Qnil);
@@ -688,8 +927,8 @@ delete_all_overlays (struct buffer *b)
       ov->next = NULL;
     }
 
-  buffer_set_overlays_before (b, NULL);
-  buffer_set_overlays_after (b, NULL);
+  set_buffer_overlays_before (b, NULL);
+  set_buffer_overlays_after (b, NULL);
 }
 
 /* Reinitialize everything about a buffer except its name and contents
@@ -702,10 +941,9 @@ delete_all_overlays (struct buffer *b)
 void
 reset_buffer (register struct buffer *b)
 {
-  BSET (b, filename, Qnil);
-  BSET (b, file_truename, Qnil);
-  BSET (b, directory,
-	(current_buffer) ? BVAR (current_buffer, directory) : Qnil);
+  bset_filename (b, Qnil);
+  bset_file_truename (b, Qnil);
+  bset_directory (b, current_buffer ? BVAR (current_buffer, directory) : Qnil);
   b->modtime = make_emacs_time (0, UNKNOWN_MODTIME_NSECS);
   b->modtime_size = -1;
   XSETFASTINT (BVAR (b, save_length), 0);
@@ -713,25 +951,25 @@ reset_buffer (register struct buffer *b)
   /* It is more conservative to start out "changed" than "unchanged".  */
   b->clip_changed = 0;
   b->prevent_redisplay_optimizations_p = 1;
-  BSET (b, backed_up, Qnil);
+  bset_backed_up (b, Qnil);
   BUF_AUTOSAVE_MODIFF (b) = 0;
   b->auto_save_failure_time = 0;
-  BSET (b, auto_save_file_name, Qnil);
-  BSET (b, read_only, Qnil);
-  buffer_set_overlays_before (b, NULL);
-  buffer_set_overlays_after (b, NULL);
+  bset_auto_save_file_name (b, Qnil);
+  bset_read_only (b, Qnil);
+  set_buffer_overlays_before (b, NULL);
+  set_buffer_overlays_after (b, NULL);
   b->overlay_center = BEG;
-  BSET (b, mark_active, Qnil);
-  BSET (b, point_before_scroll, Qnil);
-  BSET (b, file_format, Qnil);
-  BSET (b, auto_save_file_format, Qt);
-  BSET (b, last_selected_window, Qnil);
-  BSET (b, display_count, make_number (0));
-  BSET (b, display_time, Qnil);
-  BSET (b, enable_multibyte_characters,
-       BVAR (&buffer_defaults, enable_multibyte_characters));
-  BSET (b, cursor_type, BVAR (&buffer_defaults, cursor_type));
-  BSET (b, extra_line_spacing, BVAR (&buffer_defaults, extra_line_spacing));
+  bset_mark_active (b, Qnil);
+  bset_point_before_scroll (b, Qnil);
+  bset_file_format (b, Qnil);
+  bset_auto_save_file_format (b, Qt);
+  bset_last_selected_window (b, Qnil);
+  bset_display_count (b, make_number (0));
+  bset_display_time (b, Qnil);
+  bset_enable_multibyte_characters
+    (b, BVAR (&buffer_defaults, enable_multibyte_characters));
+  bset_cursor_type (b, BVAR (&buffer_defaults, cursor_type));
+  bset_extra_line_spacing (b, BVAR (&buffer_defaults, extra_line_spacing));
 
   b->display_error_modiff = 0;
 }
@@ -755,10 +993,10 @@ reset_buffer_local_variables (register struct buffer *b, int permanent_too)
      things that depend on the major mode.
      default-major-mode is handled at a higher level.
      We ignore it here.  */
-  BSET (b, major_mode, Qfundamental_mode);
-  BSET (b, keymap, Qnil);
-  BSET (b, mode_name, QSFundamental);
-  BSET (b, minor_modes, Qnil);
+  bset_major_mode (b, Qfundamental_mode);
+  bset_keymap (b, Qnil);
+  bset_mode_name (b, QSFundamental);
+  bset_minor_modes (b, Qnil);
 
   /* If the standard case table has been altered and invalidated,
      fix up its insides first.  */
@@ -767,15 +1005,15 @@ reset_buffer_local_variables (register struct buffer *b, int permanent_too)
 	 && CHAR_TABLE_P (XCHAR_TABLE (Vascii_downcase_table)->extras[2])))
     Fset_standard_case_table (Vascii_downcase_table);
 
-  BSET (b, downcase_table, Vascii_downcase_table);
-  BSET (b, upcase_table, XCHAR_TABLE (Vascii_downcase_table)->extras[0]);
-  BSET (b, case_canon_table, XCHAR_TABLE (Vascii_downcase_table)->extras[1]);
-  BSET (b, case_eqv_table, XCHAR_TABLE (Vascii_downcase_table)->extras[2]);
-  BSET (b, invisibility_spec, Qt);
+  bset_downcase_table (b, Vascii_downcase_table);
+  bset_upcase_table (b, XCHAR_TABLE (Vascii_downcase_table)->extras[0]);
+  bset_case_canon_table (b, XCHAR_TABLE (Vascii_downcase_table)->extras[1]);
+  bset_case_eqv_table (b, XCHAR_TABLE (Vascii_downcase_table)->extras[2]);
+  bset_invisibility_spec (b, Qt);
 
   /* Reset all (or most) per-buffer variables to their defaults.  */
   if (permanent_too)
-    BSET (b, local_var_alist, Qnil);
+    bset_local_var_alist (b, Qnil);
   else
     {
       Lisp_Object tmp, prop, last = Qnil;
@@ -809,7 +1047,7 @@ reset_buffer_local_variables (register struct buffer *b, int permanent_too)
 	  }
 	/* Delete this local variable.  */
 	else if (NILP (last))
-	  BSET (b, local_var_alist, XCDR (tmp));
+	  bset_local_var_alist (b, XCDR (tmp));
 	else
 	  XSETCDR (last, XCDR (tmp));
     }
@@ -825,7 +1063,7 @@ reset_buffer_local_variables (register struct buffer *b, int permanent_too)
       if ((idx > 0
 	   && (permanent_too
 	       || buffer_permanent_local_flags[idx] == 0)))
-	PER_BUFFER_VALUE (b, offset) = PER_BUFFER_DEFAULT (offset);
+	set_per_buffer_value (b, offset, per_buffer_default (offset));
     }
 }
 
@@ -1001,7 +1239,7 @@ buffer_local_value_1 (Lisp_Object variable, Lisp_Object buffer)
       {
 	union Lisp_Fwd *fwd = SYMBOL_FWD (sym);
 	if (BUFFER_OBJFWDP (fwd))
-	  result = PER_BUFFER_VALUE (buf, XBUFFER_OBJFWD (fwd)->offset);
+	  result = per_buffer_value (buf, XBUFFER_OBJFWD (fwd)->offset);
 	else
 	  result = Fdefault_value (variable);
 	break;
@@ -1081,7 +1319,7 @@ No argument or nil as argument means use current buffer as BUFFER.  */)
 	    && SYMBOLP (PER_BUFFER_SYMBOL (offset)))
 	  {
 	    Lisp_Object sym = PER_BUFFER_SYMBOL (offset);
-	    Lisp_Object val = PER_BUFFER_VALUE (buf, offset);
+	    Lisp_Object val = per_buffer_value (buf, offset);
 	    result = Fcons (EQ (val, Qunbound) ? sym : Fcons (sym, val),
 			    result);
 	  }
@@ -1286,7 +1524,7 @@ This does not change the name of the visited file (if any).  */)
 	error ("Buffer name `%s' is in use", SDATA (newname));
     }
 
-  BSET (current_buffer, name, newname);
+  bset_name (current_buffer, newname);
 
   /* Catch redisplay's attention.  Unless we do this, the mode lines for
      any windows displaying current_buffer will stay unchanged.  */
@@ -1431,7 +1669,7 @@ No argument or nil as argument means do this for the current buffer.  */)
     }
 
   if (EQ (BVAR (XBUFFER (real_buffer), undo_list), Qt))
-    BSET (XBUFFER (real_buffer), undo_list, Qnil);
+    bset_undo_list (XBUFFER (real_buffer), Qnil);
 
   return Qnil;
 }
@@ -1691,7 +1929,7 @@ cleaning up all windows currently displaying the buffer to be killed. */)
 	  m = next;
 	}
       BUF_MARKERS (b) = NULL;
-      buffer_set_intervals (b, NULL);
+      set_buffer_intervals (b, NULL);
 
       /* Perhaps we should explicitly free the interval tree here... */
     }
@@ -1703,7 +1941,7 @@ cleaning up all windows currently displaying the buffer to be killed. */)
   swap_out_buffer_local_variables (b);
   reset_buffer_local_variables (b, 1);
 
-  BSET (b, name, Qnil);
+  bset_name (b, Qnil);
 
   BLOCK_INPUT;
   if (b->base_buffer)
@@ -1727,9 +1965,9 @@ cleaning up all windows currently displaying the buffer to be killed. */)
       free_region_cache (b->width_run_cache);
       b->width_run_cache = 0;
     }
-  BSET (b, width_table, Qnil);
+  bset_width_table (b, Qnil);
   UNBLOCK_INPUT;
-  BSET (b, undo_list, Qnil);
+  bset_undo_list (b, Qnil);
 
   /* Run buffer-list-update-hook.  */
   if (!NILP (Vrun_hooks))
@@ -1770,8 +2008,8 @@ record_buffer (Lisp_Object buffer)
   Vinhibit_quit = tem;
 
   /* Update buffer list of selected frame.  */
-  FSET (f, buffer_list, Fcons (buffer, Fdelq (buffer, f->buffer_list)));
-  FSET (f, buried_buffer_list, Fdelq (buffer, f->buried_buffer_list));
+  fset_buffer_list (f, Fcons (buffer, Fdelq (buffer, f->buffer_list)));
+  fset_buried_buffer_list (f, Fdelq (buffer, f->buried_buffer_list));
 
   /* Run buffer-list-update-hook.  */
   if (!NILP (Vrun_hooks))
@@ -1808,9 +2046,9 @@ DEFUN ("bury-buffer-internal", Fbury_buffer_internal, Sbury_buffer_internal,
   Vinhibit_quit = tem;
 
   /* Update buffer lists of selected frame.  */
-  FSET (f, buffer_list, Fdelq (buffer, f->buffer_list));
-  FSET (f, buried_buffer_list,
-	Fcons (buffer, Fdelq (buffer, f->buried_buffer_list)));
+  fset_buffer_list (f, Fdelq (buffer, f->buffer_list));
+  fset_buried_buffer_list
+    (f, Fcons (buffer, Fdelq (buffer, f->buried_buffer_list)));
 
   /* Run buffer-list-update-hook.  */
   if (!NILP (Vrun_hooks))
@@ -1910,7 +2148,7 @@ set_buffer_internal_1 (register struct buffer *b)
       /* Put the undo list back in the base buffer, so that it appears
 	 that an indirect buffer shares the undo list of its base.  */
       if (old_buf->base_buffer)
-	BSET (old_buf->base_buffer, undo_list, BVAR (old_buf, undo_list));
+	bset_undo_list (old_buf->base_buffer, BVAR (old_buf, undo_list));
 
       /* If the old current buffer has markers to record PT, BEGV and ZV
 	 when it is not current, update them now.  */
@@ -1920,7 +2158,7 @@ set_buffer_internal_1 (register struct buffer *b)
   /* Get the undo list from the base buffer, so that it appears
      that an indirect buffer shares the undo list of its base.  */
   if (b->base_buffer)
-    BSET (b, undo_list, BVAR (b->base_buffer, undo_list));
+    bset_undo_list (b, BVAR (b->base_buffer, undo_list));
 
   /* If the new current buffer has markers to record PT, BEGV and ZV
      when it is not current, fetch them now.  */
@@ -2118,8 +2356,8 @@ DEFUN ("buffer-swap-text", Fbuffer_swap_text, Sbuffer_swap_text,
 #define swapfield_(field, type) \
   do {							\
     type tmp##field = BVAR (other_buffer, field);		\
-    BSET (other_buffer, field, BVAR (current_buffer, field));	\
-    BSET (current_buffer, field, tmp##field);			\
+    bset_##field (other_buffer, BVAR (current_buffer, field));	\
+    bset_##field (current_buffer, tmp##field);			\
   } while (0)
 
   swapfield (own_text, struct buffer_text);
@@ -2159,8 +2397,8 @@ DEFUN ("buffer-swap-text", Fbuffer_swap_text, Sbuffer_swap_text,
   swapfield_ (pt_marker, Lisp_Object);
   swapfield_ (begv_marker, Lisp_Object);
   swapfield_ (zv_marker, Lisp_Object);
-  BSET (current_buffer, point_before_scroll, Qnil);
-  BSET (other_buffer, point_before_scroll, Qnil);
+  bset_point_before_scroll (current_buffer, Qnil);
+  bset_point_before_scroll (other_buffer, Qnil);
 
   current_buffer->text->modiff++;	  other_buffer->text->modiff++;
   current_buffer->text->chars_modiff++;	  other_buffer->text->chars_modiff++;
@@ -2249,7 +2487,7 @@ current buffer is cleared.  */)
 
   /* Don't record these buffer changes.  We will put a special undo entry
      instead.  */
-  BSET (current_buffer, undo_list, Qt);
+  bset_undo_list (current_buffer, Qt);
 
   /* If the cached position is for this buffer, clear it out.  */
   clear_charpos_cache (current_buffer);
@@ -2271,7 +2509,7 @@ current buffer is cleared.  */)
 	 to calculate the old correspondences.  */
       set_intervals_multibyte (0);
 
-      BSET (current_buffer, enable_multibyte_characters, Qnil);
+      bset_enable_multibyte_characters (current_buffer, Qnil);
 
       Z = Z_BYTE;
       BEGV = BEGV_BYTE;
@@ -2409,7 +2647,7 @@ current buffer is cleared.  */)
 
       /* Do this first, so that chars_in_text asks the right question.
 	 set_intervals_multibyte needs it too.  */
-      BSET (current_buffer, enable_multibyte_characters, Qt);
+      bset_enable_multibyte_characters (current_buffer, Qt);
 
       GPT_BYTE = advance_to_char_boundary (GPT_BYTE);
       GPT = chars_in_text (BEG_ADDR, GPT_BYTE - BEG_BYTE) + BEG;
@@ -2467,11 +2705,11 @@ current buffer is cleared.  */)
   if (!EQ (old_undo, Qt))
     {
       /* Represent all the above changes by a special undo entry.  */
-      BSET (current_buffer, undo_list,
-	    Fcons (list3 (Qapply,
-			  intern ("set-buffer-multibyte"),
-			  NILP (flag) ? Qt : Qnil),
-		   old_undo));
+      bset_undo_list (current_buffer,
+		      Fcons (list3 (Qapply,
+				    intern ("set-buffer-multibyte"),
+				    NILP (flag) ? Qt : Qnil),
+			     old_undo));
     }
 
   UNGCPRO;
@@ -3238,7 +3476,7 @@ recenter_overlay_lists (struct buffer *buf, ptrdiff_t pos)
 	  if (prev)
 	    prev->next = next;
 	  else
-	    buffer_set_overlays_before (buf, next);
+	    set_buffer_overlays_before (buf, next);
 
 	  /* Search thru overlays_after for where to put it.  */
 	  other_prev = NULL;
@@ -3260,7 +3498,7 @@ recenter_overlay_lists (struct buffer *buf, ptrdiff_t pos)
 	  if (other_prev)
 	    other_prev->next = tail;
 	  else
-	    buffer_set_overlays_after (buf, tail);
+	    set_buffer_overlays_after (buf, tail);
 	  tail = prev;
 	}
       else
@@ -3296,7 +3534,7 @@ recenter_overlay_lists (struct buffer *buf, ptrdiff_t pos)
 	  if (prev)
 	    prev->next = next;
 	  else
-	    buffer_set_overlays_after (buf, next);
+	    set_buffer_overlays_after (buf, next);
 
 	  /* Search thru overlays_before for where to put it.  */
 	  other_prev = NULL;
@@ -3318,7 +3556,7 @@ recenter_overlay_lists (struct buffer *buf, ptrdiff_t pos)
 	  if (other_prev)
 	    other_prev->next = tail;
 	  else
-	    buffer_set_overlays_before (buf, tail);
+	    set_buffer_overlays_before (buf, tail);
 	  tail = prev;
 	}
     }
@@ -3423,7 +3661,7 @@ fix_start_end_in_overlays (register ptrdiff_t start, register ptrdiff_t end)
 	      beforep = tail;
 	    }
 	  if (!parent)
-	    buffer_set_overlays_before (current_buffer, tail->next);
+	    set_buffer_overlays_before (current_buffer, tail->next);
 	  else
 	    parent->next = tail->next;
 	  tail = tail->next;
@@ -3469,7 +3707,7 @@ fix_start_end_in_overlays (register ptrdiff_t start, register ptrdiff_t end)
 	      beforep = tail;
 	    }
 	  if (!parent)
-	    buffer_set_overlays_after (current_buffer, tail->next);
+	    set_buffer_overlays_after (current_buffer, tail->next);
 	  else
 	    parent->next = tail->next;
 	  tail = tail->next;
@@ -3483,14 +3721,14 @@ fix_start_end_in_overlays (register ptrdiff_t start, register ptrdiff_t end)
   if (beforep)
     {
       beforep->next = current_buffer->overlays_before;
-      buffer_set_overlays_before (current_buffer, before_list);
+      set_buffer_overlays_before (current_buffer, before_list);
     }
   recenter_overlay_lists (current_buffer, current_buffer->overlay_center);
 
   if (afterp)
     {
       afterp->next = current_buffer->overlays_after;
-      buffer_set_overlays_after (current_buffer, after_list);
+      set_buffer_overlays_after (current_buffer, after_list);
     }
   recenter_overlay_lists (current_buffer, current_buffer->overlay_center);
 }
@@ -3567,7 +3805,7 @@ fix_overlays_before (struct buffer *bp, ptrdiff_t prev, ptrdiff_t pos)
 	  if (!right_pair)
 	    {
 	      found->next = bp->overlays_before;
-	      buffer_set_overlays_before (bp, found);
+	      set_buffer_overlays_before (bp, found);
 	    }
 	  else
 	    {
@@ -3645,13 +3883,13 @@ for the rear of the overlay advance when text is inserted there
     {
       if (b->overlays_after)
 	XOVERLAY (overlay)->next = b->overlays_after;
-      buffer_set_overlays_after (b, XOVERLAY (overlay));
+      set_buffer_overlays_after (b, XOVERLAY (overlay));
     }
   else
     {
       if (b->overlays_before)
 	XOVERLAY (overlay)->next = b->overlays_before;
-      buffer_set_overlays_before (b, XOVERLAY (overlay));
+      set_buffer_overlays_before (b, XOVERLAY (overlay));
     }
 
   /* This puts it in the right list, and in the right order.  */
@@ -3716,8 +3954,8 @@ unchain_both (struct buffer *b, Lisp_Object overlay)
 {
   struct Lisp_Overlay *ov = XOVERLAY (overlay);
 
-  buffer_set_overlays_before (b, unchain_overlay (b->overlays_before, ov));
-  buffer_set_overlays_after (b, unchain_overlay (b->overlays_after, ov));
+  set_buffer_overlays_before (b, unchain_overlay (b->overlays_before, ov));
+  set_buffer_overlays_after (b, unchain_overlay (b->overlays_after, ov));
   eassert (XOVERLAY (overlay)->next == NULL);
 }
 
@@ -3812,12 +4050,12 @@ buffer.  */)
   if (n_end < b->overlay_center)
     {
       XOVERLAY (overlay)->next = b->overlays_after;
-      buffer_set_overlays_after (b, XOVERLAY (overlay));
+      set_buffer_overlays_after (b, XOVERLAY (overlay));
     }
   else
     {
       XOVERLAY (overlay)->next = b->overlays_before;
-      buffer_set_overlays_before (b, XOVERLAY (overlay));
+      set_buffer_overlays_before (b, XOVERLAY (overlay));
     }
 
   /* This puts it in the right list, and in the right order.  */
@@ -4913,8 +5151,8 @@ init_buffer_once (void)
   /* No one will share the text with these buffers, but let's play it safe.  */
   buffer_defaults.indirections = 0;
   buffer_local_symbols.indirections = 0;
-  buffer_set_intervals (&buffer_defaults, NULL);
-  buffer_set_intervals (&buffer_local_symbols, NULL);
+  set_buffer_intervals (&buffer_defaults, NULL);
+  set_buffer_intervals (&buffer_local_symbols, NULL);
   XSETPVECTYPESIZE (&buffer_defaults, PVEC_BUFFER, pvecsize);
   XSETBUFFER (Vbuffer_defaults, &buffer_defaults);
   XSETPVECTYPESIZE (&buffer_local_symbols, PVEC_BUFFER, pvecsize);
@@ -4924,55 +5162,55 @@ init_buffer_once (void)
   /* Must do these before making the first buffer! */
 
   /* real setup is done in bindings.el */
-  BSET (&buffer_defaults, mode_line_format, build_pure_c_string ("%-"));
-  BSET (&buffer_defaults, header_line_format, Qnil);
-  BSET (&buffer_defaults, abbrev_mode, Qnil);
-  BSET (&buffer_defaults, overwrite_mode, Qnil);
-  BSET (&buffer_defaults, case_fold_search, Qt);
-  BSET (&buffer_defaults, auto_fill_function, Qnil);
-  BSET (&buffer_defaults, selective_display, Qnil);
-  BSET (&buffer_defaults, selective_display_ellipses, Qt);
-  BSET (&buffer_defaults, abbrev_table, Qnil);
-  BSET (&buffer_defaults, display_table, Qnil);
-  BSET (&buffer_defaults, undo_list, Qnil);
-  BSET (&buffer_defaults, mark_active, Qnil);
-  BSET (&buffer_defaults, file_format, Qnil);
-  BSET (&buffer_defaults, auto_save_file_format, Qt);
-  buffer_set_overlays_before (&buffer_defaults, NULL);
-  buffer_set_overlays_after (&buffer_defaults, NULL);
+  bset_mode_line_format (&buffer_defaults, build_pure_c_string ("%-"));
+  bset_header_line_format (&buffer_defaults, Qnil);
+  bset_abbrev_mode (&buffer_defaults, Qnil);
+  bset_overwrite_mode (&buffer_defaults, Qnil);
+  bset_case_fold_search (&buffer_defaults, Qt);
+  bset_auto_fill_function (&buffer_defaults, Qnil);
+  bset_selective_display (&buffer_defaults, Qnil);
+  bset_selective_display_ellipses (&buffer_defaults, Qt);
+  bset_abbrev_table (&buffer_defaults, Qnil);
+  bset_display_table (&buffer_defaults, Qnil);
+  bset_undo_list (&buffer_defaults, Qnil);
+  bset_mark_active (&buffer_defaults, Qnil);
+  bset_file_format (&buffer_defaults, Qnil);
+  bset_auto_save_file_format (&buffer_defaults, Qt);
+  set_buffer_overlays_before (&buffer_defaults, NULL);
+  set_buffer_overlays_after (&buffer_defaults, NULL);
   buffer_defaults.overlay_center = BEG;
 
   XSETFASTINT (BVAR (&buffer_defaults, tab_width), 8);
-  BSET (&buffer_defaults, truncate_lines, Qnil);
-  BSET (&buffer_defaults, word_wrap, Qnil);
-  BSET (&buffer_defaults, ctl_arrow, Qt);
-  BSET (&buffer_defaults, bidi_display_reordering, Qt);
-  BSET (&buffer_defaults, bidi_paragraph_direction, Qnil);
-  BSET (&buffer_defaults, cursor_type, Qt);
-  BSET (&buffer_defaults, extra_line_spacing, Qnil);
-  BSET (&buffer_defaults, cursor_in_non_selected_windows, Qt);
+  bset_truncate_lines (&buffer_defaults, Qnil);
+  bset_word_wrap (&buffer_defaults, Qnil);
+  bset_ctl_arrow (&buffer_defaults, Qt);
+  bset_bidi_display_reordering (&buffer_defaults, Qt);
+  bset_bidi_paragraph_direction (&buffer_defaults, Qnil);
+  bset_cursor_type (&buffer_defaults, Qt);
+  bset_extra_line_spacing (&buffer_defaults, Qnil);
+  bset_cursor_in_non_selected_windows (&buffer_defaults, Qt);
 
-  BSET (&buffer_defaults, enable_multibyte_characters, Qt);
-  BSET (&buffer_defaults, buffer_file_coding_system, Qnil);
+  bset_enable_multibyte_characters (&buffer_defaults, Qt);
+  bset_buffer_file_coding_system (&buffer_defaults, Qnil);
   XSETFASTINT (BVAR (&buffer_defaults, fill_column), 70);
   XSETFASTINT (BVAR (&buffer_defaults, left_margin), 0);
-  BSET (&buffer_defaults, cache_long_line_scans, Qnil);
-  BSET (&buffer_defaults, file_truename, Qnil);
+  bset_cache_long_line_scans (&buffer_defaults, Qnil);
+  bset_file_truename (&buffer_defaults, Qnil);
   XSETFASTINT (BVAR (&buffer_defaults, display_count), 0);
   XSETFASTINT (BVAR (&buffer_defaults, left_margin_cols), 0);
   XSETFASTINT (BVAR (&buffer_defaults, right_margin_cols), 0);
-  BSET (&buffer_defaults, left_fringe_width, Qnil);
-  BSET (&buffer_defaults, right_fringe_width, Qnil);
-  BSET (&buffer_defaults, fringes_outside_margins, Qnil);
-  BSET (&buffer_defaults, scroll_bar_width, Qnil);
-  BSET (&buffer_defaults, vertical_scroll_bar_type, Qt);
-  BSET (&buffer_defaults, indicate_empty_lines, Qnil);
-  BSET (&buffer_defaults, indicate_buffer_boundaries, Qnil);
-  BSET (&buffer_defaults, fringe_indicator_alist, Qnil);
-  BSET (&buffer_defaults, fringe_cursor_alist, Qnil);
-  BSET (&buffer_defaults, scroll_up_aggressively, Qnil);
-  BSET (&buffer_defaults, scroll_down_aggressively, Qnil);
-  BSET (&buffer_defaults, display_time, Qnil);
+  bset_left_fringe_width (&buffer_defaults, Qnil);
+  bset_right_fringe_width (&buffer_defaults, Qnil);
+  bset_fringes_outside_margins (&buffer_defaults, Qnil);
+  bset_scroll_bar_width (&buffer_defaults, Qnil);
+  bset_vertical_scroll_bar_type (&buffer_defaults, Qt);
+  bset_indicate_empty_lines (&buffer_defaults, Qnil);
+  bset_indicate_buffer_boundaries (&buffer_defaults, Qnil);
+  bset_fringe_indicator_alist (&buffer_defaults, Qnil);
+  bset_fringe_cursor_alist (&buffer_defaults, Qnil);
+  bset_scroll_up_aggressively (&buffer_defaults, Qnil);
+  bset_scroll_down_aggressively (&buffer_defaults, Qnil);
+  bset_display_time (&buffer_defaults, Qnil);
 
   /* Assign the local-flags to the slots that have default values.
      The local flag is a bit that is used in the buffer
@@ -4984,24 +5222,24 @@ init_buffer_once (void)
 
   /* 0 means not a lisp var, -1 means always local, else mask */
   memset (&buffer_local_flags, 0, sizeof buffer_local_flags);
-  BSET (&buffer_local_flags, filename, make_number (-1));
-  BSET (&buffer_local_flags, directory, make_number (-1));
-  BSET (&buffer_local_flags, backed_up, make_number (-1));
-  BSET (&buffer_local_flags, save_length, make_number (-1));
-  BSET (&buffer_local_flags, auto_save_file_name, make_number (-1));
-  BSET (&buffer_local_flags, read_only, make_number (-1));
-  BSET (&buffer_local_flags, major_mode, make_number (-1));
-  BSET (&buffer_local_flags, mode_name, make_number (-1));
-  BSET (&buffer_local_flags, undo_list, make_number (-1));
-  BSET (&buffer_local_flags, mark_active, make_number (-1));
-  BSET (&buffer_local_flags, point_before_scroll, make_number (-1));
-  BSET (&buffer_local_flags, file_truename, make_number (-1));
-  BSET (&buffer_local_flags, invisibility_spec, make_number (-1));
-  BSET (&buffer_local_flags, file_format, make_number (-1));
-  BSET (&buffer_local_flags, auto_save_file_format, make_number (-1));
-  BSET (&buffer_local_flags, display_count, make_number (-1));
-  BSET (&buffer_local_flags, display_time, make_number (-1));
-  BSET (&buffer_local_flags, enable_multibyte_characters, make_number (-1));
+  bset_filename (&buffer_local_flags, make_number (-1));
+  bset_directory (&buffer_local_flags, make_number (-1));
+  bset_backed_up (&buffer_local_flags, make_number (-1));
+  bset_save_length (&buffer_local_flags, make_number (-1));
+  bset_auto_save_file_name (&buffer_local_flags, make_number (-1));
+  bset_read_only (&buffer_local_flags, make_number (-1));
+  bset_major_mode (&buffer_local_flags, make_number (-1));
+  bset_mode_name (&buffer_local_flags, make_number (-1));
+  bset_undo_list (&buffer_local_flags, make_number (-1));
+  bset_mark_active (&buffer_local_flags, make_number (-1));
+  bset_point_before_scroll (&buffer_local_flags, make_number (-1));
+  bset_file_truename (&buffer_local_flags, make_number (-1));
+  bset_invisibility_spec (&buffer_local_flags, make_number (-1));
+  bset_file_format (&buffer_local_flags, make_number (-1));
+  bset_auto_save_file_format (&buffer_local_flags, make_number (-1));
+  bset_display_count (&buffer_local_flags, make_number (-1));
+  bset_display_time (&buffer_local_flags, make_number (-1));
+  bset_enable_multibyte_characters (&buffer_local_flags, make_number (-1));
 
   idx = 1;
   XSETFASTINT (BVAR (&buffer_local_flags, mode_line_format), idx); ++idx;
@@ -5057,7 +5295,7 @@ init_buffer_once (void)
   QSFundamental = build_pure_c_string ("Fundamental");
 
   Qfundamental_mode = intern_c_string ("fundamental-mode");
-  BSET (&buffer_defaults, major_mode, Qfundamental_mode);
+  bset_major_mode (&buffer_defaults, Qfundamental_mode);
 
   Qmode_class = intern_c_string ("mode-class");
 
@@ -5120,13 +5358,13 @@ init_buffer (void)
       len++;
     }
 
-  BSET (current_buffer, directory, make_unibyte_string (pwd, len));
+  bset_directory (current_buffer, make_unibyte_string (pwd, len));
   if (! NILP (BVAR (&buffer_defaults, enable_multibyte_characters)))
     /* At this moment, we still don't know how to decode the
        directory name.  So, we keep the bytes in multibyte form so
        that ENCODE_FILE correctly gets the original bytes.  */
-    BSET (current_buffer, directory,
-         string_to_multibyte (BVAR (current_buffer, directory)));
+    bset_directory
+      (current_buffer, string_to_multibyte (BVAR (current_buffer, directory)));
 
   /* Add /: to the front of the name
      if it would otherwise be treated as magic.  */
@@ -5137,11 +5375,12 @@ init_buffer (void)
 	 However, it is not necessary to turn / into /:/.
 	 So avoid doing that.  */
       && strcmp ("/", SSDATA (BVAR (current_buffer, directory))))
-    BSET (current_buffer, directory,
-         concat2 (build_string ("/:"), BVAR (current_buffer, directory)));
+    bset_directory
+      (current_buffer,
+       concat2 (build_string ("/:"), BVAR (current_buffer, directory)));
 
   temp = get_minibuffer (0);
-  BSET (XBUFFER (temp), directory, BVAR (current_buffer, directory));
+  bset_directory (XBUFFER (temp), BVAR (current_buffer, directory));
 
   free (pwd);
 }

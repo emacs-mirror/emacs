@@ -1129,16 +1129,15 @@ are the opposite of what they are in those other functions.
 
 @defun select-window window &optional norecord
 This function makes @var{window} the selected window, as well as the
-window selected within its frame (@pxref{Basic Windows}).
-@var{window} must be a live window.  Unless @var{window} already is the
-selected window, its buffer becomes the current buffer (@pxref{Buffers
-and Windows}).  The return value is @var{window}.
+window selected within its frame (@pxref{Basic Windows}).  @var{window}
+must be a live window.  This function makes also @var{window}'s buffer
+current (@pxref{Buffers and Windows}).  The return value is
+@var{window}.
 
-By default, this function also moves @var{window}'s selected buffer to
-the front of the buffer list (@pxref{The Buffer List}), and makes
-@var{window} the most recently selected window.  However, if the
-optional argument @var{norecord} is non-@code{nil}, these additional
-actions are omitted.
+By default, this function also moves @var{window}'s buffer to the front
+of the buffer list (@pxref{The Buffer List}), and makes @var{window} the
+most recently selected window.  However, if the optional argument
+@var{norecord} is non-@code{nil}, these additional actions are omitted.
 @end defun
 
 @cindex most recently selected windows
@@ -2276,19 +2275,18 @@ For a nonselected window, this is the value point would have (in that
 window's buffer) if that window were selected.  The default for
 @var{window} is the selected window.
 
-When @var{window} is the selected window and its buffer is also the
-current buffer, the value returned is the same as point in that buffer.
-Strictly speaking, it would be more correct to return the ``top-level''
-value of point, outside of any @code{save-excursion} forms.  But that
-value is hard to find.
+When @var{window} is the selected window, the value returned is the
+value of point in that window's buffer.  Strictly speaking, it would be
+more correct to return the ``top-level'' value of point, outside of any
+@code{save-excursion} forms.  But that value is hard to find.
 @end defun
 
 @defun set-window-point window position
 This function positions point in @var{window} at position
 @var{position} in @var{window}'s buffer.  It returns @var{position}.
 
-If @var{window} is selected, and its buffer is current,
-this simply does @code{goto-char}.
+If @var{window} is selected, this simply does @code{goto-char} in
+@var{window}'s buffer.
 @end defun
 
 @defvar window-point-insertion-type

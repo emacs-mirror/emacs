@@ -7112,7 +7112,7 @@ decode_coding (struct coding_system *coding)
 	record_first_change ();
 
       undo_list = BVAR (current_buffer, undo_list);
-      BSET (current_buffer, undo_list, Qt);
+      bset_undo_list (current_buffer, Qt);
     }
 
   coding->consumed = coding->consumed_char = 0;
@@ -7209,7 +7209,7 @@ decode_coding (struct coding_system *coding)
     decode_eol (coding);
   if (BUFFERP (coding->dst_object))
     {
-      BSET (current_buffer, undo_list, undo_list);
+      bset_undo_list (current_buffer, undo_list);
       record_insert (coding->dst_pos, coding->produced_char);
     }
   return coding->result;
@@ -7577,8 +7577,8 @@ make_conversion_work_buffer (int multibyte)
      doesn't compile new regexps.  */
   Fset (Fmake_local_variable (Qinhibit_modification_hooks), Qt);
   Ferase_buffer ();
-  BSET (current_buffer, undo_list, Qt);
-  BSET (current_buffer, enable_multibyte_characters, multibyte ? Qt : Qnil);
+  bset_undo_list (current_buffer, Qt);
+  bset_enable_multibyte_characters (current_buffer, multibyte ? Qt : Qnil);
   set_buffer_internal (current);
   return workbuf;
 }
@@ -9302,10 +9302,10 @@ DEFUN ("set-terminal-coding-system-internal", Fset_terminal_coding_system_intern
   terminal_coding->common_flags &= ~CODING_ANNOTATE_COMPOSITION_MASK;
   terminal_coding->src_multibyte = 1;
   terminal_coding->dst_multibyte = 0;
-  if (terminal_coding->common_flags & CODING_REQUIRE_ENCODING_MASK)
-    TSET (term, charset_list, coding_charset_list (terminal_coding));
-  else
-    TSET (term, charset_list, Fcons (make_number (charset_ascii), Qnil));
+  tset_charset_list
+    (term, (terminal_coding->common_flags & CODING_REQUIRE_ENCODING_MASK
+	    ? coding_charset_list (terminal_coding)
+	    : Fcons (make_number (charset_ascii), Qnil)));
   return Qnil;
 }
 

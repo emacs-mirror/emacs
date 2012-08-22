@@ -39,6 +39,11 @@ may be useful.
 as it was confusingly-named and rarely useful.
 
 ---
+** You can use `NO_BIN_LINK=t make install' to prevent the installation
+overwriting "emacs" in the installation bin/ directory with a link
+to emacs-VERSION.
+
+---
 ** Emacs uses libtinfo in preference to libncurses, if available.
 
 ---
@@ -159,6 +164,10 @@ The PCL-CVS commands are still available via the keyboard.
 
 
 * Editing Changes in Emacs 24.3
+
+** New option `yank-handled-properties' allows processing of text
+properties on yanked text, in more ways that are more general than
+just removing them, as done by `yank-excluded-properties'.
 
 ** New option `delete-trailing-lines' specifies whether the M-x
 delete-trailing-whitespace command should delete trailing lines at the

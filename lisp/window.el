@@ -271,19 +271,32 @@ windows horizontally arranged within WINDOW."
 	(setq walk-window-tree-window
 	      (window-right walk-window-tree-window))))))
 
-(defun walk-window-tree (fun &optional frame any)
+(defun walk-window-tree (fun &optional frame any minibuf)
   "Run function FUN on each live window of FRAME.
 FUN must be a function with one argument - a window.  FRAME must
 be a live frame and defaults to the selected one.  ANY, if
-non-nil means to run FUN on all live and internal windows of
+non-nil, means to run FUN on all live and internal windows of
 FRAME.
+
+Optional argument MINIBUF t means run FUN on FRAME's minibuffer
+window even if it isn't active.  MINIBUF nil or omitted means run
+FUN on FRAME's minibuffer window only if it's active.  In both
+cases the minibuffer window must be part of FRAME.  MINIBUF
+neither nil nor t means never run FUN on the minibuffer window.
 
 This function performs a pre-order, depth-first traversal of the
 window tree.  If FUN changes the window tree, the result is
 unpredictable."
-  (let ((walk-window-tree-frame (window-normalize-frame frame)))
-    (walk-window-tree-1
-     fun (frame-root-window walk-window-tree-frame) any)))
+  (setq frame (window-normalize-frame frame))
+  (walk-window-tree-1 fun (frame-root-window frame) any)
+  (when (memq minibuf '(nil t))
+    ;; Run FUN on FRAME's minibuffer window if requested.
+    (let ((minibuffer-window (minibuffer-window frame)))
+      (when (and (window-live-p minibuffer-window)
+		 (eq (window-frame minibuffer-window) frame)
+		 (or (eq minibuf t)
+		     (minibuffer-window-active-p minibuffer-window)))
+	(funcall fun minibuffer-window)))))
 
 (defun walk-window-subtree (fun &optional window any)
   "Run function FUN on the subtree of windows rooted at WINDOW.
@@ -299,13 +312,19 @@ is unpredictable."
   (setq window (window-normalize-window window))
   (walk-window-tree-1 fun window any t))
 
-(defun window-with-parameter (parameter &optional value frame any)
+(defun window-with-parameter (parameter &optional value frame any minibuf)
   "Return first window on FRAME with PARAMETER non-nil.
 FRAME defaults to the selected frame.  Optional argument VALUE
 non-nil means only return a window whose window-parameter value
 for PARAMETER equals VALUE (comparison is done with `equal').
 Optional argument ANY non-nil means consider internal windows
-too."
+too.
+
+Optional argument MINIBUF t means consider FRAME's minibuffer
+window even if it isn't active.  MINIBUF nil or omitted means
+consider FRAME's minibuffer window only if it's active.  In both
+cases the minibuffer window must be part of FRAME.  MINIBUF
+neither nil nor t means never consider the minibuffer window."
   (let (this-value)
     (catch 'found
       (walk-window-tree
@@ -313,7 +332,7 @@ too."
 	 (when (and (setq this-value (window-parameter window parameter))
 		    (or (not value) (equal value this-value)))
 	   (throw 'found window)))
-       frame any))))
+       frame any minibuf))))
 
 ;;; Atomic windows.
 (defun window-atom-root (&optional window)
@@ -516,7 +535,7 @@ unless it has no other choice (like when deleting a neighboring
 window).")
 (make-variable-buffer-local 'window-size-fixed)
 
-(defun window--size-ignore (window ignore)
+(defun window--size-ignore-p (window ignore)
   "Return non-nil if IGNORE says to ignore size restrictions for WINDOW."
   (if (window-valid-p ignore) (eq window ignore) ignore))
 
@@ -559,7 +578,7 @@ means ignore all of the above restrictions for all windows."
 	  value)
       (with-current-buffer (window-buffer window)
 	(cond
-	 ((and (not (window--size-ignore window ignore))
+	 ((and (not (window--size-ignore-p window ignore))
 	       (window-size-fixed-p window horizontal))
 	  ;; The minimum size of a fixed size window is its size.
 	  (window-total-size window horizontal))
@@ -588,7 +607,7 @@ means ignore all of the above restrictions for all windows."
 		  (ceiling (or (frame-parameter frame 'scroll-bar-width) 14)
 			   (frame-char-width)))
 		 (t 0)))
-	     (if (and (not (window--size-ignore window ignore))
+	     (if (and (not (window--size-ignore-p window ignore))
 		      (numberp window-min-width))
 		 window-min-width
 	       0))))
@@ -598,7 +617,7 @@ means ignore all of the above restrictions for all windows."
 	  (max (+ window-safe-min-height
 		  (if header-line-format 1 0)
 		  (if mode-line-format 1 0))
-	       (if (and (not (window--size-ignore window ignore))
+	       (if (and (not (window--size-ignore-p window ignore))
 			(numberp window-min-height))
 		   window-min-height
 		 0))))))))
@@ -637,7 +656,7 @@ ignore all of the above restrictions for all windows."
     (max (- (window-min-size window horizontal ignore)
 	    (window-total-size window horizontal))
 	 delta))
-   ((window--size-ignore window ignore)
+   ((window--size-ignore-p window ignore)
     delta)
    ((> delta 0)
     (if (window-size-fixed-p window horizontal)
@@ -719,7 +738,7 @@ WINDOW can be resized in the desired direction.  The function
 		 ((eq sub window)
 		  (setq skip (eq trail 'before)))
 		 (skip)
-		 ((and (not (window--size-ignore window ignore))
+		 ((and (not (window--size-ignore-p window ignore))
 		       (window-size-fixed-p sub horizontal)))
 		 (t
 		  ;; We found a non-fixed-size child window.
@@ -809,7 +828,7 @@ at least one other window can be enlarged appropriately."
 	  ;; child window is fixed-size.
 	  (while sub
 	    (when (and (not (eq sub window))
-		       (not (window--size-ignore sub ignore))
+		       (not (window--size-ignore-p sub ignore))
 		       (window-size-fixed-p sub horizontal))
 	      (throw 'fixed delta))
 	    (setq sub (window-right sub))))
@@ -849,7 +868,7 @@ Optional argument NODOWN non-nil means do not check whether
 WINDOW itself (and its child windows) can be enlarged; check
 only whether other windows can be shrunk appropriately."
   (setq window (window-normalize-window window))
-  (if (and (not (window--size-ignore window ignore))
+  (if (and (not (window--size-ignore-p window ignore))
 	   (not nodown) (window-size-fixed-p window horizontal))
       ;; With IGNORE and NOWDON nil return zero if WINDOW has fixed
       ;; size.
@@ -1062,32 +1081,6 @@ windows nor the buffer list."
     (dolist (walk-windows-window (window-list-1 nil minibuf all-frames))
       (funcall fun walk-windows-window))))
 
-(defun window-point-1 (&optional window)
-  "Return value of WINDOW's point.
-WINDOW can be any live window and defaults to the selected one.
-
-This function is like `window-point' with one exception: If
-WINDOW is selected, it returns the value of `point' of WINDOW's
-buffer regardless of whether that buffer is current or not."
-  (setq window (window-normalize-window window t))
-  (if (eq window (selected-window))
-      (with-current-buffer (window-buffer window)
-	(point))
-    (window-point window)))
-
-(defun set-window-point-1 (window pos)
-  "Set value of WINDOW's point to POS.
-WINDOW can be any live window and defaults to the selected one.
-
-This function is like `set-window-point' with one exception: If
-WINDOW is selected, it moves `point' of WINDOW's buffer to POS
-regardless of whether that buffer is current or not."
-  (setq window (window-normalize-window window t))
-  (if (eq window (selected-window))
-      (with-current-buffer (window-buffer window)
-	(goto-char pos))
-    (set-window-point window pos)))
-
 (defun window-at-side-p (&optional window side)
   "Return t if WINDOW is at SIDE of its containing frame.
 WINDOW must be a valid window and defaults to the selected one.
@@ -1114,7 +1107,7 @@ SIDE can be any of the symbols `left', `top', `right' or
      (lambda (window)
        (when (window-at-side-p window side)
 	 (setq windows (cons window windows))))
-     frame)
+     frame nil 'nomini)
     (nreverse windows)))
 
 (defun window--in-direction-2 (window posn &optional horizontal)
@@ -1129,12 +1122,25 @@ SIDE can be any of the symbols `left', `top', `right' or
 	  (- left posn)
 	(- posn left (window-total-width window))))))
 
+;; Predecessors to the below have been devised by Julian Assange in
+;; change-windows-intuitively.el and Hovav Shacham in windmove.el.
+;; Neither of these allow to selectively ignore specific windows
+;; (windows whose `no-other-window' parameter is non-nil) as targets of
+;; the movement.
 (defun window-in-direction (direction &optional window ignore)
   "Return window in DIRECTION as seen from WINDOW.
+More precisely, return the nearest window in direction DIRECTION
+as seen from the position of `window-point' in window WINDOW.
 DIRECTION must be one of `above', `below', `left' or `right'.
 WINDOW must be a live window and defaults to the selected one.
-IGNORE non-nil means a window can be returned even if its
-`no-other-window' parameter is non-nil."
+
+Do not return a window whose `no-other-window' parameter is
+non-nil.  If the nearest window's `no-other-window' parameter is
+non-nil, try to find another window in the indicated direction.
+If, however, the optional argument IGNORE is non-nil, return that
+window even if its `no-other-window' parameter is non-nil.
+
+Return nil if no suitable window can be found."
   (setq window (window-normalize-window window t))
   (unless (memq direction '(above below left right))
     (error "Wrong direction %s" direction))
@@ -1146,7 +1152,7 @@ IGNORE non-nil means a window can be returned even if its
 	 (last (+ first (if hor
 			    (window-total-width window)
 			  (window-total-height window))))
-	 (posn-cons (nth 6 (posn-at-point (window-point-1 window) window)))
+	 (posn-cons (nth 6 (posn-at-point (window-point window) window)))
 	 ;; The column / row value of `posn-at-point' can be nil for the
 	 ;; mini-window, guard against that.
 	 (posn (if hor
@@ -1221,7 +1227,7 @@ IGNORE non-nil means a window can be returned even if its
 	     (setq best-edge-2 w-top)
 	     (setq best-diff-2 best-diff-2-new)
 	     (setq best-2 w)))))))
-     (window-frame window))
+     frame)
     (or best best-2)))
 
 (defun get-window-with-predicate (predicate &optional minibuf all-frames default)
@@ -1865,7 +1871,7 @@ preferably only resize windows adjacent to EDGE."
 		;; Make sure this sibling is left alone when
 		;; resizing its siblings.
 		(set-window-new-normal sub 'ignore))
-	       ((or (window--size-ignore sub ignore)
+	       ((or (window--size-ignore-p sub ignore)
 		    (not (window-size-fixed-p sub horizontal)))
 		;; Set this-delta to t to signal that we found a sibling
 		;; of WINDOW whose size is not fixed.
@@ -2613,7 +2619,7 @@ WINDOW must be a live window and defaults to the selected one."
       ;; Add an entry for buffer to WINDOW's previous buffers.
       (with-current-buffer buffer
 	(let ((start (window-start window))
-	      (point (window-point-1 window)))
+	      (point (window-point window)))
 	  (setq entry
 		(cons buffer
 		      (if entry
@@ -2657,7 +2663,7 @@ before was current this also makes BUFFER the current buffer."
       ;; Don't force window-start here (even if POINT is nil).
       (set-window-start window start t))
     (when point
-      (set-window-point-1 window point))))
+      (set-window-point window point))))
 
 (defcustom switch-to-visible-buffer t
   "If non-nil, allow switching to an already visible buffer.
@@ -3393,7 +3399,7 @@ Otherwise, the window starts are chosen so as to minimize the
 amount of redisplay; this is convenient on slow terminals."
   (interactive "P")
   (let ((old-window (selected-window))
-	(old-point (window-point-1))
+	(old-point (window-point))
 	(size (and size (prefix-numeric-value size)))
         moved-by-window-height moved new-window bottom)
     (when (and size (< size 0) (< (- size) window-min-height))
@@ -3418,7 +3424,7 @@ amount of redisplay; this is convenient on slow terminals."
 	  (setq bottom (point)))
 	(and moved-by-window-height
 	     (<= bottom (point))
-	     (set-window-point-1 old-window (1- bottom)))
+	     (set-window-point old-window (1- bottom)))
 	(and moved-by-window-height
 	     (<= (window-start new-window) old-point)
 	     (set-window-point new-window old-point)
@@ -3727,7 +3733,7 @@ specific buffers."
                   `((parameters . ,list))))
             ,@(when buffer
                 ;; All buffer related things go in here.
-		(let ((point (window-point-1 window))
+		(let ((point (window-point window))
 		      (start (window-start window)))
 		  `((buffer
 		     ,(buffer-name buffer)
@@ -4020,7 +4026,7 @@ element is BUFFER."
        (list 'other
 	     ;; A quadruple of WINDOW's buffer, start, point and height.
 	     (list (window-buffer window) (window-start window)
-		   (window-point-1 window) (window-total-size window))
+		   (window-point window) (window-total-size window))
 	     (selected-window) buffer))))
    ((eq type 'window)
     ;; WINDOW has been created on an existing frame.

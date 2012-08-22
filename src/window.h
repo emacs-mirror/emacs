@@ -22,6 +22,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include "dispextern.h"
 
+INLINE_HEADER_BEGIN
+#ifndef WINDOW_INLINE
+# define WINDOW_INLINE INLINE
+#endif
+
 extern Lisp_Object Qleft, Qright;
 
 /* Windows are allocated as if they were vectors, but then the
@@ -85,10 +90,6 @@ struct cursor_pos
   /* Glyph matrix position.  */
   int hpos, vpos;
 };
-
-/* Most code should use this macro to set Lisp fields in struct window.  */
-
-#define WSET(w, field, value) ((w)->field = (value))
 
 struct window
   {
@@ -347,6 +348,75 @@ struct window
        Should be nonnegative, and only valid if window_end_valid is not nil.  */
     ptrdiff_t window_end_bytepos;
 };
+
+/* Most code should use these functions to set Lisp fields in struct
+   window.  */
+WINDOW_INLINE void
+wset_buffer (struct window *w, Lisp_Object val)
+{
+  w->buffer = val;
+}
+WINDOW_INLINE void
+wset_frame (struct window *w, Lisp_Object val)
+{
+  w->frame = val;
+}
+WINDOW_INLINE void
+wset_left_col (struct window *w, Lisp_Object val)
+{
+  w->left_col = val;
+}
+WINDOW_INLINE void
+wset_next (struct window *w, Lisp_Object val)
+{
+  w->next = val;
+}
+WINDOW_INLINE void
+wset_prev (struct window *w, Lisp_Object val)
+{
+  w->prev = val;
+}
+WINDOW_INLINE void
+wset_redisplay_end_trigger (struct window *w, Lisp_Object val)
+{
+  w->redisplay_end_trigger = val;
+}
+WINDOW_INLINE void
+wset_top_line (struct window *w, Lisp_Object val)
+{
+  w->top_line = val;
+}
+WINDOW_INLINE void
+wset_total_cols (struct window *w, Lisp_Object val)
+{
+  w->total_cols = val;
+}
+WINDOW_INLINE void
+wset_total_lines (struct window *w, Lisp_Object val)
+{
+  w->total_lines = val;
+}
+WINDOW_INLINE void
+wset_vertical_scroll_bar (struct window *w, Lisp_Object val)
+{
+  w->vertical_scroll_bar = val;
+}
+WINDOW_INLINE void
+wset_window_end_pos (struct window *w, Lisp_Object val)
+{
+  w->window_end_pos = val;
+}
+WINDOW_INLINE void
+wset_window_end_valid (struct window *w, Lisp_Object val)
+{
+  w->window_end_valid = val;
+}
+WINDOW_INLINE void
+wset_window_end_vpos (struct window *w, Lisp_Object val)
+{
+  w->window_end_vpos = val;
+}
+
 
 /* 1 if W is a minibuffer window.  */
 
@@ -915,5 +985,7 @@ extern void init_window_once (void);
 extern void init_window (void);
 extern void syms_of_window (void);
 extern void keys_of_window (void);
+
+INLINE_HEADER_END
 
 #endif /* not WINDOW_H_INCLUDED */

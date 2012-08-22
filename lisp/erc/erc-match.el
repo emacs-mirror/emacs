@@ -458,7 +458,7 @@ Use this defun with `erc-insert-modify-hook'."
 				      (point-min))
 				    (point-max))))
     (when (and vector
-	       (not (and erc-track-exclude-server-buffer
+	       (not (and erc-match-exclude-server-buffer
 			 (erc-server-buffer-p))))
       (mapc
        (lambda (match-type)

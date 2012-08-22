@@ -1584,11 +1584,6 @@ main (int argc, char **argv)
   /* Send over our environment and current directory. */
   if (!current_frame)
     {
-#ifndef WINDOWSNT
-      /* This is defined in stdlib.h on MS-Windows.  It's defined in
-	 unistd.h on some POSIX hosts, but not all (Bug#10155).  */
-      extern char **environ;
-#endif
       int i;
       for (i = 0; environ[i]; i++)
         {

@@ -372,7 +372,7 @@ invoke it.  If KEYS is omitted or nil, the return value of
       Vthis_command = save_this_command;
       Vthis_original_command = save_this_original_command;
       Vreal_this_command = save_real_this_command;
-      KSET (current_kboard, Vlast_command, save_last_command);
+      kset_last_command (current_kboard, save_last_command);
 
       temporarily_switch_to_single_kboard (NULL);
       return unbind_to (speccount, apply1 (function, specs));
@@ -843,7 +843,7 @@ invoke it.  If KEYS is omitted or nil, the return value of
   Vthis_command = save_this_command;
   Vthis_original_command = save_this_original_command;
   Vreal_this_command = save_real_this_command;
-  KSET (current_kboard, Vlast_command, save_last_command);
+  kset_last_command (current_kboard, save_last_command);
 
   {
     Lisp_Object val;

@@ -353,8 +353,9 @@ x_own_selection (Lisp_Object selection_name, Lisp_Object selection_value,
 			    INTEGER_TO_CONS (timestamp), frame);
     prev_value = LOCAL_SELECTION (selection_name, dpyinfo);
 
-    TSET (dpyinfo->terminal, Vselection_alist,
-	  Fcons (selection_data, dpyinfo->terminal->Vselection_alist));
+    tset_selection_alist
+      (dpyinfo->terminal,
+       Fcons (selection_data, dpyinfo->terminal->Vselection_alist));
 
     /* If we already owned the selection, remove the old selection
        data.  Don't use Fdelq as that may QUIT.  */
@@ -989,7 +990,7 @@ x_handle_selection_clear (struct input_event *event)
 	    break;
 	  }
     }
-  TSET (dpyinfo->terminal, Vselection_alist, Vselection_alist);
+  tset_selection_alist (dpyinfo->terminal, Vselection_alist);
 
   /* Run the `x-lost-selection-functions' abnormal hook.  */
   {
@@ -1039,7 +1040,7 @@ x_clear_frame_selections (FRAME_PTR f)
       args[1] = Fcar (Fcar (t->Vselection_alist));
       Frun_hook_with_args (2, args);
 
-      TSET (t, Vselection_alist, XCDR (t->Vselection_alist));
+      tset_selection_alist (t, XCDR (t->Vselection_alist));
     }
 
   /* Delete elements after the beginning of Vselection_alist.  */

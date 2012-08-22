@@ -26,10 +26,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "gnutls.h"
 #endif
 
-/* Most code should use these macros to set
-   Lisp fields in struct Lisp_Process.  */
-
-#define PSET(p, field, value) ((p)->field = (value))
+INLINE_HEADER_BEGIN
+#ifndef PROCESS_INLINE
+# define PROCESS_INLINE INLINE
+#endif
 
 /* This structure records information about a subprocess
    or network connection.  */
@@ -165,6 +165,23 @@ struct Lisp_Process
 
 #define ChannelMask(n) (1 << (n))
 
+/* Most code should use these functions to set Lisp fields in struct
+   process.  */
+
+PROCESS_INLINE void
+pset_childp (struct Lisp_Process *p, Lisp_Object val)
+{
+  p->childp = val;
+}
+
+#ifdef HAVE_GNUTLS
+PROCESS_INLINE void
+pset_gnutls_cred_type (struct Lisp_Process *p, Lisp_Object val)
+{
+  p->gnutls_cred_type = val;
+}
+#endif
+
 /* True if we are about to fork off a synchronous process or if we
    are waiting for it.  */
 extern int synch_process_alive;
@@ -208,3 +225,5 @@ extern void add_read_fd (int fd, fd_callback func, void *data);
 extern void delete_read_fd (int fd);
 extern void add_write_fd (int fd, fd_callback func, void *data);
 extern void delete_write_fd (int fd);
+
+INLINE_HEADER_END

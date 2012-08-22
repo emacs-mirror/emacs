@@ -1,3 +1,29 @@
+2012-08-21  Josh Feinstein <jlf@foxtail.org>
+
+	* erc-join.el (erc-autojoin-timing): Fix defcustom type.
+
+2012-08-21  Julien Danjou  <julien@danjou.info>
+
+	* erc-match.el (erc-match-message): Use
+	`erc-match-exclude-server-buffer' not
+	`erc-track-exclude-server-buffer'.
+
+2012-08-20  Josh Feinstein <jlf@foxtail.org>
+
+	* erc.el (erc-display-message): Abstract message hiding decision
+	to new function erc-hide-current-message-p.
+	(erc-lurker): New customization group.
+	(erc-lurker-state, erc-lurker-trim-nicks, erc-lurker-ignore-chars)
+	(erc-lurker-hide-list, erc-lurker-cleanup-interval)
+	(erc-lurker-threshold-time): New variables.
+	(erc-lurker-maybe-trim, erc-lurker-initialize, erc-lurker-cleanup)
+	(erc-hide-current-message-p, erc-canonicalize-server-name)
+	(erc-lurker-update-status, erc-lurker-p): New functions.  Together
+	they maintain state about which users have spoken in the last
+	erc-lurker-threshold-time, with all other users being considered
+	lurkers whose messages of types in erc-lurker-hide-list will not
+	be displayed by erc-display-message.
+
 2012-08-06  Julien Danjou  <julien@danjou.info>
 
 	* erc-match.el (erc-match-exclude-server-buffer)

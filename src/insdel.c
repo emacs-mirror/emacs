@@ -844,10 +844,10 @@ insert_1_both (const char *string,
 			     PT + nchars, PT_BYTE + nbytes,
 			     before_markers);
 
-  if (buffer_get_intervals (current_buffer))
+  if (buffer_intervals (current_buffer))
     offset_intervals (current_buffer, PT, nchars);
 
-  if (!inherit && buffer_get_intervals (current_buffer))
+  if (!inherit && buffer_intervals (current_buffer))
     set_text_properties (make_number (PT), make_number (PT + nchars),
 			 Qnil, Qnil, Qnil);
 
@@ -976,7 +976,7 @@ insert_from_string_1 (Lisp_Object string, ptrdiff_t pos, ptrdiff_t pos_byte,
 
   offset_intervals (current_buffer, PT, nchars);
 
-  intervals = string_get_intervals (string);
+  intervals = string_intervals (string);
   /* Get the intervals for the part of the string we are inserting.  */
   if (nbytes < SBYTES (string))
     intervals = copy_intervals (intervals, pos, nchars);
@@ -1017,7 +1017,7 @@ insert_from_gap (ptrdiff_t nchars, ptrdiff_t nbytes)
   adjust_markers_for_insert (GPT - nchars, GPT_BYTE - nbytes,
 			     GPT, GPT_BYTE, 0);
 
-  if (buffer_get_intervals (current_buffer))
+  if (buffer_intervals (current_buffer))
     {
       offset_intervals (current_buffer, GPT - nchars, nchars);
       graft_intervals_into_buffer (NULL, GPT - nchars, nchars,
@@ -1157,11 +1157,11 @@ insert_from_buffer_1 (struct buffer *buf,
 			     PT_BYTE + outgoing_nbytes,
 			     0);
 
-  if (buffer_get_intervals (current_buffer))
+  if (buffer_intervals (current_buffer))
     offset_intervals (current_buffer, PT, nchars);
 
   /* Get the intervals for the part of the string we are inserting.  */
-  intervals = buffer_get_intervals (buf);
+  intervals = buffer_intervals (buf);
   if (nchars < BUF_Z (buf) - BUF_BEG (buf))
     {
       if (buf == current_buffer && PT <= from)
@@ -1226,7 +1226,7 @@ adjust_after_replace (ptrdiff_t from, ptrdiff_t from_byte,
   else if (len < nchars_del)
     adjust_overlays_for_delete (from, nchars_del - len);
 
-  if (buffer_get_intervals (current_buffer))
+  if (buffer_intervals (current_buffer))
     offset_intervals (current_buffer, from, len - nchars_del);
 
   if (from < PT)
@@ -1412,7 +1412,7 @@ replace_range (ptrdiff_t from, ptrdiff_t to, Lisp_Object new,
 
   /* Get the intervals for the part of the string we are inserting--
      not including the combined-before bytes.  */
-  intervals = string_get_intervals (new);
+  intervals = string_intervals (new);
   /* Insert those intervals.  */
   graft_intervals_into_buffer (intervals, from, inschars,
 			       current_buffer, inherit);
@@ -1792,7 +1792,7 @@ modify_region (struct buffer *buffer, ptrdiff_t start, ptrdiff_t end,
   if (! preserve_chars_modiff)
     CHARS_MODIFF = MODIFF;
 
-  BSET (buffer, point_before_scroll, Qnil);
+  bset_point_before_scroll (buffer, Qnil);
 
   if (buffer != old_buffer)
     set_buffer_internal (old_buffer);
@@ -1822,7 +1822,7 @@ prepare_to_modify_buffer (ptrdiff_t start, ptrdiff_t end,
   if (XBUFFER (XWINDOW (selected_window)->buffer) != current_buffer)
     ++windows_or_buffers_changed;
 
-  if (buffer_get_intervals (current_buffer))
+  if (buffer_intervals (current_buffer))
     {
       if (preserve_ptr)
 	{

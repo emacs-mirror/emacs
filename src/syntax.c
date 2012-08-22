@@ -149,6 +149,13 @@ static void scan_sexps_forward (struct lisp_parse_state *,
                                 ptrdiff_t, ptrdiff_t, ptrdiff_t, EMACS_INT,
                                 int, Lisp_Object, int);
 static int in_classes (int, Lisp_Object);
+
+/* This setter is used only in this file, so it can be private.  */
+static inline void
+bset_syntax_table (struct buffer *b, Lisp_Object val)
+{
+  b->INTERNAL_FIELD (syntax_table) = val;
+}
 
 /* Whether the syntax of the character C has the prefix flag set.  */
 int syntax_prefix_flag_p (int c)
@@ -818,7 +825,7 @@ It is a copy of the TABLE, which defaults to the standard syntax table.  */)
 
   /* Only the standard syntax table should have a default element.
      Other syntax tables should inherit from parents instead.  */
-  CSET (XCHAR_TABLE (copy), defalt, Qnil);
+  set_char_table_defalt (copy, Qnil);
 
   /* Copied syntax tables should all have parents.
      If we copied one with no parent, such as the standard syntax table,
@@ -835,7 +842,7 @@ One argument, a syntax table.  */)
 {
   int idx;
   check_syntax_table (table);
-  BSET (current_buffer, syntax_table, table);
+  bset_syntax_table (current_buffer, table);
   /* Indicate that this buffer now has a specified syntax table.  */
   idx = PER_BUFFER_VAR_IDX (syntax_table);
   SET_PER_BUFFER_VALUE_P (current_buffer, idx, 1);

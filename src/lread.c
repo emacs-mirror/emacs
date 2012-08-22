@@ -189,7 +189,7 @@ static int readbyte_from_string (int, Lisp_Object);
 static int unread_char;
 
 static int
-readchar (Lisp_Object readcharfun, int *multibyte)
+readchar (Lisp_Object readcharfun, bool *multibyte)
 {
   Lisp_Object tem;
   register int c;
@@ -2354,9 +2354,9 @@ read_integer (Lisp_Object readcharfun, EMACS_INT radix)
 static Lisp_Object
 read1 (register Lisp_Object readcharfun, int *pch, int first_in_list)
 {
-  register int c;
-  unsigned uninterned_symbol = 0;
-  int multibyte;
+  int c;
+  bool uninterned_symbol = 0;
+  bool multibyte;
 
   *pch = 0;
   load_each_byte = 0;
@@ -3189,8 +3189,8 @@ substitute_object_recurse (Lisp_Object object, Lisp_Object placeholder, Lisp_Obj
 	/* Check for text properties in each interval.
 	   substitute_in_interval contains part of the logic.  */
 
-	INTERVAL    root_interval = string_get_intervals (subtree);
-	Lisp_Object arg           = Fcons (object, placeholder);
+	INTERVAL root_interval = string_intervals (subtree);
+	Lisp_Object arg = Fcons (object, placeholder);
 
 	traverse_intervals_noorder (root_interval,
 				    &substitute_in_interval, arg);
@@ -3211,7 +3211,7 @@ substitute_in_interval (INTERVAL interval, Lisp_Object arg)
   Lisp_Object object      = Fcar (arg);
   Lisp_Object placeholder = Fcdr (arg);
 
-  SUBSTITUTE (interval->plist, interval_set_plist (interval, true_value));
+  SUBSTITUTE (interval->plist, set_interval_plist (interval, true_value));
 }
 
 
@@ -3406,7 +3406,7 @@ read_vector (Lisp_Object readcharfun, int bytecodeflag)
 	      /* Delay handling the bytecode slot until we know whether
 		 it is lazily-loaded (we can tell by whether the
 		 constants slot is nil).  */
-	      ptr[COMPILED_CONSTANTS] = item;
+	      ASET (vector, COMPILED_CONSTANTS, item);
 	      item = Qnil;
 	    }
 	  else if (i == COMPILED_CONSTANTS)
@@ -3432,7 +3432,7 @@ read_vector (Lisp_Object readcharfun, int bytecodeflag)
 		}
 
 	      /* Now handle the bytecode slot.  */
-	      ptr[COMPILED_BYTECODE] = bytestr;
+	      ASET (vector, COMPILED_BYTECODE, bytestr);
 	    }
 	  else if (i == COMPILED_DOC_STRING
 		   && STRINGP (item)
@@ -3444,7 +3444,7 @@ read_vector (Lisp_Object readcharfun, int bytecodeflag)
 		item = Fstring_as_multibyte (item);
 	    }
 	}
-      ptr[i] = item;
+      ASET (vector, i, item);
       otem = XCONS (tem);
       tem = Fcdr (tem);
       free_cons (otem);

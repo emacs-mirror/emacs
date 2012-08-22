@@ -1039,11 +1039,13 @@ xd_remove_watch (DBusWatch *watch, void *data)
     return;
 
   /* Unset session environment.  */
+#if 0
   if (XSYMBOL (QCdbus_session_bus) == data)
     {
-      //      XD_DEBUG_MESSAGE ("unsetenv DBUS_SESSION_BUS_ADDRESS");
-      //      unsetenv ("DBUS_SESSION_BUS_ADDRESS");
+      XD_DEBUG_MESSAGE ("unsetenv DBUS_SESSION_BUS_ADDRESS");
+      unsetenv ("DBUS_SESSION_BUS_ADDRESS");
     }
+#endif
 
   if (flags & DBUS_WATCH_WRITABLE)
     delete_write_fd (fd);

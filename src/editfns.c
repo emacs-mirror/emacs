@@ -58,10 +58,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "window.h"
 #include "blockinput.h"
 
-#ifndef USE_CRT_DLL
-extern char **environ;
-#endif
-
 #define TM_YEAR_BASE 1900
 
 #ifdef WINDOWSNT
@@ -881,7 +877,7 @@ save_excursion_restore (Lisp_Object info)
   info = XCDR (info);
   tem = XCAR (info);
   tem1 = BVAR (current_buffer, mark_active);
-  BSET (current_buffer, mark_active, tem);
+  bset_mark_active (current_buffer, tem);
 
   /* If mark is active now, and either was not active
      or was at a different place, run the activate hook.  */
@@ -2815,13 +2811,15 @@ determines whether case is significant or ignored.  */)
 static Lisp_Object
 subst_char_in_region_unwind (Lisp_Object arg)
 {
-  return BSET (current_buffer, undo_list, arg);
+  bset_undo_list (current_buffer, arg);
+  return arg;
 }
 
 static Lisp_Object
 subst_char_in_region_unwind_1 (Lisp_Object arg)
 {
-  return BSET (current_buffer, filename, arg);
+  bset_filename (current_buffer, arg);
+  return arg;
 }
 
 DEFUN ("subst-char-in-region", Fsubst_char_in_region,
@@ -2895,11 +2893,11 @@ Both characters must have the same length of multi-byte form.  */)
     {
       record_unwind_protect (subst_char_in_region_unwind,
 			     BVAR (current_buffer, undo_list));
-      BSET (current_buffer, undo_list, Qt);
+      bset_undo_list (current_buffer, Qt);
       /* Don't do file-locking.  */
       record_unwind_protect (subst_char_in_region_unwind_1,
 			     BVAR (current_buffer, filename));
-      BSET (current_buffer, filename, Qnil);
+      bset_filename (current_buffer, Qnil);
     }
 
   if (pos_byte < GPT_BYTE)
@@ -2981,7 +2979,7 @@ Both characters must have the same length of multi-byte form.  */)
 		INC_POS (pos_byte_next);
 
 	      if (! NILP (noundo))
-		BSET (current_buffer, undo_list, tem);
+		bset_undo_list (current_buffer, tem);
 
 	      UNGCPRO;
 	    }
@@ -3644,13 +3642,13 @@ usage: (format STRING &rest OBJECTS)  */)
   ptrdiff_t max_bufsize = STRING_BYTES_BOUND + 1;
   char *p;
   Lisp_Object buf_save_value IF_LINT (= {0});
-  register char *format, *end, *format_start;
+  char *format, *end, *format_start;
   ptrdiff_t formatlen, nchars;
-  /* Nonzero if the format is multibyte.  */
-  int multibyte_format = 0;
-  /* Nonzero if the output should be a multibyte string,
+  /* True if the format is multibyte.  */
+  bool multibyte_format = 0;
+  /* True if the output should be a multibyte string,
      which is true if any of the inputs is one.  */
-  int multibyte = 0;
+  bool multibyte = 0;
   /* When we make a multibyte string, we must pay attention to the
      byte combining problem, i.e., a byte may be combined with a
      multibyte character of the previous string.  This flag tells if we
@@ -3936,7 +3934,7 @@ usage: (format STRING &rest OBJECTS)  */)
 
 		  /* If this argument has text properties, record where
 		     in the result string it appears.  */
-		  if (string_get_intervals (args[n]))
+		  if (string_intervals (args[n]))
 		    info[n].intervals = arg_intervals = 1;
 
 		  continue;
@@ -4280,7 +4278,7 @@ usage: (format STRING &rest OBJECTS)  */)
      arguments has text properties, set up text properties of the
      result string.  */
 
-  if (string_get_intervals (args[0]) || arg_intervals)
+  if (string_intervals (args[0]) || arg_intervals)
     {
       Lisp_Object len, new_len, props;
       struct gcpro gcpro1;
@@ -4530,7 +4528,7 @@ Transposing beyond buffer boundaries is an error.  */)
   Lisp_Object buf;
 
   XSETBUFFER (buf, current_buffer);
-  cur_intv = buffer_get_intervals (current_buffer);
+  cur_intv = buffer_intervals (current_buffer);
 
   validate_region (&startr1, &endr1);
   validate_region (&startr2, &endr2);

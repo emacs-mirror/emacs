@@ -417,6 +417,21 @@ If number, the point is moved to the corresponding line.")
 (defvar Info-standalone nil
   "Non-nil if Emacs was started solely as an Info browser.")
 
+(defvar Info-file-attributes nil
+  "Alist of file attributes of visited Info files.
+Each element is a list (FILE-NAME FILE-ATTRIBUTES...).")
+
+(defvar Info-toc-nodes nil
+  "Alist of cached parent-children node information in visited Info files.
+Each element is (FILE (NODE-NAME PARENT SECTION CHILDREN) ...)
+where PARENT is the parent node extracted from the Up pointer,
+SECTION is the section name in the Top node where this node is placed,
+CHILDREN is a list of child nodes extracted from the node menu.")
+
+(defvar Info-index-nodes nil
+  "Alist of cached index node names of visited Info files.
+Each element has the form (INFO-FILE INDEX-NODE-NAMES-LIST).")
+
 (defvar Info-virtual-files nil
   "List of definitions of virtual Info files.
 Each element of the list has the format (FILENAME (OPERATION . HANDLER) ...)
@@ -609,7 +624,26 @@ Do the right thing if the file has been compressed or zipped."
 	    (apply 'call-process-region (point-min) (point-max)
 		   (car decoder) t t nil (cdr decoder))))
       (let ((inhibit-null-byte-detection t)) ; Index nodes include null bytes
-	(insert-file-contents fullname visit)))))
+	(insert-file-contents fullname visit)))
+
+    ;; Clear the caches of modified Info files.
+    (let* ((attribs-old (cdr (assoc fullname Info-file-attributes)))
+	   (modtime-old (and attribs-old (nth 5 attribs-old)))
+	   (attribs-new (and (stringp fullname) (file-attributes fullname)))
+	   (modtime-new (and attribs-new (nth 5 attribs-new))))
+      (when (and modtime-old modtime-new
+		 (> (float-time modtime-new) (float-time modtime-old)))
+	(setq Info-index-nodes (remove (assoc (or Info-current-file filename)
+					      Info-index-nodes)
+				       Info-index-nodes))
+	(setq Info-toc-nodes (remove (assoc (or Info-current-file filename)
+					    Info-toc-nodes)
+				     Info-toc-nodes)))
+      ;; Add new modtime to `Info-file-attributes'.
+      (setq Info-file-attributes
+	    (cons (cons fullname attribs-new)
+		  (remove (assoc fullname Info-file-attributes)
+			  Info-file-attributes))))))
 
 (defun Info-file-supports-index-cookies (&optional file)
   "Return non-nil value if FILE supports Info index cookies.
@@ -2394,13 +2428,6 @@ Table of contents is created from the tree structure of menus."
       (message "")
       (nreverse nodes))))
 
-(defvar Info-toc-nodes nil
-  "Alist of cached parent-children node information in visited Info files.
-Each element is (FILE (NODE-NAME PARENT SECTION CHILDREN) ...)
-where PARENT is the parent node extracted from the Up pointer,
-SECTION is the section name in the Top node where this node is placed,
-CHILDREN is a list of child nodes extracted from the node menu.")
-
 (defun Info-toc-nodes (filename)
   "Return a node list of Info FILENAME with parent-children information.
 This information is cached in the variable `Info-toc-nodes' with the help
@@ -3032,10 +3059,6 @@ See `Info-scroll-down'."
       (if (looking-at "^\\* ")
 	  (forward-char 2)))))
 
-(defvar Info-index-nodes nil
-  "Alist of cached index node names of visited Info files.
-Each element has the form (INFO-FILE INDEX-NODE-NAMES-LIST).")
-
 (defun Info-index-nodes (&optional file)
   "Return a list of names of all index nodes in Info FILE.
 If FILE is omitted, it defaults to the current Info file.

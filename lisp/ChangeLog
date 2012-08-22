@@ -1,3 +1,190 @@
+2012-08-22  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (walk-window-tree, window-with-parameter): New
+	optional argument MINIBUF to control whether these functions
+	should run on the minibuffer window.
+	(window-at-side-list): Don't operate on minibuffer window.
+	(window-in-direction): Simplify and rewrite doc-string.
+	(window--size-ignore): Rename to window--size-ignore-p.  Update
+	callers.
+
+2012-08-22  Christopher Schmidt  <christopher@ch.ristopher.com>
+
+	* help-fns.el (help-fns--key-bindings):
+	Abbreviate non-symbol remap targets.  (Bug#12174)
+
+2012-08-22  Martin Rudalics  <rudalics@gmx.at>
+
+	* dired.el (dired-mark-remembered): Don't clobber point.
+	(Bug#11795)
+
+2012-08-22  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/bug-reference.el (bug-reference): New custom group.
+	(bug-reference-bug-regexp): Make it a defcustom.
+
+2012-08-22  Daiki Ueno  <ueno@unixuser.org>
+
+	* progmodes/js.el (js-indent-level, js-expr-indent-offset)
+	(js-paren-indent-offset, js-square-indent-offset)
+	(js-curly-indent-offset): Add :safe (Bug#12257).
+
+2012-08-22  Edward O'Connor  <hober0@gmail.com>
+
+	* json.el (json-key-format): Add error properties.
+	(json-encode-key): New function.
+	(json-encode-hash-table, json-encode-alist, json-encode-plist):
+	Use json-encode-key.
+
+2012-08-22  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/cal-tex.el (cal-tex-longday): New function, replacing...
+	(cal-tex-leftday, cal-tex-rightday): Remove functions.
+	(cal-tex-weekly-common, cal-tex-cursor-filofax-2week):
+	Update for above change.
+
+2012-08-21  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* cus-face.el (custom-face-attributes): Fix customize type for the
+	:underline attribute.  (Bug#11805)
+
+2012-08-21  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (window-point-1, set-window-point-1): Remove.
+	(window-in-direction, record-window-buffer)
+	(set-window-buffer-start-and-point, split-window-below)
+	(window--state-get-1, display-buffer-record-window): Replace
+	calls to window-point-1 and set-window-point-1 by calls to
+	window-point and set-window-point respectively.
+
+2012-08-21  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/cal-tex.el (cal-tex-weekly-common): New function.
+	(cal-tex-cursor-week-at-a-glance, cal-tex-cursor-filofax-week):
+	Use it.
+
+	* calendar/cal-tex.el (cal-tex-rightday): Add optional funcname arg.
+	(cal-tex-shortday): New function.
+	(cal-tex-cursor-week-at-a-glance, cal-tex-cursor-filofax-week)
+	(cal-tex-cursor-filofax-daily): Use the above.
+
+	* calendar/cal-tex.el (cal-tex-leftday, cal-tex-rightday):
+	New functions.
+	(cal-tex-cursor-week-at-a-glance, cal-tex-cursor-filofax-2week)
+	(cal-tex-cursor-filofax-week): Use them.
+
+	* calendar/cal-tex.el (cal-tex-lefthead, cal-tex-righthead):
+	New constants.
+	(cal-tex-cursor-week-at-a-glance, cal-tex-cursor-filofax-2week)
+	(cal-tex-cursor-filofax-week, cal-tex-cursor-filofax-daily): Use them.
+
+	* calendar/cal-tex.el (cal-tex-preamble): Generate new buffers.
+	(cal-tex-end-document): Don't rely on buffer name.
+
+	* calendar/cal-tex.el (cal-tex-cursor-filofax-year):
+	Use cal-tex-vspace.
+	(cal-tex-vspace, cal-tex-hspace, cal-tex-em, cal-tex-bf)
+	(cal-tex-Huge-bf, cal-tex-large-bf): Use cal-tex-cmd.
+	(cal-tex-scriptsize, cal-tex-huge, cal-tex-Huge, cal-tex-large):
+	Use cal-tex-arg.
+
+	* calendar/cal-tex.el (cal-tex-cursor-filofax-year)
+	(cal-tex-cursor-week, cal-tex-cursor-week2)
+	(cal-tex-cursor-week-iso, cal-tex-cursor-week-at-a-glance)
+	(cal-tex-cursor-filofax-2week, cal-tex-cursor-filofax-week)
+	(cal-tex-cursor-filofax-daily, cal-tex-cursor-day)
+	(cal-tex-insert-preamble, cal-tex-b-document)
+	(cal-tex-e-document, cal-tex-b-center, cal-tex-e-center):
+	Improve cal-tex-cmd usage.
+
+	* calendar/cal-tex.el (cal-tex-filofax-paper): New function.
+	(cal-tex-cursor-filofax-year, cal-tex-cursor-filofax-2week)
+	(cal-tex-cursor-filofax-week, cal-tex-cursor-filofax-daily): Use it.
+	(cal-tex-weekly-paper): New function.
+	(cal-tex-cursor-week, cal-tex-cursor-week2)
+	(cal-tex-cursor-week-iso, cal-tex-cursor-week-monday)
+	(cal-tex-cursor-day): Use it.
+
+	* calendar/cal-tex.el (cal-tex-cursor-week-at-a-glance)
+	(cal-tex-cursor-filofax-week): Remove leading blank page.
+
+	* calendar/cal-tex.el (cal-tex-cursor-week-at-a-glance):
+	Add autoload cookie.  For now at least, don't use color, since
+	no other cal-tex function does.
+
+	* calendar/cal-tex.el (cal-tex-cursor-week-iso)
+	(cal-tex-cursor-filofax-2week, cal-tex-cursor-filofax-week)
+	(cal-tex-cursor-filofax-daily): Correct start date for diary entries.
+
+2012-08-21  Juri Linkov  <juri@jurta.org>
+
+	* info.el (Info-file-attributes): New variable.
+	(info-insert-file-contents): Add file attributes to
+	`Info-file-attributes'.  Clear the caches `Info-index-nodes' and
+	`Info-toc-nodes' when previous modtime of the Info file is less
+	than new modtime.
+	(Info-toc-nodes, Info-index-nodes): Move definitions up to the top
+	of info.el.  (Bug#12230)
+
+2012-08-20  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/diary-lib.el (diary-include-files, diary-sexp-entry):
+	* calendar/holidays.el (calendar-holiday-list):
+	Report errors with display-warning rather than beep'n'sleep.
+
+2012-08-20  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-accept-process-output): Accept only output
+	from PROC.  Otherwise, process filters and sentinels might be
+	confused.  (Bug#12145)
+
+2012-08-20  Chong Yidong  <cyd@gnu.org>
+
+	* descr-text.el (describe-text-properties-1): Use overlays-in to
+	report on empty overlays (Bug#3322).
+
+2012-08-20  Glenn Morris  <rgm@gnu.org>
+
+	* mail/rmailout.el (rmail-output-read-file-name):
+	Trap and report errors in rmail-output-file-alist elements.
+
+	* font-lock.el (font-lock-add-keywords): Doc fix (quote face names
+	since most non-font-lock faces are not also variables).
+
+2012-08-20  Edward Reingold  <reingold@iit.edu>
+
+	* calendar/cal-tex.el (cal-tex-cursor-week-at-a-glance):
+	New function.  (Bug12160)
+
+2012-08-19  Glenn Morris  <rgm@gnu.org>
+
+	* mail/rmailout.el (rmail-output-read-file-name):
+	Fix previous change (when the alist is nil or does not match).
+
+2012-08-19  Chong Yidong  <cyd@gnu.org>
+
+	* xml.el (xml-escape-string): Don't refer to xml-entity-alist
+	(Bug#12228).
+
+2012-08-18  Chong Yidong  <cyd@gnu.org>
+
+	* simple.el (yank-handled-properties): New defcustom.
+	(yank-excluded-properties): Add font-lock-face and category.
+	(yank): Doc fix.
+
+	* subr.el (remove-yank-excluded-properties): Obey
+	yank-handled-properties.  The special handling of font-lock-face
+	and category is now done this way, instead of being hard-coded.
+	(insert-for-yank-1): Remove font-lock-face handling.
+	(yank-handle-font-lock-face-property)
+	(yank-handle-category-property): New function.
+
+2012-08-17  Glenn Morris  <rgm@gnu.org>
+
+	* mail/rmailout.el (rmail-output-read-file-name):
+	Check rmail-output-file-alist against the full message body
+	in the correct rmail buffer.  (Bug#12214)
+
 2012-08-17  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp-sh.el (tramp-sh-handle-start-file-process): Eliminate

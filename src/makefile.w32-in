@@ -1448,6 +1448,7 @@ $(BLD)/unexw32.$(O) : \
 $(BLD)/vm-limit.$(O) : \
 	$(SRC)/vm-limit.c \
 	$(SRC)/mem-limits.h \
+	$(NT_INC)/unistd.h \
 	$(CONFIG_H) \
 	$(LISP_H)
 

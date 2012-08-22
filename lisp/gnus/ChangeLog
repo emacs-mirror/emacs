@@ -1,3 +1,8 @@
+2012-08-21  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-msg.el (gnus-summary-resend-message): Honor posting-style for
+	`name' and `address' in Resent-From header.
+
 2012-08-14  Chong Yidong  <cyd@gnu.org>
 
 	* gnus-art.el (article-display-face): Handle failure in

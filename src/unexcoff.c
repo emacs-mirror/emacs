@@ -98,7 +98,7 @@ struct aouthdr
 
 #include <sys/file.h>
 
-extern char *start_of_data (void);		/* Start of initialized data */
+#include "mem-limits.h"
 
 static long block_copy_start;		/* Old executable start point */
 static struct filehdr f_hdr;		/* File header */

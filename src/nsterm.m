@@ -1032,7 +1032,7 @@ ns_frame_rehighlight (struct frame *frame)
            : dpyinfo->x_focus_frame);
       if (!FRAME_LIVE_P (dpyinfo->x_highlight_frame))
         {
-          FSET (dpyinfo->x_focus_frame, focus_frame, Qnil);
+          fset_focus_frame (dpyinfo->x_focus_frame, Qnil);
           dpyinfo->x_highlight_frame = dpyinfo->x_focus_frame;
         }
     }
@@ -3698,7 +3698,7 @@ ns_set_vertical_scroll_bar (struct window *window,
         {
           bar = XNS_SCROLL_BAR (window->vertical_scroll_bar);
           [bar removeFromSuperview];
-          WSET (window, vertical_scroll_bar, Qnil);
+          wset_vertical_scroll_bar (window, Qnil);
         }
       ns_clear_frame_area (f, sb_left, top, width, height);
       UNBLOCK_INPUT;
@@ -3709,7 +3709,7 @@ ns_set_vertical_scroll_bar (struct window *window,
     {
       ns_clear_frame_area (f, sb_left, top, width, height);
       bar = [[EmacsScroller alloc] initFrame: r window: win];
-      WSET (window, vertical_scroll_bar, make_save_value (bar, 0));
+      wset_vertical_scroll_bar (window, make_save_value (bar, 0));
     }
   else
     {
@@ -4093,7 +4093,7 @@ ns_term_init (Lisp_Object display_name)
 
   terminal->kboard = xmalloc (sizeof *terminal->kboard);
   init_kboard (terminal->kboard);
-  KSET (terminal->kboard, Vwindow_system, Qns);
+  kset_window_system (terminal->kboard, Qns);
   terminal->kboard->next_kboard = all_kboards;
   all_kboards = terminal->kboard;
   /* Don't let the initial kboard remain current longer than necessary.
@@ -4600,11 +4600,15 @@ not_in_argv (NSString *arg)
 
   SELECT_TYPE readfds, writefds, *wfds;
   EMACS_TIME timeout, *tmo;
+  NSAutoreleasePool *pool = nil;
 
   /* NSTRACE (fd_handler); */
 
   for (;;) 
     {
+      [pool release];
+      pool = [[NSAutoreleasePool alloc] init];
+
       if (waiting)
         {
           SELECT_TYPE fds;
@@ -6388,7 +6392,7 @@ not_in_argv (NSString *arg)
 {
   NSTRACE (EmacsScroller_dealloc);
   if (!NILP (win))
-    WSET (XWINDOW (win), vertical_scroll_bar, Qnil);
+    wset_vertical_scroll_bar (XWINDOW (win), Qnil);
   [super dealloc];
 }
 

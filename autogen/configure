@@ -1224,6 +1224,7 @@ HAVE_MAKEINFO
 PAXCTL
 GZIP_PROG
 INSTALL_INFO
+LN_S
 GNULIB_WARN_CFLAGS
 WARN_CFLAGS
 WERROR_CFLAGS
@@ -7757,6 +7758,17 @@ $as_echo "#define GNULIB_PORTCHECK 1" >>confdefs.h
 fi
 
 
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether ln -s works" >&5
+$as_echo_n "checking whether ln -s works... " >&6; }
+LN_S=$as_ln_s
+if test "$LN_S" = "ln -s"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no, using $LN_S" >&5
+$as_echo "no, using $LN_S" >&6; }
+fi
 
 
 # Extract the first word of "install-info", so it can be a program name with args.
@@ -17317,9 +17329,7 @@ cat >>confdefs.h <<_ACEOF
 #define HAVE_DECL_GETENV $ac_have_decl
 _ACEOF
 
-
-
-
+:
 
 
 
@@ -20051,7 +20061,7 @@ $as_echo "$gl_cv_func_dup2_works" >&6; }
   fi
 
 
-if test $HAVE_DUP2 = 0 || test $REPLACE_DUP2 = 1; then
+  if test $HAVE_DUP2 = 0 || test $REPLACE_DUP2 = 1; then
 
 
 
@@ -20063,7 +20073,7 @@ if test $HAVE_DUP2 = 0 || test $REPLACE_DUP2 = 1; then
   gl_LIBOBJS="$gl_LIBOBJS dup2.$ac_objext"
 
 
-fi
+  fi
 
 
 
@@ -20487,7 +20497,7 @@ else
 fi
 
 
-if test $HAVE_GETLOADAVG = 0; then
+  if test $HAVE_GETLOADAVG = 0; then
 
 
 
@@ -20615,7 +20625,7 @@ fi
 
 done
 
-fi
+  fi
 
 
 
@@ -20632,7 +20642,7 @@ fi
 
 
 
-if test $REPLACE_GETOPT = 1; then
+  if test $REPLACE_GETOPT = 1; then
 
 
 
@@ -20656,8 +20666,8 @@ if test $REPLACE_GETOPT = 1; then
 
 
 
-    GNULIB_GL_UNISTD_H_GETOPT=1
-fi
+        GNULIB_GL_UNISTD_H_GETOPT=1
+  fi
 
 
 
@@ -20680,7 +20690,7 @@ $as_echo "#define __GETOPT_PREFIX rpl_" >>confdefs.h
 
   fi
 
-if test $REPLACE_GETOPT = 1; then
+  if test $REPLACE_GETOPT = 1; then
 
 
 
@@ -20704,8 +20714,8 @@ if test $REPLACE_GETOPT = 1; then
 
 
 
-    GNULIB_GL_UNISTD_H_GETOPT=1
-fi
+        GNULIB_GL_UNISTD_H_GETOPT=1
+  fi
 
 
 
@@ -20865,7 +20875,7 @@ cat >>confdefs.h <<_ACEOF
 _ACEOF
 
 
-if test $HAVE_GETTIMEOFDAY = 0 || test $REPLACE_GETTIMEOFDAY = 1; then
+  if test $HAVE_GETTIMEOFDAY = 0 || test $REPLACE_GETTIMEOFDAY = 1; then
 
 
 
@@ -20901,14 +20911,13 @@ fi
 done
 
 
-fi
+  fi
 
 
 
 
 
           GNULIB_GETTIMEOFDAY=1
-
 
 
 
@@ -20930,7 +20939,7 @@ fi
     HAVE_LSTAT=0
   fi
 
-if test $REPLACE_LSTAT = 1; then
+  if test $REPLACE_LSTAT = 1; then
 
 
 
@@ -20945,7 +20954,7 @@ if test $REPLACE_LSTAT = 1; then
 
   :
 
-fi
+  fi
 
 
 
@@ -21194,7 +21203,7 @@ $as_echo "$gl_cv_func_working_mktime" >&6; }
     REPLACE_MKTIME=0
   fi
 
-if test $REPLACE_MKTIME = 1; then
+  if test $REPLACE_MKTIME = 1; then
 
 
 
@@ -21205,10 +21214,8 @@ if test $REPLACE_MKTIME = 1; then
 
   gl_LIBOBJS="$gl_LIBOBJS mktime.$ac_objext"
 
-
-
-
-fi
+    :
+  fi
 
 
 
@@ -21263,7 +21270,7 @@ $as_echo "$gl_cv_sig_pselect" >&6; }
     REPLACE_PSELECT=1
   fi
 
-if test $HAVE_PSELECT = 0 || test $REPLACE_PSELECT = 1; then
+  if test $HAVE_PSELECT = 0 || test $REPLACE_PSELECT = 1; then
 
 
 
@@ -21274,7 +21281,7 @@ if test $HAVE_PSELECT = 0 || test $REPLACE_PSELECT = 1; then
 
   gl_LIBOBJS="$gl_LIBOBJS pselect.$ac_objext"
 
-fi
+  fi
 
 
 
@@ -21492,7 +21499,7 @@ $as_echo "#define PTHREAD_SIGMASK_UNBLOCK_BUG 1" >>confdefs.h
     esac
   fi
 
-if test $HAVE_PTHREAD_SIGMASK = 0 || test $REPLACE_PTHREAD_SIGMASK = 1; then
+  if test $HAVE_PTHREAD_SIGMASK = 0 || test $REPLACE_PTHREAD_SIGMASK = 1; then
 
 
 
@@ -21510,7 +21517,7 @@ $as_echo "#define HAVE_PTHREAD_SIGMASK 1" >>confdefs.h
 
   fi
 
-fi
+  fi
 
 
 
@@ -21613,7 +21620,7 @@ $as_echo "#define READLINK_TRAILING_SLASH_BUG 1" >>confdefs.h
     esac
   fi
 
-if test $HAVE_READLINK = 0 || test $REPLACE_READLINK = 1; then
+  if test $HAVE_READLINK = 0 || test $REPLACE_READLINK = 1; then
 
 
 
@@ -21627,7 +21634,7 @@ if test $HAVE_READLINK = 0 || test $REPLACE_READLINK = 1; then
 
   :
 
-fi
+  fi
 
 
 
@@ -21741,7 +21748,7 @@ fi
 
 
 
-   ac_fn_c_check_type "$LINENO" "socklen_t" "ac_cv_type_socklen_t" "
+     ac_fn_c_check_type "$LINENO" "socklen_t" "ac_cv_type_socklen_t" "
 /* <sys/types.h> is not needed according to POSIX, but the
    <sys/socket.h> in i386-unknown-freebsd4.10 and
    powerpc-apple-darwin5.5 required it. */
@@ -21841,7 +21848,6 @@ $as_echo "#define ssize_t int" >>confdefs.h
 
 
 
-
   ac_fn_c_check_member "$LINENO" "struct stat" "st_atim.tv_nsec" "ac_cv_member_struct_stat_st_atim_tv_nsec" "#include <sys/types.h>
      #include <sys/stat.h>
 "
@@ -21932,7 +21938,6 @@ fi
 fi
 
 fi
-
 
 
 
@@ -22648,7 +22653,7 @@ $as_echo "$gl_cv_func_strtoimax" >&6; }
     HAVE_STRTOIMAX=0
   fi
 
-if test $HAVE_STRTOIMAX = 0 || test $REPLACE_STRTOIMAX = 1; then
+  if test $HAVE_STRTOIMAX = 0 || test $REPLACE_STRTOIMAX = 1; then
 
 
 
@@ -22673,7 +22678,7 @@ _ACEOF
 
 
 
-fi
+  fi
 
 
 
@@ -22693,7 +22698,7 @@ fi
     HAVE_DECL_STRTOUMAX=0
   fi
 
-if test $ac_cv_func_strtoumax = no; then
+  if test $ac_cv_func_strtoumax = no; then
 
 
 
@@ -22718,7 +22723,7 @@ _ACEOF
 
 
 
-fi
+  fi
 
 
 
@@ -22790,7 +22795,7 @@ $as_echo "$gl_cv_func_symlink_works" >&6; }
     esac
   fi
 
-if test $HAVE_SYMLINK = 0 || test $REPLACE_SYMLINK = 1; then
+  if test $HAVE_SYMLINK = 0 || test $REPLACE_SYMLINK = 1; then
 
 
 
@@ -22801,7 +22806,7 @@ if test $HAVE_SYMLINK = 0 || test $REPLACE_SYMLINK = 1; then
 
   gl_LIBOBJS="$gl_LIBOBJS symlink.$ac_objext"
 
-fi
+  fi
 
 
 
@@ -23192,7 +23197,7 @@ $as_echo "$gl_cv_time_r_posix" >&6; }
     HAVE_LOCALTIME_R=0
   fi
 
-if test $HAVE_LOCALTIME_R = 0 || test $REPLACE_LOCALTIME_R = 1; then
+  if test $HAVE_LOCALTIME_R = 0 || test $REPLACE_LOCALTIME_R = 1; then
 
 
 
@@ -23206,7 +23211,7 @@ if test $HAVE_LOCALTIME_R = 0 || test $REPLACE_LOCALTIME_R = 1; then
 
   :
 
-fi
+  fi
 
 
 
@@ -23218,9 +23223,7 @@ fi
 
 
 
-
-
-
+  :
 
 
 
@@ -23512,7 +23515,7 @@ $as_echo "#define REPLACE_FUNC_STAT_FILE 1" >>confdefs.h
 ;;
   esac
 
-if test $REPLACE_STAT = 1; then
+      if test $REPLACE_STAT = 1; then
 
 
 
@@ -23527,7 +23530,7 @@ if test $REPLACE_STAT = 1; then
 
   :
 
-fi
+      fi
 
 
 
@@ -23574,7 +23577,7 @@ done
     fi
   fi
 
-if test $HAVE_STRTOLL = 0; then
+      if test $HAVE_STRTOLL = 0; then
 
 
 
@@ -23588,7 +23591,7 @@ if test $HAVE_STRTOLL = 0; then
 
   :
 
-fi
+      fi
 
 
 
@@ -23626,7 +23629,7 @@ done
     fi
   fi
 
-if test $HAVE_STRTOULL = 0; then
+      if test $HAVE_STRTOULL = 0; then
 
 
 
@@ -23640,7 +23643,7 @@ if test $HAVE_STRTOULL = 0; then
 
   :
 
-fi
+      fi
 
 
 

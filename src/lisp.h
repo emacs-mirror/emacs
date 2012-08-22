@@ -124,7 +124,7 @@ extern _Noreturn void die (const char *, const char *, int);
    eassert macro altogether, e.g., if XSTRING (x) uses eassert to test
    STRINGP (x), but a particular use of XSTRING is invoked only after
    testing that STRINGP (x) is true, making the test redundant.  */
-extern int suppress_checking EXTERNALLY_VISIBLE;
+extern bool suppress_checking EXTERNALLY_VISIBLE;
 
 # define eassert(cond)						\
    ((cond) || suppress_checking					\
@@ -702,7 +702,7 @@ struct Lisp_Cons
 #define CDR_SAFE(c)				\
   (CONSP ((c)) ? XCDR ((c)) : Qnil)
 
-/* Nonzero if STR is a multibyte string.  */
+/* True if STR is a multibyte string.  */
 #define STRING_MULTIBYTE(STR)  \
   (XSTRING (STR)->size_byte >= 0)
 
@@ -923,7 +923,7 @@ enum
    8-bit European characters.  Do not check validity of CT.  */
 #define CHAR_TABLE_SET(CT, IDX, VAL)					\
   (ASCII_CHAR_P (IDX) && SUB_CHAR_TABLE_P (XCHAR_TABLE (CT)->ascii)	\
-   ? sub_char_table_set_contents (XCHAR_TABLE (CT)->ascii, IDX, VAL)	\
+   ? set_sub_char_table_contents (XCHAR_TABLE (CT)->ascii, IDX, VAL)	\
    : char_table_set (CT, IDX, VAL))
 
 enum CHARTAB_SIZE_BITS
@@ -935,12 +935,6 @@ enum CHARTAB_SIZE_BITS
   };
 
 extern const int chartab_size[4];
-
-/* Most code should use this macro to set non-array Lisp fields in struct
-   Lisp_Char_Table.  For CONTENTS and EXTRAS, use char_table_set_contents
-   and char_table_set_extras, respectively.  */
-
-#define CSET(c, field, value) ((c)->field = (value))
 
 struct Lisp_Char_Table
   {
@@ -990,7 +984,7 @@ struct Lisp_Sub_Char_Table
     /* Minimum character covered by the sub char-table.  */
     Lisp_Object min_char;
 
-    /* Use sub_char_table_set_contents to set this.  */
+    /* Use set_sub_char_table_contents to set this.  */
     Lisp_Object contents[1];
   };
 
@@ -1471,14 +1465,6 @@ struct Lisp_Buffer_Local_Value
        this is `eq'ual to defcell.  */
     Lisp_Object valcell;
   };
-
-#define BLV_FOUND(blv) \
-  (eassert ((blv)->found == !EQ ((blv)->defcell, (blv)->valcell)), (blv)->found)
-#define SET_BLV_FOUND(blv, v) \
-  (eassert ((v) == !EQ ((blv)->defcell, (blv)->valcell)), (blv)->found = (v))
-
-#define BLV_VALUE(blv) (XCDR ((blv)->valcell))
-#define SET_BLV_VALUE(blv, v) (XSETCDR ((blv)->valcell, v))
 
 /* Like Lisp_Objfwd except that value lives in a slot in the
    current kboard.  */
@@ -2358,32 +2344,67 @@ gc_aset (Lisp_Object array, ptrdiff_t idx, Lisp_Object val)
   XVECTOR (array)->contents[idx] = val;
 }
 
+/* Copy COUNT Lisp_Objects from ARGS to contents of V starting from OFFSET.  */
+
 LISP_INLINE void
-set_hash_key (struct Lisp_Hash_Table *h, ptrdiff_t idx, Lisp_Object val)
+vcopy (Lisp_Object v, ptrdiff_t offset, Lisp_Object *args, ptrdiff_t count)
+{
+  eassert (0 <= offset && 0 <= count && offset + count <= ASIZE (v));
+  memcpy (XVECTOR (v)->contents + offset, args, count * sizeof *args);
+}
+
+/* Functions to modify hash tables.  */
+
+LISP_INLINE void
+set_hash_key_and_value (struct Lisp_Hash_Table *h, Lisp_Object key_and_value)
+{
+  h->key_and_value = key_and_value;
+}
+
+LISP_INLINE void
+set_hash_key_slot (struct Lisp_Hash_Table *h, ptrdiff_t idx, Lisp_Object val)
 {
   gc_aset (h->key_and_value, 2 * idx, val);
 }
 
 LISP_INLINE void
-set_hash_value (struct Lisp_Hash_Table *h, ptrdiff_t idx, Lisp_Object val)
+set_hash_value_slot (struct Lisp_Hash_Table *h, ptrdiff_t idx, Lisp_Object val)
 {
   gc_aset (h->key_and_value, 2 * idx + 1, val);
 }
 
 LISP_INLINE void
-set_hash_next (struct Lisp_Hash_Table *h, ptrdiff_t idx, Lisp_Object val)
+set_hash_next (struct Lisp_Hash_Table *h, Lisp_Object next)
+{
+  h->next = next;
+}
+
+LISP_INLINE void
+set_hash_next_slot (struct Lisp_Hash_Table *h, ptrdiff_t idx, Lisp_Object val)
 {
   gc_aset (h->next, idx, val);
 }
 
 LISP_INLINE void
-set_hash_hash (struct Lisp_Hash_Table *h, ptrdiff_t idx, Lisp_Object val)
+set_hash_hash (struct Lisp_Hash_Table *h, Lisp_Object hash)
+{
+  h->hash = hash;
+}
+
+LISP_INLINE void
+set_hash_hash_slot (struct Lisp_Hash_Table *h, ptrdiff_t idx, Lisp_Object val)
 {
   gc_aset (h->hash, idx, val);
 }
 
 LISP_INLINE void
-set_hash_index (struct Lisp_Hash_Table *h, ptrdiff_t idx, Lisp_Object val)
+set_hash_index (struct Lisp_Hash_Table *h, Lisp_Object index)
+{
+  h->index = index;
+}
+
+LISP_INLINE void
+set_hash_index_slot (struct Lisp_Hash_Table *h, ptrdiff_t idx, Lisp_Object val)
 {
   gc_aset (h->index, idx, val);
 }
@@ -2415,6 +2436,52 @@ set_symbol_next (Lisp_Object sym, struct Lisp_Symbol *next)
   XSYMBOL (sym)->next = next;
 }
 
+/* Buffer-local (also frame-local) variable access functions.  */
+
+LISP_INLINE int
+blv_found (struct Lisp_Buffer_Local_Value *blv)
+{
+  eassert (blv->found == !EQ (blv->defcell, blv->valcell));
+  return blv->found;
+}
+
+LISP_INLINE void
+set_blv_found (struct Lisp_Buffer_Local_Value *blv, int found)
+{
+  eassert (found == !EQ (blv->defcell, blv->valcell));
+  blv->found = found;
+}
+
+LISP_INLINE Lisp_Object
+blv_value (struct Lisp_Buffer_Local_Value *blv)
+{
+  return XCDR (blv->valcell);
+}
+
+LISP_INLINE void
+set_blv_value (struct Lisp_Buffer_Local_Value *blv, Lisp_Object val)
+{
+  XSETCDR (blv->valcell, val);
+}
+
+LISP_INLINE void
+set_blv_where (struct Lisp_Buffer_Local_Value *blv, Lisp_Object val)
+{
+  blv->where = val;
+}
+
+LISP_INLINE void
+set_blv_defcell (struct Lisp_Buffer_Local_Value *blv, Lisp_Object val)
+{
+  blv->defcell = val;
+}
+
+LISP_INLINE void
+set_blv_valcell (struct Lisp_Buffer_Local_Value *blv, Lisp_Object val)
+{
+  blv->valcell = val;
+}
+
 /* Set overlay's property list.  */
 
 LISP_INLINE void
@@ -2426,7 +2493,7 @@ set_overlay_plist (Lisp_Object overlay, Lisp_Object plist)
 /* Get text properties of S.  */
 
 LISP_INLINE INTERVAL
-string_get_intervals (Lisp_Object s)
+string_intervals (Lisp_Object s)
 {
   return XSTRING (s)->intervals;
 }
@@ -2434,29 +2501,53 @@ string_get_intervals (Lisp_Object s)
 /* Set text properties of S to I.  */
 
 LISP_INLINE void
-string_set_intervals (Lisp_Object s, INTERVAL i)
+set_string_intervals (Lisp_Object s, INTERVAL i)
 {
   XSTRING (s)->intervals = i;
+}
+
+/* Set a Lisp slot in TABLE to VAL.  Most code should use this instead
+   of setting slots directly.  */
+
+LISP_INLINE void
+set_char_table_ascii (Lisp_Object table, Lisp_Object val)
+{
+  XCHAR_TABLE (table)->ascii = val;
+}
+LISP_INLINE void
+set_char_table_defalt (Lisp_Object table, Lisp_Object val)
+{
+  XCHAR_TABLE (table)->defalt = val;
+}
+LISP_INLINE void
+set_char_table_parent (Lisp_Object table, Lisp_Object val)
+{
+  XCHAR_TABLE (table)->parent = val;
+}
+LISP_INLINE void
+set_char_table_purpose (Lisp_Object table, Lisp_Object val)
+{
+  XCHAR_TABLE (table)->purpose = val;
 }
 
 /* Set different slots in (sub)character tables.  */
 
 LISP_INLINE void
-char_table_set_extras (Lisp_Object table, ptrdiff_t idx, Lisp_Object val)
+set_char_table_extras (Lisp_Object table, ptrdiff_t idx, Lisp_Object val)
 {
   eassert (0 <= idx && idx < CHAR_TABLE_EXTRA_SLOTS (XCHAR_TABLE (table)));
   XCHAR_TABLE (table)->extras[idx] = val;
 }
 
 LISP_INLINE void
-char_table_set_contents (Lisp_Object table, ptrdiff_t idx, Lisp_Object val)
+set_char_table_contents (Lisp_Object table, ptrdiff_t idx, Lisp_Object val)
 {
   eassert (0 <= idx && idx < (1 << CHARTAB_SIZE_BITS_0));
   XCHAR_TABLE (table)->contents[idx] = val;
 }
 
 LISP_INLINE void
-sub_char_table_set_contents (Lisp_Object table, ptrdiff_t idx, Lisp_Object val)
+set_sub_char_table_contents (Lisp_Object table, ptrdiff_t idx, Lisp_Object val)
 {
   XSUB_CHAR_TABLE (table)->contents[idx] = val;
 }
@@ -2708,7 +2799,7 @@ extern Lisp_Object echo_area_buffer[2];
 extern void add_to_log (const char *, Lisp_Object, Lisp_Object);
 extern void check_message_stack (void);
 extern void setup_echo_area_for_printing (int);
-extern int push_message (void);
+extern bool push_message (void);
 extern Lisp_Object pop_message_unwind (Lisp_Object);
 extern Lisp_Object restore_message_unwind (Lisp_Object);
 extern void restore_message (void);
@@ -2751,7 +2842,7 @@ extern void uninterrupt_malloc (void);
 extern void malloc_warning (const char *);
 extern _Noreturn void memory_full (size_t);
 extern _Noreturn void buffer_memory_full (ptrdiff_t);
-extern int survives_gc_p (Lisp_Object);
+extern bool survives_gc_p (Lisp_Object);
 extern void mark_object (Lisp_Object);
 #if defined REL_ALLOC && !defined SYSTEM_MALLOC
 extern void refill_memory_reserve (void);
@@ -2790,8 +2881,8 @@ extern Lisp_Object make_uninit_string (EMACS_INT);
 extern Lisp_Object make_uninit_multibyte_string (EMACS_INT, EMACS_INT);
 extern Lisp_Object make_string_from_bytes (const char *, ptrdiff_t, ptrdiff_t);
 extern Lisp_Object make_specified_string (const char *,
-					  ptrdiff_t, ptrdiff_t, int);
-extern Lisp_Object make_pure_string (const char *, ptrdiff_t, ptrdiff_t, int);
+					  ptrdiff_t, ptrdiff_t, bool);
+extern Lisp_Object make_pure_string (const char *, ptrdiff_t, ptrdiff_t, bool);
 extern Lisp_Object make_pure_c_string (const char *, ptrdiff_t);
 
 /* Make a string allocated in pure space, use STR as string data.  */
@@ -2825,8 +2916,8 @@ extern struct window *allocate_window (void);
 extern struct frame *allocate_frame (void);
 extern struct Lisp_Process *allocate_process (void);
 extern struct terminal *allocate_terminal (void);
-extern int gc_in_progress;
-extern int abort_on_gc;
+extern bool gc_in_progress;
+extern bool abort_on_gc;
 extern Lisp_Object make_float (double);
 extern void display_malloc_warning (void);
 extern ptrdiff_t inhibit_garbage_collection (void);
@@ -2859,9 +2950,8 @@ extern Lisp_Object copy_char_table (Lisp_Object);
 extern Lisp_Object char_table_ref (Lisp_Object, int);
 extern Lisp_Object char_table_ref_and_range (Lisp_Object, int,
                                              int *, int *);
-extern Lisp_Object char_table_set (Lisp_Object, int, Lisp_Object);
-extern Lisp_Object char_table_set_range (Lisp_Object, int, int,
-                                         Lisp_Object);
+extern void char_table_set (Lisp_Object, int, Lisp_Object);
+extern void char_table_set_range (Lisp_Object, int, int, Lisp_Object);
 extern int char_table_translate (Lisp_Object, int);
 extern void map_char_table (void (*) (Lisp_Object, Lisp_Object,
                             Lisp_Object),

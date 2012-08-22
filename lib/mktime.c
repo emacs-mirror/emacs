@@ -142,7 +142,7 @@ verify (twos_complement_arithmetic,
 verify (base_year_is_a_multiple_of_100, TM_YEAR_BASE % 100 == 0);
 
 /* Return 1 if YEAR + TM_YEAR_BASE is a leap year.  */
-static inline int
+static int
 leapyear (long_int year)
 {
   /* Don't add YEAR to TM_YEAR_BASE, as that might overflow.
@@ -196,7 +196,7 @@ isdst_differ (int a, int b)
    The result may overflow.  It is the caller's responsibility to
    detect overflow.  */
 
-static inline time_t
+static time_t
 ydhms_diff (long_int year1, long_int yday1, int hour1, int min1, int sec1,
 	    int year0, int yday0, int hour0, int min0, int sec0)
 {

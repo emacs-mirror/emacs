@@ -951,12 +951,12 @@ This is recursive; that is, included files may include other files."
                   (setq diary-entries-list
                         (append diary-entries-list
                                 (diary-list-entries original-date number t)))))
-            (beep)
-            (message "Can't read included diary file %s" diary-file)
-            (sleep-for 2))
-        (beep)
-        (message "Can't find included diary file %s" diary-file)
-        (sleep-for 2))))
+            (display-warning
+             :error
+             (format "Can't read included diary file %s\n" diary-file)))
+        (display-warning
+         :error
+         (format "Can't find included diary file %s\n" diary-file)))))
   (goto-char (point-min)))
 
 (defun diary-include-other-diary-files ()
@@ -1456,14 +1456,17 @@ marks.  This is intended to deal with deleted diary entries."
   (let ((result (if calendar-debug-sexp
                     (let ((debug-on-error t))
                       (eval (car (read-from-string sexp))))
-                  (condition-case nil
-                      (eval (car (read-from-string sexp)))
-                    (error
-                     (beep)
-                     (message "Bad sexp at line %d in %s: %s"
-                              (count-lines (point-min) (point))
-                              diary-file sexp)
-                     (sleep-for 2))))))
+                  (let (err)
+                    (condition-case err
+                        (eval (car (read-from-string sexp)))
+                      (error
+                       (display-warning
+                        :error
+                        (format "Bad diary sexp at line %d in %s:\n%s\n\
+Error: %s\n"
+                                (count-lines (point-min) (point))
+                                diary-file sexp err))
+                       nil))))))
     (cond ((stringp result) result)
           ((and (consp result)
                 (stringp (cdr result))) result)

@@ -390,7 +390,7 @@ xfont_list_pattern (Display *display, const char *pattern,
       Lisp_Object scripts = Qnil;
 
       for (i = 0; i < ASIZE (xfont_scratch_props); i++)
-	props[i] = Qnil;
+	ASET (xfont_scratch_props, i, Qnil);
       for (i = 0; i < num_fonts; i++)
 	indices[i] = names[i];
       qsort (indices, num_fonts, sizeof (char *), compare_font_names);
@@ -467,9 +467,9 @@ xfont_list_pattern (Display *display, const char *pattern,
 		      word_size * 7)
 	      || ! EQ (AREF (entity, FONT_SPACING_INDEX), props[7]))
 	    {
-	      memcpy (props, aref_addr (entity, FONT_FOUNDRY_INDEX),
-		      word_size * 7);
-	      props[7] = AREF (entity, FONT_SPACING_INDEX);
+	      vcopy (xfont_scratch_props, 0,
+		     aref_addr (entity, FONT_FOUNDRY_INDEX), 7);
+	      ASET (xfont_scratch_props, 7, AREF (entity, FONT_SPACING_INDEX));
 	      scripts = xfont_supported_scripts (display, indices[i],
 						 xfont_scratch_props, encoding);
 	    }

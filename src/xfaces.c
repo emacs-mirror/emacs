@@ -2695,7 +2695,7 @@ Value is a vector of face attributes.  */)
 	  lface = Fmake_vector (make_number (LFACE_VECTOR_SIZE),
 				Qunspecified);
 	  ASET (lface, 0, Qface);
-	  FSET (f, face_alist, Fcons (Fcons (face, lface), f->face_alist));
+	  fset_face_alist (f, Fcons (Fcons (face, lface), f->face_alist));
 	}
       else
 	for (i = 1; i < LFACE_VECTOR_SIZE; ++i)
@@ -2781,8 +2781,7 @@ The value is TO.  */)
       copy = Finternal_make_lisp_face (to, new_frame);
     }
 
-  memcpy (XVECTOR (copy)->contents, XVECTOR (lface)->contents,
-	  LFACE_VECTOR_SIZE * word_size);
+  vcopy (copy, 0, XVECTOR (lface)->contents, LFACE_VECTOR_SIZE);
 
   /* Changing a named face means that all realized faces depending on
      that face are invalid.  Since we cannot tell which realized faces
@@ -3831,9 +3830,9 @@ Default face attributes override any local face attributes.  */)
   gvec = XVECTOR (global_lface)->contents;
   for (i = 1; i < LFACE_VECTOR_SIZE; ++i)
     if (IGNORE_DEFFACE_P (gvec[i]))
-      lvec[i] = Qunspecified;
+      ASET (local_lface, i, Qunspecified);
     else if (! UNSPECIFIEDP (gvec[i]))
-      lvec[i] = gvec[i];
+      ASET (local_lface, i, AREF (global_lface, i));
 
   /* If the default face was changed, update the face cache and the
      `font' frame parameter.  */
@@ -3850,7 +3849,7 @@ Default face attributes override any local face attributes.  */)
 	     the previously-cached vector.  */
 	  memcpy (attrs, oldface->lface, sizeof attrs);
 	  merge_face_vectors (f, lvec, attrs, 0);
-	  memcpy (lvec, attrs, sizeof attrs);
+	  vcopy (local_lface, 0, attrs, LFACE_VECTOR_SIZE);
 	  newface = realize_face (c, lvec, DEFAULT_FACE_ID);
 
 	  if ((! UNSPECIFIEDP (gvec[LFACE_FAMILY_INDEX])

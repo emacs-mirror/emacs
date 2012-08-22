@@ -178,6 +178,9 @@ You lose; /* Emacs for DOS must be compiled with DJGPP */
 #endif
 
 #include <string.h>
+/* If you think about removing the line below, note that the
+   MS-Windows build relies on it for declaration of 'environ' needed
+   by a few source files.  */
 #include <stdlib.h>
 
 #if __GNUC__ >= 3  /* On GCC 3.0 we might get a warning.  */
