@@ -410,11 +410,7 @@ Res EventProcCreate(EventProc *procReturn, Bool partial,
   assert(CHECKFIELD(EventUnion, any.code, EventInternStruct, code));
   assert(CHECKFIELD(EventUnion, any.clock, EventInternStruct, clock));
   /* check use of labelTable */
-#if !defined(MPS_OS_FR)
-  /* GCC -ansi -pedantic -Werror on FreeBSD will fail here
-   * with the warning "statement with no effect". */
   assert(sizeof(Word) >= sizeof(Addr));
-#endif
 
   proc->partialLog = partial;
   proc->reader = reader; proc->readerP = readerP;
