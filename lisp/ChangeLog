@@ -1,7 +1,9 @@
-2012-08-22  Bastien Guerry  <bzg@gnu.org>
+2012-08-22  Le Wang  <l26wang@gmail.com>  (tiny change)
 
 	* misc.el (forward-to-word, backward-to-word): Activate or extend
-	the region under `shift-select-mode'.
+	the region under `shift-select-mode'.  (Bug#12231)
+
+2012-08-22  Bastien Guerry  <bzg@gnu.org>
 
 	* progmodes/executable.el (executable-prefix): Set to "#!" instead
 	of "#! ".  http://www.in-ulm.de/~mascheck/various/shebang/#details
