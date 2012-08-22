@@ -1,3 +1,7 @@
+2012-08-22  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.m (insertText:): Don't clear modifiers if code is space.
+
 2012-08-22  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* fontset.c (FONTSET_ADD): Return void, not Lisp_Object.

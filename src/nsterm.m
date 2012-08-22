@@ -5091,7 +5091,8 @@ not_in_argv (NSString *arg)
       /* TODO: still need this? */
       if (code == 0x2DC)
         code = '~'; /* 0x7E */
-      emacs_event->modifiers = 0;
+      if (code != 32) /* Space */
+        emacs_event->modifiers = 0;
       emacs_event->kind
 	= code > 0xFF ? MULTIBYTE_CHAR_KEYSTROKE_EVENT : ASCII_KEYSTROKE_EVENT;
       emacs_event->code = code;
