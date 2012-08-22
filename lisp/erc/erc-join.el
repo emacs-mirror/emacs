@@ -84,8 +84,8 @@ identification, or after `erc-autojoin-delay' seconds.
 Any other value means the same as `connect'."
   :group 'erc-autojoin
   :version "24.1"
-  :type  '(choice (const :tag "On Connection" 'connect)
-		  (const :tag "When Identified" 'ident)))
+  :type  '(choice (const :tag "On Connection" connect)
+		  (const :tag "When Identified" ident)))
 
 (defcustom erc-autojoin-delay 30
   "Number of seconds to wait before attempting to autojoin channels.

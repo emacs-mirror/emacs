@@ -1,3 +1,7 @@
+2012-08-21  Josh Feinstein <jlf@foxtail.org>
+
+	* erc-join.el (erc-autojoin-timing): Fix defcustom type.
+
 2012-08-21  Julien Danjou  <julien@danjou.info>
 
 	* erc-match.el (erc-match-message): Use
