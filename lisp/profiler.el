@@ -575,16 +575,22 @@ otherwise collapse the entry."
   (memory-profiler-reset)
   t)
 
-(defun profiler-report ()
-  (interactive)
+(defun sample-profiler-report ()
   (let ((sample-log (sample-profiler-log)))
     (when sample-log
       (profiler-log-fixup sample-log)
-      (profiler-report-log sample-log)))
+      (profiler-report-log sample-log))))
+
+(defun memory-profiler-report ()
   (let ((memory-log (memory-profiler-log)))
     (when memory-log
       (profiler-log-fixup memory-log)
       (profiler-report-log memory-log))))
+
+(defun profiler-report ()
+  (interactive)
+  (sample-profiler-report)
+  (memory-profiler-report))
 
 ;;;###autoload
 (defun profiler-find-log (filename)
@@ -595,6 +601,30 @@ otherwise collapse the entry."
     (goto-char (point-min))
     (let ((log (read (current-buffer))))
       (profiler-report-log log))))
+
+
+
+;;; Profiling helpers
+
+(cl-defmacro with-sample-profiling ((&key (interval profiler-sample-interval)) &rest body)
+  `(progn
+     (sample-profiler-start ,interval)
+     (sample-profiler-reset)
+     (unwind-protect
+	 (progn ,@body)
+       (sample-profiler-stop)
+       (sample-profiler-report)
+       (sample-profiler-reset))))
+
+(cl-defmacro with-memory-profiling (() &rest body)
+  `(progn
+     (memory-profiler-start)
+     (memory-profiler-reset)
+     (unwind-protect
+	 (progn ,@body)
+       (memory-profiler-stop)
+       (memory-profiler-report)
+       (memory-profiler-reset))))
 
 (provide 'profiler)
 ;;; profiler.el ends here
