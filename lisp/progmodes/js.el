@@ -426,18 +426,21 @@ Match group 1 is the name of the macro.")
 (defcustom js-indent-level 4
   "Number of spaces for each indentation step in `js-mode'."
   :type 'integer
+  :safe 'integerp
   :group 'js)
 
 (defcustom js-expr-indent-offset 0
   "Number of additional spaces for indenting continued expressions.
 The value must be no less than minus `js-indent-level'."
   :type 'integer
+  :safe 'integerp
   :group 'js)
 
 (defcustom js-paren-indent-offset 0
   "Number of additional spaces for indenting expressions in parentheses.
 The value must be no less than minus `js-indent-level'."
   :type 'integer
+  :safe 'integerp
   :group 'js
   :version "24.1")
 
@@ -445,6 +448,7 @@ The value must be no less than minus `js-indent-level'."
   "Number of additional spaces for indenting expressions in square braces.
 The value must be no less than minus `js-indent-level'."
   :type 'integer
+  :safe 'integerp
   :group 'js
   :version "24.1")
 
@@ -452,6 +456,7 @@ The value must be no less than minus `js-indent-level'."
   "Number of additional spaces for indenting expressions in curly braces.
 The value must be no less than minus `js-indent-level'."
   :type 'integer
+  :safe 'integerp
   :group 'js
   :version "24.1")
 

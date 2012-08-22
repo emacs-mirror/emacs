@@ -1,3 +1,9 @@
+2012-08-22  Daiki Ueno  <ueno@unixuser.org>
+
+	* progmodes/js.el (js-indent-level, js-expr-indent-offset)
+	(js-paren-indent-offset, js-square-indent-offset)
+	(js-curly-indent-offset): Add :safe (Bug#12257).
+
 2012-08-22  Edward O'Connor  <hober0@gmail.com>
 
 	* json.el (json-key-format): Add error properties.
