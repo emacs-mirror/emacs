@@ -1,3 +1,8 @@
+2012-08-22  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/bug-reference.el (bug-reference): New custom group.
+	(bug-reference-bug-regexp): Make it a defcustom.
+
 2012-08-22  Daiki Ueno  <ueno@unixuser.org>
 
 	* progmodes/js.el (js-indent-level, js-expr-indent-offset)
