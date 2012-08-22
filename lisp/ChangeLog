@@ -7,6 +7,15 @@
 	(window-in-direction): Simplify and rewrite doc-string.
 	(window--size-ignore): Rename to window--size-ignore-p.  Update
 	callers.
+	(display-buffer-in-atom-window, window--major-non-side-window)
+	(window--major-side-window, display-buffer-in-major-side-window)
+	(delete-side-window, display-buffer-in-side-window): New
+	functions.
+	(window--side-check, window-deletable-p, delete-window)
+	(delete-other-windows, split-window): Handle side windows and
+	atomic windows appropriately.
+	(window--display-buffer): Call display-buffer-record-window also
+	when the window buffer did not change.
 
 2012-08-22  Christopher Schmidt  <christopher@ch.ristopher.com>
 
