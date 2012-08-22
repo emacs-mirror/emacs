@@ -39,6 +39,11 @@ may be useful.
 as it was confusingly-named and rarely useful.
 
 ---
+** You can use `NO_BIN_LINK=t make install' to prevent the installation
+overwriting "emacs" in the installation bin/ directory with a link
+to emacs-VERSION.
+
+---
 ** Emacs uses libtinfo in preference to libncurses, if available.
 
 ---
