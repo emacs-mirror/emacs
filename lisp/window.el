@@ -535,7 +535,7 @@ unless it has no other choice (like when deleting a neighboring
 window).")
 (make-variable-buffer-local 'window-size-fixed)
 
-(defun window--size-ignore (window ignore)
+(defun window--size-ignore-p (window ignore)
   "Return non-nil if IGNORE says to ignore size restrictions for WINDOW."
   (if (window-valid-p ignore) (eq window ignore) ignore))
 
@@ -578,7 +578,7 @@ means ignore all of the above restrictions for all windows."
 	  value)
       (with-current-buffer (window-buffer window)
 	(cond
-	 ((and (not (window--size-ignore window ignore))
+	 ((and (not (window--size-ignore-p window ignore))
 	       (window-size-fixed-p window horizontal))
 	  ;; The minimum size of a fixed size window is its size.
 	  (window-total-size window horizontal))
@@ -607,7 +607,7 @@ means ignore all of the above restrictions for all windows."
 		  (ceiling (or (frame-parameter frame 'scroll-bar-width) 14)
 			   (frame-char-width)))
 		 (t 0)))
-	     (if (and (not (window--size-ignore window ignore))
+	     (if (and (not (window--size-ignore-p window ignore))
 		      (numberp window-min-width))
 		 window-min-width
 	       0))))
@@ -617,7 +617,7 @@ means ignore all of the above restrictions for all windows."
 	  (max (+ window-safe-min-height
 		  (if header-line-format 1 0)
 		  (if mode-line-format 1 0))
-	       (if (and (not (window--size-ignore window ignore))
+	       (if (and (not (window--size-ignore-p window ignore))
 			(numberp window-min-height))
 		   window-min-height
 		 0))))))))
@@ -656,7 +656,7 @@ ignore all of the above restrictions for all windows."
     (max (- (window-min-size window horizontal ignore)
 	    (window-total-size window horizontal))
 	 delta))
-   ((window--size-ignore window ignore)
+   ((window--size-ignore-p window ignore)
     delta)
    ((> delta 0)
     (if (window-size-fixed-p window horizontal)
@@ -738,7 +738,7 @@ WINDOW can be resized in the desired direction.  The function
 		 ((eq sub window)
 		  (setq skip (eq trail 'before)))
 		 (skip)
-		 ((and (not (window--size-ignore window ignore))
+		 ((and (not (window--size-ignore-p window ignore))
 		       (window-size-fixed-p sub horizontal)))
 		 (t
 		  ;; We found a non-fixed-size child window.
@@ -828,7 +828,7 @@ at least one other window can be enlarged appropriately."
 	  ;; child window is fixed-size.
 	  (while sub
 	    (when (and (not (eq sub window))
-		       (not (window--size-ignore sub ignore))
+		       (not (window--size-ignore-p sub ignore))
 		       (window-size-fixed-p sub horizontal))
 	      (throw 'fixed delta))
 	    (setq sub (window-right sub))))
@@ -868,7 +868,7 @@ Optional argument NODOWN non-nil means do not check whether
 WINDOW itself (and its child windows) can be enlarged; check
 only whether other windows can be shrunk appropriately."
   (setq window (window-normalize-window window))
-  (if (and (not (window--size-ignore window ignore))
+  (if (and (not (window--size-ignore-p window ignore))
 	   (not nodown) (window-size-fixed-p window horizontal))
       ;; With IGNORE and NOWDON nil return zero if WINDOW has fixed
       ;; size.
@@ -1871,7 +1871,7 @@ preferably only resize windows adjacent to EDGE."
 		;; Make sure this sibling is left alone when
 		;; resizing its siblings.
 		(set-window-new-normal sub 'ignore))
-	       ((or (window--size-ignore sub ignore)
+	       ((or (window--size-ignore-p sub ignore)
 		    (not (window-size-fixed-p sub horizontal)))
 		;; Set this-delta to t to signal that we found a sibling
 		;; of WINDOW whose size is not fixed.

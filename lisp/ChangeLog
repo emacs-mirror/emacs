@@ -5,6 +5,8 @@
 	should run on the minibuffer window.
 	(window-at-side-list): Don't operate on minibuffer window.
 	(window-in-direction): Simplify and rewrite doc-string.
+	(window--size-ignore): Rename to window--size-ignore-p.  Update
+	callers.
 
 2012-08-22  Christopher Schmidt  <christopher@ch.ristopher.com>
 
