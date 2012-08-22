@@ -70,7 +70,6 @@ struct EventProcStruct {
 /* eventTypes -- an array containing info about the event types */
 
 typedef struct {
-  EventType type;
   char *name;
   EventCode code;
   size_t length;
@@ -78,7 +77,7 @@ typedef struct {
 } eventRecord;
 
 #define EVENT0_FORMAT() ""
-/* for i in range(1,20): print "#define EVENT%d_FORMAT(%s) %s" % (i, ", ".join(["p%d" % j for j in range(0, i)]), " ".join(["#p%d" % j for j in range(0, i)])) */
+/* for i in range(1,15): print "#define EVENT%d_FORMAT(%s) %s" % (i, ", ".join(["p%d" % j for j in range(0, i)]), " ".join(["#p%d" % j for j in range(0, i)])) */
 #define EVENT1_FORMAT(p0) #p0
 #define EVENT2_FORMAT(p0, p1) #p0 #p1
 #define EVENT3_FORMAT(p0, p1, p2) #p0 #p1 #p2
@@ -94,34 +93,16 @@ typedef struct {
 #define EVENT13_FORMAT(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12) #p0 #p1 #p2 #p3 #p4 #p5 #p6 #p7 #p8 #p9 #p10 #p11 #p12
 #define EVENT14_FORMAT(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13) #p0 #p1 #p2 #p3 #p4 #p5 #p6 #p7 #p8 #p9 #p10 #p11 #p12 #p13
 #define EVENT15_FORMAT(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14) #p0 #p1 #p2 #p3 #p4 #p5 #p6 #p7 #p8 #p9 #p10 #p11 #p12 #p13 #p14
-#define EVENT16_FORMAT(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15) #p0 #p1 #p2 #p3 #p4 #p5 #p6 #p7 #p8 #p9 #p10 #p11 #p12 #p13 #p14 #p15
-#define EVENT17_FORMAT(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16) #p0 #p1 #p2 #p3 #p4 #p5 #p6 #p7 #p8 #p9 #p10 #p11 #p12 #p13 #p14 #p15 #p16
-#define EVENT18_FORMAT(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16, p17) #p0 #p1 #p2 #p3 #p4 #p5 #p6 #p7 #p8 #p9 #p10 #p11 #p12 #p13 #p14 #p15 #p16 #p17
-#define EVENT19_FORMAT(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16, p17, p18) #p0 #p1 #p2 #p3 #p4 #p5 #p6 #p7 #p8 #p9 #p10 #p11 #p12 #p13 #p14 #p15 #p16 #p17 #p18
 
 static eventRecord eventTypes[] = {
-  {0, "(unused)", 0, 0, "0"},
+  {"(unused)", 0, 0, "0"},
 #define EVENT_INIT(X, name, code, always, kind, count, format) \
-  {Event##name, #name, code, \
+  {#name, code, \
    EventSizeAlign(sizeof(Event##name##Struct)), EVENT##count##_FORMAT format},
   EVENT_LIST(EVENT_INIT, X)
 };
 
 #define eventTypeCount (sizeof(eventTypes) / sizeof(eventRecord))
-
-
-/* eventType2Index -- find index in eventTypes for the given type */
-
-static size_t eventType2Index(EventType type)
-{
-  size_t i;
-
-  for(i = 0; i < eventTypeCount; ++i)
-    if (eventTypes[i].type == type)
-      return i;
-  error("Unknown event type %0"PRIwWORD PRIXLONGEST, (ulongest_t)type);
-  return 0;
-}
 
 
 /* eventcode2Index -- find index in eventTypes for the given code */
@@ -168,16 +149,6 @@ char *EventCode2Name(EventCode code)
 char *EventCode2Format(EventCode code)
 {
   return eventTypes[eventCode2Index(code, TRUE)].format;
-}
-
-
-/* EventGetCode -- get event code of the given event */
-
-EventCode EventGetCode(Event event)
-{
-  size_t i = eventType2Index(event->any.code);
-  assert(eventTypes[i].code <= EventCodeMAX);
-  return eventTypes[i].code;
 }
 
 
@@ -276,14 +247,15 @@ Res EventRead(Event *eventReturn, EventProc proc)
 {
   size_t eventIndex, length;
   Res res;
-  EventType type;
+  EventCode code;
   Event event;
   void *restOfEvent;
 
-  res = proc->reader(proc->readerP, &type, sizeof(EventType));
-  if (res != ResOK) return res;
+  res = proc->reader(proc->readerP, &code, sizeof(EventCode));
+  if (res != ResOK)
+    return res;
 
-  eventIndex = eventType2Index(type);
+  eventIndex = eventCode2Index(code, TRUE);
   length = eventTypes[eventIndex].length;
   if (proc->cachedEvent != NULL) {
     event = proc->cachedEvent;
@@ -294,13 +266,14 @@ Res EventRead(Event *eventReturn, EventProc proc)
     if (event == NULL) return ResMEMORY;
   }
 
-  event->any.code = type;
-  restOfEvent = PointerAdd(event, sizeof(EventType));
-  if (type == EventIntern) { /* the only string event */
+  event->any.code = code;
+  restOfEvent = PointerAdd(event, sizeof(EventCode));
+  if (code == EventInternCode) { /* the only string event */
     /* read enough to get the length */
     res = proc->reader(proc->readerP, restOfEvent,
-                       internStrOffset - sizeof(EventType));
-    if (res != ResOK) return res;
+                       internStrOffset - sizeof(EventCode));
+    if (res != ResOK)
+      return res;
     /* read the rest */
     res = proc->reader(proc->readerP, &event->Intern.f1.str,
                        /* Length must agree with EVENT_WS. */
@@ -309,7 +282,7 @@ Res EventRead(Event *eventReturn, EventProc proc)
     if (res != ResOK) return res;
   } else {
     res = proc->reader(proc->readerP, restOfEvent,
-                       length - sizeof(EventType));
+                       length - sizeof(EventCode));
     if (res != ResOK) return res;
   }
   *eventReturn = event;
@@ -328,7 +301,7 @@ Res EventRecord(EventProc proc, Event event, Word etime)
   Res res;
 
   switch(event->any.code) {
-  case EventIntern: {           /* id, label */
+  case EventInternCode: {           /* id, label */
     Symbol sym = malloc(sizeof(symbolStruct));
 
     if (sym == NULL) return ResMEMORY;
@@ -340,7 +313,7 @@ Res EventRecord(EventProc proc, Event event, Word etime)
     }
     res = TableDefine(proc->internTable, sym->id, sym);
   } break;
-  case EventLabel: {            /* addr, id */
+  case EventLabelCode: {            /* addr, id */
     Label label = malloc(sizeof(labelStruct));
     void *entry;
 
