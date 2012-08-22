@@ -1,6 +1,7 @@
 2012-08-22  Tomohiro Matsuyama  <tomo@cx4a.org>
 
 	* profiler.el: Switch to cl-lib.
+	(profiler-start): Change mode spec.
 
 2012-08-22  Daiki Ueno  <ueno@unixuser.org>
 

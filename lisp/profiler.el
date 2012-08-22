@@ -538,16 +538,16 @@ otherwise collapse the entry."
 ;;;###autoload
 (defun profiler-start (mode)
   (interactive
-   (list (intern (completing-read "Mode: " '("cpu" "memory" "cpu&memory")
+   (list (intern (completing-read "Mode: " '("cpu" "mem" "cpu+mem")
 				  nil t nil nil "cpu"))))
   (cl-ecase mode
     (cpu
      (sample-profiler-start profiler-sample-interval)
      (message "CPU profiler started"))
-    (memory
+    (mem
      (memory-profiler-start)
      (message "Memory profiler started"))
-    (cpu&memory
+    (cpu+mem
      (sample-profiler-start profiler-sample-interval)
      (memory-profiler-start)
      (message "CPU and memory profiler started"))))
