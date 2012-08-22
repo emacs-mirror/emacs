@@ -414,7 +414,7 @@ static void readLog(EventProc proc)
     if (res == ResFAIL) break; /* eof */
     if (res != ResOK) everror("Truncated log");
     eventTime = event->any.clock;
-    code = EventGetCode(event);
+    code = event->any.code;
 
     /* Output bucket, if necessary, and update counters */
     if (bucketSize != 0 && eventTime >= bucketLimit) {
@@ -456,7 +456,7 @@ static void readLog(EventProc proc)
      }
 
      switch (event->any.code) {
-     case EventLabel: {
+     case EventLabelCode: {
        switch (style) {
        case '\0': case 'C': {
          EventString sym = LabelText(proc, event->Label.f1);
@@ -480,7 +480,7 @@ static void readLog(EventProc proc)
        } break;
        }
      } break;
-     case EventMeterValues: {
+     case EventMeterValuesCode: {
        switch (style) {
        case '\0': {
          if (event->MeterValues.f3 == 0) {
@@ -516,7 +516,7 @@ static void readLog(EventProc proc)
        } break;
        }
      } break;
-     case EventPoolInit: { /* pool, arena, class */
+     case EventPoolInitCode: { /* pool, arena, class */
        printf(styleConv, (ulongest_t)event->PoolInit.f0);
        printf(styleConv, (ulongest_t)event->PoolInit.f1);
        /* class is a Pointer, but we label them, so call printAddr */

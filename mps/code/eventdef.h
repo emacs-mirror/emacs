@@ -32,7 +32,7 @@
  * and the major version when changing the format of the event file.
  */
 
-#define EVENT_VERSION_MAJOR  ((unsigned)0)
+#define EVENT_VERSION_MAJOR  ((unsigned)1)
 #define EVENT_VERSION_MEDIAN ((unsigned)0)
 #define EVENT_VERSION_MINOR  ((unsigned)0)
 

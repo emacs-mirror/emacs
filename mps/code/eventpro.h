@@ -21,7 +21,6 @@ typedef Res (*EventProcReader)(void *, void *, size_t);
 
 extern EventCode EventName2Code(char *name);
 extern char *EventCode2Name(EventCode code);
-extern EventCode EventGetCode(Event event);
 extern char *EventCode2Format(EventCode code);
 extern Bool EventCodeIsValid(EventCode code);
 
