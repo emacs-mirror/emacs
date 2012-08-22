@@ -1,3 +1,11 @@
+2012-08-22  Dan Nicolaescu  <dann@gnu.org>
+
+	* frame.h (FRAME_W32_P, FRAME_MSDOS_P, FRAME_NS_P): Change to
+	compile time tests instead of run time tests on systems that do
+	not use them.
+	(FRAME_MAC_P): Remove leftover from deleted code.
+	* frame.c (syms_of_frame): Remove leftover from deleted code.
+
 2012-08-22  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsterm.m (insertText:): Don't clear modifiers if code is space.
