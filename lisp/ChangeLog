@@ -1,3 +1,8 @@
+2012-08-22  Christopher Schmidt  <christopher@ch.ristopher.com>
+
+	* help-fns.el (help-fns--key-bindings):
+	Abbreviate non-symbol remap targets.  (Bug#12174)
+
 2012-08-22  Martin Rudalics  <rudalics@gmx.at>
 
 	* dired.el (dired-mark-remembered): Don't clobber point.
