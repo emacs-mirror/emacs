@@ -1,3 +1,8 @@
+2012-08-22  Jeremy Moore  <jmoore@ieee.org>  (tiny change)
+
+	* progmodes/hideif.el (hif-compress-define-list):
+	Fix typo.  (Bug#11951)
+
 2012-08-20  Dan Nicolaescu  <dann@gnu.org>
 
 	* progmodes/hideshow.el (hs-block-end-regexp): Restore lost
