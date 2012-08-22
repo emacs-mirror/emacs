@@ -1,3 +1,10 @@
+2012-08-22  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* fontset.c (FONTSET_ADD): Return void, not Lisp_Object.
+	Otherwise, the compiler complains about (A?B:C) where B is void
+	and C is Lisp_Object.  This fixes an incompatibility with Sun C	5.12.
+	(fontset_add): Return void, for FONTSET_ADD.
+
 2012-08-21  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* alloc.c: Use bool for booleans.

@@ -185,8 +185,7 @@ void (*check_window_system_func) (void);
 
 
 /* Prototype declarations for static functions.  */
-static Lisp_Object fontset_add (Lisp_Object, Lisp_Object, Lisp_Object,
-                                Lisp_Object);
+static void fontset_add (Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object);
 static Lisp_Object fontset_find_font (Lisp_Object, int, struct face *,
                                       int, int);
 static void reorder_font_vector (Lisp_Object, struct font *);
@@ -356,11 +355,12 @@ fontset_ref (Lisp_Object fontset, int c)
    ? (NILP (range)							\
       ? (set_fontset_fallback						\
 	 (fontset, Fmake_vector (make_number (1), (elt))))		\
-      : Fset_char_table_range ((fontset), (range),			\
-			       Fmake_vector (make_number (1), (elt))))	\
+      : ((void)								\
+	 Fset_char_table_range (fontset, range,				\
+				Fmake_vector (make_number (1), elt))))	\
    : fontset_add ((fontset), (range), (elt), (add)))
 
-static Lisp_Object
+static void
 fontset_add (Lisp_Object fontset, Lisp_Object range, Lisp_Object elt, Lisp_Object add)
 {
   Lisp_Object args[2];
@@ -389,7 +389,6 @@ fontset_add (Lisp_Object fontset, Lisp_Object range, Lisp_Object elt, Lisp_Objec
       set_fontset_fallback
 	(fontset, NILP (args[idx]) ? args[1 - idx] : Fvconcat (2, args));
     }
-  return Qnil;
 }
 
 static int
