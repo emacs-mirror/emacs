@@ -86,6 +86,7 @@ When this is `function', only ask when called non-interactively."
 
 (defcustom executable-prefix "#!"
   "Interpreter magic number prefix inserted when there was no magic number."
+  :version "24.3"                       ; "#! " -> "#!"
   :type 'string
   :group 'executable)
 
