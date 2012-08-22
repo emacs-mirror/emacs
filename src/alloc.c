@@ -5380,6 +5380,23 @@ bounded_number (EMACS_INT number)
   return make_number (min (MOST_POSITIVE_FIXNUM, number));
 }
 
+/* Calculate total bytes of live objects.  */
+
+static size_t
+total_bytes_of_live_objects (void)
+{
+  size_t tot = 0;
+  tot += total_conses  * sizeof (struct Lisp_Cons);
+  tot += total_symbols * sizeof (struct Lisp_Symbol);
+  tot += total_markers * sizeof (union Lisp_Misc);
+  tot += total_string_bytes;
+  tot += total_vector_slots * word_size;
+  tot += total_floats  * sizeof (struct Lisp_Float);
+  tot += total_intervals * sizeof (struct interval);
+  tot += total_strings * sizeof (struct Lisp_String);
+  return tot;
+}
+
 DEFUN ("garbage-collect", Fgarbage_collect, Sgarbage_collect, 0, 0, "",
        doc: /* Reclaim storage for Lisp objects no longer needed.
 Garbage collection happens automatically if you cons more than
@@ -5405,6 +5422,7 @@ See Info node `(elisp)Garbage Collection'.  */)
   ptrdiff_t count = SPECPDL_INDEX ();
   EMACS_TIME start;
   Lisp_Object retval = Qnil;
+  size_t tot_before = 0;
 
   if (abort_on_gc)
     abort ();
@@ -5420,6 +5438,9 @@ See Info node `(elisp)Garbage Collection'.  */)
      Do this early on, so it is no problem if the user quits.  */
   FOR_EACH_BUFFER (nextb)
     compact_buffer (nextb);
+
+  if (memory_profiler_running)
+    tot_before = total_bytes_of_live_objects ();
 
   start = current_emacs_time ();
 
@@ -5467,6 +5488,7 @@ See Info node `(elisp)Garbage Collection'.  */)
   shrink_regexp_cache ();
 
   gc_in_progress = 1;
+  is_in_trace = 1;
 
   /* Mark all the special slots that serve as the roots of accessibility.  */
 
@@ -5587,6 +5609,7 @@ See Info node `(elisp)Garbage Collection'.  */)
   check_cons_list ();
 
   gc_in_progress = 0;
+  is_in_trace = 0;
 
   consing_since_gc = 0;
   if (gc_cons_threshold < GC_DEFAULT_THRESHOLD / 10)
@@ -5595,16 +5618,7 @@ See Info node `(elisp)Garbage Collection'.  */)
   gc_relative_threshold = 0;
   if (FLOATP (Vgc_cons_percentage))
     { /* Set gc_cons_combined_threshold.  */
-      double tot = 0;
-
-      tot += total_conses  * sizeof (struct Lisp_Cons);
-      tot += total_symbols * sizeof (struct Lisp_Symbol);
-      tot += total_markers * sizeof (union Lisp_Misc);
-      tot += total_string_bytes;
-      tot += total_vector_slots * word_size;
-      tot += total_floats  * sizeof (struct Lisp_Float);
-      tot += total_intervals * sizeof (struct interval);
-      tot += total_strings * sizeof (struct Lisp_String);
+      double tot = total_bytes_of_live_objects ();
 
       tot *= XFLOAT_DATA (Vgc_cons_percentage);
       if (0 < tot)
@@ -5706,6 +5720,25 @@ See Info node `(elisp)Garbage Collection'.  */)
     }
 
   gcs_done++;
+
+  /* Collect profiling data.  */
+  if (sample_profiler_running || memory_profiler_running)
+    {
+      size_t swept = 0;
+      size_t elapsed = 0;
+      if (memory_profiler_running)
+	{
+	  size_t tot_after = total_bytes_of_live_objects ();
+	  if (tot_before > tot_after)
+	    swept = tot_before - tot_after;
+	}
+      if (sample_profiler_running)
+	{
+	  EMACS_TIME since_start = sub_emacs_time (current_emacs_time (), start);
+	  elapsed = EMACS_TIME_TO_DOUBLE (since_start) * 1000;
+	}
+      gc_probe (swept, elapsed);
+    }
 
   return retval;
 }

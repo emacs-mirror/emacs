@@ -3532,12 +3532,18 @@ void syms_of_dbusbind (void);
 /* Defined in profiler.c */
 extern int sample_profiler_running;
 extern int memory_profiler_running;
+extern int is_in_trace;
+extern Lisp_Object Qgc;
 extern void malloc_probe (size_t);
-#define MALLOC_PROBE(size)		\
-  do {					\
-    if (memory_profiler_running)	\
-      malloc_probe (size);		\
+extern void gc_probe (size_t, size_t);
+#define ENTER_TRACE (is_in_trace = 1)
+#define LEAVE_TRACE (is_in_trace = 0)
+#define MALLOC_PROBE(size)			\
+  do {						\
+    if (memory_profiler_running)		\
+      malloc_probe (size);			\
   } while (0)
+
 extern void mark_profiler (void);
 extern void syms_of_profiler (void);
 

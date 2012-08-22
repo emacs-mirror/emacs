@@ -44,10 +44,16 @@
 (defun profiler-format (fmt &rest args)
   (cl-loop for (width align subfmt) in fmt
 	   for arg in args
-	   for str = (cl-typecase subfmt
-		       (cons   (apply 'profiler-format subfmt arg))
-		       (string (format subfmt arg))
-		       (t	    (profiler-ensure-string arg)))
+	   for str = (cond
+		      ((consp subfmt)
+		       (apply 'profiler-format subfmt arg))
+		      ((stringp subfmt)
+		       (format subfmt arg))
+		      ((and (symbolp subfmt)
+			    (fboundp subfmt))
+		       (funcall subfmt arg))
+		      (t
+		       (profiler-ensure-string arg)))
 	   for len = (length str)
 	   if (< width len)
 	   collect (substring str 0 width) into frags
@@ -59,6 +65,30 @@
 	       (right (concat padding str))))
 	   into frags
 	   finally return (apply #'concat frags)))
+
+(defun profiler-format-nbytes (nbytes)
+  (if (and (integerp nbytes) (> nbytes 0))
+      (cl-loop with i = (% (1+ (floor (log10 nbytes))) 3)
+	       for c in (append (number-to-string nbytes) nil)
+	       if (= i 0)
+	       collect ?, into s
+	       and do (setq i 3)
+	       collect c into s
+	       do (cl-decf i)
+	       finally return
+	       (apply 'string (if (eq (car s) ?,) (cdr s) s)))
+    (profiler-ensure-string nbytes)))
+
+
+
+;;; Backtrace data structure
+
+(defun profiler-backtrace-reverse (backtrace)
+  (cl-case (car backtrace)
+    ((t gc)
+     (cons (car backtrace)
+	   (reverse (cdr backtrace))))
+    (t (reverse backtrace))))
 
 
 
@@ -105,7 +135,7 @@
 	     (format "#<compiled 0x%x>" (sxhash entry)))
 	    ((subrp entry)
 	     (subr-name entry))
-	    ((symbolp entry)
+	    ((or (symbolp entry) (stringp entry))
 	     entry)
 	    (t
 	     (format "#<unknown 0x%x>" (sxhash entry)))))))
@@ -129,6 +159,8 @@
 (defun profiler-calltree-count< (a b)
   (cond ((eq (profiler-calltree-entry a) t) t)
 	((eq (profiler-calltree-entry b) t) nil)
+	((eq (profiler-calltree-entry a) 'gc) t)
+	((eq (profiler-calltree-entry b) 'gc) nil)
 	(t (< (profiler-calltree-count a)
 	      (profiler-calltree-count b)))))
 
@@ -138,6 +170,8 @@
 (defun profiler-calltree-elapsed< (a b)
   (cond ((eq (profiler-calltree-entry a) t) t)
 	((eq (profiler-calltree-entry b) t) nil)
+	((eq (profiler-calltree-entry a) 'gc) t)
+	((eq (profiler-calltree-entry b) 'gc) nil)
 	(t (< (profiler-calltree-elapsed a)
 	      (profiler-calltree-elapsed b)))))
 
@@ -166,7 +200,9 @@
 	  (count (profiler-slot-count slot))
 	  (elapsed (profiler-slot-elapsed slot))
 	  (node tree))
-      (dolist (entry (if reverse backtrace (reverse backtrace)))
+      (dolist (entry (if reverse
+			 backtrace
+		       (profiler-backtrace-reverse backtrace)))
 	(let ((child (profiler-calltree-find node entry)))
 	  (unless child
 	    (setq child (profiler-make-calltree :entry entry :parent node))
@@ -179,20 +215,27 @@
   (let ((total-count 0)
 	(total-elapsed 0))
     (dolist (child (profiler-calltree-children tree))
-      (cl-incf total-count (profiler-calltree-count child))
-      (cl-incf total-elapsed (profiler-calltree-elapsed child)))
-    (profiler-calltree-walk
-     tree (lambda (node)
-	    (unless (zerop total-count)
-	      (setf (profiler-calltree-count-percent node)
-		    (format "%s%%"
-			    (/ (* (profiler-calltree-count node) 100)
-			       total-count))))
-	    (unless (zerop total-elapsed)
-	      (setf (profiler-calltree-elapsed-percent node)
-		    (format "%s%%"
-			    (/ (* (profiler-calltree-elapsed node) 100)
-			       total-elapsed))))))))
+      (if (eq (profiler-calltree-entry child) 'gc)
+	  (profiler-calltree-compute-percentages child)
+	(cl-incf total-count (profiler-calltree-count child))
+	(cl-incf total-elapsed (profiler-calltree-elapsed child))))
+    (dolist (child (profiler-calltree-children tree))
+      (if (eq (profiler-calltree-entry child) 'gc)
+	  (setf (profiler-calltree-count-percent child) ""
+		(profiler-calltree-elapsed-percent child) "")
+	(profiler-calltree-walk
+	 child
+	 (lambda (node)
+	   (unless (zerop total-count)
+	     (setf (profiler-calltree-count-percent node)
+		   (format "%s%%"
+			   (/ (* (profiler-calltree-count node) 100)
+			      total-count))))
+	   (unless (zerop total-elapsed)
+	     (setf (profiler-calltree-elapsed-percent node)
+		   (format "%s%%"
+			   (/ (* (profiler-calltree-elapsed node) 100)
+			      total-elapsed))))))))))
 
 (cl-defun profiler-calltree-build (log &key reverse)
   (let ((tree (profiler-make-calltree)))
@@ -231,8 +274,8 @@
 	       (5 right)))))
 
 (defvar profiler-report-memory-line-format
-  '((60 left)
-    (14 right ((9 right)
+  '((55 left)
+    (19 right ((14 right profiler-format-nbytes)
 	       (5 right)))))
 
 (defvar profiler-report-log nil)
@@ -244,6 +287,8 @@
 	 (cond
 	  ((eq entry t)
 	   "Others")
+	  ((eq entry 'gc)
+	   "Garbage Collection")
 	  ((and (symbolp entry)
 		(fboundp entry))
 	   (propertize (symbol-name entry)
@@ -462,7 +507,7 @@ otherwise collapse the entry."
        (setq header-line-format
 	     (profiler-report-header-line-format
 	      profiler-report-memory-line-format
-	      "Function" (list "Alloc" "%")))
+	      "Function" (list "Bytes" "%")))
        (let ((predicate (cl-ecase order
 			  (ascending 'profiler-calltree-count<)
 			  (descending 'profiler-calltree-count>))))

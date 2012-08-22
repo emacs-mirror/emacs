@@ -25,6 +25,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <setjmp.h>
 #include "lisp.h"
 
+int is_in_trace;
+Lisp_Object Qgc;
+
 static void sigprof_handler (int, siginfo_t *, void *);
 static void block_sigprof (void);
 static void unblock_sigprof (void);
@@ -350,8 +353,8 @@ struct slot
 {
   struct slot *next, *prev;
   Lisp_Object backtrace;
-  unsigned int count;
-  unsigned int elapsed;
+  size_t count;
+  size_t elapsed;
   unsigned char used : 1;
 };
 
@@ -536,8 +539,8 @@ struct log
   Lisp_Object backtrace;
   struct slot_heap *slot_heap;
   struct slot_table *slot_table;
-  unsigned int others_count;
-  unsigned int others_elapsed;
+  size_t others_count;
+  size_t others_elapsed;
 };
 
 static struct log *
@@ -647,22 +650,23 @@ ensure_slot (struct log *log, Lisp_Object backtrace)
 }
 
 static void
-record_backtrace (struct log *log, unsigned int count, unsigned int elapsed)
+record_backtrace_under (struct log *log, Lisp_Object base,
+			size_t count, size_t elapsed)
 {
-  int i;
+  int i = 0;
   Lisp_Object backtrace = log->backtrace;
   struct backtrace *backlist = backtrace_list;
 
   if (!apply_filter (backlist)) return;
 
-  for (i = 0; i < ASIZE (backtrace) && backlist; backlist = backlist->next)
+  if (!NILP (base) && ASIZE (backtrace) > 0)
+    ASET (backtrace, i++, base);
+
+  for (; i < ASIZE (backtrace) && backlist; backlist = backlist->next)
     {
       Lisp_Object function = *backlist->function;
       if (FUNCTIONP (function))
-	{
-	  ASET (backtrace, i, function);
-	  i++;
-	}
+	ASET (backtrace, i++, function);
     }
   for (; i < ASIZE (backtrace); i++)
     ASET (backtrace, i, Qnil);
@@ -673,6 +677,12 @@ record_backtrace (struct log *log, unsigned int count, unsigned int elapsed)
       slot->count += count;
       slot->elapsed += elapsed;
     }
+}
+
+static void
+record_backtrace (struct log *log, size_t count, size_t elapsed)
+{
+  record_backtrace_under (log, Qnil, count, elapsed);
 }
 
 static Lisp_Object
@@ -892,7 +902,8 @@ DEFUN ("memory-profiler-log",
 static void
 sigprof_handler (int signal, siginfo_t *info, void *ctx)
 {
-  record_backtrace (sample_log, 1, current_sample_interval);
+  if (!is_in_trace && sample_log)
+    record_backtrace (sample_log, 1, current_sample_interval);
 }
 
 static void
@@ -916,7 +927,17 @@ unblock_sigprof (void)
 void
 malloc_probe (size_t size)
 {
-  record_backtrace (memory_log, size, 0);
+  if (memory_log)
+    record_backtrace (memory_log, size, 0);
+}
+
+void
+gc_probe (size_t size, size_t elapsed)
+{
+  if (sample_log)
+    record_backtrace_under (sample_log, Qgc, 1, elapsed);
+  if (memory_log)
+    record_backtrace_under (memory_log, Qgc, size, elapsed);
 }
 
 
@@ -942,6 +963,8 @@ mark_profiler (void)
 void
 syms_of_profiler (void)
 {
+  DEFSYM (Qgc, "gc");
+
   DEFVAR_INT ("profiler-max-stack-depth", profiler_max_stack_depth,
 	      doc: /* FIXME */);
   profiler_max_stack_depth = 16;
