@@ -1,3 +1,8 @@
+2012-08-22  Juri Linkov  <juri@jurta.org>
+
+	* info.el (Info-fontify-node): Hide the suffix of the
+	Info file name in the header line.  (Bug#12187)
+
 2012-08-22  Glenn Morris  <rgm@gnu.org>
 
 	* calendar/cal-tex.el (cal-tex-weekly-common):
