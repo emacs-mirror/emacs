@@ -1,3 +1,11 @@
+2012-08-22  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (walk-window-tree, window-with-parameter): New
+	optional argument MINIBUF to control whether these functions
+	should run on the minibuffer window.
+	(window-at-side-list): Don't operate on minibuffer window.
+	(window-in-direction): Simplify and rewrite doc-string.
+
 2012-08-22  Christopher Schmidt  <christopher@ch.ristopher.com>
 
 	* help-fns.el (help-fns--key-bindings):

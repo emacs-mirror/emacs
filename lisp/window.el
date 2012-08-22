@@ -271,19 +271,32 @@ windows horizontally arranged within WINDOW."
 	(setq walk-window-tree-window
 	      (window-right walk-window-tree-window))))))
 
-(defun walk-window-tree (fun &optional frame any)
+(defun walk-window-tree (fun &optional frame any minibuf)
   "Run function FUN on each live window of FRAME.
 FUN must be a function with one argument - a window.  FRAME must
 be a live frame and defaults to the selected one.  ANY, if
-non-nil means to run FUN on all live and internal windows of
+non-nil, means to run FUN on all live and internal windows of
 FRAME.
+
+Optional argument MINIBUF t means run FUN on FRAME's minibuffer
+window even if it isn't active.  MINIBUF nil or omitted means run
+FUN on FRAME's minibuffer window only if it's active.  In both
+cases the minibuffer window must be part of FRAME.  MINIBUF
+neither nil nor t means never run FUN on the minibuffer window.
 
 This function performs a pre-order, depth-first traversal of the
 window tree.  If FUN changes the window tree, the result is
 unpredictable."
-  (let ((walk-window-tree-frame (window-normalize-frame frame)))
-    (walk-window-tree-1
-     fun (frame-root-window walk-window-tree-frame) any)))
+  (setq frame (window-normalize-frame frame))
+  (walk-window-tree-1 fun (frame-root-window frame) any)
+  (when (memq minibuf '(nil t))
+    ;; Run FUN on FRAME's minibuffer window if requested.
+    (let ((minibuffer-window (minibuffer-window frame)))
+      (when (and (window-live-p minibuffer-window)
+		 (eq (window-frame minibuffer-window) frame)
+		 (or (eq minibuf t)
+		     (minibuffer-window-active-p minibuffer-window)))
+	(funcall fun minibuffer-window)))))
 
 (defun walk-window-subtree (fun &optional window any)
   "Run function FUN on the subtree of windows rooted at WINDOW.
@@ -299,13 +312,19 @@ is unpredictable."
   (setq window (window-normalize-window window))
   (walk-window-tree-1 fun window any t))
 
-(defun window-with-parameter (parameter &optional value frame any)
+(defun window-with-parameter (parameter &optional value frame any minibuf)
   "Return first window on FRAME with PARAMETER non-nil.
 FRAME defaults to the selected frame.  Optional argument VALUE
 non-nil means only return a window whose window-parameter value
 for PARAMETER equals VALUE (comparison is done with `equal').
 Optional argument ANY non-nil means consider internal windows
-too."
+too.
+
+Optional argument MINIBUF t means consider FRAME's minibuffer
+window even if it isn't active.  MINIBUF nil or omitted means
+consider FRAME's minibuffer window only if it's active.  In both
+cases the minibuffer window must be part of FRAME.  MINIBUF
+neither nil nor t means never consider the minibuffer window."
   (let (this-value)
     (catch 'found
       (walk-window-tree
@@ -313,7 +332,7 @@ too."
 	 (when (and (setq this-value (window-parameter window parameter))
 		    (or (not value) (equal value this-value)))
 	   (throw 'found window)))
-       frame any))))
+       frame any minibuf))))
 
 ;;; Atomic windows.
 (defun window-atom-root (&optional window)
@@ -1088,7 +1107,7 @@ SIDE can be any of the symbols `left', `top', `right' or
      (lambda (window)
        (when (window-at-side-p window side)
 	 (setq windows (cons window windows))))
-     frame)
+     frame nil 'nomini)
     (nreverse windows)))
 
 (defun window--in-direction-2 (window posn &optional horizontal)
@@ -1103,12 +1122,25 @@ SIDE can be any of the symbols `left', `top', `right' or
 	  (- left posn)
 	(- posn left (window-total-width window))))))
 
+;; Predecessors to the below have been devised by Julian Assange in
+;; change-windows-intuitively.el and Hovav Shacham in windmove.el.
+;; Neither of these allow to selectively ignore specific windows
+;; (windows whose `no-other-window' parameter is non-nil) as targets of
+;; the movement.
 (defun window-in-direction (direction &optional window ignore)
   "Return window in DIRECTION as seen from WINDOW.
+More precisely, return the nearest window in direction DIRECTION
+as seen from the position of `window-point' in window WINDOW.
 DIRECTION must be one of `above', `below', `left' or `right'.
 WINDOW must be a live window and defaults to the selected one.
-IGNORE non-nil means a window can be returned even if its
-`no-other-window' parameter is non-nil."
+
+Do not return a window whose `no-other-window' parameter is
+non-nil.  If the nearest window's `no-other-window' parameter is
+non-nil, try to find another window in the indicated direction.
+If, however, the optional argument IGNORE is non-nil, return that
+window even if its `no-other-window' parameter is non-nil.
+
+Return nil if no suitable window can be found."
   (setq window (window-normalize-window window t))
   (unless (memq direction '(above below left right))
     (error "Wrong direction %s" direction))
@@ -1195,7 +1227,7 @@ IGNORE non-nil means a window can be returned even if its
 	     (setq best-edge-2 w-top)
 	     (setq best-diff-2 best-diff-2-new)
 	     (setq best-2 w)))))))
-     (window-frame window))
+     frame)
     (or best best-2)))
 
 (defun get-window-with-predicate (predicate &optional minibuf all-frames default)
