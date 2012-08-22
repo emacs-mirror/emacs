@@ -1,4 +1,7 @@
-2012-08-22  Bastien Guerry  <bzg@altern.org>
+2012-08-22  Bastien Guerry  <bzg@gnu.org>
+
+	* misc.el (forward-to-word, backward-to-word): Activate or extend
+	the region under `shift-select-mode'.
 
 	* progmodes/executable.el (executable-prefix): Set to "#!" instead
 	of "#! ".  http://www.in-ulm.de/~mascheck/various/shebang/#details

@@ -99,14 +99,14 @@ Ignores CHAR at point."
 (defun forward-to-word (arg)
   "Move forward until encountering the beginning of a word.
 With argument, do this that many times."
-  (interactive "p")
+  (interactive "^p")
   (or (re-search-forward (if (> arg 0) "\\W\\b" "\\b\\W") nil t arg)
       (goto-char (if (> arg 0) (point-max) (point-min)))))
 
 (defun backward-to-word (arg)
   "Move backward until encountering the end of a word.
 With argument, do this that many times."
-  (interactive "p")
+  (interactive "^p")
   (forward-to-word (- arg)))
 
 ;;;###autoload
