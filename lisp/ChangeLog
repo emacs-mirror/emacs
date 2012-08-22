@@ -1,3 +1,8 @@
+2012-08-22  Martin Rudalics  <rudalics@gmx.at>
+
+	* dired.el (dired-mark-remembered): Don't clobber point.
+	(Bug#11795)
+
 2012-08-22  Glenn Morris  <rgm@gnu.org>
 
 	* progmodes/bug-reference.el (bug-reference): New custom group.
