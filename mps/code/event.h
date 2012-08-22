@@ -49,7 +49,7 @@ extern Word EventKindControl;
         EventFlush(); \
       AVER(_size <= (size_t)(EventLimit - EventNext)); \
       _event = (void *)EventNext; \
-      _event->code = Event##name; \
+      _event->code = Event##name##Code; \
       _event->clock = mps_clock();
 
 #define EVENT_END(name, size) \
