@@ -9,6 +9,7 @@
 #ifndef eventcom_h
 #define eventcom_h
 
+#include <limits.h>
 #include "mpmtypes.h" /* for Word */
 #include "eventdef.h"
 
@@ -17,6 +18,8 @@
 
 typedef unsigned short EventCode;
 typedef unsigned EventKind;
+typedef unsigned short EventSize;
+#define EventSizeMAX USHRT_MAX
 
 typedef Byte EventStringLen;
 
@@ -80,15 +83,18 @@ typedef unsigned EventFU;
 typedef EventStringStruct EventFS;
 typedef double EventFD;
 
-/* Common prefix for all event structures */
+/* Common prefix for all event structures.  The size field allows an event
+   reader to skip over events whose codes it does not recognise. */
 typedef struct EventAnyStruct {
   EventCode code;
+  EventSize size;
   Word clock;
 } EventAnyStruct;
 
 #define EVENT_STRUCT(X, name, _code, always, kind, count, format) \
   typedef struct Event##name##Struct { \
     EventCode code; \
+    EventSize size; \
     Word clock; \
     EVENT_STRUCT_FIELDS_##count format \
   } Event##name##Struct;

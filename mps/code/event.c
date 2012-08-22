@@ -80,6 +80,9 @@ Res EventInit(void)
 {
   Res res;
 
+  /* Ensure that no event can be larger than the maximum event size. */
+  AVER(EventBufferSIZE <= EventSizeMAX);
+
   /* Only if this is the first call. */
   if(!eventInited) { /* See .trans.log */
     AVER(EventNext == 0);
