@@ -25,7 +25,7 @@
 ;;; Code:
 
 (eval-when-compile
-  (require 'cl))
+  (require 'cl-lib))
 
 (defgroup profiler nil
   "Emacs profiler."
@@ -42,38 +42,38 @@
     (format "%s" object)))
 
 (defun profiler-format (fmt &rest args)
-  (loop for (width align subfmt) in fmt
-	for arg in args
-	for str = (typecase subfmt
-		    (cons   (apply 'profiler-format subfmt arg))
-		    (string (format subfmt arg))
-		    (t	    (profiler-ensure-string arg)))
-	for len = (length str)
-	if (< width len)
-	collect (substring str 0 width) into frags
-	else
-	collect
-	(let ((padding (make-string (- width len) ?\s)))
-	  (ecase align
-	    (left (concat str padding))
-	    (right (concat padding str))))
-	into frags
-	finally return (apply #'concat frags)))
+  (cl-loop for (width align subfmt) in fmt
+	   for arg in args
+	   for str = (cl-typecase subfmt
+		       (cons   (apply 'profiler-format subfmt arg))
+		       (string (format subfmt arg))
+		       (t	    (profiler-ensure-string arg)))
+	   for len = (length str)
+	   if (< width len)
+	   collect (substring str 0 width) into frags
+	   else
+	   collect
+	   (let ((padding (make-string (- width len) ?\s)))
+	     (cl-ecase align
+	       (left (concat str padding))
+	       (right (concat padding str))))
+	   into frags
+	   finally return (apply #'concat frags)))
 
 
 
 ;;; Slot data structure
 
-(defstruct (profiler-slot (:type list)
-			  (:constructor profiler-make-slot))
+(cl-defstruct (profiler-slot (:type list)
+			     (:constructor profiler-make-slot))
   backtrace count elapsed)
 
 
 
 ;;; Log data structure
 
-(defstruct (profiler-log (:type list)
-			 (:constructor profiler-make-log))
+(cl-defstruct (profiler-log (:type list)
+			    (:constructor profiler-make-log))
   type diff-p timestamp slots)
 
 (defun profiler-log-diff (log1 log2)
@@ -117,7 +117,7 @@
 
 ;;; Calltree data structure
 
-(defstruct (profiler-calltree (:constructor profiler-make-calltree))
+(cl-defstruct (profiler-calltree (:constructor profiler-make-calltree))
   entry
   (count 0) count-percent
   (elapsed 0) elapsed-percent
@@ -151,9 +151,9 @@
       (1+ (profiler-calltree-depth parent)))))
 
 (defun profiler-calltree-find (tree entry)
-  (dolist (child (profiler-calltree-children tree))
+  (cl-dolist (child (profiler-calltree-children tree))
     (when (equal (profiler-calltree-entry child) entry)
-      (return child))))
+      (cl-return child))))
 
 (defun profiler-calltree-walk (calltree function)
   (funcall function calltree)
@@ -171,16 +171,16 @@
 	  (unless child
 	    (setq child (profiler-make-calltree :entry entry :parent node))
 	    (push child (profiler-calltree-children node)))
-	  (incf (profiler-calltree-count child) count)
-	  (incf (profiler-calltree-elapsed child) elapsed)
+	  (cl-incf (profiler-calltree-count child) count)
+	  (cl-incf (profiler-calltree-elapsed child) elapsed)
 	  (setq node child))))))
 
 (defun profiler-calltree-compute-percentages (tree)
   (let ((total-count 0)
 	(total-elapsed 0))
     (dolist (child (profiler-calltree-children tree))
-      (incf total-count (profiler-calltree-count child))
-      (incf total-elapsed (profiler-calltree-elapsed child)))
+      (cl-incf total-count (profiler-calltree-count child))
+      (cl-incf total-elapsed (profiler-calltree-elapsed child)))
     (profiler-calltree-walk
      tree (lambda (node)
 	    (unless (zerop total-count)
@@ -194,7 +194,7 @@
 			    (/ (* (profiler-calltree-elapsed node) 100)
 			       total-elapsed))))))))
 
-(defun* profiler-calltree-build (log &key reverse)
+(cl-defun profiler-calltree-build (log &key reverse)
   (let ((tree (profiler-make-calltree)))
     (profiler-calltree-build-1 tree log reverse)
     (profiler-calltree-compute-percentages tree)
@@ -276,7 +276,7 @@
 	(elapsed-percent (profiler-calltree-elapsed-percent tree))
 	(count (profiler-calltree-count tree))
 	(count-percent (profiler-calltree-count-percent tree)))
-    (ecase (profiler-log-type profiler-report-log)
+    (cl-ecase (profiler-log-type profiler-report-log)
       (sample
        (if diff-p
 	   (profiler-format profiler-report-sample-line-format
@@ -334,7 +334,7 @@
 
 (defun profiler-report-make-buffer-name (log)
   (let ((time (format-time-string "%Y-%m-%d %T" (profiler-log-timestamp log))))
-    (ecase (profiler-log-type log)
+    (cl-ecase (profiler-log-type log)
       (sample (format "*CPU-Profiler-Report %s*" time))
       (memory (format "*Memory-Profiler-Report %s*" time)))))
 
@@ -445,16 +445,16 @@ otherwise collapse the entry."
 	(require 'help-fns)
 	(describe-function entry)))))
 
-(defun* profiler-report-render-calltree-1 (log &key reverse (order 'descending))
+(cl-defun profiler-report-render-calltree-1 (log &key reverse (order 'descending))
   (let ((calltree (profiler-calltree-build profiler-report-log
 					   :reverse reverse)))
-    (ecase (profiler-log-type log)
+    (cl-ecase (profiler-log-type log)
       (sample
        (setq header-line-format
 	     (profiler-report-header-line-format
 	      profiler-report-sample-line-format
 	      "Function" (list "Time (ms)" "%")))
-       (let ((predicate (ecase order
+       (let ((predicate (cl-ecase order
 			  (ascending 'profiler-calltree-elapsed<)
 			  (descending 'profiler-calltree-elapsed>))))
 	 (profiler-calltree-sort calltree predicate)))
@@ -463,7 +463,7 @@ otherwise collapse the entry."
 	     (profiler-report-header-line-format
 	      profiler-report-memory-line-format
 	      "Function" (list "Alloc" "%")))
-       (let ((predicate (ecase order
+       (let ((predicate (cl-ecase order
 			  (ascending 'profiler-calltree-count<)
 			  (descending 'profiler-calltree-count>))))
 	 (profiler-calltree-sort calltree predicate))))
@@ -540,7 +540,7 @@ otherwise collapse the entry."
   (interactive
    (list (intern (completing-read "Mode: " '("cpu" "memory" "cpu&memory")
 				  nil t nil nil "cpu"))))
-  (ecase mode
+  (cl-ecase mode
     (cpu
      (sample-profiler-start profiler-sample-interval)
      (message "CPU profiler started"))

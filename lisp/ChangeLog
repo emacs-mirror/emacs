@@ -1,3 +1,7 @@
+2012-08-22  Tomohiro Matsuyama  <tomo@cx4a.org>
+
+	* profiler.el: Switch to cl-lib.
+
 2012-08-22  Daiki Ueno  <ueno@unixuser.org>
 
 	* progmodes/js.el (js-indent-level, js-expr-indent-offset)
