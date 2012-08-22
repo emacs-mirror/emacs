@@ -1,3 +1,12 @@
+2012-08-22  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-cus.el (gnus-group-customize): Decode values posting-style holds.
+	(gnus-group-customize-done): Encode values posting-style holds.
+
+	* gnus-msg.el (gnus-summary-resend-message)
+	(gnus-configure-posting-styles): Decode values posting-style group
+	parameter holds.
+
 2012-08-21  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-msg.el (gnus-summary-resend-message): Honor posting-style for
