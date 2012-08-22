@@ -2015,6 +2015,18 @@ extern ptrdiff_t specpdl_size;
 
 #define SPECPDL_INDEX()	(specpdl_ptr - specpdl)
 
+struct backtrace
+{
+  struct backtrace *next;
+  Lisp_Object *function;
+  Lisp_Object *args;	/* Points to vector of args.  */
+  ptrdiff_t nargs;	/* Length of vector.  */
+  /* Nonzero means call value of debugger when done with this operation.  */
+  unsigned int debug_on_exit : 1;
+};
+
+extern struct backtrace *backtrace_list;
+
 /* Everything needed to describe an active condition case.  */
 struct handler
   {
@@ -2667,6 +2679,11 @@ extern void init_syntax_once (void);
 extern void syms_of_syntax (void);
 
 /* Defined in fns.c */
+/* Combine two integers X and Y for hashing.  The result might not fit
+   into a Lisp integer.  */
+#define SXHASH_COMBINE(X, Y)						\
+  ((((EMACS_UINT) (X) << 4) + ((EMACS_UINT) (X) >> (BITS_PER_EMACS_INT - 4))) \
+   + (EMACS_UINT) (Y))
 extern Lisp_Object QCrehash_size, QCrehash_threshold;
 enum { NEXT_ALMOST_PRIME_LIMIT = 11 };
 EXFUN (Fidentity, 1) ATTRIBUTE_CONST;
@@ -3511,6 +3528,18 @@ extern int have_menus_p (void);
 /* Defined in dbusbind.c */
 void syms_of_dbusbind (void);
 #endif
+
+/* Defined in profiler.c */
+extern int sample_profiler_running;
+extern int memory_profiler_running;
+extern void malloc_probe (size_t);
+#define MALLOC_PROBE(size)		\
+  do {					\
+    if (memory_profiler_running)	\
+      malloc_probe (size);		\
+  } while (0)
+extern void mark_profiler (void);
+extern void syms_of_profiler (void);
 
 #ifdef DOS_NT
 /* Defined in msdos.c, w32.c */

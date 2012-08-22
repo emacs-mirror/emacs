@@ -32,17 +32,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "xterm.h"
 #endif
 
-struct backtrace
-{
-  struct backtrace *next;
-  Lisp_Object *function;
-  Lisp_Object *args;	/* Points to vector of args.  */
-  ptrdiff_t nargs;	/* Length of vector.  */
-  /* Nonzero means call value of debugger when done with this operation.  */
-  unsigned int debug_on_exit : 1;
-};
-
-static struct backtrace *backtrace_list;
+struct backtrace *backtrace_list;
 
 #if !BYTE_MARK_STACK
 static
@@ -2081,11 +2071,11 @@ eval_sub (Lisp_Object form)
   original_args = XCDR (form);
 
   backtrace.next = backtrace_list;
-  backtrace_list = &backtrace;
   backtrace.function = &original_fun; /* This also protects them from gc.  */
   backtrace.args = &original_args;
   backtrace.nargs = UNEVALLED;
   backtrace.debug_on_exit = 0;
+  backtrace_list = &backtrace;
 
   if (debug_on_next_call)
     do_debug_on_call (Qt);
@@ -2778,11 +2768,11 @@ usage: (funcall FUNCTION &rest ARGUMENTS)  */)
     }
 
   backtrace.next = backtrace_list;
-  backtrace_list = &backtrace;
   backtrace.function = &args[0];
   backtrace.args = &args[1];	/* This also GCPROs them.  */
   backtrace.nargs = nargs - 1;
   backtrace.debug_on_exit = 0;
+  backtrace_list = &backtrace;
 
   /* Call GC after setting up the backtrace, so the latter GCPROs the args.  */
   maybe_gc ();

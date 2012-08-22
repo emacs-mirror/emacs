@@ -1,4 +1,5 @@
 ((nil . ((tab-width . 8)
+         (indent-tabs-mode . t)
          (sentence-end-double-space . t)
          (fill-column . 70)))
  (c-mode . ((c-file-style . "GNU")))

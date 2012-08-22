@@ -727,6 +727,7 @@ xmalloc (size_t size)
 
   if (!val && size)
     memory_full (size);
+  MALLOC_PROBE (size);
   return val;
 }
 
@@ -744,6 +745,7 @@ xzalloc (size_t size)
   if (!val && size)
     memory_full (size);
   memset (val, 0, size);
+  MALLOC_PROBE (size);
   return val;
 }
 
@@ -765,6 +767,7 @@ xrealloc (void *block, size_t size)
 
   if (!val && size)
     memory_full (size);
+  MALLOC_PROBE (size);
   return val;
 }
 
@@ -955,6 +958,7 @@ lisp_malloc (size_t nbytes, enum mem_type type)
   MALLOC_UNBLOCK_INPUT;
   if (!val && nbytes)
     memory_full (nbytes);
+  MALLOC_PROBE (nbytes);
   return val;
 }
 
@@ -1160,6 +1164,8 @@ lisp_align_malloc (size_t nbytes, enum mem_type type)
 
   MALLOC_UNBLOCK_INPUT;
 
+  MALLOC_PROBE (nbytes);
+
   eassert (0 == ((uintptr_t) val) % BLOCK_ALIGN);
   return val;
 }
@@ -1339,6 +1345,8 @@ emacs_blocked_malloc (size_t size, const void *ptr)
 
   __malloc_hook = emacs_blocked_malloc;
   UNBLOCK_INPUT_ALLOC;
+
+  MALLOC_PROBE (size);
 
   /* fprintf (stderr, "%p malloc\n", value); */
   return value;
@@ -5509,6 +5517,8 @@ See Info node `(elisp)Garbage Collection'.  */)
   }
   mark_backtrace ();
 #endif
+
+  mark_profiler ();
 
 #ifdef HAVE_WINDOW_SYSTEM
   mark_fringe_data ();
