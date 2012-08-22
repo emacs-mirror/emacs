@@ -40,16 +40,17 @@ extern Res EventFlush(void);
 extern char *EventNext, *EventLimit;
 extern Word EventKindControl;
 
-#define EVENT_BEGIN(name, size) \
+#define EVENT_BEGIN(name, structSize) \
   BEGIN \
     if(BS_IS_MEMBER(EventKindControl, ((Index)Event##name##Kind))) { \
       Event##name##Struct *_event; \
-      size_t _size = size_tAlignUp(size, MPS_PF_ALIGN); \
+      size_t _size = size_tAlignUp(structSize, MPS_PF_ALIGN); \
       if (_size > (size_t)(EventLimit - EventNext)) \
         EventFlush(); \
       AVER(_size <= (size_t)(EventLimit - EventNext)); \
       _event = (void *)EventNext; \
       _event->code = Event##name##Code; \
+      _event->size = (EventSize)_size; \
       _event->clock = mps_clock();
 
 #define EVENT_END(name, size) \
