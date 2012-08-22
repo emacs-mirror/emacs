@@ -46,11 +46,15 @@ Word EventKindControl; /* Bit set used to control output. */
 Res EventFlush(void)
 {
   Res res;
+  size_t size;
  
   AVER(eventInited);
 
-  res = (Res)mps_io_write(eventIO, (void *)eventBuffer,
-                          EventNext - eventBuffer);
+  AVER(eventBuffer <= EventNext);
+  AVER(EventNext <= eventBuffer + EventBufferSIZE);
+  size = (size_t)(EventNext - eventBuffer);
+
+  res = (Res)mps_io_write(eventIO, (void *)eventBuffer, size);
   EventNext = eventBuffer;
   if (res != ResOK) return res;
 
