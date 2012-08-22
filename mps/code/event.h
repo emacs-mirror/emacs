@@ -35,43 +35,8 @@ extern void EventLabelAddr(Addr, Word);
 extern Res EventFlush(void);
 
 
-/* Event Kinds --- see <design/telemetry/>
- *
- * All events are classified as being of one event type.
- * They are small enough to be able to be used as shifts within a word.
- */
-
-#define EventKindArena      ((EventKind)0) /* Per space or arena */
-#define EventKindPool       ((EventKind)1) /* Per pool */
-#define EventKindTrace      ((EventKind)2) /* Per trace or scan */
-#define EventKindSeg        ((EventKind)3) /* Per seg */
-#define EventKindRef        ((EventKind)4) /* Per ref or fix */
-#define EventKindObject     ((EventKind)5) /* Per alloc or object */
-#define EventKindUser       ((EventKind)6) /* User-invoked */
-
-#define EventKindNumber     ((Count)7) /* Number of event kinds */
-
-
-/* Event type definitions
- *
- * Define various constants for each event type to describe them.
- */
-
-/* Note that enum values can be up to fifteen bits long portably. */
-#define EVENT_ENUM(X, type, code, always, kind, count, format) \
-  enum { \
-    Event##type##High = ((code >> 8) & 0xFF), \
-    Event##type##Low = (code & 0xFF), \
-    Event##type##Always = always, \
-    Event##type##Kind = EventKind##kind \
-  };
-
-EVENT_LIST(EVENT_ENUM, X)
-
-
 /* Event writing support */
 
-/* extern EventUnion EventMould; */
 extern char *EventNext, *EventLimit;
 extern Word EventKindControl;
 

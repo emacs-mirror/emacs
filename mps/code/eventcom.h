@@ -16,8 +16,8 @@
 /* Types for event fields */
 
 typedef Word EventType;
-typedef size_t EventCode;
-typedef Index EventKind;
+typedef unsigned short EventCode;
+typedef unsigned EventKind;
 
 typedef Byte EventStringLen;
 
@@ -31,6 +31,39 @@ typedef EventStringStruct *EventString;
 
 #define EventNameMAX ((size_t)19)
 #define EventCodeMAX ((EventCode)0x0069)
+
+
+/* Event Kinds --- see <design/telemetry/>
+ *
+ * All events are classified as being of one event type.
+ * They are small enough to be able to be used as shifts within a word.
+ */
+
+enum {
+  EventKindArena,       /* Per space or arena */
+  EventKindPool,        /* Per pool */
+  EventKindTrace,       /* Per trace or scan */
+  EventKindSeg,         /* Per seg */
+  EventKindRef,         /* Per ref or fix */
+  EventKindObject,      /* Per alloc or object */
+  EventKindUser,        /* User-invoked */
+  EventKindLIMIT
+};
+
+
+/* Event type definitions
+ *
+ * Define various constants for each event type to describe them.
+ */
+
+/* Note that enum values can be up to fifteen bits long portably. */
+#define EVENT_ENUM(X, name, code, always, kind, count, format) \
+  enum { \
+    Event##name##Always = always, \
+    Event##name##Kind = EventKind##kind \
+  };
+
+EVENT_LIST(EVENT_ENUM, X)
 
 
 /* Event*Struct -- Event Structures
@@ -112,11 +145,11 @@ typedef union EventUnion {
   BEGIN \
     size_t _string_len = (length); \
     size_t size; \
-    AVER(_string_len < EventStringLengthMAX); \
     size = offsetof(Event##name##Struct, f1.str) + _string_len; \
     EVENT_BEGIN(name, size) \
       _event->f0 = (p0); \
-      _event->f1.len = _string_len; \
+      AVER(_string_len < EventStringLengthMAX); \
+      _event->f1.len = (EventStringLen)_string_len; \
       mps_lib_memcpy(_event->f1.str, (string), _string_len); \
     EVENT_END(name, size); \
   END
@@ -139,7 +172,6 @@ typedef union EventUnion {
 #define EVENT12(name, p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11) EVENT_BEGIN(name, sizeof(Event##name##Struct)) _event->f0 = (p0); _event->f1 = (p1); _event->f2 = (p2); _event->f3 = (p3); _event->f4 = (p4); _event->f5 = (p5); _event->f6 = (p6); _event->f7 = (p7); _event->f8 = (p8); _event->f9 = (p9); _event->f10 = (p10); _event->f11 = (p11); EVENT_END(name, sizeof(Event##name##Struct))
 #define EVENT13(name, p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12) EVENT_BEGIN(name, sizeof(Event##name##Struct)) _event->f0 = (p0); _event->f1 = (p1); _event->f2 = (p2); _event->f3 = (p3); _event->f4 = (p4); _event->f5 = (p5); _event->f6 = (p6); _event->f7 = (p7); _event->f8 = (p8); _event->f9 = (p9); _event->f10 = (p10); _event->f11 = (p11); _event->f12 = (p12); EVENT_END(name, sizeof(Event##name##Struct))
 #define EVENT14(name, p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13) EVENT_BEGIN(name, sizeof(Event##name##Struct)) _event->f0 = (p0); _event->f1 = (p1); _event->f2 = (p2); _event->f3 = (p3); _event->f4 = (p4); _event->f5 = (p5); _event->f6 = (p6); _event->f7 = (p7); _event->f8 = (p8); _event->f9 = (p9); _event->f10 = (p10); _event->f11 = (p11); _event->f12 = (p12); _event->f13 = (p13); EVENT_END(name, sizeof(Event##name##Struct))
-
 
 
 #define EVENT0_FIELD_PTR(name, event, i) NULL

@@ -72,7 +72,7 @@ struct EventProcStruct {
 typedef struct {
   EventType type;
   char *name;
-  size_t code;
+  EventCode code;
   size_t length;
   char *format;
 } eventRecord;
