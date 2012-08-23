@@ -63,7 +63,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "buffer.h"
 #include "dispextern.h"
 
-static int bidi_initialized = 0;
+static bool bidi_initialized = 0;
 
 static Lisp_Object bidi_type_table, bidi_mirror_table;
 
@@ -82,10 +82,10 @@ typedef enum {
 /* UAX#9 says to search only for L, AL, or R types of characters, and
    ignore RLE, RLO, LRE, and LRO, when determining the base paragraph
    level.  Yudit indeed ignores them.  This variable is therefore set
-   by default to ignore them, but setting it to zero will take them
-   into account.  */
-extern int bidi_ignore_explicit_marks_for_paragraph_level EXTERNALLY_VISIBLE;
-int bidi_ignore_explicit_marks_for_paragraph_level = 1;
+   by default to ignore them, but clearing it will take them into
+   account.  */
+extern bool bidi_ignore_explicit_marks_for_paragraph_level EXTERNALLY_VISIBLE;
+bool bidi_ignore_explicit_marks_for_paragraph_level = 1;
 
 static Lisp_Object paragraph_start_re, paragraph_separate_re;
 static Lisp_Object Qparagraph_start, Qparagraph_separate;
@@ -438,7 +438,7 @@ bidi_cache_search (ptrdiff_t charpos, int level, int dir)
    that is lower than LEVEL, and return its cache slot index.  DIR is
    the direction to search, starting with the last used cache slot.
    If DIR is zero, we search backwards from the last occupied cache
-   slot.  BEFORE, if non-zero, means return the index of the slot that
+   slot.  BEFORE means return the index of the slot that
    is ``before'' the level change in the search direction.  That is,
    given the cached levels like this:
 
@@ -448,9 +448,9 @@ bidi_cache_search (ptrdiff_t charpos, int level, int dir)
    and assuming we are at the position cached at the slot marked with
    C, searching backwards (DIR = -1) for LEVEL = 2 will return the
    index of slot B or A, depending whether BEFORE is, respectively,
-   non-zero or zero.  */
+   true or false.  */
 static ptrdiff_t
-bidi_cache_find_level_change (int level, int dir, int before)
+bidi_cache_find_level_change (int level, int dir, bool before)
 {
   if (bidi_cache_idx)
     {
@@ -512,7 +512,7 @@ bidi_cache_ensure_space (ptrdiff_t idx)
 }
 
 static inline void
-bidi_cache_iterator_state (struct bidi_it *bidi_it, int resolved)
+bidi_cache_iterator_state (struct bidi_it *bidi_it, bool resolved)
 {
   ptrdiff_t idx;
 
@@ -690,11 +690,11 @@ bidi_shelve_cache (void)
 
 /* Restore the cache state from a copy stashed away by
    bidi_shelve_cache, and free the buffer used to stash that copy.
-   JUST_FREE non-zero means free the buffer, but don't restore the
+   JUST_FREE means free the buffer, but don't restore the
    cache; used when the corresponding iterator is discarded instead of
    being restored.  */
 void
-bidi_unshelve_cache (void *databuf, int just_free)
+bidi_unshelve_cache (void *databuf, bool just_free)
 {
   unsigned char *p = databuf;
 
@@ -802,7 +802,7 @@ bidi_set_paragraph_end (struct bidi_it *bidi_it)
 
 /* Initialize the bidi iterator from buffer/string position CHARPOS.  */
 void
-bidi_init_it (ptrdiff_t charpos, ptrdiff_t bytepos, int frame_window_p,
+bidi_init_it (ptrdiff_t charpos, ptrdiff_t bytepos, bool frame_window_p,
 	      struct bidi_it *bidi_it)
 {
   if (! bidi_initialized)
@@ -872,11 +872,10 @@ bidi_line_init (struct bidi_it *bidi_it)
 
 /* Count bytes in string S between BEG/BEGBYTE and END.  BEG and END
    are zero-based character positions in S, BEGBYTE is byte position
-   corresponding to BEG.  UNIBYTE, if non-zero, means S is a unibyte
-   string.  */
+   corresponding to BEG.  UNIBYTE means S is a unibyte string.  */
 static inline ptrdiff_t
 bidi_count_bytes (const unsigned char *s, const ptrdiff_t beg,
-		  const ptrdiff_t begbyte, const ptrdiff_t end, int unibyte)
+		  const ptrdiff_t begbyte, const ptrdiff_t end, bool unibyte)
 {
   ptrdiff_t pos = beg;
   const unsigned char *p = s + begbyte, *start = p;
@@ -900,10 +899,10 @@ bidi_count_bytes (const unsigned char *s, const ptrdiff_t beg,
 
 /* Fetch and returns the character at byte position BYTEPOS.  If S is
    non-NULL, fetch the character from string S; otherwise fetch the
-   character from the current buffer.  UNIBYTE non-zero means S is a
+   character from the current buffer.  UNIBYTE means S is a
    unibyte string.  */
 static inline int
-bidi_char_at_pos (ptrdiff_t bytepos, const unsigned char *s, int unibyte)
+bidi_char_at_pos (ptrdiff_t bytepos, const unsigned char *s, bool unibyte)
 {
   if (s)
     {
@@ -923,9 +922,9 @@ bidi_char_at_pos (ptrdiff_t bytepos, const unsigned char *s, int unibyte)
    specifies the character position of the next display string, or -1
    if not yet computed.  When the next character is at or beyond that
    position, the function updates DISP_POS with the position of the
-   next display string.  DISP_PROP non-zero means that there's really
+   next display string.  *DISP_PROP non-zero means that there's really
    a display string at DISP_POS, as opposed to when we searched till
-   DISP_POS without finding one.  If DISP_PROP is 2, it means the
+   DISP_POS without finding one.  If *DISP_PROP is 2, it means the
    display spec is of the form `(space ...)', which is replaced with
    u+2029 to handle it as a paragraph separator.  STRING->s is the C
    string to iterate, or NULL if iterating over a buffer or a Lisp
@@ -933,7 +932,7 @@ bidi_char_at_pos (ptrdiff_t bytepos, const unsigned char *s, int unibyte)
 static inline int
 bidi_fetch_char (ptrdiff_t bytepos, ptrdiff_t charpos, ptrdiff_t *disp_pos,
 		 int *disp_prop, struct bidi_string_data *string,
-		 int frame_window_p, ptrdiff_t *ch_len, ptrdiff_t *nchars)
+		 bool frame_window_p, ptrdiff_t *ch_len, ptrdiff_t *nchars)
 {
   int ch;
   ptrdiff_t endpos
@@ -1134,7 +1133,7 @@ bidi_find_paragraph_start (ptrdiff_t pos, ptrdiff_t pos_byte)
    R2L, just use that.  Otherwise, determine the paragraph direction
    from the first strong directional character of the paragraph.
 
-   NO_DEFAULT_P non-zero means don't default to L2R if the paragraph
+   NO_DEFAULT_P means don't default to L2R if the paragraph
    has no strong directional characters and both DIR and
    bidi_it->paragraph_dir are NEUTRAL_DIR.  In that case, search back
    in the buffer until a paragraph is found with a strong character,
@@ -1145,10 +1144,10 @@ bidi_find_paragraph_start (ptrdiff_t pos, ptrdiff_t pos_byte)
    direction as the preceding paragraph, even though Emacs generally
    views the separator as not belonging to any paragraph.  */
 void
-bidi_paragraph_init (bidi_dir_t dir, struct bidi_it *bidi_it, int no_default_p)
+bidi_paragraph_init (bidi_dir_t dir, struct bidi_it *bidi_it, bool no_default_p)
 {
   ptrdiff_t bytepos = bidi_it->bytepos;
-  int string_p = bidi_it->string.s != NULL || STRINGP (bidi_it->string.lstring);
+  bool string_p = bidi_it->string.s || STRINGP (bidi_it->string.lstring);
   ptrdiff_t pstartbyte;
   /* Note that begbyte is a byte position, while end is a character
      position.  Yes, this is ugly, but we are trying to avoid costly
@@ -1221,8 +1220,8 @@ bidi_paragraph_init (bidi_dir_t dir, struct bidi_it *bidi_it, int no_default_p)
       bidi_it->separator_limit = -1;
       bidi_it->new_paragraph = 0;
 
-      /* The following loop is run more than once only if NO_DEFAULT_P
-	 is non-zero, and only if we are iterating on a buffer.  */
+      /* The following loop is run more than once only if NO_DEFAULT_P,
+	 and only if we are iterating on a buffer.  */
       do {
 	ptrdiff_t pos1;
 
@@ -1320,7 +1319,7 @@ bidi_paragraph_init (bidi_dir_t dir, struct bidi_it *bidi_it, int no_default_p)
   The rest of this file constitutes the core of the UBA implementation.
  ***********************************************************************/
 
-static inline int
+static inline bool
 bidi_explicit_dir_char (int ch)
 {
   bidi_type_t ch_type;
@@ -1345,7 +1344,7 @@ bidi_resolve_explicit_1 (struct bidi_it *bidi_it)
   int current_level;
   int new_level;
   bidi_dir_t override;
-  int string_p = bidi_it->string.s != NULL || STRINGP (bidi_it->string.lstring);
+  bool string_p = bidi_it->string.s || STRINGP (bidi_it->string.lstring);
 
   /* If reseat()'ed, don't advance, so as to start iteration from the
      position where we were reseated.  bidi_it->bytepos can be less
@@ -2189,7 +2188,7 @@ bidi_level_of_next_char (struct bidi_it *bidi_it)
       ptrdiff_t nc = bidi_it->nchars;
       struct bidi_string_data bs = bidi_it->string;
       bidi_type_t chtype;
-      int fwp = bidi_it->frame_window_p;
+      bool fwp = bidi_it->frame_window_p;
       int dpp = bidi_it->disp_prop;
 
       if (bidi_it->nchars <= 0)
@@ -2268,8 +2267,8 @@ bidi_level_of_next_char (struct bidi_it *bidi_it)
   return level;
 }
 
-/* Move to the other edge of a level given by LEVEL.  If END_FLAG is
-   non-zero, we are at the end of a level, and we need to prepare to
+/* Move to the other edge of a level given by LEVEL.  If END_FLAG,
+   we are at the end of a level, and we need to prepare to
    resume the scan of the lower level.
 
    If this level's other edge is cached, we simply jump to it, filling
@@ -2289,7 +2288,7 @@ bidi_level_of_next_char (struct bidi_it *bidi_it)
    function moves to point C, whereas the UAX#9 ``level 2 run'' ends
    at point B.  */
 static void
-bidi_find_other_level_edge (struct bidi_it *bidi_it, int level, int end_flag)
+bidi_find_other_level_edge (struct bidi_it *bidi_it, int level, bool end_flag)
 {
   int dir = end_flag ? -bidi_it->scan_dir : bidi_it->scan_dir;
   ptrdiff_t idx;
@@ -2363,7 +2362,7 @@ bidi_move_to_visually_next (struct bidi_it *bidi_it)
      scanning the text whenever we find a level change.  */
   if (new_level != old_level)
     {
-      int ascending = new_level > old_level;
+      bool ascending = new_level > old_level;
       int level_to_search = ascending ? old_level + 1 : old_level;
       int incr = ascending ? 1 : -1;
       int expected_next_level = old_level + incr;

@@ -1,3 +1,20 @@
+2012-08-23  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* bidi.c: Use bool for boolean.
+	This is a bit more readable, and makes the text segment of bidi.o
+	0.4% smaller on my platform (GCC 4.7.1 x86-64, Fedora 15).
+	Presumably it's faster too.
+	(bidi_initialized, bidi_ignore_explicit_marks_for_paragraph_level):
+	Now bool.
+	(bidi_cache_find_level_change, bidi_cache_iterator_state)
+	(bidi_unshelve_cache, bidi_init_it, bidi_count_bytes)
+	(bidi_char_at_pos, bidi_fetch_char, bidi_paragraph_init)
+	(bidi_explicit_dir_char, bidi_level_of_next_char)
+	(bidi_find_other_level_edge, bidi_move_to_visually_next):
+	Use bool for booleans, instead of int.
+	* dispextern.h (bidi_init_it, bidi_paragraph_init)
+	(bidi_unshelve_cache): Adjust decls to match code.
+
 2012-08-23  Martin Rudalics  <rudalics@gmx.at>
 
 	* keyboard.c (Fposn_at_x_y): Do not allow internal window as

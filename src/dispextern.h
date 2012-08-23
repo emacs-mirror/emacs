@@ -3002,14 +3002,14 @@ enum tool_bar_item_image
 
 /* Defined in bidi.c */
 
-extern void bidi_init_it (ptrdiff_t, ptrdiff_t, int, struct bidi_it *);
+extern void bidi_init_it (ptrdiff_t, ptrdiff_t, bool, struct bidi_it *);
 extern void bidi_move_to_visually_next (struct bidi_it *);
-extern void bidi_paragraph_init (bidi_dir_t, struct bidi_it *, int);
+extern void bidi_paragraph_init (bidi_dir_t, struct bidi_it *, bool);
 extern int  bidi_mirror_char (int);
 extern void bidi_push_it (struct bidi_it *);
 extern void bidi_pop_it (struct bidi_it *);
 extern void *bidi_shelve_cache (void);
-extern void bidi_unshelve_cache (void *, int);
+extern void bidi_unshelve_cache (void *, bool);
 
 /* Defined in xdisp.c */
 
