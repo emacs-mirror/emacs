@@ -1,3 +1,8 @@
+2012-08-23  Martin Rudalics  <rudalics@gmx.at>
+
+	* keyboard.c (Fposn_at_x_y): Do not allow internal window as
+	argument.
+
 2012-08-23  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* atimer.c, atimer.h (turn_on_atimers): Use bool for boolean.
