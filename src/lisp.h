@@ -3530,9 +3530,9 @@ void syms_of_dbusbind (void);
 #endif
 
 /* Defined in profiler.c */
-extern int sample_profiler_running;
-extern int memory_profiler_running;
-extern int is_in_trace;
+extern bool sample_profiler_running;
+extern bool memory_profiler_running;
+extern bool is_in_trace;
 extern Lisp_Object Qgc;
 extern void malloc_probe (size_t);
 extern void gc_probe (size_t, size_t);

@@ -1,4 +1,4 @@
-/* GNU Emacs profiler implementation.
+/* Profiler implementation.
 
 Copyright (C) 2012 Free Software Foundation, Inc.
 
@@ -25,19 +25,28 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <setjmp.h>
 #include "lisp.h"
 
-int is_in_trace;
+/* True if sampling profiler is running.  */
+
+bool sample_profiler_running;
+
+/* True if memory profiler is running.  */
+
+bool memory_profiler_running;
+
+/* True during tracing.  */
+
+bool is_in_trace;
+
+/* Tag for GC entry.  */
+
 Lisp_Object Qgc;
 
 static void sigprof_handler (int, siginfo_t *, void *);
 static void block_sigprof (void);
 static void unblock_sigprof (void);
 
-int sample_profiler_running;
-int memory_profiler_running;
-
 
-
-/* Filters */
+/* Pattern matching.  */
 
 enum pattern_type
 {
@@ -164,6 +173,7 @@ pattern_match (struct pattern *pattern, const char *string)
     }
 }
 
+#if 0
 static int
 match (const char *pattern, const char *string)
 {
@@ -174,7 +184,6 @@ match (const char *pattern, const char *string)
   return res;
 }
 
-#if 0
 static void
 should_match (const char *pattern, const char *string)
 {
@@ -222,7 +231,13 @@ pattern_match_tests (void)
 }
 #endif
 
+
+/* Filters.  */
+
 static struct pattern *filter_pattern;
+
+/* Set the current filter pattern.  If PATTERN is null, unset the
+   current filter pattern instead.  */
 
 static void
 set_filter_pattern (const char *pattern)
@@ -235,12 +250,16 @@ set_filter_pattern (const char *pattern)
       free_pattern (filter_pattern);
       filter_pattern = 0;
     }
-  if (!pattern) return;
-  filter_pattern = parse_pattern (pattern);
+  if (pattern)
+    filter_pattern = parse_pattern (pattern);
 
   if (sample_profiler_running)
     unblock_sigprof ();
 }
+
+/* Return true if the current filter pattern is matched with FUNCTION.
+   FUNCTION should be a symbol or a subroutine, otherwise return
+   false.  */
 
 static int
 apply_filter_1 (Lisp_Object function)
@@ -260,6 +279,9 @@ apply_filter_1 (Lisp_Object function)
   return pattern_match (filter_pattern, name);
 }
 
+/* Return true if the current filter pattern is matched with at least
+   one entry in BACKLIST.  */
+
 static int
 apply_filter (struct backtrace *backlist)
 {
@@ -275,12 +297,24 @@ apply_filter (struct backtrace *backlist)
 DEFUN ("profiler-set-filter-pattern",
        Fprofiler_set_filter_pattern, Sprofiler_set_filter_pattern,
        1, 1, "sPattern: ",
-       doc: /* FIXME */)
+       doc: /* Set the current filter pattern.  PATTERN can contain
+one or two wildcards (*) as follows:
+
+- foo
+- *foo
+- foo*
+- *foo*
+- foo*bar
+
+If PATTERN is nil or an empty string, then unset the current filter
+pattern.  */)
   (Lisp_Object pattern)
 {
-  if (NILP (pattern))
+  if (NILP (pattern)
+      || (STRINGP (pattern) && !SREF (pattern, 0)))
     {
       set_filter_pattern (0);
+      message ("Profiler filter pattern unset");
       return Qt;
     }
   else if (!STRINGP (pattern))
@@ -292,8 +326,8 @@ DEFUN ("profiler-set-filter-pattern",
 }
 
 
+/* Backtraces.  */
 
-/* Backtraces */
 
 static Lisp_Object
 make_backtrace (int size)
@@ -339,6 +373,8 @@ backtrace_object_1 (Lisp_Object backtrace, int i)
     return Fcons (AREF (backtrace, i), backtrace_object_1 (backtrace, i + 1));
 }
 
+/* Convert BACKTRACE to a list.  */
+
 static Lisp_Object
 backtrace_object (Lisp_Object backtrace)
 {
@@ -346,15 +382,24 @@ backtrace_object (Lisp_Object backtrace)
 }
 
 
+/* Slots.  */
 
-/* Slots */
+/* Slot data structure.  */
 
 struct slot
 {
-  struct slot *next, *prev;
+  /* Point to next free slot or next hash table link.  */
+  struct slot *next;
+  /* Point to previous hash table link.  */
+  struct slot *prev;
+  /* Backtrace object with fixed size.  */
   Lisp_Object backtrace;
+  /* How many times a profiler sees the slot, or how much resouce
+     allocated during profiling.  */
   size_t count;
+  /* How long the slot takes to execute.  */
   size_t elapsed;
+  /* True in used.  */
   unsigned char used : 1;
 };
 
@@ -363,6 +408,8 @@ mark_slot (struct slot *slot)
 {
   mark_object (slot->backtrace);
 }
+
+/* Convert SLOT to a list.  */
 
 static Lisp_Object
 slot_object (struct slot *slot)
@@ -374,12 +421,15 @@ slot_object (struct slot *slot)
 
 
 
-/* Slot heaps */
+/* Slot heaps.  */
 
 struct slot_heap
 {
+  /* Number of slots allocated to the heap.  */
   unsigned int size;
+  /* Actual data area.  */
   struct slot *data;
+  /* Free list.  */
   struct slot *free_list;
 };
 
@@ -392,9 +442,11 @@ clear_slot_heap (struct slot_heap *heap)
 
   data = heap->data;
 
+  /* Mark all slots unsused.  */
   for (i = 0; i < heap->size; i++)
     data[i].used = 0;
 
+  /* Rebuild a free list.  */
   free_list = heap->free_list = heap->data;
   for (i = 1; i < heap->size; i++)
     {
@@ -403,6 +455,9 @@ clear_slot_heap (struct slot_heap *heap)
     }
   free_list->next = 0;
 }
+
+/* Make a slot heap with SIZE.  MAX_STACK_DEPTH is a fixed size of
+   allocated slots.  */
 
 static struct slot_heap *
 make_slot_heap (unsigned int size, int max_stack_depth)
@@ -442,6 +497,8 @@ mark_slot_heap (struct slot_heap *heap)
     mark_slot (&heap->data[i]);
 }
 
+/* Allocate one slot from HEAP.  Return 0 if no free slot in HEAP.  */
+
 static struct slot *
 allocate_slot (struct slot_heap *heap)
 {
@@ -465,6 +522,9 @@ free_slot (struct slot_heap *heap, struct slot *slot)
   heap->free_list = slot;
 }
 
+/* Return a minimal slot from HEAP.  "Minimal" means that such a slot
+   is meaningless for profiling.  */
+
 static struct slot *
 min_slot (struct slot_heap *heap)
 {
@@ -480,12 +540,13 @@ min_slot (struct slot_heap *heap)
 }
 
 
-
-/* Slot tables */
+/* Slot hash tables.  */
 
 struct slot_table
 {
+  /* Number of slot buckets.  */
   unsigned int size;
+  /* Buckets data area.  */
   struct slot **data;
 };
 
@@ -530,12 +591,13 @@ remove_slot (struct slot_table *table, struct slot *slot)
 }
 
 
-
-/* Logs */
+/* Logs.  */
 
 struct log
 {
+  /* Type of log in symbol.  `sample' or `memory'.  */
   Lisp_Object type;
+  /* Backtrace for working.  */
   Lisp_Object backtrace;
   struct slot_heap *slot_heap;
   struct slot_table *slot_table;
@@ -551,6 +613,7 @@ make_log (const char *type, int heap_size, int max_stack_depth)
   log->type = intern (type);
   log->backtrace = make_backtrace (max_stack_depth);
   log->slot_heap = make_slot_heap (heap_size, max_stack_depth);
+  /* Number of buckets of hash table will be 10% of HEAP_SIZE.  */
   log->slot_table = make_slot_table (max (256, heap_size) / 10);
   log->others_count = 0;
   log->others_elapsed = 0;
@@ -582,6 +645,9 @@ clear_log (struct log *log)
   log->others_elapsed = 0;
 }
 
+/* Evint SLOT from LOG and accumulate the slot counts into others
+   counts.  */
+
 static void
 evict_slot (struct log *log, struct slot *slot)
 {
@@ -591,6 +657,8 @@ evict_slot (struct log *log, struct slot *slot)
   free_slot (log->slot_heap, slot);
 }
 
+/* Evict a minimal slot from LOG.  */
+
 static void
 evict_min_slot (struct log *log)
 {
@@ -599,26 +667,37 @@ evict_min_slot (struct log *log)
     evict_slot (log, min);
 }
 
+/* Allocate a new slot for BACKTRACE from LOG.  The returen value must
+   be a valid pointer to the slot.  */
+
 static struct slot *
 new_slot (struct log *log, Lisp_Object backtrace)
 {
   int i;
   struct slot *slot = allocate_slot (log->slot_heap);
 
+  /* If failed to allocate a slot, free some slots to make a room in
+     heap.  */
   if (!slot)
     {
       evict_min_slot (log);
       slot = allocate_slot (log->slot_heap);
+      /* Must be allocated.  */
       eassert (slot);
     }
 
   slot->prev = 0;
   slot->next = 0;
+
+  /* Assign BACKTRACE to the slot.  */
   for (i = 0; i < ASIZE (backtrace); i++)
     ASET (slot->backtrace, i, AREF (backtrace, i));
 
   return slot;
 }
+
+/* Make sure that a slot for BACKTRACE is in LOG and return the
+   slot. The return value must be a valid pointer to the slot.  */
 
 static struct slot *
 ensure_slot (struct log *log, Lisp_Object backtrace)
@@ -628,6 +707,7 @@ ensure_slot (struct log *log, Lisp_Object backtrace)
   struct slot *slot = log->slot_table->data[index];
   struct slot *prev = slot;
 
+  /* Looking up in hash table bucket.  */
   while (slot)
     {
       if (backtrace_equal (backtrace, slot->backtrace))
@@ -636,6 +716,8 @@ ensure_slot (struct log *log, Lisp_Object backtrace)
       slot = slot->next;
     }
 
+  /* If not found, allocate a new slot for BACKTRACE from LOG and link
+     it with bucket chain.  */
   slot = new_slot (log, backtrace);
   if (prev)
     {
@@ -649,6 +731,12 @@ ensure_slot (struct log *log, Lisp_Object backtrace)
   return slot;
 }
 
+/* Record the current backtrace in LOG. BASE is a special name for
+   describing which the backtrace come from. BASE can be nil. COUNT is
+   a number how many times the profiler sees the backtrace at the
+   time.  ELAPSED is a elapsed time in millisecond that the backtrace
+   took.  */
+
 static void
 record_backtrace_under (struct log *log, Lisp_Object base,
 			size_t count, size_t elapsed)
@@ -657,22 +745,29 @@ record_backtrace_under (struct log *log, Lisp_Object base,
   Lisp_Object backtrace = log->backtrace;
   struct backtrace *backlist = backtrace_list;
 
+  /* First of all, apply filter on the bactkrace.  */
   if (!apply_filter (backlist)) return;
 
+  /* Record BASE if necessary.  */
   if (!NILP (base) && ASIZE (backtrace) > 0)
     ASET (backtrace, i++, base);
 
+  /* Copy the backtrace contents into working memory.  */
   for (; i < ASIZE (backtrace) && backlist; backlist = backlist->next)
     {
       Lisp_Object function = *backlist->function;
       if (FUNCTIONP (function))
 	ASET (backtrace, i++, function);
     }
+  /* Make sure that unused space of working memory is filled with
+     nil.  */
   for (; i < ASIZE (backtrace); i++)
     ASET (backtrace, i, Qnil);
 
+  /* If the backtrace is not empty, */
   if (!NILP (AREF (backtrace, 0)))
     {
+      /* then record counts.  */
       struct slot *slot = ensure_slot (log, backtrace);
       slot->count += count;
       slot->elapsed += elapsed;
@@ -685,6 +780,8 @@ record_backtrace (struct log *log, size_t count, size_t elapsed)
   record_backtrace_under (log, Qnil, count, elapsed);
 }
 
+/* Convert LOG to a list.  */
+
 static Lisp_Object
 log_object (struct log *log)
 {
@@ -692,9 +789,14 @@ log_object (struct log *log)
   Lisp_Object slots = Qnil;
 
   if (log->others_count != 0 || log->others_elapsed != 0)
-    slots = list1 (list3 (list1 (Qt),
-			  make_number (log->others_count),
-			  make_number (log->others_elapsed)));
+    {
+      /* Add others slot.  */
+      Lisp_Object others_slot
+	= list3 (list1 (Qt),
+		 make_number (log->others_count),
+		 make_number (log->others_elapsed));
+      slots = list1 (others_slot);
+    }
 
   for (i = 0; i < log->slot_heap->size; i++)
     {
@@ -710,15 +812,19 @@ log_object (struct log *log)
 }
 
 
-
-/* Sample profiler */
+/* Sample profiler.  */
 
 static struct log *sample_log;
+
+/* The current sample interval in millisecond.  */
+
 static int current_sample_interval;
 
 DEFUN ("sample-profiler-start", Fsample_profiler_start, Ssample_profiler_start,
        1, 1, 0,
-       doc: /* FIXME */)
+       doc: /* Start or restart sample profiler.  Sample profiler will
+take samples each SAMPLE-INTERVAL in millisecond.  See also
+`profiler-slot-heap-size' and `profiler-max-stack-depth'.  */)
   (Lisp_Object sample_interval)
 {
   struct sigaction sa;
@@ -751,7 +857,7 @@ DEFUN ("sample-profiler-start", Fsample_profiler_start, Ssample_profiler_start,
 
 DEFUN ("sample-profiler-stop", Fsample_profiler_stop, Ssample_profiler_stop,
        0, 0, 0,
-       doc: /* FIXME */)
+       doc: /* Stop sample profiler.  Profiler log will be kept.  */)
   (void)
 {
   if (!sample_profiler_running)
@@ -765,7 +871,7 @@ DEFUN ("sample-profiler-stop", Fsample_profiler_stop, Ssample_profiler_stop,
 
 DEFUN ("sample-profiler-reset", Fsample_profiler_reset, Ssample_profiler_reset,
        0, 0, 0,
-       doc: /* FIXME */)
+       doc: /* Clear sample profiler log.  */)
   (void)
 {
   if (sample_log)
@@ -787,7 +893,7 @@ DEFUN ("sample-profiler-reset", Fsample_profiler_reset, Ssample_profiler_reset,
 DEFUN ("sample-profiler-running-p",
        Fsample_profiler_running_p, Ssample_profiler_running_p,
        0, 0, 0,
-       doc: /* FIXME */)
+       doc: /* Return t if sample profiler is running.  */)
   (void)
 {
   return sample_profiler_running ? Qt : Qnil;
@@ -796,7 +902,9 @@ DEFUN ("sample-profiler-running-p",
 DEFUN ("sample-profiler-log",
        Fsample_profiler_log, Ssample_profiler_log,
        0, 0, 0,
-       doc: /* FIXME */)
+       doc: /* Return sample profiler log.  The data is a list of
+(sample nil TIMESTAMP SLOTS), where TIMESTAMP is a timestamp when the
+log is collected and SLOTS is a list of slots.  */)
   (void)
 {
   int i;
@@ -818,14 +926,14 @@ DEFUN ("sample-profiler-log",
 }
 
 
-
-/* Memory profiler */
+/* Memory profiler.  */
 
 static struct log *memory_log;
 
 DEFUN ("memory-profiler-start", Fmemory_profiler_start, Smemory_profiler_start,
        0, 0, 0,
-       doc: /* FIXME */)
+       doc: /* Start/restart memory profiler.  See also
+`profiler-slot-heap-size' and `profiler-max-stack-depth'.  */)
   (void)
 {
   if (memory_profiler_running)
@@ -844,7 +952,7 @@ DEFUN ("memory-profiler-start", Fmemory_profiler_start, Smemory_profiler_start,
 DEFUN ("memory-profiler-stop",
        Fmemory_profiler_stop, Smemory_profiler_stop,
        0, 0, 0,
-       doc: /* FIXME */)
+       doc: /* Stop memory profiler.  Profiler log will be kept.  */)
   (void)
 {
   if (!memory_profiler_running)
@@ -857,7 +965,7 @@ DEFUN ("memory-profiler-stop",
 DEFUN ("memory-profiler-reset",
        Fmemory_profiler_reset, Smemory_profiler_reset,
        0, 0, 0,
-       doc: /* FIXME */)
+       doc: /* Clear memory profiler log.  */)
   (void)
 {
   if (memory_log)
@@ -875,7 +983,7 @@ DEFUN ("memory-profiler-reset",
 DEFUN ("memory-profiler-running-p",
        Fmemory_profiler_running_p, Smemory_profiler_running_p,
        0, 0, 0,
-       doc: /* FIXME */)
+       doc: /* Return t if memory profiler is running.  */)
   (void)
 {
   return memory_profiler_running ? Qt : Qnil;
@@ -884,7 +992,9 @@ DEFUN ("memory-profiler-running-p",
 DEFUN ("memory-profiler-log",
        Fmemory_profiler_log, Smemory_profiler_log,
        0, 0, 0,
-       doc: /* FIXME */)
+       doc: /* Return memory profiler log.  The data is a list of
+(memory nil TIMESTAMP SLOTS), where TIMESTAMP is a timestamp when the
+log is collected and SLOTS is a list of slots.  */)
   (void)
 {
   Lisp_Object result = Qnil;
@@ -896,8 +1006,9 @@ DEFUN ("memory-profiler-log",
 }
 
 
+/* Signals and probes.  */
 
-/* Signals and probes */
+/* Signal handler for sample profiler.  */
 
 static void
 sigprof_handler (int signal, siginfo_t *info, void *ctx)
@@ -924,12 +1035,16 @@ unblock_sigprof (void)
   sigprocmask (SIG_UNBLOCK, &sigset, 0);
 }
 
+/* Record that the current backtrace allocated SIZE bytes.  */
+
 void
 malloc_probe (size_t size)
 {
   if (memory_log)
     record_backtrace (memory_log, size, 0);
 }
+
+/* Record that GC happened in the current backtrace.  */
 
 void
 gc_probe (size_t size, size_t elapsed)
