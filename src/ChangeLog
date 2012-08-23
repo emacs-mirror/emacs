@@ -1,3 +1,8 @@
+2012-08-23  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* atimer.c, atimer.h (turn_on_atimers): Use bool for boolean.
+	* atimer.h: Include <stdbool.h>.
+
 2012-08-22  Dan Nicolaescu  <dann@gnu.org>
 
 	* frame.h (FRAME_W32_P, FRAME_MSDOS_P, FRAME_NS_P): Change to

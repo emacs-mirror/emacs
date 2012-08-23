@@ -20,6 +20,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define EMACS_ATIMER_H
 
 #include "systime.h"		/* for EMACS_TIME */
+#include <stdbool.h>
 
 /* Forward declaration.  */
 
@@ -74,7 +75,7 @@ struct atimer *start_atimer (enum atimer_type, EMACS_TIME,
 void cancel_atimer (struct atimer *);
 void do_pending_atimers (void);
 void init_atimer (void);
-void turn_on_atimers (int);
+void turn_on_atimers (bool);
 void stop_other_atimers (struct atimer *);
 Lisp_Object unwind_stop_other_atimers (Lisp_Object);
 
