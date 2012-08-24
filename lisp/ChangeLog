@@ -1,3 +1,10 @@
+2012-08-24  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix file time stamp problem with bzr and CVS (Bug#12001).
+	* vc/vc-cvs.el (vc-cvs-parse-entry): Ignore subsecond information
+	in the file's time stamp, since the version control system loses
+	that information.
+
 2012-08-22  Juri Linkov  <juri@jurta.org>
 
 	* info.el (Info-fontify-node): Hide the suffix of the
