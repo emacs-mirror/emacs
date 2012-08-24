@@ -1,7 +1,11 @@
+2012-08-24  Chong Yidong  <cyd@gnu.org>
+
+	* Version 24.2 released.
+
 2012-08-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
-	* files.el (safe-local-eval-forms): Fix before-save-hook entry to be
-	buffer-local; add delete-trailing-whitespace (bug#12259).
+	* files.el (safe-local-eval-forms): Fix before-save-hook entry to
+	be buffer-local; add delete-trailing-whitespace (bug#12259).
 
 2012-08-22  Jeremy Moore  <jmoore@ieee.org>  (tiny change)
 
@@ -12,10 +16,6 @@
 
 	* progmodes/hideshow.el (hs-block-end-regexp): Restore lost
 	buffer local setting.
-
-2012-08-15  Chong Yidong  <cyd@gnu.org>
-
-	* Version 24.2 released.
 
 2012-08-15  Glenn Morris  <rgm@gnu.org>
 

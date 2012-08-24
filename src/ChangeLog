@@ -1,11 +1,11 @@
+2012-08-24  Chong Yidong  <cyd@gnu.org>
+
+	* Version 24.2 released.
+
 2012-08-24  Eli Zaretskii  <eliz@gnu.org>
 
 	* ralloc.c (free_bloc): Don't dereference a 'heap' structure if it
 	is not one of the heaps we manage.  (Bug#12242)
-
-2012-08-15  Chong Yidong  <cyd@gnu.org>
-
-	* Version 24.2 released.
 
 2012-08-14  Glenn Morris  <rgm@gnu.org>
 
