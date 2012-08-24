@@ -471,7 +471,7 @@ struct buffer_text
     /* Usually 0.  Temporarily set to 1 in decode_coding_gap to
        prevent Fgarbage_collect from shrinking the gap and losing
        not-yet-decoded bytes.  */
-    int inhibit_shrinking;
+    bool inhibit_shrinking;
   };
 
 /* Most code should use this macro to access Lisp fields in struct buffer.  */
@@ -1006,11 +1006,10 @@ extern struct buffer buffer_local_symbols;
 
 extern void delete_all_overlays (struct buffer *);
 extern void reset_buffer (struct buffer *);
-extern int compact_buffer (struct buffer *);
+extern void compact_buffer (struct buffer *);
 extern void evaporate_overlays (ptrdiff_t);
-extern ptrdiff_t overlays_at (EMACS_INT pos, int extend, Lisp_Object **vec_ptr,
-			      ptrdiff_t *len_ptr, ptrdiff_t *next_ptr,
-			      ptrdiff_t *prev_ptr, int change_req);
+extern ptrdiff_t overlays_at (EMACS_INT, bool, Lisp_Object **,
+			      ptrdiff_t *, ptrdiff_t *, ptrdiff_t *, bool);
 extern ptrdiff_t sort_overlays (Lisp_Object *, ptrdiff_t, struct window *);
 extern void recenter_overlay_lists (struct buffer *, ptrdiff_t);
 extern ptrdiff_t overlay_strings (ptrdiff_t, struct window *, unsigned char **);
@@ -1022,7 +1021,7 @@ extern Lisp_Object buffer_local_value_1 (Lisp_Object, Lisp_Object);
 extern void record_buffer (Lisp_Object);
 extern _Noreturn void buffer_slot_type_mismatch (Lisp_Object, int);
 extern void fix_overlays_before (struct buffer *, ptrdiff_t, ptrdiff_t);
-extern void mmap_set_vars (int);
+extern void mmap_set_vars (bool);
 
 /* Get overlays at POSN into array OVERLAYS with NOVERLAYS elements.
    If NEXTP is non-NULL, return next overlay there.
@@ -1067,7 +1066,7 @@ set_buffer_intervals (struct buffer *b, INTERVAL i)
 
 /* Non-zero if current buffer has overlays.  */
 
-BUFFER_INLINE int
+BUFFER_INLINE bool
 buffer_has_overlays (void)
 {
   return current_buffer->overlays_before || current_buffer->overlays_after;
@@ -1243,7 +1242,7 @@ downcase (int c)
 }
 
 /* 1 if C is upper case.  */
-BUFFER_INLINE int uppercasep (int c) { return downcase (c) != c; }
+BUFFER_INLINE bool uppercasep (int c) { return downcase (c) != c; }
 
 /* Upcase a character C known to be not upper case.  */
 BUFFER_INLINE int
@@ -1255,8 +1254,11 @@ upcase1 (int c)
 }
 
 /* 1 if C is lower case.  */
-BUFFER_INLINE int lowercasep (int c)
-{ return !uppercasep (c) && upcase1 (c) != c; }
+BUFFER_INLINE bool
+lowercasep (int c)
+{
+  return !uppercasep (c) && upcase1 (c) != c;
+}
 
 /* Upcase a character C, or make no change if that cannot be done.  */
 BUFFER_INLINE int upcase (int c) { return uppercasep (c) ? c : upcase1 (c); }

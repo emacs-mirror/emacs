@@ -1,3 +1,21 @@
+2012-08-24  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* buffer.c, buffer.h: Use bool for boolean.
+	* buffer.c (reset_buffer_local_variables)
+	(buffer_lisp_local_variables, Fset_buffer_modified_p)
+	(Frestore_buffer_modified_p, Fset_buffer_multibyte):
+	(overlays_at, overlays_in, mouse_face_overlay_overlaps)
+	(overlay_touches_p, overlay_strings, Foverlay_put)
+	(report_overlay_modification, call_overlay_mod_hooks):
+	(mmap_enlarge, mmap_set_vars):
+	* buffer.h (buffer_has_overlays, uppercasep, lowercasep):
+	Use bool for booleans, instead of int.
+	* buffer.c (compact_buffer, mmap_free_1): Return void, not int,
+	since the 1-or-0 return value is always ignored anyway.
+	(mmap_initialized_p):
+	* buffer.h (struct buffer_text.inhibit_shrinking): Now bool, not int.
+	* buffer.h, lisp.h: Adjust prototypes to match above changes.
+
 2012-08-23  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* bidi.c: Use bool for boolean.

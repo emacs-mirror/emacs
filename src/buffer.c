@@ -110,10 +110,10 @@ static char buffer_permanent_local_flags[MAX_PER_BUFFER_VARS];
 int last_per_buffer_idx;
 
 static void call_overlay_mod_hooks (Lisp_Object list, Lisp_Object overlay,
-                                    int after, Lisp_Object arg1,
+                                    bool after, Lisp_Object arg1,
                                     Lisp_Object arg2, Lisp_Object arg3);
 static void swap_out_buffer_local_variables (struct buffer *b);
-static void reset_buffer_local_variables (struct buffer *b, int permanent_too);
+static void reset_buffer_local_variables (struct buffer *, bool);
 
 /* Alist of all buffer names vs the buffers. */
 /* This used to be a variable, but is no longer,
@@ -155,7 +155,7 @@ static void alloc_buffer_text (struct buffer *, ptrdiff_t);
 static void free_buffer_text (struct buffer *b);
 static struct Lisp_Overlay * copy_overlays (struct buffer *, struct Lisp_Overlay *);
 static void modify_overlay (struct buffer *, ptrdiff_t, ptrdiff_t);
-static Lisp_Object buffer_lisp_local_variables (struct buffer *, int);
+static Lisp_Object buffer_lisp_local_variables (struct buffer *, bool);
 
 /* These setters are used only in this file, so they can be private.  */
 static inline void
@@ -979,15 +979,13 @@ reset_buffer (register struct buffer *b)
    it does not treat permanent locals consistently.
    Instead, use Fkill_all_local_variables.
 
-   If PERMANENT_TOO is 1, then we reset permanent
-   buffer-local variables.  If PERMANENT_TOO is 0,
-   we preserve those.  */
+   If PERMANENT_TOO, reset permanent buffer-local variables.
+   If not, preserve those.  */
 
 static void
-reset_buffer_local_variables (register struct buffer *b, int permanent_too)
+reset_buffer_local_variables (struct buffer *b, bool permanent_too)
 {
-  register int offset;
-  int i;
+  int offset, i;
 
   /* Reset the major mode to Fundamental, together with all the
      things that depend on the major mode.
@@ -1253,14 +1251,14 @@ buffer_local_value_1 (Lisp_Object variable, Lisp_Object buffer)
 /* Return an alist of the Lisp-level buffer-local bindings of
    buffer BUF.  That is, don't include the variables maintained
    in special slots in the buffer object.
-   If CLONE is zero elements of the form (VAR . unbound) are replaced
+   If not CLONE, replace elements of the form (VAR . unbound)
    by VAR.  */
 
 static Lisp_Object
-buffer_lisp_local_variables (struct buffer *buf, int clone)
+buffer_lisp_local_variables (struct buffer *buf, bool clone)
 {
   Lisp_Object result = Qnil;
-  register Lisp_Object tail;
+  Lisp_Object tail;
   for (tail = BVAR (buf, local_var_alist); CONSP (tail); tail = XCDR (tail))
     {
       Lisp_Object val, elt;
@@ -1351,11 +1349,9 @@ DEFUN ("set-buffer-modified-p", Fset_buffer_modified_p, Sset_buffer_modified_p,
        1, 1, 0,
        doc: /* Mark current buffer as modified or unmodified according to FLAG.
 A non-nil FLAG means mark the buffer modified.  */)
-  (register Lisp_Object flag)
+  (Lisp_Object flag)
 {
-  register int already;
-  register Lisp_Object fn;
-  Lisp_Object buffer, window;
+  Lisp_Object fn, buffer, window;
 
 #ifdef CLASH_DETECTION
   /* If buffer becoming modified, lock the file.
@@ -1365,7 +1361,7 @@ A non-nil FLAG means mark the buffer modified.  */)
   /* Test buffer-file-name so that binding it to nil is effective.  */
   if (!NILP (fn) && ! NILP (BVAR (current_buffer, filename)))
     {
-      already = SAVE_MODIFF < MODIFF;
+      bool already = SAVE_MODIFF < MODIFF;
       if (!already && !NILP (flag))
 	lock_file (fn);
       else if (already && NILP (flag))
@@ -1432,7 +1428,7 @@ state of the current buffer.  Use with care.  */)
   /* Test buffer-file-name so that binding it to nil is effective.  */
   if (!NILP (fn) && ! NILP (BVAR (current_buffer, filename)))
     {
-      int already = SAVE_MODIFF < MODIFF;
+      bool already = SAVE_MODIFF < MODIFF;
       if (!already && !NILP (flag))
 	lock_file (fn);
       else if (already && NILP (flag))
@@ -1676,7 +1672,7 @@ No argument or nil as argument means do this for the current buffer.  */)
 
 /* Truncate undo list and shrink the gap of BUFFER.  */
 
-int
+void
 compact_buffer (struct buffer *buffer)
 {
   /* Verify indirection counters.  */
@@ -1718,9 +1714,7 @@ compact_buffer (struct buffer *buffer)
 	    }
 	}
       buffer->text->compact = buffer->text->modiff;
-      return 1;
     }
-  return 0;
 }
 
 DEFUN ("kill-buffer", Fkill_buffer, Skill_buffer, 0, 1, "bKill buffer: ",
@@ -2471,8 +2465,8 @@ current buffer is cleared.  */)
   struct Lisp_Marker *tail, *markers;
   struct buffer *other;
   ptrdiff_t begv, zv;
-  int narrowed = (BEG != BEGV || Z != ZV);
-  int modified_p = !NILP (Fbuffer_modified_p (Qnil));
+  bool narrowed = (BEG != BEGV || Z != ZV);
+  bool modified_p = !NILP (Fbuffer_modified_p (Qnil));
   Lisp_Object old_undo = BVAR (current_buffer, undo_list);
   struct gcpro gcpro1;
 
@@ -2821,19 +2815,19 @@ swap_out_buffer_local_variables (struct buffer *b)
    *VEC_PTR and *LEN_PTR should contain a valid vector and size
    when this function is called.
 
-   If EXTEND is non-zero, we make the vector bigger if necessary.
-   If EXTEND is zero, we never extend the vector,
-   and we store only as many overlays as will fit.
-   But we still return the total number of overlays.
+   If EXTEND, make the vector bigger if necessary.
+   If not, never extend the vector,
+   and store only as many overlays as will fit.
+   But still return the total number of overlays.
 
-   If CHANGE_REQ is true, then any position written into *PREV_PTR or
+   If CHANGE_REQ, any position written into *PREV_PTR or
    *NEXT_PTR is guaranteed to be not equal to POS, unless it is the
    default (BEGV or ZV).  */
 
 ptrdiff_t
-overlays_at (EMACS_INT pos, int extend, Lisp_Object **vec_ptr,
+overlays_at (EMACS_INT pos, bool extend, Lisp_Object **vec_ptr,
 	     ptrdiff_t *len_ptr,
-	     ptrdiff_t *next_ptr, ptrdiff_t *prev_ptr, int change_req)
+	     ptrdiff_t *next_ptr, ptrdiff_t *prev_ptr, bool change_req)
 {
   Lisp_Object overlay, start, end;
   struct Lisp_Overlay *tail;
@@ -2842,7 +2836,7 @@ overlays_at (EMACS_INT pos, int extend, Lisp_Object **vec_ptr,
   Lisp_Object *vec = *vec_ptr;
   ptrdiff_t next = ZV;
   ptrdiff_t prev = BEGV;
-  int inhibit_storing = 0;
+  bool inhibit_storing = 0;
 
   for (tail = current_buffer->overlays_before; tail; tail = tail->next)
     {
@@ -2959,13 +2953,13 @@ overlays_at (EMACS_INT pos, int extend, Lisp_Object **vec_ptr,
    *VEC_PTR and *LEN_PTR should contain a valid vector and size
    when this function is called.
 
-   If EXTEND is non-zero, we make the vector bigger if necessary.
-   If EXTEND is zero, we never extend the vector,
-   and we store only as many overlays as will fit.
-   But we still return the total number of overlays.  */
+   If EXTEND, make the vector bigger if necessary.
+   If not, never extend the vector,
+   and store only as many overlays as will fit.
+   But still return the total number of overlays.  */
 
 static ptrdiff_t
-overlays_in (EMACS_INT beg, EMACS_INT end, int extend,
+overlays_in (EMACS_INT beg, EMACS_INT end, bool extend,
 	     Lisp_Object **vec_ptr, ptrdiff_t *len_ptr,
 	     ptrdiff_t *next_ptr, ptrdiff_t *prev_ptr)
 {
@@ -2976,8 +2970,8 @@ overlays_in (EMACS_INT beg, EMACS_INT end, int extend,
   Lisp_Object *vec = *vec_ptr;
   ptrdiff_t next = ZV;
   ptrdiff_t prev = BEGV;
-  int inhibit_storing = 0;
-  int end_is_Z = end == Z;
+  bool inhibit_storing = 0;
+  bool end_is_Z = end == Z;
 
   for (tail = current_buffer->overlays_before; tail; tail = tail->next)
     {
@@ -3078,10 +3072,10 @@ overlays_in (EMACS_INT beg, EMACS_INT end, int extend,
 }
 
 
-/* Return non-zero if there exists an overlay with a non-nil
+/* Return true if there exists an overlay with a non-nil
    `mouse-face' property overlapping OVERLAY.  */
 
-int
+bool
 mouse_face_overlay_overlaps (Lisp_Object overlay)
 {
   ptrdiff_t start = OVERLAY_POSITION (OVERLAY_START (overlay));
@@ -3110,7 +3104,7 @@ mouse_face_overlay_overlaps (Lisp_Object overlay)
 
 
 /* Fast function to just test if we're at an overlay boundary.  */
-int
+bool
 overlay_touches_p (ptrdiff_t pos)
 {
   Lisp_Object overlay;
@@ -3327,7 +3321,7 @@ overlay_strings (ptrdiff_t pos, struct window *w, unsigned char **pstr)
   Lisp_Object overlay, window, str;
   struct Lisp_Overlay *ov;
   ptrdiff_t startpos, endpos;
-  int multibyte = ! NILP (BVAR (current_buffer, enable_multibyte_characters));
+  bool multibyte = ! NILP (BVAR (current_buffer, enable_multibyte_characters));
 
   overlay_heads.used = overlay_heads.bytes = 0;
   overlay_tails.used = overlay_tails.bytes = 0;
@@ -4321,7 +4315,7 @@ VALUE will be returned.*/)
   (Lisp_Object overlay, Lisp_Object prop, Lisp_Object value)
 {
   Lisp_Object tail, buffer;
-  int changed;
+  bool changed;
 
   CHECK_OVERLAY (overlay);
 
@@ -4396,7 +4390,7 @@ add_overlay_mod_hooklist (Lisp_Object functionlist, Lisp_Object overlay)
    and the insert-after-hooks of overlay ending at START.
 
    This is called both before and after the modification.
-   AFTER is nonzero when we call after the modification.
+   AFTER is true when we call after the modification.
 
    ARG1, ARG2, ARG3 are arguments to pass to the hook functions.
    When AFTER is nonzero, they are the start position,
@@ -4404,13 +4398,13 @@ add_overlay_mod_hooklist (Lisp_Object functionlist, Lisp_Object overlay)
    and the length of deleted or replaced old text.  */
 
 void
-report_overlay_modification (Lisp_Object start, Lisp_Object end, int after,
+report_overlay_modification (Lisp_Object start, Lisp_Object end, bool after,
 			     Lisp_Object arg1, Lisp_Object arg2, Lisp_Object arg3)
 {
   Lisp_Object prop, overlay;
   struct Lisp_Overlay *tail;
-  /* 1 if this change is an insertion.  */
-  int insertion = (after ? XFASTINT (arg3) == 0 : EQ (start, end));
+  /* True if this change is an insertion.  */
+  bool insertion = (after ? XFASTINT (arg3) == 0 : EQ (start, end));
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
 
   overlay = Qnil;
@@ -4530,7 +4524,7 @@ report_overlay_modification (Lisp_Object start, Lisp_Object end, int after,
 }
 
 static void
-call_overlay_mod_hooks (Lisp_Object list, Lisp_Object overlay, int after,
+call_overlay_mod_hooks (Lisp_Object list, Lisp_Object overlay, bool after,
 			Lisp_Object arg1, Lisp_Object arg2, Lisp_Object arg3)
 {
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
@@ -4689,7 +4683,7 @@ static int mmap_page_size;
 
 /* 1 means mmap has been initialized.  */
 
-static int mmap_initialized_p;
+static bool mmap_initialized_p;
 
 /* Value is X rounded up to the next multiple of N.  */
 
@@ -4785,9 +4779,9 @@ mmap_find (void *start, void *end)
 
 
 /* Unmap a region.  P is a pointer to the start of the user-araa of
-   the region.  Value is non-zero if successful.  */
+   the region.  */
 
-static int
+static void
 mmap_free_1 (struct mmap_region *r)
 {
   if (r->next)
@@ -4798,24 +4792,19 @@ mmap_free_1 (struct mmap_region *r)
     mmap_regions = r->next;
 
   if (munmap (r, r->nbytes_mapped) == -1)
-    {
-      fprintf (stderr, "munmap: %s\n", emacs_strerror (errno));
-      return 0;
-    }
-
-  return 1;
+    fprintf (stderr, "munmap: %s\n", emacs_strerror (errno));
 }
 
 
 /* Enlarge region R by NPAGES pages.  NPAGES < 0 means shrink R.
-   Value is non-zero if successful.  */
+   Value is true if successful.  */
 
-static int
+static bool
 mmap_enlarge (struct mmap_region *r, int npages)
 {
   char *region_end = (char *) r + r->nbytes_mapped;
   size_t nbytes;
-  int success = 0;
+  bool success = 0;
 
   if (npages < 0)
     {
@@ -4865,17 +4854,16 @@ mmap_enlarge (struct mmap_region *r, int npages)
 }
 
 
-/* Set or reset variables holding references to mapped regions.  If
-   RESTORE_P is zero, set all variables to null.  If RESTORE_P is
-   non-zero, set all variables to the start of the user-areas
-   of mapped regions.
+/* Set or reset variables holding references to mapped regions.
+   If not RESTORE_P, set all variables to null.  If RESTORE_P, set all
+   variables to the start of the user-areas of mapped regions.
 
    This function is called from Fdump_emacs to ensure that the dumped
    Emacs doesn't contain references to memory that won't be mapped
    when Emacs starts.  */
 
 void
-mmap_set_vars (int restore_p)
+mmap_set_vars (bool restore_p)
 {
   struct mmap_region *r;
 

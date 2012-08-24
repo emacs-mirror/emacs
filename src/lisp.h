@@ -3110,14 +3110,14 @@ extern void syms_of_editfns (void);
 extern void set_time_zone_rule (const char *);
 
 /* Defined in buffer.c.  */
-extern int mouse_face_overlay_overlaps (Lisp_Object);
+extern bool mouse_face_overlay_overlaps (Lisp_Object);
 extern _Noreturn void nsberror (Lisp_Object);
 extern void adjust_overlays_for_insert (ptrdiff_t, ptrdiff_t);
 extern void adjust_overlays_for_delete (ptrdiff_t, ptrdiff_t);
 extern void fix_start_end_in_overlays (ptrdiff_t, ptrdiff_t);
-extern void report_overlay_modification (Lisp_Object, Lisp_Object, int,
+extern void report_overlay_modification (Lisp_Object, Lisp_Object, bool,
                                          Lisp_Object, Lisp_Object, Lisp_Object);
-extern int overlay_touches_p (ptrdiff_t);
+extern bool overlay_touches_p (ptrdiff_t);
 extern Lisp_Object Vbuffer_alist;
 extern Lisp_Object set_buffer_if_live (Lisp_Object);
 extern Lisp_Object other_buffer_safely (Lisp_Object);
