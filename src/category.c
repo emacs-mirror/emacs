@@ -406,17 +406,17 @@ then delete CATEGORY from the category set instead of adding it.  */)
   return Qnil;
 }
 
-/* Return 1 if there is a word boundary between two word-constituent
-   characters C1 and C2 if they appear in this order, else return 0.
+/* Return true if there is a word boundary between two word-constituent
+   characters C1 and C2 if they appear in this order.
    Use the macro WORD_BOUNDARY_P instead of calling this function
    directly.  */
 
-int
+bool
 word_boundary_p (int c1, int c2)
 {
   Lisp_Object category_set1, category_set2;
   Lisp_Object tail;
-  int default_result;
+  bool default_result;
 
   if (EQ (CHAR_TABLE_REF (Vchar_script_table, c1),
 	  CHAR_TABLE_REF (Vchar_script_table, c2)))

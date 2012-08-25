@@ -1,3 +1,12 @@
+2012-08-25  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* casefiddle.c, casetab.c, category.c: Use bool for boolean.
+	* casefiddle.c (casify_object, casify_region):
+	* casetab.c (set_case_table):
+	* category.c, category.h (word_boundary_p):
+	* category.h (CHAR_HAS_CATEGORY):
+	Use bool for booleans, instead of int.
+
 2012-08-25  Eli Zaretskii  <eliz@gnu.org>
 
 	* makefile.w32-in ($(BLD)/alloc.$(O)): Depend on $(GNU_LIB)/execinfo.h.
