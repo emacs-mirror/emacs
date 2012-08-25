@@ -1,5 +1,11 @@
 2012-08-25  Paul Eggert  <eggert@cs.ucla.edu>
 
+	On assertion failure, print backtrace if available.
+	* alloc.c [ENABLE_CHECKING]: Include <execinfo.h>.
+	(die) [ENABLE_CHECKING]: Print a backtrace if available.
+	* Makefile.in (LIB_EXECINFO): New macro.
+	(LIBES): Use it.
+
 	* bytecode.c, callint.c, callproc.c: Use bool for boolean.
 	* bytecode.c (exec_byte_code):
 	* callint.c (check_mark, Fcall_interactively):

@@ -1,3 +1,8 @@
+2012-08-24  Paul Eggert  <eggert@cs.ucla.edu>
+
+	On assertion failure, print backtrace if available.
+	* merge-gnulib (GNULIB_MODULES): Add execinfo.
+
 2012-08-16  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Use ASCII tests for character types.

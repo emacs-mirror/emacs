@@ -1,3 +1,12 @@
+2012-08-24  Paul Eggert  <eggert@cs.ucla.edu>
+
+	On assertion failure, print backtrace if available.
+	Merge from gnulib, incorporating:
+	2012-08-24 execinfo: port to FreeBSD
+	2012-08-22 execinfo: new module
+	* lib/gnulib.mk, m4/gnulib-comp.m4: Regenerate.
+	* lib/execinfo.c, lib/execinfo.in.h, m4/execinfo.m4: New files.
+
 2012-08-22  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (install-arch-dep): If NO_BIN_LINK is non-null,
