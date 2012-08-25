@@ -3330,7 +3330,7 @@ extern void setup_process_coding_systems (Lisp_Object);
 #ifndef DOS_NT
  _Noreturn
 #endif
-extern int child_setup (int, int, int, char **, int, Lisp_Object);
+extern int child_setup (int, int, int, char **, bool, Lisp_Object);
 extern void init_callproc_1 (void);
 extern void init_callproc (void);
 extern void set_initial_environment (void);
@@ -3586,7 +3586,7 @@ extern Lisp_Object safe_alloca_unwind (Lisp_Object);
 extern void *record_xmalloc (size_t);
 
 #define USE_SAFE_ALLOCA			\
-  ptrdiff_t sa_count = SPECPDL_INDEX (); int sa_must_free = 0
+  ptrdiff_t sa_count = SPECPDL_INDEX (); bool sa_must_free = 0
 
 /* SAFE_ALLOCA allocates a simple buffer.  */
 

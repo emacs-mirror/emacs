@@ -553,7 +553,7 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
   if (INTEGERP (args_template))
     {
       ptrdiff_t at = XINT (args_template);
-      int rest = at & 128;
+      bool rest = (at & 128) != 0;
       int mandatory = at & 127;
       ptrdiff_t nonrest = at >> 8;
       eassert (mandatory <= nonrest);

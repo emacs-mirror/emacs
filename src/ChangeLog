@@ -1,3 +1,16 @@
+2012-08-25  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* bytecode.c, callint.c, callproc.c: Use bool for boolean.
+	* bytecode.c (exec_byte_code):
+	* callint.c (check_mark, Fcall_interactively):
+	* callproc.c (Fcall_process, add_env, child_setup, getenv_internal_1)
+	(getenv_internal, sync_process_alive, call_process_exited):
+	* lisp.h (USE_SAFE_ALLOCA):
+	Use bool for booleans, instead of int.
+	* lisp.h, process.h: Adjust prototypes to match above changes.
+	* callint.c (Fcall_interactively): Don't assume the mark's
+	offset fits in 'int'.
+
 2012-08-24  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* buffer.c, buffer.h: Use bool for boolean.
