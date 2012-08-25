@@ -971,6 +971,10 @@ GNULIB_CANONICALIZE_FILE_NAME
 GNULIB_CALLOC_POSIX
 GNULIB_ATOLL
 GNULIB__EXIT
+GL_GENERATE_EXECINFO_H_FALSE
+GL_GENERATE_EXECINFO_H_TRUE
+LIB_EXECINFO
+EXECINFO_H
 UNISTD_H_HAVE_WINSOCK2_H_AND_USE_SOCKETS
 UNISTD_H_HAVE_WINSOCK2_H
 REPLACE_WRITE
@@ -3194,6 +3198,7 @@ as_fn_append ac_header_list " maillock.h"
 as_fn_append ac_header_list " sys/un.h"
 as_fn_append ac_func_list " tzset"
 as_fn_append ac_func_list " readlinkat"
+as_fn_append ac_header_list " execinfo.h"
 gl_getopt_required=GNU
 as_fn_append ac_header_list " getopt.h"
 as_fn_append ac_func_list " gettimeofday"
@@ -6956,6 +6961,7 @@ esac
   # Code from module dtotimespec:
   # Code from module dup2:
   # Code from module environ:
+  # Code from module execinfo:
   # Code from module extensions:
 
   # Code from module extern-inline:
@@ -16464,6 +16470,8 @@ $as_echo "#define HAVE_ENVIRON_DECL 1" >>confdefs.h
 
 
 
+
+
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for st_dm_mode in struct stat" >&5
 $as_echo_n "checking for st_dm_mode in struct stat... " >&6; }
 if test "${ac_cv_struct_st_dm_mode+set}" = set; then :
@@ -20095,6 +20103,99 @@ $as_echo "$gl_cv_func_dup2_works" >&6; }
 
 
 
+
+
+
+
+
+  LIB_EXECINFO=''
+  EXECINFO_H='execinfo.h'
+
+  if test $ac_cv_header_execinfo_h = yes; then
+    gl_saved_libs=$LIBS
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing backtrace_symbols_fd" >&5
+$as_echo_n "checking for library containing backtrace_symbols_fd... " >&6; }
+if test "${ac_cv_search_backtrace_symbols_fd+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_func_search_save_LIBS=$LIBS
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char backtrace_symbols_fd ();
+int
+main ()
+{
+return backtrace_symbols_fd ();
+  ;
+  return 0;
+}
+_ACEOF
+for ac_lib in '' execinfo; do
+  if test -z "$ac_lib"; then
+    ac_res="none required"
+  else
+    ac_res=-l$ac_lib
+    LIBS="-l$ac_lib  $ac_func_search_save_LIBS"
+  fi
+  if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_search_backtrace_symbols_fd=$ac_res
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext
+  if test "${ac_cv_search_backtrace_symbols_fd+set}" = set; then :
+  break
+fi
+done
+if test "${ac_cv_search_backtrace_symbols_fd+set}" = set; then :
+
+else
+  ac_cv_search_backtrace_symbols_fd=no
+fi
+rm conftest.$ac_ext
+LIBS=$ac_func_search_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_search_backtrace_symbols_fd" >&5
+$as_echo "$ac_cv_search_backtrace_symbols_fd" >&6; }
+ac_res=$ac_cv_search_backtrace_symbols_fd
+if test "$ac_res" != no; then :
+  test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
+  test "$ac_cv_search_backtrace_symbols_fd" = "none required" ||
+         LIB_EXECINFO=$ac_cv_search_backtrace_symbols_fd
+fi
+
+    LIBS=$gl_saved_libs
+    test "$ac_cv_search_backtrace_symbols_fd" = no || EXECINFO_H=''
+  fi
+
+  if test -n "$EXECINFO_H"; then
+
+
+
+
+
+
+
+
+  gl_LIBOBJS="$gl_LIBOBJS execinfo.$ac_objext"
+
+  fi
+
+
+
+   if test -n "$EXECINFO_H"; then
+  GL_GENERATE_EXECINFO_H_TRUE=
+  GL_GENERATE_EXECINFO_H_FALSE='#'
+else
+  GL_GENERATE_EXECINFO_H_TRUE='#'
+  GL_GENERATE_EXECINFO_H_FALSE=
+fi
 
 
 
@@ -24190,6 +24291,10 @@ if test -z "${GL_GENERATE_ALLOCA_H_TRUE}" && test -z "${GL_GENERATE_ALLOCA_H_FAL
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 
+if test -z "${GL_GENERATE_EXECINFO_H_TRUE}" && test -z "${GL_GENERATE_EXECINFO_H_FALSE}"; then
+  as_fn_error "conditional \"GL_GENERATE_EXECINFO_H\" was never defined.
+Usually this means the macro was only invoked conditionally." "$LINENO" 5
+fi
 if test -z "${GL_GENERATE_STDINT_H_TRUE}" && test -z "${GL_GENERATE_STDINT_H_FALSE}"; then
   as_fn_error "conditional \"GL_GENERATE_STDINT_H\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
