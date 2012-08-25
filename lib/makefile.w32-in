@@ -131,7 +131,9 @@ $(BLD)/dtotimespec.$(O) : \
 	$(CONFIG_H)
 
 $(BLD)/execinfo.$(O) : \
-	$(GNU_LIB)/execinfo.h
+	$(GNU_LIB)/execinfo.c \
+	$(GNU_LIB)/execinfo.h \
+	$(CONFIG_H)
 
 $(BLD)/getopt.$(O) : \
 	$(GNU_LIB)/getopt.c \

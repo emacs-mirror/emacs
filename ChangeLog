@@ -1,3 +1,7 @@
+2012-08-25  Juanma Barranquero  <lekktu@gmail.com>
+
+	* lib/makefile.w32-in ($(BLD)/execinfo.$(O)): Update dependencies.
+
 2012-08-25  Eli Zaretskii  <eliz@gnu.org>
 
 	* lib/makefile.w32-in ($(BLD)/execinfo.$(O), execinfo.h): New targets.
