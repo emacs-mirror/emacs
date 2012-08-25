@@ -1,5 +1,8 @@
 2012-08-25  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* emacs.c (fatal_error_signal_hook): Remove.
+	All uses removed.  This leftover from old code was always 0.
+
 	* casefiddle.c, casetab.c, category.c: Use bool for boolean.
 	* casefiddle.c (casify_object, casify_region):
 	* casetab.c (set_case_table):
