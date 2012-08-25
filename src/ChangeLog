@@ -1,5 +1,13 @@
 2012-08-25  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* xgselect.c (xg_select): Use auto storage for the GPollFD buffer
+	as that's faster and simpler than static storage.  Don't bother
+	with the g_main_context_query overhead if g_main_context_pending
+	says no events are pending.
+	(gfds, gfds_size): Remove these static vars.
+	(xgselect_initialize): Remove; no longer needed.
+	All uses and decls removed.
+
 	* emacs.c (fatal_error_signal_hook): Remove.
 	All uses removed.  This leftover from old code was always 0.
 

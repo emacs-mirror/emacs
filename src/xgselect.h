@@ -31,6 +31,4 @@ extern int xg_select (int max_fds,
                       EMACS_TIME *timeout,
 		      sigset_t *sigmask);
 
-extern void xgselect_initialize (void);
-
 #endif /* XGSELECT_H */
