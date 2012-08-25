@@ -1,3 +1,7 @@
+2012-08-25  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in ($(BLD)/alloc.$(O)): Depend on $(GNU_LIB)/execinfo.h.
+
 2012-08-25  Paul Eggert  <eggert@cs.ucla.edu>
 
 	On assertion failure, print backtrace if available.
