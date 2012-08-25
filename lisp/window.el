@@ -4911,23 +4911,19 @@ Do this only if these windows are vertically adjacent to each
 other, `even-window-heights' is non-nil, and the selected window
 is higher than WINDOW."
   (when (and even-window-heights
-	     (not (eq window (selected-window)))
-	     ;; Don't resize minibuffer windows.
-	     (not (window-minibuffer-p (selected-window)))
-	     (> (window-height (selected-window)) (window-height window))
-	     (eq (window-frame window) (window-frame (selected-window)))
-	     (let ((sel-edges (window-edges (selected-window)))
-		   (win-edges (window-edges window)))
-	       (and (= (nth 0 sel-edges) (nth 0 win-edges))
-		    (= (nth 2 sel-edges) (nth 2 win-edges))
-		    (or (= (nth 1 sel-edges) (nth 3 win-edges))
-			(= (nth 3 sel-edges) (nth 1 win-edges))))))
-    (let ((window-min-height 1))
-      ;; Don't throw an error if we can't even window heights for
-      ;; whatever reason.
-      (condition-case nil
-	  (enlarge-window (/ (- (window-height window) (window-height)) 2))
-	(error nil)))))
+	     ;; Even iff WINDOW forms a vertical combination with the
+	     ;; selected window, and WINDOW's height exceeds that of the
+	     ;; selected window, see also bug#11880.
+	     (window-combined-p window)
+	     (= (window-child-count (window-parent window)) 2)
+	     (eq (window-parent) (window-parent window))
+	     (> (window-total-height) (window-total-height window)))
+    ;; Don't throw an error if we can't even window heights for
+    ;; whatever reason.
+    (condition-case nil
+	(enlarge-window
+	 (/ (- (window-total-height window) (window-total-height)) 2))
+      (error nil))))
 
 (defun window--display-buffer (buffer window type &optional dedicated)
   "Display BUFFER in WINDOW and make its frame visible.
@@ -5334,8 +5330,9 @@ that frame."
 		  window))
 	      (get-largest-window 0 not-this-window))))
     (when (window-live-p window)
-      (window--even-window-heights window)
-      (prog1 (window--display-buffer buffer window 'reuse)
+      (prog1
+	  (window--display-buffer buffer window 'reuse)
+	(window--even-window-heights window)
 	(unless (cdr (assq 'inhibit-switch-frame alist))
 	  (window--maybe-raise-frame (window-frame window)))))))
 

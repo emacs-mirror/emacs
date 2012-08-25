@@ -1,3 +1,10 @@
+2012-08-25  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (window--even-window-heights): Even heights when
+	WINDOW and the selected window form a vertical combination.
+	(display-buffer-use-some-window): Provide that window used gets
+	sized back by quit-window.  (Bug#11880) and (Bug#12091)
+
 2012-08-24  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix file time stamp problem with bzr and CVS (Bug#12001).
