@@ -4098,7 +4098,7 @@ symlink (char const *filename, char const *linkname)
     dir_access = sys_access (filename, D_OK);
 
   /* Since Windows distinguishes between symlinks to directories and
-     to files, we provide a kludgey feature: if FILENAME doesn't
+     to files, we provide a kludgy feature: if FILENAME doesn't
      exist, but ends in a slash, we create a symlink to directory.  If
      FILENAME exists and is a directory, we always create a symlink to
      directory.  */
@@ -4165,7 +4165,7 @@ symlink (char const *filename, char const *linkname)
    whether the underlying volume actually supports symlinks, by
    testing the FILE_SUPPORTS_REPARSE_POINTS bit in volume's flags, and
    avoid the call to this function if it doesn't.  That's because the
-   call to GetFileAttributes takes a non-negligible time, expecially
+   call to GetFileAttributes takes a non-negligible time, especially
    on non-local or removable filesystems.  See stat_worker for an
    example of how to do that.  */
 static int

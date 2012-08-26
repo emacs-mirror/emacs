@@ -23,7 +23,7 @@ so we will look at it and add it to the manual.
 
 * Installation Changes in Emacs 24.3
 
-** New configure option '--without-all' to disable additonal features.
+** New configure option '--without-all' to disable additional features.
 This disables most of the features that are normally enabled by default.
 
 ** New configure option '--enable-link-time-optimization' to utilize

@@ -2420,7 +2420,7 @@ remember_mouse_glyph (struct frame *f, int gx, int gy, NativeRectangle *rect)
 static Lisp_Object
 safe_eval_handler (Lisp_Object arg, ptrdiff_t nargs, Lisp_Object *args)
 {
-  add_to_log ("Error during redisplay: %S signalled %S",
+  add_to_log ("Error during redisplay: %S signaled %S",
 	      Flist (nargs, args), arg);
   return Qnil;
 }

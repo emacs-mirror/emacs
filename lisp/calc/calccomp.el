@@ -86,7 +86,7 @@
           (setq sn (math-to-underscores sn)))
       sn)))
 
-;;; Give multiplication precendence when composing to avoid
+;;; Give multiplication precedence when composing to avoid
 ;;; writing a*(b c) instead of a b c
 (defun math-compose-expr (a prec &optional div)
   (let ((calc-multiplication-has-precedence t)

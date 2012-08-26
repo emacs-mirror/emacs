@@ -502,7 +502,7 @@ doc.o: buildobj.h
 @ns_frag@
 
 .PHONY: mostlyclean clean bootstrap-clean distclean maintainer-clean
-.PHONY: versioclean extraclean frc
+.PHONY: versionclean extraclean frc
 
 mostlyclean:
 	rm -f temacs$(EXEEXT) core *.core \#* *.o libXMenu11.a liblw.a
