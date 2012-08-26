@@ -15,7 +15,6 @@
 #ifndef event_h
 #define event_h
 
-#include "config.h" /* for EVENT_CLOCK */
 #include "eventcom.h"
 #include "mpm.h"
 #include "eventdef.h"

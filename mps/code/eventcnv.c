@@ -556,7 +556,7 @@ static void readLog(EventProc proc)
       printf("(t");
     } break;
     case 'C': {
-      printf("%llu", eventTime+1);
+      EVENT_CLOCK_PRINT(stdout, eventTime+1);
     } break;
     }
     reportEventResults(totalEventCount);
@@ -568,7 +568,9 @@ static void readLog(EventProc proc)
         if (eventEnabled[c])
           printf(" %04X %s\n", (unsigned)c, EventCode2Name(c));
       if (bucketSize == 0)
-        printf("\nevent clock stopped at %llu\n", eventTime);
+        printf("\nevent clock stopped at ");
+        EVENT_CLOCK_PRINT(stdout, eventTime);
+        printf("\n");
     }
   }
 }

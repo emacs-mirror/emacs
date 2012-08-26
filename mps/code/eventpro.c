@@ -109,7 +109,7 @@ for i in range(1,15):
    the offsets of the fields within an event structure with the specified
    format.
 
-for i in range(0, 15):
+for i in range(1, 15):
   plist = ", ".join(["p%d" % i for i in range(0, i)])
   print "#define EVENT%d_OFFSETS(%s) {%s}" % (
     i, plist,
@@ -117,7 +117,7 @@ for i in range(0, 15):
                for j in range(0, i)])
   )
 */
-#define EVENT0_OFFSETS() {}
+#define EVENT0_OFFSETS() {0}
 #define EVENT1_OFFSETS(p0) {offsetof(EVENT1_STRUCT(p0), f0)}
 #define EVENT2_OFFSETS(p0, p1) {offsetof(EVENT2_STRUCT(p0, p1), f0), offsetof(EVENT2_STRUCT(p0, p1), f1)}
 #define EVENT3_OFFSETS(p0, p1, p2) {offsetof(EVENT3_STRUCT(p0, p1, p2), f0), offsetof(EVENT3_STRUCT(p0, p1, p2), f1), offsetof(EVENT3_STRUCT(p0, p1, p2), f2)}
@@ -134,7 +134,7 @@ for i in range(0, 15):
 #define EVENT14_OFFSETS(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13) {offsetof(EVENT14_STRUCT(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13), f0), offsetof(EVENT14_STRUCT(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13), f1), offsetof(EVENT14_STRUCT(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13), f2), offsetof(EVENT14_STRUCT(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13), f3), offsetof(EVENT14_STRUCT(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13), f4), offsetof(EVENT14_STRUCT(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13), f5), offsetof(EVENT14_STRUCT(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13), f6), offsetof(EVENT14_STRUCT(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13), f7), offsetof(EVENT14_STRUCT(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13), f8), offsetof(EVENT14_STRUCT(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13), f9), offsetof(EVENT14_STRUCT(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13), f10), offsetof(EVENT14_STRUCT(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13), f11), offsetof(EVENT14_STRUCT(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13), f12), offsetof(EVENT14_STRUCT(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13), f13)}
 
 static eventRecord eventTypes[] = {
-  {"(unused)", 0, 0, 0, "", {}},
+  {"(unused)", 0, 0, 0, "", {0}},
 #define EVENT_INIT(X, name, code, always, kind, count, format) \
   {#name, \
    code, \

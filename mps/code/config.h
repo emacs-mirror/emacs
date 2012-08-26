@@ -277,7 +277,6 @@
 #define RememberedSummaryBLOCK 15
 
 
-
 /* Events
  *
  * EventBufferSIZE is the number of words in the global event buffer.
@@ -285,63 +284,6 @@
 
 #define EventBufferSIZE ((size_t)4096)
 #define EventStringLengthMAX ((size_t)255) /* Not including NUL */
-
-/* EVENT_CLOCK -- fast event timestamp clock
- *
- * On platforms that support it, we want to stamp events with a very cheap
- * and fast high-resolution timer.
- */
-
-/* http://msdn.microsoft.com/en-US/library/twchhe95%28v=vs.100%29.aspx */
-#if (defined(MPS_ARCH_I3) || defined(MPS_ARCH_I6)) && defined(MPS_BUILD_MV)
-
-#pragma intrinsic(__rdtsc)
-typedef unsigned __int64 EventClock;
-#define EVENT_CLOCK(lvalue) \
-BEGIN \
-(lvalue) = __rdtsc(); \
-END
-
-/* http://clang.llvm.org/docs/LanguageExtensions.html#builtins */
-#elif defined(MPS_BUILD_LL)
-
-#if __has_builtin(__builtin_readcyclecounter)
-
-typedef unsigned long long EventClock;
-#define EVENT_CLOCK(lvalue) \
-  BEGIN \
-    (lvalue) = __builtin_readcyclecounter(); \
-  END
-
-#endif /* __has_builtin(__builtin_readcyclecounter) */
-
-#endif
-
-/* Assemble the rdtsc instruction */
-#if !defined(EVENT_CLOCK) && \
-    (defined(MPS_ARCH_I3) || defined(MPS_ARCH_I6)) && \
-      (defined(MPS_BUILD_GC) || defined(MPS_BUILD_LL))
-
-/* Use __extension__ to enable use of a 64-bit type on 32-bit pedantic GCC */
-__extension__ typedef unsigned long long EventClock;
-#define EVENT_CLOCK(lvalue) \
-  BEGIN \
-    unsigned _l, _h; \
-    __asm__ __volatile__("rdtsc" : "=a"(_l), "=d"(_h)); \
-    (lvalue) = ((EventClock)_h << 32) | _l; \
-  END
-
-#endif
-
-/* no fast clock, use plinth, probably from the C library */
-#ifndef EVENT_CLOCK
-
-#define EVENT_CLOCK(lvalue) \
-  BEGIN \
-    (lvalue) = mps_clock(); \
-  END
-
-#endif
 
 
 /* Assert Buffer */
