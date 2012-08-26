@@ -2461,10 +2461,7 @@ and overlay is highlighted between MK and END-MK."
                 ;; the error location if the two buffers are in two
                 ;; different frames.  So don't do it if it's not necessary.
                 pre-existing
-              (let ((display-buffer-reuse-frames t)
-                    (pop-up-windows t))
-		;; Pop up a window.
-                (display-buffer (marker-buffer msg)))))
+	      (display-buffer (marker-buffer msg))))
 	 (highlight-regexp (with-current-buffer (marker-buffer msg)
 			     ;; also do this while we change buffer
 			     (compilation-set-window w msg)

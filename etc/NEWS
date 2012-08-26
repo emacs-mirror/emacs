@@ -622,6 +622,16 @@ display action functions to avoid changing which frame is selected.
 *** New display action alist `pop-up-frame-parameters', if non-nil,
 specifies frame parameters to give any newly-created frame.
 
+*** The following variables are obsolete, as they can be replaced by
+appropriate entries in the `display-buffer-alist' function introduced
+in Emacs 24.1:
+
+**** `display-buffer-reuse-frames'
+**** `special-display-regexps'
+**** `special-display-frame-alist'
+**** `special-display-buffer-names'
+**** `special-display-function'
+
 ** Completion
 
 *** New function `completion-table-with-quoting' to handle completion

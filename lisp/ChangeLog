@@ -1,5 +1,16 @@
 2012-08-26  Chong Yidong  <cyd@gnu.org>
 
+	* window.el (special-display-regexps, special-display-frame-alist)
+	(special-display-buffer-names, special-display-function)
+	(display-buffer-reuse-frames): Mark as obsolete.
+
+	* progmodes/compile.el: Don't use display-buffer-reuse-frames.
+
+	* help.el (help-print-return-message): Don't treat
+	display-buffer-reuse-frames specially.
+
+2012-08-26  Chong Yidong  <cyd@gnu.org>
+
 	* progmodes/gdb-mi.el (gdb-display-buffer-other-frame-action): New
 	variable, replacing gdb-frame-parameters.
 	(gdb-frame-io-buffer, gdb-frame-breakpoints-buffer)

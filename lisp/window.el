@@ -4460,8 +4460,7 @@ See also `special-display-regexps'."
 			(repeat :tag "Arguments" (sexp)))))
   :group 'windows
   :group 'frames)
-
-;;;###autoload
+(make-obsolete-variable 'special-display-buffer-names 'display-buffer-alist "24.3")
 (put 'special-display-buffer-names 'risky-local-variable t)
 
 (defcustom special-display-regexps nil
@@ -4528,6 +4527,8 @@ See also `special-display-buffer-names'."
 			(repeat :tag "Arguments" (sexp)))))
   :group 'windows
   :group 'frames)
+(make-obsolete-variable 'special-display-regexps 'display-buffer-alist "24.3")
+(put 'special-display-regexps 'risky-local-variable t)
 
 (defun special-display-p (buffer-name)
   "Return non-nil if a buffer named BUFFER-NAME gets a special frame.
@@ -4569,6 +4570,7 @@ These supersede the values given in `default-frame-alist'."
 			 (symbol :tag "Parameter")
 			 (sexp :tag "Value")))
   :group 'frames)
+(make-obsolete-variable 'special-display-frame-alist 'display-buffer-alist "24.3")
 
 (defun special-display-popup-frame (buffer &optional args)
   "Pop up a frame displaying BUFFER and return its window.
@@ -4635,6 +4637,7 @@ with corresponding arguments to set up the quit-restore parameter
 of the window used."
   :type 'function
   :group 'frames)
+(make-obsolete-variable 'special-display-function 'display-buffer-alist "24.3")
 
 (defcustom same-window-buffer-names nil
   "List of names of buffers that should appear in the \"same\" window.
@@ -4707,6 +4710,7 @@ that frame."
   :type 'boolean
   :version "21.1"
   :group 'windows)
+(make-obsolete-variable 'display-buffer-reuse-frames 'display-buffer-alist "24.3")
 
 (defcustom pop-up-windows t
   "Non-nil means `display-buffer' should make a new window."
