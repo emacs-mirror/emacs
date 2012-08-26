@@ -1,3 +1,9 @@
+2012-08-26  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* configure.ac (CFLAGS): Prefer -g3 to -g if -g3 works
+	and if the user has not specified CFLAGS.  -g3 simplifies
+	debugging, since it makes macros visible to the debugger.
+
 2012-08-25  Juanma Barranquero  <lekktu@gmail.com>
 
 	* lib/makefile.w32-in ($(BLD)/execinfo.$(O)): Update dependencies.

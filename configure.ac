@@ -577,6 +577,34 @@ fi
 # Initialize gnulib right after choosing the compiler.
 gl_EARLY
 
+# It's helpful to have C macros available to GDB, so prefer -g3 to -g
+# if -g3 works and the user does not specify CFLAGS.
+# This test must follow gl_EARLY; otherwise AC_LINK_IFELSE complains.
+if test "$ac_test_CFLAGS" != set; then
+  case $CFLAGS in
+    '-g')
+      emacs_g3_CFLAGS='-g3';;
+    '-g -O2')
+      emacs_g3_CFLAGS='-g3 -O2';;
+    *)
+      emacs_g3_CFLAGS='';;
+  esac
+  if test -n "$emacs_g3_CFLAGS"; then
+    emacs_save_CFLAGS=$CFLAGS
+    CFLAGS=$emacs_g3_CFLAGS
+    AC_CACHE_CHECK([whether $CC accepts $emacs_g3_CFLAGS],
+      [emacs_cv_prog_cc_g3],
+      [AC_LINK_IFELSE([AC_LANG_PROGRAM()],
+	 [emacs_cv_prog_cc_g3=yes],
+         [emacs_cv_prog_cc_g3=no])])
+    if test $emacs_cv_prog_cc_g3 = yes; then
+      CFLAGS=$emacs_g3_CFLAGS
+    else
+      CFLAGS=$emacs_save_CFLAGS
+    fi
+  fi
+fi
+
 AC_ARG_ENABLE([gcc-warnings],
   [AS_HELP_STRING([--enable-gcc-warnings],
                   [turn on lots of GCC warnings. This is intended for
