@@ -619,6 +619,9 @@ now accept a third argument to avoid choosing the selected window.
 *** New display action alist `inhibit-switch-frame', if non-nil, tells
 display action functions to avoid changing which frame is selected.
 
+*** New display action alist `pop-up-frame-parameters', if non-nil,
+specifies frame parameters to give any newly-created frame.
+
 ** Completion
 
 *** New function `completion-table-with-quoting' to handle completion

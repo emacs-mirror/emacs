@@ -4369,12 +4369,11 @@ of the window used."
 	  (function :tag "function"))
   :group 'windows)
 
+;; Eventually, we want to turn this into a defvar; instead of
+;; customizing this, the user should use a `pop-up-frame-parameters'
+;; alist entry in `display-buffer-base-action'.
 (defcustom pop-up-frame-alist nil
   "Alist of parameters for automatically generated new frames.
-You can set this in your init file; for example,
-
-  (setq pop-up-frame-alist '((width . 80) (height . 20)))
-
 If non-nil, the value you specify here is used by the default
 `pop-up-frame-function' for the creation of new frames.
 
@@ -5108,6 +5107,10 @@ Recognized alist entries include:
                       window that already displays the buffer.
                       See `display-buffer-reuse-window'.
 
+ `pop-up-frame-parameters' -- Value specifies an alist of frame
+                              parameters to give a new frame, if
+                              one is created.
+
 The ACTION argument to `display-buffer' can also have a non-nil
 and non-list value.  This means to display the buffer in a window
 other than the selected one, even if it is already displayed in
@@ -5250,9 +5253,15 @@ This works by calling `pop-up-frame-function'.  If successful,
 return the window used; otherwise return nil.
 
 If ALIST has a non-nil `inhibit-switch-frame' entry, avoid
-raising the new frame."
-  (let ((fun pop-up-frame-function)
-	frame window)
+raising the new frame.
+
+If ALIST has a non-nil `pop-up-frame-parameters' entry, the
+corresponding value is an alist of frame parameters to give the
+new frame."
+  (let* ((params (cdr (assq 'pop-up-frame-parameters alist)))
+	 (pop-up-frame-alist (append params pop-up-frame-alist))
+	 (fun pop-up-frame-function)
+	 frame window)
     (when (and fun
 	       (setq frame (funcall fun))
 	       (setq window (frame-selected-window frame)))

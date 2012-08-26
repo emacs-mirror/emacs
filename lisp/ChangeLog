@@ -1,5 +1,31 @@
 2012-08-26  Chong Yidong  <cyd@gnu.org>
 
+	* progmodes/gdb-mi.el (gdb-display-buffer-other-frame-action): New
+	variable, replacing gdb-frame-parameters.
+	(gdb-frame-io-buffer, gdb-frame-breakpoints-buffer)
+	(gdb-frame-threads-buffer, gdb-frame-memory-buffer)
+	(gdb-frame-disassembly-buffer, gdb-frame-stack-buffer)
+	(gdb-frame-locals-buffer, gdb-frame-registers-buffer): Use it.
+	(def-gdb-frame-for-buffer): Macro deleted.  It is easier to define
+	the functions directly with gdb-display-buffer-other-frame-action.
+	(gdb-display-breakpoints-buffer, gdb-display-threads-buffer)
+	(gdb-display-memory-buffer, gdb-display-disassembly-buffer)
+	(gdb-display-stack-buffer, gdb-display-locals-buffer)
+	(gdb-display-registers-buffer): Define directly.
+	(def-gdb-display-buffer): Macro deleted.
+	(gdb-display-buffer): Remove second and third args, callers don't
+	use them.  Defer to the default display-buffer behavior, apart
+	from making windows dedicated.
+	(gdb-setup-windows): Don't call display-buffer unnecessarily.
+
+	* progmodes/gud.el (gud-display-line): Just use display-buffer.
+
+	* window.el (display-buffer-pop-up-frame): Handle a
+	pop-up-frame-parameters alist entry.
+	(display-buffer): Document it.
+
+2012-08-26  Chong Yidong  <cyd@gnu.org>
+
 	* isearch.el (search-whitespace-regexp): Make string and nil
 	values apply to both ordinary and regexp search.  Allow a cons
 	cell value to distinguish between the two.
