@@ -37,6 +37,51 @@ extern Res EventFlush(void);
 extern char *EventNext, *EventLimit;
 extern Word EventKindControl;
 
+
+/* EVENT_CLOCK -- fast event timestamp clock
+ *
+ * On platforms that support it, we want to stamp events with a very cheap
+ * and fast high-resolution timer.
+ */
+
+/* http://clang.llvm.org/docs/LanguageExtensions.html#builtins */
+#if defined(MPS_BUILD_LL) && __has_builtin(__builtin_readcyclecounter)
+
+#define EVENT_CLOCK(lvalue) \
+  BEGIN \
+    (lvalue) = __builtin_readcyclecounter(); \
+  END
+
+/* http://msdn.microsoft.com/en-US/library/twchhe95%28v=vs.100%29.aspx */
+#elif (defined(MPS_ARCH_I3) || defined(MPS_ARCH_I6)) && defined(MPS_BUILD_MV)
+
+#pragma intrinsic(__rdtsc)
+#define EVENT_CLOCK(lvalue) \
+  BEGIN \
+    (lvalue) = __rdtsc(); \
+  END
+
+/* Assemble the rdtsc instruction */
+#elif (defined(MPS_ARCH_I3) || defined(MPS_ARCH_I6)) && \
+      (defined(MPS_BUILD_GC) || defined(MPS_BUILD_LL))
+
+#define EVENT_CLOCK(lvalue) \
+  BEGIN \
+    unsigned _l, _h; \
+    __asm__ __volatile__("rdtsc" : "=a"(_l), "=d"(_h)); \
+    (lvalue) = ((unsigned long long)_h << 32) | _l; \
+  END
+
+#else /* no fast clock, use plinth, probably from the C library */
+
+#define EVENT_CLOCK(lvalue) \
+  BEGIN \
+    (lvalue) = mps_clock(); \
+  END
+
+#endif
+
+
 #define EVENT_BEGIN(name, structSize) \
   BEGIN \
     if(BS_IS_MEMBER(EventKindControl, ((Index)Event##name##Kind))) { \
@@ -48,7 +93,8 @@ extern Word EventKindControl;
       _event = (void *)EventNext; \
       _event->code = Event##name##Code; \
       _event->size = (EventSize)_size; \
-      _event->clock = mps_clock();
+      { unsigned l, h; __asm__ __volatile__("rdtsc":"=a"(l),"=d"(h)); \
+        _event->clock = ((unsigned long long)h << 32) | l; }
 
 #define EVENT_END(name, size) \
       EventNext += _size; \
