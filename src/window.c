@@ -54,7 +54,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "nsterm.h"
 #endif
 
-Lisp_Object Qwindowp, Qwindow_live_p, Qwindow_valid_p;
+Lisp_Object Qwindowp, Qwindow_live_p;
+static Lisp_Object Qwindow_valid_p;
 static Lisp_Object Qwindow_configuration_p, Qrecord_window_buffer;
 static Lisp_Object Qwindow_deletable_p, Qdelete_window, Qdisplay_buffer;
 static Lisp_Object Qreplace_buffer_in_windows, Qget_mru_window;
@@ -268,7 +269,7 @@ decode_any_window (register Lisp_Object window)
   return w;
 }
 
-struct window *
+static struct window *
 decode_valid_window (register Lisp_Object window)
 {
   struct window *w;

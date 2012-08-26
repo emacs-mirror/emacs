@@ -1,5 +1,15 @@
 2012-08-26  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Remove unused external symbols.
+	* data.c (Qcons, Qfloat, Qmisc, Qstring, Qvector):
+	* window.c (Qwindow_valid_p, decode_valid_window):
+	Now static, not extern.
+	* data.c (Qinterval): Remove; unused.
+	(syms_of_data): Do not define 'interval'.
+	* lisp.h (Qinteger, Qstring, Qmisc, Qvector, Qfloat, Qcons):
+	* window.h (decode_valid_window):
+	Remove decls.
+
 	* character.c, charset.c, chartab.c: Use bool for booleans.
 	* character.c (lisp_string_width, string_count_byte8)
 	(string_escape_byte8):
