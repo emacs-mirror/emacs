@@ -703,8 +703,7 @@ Type \\[isearch-describe-key] to display documentation of Isearch key.
 Type \\[isearch-describe-mode] to display documentation of Isearch mode.
 
 In incremental searches, a space or spaces normally matches any
-whitespace; see the variable `search-whitespace-regexp'.  To
-search for a literal space and nothing else, enter C-q SPC.
+whitespace; see the variable `search-whitespace-regexp'.
 
 If an input method is turned on in the current buffer, that input
 method is also active while you are typing characters to search.
