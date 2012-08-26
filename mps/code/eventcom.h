@@ -10,13 +10,13 @@
 #define eventcom_h
 
 #include <limits.h>
+#include "config.h" /* for EventClock */
 #include "mpmtypes.h" /* for Word */
 #include "eventdef.h"
 
 
 /* Types for event fields */
 
-typedef unsigned long long EventClock;
 typedef unsigned short EventCode;
 typedef unsigned EventKind;
 typedef unsigned short EventSize;
