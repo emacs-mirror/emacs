@@ -1100,7 +1100,7 @@ an error is signaled.  */)
     {
       ptrdiff_t chars = SCHARS (string);
       unsigned char *str = xmalloc (chars);
-      ptrdiff_t converted = str_to_unibyte (SDATA (string), str, chars, 0);
+      ptrdiff_t converted = str_to_unibyte (SDATA (string), str, chars);
 
       if (converted < chars)
 	error ("Can't convert the %"pD"dth character to unibyte", converted);
