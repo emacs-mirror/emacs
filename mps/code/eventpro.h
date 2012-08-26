@@ -22,6 +22,7 @@ typedef Res (*EventProcReader)(void *, void *, size_t);
 extern EventCode EventName2Code(char *name);
 extern char *EventCode2Name(EventCode code);
 extern char *EventCode2Format(EventCode code);
+extern void *EventField(Event event, unsigned i);
 extern Bool EventCodeIsValid(EventCode code);
 
 extern Word AddrLabel(EventProc proc, Addr addr);

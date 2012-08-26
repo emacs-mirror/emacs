@@ -83,40 +83,36 @@ typedef unsigned EventFU;
 typedef EventStringStruct EventFS;
 typedef double EventFD;
 
+/*
+for i in range(0, 15):
+  print "#define EVENT%d_STRUCT(%s) struct { EventCode code; EventSize size; Word clock; %s }" % (
+    i,
+    ", ".join(["p%s" % j for j in range(0, i)]),
+    " ".join("EventF##p%d f%d;" % (j, j) for j in range(0,i))
+  )
+ */
+#define EVENT0_STRUCT() struct { EventCode code; EventSize size; Word clock;  }
+#define EVENT1_STRUCT(p0) struct { EventCode code; EventSize size; Word clock; EventF##p0 f0; }
+#define EVENT2_STRUCT(p0, p1) struct { EventCode code; EventSize size; Word clock; EventF##p0 f0; EventF##p1 f1; }
+#define EVENT3_STRUCT(p0, p1, p2) struct { EventCode code; EventSize size; Word clock; EventF##p0 f0; EventF##p1 f1; EventF##p2 f2; }
+#define EVENT4_STRUCT(p0, p1, p2, p3) struct { EventCode code; EventSize size; Word clock; EventF##p0 f0; EventF##p1 f1; EventF##p2 f2; EventF##p3 f3; }
+#define EVENT5_STRUCT(p0, p1, p2, p3, p4) struct { EventCode code; EventSize size; Word clock; EventF##p0 f0; EventF##p1 f1; EventF##p2 f2; EventF##p3 f3; EventF##p4 f4; }
+#define EVENT6_STRUCT(p0, p1, p2, p3, p4, p5) struct { EventCode code; EventSize size; Word clock; EventF##p0 f0; EventF##p1 f1; EventF##p2 f2; EventF##p3 f3; EventF##p4 f4; EventF##p5 f5; }
+#define EVENT7_STRUCT(p0, p1, p2, p3, p4, p5, p6) struct { EventCode code; EventSize size; Word clock; EventF##p0 f0; EventF##p1 f1; EventF##p2 f2; EventF##p3 f3; EventF##p4 f4; EventF##p5 f5; EventF##p6 f6; }
+#define EVENT8_STRUCT(p0, p1, p2, p3, p4, p5, p6, p7) struct { EventCode code; EventSize size; Word clock; EventF##p0 f0; EventF##p1 f1; EventF##p2 f2; EventF##p3 f3; EventF##p4 f4; EventF##p5 f5; EventF##p6 f6; EventF##p7 f7; }
+#define EVENT9_STRUCT(p0, p1, p2, p3, p4, p5, p6, p7, p8) struct { EventCode code; EventSize size; Word clock; EventF##p0 f0; EventF##p1 f1; EventF##p2 f2; EventF##p3 f3; EventF##p4 f4; EventF##p5 f5; EventF##p6 f6; EventF##p7 f7; EventF##p8 f8; }
+#define EVENT10_STRUCT(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9) struct { EventCode code; EventSize size; Word clock; EventF##p0 f0; EventF##p1 f1; EventF##p2 f2; EventF##p3 f3; EventF##p4 f4; EventF##p5 f5; EventF##p6 f6; EventF##p7 f7; EventF##p8 f8; EventF##p9 f9; }
+#define EVENT11_STRUCT(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10) struct { EventCode code; EventSize size; Word clock; EventF##p0 f0; EventF##p1 f1; EventF##p2 f2; EventF##p3 f3; EventF##p4 f4; EventF##p5 f5; EventF##p6 f6; EventF##p7 f7; EventF##p8 f8; EventF##p9 f9; EventF##p10 f10; }
+#define EVENT12_STRUCT(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11) struct { EventCode code; EventSize size; Word clock; EventF##p0 f0; EventF##p1 f1; EventF##p2 f2; EventF##p3 f3; EventF##p4 f4; EventF##p5 f5; EventF##p6 f6; EventF##p7 f7; EventF##p8 f8; EventF##p9 f9; EventF##p10 f10; EventF##p11 f11; }
+#define EVENT13_STRUCT(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12) struct { EventCode code; EventSize size; Word clock; EventF##p0 f0; EventF##p1 f1; EventF##p2 f2; EventF##p3 f3; EventF##p4 f4; EventF##p5 f5; EventF##p6 f6; EventF##p7 f7; EventF##p8 f8; EventF##p9 f9; EventF##p10 f10; EventF##p11 f11; EventF##p12 f12; }
+#define EVENT14_STRUCT(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13) struct { EventCode code; EventSize size; Word clock; EventF##p0 f0; EventF##p1 f1; EventF##p2 f2; EventF##p3 f3; EventF##p4 f4; EventF##p5 f5; EventF##p6 f6; EventF##p7 f7; EventF##p8 f8; EventF##p9 f9; EventF##p10 f10; EventF##p11 f11; EventF##p12 f12; EventF##p13 f13; }
+
 /* Common prefix for all event structures.  The size field allows an event
    reader to skip over events whose codes it does not recognise. */
-typedef struct EventAnyStruct {
-  EventCode code;
-  EventSize size;
-  Word clock;
-} EventAnyStruct;
+typedef EVENT0_STRUCT() EventAnyStruct;
 
 #define EVENT_STRUCT(X, name, _code, always, kind, count, format) \
-  typedef struct Event##name##Struct { \
-    EventCode code; \
-    EventSize size; \
-    Word clock; \
-    EVENT_STRUCT_FIELDS_##count format \
-  } Event##name##Struct;
-
-#define EVENT_STRUCT_FIELDS_0()
-/* The following lines were generated with
-   python -c 'for i in range(1, 15): print "#define EVENT_STRUCT_FIELDS_%d(%s) %s" % (i, ", ".join(["p%s" % j for j in range(0, i)]), " ".join("EventF##p%d f%d;" % (j, j) for j in range(0,i)))'
- */
-#define EVENT_STRUCT_FIELDS_1(p0) EventF##p0 f0;
-#define EVENT_STRUCT_FIELDS_2(p0, p1) EventF##p0 f0; EventF##p1 f1;
-#define EVENT_STRUCT_FIELDS_3(p0, p1, p2) EventF##p0 f0; EventF##p1 f1; EventF##p2 f2;
-#define EVENT_STRUCT_FIELDS_4(p0, p1, p2, p3) EventF##p0 f0; EventF##p1 f1; EventF##p2 f2; EventF##p3 f3;
-#define EVENT_STRUCT_FIELDS_5(p0, p1, p2, p3, p4) EventF##p0 f0; EventF##p1 f1; EventF##p2 f2; EventF##p3 f3; EventF##p4 f4;
-#define EVENT_STRUCT_FIELDS_6(p0, p1, p2, p3, p4, p5) EventF##p0 f0; EventF##p1 f1; EventF##p2 f2; EventF##p3 f3; EventF##p4 f4; EventF##p5 f5;
-#define EVENT_STRUCT_FIELDS_7(p0, p1, p2, p3, p4, p5, p6) EventF##p0 f0; EventF##p1 f1; EventF##p2 f2; EventF##p3 f3; EventF##p4 f4; EventF##p5 f5; EventF##p6 f6;
-#define EVENT_STRUCT_FIELDS_8(p0, p1, p2, p3, p4, p5, p6, p7) EventF##p0 f0; EventF##p1 f1; EventF##p2 f2; EventF##p3 f3; EventF##p4 f4; EventF##p5 f5; EventF##p6 f6; EventF##p7 f7;
-#define EVENT_STRUCT_FIELDS_9(p0, p1, p2, p3, p4, p5, p6, p7, p8) EventF##p0 f0; EventF##p1 f1; EventF##p2 f2; EventF##p3 f3; EventF##p4 f4; EventF##p5 f5; EventF##p6 f6; EventF##p7 f7; EventF##p8 f8;
-#define EVENT_STRUCT_FIELDS_10(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9) EventF##p0 f0; EventF##p1 f1; EventF##p2 f2; EventF##p3 f3; EventF##p4 f4; EventF##p5 f5; EventF##p6 f6; EventF##p7 f7; EventF##p8 f8; EventF##p9 f9;
-#define EVENT_STRUCT_FIELDS_11(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10) EventF##p0 f0; EventF##p1 f1; EventF##p2 f2; EventF##p3 f3; EventF##p4 f4; EventF##p5 f5; EventF##p6 f6; EventF##p7 f7; EventF##p8 f8; EventF##p9 f9; EventF##p10 f10;
-#define EVENT_STRUCT_FIELDS_12(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11) EventF##p0 f0; EventF##p1 f1; EventF##p2 f2; EventF##p3 f3; EventF##p4 f4; EventF##p5 f5; EventF##p6 f6; EventF##p7 f7; EventF##p8 f8; EventF##p9 f9; EventF##p10 f10; EventF##p11 f11;
-#define EVENT_STRUCT_FIELDS_13(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12) EventF##p0 f0; EventF##p1 f1; EventF##p2 f2; EventF##p3 f3; EventF##p4 f4; EventF##p5 f5; EventF##p6 f6; EventF##p7 f7; EventF##p8 f8; EventF##p9 f9; EventF##p10 f10; EventF##p11 f11; EventF##p12 f12;
-#define EVENT_STRUCT_FIELDS_14(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13) EventF##p0 f0; EventF##p1 f1; EventF##p2 f2; EventF##p3 f3; EventF##p4 f4; EventF##p5 f5; EventF##p6 f6; EventF##p7 f7; EventF##p8 f8; EventF##p9 f9; EventF##p10 f10; EventF##p11 f11; EventF##p12 f12; EventF##p13 f13;
+  typedef EVENT##count##_STRUCT format Event##name##Struct;
 
 EVENT_LIST(EVENT_STRUCT, X)
 
@@ -137,48 +133,8 @@ typedef union EventUnion {
 } EventUnion, *Event;
 
 
-/* EVENTn -- event emitting macros
- *
- * The macros EVENT0, EVENT1, etc. are used throughout the MPS to emit an
- * event with parameters.  They work by appending the event parameters to
- * an event buffer, which is flushed to the telemetry output stream when
- * full.  EVENT2S is a special case that takes a variable length string.
- */
-
-#ifdef EVENT
-
-#define EVENT2S(name, p0, length, string) \
-  BEGIN \
-    size_t _string_len = (length); \
-    size_t size; \
-    size = offsetof(Event##name##Struct, f1.str) + _string_len; \
-    EVENT_BEGIN(name, size) \
-      _event->f0 = (p0); \
-      AVER(_string_len < EventStringLengthMAX); \
-      _event->f1.len = (EventStringLen)_string_len; \
-      mps_lib_memcpy(_event->f1.str, (string), _string_len); \
-    EVENT_END(name, size); \
-  END
-
-#define EVENT0(name) EVENT_BEGIN(name, sizeof(EventAnyStruct)) EVENT_END(name, sizeof(EventAnyStruct))
-/* The following lines were generated with
-   python -c 'for i in range(1,15): print "#define EVENT%d(name, %s) EVENT_BEGIN(name, sizeof(Event##name##Struct)) %s EVENT_END(name, sizeof(Event##name##Struct))" % (i, ", ".join(["p%d" % j for j in range(0, i)]), " ".join(["_event->f%d = (p%d);" % (j, j) for j in range(0, i)]))'
- */
-#define EVENT1(name, p0) EVENT_BEGIN(name, sizeof(Event##name##Struct)) _event->f0 = (p0); EVENT_END(name, sizeof(Event##name##Struct))
-#define EVENT2(name, p0, p1) EVENT_BEGIN(name, sizeof(Event##name##Struct)) _event->f0 = (p0); _event->f1 = (p1); EVENT_END(name, sizeof(Event##name##Struct))
-#define EVENT3(name, p0, p1, p2) EVENT_BEGIN(name, sizeof(Event##name##Struct)) _event->f0 = (p0); _event->f1 = (p1); _event->f2 = (p2); EVENT_END(name, sizeof(Event##name##Struct))
-#define EVENT4(name, p0, p1, p2, p3) EVENT_BEGIN(name, sizeof(Event##name##Struct)) _event->f0 = (p0); _event->f1 = (p1); _event->f2 = (p2); _event->f3 = (p3); EVENT_END(name, sizeof(Event##name##Struct))
-#define EVENT5(name, p0, p1, p2, p3, p4) EVENT_BEGIN(name, sizeof(Event##name##Struct)) _event->f0 = (p0); _event->f1 = (p1); _event->f2 = (p2); _event->f3 = (p3); _event->f4 = (p4); EVENT_END(name, sizeof(Event##name##Struct))
-#define EVENT6(name, p0, p1, p2, p3, p4, p5) EVENT_BEGIN(name, sizeof(Event##name##Struct)) _event->f0 = (p0); _event->f1 = (p1); _event->f2 = (p2); _event->f3 = (p3); _event->f4 = (p4); _event->f5 = (p5); EVENT_END(name, sizeof(Event##name##Struct))
-#define EVENT7(name, p0, p1, p2, p3, p4, p5, p6) EVENT_BEGIN(name, sizeof(Event##name##Struct)) _event->f0 = (p0); _event->f1 = (p1); _event->f2 = (p2); _event->f3 = (p3); _event->f4 = (p4); _event->f5 = (p5); _event->f6 = (p6); EVENT_END(name, sizeof(Event##name##Struct))
-#define EVENT8(name, p0, p1, p2, p3, p4, p5, p6, p7) EVENT_BEGIN(name, sizeof(Event##name##Struct)) _event->f0 = (p0); _event->f1 = (p1); _event->f2 = (p2); _event->f3 = (p3); _event->f4 = (p4); _event->f5 = (p5); _event->f6 = (p6); _event->f7 = (p7); EVENT_END(name, sizeof(Event##name##Struct))
-#define EVENT9(name, p0, p1, p2, p3, p4, p5, p6, p7, p8) EVENT_BEGIN(name, sizeof(Event##name##Struct)) _event->f0 = (p0); _event->f1 = (p1); _event->f2 = (p2); _event->f3 = (p3); _event->f4 = (p4); _event->f5 = (p5); _event->f6 = (p6); _event->f7 = (p7); _event->f8 = (p8); EVENT_END(name, sizeof(Event##name##Struct))
-#define EVENT10(name, p0, p1, p2, p3, p4, p5, p6, p7, p8, p9) EVENT_BEGIN(name, sizeof(Event##name##Struct)) _event->f0 = (p0); _event->f1 = (p1); _event->f2 = (p2); _event->f3 = (p3); _event->f4 = (p4); _event->f5 = (p5); _event->f6 = (p6); _event->f7 = (p7); _event->f8 = (p8); _event->f9 = (p9); EVENT_END(name, sizeof(Event##name##Struct))
-#define EVENT11(name, p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10) EVENT_BEGIN(name, sizeof(Event##name##Struct)) _event->f0 = (p0); _event->f1 = (p1); _event->f2 = (p2); _event->f3 = (p3); _event->f4 = (p4); _event->f5 = (p5); _event->f6 = (p6); _event->f7 = (p7); _event->f8 = (p8); _event->f9 = (p9); _event->f10 = (p10); EVENT_END(name, sizeof(Event##name##Struct))
-#define EVENT12(name, p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11) EVENT_BEGIN(name, sizeof(Event##name##Struct)) _event->f0 = (p0); _event->f1 = (p1); _event->f2 = (p2); _event->f3 = (p3); _event->f4 = (p4); _event->f5 = (p5); _event->f6 = (p6); _event->f7 = (p7); _event->f8 = (p8); _event->f9 = (p9); _event->f10 = (p10); _event->f11 = (p11); EVENT_END(name, sizeof(Event##name##Struct))
-#define EVENT13(name, p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12) EVENT_BEGIN(name, sizeof(Event##name##Struct)) _event->f0 = (p0); _event->f1 = (p1); _event->f2 = (p2); _event->f3 = (p3); _event->f4 = (p4); _event->f5 = (p5); _event->f6 = (p6); _event->f7 = (p7); _event->f8 = (p8); _event->f9 = (p9); _event->f10 = (p10); _event->f11 = (p11); _event->f12 = (p12); EVENT_END(name, sizeof(Event##name##Struct))
-#define EVENT14(name, p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13) EVENT_BEGIN(name, sizeof(Event##name##Struct)) _event->f0 = (p0); _event->f1 = (p1); _event->f2 = (p2); _event->f3 = (p3); _event->f4 = (p4); _event->f5 = (p5); _event->f6 = (p6); _event->f7 = (p7); _event->f8 = (p8); _event->f9 = (p9); _event->f10 = (p10); _event->f11 = (p11); _event->f12 = (p12); _event->f13 = (p13); EVENT_END(name, sizeof(Event##name##Struct))
-
+#if 0
+/* FIXME: Eliminate this in favour of some sort of table? */
 
 #define EVENT0_FIELD_PTR(name, event, i) NULL
 
@@ -432,29 +388,7 @@ typedef union EventUnion {
   : ((i) == 17) ? (void *)&((event)->name.f17) \
   : ((i) == 18) ? (void *)&((event)->name.f18)\
   : NULL)
-
-#else /* EVENT not */
-
-#define EVENT0(name) NOOP
-/* The following lines were generated with
-  python -c 'for i in range(1,15): print "#define EVENT%d(name, %s) NOOP" % (i, ", ".join(["p%d" % j for j in range(0, i)]))'
- */
-#define EVENT1(name, p0) NOOP
-#define EVENT2(name, p0, p1) NOOP
-#define EVENT3(name, p0, p1, p2) NOOP
-#define EVENT4(name, p0, p1, p2, p3) NOOP
-#define EVENT5(name, p0, p1, p2, p3, p4) NOOP
-#define EVENT6(name, p0, p1, p2, p3, p4, p5) NOOP
-#define EVENT7(name, p0, p1, p2, p3, p4, p5, p6) NOOP
-#define EVENT8(name, p0, p1, p2, p3, p4, p5, p6, p7) NOOP
-#define EVENT9(name, p0, p1, p2, p3, p4, p5, p6, p7, p8) NOOP
-#define EVENT10(name, p0, p1, p2, p3, p4, p5, p6, p7, p8, p9) NOOP
-#define EVENT11(name, p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10) NOOP
-#define EVENT12(name, p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11) NOOP
-#define EVENT13(name, p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12) NOOP
-#define EVENT14(name, p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13) NOOP
-
-#endif /* EVENT */
+#endif
 
 
 #endif /* eventcom_h */
