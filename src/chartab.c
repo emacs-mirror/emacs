@@ -200,7 +200,7 @@ copy_char_table (Lisp_Object table)
 }
 
 static Lisp_Object
-sub_char_table_ref (Lisp_Object table, int c, int is_uniprop)
+sub_char_table_ref (Lisp_Object table, int c, bool is_uniprop)
 {
   struct Lisp_Sub_Char_Table *tbl = XSUB_CHAR_TABLE (table);
   int depth = XINT (tbl->depth);
@@ -245,7 +245,7 @@ char_table_ref (Lisp_Object table, int c)
 
 static Lisp_Object
 sub_char_table_ref_and_range (Lisp_Object table, int c, int *from, int *to,
-			      Lisp_Object defalt, int is_uniprop)
+			      Lisp_Object defalt, bool is_uniprop)
 {
   struct Lisp_Sub_Char_Table *tbl = XSUB_CHAR_TABLE (table);
   int depth = XINT (tbl->depth);
@@ -320,7 +320,7 @@ char_table_ref_and_range (Lisp_Object table, int c, int *from, int *to)
   struct Lisp_Char_Table *tbl = XCHAR_TABLE (table);
   int chartab_idx = CHARTAB_IDX (c, 0, 0), idx;
   Lisp_Object val;
-  int is_uniprop = UNIPROP_TABLE_P (table);
+  bool is_uniprop = UNIPROP_TABLE_P (table);
 
   val = tbl->contents[chartab_idx];
   if (*from < 0)
@@ -382,7 +382,7 @@ char_table_ref_and_range (Lisp_Object table, int c, int *from, int *to)
 
 
 static void
-sub_char_table_set (Lisp_Object table, int c, Lisp_Object val, int is_uniprop)
+sub_char_table_set (Lisp_Object table, int c, Lisp_Object val, bool is_uniprop)
 {
   struct Lisp_Sub_Char_Table *tbl = XSUB_CHAR_TABLE (table);
   int depth = XINT ((tbl)->depth);
@@ -438,7 +438,7 @@ char_table_set (Lisp_Object table, int c, Lisp_Object val)
 
 static void
 sub_char_table_set_range (Lisp_Object table, int from, int to, Lisp_Object val,
-			  int is_uniprop)
+			  bool is_uniprop)
 {
   struct Lisp_Sub_Char_Table *tbl = XSUB_CHAR_TABLE (table);
   int depth = XINT ((tbl)->depth);
@@ -484,7 +484,7 @@ char_table_set_range (Lisp_Object table, int from, int to, Lisp_Object val)
     char_table_set (table, from, val);
   else
     {
-      int is_uniprop = UNIPROP_TABLE_P (table);
+      bool is_uniprop = UNIPROP_TABLE_P (table);
       int lim = CHARTAB_IDX (to, 0, 0);
       int i, c;
 
@@ -683,7 +683,8 @@ optimize_sub_char_table (Lisp_Object table, Lisp_Object test)
   struct Lisp_Sub_Char_Table *tbl = XSUB_CHAR_TABLE (table);
   int depth = XINT (tbl->depth);
   Lisp_Object elt, this;
-  int i, optimizable;
+  int i;
+  bool optimizable;
 
   elt = XSUB_CHAR_TABLE (table)->contents[0];
   if (SUB_CHAR_TABLE_P (elt))
@@ -762,7 +763,7 @@ map_sub_char_table (void (*c_function) (Lisp_Object, Lisp_Object, Lisp_Object),
   int chars_in_block;
   int from = XINT (XCAR (range)), to = XINT (XCDR (range));
   int i, c;
-  int is_uniprop = UNIPROP_TABLE_P (top);
+  bool is_uniprop = UNIPROP_TABLE_P (top);
   uniprop_decoder_t decoder = UNIPROP_GET_DECODER (top);
 
   if (SUB_CHAR_TABLE_P (table))
@@ -811,7 +812,7 @@ map_sub_char_table (void (*c_function) (Lisp_Object, Lisp_Object, Lisp_Object),
 	    this = XCHAR_TABLE (top)->defalt;
 	  if (!EQ (val, this))
 	    {
-	      int different_value = 1;
+	      bool different_value = 1;
 
 	      if (NILP (val))
 		{

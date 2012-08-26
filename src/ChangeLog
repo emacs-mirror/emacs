@@ -1,5 +1,26 @@
 2012-08-26  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* character.c, charset.c, chartab.c: Use bool for booleans.
+	* character.c (lisp_string_width, string_count_byte8)
+	(string_escape_byte8):
+	* charset.c (charset_map_loaded, load_charset_map, read_hex):
+	(load_charset_map_from_file, map_charset_chars)
+	(Fdefine_charset_internal, define_charset_internal)
+	(Fdeclare_equiv_charset, find_charsets_in_text)
+	(Ffind_charset_region, char_charset, Fiso_charset):
+	* chartab.c (sub_char_table_ref, sub_char_table_ref_and_range)
+	(sub_char_table_set, sub_char_table_set_range)
+	(char_table_set_range, optimize_sub_char_table)
+	(map_sub_char_table):
+	Use bool for boolean.
+	* character.c (str_to_unibyte): Omit last boolean argument; it was
+	always 0.  All callers changed.
+	* character.h, charset.h: Adjust to match previous changes.
+	* character.h (char_printable_p): Remove decl of nonexistent function.
+	* charset.h (struct charset): Members code_linear_p, iso_chars_96,
+	ascii_compatible_p, supplementary_p, compact_codes_p, unified_p
+	are all boolean, so make them single-bit bitfields.
+
 	* lisp.h (ASET): Remove attempt to detect side effects.
 	It was meant to be temporary and it often doesn't work,
 	because when IDX has side effects the behavior of IDX==IDX
