@@ -35,7 +35,7 @@ typedef unsigned int uint;
 typedef unsigned long ulong;
 
 
-static Word eventTime; /* current event time */
+static EventClock eventTime; /* current event time */
 
 
 /* event counters */
@@ -404,7 +404,6 @@ static void readLog(EventProc proc)
 
   while (TRUE) { /* loop for each event */
     char *eventFormat;
-    size_t argCount, i;
     Event event;
     EventCode code;
     Res res;
@@ -431,6 +430,7 @@ static void readLog(EventProc proc)
 
     /* Output event. */
     if (verbose) {
+      size_t argCount;
       eventFormat = EventCode2Format(code);
       argCount = strlen(eventFormat);
       if (eventFormat[0] == '0') argCount = 0;
@@ -527,8 +527,11 @@ static void readLog(EventProc proc)
          printf(styleConv, (ulongest_t)event->PoolInit.f2);
      } break;
      default:
-       for (i = 0; i < argCount; ++i)
-         printArg(proc, EventField(event, i), eventFormat[i], styleConv);
+       {
+         unsigned i;
+         for (i = 0; i < argCount; ++i)
+           printArg(proc, EventField(event, i), eventFormat[i], styleConv);
+       }
      }
 
       if (style == 'L') putchar(')');
@@ -553,7 +556,7 @@ static void readLog(EventProc proc)
       printf("(t");
     } break;
     case 'C': {
-      printf("%lu", eventTime+1);
+      printf("%llu", eventTime+1);
     } break;
     }
     reportEventResults(totalEventCount);
@@ -565,7 +568,7 @@ static void readLog(EventProc proc)
         if (eventEnabled[c])
           printf(" %04X %s\n", (unsigned)c, EventCode2Name(c));
       if (bucketSize == 0)
-        printf("\nevent clock stopped at %"PRIuLONGEST"\n", (ulongest_t)eventTime);
+        printf("\nevent clock stopped at %llu\n", eventTime);
     }
   }
 }

@@ -16,6 +16,7 @@
 
 /* Types for event fields */
 
+typedef unsigned long long EventClock;
 typedef unsigned short EventCode;
 typedef unsigned EventKind;
 typedef unsigned short EventSize;
@@ -85,27 +86,27 @@ typedef double EventFD;
 
 /*
 for i in range(0, 15):
-  print "#define EVENT%d_STRUCT(%s) struct { EventCode code; EventSize size; Word clock; %s }" % (
+  print "#define EVENT%d_STRUCT(%s) struct { EventCode code; EventSize size; EventClock clock; %s }" % (
     i,
     ", ".join(["p%s" % j for j in range(0, i)]),
     " ".join("EventF##p%d f%d;" % (j, j) for j in range(0,i))
   )
  */
-#define EVENT0_STRUCT() struct { EventCode code; EventSize size; Word clock;  }
-#define EVENT1_STRUCT(p0) struct { EventCode code; EventSize size; Word clock; EventF##p0 f0; }
-#define EVENT2_STRUCT(p0, p1) struct { EventCode code; EventSize size; Word clock; EventF##p0 f0; EventF##p1 f1; }
-#define EVENT3_STRUCT(p0, p1, p2) struct { EventCode code; EventSize size; Word clock; EventF##p0 f0; EventF##p1 f1; EventF##p2 f2; }
-#define EVENT4_STRUCT(p0, p1, p2, p3) struct { EventCode code; EventSize size; Word clock; EventF##p0 f0; EventF##p1 f1; EventF##p2 f2; EventF##p3 f3; }
-#define EVENT5_STRUCT(p0, p1, p2, p3, p4) struct { EventCode code; EventSize size; Word clock; EventF##p0 f0; EventF##p1 f1; EventF##p2 f2; EventF##p3 f3; EventF##p4 f4; }
-#define EVENT6_STRUCT(p0, p1, p2, p3, p4, p5) struct { EventCode code; EventSize size; Word clock; EventF##p0 f0; EventF##p1 f1; EventF##p2 f2; EventF##p3 f3; EventF##p4 f4; EventF##p5 f5; }
-#define EVENT7_STRUCT(p0, p1, p2, p3, p4, p5, p6) struct { EventCode code; EventSize size; Word clock; EventF##p0 f0; EventF##p1 f1; EventF##p2 f2; EventF##p3 f3; EventF##p4 f4; EventF##p5 f5; EventF##p6 f6; }
-#define EVENT8_STRUCT(p0, p1, p2, p3, p4, p5, p6, p7) struct { EventCode code; EventSize size; Word clock; EventF##p0 f0; EventF##p1 f1; EventF##p2 f2; EventF##p3 f3; EventF##p4 f4; EventF##p5 f5; EventF##p6 f6; EventF##p7 f7; }
-#define EVENT9_STRUCT(p0, p1, p2, p3, p4, p5, p6, p7, p8) struct { EventCode code; EventSize size; Word clock; EventF##p0 f0; EventF##p1 f1; EventF##p2 f2; EventF##p3 f3; EventF##p4 f4; EventF##p5 f5; EventF##p6 f6; EventF##p7 f7; EventF##p8 f8; }
-#define EVENT10_STRUCT(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9) struct { EventCode code; EventSize size; Word clock; EventF##p0 f0; EventF##p1 f1; EventF##p2 f2; EventF##p3 f3; EventF##p4 f4; EventF##p5 f5; EventF##p6 f6; EventF##p7 f7; EventF##p8 f8; EventF##p9 f9; }
-#define EVENT11_STRUCT(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10) struct { EventCode code; EventSize size; Word clock; EventF##p0 f0; EventF##p1 f1; EventF##p2 f2; EventF##p3 f3; EventF##p4 f4; EventF##p5 f5; EventF##p6 f6; EventF##p7 f7; EventF##p8 f8; EventF##p9 f9; EventF##p10 f10; }
-#define EVENT12_STRUCT(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11) struct { EventCode code; EventSize size; Word clock; EventF##p0 f0; EventF##p1 f1; EventF##p2 f2; EventF##p3 f3; EventF##p4 f4; EventF##p5 f5; EventF##p6 f6; EventF##p7 f7; EventF##p8 f8; EventF##p9 f9; EventF##p10 f10; EventF##p11 f11; }
-#define EVENT13_STRUCT(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12) struct { EventCode code; EventSize size; Word clock; EventF##p0 f0; EventF##p1 f1; EventF##p2 f2; EventF##p3 f3; EventF##p4 f4; EventF##p5 f5; EventF##p6 f6; EventF##p7 f7; EventF##p8 f8; EventF##p9 f9; EventF##p10 f10; EventF##p11 f11; EventF##p12 f12; }
-#define EVENT14_STRUCT(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13) struct { EventCode code; EventSize size; Word clock; EventF##p0 f0; EventF##p1 f1; EventF##p2 f2; EventF##p3 f3; EventF##p4 f4; EventF##p5 f5; EventF##p6 f6; EventF##p7 f7; EventF##p8 f8; EventF##p9 f9; EventF##p10 f10; EventF##p11 f11; EventF##p12 f12; EventF##p13 f13; }
+#define EVENT0_STRUCT() struct { EventCode code; EventSize size; EventClock clock;  }
+#define EVENT1_STRUCT(p0) struct { EventCode code; EventSize size; EventClock clock; EventF##p0 f0; }
+#define EVENT2_STRUCT(p0, p1) struct { EventCode code; EventSize size; EventClock clock; EventF##p0 f0; EventF##p1 f1; }
+#define EVENT3_STRUCT(p0, p1, p2) struct { EventCode code; EventSize size; EventClock clock; EventF##p0 f0; EventF##p1 f1; EventF##p2 f2; }
+#define EVENT4_STRUCT(p0, p1, p2, p3) struct { EventCode code; EventSize size; EventClock clock; EventF##p0 f0; EventF##p1 f1; EventF##p2 f2; EventF##p3 f3; }
+#define EVENT5_STRUCT(p0, p1, p2, p3, p4) struct { EventCode code; EventSize size; EventClock clock; EventF##p0 f0; EventF##p1 f1; EventF##p2 f2; EventF##p3 f3; EventF##p4 f4; }
+#define EVENT6_STRUCT(p0, p1, p2, p3, p4, p5) struct { EventCode code; EventSize size; EventClock clock; EventF##p0 f0; EventF##p1 f1; EventF##p2 f2; EventF##p3 f3; EventF##p4 f4; EventF##p5 f5; }
+#define EVENT7_STRUCT(p0, p1, p2, p3, p4, p5, p6) struct { EventCode code; EventSize size; EventClock clock; EventF##p0 f0; EventF##p1 f1; EventF##p2 f2; EventF##p3 f3; EventF##p4 f4; EventF##p5 f5; EventF##p6 f6; }
+#define EVENT8_STRUCT(p0, p1, p2, p3, p4, p5, p6, p7) struct { EventCode code; EventSize size; EventClock clock; EventF##p0 f0; EventF##p1 f1; EventF##p2 f2; EventF##p3 f3; EventF##p4 f4; EventF##p5 f5; EventF##p6 f6; EventF##p7 f7; }
+#define EVENT9_STRUCT(p0, p1, p2, p3, p4, p5, p6, p7, p8) struct { EventCode code; EventSize size; EventClock clock; EventF##p0 f0; EventF##p1 f1; EventF##p2 f2; EventF##p3 f3; EventF##p4 f4; EventF##p5 f5; EventF##p6 f6; EventF##p7 f7; EventF##p8 f8; }
+#define EVENT10_STRUCT(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9) struct { EventCode code; EventSize size; EventClock clock; EventF##p0 f0; EventF##p1 f1; EventF##p2 f2; EventF##p3 f3; EventF##p4 f4; EventF##p5 f5; EventF##p6 f6; EventF##p7 f7; EventF##p8 f8; EventF##p9 f9; }
+#define EVENT11_STRUCT(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10) struct { EventCode code; EventSize size; EventClock clock; EventF##p0 f0; EventF##p1 f1; EventF##p2 f2; EventF##p3 f3; EventF##p4 f4; EventF##p5 f5; EventF##p6 f6; EventF##p7 f7; EventF##p8 f8; EventF##p9 f9; EventF##p10 f10; }
+#define EVENT12_STRUCT(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11) struct { EventCode code; EventSize size; EventClock clock; EventF##p0 f0; EventF##p1 f1; EventF##p2 f2; EventF##p3 f3; EventF##p4 f4; EventF##p5 f5; EventF##p6 f6; EventF##p7 f7; EventF##p8 f8; EventF##p9 f9; EventF##p10 f10; EventF##p11 f11; }
+#define EVENT13_STRUCT(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12) struct { EventCode code; EventSize size; EventClock clock; EventF##p0 f0; EventF##p1 f1; EventF##p2 f2; EventF##p3 f3; EventF##p4 f4; EventF##p5 f5; EventF##p6 f6; EventF##p7 f7; EventF##p8 f8; EventF##p9 f9; EventF##p10 f10; EventF##p11 f11; EventF##p12 f12; }
+#define EVENT14_STRUCT(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13) struct { EventCode code; EventSize size; EventClock clock; EventF##p0 f0; EventF##p1 f1; EventF##p2 f2; EventF##p3 f3; EventF##p4 f4; EventF##p5 f5; EventF##p6 f6; EventF##p7 f7; EventF##p8 f8; EventF##p9 f9; EventF##p10 f10; EventF##p11 f11; EventF##p12 f12; EventF##p13 f13; }
 
 /* Common prefix for all event structures.  The size field allows an event
    reader to skip over events whose codes it does not recognise. */
@@ -131,264 +132,6 @@ typedef union EventUnion {
   EventAnyStruct any;
   EVENT_LIST(EVENT_UNION_MEMBER, X)
 } EventUnion, *Event;
-
-
-#if 0
-/* FIXME: Eliminate this in favour of some sort of table? */
-
-#define EVENT0_FIELD_PTR(name, event, i) NULL
-
-/*
-  for i in range(1,20): print "#define EVENT%d_FIELD_PTR(name, event, i) ( \\\n  %s\\\n  : NULL)\n" % (i, " \\\n  : ".join(["((i) == %d) ? (void *)&((event)->name.f%d)" % (j, j) for j in range(0, i)]))
- */
-
-#define EVENT1_FIELD_PTR(name, event, i) ( \
-  ((i) == 0) ? (void *)&((event)->name.f0)\
-  : NULL)
-
-#define EVENT2_FIELD_PTR(name, event, i) ( \
-  ((i) == 0) ? (void *)&((event)->name.f0) \
-  : ((i) == 1) ? (void *)&((event)->name.f1)\
-  : NULL)
-
-#define EVENT3_FIELD_PTR(name, event, i) ( \
-  ((i) == 0) ? (void *)&((event)->name.f0) \
-  : ((i) == 1) ? (void *)&((event)->name.f1) \
-  : ((i) == 2) ? (void *)&((event)->name.f2)\
-  : NULL)
-
-#define EVENT4_FIELD_PTR(name, event, i) ( \
-  ((i) == 0) ? (void *)&((event)->name.f0) \
-  : ((i) == 1) ? (void *)&((event)->name.f1) \
-  : ((i) == 2) ? (void *)&((event)->name.f2) \
-  : ((i) == 3) ? (void *)&((event)->name.f3)\
-  : NULL)
-
-#define EVENT5_FIELD_PTR(name, event, i) ( \
-  ((i) == 0) ? (void *)&((event)->name.f0) \
-  : ((i) == 1) ? (void *)&((event)->name.f1) \
-  : ((i) == 2) ? (void *)&((event)->name.f2) \
-  : ((i) == 3) ? (void *)&((event)->name.f3) \
-  : ((i) == 4) ? (void *)&((event)->name.f4)\
-  : NULL)
-
-#define EVENT6_FIELD_PTR(name, event, i) ( \
-  ((i) == 0) ? (void *)&((event)->name.f0) \
-  : ((i) == 1) ? (void *)&((event)->name.f1) \
-  : ((i) == 2) ? (void *)&((event)->name.f2) \
-  : ((i) == 3) ? (void *)&((event)->name.f3) \
-  : ((i) == 4) ? (void *)&((event)->name.f4) \
-  : ((i) == 5) ? (void *)&((event)->name.f5)\
-  : NULL)
-
-#define EVENT7_FIELD_PTR(name, event, i) ( \
-  ((i) == 0) ? (void *)&((event)->name.f0) \
-  : ((i) == 1) ? (void *)&((event)->name.f1) \
-  : ((i) == 2) ? (void *)&((event)->name.f2) \
-  : ((i) == 3) ? (void *)&((event)->name.f3) \
-  : ((i) == 4) ? (void *)&((event)->name.f4) \
-  : ((i) == 5) ? (void *)&((event)->name.f5) \
-  : ((i) == 6) ? (void *)&((event)->name.f6)\
-  : NULL)
-
-#define EVENT8_FIELD_PTR(name, event, i) ( \
-  ((i) == 0) ? (void *)&((event)->name.f0) \
-  : ((i) == 1) ? (void *)&((event)->name.f1) \
-  : ((i) == 2) ? (void *)&((event)->name.f2) \
-  : ((i) == 3) ? (void *)&((event)->name.f3) \
-  : ((i) == 4) ? (void *)&((event)->name.f4) \
-  : ((i) == 5) ? (void *)&((event)->name.f5) \
-  : ((i) == 6) ? (void *)&((event)->name.f6) \
-  : ((i) == 7) ? (void *)&((event)->name.f7)\
-  : NULL)
-
-#define EVENT9_FIELD_PTR(name, event, i) ( \
-  ((i) == 0) ? (void *)&((event)->name.f0) \
-  : ((i) == 1) ? (void *)&((event)->name.f1) \
-  : ((i) == 2) ? (void *)&((event)->name.f2) \
-  : ((i) == 3) ? (void *)&((event)->name.f3) \
-  : ((i) == 4) ? (void *)&((event)->name.f4) \
-  : ((i) == 5) ? (void *)&((event)->name.f5) \
-  : ((i) == 6) ? (void *)&((event)->name.f6) \
-  : ((i) == 7) ? (void *)&((event)->name.f7) \
-  : ((i) == 8) ? (void *)&((event)->name.f8)\
-  : NULL)
-
-#define EVENT10_FIELD_PTR(name, event, i) ( \
-  ((i) == 0) ? (void *)&((event)->name.f0) \
-  : ((i) == 1) ? (void *)&((event)->name.f1) \
-  : ((i) == 2) ? (void *)&((event)->name.f2) \
-  : ((i) == 3) ? (void *)&((event)->name.f3) \
-  : ((i) == 4) ? (void *)&((event)->name.f4) \
-  : ((i) == 5) ? (void *)&((event)->name.f5) \
-  : ((i) == 6) ? (void *)&((event)->name.f6) \
-  : ((i) == 7) ? (void *)&((event)->name.f7) \
-  : ((i) == 8) ? (void *)&((event)->name.f8) \
-  : ((i) == 9) ? (void *)&((event)->name.f9)\
-  : NULL)
-
-#define EVENT11_FIELD_PTR(name, event, i) ( \
-  ((i) == 0) ? (void *)&((event)->name.f0) \
-  : ((i) == 1) ? (void *)&((event)->name.f1) \
-  : ((i) == 2) ? (void *)&((event)->name.f2) \
-  : ((i) == 3) ? (void *)&((event)->name.f3) \
-  : ((i) == 4) ? (void *)&((event)->name.f4) \
-  : ((i) == 5) ? (void *)&((event)->name.f5) \
-  : ((i) == 6) ? (void *)&((event)->name.f6) \
-  : ((i) == 7) ? (void *)&((event)->name.f7) \
-  : ((i) == 8) ? (void *)&((event)->name.f8) \
-  : ((i) == 9) ? (void *)&((event)->name.f9) \
-  : ((i) == 10) ? (void *)&((event)->name.f10)\
-  : NULL)
-
-#define EVENT12_FIELD_PTR(name, event, i) ( \
-  ((i) == 0) ? (void *)&((event)->name.f0) \
-  : ((i) == 1) ? (void *)&((event)->name.f1) \
-  : ((i) == 2) ? (void *)&((event)->name.f2) \
-  : ((i) == 3) ? (void *)&((event)->name.f3) \
-  : ((i) == 4) ? (void *)&((event)->name.f4) \
-  : ((i) == 5) ? (void *)&((event)->name.f5) \
-  : ((i) == 6) ? (void *)&((event)->name.f6) \
-  : ((i) == 7) ? (void *)&((event)->name.f7) \
-  : ((i) == 8) ? (void *)&((event)->name.f8) \
-  : ((i) == 9) ? (void *)&((event)->name.f9) \
-  : ((i) == 10) ? (void *)&((event)->name.f10) \
-  : ((i) == 11) ? (void *)&((event)->name.f11)\
-  : NULL)
-
-#define EVENT13_FIELD_PTR(name, event, i) ( \
-  ((i) == 0) ? (void *)&((event)->name.f0) \
-  : ((i) == 1) ? (void *)&((event)->name.f1) \
-  : ((i) == 2) ? (void *)&((event)->name.f2) \
-  : ((i) == 3) ? (void *)&((event)->name.f3) \
-  : ((i) == 4) ? (void *)&((event)->name.f4) \
-  : ((i) == 5) ? (void *)&((event)->name.f5) \
-  : ((i) == 6) ? (void *)&((event)->name.f6) \
-  : ((i) == 7) ? (void *)&((event)->name.f7) \
-  : ((i) == 8) ? (void *)&((event)->name.f8) \
-  : ((i) == 9) ? (void *)&((event)->name.f9) \
-  : ((i) == 10) ? (void *)&((event)->name.f10) \
-  : ((i) == 11) ? (void *)&((event)->name.f11) \
-  : ((i) == 12) ? (void *)&((event)->name.f12)\
-  : NULL)
-
-#define EVENT14_FIELD_PTR(name, event, i) ( \
-  ((i) == 0) ? (void *)&((event)->name.f0) \
-  : ((i) == 1) ? (void *)&((event)->name.f1) \
-  : ((i) == 2) ? (void *)&((event)->name.f2) \
-  : ((i) == 3) ? (void *)&((event)->name.f3) \
-  : ((i) == 4) ? (void *)&((event)->name.f4) \
-  : ((i) == 5) ? (void *)&((event)->name.f5) \
-  : ((i) == 6) ? (void *)&((event)->name.f6) \
-  : ((i) == 7) ? (void *)&((event)->name.f7) \
-  : ((i) == 8) ? (void *)&((event)->name.f8) \
-  : ((i) == 9) ? (void *)&((event)->name.f9) \
-  : ((i) == 10) ? (void *)&((event)->name.f10) \
-  : ((i) == 11) ? (void *)&((event)->name.f11) \
-  : ((i) == 12) ? (void *)&((event)->name.f12) \
-  : ((i) == 13) ? (void *)&((event)->name.f13)\
-  : NULL)
-
-#define EVENT15_FIELD_PTR(name, event, i) ( \
-  ((i) == 0) ? (void *)&((event)->name.f0) \
-  : ((i) == 1) ? (void *)&((event)->name.f1) \
-  : ((i) == 2) ? (void *)&((event)->name.f2) \
-  : ((i) == 3) ? (void *)&((event)->name.f3) \
-  : ((i) == 4) ? (void *)&((event)->name.f4) \
-  : ((i) == 5) ? (void *)&((event)->name.f5) \
-  : ((i) == 6) ? (void *)&((event)->name.f6) \
-  : ((i) == 7) ? (void *)&((event)->name.f7) \
-  : ((i) == 8) ? (void *)&((event)->name.f8) \
-  : ((i) == 9) ? (void *)&((event)->name.f9) \
-  : ((i) == 10) ? (void *)&((event)->name.f10) \
-  : ((i) == 11) ? (void *)&((event)->name.f11) \
-  : ((i) == 12) ? (void *)&((event)->name.f12) \
-  : ((i) == 13) ? (void *)&((event)->name.f13) \
-  : ((i) == 14) ? (void *)&((event)->name.f14)\
-  : NULL)
-
-#define EVENT16_FIELD_PTR(name, event, i) ( \
-  ((i) == 0) ? (void *)&((event)->name.f0) \
-  : ((i) == 1) ? (void *)&((event)->name.f1) \
-  : ((i) == 2) ? (void *)&((event)->name.f2) \
-  : ((i) == 3) ? (void *)&((event)->name.f3) \
-  : ((i) == 4) ? (void *)&((event)->name.f4) \
-  : ((i) == 5) ? (void *)&((event)->name.f5) \
-  : ((i) == 6) ? (void *)&((event)->name.f6) \
-  : ((i) == 7) ? (void *)&((event)->name.f7) \
-  : ((i) == 8) ? (void *)&((event)->name.f8) \
-  : ((i) == 9) ? (void *)&((event)->name.f9) \
-  : ((i) == 10) ? (void *)&((event)->name.f10) \
-  : ((i) == 11) ? (void *)&((event)->name.f11) \
-  : ((i) == 12) ? (void *)&((event)->name.f12) \
-  : ((i) == 13) ? (void *)&((event)->name.f13) \
-  : ((i) == 14) ? (void *)&((event)->name.f14) \
-  : ((i) == 15) ? (void *)&((event)->name.f15)\
-  : NULL)
-
-#define EVENT17_FIELD_PTR(name, event, i) ( \
-  ((i) == 0) ? (void *)&((event)->name.f0) \
-  : ((i) == 1) ? (void *)&((event)->name.f1) \
-  : ((i) == 2) ? (void *)&((event)->name.f2) \
-  : ((i) == 3) ? (void *)&((event)->name.f3) \
-  : ((i) == 4) ? (void *)&((event)->name.f4) \
-  : ((i) == 5) ? (void *)&((event)->name.f5) \
-  : ((i) == 6) ? (void *)&((event)->name.f6) \
-  : ((i) == 7) ? (void *)&((event)->name.f7) \
-  : ((i) == 8) ? (void *)&((event)->name.f8) \
-  : ((i) == 9) ? (void *)&((event)->name.f9) \
-  : ((i) == 10) ? (void *)&((event)->name.f10) \
-  : ((i) == 11) ? (void *)&((event)->name.f11) \
-  : ((i) == 12) ? (void *)&((event)->name.f12) \
-  : ((i) == 13) ? (void *)&((event)->name.f13) \
-  : ((i) == 14) ? (void *)&((event)->name.f14) \
-  : ((i) == 15) ? (void *)&((event)->name.f15) \
-  : ((i) == 16) ? (void *)&((event)->name.f16)\
-  : NULL)
-
-#define EVENT18_FIELD_PTR(name, event, i) ( \
-  ((i) == 0) ? (void *)&((event)->name.f0) \
-  : ((i) == 1) ? (void *)&((event)->name.f1) \
-  : ((i) == 2) ? (void *)&((event)->name.f2) \
-  : ((i) == 3) ? (void *)&((event)->name.f3) \
-  : ((i) == 4) ? (void *)&((event)->name.f4) \
-  : ((i) == 5) ? (void *)&((event)->name.f5) \
-  : ((i) == 6) ? (void *)&((event)->name.f6) \
-  : ((i) == 7) ? (void *)&((event)->name.f7) \
-  : ((i) == 8) ? (void *)&((event)->name.f8) \
-  : ((i) == 9) ? (void *)&((event)->name.f9) \
-  : ((i) == 10) ? (void *)&((event)->name.f10) \
-  : ((i) == 11) ? (void *)&((event)->name.f11) \
-  : ((i) == 12) ? (void *)&((event)->name.f12) \
-  : ((i) == 13) ? (void *)&((event)->name.f13) \
-  : ((i) == 14) ? (void *)&((event)->name.f14) \
-  : ((i) == 15) ? (void *)&((event)->name.f15) \
-  : ((i) == 16) ? (void *)&((event)->name.f16) \
-  : ((i) == 17) ? (void *)&((event)->name.f17)\
-  : NULL)
-
-#define EVENT19_FIELD_PTR(name, event, i) ( \
-  ((i) == 0) ? (void *)&((event)->name.f0) \
-  : ((i) == 1) ? (void *)&((event)->name.f1) \
-  : ((i) == 2) ? (void *)&((event)->name.f2) \
-  : ((i) == 3) ? (void *)&((event)->name.f3) \
-  : ((i) == 4) ? (void *)&((event)->name.f4) \
-  : ((i) == 5) ? (void *)&((event)->name.f5) \
-  : ((i) == 6) ? (void *)&((event)->name.f6) \
-  : ((i) == 7) ? (void *)&((event)->name.f7) \
-  : ((i) == 8) ? (void *)&((event)->name.f8) \
-  : ((i) == 9) ? (void *)&((event)->name.f9) \
-  : ((i) == 10) ? (void *)&((event)->name.f10) \
-  : ((i) == 11) ? (void *)&((event)->name.f11) \
-  : ((i) == 12) ? (void *)&((event)->name.f12) \
-  : ((i) == 13) ? (void *)&((event)->name.f13) \
-  : ((i) == 14) ? (void *)&((event)->name.f14) \
-  : ((i) == 15) ? (void *)&((event)->name.f15) \
-  : ((i) == 16) ? (void *)&((event)->name.f16) \
-  : ((i) == 17) ? (void *)&((event)->name.f17) \
-  : ((i) == 18) ? (void *)&((event)->name.f18)\
-  : NULL)
-#endif
 
 
 #endif /* eventcom_h */
