@@ -7027,6 +7027,55 @@ esac
   # Code from module warnings:
 
 
+# It's helpful to have C macros available to GDB, so prefer -g3 to -g
+# if -g3 works and the user does not specify CFLAGS.
+# This test must follow gl_EARLY; otherwise AC_LINK_IFELSE complains.
+if test "$ac_test_CFLAGS" != set; then
+  case $CFLAGS in
+    '-g')
+      emacs_g3_CFLAGS='-g3';;
+    '-g -O2')
+      emacs_g3_CFLAGS='-g3 -O2';;
+    *)
+      emacs_g3_CFLAGS='';;
+  esac
+  if test -n "$emacs_g3_CFLAGS"; then
+    emacs_save_CFLAGS=$CFLAGS
+    CFLAGS=$emacs_g3_CFLAGS
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether $CC accepts $emacs_g3_CFLAGS" >&5
+$as_echo_n "checking whether $CC accepts $emacs_g3_CFLAGS... " >&6; }
+if test "${emacs_cv_prog_cc_g3+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+int
+main ()
+{
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  emacs_cv_prog_cc_g3=yes
+else
+  emacs_cv_prog_cc_g3=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $emacs_cv_prog_cc_g3" >&5
+$as_echo "$emacs_cv_prog_cc_g3" >&6; }
+    if test $emacs_cv_prog_cc_g3 = yes; then
+      CFLAGS=$emacs_g3_CFLAGS
+    else
+      CFLAGS=$emacs_save_CFLAGS
+    fi
+  fi
+fi
+
 # Check whether --enable-gcc-warnings was given.
 if test "${enable_gcc_warnings+set}" = set; then :
   enableval=$enable_gcc_warnings; case $enableval in
