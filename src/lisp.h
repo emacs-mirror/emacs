@@ -606,10 +606,8 @@ clip_to_bounds (ptrdiff_t lower, EMACS_INT num, ptrdiff_t upper)
 
 #define AREF(ARRAY, IDX)	XVECTOR ((ARRAY))->contents[IDX]
 #define ASIZE(ARRAY)		XVECTOR ((ARRAY))->header.size
-/* The IDX==IDX tries to detect when the macro argument is side-effecting.  */
 #define ASET(ARRAY, IDX, VAL)	\
-  (eassert ((IDX) == (IDX)),				\
-   eassert ((IDX) >= 0 && (IDX) < ASIZE (ARRAY)),	\
+  (eassert (0 <= (IDX) && (IDX) < ASIZE (ARRAY)),	\
    XVECTOR (ARRAY)->contents[IDX] = (VAL))
 
 /* Convenience macros for dealing with Lisp strings.  */
