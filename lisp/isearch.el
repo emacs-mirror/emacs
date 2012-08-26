@@ -111,17 +111,32 @@ string, and RET terminates editing and does a nonincremental search."
 
 (defcustom search-whitespace-regexp (purecopy "\\s-+")
   "If non-nil, regular expression to match a sequence of whitespace chars.
-This applies to regular expression incremental search.
-When you put a space or spaces in the incremental regexp, it stands for
-this, unless it is inside of a regexp construct such as [...] or *, + or ?.
+When you enter a space or spaces in the incremental search, it
+will match any sequence matched by this regexp.  As an exception,
+spaces are treated normally in regexp incremental search if they
+occur in a regexp construct like [...] or *, + or ?.
+
+If the value is a string, it applies to both ordinary and regexp
+incremental search.  If the value is nil, each space you type
+matches literally, against one space.
+
+The value can also be a cons cell (REGEXP-1 . REGEXP-2).  In that
+case, REGEXP-1 is used as the value for ordinary incremental
+search, and REGEXP-2 is used for regexp incremental search.
+
 You might want to use something like \"[ \\t\\r\\n]+\" instead.
 In the Customization buffer, that is `[' followed by a space,
-a tab, a carriage return (control-M), a newline, and `]+'.
-
-When this is nil, each space you type matches literally, against one space."
-  :type '(choice (const :tag "Find Spaces Literally" nil)
+a tab, a carriage return (control-M), a newline, and `]+'."
+  :type '(choice (const :tag "Treat Spaces Literally" nil)
+		 (cons (choice :tag "For Ordinary Isearch"
+			       regexp
+			       (const :tag "Treat Spaces Literally" nil))
+		       (choice :tag "For Regexp Isearch"
+			       regexp
+			       (const :tag "Treat Spaces Literally" nil)))
 		 regexp)
-  :group 'isearch)
+  :group 'isearch
+  :version "24.3")
 
 (defcustom search-invisible 'open
   "If t incremental search can match hidden text.
@@ -687,6 +702,10 @@ Type \\[isearch-describe-bindings] to display all Isearch key bindings.
 Type \\[isearch-describe-key] to display documentation of Isearch key.
 Type \\[isearch-describe-mode] to display documentation of Isearch mode.
 
+In incremental searches, a space or spaces normally matches any
+whitespace; see the variable `search-whitespace-regexp'.  To
+search for a literal space and nothing else, enter C-q SPC.
+
 If an input method is turned on in the current buffer, that input
 method is also active while you are typing characters to search.
 To toggle the input method, type \\[isearch-toggle-input-method].  \
@@ -710,22 +729,19 @@ the calling function until the search is done."
   (isearch-mode t (not (null regexp-p)) nil (not no-recursive-edit)))
 
 (defun isearch-forward-regexp (&optional not-regexp no-recursive-edit)
-  "\
-Do incremental search forward for regular expression.
+  "Do incremental search forward for regular expression.
 With a prefix argument, do a regular string search instead.
 Like ordinary incremental search except that your input is treated
 as a regexp.  See the command `isearch-forward' for more information.
 
-In regexp incremental searches, a space or spaces normally matches
-any whitespace (the variable `search-whitespace-regexp' controls
-precisely what that means).  If you want to search for a literal space
-and nothing else, enter C-q SPC."
+In incremental searches, a space or spaces normally matches any
+whitespace; see the variable `search-whitespace-regexp'.  To
+search for a literal space and nothing else, enter C-q SPC."
   (interactive "P\np")
   (isearch-mode t (null not-regexp) nil (not no-recursive-edit)))
 
 (defun isearch-forward-word (&optional not-word no-recursive-edit)
-  "\
-Do incremental search forward for a sequence of words.
+  "Do incremental search forward for a sequence of words.
 With a prefix argument, do a regular string search instead.
 Like ordinary incremental search except that your input is treated
 as a sequence of words without regard to how the words are separated.
@@ -734,8 +750,7 @@ See the command `isearch-forward' for more information."
   (isearch-mode t nil nil (not no-recursive-edit) (null not-word)))
 
 (defun isearch-forward-symbol (&optional not-symbol no-recursive-edit)
-  "\
-Do incremental search forward for a symbol.
+  "Do incremental search forward for a symbol.
 The prefix argument is currently unused.
 Like ordinary incremental search except that your input is treated
 as a symbol surrounded by symbol boundary constructs \\_< and \\_>.
@@ -744,16 +759,14 @@ See the command `isearch-forward' for more information."
   (isearch-mode t nil nil (not no-recursive-edit) 'isearch-symbol-regexp))
 
 (defun isearch-backward (&optional regexp-p no-recursive-edit)
-  "\
-Do incremental search backward.
+  "Do incremental search backward.
 With a prefix argument, do a regular expression search instead.
 See the command `isearch-forward' for more information."
   (interactive "P\np")
   (isearch-mode nil (not (null regexp-p)) nil (not no-recursive-edit)))
 
 (defun isearch-backward-regexp (&optional not-regexp no-recursive-edit)
-  "\
-Do incremental search backward for regular expression.
+  "Do incremental search backward for regular expression.
 With a prefix argument, do a regular string search instead.
 Like ordinary incremental search except that your input is treated
 as a regexp.  See the command `isearch-forward' for more information."
@@ -895,8 +908,7 @@ The last thing it does is to run `isearch-update-post-hook'."
             (if (< isearch-other-end (point)) ; isearch-forward?
                 (isearch-highlight isearch-other-end (point))
               (isearch-highlight (point) isearch-other-end))
-          (isearch-dehighlight))
-        ))
+          (isearch-dehighlight))))
   (setq ;; quit-flag nil  not for isearch-mode
    isearch-adjusted nil
    isearch-yank-flag nil)
@@ -1547,6 +1559,15 @@ See `isearch-query-replace' for more information."
    (list current-prefix-arg))
   (isearch-query-replace delimited t))
 
+(defun isearch-whitespace-regexp ()
+  "Return the value of `search-whitespace-regexp' for the current search."
+  (cond ((not (consp search-whitespace-regexp))
+	 search-whitespace-regexp)
+	(isearch-regexp
+	 (cdr search-whitespace-regexp))
+	(t
+	 (car search-whitespace-regexp))))
+
 (defun isearch-occur (regexp &optional nlines)
   "Run `occur' using the last search string as the regexp.
 Interactively, REGEXP is constructed using the search string from the
@@ -1586,7 +1607,7 @@ characters in that string."
 	;; Set `search-upper-case' to nil to not call
 	;; `isearch-no-upper-case-p' in `occur-1'.
 	(search-upper-case nil)
-	(search-spaces-regexp (if isearch-regexp search-whitespace-regexp)))
+	(search-spaces-regexp (isearch-whitespace-regexp)))
     (occur regexp nlines)))
 
 (declare-function hi-lock-read-face-name "hi-lock" ())
@@ -2426,7 +2447,13 @@ Can be changed via `isearch-search-fun-function' for special needs."
    (isearch-regexp
     (if isearch-forward 're-search-forward 're-search-backward))
    (t
-    (if isearch-forward 'search-forward 'search-backward))))
+    (if isearch-forward 'isearch-search-forward 'isearch-search-backward))))
+
+(defun isearch-search-forward (string &optional bound noerror count)
+  (re-search-forward (regexp-quote string) bound noerror count))
+
+(defun isearch-search-backward (string &optional bound noerror count)
+  (re-search-backward (regexp-quote string) bound noerror count))
 
 (defun isearch-search-string (string bound noerror)
   "Search for the first occurrence of STRING or its translation.
@@ -2487,7 +2514,7 @@ update the match data, and return point."
 		  search-invisible))
 	    (inhibit-quit nil)
 	    (case-fold-search isearch-case-fold-search)
-	    (search-spaces-regexp search-whitespace-regexp)
+	    (search-spaces-regexp (isearch-whitespace-regexp))
 	    (retry t))
 	(setq isearch-error nil)
 	(while retry
@@ -2847,7 +2874,7 @@ by other Emacs features."
 	  isearch-lazy-highlight-last-string  isearch-string
 	  isearch-lazy-highlight-case-fold-search isearch-case-fold-search
 	  isearch-lazy-highlight-regexp       isearch-regexp
-	  isearch-lazy-highlight-space-regexp search-whitespace-regexp
+	  isearch-lazy-highlight-space-regexp (isearch-whitespace-regexp)
 	  isearch-lazy-highlight-word         isearch-word
 	  isearch-lazy-highlight-forward      isearch-forward)
       (unless (equal isearch-string "")

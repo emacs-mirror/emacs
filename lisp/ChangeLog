@@ -1,5 +1,16 @@
 2012-08-26  Chong Yidong  <cyd@gnu.org>
 
+	* isearch.el (search-whitespace-regexp): Make string and nil
+	values apply to both ordinary and regexp search.  Allow a cons
+	cell value to distinguish between the two.
+	(isearch-whitespace-regexp, isearch-search-forward)
+	(isearch-search-backward): New functions.
+	(isearch-occur, isearch-search-fun-default, isearch-search)
+	(isearch-lazy-highlight-new-loop): Use them.
+	(isearch-forward, isearch-forward-regexp): Doc fix.
+
+2012-08-26  Chong Yidong  <cyd@gnu.org>
+
 	* faces.el (help-argument-name): Always inherit from italic
 	(Bug#12213).
 
