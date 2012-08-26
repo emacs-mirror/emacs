@@ -527,16 +527,8 @@ static void readLog(EventProc proc)
          printf(styleConv, (ulongest_t)event->PoolInit.f2);
      } break;
      default:
-       for (i = 0; i < argCount; ++i) {
-         switch(code) {
-#define EVENT_CASE(X, name, code, always, kind, count, format) \
-  case code: { \
-    printArg(proc, EVENT##count##_FIELD_PTR(name, event, i), \
-             eventFormat[i], styleConv); \
-  } break;
-         EVENT_LIST(EVENT_CASE, X)
-         }
-       }
+       for (i = 0; i < argCount; ++i)
+         printArg(proc, EventField(event, i), eventFormat[i], styleConv);
      }
 
       if (style == 'L') putchar(')');
