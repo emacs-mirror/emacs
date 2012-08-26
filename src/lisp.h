@@ -1906,11 +1906,7 @@ typedef struct {
 			 Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object)
 
 /* Non-zero if OBJ is a Lisp function.  */
-#define FUNCTIONP(OBJ)					\
-     ((CONSP (OBJ) && EQ (XCAR (OBJ), Qlambda))		\
-      || (SYMBOLP (OBJ) && !NILP (Ffboundp (OBJ)))	\
-      || COMPILEDP (OBJ)				\
-      || SUBRP (OBJ))
+#define FUNCTIONP(OBJ) functionp(OBJ)
 
 /* defsubr (Sname);
    is how we define the symbol for function `name' at start-up time.  */
@@ -3654,6 +3650,38 @@ maybe_gc (void)
       || (!NILP (Vmemory_full)
 	  && consing_since_gc > memory_full_cons_threshold))
     Fgarbage_collect ();
+}
+
+LISP_INLINE int
+functionp (Lisp_Object object)
+{
+  if (SYMBOLP (object) && !NILP (Ffboundp (object)))
+    {
+      object = Findirect_function (object, Qt);
+
+      if (CONSP (object) && EQ (XCAR (object), Qautoload))
+	{
+	  /* Autoloaded symbols are functions, except if they load
+	     macros or keymaps.  */
+	  int i;
+	  for (i = 0; i < 4 && CONSP (object); i++)
+	    object = XCDR (object);
+
+	  return ! (CONSP (object) && !NILP (XCAR (object)));
+	}
+    }
+
+  if (SUBRP (object))
+    return XSUBR (object)->max_args != UNEVALLED;
+  else if (COMPILEDP (object))
+    return 1;
+  else if (CONSP (object))
+    {
+      Lisp_Object car = XCAR (object);
+      return EQ (car, Qlambda) || EQ (car, Qclosure);
+    }
+  else
+    return 0;
 }
 
 INLINE_HEADER_END

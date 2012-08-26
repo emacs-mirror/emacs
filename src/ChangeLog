@@ -1,3 +1,9 @@
+2012-08-26  Barry OReilly  <gundaetiapo@gmail.com>  (tiny change)
+
+	* lisp.h (functionp): New function (extracted from Ffunctionp).
+	(FUNCTIONP): Use it.
+	* eval.c (Ffunctionp): Use it.
+
 2012-08-25  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* xgselect.c (xg_select): Use auto storage for the GPollFD buffer
@@ -160,8 +166,8 @@
 	* w32uniscribe.c (uniscribe_shape): Fix producing gstring
 	components for RTL text (Bug#11860).  Adjust X-OFFSET of each
 	non-base glyph for the width of the base character, according to
-	what x_draw_composite_glyph_string_foreground expects.  Generate
-	WADJUST value according to composition_gstring_width's
+	what x_draw_composite_glyph_string_foreground expects.
+	Generate WADJUST value according to composition_gstring_width's
 	expectations, to produce correct width of the composed character.
 	Reverse the sign of the DU offset produced by ScriptPlace.
 
