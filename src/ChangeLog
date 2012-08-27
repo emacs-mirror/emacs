@@ -1,3 +1,10 @@
+2012-08-27  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.c (Fset_window_configuration): Record any window's old
+	buffer if it's replaced (see Bug#8789).  If the new current
+	buffer doesn't appear in the selected window, go to its old
+	point (Bug#12208).
+
 2012-08-27  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Special MEM_TYPE_SPARE to denote reserved memory.
