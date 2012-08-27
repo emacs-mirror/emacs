@@ -1,6 +1,46 @@
+2012-08-27  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* cmds.c, coding.c: Use bool for booleans.
+	* cmds.c (move_point, Fself_insert_command):
+	* coding.h (struct composition status, struct coding_system):
+	* coding.c (detect_coding_utf_8, encode_coding_utf_8)
+	(detect_coding_utf_16, encode_coding_utf_16, detect_coding_emacs_mule)
+	(emacs_mule_char, decode_coding_emacs_mule)
+	(encode_coding_emacs_mule, detect_coding_iso_2022)
+	(decode_coding_iso_2022, encode_invocation_designation)
+	(encode_designation_at_bol, encode_coding_iso_2022)
+	(detect_coding_sjis, detect_coding_big5, decode_coding_sjis)
+	(decode_coding_big5, encode_coding_sjis, encode_coding_big5)
+	(detect_coding_ccl, encode_coding_ccl, decode_coding_raw_text)
+	(encode_coding_raw_text, detect_coding_charset)
+	(decode_coding_charset, encode_coding_charset, detect_eol)
+	(detect_coding, get_translation_table, produce_chars)
+	(consume_chars, reused_workbuf_in_use)
+	(make_conversion_work_buffer, code_conversion_save)
+	(decode_coding_object, encode_coding_object)
+	(detect_coding_system, char_encodable_p)
+	(Funencodable_char_position, code_convert_region)
+	(code_convert_string, code_convert_string_norecord)
+	(Fset_coding_system_priority):
+	* fileio.c (Finsert_file_contents):
+	Use bool for booleans.
+	* coding.h, lisp.h: Reflect above API changes.
+	* coding.c: Remove unnecessary static function decls.
+	(detect_coding): Use unsigned, not signed, to copy an unsigned field.
+	(decode_coding, encode_coding, decode_coding_gap): Return 'void',
+	not a boolean 'int', since callers never look at the return value.
+	(ALLOC_CONVERSION_WORK_AREA): Assume caller returns 'void', not 'int'.
+	* coding.h (decoding_buffer_size, encoding_buffer_size)
+	(emacs_mule_string_char): Remove unused extern decls.
+	(struct iso_2022_spec, struct coding_system):
+	Use 'unsigned int : 1' for boolean fields, since there's more than one.
+	(struct emacs_mule_spec): Remove unused field 'full_support'.
+	All initializations removed.
+	* cmds.c (internal_self_insert): Don't assume EMACS_INT fits in 'int'.
+
 2012-08-27  Dmitry Antipov  <dmantipov@yandex.ru>
 
-	Fix spare memory change.
+	Fix spare memory change (Bug#12286).
 	* alloc.c (mark_maybe_pointer): Handle MEM_TYPE_SPARE.
 	(valid_lisp_object_p): Likewise.
 

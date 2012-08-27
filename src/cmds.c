@@ -47,10 +47,10 @@ DEFUN ("forward-point", Fforward_point, Sforward_point, 1, 1, 0,
   return make_number (PT + XINT (n));
 }
 
-/* Add N to point; or subtract N if FORWARD is zero.  N defaults to 1.
+/* Add N to point; or subtract N if FORWARD is false.  N defaults to 1.
    Validate the new location.  Return nil.  */
 static Lisp_Object
-move_point (Lisp_Object n, int forward)
+move_point (Lisp_Object n, bool forward)
 {
   /* This used to just set point to point + XINT (n), and then check
      to see if it was within boundaries.  But now that SET_PT can
@@ -277,7 +277,7 @@ After insertion, the value of `auto-fill-function' is called if the
 At the end, it runs `post-self-insert-hook'.  */)
   (Lisp_Object n)
 {
-  int remove_boundary = 1;
+  bool remove_boundary = 1;
   CHECK_NATNUM (n);
 
   if (!EQ (Vthis_command, KVAR (current_kboard, Vlast_command)))
@@ -438,7 +438,7 @@ internal_self_insert (int c, EMACS_INT n)
 		  : UNIBYTE_TO_CHAR (XFASTINT (Fprevious_char ())))
 	  == Sword))
     {
-      int modiff = MODIFF;
+      EMACS_INT modiff = MODIFF;
       Lisp_Object sym;
 
       sym = call0 (Qexpand_abbrev);

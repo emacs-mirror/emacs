@@ -2632,7 +2632,7 @@ extern void keys_of_cmds (void);
 /* Defined in coding.c */
 extern Lisp_Object Qcharset;
 extern Lisp_Object detect_coding_system (const unsigned char *, ptrdiff_t,
-                                         ptrdiff_t, int, int, Lisp_Object);
+                                         ptrdiff_t, bool, bool, Lisp_Object);
 extern void init_coding (void);
 extern void init_coding_once (void);
 extern void syms_of_coding (void);

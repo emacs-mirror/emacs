@@ -3760,7 +3760,8 @@ variable `last-coding-system-used' to the coding system actually used.  */)
       ptrdiff_t temp;
       ptrdiff_t this = 0;
       ptrdiff_t this_count = SPECPDL_INDEX ();
-      int multibyte = ! NILP (BVAR (current_buffer, enable_multibyte_characters));
+      bool multibyte
+	= ! NILP (BVAR (current_buffer, enable_multibyte_characters));
       Lisp_Object conversion_buffer;
       struct gcpro gcpro1;
 

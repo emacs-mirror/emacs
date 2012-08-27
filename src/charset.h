@@ -496,7 +496,7 @@ extern int iso_charset_table[ISO_MAX_DIMENSION][ISO_MAX_CHARS][ISO_MAX_FINAL];
 
 
 
-/* 1 if CHARSET may contain the character C.  */
+/* True if CHARSET may contain the character C.  */
 #define CHAR_CHARSET_P(c, charset)					 \
   ((ASCII_CHAR_P (c) && (charset)->ascii_compatible_p)			 \
    || ((CHARSET_UNIFIED_P (charset)					 \
