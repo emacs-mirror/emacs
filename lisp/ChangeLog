@@ -1,5 +1,7 @@
 2012-08-27  Leo Liu  <sdl.web@gmail.com>
 
+	* skeleton.el (skeleton-untabify): Change to nil (bug#12223).
+
 	* progmodes/sh-script.el (sh-indent-comment): Change to t (bug#12267).
 
 2012-08-24  Chong Yidong  <cyd@gnu.org>

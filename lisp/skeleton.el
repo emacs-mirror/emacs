@@ -77,7 +77,7 @@ The variables `v1' and `v2' are still set when calling this.")
   "Function for transforming a skeleton proxy's aliases' variable value.")
 (defvaralias 'skeleton-filter 'skeleton-filter-function)
 
-(defvar skeleton-untabify t
+(defvar skeleton-untabify nil		; bug#12223
   "When non-nil untabifies when deleting backwards with element -ARG.")
 
 (defvar skeleton-newline-indent-rigidly nil
