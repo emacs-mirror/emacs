@@ -1080,10 +1080,10 @@ DEFUN ("set", Fset, Sset, 2, 2, 0,
   return newval;
 }
 
-/* Return 1 if SYMBOL currently has a let-binding
+/* Return true if SYMBOL currently has a let-binding
    which was made in the buffer that is now current.  */
 
-static int
+static bool
 let_shadows_buffer_binding_p (struct Lisp_Symbol *symbol)
 {
   struct specbinding *p;
@@ -1102,7 +1102,7 @@ let_shadows_buffer_binding_p (struct Lisp_Symbol *symbol)
   return 0;
 }
 
-static int
+static bool
 let_shadows_global_binding_p (Lisp_Object symbol)
 {
   struct specbinding *p;
@@ -1118,14 +1118,15 @@ let_shadows_global_binding_p (Lisp_Object symbol)
    If buffer/frame-locality is an issue, WHERE specifies which context to use.
    (nil stands for the current buffer/frame).
 
-   If BINDFLAG is zero, then if this symbol is supposed to become
+   If BINDFLAG is false, then if this symbol is supposed to become
    local in every buffer where it is set, then we make it local.
-   If BINDFLAG is nonzero, we don't do that.  */
+   If BINDFLAG is true, we don't do that.  */
 
 void
-set_internal (register Lisp_Object symbol, register Lisp_Object newval, register Lisp_Object where, int bindflag)
+set_internal (Lisp_Object symbol, Lisp_Object newval, Lisp_Object where,
+	      bool bindflag)
 {
-  int voide = EQ (newval, Qunbound);
+  bool voide = EQ (newval, Qunbound);
   struct Lisp_Symbol *sym;
   Lisp_Object tem1;
 
@@ -1464,7 +1465,8 @@ union Lisp_Val_Fwd
   };
 
 static struct Lisp_Buffer_Local_Value *
-make_blv (struct Lisp_Symbol *sym, int forwarded, union Lisp_Val_Fwd valcontents)
+make_blv (struct Lisp_Symbol *sym, bool forwarded,
+	  union Lisp_Val_Fwd valcontents)
 {
   struct Lisp_Buffer_Local_Value *blv = xmalloc (sizeof *blv);
   Lisp_Object symbol;
@@ -1508,7 +1510,7 @@ The function `default-value' gets the default value and `set-default' sets it.  
   struct Lisp_Symbol *sym;
   struct Lisp_Buffer_Local_Value *blv = NULL;
   union Lisp_Val_Fwd valcontents IF_LINT (= {LISP_INITIALLY_ZERO});
-  int forwarded IF_LINT (= 0);
+  bool forwarded IF_LINT (= 0);
 
   CHECK_SYMBOL (variable);
   sym = XSYMBOL (variable);
@@ -1580,10 +1582,10 @@ See also `make-variable-buffer-local'.
 
 Do not use `make-local-variable' to make a hook variable buffer-local.
 Instead, use `add-hook' and specify t for the LOCAL argument.  */)
-  (register Lisp_Object variable)
+  (Lisp_Object variable)
 {
-  register Lisp_Object tem;
-  int forwarded IF_LINT (= 0);
+  Lisp_Object tem;
+  bool forwarded IF_LINT (= 0);
   union Lisp_Val_Fwd valcontents IF_LINT (= {LISP_INITIALLY_ZERO});
   struct Lisp_Symbol *sym;
   struct Lisp_Buffer_Local_Value *blv = NULL;
@@ -1767,9 +1769,9 @@ is to set the VARIABLE frame parameter of that frame.  See
 Note that since Emacs 23.1, variables cannot be both buffer-local and
 frame-local any more (buffer-local bindings used to take precedence over
 frame-local bindings).  */)
-  (register Lisp_Object variable)
+  (Lisp_Object variable)
 {
-  int forwarded;
+  bool forwarded;
   union Lisp_Val_Fwd valcontents;
   struct Lisp_Symbol *sym;
   struct Lisp_Buffer_Local_Value *blv = NULL;
@@ -2225,7 +2227,7 @@ static Lisp_Object
 arithcompare (Lisp_Object num1, Lisp_Object num2, enum comparison comparison)
 {
   double f1 = 0, f2 = 0;
-  int floatp = 0;
+  bool floatp = 0;
 
   CHECK_NUMBER_OR_FLOAT_COERCE_MARKER (num1);
   CHECK_NUMBER_OR_FLOAT_COERCE_MARKER (num2);
@@ -2342,7 +2344,7 @@ DEFUN ("zerop", Fzerop, Szerop, 1, 1, 0,
 uintmax_t
 cons_to_unsigned (Lisp_Object c, uintmax_t max)
 {
-  int valid = 0;
+  bool valid = 0;
   uintmax_t val IF_LINT (= 0);
   if (INTEGERP (c))
     {
@@ -2395,7 +2397,7 @@ cons_to_unsigned (Lisp_Object c, uintmax_t max)
 intmax_t
 cons_to_signed (Lisp_Object c, intmax_t min, intmax_t max)
 {
-  int valid = 0;
+  bool valid = 0;
   intmax_t val IF_LINT (= 0);
   if (INTEGERP (c))
     {
@@ -2513,14 +2515,11 @@ static Lisp_Object float_arith_driver (double, ptrdiff_t, enum arithop,
 static Lisp_Object
 arith_driver (enum arithop code, ptrdiff_t nargs, Lisp_Object *args)
 {
-  register Lisp_Object val;
-  ptrdiff_t argnum;
-  register EMACS_INT accum = 0;
-  register EMACS_INT next;
-
-  int overflow = 0;
-  ptrdiff_t ok_args;
-  EMACS_INT ok_accum;
+  Lisp_Object val;
+  ptrdiff_t argnum, ok_args;
+  EMACS_INT accum = 0;
+  EMACS_INT next, ok_accum;
+  bool overflow = 0;
 
   switch (code)
     {

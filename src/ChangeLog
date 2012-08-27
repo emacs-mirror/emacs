@@ -1,5 +1,22 @@
 2012-08-27  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* composite.c, data.c, dbusbind.c, dired.c: Use bool for booleans.
+	* composite.c (find_composition, composition_gstring_p)
+	(composition_reseat_it, find_automatic_composition):
+	* data.c (let_shadows_buffer_binding_p)
+	(let_shadows_global_binding_p, set_internal, make_blv)
+	(Fmake_variable_buffer_local, Fmake_local_variable)
+	(Fmake_variable_frame_local, arithcompare, cons_to_unsigned)
+	(cons_to_signed, arith_driver):
+	* dbusbind.c (xd_in_read_queued_messages):
+	* dired.c (directory_files_internal, file_name_completion):
+	Use bool for booleans.
+	* dired.c (file_name_completion):
+	* process.h (fd_callback):
+	Omit int (actually boolean) argument.  It wasn't being used.
+	All uses changed.
+	* composite.h, lisp.h: Reflect above API changes.
+
 	* cmds.c, coding.c: Use bool for booleans.
 	* cmds.c (move_point, Fself_insert_command):
 	* coding.h (struct composition status, struct coding_system):

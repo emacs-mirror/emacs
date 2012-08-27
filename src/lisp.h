@@ -2620,7 +2620,7 @@ extern _Noreturn void args_out_of_range_3 (Lisp_Object, Lisp_Object,
 					   Lisp_Object);
 extern _Noreturn Lisp_Object wrong_type_argument (Lisp_Object, Lisp_Object);
 extern Lisp_Object do_symval_forwarding (union Lisp_Fwd *);
-extern void set_internal (Lisp_Object, Lisp_Object, Lisp_Object, int);
+extern void set_internal (Lisp_Object, Lisp_Object, Lisp_Object, bool);
 extern void syms_of_data (void);
 extern void init_data (void);
 extern void swap_in_global_binding (struct Lisp_Symbol *);
@@ -3434,7 +3434,7 @@ extern void syms_of_ccl (void);
 extern void syms_of_dired (void);
 extern Lisp_Object directory_files_internal (Lisp_Object, Lisp_Object,
                                              Lisp_Object, Lisp_Object,
-                                             int, Lisp_Object);
+                                             bool, Lisp_Object);
 
 /* Defined in term.c */
 extern int *char_ins_del_vector;

@@ -4870,15 +4870,13 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
       for (channel = 0; channel <= max_input_desc; ++channel)
         {
           struct fd_callback_data *d = &fd_callback_info[channel];
-          if (FD_ISSET (channel, &Available)
-              && d->func != 0
-              && (d->condition & FOR_READ) != 0)
-            d->func (channel, d->data, 1);
-          if (FD_ISSET (channel, &write_mask)
-              && d->func != 0
-              && (d->condition & FOR_WRITE) != 0)
-            d->func (channel, d->data, 0);
-          }
+          if (d->func
+	      && ((d->condition & FOR_READ
+		   && FD_ISSET (channel, &Available))
+		  || (d->condition & FOR_WRITE
+		      && FD_ISSET (channel, &write_mask))))
+            d->func (channel, d->data);
+	}
 
       for (channel = 0; channel <= max_process_desc; channel++)
 	{

@@ -219,7 +219,7 @@ extern void hold_keyboard_input (void);
 extern void unhold_keyboard_input (void);
 extern int kbd_on_hold_p (void);
 
-typedef void (*fd_callback)(int fd, void *data, int for_read);
+typedef void (*fd_callback) (int fd, void *data);
 
 extern void add_read_fd (int fd, fd_callback func, void *data);
 extern void delete_read_fd (int fd);
