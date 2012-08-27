@@ -1,3 +1,8 @@
+2012-08-27  Drew Adams  <drew.adams@oracle.com>
+
+	* dired.el (dired-pop-to-buffer): Make window start at beginning
+	of buffer (Bug#12281).
+
 2012-08-26  Chong Yidong  <cyd@gnu.org>
 
 	* window.el (special-display-regexps, special-display-frame-alist)
