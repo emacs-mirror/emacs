@@ -1190,7 +1190,7 @@ This value is used for the `+' and `-' symbols in an indentation variable."
   :group 'sh-indentation)
 (put 'sh-basic-offset 'safe-local-variable 'integerp)
 
-(defcustom sh-indent-comment nil
+(defcustom sh-indent-comment t
   "How a comment line is to be indented.
 nil means leave it as it is;
 t  means indent it as a normal line, aligning it to previous non-blank
@@ -1201,6 +1201,7 @@ a number means align to that column, e.g. 0 means first column."
 	  (const :tag "Indent as a normal line."  t)
 	  (integer :menu-tag "Indent to this col (0 means first col)."
 		   :tag "Indent to column number.") )
+  :version "24.3"
   :group 'sh-indentation)
 
 

@@ -1,3 +1,7 @@
+2012-08-27  Leo Liu  <sdl.web@gmail.com>
+
+	* progmodes/sh-script.el (sh-indent-comment): Change to t (bug#12267).
+
 2012-08-24  Chong Yidong  <cyd@gnu.org>
 
 	* Version 24.2 released.
