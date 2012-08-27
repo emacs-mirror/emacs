@@ -1,3 +1,11 @@
+2012-08-27  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Special MEM_TYPE_SPARE to denote reserved memory.
+	* alloc.c (enum mem_type): New memory type.
+	(refill_memory_reserve): Use new type for spare memory.
+	This prevents live_cons_p and live_string_p from incorrect
+	detection of uninitialized objects from spare memory as live.
+
 2012-08-26  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Spelling fixes.

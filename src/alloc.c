@@ -305,7 +305,9 @@ enum mem_type
      and runtime slowdown.  Minor but pointless.  */
   MEM_TYPE_VECTORLIKE,
   /* Special type to denote vector blocks.  */
-  MEM_TYPE_VECTOR_BLOCK
+  MEM_TYPE_VECTOR_BLOCK,
+  /* Special type to denote reserved memory.  */
+  MEM_TYPE_SPARE
 };
 
 static void *lisp_malloc (size_t, enum mem_type);
@@ -3816,22 +3818,22 @@ refill_memory_reserve (void)
     spare_memory[0] = malloc (SPARE_MEMORY);
   if (spare_memory[1] == 0)
     spare_memory[1] = lisp_align_malloc (sizeof (struct cons_block),
-						  MEM_TYPE_CONS);
+						  MEM_TYPE_SPARE);
   if (spare_memory[2] == 0)
     spare_memory[2] = lisp_align_malloc (sizeof (struct cons_block),
-					 MEM_TYPE_CONS);
+					 MEM_TYPE_SPARE);
   if (spare_memory[3] == 0)
     spare_memory[3] = lisp_align_malloc (sizeof (struct cons_block),
-					 MEM_TYPE_CONS);
+					 MEM_TYPE_SPARE);
   if (spare_memory[4] == 0)
     spare_memory[4] = lisp_align_malloc (sizeof (struct cons_block),
-					 MEM_TYPE_CONS);
+					 MEM_TYPE_SPARE);
   if (spare_memory[5] == 0)
     spare_memory[5] = lisp_malloc (sizeof (struct string_block),
-				   MEM_TYPE_STRING);
+				   MEM_TYPE_SPARE);
   if (spare_memory[6] == 0)
     spare_memory[6] = lisp_malloc (sizeof (struct string_block),
-				   MEM_TYPE_STRING);
+				   MEM_TYPE_SPARE);
   if (spare_memory[0] && spare_memory[1] && spare_memory[5])
     Vmemory_full = Qnil;
 #endif
