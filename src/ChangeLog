@@ -1,3 +1,16 @@
+2012-08-27  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.h (NSPanel): New class variable dialog_return.
+
+	* nsmenu.m (initWithContentRect:styleMask:backing:defer:): Initialize
+	dialog_return.
+	(windowShouldClose:): Use stop instead of stopModalWithCode.
+	(clicked:): Ditto, and also set dialog_return (Bug#12258).
+	(timeout_handler:): Use stop instead of abortModal.  Send a dummy
+	event.
+	(runDialogAt:): Make ret Lisp_Object.  Set it from dialog_return when
+	modal loop returns.
+
 2012-08-27  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* composite.c, data.c, dbusbind.c, dired.c: Use bool for booleans.

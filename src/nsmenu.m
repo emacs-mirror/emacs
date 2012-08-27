@@ -1497,6 +1497,7 @@ ns_popup_dialog (Lisp_Object position, Lisp_Object contents, Lisp_Object header)
   FlippedView *contentView;
   NSImage *img;
 
+  dialog_return   = Qundefined;
   area.origin.x   = 3*SPACER;
   area.origin.y   = 2*SPACER;
   area.size.width = ICONSIZE;
@@ -1584,7 +1585,7 @@ ns_popup_dialog (Lisp_Object position, Lisp_Object contents, Lisp_Object header)
 
 - (BOOL)windowShouldClose: (id)sender
 {
-  [NSApp stopModalWithCode: XHASH (Qnil)]; // FIXME: BIG UGLY HACK!!
+  [NSApp stop:self];
   return NO;
 }
 
@@ -1673,7 +1674,11 @@ void process_dialog (id window, Lisp_Object list)
 
   seltag = [[sellist objectAtIndex: 0] tag];
   if (seltag != XHASH (Qundefined)) // FIXME: BIG UGLY HACK!!
-    [NSApp stopModalWithCode: seltag];
+    {
+      dialog_return = seltag;
+      [NSApp stop:self];
+    }
+
   return self;
 }
 
@@ -1756,13 +1761,27 @@ void process_dialog (id window, Lisp_Object list)
  
 - (void)timeout_handler: (NSTimer *)timedEntry
 {
+  NSEvent *nxev = [NSEvent otherEventWithType: NSApplicationDefined
+                            location: NSMakePoint (0, 0)
+                       modifierFlags: 0
+                           timestamp: 0
+                        windowNumber: [[NSApp mainWindow] windowNumber]
+                             context: [NSApp context]
+                             subtype: 0
+                               data1: 0
+                               data2: 0];
+
   timer_fired = 1;
-  [NSApp abortModal];
+  /* We use sto because stopModal/abortModal out of the main loop does not
+     seem to work in 10.6.  But as we use stop we must send a real event so
+     the stop is seen and acted upon.  */
+  [NSApp stop:self];
+  [NSApp postEvent: nxev atStart: NO];
 }
 
 - (Lisp_Object)runDialogAt: (NSPoint)p
 {
-  NSInteger ret = 0;
+  Lisp_Object ret = Qundefined;
 
   while (popup_activated_flag)
     {
@@ -1781,7 +1800,9 @@ void process_dialog (id window, Lisp_Object list)
                                        forMode: NSModalPanelRunLoopMode];
         }
       timer_fired = 0;
+      dialog_return = Qundefined;
       ret = [NSApp runModalForWindow: self];
+      ret = dialog_return;
       if (! timer_fired)
         {
           if (tmo != nil) [tmo invalidate]; /* Cancels timer */
