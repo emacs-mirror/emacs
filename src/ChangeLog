@@ -1,3 +1,8 @@
+2012-08-27  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.c (Fset_window_configuration): Revert first part of
+	last change.
+
 2012-08-27  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsterm.h (NSPanel): New class variable dialog_return.

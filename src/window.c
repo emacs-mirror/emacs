@@ -5616,24 +5616,6 @@ the return value is nil.  Otherwise the value is t.  */)
       int previous_frame_menu_bar_lines = FRAME_MENU_BAR_LINES (f);
       int previous_frame_tool_bar_lines = FRAME_TOOL_BAR_LINES (f);
 
-      /* Don't do this within the main loop below: This may call Lisp
-	 code and is thus potentially unsafe while input is blocked.  */
-      for (k = 0; k < saved_windows->header.size; k++)
-	{
-	  p = SAVED_WINDOW_N (saved_windows, k);
-	  window = p->window;
-	  w = XWINDOW (window);
-
-	  if (!NILP (p->buffer)
-	      && ((!EQ (w->buffer, p->buffer)
-		   && !NILP (BVAR (XBUFFER (p->buffer), name)))
-		  || NILP (w->buffer)
-		  || NILP (BVAR (XBUFFER (w->buffer), name))))
-	    /* Record old buffer of window when its buffer is going to
-	       change.  */
-	    call1 (Qrecord_window_buffer, window);
-	}
-
       /* The mouse highlighting code could get screwed up
 	 if it runs during this.  */
       BLOCK_INPUT;
