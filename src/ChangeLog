@@ -1,3 +1,9 @@
+2012-08-27  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Fix spare memory change.
+	* alloc.c (mark_maybe_pointer): Handle MEM_TYPE_SPARE.
+	(valid_lisp_object_p): Likewise.
+
 2012-08-27  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.c (Fset_window_configuration): Record any window's old

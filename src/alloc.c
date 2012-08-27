@@ -4563,6 +4563,7 @@ mark_maybe_pointer (void *p)
       switch (m->type)
 	{
 	case MEM_TYPE_NON_LISP:
+	case MEM_TYPE_SPARE:
 	  /* Nothing to do; not a pointer to Lisp memory.  */
 	  break;
 
@@ -5019,6 +5020,7 @@ valid_lisp_object_p (Lisp_Object obj)
   switch (m->type)
     {
     case MEM_TYPE_NON_LISP:
+    case MEM_TYPE_SPARE:
       return 0;
 
     case MEM_TYPE_BUFFER:
