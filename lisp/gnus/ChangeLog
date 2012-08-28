@@ -1,3 +1,9 @@
+2012-08-28  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-sum.el (gnus-summary-enter-digest-group): Decode content
+	transfer encoding first; bind gnus-newsgroup-charset to the charset
+	that the article specifies (Bug#12209).
+
 2012-08-22  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-cus.el (gnus-group-customize): Decode values posting-style holds.
