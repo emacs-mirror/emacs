@@ -9572,7 +9572,7 @@ read_key_sequence (Lisp_Object *keybuf, int bufsize, Lisp_Object prompt,
 			 because we may get input from a subprocess which
 			 wants to change the selected window and stuff (say,
 			 emacsclient).  */
-		      record_unwind_protect (Fset_buffer, Fcurrent_buffer ());
+		      record_unwind_current_buffer ();
 
 		      if (! FRAME_LIVE_P (XFRAME (selected_frame)))
 			Fkill_emacs (Qnil);

@@ -3101,7 +3101,7 @@ run_window_configuration_change_hook (struct frame *f)
   /* Use the right buffer.  Matters when running the local hooks.  */
   if (current_buffer != XBUFFER (Fwindow_buffer (Qnil)))
     {
-      record_unwind_protect (Fset_buffer, Fcurrent_buffer ());
+      record_unwind_current_buffer ();
       Fset_buffer (Fwindow_buffer (Qnil));
     }
 
@@ -3205,7 +3205,7 @@ set_window_buffer (Lisp_Object window, Lisp_Object buffer, int run_hooks_p, int 
      because that might itself be a local variable.  */
   if (window_initialized)
     {
-      record_unwind_protect (Fset_buffer, Fcurrent_buffer ());
+      record_unwind_current_buffer ();
       Fset_buffer (buffer);
     }
 

@@ -817,7 +817,7 @@ get_minibuffer (EMACS_INT depth)
 	 while the buffer doesn't know about them any more.  */
       delete_all_overlays (XBUFFER (buf));
       reset_buffer (XBUFFER (buf));
-      record_unwind_protect (Fset_buffer, Fcurrent_buffer ());
+      record_unwind_current_buffer ();
       Fset_buffer (buf);
       if (!NILP (Ffboundp (intern ("minibuffer-inactive-mode"))))
 	call0 (intern ("minibuffer-inactive-mode"));

@@ -946,13 +946,10 @@ BODY is executed just like `progn'.
 usage: (save-current-buffer &rest BODY)  */)
   (Lisp_Object args)
 {
-  Lisp_Object val;
   ptrdiff_t count = SPECPDL_INDEX ();
 
-  record_unwind_protect (set_buffer_if_live, Fcurrent_buffer ());
-
-  val = Fprogn (args);
-  return unbind_to (count, val);
+  record_unwind_current_buffer ();
+  return unbind_to (count, Fprogn (args));
 }
 
 DEFUN ("buffer-size", Fbufsize, Sbufsize, 0, 1, 0,

@@ -3480,7 +3480,7 @@ variable `last-coding-system-used' to the coding system actually used.  */)
 		  Lisp_Object workbuf;
 		  struct buffer *buf;
 
-		  record_unwind_protect (Fset_buffer, Fcurrent_buffer ());
+		  record_unwind_current_buffer ();
 
 		  workbuf = Fget_buffer_create (build_string (" *code-converting-work*"));
 		  buf = XBUFFER (workbuf);

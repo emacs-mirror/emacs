@@ -2204,7 +2204,7 @@ ends when the current command terminates.  Use `switch-to-buffer' or
   return buffer;
 }
 
-/* Set the current buffer to BUFFER provided it is alive.  */
+/* Set the current buffer to BUFFER provided if it is alive.  */
 
 Lisp_Object
 set_buffer_if_live (Lisp_Object buffer)

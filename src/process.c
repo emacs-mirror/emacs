@@ -5196,7 +5196,7 @@ read_process_output (Lisp_Object proc, register int channel)
   /* There's no good reason to let process filters change the current
      buffer, and many callers of accept-process-output, sit-for, and
      friends don't expect current-buffer to be changed from under them.  */
-  record_unwind_protect (set_buffer_if_live, Fcurrent_buffer ());
+  record_unwind_current_buffer ();
 
   /* Read and dispose of the process output.  */
   outstream = p->filter;
@@ -6587,7 +6587,7 @@ exec_sentinel (Lisp_Object proc, Lisp_Object reason)
   /* There's no good reason to let sentinels change the current
      buffer, and many callers of accept-process-output, sit-for, and
      friends don't expect current-buffer to be changed from under them.  */
-  record_unwind_protect (set_buffer_if_live, Fcurrent_buffer ());
+  record_unwind_current_buffer ();
 
   sentinel = p->sentinel;
   if (NILP (sentinel))

@@ -1038,6 +1038,15 @@ set_buffer_internal (struct buffer *b)
     set_buffer_internal_1 (b);
 }
 
+/* Arrange to go back to the original buffer after the next
+   call to unbind_to if the original buffer is still alive.  */
+
+BUFFER_INLINE void
+record_unwind_current_buffer (void)
+{
+  record_unwind_protect (set_buffer_if_live, Fcurrent_buffer ());
+}
+
 /* Get overlays at POSN into array OVERLAYS with NOVERLAYS elements.
    If NEXTP is non-NULL, return next overlay there.
    See overlay_at arg CHANGE_REQ for meaning of CHRQ arg.  */

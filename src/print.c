@@ -487,7 +487,7 @@ temp_output_buffer_setup (const char *bufname)
   register struct buffer *old = current_buffer;
   register Lisp_Object buf;
 
-  record_unwind_protect (set_buffer_if_live, Fcurrent_buffer ());
+  record_unwind_current_buffer ();
 
   Fset_buffer (Fget_buffer_create (build_string (bufname)));
 

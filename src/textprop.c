@@ -760,7 +760,7 @@ past position LIMIT; return LIMIT if nothing is found before LIMIT.  */)
 
       if (BUFFERP (object) && current_buffer != XBUFFER (object))
 	{
-	  record_unwind_protect (Fset_buffer, Fcurrent_buffer ());
+	  record_unwind_current_buffer ();
 	  Fset_buffer (object);
 	}
 
@@ -843,7 +843,7 @@ position LIMIT; return LIMIT if nothing is found before reaching LIMIT.  */)
 
       if (BUFFERP (object) && current_buffer != XBUFFER (object))
 	{
-	  record_unwind_protect (Fset_buffer, Fcurrent_buffer ());
+	  record_unwind_current_buffer ();
 	  Fset_buffer (object);
 	}
 

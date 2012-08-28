@@ -2117,7 +2117,7 @@ DEFUN ("combine-after-change-execute", Fcombine_after_change_execute,
       return Qnil;
     }
 
-  record_unwind_protect (Fset_buffer, Fcurrent_buffer ());
+  record_unwind_current_buffer ();
 
   Fset_buffer (combine_after_change_buffer);
 

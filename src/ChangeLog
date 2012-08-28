@@ -1,5 +1,14 @@
 2012-08-28  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	Always use set_buffer_if_live to restore original buffer at unwind.
+	* buffer.h (record_unwind_current_buffer): New function.
+	* bytecode.c, dispnew.c, editfns.c, fileio.c, fns.c, insdel.c:
+	* keyboard.c, keymap.c, minibuf.c, print.c, process.c, textprop.c:
+	* undo.c, window.c: Adjust users.
+	* buffer.c (set_buffer_if_live): Fix comment.
+
+2012-08-28  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	Fix usage of set_buffer_internal.
 	* buffer.h (set_buffer_internal): Make it BUFFER_INLINE.
 	* buffer.c (set_buffer_if_live): Use set_buffer_internal.

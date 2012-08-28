@@ -5762,7 +5762,7 @@ change_frame_size_1 (struct frame *f, int newheight, int newwidth,
 
   UNBLOCK_INPUT;
 
-  record_unwind_protect (Fset_buffer, Fcurrent_buffer ());
+  record_unwind_current_buffer ();
 
   run_window_configuration_change_hook (f);
 
