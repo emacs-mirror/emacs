@@ -1,3 +1,8 @@
+2012-08-28  Juri Linkov  <juri@jurta.org>
+
+	* info.el (Info-fontify-node): Hide empty lines at the end of
+	the node.  (Bug#12272)
+
 2012-08-27  Drew Adams  <drew.adams@oracle.com>
 
 	* dired.el (dired-pop-to-buffer): Make window start at beginning

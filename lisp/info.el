@@ -4825,6 +4825,12 @@ first line or header line, and for breadcrumb links.")
                                  mouse-face highlight
                                  help-echo "mouse-2: go to this URL"))))
 
+      ;; Hide empty lines at the end of the node.
+      (goto-char (point-max))
+      (skip-chars-backward "\n")
+      (when (< (1+ (point)) (point-max))
+	(put-text-property (1+ (point)) (point-max) 'invisible t))
+
       (set-buffer-modified-p nil))))
 
 ;;; Speedbar support:
