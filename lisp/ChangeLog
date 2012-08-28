@@ -1,3 +1,7 @@
+2012-08-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/cl-lib.el (buffer-string): Fix setter macro (bug#12293).
+
 2012-08-28  Leo Liu  <sdl.web@gmail.com>
 
 	* progmodes/sh-script.el (sh-dynamic-complete-functions): Adapt to
@@ -53,8 +57,8 @@
 
 2012-08-26  Chong Yidong  <cyd@gnu.org>
 
-	* progmodes/gdb-mi.el (gdb-display-buffer-other-frame-action): New
-	variable, replacing gdb-frame-parameters.
+	* progmodes/gdb-mi.el (gdb-display-buffer-other-frame-action):
+	New variable, replacing gdb-frame-parameters.
 	(gdb-frame-io-buffer, gdb-frame-breakpoints-buffer)
 	(gdb-frame-threads-buffer, gdb-frame-memory-buffer)
 	(gdb-frame-disassembly-buffer, gdb-frame-stack-buffer)
@@ -130,17 +134,17 @@
 
 2012-08-22  Martin Rudalics  <rudalics@gmx.at>
 
-	* window.el (walk-window-tree, window-with-parameter): New
-	optional argument MINIBUF to control whether these functions
+	* window.el (walk-window-tree, window-with-parameter):
+	New optional argument MINIBUF to control whether these functions
 	should run on the minibuffer window.
 	(window-at-side-list): Don't operate on minibuffer window.
 	(window-in-direction): Simplify and rewrite doc-string.
-	(window--size-ignore): Rename to window--size-ignore-p.  Update
-	callers.
+	(window--size-ignore): Rename to window--size-ignore-p.
+	Update callers.
 	(display-buffer-in-atom-window, window--major-non-side-window)
 	(window--major-side-window, display-buffer-in-major-side-window)
-	(delete-side-window, display-buffer-in-side-window): New
-	functions.
+	(delete-side-window, display-buffer-in-side-window):
+	New functions.
 	(window--side-check, window-deletable-p, delete-window)
 	(delete-other-windows, split-window): Handle side windows and
 	atomic windows appropriately.
@@ -192,8 +196,8 @@
 	* window.el (window-point-1, set-window-point-1): Remove.
 	(window-in-direction, record-window-buffer)
 	(set-window-buffer-start-and-point, split-window-below)
-	(window--state-get-1, display-buffer-record-window): Replace
-	calls to window-point-1 and set-window-point-1 by calls to
+	(window--state-get-1, display-buffer-record-window):
+	Replace calls to window-point-1 and set-window-point-1 by calls to
 	window-point and set-window-point respectively.
 
 2012-08-21  Glenn Morris  <rgm@gnu.org>
@@ -311,8 +315,8 @@
 	(yank-excluded-properties): Add font-lock-face and category.
 	(yank): Doc fix.
 
-	* subr.el (remove-yank-excluded-properties): Obey
-	yank-handled-properties.  The special handling of font-lock-face
+	* subr.el (remove-yank-excluded-properties):
+	Obey yank-handled-properties.  The special handling of font-lock-face
 	and category is now done this way, instead of being hard-coded.
 	(insert-for-yank-1): Remove font-lock-face handling.
 	(yank-handle-font-lock-face-property)
@@ -326,8 +330,8 @@
 
 2012-08-17  Michael Albinus  <michael.albinus@gmx.de>
 
-	* net/tramp-sh.el (tramp-sh-handle-start-file-process): Eliminate
-	superfluous prompt.  (Bug#12203)
+	* net/tramp-sh.el (tramp-sh-handle-start-file-process):
+	Eliminate superfluous prompt.  (Bug#12203)
 
 2012-08-17  Chong Yidong  <cyd@gnu.org>
 
@@ -354,8 +358,8 @@
 	(next-buffer, previous-buffer, split-window, balance-windows-2)
 	(set-window-text-height, window-buffer-height)
 	(fit-window-to-buffer, shrink-window-if-larger-than-buffer)
-	(truncated-partial-width-window-p): Minor code adjustments.  In
-	doc-strings state whether the argument window has to denote a
+	(truncated-partial-width-window-p): Minor code adjustments.
+	In doc-strings state whether the argument window has to denote a
 	live, valid or any window.
 
 2012-08-16  Phil Sainty  <psainty@orcon.net.nz>  (tiny change)
