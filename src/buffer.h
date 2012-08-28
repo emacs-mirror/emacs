@@ -1014,7 +1014,6 @@ extern ptrdiff_t sort_overlays (Lisp_Object *, ptrdiff_t, struct window *);
 extern void recenter_overlay_lists (struct buffer *, ptrdiff_t);
 extern ptrdiff_t overlay_strings (ptrdiff_t, struct window *, unsigned char **);
 extern void validate_region (Lisp_Object *, Lisp_Object *);
-extern void set_buffer_internal (struct buffer *);
 extern void set_buffer_internal_1 (struct buffer *);
 extern void set_buffer_temp (struct buffer *);
 extern Lisp_Object buffer_local_value_1 (Lisp_Object, Lisp_Object);
@@ -1022,6 +1021,22 @@ extern void record_buffer (Lisp_Object);
 extern _Noreturn void buffer_slot_type_mismatch (Lisp_Object, int);
 extern void fix_overlays_before (struct buffer *, ptrdiff_t, ptrdiff_t);
 extern void mmap_set_vars (bool);
+
+/* Set the current buffer to B.
+
+   We previously set windows_or_buffers_changed here to invalidate
+   global unchanged information in beg_unchanged and end_unchanged.
+   This is no longer necessary because we now compute unchanged
+   information on a buffer-basis.  Every action affecting other
+   windows than the selected one requires a select_window at some
+   time, and that increments windows_or_buffers_changed.  */
+
+BUFFER_INLINE void
+set_buffer_internal (struct buffer *b)
+{
+  if (current_buffer != b)
+    set_buffer_internal_1 (b);
+}
 
 /* Get overlays at POSN into array OVERLAYS with NOVERLAYS elements.
    If NEXTP is non-NULL, return next overlay there.

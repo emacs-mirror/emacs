@@ -14551,8 +14551,7 @@ run_window_scroll_functions (Lisp_Object window, struct text_pos startp)
 			    make_number (CHARPOS (startp)));
       SET_TEXT_POS_FROM_MARKER (startp, w->start);
       /* In case the hook functions switch buffers.  */
-      if (current_buffer != XBUFFER (w->buffer))
-	set_buffer_internal_1 (XBUFFER (w->buffer));
+      set_buffer_internal (XBUFFER (w->buffer));
     }
 
   return startp;

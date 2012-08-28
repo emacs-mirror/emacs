@@ -1434,8 +1434,7 @@ command_loop_1 (void)
 	Fkill_emacs (Qnil);
 
       /* Make sure the current window's buffer is selected.  */
-      if (XBUFFER (XWINDOW (selected_window)->buffer) != current_buffer)
-	set_buffer_internal (XBUFFER (XWINDOW (selected_window)->buffer));
+      set_buffer_internal (XBUFFER (XWINDOW (selected_window)->buffer));
 
       /* Display any malloc warning that just came out.  Use while because
 	 displaying one warning can cause another.  */
@@ -1513,8 +1512,7 @@ command_loop_1 (void)
       /* A filter may have run while we were reading the input.  */
       if (! FRAME_LIVE_P (XFRAME (selected_frame)))
 	Fkill_emacs (Qnil);
-      if (XBUFFER (XWINDOW (selected_window)->buffer) != current_buffer)
-	set_buffer_internal (XBUFFER (XWINDOW (selected_window)->buffer));
+      set_buffer_internal (XBUFFER (XWINDOW (selected_window)->buffer));
 
       ++num_input_keys;
 

@@ -4661,8 +4661,7 @@ secure_hash (Lisp_Object algorithm, Lisp_Object object, Lisp_Object start, Lisp_
       CHECK_BUFFER (object);
 
       bp = XBUFFER (object);
-      if (bp != current_buffer)
-	set_buffer_internal (bp);
+      set_buffer_internal (bp);
 
       if (NILP (start))
 	b = BEGV;
@@ -4749,8 +4748,7 @@ secure_hash (Lisp_Object algorithm, Lisp_Object object, Lisp_Object start, Lisp_
 	}
 
       object = make_buffer_string (b, e, 0);
-      if (prev != current_buffer)
-	set_buffer_internal (prev);
+      set_buffer_internal (prev);
       /* Discard the unwind protect for recovering the current
 	 buffer.  */
       specpdl_ptr--;

@@ -3142,8 +3142,7 @@ decide_coding_unwind (Lisp_Object unwind_data)
   undo_list = XCAR (unwind_data);
   buffer = XCDR (unwind_data);
 
-  if (current_buffer != XBUFFER (buffer))
-    set_buffer_internal (XBUFFER (buffer));
+  set_buffer_internal (XBUFFER (buffer));
   adjust_markers_for_delete (BEG, BEG_BYTE, Z, Z_BYTE);
   adjust_overlays_for_delete (BEG, Z - BEG);
   set_buffer_intervals (current_buffer, NULL);

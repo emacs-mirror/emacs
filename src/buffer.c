@@ -2099,22 +2099,6 @@ DEFUN ("current-buffer", Fcurrent_buffer, Scurrent_buffer, 0, 0, 0,
   XSETBUFFER (buf, current_buffer);
   return buf;
 }
-
-/* Set the current buffer to B.
-
-   We previously set windows_or_buffers_changed here to invalidate
-   global unchanged information in beg_unchanged and end_unchanged.
-   This is no longer necessary because we now compute unchanged
-   information on a buffer-basis.  Every action affecting other
-   windows than the selected one requires a select_window at some
-   time, and that increments windows_or_buffers_changed.  */
-
-void
-set_buffer_internal (register struct buffer *b)
-{
-  if (current_buffer != b)
-    set_buffer_internal_1 (b);
-}
 
 /* Set the current buffer to B, and do not set windows_or_buffers_changed.
    This is used by redisplay.  */
@@ -2226,7 +2210,7 @@ Lisp_Object
 set_buffer_if_live (Lisp_Object buffer)
 {
   if (! NILP (BVAR (XBUFFER (buffer), name)))
-    Fset_buffer (buffer);
+    set_buffer_internal (XBUFFER (buffer));
   return Qnil;
 }
 

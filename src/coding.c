@@ -7006,8 +7006,7 @@ decode_coding (struct coding_system *coding)
   undo_list = Qt;
   if (BUFFERP (coding->dst_object))
     {
-      if (current_buffer != XBUFFER (coding->dst_object))
-	set_buffer_internal (XBUFFER (coding->dst_object));
+      set_buffer_internal (XBUFFER (coding->dst_object));
       if (GPT != PT)
 	move_gap_both (PT, PT_BYTE);
 
