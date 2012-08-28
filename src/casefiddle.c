@@ -35,8 +35,8 @@ Lisp_Object Qidentity;
 static Lisp_Object
 casify_object (enum case_action flag, Lisp_Object obj)
 {
-  register int c, c1;
-  register int inword = flag == CASE_DOWN;
+  int c, c1;
+  bool inword = flag == CASE_DOWN;
 
   /* If the case table is flagged as modified, rescan it.  */
   if (NILP (XCHAR_TABLE (BVAR (current_buffer, downcase_table))->extras[1]))
@@ -47,7 +47,8 @@ casify_object (enum case_action flag, Lisp_Object obj)
       int flagbits = (CHAR_ALT | CHAR_SUPER | CHAR_HYPER
 		      | CHAR_SHIFT | CHAR_CTL | CHAR_META);
       int flags = XINT (obj) & flagbits;
-      int multibyte = ! NILP (BVAR (current_buffer, enable_multibyte_characters));
+      bool multibyte = ! NILP (BVAR (current_buffer,
+				     enable_multibyte_characters));
 
       /* If the character has higher bits set
 	 above the flags, return it unchanged.
@@ -189,9 +190,9 @@ The argument object is not altered--the value is a copy.  */)
 static void
 casify_region (enum case_action flag, Lisp_Object b, Lisp_Object e)
 {
-  register int c;
-  register int inword = flag == CASE_DOWN;
-  register int multibyte = !NILP (BVAR (current_buffer, enable_multibyte_characters));
+  int c;
+  bool inword = flag == CASE_DOWN;
+  bool multibyte = !NILP (BVAR (current_buffer, enable_multibyte_characters));
   ptrdiff_t start, end;
   ptrdiff_t start_byte;
 

@@ -28,7 +28,7 @@ GNULIB_URL=git://git.savannah.gnu.org/gnulib.git
 GNULIB_MODULES='
   alloca-opt c-ctype c-strcase
   careadlinkat crypto/md5 crypto/sha1 crypto/sha256 crypto/sha512
-  dtoastr dtotimespec dup2 environ
+  dtoastr dtotimespec dup2 environ execinfo
   filemode getloadavg getopt-gnu gettime gettimeofday
   ignore-value intprops largefile lstat
   manywarnings mktime pselect pthread_sigmask readlink

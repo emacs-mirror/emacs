@@ -150,7 +150,7 @@ static const char *callint_argfuns[]
     = {"", "point", "mark", "region-beginning", "region-end"};
 
 static void
-check_mark (int for_region)
+check_mark (bool for_region)
 {
   Lisp_Object tem;
   tem = Fmarker_buffer (BVAR (current_buffer, mark));
@@ -273,11 +273,11 @@ invoke it.  If KEYS is omitted or nil, the return value of
   signed char *varies;
 
   ptrdiff_t i, nargs;
-  int foo;
-  int arg_from_tty = 0;
+  ptrdiff_t mark;
+  bool arg_from_tty = 0;
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5;
   ptrdiff_t key_count;
-  int record_then_fail = 0;
+  bool record_then_fail = 0;
 
   Lisp_Object save_this_command, save_last_command;
   Lisp_Object save_this_original_command, save_real_this_command;
@@ -685,7 +685,7 @@ invoke it.  If KEYS is omitted or nil, the return value of
 	    goto have_prefix_arg;
 	case 'n':		/* Read number from minibuffer.  */
 	  {
-	    int first = 1;
+	    bool first = 1;
 	    do
 	      {
 		Lisp_Object str;
@@ -726,11 +726,11 @@ invoke it.  If KEYS is omitted or nil, the return value of
 	  check_mark (1);
 	  set_marker_both (point_marker, Qnil, PT, PT_BYTE);
 	  /* visargs[i+1] = Qnil; */
-	  foo = marker_position (BVAR (current_buffer, mark));
+	  mark = marker_position (BVAR (current_buffer, mark));
 	  /* visargs[i] = Qnil; */
-	  args[i] = PT < foo ? point_marker : BVAR (current_buffer, mark);
+	  args[i] = PT < mark ? point_marker : BVAR (current_buffer, mark);
 	  varies[i] = 3;
-	  args[++i] = PT > foo ? point_marker : BVAR (current_buffer, mark);
+	  args[++i] = PT > mark ? point_marker : BVAR (current_buffer, mark);
 	  varies[i] = 4;
 	  break;
 

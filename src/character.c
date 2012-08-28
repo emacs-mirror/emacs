@@ -427,7 +427,7 @@ lisp_string_width (Lisp_Object string, ptrdiff_t precision,
   /* This set multibyte to 0 even if STRING is multibyte when it
      contains only ascii and eight-bit-graphic, but that's
      intentional.  */
-  int multibyte = len < SBYTES (string);
+  bool multibyte = len < SBYTES (string);
   unsigned char *str = SDATA (string);
   ptrdiff_t i = 0, i_byte = 0;
   ptrdiff_t width = 0;
@@ -765,13 +765,10 @@ str_as_unibyte (unsigned char *str, ptrdiff_t bytes)
    corresponding byte and store in DST.  CHARS is the number of
    characters in SRC.  The value is the number of bytes stored in DST.
    Usually, the value is the same as CHARS, but is less than it if SRC
-   contains a non-ASCII, non-eight-bit character.  If ACCEPT_LATIN_1
-   is nonzero, a Latin-1 character is accepted and converted to a byte
-   of that character code.
-   Note: Currently the arg ACCEPT_LATIN_1 is not used.  */
+   contains a non-ASCII, non-eight-bit character.  */
 
 ptrdiff_t
-str_to_unibyte (const unsigned char *src, unsigned char *dst, ptrdiff_t chars, int accept_latin_1)
+str_to_unibyte (const unsigned char *src, unsigned char *dst, ptrdiff_t chars)
 {
   ptrdiff_t i;
 
@@ -781,8 +778,7 @@ str_to_unibyte (const unsigned char *src, unsigned char *dst, ptrdiff_t chars, i
 
       if (CHAR_BYTE8_P (c))
 	c = CHAR_TO_BYTE8 (c);
-      else if (! ASCII_CHAR_P (c)
-	       && (! accept_latin_1 || c >= 0x100))
+      else if (! ASCII_CHAR_P (c))
 	return i;
       *dst++ = c;
     }
@@ -793,7 +789,7 @@ str_to_unibyte (const unsigned char *src, unsigned char *dst, ptrdiff_t chars, i
 static ptrdiff_t
 string_count_byte8 (Lisp_Object string)
 {
-  int multibyte = STRING_MULTIBYTE (string);
+  bool multibyte = STRING_MULTIBYTE (string);
   ptrdiff_t nbytes = SBYTES (string);
   unsigned char *p = SDATA (string);
   unsigned char *pend = p + nbytes;
@@ -825,7 +821,7 @@ string_escape_byte8 (Lisp_Object string)
 {
   ptrdiff_t nchars = SCHARS (string);
   ptrdiff_t nbytes = SBYTES (string);
-  int multibyte = STRING_MULTIBYTE (string);
+  bool multibyte = STRING_MULTIBYTE (string);
   ptrdiff_t byte8_count;
   const unsigned char *src, *src_end;
   unsigned char *dst;

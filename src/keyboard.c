@@ -1434,8 +1434,7 @@ command_loop_1 (void)
 	Fkill_emacs (Qnil);
 
       /* Make sure the current window's buffer is selected.  */
-      if (XBUFFER (XWINDOW (selected_window)->buffer) != current_buffer)
-	set_buffer_internal (XBUFFER (XWINDOW (selected_window)->buffer));
+      set_buffer_internal (XBUFFER (XWINDOW (selected_window)->buffer));
 
       /* Display any malloc warning that just came out.  Use while because
 	 displaying one warning can cause another.  */
@@ -1513,8 +1512,7 @@ command_loop_1 (void)
       /* A filter may have run while we were reading the input.  */
       if (! FRAME_LIVE_P (XFRAME (selected_frame)))
 	Fkill_emacs (Qnil);
-      if (XBUFFER (XWINDOW (selected_window)->buffer) != current_buffer)
-	set_buffer_internal (XBUFFER (XWINDOW (selected_window)->buffer));
+      set_buffer_internal (XBUFFER (XWINDOW (selected_window)->buffer));
 
       ++num_input_keys;
 
@@ -9574,7 +9572,7 @@ read_key_sequence (Lisp_Object *keybuf, int bufsize, Lisp_Object prompt,
 			 because we may get input from a subprocess which
 			 wants to change the selected window and stuff (say,
 			 emacsclient).  */
-		      record_unwind_protect (Fset_buffer, Fcurrent_buffer ());
+		      record_unwind_current_buffer ();
 
 		      if (! FRAME_LIVE_P (XFRAME (selected_frame)))
 			Fkill_emacs (Qnil);
@@ -11251,7 +11249,7 @@ The `posn-' functions access elements of such lists.  */)
 
   if (WINDOWP (frame_or_window))
     {
-      struct window *w = decode_valid_window (frame_or_window);
+      struct window *w = decode_live_window (frame_or_window);
 
       XSETINT (x, (XINT (x)
 		   + WINDOW_LEFT_EDGE_X (w)

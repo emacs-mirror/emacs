@@ -2722,33 +2722,9 @@ DEFUN ("functionp", Ffunctionp, Sfunctionp, 1, 1, 0,
        doc: /* Non-nil if OBJECT is a function.  */)
      (Lisp_Object object)
 {
-  if (SYMBOLP (object) && !NILP (Ffboundp (object)))
-    {
-      object = Findirect_function (object, Qt);
-
-      if (CONSP (object) && EQ (XCAR (object), Qautoload))
-	{
-	  /* Autoloaded symbols are functions, except if they load
-	     macros or keymaps.  */
-	  int i;
-	  for (i = 0; i < 4 && CONSP (object); i++)
-	    object = XCDR (object);
-
-	  return (CONSP (object) && !NILP (XCAR (object))) ? Qnil : Qt;
-	}
-    }
-
-  if (SUBRP (object))
-    return (XSUBR (object)->max_args != UNEVALLED) ? Qt : Qnil;
-  else if (COMPILEDP (object))
+  if (FUNCTIONP (object))
     return Qt;
-  else if (CONSP (object))
-    {
-      Lisp_Object car = XCAR (object);
-      return (EQ (car, Qlambda) || EQ (car, Qclosure)) ? Qt : Qnil;
-    }
-  else
-    return Qnil;
+  return Qnil;
 }
 
 DEFUN ("funcall", Ffuncall, Sfuncall, 1, MANY, 0,

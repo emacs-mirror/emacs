@@ -34,7 +34,7 @@ INLINE_HEADER_BEGIN
 /* Miscellanea.  */
 
 /* Nonzero means there is at least one garbaged frame. */
-extern int frame_garbaged;
+extern bool frame_garbaged;
 
 
 /* The structure representing a frame.  */
@@ -621,11 +621,21 @@ typedef struct frame *FRAME_PTR;
 #define FRAME_INITIAL_P(f) ((f)->output_method == output_initial)
 #define FRAME_TERMCAP_P(f) ((f)->output_method == output_termcap)
 #define FRAME_X_P(f) ((f)->output_method == output_x_window)
+#ifndef WINDOWSNT
+#define FRAME_W32_P(f) (0)
+#else
 #define FRAME_W32_P(f) ((f)->output_method == output_w32)
+#endif
+#ifndef MSDOS
+#define FRAME_MSDOS_P(f) (0)
+#else
 #define FRAME_MSDOS_P(f) ((f)->output_method == output_msdos_raw)
-#define FRAME_MAC_P(f) ((f)->output_method == output_mac)
+#endif
+#ifndef HAVE_NS
+#define FRAME_NS_P(f) (0)
+#else
 #define FRAME_NS_P(f) ((f)->output_method == output_ns)
-
+#endif
 /* FRAME_WINDOW_P tests whether the frame is a window, and is
    defined to be the predicate for the window system being used.  */
 

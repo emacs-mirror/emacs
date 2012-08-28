@@ -1376,6 +1376,9 @@ For the \"inline\" alternatives, also see the variable
 	(user-full-name user-full-name)
 	(user-mail-address user-mail-address)
 	tem)
+    (dolist (style styles)
+      (when (stringp (cadr style))
+	(setcdr style (list (mm-decode-coding-string (cadr style) 'utf-8)))))
     (dolist (style (if styles
 		       (append gnus-posting-styles (list (cons ".*" styles)))
 		     gnus-posting-styles))
@@ -1807,6 +1810,10 @@ this is a reply."
       (when gnus-newsgroup-name
 	(let ((tmp-style (gnus-group-find-parameter group 'posting-style t)))
 	  (when tmp-style
+	    (dolist (style tmp-style)
+	      (when (stringp (cadr style))
+		(setcdr style (list (mm-decode-coding-string (cadr style)
+							     'utf-8)))))
 	    (setq styles (append styles (list (cons ".*" tmp-style)))))))
       ;; Go through all styles and look for matches.
       (dolist (style styles)

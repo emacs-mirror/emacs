@@ -2950,6 +2950,8 @@ or \"* [3 files]\"."
 	       (split-window-sensibly window))))
 	pop-up-frames)
     (pop-to-buffer (get-buffer-create buf)))
+  ;; See Bug#12281.
+  (set-window-start nil (point-min))
   ;; If dired-shrink-to-fit is t, make its window fit its contents.
   (when dired-shrink-to-fit
     ;; Try to not delete window when we want to display less than

@@ -4247,7 +4247,6 @@ syms_of_frame (void)
   DEFSYM (Qx, "x");
   DEFSYM (Qw32, "w32");
   DEFSYM (Qpc, "pc");
-  DEFSYM (Qmac, "mac");
   DEFSYM (Qns, "ns");
   DEFSYM (Qvisible, "visible");
   DEFSYM (Qbuffer_predicate, "buffer-predicate");

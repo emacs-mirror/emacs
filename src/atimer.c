@@ -408,7 +408,7 @@ do_pending_atimers (void)
    some systems like HPUX (see process.c).  */
 
 void
-turn_on_atimers (int on)
+turn_on_atimers (bool on)
 {
   if (on)
     {

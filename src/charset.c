@@ -215,7 +215,7 @@ static struct
 
 /* Set to 1 to warn that a charset map is loaded and thus a buffer
    text and a string data may be relocated.  */
-int charset_map_loaded;
+bool charset_map_loaded;
 
 struct charset_map_entries
 {
@@ -256,7 +256,7 @@ load_charset_map (struct charset *charset, struct charset_map_entries *entries, 
 {
   Lisp_Object vec IF_LINT (= Qnil), table IF_LINT (= Qnil);
   unsigned max_code = CHARSET_MAX_CODE (charset);
-  int ascii_compatible_p = charset->ascii_compatible_p;
+  bool ascii_compatible_p = charset->ascii_compatible_p;
   int min_char, max_char, nonascii_min_char;
   int i;
   unsigned char *fast_map = charset->fast_map;
@@ -423,7 +423,7 @@ load_charset_map (struct charset *charset, struct charset_map_entries *entries, 
    paying attention to comment character '#'.  */
 
 static inline unsigned
-read_hex (FILE *fp, int *eof, int *overflow)
+read_hex (FILE *fp, bool *eof, bool *overflow)
 {
   int c;
   unsigned n;
@@ -512,7 +512,7 @@ load_charset_map_from_file (struct charset *charset, Lisp_Object mapfile, int co
     {
       unsigned from, to, c;
       int idx;
-      int eof = 0, overflow = 0;
+      bool eof = 0, overflow = 0;
 
       from = read_hex (fp, &eof, &overflow);
       if (eof)
@@ -717,10 +717,8 @@ map_charset_chars (void (*c_function)(Lisp_Object, Lisp_Object), Lisp_Object fun
 		   Lisp_Object arg, struct charset *charset, unsigned from, unsigned to)
 {
   Lisp_Object range;
-  int partial;
-
-  partial = (from > CHARSET_MIN_CODE (charset)
-	     || to < CHARSET_MAX_CODE (charset));
+  bool partial = (from > CHARSET_MIN_CODE (charset)
+		  || to < CHARSET_MAX_CODE (charset));
 
   if (CHARSET_METHOD (charset) == CHARSET_METHOD_OFFSET)
     {
@@ -855,7 +853,7 @@ usage: (define-charset-internal ...)  */)
   struct charset charset;
   int id;
   int dimension;
-  int new_definition_p;
+  bool new_definition_p;
   int nchars;
 
   if (nargs != charset_arg_max)
@@ -1250,7 +1248,7 @@ define_charset_internal (Lisp_Object name,
 			 const char *code_space_chars,
 			 unsigned min_code, unsigned max_code,
 			 int iso_final, int iso_revision, int emacs_mule_id,
-			 int ascii_compatible, int supplementary,
+			 bool ascii_compatible, bool supplementary,
 			 int code_offset)
 {
   const unsigned char *code_space = (const unsigned char *) code_space_chars;
@@ -1448,7 +1446,7 @@ if CHARSET is designated instead.  */)
   (Lisp_Object dimension, Lisp_Object chars, Lisp_Object final_char, Lisp_Object charset)
 {
   int id;
-  int chars_flag;
+  bool chars_flag;
 
   CHECK_CHARSET_GET_ID (charset, id);
   check_iso_charset_parameter (dimension, chars, final_char);
@@ -1499,7 +1497,9 @@ string_xstring_p (Lisp_Object string)
    It may lookup a translation table TABLE if supplied.  */
 
 static void
-find_charsets_in_text (const unsigned char *ptr, ptrdiff_t nchars, ptrdiff_t nbytes, Lisp_Object charsets, Lisp_Object table, int multibyte)
+find_charsets_in_text (const unsigned char *ptr, ptrdiff_t nchars,
+		       ptrdiff_t nbytes, Lisp_Object charsets,
+		       Lisp_Object table, bool multibyte)
 {
   const unsigned char *pend = ptr + nbytes;
 
@@ -1549,7 +1549,7 @@ only `ascii', `eight-bit-control', and `eight-bit-graphic'.  */)
   ptrdiff_t from, from_byte, to, stop, stop_byte;
   int i;
   Lisp_Object val;
-  int multibyte = ! NILP (BVAR (current_buffer, enable_multibyte_characters));
+  bool multibyte = ! NILP (BVAR (current_buffer, enable_multibyte_characters));
 
   validate_region (&beg, &end);
   from = XFASTINT (beg);
@@ -1735,7 +1735,7 @@ decode_char (struct charset *charset, unsigned int code)
 /* Variable used temporarily by the macro ENCODE_CHAR.  */
 Lisp_Object charset_work;
 
-/* Return a code-point of CHAR in CHARSET.  If CHAR doesn't belong to
+/* Return a code-point of C in CHARSET.  If C doesn't belong to
    CHARSET, return CHARSET_INVALID_CODE (CHARSET).  If STRICT is true,
    use CHARSET's strict_max_char instead of max_char.  */
 
@@ -1978,7 +1978,7 @@ is specified.  */)
 struct charset *
 char_charset (int c, Lisp_Object charset_list, unsigned int *code_return)
 {
-  int maybe_null = 0;
+  bool maybe_null = 0;
 
   if (NILP (charset_list))
     charset_list = Vcharset_ordered_list;
@@ -2106,7 +2106,7 @@ DIMENSION, CHARS, and FINAL-CHAR.  */)
   (Lisp_Object dimension, Lisp_Object chars, Lisp_Object final_char)
 {
   int id;
-  int chars_flag;
+  bool chars_flag;
 
   check_iso_charset_parameter (dimension, chars, final_char);
   chars_flag = XFASTINT (chars) == 96;

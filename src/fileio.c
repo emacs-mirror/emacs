@@ -3142,8 +3142,7 @@ decide_coding_unwind (Lisp_Object unwind_data)
   undo_list = XCAR (unwind_data);
   buffer = XCDR (unwind_data);
 
-  if (current_buffer != XBUFFER (buffer))
-    set_buffer_internal (XBUFFER (buffer));
+  set_buffer_internal (XBUFFER (buffer));
   adjust_markers_for_delete (BEG, BEG_BYTE, Z, Z_BYTE);
   adjust_overlays_for_delete (BEG, Z - BEG);
   set_buffer_intervals (current_buffer, NULL);
@@ -3481,7 +3480,7 @@ variable `last-coding-system-used' to the coding system actually used.  */)
 		  Lisp_Object workbuf;
 		  struct buffer *buf;
 
-		  record_unwind_protect (Fset_buffer, Fcurrent_buffer ());
+		  record_unwind_current_buffer ();
 
 		  workbuf = Fget_buffer_create (build_string (" *code-converting-work*"));
 		  buf = XBUFFER (workbuf);
@@ -3760,7 +3759,8 @@ variable `last-coding-system-used' to the coding system actually used.  */)
       ptrdiff_t temp;
       ptrdiff_t this = 0;
       ptrdiff_t this_count = SPECPDL_INDEX ();
-      int multibyte = ! NILP (BVAR (current_buffer, enable_multibyte_characters));
+      bool multibyte
+	= ! NILP (BVAR (current_buffer, enable_multibyte_characters));
       Lisp_Object conversion_buffer;
       struct gcpro gcpro1;
 

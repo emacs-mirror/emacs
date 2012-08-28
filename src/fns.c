@@ -1100,7 +1100,7 @@ an error is signaled.  */)
     {
       ptrdiff_t chars = SCHARS (string);
       unsigned char *str = xmalloc (chars);
-      ptrdiff_t converted = str_to_unibyte (SDATA (string), str, chars, 0);
+      ptrdiff_t converted = str_to_unibyte (SDATA (string), str, chars);
 
       if (converted < chars)
 	error ("Can't convert the %"pD"dth character to unibyte", converted);
@@ -4656,13 +4656,12 @@ secure_hash (Lisp_Object algorithm, Lisp_Object object, Lisp_Object start, Lisp_
     {
       struct buffer *prev = current_buffer;
 
-      record_unwind_protect (Fset_buffer, Fcurrent_buffer ());
+      record_unwind_current_buffer ();
 
       CHECK_BUFFER (object);
 
       bp = XBUFFER (object);
-      if (bp != current_buffer)
-	set_buffer_internal (bp);
+      set_buffer_internal (bp);
 
       if (NILP (start))
 	b = BEGV;
@@ -4749,8 +4748,7 @@ secure_hash (Lisp_Object algorithm, Lisp_Object object, Lisp_Object start, Lisp_
 	}
 
       object = make_buffer_string (b, e, 0);
-      if (prev != current_buffer)
-	set_buffer_internal (prev);
+      set_buffer_internal (prev);
       /* Discard the unwind protect for recovering the current
 	 buffer.  */
       specpdl_ptr--;

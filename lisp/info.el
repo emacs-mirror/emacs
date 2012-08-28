@@ -4527,7 +4527,17 @@ first line or header line, and for breadcrumb links.")
              ((not (bobp))
               ;; Hide the punctuation at the end, too.
               (skip-chars-backward " \t,")
-              (put-text-property (point) header-end 'invisible t))))))
+              (put-text-property (point) header-end 'invisible t)
+	      ;; Hide the suffix of the Info file name.
+	      (beginning-of-line)
+	      (if (re-search-forward
+		   (format "File: %s\\([^,\n\t]+\\),"
+			   (if (stringp Info-current-file)
+			       (file-name-nondirectory Info-current-file)
+			     Info-current-file))
+		   header-end t)
+		  (put-text-property (match-beginning 1) (match-end 1)
+				     'invisible t)))))))
 
       ;; Fontify titles
       (goto-char (point-min))
@@ -4814,6 +4824,12 @@ first line or header line, and for breadcrumb links.")
                                '(font-lock-face info-xref
                                  mouse-face highlight
                                  help-echo "mouse-2: go to this URL"))))
+
+      ;; Hide empty lines at the end of the node.
+      (goto-char (point-max))
+      (skip-chars-backward "\n")
+      (when (< (1+ (point)) (point-max))
+	(put-text-property (1+ (point)) (point-max) 'invisible t))
 
       (set-buffer-modified-p nil))))
 

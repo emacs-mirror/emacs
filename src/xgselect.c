@@ -29,9 +29,6 @@ along with GNU Emacs.  If not, see <http§://www.gnu.org/licenses/>.  */
 #include <setjmp.h>
 #include "xterm.h"
 
-static GPollFD *gfds;
-static ptrdiff_t gfds_size;
-
 int
 xg_select (int fds_lim, SELECT_TYPE *rfds, SELECT_TYPE *wfds, SELECT_TYPE *efds,
 	   EMACS_TIME *timeout, sigset_t *sigmask)
@@ -41,35 +38,31 @@ xg_select (int fds_lim, SELECT_TYPE *rfds, SELECT_TYPE *wfds, SELECT_TYPE *efds,
 
   GMainContext *context;
   int have_wfds = wfds != NULL;
-  int n_gfds = 0, retval = 0, our_fds = 0, max_fds = fds_lim - 1;
+  GPollFD gfds_buf[128];
+  GPollFD *gfds = gfds_buf;
+  int gfds_size = sizeof gfds_buf / sizeof *gfds_buf;
+  int n_gfds, retval = 0, our_fds = 0, max_fds = fds_lim - 1;
   int i, nfds, tmo_in_millisec;
+  USE_SAFE_ALLOCA;
 
-  if (!x_in_use)
-    return pselect (fds_lim, rfds, wfds, efds, tmop, sigmask);
+  if (! (x_in_use
+	 && g_main_context_pending (context = g_main_context_default ())))
+    return pselect (fds_lim, rfds, wfds, efds, timeout, sigmask);
 
   if (rfds) memcpy (&all_rfds, rfds, sizeof (all_rfds));
   else FD_ZERO (&all_rfds);
   if (wfds) memcpy (&all_wfds, wfds, sizeof (all_rfds));
   else FD_ZERO (&all_wfds);
 
-  /* Update event sources in GLib. */
-  context = g_main_context_default ();
-  g_main_context_pending (context);
-
-  do {
-    if (n_gfds > gfds_size)
-      {
-        xfree (gfds);
-	gfds = xpalloc (0, &gfds_size, n_gfds - gfds_size, INT_MAX,
-			sizeof *gfds);
-      }
-
-    n_gfds = g_main_context_query (context,
-                                   G_PRIORITY_LOW,
-                                   &tmo_in_millisec,
-                                   gfds,
-                                   gfds_size);
-  } while (n_gfds > gfds_size);
+  n_gfds = g_main_context_query (context, G_PRIORITY_LOW, &tmo_in_millisec,
+				 gfds, gfds_size);
+  if (gfds_size < n_gfds)
+    {
+      SAFE_NALLOCA (gfds, sizeof *gfds, n_gfds);
+      gfds_size = n_gfds;
+      n_gfds = g_main_context_query (context, G_PRIORITY_LOW, &tmo_in_millisec,
+				     gfds, gfds_size);
+    }
 
   for (i = 0; i < n_gfds; ++i)
     {
@@ -85,6 +78,8 @@ xg_select (int fds_lim, SELECT_TYPE *rfds, SELECT_TYPE *wfds, SELECT_TYPE *efds,
           have_wfds = 1;
         }
     }
+
+  SAFE_FREE ();
 
   if (tmo_in_millisec >= 0)
     {
@@ -147,12 +142,3 @@ xg_select (int fds_lim, SELECT_TYPE *rfds, SELECT_TYPE *wfds, SELECT_TYPE *efds,
   return retval;
 }
 #endif /* USE_GTK || HAVE_GCONF || HAVE_GSETTINGS */
-
-void
-xgselect_initialize (void)
-{
-#if defined (USE_GTK) || defined (HAVE_GCONF) || defined (HAVE_GSETTINGS)
-  gfds_size = 128;
-  gfds = xmalloc (gfds_size * sizeof *gfds);
-#endif
-}

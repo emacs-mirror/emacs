@@ -28,6 +28,7 @@ GNULIBOBJS = $(BLD)/c-ctype.$(O) \
 	     $(BLD)/c-strncasecmp.$(O) \
 	     $(BLD)/dtoastr.$(O) \
 	     $(BLD)/dtotimespec.$(O)  \
+	     $(BLD)/execinfo.$(O)  \
 	     $(BLD)/getopt.$(O)  \
 	     $(BLD)/getopt1.$(O) \
 	     $(BLD)/gettime.$(O) \
@@ -127,6 +128,11 @@ $(BLD)/dtotimespec.$(O) : \
 	$(GNU_LIB)/dtotimespec.c \
 	$(GNU_LIB)/intprops.h \
 	$(GNU_LIB)/timespec.h \
+	$(CONFIG_H)
+
+$(BLD)/execinfo.$(O) : \
+	$(GNU_LIB)/execinfo.c \
+	$(GNU_LIB)/execinfo.h \
 	$(CONFIG_H)
 
 $(BLD)/getopt.$(O) : \
@@ -299,3 +305,7 @@ getopt_h:
 	      < getopt.in.h > getopt_.h-t
 	$(CP) getopt_.h-t getopt_.h
 	- $(DEL) getopt_.h-t
+
+execinfo.h: execinfo.in.h
+	$(CP) execinfo.in.h $@
+

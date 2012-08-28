@@ -97,7 +97,7 @@ ice_connection_closed (void)
    open to a session manager, just return.  */
 
 static void
-x_session_check_input (int fd, void *data, int for_read)
+x_session_check_input (int fd, void *data)
 {
   int ret;
 

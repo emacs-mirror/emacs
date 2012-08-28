@@ -23,7 +23,7 @@ so we will look at it and add it to the manual.
 
 * Installation Changes in Emacs 24.3
 
-** New configure option '--without-all' to disable additonal features.
+** New configure option '--without-all' to disable additional features.
 This disables most of the features that are normally enabled by default.
 
 ** New configure option '--enable-link-time-optimization' to utilize
@@ -178,6 +178,13 @@ end of the buffer.  It defaults to t.
 *** Global `M-s _' starts a symbol (identifier) incremental search,
 and `M-s _' in Isearch toggles symbol search mode.
 `M-s c' in Isearch toggles search case-sensitivity.
+
+*** `search-whitespace-regexp' now acts on ordinary incremental search
+as well, so that each sequence of spaces in the search string matches
+any combination of one or more whitespace characters.  To change this
+behavior, you can give `search-whitespace-regexp' a cons cell value,
+where the car and cdr specify values for ordinary and regular
+expression incremental search respectively.
 
 ** M-x move-to-column, if called interactively with no prefix arg, now
 prompts for a column number.
@@ -611,6 +618,19 @@ now accept a third argument to avoid choosing the selected window.
 
 *** New display action alist `inhibit-switch-frame', if non-nil, tells
 display action functions to avoid changing which frame is selected.
+
+*** New display action alist `pop-up-frame-parameters', if non-nil,
+specifies frame parameters to give any newly-created frame.
+
+*** The following variables are obsolete, as they can be replaced by
+appropriate entries in the `display-buffer-alist' function introduced
+in Emacs 24.1:
+
+**** `display-buffer-reuse-frames'
+**** `special-display-regexps'
+**** `special-display-frame-alist'
+**** `special-display-buffer-names'
+**** `special-display-function'
 
 ** Completion
 

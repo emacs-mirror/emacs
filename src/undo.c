@@ -324,7 +324,7 @@ truncate_undo_list (struct buffer *b)
   /* Make the buffer current to get its local values of variables such
      as undo_limit.  Also so that Vundo_outer_limit_function can
      tell which buffer to operate on.  */
-  record_unwind_protect (set_buffer_if_live, Fcurrent_buffer ());
+  record_unwind_current_buffer ();
   set_buffer_internal (b);
 
   list = BVAR (b, undo_list);

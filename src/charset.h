@@ -173,12 +173,24 @@ struct charset
      check if a code-point is in a valid range.  */
   unsigned char *code_space_mask;
 
-  /* 1 if there's no gap in code-points.  */
-  int code_linear_p;
+  /* True if there's no gap in code-points.  */
+  unsigned code_linear_p : 1;
 
-  /* If the charset is treated as 94-chars in ISO-2022, the value is 0.
-     If the charset is treated as 96-chars in ISO-2022, the value is 1.  */
-  int iso_chars_96;
+  /* True if the charset is treated as 96 chars in ISO-2022
+     as opposed to 94 chars.  */
+  unsigned iso_chars_96 : 1;
+
+  /* True if the charset is compatible with ASCII.  */
+  unsigned ascii_compatible_p : 1;
+
+  /* True if the charset is supplementary.  */
+  unsigned supplementary_p : 1;
+
+  /* True if all the code points are representable by Lisp_Int.  */
+  unsigned compact_codes_p : 1;
+
+  /* True if the charset is unified with Unicode.  */
+  unsigned unified_p : 1;
 
   /* ISO final byte of the charset: 48..127.  It may be -1 if the
      charset doesn't conform to ISO-2022.  */
@@ -191,15 +203,6 @@ struct charset
      priors, the identification number of the charset used in those
      version.  Otherwise, -1.  */
   int emacs_mule_id;
-
-  /* Nonzero if the charset is compatible with ASCII.  */
-  int ascii_compatible_p;
-
-  /* Nonzero if the charset is supplementary.  */
-  int supplementary_p;
-
-  /* Nonzero if all the code points are representable by Lisp_Int.  */
-  int compact_codes_p;
 
   /* The method for encoding/decoding characters of the charset.  */
   enum charset_method method;
@@ -239,8 +242,6 @@ struct charset
   /* Offset value to calculate a character code from code-point, and
      visa versa.  */
   int code_offset;
-
-  int unified_p;
 };
 
 /* Hash table of charset symbols vs. the corresponding attribute
@@ -456,7 +457,7 @@ extern Lisp_Object charset_work;
 
 /* Set to 1 when a charset map is loaded to warn that a buffer text
    and a string data may be relocated.  */
-extern int charset_map_loaded;
+extern bool charset_map_loaded;
 
 
 /* Set CHARSET to the charset highest priority of C, CODE to the
@@ -474,10 +475,10 @@ extern int charset_map_loaded;
    macro ISO_CHARSET_TABLE (DIMENSION, CHARS, FINAL_CHAR).  */
 extern int iso_charset_table[ISO_MAX_DIMENSION][ISO_MAX_CHARS][ISO_MAX_FINAL];
 
-/* A charset of type iso2022 who has DIMENSION, CHARS, and FINAL
+/* A charset of type iso2022 who has DIMENSION, CHARS_96, and FINAL
    (final character).  */
 #define ISO_CHARSET_TABLE(dimension, chars_96, final)	\
-  iso_charset_table[(dimension) - 1][(chars_96)][(final)]
+  iso_charset_table[(dimension) - 1][chars_96][final]
 
 /* Nonzero if the charset who has FAST_MAP may contain C.  */
 #define CHARSET_FAST_MAP_REF(c, fast_map)		\
@@ -495,7 +496,7 @@ extern int iso_charset_table[ISO_MAX_DIMENSION][ISO_MAX_CHARS][ISO_MAX_FINAL];
 
 
 
-/* 1 if CHARSET may contain the character C.  */
+/* True if CHARSET may contain the character C.  */
 #define CHAR_CHARSET_P(c, charset)					 \
   ((ASCII_CHAR_P (c) && (charset)->ascii_compatible_p)			 \
    || ((CHARSET_UNIFIED_P (charset)					 \

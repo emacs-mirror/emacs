@@ -54,7 +54,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "nsterm.h"
 #endif
 
-Lisp_Object Qwindowp, Qwindow_live_p, Qwindow_valid_p;
+Lisp_Object Qwindowp, Qwindow_live_p;
+static Lisp_Object Qwindow_valid_p;
 static Lisp_Object Qwindow_configuration_p, Qrecord_window_buffer;
 static Lisp_Object Qwindow_deletable_p, Qdelete_window, Qdisplay_buffer;
 static Lisp_Object Qreplace_buffer_in_windows, Qget_mru_window;
@@ -268,7 +269,7 @@ decode_any_window (register Lisp_Object window)
   return w;
 }
 
-struct window *
+static struct window *
 decode_valid_window (register Lisp_Object window)
 {
   struct window *w;
@@ -1968,6 +1969,9 @@ unshow_buffer (register struct window *w)
      is actually stored in that buffer, and the window's pointm isn't used.
      So don't clobber point in that buffer.  */
   if (! EQ (buf, XWINDOW (selected_window)->buffer)
+      /* Don't clobber point in current buffer either (this could be
+	 useful in connection with bug#12208).
+      && XBUFFER (buf) != current_buffer  */
       /* This line helps to fix Horsley's testbug.el bug.  */
       && !(WINDOWP (BVAR (b, last_selected_window))
 	   && w != XWINDOW (BVAR (b, last_selected_window))
@@ -3097,7 +3101,7 @@ run_window_configuration_change_hook (struct frame *f)
   /* Use the right buffer.  Matters when running the local hooks.  */
   if (current_buffer != XBUFFER (Fwindow_buffer (Qnil)))
     {
-      record_unwind_protect (Fset_buffer, Fcurrent_buffer ());
+      record_unwind_current_buffer ();
       Fset_buffer (Fwindow_buffer (Qnil));
     }
 
@@ -3134,7 +3138,7 @@ run_window_configuration_change_hook (struct frame *f)
 DEFUN ("run-window-configuration-change-hook", Frun_window_configuration_change_hook,
        Srun_window_configuration_change_hook, 1, 1, 0,
        doc: /* Run `window-configuration-change-hook' for FRAME.  */)
-     (Lisp_Object frame)
+  (Lisp_Object frame)
 {
   CHECK_LIVE_FRAME (frame);
   run_window_configuration_change_hook (XFRAME (frame));
@@ -3201,7 +3205,7 @@ set_window_buffer (Lisp_Object window, Lisp_Object buffer, int run_hooks_p, int 
      because that might itself be a local variable.  */
   if (window_initialized)
     {
-      record_unwind_protect (Fset_buffer, Fcurrent_buffer ());
+      record_unwind_current_buffer ();
       Fset_buffer (buffer);
     }
 
@@ -5899,7 +5903,13 @@ the return value is nil.  Otherwise the value is t.  */)
     }
 
   if (!NILP (new_current_buffer))
-    Fset_buffer (new_current_buffer);
+    {
+      Fset_buffer (new_current_buffer);
+      /* If the new current buffer doesn't appear in the selected
+	 window, go to its old point (see bug#12208).  */
+      if (!EQ (XWINDOW (data->current_window)->buffer, new_current_buffer))
+	Fgoto_char (make_number (old_point));
+    }
 
   Vminibuf_scroll_window = data->minibuf_scroll_window;
   minibuf_selected_window = data->minibuf_selected_window;

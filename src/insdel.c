@@ -1779,8 +1779,7 @@ modify_region (struct buffer *buffer, ptrdiff_t start, ptrdiff_t end,
 {
   struct buffer *old_buffer = current_buffer;
 
-  if (buffer != old_buffer)
-    set_buffer_internal (buffer);
+  set_buffer_internal (buffer);
 
   prepare_to_modify_buffer (start, end, NULL);
 
@@ -1794,8 +1793,7 @@ modify_region (struct buffer *buffer, ptrdiff_t start, ptrdiff_t end,
 
   bset_point_before_scroll (buffer, Qnil);
 
-  if (buffer != old_buffer)
-    set_buffer_internal (old_buffer);
+  set_buffer_internal (old_buffer);
 }
 
 /* Check that it is okay to modify the buffer between START and END,
@@ -2119,7 +2117,7 @@ DEFUN ("combine-after-change-execute", Fcombine_after_change_execute,
       return Qnil;
     }
 
-  record_unwind_protect (Fset_buffer, Fcurrent_buffer ());
+  record_unwind_current_buffer ();
 
   Fset_buffer (combine_after_change_buffer);
 

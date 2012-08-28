@@ -53,6 +53,7 @@ AC_DEFUN([gl_EARLY],
   # Code from module dtotimespec:
   # Code from module dup2:
   # Code from module environ:
+  # Code from module execinfo:
   # Code from module extensions:
   AC_REQUIRE([gl_USE_SYSTEM_EXTENSIONS])
   # Code from module extern-inline:
@@ -152,6 +153,7 @@ AC_DEFUN([gl_INIT],
   gl_UNISTD_MODULE_INDICATOR([dup2])
   gl_ENVIRON
   gl_UNISTD_MODULE_INDICATOR([environ])
+  gl_EXECINFO_H
   AC_REQUIRE([gl_EXTERN_INLINE])
   gl_FILEMODE
   gl_GETLOADAVG
@@ -534,6 +536,8 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/dtoastr.c
   lib/dtotimespec.c
   lib/dup2.c
+  lib/execinfo.c
+  lib/execinfo.in.h
   lib/filemode.c
   lib/filemode.h
   lib/ftoastr.c
@@ -605,6 +609,7 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/clock_time.m4
   m4/dup2.m4
   m4/environ.m4
+  m4/execinfo.m4
   m4/extensions.m4
   m4/extern-inline.m4
   m4/filemode.m4

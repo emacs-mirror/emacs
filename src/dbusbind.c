@@ -70,7 +70,7 @@ static Lisp_Object QCdbus_registered_signal;
 static Lisp_Object xd_registered_buses;
 
 /* Whether we are reading a D-Bus event.  */
-static int xd_in_read_queued_messages = 0;
+static bool xd_in_read_queued_messages = 0;
 
 
 /* We use "xd_" and "XD_" as prefix for all internal symbols, because
@@ -997,8 +997,7 @@ xd_find_watch_fd (DBusWatch *watch)
 }
 
 /* Prototype.  */
-static void
-xd_read_queued_messages (int fd, void *data, int for_read);
+static void xd_read_queued_messages (int fd, void *data);
 
 /* Start monitoring WATCH for possible I/O.  */
 static dbus_bool_t
@@ -1686,7 +1685,7 @@ xd_read_message (Lisp_Object bus)
 
 /* Callback called when something is ready to read or write.  */
 static void
-xd_read_queued_messages (int fd, void *data, int for_read)
+xd_read_queued_messages (int fd, void *data)
 {
   Lisp_Object busp = xd_registered_buses;
   Lisp_Object bus = Qnil;

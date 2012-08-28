@@ -84,6 +84,7 @@ lib/deps/
 lib/alloca.h
 lib/arg-nonnull.h
 lib/c++defs.h
+lib/execinfo.h
 lib/getopt.h
 lib/inttypes.h
 lib/stdalign.h

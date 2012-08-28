@@ -1,3 +1,307 @@
+2012-08-28  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Do not allow to set major mode for a dead buffer.
+	* buffer.c (Fset_buffer_major_mode): Signal an error
+	if the buffer is dead.
+	(Fother_buffer, other_buffer_safely): Remove redundant
+	nested declaration.
+
+2012-08-28  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Always use set_buffer_if_live to restore original buffer at unwind.
+	* buffer.h (record_unwind_current_buffer): New function.
+	* bytecode.c, dispnew.c, editfns.c, fileio.c, fns.c, insdel.c:
+	* keyboard.c, keymap.c, minibuf.c, print.c, process.c, textprop.c:
+	* undo.c, window.c: Adjust users.
+	* buffer.c (set_buffer_if_live): Fix comment.
+
+2012-08-28  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Fix usage of set_buffer_internal.
+	* buffer.h (set_buffer_internal): Make it BUFFER_INLINE.
+	* buffer.c (set_buffer_if_live): Use set_buffer_internal.
+	* coding.c (decode_coding): Omit redundant test.
+	* fileio.c (decide_coding_unwind): Likewise.
+	* fns.c (secure_hash): Likewise.
+	* insdel.c (modify_region): Likewise.
+	* keyboard.c (command_loop_1): Likewise.
+	* print.c (PRINTFINISH): Likewise.
+	* xdisp.c (run_window_scroll_functions): Use set_buffer_internal.
+
+2012-08-27  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* dispnew.c: Use bool for boolean.
+	(frame_garbaged, display_completed, delayed_size_change)
+	(fonts_changed_p, add_window_display_history)
+	(add_frame_display_history, verify_row_hash)
+	(adjust_glyph_matrix, clear_window_matrices, glyph_row_slice_p)
+	(row_equal_p, realloc_glyph_pool)
+	(allocate_matrices_for_frame_redisplay)
+	(showing_window_margins_p)
+	(adjust_frame_glyphs_for_frame_redisplay)
+	(build_frame_matrix_from_leaf_window, make_current)
+	(mirrored_line_dance, mirror_line_dance, update_frame)
+	(update_window_tree, update_single_window)
+	(check_current_matrix_flags, update_window, update_text_area)
+	(update_window_line, set_window_update_flags, scrolling_window)
+	(update_frame_1, scrolling, buffer_posn_from_coords)
+	(do_pending_window_change, change_frame_size)
+	(change_frame_size_1, sit_for):
+	Use bool for boolean.
+	(clear_glyph_matrix_rows): Rename from enable_glyph_matrix_rows,
+	and remove last int (actually boolean) argument, which was always 0.
+	All callers changed.
+	* dispextern.h, frame.h, lisp.h: Reflect above API changes.
+	* dispextern.h (struct composition_it): Use bool for boolean.
+	(struct glyph_matrix): Don't assume buffer sizes can fit in 'int'.
+	(struct bidi_it): Use unsigned:1, not int, for boolean prev_was_pdf.
+	* dired.c (file_name_completion):
+	Use bool for boolean.  (This was missed in an earlier change.)
+
+2012-08-27  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.c (Fset_window_configuration): Revert first part of
+	last change.
+
+2012-08-27  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.h (NSPanel): New class variable dialog_return.
+
+	* nsmenu.m (initWithContentRect:styleMask:backing:defer:): Initialize
+	dialog_return.
+	(windowShouldClose:): Use stop instead of stopModalWithCode.
+	(clicked:): Ditto, and also set dialog_return (Bug#12258).
+	(timeout_handler:): Use stop instead of abortModal.  Send a dummy
+	event.
+	(runDialogAt:): Make ret Lisp_Object.  Set it from dialog_return when
+	modal loop returns.
+
+2012-08-27  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* composite.c, data.c, dbusbind.c, dired.c: Use bool for booleans.
+	* composite.c (find_composition, composition_gstring_p)
+	(composition_reseat_it, find_automatic_composition):
+	* data.c (let_shadows_buffer_binding_p)
+	(let_shadows_global_binding_p, set_internal, make_blv)
+	(Fmake_variable_buffer_local, Fmake_local_variable)
+	(Fmake_variable_frame_local, arithcompare, cons_to_unsigned)
+	(cons_to_signed, arith_driver):
+	* dbusbind.c (xd_in_read_queued_messages):
+	* dired.c (directory_files_internal, file_name_completion):
+	Use bool for booleans.
+	* dired.c (file_name_completion):
+	* process.h (fd_callback):
+	Omit int (actually boolean) argument.  It wasn't being used.
+	All uses changed.
+	* composite.h, lisp.h: Reflect above API changes.
+
+	* cmds.c, coding.c: Use bool for booleans.
+	* cmds.c (move_point, Fself_insert_command):
+	* coding.h (struct composition status, struct coding_system):
+	* coding.c (detect_coding_utf_8, encode_coding_utf_8)
+	(detect_coding_utf_16, encode_coding_utf_16, detect_coding_emacs_mule)
+	(emacs_mule_char, decode_coding_emacs_mule)
+	(encode_coding_emacs_mule, detect_coding_iso_2022)
+	(decode_coding_iso_2022, encode_invocation_designation)
+	(encode_designation_at_bol, encode_coding_iso_2022)
+	(detect_coding_sjis, detect_coding_big5, decode_coding_sjis)
+	(decode_coding_big5, encode_coding_sjis, encode_coding_big5)
+	(detect_coding_ccl, encode_coding_ccl, decode_coding_raw_text)
+	(encode_coding_raw_text, detect_coding_charset)
+	(decode_coding_charset, encode_coding_charset, detect_eol)
+	(detect_coding, get_translation_table, produce_chars)
+	(consume_chars, reused_workbuf_in_use)
+	(make_conversion_work_buffer, code_conversion_save)
+	(decode_coding_object, encode_coding_object)
+	(detect_coding_system, char_encodable_p)
+	(Funencodable_char_position, code_convert_region)
+	(code_convert_string, code_convert_string_norecord)
+	(Fset_coding_system_priority):
+	* fileio.c (Finsert_file_contents):
+	Use bool for booleans.
+	* coding.h, lisp.h: Reflect above API changes.
+	* coding.c: Remove unnecessary static function decls.
+	(detect_coding): Use unsigned, not signed, to copy an unsigned field.
+	(decode_coding, encode_coding, decode_coding_gap): Return 'void',
+	not a boolean 'int', since callers never look at the return value.
+	(ALLOC_CONVERSION_WORK_AREA): Assume caller returns 'void', not 'int'.
+	* coding.h (decoding_buffer_size, encoding_buffer_size)
+	(emacs_mule_string_char): Remove unused extern decls.
+	(struct iso_2022_spec, struct coding_system):
+	Use 'unsigned int : 1' for boolean fields, since there's more than one.
+	(struct emacs_mule_spec): Remove unused field 'full_support'.
+	All initializations removed.
+	* cmds.c (internal_self_insert): Don't assume EMACS_INT fits in 'int'.
+
+2012-08-27  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Fix spare memory change (Bug#12286).
+	* alloc.c (mark_maybe_pointer): Handle MEM_TYPE_SPARE.
+	(valid_lisp_object_p): Likewise.
+
+2012-08-27  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.c (Fset_window_configuration): Record any window's old
+	buffer if it's replaced (see Bug#8789).  If the new current
+	buffer doesn't appear in the selected window, go to its old
+	point (Bug#12208).
+
+2012-08-27  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Special MEM_TYPE_SPARE to denote reserved memory.
+	* alloc.c (enum mem_type): New memory type.
+	(refill_memory_reserve): Use new type for spare memory.
+	This prevents live_cons_p and live_string_p from incorrect
+	detection of uninitialized objects from spare memory as live.
+
+2012-08-26  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Spelling fixes.
+	* Makefile.in (.PHONY): versioclean -> versionclean.
+
+	Remove unused external symbols.
+	* data.c (Qcons, Qfloat, Qmisc, Qstring, Qvector):
+	* window.c (Qwindow_valid_p, decode_valid_window):
+	Now static, not extern.
+	* data.c (Qinterval): Remove; unused.
+	(syms_of_data): Do not define 'interval'.
+	* lisp.h (Qinteger, Qstring, Qmisc, Qvector, Qfloat, Qcons):
+	* window.h (decode_valid_window):
+	Remove decls.
+
+	* character.c, charset.c, chartab.c: Use bool for booleans.
+	* character.c (lisp_string_width, string_count_byte8)
+	(string_escape_byte8):
+	* charset.c (charset_map_loaded, load_charset_map, read_hex):
+	(load_charset_map_from_file, map_charset_chars)
+	(Fdefine_charset_internal, define_charset_internal)
+	(Fdeclare_equiv_charset, find_charsets_in_text)
+	(Ffind_charset_region, char_charset, Fiso_charset):
+	* chartab.c (sub_char_table_ref, sub_char_table_ref_and_range)
+	(sub_char_table_set, sub_char_table_set_range)
+	(char_table_set_range, optimize_sub_char_table)
+	(map_sub_char_table):
+	Use bool for boolean.
+	* character.c (str_to_unibyte): Omit last boolean argument; it was
+	always 0.  All callers changed.
+	* character.h, charset.h: Adjust to match previous changes.
+	* character.h (char_printable_p): Remove decl of nonexistent function.
+	* charset.h (struct charset): Members code_linear_p, iso_chars_96,
+	ascii_compatible_p, supplementary_p, compact_codes_p, unified_p
+	are all boolean, so make them single-bit bitfields.
+
+	* lisp.h (ASET): Remove attempt to detect side effects.
+	It was meant to be temporary and it often doesn't work,
+	because when IDX has side effects the behavior of IDX==IDX
+	is undefined.  See Stefan Monnier in
+	<http://lists.gnu.org/archive/html/emacs-devel/2012-08/msg00762.html>.
+
+2012-08-26  Barry OReilly  <gundaetiapo@gmail.com>  (tiny change)
+
+	* lisp.h (functionp): New function (extracted from Ffunctionp).
+	(FUNCTIONP): Use it.
+	* eval.c (Ffunctionp): Use it.
+
+2012-08-25  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* xgselect.c (xg_select): Use auto storage for the GPollFD buffer
+	as that's faster and simpler than static storage.  Don't bother
+	with the g_main_context_query overhead if g_main_context_pending
+	says no events are pending.
+	(gfds, gfds_size): Remove these static vars.
+	(xgselect_initialize): Remove; no longer needed.
+	All uses and decls removed.
+
+	* emacs.c (fatal_error_signal_hook): Remove.
+	All uses removed.  This leftover from old code was always 0.
+
+	* casefiddle.c, casetab.c, category.c: Use bool for boolean.
+	* casefiddle.c (casify_object, casify_region):
+	* casetab.c (set_case_table):
+	* category.c, category.h (word_boundary_p):
+	* category.h (CHAR_HAS_CATEGORY):
+	Use bool for booleans, instead of int.
+
+2012-08-25  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in ($(BLD)/alloc.$(O)): Depend on $(GNU_LIB)/execinfo.h.
+
+2012-08-25  Paul Eggert  <eggert@cs.ucla.edu>
+
+	On assertion failure, print backtrace if available.
+	* alloc.c [ENABLE_CHECKING]: Include <execinfo.h>.
+	(die) [ENABLE_CHECKING]: Print a backtrace if available.
+	* Makefile.in (LIB_EXECINFO): New macro.
+	(LIBES): Use it.
+
+	* bytecode.c, callint.c, callproc.c: Use bool for boolean.
+	* bytecode.c (exec_byte_code):
+	* callint.c (check_mark, Fcall_interactively):
+	* callproc.c (Fcall_process, add_env, child_setup, getenv_internal_1)
+	(getenv_internal, sync_process_alive, call_process_exited):
+	* lisp.h (USE_SAFE_ALLOCA):
+	Use bool for booleans, instead of int.
+	* lisp.h, process.h: Adjust prototypes to match above changes.
+	* callint.c (Fcall_interactively): Don't assume the mark's
+	offset fits in 'int'.
+
+2012-08-24  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* buffer.c, buffer.h: Use bool for boolean.
+	* buffer.c (reset_buffer_local_variables)
+	(buffer_lisp_local_variables, Fset_buffer_modified_p)
+	(Frestore_buffer_modified_p, Fset_buffer_multibyte):
+	(overlays_at, overlays_in, mouse_face_overlay_overlaps)
+	(overlay_touches_p, overlay_strings, Foverlay_put)
+	(report_overlay_modification, call_overlay_mod_hooks):
+	(mmap_enlarge, mmap_set_vars):
+	* buffer.h (buffer_has_overlays, uppercasep, lowercasep):
+	Use bool for booleans, instead of int.
+	* buffer.c (compact_buffer, mmap_free_1): Return void, not int,
+	since the 1-or-0 return value is always ignored anyway.
+	(mmap_initialized_p):
+	* buffer.h (struct buffer_text.inhibit_shrinking): Now bool, not int.
+	* buffer.h, lisp.h: Adjust prototypes to match above changes.
+
+2012-08-23  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* bidi.c: Use bool for boolean.
+	This is a bit more readable, and makes the text segment of bidi.o
+	0.4% smaller on my platform (GCC 4.7.1 x86-64, Fedora 15).
+	Presumably it's faster too.
+	(bidi_initialized, bidi_ignore_explicit_marks_for_paragraph_level):
+	Now bool.
+	(bidi_cache_find_level_change, bidi_cache_iterator_state)
+	(bidi_unshelve_cache, bidi_init_it, bidi_count_bytes)
+	(bidi_char_at_pos, bidi_fetch_char, bidi_paragraph_init)
+	(bidi_explicit_dir_char, bidi_level_of_next_char)
+	(bidi_find_other_level_edge, bidi_move_to_visually_next):
+	Use bool for booleans, instead of int.
+	* dispextern.h (bidi_init_it, bidi_paragraph_init)
+	(bidi_unshelve_cache): Adjust decls to match code.
+
+2012-08-23  Martin Rudalics  <rudalics@gmx.at>
+
+	* keyboard.c (Fposn_at_x_y): Do not allow internal window as
+	argument.
+
+2012-08-23  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* atimer.c, atimer.h (turn_on_atimers): Use bool for boolean.
+	* atimer.h: Include <stdbool.h>.
+
+2012-08-22  Dan Nicolaescu  <dann@gnu.org>
+
+	* frame.h (FRAME_W32_P, FRAME_MSDOS_P, FRAME_NS_P): Change to
+	compile time tests instead of run time tests on systems that do
+	not use them.
+	(FRAME_MAC_P): Remove leftover from deleted code.
+	* frame.c (syms_of_frame): Remove leftover from deleted code.
+
+2012-08-22  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.m (insertText:): Don't clear modifiers if code is space.
+
 2012-08-22  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* fontset.c (FONTSET_ADD): Return void, not Lisp_Object.
@@ -60,8 +364,8 @@
 	* w32uniscribe.c (uniscribe_shape): Fix producing gstring
 	components for RTL text (Bug#11860).  Adjust X-OFFSET of each
 	non-base glyph for the width of the base character, according to
-	what x_draw_composite_glyph_string_foreground expects.  Generate
-	WADJUST value according to composition_gstring_width's
+	what x_draw_composite_glyph_string_foreground expects.
+	Generate WADJUST value according to composition_gstring_width's
 	expectations, to produce correct width of the composed character.
 	Reverse the sign of the DU offset produced by ScriptPlace.
 

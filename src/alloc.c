@@ -305,7 +305,9 @@ enum mem_type
      and runtime slowdown.  Minor but pointless.  */
   MEM_TYPE_VECTORLIKE,
   /* Special type to denote vector blocks.  */
-  MEM_TYPE_VECTOR_BLOCK
+  MEM_TYPE_VECTOR_BLOCK,
+  /* Special type to denote reserved memory.  */
+  MEM_TYPE_SPARE
 };
 
 static void *lisp_malloc (size_t, enum mem_type);
@@ -3816,22 +3818,22 @@ refill_memory_reserve (void)
     spare_memory[0] = malloc (SPARE_MEMORY);
   if (spare_memory[1] == 0)
     spare_memory[1] = lisp_align_malloc (sizeof (struct cons_block),
-						  MEM_TYPE_CONS);
+						  MEM_TYPE_SPARE);
   if (spare_memory[2] == 0)
     spare_memory[2] = lisp_align_malloc (sizeof (struct cons_block),
-					 MEM_TYPE_CONS);
+					 MEM_TYPE_SPARE);
   if (spare_memory[3] == 0)
     spare_memory[3] = lisp_align_malloc (sizeof (struct cons_block),
-					 MEM_TYPE_CONS);
+					 MEM_TYPE_SPARE);
   if (spare_memory[4] == 0)
     spare_memory[4] = lisp_align_malloc (sizeof (struct cons_block),
-					 MEM_TYPE_CONS);
+					 MEM_TYPE_SPARE);
   if (spare_memory[5] == 0)
     spare_memory[5] = lisp_malloc (sizeof (struct string_block),
-				   MEM_TYPE_STRING);
+				   MEM_TYPE_SPARE);
   if (spare_memory[6] == 0)
     spare_memory[6] = lisp_malloc (sizeof (struct string_block),
-				   MEM_TYPE_STRING);
+				   MEM_TYPE_SPARE);
   if (spare_memory[0] && spare_memory[1] && spare_memory[5])
     Vmemory_full = Qnil;
 #endif
@@ -4561,6 +4563,7 @@ mark_maybe_pointer (void *p)
       switch (m->type)
 	{
 	case MEM_TYPE_NON_LISP:
+	case MEM_TYPE_SPARE:
 	  /* Nothing to do; not a pointer to Lisp memory.  */
 	  break;
 
@@ -5017,6 +5020,7 @@ valid_lisp_object_p (Lisp_Object obj)
   switch (m->type)
     {
     case MEM_TYPE_NON_LISP:
+    case MEM_TYPE_SPARE:
       return 0;
 
     case MEM_TYPE_BUFFER:
@@ -6681,13 +6685,21 @@ which_symbols (Lisp_Object obj, EMACS_INT find_max)
 }
 
 #ifdef ENABLE_CHECKING
+
+# include <execinfo.h>
+
 bool suppress_checking;
 
 void
 die (const char *msg, const char *file, int line)
 {
+  enum { NPOINTERS_MAX = 500 };
+  void *buffer[NPOINTERS_MAX];
+  int npointers;
   fprintf (stderr, "\r\n%s:%d: Emacs fatal error: %s\r\n",
 	   file, line, msg);
+  npointers = backtrace (buffer, NPOINTERS_MAX);
+  backtrace_symbols_fd (buffer, npointers, STDERR_FILENO);
   abort ();
 }
 #endif

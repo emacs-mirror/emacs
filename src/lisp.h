@@ -606,10 +606,8 @@ clip_to_bounds (ptrdiff_t lower, EMACS_INT num, ptrdiff_t upper)
 
 #define AREF(ARRAY, IDX)	XVECTOR ((ARRAY))->contents[IDX]
 #define ASIZE(ARRAY)		XVECTOR ((ARRAY))->header.size
-/* The IDX==IDX tries to detect when the macro argument is side-effecting.  */
 #define ASET(ARRAY, IDX, VAL)	\
-  (eassert ((IDX) == (IDX)),				\
-   eassert ((IDX) >= 0 && (IDX) < ASIZE (ARRAY)),	\
+  (eassert (0 <= (IDX) && (IDX) < ASIZE (ARRAY)),	\
    XVECTOR (ARRAY)->contents[IDX] = (VAL))
 
 /* Convenience macros for dealing with Lisp strings.  */
@@ -1906,11 +1904,7 @@ typedef struct {
 			 Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object)
 
 /* Non-zero if OBJ is a Lisp function.  */
-#define FUNCTIONP(OBJ)					\
-     ((CONSP (OBJ) && EQ (XCAR (OBJ), Qlambda))		\
-      || (SYMBOLP (OBJ) && !NILP (Ffboundp (OBJ)))	\
-      || COMPILEDP (OBJ)				\
-      || SUBRP (OBJ))
+#define FUNCTIONP(OBJ) functionp(OBJ)
 
 /* defsubr (Sname);
    is how we define the symbol for function `name' at start-up time.  */
@@ -2579,8 +2573,7 @@ extern Lisp_Object Qoverflow_error, Qunderflow_error;
 extern Lisp_Object Qfloatp;
 extern Lisp_Object Qnumberp, Qnumber_or_marker_p;
 
-extern Lisp_Object Qinteger, Qinterval, Qsymbol, Qstring;
-extern Lisp_Object Qmisc, Qvector, Qfloat, Qcons, Qbuffer;
+extern Lisp_Object Qbuffer, Qinteger, Qsymbol;
 
 extern Lisp_Object Qfont_spec, Qfont_entity, Qfont_object;
 
@@ -2627,7 +2620,7 @@ extern _Noreturn void args_out_of_range_3 (Lisp_Object, Lisp_Object,
 					   Lisp_Object);
 extern _Noreturn Lisp_Object wrong_type_argument (Lisp_Object, Lisp_Object);
 extern Lisp_Object do_symval_forwarding (union Lisp_Fwd *);
-extern void set_internal (Lisp_Object, Lisp_Object, Lisp_Object, int);
+extern void set_internal (Lisp_Object, Lisp_Object, Lisp_Object, bool);
 extern void syms_of_data (void);
 extern void init_data (void);
 extern void swap_in_global_binding (struct Lisp_Symbol *);
@@ -2639,7 +2632,7 @@ extern void keys_of_cmds (void);
 /* Defined in coding.c */
 extern Lisp_Object Qcharset;
 extern Lisp_Object detect_coding_system (const unsigned char *, ptrdiff_t,
-                                         ptrdiff_t, int, int, Lisp_Object);
+                                         ptrdiff_t, bool, bool, Lisp_Object);
 extern void init_coding (void);
 extern void init_coding_once (void);
 extern void syms_of_coding (void);
@@ -2773,7 +2766,7 @@ _Noreturn void __executable_start (void);
 #endif
 extern Lisp_Object selected_frame;
 extern Lisp_Object Vwindow_system;
-extern Lisp_Object sit_for (Lisp_Object, int, int);
+extern Lisp_Object sit_for (Lisp_Object, bool, int);
 extern void init_display (void);
 extern void syms_of_display (void);
 
@@ -3110,14 +3103,14 @@ extern void syms_of_editfns (void);
 extern void set_time_zone_rule (const char *);
 
 /* Defined in buffer.c.  */
-extern int mouse_face_overlay_overlaps (Lisp_Object);
+extern bool mouse_face_overlay_overlaps (Lisp_Object);
 extern _Noreturn void nsberror (Lisp_Object);
 extern void adjust_overlays_for_insert (ptrdiff_t, ptrdiff_t);
 extern void adjust_overlays_for_delete (ptrdiff_t, ptrdiff_t);
 extern void fix_start_end_in_overlays (ptrdiff_t, ptrdiff_t);
-extern void report_overlay_modification (Lisp_Object, Lisp_Object, int,
+extern void report_overlay_modification (Lisp_Object, Lisp_Object, bool,
                                          Lisp_Object, Lisp_Object, Lisp_Object);
-extern int overlay_touches_p (ptrdiff_t);
+extern bool overlay_touches_p (ptrdiff_t);
 extern Lisp_Object Vbuffer_alist;
 extern Lisp_Object set_buffer_if_live (Lisp_Object);
 extern Lisp_Object other_buffer_safely (Lisp_Object);
@@ -3330,7 +3323,7 @@ extern void setup_process_coding_systems (Lisp_Object);
 #ifndef DOS_NT
  _Noreturn
 #endif
-extern int child_setup (int, int, int, char **, int, Lisp_Object);
+extern int child_setup (int, int, int, char **, bool, Lisp_Object);
 extern void init_callproc_1 (void);
 extern void init_callproc (void);
 extern void set_initial_environment (void);
@@ -3441,7 +3434,7 @@ extern void syms_of_ccl (void);
 extern void syms_of_dired (void);
 extern Lisp_Object directory_files_internal (Lisp_Object, Lisp_Object,
                                              Lisp_Object, Lisp_Object,
-                                             int, Lisp_Object);
+                                             bool, Lisp_Object);
 
 /* Defined in term.c */
 extern int *char_ins_del_vector;
@@ -3586,7 +3579,7 @@ extern Lisp_Object safe_alloca_unwind (Lisp_Object);
 extern void *record_xmalloc (size_t);
 
 #define USE_SAFE_ALLOCA			\
-  ptrdiff_t sa_count = SPECPDL_INDEX (); int sa_must_free = 0
+  ptrdiff_t sa_count = SPECPDL_INDEX (); bool sa_must_free = 0
 
 /* SAFE_ALLOCA allocates a simple buffer.  */
 
@@ -3654,6 +3647,38 @@ maybe_gc (void)
       || (!NILP (Vmemory_full)
 	  && consing_since_gc > memory_full_cons_threshold))
     Fgarbage_collect ();
+}
+
+LISP_INLINE int
+functionp (Lisp_Object object)
+{
+  if (SYMBOLP (object) && !NILP (Ffboundp (object)))
+    {
+      object = Findirect_function (object, Qt);
+
+      if (CONSP (object) && EQ (XCAR (object), Qautoload))
+	{
+	  /* Autoloaded symbols are functions, except if they load
+	     macros or keymaps.  */
+	  int i;
+	  for (i = 0; i < 4 && CONSP (object); i++)
+	    object = XCDR (object);
+
+	  return ! (CONSP (object) && !NILP (XCAR (object)));
+	}
+    }
+
+  if (SUBRP (object))
+    return XSUBR (object)->max_args != UNEVALLED;
+  else if (COMPILEDP (object))
+    return 1;
+  else if (CONSP (object))
+    {
+      Lisp_Object car = XCAR (object);
+      return EQ (car, Qlambda) || EQ (car, Qclosure);
+    }
+  else
+    return 0;
 }
 
 INLINE_HEADER_END

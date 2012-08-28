@@ -79,7 +79,7 @@ This is the one used for new buffers.  */)
   return Vascii_downcase_table;
 }
 
-static Lisp_Object set_case_table (Lisp_Object table, int standard);
+static Lisp_Object set_case_table (Lisp_Object, bool);
 
 DEFUN ("set-case-table", Fset_case_table, Sset_case_table, 1, 1, 0,
        doc: /* Select a new case table for the current buffer.
@@ -113,7 +113,7 @@ See `set-case-table' for more info on case tables.  */)
 }
 
 static Lisp_Object
-set_case_table (Lisp_Object table, int standard)
+set_case_table (Lisp_Object table, bool standard)
 {
   Lisp_Object up, canon, eqv;
 

@@ -1,3 +1,101 @@
+2012-08-28  Juri Linkov  <juri@jurta.org>
+
+	* info.el (Info-fontify-node): Hide empty lines at the end of
+	the node.  (Bug#12272)
+
+2012-08-27  Drew Adams  <drew.adams@oracle.com>
+
+	* dired.el (dired-pop-to-buffer): Make window start at beginning
+	of buffer (Bug#12281).
+
+2012-08-26  Chong Yidong  <cyd@gnu.org>
+
+	* window.el (special-display-regexps, special-display-frame-alist)
+	(special-display-buffer-names, special-display-function)
+	(display-buffer-reuse-frames): Mark as obsolete.
+
+	* progmodes/compile.el: Don't use display-buffer-reuse-frames.
+
+	* help.el (help-print-return-message): Don't treat
+	display-buffer-reuse-frames specially.
+
+2012-08-26  Chong Yidong  <cyd@gnu.org>
+
+	* progmodes/gdb-mi.el (gdb-display-buffer-other-frame-action): New
+	variable, replacing gdb-frame-parameters.
+	(gdb-frame-io-buffer, gdb-frame-breakpoints-buffer)
+	(gdb-frame-threads-buffer, gdb-frame-memory-buffer)
+	(gdb-frame-disassembly-buffer, gdb-frame-stack-buffer)
+	(gdb-frame-locals-buffer, gdb-frame-registers-buffer): Use it.
+	(def-gdb-frame-for-buffer): Macro deleted.  It is easier to define
+	the functions directly with gdb-display-buffer-other-frame-action.
+	(gdb-display-breakpoints-buffer, gdb-display-threads-buffer)
+	(gdb-display-memory-buffer, gdb-display-disassembly-buffer)
+	(gdb-display-stack-buffer, gdb-display-locals-buffer)
+	(gdb-display-registers-buffer): Define directly.
+	(def-gdb-display-buffer): Macro deleted.
+	(gdb-display-buffer): Remove second and third args, callers don't
+	use them.  Defer to the default display-buffer behavior, apart
+	from making windows dedicated.
+	(gdb-setup-windows): Don't call display-buffer unnecessarily.
+
+	* progmodes/gud.el (gud-display-line): Just use display-buffer.
+
+	* window.el (display-buffer-pop-up-frame): Handle a
+	pop-up-frame-parameters alist entry.
+	(display-buffer): Document it.
+
+2012-08-26  Chong Yidong  <cyd@gnu.org>
+
+	* isearch.el (search-whitespace-regexp): Make string and nil
+	values apply to both ordinary and regexp search.  Allow a cons
+	cell value to distinguish between the two.
+	(isearch-whitespace-regexp, isearch-search-forward)
+	(isearch-search-backward): New functions.
+	(isearch-occur, isearch-search-fun-default, isearch-search)
+	(isearch-lazy-highlight-new-loop): Use them.
+	(isearch-forward, isearch-forward-regexp): Doc fix.
+
+2012-08-26  Chong Yidong  <cyd@gnu.org>
+
+	* faces.el (help-argument-name): Always inherit from italic
+	(Bug#12213).
+
+2012-08-25  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (window--even-window-heights): Even heights when
+	WINDOW and the selected window form a vertical combination.
+	(display-buffer-use-some-window): Provide that window used gets
+	sized back by quit-window.  (Bug#11880) and (Bug#12091)
+
+2012-08-24  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix file time stamp problem with bzr and CVS (Bug#12001).
+	* vc/vc-cvs.el (vc-cvs-parse-entry): Ignore subsecond information
+	in the file's time stamp, since the version control system loses
+	that information.
+
+2012-08-22  Juri Linkov  <juri@jurta.org>
+
+	* info.el (Info-fontify-node): Hide the suffix of the
+	Info file name in the header line.  (Bug#12187)
+
+2012-08-22  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/cal-tex.el (cal-tex-weekly-common):
+	Restore leading blank page.
+
+2012-08-22  Le Wang  <l26wang@gmail.com>  (tiny change)
+
+	* misc.el (forward-to-word, backward-to-word): Activate or extend
+	the region under `shift-select-mode'.  (Bug#12231)
+
+2012-08-22  Bastien Guerry  <bzg@gnu.org>
+
+	* progmodes/executable.el (executable-prefix): Set to "#!" instead
+	of "#! ".  http://www.in-ulm.de/~mascheck/various/shebang/#details
+	gives details on why the space is never needed.
+
 2012-08-22  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (walk-window-tree, window-with-parameter): New
@@ -7,6 +105,15 @@
 	(window-in-direction): Simplify and rewrite doc-string.
 	(window--size-ignore): Rename to window--size-ignore-p.  Update
 	callers.
+	(display-buffer-in-atom-window, window--major-non-side-window)
+	(window--major-side-window, display-buffer-in-major-side-window)
+	(delete-side-window, display-buffer-in-side-window): New
+	functions.
+	(window--side-check, window-deletable-p, delete-window)
+	(delete-other-windows, split-window): Handle side windows and
+	atomic windows appropriately.
+	(window--display-buffer): Call display-buffer-record-window also
+	when the window buffer did not change.
 
 2012-08-22  Christopher Schmidt  <christopher@ch.ristopher.com>
 
@@ -391,7 +498,7 @@
 
 2012-08-13  Bastien Guerry  <bzg@gnu.org>
 
-	* window.el (special-display-popup-frame): Small docstring
+	* window.el (special-display-popup-frame): Minor docstring
 	enhancement.  (Bug#12172)
 
 2012-08-13  Andreas Schwab  <schwab@linux-m68k.org>

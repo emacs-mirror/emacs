@@ -2685,7 +2685,6 @@ Obeying it means displaying in another window the specified file and line."
 (declare-function global-hl-line-highlight  "hl-line" ())
 (declare-function hl-line-highlight         "hl-line" ())
 (declare-function gdb-display-source-buffer "gdb-mi"  (buffer))
-(declare-function gdb-display-buffer "gdb-mi" (buf dedicated &optional size))
 
 ;; Make sure the file named TRUE-FILE is in a buffer that appears on the screen
 ;; and that its line LINE is visible.
@@ -2702,10 +2701,7 @@ Obeying it means displaying in another window the specified file and line."
 	 (window (and buffer
 		      (or (get-buffer-window buffer)
 			  (if (eq gud-minor-mode 'gdbmi)
-			      (or (if (get-buffer-window buffer 'visible)
-				      (display-buffer buffer nil 'visible))
-				  (unless (gdb-display-source-buffer buffer)
-				    (gdb-display-buffer buffer nil 'visible))))
+			      (display-buffer buffer nil 'visible))
 			  (display-buffer buffer))))
 	 (pos))
     (if buffer

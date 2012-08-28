@@ -77,14 +77,14 @@ INLINE_HEADER_BEGIN
 /* Return the category set of character C in the current category table.  */
 #define CATEGORY_SET(c) char_category_set (c)
 
-/* Return 1 if CATEGORY_SET contains CATEGORY, else return 0.
+/* Return true if CATEGORY_SET contains CATEGORY.
    The faster version of `!NILP (Faref (category_set, category))'.  */
 #define CATEGORY_MEMBER(category, category_set)		 		\
   ((XCATEGORY_SET (category_set)->data[(category) / 8]			\
     >> ((category) % 8)) & 1)
 
-/* Return 1 if category set of CH contains CATEGORY, else return 0.  */
-CATEGORY_INLINE int
+/* Return true if category set of CH contains CATEGORY.  */
+CATEGORY_INLINE bool
 CHAR_HAS_CATEGORY (int ch, int category)
 {
   Lisp_Object category_set = CATEGORY_SET (ch);
@@ -108,14 +108,14 @@ CHAR_HAS_CATEGORY (int ch, int category)
 #define CATEGORY_TABLE_VERSION (table) \
   Fchar_table_extra_slot (table, make_number (1))
 
-/* Return 1 if there is a word boundary between two word-constituent
-   characters C1 and C2 if they appear in this order, else return 0.
+/* Return true if there is a word boundary between two
+   word-constituent characters C1 and C2 if they appear in this order.
    There is no word boundary between two word-constituent ASCII and
    Latin-1 characters.  */
 #define WORD_BOUNDARY_P(c1, c2)					\
   (!(SINGLE_BYTE_CHAR_P (c1) && SINGLE_BYTE_CHAR_P (c2))	\
    && word_boundary_p (c1, c2))
 
-extern int word_boundary_p (int, int);
+extern bool word_boundary_p (int, int);
 
 INLINE_HEADER_END

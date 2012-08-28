@@ -1570,9 +1570,7 @@ like in the respective argument of `key-binding'. */)
 	     would not be a problem here, but it is easier to keep
 	     things the same.
 	  */
-
-	  record_unwind_protect (Fset_buffer, Fcurrent_buffer ());
-
+	  record_unwind_current_buffer ();
 	  set_buffer_internal (XBUFFER (XWINDOW (window)->buffer));
 	}
     }

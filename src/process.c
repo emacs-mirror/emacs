@@ -4870,15 +4870,13 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
       for (channel = 0; channel <= max_input_desc; ++channel)
         {
           struct fd_callback_data *d = &fd_callback_info[channel];
-          if (FD_ISSET (channel, &Available)
-              && d->func != 0
-              && (d->condition & FOR_READ) != 0)
-            d->func (channel, d->data, 1);
-          if (FD_ISSET (channel, &write_mask)
-              && d->func != 0
-              && (d->condition & FOR_WRITE) != 0)
-            d->func (channel, d->data, 0);
-          }
+          if (d->func
+	      && ((d->condition & FOR_READ
+		   && FD_ISSET (channel, &Available))
+		  || (d->condition & FOR_WRITE
+		      && FD_ISSET (channel, &write_mask))))
+            d->func (channel, d->data);
+	}
 
       for (channel = 0; channel <= max_process_desc; channel++)
 	{
@@ -5198,7 +5196,7 @@ read_process_output (Lisp_Object proc, register int channel)
   /* There's no good reason to let process filters change the current
      buffer, and many callers of accept-process-output, sit-for, and
      friends don't expect current-buffer to be changed from under them.  */
-  record_unwind_protect (set_buffer_if_live, Fcurrent_buffer ());
+  record_unwind_current_buffer ();
 
   /* Read and dispose of the process output.  */
   outstream = p->filter;
@@ -6589,7 +6587,7 @@ exec_sentinel (Lisp_Object proc, Lisp_Object reason)
   /* There's no good reason to let sentinels change the current
      buffer, and many callers of accept-process-output, sit-for, and
      friends don't expect current-buffer to be changed from under them.  */
-  record_unwind_protect (set_buffer_if_live, Fcurrent_buffer ());
+  record_unwind_current_buffer ();
 
   sentinel = p->sentinel;
   if (NILP (sentinel))

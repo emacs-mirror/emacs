@@ -77,7 +77,7 @@ static Lisp_Object Vtemp_file_name_pattern;
 
 /* True if we are about to fork off a synchronous process or if we
    are waiting for it.  */
-int synch_process_alive;
+bool synch_process_alive;
 
 /* Nonzero => this is a string explaining death of synchronous subprocess.  */
 const char *synch_process_death;
@@ -94,8 +94,8 @@ int synch_process_retcode;
    On MSDOS, delete the temporary file on any kind of termination.
    On Unix, kill the process and any children on termination by signal.  */
 
-/* Nonzero if this is termination due to exit.  */
-static int call_process_exited;
+/* True if this is termination due to exit.  */
+static bool call_process_exited;
 
 static Lisp_Object
 call_process_kill (Lisp_Object fdpid)
@@ -190,7 +190,7 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
   (ptrdiff_t nargs, Lisp_Object *args)
 {
   Lisp_Object infile, buffer, current_dir, path, cleanup_info_tail;
-  int display_p;
+  bool display_p;
   int fd[2];
   int filefd;
 #define CALLPROC_BUFFER_SIZE_MIN (16 * 1024)
@@ -217,7 +217,7 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
   struct coding_system argument_coding;	/* coding-system of arguments */
   /* Set to the return value of Ffind_operation_coding_system.  */
   Lisp_Object coding_systems;
-  int output_to_buffer = 1;
+  bool output_to_buffer = 1;
 
   /* Qt denotes that Ffind_operation_coding_system is not yet called.  */
   coding_systems = Qt;
@@ -241,7 +241,7 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
     /* If arguments are supplied, we may have to encode them.  */
     if (nargs >= 5)
       {
-	int must_encode = 0;
+	bool must_encode = 0;
 	Lisp_Object coding_attrs;
 
 	for (i = 4; i < nargs; i++)
@@ -610,12 +610,12 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
       Lisp_Object volatile buffer_volatile = buffer;
       Lisp_Object volatile coding_systems_volatile = coding_systems;
       Lisp_Object volatile current_dir_volatile = current_dir;
-      int volatile display_p_volatile = display_p;
+      bool volatile display_p_volatile = display_p;
+      bool volatile output_to_buffer_volatile = output_to_buffer;
+      bool volatile sa_must_free_volatile = sa_must_free;
       int volatile fd1_volatile = fd1;
       int volatile fd_error_volatile = fd_error;
       int volatile fd_output_volatile = fd_output;
-      int volatile output_to_buffer_volatile = output_to_buffer;
-      int volatile sa_must_free_volatile = sa_must_free;
       ptrdiff_t volatile sa_count_volatile = sa_count;
       unsigned char const **volatile new_argv_volatile = new_argv;
 
@@ -766,11 +766,11 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 
   if (output_to_buffer)
     {
-      register int nread;
-      int first = 1;
+      int nread;
+      bool first = 1;
       EMACS_INT total_read = 0;
       int carryover = 0;
-      int display_on_the_fly = display_p;
+      bool display_on_the_fly = display_p;
       struct coding_system saved_coding;
 
       saved_coding = process_coding;
@@ -1086,7 +1086,7 @@ static char **
 add_env (char **env, char **new_env, char *string)
 {
   char **ep;
-  int ok = 1;
+  bool ok = 1;
   if (string == NULL)
     return new_env;
 
@@ -1126,8 +1126,7 @@ add_env (char **env, char **new_env, char *string)
    Therefore, the superior process must save and restore the value
    of environ around the vfork and the call to this function.
 
-   SET_PGRP is nonzero if we should put the subprocess into a separate
-   process group.
+   If SET_PGRP, put the subprocess into a separate process group.
 
    CURRENT_DIR is an elisp string giving the path of the current
    directory the subprocess should have.  Since we can't really signal
@@ -1135,7 +1134,8 @@ add_env (char **env, char **new_env, char *string)
    executable directory by the parent.  */
 
 int
-child_setup (int in, int out, int err, register char **new_argv, int set_pgrp, Lisp_Object current_dir)
+child_setup (int in, int out, int err, char **new_argv, bool set_pgrp,
+	     Lisp_Object current_dir)
 {
   char **env;
   char *pwd_var;
@@ -1394,7 +1394,7 @@ relocate_fd (int fd, int minfd)
 }
 #endif /* not WINDOWSNT */
 
-static int
+static bool
 getenv_internal_1 (const char *var, ptrdiff_t varlen, char **value,
 		   ptrdiff_t *valuelen, Lisp_Object env)
 {
@@ -1429,7 +1429,7 @@ getenv_internal_1 (const char *var, ptrdiff_t varlen, char **value,
   return 0;
 }
 
-static int
+static bool
 getenv_internal (const char *var, ptrdiff_t varlen, char **value,
 		 ptrdiff_t *valuelen, Lisp_Object frame)
 {

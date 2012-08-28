@@ -9137,7 +9137,7 @@ To control what happens when you exit the group, see the
 			   (list (cons 'save-article-group ogroup))))
 	   (case-fold-search t)
 	   (buf (current-buffer))
-	   dig to-address)
+	   dig to-address charset)
       (with-current-buffer gnus-original-article-buffer
 	;; Have the digest group inherit the main mail address of
 	;; the parent article.
@@ -9150,16 +9150,32 @@ To control what happens when you exit the group, see the
 				      to-address))))))
 	(setq dig (nnheader-set-temp-buffer " *gnus digest buffer*"))
 	(insert-buffer-substring gnus-original-article-buffer)
-	;; Remove lines that may lead nndoc to misinterpret the
-	;; document type.
 	(narrow-to-region
 	 (goto-char (point-min))
 	 (or (search-forward "\n\n" nil t) (point)))
+	;; Remove lines that may lead nndoc to misinterpret the
+	;; document type.
 	(goto-char (point-min))
 	(delete-matching-lines "^Path:\\|^From ")
+	;; Parse charset, and decode content transfer encoding.
+	(setq charset (mail-content-type-get
+		       (mail-header-parse-content-type
+			(or (gnus-fetch-field "content-type") ""))
+		       'charset))
+	(let ((encoding (gnus-fetch-field "content-transfer-encoding")))
+	  (when encoding
+	    (message-remove-header "content-transfer-encoding")
+	    (goto-char (point-max))
+	    (widen)
+	    (narrow-to-region (point) (point-max))
+	    (mm-decode-content-transfer-encoding
+	     (intern (downcase (mail-header-strip encoding))))))
 	(widen))
       (unwind-protect
-	  (if (let ((gnus-newsgroup-ephemeral-charset gnus-newsgroup-charset)
+	  (if (let ((gnus-newsgroup-ephemeral-charset
+		     (if charset
+			 (intern (downcase (gnus-strip-whitespace charset)))
+		       gnus-newsgroup-charset))
 		    (gnus-newsgroup-ephemeral-ignored-charsets
 		     gnus-newsgroup-ignored-charsets))
 		(gnus-group-read-ephemeral-group

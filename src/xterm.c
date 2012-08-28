@@ -10815,8 +10815,6 @@ x_initialize (void)
   XSetIOErrorHandler (x_io_error_quitter);
 
   signal (SIGPIPE, x_connection_signal);
-
-  xgselect_initialize ();
 }
 
 

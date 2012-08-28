@@ -2531,7 +2531,7 @@ REQUEST is the invoking directive without the leading dot."
     (cond
      ;; ((looking-at "[no]") (setq c t))     ; accept n(roff) and o(dd page)
      ;; ((looking-at "[te]") (setq c nil))   ; reject t(roff) and e(ven page)
-     ;; Per groff ".if v" is recognised as false (it means -Tversatec).
+     ;; Per groff ".if v" is recognized as false (it means -Tversatec).
      ((looking-at "[ntoev]")
       (setq c (memq (following-char) woman-if-conditions-true)))
      ;; Unrecognized letter so reject:

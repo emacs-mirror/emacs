@@ -145,10 +145,6 @@ specifies what to do when the user exits the help buffer."
 		     ;; Secondly, the buffer has not been displayed yet,
 		     ;; so we don't know whether its frame will be selected.
 		     nil)
-		    (display-buffer-reuse-frames
-		     (setq help-return-method (cons (selected-window)
-						    'quit-window))
-		     nil)
 		    ((not (one-window-p t))
 		     (setq help-return-method
 			   (cons (selected-window) 'quit-window))

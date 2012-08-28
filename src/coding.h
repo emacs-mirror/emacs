@@ -321,7 +321,7 @@ struct composition_status
 {
   enum composition_state state;
   enum composition_method method;
-  int old_form;		  /* 0:pre-21 form, 1:post-21 form */
+  bool old_form;	  /* true if pre-21 form */
   int length;		  /* number of elements produced in charbuf */
   int nchars;		  /* number of characters composed */
   int ncomps;		  /* number of composition components */
@@ -350,18 +350,18 @@ struct iso_2022_spec
      there was an invalid designation previously.  */
   int current_designation[4];
 
-  /* Set to 1 temporarily only when graphic register 2 or 3 is invoked
-     by single-shift while encoding.  */
-  int single_shifting;
-
-  /* Set to 1 temporarily only when processing at beginning of line.  */
-  int bol;
-
   /* If positive, we are now scanning CTEXT extended segment.  */
   int ctext_extended_segment_len;
 
-  /* If nonzero, we are now scanning embedded UTF-8 sequence.  */
-  int embedded_utf_8;
+  /* True temporarily only when graphic register 2 or 3 is invoked by
+     single-shift while encoding.  */
+  unsigned single_shifting : 1;
+
+  /* True temporarily only when processing at beginning of line.  */
+  unsigned bol : 1;
+
+  /* If true, we are now scanning embedded UTF-8 sequence.  */
+  unsigned embedded_utf_8 : 1;
 
   /* The current composition.  */
   struct composition_status cmp_status;
@@ -369,7 +369,6 @@ struct iso_2022_spec
 
 struct emacs_mule_spec
 {
-  int full_support;
   struct composition_status cmp_status;
 };
 
@@ -470,10 +469,6 @@ struct coding_system
   Lisp_Object dst_object;
   unsigned char *destination;
 
-  /* Set to 1 if the source of conversion is not in the member
-     `charbuf', but at `src_object'.  */
-  int chars_at_source;
-
   /* If an element is non-negative, it is a character code.
 
      If it is in the range -128..-1, it is a 8-bit character code
@@ -489,18 +484,21 @@ struct coding_system
   int *charbuf;
   int charbuf_size, charbuf_used;
 
+  /* True if the source of conversion is not in the member
+     `charbuf', but at `src_object'.  */
+  unsigned chars_at_source : 1;
+
   /* Set to 1 if charbuf contains an annotation.  */
-  int annotated;
+  unsigned annotated : 1;
 
   unsigned char carryover[64];
   int carryover_bytes;
 
   int default_char;
 
-  int (*detector) (struct coding_system *,
-                   struct coding_detection_info *);
+  bool (*detector) (struct coding_system *, struct coding_detection_info *);
   void (*decoder) (struct coding_system *);
-  int (*encoder) (struct coding_system *);
+  bool (*encoder) (struct coding_system *);
 };
 
 /* Meanings of bits in the member `common_flags' of the structure
@@ -688,22 +686,20 @@ struct coding_system
 #define ENCODE_UTF_8(str) code_convert_string_norecord (str, Qutf_8, 1)
 
 /* Extern declarations.  */
-extern Lisp_Object code_conversion_save (int, int);
-extern int decoding_buffer_size (struct coding_system *, int);
-extern int encoding_buffer_size (struct coding_system *, int);
+extern Lisp_Object code_conversion_save (bool, bool);
 extern void setup_coding_system (Lisp_Object, struct coding_system *);
 extern Lisp_Object coding_charset_list (struct coding_system *);
 extern Lisp_Object coding_system_charset_list (Lisp_Object);
 extern Lisp_Object code_convert_string (Lisp_Object, Lisp_Object,
-                                        Lisp_Object, int, int, int);
+                                        Lisp_Object, bool, bool, bool);
 extern Lisp_Object code_convert_string_norecord (Lisp_Object, Lisp_Object,
-                                                 int);
+                                                 bool);
 extern Lisp_Object raw_text_coding_system (Lisp_Object);
 extern Lisp_Object coding_inherit_eol_type (Lisp_Object, Lisp_Object);
 extern Lisp_Object complement_process_encoding_system (Lisp_Object);
 
-extern int decode_coding_gap (struct coding_system *,
-                              ptrdiff_t, ptrdiff_t);
+extern void decode_coding_gap (struct coding_system *,
+			       ptrdiff_t, ptrdiff_t);
 extern void decode_coding_object (struct coding_system *,
                                   Lisp_Object, ptrdiff_t, ptrdiff_t,
                                   ptrdiff_t, ptrdiff_t, Lisp_Object);
@@ -778,6 +774,5 @@ extern struct coding_system safe_terminal_coding;
 extern Lisp_Object Qcoding_system_error;
 
 extern char emacs_mule_bytes[256];
-extern int emacs_mule_string_char (unsigned char *);
 
 #endif /* EMACS_CODING_H */

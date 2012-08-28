@@ -197,8 +197,7 @@ int print_output_debug_flag EXTERNALLY_VISIBLE = 1;
 			       ? PT - start_point : 0),			\
 		  old_point_byte + (old_point_byte >= start_point_byte	\
 				    ? PT_BYTE - start_point_byte : 0));	\
-   if (old != current_buffer)						\
-     set_buffer_internal (old);
+   set_buffer_internal (old);
 
 #define PRINTCHAR(ch) printchar (ch, printcharfun)
 
@@ -488,7 +487,7 @@ temp_output_buffer_setup (const char *bufname)
   register struct buffer *old = current_buffer;
   register Lisp_Object buf;
 
-  record_unwind_protect (set_buffer_if_live, Fcurrent_buffer ());
+  record_unwind_current_buffer ();
 
   Fset_buffer (Fget_buffer_create (build_string (bufname)));
 

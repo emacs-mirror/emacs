@@ -109,18 +109,20 @@ directory_files_internal_unwind (Lisp_Object dh)
 }
 
 /* Function shared by Fdirectory_files and Fdirectory_files_and_attributes.
-   When ATTRS is zero, return a list of directory filenames; when
-   non-zero, return a list of directory filenames and their attributes.
+   If not ATTRS, return a list of directory filenames;
+   if ATTRS, return a list of directory filenames and their attributes.
    In the latter case, ID_FORMAT is passed to Ffile_attributes.  */
 
 Lisp_Object
-directory_files_internal (Lisp_Object directory, Lisp_Object full, Lisp_Object match, Lisp_Object nosort, int attrs, Lisp_Object id_format)
+directory_files_internal (Lisp_Object directory, Lisp_Object full,
+			  Lisp_Object match, Lisp_Object nosort, bool attrs,
+			  Lisp_Object id_format)
 {
   DIR *d;
   ptrdiff_t directory_nbytes;
   Lisp_Object list, dirfilename, encoded_directory;
   struct re_pattern_buffer *bufp = NULL;
-  int needsep = 0;
+  bool needsep = 0;
   ptrdiff_t count = SPECPDL_INDEX ();
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5;
   DIRENTRY *dp;
@@ -227,7 +229,7 @@ directory_files_internal (Lisp_Object directory, Lisp_Object full, Lisp_Object m
       if (DIRENTRY_NONEMPTY (dp))
 	{
 	  ptrdiff_t len;
-	  int wanted = 0;
+	  bool wanted = 0;
 	  Lisp_Object name, finalname;
 	  struct gcpro gcpro1, gcpro2;
 
@@ -381,9 +383,8 @@ which see.  */)
 }
 
 
-static Lisp_Object file_name_completion
-  (Lisp_Object file, Lisp_Object dirname, int all_flag, int ver_flag,
-   Lisp_Object predicate);
+static Lisp_Object file_name_completion (Lisp_Object, Lisp_Object, bool,
+					 Lisp_Object);
 
 DEFUN ("file-name-completion", Ffile_name_completion, Sfile_name_completion,
        2, 3, 0,
@@ -415,7 +416,7 @@ determined by the variable `completion-ignored-extensions', which see.  */)
   if (!NILP (handler))
     return call4 (handler, Qfile_name_completion, file, directory, predicate);
 
-  return file_name_completion (file, directory, 0, 0, predicate);
+  return file_name_completion (file, directory, 0, predicate);
 }
 
 DEFUN ("file-name-all-completions", Ffile_name_all_completions,
@@ -439,14 +440,15 @@ These are all file names in directory DIRECTORY which begin with FILE.  */)
   if (!NILP (handler))
     return call3 (handler, Qfile_name_all_completions, file, directory);
 
-  return file_name_completion (file, directory, 1, 0, Qnil);
+  return file_name_completion (file, directory, 1, Qnil);
 }
 
 static int file_name_completion_stat (Lisp_Object dirname, DIRENTRY *dp, struct stat *st_addr);
 static Lisp_Object Qdefault_directory;
 
 static Lisp_Object
-file_name_completion (Lisp_Object file, Lisp_Object dirname, int all_flag, int ver_flag, Lisp_Object predicate)
+file_name_completion (Lisp_Object file, Lisp_Object dirname, bool all_flag,
+		      Lisp_Object predicate)
 {
   DIR *d;
   ptrdiff_t bestmatchsize = 0;
@@ -458,11 +460,11 @@ file_name_completion (Lisp_Object file, Lisp_Object dirname, int all_flag, int v
   Lisp_Object encoded_file;
   Lisp_Object encoded_dir;
   struct stat st;
-  int directoryp;
-  /* If includeall is zero, exclude files in completion-ignored-extensions as
+  bool directoryp;
+  /* If not INCLUDEALL, exclude files in completion-ignored-extensions as
      well as "." and "..".  Until shown otherwise, assume we can't exclude
      anything.  */
-  int includeall = 1;
+  bool includeall = 1;
   ptrdiff_t count = SPECPDL_INDEX ();
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5;
 
@@ -500,7 +502,7 @@ file_name_completion (Lisp_Object file, Lisp_Object dirname, int all_flag, int v
     {
       DIRENTRY *dp;
       ptrdiff_t len;
-      int canexclude = 0;
+      bool canexclude = 0;
 
       errno = 0;
       dp = readdir (d);
@@ -528,7 +530,7 @@ file_name_completion (Lisp_Object file, Lisp_Object dirname, int all_flag, int v
       if (file_name_completion_stat (encoded_dir, dp, &st) < 0)
 	continue;
 
-      directoryp = S_ISDIR (st.st_mode);
+      directoryp = S_ISDIR (st.st_mode) != 0;
       tem = Qnil;
       /* If all_flag is set, always include all.
 	 It would not actually be helpful to the user to ignore any possible
@@ -716,7 +718,7 @@ file_name_completion (Lisp_Object file, Lisp_Object dirname, int all_flag, int v
 	      /* This tests that the current file is an exact match
 		 but BESTMATCH is not (it is too long).  */
 	      if ((matchsize == SCHARS (name)
-		   && matchsize + !!directoryp < SCHARS (bestmatch))
+		   && matchsize + directoryp < SCHARS (bestmatch))
 		  ||
 		  /* If there is no exact match ignoring case,
 		     prefer a match that does not change the case
@@ -728,7 +730,7 @@ file_name_completion (Lisp_Object file, Lisp_Object dirname, int all_flag, int v
 		     either both or neither are exact.  */
 		  (((matchsize == SCHARS (name))
 		    ==
-		    (matchsize + !!directoryp == SCHARS (bestmatch)))
+		    (matchsize + directoryp == SCHARS (bestmatch)))
 		   && (cmp = Fcompare_strings (name, zero,
 					       make_number (SCHARS (file)),
 					       file, zero,

@@ -196,6 +196,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    NSMatrix *matrix;
    int rows, cols;
    int timer_fired;
+   Lisp_Object dialog_return;
    }
 - initFromContents: (Lisp_Object)menu isQuestion: (BOOL)isQ;
 - addButton: (char *)str value: (Lisp_Object)val row: (int)row;

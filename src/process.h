@@ -184,7 +184,7 @@ pset_gnutls_cred_type (struct Lisp_Process *p, Lisp_Object val)
 
 /* True if we are about to fork off a synchronous process or if we
    are waiting for it.  */
-extern int synch_process_alive;
+extern bool synch_process_alive;
 
 /* Communicate exit status of sync process to from sigchld_handler
    to Fcall_process.  */
@@ -219,7 +219,7 @@ extern void hold_keyboard_input (void);
 extern void unhold_keyboard_input (void);
 extern int kbd_on_hold_p (void);
 
-typedef void (*fd_callback)(int fd, void *data, int for_read);
+typedef void (*fd_callback) (int fd, void *data);
 
 extern void add_read_fd (int fd, fd_callback func, void *data);
 extern void delete_read_fd (int fd);

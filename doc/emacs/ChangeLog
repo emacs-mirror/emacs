@@ -1,3 +1,9 @@
+2012-08-24  Michael Albinus  <michael.albinus@gmx.de>
+
+	* cmdargs.texi (General Variables): Setting
+	$DBUS_SESSION_BUS_ADDRESS to a dummy value suppresses connections
+	to the D-Bus session bus.  (Bug#12112)
+
 2012-08-14  Eli Zaretskii  <eliz@gnu.org>
 
 	* building.texi (Debugger Operation): Correct and improve

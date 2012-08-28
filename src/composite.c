@@ -428,7 +428,7 @@ get_composition_id (ptrdiff_t charpos, ptrdiff_t bytepos, ptrdiff_t nchars,
 
    This doesn't check the validity of composition.  */
 
-int
+bool
 find_composition (ptrdiff_t pos, ptrdiff_t limit,
 		  ptrdiff_t *start, ptrdiff_t *end,
 		  Lisp_Object *prop, Lisp_Object object)
@@ -709,7 +709,7 @@ static Lisp_Object fill_gstring_header (Lisp_Object, Lisp_Object,
                                         Lisp_Object, Lisp_Object,
                                         Lisp_Object);
 
-int
+bool
 composition_gstring_p (Lisp_Object gstring)
 {
   Lisp_Object header;
@@ -1212,11 +1212,13 @@ composition_compute_stop_pos (struct composition_it *cmp_it, ptrdiff_t charpos, 
    string.  In that case, FACE must not be NULL.
 
    If the character is composed, setup members of CMP_IT (id, nglyphs,
-   from, to, reversed_p), and return 1.  Otherwise, update
-   CMP_IT->stop_pos, and return 0.  */
+   from, to, reversed_p), and return true.  Otherwise, update
+   CMP_IT->stop_pos, and return false.  */
 
-int
-composition_reseat_it (struct composition_it *cmp_it, ptrdiff_t charpos, ptrdiff_t bytepos, ptrdiff_t endpos, struct window *w, struct face *face, Lisp_Object string)
+bool
+composition_reseat_it (struct composition_it *cmp_it, ptrdiff_t charpos,
+		       ptrdiff_t bytepos, ptrdiff_t endpos, struct window *w,
+		       struct face *face, Lisp_Object string)
 {
   if (endpos < 0)
     endpos = NILP (string) ? BEGV : 0;
@@ -1482,10 +1484,10 @@ struct position_record
 /* This is like find_composition, but find an automatic composition
    instead.  It is assured that POS is not within a static
    composition.  If found, set *GSTRING to the glyph-string
-   representing the composition, and return 1.  Otherwise, *GSTRING to
-   Qnil, and return 0.  */
+   representing the composition, and return true.  Otherwise, *GSTRING to
+   Qnil, and return false.  */
 
-static int
+static bool
 find_automatic_composition (ptrdiff_t pos, ptrdiff_t limit,
 			    ptrdiff_t *start, ptrdiff_t *end,
 			    Lisp_Object *gstring, Lisp_Object string)
@@ -1498,7 +1500,7 @@ find_automatic_composition (ptrdiff_t pos, ptrdiff_t limit,
   int c;
   Lisp_Object window;
   struct window *w;
-  int need_adjustment = 0;
+  bool need_adjustment = 0;
 
   window = Fget_buffer_window (Fcurrent_buffer (), Qnil);
   if (NILP (window))
