@@ -1,3 +1,29 @@
+2012-08-28  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsmenu.m (initWithContentRect:styleMask:backing:defer:): Initialize
+	button_values to NULL. Call setStykeMask so dialogs get a close button.
+	(windowShouldClose:): Set window_closed.
+	(dealloc): New member, free button_values.
+	(process_dialog:): Make member function. Remove window argument,
+	replace window with self. Count buttons and allocate and store values
+	in button_values.
+	(addButton:value:row:): value is int with the name tag.  Call setTag
+	with tag. Remove return self, declare return value as void.
+	(addString:row:): Remove return self, declare return value as void.
+	(addSplit): Remove return self, declare return value as void.
+	(clicked:): Remove return self, declare return value as void.
+	Set dialog_return to button_values[seltag]. Code formatting change.
+	(initFromContents:isQuestion:): Adjust call to process_dialog.
+	Code formatting change.
+	(timeout_handler:): Set timer_fired to YES.
+	(runDialogAt:): Set timer_fired to NO.
+	Handle click on close button as quit.
+
+	* nsterm.h (EmacsDialogPanel): Make timer_fired BOOL.
+	Add window_closed and button_values.  Add void as return value for
+	add(Button|String|Split).  addButton takes int instead of Lisp_Object.
+	Add process_dialog as new member.
+
 2012-08-28  Eli Zaretskii  <eliz@gnu.org>
 
 	* ralloc.c (free_bloc): Don't dereference a 'heap' structure if it

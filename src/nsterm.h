@@ -195,13 +195,15 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    NSTextField *title;
    NSMatrix *matrix;
    int rows, cols;
-   int timer_fired;
+   BOOL timer_fired, window_closed;
    Lisp_Object dialog_return;
+   Lisp_Object *button_values;
    }
 - initFromContents: (Lisp_Object)menu isQuestion: (BOOL)isQ;
-- addButton: (char *)str value: (Lisp_Object)val row: (int)row;
-- addString: (char *)str row: (int)row;
-- addSplit;
+- (void)process_dialog: (Lisp_Object)list;
+- (void)addButton: (char *)str value: (int)tag row: (int)row;
+- (void)addString: (char *)str row: (int)row;
+- (void)addSplit;
 - (Lisp_Object)runDialogAt: (NSPoint)p;
 - (void)timeout_handler: (NSTimer *)timedEntry;
 @end
