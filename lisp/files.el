@@ -2837,7 +2837,8 @@ symbol and VAL is a value that is considered safe."
   ;; This should be here at least as long as Emacs supports write-file-hooks.
   '((add-hook 'write-file-hooks 'time-stamp)
     (add-hook 'write-file-functions 'time-stamp)
-    (add-hook 'before-save-hook 'time-stamp))
+    (add-hook 'before-save-hook 'time-stamp nil t)
+    (add-hook 'before-save-hook 'delete-trailing-whitespace nil t))
   "Expressions that are considered safe in an `eval:' local variable.
 Add expressions to this list if you want Emacs to evaluate them, when
 they appear in an `eval' local variable specification, without first

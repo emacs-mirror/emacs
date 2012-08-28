@@ -1,3 +1,12 @@
+2012-08-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* ralloc.c (free_bloc): Don't dereference a 'heap' structure if it
+	is not one of the heaps we manage.  (Bug#12242)
+
+2012-08-28  Glenn Morris  <rgm@gnu.org>
+
+	* eval.c (Fcalled_interactively_p): Doc fix.  (Bug#11747)
+
 2012-08-28  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.c (Fset_window_configuration): Remove handling of

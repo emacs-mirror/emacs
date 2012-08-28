@@ -1,3 +1,35 @@
+2012-08-28  Leo Liu  <sdl.web@gmail.com>
+
+	* progmodes/sh-script.el (sh-dynamic-complete-functions): Adapt to
+	completion-at-point.  (Bug#12220)
+
+	* skeleton.el (skeleton-untabify): Change to nil (bug#12223).
+
+	* progmodes/sh-script.el (sh-indent-comment): Change to t (bug#12267).
+
+2012-08-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* files.el (safe-local-eval-forms): Fix before-save-hook entry to
+	be buffer-local; add delete-trailing-whitespace (bug#12259).
+
+2012-08-28  Jeremy Moore  <jmoore@ieee.org>  (tiny change)
+
+	* progmodes/hideif.el (hif-compress-define-list):
+	Fix typo.  (Bug#11951)
+
+2012-08-28  Dan Nicolaescu  <dann@gnu.org>
+
+	* progmodes/hideshow.el (hs-block-end-regexp): Restore lost
+	buffer local setting.
+
+	* net/rcirc.el (rcirc-split-message): Fix for buffer-local
+	rcirc-encode-coding-system.
+
+2012-08-28  Leo Liu  <sdl.web@gmail.com>
+
+	* net/rcirc.el (rcirc-split-message): New function.
+	(rcirc-send-message): Use it.  (Bug#12051)
+
 2012-08-28  Juri Linkov  <juri@jurta.org>
 
 	* info.el (Info-fontify-node): Hide empty lines at the end of
@@ -566,6 +598,7 @@
 	* files.el (hack-local-variables-filter): If an eval: form is not
 	known to be safe, and enable-local-variables is :safe, then ignore
 	the form totally, as is done for non-eval forms.  (Bug#12155)
+	This is CVE-2012-3479.
 
 2012-08-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
