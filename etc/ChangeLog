@@ -1,3 +1,13 @@
+2012-08-28  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* charsets/MULE-ethiopic.map: Fix typo in comment.
+	* charsets/MULE-ipa.map: Likewise.
+	* charsets/MULE-is13194.map: Likewise.
+	* charsets/MULE-lviscii.map: Likewise.
+	* charsets/MULE-sisheng.map: Likewise.
+	* charsets/MULE-tibetan.map: Likewise.
+	* charsets/MULE-uviscii.map: Likewise.
+
 2012-08-09  Chong Yidong  <cyd@gnu.org>
 
 	* images/splash.svg, images/splash.png: Tweak SVG paths to improve

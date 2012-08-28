@@ -1,3 +1,7 @@
+2012-08-28  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* charsets/mule-charsets.el (header): Fix typo.
+
 2012-08-24  Paul Eggert  <eggert@cs.ucla.edu>
 
 	On assertion failure, print backtrace if available.
