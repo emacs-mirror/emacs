@@ -1553,7 +1553,6 @@ list first, followed by the list of all buffers.  If no other buffer
 exists, return the buffer `*scratch*' (creating it if necessary).  */)
   (register Lisp_Object buffer, Lisp_Object visible_ok, Lisp_Object frame)
 {
-  Lisp_Object Fset_buffer_major_mode (Lisp_Object buffer);
   Lisp_Object tail, buf, pred;
   Lisp_Object notsogood = Qnil;
 
@@ -1624,7 +1623,6 @@ exists, return the buffer `*scratch*' (creating it if necessary).  */)
 Lisp_Object
 other_buffer_safely (Lisp_Object buffer)
 {
-  Lisp_Object Fset_buffer_major_mode (Lisp_Object buffer);
   Lisp_Object tail, buf;
 
   tail = Vbuffer_alist;
@@ -2064,8 +2062,10 @@ the current buffer's major mode.  */)
 
   CHECK_BUFFER (buffer);
 
-  if (STRINGP (BVAR (XBUFFER (buffer), name))
-      && strcmp (SSDATA (BVAR (XBUFFER (buffer), name)), "*scratch*") == 0)
+  if (NILP (BVAR (XBUFFER (buffer), name)))
+    error ("Attempt to set major mode for a dead buffer");
+
+  if (strcmp (SSDATA (BVAR (XBUFFER (buffer), name)), "*scratch*") == 0)
     function = find_symbol_value (intern ("initial-major-mode"));
   else
     {

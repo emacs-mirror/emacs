@@ -1,5 +1,13 @@
 2012-08-28  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	Do not allow to set major mode for a dead buffer.
+	* buffer.c (Fset_buffer_major_mode): Signal an error
+	if the buffer is dead.
+	(Fother_buffer, other_buffer_safely): Remove redundant
+	nested declaration.
+
+2012-08-28  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	Always use set_buffer_if_live to restore original buffer at unwind.
 	* buffer.h (record_unwind_current_buffer): New function.
 	* bytecode.c, dispnew.c, editfns.c, fileio.c, fns.c, insdel.c:
