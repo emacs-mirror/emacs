@@ -460,7 +460,7 @@ file_name_completion (Lisp_Object file, Lisp_Object dirname, bool all_flag,
   Lisp_Object encoded_file;
   Lisp_Object encoded_dir;
   struct stat st;
-  int directoryp;
+  bool directoryp;
   /* If not INCLUDEALL, exclude files in completion-ignored-extensions as
      well as "." and "..".  Until shown otherwise, assume we can't exclude
      anything.  */
@@ -530,7 +530,7 @@ file_name_completion (Lisp_Object file, Lisp_Object dirname, bool all_flag,
       if (file_name_completion_stat (encoded_dir, dp, &st) < 0)
 	continue;
 
-      directoryp = S_ISDIR (st.st_mode);
+      directoryp = S_ISDIR (st.st_mode) != 0;
       tem = Qnil;
       /* If all_flag is set, always include all.
 	 It would not actually be helpful to the user to ignore any possible
@@ -718,7 +718,7 @@ file_name_completion (Lisp_Object file, Lisp_Object dirname, bool all_flag,
 	      /* This tests that the current file is an exact match
 		 but BESTMATCH is not (it is too long).  */
 	      if ((matchsize == SCHARS (name)
-		   && matchsize + !!directoryp < SCHARS (bestmatch))
+		   && matchsize + directoryp < SCHARS (bestmatch))
 		  ||
 		  /* If there is no exact match ignoring case,
 		     prefer a match that does not change the case
@@ -730,7 +730,7 @@ file_name_completion (Lisp_Object file, Lisp_Object dirname, bool all_flag,
 		     either both or neither are exact.  */
 		  (((matchsize == SCHARS (name))
 		    ==
-		    (matchsize + !!directoryp == SCHARS (bestmatch)))
+		    (matchsize + directoryp == SCHARS (bestmatch)))
 		   && (cmp = Fcompare_strings (name, zero,
 					       make_number (SCHARS (file)),
 					       file, zero,

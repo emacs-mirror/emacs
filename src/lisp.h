@@ -2766,7 +2766,7 @@ _Noreturn void __executable_start (void);
 #endif
 extern Lisp_Object selected_frame;
 extern Lisp_Object Vwindow_system;
-extern Lisp_Object sit_for (Lisp_Object, int, int);
+extern Lisp_Object sit_for (Lisp_Object, bool, int);
 extern void init_display (void);
 extern void syms_of_display (void);
 

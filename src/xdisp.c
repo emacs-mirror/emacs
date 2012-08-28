@@ -15380,7 +15380,7 @@ set_vertical_scroll_bar (struct window *w)
    selected_window is redisplayed.
 
    We can return without actually redisplaying the window if
-   fonts_changed_p is nonzero.  In that case, redisplay_internal will
+   fonts_changed_p.  In that case, redisplay_internal will
    retry.  */
 
 static void
@@ -16224,7 +16224,7 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
     }
 #endif /* HAVE_WINDOW_SYSTEM */
 
-  /* We go to this label, with fonts_changed_p nonzero,
+  /* We go to this label, with fonts_changed_p set,
      if it is necessary to try again using larger glyph matrices.
      We have to redeem the scroll bar even in this case,
      because the loop in redisplay_internal expects that.  */
@@ -17705,15 +17705,15 @@ try_window_id (struct window *w)
     {
       rotate_matrix (current_matrix, first_unchanged_at_end_vpos + dvpos,
 		     bottom_vpos, dvpos);
-      enable_glyph_matrix_rows (current_matrix, bottom_vpos + dvpos,
-				bottom_vpos, 0);
+      clear_glyph_matrix_rows (current_matrix, bottom_vpos + dvpos,
+			       bottom_vpos);
     }
   else if (dvpos > 0)
     {
       rotate_matrix (current_matrix, first_unchanged_at_end_vpos,
 		     bottom_vpos, dvpos);
-      enable_glyph_matrix_rows (current_matrix, first_unchanged_at_end_vpos,
-				first_unchanged_at_end_vpos + dvpos, 0);
+      clear_glyph_matrix_rows (current_matrix, first_unchanged_at_end_vpos,
+			       first_unchanged_at_end_vpos + dvpos);
     }
 
   /* For frame-based redisplay, make sure that current frame and window

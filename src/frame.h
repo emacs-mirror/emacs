@@ -34,7 +34,7 @@ INLINE_HEADER_BEGIN
 /* Miscellanea.  */
 
 /* Nonzero means there is at least one garbaged frame. */
-extern int frame_garbaged;
+extern bool frame_garbaged;
 
 
 /* The structure representing a frame.  */

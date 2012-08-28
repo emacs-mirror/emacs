@@ -1,3 +1,33 @@
+2012-08-27  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* dispnew.c: Use bool for boolean.
+	(frame_garbaged, display_completed, delayed_size_change)
+	(fonts_changed_p, add_window_display_history)
+	(add_frame_display_history, verify_row_hash)
+	(adjust_glyph_matrix, clear_window_matrices, glyph_row_slice_p)
+	(row_equal_p, realloc_glyph_pool)
+	(allocate_matrices_for_frame_redisplay)
+	(showing_window_margins_p)
+	(adjust_frame_glyphs_for_frame_redisplay)
+	(build_frame_matrix_from_leaf_window, make_current)
+	(mirrored_line_dance, mirror_line_dance, update_frame)
+	(update_window_tree, update_single_window)
+	(check_current_matrix_flags, update_window, update_text_area)
+	(update_window_line, set_window_update_flags, scrolling_window)
+	(update_frame_1, scrolling, buffer_posn_from_coords)
+	(do_pending_window_change, change_frame_size)
+	(change_frame_size_1, sit_for):
+	Use bool for boolean.
+	(clear_glyph_matrix_rows): Rename from enable_glyph_matrix_rows,
+	and remove last int (actually boolean) argument, which was always 0.
+	All callers changed.
+	* dispextern.h, frame.h, lisp.h: Reflect above API changes.
+	* dispextern.h (struct composition_it): Use bool for boolean.
+	(struct glyph_matrix): Don't assume buffer sizes can fit in 'int'.
+	(struct bidi_it): Use unsigned:1, not int, for boolean prev_was_pdf.
+	* dired.c (file_name_completion):
+	Use bool for boolean.  (This was missed in an earlier change.)
+
 2012-08-27  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.c (Fset_window_configuration): Revert first part of
