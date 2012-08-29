@@ -1,3 +1,12 @@
+2012-08-29  Michael Albinus  <michael.albinus@gmx.de>
+
+	* eshell/esh-ext.el (eshell-external-command): Do not examine
+	remote shell scripts.  See
+	<https://bugs.launchpad.net/ubuntu/+source/emacs23/+bug/1035790>.
+
+	* net/tramp-sh.el (tramp-remote-path): Add "/sbin" and
+	"/usr/local/sbin".
+
 2012-08-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/cl-lib.el (buffer-string): Fix setter macro (bug#12293).
