@@ -1,3 +1,8 @@
+2012-08-29  Martin Blais  <blais@furius.ca>  (tiny change)
+
+	* progmodes/compile.el (compilation-always-kill): New var.
+	(compilation-start): Use it.
+
 2012-08-29  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* simple.el (read-only-mode): Move from files.el for bootstrapping.

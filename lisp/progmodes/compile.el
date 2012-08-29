@@ -1503,6 +1503,13 @@ Otherwise, construct a buffer name from NAME-OF-MODE."
     (compilation-start command nil name-function highlight-regexp)))
 (make-obsolete 'compile-internal 'compilation-start "22.1")
 
+(defcustom compilation-always-kill nil
+  "If nil, ask to kill compilation. If 't, always kill an
+incomplete compilation before starting a new one."
+  :type 'boolean
+  :version "24.3"
+  :group 'compilation)
+
 ;;;###autoload
 (defun compilation-start (command &optional mode name-function highlight-regexp)
   "Run compilation command COMMAND (low level interface).
@@ -1537,6 +1544,7 @@ Returns the compilation buffer created."
       (let ((comp-proc (get-buffer-process (current-buffer))))
 	(if comp-proc
 	    (if (or (not (eq (process-status comp-proc) 'run))
+                    compilation-always-kill
 		    (yes-or-no-p
 		     (format "A %s process is running; kill it? "
 			     name-of-mode)))
