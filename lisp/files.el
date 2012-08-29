@@ -4818,32 +4818,6 @@ prints a message in the minibuffer.  Instead, use `set-buffer-modified-p'."
 	       "Modification-flag cleared"))
   (set-buffer-modified-p arg))
 
-(define-minor-mode read-only-mode
-  "Change whether the current buffer is read-only.
-With prefix argument ARG, make the buffer read-only if ARG is
-positive, otherwise make it writable.  If buffer is read-only
-and `view-read-only' is non-nil, enter view mode.
-
-Do not call this from a Lisp program unless you really intend to
-do the same thing as the \\[toggle-read-only] command, including
-possibly enabling or disabling View mode.  Also, note that this
-command works by setting the variable `buffer-read-only', which
-does not affect read-only regions caused by text properties.  To
-ignore read-only status in a Lisp program (whether due to text
-properties or buffer state), bind `inhibit-read-only' temporarily
-to a non-nil value."
-  :variable buffer-read-only
-  (cond
-   ((and (not buffer-read-only) view-mode)
-    (View-exit-and-edit)
-    (make-local-variable 'view-read-only)
-    (setq view-read-only t))		; Must leave view mode.
-   ((and buffer-read-only view-read-only
-         ;; If view-mode is already active, `view-mode-enter' is a nop.
-         (not view-mode)
-         (not (eq (get major-mode 'mode-class) 'special)))
-    (view-mode-enter))))
-
 (defun toggle-read-only (&optional arg interactive)
   (declare (obsolete read-only-mode "24.3"))
   (interactive (list current-prefix-arg t))
