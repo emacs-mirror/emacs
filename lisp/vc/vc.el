@@ -1133,7 +1133,7 @@ For old-style locking-based version control systems, like RCS:
 	    (let ((visited (get-file-buffer file)))
 	      (when visited
 		(with-current-buffer visited
-		  (toggle-read-only -1))))))
+		  (read-only-mode -1))))))
 	;; Allow user to revert files with no changes
 	(save-excursion
           (dolist (file files)
@@ -1344,7 +1344,7 @@ After check-out, runs the normal hook `vc-checkout-hook'."
          ;; Maybe the backend is not installed ;-(
          (when writable
            (let ((buf (get-file-buffer file)))
-             (when buf (with-current-buffer buf (toggle-read-only -1)))))
+             (when buf (with-current-buffer buf (read-only-mode -1)))))
          (signal (car err) (cdr err))))
       `((vc-state . ,(if (or (eq (vc-checkout-model backend (list file)) 'implicit)
                              (not writable))

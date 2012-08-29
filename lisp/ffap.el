@@ -1703,7 +1703,7 @@ Only intended for interactive use."
 		      buffer-or-list
 		    (list buffer-or-list)))
     (with-current-buffer buffer
-      (toggle-read-only 1))))
+      (read-only-mode 1))))
 
 (defun ffap-read-only ()
   "Like `ffap', but mark buffer as read-only.

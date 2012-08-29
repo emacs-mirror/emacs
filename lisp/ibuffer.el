@@ -2401,7 +2401,7 @@ Operations on marked buffers:
           buffer's file as an argument.
   '\\[ibuffer-do-eval]' - Evaluate a form in each of the marked buffers.  This
           is a very flexible command.  For example, if you want to make all
-          of the marked buffers read only, try using (toggle-read-only 1) as
+          of the marked buffers read only, try using (read-only-mode 1) as
           the input form.
   '\\[ibuffer-do-view-and-eval]' - As above, but view each buffer while the form
           is evaluated.

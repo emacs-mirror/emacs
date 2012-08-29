@@ -588,6 +588,8 @@ are deprecated and will be removed eventually.
 
 * Lisp changes in Emacs 24.3
 
+** New minor mode `read-only-mode' to replace toggle-read-only (now obsolete).
+
 ** New functions `autoloadp' and `autoload-do-load'.
 
 ** New function `posnp' to test if an object is a `posn'.

@@ -1456,7 +1456,7 @@ file names with wildcards."
 	      (file-exists-p filename))
     (error "%s does not exist" filename))
   (let ((value (funcall fun filename wildcards)))
-    (mapc (lambda (b) (with-current-buffer b (toggle-read-only 1)))
+    (mapc (lambda (b) (with-current-buffer b (read-only-mode 1)))
 	  (if (listp value) value (list value)))
     value))
 
@@ -4818,18 +4818,11 @@ prints a message in the minibuffer.  Instead, use `set-buffer-modified-p'."
 	       "Modification-flag cleared"))
   (set-buffer-modified-p arg))
 
-(defun toggle-read-only (&optional arg message)
-  "Toggle the read-only state of the current buffer.
+(define-minor-mode read-only-mode
+  "Change whether the current buffer is read-only.
 With prefix argument ARG, make the buffer read-only if ARG is
-positive; otherwise make it writable.
-
-When making the buffer read-only, enable View mode if
-`view-read-only' is non-nil.  When making the buffer writable,
-disable View mode if View mode is enabled.
-
-If called interactively, or if called from Lisp with MESSAGE
-non-nil, print a message reporting the buffer's new read-only
-status.
+positive, otherwise make it writable.  If buffer is read-only
+and `view-read-only' is non-nil, enter view mode.
 
 Do not call this from a Lisp program unless you really intend to
 do the same thing as the \\[toggle-read-only] command, including
@@ -4839,30 +4832,24 @@ does not affect read-only regions caused by text properties.  To
 ignore read-only status in a Lisp program (whether due to text
 properties or buffer state), bind `inhibit-read-only' temporarily
 to a non-nil value."
-  (interactive "P")
+  :variable buffer-read-only
   (cond
-   ;; Do nothing if `buffer-read-only' already matches the state
-   ;; specified by ARG.
-   ((and arg
-	 (if (> (prefix-numeric-value arg) 0)
-	     buffer-read-only
-	   (not buffer-read-only))))
-   ;; If View mode is enabled, exit it.
-   ((and buffer-read-only view-mode)
+   ((and (not buffer-read-only) view-mode)
     (View-exit-and-edit)
-    (set (make-local-variable 'view-read-only) t))
-   ;; If `view-read-only' is non-nil, enable View mode.
-   ((and view-read-only
-	 (not buffer-read-only)
-	 (not view-mode)
-	 (not (eq (get major-mode 'mode-class) 'special)))
-    (view-mode-enter))
-   ;; The usual action: flip `buffer-read-only'.
-   (t (setq buffer-read-only (not buffer-read-only))
-      (force-mode-line-update)))
-  (if (or message (called-interactively-p 'interactive))
-      (message "Read-only %s for this buffer"
-	       (if buffer-read-only "enabled" "disabled"))))
+    (make-local-variable 'view-read-only)
+    (setq view-read-only t))		; Must leave view mode.
+   ((and buffer-read-only view-read-only
+         ;; If view-mode is already active, `view-mode-enter' is a nop.
+         (not view-mode)
+         (not (eq (get major-mode 'mode-class) 'special)))
+    (view-mode-enter))))
+
+(defun toggle-read-only (&optional arg interactive)
+  (declare (obsolete read-only-mode "24.3"))
+  (interactive (list current-prefix-arg t))
+  (if interactive
+      (call-interactively 'read-only-mode)
+    (read-only-mode (or arg 'toggle))))
 
 (defun insert-file (filename)
   "Insert contents of file FILENAME into buffer after point.

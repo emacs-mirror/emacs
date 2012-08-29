@@ -1,3 +1,13 @@
+2012-08-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* files.el (read-only-mode): New minor mode.
+	(toggle-read-only): Use it and mark obsolete.
+	(find-file--read-only):
+	* vc/vc.el (vc-next-action, vc-checkout):
+	* vc/vc-cvs.el (vc-cvs-checkout):
+	* obsolete/vc-mcvs.el (vc-mcvs-update):
+	* ffap.el (ffap--toggle-read-only): Update callers.
+
 2012-08-29  Michael Albinus  <michael.albinus@gmx.de>
 
 	* eshell/esh-ext.el (eshell-external-command): Do not examine

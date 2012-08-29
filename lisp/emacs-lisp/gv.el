@@ -191,8 +191,9 @@ well for simple place forms.
 Assignments of VAL to (NAME ARGS...) are expanded by binding the argument
 forms (VAL ARGS...) according to ARGLIST, then executing BODY, which must
 return a Lisp form that does the assignment.
-Actually, ARGLIST may be bound to temporary variables which are introduced
-automatically to preserve proper execution order of the arguments.  Example:
+The first arg in ARLIST (the one that receives VAL) receives an expression
+which can do arbitrary things, whereas the other arguments are all guaranteed
+to be pure and copyable.  Example use:
   (gv-define-setter aref (v a i) `(aset ,a ,i ,v))"
   (declare (indent 2) (debug (&define name sexp body)))
   `(gv-define-expander ,name
