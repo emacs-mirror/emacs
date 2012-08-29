@@ -1,3 +1,8 @@
+2012-08-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/sh-script.el (sh-font-lock-paren): Don't burp at BOB
+	(bug#12222).
+
 2012-08-27  Leo Liu  <sdl.web@gmail.com>
 
 	* progmodes/sh-script.el (sh-dynamic-complete-functions): Adapt to
