@@ -1,3 +1,50 @@
+2012-08-30  Glenn Morris  <rgm@gnu.org>
+
+	* lread.c (init_lread): For out-of-tree builds, only add the
+	source directory's site-lisp dir to the load-path if it exists,
+	consistent with in-tree builds.  (Bug#12302)
+
+2012-08-28  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsmenu.m (initWithContentRect:styleMask:backing:defer:): Initialize
+	button_values to NULL. Call setStykeMask so dialogs get a close button.
+	(windowShouldClose:): Set window_closed.
+	(dealloc): New member, free button_values.
+	(process_dialog:): Make member function. Remove window argument,
+	replace window with self. Count buttons and allocate and store values
+	in button_values.
+	(addButton:value:row:): value is int with the name tag.  Call setTag
+	with tag. Remove return self, declare return value as void.
+	(addString:row:): Remove return self, declare return value as void.
+	(addSplit): Remove return self, declare return value as void.
+	(clicked:): Remove return self, declare return value as void.
+	Set dialog_return to button_values[seltag]. Code formatting change.
+	(initFromContents:isQuestion:): Adjust call to process_dialog.
+	Code formatting change.
+	(timeout_handler:): Set timer_fired to YES.
+	(runDialogAt:): Set timer_fired to NO.
+	Handle click on close button as quit.
+
+	* nsterm.h (EmacsDialogPanel): Make timer_fired BOOL.
+	Add window_closed and button_values.  Add void as return value for
+	add(Button|String|Split).  addButton takes int instead of Lisp_Object.
+	Add process_dialog as new member.
+
+2012-08-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* ralloc.c (free_bloc): Don't dereference a 'heap' structure if it
+	is not one of the heaps we manage.  (Bug#12242)
+
+2012-08-28  Glenn Morris  <rgm@gnu.org>
+
+	* eval.c (Fcalled_interactively_p): Doc fix.  (Bug#11747)
+
+2012-08-28  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.c (Fset_window_configuration): Remove handling of
+	auto-buffer-name window parameter.  Install revision of reverted
+	fix.
+
 2012-08-28  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Do not allow to set major mode for a dead buffer.

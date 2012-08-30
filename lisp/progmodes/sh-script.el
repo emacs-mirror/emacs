@@ -202,6 +202,11 @@
   (require 'comint))
 (require 'executable)
 
+(autoload 'comint-completion-at-point "comint")
+(autoload 'comint-filename-completion "comint")
+(autoload 'shell-command-completion "shell")
+(autoload 'shell-environment-variable-completion "shell")
+
 (defvar font-lock-comment-face)
 (defvar font-lock-set-defaults)
 (defvar font-lock-string-face)
@@ -470,7 +475,6 @@ This is buffer-local in every such buffer.")
     (define-key map "\C-\M-x" 'sh-execute-region)
     (define-key map "\C-c\C-x" 'executable-interpret)
 
-    (define-key map [remap complete-tag] 'comint-dynamic-complete)
     (define-key map [remap delete-backward-char]
       'backward-delete-char-untabify)
     (define-key map "\C-c:" 'sh-set-shell)
@@ -553,9 +557,9 @@ This is buffer-local in every such buffer.")
   "Value to use for `skeleton-pair-default-alist' in Shell-Script mode.")
 
 (defcustom sh-dynamic-complete-functions
-  '(shell-dynamic-complete-environment-variable
-    shell-dynamic-complete-command
-    comint-dynamic-complete-filename)
+  '(shell-environment-variable-completion
+    shell-command-completion
+    comint-filename-completion)
   "Functions for doing TAB dynamic completion."
   :type '(repeat function)
   :group 'sh-script)
@@ -1187,7 +1191,7 @@ This value is used for the `+' and `-' symbols in an indentation variable."
   :group 'sh-indentation)
 (put 'sh-basic-offset 'safe-local-variable 'integerp)
 
-(defcustom sh-indent-comment nil
+(defcustom sh-indent-comment t
   "How a comment line is to be indented.
 nil means leave it as it is;
 t  means indent it as a normal line, aligning it to previous non-blank
@@ -1198,6 +1202,7 @@ a number means align to that column, e.g. 0 means first column."
 	  (const :tag "Indent as a normal line."  t)
 	  (integer :menu-tag "Indent to this col (0 means first col)."
 		   :tag "Indent to column number.") )
+  :version "24.3"
   :group 'sh-indentation)
 
 
@@ -1485,6 +1490,7 @@ with your script for an edit-interpret-debug cycle."
   (set (make-local-variable 'local-abbrev-table) sh-mode-abbrev-table)
   (set (make-local-variable 'comint-dynamic-complete-functions)
        sh-dynamic-complete-functions)
+  (add-hook 'completion-at-point-functions 'comint-completion-at-point nil t)
   ;; we can't look if previous line ended with `\'
   (set (make-local-variable 'comint-prompt-regexp) "^[ \t]*")
   (set (make-local-variable 'imenu-case-fold-search) nil)
@@ -4108,20 +4114,6 @@ The document is bounded by `sh-here-document-word'."
     (remove-hook 'post-self-insert-hook #'sh--maybe-here-document t)))
 
 ;; various other commands
-
-(autoload 'comint-dynamic-complete "comint"
-  "Dynamically perform completion at point." t)
-
-(autoload 'shell-dynamic-complete-command "shell"
-  "Dynamically complete the command at point." t)
-
-(autoload 'comint-dynamic-complete-filename "comint"
-  "Dynamically complete the filename at point." t)
-
-(autoload 'shell-dynamic-complete-environment-variable "shell"
-  "Dynamically complete the environment variable at point." t)
-
-
 
 (defun sh-beginning-of-command ()
   ;; FIXME: Redefine using SMIE.

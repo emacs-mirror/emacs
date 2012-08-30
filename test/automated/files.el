@@ -21,32 +21,129 @@
 
 (require 'ert)
 
-(defvar files-test-var1 nil)
+;; Set to t if the local variable was set, `query' if the query was
+;; triggered.
+(defvar files-test-result)
+
+(defvar files-test-safe-result)
+(put 'files-test-safe-result 'safe-local-variable 'booleanp)
 
 (defun files-test-fun1 ()
-  (setq files-test-var1 t))
+  (setq files-test-result t))
 
-(ert-deftest files-test-bug12155 ()
-  "Test for http://debbugs.gnu.org/12155 ."
-  (with-temp-buffer
-    (insert "text\n"
-            ";; Local Variables:\n"
-            ";; eval: (files-test-fun1)\n"
-            ";; End:\n")
-    (let ((enable-local-variables :safe)
-          (enable-local-eval 'maybe))
-      (hack-local-variables)
-      (should (eq files-test-var1 nil)))))
+;; Test combinations:
+;; `enable-local-variables' t, nil, :safe, :all, or something else.
+;; `enable-local-eval' t, nil, or something else.
 
-(ert-deftest files-test-disable-local-variables ()
-  "Test that setting enable-local-variables to nil works."
+(defvar files-test-local-variable-data
+  ;; Unsafe eval form
+  '((("eval: (files-test-fun1)")
+     (t t         (eq files-test-result t))
+     (t nil       (eq files-test-result nil))
+     (t maybe     (eq files-test-result 'query))
+     (nil t       (eq files-test-result nil))
+     (nil nil     (eq files-test-result nil))
+     (nil maybe   (eq files-test-result nil))
+     (:safe t     (eq files-test-result nil))
+     (:safe nil   (eq files-test-result nil))
+     (:safe maybe (eq files-test-result nil))
+     (:all t      (eq files-test-result t))
+     (:all nil    (eq files-test-result nil))
+     (:all maybe  (eq files-test-result t)) ; This combination is ambiguous.
+     (maybe t     (eq files-test-result 'query))
+     (maybe nil   (eq files-test-result 'query))
+     (maybe maybe (eq files-test-result 'query)))
+    ;; Unsafe local variable value
+    (("files-test-result: t")
+     (t t         (eq files-test-result 'query))
+     (t nil       (eq files-test-result 'query))
+     (t maybe     (eq files-test-result 'query))
+     (nil t       (eq files-test-result nil))
+     (nil nil     (eq files-test-result nil))
+     (nil maybe   (eq files-test-result nil))
+     (:safe t     (eq files-test-result nil))
+     (:safe nil   (eq files-test-result nil))
+     (:safe maybe (eq files-test-result nil))
+     (:all t      (eq files-test-result t))
+     (:all nil    (eq files-test-result t))
+     (:all maybe  (eq files-test-result t))
+     (maybe t     (eq files-test-result 'query))
+     (maybe nil   (eq files-test-result 'query))
+     (maybe maybe (eq files-test-result 'query)))
+    ;; Safe local variable
+    (("files-test-safe-result: t")
+     (t t         (eq files-test-safe-result t))
+     (t nil       (eq files-test-safe-result t))
+     (t maybe     (eq files-test-safe-result t))
+     (nil t       (eq files-test-safe-result nil))
+     (nil nil     (eq files-test-safe-result nil))
+     (nil maybe   (eq files-test-safe-result nil))
+     (:safe t     (eq files-test-safe-result t))
+     (:safe nil   (eq files-test-safe-result t))
+     (:safe maybe (eq files-test-safe-result t))
+     (:all t      (eq files-test-safe-result t))
+     (:all nil    (eq files-test-safe-result t))
+     (:all maybe  (eq files-test-safe-result t))
+     (maybe t     (eq files-test-result 'query))
+     (maybe nil   (eq files-test-result 'query))
+     (maybe maybe (eq files-test-result 'query)))
+    ;; Safe local variable with unsafe value
+    (("files-test-safe-result: 1")
+     (t t         (eq files-test-result 'query))
+     (t nil       (eq files-test-result 'query))
+     (t maybe     (eq files-test-result 'query))
+     (nil t       (eq files-test-safe-result nil))
+     (nil nil     (eq files-test-safe-result nil))
+     (nil maybe   (eq files-test-safe-result nil))
+     (:safe t     (eq files-test-safe-result nil))
+     (:safe nil   (eq files-test-safe-result nil))
+     (:safe maybe (eq files-test-safe-result nil))
+     (:all t      (eq files-test-safe-result 1))
+     (:all nil    (eq files-test-safe-result 1))
+     (:all maybe  (eq files-test-safe-result 1))
+     (maybe t     (eq files-test-result 'query))
+     (maybe nil   (eq files-test-result 'query))
+     (maybe maybe (eq files-test-result 'query))))
+  "List of file-local variable tests.
+Each list element should have the form
+
+  (LOCAL-VARS-LIST . TEST-LIST)
+
+where LOCAL-VARS-LISTS should be a list of local variable
+definitions (strings) and TEST-LIST is a list of tests to
+perform.  Each entry of TEST-LIST should have the form
+
+ (ENABLE-LOCAL-VARIABLES ENABLE-LOCAL-EVAL FORM)
+
+where ENABLE-LOCAL-VARIABLES is the value to assign to
+`enable-local-variables', ENABLE-LOCAL-EVAL is the value to
+assign to `enable-local-eval', and FORM is a desired `should'
+form.")
+
+(defun file-test--do-local-variables-test (str test-settings)
   (with-temp-buffer
-    (insert "text\n"
-            ";; Local Variables:\n"
-            ";; files-test-var1: t\n"
-            ";; End:\n")
-    (let ((enable-local-variables nil))
+    (insert str)
+    (let ((enable-local-variables (nth 0 test-settings))
+	  (enable-local-eval      (nth 1 test-settings))
+	  (files-test-result nil)
+	  (files-test-queried nil)
+	  (files-test-safe-result nil))
       (hack-local-variables)
-      (should (eq files-test-var1 nil)))))
+      (eval (nth 2 test-settings)))))
+
+(ert-deftest files-test-local-variables ()
+  "Test the file-local variables implementation."
+  (unwind-protect
+      (progn
+	(defadvice hack-local-variables-confirm (around files-test activate)
+	  (setq files-test-result 'query)
+	  nil)
+	(dolist (test files-test-local-variable-data)
+	  (let ((str (concat "text\n\n;; Local Variables:\n;; "
+			     (mapconcat 'identity (car test) "\n;; ")
+			     "\n;; End:\n")))
+	    (dolist (subtest (cdr test))
+	      (should (file-test--do-local-variables-test str subtest))))))
+    (ad-disable-advice 'hack-local-variables-confirm 'around 'files-test)))
 
 ;;; files.el ends here

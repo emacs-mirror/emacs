@@ -1498,6 +1498,7 @@ ns_popup_dialog (Lisp_Object position, Lisp_Object contents, Lisp_Object header)
   NSImage *img;
 
   dialog_return   = Qundefined;
+  button_values   = NULL;
   area.origin.x   = 3*SPACER;
   area.origin.y   = 2*SPACER;
   area.size.width = ICONSIZE;
@@ -1579,44 +1580,65 @@ ns_popup_dialog (Lisp_Object position, Lisp_Object contents, Lisp_Object header)
   [self setOneShot: YES];
   [self setReleasedWhenClosed: YES];
   [self setHidesOnDeactivate: YES];
+  [self setStyleMask:
+          NSTitledWindowMask|NSClosableWindowMask|NSUtilityWindowMask];
+
   return self;
 }
 
 
 - (BOOL)windowShouldClose: (id)sender
 {
+  window_closed = YES;
   [NSApp stop:self];
   return NO;
 }
 
-
-void process_dialog (id window, Lisp_Object list)
+- (void)dealloc
 {
-  Lisp_Object item;
+  xfree (button_values);
+  [super dealloc];
+}
+
+- (void)process_dialog: (Lisp_Object) list
+{
+  Lisp_Object item, lst = list;
   int row = 0;
+  int buttons = 0, btnnr = 0;
+
+  for (; XTYPE (lst) == Lisp_Cons; lst = XCDR (lst))
+    {
+      item = XCAR (list);
+      if (XTYPE (item) == Lisp_Cons)
+        ++buttons;
+    }
+
+  if (buttons > 0)
+    button_values = (Lisp_Object *) xmalloc (buttons * sizeof (*button_values));
 
   for (; XTYPE (list) == Lisp_Cons; list = XCDR (list))
     {
       item = XCAR (list);
       if (XTYPE (item) == Lisp_String)
         {
-          [window addString: SSDATA (item) row: row++];
+          [self addString: SSDATA (item) row: row++];
         }
       else if (XTYPE (item) == Lisp_Cons)
         {
-          [window addButton: SSDATA (XCAR (item))
-                      value: XCDR (item) row: row++];
+          button_values[btnnr] = XCDR (item);
+          [self addButton: SSDATA (XCAR (item)) value: btnnr row: row++];
+          ++btnnr;
         }
       else if (NILP (item))
         {
-          [window addSplit];
+          [self addSplit];
           row = 0;
         }
     }
 }
 
 
-- addButton: (char *)str value: (Lisp_Object)val row: (int)row
+- (void)addButton: (char *)str value: (int)tag row: (int)row
 {
   id cell;
 
@@ -1629,15 +1651,13 @@ void process_dialog (id window, Lisp_Object list)
   [cell setTarget: self];
   [cell setAction: @selector (clicked: )];
   [cell setTitle: [NSString stringWithUTF8String: str]];
-  [cell setTag: XHASH (val)];	// FIXME: BIG UGLY HACK!!
+  [cell setTag: tag];
   [cell setBordered: YES];
   [cell setEnabled: YES];
-
-  return self;
 }
 
 
-- addString: (char *)str row: (int)row
+- (void)addString: (char *)str row: (int)row
 {
   id cell;
 
@@ -1650,36 +1670,28 @@ void process_dialog (id window, Lisp_Object list)
   [cell setTitle: [NSString stringWithUTF8String: str]];
   [cell setBordered: YES];
   [cell setEnabled: NO];
-
-  return self;
 }
 
 
-- addSplit
+- (void)addSplit
 {
   [matrix addColumn];
   cols++;
-  return self;
 }
 
 
-- clicked: sender
+- (void)clicked: sender
 {
   NSArray *sellist = nil;
   EMACS_INT seltag;
 
   sellist = [sender selectedCells];
-  if ([sellist count]<1)
-    return self;
+  if ([sellist count] < 1)
+    return;
 
   seltag = [[sellist objectAtIndex: 0] tag];
-  if (seltag != XHASH (Qundefined)) // FIXME: BIG UGLY HACK!!
-    {
-      dialog_return = seltag;
-      [NSApp stop:self];
-    }
-
-  return self;
+  dialog_return = button_values[seltag];
+  [NSApp stop:self];
 }
 
 
@@ -1691,7 +1703,7 @@ void process_dialog (id window, Lisp_Object list)
   if (XTYPE (contents) == Lisp_Cons)
     {
       head = Fcar (contents);
-      process_dialog (self, Fcdr (contents));
+      [self process_dialog: Fcdr (contents)];
     }
   else
     head = contents;
@@ -1711,7 +1723,7 @@ void process_dialog (id window, Lisp_Object list)
     if (cols == 1 && rows > 1)	/* Never told where to split */
       {
         [matrix addColumn];
-        for (i = 0; i<rows/2; i++)
+        for (i = 0; i < rows/2; i++)
           {
             [matrix putCell: [matrix cellAtRow: (rows+1)/2 column: 0]
                       atRow: i column: 1];
@@ -1771,7 +1783,7 @@ void process_dialog (id window, Lisp_Object list)
                                data1: 0
                                data2: 0];
 
-  timer_fired = 1;
+  timer_fired = YES;
   /* We use sto because stopModal/abortModal out of the main loop does not
      seem to work in 10.6.  But as we use stop we must send a real event so
      the stop is seen and acted upon.  */
@@ -1799,9 +1811,9 @@ void process_dialog (id window, Lisp_Object list)
           [[NSRunLoop currentRunLoop] addTimer: tmo
                                        forMode: NSModalPanelRunLoopMode];
         }
-      timer_fired = 0;
+      timer_fired = NO;
       dialog_return = Qundefined;
-      ret = [NSApp runModalForWindow: self];
+      [NSApp runModalForWindow: self];
       ret = dialog_return;
       if (! timer_fired)
         {
@@ -1810,11 +1822,11 @@ void process_dialog (id window, Lisp_Object list)
         }
     }
 
-  {				/* FIXME: BIG UGLY HACK!!! */
-      Lisp_Object tmp;
-      *(EMACS_INT*)(&tmp) = ret;
-      return tmp;
-  }
+  if (EQ (ret, Qundefined) && window_closed)
+    /* Make close button pressed equivalent to C-g.  */
+    Fsignal (Qquit, Qnil);
+
+  return ret;
 }
 
 @end

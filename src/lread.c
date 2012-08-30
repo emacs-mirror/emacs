@@ -4253,9 +4253,12 @@ init_lread (void)
                         {
                           tem = Fexpand_file_name (build_string ("site-lisp"),
                                                    Vsource_directory);
-
-                          if (NILP (Fmember (tem, Vload_path)))
-                            Vload_path = Fcons (tem, Vload_path);
+                          tem1 = Ffile_exists_p (tem);
+                          if (!NILP (tem1))
+                            {
+                              if (NILP (Fmember (tem, Vload_path)))
+                                Vload_path = Fcons (tem, Vload_path);
+                            }
                         }
                     }
                 } /* Vinstallation_directory != Vsource_directory */

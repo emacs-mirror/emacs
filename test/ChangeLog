@@ -1,3 +1,8 @@
+2012-08-28  Chong Yidong  <cyd@gnu.org>
+
+	* automated/files.el: Test every combination of values for
+	enable-local-variables and enable-local-eval.
+
 2012-08-19  Chong Yidong  <cyd@gnu.org>
 
 	* redisplay-testsuite.el (test-redisplay): Use switch-to-buffer.

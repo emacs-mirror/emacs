@@ -329,7 +329,7 @@ This is only possible if Meta-CVS is responsible for FILE's directory.")
 	   (if vc-mcvs-use-edit
 	       (vc-mcvs-command nil 0 file "edit")
 	     (set-file-modes file (logior (file-modes file) 128))
-	     (if (equal file buffer-file-name) (toggle-read-only -1))))
+	     (if (equal file buffer-file-name) (read-only-mode -1))))
     ;; Check out a particular revision (or recreate the file).
     (vc-file-setprop file 'vc-working-revision nil)
     (apply 'vc-mcvs-command nil 0 file

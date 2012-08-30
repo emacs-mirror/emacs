@@ -1003,7 +1003,7 @@ Return as (TOP . BOTTOM) the extent of ifdef block."
   "Compress the define list ENV into a list of defined symbols only."
   (let ((new-defs nil))
     (dolist (def env new-defs)
-      (if (hif-lookup (car def)) (push (car env) new-defs)))))
+      (if (hif-lookup (car def)) (push (car def) new-defs)))))
 
 (defun hide-ifdef-set-define-alist (name)
   "Set the association for NAME to `hide-ifdef-env'."

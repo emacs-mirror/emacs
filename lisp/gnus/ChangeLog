@@ -1,3 +1,9 @@
+2012-08-29  Julien Danjou  <julien@danjou.info>
+
+	* gnus-notifications.el: New file.
+	(gnus-notifications-notify): New function.
+	(gnus-notifications): Use `gnus-notifications-notify'.
+
 2012-08-28  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-sum.el (gnus-summary-enter-digest-group): Decode content

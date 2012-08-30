@@ -207,6 +207,8 @@ It copies the region-rectangle as the last rectangle kill.
 
 * Changes in Specialized Modes and Packages in Emacs 24.3
 
+** Compilation has a new `compilation-always-kill' configuration variable.
+
 ** Term changes
 
 The variables `term-default-fg-color' and `term-default-bg-color' are
@@ -587,6 +589,8 @@ are deprecated and will be removed eventually.
 
 
 * Lisp changes in Emacs 24.3
+
+** New minor mode `read-only-mode' to replace toggle-read-only (now obsolete).
 
 ** New functions `autoloadp' and `autoload-do-load'.
 
