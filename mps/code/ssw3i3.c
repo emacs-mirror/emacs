@@ -35,7 +35,7 @@ Res StackScan(ScanState ss, Addr *stackBot)
   }
 
   AVER(AddrIsAligned((Addr)stackTop, sizeof(Addr)));  /* .align */
-  res = TraceScanArea(ss, stackTop, stackBot);
+  res = TraceScanAreaTagged(ss, stackTop, stackBot);
 
   __asm {
     add esp, 0xc       /* pop 3 registers to restore the stack pointer */

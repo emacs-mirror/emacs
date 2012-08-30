@@ -9,7 +9,7 @@
 ; <http://msdn.microsoft.com/en-us/library/9z1stfyw>
 
 .CODE
-EXTERN TraceScanArea : PROC
+EXTERN TraceScanAreaTagged : PROC
 
 StackScan PROC FRAME
    ; Prolog follows.  See 
@@ -56,7 +56,7 @@ StackScan PROC FRAME
    mov rdx, rsp    ; top of stack
    add rdx, 40     ; where last callee-save register stored
    ; mov rcx, rcx  ; ss already in the right register.
-   call TraceScanArea
+   call TraceScanAreaTagged
    add rsp, 40
    pop r15         ; pop the callee-save registers
    pop r14

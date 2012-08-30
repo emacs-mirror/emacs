@@ -305,6 +305,8 @@ Res PoolAlloc(Addr *pReturn, Pool pool, Size size,
   /* .hasaddr.critical: The PoolHasAddr check is expensive, and in */
   /* allocation-bound programs this is on the critical path. */
   AVER_CRITICAL(PoolHasAddr(pool, *pReturn));
+  /* All allocations should be aligned to the pool's alignment */
+  AVER_CRITICAL(AddrIsAligned(*pReturn, pool->alignment));
 
   /* All PoolAllocs should advance the allocation clock, so we count */
   /* it all in the fillMutatorSize field. */
