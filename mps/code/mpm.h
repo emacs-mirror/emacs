@@ -145,6 +145,7 @@ extern Bool SizeIsP2(Size size);
 extern Shift SizeLog2(Size size);
 extern Shift SizeFloorLog2(Size size);
 
+extern Bool WordIsP2(Word word);
 
 /* Formatted Output -- see <design/writef/>, <code/mpm.c> */
 

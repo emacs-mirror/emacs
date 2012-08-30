@@ -138,6 +138,7 @@ Bool TraceCheck(Trace trace)
   CHECKL(TraceIdCheck(trace->ti));
   CHECKL(trace == &trace->arena->trace[trace->ti]);
   CHECKL(TraceSetIsMember(trace->arena->busyTraces, trace));
+  CHECKL(AlignCheck(trace->whiteMinAlign));
   CHECKL(ZoneSetSub(trace->mayMove, trace->white));
   /* Use trace->state to check more invariants. */
   switch(trace->state) {
@@ -366,6 +367,10 @@ Res TraceAddWhite(Trace trace, Seg seg)
     if(pool->class->attr & AttrMOVINGGC) {
       trace->mayMove = ZoneSetUnion(trace->mayMove,
                                     ZoneSetOfSeg(trace->arena, seg));
+    }
+    /* This is used to eliminate unaligned references in TraceScanAreaTagged */
+    if(pool->alignment < trace->whiteMinAlign) {
+      trace->whiteMinAlign = pool->alignment;
     }
   }
 
@@ -656,6 +661,7 @@ found:
 
   trace->arena = arena;
   trace->why = why;
+  trace->whiteMinAlign = (Align)1 << (MPS_WORD_WIDTH - 1);
   trace->white = ZoneSetEMPTY;
   trace->mayMove = ZoneSetEMPTY;
   trace->ti = ti;
@@ -1402,13 +1408,37 @@ Res TraceScanArea(ScanState ss, Addr *base, Addr *limit)
 
 /* TraceScanAreaTagged -- scan contiguous area of tagged references
  *
- * This is as TraceScanArea except words are only fixed if they are
- * tagged as Dylan references (i.e., bottom two bits are zero).  @@@@
- * This Dylan-specificness should be generalized in some way.  */
-
+ * This is as TraceScanArea except words are only fixed they are tagged
+ * as zero according to the minimum alignment of the condemned set.
+ */
 Res TraceScanAreaTagged(ScanState ss, Addr *base, Addr *limit)
 {
-  return TraceScanAreaMasked(ss, base, limit, (Word)3);
+  TraceSet ts;
+  TraceId ti;
+  Trace trace;
+  Arena arena;
+  Word mask;
+  
+  AVERT(ScanState, ss);
+
+  /* This calculation of the mask could be moved to ScanStateInit
+   * but there is little point as we probably only do a couple of ambiguous
+   * scan per thread per flip. */
+  /* NOTE: An optimisation that maybe worth considering is setting some of the
+   * top bits in the mask as an early catch of addresses outside the arena.
+   * This might help slightly on 64-bit windows. However these are picked up
+   * soon afterwards by later checks.  The bottom bits are more important
+   * to check as we ignore them in AMCFix, so the non-reference could
+   * otherwise end up pinning an object. */
+  mask = (Word)-1;
+  ts = ss->traces;
+  arena = ss->arena;
+  TRACE_SET_ITER(ti, trace, ts, arena)
+    AVER(WordIsP2(trace->whiteMinAlign));
+    mask = mask & (trace->whiteMinAlign - 1);
+  TRACE_SET_ITER_END(ti, trace, ts, arena);
+
+  return TraceScanAreaMasked(ss, base, limit, mask);
 }
 
 
@@ -1423,6 +1453,7 @@ Res TraceScanAreaMasked(ScanState ss, Addr *base, Addr *limit, Word mask)
   Addr *p;
   Ref ref;
 
+  AVERT(ScanState, ss);
   AVER(base != NULL);
   AVER(limit != NULL);
   AVER(base < limit);

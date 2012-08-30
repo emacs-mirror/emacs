@@ -499,6 +499,7 @@ typedef struct TraceStruct {
   TraceId ti;                   /* index into TraceSets */
   Arena arena;                  /* owning arena */
   int why;                      /* why the trace began */
+  Align whiteMinAlign;          /* minimum alignment of references in white set */
   ZoneSet white;                /* zones in the white set */
   ZoneSet mayMove;              /* zones containing possibly moving objs */
   TraceState state;             /* current state of trace */
