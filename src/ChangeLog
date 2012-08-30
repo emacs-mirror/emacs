@@ -1,3 +1,9 @@
+2012-08-30  Glenn Morris  <rgm@gnu.org>
+
+	* lread.c (init_lread): For out-of-tree builds, only add the
+	source directory's site-lisp dir to the load-path if it exists,
+	consistent with in-tree builds.  (Bug#12302)
+
 2012-08-28  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsmenu.m (initWithContentRect:styleMask:backing:defer:): Initialize
