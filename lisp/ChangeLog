@@ -1,3 +1,8 @@
+2012-08-30  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/holidays.el (holiday-christian-holidays):
+	Rename an entry.  (Bug#12289)
+
 2012-08-29  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/sh-script.el (sh-font-lock-paren): Don't burp at BOB
