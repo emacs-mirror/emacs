@@ -1504,8 +1504,8 @@ Otherwise, construct a buffer name from NAME-OF-MODE."
 (make-obsolete 'compile-internal 'compilation-start "22.1")
 
 (defcustom compilation-always-kill nil
-  "If nil, ask to kill compilation. If 't, always kill an
-incomplete compilation before starting a new one."
+  "If t, always kill a running compilation process before starting a new one.
+If nil, ask to kill it."
   :type 'boolean
   :version "24.3"
   :group 'compilation)
