@@ -365,7 +365,6 @@ Other major modes are defined by comparison with this one."
     (define-key map ">" 'end-of-buffer)
     (define-key map "<" 'beginning-of-buffer)
     (define-key map "g" 'revert-buffer)
-    (define-key map "z" 'kill-this-buffer)
     map))
 
 (put 'special-mode 'mode-class 'special)

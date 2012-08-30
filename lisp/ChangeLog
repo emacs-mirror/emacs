@@ -1,3 +1,7 @@
+2012-08-30  Richard Stallman  <rms@gnu.org>
+
+	* simple.el (special-mode-map): Delete binding for `z'.
+
 2012-08-30  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* progmodes/compile.el (compilation-always-kill): Doc fix.
