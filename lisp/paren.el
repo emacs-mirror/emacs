@@ -52,8 +52,17 @@ otherwise)."
   :group 'paren-showing)
 
 (defcustom show-paren-delay 0.125
-  "Time in seconds to delay before showing a matching paren."
+  "Time in seconds to delay before showing a matching paren.
+If you change this without using customize while `show-paren-mode' is
+active, you must toggle the mode off and on again for this to take effect."
   :type '(number :tag "seconds")
+  :initialize 'custom-initialize-default
+  :set (lambda (sym val)
+	 (if (not show-paren-mode)
+	     (set sym val)
+	   (show-paren-mode -1)
+	   (set sym val)
+	   (show-paren-mode 1)))
   :group 'paren-showing)
 
 (defcustom show-paren-priority 1000

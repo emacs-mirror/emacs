@@ -1,3 +1,8 @@
+2012-08-30  Glenn Morris  <rgm@gnu.org>
+
+	* paren.el (show-paren-delay):
+	Add a :set function.  Doc fix.  (Bug#12297)
+
 2012-08-29  Martin Blais  <blais@furius.ca>  (tiny change)
 
 	* progmodes/compile.el (compilation-always-kill): New var.
