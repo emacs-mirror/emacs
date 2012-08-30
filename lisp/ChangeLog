@@ -1,3 +1,8 @@
+2012-08-30  Chong Yidong  <cyd@gnu.org>
+
+	* window.el (display-buffer-reuse-frames): Make the obsolescence
+	message more informative.
+
 2012-08-30  Glenn Morris  <rgm@gnu.org>
 
 	* paren.el (show-paren-delay):

@@ -4710,7 +4710,11 @@ that frame."
   :type 'boolean
   :version "21.1"
   :group 'windows)
-(make-obsolete-variable 'display-buffer-reuse-frames 'display-buffer-alist "24.3")
+
+(make-obsolete-variable
+ 'display-buffer-reuse-frames
+ "use a `reusable-frames' alist entry in `display-buffer-alist'."
+ "24.3")
 
 (defcustom pop-up-windows t
   "Non-nil means `display-buffer' should make a new window."
