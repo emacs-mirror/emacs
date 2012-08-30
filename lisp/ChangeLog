@@ -1,3 +1,8 @@
+2012-08-30  Leo Liu  <sdl.web@gmail.com>
+
+	* progmodes/flymake.el (flymake-warning-re): New variable.
+	(flymake-parse-line): Use it.
+
 2012-08-30  Glenn Morris  <rgm@gnu.org>
 
 	* calendar/holidays.el (holiday-christian-holidays):
