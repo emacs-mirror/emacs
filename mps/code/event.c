@@ -48,8 +48,6 @@ Res EventFlush(void)
   Res res;
   size_t size;
 
-EventDump(mps_lib_get_stdout());
-
   AVER(eventInited);
 
   AVER(EventBuffer <= EventLast);
@@ -235,6 +233,101 @@ void EventLabelAddr(Addr addr, EventStringId id)
 }
 
 
+/* Convert event parameter sort to WriteF arguments */
+
+#define EVENT_WRITE_PARAM_MOST(name, index, sort, ident) \
+  " $"#sort, (WriteF##sort)event->name.f##index,
+#define EVENT_WRITE_PARAM_A EVENT_WRITE_PARAM_MOST
+#define EVENT_WRITE_PARAM_P EVENT_WRITE_PARAM_MOST
+#define EVENT_WRITE_PARAM_U EVENT_WRITE_PARAM_MOST
+#define EVENT_WRITE_PARAM_W EVENT_WRITE_PARAM_MOST
+#define EVENT_WRITE_PARAM_D EVENT_WRITE_PARAM_MOST
+#define EVENT_WRITE_PARAM_B(name, index, sort, ident) \
+  " $U", (WriteFU)event->name.f##index,
+#define EVENT_WRITE_PARAM_S(name, index, sort, ident) \
+  " $S", (WriteFS)event->name.f##index.str, /* FIXME: relies on NUL? */
+
+Res EventDescribe(Event event, mps_lib_FILE *stream)
+{
+  Res res;
+
+  /* FIXME: Some sort of EventCheck would be good */
+  if (event == NULL)
+    return ResFAIL;
+  if (stream == NULL)
+    return ResFAIL;
+
+  res = WriteF(stream,
+               "Event $P {\n", (WriteFP)event,
+               NULL);
+  if (res != ResOK) return res;
+
+  switch (event->any.code) {
+
+#define EVENT_DESC_PARAM(name, index, sort, ident) \
+  "\n  $S", (WriteFS)#ident, \
+  EVENT_WRITE_PARAM_##sort(name, index, sort, ident)
+
+#define EVENT_DESC(X, name, _code, always, kind) \
+  case _code: \
+    res = WriteF(stream, \
+                 "  code $U ($S)\n", (WriteFU)event->any.code, (WriteFS)#name, \
+                 "  clock ", NULL); \
+    if (res != ResOK) return res; \
+    EVENT_CLOCK_WRITE(stream, event->any.clock); /* FIXME: return code */ \
+    res = WriteF(stream, "\n  size $U", (WriteFU)event->any.size, \
+                 EVENT_##name##_PARAMS(EVENT_DESC_PARAM, name) \
+                 NULL); \
+    if (res != ResOK) return res; \
+    break;
+
+  EVENT_LIST(EVENT_DESC, X)
+
+  default:
+    NOTREACHED; /* FIXME: should print .any info */
+  }
+  
+  res = WriteF(stream,
+               "\n} Event $P\n", (WriteFP)event,
+               NULL);
+  return res;
+}
+
+
+Res EventWrite(Event event, mps_lib_FILE *stream)
+{
+  Res res;
+  
+  if (event == NULL) return ResFAIL;
+  if (stream == NULL) return ResFAIL;
+
+  EVENT_CLOCK_WRITE(stream, event->any.clock); /* FIXME: return code */
+
+  switch (event->any.code) {
+
+#define EVENT_WRITE_PARAM(name, index, sort, ident) \
+  EVENT_WRITE_PARAM_##sort(name, index, sort, ident)
+
+#define EVENT_WRITE(X, name, code, always, kind) \
+  case code: \
+    res = WriteF(stream, " "#name, \
+                 EVENT_##name##_PARAMS(EVENT_WRITE_PARAM, name) \
+                 NULL); \
+    if (res != ResOK) return res; \
+    break;
+  EVENT_LIST(EVENT_WRITE, X)
+
+  default:
+    res = WriteF(stream, " <unknown code $U>", event->any.code, NULL);
+    if (res != ResOK) return res;
+    /* FIXME: Should dump contents in hex. */
+    break;
+  }
+  
+  return ResOK;
+}
+
+
 void EventDump(mps_lib_FILE *stream)
 {
   Event event;
@@ -244,37 +337,10 @@ void EventDump(mps_lib_FILE *stream)
   for (event = (Event)EventLast;
        event < (Event)(EventBuffer + EventBufferSIZE);
        event = (Event)((char *)event + event->any.size)) {
-    EVENT_CLOCK_WRITE(stream, event->any.clock);
-
-    switch (event->any.code) {
-
-#define EVENT_DUMP_PARAM_MOST(name, index, sort, ident) \
-  " $"#sort, (WriteF##sort)event->name.f##index,
-#define EVENT_DUMP_PARAM_A EVENT_DUMP_PARAM_MOST
-#define EVENT_DUMP_PARAM_P EVENT_DUMP_PARAM_MOST
-#define EVENT_DUMP_PARAM_U EVENT_DUMP_PARAM_MOST
-#define EVENT_DUMP_PARAM_W EVENT_DUMP_PARAM_MOST
-#define EVENT_DUMP_PARAM_D EVENT_DUMP_PARAM_MOST
-#define EVENT_DUMP_PARAM_B(name, index, sort, ident) \
-  " $U", (WriteFU)event->name.f##index,
-#define EVENT_DUMP_PARAM_S(name, index, sort, ident) \
-  " $S", (WriteFS)event->name.f##index.str, /* FIXME: relies on NUL? */
-#define EVENT_DUMP_PARAM(name, index, sort, ident) \
-  EVENT_DUMP_PARAM_##sort(name, index, sort, ident)
-#define EVENT_DUMP(X, name, code, always, kind) \
-    case code: \
-      WriteF(stream, " "#name, \
-             EVENT_##name##_PARAMS(EVENT_DUMP_PARAM, name) \
-             NULL); \
-      break;
-    EVENT_LIST(EVENT_DUMP, X)
-
-    default:
-      WriteF(stream, " <unknown code $U>", event->any.code, NULL);
-      /* FIXME: Should dump contents in hex. */
-      break;
-    }
-    WriteF(stream, "\n", NULL);
+    /* Try to keep going even if there's an error, because this is used as a
+       backtrace and we'll take what we can get. */
+    (void)EventWrite(event, stream);
+    (void)WriteF(stream, "\n", NULL);
   }
 }
 
@@ -330,6 +396,22 @@ void (EventLabelAddr)(Addr addr, Word id)
   UNUSED(addr);
   UNUSED(id);
   NOTREACHED;
+}
+
+
+Res EventDescribe(Event event, mps_lib_FILE *stream)
+{
+  UNUSED(event);
+  UNUSED(stream);
+  return ResUNIMPL;
+}
+
+
+Res EventWrite(Event event, mps_lib_FILE *stream)
+{
+  UNUSED(event);
+  UNUSED(stream);
+  return ResUNIMPL;
 }
 
 
