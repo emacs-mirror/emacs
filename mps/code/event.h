@@ -38,12 +38,13 @@ extern Res EventFlush(void);
 
 /* Event writing support */
 
-extern char *EventNext, *EventLimit;
+extern char EventBuffer[EventBufferSIZE];  /* in which events are recorded */
+extern char *EventLast;                    /* points to last written event */
 extern Word EventKindControl;
 
 
-/* TODO: Append a size at EventNext - sizeof(EventSize) so that a backtrace
-   can step backwards through the event buffer. */
+/* Events are written into the buffer from the top down, so that a backtrace
+   can find them all starting at EventNext. */
 
 #define EVENT_BEGIN(name, structSize) \
   BEGIN \
@@ -51,16 +52,16 @@ extern Word EventKindControl;
        BS_IS_MEMBER(EventKindControl, (Index)Event##name##Kind)) { \
       Event##name##Struct *_event; \
       size_t _size = size_tAlignUp(structSize, MPS_PF_ALIGN); \
-      if (_size > (size_t)(EventLimit - EventNext)) \
+      if (_size > (size_t)(EventLast - EventBuffer)) \
         EventFlush(); \
-      AVER(_size <= (size_t)(EventLimit - EventNext)); \
-      _event = (void *)EventNext; \
+      AVER(_size <= (size_t)(EventLast - EventBuffer)); \
+      _event = (void *)(EventLast - _size); \
       _event->code = Event##name##Code; \
       _event->size = (EventSize)_size; \
       EVENT_CLOCK(_event->clock);
 
 #define EVENT_END(name, size) \
-      EventNext += _size; \
+      EventLast -= _size; \
     } \
   END
 

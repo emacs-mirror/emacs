@@ -168,7 +168,7 @@
  *   - the positional index of the parameter in the list, used to define
  *     numeric field names using the C preprocessor
  *   - the parameter sort, similar to writef (Pointer, Addr, Word, Unsigned,
- *     String, Double)
+ *     String, Double, Bool)
  *   - a parameter identifier for display or use in code
  *
  * TODO: Add a doc string to each parameter.

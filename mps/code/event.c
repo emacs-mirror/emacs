@@ -33,12 +33,12 @@ SRCID(event, "$Id$");
 
 static Bool eventInited = FALSE;
 static mps_io_t eventIO;
-static char eventBuffer[EventBufferSIZE];
 static Count eventUserCount;
 static Serial EventInternSerial;
 
-char *EventNext, *EventLimit; /* Used by macros in <code/event.h> */
-EventControlSet EventKindControl; /* Bit set used to control output. */
+char EventBuffer[EventBufferSIZE];      /* in which events are recorded */
+char *EventLast;                        /* points to last written event */
+EventControlSet EventKindControl;       /* Bit set used to control output. */
 
 
 /* EventFlush -- flush event buffer to the event stream */
@@ -47,18 +47,24 @@ Res EventFlush(void)
 {
   Res res;
   size_t size;
- 
+
   AVER(eventInited);
 
-  AVER(eventBuffer <= EventNext);
-  AVER(EventNext <= eventBuffer + EventBufferSIZE);
-  size = (size_t)(EventNext - eventBuffer);
+  AVER(EventBuffer <= EventLast);
+  AVER(EventLast <= EventBuffer + EventBufferSIZE);
+  size = (size_t)(EventBuffer + EventBufferSIZE - EventLast);
 
-  res = (Res)mps_io_write(eventIO, (void *)eventBuffer, size);
-  EventNext = eventBuffer;
-  if (res != ResOK) return res;
+  /* Writing might be faster if the size is aligned to a multiple of the
+     C library or kernel's buffer size.  We could pad out the buffer with
+     a marker for this purpose. */
 
-  return ResOK;
+  res = (Res)mps_io_write(eventIO, (void *)EventLast, size);
+
+  /* Flush the in-memory buffer whether or not we succeeded, so that we can
+     record recent events there. */
+  EventLast = EventBuffer + EventBufferSIZE;
+
+  return res;
 }
 
 
@@ -98,9 +104,21 @@ Res EventInit(void)
   /* Check consistency of the event definitions.  These are all compile-time
      checks and should get optimised away. */
 
+#define EVENT_PARAM_CHECK_P(name, index, ident)
+#define EVENT_PARAM_CHECK_A(name, index, ident)
+#define EVENT_PARAM_CHECK_W(name, index, ident)
+#define EVENT_PARAM_CHECK_U(name, index, ident)
+#define EVENT_PARAM_CHECK_D(name, index, ident)
+#define EVENT_PARAM_CHECK_B(name, index, ident)
+#define EVENT_PARAM_CHECK_S(name, index, ident) \
+  AVER(index + 1 == Event##name##ParamLIMIT); /* strings must come last */ \
+  AVER(offsetof(Event##name##Struct, f##index.str) + EventStringLengthMAX \
+       <= EventSizeMAX);
+
 #define EVENT_PARAM_CHECK(name, index, sort, ident) \
   AVER(index == Event##name##Param##ident); \
-  AVER(sizeof(EventF##sort) >= 0); /* check existence of type */
+  AVER(sizeof(EventF##sort) >= 0); /* check existence of type */ \
+  EVENT_PARAM_CHECK_##sort(name, index, ident)
 
 #define EVENT_CHECK(X, name, code, always, kind) \
   AVER(size_tAlignUp(sizeof(Event##name##Struct), MPS_PF_ALIGN) \
@@ -114,18 +132,16 @@ Res EventInit(void)
   EVENT_##name##_PARAMS(EVENT_PARAM_CHECK, name)
 
   EVENT_LIST(EVENT_CHECK, X)
-
+  
   /* Ensure that no event can be larger than the maximum event size. */
   AVER(EventBufferSIZE <= EventSizeMAX);
 
   /* Only if this is the first call. */
   if(!eventInited) { /* See .trans.log */
-    AVER(EventNext == 0);
-    AVER(EventLimit == 0);
+    AVER(EventLast == NULL);
     res = (Res)mps_io_create(&eventIO);
     if(res != ResOK) return res;
-    EventNext = eventBuffer;
-    EventLimit = &eventBuffer[EventBufferSIZE];
+    EventLast = EventBuffer + EventBufferSIZE;
     eventUserCount = (Count)1;
     eventInited = TRUE;
     EventKindControl = (Word)mps_lib_telemetry_control();
