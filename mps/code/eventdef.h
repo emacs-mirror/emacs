@@ -83,8 +83,8 @@
   EVENT(X, CBSInit            , 0x0019,  TRUE, Pool,   2, (P,P)) \
   EVENT(X, Intern             , 0x001a,  TRUE, User,   2, (W,S)) \
   EVENT(X, Label              , 0x001b,  TRUE, User,   2, (A,W)) \
-  EVENT(X, TraceStart         , 0x001c,  TRUE, Trace,  3, (P,P,P)) \
-  EVENT(X, TraceCreate        , 0x001d,  TRUE, Trace,  4, (P,P,P,U)) \
+  /* EVENT(X, TraceStart         , 0x001c,  TRUE, Trace,  3, (P,P,P)) */ \
+  /* EVENT(X, TraceCreate        , 0x001d,  TRUE, Trace,  4, (P,P,P,U)) */ \
   EVENT(X, TraceDestroy       , 0x001e,  TRUE, Trace,  1, (P)) \
   EVENT(X, SegSetGrey         , 0x001f,  TRUE, Seg,    3, (P,P,U)) \
   EVENT(X, TraceFlipBegin     , 0x0020,  TRUE, Trace,  2, (P,P)) \
@@ -93,7 +93,7 @@
   /* EVENT(X, TraceScan          , 0x0023, TRUE, Seg, 5, (U,U,P,P,P)) */ \
   EVENT(X, TraceAccess        , 0x0024,  TRUE, Seg,    3, (P,P,U)) \
   /* TracePoll's kind isn't really Trace, but then it isn't Seg either */ \
-  EVENT(X, TracePoll          , 0x0025,  TRUE, Trace,  2, (P,P)) \
+  /* EVENT(X, TracePoll          , 0x0025,  TRUE, Trace,  2, (P,P)) */ \
   EVENT(X, TraceFix           , 0x0026, FALSE, Ref,    4, (P,P,A,U)) \
   EVENT(X, TraceFixSeg        , 0x0027, FALSE, Ref,    1, (P)) \
   EVENT(X, TraceFixWhite      , 0x0028, FALSE, Ref,    0, ()) \
@@ -105,12 +105,12 @@
   EVENT(X, VMMap              , 0x002d,  TRUE, Seg,    3, (P,A,A)) \
   EVENT(X, VMUnmap            , 0x002e,  TRUE, Seg,    3, (P,A,A)) \
   EVENT(X, ArenaExtend        , 0x002f,  TRUE, Arena,  3, (P,A,W)) \
-  EVENT(X, ArenaRetract       , 0x0030,  TRUE, Arena,  3, (P,A,W)) \
-  EVENT(X, TraceSegGreyen     , 0x0031,  TRUE, Seg,    3, (P,P,U)) \
+  /* EVENT(X, ArenaRetract       , 0x0030,  TRUE, Arena,  3, (P,A,W)) */ \
+  /* EVENT(X, TraceSegGreyen     , 0x0031,  TRUE, Seg,    3, (P,P,U)) */ \
   /* RootScanned abuses kind, see .kind.abuse */ \
   EVENT(X, RootScan           , 0x0032, TRUE, Seg,    3, (P,W,W)) \
   /* TraceStep abuses kind, see .kind.abuse */ \
-  EVENT(X, TraceStep          , 0x0033,  TRUE, Seg,    2, (P,P)) \
+  /* EVENT(X, TraceStep          , 0x0033,  TRUE, Seg,    2, (P,P)) */ \
   EVENT(X, BufferReserve      , 0x0034,  TRUE, Object, 3, (P,A,W)) \
   EVENT(X, BufferCommit       , 0x0035,  TRUE, Object, 4, (P,A,W,A)) \
   /* BufferInit/Finish abuse kind, see .kind.abuse */ \
@@ -130,8 +130,8 @@
   EVENT(X, PoolInitMVFF       , 0x0042,  TRUE, Pool,   8, (P,P,W,W,W,U,U,U)) \
   EVENT(X, PoolInitMV         , 0x0043,  TRUE, Pool,   5, (P,P,W,W,W)) \
   EVENT(X, PoolInitMFS        , 0x0044,  TRUE, Pool,   4, (P,P,W,W)) \
-  EVENT(X, PoolInitEPVM       , 0x0045,  TRUE, Pool,   5, (P,P,P,U,U)) \
-  EVENT(X, PoolInitEPDL       , 0x0046,  TRUE, Pool,   6, (P,P,U,W,W,W)) \
+  /* EVENT(X, PoolInitEPVM       , 0x0045,  TRUE, Pool,   5, (P,P,P,U,U)) */ \
+  /* EVENT(X, PoolInitEPDL       , 0x0046,  TRUE, Pool,   6, (P,P,U,W,W,W)) */ \
   EVENT(X, PoolInitAMS        , 0x0047,  TRUE, Pool,   3, (P,P,P)) \
   EVENT(X, PoolInitAMC        , 0x0048,  TRUE, Pool,   2, (P,P)) \
   EVENT(X, PoolInitAMCZ       , 0x0049,  TRUE, Pool,   2, (P,P)) \
@@ -139,23 +139,404 @@
   EVENT(X, PoolInitLO         , 0x004B,  TRUE, Pool,   2, (P,P)) \
   EVENT(X, PoolInitSNC        , 0x004C,  TRUE, Pool,   2, (P,P)) \
   EVENT(X, PoolInitMVT        , 0x004D,  TRUE, Pool,   6, (P,W,W,W,W,W)) \
-  EVENT(X, BufferInitEPVM     , 0x0050,  TRUE, Pool,   3, (P,P,U)) \
+  /* EVENT(X, BufferInitEPVM     , 0x0050,  TRUE, Pool,   3, (P,P,U)) */ \
   EVENT(X, BufferInitSeg      , 0x0051,  TRUE, Pool,   3, (P,P,U)) \
   EVENT(X, BufferInitRank     , 0x0052,  TRUE, Pool,   4, (P,P,U,U)) \
   /* PoolPush/Pop go under Object, because they're user ops. */ \
-  EVENT(X, PoolPush           , 0x0060,  TRUE, Object, 1, (P)) \
-  EVENT(X, PoolPop            , 0x0061,  TRUE, Object, 2, (P,U)) \
+  /* EVENT(X, PoolPush           , 0x0060,  TRUE, Object, 1, (P)) */ \
+  /* EVENT(X, PoolPop            , 0x0061,  TRUE, Object, 2, (P,U)) */ \
   EVENT(X, ReservoirLimitSet  , 0x0062,  TRUE, Arena,  2, (P,W)) \
   EVENT(X, CommitLimitSet     , 0x0063,  TRUE, Arena,  3, (P,W,U)) \
   EVENT(X, SpareCommitLimitSet, 0x0064,  TRUE, Arena,  2, (P,W)) \
   EVENT(X, ArenaAlloc         , 0x0065,  TRUE, Arena,  5, (P,P,A,W,P)) \
   EVENT(X, ArenaFree          , 0x0066,  TRUE, Arena,  3, (P,A,W)) \
   EVENT(X, ArenaAllocFail     , 0x0067,  TRUE, Arena,  3, (P,W,P)) \
-  EVENT(X, SegMerge           , 0x0068,  TRUE, Seg,    3, (P,P,P)) \
+  EVENT(X, SegMerge           , 0x0068,  TRUE, Seg,    3, (P,P,U)) \
   EVENT(X, SegSplit           , 0x0069,  TRUE, Seg,    4, (P,P,P,A))
 
 /* Remember to update EventNameMAX and EventCodeMAX in eventcom.h! */
 
+
+#define EVENT_AMCGenCreate_PARAMS(PARAM, X) \
+  PARAM(X,  0, P, amc) \
+  PARAM(X,  1, P, gen)
+
+#define EVENT_AMCGenDestroy_PARAMS(PARAM, X) \
+  PARAM(X,  0, P, gen)
+
+#define EVENT_AMCInit_PARAMS(PARAM, X) \
+  PARAM(X,  0, P, pool) \
+  PARAM(X,  1, P, amc)
+
+#define EVENT_AMCFinish_PARAMS(PARAM, X) \
+  PARAM(X,  0, P, amc)
+
+#define EVENT_AMCFix_PARAMS(PARAM, X)
+
+#define EVENT_ArenaCreateVM_PARAMS(PARAM, X) \
+  PARAM(X,  0, P, arena) \
+  PARAM(X,  1, W, userSize) \
+  PARAM(X,  2, W, chunkSize)
+
+#define EVENT_ArenaCreateVMNZ_PARAMS(PARAM, X) \
+  PARAM(X,  0, P, arena) \
+  PARAM(X,  1, W, userSize) \
+  PARAM(X,  2, W, chunkSize)
+
+#define EVENT_ArenaWriteFaults_PARAMS(PARAM, X) \
+  PARAM(X,  0, P, arena) \
+  PARAM(X,  1, W, writeBarrierHitCount)
+
+#define EVENT_MeterInit_PARAMS(PARAM, X) \
+  PARAM(X,  0, P, meter) \
+  PARAM(X,  1, P, owner)
+
+#define EVENT_MeterValues_PARAMS(PARAM, X) \
+  PARAM(X,  0, P, meter) \
+  PARAM(X,  1, D, total) \
+  PARAM(X,  2, D, meanSquared) \
+  PARAM(X,  3, W, count) \
+  PARAM(X,  4, W, max) \
+  PARAM(X,  5, W, min)
+
+#define EVENT_AMCScanBegin_PARAMS(PARAM, X) \
+  PARAM(X,  0, P, amc) \
+  PARAM(X,  1, P, seg) \
+  PARAM(X,  2, P, ss)
+
+#define EVENT_AMCScanEnd_PARAMS(PARAM, X) \
+  PARAM(X,  0, P, amc) \
+  PARAM(X,  1, P, seg) \
+  PARAM(X,  2, P, ss)
+
+#define EVENT_AMCFix_PARAMS(PARAM, X)
+
+#define EVENT_AMCFixInPlace_PARAMS(PARAM, X)
+
+#define EVENT_AMCFixForward_PARAMS(PARAM, X) \
+  PARAM(X,  0, A, newRef)
+
+#define EVENT_AMCReclaim_PARAMS(PARAM, X) \
+  PARAM(X,  0, P, gen) \
+  PARAM(X,  1, P, trace) \
+  PARAM(X,  2, P, seg)
+
+#define EVENT_ArenaCreateCL_PARAMS(PARAM, X) \
+  PARAM(X,  0, P, arena) \
+  PARAM(X,  1, W, size) \
+  PARAM(X,  2, A, base)
+
+#define EVENT_ArenaDestroy_PARAMS(PARAM, X) \
+  PARAM(X,  0, P, arena)
+
+#define EVENT_SegAlloc_PARAMS(PARAM, X) \
+  PARAM(X,  0, P, arena) \
+  PARAM(X,  1, P, seg) \
+  PARAM(X,  2, A, base) \
+  PARAM(X,  3, W, size) \
+  PARAM(X,  4, P, pool)
+
+#define EVENT_SegFree_PARAMS(PARAM, X) \
+  PARAM(X,  0, P, arena) \
+  PARAM(X,  1, P, seg)
+
+#define EVENT_PoolInit_PARAMS(PARAM, X) \
+  PARAM(X,  0, P, pool) \
+  PARAM(X,  1, P, arena) \
+  PARAM(X,  2, P, poolClass)
+
+#define EVENT_PoolFinish_PARAMS(PARAM, X) \
+  PARAM(X,  0, P, pool)
+
+#define EVENT_PoolAlloc_PARAMS(PARAM, X) \
+  PARAM(X,  0, P, pool) \
+  PARAM(X,  1, A, pReturn) \
+  PARAM(X,  2, W, size)
+
+#define EVENT_PoolFree_PARAMS(PARAM, X) \
+  PARAM(X,  0, P, pool) \
+  PARAM(X,  1, A, old) \
+  PARAM(X,  2, W, size)
+
+#define EVENT_CBSInit_PARAMS(PARAM, X) \
+  PARAM(X,  0, P, cbs) \
+  PARAM(X,  1, P, owner)
+
+#define EVENT_Intern_PARAMS(PARAM, X) \
+  PARAM(X,  0, W, stringId) \
+  PARAM(X,  1, S, string)
+
+#define EVENT_Label_PARAMS(PARAM, X) \
+  PARAM(X,  0, A, address) \
+  PARAM(X,  1, W, stringId)
+
+#define EVENT_TraceDestroy_PARAMS(PARAM, X) \
+  PARAM(X,  0, P, trace)
+
+#define EVENT_SegSetGrey_PARAMS(PARAM, X) \
+  PARAM(X,  0, P, arena) \
+  PARAM(X,  1, P, seg) \
+  PARAM(X,  2, U, grey)
+
+#define EVENT_TraceFlipBegin_PARAMS(PARAM, X) \
+  PARAM(X,  0, P, trace) \
+  PARAM(X,  1, P, arena)
+
+#define EVENT_TraceFlipEnd_PARAMS(PARAM, X) \
+  PARAM(X,  0, P, trace) \
+  PARAM(X,  1, P, arena)
+
+#define EVENT_TraceReclaim_PARAMS(PARAM, X) \
+  PARAM(X,  0, P, trace)
+
+#define EVENT_TraceAccess_PARAMS(PARAM, X) \
+  PARAM(X,  0, P, arena) \
+  PARAM(X,  1, P, seg) \
+  PARAM(X,  2, U, mode)
+
+#define EVENT_TraceFix_PARAMS(PARAM, X) \
+  PARAM(X,  0, P, ss) \
+  PARAM(X,  1, P, refIO) \
+  PARAM(X,  2, A, ref) \
+  PARAM(X,  3, U, rank)
+
+#define EVENT_TraceFixSeg_PARAMS(PARAM, X) \
+  PARAM(X,  0, P, seg)
+
+#define EVENT_TraceFixWhite_PARAMS(PARAM, X)
+
+#define EVENT_TraceScanArea_PARAMS(PARAM, X) \
+  PARAM(X,  0, P, ss) \
+  PARAM(X,  1, P, base) \
+  PARAM(X,  2, P, limit)
+
+#define EVENT_TraceScanAreaTagged_PARAMS(PARAM, X) \
+  PARAM(X,  0, P, ss) \
+  PARAM(X,  1, P, base) \
+  PARAM(X,  2, P, limit)
+
+#define EVENT_VMCreate_PARAMS(PARAM, X) \
+  PARAM(X,  0, P, vm) \
+  PARAM(X,  1, A, base) \
+  PARAM(X,  2, A, limit)
+
+#define EVENT_VMDestroy_PARAMS(PARAM, X) \
+  PARAM(X,  0, P, vm)
+
+#define EVENT_VMMap_PARAMS(PARAM, X) \
+  PARAM(X,  0, P, vm) \
+  PARAM(X,  1, A, base) \
+  PARAM(X,  2, A, limit)
+
+#define EVENT_VMUnmap_PARAMS(PARAM, X) \
+  PARAM(X,  0, P, vm) \
+  PARAM(X,  1, A, base) \
+  PARAM(X,  2, A, limit)
+
+#define EVENT_ArenaExtend_PARAMS(PARAM, X) \
+  PARAM(X,  0, P, arena) \
+  PARAM(X,  1, A, base) \
+  PARAM(X,  2, W, size)
+
+#define EVENT_RootScan_PARAMS(PARAM, X) \
+  PARAM(X,  0, P, root) \
+  PARAM(X,  1, W, ts) \
+  PARAM(X,  2, W, summary)
+
+#define EVENT_BufferReserve_PARAMS(PARAM, X) \
+  PARAM(X,  0, P, buffer) \
+  PARAM(X,  1, A, init) \
+  PARAM(X,  2, W, size)
+
+#define EVENT_BufferCommit_PARAMS(PARAM, X) \
+  PARAM(X,  0, P, buffer) \
+  PARAM(X,  1, A, p) \
+  PARAM(X,  2, W, size) \
+  PARAM(X,  3, A, clientClass)
+
+#define EVENT_BufferInit_PARAMS(PARAM, X) \
+  PARAM(X,  0, P, buffer) \
+  PARAM(X,  1, P, pool) \
+  PARAM(X,  2, U, isMutator)
+
+#define EVENT_BufferFinish_PARAMS(PARAM, X) \
+  PARAM(X,  0, P, buffer)
+
+#define EVENT_BufferFill_PARAMS(PARAM, X) \
+  PARAM(X,  0, P, buffer) \
+  PARAM(X,  1, W, size) \
+  PARAM(X,  2, A, base) \
+  PARAM(X,  3, W, filled)
+
+#define EVENT_BufferEmpty_PARAMS(PARAM, X) \
+  PARAM(X,  0, P, buffer) \
+  PARAM(X,  1, W, spare)
+
+#define EVENT_SegAllocFail_PARAMS(PARAM, X) \
+  PARAM(X,  0, P, arena) \
+  PARAM(X,  1, W, size) \
+  PARAM(X,  2, P, pool)
+
+#define EVENT_TraceScanSeg_PARAMS(PARAM, X) \
+  PARAM(X,  0, U, ts) \
+  PARAM(X,  1, U, rank) \
+  PARAM(X,  2, P, arena) \
+  PARAM(X,  3, P, seg)
+
+#define EVENT_TraceScanSingleRef_PARAMS(PARAM, X) \
+  PARAM(X,  0, U, ts) \
+  PARAM(X,  1, U, rank) \
+  PARAM(X,  2, P, arena) \
+  PARAM(X,  3, A, refIO)
+
+#define EVENT_TraceStatCondemn_PARAMS(PARAM, X) \
+  PARAM(X,  0, P, trace) \
+  PARAM(X,  1, W, condemned) \
+  PARAM(X,  2, W, notCondemned) \
+  PARAM(X,  3, W, foundation) \
+  PARAM(X,  4, W, rate) \
+  PARAM(X,  5, D, mortality) \
+  PARAM(X,  6, D, finishingTime)
+
+#define EVENT_TraceStatScan_PARAMS(PARAM, X) \
+  PARAM(X,  0, P, trace) \
+  PARAM(X,  1, W, rootScanCount) \
+  PARAM(X,  2, W, rootScanSize) \
+  PARAM(X,  3, W, rootCopiedSize) \
+  PARAM(X,  4, W, segScanCount) \
+  PARAM(X,  5, W, segScanSize) \
+  PARAM(X,  6, W, segCopiedSize) \
+  PARAM(X,  7, W, singleScanCount) \
+  PARAM(X,  8, W, singleScanSize) \
+  PARAM(X,  9, W, singleCopiedSize) \
+  PARAM(X, 10, W, readBarrierHitCount) \
+  PARAM(X, 11, W, greySegMax) \
+  PARAM(X, 12, W, pointlessScanCount)
+
+#define EVENT_TraceStatFix_PARAMS(PARAM, X) \
+  PARAM(X,  0, P, trace) \
+  PARAM(X,  1, W, fixRefCount) \
+  PARAM(X,  2, W, segRefCount) \
+  PARAM(X,  3, W, whiteSegRefCount) \
+  PARAM(X,  4, W, nailCount) \
+  PARAM(X,  5, W, snapCount) \
+  PARAM(X,  6, W, forwardedCount) \
+  PARAM(X,  7, W, forwardedSize) \
+  PARAM(X,  8, W, preservedInPlaceCount) \
+  PARAM(X,  9, W, preservedInPlaceSize)
+
+#define EVENT_TraceStatReclaim_PARAMS(PARAM, X) \
+  PARAM(X,  0, P, trace) \
+  PARAM(X,  1, W, reclaimCount) \
+  PARAM(X,  2, W, reclaimSize)
+
+#define EVENT_PoolInitMVFF_PARAMS(PARAM, X) \
+  PARAM(X,  0, P, pool) \
+  PARAM(X,  1, P, arena) \
+  PARAM(X,  2, W, extendBy) \
+  PARAM(X,  3, W, avgSize) \
+  PARAM(X,  4, W, align) \
+  PARAM(X,  5, U, slotHigh) \
+  PARAM(X,  6, U, arenaHigh) \
+  PARAM(X,  7, U, firstFit)
+
+#define EVENT_PoolInitMV_PARAMS(PARAM, X) \
+  PARAM(X,  0, P, pool) \
+  PARAM(X,  1, P, arena) \
+  PARAM(X,  2, W, extendBy) \
+  PARAM(X,  3, W, avgSize) \
+  PARAM(X,  4, W, maxSize)
+
+#define EVENT_PoolInitMFS_PARAMS(PARAM, X) \
+  PARAM(X,  0, P, pool) \
+  PARAM(X,  1, P, arena) \
+  PARAM(X,  2, W, extendBy) \
+  PARAM(X,  3, W, unitSize)
+
+#define EVENT_PoolInitAMS_PARAMS(PARAM, X) \
+  PARAM(X,  0, P, pool) \
+  PARAM(X,  1, P, arena) \
+  PARAM(X,  2, P, format)
+
+#define EVENT_PoolInitAMC_PARAMS(PARAM, X) \
+  PARAM(X,  0, P, pool) \
+  PARAM(X,  1, P, format)
+
+#define EVENT_PoolInitAMCZ_PARAMS(PARAM, X) \
+  PARAM(X,  0, P, pool) \
+  PARAM(X,  1, P, format)
+
+#define EVENT_PoolInitAWL_PARAMS(PARAM, X) \
+  PARAM(X,  0, P, pool) \
+  PARAM(X,  1, P, format)
+
+#define EVENT_PoolInitLO_PARAMS(PARAM, X) \
+  PARAM(X,  0, P, pool) \
+  PARAM(X,  1, P, format)
+
+#define EVENT_PoolInitSNC_PARAMS(PARAM, X) \
+  PARAM(X,  0, P, pool) \
+  PARAM(X,  1, P, format)
+
+#define EVENT_PoolInitMVT_PARAMS(PARAM, X) \
+  PARAM(X,  0, P, pool) \
+  PARAM(X,  1, W, minSize) \
+  PARAM(X,  2, W, meanSize) \
+  PARAM(X,  3, W, maxSize) \
+  PARAM(X,  4, W, reserveDepth) \
+  PARAM(X,  5, W, fragLimig)
+
+#define EVENT_BufferInitSeg_PARAMS(PARAM, X) \
+  PARAM(X,  0, P, buffer) \
+  PARAM(X,  1, P, pool) \
+  PARAM(X,  2, U, isMutator)
+
+#define EVENT_BufferInitRank_PARAMS(PARAM, X) \
+  PARAM(X,  0, P, buffer) \
+  PARAM(X,  1, P, pool) \
+  PARAM(X,  2, U, isMutator) \
+  PARAM(X,  3, U, rank)
+
+#define EVENT_ReservoirLimitSet_PARAMS(PARAM, X) \
+  PARAM(X,  0, P, arena) \
+  PARAM(X,  1, W, size)
+
+#define EVENT_CommitLimitSet_PARAMS(PARAM, X) \
+  PARAM(X,  0, P, arena) \
+  PARAM(X,  1, W, limit) \
+  PARAM(X,  2, U, OK)
+
+#define EVENT_SpareCommitLimitSet_PARAMS(PARAM, X) \
+  PARAM(X,  0, P, arena) \
+  PARAM(X,  1, W, limit)
+
+#define EVENT_ArenaAlloc_PARAMS(PARAM, X) \
+  PARAM(X,  0, P, arena) \
+  PARAM(X,  1, P, baseTract) \
+  PARAM(X,  2, A, base) \
+  PARAM(X,  3, W, size) \
+  PARAM(X,  4, P, pool)
+
+#define EVENT_ArenaFree_PARAMS(PARAM, X) \
+  PARAM(X,  0, P, arena) \
+  PARAM(X,  1, A, base) \
+  PARAM(X,  2, W, size)
+
+#define EVENT_ArenaAllocFail_PARAMS(PARAM, X) \
+  PARAM(X,  0, P, arena) \
+  PARAM(X,  1, W, size) \
+  PARAM(X,  2, P, pool)
+
+#define EVENT_SegMerge_PARAMS(PARAM, X) \
+  PARAM(X,  0, P, segLo) \
+  PARAM(X,  1, P, segHi) \
+  PARAM(X,  2, U, withReservoirPermit)
+
+#define EVENT_SegSplit_PARAMS(PARAM, X) \
+  PARAM(X,  0, P, seg) \
+  PARAM(X,  1, P, segLo) \
+  PARAM(X,  2, P, segHi) \
+  PARAM(X,  3, A, at)
 
 #endif /* eventdef_h */
 

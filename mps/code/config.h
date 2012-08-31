@@ -82,6 +82,8 @@
 #define CONFIG_LOG
 #endif
 
+#define CONFIG_STATS
+#define CONFIG_LOG
 
 /* Build Features */
 

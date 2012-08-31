@@ -78,70 +78,21 @@ typedef struct {
   EventSize offsets[15]; /* FIXME: literal constant */
 } eventRecord;
 
-/* EVENTn_FORMAT produces a short string version of an event format, e.g.
-   it converts (P,P,W) into "PPW"
+#define EVENT_FORMAT_PARAM(X, index, sort, ident) #sort
 
-for i in range(1,15):
-  print "#define EVENT%d_FORMAT(%s) %s" % (
-    i,
-    ", ".join(["p%d" % j for j in range(0, i)]),
-    " ".join(["#p%d" % j for j in range(0, i)])
-  )
-*/
-#define EVENT0_FORMAT() ""
-#define EVENT1_FORMAT(p0) #p0
-#define EVENT2_FORMAT(p0, p1) #p0 #p1
-#define EVENT3_FORMAT(p0, p1, p2) #p0 #p1 #p2
-#define EVENT4_FORMAT(p0, p1, p2, p3) #p0 #p1 #p2 #p3
-#define EVENT5_FORMAT(p0, p1, p2, p3, p4) #p0 #p1 #p2 #p3 #p4
-#define EVENT6_FORMAT(p0, p1, p2, p3, p4, p5) #p0 #p1 #p2 #p3 #p4 #p5
-#define EVENT7_FORMAT(p0, p1, p2, p3, p4, p5, p6) #p0 #p1 #p2 #p3 #p4 #p5 #p6
-#define EVENT8_FORMAT(p0, p1, p2, p3, p4, p5, p6, p7) #p0 #p1 #p2 #p3 #p4 #p5 #p6 #p7
-#define EVENT9_FORMAT(p0, p1, p2, p3, p4, p5, p6, p7, p8) #p0 #p1 #p2 #p3 #p4 #p5 #p6 #p7 #p8
-#define EVENT10_FORMAT(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9) #p0 #p1 #p2 #p3 #p4 #p5 #p6 #p7 #p8 #p9
-#define EVENT11_FORMAT(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10) #p0 #p1 #p2 #p3 #p4 #p5 #p6 #p7 #p8 #p9 #p10
-#define EVENT12_FORMAT(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11) #p0 #p1 #p2 #p3 #p4 #p5 #p6 #p7 #p8 #p9 #p10 #p11
-#define EVENT13_FORMAT(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12) #p0 #p1 #p2 #p3 #p4 #p5 #p6 #p7 #p8 #p9 #p10 #p11 #p12
-#define EVENT14_FORMAT(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13) #p0 #p1 #p2 #p3 #p4 #p5 #p6 #p7 #p8 #p9 #p10 #p11 #p12 #p13
-#define EVENT15_FORMAT(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14) #p0 #p1 #p2 #p3 #p4 #p5 #p6 #p7 #p8 #p9 #p10 #p11 #p12 #p13 #p14
+#define EVENT_OFFSETS_PARAM(name, index, sort, ident) \
+  offsetof(Event##name##Struct, f##index),
 
-/* EVENTn_OFFSETS is a macro which produces an. array initializer containing
-   the offsets of the fields within an event structure with the specified
-   format.
-
-for i in range(1, 15):
-  plist = ", ".join(["p%d" % i for i in range(0, i)])
-  print "#define EVENT%d_OFFSETS(%s) {%s}" % (
-    i, plist,
-    ", ".join(["offsetof(EVENT%d_STRUCT(%s), f%d)" % (i, plist, j)
-               for j in range(0, i)])
-  )
-*/
-#define EVENT0_OFFSETS() {0}
-#define EVENT1_OFFSETS(p0) {offsetof(EVENT1_STRUCT(p0), f0)}
-#define EVENT2_OFFSETS(p0, p1) {offsetof(EVENT2_STRUCT(p0, p1), f0), offsetof(EVENT2_STRUCT(p0, p1), f1)}
-#define EVENT3_OFFSETS(p0, p1, p2) {offsetof(EVENT3_STRUCT(p0, p1, p2), f0), offsetof(EVENT3_STRUCT(p0, p1, p2), f1), offsetof(EVENT3_STRUCT(p0, p1, p2), f2)}
-#define EVENT4_OFFSETS(p0, p1, p2, p3) {offsetof(EVENT4_STRUCT(p0, p1, p2, p3), f0), offsetof(EVENT4_STRUCT(p0, p1, p2, p3), f1), offsetof(EVENT4_STRUCT(p0, p1, p2, p3), f2), offsetof(EVENT4_STRUCT(p0, p1, p2, p3), f3)}
-#define EVENT5_OFFSETS(p0, p1, p2, p3, p4) {offsetof(EVENT5_STRUCT(p0, p1, p2, p3, p4), f0), offsetof(EVENT5_STRUCT(p0, p1, p2, p3, p4), f1), offsetof(EVENT5_STRUCT(p0, p1, p2, p3, p4), f2), offsetof(EVENT5_STRUCT(p0, p1, p2, p3, p4), f3), offsetof(EVENT5_STRUCT(p0, p1, p2, p3, p4), f4)}
-#define EVENT6_OFFSETS(p0, p1, p2, p3, p4, p5) {offsetof(EVENT6_STRUCT(p0, p1, p2, p3, p4, p5), f0), offsetof(EVENT6_STRUCT(p0, p1, p2, p3, p4, p5), f1), offsetof(EVENT6_STRUCT(p0, p1, p2, p3, p4, p5), f2), offsetof(EVENT6_STRUCT(p0, p1, p2, p3, p4, p5), f3), offsetof(EVENT6_STRUCT(p0, p1, p2, p3, p4, p5), f4), offsetof(EVENT6_STRUCT(p0, p1, p2, p3, p4, p5), f5)}
-#define EVENT7_OFFSETS(p0, p1, p2, p3, p4, p5, p6) {offsetof(EVENT7_STRUCT(p0, p1, p2, p3, p4, p5, p6), f0), offsetof(EVENT7_STRUCT(p0, p1, p2, p3, p4, p5, p6), f1), offsetof(EVENT7_STRUCT(p0, p1, p2, p3, p4, p5, p6), f2), offsetof(EVENT7_STRUCT(p0, p1, p2, p3, p4, p5, p6), f3), offsetof(EVENT7_STRUCT(p0, p1, p2, p3, p4, p5, p6), f4), offsetof(EVENT7_STRUCT(p0, p1, p2, p3, p4, p5, p6), f5), offsetof(EVENT7_STRUCT(p0, p1, p2, p3, p4, p5, p6), f6)}
-#define EVENT8_OFFSETS(p0, p1, p2, p3, p4, p5, p6, p7) {offsetof(EVENT8_STRUCT(p0, p1, p2, p3, p4, p5, p6, p7), f0), offsetof(EVENT8_STRUCT(p0, p1, p2, p3, p4, p5, p6, p7), f1), offsetof(EVENT8_STRUCT(p0, p1, p2, p3, p4, p5, p6, p7), f2), offsetof(EVENT8_STRUCT(p0, p1, p2, p3, p4, p5, p6, p7), f3), offsetof(EVENT8_STRUCT(p0, p1, p2, p3, p4, p5, p6, p7), f4), offsetof(EVENT8_STRUCT(p0, p1, p2, p3, p4, p5, p6, p7), f5), offsetof(EVENT8_STRUCT(p0, p1, p2, p3, p4, p5, p6, p7), f6), offsetof(EVENT8_STRUCT(p0, p1, p2, p3, p4, p5, p6, p7), f7)}
-#define EVENT9_OFFSETS(p0, p1, p2, p3, p4, p5, p6, p7, p8) {offsetof(EVENT9_STRUCT(p0, p1, p2, p3, p4, p5, p6, p7, p8), f0), offsetof(EVENT9_STRUCT(p0, p1, p2, p3, p4, p5, p6, p7, p8), f1), offsetof(EVENT9_STRUCT(p0, p1, p2, p3, p4, p5, p6, p7, p8), f2), offsetof(EVENT9_STRUCT(p0, p1, p2, p3, p4, p5, p6, p7, p8), f3), offsetof(EVENT9_STRUCT(p0, p1, p2, p3, p4, p5, p6, p7, p8), f4), offsetof(EVENT9_STRUCT(p0, p1, p2, p3, p4, p5, p6, p7, p8), f5), offsetof(EVENT9_STRUCT(p0, p1, p2, p3, p4, p5, p6, p7, p8), f6), offsetof(EVENT9_STRUCT(p0, p1, p2, p3, p4, p5, p6, p7, p8), f7), offsetof(EVENT9_STRUCT(p0, p1, p2, p3, p4, p5, p6, p7, p8), f8)}
-#define EVENT10_OFFSETS(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9) {offsetof(EVENT10_STRUCT(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9), f0), offsetof(EVENT10_STRUCT(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9), f1), offsetof(EVENT10_STRUCT(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9), f2), offsetof(EVENT10_STRUCT(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9), f3), offsetof(EVENT10_STRUCT(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9), f4), offsetof(EVENT10_STRUCT(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9), f5), offsetof(EVENT10_STRUCT(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9), f6), offsetof(EVENT10_STRUCT(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9), f7), offsetof(EVENT10_STRUCT(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9), f8), offsetof(EVENT10_STRUCT(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9), f9)}
-#define EVENT11_OFFSETS(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10) {offsetof(EVENT11_STRUCT(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10), f0), offsetof(EVENT11_STRUCT(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10), f1), offsetof(EVENT11_STRUCT(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10), f2), offsetof(EVENT11_STRUCT(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10), f3), offsetof(EVENT11_STRUCT(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10), f4), offsetof(EVENT11_STRUCT(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10), f5), offsetof(EVENT11_STRUCT(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10), f6), offsetof(EVENT11_STRUCT(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10), f7), offsetof(EVENT11_STRUCT(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10), f8), offsetof(EVENT11_STRUCT(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10), f9), offsetof(EVENT11_STRUCT(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10), f10)}
-#define EVENT12_OFFSETS(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11) {offsetof(EVENT12_STRUCT(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11), f0), offsetof(EVENT12_STRUCT(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11), f1), offsetof(EVENT12_STRUCT(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11), f2), offsetof(EVENT12_STRUCT(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11), f3), offsetof(EVENT12_STRUCT(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11), f4), offsetof(EVENT12_STRUCT(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11), f5), offsetof(EVENT12_STRUCT(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11), f6), offsetof(EVENT12_STRUCT(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11), f7), offsetof(EVENT12_STRUCT(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11), f8), offsetof(EVENT12_STRUCT(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11), f9), offsetof(EVENT12_STRUCT(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11), f10), offsetof(EVENT12_STRUCT(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11), f11)}
-#define EVENT13_OFFSETS(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12) {offsetof(EVENT13_STRUCT(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12), f0), offsetof(EVENT13_STRUCT(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12), f1), offsetof(EVENT13_STRUCT(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12), f2), offsetof(EVENT13_STRUCT(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12), f3), offsetof(EVENT13_STRUCT(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12), f4), offsetof(EVENT13_STRUCT(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12), f5), offsetof(EVENT13_STRUCT(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12), f6), offsetof(EVENT13_STRUCT(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12), f7), offsetof(EVENT13_STRUCT(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12), f8), offsetof(EVENT13_STRUCT(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12), f9), offsetof(EVENT13_STRUCT(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12), f10), offsetof(EVENT13_STRUCT(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12), f11), offsetof(EVENT13_STRUCT(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12), f12)}
-#define EVENT14_OFFSETS(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13) {offsetof(EVENT14_STRUCT(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13), f0), offsetof(EVENT14_STRUCT(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13), f1), offsetof(EVENT14_STRUCT(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13), f2), offsetof(EVENT14_STRUCT(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13), f3), offsetof(EVENT14_STRUCT(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13), f4), offsetof(EVENT14_STRUCT(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13), f5), offsetof(EVENT14_STRUCT(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13), f6), offsetof(EVENT14_STRUCT(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13), f7), offsetof(EVENT14_STRUCT(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13), f8), offsetof(EVENT14_STRUCT(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13), f9), offsetof(EVENT14_STRUCT(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13), f10), offsetof(EVENT14_STRUCT(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13), f11), offsetof(EVENT14_STRUCT(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13), f12), offsetof(EVENT14_STRUCT(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13), f13)}
-
-static eventRecord eventTypes[] = {
-  {"(unused)", 0, 0, 0, "", {0}},
 #define EVENT_INIT(X, name, code, always, kind, count, format) \
   {#name, \
    code, \
    EventSizeAlign(sizeof(Event##name##Struct)), \
    count, \
-   EVENT##count##_FORMAT format, \
-   EVENT##count##_OFFSETS format},
+   "" EVENT_##name##_PARAMS(EVENT_FORMAT_PARAM, X), \
+   { EVENT_##name##_PARAMS(EVENT_OFFSETS_PARAM, name) 0 }},
+
+static eventRecord eventTypes[] = {
+  {"(unused)", 0, 0, 0, "", {0}},
   EVENT_LIST(EVENT_INIT, X)
 };
 

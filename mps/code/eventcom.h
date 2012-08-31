@@ -157,36 +157,24 @@ typedef unsigned EventFU;
 typedef EventStringStruct EventFS;
 typedef double EventFD;
 
-/*
-for i in range(0, 15):
-  print "#define EVENT%d_STRUCT(%s) struct { EventCode code; EventSize size; EventClock clock; %s }" % (
-    i,
-    ", ".join(["p%s" % j for j in range(0, i)]),
-    " ".join("EventF##p%d f%d;" % (j, j) for j in range(0,i))
-  )
- */
-#define EVENT0_STRUCT() struct { EventCode code; EventSize size; EventClock clock;  }
-#define EVENT1_STRUCT(p0) struct { EventCode code; EventSize size; EventClock clock; EventF##p0 f0; }
-#define EVENT2_STRUCT(p0, p1) struct { EventCode code; EventSize size; EventClock clock; EventF##p0 f0; EventF##p1 f1; }
-#define EVENT3_STRUCT(p0, p1, p2) struct { EventCode code; EventSize size; EventClock clock; EventF##p0 f0; EventF##p1 f1; EventF##p2 f2; }
-#define EVENT4_STRUCT(p0, p1, p2, p3) struct { EventCode code; EventSize size; EventClock clock; EventF##p0 f0; EventF##p1 f1; EventF##p2 f2; EventF##p3 f3; }
-#define EVENT5_STRUCT(p0, p1, p2, p3, p4) struct { EventCode code; EventSize size; EventClock clock; EventF##p0 f0; EventF##p1 f1; EventF##p2 f2; EventF##p3 f3; EventF##p4 f4; }
-#define EVENT6_STRUCT(p0, p1, p2, p3, p4, p5) struct { EventCode code; EventSize size; EventClock clock; EventF##p0 f0; EventF##p1 f1; EventF##p2 f2; EventF##p3 f3; EventF##p4 f4; EventF##p5 f5; }
-#define EVENT7_STRUCT(p0, p1, p2, p3, p4, p5, p6) struct { EventCode code; EventSize size; EventClock clock; EventF##p0 f0; EventF##p1 f1; EventF##p2 f2; EventF##p3 f3; EventF##p4 f4; EventF##p5 f5; EventF##p6 f6; }
-#define EVENT8_STRUCT(p0, p1, p2, p3, p4, p5, p6, p7) struct { EventCode code; EventSize size; EventClock clock; EventF##p0 f0; EventF##p1 f1; EventF##p2 f2; EventF##p3 f3; EventF##p4 f4; EventF##p5 f5; EventF##p6 f6; EventF##p7 f7; }
-#define EVENT9_STRUCT(p0, p1, p2, p3, p4, p5, p6, p7, p8) struct { EventCode code; EventSize size; EventClock clock; EventF##p0 f0; EventF##p1 f1; EventF##p2 f2; EventF##p3 f3; EventF##p4 f4; EventF##p5 f5; EventF##p6 f6; EventF##p7 f7; EventF##p8 f8; }
-#define EVENT10_STRUCT(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9) struct { EventCode code; EventSize size; EventClock clock; EventF##p0 f0; EventF##p1 f1; EventF##p2 f2; EventF##p3 f3; EventF##p4 f4; EventF##p5 f5; EventF##p6 f6; EventF##p7 f7; EventF##p8 f8; EventF##p9 f9; }
-#define EVENT11_STRUCT(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10) struct { EventCode code; EventSize size; EventClock clock; EventF##p0 f0; EventF##p1 f1; EventF##p2 f2; EventF##p3 f3; EventF##p4 f4; EventF##p5 f5; EventF##p6 f6; EventF##p7 f7; EventF##p8 f8; EventF##p9 f9; EventF##p10 f10; }
-#define EVENT12_STRUCT(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11) struct { EventCode code; EventSize size; EventClock clock; EventF##p0 f0; EventF##p1 f1; EventF##p2 f2; EventF##p3 f3; EventF##p4 f4; EventF##p5 f5; EventF##p6 f6; EventF##p7 f7; EventF##p8 f8; EventF##p9 f9; EventF##p10 f10; EventF##p11 f11; }
-#define EVENT13_STRUCT(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12) struct { EventCode code; EventSize size; EventClock clock; EventF##p0 f0; EventF##p1 f1; EventF##p2 f2; EventF##p3 f3; EventF##p4 f4; EventF##p5 f5; EventF##p6 f6; EventF##p7 f7; EventF##p8 f8; EventF##p9 f9; EventF##p10 f10; EventF##p11 f11; EventF##p12 f12; }
-#define EVENT14_STRUCT(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13) struct { EventCode code; EventSize size; EventClock clock; EventF##p0 f0; EventF##p1 f1; EventF##p2 f2; EventF##p3 f3; EventF##p4 f4; EventF##p5 f5; EventF##p6 f6; EventF##p7 f7; EventF##p8 f8; EventF##p9 f9; EventF##p10 f10; EventF##p11 f11; EventF##p12 f12; EventF##p13 f13; }
-
 /* Common prefix for all event structures.  The size field allows an event
    reader to skip over events whose codes it does not recognise. */
-typedef EVENT0_STRUCT() EventAnyStruct;
+typedef struct EventAnyStruct {
+  EventCode code;
+  EventSize size;
+  EventClock clock;
+} EventAnyStruct;
+
+#define EVENT_STRUCT_FIELD(X, index, sort, ident) \
+  EventF##sort f##index;
 
 #define EVENT_STRUCT(X, name, _code, always, kind, count, format) \
-  typedef EVENT##count##_STRUCT format Event##name##Struct;
+  typedef struct Event##name##Struct { \
+    EventCode code; \
+    EventSize size; \
+    EventClock clock; \
+    EVENT_##name##_PARAMS(EVENT_STRUCT_FIELD, X) \
+  } Event##name##Struct;
 
 EVENT_LIST(EVENT_STRUCT, X)
 
