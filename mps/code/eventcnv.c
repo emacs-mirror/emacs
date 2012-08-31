@@ -55,7 +55,6 @@ static Bool verbose = FALSE;
 static char style = '\0';
 static Bool reportEvents = FALSE;
 static Bool eventEnabled[EventCodeMAX+1];
-static Bool partialLog = FALSE; /* FIXME: can't read out-of-order labels */
 static Word bucketSize = 0;
 
 
@@ -146,9 +145,6 @@ static char *parseArgs(int argc, char *argv[])
           usageError();
         else
           name = argv[i];
-        break;
-      case 'p': /* partial log */
-        partialLog = TRUE;
         break;
       case 'v': /* verbosity */
         verbose = TRUE;
@@ -644,7 +640,7 @@ int main(int argc, char *argv[])
       everror("unable to open \"%s\"\n", filename);
   }
 
-  res = EventProcCreate(&proc, partialLog, logReader, (void *)input);
+  res = EventProcCreate(&proc, logReader, (void *)input);
   if (res != ResOK)
     everror("Can't init EventProc module: error %d.", res);
 

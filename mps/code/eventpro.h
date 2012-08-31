@@ -32,8 +32,9 @@ extern void EventDestroy(EventProc proc, Event event);
 
 extern Res EventRecord(EventProc proc, Event event, EventClock etime);
 
-extern Res EventProcCreate(EventProc *procReturn, Bool partial,
-                           EventProcReader reader, void *readerP);
+extern Res EventProcCreate(EventProc *procReturn,
+                           EventProcReader reader,
+                           void *readerP);
 extern void EventProcDestroy(EventProc proc);
 
 
