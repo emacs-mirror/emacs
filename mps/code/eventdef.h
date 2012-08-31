@@ -47,9 +47,14 @@
  *   - Kind: Category into which this event falls, without the
  *     leading "EventKind";
  *
+ * TODO: Add a doc string to each event type.
+ *
  * See also EVENT_*_PARAMS for definition of event parameters.
  */
  
+#define EventNameMAX ((size_t)19)
+#define EventCodeMAX ((EventCode)0x0069)
+
 /* FIXME: Work out why not-in-use events were not in use and restore or delete them. */
 
 #define EVENT_LIST(EVENT, X) \
@@ -152,17 +157,21 @@
   EVENT(X, SegMerge           , 0x0068,  TRUE, Seg) \
   EVENT(X, SegSplit           , 0x0069,  TRUE, Seg)
 
-/* Remember to update EventNameMAX and EventCodeMAX in eventcom.h! */
+/* Remember to update EventNameMAX and EventCodeMAX in eventcom.h! 
+   (These are checked in EventInit.) */
 
 
 /* EVENT_*_PARAMS -- definition of event parameters
  *
  * For each event type in EVENT_LIST, these macros list the parameters of
  * the event.  THe columns are:
- *   - the positional index of the parameter in the list
+ *   - the positional index of the parameter in the list, used to define
+ *     numeric field names using the C preprocessor
  *   - the parameter sort, similar to writef (Pointer, Addr, Word, Unsigned,
  *     String, Double)
- *   - a parameter name for display
+ *   - a parameter identifier for display or use in code
+ *
+ * TODO: Add a doc string to each parameter.
  */
 
 #define EVENT_AMCGenCreate_PARAMS(PARAM, X) \

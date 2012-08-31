@@ -88,31 +88,10 @@ typedef Word EventClock;
 #endif
 
 
-/* Types for event fields */
-
-typedef unsigned short EventCode;
-typedef unsigned EventKind;
-typedef unsigned short EventSize;
-#define EventSizeMAX USHRT_MAX
-
-typedef Byte EventStringLen;
-
-typedef struct {
-  EventStringLen len;
-  char str[EventStringLengthMAX];
-} EventStringStruct;
-
-typedef EventStringStruct *EventString;
-
-
-#define EventNameMAX ((size_t)19)
-#define EventCodeMAX ((EventCode)0x0069)
-
-
 /* Event Kinds --- see <design/telemetry/>
  *
  * All events are classified as being of one event type.
- * They are small enough to be able to be used as shifts within a word.
+ * They are small enough to be able to be used as members of a bit set.
  */
 
 enum {
@@ -129,7 +108,8 @@ enum {
 
 /* Event type definitions
  *
- * Define various constants for each event type to describe them.
+ * Various constants for each event type to describe them, so that they
+ * can easily be looked up from macros by name.
  */
 
 /* Note that enum values can be up to fifteen bits long portably. */
@@ -149,7 +129,29 @@ EVENT_LIST(EVENT_ENUM, X)
  * buffers and on the binary telemetry output stream.
  */
 
-/* Event field types -- similar to WriteF* */
+/* Types for common event fields */
+typedef unsigned short EventCode;
+typedef unsigned EventKind;
+typedef unsigned short EventSize;
+#define EventSizeMAX USHRT_MAX
+
+/* FIXME: Is the length byte really necessary? Why not use the overall event
+   size and NUL terminate? */
+typedef Byte EventStringLen;
+typedef struct EventStringStruct {
+  EventStringLen len;
+  char str[EventStringLengthMAX];
+} EventStringStruct, *EventString;
+
+/* Common prefix for all event structures.  The size field allows an event
+   reader to skip over events whose codes it does not recognise. */
+typedef struct EventAnyStruct {
+  EventCode code;       /* encoding of the event type */
+  EventSize size;       /* allows reader to skip events of unknown code */
+  EventClock clock;     /* when the event occurred */
+} EventAnyStruct;
+
+/* Event field types, for indexing by macro on the event parameter sort */
 typedef void *EventFP;                  /* pointer to C object */
 typedef Addr EventFA;                   /* address on the heap */
 typedef Word EventFW;                   /* word */
@@ -158,6 +160,7 @@ typedef EventStringStruct EventFS;      /* string */
 typedef double EventFD;                 /* double */
 typedef int EventFB;                    /* boolean */
 
+/* Event packing bitfield specifiers */
 #define EventFP_BITFIELD
 #define EventFA_BITFIELD
 #define EventFW_BITFIELD
@@ -166,22 +169,14 @@ typedef int EventFB;                    /* boolean */
 #define EventFD_BITFIELD
 #define EventFB_BITFIELD : 1
 
-/* Common prefix for all event structures.  The size field allows an event
-   reader to skip over events whose codes it does not recognise. */
-typedef struct EventAnyStruct {
-  EventCode code;
-  EventSize size;
-  EventClock clock;
-} EventAnyStruct;
-
 #define EVENT_STRUCT_FIELD(X, index, sort, ident) \
   EventF##sort f##index EventF##sort##_BITFIELD;
 
 #define EVENT_STRUCT(X, name, _code, always, kind) \
   typedef struct Event##name##Struct { \
-    EventCode code; \
-    EventSize size; \
-    EventClock clock; \
+    EventCode code;     /* Must match EventAnyStruct */ \
+    EventSize size;     /* ditto */ \
+    EventClock clock;   /* ditto */ \
     EVENT_##name##_PARAMS(EVENT_STRUCT_FIELD, X) \
   } Event##name##Struct;
 
