@@ -148,14 +148,6 @@ typedef unsigned EventKind;
 typedef unsigned short EventSize;
 #define EventSizeMAX USHRT_MAX
 
-/* FIXME: Is the length byte really necessary? Why not use the overall event
-   size and NUL terminate? */
-typedef Byte EventStringLen;
-typedef struct EventStringStruct {
-  EventStringLen len;
-  char str[EventStringLengthMAX];
-} EventStringStruct, *EventString;
-
 /* Common prefix for all event structures.  The size field allows an event
    reader to skip over events whose codes it does not recognise. */
 typedef struct EventAnyStruct {
@@ -169,7 +161,7 @@ typedef void *EventFP;                  /* pointer to C object */
 typedef Addr EventFA;                   /* address on the heap */
 typedef Word EventFW;                   /* word */
 typedef unsigned EventFU;               /* unsigned integer */
-typedef EventStringStruct EventFS;      /* string */
+typedef char EventFS[EventStringLengthMAX + sizeof('\0')]; /* string */
 typedef double EventFD;                 /* double */
 typedef int EventFB;                    /* boolean */
 
