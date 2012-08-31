@@ -1,3 +1,19 @@
+2012-08-31  Dave Abrahams  <dave@boostpro.com>
+
+	* auth-source.el (auth-sources): Fix macos keychain access.
+
+	* gnus-int.el (gnus-request-head): When gnus-override-method is set,
+	allow the backend `request-head' function to determine the group
+	name on its own.
+	(gnus-request-expire-articles): Filter out negative article numbers
+	during expiry (Bug#11980).
+
+	* gnus-range.el (gnus-set-difference): Change gnus-set-difference from
+	O(N^2) to O(N).  This makes warping into huge groups tolerable.
+
+	* gnus-registry.el (gnus-try-warping-via-registry): Don't act as though
+	you've found the article when you haven't.
+
 2012-08-31  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* gnus-notifications.el (gnus-notifications-action): Avoid CL-ism.

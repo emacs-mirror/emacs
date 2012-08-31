@@ -52,11 +52,13 @@ If RANGE is a single range, return (RANGE). Otherwise, return RANGE."
 
 (defun gnus-set-difference (list1 list2)
   "Return a list of elements of LIST1 that do not appear in LIST2."
-  (let ((list1 (copy-sequence list1)))
-    (while list2
-      (setq list1 (delq (car list2) list1))
-      (setq list2 (cdr list2)))
-    list1))
+  (let ((hash2 (make-hash-table :test 'eq))
+        (result nil))
+    (dolist (elt list2) (puthash elt t hash2))
+    (dolist (elt list1)
+      (unless (gethash elt hash2)
+        (setq result (cons elt result))))
+    (nreverse result)))
 
 (defun gnus-range-nconcat (&rest ranges)
   "Return a range comprising all the RANGES, which are pre-sorted.

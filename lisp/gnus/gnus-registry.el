@@ -1169,9 +1169,10 @@ data stored in the registry."
 
             ;; Try to activate the group.  If that fails, just move
             ;; along.  We may have more groups to work with
-            (ignore-errors
-	      (gnus-select-group-with-message-id group message-id))
-            (throw 'found t)))))))
+            (when
+                (ignore-errors
+                  (gnus-select-group-with-message-id group message-id) t)
+              (throw 'found t))))))))
 
 ;; TODO: a few things
 

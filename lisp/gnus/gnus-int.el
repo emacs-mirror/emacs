@@ -599,7 +599,8 @@ real group. Does nothing on a real group."
 	    clean-up t))
      ;; Use `head' function.
      ((fboundp head)
-      (setq res (funcall head article (gnus-group-real-name group)
+      (setq res (funcall head article
+                         (and (not gnus-override-method) (gnus-group-real-name group))
 			 (nth 1 gnus-command-method))))
      ;; Use `article' function.
      (t
@@ -706,6 +707,10 @@ If GROUP is nil, all groups on GNUS-COMMAND-METHOD are scanned."
 
 (defun gnus-request-expire-articles (articles group &optional force)
   (let* ((gnus-command-method (gnus-find-method-for-group group))
+         ;; Filter out any negative article numbers; they can't be
+         ;; expired here.
+         (articles
+          (delq nil (mapcar (lambda (n) (and (>= n 0) n)) articles)))
 	 (gnus-inhibit-demon t)
 	 (not-deleted
 	  (funcall
