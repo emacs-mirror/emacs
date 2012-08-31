@@ -422,7 +422,6 @@ static void readLog(EventProc proc)
   }
 
   while (TRUE) { /* loop for each event */
-    char *eventFormat;
     Event event;
     EventCode code;
     Res res;
@@ -449,11 +448,6 @@ static void readLog(EventProc proc)
 
     /* Output event. */
     if (verbose) {
-      size_t argCount;
-      eventFormat = EventCode2Format(code);
-      argCount = strlen(eventFormat);
-      if (eventFormat[0] == '0') argCount = 0;
-
       if (style == 'L') putchar('(');
 
       switch (style) {

@@ -234,19 +234,13 @@ char *LabelText(EventProc proc, Word id)
 
 Res EventRead(Event *eventReturn, EventProc proc)
 {
-  size_t eventIndex;
   Res res;
   EventAnyStruct anyStruct;
   Event event;
-  void *restOfEvent;
   
   res = proc->reader(proc->readerP, &anyStruct, sizeof(anyStruct));
   if (res != ResOK)
     return res;
-
-  eventIndex = eventCode2Index(anyStruct.code, TRUE);
-  assert(anyStruct.code == EventInternCode ||
-         anyStruct.size == eventTypes[eventIndex].size);
 
   if (proc->cachedEvent != NULL) {
     event = proc->cachedEvent;
@@ -259,7 +253,6 @@ Res EventRead(Event *eventReturn, EventProc proc)
   }
 
   event->any = anyStruct;
-  restOfEvent = PointerAdd(event, sizeof(anyStruct));
   res = proc->reader(proc->readerP,
                      PointerAdd(event, sizeof(anyStruct)),
                      anyStruct.size - sizeof(anyStruct));

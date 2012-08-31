@@ -109,7 +109,7 @@ typedef mps_clock_t EventClock;
  * They are small enough to be able to be used as members of a bit set.
  */
 
-enum {
+enum EventKindEnum {
   EventKindArena,       /* Per space or arena */
   EventKindPool,        /* Per pool */
   EventKindTrace,       /* Per trace or scan */
@@ -129,13 +129,14 @@ enum {
 
 /* Note that enum values can be up to fifteen bits long portably. */
 #define EVENT_ENUM(X, name, code, always, kind) \
-  enum { \
     Event##name##Code = code, \
     Event##name##Always = always, \
-    Event##name##Kind = EventKind##kind \
-  };
+    Event##name##Kind = EventKind##kind,
 
-EVENT_LIST(EVENT_ENUM, X)
+enum EventDefinitionsEnum {
+  EVENT_LIST(EVENT_ENUM, X)
+  EventEnumWarningSuppressor
+};
 
 
 /* Event*Struct -- Event Structures
