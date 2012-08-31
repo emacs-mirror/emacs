@@ -978,7 +978,7 @@ extern void StackProbe(Size depth);
 #elif defined(STATISTICS_NONE)
 
 #define STATISTIC(gather) DISCARD(((gather), 0))
-#define STATISTIC_STAT(gather) DISCARD_STAT(gather)
+#define STATISTIC_STAT DISCARD_STAT
 #define STATISTIC_WRITE(format, arg)
 
 #else
