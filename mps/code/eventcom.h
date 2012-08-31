@@ -133,7 +133,7 @@ enum {
  */
 
 /* Note that enum values can be up to fifteen bits long portably. */
-#define EVENT_ENUM(X, name, code, always, kind, count, format) \
+#define EVENT_ENUM(X, name, code, always, kind) \
   enum { \
     Event##name##Code = code, \
     Event##name##Always = always, \
@@ -168,7 +168,7 @@ typedef struct EventAnyStruct {
 #define EVENT_STRUCT_FIELD(X, index, sort, ident) \
   EventF##sort f##index;
 
-#define EVENT_STRUCT(X, name, _code, always, kind, count, format) \
+#define EVENT_STRUCT(X, name, _code, always, kind) \
   typedef struct Event##name##Struct { \
     EventCode code; \
     EventSize size; \
@@ -186,7 +186,7 @@ EVENT_LIST(EVENT_STRUCT, X)
  * by examining event->any.code.
  */
 
-#define EVENT_UNION_MEMBER(X, name, code, always, kind, count, format) \
+#define EVENT_UNION_MEMBER(X, name, code, always, kind) \
   Event##name##Struct name;
 
 typedef union EventUnion {
