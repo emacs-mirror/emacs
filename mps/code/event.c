@@ -32,6 +32,7 @@ SRCID(event, "$Id$");
 
 
 static Bool eventInited = FALSE;
+static Bool eventIOInited = FALSE;
 static mps_io_t eventIO;
 static Count eventUserCount;
 static Serial EventInternSerial;
@@ -53,6 +54,19 @@ Res EventFlush(void)
   AVER(EventBuffer <= EventLast);
   AVER(EventLast <= EventBuffer + EventBufferSIZE);
   size = (size_t)(EventBuffer + EventBufferSIZE - EventLast);
+
+  /* Checking the size avoids creating the event stream when the arena is
+     destroyed and no events have been logged. */
+  if (size == 0)
+    return ResOK;
+
+  /* Ensure the IO stream is open.  We do this late so that no stream is
+     created if no events are enabled by telemetry control. */
+  if (!eventIOInited) {
+    res = (Res)mps_io_create(&eventIO);
+    if(res != ResOK) return res;
+    eventIOInited = TRUE;
+  }
 
   /* Writing might be faster if the size is aligned to a multiple of the
      C library or kernel's buffer size.  We could pad out the buffer with
@@ -84,8 +98,6 @@ Res EventSync(void)
 
 Res EventInit(void)
 {
-  Res res;
-
   /* Make local enums for all event params in order to check that the indexes
      in the parameter definition macros are in order, and that parameter
      idents are unique. */
@@ -141,8 +153,6 @@ Res EventInit(void)
   /* Only if this is the first call. */
   if(!eventInited) { /* See .trans.log */
     AVER(EventLast == NULL);
-    res = (Res)mps_io_create(&eventIO);
-    if(res != ResOK) return res;
     EventLast = EventBuffer + EventBufferSIZE;
     eventUserCount = (Count)1;
     eventInited = TRUE;
