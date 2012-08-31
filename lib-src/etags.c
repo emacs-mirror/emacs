@@ -2878,6 +2878,7 @@ consider_token (register char *str, register int len, register int c, int *c_ext
 	   objdef = omethodtag;
 	   linebuffer_setlen (&token_name, oldlen + len);
 	   memcpy (token_name.buffer + oldlen, str, len);
+	   token_name.buffer[oldlen + len] = '\0';
 	   return TRUE;
 	 }
        return FALSE;
