@@ -55,7 +55,7 @@ static Bool verbose = FALSE;
 static char style = '\0';
 static Bool reportEvents = FALSE;
 static Bool eventEnabled[EventCodeMAX+1];
-static Bool partialLog = FALSE;
+static Bool partialLog = FALSE; /* FIXME: can't read out-of-order labels */
 static Word bucketSize = 0;
 
 
@@ -454,22 +454,24 @@ static void readLog(EventProc proc)
       if (style == 'L') putchar('(');
 
       switch (style) {
+      case '\0': case 'L':
+        EVENT_CLOCK_PRINT(stdout, eventTime);
+        putchar(' ');
+        break;
+      case 'C':
+        EVENT_CLOCK_PRINT(stdout, eventTime);
+        fputs(", ", stdout);
+        break;
+      }
+
+      switch (style) {
       case '\0': case 'L': {
-        printf("%-19s", EventCode2Name(code));
+        printf("%-19s ", EventCode2Name(code));
       } break;
       case 'C':
         printf("%u", (unsigned)code);
         break;
       }
-
-     switch (style) {
-     case '\0':
-       printf(" %8"PRIuLONGEST, (ulongest_t)eventTime); break;
-     case 'C':
-       printf(", %"PRIuLONGEST, (ulongest_t)eventTime); break;
-     case 'L':
-       printf(" %"PRIXLONGEST, (ulongest_t)eventTime); break;
-     }
 
      switch (event->any.code) {
 

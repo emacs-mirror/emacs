@@ -68,7 +68,9 @@ __extension__ typedef unsigned long long EventClock;
   END
 
 #define EVENT_CLOCK_PRINT(stream, clock) \
-  fprintf(stream, "%lu", (unsigned long)clock) /* FIXME: Should be %llu */
+  fprintf(stream, "%08lX%08lX",  /* FIXME: Should be %llu */ \
+          (unsigned long)((clock) >> 32), \
+          (unsigned long)(clock))
 
 #endif /* Intel, GCC or Clang */
 
