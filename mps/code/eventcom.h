@@ -20,7 +20,20 @@
  * and fast high-resolution timer.
  */
 
-/* http://msdn.microsoft.com/en-US/library/twchhe95%28v=vs.100%29.aspx */
+/* TODO: Clang supposedly provides a cross-platform builtin for a fast
+   timer, but it doesn't seem to be present on Mac OS X 10.8.  We should
+   use it if it ever appears.
+   <http://clang.llvm.org/docs/LanguageExtensions.html#builtins> */
+#if defined(MPS_BUILD_LL)
+
+#if __has_builtin(__builtin_readcyclecounter)
+#error "__builtin_readcyclecounter is available but not used"
+#endif /* __has_builtin(__builtin_readcyclecounter) */
+
+#endif
+
+/* Microsoft C provides an intrinsic for the Intel rdtsc instruction.
+   <http://msdn.microsoft.com/en-US/library/twchhe95%28v=vs.100%29.aspx> */
 #if (defined(MPS_ARCH_I3) || defined(MPS_ARCH_I6)) && defined(MPS_BUILD_MV)
 
 #pragma intrinsic(__rdtsc)
@@ -33,6 +46,7 @@ typedef unsigned __int64 EventClock;
   END
 
 #define EVENT_CLOCK_PRINT(stream, clock) fprintf(stream, "%llX", clock)
+
 #if defined(MPS_ARCH_I3)
 #define EVENT_CLOCK_WRITE(stream, clock) \
   WriteF(stream, "$W$W", (WriteFW)((clock) >> 32), (WriteFW)clock, NULL)
@@ -41,26 +55,9 @@ typedef unsigned __int64 EventClock;
   WriteF(stream, "$W", (WriteFW)(clock), NULL)
 #endif
 
-/* http://clang.llvm.org/docs/LanguageExtensions.html#builtins */
-#elif defined(MPS_BUILD_LL)
+#endif /* Microsoft C on Intel */
 
-#if __has_builtin(__builtin_readcyclecounter)
-
-typedef unsigned long long EventClock;
-
-#define EVENT_CLOCK(lvalue) \
-  BEGIN \
-    (lvalue) = __builtin_readcyclecounter(); \
-  END
-
-#define EVENT_CLOCK_PRINT(stream, clock) fprintf(stream, "%llu", clock)
-/* FIXME: No EVENT_CLOCK_WRITE */
-
-#endif /* __has_builtin(__builtin_readcyclecounter) */
-
-#endif
-
-/* Assemble the rdtsc instruction */
+/* If we have GCC or Clang, assemble the rdtsc instruction */
 #if !defined(EVENT_CLOCK) && \
     (defined(MPS_ARCH_I3) || defined(MPS_ARCH_I6)) && \
       (defined(MPS_BUILD_GC) || defined(MPS_BUILD_LL))
@@ -75,8 +72,10 @@ __extension__ typedef unsigned long long EventClock;
     (lvalue) = ((EventClock)_h << 32) | _l; \
   END
 
+/* The __extension__ keyword doesn't work on printf formats, so we
+   concatenate two 32-bit hex numbers to print the 64-bit value. */
 #define EVENT_CLOCK_PRINT(stream, clock) \
-  fprintf(stream, "%08lX%08lX",  /* FIXME: Should be %llu */ \
+  fprintf(stream, "%08lX%08lX", \
           (unsigned long)((clock) >> 32), \
           (unsigned long)(clock))
 
@@ -88,7 +87,7 @@ __extension__ typedef unsigned long long EventClock;
 /* no fast clock, use plinth, probably from the C library */
 #ifndef EVENT_CLOCK
 
-typedef Word EventClock;
+typedef mps_clock_t EventClock;
 
 #define EVENT_CLOCK(lvalue) \
   BEGIN \
@@ -96,8 +95,10 @@ typedef Word EventClock;
   END
 
 #define EVENT_CLOCK_PRINT(stream, clock) \
-  fprintf(stream, "%llu", (unsigned long long)clock)
-/* FIXME: No EVENT_CLOCK_WRITE */
+  fprintf(stream, "%lu", (unsigned long)clock)
+
+#define EVENT_CLOCK_WRITE(stream, clock) \
+  WriteF(stream, "$W", (WriteFW)clock, NULL)
 
 #endif
 
