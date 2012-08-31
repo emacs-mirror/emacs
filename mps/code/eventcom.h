@@ -32,11 +32,12 @@ typedef unsigned __int64 EventClock;
     (lvalue) = __rdtsc(); \
   END
 
-#define EVENT_CLOCK_PRINT(stream, clock) fprintf(stream, "%llu", clock)
+#define EVENT_CLOCK_PRINT(stream, clock) fprintf(stream, "%llX", clock)
 #if defined(MPS_ARCH_I3)
 #define EVENT_CLOCK_WRITE(stream, clock) \
   WriteF(stream, "$W$W", (WriteFW)((clock) >> 32), (WriteFW)clock, NULL)
 #else /* I6 */
+#define EVENT_CLOCK_WRITE(stream, clock) \
   WriteF(stream, "$W", (WriteFW)(clock), NULL)
 #endif
 
