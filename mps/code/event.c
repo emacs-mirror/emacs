@@ -209,7 +209,7 @@ void EventFinish(void)
  *   Flip(M)  EventControl(0,M)
  *   Read()   EventControl(0,0)
  *
- * FIXME: Candy-machine interface is a transgression.
+ * TODO: Candy-machine interface is a transgression.
  */
   
 EventControlSet EventControl(EventControlSet resetMask,
@@ -274,11 +274,12 @@ void EventLabelAddr(Addr addr, EventStringId id)
 #define EVENT_WRITE_PARAM_B(name, index, sort, ident) \
   " $U", (WriteFU)event->name.f##index,
 
+
 Res EventDescribe(Event event, mps_lib_FILE *stream)
 {
   Res res;
 
-  /* FIXME: Some sort of EventCheck would be good */
+  /* TODO: Some sort of EventCheck would be good */
   if (event == NULL)
     return ResFAIL;
   if (stream == NULL)
@@ -286,23 +287,24 @@ Res EventDescribe(Event event, mps_lib_FILE *stream)
 
   res = WriteF(stream,
                "Event $P {\n", (WriteFP)event,
-               NULL);
+               "  code $U\n", (WriteFU)event->any.code,
+               "  clock ", NULL);
+  if (res != ResOK) return res;
+  res = EVENT_CLOCK_WRITE(stream, event->any.clock);
+  if (res != ResOK) return res;
+  res = WriteF(stream, "\n  size $U\n", (WriteFU)event->any.size, NULL);
   if (res != ResOK) return res;
 
   switch (event->any.code) {
 
 #define EVENT_DESC_PARAM(name, index, sort, ident) \
-  "\n  $S", (WriteFS)#ident, \
-  EVENT_WRITE_PARAM_##sort(name, index, sort, ident)
+                 "\n  $S", (WriteFS)#ident, \
+                 EVENT_WRITE_PARAM_##sort(name, index, sort, ident)
 
 #define EVENT_DESC(X, name, _code, always, kind) \
   case _code: \
     res = WriteF(stream, \
-                 "  code $U ($S)\n", (WriteFU)event->any.code, (WriteFS)#name, \
-                 "  clock ", NULL); \
-    if (res != ResOK) return res; \
-    EVENT_CLOCK_WRITE(stream, event->any.clock); /* FIXME: return code */ \
-    res = WriteF(stream, "\n  size $U", (WriteFU)event->any.size, \
+                 "  event \"$S\"", (WriteFS)#name, \
                  EVENT_##name##_PARAMS(EVENT_DESC_PARAM, name) \
                  NULL); \
     if (res != ResOK) return res; \
@@ -311,7 +313,10 @@ Res EventDescribe(Event event, mps_lib_FILE *stream)
   EVENT_LIST(EVENT_DESC, X)
 
   default:
-    NOTREACHED; /* FIXME: should print .any info */
+    res = WriteF(stream, "  event type unknown", NULL);
+    if (res != ResOK) return res;
+    /* TODO: Hexdump unknown event contents. */
+    break;
   }
   
   res = WriteF(stream,
@@ -328,7 +333,9 @@ Res EventWrite(Event event, mps_lib_FILE *stream)
   if (event == NULL) return ResFAIL;
   if (stream == NULL) return ResFAIL;
 
-  EVENT_CLOCK_WRITE(stream, event->any.clock); /* FIXME: return code */
+  res = EVENT_CLOCK_WRITE(stream, event->any.clock);
+  if (res != ResOK)
+    return res;
 
   switch (event->any.code) {
 
@@ -337,7 +344,7 @@ Res EventWrite(Event event, mps_lib_FILE *stream)
 
 #define EVENT_WRITE(X, name, code, always, kind) \
   case code: \
-    res = WriteF(stream, " "#name, \
+    res = WriteF(stream, " $S", #name, \
                  EVENT_##name##_PARAMS(EVENT_WRITE_PARAM, name) \
                  NULL); \
     if (res != ResOK) return res; \
@@ -347,7 +354,7 @@ Res EventWrite(Event event, mps_lib_FILE *stream)
   default:
     res = WriteF(stream, " <unknown code $U>", event->any.code, NULL);
     if (res != ResOK) return res;
-    /* FIXME: Should dump contents in hex. */
+    /* TODO: Hexdump unknown event contents. */
     break;
   }
   
