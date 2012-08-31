@@ -24,7 +24,7 @@
 typedef Word EventStringId;
 typedef Word EventControlSet;
 
-extern Res EventSync(void);
+extern void EventSync(void);
 extern Res EventInit(void);
 extern void EventFinish(void);
 extern EventControlSet EventControl(EventControlSet resetMask,
@@ -32,7 +32,7 @@ extern EventControlSet EventControl(EventControlSet resetMask,
 extern EventStringId EventInternString(const char *label);
 extern EventStringId EventInternGenString(size_t, const char *label);
 extern void EventLabelAddr(Addr addr, Word id);
-extern Res EventFlush(void);
+extern Res EventFlush(EventKind kind);
 extern Res EventDescribe(Event event, mps_lib_FILE *stream);
 extern Res EventWrite(Event event, mps_lib_FILE *stream);
 extern void EventDump(mps_lib_FILE *stream);
@@ -42,8 +42,8 @@ extern void EventDump(mps_lib_FILE *stream);
 
 /* Event writing support */
 
-extern char EventBuffer[EventBufferSIZE];  /* in which events are recorded */
-extern char *EventLast;                    /* points to last written event */
+extern char EventBuffer[EventKindLIMIT][EventBufferSIZE];
+extern char *EventLast[EventKindLIMIT];
 extern Word EventKindControl;
 
 
@@ -52,20 +52,21 @@ extern Word EventKindControl;
 
 #define EVENT_BEGIN(name, structSize) \
   BEGIN \
-    if(/* Event##name##Always && FIXME: depend on variety */ \
-       BS_IS_MEMBER(EventKindControl, (Index)Event##name##Kind)) { \
+    if(Event##name##Always) { /* FIXME: depend on variety */ \
       Event##name##Struct *_event; \
       size_t _size = size_tAlignUp(structSize, MPS_PF_ALIGN); \
-      if (_size > (size_t)(EventLast - EventBuffer)) \
-        EventFlush(); \
-      AVER(_size <= (size_t)(EventLast - EventBuffer)); \
-      _event = (void *)(EventLast - _size); \
+      if (_size > (size_t)(EventLast[Event##name##Kind] \
+                           - EventBuffer[Event##name##Kind])) \
+        EventFlush(Event##name##Kind); \
+      AVER(_size <= (size_t)(EventLast[Event##name##Kind] \
+                             - EventBuffer[Event##name##Kind])); \
+      _event = (void *)(EventLast[Event##name##Kind] - _size); \
       _event->code = Event##name##Code; \
       _event->size = (EventSize)_size; \
       EVENT_CLOCK(_event->clock);
 
 #define EVENT_END(name, size) \
-      EventLast -= _size; \
+      EventLast[Event##name##Kind] -= _size; \
     } \
   END
 

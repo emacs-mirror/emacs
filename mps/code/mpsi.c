@@ -1908,7 +1908,7 @@ void mps_telemetry_label(mps_addr_t addr, mps_word_t intern_id)
 void mps_telemetry_flush(void)
 {
   /* Telemetry does its own concurrency control, so none here. */
-  (void)EventSync();
+  EventSync();
 }
 
 
