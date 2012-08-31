@@ -18,6 +18,7 @@
 #include "eventcom.h"
 #include "mpm.h"
 #include "eventdef.h"
+#include "mpslib.h"
 
 
 typedef Word EventStringId;
@@ -32,6 +33,7 @@ extern EventStringId EventInternString(const char *label);
 extern EventStringId EventInternGenString(size_t, const char *label);
 extern void EventLabelAddr(Addr addr, Word id);
 extern Res EventFlush(void);
+extern void EventDump(mps_lib_FILE *stream);
 
 
 #ifdef EVENT
@@ -78,12 +80,13 @@ extern Word EventKindControl;
   BEGIN \
     size_t _string_len = (length); \
     size_t size; \
-    size = offsetof(Event##name##Struct, f1.str) + _string_len; \
+    size = offsetof(Event##name##Struct, f1.str) + _string_len + sizeof('\0'); \
     EVENT_BEGIN(name, size) \
       _event->f0 = (p0); \
-      AVER(_string_len < EventStringLengthMAX); \
+      AVER(_string_len <= EventStringLengthMAX); \
       _event->f1.len = (EventStringLen)_string_len; \
       mps_lib_memcpy(_event->f1.str, (string), _string_len); \
+      _event->f1.str[_string_len] = '\0'; \
     EVENT_END(name, size); \
   END
 

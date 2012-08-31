@@ -814,6 +814,8 @@ static void traceReclaim(Trace trace)
     PoolTraceEnd(pool, trace);
   }
 
+NOTREACHED;
+
   ArenaCompact(arena, trace);  /* let arenavm drop chunks */
 
   TracePostMessage(trace);  /* trace end */
