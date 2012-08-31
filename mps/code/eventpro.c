@@ -239,46 +239,38 @@ EventString LabelText(EventProc proc, Word id)
 
 Res EventRead(Event *eventReturn, EventProc proc)
 {
-  size_t eventIndex, size;
+  size_t eventIndex;
   Res res;
-  EventCode code;
+  EventAnyStruct anyStruct;
   Event event;
   void *restOfEvent;
-
-  res = proc->reader(proc->readerP, &code, sizeof(EventCode));
+  
+  res = proc->reader(proc->readerP, &anyStruct, sizeof(anyStruct));
   if (res != ResOK)
     return res;
 
-  eventIndex = eventCode2Index(code, TRUE);
-  size = eventTypes[eventIndex].size;
+  eventIndex = eventCode2Index(anyStruct.code, TRUE);
+  assert(anyStruct.code == EventInternCode ||
+         anyStruct.size == eventTypes[eventIndex].size);
+
   if (proc->cachedEvent != NULL) {
     event = proc->cachedEvent;
     proc->cachedEvent = NULL;
   } else {
     /* This is too long for most events, but never mind. */
     event = (Event)malloc(sizeof(EventUnion));
-    if (event == NULL) return ResMEMORY;
+    if (event == NULL)
+      return ResMEMORY;
   }
 
-  event->any.code = code;
-  restOfEvent = PointerAdd(event, sizeof(EventCode));
-  if (code == EventInternCode) { /* the only string event */
-    /* read enough to get the length */
-    res = proc->reader(proc->readerP, restOfEvent,
-                       internStrOffset - sizeof(EventCode));
-    if (res != ResOK)
-      return res;
-    /* read the rest */
-    res = proc->reader(proc->readerP, &event->Intern.f1.str,
-                       /* Length must agree with EVENT_WS. */
-                       EventSizeAlign(internStrOffset + event->Intern.f1.len)
-                       - internStrOffset);
-    if (res != ResOK) return res;
-  } else {
-    res = proc->reader(proc->readerP, restOfEvent,
-                       size - sizeof(EventCode));
-    if (res != ResOK) return res;
-  }
+  event->any = anyStruct;
+  restOfEvent = PointerAdd(event, sizeof(anyStruct));
+  res = proc->reader(proc->readerP,
+                     PointerAdd(event, sizeof(anyStruct)),
+                     anyStruct.size - sizeof(anyStruct));
+  if (res != ResOK)
+    return res;
+
   *eventReturn = event;
   return ResOK;
 }
