@@ -5476,7 +5476,6 @@ See Info node `(elisp)Garbage Collection'.  */)
     }
   mark_terminals ();
   mark_kboards ();
-  mark_ttys ();
 
 #ifdef USE_GTK
   {

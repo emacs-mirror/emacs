@@ -3001,6 +3001,7 @@ init_tty (const char *name, const char *terminal_type, int must_succeed)
 #else
   tty = xzalloc (sizeof *tty);
 #endif
+  tty->top_frame = Qnil;
   tty->next = tty_list;
   tty_list = tty;
 
@@ -3540,22 +3541,6 @@ delete_tty (struct terminal *terminal)
 
   xfree (tty);
 }
-
-
-
-/* Mark the pointers in the tty_display_info objects.
-   Called by Fgarbage_collect.  */
-
-void
-mark_ttys (void)
-{
-  struct tty_display_info *tty;
-
-  for (tty = tty_list; tty; tty = tty->next)
-    mark_object (tty->top_frame);
-}
-
-
 
 void
 syms_of_term (void)

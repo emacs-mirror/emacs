@@ -1,5 +1,15 @@
 2012-08-31  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	Remove mark_ttys function and fix tty_display_info initialization.
+	* lisp.h (mark_ttys): Remove prototype.
+	* alloc.c (Fgarbage_collect): Remove redundant (and the only) call
+	to mark_ttys because all possible values of 'top_frame' slot are
+	the frames which are reachable from Vframe_list.
+	* term.c (mark_ttys): Remove.
+	(init_tty): Safely initialize 'top_frame' slot with Qnil.
+
+2012-08-31  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	Change struct frame bitfields from unsigned char to unsigned.
 	* frame.h (struct frame): Change type of 'display_preempted',
 	'visible', 'iconified', 'has_minibuffer', 'wants_modeline',
