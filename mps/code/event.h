@@ -20,13 +20,17 @@
 #include "eventdef.h"
 
 
+typedef Word EventStringId;
+typedef Word EventControlSet;
+
 extern Res EventSync(void);
 extern Res EventInit(void);
 extern void EventFinish(void);
-extern Word EventControl(Word, Word);
-extern Word EventInternString(const char *);
-extern Word EventInternGenString(size_t, const char *);
-extern void EventLabelAddr(Addr, Word);
+extern EventControlSet EventControl(EventControlSet resetMask,
+                                    EventControlSet flipMask);
+extern EventStringId EventInternString(const char *label);
+extern EventStringId EventInternGenString(size_t, const char *label);
+extern void EventLabelAddr(Addr addr, Word id);
 extern Res EventFlush(void);
 
 
@@ -38,10 +42,13 @@ extern char *EventNext, *EventLimit;
 extern Word EventKindControl;
 
 
+/* TODO: Append a size at EventNext - sizeof(EventSize) so that a backtrace
+   can step backwards through the event buffer. */
+
 #define EVENT_BEGIN(name, structSize) \
   BEGIN \
-    if(Event##name##Always && \
-       BS_IS_MEMBER(EventKindControl, ((Index)Event##name##Kind))) { \
+    if(/* Event##name##Always && FIXME: depend on variety */ \
+       BS_IS_MEMBER(EventKindControl, (Index)Event##name##Kind)) { \
       Event##name##Struct *_event; \
       size_t _size = size_tAlignUp(structSize, MPS_PF_ALIGN); \
       if (_size > (size_t)(EventLimit - EventNext)) \
@@ -101,14 +108,6 @@ extern Word EventKindControl;
 
 
 #else /* EVENT not */
-
-
-#define EventInit()            NOOP
-#define EventFinish()          NOOP
-#define EventControl(r, f)     (UNUSED(r), UNUSED(f), (Word)0)
-#define EventInternString(s)   (UNUSED(s), (Word)0)
-#define EventInternGenString(l, s) (UNUSED(l), UNUSED(s), (Word)0)
-#define EventLabelAddr(a, i)   BEGIN UNUSED(a); UNUSED(i); END
 
 
 #define EVENT0(name) NOOP
