@@ -16,8 +16,6 @@
 #                   information, and any optimization possible
 # CFLAGSOPT         a list of flags for compilations with maximum
 #                   optimization, and any debug info possible
-# CFLAGSOPTNODEBUG  a list of flags for compilations with maximum
-#                   optimization, and absolutely no debug info
 # CC                the command for the C compiler
 # LINKFLAGS         a list of flags passed to the linker
 # ARFLAGSPFM        platform-specific flags for ar
@@ -63,9 +61,6 @@ error "comm.gmk: CFLAGSDEBUG not defined"
 endif
 ifndef CFLAGSOPT
 error "comm.gmk: CFLAGSOPT not defined"
-endif
-ifndef CFLAGSOPTNODEBUG
-error "comm.gmk: CFLAGSOPTNODEBUG not defined"
 endif
 
 #
@@ -122,13 +117,9 @@ CFLAGSCOMMON = $(PFMDEFS) $(CFLAGSTARGET) $(CFLAGSCOMPILER)
 #            variety.
 
 # These flags are added to compilations for the indicated variety.
-CFWE = -DCONFIG_VAR_WE -DNDEBUG $(CFLAGSOPTNODEBUG)
-CFWI = -DCONFIG_VAR_WI -DNDEBUG $(CFLAGSOPT)
-CFHE = -DCONFIG_VAR_HE -DNDEBUG $(CFLAGSOPTNODEBUG)
-CFHI = -DCONFIG_VAR_HI -DNDEBUG $(CFLAGSOPT)
+CFWE = -DCONFIG_VAR_WE -DNDEBUG $(CFLAGSOPT)
+CFHE = -DCONFIG_VAR_HE -DNDEBUG $(CFLAGSOPT)
 CFDI = -DCONFIG_VAR_DI -DNDEBUG $(CFLAGSOPT)
-CFII = -DCONFIG_VAR_II -DNDEBUG $(CFLAGSOPT)
-CFCE = -DCONFIG_VAR_CE          $(CFLAGSOPTNODEBUG)
 CFCI = -DCONFIG_VAR_CI          $(CFLAGSDEBUG)
 CFTI = -DCONFIG_VAR_TI          $(CFLAGSDEBUG)
 
@@ -137,23 +128,11 @@ CFTI = -DCONFIG_VAR_TI          $(CFLAGSDEBUG)
 ifeq ($(VARIETY),we)
 CFLAGS=$(CFLAGSCOMMON) $(CFWE)
 else
-ifeq ($(VARIETY),wi)
-CFLAGS=$(CFLAGSCOMMON) $(CFWI)
-else
 ifeq ($(VARIETY),he)
 CFLAGS=$(CFLAGSCOMMON) $(CFHE)
 else
-ifeq ($(VARIETY),hi)
-CFLAGS=$(CFLAGSCOMMON) $(CFHI)
-else
 ifeq ($(VARIETY),di)
 CFLAGS=$(CFLAGSCOMMON) $(CFDI)
-else
-ifeq ($(VARIETY),ii)
-CFLAGS=$(CFLAGSCOMMON) $(CFII)
-else
-ifeq ($(VARIETY),ce)
-CFLAGS=$(CFLAGSCOMMON) $(CFCE)
 else
 ifeq ($(VARIETY),ci)
 CFLAGS=$(CFLAGSCOMMON) $(CFCI)
@@ -161,10 +140,6 @@ else
 ifeq ($(VARIETY),ti)
 CFLAGS=$(CFLAGSCOMMON) $(CFTI)
 else
-endif
-endif
-endif
-endif
 endif
 endif
 endif
@@ -328,10 +303,8 @@ clean: phony
 ifdef TARGET
 ifndef VARIETY
 target: phony
-	$(MAKE) -f $(PFM).gmk VARIETY=hi variety
+	$(MAKE) -f $(PFM).gmk VARIETY=he variety
 	$(MAKE) -f $(PFM).gmk VARIETY=ci variety
-	$(MAKE) -f $(PFM).gmk VARIETY=di variety
-	$(MAKE) -f $(PFM).gmk VARIETY=we variety
 endif
 endif
 

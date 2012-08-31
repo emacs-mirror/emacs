@@ -21,35 +21,45 @@
 
 /* Variety Configuration */
 
-/* First translate GG build directives into better ones.
- */
+/* Then deal with CONFIG_VAR_* build directives.  These are translated into
+   the directives CONFIG_ASSERT, CONFIG_STATS, CONFIG_LOG, etc. which control
+   actual compilation features. */
 
-#ifdef CONFIG_DEBUG
-/* Translate CONFIG_DEBUG to CONFIG_STATS, because that's what it */
-/* means.  It's got nothing to do with debugging!  RHSK 2007-06-29 */
-#define CONFIG_STATS
-#endif
-
-
-/* Then deal with old-style CONFIG_VAR_* build directives.  These
- * must be translated into the new directives CONFIG_ASSERT,
- * CONFIG_STATS, and CONFIG_LOG.
+/* CONFIG_VAR_WE -- the white-hot variety
  *
- * One day the old build system may be converted to use the new
- * directives.
+ * This variety switches off as many features as possible for maximum
+ * performance, but is therefore unsafe and undebuggable.  It is not intended
+ * for use, but for comparison with the hot variety, to check that assertion,
+ * logging, etc. have negligible overhead.
  */
 
-#if defined(CONFIG_VAR_WI) || defined(CONFIG_VAR_WE) /* White-hot varieties */
+#if defined(CONFIG_VAR_WE)      /* White-hot variety */
 /* no asserts */
 /* ... so CHECKLEVEL_INITIAL is irrelevant */
 /* no statistic meters */
 /* no telemetry log events */
 
-#elif defined(CONFIG_VAR_HI) || defined(CONFIG_VAR_HE) /* Hot varieties */
+
+/* CONFIG_VAR_HE -- the hot variety
+ *
+ * This variety is the default variety for distribution in products that use
+ * the MPS.  It has maximum performance while retaining a good level of
+ * consistency checking and allowing some debugging and telemetry features.
+ */
+
+#elif defined(CONFIG_VAR_HE)    /* Hot variety */
 #define CONFIG_ASSERT
 #define CHECKLEVEL_INITIAL CheckLevelMINIMAL
 /* no statistic meters */
 /* no telemetry log events */
+
+
+/* CONFIG_VAR_DI -- diagnostic variety
+ *
+ * Deprecated.  The diagnostic variety prints messages about the internals
+ * of the MPS to an output stream.  This is being replaced by an extended
+ * telemetry system.  RB 2012-08-31
+ */
 
 #elif defined(CONFIG_VAR_DI) /* Diagnostic variety */
 #define CONFIG_ASSERT
@@ -63,24 +73,38 @@
 /* #define DIAG_WITH_PRINTF */
 /* no telemetry log events */
 
-#elif defined(CONFIG_VAR_CI) || defined(CONFIG_VAR_CE) /* Cool varieties */
+
+/* CONFIG_VAR_CI -- cool variety
+ *
+ * The cool variety is intended for use when developing an integration with
+ * the MPS or debugging memory problems or collecting detailed telemetry
+ * data for performance analysis.  It has more thorough consistency checking
+ * and data collection and output, and full debugging information.
+ */
+
+#elif defined(CONFIG_VAR_CI)    /* Cool variety */
 #define CONFIG_ASSERT
+#define CONFIG_ASSERT_ALL
 /* ... let PRODUCT determine CHECKLEVEL_INITIAL */
 #define CONFIG_STATS
 /* no telemetry log events */
 
+
+/* CONFIG_VAR_TI -- telemetry variety
+ *
+ * Deprecated.  This is the variety with event logging to a telemetry stream.
+ * Currently being reworked to retain event logging with negligible overhead
+ * on all other varieties.  RB 2012-08-31
+ */
+
 #elif defined(CONFIG_VAR_TI)    /* Telemetry, Internal; variety.ti */
 #define CONFIG_ASSERT
+#define CONFIG_ASSERT_ALL
 /* ... let PRODUCT determine CHECKLEVEL_INITIAL */
 #define CONFIG_STATS
 #define CONFIG_LOG
 
-#elif defined(CONFIG_VAR_II)    /* Ice, Internal; variety.ii (HotLog) */
-#define CONFIG_ASSERT
-#define CHECKLEVEL_INITIAL CheckLevelMINIMAL
-/* no statistic meters */
-#define CONFIG_LOG
-#endif
+#endif /* CONFIG_VAR_* */
 
 
 /* Build Features */
@@ -90,8 +114,13 @@
 /* asserts: AVER, AVERT, NOTREACHED, CHECKx */
 /* note: a direct call to ASSERT() will *still* fire */
 #define AVER_AND_CHECK
+#if defined(CONFIG_ASSERT_ALL)
+#define AVER_AND_CHECK_ALL
+#define MPS_ASSERT_STRING "assertastic"
+#else /* CONFIG_ASSERT_ALL, not */
 #define MPS_ASSERT_STRING "asserted"
-#else
+#endif /* CONFIG_ASSERT_ALL */
+#else /* CONFIG_ASSERT, not */
 #define AVER_AND_CHECK_NONE
 #define MPS_ASSERT_STRING "nonasserted"
 #endif
