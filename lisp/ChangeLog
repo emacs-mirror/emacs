@@ -1,3 +1,9 @@
+2012-08-31  Alp Aker  <alp.tekin.aker@gmail.com>
+
+	* window.el (switch-to-prev-buffer, switch-to-next-buffer):
+	Consider frame's buffer predicate when choosing the buffer.
+	(Bug#12081)
+
 2012-08-30  Richard Stallman  <rms@gnu.org>
 
 	* simple.el (special-mode-map): Delete binding for `z'.

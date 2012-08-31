@@ -2979,6 +2979,7 @@ shall not be switched to in future invocations of this command."
 	 (old-buffer (window-buffer window))
 	 ;; Save this since it's destroyed by `set-window-buffer'.
 	 (next-buffers (window-next-buffers window))
+         (pred (frame-parameter frame 'buffer-predicate))
 	 entry buffer new-buffer killed-buffers visible)
     (when (window-dedicated-p window)
       (error "Window %s is dedicated to buffer %s" window old-buffer))
@@ -2991,6 +2992,7 @@ shall not be switched to in future invocations of this command."
 		   (or (buffer-live-p buffer)
 		       (not (setq killed-buffers
 				  (cons buffer killed-buffers))))
+                   (or (null pred) (funcall pred buffer))
 		   (not (eq buffer old-buffer))
                    (or bury-or-kill (not (memq buffer next-buffers))))
 	  (if (and (not switch-to-visible-buffer)
@@ -3013,6 +3015,7 @@ shall not be switched to in future invocations of this command."
 	(when (and (buffer-live-p buffer)
 		   (not (eq buffer old-buffer))
 		   (not (eq (aref (buffer-name buffer) 0) ?\s))
+                   (or (null pred) (funcall pred buffer))
 		   (or bury-or-kill (not (memq buffer next-buffers))))
 	  (if (get-buffer-window buffer frame)
 	      ;; Try to avoid showing a buffer visible in some other window.
@@ -3031,6 +3034,7 @@ shall not be switched to in future invocations of this command."
 			 (not (setq killed-buffers
 				    (cons buffer killed-buffers))))
 		     (not (eq buffer old-buffer))
+                     (or (null pred) (funcall pred buffer))
 		     (setq entry (assq buffer (window-prev-buffers window))))
 	    (setq new-buffer buffer)
 	    (set-window-buffer-start-and-point
@@ -3075,6 +3079,7 @@ found."
 	 (frame (window-frame window))
 	 (old-buffer (window-buffer window))
 	 (next-buffers (window-next-buffers window))
+         (pred (frame-parameter frame 'buffer-predicate))
 	 buffer new-buffer entry killed-buffers visible)
     (when (window-dedicated-p window)
       (error "Window %s is dedicated to buffer %s" window old-buffer))
@@ -3086,6 +3091,7 @@ found."
 		       (not (setq killed-buffers
 				  (cons buffer killed-buffers))))
 		   (not (eq buffer old-buffer))
+                   (or (null pred) (funcall pred buffer))
 		   (setq entry (assq buffer (window-prev-buffers window))))
 	  (setq new-buffer buffer)
 	  (set-window-buffer-start-and-point
@@ -3096,6 +3102,7 @@ found."
       (dolist (buffer (buffer-list frame))
 	(when (and (buffer-live-p buffer) (not (eq buffer old-buffer))
 		   (not (eq (aref (buffer-name buffer) 0) ?\s))
+                   (or (null pred) (funcall pred buffer))
 		   (not (assq buffer (window-prev-buffers window))))
 	  (if (get-buffer-window buffer frame)
 	      ;; Try to avoid showing a buffer visible in some other window.
@@ -3110,6 +3117,7 @@ found."
 		   (or (buffer-live-p buffer)
 		       (not (setq killed-buffers
 				  (cons buffer killed-buffers))))
+                   (or (null pred) (funcall pred buffer))
 		   (not (eq buffer old-buffer)))
 	  (if (and (not switch-to-visible-buffer)
 		   (get-buffer-window buffer frame))
