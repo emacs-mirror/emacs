@@ -68,7 +68,6 @@ clean:
 target:
 	$(MAKE) /nologo /f $(PFM).nmk VARIETY=hi variety
 	$(MAKE) /nologo /f $(PFM).nmk VARIETY=ci variety
-	$(MAKE) /nologo /f $(PFM).nmk VARIETY=ti variety
 	$(MAKE) /nologo /f $(PFM).nmk VARIETY=wi variety
 !ENDIF
 !ENDIF
