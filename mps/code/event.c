@@ -142,11 +142,7 @@ Res EventInit(void)
 #define EVENT_PARAM_CHECK_D(name, index, ident)
 #define EVENT_PARAM_CHECK_B(name, index, ident)
 #define EVENT_PARAM_CHECK_S(name, index, ident) \
-  AVER(index + 1 == Event##name##ParamLIMIT); /* strings must come last */ \
-  AVER(offsetof(Event##name##Struct, f##index.str) \
-       + EventStringLengthMAX \
-       + sizeof('\0') \
-       <= EventSizeMAX);
+  AVER(index + 1 == Event##name##ParamLIMIT); /* strings must come last */
 
 #define EVENT_PARAM_CHECK(name, index, sort, ident) \
   AVER(index == Event##name##Param##ident); \
@@ -274,10 +270,9 @@ void EventLabelAddr(Addr addr, EventStringId id)
 #define EVENT_WRITE_PARAM_U EVENT_WRITE_PARAM_MOST
 #define EVENT_WRITE_PARAM_W EVENT_WRITE_PARAM_MOST
 #define EVENT_WRITE_PARAM_D EVENT_WRITE_PARAM_MOST
+#define EVENT_WRITE_PARAM_S EVENT_WRITE_PARAM_MOST
 #define EVENT_WRITE_PARAM_B(name, index, sort, ident) \
   " $U", (WriteFU)event->name.f##index,
-#define EVENT_WRITE_PARAM_S(name, index, sort, ident) \
-  " $S", (WriteFS)event->name.f##index.str, /* FIXME: relies on NUL? */
 
 Res EventDescribe(Event event, mps_lib_FILE *stream)
 {
