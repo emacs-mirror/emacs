@@ -38,7 +38,7 @@ static Count eventUserCount;
 static Serial EventInternSerial;
 
 char *EventNext, *EventLimit; /* Used by macros in <code/event.h> */
-Word EventKindControl; /* Bit set used to control output. */
+EventControlSet EventKindControl; /* Bit set used to control output. */
 
 
 /* EventFlush -- flush event buffer to the event stream */
@@ -162,11 +162,14 @@ void EventFinish(void)
  *   Reset(M) EventControl(M,0)
  *   Flip(M)  EventControl(0,M)
  *   Read()   EventControl(0,0)
+ *
+ * FIXME: Candy-machine interface is a transgression.
  */
   
-Word EventControl(Word resetMask, Word flipMask)
+EventControlSet EventControl(EventControlSet resetMask,
+                             EventControlSet flipMask)
 {
-  Word oldValue = EventKindControl;
+  EventControlSet oldValue = EventKindControl;
      
   /* EventKindControl = (EventKindControl & ~resetMask) ^ flipMask */
   EventKindControl =
@@ -178,37 +181,33 @@ Word EventControl(Word resetMask, Word flipMask)
 
 /* EventInternString -- emit an Intern event on the (null-term) string given */
 
-Word EventInternString(const char *label)
+EventStringId EventInternString(const char *label)
 {
-  Word id;
-
   AVER(label != NULL);
-
-  id = (Word)EventInternSerial;
-  ++EventInternSerial;
-  EVENT2S(Intern, id, StringLength(label), label);
-  return id;
+  return EventInternGenString(StringLength(label), label);
 }
 
 
 /* EventInternGenString -- emit an Intern event on the string given */
 
-Word EventInternGenString(size_t len, const char *label)
+EventStringId EventInternGenString(size_t len, const char *label)
 {
-  Word id;
+  EventStringId id;
 
   AVER(label != NULL);
 
-  id = (Word)EventInternSerial;
+  id = EventInternSerial;
   ++EventInternSerial;
+
   EVENT2S(Intern, id, len, label);
+
   return id;
 }
 
 
 /* EventLabelAddr -- emit event to label address with the given id */
 
-void EventLabelAddr(Addr addr, Word id)
+void EventLabelAddr(Addr addr, EventStringId id)
 {
   AVER((Serial)id < EventInternSerial);
 
@@ -221,13 +220,13 @@ void EventLabelAddr(Addr addr, Word id)
 
 Res (EventSync)(void)
 {
-  return(ResOK); 
+  return ResOK;
 }
 
 
 Res (EventInit)(void)
 {
-  return(ResOK); 
+  return ResOK;
 }
 
 
@@ -237,28 +236,28 @@ void (EventFinish)(void)
 }
 
 
-Word (EventControl)(Word resetMask, Word flipMask)
+EventControlSet (EventControl)(EventControlSet resetMask,
+                               EventControlSet flipMask)
 {
   UNUSED(resetMask);
   UNUSED(flipMask);
-
-  return (Word)0;
+  return BS_EMPTY(EventControlSet);
 }
 
 
-Word (EventInternString)(const char *label)
+EventStringId (EventInternString)(const char *label)
 {
   UNUSED(label);
-
-  return (Word)0;
+  NOTREACHED;
+  return (EventInternString)0x9024EACH;
 }
 
 
 Word (EventInternGenString)(size_t len, const char *label)
 {
   UNUSED(len); UNUSED(label);
-
-  return (Word)0;
+  NOTREACHED;
+  return (EventInternString)0x9024EACH;
 }
 
 
@@ -266,6 +265,7 @@ void (EventLabelAddr)(Addr addr, Word id)
 {
   UNUSED(addr);
   UNUSED(id);
+  NOTREACHED;
 }
 
 
