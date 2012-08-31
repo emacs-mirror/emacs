@@ -74,7 +74,7 @@ not get notifications."
     (let ((group-article (assoc id gnus-notifications-id-to-msg)))
       (when group-article
         (let ((group (cadr group-article))
-              (article (caddr group-article)))
+              (article (nth 2 group-article)))
           (gnus-fetch-group group (list article)))))))
 
 (defun gnus-notifications-notify (from subject photo-file)

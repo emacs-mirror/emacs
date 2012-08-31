@@ -1,3 +1,7 @@
+2012-08-31  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* gnus-notifications.el (gnus-notifications-action): Avoid CL-ism.
+
 2012-08-30  Julien Danjou  <julien@danjou.info>
 
 	* gnus-notifications.el (gnus-notifications-notify): Use timeout from
