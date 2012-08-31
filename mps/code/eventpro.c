@@ -193,7 +193,7 @@ typedef struct symbolStruct *Symbol;
 
 typedef struct labelStruct {
   Word id;
-  Word time;
+  EventClock time;
   Addr addr;
 } labelStruct;
 typedef struct labelStruct *Label;
@@ -277,7 +277,7 @@ Res EventRead(Event *eventReturn, EventProc proc)
  * stuff in the future.
  */
 
-Res EventRecord(EventProc proc, Event event, Word etime)
+Res EventRecord(EventProc proc, Event event, EventClock etime)
 {
   Res res;
 
