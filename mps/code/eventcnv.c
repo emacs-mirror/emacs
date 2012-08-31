@@ -190,7 +190,7 @@ static char *parseArgs(int argc, char *argv[])
 
 /* processEvent -- process event */
 
-static void processEvent(EventProc proc, Event event, Word etime)
+static void processEvent(EventProc proc, Event event, EventClock etime)
 {
   Res res;
 
@@ -288,17 +288,19 @@ static void reportEventResults(eventCountArray eventCounts)
 
 /* reportBucketResults -- report results of the current bucket */
 
-static void reportBucketResults(Word bucketLimit)
+static void reportBucketResults(EventClock bucketLimit)
 {
   switch (style) {
   case '\0':
-    printf("%8"PRIuLONGEST":", (ulongest_t)bucketLimit);
+    EVENT_CLOCK_PRINT(stdout, bucketLimit);
+    putchar(':');
     break;
   case 'L':
-    printf("(%"PRIXLONGEST, (ulongest_t)bucketLimit);
+    putchar('(');
+    EVENT_CLOCK_PRINT(stdout, bucketLimit);
     break;
   case 'C':
-    printf("%"PRIuLONGEST, (ulongest_t)bucketLimit);
+    EVENT_CLOCK_PRINT(stdout, bucketLimit);
     break;
   }
   if (reportEvents) {
