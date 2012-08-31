@@ -1102,7 +1102,8 @@ static Res vmArenaExtend(VMArena vmArena, Size size)
     break;
   } while(0);
 
-
+  EVENT3(vmArenaExtendStart, size, chunkSize,
+                             VMArenaReserved(VMArena2Arena(vmArena)));
   DIAG_SINGLEF(( "vmArenaExtend_Start", 
     "to accommodate size $W, try chunkSize $W", (WriteFW)size, (WriteFW)chunkSize,
     " (VMArenaReserved currently $W bytes)\n",
@@ -1129,6 +1130,8 @@ static Res vmArenaExtend(VMArena vmArena, Size size)
       /* remove slices, down to chunkHalf but no further */
       for(; chunkSize > chunkHalf; chunkSize -= sliceSize) {
         if(chunkSize < chunkMin) {
+          EVENT2(vmArenaExtendFail, chunkMin,
+                                    VMArenaReserved(VMArena2Arena(vmArena)));
           DIAG_SINGLEF(( "vmArenaExtend_FailMin", 
             "no remaining address-space chunk >= min($W)", (WriteFW)chunkMin,
             " (so VMArenaReserved remains $W bytes)\n",
@@ -1145,6 +1148,7 @@ static Res vmArenaExtend(VMArena vmArena, Size size)
 
 vmArenaExtend_Done:
 
+  EVENT2(vmArenaExtendDone, chunkSize, VMArenaReserved(VMArena2Arena(vmArena)));
   DIAG_SINGLEF(( "vmArenaExtend_Done",
     "Request for new chunk of VM $W bytes succeeded", (WriteFW)chunkSize,
     " (VMArenaReserved now $W bytes)\n", 
