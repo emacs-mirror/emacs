@@ -55,7 +55,7 @@
 #define EventNameMAX ((size_t)19)
 #define EventCodeMAX ((EventCode)0x0071)
 
-/* FIXME: Work out why not-in-use events were not in use and restore or delete them. */
+/* TODO: Work out why not-in-use events were not in use and restore or delete them. */
 
 #define EVENT_LIST(EVENT, X) \
   /*       0123456789012345678 <- don't exceed without changing EventNameMAX */ \

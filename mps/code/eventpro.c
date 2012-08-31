@@ -22,7 +22,6 @@
 #include <string.h> /* strcmp */
 
 struct EventProcStruct {
-  Bool partialLog;        /* Is this a partial log? */
   EventProcReader reader; /* reader fn */
   void *readerP;          /* closure pointer for reader fn */
   Table internTable;      /* dictionary of intern ids to symbols */
@@ -58,7 +57,8 @@ struct EventProcStruct {
  * of the structure.  This has to agree with the writing (EVENT_END).
  */
 
-/* FIXME: MPS_PF_ALIGN should be read from event file header? */
+/* TODO: Should read this and other layout information from an event file
+   header in order to be able to process events from other architectures. */
 
 #define EventSizeAlign(size) sizeAlignUp(size, MPS_PF_ALIGN)
 
@@ -293,9 +293,8 @@ Res EventRecord(EventProc proc, Event event, EventClock etime)
 
     if (label == NULL) return ResMEMORY;
     label->id = event->Label.f1;
-    if (!proc->partialLog) {
-      assert(TableLookup(&entry, proc->internTable, label->id));
-    }
+    /* If events were in time order we'd be able to assert that
+       TableLookup(&entry, proc->internTable, label->id) */
     label->time = etime;
     label->addr = event->Label.f0;
     if (TableLookup(&entry, proc->labelTable, (Word)label->addr))
@@ -345,8 +344,9 @@ void EventDestroy(EventProc proc, Event event)
 
 /* EventProcCreate -- initialize the module */
 
-Res EventProcCreate(EventProc *procReturn, Bool partial,
-                    EventProcReader reader, void *readerP)
+Res EventProcCreate(EventProc *procReturn,
+                    EventProcReader reader,
+                    void *readerP)
 {
   Res res;
   EventProc proc = malloc(sizeof(struct EventProcStruct));
@@ -359,7 +359,6 @@ Res EventProcCreate(EventProc *procReturn, Bool partial,
   /* check use of labelTable */
   assert(sizeof(Word) >= sizeof(Addr));
 
-  proc->partialLog = partial;
   proc->reader = reader; proc->readerP = readerP;
   res = TableCreate(&proc->internTable, (size_t)1<<4);
   if (res != ResOK) goto failIntern;

@@ -37,8 +37,6 @@ typedef unsigned long ulong;
 
 /* command-line arguments */
 
-static Bool partialLog = FALSE;
-
 static char *prog; /* program name */
 
 
@@ -105,9 +103,6 @@ static char *parseArgs(int argc, char *argv[])
         else  
           name = argv[i];
         break;  
-      case 'p': /* partial log */
-        partialLog = TRUE;
-        break;
       case '?': case 'h': /* help */
         usage();
         break;
@@ -172,11 +167,11 @@ int main(int argc, char *argv[])
       error("unable to open \"%s\"\n", filename);
   }
 
-  res = EventProcCreate(&proc, partialLog, logReader, (void *)input);
+  res = EventProcCreate(&proc, logReader, (void *)input);
   if (res != ResOK)
     error("Can't init EventProc module: error %d.", res);
 
-  res = EventRepInit(partialLog);
+  res = EventRepInit();
   if (res != ResOK)
     error("Can't init EventRep module: error %d.", res);
 
