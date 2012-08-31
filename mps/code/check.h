@@ -56,19 +56,32 @@ enum {
 #elif defined(AVER_AND_CHECK)
 
 #define AVER(cond)                  ASSERT(cond, #cond)
-#define AVERT(type, val)            ASSERT(type ## Check(val), \
-                                           "TypeCheck " #type ": " #val)
+
+#define AVERT(type, val) \
+  ASSERT(type ## Check(val), "TypeCheck " #type ": " #val)
+
+#if !defined(AVER_AND_CHECK_ALL)
+
+#define AVER_CRITICAL               DISCARD
+#define AVERT_CRITICAL(type, val)   DISCARD(type ## Check(val))
+
+#else /* AVER_AND_CHECK_ALL  */
+
 #define AVER_CRITICAL(cond) \
   BEGIN \
-    if (CheckLevel != CheckLevelMINIMAL) ASSERT(cond, #cond); \
+    if (CheckLevel != CheckLevelMINIMAL) \
+      ASSERT(cond, #cond); \
   END
+
 #define AVERT_CRITICAL(type, val) \
   BEGIN \
     if (CheckLevel != CheckLevelMINIMAL) \
       ASSERT(type ## Check(val), "TypeCheck " #type ": " #val); \
   END
 
-#else
+#endif /* AVER_AND_CHECK_ALL */
+
+#else /* AVER_AND_CHECK, not */
 
 #error "No checking defined."
 
@@ -115,24 +128,34 @@ enum {
 
 #if defined(AVER_AND_CHECK_NONE)
 
-
-#define CHECKS(type, val) DISCARD(CHECKT(type, val))
-#define CHECKL(cond) DISCARD(cond)
-#define CHECKD(type, val) DISCARD(CHECKT(type, val))
+#define CHECKS(type, val)       DISCARD(CHECKT(type, val))
+#define CHECKL(cond)            DISCARD(cond)
+#define CHECKD(type, val)       DISCARD(CHECKT(type, val))
 #define CHECKD_NOSIG(type, val) DISCARD((val) != NULL)
-#define CHECKU(type, val) DISCARD(CHECKT(type, val))
+#define CHECKU(type, val)       DISCARD(CHECKT(type, val))
 #define CHECKU_NOSIG(type, val) DISCARD((val) != NULL)
 
-
-#else
-
+#else /* AVER_AND_CHECK_NONE, not */
 
 /* CHECKS -- Check Signature */
 /* (if CheckLevel == CheckLevelMINIMAL, this is all we check) */
 
-#define CHECKS(type, val)       ASSERT(CHECKT(type, val), \
-                                       "SigCheck " #type ": " #val)
+#define CHECKS(type, val) \
+  ASSERT(CHECKT(type, val), "SigCheck " #type ": " #val)
 
+#if !defined(AVER_AND_CHECK_ALL)
+
+/* FIXME: This gives comparable performance to white-hot when compiling
+   using mps.c and -O (to get check methods inlined), but is it a bit
+   too minimal?  How much do we rely on check methods? */
+
+#define CHECKL(cond)            DISCARD(cond)
+#define CHECKD(type, val)       DISCARD(CHECKT(type, val))
+#define CHECKD_NOSIG(type, val) DISCARD((val) != NULL)
+#define CHECKU(type, val)       DISCARD(CHECKT(type, val))
+#define CHECKU_NOSIG(type, val) DISCARD((val) != NULL)
+
+#else /* AVER_AND_CHECK_ALL */
 
 /* CHECKL -- Check Local Invariant
  *
@@ -162,12 +185,10 @@ enum {
       NOOP; \
       break; \
     case CheckLevelSHALLOW: \
-      ASSERT(CHECKT(type, val), \
-             "SigCheck " #type ": " #val); \
+      CHECKS(type, val); \
       break; \
     case CheckLevelDEEP: \
-      ASSERT(type ## Check(val), \
-             "TypeCheck " #type ": " #val); \
+      ASSERT(type ## Check(val), "TypeCheck " #type ": " #val); \
       break; \
     } \
   END
@@ -182,12 +203,10 @@ enum {
       NOOP; \
       break; \
     case CheckLevelSHALLOW: \
-      ASSERT((val) != NULL, \
-             "NullCheck " #type ": " #val); \
+      ASSERT((val) != NULL, "NullCheck " #type ": " #val); \
       break; \
     case CheckLevelDEEP: \
-      ASSERT(type ## Check(val), \
-             "TypeCheck " #type ": " #val); \
+      ASSERT(type ## Check(val), "TypeCheck " #type ": " #val); \
       break; \
     } \
   END
@@ -203,8 +222,7 @@ enum {
       break; \
     case CheckLevelSHALLOW: \
     case CheckLevelDEEP: \
-      ASSERT(CHECKT(type, val), \
-             "SigCheck " #type ": " #val); \
+      CHECKS(type, val); \
       break; \
     } \
   END
@@ -220,14 +238,14 @@ enum {
       break; \
     case CheckLevelSHALLOW: \
     case CheckLevelDEEP: \
-      ASSERT((val) != NULL, \
-             "NullCheck " #type ": " #val); \
+      ASSERT((val) != NULL, "NullCheck " #type ": " #val); \
       break; \
     } \
   END
 
+#endif /* AVER_AND_CHECK_ALL */
 
-#endif
+#endif /* AVER_AND_CHECK_NONE */
 
 
 /* CHECKLVALUE &c -- type compatibility checking
