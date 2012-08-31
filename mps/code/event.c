@@ -80,6 +80,41 @@ Res EventInit(void)
 {
   Res res;
 
+  /* Make local enums for all event params in order to check that the indexes
+     in the parameter definition macros are in order, and that parameter
+     idents are unique. */
+
+#define EVENT_CHECK_ENUM_PARAM(name, index, sort, ident) \
+  Event##name##Param##ident,
+
+#define EVENT_CHECK_ENUM(X, name, code, always, kind) \
+  enum Event##name##ParamEnum { \
+    EVENT_##name##_PARAMS(EVENT_CHECK_ENUM_PARAM, name) \
+    Event##name##ParamLIMIT \
+  };
+
+  EVENT_LIST(EVENT_CHECK_ENUM, X)
+
+  /* Check consistency of the event definitions.  These are all compile-time
+     checks and should get optimised away. */
+
+#define EVENT_PARAM_CHECK(name, index, sort, ident) \
+  AVER(index == Event##name##Param##ident); \
+  AVER(sizeof(EventF##sort) >= 0); /* check existence of type */
+
+#define EVENT_CHECK(X, name, code, always, kind) \
+  AVER(size_tAlignUp(sizeof(Event##name##Struct), MPS_PF_ALIGN) \
+       <= EventSizeMAX); \
+  AVER(Event##name##Code == code); \
+  AVER(0 <= code && code <= EventCodeMAX); \
+  AVER(sizeof(#name) - 1 <= EventNameMAX); \
+  AVER(Event##name##Always == always); \
+  AVERT(Bool, always); \
+  AVER(0 <= Event##name##Kind && Event##name##Kind < EventKindLIMIT); \
+  EVENT_##name##_PARAMS(EVENT_PARAM_CHECK, name)
+
+  EVENT_LIST(EVENT_CHECK, X)
+
   /* Ensure that no event can be larger than the maximum event size. */
   AVER(EventBufferSIZE <= EventSizeMAX);
 
