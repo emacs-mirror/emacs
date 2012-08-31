@@ -155,28 +155,23 @@ Bool EventCodeIsValid(EventCode code)
 /* EventStrings */
 
 
-/* EventStringEmpty -- an empty event string */
-
-EventStringStruct EventStringEmpty = {0, ""};
-
-
 /* eventStringCopy -- copy an event string */
 
-static Res eventStringCopy(EventString *str_o, EventString str)
+static Res stringCopy(char **str_o, char *str)
 {
-  EventString newStr;
+  char *newStr;
+  size_t len;
 
-  newStr = (EventString)malloc(offsetof(EventStringStruct, str)
-                               + str->len);
+  len = strlen(str);
+  newStr = (char *)malloc(len + sizeof('\0'));
   if (newStr == NULL) return ResMEMORY;
-  newStr->len = str->len;
-  memcpy(&(newStr->str), &(str->str), str->len);
+  memcpy(newStr, str, len + sizeof('\0'));
   *str_o = newStr;
   return ResOK;
 }
 
 
-static void eventStringDestroy(EventString str)
+static void eventStringDestroy(char *str)
 {
   free(str);
 }
@@ -189,7 +184,7 @@ static void eventStringDestroy(EventString str)
 
 typedef struct symbolStruct {
   Word id;
-  EventString name;
+  char *name;
 } symbolStruct;
 typedef struct symbolStruct *Symbol;
 
@@ -219,7 +214,7 @@ Word AddrLabel(EventProc proc, Addr addr)
 
 /* LabelText -- return text for given intern id (or NULL if none) */
 
-EventString LabelText(EventProc proc, Word id)
+char *LabelText(EventProc proc, Word id)
 {
   void *entry;
 
@@ -292,7 +287,7 @@ Res EventRecord(EventProc proc, Event event, Word etime)
 
     if (sym == NULL) return ResMEMORY;
     sym->id = event->Intern.f0;
-    res = eventStringCopy(&sym->name, &event->Intern.f1);
+    res = stringCopy(&sym->name, event->Intern.f1);
     if (res != ResOK) {
       free(sym);
       return res;
