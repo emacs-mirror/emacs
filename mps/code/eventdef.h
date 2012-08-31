@@ -365,7 +365,7 @@
 #define EVENT_BufferInit_PARAMS(PARAM, X) \
   PARAM(X,  0, P, buffer) \
   PARAM(X,  1, P, pool) \
-  PARAM(X,  2, U, isMutator)
+  PARAM(X,  2, B, isMutator)
 
 #define EVENT_BufferFinish_PARAMS(PARAM, X) \
   PARAM(X,  0, P, buffer)
@@ -444,9 +444,9 @@
   PARAM(X,  2, W, extendBy) \
   PARAM(X,  3, W, avgSize) \
   PARAM(X,  4, W, align) \
-  PARAM(X,  5, U, slotHigh) \
-  PARAM(X,  6, U, arenaHigh) \
-  PARAM(X,  7, U, firstFit)
+  PARAM(X,  5, B, slotHigh) \
+  PARAM(X,  6, B, arenaHigh) \
+  PARAM(X,  7, B, firstFit)
 
 #define EVENT_PoolInitMV_PARAMS(PARAM, X) \
   PARAM(X,  0, P, pool) \
@@ -497,12 +497,12 @@
 #define EVENT_BufferInitSeg_PARAMS(PARAM, X) \
   PARAM(X,  0, P, buffer) \
   PARAM(X,  1, P, pool) \
-  PARAM(X,  2, U, isMutator)
+  PARAM(X,  2, B, isMutator)
 
 #define EVENT_BufferInitRank_PARAMS(PARAM, X) \
   PARAM(X,  0, P, buffer) \
   PARAM(X,  1, P, pool) \
-  PARAM(X,  2, U, isMutator) \
+  PARAM(X,  2, B, isMutator) \
   PARAM(X,  3, U, rank)
 
 #define EVENT_ReservoirLimitSet_PARAMS(PARAM, X) \
@@ -538,7 +538,7 @@
 #define EVENT_SegMerge_PARAMS(PARAM, X) \
   PARAM(X,  0, P, segLo) \
   PARAM(X,  1, P, segHi) \
-  PARAM(X,  2, U, withReservoirPermit)
+  PARAM(X,  2, B, withReservoirPermit)
 
 #define EVENT_SegSplit_PARAMS(PARAM, X) \
   PARAM(X,  0, P, seg) \

@@ -75,7 +75,6 @@ typedef struct {
   size_t size;          /* event record size, rounded up from structure */
   Count count;          /* Parameter count */
   char *format;         /* string format, e.g. "PPW" */
-  EventSize offsets[15]; /* FIXME: literal constant */
 } eventRecord;
 
 #define EVENT_COUNT_PARAM(X, index, sort, ident) + 1
@@ -90,11 +89,10 @@ typedef struct {
    code, \
    EventSizeAlign(sizeof(Event##name##Struct)), \
    0 EVENT_##name##_PARAMS(EVENT_COUNT_PARAM, X), \
-   "" EVENT_##name##_PARAMS(EVENT_FORMAT_PARAM, X), \
-   { EVENT_##name##_PARAMS(EVENT_OFFSETS_PARAM, name) 0 }},
+   "" EVENT_##name##_PARAMS(EVENT_FORMAT_PARAM, X)},
 
 static eventRecord eventTypes[] = {
-  {"(unused)", 0, 0, 0, "", {0}},
+  {"(unused)", 0, 0, 0, ""},
   EVENT_LIST(EVENT_INIT, X)
 };
 
@@ -145,19 +143,6 @@ char *EventCode2Name(EventCode code)
 char *EventCode2Format(EventCode code)
 {
   return eventTypes[eventCode2Index(code, TRUE)].format;
-}
-
-
-/* EventCode2Field -- find pointer to a field within an event */
-
-void *EventField(Event event, unsigned i)
-{
-  Index j = eventCode2Index(event->any.code, TRUE);
-  ptrdiff_t offset;
-  if (i >= eventTypes[j].count)
-    error("Event field %u out of bounds", i);
-  offset = eventTypes[j].offsets[i];
-  return (void *)((char *)event + offset);
 }
 
 
