@@ -1,12 +1,27 @@
 /* eventcnv.c: Simple event log converter
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
  *
+ * This is a command-line tool that converts a binary format telemetry output
+ * stream from the MPS into several textual formats.
+ *
+ * The default MPS library will write a telemetry stream to a file called
+ * "mpsio.log" when the environment variable MPS_TELEMETRY_CONTROL is set
+ * to an integer whose bits select event kinds.  For example:
+ *
+ *   MPS_TELEMETRY_CONTROL=7 amcss
+ *
+ * will run the amcss test program and emit a file with event kinds 0, 1, 2.
+ * The file can then be converted into text format with a command like:
+ *
+ *   eventcnv -v | sort
+ *
+ * Note that the eventcnv program can only read streams that come from an
+ * MPS compiled on the same platform.
+ *
  * $Id$
  */
 
 #include "config.h"
-/* override variety setting for EVENT */
-#define EVENT
 
 #include "eventdef.h"
 #include "eventcom.h"
