@@ -544,9 +544,6 @@ struct x_output
   /* Non-zero means hourglass cursor is currently displayed.  */
   unsigned hourglass_p : 1;
 
-  /* Flag to set when the X window needs to be completely repainted.  */
-  int needs_exposure;
-
   /* These are the current window manager hints.  It seems that
      XSetWMHints, when presented with an unset bit in the `flags'
      member of the hints structure, does not leave the corresponding

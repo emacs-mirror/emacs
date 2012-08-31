@@ -302,9 +302,6 @@ struct w32_output
   /* Non-hourglass cursor that is currently active.  */
   Cursor current_cursor;
 
-  /* Flag to set when the window needs to be completely repainted.  */
-  int needs_exposure;
-
   DWORD dwStyle;
 
   /* This is the Emacs structure for the display this frame is on.  */
