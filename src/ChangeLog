@@ -1,5 +1,14 @@
 2012-08-31  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	Change struct frame bitfields from unsigned char to unsigned.
+	* frame.h (struct frame): Change type of 'display_preempted',
+	'visible', 'iconified', 'has_minibuffer', 'wants_modeline',
+	'auto_raise', 'auto_lower', 'no_split', 'explicit_name',
+	'window_sizes_changed', 'mouse_moved' and 'pointer_invisible'
+	bitfields from unsigned char to unsigned.
+
+2012-08-31  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	Remove unused member of struct x_output and struct w32_output.
 	* xterm.h (struct x_output): Remove unused field 'needs_exposure'.
 	* w32term.h (struct w32_output): Likewise.
