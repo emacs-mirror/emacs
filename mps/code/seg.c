@@ -526,7 +526,7 @@ Res SegMerge(Seg *mergedSegReturn, Seg segLo, Seg segHi,
   if (ResOK != res)
     goto failMerge;
 
-  EVENT3(SegMerge, segLo, segLo, segHi);
+  EVENT3(SegMerge, segLo, segHi, withReservoirPermit);
   /* Deallocate segHi object */
   ControlFree(arena, segHi, class->size);
   AVERT(Seg, segLo);

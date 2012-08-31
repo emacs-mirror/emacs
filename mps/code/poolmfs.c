@@ -106,7 +106,7 @@ static Res MFSInit(Pool pool, va_list arg)
   mfs->sig = MFSSig;
 
   AVERT(MFS, mfs);
-  EVENT3(PoolInit, pool, arena, ClassOfPool(pool));
+  EVENT4(PoolInitMFS, pool, arena, extendBy, unitSize);
   return ResOK;
 }
 
