@@ -155,9 +155,10 @@ Res EventInit(void)
   AVER(Event##name##Code == code); \
   AVER(0 <= code && code <= EventCodeMAX); \
   AVER(sizeof(#name) - 1 <= EventNameMAX); \
-  AVER(Event##name##Always == always); \
+  AVER((Bool)Event##name##Always == always); \
   AVERT(Bool, always); \
-  AVER(0 <= Event##name##Kind && Event##name##Kind < EventKindLIMIT); \
+  AVER(0 <= Event##name##Kind); \
+  AVER((EventKind)Event##name##Kind < EventKindLIMIT); \
   EVENT_##name##_PARAMS(EVENT_PARAM_CHECK, name)
 
   EVENT_LIST(EVENT_CHECK, X)
