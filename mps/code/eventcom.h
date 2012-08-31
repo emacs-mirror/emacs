@@ -33,6 +33,12 @@ typedef unsigned __int64 EventClock;
   END
 
 #define EVENT_CLOCK_PRINT(stream, clock) fprintf(stream, "%llu", clock)
+#if defined(MPS_ARCH_I3)
+#define EVENT_CLOCK_WRITE(stream, clock) \
+  WriteF(stream, "$W$W", (WriteFW)((clock) >> 32), (WriteFW)clock, NULL)
+#else /* I6 */
+  WriteF(stream, "$W", (WriteFW)(clock), NULL)
+#endif
 
 /* http://clang.llvm.org/docs/LanguageExtensions.html#builtins */
 #elif defined(MPS_BUILD_LL)
@@ -71,6 +77,9 @@ __extension__ typedef unsigned long long EventClock;
   fprintf(stream, "%08lX%08lX",  /* FIXME: Should be %llu */ \
           (unsigned long)((clock) >> 32), \
           (unsigned long)(clock))
+
+#define EVENT_CLOCK_WRITE(stream, clock) \
+  WriteF(stream, "$W$W", (WriteFW)((clock) >> 32), (WriteFW)clock, NULL)
 
 #endif /* Intel, GCC or Clang */
 

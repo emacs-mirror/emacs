@@ -48,6 +48,8 @@ Res EventFlush(void)
   Res res;
   size_t size;
 
+EventDump(mps_lib_get_stdout());
+
   AVER(eventInited);
 
   AVER(EventBuffer <= EventLast);
@@ -112,7 +114,9 @@ Res EventInit(void)
 #define EVENT_PARAM_CHECK_B(name, index, ident)
 #define EVENT_PARAM_CHECK_S(name, index, ident) \
   AVER(index + 1 == Event##name##ParamLIMIT); /* strings must come last */ \
-  AVER(offsetof(Event##name##Struct, f##index.str) + EventStringLengthMAX \
+  AVER(offsetof(Event##name##Struct, f##index.str) \
+       + EventStringLengthMAX \
+       + sizeof('\0') \
        <= EventSizeMAX);
 
 #define EVENT_PARAM_CHECK(name, index, sort, ident) \
@@ -231,6 +235,50 @@ void EventLabelAddr(Addr addr, EventStringId id)
 }
 
 
+void EventDump(mps_lib_FILE *stream)
+{
+  Event event;
+
+  AVER(stream != NULL);
+
+  for (event = (Event)EventLast;
+       event < (Event)(EventBuffer + EventBufferSIZE);
+       event = (Event)((char *)event + event->any.size)) {
+    EVENT_CLOCK_WRITE(stream, event->any.clock);
+
+    switch (event->any.code) {
+
+#define EVENT_DUMP_PARAM_MOST(name, index, sort, ident) \
+  " $"#sort, (WriteF##sort)event->name.f##index,
+#define EVENT_DUMP_PARAM_A EVENT_DUMP_PARAM_MOST
+#define EVENT_DUMP_PARAM_P EVENT_DUMP_PARAM_MOST
+#define EVENT_DUMP_PARAM_U EVENT_DUMP_PARAM_MOST
+#define EVENT_DUMP_PARAM_W EVENT_DUMP_PARAM_MOST
+#define EVENT_DUMP_PARAM_D EVENT_DUMP_PARAM_MOST
+#define EVENT_DUMP_PARAM_B(name, index, sort, ident) \
+  " $U", (WriteFU)event->name.f##index,
+#define EVENT_DUMP_PARAM_S(name, index, sort, ident) \
+  " $S", (WriteFS)event->name.f##index.str, /* FIXME: relies on NUL? */
+#define EVENT_DUMP_PARAM(name, index, sort, ident) \
+  EVENT_DUMP_PARAM_##sort(name, index, sort, ident)
+#define EVENT_DUMP(X, name, code, always, kind) \
+    case code: \
+      WriteF(stream, " "#name, \
+             EVENT_##name##_PARAMS(EVENT_DUMP_PARAM, name) \
+             NULL); \
+      break;
+    EVENT_LIST(EVENT_DUMP, X)
+
+    default:
+      WriteF(stream, " <unknown code $U>", event->any.code, NULL);
+      /* FIXME: Should dump contents in hex. */
+      break;
+    }
+    WriteF(stream, "\n", NULL);
+  }
+}
+
+
 #else /* EVENT, not */
 
 
@@ -282,6 +330,12 @@ void (EventLabelAddr)(Addr addr, Word id)
   UNUSED(addr);
   UNUSED(id);
   NOTREACHED;
+}
+
+
+extern void EventDump(mps_lib_FILE *stream)
+{
+  UNUSED(stream);
 }
 
 
