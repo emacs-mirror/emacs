@@ -68,12 +68,14 @@
 /* ... let PRODUCT determine CHECKLEVEL_INITIAL */
 #define CONFIG_STATS
 #define CONFIG_LOG
+#define CONFIG_LOG_ALL
 
 #elif defined(CONFIG_VAR_II)    /* Ice, Internal; variety.ii (HotLog) */
 #define CONFIG_ASSERT
 #define CHECKLEVEL_INITIAL CheckLevelMINIMAL
 /* no statistic meters */
 #define CONFIG_LOG
+
 #endif
 
 
@@ -110,11 +112,17 @@
 #if defined(CONFIG_LOG)
 /* TELEMETRY = LOG = EVENTs */
 #define EVENT
+#if defined(CONFIG_LOG_ALL)
+#define EVENT_ALL 1     /* log events on critical path */
+#define MPS_LOG_STRING "logtastic"
+#else /* CONFIG_LOG_ALL, not */
+#define EVENT_ALL 0     /* don't log events on critical path */
 #define MPS_LOG_STRING "logging"
-#else
+#endif /* CONFIG_LOG_ALL */
+#else /* CONFIG_LOG, not */
 #define EVENT_NONE
 #define MPS_LOG_STRING "nonlogging"
-#endif
+#endif /* CONFIG_LOG */
 
 
 #define MPS_VARIETY_STRING \
