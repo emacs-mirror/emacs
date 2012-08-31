@@ -37,7 +37,7 @@
 #define EVENT_VERSION_MINOR  ((unsigned)0)
 
 
-/* Relations -- Generic definitions of events
+/* EVENT_LIST -- list of event types and general properties
  *
  * These specify:
  *   - Type: The name of the event type, without the leading "Event";
@@ -46,116 +46,124 @@
  *     varieties, not currently used;
  *   - Kind: Category into which this event falls, without the
  *     leading "EventKind";
- *   - Parameter Count
- *   - Format: Tuple indicating the format of the event
- *     parameters, similar to writef (Pointer, Addr, Word, Unsigned,
- *     String, Double).
+ *
+ * See also EVENT_*_PARAMS for definition of event parameters.
  */
  
 /* FIXME: Work out why not-in-use events were not in use and restore or delete them. */
 
 #define EVENT_LIST(EVENT, X) \
   /*       0123456789012345678 <- don't exceed without changing EventNameMAX */ \
-  EVENT(X, AMCGenCreate       , 0x0001,  TRUE, Pool,   2, (P,P)) \
-  EVENT(X, AMCGenDestroy      , 0x0002,  TRUE, Pool,   1, (P)) \
-  EVENT(X, AMCInit            , 0x0003,  TRUE, Pool,   2, (P,P)) \
-  EVENT(X, AMCFinish          , 0x0004,  TRUE, Pool,   1, (P)) \
-  EVENT(X, ArenaCreateVM      , 0x0005,  TRUE, Arena,  3, (P,W,W)) \
-  EVENT(X, ArenaCreateVMNZ    , 0x0006,  TRUE, Arena,  3, (P,W,W)) \
-  EVENT(X, ArenaWriteFaults   , 0x0007,  TRUE, Trace,  2, (P,W)) \
-  EVENT(X, MeterInit          , 0x0008,  TRUE, Pool,   2, (P,P)) \
-  EVENT(X, MeterValues        , 0x0009,  TRUE, Pool,   6, (P,D,D,W,W,W)) \
-  EVENT(X, AMCScanBegin       , 0x000a,  TRUE, Seg,    3, (P,P,P)) \
-  EVENT(X, AMCScanEnd         , 0x000b,  TRUE, Seg,    3, (P,P,P)) \
-  EVENT(X, AMCFix             , 0x000c, FALSE, Ref,    0, ()) \
-  EVENT(X, AMCFixInPlace      , 0x000d, FALSE, Ref,    0, ()) \
-  EVENT(X, AMCFixForward      , 0x000e, FALSE, Ref,    1, (A)) \
-  EVENT(X, AMCReclaim         , 0x000f,  TRUE, Seg,    3, (P,P,P)) \
-  /* EVENT(X, AMCTraceEnd        , 0x0010, TRUE, Trace, 3, (P,P,P)) */ \
-  EVENT(X, ArenaCreateCL      , 0x0011,  TRUE, Arena,  3, (P,W,A)) \
-  EVENT(X, ArenaDestroy       , 0x0012,  TRUE, Arena,  1, (P)) \
-  EVENT(X, SegAlloc           , 0x0013,  TRUE, Seg,    5, (P,P,A,W,P)) \
-  EVENT(X, SegFree            , 0x0014,  TRUE, Seg,    2, (P,P)) \
-  EVENT(X, PoolInit           , 0x0015,  TRUE, Pool,   3, (P,P,P)) \
-  EVENT(X, PoolFinish         , 0x0016,  TRUE, Pool,   1, (P)) \
-  EVENT(X, PoolAlloc          , 0x0017,  TRUE, Object, 3, (P,A,W)) \
-  EVENT(X, PoolFree           , 0x0018,  TRUE, Object, 3, (P,A,W)) \
-  EVENT(X, CBSInit            , 0x0019,  TRUE, Pool,   2, (P,P)) \
-  EVENT(X, Intern             , 0x001a,  TRUE, User,   2, (W,S)) \
-  EVENT(X, Label              , 0x001b,  TRUE, User,   2, (A,W)) \
-  /* EVENT(X, TraceStart         , 0x001c,  TRUE, Trace,  3, (P,P,P)) */ \
-  /* EVENT(X, TraceCreate        , 0x001d,  TRUE, Trace,  4, (P,P,P,U)) */ \
-  EVENT(X, TraceDestroy       , 0x001e,  TRUE, Trace,  1, (P)) \
-  EVENT(X, SegSetGrey         , 0x001f,  TRUE, Seg,    3, (P,P,U)) \
-  EVENT(X, TraceFlipBegin     , 0x0020,  TRUE, Trace,  2, (P,P)) \
-  EVENT(X, TraceFlipEnd       , 0x0021,  TRUE, Trace,  2, (P,P)) \
-  EVENT(X, TraceReclaim       , 0x0022,  TRUE, Seg,    1, (P)) \
-  /* EVENT(X, TraceScan          , 0x0023, TRUE, Seg, 5, (U,U,P,P,P)) */ \
-  EVENT(X, TraceAccess        , 0x0024,  TRUE, Seg,    3, (P,P,U)) \
+  EVENT(X, AMCGenCreate       , 0x0001,  TRUE, Pool) \
+  EVENT(X, AMCGenDestroy      , 0x0002,  TRUE, Pool) \
+  EVENT(X, AMCInit            , 0x0003,  TRUE, Pool) \
+  EVENT(X, AMCFinish          , 0x0004,  TRUE, Pool) \
+  EVENT(X, ArenaCreateVM      , 0x0005,  TRUE, Arena) \
+  EVENT(X, ArenaCreateVMNZ    , 0x0006,  TRUE, Arena) \
+  EVENT(X, ArenaWriteFaults   , 0x0007,  TRUE, Trace) \
+  EVENT(X, MeterInit          , 0x0008,  TRUE, Pool) \
+  EVENT(X, MeterValues        , 0x0009,  TRUE, Pool) \
+  EVENT(X, AMCScanBegin       , 0x000a,  TRUE, Seg) \
+  EVENT(X, AMCScanEnd         , 0x000b,  TRUE, Seg) \
+  EVENT(X, AMCFix             , 0x000c, FALSE, Ref) \
+  EVENT(X, AMCFixInPlace      , 0x000d, FALSE, Ref) \
+  EVENT(X, AMCFixForward      , 0x000e, FALSE, Ref) \
+  EVENT(X, AMCReclaim         , 0x000f,  TRUE, Seg) \
+  /* EVENT(X, AMCTraceEnd        , 0x0010, TRUE, Trace) */ \
+  EVENT(X, ArenaCreateCL      , 0x0011,  TRUE, Arena) \
+  EVENT(X, ArenaDestroy       , 0x0012,  TRUE, Arena) \
+  EVENT(X, SegAlloc           , 0x0013,  TRUE, Seg) \
+  EVENT(X, SegFree            , 0x0014,  TRUE, Seg) \
+  EVENT(X, PoolInit           , 0x0015,  TRUE, Pool) \
+  EVENT(X, PoolFinish         , 0x0016,  TRUE, Pool) \
+  EVENT(X, PoolAlloc          , 0x0017,  TRUE, Object) \
+  EVENT(X, PoolFree           , 0x0018,  TRUE, Object) \
+  EVENT(X, CBSInit            , 0x0019,  TRUE, Pool) \
+  EVENT(X, Intern             , 0x001a,  TRUE, User) \
+  EVENT(X, Label              , 0x001b,  TRUE, User) \
+  /* EVENT(X, TraceStart         , 0x001c,  TRUE, Trace) */ \
+  /* EVENT(X, TraceCreate        , 0x001d,  TRUE, Trace) */ \
+  EVENT(X, TraceDestroy       , 0x001e,  TRUE, Trace) \
+  EVENT(X, SegSetGrey         , 0x001f,  TRUE, Seg) \
+  EVENT(X, TraceFlipBegin     , 0x0020,  TRUE, Trace) \
+  EVENT(X, TraceFlipEnd       , 0x0021,  TRUE, Trace) \
+  EVENT(X, TraceReclaim       , 0x0022,  TRUE, Seg) \
+  /* EVENT(X, TraceScan          , 0x0023, TRUE, Seg) */ \
+  EVENT(X, TraceAccess        , 0x0024,  TRUE, Seg) \
   /* TracePoll's kind isn't really Trace, but then it isn't Seg either */ \
-  /* EVENT(X, TracePoll          , 0x0025,  TRUE, Trace,  2, (P,P)) */ \
-  EVENT(X, TraceFix           , 0x0026, FALSE, Ref,    4, (P,P,A,U)) \
-  EVENT(X, TraceFixSeg        , 0x0027, FALSE, Ref,    1, (P)) \
-  EVENT(X, TraceFixWhite      , 0x0028, FALSE, Ref,    0, ()) \
+  /* EVENT(X, TracePoll          , 0x0025,  TRUE, Trace) */ \
+  EVENT(X, TraceFix           , 0x0026, FALSE, Ref) \
+  EVENT(X, TraceFixSeg        , 0x0027, FALSE, Ref) \
+  EVENT(X, TraceFixWhite      , 0x0028, FALSE, Ref) \
   /* TraceScanArea{Tagged} abuses kind, see .kind.abuse */ \
-  EVENT(X, TraceScanArea      , 0x0029,  TRUE, Seg,    3, (P,P,P)) \
-  EVENT(X, TraceScanAreaTagged, 0x002a,  TRUE, Seg,    3, (P,P,P)) \
-  EVENT(X, VMCreate           , 0x002b,  TRUE, Arena,  3, (P,A,A)) \
-  EVENT(X, VMDestroy          , 0x002c,  TRUE, Arena,  1, (P)) \
-  EVENT(X, VMMap              , 0x002d,  TRUE, Seg,    3, (P,A,A)) \
-  EVENT(X, VMUnmap            , 0x002e,  TRUE, Seg,    3, (P,A,A)) \
-  EVENT(X, ArenaExtend        , 0x002f,  TRUE, Arena,  3, (P,A,W)) \
-  /* EVENT(X, ArenaRetract       , 0x0030,  TRUE, Arena,  3, (P,A,W)) */ \
-  /* EVENT(X, TraceSegGreyen     , 0x0031,  TRUE, Seg,    3, (P,P,U)) */ \
+  EVENT(X, TraceScanArea      , 0x0029,  TRUE, Seg) \
+  EVENT(X, TraceScanAreaTagged, 0x002a,  TRUE, Seg) \
+  EVENT(X, VMCreate           , 0x002b,  TRUE, Arena) \
+  EVENT(X, VMDestroy          , 0x002c,  TRUE, Arena) \
+  EVENT(X, VMMap              , 0x002d,  TRUE, Seg) \
+  EVENT(X, VMUnmap            , 0x002e,  TRUE, Seg) \
+  EVENT(X, ArenaExtend        , 0x002f,  TRUE, Arena) \
+  /* EVENT(X, ArenaRetract       , 0x0030,  TRUE, Arena) */ \
+  /* EVENT(X, TraceSegGreyen     , 0x0031,  TRUE, Seg) */ \
   /* RootScanned abuses kind, see .kind.abuse */ \
-  EVENT(X, RootScan           , 0x0032, TRUE, Seg,    3, (P,W,W)) \
+  EVENT(X, RootScan           , 0x0032, TRUE, Seg) \
   /* TraceStep abuses kind, see .kind.abuse */ \
-  /* EVENT(X, TraceStep          , 0x0033,  TRUE, Seg,    2, (P,P)) */ \
-  EVENT(X, BufferReserve      , 0x0034,  TRUE, Object, 3, (P,A,W)) \
-  EVENT(X, BufferCommit       , 0x0035,  TRUE, Object, 4, (P,A,W,A)) \
+  /* EVENT(X, TraceStep          , 0x0033,  TRUE, Seg) */ \
+  EVENT(X, BufferReserve      , 0x0034,  TRUE, Object) \
+  EVENT(X, BufferCommit       , 0x0035,  TRUE, Object) \
   /* BufferInit/Finish abuse kind, see .kind.abuse */ \
-  EVENT(X, BufferInit         , 0x0036,  TRUE, Pool,   3, (P,P,U)) \
-  EVENT(X, BufferFinish       , 0x0037,  TRUE, Pool,   1, (P)) \
-  /* EVENT(X, MVTFinish          , 0x0038, TRUE, Pool, 1, (P)) */ \
-  EVENT(X, BufferFill         , 0x0039,  TRUE, Seg,    4, (P,W,A,W)) \
-  EVENT(X, BufferEmpty        , 0x003A,  TRUE, Seg,    2, (P,W)) \
-  EVENT(X, SegAllocFail       , 0x003B,  TRUE, Seg,    3, (P,W,P)) \
-  EVENT(X, TraceScanSeg       , 0x003C,  TRUE, Seg,    4, (U,U,P,P)) \
+  EVENT(X, BufferInit         , 0x0036,  TRUE, Pool) \
+  EVENT(X, BufferFinish       , 0x0037,  TRUE, Pool) \
+  /* EVENT(X, MVTFinish          , 0x0038, TRUE, Pool) */ \
+  EVENT(X, BufferFill         , 0x0039,  TRUE, Seg) \
+  EVENT(X, BufferEmpty        , 0x003A,  TRUE, Seg) \
+  EVENT(X, SegAllocFail       , 0x003B,  TRUE, Seg) \
+  EVENT(X, TraceScanSeg       , 0x003C,  TRUE, Seg) \
   /* TraceScanSingleRef abuses kind, see .kind.abuse */ \
-  EVENT(X, TraceScanSingleRef , 0x003D,  TRUE, Seg,    4, (U,U,P,A)) \
-  EVENT(X, TraceStatCondemn   , 0x003E,  TRUE, Trace,  7, (P,W,W,W,W,D,D)) \
-  EVENT(X, TraceStatScan      , 0x003F,  TRUE, Trace, 13, (P,W,W,W,W,W,W,W,W,W,W,W,W)) \
-  EVENT(X, TraceStatFix       , 0x0040,  TRUE, Trace, 10, (P,W,W,W,W,W,W,W,W,W)) \
-  EVENT(X, TraceStatReclaim   , 0x0041,  TRUE, Trace,  3, (P,W,W)) \
-  EVENT(X, PoolInitMVFF       , 0x0042,  TRUE, Pool,   8, (P,P,W,W,W,U,U,U)) \
-  EVENT(X, PoolInitMV         , 0x0043,  TRUE, Pool,   5, (P,P,W,W,W)) \
-  EVENT(X, PoolInitMFS        , 0x0044,  TRUE, Pool,   4, (P,P,W,W)) \
-  /* EVENT(X, PoolInitEPVM       , 0x0045,  TRUE, Pool,   5, (P,P,P,U,U)) */ \
-  /* EVENT(X, PoolInitEPDL       , 0x0046,  TRUE, Pool,   6, (P,P,U,W,W,W)) */ \
-  EVENT(X, PoolInitAMS        , 0x0047,  TRUE, Pool,   3, (P,P,P)) \
-  EVENT(X, PoolInitAMC        , 0x0048,  TRUE, Pool,   2, (P,P)) \
-  EVENT(X, PoolInitAMCZ       , 0x0049,  TRUE, Pool,   2, (P,P)) \
-  EVENT(X, PoolInitAWL        , 0x004A,  TRUE, Pool,   2, (P,P)) \
-  EVENT(X, PoolInitLO         , 0x004B,  TRUE, Pool,   2, (P,P)) \
-  EVENT(X, PoolInitSNC        , 0x004C,  TRUE, Pool,   2, (P,P)) \
-  EVENT(X, PoolInitMVT        , 0x004D,  TRUE, Pool,   6, (P,W,W,W,W,W)) \
-  /* EVENT(X, BufferInitEPVM     , 0x0050,  TRUE, Pool,   3, (P,P,U)) */ \
-  EVENT(X, BufferInitSeg      , 0x0051,  TRUE, Pool,   3, (P,P,U)) \
-  EVENT(X, BufferInitRank     , 0x0052,  TRUE, Pool,   4, (P,P,U,U)) \
+  EVENT(X, TraceScanSingleRef , 0x003D,  TRUE, Seg) \
+  EVENT(X, TraceStatCondemn   , 0x003E,  TRUE, Trace) \
+  EVENT(X, TraceStatScan      , 0x003F,  TRUE, Trace) \
+  EVENT(X, TraceStatFix       , 0x0040,  TRUE, Trace) \
+  EVENT(X, TraceStatReclaim   , 0x0041,  TRUE, Trace) \
+  EVENT(X, PoolInitMVFF       , 0x0042,  TRUE, Pool) \
+  EVENT(X, PoolInitMV         , 0x0043,  TRUE, Pool) \
+  EVENT(X, PoolInitMFS        , 0x0044,  TRUE, Pool) \
+  /* EVENT(X, PoolInitEPVM       , 0x0045,  TRUE, Pool) */ \
+  /* EVENT(X, PoolInitEPDL       , 0x0046,  TRUE, Pool) */ \
+  EVENT(X, PoolInitAMS        , 0x0047,  TRUE, Pool) \
+  EVENT(X, PoolInitAMC        , 0x0048,  TRUE, Pool) \
+  EVENT(X, PoolInitAMCZ       , 0x0049,  TRUE, Pool) \
+  EVENT(X, PoolInitAWL        , 0x004A,  TRUE, Pool) \
+  EVENT(X, PoolInitLO         , 0x004B,  TRUE, Pool) \
+  EVENT(X, PoolInitSNC        , 0x004C,  TRUE, Pool) \
+  EVENT(X, PoolInitMVT        , 0x004D,  TRUE, Pool) \
+  /* EVENT(X, BufferInitEPVM     , 0x0050,  TRUE, Pool) */ \
+  EVENT(X, BufferInitSeg      , 0x0051,  TRUE, Pool) \
+  EVENT(X, BufferInitRank     , 0x0052,  TRUE, Pool) \
   /* PoolPush/Pop go under Object, because they're user ops. */ \
-  /* EVENT(X, PoolPush           , 0x0060,  TRUE, Object, 1, (P)) */ \
-  /* EVENT(X, PoolPop            , 0x0061,  TRUE, Object, 2, (P,U)) */ \
-  EVENT(X, ReservoirLimitSet  , 0x0062,  TRUE, Arena,  2, (P,W)) \
-  EVENT(X, CommitLimitSet     , 0x0063,  TRUE, Arena,  3, (P,W,U)) \
-  EVENT(X, SpareCommitLimitSet, 0x0064,  TRUE, Arena,  2, (P,W)) \
-  EVENT(X, ArenaAlloc         , 0x0065,  TRUE, Arena,  5, (P,P,A,W,P)) \
-  EVENT(X, ArenaFree          , 0x0066,  TRUE, Arena,  3, (P,A,W)) \
-  EVENT(X, ArenaAllocFail     , 0x0067,  TRUE, Arena,  3, (P,W,P)) \
-  EVENT(X, SegMerge           , 0x0068,  TRUE, Seg,    3, (P,P,U)) \
-  EVENT(X, SegSplit           , 0x0069,  TRUE, Seg,    4, (P,P,P,A))
+  /* EVENT(X, PoolPush           , 0x0060,  TRUE, Object) */ \
+  /* EVENT(X, PoolPop            , 0x0061,  TRUE, Object) */ \
+  EVENT(X, ReservoirLimitSet  , 0x0062,  TRUE, Arena) \
+  EVENT(X, CommitLimitSet     , 0x0063,  TRUE, Arena) \
+  EVENT(X, SpareCommitLimitSet, 0x0064,  TRUE, Arena) \
+  EVENT(X, ArenaAlloc         , 0x0065,  TRUE, Arena) \
+  EVENT(X, ArenaFree          , 0x0066,  TRUE, Arena) \
+  EVENT(X, ArenaAllocFail     , 0x0067,  TRUE, Arena) \
+  EVENT(X, SegMerge           , 0x0068,  TRUE, Seg) \
+  EVENT(X, SegSplit           , 0x0069,  TRUE, Seg)
 
 /* Remember to update EventNameMAX and EventCodeMAX in eventcom.h! */
 
+
+/* EVENT_*_PARAMS -- definition of event parameters
+ *
+ * For each event type in EVENT_LIST, these macros list the parameters of
+ * the event.  THe columns are:
+ *   - the positional index of the parameter in the list
+ *   - the parameter sort, similar to writef (Pointer, Addr, Word, Unsigned,
+ *     String, Double)
+ *   - a parameter name for display
+ */
 
 #define EVENT_AMCGenCreate_PARAMS(PARAM, X) \
   PARAM(X,  0, P, amc) \
