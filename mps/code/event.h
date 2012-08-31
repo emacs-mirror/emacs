@@ -52,7 +52,7 @@ extern Word EventKindControl;
 
 #define EVENT_BEGIN(name, structSize) \
   BEGIN \
-    if(Event##name##Always) { /* FIXME: depend on variety */ \
+    if(EVENT_ALL || Event##name##Always) { /* see config.h */ \
       Event##name##Struct *_event; \
       size_t _size = size_tAlignUp(structSize, MPS_PF_ALIGN); \
       if (_size > (size_t)(EventLast[Event##name##Kind] \
