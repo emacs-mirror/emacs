@@ -8,8 +8,6 @@
 #define eventpro_h
 
 #include "config.h"
-/* override variety setting for EVENT */
-#define EVENT
 
 #include "eventcom.h"
 #include "mpmtypes.h"
