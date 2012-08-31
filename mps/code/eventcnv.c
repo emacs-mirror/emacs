@@ -209,14 +209,13 @@ static void processEvent(EventProc proc, Event event, Word etime)
 
 /* printStr -- print an EventString */
 
-static void printStr(EventString str, Bool quotes)
+static void printStr(const char *str, Bool quotes)
 {
-  size_t i, len;
+  size_t i;
 
   if (quotes) putchar('"');
-  len = str->len;
-  for (i = 0; i < len; ++ i) {
-    char c = str->str[i];
+  for (i = 0; str[i] != '\0'; ++i) {
+    char c = str[i];
     if (quotes && (c == '"' || c == '\\')) putchar('\\');
     putchar(c);
   }
@@ -233,7 +232,7 @@ static void printAddr(EventProc proc, Addr addr)
   label = AddrLabel(proc, addr);
   if (label != 0 && addr != 0) {
     /* We assume labelling zero is meant to record a point in time */
-    EventString sym = LabelText(proc, label);
+    const char *sym = LabelText(proc, label);
     if (sym != NULL) {
       putchar(' ');
       printStr(sym, (style == 'C'));
@@ -358,6 +357,7 @@ static void printParamW(EventProc proc, char *styleConv, Word w)
 static void printParamD(EventProc proc, char *styleConv, double d)
 {
   UNUSED(proc);
+  UNUSED(styleConv);
   switch (style) {
   case '\0':
     printf(" %#8.3g", d); break;
@@ -368,12 +368,13 @@ static void printParamD(EventProc proc, char *styleConv, double d)
   }
 }
 
-static void printParamS(EventProc proc, char *styleConv, EventStringStruct s)
+static void printParamS(EventProc proc, char *styleConv, const char *s)
 {
   UNUSED(proc);
+  UNUSED(styleConv);
   if (style == 'C') putchar(',');
   putchar(' ');
-  printStr(&s, (style == 'C' || style == 'L'));
+  printStr(s, (style == 'C' || style == 'L'));
 }
 
 static void printParamB(EventProc proc, char *styleConv, Bool b)
@@ -479,7 +480,7 @@ static void readLog(EventProc proc)
        switch (style) {
        case '\0': case 'C':
          {
-           EventString sym = LabelText(proc, event->Label.f1);
+           const char *sym = LabelText(proc, event->Label.f1);
            printf(style == '\0' ?
                   " %08"PRIXLONGEST" " :
                   ", %"PRIuLONGEST", ",
