@@ -93,11 +93,13 @@
   (define-key map (vector 'remap oldfun) newfun))
 
 
-(defvar blackbox-mode-map 
+(defvar blackbox-mode-map
   (let ((map (make-keymap)))
     (suppress-keymap map t)
     (blackbox-redefine-key map 'backward-char 'bb-left)
+    (blackbox-redefine-key map 'left-char 'bb-left)
     (blackbox-redefine-key map 'forward-char 'bb-right)
+    (blackbox-redefine-key map 'right-char 'bb-right)
     (blackbox-redefine-key map 'previous-line 'bb-up)
     (blackbox-redefine-key map 'next-line 'bb-down)
     (blackbox-redefine-key map 'move-end-of-line 'bb-eol)

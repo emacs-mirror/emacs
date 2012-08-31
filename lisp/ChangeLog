@@ -1,3 +1,10 @@
+2012-08-31  Glenn Morris  <rgm@gnu.org>
+
+	* emulation/cua-rect.el (cua--init-rectangles):
+	* textmodes/picture.el (picture-mode-map):
+	* play/blackbox.el (blackbox-mode-map): Remap right-char and left-char
+	like forward-char and backward-char.  (Bug#12317)
+
 2012-08-30  Leo Liu  <sdl.web@gmail.com>
 
 	* progmodes/flymake.el (flymake-warning-re): New variable.

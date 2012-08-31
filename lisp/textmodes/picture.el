@@ -620,7 +620,9 @@ Leaves the region surrounding the rectangle."
       (picture-substitute 'completion-separator-self-insert-autofilling
 			  'picture-self-insert)
       (picture-substitute 'forward-char 'picture-forward-column)
+      (picture-substitute 'right-char 'picture-forward-column)
       (picture-substitute 'backward-char 'picture-backward-column)
+      (picture-substitute 'left-char 'picture-backward-column)
       (picture-substitute 'delete-char 'picture-clear-column)
       ;; There are two possibilities for what is normally on DEL.
       (picture-substitute 'backward-delete-char-untabify 'picture-backward-clear-column)
