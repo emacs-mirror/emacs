@@ -25,7 +25,7 @@ extern char *EventCode2Format(EventCode code);
 extern Bool EventCodeIsValid(EventCode code);
 
 extern Word AddrLabel(EventProc proc, Addr addr);
-extern EventString LabelText(EventProc proc, Word label);
+extern char *LabelText(EventProc proc, Word label);
 
 extern Res EventRead(Event *eventReturn, EventProc proc);
 extern void EventDestroy(EventProc proc, Event event);
