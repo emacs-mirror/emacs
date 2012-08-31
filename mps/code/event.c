@@ -37,46 +37,66 @@ static mps_io_t eventIO;
 static Count eventUserCount;
 static Serial EventInternSerial;
 
-char EventBuffer[EventBufferSIZE];      /* in which events are recorded */
-char *EventLast;                        /* points to last written event */
+/* Buffers in which events are recorded, from the top down. */
+char EventBuffer[EventKindLIMIT][EventBufferSIZE];
+
+/* Pointers to last written event in each buffer. */
+char *EventLast[EventKindLIMIT];
+
 EventControlSet EventKindControl;       /* Bit set used to control output. */
 
 
 /* EventFlush -- flush event buffer to the event stream */
 
-Res EventFlush(void)
+Res EventFlush(EventKind kind)
 {
   Res res;
   size_t size;
 
   AVER(eventInited);
+  AVER(0 <= kind && kind < EventKindLIMIT);
 
-  AVER(EventBuffer <= EventLast);
-  AVER(EventLast <= EventBuffer + EventBufferSIZE);
-  size = (size_t)(EventBuffer + EventBufferSIZE - EventLast);
+  AVER(EventBuffer[kind] <= EventLast[kind]);
+  AVER(EventLast[kind] <= EventBuffer[kind] + EventBufferSIZE);
 
-  /* Checking the size avoids creating the event stream when the arena is
-     destroyed and no events have been logged. */
-  if (size == 0)
-    return ResOK;
+  /* Is event logging enabled for this kind of event, or are or are we just
+     writing to the buffer for backtraces, cores, and other debugging? */
+  if (BS_IS_MEMBER(EventKindControl, kind)) {
+    
+    size = (size_t)(EventBuffer[kind] + EventBufferSIZE - EventLast[kind]);
+  
+    /* Checking the size avoids creating the event stream when the arena is
+       destroyed and no events have been logged. */
+    if (size == 0)
+      return ResOK;
+  
+    /* Ensure the IO stream is open.  We do this late so that no stream is
+       created if no events are enabled by telemetry control. */
+    if (!eventIOInited) {
+      res = (Res)mps_io_create(&eventIO);
+      if(res != ResOK)
+        goto failCreate;
+      eventIOInited = TRUE;
+    }
+  
+    /* Writing might be faster if the size is aligned to a multiple of the
+       C library or kernel's buffer size.  We could pad out the buffer with
+       a marker for this purpose. */
+  
+    res = (Res)mps_io_write(eventIO, (void *)EventLast[kind], size);
+    if (res != ResOK)
+      goto failWrite;
 
-  /* Ensure the IO stream is open.  We do this late so that no stream is
-     created if no events are enabled by telemetry control. */
-  if (!eventIOInited) {
-    res = (Res)mps_io_create(&eventIO);
-    if(res != ResOK) return res;
-    eventIOInited = TRUE;
   }
+  
+  res = ResOK;
 
-  /* Writing might be faster if the size is aligned to a multiple of the
-     C library or kernel's buffer size.  We could pad out the buffer with
-     a marker for this purpose. */
-
-  res = (Res)mps_io_write(eventIO, (void *)EventLast, size);
+failWrite:
+failCreate:
 
   /* Flush the in-memory buffer whether or not we succeeded, so that we can
      record recent events there. */
-  EventLast = EventBuffer + EventBufferSIZE;
+  EventLast[kind] = EventBuffer[kind] + EventBufferSIZE;
 
   return res;
 }
@@ -84,13 +104,12 @@ Res EventFlush(void)
 
 /* EventSync -- synchronize the event stream with the buffers */
 
-Res EventSync(void)
+void EventSync(void)
 {
-  Res resEv, resIO;
-
-  resEv = EventFlush();
-  resIO = mps_io_flush(eventIO);
-  return (resEv != ResOK) ? resEv : resIO;
+  EventKind kind;
+  for (kind = 0; kind < EventKindLIMIT; ++kind)
+    (void)EventFlush(kind);
+  (void)mps_io_flush(eventIO);
 }
 
 
@@ -152,8 +171,11 @@ Res EventInit(void)
 
   /* Only if this is the first call. */
   if(!eventInited) { /* See .trans.log */
-    AVER(EventLast == NULL);
-    EventLast = EventBuffer + EventBufferSIZE;
+    EventKind kind;
+    for (kind = 0; kind < EventKindLIMIT; ++kind) {
+      AVER(EventLast[kind] == NULL);
+      EventLast[kind] = EventBuffer[kind] + EventBufferSIZE;
+    }
     eventUserCount = (Count)1;
     eventInited = TRUE;
     EventKindControl = (Word)mps_lib_telemetry_control();
@@ -174,7 +196,7 @@ void EventFinish(void)
   AVER(eventInited);
   AVER(eventUserCount > 0);
 
-  (void)EventSync();
+  EventSync();
 
   --eventUserCount;
 }
@@ -341,16 +363,19 @@ Res EventWrite(Event event, mps_lib_FILE *stream)
 void EventDump(mps_lib_FILE *stream)
 {
   Event event;
+  EventKind kind;
 
   AVER(stream != NULL);
 
-  for (event = (Event)EventLast;
-       event < (Event)(EventBuffer + EventBufferSIZE);
-       event = (Event)((char *)event + event->any.size)) {
-    /* Try to keep going even if there's an error, because this is used as a
-       backtrace and we'll take what we can get. */
-    (void)EventWrite(event, stream);
-    (void)WriteF(stream, "\n", NULL);
+  for (kind = 0; kind < EventKindLIMIT; ++kind) {
+    for (event = (Event)EventLast[kind];
+         event < (Event)(EventBuffer[kind] + EventBufferSIZE);
+         event = (Event)((char *)event + event->any.size)) {
+      /* Try to keep going even if there's an error, because this is used as a
+         backtrace and we'll take what we can get. */
+      (void)EventWrite(event, stream);
+      (void)WriteF(stream, "\n", NULL);
+    }
   }
 }
 

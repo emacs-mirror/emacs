@@ -219,6 +219,11 @@ Res ArenaCreateV(Arena *arenaReturn, ArenaClass class, va_list args)
   AVER(arenaReturn != NULL);
   AVERT(ArenaClass, class);
 
+  /* We must initialise the event subsystem very early, because event logging
+     will start as soon as anything interesting happens and expect to write
+     to the EventLast pointers. */
+  EventInit();
+
   /* Do initialization.  This will call ArenaInit (see .init.caller). */
   res = (*class->init)(&arena, class, args);
   if (res != ResOK)

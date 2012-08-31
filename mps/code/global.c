@@ -239,7 +239,6 @@ Res GlobalsInit(Globals arenaGlobals)
     RingInit(&arenaRing);
     ProtSetup();
   }
-  EventInit();
   arenaReleaseRingLock();
 
   arena = GlobalsArena(arenaGlobals);
