@@ -53,6 +53,7 @@ typedef unsigned long long EventClock;
   END
 
 #define EVENT_CLOCK_PRINT(stream, clock) fprintf(stream, "%llu", clock)
+/* FIXME: No EVENT_CLOCK_WRITE */
 
 #endif /* __has_builtin(__builtin_readcyclecounter) */
 
@@ -95,6 +96,7 @@ typedef Word EventClock;
 
 #define EVENT_CLOCK_PRINT(stream, clock) \
   fprintf(stream, "%llu", (unsigned long long)clock)
+/* FIXME: No EVENT_CLOCK_WRITE */
 
 #endif
 

@@ -49,7 +49,7 @@
 #define CONFIG_ASSERT
 #define CHECKLEVEL_INITIAL CheckLevelMINIMAL
 /* no statistic meters */
-/* no telemetry log events */
+#define CONFIG_LOG
 
 #elif defined(CONFIG_VAR_DI) /* Diagnostic variety */
 #define CONFIG_ASSERT
@@ -61,15 +61,9 @@
  */
 #define DIAG_WITH_STREAM_AND_WRITEF
 /* #define DIAG_WITH_PRINTF */
-/* no telemetry log events */
+#define CONFIG_LOG
 
 #elif defined(CONFIG_VAR_CI) || defined(CONFIG_VAR_CE) /* Cool varieties */
-#define CONFIG_ASSERT
-/* ... let PRODUCT determine CHECKLEVEL_INITIAL */
-#define CONFIG_STATS
-/* no telemetry log events */
-
-#elif defined(CONFIG_VAR_TI)    /* Telemetry, Internal; variety.ti */
 #define CONFIG_ASSERT
 /* ... let PRODUCT determine CHECKLEVEL_INITIAL */
 #define CONFIG_STATS
@@ -82,8 +76,6 @@
 #define CONFIG_LOG
 #endif
 
-#define CONFIG_STATS
-#define CONFIG_LOG
 
 /* Build Features */
 

@@ -130,7 +130,6 @@ CFDI = -DCONFIG_VAR_DI -DNDEBUG $(CFLAGSOPT)
 CFII = -DCONFIG_VAR_II -DNDEBUG $(CFLAGSOPT)
 CFCE = -DCONFIG_VAR_CE          $(CFLAGSOPTNODEBUG)
 CFCI = -DCONFIG_VAR_CI          $(CFLAGSDEBUG)
-CFTI = -DCONFIG_VAR_TI          $(CFLAGSDEBUG)
 
 # Bind CFLAGS to the appropriate set of flags for the variety.
 # %%VARIETY: Add a test for the variety and set CFLAGS here.
@@ -158,10 +157,6 @@ else
 ifeq ($(VARIETY),ci)
 CFLAGS=$(CFLAGSCOMMON) $(CFCI)
 else
-ifeq ($(VARIETY),ti)
-CFLAGS=$(CFLAGSCOMMON) $(CFTI)
-else
-endif
 endif
 endif
 endif
