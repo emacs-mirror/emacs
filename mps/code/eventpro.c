@@ -78,16 +78,18 @@ typedef struct {
   EventSize offsets[15]; /* FIXME: literal constant */
 } eventRecord;
 
+#define EVENT_COUNT_PARAM(X, index, sort, ident) + 1
+
 #define EVENT_FORMAT_PARAM(X, index, sort, ident) #sort
 
 #define EVENT_OFFSETS_PARAM(name, index, sort, ident) \
   offsetof(Event##name##Struct, f##index),
 
-#define EVENT_INIT(X, name, code, always, kind, count, format) \
+#define EVENT_INIT(X, name, code, always, kind) \
   {#name, \
    code, \
    EventSizeAlign(sizeof(Event##name##Struct)), \
-   count, \
+   0 EVENT_##name##_PARAMS(EVENT_COUNT_PARAM, X), \
    "" EVENT_##name##_PARAMS(EVENT_FORMAT_PARAM, X), \
    { EVENT_##name##_PARAMS(EVENT_OFFSETS_PARAM, name) 0 }},
 
