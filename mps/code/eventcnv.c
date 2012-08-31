@@ -328,43 +328,59 @@ static void clearBucket(void)
  * some event types that are handled specially.
  */
 
-static void printArg(EventProc proc,
-                     void *arg, char argType, char *styleConv)
+static void printParamA(EventProc proc, char *styleConv, Addr addr)
 {
-  switch (argType) {
-  case 'A': {
-    if (style != 'L') {
-      if (style == 'C') putchar(',');
-      printAddr(proc, *(Addr *)arg);
-    } else
-      printf(styleConv, (ulongest_t)*(Addr *)arg);
-  } break;
-  case 'P': {
-    printf(styleConv, (ulongest_t)*(void **)arg);
-  } break;
-  case 'U': {
-    printf(styleConv, (ulongest_t)*(unsigned *)arg);
-  } break;
-  case 'W': {
-    printf(styleConv, (ulongest_t)*(Word *)arg);
-  } break;
-  case 'D': {
-    switch (style) {
-    case '\0':
-      printf(" %#8.3g", *(double *)arg); break;
-    case 'C':
-      printf(", %.10G", *(double *)arg); break;
-    case 'L':
-      printf(" %#.10G", *(double *)arg); break;
-    }
-  } break;
-  case 'S': {
+  if (style != 'L') {
     if (style == 'C') putchar(',');
-    putchar(' ');
-    printStr((EventStringStruct *)arg, (style == 'C' || style == 'L'));
-  } break;
-  default: everror("Can't print format >%c<", argType);
+    printAddr(proc, addr);
+  } else
+    printf(styleConv, (ulongest_t)addr);
+}
+
+static void printParamP(EventProc proc, char *styleConv, void *p)
+{
+  UNUSED(proc);
+  printf(styleConv, (ulongest_t)p);
+}
+
+static void printParamU(EventProc proc, char *styleConv, unsigned u)
+{
+  UNUSED(proc);
+  printf(styleConv, (ulongest_t)u);
+}
+
+static void printParamW(EventProc proc, char *styleConv, Word w)
+{
+  UNUSED(proc);
+  printf(styleConv, (ulongest_t)w);
+}
+
+static void printParamD(EventProc proc, char *styleConv, double d)
+{
+  UNUSED(proc);
+  switch (style) {
+  case '\0':
+    printf(" %#8.3g", d); break;
+  case 'C':
+    printf(", %.10G", d); break;
+  case 'L':
+    printf(" %#.10G", d); break;
   }
+}
+
+static void printParamS(EventProc proc, char *styleConv, EventStringStruct s)
+{
+  UNUSED(proc);
+  if (style == 'C') putchar(',');
+  putchar(' ');
+  printStr(&s, (style == 'C' || style == 'L'));
+}
+
+static void printParamB(EventProc proc, char *styleConv, Bool b)
+{
+  UNUSED(proc);
+  UNUSED(proc);
+  printf(styleConv, (ulongest_t)b);
 }
 
 
@@ -456,33 +472,37 @@ static void readLog(EventProc proc)
      }
 
      switch (event->any.code) {
-     case EventLabelCode: {
+
+     case EventLabelCode:
        switch (style) {
-       case '\0': case 'C': {
-         EventString sym = LabelText(proc, event->Label.f1);
-         printf(style == '\0' ?
-                " %08"PRIXLONGEST" " :
-                ", %"PRIuLONGEST", ",
-                (ulongest_t)event->Label.f0);
-         if (sym != NULL) {
-           printStr(sym, (style == 'C'));
-         } else {
+       case '\0': case 'C':
+         {
+           EventString sym = LabelText(proc, event->Label.f1);
            printf(style == '\0' ?
-                  "sym %05"PRIXLONGEST :
-                  "sym %"PRIXLONGEST"\"",
-                  (ulongest_t)event->Label.f1);
+                  " %08"PRIXLONGEST" " :
+                  ", %"PRIuLONGEST", ",
+                  (ulongest_t)event->Label.f0);
+           if (sym != NULL) {
+             printStr(sym, (style == 'C'));
+           } else {
+             printf(style == '\0' ?
+                    "sym %05"PRIXLONGEST :
+                    "sym %"PRIXLONGEST"\"",
+                    (ulongest_t)event->Label.f1);
+           }
          }
-       } break;
-       case 'L': {
+         break;
+       case 'L':
          printf(" %"PRIXLONGEST" %"PRIXLONGEST,
                 (ulongest_t)event->Label.f0,
                 (ulongest_t)event->Label.f1);
-       } break;
+         break;
        }
-     } break;
-     case EventMeterValuesCode: {
+       break;
+
+     case EventMeterValuesCode:
        switch (style) {
-       case '\0': {
+       case '\0':
          if (event->MeterValues.f3 == 0) {
            printf(" %08"PRIXLONGEST"        0      N/A      N/A      N/A      N/A",
                   (ulongest_t)event->MeterValues.f0);
@@ -498,25 +518,28 @@ static void readLog(EventProc proc)
                   mean, stddev);
          }
          printAddr(proc, (Addr)event->MeterValues.f0);
-       } break;
-       case 'C': {
+         break;
+
+       case 'C':
          putchar(',');
          printAddr(proc, (Addr)event->MeterValues.f0);
          printf(", %.10G, %.10G, %u, %u, %u",
                 event->MeterValues.f1, event->MeterValues.f2,
                 (uint)event->MeterValues.f3, (uint)event->MeterValues.f4,
                 (uint)event->MeterValues.f5);
-       } break;
-       case 'L': {
+         break;
+
+       case 'L':
          printf(" %"PRIXLONGEST" %#.10G %#.10G %X %X %X",
                 (ulongest_t)event->MeterValues.f0,
                 event->MeterValues.f1, event->MeterValues.f2,
                 (uint)event->MeterValues.f3, (uint)event->MeterValues.f4,
                 (uint)event->MeterValues.f5);
-       } break;
+         break;
        }
-     } break;
-     case EventPoolInitCode: { /* pool, arena, class */
+       break;
+
+     case EventPoolInitCode: /* pool, arena, class */
        printf(styleConv, (ulongest_t)event->PoolInit.f0);
        printf(styleConv, (ulongest_t)event->PoolInit.f1);
        /* class is a Pointer, but we label them, so call printAddr */
@@ -525,13 +548,16 @@ static void readLog(EventProc proc)
          printAddr(proc, (Addr)event->PoolInit.f2);
        } else
          printf(styleConv, (ulongest_t)event->PoolInit.f2);
-     } break;
+       break;
+
      default:
-       {
-         unsigned i;
-         for (i = 0; i < argCount; ++i)
-           printArg(proc, EventField(event, i), eventFormat[i], styleConv);
-       }
+#define EVENT_PARAM_PRINT(name, index, sort, ident) \
+         printParam##sort(proc, styleConv, event->name.f##index);
+#define EVENT_PRINT(X, name, code, always, kind) \
+       case code: \
+         EVENT_##name##_PARAMS(EVENT_PARAM_PRINT, name) \
+         break;
+       switch (event->any.code) { EVENT_LIST(EVENT_PRINT, X) }
      }
 
       if (style == 'L') putchar(')');

@@ -150,12 +150,21 @@ EVENT_LIST(EVENT_ENUM, X)
  */
 
 /* Event field types -- similar to WriteF* */
-typedef void *EventFP;
-typedef Addr EventFA;
-typedef Word EventFW;
-typedef unsigned EventFU;
-typedef EventStringStruct EventFS;
-typedef double EventFD;
+typedef void *EventFP;                  /* pointer to C object */
+typedef Addr EventFA;                   /* address on the heap */
+typedef Word EventFW;                   /* word */
+typedef unsigned EventFU;               /* unsigned integer */
+typedef EventStringStruct EventFS;      /* string */
+typedef double EventFD;                 /* double */
+typedef int EventFB;                    /* boolean */
+
+#define EventFP_BITFIELD
+#define EventFA_BITFIELD
+#define EventFW_BITFIELD
+#define EventFU_BITFIELD
+#define EventFS_BITFIELD
+#define EventFD_BITFIELD
+#define EventFB_BITFIELD : 1
 
 /* Common prefix for all event structures.  The size field allows an event
    reader to skip over events whose codes it does not recognise. */
@@ -166,7 +175,7 @@ typedef struct EventAnyStruct {
 } EventAnyStruct;
 
 #define EVENT_STRUCT_FIELD(X, index, sort, ident) \
-  EventF##sort f##index;
+  EventF##sort f##index EventF##sort##_BITFIELD;
 
 #define EVENT_STRUCT(X, name, _code, always, kind) \
   typedef struct Event##name##Struct { \
