@@ -219,6 +219,7 @@ Bool traceBandAdvance(Trace trace)
     trace->band = RankAMBIG;
     return FALSE;
   }
+  EVENT3(TraceBandAdvance, trace->arena, trace->ti, trace->band);
   return TRUE;
 }
 
@@ -905,6 +906,7 @@ static Bool traceFindGrey(Seg *segReturn, Rank *rankReturn,
           }
           *segReturn = seg;
           *rankReturn = rank;
+          EVENT4(TraceFindGrey, arena, ti, seg, rank);
           DIAG( traceFindGrey_diag(TRUE, rank); );
           return TRUE;
         }

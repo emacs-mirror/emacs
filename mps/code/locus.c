@@ -295,6 +295,7 @@ Res ChainCondemnAuto(double *mortalityReturn, Chain chain, Trace trace)
     genNewSize = GenDescNewSize(gen);
   } while (genNewSize >= gen->capacity * (Size)1024);
   
+  EVENT3(ChainCondemnAuto, chain, topCondemnedGenSerial, chain->genCount);
   DIAG_SINGLEF(( "ChainCondemnAuto",
     "condemn gens [0..$U]", (WriteFU)topCondemnedGenSerial,
     " (of $U)", (WriteFU)chain->genCount,

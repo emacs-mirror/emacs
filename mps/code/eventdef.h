@@ -53,7 +53,7 @@
  */
  
 #define EventNameMAX ((size_t)19)
-#define EventCodeMAX ((EventCode)0x0069)
+#define EventCodeMAX ((EventCode)0x0071)
 
 /* FIXME: Work out why not-in-use events were not in use and restore or delete them. */
 
@@ -155,7 +155,17 @@
   EVENT(X, ArenaFree          , 0x0066,  TRUE, Arena) \
   EVENT(X, ArenaAllocFail     , 0x0067,  TRUE, Arena) \
   EVENT(X, SegMerge           , 0x0068,  TRUE, Seg) \
-  EVENT(X, SegSplit           , 0x0069,  TRUE, Seg)
+  EVENT(X, SegSplit           , 0x0069,  TRUE, Seg) \
+  /* Events converted from RHSK's diagnostics */ \
+  EVENT(X, vmArenaExtendStart , 0x006A,  TRUE, Arena) \
+  EVENT(X, vmArenaExtendFail  , 0x006B,  TRUE, Arena) \
+  EVENT(X, vmArenaExtendDone  , 0x006C,  TRUE, Arena) \
+  EVENT(X, MessagesDropped    , 0x006D,  TRUE, Arena) \
+  EVENT(X, MessagesExist      , 0x006E,  TRUE, Arena) \
+  EVENT(X, ChainCondemnAuto   , 0x006F,  TRUE, Trace) \
+  EVENT(X, TraceFindGrey      , 0x0070,  TRUE, Trace) \
+  EVENT(X, TraceBandAdvance   , 0x0071,  TRUE, Trace)
+  
 
 /* Remember to update EventNameMAX and EventCodeMAX in eventcom.h! 
    (These are checked in EventInit.) */
@@ -554,6 +564,41 @@
   PARAM(X,  1, P, segLo) \
   PARAM(X,  2, P, segHi) \
   PARAM(X,  3, A, at)
+
+#define EVENT_vmArenaExtendStart_PARAMS(PARAM, X) \
+  PARAM(X,  0, W, size) /* size to accommodate */ \
+  PARAM(X,  1, W, chunkSize) /* chunkSize to try */ \
+  PARAM(X,  2, W, reserved) /* current VMArenaReserved */
+
+#define EVENT_vmArenaExtendFail_PARAMS(PARAM, X) \
+  PARAM(X,  0, W, chunkMin) /* no remaining address space chunk >= chunkMin */ \
+  PARAM(X,  1, W, reserved) /* current VMArenaReserved */
+
+#define EVENT_vmArenaExtendDone_PARAMS(PARAM, X) \
+  PARAM(X,  0, W, chunkSize) /* request succeeded for chunkSize bytes */ \
+  PARAM(X,  1, W, reserved) /* new VMArenaReserved */
+
+#define EVENT_MessagesDropped_PARAMS(PARAM, X) \
+  PARAM(X,  0, W, count) /* count of messages dropped */
+
+#define EVENT_MessagesExist_PARAMS(PARAM, X)
+
+#define EVENT_ChainCondemnAuto_PARAMS(PARAM, X) \
+  PARAM(X,  0, P, chain) /* chain with gens being condemned */ \
+  PARAM(X,  1, W, topCondemnedGenSerial) /* condemned gens [0..this] */ \
+  PARAM(X,  2, W, genCount) /* total gens in chain */
+
+#define EVENT_TraceFindGrey_PARAMS(PARAM, X) \
+  PARAM(X,  0, P, arena) \
+  PARAM(X,  1, W, ti) \
+  PARAM(X,  2, P, seg) \
+  PARAM(X,  3, W, rank)
+
+#define EVENT_TraceBandAdvance_PARAMS(PARAM, X) \
+  PARAM(X,  0, P, arena) \
+  PARAM(X,  1, W, ti) \
+  PARAM(X,  2, W, rank)
+
 
 #endif /* eventdef_h */
 

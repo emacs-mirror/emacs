@@ -414,6 +414,7 @@ void GlobalsPrepareToDestroy(Globals arenaGlobals)
 
   /* report dropped messages (currently in diagnostic varieties only) */
   if(arena->droppedMessages > 0) {
+    EVENT1(MessagesDropped, arena->droppedMessages);
     DIAG_SINGLEF(( "GlobalsPrepareToDestroy_dropped",
       "arena->droppedMessages = $U", (WriteFU)arena->droppedMessages,
       NULL ));
@@ -425,6 +426,7 @@ void GlobalsPrepareToDestroy(Globals arenaGlobals)
   /* the message queue would have dangling pointers to messages */
   /* whose memory has been unmapped. */
   if(MessagePoll(arena)) {
+    EVENT0(MessagesExist);
     DIAG_SINGLEF(( "GlobalsPrepareToDestroy_queue",
       "Message queue not empty", NULL ));
   }
