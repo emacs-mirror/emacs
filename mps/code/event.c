@@ -383,9 +383,9 @@ void EventDump(mps_lib_FILE *stream)
 #else /* EVENT, not */
 
 
-Res (EventSync)(void)
+void (EventSync)(void)
 {
-  return ResOK;
+  NOOP;
 }
 
 
@@ -413,16 +413,18 @@ EventControlSet (EventControl)(EventControlSet resetMask,
 EventStringId (EventInternString)(const char *label)
 {
   UNUSED(label);
-  NOTREACHED;
-  return (EventInternString)0x9024EACH;
+  /* EventInternString is reached in varieties without events, but the result
+     is not used for anything. */
+  return (EventStringId)0x9024EAC8;
 }
 
 
 Word (EventInternGenString)(size_t len, const char *label)
 {
   UNUSED(len); UNUSED(label);
-  NOTREACHED;
-  return (EventInternString)0x9024EACH;
+  /* EventInternGenString is reached in varieties without events, but
+     the result is not used for anything. */
+  return (EventStringId)0x9024EAC8;
 }
 
 
@@ -430,7 +432,8 @@ void (EventLabelAddr)(Addr addr, Word id)
 {
   UNUSED(addr);
   UNUSED(id);
-  NOTREACHED;
+  /* EventLabelAddr is reached in varieties without events, but doesn't have
+     to do anything. */
 }
 
 
