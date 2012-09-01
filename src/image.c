@@ -76,6 +76,7 @@ typedef struct x_bitmap_record Bitmap_Record;
 #endif /* HAVE_X_WINDOWS */
 
 #ifdef HAVE_NTGUI
+#include "w32.h"
 /* W32_TODO : Color tables on W32.  */
 #undef COLOR_TABLE_SUPPORT
 

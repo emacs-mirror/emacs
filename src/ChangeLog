@@ -1,3 +1,9 @@
+2012-09-01  Eli Zaretskii  <eliz@gnu.org>
+
+	* image.c: Restore mistakenly removed inclusion of w32.h.  Without
+	it, GCC doesn't see prototypes of w32_delayed_load, and complains
+	about implicit conversions from integer to pointer.
+
 2012-09-01  Daniel Colascione  <dancol@dancol.org>
 
 	* w32fns.c (x_display_info_for_name): Prevent crash if w32 window
