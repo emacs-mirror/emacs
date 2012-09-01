@@ -23,10 +23,12 @@ SRCID(mpm, "$Id$");
 
 /* CheckLevel -- Control check level 
  *
- * This controls the behaviour of Check methods (see impl.h.check).
+ * This controls the behaviour of Check methods (see check.h).
  */
 
-unsigned CheckLevel = CHECKLEVEL_INITIAL;
+#ifdef CHECKLEVEL_DYNAMIC
+unsigned CheckLevel = CHECKLEVEL_DYNAMIC;
+#endif
 
 
 /* MPMCheck -- test MPM assumptions */
