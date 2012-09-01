@@ -792,9 +792,9 @@ static Res MRGDescribe(Pool pool, mps_lib_FILE *stream)
   RefPart refPart;
   Res res;
 
-  if (!CHECKT(Pool, pool)) return ResFAIL;
+  if (!TESTT(Pool, pool)) return ResFAIL;
   mrg = Pool2MRG(pool);
-  if (!CHECKT(MRG, mrg)) return ResFAIL;
+  if (!TESTT(MRG, mrg)) return ResFAIL;
   if (stream == NULL) return ResFAIL;
 
   arena = PoolArena(pool);

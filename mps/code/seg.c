@@ -353,7 +353,7 @@ Res SegDescribe(Seg seg, mps_lib_FILE *stream)
   Res res;
   Pool pool;
 
-  if (!CHECKT(Seg, seg)) return ResFAIL;
+  if (!TESTT(Seg, seg)) return ResFAIL;
   if (stream == NULL) return ResFAIL;
 
   pool = SegPool(seg);
@@ -964,7 +964,7 @@ static Res segTrivDescribe(Seg seg, mps_lib_FILE *stream)
 {
   Res res;
 
-  if (!CHECKT(Seg, seg)) return ResFAIL;
+  if (!TESTT(Seg, seg)) return ResFAIL;
   if (stream == NULL) return ResFAIL;
 
   res = WriteF(stream,
@@ -1550,10 +1550,10 @@ static Res gcSegDescribe(Seg seg, mps_lib_FILE *stream)
   SegClass super;
   GCSeg gcseg;
 
-  if (!CHECKT(Seg, seg)) return ResFAIL;
+  if (!TESTT(Seg, seg)) return ResFAIL;
   if (stream == NULL) return ResFAIL;
   gcseg = SegGCSeg(seg);
-  if (!CHECKT(GCSeg, gcseg)) return ResFAIL;
+  if (!TESTT(GCSeg, gcseg)) return ResFAIL;
 
   /* Describe the superclass fields first via next-method call */
   super = SEG_SUPERCLASS(GCSegClass);

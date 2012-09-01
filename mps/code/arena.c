@@ -26,7 +26,7 @@ static void ArenaTrivCompact(Arena arena, Trace trace);
 
 static Res ArenaTrivDescribe(Arena arena, mps_lib_FILE *stream)
 {
-  if (!CHECKT(Arena, arena)) return ResFAIL;
+  if (!TESTT(Arena, arena)) return ResFAIL;
   if (stream == NULL) return ResFAIL;
 
   /* .describe.triv.never-called-from-subclass-method:
@@ -324,7 +324,7 @@ Res ArenaDescribe(Arena arena, mps_lib_FILE *stream)
   Res res;
   Size reserved;
 
-  if (!CHECKT(Arena, arena)) return ResFAIL;
+  if (!TESTT(Arena, arena)) return ResFAIL;
   if (stream == NULL) return ResFAIL;
 
   res = WriteF(stream, "Arena $P {\n", (WriteFP)arena,
@@ -396,7 +396,7 @@ Res ArenaDescribeTracts(Arena arena, mps_lib_FILE *stream)
   Addr oldLimit, base, limit;
   Size size;
 
-  if (!CHECKT(Arena, arena)) return ResFAIL;
+  if (!TESTT(Arena, arena)) return ResFAIL;
   if (stream == NULL) return ResFAIL;
 
   b = TractFirst(&tract, arena);
@@ -481,7 +481,7 @@ Res ControlDescribe(Arena arena, mps_lib_FILE *stream)
 {
   Res res;
 
-  if (!CHECKT(Arena, arena)) return ResFAIL;
+  if (!TESTT(Arena, arena)) return ResFAIL;
   if (stream == NULL) return ResFAIL;
 
   res = PoolDescribe(ArenaControlPool(arena), stream);

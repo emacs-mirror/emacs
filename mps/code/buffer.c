@@ -149,7 +149,7 @@ Res BufferDescribe(Buffer buffer, mps_lib_FILE *stream)
   Res res;
   char abzMode[5];
 
-  if (!CHECKT(Buffer, buffer)) return ResFAIL;
+  if (!TESTT(Buffer, buffer)) return ResFAIL;
   if (stream == NULL) return ResFAIL;
 
   abzMode[0] = (char)( (buffer->mode & BufferModeTRANSITION)  ? 't' : '_' );
@@ -1185,7 +1185,7 @@ static void bufferNoReassignSeg (Buffer buffer, Seg seg)
 
 static Res bufferTrivDescribe(Buffer buffer, mps_lib_FILE *stream)
 {
-  if (!CHECKT(Buffer, buffer)) return ResFAIL;
+  if (!TESTT(Buffer, buffer)) return ResFAIL;
   if (stream == NULL) return ResFAIL;
   /* dispatching function does it all */
   return ResOK;
@@ -1444,10 +1444,10 @@ static Res segBufDescribe(Buffer buffer, mps_lib_FILE *stream)
   BufferClass super;
   Res res;
 
-  if (!CHECKT(Buffer, buffer)) return ResFAIL;
+  if (!TESTT(Buffer, buffer)) return ResFAIL;
   if (stream == NULL) return ResFAIL;
   segbuf = BufferSegBuf(buffer);
-  if (!CHECKT(SegBuf, segbuf)) return ResFAIL;
+  if (!TESTT(SegBuf, segbuf)) return ResFAIL;
 
   /* Describe the superclass fields first via next-method call */
   super = BUFFER_SUPERCLASS(SegBufClass);

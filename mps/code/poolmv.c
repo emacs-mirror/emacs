@@ -646,9 +646,9 @@ static Res MVDescribe(Pool pool, mps_lib_FILE *stream)
   char c;
   Ring spans, node = NULL, nextNode; /* gcc whinge stop */
 
-  if(!CHECKT(Pool, pool)) return ResFAIL;
+  if(!TESTT(Pool, pool)) return ResFAIL;
   mv = Pool2MV(pool);
-  if(!CHECKT(MV, mv)) return ResFAIL;
+  if(!TESTT(MV, mv)) return ResFAIL;
   if(stream == NULL) return ResFAIL;
 
   res = WriteF(stream,

@@ -73,7 +73,7 @@ static Bool mpsi_check(void)
   /* .check.rc: Check that external and internal result codes match. */
   /* See <code/mps.h#result-codes> and <code/mpmtypes.h#result-codes>. */
   /* Also see .check.enum.cast. */
-  CHECKL(CHECKTYPE(mps_res_t, Res));
+  CHECKL(COMPATTYPE(mps_res_t, Res));
   CHECKL((int)MPS_RES_OK == (int)ResOK);
   CHECKL((int)MPS_RES_FAIL == (int)ResFAIL);
   CHECKL((int)MPS_RES_RESOURCE == (int)ResRESOURCE);
@@ -86,7 +86,7 @@ static Bool mpsi_check(void)
   /* Check that external and internal rank numbers match. */
   /* See <code/mps.h#ranks> and <code/mpmtypes.h#ranks>. */
   /* Also see .check.enum.cast. */
-  CHECKL(CHECKTYPE(mps_rank_t, Rank));
+  CHECKL(COMPATTYPE(mps_rank_t, Rank));
   CHECKL((int)MPS_RANK_AMBIG == (int)RankAMBIG);
   CHECKL((int)MPS_RANK_EXACT == (int)RankEXACT);
   CHECKL((int)MPS_RANK_WEAK == (int)RankWEAK);
@@ -95,7 +95,7 @@ static Bool mpsi_check(void)
   /* See <code/mps.h#message.types> and */
   /* <code/mpmtypes.h#message.types>. */
   /* Also see .check.enum.cast. */
-  CHECKL(CHECKTYPE(mps_message_type_t, MessageType));
+  CHECKL(COMPATTYPE(mps_message_type_t, MessageType));
   CHECKL((int)MessageTypeFINALIZATION
          == (int)MPS_MESSAGE_TYPE_FINALIZATION);
   CHECKL((int)MessageTypeGC
@@ -106,74 +106,74 @@ static Bool mpsi_check(void)
   /* The external idea of a word width and the internal one */
   /* had better match.  See <design/interface-c/#cons>. */
   CHECKL(sizeof(mps_word_t) == sizeof(void *));
-  CHECKL(CHECKTYPE(mps_word_t, Word));
+  CHECKL(COMPATTYPE(mps_word_t, Word));
 
   /* The external idea of an address and the internal one */
   /* had better match. */
-  CHECKL(CHECKTYPE(mps_addr_t, Addr));
+  CHECKL(COMPATTYPE(mps_addr_t, Addr));
 
   /* The external idea of size and the internal one had */
   /* better match.  See <design/interface-c/#cons.size> */
   /* and <design/interface-c/#pun.size>. */
-  CHECKL(CHECKTYPE(size_t, Size));
+  CHECKL(COMPATTYPE(size_t, Size));
 
   /* Clock values are passed from external to internal and back */
   /* out to external. */
-  CHECKL(CHECKTYPE(mps_clock_t, Clock));
+  CHECKL(COMPATTYPE(mps_clock_t, Clock));
 
   /* Check ap_s/APStruct compatibility by hand */
   /* .check.ap: See <code/mps.h#ap> and <code/buffer.h#ap>. */
   CHECKL(sizeof(mps_ap_s) == sizeof(APStruct));
-  CHECKL(CHECKFIELD(mps_ap_s, init,  APStruct, init));
-  CHECKL(CHECKFIELD(mps_ap_s, alloc, APStruct, alloc));
-  CHECKL(CHECKFIELD(mps_ap_s, limit, APStruct, limit));
+  CHECKL(COMPATFIELD(mps_ap_s, init,  APStruct, init));
+  CHECKL(COMPATFIELD(mps_ap_s, alloc, APStruct, alloc));
+  CHECKL(COMPATFIELD(mps_ap_s, limit, APStruct, limit));
 
   /* Check sac_s/ExternalSACStruct compatibility by hand */
   /* See <code/mps.h#sac> and <code/sac.h#sac>. */
   CHECKL(sizeof(mps_sac_s) == sizeof(ExternalSACStruct));
-  CHECKL(CHECKFIELD(mps_sac_s, mps_middle, ExternalSACStruct, middle));
-  CHECKL(CHECKFIELD(mps_sac_s, mps_trapped,
+  CHECKL(COMPATFIELD(mps_sac_s, mps_middle, ExternalSACStruct, middle));
+  CHECKL(COMPATFIELD(mps_sac_s, mps_trapped,
                     ExternalSACStruct, trapped));
-  CHECKL(CHECKFIELDAPPROX(mps_sac_s, mps_freelists,
+  CHECKL(COMPATFIELDAPPROX(mps_sac_s, mps_freelists,
                           ExternalSACStruct, freelists));
   CHECKL(sizeof(mps_sac_freelist_block_s)
          == sizeof(SACFreeListBlockStruct));
-  CHECKL(CHECKFIELD(mps_sac_freelist_block_s, mps_size,
+  CHECKL(COMPATFIELD(mps_sac_freelist_block_s, mps_size,
                     SACFreeListBlockStruct, size));
-  CHECKL(CHECKFIELD(mps_sac_freelist_block_s, mps_count,
+  CHECKL(COMPATFIELD(mps_sac_freelist_block_s, mps_count,
                     SACFreeListBlockStruct, count));
-  CHECKL(CHECKFIELD(mps_sac_freelist_block_s, mps_count_max,
+  CHECKL(COMPATFIELD(mps_sac_freelist_block_s, mps_count_max,
                     SACFreeListBlockStruct, countMax));
-  CHECKL(CHECKFIELD(mps_sac_freelist_block_s, mps_blocks,
+  CHECKL(COMPATFIELD(mps_sac_freelist_block_s, mps_blocks,
                     SACFreeListBlockStruct, blocks));
 
   /* Check sac_classes_s/SACClassesStruct compatibility by hand */
   /* See <code/mps.h#sacc> and <code/sac.h#sacc>. */
   CHECKL(sizeof(mps_sac_classes_s) == sizeof(SACClassesStruct));
-  CHECKL(CHECKFIELD(mps_sac_classes_s, mps_block_size,
+  CHECKL(COMPATFIELD(mps_sac_classes_s, mps_block_size,
                     SACClassesStruct, blockSize));
-  CHECKL(CHECKFIELD(mps_sac_classes_s, mps_cached_count,
+  CHECKL(COMPATFIELD(mps_sac_classes_s, mps_cached_count,
                     SACClassesStruct, cachedCount));
-  CHECKL(CHECKFIELD(mps_sac_classes_s, mps_frequency,
+  CHECKL(COMPATFIELD(mps_sac_classes_s, mps_frequency,
                     SACClassesStruct, frequency));
 
   /* Check ss_s/ScanStateStruct compatibility by hand */
   /* .check.ss: See <code/mps.h#ss> and <code/mpmst.h#ss>. */
   /* Note that the size of the mps_ss_s and ScanStateStruct */
-  /* are not equal.  See <code/mpmst.h#ss>.  CHECKFIELDAPPROX */
+  /* are not equal.  See <code/mpmst.h#ss>.  COMPATFIELDAPPROX */
   /* is used on the fix field because its type is punned and */
   /* therefore isn't exactly checkable.  See */
   /* <design/interface-c/#pun.addr>. */
-  CHECKL(CHECKFIELDAPPROX(mps_ss_s, fix, ScanStateStruct, fix));
-  CHECKL(CHECKFIELD(mps_ss_s, w0, ScanStateStruct, zoneShift));
-  CHECKL(CHECKFIELD(mps_ss_s, w1, ScanStateStruct, white));
-  CHECKL(CHECKFIELD(mps_ss_s, w2, ScanStateStruct, unfixedSummary));
+  CHECKL(COMPATFIELDAPPROX(mps_ss_s, fix, ScanStateStruct, fix));
+  CHECKL(COMPATFIELD(mps_ss_s, w0, ScanStateStruct, zoneShift));
+  CHECKL(COMPATFIELD(mps_ss_s, w1, ScanStateStruct, white));
+  CHECKL(COMPATFIELD(mps_ss_s, w2, ScanStateStruct, unfixedSummary));
 
   /* Check ld_s/LDStruct compatibility by hand */
   /* .check.ld: See also <code/mpmst.h#ld.struct> and <code/mps.h#ld> */
   CHECKL(sizeof(mps_ld_s) == sizeof(LDStruct));
-  CHECKL(CHECKFIELD(mps_ld_s, w0, LDStruct, epoch));
-  CHECKL(CHECKFIELD(mps_ld_s, w1, LDStruct, rs));
+  CHECKL(COMPATFIELD(mps_ld_s, w0, LDStruct, epoch));
+  CHECKL(COMPATFIELD(mps_ld_s, w1, LDStruct, rs));
 
   return TRUE;
 }
@@ -726,7 +726,7 @@ void mps_fmt_destroy(mps_fmt_t mps_fmt)
   Format format = (Format)mps_fmt;
   Arena arena;
 
-  AVER(CHECKT(Format, format));
+  AVER(TESTT(Format, format));
   arena = FormatArena(format);
 
   ArenaEnter(arena);
@@ -776,7 +776,7 @@ void mps_pool_destroy(mps_pool_t mps_pool)
   Pool pool = (Pool)mps_pool;
   Arena arena;
 
-  AVER(CHECKT(Pool, pool));
+  AVER(TESTT(Pool, pool));
   arena = PoolArena(pool);
 
   ArenaEnter(arena);
@@ -794,7 +794,7 @@ mps_res_t mps_alloc(mps_addr_t *p_o, mps_pool_t mps_pool, size_t size, ...)
   Addr p;
   Res res;
 
-  AVER(CHECKT(Pool, pool));
+  AVER(TESTT(Pool, pool));
   arena = PoolArena(pool);
 
   ArenaEnter(arena);
@@ -836,7 +836,7 @@ void mps_free(mps_pool_t mps_pool, mps_addr_t p, size_t size)
   Pool pool = (Pool)mps_pool;
   Arena arena;
 
-  AVER(CHECKT(Pool, pool));
+  AVER(TESTT(Pool, pool));
   arena = PoolArena(pool);
 
   ArenaEnter(arena);
@@ -864,7 +864,7 @@ mps_res_t mps_ap_create(mps_ap_t *mps_ap_o, mps_pool_t mps_pool, ...)
   va_list args;
 
   AVER(mps_ap_o != NULL);
-  AVER(CHECKT(Pool, pool));
+  AVER(TESTT(Pool, pool));
   arena = PoolArena(pool);
 
   ArenaEnter(arena);
@@ -897,7 +897,7 @@ mps_res_t mps_ap_create_v(mps_ap_t *mps_ap_o, mps_pool_t mps_pool,
   Res res;
 
   AVER(mps_ap_o != NULL);
-  AVER(CHECKT(Pool, pool));
+  AVER(TESTT(Pool, pool));
   arena = PoolArena(pool);
 
   ArenaEnter(arena);
@@ -921,7 +921,7 @@ void mps_ap_destroy(mps_ap_t mps_ap)
   Arena arena;
 
   AVER(mps_ap != NULL);
-  AVER(CHECKT(Buffer, buf));
+  AVER(TESTT(Buffer, buf));
   arena = BufferArena(buf);
 
   ArenaEnter(arena);
@@ -945,7 +945,7 @@ mps_res_t (mps_reserve)(mps_addr_t *p_o, mps_ap_t mps_ap, size_t size)
 
   AVER(p_o != NULL);
   AVER(mps_ap != NULL);
-  AVER(CHECKT(Buffer, BufferOfAP((AP)mps_ap)));
+  AVER(TESTT(Buffer, BufferOfAP((AP)mps_ap)));
   AVER(mps_ap->init == mps_ap->alloc);
   AVER(size > 0);
 
@@ -964,7 +964,7 @@ mps_res_t mps_reserve_with_reservoir_permit(mps_addr_t *p_o,
   AVER(p_o != NULL);
   AVER(size > 0);
   AVER(mps_ap != NULL);
-  AVER(CHECKT(Buffer, BufferOfAP((AP)mps_ap)));
+  AVER(TESTT(Buffer, BufferOfAP((AP)mps_ap)));
   AVER(mps_ap->init == mps_ap->alloc);
 
   MPS_RESERVE_WITH_RESERVOIR_PERMIT_BLOCK(res, *p_o, mps_ap, size);
@@ -985,7 +985,7 @@ mps_res_t mps_reserve_with_reservoir_permit(mps_addr_t *p_o,
 mps_bool_t (mps_commit)(mps_ap_t mps_ap, mps_addr_t p, size_t size)
 {
   AVER(mps_ap != NULL);
-  AVER(CHECKT(Buffer, BufferOfAP((AP)mps_ap)));
+  AVER(TESTT(Buffer, BufferOfAP((AP)mps_ap)));
   AVER(p != NULL);
   AVER(size > 0);
   AVER(p == mps_ap->init);
@@ -1027,7 +1027,7 @@ mps_res_t (mps_ap_frame_push)(mps_frame_t *frame_o, mps_ap_t mps_ap)
     AllocFrame frame;
     Res res;
 
-    AVER(CHECKT(Buffer, buf));
+    AVER(TESTT(Buffer, buf));
     arena = BufferArena(buf);
 
     ArenaEnter(arena);
@@ -1070,7 +1070,7 @@ mps_res_t (mps_ap_frame_pop)(mps_ap_t mps_ap, mps_frame_t frame)
     Arena arena;
     Res res;
 
-    AVER(CHECKT(Buffer, buf));
+    AVER(TESTT(Buffer, buf));
     arena = BufferArena(buf);
 
     ArenaEnter(arena);
@@ -1097,7 +1097,7 @@ mps_res_t mps_ap_fill(mps_addr_t *p_o, mps_ap_t mps_ap, size_t size)
   Res res;
 
   AVER(mps_ap != NULL);
-  AVER(CHECKT(Buffer, buf));
+  AVER(TESTT(Buffer, buf));
   arena = BufferArena(buf);
 
   ArenaEnter(arena);
@@ -1128,7 +1128,7 @@ mps_res_t mps_ap_fill_with_reservoir_permit(mps_addr_t *p_o, mps_ap_t mps_ap,
   Res res;
 
   AVER(mps_ap != NULL);
-  AVER(CHECKT(Buffer, buf));
+  AVER(TESTT(Buffer, buf));
   arena = BufferArena(buf);
 
   ArenaEnter(arena);
@@ -1162,7 +1162,7 @@ mps_bool_t mps_ap_trip(mps_ap_t mps_ap, mps_addr_t p, size_t size)
   Bool b;
 
   AVER(mps_ap != NULL);
-  AVER(CHECKT(Buffer, buf));
+  AVER(TESTT(Buffer, buf));
   arena = BufferArena(buf);
 
   ArenaEnter(arena);
@@ -1191,7 +1191,7 @@ mps_res_t mps_sac_create(mps_sac_t *mps_sac_o, mps_pool_t mps_pool,
   Res res;
 
   AVER(mps_sac_o != NULL);
-  AVER(CHECKT(Pool, pool));
+  AVER(TESTT(Pool, pool));
   arena = PoolArena(pool);
 
   ArenaEnter(arena);
@@ -1214,7 +1214,7 @@ void mps_sac_destroy(mps_sac_t mps_sac)
   SAC sac = SACOfExternalSAC((ExternalSAC)mps_sac);
   Arena arena;
 
-  AVER(CHECKT(SAC, sac));
+  AVER(TESTT(SAC, sac));
   arena = SACArena(sac);
 
   ArenaEnter(arena);
@@ -1232,7 +1232,7 @@ void mps_sac_flush(mps_sac_t mps_sac)
   SAC sac = SACOfExternalSAC((ExternalSAC)mps_sac);
   Arena arena;
 
-  AVER(CHECKT(SAC, sac));
+  AVER(TESTT(SAC, sac));
   arena = SACArena(sac);
 
   ArenaEnter(arena);
@@ -1254,7 +1254,7 @@ mps_res_t mps_sac_fill(mps_addr_t *p_o, mps_sac_t mps_sac, size_t size,
   Res res;
 
   AVER(p_o != NULL);
-  AVER(CHECKT(SAC, sac));
+  AVER(TESTT(SAC, sac));
   arena = SACArena(sac);
 
   ArenaEnter(arena);
@@ -1276,7 +1276,7 @@ void mps_sac_empty(mps_sac_t mps_sac, mps_addr_t p, size_t size)
   SAC sac = SACOfExternalSAC((ExternalSAC)mps_sac);
   Arena arena;
 
-  AVER(CHECKT(SAC, sac));
+  AVER(TESTT(SAC, sac));
   arena = SACArena(sac);
 
   ArenaEnter(arena);
@@ -1295,7 +1295,7 @@ mps_res_t mps_sac_alloc(mps_addr_t *p_o, mps_sac_t mps_sac, size_t size,
   Res res;
 
   AVER(p_o != NULL);
-  AVER(CHECKT(SAC, SACOfExternalSAC((ExternalSAC)mps_sac)));
+  AVER(TESTT(SAC, SACOfExternalSAC((ExternalSAC)mps_sac)));
   AVER(size > 0);
 
   MPS_SAC_ALLOC_FAST(res, *p_o, mps_sac, size, (has_reservoir_permit != 0));
@@ -1307,7 +1307,7 @@ mps_res_t mps_sac_alloc(mps_addr_t *p_o, mps_sac_t mps_sac, size_t size,
 
 void mps_sac_free(mps_sac_t mps_sac, mps_addr_t p, size_t size)
 {
-  AVER(CHECKT(SAC, SACOfExternalSAC((ExternalSAC)mps_sac)));
+  AVER(TESTT(SAC, SACOfExternalSAC((ExternalSAC)mps_sac)));
   /* Can't check p outside arena lock */
   AVER(size > 0);
 
@@ -1940,7 +1940,7 @@ mps_res_t mps_ap_alloc_pattern_begin(mps_ap_t mps_ap,
 
   AVER(mps_ap != NULL);
   buf = BufferOfAP((AP)mps_ap);
-  AVER(CHECKT(Buffer, buf));
+  AVER(TESTT(Buffer, buf));
 
   arena = BufferArena(buf);
   ArenaEnter(arena);
@@ -1961,7 +1961,7 @@ mps_res_t mps_ap_alloc_pattern_end(mps_ap_t mps_ap,
 
   AVER(mps_ap != NULL);
   buf = BufferOfAP((AP)mps_ap);
-  AVER(CHECKT(Buffer, buf));
+  AVER(TESTT(Buffer, buf));
   UNUSED(alloc_pattern); /* .ramp.hack */
 
   arena = BufferArena(buf);
@@ -1982,7 +1982,7 @@ mps_res_t mps_ap_alloc_pattern_reset(mps_ap_t mps_ap)
 
   AVER(mps_ap != NULL);
   buf = BufferOfAP((AP)mps_ap);
-  AVER(CHECKT(Buffer, buf));
+  AVER(TESTT(Buffer, buf));
 
   arena = BufferArena(buf);
   ArenaEnter(arena);
@@ -2074,7 +2074,7 @@ void mps_chain_destroy(mps_chain_t mps_chain)
   Arena arena;
   Chain chain = (Chain)mps_chain;
 
-  AVER(CHECKT(Chain, chain));
+  AVER(TESTT(Chain, chain));
   arena = chain->arena;
 
   ArenaEnter(arena);

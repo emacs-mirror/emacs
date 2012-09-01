@@ -1627,7 +1627,7 @@ Res CBSDescribe(CBS cbs, mps_lib_FILE *stream)
 {
   Res res;
 
-  if (!CHECKT(CBS, cbs)) return ResFAIL;
+  if (!TESTT(CBS, cbs)) return ResFAIL;
   if (stream == NULL) return ResFAIL;
 
   res = WriteF(stream,

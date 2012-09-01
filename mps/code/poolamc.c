@@ -258,12 +258,12 @@ static Res AMCSegDescribe(Seg seg, mps_lib_FILE *stream)
   Size row;
   char abzSketch[5];
 
-  if(!CHECKT(Seg, seg))
+  if(!TESTT(Seg, seg))
     return ResFAIL;
   if(stream == NULL)
     return ResFAIL;
   amcseg = Seg2amcSeg(seg);
-  if(!CHECKT(amcSeg, amcseg))
+  if(!TESTT(amcSeg, amcseg))
     return ResFAIL;
 
   /* Describe the superclass fields first via next-method call */
@@ -745,7 +745,7 @@ static Res amcGenDescribe(amcGen gen, mps_lib_FILE *stream)
 {
   Res res;
 
-  if(!CHECKT(amcGen, gen))
+  if(!TESTT(amcGen, gen))
     return ResFAIL;
 
   res = WriteF(stream,
@@ -2330,10 +2330,10 @@ static Res AMCDescribe(Pool pool, mps_lib_FILE *stream)
   Ring node, nextNode;
   char *rampmode;
 
-  if(!CHECKT(Pool, pool))
+  if(!TESTT(Pool, pool))
     return ResFAIL;
   amc = Pool2AMC(pool);
-  if(!CHECKT(AMC, amc))
+  if(!TESTT(AMC, amc))
     return ResFAIL;
   if(stream == NULL)
     return ResFAIL;
@@ -2485,7 +2485,7 @@ void mps_amc_apply(mps_pool_t mps_pool,
   mps_amc_apply_closure_s closure_s;
   Arena arena;
 
-  AVER(CHECKT(Pool, pool));
+  AVER(TESTT(Pool, pool));
   arena = PoolArena(pool);
   ArenaEnter(arena);
   AVERT(Pool, pool);
