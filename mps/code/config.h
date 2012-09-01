@@ -35,7 +35,6 @@
 
 #if defined(CONFIG_VAR_WE)      /* White-hot variety */
 /* no asserts */
-/* ... so CHECKLEVEL_INITIAL is irrelevant */
 /* no statistic meters */
 /* no telemetry log events */
 
@@ -49,7 +48,9 @@
 
 #elif defined(CONFIG_VAR_HE)    /* Hot variety */
 #define CONFIG_ASSERT
-#define CHECKLEVEL_INITIAL CheckLevelMINIMAL
+#ifndef CHECKLEVEL
+#define CHECKLEVEL      CheckLevelMINIMAL
+#endif
 /* no statistic meters */
 /* no telemetry log events */
 
@@ -63,7 +64,9 @@
 
 #elif defined(CONFIG_VAR_DI) /* Diagnostic variety */
 #define CONFIG_ASSERT
-#define CHECKLEVEL_INITIAL CheckLevelMINIMAL
+#ifndef CHECKLEVEL
+#define CHECKLEVEL      CheckLevelMINIMAL
+#endif
 #define CONFIG_STATS
 /* For diagnostics, choose a DIAG_WITH_... output method.
  * (We need to choose because the DIAG output system is under 
@@ -85,8 +88,10 @@
 #elif defined(CONFIG_VAR_CI)    /* Cool variety */
 #define CONFIG_ASSERT
 #define CONFIG_ASSERT_ALL
-/* ... let PRODUCT determine CHECKLEVEL_INITIAL */
 #define CONFIG_STATS
+#ifndef CHECKLEVEL
+#define CHECKLEVEL      CheckLevelSHALLOW
+#endif
 /* no telemetry log events */
 
 
@@ -100,7 +105,9 @@
 #elif defined(CONFIG_VAR_TI)    /* Telemetry, Internal; variety.ti */
 #define CONFIG_ASSERT
 #define CONFIG_ASSERT_ALL
-/* ... let PRODUCT determine CHECKLEVEL_INITIAL */
+#ifndef CHECKLEVEL
+#define CHECKLEVEL      CheckLevelSHALLOW
+#endif
 #define CONFIG_STATS
 #define CONFIG_LOG
 
@@ -399,13 +406,6 @@
  * deprecated mps_space_create interface.
  */
 #define ARENA_SIZE              ((Size)1<<30)
-
-/* if CHECKLEVEL_INITIAL hasn't been defined already (e.g. by a variety, or
- * in a makefile), take the value from the product. */
-
-#ifndef CHECKLEVEL_INITIAL
-#define CHECKLEVEL_INITIAL PROD_CHECKLEVEL_INITIAL
-#endif
 
 
 /* Dongle configuration */

@@ -68,11 +68,24 @@
  * static variable CheckLevel controls the frequency and detail of
  * consistency checking on structures.
  *
- * FIXME: This should be initialised from an environment variable and have
- * an interface in mps.h.
+ * By default, CHECKLEVEL is defined to a static value in config.h, though
+ * it can be overridden on the compiler command line, e.g.
+ *   cc -DCHECKLEVEL=CheckLevelSHALLOW ...
+ *
+ * However, if CHECKLEVEL_DYNAMIC is defined we use a variable to control
+ * the level of checking.  The run-time overhead for this is quite high
+ * (observed double run-time on amcss when the variable is set to SHALLOW).
+ * CHECKLEVEL_DYNAMIC should be set to the initial level for the variable,
+ * which is in mpm.c.
+ *
+ * In general, it's better to adjust the check level by defining CHECKLEVEL
+ * but this is intended to meet the case where a run-time adjustable
+ * checking level is required -- where recompilation or relinking is
+ * undesirable or impossible.
+ *
+ * FIXME: Should also allow the check level variable to come from an
+ * environment variable.
  */
-
-extern unsigned CheckLevel;
 
 enum {
   CheckLevelMINIMAL = 0,  /* local sig check only */
@@ -82,6 +95,12 @@ enum {
                           /* and adjacent up sig checks */
                           /* and recursive down full type checks */
 };
+
+#ifdef CHECKLEVEL_DYNAMIC
+extern unsigned CheckLevel;
+#undef CHECKLEVEL
+#define CHECKLEVEL CheckLevel
+#endif
 
 
 /* AVER, AVERT -- MPM assertions
@@ -117,13 +136,13 @@ enum {
 
 #define AVER_CRITICAL(cond) \
   BEGIN \
-    if (CheckLevel != CheckLevelMINIMAL) \
+    if (CHECKLEVEL != CheckLevelMINIMAL) \
       ASSERT(cond, #cond); \
   END
 
 #define AVERT_CRITICAL(type, val) \
   BEGIN \
-    if (CheckLevel != CheckLevelMINIMAL) \
+    if (CHECKLEVEL != CheckLevelMINIMAL) \
       ASSERT(type ## Check(val), "TypeCheck " #type ": " #val); \
   END
 
@@ -166,7 +185,7 @@ enum {
 
 /* CHECKS -- Check Signature
  *
- * (if CheckLevel == CheckLevelMINIMAL, this is all we check)
+ * (if CHECKLEVEL == CheckLevelMINIMAL, this is all we check)
  */
 
 #if defined(AVER_AND_CHECK_NONE)
@@ -196,7 +215,7 @@ enum {
  *  - check "up" values which are its "parents" with CHECKU.
  *
  * These various checks will be compiled out or compiled to be controlled
- * by CheckLevel.
+ * by CHECKLEVEL.
  *
  * For example:
  *
@@ -215,21 +234,16 @@ enum {
  * children which are Segments, etc.
  *
  * The important thing is to have a partial order on types so that recursive
- * checking will terminate.  When CheckLevel is set to DEEP, checking will
+ * checking will terminate.  When CHECKLEVEL is set to DEEP, checking will
  * recurse into check methods for children, but will only do a shallow
  * signature check on parents, avoiding infinite regression.
- *
- * FIXME: Switching on every CHECK line doesn't compile very well, because
- * the compiler can't tell that CheckLevel won't change between function
- * calls and can't lift out the test.  Is there a better arrangement,
- * perhaps by reading CheckLevel into a local variable?
  */
 
 #if defined(AVER_AND_CHECK_ALL)
 
 #define CHECK_BY_LEVEL(minimal, shallow, deep) \
   BEGIN \
-    switch (CheckLevel) { \
+    switch (CHECKLEVEL) { \
     case CheckLevelDEEP: deep; break; \
     case CheckLevelSHALLOW: shallow; break; \
     default: NOTREACHED; /* fall through */ \
