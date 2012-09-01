@@ -515,7 +515,7 @@ Res PoolDescribe(Pool pool, mps_lib_FILE *stream)
   Res res;
   Ring node, nextNode;
 
-  if (!CHECKT(Pool, pool)) return ResFAIL;
+  if (!TESTT(Pool, pool)) return ResFAIL;
   if (stream == NULL) return ResFAIL;
  
   res = WriteF(stream,

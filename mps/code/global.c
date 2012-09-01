@@ -484,7 +484,7 @@ void arenaEnterLock(Arena arena, int recursive)
   /* This check is safe to do outside the lock.  Unless the client
      is also calling ArenaDestroy, but that's a protocol violation by
      the client if so. */
-  AVER(CHECKT(Arena, arena));
+  AVER(TESTT(Arena, arena));
 
   StackProbe(StackProbeDEPTH);
   lock = ArenaGlobals(arena)->lock;
@@ -946,7 +946,7 @@ Res GlobalsDescribe(Globals arenaGlobals, mps_lib_FILE *stream)
   Ring node, nextNode;
   Index i;
 
-  if (!CHECKT(Globals, arenaGlobals)) return ResFAIL;
+  if (!TESTT(Globals, arenaGlobals)) return ResFAIL;
   if (stream == NULL) return ResFAIL;
 
   arena = GlobalsArena(arenaGlobals);

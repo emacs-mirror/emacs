@@ -380,7 +380,7 @@ void RootDestroy(Root root)
 
 Arena RootArena(Root root)
 {
-  AVER(CHECKT(Root, root));
+  AVER(TESTT(Root, root));
   return root->arena;
 }
 
@@ -584,7 +584,7 @@ Res RootDescribe(Root root, mps_lib_FILE *stream)
 {
   Res res;
 
-  if (!CHECKT(Root, root)) return ResFAIL;
+  if (!TESTT(Root, root)) return ResFAIL;
   if (stream == NULL) return ResFAIL;
 
   res = WriteF(stream,

@@ -155,16 +155,13 @@ enum {
 #endif
 
 
-/* CHECKT -- check type simply
+/* TESTT -- check type simply
  *
  * Must be thread safe.  See <design/interface-c/#thread-safety>
  * and <design/interface-c/#check.space>.
- *
- * @@@@ This is a test, not a CHECK macro -- it does not assert.
- * It should be renamed TESTSIG.  RHSK 2006-12-13.
  */
 
-#define CHECKT(type, val)       ((val) != NULL && (val)->sig == type ## Sig)
+#define TESTT(type, val)       ((val) != NULL && (val)->sig == type ## Sig)
 
 
 /* CHECKS -- Check Signature
@@ -173,10 +170,10 @@ enum {
  */
 
 #if defined(AVER_AND_CHECK_NONE)
-#define CHECKS(type, val)       DISCARD(CHECKT(type, val))
+#define CHECKS(type, val)       DISCARD(TESTT(type, val))
 #else
 #define CHECKS(type, val) \
-  ASSERT(CHECKT(type, val), "SigCheck " #type ": " #val)
+  ASSERT(TESTT(type, val), "SigCheck " #type ": " #val)
 #endif
 
 
@@ -272,43 +269,40 @@ enum {
    too minimal?  How much do we rely on check methods? */
 
 #define CHECKL(cond)            DISCARD(cond)
-#define CHECKD(type, val)       DISCARD(CHECKT(type, val))
+#define CHECKD(type, val)       DISCARD(TESTT(type, val))
 #define CHECKD_NOSIG(type, val) DISCARD((val) != NULL)
-#define CHECKU(type, val)       DISCARD(CHECKT(type, val))
+#define CHECKU(type, val)       DISCARD(TESTT(type, val))
 #define CHECKU_NOSIG(type, val) DISCARD((val) != NULL)
 
 #endif /* AVER_AND_CHECK_ALL */
 
 
-/* CHECKLVALUE &c -- type compatibility checking
+/* COMPAT* -- type compatibility checking
  *
- * .check.macros: The CHECK* macros use some C trickery to attempt to
+ * .check.macros: The COMPAT* macros use some C trickery to attempt to
  * verify that certain types and fields are equivalent.  They do not
  * do a complete job.  This trickery is justified by the security gained
  * in knowing that <code/mps.h> matches the MPM.  See also
  * mail.richard.1996-08-07.09-49.  [This paragraph is intended to
  * satisfy rule.impl.trick.]
- *
- * @@@@ These are tests, not CHECK macros -- they do not assert.
- * They should be renamed TESTTYPE etc.  RHSK 2006-12-13.
  */
 
 /* compile-time check */
-#define CHECKLVALUE(lv1, lv2) \
+#define COMPATLVALUE(lv1, lv2) \
   ((void)sizeof((lv1) = (lv2)), (void)sizeof((lv2) = (lv1)), TRUE)
 
 /* aims to test whether t1 and t2 are assignment-compatible */
-#define CHECKTYPE(t1, t2) \
+#define COMPATTYPE(t1, t2) \
   (sizeof(t1) == sizeof(t2) && \
-   CHECKLVALUE(*((t1 *)0), *((t2 *)0)))
+   COMPATLVALUE(*((t1 *)0), *((t2 *)0)))
 
-#define CHECKFIELDAPPROX(s1, f1, s2, f2) \
+#define COMPATFIELDAPPROX(s1, f1, s2, f2) \
   (sizeof(((s1 *)0)->f1) == sizeof(((s2 *)0)->f2) && \
    offsetof(s1, f1) == offsetof(s2, f2))
 
-#define CHECKFIELD(s1, f1, s2, f2) \
-  (CHECKFIELDAPPROX(s1, f1, s2, f2) && \
-   CHECKLVALUE(((s1 *)0)->f1, ((s2 *)0)->f2))
+#define COMPATFIELD(s1, f1, s2, f2) \
+  (COMPATFIELDAPPROX(s1, f1, s2, f2) && \
+   COMPATLVALUE(((s1 *)0)->f1, ((s2 *)0)->f2))
 
 
 #endif /* check_h */
