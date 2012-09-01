@@ -1,3 +1,15 @@
+2012-09-01  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (switch-to-prev-buffer): Handle additional values of
+	BURY-OR-KILL argument.  Don't switch in minibuffer window.
+	(switch-to-next-buffer): Don't switch in minibuffer window.
+	(quit-restore-window): New function based on quit-window.
+	Handle additional values of former KILL argument.
+	(quit-window): Call quit-restore-window with appropriate
+	interpretation of KILL argument.
+	(display-buffer-below-selected): New buffer display action
+	function.
+
 2012-09-01  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* minibuffer.el (completion-at-point-functions): Complete docstring
