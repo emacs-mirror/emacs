@@ -63,20 +63,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <unistd.h>
 #include <fcntl.h>
 
-/* This is to get the definitions of the XK_ symbols.  */
-#ifdef HAVE_X_WINDOWS
-#include "xterm.h"
-#endif
+#ifdef HAVE_WINDOW_SYSTEM
+#include TERM_HEADER
+#endif /* HAVE_WINDOW_SYSTEM */
 
-#ifdef HAVE_NTGUI
-#include "w32term.h"
-#endif /* HAVE_NTGUI */
-
-#ifdef HAVE_NS
-#include "nsterm.h"
-#endif
-
-/* Variables for blockinput.h:  */
+/* Variables for blockinput.h: */
 
 /* Non-zero if interrupt input is blocked right now.  */
 volatile int interrupt_input_blocked;
@@ -1324,7 +1315,7 @@ usage: (track-mouse BODY...)  */)
    If ignore_mouse_drag_p is non-zero, ignore (implicit) mouse movement
    after resizing the tool-bar window.  */
 
-#if !defined HAVE_WINDOW_SYSTEM || defined USE_GTK || defined HAVE_NS
+#if !defined HAVE_WINDOW_SYSTEM
 static
 #endif
 int ignore_mouse_drag_p;

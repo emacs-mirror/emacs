@@ -50,11 +50,19 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "termhooks.h"
 #include "font.h"
 
-#ifdef HAVE_X_WINDOWS
-#include "xterm.h"
-#include <sys/types.h>
+#ifdef HAVE_SYS_STAT_H
 #include <sys/stat.h>
+#endif /* HAVE_SYS_STAT_H */
 
+#ifdef HAVE_SYS_TYPES_H
+#include <sys/types.h>
+#endif /* HAVE_SYS_TYPES_H */
+
+#ifdef HAVE_WINDOW_SYSTEM
+#include TERM_HEADER
+#endif /* HAVE_WINDOW_SYSTEM */
+
+#ifdef HAVE_X_WINDOWS
 #define COLOR_TABLE_SUPPORT 1
 
 typedef struct x_bitmap_record Bitmap_Record;
@@ -67,11 +75,7 @@ typedef struct x_bitmap_record Bitmap_Record;
 #define PIX_MASK_DRAW	1
 #endif /* HAVE_X_WINDOWS */
 
-
 #ifdef HAVE_NTGUI
-#include "w32.h"
-#include "w32term.h"
-
 /* W32_TODO : Color tables on W32.  */
 #undef COLOR_TABLE_SUPPORT
 
@@ -84,14 +88,8 @@ typedef struct w32_bitmap_record Bitmap_Record;
 #define PIX_MASK_RETAIN	0
 #define PIX_MASK_DRAW	1
 
-#define FRAME_X_VISUAL(f) FRAME_X_DISPLAY_INFO (f)->visual
 #define x_defined_color w32_defined_color
 #define DefaultDepthOfScreen(screen) (one_w32_display_info.n_cbits)
-
-/* Functions from w32term.c that depend on XColor (so can't go in w32term.h
-   without modifying lots of files).  */
-extern void x_query_colors (struct frame *f, XColor *colors, int ncolors);
-extern void x_query_color (struct frame *f, XColor *color);
 
 /* Version of libpng that we were compiled with, or -1 if no PNG
    support was compiled in.  This is tested by w32-win.el to correctly
@@ -100,10 +98,6 @@ Lisp_Object Qlibpng_version;
 #endif /* HAVE_NTGUI */
 
 #ifdef HAVE_NS
-#include "nsterm.h"
-#include <sys/types.h>
-#include <sys/stat.h>
-
 #undef COLOR_TABLE_SUPPORT
 
 typedef struct ns_bitmap_record Bitmap_Record;
@@ -117,10 +111,8 @@ typedef struct ns_bitmap_record Bitmap_Record;
 #define PIX_MASK_RETAIN	0
 #define PIX_MASK_DRAW	1
 
-#define FRAME_X_VISUAL FRAME_NS_DISPLAY_INFO (f)->visual
 #define x_defined_color(f, name, color_def, alloc) \
   ns_defined_color (f, name, color_def, alloc, 0)
-#define FRAME_X_SCREEN(f) 0
 #define DefaultDepthOfScreen(screen) x_display_list->n_planes
 #endif /* HAVE_NS */
 
@@ -577,6 +569,7 @@ static void x_emboss (struct frame *, struct image *);
 static int x_build_heuristic_mask (struct frame *, struct image *,
                                    Lisp_Object);
 #ifdef HAVE_NTGUI
+extern Lisp_Object Vlibrary_cache, QCloaded_from;
 #define CACHE_IMAGE_TYPE(type, status) \
   do { Vlibrary_cache = Fcons (Fcons (type, status), Vlibrary_cache); } while (0)
 #else

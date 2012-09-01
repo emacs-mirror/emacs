@@ -424,4 +424,7 @@ extern void _DebPrint (const char *fmt, ...);
 #define DebPrint(stuff)
 #endif
 
+#define TERM_HEADER "w32term.h"
+
+
 /* ============================================================ */

@@ -225,11 +225,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "dosfns.h"
 #endif
 
-#ifdef WINDOWSNT
-#include "w32term.h"
+#ifdef HAVE_WINDOW_SYSTEM
+#include TERM_HEADER
 #include "fontset.h"
-/* Redefine X specifics to W32 equivalents to avoid cluttering the
-   code with #ifdef blocks. */
+#ifdef WINDOWSNT
 #undef FRAME_X_DISPLAY_INFO
 #define FRAME_X_DISPLAY_INFO FRAME_W32_DISPLAY_INFO
 #define x_display_info w32_display_info
@@ -238,13 +237,13 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif /* WINDOWSNT */
 
 #ifdef HAVE_NS
-#include "nsterm.h"
 #undef FRAME_X_DISPLAY_INFO
 #define FRAME_X_DISPLAY_INFO FRAME_NS_DISPLAY_INFO
 #define x_display_info ns_display_info
 #define check_x check_ns
 #define GCGraphicsExposures 0
 #endif /* HAVE_NS */
+#endif /* HAVE_WINDOW_SYSTEM */
 
 #include "buffer.h"
 #include "dispextern.h"
@@ -254,9 +253,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "termchar.h"
 
 #include "font.h"
-#ifdef HAVE_WINDOW_SYSTEM
-#include "fontset.h"
-#endif /* HAVE_WINDOW_SYSTEM */
 
 #ifdef HAVE_X_WINDOWS
 
@@ -2565,13 +2561,13 @@ merge_face_ref (struct frame *f, Lisp_Object face_ref, Lisp_Object *to,
 		}
 	      else if (EQ (keyword, QCstipple))
 		{
-#if defined (HAVE_X_WINDOWS) || defined (HAVE_NS)
+#if defined (HAVE_WINDOW_SYSTEM)
 		  Lisp_Object pixmap_p = Fbitmap_spec_p (value);
 		  if (!NILP (pixmap_p))
 		    to[LFACE_STIPPLE_INDEX] = value;
 		  else
 		    err = 1;
-#endif
+#endif /* HAVE_WINDOW_SYSTEM */
 		}
 	      else if (EQ (keyword, QCwidth))
 		{
@@ -3125,14 +3121,14 @@ FRAME 0 means change the face on all frames, and change the default
     }
   else if (EQ (attr, QCstipple))
     {
-#if defined (HAVE_X_WINDOWS) || defined (HAVE_NS)
+#if defined (HAVE_WINDOW_SYSTEM)
       if (!UNSPECIFIEDP (value) && !IGNORE_DEFFACE_P (value)
 	  && !NILP (value)
 	  && NILP (Fbitmap_spec_p (value)))
 	signal_error ("Invalid stipple attribute", value);
       old_value = LFACE_STIPPLE (lface);
       ASET (lface, LFACE_STIPPLE_INDEX, value);
-#endif /* HAVE_X_WINDOWS || HAVE_NS */
+#endif /* HAVE_WINDOW_SYSTEM */
     }
   else if (EQ (attr, QCwidth))
     {

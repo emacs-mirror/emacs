@@ -25,6 +25,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <gtk/gtk.h>
 #include "frame.h"
+#include "xterm.h"
 
 /* Minimum and maximum values used for GTK scroll bars  */
 

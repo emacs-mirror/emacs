@@ -1,3 +1,7 @@
+2012-09-01  Daniel Colascione  <dancol@dancol.org>
+
+	* inc/ms-w32.h (TERM_HEADER): Add for refactoring
+
 2012-08-22  Juanma Barranquero  <lekktu@gmail.com>
 
 	* config.nt: Sync with autogen/config.in.

@@ -38,17 +38,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "fontset.h"
 #include "font.h"
 
-#ifdef HAVE_X_WINDOWS
-#include "xterm.h"
-#endif /* HAVE_X_WINDOWS */
-
-#ifdef HAVE_NTGUI
-#include "w32term.h"
-#endif /* HAVE_NTGUI */
-
-#ifdef HAVE_NS
-#include "nsterm.h"
-#endif /* HAVE_NS */
+#ifdef HAVE_WINDOW_SYSTEM
+#include TERM_HEADER
+#endif /* HAVE_WINDOW_SYSTEM */
 
 Lisp_Object Qopentype;
 
