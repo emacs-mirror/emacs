@@ -1,3 +1,15 @@
+2012-09-01  Glenn Morris  <rgm@gnu.org>
+
+	* term.el: Tidy up menu definitions.
+	(term-mode-map): Use easymenu for In/Out, Complete menus.
+	(term-pager-break-map): Initialize in the defvar.
+	(term-terminal-menu, term-signals-menu): Define with easymenu.
+	(term-terminal-menu): Also show it in line-mode.  (Bug#11957)
+	(term-pager-menu): New, extracted from term-process-pager.
+	(term-mode, term-char-mode, term-process-pager): Use easymenu-add.
+	(term-update-mode-line): Propertize line/char and page items.
+	(term-process-pager): Move keymap initialization elsewhere.
+
 2012-09-01  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (switch-to-prev-buffer): Handle additional values of
