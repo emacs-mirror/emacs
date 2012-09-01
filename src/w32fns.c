@@ -4735,7 +4735,7 @@ x_display_info_for_name (Lisp_Object name)
   CHECK_STRING (name);
 
   for (dpyinfo = &one_w32_display_info, names = w32_display_name_list;
-       dpyinfo;
+       dpyinfo && !NILP (w32_display_name_list);
        dpyinfo = dpyinfo->next, names = XCDR (names))
     {
       Lisp_Object tem;
