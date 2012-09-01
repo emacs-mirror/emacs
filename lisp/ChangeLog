@@ -1,3 +1,8 @@
+2012-09-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuffer.el (completion-at-point-functions): Complete docstring
+	(bug#12254).
+
 2012-09-01  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Better seed support for (random).
