@@ -17,6 +17,18 @@
  * will throw the code away, but check its syntax.
  *
  * .trans.level-check: CheckLevel itself is not checked anywhere.
+ *
+ * .careful: BE CAREFUL when changing this file.  It is easy to make mistakes
+ * and change the checking level in a variety and thereby its performance
+ * without realising it.  This has happened before.  Eyeball the preprocessor
+ * output for each variety.  For example:
+ *
+ *   cc -E -DCONFIG_PROD_MPS -DCONFIG_VAR_WE trace.c
+ *   cc -E -DCONFIG_PROD_MPS -DCONFIG_VAR_HE trace.c
+ *   cc -E -DCONFIG_PROD_MPS -DCONFIG_VAR_CI trace.c
+ *
+ * Then look at TraceCheck to make sure checking is right, TraceAddWhite
+ * for general assertions, and TraceFix for the critical path assertions.
  */
 
 #ifndef check_h
@@ -27,7 +39,38 @@
 #include "mpslib.h"
 
 
-/* CheckLevel -- Control check method behaviour */
+/* ASSERT -- basic assertion
+ *
+ * The ASSERT macro is equivalent to the ISO C assert() except that it is
+ * always defined, and uses the assertion handler from the MPS plinth, which
+ * can be replaced by the client code.
+ *
+ * It is not intended for direct use within the MPS.  Use AVER and CHECK
+ * macros, which can be controlled by both build and run-time configuration.
+ */
+
+#define ASSERT(cond, condstring) \
+  BEGIN \
+    if (cond) NOOP; else \
+      mps_lib_assert_fail(condstring "\n" __FILE__ "\n" STR(__LINE__)); \
+  END
+
+#define ASSERT_TYPECHECK(type, val) \
+  ASSERT(type ## Check(val), "TypeCheck " #type ": " #val)
+
+#define ASSERT_NULLCHECK(type, val) \
+  ASSERT((val) != NULL, "NullCheck " #type ": " #val)
+
+
+/* CheckLevel -- control for check method behaviour
+ *
+ * When the MPS is build with AVER_AND_CHECK_ALL (in a "cool" variety) the
+ * static variable CheckLevel controls the frequency and detail of
+ * consistency checking on structures.
+ *
+ * FIXME: This should be initialised from an environment variable and have
+ * an interface in mps.h.
+ */
 
 extern unsigned CheckLevel;
 
@@ -43,29 +86,34 @@ enum {
 
 /* AVER, AVERT -- MPM assertions
  *
- * AVER and AVERT are used to assert conditions in the code.
+ * AVER and AVERT are used to assert conditions in the code.  AVER checks
+ * an expression.  AVERT checks that a value is of the correct type and
+ * may perform consistency checks on the value.
+ *
+ * AVER and AVERT are on by default, and check conditions even in "hot"
+ * varieties intended to work in production.  To avoid the cost of a check
+ * in critical parts of the code, use AVER_CRITICAL and AVERT_CRITICAL,
+ * but only when you've *proved* that this makes a difference to performance
+ * that affects requirements.
  */
 
 #if defined(AVER_AND_CHECK_NONE)
 
 #define AVER(cond)                  DISCARD(cond)
 #define AVERT(type, val)            DISCARD(type ## Check(val))
-#define AVER_CRITICAL(cond)         DISCARD(cond)
-#define AVERT_CRITICAL(type, val)   DISCARD(type ## Check(val))
 
-#elif defined(AVER_AND_CHECK)
+#else
 
 #define AVER(cond)                  ASSERT(cond, #cond)
-
 #define AVERT(type, val) \
   ASSERT(type ## Check(val), "TypeCheck " #type ": " #val)
 
-#if !defined(AVER_AND_CHECK_ALL)
+#endif
 
-#define AVER_CRITICAL               DISCARD
-#define AVERT_CRITICAL(type, val)   DISCARD(type ## Check(val))
+#if defined(AVER_AND_CHECK_ALL)
 
-#else /* AVER_AND_CHECK_ALL  */
+/* FIXME: Find out whether these tests on checklevel have any performance
+   impact and remove them if possible. */
 
 #define AVER_CRITICAL(cond) \
   BEGIN \
@@ -79,37 +127,30 @@ enum {
       ASSERT(type ## Check(val), "TypeCheck " #type ": " #val); \
   END
 
-#endif /* AVER_AND_CHECK_ALL */
+#else
 
-#else /* AVER_AND_CHECK, not */
-
-#error "No checking defined."
+#define AVER_CRITICAL               DISCARD
+#define AVERT_CRITICAL(type, val)   DISCARD(type ## Check(val))
 
 #endif
 
 
-/* internals for actually asserting */
+/* NOTREACHED -- control should never reach this statement
+ *
+ * This is a sort of AVER; it is equivalent to AVER(FALSE), but will produce
+ * a more informative message.
+ */
 
-#define ASSERT(cond, condstring) \
-  BEGIN \
-    if (cond) NOOP; else \
-      mps_lib_assert_fail(condstring "\n" __FILE__ "\n" STR(__LINE__)); \
-  END
+#if defined(AVER_AND_CHECK_NONE)
 
+#define NOTREACHED NOOP
 
-/* NOTREACHED -- control should never reach this statement */
-/* This is a sort of AVER; it is equivalent to AVER(FALSE). */
-
-#if defined(AVER_AND_CHECK)
+#else
 
 #define NOTREACHED \
   BEGIN \
     mps_lib_assert_fail("unreachable code" "\n" __FILE__ "\n" STR(__LINE__)); \
   END
-
-#else
-
-#define NOTREACHED NOOP
 
 #endif
 
@@ -126,24 +167,105 @@ enum {
 #define CHECKT(type, val)       ((val) != NULL && (val)->sig == type ## Sig)
 
 
+/* CHECKS -- Check Signature
+ *
+ * (if CheckLevel == CheckLevelMINIMAL, this is all we check)
+ */
+
 #if defined(AVER_AND_CHECK_NONE)
-
 #define CHECKS(type, val)       DISCARD(CHECKT(type, val))
-#define CHECKL(cond)            DISCARD(cond)
-#define CHECKD(type, val)       DISCARD(CHECKT(type, val))
-#define CHECKD_NOSIG(type, val) DISCARD((val) != NULL)
-#define CHECKU(type, val)       DISCARD(CHECKT(type, val))
-#define CHECKU_NOSIG(type, val) DISCARD((val) != NULL)
-
-#else /* AVER_AND_CHECK_NONE, not */
-
-/* CHECKS -- Check Signature */
-/* (if CheckLevel == CheckLevelMINIMAL, this is all we check) */
-
+#else
 #define CHECKS(type, val) \
   ASSERT(CHECKT(type, val), "SigCheck " #type ": " #val)
+#endif
 
-#if !defined(AVER_AND_CHECK_ALL)
+
+/* CHECKL, CHECKD, CHECKU -- local, "down", and "up" checks
+ *
+ * Each type should have a function defined called <type>Check that checks
+ * the consistency of the type.  This function should return TRUE iff the
+ * value passes consistency checks.  In general, it should assert otherwise,
+ * but we allow for the possibility of returning FALSE in this case for
+ * configuration adaptability.
+ *
+ * For structure types, the check function should:
+ *
+ *  - check its own signature with CHECKS
+ *
+ *  - check fields that it "owns" with CHECKL, like asserts
+ *
+ *  - check "down" values which are its "children" with CHEKCD
+ *
+ *  - check "up" values which are its "parents" with CHECKU.
+ *
+ * These various checks will be compiled out or compiled to be controlled
+ * by CheckLevel.
+ *
+ * For example:
+ *
+ *     Bool MessageCheck(Message message)
+ *     {
+ *       CHECKS(Message, message);
+ *       CHECKU(Arena, message->arena);
+ *       CHECKD(MessageClass, message->class);
+ *       CHECKL(RingCheck(&message->queueRing));
+ *       CHECKL(MessageIsClocked(message) || (message->postedClock == 0));
+ *       return TRUE;
+ *     }
+ *
+ * The parent/child distinction depends on the structure, but in the MPS
+ * the Arena has no parents, and has children which are Pools, which have
+ * children which are Segments, etc.
+ *
+ * The important thing is to have a partial order on types so that recursive
+ * checking will terminate.  When CheckLevel is set to DEEP, checking will
+ * recurse into check methods for children, but will only do a shallow
+ * signature check on parents, avoiding infinite regression.
+ *
+ * FIXME: Switching on every CHECK line doesn't compile very well, because
+ * the compiler can't tell that CheckLevel won't change between function
+ * calls and can't lift out the test.  Is there a better arrangement,
+ * perhaps by reading CheckLevel into a local variable?
+ */
+
+#if defined(AVER_AND_CHECK_ALL)
+
+#define CHECK_BY_LEVEL(minimal, shallow, deep) \
+  BEGIN \
+    switch (CheckLevel) { \
+    case CheckLevelDEEP: deep; break; \
+    case CheckLevelSHALLOW: shallow; break; \
+    default: NOTREACHED; /* fall through */ \
+    case CheckLevelMINIMAL: minimal; break; \
+    } \
+  END
+
+#define CHECKL(cond) \
+  CHECK_BY_LEVEL(NOOP, \
+                 ASSERT(cond, #cond), \
+                 ASSERT(cond, #cond))
+
+#define CHECKD(type, val) \
+  CHECK_BY_LEVEL(NOOP, \
+                 CHECKS(type, val), \
+                 ASSERT_TYPECHECK(type, val))
+
+#define CHECKD_NOSIG(type, val) \
+  CHECK_BY_LEVEL(NOOP, \
+                 ASSERT_NULLCHECK(type, val), \
+                 ASSERT_TYPECHECK(type, val))
+
+#define CHECKU(type, val) \
+  CHECK_BY_LEVEL(NOOP, \
+                 CHECKS(type, val), \
+                 CHECKS(type, val))
+
+#define CHECKU_NOSIG(type, val) \
+  CHECK_BY_LEVEL(NOOP, \
+                 ASSERT_NULLCHECK(type, val), \
+                 ASSERT_NULLCHECK(type, val))
+
+#else /* AVER_AND_CHECK_ALL, not */
 
 /* FIXME: This gives comparable performance to white-hot when compiling
    using mps.c and -O (to get check methods inlined), but is it a bit
@@ -155,97 +277,7 @@ enum {
 #define CHECKU(type, val)       DISCARD(CHECKT(type, val))
 #define CHECKU_NOSIG(type, val) DISCARD((val) != NULL)
 
-#else /* AVER_AND_CHECK_ALL */
-
-/* CHECKL -- Check Local Invariant
- *
- * Could make this an expression using ?:
- */
-
-#define CHECKL(cond) \
-  BEGIN \
-    switch(CheckLevel) { \
-    case CheckLevelMINIMAL: \
-      NOOP; \
-      break; \
-    case CheckLevelSHALLOW: \
-    case CheckLevelDEEP: \
-      ASSERT(cond, #cond); \
-      break; \
-    } \
-  END
-
-
-/* CHECKD -- Check Down */
-
-#define CHECKD(type, val) \
-  BEGIN \
-    switch(CheckLevel) { \
-    case CheckLevelMINIMAL: \
-      NOOP; \
-      break; \
-    case CheckLevelSHALLOW: \
-      CHECKS(type, val); \
-      break; \
-    case CheckLevelDEEP: \
-      ASSERT(type ## Check(val), "TypeCheck " #type ": " #val); \
-      break; \
-    } \
-  END
-
-
-/* CHECKD_NOSIG -- Check Down for a type with no signature */
-
-#define CHECKD_NOSIG(type, val) \
-  BEGIN \
-    switch(CheckLevel) { \
-    case CheckLevelMINIMAL: \
-      NOOP; \
-      break; \
-    case CheckLevelSHALLOW: \
-      ASSERT((val) != NULL, "NullCheck " #type ": " #val); \
-      break; \
-    case CheckLevelDEEP: \
-      ASSERT(type ## Check(val), "TypeCheck " #type ": " #val); \
-      break; \
-    } \
-  END
-
-
-/* CHECKU -- Check Up */
-
-#define CHECKU(type, val) \
-  BEGIN \
-    switch(CheckLevel) { \
-    case CheckLevelMINIMAL: \
-      NOOP; \
-      break; \
-    case CheckLevelSHALLOW: \
-    case CheckLevelDEEP: \
-      CHECKS(type, val); \
-      break; \
-    } \
-  END
-
-
-/* CHECKU_NOSIG -- Check Up for a type with no signature */
-
-#define CHECKU_NOSIG(type, val) \
-  BEGIN \
-    switch(CheckLevel) { \
-    case CheckLevelMINIMAL: \
-      NOOP; \
-      break; \
-    case CheckLevelSHALLOW: \
-    case CheckLevelDEEP: \
-      ASSERT((val) != NULL, "NullCheck " #type ": " #val); \
-      break; \
-    } \
-  END
-
 #endif /* AVER_AND_CHECK_ALL */
-
-#endif /* AVER_AND_CHECK_NONE */
 
 
 /* CHECKLVALUE &c -- type compatibility checking
