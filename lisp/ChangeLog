@@ -1,3 +1,19 @@
+2012-09-01  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Better seed support for (random).
+	* play/5x5.el, play/animate.el, play/cookie1.el, play/dissociate.el:
+	* play/doctor.el, play/dunnet.el, play/gomoku.el, play/landmark.el:
+	* play/mpuz.el, play/tetris.el, play/zone.el:
+	* calc/calc-comb.el (math-init-random-base):
+	* play/blackbox.el (bb-init-board):
+	* play/life.el (life):
+	* server.el (server-use-tcp):
+	* type-break.el (type-break):
+	Remove unnecessary call to (random t).
+	* net/sasl.el (sasl-unique-id-function):
+	Change (random t) to (random), now that the latter is more random.
+	* play/life.el (life-initialized): Remove no-longer-needed var.
+
 2012-08-31  Alp Aker  <alp.tekin.aker@gmail.com>
 
 	* window.el (switch-to-prev-buffer, switch-to-next-buffer):

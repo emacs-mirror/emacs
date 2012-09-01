@@ -1,3 +1,9 @@
+2012-09-01  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Better seed support for (random).
+	* org-id.el (org-id-uuid):
+	Change (random t) to (random), now that the latter is more random.
+
 2012-07-29  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Don't use the abbreviation "win" to refer to Windows (Bug#10421).

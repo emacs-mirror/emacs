@@ -1,3 +1,10 @@
+2012-09-01  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Better seeds for (random).
+	* gnus-sync.el (gnus-sync-lesync-setup):
+	* message.el (message-canlock-generate, message-unique-id):
+	Change (random t) to (random), now that the latter is more random.
+
 2012-08-31  Dave Abrahams  <dave@boostpro.com>
 
 	* auth-source.el (auth-sources): Fix macos keychain access.

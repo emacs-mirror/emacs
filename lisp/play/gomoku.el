@@ -1197,8 +1197,6 @@ If the game is finished, this command requests for another game."
   (move-to-column (+ gomoku-x-offset
 		     (* gomoku-square-width (1- gomoku-board-width)))))
 
-(random t)
-
 (provide 'gomoku)
 
 ;;; gomoku.el ends here

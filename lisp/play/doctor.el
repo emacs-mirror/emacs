@@ -1620,8 +1620,6 @@ Hack on previous word, setting global variable DOCTOR-OWNER to correct result."
 
 (defun doctor-chat () (doctor-type (doc$ doctor--chatlst)))
 
-(random t)
-
 (provide 'doctor)
 
 ;;; doctor.el ends here

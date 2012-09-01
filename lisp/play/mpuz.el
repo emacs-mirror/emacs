@@ -35,8 +35,6 @@
   :prefix "mpuz-"
   :group 'games)
 
-(random t)				; randomize
-
 (defcustom mpuz-silent 'error
   "Set this to nil if you want dings on inputs.
 The value t means never ding, and `error' means only ding on wrong input."

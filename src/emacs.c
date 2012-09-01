@@ -1281,6 +1281,7 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
   init_data ();
   init_atimer ();
   running_asynch_code = 0;
+  init_random ();
 
   no_loadup
     = argmatch (argv, argc, "-nl", "--no-loadup", 6, NULL, &skip_args);

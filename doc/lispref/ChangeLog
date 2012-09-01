@@ -1,3 +1,9 @@
+2012-09-01  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Better seed support for (random).
+	* numbers.texi (Random Numbers): Document new behavior of
+	the calls (random) and (random STRING).
+
 2012-08-21  Martin Rudalics  <rudalics@gmx.at>
 
 	* windows.texi (Window Point): Document recent changes in

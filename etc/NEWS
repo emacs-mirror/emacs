@@ -527,6 +527,11 @@ inefficiency, and not namespace-clean.
 
 * Incompatible Lisp Changes in Emacs 24.3
 
+** (random) by default now returns a different random sequence in
+every Emacs run.  Use (random S), where S is a string, to set the
+random seed to a value based on S, in order to get a repeatable
+sequence in later calls.
+
 ** The function `x-select-font' can return a font spec, instead of a
 font name as a string.  Whether it returns a font spec or a font name
 depends on the graphical library.

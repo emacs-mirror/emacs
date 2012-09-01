@@ -225,7 +225,7 @@ When SALT is nil, a random one will be generated using `random'."
          (security-object (concat url "/_security"))
          (user-record `((names . [,user]) (roles . [])))
          (couch-user-name (format "org.couchdb.user:%s" user))
-         (salt (or salt (sha1 (format "%s" (random t)))))
+         (salt (or salt (sha1 (format "%s" (random)))))
          (couch-user-record
           `((_id . ,couch-user-name)
             (type . user)

@@ -1374,7 +1374,6 @@ FROM and TO must be in increasing order, as must be the pairs in RANGES."
 ;;              (time-trial
 ;;               '(let ((size 10000)
 ;;                      doing)
-;;                  (random t)
 ;;                  (dotimes (count size)
 ;;                    (setq doing (random size))
 ;;                    (funcall try doing (+ doing (random 5)))

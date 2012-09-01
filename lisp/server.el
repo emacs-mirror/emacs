@@ -94,7 +94,6 @@
              (setq val t)
              (unless load-in-progress
                (message "Local sockets unsupported, using TCP sockets")))
-           (when val (random t))
            (set-default sym val))
   :group 'server
   :type 'boolean

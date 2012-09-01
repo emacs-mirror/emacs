@@ -1765,17 +1765,35 @@ init_signals (void)
 #endif /* !RAND_BITS */
 
 void
-seed_random (long int arg)
+seed_random (void *seed, ptrdiff_t seed_size)
 {
+#if defined HAVE_RANDOM || ! defined HAV_LRAND48
+  unsigned int arg = 0;
+#else
+  long int arg = 0;
+#endif
+  unsigned char *argp = (unsigned char *) &arg;
+  unsigned char *seedp = seed;
+  ptrdiff_t i;
+  for (i = 0; i < seed_size; i++)
+    argp[i % sizeof arg] ^= seedp[i];
 #ifdef HAVE_RANDOM
-  srandom ((unsigned int)arg);
+  srandom (arg);
 #else
 # ifdef HAVE_LRAND48
   srand48 (arg);
 # else
-  srand ((unsigned int)arg);
+  srand (arg);
 # endif
 #endif
+}
+
+void
+init_random (void)
+{
+  EMACS_TIME t = current_emacs_time ();
+  uintmax_t v = getpid () ^ EMACS_SECS (t) ^ EMACS_NSECS (t);
+  seed_random (&v, sizeof v);
 }
 
 /*

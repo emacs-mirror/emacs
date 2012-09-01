@@ -1,3 +1,12 @@
+2012-09-01  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Better seed support for (random).
+	* emacs.c (main): Call init_random.
+	* fns.c (Frandom): Set the seed from a string argument, if given.
+	Remove long-obsolete Gentzel cruft.
+	* lisp.h, sysdep.c (seed_random): Now takes address and size, not long.
+	(init_random): New function.
+
 2012-08-31  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Remove mark_ttys function and fix tty_display_info initialization.

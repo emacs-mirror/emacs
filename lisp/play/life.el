@@ -111,9 +111,6 @@
 ;; Sadly, mode-line-format won't display numbers.
 (defvar life-generation-string nil)
 
-(defvar life-initialized nil
-  "Non-nil if `life' has been run at least once.")
-
 ;;;###autoload
 (defun life (&optional sleeptime)
   "Run Conway's Life simulation.
@@ -121,9 +118,6 @@ The starting pattern is randomly selected.  Prefix arg (optional first
 arg non-nil from a program) is the number of seconds to sleep between
 generations (this defaults to 1)."
   (interactive "p")
-  (or life-initialized
-      (random t))
-  (setq life-initialized t)
   (or sleeptime (setq sleeptime 1))
   (life-setup)
   (catch 'life-exit
