@@ -85,6 +85,9 @@
  *
  * FIXME: Should also allow the check level variable to come from an
  * environment variable.
+ *
+ * FIXME: CheckLevelDEEP asserts on arena creation with bootstrapping
+ * problems.  It clearly hasn't been tried for a while.  RB 2012-09-01
  */
 
 enum {
