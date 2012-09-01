@@ -604,6 +604,7 @@ am__EXEEXT_TRUE
 LTLIBOBJS
 LIBOBJS
 SUBDIR_MAKEFILES_IN
+WINDOW_SYSTEM_OBJ
 LIB_GCC
 LD_FIRSTFLAG
 LD_SWITCH_SYSTEM_TEMACS
@@ -9149,6 +9150,12 @@ fi
 
 #### Choose a window system.
 
+## We leave window_system equal to none if
+## we end up building without one.  Any new window system should
+## set window_system to an appropriate value and add objects to
+## window-system-specific substs.
+
+window_system=none
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for X" >&5
 $as_echo_n "checking for X... " >&6; }
 
@@ -9342,9 +9349,7 @@ else
 $as_echo "libraries $x_libraries, headers $x_includes" >&6; }
 fi
 
-if test "$no_x" = yes; then
-  window_system=none
-else
+if test "$no_x" != yes; then
   window_system=x11
 fi
 
@@ -9519,7 +9524,6 @@ if test "${HAVE_NS}" = yes; then
   fi
 
   window_system=nextstep
-  with_xft=no
   # set up packaging dirs
   if test "${EN_NS_SELF_CONTAINED}" = yes; then
      ns_self_contained=yes
@@ -9536,7 +9540,6 @@ if test "${HAVE_NS}" = yes; then
      INSTALL_ARCH_INDEP_EXTRA=
   fi
   ns_frag=$srcdir/src/ns.mk
-  NS_OBJ="fontset.o fringe.o image.o"
   NS_OBJC_OBJ="nsterm.o nsfns.o nsmenu.o nsselect.o nsimage.o nsfont.o"
 fi
 CFLAGS="$tmp_CFLAGS"
@@ -9548,27 +9551,44 @@ CPPFLAGS="$tmp_CPPFLAGS"
 
 
 
+## $window_system is now set to the window system we will
+## ultimately use.
+
+term_header=
+HAVE_X_WINDOWS=no
+HAVE_X11=no
+USE_X_TOOLKIT=none
+
 case "${window_system}" in
   x11 )
     HAVE_X_WINDOWS=yes
     HAVE_X11=yes
+    term_header=xterm.h
     case "${with_x_toolkit}" in
       athena | lucid ) USE_X_TOOLKIT=LUCID ;;
       motif ) USE_X_TOOLKIT=MOTIF ;;
       gtk ) with_gtk=yes
+            term_header=gtkutil.h
             USE_X_TOOLKIT=none ;;
       gtk3 ) with_gtk3=yes
+             term_header=gtkutil.h
              USE_X_TOOLKIT=none ;;
       no ) USE_X_TOOLKIT=none ;;
       * ) USE_X_TOOLKIT=maybe ;;
     esac
   ;;
-  nextstep | none )
-    HAVE_X_WINDOWS=no
-    HAVE_X11=no
-    USE_X_TOOLKIT=none
+  nextstep )
+    term_header=nsterm.h
   ;;
 esac
+
+if test -n "${term_header}"; then
+
+cat >>confdefs.h <<_ACEOF
+#define TERM_HEADER "${term_header}"
+_ACEOF
+
+fi
 
 if test "$window_system" = none && test "X$with_x" != "Xno"; then
    # Extract the first word of "X", so it can be a program name with args.
@@ -10561,6 +10581,7 @@ $as_echo "no" >&6; }
 $as_echo "#define HAVE_GTK3 1" >>confdefs.h
 
   GTK_OBJ=emacsgtkfixed.o
+  term_header=gtkutil.h
 fi
 
 if test "$pkg_check_gtk" != "yes"; then
@@ -10723,6 +10744,8 @@ _ACEOF
 fi
 done
 
+
+ term_header=gtkutil.h
 fi
 
 HAVE_DBUS=no
@@ -15643,6 +15666,14 @@ version=$PACKAGE_VERSION
 
 
 
+if test -n "${term_header}"; then
+
+cat >>confdefs.h <<_ACEOF
+#define TERM_HEADER "${term_header}"
+_ACEOF
+
+fi
+
 
 cat >>confdefs.h <<_ACEOF
 #define EMACS_CONFIGURATION "${canonical}"
@@ -15663,7 +15694,7 @@ if test "${HAVE_X_WINDOWS}" = "yes" ; then
 $as_echo "#define HAVE_X_WINDOWS 1" >>confdefs.h
 
   XMENU_OBJ=xmenu.o
-  XOBJ="xterm.o xfns.o xselect.o xrdb.o fontset.o xsmfns.o fringe.o image.o xsettings.o xgselect.o"
+  XOBJ="xterm.o xfns.o xselect.o xrdb.o xsmfns.o xsettings.o xgselect.o"
   FONT_OBJ=xfont.o
   if test "$HAVE_XFT" = "yes"; then
     FONT_OBJ="$FONT_OBJ ftfont.o xftfont.o ftxfont.o"
@@ -24070,16 +24101,17 @@ if test "x$GCC" = "xyes" && test "x$ORDINARY_LINK" != "xyes"; then
   esac
 fi
 
-
-## If we're using X11/GNUstep, define some consequences.
-if test "$HAVE_X_WINDOWS" = "yes" || test "$HAVE_NS" = "yes"; then
+## Common for all window systems
+if test "$window_system" != "none"; then
 
 $as_echo "#define HAVE_WINDOW_SYSTEM 1" >>confdefs.h
 
 
 $as_echo "#define HAVE_MOUSE 1" >>confdefs.h
 
+  WINDOW_SYSTEM_OBJ="fontset.o fringe.o image.o"
 fi
+
 
 
 

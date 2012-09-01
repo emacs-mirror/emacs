@@ -1345,6 +1345,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you use terminfo instead of termcap. */
 #undef TERMINFO
 
+/* Define to the header for the built-in window system. */
+#undef TERM_HEADER
+
 /* Define to 1 if you can safely include both <sys/time.h> and <time.h>. */
 #undef TIME_WITH_SYS_TIME
 
