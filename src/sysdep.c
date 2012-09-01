@@ -1767,7 +1767,7 @@ init_signals (void)
 void
 seed_random (void *seed, ptrdiff_t seed_size)
 {
-#if defined HAVE_RANDOM || ! defined HAV_LRAND48
+#if defined HAVE_RANDOM || ! defined HAVE_LRAND48
   unsigned int arg = 0;
 #else
   long int arg = 0;
