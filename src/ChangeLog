@@ -1,5 +1,9 @@
 2012-09-01  Eli Zaretskii  <eliz@gnu.org>
 
+	* w32uniscribe.c (uniscribe_shape): Handle correctly the case of
+	more than one grapheme cluster passed to the shaper: compute the
+	offset adjustment values separately for each cluster.  (Bug#11860)
+
 	* image.c: Restore mistakenly removed inclusion of w32.h.  Without
 	it, GCC doesn't see prototypes of w32_delayed_load, and complains
 	about implicit conversions from integer to pointer.
