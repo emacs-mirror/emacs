@@ -1,3 +1,74 @@
+2012-09-01  Daniel Colascione  <dancol@dancol.org>
+
+	* xterm.h: Add header guards.  Declare x_menubar_window_to_frame.
+	Remove x_set_frame_alpha, x_bitmap_icon, x_make_frame_visible,
+	x_make_frame_invisible, x_iconify_frame, x_free_frame_resources,
+	x_wm_set_size_hint, x_query_colors, x_real_positions,
+	x_set_menu_bar_lines, x_char_width, x_char_height, x_sync,
+	x_set_tool_bar_lines, x_activate_menubar, and free_frame_menubar,
+	all of which have been moved to common code.
+
+	* xfaces.c: Include TERM_HEADER instead of listing all possible
+	window-system headers.
+
+	* w32xfns.c (x_sync): Correct definition of x_sync (a no-op here)
+	to match header.
+
+	* w32term.h (FRAME_X_WINDOW): Use FRAME_W32_WINDOW instead of
+	directly accessing frame internals.
+
+	* w32font.h (w): Include font.h.  Define syms_of_w32font and
+	globals_of_w32font.
+
+	* process.c: Include TERM_HEADER instead of listing all possible
+	window-system headers.
+
+	* nsterm.h: Remove declarations now in frame.h.  Define
+	FRAME_X_SCREEN, FRAME_X_VISUAL.
+
+	* menu.c: Include TERM_HEADER instead of listing all possible
+	window-system headers.
+
+	* keyboard.h: Declare ignore_mouse_drag_p whenever we have a
+	window system.
+
+	* keyboard.c: Include TERM_HEADER instead of listing all possible
+	window-system headers.
+
+	* image.c: Include TERM_HEADER instead of listing all possible
+	window-system headers.  Declare Vlibrary_cache when compiling for
+	Windows.
+
+	* gtkutil.h (xg_list_node_): Include xterm.h to pick up needed
+	window system declarations.
+
+	* frame.h: Move common functions here: set_frame_menubar,
+	x_set_window_size, x_sync, x_get_focus_frame,
+	x_set_mouse_position, x_set_mouse_pixel_position,
+	x_make_frame_visible, x_make_frame_invisible, x_iconify_frame,
+	x_char_width, x_char_height, x_pixel_width, x_pixel_height,
+	x_set_frame_alpha, x_set_menu_bar_lines, x_set_tool_bar_lines,
+	x_activate_menubar, x_real_positions, x_bitmap_icon,
+	x_set_menu_bar_lines, free_frame_menubar, x_free_frame_resources,
+	and x_query_colors.
+
+	* frame.c: Include TERM_HEADER instead of listing all possible
+	window-system headers.
+
+	* font.c: Include TERM_HEADER instead of listing all possible
+	window-system headers.
+
+	* emacs.c: Include TERM_HEADER.
+
+	* dispnew.c (d): Include TERM_HEADER instead of listing all
+	possible window-system headers.
+
+	* ccl.h (c): Include character.h.
+
+	* Makefile.in: Define WINDOW_SYSTEM_OBJ to hold objects needed for
+	the current window system; include in list of objects to link into
+	Emacs.
+
 2012-08-31  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Remove mark_ttys function and fix tty_display_info initialization.

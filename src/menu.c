@@ -36,24 +36,13 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "../lwlib/lwlib.h"
 #endif
 
-#ifdef HAVE_X_WINDOWS
-#include "xterm.h"
-#endif
-
-#ifdef HAVE_NS
-#include "nsterm.h"
-#endif
-
-#ifdef USE_GTK
-#include "gtkutil.h"
-#endif
+#ifdef HAVE_WINDOW_SYSTEM
+#include TERM_HEADER
+#endif /* HAVE_WINDOW_SYSTEM */
 
 #ifdef HAVE_NTGUI
-#include "w32term.h"
-
 extern AppendMenuW_Proc unicode_append_menu;
 extern HMENU current_popup_menu;
-
 #endif /* HAVE_NTGUI  */
 
 #include "menu.h"

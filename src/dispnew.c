@@ -47,17 +47,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include "syssignal.h"
 
-#ifdef HAVE_X_WINDOWS
-#include "xterm.h"
-#endif /* HAVE_X_WINDOWS */
-
-#ifdef HAVE_NTGUI
-#include "w32term.h"
-#endif /* HAVE_NTGUI */
-
-#ifdef HAVE_NS
-#include "nsterm.h"
-#endif
+#ifdef HAVE_WINDOW_SYSTEM
+#include TERM_HEADER
+#endif /* HAVE_WINDOW_SYSTEM */
 
 /* Include systime.h after xterm.h to avoid double inclusion of time.h.  */
 

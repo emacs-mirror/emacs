@@ -31,6 +31,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include "lisp.h"
 
+#ifdef HAVE_WINDOW_SYSTEM
+#include TERM_HEADER
+#endif /* HAVE_WINDOW_SYSTEM */
+
 #ifdef WINDOWSNT
 #include <fcntl.h>
 #include <windows.h> /* just for w32.h */
@@ -62,18 +66,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "gnutls.h"
 #endif
 
-#ifdef HAVE_NS
-#include "nsterm.h"
-#endif
-
 #if (defined PROFILING \
      && (defined __FreeBSD__ || defined GNU_LINUX || defined __MINGW32__))
 # include <sys/gmon.h>
 extern void moncontrol (int mode);
-#endif
-
-#ifdef HAVE_X_WINDOWS
-#include "xterm.h"
 #endif
 
 #ifdef HAVE_SETLOCALE

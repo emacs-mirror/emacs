@@ -26,6 +26,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifndef EMACS_CCL_H
 #define EMACS_CCL_H
 
+#include "character.h" /* For MAX_MULTIBYTE_LENGTH */
+
 /* Macros for exit status of CCL program.  */
 #define CCL_STAT_SUCCESS	0 /* Terminated successfully.  */
 #define CCL_STAT_SUSPEND_BY_SRC	1 /* Terminated by empty input.  */

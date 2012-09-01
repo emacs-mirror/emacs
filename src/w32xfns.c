@@ -438,6 +438,6 @@ XParseGeometry (char *string,
 
 /* x_sync is a no-op on W32.  */
 void
-x_sync (void *f)
+x_sync (struct frame *f)
 {
 }

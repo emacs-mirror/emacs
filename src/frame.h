@@ -1251,9 +1251,39 @@ extern Lisp_Object display_x_get_resource (Display_Info *,
 					   Lisp_Object component,
 					   Lisp_Object subclass);
 
+extern void set_frame_menubar (struct frame *f, int first_time, int deep_p);
+extern void x_set_window_size (struct frame *f, int change_grav,
+                              int cols, int rows);
+extern void x_sync (struct frame *);
+extern Lisp_Object x_get_focus_frame (struct frame *);
+extern void x_set_mouse_position (struct frame *f, int h, int v);
+extern void x_set_mouse_pixel_position (struct frame *f, int pix_x, int pix_y);
+extern void x_make_frame_visible (struct frame *f);
+extern void x_make_frame_invisible (struct frame *f);
+extern void x_iconify_frame (struct frame *f);
+extern int x_char_width (struct frame *f);
+extern int x_char_height (struct frame *f);
+extern int x_pixel_width (struct frame *f);
+extern int x_pixel_height (struct frame *f);
+extern void x_set_frame_alpha (struct frame *f);
+extern void x_set_menu_bar_lines (struct frame *, Lisp_Object, Lisp_Object);
+extern void x_set_tool_bar_lines (struct frame *f,
+                                  Lisp_Object value,
+                                  Lisp_Object oldval);
+extern void x_activate_menubar (struct frame *);
+extern void x_real_positions (struct frame *, int *, int *);
+extern int x_bitmap_icon (struct frame *, Lisp_Object);
+extern void x_set_menu_bar_lines (struct frame *,
+                                  Lisp_Object,
+                                  Lisp_Object);
+extern void free_frame_menubar (struct frame *);
+extern void x_free_frame_resources (struct frame *);
+
 #if defined HAVE_X_WINDOWS && !defined USE_X_TOOLKIT
 extern char *x_get_resource_string (const char *, const char *);
 #endif
+
+extern void x_query_colors (struct frame *f, XColor *, int);
 
 /* In xmenu.c */
 extern void set_frame_menubar (FRAME_PTR, int, int);

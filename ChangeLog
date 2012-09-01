@@ -1,3 +1,11 @@
+2012-09-01  Daniel Colascione  <dan.colascione@gmail.com>
+
+	* configure.ac: Introduce term_header variable, which holds the
+	value which will become TERM_HEADER in code.  We effect our choice
+	of window system by setting term_header and WINDOW_SYSTEM_OBJ
+	instead of using ad-hoc variables and flags for each window
+	system.
+
 2012-08-26  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* configure.ac (CFLAGS): Prefer -g3 to -g if -g3 works
