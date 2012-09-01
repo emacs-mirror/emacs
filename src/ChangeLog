@@ -37,7 +37,7 @@
 	* w32term.h (FRAME_X_WINDOW): Use FRAME_W32_WINDOW instead of
 	directly accessing frame internals.
 
-	* w32font.h (w): Include font.h.  Define syms_of_w32font and
+	* w32font.h: Include font.h.  Define syms_of_w32font and
 	globals_of_w32font.
 
 	* process.c: Include TERM_HEADER instead of listing all possible
@@ -80,15 +80,14 @@
 
 	* emacs.c: Include TERM_HEADER.
 
-	* dispnew.c (d): Include TERM_HEADER instead of listing all
-	possible window-system headers.
+	* dispnew.c: Include TERM_HEADER instead of listing all possible
+	window-system headers.
 
-	* ccl.h (c): Include character.h.
+	* ccl.h: Include character.h.
 
 	* Makefile.in: Define WINDOW_SYSTEM_OBJ to hold objects needed for
 	the current window system; include in list of objects to link into
 	Emacs.
->>>>>>> MERGE-SOURCE
 
 2012-08-31  Dmitry Antipov  <dmantipov@yandex.ru>
 
