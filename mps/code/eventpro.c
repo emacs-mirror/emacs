@@ -356,20 +356,20 @@ void EventDestroy(EventProc proc, Event event)
 
 /* Checking macros, copied from check.h */
 
-#define CHECKLVALUE(lv1, lv2) \
+#define COMPATLVALUE(lv1, lv2) \
   ((void)sizeof((lv1) = (lv2)), (void)sizeof((lv2) = (lv1)), TRUE)
 
-#define CHECKTYPE(t1, t2) \
+#define COMPATTYPE(t1, t2) \
   (sizeof(t1) == sizeof(t2) && \
-   CHECKLVALUE(*((t1 *)0), *((t2 *)0)))
+   COMPATLVALUE(*((t1 *)0), *((t2 *)0)))
 
-#define CHECKFIELDAPPROX(s1, f1, s2, f2) \
+#define COMPATFIELDAPPROX(s1, f1, s2, f2) \
   (sizeof(((s1 *)0)->f1) == sizeof(((s2 *)0)->f2) && \
    offsetof(s1, f1) == offsetof(s2, f2))
 
-#define CHECKFIELD(s1, f1, s2, f2) \
-  (CHECKFIELDAPPROX(s1, f1, s2, f2) && \
-   CHECKLVALUE(((s1 *)0)->f1, ((s2 *)0)->f2))
+#define COMPATFIELD(s1, f1, s2, f2) \
+  (COMPATFIELDAPPROX(s1, f1, s2, f2) && \
+   COMPATLVALUE(((s1 *)0)->f1, ((s2 *)0)->f2))
 
 
 /* EventProcCreate -- initialize the module */
@@ -383,8 +383,8 @@ Res EventProcCreate(EventProc *procReturn, Bool partial,
   if (proc == NULL) return ResMEMORY;
 
   /* check event struct access */
-  assert(CHECKFIELD(EventUnion, any.code, EventWSStruct, code));
-  assert(CHECKFIELD(EventUnion, any.clock, EventWSStruct, clock));
+  assert(COMPATFIELD(EventUnion, any.code, EventWSStruct, code));
+  assert(COMPATFIELD(EventUnion, any.clock, EventWSStruct, clock));
   /* check use of labelTable */
 #if !defined(MPS_OS_FR)
   /* GCC -ansi -pedantic -Werror on FreeBSD will fail here

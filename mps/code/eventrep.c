@@ -682,12 +682,12 @@ void EventReplay(Event event, Word etime)
 
 /* Checking macros, copied from check.h */
 
-#define CHECKLVALUE(lv1, lv2) \
+#define COMPATLVALUE(lv1, lv2) \
   ((void)sizeof((lv1) = (lv2)), (void)sizeof((lv2) = (lv1)), TRUE)
 
-#define CHECKTYPE(t1, t2) \
+#define COMPATTYPE(t1, t2) \
   (sizeof(t1) == sizeof(t2) && \
-   CHECKLVALUE(*((t1 *)0), *((t2 *)0)))
+   COMPATLVALUE(*((t1 *)0), *((t2 *)0)))
 
 
 /* CHECKCONV -- check t2 can be cast to t1 without loss */
@@ -705,8 +705,8 @@ Res EventRepInit(Bool partial)
   /* Check using pointers as keys in the tables. */
   verify(CHECKCONV(Word, void *));
   /* Check storage of MPS opaque handles in the tables. */
-  verify(CHECKTYPE(mps_arena_t, void *));
-  verify(CHECKTYPE(mps_ap_t, void *));
+  verify(COMPATTYPE(mps_arena_t, void *));
+  verify(COMPATTYPE(mps_ap_t, void *));
   /* .event-conv: Conversion of event fields into the types required */
   /* by the MPS functions is justified by the reverse conversion */
   /* being acceptable (which is upto the event log generator). */

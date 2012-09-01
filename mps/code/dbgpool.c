@@ -72,7 +72,7 @@ Bool PoolDebugMixinCheck(PoolDebugMixin debug)
     CHECKL(TagInitMethodCheck(debug->tagInit));
     /* Nothing to check about tagSize */
     CHECKD(Pool, debug->tagPool);
-    CHECKL(CHECKTYPE(Addr, void*)); /* tagPool relies on this */
+    CHECKL(COMPATTYPE(Addr, void*)); /* tagPool relies on this */
     /* Nothing to check about missingTags */
     CHECKL(SplayTreeCheck(&debug->index));
   }

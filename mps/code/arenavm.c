@@ -202,10 +202,10 @@ static Res VMArenaDescribe(Arena arena, mps_lib_FILE *stream)
   VMArena vmArena;
   Index gen;
 
-  if (!CHECKT(Arena, arena)) return ResFAIL;
+  if (!TESTT(Arena, arena)) return ResFAIL;
   if (stream == NULL) return ResFAIL;
   vmArena = Arena2VMArena(arena);
-  if (!CHECKT(VMArena, vmArena)) return ResFAIL;
+  if (!TESTT(VMArena, vmArena)) return ResFAIL;
 
   /* Describe the superclass fields first via next-method call */
   /* ...but the next method is ArenaTrivDescribe, so don't call it;

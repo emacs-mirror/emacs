@@ -537,9 +537,9 @@ static Res MVFFDescribe(Pool pool, mps_lib_FILE *stream)
   Res res;
   MVFF mvff;
 
-  if (!CHECKT(Pool, pool)) return ResFAIL;
+  if (!TESTT(Pool, pool)) return ResFAIL;
   mvff = Pool2MVFF(pool);
-  if (!CHECKT(MVFF, mvff)) return ResFAIL;
+  if (!TESTT(MVFF, mvff)) return ResFAIL;
   if (stream == NULL) return ResFAIL;
 
   res = WriteF(stream,
