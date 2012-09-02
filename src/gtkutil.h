@@ -150,9 +150,6 @@ extern GdkCursor * xg_create_default_cursor (Display *dpy);
 
 extern int xg_create_frame_widgets (FRAME_PTR f);
 extern void xg_free_frame_widgets (FRAME_PTR f);
-extern void x_wm_set_size_hint (FRAME_PTR f,
-                                long flags,
-                                int user_position);
 extern void xg_set_background_color (FRAME_PTR f, unsigned long bg);
 extern int xg_check_special_colors (struct frame *f,
                                     const char *color_name,

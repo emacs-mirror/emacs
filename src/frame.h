@@ -1206,6 +1206,7 @@ extern Lisp_Object Qrun_hook_with_args;
 extern void x_set_scroll_bar_default_width (struct frame *);
 extern void x_set_offset (struct frame *, int, int, int);
 extern void x_wm_set_icon_position (struct frame *, int, int);
+extern void x_wm_set_size_hint (FRAME_PTR f, long flags, int user_position);
 
 extern Lisp_Object x_new_font (struct frame *, Lisp_Object, int);
 

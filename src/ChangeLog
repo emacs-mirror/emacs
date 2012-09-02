@@ -1,3 +1,9 @@
+2012-09-02  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* gtkutil.h: Remove prototype for x_wm_set_size_hint.
+
+	* frame.h: Add missing prototype for x_wm_set_size_hint.
+
 2012-09-02  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* doc.c, editfns.c, insdel.c, intervals.c: Use bool for boolean.
