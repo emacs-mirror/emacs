@@ -570,7 +570,6 @@ static void x_emboss (struct frame *, struct image *);
 static int x_build_heuristic_mask (struct frame *, struct image *,
                                    Lisp_Object);
 #ifdef HAVE_NTGUI
-extern Lisp_Object Vlibrary_cache, QCloaded_from;
 #define CACHE_IMAGE_TYPE(type, status) \
   do { Vlibrary_cache = Fcons (Fcons (type, status), Vlibrary_cache); } while (0)
 #else

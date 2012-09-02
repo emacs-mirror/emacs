@@ -46,7 +46,6 @@ struct xfont_info
 };
 
 /* Prototypes of support functions.  */
-extern void x_clear_errors (Display *);
 
 static XCharStruct *xfont_get_pcm (XFontStruct *, XChar2b *);
 

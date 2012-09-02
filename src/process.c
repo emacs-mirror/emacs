@@ -165,16 +165,6 @@ static Lisp_Object QClocal, QCremote, QCcoding;
 static Lisp_Object QCserver, QCnowait, QCnoquery, QCstop;
 static Lisp_Object QCsentinel, QClog, QCoptions, QCplist;
 static Lisp_Object Qlast_nonmenu_event;
-/* QCfamily is declared and initialized in xfaces.c,
-   QCfilter in keyboard.c.  */
-extern Lisp_Object QCfamily, QCfilter;
-
-/* Qexit is declared and initialized in eval.c.  */
-
-/* QCfamily is defined in xfaces.c.  */
-extern Lisp_Object QCfamily;
-/* QCfilter is defined in keyboard.c.  */
-extern Lisp_Object QCfilter;
 
 #define NETCONN_P(p) (EQ (XPROCESS (p)->type, Qnetwork))
 #define NETCONN1_P(p) (EQ (p->type, Qnetwork))

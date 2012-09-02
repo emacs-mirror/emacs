@@ -2988,6 +2988,7 @@ extern ptrdiff_t evxprintf (char **, ptrdiff_t *, char const *, ptrdiff_t,
 /* Defined in lread.c.  */
 extern Lisp_Object Qvariable_documentation, Qstandard_input;
 extern Lisp_Object Qbackquote, Qcomma, Qcomma_at, Qcomma_dot, Qfunction;
+extern Lisp_Object Qlexical_binding;
 extern Lisp_Object check_obarray (Lisp_Object);
 extern Lisp_Object intern_1 (const char *, ptrdiff_t);
 extern Lisp_Object intern_c_string_1 (const char *, ptrdiff_t);
@@ -3021,7 +3022,7 @@ intern_c_string (const char *str)
 
 /* Defined in eval.c.  */
 extern Lisp_Object Qautoload, Qexit, Qinteractive, Qcommandp, Qmacro;
-extern Lisp_Object Qinhibit_quit, Qclosure;
+extern Lisp_Object Qinhibit_quit, Qinternal_interpreter_environment, Qclosure;
 extern Lisp_Object Qand_rest;
 extern Lisp_Object Vautoload_queue;
 extern Lisp_Object Vsignaling_function;
@@ -3466,6 +3467,9 @@ extern Lisp_Object Qface;
 extern Lisp_Object Qnormal;
 extern Lisp_Object QCfamily, QCweight, QCslant;
 extern Lisp_Object QCheight, QCname, QCwidth, QCforeground, QCbackground;
+extern Lisp_Object Qextra_light, Qlight, Qsemi_light, Qsemi_bold;
+extern Lisp_Object Qbold, Qextra_bold, Qultra_bold;
+extern Lisp_Object Qoblique, Qitalic;
 extern Lisp_Object Vface_alternative_font_family_alist;
 extern Lisp_Object Vface_alternative_font_registry_alist;
 extern void syms_of_xfaces (void);

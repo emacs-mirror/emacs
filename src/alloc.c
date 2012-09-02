@@ -69,6 +69,9 @@ extern void *sbrk ();
 
 #include <fcntl.h>
 
+#ifdef USE_GTK
+# include "gtkutil.h"
+#endif
 #ifdef WINDOWSNT
 #include "w32.h"
 #endif
@@ -5478,10 +5481,7 @@ See Info node `(elisp)Garbage Collection'.  */)
   mark_kboards ();
 
 #ifdef USE_GTK
-  {
-    extern void xg_mark_data (void);
-    xg_mark_data ();
-  }
+  xg_mark_data ();
 #endif
 
 #if (GC_MARK_STACK == GC_MAKE_GCPROS_NOOPS \

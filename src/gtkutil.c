@@ -2019,11 +2019,6 @@ xg_get_file_name (FRAME_PTR f,
 
 #if USE_NEW_GTK_FONT_CHOOSER
 
-extern Lisp_Object Qxft, Qnormal;
-extern Lisp_Object Qextra_light, Qlight, Qsemi_light, Qsemi_bold;
-extern Lisp_Object Qbold, Qextra_bold, Qultra_bold;
-extern Lisp_Object Qoblique, Qitalic;
-
 #define XG_WEIGHT_TO_SYMBOL(w)			\
   (w <= PANGO_WEIGHT_THIN ? Qextra_light	\
    : w <= PANGO_WEIGHT_ULTRALIGHT ? Qlight	\

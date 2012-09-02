@@ -89,8 +89,6 @@ static Lisp_Object Qget_emacs_mule_file_char;
 
 static Lisp_Object Qload_force_doc_strings;
 
-extern Lisp_Object Qinternal_interpreter_environment;
-
 static Lisp_Object Qload_in_progress;
 
 /* The association list of objects read with the #n=object form.

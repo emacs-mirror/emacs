@@ -671,8 +671,6 @@ EmacsFrameRealize (Widget widget, XtValueMask *mask, XSetWindowAttributes *attrs
   update_wm_hints (ew);
 }
 
-extern void free_frame_faces (struct frame *);
-
 static void
 EmacsFrameDestroy (Widget widget)
 {

@@ -1315,7 +1315,7 @@ usage: (track-mouse BODY...)  */)
    If ignore_mouse_drag_p is non-zero, ignore (implicit) mouse movement
    after resizing the tool-bar window.  */
 
-#if !defined HAVE_WINDOW_SYSTEM
+#if !defined HAVE_WINDOW_SYSTEM || defined USE_GTK || defined HAVE_NS
 static
 #endif
 int ignore_mouse_drag_p;

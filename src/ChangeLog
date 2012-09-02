@@ -1,5 +1,37 @@
 2012-09-02  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Clean up some extern decls.
+	Mostly, this hoists extern decls out of .c files and into .h files.
+	That way, we're more likely to catch errors if the interfaces change.
+	* alloc.c [USE_GTK]: Include "gtkutil.h" so that we need not
+	declare xg_mark_data.
+	* dispextern.h (x_frame_parm_handlers):
+	* font.h (Qxft):
+	* lisp.h (Qlexical_binding, Qinternal_interpreter_environment)
+	(Qextra_light, Qlight, Qsemi_light, Qsemi_bold, Qbold, Qextra_bold)
+	(Qultra_bold, Qoblique, Qitalic):
+	Move extern decl here from .c file.
+	* alloc.c (xg_mark_data) [USE_GTK]:
+	* doc.c (Qclosure):
+	* eval.c (Qlexical_binding):
+	* fns.c (time) [!HAVE_UNISTD_H]:
+	* gtkutil.c (Qxft, Qnormal, Qextra_light, Qlight, Qsemi_light)
+	(Qsemi_bold, Qbold, Qextra_bold, Qultra_bold, Qoblique, Qitalic):
+	* image.c (Vlibrary_cache, QCloaded_from) [HAVE_NTGUI]:
+	* lread.c (Qinternal_interpreter_environment):
+	* minibuf.c (Qbuffer):
+	* process.c (QCfamily, QCfilter):
+	* widget.c (free_frame_faces):
+	* xfaces.c (free_frame_menubar) [USE_X_TOOLKIT]:
+	* xfont.c (x_clear_errors):
+	* xterm.c (x_frame_parm_handlers):
+	Remove now-redundant extern decls.
+	* keyboard.c, keyboard.h (ignore_mouse_drag_p) [USE_GTK || HAVE_NS]:
+	* xfaces.c (Qultra_light, Qreverse_oblique, Qreverse_italic):
+	Now static.
+	* xfaces.c: Remove unnecessary static decls.
+	* xterm.c (updating_frame): Remove decl of nonexistent object.
+
 	* Makefile.in (gl-stamp): Don't scan $(SOME_MACHINE_OBJECTS)
 	when building globals.h, as the objects that are not built on
 	this host are not needed to compile C files on this host.
