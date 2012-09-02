@@ -1,3 +1,13 @@
+2012-09-02  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in (CCL_H, W32FONT_H): New macros.
+	(ATIMER_H, FONT_H, $(BLD)/alloc.$(O), $(BLD)/callproc.$(O))
+	($(BLD)/editfns.$(O), $(BLD)/ccl.$(O), $(BLD)/chartab.$(O))
+	($(BLD)/coding.$(O), $(BLD)/sysdep.$(O), $(BLD)/fontset.$(O))
+	($(BLD)/sysdep.$(O), $(BLD)/w32fns.$(O), $(BLD)/keyboard.$(O))
+	($(BLD)/w32term.$(O), $(BLD)/w32menu.$(O), $(BLD)/process.$(O))
+	($(BLD)/w32font.$(O), $(BLD)/w32uniscribe.$(O)): Update dependencies.
+
 2012-09-01  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32uniscribe.c (uniscribe_shape): Handle correctly the case of
