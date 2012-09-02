@@ -365,28 +365,9 @@
  *
  * Convert CONFIG_PROD_* defined on compiler command line into
  * internal configuration parameters.  See <design/config/#prod>.
+ * FIXME: Rework <design/config>.
  */
 
-#if defined(CONFIG_PROD_EPCORE)
-#define MPS_PROD_STRING         "epcore"
-#define MPS_PROD_EPCORE
-#define ARENA_INIT_SPARE_COMMIT_LIMIT   ((Size)0)
-/* .nosync.why: ScriptWorks is single-threaded when using the MM. */
-#define THREAD_SINGLE
-#define PROTECTION_NONE
-#define DONGLE_NONE
-#define PROD_CHECKLEVEL_INITIAL CheckLevelMINIMAL /* CheckLevelSHALLOW is too slow for SW */
-
-#elif defined(CONFIG_PROD_DYLAN)
-#define MPS_PROD_STRING         "dylan"
-#define MPS_PROD_DYLAN
-#define ARENA_INIT_SPARE_COMMIT_LIMIT   ((Size)10uL*1024uL*1024uL)
-#define THREAD_MULTI
-#define PROTECTION
-#define DONGLE_NONE
-#define PROD_CHECKLEVEL_INITIAL CheckLevelSHALLOW
-
-#elif defined(CONFIG_PROD_MPS)
 #define MPS_PROD_STRING         "mps"
 #define MPS_PROD_MPS
 #define ARENA_INIT_SPARE_COMMIT_LIMIT   ((Size)10uL*1024uL*1024uL)
@@ -394,29 +375,6 @@
 #define PROTECTION
 #define DONGLE_NONE
 #define PROD_CHECKLEVEL_INITIAL CheckLevelSHALLOW
-
-#else
-#error "No target product configured."
-#endif
-
-/* .prod.arena-size: ARENA_SIZE is currently set larger for the
- * MM/Dylan product as an interim solution.
- * See request.dylan.170170.sol.patch and change.dylan.buffalo.170170.
- * Note that this define is only used by the implementation of the
- * deprecated mps_space_create interface.
- */
-#define ARENA_SIZE              ((Size)1<<30)
-
-
-/* Dongle configuration */
-
-#if defined(DONGLE)
-#define DONGLE_TEST_FREQUENCY ((unsigned int)4000)
-#elif defined(DONGLE_NONE)
-/* nothing to do */
-#else
-#error "No dongle configured."
-#endif
 
 
 /* Pool Class AMC configuration */
