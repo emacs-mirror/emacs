@@ -3258,7 +3258,7 @@ extern void syms_of_frame (void);
 extern char **initial_argv;
 extern int initial_argc;
 #if defined (HAVE_X_WINDOWS) || defined (HAVE_NS)
-extern int display_arg;
+extern bool display_arg;
 #endif
 extern Lisp_Object decode_env_path (const char *, const char *);
 extern Lisp_Object empty_unibyte_string, empty_multibyte_string;
@@ -3277,22 +3277,26 @@ void synchronize_system_time_locale (void);
 #define synchronize_system_messages_locale()
 #define synchronize_system_time_locale()
 #endif
-void shut_down_emacs (int, int, Lisp_Object);
-/* Nonzero means don't do interactive redisplay and don't change tty modes.  */
-extern int noninteractive;
+extern void shut_down_emacs (int, Lisp_Object);
 
-/* Nonzero means remove site-lisp directories from load-path.  */
-extern int no_site_lisp;
+/* True means don't do interactive redisplay and don't change tty modes.  */
+extern bool noninteractive;
+
+/* True means remove site-lisp directories from load-path.  */
+extern bool no_site_lisp;
 
 /* Pipe used to send exit notification to the daemon parent at
    startup.  */
 extern int daemon_pipe[2];
 #define IS_DAEMON (daemon_pipe[1] != 0)
 
-/* Nonzero means don't do use window-system-specific display code.  */
-extern int inhibit_window_system;
-/* Nonzero means that a filter or a sentinel is running.  */
-extern int running_asynch_code;
+/* True if handling a fatal error already.  */
+extern bool fatal_error_in_progress;
+
+/* True means don't do use window-system-specific display code.  */
+extern bool inhibit_window_system;
+/* True means that a filter or a sentinel is running.  */
+extern bool running_asynch_code;
 
 /* Defined in process.c.  */
 extern Lisp_Object QCtype, Qlocal;
@@ -3514,9 +3518,9 @@ void syms_of_dbusbind (void);
 extern char *emacs_root_dir (void);
 #endif /* DOS_NT */
 
-/* Nonzero means Emacs has already been initialized.
+/* True means Emacs has already been initialized.
    Used during startup to detect startup of dumped Emacs.  */
-extern int initialized;
+extern bool initialized;
 
 extern int immediate_quit;	    /* Nonzero means ^G can quit instantly */
 

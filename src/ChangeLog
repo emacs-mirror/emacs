@@ -1,5 +1,32 @@
 2012-09-02  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* emacs.c, eval.c: Use bool for boolean.
+	* emacs.c (initialized, inhibit_window_system, running_asynch_code):
+	(malloc_using_checking) [DOUG_LEA_MALLOC]:
+	(display_arg) [HAVE_X_WINDOWS || HAVE_NS]:
+	(noninteractive, no_site_lisp, fatal_error_in_progress, argmatch)
+	(main, decode_env_path, Fdaemon_initialized):
+	* eval.c (call_debugger, Finteractive_p, interactive_p):
+	(unwind_to_catch, Fsignal, wants_debugger, skip_debugger)
+	(maybe_call_debugger, Fbacktrace):
+	* process.c (read_process_output, exec_sentinel):
+	Use bool for booleans.
+	* emacs.c (shut_down_emacs): Omit unused boolean argument NO_X.
+	All callers changed.
+	* eval.c (interactive_p): Omit always-true boolean argument
+	EXCLUDE_SUBRS_P.  All callers changed.
+	* dispextern.h, lisp.h: Reflect above API changes.
+	* firstfile.c (dummy): Use the address of 'main', whose signature
+	won't change, instead of the address of 'initialize', whose
+	signature just changed from int to bool.
+	* lisp.h (fatal_error_in_progress): New decl of boolean, moved here ...
+	* msdos.c (fatal_error_in_progress): ... from here.
+	* xdisp.c (redisplaying_p): Now a boolean.  Set it to 1 instead
+	of incrementing it.
+	(redisplay_internal, unwind_redisplay): Simply clear
+	REDISPLAYING_P when unwinding, instead of saving its previous,
+	always-false value and then restoring it.
+
 	Clean up some extern decls.
 	Mostly, this hoists extern decls out of .c files and into .h files.
 	That way, we're more likely to catch errors if the interfaces change.

@@ -3055,7 +3055,7 @@ void move_it_in_display_line (struct it *it,
 int in_display_vector_p (struct it *);
 int frame_mode_line_height (struct frame *);
 extern Lisp_Object Qtool_bar;
-extern int redisplaying_p;
+extern bool redisplaying_p;
 extern int help_echo_showing_p;
 extern int current_mode_line_height, current_header_line_height;
 extern Lisp_Object help_echo_string, help_echo_window;

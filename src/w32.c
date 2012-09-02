@@ -6773,7 +6773,7 @@ shutdown_handler (DWORD type)
       || type == CTRL_SHUTDOWN_EVENT) /* User shutsdown.  */
     {
       /* Shut down cleanly, making sure autosave files are up to date.  */
-      shut_down_emacs (0, 0, Qnil);
+      shut_down_emacs (0, Qnil);
     }
 
   /* Allow other handlers to handle this signal.  */

@@ -768,9 +768,9 @@ static int clear_image_cache_count;
 static struct glyph_slice null_glyph_slice = { 0, 0, 0, 0 };
 #endif
 
-/* Non-zero while redisplay_internal is in progress.  */
+/* True while redisplay_internal is in progress.  */
 
-int redisplaying_p;
+bool redisplaying_p;
 
 static Lisp_Object Qinhibit_free_realized_faces;
 static Lisp_Object Qmode_line_default_help_echo;
@@ -12966,12 +12966,11 @@ redisplay_internal (void)
   if (redisplaying_p)
     return;
 
-  /* Record a function that resets redisplaying_p to its old value
+  /* Record a function that clears redisplaying_p
      when we leave this function.  */
   count = SPECPDL_INDEX ();
-  record_unwind_protect (unwind_redisplay,
-			 Fcons (make_number (redisplaying_p), selected_frame));
-  ++redisplaying_p;
+  record_unwind_protect (unwind_redisplay, selected_frame);
+  redisplaying_p = 1;
   specbind (Qinhibit_free_realized_faces, Qnil);
 
   {
@@ -13709,21 +13708,15 @@ redisplay_preserve_echo_area (int from_where)
 }
 
 
-/* Function registered with record_unwind_protect in
-   redisplay_internal.  Reset redisplaying_p to the value it had
-   before redisplay_internal was called, and clear
-   prevent_freeing_realized_faces_p.  It also selects the previously
+/* Function registered with record_unwind_protect in redisplay_internal.
+   Clear redisplaying_p.  Also, select the previously
    selected frame, unless it has been deleted (by an X connection
    failure during redisplay, for example).  */
 
 static Lisp_Object
-unwind_redisplay (Lisp_Object val)
+unwind_redisplay (Lisp_Object old_frame)
 {
-  Lisp_Object old_redisplaying_p, old_frame;
-
-  old_redisplaying_p = XCAR (val);
-  redisplaying_p = XFASTINT (old_redisplaying_p);
-  old_frame = XCDR (val);
+  redisplaying_p = 0;
   if (! EQ (old_frame, selected_frame)
       && FRAME_LIVE_P (XFRAME (old_frame)))
     select_frame_for_redisplay (old_frame);

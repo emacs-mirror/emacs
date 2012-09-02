@@ -5194,7 +5194,7 @@ read_process_output (Lisp_Object proc, register int channel)
   if (!NILP (outstream))
     {
       Lisp_Object text;
-      int outer_running_asynch_code = running_asynch_code;
+      bool outer_running_asynch_code = running_asynch_code;
       int waiting = waiting_for_user_input_p;
 
       /* No need to gcpro these, because all we do with them later
@@ -6558,9 +6558,9 @@ static void
 exec_sentinel (Lisp_Object proc, Lisp_Object reason)
 {
   Lisp_Object sentinel, odeactivate;
-  register struct Lisp_Process *p = XPROCESS (proc);
+  struct Lisp_Process *p = XPROCESS (proc);
   ptrdiff_t count = SPECPDL_INDEX ();
-  int outer_running_asynch_code = running_asynch_code;
+  bool outer_running_asynch_code = running_asynch_code;
   int waiting = waiting_for_user_input_p;
 
   if (inhibit_sentinels)

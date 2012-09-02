@@ -1029,7 +1029,6 @@ IT_clear_end_of_line (struct frame *f, int first_unused)
 {
   char *spaces, *sp;
   int i, j, offset = 2 * (new_pos_X + screen_size_X * new_pos_Y);
-  extern int fatal_error_in_progress;
   struct tty_display_info *tty = FRAME_TTY (f);
 
   if (new_pos_X >= first_unused || fatal_error_in_progress)
