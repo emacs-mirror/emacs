@@ -1,3 +1,9 @@
+2012-09-02  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* Makefile.in (gl-stamp): Don't scan $(SOME_MACHINE_OBJECTS)
+	when building globals.h, as the objects that are not built on
+	this host are not needed to compile C files on this host.
+
 2012-09-02  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* gtkutil.h: Remove prototype for x_wm_set_size_hint.

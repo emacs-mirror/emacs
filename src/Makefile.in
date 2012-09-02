@@ -448,7 +448,7 @@ GLOBAL_SOURCES = $(base_obj:.o=.c) $(NS_OBJC_OBJ:.o=.m)
 
 gl-stamp: $(libsrc)/make-docfile$(EXEEXT) $(GLOBAL_SOURCES)
 	@rm -f gl-tmp
-	$(libsrc)/make-docfile -d $(srcdir) -g $(SOME_MACHINE_OBJECTS) $(obj) > gl-tmp
+	$(libsrc)/make-docfile -d $(srcdir) -g $(obj) > gl-tmp
 	$(srcdir)/../build-aux/move-if-change gl-tmp globals.h
 	echo timestamp > $@
 
