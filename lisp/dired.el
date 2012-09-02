@@ -1739,7 +1739,7 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
 
     (define-key map
       [menu-bar operate epa-dired-do-decrypt]
-      '(menu-item "Decrypt" epa-dired-do-decrypt
+      '(menu-item "Decrypt..." epa-dired-do-decrypt
 		  :help "Decrypt file at cursor"))
 
     (define-key map
@@ -1749,12 +1749,12 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
 
     (define-key map
       [menu-bar operate epa-dired-do-sign]
-      '(menu-item "Sign" epa-dired-do-sign
+      '(menu-item "Sign..." epa-dired-do-sign
 		  :help "Create digital signature of file at cursor"))
 
     (define-key map
       [menu-bar operate epa-dired-do-encrypt]
-      '(menu-item "Encrypt" epa-dired-do-encrypt
+      '(menu-item "Encrypt..." epa-dired-do-encrypt
 		  :help "Encrypt file at cursor"))
 
     (define-key map [menu-bar operate dashes-3]

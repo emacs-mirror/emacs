@@ -1,3 +1,7 @@
+2012-09-02  Chong Yidong  <cyd@gnu.org>
+
+	* dired.el (dired-mode-map): Menu string fixes (Bug#11616).
+
 2012-09-02  Glenn Morris  <rgm@gnu.org>
 
 	* simple.el (undo): Tweak message in undo-only case.  (Bug#12283)
