@@ -31,19 +31,15 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "blockinput.h"
 #include "region-cache.h"
 
-static void insert_from_string_1 (Lisp_Object string,
-				  ptrdiff_t pos, ptrdiff_t pos_byte,
-				  ptrdiff_t nchars, ptrdiff_t nbytes,
-				  int inherit, int before_markers);
-static void insert_from_buffer_1 (struct buffer *buf,
-				  ptrdiff_t from, ptrdiff_t nchars,
-				  int inherit);
-static void gap_left (ptrdiff_t charpos, ptrdiff_t bytepos, int newgap);
-static void gap_right (ptrdiff_t charpos, ptrdiff_t bytepos);
+static void insert_from_string_1 (Lisp_Object, ptrdiff_t, ptrdiff_t, ptrdiff_t,
+				  ptrdiff_t, bool, bool);
+static void insert_from_buffer_1 (struct buffer *, ptrdiff_t, ptrdiff_t, bool);
+static void gap_left (ptrdiff_t, ptrdiff_t, bool);
+static void gap_right (ptrdiff_t, ptrdiff_t);
 
 /* List of elements of the form (BEG-UNCHANGED END-UNCHANGED CHANGE-AMOUNT)
    describing changes which happened while combine_after_change_calls
-   was nonzero.  We use this to decide how to call them
+   was non-nil.  We use this to decide how to call them
    once the deferral ends.
 
    In each element.
@@ -67,8 +63,8 @@ static void signal_before_change (ptrdiff_t, ptrdiff_t, ptrdiff_t *);
 static void
 check_markers (void)
 {
-  register struct Lisp_Marker *tail;
-  int multibyte = ! NILP (BVAR (current_buffer, enable_multibyte_characters));
+  struct Lisp_Marker *tail;
+  bool multibyte = ! NILP (BVAR (current_buffer, enable_multibyte_characters));
 
   for (tail = BUF_MARKERS (current_buffer); tail; tail = tail->next)
     {
@@ -113,13 +109,13 @@ move_gap_both (ptrdiff_t charpos, ptrdiff_t bytepos)
 /* Move the gap to a position less than the current GPT.
    BYTEPOS describes the new position as a byte position,
    and CHARPOS is the corresponding char position.
-   If NEWGAP is nonzero, then don't update beg_unchanged and end_unchanged.  */
+   If NEWGAP, then don't update beg_unchanged and end_unchanged.  */
 
 static void
-gap_left (ptrdiff_t charpos, ptrdiff_t bytepos, int newgap)
+gap_left (ptrdiff_t charpos, ptrdiff_t bytepos, bool newgap)
 {
-  register unsigned char *to, *from;
-  register ptrdiff_t i;
+  unsigned char *to, *from;
+  ptrdiff_t i;
   ptrdiff_t new_s1;
 
   if (!newgap)
@@ -287,10 +283,10 @@ adjust_markers_for_delete (ptrdiff_t from, ptrdiff_t from_byte,
 
 static void
 adjust_markers_for_insert (ptrdiff_t from, ptrdiff_t from_byte,
-			   ptrdiff_t to, ptrdiff_t to_byte, int before_markers)
+			   ptrdiff_t to, ptrdiff_t to_byte, bool before_markers)
 {
   struct Lisp_Marker *m;
-  int adjusted = 0;
+  bool adjusted = 0;
   ptrdiff_t nchars = to - from;
   ptrdiff_t nbytes = to_byte - from_byte;
 
@@ -515,7 +511,7 @@ make_gap (ptrdiff_t nbytes_added)
 
 ptrdiff_t
 copy_text (const unsigned char *from_addr, unsigned char *to_addr,
-	   ptrdiff_t nbytes, int from_multibyte, int to_multibyte)
+	   ptrdiff_t nbytes, bool from_multibyte, bool to_multibyte)
 {
   if (from_multibyte == to_multibyte)
     {
@@ -664,7 +660,7 @@ insert_before_markers_and_inherit (const char *string,
 
 void
 insert_1 (const char *string, ptrdiff_t nbytes,
-	  int inherit, int prepare, int before_markers)
+	  bool inherit, bool prepare, bool before_markers)
 {
   insert_1_both (string, chars_in_text ((unsigned char *) string, nbytes),
 		 nbytes, inherit, prepare, before_markers);
@@ -790,7 +786,7 @@ count_combining_after (const unsigned char *string,
 void
 insert_1_both (const char *string,
 	       ptrdiff_t nchars, ptrdiff_t nbytes,
-	       int inherit, int prepare, int before_markers)
+	       bool inherit, bool prepare, bool before_markers)
 {
   if (nchars == 0)
     return;
@@ -867,7 +863,7 @@ insert_1_both (const char *string,
 
 void
 insert_from_string (Lisp_Object string, ptrdiff_t pos, ptrdiff_t pos_byte,
-		    ptrdiff_t length, ptrdiff_t length_byte, int inherit)
+		    ptrdiff_t length, ptrdiff_t length_byte, bool inherit)
 {
   ptrdiff_t opoint = PT;
 
@@ -887,7 +883,7 @@ void
 insert_from_string_before_markers (Lisp_Object string,
 				   ptrdiff_t pos, ptrdiff_t pos_byte,
 				   ptrdiff_t length, ptrdiff_t length_byte,
-				   int inherit)
+				   bool inherit)
 {
   ptrdiff_t opoint = PT;
 
@@ -905,7 +901,7 @@ insert_from_string_before_markers (Lisp_Object string,
 static void
 insert_from_string_1 (Lisp_Object string, ptrdiff_t pos, ptrdiff_t pos_byte,
 		      ptrdiff_t nchars, ptrdiff_t nbytes,
-		      int inherit, int before_markers)
+		      bool inherit, bool before_markers)
 {
   struct gcpro gcpro1;
   ptrdiff_t outgoing_nbytes = nbytes;
@@ -1039,7 +1035,7 @@ insert_from_gap (ptrdiff_t nchars, ptrdiff_t nbytes)
 
 void
 insert_from_buffer (struct buffer *buf,
-		    ptrdiff_t charpos, ptrdiff_t nchars, int inherit)
+		    ptrdiff_t charpos, ptrdiff_t nchars, bool inherit)
 {
   ptrdiff_t opoint = PT;
 
@@ -1050,7 +1046,7 @@ insert_from_buffer (struct buffer *buf,
 
 static void
 insert_from_buffer_1 (struct buffer *buf,
-		      ptrdiff_t from, ptrdiff_t nchars, int inherit)
+		      ptrdiff_t from, ptrdiff_t nchars, bool inherit)
 {
   ptrdiff_t chunk, chunk_expanded;
   ptrdiff_t from_byte = buf_charpos_to_bytepos (buf, from);
@@ -1265,7 +1261,7 @@ adjust_after_insert (ptrdiff_t from, ptrdiff_t from_byte,
 }
 
 /* Replace the text from character positions FROM to TO with NEW,
-   If PREPARE is nonzero, call prepare_to_modify_buffer.
+   If PREPARE, call prepare_to_modify_buffer.
    If INHERIT, the newly inserted text should inherit text properties
    from the surrounding non-deleted text.  */
 
@@ -1278,7 +1274,7 @@ adjust_after_insert (ptrdiff_t from, ptrdiff_t from_byte,
 
 void
 replace_range (ptrdiff_t from, ptrdiff_t to, Lisp_Object new,
-	       int prepare, int inherit, int markers)
+	       bool prepare, bool inherit, bool markers)
 {
   ptrdiff_t inschars = SCHARS (new);
   ptrdiff_t insbytes = SBYTES (new);
@@ -1443,7 +1439,7 @@ replace_range (ptrdiff_t from, ptrdiff_t to, Lisp_Object new,
 
    Note that this does not yet handle markers quite right.
 
-   If MARKERS is nonzero, relocate markers.
+   If MARKERS, relocate markers.
 
    Unlike most functions at this level, never call
    prepare_to_modify_buffer and never call signal_after_change.  */
@@ -1452,7 +1448,7 @@ void
 replace_range_2 (ptrdiff_t from, ptrdiff_t from_byte,
 		 ptrdiff_t to, ptrdiff_t to_byte,
 		 const char *ins, ptrdiff_t inschars, ptrdiff_t insbytes,
-		 int markers)
+		 bool markers)
 {
   ptrdiff_t nbytes_del, nchars_del;
 
@@ -1563,7 +1559,7 @@ del_range (ptrdiff_t from, ptrdiff_t to)
    RET_STRING says to return the deleted text. */
 
 Lisp_Object
-del_range_1 (ptrdiff_t from, ptrdiff_t to, int prepare, int ret_string)
+del_range_1 (ptrdiff_t from, ptrdiff_t to, bool prepare, bool ret_string)
 {
   ptrdiff_t from_byte, to_byte;
   Lisp_Object deletion;
@@ -1599,7 +1595,7 @@ del_range_1 (ptrdiff_t from, ptrdiff_t to, int prepare, int ret_string)
 /* Like del_range_1 but args are byte positions, not char positions.  */
 
 void
-del_range_byte (ptrdiff_t from_byte, ptrdiff_t to_byte, int prepare)
+del_range_byte (ptrdiff_t from_byte, ptrdiff_t to_byte, bool prepare)
 {
   ptrdiff_t from, to;
 
@@ -1643,7 +1639,7 @@ del_range_byte (ptrdiff_t from_byte, ptrdiff_t to_byte, int prepare)
 
 void
 del_range_both (ptrdiff_t from, ptrdiff_t from_byte,
-		ptrdiff_t to, ptrdiff_t to_byte, int prepare)
+		ptrdiff_t to, ptrdiff_t to_byte, bool prepare)
 {
   /* Make args be valid */
   if (from_byte < BEGV_BYTE)
@@ -1685,13 +1681,13 @@ del_range_both (ptrdiff_t from, ptrdiff_t from_byte,
 /* Delete a range of text, specified both as character positions
    and byte positions.  FROM and TO are character positions,
    while FROM_BYTE and TO_BYTE are byte positions.
-   If RET_STRING is true, the deleted area is returned as a string. */
+   If RET_STRING, the deleted area is returned as a string. */
 
 Lisp_Object
 del_range_2 (ptrdiff_t from, ptrdiff_t from_byte,
-	     ptrdiff_t to, ptrdiff_t to_byte, int ret_string)
+	     ptrdiff_t to, ptrdiff_t to_byte, bool ret_string)
 {
-  register ptrdiff_t nbytes_del, nchars_del;
+  ptrdiff_t nbytes_del, nchars_del;
   Lisp_Object deletion;
 
   check_markers ();
@@ -1770,12 +1766,12 @@ del_range_2 (ptrdiff_t from, ptrdiff_t from_byte,
    and warns the next redisplay that it should pay attention to that
    area.
 
-   If PRESERVE_CHARS_MODIFF is non-zero, do not update CHARS_MODIFF.
+   If PRESERVE_CHARS_MODIFF, do not update CHARS_MODIFF.
    Otherwise set CHARS_MODIFF to the new value of MODIFF.  */
 
 void
 modify_region (struct buffer *buffer, ptrdiff_t start, ptrdiff_t end,
-	       int preserve_chars_modiff)
+	       bool preserve_chars_modiff)
 {
   struct buffer *old_buffer = current_buffer;
 

@@ -1,3 +1,32 @@
+2012-09-02  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* doc.c, editfns.c, insdel.c, intervals.c: Use bool for boolean.
+	* doc.c (read_bytecode_char, get_doc_string, reread_doc_file)
+	(Fdocumentation, Fdocumentation_property, Fsnarf_documentation)
+	(Fsubstitute_command_keys):
+	* editfns.c (region_limit, find_field, Fconstrain_to_field)
+	(save_excursion_save, save_excursion_restore)
+	(disassemble_lisp_time, decode_time_components, emacs_nmemftime)
+	(format_time_string, general_insert_function)
+	(make_buffer_string, make_buffer_string_both)
+	(Fsubst_char_in_region, Ftranslate_region_internal, Fformat):
+	* insdel.c (check_markers, gap_left, adjust_markers_for_insert)
+	(copy_text, insert_1, insert_1_both, insert_from_string)
+	(insert_from_string_before_markers, insert_from_string_1)
+	(insert_from_buffer, insert_from_buffer_1, replace_range)
+	(replace_range_2, del_range_1, del_range_byte, del_range_both)
+	(del_range_2, modify_region):
+	* intervals.c (intervals_equal, balance_possible_root_interval)
+	(adjust_intervals_for_insertion, merge_properties_sticky)
+	(graft_intervals_into_buffer, lookup_char_property)
+	(adjust_for_invis_intang, set_point_both)
+	(get_property_and_range, compare_string_intervals)
+	(set_intervals_multibyte_1, set_intervals_multibyte):
+	* keyboard.c (decode_timer):
+	Use bool for boolean.
+	* intervals.h, lisp.h, systime.h: Reflect above API changes.
+	* editfns.c (struct info): Use 1-bit unsigned bitfields for booleans.
+
 2012-09-02  Chong Yidong  <cyd@gnu.org>
 
 	* keymap.c (push_key_description): Print M-TAB as C-M-i

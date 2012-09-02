@@ -65,7 +65,7 @@ extern Lisp_Object w32_get_internal_run_time (void);
 #endif
 
 static Lisp_Object format_time_string (char const *, ptrdiff_t, EMACS_TIME,
-				       int, struct tm *);
+				       bool, struct tm *);
 static int tm_diff (struct tm *, struct tm *);
 static void update_buffer_properties (ptrdiff_t, ptrdiff_t);
 
@@ -246,11 +246,11 @@ The return value is POSITION.  */)
 
 
 /* Return the start or end position of the region.
-   BEGINNINGP non-zero means return the start.
+   BEGINNINGP means return the start.
    If there is no region active, signal an error. */
 
 static Lisp_Object
-region_limit (int beginningp)
+region_limit (bool beginningp)
 {
   Lisp_Object m;
 
@@ -264,7 +264,7 @@ region_limit (int beginningp)
     error ("The mark is not set now, so there is no region");
 
   /* Clip to the current narrowing (bug#11770).  */
-  return make_number ((PT < XFASTINT (m)) == (beginningp != 0)
+  return make_number ((PT < XFASTINT (m)) == beginningp
 		      ? PT
 		      : clip_to_bounds (BEGV, XFASTINT (m), ZV));
 }
@@ -435,12 +435,12 @@ get_pos_property (Lisp_Object position, register Lisp_Object prop, Lisp_Object o
    BEG_LIMIT and END_LIMIT serve to limit the ranged of the returned
    results; they do not effect boundary behavior.
 
-   If MERGE_AT_BOUNDARY is nonzero, then if POS is at the very first
+   If MERGE_AT_BOUNDARY is non-nil, then if POS is at the very first
    position of a field, then the beginning of the previous field is
    returned instead of the beginning of POS's field (since the end of a
    field is actually also the beginning of the next input field, this
    behavior is sometimes useful).  Additionally in the MERGE_AT_BOUNDARY
-   true case, if two fields are separated by a field with the special
+   non-nil case, if two fields are separated by a field with the special
    value `boundary', and POS lies within it, then the two separated
    fields are considered to be adjacent, and POS between them, when
    finding the beginning and ending of the "merged" field.
@@ -455,10 +455,10 @@ find_field (Lisp_Object pos, Lisp_Object merge_at_boundary,
 {
   /* Fields right before and after the point.  */
   Lisp_Object before_field, after_field;
-  /* 1 if POS counts as the start of a field.  */
-  int at_field_start = 0;
-  /* 1 if POS counts as the end of a field.  */
-  int at_field_end = 0;
+  /* True if POS counts as the start of a field.  */
+  bool at_field_start = 0;
+  /* True if POS counts as the end of a field.  */
+  bool at_field_end = 0;
 
   if (NILP (pos))
     XSETFASTINT (pos, PT);
@@ -502,19 +502,19 @@ find_field (Lisp_Object pos, Lisp_Object merge_at_boundary,
 
 	xxxx.yyyy
 
-     In this situation, if merge_at_boundary is true, we consider the
+     In this situation, if merge_at_boundary is non-nil, consider the
      `x' and `y' fields as forming one big merged field, and so the end
      of the field is the end of `y'.
 
      However, if `x' and `y' are separated by a special `boundary' field
-     (a field with a `field' char-property of 'boundary), then we ignore
+     (a field with a `field' char-property of 'boundary), then ignore
      this special field when merging adjacent fields.  Here's the same
      situation, but with a `boundary' field between the `x' and `y' fields:
 
 	xxx.BBBByyyy
 
      Here, if point is at the end of `x', the beginning of `y', or
-     anywhere in-between (within the `boundary' field), we merge all
+     anywhere in-between (within the `boundary' field), merge all
      three fields and consider the beginning as being the beginning of
      the `x' field, and the end as being the end of the `y' field.  */
 
@@ -658,7 +658,7 @@ Field boundaries are not noticed if `inhibit-field-text-motion' is non-nil.  */)
 {
   /* If non-zero, then the original point, before re-positioning.  */
   ptrdiff_t orig_point = 0;
-  int fwd;
+  bool fwd;
   Lisp_Object prev_old, prev_new;
 
   if (NILP (new_pos))
@@ -816,8 +816,8 @@ This function does not move point.  */)
 Lisp_Object
 save_excursion_save (void)
 {
-  int visible = (XBUFFER (XWINDOW (selected_window)->buffer)
-		 == current_buffer);
+  bool visible = (XBUFFER (XWINDOW (selected_window)->buffer)
+		  == current_buffer);
 
   return Fcons (Fpoint_marker (),
 		Fcons (Fcopy_marker (BVAR (current_buffer, mark), Qnil),
@@ -831,7 +831,7 @@ save_excursion_restore (Lisp_Object info)
 {
   Lisp_Object tem, tem1, omark, nmark;
   struct gcpro gcpro1, gcpro2, gcpro3;
-  int visible_p;
+  bool visible_p;
 
   tem = Fmarker_buffer (XCAR (info));
   /* If buffer being returned to is now deleted, avoid error */
@@ -1467,8 +1467,8 @@ make_lisp_time (EMACS_TIME t)
 
 /* Decode a Lisp list SPECIFIED_TIME that represents a time.
    Set *PHIGH, *PLOW, *PUSEC, *PPSEC to its parts; do not check their values.
-   Return nonzero if successful.  */
-static int
+   Return true if successful.  */
+static bool
 disassemble_lisp_time (Lisp_Object specified_time, Lisp_Object *phigh,
 		       Lisp_Object *plow, Lisp_Object *pusec,
 		       Lisp_Object *ppsec)
@@ -1511,8 +1511,8 @@ disassemble_lisp_time (Lisp_Object specified_time, Lisp_Object *phigh,
    If *DRESULT is not null, store into *DRESULT the number of
    seconds since the start of the POSIX Epoch.
 
-   Return nonzero if successful.  */
-int
+   Return true if successful.  */
+bool
 decode_time_components (Lisp_Object high, Lisp_Object low, Lisp_Object usec,
 			Lisp_Object psec,
 			EMACS_TIME *result, double *dresult)
@@ -1632,7 +1632,7 @@ or (if you need time as a string) `format-time-string'.  */)
 
 /* Write information into buffer S of size MAXSIZE, according to the
    FORMAT of length FORMAT_LEN, using time information taken from *TP.
-   Default to Universal Time if UT is nonzero, local time otherwise.
+   Default to Universal Time if UT, local time otherwise.
    Use NS as the number of nanoseconds in the %N directive.
    Return the number of bytes written, not including the terminating
    '\0'.  If S is NULL, nothing will be written anywhere; so to
@@ -1643,7 +1643,7 @@ or (if you need time as a string) `format-time-string'.  */)
    bytes in FORMAT and it does not support nanoseconds.  */
 static size_t
 emacs_nmemftime (char *s, size_t maxsize, const char *format,
-		 size_t format_len, const struct tm *tp, int ut, int ns)
+		 size_t format_len, const struct tm *tp, bool ut, int ns)
 {
   size_t total = 0;
 
@@ -1748,7 +1748,7 @@ usage: (format-time-string FORMAT-STRING &optional TIME UNIVERSAL)  */)
 
 static Lisp_Object
 format_time_string (char const *format, ptrdiff_t formatlen,
-		    EMACS_TIME t, int ut, struct tm *tmp)
+		    EMACS_TIME t, bool ut, struct tm *tmp)
 {
   char buffer[4000];
   char *buf = buffer;
@@ -2228,11 +2228,11 @@ general_insert_function (void (*insert_func)
 			      (const char *, ptrdiff_t),
 			 void (*insert_from_string_func)
 			      (Lisp_Object, ptrdiff_t, ptrdiff_t,
-			       ptrdiff_t, ptrdiff_t, int),
-			 int inherit, ptrdiff_t nargs, Lisp_Object *args)
+			       ptrdiff_t, ptrdiff_t, bool),
+			 bool inherit, ptrdiff_t nargs, Lisp_Object *args)
 {
   ptrdiff_t argnum;
-  register Lisp_Object val;
+  Lisp_Object val;
 
   for (argnum = 0; argnum < nargs; argnum++)
     {
@@ -2455,7 +2455,7 @@ from adjoining text, if those properties are sticky.  */)
 /* Return a Lisp_String containing the text of the current buffer from
    START to END.  If text properties are in use and the current buffer
    has properties in the range specified, the resulting string will also
-   have them, if PROPS is nonzero.
+   have them, if PROPS is true.
 
    We don't want to use plain old make_string here, because it calls
    make_uninit_string, which can cause the buffer arena to be
@@ -2466,7 +2466,7 @@ from adjoining text, if those properties are sticky.  */)
    buffer substrings.  */
 
 Lisp_Object
-make_buffer_string (ptrdiff_t start, ptrdiff_t end, int props)
+make_buffer_string (ptrdiff_t start, ptrdiff_t end, bool props)
 {
   ptrdiff_t start_byte = CHAR_TO_BYTE (start);
   ptrdiff_t end_byte = CHAR_TO_BYTE (end);
@@ -2479,7 +2479,7 @@ make_buffer_string (ptrdiff_t start, ptrdiff_t end, int props)
 
    If text properties are in use and the current buffer
    has properties in the range specified, the resulting string will also
-   have them, if PROPS is nonzero.
+   have them, if PROPS is true.
 
    We don't want to use plain old make_string here, because it calls
    make_uninit_string, which can cause the buffer arena to be
@@ -2491,7 +2491,7 @@ make_buffer_string (ptrdiff_t start, ptrdiff_t end, int props)
 
 Lisp_Object
 make_buffer_string_both (ptrdiff_t start, ptrdiff_t start_byte,
-			 ptrdiff_t end, ptrdiff_t end_byte, int props)
+			 ptrdiff_t end, ptrdiff_t end_byte, bool props)
 {
   Lisp_Object result, tem, tem1;
 
@@ -2842,7 +2842,8 @@ Both characters must have the same length of multi-byte form.  */)
 #define COMBINING_BOTH (COMBINING_BEFORE | COMBINING_AFTER)
   int maybe_byte_combining = COMBINING_NO;
   ptrdiff_t last_changed = 0;
-  int multibyte_p = !NILP (BVAR (current_buffer, enable_multibyte_characters));
+  bool multibyte_p
+    = !NILP (BVAR (current_buffer, enable_multibyte_characters));
   int fromc, toc;
 
  restart:
@@ -3078,8 +3079,8 @@ It returns the number of characters changed.  */)
   int cnt;			/* Number of changes made. */
   ptrdiff_t size;		/* Size of translate table. */
   ptrdiff_t pos, pos_byte, end_pos;
-  int multibyte = !NILP (BVAR (current_buffer, enable_multibyte_characters));
-  int string_multibyte IF_LINT (= 0);
+  bool multibyte = !NILP (BVAR (current_buffer, enable_multibyte_characters));
+  bool string_multibyte IF_LINT (= 0);
 
   validate_region (&start, &end);
   if (CHAR_TABLE_P (table))
@@ -3650,9 +3651,9 @@ usage: (format STRING &rest OBJECTS)  */)
      byte combining problem, i.e., a byte may be combined with a
      multibyte character of the previous string.  This flag tells if we
      must consider such a situation or not.  */
-  int maybe_combine_byte;
+  bool maybe_combine_byte;
   Lisp_Object val;
-  int arg_intervals = 0;
+  bool arg_intervals = 0;
   USE_SAFE_ALLOCA;
 
   /* discarded[I] is 1 if byte I of the format
@@ -3668,8 +3669,8 @@ usage: (format STRING &rest OBJECTS)  */)
   struct info
   {
     ptrdiff_t start, end;
-    int converted_to_string;
-    int intervals;
+    unsigned converted_to_string : 1;
+    unsigned intervals : 1;
   } *info = 0;
 
   /* It should not be necessary to GCPRO ARGS, because
@@ -3746,13 +3747,13 @@ usage: (format STRING &rest OBJECTS)  */)
 	     digits to print after the '.' for floats, or the max.
 	     number of chars to print from a string.  */
 
-	  int minus_flag = 0;
-	  int  plus_flag = 0;
-	  int space_flag = 0;
-	  int sharp_flag = 0;
-	  int  zero_flag = 0;
+	  bool minus_flag = 0;
+	  bool  plus_flag = 0;
+	  bool space_flag = 0;
+	  bool sharp_flag = 0;
+	  bool  zero_flag = 0;
 	  ptrdiff_t field_width;
-	  int precision_given;
+	  bool precision_given;
 	  uintmax_t precision = UINTMAX_MAX;
 	  char *num_end;
 	  char conversion;
@@ -4132,7 +4133,7 @@ usage: (format STRING &rest OBJECTS)  */)
                   char *src = sprintf_buf;
 		  char src0 = src[0];
 		  int exponent_bytes = 0;
-		  int signedp = src0 == '-' || src0 == '+' || src0 == ' ';
+		  bool signedp = src0 == '-' || src0 == '+' || src0 == ' ';
 		  int significand_bytes;
 		  if (zero_flag
 		      && ((src[signedp] >= '0' && src[signedp] <= '9')

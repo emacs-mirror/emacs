@@ -154,8 +154,8 @@ extern void set_waiting_for_input (EMACS_TIME *);
 #ifdef GCPRO1
 /* defined in editfns.c */
 extern Lisp_Object make_lisp_time (EMACS_TIME);
-extern int decode_time_components (Lisp_Object, Lisp_Object, Lisp_Object,
-				   Lisp_Object, EMACS_TIME *, double *);
+extern bool decode_time_components (Lisp_Object, Lisp_Object, Lisp_Object,
+				    Lisp_Object, EMACS_TIME *, double *);
 extern EMACS_TIME lisp_time_argument (Lisp_Object);
 #endif
 

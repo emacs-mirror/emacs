@@ -178,14 +178,13 @@ merge_properties (register INTERVAL source, register INTERVAL target)
     }
 }
 
-/* Return 1 if the two intervals have the same properties,
-   0 otherwise.  */
+/* Return true if the two intervals have the same properties.  */
 
-int
+bool
 intervals_equal (INTERVAL i0, INTERVAL i1)
 {
-  register Lisp_Object i0_cdr, i0_sym;
-  register Lisp_Object i1_cdr, i1_val;
+  Lisp_Object i0_cdr, i0_sym;
+  Lisp_Object i1_cdr, i1_val;
 
   if (DEFAULT_INTERVAL_P (i0) && DEFAULT_INTERVAL_P (i1))
     return 1;
@@ -469,10 +468,10 @@ balance_an_interval (INTERVAL i)
    Lisp Object.  */
 
 static inline INTERVAL
-balance_possible_root_interval (register INTERVAL interval)
+balance_possible_root_interval (INTERVAL interval)
 {
   Lisp_Object parent;
-  int have_parent = 0;
+  bool have_parent = 0;
 
   if (!INTERVAL_HAS_OBJECT (interval) && !INTERVAL_HAS_PARENT (interval))
     return interval;
@@ -845,9 +844,9 @@ static INTERVAL
 adjust_intervals_for_insertion (INTERVAL tree,
 				ptrdiff_t position, ptrdiff_t length)
 {
-  register INTERVAL i;
-  register INTERVAL temp;
-  int eobp = 0;
+  INTERVAL i;
+  INTERVAL temp;
+  bool eobp = 0;
   Lisp_Object parent;
   ptrdiff_t offset;
 
@@ -1068,11 +1067,10 @@ FR     8  9  A  B
 static Lisp_Object
 merge_properties_sticky (Lisp_Object pleft, Lisp_Object pright)
 {
-  register Lisp_Object props, front, rear;
+  Lisp_Object props, front, rear;
   Lisp_Object lfront, lrear, rfront, rrear;
-  register Lisp_Object tail1, tail2, sym, lval, rval, cat;
-  int use_left, use_right;
-  int lpresent;
+  Lisp_Object tail1, tail2, sym, lval, rval, cat;
+  bool use_left, use_right, lpresent;
 
   props = Qnil;
   front = Qnil;
@@ -1610,7 +1608,7 @@ reproduce_tree_obj (INTERVAL source, Lisp_Object parent)
 void
 graft_intervals_into_buffer (INTERVAL source, ptrdiff_t position,
 			     ptrdiff_t length, struct buffer *buffer,
-			     int inherit)
+			     bool inherit)
 {
   INTERVAL tree = buffer_intervals (buffer);
   INTERVAL under, over, this;
@@ -1753,9 +1751,9 @@ textget (Lisp_Object plist, register Lisp_Object prop)
 }
 
 Lisp_Object
-lookup_char_property (Lisp_Object plist, register Lisp_Object prop, int textprop)
+lookup_char_property (Lisp_Object plist, Lisp_Object prop, bool textprop)
 {
-  register Lisp_Object tail, fallback = Qnil;
+  Lisp_Object tail, fallback = Qnil;
 
   for (tail = plist; CONSP (tail); tail = Fcdr (XCDR (tail)))
     {
@@ -1826,8 +1824,8 @@ set_point (ptrdiff_t charpos)
 /* If there's an invisible character at position POS + TEST_OFFS in the
    current buffer, and the invisible property has a `stickiness' such that
    inserting a character at position POS would inherit the property it,
-   return POS + ADJ, otherwise return POS.  If TEST_INTANG is non-zero,
-   then intangibility is required as well as invisibility.
+   return POS + ADJ, otherwise return POS.  If TEST_INTANG, intangibility
+   is required as well as invisibility.
 
    TEST_OFFS should be either 0 or -1, and ADJ should be either 1 or -1.
 
@@ -1836,7 +1834,7 @@ set_point (ptrdiff_t charpos)
 
 static ptrdiff_t
 adjust_for_invis_intang (ptrdiff_t pos, ptrdiff_t test_offs, ptrdiff_t adj,
-			 int test_intang)
+			 bool test_intang)
 {
   Lisp_Object invis_propval, invis_overlay;
   Lisp_Object test_pos;
@@ -1883,8 +1881,8 @@ set_point_both (ptrdiff_t charpos, ptrdiff_t bytepos)
      initial position is the same as the destination, in the rare
      instances where this is important, e.g. in line-move-finish
      (simple.el).  */
-  int backwards = (charpos < old_position ? 1 : 0);
-  int have_overlays;
+  bool backwards = charpos < old_position;
+  bool have_overlays;
   ptrdiff_t original_position;
 
   bset_point_before_scroll (current_buffer, Qnil);
@@ -2154,12 +2152,12 @@ move_if_not_intangible (ptrdiff_t position)
 
 /* If text at position POS has property PROP, set *VAL to the property
    value, *START and *END to the beginning and end of a region that
-   has the same property, and return 1.  Otherwise return 0.
+   has the same property, and return true.  Otherwise return false.
 
    OBJECT is the string or buffer to look for the property in;
    nil means the current buffer. */
 
-int
+bool
 get_property_and_range (ptrdiff_t pos, Lisp_Object prop, Lisp_Object *val,
 			ptrdiff_t *start, ptrdiff_t *end, Lisp_Object object)
 {
@@ -2306,10 +2304,10 @@ copy_intervals_to_string (Lisp_Object string, struct buffer *buffer,
   set_string_intervals (string, interval_copy);
 }
 
-/* Return 1 if strings S1 and S2 have identical properties; 0 otherwise.
+/* Return true if strings S1 and S2 have identical properties.
    Assume they have identical characters.  */
 
-int
+bool
 compare_string_intervals (Lisp_Object s1, Lisp_Object s2)
 {
   INTERVAL i1, i2;
@@ -2348,7 +2346,7 @@ compare_string_intervals (Lisp_Object s1, Lisp_Object s2)
    START_BYTE ... END_BYTE in bytes.  */
 
 static void
-set_intervals_multibyte_1 (INTERVAL i, int multi_flag,
+set_intervals_multibyte_1 (INTERVAL i, bool multi_flag,
 			   ptrdiff_t start, ptrdiff_t start_byte,
 			   ptrdiff_t end, ptrdiff_t end_byte)
 {
@@ -2456,11 +2454,11 @@ set_intervals_multibyte_1 (INTERVAL i, int multi_flag,
 }
 
 /* Update the intervals of the current buffer
-   to fit the contents as multibyte (if MULTI_FLAG is 1)
-   or to fit them as non-multibyte (if MULTI_FLAG is 0).  */
+   to fit the contents as multibyte (if MULTI_FLAG)
+   or to fit them as non-multibyte (if not MULTI_FLAG).  */
 
 void
-set_intervals_multibyte (int multi_flag)
+set_intervals_multibyte (bool multi_flag)
 {
   INTERVAL i = buffer_intervals (current_buffer);
 

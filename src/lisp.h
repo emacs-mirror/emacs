@@ -2720,43 +2720,43 @@ extern void move_gap_both (ptrdiff_t, ptrdiff_t);
 extern _Noreturn void buffer_overflow (void);
 extern void make_gap (ptrdiff_t);
 extern ptrdiff_t copy_text (const unsigned char *, unsigned char *,
-			    ptrdiff_t, int, int);
+			    ptrdiff_t, bool, bool);
 extern int count_combining_before (const unsigned char *,
 				   ptrdiff_t, ptrdiff_t, ptrdiff_t);
 extern int count_combining_after (const unsigned char *,
 				  ptrdiff_t, ptrdiff_t, ptrdiff_t);
 extern void insert (const char *, ptrdiff_t);
 extern void insert_and_inherit (const char *, ptrdiff_t);
-extern void insert_1 (const char *, ptrdiff_t, int, int, int);
+extern void insert_1 (const char *, ptrdiff_t, bool, bool, bool);
 extern void insert_1_both (const char *, ptrdiff_t, ptrdiff_t,
-			   int, int, int);
+			   bool, bool, bool);
 extern void insert_from_gap (ptrdiff_t, ptrdiff_t);
 extern void insert_from_string (Lisp_Object, ptrdiff_t, ptrdiff_t,
-				ptrdiff_t, ptrdiff_t, int);
-extern void insert_from_buffer (struct buffer *, ptrdiff_t, ptrdiff_t, int);
+				ptrdiff_t, ptrdiff_t, bool);
+extern void insert_from_buffer (struct buffer *, ptrdiff_t, ptrdiff_t, bool);
 extern void insert_char (int);
 extern void insert_string (const char *);
 extern void insert_before_markers (const char *, ptrdiff_t);
 extern void insert_before_markers_and_inherit (const char *, ptrdiff_t);
 extern void insert_from_string_before_markers (Lisp_Object, ptrdiff_t,
 					       ptrdiff_t, ptrdiff_t,
-					       ptrdiff_t, int);
+					       ptrdiff_t, bool);
 extern void del_range (ptrdiff_t, ptrdiff_t);
-extern Lisp_Object del_range_1 (ptrdiff_t, ptrdiff_t, int, int);
-extern void del_range_byte (ptrdiff_t, ptrdiff_t, int);
-extern void del_range_both (ptrdiff_t, ptrdiff_t, ptrdiff_t, ptrdiff_t, int);
+extern Lisp_Object del_range_1 (ptrdiff_t, ptrdiff_t, bool, bool);
+extern void del_range_byte (ptrdiff_t, ptrdiff_t, bool);
+extern void del_range_both (ptrdiff_t, ptrdiff_t, ptrdiff_t, ptrdiff_t, bool);
 extern Lisp_Object del_range_2 (ptrdiff_t, ptrdiff_t,
-				ptrdiff_t, ptrdiff_t, int);
-extern void modify_region (struct buffer *, ptrdiff_t, ptrdiff_t, int);
+				ptrdiff_t, ptrdiff_t, bool);
+extern void modify_region (struct buffer *, ptrdiff_t, ptrdiff_t, bool);
 extern void prepare_to_modify_buffer (ptrdiff_t, ptrdiff_t, ptrdiff_t *);
 extern void signal_after_change (ptrdiff_t, ptrdiff_t, ptrdiff_t);
 extern void adjust_after_insert (ptrdiff_t, ptrdiff_t, ptrdiff_t,
 				 ptrdiff_t, ptrdiff_t);
 extern void adjust_markers_for_delete (ptrdiff_t, ptrdiff_t,
 				       ptrdiff_t, ptrdiff_t);
-extern void replace_range (ptrdiff_t, ptrdiff_t, Lisp_Object, int, int, int);
+extern void replace_range (ptrdiff_t, ptrdiff_t, Lisp_Object, bool, bool, bool);
 extern void replace_range_2 (ptrdiff_t, ptrdiff_t, ptrdiff_t, ptrdiff_t,
-			     const char *, ptrdiff_t, ptrdiff_t, int);
+			     const char *, ptrdiff_t, ptrdiff_t, bool);
 extern void syms_of_insdel (void);
 
 /* Defined in dispnew.c */
@@ -3094,9 +3094,9 @@ extern Lisp_Object save_restriction_save (void);
 extern Lisp_Object save_excursion_restore (Lisp_Object);
 extern Lisp_Object save_restriction_restore (Lisp_Object);
 extern _Noreturn void time_overflow (void);
-extern Lisp_Object make_buffer_string (ptrdiff_t, ptrdiff_t, int);
+extern Lisp_Object make_buffer_string (ptrdiff_t, ptrdiff_t, bool);
 extern Lisp_Object make_buffer_string_both (ptrdiff_t, ptrdiff_t, ptrdiff_t,
-					    ptrdiff_t, int);
+					    ptrdiff_t, bool);
 extern void init_editfns (void);
 const char *get_system_name (void);
 extern void syms_of_editfns (void);
@@ -3332,9 +3332,9 @@ extern void syms_of_callproc (void);
 /* Defined in doc.c */
 extern Lisp_Object Qfunction_documentation;
 extern Lisp_Object read_doc_string (Lisp_Object);
-extern Lisp_Object get_doc_string (Lisp_Object, int, int);
+extern Lisp_Object get_doc_string (Lisp_Object, bool, bool);
 extern void syms_of_doc (void);
-extern int read_bytecode_char (int);
+extern int read_bytecode_char (bool);
 
 /* Defined in bytecode.c */
 extern Lisp_Object Qbytecode;

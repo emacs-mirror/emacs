@@ -48,7 +48,7 @@ static unsigned char *read_bytecode_pointer;
    If UNREADFLAG is 1, we unread a byte.  */
 
 int
-read_bytecode_char (int unreadflag)
+read_bytecode_char (bool unreadflag)
 {
   if (unreadflag)
     {
@@ -70,20 +70,18 @@ read_bytecode_char (int unreadflag)
    (e.g. because the file has been modified and the location is stale),
    return nil.
 
-   If UNIBYTE is nonzero, always make a unibyte string.
+   If UNIBYTE, always make a unibyte string.
 
-   If DEFINITION is nonzero, assume this is for reading
+   If DEFINITION, assume this is for reading
    a dynamic function definition; convert the bytestring
    and the constants vector with appropriate byte handling,
    and return a cons cell.  */
 
 Lisp_Object
-get_doc_string (Lisp_Object filepos, int unibyte, int definition)
+get_doc_string (Lisp_Object filepos, bool unibyte, bool definition)
 {
-  char *from, *to;
-  register int fd;
-  register char *name;
-  register char *p, *p1;
+  char *from, *to, *name, *p, *p1;
+  int fd;
   ptrdiff_t minsize;
   int offset;
   EMACS_INT position;
@@ -302,7 +300,7 @@ read_doc_string (Lisp_Object filepos)
   return get_doc_string (filepos, 0, 1);
 }
 
-static int
+static bool
 reread_doc_file (Lisp_Object file)
 {
 #if 0
@@ -335,7 +333,7 @@ string is passed through `substitute-command-keys'.  */)
   Lisp_Object fun;
   Lisp_Object funcar;
   Lisp_Object doc;
-  int try_reload = 1;
+  bool try_reload = 1;
 
  documentation:
 
@@ -467,7 +465,7 @@ This differs from `get' in that it can refer to strings stored in the
 aren't strings.  */)
   (Lisp_Object symbol, Lisp_Object prop, Lisp_Object raw)
 {
-  int try_reload = 1;
+  bool try_reload = 1;
   Lisp_Object tem;
 
  documentation_property:
@@ -562,12 +560,11 @@ the same file name is found in the `doc-directory'.  */)
 {
   int fd;
   char buf[1024 + 1];
-  register int filled;
-  register EMACS_INT pos;
-  register char *p;
+  int filled;
+  EMACS_INT pos;
   Lisp_Object sym;
-  char *name;
-  int skip_file = 0;
+  char *p, *name;
+  bool skip_file = 0;
 
   CHECK_STRING (filename);
 
@@ -722,9 +719,9 @@ Otherwise, return a new string, without any text properties.  */)
   (Lisp_Object string)
 {
   char *buf;
-  int changed = 0;
-  register unsigned char *strp;
-  register char *bufp;
+  bool changed = 0;
+  unsigned char *strp;
+  char *bufp;
   ptrdiff_t idx;
   ptrdiff_t bsize;
   Lisp_Object tem;
@@ -733,7 +730,7 @@ Otherwise, return a new string, without any text properties.  */)
   ptrdiff_t length, length_byte;
   Lisp_Object name;
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
-  int multibyte;
+  bool multibyte;
   ptrdiff_t nchars;
 
   if (NILP (string))
@@ -787,7 +784,7 @@ Otherwise, return a new string, without any text properties.  */)
       else if (strp[0] == '\\' && strp[1] == '[')
 	{
 	  ptrdiff_t start_idx;
-	  int follow_remap = 1;
+	  bool follow_remap = 1;
 
 	  changed = 1;
 	  strp += 2;		/* skip \[ */

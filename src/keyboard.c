@@ -4339,9 +4339,8 @@ struct input_event last_timer_event EXTERNALLY_VISIBLE;
    ...).  Each element has the form (FUN . ARGS).  */
 Lisp_Object pending_funcalls;
 
-/* If TIMER is a valid timer, return nonzero and place its value into
-   *RESULT.  Otherwise return zero.  */
-static int
+/* Return true if TIMER is a valid timer, placing its value into *RESULT.  */
+static bool
 decode_timer (Lisp_Object timer, EMACS_TIME *result)
 {
   Lisp_Object *vector;
@@ -8445,7 +8444,7 @@ append_tool_bar_item (void)
 
   /* Append entries from tool_bar_item_properties to the end of
      tool_bar_items_vector.  */
-  vcopy (tool_bar_items_vector, ntool_bar_items, 
+  vcopy (tool_bar_items_vector, ntool_bar_items,
 	 XVECTOR (tool_bar_item_properties)->contents, TOOL_BAR_ITEM_NSLOTS);
   ntool_bar_items += TOOL_BAR_ITEM_NSLOTS;
 }
