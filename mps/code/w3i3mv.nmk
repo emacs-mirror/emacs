@@ -23,16 +23,6 @@ MPM = <ring> <mpm> <bt> <protocol> <boot> \
       <thw3> <thw3i3> <ssw3i3> <mpsi> <mpsiw3> <ld> <spi3> \
       <event> <seg> <sac> <poolmrg> <message> <dbgpool> <dbgpooli> \
       <abq> <meter> <cbs> <poolmv2> <splay> <diag>
-SW  = <ring> <mpm> <bt> <protocol> <boot> \
-      <arenavm> <arenacl> <locus> <arena> <global> <tract> <reserv> \
-      <pool> <poolabs> <poolmfs> <poolmv> \
-      <root> <format> <buffer> <walk> \
-      <ref> <trace> <traceanc> <protsw> <prmcan> \
-      <shield> <vmw3> \
-      <thw3> <thw3i3> <ssan> <mpsi> <ld> \
-      <event> <seg> <sac> <poolmrg> <message> <mpsioan> \
-      <poolams> <poolamsi> <dbgpool> <dbgpooli> \
-      <abq> <meter> <cbs> <poolmv2> <splay> <diag> <poolmvff>
 PLINTH = <mpsliban> <mpsioan>
 AMC = <poolamc>
 AMS = <poolams> <poolamsi>
@@ -57,33 +47,33 @@ TESTLIB = <testlib>
 # macro which expands to the flags that the variety should use when building
 # libraries
 
-!IF "$(VARIETY)" == "he"
+!IF "$(VARIETY)" == "hot"
 CFLAGS=$(CFLAGSCOMMONPRE) $(CFHE) $(CFLAGSCOMMONPOST)
 LINKFLAGS=$(LINKFLAGSCOMMON) $(LFHE)
 LIBFLAGS=$(LIBFLAGSCOMMON) $(LIBFLAGSHE)
-MPMOBJ0 = $(MPM:<=w3i3mv\he\)
+MPMOBJ0 = $(MPM:<=w3i3mv\hot\)
 MPMOBJ = $(MPMOBJ0:>=.obj)
-PLINTHOBJ0 = $(PLINTH:<=w3i3mv\he\)
+PLINTHOBJ0 = $(PLINTH:<=w3i3mv\hot\)
 PLINTHOBJ = $(PLINTHOBJ0:>=.obj)
-SWOBJ0 = $(SW:<=w3i3mv\he\)
+SWOBJ0 = $(SW:<=w3i3mv\hot\)
 SWOBJ = $(SWOBJ0:>=.obj)
-AMSOBJ0 = $(AMS:<=w3i3mv\he\)
+AMSOBJ0 = $(AMS:<=w3i3mv\hot\)
 AMSOBJ = $(AMSOBJ0:>=.obj)
-AMCOBJ0 = $(AMC:<=w3i3mv\he\)
+AMCOBJ0 = $(AMC:<=w3i3mv\hot\)
 AMCOBJ = $(AMCOBJ0:>=.obj)
-AWLOBJ0 = $(AWL:<=w3i3mv\he\)
+AWLOBJ0 = $(AWL:<=w3i3mv\hot\)
 AWLOBJ = $(AWLOBJ0:>=.obj)
-LOOBJ0 = $(LO:<=w3i3mv\he\)
+LOOBJ0 = $(LO:<=w3i3mv\hot\)
 LOOBJ = $(LOOBJ0:>=.obj)
-SNCOBJ0 = $(SNC:<=w3i3mv\he\)
+SNCOBJ0 = $(SNC:<=w3i3mv\hot\)
 SNCOBJ = $(SNCOBJ0:>=.obj)
-DWOBJ0 = $(DW:<=w3i3mv\he\)
+DWOBJ0 = $(DW:<=w3i3mv\hot\)
 DWOBJ = $(DWOBJ0:>=.obj)
-FMTTESTOBJ0 = $(FMTTEST:<=w3i3mv\he\)
+FMTTESTOBJ0 = $(FMTTEST:<=w3i3mv\hot\)
 FMTTESTOBJ = $(FMTTESTOBJ0:>=.obj)
-POOLNOBJ0 = $(POOLN:<=w3i3mv\he\)
+POOLNOBJ0 = $(POOLN:<=w3i3mv\hot\)
 POOLNOBJ = $(POOLNOBJ0:>=.obj)
-TESTLIBOBJ0 = $(TESTLIB:<=w3i3mv\he\)
+TESTLIBOBJ0 = $(TESTLIB:<=w3i3mv\hot\)
 TESTLIBOBJ = $(TESTLIBOBJ0:>=.obj)
 
 !ELSEIF "$(VARIETY)" == "di"
@@ -115,33 +105,33 @@ POOLNOBJ = $(POOLNOBJ0:>=.obj)
 TESTLIBOBJ0 = $(TESTLIB:<=w3i3mv\di\)
 TESTLIBOBJ = $(TESTLIBOBJ0:>=.obj)
 
-!ELSEIF "$(VARIETY)" == "ci"
+!ELSEIF "$(VARIETY)" == "cool"
 CFLAGS=$(CFLAGSCOMMONPRE) $(CFCI) $(CFLAGSCOMMONPOST)
 LINKFLAGS=$(LINKFLAGSCOMMON) $(LFCI)
 LIBFLAGS=$(LIBFLAGSCOMMON) $(LIBFLAGSCI)
-MPMOBJ0 = $(MPM:<=w3i3mv\ci\)
+MPMOBJ0 = $(MPM:<=w3i3mv\cool\)
 MPMOBJ = $(MPMOBJ0:>=.obj)
-PLINTHOBJ0 = $(PLINTH:<=w3i3mv\ci\)
+PLINTHOBJ0 = $(PLINTH:<=w3i3mv\cool\)
 PLINTHOBJ = $(PLINTHOBJ0:>=.obj)
-SWOBJ0 = $(SW:<=w3i3mv\ci\)
+SWOBJ0 = $(SW:<=w3i3mv\cool\)
 SWOBJ = $(SWOBJ0:>=.obj)
-AMSOBJ0 = $(AMS:<=w3i3mv\ci\)
+AMSOBJ0 = $(AMS:<=w3i3mv\cool\)
 AMSOBJ = $(AMSOBJ0:>=.obj)
-AMCOBJ0 = $(AMC:<=w3i3mv\ci\)
+AMCOBJ0 = $(AMC:<=w3i3mv\cool\)
 AMCOBJ = $(AMCOBJ0:>=.obj)
-AWLOBJ0 = $(AWL:<=w3i3mv\ci\)
+AWLOBJ0 = $(AWL:<=w3i3mv\cool\)
 AWLOBJ = $(AWLOBJ0:>=.obj)
-LOOBJ0 = $(LO:<=w3i3mv\ci\)
+LOOBJ0 = $(LO:<=w3i3mv\cool\)
 LOOBJ = $(LOOBJ0:>=.obj)
-SNCOBJ0 = $(SNC:<=w3i3mv\ci\)
+SNCOBJ0 = $(SNC:<=w3i3mv\cool\)
 SNCOBJ = $(SNCOBJ0:>=.obj)
-DWOBJ0 = $(DW:<=w3i3mv\ci\)
+DWOBJ0 = $(DW:<=w3i3mv\cool\)
 DWOBJ = $(DWOBJ0:>=.obj)
-FMTTESTOBJ0 = $(FMTTEST:<=w3i3mv\ci\)
+FMTTESTOBJ0 = $(FMTTEST:<=w3i3mv\cool\)
 FMTTESTOBJ = $(FMTTESTOBJ0:>=.obj)
-POOLNOBJ0 = $(POOLN:<=w3i3mv\ci\)
+POOLNOBJ0 = $(POOLN:<=w3i3mv\cool\)
 POOLNOBJ = $(POOLNOBJ0:>=.obj)
-TESTLIBOBJ0 = $(TESTLIB:<=w3i3mv\ci\)
+TESTLIBOBJ0 = $(TESTLIB:<=w3i3mv\cool\)
 TESTLIBOBJ = $(TESTLIBOBJ0:>=.obj)
 
 !ELSEIF "$(VARIETY)" == "ti"
