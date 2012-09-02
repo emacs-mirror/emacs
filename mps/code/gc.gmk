@@ -13,8 +13,8 @@ CFLAGSCOMPILER := \
 	-Wstrict-prototypes -Wmissing-prototypes \
 	-Winline -Waggregate-return -Wnested-externs \
 	-Wcast-qual -Wshadow
-CFLAGSDEBUG = -O0 -g
-CFLAGSOPT = -O3 -g
+CFLAGSDEBUG = -O -g3
+CFLAGSOPT = -O3 -g3
 
 # gcc -MM generates a dependency line of the form:
 #   thing.o : thing.c ...
