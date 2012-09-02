@@ -5,19 +5,21 @@
 
 PFM = fri6gc
 
+# FIXME: What is this for?  Clues at
+# http://www.kernel.org/doc/man-pages/online/pages/man7/feature_test_macros.7.html
+# Discover whether it's still necessary and if so, document why.
 PFMDEFS = -D_REENTRANT
 
 MPMPF = lockix.c thix.c pthrdext.c vmix.c \
         protix.c protsgix.c prmcan.c prmci6fr.c ssixi6.c span.c
-SWPF = than.c vmfr.c protsw.c prmcan.c ssan.c
 
 LIBS = -lm -pthread
 
 include gc.gmk
 
 CFLAGSCOMPILER := $(subst -pedantic,,$(CFLAGSCOMPILER))
-CFLAGSDEBUG = -g3
-CFLAGSOPT = -O -g3
+CFLAGSDEBUG = -O -g3
+CFLAGSOPT = -O3 -g3
 
 CC = cc
 
