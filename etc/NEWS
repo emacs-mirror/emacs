@@ -183,12 +183,14 @@ end of the buffer.  It defaults to t.
 and `M-s _' in Isearch toggles symbol search mode.
 `M-s c' in Isearch toggles search case-sensitivity.
 
-*** `search-whitespace-regexp' now acts on ordinary incremental search
-as well, so that each sequence of spaces in the search string matches
-any combination of one or more whitespace characters.  To change this
-behavior, you can give `search-whitespace-regexp' a cons cell value,
-where the car and cdr specify values for ordinary and regular
-expression incremental search respectively.
+*** `M-s SPC' in Isearch toggles whitespace matching mode
+in both ordinary and regexp incremental search, so that each
+sequence of spaces in the search string matches any combination
+of one or more whitespace characters defined by the variable
+`search-whitespace-regexp'.  In ordinary incremental search,
+`isearch-toggle-lax-whitespace' toggles the value of the variable
+`isearch-lax-whitespace'.  In regexp incremental search, it toggles
+the value of the variable `isearch-regexp-lax-whitespace'.
 
 ** M-x move-to-column, if called interactively with no prefix arg, now
 prompts for a column number.

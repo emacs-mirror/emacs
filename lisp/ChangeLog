@@ -1,3 +1,34 @@
+2012-09-02  Juri Linkov  <juri@jurta.org>
+
+	Toggle whitespace matching mode with M-s SPC.
+	http://lists.gnu.org/archive/html/emacs-devel/2012-09/msg00008.html
+
+	* isearch.el (search-whitespace-regexp): Doc fix.
+	Remove cons cell customization.
+	(isearch-mode-map): Bind "\M-s " to isearch-toggle-lax-whitespace.
+	(isearch-lax-whitespace, isearch-regexp-lax-whitespace):
+	New variables.
+	(isearch-forward, isearch-forward-regexp): Doc fix.
+	(isearch-toggle-lax-whitespace): New command.
+	(search-forward-lax-whitespace, search-backward-lax-whitespace)
+	(re-search-forward-lax-whitespace)
+	(re-search-backward-lax-whitespace): New functions.
+	(isearch-whitespace-regexp): Remove function.
+	(isearch-query-replace): Let-bind replace-search-function and
+	replace-re-search-function.
+	(isearch-occur): Let-bind search-spaces-regexp according to the
+	value of isearch-lax-whitespace and isearch-regexp-lax-whitespace.
+	(isearch-quote-char): Check isearch-regexp-lax-whitespace in the
+	condition for C-q SPC.
+	(isearch-search-fun-default): Use new functions mentioned above.
+	(isearch-search-forward, isearch-search-backward): Remove functions.
+	(isearch-search): Don't let-bind search-spaces-regexp.
+	(isearch-lazy-highlight-space-regexp): Remove variable.
+	(isearch-lazy-highlight-lax-whitespace)
+	(isearch-lazy-highlight-regexp-lax-whitespace): New variables.
+	(isearch-lazy-highlight-new-loop): Use them.
+	(isearch-lazy-highlight-search): Don't let-bind search-spaces-regexp.
+
 2012-09-02  Chong Yidong  <cyd@gnu.org>
 
 	* dired.el (dired-mode-map): Menu string fixes (Bug#11616).
