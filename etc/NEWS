@@ -166,7 +166,8 @@ The PCL-CVS commands are still available via the keyboard.
 * Editing Changes in Emacs 24.3
 
 ** The `z' key no longer has a binding in most special modes.
-It used to kill the current buffer.
+It used to be bound to `kill-this-buffer', but `z' is too easy to
+accidentally type.
 
 ** New option `yank-handled-properties' allows processing of text
 properties on yanked text, in more ways that are more general than
