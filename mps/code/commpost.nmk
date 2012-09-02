@@ -83,11 +83,6 @@ variety: $(PFM)\$(VARIETY)\$(TARGET)
 mpsicv.cov:
 	$(MAKE) /nologo /f $(PFM).nmk TARGET=$@ VARIETY=cv variety
 
-# FORCE
-# Used to force a target to be built.
-# Depends on there being no file called "FORCE".
-FORCE:
-
 
 # GENUINE TARGETS
 #
@@ -98,14 +93,7 @@ FORCE:
 # to build it.
 # %%TARGET: Add your new target here
 
-
 !IFDEF VARIETY
-
-# .special.version: version.obj has a special rule so that it is always
-# built.  This rule has no commands, meaning that the commands from
-# other rules (the implicit .c -> .obj rule in particular) will be used.
-# (Actually, there's a MS bug that causes this to randomly fail to build.)
-$(PFM)\$(VARIETY)\version.obj: FORCE
 
 $(PFM)\$(VARIETY)\finalcv.exe: $(PFM)\$(VARIETY)\finalcv.obj \
 	$(MPMOBJ) $(PLINTHOBJ) $(AMCOBJ) $(FMTTESTOBJ) \
@@ -256,17 +244,20 @@ $(PFM)\$(VARIETY)\exposet0.exe: $(PFM)\$(VARIETY)\exposet0.obj \
 
 $(PFM)\$(VARIETY)\mmsw.lib: $(SWOBJ)
 	$(ECHO) $@
-	$(LIBMAN) $(LIBFLAGS) /OUT:$@ $**
+	cl /c $(CFLAGS) /Fd$(PFM)\$(VARIETY)\ /Fo$(PFM)\$(VARIETY)\version.o version.c
+	$(LIBMAN) $(LIBFLAGS) /OUT:$@ $** $(PFM)\$(VARIETY)\version.o
 
 $(PFM)\$(VARIETY)\mmdw.lib: $(MPMOBJ) $(AMCOBJ) $(DWOBJ) \
         $(AWLOBJ) $(LOOBJ) $(SNCOBJ)
 	$(ECHO) $@
-	$(LIBMAN) $(LIBFLAGS) /OUT:$@ $**
+	cl /c $(CFLAGS) /Fd$(PFM)\$(VARIETY)\ /Fo$(PFM)\$(VARIETY)\version.o version.c
+	$(LIBMAN) $(LIBFLAGS) /OUT:$@ $** $(PFM)\$(VARIETY)\version.o
 
 $(PFM)\$(VARIETY)\mps.lib: $(MPMOBJ) $(AMCOBJ) $(LOOBJ) $(SNCOBJ) \
         $(MVFFOBJ) $(AMSOBJ) $(AWLOBJ)
 	$(ECHO) $@
-	$(LIBMAN) $(LIBFLAGS) /OUT:$@ $**
+	cl /c $(CFLAGS) /Fd$(PFM)\$(VARIETY)\ /Fo$(PFM)\$(VARIETY)\version.o version.c
+	$(LIBMAN) $(LIBFLAGS) /OUT:$@ $** $(PFM)\$(VARIETY)\version.o
 
 # We would like to use $** in the linker command line here, but we
 # cannot because the target, mpsdy.dll, depends on the w3gen.def file,
@@ -324,7 +315,8 @@ $(PFM)\$(VARIETY)\mpsplcb.lib: $(PFM)\$(VARIETY)\mpslibcb.obj
 
 {$(PFM)\$(VARIETY)}.obj{$(PFM)\$(VARIETY)}.exe:
 	$(ECHO) $@
-	$(LINKER) $(LINKFLAGS) /PDB:$*.pdb /OUT:$@ $(**)
+	cl /c $(CFLAGS) /Fd$(PFM)\$(VARIETY)\ /Fo$(PFM)\$(VARIETY)\version.o version.c
+	$(LINKER) $(LINKFLAGS) /PDB:$*.pdb /OUT:$@ $(**) $(PFM)\$(VARIETY)\version.o
 
 
 # C. COPYRIGHT AND LICENSE
