@@ -95,25 +95,25 @@ CFLAGSCOMMON = $(PFMDEFS) $(CFLAGSCOMPILER)
 #            variety.
 
 # These flags are added to compilations for the indicated variety.
-CFWE = -DCONFIG_VAR_WE -DNDEBUG $(CFLAGSOPT)
-CFHE = -DCONFIG_VAR_HE -DNDEBUG $(CFLAGSOPT)
-CFDI = -DCONFIG_VAR_DI -DNDEBUG $(CFLAGSOPT)
-CFCI = -DCONFIG_VAR_CI          $(CFLAGSDEBUG)
-CFTI = -DCONFIG_VAR_TI          $(CFLAGSDEBUG)
+CFWE   = -DCONFIG_VAR_WE  -DNDEBUG $(CFLAGSOPT)
+CFHOT  = -DCONFIG_VAR_HOT -DNDEBUG $(CFLAGSOPT)
+CFDI   = -DCONFIG_VAR_DI  -DNDEBUG $(CFLAGSOPT)
+CFCOOL = -DCONFIG_VAR_COOL         $(CFLAGSDEBUG)
+CFTI   = -DCONFIG_VAR_TI           $(CFLAGSDEBUG)
 
 # Bind CFLAGS to the appropriate set of flags for the variety.
 # %%VARIETY: Add a test for the variety and set CFLAGS here.
 ifeq ($(VARIETY),we)
 CFLAGS=$(CFLAGSCOMMON) $(CFWE)
 else
-ifeq ($(VARIETY),he)
-CFLAGS=$(CFLAGSCOMMON) $(CFHE)
+ifeq ($(VARIETY),hot)
+CFLAGS=$(CFLAGSCOMMON) $(CFHOT)
 else
 ifeq ($(VARIETY),di)
 CFLAGS=$(CFLAGSCOMMON) $(CFDI)
 else
-ifeq ($(VARIETY),ci)
-CFLAGS=$(CFLAGSCOMMON) $(CFCI)
+ifeq ($(VARIETY),cool)
+CFLAGS=$(CFLAGSCOMMON) $(CFCOOL)
 else
 ifeq ($(VARIETY),ti)
 CFLAGS=$(CFLAGSCOMMON) $(CFTI)
@@ -256,8 +256,8 @@ clean: phony
 ifdef TARGET
 ifndef VARIETY
 target: phony
-	$(MAKE) -f $(PFM).gmk VARIETY=he variety
-	$(MAKE) -f $(PFM).gmk VARIETY=ci variety
+	$(MAKE) -f $(PFM).gmk VARIETY=hot variety
+	$(MAKE) -f $(PFM).gmk VARIETY=cool variety
 endif
 endif
 
