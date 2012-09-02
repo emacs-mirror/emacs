@@ -7784,8 +7784,6 @@ fi
 $as_echo "#define lint 1" >>confdefs.h
 
 
-$as_echo "#define _FORTIFY_SOURCE 2" >>confdefs.h
-
 
 $as_echo "#define GNULIB_PORTCHECK 1" >>confdefs.h
 
