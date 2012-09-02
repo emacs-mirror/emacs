@@ -1,3 +1,8 @@
+2012-09-02  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt: Sync with autogen/config.in.
+	(HAVE_EXECINFO_H, TERM_HEADER): New macros.
+
 2012-09-01  Daniel Colascione  <dancol@dancol.org>
 
 	* inc/ms-w32.h (TERM_HEADER): Add for refactoring
