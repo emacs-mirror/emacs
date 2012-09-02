@@ -5,11 +5,6 @@
 
 PFM = fri3gc
 
-# FIXME: What is this for?  Clues at
-# http://www.kernel.org/doc/man-pages/online/pages/man7/feature_test_macros.7.html
-# Discover whether it's still necessary and if so, document why.
-PFMDEFS = -D_REENTRANT
-
 MPMPF = lockix.c thix.c pthrdext.c vmix.c \
         protix.c protsgix.c prmcan.c prmci3fr.c ssixi3.c span.c
 

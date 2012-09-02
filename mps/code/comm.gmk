@@ -89,6 +89,8 @@ endif
 # C FLAGS
 
 # These flags are included in all compilations.
+# Avoid using PFMDEFS in platform makefiles, as they prevent the MPS being
+# built with a simple command like "cc -c mps.c".
 CFLAGSCOMMON = $(PFMDEFS) $(CFLAGSCOMPILER)
 
 # %%VARIETY: Define a macro containing the set of flags for the new
