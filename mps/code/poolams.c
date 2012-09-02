@@ -885,7 +885,7 @@ static Res AMSBufferFill(Addr *baseReturn, Addr *limitReturn,
   AMS ams;
   Seg seg;
   Ring node, ring, nextNode;    /* for iterating over the segments */
-  Index base, limit;
+  Index base = 0, limit = 0;    /* suppress "may be used uninitialized" */
   Addr baseAddr, limitAddr;
   RankSet rankSet;
   Bool b;                       /* the return value of amsSegAlloc */

@@ -15,9 +15,9 @@ LIBS = -lm -pthread
 
 include gc.gmk
 
-CFLAGSCOMPILER := $(subst -pedantic,,$(CFLAGSCOMPILER))
-CFLAGSDEBUG = -g3
-CFLAGSOPT = -O -g3
+# FIXME: We pun types through the MPS interface, setting off this warning.
+# Can we avoid this?  The puns might indeed be dangerous.
+CFLAGSCOMPILER := $(CFLAGSCOMPILER) -Wno-strict-aliasing
 
 CC = cc
 

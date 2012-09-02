@@ -472,7 +472,7 @@ static Res DebugPoolAlloc(Addr *aReturn,
                           Pool pool, Size size, Bool withReservoir)
 {
   Res res;
-  Addr new;
+  Addr new = NULL; /* suppress "may be used uninitialized" warning */
   PoolDebugMixin debug;
 
   AVER(aReturn != NULL);
