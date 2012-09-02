@@ -1,3 +1,8 @@
+2012-09-02  Michael Albinus  <michael.albinus@gmx.de>
+
+	* eshell/em-unix.el (eshell/sudo): When we have an ad-hoc
+	remote definition of `default-directory', ensure we can connect.
+
 2012-09-02  Juri Linkov  <juri@jurta.org>
 
 	Toggle whitespace matching mode with M-s SPC.
