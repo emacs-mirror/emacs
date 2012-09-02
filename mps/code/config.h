@@ -39,14 +39,14 @@
 /* no telemetry log events */
 
 
-/* CONFIG_VAR_HE -- the hot variety
+/* CONFIG_VAR_HOT -- the hot variety
  *
  * This variety is the default variety for distribution in products that use
  * the MPS.  It has maximum performance while retaining a good level of
  * consistency checking and allowing some debugging and telemetry features.
  */
 
-#elif defined(CONFIG_VAR_HE)    /* Hot variety */
+#elif defined(CONFIG_VAR_HOT)    /* Hot variety */
 #define CONFIG_ASSERT
 #ifndef CHECKLEVEL
 #define CHECKLEVEL      CheckLevelMINIMAL
@@ -77,7 +77,7 @@
 /* no telemetry log events */
 
 
-/* CONFIG_VAR_CI -- cool variety
+/* CONFIG_VAR_COOL -- cool variety
  *
  * The cool variety is intended for use when developing an integration with
  * the MPS or debugging memory problems or collecting detailed telemetry
@@ -85,7 +85,7 @@
  * and data collection and output, and full debugging information.
  */
 
-#elif defined(CONFIG_VAR_CI)    /* Cool variety */
+#elif defined(CONFIG_VAR_COOL)    /* Cool variety */
 #define CONFIG_ASSERT
 #define CONFIG_ASSERT_ALL
 #define CONFIG_STATS

@@ -47,12 +47,10 @@ mpmss.exe amcss.exe amcsshe.exe amsss.exe amssshe.exe segsmss.exe awlut.exe awlu
 
 # "clean" removes the directory containing the build results.
 # Depends on there being no file called "clean".
-# Since we can't know whether we have rmdir, try with deltree as well.
 
 clean:
 	$(ECHO) $(PFM): $@
 	-echo y | rmdir/s $(PFM)
-	-deltree /Y $(PFM)
 
 # target target
 # %%VARIETY: Optionally, add a recursive make call for the new variety,
@@ -63,8 +61,8 @@ clean:
 !IFDEF TARGET
 !IFNDEF VARIETY
 target:
-	$(MAKE) /nologo /f $(PFM).nmk VARIETY=he variety
-	$(MAKE) /nologo /f $(PFM).nmk VARIETY=ci variety
+	$(MAKE) /nologo /f $(PFM).nmk VARIETY=hot variety
+	$(MAKE) /nologo /f $(PFM).nmk VARIETY=cool variety
 !ENDIF
 !ENDIF
 
