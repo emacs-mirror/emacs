@@ -459,13 +459,6 @@ mps_res_t mps_arena_create_v(mps_arena_t *mps_arena_o,
   return MPS_RES_OK;
 }
 
-/* DEPRECATED */
-mps_res_t mps_space_create(mps_space_t *mps_space_o)
-{
-  return mps_arena_create(mps_space_o, mps_arena_class_vm(), ARENA_SIZE);
-}
-
-
 /* mps_arena_destroy -- destroy an arena object */
 
 void mps_arena_destroy(mps_arena_t mps_arena)
@@ -474,12 +467,6 @@ void mps_arena_destroy(mps_arena_t mps_arena)
 
   ArenaEnter(arena);
   ArenaDestroy(arena);
-}
-
-/* DEPRECATED */
-void mps_space_destroy(mps_space_t mps_space)
-{
-  mps_arena_destroy(mps_space);
 }
 
 

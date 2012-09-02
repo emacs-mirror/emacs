@@ -462,6 +462,9 @@ Ring GlobalsRememberedSummaryRing(Globals global)
 
 /* ArenaEnter -- enter the state where you can look at the arena */
 
+/* FIXME: Do we want to support the THREAD_SINGLE and PROTECTION_NONE build
+   configs?  If so, how will we test them?  RB 2012-09-02 */
+
 #if defined(THREAD_SINGLE) && defined(PROTECTION_NONE)
 void (ArenaEnter)(Arena arena)
 {

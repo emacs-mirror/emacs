@@ -24,7 +24,6 @@
 #   AMS      as above for the "ams" part
 #   LO       as above for the "lo" part
 #   MRG      as above for the "mrg" part
-#   SW       as above for the "sw" part
 #   TESTLIB  as above for the "testlib" part
 #   NOISY    if defined, causes command to be emitted
 #
@@ -64,9 +63,6 @@
 !IFNDEF AMS
 !ERROR commpre.nmk: AMS not defined
 !ENDIF
-!IFNDEF SW
-!ERROR commpre.nmk: SW not defined
-!ENDIF
 !IFNDEF TESTLIB
 !ERROR commpre.nmk: TESTLIB not defined
 !ENDIF
@@ -90,30 +86,7 @@ ECHO = echo
 # /ML means compile for single-threaded environment.
 # A 'd' at the end means compile for debugging.
 
-!ifdef TARGET
-!if "$(TARGET)" == "mmsw.lib" || "$(TARGET)" == "epvmss.exe" || "$(TARGET)" == "replaysw.exe"
-CFLAGSTARGETPRE = /DCONFIG_PROD_EPCORE
-CFLAGSTARGETPOST =
-CRTFLAGSW = /MD
-CRTFLAGSH = /MDd
-CRTFLAGSC = /MDd
-LINKFLAGSWHITE = msvcrt.lib
-LINKFLAGSHOT = msvcrtd.lib
-LINKFLAGSCOOL = msvcrtd.lib
-
-!elseif "$(TARGET)" == "mmdw.lib"
-# /Oy- is actually 86-specific, but Dylan is only built for that platform
-CFLAGSTARGETPRE = /DCONFIG_PROD_DYLAN
-CFLAGSTARGETPOST = /Oy-
-CRTFLAGSW = /MT
-CRTFLAGSH = /MT
-CRTFLAGSC = /MT
-LINKFLAGSWHITE = libcmt.lib
-LINKFLAGSHOT = libcmt.lib
-LINKFLAGSCOOL = libcmt.lib
-
-!else
-CFLAGSTARGETPRE = /DCONFIG_PROD_MPS
+CFLAGSTARGETPRE =
 CFLAGSTARGETPOST =
 CRTFLAGSW = /MT
 CRTFLAGSH = /MT
@@ -121,8 +94,6 @@ CRTFLAGSC = /MTd
 LINKFLAGSWHITE = libcmt.lib
 LINKFLAGSHOT = libcmt.lib
 LINKFLAGSCOOL = libcmtd.lib
-!endif
-!endif
 
 CFLAGSCOMMONPRE = /nologo /W4 /WX $(PFMDEFS) $(CFLAGSTARGETPRE)
 CFLAGSCOMMONPOST = $(CFLAGSTARGETPOST)
