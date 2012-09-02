@@ -23,9 +23,9 @@
  * without realising it.  This has happened before.  Eyeball the preprocessor
  * output for each variety.  For example:
  *
- *   cc -E -DCONFIG_PROD_MPS -DCONFIG_VAR_WE trace.c
- *   cc -E -DCONFIG_PROD_MPS -DCONFIG_VAR_HE trace.c
- *   cc -E -DCONFIG_PROD_MPS -DCONFIG_VAR_CI trace.c
+ *   cc -E -DCONFIG_VAR_WE trace.c
+ *   cc -E -DCONFIG_VAR_HOT trace.c
+ *   cc -E -DCONFIG_VAR_COOL trace.c
  *
  * Then look at TraceCheck to make sure checking is right, TraceAddWhite
  * for general assertions, and TraceFix for the critical path assertions.
