@@ -18,6 +18,16 @@
  * which closely mirror those in the makefiles.
  */
 
+
+/* Platform interface
+ *
+ * This must be included first as it defines symbols which affect system
+ * headers, such as _POSIX_C_SOURCE _REENTRANT etc.
+ */
+
+#include "mpstd.h"
+
+
 /* MPM Core */
 
 #include "mpsi.c"
@@ -74,10 +84,6 @@
 
 #include "mpsliban.c"
 #include "mpsioan.c"
-
-/* Platform interface */
-
-#include "mpstd.h"
 
 /* Mac OS X on 32-bit Intel built with Clang or GCC */
 
