@@ -8,11 +8,6 @@ PFM = lii6gc
 THREADSRC = lockli.c thix.c pthrdext.c
 THREADLIB = -lpthread
 
-# _XOPEN_SOURCE is to get the modern POSIX signal handling
-# _GNU_SOURCE is to get register numbers in prmci3li.c
-# http://www.kernel.org/doc/man-pages/online/pages/man7/feature_test_macros.7.html
-PFMDEFS = -D_REENTRANT -D_XOPEN_SOURCE=500 -D_GNU_SOURCE
-
 MPMPF = ${THREADSRC} vmix.c \
         protix.c protli.c proti6.c prmci6li.c ssixi6.c span.c
 
