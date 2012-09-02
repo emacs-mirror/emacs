@@ -2053,6 +2053,11 @@ if test "${HAVE_X11}" = "yes" && test "${with_gconf}" = "yes"; then
 fi
 
 if test "$HAVE_GSETTINGS" = "yes" || test "$HAVE_GCONF" = "yes"; then
+    PKG_CHECK_MODULES(GOBJECT, gobject-2.0 >= 2.0, HAVE_GOBJECT=yes, HAVE_GOBJECT=no)
+    if test "$HAVE_GOBJECT" = "yes"; then
+       SETTINGS_CFLAGS="$SETTINGS_CFLAGS $GOBJECT_CFLAGS"
+       SETTINGS_LIBS="$SETTINGS_LIBS $GOBJECT_LIBS"
+    fi
     SAVE_CFLAGS="$CFLAGS"
     SAVE_LIBS="$LIBS"
     CFLAGS="$SETTINGS_CFLAGS $CFLAGS"

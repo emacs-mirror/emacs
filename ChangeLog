@@ -1,3 +1,7 @@
+2012-09-02  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* configure.ac (HAVE_GOBJECT): Check for gobject-2.0 (Bug#12332).
+
 2012-09-01  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* configure.ac (_FORTIFY_SOURCE): Define only when optimizing.
