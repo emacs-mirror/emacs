@@ -1,3 +1,7 @@
+2012-09-02  Glenn Morris  <rgm@gnu.org>
+
+	* simple.el (undo): Tweak message in undo-only case.  (Bug#12283)
+
 2012-09-01  Glenn Morris  <rgm@gnu.org>
 
 	* term.el: Tidy up menu definitions.
