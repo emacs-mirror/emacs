@@ -1,3 +1,11 @@
+2012-09-02  Chong Yidong  <cyd@gnu.org>
+
+	* windows.texi (Window Configurations): Recommend against using
+	save-window-excursion (Bug#12075).
+
+	* control.texi (Catch and Throw):
+	* positions.texi (Excursions): Don't mention it.
+
 2012-09-01  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Better seed support for (random).

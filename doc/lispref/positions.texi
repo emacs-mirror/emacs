@@ -850,9 +850,6 @@ after setting the desired current buffer, as in the following example:
 @cindex window excursions
   Likewise, @code{save-excursion} does not restore window-buffer
 correspondences altered by functions such as @code{switch-to-buffer}.
-One way to restore these correspondences, and the selected window, is to
-use @code{save-window-excursion} inside @code{save-excursion}
-(@pxref{Window Configurations}).
 
   @strong{Warning:} Ordinary insertion of text adjacent to the saved
 point value relocates the saved value, just as it relocates all
