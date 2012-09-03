@@ -47,6 +47,11 @@
  *   - Kind: Category into which this event falls, without the
  *     leading "EventKind";
  *
+ * When you retire an event type, don't delete it from the list -- comment
+ * it out.  This serves as documentation for what the event code means
+ * in older logs, and prevents the codes being re-used.  See
+ * <design/telemetry/#.reg.code>.
+ *
  * TODO: Add a doc string to each event type.
  *
  * See also EVENT_*_PARAMS for definition of event parameters.
@@ -54,8 +59,6 @@
  
 #define EventNameMAX ((size_t)19)
 #define EventCodeMAX ((EventCode)0x0071)
-
-/* TODO: Work out why not-in-use events were not in use and restore or delete them. */
 
 #define EVENT_LIST(EVENT, X) \
   /*       0123456789012345678 <- don't exceed without changing EventNameMAX */ \
