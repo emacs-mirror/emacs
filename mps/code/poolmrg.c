@@ -407,7 +407,7 @@ static void MRGGuardianInit(MRG mrg, Link link, RefPart refPart)
 
 static void MRGMessageDelete(Message message)
 {
-  Pool pool;
+  Pool pool = NULL;             /* suppress "may be used uninitialized" */
   Arena arena;
   Link link;
   Bool b;
