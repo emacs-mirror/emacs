@@ -224,7 +224,7 @@ static void freeSplat(PoolDebugMixin debug, Pool pool, Addr base, Addr limit)
   Addr p, next;
   Size freeSize = debug->freeSize;
   Arena arena;
-  Seg seg;
+  Seg seg = NULL;       /* suppress "may be used uninitialized" */
   Bool inSeg;
 
   AVER(base < limit);
@@ -258,7 +258,7 @@ static Bool freeCheck(PoolDebugMixin debug, Pool pool, Addr base, Addr limit)
   Size freeSize = debug->freeSize;
   Res res;
   Arena arena;
-  Seg seg;
+  Seg seg = NULL;       /* suppress "may be used uninitialized" */
   Bool inSeg;
 
   AVER(base < limit);
