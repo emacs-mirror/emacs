@@ -96,7 +96,7 @@ mpsicv.cov:
 #
 # %%VARIETY: Add a rule for how to build the MPS library for the variety
 
-$(PFM)\we\mps.lib: $(PFM)\we\mps.obj
+$(PFM)\rash\mps.lib: $(PFM)\rash\mps.obj
 	$(ECHO) $@
 	$(LIBMAN) $(LIBFLAGS) /OUT:$@ $**
 
