@@ -116,7 +116,7 @@
 #elif defined(MPS_PF_FRI3GC)
 
 #include "lockix.c"     /* Posix locks */
-#include "thix.c"       /* FreeBSD on 32-bit Intel threading */
+#include "thix.c"       /* Posix threading */
 #include "pthrdext.c"   /* Posix thread extensions */
 #include "vmix.c"       /* Posix virtual memory */
 #include "protix.c"     /* Posix protection */
@@ -125,6 +125,21 @@
 #include "prmci3fr.c"   /* 32-bit Intel for FreeBSD mutator context */
 #include "span.c"       /* generic stack probe */
 #include "ssixi3.c"     /* Posix on 32-bit Intel stack scan */
+
+/* FreeBSD on 64-bit Intel built with GCC */
+
+#elif defined(MPS_PF_FRI6GC)
+
+#include "lockix.c"     /* Posix locks */
+#include "thix.c"       /* Posix threading */
+#include "pthrdext.c"   /* Posix thread extensions */
+#include "vmix.c"       /* Posix virtual memory */
+#include "protix.c"     /* Posix protection */
+#include "protsgix.c"   /* Posix signal handling */
+#include "prmcan.c"     /* generic mutator context */
+#include "prmci6fr.c"   /* 32-bit Intel for FreeBSD mutator context */
+#include "span.c"       /* generic stack probe */
+#include "ssixi6.c"     /* Posix on 32-bit Intel stack scan */
 
 /* Linux on 32-bit Intel with GCC */
 
