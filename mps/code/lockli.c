@@ -22,14 +22,13 @@
  * while we hold the mutex. 
  */
 
-#define _XOPEN_SOURCE 500
-#include <pthread.h>
-#include <semaphore.h>
-#include <errno.h>
-
 #include "mpmtypes.h"
 #include "lock.h"
 #include "config.h"
+
+#include <pthread.h>
+#include <semaphore.h>
+#include <errno.h>
 
 
 #ifndef MPS_OS_LI

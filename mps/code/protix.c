@@ -39,11 +39,6 @@
  *    is permitted when PROT_NONE alone is used.
  */
 
-
-/* open sesame magic, see standards(5) */
-#define _POSIX_C_SOURCE 199309L
-#define _XOPEN_SOURCE_EXTENDED 1
-
 #include "mpm.h"
 
 #if !defined(MPS_OS_LI) && !defined(MPS_OS_FR) && !defined(MPS_OS_XC)

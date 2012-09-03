@@ -186,7 +186,9 @@
 #define MPS_WORD_SHIFT  5
 #define MPS_PF_ALIGN    4
 
-#define _REENTRANT        /* FIXME: What for? */
+#ifndef _REENTRANT        /* it's also defined by cc -pthread */
+#define _REENTRANT        /* defines, e.g., pthread_mutexattr_settype */
+#endif
 #define _XOPEN_SOURCE 500 /* to get POSIX signal handling */
 #define _GNU_SOURCE       /* to get register numbers for prmci3li.c */
 
@@ -208,7 +210,9 @@
 #define MPS_WORD_SHIFT  6
 #define MPS_PF_ALIGN    8
 
-#define _REENTRANT        /* FIXME: What for? */
+#ifndef _REENTRANT        /* it's also defined by cc -pthread */
+#define _REENTRANT        /* defines, e.g., pthread_mutexattr_settype */
+#endif
 #define _XOPEN_SOURCE 500 /* to get POSIX signal handling */
 #define _GNU_SOURCE       /* to get register numbers for prmci3li.c */
 
