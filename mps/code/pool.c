@@ -393,12 +393,10 @@ Res PoolScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
   /* The segment must belong to the pool. */
   AVER(pool == SegPool(seg));
 
-  /* We actually want to check that the rank we are scanning at */
-  /* (ss->rank) is at least as big as all the ranks in */
-  /* the segment (SegRankSet(seg)).  It is tricky to check that, */
-  /* so we only check that either ss->rank is in the segment's */
-  /* ranks, or that ss->rank is exact. */
-  /* See <code/trace.c#scan.conservative> */
+  /* We check that either ss->rank is in the segment's
+   * ranks, or that ss->rank is exact.  The check is more complicated if
+   * we actually have multiple ranks in a seg.
+   * See <code/trace.c#scan.conservative> */
   AVER(ss->rank == RankEXACT || RankSetIsMember(SegRankSet(seg), ss->rank));
 
   /* Should only scan segments which contain grey objects. */
