@@ -490,14 +490,15 @@ This will get your format code inlined with the MPS garbage collection
 algorithms.
 
 If you want to do anything beyond these simple cases, use the MPS
-makefiles as described in section 5.2, "Building for developing the
+build as described in section 5.2, "Building for developing the
 MPS".
 
 
 5.2. Building for developing the MPS
 
 If you're making modifications to the MPS itself, or want to build MPS
-libraries for linking, you should use the MPS makefiles.
+libraries for linking, you should use the MPS build.  This uses
+makefiles or Xcode projects.
 
 For Unix-like platforms you will need the GNU Make tool.  Some platforms
 (such as Linux) have GNU Make as their default make tool.  For others
