@@ -1,5 +1,9 @@
 2012-09-03  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* configure.ac (WARN_CFLAGS): Omit -Wjump-misses-init.
+	It generates false alarms in doc.c, regex.c, xdisp.c.  See
+	<http://lists.gnu.org/archive/html/emacs-devel/2012-09/msg00040.html>.
+
 	Merge from gnulib, incorporating:
 	2012-08-29 stdbool: be more compatible with mixed C/C++ compiles
 	2011-11-30 manywarnings: update the list of "all" warnings
