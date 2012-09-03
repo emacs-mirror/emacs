@@ -1,3 +1,20 @@
+2012-09-03  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (temp-buffer-window-setup-hook)
+	(temp-buffer-window-show-hook): New hooks.
+	(temp-buffer-window-setup, temp-buffer-window-show)
+	(with-temp-buffer-window): New functions.
+	(fit-window-to-buffer): Remove unused optional argument
+	OVERRIDE.
+	(special-display-popup-frame): Make sure the window used shows
+	BUFFER.
+
+	* help.el (temp-buffer-resize-mode): Fix doc-string.
+	(resize-temp-buffer-window): New optional argument WINDOW.
+
+	* files.el (recover-file, save-buffers-kill-emacs):
+	* dired.el (dired-mark-pop-up): Use with-temp-buffer-window.
+
 2012-09-02  Michael Albinus  <michael.albinus@gmx.de>
 
 	* eshell/em-unix.el (eshell/sudo): When we have an ad-hoc

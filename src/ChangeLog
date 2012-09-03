@@ -1,3 +1,7 @@
+2012-09-03  Martin Rudalics  <rudalics@gmx.at>
+
+	* buffer.c (Fdelete_all_overlays): New function.
+
 2012-09-03  Chong Yidong  <cyd@gnu.org>
 
 	* gtkutil.c: Add extern decl for Qxft.

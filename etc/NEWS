@@ -631,6 +631,10 @@ The interpretation of the DECLS is determined by `defun-declarations-alist'.
 *** The functions get-lru-window, get-mru-window and get-largest-window
 now accept a third argument to avoid choosing the selected window.
 
+*** New macro with-temp-buffer-window.
+
+*** New display action function display-buffer-below-selected.
+
 *** New display action alist `inhibit-switch-frame', if non-nil, tells
 display action functions to avoid changing which frame is selected.
 

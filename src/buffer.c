@@ -4073,6 +4073,25 @@ DEFUN ("delete-overlay", Fdelete_overlay, Sdelete_overlay, 1, 1, 0,
 
   return unbind_to (count, Qnil);
 }
+
+DEFUN ("delete-all-overlays", Fdelete_all_overlays, Sdelete_all_overlays, 0, 1, 0,
+       doc: /* Delete all overlays of BUFFER.
+BUFFER omitted or nil means delete all overlays of the current
+buffer.  */)
+  (Lisp_Object buffer)
+{
+  register struct buffer *buf;
+
+  if (NILP (buffer))
+    buf = current_buffer;
+  else
+    {
+      CHECK_BUFFER (buffer);
+      buf = XBUFFER (buffer);
+    }
+
+  delete_all_overlays (buf);
+}
 
 /* Overlay dissection functions.  */
 
@@ -6286,6 +6305,7 @@ and `bury-buffer-internal'.  */);
   defsubr (&Soverlayp);
   defsubr (&Smake_overlay);
   defsubr (&Sdelete_overlay);
+  defsubr (&Sdelete_all_overlays);
   defsubr (&Smove_overlay);
   defsubr (&Soverlay_start);
   defsubr (&Soverlay_end);

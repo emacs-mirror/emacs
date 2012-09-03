@@ -5350,23 +5350,26 @@ non-nil, it is called instead of rereading visited file contents."
 	     (not (file-exists-p file-name)))
 	   (error "Auto-save file %s not current"
 		  (abbreviate-file-name file-name)))
-	  ((save-window-excursion
-	     (with-output-to-temp-buffer "*Directory*"
-	       (buffer-disable-undo standard-output)
-	       (save-excursion
-		 (let ((switches dired-listing-switches))
-		   (if (file-symlink-p file)
-		       (setq switches (concat switches " -L")))
-		   (set-buffer standard-output)
-		   ;; Use insert-directory-safely, not insert-directory,
-		   ;; because these files might not exist.  In particular,
-		   ;; FILE might not exist if the auto-save file was for
-		   ;; a buffer that didn't visit a file, such as "*mail*".
-		   ;; The code in v20.x called `ls' directly, so we need
-		   ;; to emulate what `ls' did in that case.
-		   (insert-directory-safely file switches)
-		   (insert-directory-safely file-name switches))))
-	     (yes-or-no-p (format "Recover auto save file %s? " file-name)))
+	  ((with-temp-buffer-window
+	    "*Directory*" nil
+	    #'(lambda (window _value)
+		(with-selected-window window
+		  (unwind-protect
+		      (yes-or-no-p (format "Recover auto save file %s? " file-name))
+		    (when (window-live-p window)
+		      (quit-restore-window window 'kill)))))
+	    (with-current-buffer standard-output
+	      (let ((switches dired-listing-switches))
+		(if (file-symlink-p file)
+		    (setq switches (concat switches " -L")))
+		;; Use insert-directory-safely, not insert-directory,
+		;; because these files might not exist.  In particular,
+		;; FILE might not exist if the auto-save file was for
+		;; a buffer that didn't visit a file, such as "*mail*".
+		;; The code in v20.x called `ls' directly, so we need
+		;; to emulate what `ls' did in that case.
+		(insert-directory-safely file switches)
+		(insert-directory-safely file-name switches))))
 	   (switch-to-buffer (find-file-noselect file t))
 	   (let ((inhibit-read-only t)
 		 ;; Keep the current buffer-file-coding-system.
@@ -6327,8 +6330,15 @@ if any returns nil.  If `confirm-kill-emacs' is non-nil, calls it."
 		    (setq active t))
 	       (setq processes (cdr processes)))
 	     (or (not active)
-		 (progn (list-processes t)
-			(yes-or-no-p "Active processes exist; kill them and exit anyway? ")))))
+		 (with-temp-buffer-window
+		  (get-buffer-create "*Process List*") nil
+		  #'(lambda (window _value)
+		      (with-selected-window window
+			(unwind-protect
+			    (yes-or-no-p "Active processes exist; kill them and exit anyway? ")
+			  (when (window-live-p window)
+			    (quit-restore-window window 'kill)))))
+		  (list-processes t)))))
        ;; Query the user for other things, perhaps.
        (run-hook-with-args-until-failure 'kill-emacs-query-functions)
        (or (null confirm-kill-emacs)

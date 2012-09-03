@@ -73,6 +73,108 @@ are not altered by this macro (unless they are altered in BODY)."
 	 (when (window-live-p save-selected-window-window)
 	   (select-window save-selected-window-window 'norecord))))))
 
+(defvar temp-buffer-window-setup-hook nil
+  "Normal hook run by `with-temp-buffer-window' before buffer display.
+This hook is run by `with-temp-buffer-window' with the buffer to be
+displayed current.")
+
+(defvar temp-buffer-window-show-hook nil
+  "Normal hook run by `with-temp-buffer-window' after buffer display.
+This hook is run by `with-temp-buffer-window' with the buffer
+displayed and current and its window selected.")
+
+(defun temp-buffer-window-setup (buffer-or-name)
+  "Set up temporary buffer specified by BUFFER-OR-NAME 
+Return the buffer."
+  (let ((old-dir default-directory)
+	(buffer (get-buffer-create buffer-or-name)))
+    (with-current-buffer buffer
+      (kill-all-local-variables)
+      (setq default-directory old-dir)
+      (delete-all-overlays)
+      (setq buffer-read-only nil)
+      (setq buffer-file-name nil)
+      (setq buffer-undo-list t)
+      (let ((inhibit-read-only t)
+	    (inhibit-modification-hooks t))
+	(erase-buffer)
+	(run-hooks 'temp-buffer-window-setup-hook))
+      ;; Return the buffer.
+      buffer)))
+
+(defun temp-buffer-window-show (&optional buffer action)
+  "Show temporary buffer BUFFER in a window.
+Return the window showing BUFFER.  Pass ACTION as action argument
+to `display-buffer'."
+  (let (window frame)
+    (with-current-buffer buffer
+      (set-buffer-modified-p nil)
+      (setq buffer-read-only t)
+      (goto-char (point-min))
+      (when (setq window (display-buffer buffer action))
+	(setq frame (window-frame window))
+	(unless (eq frame (selected-frame))
+	  (raise-frame frame))
+	(setq minibuffer-scroll-window window)
+	(set-window-hscroll window 0)
+	(with-selected-window window
+	  (run-hooks 'temp-buffer-window-show-hook)
+	  (when temp-buffer-resize-mode
+	    (resize-temp-buffer-window window)))
+	;; Return the window.
+	window))))
+
+(defmacro with-temp-buffer-window (buffer-or-name action quit-function &rest body)
+  "Evaluate BODY and display buffer specified by BUFFER-OR-NAME.
+BUFFER-OR-NAME must specify either a live buffer or the name of a
+buffer.  If no buffer with such a name exists, create one.
+
+Make sure the specified buffer is empty before evaluating BODY.
+Do not make that buffer current for BODY.  Instead, bind
+`standard-output' to that buffer, so that output generated with
+`prin1' and similar functions in BODY goes into that buffer.
+
+After evaluating BODY, mark the specified buffer unmodified and
+read-only, and display it in a window via `display-buffer'.  Pass
+ACTION as action argument to `display-buffer'.  Automatically
+shrink the window used if `temp-buffer-resize-mode' is enabled.
+
+Return the value returned by BODY unless QUIT-FUNCTION specifies
+a function.  In that case, run the function with two arguments -
+the window showing the specified buffer and the value returned by
+BODY - and return the value returned by that function.
+
+If the buffer is displayed on a new frame, the window manager may
+decide to select that frame.  In that case, it's usually a good
+strategy if the function specified by QUIT-FUNCTION selects the
+window showing the buffer before reading a value from the
+minibuffer, for example, when asking a `yes-or-no-p' question.
+
+This construct is similar to `with-output-to-temp-buffer' but
+does neither put the buffer in help mode nor does it call
+`temp-buffer-show-function'.  It also runs different hooks,
+namely `temp-buffer-window-setup-hook' (with the specified buffer
+current) and `temp-buffer-window-show-hook' (with the specified
+buffer current and the window showing it selected).
+
+Since this macro calls `display-buffer', the window displaying
+the buffer is usually not selected and the specified buffer
+usually not made current.  QUIT-FUNCTION can override that."
+  (declare (debug t))
+  (let ((buffer (make-symbol "buffer"))
+	(window (make-symbol "window"))
+	(value (make-symbol "value")))
+    `(let* ((,buffer (temp-buffer-window-setup ,buffer-or-name))
+	    (standard-output ,buffer)
+	    ,window ,value)
+       (with-current-buffer ,buffer
+	 (setq ,value (progn ,@body))
+	 (setq ,window (temp-buffer-window-show ,buffer ,action)))
+
+       (if (functionp ,quit-function)
+	   (funcall ,quit-function ,window ,value)
+	 ,value))))
+
 ;; The following two functions are like `window-next-sibling' and
 ;; `window-prev-sibling' but the WINDOW argument is _not_ optional (so
 ;; they don't substitute the selected window for nil), and they return
@@ -4696,6 +4798,9 @@ and (cdr ARGS) as second."
 		 (make-frame (append args special-display-frame-alist))))
 	      (window (frame-selected-window frame)))
 	 (display-buffer-record-window 'frame window buffer)
+	 (unless (eq buffer (window-buffer window))
+	   (set-window-buffer window buffer)
+	   (set-window-prev-buffers window nil))
 	 (set-window-dedicated-p window t)
 	 window)))))
 
@@ -5710,7 +5815,7 @@ WINDOW must be a live window and defaults to the selected one."
 			     window))))
 
 ;;; Resizing buffers to fit their contents exactly.
-(defun fit-window-to-buffer (&optional window max-height min-height override)
+(defun fit-window-to-buffer (&optional window max-height min-height)
   "Adjust height of WINDOW to display its buffer's contents exactly.
 WINDOW must be a live window and defaults to the selected one.
 
@@ -5721,10 +5826,6 @@ defaults to `window-min-height'.  Both MAX-HEIGHT and MIN-HEIGHT
 are specified in lines and include the mode line and header line,
 if any.
 
-Optional argument OVERRIDE non-nil means override restrictions
-imposed by `window-min-height' and `window-min-width' on the size
-of WINDOW.
-
 Return the number of lines by which WINDOW was enlarged or
 shrunk.  If an error occurs during resizing, return nil but don't
 signal an error.
@@ -5733,28 +5834,27 @@ Note that even if this function makes WINDOW large enough to show
 _all_ lines of its buffer you might not see the first lines when
 WINDOW was scrolled."
   (interactive)
-  ;; Do all the work in WINDOW and its buffer and restore the selected
-  ;; window and the current buffer when we're done.
   (setq window (window-normalize-window window t))
   ;; Can't resize a full height or fixed-size window.
   (unless (or (window-size-fixed-p window)
 	      (window-full-height-p window))
-    ;; `with-selected-window' should orderly restore the current buffer.
     (with-selected-window window
-      ;; We are in WINDOW's buffer now.
-      (let* (;; Adjust MIN-HEIGHT.
+      (let* ((height (window-total-size))
 	     (min-height
-	      (if override
-		  (window-min-size window nil window)
-		(max (or min-height window-min-height)
-		     window-safe-min-height)))
-	     (max-window-height
-	      (window-total-size (frame-root-window window)))
-	     ;; Adjust MAX-HEIGHT.
+	      ;; Adjust MIN-HEIGHT.
+	      (if (numberp min-height)
+		  ;; Can't get smaller than `window-safe-min-height'.
+		  (max min-height window-safe-min-height)
+		;; Preserve header and mode line if present.
+		(window-min-size nil nil t)))
 	     (max-height
-	      (if (or override (not max-height))
-		  max-window-height
-		(min max-height max-window-height)))
+	      ;; Adjust MAX-HEIGHT.
+	      (if (numberp max-height)
+		  ;; Can't get larger than height of frame.
+		  (min max-height
+		       (window-total-size (frame-root-window window)))
+		;, Don't delete other windows.
+		(+ height (window-max-delta nil nil window))))
 	     ;; Make `desired-height' the height necessary to show
 	     ;; all of WINDOW's buffer, constrained by MIN-HEIGHT
 	     ;; and MAX-HEIGHT.
@@ -5779,7 +5879,6 @@ WINDOW was scrolled."
 		       (window-max-delta window nil window))
 		(max desired-delta
 		     (- (window-min-delta window nil window))))))
-	;; This `condition-case' shouldn't be necessary, but who knows?
 	(condition-case nil
 	    (if (zerop delta)
 		;; Return zero if DELTA became zero in the process.
