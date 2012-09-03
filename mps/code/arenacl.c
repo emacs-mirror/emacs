@@ -406,7 +406,7 @@ static Res ClientAlloc(Addr *baseReturn, Tract *baseTractReturn,
 static void ClientFree(Addr base, Size size, Pool pool)
 {
   Arena arena;
-  Chunk chunk;
+  Chunk chunk = NULL;           /* suppress "may be used uninitialized" */
   Size pages;
   ClientArena clientArena;
   Index pi, baseIndex, limitIndex;

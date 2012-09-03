@@ -1561,7 +1561,7 @@ Bool CBSFindLargest(Addr *baseReturn, Addr *limitReturn,
     notEmpty = SplayRoot(&root, splayTreeOfCBS(cbs));
     if (notEmpty) {
       CBSBlock block;
-      SplayNode node;
+      SplayNode node = NULL;    /* suppress "may be used uninitialized" */
 
       size = cbsBlockOfSplayNode(root)->maxSize;
       METER_ACC(cbs->splaySearch, cbs->splayTreeSize);

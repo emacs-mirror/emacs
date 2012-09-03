@@ -1584,7 +1584,7 @@ static void VMFree(Addr base, Size size, Pool pool)
   Arena arena;
   VMArena vmArena;
   VMChunk vmChunk;
-  Chunk chunk;
+  Chunk chunk = NULL;           /* suppress "may be used uninitialized" */
   Count pages;
   Index pi, piBase, piLimit;
   Index pageTableBase;
