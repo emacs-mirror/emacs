@@ -1,3 +1,9 @@
+2012-09-03  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Merge from gnulib, incorporating:
+	2012-08-29 stdbool: be more compatible with mixed C/C++ compiles
+	2011-11-30 manywarnings: update the list of "all" warnings
+
 2012-09-02  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* configure.ac (HAVE_GOBJECT): Check for gobject-2.0 (Bug#12332).
