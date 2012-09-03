@@ -23,7 +23,7 @@
  * without realising it.  This has happened before.  Eyeball the preprocessor
  * output for each variety.  For example:
  *
- *   cc -E -DCONFIG_VAR_WE trace.c
+ *   cc -E -DCONFIG_VAR_RASH trace.c
  *   cc -E -DCONFIG_VAR_HOT trace.c
  *   cc -E -DCONFIG_VAR_COOL trace.c
  *
