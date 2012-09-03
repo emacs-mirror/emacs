@@ -1181,6 +1181,8 @@ LIBGNUTLS_CFLAGS
 LIBSELINUX_LIBS
 SETTINGS_LIBS
 SETTINGS_CFLAGS
+GOBJECT_LIBS
+GOBJECT_CFLAGS
 GCONF_LIBS
 GCONF_CFLAGS
 GSETTINGS_LIBS
@@ -7305,95 +7307,118 @@ $as_echo "$gl_cv_cc_nomfi_needed" >&6; }
 
   gl_manywarn_set=
   for gl_manywarn_item in \
-    -Wall \
     -W \
-    -Wformat-y2k \
-    -Wformat-nonliteral \
-    -Wformat-security \
-    -Winit-self \
-    -Wmissing-include-dirs \
-    -Wswitch-default \
-    -Wswitch-enum \
-    -Wunused \
-    -Wunknown-pragmas \
-    -Wstrict-aliasing \
-    -Wstrict-overflow \
-    -Wsystem-headers \
-    -Wfloat-equal \
-    -Wtraditional \
-    -Wtraditional-conversion \
-    -Wdeclaration-after-statement \
-    -Wundef \
-    -Wshadow \
-    -Wunsafe-loop-optimizations \
-    -Wpointer-arith \
-    -Wbad-function-cast \
-    -Wc++-compat \
-    -Wcast-qual \
-    -Wcast-align \
-    -Wwrite-strings \
-    -Wconversion \
-    -Wsign-conversion \
-    -Wlogical-op \
-    -Waggregate-return \
-    -Wstrict-prototypes \
-    -Wold-style-definition \
-    -Wmissing-prototypes \
-    -Wmissing-declarations \
-    -Wmissing-noreturn \
-    -Wmissing-format-attribute \
-    -Wpacked \
-    -Wpadded \
-    -Wredundant-decls \
-    -Wnested-externs \
-    -Wunreachable-code \
-    -Winline \
-    -Winvalid-pch \
-    -Wlong-long \
-    -Wvla \
-    -Wvolatile-register-var \
-    -Wdisabled-optimization \
-    -Wstack-protector \
-    -Woverlength-strings \
-    -Wbuiltin-macro-redefined \
-    -Wmudflap \
-    -Wpacked-bitfield-compat \
-    -Wsync-nand \
-    ; do
-    gl_manywarn_set="$gl_manywarn_set $gl_manywarn_item"
-  done
-  # The following are not documented in the manual but are included in
-  # output from gcc --help=warnings.
-  for gl_manywarn_item in \
-    -Wattributes \
-    -Wcoverage-mismatch \
-    -Wunused-macros \
-    ; do
-    gl_manywarn_set="$gl_manywarn_set $gl_manywarn_item"
-  done
-  # More warnings from gcc 4.6.2 --help=warnings.
-  for gl_manywarn_item in \
     -Wabi \
+    -Waddress \
+    -Wall \
+    -Warray-bounds \
+    -Wattributes \
+    -Wbad-function-cast \
+    -Wbuiltin-macro-redefined \
+    -Wcast-align \
+    -Wchar-subscripts \
+    -Wclobbered \
+    -Wcomment \
+    -Wcomments \
+    -Wcoverage-mismatch \
     -Wcpp \
     -Wdeprecated \
     -Wdeprecated-declarations \
+    -Wdisabled-optimization \
     -Wdiv-by-zero \
     -Wdouble-promotion \
+    -Wempty-body \
     -Wendif-labels \
+    -Wenum-compare \
     -Wextra \
     -Wformat-contains-nul \
     -Wformat-extra-args \
+    -Wformat-nonliteral \
+    -Wformat-security \
+    -Wformat-y2k \
     -Wformat-zero-length \
     -Wformat=2 \
+    -Wfree-nonheap-object \
+    -Wignored-qualifiers \
+    -Wimplicit \
+    -Wimplicit-function-declaration \
+    -Wimplicit-int \
+    -Winit-self \
+    -Winline \
+    -Wint-to-pointer-cast \
+    -Winvalid-memory-model \
+    -Winvalid-pch \
+    -Wjump-misses-init \
+    -Wlogical-op \
+    -Wmain \
+    -Wmaybe-uninitialized \
+    -Wmissing-braces \
+    -Wmissing-declarations \
+    -Wmissing-field-initializers \
+    -Wmissing-format-attribute \
+    -Wmissing-include-dirs \
+    -Wmissing-noreturn \
+    -Wmissing-parameter-type \
+    -Wmissing-prototypes \
+    -Wmudflap \
     -Wmultichar \
+    -Wnarrowing \
+    -Wnested-externs \
+    -Wnonnull \
     -Wnormalized=nfc \
+    -Wold-style-declaration \
+    -Wold-style-definition \
     -Woverflow \
+    -Woverlength-strings \
+    -Woverride-init \
+    -Wpacked \
+    -Wpacked-bitfield-compat \
+    -Wparentheses \
+    -Wpointer-arith \
+    -Wpointer-sign \
     -Wpointer-to-int-cast \
     -Wpragmas \
+    -Wreturn-type \
+    -Wsequence-point \
+    -Wshadow \
+    -Wsizeof-pointer-memaccess \
+    -Wstack-protector \
+    -Wstrict-aliasing \
+    -Wstrict-overflow \
+    -Wstrict-prototypes \
     -Wsuggest-attribute=const \
+    -Wsuggest-attribute=format \
     -Wsuggest-attribute=noreturn \
     -Wsuggest-attribute=pure \
+    -Wswitch \
+    -Wswitch-default \
+    -Wsync-nand \
+    -Wsystem-headers \
     -Wtrampolines \
+    -Wtrigraphs \
+    -Wtype-limits \
+    -Wuninitialized \
+    -Wunknown-pragmas \
+    -Wunreachable-code \
+    -Wunsafe-loop-optimizations \
+    -Wunused \
+    -Wunused-but-set-parameter \
+    -Wunused-but-set-variable \
+    -Wunused-function \
+    -Wunused-label \
+    -Wunused-local-typedefs \
+    -Wunused-macros \
+    -Wunused-parameter \
+    -Wunused-result \
+    -Wunused-value \
+    -Wunused-variable \
+    -Wvarargs \
+    -Wvariadic-macros \
+    -Wvector-operation-performance \
+    -Wvla \
+    -Wvolatile-register-var \
+    -Wwrite-strings \
+    \
     ; do
     gl_manywarn_set="$gl_manywarn_set $gl_manywarn_item"
   done
@@ -10950,6 +10975,60 @@ $as_echo "#define HAVE_GCONF 1" >>confdefs.h
 fi
 
 if test "$HAVE_GSETTINGS" = "yes" || test "$HAVE_GCONF" = "yes"; then
+
+  succeeded=no
+
+  if test "$PKG_CONFIG" = "no" ; then
+     HAVE_GOBJECT=no
+  else
+     PKG_CONFIG_MIN_VERSION=0.9.0
+     if $PKG_CONFIG --atleast-pkgconfig-version $PKG_CONFIG_MIN_VERSION; then
+        { $as_echo "$as_me:${as_lineno-$LINENO}: checking for gobject-2.0 >= 2.0" >&5
+$as_echo_n "checking for gobject-2.0 >= 2.0... " >&6; }
+
+        if $PKG_CONFIG --exists "gobject-2.0 >= 2.0" 2>&5 &&
+	   GOBJECT_CFLAGS=`$PKG_CONFIG --cflags "gobject-2.0 >= 2.0" 2>&5` &&
+	   GOBJECT_LIBS=`$PKG_CONFIG --libs "gobject-2.0 >= 2.0" 2>&5`; then
+	    edit_cflags="
+	      s,///*,/,g
+	      s/^/ /
+	      s/ -I/ $isystem/g
+	      s/^ //
+	    "
+	    GOBJECT_CFLAGS=`$as_echo "$GOBJECT_CFLAGS" | sed -e "$edit_cflags"`
+	    GOBJECT_LIBS=`$as_echo "$GOBJECT_LIBS" | sed -e 's,///*,/,g'`
+            { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes CFLAGS='$GOBJECT_CFLAGS' LIBS='$GOBJECT_LIBS'" >&5
+$as_echo "yes CFLAGS='$GOBJECT_CFLAGS' LIBS='$GOBJECT_LIBS'" >&6; }
+            succeeded=yes
+        else
+            { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+            GOBJECT_CFLAGS=""
+            GOBJECT_LIBS=""
+            ## If we have a custom action on failure, don't print errors, but
+            ## do set a variable so people can do so.
+            GOBJECT_PKG_ERRORS=`$PKG_CONFIG --errors-to-stdout --print-errors "gobject-2.0 >= 2.0"`
+
+        fi
+
+
+
+     else
+        echo "*** Your version of pkg-config is too old. You need version $PKG_CONFIG_MIN_VERSION or newer."
+        echo "*** See http://www.freedesktop.org/software/pkgconfig"
+     fi
+  fi
+
+  if test $succeeded = yes; then
+     HAVE_GOBJECT=yes
+  else
+     HAVE_GOBJECT=no
+  fi
+
+    if test "$HAVE_GOBJECT" = "yes"; then
+       SETTINGS_CFLAGS="$SETTINGS_CFLAGS $GOBJECT_CFLAGS"
+       SETTINGS_LIBS="$SETTINGS_LIBS $GOBJECT_LIBS"
+    fi
     SAVE_CFLAGS="$CFLAGS"
     SAVE_LIBS="$LIBS"
     CFLAGS="$SETTINGS_CFLAGS $CFLAGS"
