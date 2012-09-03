@@ -5160,12 +5160,10 @@ re_match_2_internal (struct re_pattern_buffer *bufp, const re_char *string1,
 	    {
 	      /* 1 if this match ends in the same string (string1 or string2)
 		 as the best previous match.  */
-	      boolean same_str_p;
+	      boolean same_str_p = (FIRST_STRING_P (match_end)
+				    == FIRST_STRING_P (d));
 	      /* 1 if this match is the best seen so far.  */
 	      boolean best_match_p;
-
-	      same_str_p = (FIRST_STRING_P (match_end)
-			    == FIRST_STRING_P (d));
 
 	      /* AIX compiler got confused when this was combined
 		 with the previous declaration.  */

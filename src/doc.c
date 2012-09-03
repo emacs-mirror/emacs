@@ -848,10 +848,9 @@ Otherwise, return a new string, without any text properties.  */)
 	  struct buffer *oldbuf;
 	  ptrdiff_t start_idx;
 	  /* This is for computing the SHADOWS arg for describe_map_tree.  */
-	  Lisp_Object active_maps;
+	  Lisp_Object active_maps = Fcurrent_active_maps (Qnil, Qnil);
 	  Lisp_Object earlier_maps;
 
-	  active_maps = Fcurrent_active_maps (Qnil, Qnil);
 	  changed = 1;
 	  strp += 2;		/* skip \{ or \< */
 	  start = strp;
