@@ -25,7 +25,7 @@
    the directives CONFIG_ASSERT, CONFIG_STATS, CONFIG_LOG, etc. which control
    actual compilation features. */
 
-/* CONFIG_VAR_WE -- the white-hot variety
+/* CONFIG_VAR_RASH -- the rash and reckless variety
  *
  * This variety switches off as many features as possible for maximum
  * performance, but is therefore unsafe and undebuggable.  It is not intended
@@ -33,7 +33,7 @@
  * logging, etc. have negligible overhead.
  */
 
-#if defined(CONFIG_VAR_WE)      /* White-hot variety */
+#if defined(CONFIG_VAR_RASH)
 /* no asserts */
 /* no statistic meters */
 /* no telemetry log events */
@@ -46,7 +46,7 @@
  * consistency checking and allowing some debugging and telemetry features.
  */
 
-#elif defined(CONFIG_VAR_HOT)    /* Hot variety */
+#elif defined(CONFIG_VAR_HOT)
 #define CONFIG_ASSERT
 #ifndef CHECKLEVEL
 #define CHECKLEVEL      CheckLevelMINIMAL
@@ -55,14 +55,14 @@
 /* no telemetry log events */
 
 
-/* CONFIG_VAR_DI -- diagnostic variety
+/* CONFIG_VAR_DIAG -- diagnostic variety
  *
  * Deprecated.  The diagnostic variety prints messages about the internals
  * of the MPS to an output stream.  This is being replaced by an extended
  * telemetry system.  RB 2012-08-31
  */
 
-#elif defined(CONFIG_VAR_DI) /* Diagnostic variety */
+#elif defined(CONFIG_VAR_DIAG) /* Diagnostic variety */
 #define CONFIG_ASSERT
 #ifndef CHECKLEVEL
 #define CHECKLEVEL      CheckLevelMINIMAL
@@ -85,7 +85,7 @@
  * and data collection and output, and full debugging information.
  */
 
-#elif defined(CONFIG_VAR_COOL)    /* Cool variety */
+#elif defined(CONFIG_VAR_COOL)
 #define CONFIG_ASSERT
 #define CONFIG_ASSERT_ALL
 #define CONFIG_STATS

@@ -97,22 +97,22 @@ CFLAGSCOMMON = $(PFMDEFS) $(CFLAGSCOMPILER)
 #            variety.
 
 # These flags are added to compilations for the indicated variety.
-CFWE   = -DCONFIG_VAR_WE  -DNDEBUG $(CFLAGSOPT)
-CFHOT  = -DCONFIG_VAR_HOT -DNDEBUG $(CFLAGSOPT)
-CFDI   = -DCONFIG_VAR_DI  -DNDEBUG $(CFLAGSOPT)
-CFCOOL = -DCONFIG_VAR_COOL         $(CFLAGSDEBUG)
-CFTI   = -DCONFIG_VAR_TI           $(CFLAGSDEBUG)
+CFRASH = -DCONFIG_VAR_RASH -DNDEBUG $(CFLAGSOPT)
+CFHOT  = -DCONFIG_VAR_HOT  -DNDEBUG $(CFLAGSOPT)
+CFDIAG = -DCONFIG_VAR_DIAG -DNDEBUG $(CFLAGSOPT)
+CFCOOL = -DCONFIG_VAR_COOL          $(CFLAGSDEBUG)
+CFTI   = -DCONFIG_VAR_TI            $(CFLAGSDEBUG)
 
 # Bind CFLAGS to the appropriate set of flags for the variety.
 # %%VARIETY: Add a test for the variety and set CFLAGS here.
-ifeq ($(VARIETY),we)
-CFLAGS=$(CFLAGSCOMMON) $(CFWE)
+ifeq ($(VARIETY),rash)
+CFLAGS=$(CFLAGSCOMMON) $(CFRASH)
 else
 ifeq ($(VARIETY),hot)
 CFLAGS=$(CFLAGSCOMMON) $(CFHOT)
 else
-ifeq ($(VARIETY),di)
-CFLAGS=$(CFLAGSCOMMON) $(CFDI)
+ifeq ($(VARIETY),diag)
+CFLAGS=$(CFLAGSCOMMON) $(CFDIAG)
 else
 ifeq ($(VARIETY),cool)
 CFLAGS=$(CFLAGSCOMMON) $(CFCOOL)
@@ -291,10 +291,10 @@ endif
 #
 # %%VARIETY: Add a rule for how to build the MPS library for the variety
 
-$(PFM)/we/mps.a: $(PFM)/we/mps.o
+$(PFM)/rash/mps.a: $(PFM)/rash/mps.o
 $(PFM)/hot/mps.a: $(PFM)/hot/mps.o
 
-$(PFM)/di/mps.a: \
+$(PFM)/diag/mps.a: \
   $(MPMOBJ) $(AMCOBJ) $(AMSOBJ) $(AWLOBJ) $(LOOBJ) $(SNCOBJ) \
   $(MVFFOBJ) $(PLINTHOBJ) $(POOLNOBJ)
 $(PFM)/cool/mps.a: \
