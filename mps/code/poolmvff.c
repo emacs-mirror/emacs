@@ -112,7 +112,7 @@ static void MVFFAddToFreeList(Addr *baseIO, Addr *limitIO, MVFF mvff) {
  */
 static void MVFFFreeSegs(MVFF mvff, Addr base, Addr limit)
 {
-  Seg seg;
+  Seg seg = NULL;       /* suppress "may be used uninitialized" */
   Arena arena;
   Bool b;
   Addr segLimit;  /* limit of the current segment when iterating */

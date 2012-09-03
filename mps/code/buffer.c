@@ -1330,7 +1330,7 @@ static void segBufAttach(Buffer buffer, Addr base, Addr limit,
                          Addr init, Size size)
 {
   SegBuf segbuf;
-  Seg seg;
+  Seg seg = NULL;       /* suppress "may be used uninitialized" */
   Arena arena;
   Bool found;
 

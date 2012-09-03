@@ -574,7 +574,7 @@ static void MVFree(Pool pool, Addr old, Size size)
   MV mv;
   Res res;
   Bool b;
-  Tract tract;
+  Tract tract = NULL;           /* suppress "may be used uninitialized" */
 
   AVERT(Pool, pool);
   mv = Pool2MV(pool);

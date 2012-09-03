@@ -332,7 +332,7 @@ static Count MRGGuardiansPerSeg(MRG mrg)
 
 static RefPart MRGRefPartOfLink(Link link, Arena arena)
 {
-  Seg seg;
+  Seg seg = NULL;       /* suppress "may be used uninitialized" */
   Bool b;
   Link linkBase;
   Index index;
