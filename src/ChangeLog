@@ -1,3 +1,12 @@
+2012-09-03  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix minor problems found by static checking.
+	* buffer.c (Fdelete_all_overlays): Return nil.
+	* doc.c (Fsubstitute_command_keys):
+	* regex.c (WEAK_ALIAS):
+	* xdisp.c (redisplay_internal):
+	Move initialization down, to pacify GCC 4.7.1 -Wjump-misses-init.
+
 2012-09-03  Martin Rudalics  <rudalics@gmx.at>
 
 	* buffer.c (Fdelete_all_overlays): New function.

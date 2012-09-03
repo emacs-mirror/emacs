@@ -13511,9 +13511,10 @@ redisplay_internal (void)
     }
   else if (FRAME_VISIBLE_P (sf) && !FRAME_OBSCURED_P (sf))
     {
-      Lisp_Object mini_window = FRAME_MINIBUF_WINDOW (sf);
+      Lisp_Object mini_window;
       struct frame *mini_frame;
 
+      mini_window = FRAME_MINIBUF_WINDOW (sf);
       displayed_buffer = XBUFFER (XWINDOW (selected_window)->buffer);
       /* Use list_of_error, not Qerror, so that
 	 we catch only errors and don't run the debugger.  */

@@ -4091,6 +4091,7 @@ buffer.  */)
     }
 
   delete_all_overlays (buf);
+  return Qnil;
 }
 
 /* Overlay dissection functions.  */
