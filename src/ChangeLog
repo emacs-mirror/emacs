@@ -1,3 +1,7 @@
+2012-09-03  Chong Yidong  <cyd@gnu.org>
+
+	* gtkutil.c: Add extern decl for Qxft.
+
 2012-09-02  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* emacs.c, eval.c: Use bool for boolean.
