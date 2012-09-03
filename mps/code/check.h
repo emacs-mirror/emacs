@@ -83,10 +83,10 @@
  * checking level is required -- where recompilation or relinking is
  * undesirable or impossible.
  *
- * FIXME: Should also allow the check level variable to come from an
+ * TODO: Should also allow the check level variable to come from an
  * environment variable.
  *
- * FIXME: CheckLevelDEEP asserts on arena creation with bootstrapping
+ * TODO: CheckLevelDEEP asserts on arena creation with bootstrapping
  * problems.  It clearly hasn't been tried for a while.  RB 2012-09-01
  */
 
@@ -134,19 +134,14 @@ extern unsigned CheckLevel;
 
 #if defined(AVER_AND_CHECK_ALL)
 
-/* FIXME: Find out whether these tests on checklevel have any performance
-   impact and remove them if possible. */
-
 #define AVER_CRITICAL(cond) \
   BEGIN \
-    if (CHECKLEVEL != CheckLevelMINIMAL) \
-      ASSERT(cond, #cond); \
+    ASSERT(cond, #cond); \
   END
 
 #define AVERT_CRITICAL(type, val) \
   BEGIN \
-    if (CHECKLEVEL != CheckLevelMINIMAL) \
-      ASSERT(type ## Check(val), "TypeCheck " #type ": " #val); \
+    ASSERT(type ## Check(val), "TypeCheck " #type ": " #val); \
   END
 
 #else
@@ -281,8 +276,8 @@ extern unsigned CheckLevel;
 
 #else /* AVER_AND_CHECK_ALL, not */
 
-/* FIXME: This gives comparable performance to white-hot when compiling
-   using mps.c and -O (to get check methods inlined), but is it a bit
+/* TODO: This gives comparable performance to white-hot when compiling
+   using mps.c and -O3 (to get check methods inlined), but is it a bit
    too minimal?  How much do we rely on check methods? */
 
 #define CHECKL(cond)            DISCARD(cond)
