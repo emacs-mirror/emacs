@@ -37,8 +37,7 @@ mpmss.exe amcss.exe amcsshe.exe amsss.exe amssshe.exe segsmss.exe awlut.exe awlu
      walkt0.exe locbwcss.exe locusss.exe \
      exposet0.exe zcoll.exe zmess.exe \
      replay.exe replaysw.exe eventcnv.exe \
-     mps.lib mpsplcb.lib \
-     mpsdy.dll:
+     mps.lib:
 !IFDEF VARIETY
 	$(MAKE) /nologo /f $(PFM).nmk TARGET=$@ variety
 !ELSE
@@ -79,7 +78,55 @@ mpsicv.cov:
 	$(MAKE) /nologo /f $(PFM).nmk TARGET=$@ VARIETY=cv variety
 
 
-# GENUINE TARGETS
+# THE MPS LIBRARY
+#
+# The MPS library is built in two ways:
+#
+#   1. In the usual way, from a pile of object files compiled from their
+#      corresponding sources.
+#
+#   2. From mps.c, which effectively concatenates all the sources, allowing
+#      important global optimisation and inlining to occur.
+#
+# We mostly use the method (2), because it is fast to compile and execute.
+# But we use method (1) for some varieties to ensure correctness of
+# code (linkage errors are masked by (2)) and to maintain a correct list
+# of source files in case method (1) won't work on some future constrained
+# platform.
+#
+# %%VARIETY: Add a rule for how to build the MPS library for the variety
+
+$(PFM)\we\mps.lib: $(PFM)\we\mps.obj
+	$(ECHO) $@
+	$(LIBMAN) $(LIBFLAGS) /OUT:$@ $**
+
+$(PFM)\hot\mps.lib: $(PFM)\hot\mps.obj
+	$(ECHO) $@
+	$(LIBMAN) $(LIBFLAGS) /OUT:$@ $**
+
+$(PFM)\cool\mps.lib: \
+  $(MPMOBJ) $(AMCOBJ) $(AMSOBJ) $(AWLOBJ) $(LOOBJ) $(SNCOBJ) \
+  $(MVFFOBJ) $(PLINTHOBJ) $(POOLNOBJ)
+	$(ECHO) $@
+	cl /c $(CFLAGS) /Fd$(PFM)\$(VARIETY)\ /Fo$(PFM)\$(VARIETY)\version.o version.c
+	$(LIBMAN) $(LIBFLAGS) /OUT:$@ $** $(PFM)\$(VARIETY)\version.o
+
+$(PFM)\di\mps.lib: \
+  $(MPMOBJ) $(AMCOBJ) $(AMSOBJ) $(AWLOBJ) $(LOOBJ) $(SNCOBJ) \
+  $(MVFFOBJ) $(PLINTHOBJ) $(POOLNOBJ)
+	$(ECHO) $@
+	cl /c $(CFLAGS) /Fd$(PFM)\$(VARIETY)\ /Fo$(PFM)\$(VARIETY)\version.o version.c
+	$(LIBMAN) $(LIBFLAGS) /OUT:$@ $** $(PFM)\$(VARIETY)\version.o
+
+$(PFM)\ti\mps.lib: \
+  $(MPMOBJ) $(AMCOBJ) $(AMSOBJ) $(AWLOBJ) $(LOOBJ) $(SNCOBJ) \
+  $(MVFFOBJ) $(PLINTHOBJ) $(POOLNOBJ)
+	$(ECHO) $@
+	cl /c $(CFLAGS) /Fd$(PFM)\$(VARIETY)\ /Fo$(PFM)\$(VARIETY)\version.o version.c
+	$(LIBMAN) $(LIBFLAGS) /OUT:$@ $** $(PFM)\$(VARIETY)\version.o
+
+
+# OTHER GENUINE TARGETS
 #
 # Each line defines an executable or library target to be built and the object
 # files it is build from.  For an executable these lines add dependencies to
@@ -168,7 +215,7 @@ $(PFM)\$(VARIETY)\arenacv.exe:  $(PFM)\$(VARIETY)\arenacv.obj \
 	$(PFM)\$(VARIETY)\mps.lib $(TESTLIBOBJ)
 
 $(PFM)\$(VARIETY)\abqtest.exe: $(PFM)\$(VARIETY)\abqtest.obj \
-	$(PFM)\$(VARIETY)\mps.lib $(TESTLIBOBJ)
+	$(PFM)\$(VARIETY)\abq.obj $(PFM)\$(VARIETY)\mps.lib $(TESTLIBOBJ)
 
 $(PFM)\$(VARIETY)\cbstest.exe: $(PFM)\$(VARIETY)\cbstest.obj \
 	$(PFM)\$(VARIETY)\mps.lib $(TESTLIBOBJ)
@@ -177,6 +224,7 @@ $(PFM)\$(VARIETY)\btcv.exe: $(PFM)\$(VARIETY)\btcv.obj \
 	$(PFM)\$(VARIETY)\mps.lib $(TESTLIBOBJ)
 
 $(PFM)\$(VARIETY)\mv2test.exe: $(PFM)\$(VARIETY)\mv2test.obj \
+	$(PFM)\$(VARIETY)\poolmv2.obj $(PFM)\$(VARIETY)\abq.obj \
 	$(PFM)\$(VARIETY)\mps.lib $(TESTLIBOBJ)
 
 $(PFM)\$(VARIETY)\zcoll.exe: $(PFM)\$(VARIETY)\zcoll.obj \
@@ -212,32 +260,6 @@ $(PFM)\$(VARIETY)\walkt0.exe: $(PFM)\$(VARIETY)\walkt0.obj \
 
 $(PFM)\$(VARIETY)\exposet0.exe: $(PFM)\$(VARIETY)\exposet0.obj \
 	$(PFM)\$(VARIETY)\mps.lib $(FMTTESTOBJ) $(TESTLIBOBJ)	
-
-$(PFM)\$(VARIETY)\mps.lib: \
-        $(MPMOBJ) $(AMCOBJ) $(AMSOBJ) $(AWLOBJ) $(LOOBJ) $(SNCOBJ) \
-        $(MVFFOBJ) $(PLINTHOBJ) $(POOLNOBJ)
-	$(ECHO) $@
-	cl /c $(CFLAGS) /Fd$(PFM)\$(VARIETY)\ /Fo$(PFM)\$(VARIETY)\version.o version.c
-	$(LIBMAN) $(LIBFLAGS) /OUT:$@ $** $(PFM)\$(VARIETY)\version.o
-
-# We would like to use $** in the linker command line here, but we
-# cannot because the target, mpsdy.dll, depends on the w3gen.def file,
-# but this is not to be treated as an object on the linker line.  Sorry
-# about the repetition of the object list.
-$(PFM)\$(VARIETY)\mpsdy.dll: $(PFM)\$(VARIETY)\mpslibcb.obj \
-	$(MPMOBJ) $(LOOBJ) $(SNCOBJ) \
-	$(MVFFOBJ) $(AMSOBJ) $(AWLOBJ) w3gen.def \
-	mpslibcb.def
-	$(ECHO) $@
-	$(LINKER) $(LINKFLAGS) /def:w3gen.def \
-	  /def:mpslibcb.def /dll /OUT:$@ \
-	  $(PFM)\$(VARIETY)\mpslibcb.obj \
-	  $(MPMOBJ) $(LOOBJ) $(SNCOBJ) \
-	  $(MVFFOBJ) $(AMSOBJ) $(AWLOBJ)
-
-$(PFM)\$(VARIETY)\mpsplcb.lib: $(PFM)\$(VARIETY)\mpslibcb.obj
-	$(ECHO) $@
-	$(LIBMAN) $(LIBFLAGS) /OUT:$@ $**
 
 !ENDIF
 
