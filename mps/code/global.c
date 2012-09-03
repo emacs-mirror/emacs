@@ -915,7 +915,7 @@ void ArenaPokeSeg(Arena arena, Seg seg, Addr addr, Ref ref)
 Ref ArenaRead(Arena arena, Addr addr)
 {
   Bool b;
-  Seg seg;
+  Seg seg = NULL;       /* suppress "may be used uninitialized" */
 
   AVERT(Arena, arena);
 
