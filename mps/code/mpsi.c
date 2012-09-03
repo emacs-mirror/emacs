@@ -1237,7 +1237,7 @@ mps_res_t mps_sac_fill(mps_addr_t *p_o, mps_sac_t mps_sac, size_t size,
 {
   SAC sac = SACOfExternalSAC((ExternalSAC)mps_sac);
   Arena arena;
-  Addr p;
+  Addr p = NULL;        /* suppress "may be used uninitialized" */
   Res res;
 
   AVER(p_o != NULL);
