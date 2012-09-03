@@ -278,6 +278,10 @@ colors of the displayed X-Faces."
 	  values))
   (mapconcat 'identity values " ")))
 
+(defun gnus-funcall-no-warning (function &rest args)
+  (when (fboundp function)
+    (apply function args)))
+
 (provide 'gnus-fun)
 
 ;;; gnus-fun.el ends here

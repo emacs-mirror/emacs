@@ -29,13 +29,16 @@
 
 ;;; Code:
 
-(require 'notifications nil t)
+(ignore-errors
+  (require 'notifications))
 (require 'gnus-sum)
 (require 'gnus-group)
 (require 'gnus-int)
 (require 'gnus-art)
 (require 'gnus-util)
-(require 'google-contacts nil t)        ; Optional
+(ignore-errors
+  (require 'google-contacts))        ; Optional
+(require 'gnus-fun)
 
 (defgroup gnus-notifications nil
   "Send notifications on new message in Gnus."
@@ -81,12 +84,14 @@ not get notifications."
   "Send a notification about a new mail.
 Return a notification id if any, or t on success."
   (if (fboundp 'notifications-notify)
-      (notifications-notify
+      (gnus-funcall-no-warning
+       'notifications-notify
        :title from
        :body subject
        :actions '("read" "Read")
        :on-action 'gnus-notifications-action
-       :app-icon (image-search-load-path "gnus/gnus.png")
+       :app-icon (gnus-funcall-no-warning
+		  'image-search-load-path "gnus/gnus.png")
        :app-name "Gnus"
        :category "email.arrived"
        :timeout gnus-notifications-timeout
@@ -100,7 +105,8 @@ Return a notification id if any, or t on success."
   (let ((google-photo (when (and gnus-notifications-use-google-contacts
                                  (fboundp 'google-contacts-get-photo))
                         (ignore-errors
-                          (google-contacts-get-photo mail-address)))))
+                          (gnus-funcall-no-warning
+			   'google-contacts-get-photo mail-address)))))
     (if google-photo
         google-photo
       (when gnus-notifications-use-gravatar
