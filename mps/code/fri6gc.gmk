@@ -12,7 +12,7 @@ LIBS = -lm -pthread
 
 include gc.gmk
 
-CFLAGSCOMPILER := $(subst -pedantic,,$(CFLAGSCOMPILER))
+CFLAGSCOMPILER := $(CFLAGSCOMPILER) -Wno-strict-aliasing
 CFLAGSDEBUG = -O -g3
 CFLAGSOPT = -O3 -g3
 
