@@ -273,7 +273,39 @@ endif
 endif
 
 
-# GENUINE TARGETS
+# THE MPS LIBRARY
+#
+# The MPS library is built in two ways:
+#
+#   1. In the usual way, from a pile of object files compiled from their
+#      corresponding sources.
+#
+#   2. From mps.c, which effectively concatenates all the sources, allowing
+#      important global optimisation and inlining to occur.
+#
+# We mostly use the method (2), because it is fast to compile and execute.
+# But we use method (1) for some varieties to ensure correctness of
+# code (linkage errors are masked by (2)) and to maintain a correct list
+# of source files in case method (1) won't work on some future constrained
+# platform.
+#
+# %%VARIETY: Add a rule for how to build the MPS library for the variety
+
+$(PFM)/we/mps.a: $(PFM)/we/mps.o
+$(PFM)/hot/mps.a: $(PFM)/hot/mps.o
+
+$(PFM)/di/mps.a: \
+  $(MPMOBJ) $(AMCOBJ) $(AMSOBJ) $(AWLOBJ) $(LOOBJ) $(SNCOBJ) \
+  $(MVFFOBJ) $(PLINTHOBJ) $(POOLNOBJ)
+$(PFM)/cool/mps.a: \
+  $(MPMOBJ) $(AMCOBJ) $(AMSOBJ) $(AWLOBJ) $(LOOBJ) $(SNCOBJ) \
+  $(MVFFOBJ) $(PLINTHOBJ) $(POOLNOBJ)
+$(PFM)/ti/mps.a: \
+  $(MPMOBJ) $(AMCOBJ) $(AMSOBJ) $(AWLOBJ) $(LOOBJ) $(SNCOBJ) \
+  $(MVFFOBJ) $(PLINTHOBJ) $(POOLNOBJ)
+
+
+# OTHER GENUINE TARGETS
 #
 # Each line defines an executable or library target to be built and the
 # object files it is built from.  These lines add dependencies to the
@@ -284,104 +316,104 @@ endif
 ifdef VARIETY
 
 $(PFM)/$(VARIETY)/finalcv: $(PFM)/$(VARIETY)/finalcv.o \
-	$(FMTDYTSTOBJ) $(MPMOBJ) $(PLINTHOBJ) $(AMCOBJ) $(TESTLIBOBJ)
+	$(FMTDYTSTOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/finaltest: $(PFM)/$(VARIETY)/finaltest.o \
-	$(FMTDYTSTOBJ) $(MPMOBJ) $(PLINTHOBJ) $(AMCOBJ) $(TESTLIBOBJ)
+	$(FMTDYTSTOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/expt825: $(PFM)/$(VARIETY)/expt825.o \
-	$(FMTDYTSTOBJ) $(MPMOBJ) $(PLINTHOBJ) $(AMCOBJ) $(TESTLIBOBJ)
+	$(FMTDYTSTOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/locv: $(PFM)/$(VARIETY)/locv.o \
-	$(MPMOBJ) $(PLINTHOBJ) $(LOOBJ) $(TESTLIBOBJ)
+	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/mpmss: $(PFM)/$(VARIETY)/mpmss.o \
-	$(MPMOBJ) $(PLINTHOBJ) $(MVFFOBJ) $(TESTLIBOBJ)
+	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/apss: $(PFM)/$(VARIETY)/apss.o \
-	$(MPMOBJ) $(PLINTHOBJ) $(MVFFOBJ) $(TESTLIBOBJ)
+	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/sacss: $(PFM)/$(VARIETY)/sacss.o \
-	$(MPMOBJ) $(PLINTHOBJ) $(MVFFOBJ) $(TESTLIBOBJ)
+	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/bttest: $(PFM)/$(VARIETY)/bttest.o \
-	$(MPMOBJ) $(PLINTHOBJ) $(TESTLIBOBJ)
+	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/teletest: $(PFM)/$(VARIETY)/teletest.o \
-	$(MPMOBJ) $(PLINTHOBJ) $(TESTLIBOBJ)
+	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/lockcov: $(PFM)/$(VARIETY)/lockcov.o \
-	$(MPMOBJ) $(PLINTHOBJ) $(TESTLIBOBJ)
+	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/mpsicv: $(PFM)/$(VARIETY)/mpsicv.o \
-	$(FMTDYTSTOBJ) $(FMTHETSTOBJ) $(MPMOBJ) $(PLINTHOBJ) $(AMCOBJ) $(TESTLIBOBJ)
+	$(FMTDYTSTOBJ) $(FMTHETSTOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/amcss: $(PFM)/$(VARIETY)/amcss.o \
-	$(FMTDYTSTOBJ) $(MPMOBJ) $(PLINTHOBJ) $(AMCOBJ) $(TESTLIBOBJ)
+	$(FMTDYTSTOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/amcssth: $(PFM)/$(VARIETY)/amcssth.o \
-	$(FMTDYTSTOBJ) $(MPMOBJ) $(PLINTHOBJ) $(AMCOBJ) $(TESTLIBOBJ)
+	$(FMTDYTSTOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/amcsshe: $(PFM)/$(VARIETY)/amcsshe.o \
-	$(FMTHETSTOBJ) $(MPMOBJ) $(PLINTHOBJ) $(AMCOBJ) $(TESTLIBOBJ)
+	$(FMTHETSTOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/amsss: $(PFM)/$(VARIETY)/amsss.o \
-	$(FMTDYTSTOBJ) $(MPMOBJ) $(PLINTHOBJ) $(AMSOBJ) $(TESTLIBOBJ)
+	$(FMTDYTSTOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/amssshe: $(PFM)/$(VARIETY)/amssshe.o \
-	$(FMTHETSTOBJ) $(MPMOBJ) $(PLINTHOBJ) $(AMSOBJ) $(TESTLIBOBJ)
+	$(FMTHETSTOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/segsmss: $(PFM)/$(VARIETY)/segsmss.o \
-	$(FMTDYTSTOBJ) $(MPMOBJ) $(PLINTHOBJ) $(AMSOBJ) $(TESTLIBOBJ)
+	$(FMTDYTSTOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/awlut: $(PFM)/$(VARIETY)/awlut.o \
-	$(FMTDYTSTOBJ) $(MPMOBJ) $(PLINTHOBJ) $(LOOBJ) $(AWLOBJ) $(TESTLIBOBJ)
+	$(FMTDYTSTOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/awluthe: $(PFM)/$(VARIETY)/awluthe.o \
-        $(FMTHETSTOBJ) $(MPMOBJ) $(PLINTHOBJ) $(LOOBJ) $(AWLOBJ) $(TESTLIBOBJ)
+        $(FMTHETSTOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/awlutth: $(PFM)/$(VARIETY)/awlutth.o \
-	$(FMTDYTSTOBJ) $(MPMOBJ) $(PLINTHOBJ) $(LOOBJ) $(AWLOBJ) $(TESTLIBOBJ)
+	$(FMTDYTSTOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/poolncv: $(PFM)/$(VARIETY)/poolncv.o \
-	$(MPMOBJ) $(PLINTHOBJ) $(TESTLIBOBJ) $(POOLNOBJ)
+	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/qs: $(PFM)/$(VARIETY)/qs.o \
-	$(AMCOBJ) $(MPMOBJ) $(PLINTHOBJ) $(TESTLIBOBJ)
+	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/arenacv: $(PFM)/$(VARIETY)/arenacv.o \
-	$(MPMOBJ) $(PLINTHOBJ) $(TESTLIBOBJ)
+	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/abqtest: $(PFM)/$(VARIETY)/abqtest.o \
-	$(PFM)/$(VARIETY)/abq.o $(MPMOBJ) $(PLINTHOBJ) $(TESTLIBOBJ)
+	$(PFM)/$(VARIETY)/abq.o $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/cbstest: $(PFM)/$(VARIETY)/cbstest.o \
-	$(MPMOBJ) $(PLINTHOBJ) $(TESTLIBOBJ)
+	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/btcv: $(PFM)/$(VARIETY)/btcv.o \
-	$(MPMOBJ) $(PLINTHOBJ) $(TESTLIBOBJ)
+	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/mv2test: $(PFM)/$(VARIETY)/mv2test.o \
 	$(PFM)/$(VARIETY)/poolmv2.o $(PFM)/$(VARIETY)/abq.o \
-	$(MPMOBJ) $(PLINTHOBJ) $(TESTLIBOBJ)
+	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/messtest: $(PFM)/$(VARIETY)/messtest.o \
-	$(MPMOBJ) $(PLINTHOBJ) $(TESTLIBOBJ)
+	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/steptest: $(PFM)/$(VARIETY)/steptest.o \
-	$(FMTDYTSTOBJ) $(MPMOBJ) $(PLINTHOBJ) $(AMCOBJ) $(TESTLIBOBJ)
+	$(FMTDYTSTOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/walkt0: $(PFM)/$(VARIETY)/walkt0.o \
-	$(FMTDYTSTOBJ) $(MPMOBJ) $(PLINTHOBJ) $(AMCOBJ) $(TESTLIBOBJ)
+	$(FMTDYTSTOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/exposet0: $(PFM)/$(VARIETY)/exposet0.o \
-	$(FMTDYTSTOBJ) $(MPMOBJ) $(PLINTHOBJ) $(AMCOBJ) $(TESTLIBOBJ)
+	$(FMTDYTSTOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/zcoll: $(PFM)/$(VARIETY)/zcoll.o \
-	$(FMTDYTSTOBJ) $(MPMOBJ) $(PLINTHOBJ) $(AMCOBJ) $(TESTLIBOBJ)
+	$(FMTDYTSTOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/zmess: $(PFM)/$(VARIETY)/zmess.o \
-	$(FMTDYTSTOBJ) $(MPMOBJ) $(PLINTHOBJ) $(AMCOBJ) $(TESTLIBOBJ)
+	$(FMTDYTSTOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/eventcnv: $(PFM)/$(VARIETY)/eventcnv.o \
   $(PFM)/$(VARIETY)/eventpro.o $(PFM)/$(VARIETY)/table.o
@@ -389,10 +421,7 @@ $(PFM)/$(VARIETY)/eventcnv: $(PFM)/$(VARIETY)/eventcnv.o \
 $(PFM)/$(VARIETY)/replay: $(PFM)/$(VARIETY)/replay.o \
   $(PFM)/$(VARIETY)/eventrep.o \
   $(PFM)/$(VARIETY)/eventpro.o $(PFM)/$(VARIETY)/table.o \
-  $(MPMOBJ) $(PLINTHOBJ) $(AWLOBJ) $(AMSOBJ) $(POOLNOBJ) \
-  $(AMCOBJ) $(SNCOBJ) $(MVFFOBJ)
-
-$(PFM)/$(VARIETY)/mps.a: $(MPMOBJ) $(AMCOBJ) $(SNCOBJ) $(MVFFOBJ)
+  $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/mpsplan.a: $(PLINTHOBJ)
 
@@ -466,7 +495,7 @@ $(PFM)/$(VARIETY)/%.a:
 
 $(PFM)/$(VARIETY)/%:
 	$(ECHO) "$(PFM): $@"
-	$(CC) $(CFLAGS) $(LINKFLAGS) -o $@ $^ version.c $(LIBS)
+	$(CC) $(CFLAGS) $(LINKFLAGS) -o $@ $^ $(LIBS)
 
 
 # C. COPYRIGHT AND LICENSE
