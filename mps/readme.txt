@@ -452,6 +452,53 @@ source release so far.
 
 The MPS can be built on a wide variety of platforms.
 
+
+5.1. Building the MPS for your project
+
+In the simplest case, you can build the MPS with just:
+
+  cc -c mps.c           (Unix/Mac OS)
+  cl /c mps.c           (Windows)
+  
+This will build a "hot" variety (for production) object file for use
+with "mps.h".  You can greatly improve performance by allowing global
+optimization, for example:
+
+  cc -O3 -c mps.c       (Unix/Mac OS)
+  cl /O2 /c mps.c       (Windows)
+
+You can get a "cool" variety MPS (with more internal checking, for
+debugging and development) with:
+
+  cc -g -DCONFIG_VAR_COOL -c mps.c
+  cl /Zi /DCONFIG_VAR_COOL /c mps.c
+
+If you are using your own object format, you will also get improved
+performance by allowing the compiler to do global optimisations between
+it and the MPS.  So if your format implementation is in, say,
+myformat.c, then you could make a file mymps.c containing
+
+  #include "mps.c"
+  #include "myformat.c"
+
+then
+
+  cc -O3 -c mymps.c     (Unix/Mac OS)
+  cc /O2 /c mymps.c     (Windows)
+
+This will get your format code inlined with the MPS garbage collection
+algorithms.
+
+If you want to do anything beyond these simple cases, use the MPS
+makefiles as described in section 5.2, "Building for developing the
+MPS".
+
+
+5.2. Building for developing the MPS
+
+If you're making modifications to the MPS itself, or want to build MPS
+libraries for linking, you should use the MPS makefiles.
+
 For Unix-like platforms you will need the GNU Make tool.  Some platforms
 (such as Linux) have GNU Make as their default make tool.  For others
 you will need to get and install it.  (It's available free from
@@ -512,10 +559,10 @@ To build a restricted set of targets for just one variety, type:
 
   make -f <makefile> 'VARIETY=<variety>' <target>
 
-For example, to build just the "cool internal" variety of the "amcss"
-test on FreeBSD:
+For example, to build just the "cool" variety of the "amcss" test on
+FreeBSD:
 
-  gmake -f fri3gc.gmk 'VARIETY=ci' amcss
+  gmake -f fri3gc.gmk VARIETY=cool amcss
 
 On Windows platforms you need to run the "Visual Studio Command Prompt"
 from the Start menu.  Then type:
@@ -532,7 +579,7 @@ To build for 64-bit Windows, you must switch the environment to use the
   setenv /x64
   nmake /f w3i6mv.nmk
   
-And so on .
+And so on.
 
 On most platforms, the output of the build goes to a directory named
 after the platform (e.g. "fri3gc") so that you can share the source tree
@@ -626,6 +673,7 @@ B. DOCUMENT HISTORY
 2008-05-01  RHSK  Release 1.108.2
 2010-03-03  RHSK  Release 1.109.0
 2012-08-14  RB    Updating build instructions for new platforms.
+2012-09-03  RB    Updating for reformed varieties.
 
 
 C. COPYRIGHT AND LICENSE
