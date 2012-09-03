@@ -363,9 +363,9 @@
 
 /* Product Configuration
  *
- * Convert CONFIG_PROD_* defined on compiler command line into
- * internal configuration parameters.  See <design/config/#prod>.
- * FIXME: Rework <design/config>.
+ * Deprecated, see design/config/#req.prod>.  This now only contains the
+ * configuration used by the former "MPS" product, which is now the only
+ * product.
  */
 
 #define MPS_PROD_STRING         "mps"

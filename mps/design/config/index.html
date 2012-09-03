@@ -62,7 +62,11 @@ REQUIREMENTS
 <a id="req.builder" name="req.builder">.req.builder</a>: Allow build environment (compiler, etc.) specific configurations 
 of the MPS.
 
-<a id="req.prod" name="req.prod">.req.prod</a>: Allow product specific configurations of the MPS. 
+<a id="req.prod" name="req.prod">.req.prod</a>: Allow product specific
+configurations of the MPS.  [This requirement has been retired on
+2012-09-03.  Client-specific customisation of the MPS will be handled by
+configuration management, while the MPS source remains generic, to
+reduce costs and increase reliability.  RB 2012-09-03]
 
 <a id="req.var" name="req.var">.req.var</a>: Allow configurations with different amounts of instrumentation 
 (assertions, metering, etc.).
@@ -134,22 +138,17 @@ driver (usually "cc" or "gcc"), for example:
 predefined when compiling the module sources.
 
   CONFIG_VAR_&lt;variety-code&gt;
-  CONFIG_PROD_&lt;product-code&gt;
 
 The variety-codes are the 2 letter code that appears after "variety." in the 
 tag of the relevant variety document (see variety.*) converted to upper case.  
-Currently (1998-11-09): HI, CI, TI, HE, CE, WI, WE, II
+Currently (2012-09-03): RASH, HOT, COOL, DIAG, TI
 
-The product-codes are currently (1998-11-09) MPS, DYLAN, EPCORE.
-
-Exactly one CONFIG_VAR define must be present.
-
-Exactly one CONFIG_PROD define must be present.
+If no CONFIG_VAR is present, HOT is assumed in <code/config.h>.
 
 <a id="build.srcs" name="build.srcs">.build.srcs</a>: The "srcs" are the set of sources that must be compiled in order 
 to build the target.  The set of sources may vary depending on the 
 configuration.  For example, different sets of sources may be required to build 
-different products.  [This is a dependency between the makefile (or whatever) 
+on different architectures.  [This is a dependency between the makefile (or whatever) 
 and the module configuration in config.h.]
 
 <a id="build.libs" name="build.libs">.build.libs</a>: The "libs" are the set of libraries to which the compiled sources 
@@ -225,16 +224,13 @@ IMPLEMENTATION
 as preprocessor programs which "accept" build parameters and "emit" 
 configuration parameters (.fig.impl).  The build parameters are defined either 
 by the builder (in the case of target detection) or by the build function (in 
-the case of selecting the variety and product).
+the case of selecting the variety).
 
 <a id="fig.impl" name="fig.impl">.fig.impl</a>:
 
    build parameters                       configuration parameters
 
-   CONFIG_VAR_DF       --&gt;  config.h  --&gt; MPS_VAR_DF, ASSERT_MPM, etc.
-
-   CONFIG_PROD_EPCORE  --&gt;  config.h  --&gt; ARENA_CLIENT, PROT_NONE, 
-JUNKBYTE=0x39, etc.
+   CONFIG_VAR_COOL     --&gt;  config.h  --&gt; ASSERT_AND_CHECK, TELEMETRY, etc.
 
    _WIN32              --&gt;  mpstd.h   --&gt; MPS_OS_W3, etc.
 
@@ -326,22 +322,13 @@ as the declaration of assertions, etc.  The symbols should all begin with the
 prefix "MPS_VAR_".
 
 
-Target Product
-
-<a id="prod" name="prod">.prod</a>: The target product is handled by preprocessor directives in 
-impl.h.config.  <a id="prod.form" name="prod.form">.prod.form</a>: The file contains sets of directives of the form:
-
-  #elif defined(CONFIG_PROD_EPCORE)
-  #define PROT_NONE
-  #define THREAD_NONE
-  #define ARENA_CLIENT
-  etc.
-
 [Tidy this up:]
 Note, anything which can be configured, is configured, even if it's just 
 configured to "NONE" meaning nothing.  This makes sure that you can't choose 
 something by omission.  Where these symbols are used there will be a #error to 
 catch the unused case.
+Exception: To allow simple building of the MPS with "cc -c mps.c" we choose
+CONFIG_VAR_HOT by default.
 [This is a general principle which applies to other configuration stuff too.]
 
 
@@ -365,8 +352,6 @@ Configuration Parameters
   MPS_OS_&lt;os-code&gt;
   MPS_BUILDER_&lt;builder-code&gt;
   MPS_PF_&lt;platform-code&gt;
-  MPS_VAR_&lt;variety-code&gt;
-  MPS_PROD_&lt;product-code&gt;
 
 
 Abstract and Concrete Module Interfaces
@@ -500,6 +485,12 @@ To do:
   <td><a href="mailto:rb@ravenbrook.com">RB</a></td>
 
   <td>Converted from MMInfo database design document.</td>
+
+  <td>2012-09-03</td>
+
+  <td><a href="mailto:rb@ravenbrook.com">RB</a></td>
+
+  <td>Updated for variety-reform branch, to remove untrue things, though the document could do with a rewrite.</td>
 
 </tr>
 
