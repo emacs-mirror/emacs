@@ -413,9 +413,12 @@ Res PoolSingleAccess(Pool pool, Seg seg, Addr addr,
       /* Check that the reference is aligned to a word boundary */
       /* (we assume it is not a reference otherwise). */
       if(WordIsAligned((Word)ref, sizeof(Word))) {
-        /* See the note in TraceSegAccess about using RankEXACT here */
+        Rank rank;
+        /* See the note in TraceRankForAccess */
         /* (<code/trace.c#scan.conservative>). */
-        TraceScanSingleRef(arena->flippedTraces, RankEXACT, arena,
+        
+        rank = TraceRankForAccess(arena, seg);
+        TraceScanSingleRef(arena->flippedTraces, rank, arena,
                            seg, (Ref *)addr);
       }
     }

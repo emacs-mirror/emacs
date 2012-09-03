@@ -378,6 +378,7 @@ extern void TraceStart(Trace trace, double mortality,
                        double finishingTime);
 extern Size TracePoll(Globals globals);
 
+extern Rank TraceRankForAccess(Arena arena, Seg seg);
 extern void TraceSegAccess(Arena arena, Seg seg, AccessSet mode);
 extern Res TraceFix(ScanState ss, Ref *refIO);
 extern Res TraceFixEmergency(ScanState ss, Ref *refIO);
