@@ -234,10 +234,6 @@
 #define MPS_WORD_SHIFT  5
 #define MPS_PF_ALIGN    4
 
-/* FIXME: What is this for?  Clues at <http://www.kernel.org/doc/man-pages/online/pages/man7/feature_test_macros.7.html>
-   Discover whether it's still necessary and if so, document why. */
-#define _REENTRANT
-
 
 #elif defined(__FreeBSD__) && defined (__x86_64__) && defined (__GNUC__)
 #if defined(CONFIG_PF_STRING) && ! defined(CONFIG_PF_FRI6GC)
@@ -253,10 +249,6 @@
 #define MPS_WORD_WIDTH  64
 #define MPS_WORD_SHIFT  6
 #define MPS_PF_ALIGN    8
-
-/* FIXME: What is this for?  Clues at <http://www.kernel.org/doc/man-pages/online/pages/man7/feature_test_macros.7.html>
-   Discover whether it's still necessary and if so, document why. */
-#define _REENTRANT
 
 
 #else
