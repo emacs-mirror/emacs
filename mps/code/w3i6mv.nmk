@@ -22,7 +22,7 @@ MPM = <ring> <mpm> <bt> <protocol> <boot> \
       <root> <format> <buffer> <walk> <lockw3> \
       <ref> <trace> <traceanc> <protw3> <proti6> <prmci6w3> \
       <shield> <vmw3> \
-      <thw3> <thw3i6> <ssw3i6> <mpsi> <mpsiw3> <ld> <span> \
+      <thw3> <thw3i6> <ssw3mv> <mpsi> <mpsiw3> <ld> <span> \
       <event> <seg> <sac> <poolmrg> <message> <dbgpool> <dbgpooli> \
       <abq> <meter> <cbs> <poolmv2> <splay> <diag> <version>
 SW  = <ring> <mpm> <bt> <protocol> <boot> \

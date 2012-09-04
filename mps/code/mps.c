@@ -161,7 +161,7 @@
 #include "protw3.c"     /* Windows protection */
 #include "proti3.c"     /* 32-bit Intel mutator context decoding */
 #include "prmci3w3.c"   /* Windows on 32-bit Intel mutator context */
-#include "ssw3i3.c"     /* Windows on 32-bit Intel scan scan */
+#include "ssw3mv.c"     /* Windows stack scan for Microsoft C */
 #include "spi3.c"       /* Intel stack probe */
 #include "mpsiw3.c"     /* Windows interface layer extras */
 
@@ -177,7 +177,7 @@
 #include "protw3.c"     /* Windows protection */
 #include "proti6.c"     /* 64-bit Intel mutator context decoding */
 #include "prmci6w3.c"   /* Windows on 64-bit Intel mutator context */
-/* ssw3i6.asm */        /* Windows on 64-bit Intel scan scan */
+#include "ssw3mv.c"     /* Windows stack scan for Microsoft C */
 #include "span.c"       /* generic stack probe FIXME: Is this correct? */
 #include "mpsiw3.c"     /* Windows interface layer extras */
 
