@@ -1,3 +1,14 @@
+2012-09-04  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* progmodes/ruby-mode.el: Clean up keybindings.
+	(ruby-mode-map): Don't bind ruby-electric-brace,
+	ruby-beginning-of-defun, ruby-end-of-defun, ruby-mark-defun,
+	backward-kill-word, reindent-then-newline-and-indent.
+	(ruby-mark-defun): Remove.
+	(ruby-electric-brace): Remove.  Obsoleted by electric-indent-chars.
+	(ruby-mode): Set local beginning-of-defun-function and
+	end-of-defun-function values.
+
 2012-09-03  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (temp-buffer-window-setup-hook)
