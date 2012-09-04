@@ -454,7 +454,11 @@ uniscribe_shape (Lisp_Object lgstring)
 			}
 		      else
 			ASET (vec, 0, make_number (offsets[j].du + adj_offset));
-		      ASET (vec, 1, make_number (offsets[j].dv));
+		      /* In the font definition coordinate system, the
+			 Y coordinate points up, while in our screen
+			 coordinates Y grows downwards.  So we need to
+			 reverse the sign of Y-OFFSET here.  */
+		      ASET (vec, 1, make_number (-offsets[j].dv));
 		      /* Based on what ftfont.c does... */
 		      ASET (vec, 2, make_number (advances[j]));
 		      LGLYPH_SET_ADJUSTMENT (lglyph, vec);

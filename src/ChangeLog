@@ -1,3 +1,11 @@
+2012-09-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32uniscribe.c (uniscribe_shape): Reverse the sign of
+	offsets[j].dv, since the y axis of the screen coordinates points
+	down, while the y axis of the font definition coordinates points
+	up.  This fixes display of Arabic diacritics such as KASRA and
+	KASRATAN.  (Bug#11860)
+
 2012-09-04  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Be more systematic about _setjmp vs setjmp.
