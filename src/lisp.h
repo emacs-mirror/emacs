@@ -3266,6 +3266,7 @@ extern Lisp_Object Qfile_name_handler_alist;
 #ifdef FLOAT_CATCH_SIGILL
 extern void fatal_error_signal (int);
 #endif
+extern _Noreturn void fatal_error_backtrace (int, int);
 extern Lisp_Object Qkill_emacs;
 #if HAVE_SETLOCALE
 void fixup_locale (void);
@@ -3412,6 +3413,7 @@ extern int set_window_size (int, int, int);
 extern EMACS_INT get_random (void);
 extern void seed_random (void *, ptrdiff_t);
 extern void init_random (void);
+extern void emacs_backtrace (int);
 extern _Noreturn void emacs_abort (void) NO_INLINE;
 extern int emacs_open (const char *, int, int);
 extern int emacs_close (int);

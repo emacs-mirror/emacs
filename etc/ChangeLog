@@ -1,3 +1,8 @@
+2012-09-04  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Give more-useful info on a fatal error (Bug#12328).
+	* NEWS: Document the change.
+
 2012-09-01  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Better seeds for (random).

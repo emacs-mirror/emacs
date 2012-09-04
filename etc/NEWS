@@ -97,6 +97,11 @@ machines.  Other functions that use this format, such as
 file-attributes and format-time-string, have been changed accordingly.
 Old-format time stamps are still accepted.
 
+** Emacs now generates backtraces on fatal errors.
+On encountering a fatal error, Emacs now outputs a textual description
+of the fatal signal, and a short backtrace on platforms like glibc
+that support backtraces.
+
 ** New functions `system-users', `system-groups' return lists of the user
 name, group names known to the system (where possible).
 

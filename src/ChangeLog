@@ -1,3 +1,22 @@
+2012-09-04  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Give more-useful info on a fatal error (Bug#12328).
+	* alloc.c [ENABLE_CHECKING]: Do not include <execinfo.h>.
+	(die) [ENABLE_CHECKING]: Call fatal_error_backtrace instead
+	of doing the work ourselves.
+	* emacs.c (fatal_error_signal): Let fatal_error_backtrace
+	do most of the work.
+	(fatal_error_backtrace): New function, taken from the guts
+	of the old fatal_error_signal, but with a new option to output
+	a backtrace.
+	(shut_down_emacs) [!DOS_NT]: Use strsignal to give more-useful
+	info about the signal than just its number.
+	* lisp.h (fatal_error_backtrace, emacs_backtrace): New decls.
+	* sysdep.c: Include <execinfo.h>
+	(emacs_backtrace): New function, taken partly from the previous
+	code of the 'die' function.
+	(emacs_abort): Call fatal_error_backtrace rather than abort.
+
 2012-09-04  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* lread.c (readevalloop): Call internal-macroexpand-for-load to perform

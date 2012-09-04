@@ -21,6 +21,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define SYSTIME_INLINE EXTERN_INLINE
 
+#include <execinfo.h>
 #include <signal.h>
 #include <stdio.h>
 #include <setjmp.h>
@@ -1856,12 +1857,30 @@ snprintf (char *buf, size_t bufsize, char const *format, ...)
 }
 #endif
 
+/* If a backtrace is available, output the top lines of it to stderr.
+   Do not output more than BACKTRACE_LIMIT or BACKTRACE_LIMIT_MAX lines.
+   This function may be called from a signal handler, so it should
+   not invoke async-unsafe functions like malloc.  */
+void
+emacs_backtrace (int backtrace_limit)
+{
+  enum { BACKTRACE_LIMIT_MAX = 500 };
+  void *buffer[BACKTRACE_LIMIT_MAX + 1];
+  int bounded_limit = min (backtrace_limit, BACKTRACE_LIMIT_MAX);
+  int npointers = backtrace (buffer, bounded_limit + 1);
+  if (npointers)
+    ignore_value (write (STDERR_FILENO, "\nBacktrace:\n", 12));
+  backtrace_symbols_fd (buffer, bounded_limit, STDERR_FILENO);
+  if (bounded_limit < npointers)
+    ignore_value (write (STDERR_FILENO, "...\n", 4));
+}
+
 #ifndef HAVE_NTGUI
 /* Using emacs_abort lets GDB return from a breakpoint here.  */
 void
 emacs_abort (void)
 {
-  abort ();
+  fatal_error_backtrace (SIGABRT, 10);
 }
 #endif
 

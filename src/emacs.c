@@ -298,6 +298,14 @@ void
 fatal_error_signal (int sig)
 {
   SIGNAL_THREAD_CHECK (sig);
+  fatal_error_backtrace (sig, 10);
+}
+
+/* Report a fatal error due to signal SIG, output a backtrace of at
+   most BACKTRACE_LIMIT lines, and exit.  */
+_Noreturn void
+fatal_error_backtrace (int sig, int backtrace_limit)
+{
   fatal_error_code = sig;
   signal (sig, SIG_DFL);
 
@@ -312,6 +320,7 @@ fatal_error_signal (int sig)
         Fkill_emacs (make_number (sig));
 
       shut_down_emacs (sig, Qnil);
+      emacs_backtrace (backtrace_limit);
     }
 
   /* Signal the same code; this time it will really be fatal.
@@ -323,6 +332,9 @@ fatal_error_signal (int sig)
 #endif
 
   kill (getpid (), fatal_error_code);
+
+  /* This shouldn't be executed, but it prevents a warning.  */
+  exit (1);
 }
 
 #ifdef SIGDANGER
@@ -1992,7 +2004,7 @@ shut_down_emacs (int sig, Lisp_Object stuff)
       {
 	reset_all_sys_modes ();
 	if (sig && sig != SIGTERM)
-	  fprintf (stderr, "Fatal error (%d)", sig);
+	  fprintf (stderr, "Fatal error %d: %s", sig, strsignal (sig));
       }
   }
 #else

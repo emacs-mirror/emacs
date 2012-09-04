@@ -6685,21 +6685,14 @@ which_symbols (Lisp_Object obj, EMACS_INT find_max)
 
 #ifdef ENABLE_CHECKING
 
-# include <execinfo.h>
-
 bool suppress_checking;
 
 void
 die (const char *msg, const char *file, int line)
 {
-  enum { NPOINTERS_MAX = 500 };
-  void *buffer[NPOINTERS_MAX];
-  int npointers;
   fprintf (stderr, "\r\n%s:%d: Emacs fatal error: %s\r\n",
 	   file, line, msg);
-  npointers = backtrace (buffer, NPOINTERS_MAX);
-  backtrace_symbols_fd (buffer, npointers, STDERR_FILENO);
-  emacs_abort ();
+  fatal_error_backtrace (SIGABRT, INT_MAX);
 }
 #endif
 
