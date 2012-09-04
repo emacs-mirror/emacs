@@ -1,3 +1,9 @@
+2012-09-04  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* configure.ac (_setjmp, _longjmp): Check by compiling
+	instead of by guessing.  The guesses were wrong for
+	recent versions of Solaris, such as Solaris 11.
+
 2012-09-03  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* configure.ac (WARN_CFLAGS): Omit -Wjump-misses-init.

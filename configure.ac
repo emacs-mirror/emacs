@@ -3791,13 +3791,27 @@ else
   esac
 fi                              dnl GCC?
 
+AC_CACHE_CHECK([for _setjmp], [emacs_cv_func__setjmp],
+  [AC_LINK_IFELSE(
+     [AC_LANG_PROGRAM(
+       [[#include <setjmp.h>
+       ]],
+       [[jmp_buf j;
+	 if (! _setjmp (j))
+	   _longjmp (j, 1);]])],
+     [emacs_cv_func__setjmp=yes],
+     [emacs_cv_func__setjmp=no])])
+if test $emacs_cv_func__setjmp = no; then
+  AC_DEFINE([_setjmp], [setjmp],
+    [Define to setjmp if _setjmp and _longjmp do not work.  See _longjmp.])
+  AC_DEFINE([_longjmp], [longjmp],
+    [Define to longjmp if _setjmp and _longjmp do not work.
+     Because longjmp may alter signal masks, callers of _longjmp
+     should not assume that it leaves signal masks alone.])
+fi
 
 case $opsys in
   sol2* | unixware )
-    dnl setjmp and longjmp can safely replace _setjmp and _longjmp,
-    dnl but they will run more slowly.
-    AC_DEFINE(_setjmp, setjmp, [Some platforms redefine this.])
-    AC_DEFINE(_longjmp, longjmp, [Some platforms redefine this.])
     dnl TIOCGPGRP is broken in SysVr4, so we can't send signals to PTY
     dnl subprocesses the usual way.  But TIOCSIGNAL does work for PTYs,
     dnl and this is all we need.
