@@ -2953,7 +2953,7 @@ into shorter lines.  */)
 				    encoded, length, NILP (no_line_break),
 				    !NILP (BVAR (current_buffer, enable_multibyte_characters)));
   if (encoded_length > allength)
-    abort ();
+    emacs_abort ();
 
   if (encoded_length < 0)
     {
@@ -3009,7 +3009,7 @@ into shorter lines.  */)
 				    encoded, length, NILP (no_line_break),
 				    STRING_MULTIBYTE (string));
   if (encoded_length > allength)
-    abort ();
+    emacs_abort ();
 
   if (encoded_length < 0)
     {
@@ -3154,7 +3154,7 @@ If the region can't be decoded, signal an error and don't modify the buffer.  */
 				    decoded, length,
 				    multibyte, &inserted_chars);
   if (decoded_length > allength)
-    abort ();
+    emacs_abort ();
 
   if (decoded_length < 0)
     {
@@ -3204,7 +3204,7 @@ DEFUN ("base64-decode-string", Fbase64_decode_string, Sbase64_decode_string,
   decoded_length = base64_decode_1 (SSDATA (string), decoded, length,
 				    0, NULL);
   if (decoded_length > length)
-    abort ();
+    emacs_abort ();
   else if (decoded_length >= 0)
     decoded_string = make_unibyte_string (decoded, decoded_length);
   else
@@ -3960,7 +3960,7 @@ sweep_weak_table (struct Lisp_Hash_Table *h, int remove_entries_p)
 	  else if (EQ (h->weak, Qkey_and_value))
 	    remove_p = !(key_known_to_survive_p && value_known_to_survive_p);
 	  else
-	    abort ();
+	    emacs_abort ();
 
 	  next = HASH_NEXT (h, i);
 
@@ -4256,7 +4256,7 @@ sxhash (Lisp_Object obj, int depth)
       break;
 
     default:
-      abort ();
+      emacs_abort ();
     }
 
   return hash;

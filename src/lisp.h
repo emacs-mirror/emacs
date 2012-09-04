@@ -2288,7 +2288,7 @@ extern int gcpro_level;
 
 #define UNGCPRO					\
  ((--gcpro_level != gcpro1.level)		\
-  ? (abort (), 0)				\
+  ? (emacs_abort (), 0)				\
   : ((gcprolist = gcpro1.next), 0))
 
 #endif /* DEBUG_GCPRO */
@@ -3412,6 +3412,7 @@ extern int set_window_size (int, int, int);
 extern EMACS_INT get_random (void);
 extern void seed_random (void *, ptrdiff_t);
 extern void init_random (void);
+extern _Noreturn void emacs_abort (void) NO_INLINE;
 extern int emacs_open (const char *, int, int);
 extern int emacs_close (int);
 extern ptrdiff_t emacs_read (int, char *, ptrdiff_t);

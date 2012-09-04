@@ -1630,7 +1630,7 @@ ftfont_get_metrics (MFLTFont *font, MFLTGlyphString *gstring,
 	    FT_Glyph_Metrics *m;
 
 	    if (FT_Load_Glyph (ft_face, g->code, FT_LOAD_DEFAULT) != 0)
-	      abort ();
+	      emacs_abort ();
 	    m = &ft_face->glyph->metrics;
 	    if (flt_font_ft->matrix)
 	      {

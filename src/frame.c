@@ -214,7 +214,7 @@ See also `frame-live-p'.  */)
     case output_ns:
       return Qns;
     default:
-      abort ();
+      emacs_abort ();
     }
 }
 
@@ -620,7 +620,7 @@ affects all frames on the same terminal device.  */)
 #ifdef MSDOS
   if (sf->output_method != output_msdos_raw
       && sf->output_method != output_termcap)
-    abort ();
+    emacs_abort ();
 #else /* not MSDOS */
 
 #ifdef WINDOWSNT                           /* This should work now! */
@@ -767,7 +767,7 @@ do_switch_frame (Lisp_Object frame, int track, int for_deletion, Lisp_Object nor
 	  Lisp_Object focus;
 
 	  if (!FRAMEP (XCAR (tail)))
-	    abort ();
+	    emacs_abort ();
 
 	  focus = FRAME_FOCUS_FRAME (XFRAME (XCAR (tail)));
 
@@ -897,7 +897,7 @@ next_frame (Lisp_Object frame, Lisp_Object minibuf)
 
   /* There must always be at least one frame in Vframe_list.  */
   if (! CONSP (Vframe_list))
-    abort ();
+    emacs_abort ();
 
   /* If this frame is dead, it won't be in Vframe_list, and we'll loop
      forever.  Forestall that.  */
@@ -975,7 +975,7 @@ prev_frame (Lisp_Object frame, Lisp_Object minibuf)
 
   /* There must always be at least one frame in Vframe_list.  */
   if (! CONSP (Vframe_list))
-    abort ();
+    emacs_abort ();
 
   prev = Qnil;
   for (tail = Vframe_list; CONSP (tail); tail = XCDR (tail))
@@ -984,7 +984,7 @@ prev_frame (Lisp_Object frame, Lisp_Object minibuf)
 
       f = XCAR (tail);
       if (!FRAMEP (f))
-	abort ();
+	emacs_abort ();
 
       if (EQ (frame, f) && !NILP (prev))
 	return prev;
@@ -1385,7 +1385,7 @@ delete_frame (Lisp_Object frame, Lisp_Object force)
 
 	  this = XCAR (frames);
 	  if (!FRAMEP (this))
-	    abort ();
+	    emacs_abort ();
 	  f1 = XFRAME (this);
 
 	  if (kb == FRAME_KBOARD (f1))
@@ -1421,7 +1421,7 @@ delete_frame (Lisp_Object frame, Lisp_Object force)
 
 	  this = XCAR (frames);
 	  if (!FRAMEP (this))
-	    abort ();
+	    emacs_abort ();
 	  f1 = XFRAME (this);
 
 	  /* Consider only frames on the same kboard
@@ -1447,7 +1447,7 @@ delete_frame (Lisp_Object frame, Lisp_Object force)
 	     that is prohibited at the top; you can't delete surrogate
 	     minibuffer frames.  */
 	  if (NILP (frame_with_minibuf))
-	    abort ();
+	    emacs_abort ();
 
 	  kset_default_minibuffer_frame (kb, frame_with_minibuf);
 	}
@@ -2108,7 +2108,7 @@ store_frame_param (struct frame *f, Lisp_Object prop, Lisp_Object val)
 	      swap_in_global_binding (sym);
 	    break;
 	  }
-	default: abort ();
+	default: emacs_abort ();
 	}
     }
 
@@ -3835,7 +3835,7 @@ x_get_arg (Display_Info *dpyinfo, Lisp_Object alist, Lisp_Object param,
 	      }
 
 	    default:
-	      abort ();
+	      emacs_abort ();
 	    }
 	}
       else

@@ -796,7 +796,7 @@ IT_set_face (int face)
       /* The default face for the frame should always be realized and
 	 cached.  */
       if (!fp)
-	abort ();
+	emacs_abort ();
     }
   screen_face = face;
   fg = fp->foreground;
@@ -1393,7 +1393,7 @@ IT_insert_glyphs (struct frame *f, struct glyph *start, int len)
 static void
 IT_delete_glyphs (struct frame *f, int n)
 {
-  abort ();
+  emacs_abort ();
 }
 
 /* set-window-configuration on window.c needs this.  */
@@ -3013,7 +3013,7 @@ XMenuAddPane (Display *foo, XMenu *menu, const char *txt, int enable)
   const char *p;
 
   if (!enable)
-    abort ();
+    emacs_abort ();
 
   IT_menu_make_room (menu);
   menu->submenu[menu->count] = IT_menu_create ();
@@ -4119,7 +4119,7 @@ sys_select (int nfds, SELECT_TYPE *rfds, SELECT_TYPE *wfds, SELECT_TYPE *efds,
     FD_ZERO (efds);
 
   if (nfds != 1)
-    abort ();
+    emacs_abort ();
 
   /* If we are looking only for the terminal, with no timeout,
      just read it and wait -- that's more efficient.  */
@@ -4214,26 +4214,8 @@ init_gettimeofday (void)
 }
 #endif
 
-#ifdef abort
-#undef abort
 void
-dos_abort (char *file, int line)
-{
-  char buffer1[200], buffer2[400];
-  int i, j;
-
-  sprintf (buffer1, "<EMACS FATAL ERROR IN %s LINE %d>", file, line);
-  for (i = j = 0; buffer1[i]; i++) {
-    buffer2[j++] = buffer1[i];
-    buffer2[j++] = 0x70;
-  }
-  dosmemput (buffer2, j, (int)ScreenPrimary);
-  ScreenSetCursor (2, 0);
-  abort ();
-}
-#else
-void
-abort (void)
+emacs_abort (void)
 {
   dos_ttcooked ();
   ScreenSetCursor (10, 0);
@@ -4249,7 +4231,6 @@ abort (void)
 #endif /* __DJGPP_MINOR__ >= 2 */
   exit (2);
 }
-#endif
 
 void
 syms_of_msdos (void)

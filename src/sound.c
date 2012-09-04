@@ -843,7 +843,7 @@ vox_choose_format (struct sound_device *sd, struct sound *s)
 	}
     }
   else
-    abort ();
+    emacs_abort ();
 }
 
 
@@ -1138,7 +1138,7 @@ alsa_choose_format (struct sound_device *sd, struct sound *s)
 	}
     }
   else
-    abort ();
+    emacs_abort ();
 }
 
 

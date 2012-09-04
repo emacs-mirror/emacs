@@ -247,7 +247,7 @@ tparam1 (const char *string, char *outstring, int len,
 	      break;
 
 	    default:
-	      abort ();
+	      emacs_abort ();
 	    }
 	}
       else

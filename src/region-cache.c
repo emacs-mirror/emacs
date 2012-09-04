@@ -194,7 +194,7 @@ find_cache_boundary (struct region_cache *c, ptrdiff_t pos)
   if (BOUNDARY_POS (c, low) > pos
       || (low + 1 < c->cache_len
           && BOUNDARY_POS (c, low + 1) <= pos))
-      abort ();
+      emacs_abort ();
 
   return low;
 }
@@ -217,12 +217,12 @@ move_cache_gap (struct region_cache *c, ptrdiff_t pos, ptrdiff_t min_size)
 
   if (pos < 0
       || pos > c->cache_len)
-    abort ();
+    emacs_abort ();
 
   /* We mustn't ever try to put the gap before the dummy start
      boundary.  That must always be start-relative.  */
   if (pos == 0)
-    abort ();
+    emacs_abort ();
 
   /* Need we move the gap right?  */
   while (gap_start < pos)
@@ -291,24 +291,24 @@ insert_cache_boundary (struct region_cache *c, ptrdiff_t i, ptrdiff_t pos,
 {
   /* i must be a valid cache index.  */
   if (i < 0 || i > c->cache_len)
-    abort ();
+    emacs_abort ();
 
   /* We must never want to insert something before the dummy first
      boundary.  */
   if (i == 0)
-    abort ();
+    emacs_abort ();
 
   /* We must only be inserting things in order.  */
   if (! (BOUNDARY_POS (c, i - 1) < pos
          && (i == c->cache_len
              || pos < BOUNDARY_POS (c, i))))
-    abort ();
+    emacs_abort ();
 
   /* The value must be different from the ones around it.  However, we
      temporarily create boundaries that establish the same value as
      the subsequent boundary, so we're not going to flag that case.  */
   if (BOUNDARY_VALUE (c, i - 1) == value)
-    abort ();
+    emacs_abort ();
 
   move_cache_gap (c, i, 1);
 
@@ -331,16 +331,16 @@ delete_cache_boundaries (struct region_cache *c,
   /* Gotta be in range.  */
   if (start < 0
       || end > c->cache_len)
-    abort ();
+    emacs_abort ();
 
   /* Gotta be in order.  */
   if (start > end)
-    abort ();
+    emacs_abort ();
 
   /* Can't delete the dummy entry.  */
   if (start == 0
       && end >= 1)
-    abort ();
+    emacs_abort ();
 
   /* Minimize gap motion.  If we're deleting nothing, do nothing.  */
   if (len == 0)
@@ -380,10 +380,10 @@ set_cache_region (struct region_cache *c,
 		  ptrdiff_t start, ptrdiff_t end, int value)
 {
   if (start > end)
-    abort ();
+    emacs_abort ();
   if (start < c->buffer_beg
       || end   > c->buffer_end)
-    abort ();
+    emacs_abort ();
 
   /* Eliminate this case; then we can assume that start and end-1 are
      both the locations of real characters in the buffer.  */

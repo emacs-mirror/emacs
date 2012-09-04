@@ -7306,7 +7306,7 @@ set_iterator_to_next (struct it *it, int reseat_p)
 
     default:
       /* There are no other methods defined, so this should be a bug.  */
-      abort ();
+      emacs_abort ();
     }
 
   eassert (it->method != GET_FROM_STRING
@@ -7761,7 +7761,7 @@ compute_stop_pos_backwards (struct it *it)
       compute_stop_pos (it);
       /* We must advance forward, right?  */
       if (it->stop_charpos <= charpos)
-	abort ();
+	emacs_abort ();
     }
   while (charpos > BEGV && it->stop_charpos >= it->end_charpos);
 
@@ -7810,7 +7810,7 @@ handle_stop_backwards (struct it *it, ptrdiff_t charpos)
       compute_stop_pos (it);
       /* We must advance forward, right?  */
       if (it->stop_charpos <= it->prev_stop)
-	abort ();
+	emacs_abort ();
       charpos = it->stop_charpos;
     }
   while (charpos <= where_we_are);
@@ -8898,7 +8898,7 @@ move_it_to (struct it *it, ptrdiff_t to_charpos, int to_x, int to_y, int to_vpos
 	  break;
 
 	default:
-	  abort ();
+	  emacs_abort ();
 	}
 
       /* Reset/increment for the next run.  */
@@ -10532,7 +10532,7 @@ void
 check_message_stack (void)
 {
   if (!NILP (Vmessage_stack))
-    abort ();
+    emacs_abort ();
 }
 
 
@@ -14415,7 +14415,7 @@ set_cursor_from_row (struct window *w, struct glyph_row *row,
       for (g = row->glyphs[TEXT_AREA], x = row->x; g < glyph; g++)
 	{
 	  if (g >= row->glyphs[TEXT_AREA] + row->used[TEXT_AREA])
-	    abort ();
+	    emacs_abort ();
 	  x += g->pixel_width;
 	}
     }
@@ -14536,7 +14536,7 @@ run_window_scroll_functions (Lisp_Object window, struct text_pos startp)
   SET_MARKER_FROM_TEXT_POS (w->start, startp);
 
   if (current_buffer != XBUFFER (w->buffer))
-    abort ();
+    emacs_abort ();
 
   if (!NILP (Vwindow_scroll_functions))
     {
@@ -15505,9 +15505,9 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
   /* Some sanity checks.  */
   CHECK_WINDOW_END (w);
   if (Z == Z_BYTE && CHARPOS (opoint) != BYTEPOS (opoint))
-    abort ();
+    emacs_abort ();
   if (BYTEPOS (opoint) < CHARPOS (opoint))
-    abort ();
+    emacs_abort ();
 
   /* If %c is in mode line, update it if needed.  */
   if (!NILP (w->column_number_displayed)
@@ -15719,7 +15719,7 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
 	  goto try_to_scroll;
 
 	default:
-	  abort ();
+	  emacs_abort ();
 	}
     }
   /* If current starting point was originally the beginning of a line
@@ -15882,7 +15882,7 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
 	  break;
 
 	default:
-	  abort ();
+	  emacs_abort ();
 	}
     }
 
@@ -17330,7 +17330,7 @@ try_window_id (struct window *w)
 	  if (row)
 	    set_cursor_from_row (w, row, current_matrix, 0, 0, 0, 0);
 	  else
-	    abort ();
+	    emacs_abort ();
 	  return 1;
 	}
     }
@@ -17374,7 +17374,7 @@ try_window_id (struct window *w)
 	  if (row)
 	    set_cursor_from_row (w, row, current_matrix, 0, 0, 0, 0);
 	  else
-	    abort ();
+	    emacs_abort ();
 	  return 2;
 	}
     }
@@ -17863,7 +17863,7 @@ try_window_id (struct window *w)
       IF_DEBUG (debug_method_add (w, "C"));
     }
   else
-    abort ();
+    emacs_abort ();
 
   IF_DEBUG (debug_end_pos = XFASTINT (w->window_end_pos);
 	    debug_end_vpos = XFASTINT (w->window_end_vpos));
@@ -19240,7 +19240,7 @@ find_row_edges (struct it *it, struct glyph_row *row,
 	/* A line that is entirely from a string/image/stretch...  */
 	row->maxpos = row->minpos;
       else
-	abort ();
+	emacs_abort ();
     }
   else
     row->maxpos = it->current.pos;
@@ -20081,7 +20081,7 @@ See also `bidi-paragraph-direction'.  */)
 	  return Qright_to_left;
 	  break;
 	default:
-	  abort ();
+	  emacs_abort ();
 	}
     }
 }
@@ -21994,7 +21994,7 @@ display_string (const char *string, Lisp_Object lisp_string, Lisp_Object face_st
 	    {
 	      /* Glyph is off the left margin of the display area.
 		 Should not happen.  */
-	      abort ();
+	      emacs_abort ();
 	    }
 
 	  row->ascent = max (row->ascent, it->max_ascent);
@@ -23359,7 +23359,7 @@ compute_overhangs_and_x (struct glyph_string *s, int x, int backward_p)
 	      break;							\
 									\
 	    default:							\
-	      abort ();							\
+	      emacs_abort ();							\
 	    }								\
 									\
 	  if (s)							\
@@ -23700,7 +23700,7 @@ append_glyph (struct it *it)
 	{
 	  glyph->resolved_level = it->bidi_it.resolved_level;
 	  if ((it->bidi_it.type & 7) != it->bidi_it.type)
-	    abort ();
+	    emacs_abort ();
 	  glyph->bidi_type = it->bidi_it.type;
 	}
       else
@@ -23774,7 +23774,7 @@ append_composite_glyph (struct it *it)
 	{
 	  glyph->resolved_level = it->bidi_it.resolved_level;
 	  if ((it->bidi_it.type & 7) != it->bidi_it.type)
-	    abort ();
+	    emacs_abort ();
 	  glyph->bidi_type = it->bidi_it.type;
 	}
       ++it->glyph_row->used[area];
@@ -23953,7 +23953,7 @@ produce_image_glyph (struct it *it)
 	    {
 	      glyph->resolved_level = it->bidi_it.resolved_level;
 	      if ((it->bidi_it.type & 7) != it->bidi_it.type)
-		abort ();
+		emacs_abort ();
 	      glyph->bidi_type = it->bidi_it.type;
 	    }
 	  ++it->glyph_row->used[area];
@@ -24014,7 +24014,7 @@ append_stretch_glyph (struct it *it, Lisp_Object object,
 	{
 	  glyph->resolved_level = it->bidi_it.resolved_level;
 	  if ((it->bidi_it.type & 7) != it->bidi_it.type)
-	    abort ();
+	    emacs_abort ();
 	  glyph->bidi_type = it->bidi_it.type;
 	}
       else
@@ -24269,7 +24269,7 @@ produce_special_glyphs (struct it *it, enum display_element_type what)
 	}
     }
   else
-    abort ();
+    emacs_abort ();
 
 #ifdef HAVE_WINDOW_SYSTEM
   /* On a GUI frame, when the right fringe (left fringe for R2L rows)
@@ -24466,7 +24466,7 @@ append_glyphless_glyph (struct it *it, int face_id, int for_no_font, int len,
 	{
 	  glyph->resolved_level = it->bidi_it.resolved_level;
 	  if ((it->bidi_it.type & 7) != it->bidi_it.type)
-	    abort ();
+	    emacs_abort ();
 	  glyph->bidi_type = it->bidi_it.type;
 	}
       ++it->glyph_row->used[area];

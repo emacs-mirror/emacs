@@ -254,7 +254,7 @@ void
 free_widget_value (widget_value *wv)
 {
   if (wv->free_list)
-    abort ();
+    emacs_abort ();
 
   if (malloc_cpt > 25)
     {
@@ -3519,7 +3519,7 @@ xg_store_widget_in_map (GtkWidget *w)
     }
 
   /* Should never end up here  */
-  abort ();
+  emacs_abort ();
 }
 
 /* Remove pointer at IDX from id_to_widget.
@@ -4087,7 +4087,7 @@ xg_tool_bar_menu_proxy (GtkToolItem *toolitem, gpointer user_data)
           else
             {
               fprintf (stderr, "internal error: GTK_IMAGE_PIXBUF failed\n");
-              abort ();
+              emacs_abort ();
             }
         }
       else if (store_type == GTK_IMAGE_ICON_NAME)
@@ -4102,7 +4102,7 @@ xg_tool_bar_menu_proxy (GtkToolItem *toolitem, gpointer user_data)
       else
         {
           fprintf (stderr, "internal error: store_type is %d\n", store_type);
-          abort ();
+          emacs_abort ();
         }
     }
   if (wmenuimage)

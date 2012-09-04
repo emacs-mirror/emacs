@@ -122,7 +122,7 @@ get_frame_dc (FRAME_PTR f)
   HDC hdc;
 
   if (f->output_method != output_w32)
-    abort ();
+    emacs_abort ();
 
   enter_crit ();
 

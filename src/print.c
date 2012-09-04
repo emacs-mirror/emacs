@@ -2060,7 +2060,7 @@ print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag
       {
 	int len;
 	/* We're in trouble if this happens!
-	   Probably should just abort () */
+	   Probably should just emacs_abort ().  */
 	strout ("#<EMACS BUG: INVALID DATATYPE ", -1, -1, printcharfun);
 	if (MISCP (obj))
 	  len = sprintf (buf, "(MISC 0x%04x)", (int) XMISCTYPE (obj));

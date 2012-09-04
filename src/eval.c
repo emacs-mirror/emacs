@@ -1493,7 +1493,7 @@ See also the function `condition-case'.  */)
   immediate_quit = handling_signal = 0;
   abort_on_gc = 0;
   if (gc_in_progress || waiting_for_input)
-    abort ();
+    emacs_abort ();
 
 #if 0 /* rms: I don't know why this was here,
 	 but it is surely wrong for an error that is handled.  */
@@ -1590,7 +1590,7 @@ void
 xsignal (Lisp_Object error_symbol, Lisp_Object data)
 {
   Fsignal (error_symbol, data);
-  abort ();
+  emacs_abort ();
 }
 
 /* Like xsignal, but takes 0, 1, 2, or 3 args instead of a list.  */
@@ -2043,7 +2043,7 @@ eval_sub (Lisp_Object form)
   struct gcpro gcpro1, gcpro2, gcpro3;
 
   if (handling_signal)
-    abort ();
+    emacs_abort ();
 
   if (SYMBOLP (form))
     {
@@ -2207,7 +2207,7 @@ eval_sub (Lisp_Object form)
 		 is supported by this code.  We need to either rewrite the
 		 subr to use a different argument protocol, or add more
 		 cases to this switch.  */
-	      abort ();
+	      emacs_abort ();
 	    }
 	}
     }
@@ -2850,7 +2850,7 @@ usage: (funcall FUNCTION &rest ARGUMENTS)  */)
 	      /* If a subr takes more than 8 arguments without using MANY
 		 or UNEVALLED, we need to extend this function to support it.
 		 Until this is done, there is no way to call the function.  */
-	      abort ();
+	      emacs_abort ();
 	    }
 	}
     }
@@ -2981,7 +2981,7 @@ funcall_lambda (Lisp_Object fun, ptrdiff_t nargs,
       lexenv = Qnil;
     }
   else
-    abort ();
+    emacs_abort ();
 
   i = optional = rest = 0;
   for (; CONSP (syms_left); syms_left = XCDR (syms_left))
@@ -3195,7 +3195,7 @@ specbind (Lisp_Object symbol, Lisp_Object value)
 	set_internal (symbol, value, Qnil, 1);
 	break;
       }
-    default: abort ();
+    default: emacs_abort ();
     }
 }
 

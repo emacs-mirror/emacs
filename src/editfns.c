@@ -4263,7 +4263,7 @@ usage: (format STRING &rest OBJECTS)  */)
     }
 
   if (bufsize < p - buf)
-    abort ();
+    emacs_abort ();
 
   if (maybe_combine_byte)
     nchars = multibyte_chars_in_text ((unsigned char *) buf, p - buf);
@@ -4603,7 +4603,7 @@ Transposing beyond buffer boundaries is an error.  */)
 				     len1_byte, end2, start2_byte + len2_byte)
 	  || count_combining_after (BYTE_POS_ADDR (start1_byte),
 				    len1_byte, end2, start2_byte + len2_byte))
-	abort ();
+	emacs_abort ();
     }
   else
     {
@@ -4615,7 +4615,7 @@ Transposing beyond buffer boundaries is an error.  */)
 				    len2_byte, end1, start1_byte + len1_byte)
 	  || count_combining_after (BYTE_POS_ADDR (start1_byte),
 				    len1_byte, end2, start2_byte + len2_byte))
-	abort ();
+	emacs_abort ();
     }
 #endif
 

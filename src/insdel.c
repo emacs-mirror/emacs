@@ -69,13 +69,13 @@ check_markers (void)
   for (tail = BUF_MARKERS (current_buffer); tail; tail = tail->next)
     {
       if (tail->buffer->text != current_buffer->text)
-	abort ();
+	emacs_abort ();
       if (tail->charpos > Z)
-	abort ();
+	emacs_abort ();
       if (tail->bytepos > Z_BYTE)
-	abort ();
+	emacs_abort ();
       if (multibyte && ! CHAR_HEAD_P (FETCH_BYTE (tail->bytepos)))
-	abort ();
+	emacs_abort ();
     }
 }
 
@@ -808,7 +808,7 @@ insert_1_both (const char *string,
 #ifdef BYTE_COMBINING_DEBUG
   if (count_combining_before (string, nbytes, PT, PT_BYTE)
       || count_combining_after (string, nbytes, PT, PT_BYTE))
-    abort ();
+    emacs_abort ();
 #endif
 
   /* Record deletion of the surrounding text that combines with
@@ -943,7 +943,7 @@ insert_from_string_1 (Lisp_Object string, ptrdiff_t pos, ptrdiff_t pos_byte,
      the text that has been stored by copy_text.  */
   if (count_combining_before (GPT_ADDR, outgoing_nbytes, PT, PT_BYTE)
       || count_combining_after (GPT_ADDR, outgoing_nbytes, PT, PT_BYTE))
-    abort ();
+    emacs_abort ();
 #endif
 
   record_insert (PT, nchars);
@@ -1126,7 +1126,7 @@ insert_from_buffer_1 (struct buffer *buf,
      the text that has been stored by copy_text.  */
   if (count_combining_before (GPT_ADDR, outgoing_nbytes, PT, PT_BYTE)
       || count_combining_after (GPT_ADDR, outgoing_nbytes, PT, PT_BYTE))
-    abort ();
+    emacs_abort ();
 #endif
 
   record_insert (PT, nchars);
@@ -1187,7 +1187,7 @@ adjust_after_replace (ptrdiff_t from, ptrdiff_t from_byte,
 #ifdef BYTE_COMBINING_DEBUG
   if (count_combining_before (GPT_ADDR, len_byte, from, from_byte)
       || count_combining_after (GPT_ADDR, len_byte, from, from_byte))
-    abort ();
+    emacs_abort ();
 #endif
 
   if (STRINGP (prev_text))
@@ -1370,7 +1370,7 @@ replace_range (ptrdiff_t from, ptrdiff_t to, Lisp_Object new,
      the text that has been stored by copy_text.  */
   if (count_combining_before (GPT_ADDR, outgoing_insbytes, from, from_byte)
       || count_combining_after (GPT_ADDR, outgoing_insbytes, from, from_byte))
-    abort ();
+    emacs_abort ();
 #endif
 
   if (! EQ (BVAR (current_buffer, undo_list), Qt))
@@ -1496,7 +1496,7 @@ replace_range_2 (ptrdiff_t from, ptrdiff_t from_byte,
      the text that has been stored by copy_text.  */
   if (count_combining_before (GPT_ADDR, insbytes, from, from_byte)
       || count_combining_after (GPT_ADDR, insbytes, from, from_byte))
-    abort ();
+    emacs_abort ();
 #endif
 
   GAP_SIZE -= insbytes;
@@ -1704,7 +1704,7 @@ del_range_2 (ptrdiff_t from, ptrdiff_t from_byte,
 #ifdef BYTE_COMBINING_DEBUG
   if (count_combining_before (BUF_BYTE_ADDRESS (current_buffer, to_byte),
 			      Z_BYTE - to_byte, from, from_byte))
-    abort ();
+    emacs_abort ();
 #endif
 
   if (ret_string || ! EQ (BVAR (current_buffer, undo_list), Qt))

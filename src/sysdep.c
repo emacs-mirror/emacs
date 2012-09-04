@@ -1856,6 +1856,15 @@ snprintf (char *buf, size_t bufsize, char const *format, ...)
 }
 #endif
 
+#ifndef HAVE_NTGUI
+/* Using emacs_abort lets GDB return from a breakpoint here.  */
+void
+emacs_abort (void)
+{
+  abort ();
+}
+#endif
+
 int
 emacs_open (const char *path, int oflag, int mode)
 {

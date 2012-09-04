@@ -1330,7 +1330,7 @@ ns_uni_to_glyphs (struct nsfont_info *font_info, unsigned char block)
 
   font_info->glyphs[block] = xmalloc (0x100 * sizeof (unsigned short));
   if (!unichars || !(font_info->glyphs[block]))
-    abort ();
+    emacs_abort ();
 
   /* create a string containing all Unicode characters in this block */
   for (idx = block<<8, i = 0; i < 0x100; idx++, i++)
@@ -1405,7 +1405,7 @@ ns_glyph_metrics (struct nsfont_info *font_info, unsigned char block)
 
   font_info->metrics[block] = xzalloc (0x100 * sizeof (struct font_metrics));
   if (!(font_info->metrics[block]))
-    abort ();
+    emacs_abort ();
 
   metrics = font_info->metrics[block];
   for (g = block<<8, i =0; i<0x100 && g < numGlyphs; g++, i++, metrics++)

@@ -2923,7 +2923,7 @@ You type        Translation\n\
 	  char *title, *p;
 
 	  if (!SYMBOLP (modes[i]))
-	    abort ();
+	    emacs_abort ();
 
 	  p = title = alloca (42 + SCHARS (SYMBOL_NAME (modes[i])));
 	  *p++ = '\f';

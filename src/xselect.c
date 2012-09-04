@@ -193,7 +193,7 @@ static void
 x_start_queuing_selection_requests (void)
 {
   if (x_queue_selection_requests)
-    abort ();
+    emacs_abort ();
 
   x_queue_selection_requests++;
   TRACE1 ("x_start_queuing_selection_requests %d", x_queue_selection_requests);
@@ -245,7 +245,7 @@ symbol_to_x_atom (struct x_display_info *dpyinfo, Lisp_Object sym)
   if (EQ (sym, QEMACS_TMP)) return dpyinfo->Xatom_EMACS_TMP;
   if (EQ (sym, QTARGETS))   return dpyinfo->Xatom_TARGETS;
   if (EQ (sym, QNULL))	    return dpyinfo->Xatom_NULL;
-  if (!SYMBOLP (sym)) abort ();
+  if (!SYMBOLP (sym)) emacs_abort ();
 
   TRACE1 (" XInternAtom %s", SSDATA (SYMBOL_NAME (sym)));
   BLOCK_INPUT;
@@ -1138,7 +1138,7 @@ wait_for_property_change (struct prop_location *location)
   ptrdiff_t count = SPECPDL_INDEX ();
 
   if (property_change_reply_object)
-    abort ();
+    emacs_abort ();
 
   /* Make sure to do unexpect_property_change if we quit or err.  */
   record_unwind_protect (wait_for_property_change_unwind,

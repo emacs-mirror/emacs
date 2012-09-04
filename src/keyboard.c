@@ -1023,7 +1023,7 @@ restore_kboard_configuration (Lisp_Object was_locked)
       pop_kboard ();
       /* The pop should not change the kboard.  */
       if (single_kboard && current_kboard != prev)
-        abort ();
+        emacs_abort ();
     }
   return Qnil;
 }
@@ -2605,13 +2605,13 @@ read_char (int commandflag, ptrdiff_t nmaps, Lisp_Object *maps,
 	    Lisp_Object last = KVAR (kb, kbd_queue);
 	    /* We shouldn't get here if we were in single-kboard mode!  */
 	    if (single_kboard)
-	      abort ();
+	      emacs_abort ();
 	    if (CONSP (last))
 	      {
 		while (CONSP (XCDR (last)))
 		  last = XCDR (last);
 		if (!NILP (XCDR (last)))
-		  abort ();
+		  emacs_abort ();
 	      }
 	    if (!CONSP (last))
 	      kset_kbd_queue (kb, Fcons (c, Qnil));
@@ -2784,7 +2784,7 @@ read_char (int commandflag, ptrdiff_t nmaps, Lisp_Object *maps,
       if (current_kboard->kbd_queue_has_data)
 	{
 	  if (!CONSP (KVAR (current_kboard, kbd_queue)))
-	    abort ();
+	    emacs_abort ();
 	  c = XCAR (KVAR (current_kboard, kbd_queue));
 	  kset_kbd_queue (current_kboard,
 			  XCDR (KVAR (current_kboard, kbd_queue)));
@@ -2851,7 +2851,7 @@ read_char (int commandflag, ptrdiff_t nmaps, Lisp_Object *maps,
 	      while (CONSP (XCDR (last)))
 		last = XCDR (last);
 	      if (!NILP (XCDR (last)))
-		abort ();
+		emacs_abort ();
 	    }
 	  if (!CONSP (last))
 	    kset_kbd_queue (kb, Fcons (c, Qnil));
@@ -3560,7 +3560,7 @@ kbd_buffer_store_event_hold (register struct input_event *event,
 			     struct input_event *hold_quit)
 {
   if (event->kind == NO_EVENT)
-    abort ();
+    emacs_abort ();
 
   if (hold_quit && hold_quit->kind != NO_EVENT)
     return;
@@ -3955,7 +3955,7 @@ kbd_buffer_get_event (KBOARD **kbp,
 #else
 	  /* We're getting selection request events, but we don't have
              a window system.  */
-	  abort ();
+	  emacs_abort ();
 #endif
 	}
 
@@ -4192,7 +4192,7 @@ kbd_buffer_get_event (KBOARD **kbp,
   else
     /* We were promised by the above while loop that there was
        something for us to read!  */
-    abort ();
+    emacs_abort ();
 
   input_pending = readable_events (0);
 
@@ -4261,7 +4261,7 @@ process_special_events (void)
 #else
 	  /* We're getting selection request events, but we don't have
              a window system.  */
-	  abort ();
+	  emacs_abort ();
 #endif
 	}
     }
@@ -5614,7 +5614,7 @@ make_lispy_event (struct input_event *event)
 	  else if (FRAMEP (event->frame_or_window))
 	    f = XFRAME (event->frame_or_window);
 	  else
-	    abort ();
+	    emacs_abort ();
 
 	  if (FRAME_WINDOW_P (f))
 	    fuzz = double_click_fuzz;
@@ -5721,7 +5721,7 @@ make_lispy_event (struct input_event *event)
 	else
 	  /* Every mouse event should either have the down_modifier or
              the up_modifier set.  */
-	  abort ();
+	  emacs_abort ();
 
 	{
 	  /* Get the symbol we should use for the mouse click.  */
@@ -5782,7 +5782,7 @@ make_lispy_event (struct input_event *event)
 	  else if (FRAMEP (event->frame_or_window))
 	    fr = XFRAME (event->frame_or_window);
 	  else
-	    abort ();
+	    emacs_abort ();
 
 	  fuzz = FRAME_WINDOW_P (fr)
 	    ? double_click_fuzz : double_click_fuzz / 8;
@@ -5802,7 +5802,7 @@ make_lispy_event (struct input_event *event)
 	  else
 	    /* Every wheel event should either have the down_modifier or
 	       the up_modifier set.  */
-	    abort ();
+	    emacs_abort ();
 
           if (event->kind == HORIZ_WHEEL_EVENT)
             symbol_num += 2;
@@ -5971,7 +5971,7 @@ make_lispy_event (struct input_event *event)
       {
 	char *name = find_user_signal_name (event->code);
 	if (!name)
-	  abort ();
+	  emacs_abort ();
 	return intern (name);
       }
 
@@ -6052,7 +6052,7 @@ make_lispy_event (struct input_event *event)
 
       /* The 'kind' field of the event is something we don't recognize.  */
     default:
-      abort ();
+      emacs_abort ();
     }
 }
 
@@ -6229,7 +6229,7 @@ apply_modifiers_uncached (int modifiers, char *base, int base_len, int base_len_
     /* Only the event queue may use the `up' modifier; it should always
        be turned into a click or drag event before presented to lisp code.  */
     if (modifiers & up_modifier)
-      abort ();
+      emacs_abort ();
 
     if (modifiers & alt_modifier)   { *p++ = 'A'; *p++ = '-'; }
     if (modifiers & ctrl_modifier)  { *p++ = 'C'; *p++ = '-'; }
@@ -6324,7 +6324,7 @@ parse_modifiers (Lisp_Object symbol)
 			    Qnil);
 
       if (modifiers & ~INTMASK)
-	abort ();
+	emacs_abort ();
       XSETFASTINT (mask, modifiers);
       elements = Fcons (unmodified, Fcons (mask, Qnil));
 
@@ -7001,7 +7001,7 @@ tty_read_avail_input (struct terminal *terminal,
 
   if (terminal->type != output_termcap
       && terminal->type != output_msdos_raw)
-    abort ();
+    emacs_abort ();
 
   /* XXX I think the following code should be moved to separate hook
      functions in system-dependent files.  */
@@ -10902,7 +10902,7 @@ handle_interrupt (void)
 #endif /* not MSDOS */
       fflush (stdout);
       if (((c = getchar ()) & ~040) == 'Y')
-	abort ();
+	emacs_abort ();
       while (c != '\n') c = getchar ();
 #ifdef MSDOS
       printf ("\r\nContinuing...\r\n");
@@ -10983,7 +10983,7 @@ quit_throw_to_read_char (int from_signal)
 #ifdef POLL_FOR_INPUT
   /* May be > 1 if in recursive minibuffer.  */
   if (poll_suppress_count == 0)
-    abort ();
+    emacs_abort ();
 #endif
 #endif
   if (FRAMEP (internal_last_event_frame)
@@ -11341,7 +11341,7 @@ delete_kboard (KBOARD *kb)
 
   for (kbp = &all_kboards; *kbp != kb; kbp = &(*kbp)->next_kboard)
     if (*kbp == NULL)
-      abort ();
+      emacs_abort ();
   *kbp = kb->next_kboard;
 
   /* Prevent a dangling reference to KB.  */
@@ -11352,7 +11352,7 @@ delete_kboard (KBOARD *kb)
       current_kboard = FRAME_KBOARD (XFRAME (selected_frame));
       single_kboard = 0;
       if (current_kboard == kb)
-	abort ();
+	emacs_abort ();
     }
 
   wipe_kboard (kb);

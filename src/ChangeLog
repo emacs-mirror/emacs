@@ -1,3 +1,23 @@
+2012-09-04  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Simplify redefinition of 'abort' (Bug#12316).
+	Do not try to redefine the 'abort' function.  Instead, redo
+	the code so that it calls 'emacs_abort' rather than 'abort'.
+	This removes the need for the NO_ABORT configure-time macro
+	and makes it easier to change the abort code to do a backtrace.
+	* .gdbinit: Just stop at emacs_abort, not at w32_abort or abort.
+	* emacs.c (abort) [!DOS_NT && !NO_ABORT]:
+	Remove; sysdep.c's emacs_abort now takes its place.
+	* lisp.h (emacs_abort): New decl.  All calls from Emacs code to
+	'abort' changed to use 'emacs_abort'.
+	* msdos.c (dos_abort) [defined abort]: Remove; not used.
+	(abort) [!defined abort]: Rename to ...
+	(emacs_abort): ... new name.
+	* sysdep.c (emacs_abort) [!HAVE_NTGUI]: New function, taking
+	the place of the old 'abort' in emacs.c.
+	* w32.c, w32fns.c (abort): Do not #undef.
+	* w32.c (emacs_abort): Rename from w32_abort.
+
 2012-09-04  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32uniscribe.c (uniscribe_shape): Reverse the sign of

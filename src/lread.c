@@ -1694,7 +1694,7 @@ readevalloop (Lisp_Object readcharfun,
 
   /* We assume START is nil when input is not from a buffer.  */
   if (! NILP (start) && !b)
-    abort ();
+    emacs_abort ();
 
   specbind (Qstandard_input, readcharfun); /* GCPROs readcharfun.  */
   specbind (Qcurrent_load_list, Qnil);
@@ -3671,7 +3671,7 @@ intern_c_string_1 (const char *str, ptrdiff_t len)
     /* Creating a non-pure string from a string literal not
        implemented yet.  We could just use make_string here and live
        with the extra copy.  */
-    abort ();
+    emacs_abort ();
 
   return Fintern (make_pure_c_string (str, len), obarray);
 }

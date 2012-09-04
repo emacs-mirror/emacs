@@ -340,22 +340,6 @@ memory_warning_signal (int sig)
   force_auto_save_soon ();
 }
 #endif
-
-/* We define abort, rather than using it from the library,
-   so that GDB can return from a breakpoint here.
-   MSDOS has its own definition in msdos.c.  */
-
-#if ! defined (DOS_NT) && ! defined (NO_ABORT)
-
-void
-abort (void)
-{
-  kill (getpid (), SIGABRT);
-  /* This shouldn't be executed, but it prevents a warning.  */
-  exit (1);
-}
-#endif
-
 
 /* Code for dealing with Lisp access to the Unix command line.  */
 
@@ -1892,7 +1876,7 @@ sort_args (int argc, char **argv)
 	}
 
       if (best < 0)
-	abort ();
+	emacs_abort ();
 
       /* Copy the highest priority remaining option, with its args, to NEW.
          Unless it is a duplicate of the previous one.  */

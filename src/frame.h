@@ -981,7 +981,7 @@ extern Lisp_Object selected_frame;
      ((FRAMEP (selected_frame)				\
        && FRAME_LIVE_P (XFRAME (selected_frame)))	\
       ? XFRAME (selected_frame)				\
-      : (abort (), (struct frame *) 0))
+      : (emacs_abort (), (struct frame *) 0))
 
 
 /***********************************************************************

@@ -386,7 +386,7 @@ the first window of that frame.  */)
       else if (! NILP (XWINDOW (window)->vchild))
 	window = XWINDOW (window)->vchild;
       else
-	abort ();
+	emacs_abort ();
     }
 
   return window;
@@ -1289,7 +1289,7 @@ If they are in the windows's left or right marginal areas, `left-margin'\n\
       return Qnil;
 
     default:
-      abort ();
+      emacs_abort ();
     }
 }
 
@@ -1948,7 +1948,7 @@ unshow_buffer (register struct window *w)
   buf = w->buffer;
   b = XBUFFER (buf);
   if (b != XMARKER (w->pointm)->buffer)
-    abort ();
+    emacs_abort ();
 
 #if 0
   if (w == XWINDOW (selected_window)
@@ -2669,7 +2669,7 @@ window_loop (enum window_loop type, Lisp_Object obj, int mini, Lisp_Object frame
 	  case CHECK_ALL_WINDOWS:
 	    if (! NILP (w->buffer)
 		&& NILP (BVAR (XBUFFER (w->buffer), name)))
-	      abort ();
+	      emacs_abort ();
 	    break;
 
 	  case WINDOW_LOOP_UNUSED:

@@ -3351,12 +3351,6 @@ case $opsys in
     AC_DEFINE(BROKEN_PTY_READ_AFTER_EAGAIN, 1, [Define on FreeBSD to
       work around an issue when reading from a PTY.])
     ;;
-
-  dnl Define the following so emacs symbols will not conflict with those
-  dnl in the System framework.  Otherwise -prebind will not work.
-  darwin)
-    AC_DEFINE(NO_ABORT, 1, [Do not define abort in emacs.c.])
-    ;;
 esac
 
 case $opsys in

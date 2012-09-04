@@ -108,7 +108,7 @@ wrong_type_argument (register Lisp_Object predicate, register Lisp_Object value)
      to try and do that by checking the tagbits, but nowadays all
      tagbits are potentially valid.  */
   /* if ((unsigned int) XTYPE (value) >= Lisp_Type_Limit)
-   *   abort (); */
+   *   emacs_abort (); */
 
   xsignal2 (Qwrong_type_argument, predicate, value);
 }
@@ -182,7 +182,7 @@ for example, (type-of 1) returns `integer'.  */)
 	case Lisp_Misc_Float:
 	  return Qfloat;
 	}
-      abort ();
+      emacs_abort ();
 
     case Lisp_Vectorlike:
       if (WINDOW_CONFIGURATIONP (object))
@@ -217,7 +217,7 @@ for example, (type-of 1) returns `integer'.  */)
       return Qfloat;
 
     default:
-      abort ();
+      emacs_abort ();
     }
 }
 
@@ -551,7 +551,7 @@ DEFUN ("boundp", Fboundp, Sboundp, 1, 1, 0,
       /* In set_internal, we un-forward vars when their value is
 	 set to Qunbound. */
       return Qt;
-    default: abort ();
+    default: emacs_abort ();
     }
 
   return (EQ (valcontents, Qunbound) ? Qnil : Qt);
@@ -864,7 +864,7 @@ do_symval_forwarding (register union Lisp_Fwd *valcontents)
 	 don't think anything will break.  --lorentey  */
       return *(Lisp_Object *)(XKBOARD_OBJFWD (valcontents)->offset
 			      + (char *)FRAME_KBOARD (SELECTED_FRAME ()));
-    default: abort ();
+    default: emacs_abort ();
     }
 }
 
@@ -950,7 +950,7 @@ store_symval_forwarding (union Lisp_Fwd *valcontents, register Lisp_Object newva
       break;
 
     default:
-      abort (); /* goto def; */
+      emacs_abort (); /* goto def; */
     }
 }
 
@@ -1055,7 +1055,7 @@ find_symbol_value (Lisp_Object symbol)
       /* FALLTHROUGH */
     case SYMBOL_FORWARDED:
       return do_symval_forwarding (SYMBOL_FWD (sym));
-    default: abort ();
+    default: emacs_abort ();
     }
 }
 
@@ -1265,7 +1265,7 @@ set_internal (Lisp_Object symbol, Lisp_Object newval, Lisp_Object where,
 	  store_symval_forwarding (/* sym, */ innercontents, newval, buf);
 	break;
       }
-    default: abort ();
+    default: emacs_abort ();
     }
   return;
 }
@@ -1316,7 +1316,7 @@ default_value (Lisp_Object symbol)
 	/* For other variables, get the current value.  */
 	return do_symval_forwarding (valcontents);
       }
-    default: abort ();
+    default: emacs_abort ();
     }
 }
 
@@ -1414,7 +1414,7 @@ for this variable.  */)
 	else
 	  return Fset (symbol, value);
       }
-    default: abort ();
+    default: emacs_abort ();
     }
 }
 
@@ -1538,7 +1538,7 @@ The function `default-value' gets the default value and `set-default' sets it.  
       else if (BUFFER_OBJFWDP (valcontents.fwd))
 	return variable;
       break;
-    default: abort ();
+    default: emacs_abort ();
     }
 
   if (sym->constant)
@@ -1611,7 +1611,7 @@ Instead, use `add-hook' and specify t for the LOCAL argument.  */)
 	error ("Symbol %s may not be buffer-local",
 	       SDATA (SYMBOL_NAME (variable)));
       break;
-    default: abort ();
+    default: emacs_abort ();
     }
 
   if (sym->constant)
@@ -1718,7 +1718,7 @@ From now on the default value will apply in this buffer.  Return VARIABLE.  */)
       if (blv->frame_local)
 	return variable;
       break;
-    default: abort ();
+    default: emacs_abort ();
     }
 
   /* Get rid of this buffer's alist element, if any.  */
@@ -1800,7 +1800,7 @@ frame-local bindings).  */)
 	error ("Symbol %s may not be frame-local",
 	       SDATA (SYMBOL_NAME (variable)));
       break;
-    default: abort ();
+    default: emacs_abort ();
     }
 
   if (sym->constant)
@@ -1877,7 +1877,7 @@ BUFFER defaults to the current buffer.  */)
 	  }
 	return Qnil;
       }
-    default: abort ();
+    default: emacs_abort ();
     }
 }
 
@@ -1912,7 +1912,7 @@ BUFFER defaults to the current buffer.  */)
     case SYMBOL_FORWARDED:
       /* All BUFFER_OBJFWD slots become local if they are set.  */
       return (BUFFER_OBJFWDP (SYMBOL_FWD (sym)) ? Qt : Qnil);
-    default: abort ();
+    default: emacs_abort ();
     }
 }
 
@@ -1956,7 +1956,7 @@ If the current binding is global (the default), the value is nil.  */)
 	return SYMBOL_BLV (sym)->where;
       else
 	return Qnil;
-    default: abort ();
+    default: emacs_abort ();
     }
 }
 
@@ -2272,7 +2272,7 @@ arithcompare (Lisp_Object num1, Lisp_Object num2, enum comparison comparison)
       return Qnil;
 
     default:
-      abort ();
+      emacs_abort ();
     }
 }
 

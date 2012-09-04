@@ -119,7 +119,7 @@ cmcheckmagic (struct tty_display_info *tty)
   if (curX (tty) == FrameCols (tty))
     {
       if (!MagicWrap (tty) || curY (tty) >= FrameRows (tty) - 1)
-	abort ();
+	emacs_abort ();
       if (tty->termscript)
 	putc ('\r', tty->termscript);
       putc ('\r', tty->output);

@@ -1294,7 +1294,7 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
     if (!(IS_DIRECTORY_SEP (target[0]) && IS_DIRECTORY_SEP (target[1])))
 #endif /* WINDOWSNT */
       {
-	if (!drive) abort ();
+	if (!drive) emacs_abort ();
 	target -= 2;
 	target[0] = DRIVE_LETTER (drive);
 	target[1] = ':';

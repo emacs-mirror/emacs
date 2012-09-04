@@ -1577,7 +1577,7 @@ static Lisp_Object
 start_process_unwind (Lisp_Object proc)
 {
   if (!PROCESSP (proc))
-    abort ();
+    emacs_abort ();
 
   /* Was PROC started successfully?
      -2 is used for a pty with no process, eg for gdb.  */
@@ -2550,7 +2550,7 @@ static Lisp_Object
 make_serial_process_unwind (Lisp_Object proc)
 {
   if (!PROCESSP (proc))
-    abort ();
+    emacs_abort ();
   remove_process (proc);
   return Qnil;
 }
@@ -3387,7 +3387,7 @@ usage: (make-network-process &rest ARGS)  */)
       if (socktype == SOCK_DGRAM)
 	{
 	  if (datagram_address[s].sa)
-	    abort ();
+	    emacs_abort ();
 	  datagram_address[s].sa = xmalloc (lres->ai_addrlen);
 	  datagram_address[s].len = lres->ai_addrlen;
 	  if (is_server)
@@ -3973,7 +3973,7 @@ deactivate_process (Lisp_Object proc)
 	  FD_CLR (inchannel, &connect_wait_mask);
 	  FD_CLR (inchannel, &write_mask);
 	  if (--num_pending_connects < 0)
-	    abort ();
+	    emacs_abort ();
 	}
 #endif
       if (inchannel == max_process_desc)
@@ -4752,7 +4752,7 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 		 Cleanup occurs c/o status_notify after SIGCLD. */
 	      no_avail = 1; /* Cannot depend on values returned */
 #else
-	      abort ();
+	      emacs_abort ();
 #endif
 	    }
 	  else
@@ -4993,7 +4993,7 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 	      FD_CLR (channel, &connect_wait_mask);
               FD_CLR (channel, &write_mask);
 	      if (--num_pending_connects < 0)
-		abort ();
+		emacs_abort ();
 
 	      proc = chan_process[channel];
 	      if (NILP (proc))
@@ -6354,7 +6354,7 @@ process has been transmitted to the serial port.  */)
 #endif /* not HAVE_SHUTDOWN */
       new_outfd = emacs_open (NULL_DEVICE, O_WRONLY, 0);
       if (new_outfd < 0)
-	abort ();
+	emacs_abort ();
       old_outfd = XPROCESS (proc)->outfd;
 
       if (!proc_encode_coding_system[new_outfd])

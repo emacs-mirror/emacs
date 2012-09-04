@@ -841,7 +841,7 @@ parse_image_spec (Lisp_Object spec, struct image_keyword *keywords,
 	  break;
 
 	default:
-	  abort ();
+	  emacs_abort ();
 	  break;
 	}
 

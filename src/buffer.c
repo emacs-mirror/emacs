@@ -1242,7 +1242,7 @@ buffer_local_value_1 (Lisp_Object variable, Lisp_Object buffer)
 	  result = Fdefault_value (variable);
 	break;
       }
-    default: abort ();
+    default: emacs_abort ();
     }
 
   return result;
@@ -2671,7 +2671,7 @@ current buffer is cleared.  */)
       /* Make sure no markers were put on the chain
 	 while the chain value was incorrect.  */
       if (BUF_MARKERS (current_buffer))
-	abort ();
+	emacs_abort ();
 
       BUF_MARKERS (current_buffer) = markers;
 
@@ -3413,7 +3413,7 @@ overlay_strings (ptrdiff_t pos, struct window *w, unsigned char **pstr)
 	    }
 	}
       if (p != overlay_str_buf + total)
-	abort ();
+	emacs_abort ();
       if (pstr)
 	*pstr = overlay_str_buf;
       return total;
@@ -4596,7 +4596,7 @@ buffer_slot_type_mismatch (Lisp_Object newval, int type)
     case_Lisp_Int:    predicate = Qintegerp; break;
     case Lisp_String: predicate = Qstringp;  break;
     case Lisp_Symbol: predicate = Qsymbolp;  break;
-    default: abort ();
+    default: emacs_abort ();
     }
 
   wrong_type_argument (predicate, newval);
@@ -5277,7 +5277,7 @@ init_buffer_once (void)
 
   /* Need more room? */
   if (idx >= MAX_PER_BUFFER_VARS)
-    abort ();
+    emacs_abort ();
   last_per_buffer_idx = idx;
 
   Vbuffer_alist = Qnil;
@@ -5418,7 +5418,7 @@ defvar_per_buffer (struct Lisp_Buffer_Objfwd *bo_fwd, const char *namestring,
   if (PER_BUFFER_IDX (offset) == 0)
     /* Did a DEFVAR_PER_BUFFER without initializing the corresponding
        slot of buffer_local_flags */
-    abort ();
+    emacs_abort ();
 }
 
 

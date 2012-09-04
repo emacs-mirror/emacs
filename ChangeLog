@@ -1,5 +1,8 @@
 2012-09-04  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Simplify redefinition of 'abort' (Bug#12316).
+	* configure.ac (NO_ABRT): Remove.
+
 	* configure.ac (_setjmp, _longjmp): Check by compiling
 	instead of by guessing.  The guesses were wrong for
 	recent versions of Solaris, such as Solaris 11.
