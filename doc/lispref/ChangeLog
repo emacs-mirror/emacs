@@ -1,3 +1,7 @@
+2012-09-04  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* debugging.texi (Explicit Debug): Document `debug-on-message'.
+
 2012-09-02  Chong Yidong  <cyd@gnu.org>
 
 	* windows.texi (Window Configurations): Recommend against using

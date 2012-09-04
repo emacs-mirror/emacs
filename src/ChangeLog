@@ -1,3 +1,11 @@
+2012-09-04  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* eval.c (call_debugger): Make the function non-static so that we
+	can call it from set_message.
+
+	* xdisp.c (set_message): Implement the new variable `debug-on-message'.
+	(syms_of_xdisp): Defvar it and `inhibit-debug-on-message'.
+
 2012-09-04  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Give more-useful info on a fatal error (Bug#12328).

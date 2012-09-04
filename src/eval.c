@@ -191,7 +191,7 @@ restore_stack_limits (Lisp_Object data)
 
 /* Call the Lisp debugger, giving it argument ARG.  */
 
-static Lisp_Object
+Lisp_Object
 call_debugger (Lisp_Object arg)
 {
   bool debug_while_redisplaying;

@@ -1916,6 +1916,10 @@ instead of jumping all the way to the top-level.
 *** Set `debug-on-event' to enter the debugger on events like SIGUSR1.
 This can be useful when `inhibit-quit' is set.
 
+*** Set `debug-on-message' to enter the debugger when a certain
+message is displayed in the echo area.  This can be useful when trying
+to work out which code is doing something.
+
 ** The new function `server-eval-at' allows evaluation of Lisp forms on
 named Emacs server instances.
 

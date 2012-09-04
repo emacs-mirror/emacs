@@ -364,6 +364,7 @@ static Lisp_Object Qslice;
 Lisp_Object Qcenter;
 static Lisp_Object Qmargin, Qpointer;
 static Lisp_Object Qline_height;
+Lisp_Object Qinhibit_debug_on_message;
 
 /* These setters are used only in this file, so they can be private.  */
 static inline void
@@ -10571,7 +10572,6 @@ truncate_message_1 (ptrdiff_t nchars, Lisp_Object a2, ptrdiff_t a3, ptrdiff_t a4
   return 0;
 }
 
-
 /* Set the current message to a substring of S or STRING.
 
    If STRING is a Lisp string, set the message to the first NBYTES
@@ -10590,6 +10590,8 @@ static void
 set_message (const char *s, Lisp_Object string,
 	     ptrdiff_t nbytes, int multibyte_p)
 {
+  ptrdiff_t count = SPECPDL_INDEX ();
+
   message_enable_multibyte
     = ((s && multibyte_p)
        || (STRINGP (string) && STRING_MULTIBYTE (string)));
@@ -10598,6 +10600,15 @@ set_message (const char *s, Lisp_Object string,
 			 (intptr_t) s, string, nbytes, multibyte_p);
   message_buf_print = 0;
   help_echo_showing_p = 0;
+
+  if (NILP (Vinhibit_debug_on_message) &&
+      STRINGP (Vdebug_on_message) &&
+      fast_string_match (Vdebug_on_message, string) >= 0) {
+    specbind (Qinhibit_debug_on_message, Qt);
+    call_debugger (Fcons (Qerror, Fcons (string, Qnil)));
+  }
+
+  unbind_to (count, Qnil);
 }
 
 
@@ -29299,6 +29310,15 @@ Its value should be an ASCII acronym string, `hex-code', `empty-box', or
   Vglyphless_char_display = Fmake_char_table (Qglyphless_char_display, Qnil);
   Fset_char_table_extra_slot (Vglyphless_char_display, make_number (0),
 			      Qempty_box);
+
+  DEFVAR_LISP ("debug-on-message", Vdebug_on_message,
+	       doc: /* If non-nil, debug if a message matching this regexp is displayed.  */);
+  Vdebug_on_message = Qnil;
+
+  DEFVAR_LISP ("inhibit-debug-on-message", Vinhibit_debug_on_message,
+	       doc: /* If non-nil, inhibit `debug-on-message' from entering the debugger.  */);
+  Vinhibit_debug_on_message = Qnil;
+  DEFSYM(Qinhibit_debug_on_message, "inhibit-debug-on-message");
 }
 
 
