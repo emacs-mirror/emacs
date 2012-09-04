@@ -1542,10 +1542,12 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    declarations. Define as empty for no equivalent. */
 #undef __restrict_arr
 
-/* Some platforms redefine this. */
+/* Define to longjmp if _setjmp and _longjmp do not work. Because longjmp may
+   alter signal masks, callers of _longjmp should not assume that it leaves
+   signal masks alone. */
 #undef _longjmp
 
-/* Some platforms redefine this. */
+/* Define to setjmp if _setjmp and _longjmp do not work. See _longjmp. */
 #undef _setjmp
 
 /* Some platforms that do not use configure define this to include extra
