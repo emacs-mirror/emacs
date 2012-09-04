@@ -601,6 +601,13 @@ are deprecated and will be removed eventually.
 
 * Lisp changes in Emacs 24.3
 
+** Interpreted files get eagerly macro-expanded during load.
+This can significantly speed up execution of non-byte-compiled code, but can
+also bump into harmless and previously unnoticed cyclic dependencies.
+These should not be fatal: they will simply cause the macro-calls to be left
+for later expansion (as before), but will also result in a warning describing
+the cycle.
+
 ** New minor mode `read-only-mode' to replace toggle-read-only (now obsolete).
 
 ** New functions `autoloadp' and `autoload-do-load'.

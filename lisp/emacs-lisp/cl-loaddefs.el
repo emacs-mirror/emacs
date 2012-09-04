@@ -249,8 +249,7 @@ Remove from SYMBOL's plist the property PROPNAME and its value.
 
 ;;;***
 
-;;;### (autoloads (cl--compiler-macro-cXXr cl--compiler-macro-list*
-;;;;;;  cl--compiler-macro-adjoin cl-defsubst cl-compiler-macroexpand
+;;;### (autoloads (cl--compiler-macro-adjoin cl-defsubst cl-compiler-macroexpand
 ;;;;;;  cl-define-compiler-macro cl-assert cl-check-type cl-typep
 ;;;;;;  cl-deftype cl-defstruct cl-callf2 cl-callf cl-letf* cl-letf
 ;;;;;;  cl-rotatef cl-shiftf cl-remf cl-psetf cl-declare cl-the cl-locally
@@ -260,8 +259,19 @@ Remove from SYMBOL's plist the property PROPNAME and its value.
 ;;;;;;  cl-do cl-loop cl-return-from cl-return cl-block cl-etypecase
 ;;;;;;  cl-typecase cl-ecase cl-case cl-load-time-value cl-eval-when
 ;;;;;;  cl-destructuring-bind cl-function cl-defmacro cl-defun cl-gentemp
-;;;;;;  cl-gensym) "cl-macs" "cl-macs.el" "9676d5517e8b9246c09fe78984c68bef")
+;;;;;;  cl-gensym cl--compiler-macro-cXXr cl--compiler-macro-list*)
+;;;;;;  "cl-macs" "cl-macs.el" "e09b4be5072a8b52d40af6e073876e76")
 ;;; Generated autoloads from cl-macs.el
+
+(autoload 'cl--compiler-macro-list* "cl-macs" "\
+
+
+\(fn FORM ARG &rest OTHERS)" nil nil)
+
+(autoload 'cl--compiler-macro-cXXr "cl-macs" "\
+
+
+\(fn FORM X)" nil nil)
 
 (autoload 'cl-gensym "cl-macs" "\
 Generate a new uninterned symbol.
@@ -659,6 +669,8 @@ value, that slot cannot be set via `setf'.
 
 (put 'cl-defstruct 'doc-string-elt '2)
 
+(put 'cl-defstruct 'lisp-indent-function '1)
+
 (autoload 'cl-deftype "cl-macs" "\
 Define NAME as a new data type.
 The type name can then be used in `cl-typecase', `cl-check-type', etc.
@@ -721,16 +733,6 @@ surrounded by (cl-block NAME ...).
 
 
 \(fn FORM A LIST &rest KEYS)" nil nil)
-
-(autoload 'cl--compiler-macro-list* "cl-macs" "\
-
-
-\(fn FORM ARG &rest OTHERS)" nil nil)
-
-(autoload 'cl--compiler-macro-cXXr "cl-macs" "\
-
-
-\(fn FORM X)" nil nil)
 
 ;;;***
 

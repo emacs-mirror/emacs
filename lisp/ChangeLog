@@ -1,3 +1,17 @@
+2012-09-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* loadup.el: Load macroexp.  Remove hack.
+	* emacs-lisp/macroexp.el (macroexp--eval-if-compile): New function.
+	(macroexp--expand-all): Use it to get better warnings.
+	(macroexp--backtrace, macroexp--trim-backtrace-frame)
+	(internal-macroexpand-for-load): New functions.
+	(macroexp--pending-eager-loads): New var.
+	(emacs-startup-hook): New hack to replace one in loadup.el.
+	* emacs-lisp/cl-macs.el (cl--compiler-macro-list*)
+	(cl--compiler-macro-cXXr): Move to top, before they can be used.
+	(cl-psetf): Simplify.
+	(cl-defstruct): Add indent rule.
+
 2012-09-04  Lars Ingebrigtsen  <larsi@gnus.org>
 
 	* mail/smtpmail.el (smtpmail-send-it): Prefer the From: header
@@ -21,10 +35,8 @@
 	(temp-buffer-window-show-hook): New hooks.
 	(temp-buffer-window-setup, temp-buffer-window-show)
 	(with-temp-buffer-window): New functions.
-	(fit-window-to-buffer): Remove unused optional argument
-	OVERRIDE.
-	(special-display-popup-frame): Make sure the window used shows
-	BUFFER.
+	(fit-window-to-buffer): Remove unused optional argument OVERRIDE.
+	(special-display-popup-frame): Make sure the window used shows BUFFER.
 
 	* help.el (temp-buffer-resize-mode): Fix doc-string.
 	(resize-temp-buffer-window): New optional argument WINDOW.
@@ -166,8 +178,8 @@
 2012-08-29  Michael Albinus  <michael.albinus@gmx.de>
 
 	* eshell/esh-ext.el (eshell-external-command): Do not examine
-	remote shell scripts.  See
-	<https://bugs.launchpad.net/ubuntu/+source/emacs23/+bug/1035790>.
+	remote shell scripts.
+	See <https://bugs.launchpad.net/ubuntu/+source/emacs23/+bug/1035790>.
 
 	* net/tramp-sh.el (tramp-remote-path): Add "/sbin" and
 	"/usr/local/sbin".

@@ -1,3 +1,9 @@
+2012-09-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* lread.c (readevalloop): Call internal-macroexpand-for-load to perform
+	eager (load-time) macro-expansion.
+	* lisp.mk (lisp): Add macroexp.
+
 2012-09-04  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Simplify redefinition of 'abort' (Bug#12316).
