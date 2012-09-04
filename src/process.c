@@ -5431,7 +5431,7 @@ send_process_trap (int ignore)
 {
   SIGNAL_THREAD_CHECK (SIGPIPE);
   sigunblock (sigmask (SIGPIPE));
-  longjmp (send_process_frame, 1);
+  _longjmp (send_process_frame, 1);
 }
 
 /* In send_process, when a write fails temporarily,
@@ -5634,7 +5634,7 @@ send_process (volatile Lisp_Object proc, const char *volatile buf,
   /* 2000-09-21: Emacs 20.7, sparc-sun-solaris-2.6, GCC 2.95.2,
      CFLAGS="-g -O": The value of the parameter `proc' is clobbered
      when returning with longjmp despite being declared volatile.  */
-  if (!setjmp (send_process_frame))
+  if (!_setjmp (send_process_frame))
     {
       p = XPROCESS (proc);  /* Repair any setjmp clobbering.  */
       process_sent_to = proc;

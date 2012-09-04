@@ -4764,7 +4764,7 @@ test_setjmp (void)
   x = strlen (buf);
   x = 2 * x - 1;
 
-  setjmp (jbuf);
+  _setjmp (jbuf);
   if (longjmps_done == 1)
     {
       /* Came here after the longjmp at the end of the function.
@@ -4789,7 +4789,7 @@ test_setjmp (void)
   ++longjmps_done;
   x = 2;
   if (longjmps_done == 1)
-    longjmp (jbuf, 1);
+    _longjmp (jbuf, 1);
 }
 
 #endif /* not GC_SAVE_REGISTERS_ON_STACK && not GC_SETJMP_WORKS */
@@ -4931,7 +4931,7 @@ mark_stack (void)
     }
 #endif /* GC_SETJMP_WORKS */
 
-  setjmp (j.j);
+  _setjmp (j.j);
   end = stack_grows_down_p ? (char *) &j + sizeof j : (char *) &j;
 #endif /* not GC_SAVE_REGISTERS_ON_STACK */
 #endif /* not HAVE___BUILTIN_UNWIND_INIT */

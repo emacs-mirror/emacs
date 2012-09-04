@@ -5517,13 +5517,13 @@ init_png_functions (Lisp_Object libraries)
 
 
 #if (PNG_LIBPNG_VER < 10500)
-#define PNG_LONGJMP(ptr) (longjmp ((ptr)->jmpbuf, 1))
+#define PNG_LONGJMP(ptr) (_longjmp ((ptr)->jmpbuf, 1))
 #define PNG_JMPBUF(ptr) ((ptr)->jmpbuf)
 #else
 /* In libpng version 1.5, the jmpbuf member is hidden. (Bug#7908)  */
 #define PNG_LONGJMP(ptr) (fn_png_longjmp ((ptr), 1))
 #define PNG_JMPBUF(ptr) \
-  (*fn_png_set_longjmp_fn ((ptr), longjmp, sizeof (jmp_buf)))
+  (*fn_png_set_longjmp_fn ((ptr), _longjmp, sizeof (jmp_buf)))
 #endif
 
 /* Error and warning handlers installed when the PNG library
@@ -5696,7 +5696,7 @@ png_load (struct frame *f, struct image *img)
 
   /* Set error jump-back.  We come back here when the PNG library
      detects an error.  */
-  if (setjmp (PNG_JMPBUF (png_ptr)))
+  if (_setjmp (PNG_JMPBUF (png_ptr)))
     {
     error:
       if (png_ptr)
@@ -6114,7 +6114,7 @@ static _Noreturn void
 my_error_exit (j_common_ptr cinfo)
 {
   struct my_jpeg_error_mgr *mgr = (struct my_jpeg_error_mgr *) cinfo->err;
-  longjmp (mgr->setjmp_buffer, 1);
+  _longjmp (mgr->setjmp_buffer, 1);
 }
 
 
@@ -6365,7 +6365,7 @@ jpeg_load (struct frame *f, struct image *img)
   cinfo.err = fn_jpeg_std_error (&mgr.pub);
   mgr.pub.error_exit = my_error_exit;
 
-  if ((rc = setjmp (mgr.setjmp_buffer)) != 0)
+  if ((rc = _setjmp (mgr.setjmp_buffer)) != 0)
     {
       if (rc == 1)
 	{
@@ -6411,12 +6411,12 @@ jpeg_load (struct frame *f, struct image *img)
   if (!check_image_size (f, width, height))
     {
       image_error ("Invalid image size (see `max-image-size')", Qnil, Qnil);
-      longjmp (mgr.setjmp_buffer, 2);
+      _longjmp (mgr.setjmp_buffer, 2);
     }
 
   /* Create X image and pixmap.  */
   if (!x_create_x_image_and_pixmap (f, width, height, 0, &ximg, &img->pixmap))
-    longjmp (mgr.setjmp_buffer, 2);
+    _longjmp (mgr.setjmp_buffer, 2);
 
   /* Allocate colors.  When color quantization is used,
      cinfo.actual_number_of_colors has been set with the number of

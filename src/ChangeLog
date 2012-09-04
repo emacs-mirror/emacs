@@ -1,3 +1,17 @@
+2012-09-04  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Be more systematic about _setjmp vs setjmp.
+	* alloc.c (test_setjmp, mark_stack):
+	* image.c (PNG_LONGJMP) [PNG_LIBPNG_VER < 10500]:
+	(PNG_JMPBUF) [! (PNG_LIBPNG_VER < 10500)]:
+	(png_load, my_error_exit, jpeg_load):
+	* process.c (send_process_trap, send_process):
+	Uniformly prefer _setjmp and _longjmp to setjmp and longjmp.
+	The underscored versions are up to 30x faster on some hosts.
+	Formerly, the code used setjmp+longjmp sometimes and
+	_setjmp+_longjmp at other times, with no particular reason to
+	prefer setjmp+longjmp.
+
 2012-09-03  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix minor problem found by static checking.
