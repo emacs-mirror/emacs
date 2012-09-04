@@ -1403,6 +1403,10 @@ If you had that set, you need to put
 
 in your ~/.authinfo file instead.
 
+*** SMTPmail defaults to using the address in the From: header as the
+SMTP MAIL FROM envelope.  To override this, set `mail-envelope-from'
+to the address you wish to use instead.
+
 ** SQL mode
 
 *** New options `sql-port', `sql-connection-alist', `sql-send-terminator',

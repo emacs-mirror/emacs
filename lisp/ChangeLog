@@ -1,3 +1,9 @@
+2012-09-04  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* mail/smtpmail.el (smtpmail-send-it): Prefer the From: header
+	over `user-mail-address' for the SMTP MAIL FROM envelope.
+	(smtpmail-via-smtp): Ditto.
+
 2012-09-04  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* progmodes/ruby-mode.el: Clean up keybindings.
