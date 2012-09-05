@@ -48,7 +48,7 @@ The MPS Kit is distributed in source form.  You need to build it before
 using it.  The basic case is straightforward on supported platforms
 (see below).  Change to the code directory then
 
-    cc -O3 -c mps.c     Unix / Mac OS X (with Xcode command line)
+    cc -O2 -c mps.c     Unix / Mac OS X (with Xcode command line)
     cl /O2 /c mps.c     Windows (with Microsoft SDK or Visual Studio 2010)
 
 This will produce an object file you can link with your project.  For
