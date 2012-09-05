@@ -102,6 +102,19 @@
 (setq load-source-file-function 'load-with-code-conversion)
 (load "files")
 
+;; Load-time macro-expansion can only take effect after setting
+;; load-source-file-function because of where it is called in lread.c.
+(load "emacs-lisp/macroexp")
+(if (byte-code-function-p (symbol-function 'macroexpand-all))
+    nil
+  ;; Since loaddefs is not yet loaded, macroexp's uses of pcase will simply
+  ;; fail until pcase is explicitly loaded.  This also means that we have to
+  ;; disable eager macro-expansion while loading pcase.
+  (let ((macroexp--pending-eager-loads '(skip)))
+    (load "emacs-lisp/pcase"))
+  ;; Re-load macroexp so as to eagerly macro-expand its uses of pcase.
+  (load "emacs-lisp/macroexp"))
+
 (load "cus-face")
 (load "faces")  ; after here, `defface' may be used.
 
@@ -265,21 +278,6 @@
 ;is generated.
 ;For other systems, you must edit ../src/Makefile.in.
 (load "site-load" t)
-
-;; ¡¡¡ Big Ugly Hack !!!
-;; src/bootstrap-emacs is mostly used to compile .el files, so it needs
-;; macroexp, bytecomp, cconv, and byte-opt to be fast.  Generally this is done
-;; by compiling those files first, but this only makes a difference if those
-;; files are not preloaded.  As it so happens, macroexp.el tends to be
-;; accidentally preloaded in src/bootstrap-emacs because cl.el and cl-macs.el
-;; require it.  So let's unload it here, if needed, to make sure the
-;; byte-compiled version is used.
-(if (or (not (fboundp 'macroexpand-all))
-        (byte-code-function-p (symbol-function 'macroexpand-all)))
-    nil
-  (fmakunbound 'macroexpand-all)
-  (setq features (delq 'macroexp features))
-  (autoload 'macroexpand-all "macroexp"))
 
 ;; Determine which last version number to use
 ;; based on the executables that now exist.

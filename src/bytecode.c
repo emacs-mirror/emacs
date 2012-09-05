@@ -435,7 +435,7 @@ unmark_byte_stack (void)
 #ifdef BYTE_CODE_SAFE
 
 #define CHECK_RANGE(ARG) \
-  if (ARG >= bytestr_length) abort ()
+  if (ARG >= bytestr_length) emacs_abort ()
 
 #else /* not BYTE_CODE_SAFE */
 
@@ -508,7 +508,7 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
    if (FRAME_X_P (f)
        && FRAME_FONT (f)->direction != 0
        && FRAME_FONT (f)->direction != 1)
-     abort ();
+     emacs_abort ();
  }
 #endif
 
@@ -600,9 +600,9 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
     {
 #ifdef BYTE_CODE_SAFE
       if (top > stacke)
-	abort ();
+	emacs_abort ();
       else if (top < stack.bottom - 1)
-	abort ();
+	emacs_abort ();
 #endif
 
 #ifdef BYTE_CODE_METER
@@ -1875,7 +1875,7 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 	  /* Actually this is Bstack_ref with offset 0, but we use Bdup
 	     for that instead.  */
 	  /* CASE (Bstack_ref): */
-	  abort ();
+	  emacs_abort ();
 
 	  /* Handy byte-codes for lexical binding.  */
 	CASE (Bstack_ref1):
@@ -1928,11 +1928,11 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 #ifdef BYTE_CODE_SAFE
 	  if (op < Bconstant)
 	    {
-	      abort ();
+	      emacs_abort ();
 	    }
 	  if ((op -= Bconstant) >= const_length)
 	    {
-	      abort ();
+	      emacs_abort ();
 	    }
 	  PUSH (vectorp[op]);
 #else
@@ -1951,7 +1951,7 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 #ifdef BYTE_CODE_SAFE
     error ("binding stack not balanced (serious byte compiler bug)");
 #else
-    abort ();
+    emacs_abort ();
 #endif
 
   return result;

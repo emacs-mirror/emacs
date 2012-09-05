@@ -110,7 +110,7 @@ choose_minibuf_frame (void)
       /* I don't think that any frames may validly have a null minibuffer
 	 window anymore.  */
       if (NILP (sf->minibuffer_window))
-	abort ();
+	emacs_abort ();
 
       /* Under X, we come here with minibuf_window being the
 	 minibuffer window of the unused termcap window created in
@@ -1860,7 +1860,6 @@ the values STRING, PREDICATE and `lambda'.  */)
 }
 
 static Lisp_Object Qmetadata;
-extern Lisp_Object Qbuffer;
 
 DEFUN ("internal-complete-buffer", Finternal_complete_buffer, Sinternal_complete_buffer, 3, 3, 0,
        doc: /* Perform completion on buffer names.

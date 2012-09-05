@@ -298,6 +298,11 @@ of @code{(debug)} isn't ignored, it will alter the execution of the
 program!)  The most common suitable places are inside a @code{progn} or
 an implicit @code{progn} (@pxref{Sequencing}).
 
+  If you don't know exactly where in the source code you want to put
+the debug statement, but you want to display a backtrace when a
+certain message is displayed, you can set @code{debug-on-message} to a
+regular expression matching the desired message.
+
 @node Using Debugger
 @subsection Using the Debugger
 

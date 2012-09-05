@@ -1,3 +1,21 @@
+2012-09-05  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt: Sync with autogen/config.in.
+
+2012-09-04  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Simplify redefinition of 'abort' (Bug#12316).
+	* inc/ms-w32.h (w32_abort) [HAVE_NTGUI]: Remove.
+
+2012-09-02  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt: Sync with autogen/config.in.
+	(HAVE_EXECINFO_H, TERM_HEADER): New macros.
+
+2012-09-01  Daniel Colascione  <dancol@dancol.org>
+
+	* inc/ms-w32.h (TERM_HEADER): Add for refactoring
+
 2012-08-22  Juanma Barranquero  <lekktu@gmail.com>
 
 	* config.nt: Sync with autogen/config.in.

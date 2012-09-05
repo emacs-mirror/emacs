@@ -635,8 +635,6 @@ tetris-mode keybindings:
   (tetris-mode)
   (tetris-start-game))
 
-(random t)
-
 (provide 'tetris)
 
 ;;; tetris.el ends here

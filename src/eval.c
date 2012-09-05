@@ -131,7 +131,7 @@ int handling_signal;
 Lisp_Object inhibit_lisp_code;
 
 static Lisp_Object funcall_lambda (Lisp_Object, ptrdiff_t, Lisp_Object *);
-static int interactive_p (int);
+static bool interactive_p (void);
 static Lisp_Object apply_lambda (Lisp_Object fun, Lisp_Object args);
 
 /* Functions to set Lisp_Object slots of struct specbinding.  */
@@ -191,10 +191,10 @@ restore_stack_limits (Lisp_Object data)
 
 /* Call the Lisp debugger, giving it argument ARG.  */
 
-static Lisp_Object
+Lisp_Object
 call_debugger (Lisp_Object arg)
 {
-  int debug_while_redisplaying;
+  bool debug_while_redisplaying;
   ptrdiff_t count = SPECPDL_INDEX ();
   Lisp_Object val;
   EMACS_INT old_max = max_specpdl_size;
@@ -525,7 +525,7 @@ spec that specifies non-nil unconditionally (such as \"p\"); or (ii)
 use `called-interactively-p'.  */)
   (void)
 {
-  return interactive_p (1) ? Qt : Qnil;
+  return interactive_p () ? Qt : Qnil;
 }
 
 
@@ -550,19 +550,17 @@ non-nil unconditionally (\"p\" is a good way to do this), or via
 \(not (or executing-kbd-macro noninteractive)).  */)
   (Lisp_Object kind)
 {
-  return ((INTERACTIVE || !EQ (kind, intern ("interactive")))
-	  && interactive_p (1)) ? Qt : Qnil;
+  return (((INTERACTIVE || !EQ (kind, intern ("interactive")))
+	   && interactive_p ())
+	  ? Qt : Qnil);
 }
 
 
-/*  Return 1 if function in which this appears was called using
-    call-interactively.
+/* Return true if function in which this appears was called using
+   call-interactively and is not a built-in.  */
 
-    EXCLUDE_SUBRS_P non-zero means always return 0 if the function
-    called is a built-in.  */
-
-static int
-interactive_p (int exclude_subrs_p)
+static bool
+interactive_p (void)
 {
   struct backtrace *btp;
   Lisp_Object fun;
@@ -591,9 +589,9 @@ interactive_p (int exclude_subrs_p)
   /* `btp' now points at the frame of the innermost function that isn't
      a special form, ignoring frames for Finteractive_p and/or
      Fbytecode at the top.  If this frame is for a built-in function
-     (such as load or eval-region) return nil.  */
+     (such as load or eval-region) return false.  */
   fun = Findirect_function (*btp->function, Qnil);
-  if (exclude_subrs_p && SUBRP (fun))
+  if (SUBRP (fun))
     return 0;
 
   /* `btp' points to the frame of a Lisp function that called interactive-p.
@@ -1101,7 +1099,7 @@ internal_catch (Lisp_Object tag, Lisp_Object (*func) (Lisp_Object), Lisp_Object 
 static _Noreturn void
 unwind_to_catch (struct catchtag *catch, Lisp_Object value)
 {
-  int last_time;
+  bool last_time;
 
   /* Save the value in the tag.  */
   catch->val = value;
@@ -1450,8 +1448,8 @@ internal_condition_case_n (Lisp_Object (*bfun) (ptrdiff_t, Lisp_Object *),
 
 
 static Lisp_Object find_handler_clause (Lisp_Object, Lisp_Object);
-static int maybe_call_debugger (Lisp_Object conditions, Lisp_Object sig,
-				Lisp_Object data);
+static bool maybe_call_debugger (Lisp_Object conditions, Lisp_Object sig,
+				 Lisp_Object data);
 
 void
 process_quit_flag (void)
@@ -1495,7 +1493,7 @@ See also the function `condition-case'.  */)
   immediate_quit = handling_signal = 0;
   abort_on_gc = 0;
   if (gc_in_progress || waiting_for_input)
-    abort ();
+    emacs_abort ();
 
 #if 0 /* rms: I don't know why this was here,
 	 but it is surely wrong for an error that is handled.  */
@@ -1556,7 +1554,7 @@ See also the function `condition-case'.  */)
 	     if requested".  */
 	  || EQ (h->handler, Qerror)))
     {
-      int debugger_called
+      bool debugger_called
 	= maybe_call_debugger (conditions, error_symbol, data);
       /* We can't return values to code which signaled an error, but we
 	 can continue code which has signaled a quit.  */
@@ -1592,7 +1590,7 @@ void
 xsignal (Lisp_Object error_symbol, Lisp_Object data)
 {
   Fsignal (error_symbol, data);
-  abort ();
+  emacs_abort ();
 }
 
 /* Like xsignal, but takes 0, 1, 2, or 3 args instead of a list.  */
@@ -1650,10 +1648,10 @@ signal_error (const char *s, Lisp_Object arg)
 }
 
 
-/* Return nonzero if LIST is a non-nil atom or
+/* Return true if LIST is a non-nil atom or
    a list containing one of CONDITIONS.  */
 
-static int
+static bool
 wants_debugger (Lisp_Object list, Lisp_Object conditions)
 {
   if (NILP (list))
@@ -1673,15 +1671,15 @@ wants_debugger (Lisp_Object list, Lisp_Object conditions)
   return 0;
 }
 
-/* Return 1 if an error with condition-symbols CONDITIONS,
+/* Return true if an error with condition-symbols CONDITIONS,
    and described by SIGNAL-DATA, should skip the debugger
    according to debugger-ignored-errors.  */
 
-static int
+static bool
 skip_debugger (Lisp_Object conditions, Lisp_Object data)
 {
   Lisp_Object tail;
-  int first_string = 1;
+  bool first_string = 1;
   Lisp_Object error_message;
 
   error_message = Qnil;
@@ -1716,7 +1714,7 @@ skip_debugger (Lisp_Object conditions, Lisp_Object data)
     = SIG is the error symbol, and DATA is the rest of the data.
     = SIG is nil, and DATA is (SYMBOL . REST-OF-DATA).
       This is for memory-full errors only.  */
-static int
+static bool
 maybe_call_debugger (Lisp_Object conditions, Lisp_Object sig, Lisp_Object data)
 {
   Lisp_Object combined_data;
@@ -2045,7 +2043,7 @@ eval_sub (Lisp_Object form)
   struct gcpro gcpro1, gcpro2, gcpro3;
 
   if (handling_signal)
-    abort ();
+    emacs_abort ();
 
   if (SYMBOLP (form))
     {
@@ -2209,7 +2207,7 @@ eval_sub (Lisp_Object form)
 		 is supported by this code.  We need to either rewrite the
 		 subr to use a different argument protocol, or add more
 		 cases to this switch.  */
-	      abort ();
+	      emacs_abort ();
 	    }
 	}
     }
@@ -2232,7 +2230,6 @@ eval_sub (Lisp_Object form)
       if (EQ (funcar, Qmacro))
 	{
 	  ptrdiff_t count = SPECPDL_INDEX ();
-	  extern Lisp_Object Qlexical_binding;
 	  Lisp_Object exp;
 	  /* Bind lexical-binding during expansion of the macro, so the
 	     macro can know reliably if the code it outputs will be
@@ -2853,7 +2850,7 @@ usage: (funcall FUNCTION &rest ARGUMENTS)  */)
 	      /* If a subr takes more than 8 arguments without using MANY
 		 or UNEVALLED, we need to extend this function to support it.
 		 Until this is done, there is no way to call the function.  */
-	      abort ();
+	      emacs_abort ();
 	    }
 	}
     }
@@ -2940,7 +2937,7 @@ funcall_lambda (Lisp_Object fun, ptrdiff_t nargs,
   Lisp_Object val, syms_left, next, lexenv;
   ptrdiff_t count = SPECPDL_INDEX ();
   ptrdiff_t i;
-  int optional, rest;
+  bool optional, rest;
 
   if (CONSP (fun))
     {
@@ -2984,7 +2981,7 @@ funcall_lambda (Lisp_Object fun, ptrdiff_t nargs,
       lexenv = Qnil;
     }
   else
-    abort ();
+    emacs_abort ();
 
   i = optional = rest = 0;
   for (; CONSP (syms_left); syms_left = XCDR (syms_left))
@@ -3198,7 +3195,7 @@ specbind (Lisp_Object symbol, Lisp_Object value)
 	set_internal (symbol, value, Qnil, 1);
 	break;
       }
-    default: abort ();
+    default: emacs_abort ();
     }
 }
 
@@ -3343,13 +3340,13 @@ Output stream used is value of `standard-output'.  */)
 	  write_string ("(", -1);
 	  if (backlist->nargs == MANY)
 	    {			/* FIXME: Can this happen?  */
-	      int i;
-	      for (tail = *backlist->args, i = 0;
-		   !NILP (tail);
-		   tail = Fcdr (tail), i = 1)
+	      bool later_arg = 0;
+	      for (tail = *backlist->args; !NILP (tail); tail = Fcdr (tail))
 		{
-		  if (i) write_string (" ", -1);
+		  if (later_arg)
+		    write_string (" ", -1);
 		  Fprin1 (Fcar (tail), Qnil);
+		  later_arg = 1;
 		}
 	    }
 	  else

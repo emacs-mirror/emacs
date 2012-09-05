@@ -302,9 +302,6 @@ struct w32_output
   /* Non-hourglass cursor that is currently active.  */
   Cursor current_cursor;
 
-  /* Flag to set when the window needs to be completely repainted.  */
-  int needs_exposure;
-
   DWORD dwStyle;
 
   /* This is the Emacs structure for the display this frame is on.  */
@@ -345,7 +342,7 @@ extern struct w32_output w32term_display;
 
 /* Return the window associated with the frame F.  */
 #define FRAME_W32_WINDOW(f) ((f)->output_data.w32->window_desc)
-#define FRAME_X_WINDOW(f) ((f)->output_data.w32->window_desc)
+#define FRAME_X_WINDOW(f) FRAME_W32_WINDOW (f)
 
 #define FRAME_FONT(f) ((f)->output_data.w32->font)
 #define FRAME_FONTSET(f) ((f)->output_data.w32->fontset)

@@ -237,7 +237,7 @@ obtain (POINTER address, SIZE size)
     }
 
   if (! heap)
-    abort ();
+    emacs_abort ();
 
   /* If we can't fit SIZE bytes in that heap,
      try successive later heaps.  */
@@ -330,7 +330,7 @@ relinquish (void)
 	  /* This heap should have no blocs in it.  */
 	  if (last_heap->first_bloc != NIL_BLOC
 	      || last_heap->last_bloc != NIL_BLOC)
-	    abort ();
+	    emacs_abort ();
 
 	  /* Return the last heap, with its header, to the system.  */
 	  excess = (char *)last_heap->end - (char *)last_heap->start;
@@ -355,7 +355,7 @@ relinquish (void)
              which returns the entire last heap to the system, seems
              unlikely to trigger this mode of failure.  */
 	  if (last_heap->end != (*real_morecore) (0))
-	    abort ();
+	    emacs_abort ();
 	}
     }
 }
@@ -452,7 +452,7 @@ relocate_blocs (bloc_ptr bloc, heap_ptr heap, POINTER address)
 
   /* No need to ever call this if arena is frozen, bug somewhere!  */
   if (r_alloc_freeze_level)
-    abort ();
+    emacs_abort ();
 
   while (b)
     {
@@ -576,7 +576,7 @@ resize_bloc (bloc_ptr bloc, SIZE size)
 
   /* No need to ever call this if arena is frozen, bug somewhere!  */
   if (r_alloc_freeze_level)
-    abort ();
+    emacs_abort ();
 
   if (bloc == NIL_BLOC || size == bloc->size)
     return 1;
@@ -588,7 +588,7 @@ resize_bloc (bloc_ptr bloc, SIZE size)
     }
 
   if (heap == NIL_HEAP)
-    abort ();
+    emacs_abort ();
 
   old_size = bloc->size;
   bloc->size = size;
@@ -937,7 +937,7 @@ r_alloc_free (register POINTER *ptr)
 
   dead_bloc = find_bloc (ptr);
   if (dead_bloc == NIL_BLOC)
-    abort (); /* Double free? PTR not originally used to allocate?  */
+    emacs_abort (); /* Double free? PTR not originally used to allocate?  */
 
   free_bloc (dead_bloc);
   *ptr = 0;
@@ -979,7 +979,7 @@ r_re_alloc (POINTER *ptr, SIZE size)
 
   bloc = find_bloc (ptr);
   if (bloc == NIL_BLOC)
-    abort (); /* Already freed? PTR not originally used to allocate?  */
+    emacs_abort (); /* Already freed? PTR not originally used to allocate?  */
 
   if (size < bloc->size)
     {
@@ -1152,7 +1152,7 @@ r_alloc_reset_variable (POINTER *old, POINTER *new)
     }
 
   if (bloc == NIL_BLOC || bloc->variable != old)
-    abort (); /* Already freed? OLD not originally used to allocate?  */
+    emacs_abort (); /* Already freed? OLD not originally used to allocate?  */
 
   /* Update variable to point to the new location.  */
   bloc->variable = new;
@@ -1193,7 +1193,7 @@ r_alloc_init (void)
   first_heap->start = first_heap->bloc_start
     = virtual_break_value = break_value = (*real_morecore) (0);
   if (break_value == NIL)
-    abort ();
+    emacs_abort ();
 
   extra_bytes = ROUNDUP (50000);
 #endif

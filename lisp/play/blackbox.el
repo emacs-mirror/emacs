@@ -93,7 +93,7 @@
   (define-key map (vector 'remap oldfun) newfun))
 
 
-(defvar blackbox-mode-map 
+(defvar blackbox-mode-map
   (let ((map (make-keymap)))
     (suppress-keymap map t)
     (blackbox-redefine-key map 'backward-char 'bb-left)
@@ -257,7 +257,6 @@ a reflection."
   (bb-goto (cons bb-x bb-y)))
 
 (defun bb-init-board (num-balls)
-  (random t)
   (let (board pos)
     (while (>= (setq num-balls (1- num-balls)) 0)
       (while

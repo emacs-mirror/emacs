@@ -1,3 +1,340 @@
+2012-09-05  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in ($(BLD)/sysdep.$(O)): Update dependencies.
+
+2012-09-04  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* eval.c (call_debugger): Make the function non-static so that we
+	can call it from set_message.
+
+	* xdisp.c (set_message): Implement the new variable `debug-on-message'.
+	(syms_of_xdisp): Defvar it and `inhibit-debug-on-message'.
+
+2012-09-04  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Give more-useful info on a fatal error (Bug#12328).
+	* alloc.c [ENABLE_CHECKING]: Do not include <execinfo.h>.
+	(die) [ENABLE_CHECKING]: Call fatal_error_backtrace instead
+	of doing the work ourselves.
+	* emacs.c (fatal_error_signal): Let fatal_error_backtrace
+	do most of the work.
+	(fatal_error_backtrace): New function, taken from the guts
+	of the old fatal_error_signal, but with a new option to output
+	a backtrace.
+	(shut_down_emacs) [!DOS_NT]: Use strsignal to give more-useful
+	info about the signal than just its number.
+	* lisp.h (fatal_error_backtrace, emacs_backtrace): New decls.
+	* sysdep.c: Include <execinfo.h>
+	(emacs_backtrace): New function, taken partly from the previous
+	code of the 'die' function.
+	(emacs_abort): Call fatal_error_backtrace rather than abort.
+
+2012-09-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* lread.c (readevalloop): Call internal-macroexpand-for-load to perform
+	eager (load-time) macro-expansion.
+	* lisp.mk (lisp): Add macroexp.
+
+2012-09-04  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Simplify redefinition of 'abort' (Bug#12316).
+	Do not try to redefine the 'abort' function.  Instead, redo
+	the code so that it calls 'emacs_abort' rather than 'abort'.
+	This removes the need for the NO_ABORT configure-time macro
+	and makes it easier to change the abort code to do a backtrace.
+	* .gdbinit: Just stop at emacs_abort, not at w32_abort or abort.
+	* emacs.c (abort) [!DOS_NT && !NO_ABORT]:
+	Remove; sysdep.c's emacs_abort now takes its place.
+	* lisp.h (emacs_abort): New decl.  All calls from Emacs code to
+	'abort' changed to use 'emacs_abort'.
+	* msdos.c (dos_abort) [defined abort]: Remove; not used.
+	(abort) [!defined abort]: Rename to ...
+	(emacs_abort): ... new name.
+	* sysdep.c (emacs_abort) [!HAVE_NTGUI]: New function, taking
+	the place of the old 'abort' in emacs.c.
+	* w32.c, w32fns.c (abort): Do not #undef.
+	* w32.c (emacs_abort): Rename from w32_abort.
+
+2012-09-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32uniscribe.c (uniscribe_shape): Reverse the sign of
+	offsets[j].dv, since the y axis of the screen coordinates points
+	down, while the y axis of the font definition coordinates points
+	up.  This fixes display of Arabic diacritics such as KASRA and
+	KASRATAN.  (Bug#11860)
+
+2012-09-04  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Be more systematic about _setjmp vs setjmp.
+	* alloc.c (test_setjmp, mark_stack):
+	* image.c (PNG_LONGJMP) [PNG_LIBPNG_VER < 10500]:
+	(PNG_JMPBUF) [! (PNG_LIBPNG_VER < 10500)]:
+	(png_load, my_error_exit, jpeg_load):
+	* process.c (send_process_trap, send_process):
+	Uniformly prefer _setjmp and _longjmp to setjmp and longjmp.
+	The underscored versions are up to 30x faster on some hosts.
+	Formerly, the code used setjmp+longjmp sometimes and
+	_setjmp+_longjmp at other times, with no particular reason to
+	prefer setjmp+longjmp.
+
+2012-09-03  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix minor problem found by static checking.
+	* buffer.c (Fdelete_all_overlays): Return nil.
+
+2012-09-03  Martin Rudalics  <rudalics@gmx.at>
+
+	* buffer.c (Fdelete_all_overlays): New function.
+
+2012-09-03  Chong Yidong  <cyd@gnu.org>
+
+	* gtkutil.c: Add extern decl for Qxft.
+
+2012-09-02  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* emacs.c, eval.c: Use bool for boolean.
+	* emacs.c (initialized, inhibit_window_system, running_asynch_code):
+	(malloc_using_checking) [DOUG_LEA_MALLOC]:
+	(display_arg) [HAVE_X_WINDOWS || HAVE_NS]:
+	(noninteractive, no_site_lisp, fatal_error_in_progress, argmatch)
+	(main, decode_env_path, Fdaemon_initialized):
+	* eval.c (call_debugger, Finteractive_p, interactive_p):
+	(unwind_to_catch, Fsignal, wants_debugger, skip_debugger)
+	(maybe_call_debugger, Fbacktrace):
+	* process.c (read_process_output, exec_sentinel):
+	Use bool for booleans.
+	* emacs.c (shut_down_emacs): Omit unused boolean argument NO_X.
+	All callers changed.
+	* eval.c (interactive_p): Omit always-true boolean argument
+	EXCLUDE_SUBRS_P.  All callers changed.
+	* dispextern.h, lisp.h: Reflect above API changes.
+	* firstfile.c (dummy): Use the address of 'main', whose signature
+	won't change, instead of the address of 'initialize', whose
+	signature just changed from int to bool.
+	* lisp.h (fatal_error_in_progress): New decl of boolean, moved here ...
+	* msdos.c (fatal_error_in_progress): ... from here.
+	* xdisp.c (redisplaying_p): Now a boolean.  Set it to 1 instead
+	of incrementing it.
+	(redisplay_internal, unwind_redisplay): Simply clear
+	REDISPLAYING_P when unwinding, instead of saving its previous,
+	always-false value and then restoring it.
+
+	Clean up some extern decls.
+	Mostly, this hoists extern decls out of .c files and into .h files.
+	That way, we're more likely to catch errors if the interfaces change.
+	* alloc.c [USE_GTK]: Include "gtkutil.h" so that we need not
+	declare xg_mark_data.
+	* dispextern.h (x_frame_parm_handlers):
+	* font.h (Qxft):
+	* lisp.h (Qlexical_binding, Qinternal_interpreter_environment)
+	(Qextra_light, Qlight, Qsemi_light, Qsemi_bold, Qbold, Qextra_bold)
+	(Qultra_bold, Qoblique, Qitalic):
+	Move extern decl here from .c file.
+	* alloc.c (xg_mark_data) [USE_GTK]:
+	* doc.c (Qclosure):
+	* eval.c (Qlexical_binding):
+	* fns.c (time) [!HAVE_UNISTD_H]:
+	* gtkutil.c (Qxft, Qnormal, Qextra_light, Qlight, Qsemi_light)
+	(Qsemi_bold, Qbold, Qextra_bold, Qultra_bold, Qoblique, Qitalic):
+	* image.c (Vlibrary_cache, QCloaded_from) [HAVE_NTGUI]:
+	* lread.c (Qinternal_interpreter_environment):
+	* minibuf.c (Qbuffer):
+	* process.c (QCfamily, QCfilter):
+	* widget.c (free_frame_faces):
+	* xfaces.c (free_frame_menubar) [USE_X_TOOLKIT]:
+	* xfont.c (x_clear_errors):
+	* xterm.c (x_frame_parm_handlers):
+	Remove now-redundant extern decls.
+	* keyboard.c, keyboard.h (ignore_mouse_drag_p) [USE_GTK || HAVE_NS]:
+	* xfaces.c (Qultra_light, Qreverse_oblique, Qreverse_italic):
+	Now static.
+	* xfaces.c: Remove unnecessary static decls.
+	* xterm.c (updating_frame): Remove decl of nonexistent object.
+
+	* Makefile.in (gl-stamp): Don't scan $(SOME_MACHINE_OBJECTS)
+	when building globals.h, as the objects that are not built on
+	this host are not needed to compile C files on this host.
+
+2012-09-02  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* gtkutil.h: Remove prototype for x_wm_set_size_hint.
+
+	* frame.h: Add missing prototype for x_wm_set_size_hint.
+
+2012-09-02  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* doc.c, editfns.c, insdel.c, intervals.c: Use bool for boolean.
+	* doc.c (read_bytecode_char, get_doc_string, reread_doc_file)
+	(Fdocumentation, Fdocumentation_property, Fsnarf_documentation)
+	(Fsubstitute_command_keys):
+	* editfns.c (region_limit, find_field, Fconstrain_to_field)
+	(save_excursion_save, save_excursion_restore)
+	(disassemble_lisp_time, decode_time_components, emacs_nmemftime)
+	(format_time_string, general_insert_function)
+	(make_buffer_string, make_buffer_string_both)
+	(Fsubst_char_in_region, Ftranslate_region_internal, Fformat):
+	* insdel.c (check_markers, gap_left, adjust_markers_for_insert)
+	(copy_text, insert_1, insert_1_both, insert_from_string)
+	(insert_from_string_before_markers, insert_from_string_1)
+	(insert_from_buffer, insert_from_buffer_1, replace_range)
+	(replace_range_2, del_range_1, del_range_byte, del_range_both)
+	(del_range_2, modify_region):
+	* intervals.c (intervals_equal, balance_possible_root_interval)
+	(adjust_intervals_for_insertion, merge_properties_sticky)
+	(graft_intervals_into_buffer, lookup_char_property)
+	(adjust_for_invis_intang, set_point_both)
+	(get_property_and_range, compare_string_intervals)
+	(set_intervals_multibyte_1, set_intervals_multibyte):
+	* keyboard.c (decode_timer):
+	Use bool for boolean.
+	* intervals.h, lisp.h, systime.h: Reflect above API changes.
+	* editfns.c (struct info): Use 1-bit unsigned bitfields for booleans.
+
+2012-09-02  Chong Yidong  <cyd@gnu.org>
+
+	* keymap.c (push_key_description): Print M-TAB as C-M-i
+	(Bug#11758).
+
+2012-09-02  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in (CCL_H, W32FONT_H): New macros.
+	(ATIMER_H, FONT_H, $(BLD)/alloc.$(O), $(BLD)/callproc.$(O))
+	($(BLD)/editfns.$(O), $(BLD)/ccl.$(O), $(BLD)/chartab.$(O))
+	($(BLD)/coding.$(O), $(BLD)/sysdep.$(O), $(BLD)/fontset.$(O))
+	($(BLD)/sysdep.$(O), $(BLD)/w32fns.$(O), $(BLD)/keyboard.$(O))
+	($(BLD)/w32term.$(O), $(BLD)/w32menu.$(O), $(BLD)/process.$(O))
+	($(BLD)/w32font.$(O), $(BLD)/w32uniscribe.$(O)): Update dependencies.
+
+2012-09-01  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32uniscribe.c (uniscribe_shape): Handle correctly the case of
+	more than one grapheme cluster passed to the shaper: compute the
+	offset adjustment values separately for each cluster.  (Bug#11860)
+
+	* image.c: Restore mistakenly removed inclusion of w32.h.  Without
+	it, GCC doesn't see prototypes of w32_delayed_load, and complains
+	about implicit conversions from integer to pointer.
+
+2012-09-01  Daniel Colascione  <dancol@dancol.org>
+
+	* w32fns.c (x_display_info_for_name): Prevent crash if w32 window
+	system used too early.
+
+2012-09-01  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Better seed support for (random).
+	* emacs.c (main): Call init_random.
+	* fns.c (Frandom): Set the seed from a string argument, if given.
+	Remove long-obsolete Gentzel cruft.
+	* lisp.h, sysdep.c (seed_random): Now takes address and size, not long.
+	(init_random): New function.
+
+2012-09-01  Daniel Colascione  <dancol@dancol.org>
+
+	* xterm.h: Add header guards.  Declare x_menubar_window_to_frame.
+	Remove x_set_frame_alpha, x_bitmap_icon, x_make_frame_visible,
+	x_make_frame_invisible, x_iconify_frame, x_free_frame_resources,
+	x_wm_set_size_hint, x_query_colors, x_real_positions,
+	x_set_menu_bar_lines, x_char_width, x_char_height, x_sync,
+	x_set_tool_bar_lines, x_activate_menubar, and free_frame_menubar,
+	all of which have been moved to common code.
+
+	* xfaces.c: Include TERM_HEADER instead of listing all possible
+	window-system headers.
+
+	* w32xfns.c (x_sync): Correct definition of x_sync (a no-op here)
+	to match header.
+
+	* w32term.h (FRAME_X_WINDOW): Use FRAME_W32_WINDOW instead of
+	directly accessing frame internals.
+
+	* w32font.h: Include font.h.  Define syms_of_w32font and
+	globals_of_w32font.
+
+	* process.c: Include TERM_HEADER instead of listing all possible
+	window-system headers.
+
+	* nsterm.h: Remove declarations now in frame.h.  Define
+	FRAME_X_SCREEN, FRAME_X_VISUAL.
+
+	* menu.c: Include TERM_HEADER instead of listing all possible
+	window-system headers.
+
+	* keyboard.h: Declare ignore_mouse_drag_p whenever we have a
+	window system.
+
+	* keyboard.c: Include TERM_HEADER instead of listing all possible
+	window-system headers.
+
+	* image.c: Include TERM_HEADER instead of listing all possible
+	window-system headers.  Declare Vlibrary_cache when compiling for
+	Windows.
+
+	* gtkutil.h (xg_list_node_): Include xterm.h to pick up needed
+	window system declarations.
+
+	* frame.h: Move common functions here: set_frame_menubar,
+	x_set_window_size, x_sync, x_get_focus_frame,
+	x_set_mouse_position, x_set_mouse_pixel_position,
+	x_make_frame_visible, x_make_frame_invisible, x_iconify_frame,
+	x_char_width, x_char_height, x_pixel_width, x_pixel_height,
+	x_set_frame_alpha, x_set_menu_bar_lines, x_set_tool_bar_lines,
+	x_activate_menubar, x_real_positions, x_bitmap_icon,
+	x_set_menu_bar_lines, free_frame_menubar, x_free_frame_resources,
+	and x_query_colors.
+
+	* frame.c: Include TERM_HEADER instead of listing all possible
+	window-system headers.
+
+	* font.c: Include TERM_HEADER instead of listing all possible
+	window-system headers.
+
+	* emacs.c: Include TERM_HEADER.
+
+	* dispnew.c: Include TERM_HEADER instead of listing all possible
+	window-system headers.
+
+	* ccl.h: Include character.h.
+
+	* Makefile.in: Define WINDOW_SYSTEM_OBJ to hold objects needed for
+	the current window system; include in list of objects to link into
+	Emacs.
+
+2012-08-31  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Remove mark_ttys function and fix tty_display_info initialization.
+	* lisp.h (mark_ttys): Remove prototype.
+	* alloc.c (Fgarbage_collect): Remove redundant (and the only) call
+	to mark_ttys because all possible values of 'top_frame' slot are
+	the frames which are reachable from Vframe_list.
+	* term.c (mark_ttys): Remove.
+	(init_tty): Safely initialize 'top_frame' slot with Qnil.
+
+2012-08-31  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Change struct frame bitfields from unsigned char to unsigned.
+	* frame.h (struct frame): Change type of 'display_preempted',
+	'visible', 'iconified', 'has_minibuffer', 'wants_modeline',
+	'auto_raise', 'auto_lower', 'no_split', 'explicit_name',
+	'window_sizes_changed', 'mouse_moved' and 'pointer_invisible'
+	bitfields from unsigned char to unsigned.
+
+2012-08-31  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Remove unused member of struct x_output and struct w32_output.
+	* xterm.h (struct x_output): Remove unused field 'needs_exposure'.
+	* w32term.h (struct w32_output): Likewise.
+
+2012-08-30  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (x_wm_set_size_hint): Use 1 col for base_width so it
+	does not become zero (Bug#12234).
+
+2012-08-30  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* dispnew.c (update_frame_1): Pacify gcc -Wstrict-overflow
+	for GCC 4.7.1 x86-64.
+
 2012-08-30  Glenn Morris  <rgm@gnu.org>
 
 	* lread.c (init_lread): For out-of-tree builds, only add the

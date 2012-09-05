@@ -1683,8 +1683,6 @@ Use \\[describe-mode] for more info."
 ;;;allout-layout: (0 : -1 -1 0)
 ;;;End:
 
-(random t)
-
 (provide 'landmark)
 
 ;;; landmark.el ends here

@@ -390,6 +390,7 @@ SYSTIME_H      = $(SRC)/systime.h \
 		 $(NT_INC)/sys/time.h \
 		 $(GNU_LIB)/timespec.h
 ATIMER_H       = $(SRC)/atimer.h \
+		 $(NT_INC)/stdbool.h \
 		 $(SYSTIME_H)
 BLOCKINPUT_H   = $(SRC)/blockinput.h \
 		 $(ATIMER_H)
@@ -401,6 +402,8 @@ CAREADLINKAT_H = $(GNU_LIB)/careadlinkat.h \
 		 $(NT_INC)/unistd.h
 CHARACTER_H    = $(SRC)/character.h \
 		 $(GNU_LIB)/verify.h
+CCL_H          = $(SRC)/ccl.h \
+		 $(CHARACTER_H)
 CHARSET_H      = $(SRC)/charset.h \
 		 $(GNU_LIB)/verify.h
 CODING_H       = $(SRC)/coding.h \
@@ -422,7 +425,7 @@ DISPEXTERN_H   = $(SRC)/dispextern.h \
 FILEMODE_H     = $(GNU_LIB)/filemode.h \
 		 $(NT_INC)/sys/stat.h
 FONT_H         = $(SRC)/font.h \
-		 $(SRC)/ccl.h
+		 $(CCL_H)
 FRAME_H        = $(SRC)/frame.h \
 		 $(DISPEXTERN_H)
 FTOASTR_H      = $(GNU_LIB)/ftoastr.h \
@@ -469,6 +472,8 @@ SYSTTY_H       = $(SRC)/systty.h \
 		 $(NT_INC)/unistd.h
 TERMHOOKS_H    = $(SRC)/termhooks.h \
 		 $(SYSTIME_H)
+W32FONT_H      = $(SRC)/w32font.h \
+		 $(FONT_H)
 W32TERM_H      = $(SRC)/w32term.h \
 		 $(W32GUI_H)
 WINDOW_H       = $(SRC)/window.h \
@@ -480,7 +485,6 @@ $(BLD)/alloc.$(O) : \
 	$(SRC)/syssignal.h \
 	$(SRC)/w32.h \
 	$(NT_INC)/unistd.h \
-	$(GNU_LIB)/execinfo.h \
 	$(GNU_LIB)/verify.h \
 	$(BLOCKINPUT_H) \
 	$(BUFFER_H) \
@@ -554,7 +558,6 @@ $(BLD)/callint.$(O) : \
 
 $(BLD)/callproc.$(O) : \
 	$(SRC)/callproc.c \
-	$(SRC)/ccl.h \
 	$(SRC)/commands.h \
 	$(SRC)/composite.h \
 	$(SRC)/epaths.h \
@@ -564,6 +567,7 @@ $(BLD)/callproc.$(O) : \
 	$(NT_INC)/unistd.h \
 	$(BLOCKINPUT_H) \
 	$(BUFFER_H) \
+	$(CCL_H) \
 	$(CHARACTER_H) \
 	$(CODING_H) \
 	$(CONFIG_H) \
@@ -603,7 +607,7 @@ $(BLD)/category.$(O) : \
 
 $(BLD)/ccl.$(O) : \
 	$(SRC)/ccl.c \
-	$(SRC)/ccl.h \
+	$(CCL_H) \
 	$(CHARACTER_H) \
 	$(CHARSET_H) \
 	$(CODING_H) \
@@ -635,7 +639,7 @@ $(BLD)/charset.$(O) : \
 
 $(BLD)/chartab.$(O) : \
 	$(SRC)/chartab.c \
-	$(SRC)/ccl.h \
+	$(CCL_H) \
 	$(CHARACTER_H) \
 	$(CHARSET_H) \
 	$(CONFIG_H) \
@@ -657,9 +661,9 @@ $(BLD)/cmds.$(O) : \
 
 $(BLD)/coding.$(O) : \
 	$(SRC)/coding.c \
-	$(SRC)/ccl.h \
 	$(SRC)/composite.h \
 	$(BUFFER_H) \
+	$(CCL_H) \
 	$(CHARACTER_H) \
 	$(CHARSET_H) \
 	$(CODING_H) \
@@ -803,6 +807,7 @@ $(BLD)/emacs.$(O) : \
 	$(PROCESS_H) \
 	$(SYSTTY_H) \
 	$(TERMHOOKS_H) \
+	$(W32TERM_H) \
 	$(WINDOW_H)
 
 $(BLD)/eval.$(O) : \
@@ -898,10 +903,10 @@ $(BLD)/font.$(O) : \
 
 $(BLD)/fontset.$(O) : \
 	$(SRC)/fontset.c \
-	$(SRC)/ccl.h \
 	$(SRC)/fontset.h \
 	$(BLOCKINPUT_H) \
 	$(BUFFER_H) \
+	$(CCL_H) \
 	$(CHARACTER_H) \
 	$(CHARSET_H) \
 	$(CONFIG_H) \
@@ -1269,6 +1274,7 @@ $(BLD)/process.$(O) : \
 	$(SYSTIME_H) \
 	$(SYSTTY_H) \
 	$(TERMHOOKS_H) \
+	$(W32TERM_H) \
 	$(WINDOW_H)
 
 $(BLD)/ralloc.$(O) : \
@@ -1359,6 +1365,7 @@ $(BLD)/sysdep.$(O) : \
 	$(NT_INC)/sys/stat.h \
 	$(NT_INC)/unistd.h \
 	$(GNU_LIB)/allocator.h \
+	$(GNU_LIB)/execinfo.h \
 	$(GNU_LIB)/ignore-value.h \
 	$(GNU_LIB)/utimens.h \
 	$(BLOCKINPUT_H) \
@@ -1524,14 +1531,13 @@ $(BLD)/xfaces.$(O) : \
 
 $(BLD)/w32fns.$(O) : \
 	$(SRC)/w32fns.c \
-	$(SRC)/ccl.h \
 	$(SRC)/epaths.h \
 	$(SRC)/fontset.h \
 	$(SRC)/w32.h \
-	$(SRC)/w32font.h \
 	$(SRC)/w32heap.h \
 	$(BLOCKINPUT_H) \
 	$(BUFFER_H) \
+	$(CCL_H) \
 	$(CHARACTER_H) \
 	$(CHARSET_H) \
 	$(CODING_H) \
@@ -1544,6 +1550,7 @@ $(BLD)/w32fns.$(O) : \
 	$(LISP_H) \
 	$(SYSTIME_H) \
 	$(TERMHOOKS_H) \
+	$(W32FONT_H) \
 	$(W32TERM_H) \
 	$(WINDOW_H)
 
@@ -1568,18 +1575,17 @@ $(BLD)/w32menu.$(O) : \
 
 $(BLD)/w32term.$(O) : \
 	$(SRC)/w32term.c \
-	$(SRC)/ccl.h \
 	$(SRC)/disptab.h \
 	$(SRC)/fontset.h \
 	$(SRC)/keymap.h \
 	$(SRC)/termchar.h \
 	$(SRC)/termopts.h \
-	$(SRC)/w32font.h \
 	$(SRC)/w32heap.h \
 	$(NT_INC)/sys/stat.h \
 	$(ATIMER_H) \
 	$(BLOCKINPUT_H) \
 	$(BUFFER_H) \
+	$(CCL_H) \
 	$(CHARACTER_H) \
 	$(CHARSET_H) \
 	$(CODING_H) \
@@ -1594,6 +1600,7 @@ $(BLD)/w32term.$(O) : \
 	$(SYSTIME_H) \
 	$(SYSTTY_H) \
 	$(TERMHOOKS_H) \
+	$(W32FONT_H) \
 	$(W32TERM_H) \
 	$(WINDOW_H)
 
@@ -1629,7 +1636,6 @@ $(BLD)/w32xfns.$(O) : \
 $(BLD)/w32font.$(O) : \
 	$(SRC)/w32font.c \
 	$(SRC)/fontset.h \
-	$(SRC)/w32font.h \
 	$(CHARACTER_H) \
 	$(CHARSET_H) \
 	$(CODING_H) \
@@ -1638,13 +1644,13 @@ $(BLD)/w32font.$(O) : \
 	$(FONT_H) \
 	$(FRAME_H) \
 	$(LISP_H) \
+	$(W32FONT_H) \
 	$(W32TERM_H)
 
 $(BLD)/w32uniscribe.$(O) : \
 	$(SRC)/w32uniscribe.c \
 	$(SRC)/composite.h \
 	$(SRC)/fontset.h \
-	$(SRC)/w32font.h \
 	$(CHARACTER_H) \
 	$(CHARSET_H) \
 	$(CONFIG_H) \
@@ -1652,6 +1658,7 @@ $(BLD)/w32uniscribe.$(O) : \
 	$(FONT_H) \
 	$(FRAME_H) \
 	$(LISP_H) \
+	$(W32FONT_H) \
 	$(W32TERM_H)
 
 # Each object file depends on stamp_BLD, because in parallel builds we must

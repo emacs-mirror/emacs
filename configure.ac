@@ -705,6 +705,7 @@ else
   nw="$nw -Wswitch-default"         # Too many warnings for now
   nw="$nw -Wfloat-equal"            # warns about high-quality code
   nw="$nw -Winline"                 # OK to ignore 'inline'
+  nw="$nw -Wjump-misses-init"       # We sometimes safely jump over init.
   nw="$nw -Wsync-nand"              # irrelevant here, and provokes ObjC warning
   nw="$nw -Wunsafe-loop-optimizations" # OK to suppress unsafe optimizations
 
@@ -737,8 +738,13 @@ else
   gl_WARN_ADD([-funit-at-a-time])
 
   AC_DEFINE([lint], [1], [Define to 1 if the compiler is checking for lint.])
-  AC_DEFINE([_FORTIFY_SOURCE], [2],
-    [enable compile-time and run-time bounds-checking, and some warnings])
+  AH_VERBATIM([FORTIFY_SOURCE],
+  [/* Enable compile-time and run-time bounds-checking, and some warnings,
+      without upsetting glibc 2.15+. */
+   #if defined __OPTIMIZE__ && __OPTIMIZE__
+   # define _FORTIFY_SOURCE 2
+   #endif
+  ])
   AC_DEFINE([GNULIB_PORTCHECK], [1], [enable some gnulib portability checks])
 
   # We use a slightly smaller set of warning options for lib/.
@@ -1386,10 +1392,14 @@ AC_SYS_LONG_FILE_NAMES
 
 #### Choose a window system.
 
+## We leave window_system equal to none if
+## we end up building without one.  Any new window system should
+## set window_system to an appropriate value and add objects to
+## window-system-specific substs.
+
+window_system=none
 AC_PATH_X
-if test "$no_x" = yes; then
-  window_system=none
-else
+if test "$no_x" != yes; then
   window_system=x11
 fi
 
@@ -1528,7 +1538,6 @@ if test "${HAVE_NS}" = yes; then
   fi
 
   window_system=nextstep
-  with_xft=no
   # set up packaging dirs
   if test "${EN_NS_SELF_CONTAINED}" = yes; then
      ns_self_contained=yes
@@ -1548,7 +1557,6 @@ if test "${HAVE_NS}" = yes; then
      INSTALL_ARCH_INDEP_EXTRA=
   fi
   ns_frag=$srcdir/src/ns.mk
-  NS_OBJ="fontset.o fringe.o image.o"
   NS_OBJC_OBJ="nsterm.o nsfns.o nsmenu.o nsselect.o nsimage.o nsfont.o"
 fi
 CFLAGS="$tmp_CFLAGS"
@@ -1560,18 +1568,29 @@ AC_SUBST(NS_OBJC_OBJ)
 AC_SUBST(LIB_STANDARD)
 AC_SUBST_FILE(ns_frag)
 
+## $window_system is now set to the window system we will
+## ultimately use.
+
+term_header=
+HAVE_X_WINDOWS=no
+HAVE_X11=no
+USE_X_TOOLKIT=none
+
 case "${window_system}" in
   x11 )
     HAVE_X_WINDOWS=yes
     HAVE_X11=yes
+    term_header=xterm.h
     case "${with_x_toolkit}" in
       athena | lucid ) USE_X_TOOLKIT=LUCID ;;
       motif ) USE_X_TOOLKIT=MOTIF ;;
       gtk ) with_gtk=yes
+            term_header=gtkutil.h
 dnl Don't set this for GTK.  A lot of tests below assumes Xt when
 dnl USE_X_TOOLKIT is set.
             USE_X_TOOLKIT=none ;;
       gtk3 ) with_gtk3=yes
+             term_header=gtkutil.h
              USE_X_TOOLKIT=none ;;
       no ) USE_X_TOOLKIT=none ;;
 dnl If user did not say whether to use a toolkit, make this decision later:
@@ -1579,12 +1598,15 @@ dnl use the toolkit if we have gtk, or X11R5 or newer.
       * ) USE_X_TOOLKIT=maybe ;;
     esac
   ;;
-  nextstep | none )
-    HAVE_X_WINDOWS=no
-    HAVE_X11=no
-    USE_X_TOOLKIT=none
+  nextstep )
+    term_header=nsterm.h
   ;;
 esac
+
+if test -n "${term_header}"; then
+    AC_DEFINE_UNQUOTED(TERM_HEADER, "${term_header}",
+        [Define to the header for the built-in window system.])
+fi
 
 if test "$window_system" = none && test "X$with_x" != "Xno"; then
    AC_CHECK_PROG(HAVE_XSERVER, X, true, false)
@@ -1901,6 +1923,7 @@ if test "${with_gtk3}" = "yes"; then
   fi
   AC_DEFINE(HAVE_GTK3, 1, [Define to 1 if using GTK 3 or later.])
   GTK_OBJ=emacsgtkfixed.o
+  term_header=gtkutil.h
 fi
 
 if test "$pkg_check_gtk" != "yes"; then
@@ -1979,6 +2002,8 @@ if test "${HAVE_GTK}" = "yes"; then
                  gtk_widget_get_mapped gtk_adjustment_get_page_size \
                  gtk_orientable_set_orientation \
 		 gtk_window_set_has_resize_grip)
+
+ term_header=gtkutil.h
 fi
 
 dnl D-Bus has been tested under GNU/Linux only.  Must be adapted for
@@ -2029,6 +2054,11 @@ if test "${HAVE_X11}" = "yes" && test "${with_gconf}" = "yes"; then
 fi
 
 if test "$HAVE_GSETTINGS" = "yes" || test "$HAVE_GCONF" = "yes"; then
+    PKG_CHECK_MODULES(GOBJECT, gobject-2.0 >= 2.0, HAVE_GOBJECT=yes, HAVE_GOBJECT=no)
+    if test "$HAVE_GOBJECT" = "yes"; then
+       SETTINGS_CFLAGS="$SETTINGS_CFLAGS $GOBJECT_CFLAGS"
+       SETTINGS_LIBS="$SETTINGS_LIBS $GOBJECT_LIBS"
+    fi
     SAVE_CFLAGS="$CFLAGS"
     SAVE_LIBS="$LIBS"
     CFLAGS="$SETTINGS_CFLAGS $CFLAGS"
@@ -3321,12 +3351,6 @@ case $opsys in
     AC_DEFINE(BROKEN_PTY_READ_AFTER_EAGAIN, 1, [Define on FreeBSD to
       work around an issue when reading from a PTY.])
     ;;
-
-  dnl Define the following so emacs symbols will not conflict with those
-  dnl in the System framework.  Otherwise -prebind will not work.
-  darwin)
-    AC_DEFINE(NO_ABORT, 1, [Do not define abort in emacs.c.])
-    ;;
 esac
 
 case $opsys in
@@ -3761,13 +3785,27 @@ else
   esac
 fi                              dnl GCC?
 
+AC_CACHE_CHECK([for _setjmp], [emacs_cv_func__setjmp],
+  [AC_LINK_IFELSE(
+     [AC_LANG_PROGRAM(
+       [[#include <setjmp.h>
+       ]],
+       [[jmp_buf j;
+	 if (! _setjmp (j))
+	   _longjmp (j, 1);]])],
+     [emacs_cv_func__setjmp=yes],
+     [emacs_cv_func__setjmp=no])])
+if test $emacs_cv_func__setjmp = no; then
+  AC_DEFINE([_setjmp], [setjmp],
+    [Define to setjmp if _setjmp and _longjmp do not work.  See _longjmp.])
+  AC_DEFINE([_longjmp], [longjmp],
+    [Define to longjmp if _setjmp and _longjmp do not work.
+     Because longjmp may alter signal masks, callers of _longjmp
+     should not assume that it leaves signal masks alone.])
+fi
 
 case $opsys in
   sol2* | unixware )
-    dnl setjmp and longjmp can safely replace _setjmp and _longjmp,
-    dnl but they will run more slowly.
-    AC_DEFINE(_setjmp, setjmp, [Some platforms redefine this.])
-    AC_DEFINE(_longjmp, longjmp, [Some platforms redefine this.])
     dnl TIOCGPGRP is broken in SysVr4, so we can't send signals to PTY
     dnl subprocesses the usual way.  But TIOCSIGNAL does work for PTYs,
     dnl and this is all we need.
@@ -3973,6 +4011,11 @@ AC_SUBST(ns_appsrc)
 AC_SUBST(GNU_OBJC_CFLAGS)
 AC_SUBST(OTHER_FILES)
 
+if test -n "${term_header}"; then
+    AC_DEFINE_UNQUOTED(TERM_HEADER, "${term_header}",
+        [Define to the header for the built-in window system.])
+fi
+
 AC_DEFINE_UNQUOTED(EMACS_CONFIGURATION,  "${canonical}",
 		   [Define to the canonical Emacs configuration name.])
 AC_DEFINE_UNQUOTED(EMACS_CONFIG_OPTIONS, "${ac_configure_args}",
@@ -3987,7 +4030,7 @@ if test "${HAVE_X_WINDOWS}" = "yes" ; then
   AC_DEFINE(HAVE_X_WINDOWS, 1,
 	    [Define to 1 if you want to use the X window system.])
   XMENU_OBJ=xmenu.o
-  XOBJ="xterm.o xfns.o xselect.o xrdb.o fontset.o xsmfns.o fringe.o image.o xsettings.o xgselect.o"
+  XOBJ="xterm.o xfns.o xselect.o xrdb.o xsmfns.o xsettings.o xgselect.o"
   FONT_OBJ=xfont.o
   if test "$HAVE_XFT" = "yes"; then
     FONT_OBJ="$FONT_OBJ ftfont.o xftfont.o ftxfont.o"
@@ -4277,13 +4320,14 @@ if test "x$GCC" = "xyes" && test "x$ORDINARY_LINK" != "xyes"; then
 fi                              dnl if $GCC
 AC_SUBST(LIB_GCC)
 
-
-## If we're using X11/GNUstep, define some consequences.
-if test "$HAVE_X_WINDOWS" = "yes" || test "$HAVE_NS" = "yes"; then
+## Common for all window systems
+if test "$window_system" != "none"; then
   AC_DEFINE(HAVE_WINDOW_SYSTEM, 1, [Define if you have a window system.])
   AC_DEFINE(HAVE_MOUSE, 1, [Define if you have mouse support.])
+  WINDOW_SYSTEM_OBJ="fontset.o fringe.o image.o"
 fi
 
+AC_SUBST(WINDOW_SYSTEM_OBJ)
 
 AH_TOP([/* GNU Emacs site configuration template file.
 

@@ -364,6 +364,7 @@ static Lisp_Object Qslice;
 Lisp_Object Qcenter;
 static Lisp_Object Qmargin, Qpointer;
 static Lisp_Object Qline_height;
+Lisp_Object Qinhibit_debug_on_message;
 
 /* These setters are used only in this file, so they can be private.  */
 static inline void
@@ -768,9 +769,9 @@ static int clear_image_cache_count;
 static struct glyph_slice null_glyph_slice = { 0, 0, 0, 0 };
 #endif
 
-/* Non-zero while redisplay_internal is in progress.  */
+/* True while redisplay_internal is in progress.  */
 
-int redisplaying_p;
+bool redisplaying_p;
 
 static Lisp_Object Qinhibit_free_realized_faces;
 static Lisp_Object Qmode_line_default_help_echo;
@@ -7306,7 +7307,7 @@ set_iterator_to_next (struct it *it, int reseat_p)
 
     default:
       /* There are no other methods defined, so this should be a bug.  */
-      abort ();
+      emacs_abort ();
     }
 
   eassert (it->method != GET_FROM_STRING
@@ -7761,7 +7762,7 @@ compute_stop_pos_backwards (struct it *it)
       compute_stop_pos (it);
       /* We must advance forward, right?  */
       if (it->stop_charpos <= charpos)
-	abort ();
+	emacs_abort ();
     }
   while (charpos > BEGV && it->stop_charpos >= it->end_charpos);
 
@@ -7810,7 +7811,7 @@ handle_stop_backwards (struct it *it, ptrdiff_t charpos)
       compute_stop_pos (it);
       /* We must advance forward, right?  */
       if (it->stop_charpos <= it->prev_stop)
-	abort ();
+	emacs_abort ();
       charpos = it->stop_charpos;
     }
   while (charpos <= where_we_are);
@@ -8898,7 +8899,7 @@ move_it_to (struct it *it, ptrdiff_t to_charpos, int to_x, int to_y, int to_vpos
 	  break;
 
 	default:
-	  abort ();
+	  emacs_abort ();
 	}
 
       /* Reset/increment for the next run.  */
@@ -10532,7 +10533,7 @@ void
 check_message_stack (void)
 {
   if (!NILP (Vmessage_stack))
-    abort ();
+    emacs_abort ();
 }
 
 
@@ -10571,7 +10572,6 @@ truncate_message_1 (ptrdiff_t nchars, Lisp_Object a2, ptrdiff_t a3, ptrdiff_t a4
   return 0;
 }
 
-
 /* Set the current message to a substring of S or STRING.
 
    If STRING is a Lisp string, set the message to the first NBYTES
@@ -10590,6 +10590,8 @@ static void
 set_message (const char *s, Lisp_Object string,
 	     ptrdiff_t nbytes, int multibyte_p)
 {
+  ptrdiff_t count = SPECPDL_INDEX ();
+
   message_enable_multibyte
     = ((s && multibyte_p)
        || (STRINGP (string) && STRING_MULTIBYTE (string)));
@@ -10598,6 +10600,15 @@ set_message (const char *s, Lisp_Object string,
 			 (intptr_t) s, string, nbytes, multibyte_p);
   message_buf_print = 0;
   help_echo_showing_p = 0;
+
+  if (NILP (Vinhibit_debug_on_message) &&
+      STRINGP (Vdebug_on_message) &&
+      fast_string_match (Vdebug_on_message, string) >= 0) {
+    specbind (Qinhibit_debug_on_message, Qt);
+    call_debugger (Fcons (Qerror, Fcons (string, Qnil)));
+  }
+
+  unbind_to (count, Qnil);
 }
 
 
@@ -12966,12 +12977,11 @@ redisplay_internal (void)
   if (redisplaying_p)
     return;
 
-  /* Record a function that resets redisplaying_p to its old value
+  /* Record a function that clears redisplaying_p
      when we leave this function.  */
   count = SPECPDL_INDEX ();
-  record_unwind_protect (unwind_redisplay,
-			 Fcons (make_number (redisplaying_p), selected_frame));
-  ++redisplaying_p;
+  record_unwind_protect (unwind_redisplay, selected_frame);
+  redisplaying_p = 1;
   specbind (Qinhibit_free_realized_faces, Qnil);
 
   {
@@ -13709,21 +13719,15 @@ redisplay_preserve_echo_area (int from_where)
 }
 
 
-/* Function registered with record_unwind_protect in
-   redisplay_internal.  Reset redisplaying_p to the value it had
-   before redisplay_internal was called, and clear
-   prevent_freeing_realized_faces_p.  It also selects the previously
+/* Function registered with record_unwind_protect in redisplay_internal.
+   Clear redisplaying_p.  Also, select the previously
    selected frame, unless it has been deleted (by an X connection
    failure during redisplay, for example).  */
 
 static Lisp_Object
-unwind_redisplay (Lisp_Object val)
+unwind_redisplay (Lisp_Object old_frame)
 {
-  Lisp_Object old_redisplaying_p, old_frame;
-
-  old_redisplaying_p = XCAR (val);
-  redisplaying_p = XFASTINT (old_redisplaying_p);
-  old_frame = XCDR (val);
+  redisplaying_p = 0;
   if (! EQ (old_frame, selected_frame)
       && FRAME_LIVE_P (XFRAME (old_frame)))
     select_frame_for_redisplay (old_frame);
@@ -14422,7 +14426,7 @@ set_cursor_from_row (struct window *w, struct glyph_row *row,
       for (g = row->glyphs[TEXT_AREA], x = row->x; g < glyph; g++)
 	{
 	  if (g >= row->glyphs[TEXT_AREA] + row->used[TEXT_AREA])
-	    abort ();
+	    emacs_abort ();
 	  x += g->pixel_width;
 	}
     }
@@ -14543,7 +14547,7 @@ run_window_scroll_functions (Lisp_Object window, struct text_pos startp)
   SET_MARKER_FROM_TEXT_POS (w->start, startp);
 
   if (current_buffer != XBUFFER (w->buffer))
-    abort ();
+    emacs_abort ();
 
   if (!NILP (Vwindow_scroll_functions))
     {
@@ -15512,9 +15516,9 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
   /* Some sanity checks.  */
   CHECK_WINDOW_END (w);
   if (Z == Z_BYTE && CHARPOS (opoint) != BYTEPOS (opoint))
-    abort ();
+    emacs_abort ();
   if (BYTEPOS (opoint) < CHARPOS (opoint))
-    abort ();
+    emacs_abort ();
 
   /* If %c is in mode line, update it if needed.  */
   if (!NILP (w->column_number_displayed)
@@ -15726,7 +15730,7 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
 	  goto try_to_scroll;
 
 	default:
-	  abort ();
+	  emacs_abort ();
 	}
     }
   /* If current starting point was originally the beginning of a line
@@ -15889,7 +15893,7 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
 	  break;
 
 	default:
-	  abort ();
+	  emacs_abort ();
 	}
     }
 
@@ -17337,7 +17341,7 @@ try_window_id (struct window *w)
 	  if (row)
 	    set_cursor_from_row (w, row, current_matrix, 0, 0, 0, 0);
 	  else
-	    abort ();
+	    emacs_abort ();
 	  return 1;
 	}
     }
@@ -17381,7 +17385,7 @@ try_window_id (struct window *w)
 	  if (row)
 	    set_cursor_from_row (w, row, current_matrix, 0, 0, 0, 0);
 	  else
-	    abort ();
+	    emacs_abort ();
 	  return 2;
 	}
     }
@@ -17870,7 +17874,7 @@ try_window_id (struct window *w)
       IF_DEBUG (debug_method_add (w, "C"));
     }
   else
-    abort ();
+    emacs_abort ();
 
   IF_DEBUG (debug_end_pos = XFASTINT (w->window_end_pos);
 	    debug_end_vpos = XFASTINT (w->window_end_vpos));
@@ -19247,7 +19251,7 @@ find_row_edges (struct it *it, struct glyph_row *row,
 	/* A line that is entirely from a string/image/stretch...  */
 	row->maxpos = row->minpos;
       else
-	abort ();
+	emacs_abort ();
     }
   else
     row->maxpos = it->current.pos;
@@ -20088,7 +20092,7 @@ See also `bidi-paragraph-direction'.  */)
 	  return Qright_to_left;
 	  break;
 	default:
-	  abort ();
+	  emacs_abort ();
 	}
     }
 }
@@ -22001,7 +22005,7 @@ display_string (const char *string, Lisp_Object lisp_string, Lisp_Object face_st
 	    {
 	      /* Glyph is off the left margin of the display area.
 		 Should not happen.  */
-	      abort ();
+	      emacs_abort ();
 	    }
 
 	  row->ascent = max (row->ascent, it->max_ascent);
@@ -23366,7 +23370,7 @@ compute_overhangs_and_x (struct glyph_string *s, int x, int backward_p)
 	      break;							\
 									\
 	    default:							\
-	      abort ();							\
+	      emacs_abort ();							\
 	    }								\
 									\
 	  if (s)							\
@@ -23707,7 +23711,7 @@ append_glyph (struct it *it)
 	{
 	  glyph->resolved_level = it->bidi_it.resolved_level;
 	  if ((it->bidi_it.type & 7) != it->bidi_it.type)
-	    abort ();
+	    emacs_abort ();
 	  glyph->bidi_type = it->bidi_it.type;
 	}
       else
@@ -23781,7 +23785,7 @@ append_composite_glyph (struct it *it)
 	{
 	  glyph->resolved_level = it->bidi_it.resolved_level;
 	  if ((it->bidi_it.type & 7) != it->bidi_it.type)
-	    abort ();
+	    emacs_abort ();
 	  glyph->bidi_type = it->bidi_it.type;
 	}
       ++it->glyph_row->used[area];
@@ -23960,7 +23964,7 @@ produce_image_glyph (struct it *it)
 	    {
 	      glyph->resolved_level = it->bidi_it.resolved_level;
 	      if ((it->bidi_it.type & 7) != it->bidi_it.type)
-		abort ();
+		emacs_abort ();
 	      glyph->bidi_type = it->bidi_it.type;
 	    }
 	  ++it->glyph_row->used[area];
@@ -24021,7 +24025,7 @@ append_stretch_glyph (struct it *it, Lisp_Object object,
 	{
 	  glyph->resolved_level = it->bidi_it.resolved_level;
 	  if ((it->bidi_it.type & 7) != it->bidi_it.type)
-	    abort ();
+	    emacs_abort ();
 	  glyph->bidi_type = it->bidi_it.type;
 	}
       else
@@ -24276,7 +24280,7 @@ produce_special_glyphs (struct it *it, enum display_element_type what)
 	}
     }
   else
-    abort ();
+    emacs_abort ();
 
 #ifdef HAVE_WINDOW_SYSTEM
   /* On a GUI frame, when the right fringe (left fringe for R2L rows)
@@ -24473,7 +24477,7 @@ append_glyphless_glyph (struct it *it, int face_id, int for_no_font, int len,
 	{
 	  glyph->resolved_level = it->bidi_it.resolved_level;
 	  if ((it->bidi_it.type & 7) != it->bidi_it.type)
-	    abort ();
+	    emacs_abort ();
 	  glyph->bidi_type = it->bidi_it.type;
 	}
       ++it->glyph_row->used[area];
@@ -29306,6 +29310,15 @@ Its value should be an ASCII acronym string, `hex-code', `empty-box', or
   Vglyphless_char_display = Fmake_char_table (Qglyphless_char_display, Qnil);
   Fset_char_table_extra_slot (Vglyphless_char_display, make_number (0),
 			      Qempty_box);
+
+  DEFVAR_LISP ("debug-on-message", Vdebug_on_message,
+	       doc: /* If non-nil, debug if a message matching this regexp is displayed.  */);
+  Vdebug_on_message = Qnil;
+
+  DEFVAR_LISP ("inhibit-debug-on-message", Vinhibit_debug_on_message,
+	       doc: /* If non-nil, inhibit `debug-on-message' from entering the debugger.  */);
+  Vinhibit_debug_on_message = Qnil;
+  DEFSYM(Qinhibit_debug_on_message, "inhibit-debug-on-message");
 }
 
 

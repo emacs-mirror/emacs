@@ -256,10 +256,10 @@ can get pretty complex."
                   (const :tag "Temp Secrets API Collection" "secrets:session")
 
                   (const :tag "Default internet Mac OS Keychain"
-                         'macos-keychain-internet)
+                         macos-keychain-internet)
 
                   (const :tag "Default generic Mac OS Keychain"
-                         'macos-keychain-generic)
+                         macos-keychain-generic)
 
                   (list :tag "Source definition"
                         (const :format "" :value :source)

@@ -165,13 +165,6 @@ struct x_display_info *x_display_list;
 
 Lisp_Object x_display_name_list;
 
-/* Frame being updated by update_frame.  This is declared in term.c.
-   This is set by update_begin and looked at by all the XT functions.
-   It is zero while not inside an update.  In that case, the XT
-   functions assume that `selected_frame' is the frame to apply to.  */
-
-extern struct frame *updating_frame;
-
 /* This is a frame waiting to be auto-raised, within XTread_socket.  */
 
 static struct frame *pending_autoraise_frame;
@@ -1474,7 +1467,7 @@ x_frame_of_widget (Widget widget)
 	&& f->output_data.x->widget == widget)
       return f;
 
-  abort ();
+  emacs_abort ();
 }
 
 /* Allocate a color which is lighter or darker than *PIXEL by FACTOR
@@ -2703,7 +2696,7 @@ x_draw_underwave (struct glyph_string *s)
     y2 += dy;
 
   if (INT_MAX - dx < xmax)
-    abort ();
+    emacs_abort ();
 
   while (x1 <= xmax)
     {
@@ -2812,7 +2805,7 @@ x_draw_glyph_string (struct glyph_string *s)
       break;
 
     default:
-      abort ();
+      emacs_abort ();
     }
 
   if (!s->for_overlaps)
@@ -3012,7 +3005,7 @@ x_shift_glyphs_for_insert (struct frame *f, int x, int y, int width, int height,
 static void
 x_delete_glyphs (struct frame *f, register int n)
 {
-  abort ();
+  emacs_abort ();
 }
 
 
@@ -3285,7 +3278,7 @@ XTset_terminal_window (struct frame *f, int n)
 static void
 x_ins_del_lines (struct frame *f, int vpos, int n)
 {
-  abort ();
+  emacs_abort ();
 }
 
 
@@ -4122,7 +4115,7 @@ x_window_to_scroll_bar (Display *display, Window window_id)
       frame = XCAR (tail);
       /* All elements of Vframe_list should be frames.  */
       if (! FRAMEP (frame))
-	abort ();
+	emacs_abort ();
 
       if (! FRAME_X_P (XFRAME (frame)))
         continue;
@@ -5441,7 +5434,7 @@ XTredeem_scroll_bar (struct window *window)
 
   /* We can't redeem this window's scroll bar if it doesn't have one.  */
   if (NILP (window->vertical_scroll_bar))
-    abort ();
+    emacs_abort ();
 
   bar = XSCROLL_BAR (window->vertical_scroll_bar);
 
@@ -5460,7 +5453,7 @@ XTredeem_scroll_bar (struct window *window)
       else
 	/* If its prev pointer is nil, it must be at the front of
 	   one or the other!  */
-	abort ();
+	emacs_abort ();
     }
   else
     XSCROLL_BAR (bar->prev)->next = bar->next;
@@ -5558,7 +5551,7 @@ static void
 x_scroll_bar_handle_click (struct scroll_bar *bar, XEvent *event, struct input_event *emacs_event)
 {
   if (! WINDOWP (bar->window))
-    abort ();
+    emacs_abort ();
 
   emacs_event->kind = SCROLL_BAR_CLICK_EVENT;
   emacs_event->code = event->xbutton.button - Button1;
@@ -6464,7 +6457,7 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventptr,
                 }
               else if (status_return != XLookupKeySym
                        && status_return != XLookupBoth)
-                abort ();
+                emacs_abort ();
             }
           else
             nbytes = XLookupString (&event.xkey, (char *) copy_bufptr,
@@ -7503,7 +7496,7 @@ x_draw_window_cursor (struct window *w, struct glyph_row *glyph_row, int x, int 
 	      break;
 
 	    default:
-	      abort ();
+	      emacs_abort ();
 	    }
 	}
 
@@ -7850,13 +7843,13 @@ x_connection_closed (Display *dpy, const char *error_message)
 	 (https://bugzilla.gnome.org/show_bug.cgi?id=85715).  Once,
 	 the resulting Glib error message loop filled a user's disk.
 	 To avoid this, kill Emacs unconditionally on disconnect.  */
-      shut_down_emacs (0, 0, Qnil);
+      shut_down_emacs (0, Qnil);
       fprintf (stderr, "%s\n\
 When compiled with GTK, Emacs cannot recover from X disconnects.\n\
 This is a GTK bug: https://bugzilla.gnome.org/show_bug.cgi?id=85715\n\
 For details, see etc/PROBLEMS.\n",
 	       error_msg);
-      abort ();
+      emacs_abort ();
 #endif /* USE_GTK */
 
       /* Indicate that this display is dead.  */
@@ -7866,7 +7859,7 @@ For details, see etc/PROBLEMS.\n",
       dpyinfo->terminal->reference_count--;
       if (dpyinfo->reference_count != 0)
         /* We have just closed all frames on this display. */
-        abort ();
+        emacs_abort ();
 
       {
 	Lisp_Object tmp;
@@ -10443,7 +10436,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
     to.addr = (XPointer)&font;
     x_catch_errors (dpy);
     if (!XtCallConverter (dpy, XtCvtStringToFont, &d, 1, &fr, &to, NULL))
-      abort ();
+      emacs_abort ();
     if (x_had_errors_p (dpy) || !XQueryFont (dpy, font))
       XrmPutLineResource (&xrdb, "Emacs.dialog.*.font: 9x15");
     x_uncatch_errors ();
@@ -10608,8 +10601,6 @@ x_activate_timeout_atimer (void)
 
 
 /* Set up use of X before we make the first connection.  */
-
-extern frame_parm_handler x_frame_parm_handlers[];
 
 static struct redisplay_interface x_redisplay_interface =
   {

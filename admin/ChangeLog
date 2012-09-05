@@ -1,3 +1,8 @@
+2012-09-04  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Simplify redefinition of 'abort' (Bug#12316).
+	* CPP-DEFINES (NO_ABORT): Remove.
+
 2012-08-28  Glenn Morris  <rgm@gnu.org>
 
 	* bzrmerge.el (bzrmerge-merges): Allow unversioned files in the tree.

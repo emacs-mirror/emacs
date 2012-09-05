@@ -1136,6 +1136,7 @@ Dealing with Emacs Trouble
 * Screen Garbled::      Garbage on the screen.
 * Text Garbled::        Garbage in the text.
 * Memory Full::         How to cope when you run out of memory.
+* Crashing::            What Emacs does when it crashes.
 * After a Crash::       Recovering editing in an Emacs session that crashed.
 * Emergency Escape::    What to do if Emacs stops responding.
 
@@ -1320,7 +1321,7 @@ when you get it, not just free for the manufacturer.
 If you find GNU Emacs useful, please @strong{send a donation} to the
 Free Software Foundation to support our work.  Donations to the Free
 Software Foundation are tax deductible in the US.  If you use GNU Emacs
-at your workplace, please suggest that the company make a donation. 
+at your workplace, please suggest that the company make a donation.
 For more information on how you can help, see
 @url{http://www.gnu.org/help/help.html}.
 

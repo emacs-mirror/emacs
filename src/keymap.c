@@ -2157,7 +2157,7 @@ The `kbd' macro is an approximate inverse of this.  */)
 char *
 push_key_description (EMACS_INT ch, char *p, int force_multibyte)
 {
-  int c, c2;
+  int c, c2, tab_as_ci;
 
   /* Clear all the meaningless bits above the meta bit.  */
   c = ch & (meta_modifier | ~ - meta_modifier);
@@ -2171,6 +2171,8 @@ push_key_description (EMACS_INT ch, char *p, int force_multibyte)
       return p;
     }
 
+  tab_as_ci = (c2 == '\t' && (c & meta_modifier));
+
   if (c & alt_modifier)
     {
       *p++ = 'A';
@@ -2178,7 +2180,8 @@ push_key_description (EMACS_INT ch, char *p, int force_multibyte)
       c -= alt_modifier;
     }
   if ((c & ctrl_modifier) != 0
-      || (c2 < ' ' && c2 != 27 && c2 != '\t' && c2 != Ctl ('M')))
+      || (c2 < ' ' && c2 != 27 && c2 != '\t' && c2 != Ctl ('M'))
+      || tab_as_ci)
     {
       *p++ = 'C';
       *p++ = '-';
@@ -2215,6 +2218,10 @@ push_key_description (EMACS_INT ch, char *p, int force_multibyte)
 	  *p++ = 'E';
 	  *p++ = 'S';
 	  *p++ = 'C';
+	}
+      else if (tab_as_ci)
+	{
+	  *p++ = 'i';
 	}
       else if (c == '\t')
 	{
@@ -2916,7 +2923,7 @@ You type        Translation\n\
 	  char *title, *p;
 
 	  if (!SYMBOLP (modes[i]))
-	    abort ();
+	    emacs_abort ();
 
 	  p = title = alloca (42 + SCHARS (SYMBOL_NAME (modes[i])));
 	  *p++ = '\f';

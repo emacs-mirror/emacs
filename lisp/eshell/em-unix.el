@@ -1110,6 +1110,8 @@ Execute a COMMAND as the superuser or another USER.")
 			  (format "%s|sudo:%s@%s:%s"
 				  (substring prefix 0 -1) user host dir)
 			(format "/sudo:%s@%s:%s" user host dir))))
+		;; Ensure, that Tramp has connected to that construct already.
+		(file-exists-p default-directory)
 		(eshell-named-command (car orig-args) (cdr orig-args))))))))
 
 (put 'eshell/sudo 'eshell-no-numeric-conversions t)

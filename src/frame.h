@@ -361,7 +361,7 @@ struct frame
 #endif
 
   /* Nonzero if last attempt at redisplay on this frame was preempted.  */
-  unsigned char display_preempted : 1;
+  unsigned display_preempted : 1;
 
   /* visible is nonzero if the frame is currently displayed; we check
      it to see if we should bother updating the frame's contents.
@@ -391,8 +391,8 @@ struct frame
 
      These two are mutually exclusive.  They might both be zero, if the
      frame has been made invisible without an icon.  */
-  unsigned char visible : 2;
-  unsigned char iconified : 1;
+  unsigned visible : 2;
+  unsigned iconified : 1;
 
   /* Let's not use bitfields for volatile variables.  */
 
@@ -406,40 +406,40 @@ struct frame
 
   /* True if frame actually has a minibuffer window on it.
      0 if using a minibuffer window that isn't on this frame.  */
-  unsigned char has_minibuffer : 1;
+  unsigned has_minibuffer : 1;
 
   /* 0 means, if this frame has just one window,
      show no modeline for that window.  */
-  unsigned char wants_modeline : 1;
+  unsigned wants_modeline : 1;
 
   /* Non-zero if the hardware device this frame is displaying on can
      support scroll bars.  */
   char can_have_scroll_bars;
 
   /* Non-0 means raise this frame to the top of the heap when selected.  */
-  unsigned char auto_raise : 1;
+  unsigned auto_raise : 1;
 
   /* Non-0 means lower this frame to the bottom of the stack when left.  */
-  unsigned char auto_lower : 1;
+  unsigned auto_lower : 1;
 
   /* True if frame's root window can't be split.  */
-  unsigned char no_split : 1;
+  unsigned no_split : 1;
 
   /* If this is set, then Emacs won't change the frame name to indicate
      the current buffer, etcetera.  If the user explicitly sets the frame
      name, this gets set.  If the user sets the name to Qnil, this is
      cleared.  */
-  unsigned char explicit_name : 1;
+  unsigned explicit_name : 1;
 
   /* Nonzero if size of some window on this frame has changed.  */
-  unsigned char window_sizes_changed : 1;
+  unsigned window_sizes_changed : 1;
 
   /* Nonzero if the mouse has moved on this display device
      since the last time we checked.  */
-  unsigned char mouse_moved :1;
+  unsigned mouse_moved :1;
 
   /* Nonzero means that the pointer is invisible. */
-  unsigned char pointer_invisible :1;
+  unsigned pointer_invisible :1;
 
   /* If can_have_scroll_bars is non-zero, this is non-zero if we should
      actually display them on this frame.  */
@@ -981,7 +981,7 @@ extern Lisp_Object selected_frame;
      ((FRAMEP (selected_frame)				\
        && FRAME_LIVE_P (XFRAME (selected_frame)))	\
       ? XFRAME (selected_frame)				\
-      : (abort (), (struct frame *) 0))
+      : (emacs_abort (), (struct frame *) 0))
 
 
 /***********************************************************************
@@ -1206,6 +1206,7 @@ extern Lisp_Object Qrun_hook_with_args;
 extern void x_set_scroll_bar_default_width (struct frame *);
 extern void x_set_offset (struct frame *, int, int, int);
 extern void x_wm_set_icon_position (struct frame *, int, int);
+extern void x_wm_set_size_hint (FRAME_PTR f, long flags, int user_position);
 
 extern Lisp_Object x_new_font (struct frame *, Lisp_Object, int);
 
@@ -1251,9 +1252,39 @@ extern Lisp_Object display_x_get_resource (Display_Info *,
 					   Lisp_Object component,
 					   Lisp_Object subclass);
 
+extern void set_frame_menubar (struct frame *f, int first_time, int deep_p);
+extern void x_set_window_size (struct frame *f, int change_grav,
+                              int cols, int rows);
+extern void x_sync (struct frame *);
+extern Lisp_Object x_get_focus_frame (struct frame *);
+extern void x_set_mouse_position (struct frame *f, int h, int v);
+extern void x_set_mouse_pixel_position (struct frame *f, int pix_x, int pix_y);
+extern void x_make_frame_visible (struct frame *f);
+extern void x_make_frame_invisible (struct frame *f);
+extern void x_iconify_frame (struct frame *f);
+extern int x_char_width (struct frame *f);
+extern int x_char_height (struct frame *f);
+extern int x_pixel_width (struct frame *f);
+extern int x_pixel_height (struct frame *f);
+extern void x_set_frame_alpha (struct frame *f);
+extern void x_set_menu_bar_lines (struct frame *, Lisp_Object, Lisp_Object);
+extern void x_set_tool_bar_lines (struct frame *f,
+                                  Lisp_Object value,
+                                  Lisp_Object oldval);
+extern void x_activate_menubar (struct frame *);
+extern void x_real_positions (struct frame *, int *, int *);
+extern int x_bitmap_icon (struct frame *, Lisp_Object);
+extern void x_set_menu_bar_lines (struct frame *,
+                                  Lisp_Object,
+                                  Lisp_Object);
+extern void free_frame_menubar (struct frame *);
+extern void x_free_frame_resources (struct frame *);
+
 #if defined HAVE_X_WINDOWS && !defined USE_X_TOOLKIT
 extern char *x_get_resource_string (const char *, const char *);
 #endif
+
+extern void x_query_colors (struct frame *f, XColor *, int);
 
 /* In xmenu.c */
 extern void set_frame_menubar (FRAME_PTR, int, int);

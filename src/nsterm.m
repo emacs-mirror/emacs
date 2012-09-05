@@ -3340,7 +3340,7 @@ ns_draw_glyph_string (struct glyph_string *s)
       break;
 
     default:
-      abort ();
+      emacs_abort ();
     }
 
   /* Draw box if not done already. */
@@ -3475,7 +3475,7 @@ ns_read_socket (struct terminal *terminal, int expected,
 
       if (++apploopnr != 1)
         {
-          abort ();
+          emacs_abort ();
         }
       [NSApp run];
       --apploopnr;
@@ -3515,7 +3515,7 @@ ns_select (int nfds, fd_set *readfds, fd_set *writefds,
   [outerpool release];
   outerpool = [[NSAutoreleasePool alloc] init];
 
-  
+
   send_appdefined = YES;
   if (nr > 0)
     {
@@ -3568,7 +3568,7 @@ ns_select (int nfds, fd_set *readfds, fd_set *writefds,
   emacs_event = &event;
   if (++apploopnr != 1)
     {
-      abort();
+      emacs_abort ();
     }
   [NSApp run];
   --apploopnr;
@@ -3586,7 +3586,7 @@ ns_select (int nfds, fd_set *readfds, fd_set *writefds,
     {
       int t;
       if ([ev type] != NSApplicationDefined)
-        abort ();
+        emacs_abort ();
 
       t = [ev data1];
       last_appdefined_event = 0;
@@ -4053,7 +4053,7 @@ ns_term_init (Lisp_Object display_name)
             {
               fprintf (stderr, "Failed to create pipe: %s\n",
                        emacs_strerror (errno));
-              abort ();
+              emacs_abort ();
             }
 
           fcntl (selfds[0], F_SETFL, O_NONBLOCK|fcntl (selfds[0], F_GETFL));
@@ -4273,7 +4273,7 @@ ns_term_shutdown (int sig)
     }
   else // force a stack trace to happen
     {
-      abort();
+      emacs_abort ();
     }
 }
 
@@ -4534,10 +4534,10 @@ not_in_argv (NSString *arg)
   /* Don't open files from the command line unconditionally,
      Cocoa parses the command line wrong, --option value tries to open value
      if --option is the last option.  */
-  while ((file = [files nextObject]) != nil) 
+  while ((file = [files nextObject]) != nil)
     if (ns_do_open_file || not_in_argv (file))
       [ns_pending_files addObject: file];
-  
+
   [self replyToOpenOrPrint: NSApplicationDelegateReplySuccess];
 
 }
@@ -4604,7 +4604,7 @@ not_in_argv (NSString *arg)
 
   /* NSTRACE (fd_handler); */
 
-  for (;;) 
+  for (;;)
     {
       [pool release];
       pool = [[NSAutoreleasePool alloc] init];
@@ -4889,7 +4889,7 @@ not_in_argv (NSString *arg)
       is_right_key = (flags & NSRightCommandKeyMask) == NSRightCommandKeyMask;
       is_left_key = (flags & NSLeftCommandKeyMask) == NSLeftCommandKeyMask
         || (! is_right_key && (flags & NSCommandKeyMask) == NSCommandKeyMask);
-      
+
       if (is_right_key)
         emacs_event->modifiers |= parse_solitary_modifier
           (EQ (ns_right_command_modifier, Qleft)
@@ -5853,7 +5853,7 @@ not_in_argv (NSString *arg)
   NSTRACE (menuDown);
   if (context_menu_value == -1)
     context_menu_value = [sender tag];
-  else 
+  else
     {
       NSInteger tag = [sender tag];
       find_and_call_menu_selection (emacsframe, emacsframe->menu_bar_items_used,
@@ -6180,7 +6180,7 @@ not_in_argv (NSString *arg)
   Lisp_Object str = Qnil;
   struct frame *f = SELECTED_FRAME ();
   struct buffer *curbuf = XBUFFER (XWINDOW (f->selected_window)->buffer);
- 
+
   if ([attribute isEqualToString:NSAccessibilityRoleAttribute])
     return NSAccessibilityTextFieldRole;
 
@@ -6193,13 +6193,13 @@ not_in_argv (NSString *arg)
     {
       if (! NILP (BVAR (curbuf, mark_active)))
           str = ns_get_local_selection (QPRIMARY, QUTF8_STRING);
-      
+
       if (NILP (str))
         {
           ptrdiff_t start_byte = BUF_BEGV_BYTE (curbuf);
           ptrdiff_t byte_range = BUF_ZV_BYTE (curbuf) - start_byte;
           ptrdiff_t range = BUF_ZV (curbuf) - BUF_BEGV (curbuf);
-          
+
           if (! NILP (BVAR (curbuf, enable_multibyte_characters)))
             str = make_uninit_multibyte_string (range, byte_range);
           else
@@ -6209,9 +6209,9 @@ not_in_argv (NSString *arg)
           memcpy (SDATA (str), BYTE_POS_ADDR (start_byte), byte_range);
         }
     }
-  
-  
-  if (! NILP (str)) 
+
+
+  if (! NILP (str))
     {
       if (CONSP (str) && SYMBOLP (XCAR (str)))
         {
@@ -6226,7 +6226,7 @@ not_in_argv (NSString *arg)
           return nsStr;
         }
     }
-  
+
   return [super accessibilityAttributeValue:attribute];
 }
 #endif /* NS_IMPL_COCOA */

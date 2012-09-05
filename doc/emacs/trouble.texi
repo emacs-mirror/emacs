@@ -149,6 +149,7 @@ Emacs.
 * Screen Garbled::        Garbage on the screen.
 * Text Garbled::          Garbage in the text.
 * Memory Full::           How to cope when you run out of memory.
+* Crashing::              What Emacs does when it crashes.
 * After a Crash::         Recovering editing in an Emacs session that crashed.
 * Emergency Escape::      What to do if Emacs stops responding.
 @end menu
@@ -276,6 +277,44 @@ editing in the same Emacs session.
   Do not use @kbd{M-x buffer-menu} to save or kill buffers when you run
 out of memory, because the buffer menu needs a fair amount of memory
 itself, and the reserve supply may not be enough.
+
+@node Crashing
+@subsection When Emacs Crashes
+
+  Emacs is not supposed to crash, but if it does, before it exits it
+reports some information about the crash to the standard error stream
+@code{stderr}.  This report may be useful to someone who later debugs
+the same version of Emacs on the same platform.  The format of this
+report depends on the platform, and some platforms support backtraces.
+Here is an example, generated on x86-64 GNU/Linux with version 2.15 of
+the GNU C Library:
+
+@example
+Fatal error 11: Segmentation fault
+Backtrace:
+emacs[0x5094e4]
+emacs[0x4ed3e6]
+emacs[0x4ed504]
+/lib64/libpthread.so.0[0x375220efe0]
+/lib64/libpthread.so.0(read+0xe)[0x375220e08e]
+emacs[0x509af6]
+emacs[0x5acc26]
+emacs[0x5adbfb]
+emacs[0x56566b]
+emacs[0x59bac3]
+emacs[0x565151]
+...
+@end example
+
+@noindent
+The number @samp{11} is the system signal number that corresponds to
+the problem, a segmentation fault here.  The hexadecimal program
+addresses can be useful in debugging sessions.  For example, the GDB
+command @samp{list *0x509af6} prints the source-code lines
+corresponding to the @samp{emacs[0x509af6]} entry in the backtrace.
+
+The three dots at the end indicate that Emacs suppressed further
+backtrace entries, in the interest of brevity.
 
 @node After a Crash
 @subsection Recovery After a Crash

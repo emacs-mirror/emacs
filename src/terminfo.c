@@ -46,7 +46,7 @@ tparam (const char *string, char *outstring, int len,
 
   /* Emacs always should pass a null OUTSTRING and zero LEN.  */
   if (outstring || len)
-    abort ();
+    emacs_abort ();
 
   temp = tparm (string, arg1, arg2, arg3, arg4);
   return xstrdup (temp);

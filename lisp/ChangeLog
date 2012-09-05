@@ -1,3 +1,148 @@
+2012-09-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* loadup.el: Load macroexp.  Remove hack.
+	* emacs-lisp/macroexp.el (macroexp--eval-if-compile): New function.
+	(macroexp--expand-all): Use it to get better warnings.
+	(macroexp--backtrace, macroexp--trim-backtrace-frame)
+	(internal-macroexpand-for-load): New functions.
+	(macroexp--pending-eager-loads): New var.
+	(emacs-startup-hook): New hack to replace one in loadup.el.
+	* emacs-lisp/cl-macs.el (cl--compiler-macro-list*)
+	(cl--compiler-macro-cXXr): Move to top, before they can be used.
+	(cl-psetf): Simplify.
+	(cl-defstruct): Add indent rule.
+
+2012-09-04  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* mail/smtpmail.el (smtpmail-send-it): Prefer the From: header
+	over `user-mail-address' for the SMTP MAIL FROM envelope.
+	(smtpmail-via-smtp): Ditto.
+
+2012-09-04  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* progmodes/ruby-mode.el: Clean up keybindings.
+	(ruby-mode-map): Don't bind ruby-electric-brace,
+	ruby-beginning-of-defun, ruby-end-of-defun, ruby-mark-defun,
+	backward-kill-word, reindent-then-newline-and-indent.
+	(ruby-mark-defun): Remove.
+	(ruby-electric-brace): Remove.  Obsoleted by electric-indent-chars.
+	(ruby-mode): Set local beginning-of-defun-function and
+	end-of-defun-function values.
+
+2012-09-03  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (temp-buffer-window-setup-hook)
+	(temp-buffer-window-show-hook): New hooks.
+	(temp-buffer-window-setup, temp-buffer-window-show)
+	(with-temp-buffer-window): New functions.
+	(fit-window-to-buffer): Remove unused optional argument OVERRIDE.
+	(special-display-popup-frame): Make sure the window used shows BUFFER.
+
+	* help.el (temp-buffer-resize-mode): Fix doc-string.
+	(resize-temp-buffer-window): New optional argument WINDOW.
+
+	* files.el (recover-file, save-buffers-kill-emacs):
+	* dired.el (dired-mark-pop-up): Use with-temp-buffer-window.
+
+2012-09-02  Michael Albinus  <michael.albinus@gmx.de>
+
+	* eshell/em-unix.el (eshell/sudo): When we have an ad-hoc
+	remote definition of `default-directory', ensure we can connect.
+
+2012-09-02  Juri Linkov  <juri@jurta.org>
+
+	Toggle whitespace matching mode with M-s SPC.
+	http://lists.gnu.org/archive/html/emacs-devel/2012-09/msg00008.html
+
+	* isearch.el (search-whitespace-regexp): Doc fix.
+	Remove cons cell customization.
+	(isearch-mode-map): Bind "\M-s " to isearch-toggle-lax-whitespace.
+	(isearch-lax-whitespace, isearch-regexp-lax-whitespace):
+	New variables.
+	(isearch-forward, isearch-forward-regexp): Doc fix.
+	(isearch-toggle-lax-whitespace): New command.
+	(search-forward-lax-whitespace, search-backward-lax-whitespace)
+	(re-search-forward-lax-whitespace)
+	(re-search-backward-lax-whitespace): New functions.
+	(isearch-whitespace-regexp): Remove function.
+	(isearch-query-replace): Let-bind replace-search-function and
+	replace-re-search-function.
+	(isearch-occur): Let-bind search-spaces-regexp according to the
+	value of isearch-lax-whitespace and isearch-regexp-lax-whitespace.
+	(isearch-quote-char): Check isearch-regexp-lax-whitespace in the
+	condition for C-q SPC.
+	(isearch-search-fun-default): Use new functions mentioned above.
+	(isearch-search-forward, isearch-search-backward): Remove functions.
+	(isearch-search): Don't let-bind search-spaces-regexp.
+	(isearch-lazy-highlight-space-regexp): Remove variable.
+	(isearch-lazy-highlight-lax-whitespace)
+	(isearch-lazy-highlight-regexp-lax-whitespace): New variables.
+	(isearch-lazy-highlight-new-loop): Use them.
+	(isearch-lazy-highlight-search): Don't let-bind search-spaces-regexp.
+
+2012-09-02  Chong Yidong  <cyd@gnu.org>
+
+	* dired.el (dired-mode-map): Menu string fixes (Bug#11616).
+
+2012-09-02  Glenn Morris  <rgm@gnu.org>
+
+	* simple.el (undo): Tweak message in undo-only case.  (Bug#12283)
+
+2012-09-01  Glenn Morris  <rgm@gnu.org>
+
+	* term.el: Tidy up menu definitions.
+	(term-mode-map): Use easymenu for In/Out, Complete menus.
+	(term-pager-break-map): Initialize in the defvar.
+	(term-terminal-menu, term-signals-menu): Define with easymenu.
+	(term-terminal-menu): Also show it in line-mode.  (Bug#11957)
+	(term-pager-menu): New, extracted from term-process-pager.
+	(term-mode, term-char-mode, term-process-pager): Use easymenu-add.
+	(term-update-mode-line): Propertize line/char and page items.
+	(term-process-pager): Move keymap initialization elsewhere.
+
+2012-09-01  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (switch-to-prev-buffer): Handle additional values of
+	BURY-OR-KILL argument.  Don't switch in minibuffer window.
+	(switch-to-next-buffer): Don't switch in minibuffer window.
+	(quit-restore-window): New function based on quit-window.
+	Handle additional values of former KILL argument.
+	(quit-window): Call quit-restore-window with appropriate
+	interpretation of KILL argument.
+	(display-buffer-below-selected): New buffer display action
+	function.
+
+2012-09-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuffer.el (completion-at-point-functions): Complete docstring
+	(bug#12254).
+
+2012-09-01  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Better seed support for (random).
+	* play/5x5.el, play/animate.el, play/cookie1.el, play/dissociate.el:
+	* play/doctor.el, play/dunnet.el, play/gomoku.el, play/landmark.el:
+	* play/mpuz.el, play/tetris.el, play/zone.el:
+	* calc/calc-comb.el (math-init-random-base):
+	* play/blackbox.el (bb-init-board):
+	* play/life.el (life):
+	* server.el (server-use-tcp):
+	* type-break.el (type-break):
+	Remove unnecessary call to (random t).
+	* net/sasl.el (sasl-unique-id-function):
+	Change (random t) to (random), now that the latter is more random.
+	* play/life.el (life-initialized): Remove no-longer-needed var.
+
+2012-08-31  Alp Aker  <alp.tekin.aker@gmail.com>
+
+	* window.el (switch-to-prev-buffer, switch-to-next-buffer):
+	Consider frame's buffer predicate when choosing the buffer.
+	(Bug#12081)
+
+2012-08-30  Richard Stallman  <rms@gnu.org>
+
+	* simple.el (special-mode-map): Delete binding for `z'.
+
 2012-08-30  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* progmodes/compile.el (compilation-always-kill): Doc fix.
@@ -33,8 +178,8 @@
 2012-08-29  Michael Albinus  <michael.albinus@gmx.de>
 
 	* eshell/esh-ext.el (eshell-external-command): Do not examine
-	remote shell scripts.  See
-	<https://bugs.launchpad.net/ubuntu/+source/emacs23/+bug/1035790>.
+	remote shell scripts.
+	See <https://bugs.launchpad.net/ubuntu/+source/emacs23/+bug/1035790>.
 
 	* net/tramp-sh.el (tramp-remote-path): Add "/sbin" and
 	"/usr/local/sbin".

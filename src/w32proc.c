@@ -176,7 +176,7 @@ delete_child (child_process *cp)
   /* Should not be deleting a child that is still needed. */
   for (i = 0; i < MAXDESC; i++)
     if (fd_info[i].cp == cp)
-      abort ();
+      emacs_abort ();
 
   if (!CHILD_ACTIVE (cp))
     return;
@@ -316,7 +316,7 @@ create_child (char *exe, char *cmdline, char *env, int is_gui_app,
   DWORD flags;
   char dir[ MAXPATHLEN ];
 
-  if (cp == NULL) abort ();
+  if (cp == NULL) emacs_abort ();
 
   memset (&start, 0, sizeof (start));
   start.cb = sizeof (start);
@@ -405,7 +405,7 @@ register_child (int pid, int fd)
   if (fd_info[fd].cp != NULL)
     {
       DebPrint (("register_child: fd_info[%d] apparently in use!\n", fd));
-      abort ();
+      emacs_abort ();
     }
 
   fd_info[fd].cp = cp;
@@ -459,7 +459,7 @@ sys_wait (int *status)
       /* We want to wait for a specific child */
       wait_hnd[nh] = dead_child->procinfo.hProcess;
       cps[nh] = dead_child;
-      if (!wait_hnd[nh]) abort ();
+      if (!wait_hnd[nh]) emacs_abort ();
       nh++;
       active = 0;
       goto get_result;
@@ -507,7 +507,7 @@ sys_wait (int *status)
       active -= WAIT_ABANDONED_0;
     }
   else
-    abort ();
+    emacs_abort ();
 
 get_result:
   if (!GetExitCodeProcess (wait_hnd[active], &retval))
@@ -1189,7 +1189,7 @@ sys_select (int nfds, SELECT_TYPE *rfds, SELECT_TYPE *wfds, SELECT_TYPE *efds,
 #endif
 		wait_hnd[nh] = cp->char_avail;
 		fdindex[nh] = i;
-		if (!wait_hnd[nh]) abort ();
+		if (!wait_hnd[nh]) emacs_abort ();
 		nh++;
 #ifdef FULL_DEBUG
 		DebPrint (("select waiting on child %d fd %d\n",
@@ -1276,7 +1276,7 @@ count_children:
       active -= WAIT_ABANDONED_0;
     }
   else
-    abort ();
+    emacs_abort ();
 
   /* Loop over all handles after active (now officially documented as
      being the first signaled handle in the array).  We do this to

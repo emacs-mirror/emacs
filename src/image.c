@@ -50,11 +50,19 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "termhooks.h"
 #include "font.h"
 
-#ifdef HAVE_X_WINDOWS
-#include "xterm.h"
-#include <sys/types.h>
+#ifdef HAVE_SYS_STAT_H
 #include <sys/stat.h>
+#endif /* HAVE_SYS_STAT_H */
 
+#ifdef HAVE_SYS_TYPES_H
+#include <sys/types.h>
+#endif /* HAVE_SYS_TYPES_H */
+
+#ifdef HAVE_WINDOW_SYSTEM
+#include TERM_HEADER
+#endif /* HAVE_WINDOW_SYSTEM */
+
+#ifdef HAVE_X_WINDOWS
 #define COLOR_TABLE_SUPPORT 1
 
 typedef struct x_bitmap_record Bitmap_Record;
@@ -67,11 +75,8 @@ typedef struct x_bitmap_record Bitmap_Record;
 #define PIX_MASK_DRAW	1
 #endif /* HAVE_X_WINDOWS */
 
-
 #ifdef HAVE_NTGUI
 #include "w32.h"
-#include "w32term.h"
-
 /* W32_TODO : Color tables on W32.  */
 #undef COLOR_TABLE_SUPPORT
 
@@ -84,14 +89,8 @@ typedef struct w32_bitmap_record Bitmap_Record;
 #define PIX_MASK_RETAIN	0
 #define PIX_MASK_DRAW	1
 
-#define FRAME_X_VISUAL(f) FRAME_X_DISPLAY_INFO (f)->visual
 #define x_defined_color w32_defined_color
 #define DefaultDepthOfScreen(screen) (one_w32_display_info.n_cbits)
-
-/* Functions from w32term.c that depend on XColor (so can't go in w32term.h
-   without modifying lots of files).  */
-extern void x_query_colors (struct frame *f, XColor *colors, int ncolors);
-extern void x_query_color (struct frame *f, XColor *color);
 
 /* Version of libpng that we were compiled with, or -1 if no PNG
    support was compiled in.  This is tested by w32-win.el to correctly
@@ -100,10 +99,6 @@ Lisp_Object Qlibpng_version;
 #endif /* HAVE_NTGUI */
 
 #ifdef HAVE_NS
-#include "nsterm.h"
-#include <sys/types.h>
-#include <sys/stat.h>
-
 #undef COLOR_TABLE_SUPPORT
 
 typedef struct ns_bitmap_record Bitmap_Record;
@@ -117,10 +112,8 @@ typedef struct ns_bitmap_record Bitmap_Record;
 #define PIX_MASK_RETAIN	0
 #define PIX_MASK_DRAW	1
 
-#define FRAME_X_VISUAL FRAME_NS_DISPLAY_INFO (f)->visual
 #define x_defined_color(f, name, color_def, alloc) \
   ns_defined_color (f, name, color_def, alloc, 0)
-#define FRAME_X_SCREEN(f) 0
 #define DefaultDepthOfScreen(screen) x_display_list->n_planes
 #endif /* HAVE_NS */
 
@@ -848,7 +841,7 @@ parse_image_spec (Lisp_Object spec, struct image_keyword *keywords,
 	  break;
 
 	default:
-	  abort ();
+	  emacs_abort ();
 	  break;
 	}
 
@@ -5524,13 +5517,13 @@ init_png_functions (Lisp_Object libraries)
 
 
 #if (PNG_LIBPNG_VER < 10500)
-#define PNG_LONGJMP(ptr) (longjmp ((ptr)->jmpbuf, 1))
+#define PNG_LONGJMP(ptr) (_longjmp ((ptr)->jmpbuf, 1))
 #define PNG_JMPBUF(ptr) ((ptr)->jmpbuf)
 #else
 /* In libpng version 1.5, the jmpbuf member is hidden. (Bug#7908)  */
 #define PNG_LONGJMP(ptr) (fn_png_longjmp ((ptr), 1))
 #define PNG_JMPBUF(ptr) \
-  (*fn_png_set_longjmp_fn ((ptr), longjmp, sizeof (jmp_buf)))
+  (*fn_png_set_longjmp_fn ((ptr), _longjmp, sizeof (jmp_buf)))
 #endif
 
 /* Error and warning handlers installed when the PNG library
@@ -5703,7 +5696,7 @@ png_load (struct frame *f, struct image *img)
 
   /* Set error jump-back.  We come back here when the PNG library
      detects an error.  */
-  if (setjmp (PNG_JMPBUF (png_ptr)))
+  if (_setjmp (PNG_JMPBUF (png_ptr)))
     {
     error:
       if (png_ptr)
@@ -6121,7 +6114,7 @@ static _Noreturn void
 my_error_exit (j_common_ptr cinfo)
 {
   struct my_jpeg_error_mgr *mgr = (struct my_jpeg_error_mgr *) cinfo->err;
-  longjmp (mgr->setjmp_buffer, 1);
+  _longjmp (mgr->setjmp_buffer, 1);
 }
 
 
@@ -6372,7 +6365,7 @@ jpeg_load (struct frame *f, struct image *img)
   cinfo.err = fn_jpeg_std_error (&mgr.pub);
   mgr.pub.error_exit = my_error_exit;
 
-  if ((rc = setjmp (mgr.setjmp_buffer)) != 0)
+  if ((rc = _setjmp (mgr.setjmp_buffer)) != 0)
     {
       if (rc == 1)
 	{
@@ -6418,12 +6411,12 @@ jpeg_load (struct frame *f, struct image *img)
   if (!check_image_size (f, width, height))
     {
       image_error ("Invalid image size (see `max-image-size')", Qnil, Qnil);
-      longjmp (mgr.setjmp_buffer, 2);
+      _longjmp (mgr.setjmp_buffer, 2);
     }
 
   /* Create X image and pixmap.  */
   if (!x_create_x_image_and_pixmap (f, width, height, 0, &ximg, &img->pixmap))
-    longjmp (mgr.setjmp_buffer, 2);
+    _longjmp (mgr.setjmp_buffer, 2);
 
   /* Allocate colors.  When color quantization is used,
      cinfo.actual_number_of_colors has been set with the number of

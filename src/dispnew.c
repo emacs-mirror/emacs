@@ -47,17 +47,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include "syssignal.h"
 
-#ifdef HAVE_X_WINDOWS
-#include "xterm.h"
-#endif /* HAVE_X_WINDOWS */
-
-#ifdef HAVE_NTGUI
-#include "w32term.h"
-#endif /* HAVE_NTGUI */
-
-#ifdef HAVE_NS
-#include "nsterm.h"
-#endif
+#ifdef HAVE_WINDOW_SYSTEM
+#include TERM_HEADER
+#endif /* HAVE_WINDOW_SYSTEM */
 
 /* Include systime.h after xterm.h to avoid double inclusion of time.h.  */
 
@@ -305,7 +297,7 @@ DEFUN ("dump-redisplay-history", Fdump_redisplay_history,
 void
 __executable_start (void)
 {
-  abort ();
+  emacs_abort ();
 }
 #endif
 
@@ -355,7 +347,7 @@ free_glyph_matrix (struct glyph_matrix *matrix)
       /* Detect the case that more matrices are freed than were
 	 allocated.  */
       if (--glyph_matrix_count < 0)
-	abort ();
+	emacs_abort ();
 
       /* Free glyph memory if MATRIX owns it.  */
       if (matrix->pool == NULL)
@@ -2347,9 +2339,9 @@ check_glyph_memory (void)
 
   /* Check that nothing is left allocated.  */
   if (glyph_matrix_count)
-    abort ();
+    emacs_abort ();
   if (glyph_pool_count)
-    abort ();
+    emacs_abort ();
 }
 
 
@@ -3032,7 +3024,7 @@ check_matrix_pointers (struct glyph_matrix *window_matrix,
     {
       if (!glyph_row_slice_p (window_matrix->rows + i,
 			      frame_matrix->rows + j))
-        abort ();
+        emacs_abort ();
       ++i, ++j;
     }
 }
@@ -3461,7 +3453,7 @@ check_current_matrix_flags (struct window *w)
       if (!last_seen_p && MATRIX_ROW_BOTTOM_Y (row) >= yb)
 	last_seen_p = 1;
       else if (last_seen_p && row->enabled_p)
-	abort ();
+	emacs_abort ();
     }
 }
 
@@ -4690,6 +4682,7 @@ update_frame_1 (struct frame *f, bool force_p, bool inhibit_id_p)
 	}
     }
 
+  lint_assume (0 <= FRAME_LINES (f));
   pause_p = 0 < i && i < FRAME_LINES (f) - 1;
 
   /* Now just clean up termcap drivers and set cursor, etc.  */
@@ -4816,7 +4809,7 @@ scrolling (struct frame *frame)
   struct glyph_matrix *desired_matrix = frame->desired_matrix;
 
   if (!current_matrix)
-    abort ();
+    emacs_abort ();
 
   /* Compute hash codes of all the lines.  Also calculate number of
      changed lines, number of unchanged lines at the beginning, and
@@ -5484,7 +5477,7 @@ marginal_area_string (struct window *w, enum window_part part,
   else if (part == ON_RIGHT_MARGIN)
     area = RIGHT_MARGIN_AREA;
   else
-    abort ();
+    emacs_abort ();
 
   for (i = 0; row->enabled_p && i < w->current_matrix->nrows; ++i, ++row)
     if (wy >= row->y && wy < MATRIX_ROW_BOTTOM_Y (row))
@@ -6284,7 +6277,7 @@ init_display (void)
 
     /* Convert the initial frame to use the new display. */
     if (f->output_method != output_initial)
-      abort ();
+      emacs_abort ();
     f->output_method = t->type;
     f->terminal = t;
 

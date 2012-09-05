@@ -577,7 +577,6 @@ as per the function `type-break-schedule'."
         (unless type-break-terse-messages
           (message "Press any key to resume from typing break."))
 
-        (random t)
         (let* ((len (length type-break-demo-functions))
                (idx (random len))
                (fn (nth idx type-break-demo-functions)))

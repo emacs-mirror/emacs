@@ -631,6 +631,8 @@ struct x_output
 /* This is the `Display *' which frame F is on.  */
 #define FRAME_NS_DISPLAY(f) (0)
 #define FRAME_X_DISPLAY(f) (0)
+#define FRAME_X_SCREEN(f) (0)
+#define FRAME_X_VISUAL(f) FRAME_NS_DISPLAY_INFO(f)->visual
 
 #define FRAME_FOREGROUND_COLOR(f) ((f)->output_data.ns->foreground_color)
 #define FRAME_BACKGROUND_COLOR(f) ((f)->output_data.ns->background_color)
@@ -779,31 +781,6 @@ extern Lisp_Object find_and_return_menu_selection (FRAME_PTR f,
                                                    void *client_data);
 extern Lisp_Object ns_popup_dialog (Lisp_Object position, Lisp_Object contents,
                                     Lisp_Object header);
-
-/* More prototypes that should be moved to a more general include file */
-extern void set_frame_menubar (struct frame *f, int first_time, int deep_p);
-extern void x_set_window_size (struct frame *f, int change_grav,
-                              int cols, int rows);
-extern void x_sync (struct frame *);
-extern Lisp_Object x_get_focus_frame (struct frame *);
-extern void x_set_mouse_position (struct frame *f, int h, int v);
-extern void x_set_mouse_pixel_position (struct frame *f, int pix_x, int pix_y);
-extern void x_make_frame_visible (struct frame *f);
-extern void x_make_frame_invisible (struct frame *f);
-extern void x_iconify_frame (struct frame *f);
-extern int x_char_width (struct frame *f);
-extern int x_char_height (struct frame *f);
-extern int x_pixel_width (struct frame *f);
-extern int x_pixel_height (struct frame *f);
-extern void x_set_frame_alpha (struct frame *f);
-extern void x_set_menu_bar_lines (struct frame *, Lisp_Object, Lisp_Object);
-extern void x_set_tool_bar_lines (struct frame *f,
-                                  Lisp_Object value,
-                                  Lisp_Object oldval);
-extern void x_activate_menubar (struct frame *);
-extern void free_frame_menubar (struct frame *);
-extern void x_free_frame_resources (struct frame *);
-extern void x_destroy_window (struct frame *);
 
 #define NSAPP_DATA2_RUNASSCRIPT 10
 extern void ns_run_ascript (void);

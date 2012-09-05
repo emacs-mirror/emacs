@@ -394,7 +394,7 @@ run_protected (Lisp_Object (*code) (Lisp_Object), Lisp_Object arg)
 
   BLOCK_INPUT;
 
-  /* Fsignal calls abort() if it sees that waiting_for_input is
+  /* Fsignal calls emacs_abort () if it sees that waiting_for_input is
      set.  */
   owfi = waiting_for_input;
   waiting_for_input = 0;

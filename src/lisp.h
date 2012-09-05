@@ -2288,7 +2288,7 @@ extern int gcpro_level;
 
 #define UNGCPRO					\
  ((--gcpro_level != gcpro1.level)		\
-  ? (abort (), 0)				\
+  ? (emacs_abort (), 0)				\
   : ((gcprolist = gcpro1.next), 0))
 
 #endif /* DEBUG_GCPRO */
@@ -2720,43 +2720,43 @@ extern void move_gap_both (ptrdiff_t, ptrdiff_t);
 extern _Noreturn void buffer_overflow (void);
 extern void make_gap (ptrdiff_t);
 extern ptrdiff_t copy_text (const unsigned char *, unsigned char *,
-			    ptrdiff_t, int, int);
+			    ptrdiff_t, bool, bool);
 extern int count_combining_before (const unsigned char *,
 				   ptrdiff_t, ptrdiff_t, ptrdiff_t);
 extern int count_combining_after (const unsigned char *,
 				  ptrdiff_t, ptrdiff_t, ptrdiff_t);
 extern void insert (const char *, ptrdiff_t);
 extern void insert_and_inherit (const char *, ptrdiff_t);
-extern void insert_1 (const char *, ptrdiff_t, int, int, int);
+extern void insert_1 (const char *, ptrdiff_t, bool, bool, bool);
 extern void insert_1_both (const char *, ptrdiff_t, ptrdiff_t,
-			   int, int, int);
+			   bool, bool, bool);
 extern void insert_from_gap (ptrdiff_t, ptrdiff_t);
 extern void insert_from_string (Lisp_Object, ptrdiff_t, ptrdiff_t,
-				ptrdiff_t, ptrdiff_t, int);
-extern void insert_from_buffer (struct buffer *, ptrdiff_t, ptrdiff_t, int);
+				ptrdiff_t, ptrdiff_t, bool);
+extern void insert_from_buffer (struct buffer *, ptrdiff_t, ptrdiff_t, bool);
 extern void insert_char (int);
 extern void insert_string (const char *);
 extern void insert_before_markers (const char *, ptrdiff_t);
 extern void insert_before_markers_and_inherit (const char *, ptrdiff_t);
 extern void insert_from_string_before_markers (Lisp_Object, ptrdiff_t,
 					       ptrdiff_t, ptrdiff_t,
-					       ptrdiff_t, int);
+					       ptrdiff_t, bool);
 extern void del_range (ptrdiff_t, ptrdiff_t);
-extern Lisp_Object del_range_1 (ptrdiff_t, ptrdiff_t, int, int);
-extern void del_range_byte (ptrdiff_t, ptrdiff_t, int);
-extern void del_range_both (ptrdiff_t, ptrdiff_t, ptrdiff_t, ptrdiff_t, int);
+extern Lisp_Object del_range_1 (ptrdiff_t, ptrdiff_t, bool, bool);
+extern void del_range_byte (ptrdiff_t, ptrdiff_t, bool);
+extern void del_range_both (ptrdiff_t, ptrdiff_t, ptrdiff_t, ptrdiff_t, bool);
 extern Lisp_Object del_range_2 (ptrdiff_t, ptrdiff_t,
-				ptrdiff_t, ptrdiff_t, int);
-extern void modify_region (struct buffer *, ptrdiff_t, ptrdiff_t, int);
+				ptrdiff_t, ptrdiff_t, bool);
+extern void modify_region (struct buffer *, ptrdiff_t, ptrdiff_t, bool);
 extern void prepare_to_modify_buffer (ptrdiff_t, ptrdiff_t, ptrdiff_t *);
 extern void signal_after_change (ptrdiff_t, ptrdiff_t, ptrdiff_t);
 extern void adjust_after_insert (ptrdiff_t, ptrdiff_t, ptrdiff_t,
 				 ptrdiff_t, ptrdiff_t);
 extern void adjust_markers_for_delete (ptrdiff_t, ptrdiff_t,
 				       ptrdiff_t, ptrdiff_t);
-extern void replace_range (ptrdiff_t, ptrdiff_t, Lisp_Object, int, int, int);
+extern void replace_range (ptrdiff_t, ptrdiff_t, Lisp_Object, bool, bool, bool);
 extern void replace_range_2 (ptrdiff_t, ptrdiff_t, ptrdiff_t, ptrdiff_t,
-			     const char *, ptrdiff_t, ptrdiff_t, int);
+			     const char *, ptrdiff_t, ptrdiff_t, bool);
 extern void syms_of_insdel (void);
 
 /* Defined in dispnew.c */
@@ -2988,6 +2988,7 @@ extern ptrdiff_t evxprintf (char **, ptrdiff_t *, char const *, ptrdiff_t,
 /* Defined in lread.c.  */
 extern Lisp_Object Qvariable_documentation, Qstandard_input;
 extern Lisp_Object Qbackquote, Qcomma, Qcomma_at, Qcomma_dot, Qfunction;
+extern Lisp_Object Qlexical_binding;
 extern Lisp_Object check_obarray (Lisp_Object);
 extern Lisp_Object intern_1 (const char *, ptrdiff_t);
 extern Lisp_Object intern_c_string_1 (const char *, ptrdiff_t);
@@ -3021,7 +3022,7 @@ intern_c_string (const char *str)
 
 /* Defined in eval.c.  */
 extern Lisp_Object Qautoload, Qexit, Qinteractive, Qcommandp, Qmacro;
-extern Lisp_Object Qinhibit_quit, Qclosure;
+extern Lisp_Object Qinhibit_quit, Qinternal_interpreter_environment, Qclosure;
 extern Lisp_Object Qand_rest;
 extern Lisp_Object Vautoload_queue;
 extern Lisp_Object Vsignaling_function;
@@ -3075,6 +3076,7 @@ extern _Noreturn void error (const char *, ...) ATTRIBUTE_FORMAT_PRINTF (1, 2);
 extern _Noreturn void verror (const char *, va_list)
   ATTRIBUTE_FORMAT_PRINTF (1, 0);
 extern Lisp_Object un_autoload (Lisp_Object);
+extern Lisp_Object call_debugger (Lisp_Object arg);
 extern void init_eval_once (void);
 extern Lisp_Object safe_call (ptrdiff_t, Lisp_Object, ...);
 extern Lisp_Object safe_call1 (Lisp_Object, Lisp_Object);
@@ -3094,9 +3096,9 @@ extern Lisp_Object save_restriction_save (void);
 extern Lisp_Object save_excursion_restore (Lisp_Object);
 extern Lisp_Object save_restriction_restore (Lisp_Object);
 extern _Noreturn void time_overflow (void);
-extern Lisp_Object make_buffer_string (ptrdiff_t, ptrdiff_t, int);
+extern Lisp_Object make_buffer_string (ptrdiff_t, ptrdiff_t, bool);
 extern Lisp_Object make_buffer_string_both (ptrdiff_t, ptrdiff_t, ptrdiff_t,
-					    ptrdiff_t, int);
+					    ptrdiff_t, bool);
 extern void init_editfns (void);
 const char *get_system_name (void);
 extern void syms_of_editfns (void);
@@ -3257,7 +3259,7 @@ extern void syms_of_frame (void);
 extern char **initial_argv;
 extern int initial_argc;
 #if defined (HAVE_X_WINDOWS) || defined (HAVE_NS)
-extern int display_arg;
+extern bool display_arg;
 #endif
 extern Lisp_Object decode_env_path (const char *, const char *);
 extern Lisp_Object empty_unibyte_string, empty_multibyte_string;
@@ -3265,6 +3267,7 @@ extern Lisp_Object Qfile_name_handler_alist;
 #ifdef FLOAT_CATCH_SIGILL
 extern void fatal_error_signal (int);
 #endif
+extern _Noreturn void fatal_error_backtrace (int, int);
 extern Lisp_Object Qkill_emacs;
 #if HAVE_SETLOCALE
 void fixup_locale (void);
@@ -3276,22 +3279,26 @@ void synchronize_system_time_locale (void);
 #define synchronize_system_messages_locale()
 #define synchronize_system_time_locale()
 #endif
-void shut_down_emacs (int, int, Lisp_Object);
-/* Nonzero means don't do interactive redisplay and don't change tty modes.  */
-extern int noninteractive;
+extern void shut_down_emacs (int, Lisp_Object);
 
-/* Nonzero means remove site-lisp directories from load-path.  */
-extern int no_site_lisp;
+/* True means don't do interactive redisplay and don't change tty modes.  */
+extern bool noninteractive;
+
+/* True means remove site-lisp directories from load-path.  */
+extern bool no_site_lisp;
 
 /* Pipe used to send exit notification to the daemon parent at
    startup.  */
 extern int daemon_pipe[2];
 #define IS_DAEMON (daemon_pipe[1] != 0)
 
-/* Nonzero means don't do use window-system-specific display code.  */
-extern int inhibit_window_system;
-/* Nonzero means that a filter or a sentinel is running.  */
-extern int running_asynch_code;
+/* True if handling a fatal error already.  */
+extern bool fatal_error_in_progress;
+
+/* True means don't do use window-system-specific display code.  */
+extern bool inhibit_window_system;
+/* True means that a filter or a sentinel is running.  */
+extern bool running_asynch_code;
 
 /* Defined in process.c.  */
 extern Lisp_Object QCtype, Qlocal;
@@ -3332,9 +3339,9 @@ extern void syms_of_callproc (void);
 /* Defined in doc.c */
 extern Lisp_Object Qfunction_documentation;
 extern Lisp_Object read_doc_string (Lisp_Object);
-extern Lisp_Object get_doc_string (Lisp_Object, int, int);
+extern Lisp_Object get_doc_string (Lisp_Object, bool, bool);
 extern void syms_of_doc (void);
-extern int read_bytecode_char (int);
+extern int read_bytecode_char (bool);
 
 /* Defined in bytecode.c */
 extern Lisp_Object Qbytecode;
@@ -3405,7 +3412,10 @@ extern void child_setup_tty (int);
 extern void setup_pty (int);
 extern int set_window_size (int, int, int);
 extern EMACS_INT get_random (void);
-extern void seed_random (long);
+extern void seed_random (void *, ptrdiff_t);
+extern void init_random (void);
+extern void emacs_backtrace (int);
+extern _Noreturn void emacs_abort (void) NO_INLINE;
 extern int emacs_open (const char *, int, int);
 extern int emacs_close (int);
 extern ptrdiff_t emacs_read (int, char *, ptrdiff_t);
@@ -3438,7 +3448,6 @@ extern Lisp_Object directory_files_internal (Lisp_Object, Lisp_Object,
 
 /* Defined in term.c */
 extern int *char_ins_del_vector;
-extern void mark_ttys (void);
 extern void syms_of_term (void);
 extern _Noreturn void fatal (const char *msgid, ...)
   ATTRIBUTE_FORMAT_PRINTF (1, 2);
@@ -3466,6 +3475,9 @@ extern Lisp_Object Qface;
 extern Lisp_Object Qnormal;
 extern Lisp_Object QCfamily, QCweight, QCslant;
 extern Lisp_Object QCheight, QCname, QCwidth, QCforeground, QCbackground;
+extern Lisp_Object Qextra_light, Qlight, Qsemi_light, Qsemi_bold;
+extern Lisp_Object Qbold, Qextra_bold, Qultra_bold;
+extern Lisp_Object Qoblique, Qitalic;
 extern Lisp_Object Vface_alternative_font_family_alist;
 extern Lisp_Object Vface_alternative_font_registry_alist;
 extern void syms_of_xfaces (void);
@@ -3510,9 +3522,9 @@ void syms_of_dbusbind (void);
 extern char *emacs_root_dir (void);
 #endif /* DOS_NT */
 
-/* Nonzero means Emacs has already been initialized.
+/* True means Emacs has already been initialized.
    Used during startup to detect startup of dumped Emacs.  */
-extern int initialized;
+extern bool initialized;
 
 extern int immediate_quit;	    /* Nonzero means ^G can quit instantly */
 

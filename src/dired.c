@@ -275,7 +275,7 @@ directory_files_internal (Lisp_Object directory, Lisp_Object full,
 
 		  /* Some bug somewhere.  */
 		  if (nchars > nbytes)
-		    abort ();
+		    emacs_abort ();
 
 		  STRING_SET_CHARS (fullname, nchars);
 		  if (nchars == nbytes)

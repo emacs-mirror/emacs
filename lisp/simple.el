@@ -365,7 +365,6 @@ Other major modes are defined by comparison with this one."
     (define-key map ">" 'end-of-buffer)
     (define-key map "<" 'beginning-of-buffer)
     (define-key map "g" 'revert-buffer)
-    (define-key map "z" 'kill-this-buffer)
     map))
 
 (put 'special-mode 'mode-class 'special)
@@ -1887,9 +1886,10 @@ as an argument limits undo to changes within the current region."
     ;; so, ask the user whether she wants to skip the redo/undo pair.
     (let ((equiv (gethash pending-undo-list undo-equiv-table)))
       (or (eq (selected-window) (minibuffer-window))
-	  (setq message (if undo-in-region
-			    (if equiv "Redo in region!" "Undo in region!")
-			  (if equiv "Redo!" "Undo!"))))
+	  (setq message (format "%s%s!"
+                                (if (or undo-no-redo (not equiv))
+                                    "Undo" "Redo")
+                                (if undo-in-region " in region" ""))))
       (when (and (consp equiv) undo-no-redo)
 	;; The equiv entry might point to another redo record if we have done
 	;; undo-redo-undo-redo-... so skip to the very last equiv.

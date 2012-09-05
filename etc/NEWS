@@ -97,6 +97,11 @@ machines.  Other functions that use this format, such as
 file-attributes and format-time-string, have been changed accordingly.
 Old-format time stamps are still accepted.
 
+** Emacs now generates backtraces on fatal errors.
+On encountering a fatal error, Emacs now outputs a textual description
+of the fatal signal, and a short backtrace on platforms like glibc
+that support backtraces.
+
 ** New functions `system-users', `system-groups' return lists of the user
 name, group names known to the system (where possible).
 
@@ -165,6 +170,10 @@ The PCL-CVS commands are still available via the keyboard.
 
 * Editing Changes in Emacs 24.3
 
+** The `z' key no longer has a binding in most special modes.
+It used to be bound to `kill-this-buffer', but `z' is too easy to
+accidentally type.
+
 ** New option `yank-handled-properties' allows processing of text
 properties on yanked text, in more ways that are more general than
 just removing them, as done by `yank-excluded-properties'.
@@ -179,12 +188,14 @@ end of the buffer.  It defaults to t.
 and `M-s _' in Isearch toggles symbol search mode.
 `M-s c' in Isearch toggles search case-sensitivity.
 
-*** `search-whitespace-regexp' now acts on ordinary incremental search
-as well, so that each sequence of spaces in the search string matches
-any combination of one or more whitespace characters.  To change this
-behavior, you can give `search-whitespace-regexp' a cons cell value,
-where the car and cdr specify values for ordinary and regular
-expression incremental search respectively.
+*** `M-s SPC' in Isearch toggles whitespace matching mode
+in both ordinary and regexp incremental search, so that each
+sequence of spaces in the search string matches any combination
+of one or more whitespace characters defined by the variable
+`search-whitespace-regexp'.  In ordinary incremental search,
+`isearch-toggle-lax-whitespace' toggles the value of the variable
+`isearch-lax-whitespace'.  In regexp incremental search, it toggles
+the value of the variable `isearch-regexp-lax-whitespace'.
 
 ** M-x move-to-column, if called interactively with no prefix arg, now
 prompts for a column number.
@@ -524,6 +535,11 @@ inefficiency, and not namespace-clean.
 
 * Incompatible Lisp Changes in Emacs 24.3
 
+** (random) by default now returns a different random sequence in
+every Emacs run.  Use (random S), where S is a string, to set the
+random seed to a value based on S, in order to get a repeatable
+sequence in later calls.
+
 ** The function `x-select-font' can return a font spec, instead of a
 font name as a string.  Whether it returns a font spec or a font name
 depends on the graphical library.
@@ -590,6 +606,13 @@ are deprecated and will be removed eventually.
 
 * Lisp changes in Emacs 24.3
 
+** Interpreted files get eagerly macro-expanded during load.
+This can significantly speed up execution of non-byte-compiled code, but can
+also bump into harmless and previously unnoticed cyclic dependencies.
+These should not be fatal: they will simply cause the macro-calls to be left
+for later expansion (as before), but will also result in a warning describing
+the cycle.
+
 ** New minor mode `read-only-mode' to replace toggle-read-only (now obsolete).
 
 ** New functions `autoloadp' and `autoload-do-load'.
@@ -619,6 +642,10 @@ The interpretation of the DECLS is determined by `defun-declarations-alist'.
 
 *** The functions get-lru-window, get-mru-window and get-largest-window
 now accept a third argument to avoid choosing the selected window.
+
+*** New macro with-temp-buffer-window.
+
+*** New display action function display-buffer-below-selected.
 
 *** New display action alist `inhibit-switch-frame', if non-nil, tells
 display action functions to avoid changing which frame is selected.
@@ -1388,6 +1415,10 @@ If you had that set, you need to put
 
 in your ~/.authinfo file instead.
 
+*** SMTPmail defaults to using the address in the From: header as the
+SMTP MAIL FROM envelope.  To override this, set `mail-envelope-from'
+to the address you wish to use instead.
+
 ** SQL mode
 
 *** New options `sql-port', `sql-connection-alist', `sql-send-terminator',
@@ -1884,6 +1915,10 @@ instead of jumping all the way to the top-level.
 
 *** Set `debug-on-event' to enter the debugger on events like SIGUSR1.
 This can be useful when `inhibit-quit' is set.
+
+*** Set `debug-on-message' to enter the debugger when a certain
+message is displayed in the echo area.  This can be useful when trying
+to work out which code is doing something.
 
 ** The new function `server-eval-at' allows evaluation of Lisp forms on
 named Emacs server instances.

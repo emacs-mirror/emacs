@@ -1199,30 +1199,32 @@ numbers are not truly random, but they have certain properties that
 mimic a random series.  For example, all possible values occur equally
 often in a pseudo-random series.
 
-In Emacs, pseudo-random numbers are generated from a ``seed'' number.
+In Emacs, pseudo-random numbers are generated from a ``seed''.
 Starting from any given seed, the @code{random} function always
-generates the same sequence of numbers.  Emacs always starts with the
-same seed value, so the sequence of values of @code{random} is actually
-the same in each Emacs run!  For example, in one operating system, the
-first call to @code{(random)} after you start Emacs always returns
-@minus{}1457731, and the second one always returns @minus{}7692030.  This
-repeatability is helpful for debugging.
+generates the same sequence of numbers.  Emacs typically starts with a
+different seed each time, so the sequence of values of @code{random}
+typically differs in each Emacs run.
 
-If you want random numbers that don't always come out the same, execute
-@code{(random t)}.  This chooses a new seed based on the current time of
-day and on Emacs's process @acronym{ID} number.
+Sometimes you want the random number sequence to be repeatable.  For
+example, when debugging a program whose behavior depends on the random
+number sequence, it is helpful to get the same behavior in each
+program run.  To make the sequence repeat, execute @code{(random "")}.
+This sets the seed to a constant value for your particular Emacs
+executable (though it may differ for other Emacs builds).  You can use
+other strings to choose various seed values.
 
 @defun random &optional limit
 This function returns a pseudo-random integer.  Repeated calls return a
 series of pseudo-random integers.
 
 If @var{limit} is a positive integer, the value is chosen to be
-nonnegative and less than @var{limit}.
+nonnegative and less than @var{limit}.  Otherwise, the value
+might be any integer representable in Lisp.
 
 If @var{limit} is @code{t}, it means to choose a new seed based on the
 current time of day and on Emacs's process @acronym{ID} number.
 
-On some machines, any integer representable in Lisp may be the result
-of @code{random}.  On other machines, the result can never be larger
-than a certain maximum or less than a certain (negative) minimum.
+If @var{limit} is a string, it means to choose a new seed based on the
+string's contents.
+
 @end defun

@@ -116,11 +116,12 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "gnutls.h"
 #endif
 
+#ifdef HAVE_WINDOW_SYSTEM
+#include TERM_HEADER
+#endif /* HAVE_WINDOW_SYSTEM */
+
 #if defined (USE_GTK) || defined (HAVE_GCONF) || defined (HAVE_GSETTINGS)
 #include "xgselect.h"
-#endif
-#ifdef HAVE_NS
-#include "nsterm.h"
 #endif
 
 /* Work around GCC 4.7.0 bug with strict overflow checking; see
@@ -164,16 +165,6 @@ static Lisp_Object QClocal, QCremote, QCcoding;
 static Lisp_Object QCserver, QCnowait, QCnoquery, QCstop;
 static Lisp_Object QCsentinel, QClog, QCoptions, QCplist;
 static Lisp_Object Qlast_nonmenu_event;
-/* QCfamily is declared and initialized in xfaces.c,
-   QCfilter in keyboard.c.  */
-extern Lisp_Object QCfamily, QCfilter;
-
-/* Qexit is declared and initialized in eval.c.  */
-
-/* QCfamily is defined in xfaces.c.  */
-extern Lisp_Object QCfamily;
-/* QCfilter is defined in keyboard.c.  */
-extern Lisp_Object QCfilter;
 
 #define NETCONN_P(p) (EQ (XPROCESS (p)->type, Qnetwork))
 #define NETCONN1_P(p) (EQ (p->type, Qnetwork))
@@ -1586,7 +1577,7 @@ static Lisp_Object
 start_process_unwind (Lisp_Object proc)
 {
   if (!PROCESSP (proc))
-    abort ();
+    emacs_abort ();
 
   /* Was PROC started successfully?
      -2 is used for a pty with no process, eg for gdb.  */
@@ -2559,7 +2550,7 @@ static Lisp_Object
 make_serial_process_unwind (Lisp_Object proc)
 {
   if (!PROCESSP (proc))
-    abort ();
+    emacs_abort ();
   remove_process (proc);
   return Qnil;
 }
@@ -3396,7 +3387,7 @@ usage: (make-network-process &rest ARGS)  */)
       if (socktype == SOCK_DGRAM)
 	{
 	  if (datagram_address[s].sa)
-	    abort ();
+	    emacs_abort ();
 	  datagram_address[s].sa = xmalloc (lres->ai_addrlen);
 	  datagram_address[s].len = lres->ai_addrlen;
 	  if (is_server)
@@ -3982,7 +3973,7 @@ deactivate_process (Lisp_Object proc)
 	  FD_CLR (inchannel, &connect_wait_mask);
 	  FD_CLR (inchannel, &write_mask);
 	  if (--num_pending_connects < 0)
-	    abort ();
+	    emacs_abort ();
 	}
 #endif
       if (inchannel == max_process_desc)
@@ -4761,7 +4752,7 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 		 Cleanup occurs c/o status_notify after SIGCLD. */
 	      no_avail = 1; /* Cannot depend on values returned */
 #else
-	      abort ();
+	      emacs_abort ();
 #endif
 	    }
 	  else
@@ -5002,7 +4993,7 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 	      FD_CLR (channel, &connect_wait_mask);
               FD_CLR (channel, &write_mask);
 	      if (--num_pending_connects < 0)
-		abort ();
+		emacs_abort ();
 
 	      proc = chan_process[channel];
 	      if (NILP (proc))
@@ -5203,7 +5194,7 @@ read_process_output (Lisp_Object proc, register int channel)
   if (!NILP (outstream))
     {
       Lisp_Object text;
-      int outer_running_asynch_code = running_asynch_code;
+      bool outer_running_asynch_code = running_asynch_code;
       int waiting = waiting_for_user_input_p;
 
       /* No need to gcpro these, because all we do with them later
@@ -5440,7 +5431,7 @@ send_process_trap (int ignore)
 {
   SIGNAL_THREAD_CHECK (SIGPIPE);
   sigunblock (sigmask (SIGPIPE));
-  longjmp (send_process_frame, 1);
+  _longjmp (send_process_frame, 1);
 }
 
 /* In send_process, when a write fails temporarily,
@@ -5643,7 +5634,7 @@ send_process (volatile Lisp_Object proc, const char *volatile buf,
   /* 2000-09-21: Emacs 20.7, sparc-sun-solaris-2.6, GCC 2.95.2,
      CFLAGS="-g -O": The value of the parameter `proc' is clobbered
      when returning with longjmp despite being declared volatile.  */
-  if (!setjmp (send_process_frame))
+  if (!_setjmp (send_process_frame))
     {
       p = XPROCESS (proc);  /* Repair any setjmp clobbering.  */
       process_sent_to = proc;
@@ -6363,7 +6354,7 @@ process has been transmitted to the serial port.  */)
 #endif /* not HAVE_SHUTDOWN */
       new_outfd = emacs_open (NULL_DEVICE, O_WRONLY, 0);
       if (new_outfd < 0)
-	abort ();
+	emacs_abort ();
       old_outfd = XPROCESS (proc)->outfd;
 
       if (!proc_encode_coding_system[new_outfd])
@@ -6567,9 +6558,9 @@ static void
 exec_sentinel (Lisp_Object proc, Lisp_Object reason)
 {
   Lisp_Object sentinel, odeactivate;
-  register struct Lisp_Process *p = XPROCESS (proc);
+  struct Lisp_Process *p = XPROCESS (proc);
   ptrdiff_t count = SPECPDL_INDEX ();
-  int outer_running_asynch_code = running_asynch_code;
+  bool outer_running_asynch_code = running_asynch_code;
   int waiting = waiting_for_user_input_p;
 
   if (inhibit_sentinels)

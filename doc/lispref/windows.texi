@@ -3153,42 +3153,21 @@ as @code{save-window-excursion}:
 @end defun
 
 @defmac save-window-excursion forms@dots{}
-This special form records the window configuration, executes @var{forms}
-in sequence, then restores the earlier window configuration.  The window
-configuration includes, for each window, the value of point and the
-portion of the buffer that is visible.  It also includes the choice of
-selected window.  However, it does not include the value of point in
-the current buffer; use @code{save-excursion} also, if you wish to
-preserve that.
+This macro records the window configuration of the selected frame,
+executes @var{forms} in sequence, then restores the earlier window
+configuration.  The return value is the value of the final form in
+@var{forms}.
 
-Don't use this construct when @code{save-selected-window} is sufficient.
+Most Lisp code should not use this macro; @code{save-selected-window}
+is typically sufficient.  In particular, this macro cannot reliably
+prevent the code in @var{forms} from opening new windows, because new
+windows might be opened in other frames (@pxref{Choosing Window}), and
+@code{save-window-excursion} only saves and restores the window
+configuration on the current frame.
 
-Exit from @code{save-window-excursion} always triggers execution of
-@code{window-size-change-functions}.  (It doesn't know how to tell
-whether the restored configuration actually differs from the one in
-effect at the end of the @var{forms}.)
-
-The return value is the value of the final form in @var{forms}.
-For example:
-
-@example
-@group
-(split-window)
-     @result{} #<window 25 on control.texi>
-@end group
-@group
-(setq w (selected-window))
-     @result{} #<window 19 on control.texi>
-@end group
-@group
-(save-window-excursion
-  (delete-other-windows w)
-  (switch-to-buffer "foo")
-  'do-something)
-     @result{} do-something
-     ;; @r{The screen is now split again.}
-@end group
-@end example
+Do not use this macro in @code{window-size-change-functions}; exiting
+the macro triggers execution of @code{window-size-change-functions},
+leading to an endless loop.
 @end defmac
 
 @defun window-configuration-p object
@@ -3424,11 +3403,11 @@ Creating or deleting windows counts as a size change, and therefore
 causes these functions to be called.  Changing the frame size also
 counts, because it changes the sizes of the existing windows.
 
-It is not a good idea to use @code{save-window-excursion} (@pxref{Window
-Configurations}) in these functions, because that always counts as a
-size change, and it would cause these functions to be called over and
-over.  In most cases, @code{save-selected-window} (@pxref{Selecting
-Windows}) is what you need here.
+You may use @code{save-selected-window} in these functions
+(@pxref{Selecting Windows}).  However, do not use
+@code{save-window-excursion} (@pxref{Window Configurations}); exiting
+that macro counts as a size change, which would cause these functions
+to be called over and over.
 @end defvar
 
 @defvar window-configuration-change-hook

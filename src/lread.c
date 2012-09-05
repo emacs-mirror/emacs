@@ -89,8 +89,6 @@ static Lisp_Object Qget_emacs_mule_file_char;
 
 static Lisp_Object Qload_force_doc_strings;
 
-extern Lisp_Object Qinternal_interpreter_environment;
-
 static Lisp_Object Qload_in_progress;
 
 /* The association list of objects read with the #n=object form.
@@ -1682,6 +1680,17 @@ readevalloop (Lisp_Object readcharfun,
   int whole_buffer = 0;
   /* 1 on the first time around.  */
   int first_sexp = 1;
+  Lisp_Object macroexpand = intern ("internal-macroexpand-for-load");
+
+  if (NILP (Ffboundp (macroexpand))
+      /* Don't macroexpand in .elc files, since it should have been done
+	 already.  We actually don't know whether we're in a .elc file or not,
+	 so we use circumstancial evidence: .el files normally go through
+	 Vload_source_file_function -> load-with-code-conversion
+	 -> eval-buffer.  */
+      || EQ (readcharfun, Qget_file_char)
+      || EQ (readcharfun, Qget_emacs_mule_file_char))
+    macroexpand = Qnil;
 
   if (MARKERP (readcharfun))
     {
@@ -1696,7 +1705,7 @@ readevalloop (Lisp_Object readcharfun,
 
   /* We assume START is nil when input is not from a buffer.  */
   if (! NILP (start) && !b)
-    abort ();
+    emacs_abort ();
 
   specbind (Qstandard_input, readcharfun); /* GCPROs readcharfun.  */
   specbind (Qcurrent_load_list, Qnil);
@@ -1811,6 +1820,8 @@ readevalloop (Lisp_Object readcharfun,
       unbind_to (count1, Qnil);
 
       /* Now eval what we just read.  */
+      if (!NILP (macroexpand))
+	val = call1 (macroexpand, val);
       val = eval_sub (val);
 
       if (printflag)
@@ -3673,7 +3684,7 @@ intern_c_string_1 (const char *str, ptrdiff_t len)
     /* Creating a non-pure string from a string literal not
        implemented yet.  We could just use make_string here and live
        with the extra copy.  */
-    abort ();
+    emacs_abort ();
 
   return Fintern (make_pure_c_string (str, len), obarray);
 }

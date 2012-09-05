@@ -294,7 +294,7 @@ delete_terminal (struct terminal *terminal)
 
   for (tp = &terminal_list; *tp != terminal; tp = &(*tp)->next_terminal)
     if (! *tp)
-      abort ();
+      emacs_abort ();
   *tp = terminal->next_terminal;
 
   xfree (terminal->keyboard_coding);
@@ -411,7 +411,7 @@ possible return values.  */)
     case output_ns:
       return Qns;
     default:
-      abort ();
+      emacs_abort ();
     }
 }
 
@@ -519,7 +519,7 @@ struct terminal *
 init_initial_terminal (void)
 {
   if (initialized || terminal_list || tty_list)
-    abort ();
+    emacs_abort ();
 
   initial_terminal = create_terminal ();
   initial_terminal->type = output_initial;
@@ -538,7 +538,7 @@ static void
 delete_initial_terminal (struct terminal *terminal)
 {
   if (terminal != initial_terminal)
-    abort ();
+    emacs_abort ();
 
   delete_terminal (terminal);
   initial_terminal = NULL;

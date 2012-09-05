@@ -53,9 +53,6 @@
 
 ;;; Code:
 
-; Randomize the seed in the random number generator.
-(random t)
-
 (defconst cookie-delimiter "\n%%\n\\|\n%\n\\|\0"
   "Delimiter used to separate cookie file entries.")
 

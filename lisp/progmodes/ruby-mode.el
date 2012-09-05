@@ -138,18 +138,11 @@ This should only be called after matching against `ruby-here-doc-beg-re'."
 
 (defvar ruby-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map "{" 'ruby-electric-brace)
-    (define-key map "}" 'ruby-electric-brace)
-    (define-key map (kbd "M-C-a") 'ruby-beginning-of-defun)
-    (define-key map (kbd "M-C-e") 'ruby-end-of-defun)
     (define-key map (kbd "M-C-b") 'ruby-backward-sexp)
     (define-key map (kbd "M-C-f") 'ruby-forward-sexp)
     (define-key map (kbd "M-C-p") 'ruby-beginning-of-block)
     (define-key map (kbd "M-C-n") 'ruby-end-of-block)
-    (define-key map (kbd "M-C-h") 'ruby-mark-defun)
     (define-key map (kbd "M-C-q") 'ruby-indent-exp)
-    (define-key map (kbd "C-M-h") 'backward-kill-word)
-    (define-key map (kbd "C-j")   'reindent-then-newline-and-indent)
     (define-key map (kbd "C-c {") 'ruby-toggle-block)
     map)
   "Keymap used in Ruby mode.")
@@ -840,12 +833,6 @@ and `\\' when preceded by `?'."
           (+ indent ruby-indent-level)
         indent))))
 
-(defun ruby-electric-brace (arg)
-  "Insert a brace and re-indent the current line."
-  (interactive "P")
-  (self-insert-command (prefix-numeric-value arg))
-  (ruby-indent-line t))
-
 ;; TODO: Why isn't one ruby-*-of-defun written in terms of the other?
 (defun ruby-beginning-of-defun (&optional arg)
   "Move backward to the beginning of the current top-level defun.
@@ -1023,15 +1010,6 @@ With ARG, do it many times.  Negative ARG means move forward."
             (setq i (1- i)))
         ((error)))
       i)))
-
-(defun ruby-mark-defun ()
-  "Put mark at end of this Ruby function, point at beginning."
-  (interactive)
-  (push-mark (point))
-  (ruby-end-of-defun)
-  (push-mark (point) nil t)
-  (ruby-beginning-of-defun)
-  (re-search-backward "^\n" (- (point) 1) t))
 
 (defun ruby-indent-exp (&optional ignored)
   "Indent each line in the balanced expression following the point."
@@ -1586,6 +1564,10 @@ The variable `ruby-indent-level' controls the amount of indentation.
        'ruby-imenu-create-index)
   (set (make-local-variable 'add-log-current-defun-function)
        'ruby-add-log-current-method)
+  (set (make-local-variable 'beginning-of-defun-function)
+       'ruby-beginning-of-defun)
+  (set (make-local-variable 'end-of-defun-function)
+       'ruby-end-of-defun)
 
   (add-hook
    (cond ((boundp 'before-save-hook) 'before-save-hook)

@@ -322,22 +322,6 @@ uniscribe_shape (Lisp_Object lgstring)
 	    {
 	      int j, from, to, adj_offset = 0;
 
-	      /* For RTL text, the Uniscribe shaper prepares the
-		 values in ADVANCES array for layout in reverse order,
-		 whereby "advance width" is applied to move the pen in
-		 reverse direction and _before_ drawing the glyph.
-		 Since we draw glyphs in their normal left-to-right
-		 order, we need to adjust the coordinates of each
-		 non-base glyph in a grapheme cluster via X-OFF
-		 component of the gstring's ADJUSTMENT sub-vector.
-		 This loop computes the initial value of the
-		 adjustment for the base character, which is then
-		 updated for each successive glyph in the grapheme
-		 cluster.  */
-	      if (items[i].a.fRTL)
-		for (j = 1; j < nglyphs; j++)
-		  adj_offset += advances[j];
-
 	      from = 0;
 	      to = from;
 
@@ -378,6 +362,32 @@ uniscribe_shape (Lisp_Object lgstring)
 				  to = k - 1;
 				  break;
 				}
+			    }
+			}
+
+		      /* For RTL text, the Uniscribe shaper prepares
+			 the values in ADVANCES array for layout in
+			 reverse order, whereby "advance width" is
+			 applied to move the pen in reverse direction
+			 and _before_ drawing the glyph.  Since we
+			 draw glyphs in their normal left-to-right
+			 order, we need to adjust the coordinates of
+			 each non-base glyph in a grapheme cluster via
+			 X-OFF component of the gstring's ADJUSTMENT
+			 sub-vector.  This loop computes, for each
+			 grapheme cluster, the initial value of the
+			 adjustment for the base character, which is
+			 then updated for each successive glyph in the
+			 grapheme cluster.  */
+		      if (items[i].a.fRTL)
+			{
+			  int j1 = j;
+
+			  adj_offset = 0;
+			  while (j1 < nglyphs && !attributes[j1].fClusterStart)
+			    {
+			      adj_offset += advances[j1];
+			      j1++;
 			    }
 			}
 		    }
@@ -444,7 +454,11 @@ uniscribe_shape (Lisp_Object lgstring)
 			}
 		      else
 			ASET (vec, 0, make_number (offsets[j].du + adj_offset));
-		      ASET (vec, 1, make_number (offsets[j].dv));
+		      /* In the font definition coordinate system, the
+			 Y coordinate points up, while in our screen
+			 coordinates Y grows downwards.  So we need to
+			 reverse the sign of Y-OFFSET here.  */
+		      ASET (vec, 1, make_number (-offsets[j].dv));
 		      /* Based on what ftfont.c does... */
 		      ASET (vec, 2, make_number (advances[j]));
 		      LGLYPH_SET_ADJUSTMENT (lglyph, vec);

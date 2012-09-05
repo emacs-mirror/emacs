@@ -52,10 +52,6 @@ static Lisp_Object Qcodeset, Qdays, Qmonths, Qpaper;
 static Lisp_Object Qmd5, Qsha1, Qsha224, Qsha256, Qsha384, Qsha512;
 
 static int internal_equal (Lisp_Object , Lisp_Object, int, int);
-
-#ifndef HAVE_UNISTD_H
-extern long time ();
-#endif
 
 DEFUN ("identity", Fidentity, Sidentity, 1, 1, 0,
        doc: /* Return the argument unchanged.  */)
@@ -74,32 +70,16 @@ Other values of LIMIT are ignored.  */)
   (Lisp_Object limit)
 {
   EMACS_INT val;
-  Lisp_Object lispy_val;
 
   if (EQ (limit, Qt))
-    {
-      EMACS_TIME t = current_emacs_time ();
-      seed_random (getpid () ^ EMACS_SECS (t) ^ EMACS_NSECS (t));
-    }
+    init_random ();
+  else if (STRINGP (limit))
+    seed_random (SSDATA (limit), SBYTES (limit));
 
+  val = get_random ();
   if (NATNUMP (limit) && XFASTINT (limit) != 0)
-    {
-      /* Try to take our random number from the higher bits of VAL,
-	 not the lower, since (says Gentzel) the low bits of `random'
-	 are less random than the higher ones.  We do this by using the
-	 quotient rather than the remainder.  At the high end of the RNG
-	 it's possible to get a quotient larger than n; discarding
-	 these values eliminates the bias that would otherwise appear
-	 when using a large n.  */
-      EMACS_INT denominator = (INTMASK + 1) / XFASTINT (limit);
-      do
-	val = get_random () / denominator;
-      while (val >= XFASTINT (limit));
-    }
-  else
-    val = get_random ();
-  XSETINT (lispy_val, val);
-  return lispy_val;
+    val %= XFASTINT (limit);
+  return make_number (val);
 }
 
 /* Heuristic on how many iterations of a tight loop can be safely done
@@ -2973,7 +2953,7 @@ into shorter lines.  */)
 				    encoded, length, NILP (no_line_break),
 				    !NILP (BVAR (current_buffer, enable_multibyte_characters)));
   if (encoded_length > allength)
-    abort ();
+    emacs_abort ();
 
   if (encoded_length < 0)
     {
@@ -3029,7 +3009,7 @@ into shorter lines.  */)
 				    encoded, length, NILP (no_line_break),
 				    STRING_MULTIBYTE (string));
   if (encoded_length > allength)
-    abort ();
+    emacs_abort ();
 
   if (encoded_length < 0)
     {
@@ -3174,7 +3154,7 @@ If the region can't be decoded, signal an error and don't modify the buffer.  */
 				    decoded, length,
 				    multibyte, &inserted_chars);
   if (decoded_length > allength)
-    abort ();
+    emacs_abort ();
 
   if (decoded_length < 0)
     {
@@ -3224,7 +3204,7 @@ DEFUN ("base64-decode-string", Fbase64_decode_string, Sbase64_decode_string,
   decoded_length = base64_decode_1 (SSDATA (string), decoded, length,
 				    0, NULL);
   if (decoded_length > length)
-    abort ();
+    emacs_abort ();
   else if (decoded_length >= 0)
     decoded_string = make_unibyte_string (decoded, decoded_length);
   else
@@ -3980,7 +3960,7 @@ sweep_weak_table (struct Lisp_Hash_Table *h, int remove_entries_p)
 	  else if (EQ (h->weak, Qkey_and_value))
 	    remove_p = !(key_known_to_survive_p && value_known_to_survive_p);
 	  else
-	    abort ();
+	    emacs_abort ();
 
 	  next = HASH_NEXT (h, i);
 
@@ -4276,7 +4256,7 @@ sxhash (Lisp_Object obj, int depth)
       break;
 
     default:
-      abort ();
+      emacs_abort ();
     }
 
   return hash;

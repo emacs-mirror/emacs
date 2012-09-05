@@ -1273,9 +1273,9 @@ init_user_info (void)
 
   /* Ensure HOME and SHELL are defined. */
   if (getenv ("HOME") == NULL)
-    abort ();
+    emacs_abort ();
   if (getenv ("SHELL") == NULL)
-    abort ();
+    emacs_abort ();
 
   /* Set dir and shell from environment variables. */
   strcpy (dflt_passwd.pw_dir, getenv ("HOME"));
@@ -1788,9 +1788,9 @@ init_environment (char ** argv)
       char modname[MAX_PATH];
 
       if (!GetModuleFileName (NULL, modname, MAX_PATH))
-	abort ();
+	emacs_abort ();
       if ((p = strrchr (modname, '\\')) == NULL)
-	abort ();
+	emacs_abort ();
       *p = 0;
 
       if ((p = strrchr (modname, '\\')) && xstrcasecmp (p, "\\bin") == 0)
@@ -1902,13 +1902,13 @@ init_environment (char ** argv)
   /* FIXME: Do we need to resolve possible symlinks in startup_dir?
      Does it matter anywhere in Emacs?  */
   if (!GetCurrentDirectory (MAXPATHLEN, startup_dir))
-    abort ();
+    emacs_abort ();
 
   {
     static char modname[MAX_PATH];
 
     if (!GetModuleFileName (NULL, modname, MAX_PATH))
-      abort ();
+      emacs_abort ();
     argv[0] = modname;
   }
 
@@ -1930,7 +1930,7 @@ emacs_root_dir (void)
 
   p = getenv ("emacs_dir");
   if (p == NULL)
-    abort ();
+    emacs_abort ();
   strcpy (root_dir, p);
   root_dir[parse_root (root_dir, NULL)] = '\0';
   dostounix_filename (root_dir);
@@ -3287,7 +3287,7 @@ generate_inode_val (const char * name)
      doesn't resolve aliasing due to subst commands, or recognize hard
      links.  */
   if (!w32_get_long_filename ((char *)name, fullname, MAX_PATH))
-    abort ();
+    emacs_abort ();
 
   parse_root (fullname, &p);
   /* Normal W32 filesystems are still case insensitive. */
@@ -5587,7 +5587,7 @@ socket_to_fd (SOCKET s)
 	  if (fd_info[ fd ].cp != NULL)
 	    {
 	      DebPrint (("sys_socket: fd_info[%d] apparently in use!\n", fd));
-	      abort ();
+	      emacs_abort ();
 	    }
 
 	  fd_info[ fd ].cp = cp;
@@ -5966,7 +5966,7 @@ sys_close (int fd)
 	    {
 	      if (fd_info[fd].flags & FILE_SOCKET)
 		{
-		  if (winsock_lib == NULL) abort ();
+		  if (winsock_lib == NULL) emacs_abort ();
 
 		  pfn_shutdown (SOCK_HANDLE (fd), 2);
 		  rc = pfn_closesocket (SOCK_HANDLE (fd));
@@ -6084,7 +6084,7 @@ _sys_read_ahead (int fd)
       || (fd_info[fd].flags & FILE_READ) == 0)
     {
       DebPrint (("_sys_read_ahead: internal error: fd %d is not a pipe, serial port, or socket!\n", fd));
-      abort ();
+      emacs_abort ();
     }
 
   cp->status = STATUS_READ_IN_PROGRESS;
@@ -6220,7 +6220,7 @@ sys_read (int fd, char * buffer, unsigned int count)
       /* re-read CR carried over from last read */
       if (fd_info[fd].flags & FILE_LAST_CR)
 	{
-	  if (fd_info[fd].flags & FILE_BINARY) abort ();
+	  if (fd_info[fd].flags & FILE_BINARY) emacs_abort ();
 	  *buffer++ = 0x0d;
 	  count--;
 	  nchars++;
@@ -6323,7 +6323,7 @@ sys_read (int fd, char * buffer, unsigned int count)
 	    }
 	  else /* FILE_SOCKET */
 	    {
-	      if (winsock_lib == NULL) abort ();
+	      if (winsock_lib == NULL) emacs_abort ();
 
 	      /* do the equivalent of a non-blocking read */
 	      pfn_ioctlsocket (SOCK_HANDLE (fd), FIONREAD, &waiting);
@@ -6474,7 +6474,7 @@ sys_write (int fd, const void * buffer, unsigned int count)
   else if (fd < MAXDESC && fd_info[fd].flags & FILE_SOCKET)
     {
       unsigned long nblock = 0;
-      if (winsock_lib == NULL) abort ();
+      if (winsock_lib == NULL) emacs_abort ();
 
       /* TODO: implement select() properly so non-blocking I/O works. */
       /* For now, make sure the write blocks.  */
@@ -6640,8 +6640,7 @@ check_windows_init_file (void)
 		      buffer,
 		      "Emacs Abort Dialog",
 		      MB_OK | MB_ICONEXCLAMATION | MB_TASKMODAL);
-      /* Use the low-level Emacs abort. */
-#undef abort
+	  /* Use the low-level system abort. */
 	  abort ();
 	}
       else
@@ -6773,7 +6772,7 @@ shutdown_handler (DWORD type)
       || type == CTRL_SHUTDOWN_EVENT) /* User shutsdown.  */
     {
       /* Shut down cleanly, making sure autosave files are up to date.  */
-      shut_down_emacs (0, 0, Qnil);
+      shut_down_emacs (0, Qnil);
     }
 
   /* Allow other handlers to handle this signal.  */

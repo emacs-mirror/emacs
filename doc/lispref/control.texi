@@ -556,16 +556,14 @@ the @code{catch} in @code{foo-outer} specifies the same symbol, so that
 @code{catch} in between).
 
   Executing @code{throw} exits all Lisp constructs up to the matching
-@code{catch}, including function calls.  When binding constructs such as
-@code{let} or function calls are exited in this way, the bindings are
-unbound, just as they are when these constructs exit normally
+@code{catch}, including function calls.  When binding constructs such
+as @code{let} or function calls are exited in this way, the bindings
+are unbound, just as they are when these constructs exit normally
 (@pxref{Local Variables}).  Likewise, @code{throw} restores the buffer
 and position saved by @code{save-excursion} (@pxref{Excursions}), and
-the narrowing status saved by @code{save-restriction} and the window
-selection saved by @code{save-window-excursion} (@pxref{Window
-Configurations}).  It also runs any cleanups established with the
-@code{unwind-protect} special form when it exits that form
-(@pxref{Cleanups}).
+the narrowing status saved by @code{save-restriction}.  It also runs
+any cleanups established with the @code{unwind-protect} special form
+when it exits that form (@pxref{Cleanups}).
 
   The @code{throw} need not appear lexically within the @code{catch}
 that it jumps to.  It can equally well be called from another function

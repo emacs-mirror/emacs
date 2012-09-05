@@ -59,7 +59,7 @@ byte_char_debug_check (struct buffer *b, ptrdiff_t charpos, ptrdiff_t bytepos)
 				      bytepos - BUF_BEG_BYTE (b));
 
   if (charpos - 1 != nchars)
-    abort ();
+    emacs_abort ();
 }
 
 #else /* not MARKER_DEBUG */
@@ -67,7 +67,7 @@ byte_char_debug_check (struct buffer *b, ptrdiff_t charpos, ptrdiff_t bytepos)
 #define byte_char_debug_check(b, charpos, bytepos) do { } while (0)
 
 #endif /* MARKER_DEBUG */
- 
+
 void
 clear_charpos_cache (struct buffer *b)
 {
@@ -142,7 +142,7 @@ buf_charpos_to_bytepos (struct buffer *b, ptrdiff_t charpos)
   ptrdiff_t best_below, best_below_byte;
 
   if (charpos < BUF_BEG (b) || charpos > BUF_Z (b))
-    abort ();
+    emacs_abort ();
 
   best_above = BUF_Z (b);
   best_above_byte = BUF_Z_BYTE (b);
@@ -296,7 +296,7 @@ buf_bytepos_to_charpos (struct buffer *b, ptrdiff_t bytepos)
   ptrdiff_t best_below, best_below_byte;
 
   if (bytepos < BUF_BEG_BYTE (b) || bytepos > BUF_Z_BYTE (b))
-    abort ();
+    emacs_abort ();
 
   best_above = BUF_Z (b);
   best_above_byte = BUF_Z_BYTE (b);
@@ -506,7 +506,7 @@ set_marker_internal (Lisp_Object marker, Lisp_Object position,
   else
     {
       register ptrdiff_t charpos, bytepos;
-    
+
       CHECK_NUMBER_COERCE_MARKER (position);
       charpos = clip_to_bounds (restricted ? BUF_BEGV (b) : BUF_BEG (b),
                                XINT (position),
@@ -570,8 +570,8 @@ set_marker_restricted_both (Lisp_Object marker, Lisp_Object buffer,
 
   if (b)
     {
-      attach_marker 
-	(m, b, 
+      attach_marker
+	(m, b,
 	 clip_to_bounds (BUF_BEGV (b), charpos, BUF_ZV (b)),
 	 clip_to_bounds (BUF_BEGV_BYTE (b), bytepos, BUF_ZV_BYTE (b)));
     }
@@ -605,12 +605,12 @@ unchain_marker (register struct Lisp_Marker *marker)
 	  {
 	    if (*prev == BUF_MARKERS (b))
 	      {
-		/* Deleting first marker from the buffer's chain.  Crash 
+		/* Deleting first marker from the buffer's chain.  Crash
 		   if new first marker in chain does not say it belongs
 		   to the same buffer, or at least that they have the same
 		   base buffer.  */
 		if (tail->next && b->text != tail->next->buffer->text)
-		  abort ();
+		  emacs_abort ();
 	      }
 	    *prev = tail->next;
 	    /* We have removed the marker from the chain;

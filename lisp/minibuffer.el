@@ -1821,7 +1821,9 @@ Currently supported properties are all the properties that can appear in
  `:predicate'	a predicate that completion candidates need to satisfy.
  `:exclusive'	If `no', means that if the completion table fails to
    match the text at point, then instead of reporting a completion
-   failure, the completion should try the next completion function.")
+   failure, the completion should try the next completion function.
+As is the case with most hooks, the functions are responsible to preserve
+things like point and current buffer.")
 
 (defvar completion--capf-misbehave-funs nil
   "List of functions found on `completion-at-point-functions' that misbehave.

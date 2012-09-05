@@ -2051,7 +2051,7 @@ emacs_mule_char (struct coding_system *coding, const unsigned char *src,
 	  break;
 
 	default:
-	  abort ();
+	  emacs_abort ();
 	}
       CODING_DECODE_CHAR (coding, src, src_base, src_end,
 			  CHARSET_FROM_ID (charset_ID), code, c);
@@ -2345,7 +2345,7 @@ decode_coding_emacs_mule (struct coding_system *coding)
       int i;
 
       if (charbuf_end - charbuf < cmp_status->length)
-	abort ();
+	emacs_abort ();
       for (i = 0; i < cmp_status->length; i++)
 	*charbuf++ = cmp_status->carryover[i];
       coding->annotated = 1;
@@ -2619,7 +2619,7 @@ encode_coding_emacs_mule (struct coding_system *coding)
 		preferred_charset_id = -1;
 	      break;
 	    default:
-	      abort ();
+	      emacs_abort ();
 	    }
 	  charbuf += -c - 1;
 	  continue;
@@ -3482,7 +3482,7 @@ decode_coding_iso_2022 (struct coding_system *coding)
   if (cmp_status->state != COMPOSING_NO)
     {
       if (charbuf_end - charbuf < cmp_status->length)
-	abort ();
+	emacs_abort ();
       for (i = 0; i < cmp_status->length; i++)
 	*charbuf++ = cmp_status->carryover[i];
       coding->annotated = 1;
@@ -3864,7 +3864,7 @@ decode_coding_iso_2022 (struct coding_system *coding)
 	  break;
 
 	default:
-	  abort ();
+	  emacs_abort ();
 	}
 
       if (cmp_status->state == COMPOSING_NO
@@ -4419,7 +4419,7 @@ encode_coding_iso_2022 (struct coding_system *coding)
 		preferred_charset_id = -1;
 	      break;
 	    default:
-	      abort ();
+	      emacs_abort ();
 	    }
 	  charbuf += -c - 1;
 	  continue;
@@ -4933,7 +4933,7 @@ encode_coding_sjis (struct coding_system *coding)
 		}
 	    }
 	  if (code == CHARSET_INVALID_CODE (charset))
-	    abort ();
+	    emacs_abort ();
 	  if (charset == charset_kanji)
 	    {
 	      int c1, c2;
@@ -5023,7 +5023,7 @@ encode_coding_big5 (struct coding_system *coding)
 		}
 	    }
 	  if (code == CHARSET_INVALID_CODE (charset))
-	    abort ();
+	    emacs_abort ();
 	  if (charset == charset_big5)
 	    {
 	      int c1, c2;
@@ -7190,7 +7190,7 @@ handle_composition_annotation (ptrdiff_t pos, ptrdiff_t limit,
 		    *buf++ = XINT (XCAR (components));
 		}
 	      else
-		abort ();
+		emacs_abort ();
 	      *head -= len;
 	    }
 	}
@@ -9428,7 +9428,7 @@ usage: (set-coding-system-priority &rest coding-systems)  */)
 	     && changed[coding_priorities[j]])
 	j++;
       if (j == coding_category_max)
-	abort ();
+	emacs_abort ();
       priorities[i] = coding_priorities[j];
     }
 

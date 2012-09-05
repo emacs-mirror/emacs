@@ -165,6 +165,13 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    or signaling SIGFPE/SIGILL. */
 #undef FLOAT_CHECK_DOMAIN
 
+/* Enable compile-time and run-time bounds-checking, and some warnings,
+      without upsetting glibc 2.15+. */
+   #if defined __OPTIMIZE__ && __OPTIMIZE__
+   # define _FORTIFY_SOURCE 2
+   #endif
+
+
 /* Define to 1 if futimesat mishandles a NULL file name. */
 #undef FUTIMESAT_NULL_BUG
 
@@ -363,6 +370,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 if you have the `euidaccess' function. */
 #undef HAVE_EUIDACCESS
+
+/* Define to 1 if you have the <execinfo.h> header file. */
+#define HAVE_EXECINFO_H 1
 
 /* Define to 1 if you have the <fcntl.h> header file. */
 #undef HAVE_FCNTL_H
@@ -1352,6 +1362,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you use terminfo instead of termcap. */
 #undef TERMINFO
 
+/* Define to the header for the built-in window system. */
+#undef TERM_HEADER
+
 /* Define to 1 if you can safely include both <sys/time.h> and <time.h>. */
 #define TIME_WITH_SYS_TIME 1
 
@@ -1462,9 +1475,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Number of bits in a file offset, on hosts where this is settable. */
 #undef _FILE_OFFSET_BITS
 
-/* enable compile-time and run-time bounds-checking, and some warnings */
-#undef _FORTIFY_SOURCE
-
 /* Define to 1 if Gnulib overrides 'struct stat' on Windows so that struct
    stat.st_size becomes 64-bit. */
 #undef _GL_WINDOWS_64_BIT_ST_SIZE
@@ -1541,10 +1551,12 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    declarations. Define as empty for no equivalent. */
 #undef __restrict_arr
 
-/* Some platforms redefine this. */
+/* Define to longjmp if _setjmp and _longjmp do not work. Because longjmp may
+   alter signal masks, callers of _longjmp should not assume that it leaves
+   signal masks alone. */
 #undef _longjmp
 
-/* Some platforms redefine this. */
+/* Define to setjmp if _setjmp and _longjmp do not work. See _longjmp. */
 #undef _setjmp
 
 /* Some platforms that do not use configure define this to include extra

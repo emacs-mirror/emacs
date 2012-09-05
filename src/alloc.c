@@ -69,6 +69,9 @@ extern void *sbrk ();
 
 #include <fcntl.h>
 
+#ifdef USE_GTK
+# include "gtkutil.h"
+#endif
 #ifdef WINDOWSNT
 #include "w32.h"
 #endif
@@ -610,7 +613,7 @@ overrun_check_malloc (size_t size)
   register unsigned char *val;
   int overhead = ++check_depth == 1 ? XMALLOC_OVERRUN_CHECK_OVERHEAD : 0;
   if (SIZE_MAX - overhead < size)
-    abort ();
+    emacs_abort ();
 
   val = malloc (size + overhead);
   if (val && check_depth == 1)
@@ -635,7 +638,7 @@ overrun_check_realloc (void *block, size_t size)
   register unsigned char *val = (unsigned char *) block;
   int overhead = ++check_depth == 1 ? XMALLOC_OVERRUN_CHECK_OVERHEAD : 0;
   if (SIZE_MAX - overhead < size)
-    abort ();
+    emacs_abort ();
 
   if (val
       && check_depth == 1
@@ -646,7 +649,7 @@ overrun_check_realloc (void *block, size_t size)
       size_t osize = xmalloc_get_size (val);
       if (memcmp (xmalloc_overrun_check_trailer, val + osize,
 		  XMALLOC_OVERRUN_CHECK_SIZE))
-	abort ();
+	emacs_abort ();
       memset (val + osize, 0, XMALLOC_OVERRUN_CHECK_SIZE);
       val -= XMALLOC_OVERRUN_CHECK_SIZE + XMALLOC_OVERRUN_SIZE_SIZE;
       memset (val, 0, XMALLOC_OVERRUN_CHECK_SIZE + XMALLOC_OVERRUN_SIZE_SIZE);
@@ -683,7 +686,7 @@ overrun_check_free (void *block)
       size_t osize = xmalloc_get_size (val);
       if (memcmp (xmalloc_overrun_check_trailer, val + osize,
 		  XMALLOC_OVERRUN_CHECK_SIZE))
-	abort ();
+	emacs_abort ();
 #ifdef XMALLOC_CLEAR_FREE_MEMORY
       val -= XMALLOC_OVERRUN_CHECK_SIZE + XMALLOC_OVERRUN_SIZE_SIZE;
       memset (val, 0xff, osize + XMALLOC_OVERRUN_CHECK_OVERHEAD);
@@ -1269,7 +1272,7 @@ emacs_blocked_free (void *ptr, const void *ptr2)
 	{
 	  fprintf (stderr,
 		   "Freeing `%p' which wasn't allocated with malloc\n", ptr);
-	  abort ();
+	  emacs_abort ();
 	}
       else
 	{
@@ -1328,7 +1331,7 @@ emacs_blocked_malloc (size_t size, const void *ptr)
 	fprintf (stderr, "Region in use is %p...%p, %td bytes, type %d\n",
 		 m->start, m->end, (char *) m->end - (char *) m->start,
 		 m->type);
-	abort ();
+	emacs_abort ();
       }
 
     if (!dont_register_blocks)
@@ -1366,7 +1369,7 @@ emacs_blocked_realloc (void *ptr, size_t size, const void *ptr2)
 	  fprintf (stderr,
 		   "Realloc of %p which wasn't allocated with malloc\n",
 		   ptr);
-	  abort ();
+	  emacs_abort ();
 	}
 
       mem_delete (m);
@@ -1388,7 +1391,7 @@ emacs_blocked_realloc (void *ptr, size_t size, const void *ptr2)
     if (m != MEM_NIL)
       {
 	fprintf (stderr, "Realloc returns memory that is already in use\n");
-	abort ();
+	emacs_abort ();
       }
 
     /* Can't handle zero size regions in the red-black tree.  */
@@ -1801,7 +1804,7 @@ string_bytes (struct Lisp_String *s)
   if (!PURE_POINTER_P (s)
       && s->data
       && nbytes != SDATA_NBYTES (SDATA_OF_STRING (s)))
-    abort ();
+    emacs_abort ();
   return nbytes;
 }
 
@@ -1875,7 +1878,7 @@ check_string_free_list (void)
   while (s != NULL)
     {
       if ((uintptr_t) s < 1024)
-	abort ();
+	emacs_abort ();
       s = NEXT_FREE_LISP_STRING (s);
     }
 }
@@ -2104,7 +2107,7 @@ sweep_strings (void)
 		     back-pointer so that we know it's free.  */
 #ifdef GC_CHECK_STRING_BYTES
 		  if (string_bytes (s) != SDATA_NBYTES (data))
-		    abort ();
+		    emacs_abort ();
 #else
 		  data->u.nbytes = STRING_BYTES (s);
 #endif
@@ -2215,7 +2218,7 @@ compact_small_strings (void)
 	  /* Check that the string size recorded in the string is the
 	     same as the one recorded in the sdata structure. */
 	  if (s && string_bytes (s) != SDATA_NBYTES (from))
-	    abort ();
+	    emacs_abort ();
 #endif /* GC_CHECK_STRING_BYTES */
 
 	  nbytes = s ? STRING_BYTES (s) : SDATA_NBYTES (from);
@@ -2228,7 +2231,7 @@ compact_small_strings (void)
 	  if (memcmp (string_overrun_cookie,
 		      (char *) from_end - GC_STRING_OVERRUN_COOKIE_SIZE,
 		      GC_STRING_OVERRUN_COOKIE_SIZE))
-	    abort ();
+	    emacs_abort ();
 #endif
 
 	  /* Non-NULL S means it's alive.  Copy its data.  */
@@ -2485,7 +2488,7 @@ make_uninit_multibyte_string (EMACS_INT nchars, EMACS_INT nbytes)
   struct Lisp_String *s;
 
   if (nchars < 0)
-    abort ();
+    emacs_abort ();
   if (!nbytes)
     return empty_multibyte_string;
 
@@ -2806,7 +2809,7 @@ listn (enum constype type, ptrdiff_t count, Lisp_Object arg, ...)
       else if (type == CONSTYPE_HEAP)
 	val = Fcons (objp[i], val);
       else
-	abort ();
+	emacs_abort ();
     }
   return val;
 }
@@ -3916,7 +3919,7 @@ mem_insert (void *start, void *end, enum mem_type type)
   while (c != MEM_NIL)
     {
       if (start >= c->start && start < c->end)
-	abort ();
+	emacs_abort ();
       parent = c;
       c = start < c->start ? c->left : c->right;
     }
@@ -3935,7 +3938,7 @@ mem_insert (void *start, void *end, enum mem_type type)
 #ifdef GC_MALLOC_CHECK
   x = _malloc_internal (sizeof *x);
   if (x == NULL)
-    abort ();
+    emacs_abort ();
 #else
   x = xmalloc (sizeof *x);
 #endif
@@ -4610,7 +4613,7 @@ mark_maybe_pointer (void *p)
 	  break;
 
 	default:
-	  abort ();
+	  emacs_abort ();
 	}
 
       if (!NILP (obj))
@@ -4761,7 +4764,7 @@ test_setjmp (void)
   x = strlen (buf);
   x = 2 * x - 1;
 
-  setjmp (jbuf);
+  _setjmp (jbuf);
   if (longjmps_done == 1)
     {
       /* Came here after the longjmp at the end of the function.
@@ -4786,7 +4789,7 @@ test_setjmp (void)
   ++longjmps_done;
   x = 2;
   if (longjmps_done == 1)
-    longjmp (jbuf, 1);
+    _longjmp (jbuf, 1);
 }
 
 #endif /* not GC_SAVE_REGISTERS_ON_STACK && not GC_SETJMP_WORKS */
@@ -4807,7 +4810,7 @@ check_gcpros (void)
       if (!survives_gc_p (p->var[i]))
 	/* FIXME: It's not necessarily a bug.  It might just be that the
 	   GCPRO is unnecessary or should release the object sooner.  */
-	abort ();
+	emacs_abort ();
 }
 
 #elif GC_MARK_STACK == GC_USE_GCPROS_CHECK_ZOMBIES
@@ -4928,7 +4931,7 @@ mark_stack (void)
     }
 #endif /* GC_SETJMP_WORKS */
 
-  setjmp (j.j);
+  _setjmp (j.j);
   end = stack_grows_down_p ? (char *) &j + sizeof j : (char *) &j;
 #endif /* not GC_SAVE_REGISTERS_ON_STACK */
 #endif /* not HAVE___BUILTIN_UNWIND_INIT */
@@ -5348,7 +5351,7 @@ staticpro (Lisp_Object *varaddress)
 {
   staticvec[staticidx++] = varaddress;
   if (staticidx >= NSTATICS)
-    abort ();
+    emacs_abort ();
 }
 
 
@@ -5403,7 +5406,7 @@ See Info node `(elisp)Garbage Collection'.  */)
   Lisp_Object retval = Qnil;
 
   if (abort_on_gc)
-    abort ();
+    emacs_abort ();
 
   /* Can't GC if pure storage overflowed because we can't determine
      if something is a pure object or not.  */
@@ -5476,13 +5479,9 @@ See Info node `(elisp)Garbage Collection'.  */)
     }
   mark_terminals ();
   mark_kboards ();
-  mark_ttys ();
 
 #ifdef USE_GTK
-  {
-    extern void xg_mark_data (void);
-    xg_mark_data ();
-  }
+  xg_mark_data ();
 #endif
 
 #if (GC_MARK_STACK == GC_MAKE_GCPROS_NOOPS \
@@ -5888,7 +5887,7 @@ mark_object (Lisp_Object arg)
   do {						\
     m = mem_find (po);				\
     if (m == MEM_NIL)				\
-      abort ();					\
+      emacs_abort ();				\
   } while (0)
 
   /* Check that the object pointed to by PO is live, using predicate
@@ -5896,7 +5895,7 @@ mark_object (Lisp_Object arg)
 #define CHECK_LIVE(LIVEP)			\
   do {						\
     if (!LIVEP (m, po))				\
-      abort ();					\
+      emacs_abort ();				\
   } while (0)
 
   /* Check both of the above conditions.  */
@@ -5944,7 +5943,7 @@ mark_object (Lisp_Object arg)
 	if (m == MEM_NIL && !SUBRP (obj)
 	    && po != &buffer_defaults
 	    && po != &buffer_local_symbols)
-	  abort ();
+	  emacs_abort ();
 #endif /* GC_CHECK_MARKED_OBJECTS */
 
 	if (ptr->header.size & PSEUDOVECTOR_FLAG)
@@ -5967,7 +5966,7 @@ mark_object (Lisp_Object arg)
 		  if (b == po)
 		    break;
 		if (b == NULL)
-		  abort ();
+		  emacs_abort ();
 	      }
 #endif /* GC_CHECK_MARKED_OBJECTS */
 	    mark_buffer ((struct buffer *) ptr);
@@ -6043,7 +6042,7 @@ mark_object (Lisp_Object arg)
 	    break;
 
 	  case PVEC_FREE:
-	    abort ();
+	    emacs_abort ();
 
 	  default:
 	    mark_vectorlike (ptr);
@@ -6090,7 +6089,7 @@ mark_object (Lisp_Object arg)
 	       And if it's forwarded to a C variable, either it's not
 	       a Lisp_Object var, or it's staticpro'd already.  */
 	    break;
-	  default: abort ();
+	  default: emacs_abort ();
 	  }
 	if (!PURE_POINTER_P (XSTRING (ptr->name)))
 	  MARK_STRING (XSTRING (ptr->name));
@@ -6144,7 +6143,7 @@ mark_object (Lisp_Object arg)
 	  break;
 
 	default:
-	  abort ();
+	  emacs_abort ();
 	}
       break;
 
@@ -6166,7 +6165,7 @@ mark_object (Lisp_Object arg)
 	obj = ptr->u.cdr;
 	cdr_count++;
 	if (cdr_count == mark_object_loop_halt)
-	  abort ();
+	  emacs_abort ();
 	goto loop;
       }
 
@@ -6179,7 +6178,7 @@ mark_object (Lisp_Object arg)
       break;
 
     default:
-      abort ();
+      emacs_abort ();
     }
 
 #undef CHECK_LIVE
@@ -6248,7 +6247,7 @@ survives_gc_p (Lisp_Object obj)
       break;
 
     default:
-      abort ();
+      emacs_abort ();
     }
 
   return survives_p || PURE_POINTER_P ((void *) XPNTR (obj));
@@ -6686,21 +6685,14 @@ which_symbols (Lisp_Object obj, EMACS_INT find_max)
 
 #ifdef ENABLE_CHECKING
 
-# include <execinfo.h>
-
 bool suppress_checking;
 
 void
 die (const char *msg, const char *file, int line)
 {
-  enum { NPOINTERS_MAX = 500 };
-  void *buffer[NPOINTERS_MAX];
-  int npointers;
   fprintf (stderr, "\r\n%s:%d: Emacs fatal error: %s\r\n",
 	   file, line, msg);
-  npointers = backtrace (buffer, NPOINTERS_MAX);
-  backtrace_symbols_fd (buffer, npointers, STDERR_FILENO);
-  abort ();
+  fatal_error_backtrace (SIGABRT, INT_MAX);
 }
 #endif
 

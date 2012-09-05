@@ -1149,7 +1149,7 @@ BUF_FETCH_MULTIBYTE_CHAR (struct buffer *buf, ptrdiff_t pos)
    We assume you know which buffer it's pointing into.  */
 
 #define OVERLAY_POSITION(P) \
- (MARKERP (P) ? marker_position (P) : (abort (), 0))
+ (MARKERP (P) ? marker_position (P) : (emacs_abort (), 0))
 
 
 /***********************************************************************
@@ -1189,7 +1189,7 @@ extern int last_per_buffer_idx;
 
 #define PER_BUFFER_VALUE_P(B, IDX)		\
     (((IDX) < 0 || IDX >= last_per_buffer_idx)	\
-     ? (abort (), 0)				\
+     ? (emacs_abort (), 0)			\
      : ((B)->local_flags[IDX] != 0))
 
 /* Set whether per-buffer variable with index IDX has a buffer-local
@@ -1198,7 +1198,7 @@ extern int last_per_buffer_idx;
 #define SET_PER_BUFFER_VALUE_P(B, IDX, VAL)	\
      do {						\
        if ((IDX) < 0 || (IDX) >= last_per_buffer_idx)	\
-	 abort ();					\
+	 emacs_abort ();				\
        (B)->local_flags[IDX] = (VAL);			\
      } while (0)
 

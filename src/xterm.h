@@ -16,6 +16,9 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
+#ifndef XTERM_H
+#define XTERM_H
+
 #include <X11/Xlib.h>
 #include <X11/cursorfont.h>
 
@@ -367,12 +370,13 @@ extern int use_xim;
 extern void check_x (void);
 
 extern struct frame *x_window_to_frame (struct x_display_info *, int);
-
 extern struct frame *x_any_window_to_frame (struct x_display_info *, int);
 extern struct frame *x_menubar_window_to_frame (struct x_display_info *,
 						XEvent *);
-
 extern struct frame *x_top_window_to_frame (struct x_display_info *, int);
+
+extern struct frame *x_menubar_window_to_frame (struct x_display_info *,
+						XEvent *);
 
 #if ! defined (USE_X_TOOLKIT) && ! defined (USE_GTK)
 #define x_any_window_to_frame x_window_to_frame
@@ -389,7 +393,6 @@ extern struct x_display_info *x_display_list;
 extern Lisp_Object x_display_name_list;
 
 extern struct x_display_info *x_display_info_for_display (Display *);
-extern void x_set_frame_alpha (struct frame *);
 
 extern struct x_display_info *x_term_init (Lisp_Object, char *, char *);
 extern int x_display_ok  (const char *);
@@ -543,9 +546,6 @@ struct x_output
 
   /* Non-zero means hourglass cursor is currently displayed.  */
   unsigned hourglass_p : 1;
-
-  /* Flag to set when the X window needs to be completely repainted.  */
-  int needs_exposure;
 
   /* These are the current window manager hints.  It seems that
      XSetWMHints, when presented with an unset bit in the `flags'
@@ -944,7 +944,6 @@ XrmDatabase x_load_resources (Display *, const char *, const char *,
 /* Defined in xterm.c */
 
 extern int x_text_icon (struct frame *, const char *);
-extern int x_bitmap_icon (struct frame *, Lisp_Object);
 extern void x_catch_errors (Display *);
 extern void x_check_errors (Display *, const char *)
   ATTRIBUTE_FORMAT_PRINTF (2, 0);
@@ -956,11 +955,6 @@ extern void x_set_mouse_position (struct frame *, int, int);
 extern void x_set_mouse_pixel_position (struct frame *, int, int);
 extern void xembed_request_focus (struct frame *);
 extern void x_ewmh_activate_frame (struct frame *);
-extern void x_make_frame_visible (struct frame *);
-extern void x_make_frame_invisible (struct frame *);
-extern void x_iconify_frame (struct frame *);
-extern void x_free_frame_resources (struct frame *);
-extern void x_wm_set_size_hint (struct frame *, long, int);
 extern void x_delete_terminal (struct terminal *terminal);
 extern unsigned long x_copy_color (struct frame *, unsigned long);
 #ifdef USE_X_TOOLKIT
@@ -973,7 +967,6 @@ extern int x_alloc_lighter_color_for_widget (Widget, Display *, Colormap,
                                              double, int);
 #endif
 extern int x_alloc_nearest_color (struct frame *, Colormap, XColor *);
-extern void x_query_colors (struct frame *f, XColor *, int);
 extern void x_query_color (struct frame *f, XColor *);
 extern void x_clear_area (Display *, Window, int, int, int, int, int);
 #if defined HAVE_MENUS && !defined USE_X_TOOLKIT && !defined USE_GTK
@@ -1032,8 +1025,6 @@ extern int xg_set_icon (struct frame *, Lisp_Object);
 extern int xg_set_icon_from_xpm_data (struct frame *, const char**);
 #endif /* USE_GTK */
 
-extern void x_real_positions (struct frame *, int *, int *);
-extern void x_set_menu_bar_lines (struct frame *, Lisp_Object, Lisp_Object);
 extern void x_implicitly_set_name (struct frame *, Lisp_Object, Lisp_Object);
 extern void xic_free_xfontset (struct frame *);
 extern void create_frame_xic (struct frame *);
@@ -1043,9 +1034,6 @@ extern void xic_set_statusarea (struct frame *);
 extern void xic_set_xfontset (struct frame *, const char *);
 extern int x_pixel_width (struct frame *);
 extern int x_pixel_height (struct frame *);
-extern int x_char_width (struct frame *);
-extern int x_char_height (struct frame *);
-extern void x_sync (struct frame *);
 extern int x_defined_color (struct frame *, const char *, XColor *, int);
 #ifdef HAVE_X_I18N
 extern void free_frame_xic (struct frame *);
@@ -1053,7 +1041,6 @@ extern void free_frame_xic (struct frame *);
 extern char * xic_create_fontsetname (const char *base_fontname, int motif);
 # endif
 #endif
-extern void x_set_tool_bar_lines (struct frame *, Lisp_Object, Lisp_Object);
 
 /* Defined in xfaces.c */
 
@@ -1070,10 +1057,8 @@ extern void x_menu_set_in_use (int);
 #ifdef USE_MOTIF
 extern void x_menu_wait_for_event (void *data);
 #endif
-extern void x_activate_menubar (struct frame *);
 extern int popup_activated (void);
 extern void initialize_frame_menubar (struct frame *);
-extern void free_frame_menubar (struct frame *);
 
 /* Defined in widget.c */
 
@@ -1115,3 +1100,5 @@ extern Lisp_Object Qx_gtk_map_stock;
    (nr).y = (ry),					\
    (nr).width = (rwidth),				\
    (nr).height = (rheight))
+
+#endif /* XTERM_H */

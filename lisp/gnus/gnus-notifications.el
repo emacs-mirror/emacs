@@ -29,13 +29,16 @@
 
 ;;; Code:
 
-(require 'notifications nil t)
+(ignore-errors
+  (require 'notifications))
 (require 'gnus-sum)
 (require 'gnus-group)
 (require 'gnus-int)
 (require 'gnus-art)
 (require 'gnus-util)
-(require 'google-contacts nil t)        ; Optional
+(ignore-errors
+  (require 'google-contacts))        ; Optional
+(require 'gnus-fun)
 
 (defgroup gnus-notifications nil
   "Send notifications on new message in Gnus."
@@ -58,27 +61,52 @@ not get notifications."
   :type 'integer
   :group 'gnus-notifications)
 
+(defcustom gnus-notifications-timeout nil
+  "Timeout used for notifications sent via `notifications-notify'."
+  :type 'integer
+  :group 'gnus-notifications)
+
 (defvar gnus-notifications-sent nil
   "Notifications already sent.")
 
+(defvar gnus-notifications-id-to-msg nil
+  "Map notifications ids to messages.")
+
+(defun gnus-notifications-action (id key)
+  (when (string= key "read")
+    (let ((group-article (assoc id gnus-notifications-id-to-msg)))
+      (when group-article
+        (let ((group (cadr group-article))
+              (article (nth 2 group-article)))
+          (gnus-fetch-group group (list article)))))))
+
 (defun gnus-notifications-notify (from subject photo-file)
-  "Send a notification about a new mail."
+  "Send a notification about a new mail.
+Return a notification id if any, or t on success."
   (if (fboundp 'notifications-notify)
-      (notifications-notify
+      (gnus-funcall-no-warning
+       'notifications-notify
        :title from
        :body subject
-       :app-icon (image-search-load-path "gnus/gnus.png")
+       :actions '("read" "Read")
+       :on-action 'gnus-notifications-action
+       :app-icon (gnus-funcall-no-warning
+		  'image-search-load-path "gnus/gnus.png")
        :app-name "Gnus"
        :category "email.arrived"
+       :timeout gnus-notifications-timeout
        :image-path photo-file)
-    (message "New message from %s: %s" from subject)))
+    (message "New message from %s: %s" from subject)
+    ;; Don't return an id
+    t))
 
 (defun gnus-notifications-get-photo (mail-address)
   "Get photo for mail address."
   (let ((google-photo (when (and gnus-notifications-use-google-contacts
                                  (fboundp 'google-contacts-get-photo))
                         (ignore-errors
-                          (google-contacts-get-photo mail-address)))))
+                          (gnus-funcall-no-warning
+			   'google-contacts-get-photo mail-address)))))
     (if google-photo
         google-photo
       (when gnus-notifications-use-gravatar
@@ -136,21 +164,23 @@ This is typically a function to add in
                 (article-decode-encoded-words) ; to decode mail addresses, subjects, etc
                 (let* ((address-components (mail-extract-address-components
                                             (or (mail-fetch-field "From") "")))
-                       (address (cadr address-components))
-                       (photo-file (gnus-notifications-get-photo-file
-                                    address)))
-                  (when (or
-                         ;; Ignore mails from ourselves
-                         (gnus-string-match-p gnus-ignored-from-addresses
-                                              address)
-                         (gnus-notifications-notify
-                          (or (car address-components) address)
-                          (mail-fetch-field "Subject")
-                          photo-file))
-                    ;; Register that we did notify this message
-                    (setcdr group-notifications (cons article (cdr group-notifications))))
-                  (when photo-file
-                    (delete-file photo-file)))))))))))
+                       (address (cadr address-components)))
+                  ;; Ignore mails from ourselves
+                  (unless (gnus-string-match-p gnus-ignored-from-addresses
+                                               address)
+                    (let* ((photo-file (gnus-notifications-get-photo-file address))
+                           (notification-id (gnus-notifications-notify
+                                             (or (car address-components) address)
+                                             (mail-fetch-field "Subject")
+                                             photo-file)))
+                      (when notification-id
+                        ;; Register that we did notify this message
+                        (setcdr group-notifications (cons article (cdr group-notifications)))
+                        (unless (eq notification-id t)
+                          ;; Register the notification id for later actions
+                          (add-to-list 'gnus-notifications-id-to-msg (list notification-id group article))))
+                      (when photo-file
+                        (delete-file photo-file)))))))))))))
 
 (provide 'gnus-notifications)
 

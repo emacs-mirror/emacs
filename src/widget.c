@@ -226,7 +226,7 @@ get_wm_shell (Widget w)
 static void
 mark_shell_size_user_specified (Widget wmshell)
 {
-  if (! XtIsWMShell (wmshell)) abort ();
+  if (! XtIsWMShell (wmshell)) emacs_abort ();
   /* This is kind of sleazy, but I can't see how else to tell it to make it
      mark the WM_SIZE_HINTS size as user specified when appropriate. */
   ((WMShellWidget) wmshell)->wm.size_hints.flags |= USSize;
@@ -290,7 +290,7 @@ set_frame_size (EmacsFrame ew)
   Widget wmshell = get_wm_shell ((Widget) ew);
   /* Each Emacs shell is now independent and top-level.  */
 
-  if (! XtIsSubclass (wmshell, shellWidgetClass)) abort ();
+  if (! XtIsSubclass (wmshell, shellWidgetClass)) emacs_abort ();
 
   /* We don't need this for the moment. The geometry is computed in
      xfns.c.  */
@@ -671,16 +671,14 @@ EmacsFrameRealize (Widget widget, XtValueMask *mask, XSetWindowAttributes *attrs
   update_wm_hints (ew);
 }
 
-extern void free_frame_faces (struct frame *);
-
 static void
 EmacsFrameDestroy (Widget widget)
 {
   EmacsFrame ew = (EmacsFrame) widget;
   struct frame* s = ew->emacs_frame.frame;
 
-  if (! s) abort ();
-  if (! s->output_data.x) abort ();
+  if (! s) emacs_abort ();
+  if (! s->output_data.x) emacs_abort ();
 
   BLOCK_INPUT;
   x_free_gcs (s);

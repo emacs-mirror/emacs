@@ -953,8 +953,6 @@ lest."
       (y-or-n-p prompt)
     t))
 
-(random t)
-
 (provide '5x5)
 
 ;;; 5x5.el ends here

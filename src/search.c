@@ -1009,7 +1009,7 @@ search_command (Lisp_Object string, Lisp_Object bound, Lisp_Object noerror,
       if (!EQ (noerror, Qt))
 	{
 	  if (lim < BEGV || lim > ZV)
-	    abort ();
+	    emacs_abort ();
 	  SET_PT_BOTH (lim, lim_byte);
 	  return Qnil;
 #if 0 /* This would be clean, but maybe programs depend on
@@ -1022,7 +1022,7 @@ search_command (Lisp_Object string, Lisp_Object bound, Lisp_Object noerror,
     }
 
   if (np < BEGV || np > ZV)
-    abort ();
+    emacs_abort ();
 
   SET_PT (np);
 
@@ -2770,7 +2770,7 @@ Return value is undefined if the last search failed.  */)
 	    }
 	  else
 	    /* last_thing_searched must always be Qt, a buffer, or Qnil.  */
-	    abort ();
+	    emacs_abort ();
 
 	  len = 2 * i + 2;
 	}

@@ -1222,14 +1222,9 @@ if ($ptr != 0)
   set $tem = (struct Lisp_String *) $ptr
   set $tem = (char *) $tem->data
 
-  # Don't let abort actually run, as it will make stdio stop working and
-  # therefore the `pr' command above as well.
-  if $tem[0] == 'w' && $tem[1] == 'i' && $tem[2] == 'n' && $tem[3] == 'd'
-    # The windows-nt build replaces abort with its own function.
-    break w32_abort
-  else
-    break abort
-  end
+  # Don't let emacs_abort actually run, as it will make stdio stop
+  # working and therefore the 'pr' command above as well.
+  break emacs_abort
 end
 
 # x_error_quitter is defined only on X.  But window-system is set up

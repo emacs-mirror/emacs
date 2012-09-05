@@ -254,7 +254,7 @@ void
 free_widget_value (widget_value *wv)
 {
   if (wv->free_list)
-    abort ();
+    emacs_abort ();
 
   if (malloc_cpt > 25)
     {
@@ -1348,13 +1348,14 @@ x_wm_set_size_hint (FRAME_PTR f, long int flags, int user_position)
   size_hints.height_inc = FRAME_LINE_HEIGHT (f);
 
   hint_flags |= GDK_HINT_BASE_SIZE;
-  base_width = FRAME_TEXT_COLS_TO_PIXEL_WIDTH (f, 0) + FRAME_TOOLBAR_WIDTH (f);
-  /* Use one row here so base_height does not become zero.
+  /* Use one row/col here so base_height/width does not become zero.
      Gtk+ and/or Unity on Ubuntu 12.04 can't handle it.  */
+  base_width = FRAME_TEXT_COLS_TO_PIXEL_WIDTH (f, 1) + FRAME_TOOLBAR_WIDTH (f);
   base_height = FRAME_TEXT_LINES_TO_PIXEL_HEIGHT (f, 1)
     + FRAME_MENUBAR_HEIGHT (f) + FRAME_TOOLBAR_HEIGHT (f);
 
   check_frame_size (f, &min_rows, &min_cols);
+  if (min_cols > 0) --min_cols; /* We used one col in base_width = ... 1); */
   if (min_rows > 0) --min_rows; /* We used one row in base_height = ... 1); */
 
   size_hints.base_width = base_width;
@@ -2018,11 +2019,6 @@ xg_get_file_name (FRAME_PTR f,
 
 #if USE_NEW_GTK_FONT_CHOOSER
 
-extern Lisp_Object Qxft, Qnormal;
-extern Lisp_Object Qextra_light, Qlight, Qsemi_light, Qsemi_bold;
-extern Lisp_Object Qbold, Qextra_bold, Qultra_bold;
-extern Lisp_Object Qoblique, Qitalic;
-
 #define XG_WEIGHT_TO_SYMBOL(w)			\
   (w <= PANGO_WEIGHT_THIN ? Qextra_light	\
    : w <= PANGO_WEIGHT_ULTRALIGHT ? Qlight	\
@@ -2042,6 +2038,7 @@ extern Lisp_Object Qoblique, Qitalic;
 
 
 static char *x_last_font_name;
+extern Lisp_Object Qxft;
 
 /* Pop up a GTK font selector and return the name of the font the user
    selects, as a C string.  The returned font name follows GTK's own
@@ -3522,7 +3519,7 @@ xg_store_widget_in_map (GtkWidget *w)
     }
 
   /* Should never end up here  */
-  abort ();
+  emacs_abort ();
 }
 
 /* Remove pointer at IDX from id_to_widget.
@@ -4090,7 +4087,7 @@ xg_tool_bar_menu_proxy (GtkToolItem *toolitem, gpointer user_data)
           else
             {
               fprintf (stderr, "internal error: GTK_IMAGE_PIXBUF failed\n");
-              abort ();
+              emacs_abort ();
             }
         }
       else if (store_type == GTK_IMAGE_ICON_NAME)
@@ -4105,7 +4102,7 @@ xg_tool_bar_menu_proxy (GtkToolItem *toolitem, gpointer user_data)
       else
         {
           fprintf (stderr, "internal error: store_type is %d\n", store_type);
-          abort ();
+          emacs_abort ();
         }
     }
   if (wmenuimage)

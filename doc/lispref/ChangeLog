@@ -1,3 +1,21 @@
+2012-09-04  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* debugging.texi (Explicit Debug): Document `debug-on-message'.
+
+2012-09-02  Chong Yidong  <cyd@gnu.org>
+
+	* windows.texi (Window Configurations): Recommend against using
+	save-window-excursion (Bug#12075).
+
+	* control.texi (Catch and Throw):
+	* positions.texi (Excursions): Don't mention it.
+
+2012-09-01  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Better seed support for (random).
+	* numbers.texi (Random Numbers): Document new behavior of
+	the calls (random) and (random STRING).
+
 2012-08-21  Martin Rudalics  <rudalics@gmx.at>
 
 	* windows.texi (Window Point): Document recent changes in

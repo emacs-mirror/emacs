@@ -89,7 +89,7 @@ extern int pending_atimers;
 	    do_pending_atimers ();		\
 	}					\
       else if (interrupt_input_blocked < 0)	\
-	abort ();				\
+	emacs_abort ();				\
     }						\
   while (0)
 
@@ -124,4 +124,3 @@ extern int pending_atimers;
 extern void reinvoke_input_signal (void);
 
 #endif /* EMACS_BLOCKINPUT_H */
-

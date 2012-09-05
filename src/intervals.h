@@ -227,7 +227,7 @@ extern INTERVAL make_interval (void);
 
 extern INTERVAL create_root_interval (Lisp_Object);
 extern void copy_properties (INTERVAL, INTERVAL);
-extern int intervals_equal (INTERVAL, INTERVAL);
+extern bool intervals_equal (INTERVAL, INTERVAL);
 extern void traverse_intervals (INTERVAL, ptrdiff_t,
                                 void (*) (INTERVAL, Lisp_Object),
                                 Lisp_Object);
@@ -242,22 +242,22 @@ extern INTERVAL previous_interval (INTERVAL);
 extern INTERVAL merge_interval_left (INTERVAL);
 extern void offset_intervals (struct buffer *, ptrdiff_t, ptrdiff_t);
 extern void graft_intervals_into_buffer (INTERVAL, ptrdiff_t, ptrdiff_t,
-                                         struct buffer *, int);
+                                         struct buffer *, bool);
 extern void verify_interval_modification (struct buffer *,
 					  ptrdiff_t, ptrdiff_t);
 extern INTERVAL balance_intervals (INTERVAL);
 extern void copy_intervals_to_string (Lisp_Object, struct buffer *,
                                              ptrdiff_t, ptrdiff_t);
 extern INTERVAL copy_intervals (INTERVAL, ptrdiff_t, ptrdiff_t);
-extern int compare_string_intervals (Lisp_Object, Lisp_Object);
+extern bool compare_string_intervals (Lisp_Object, Lisp_Object);
 extern Lisp_Object textget (Lisp_Object, Lisp_Object);
-extern Lisp_Object lookup_char_property (Lisp_Object, Lisp_Object, int);
+extern Lisp_Object lookup_char_property (Lisp_Object, Lisp_Object, bool);
 extern void move_if_not_intangible (ptrdiff_t);
-extern int get_property_and_range (ptrdiff_t, Lisp_Object, Lisp_Object *,
-                                   ptrdiff_t *, ptrdiff_t *, Lisp_Object);
+extern bool get_property_and_range (ptrdiff_t, Lisp_Object, Lisp_Object *,
+				    ptrdiff_t *, ptrdiff_t *, Lisp_Object);
 extern Lisp_Object get_local_map (ptrdiff_t, struct buffer *, Lisp_Object);
 extern INTERVAL update_interval (INTERVAL, ptrdiff_t);
-extern void set_intervals_multibyte (int);
+extern void set_intervals_multibyte (bool);
 extern INTERVAL validate_interval_range (Lisp_Object, Lisp_Object *,
                                          Lisp_Object *, int);
 extern INTERVAL interval_of (ptrdiff_t, Lisp_Object);
