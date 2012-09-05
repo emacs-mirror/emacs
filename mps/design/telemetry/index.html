@@ -337,7 +337,7 @@ buffer are output via the plinth.  This is set on a per-kind basis (see
 all event kinds are off.  You may switch some kinds on using a 
 debugger.
 
-For example, to disable Ref events using gdb (see impl.h.event for numeric 
+For example, to enable Ref events using gdb (see impl.h.eventcom for numeric 
 codes):
 
   break TraceCreate
@@ -390,15 +390,6 @@ Allocation Replayer Tool
 
 <a id="replayer" name="replayer">.replayer</a>: A tool for replaying an allocation sequence from a log is available 
 in impl.c.replay.  For details, see design.mps.telemetry.replayer.
-
-
-
-TEXT:
-
-<a id="notes" name="notes">.notes</a>:
-  - Set always to FALSE for all Ref and Object events;
-  - Resolve protection transgression in impl.h.eventdef;
-  - Make EventKind* enum members so they can be used from the debugger.
 
 </pre>
 
