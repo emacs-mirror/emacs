@@ -180,46 +180,51 @@
     (setq header "article"))
   (with-current-buffer nntp-server-buffer
     (let* ((request-func (cond ((string= "head" header)
-				'gnus-request-head)
-			       ((string= "body" header)
-				'gnus-request-body)
-			       (t 'gnus-request-article)))
-	   ofunc article)
+                                'gnus-request-head)
+                               ;; We need to peek at the headers to detect the
+                               ;; content encoding
+                               ((string= "body" header)
+                                'gnus-request-article)
+                               (t 'gnus-request-article)))
+           ofunc article handles)
       ;; Not all backends support partial fetching.  In that case, we
       ;; just fetch the entire article.
       (unless (gnus-check-backend-function
-	       (intern (concat "request-" header))
-	       gnus-newsgroup-name)
-	(setq ofunc request-func)
-	(setq request-func 'gnus-request-article))
+               (intern (concat "request-" header))
+               gnus-newsgroup-name)
+        (setq ofunc request-func)
+        (setq request-func 'gnus-request-article))
       (setq article (mail-header-number gnus-advanced-headers))
       (gnus-message 7 "Scoring article %s..." article)
       (when (funcall request-func article gnus-newsgroup-name)
-	(goto-char (point-min))
-	;; If just parts of the article is to be searched and the
-	;; backend didn't support partial fetching, we just narrow to
-	;; the relevant parts.
-	(when ofunc
-	  (if (eq ofunc 'gnus-request-head)
-	      (narrow-to-region
-	       (point)
-	       (or (search-forward "\n\n" nil t) (point-max)))
-	    (narrow-to-region
-	     (or (search-forward "\n\n" nil t) (point))
-	     (point-max))))
-	(let* ((case-fold-search (not (eq (downcase (symbol-name type))
-					  (symbol-name type))))
-	       (search-func
-		(cond ((memq type '(r R regexp Regexp))
-		       're-search-forward)
-		      ((memq type '(s S string String))
-		       'search-forward)
-		      (t
-		       (error "Invalid match type: %s" type)))))
-	  (goto-char (point-min))
-	  (prog1
-	      (funcall search-func match nil t)
-	    (widen)))))))
+        (when (string= "body" header)
+          (setq handles (gnus-score-decode-text-parts)))
+        (goto-char (point-min))
+        ;; If just parts of the article is to be searched and the
+        ;; backend didn't support partial fetching, we just narrow to
+        ;; the relevant parts.
+        (when ofunc
+          (if (eq ofunc 'gnus-request-head)
+              (narrow-to-region
+               (point)
+               (or (search-forward "\n\n" nil t) (point-max)))
+            (narrow-to-region
+             (or (search-forward "\n\n" nil t) (point))
+             (point-max))))
+        (let* ((case-fold-search (not (eq (downcase (symbol-name type))
+                                          (symbol-name type))))
+               (search-func
+                (cond ((memq type '(r R regexp Regexp))
+                       're-search-forward)
+                      ((memq type '(s S string String))
+                       'search-forward)
+                      (t
+                       (error "Invalid match type: %s" type)))))
+          (goto-char (point-min))
+          (prog1
+              (funcall search-func match nil t)
+            (widen)))
+        (when handles (mm-destroy-parts handles))))))
 
 (provide 'gnus-logic)
 
