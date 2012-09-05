@@ -159,6 +159,26 @@
 #endif
 
 
+/* CONFIG_PLINTH_NONE -- exclude the ANSI plinth
+ *
+ * Some MPS deployment environments want to avoid dependencies on the
+ * standard C library.  In this case, the plinth, defined in mpslib.h must
+ * be supplied when linking.
+ *
+ * For example, Open Dylan on Windows does not link the C library, but
+ * supplies its own plinth directly using Windows and Dylan interfaces.
+ *
+ * CONFIG_PLINTH_NONE tells mps.c to exclude the ANSI plinth and removes
+ * all standard C library dependencies.  e.g.
+ *
+ *     cc -O2 -c -DCONFIG_PLINTH_NONE mps.c
+ */
+
+#if defined(CONFIG_PLINTH_NONE)
+#define PLINTH_NONE
+#endif
+
+
 #define MPS_VARIETY_STRING \
   MPS_ASSERT_STRING "." MPS_LOG_STRING "." MPS_STATS_STRING
 

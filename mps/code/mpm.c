@@ -176,7 +176,14 @@ Word (WordAlignDown)(Word word, Align alignment)
 
 Bool SizeIsP2(Size size)
 {
-  return size > 0 && (size & (size - 1)) == 0;
+  return WordIsP2((Word)size);
+}
+
+/* WordIsP2 -- tests whether a word is a power of two */
+
+Bool WordIsP2(Word word)
+{
+  return word > 0 && (word & (word - 1)) == 0;  
 }
 
 

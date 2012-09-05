@@ -138,6 +138,7 @@ Bool TraceCheck(Trace trace)
   CHECKL(TraceIdCheck(trace->ti));
   CHECKL(trace == &trace->arena->trace[trace->ti]);
   CHECKL(TraceSetIsMember(trace->arena->busyTraces, trace));
+  CHECKL(AlignCheck(trace->whiteMinAlign));
   CHECKL(ZoneSetSub(trace->mayMove, trace->white));
   /* Use trace->state to check more invariants. */
   switch(trace->state) {
@@ -366,6 +367,10 @@ Res TraceAddWhite(Trace trace, Seg seg)
     if(pool->class->attr & AttrMOVINGGC) {
       trace->mayMove = ZoneSetUnion(trace->mayMove,
                                     ZoneSetOfSeg(trace->arena, seg));
+    }
+    /* This is used to eliminate unaligned references in TraceScanAreaTagged */
+    if(pool->alignment < trace->whiteMinAlign) {
+      trace->whiteMinAlign = pool->alignment;
     }
   }
 
@@ -656,6 +661,7 @@ found:
 
   trace->arena = arena;
   trace->why = why;
+  trace->whiteMinAlign = (Align)1 << (MPS_WORD_WIDTH - 1);
   trace->white = ZoneSetEMPTY;
   trace->mayMove = ZoneSetEMPTY;
   trace->ti = ti;
@@ -821,7 +827,75 @@ static void traceReclaim(Trace trace)
   (void)TraceIdMessagesCreate(arena, trace->ti);
 }
 
+/* TraceRankForAccess -- Returns rank to scan at if we hit a barrier.
+ * 
+ * We assume a single trace as otherwise we need to implement rank
+ * filters on scanning.
+ *
+ * .scan.conservative: It's safe to scan at EXACT unless the band is
+ * WEAK and in that case the segment should be weak.
+ * 
+ * If the trace band is EXACT then we scan EXACT. This might prevent
+ * finalisation messages and may preserve objects pointed to only by weak
+ * references but tough luck -- the mutator wants to look.
+ * 
+ * If the trace band is FINAL and the segment is FINAL, we scan it FINAL.
+ * Any objects not yet preserved deserve to die, and we're only giving
+ * them a temporary reprieve.  All the objects on the segment should be FINAL,
+ * otherwise they might get sent finalization messages.
+ *
+ * If the trace band is FINAL, and the segment is not FINAL, we scan at EXACT.
+ * This is safe to do for FINAL and WEAK references.
+ * 
+ * If the trace band is WEAK then the segment must be weak only, and we 
+ * scan at WEAK.  All other segments for this trace should be scanned by now.
+ * We must scan at WEAK to avoid bringing any objects back to life.
+ * 
+ * See the message <http://info.ravenbrook.com/mail/2012/08/30/16-46-42/0.txt>
+ * for a description of these semantics.
+ */
+Rank TraceRankForAccess(Arena arena, Seg seg)
+{
+  TraceSet ts;
+  Trace trace;
+  TraceId ti;
+  Rank band;
+  RankSet rankSet;
 
+  AVERT(Arena, arena);
+  AVERT(Seg, seg);
+
+  band = RankAMBIG; /* initialize band to avoid warning */
+  ts = arena->flippedTraces;    
+  AVER(TraceSetIsSingle(ts));
+  TRACE_SET_ITER(ti, trace, ts, arena)
+    band = traceBand(trace);
+  TRACE_SET_ITER_END(ti, trace, ts, arena);
+  rankSet = SegRankSet(seg);
+  switch(band) {
+  case RankAMBIG:
+    NOTREACHED;
+    break;
+  case RankEXACT:
+    return RankEXACT;
+  case RankFINAL:
+    if(rankSet == RankSetSingle(RankFINAL)) {
+      return RankFINAL;
+    }
+    /* It's safe to scan at exact in the final band so do so if there are
+     * any non-final references. */
+    return RankEXACT;
+  case RankWEAK:
+    AVER(rankSet == RankSetSingle(RankWEAK));
+    return RankWEAK;
+  default:
+    NOTREACHED;
+    break;
+  }
+  NOTREACHED;
+  return RankEXACT;
+}
+ 
 /* traceFindGrey -- find a grey segment
  *
  * This function finds the next segment to scan.  It does this according
@@ -864,7 +938,10 @@ static void traceReclaim(Trace trace)
  * whilst working in this band.  That's what we check, although we
  * expect to have to change the check if we introduce more ranks, or
  * start changing the semantics of them.  A flag is used to implement
- * this check.
+ * this check.  See <http://info.ravenbrook.com/project/mps/issue/job001658/>.
+ * 
+ * For further discussion on the semantics of rank based tracing see
+ * <http://info.ravenbrook.com/mail/2007/06/25/11-35-57/0.txt>
  */
 
 static Bool traceFindGrey(Seg *segReturn, Rank *rankReturn,
@@ -1125,8 +1202,6 @@ static void traceScanSeg(TraceSet ts, Rank rank, Arena arena, Seg seg)
 
 void TraceSegAccess(Arena arena, Seg seg, AccessSet mode)
 {
-  TraceId ti;
-
   AVERT(Arena, arena);
   AVERT(Seg, seg);
 
@@ -1143,13 +1218,15 @@ void TraceSegAccess(Arena arena, Seg seg, AccessSet mode)
   EVENT_PPU(TraceAccess, arena, seg, mode);
 
   if((mode & SegSM(seg) & AccessREAD) != 0) {   /* read barrier? */
+    Trace trace;
+    TraceId ti;
+    Rank rank;
+    
     /* Pick set of traces to scan for: */
     TraceSet traces = arena->flippedTraces;
-
-    /* .scan.conservative: At the moment we scan at RankEXACT.  Really */
-    /* we should be scanning at the "phase" of the trace, which is the */
-    /* minimum rank of all grey segments. (see request.mps.170160) */
-    traceScanSeg(traces, RankEXACT, arena, seg);
+    
+    rank = TraceRankForAccess(arena, seg);
+    traceScanSeg(traces, rank, arena, seg);      
 
     /* The pool should've done the job of removing the greyness that */
     /* was causing the segment to be protected, so that the mutator */
@@ -1157,8 +1234,6 @@ void TraceSegAccess(Arena arena, Seg seg, AccessSet mode)
     AVER(TraceSetInter(SegGrey(seg), traces) == TraceSetEMPTY);
 
     STATISTIC_STAT({
-      Trace trace;
-
       TRACE_SET_ITER(ti, trace, traces, arena)
         ++trace->readBarrierHitCount;
       TRACE_SET_ITER_END(ti, trace, traces, arena);
@@ -1402,13 +1477,37 @@ Res TraceScanArea(ScanState ss, Addr *base, Addr *limit)
 
 /* TraceScanAreaTagged -- scan contiguous area of tagged references
  *
- * This is as TraceScanArea except words are only fixed if they are
- * tagged as Dylan references (i.e., bottom two bits are zero).  @@@@
- * This Dylan-specificness should be generalized in some way.  */
-
+ * This is as TraceScanArea except words are only fixed they are tagged
+ * as zero according to the minimum alignment of the condemned set.
+ */
 Res TraceScanAreaTagged(ScanState ss, Addr *base, Addr *limit)
 {
-  return TraceScanAreaMasked(ss, base, limit, (Word)3);
+  TraceSet ts;
+  TraceId ti;
+  Trace trace;
+  Arena arena;
+  Word mask;
+  
+  AVERT(ScanState, ss);
+
+  /* This calculation of the mask could be moved to ScanStateInit
+   * but there is little point as we probably only do a couple of ambiguous
+   * scan per thread per flip. */
+  /* NOTE: An optimisation that maybe worth considering is setting some of the
+   * top bits in the mask as an early catch of addresses outside the arena.
+   * This might help slightly on 64-bit windows. However these are picked up
+   * soon afterwards by later checks.  The bottom bits are more important
+   * to check as we ignore them in AMCFix, so the non-reference could
+   * otherwise end up pinning an object. */
+  mask = (Word)-1;
+  ts = ss->traces;
+  arena = ss->arena;
+  TRACE_SET_ITER(ti, trace, ts, arena)
+    AVER(WordIsP2(trace->whiteMinAlign));
+    mask = mask & (trace->whiteMinAlign - 1);
+  TRACE_SET_ITER_END(ti, trace, ts, arena);
+
+  return TraceScanAreaMasked(ss, base, limit, mask);
 }
 
 
@@ -1423,6 +1522,7 @@ Res TraceScanAreaMasked(ScanState ss, Addr *base, Addr *limit, Word mask)
   Addr *p;
   Ref ref;
 
+  AVERT(ScanState, ss);
   AVER(base != NULL);
   AVER(limit != NULL);
   AVER(base < limit);

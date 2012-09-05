@@ -18,7 +18,7 @@ MPM = <ring> <mpm> <bt> <protocol> <boot> \
       <root> <format> <buffer> <walk> <lockw3> \
       <ref> <trace> <traceanc> <protw3> <proti6> <prmci6w3> \
       <shield> <vmw3> \
-      <thw3> <thw3i6> <ssw3i6> <mpsi> <mpsiw3> <ld> <span> \
+      <thw3> <thw3i6> <ssw3mv> <mpsi> <mpsiw3> <ld> <span> \
       <event> <seg> <sac> <poolmrg> <message> <dbgpool> <dbgpooli> \
       <abq> <meter> <cbs> <poolmv2> <splay> <diag> <version>
 PLINTH = <mpsliban> <mpsioan>
@@ -115,9 +115,9 @@ POOLNOBJ0 = $(POOLN:<=w3i6mv\ti\)
 TESTLIBOBJ0 = $(TESTLIB:<=w3i6mv\ti\)
 
 !ELSEIF "$(VARIETY)" == "rash"
-CFLAGS=$(CFLAGSCOMMONPRE) $(CFWE) $(CFLAGSCOMMONPOST)
-LINKFLAGS=$(LINKFLAGSCOMMON) $(LFWE)
-LIBFLAGS=$(LIBFLAGSCOMMON) $(LIBFLAGSWE)
+CFLAGS=$(CFLAGSCOMMONPRE) $(CFRASH) $(CFLAGSCOMMONPOST)
+LINKFLAGS=$(LINKFLAGSCOMMON) $(LFRASH)
+LIBFLAGS=$(LIBFLAGSCOMMON) $(LIBFLAGSRASH)
 MPMOBJ0 = $(MPM:<=w3i6mv\rash\)
 PLINTHOBJ0 = $(PLINTH:<=w3i6mv\rash\)
 AMSOBJ0 = $(AMS:<=w3i6mv\rash\)

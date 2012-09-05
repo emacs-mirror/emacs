@@ -62,7 +62,7 @@ Res StackScan(ScanState ss, Addr *stackBot)
   ASMV("mov %%rsp, %0" : "=r" (stackTop) :);    /* stackTop = rsp */
 
   AVER(AddrIsAligned((Addr)stackTop, sizeof(Addr)));  /* .assume.align */
-  res = TraceScanArea(ss, stackTop, stackBot);
+  res = TraceScanAreaTagged(ss, stackTop, stackBot);
 
   return res;
 }
