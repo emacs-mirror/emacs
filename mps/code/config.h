@@ -39,22 +39,6 @@
 /* no telemetry log events */
 
 
-/* CONFIG_VAR_HOT -- the hot variety
- *
- * This variety is the default variety for distribution in products that use
- * the MPS.  It has maximum performance while retaining a good level of
- * consistency checking and allowing some debugging and telemetry features.
- */
-
-#elif defined(CONFIG_VAR_HOT)
-#define CONFIG_ASSERT
-#ifndef CHECKLEVEL
-#define CHECKLEVEL      CheckLevelMINIMAL
-#endif
-/* no statistic meters */
-/* no telemetry log events */
-
-
 /* CONFIG_VAR_DIAG -- diagnostic variety
  *
  * Deprecated.  The diagnostic variety prints messages about the internals
@@ -110,6 +94,24 @@
 #endif
 #define CONFIG_STATS
 #define CONFIG_LOG
+
+
+#else /* CONFIG_VAR_* */
+
+/* CONFIG_VAR_HOT -- the hot variety
+ *
+ * This variety is the default variety for distribution in products that use
+ * the MPS.  It has maximum performance while retaining a good level of
+ * consistency checking and allowing some debugging and telemetry features.
+ */
+
+/* #elif defined(CONFIG_VAR_HOT) */
+#define CONFIG_ASSERT
+#ifndef CHECKLEVEL
+#define CHECKLEVEL      CheckLevelMINIMAL
+#endif
+/* no statistic meters */
+/* no telemetry log events */
 
 #endif /* CONFIG_VAR_* */
 
