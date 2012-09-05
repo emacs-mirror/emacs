@@ -5,11 +5,7 @@
  */
 
 #include "config.h"
-/* override variety setting for EVENT */
-#define EVENT
-
 #include "table.h"
-
 #include "eventdef.h"
 #include "eventcom.h"
 #include "eventpro.h"

@@ -50,7 +50,7 @@ typedef unsigned __int64 EventClock;
 #if defined(MPS_ARCH_I3)
 #define EVENT_CLOCK_WRITE(stream, clock) \
   WriteF(stream, "$W$W", (WriteFW)((clock) >> 32), (WriteFW)clock, NULL)
-#else /* I6 */
+#elif defined(MPS_ARCH_I6)
 #define EVENT_CLOCK_WRITE(stream, clock) \
   WriteF(stream, "$W", (WriteFW)(clock), NULL)
 #endif
@@ -153,10 +153,12 @@ typedef unsigned short EventSize;
 
 /* Common prefix for all event structures.  The size field allows an event
    reader to skip over events whose codes it does not recognise. */
-typedef struct EventAnyStruct {
-  EventCode code;       /* encoding of the event type */
-  EventSize size;       /* allows reader to skip events of unknown code */
+#define EVENT_ANY_FIELDS \
+  EventCode code;       /* encoding of the event type */ \
+  EventSize size;       /* allows reader to skip events of unknown code */ \
   EventClock clock;     /* when the event occurred */
+typedef struct EventAnyStruct {
+  EVENT_ANY_FIELDS
 } EventAnyStruct;
 
 /* Event field types, for indexing by macro on the event parameter sort */
@@ -182,9 +184,7 @@ typedef int EventFB;                    /* boolean */
 
 #define EVENT_STRUCT(X, name, _code, always, kind) \
   typedef struct Event##name##Struct { \
-    EventCode code;     /* Must match EventAnyStruct */ \
-    EventSize size;     /* ditto */ \
-    EventClock clock;   /* ditto */ \
+    EVENT_ANY_FIELDS \
     EVENT_##name##_PARAMS(EVENT_STRUCT_FIELD, X) \
   } Event##name##Struct;
 
