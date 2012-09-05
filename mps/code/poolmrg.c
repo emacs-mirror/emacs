@@ -635,7 +635,7 @@ static Res MRGInit(Pool pool, va_list args)
   DIAG_PRINTF(( "mrg->extendBy = %u, MRGGuardiansPerSeg = %u\n", 
                 (unsigned int) mrg->extendBy, 
                 (unsigned int) MRGGuardiansPerSeg(mrg) ));
-  EVENT_PPP(PoolInit, pool, PoolArena(pool), ClassOfPool(pool));
+  EVENT3(PoolInit, pool, PoolArena(pool), ClassOfPool(pool));
   return ResOK;
 }
 

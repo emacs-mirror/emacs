@@ -5,11 +5,8 @@
  */
 
 #include "config.h"
-/* override variety setting for EVENT */
-#define EVENT
-
 #include "table.h"
-
+#include "eventdef.h"
 #include "eventcom.h"
 #include "eventpro.h"
 #include "misc.h"
@@ -21,7 +18,6 @@
 #include <string.h> /* strcmp */
 
 struct EventProcStruct {
-  Bool partialLog;        /* Is this a partial log? */
   EventProcReader reader; /* reader fn */
   void *readerP;          /* closure pointer for reader fn */
   Table internTable;      /* dictionary of intern ids to symbols */
@@ -57,7 +53,10 @@ struct EventProcStruct {
  * of the structure.  This has to agree with the writing (EVENT_END).
  */
 
-#define EventSizeAlign(size) sizeAlignUp(size, sizeof(Word))
+/* TODO: Should read this and other layout information from an event file
+   header in order to be able to process events from other architectures. */
+
+#define EventSizeAlign(size) sizeAlignUp(size, MPS_PF_ALIGN)
 
 
 
@@ -67,37 +66,33 @@ struct EventProcStruct {
 /* eventTypes -- an array containing info about the event types */
 
 typedef struct {
-  EventType type;
-  char *name;
-  size_t code;
-  size_t length;
-  char *format;
+  char *name;           /* Event name e.g. "TraceStart" */
+  EventCode code;
+  size_t size;          /* event record size, rounded up from structure */
+  Count count;          /* Parameter count */
+  char *format;         /* string format, e.g. "PPW" */
 } eventRecord;
 
+#define EVENT_COUNT_PARAM(X, index, sort, ident) + 1
+
+#define EVENT_FORMAT_PARAM(X, index, sort, ident) #sort
+
+#define EVENT_OFFSETS_PARAM(name, index, sort, ident) \
+  offsetof(Event##name##Struct, f##index),
+
+#define EVENT_INIT(X, name, code, always, kind) \
+  {#name, \
+   code, \
+   EventSizeAlign(sizeof(Event##name##Struct)), \
+   0 EVENT_##name##_PARAMS(EVENT_COUNT_PARAM, X), \
+   "" EVENT_##name##_PARAMS(EVENT_FORMAT_PARAM, X)},
+
 static eventRecord eventTypes[] = {
-  {0, "(unused)", 0, 0, "0"},
-#define RELATION(name, code, always, kind, format) \
-  {Event##name, #name, code, \
-   EventSizeAlign(sizeof(Event##format##Struct)), #format},
-#include "eventdef.h"
-#undef RELATION
+  {"(unused)", 0, 0, 0, ""},
+  EVENT_LIST(EVENT_INIT, X)
 };
 
 #define eventTypeCount (sizeof(eventTypes) / sizeof(eventRecord))
-
-
-/* eventType2Index -- find index in eventTypes for the given type */
-
-static size_t eventType2Index(EventType type)
-{
-  size_t i;
-
-  for(i = 0; i < eventTypeCount; ++i)
-    if (eventTypes[i].type == type)
-      return i;
-  error("Unknown event type %0"PRIwWORD PRIXLONGEST, (ulongest_t)type);
-  return 0;
-}
 
 
 /* eventcode2Index -- find index in eventTypes for the given code */
@@ -147,16 +142,6 @@ char *EventCode2Format(EventCode code)
 }
 
 
-/* EventGetCode -- get event code of the given event */
-
-EventCode EventGetCode(Event event)
-{
-  size_t i = eventType2Index(event->any.code);
-  assert(eventTypes[i].code <= EventCodeMAX);
-  return eventTypes[i].code;
-}
-
-
 Bool EventCodeIsValid(EventCode code)
 {
   return (eventCode2Index(code, FALSE) != 0);
@@ -166,28 +151,23 @@ Bool EventCodeIsValid(EventCode code)
 /* EventStrings */
 
 
-/* EventStringEmpty -- an empty event string */
-
-EventStringStruct EventStringEmpty = {0, ""};
-
-
 /* eventStringCopy -- copy an event string */
 
-static Res eventStringCopy(EventString *str_o, EventString str)
+static Res stringCopy(char **str_o, char *str)
 {
-  EventString newStr;
+  char *newStr;
+  size_t len;
 
-  newStr = (EventString)malloc(offsetof(EventStringStruct, str)
-                               + str->len);
+  len = strlen(str);
+  newStr = (char *)malloc(len + sizeof('\0'));
   if (newStr == NULL) return ResMEMORY;
-  newStr->len = str->len;
-  memcpy(&(newStr->str), &(str->str), str->len);
+  memcpy(newStr, str, len + sizeof('\0'));
   *str_o = newStr;
   return ResOK;
 }
 
 
-static void eventStringDestroy(EventString str)
+static void eventStringDestroy(char *str)
 {
   free(str);
 }
@@ -200,7 +180,7 @@ static void eventStringDestroy(EventString str)
 
 typedef struct symbolStruct {
   Word id;
-  EventString name;
+  char *name;
 } symbolStruct;
 typedef struct symbolStruct *Symbol;
 
@@ -209,7 +189,7 @@ typedef struct symbolStruct *Symbol;
 
 typedef struct labelStruct {
   Word id;
-  Word time;
+  EventClock time;
   Addr addr;
 } labelStruct;
 typedef struct labelStruct *Label;
@@ -230,7 +210,7 @@ Word AddrLabel(EventProc proc, Addr addr)
 
 /* LabelText -- return text for given intern id (or NULL if none) */
 
-EventString LabelText(EventProc proc, Word id)
+char *LabelText(EventProc proc, Word id)
 {
   void *entry;
 
@@ -246,48 +226,35 @@ EventString LabelText(EventProc proc, Word id)
 
 /* EventRead -- read one event from the file and allocate descriptor */
 
-#define internStrOffset (offsetof(EventWSStruct, s1.str))
+#define internStrOffset (offsetof(EventInternStruct, f1.str))
 
 Res EventRead(Event *eventReturn, EventProc proc)
 {
-  size_t eventIndex, length;
   Res res;
-  EventType type;
+  EventAnyStruct anyStruct;
   Event event;
-  void *restOfEvent;
+  
+  res = proc->reader(proc->readerP, &anyStruct, sizeof(anyStruct));
+  if (res != ResOK)
+    return res;
 
-  res = proc->reader(proc->readerP, &type, sizeof(EventType));
-  if (res != ResOK) return res;
-
-  eventIndex = eventType2Index(type);
-  length = eventTypes[eventIndex].length;
   if (proc->cachedEvent != NULL) {
     event = proc->cachedEvent;
     proc->cachedEvent = NULL;
   } else {
     /* This is too long for most events, but never mind. */
     event = (Event)malloc(sizeof(EventUnion));
-    if (event == NULL) return ResMEMORY;
+    if (event == NULL)
+      return ResMEMORY;
   }
 
-  event->any.code = type;
-  restOfEvent = PointerAdd(event, sizeof(EventType));
-  if (type == EventIntern) { /* the only string event */
-    /* read enough to get the length */
-    res = proc->reader(proc->readerP, restOfEvent,
-                       internStrOffset - sizeof(EventType));
-    if (res != ResOK) return res;
-    /* read the rest */
-    res = proc->reader(proc->readerP, &(event->ws.s1.str),
-                       /* Length must agree with EVENT_WS. */
-                       EventSizeAlign(internStrOffset + event->ws.s1.len)
-                       - internStrOffset);
-    if (res != ResOK) return res;
-  } else {
-    res = proc->reader(proc->readerP, restOfEvent,
-                       length - sizeof(EventType));
-    if (res != ResOK) return res;
-  }
+  event->any = anyStruct;
+  res = proc->reader(proc->readerP,
+                     PointerAdd(event, sizeof(anyStruct)),
+                     anyStruct.size - sizeof(anyStruct));
+  if (res != ResOK)
+    return res;
+
   *eventReturn = event;
   return ResOK;
 }
@@ -299,34 +266,33 @@ Res EventRead(Event *eventReturn, EventProc proc)
  * stuff in the future.
  */
 
-Res EventRecord(EventProc proc, Event event, Word etime)
+Res EventRecord(EventProc proc, Event event, EventClock etime)
 {
   Res res;
 
   switch(event->any.code) {
-  case EventIntern: {           /* id, label */
+  case EventInternCode: {           /* id, label */
     Symbol sym = malloc(sizeof(symbolStruct));
 
     if (sym == NULL) return ResMEMORY;
-    sym->id = event->ws.w0;
-    res = eventStringCopy(&(sym->name), &(event->ws.s1));
+    sym->id = event->Intern.f0;
+    res = stringCopy(&sym->name, event->Intern.f1);
     if (res != ResOK) {
       free(sym);
       return res;
     }
     res = TableDefine(proc->internTable, sym->id, sym);
   } break;
-  case EventLabel: {            /* addr, id */
+  case EventLabelCode: {            /* addr, id */
     Label label = malloc(sizeof(labelStruct));
     void *entry;
 
     if (label == NULL) return ResMEMORY;
-    label->id = event->aw.w1;
-    if (!proc->partialLog) {
-      assert(TableLookup(&entry, proc->internTable, label->id));
-    }
+    label->id = event->Label.f1;
+    /* If events were in time order we'd be able to assert that
+       TableLookup(&entry, proc->internTable, label->id) */
     label->time = etime;
-    label->addr = event->aw.a0;
+    label->addr = event->Label.f0;
     if (TableLookup(&entry, proc->labelTable, (Word)label->addr))
       res = TableRedefine(proc->labelTable, (Word)label->addr, label);
     else
@@ -374,8 +340,9 @@ void EventDestroy(EventProc proc, Event event)
 
 /* EventProcCreate -- initialize the module */
 
-Res EventProcCreate(EventProc *procReturn, Bool partial,
-                    EventProcReader reader, void *readerP)
+Res EventProcCreate(EventProc *procReturn,
+                    EventProcReader reader,
+                    void *readerP)
 {
   Res res;
   EventProc proc = malloc(sizeof(struct EventProcStruct));
@@ -383,16 +350,11 @@ Res EventProcCreate(EventProc *procReturn, Bool partial,
   if (proc == NULL) return ResMEMORY;
 
   /* check event struct access */
-  assert(COMPATFIELD(EventUnion, any.code, EventWSStruct, code));
-  assert(COMPATFIELD(EventUnion, any.clock, EventWSStruct, clock));
+  assert(COMPATFIELD(EventUnion, any.code, EventInternStruct, code));
+  assert(COMPATFIELD(EventUnion, any.clock, EventInternStruct, clock));
   /* check use of labelTable */
-#if !defined(MPS_OS_FR)
-  /* GCC -ansi -pedantic -Werror on FreeBSD will fail here
-   * with the warning "statement with no effect". */
   assert(sizeof(Word) >= sizeof(Addr));
-#endif
 
-  proc->partialLog = partial;
   proc->reader = reader; proc->readerP = readerP;
   res = TableCreate(&proc->internTable, (size_t)1<<4);
   if (res != ResOK) goto failIntern;

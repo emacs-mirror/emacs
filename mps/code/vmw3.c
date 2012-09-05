@@ -140,7 +140,7 @@ Res VMCreate(VM *vmReturn, Size size)
   vm->sig = VMSig;
   AVERT(VM, vm);
 
-  EVENT_PAA(VMCreate, vm, vm->base, vm->limit);
+  EVENT3(VMCreate, vm, vm->base, vm->limit);
   *vmReturn = vm;
   return ResOK;
 
@@ -170,7 +170,7 @@ void VMDestroy(VM vm)
 
   b = VirtualFree((LPVOID)vm, (SIZE_T)0, MEM_RELEASE);
   AVER(b != 0);
-  EVENT_P(VMDestroy, vm);
+  EVENT1(VMDestroy, vm);
 }
 
 
@@ -240,7 +240,7 @@ Res VMMap(VM vm, Addr base, Addr limit)
 
   vm->mapped += AddrOffset(base, limit);
 
-  EVENT_PAA(VMMap, vm, base, limit);
+  EVENT3(VMMap, vm, base, limit);
   return ResOK;
 }
 
@@ -266,7 +266,7 @@ void VMUnmap(VM vm, Addr base, Addr limit)
   AVER(b != 0);  /* .assume.free.success */
   vm->mapped -= AddrOffset(base, limit);
 
-  EVENT_PAA(VMUnmap, vm, base, limit);
+  EVENT3(VMUnmap, vm, base, limit);
 }
 
 

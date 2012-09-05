@@ -523,7 +523,7 @@ static Res AWLInit(Pool pool, va_list arg)
   awl->sig = AWLSig;
 
   AVERT(AWL, awl);
-  EVENT_PP(PoolInitAWL, pool, format);
+  EVENT2(PoolInitAWL, pool, format);
   return ResOK;
 
 failGenInit:

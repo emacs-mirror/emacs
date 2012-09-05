@@ -382,7 +382,7 @@ static Res SNCInit(Pool pool, va_list arg)
   snc->sig = SNCSig;
 
   AVERT(SNC, snc);
-  EVENT_PP(PoolInitSNC, pool, format);
+  EVENT2(PoolInitSNC, pool, format);
   return ResOK;
 }
 

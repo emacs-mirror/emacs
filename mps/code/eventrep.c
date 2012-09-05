@@ -51,7 +51,6 @@ static ulong totalEvents; /* count of events */
 static ulong discardedEvents; /* count of ignored events */
 static ulong unknownEvents; /* count of unknown events */
 
-static Bool partialLog;
 static Word eventTime;
 
 /* Dictionaries for translating from log to replay values */
@@ -698,7 +697,7 @@ void EventReplay(Event event, Word etime)
 
 /* EventRepInit -- initialize the module */
 
-Res EventRepInit(Bool partial)
+Res EventRepInit(void)
 {
   Res res;
 
@@ -711,7 +710,6 @@ Res EventRepInit(Bool partial)
   /* by the MPS functions is justified by the reverse conversion */
   /* being acceptable (which is upto the event log generator). */
 
-  partialLog = partial;
   totalEvents = 0; discardedEvents = 0; unknownEvents = 0;
 
   res = TableCreate(&arenaTable, (size_t)1);
