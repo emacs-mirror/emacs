@@ -361,7 +361,7 @@ void BufferDetach(Buffer buffer, Pool pool)
       ~(BufferModeATTACHED|BufferModeFLIPPED|BufferModeTRANSITION);
     BufferFrameSetState(buffer, BufferFrameDISABLED);
 
-    EVENT_PW(BufferEmpty, buffer, spare);
+    EVENT2(BufferEmpty, buffer, spare);
   }
 }
 
@@ -416,7 +416,7 @@ void BufferFinish(Buffer buffer)
   /* Finish off the generic buffer fields. */
   RingFinish(&buffer->poolRing);
 
-  EVENT_P(BufferFinish, buffer);
+  EVENT1(BufferFinish, buffer);
 }
 
 
@@ -682,7 +682,7 @@ void BufferAttach(Buffer buffer, Addr base, Addr limit,
   buffer->class->attach(buffer, base, limit, init, size);
 
   AVERT(Buffer, buffer);
-  EVENT_PWAW(BufferFill, buffer, size, base, filled);
+  EVENT4(BufferFill, buffer, size, base, filled);
 }
 
 
@@ -727,7 +727,7 @@ Res BufferFill(Addr *pReturn, Buffer buffer, Size size,
        next <= buffer->poolLimit) {
       buffer->apStruct.alloc = next;
       if (buffer->mode & BufferModeLOGGED) {
-        EVENT_PAW(BufferReserve, buffer, buffer->apStruct.init, size);
+        EVENT3(BufferReserve, buffer, buffer->apStruct.init, size);
       }
       *pReturn = buffer->apStruct.init;
       return ResOK;
@@ -752,7 +752,7 @@ Res BufferFill(Addr *pReturn, Buffer buffer, Size size,
   BufferAttach(buffer, base, limit, base, size);
 
   if (buffer->mode & BufferModeLOGGED) {
-    EVENT_PAW(BufferReserve, buffer, buffer->apStruct.init, size);
+    EVENT3(BufferReserve, buffer, buffer->apStruct.init, size);
   }
 
   *pReturn = base;
@@ -869,7 +869,7 @@ Bool BufferTrip(Buffer buffer, Addr p, Size size)
     } else {
       clientClass = (Addr)0;
     }
-    EVENT_PAWA(BufferCommit, buffer, p, size, clientClass);
+    EVENT4(BufferCommit, buffer, p, size, clientClass);
     /* Of course, it's not _really_ unused unless you're not */
     /* using telemetry.  This is a HACK @@@@.  It should be */
     /* removed when telemetry is fixed to use its arguments. */
@@ -1089,7 +1089,7 @@ static Res bufferTrivInit (Buffer buffer, Pool pool, va_list args)
   AVERT(Buffer, buffer);
   AVERT(Pool, pool);
   UNUSED(args);
-  EVENT_PPU(BufferInit, buffer, pool, buffer->isMutator);
+  EVENT3(BufferInit, buffer, pool, buffer->isMutator);
   return ResOK;
 }
 
@@ -1299,7 +1299,7 @@ static Res segBufInit (Buffer buffer, Pool pool, va_list args)
   segbuf->rankSet = RankSetEMPTY;
 
   AVERT(SegBuf, segbuf);
-  EVENT_PPU(BufferInitSeg, buffer, pool, buffer->isMutator);
+  EVENT3(BufferInitSeg, buffer, pool, buffer->isMutator);
   return ResOK;
 }
 
@@ -1513,7 +1513,7 @@ static Res rankBufInit (Buffer buffer, Pool pool, va_list args)
   BufferSetRankSet(buffer, RankSetSingle(rank));
 
   /* There's nothing to check that the superclass doesn't, so no AVERT. */
-  EVENT_PPUU(BufferInitRank, buffer, pool, buffer->isMutator, rank);
+  EVENT4(BufferInitRank, buffer, pool, buffer->isMutator, rank);
   return ResOK;
 }
 

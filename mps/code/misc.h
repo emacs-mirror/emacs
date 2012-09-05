@@ -17,7 +17,7 @@
 
 
 typedef int Bool;                       /* <design/type/#bool> */
-enum {
+enum BoolEnum {
   FALSE = 0,
   TRUE = 1
 };

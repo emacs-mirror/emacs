@@ -91,7 +91,7 @@ Res SegAlloc(Seg *segReturn, SegClass class, SegPref pref,
   if (res != ResOK)
     goto failInit;
 
-  EVENT_PPAWP(SegAlloc, arena, seg, SegBase(seg), size, pool);
+  EVENT5(SegAlloc, arena, seg, SegBase(seg), size, pool);
   *segReturn = seg;
   return ResOK;
 
@@ -100,7 +100,7 @@ failInit:
 failControl:
   ArenaFree(base, size, pool);
 failArena:
-  EVENT_PWP(SegAllocFail, arena, size, pool);
+  EVENT3(SegAllocFail, arena, size, pool);
   return res;
 }
 
@@ -128,7 +128,7 @@ void SegFree(Seg seg)
   ControlFree(arena, seg, class->size);
   ArenaFree(base, size, pool);
 
-  EVENT_PP(SegFree, arena, seg);
+  EVENT2(SegFree, arena, seg);
   return;
 }
 
@@ -526,7 +526,7 @@ Res SegMerge(Seg *mergedSegReturn, Seg segLo, Seg segHi,
   if (ResOK != res)
     goto failMerge;
 
-  EVENT_PPP(SegMerge, segLo, segLo, segHi);
+  EVENT3(SegMerge, segLo, segHi, withReservoirPermit);
   /* Deallocate segHi object */
   ControlFree(arena, segHi, class->size);
   AVERT(Seg, segLo);
@@ -585,7 +585,7 @@ Res SegSplit(Seg *segLoReturn, Seg *segHiReturn, Seg seg, Addr at,
   if (ResOK != res)
     goto failSplit;
 
-  EVENT_PPPA(SegSplit, seg, segNew, seg, at);
+  EVENT4(SegSplit, seg, segNew, seg, at);
   AVERT(Seg, seg);
   AVERT(Seg, segNew);
   *segLoReturn = seg;
@@ -1214,7 +1214,7 @@ static void gcSegSetGrey(Seg seg, TraceSet grey)
       ShieldLower(arena, seg, AccessREAD);
   }
 
-  EVENT_PPU(SegSetGrey, arena, seg, grey);
+  EVENT3(SegSetGrey, arena, seg, grey);
 }
 
 

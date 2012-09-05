@@ -32,42 +32,84 @@ SRCID(event, "$Id$");
 
 
 static Bool eventInited = FALSE;
+static Bool eventIOInited = FALSE;
 static mps_io_t eventIO;
-static char eventBuffer[EventBufferSIZE];
 static Count eventUserCount;
 static Serial EventInternSerial;
 
-EventUnion EventMould; /* Used by macros in <code/event.h> */
-char *EventNext, *EventLimit; /* Used by macros in <code/event.h> */
-Word EventKindControl; /* Bit set used to control output. */
+/* Buffers in which events are recorded, from the top down. */
+char EventBuffer[EventKindLIMIT][EventBufferSIZE];
+
+/* Pointers to last written event in each buffer. */
+char *EventLast[EventKindLIMIT];
+
+EventControlSet EventKindControl;       /* Bit set used to control output. */
 
 
 /* EventFlush -- flush event buffer to the event stream */
 
-Res EventFlush(void)
+Res EventFlush(EventKind kind)
 {
   Res res;
- 
+  size_t size;
+
   AVER(eventInited);
+  AVER(0 <= kind && kind < EventKindLIMIT);
 
-  res = (Res)mps_io_write(eventIO, (void *)eventBuffer,
-                          EventNext - eventBuffer);
-  EventNext = eventBuffer;
-  if (res != ResOK) return res;
+  AVER(EventBuffer[kind] <= EventLast[kind]);
+  AVER(EventLast[kind] <= EventBuffer[kind] + EventBufferSIZE);
 
-  return ResOK;
+  /* Is event logging enabled for this kind of event, or are or are we just
+     writing to the buffer for backtraces, cores, and other debugging? */
+  if (BS_IS_MEMBER(EventKindControl, kind)) {
+    
+    size = (size_t)(EventBuffer[kind] + EventBufferSIZE - EventLast[kind]);
+  
+    /* Checking the size avoids creating the event stream when the arena is
+       destroyed and no events have been logged. */
+    if (size == 0)
+      return ResOK;
+  
+    /* Ensure the IO stream is open.  We do this late so that no stream is
+       created if no events are enabled by telemetry control. */
+    if (!eventIOInited) {
+      res = (Res)mps_io_create(&eventIO);
+      if(res != ResOK)
+        goto failCreate;
+      eventIOInited = TRUE;
+    }
+  
+    /* Writing might be faster if the size is aligned to a multiple of the
+       C library or kernel's buffer size.  We could pad out the buffer with
+       a marker for this purpose. */
+  
+    res = (Res)mps_io_write(eventIO, (void *)EventLast[kind], size);
+    if (res != ResOK)
+      goto failWrite;
+
+  }
+  
+  res = ResOK;
+
+failWrite:
+failCreate:
+
+  /* Flush the in-memory buffer whether or not we succeeded, so that we can
+     record recent events there. */
+  EventLast[kind] = EventBuffer[kind] + EventBufferSIZE;
+
+  return res;
 }
 
 
 /* EventSync -- synchronize the event stream with the buffers */
 
-Res EventSync(void)
+void EventSync(void)
 {
-  Res resEv, resIO;
-
-  resEv = EventFlush();
-  resIO = mps_io_flush(eventIO);
-  return (resEv != ResOK) ? resEv : resIO;
+  EventKind kind;
+  for (kind = 0; kind < EventKindLIMIT; ++kind)
+    (void)EventFlush(kind);
+  (void)mps_io_flush(eventIO);
 }
 
 
@@ -75,16 +117,62 @@ Res EventSync(void)
 
 Res EventInit(void)
 {
-  Res res;
+  /* Make local enums for all event params in order to check that the indexes
+     in the parameter definition macros are in order, and that parameter
+     idents are unique. */
+
+#define EVENT_CHECK_ENUM_PARAM(name, index, sort, ident) \
+  Event##name##Param##ident,
+
+#define EVENT_CHECK_ENUM(X, name, code, always, kind) \
+  enum Event##name##ParamEnum { \
+    EVENT_##name##_PARAMS(EVENT_CHECK_ENUM_PARAM, name) \
+    Event##name##ParamLIMIT \
+  };
+
+  EVENT_LIST(EVENT_CHECK_ENUM, X)
+
+  /* Check consistency of the event definitions.  These are all compile-time
+     checks and should get optimised away. */
+
+#define EVENT_PARAM_CHECK_P(name, index, ident)
+#define EVENT_PARAM_CHECK_A(name, index, ident)
+#define EVENT_PARAM_CHECK_W(name, index, ident)
+#define EVENT_PARAM_CHECK_U(name, index, ident)
+#define EVENT_PARAM_CHECK_D(name, index, ident)
+#define EVENT_PARAM_CHECK_B(name, index, ident)
+#define EVENT_PARAM_CHECK_S(name, index, ident) \
+  AVER(index + 1 == Event##name##ParamLIMIT); /* strings must come last */
+
+#define EVENT_PARAM_CHECK(name, index, sort, ident) \
+  AVER(index == Event##name##Param##ident); \
+  AVER(sizeof(EventF##sort) >= 0); /* check existence of type */ \
+  EVENT_PARAM_CHECK_##sort(name, index, ident)
+
+#define EVENT_CHECK(X, name, code, always, kind) \
+  AVER(size_tAlignUp(sizeof(Event##name##Struct), MPS_PF_ALIGN) \
+       <= EventSizeMAX); \
+  AVER(Event##name##Code == code); \
+  AVER(0 <= code && code <= EventCodeMAX); \
+  AVER(sizeof(#name) - 1 <= EventNameMAX); \
+  AVER((Bool)Event##name##Always == always); \
+  AVERT(Bool, always); \
+  AVER(0 <= Event##name##Kind); \
+  AVER((EventKind)Event##name##Kind < EventKindLIMIT); \
+  EVENT_##name##_PARAMS(EVENT_PARAM_CHECK, name)
+
+  EVENT_LIST(EVENT_CHECK, X)
+  
+  /* Ensure that no event can be larger than the maximum event size. */
+  AVER(EventBufferSIZE <= EventSizeMAX);
 
   /* Only if this is the first call. */
   if(!eventInited) { /* See .trans.log */
-    AVER(EventNext == 0);
-    AVER(EventLimit == 0);
-    res = (Res)mps_io_create(&eventIO);
-    if(res != ResOK) return res;
-    EventNext = eventBuffer;
-    EventLimit = &eventBuffer[EventBufferSIZE];
+    EventKind kind;
+    for (kind = 0; kind < EventKindLIMIT; ++kind) {
+      AVER(EventLast[kind] == NULL);
+      EventLast[kind] = EventBuffer[kind] + EventBufferSIZE;
+    }
     eventUserCount = (Count)1;
     eventInited = TRUE;
     EventKindControl = (Word)mps_lib_telemetry_control();
@@ -105,7 +193,7 @@ void EventFinish(void)
   AVER(eventInited);
   AVER(eventUserCount > 0);
 
-  (void)EventSync();
+  EventSync();
 
   --eventUserCount;
 }
@@ -121,11 +209,14 @@ void EventFinish(void)
  *   Reset(M) EventControl(M,0)
  *   Flip(M)  EventControl(0,M)
  *   Read()   EventControl(0,0)
+ *
+ * TODO: Candy-machine interface is a transgression.
  */
   
-Word EventControl(Word resetMask, Word flipMask)
+EventControlSet EventControl(EventControlSet resetMask,
+                             EventControlSet flipMask)
 {
-  Word oldValue = EventKindControl;
+  EventControlSet oldValue = EventKindControl;
      
   /* EventKindControl = (EventKindControl & ~resetMask) ^ flipMask */
   EventKindControl =
@@ -137,56 +228,173 @@ Word EventControl(Word resetMask, Word flipMask)
 
 /* EventInternString -- emit an Intern event on the (null-term) string given */
 
-Word EventInternString(const char *label)
+EventStringId EventInternString(const char *label)
 {
-  Word id;
-
   AVER(label != NULL);
-
-  id = (Word)EventInternSerial;
-  ++EventInternSerial;
-  EVENT_WS(Intern, id, StringLength(label), label);
-  return id;
+  return EventInternGenString(StringLength(label), label);
 }
 
 
 /* EventInternGenString -- emit an Intern event on the string given */
 
-Word EventInternGenString(size_t len, const char *label)
+EventStringId EventInternGenString(size_t len, const char *label)
 {
-  Word id;
+  EventStringId id;
 
   AVER(label != NULL);
 
-  id = (Word)EventInternSerial;
+  id = EventInternSerial;
   ++EventInternSerial;
-  EVENT_WS(Intern, id, len, label);
+
+  EVENT2S(Intern, id, len, label);
+
   return id;
 }
 
 
 /* EventLabelAddr -- emit event to label address with the given id */
 
-void EventLabelAddr(Addr addr, Word id)
+void EventLabelAddr(Addr addr, EventStringId id)
 {
   AVER((Serial)id < EventInternSerial);
 
-  EVENT_AW(Label, addr, id);
+  EVENT2(Label, addr, id);
+}
+
+
+/* Convert event parameter sort to WriteF arguments */
+
+#define EVENT_WRITE_PARAM_MOST(name, index, sort, ident) \
+  " $"#sort, (WriteF##sort)event->name.f##index,
+#define EVENT_WRITE_PARAM_A EVENT_WRITE_PARAM_MOST
+#define EVENT_WRITE_PARAM_P EVENT_WRITE_PARAM_MOST
+#define EVENT_WRITE_PARAM_U EVENT_WRITE_PARAM_MOST
+#define EVENT_WRITE_PARAM_W EVENT_WRITE_PARAM_MOST
+#define EVENT_WRITE_PARAM_D EVENT_WRITE_PARAM_MOST
+#define EVENT_WRITE_PARAM_S EVENT_WRITE_PARAM_MOST
+#define EVENT_WRITE_PARAM_B(name, index, sort, ident) \
+  " $U", (WriteFU)event->name.f##index,
+
+
+Res EventDescribe(Event event, mps_lib_FILE *stream)
+{
+  Res res;
+
+  /* TODO: Some sort of EventCheck would be good */
+  if (event == NULL)
+    return ResFAIL;
+  if (stream == NULL)
+    return ResFAIL;
+
+  res = WriteF(stream,
+               "Event $P {\n", (WriteFP)event,
+               "  code $U\n", (WriteFU)event->any.code,
+               "  clock ", NULL);
+  if (res != ResOK) return res;
+  res = EVENT_CLOCK_WRITE(stream, event->any.clock);
+  if (res != ResOK) return res;
+  res = WriteF(stream, "\n  size $U\n", (WriteFU)event->any.size, NULL);
+  if (res != ResOK) return res;
+
+  switch (event->any.code) {
+
+#define EVENT_DESC_PARAM(name, index, sort, ident) \
+                 "\n  $S", (WriteFS)#ident, \
+                 EVENT_WRITE_PARAM_##sort(name, index, sort, ident)
+
+#define EVENT_DESC(X, name, _code, always, kind) \
+  case _code: \
+    res = WriteF(stream, \
+                 "  event \"$S\"", (WriteFS)#name, \
+                 EVENT_##name##_PARAMS(EVENT_DESC_PARAM, name) \
+                 NULL); \
+    if (res != ResOK) return res; \
+    break;
+
+  EVENT_LIST(EVENT_DESC, X)
+
+  default:
+    res = WriteF(stream, "  event type unknown", NULL);
+    if (res != ResOK) return res;
+    /* TODO: Hexdump unknown event contents. */
+    break;
+  }
+  
+  res = WriteF(stream,
+               "\n} Event $P\n", (WriteFP)event,
+               NULL);
+  return res;
+}
+
+
+Res EventWrite(Event event, mps_lib_FILE *stream)
+{
+  Res res;
+  
+  if (event == NULL) return ResFAIL;
+  if (stream == NULL) return ResFAIL;
+
+  res = EVENT_CLOCK_WRITE(stream, event->any.clock);
+  if (res != ResOK)
+    return res;
+
+  switch (event->any.code) {
+
+#define EVENT_WRITE_PARAM(name, index, sort, ident) \
+  EVENT_WRITE_PARAM_##sort(name, index, sort, ident)
+
+#define EVENT_WRITE(X, name, code, always, kind) \
+  case code: \
+    res = WriteF(stream, " $S", #name, \
+                 EVENT_##name##_PARAMS(EVENT_WRITE_PARAM, name) \
+                 NULL); \
+    if (res != ResOK) return res; \
+    break;
+  EVENT_LIST(EVENT_WRITE, X)
+
+  default:
+    res = WriteF(stream, " <unknown code $U>", event->any.code, NULL);
+    if (res != ResOK) return res;
+    /* TODO: Hexdump unknown event contents. */
+    break;
+  }
+  
+  return ResOK;
+}
+
+
+void EventDump(mps_lib_FILE *stream)
+{
+  Event event;
+  EventKind kind;
+
+  AVER(stream != NULL);
+
+  for (kind = 0; kind < EventKindLIMIT; ++kind) {
+    for (event = (Event)EventLast[kind];
+         event < (Event)(EventBuffer[kind] + EventBufferSIZE);
+         event = (Event)((char *)event + event->any.size)) {
+      /* Try to keep going even if there's an error, because this is used as a
+         backtrace and we'll take what we can get. */
+      (void)EventWrite(event, stream);
+      (void)WriteF(stream, "\n", NULL);
+    }
+  }
 }
 
 
 #else /* EVENT, not */
 
 
-Res (EventSync)(void)
+void (EventSync)(void)
 {
-  return(ResOK); 
+  NOOP;
 }
 
 
 Res (EventInit)(void)
 {
-  return(ResOK); 
+  return ResOK;
 }
 
 
@@ -196,28 +404,30 @@ void (EventFinish)(void)
 }
 
 
-Word (EventControl)(Word resetMask, Word flipMask)
+EventControlSet (EventControl)(EventControlSet resetMask,
+                               EventControlSet flipMask)
 {
   UNUSED(resetMask);
   UNUSED(flipMask);
-
-  return (Word)0;
+  return BS_EMPTY(EventControlSet);
 }
 
 
-Word (EventInternString)(const char *label)
+EventStringId (EventInternString)(const char *label)
 {
   UNUSED(label);
-
-  return (Word)0;
+  /* EventInternString is reached in varieties without events, but the result
+     is not used for anything. */
+  return (EventStringId)0x9024EAC8;
 }
 
 
 Word (EventInternGenString)(size_t len, const char *label)
 {
   UNUSED(len); UNUSED(label);
-
-  return (Word)0;
+  /* EventInternGenString is reached in varieties without events, but
+     the result is not used for anything. */
+  return (EventStringId)0x9024EAC8;
 }
 
 
@@ -225,6 +435,30 @@ void (EventLabelAddr)(Addr addr, Word id)
 {
   UNUSED(addr);
   UNUSED(id);
+  /* EventLabelAddr is reached in varieties without events, but doesn't have
+     to do anything. */
+}
+
+
+Res EventDescribe(Event event, mps_lib_FILE *stream)
+{
+  UNUSED(event);
+  UNUSED(stream);
+  return ResUNIMPL;
+}
+
+
+Res EventWrite(Event event, mps_lib_FILE *stream)
+{
+  UNUSED(event);
+  UNUSED(stream);
+  return ResUNIMPL;
+}
+
+
+extern void EventDump(mps_lib_FILE *stream)
+{
+  UNUSED(stream);
 }
 
 

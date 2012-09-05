@@ -58,7 +58,7 @@
  */
 #define DIAG_WITH_STREAM_AND_WRITEF
 /* #define DIAG_WITH_PRINTF */
-/* no telemetry log events */
+#define CONFIG_LOG
 
 
 /* CONFIG_VAR_COOL -- cool variety
@@ -76,24 +76,8 @@
 #ifndef CHECKLEVEL
 #define CHECKLEVEL      CheckLevelSHALLOW
 #endif
-/* no telemetry log events */
-
-
-/* CONFIG_VAR_TI -- telemetry variety
- *
- * Deprecated.  This is the variety with event logging to a telemetry stream.
- * Currently being reworked to retain event logging with negligible overhead
- * on all other varieties.  RB 2012-08-31
- */
-
-#elif defined(CONFIG_VAR_TI)    /* Telemetry, Internal; variety.ti */
-#define CONFIG_ASSERT
-#define CONFIG_ASSERT_ALL
-#ifndef CHECKLEVEL
-#define CHECKLEVEL      CheckLevelSHALLOW
-#endif
-#define CONFIG_STATS
 #define CONFIG_LOG
+#define CONFIG_LOG_ALL
 
 
 #else /* CONFIG_VAR_* */
@@ -111,7 +95,7 @@
 #define CHECKLEVEL      CheckLevelMINIMAL
 #endif
 /* no statistic meters */
-/* no telemetry log events */
+#define CONFIG_LOG
 
 #endif /* CONFIG_VAR_* */
 
@@ -154,11 +138,17 @@
 #if defined(CONFIG_LOG)
 /* TELEMETRY = LOG = EVENTs */
 #define EVENT
+#if defined(CONFIG_LOG_ALL)
+#define EVENT_ALL 1     /* log events on critical path */
+#define MPS_LOG_STRING "logtastic"
+#else /* CONFIG_LOG_ALL, not */
+#define EVENT_ALL 0     /* don't log events on critical path */
 #define MPS_LOG_STRING "logging"
-#else
+#endif /* CONFIG_LOG_ALL */
+#else /* CONFIG_LOG, not */
 #define EVENT_NONE
 #define MPS_LOG_STRING "nonlogging"
-#endif
+#endif /* CONFIG_LOG */
 
 
 /* CONFIG_PLINTH_NONE -- exclude the ANSI plinth
@@ -333,7 +323,6 @@
 /* Chosen so that the RememberedSummaryBlockStruct packs nicely into
    pages */
 #define RememberedSummaryBLOCK 15
-
 
 
 /* Events
