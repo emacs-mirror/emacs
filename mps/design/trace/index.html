@@ -215,7 +215,7 @@ it implement the semantics of finalization and weakness.  The band used
 to not be explicitly stored, but this hindered the implementation of
 good finalization semantics (essentially in some circumstances
 finalization messages were delayed by at least one collection cycle, see
-job001568).</p>
+<a href="http://info.ravenbrook.com/project/mps/issue/job001658/">job001658</a>).</p>
 
 <p>The band is used when selecting a grey segment to scan (the selection
 occurs in <code>traceFindGrey</code>).  The tracer attempts to first

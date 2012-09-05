@@ -1,0 +1,249 @@
+Building the Memory Pool System
+===============================
+Richard Brooksby, Ravenbrook Limited, 2012-09-05
+
+Introduction
+------------
+
+This document describes the various ways in which you can build the MPS,
+its libraries, and the tests and tools that come with it.
+
+You may be building the MPS for a number of different purposes.
+
+
+Compiling the MPS for your project
+----------------------------------
+
+It is easy to compile the MPS.  You can do it separately, or include the
+source in your own project's build system.  This section describes
+compilation in terms of command lines, but you can equally add the files
+to a project in an IDE.
+
+The MPS also comes with Makefiles and IDE project files for building
+libraries, tools, and tests.  See "Building the MPS for development".
+
+
+### Compiling for production
+
+In the simplest case, you can compile the MPS to an object file with just:
+
+    cc -c mps.c           (Unix/Mac OS)
+    cl /c mps.c           (Windows)
+  
+This will build a "hot" variety (for production) object file for use
+with "mps.h".  You can greatly improve performance by allowing global
+optimization, for example:
+
+    cc -O3 -c mps.c       (Unix/Mac OS)
+    cl /O2 /c mps.c       (Windows)
+
+
+### Compiling for debugging
+
+You can get a "cool" variety MPS (with more internal checking, for
+debugging and development) with:
+
+    cc -g -DCONFIG_VAR_COOL -c mps.c
+    cl /Zi /DCONFIG_VAR_COOL /c mps.c
+
+
+### Optimizing for your object format
+
+If you are using your own object format [ref?], you will also get
+improved performance by allowing the compiler to do global optimisations
+between it and the MPS.  So if your format implementation is in, say,
+myformat.c, then you could make a file mymps.c containing
+
+    #include "mps.c"
+    #include "myformat.c"
+
+then
+
+    cc -O3 -c mymps.c     (Unix/Mac OS)
+    cl /O2 /c mymps.c     (Windows)
+
+This will get your format code inlined with the MPS garbage collector.
+
+
+### Compiling without the C library
+
+If you're building the MPS for an environment without the standard C
+library, you can exclude the "plinth" component of the MPS with
+
+    cc -DCONFIG_PLINTH_NONE -c mps.c
+    cl /Gs /DCONFIG_PLINTH_NONE /c mps.c
+
+but you must then provide your own implementation of
+[mpslib.h](../code/mps.h).  You can base this on the ANSI plinth in
+[mpsliban.c](../code/mpsliban.c).
+
+If you want to do anything beyond these simple cases, use the MPS build
+as described in section 5.2, "Building the MPS for development".
+
+
+Building the MPS for development
+--------------------------------
+
+If you're making modifications to the MPS itself, want to build MPS
+libraries for linking, or want to build MPS tests and tools, you should
+use the MPS build.  This uses makefiles or Xcode projects.  [Coming
+soon, Microsoft Visual Studio solutions.]
+
+
+### Prerequisites
+
+For Unix-like platforms you will need the GNU Make tool.  Some platforms
+(such as Linux) have GNU Make as their default make tool.  For others
+you will need to get and install it.  (It's available free from
+<ftp://ftp.gnu.org/gnu/make/>.)  On FreeBSD this can be done as root
+with `pkg_add -r gmake`.
+
+On Windows platforms the NMAKE tool is used. This comes with Microsoft
+Visual Studio C++ or the Microsoft Windows SDK.
+
+On Mac OS X the MPS is built using Xcode, either by opening
+[mps.xcodeproj](../code/mps.xcodeproj) with the Xcode app, or using the
+command-line "xcodebuild" tool, installed from Xcode -> Preferences ->
+Downloads -> Components -> Command Line Tools.
+
+
+### Platforms
+
+The MPS uses a six character platform code to express a combination of
+OS/CPU architecture/compiler toolchain.  Each 6 character code breaks
+down into three groups of two characters, like this:
+
+  OSARCT
+
+Where OS denotes the operating system, AR denotes the CPU architecture,
+and CT denotes compiler toolchain.  Here are the platforms that we
+have regular access to and on which the MPS works well.
+
+    Makefile        OS          Architecture    Compiler
+  
+    fri3gc.gmk      FreeBSD     Intel i386      GCC
+    fri6gc.gmk      FreeBSD     Intel x86_64    GCC
+    lii3gc.gmk      Linux       Intel i386      GCC
+    lii6gc.gmk      Linux       Intel x86_64    GCC
+    mps.xcodeproj   Mac OS X    i386 + x86_64   Clang
+    xci3gc.gmk      Mac OS X    i386            GCC (legacy)
+    w3i3mv.nmk      Windows     Intel i386      Microsoft C
+    w3i6mv.nmk      Windows     Intel x86_64    Microsoft C
+
+Historically the MPS has worked on a much wider variety of platforms and
+still could: IRIX, OSF/1 (Tru64), Solaris, SunOS, Classic Mac OS; MIPS,
+PowerPC, ALPHA, SPARC v8, SPARC v9; Metrowerks Codewarrior, SunPro C,
+Digital C, EGCS.  If you are interested in support on any of these
+platforms or any new platforms, please contact Ravenbrook
+<mps-questions@ravenbrook.com>.
+
+
+### Running make
+
+To build all MPS targets on Unix-like platforms, change to the "code"
+directory and type:
+
+    make -f <makefile>
+
+where "make" is the command for GNU Make.  (Sometimes this will be
+"gmake" or "gnumake".)
+
+To build just one target, type:
+
+    make -f <makefile> <target>
+
+To build a restricted set of targets for just one variety, type:
+
+    make -f <makefile> 'VARIETY=<variety>' <target>
+
+For example, to build just the "cool" variety of the "amcss" test on
+FreeBSD:
+
+    gmake -f fri3gc.gmk VARIETY=cool amcss
+
+On Windows platforms you need to run the "Visual Studio Command Prompt"
+from the Start menu.  Then type:
+
+    nmake /f w3i3mv.nmk         (32-bit)
+    nmake /f w3i6mv.nmk         (64-bit)
+
+You will need to switch your build environment between 32-bit and 64-bit
+using Microsoft's `setenv` command, e.g. `setenv /x86` or `setenv /x64`.
+
+To build just one target, type:
+
+    nmake /f w3i3mv.nmk <target>
+
+On Mac OS X, you can build from the command line with:
+
+    xcodebuild
+
+On most platforms, the output of the build goes to a directory named
+after the platform (e.g. `fri3gc`) so that you can share the source tree
+across platforms.  On Mac OS X the output goes in a directory called
+`build`.  Building generates "mps.a" or "mps.lib" or equivalent, a
+library of object code which you can link with your application, subject
+to the MPS licensing conditions (see [license.txt](../license.txt).  It
+also generates a number of test programs, such as "amcss" (a stress test
+for the Automatic Mostly-Copying pool class) and tools such as
+"eventcnv" (for decoding telemetry logs).
+
+
+Installing the Memory Pool System
+---------------------------------
+
+There is currently no automatic way to "install" the MPS, such as a
+`make install` command.  You can do this by copying the libraries built
+by the make to, for example, `/usr/local/lib`, and all the headers
+beginning with "mps" to `/usr/local/include`.
+
+
+Document History
+----------------
+
+- 2012-09-05  RB    First draft ready for version 1.110, based partly on
+  the old readme, which had grown far too long.
+
+
+Copyright and Licence
+---------------------
+
+Copyright (C) 2001-2012 Ravenbrook Limited. All rights reserved. 
+<http://www.ravenbrook.com/>. This is an open source license. Contact
+Ravenbrook for commercial licensing options.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+1. Redistributions of source code must retain the above copyright
+notice, this list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright
+notice, this list of conditions and the following disclaimer in the
+documentation and/or other materials provided with the distribution.
+
+3. Redistributions in any form must be accompanied by information on how
+to obtain complete source code for this software and any
+accompanying software that uses this software.  The source code must
+either be included in the distribution or be available for no more than
+the cost of distribution plus a nominal fee, and must be freely
+redistributable under reasonable conditions.  For an executable file,
+complete source code means the source code for all modules it contains.
+It does not include source code for modules or files that typically
+accompany the major components of the operating system on which the
+executable file runs.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
+IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
+TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+PURPOSE, OR NON-INFRINGEMENT, ARE DISCLAIMED. IN NO EVENT SHALL THE
+COPYRIGHT HOLDERS AND CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
+USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+$Id$

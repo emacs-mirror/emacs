@@ -82,8 +82,10 @@
 
 /* ANSI Plinth */
 
+#if !defined(PLINTH_NONE)       /* see CONFIG_PLINTH_NONE in config.h  */
 #include "mpsliban.c"
 #include "mpsioan.c"
+#endif
 
 /* Mac OS X on 32-bit Intel built with Clang or GCC */
 
@@ -137,9 +139,9 @@
 #include "protix.c"     /* Posix protection */
 #include "protsgix.c"   /* Posix signal handling */
 #include "prmcan.c"     /* generic mutator context */
-#include "prmci6fr.c"   /* 32-bit Intel for FreeBSD mutator context */
+#include "prmci6fr.c"   /* 64-bit Intel for FreeBSD mutator context */
 #include "span.c"       /* generic stack probe */
-#include "ssixi6.c"     /* Posix on 32-bit Intel stack scan */
+#include "ssixi6.c"     /* Posix on 64-bit Intel stack scan */
 
 /* Linux on 32-bit Intel with GCC */
 
@@ -166,10 +168,10 @@
 #include "vmix.c"       /* Posix virtual memory */
 #include "protix.c"     /* Posix protection */
 #include "protli.c"     /* Linux protection */
-#include "proti6.c"     /* 32-bit Intel mutator context */
-#include "prmci6li.c"   /* 32-bit Intel for Linux mutator context */
+#include "proti6.c"     /* 64-bit Intel mutator context */
+#include "prmci6li.c"   /* 64-bit Intel for Linux mutator context */
 #include "span.c"       /* generic stack probe */
-#include "ssixi6.c"     /* Posix on 32-bit Intel stack scan */
+#include "ssixi6.c"     /* Posix on 64-bit Intel stack scan */
 
 /* Windows on 32-bit Intel with Microsoft Visual Studio */
 
@@ -182,7 +184,7 @@
 #include "protw3.c"     /* Windows protection */
 #include "proti3.c"     /* 32-bit Intel mutator context decoding */
 #include "prmci3w3.c"   /* Windows on 32-bit Intel mutator context */
-#include "ssw3i3.c"     /* Windows on 32-bit Intel scan scan */
+#include "ssw3mv.c"     /* Windows stack scan for Microsoft C */
 #include "spi3.c"       /* Intel stack probe */
 #include "mpsiw3.c"     /* Windows interface layer extras */
 
@@ -198,7 +200,7 @@
 #include "protw3.c"     /* Windows protection */
 #include "proti6.c"     /* 64-bit Intel mutator context decoding */
 #include "prmci6w3.c"   /* Windows on 64-bit Intel mutator context */
-/* ssw3i6.asm */        /* Windows on 64-bit Intel scan scan */
+#include "ssw3mv.c"     /* Windows stack scan for Microsoft C */
 #include "span.c"       /* generic stack probe FIXME: Is this correct? */
 #include "mpsiw3.c"     /* Windows interface layer extras */
 
