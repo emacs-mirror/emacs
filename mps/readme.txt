@@ -464,7 +464,7 @@ This will build a "hot" variety (for production) object file for use
 with "mps.h".  You can greatly improve performance by allowing global
 optimization, for example:
 
-  cc -O3 -c mps.c       (Unix/Mac OS)
+  cc -O2 -c mps.c       (Unix/Mac OS)
   cl /O2 /c mps.c       (Windows)
 
 You can get a "cool" variety MPS (with more internal checking, for
@@ -483,7 +483,7 @@ myformat.c, then you could make a file mymps.c containing
 
 then
 
-  cc -O3 -c mymps.c     (Unix/Mac OS)
+  cc -O2 -c mymps.c     (Unix/Mac OS)
   cc /O2 /c mymps.c     (Windows)
 
 This will get your format code inlined with the MPS garbage collection

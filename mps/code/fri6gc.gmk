@@ -13,8 +13,6 @@ LIBS = -lm -pthread
 include gc.gmk
 
 CFLAGSCOMPILER := $(CFLAGSCOMPILER) -Wno-strict-aliasing
-CFLAGSDEBUG = -O -g3
-CFLAGSOPT = -O3 -g3
 
 CC = cc
 
