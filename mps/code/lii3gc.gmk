@@ -8,13 +8,8 @@ PFM = lii3gc
 THREADSRC = lockli.c thix.c pthrdext.c
 THREADLIB = -lpthread
 
-# _XOPEN_SOURCE is to get the modern POSIX signal handling
-# _GNU_SOURCE is to get register numbers in prmci3li.c
-PFMDEFS = -D_REENTRANT -D_XOPEN_SOURCE=500 -D_GNU_SOURCE
-
 MPMPF = ${THREADSRC} vmix.c \
         protix.c protli.c proti3.c prmci3li.c ssixi3.c span.c
-SWPF = than.c vmli.c protsw.c prmcan.c ssan.c
 
 LIBS = -lm ${THREADLIB}
 

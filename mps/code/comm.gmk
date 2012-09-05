@@ -16,8 +16,6 @@
 #                   information, and any optimization possible
 # CFLAGSOPT         a list of flags for compilations with maximum
 #                   optimization, and any debug info possible
-# CFLAGSOPTNODEBUG  a list of flags for compilations with maximum
-#                   optimization, and absolutely no debug info
 # CC                the command for the C compiler
 # LINKFLAGS         a list of flags passed to the linker
 # ARFLAGSPFM        platform-specific flags for ar
@@ -32,7 +30,6 @@
 # MPMPF   platform-dependent C sources for the "mpm" part
 # MPMS    assembler sources for the "mpm" part (.s files)
 # MPMPS   pre-processor assembler sources for the "mpm" part (.S files)
-# SWPF    platform-dependent C sources for the "sw" part
 #
 # %%PART: Add a new parameter above for the files included in the part.
 #
@@ -64,9 +61,6 @@ endif
 ifndef CFLAGSOPT
 error "comm.gmk: CFLAGSOPT not defined"
 endif
-ifndef CFLAGSOPTNODEBUG
-error "comm.gmk: CFLAGSOPTNODEBUG not defined"
-endif
 
 #
 # %%PART: Add checks for the parameter with the sources for the new
@@ -94,77 +88,38 @@ endif
 
 # C FLAGS
 
-# Some flags depend on the target.  Alas.
-ifdef TARGET
-ifeq ($(TARGET),mmsw.a)
-CFLAGSTARGET = -DCONFIG_PROD_EPCORE
-else
-ifeq ($(TARGET),replaysw)
-CFLAGSTARGET = -DCONFIG_PROD_EPCORE
-else
-ifeq ($(TARGET),mmdw.a)
-CFLAGSTARGET = -DCONFIG_PROD_DYLAN
-else
-ifeq ($(TARGET),replay)
-CFLAGSTARGET = -DCONFIG_PROD_DYLAN
-else
-CFLAGSTARGET = -DCONFIG_PROD_MPS
-endif
-endif
-endif
-endif
-endif
-
 # These flags are included in all compilations.
-CFLAGSCOMMON = $(PFMDEFS) $(CFLAGSTARGET) $(CFLAGSCOMPILER)
+# Avoid using PFMDEFS in platform makefiles, as they prevent the MPS being
+# built with a simple command like "cc -c mps.c".
+CFLAGSCOMMON = $(PFMDEFS) $(CFLAGSCOMPILER)
 
 # %%VARIETY: Define a macro containing the set of flags for the new
 #            variety.
 
 # These flags are added to compilations for the indicated variety.
-CFWE = -DCONFIG_VAR_WE -DNDEBUG $(CFLAGSOPTNODEBUG)
-CFWI = -DCONFIG_VAR_WI -DNDEBUG $(CFLAGSOPT)
-CFHE = -DCONFIG_VAR_HE -DNDEBUG $(CFLAGSOPTNODEBUG)
-CFHI = -DCONFIG_VAR_HI -DNDEBUG $(CFLAGSOPT)
-CFDI = -DCONFIG_VAR_DI -DNDEBUG $(CFLAGSOPT)
-CFII = -DCONFIG_VAR_II -DNDEBUG $(CFLAGSOPT)
-CFCE = -DCONFIG_VAR_CE          $(CFLAGSOPTNODEBUG)
-CFCI = -DCONFIG_VAR_CI          $(CFLAGSDEBUG)
-CFTI = -DCONFIG_VAR_TI          $(CFLAGSDEBUG)
+CFRASH = -DCONFIG_VAR_RASH -DNDEBUG $(CFLAGSOPT)
+CFHOT  = -DCONFIG_VAR_HOT  -DNDEBUG $(CFLAGSOPT)
+CFDIAG = -DCONFIG_VAR_DIAG -DNDEBUG $(CFLAGSOPT)
+CFCOOL = -DCONFIG_VAR_COOL          $(CFLAGSDEBUG)
+CFTI   = -DCONFIG_VAR_TI            $(CFLAGSDEBUG)
 
 # Bind CFLAGS to the appropriate set of flags for the variety.
 # %%VARIETY: Add a test for the variety and set CFLAGS here.
-ifeq ($(VARIETY),we)
-CFLAGS=$(CFLAGSCOMMON) $(CFWE)
+ifeq ($(VARIETY),rash)
+CFLAGS=$(CFLAGSCOMMON) $(CFRASH)
 else
-ifeq ($(VARIETY),wi)
-CFLAGS=$(CFLAGSCOMMON) $(CFWI)
+ifeq ($(VARIETY),hot)
+CFLAGS=$(CFLAGSCOMMON) $(CFHOT)
 else
-ifeq ($(VARIETY),he)
-CFLAGS=$(CFLAGSCOMMON) $(CFHE)
+ifeq ($(VARIETY),diag)
+CFLAGS=$(CFLAGSCOMMON) $(CFDIAG)
 else
-ifeq ($(VARIETY),hi)
-CFLAGS=$(CFLAGSCOMMON) $(CFHI)
-else
-ifeq ($(VARIETY),di)
-CFLAGS=$(CFLAGSCOMMON) $(CFDI)
-else
-ifeq ($(VARIETY),ii)
-CFLAGS=$(CFLAGSCOMMON) $(CFII)
-else
-ifeq ($(VARIETY),ce)
-CFLAGS=$(CFLAGSCOMMON) $(CFCE)
-else
-ifeq ($(VARIETY),ci)
-CFLAGS=$(CFLAGSCOMMON) $(CFCI)
+ifeq ($(VARIETY),cool)
+CFLAGS=$(CFLAGSCOMMON) $(CFCOOL)
 else
 ifeq ($(VARIETY),ti)
 CFLAGS=$(CFLAGSCOMMON) $(CFTI)
 else
-endif
-endif
-endif
-endif
 endif
 endif
 endif
@@ -198,16 +153,8 @@ MPMCOMMON = mpsi.c mpm.c arenavm.c arenacl.c arena.c global.c locus.c \
             trace.c traceanc.c root.c seg.c format.c buffer.c ref.c \
             bt.c ring.c shield.c ld.c event.c sac.c message.c \
             poolmrg.c poolmfs.c poolmv.c dbgpool.c dbgpooli.c \
-            boot.c meter.c splay.c cbs.c diag.c version.c
+            boot.c meter.c splay.c cbs.c diag.c
 MPM = $(MPMCOMMON) $(MPMPF)
-SWCOMMON = mpsi.c mpm.c arenavm.c arenacl.c arena.c global.c locus.c \
-           tract.c walk.c reserv.c protocol.c pool.c poolabs.c \
-           trace.c traceanc.c root.c seg.c format.c buffer.c ref.c \
-           bt.c ring.c shield.c ld.c event.c sac.c message.c \
-           poolmrg.c poolmfs.c poolmv.c dbgpool.c dbgpooli \
-           poolams.c poolamsi.c poolmvff.c \
-           boot.c meter.c splay.c cbs.c version.c mpsioan.c
-SW = $(SWCOMMON) $(SWPF)
 
 
 # These map the source file lists onto object files and dependency files
@@ -234,21 +181,6 @@ POOLNOBJ = $(POOLN:%.c=$(PFM)/$(VARIETY)/%.o)
 POOLNDEP = $(POOLN:%.c=$(PFM)/$(VARIETY)/%.d)
 MVFFOBJ = $(MVFF:%.c=$(PFM)/$(VARIETY)/%.o)
 MVFFDEP = $(MVFF:%.c=$(PFM)/$(VARIETY)/%.d)
-SWOBJ = $(SW:%.c=$(PFM)/$(VARIETY)/%.o)
-
-# The following hack for SWDEP only creates those dependencies when
-# a SW target is being built.
-ifdef TARGET
-ifeq ($(TARGET),mmsw.a)
-SWDEP = $(SW:%.c=$(PFM)/$(VARIETY)/%.d)
-else
-ifeq ($(TARGET),depend)
-SWDEP = $(SW:%.c=$(PFM)/$(VARIETY)/%.d)
-else
-SWDEP =
-endif
-endif
-endif
 
 TESTLIBOBJ = $(TESTLIB:%.c=$(PFM)/$(VARIETY)/%.o)
 TESTLIBDEP = $(TESTLIB:%.c=$(PFM)/$(VARIETY)/%.d)
@@ -266,18 +198,16 @@ endif
 
 # == Pseudo-targets ==
 
-# %%TARGET: Add the target to the all dependencies, if it uses the
-# CONFIG_PROD_MPS configuration, to swall if CONFIG_PROD_EPCORE
+# %%TARGET: Add the target to the all dependencies
 
 all: mpmss sacss amcss amcsshe amsss amssshe segsmss awlut awluthe \
      mpsicv lockcov poolncv locv qs apss \
      finalcv finaltest arenacv bttest teletest \
      abqtest cbstest btcv mv2test messtest steptest \
-     walkt0 libcbt zcoll zmess \
+     walkt0 zcoll zmess \
      eventcnv \
      mps.a mpsplan.a
 
-swall: mmsw.a replaysw
 
 # Runs the automatic tests that are built with CONFIG_PROD_MPS.
 # These tests are run overnight (see design.buildsys.overnight).
@@ -299,14 +229,13 @@ mpmss sacss amcss amcssth amcsshe amsss amssshe segsmss awlut awlutth \
   awluthe mpsicv lockcov poolncv locv qs apss \
   finalcv finaltest arenacv bttest teletest \
   expt825 \
-  libcbt \
   abqtest cbstest btcv mv2test \
   messtest steptest \
   walkt0 \
   exposet0 \
   zcoll zmess \
   eventcnv replay replaysw \
-  mps.a mmsw.a mpsplan.a mmdw.a: phony
+  mps.a mpsplan.a: phony
 ifdef VARIETY
 	$(MAKE) -f $(PFM).gmk TARGET=$@ variety
 else
@@ -328,10 +257,8 @@ clean: phony
 ifdef TARGET
 ifndef VARIETY
 target: phony
-	$(MAKE) -f $(PFM).gmk VARIETY=hi variety
-	$(MAKE) -f $(PFM).gmk VARIETY=ci variety
-	$(MAKE) -f $(PFM).gmk VARIETY=di variety
-	$(MAKE) -f $(PFM).gmk VARIETY=we variety
+	$(MAKE) -f $(PFM).gmk VARIETY=hot variety
+	$(MAKE) -f $(PFM).gmk VARIETY=cool variety
 endif
 endif
 
@@ -346,7 +273,39 @@ endif
 endif
 
 
-# GENUINE TARGETS
+# THE MPS LIBRARY
+#
+# The MPS library is built in two ways:
+#
+#   1. In the usual way, from a pile of object files compiled from their
+#      corresponding sources.
+#
+#   2. From mps.c, which effectively concatenates all the sources, allowing
+#      important global optimisation and inlining to occur.
+#
+# We mostly use the method (2), because it is fast to compile and execute.
+# But we use method (1) for some varieties to ensure correctness of
+# code (linkage errors are masked by (2)) and to maintain a correct list
+# of source files in case method (1) won't work on some future constrained
+# platform.
+#
+# %%VARIETY: Add a rule for how to build the MPS library for the variety
+
+$(PFM)/rash/mps.a: $(PFM)/rash/mps.o
+$(PFM)/hot/mps.a: $(PFM)/hot/mps.o
+
+$(PFM)/diag/mps.a: \
+  $(MPMOBJ) $(AMCOBJ) $(AMSOBJ) $(AWLOBJ) $(LOOBJ) $(SNCOBJ) \
+  $(MVFFOBJ) $(PLINTHOBJ) $(POOLNOBJ)
+$(PFM)/cool/mps.a: \
+  $(MPMOBJ) $(AMCOBJ) $(AMSOBJ) $(AWLOBJ) $(LOOBJ) $(SNCOBJ) \
+  $(MVFFOBJ) $(PLINTHOBJ) $(POOLNOBJ)
+$(PFM)/ti/mps.a: \
+  $(MPMOBJ) $(AMCOBJ) $(AMSOBJ) $(AWLOBJ) $(LOOBJ) $(SNCOBJ) \
+  $(MVFFOBJ) $(PLINTHOBJ) $(POOLNOBJ)
+
+
+# OTHER GENUINE TARGETS
 #
 # Each line defines an executable or library target to be built and the
 # object files it is built from.  These lines add dependencies to the
@@ -357,109 +316,104 @@ endif
 ifdef VARIETY
 
 $(PFM)/$(VARIETY)/finalcv: $(PFM)/$(VARIETY)/finalcv.o \
-	$(FMTDYTSTOBJ) $(MPMOBJ) $(PLINTHOBJ) $(AMCOBJ) $(TESTLIBOBJ)
+	$(FMTDYTSTOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/finaltest: $(PFM)/$(VARIETY)/finaltest.o \
-	$(FMTDYTSTOBJ) $(MPMOBJ) $(PLINTHOBJ) $(AMCOBJ) $(TESTLIBOBJ)
+	$(FMTDYTSTOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/expt825: $(PFM)/$(VARIETY)/expt825.o \
-	$(FMTDYTSTOBJ) $(MPMOBJ) $(PLINTHOBJ) $(AMCOBJ) $(TESTLIBOBJ)
-
-$(PFM)/$(VARIETY)/libcbt: $(PFM)/$(VARIETY)/libcbt.o \
-	$(PFM)/$(VARIETY)/mpslibcb.o \
-	$(PFM)/$(VARIETY)/mpsioan.o \
-	$(MPMOBJ) $(TESTLIBOBJ)
+	$(FMTDYTSTOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/locv: $(PFM)/$(VARIETY)/locv.o \
-	$(MPMOBJ) $(PLINTHOBJ) $(LOOBJ) $(TESTLIBOBJ)
+	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/mpmss: $(PFM)/$(VARIETY)/mpmss.o \
-	$(MPMOBJ) $(PLINTHOBJ) $(MVFFOBJ) $(TESTLIBOBJ)
+	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/apss: $(PFM)/$(VARIETY)/apss.o \
-	$(MPMOBJ) $(PLINTHOBJ) $(MVFFOBJ) $(TESTLIBOBJ)
+	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/sacss: $(PFM)/$(VARIETY)/sacss.o \
-	$(MPMOBJ) $(PLINTHOBJ) $(MVFFOBJ) $(TESTLIBOBJ)
+	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/bttest: $(PFM)/$(VARIETY)/bttest.o \
-	$(MPMOBJ) $(PLINTHOBJ) $(TESTLIBOBJ)
+	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/teletest: $(PFM)/$(VARIETY)/teletest.o \
-	$(MPMOBJ) $(PLINTHOBJ) $(TESTLIBOBJ)
+	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/lockcov: $(PFM)/$(VARIETY)/lockcov.o \
-	$(MPMOBJ) $(PLINTHOBJ) $(TESTLIBOBJ)
+	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/mpsicv: $(PFM)/$(VARIETY)/mpsicv.o \
-	$(FMTDYTSTOBJ) $(FMTHETSTOBJ) $(MPMOBJ) $(PLINTHOBJ) $(AMCOBJ) $(TESTLIBOBJ)
+	$(FMTDYTSTOBJ) $(FMTHETSTOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/amcss: $(PFM)/$(VARIETY)/amcss.o \
-	$(FMTDYTSTOBJ) $(MPMOBJ) $(PLINTHOBJ) $(AMCOBJ) $(TESTLIBOBJ)
+	$(FMTDYTSTOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/amcssth: $(PFM)/$(VARIETY)/amcssth.o \
-	$(FMTDYTSTOBJ) $(MPMOBJ) $(PLINTHOBJ) $(AMCOBJ) $(TESTLIBOBJ)
+	$(FMTDYTSTOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/amcsshe: $(PFM)/$(VARIETY)/amcsshe.o \
-	$(FMTHETSTOBJ) $(MPMOBJ) $(PLINTHOBJ) $(AMCOBJ) $(TESTLIBOBJ)
+	$(FMTHETSTOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/amsss: $(PFM)/$(VARIETY)/amsss.o \
-	$(FMTDYTSTOBJ) $(MPMOBJ) $(PLINTHOBJ) $(AMSOBJ) $(TESTLIBOBJ)
+	$(FMTDYTSTOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/amssshe: $(PFM)/$(VARIETY)/amssshe.o \
-	$(FMTHETSTOBJ) $(MPMOBJ) $(PLINTHOBJ) $(AMSOBJ) $(TESTLIBOBJ)
+	$(FMTHETSTOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/segsmss: $(PFM)/$(VARIETY)/segsmss.o \
-	$(FMTDYTSTOBJ) $(MPMOBJ) $(PLINTHOBJ) $(AMSOBJ) $(TESTLIBOBJ)
+	$(FMTDYTSTOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/awlut: $(PFM)/$(VARIETY)/awlut.o \
-	$(FMTDYTSTOBJ) $(MPMOBJ) $(PLINTHOBJ) $(LOOBJ) $(AWLOBJ) $(TESTLIBOBJ)
+	$(FMTDYTSTOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/awluthe: $(PFM)/$(VARIETY)/awluthe.o \
-        $(FMTHETSTOBJ) $(MPMOBJ) $(PLINTHOBJ) $(LOOBJ) $(AWLOBJ) $(TESTLIBOBJ)
+        $(FMTHETSTOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/awlutth: $(PFM)/$(VARIETY)/awlutth.o \
-	$(FMTDYTSTOBJ) $(MPMOBJ) $(PLINTHOBJ) $(LOOBJ) $(AWLOBJ) $(TESTLIBOBJ)
+	$(FMTDYTSTOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/poolncv: $(PFM)/$(VARIETY)/poolncv.o \
-	$(MPMOBJ) $(PLINTHOBJ) $(TESTLIBOBJ) $(POOLNOBJ)
+	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/qs: $(PFM)/$(VARIETY)/qs.o \
-	$(AMCOBJ) $(MPMOBJ) $(PLINTHOBJ) $(TESTLIBOBJ)
+	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/arenacv: $(PFM)/$(VARIETY)/arenacv.o \
-	$(MPMOBJ) $(PLINTHOBJ) $(TESTLIBOBJ)
+	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/abqtest: $(PFM)/$(VARIETY)/abqtest.o \
-	$(PFM)/$(VARIETY)/abq.o $(MPMOBJ) $(PLINTHOBJ) $(TESTLIBOBJ)
+	$(PFM)/$(VARIETY)/abq.o $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/cbstest: $(PFM)/$(VARIETY)/cbstest.o \
-	$(MPMOBJ) $(PLINTHOBJ) $(TESTLIBOBJ)
+	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/btcv: $(PFM)/$(VARIETY)/btcv.o \
-	$(MPMOBJ) $(PLINTHOBJ) $(TESTLIBOBJ)
+	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/mv2test: $(PFM)/$(VARIETY)/mv2test.o \
 	$(PFM)/$(VARIETY)/poolmv2.o $(PFM)/$(VARIETY)/abq.o \
-	$(MPMOBJ) $(PLINTHOBJ) $(TESTLIBOBJ)
+	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/messtest: $(PFM)/$(VARIETY)/messtest.o \
-	$(MPMOBJ) $(PLINTHOBJ) $(TESTLIBOBJ)
+	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/steptest: $(PFM)/$(VARIETY)/steptest.o \
-	$(FMTDYTSTOBJ) $(MPMOBJ) $(PLINTHOBJ) $(AMCOBJ) $(TESTLIBOBJ)
+	$(FMTDYTSTOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/walkt0: $(PFM)/$(VARIETY)/walkt0.o \
-	$(FMTDYTSTOBJ) $(MPMOBJ) $(PLINTHOBJ) $(AMCOBJ) $(TESTLIBOBJ)
+	$(FMTDYTSTOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/exposet0: $(PFM)/$(VARIETY)/exposet0.o \
-	$(FMTDYTSTOBJ) $(MPMOBJ) $(PLINTHOBJ) $(AMCOBJ) $(TESTLIBOBJ)
+	$(FMTDYTSTOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/zcoll: $(PFM)/$(VARIETY)/zcoll.o \
-	$(FMTDYTSTOBJ) $(MPMOBJ) $(PLINTHOBJ) $(AMCOBJ) $(TESTLIBOBJ)
+	$(FMTDYTSTOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/zmess: $(PFM)/$(VARIETY)/zmess.o \
-	$(FMTDYTSTOBJ) $(MPMOBJ) $(PLINTHOBJ) $(AMCOBJ) $(TESTLIBOBJ)
+	$(FMTDYTSTOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/eventcnv: $(PFM)/$(VARIETY)/eventcnv.o \
   $(PFM)/$(VARIETY)/eventpro.o $(PFM)/$(VARIETY)/table.o
@@ -467,18 +421,9 @@ $(PFM)/$(VARIETY)/eventcnv: $(PFM)/$(VARIETY)/eventcnv.o \
 $(PFM)/$(VARIETY)/replay: $(PFM)/$(VARIETY)/replay.o \
   $(PFM)/$(VARIETY)/eventrep.o \
   $(PFM)/$(VARIETY)/eventpro.o $(PFM)/$(VARIETY)/table.o \
-  $(MPMOBJ) $(PLINTHOBJ) $(AWLOBJ) $(AMSOBJ) $(POOLNOBJ) \
-  $(AMCOBJ) $(SNCOBJ) $(MVFFOBJ)
-
-$(PFM)/$(VARIETY)/mps.a: $(MPMOBJ) $(AMCOBJ) $(SNCOBJ) $(MVFFOBJ)
-
-$(PFM)/$(VARIETY)/mmdw.a: $(MPMOBJ) $(AMCOBJ) $(LOOBJ) $(SNCOBJ) \
-  $(FMTDYOBJ) $(AWLOBJ)
+  $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/mpsplan.a: $(PLINTHOBJ)
-
-$(PFM)/$(VARIETY)/mmsw.a: \
-	$(SWOBJ)
 
 endif
 
@@ -497,25 +442,6 @@ test -d $(PFM) || mkdir $(PFM)
 test -d $(PFM)/$(VARIETY) || mkdir $(PFM)/$(VARIETY)
 $(CC) $(CFLAGS) -c -o $@ $<
 endef
-
-# .force: FORCE is a dependent that can be used to force targets to be
-# built.
-.PHONY: FORCE
-# A rule with no dependents and no commands always causes update.
-# (See GNUMake doc, make.info, Node: Force Targets)
-# (ignore the bit about using FORCE as being the same as using .PHONY
-#  it's not, and we make use of that, see .special.version below)
-FORCE:
-
-# .special.version: version.o has a special rule so that it is always
-# built.  This rule has no commands, this has the effect of adding the
-# dependents to those specified by other rules (in this case the implicit
-# .o:.c rule below, .rule.c-to-o).  The extra dependent added is the
-# FORCE dependent (defined above, .force) which causes the target to be
-# always built.
-ifdef VARIETY
-$(PFM)/$(VARIETY)/version.o: FORCE
-endif
 
 # .rule.c-to-o:
 $(PFM)/$(VARIETY)/%.o: %.c
@@ -544,7 +470,7 @@ $(PFM)/$(VARIETY)/%.d: %.c
 ifdef VARIETY
 ifdef TARGET
 # %%PART: Add the dependency file macro for the new part here.
-include $(MPMDEP) $(AMSDEP) $(AMCDEP) $(LODEP) $(SWDEP) \
+include $(MPMDEP) $(AMSDEP) $(AMCDEP) $(LODEP) \
   $(AWLDEP) $(POOLNDEP) $(TESTLIBDEP) $(FMTDYDEP) $(FMTHETSTDEP) \
   $(PLINTHDEP) $(EVENTPROCDEP)
 endif
@@ -561,14 +487,15 @@ endif
 $(PFM)/$(VARIETY)/%.a:
 	$(ECHO) "$(PFM): $@"
 	rm -f $@
-	$(AR) $(ARFLAGS) $@ $^
+	$(CC) $(CFLAGS) -c -o $(PFM)/$(VARIETY)/version.o version.c
+	$(AR) $(ARFLAGS) $@ $^ $(PFM)/$(VARIETY)/version.o
 	$(RANLIB) $@
 
 # Executable
 
 $(PFM)/$(VARIETY)/%:
 	$(ECHO) "$(PFM): $@"
-	$(CC) $(LINKFLAGS) -o $@ $^ $(LIBS)
+	$(CC) $(CFLAGS) $(LINKFLAGS) -o $@ $^ $(LIBS)
 
 
 # C. COPYRIGHT AND LICENSE
