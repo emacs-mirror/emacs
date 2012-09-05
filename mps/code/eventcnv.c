@@ -95,7 +95,7 @@ static void usage(void)
 {
   fprintf(stderr,
           "Usage: %s [-f logfile] [-p] [-v] [-e events] [-b size]"
-          " [-S[LC]] [-?]\nSee guide.mps.telemetry for instructions.",
+          " [-S[LC]] [-?]\nSee guide.mps.telemetry for instructions.\n",
           prog);
 }
 
