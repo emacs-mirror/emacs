@@ -103,8 +103,8 @@ Res VMCreate(VM *vmReturn, Size size)
 
   AVER(vmReturn != NULL);
 
-  AVER(CHECKTYPE(LPVOID, Addr));  /* .assume.lpvoid-addr */
-  AVER(CHECKTYPE(SIZE_T, Size));
+  AVER(COMPATTYPE(LPVOID, Addr));  /* .assume.lpvoid-addr */
+  AVER(COMPATTYPE(SIZE_T, Size));
 
   GetSystemInfo(&si);
   align = (Align)si.dwPageSize;

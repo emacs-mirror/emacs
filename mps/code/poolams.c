@@ -524,10 +524,10 @@ static Res AMSSegDescribe(Seg seg, mps_lib_FILE *stream)
   Buffer buffer;               /* the segment's buffer, if it has one */
   Index i;
 
-  if (!CHECKT(Seg, seg)) return ResFAIL;
+  if (!TESTT(Seg, seg)) return ResFAIL;
   if (stream == NULL) return ResFAIL;
   amsseg = Seg2AMSSeg(seg);
-  if (!CHECKT(AMSSeg, amsseg)) return ResFAIL;
+  if (!TESTT(AMSSeg, amsseg)) return ResFAIL;
 
   /* Describe the superclass fields first via next-method call */
   super = SEG_SUPERCLASS(AMSSegClass);
@@ -885,7 +885,7 @@ static Res AMSBufferFill(Addr *baseReturn, Addr *limitReturn,
   AMS ams;
   Seg seg;
   Ring node, ring, nextNode;    /* for iterating over the segments */
-  Index base, limit;
+  Index base = 0, limit = 0;    /* suppress "may be used uninitialized" */
   Addr baseAddr, limitAddr;
   RankSet rankSet;
   Bool b;                       /* the return value of amsSegAlloc */
@@ -1366,7 +1366,7 @@ static Res AMSFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
   Format format;
 
   AVERT_CRITICAL(Pool, pool);
-  AVER_CRITICAL(CHECKT(AMS, Pool2AMS(pool)));
+  AVER_CRITICAL(TESTT(AMS, Pool2AMS(pool)));
   AVERT_CRITICAL(ScanState, ss);
   AVERT_CRITICAL(Seg, seg);
   AVER_CRITICAL(refIO != NULL);
@@ -1591,9 +1591,9 @@ static Res AMSDescribe(Pool pool, mps_lib_FILE *stream)
   Ring node, nextNode;
   Res res;
 
-  if (!CHECKT(Pool, pool)) return ResFAIL;
+  if (!TESTT(Pool, pool)) return ResFAIL;
   ams = Pool2AMS(pool);
-  if (!CHECKT(AMS, ams)) return ResFAIL;
+  if (!TESTT(AMS, ams)) return ResFAIL;
   if (stream == NULL) return ResFAIL;
 
   res = WriteF(stream,

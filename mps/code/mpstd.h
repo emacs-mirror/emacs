@@ -127,6 +127,7 @@
 #define MPS_WORD_SHIFT  5
 #define MPS_PF_ALIGN    4       /* I'm just guessing. */
 
+
 /* Apple clang version 3.1, clang -E -dM */
 
 #elif defined(__APPLE__) && defined(__i386__) && defined(__MACH__) \
@@ -145,6 +146,7 @@
 #define MPS_WORD_SHIFT  5
 #define MPS_PF_ALIGN    4       /* I'm just guessing. */
 
+
 /* Apple clang version 3.1, clang -E -dM */
 
 #elif defined(__APPLE__) && defined(__x86_64__) && defined(__MACH__) \
@@ -162,6 +164,7 @@
 #define MPS_WORD_WIDTH  64
 #define MPS_WORD_SHIFT  6
 #define MPS_PF_ALIGN    8
+
 
 /* GCC 2.6.3, gcc -E -dM
  * The actual granularity of GNU malloc is 8, but field alignments are
@@ -183,6 +186,13 @@
 #define MPS_WORD_SHIFT  5
 #define MPS_PF_ALIGN    4
 
+#ifndef _REENTRANT        /* it's also defined by cc -pthread */
+#define _REENTRANT        /* defines, e.g., pthread_mutexattr_settype */
+#endif
+#define _XOPEN_SOURCE 500 /* to get POSIX signal handling */
+#define _GNU_SOURCE       /* to get register numbers for prmci3li.c */
+
+
 /* GCC 4.6.3, gcc -E -dM */
 
 #elif defined(__linux__) && defined(__x86_64) && defined(__GNUC__)
@@ -200,22 +210,12 @@
 #define MPS_WORD_SHIFT  6
 #define MPS_PF_ALIGN    8
 
-/* GCC 2.7.2, gcc -E -dM */
-
-#elif defined(__linux__) && defined(__PPC__) && defined(__GNUC__)
-#if defined(CONFIG_PF_STRING) && ! defined(CONFIG_PF_LIPPGC)
-#error "specified CONFIG_PF_... inconsistent with detected lippgc"
+#ifndef _REENTRANT        /* it's also defined by cc -pthread */
+#define _REENTRANT        /* defines, e.g., pthread_mutexattr_settype */
 #endif
-#define MPS_PF_LIPPGC
-#define MPS_PF_STRING   "lippgc"
-#define MPS_OS_LI
-#define MPS_ARCH_PP
-#define MPS_BUILD_GC
-#define MPS_T_WORD      unsigned long
-#define MPS_T_ULONGEST  unsigned long
-#define MPS_WORD_WIDTH  32
-#define MPS_WORD_SHIFT  5
-#define MPS_PF_ALIGN    8 /* @@@@ not tested */
+#define _XOPEN_SOURCE 500 /* to get POSIX signal handling */
+#define _GNU_SOURCE       /* to get register numbers for prmci3li.c */
+
 
 /* GCC 2.95.3, gcc -E -dM */
 
@@ -234,6 +234,7 @@
 #define MPS_WORD_SHIFT  5
 #define MPS_PF_ALIGN    4
 
+
 #elif defined(__FreeBSD__) && defined (__x86_64__) && defined (__GNUC__)
 #if defined(CONFIG_PF_STRING) && ! defined(CONFIG_PF_FRI6GC)
 #error "specified CONFIG_PF_... inconsistent with detected fri6gc"
@@ -248,6 +249,7 @@
 #define MPS_WORD_WIDTH  64
 #define MPS_WORD_SHIFT  6
 #define MPS_PF_ALIGN    8
+
 
 #else
 #error "Unable to detect target platform"

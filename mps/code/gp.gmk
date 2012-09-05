@@ -16,7 +16,6 @@ CFLAGSCOMPILER = \
 	-Wcast-qual -Wshadow -pg
 CFLAGSDEBUG = -g -ggdb3
 CFLAGSOPT = -O -g -ggdb3
-CFLAGSOPTNODEBUG = -O -g0
 
 # gcc -MM generates a dependency line of the form:
 #   thing.o : thing.c ...

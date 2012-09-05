@@ -21,39 +21,52 @@
 
 /* Variety Configuration */
 
-/* First translate GG build directives into better ones.
- */
+/* Then deal with CONFIG_VAR_* build directives.  These are translated into
+   the directives CONFIG_ASSERT, CONFIG_STATS, CONFIG_LOG, etc. which control
+   actual compilation features. */
 
-#ifdef CONFIG_DEBUG
-/* Translate CONFIG_DEBUG to CONFIG_STATS, because that's what it */
-/* means.  It's got nothing to do with debugging!  RHSK 2007-06-29 */
-#define CONFIG_STATS
-#endif
-
-
-/* Then deal with old-style CONFIG_VAR_* build directives.  These
- * must be translated into the new directives CONFIG_ASSERT,
- * CONFIG_STATS, and CONFIG_LOG.
+/* CONFIG_VAR_RASH -- the rash and reckless variety
  *
- * One day the old build system may be converted to use the new
- * directives.
+ * This variety switches off as many features as possible for maximum
+ * performance, but is therefore unsafe and undebuggable.  It is not intended
+ * for use, but for comparison with the hot variety, to check that assertion,
+ * logging, etc. have negligible overhead.
  */
 
-#if defined(CONFIG_VAR_WI) || defined(CONFIG_VAR_WE) /* White-hot varieties */
+#if defined(CONFIG_VAR_RASH)
 /* no asserts */
-/* ... so CHECKLEVEL_INITIAL is irrelevant */
 /* no statistic meters */
 /* no telemetry log events */
 
-#elif defined(CONFIG_VAR_HI) || defined(CONFIG_VAR_HE) /* Hot varieties */
+
+/* CONFIG_VAR_HOT -- the hot variety
+ *
+ * This variety is the default variety for distribution in products that use
+ * the MPS.  It has maximum performance while retaining a good level of
+ * consistency checking and allowing some debugging and telemetry features.
+ */
+
+#elif defined(CONFIG_VAR_HOT)
 #define CONFIG_ASSERT
-#define CHECKLEVEL_INITIAL CheckLevelMINIMAL
+#ifndef CHECKLEVEL
+#define CHECKLEVEL      CheckLevelMINIMAL
+#endif
 /* no statistic meters */
 /* no telemetry log events */
 
-#elif defined(CONFIG_VAR_DI) /* Diagnostic variety */
+
+/* CONFIG_VAR_DIAG -- diagnostic variety
+ *
+ * Deprecated.  The diagnostic variety prints messages about the internals
+ * of the MPS to an output stream.  This is being replaced by an extended
+ * telemetry system.  RB 2012-08-31
+ */
+
+#elif defined(CONFIG_VAR_DIAG) /* Diagnostic variety */
 #define CONFIG_ASSERT
-#define CHECKLEVEL_INITIAL CheckLevelMINIMAL
+#ifndef CHECKLEVEL
+#define CHECKLEVEL      CheckLevelMINIMAL
+#endif
 #define CONFIG_STATS
 /* For diagnostics, choose a DIAG_WITH_... output method.
  * (We need to choose because the DIAG output system is under 
@@ -63,24 +76,42 @@
 /* #define DIAG_WITH_PRINTF */
 /* no telemetry log events */
 
-#elif defined(CONFIG_VAR_CI) || defined(CONFIG_VAR_CE) /* Cool varieties */
+
+/* CONFIG_VAR_COOL -- cool variety
+ *
+ * The cool variety is intended for use when developing an integration with
+ * the MPS or debugging memory problems or collecting detailed telemetry
+ * data for performance analysis.  It has more thorough consistency checking
+ * and data collection and output, and full debugging information.
+ */
+
+#elif defined(CONFIG_VAR_COOL)
 #define CONFIG_ASSERT
-/* ... let PRODUCT determine CHECKLEVEL_INITIAL */
+#define CONFIG_ASSERT_ALL
 #define CONFIG_STATS
+#ifndef CHECKLEVEL
+#define CHECKLEVEL      CheckLevelSHALLOW
+#endif
 /* no telemetry log events */
+
+
+/* CONFIG_VAR_TI -- telemetry variety
+ *
+ * Deprecated.  This is the variety with event logging to a telemetry stream.
+ * Currently being reworked to retain event logging with negligible overhead
+ * on all other varieties.  RB 2012-08-31
+ */
 
 #elif defined(CONFIG_VAR_TI)    /* Telemetry, Internal; variety.ti */
 #define CONFIG_ASSERT
-/* ... let PRODUCT determine CHECKLEVEL_INITIAL */
+#define CONFIG_ASSERT_ALL
+#ifndef CHECKLEVEL
+#define CHECKLEVEL      CheckLevelSHALLOW
+#endif
 #define CONFIG_STATS
 #define CONFIG_LOG
 
-#elif defined(CONFIG_VAR_II)    /* Ice, Internal; variety.ii (HotLog) */
-#define CONFIG_ASSERT
-#define CHECKLEVEL_INITIAL CheckLevelMINIMAL
-/* no statistic meters */
-#define CONFIG_LOG
-#endif
+#endif /* CONFIG_VAR_* */
 
 
 /* Build Features */
@@ -90,8 +121,13 @@
 /* asserts: AVER, AVERT, NOTREACHED, CHECKx */
 /* note: a direct call to ASSERT() will *still* fire */
 #define AVER_AND_CHECK
+#if defined(CONFIG_ASSERT_ALL)
+#define AVER_AND_CHECK_ALL
+#define MPS_ASSERT_STRING "assertastic"
+#else /* CONFIG_ASSERT_ALL, not */
 #define MPS_ASSERT_STRING "asserted"
-#else
+#endif /* CONFIG_ASSERT_ALL */
+#else /* CONFIG_ASSERT, not */
 #define AVER_AND_CHECK_NONE
 #define MPS_ASSERT_STRING "nonasserted"
 #endif
@@ -347,30 +383,11 @@
 
 /* Product Configuration
  *
- * Convert CONFIG_PROD_* defined on compiler command line into
- * internal configuration parameters.  See <design/config/#prod>.
+ * Deprecated, see design/config/#req.prod>.  This now only contains the
+ * configuration used by the former "MPS" product, which is now the only
+ * product.
  */
 
-#if defined(CONFIG_PROD_EPCORE)
-#define MPS_PROD_STRING         "epcore"
-#define MPS_PROD_EPCORE
-#define ARENA_INIT_SPARE_COMMIT_LIMIT   ((Size)0)
-/* .nosync.why: ScriptWorks is single-threaded when using the MM. */
-#define THREAD_SINGLE
-#define PROTECTION_NONE
-#define DONGLE_NONE
-#define PROD_CHECKLEVEL_INITIAL CheckLevelMINIMAL /* CheckLevelSHALLOW is too slow for SW */
-
-#elif defined(CONFIG_PROD_DYLAN)
-#define MPS_PROD_STRING         "dylan"
-#define MPS_PROD_DYLAN
-#define ARENA_INIT_SPARE_COMMIT_LIMIT   ((Size)10uL*1024uL*1024uL)
-#define THREAD_MULTI
-#define PROTECTION
-#define DONGLE_NONE
-#define PROD_CHECKLEVEL_INITIAL CheckLevelSHALLOW
-
-#elif defined(CONFIG_PROD_MPS)
 #define MPS_PROD_STRING         "mps"
 #define MPS_PROD_MPS
 #define ARENA_INIT_SPARE_COMMIT_LIMIT   ((Size)10uL*1024uL*1024uL)
@@ -378,36 +395,6 @@
 #define PROTECTION
 #define DONGLE_NONE
 #define PROD_CHECKLEVEL_INITIAL CheckLevelSHALLOW
-
-#else
-#error "No target product configured."
-#endif
-
-/* .prod.arena-size: ARENA_SIZE is currently set larger for the
- * MM/Dylan product as an interim solution.
- * See request.dylan.170170.sol.patch and change.dylan.buffalo.170170.
- * Note that this define is only used by the implementation of the
- * deprecated mps_space_create interface.
- */
-#define ARENA_SIZE              ((Size)1<<30)
-
-/* if CHECKLEVEL_INITIAL hasn't been defined already (e.g. by a variety, or
- * in a makefile), take the value from the product. */
-
-#ifndef CHECKLEVEL_INITIAL
-#define CHECKLEVEL_INITIAL PROD_CHECKLEVEL_INITIAL
-#endif
-
-
-/* Dongle configuration */
-
-#if defined(DONGLE)
-#define DONGLE_TEST_FREQUENCY ((unsigned int)4000)
-#elif defined(DONGLE_NONE)
-/* nothing to do */
-#else
-#error "No dongle configured."
-#endif
 
 
 /* Pool Class AMC configuration */

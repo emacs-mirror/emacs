@@ -112,7 +112,7 @@ static void MVFFAddToFreeList(Addr *baseIO, Addr *limitIO, MVFF mvff) {
  */
 static void MVFFFreeSegs(MVFF mvff, Addr base, Addr limit)
 {
-  Seg seg;
+  Seg seg = NULL;       /* suppress "may be used uninitialized" */
   Arena arena;
   Bool b;
   Addr segLimit;  /* limit of the current segment when iterating */
@@ -537,9 +537,9 @@ static Res MVFFDescribe(Pool pool, mps_lib_FILE *stream)
   Res res;
   MVFF mvff;
 
-  if (!CHECKT(Pool, pool)) return ResFAIL;
+  if (!TESTT(Pool, pool)) return ResFAIL;
   mvff = Pool2MVFF(pool);
-  if (!CHECKT(MVFF, mvff)) return ResFAIL;
+  if (!TESTT(MVFF, mvff)) return ResFAIL;
   if (stream == NULL) return ResFAIL;
 
   res = WriteF(stream,

@@ -72,7 +72,7 @@ Bool PoolDebugMixinCheck(PoolDebugMixin debug)
     CHECKL(TagInitMethodCheck(debug->tagInit));
     /* Nothing to check about tagSize */
     CHECKD(Pool, debug->tagPool);
-    CHECKL(CHECKTYPE(Addr, void*)); /* tagPool relies on this */
+    CHECKL(COMPATTYPE(Addr, void*)); /* tagPool relies on this */
     /* Nothing to check about missingTags */
     CHECKL(SplayTreeCheck(&debug->index));
   }
@@ -224,7 +224,7 @@ static void freeSplat(PoolDebugMixin debug, Pool pool, Addr base, Addr limit)
   Addr p, next;
   Size freeSize = debug->freeSize;
   Arena arena;
-  Seg seg;
+  Seg seg = NULL;       /* suppress "may be used uninitialized" */
   Bool inSeg;
 
   AVER(base < limit);
@@ -258,7 +258,7 @@ static Bool freeCheck(PoolDebugMixin debug, Pool pool, Addr base, Addr limit)
   Size freeSize = debug->freeSize;
   Res res;
   Arena arena;
-  Seg seg;
+  Seg seg = NULL;       /* suppress "may be used uninitialized" */
   Bool inSeg;
 
   AVER(base < limit);
@@ -472,7 +472,7 @@ static Res DebugPoolAlloc(Addr *aReturn,
                           Pool pool, Size size, Bool withReservoir)
 {
   Res res;
-  Addr new;
+  Addr new = NULL; /* suppress "may be used uninitialized" warning */
   PoolDebugMixin debug;
 
   AVER(aReturn != NULL);

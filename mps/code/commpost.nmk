@@ -11,8 +11,7 @@
 # PSEUDO-TARGETS
 
 # "all" builds all the varieties of all targets
-# %%TARGET: Add the target to the all dependencies, if it uses the
-# CONFIG_PROD_MPS configuration, to swall if CONFIG_PROD_EPCORE
+# %%TARGET: Add the target to the all dependencies.
 
 all: mpmss.exe amcss.exe amsss.exe amssshe.exe segsmss.exe awlut.exe awluthe.exe\
      mpsicv.exe lockutw3.exe lockcov.exe poolncv.exe locv.exe qs.exe apss.exe \
@@ -21,9 +20,7 @@ all: mpmss.exe amcss.exe amsss.exe amssshe.exe segsmss.exe awlut.exe awluthe.exe
      abqtest.exe cbstest.exe btcv.exe mv2test.exe messtest.exe steptest.exe \
      locbwcss.exe locusss.exe zcoll.exe zmess.exe \
      eventcnv.exe \
-     mps.lib mpsplan.lib
-
-swall: mmsw.lib replaysw.exe
+     mps.lib
 
 
 # Convenience targets
@@ -40,8 +37,7 @@ mpmss.exe amcss.exe amcsshe.exe amsss.exe amssshe.exe segsmss.exe awlut.exe awlu
      walkt0.exe locbwcss.exe locusss.exe \
      exposet0.exe zcoll.exe zmess.exe \
      replay.exe replaysw.exe eventcnv.exe \
-     mmdw.lib mmsw.lib mps.lib mpsplan.lib mpsplcb.lib \
-     mpsdy.dll:
+     mps.lib:
 !IFDEF VARIETY
 	$(MAKE) /nologo /f $(PFM).nmk TARGET=$@ variety
 !ELSE
@@ -50,12 +46,10 @@ mpmss.exe amcss.exe amcsshe.exe amsss.exe amssshe.exe segsmss.exe awlut.exe awlu
 
 # "clean" removes the directory containing the build results.
 # Depends on there being no file called "clean".
-# Since we can't know whether we have rmdir, try with deltree as well.
 
 clean:
 	$(ECHO) $(PFM): $@
 	-echo y | rmdir/s $(PFM)
-	-deltree /Y $(PFM)
 
 # target target
 # %%VARIETY: Optionally, add a recursive make call for the new variety,
@@ -66,10 +60,8 @@ clean:
 !IFDEF TARGET
 !IFNDEF VARIETY
 target:
-	$(MAKE) /nologo /f $(PFM).nmk VARIETY=hi variety
-	$(MAKE) /nologo /f $(PFM).nmk VARIETY=ci variety
-	$(MAKE) /nologo /f $(PFM).nmk VARIETY=ti variety
-	$(MAKE) /nologo /f $(PFM).nmk VARIETY=wi variety
+	$(MAKE) /nologo /f $(PFM).nmk VARIETY=hot variety
+	$(MAKE) /nologo /f $(PFM).nmk VARIETY=cool variety
 !ENDIF
 !ENDIF
 
@@ -85,13 +77,56 @@ variety: $(PFM)\$(VARIETY)\$(TARGET)
 mpsicv.cov:
 	$(MAKE) /nologo /f $(PFM).nmk TARGET=$@ VARIETY=cv variety
 
-# FORCE
-# Used to force a target to be built.
-# Depends on there being no file called "FORCE".
-FORCE:
+
+# THE MPS LIBRARY
+#
+# The MPS library is built in two ways:
+#
+#   1. In the usual way, from a pile of object files compiled from their
+#      corresponding sources.
+#
+#   2. From mps.c, which effectively concatenates all the sources, allowing
+#      important global optimisation and inlining to occur.
+#
+# We mostly use the method (2), because it is fast to compile and execute.
+# But we use method (1) for some varieties to ensure correctness of
+# code (linkage errors are masked by (2)) and to maintain a correct list
+# of source files in case method (1) won't work on some future constrained
+# platform.
+#
+# %%VARIETY: Add a rule for how to build the MPS library for the variety
+
+$(PFM)\rash\mps.lib: $(PFM)\rash\mps.obj
+	$(ECHO) $@
+	$(LIBMAN) $(LIBFLAGS) /OUT:$@ $**
+
+$(PFM)\hot\mps.lib: $(PFM)\hot\mps.obj
+	$(ECHO) $@
+	$(LIBMAN) $(LIBFLAGS) /OUT:$@ $**
+
+$(PFM)\cool\mps.lib: \
+  $(MPMOBJ) $(AMCOBJ) $(AMSOBJ) $(AWLOBJ) $(LOOBJ) $(SNCOBJ) \
+  $(MVFFOBJ) $(PLINTHOBJ) $(POOLNOBJ)
+	$(ECHO) $@
+	cl /c $(CFLAGS) /Fd$(PFM)\$(VARIETY)\ /Fo$(PFM)\$(VARIETY)\version.o version.c
+	$(LIBMAN) $(LIBFLAGS) /OUT:$@ $** $(PFM)\$(VARIETY)\version.o
+
+$(PFM)\di\mps.lib: \
+  $(MPMOBJ) $(AMCOBJ) $(AMSOBJ) $(AWLOBJ) $(LOOBJ) $(SNCOBJ) \
+  $(MVFFOBJ) $(PLINTHOBJ) $(POOLNOBJ)
+	$(ECHO) $@
+	cl /c $(CFLAGS) /Fd$(PFM)\$(VARIETY)\ /Fo$(PFM)\$(VARIETY)\version.o version.c
+	$(LIBMAN) $(LIBFLAGS) /OUT:$@ $** $(PFM)\$(VARIETY)\version.o
+
+$(PFM)\ti\mps.lib: \
+  $(MPMOBJ) $(AMCOBJ) $(AMSOBJ) $(AWLOBJ) $(LOOBJ) $(SNCOBJ) \
+  $(MVFFOBJ) $(PLINTHOBJ) $(POOLNOBJ)
+	$(ECHO) $@
+	cl /c $(CFLAGS) /Fd$(PFM)\$(VARIETY)\ /Fo$(PFM)\$(VARIETY)\version.o version.c
+	$(LIBMAN) $(LIBFLAGS) /OUT:$@ $** $(PFM)\$(VARIETY)\version.o
 
 
-# GENUINE TARGETS
+# OTHER GENUINE TARGETS
 #
 # Each line defines an executable or library target to be built and the object
 # files it is build from.  For an executable these lines add dependencies to
@@ -100,125 +135,105 @@ FORCE:
 # to build it.
 # %%TARGET: Add your new target here
 
-
 !IFDEF VARIETY
 
-# .special.version: version.obj has a special rule so that it is always
-# built.  This rule has no commands, meaning that the commands from
-# other rules (the implicit .c -> .obj rule in particular) will be used.
-# (Actually, there's a MS bug that causes this to randomly fail to build.)
-$(PFM)\$(VARIETY)\version.obj: FORCE
-
 $(PFM)\$(VARIETY)\finalcv.exe: $(PFM)\$(VARIETY)\finalcv.obj \
-	$(MPMOBJ) $(PLINTHOBJ) $(AMCOBJ) $(FMTTESTOBJ) \
-	$(MRGOBJ) $(TESTLIBOBJ)
+	$(PFM)\$(VARIETY)\mps.lib $(FMTTESTOBJ) $(TESTLIBOBJ)
 
 $(PFM)\$(VARIETY)\finaltest.exe: $(PFM)\$(VARIETY)\finaltest.obj \
-	$(MPMOBJ) $(PLINTHOBJ) $(AMCOBJ) $(FMTTESTOBJ) \
-	$(MRGOBJ) $(TESTLIBOBJ)
+	$(PFM)\$(VARIETY)\mps.lib $(FMTTESTOBJ) $(TESTLIBOBJ)
 
 $(PFM)\$(VARIETY)\expt825.exe: $(PFM)\$(VARIETY)\expt825.obj \
-	$(MPMOBJ) $(PLINTHOBJ) $(AMCOBJ) $(FMTTESTOBJ) \
-	$(MRGOBJ) $(TESTLIBOBJ)
+	$(PFM)\$(VARIETY)\mps.lib $(FMTTESTOBJ) $(TESTLIBOBJ)
 
 $(PFM)\$(VARIETY)\locv.exe:  $(PFM)\$(VARIETY)\locv.obj \
-	$(MPMOBJ) $(PLINTHOBJ) $(TESTLIBOBJ) $(LOOBJ)
+	$(PFM)\$(VARIETY)\mps.lib $(TESTLIBOBJ)
 
 $(PFM)\$(VARIETY)\mpmss.exe: $(PFM)\$(VARIETY)\mpmss.obj \
-	$(PFM)\$(VARIETY)\poolmvff.obj \
-	$(MPMOBJ) $(PLINTHOBJ) $(TESTLIBOBJ)
+	$(PFM)\$(VARIETY)\mps.lib $(TESTLIBOBJ)
 
 $(PFM)\$(VARIETY)\apss.exe: $(PFM)\$(VARIETY)\apss.obj \
-	$(PFM)\$(VARIETY)\poolmvff.obj \
-	$(MPMOBJ) $(PLINTHOBJ) $(TESTLIBOBJ)
+	$(PFM)\$(VARIETY)\mps.lib $(TESTLIBOBJ)
 
 $(PFM)\$(VARIETY)\sacss.exe: $(PFM)\$(VARIETY)\sacss.obj \
-	$(PFM)\$(VARIETY)\poolmvff.obj \
-	$(MPMOBJ) $(PLINTHOBJ) $(TESTLIBOBJ)
+	$(PFM)\$(VARIETY)\mps.lib $(TESTLIBOBJ)
 
 $(PFM)\$(VARIETY)\bttest.exe: $(PFM)\$(VARIETY)\bttest.obj \
-	$(MPMOBJ) $(PLINTHOBJ) $(TESTLIBOBJ)
+	$(PFM)\$(VARIETY)\mps.lib $(TESTLIBOBJ)
 
 $(PFM)\$(VARIETY)\teletest.exe: $(PFM)\$(VARIETY)\teletest.obj \
-	$(MPMOBJ) $(PLINTHOBJ) $(TESTLIBOBJ)
+	$(PFM)\$(VARIETY)\mps.lib $(TESTLIBOBJ)
 
 $(PFM)\$(VARIETY)\lockcov.exe: $(PFM)\$(VARIETY)\lockcov.obj \
-	$(MPMOBJ) $(PLINTHOBJ) $(TESTLIBOBJ)
+	$(PFM)\$(VARIETY)\mps.lib $(TESTLIBOBJ)
 
 $(PFM)\$(VARIETY)\lockutw3.exe: $(PFM)\$(VARIETY)\lockutw3.obj \
-	$(MPMOBJ) $(PLINTHOBJ) $(TESTLIBOBJ)
+	$(PFM)\$(VARIETY)\mps.lib $(TESTLIBOBJ)
 
 $(PFM)\$(VARIETY)\mpsicv.exe: $(PFM)\$(VARIETY)\mpsicv.obj \
-	$(MPMOBJ) $(AMCOBJ) $(PLINTHOBJ) $(FMTTESTOBJ) \
-	$(TESTLIBOBJ)
+	$(PFM)\$(VARIETY)\mps.lib $(FMTTESTOBJ) $(TESTLIBOBJ)
 
 $(PFM)\$(VARIETY)\amcss.exe: $(PFM)\$(VARIETY)\amcss.obj \
-	$(MPMOBJ) $(AMCOBJ) $(PLINTHOBJ) $(FMTTESTOBJ) \
-	$(TESTLIBOBJ)
+	$(PFM)\$(VARIETY)\mps.lib $(FMTTESTOBJ) $(TESTLIBOBJ)
 
 $(PFM)\$(VARIETY)\amcsshe.exe: $(PFM)\$(VARIETY)\amcsshe.obj \
-	$(MPMOBJ) $(AMCOBJ) $(PLINTHOBJ) $(FMTTESTOBJ) \
-	$(TESTLIBOBJ)
+	$(PFM)\$(VARIETY)\mps.lib $(FMTTESTOBJ) $(TESTLIBOBJ)
 
 $(PFM)\$(VARIETY)\amsss.exe: $(PFM)\$(VARIETY)\amsss.obj \
-	$(MPMOBJ) $(AMSOBJ) $(PLINTHOBJ) $(FMTTESTOBJ) \
-	$(TESTLIBOBJ)
+	$(PFM)\$(VARIETY)\mps.lib $(FMTTESTOBJ) $(TESTLIBOBJ)
 
 $(PFM)\$(VARIETY)\amssshe.exe: $(PFM)\$(VARIETY)\amssshe.obj \
-	$(MPMOBJ) $(AMSOBJ) $(PLINTHOBJ) $(FMTTESTOBJ) \
-	$(TESTLIBOBJ)
+	$(PFM)\$(VARIETY)\mps.lib $(FMTTESTOBJ) $(TESTLIBOBJ)
 
 $(PFM)\$(VARIETY)\segsmss.exe: $(PFM)\$(VARIETY)\segsmss.obj \
-	$(MPMOBJ) $(AMSOBJ) $(PLINTHOBJ) $(FMTTESTOBJ) \
-	$(TESTLIBOBJ)
+	$(PFM)\$(VARIETY)\mps.lib $(FMTTESTOBJ) $(TESTLIBOBJ)
 
 $(PFM)\$(VARIETY)\locbwcss.exe: $(PFM)\$(VARIETY)\locbwcss.obj \
-	$(PFM)\$(VARIETY)\poolmvff.obj \
-	$(MPMOBJ) $(PLINTHOBJ) $(TESTLIBOBJ)
+	$(PFM)\$(VARIETY)\mps.lib $(TESTLIBOBJ)
 
 $(PFM)\$(VARIETY)\locusss.exe: $(PFM)\$(VARIETY)\locusss.obj \
-	$(PFM)\$(VARIETY)\poolmvff.obj \
-	$(MPMOBJ) $(PLINTHOBJ) $(TESTLIBOBJ)
+	$(PFM)\$(VARIETY)\mps.lib $(TESTLIBOBJ)
 
-$(PFM)\$(VARIETY)\dwstress.exe:  $(PFM)\$(VARIETY)\dwstress.obj \
-	$(DWOBJ) $(MPMOBJ) $(PLINTHOBJ) $(AMCOBJ)
+$(PFM)\$(VARIETY)\dwstress.exe: $(PFM)\$(VARIETY)\dwstress.obj \
+	$(DWOBJ) $(PFM)\$(VARIETY)\mps.lib
 
-$(PFM)\$(VARIETY)\awlut.exe:  $(PFM)\$(VARIETY)\awlut.obj \
+$(PFM)\$(VARIETY)\awlut.exe: $(PFM)\$(VARIETY)\awlut.obj \
         $(FMTTESTOBJ) \
-	$(MPMOBJ) $(PLINTHOBJ) $(TESTLIBOBJ) $(LOOBJ) $(AWLOBJ)
+	$(PFM)\$(VARIETY)\mps.lib $(TESTLIBOBJ)
 
 $(PFM)\$(VARIETY)\awluthe.exe:  $(PFM)\$(VARIETY)\awluthe.obj \
 	$(FMTTESTOBJ) \
-	$(MPMOBJ) $(PLINTHOBJ) $(TESTLIBOBJ) $(LOOBJ) $(AWLOBJ)
+	$(PFM)\$(VARIETY)\mps.lib $(TESTLIBOBJ)
 
 $(PFM)\$(VARIETY)\poolncv.exe:  $(PFM)\$(VARIETY)\poolncv.obj \
-	$(MPMOBJ) $(PLINTHOBJ) $(TESTLIBOBJ) $(POOLNOBJ)
+	$(PFM)\$(VARIETY)\mps.lib $(TESTLIBOBJ)
 
 $(PFM)\$(VARIETY)\qs.exe: $(PFM)\$(VARIETY)\qs.obj \
-	$(AMCOBJ) $(MPMOBJ) $(PLINTHOBJ) $(TESTLIBOBJ)
+	$(PFM)\$(VARIETY)\mps.lib $(TESTLIBOBJ)
 
 $(PFM)\$(VARIETY)\arenacv.exe:  $(PFM)\$(VARIETY)\arenacv.obj \
-	$(MPMOBJ) $(PLINTHOBJ) $(TESTLIBOBJ)
+	$(PFM)\$(VARIETY)\mps.lib $(TESTLIBOBJ)
 
 $(PFM)\$(VARIETY)\abqtest.exe: $(PFM)\$(VARIETY)\abqtest.obj \
-	$(MPMOBJ) $(PLINTHOBJ) $(TESTLIBOBJ)
+	$(PFM)\$(VARIETY)\abq.obj $(PFM)\$(VARIETY)\mps.lib $(TESTLIBOBJ)
 
 $(PFM)\$(VARIETY)\cbstest.exe: $(PFM)\$(VARIETY)\cbstest.obj \
-	$(MPMOBJ) $(PLINTHOBJ) $(TESTLIBOBJ)
+	$(PFM)\$(VARIETY)\mps.lib $(TESTLIBOBJ)
 
 $(PFM)\$(VARIETY)\btcv.exe: $(PFM)\$(VARIETY)\btcv.obj \
-	$(MPMOBJ) $(PLINTHOBJ) $(TESTLIBOBJ)
+	$(PFM)\$(VARIETY)\mps.lib $(TESTLIBOBJ)
 
 $(PFM)\$(VARIETY)\mv2test.exe: $(PFM)\$(VARIETY)\mv2test.obj \
-	$(MPMOBJ) $(PLINTHOBJ) $(TESTLIBOBJ)
+	$(PFM)\$(VARIETY)\poolmv2.obj $(PFM)\$(VARIETY)\abq.obj \
+	$(PFM)\$(VARIETY)\mps.lib $(TESTLIBOBJ)
 
 $(PFM)\$(VARIETY)\zcoll.exe: $(PFM)\$(VARIETY)\zcoll.obj \
-	$(MPMOBJ) $(PLINTHOBJ) $(AMCOBJ) $(FMTTESTOBJ) \
-	$(MRGOBJ) $(TESTLIBOBJ)
+	$(PFM)\$(VARIETY)\mps.lib $(FMTTESTOBJ) \
+	$(TESTLIBOBJ)
 
 $(PFM)\$(VARIETY)\zmess.exe: $(PFM)\$(VARIETY)\zmess.obj \
-	$(MPMOBJ) $(PLINTHOBJ) $(AMCOBJ) $(FMTTESTOBJ) \
-	$(MRGOBJ) $(TESTLIBOBJ)
+	$(PFM)\$(VARIETY)\mps.lib $(FMTTESTOBJ) \
+	$(TESTLIBOBJ)
 
 $(PFM)\$(VARIETY)\eventcnv.exe: $(PFM)\$(VARIETY)\eventcnv.obj \
 	$(PFM)\$(VARIETY)\eventpro.obj $(PFM)\$(VARIETY)\table.obj
@@ -226,8 +241,7 @@ $(PFM)\$(VARIETY)\eventcnv.exe: $(PFM)\$(VARIETY)\eventcnv.obj \
 $(PFM)\$(VARIETY)\replay.exe: $(PFM)\$(VARIETY)\replay.obj \
   $(PFM)\$(VARIETY)\eventrep.obj \
   $(PFM)\$(VARIETY)\eventpro.obj $(PFM)\$(VARIETY)\table.obj \
-  $(MPMOBJ) $(AWLOBJ) $(AMSOBJ) $(POOLNOBJ) $(AMCOBJ) $(SNCOBJ) \
-  $(PFM)\$(VARIETY)\poolmvff.obj $(PFM)\$(VARIETY)\mpsliban.obj
+  $(PFM)\$(VARIETY)\mps.lib
 
 # Have to rename the object file, because the names must match, or
 # the template rule for .exe.obj won't be used.
@@ -235,63 +249,17 @@ $(PFM)\$(VARIETY)\replaysw.obj: $(PFM)\$(VARIETY)\replay.obj
 	$(ECHO) $@
 	copy $** $@ >nul:
 
-$(PFM)\$(VARIETY)\replaysw.exe: $(PFM)\$(VARIETY)\replaysw.obj \
-  $(PFM)\$(VARIETY)\eventrep.obj \
-  $(PFM)\$(VARIETY)\eventpro.obj $(PFM)\$(VARIETY)\table.obj \
-  $(PFM)\$(VARIETY)\fmtpstst.obj $(TESTLIBOBJ) \
-  $(PFM)\$(VARIETY)\mpsliban.obj $(SWOBJ)
-
 $(PFM)\$(VARIETY)\messtest.exe: $(PFM)\$(VARIETY)\messtest.obj \
-	$(MPMOBJ) $(PLINTHOBJ) $(TESTLIBOBJ)
+	$(PFM)\$(VARIETY)\mps.lib $(TESTLIBOBJ)
 
 $(PFM)\$(VARIETY)\steptest.exe: $(PFM)\$(VARIETY)\steptest.obj \
-	$(MPMOBJ) $(AMCOBJ) $(PLINTHOBJ) $(FMTTESTOBJ) \
-	$(TESTLIBOBJ)
+	$(PFM)\$(VARIETY)\mps.lib $(FMTTESTOBJ) $(TESTLIBOBJ)
 
 $(PFM)\$(VARIETY)\walkt0.exe: $(PFM)\$(VARIETY)\walkt0.obj \
-	$(MPMOBJ) $(AMCOBJ) $(PLINTHOBJ) $(FMTTESTOBJ) \
-	$(TESTLIBOBJ)	
+	$(PFM)\$(VARIETY)\mps.lib $(FMTTESTOBJ) $(TESTLIBOBJ)	
 
 $(PFM)\$(VARIETY)\exposet0.exe: $(PFM)\$(VARIETY)\exposet0.obj \
-	$(MPMOBJ) $(AMCOBJ) $(PLINTHOBJ) $(FMTTESTOBJ) \
-	$(TESTLIBOBJ)	
-
-$(PFM)\$(VARIETY)\mmsw.lib: $(SWOBJ)
-	$(ECHO) $@
-	$(LIBMAN) $(LIBFLAGS) /OUT:$@ $**
-
-$(PFM)\$(VARIETY)\mmdw.lib: $(MPMOBJ) $(AMCOBJ) $(DWOBJ) \
-        $(AWLOBJ) $(LOOBJ) $(SNCOBJ)
-	$(ECHO) $@
-	$(LIBMAN) $(LIBFLAGS) /OUT:$@ $**
-
-$(PFM)\$(VARIETY)\mps.lib: $(MPMOBJ) $(AMCOBJ) $(LOOBJ) $(SNCOBJ) \
-        $(MVFFOBJ) $(AMSOBJ) $(AWLOBJ)
-	$(ECHO) $@
-	$(LIBMAN) $(LIBFLAGS) /OUT:$@ $**
-
-# We would like to use $** in the linker command line here, but we
-# cannot because the target, mpsdy.dll, depends on the w3gen.def file,
-# but this is not to be treated as an object on the linker line.  Sorry
-# about the repetition of the object list.
-$(PFM)\$(VARIETY)\mpsdy.dll: $(PFM)\$(VARIETY)\mpslibcb.obj \
-	$(MPMOBJ) $(AMCOBJ) $(LOOBJ) $(SNCOBJ) \
-	$(MVFFOBJ) $(AMSOBJ) $(AWLOBJ) w3gen.def \
-	mpslibcb.def
-	$(ECHO) $@
-	$(LINKER) $(LINKFLAGS) /def:w3gen.def \
-	  /def:mpslibcb.def /dll /OUT:$@ \
-	  $(PFM)\$(VARIETY)\mpslibcb.obj \
-	  $(MPMOBJ) $(AMCOBJ) $(LOOBJ) $(SNCOBJ) \
-	  $(MVFFOBJ) $(AMSOBJ) $(AWLOBJ)
-
-$(PFM)\$(VARIETY)\mpsplan.lib: $(PLINTHOBJ)
-	$(ECHO) $@
-	$(LIBMAN) $(LIBFLAGS) /OUT:$@ $**
-
-$(PFM)\$(VARIETY)\mpsplcb.lib: $(PFM)\$(VARIETY)\mpslibcb.obj
-	$(ECHO) $@
-	$(LIBMAN) $(LIBFLAGS) /OUT:$@ $**
+	$(PFM)\$(VARIETY)\mps.lib $(FMTTESTOBJ) $(TESTLIBOBJ)	
 
 !ENDIF
 
