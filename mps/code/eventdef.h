@@ -42,8 +42,7 @@
  * These specify:
  *   - Type: The name of the event type, without the leading "Event";
  *   - Code: The unique 16-bit code associated with this event type;
- *   - Always: Whether this event type should appear in optimised
- *     varieties, not currently used;
+ *   - Always: Whether this event type should appear in "hot" varieties,
  *   - Kind: Category into which this event falls, without the
  *     leading "EventKind";
  *
@@ -51,6 +50,9 @@
  * it out.  This serves as documentation for what the event code means
  * in older logs, and prevents the codes being re-used.  See
  * <design/telemetry/#.reg.code>.
+ *
+ * When you add an event type, you must also add an EVENT_*_PARAMS macro
+ * specify its parameters below.
  *
  * TODO: Add a doc string to each event type.
  *
