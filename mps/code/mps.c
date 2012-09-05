@@ -72,8 +72,10 @@
 
 /* ANSI Plinth */
 
+#if !defined(PLINTH_NONE)       /* see CONFIG_PLINTH_NONE in config.h  */
 #include "mpsliban.c"
 #include "mpsioan.c"
+#endif
 
 /* Platform interface */
 
