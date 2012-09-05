@@ -1,6 +1,22 @@
-               MEMORY POOL SYSTEM OPEN SOURCE LICENSE
+Memory Pool System Kit Open Source License
+==========================================
 
-Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+This is the license under which the Memory Pool System Kit is available as
+open source.
+
+**It is not the only way the MPS is licensed.**
+
+If the licensing terms aren't suitable for you (for example, you're
+developing a closed-source commercial product or a compiler run-time
+system) you can easily license the MPS under different terms from
+Ravenbrook.  Please write to us <mps-questions@ravenbrook.com> for more
+information.
+
+
+License
+-------
+
+Copyright (C) 2001-2012 Ravenbrook Limited <http://www.ravenbrook.com/>.
 All rights reserved.  This is an open source license.  Contact
 Ravenbrook for commercial licensing options.
 
