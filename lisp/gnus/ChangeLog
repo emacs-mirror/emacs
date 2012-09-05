@@ -1,3 +1,17 @@
+2012-09-05  Magnus Henoch  <magnus.henoch@gmail.com>
+
+	* nnmaildir.el (nnmaildir--article-set-flags): Fix compilation error.
+
+2012-09-05  Martin Stjernholm  <mast@lysator.liu.se>
+
+	* gnus-demon.el (gnus-demon-init): Fixed regression when IDLE is t and
+	TIME is set.
+
+2012-09-05  Juri Linkov  <juri@jurta.org>
+
+	* gnus-group.el (gnus-read-ephemeral-bug-group): Allow opening more
+	than one group at a time (bug#11961).
+
 2012-09-05  Julien Danjou  <julien@danjou.info>
 
 	* gnus-srvr.el (gnus-server-open-server): Don't message on failure:

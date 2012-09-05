@@ -144,9 +144,12 @@ marked with SPECIAL."
 			(* (gnus-demon-time-to-step time) gnus-demon-timestep))
                        (t
 			(* time gnus-demon-timestep))))
-           (idle (if (numberp idle)
-                     (* idle gnus-demon-timestep)
-                   idle))
+	   (idle (cond ((numberp idle)
+			(* idle gnus-demon-timestep))
+		       ((and (eq idle t) (numberp time))
+			time)
+		       (t
+			idle)))
 
            (timer
             (cond

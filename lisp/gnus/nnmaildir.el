@@ -127,16 +127,6 @@ SUFFIX should start with \":2,\"."
 	 (new-flags (concat (delq flag flags-as-list))))
     (concat ":2," new-flags)))
 
-(defun nnmaildir--article-set-flags (article new-suffix curdir)
-  (let* ((prefix (nnmaildir--art-prefix article))
-	 (suffix (nnmaildir--art-suffix article))
-	 (article-file (concat curdir prefix suffix))
-	 (new-name (concat curdir prefix new-suffix)))
-    (unless (file-exists-p article-file)
-      (error "Couldn't find article file %s" article-file))
-    (rename-file article-file new-name 'replace)
-    (setf (nnmaildir--art-suffix article) new-suffix)))
-
 (defvar nnmaildir-article-file-name nil
   "*The filename of the most recently requested article.  This variable is set
 by nnmaildir-request-article.")
@@ -211,6 +201,16 @@ by nnmaildir-request-article.")
   (mtime      	 nil :type list)           ;; modtime of dir
   (gnm        	 nil)                      ;; flag: split from mail-sources?
   (target-prefix nil :type string))        ;; symlink target prefix
+
+(defun nnmaildir--article-set-flags (article new-suffix curdir)
+  (let* ((prefix (nnmaildir--art-prefix article))
+	 (suffix (nnmaildir--art-suffix article))
+	 (article-file (concat curdir prefix suffix))
+	 (new-name (concat curdir prefix new-suffix)))
+    (unless (file-exists-p article-file)
+      (error "Couldn't find article file %s" article-file))
+    (rename-file article-file new-name 'replace)
+    (setf (nnmaildir--art-suffix article) new-suffix)))
 
 (defun nnmaildir--expired-article (group article)
   (setf (nnmaildir--art-nov article) nil)

@@ -2481,7 +2481,8 @@ the bug number, and browsing the URL must return mbox output."
 			 "/.*$" ""))))
       (write-region (point-min) (point-max) tmpfile)
       (gnus-group-read-ephemeral-group
-       "gnus-read-ephemeral-bug"
+       (format "gnus-read-ephemeral-bug:%s"
+	       (mapconcat 'number-to-string ids ","))
        `(nndoc ,tmpfile
 	       (nndoc-article-type mbox))
        nil window-conf))
