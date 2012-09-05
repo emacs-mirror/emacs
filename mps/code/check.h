@@ -277,7 +277,7 @@ extern unsigned CheckLevel;
 #else /* AVER_AND_CHECK_ALL, not */
 
 /* TODO: This gives comparable performance to white-hot when compiling
-   using mps.c and -O3 (to get check methods inlined), but is it a bit
+   using mps.c and -O2 (to get check methods inlined), but is it a bit
    too minimal?  How much do we rely on check methods? */
 
 #define CHECKL(cond)            DISCARD(cond)
