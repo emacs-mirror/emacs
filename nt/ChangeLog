@@ -1,3 +1,7 @@
+2012-09-05  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt: Sync with autogen/config.in.
+
 2012-09-04  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Simplify redefinition of 'abort' (Bug#12316).
