@@ -101,7 +101,6 @@ CFRASH = -DCONFIG_VAR_RASH -DNDEBUG $(CFLAGSOPT)
 CFHOT  = -DCONFIG_VAR_HOT  -DNDEBUG $(CFLAGSOPT)
 CFDIAG = -DCONFIG_VAR_DIAG -DNDEBUG $(CFLAGSOPT)
 CFCOOL = -DCONFIG_VAR_COOL          $(CFLAGSDEBUG)
-CFTI   = -DCONFIG_VAR_TI            $(CFLAGSDEBUG)
 
 # Bind CFLAGS to the appropriate set of flags for the variety.
 # %%VARIETY: Add a test for the variety and set CFLAGS here.
@@ -117,10 +116,6 @@ else
 ifeq ($(VARIETY),cool)
 CFLAGS=$(CFLAGSCOMMON) $(CFCOOL)
 else
-ifeq ($(VARIETY),ti)
-CFLAGS=$(CFLAGSCOMMON) $(CFTI)
-else
-endif
 endif
 endif
 endif
@@ -298,9 +293,6 @@ $(PFM)/diag/mps.a: \
   $(MPMOBJ) $(AMCOBJ) $(AMSOBJ) $(AWLOBJ) $(LOOBJ) $(SNCOBJ) \
   $(MVFFOBJ) $(PLINTHOBJ) $(POOLNOBJ)
 $(PFM)/cool/mps.a: \
-  $(MPMOBJ) $(AMCOBJ) $(AMSOBJ) $(AWLOBJ) $(LOOBJ) $(SNCOBJ) \
-  $(MVFFOBJ) $(PLINTHOBJ) $(POOLNOBJ)
-$(PFM)/ti/mps.a: \
   $(MPMOBJ) $(AMCOBJ) $(AMSOBJ) $(AWLOBJ) $(LOOBJ) $(SNCOBJ) \
   $(MVFFOBJ) $(PLINTHOBJ) $(POOLNOBJ)
 

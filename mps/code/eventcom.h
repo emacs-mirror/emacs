@@ -9,142 +9,202 @@
 #ifndef eventcom_h
 #define eventcom_h
 
-/* #include "eventgen.h" later in the file */
+#include <limits.h>
 #include "mpmtypes.h" /* for Word */
+#include "eventdef.h"
 
 
-/* Types for event fields */
+/* EVENT_CLOCK -- fast event timestamp clock
+ *
+ * On platforms that support it, we want to stamp events with a very cheap
+ * and fast high-resolution timer.
+ */
 
+/* TODO: Clang supposedly provides a cross-platform builtin for a fast
+   timer, but it doesn't seem to be present on Mac OS X 10.8.  We should
+   use it if it ever appears.
+   <http://clang.llvm.org/docs/LanguageExtensions.html#builtins> */
+#if defined(MPS_BUILD_LL)
 
-typedef Word EventType;
-typedef size_t EventCode;
-typedef Index EventKind;
+#if __has_builtin(__builtin_readcyclecounter)
+#error "__builtin_readcyclecounter is available but not used"
+#endif /* __has_builtin(__builtin_readcyclecounter) */
 
-typedef Byte EventStringLen;
+#endif
 
-typedef struct {
-  EventStringLen len;
-  char str[EventStringLengthMAX];
-} EventStringStruct;
+/* Microsoft C provides an intrinsic for the Intel rdtsc instruction.
+   <http://msdn.microsoft.com/en-US/library/twchhe95%28v=vs.100%29.aspx> */
+#if (defined(MPS_ARCH_I3) || defined(MPS_ARCH_I6)) && defined(MPS_BUILD_MV)
 
-typedef EventStringStruct *EventString;
+#pragma intrinsic(__rdtsc)
 
+typedef unsigned __int64 EventClock;
 
-#define EventNameMAX ((size_t)19)
-#define EventCodeMAX ((EventCode)0x0069)
+#define EVENT_CLOCK(lvalue) \
+  BEGIN \
+    (lvalue) = __rdtsc(); \
+  END
 
+#define EVENT_CLOCK_PRINT(stream, clock) fprintf(stream, "%llX", clock)
 
-/* eventgen.h is just the automatically generated part of this file */
-#include "eventgen.h"
+#if defined(MPS_ARCH_I3)
+#define EVENT_CLOCK_WRITE(stream, clock) \
+  WriteF(stream, "$W$W", (WriteFW)((clock) >> 32), (WriteFW)clock, NULL)
+#elif defined(MPS_ARCH_I6)
+#define EVENT_CLOCK_WRITE(stream, clock) \
+  WriteF(stream, "$W", (WriteFW)(clock), NULL)
+#endif
 
+#endif /* Microsoft C on Intel */
 
-#ifdef EVENT
+/* If we have GCC or Clang, assemble the rdtsc instruction */
+#if !defined(EVENT_CLOCK) && \
+    (defined(MPS_ARCH_I3) || defined(MPS_ARCH_I6)) && \
+      (defined(MPS_BUILD_GC) || defined(MPS_BUILD_LL))
 
-typedef EventUnion *Event;
+/* Use __extension__ to enable use of a 64-bit type on 32-bit pedantic GCC */
+__extension__ typedef unsigned long long EventClock;
+
+#define EVENT_CLOCK(lvalue) \
+  BEGIN \
+    unsigned _l, _h; \
+    __asm__ __volatile__("rdtsc" : "=a"(_l), "=d"(_h)); \
+    (lvalue) = ((EventClock)_h << 32) | _l; \
+  END
+
+/* The __extension__ keyword doesn't work on printf formats, so we
+   concatenate two 32-bit hex numbers to print the 64-bit value. */
+#define EVENT_CLOCK_PRINT(stream, clock) \
+  fprintf(stream, "%08lX%08lX", \
+          (unsigned long)((clock) >> 32), \
+          (unsigned long)(clock))
+
+#define EVENT_CLOCK_WRITE(stream, clock) \
+  WriteF(stream, "$W$W", (WriteFW)((clock) >> 32), (WriteFW)clock, NULL)
+
+#endif /* Intel, GCC or Clang */
+
+/* no fast clock, use plinth, probably from the C library */
+#ifndef EVENT_CLOCK
+
+typedef mps_clock_t EventClock;
+
+#define EVENT_CLOCK(lvalue) \
+  BEGIN \
+    (lvalue) = mps_clock(); \
+  END
+
+#define EVENT_CLOCK_PRINT(stream, clock) \
+  fprintf(stream, "%lu", (unsigned long)clock)
+
+#define EVENT_CLOCK_WRITE(stream, clock) \
+  WriteF(stream, "$W", (WriteFW)clock, NULL)
 
 #endif
 
 
-/* Event types -- see <design/telemetry/>
+/* Event Kinds --- see <design/telemetry/>
  *
- * These names are intended to be mnemonic.  They are derived from
- * selected letters as indicated, using the transliteration in
- * guide.hex.trans.
- *
- * These definitions will be unnecessary when the event codes are
- * changed to 16-bit.  See <code/eventdef.h>.
+ * All events are classified as being of one event type.
+ * They are small enough to be able to be used as members of a bit set.
  */
-                                                    /* EVent ... */
-#define EventEventTime      ((EventType)0xEF213E99) /* TIME */
-#define EventPoolInit       ((EventType)0xEFB07141) /* POoL INIt */
-#define EventPoolFinish     ((EventType)0xEFB07F14) /* POoL FINish */
-#define EventPoolAlloc      ((EventType)0xEFB07A77) /* POoL ALLoc */
-#define EventPoolFree       ((EventType)0xEFB07F6E) /* POoL FREe */
-#define EventArenaCreateVM  ((EventType)0xEFA64CF3) /* AReNa Create VM */
-#define EventArenaCreateVMNZ ((EventType)0xEFA64CF2) /* AReNa Create VmnZ */
-#define EventArenaCreateCL  ((EventType)0xEFA64CC7) /* AReNa Create CL */
-#define EventArenaDestroy   ((EventType)0xEFA64DE5) /* AReNa DEStroy */
-#define EventArenaAlloc     ((EventType)0xEFA64A77) /* AReNa ALLoc */
-#define EventArenaFree      ((EventType)0xEFA64F6E) /* AReNa FREe */
-#define EventSegAlloc       ((EventType)0xEF5E9A77) /* SEG ALLoc */
-#define EventSegFree        ((EventType)0xEF5E9F6E) /* SEG FREe */
-#define EventSegMerge       ((EventType)0xEF5E93E6) /* SEG MERge */
-#define EventSegSplit       ((EventType)0xEF5E95B7) /* SEG SPLit */
-#define EventAMCGenCreate   ((EventType)0xEFA3C94C) /* AMC GeN Create */
-#define EventAMCGenDestroy  ((EventType)0xEFA3C94D) /* AMC GeN Destroy */
-#define EventAMCInit        ((EventType)0xEFA3C141) /* AMC INIt */
-#define EventAMCFinish      ((EventType)0xEFA3CF14) /* AMC FINish */
-#define EventAMCTraceBegin  ((EventType)0xEFA3C26B) /* AMC TRace Begin */
-#define EventAMCScanBegin   ((EventType)0xEFA3C5CB) /* AMC SCan Begin */
-#define EventAMCScanEnd     ((EventType)0xEFA3C5CE) /* AMC SCan End */
-#define EventAMCFix         ((EventType)0xEFA3CF18) /* AMC FIX */
-#define EventAMCFixInPlace  ((EventType)0xEFA3CF8A) /* AMC FiX Ambig */
-#define EventAMCFixForward  ((EventType)0xEFA3CF8F) /* AMC FiX Forward */
-#define EventAMCReclaim     ((EventType)0xEFA3C6EC) /* AMC REClaim */
-#define EventTraceStart     ((EventType)0xEF26AC52) /* TRACe STart */
-#define EventTraceCreate    ((EventType)0xEF26ACC6) /* TRACe CReate */
-#define EventTraceDestroy   ((EventType)0xEF26ACDE) /* TRACe DEstroy */
-#define EventSegSetGrey     ((EventType)0xEF59596A) /* SeG Set GRAy */
-#define EventTraceFlipBegin ((EventType)0xEF26AF7B) /* TRAce FLip Begin */
-#define EventTraceFlipEnd   ((EventType)0xEF26AF7E) /* TRAce FLip End */
-#define EventTraceReclaim   ((EventType)0xEF26A6EC) /* TRAce REClaim */
-#define EventTraceScanSeg   ((EventType)0xEF26A559) /* TRAce ScanSeG */
-#define EventTraceScanSingleRef \
-                            ((EventType)0xEF26A556) /* TRAce ScanSingleRef */
-#define EventTraceAccess    ((EventType)0xEF26AACC) /* TRAce ACCess */
-#define EventTracePoll      ((EventType)0xEF26AB01) /* TRAce POLl */
-#define EventTraceStep      ((EventType)0xEF26A52B) /* TRAce STeP */
-#define EventTraceFix       ((EventType)0xEF26AF18) /* TRAce FIX */
-#define EventTraceFixSeg    ((EventType)0xEF26AF85) /* TRAce FiX Seg */
-#define EventTraceFixWhite  ((EventType)0xEF26AF83) /* TRAce FiX White */
-#define EventTraceScanArea  ((EventType)0xEF26A5CA) /* TRAce SCan Area */
-#define EventTraceScanAreaTagged ((EventType)0xEF26A5C2) /* TRAce SCan area Tagged */
-#define EventVMCreate       ((EventType)0xEFF3C6EA) /* VM CREAte */
-#define EventVMDestroy      ((EventType)0xEFF3DE52) /* VM DESTroy */
-#define EventVMMap          ((EventType)0xEFF33AB9) /* VM MAP */
-#define EventVMUnmap        ((EventType)0xEFF3043B) /* VM UNMaP */
-#define EventIntern         ((EventType)0xEF142E64) /* INTERN */
-#define EventArenaExtend    ((EventType)0xEFA64E82) /* AReNa EXTend */
-#define EventArenaRetract   ((EventType)0xEFA646E2) /* AReNa RETract */
-#define EventRootScan       ((EventType)0xEF625CA4) /* RooT SCAN */
-#define EventLabel          ((EventType)0xEF7ABE79) /* LABEL */
-#define EventTraceSegGreyen ((EventType)0xEF26A599) /* TRAce SeG Greyen */
-#define EventBufferReserve  ((EventType)0xEFB0FF6E) /* BUFFer REserve */
-#define EventBufferCommit   ((EventType)0xEFB0FFC0) /* BUFFer COmmit */
-#define EventBufferInit     ((EventType)0xEFB0FF14) /* BUFFer INit */
-#define EventBufferInitSeg  ((EventType)0xEFB0F15E) /* BUFFer Init SEg */
-#define EventBufferInitRank ((EventType)0xEFB0F16A) /* BUFFer Init RAnk */
-#define EventBufferInitEPVM ((EventType)0xEFB0F1EF) /* BUFfer Init EpVm */
-#define EventBufferFinish   ((EventType)0xEFB0FFF1) /* BUFFer FInish */
-#define EventBufferFill     ((EventType)0xEFB0FFF7) /* BUFFer FilL */
-#define EventBufferEmpty    ((EventType)0xEFB0FFE3) /* BUFFer EMpty */
-#define EventArenaAllocFail ((EventType)0xEFA64A7F) /* AReNa ALloc Fail */
-#define EventSegAllocFail   ((EventType)0xEF5E9A7F) /* SEG ALloc Fail */
-#define EventMeterInit      ((EventType)0xEF3E2141) /* METer INIt */
-#define EventMeterValues    ((EventType)0xEF3E2FA7) /* METer VALues */
-#define EventCBSInit        ((EventType)0xEFCB5141) /* CBS INIt */
-#define EventTraceStatCondemn ((EventType)0xEF26A5C0) /* TRAce Stat COndemn */
-#define EventTraceStatScan  ((EventType)0xEF26A55C) /* TRAce Stat SCan */
-#define EventTraceStatFix   ((EventType)0xEF26A5F8) /* TRAce Stat FiX */
-#define EventTraceStatReclaim ((EventType)0xEF26A56E) /* TRAce Stat REclaim */
-#define EventArenaWriteFaults ((EventType)0xEFA6436F) /* AReNa WRite Faults */
-#define EventPoolInitMV     ((EventType)0xEFB0713F) /* POoL Init MV */
-#define EventPoolInitMVFF   ((EventType)0xEFB071FF) /* POoL Init mvFF */
-#define EventPoolInitMFS    ((EventType)0xEFB07135) /* POoL Init MfS */
-#define EventPoolInitEPVM   ((EventType)0xEFB071EF) /* POoL Init EpVm */
-#define EventPoolInitEPDL   ((EventType)0xEFB071E7) /* POoL Init EpdL */
-#define EventPoolInitAMS    ((EventType)0xEFB071A5) /* POoL Init AmS */
-#define EventPoolInitAMC    ((EventType)0xEFB071AC) /* POoL Init AmC */
-#define EventPoolInitAMCZ   ((EventType)0xEFB071A2) /* POoL Init AmcZ */
-#define EventPoolInitAWL    ((EventType)0xEFB071A3) /* POoL Init AWl */
-#define EventPoolInitLO     ((EventType)0xEFB07170) /* POoL Init LO */
-#define EventPoolInitSNC    ((EventType)0xEFB07154) /* POoL Init SNc */
-#define EventPoolInitMVT    ((EventType)0xEFB07132) /* POoL Init MvT */
-#define EventPoolPush       ((EventType)0xEFB07B58) /* POoL PuSH */
-#define EventPoolPop        ((EventType)0xEFB07B0B) /* POoL POP */
-#define EventReservoirLimitSet ((EventType)0xEF6E5713) /* REServoir LIMit set */
-#define EventCommitLimitSet ((EventType)0xEFC03713) /* COMmit LIMit set */
-#define EventSpareCommitLimitSet ((EventType)0xEF5BC713) /* SPare Commit LIMit set */
+
+enum EventKindEnum {
+  EventKindArena,       /* Per space or arena */
+  EventKindPool,        /* Per pool */
+  EventKindTrace,       /* Per trace or scan */
+  EventKindSeg,         /* Per seg */
+  EventKindRef,         /* Per ref or fix */
+  EventKindObject,      /* Per alloc or object */
+  EventKindUser,        /* User-invoked */
+  EventKindLIMIT
+};
+
+
+/* Event type definitions
+ *
+ * Various constants for each event type to describe them, so that they
+ * can easily be looked up from macros by name.
+ */
+
+/* Note that enum values can be up to fifteen bits long portably. */
+#define EVENT_ENUM(X, name, code, always, kind) \
+    Event##name##Code = code, \
+    Event##name##Always = always, \
+    Event##name##Kind = EventKind##kind,
+
+enum EventDefinitionsEnum {
+  EVENT_LIST(EVENT_ENUM, X)
+  EventEnumWarningSuppressor
+};
+
+
+/* Event*Struct -- Event Structures
+ *
+ * Declare the structures that are used to encode events in the internal event
+ * buffers and on the binary telemetry output stream.
+ */
+
+/* Types for common event fields */
+typedef unsigned short EventCode;
+typedef unsigned EventKind;
+typedef unsigned short EventSize;
+#define EventSizeMAX USHRT_MAX
+
+/* Common prefix for all event structures.  The size field allows an event
+   reader to skip over events whose codes it does not recognise. */
+#define EVENT_ANY_FIELDS \
+  EventCode code;       /* encoding of the event type */ \
+  EventSize size;       /* allows reader to skip events of unknown code */ \
+  EventClock clock;     /* when the event occurred */
+typedef struct EventAnyStruct {
+  EVENT_ANY_FIELDS
+} EventAnyStruct;
+
+/* Event field types, for indexing by macro on the event parameter sort */
+typedef void *EventFP;                  /* pointer to C object */
+typedef Addr EventFA;                   /* address on the heap */
+typedef Word EventFW;                   /* word */
+typedef unsigned EventFU;               /* unsigned integer */
+typedef char EventFS[EventStringLengthMAX + sizeof('\0')]; /* string */
+typedef double EventFD;                 /* double */
+typedef int EventFB;                    /* boolean */
+
+/* Event packing bitfield specifiers */
+#define EventFP_BITFIELD
+#define EventFA_BITFIELD
+#define EventFW_BITFIELD
+#define EventFU_BITFIELD
+#define EventFS_BITFIELD
+#define EventFD_BITFIELD
+#define EventFB_BITFIELD : 1
+
+#define EVENT_STRUCT_FIELD(X, index, sort, ident) \
+  EventF##sort f##index EventF##sort##_BITFIELD;
+
+#define EVENT_STRUCT(X, name, _code, always, kind) \
+  typedef struct Event##name##Struct { \
+    EVENT_ANY_FIELDS \
+    EVENT_##name##_PARAMS(EVENT_STRUCT_FIELD, X) \
+  } Event##name##Struct;
+
+EVENT_LIST(EVENT_STRUCT, X)
+
+
+/* Event -- event union type
+ *
+ * Event is the type of a pointer to EventUnion, which is a union of all
+ * event structures.  This can be used as the type of any event, decoded
+ * by examining event->any.code.
+ */
+
+#define EVENT_UNION_MEMBER(X, name, code, always, kind) \
+  Event##name##Struct name;
+
+typedef union EventUnion {
+  EventAnyStruct any;
+  EVENT_LIST(EVENT_UNION_MEMBER, X)
+} EventUnion, *Event;
 
 
 #endif /* eventcom_h */

@@ -235,7 +235,7 @@ static Res MVInit(Pool pool, va_list arg)
 
   mv->sig = MVSig;
   AVERT(MV, mv);
-  EVENT_PPWWW(PoolInitMV, pool, arena, extendBy, avgSize, maxSize);
+  EVENT5(PoolInitMV, pool, arena, extendBy, avgSize, maxSize);
   return ResOK;
 }
 

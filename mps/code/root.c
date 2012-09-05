@@ -506,7 +506,7 @@ Res RootScan(ScanState ss, Root root)
   AVER(res == ResOK);
   root->grey = TraceSetDiff(root->grey, ss->traces);
   rootSetSummary(root, ScanStateSummary(ss));
-  EVENT_PWW(RootScan, root, ss->traces, ScanStateSummary(ss));
+  EVENT3(RootScan, root, ss->traces, ScanStateSummary(ss));
 
 failScan:
   if (root->pm != AccessSetEMPTY) {

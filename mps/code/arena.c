@@ -219,6 +219,11 @@ Res ArenaCreateV(Arena *arenaReturn, ArenaClass class, va_list args)
   AVER(arenaReturn != NULL);
   AVERT(ArenaClass, class);
 
+  /* We must initialise the event subsystem very early, because event logging
+     will start as soon as anything interesting happens and expect to write
+     to the EventLast pointers. */
+  EventInit();
+
   /* Do initialization.  This will call ArenaInit (see .init.caller). */
   res = (*class->init)(&arena, class, args);
   if (res != ResOK)
@@ -529,7 +534,7 @@ Res ArenaAlloc(Addr *baseReturn, SegPref pref, Size size, Pool pool,
     if (res == ResOK)
       goto goodAlloc;
   }
-  EVENT_PWP(ArenaAllocFail, arena, size, pool);
+  EVENT3(ArenaAllocFail, arena, size, pool);
   return res;
 
 goodAlloc:
@@ -537,7 +542,7 @@ goodAlloc:
   arena->lastTract = baseTract;
   arena->lastTractBase = base;
 
-  EVENT_PPAWP(ArenaAlloc, arena, baseTract, base, size, pool);
+  EVENT5(ArenaAlloc, arena, baseTract, base, size, pool);
   *baseReturn = base;
   return ResOK;
 }
@@ -577,7 +582,7 @@ void ArenaFree(Addr base, Size size, Pool pool)
     ReservoirDeposit(reservoir, base, size);
   }
 
-  EVENT_PAW(ArenaFree, arena, base, size);
+  EVENT3(ArenaFree, arena, base, size);
   return;
 }
 
@@ -616,7 +621,7 @@ void ArenaSetSpareCommitLimit(Arena arena, Size limit)
     arena->class->spareCommitExceeded(arena);
   }
 
-  EVENT_PW(SpareCommitLimitSet, arena, limit);
+  EVENT2(SpareCommitLimitSet, arena, limit);
   return;
 }
 
@@ -658,7 +663,7 @@ Res ArenaSetCommitLimit(Arena arena, Size limit)
     arena->commitLimit = limit;
     res = ResOK;
   }
-  EVENT_PWU(CommitLimitSet, arena, limit, (res == ResOK));
+  EVENT3(CommitLimitSet, arena, limit, (res == ResOK));
   return res;
 }
 
@@ -690,7 +695,7 @@ Res ArenaExtend(Arena arena, Addr base, Size size)
   if (res != ResOK)
     return res;
 
-  EVENT_PAW(ArenaExtend, arena, base, size);
+  EVENT3(ArenaExtend, arena, base, size);
   return ResOK;
 }
 

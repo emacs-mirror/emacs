@@ -25,6 +25,7 @@
 #include "mpslib.h"
 
 #include "mpstd.h"
+#include "event.h"
 
 #ifdef MPS_OS_XC
 #include "osxc.h"
@@ -66,7 +67,8 @@ int mps_lib_fputs(const char *s, mps_lib_FILE *stream)
 void mps_lib_assert_fail(const char *message)
 {
   fflush(stdout); /* synchronize */
-  fprintf(stderr, "\nMPS ASSERTION FAILURE: %s\n", message);
+  fprintf(stderr, "\nMPS ASSERTION FAILURE: %s\n\nRECENT EVENTS:\n", message);
+  EventDump((mps_lib_FILE *)stderr);
   fflush(stderr); /* make sure the message is output */
   abort();
 }

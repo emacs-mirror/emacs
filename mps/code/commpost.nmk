@@ -118,13 +118,6 @@ $(PFM)\di\mps.lib: \
 	cl /c $(CFLAGS) /Fd$(PFM)\$(VARIETY)\ /Fo$(PFM)\$(VARIETY)\version.o version.c
 	$(LIBMAN) $(LIBFLAGS) /OUT:$@ $** $(PFM)\$(VARIETY)\version.o
 
-$(PFM)\ti\mps.lib: \
-  $(MPMOBJ) $(AMCOBJ) $(AMSOBJ) $(AWLOBJ) $(LOOBJ) $(SNCOBJ) \
-  $(MVFFOBJ) $(PLINTHOBJ) $(POOLNOBJ)
-	$(ECHO) $@
-	cl /c $(CFLAGS) /Fd$(PFM)\$(VARIETY)\ /Fo$(PFM)\$(VARIETY)\version.o version.c
-	$(LIBMAN) $(LIBFLAGS) /OUT:$@ $** $(PFM)\$(VARIETY)\version.o
-
 
 # OTHER GENUINE TARGETS
 #
