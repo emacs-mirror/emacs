@@ -645,6 +645,11 @@ now accept a third argument to avoid choosing the selected window.
 
 *** New macro with-temp-buffer-window.
 
+*** New option temp-buffer-resize-frames.
+
+*** New function fit-frame-to-buffer and new option
+    fit-frame-to-buffer-bottom-margin.
+
 *** New display action function display-buffer-below-selected.
 
 *** New display action alist `inhibit-switch-frame', if non-nil, tells

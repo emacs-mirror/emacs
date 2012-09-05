@@ -1,3 +1,12 @@
+2012-09-05  Martin Rudalics  <rudalics@gmx.at>
+
+	* help.el (temp-buffer-max-height): New default value.
+	(temp-buffer-resize-frames): New option.
+	(resize-temp-buffer-window): Optionally resize frame.
+
+	* window.el (fit-frame-to-buffer-bottom-margin): New option.
+	(fit-frame-to-buffer): New function.
+
 2012-09-05  Glenn Morris  <rgm@gnu.org>
 
 	* emulation/cua-rect.el (cua--init-rectangles):
