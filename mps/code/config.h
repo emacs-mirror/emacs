@@ -171,7 +171,7 @@
  * CONFIG_PLINTH_NONE tells mps.c to exclude the ANSI plinth and removes
  * all standard C library dependencies.  e.g.
  *
- *     cc -O3 -c -DCONFIG_PLINTH_NONE mps.c
+ *     cc -O2 -c -DCONFIG_PLINTH_NONE mps.c
  */
 
 #if defined(CONFIG_PLINTH_NONE)
