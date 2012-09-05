@@ -77,9 +77,8 @@ but you must then provide your own implementation of
 [mpslib.h](../code/mps.h).  You can base this on the ANSI plinth in
 [mpsliban.c](../code/mpsliban.c).
 
-If you want to do anything beyond these simple cases, use the MPS
-build as described in section 5.2, "Building for developing the
-MPS".
+If you want to do anything beyond these simple cases, use the MPS build
+as described in section 5.2, "Building the MPS for development".
 
 
 Building the MPS for development
