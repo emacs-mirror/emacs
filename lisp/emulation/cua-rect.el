@@ -1423,7 +1423,9 @@ With prefix arg, indent to that column."
   (define-key cua--rectangle-keymap [remap set-mark-command]    'cua-toggle-rectangle-mark)
 
   (define-key cua--rectangle-keymap [remap forward-char]        'cua-resize-rectangle-right)
+  (define-key cua--rectangle-keymap [remap right-char]          'cua-resize-rectangle-right)
   (define-key cua--rectangle-keymap [remap backward-char]       'cua-resize-rectangle-left)
+  (define-key cua--rectangle-keymap [remap left-char]           'cua-resize-rectangle-left)
   (define-key cua--rectangle-keymap [remap next-line]           'cua-resize-rectangle-down)
   (define-key cua--rectangle-keymap [remap previous-line]       'cua-resize-rectangle-up)
   (define-key cua--rectangle-keymap [remap end-of-line]         'cua-resize-rectangle-eol)

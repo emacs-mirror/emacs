@@ -250,7 +250,7 @@ See the documentation for `calendar-holidays' for details."
     (if calendar-christian-all-holidays-flag
         (append
          (holiday-fixed 1 6 "Epiphany")
-         (holiday-julian 12 25 "Eastern Orthodox Christmas")
+         (holiday-julian 12 25 "Christmas (Julian calendar)")
          (holiday-greek-orthodox-easter)
          (holiday-fixed 8 15 "Assumption")
          (holiday-advent 0 "Advent")))))
