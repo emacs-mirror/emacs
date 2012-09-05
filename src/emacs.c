@@ -275,14 +275,6 @@ static int fatal_error_code;
 /* True if handling a fatal error already.  */
 bool fatal_error_in_progress;
 
-#ifdef FORWARD_SIGNAL_TO_MAIN_THREAD
-/* When compiled with GTK and running under Gnome,
-   multiple threads may be created.  Keep track of our main
-   thread to make sure signals are delivered to it (see syssignal.h).  */
-
-pthread_t main_thread;
-#endif
-
 #ifdef HAVE_NS
 /* NS autrelease pool, for memory management.  */
 static void *ns_pool;
@@ -291,14 +283,16 @@ static void *ns_pool;
 
 
 /* Handle bus errors, invalid instruction, etc.  */
-#ifndef FLOAT_CATCH_SIGILL
-static
-#endif
-void
-fatal_error_signal (int sig)
+static void
+handle_fatal_signal (int sig)
 {
-  SIGNAL_THREAD_CHECK (sig);
   fatal_error_backtrace (sig, 10);
+}
+
+static void
+deliver_fatal_signal (int sig)
+{
+  handle_on_main_thread (sig, handle_fatal_signal);
 }
 
 /* Report a fatal error due to signal SIG, output a backtrace of at
@@ -340,16 +334,22 @@ fatal_error_backtrace (int sig, int backtrace_limit)
 #ifdef SIGDANGER
 
 /* Handler for SIGDANGER.  */
-void
-memory_warning_signal (int sig)
-{
-  signal (sig, memory_warning_signal);
-  SIGNAL_THREAD_CHECK (sig);
+static void deliver_danger_signal (int);
 
+static void
+handle_danger_signal (int sig)
+{
+  signal (sig, deliver_danger_signal);
   malloc_warning ("Operating system warns that virtual memory is running low.\n");
 
   /* It might be unsafe to call do_auto_save now.  */
   force_auto_save_soon ();
+}
+
+static void
+deliver_danger_signal (int sig)
+{
+  handle_on_main_thread (sig, handle_danger_signal);
 }
 #endif
 
@@ -851,10 +851,6 @@ main (int argc, char **argv)
 # endif /* not SYNC_INPUT */
 #endif	/* not SYSTEM_MALLOC */
 
-#ifdef FORWARD_SIGNAL_TO_MAIN_THREAD
-  main_thread = pthread_self ();
-#endif /* FORWARD_SIGNAL_TO_MAIN_THREAD */
-
 #if defined (MSDOS) || defined (WINDOWSNT)
   /* We do all file input/output as binary files.  When we need to translate
      newlines, we do that manually.  */
@@ -1120,7 +1116,7 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
 	 That makes nohup work.  */
       if (! noninteractive
 	  || signal (SIGHUP, SIG_IGN) != SIG_IGN)
-	signal (SIGHUP, fatal_error_signal);
+	signal (SIGHUP, deliver_fatal_signal);
       sigunblock (sigmask (SIGHUP));
     }
 
@@ -1135,9 +1131,9 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
       /* Don't catch these signals in batch mode if dumping.
 	 On some machines, this sets static data that would make
 	 signal fail to work right when the dumped Emacs is run.  */
-      signal (SIGQUIT, fatal_error_signal);
-      signal (SIGILL, fatal_error_signal);
-      signal (SIGTRAP, fatal_error_signal);
+      signal (SIGQUIT, deliver_fatal_signal);
+      signal (SIGILL, deliver_fatal_signal);
+      signal (SIGTRAP, deliver_fatal_signal);
 #ifdef SIGUSR1
       add_user_signal (SIGUSR1, "sigusr1");
 #endif
@@ -1145,68 +1141,68 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
       add_user_signal (SIGUSR2, "sigusr2");
 #endif
 #ifdef SIGABRT
-      signal (SIGABRT, fatal_error_signal);
+      signal (SIGABRT, deliver_fatal_signal);
 #endif
 #ifdef SIGHWE
-      signal (SIGHWE, fatal_error_signal);
+      signal (SIGHWE, deliver_fatal_signal);
 #endif
 #ifdef SIGPRE
-      signal (SIGPRE, fatal_error_signal);
+      signal (SIGPRE, deliver_fatal_signal);
 #endif
 #ifdef SIGORE
-      signal (SIGORE, fatal_error_signal);
+      signal (SIGORE, deliver_fatal_signal);
 #endif
 #ifdef SIGUME
-      signal (SIGUME, fatal_error_signal);
+      signal (SIGUME, deliver_fatal_signal);
 #endif
 #ifdef SIGDLK
-      signal (SIGDLK, fatal_error_signal);
+      signal (SIGDLK, deliver_fatal_signal);
 #endif
 #ifdef SIGCPULIM
-      signal (SIGCPULIM, fatal_error_signal);
+      signal (SIGCPULIM, deliver_fatal_signal);
 #endif
 #ifdef SIGIOT
       /* This is missing on some systems - OS/2, for example.  */
-      signal (SIGIOT, fatal_error_signal);
+      signal (SIGIOT, deliver_fatal_signal);
 #endif
 #ifdef SIGEMT
-      signal (SIGEMT, fatal_error_signal);
+      signal (SIGEMT, deliver_fatal_signal);
 #endif
-      signal (SIGFPE, fatal_error_signal);
+      signal (SIGFPE, deliver_fatal_signal);
 #ifdef SIGBUS
-      signal (SIGBUS, fatal_error_signal);
+      signal (SIGBUS, deliver_fatal_signal);
 #endif
-      signal (SIGSEGV, fatal_error_signal);
+      signal (SIGSEGV, deliver_fatal_signal);
 #ifdef SIGSYS
-      signal (SIGSYS, fatal_error_signal);
+      signal (SIGSYS, deliver_fatal_signal);
 #endif
       /*  May need special treatment on MS-Windows. See
           http://lists.gnu.org/archive/html/emacs-devel/2010-09/msg01062.html
           Please update the doc of kill-emacs, kill-emacs-hook, and
           NEWS if you change this.
       */
-      if (noninteractive) signal (SIGINT, fatal_error_signal);
-      signal (SIGTERM, fatal_error_signal);
+      if (noninteractive) signal (SIGINT, deliver_fatal_signal);
+      signal (SIGTERM, deliver_fatal_signal);
 #ifdef SIGXCPU
-      signal (SIGXCPU, fatal_error_signal);
+      signal (SIGXCPU, deliver_fatal_signal);
 #endif
 #ifdef SIGXFSZ
-      signal (SIGXFSZ, fatal_error_signal);
+      signal (SIGXFSZ, deliver_fatal_signal);
 #endif /* SIGXFSZ */
 
 #ifdef SIGDANGER
       /* This just means available memory is getting low.  */
-      signal (SIGDANGER, memory_warning_signal);
+      signal (SIGDANGER, deliver_danger_signal);
 #endif
 
 #ifdef AIX
 /* 20 is SIGCHLD, 21 is SIGTTIN, 22 is SIGTTOU.  */
-      signal (SIGXCPU, fatal_error_signal);
-      signal (SIGIOINT, fatal_error_signal);
-      signal (SIGGRANT, fatal_error_signal);
-      signal (SIGRETRACT, fatal_error_signal);
-      signal (SIGSOUND, fatal_error_signal);
-      signal (SIGMSG, fatal_error_signal);
+      signal (SIGXCPU, deliver_fatal_signal);
+      signal (SIGIOINT, deliver_fatal_signal);
+      signal (SIGGRANT, deliver_fatal_signal);
+      signal (SIGRETRACT, deliver_fatal_signal);
+      signal (SIGSOUND, deliver_fatal_signal);
+      signal (SIGMSG, deliver_fatal_signal);
 #endif /* AIX */
     }
 

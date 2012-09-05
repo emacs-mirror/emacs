@@ -1,3 +1,53 @@
+2012-09-05  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix race conditions with signal handlers and errno.
+	Be more systematic about preserving errno whenever a signal
+	handler returns, even if it's not in the main thread.  Do this by
+	renaming signal handlers to distinguish between signal delivery
+	and signal handling.  All uses changed.
+	* atimer.c (deliver_alarm_signal): Rename from alarm_signal_handler.
+	* data.c (deliver_arith_signal): Rename from arith_error.
+	* dispnew.c (deliver_window_change_signal): Rename from
+	window_change_signal.
+	* emacs.c (deliver_error_signal): Rename from fatal_error_signal.
+	(deliver_danger_signal) [SIGDANGER]: Rename from memory_warning_signal.
+	* keyboard.c (deliver_input_available_signal): Rename from
+	input_available_signal.
+	(deliver_user_signal): Rename from handle_user_signal.
+	(deliver_interrupt_signal): Rename from interrupt_signal.
+	* process.c (deliver_pipe_signal): Rename from send_process_trap.
+	(deliver_child_signal): Rename from sigchld_handler.
+	* atimer.c (handle_alarm_signal):
+	* data.c (handle_arith_signal):
+	* dispnew.c (handle_window_change_signal):
+	* emacs.c (handle_fatal_signal, handle_danger_signal):
+	* keyboard.c (handle_input_available_signal):
+	* keyboard.c (handle_user_signal, handle_interrupt_signal):
+	* process.c (handle_pipe_signal, handle_child_signal):
+	New functions, with the actual signal-handling code taken from the
+	original respective signal handlers, sans the sporadic attempts to
+	preserve errno, since that's now done by handle_on_main_thread.
+	* atimer.c (alarm_signal_handler): Remove unnecessary decl.
+	* emacs.c, floatfns.c, lisp.h: Remove unused FLOAT_CATCH_SIGKILL cruft.
+	* emacs.c (main_thread) [FORWARD_SIGNAL_TO_MAIN_THREAD]:
+	Move to sysdep.c.
+	(main) [FORWARD_SIGNAL_TO_MAIN_THREAD]:
+	Move initialization of main_thread to sysdep.c's init_signals.
+	* process.c (waitpid) [!WNOHANG]: #define to wait; that's good enough for
+	our usage, and simplifies the mainline code.
+	(record_child_status_change): New static function, as a helper
+	for handle_child_signal, and with most of the old child handler's
+	contents.
+	(CAN_HANDLE_MULTIPLE_CHILDREN): New constant.
+	(handle_child_signal): Use the above.
+	* sysdep.c (main_thread) [FORWARD_SIGNAL_TO_MAIN_THREAD]:
+	Moved here from emacs.c.
+	(init_signals) [FORWARD_SIGNAL_TO_MAIN_THREAD]: Initialize it;
+	code moved here from emacs.c's main function.
+	* sysdep.c, syssignal.h (handle_on_main_thread): New function,
+	replacing the old SIGNAL_THREAD_CHECK.  All uses changed.  This
+	lets callers save and restore errno properly.
+
 2012-09-05  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Remove redundant or unused things here and there.

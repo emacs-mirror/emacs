@@ -1551,6 +1551,40 @@ sys_sigsetmask (sigset_t new_mask)
   return (old_mask);
 }
 
+#ifdef FORWARD_SIGNAL_TO_MAIN_THREAD
+pthread_t main_thread;
+#endif
+
+/* If we are on the main thread, handle the signal SIG with HANDLER.
+   Otherwise, redirect the signal to the main thread, blocking it from
+   this thread.  POSIX says any thread can receive a signal that is
+   associated with a process, process group, or asynchronous event.
+   On GNU/Linux that is not true, but for other systems (FreeBSD at
+   least) it is.  */
+void
+handle_on_main_thread (int sig, signal_handler_t handler)
+{
+  /* Preserve errno, to avoid race conditions with signal handlers that
+     might change errno.  Races can occur even in single-threaded hosts.  */
+  int old_errno = errno;
+
+  bool on_main_thread = true;
+#ifdef FORWARD_SIGNAL_TO_MAIN_THREAD
+  if (! pthread_equal (pthread_self (), main_thread))
+    {
+      sigset_t blocked;
+      sigemptyset (&blocked);
+      sigaddset (&blocked, sig);
+      pthread_sigmask (SIG_BLOCK, &blocked, 0);
+      pthread_kill (main_thread, sig);
+      on_main_thread = false;
+    }
+#endif
+  if (on_main_thread)
+    handler (sig);
+
+  errno = old_errno;
+}
 
 #if !defined HAVE_STRSIGNAL && !HAVE_DECL_SYS_SIGLIST
 static char *my_sys_siglist[NSIG];
@@ -1564,6 +1598,10 @@ void
 init_signals (void)
 {
   sigemptyset (&empty_mask);
+
+#ifdef FORWARD_SIGNAL_TO_MAIN_THREAD
+  main_thread = pthread_self ();
+#endif
 
 #if !defined HAVE_STRSIGNAL && !HAVE_DECL_SYS_SIGLIST
   if (! initialized)
