@@ -332,7 +332,7 @@ static Count MRGGuardiansPerSeg(MRG mrg)
 
 static RefPart MRGRefPartOfLink(Link link, Arena arena)
 {
-  Seg seg;
+  Seg seg = NULL;       /* suppress "may be used uninitialized" */
   Bool b;
   Link linkBase;
   Index index;
@@ -407,7 +407,7 @@ static void MRGGuardianInit(MRG mrg, Link link, RefPart refPart)
 
 static void MRGMessageDelete(Message message)
 {
-  Pool pool;
+  Pool pool = NULL;             /* suppress "may be used uninitialized" */
   Arena arena;
   Link link;
   Bool b;
@@ -792,9 +792,9 @@ static Res MRGDescribe(Pool pool, mps_lib_FILE *stream)
   RefPart refPart;
   Res res;
 
-  if (!CHECKT(Pool, pool)) return ResFAIL;
+  if (!TESTT(Pool, pool)) return ResFAIL;
   mrg = Pool2MRG(pool);
-  if (!CHECKT(MRG, mrg)) return ResFAIL;
+  if (!TESTT(MRG, mrg)) return ResFAIL;
   if (stream == NULL) return ResFAIL;
 
   arena = PoolArena(pool);

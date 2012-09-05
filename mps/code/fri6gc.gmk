@@ -5,19 +5,14 @@
 
 PFM = fri6gc
 
-PFMDEFS = -D_REENTRANT
-
 MPMPF = lockix.c thix.c pthrdext.c vmix.c \
         protix.c protsgix.c prmcan.c prmci6fr.c ssixi6.c span.c
-SWPF = than.c vmfr.c protsw.c prmcan.c ssan.c
 
 LIBS = -lm -pthread
 
 include gc.gmk
 
-CFLAGSCOMPILER := $(subst -pedantic,,$(CFLAGSCOMPILER))
-CFLAGSDEBUG = -g3
-CFLAGSOPT = -O -g3
+CFLAGSCOMPILER := $(CFLAGSCOMPILER) -Wno-strict-aliasing
 
 CC = cc
 

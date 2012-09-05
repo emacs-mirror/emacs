@@ -2081,7 +2081,7 @@
 		31EEABDA156AAE9E00714D05 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0430;
+				LastUpgradeCheck = 0440;
 			};
 			buildConfigurationList = 31EEABDD156AAE9E00714D05 /* Build configuration list for PBXProject "mps" */;
 			compatibilityVersion = "Xcode 3.2";
@@ -2818,6 +2818,7 @@
 		3104AFF3156D37A0000A585A /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -2825,6 +2826,7 @@
 		3104AFF4156D37A0000A585A /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
@@ -3109,6 +3111,285 @@
 			};
 			name = Release;
 		};
+		318387EB15DC30CC008E4EA0 /* WE */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
+				CLANG_WARN_IMPLICIT_SIGN_CONVERSION = YES;
+				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				GCC_C_LANGUAGE_STANDARD = ansi;
+				GCC_OPTIMIZATION_LEVEL = 2;
+				GCC_PREPROCESSOR_DEFINITIONS = CONFIG_VAR_WE;
+				GCC_TREAT_IMPLICIT_FUNCTION_DECLARATIONS_AS_ERRORS = YES;
+				GCC_TREAT_INCOMPATIBLE_POINTER_TYPE_WARNINGS_AS_ERRORS = YES;
+				GCC_TREAT_WARNINGS_AS_ERRORS = NO;
+				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_INVALID_OFFSETOF_MACRO = NO;
+				GCC_WARN_ABOUT_MISSING_NEWLINE = YES;
+				GCC_WARN_ABOUT_MISSING_PROTOTYPES = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_INITIALIZER_NOT_FULLY_BRACKETED = YES;
+				GCC_WARN_PEDANTIC = YES;
+				GCC_WARN_SHADOW = YES;
+				GCC_WARN_SIGN_COMPARE = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNKNOWN_PRAGMAS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_LABEL = YES;
+				GCC_WARN_UNUSED_PARAMETER = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				OTHER_CFLAGS = (
+					"-pedantic",
+					"-Wall",
+					"-Wno-extended-offsetof",
+				);
+				SDKROOT = macosx;
+				WARNING_CFLAGS = (
+					"-pedantic",
+					"-Wpointer-arith",
+					"-Wstrict-prototypes",
+					"-Wmissing-prototypes",
+					"-Winline",
+					"-Waggregate-return",
+					"-Wnested-externs",
+					"-Wcast-qual",
+					"-Wshadow",
+					"-Wall",
+					"-Wno-extended-offsetof",
+				);
+			};
+			name = WE;
+		};
+		318387EC15DC30CC008E4EA0 /* WE */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = WE;
+		};
+		318387ED15DC30CC008E4EA0 /* WE */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				COMBINE_HIDPI_IMAGES = YES;
+				EXECUTABLE_PREFIX = lib;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = WE;
+		};
+		318387EE15DC30CC008E4EA0 /* WE */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = WE;
+		};
+		318387EF15DC30CC008E4EA0 /* WE */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = WE;
+		};
+		318387F015DC30CC008E4EA0 /* WE */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = WE;
+		};
+		318387F115DC30CC008E4EA0 /* WE */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = WE;
+		};
+		318387F215DC30CC008E4EA0 /* WE */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = WE;
+		};
+		318387F315DC30CC008E4EA0 /* WE */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = WE;
+		};
+		318387F415DC30CC008E4EA0 /* WE */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = WE;
+		};
+		318387F515DC30CC008E4EA0 /* WE */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = WE;
+		};
+		318387F615DC30CC008E4EA0 /* WE */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = WE;
+		};
+		318387F715DC30CC008E4EA0 /* WE */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = WE;
+		};
+		318387F815DC30CC008E4EA0 /* WE */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = WE;
+		};
+		318387F915DC30CC008E4EA0 /* WE */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = WE;
+		};
+		318387FA15DC30CC008E4EA0 /* WE */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = WE;
+		};
+		318387FB15DC30CC008E4EA0 /* WE */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = WE;
+		};
+		318387FC15DC30CC008E4EA0 /* WE */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = WE;
+		};
+		318387FD15DC30CC008E4EA0 /* WE */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = WE;
+		};
+		318387FE15DC30CC008E4EA0 /* WE */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = WE;
+		};
+		318387FF15DC30CC008E4EA0 /* WE */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = WE;
+		};
+		3183880015DC30CC008E4EA0 /* WE */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = WE;
+		};
+		3183880115DC30CC008E4EA0 /* WE */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = WE;
+		};
+		3183880215DC30CC008E4EA0 /* WE */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = WE;
+		};
+		3183880315DC30CC008E4EA0 /* WE */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = WE;
+		};
+		3183880415DC30CC008E4EA0 /* WE */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = WE;
+		};
+		3183880515DC30CC008E4EA0 /* WE */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = WE;
+		};
+		3183880615DC30CC008E4EA0 /* WE */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = WE;
+		};
+		3183880715DC30CC008E4EA0 /* WE */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = WE;
+		};
+		3183880815DC30CC008E4EA0 /* WE */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = WE;
+		};
+		3183880915DC30CC008E4EA0 /* WE */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = WE;
+		};
+		3183880A15DC30CC008E4EA0 /* WE */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = WE;
+		};
+		3183880B15DC30CC008E4EA0 /* WE */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = WE;
+		};
 		31D60015156D3CB200337B26 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -3202,11 +3483,7 @@
 				COPY_PHASE_STRIP = NO;
 				GCC_C_LANGUAGE_STANDARD = ansi;
 				GCC_OPTIMIZATION_LEVEL = 0;
-				GCC_PREPROCESSOR_DEFINITIONS = (
-					CONFIG_PF_XCI6LL,
-					CONFIG_PROD_MPS,
-					CONFIG_VAR_CI,
-				);
+				GCC_PREPROCESSOR_DEFINITIONS = CONFIG_VAR_COOL;
 				GCC_TREAT_IMPLICIT_FUNCTION_DECLARATIONS_AS_ERRORS = YES;
 				GCC_TREAT_INCOMPATIBLE_POINTER_TYPE_WARNINGS_AS_ERRORS = YES;
 				GCC_TREAT_WARNINGS_AS_ERRORS = NO;
@@ -3226,7 +3503,6 @@
 				GCC_WARN_UNUSED_LABEL = YES;
 				GCC_WARN_UNUSED_PARAMETER = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.4;
 				ONLY_ACTIVE_ARCH = YES;
 				OTHER_CFLAGS = (
 					"-pedantic",
@@ -3258,12 +3534,8 @@
 				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				GCC_C_LANGUAGE_STANDARD = ansi;
-				GCC_PREPROCESSOR_DEFINITIONS = (
-					CONFIG_PF_XCI6LL,
-					CONFIG_PROD_MPS,
-					CONFIG_VAR_HE,
-					NDEBUG,
-				);
+				GCC_OPTIMIZATION_LEVEL = 2;
+				GCC_PREPROCESSOR_DEFINITIONS = CONFIG_VAR_HOT;
 				GCC_TREAT_IMPLICIT_FUNCTION_DECLARATIONS_AS_ERRORS = YES;
 				GCC_TREAT_INCOMPATIBLE_POINTER_TYPE_WARNINGS_AS_ERRORS = YES;
 				GCC_TREAT_WARNINGS_AS_ERRORS = NO;
@@ -3283,7 +3555,6 @@
 				GCC_WARN_UNUSED_LABEL = YES;
 				GCC_WARN_UNUSED_PARAMETER = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.4;
 				OTHER_CFLAGS = (
 					"-pedantic",
 					"-Wall",
@@ -3310,6 +3581,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				COMBINE_HIDPI_IMAGES = YES;
 				EXECUTABLE_PREFIX = lib;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -3319,6 +3591,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				COMBINE_HIDPI_IMAGES = YES;
 				EXECUTABLE_PREFIX = lib;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -3346,6 +3619,7 @@
 			buildConfigurations = (
 				3104AFBA156D357B000A585A /* Debug */,
 				3104AFBB156D357B000A585A /* Release */,
+				318387EF15DC30CC008E4EA0 /* WE */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
@@ -3355,6 +3629,7 @@
 			buildConfigurations = (
 				3104AFD0156D35E2000A585A /* Debug */,
 				3104AFD1156D35E2000A585A /* Release */,
+				318387F315DC30CC008E4EA0 /* WE */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
@@ -3364,6 +3639,7 @@
 			buildConfigurations = (
 				3104AFE5156D3682000A585A /* Debug */,
 				3104AFE6156D3682000A585A /* Release */,
+				318387F415DC30CC008E4EA0 /* WE */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
@@ -3373,6 +3649,7 @@
 			buildConfigurations = (
 				3104AFF3156D37A0000A585A /* Debug */,
 				3104AFF4156D37A0000A585A /* Release */,
+				318387EC15DC30CC008E4EA0 /* WE */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
@@ -3382,6 +3659,7 @@
 			buildConfigurations = (
 				3104B011156D38F3000A585A /* Debug */,
 				3104B012156D38F3000A585A /* Release */,
+				318387F515DC30CC008E4EA0 /* WE */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
@@ -3391,6 +3669,7 @@
 			buildConfigurations = (
 				3104B02A156D39D4000A585A /* Debug */,
 				3104B02B156D39D4000A585A /* Release */,
+				318387F615DC30CC008E4EA0 /* WE */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
@@ -3400,6 +3679,7 @@
 			buildConfigurations = (
 				3104B045156D3AD8000A585A /* Debug */,
 				3104B046156D3AD8000A585A /* Release */,
+				318387F715DC30CC008E4EA0 /* WE */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
@@ -3409,6 +3689,7 @@
 			buildConfigurations = (
 				3114A597156E913C001E0AA3 /* Debug */,
 				3114A598156E913C001E0AA3 /* Release */,
+				318387FE15DC30CC008E4EA0 /* WE */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
@@ -3418,6 +3699,7 @@
 			buildConfigurations = (
 				3114A5AF156E92C0001E0AA3 /* Debug */,
 				3114A5B0156E92C0001E0AA3 /* Release */,
+				318387FF15DC30CC008E4EA0 /* WE */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
@@ -3427,6 +3709,7 @@
 			buildConfigurations = (
 				3114A5C5156E9315001E0AA3 /* Debug */,
 				3114A5C6156E9315001E0AA3 /* Release */,
+				3183880015DC30CC008E4EA0 /* WE */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
@@ -3436,6 +3719,7 @@
 			buildConfigurations = (
 				3114A5DE156E93A0001E0AA3 /* Debug */,
 				3114A5DF156E93A0001E0AA3 /* Release */,
+				3183880115DC30CC008E4EA0 /* WE */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
@@ -3445,6 +3729,7 @@
 			buildConfigurations = (
 				3114A5F7156E93E7001E0AA3 /* Debug */,
 				3114A5F8156E93E7001E0AA3 /* Release */,
+				3183880215DC30CC008E4EA0 /* WE */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
@@ -3454,6 +3739,7 @@
 			buildConfigurations = (
 				3114A60D156E9430001E0AA3 /* Debug */,
 				3114A60E156E9430001E0AA3 /* Release */,
+				3183880315DC30CC008E4EA0 /* WE */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
@@ -3463,6 +3749,7 @@
 			buildConfigurations = (
 				3114A624156E9485001E0AA3 /* Debug */,
 				3114A625156E9485001E0AA3 /* Release */,
+				3183880415DC30CC008E4EA0 /* WE */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
@@ -3472,6 +3759,7 @@
 			buildConfigurations = (
 				3114A63B156E94DB001E0AA3 /* Debug */,
 				3114A63C156E94DB001E0AA3 /* Release */,
+				3183880515DC30CC008E4EA0 /* WE */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
@@ -3481,6 +3769,7 @@
 			buildConfigurations = (
 				3114A654156E9596001E0AA3 /* Debug */,
 				3114A655156E9596001E0AA3 /* Release */,
+				3183880615DC30CC008E4EA0 /* WE */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
@@ -3490,6 +3779,7 @@
 			buildConfigurations = (
 				3114A66A156E95D9001E0AA3 /* Debug */,
 				3114A66B156E95D9001E0AA3 /* Release */,
+				3183880715DC30CC008E4EA0 /* WE */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
@@ -3499,6 +3789,7 @@
 			buildConfigurations = (
 				3114A684156E9669001E0AA3 /* Debug */,
 				3114A685156E9669001E0AA3 /* Release */,
+				3183880815DC30CC008E4EA0 /* WE */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
@@ -3508,6 +3799,7 @@
 			buildConfigurations = (
 				3114A69D156E971B001E0AA3 /* Debug */,
 				3114A69E156E971B001E0AA3 /* Release */,
+				3183880915DC30CC008E4EA0 /* WE */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
@@ -3517,6 +3809,7 @@
 			buildConfigurations = (
 				3114A6B4156E9759001E0AA3 /* Debug */,
 				3114A6B5156E9759001E0AA3 /* Release */,
+				3183880A15DC30CC008E4EA0 /* WE */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
@@ -3526,6 +3819,7 @@
 			buildConfigurations = (
 				3114A6CE156E9815001E0AA3 /* Debug */,
 				3114A6CF156E9815001E0AA3 /* Release */,
+				3183880B15DC30CC008E4EA0 /* WE */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
@@ -3535,6 +3829,7 @@
 			buildConfigurations = (
 				3124CAC0156BE3EC00753214 /* Debug */,
 				3124CAC1156BE3EC00753214 /* Release */,
+				318387F015DC30CC008E4EA0 /* WE */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
@@ -3544,6 +3839,7 @@
 			buildConfigurations = (
 				3124CADC156BE64A00753214 /* Debug */,
 				3124CADD156BE64A00753214 /* Release */,
+				318387F215DC30CC008E4EA0 /* WE */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
@@ -3553,6 +3849,7 @@
 			buildConfigurations = (
 				3124CAF3156BE7F300753214 /* Debug */,
 				3124CAF4156BE7F300753214 /* Release */,
+				318387EE15DC30CC008E4EA0 /* WE */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
@@ -3562,6 +3859,7 @@
 			buildConfigurations = (
 				31D60015156D3CB200337B26 /* Debug */,
 				31D60016156D3CB200337B26 /* Release */,
+				318387F815DC30CC008E4EA0 /* WE */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
@@ -3571,6 +3869,7 @@
 			buildConfigurations = (
 				31D6002F156D3D3F00337B26 /* Debug */,
 				31D60030156D3D3F00337B26 /* Release */,
+				318387F915DC30CC008E4EA0 /* WE */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
@@ -3580,6 +3879,7 @@
 			buildConfigurations = (
 				31D60046156D3EC700337B26 /* Debug */,
 				31D60047156D3EC700337B26 /* Release */,
+				318387FA15DC30CC008E4EA0 /* WE */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
@@ -3589,6 +3889,7 @@
 			buildConfigurations = (
 				31D6005C156D3F3500337B26 /* Debug */,
 				31D6005D156D3F3500337B26 /* Release */,
+				318387FB15DC30CC008E4EA0 /* WE */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
@@ -3598,6 +3899,7 @@
 			buildConfigurations = (
 				31D60079156D3FBC00337B26 /* Debug */,
 				31D6007A156D3FBC00337B26 /* Release */,
+				318387FC15DC30CC008E4EA0 /* WE */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
@@ -3607,6 +3909,7 @@
 			buildConfigurations = (
 				31D60094156D402900337B26 /* Debug */,
 				31D60095156D402900337B26 /* Release */,
+				318387FD15DC30CC008E4EA0 /* WE */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
@@ -3616,6 +3919,7 @@
 			buildConfigurations = (
 				31EEABDF156AAE9E00714D05 /* Debug */,
 				31EEABE0156AAE9E00714D05 /* Release */,
+				318387EB15DC30CC008E4EA0 /* WE */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
@@ -3625,6 +3929,7 @@
 			buildConfigurations = (
 				31EEABFD156AAF9D00714D05 /* Debug */,
 				31EEABFE156AAF9D00714D05 /* Release */,
+				318387ED15DC30CC008E4EA0 /* WE */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
@@ -3634,6 +3939,7 @@
 			buildConfigurations = (
 				31EEAC6D156AB52600714D05 /* Debug */,
 				31EEAC6E156AB52600714D05 /* Release */,
+				318387F115DC30CC008E4EA0 /* WE */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

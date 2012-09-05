@@ -685,9 +685,9 @@ static Res MVTDescribe(Pool pool, mps_lib_FILE *stream)
   Res res;
   MVT mvt;
 
-  if (!CHECKT(Pool, pool)) return ResFAIL;
+  if (!TESTT(Pool, pool)) return ResFAIL;
   mvt = Pool2MVT(pool);
-  if (!CHECKT(MVT, mvt)) return ResFAIL;
+  if (!TESTT(MVT, mvt)) return ResFAIL;
   if (stream == NULL) return ResFAIL;
 
   res = WriteF(stream,

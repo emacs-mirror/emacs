@@ -590,7 +590,7 @@ static void SNCFramePopPending(Pool pool, Buffer buf, AllocFrame frame)
 
   } else {
     Arena arena;
-    Seg seg;
+    Seg seg = NULL;     /* suppress "may be used uninitialized" */
     Bool foundSeg;
 
     arena = PoolArena(pool);

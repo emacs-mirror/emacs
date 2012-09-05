@@ -18,6 +18,16 @@
  * which closely mirror those in the makefiles.
  */
 
+
+/* Platform interface
+ *
+ * This must be included first as it defines symbols which affect system
+ * headers, such as _POSIX_C_SOURCE _REENTRANT etc.
+ */
+
+#include "mpstd.h"
+
+
 /* MPM Core */
 
 #include "mpsi.c"
@@ -77,10 +87,6 @@
 #include "mpsioan.c"
 #endif
 
-/* Platform interface */
-
-#include "mpstd.h"
-
 /* Mac OS X on 32-bit Intel built with Clang or GCC */
 
 #if defined(MPS_PF_XCI3LL) || defined(MPS_PF_XCI3GC)
@@ -112,7 +118,7 @@
 #elif defined(MPS_PF_FRI3GC)
 
 #include "lockix.c"     /* Posix locks */
-#include "thix.c"       /* FreeBSD on 32-bit Intel threading */
+#include "thix.c"       /* Posix threading */
 #include "pthrdext.c"   /* Posix thread extensions */
 #include "vmix.c"       /* Posix virtual memory */
 #include "protix.c"     /* Posix protection */
@@ -121,6 +127,21 @@
 #include "prmci3fr.c"   /* 32-bit Intel for FreeBSD mutator context */
 #include "span.c"       /* generic stack probe */
 #include "ssixi3.c"     /* Posix on 32-bit Intel stack scan */
+
+/* FreeBSD on 64-bit Intel built with GCC */
+
+#elif defined(MPS_PF_FRI6GC)
+
+#include "lockix.c"     /* Posix locks */
+#include "thix.c"       /* Posix threading */
+#include "pthrdext.c"   /* Posix thread extensions */
+#include "vmix.c"       /* Posix virtual memory */
+#include "protix.c"     /* Posix protection */
+#include "protsgix.c"   /* Posix signal handling */
+#include "prmcan.c"     /* generic mutator context */
+#include "prmci6fr.c"   /* 64-bit Intel for FreeBSD mutator context */
+#include "span.c"       /* generic stack probe */
+#include "ssixi6.c"     /* Posix on 64-bit Intel stack scan */
 
 /* Linux on 32-bit Intel with GCC */
 
@@ -147,10 +168,10 @@
 #include "vmix.c"       /* Posix virtual memory */
 #include "protix.c"     /* Posix protection */
 #include "protli.c"     /* Linux protection */
-#include "proti6.c"     /* 32-bit Intel mutator context */
-#include "prmci6li.c"   /* 32-bit Intel for Linux mutator context */
+#include "proti6.c"     /* 64-bit Intel mutator context */
+#include "prmci6li.c"   /* 64-bit Intel for Linux mutator context */
 #include "span.c"       /* generic stack probe */
-#include "ssixi6.c"     /* Posix on 32-bit Intel stack scan */
+#include "ssixi6.c"     /* Posix on 64-bit Intel stack scan */
 
 /* Windows on 32-bit Intel with Microsoft Visual Studio */
 
