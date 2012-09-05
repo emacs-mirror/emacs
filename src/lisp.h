@@ -1205,9 +1205,9 @@ struct Lisp_Hash_Table
   struct Lisp_Hash_Table *next_weak;
 
   /* C function to compare two keys.  */
-  int (*cmpfn) (struct Lisp_Hash_Table *,
-		Lisp_Object, EMACS_UINT,
-		Lisp_Object, EMACS_UINT);
+  bool (*cmpfn) (struct Lisp_Hash_Table *,
+		 Lisp_Object, EMACS_UINT,
+		 Lisp_Object, EMACS_UINT);
 
   /* C function to compute hash code.  */
   EMACS_UINT (*hashfn) (struct Lisp_Hash_Table *, Lisp_Object);
@@ -3151,9 +3151,9 @@ EXFUN (Fread_file_name, 6);     /* not a normal DEFUN */
 extern Lisp_Object close_file_unwind (Lisp_Object);
 extern Lisp_Object restore_point_unwind (Lisp_Object);
 extern _Noreturn void report_file_error (const char *, Lisp_Object);
-extern int internal_delete_file (Lisp_Object);
+extern void internal_delete_file (Lisp_Object);
 extern void syms_of_fileio (void);
-extern Lisp_Object make_temp_name (Lisp_Object, int);
+extern Lisp_Object make_temp_name (Lisp_Object, bool);
 extern Lisp_Object Qdelete_file;
 
 /* Defined in search.c */

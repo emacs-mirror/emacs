@@ -100,10 +100,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Return the time of the last system boot.  */
 
 static time_t boot_time;
-static int boot_time_initialized;
+static bool boot_time_initialized;
 
 #ifdef BOOT_TIME
-static void get_boot_time_1 (const char *, int);
+static void get_boot_time_1 (const char *, bool);
 #endif
 
 static time_t
@@ -170,7 +170,7 @@ get_boot_time (void)
     {
       char cmd_string[sizeof WTMP_FILE ".19.gz"];
       Lisp_Object tempname, filename;
-      int delete_flag = 0;
+      bool delete_flag = 0;
 
       filename = Qnil;
 
@@ -225,13 +225,13 @@ get_boot_time (void)
 
    If FILENAME is zero, use the same file as before;
    if no FILENAME has ever been specified, this is the utmp file.
-   Use the newest reboot record if NEWEST is nonzero,
+   Use the newest reboot record if NEWEST,
    the first reboot record otherwise.
    Ignore all reboot records on or before BOOT_TIME.
    Success is indicated by setting BOOT_TIME to a larger value.  */
 
 void
-get_boot_time_1 (const char *filename, int newest)
+get_boot_time_1 (const char *filename, bool newest)
 {
   struct utmp ut, *utp;
   int desc;
@@ -331,11 +331,11 @@ fill_in_lock_file_name (register char *lockfile, register Lisp_Object fn)
 }
 
 /* Lock the lock file named LFNAME.
-   If FORCE is nonzero, we do so even if it is already locked.
-   Return 1 if successful, 0 if not.  */
+   If FORCE, do so even if it is already locked.
+   Return true if successful.  */
 
-static int
-lock_file_1 (char *lfname, int force)
+static bool
+lock_file_1 (char *lfname, bool force)
 {
   int err;
   int symlink_errno;
@@ -370,9 +370,9 @@ lock_file_1 (char *lfname, int force)
   return err == 0;
 }
 
-/* Return 1 if times A and B are no more than one second apart.  */
+/* Return true if times A and B are no more than one second apart.  */
 
-static int
+static bool
 within_one_second (time_t a, time_t b)
 {
   return (a - b >= -1 && a - b <= 1);
@@ -491,7 +491,7 @@ current_lock_owner (lock_info_type *owner, char *lfname)
 static int
 lock_if_free (lock_info_type *clasher, register char *lfname)
 {
-  while (lock_file_1 (lfname, 0) == 0)
+  while (! lock_file_1 (lfname, 0))
     {
       int locker;
 

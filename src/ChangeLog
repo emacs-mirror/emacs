@@ -1,5 +1,30 @@
 2012-09-05  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* fileio.c, filelock.c, floatfns.c, fns.c: Use bool for boolean.
+	* fileio.c (auto_saving, auto_save_error_occurred, make_temp_name)
+	(Fexpand_file_name, barf_or_query_if_file_exists, Fcopy_file)
+	(file_name_absolute_p, Fsubstitute_in_file_name):
+	(check_executable, check_writable, Ffile_accessible_directory_p)
+	(Fset_file_selinux_context, Fdefault_file_modes)
+	(Finsert_file_contents, choose_write_coding_system)
+	(Fwrite_region, build_annotations, a_write, e_write)
+	(Fdo_auto_save):
+	* filelock.c (boot_time_initialized, get_boot_time)
+	(get_boot_time_1, lock_file_1, within_one_second):
+	* floatfns.c (in_float):
+	* fns.c (concat, internal_equal, Frequire, base64_encode_1)
+	(base64_decode_1, cmpfn_eql, cmpfn_user_defined)
+	(sweep_weak_table, sweep_weak_hash_tables, secure_hash):
+	* lisp.h (struct Lisp_Hash_Table.cmpfn):
+	* window.c (compare_window_configurations):
+	Use bool for booleans.
+	* fileio.c (auto_saving_dir_umask, auto_saving_mode_bits)
+	(Fdefault_file_modes): Now mode_t, not int, for modes.
+	(Fdo_auto_save): Set a boolean to 1 rather than using ++.
+	(internal_delete_file): Now returns void, not a (boolean) int,
+	since nobody was looking at the return value.
+	* lisp.h, window.h: Adjust to above API changes.
+
 	* xdisp.c (set_message): Simplify and reindent last change.
 
 2012-09-05  Juanma Barranquero  <lekktu@gmail.com>

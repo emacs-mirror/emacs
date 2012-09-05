@@ -103,10 +103,10 @@ extern double logb (double);
 static void float_error ();
 #endif
 
-/* Nonzero while executing in floating point.
+/* True while executing in floating point.
    This tells float_error what to do.  */
 
-static int in_float;
+static bool in_float;
 
 /* If an argument is out of range for a mathematical function,
    here is the actual argument value to use in the error message.
