@@ -53,7 +53,7 @@ using it.  The basic case is straightforward on supported platforms
 
 This will produce an object file you can link with your project.  For
 details of how to configure the MPS, build libraries and tests, use
-IDEs, autoconf, etc. see [the build notes](manual/build-notes/).
+IDEs, autoconf, etc. see [Building the MPS](manual/build.txt).
 
 A quick start to writing code that uses the MPS is the ["hello-world"
 example](example/hello-world/).
@@ -81,9 +81,9 @@ that we are powerless to correct.  It is due to be fixed in Windows 8.
 (See [WOW64 bug: GetThreadContext() may return stale contents](http://zachsaw.blogspot.co.uk/2010/11/wow64-bug-getthreadcontext-may-return.html).)
 
 The MPS is highly portable and has run on many other processors and
-operating systems in the past (see [the build
-notes](manual/build-notes/)).  Most of the MPS is written in very pure
-ANSI C and compiles without warnings on anything.
+operating systems in the past (see [Building the
+MPS](manual/build.txt)).  Most of the MPS is written in very pure ANSI C
+and compiles without warnings on anything.
 
 
 Getting help
