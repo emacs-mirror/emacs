@@ -4981,7 +4981,8 @@ valid_pointer_p (void *p)
 #endif
 }
 
-/* Return 1 if OBJ is a valid lisp object.
+/* Return 2 if OBJ is a killed or special buffer object.
+   Return 1 if OBJ is a valid lisp object.
    Return 0 if OBJ is NOT a valid lisp object.
    Return -1 if we cannot validate OBJ.
    This function can be quite slow,
@@ -5001,6 +5002,9 @@ valid_lisp_object_p (Lisp_Object obj)
   p = (void *) XPNTR (obj);
   if (PURE_POINTER_P (p))
     return 1;
+
+  if (p == &buffer_defaults || p == &buffer_local_symbols)
+    return 2;
 
 #if !GC_MARK_STACK
   return valid_pointer_p (p);
@@ -5027,7 +5031,7 @@ valid_lisp_object_p (Lisp_Object obj)
       return 0;
 
     case MEM_TYPE_BUFFER:
-      return live_buffer_p (m, p);
+      return live_buffer_p (m, p) ? 1 : 2;
 
     case MEM_TYPE_CONS:
       return live_cons_p (m, p);

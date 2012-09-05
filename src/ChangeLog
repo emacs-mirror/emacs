@@ -1,3 +1,9 @@
+2012-09-05  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* alloc.c (valid_lisp_object_p): Treat killed buffers,
+	buffer_defaults and buffer_local_symbols as valid objects.
+	Return special value to denote them.
+
 2012-09-05  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* fileio.c, filelock.c, floatfns.c, fns.c: Use bool for boolean.
