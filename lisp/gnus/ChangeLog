@@ -1,7 +1,5 @@
 2012-09-03  Lars Ingebrigtsen  <larsi@gnus.org>
 
-	* dgnushack.el: XEmacs 21.5 compilation fix.
-
 	* gnus-notifications.el (gnus-notifications-notify): Use it.
 
 	* gnus-fun.el (gnus-funcall-no-warning): New function to silence
@@ -2299,8 +2297,6 @@
 	is not fully working.
 
 2011-06-30  Lars Magne Ingebrigtsen  <larsi@gnus.org>
-
-	* dgnushack.el: Autoload sha1 on XEmacs.
 
 	* gnus-group.el (gnus-read-ephemeral-emacs-bug-group): Take an optional
 	quit window configuration.
