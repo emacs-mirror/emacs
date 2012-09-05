@@ -1,5 +1,11 @@
 2012-09-05  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	Do not mark objects from deleted buffers, windows and frames.
+	* alloc.c (mark_buffer): Mark just the buffer if it is dead.
+	(mark_object): Likewise for windows and frames.
+
+2012-09-05  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	* alloc.c (valid_lisp_object_p): Treat killed buffers,
 	buffer_defaults and buffer_local_symbols as valid objects.
 	Return special value to denote them.
