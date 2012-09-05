@@ -1,5 +1,15 @@
 2012-09-05  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	Remove redundant or unused things here and there.
+	* lisp.h (CYCLE_CHECK, CHAR_TABLE_TRANSLATE): Remove.
+	* conf_post.h (RE_TRANSLATE): Use char_table_translate.
+	* editfns.c (Fcompare_buffer_substrings): Likewise.
+	* frame.h (struct terminal, struct font_driver_list):
+	Remove redundant declarations.
+	* window.h (Qleft, Qright): Likewise.
+
+2012-09-05  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	Do not mark objects from deleted buffers, windows and frames.
 	* alloc.c (mark_buffer): Mark just the buffer if it is dead.
 	(mark_object): Likewise for windows and frames.

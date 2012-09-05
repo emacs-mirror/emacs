@@ -27,8 +27,6 @@ INLINE_HEADER_BEGIN
 # define WINDOW_INLINE INLINE
 #endif
 
-extern Lisp_Object Qleft, Qright;
-
 /* Windows are allocated as if they were vectors, but then the
 Lisp data type is changed to Lisp_Window.  They are garbage
 collected along with the vectors.

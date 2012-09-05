@@ -81,9 +81,6 @@ enum fullscreen_type
 #define FRAME_FOREGROUND_PIXEL(f) ((f)->foreground_pixel)
 #define FRAME_BACKGROUND_PIXEL(f) ((f)->background_pixel)
 
-struct terminal;
-
-struct font_driver_list;
 
 struct frame
 {

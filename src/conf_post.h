@@ -167,7 +167,7 @@ You lose; /* Emacs for DOS must be compiled with DJGPP */
 #ifdef emacs /* Don't do this for lib-src.  */
 /* Tell regex.c to use a type compatible with Emacs.  */
 #define RE_TRANSLATE_TYPE Lisp_Object
-#define RE_TRANSLATE(TBL, C) CHAR_TABLE_TRANSLATE (TBL, C)
+#define RE_TRANSLATE(TBL, C) char_table_translate (TBL, C)
 #ifdef make_number
 /* If make_number is a macro, use it.  */
 #define RE_TRANSLATE_P(TBL) (!EQ (TBL, make_number (0)))
