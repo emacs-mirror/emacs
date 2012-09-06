@@ -16,10 +16,10 @@ MPM = <ring> <mpm> <bt> <protocol> <boot> \
       <pool> <poolabs> <poolmfs> <poolmv> \
       <root> <format> <buffer> <walk> <lockw3> \
       <ref> <trace> <traceanc> <protw3> <proti3> <prmci3w3> \
-      <shield> <vmw3> \
-      <thw3> <thw3i3> <ssw3mv> <mpsi> <mpsiw3> <ld> <spi3> \
+      <shield> <vmw3> <table> \
+      <thw3> <thw3i3> <ss> <ssw3i3mv> <mpsi> <mpsiw3> <ld> <spi3> \
       <event> <seg> <sac> <poolmrg> <message> <dbgpool> <dbgpooli> \
-      <abq> <meter> <cbs> <poolmv2> <splay> <diag>
+      <abq> <meter> <cbs> <poolmv2> <splay> <diag> <version>
 PLINTH = <mpsliban> <mpsioan>
 AMC = <poolamc>
 AMS = <poolams> <poolamsi>

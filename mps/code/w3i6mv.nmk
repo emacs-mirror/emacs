@@ -17,8 +17,8 @@ MPM = <ring> <mpm> <bt> <protocol> <boot> \
       <pool> <poolabs> <poolmfs> <poolmv> \
       <root> <format> <buffer> <walk> <lockw3> \
       <ref> <trace> <traceanc> <protw3> <proti6> <prmci6w3> \
-      <shield> <vmw3> \
-      <thw3> <thw3i6> <ssw3mv> <mpsi> <mpsiw3> <ld> <span> \
+      <shield> <vmw3> <table> \
+      <thw3> <thw3i6> <ss> <ssw3i6mv> <mpsi> <mpsiw3> <ld> <span> \
       <event> <seg> <sac> <poolmrg> <message> <dbgpool> <dbgpooli> \
       <abq> <meter> <cbs> <poolmv2> <splay> <diag> <version>
 PLINTH = <mpsliban> <mpsioan>

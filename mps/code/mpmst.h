@@ -453,9 +453,8 @@ typedef struct LDStruct {
  *
  * .ss: See <code/trace.c>.
  *
- * .ss: The first four fields of the trace structure must match the
+ * .ss: The first three fields of the trace structure must match the
  * external scan state structure (mps_ss_s) thus:
- *   ss->fix            mps_ss->fix
  *   ss->zoneShift      mps_ss->w0
  *   ss->white          mps_ss->w1
  *   ss->unfixedSummary mps_ss->w2
@@ -466,12 +465,13 @@ typedef struct LDStruct {
 #define ScanStateSig    ((Sig)0x5195CA45) /* SIGnature SCAN State */
 
 typedef struct ScanStateStruct {
-  TraceFixMethod fix;           /* fix function */
   Word zoneShift;               /* copy of arena->zoneShift.  See .ss.zone */
   ZoneSet white;                /* white set, for inline fix test */
   RefSet unfixedSummary;        /* accumulated summary of scanned references */
   Sig sig;                      /* <design/sig/> */
   Arena arena;                  /* owning arena */
+  PoolFixMethod fix;            /* third stage fix function */
+  void *fixClosure;             /* closure data for fix */
   TraceSet traces;              /* traces to scan for */
   Rank rank;                    /* reference rank of scanning */
   Bool wasMarked;               /* design.mps.fix.protocol.was-ready */
@@ -505,7 +505,8 @@ typedef struct TraceStruct {
   TraceState state;             /* current state of trace */
   Rank band;                    /* current band */
   Bool firstStretch;            /* in first stretch of band (see accessor) */
-  Bool emergency;               /* ran out of memory during trace */
+  PoolFixMethod fix;            /* fix method to apply to references */
+  void *fixClosure;             /* closure information for fix method */
   Chain chain;                  /* chain being incrementally collected */
   STATISTIC_DECL(Size preTraceArenaReserved); /* ArenaReserved before this trace */
   Size condemned;               /* condemned bytes */
@@ -711,6 +712,11 @@ typedef struct ArenaStruct {
   Epoch epoch;                     /* <design/arena/#ld.epoch> */
   RefSet prehistory;               /* <design/arena/#ld.prehistory> */
   RefSet history[LDHistoryLENGTH]; /* <design/arena/#ld.history> */
+
+  Bool emergency;               /* garbage collect in emergency mode? */
+
+  Addr *stackAtArenaEnter;  /* NULL or top of client stack, in the thread */
+                            /* that then entered the MPS. */
 
   Sig sig;
 } ArenaStruct;

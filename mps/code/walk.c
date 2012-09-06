@@ -120,7 +120,7 @@ void mps_arena_formatted_objects_walk(mps_arena_t mps_arena,
  * scanning them. But there's no direct support for invoking the scanner
  * without there being a trace, and there's no direct support for
  * creating a trace without also condemning part of the heap. (@@@@ This
- * looks like a useful canditate for inclusion in the future). For now,
+ * looks like a useful candidate for inclusion in the future). For now,
  * the root walker contains its own code for creating a minimal trace
  * and scan state.
  *
@@ -185,7 +185,7 @@ static Bool rootsStepClosureCheck(rootsStepClosure rsc)
 
 static void rootsStepClosureInit(rootsStepClosure rsc,
                                  Globals arena, Trace trace,
-                                 TraceFixMethod rootFix,
+                                 PoolFixMethod rootFix,
                                  mps_roots_stepper_t f, void *p, size_t s)
 {
   ScanState ss;
@@ -229,37 +229,26 @@ static void rootsStepClosureFinish(rootsStepClosure rsc)
  * This doesn't cause further scanning of transitive references, it just
  * calls the client closure.  */
 
-static Res RootsWalkFix(ScanState ss, Ref *refIO)
+static Res RootsWalkFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
 {
   rootsStepClosure rsc;
   Ref ref;
-  Seg seg;
-  Arena arena;
+        
+  UNUSED(pool);
 
   AVERT(ScanState, ss);
   AVER(refIO != NULL);
   rsc = ScanState2rootsStepClosure(ss);
   AVERT(rootsStepClosure, rsc);
 
-  arena = ss->arena;
   ref = *refIO;
 
-  /* Check that the reference is to a valid segment */
-  if (SegOfAddr(&seg, arena, ref)) {
-    /* Test if the segment belongs to a GCable pool */
-    /* If it isn't then it's not in the heap, and the reference */
-    /* shouldn't be passed to the client */
-    if ((SegPool(seg)->class->attr & AttrGC) != 0) {
-      /* Call the client closure - .assume.rootaddr */
-      rsc->f((mps_addr_t*)refIO, (mps_root_t)rsc->root, rsc->p, rsc->s);
-    }
-  } else {
-    /* See <design/trace/#exact.legal> */
-    AVER(ss->rank < RankEXACT || !ArenaIsReservedAddr(arena, ref));
-  }
+  /* If the segment isn't GCable then the ref is not to the heap and */
+  /* shouldn't be passed to the client. */
+  AVER((SegPool(seg)->class->attr & AttrGC) != 0);
 
-  /* See <design/trace/#fix.fixed.all> */
-  ss->fixedSummary = RefSetAdd(ss->arena, ss->fixedSummary, *refIO);
+  /* Call the client closure - .assume.rootaddr */
+  rsc->f((mps_addr_t*)refIO, (mps_root_t)rsc->root, rsc->p, rsc->s);
 
   AVER(ref == *refIO);  /* can walk object graph - but not modify it */
 
@@ -298,6 +287,7 @@ static Res ArenaRootsWalk(Globals arenaGlobals, mps_roots_stepper_t f,
   ScanState ss;
   Rank rank;
   Res res;
+  Seg seg;
 
   AVERT(Globals, arenaGlobals);
   AVER(FUNCHECK(f));
@@ -314,9 +304,19 @@ static Res ArenaRootsWalk(Globals arenaGlobals, mps_roots_stepper_t f,
   /* Have to fail if no trace available.  Unlikely due to .assume.parked. */
   if (res != ResOK)
     return res;
-  /* Set the white set to universal so that the scanner */
-  /* doesn't filter out any references from roots into the arena. */
-  trace->white = ZoneSetUNIV;
+
+  /* ArenaRootsWalk only passes references to GCable pools to the client. */
+  /* NOTE: I'm not sure why this is. RB 2012-07-24 */
+  if (SegFirst(&seg, arena)) {
+    Addr base;
+    do {
+      base = SegBase(seg);
+      if ((SegPool(seg)->class->attr & AttrGC) != 0) {
+        TraceAddWhite(trace, seg);
+      }
+    } while (SegNext(&seg, arena, base));
+  }
+
   /* Make the roots grey so that they are scanned */
   res = RootsIterate(arenaGlobals, (RootIterateFn)RootGrey, (void *)trace);
   /* Make this trace look like any other trace. */
@@ -337,6 +337,7 @@ static Res ArenaRootsWalk(Globals arenaGlobals, mps_roots_stepper_t f,
   /* Make this trace look like any other finished trace. */
   trace->state = TraceFINISHED;
   TraceDestroy(trace);
+  AVER(!ArenaEmergency(arena)); /* There was no allocation. */
 
   return res;
 }

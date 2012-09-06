@@ -411,6 +411,8 @@ enum {
 /* TraceStart reasons: the trigger that caused a trace to start. */
 /* Make these specific trigger names, not broad categories; */
 /* and if a new trigger is added, add a new reason. */
+/* TODO: A better way for MPS extensions to extend the list of reasons
+   instead of the catch-all TraceStartWhyEXTENSION. */
 
 enum {
   TraceStartWhyBASE = 1, /* not a reason, the base of the enum. */
@@ -419,7 +421,8 @@ enum {
   TraceStartWhyOPPORTUNISM,      /* start full */
   TraceStartWhyCLIENTFULL_INCREMENTAL,   /* start full */
   TraceStartWhyCLIENTFULL_BLOCK, /* do full */
-  TraceStartWhyWALK,
+  TraceStartWhyWALK,            /* walking references -- see walk.c */
+  TraceStartWhyEXTENSION,       /* MPS extension using traces */
   TraceStartWhyLIMIT /* not a reason, the limit of the enum. */
 };
 

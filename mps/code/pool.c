@@ -425,7 +425,7 @@ Res (PoolFix)(Pool pool, ScanState ss, Seg seg, Addr *refIO)
   return PoolFix(pool, ss, seg, refIO);
 }
 
-void PoolFixEmergency(Pool pool, ScanState ss, Seg seg, Addr *refIO)
+Res PoolFixEmergency(Pool pool, ScanState ss, Seg seg, Addr *refIO)
 {
   Res res;
 
@@ -440,6 +440,7 @@ void PoolFixEmergency(Pool pool, ScanState ss, Seg seg, Addr *refIO)
 
   res = (pool->class->fixEmergency)(pool, ss, seg, refIO);
   AVER(res == ResOK);
+  return res;
 }
 
 

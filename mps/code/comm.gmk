@@ -150,7 +150,8 @@ MPMCOMMON = mpsi.c mpm.c arenavm.c arenacl.c arena.c global.c locus.c \
             trace.c traceanc.c root.c seg.c format.c buffer.c ref.c \
             bt.c ring.c shield.c ld.c event.c sac.c message.c \
             poolmrg.c poolmfs.c poolmv.c dbgpool.c dbgpooli.c \
-            boot.c meter.c splay.c cbs.c diag.c
+            boot.c meter.c splay.c cbs.c diag.c \
+            ss.c table.c
 MPM = $(MPMCOMMON) $(MPMPF)
 
 
@@ -414,7 +415,7 @@ $(PFM)/$(VARIETY)/zmess: $(PFM)/$(VARIETY)/zmess.o \
 	$(FMTDYTSTOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/eventcnv: $(PFM)/$(VARIETY)/eventcnv.o \
-  $(PFM)/$(VARIETY)/eventpro.o $(PFM)/$(VARIETY)/table.o
+  $(PFM)/$(VARIETY)/eventpro.o $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/replay: $(PFM)/$(VARIETY)/replay.o \
   $(PFM)/$(VARIETY)/eventrep.o \

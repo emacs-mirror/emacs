@@ -212,6 +212,10 @@ Bool GlobalsCheck(Globals arenaGlobals)
   CHECKL(BoolCheck(arenaRingInit));
   CHECKL(RingCheck(&arenaRing));
 
+  CHECKL(BoolCheck(arena->emergency));
+
+  /* can't check arena->stackAtArenaEnter */
+  
   return TRUE;
 }
 
@@ -222,9 +226,8 @@ Res GlobalsInit(Globals arenaGlobals)
 {
   Arena arena;
   Index i;
-  TraceId ti;
-  Trace trace;
   Rank rank;
+  TraceId ti;
 
   /* This is one of the first things that happens, */
   /* so check static consistency here. */
@@ -287,13 +290,15 @@ Res GlobalsInit(Globals arenaGlobals)
   for(i = 0; i < ShieldCacheSIZE; i++)
     arena->shCache[i] = NULL;
 
-  TRACE_SET_ITER(ti, trace, TraceSetUNIV, arena)
+  for (ti = 0; ti < TraceLIMIT; ++ti) {
     /* <design/arena/#trace.invalid> */
     arena->trace[ti].sig = SigInvalid;
+    /* ti must be valid so that TraceSetIsMember etc. always work */
+    arena->trace[ti].ti = ti;
     /* <design/message-gc/#lifecycle> */
     arena->tsMessage[ti] = NULL;
     arena->tMessage[ti] = NULL;
-  TRACE_SET_ITER_END(ti, trace, TraceSetUNIV, arena);
+  }
 
   for(rank = 0; rank < RankLIMIT; ++rank)
     RingInit(&arena->greyRing[rank]);
@@ -304,6 +309,10 @@ Res GlobalsInit(Globals arenaGlobals)
   arena->prehistory = RefSetEMPTY;
   for(i = 0; i < LDHistoryLENGTH; ++i)
     arena->history[i] = RefSetEMPTY;
+
+  arena->emergency = FALSE;
+
+  arena->stackAtArenaEnter = NULL;
 
   arenaGlobals->sig = GlobalsSig;
   AVERT(Globals, arenaGlobals);
@@ -1029,6 +1038,39 @@ Res GlobalsDescribe(Globals arenaGlobals, mps_lib_FILE *stream)
   /* @@@@ What about grey rings? */
   return res;
 }
+
+
+/* ArenaSetEmergency -- move the arena into emergency mode
+ *
+ * Emergency mode is set when garbage collection cannot make progress because
+ * it can't allocate memory.
+ *
+ * Emergency mode affects the choice of PoolFixMethod in new ScanStates.
+ * See ScanStateInit.
+ *
+ * If the traces aren't normal GC traces, and have their fix method
+ * set to something other than PoolFix, then this won't affect the choice
+ * of fix method in ScanStateInit and so won't have any effect.  Whatever
+ * caused the first failure will likely repeat.
+ */
+
+void ArenaSetEmergency(Arena arena, Bool emergency)
+{
+  AVERT(Arena, arena);
+  AVERT(Bool, emergency);
+
+  DIAG_SINGLEF(( "ArenaSetEmergency",
+    "emergency: $U", (WriteFU)emergency, NULL ));
+  
+  arena->emergency = emergency;
+}
+
+Bool ArenaEmergency(Arena arena)
+{
+  AVERT(Arena, arena);
+  return arena->emergency;
+}
+
 
 
 /* C. COPYRIGHT AND LICENSE

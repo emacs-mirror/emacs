@@ -39,6 +39,7 @@ Bool ScanStateCheck(ScanState ss)
 
   CHECKS(ScanState, ss);
   CHECKL(FUNCHECK(ss->fix));
+  /* Can't check ss->fixClosure. */
   CHECKL(ss->zoneShift == ss->arena->zoneShift);
   white = ZoneSetEMPTY;
   TRACE_SET_ITER(ti, trace, ss->traces, ss->arena)
@@ -69,12 +70,28 @@ void ScanStateInit(ScanState ss, TraceSet ts, Arena arena,
   AVER(RankCheck(rank));
   /* white is arbitrary and can't be checked */
 
-  ss->fix = TraceFix;
-  TRACE_SET_ITER(ti, trace, ts, arena)
-    if(trace->emergency) {
-      ss->fix = TraceFixEmergency;
+  /* NOTE: We can only currently support scanning for a set of traces with
+     the same fix method and closure.  To remove this restriction,
+     it would be necessary to dispatch to the fix methods of sets of traces
+     in TraceFix. */
+  ss->fix = NULL;
+  ss->fixClosure = NULL;
+  TRACE_SET_ITER(ti, trace, ts, arena) {
+    if (ss->fix == NULL) {
+      ss->fix = trace->fix;
+      ss->fixClosure = trace->fixClosure;
+    } else {
+      AVER(ss->fix == trace->fix);
+      AVER(ss->fixClosure == trace->fixClosure);
     }
-  TRACE_SET_ITER_END(ti, trace, ts, arena);
+  } TRACE_SET_ITER_END(ti, trace, ts, arena);
+  AVER(ss->fix != NULL);
+
+  /* If the fix method is the normal GC fix, then we optimise the test for
+     whether it's an emergency or not by updating the dispatch here, once. */
+  if (ss->fix == PoolFix && ArenaEmergency(arena))
+        ss->fix = PoolFixEmergency;
+
   ss->rank = rank;
   ss->traces = ts;
   ss->zoneShift = arena->zoneShift;
@@ -174,10 +191,11 @@ Bool TraceCheck(Trace trace)
   if(trace->state == TraceFLIPPED) {
     CHECKL(RankCheck(trace->band));
   }
-  CHECKL(BoolCheck(trace->emergency));
   if(trace->chain != NULL) {
     CHECKU(Chain, trace->chain);
   }
+  CHECKL(FUNCHECK(trace->fix));
+  /* Can't check trace->fixClosure. */
 
   /* @@@@ checks for counts missing */
 
@@ -303,24 +321,6 @@ static void traceSetUpdateCounts(TraceSet ts, Arena arena, ScanState ss,
 }
 
 
-/* traceSetSignalEmergency -- move a set of traces into emergency mode. */
-
-static void traceSetSignalEmergency(TraceSet ts, Arena arena)
-{
-  TraceId ti;
-  Trace trace;
-
-  DIAG_SINGLEF(( "traceSetSignalEmergency",
-    "traceSet: $B", (WriteFB)ts, NULL ));
-
-  TRACE_SET_ITER(ti, trace, ts, arena)
-    trace->emergency = TRUE;
-  TRACE_SET_ITER_END(ti, trace, ts, arena);
-
-  return;
-}
-
-
 /* traceSetWhiteUnion
  *
  * Returns a ZoneSet describing the union of the white sets of all the
@@ -360,7 +360,7 @@ Res TraceAddWhite(Trace trace, Seg seg)
   if(res != ResOK)
     return res;
 
-  /* Add the segment to the approximation of the white set the */
+  /* Add the segment to the approximation of the white set if the */
   /* pool made it white. */
   if(TraceSetIsMember(SegWhite(seg), trace)) {
     trace->white = ZoneSetUnion(trace->white, ZoneSetOfSeg(trace->arena, seg));
@@ -474,23 +474,23 @@ static Res traceScanRootRes(TraceSet ts, Rank rank, Arena arena, Root root)
 
 /* traceScanRoot
  *
- * Scan a root without fail.  The traces may enter emergency mode to
- * ensure this.  */
+ * Scan a root, entering emergency mode on allocation failure.
+ */
 
-static void traceScanRoot(TraceSet ts, Rank rank, Arena arena, Root root)
+static Res traceScanRoot(TraceSet ts, Rank rank, Arena arena, Root root)
 {
   Res res;
 
   res = traceScanRootRes(ts, rank, arena, root);
-  if(res != ResOK) {
-    AVER(ResIsAllocFailure(res));
-    traceSetSignalEmergency(ts, arena);
+
+  if (ResIsAllocFailure(res)) {
+    ArenaSetEmergency(arena, TRUE);
     res = traceScanRootRes(ts, rank, arena, root);
     /* Should be OK in emergency mode */
+    AVER(!ResIsAllocFailure(res));
   }
-  AVER(ResOK == res);
 
-  return;
+  return res;
 }
 
 
@@ -505,6 +505,7 @@ struct rootFlipClosureStruct {
 static Res rootFlip(Root root, void *p)
 {
   struct rootFlipClosureStruct *rf = (struct rootFlipClosureStruct *)p;
+  Res res;
 
   AVERT(Root, root);
   AVER(p != NULL);
@@ -514,18 +515,47 @@ static Res rootFlip(Root root, void *p)
 
   AVER(RootRank(root) <= RankEXACT); /* see .root.rank */
 
-  if(RootRank(root) == rf->rank)
-    traceScanRoot(rf->ts, rf->rank, rf->arena, root);
+  if(RootRank(root) == rf->rank) {
+    res = traceScanRoot(rf->ts, rf->rank, rf->arena, root);
+    if (res != ResOK)
+      return res;
+  }
 
   return ResOK;
 }
 
-static void traceFlip(Trace trace)
+
+/* traceFlip -- flip the mutator from grey to black w.r.t. a trace
+ *
+ * The main job of traceFlip is to scan references which can't be protected
+ * from the mutator, changing the colour of the mutator from grey to black
+ * with respect to a trace.  The mutator threads are suspended while this
+ * is happening, and the mutator perceives and instantaneous change in all
+ * the references, enforced by the shield (barrier) system.
+ *
+ * NOTE: We don't have a way to shield the roots, so they are all scanned
+ * here.  This is a coincidence.  There is no particular reason that the
+ * roots have to be scanned at flip time.  (The thread registers are unlikely
+ * ever to be protectable on stock hardware, however.)
+ *
+ * NOTE: Ambiguous references may only exist in roots, because we can't
+ * shield the exact roots and defer them for later scanning (after ambiguous
+ * heap references).
+ *
+ * NOTE: We don't support weak or final roots because we can't shield them
+ * and defer scanning until later.  See above.
+ *
+ * If roots and segments were more similar, we could melt a lot of these
+ * problems.
+ */
+
+static Res traceFlip(Trace trace)
 {
   Ring node, nextNode;
   Arena arena;
   Rank rank;
   struct rootFlipClosureStruct rfc;
+  Res res;
 
   AVERT(Trace, trace);
   rfc.ts = TraceSetSingle(trace);
@@ -555,11 +585,10 @@ static void traceFlip(Trace trace)
   /* higher ranking roots than data in pools. */
 
   for(rank = RankAMBIG; rank <= RankEXACT; ++rank) {
-    Res res;
-
     rfc.rank = rank;
     res = RootsIterate(ArenaGlobals(arena), rootFlip, (void *)&rfc);
-    AVER(res == ResOK);
+    if (res != ResOK)
+      goto failRootFlip;
   }
 
   /* .flip.alloc: Allocation needs to become black now. While we flip */
@@ -595,8 +624,11 @@ static void traceFlip(Trace trace)
   EVENT2(TraceFlipEnd, trace, arena);
 
   ShieldResume(arena);
+  return ResOK;
 
-  return;
+failRootFlip:
+  ShieldResume(arena);
+  return res;
 }
 
 /* traceCopySizes -- preserve size information for later use
@@ -668,7 +700,8 @@ found:
   trace->ti = ti;
   trace->state = TraceINIT;
   trace->band = RankAMBIG;      /* Required to be the earliest rank. */
-  trace->emergency = FALSE;
+  trace->fix = PoolFix;
+  trace->fixClosure = NULL;
   trace->chain = NULL;
   STATISTIC(trace->preTraceArenaReserved = ArenaReserved(arena));
   trace->condemned = (Size)0;   /* nothing condemned yet */
@@ -908,7 +941,7 @@ Rank TraceRankForAccess(Arena arena, Seg seg)
  *
  * .check.ambig.not: RankAMBIG segments never appear on the grey ring.
  * The current tracer cannot support ambiguous reference except as
- * roots, so it's a buf if we ever find any.  This behaviour is not set
+ * roots, so it's a bug if we ever find any.  This behaviour is not set
  * in stone, it's possible to imagine changing the tracer so that we can
  * support ambiguous objects one day.  For example, a fully conservative
  * non-moving mode.
@@ -1180,23 +1213,23 @@ static Res traceScanSegRes(TraceSet ts, Rank rank, Arena arena, Seg seg)
 
 /* traceScanSeg
  *
- * Scans a segment without fail.  May put the traces into emergency mode
- * to ensure this.  */
+ * Scans a segment, switching to emergency mode if there is an allocation
+ * failure.
+ */
 
-static void traceScanSeg(TraceSet ts, Rank rank, Arena arena, Seg seg)
+static Res traceScanSeg(TraceSet ts, Rank rank, Arena arena, Seg seg)
 {
   Res res;
 
   res = traceScanSegRes(ts, rank, arena, seg);
-  if(res != ResOK) {
-    AVER(ResIsAllocFailure(res));
-    traceSetSignalEmergency(ts, arena);
+  if(ResIsAllocFailure(res)) {
+    ArenaSetEmergency(arena, TRUE);
     res = traceScanSegRes(ts, rank, arena, seg);
     /* Should be OK in emergency mode. */
+    AVER(!ResIsAllocFailure(res));
   }
-  AVER(ResOK == res);
 
-  return;
+  return res;
 }
 
 
@@ -1204,6 +1237,8 @@ static void traceScanSeg(TraceSet ts, Rank rank, Arena arena, Seg seg)
 
 void TraceSegAccess(Arena arena, Seg seg, AccessSet mode)
 {
+  Res res;
+
   AVERT(Arena, arena);
   AVERT(Seg, seg);
 
@@ -1226,9 +1261,13 @@ void TraceSegAccess(Arena arena, Seg seg, AccessSet mode)
     
     /* Pick set of traces to scan for: */
     TraceSet traces = arena->flippedTraces;
-    
     rank = TraceRankForAccess(arena, seg);
-    traceScanSeg(traces, rank, arena, seg);      
+    res = traceScanSeg(traces, rank, arena, seg);      
+
+    /* Allocation failures should be handled my emergency mode, and we don't
+       expect any other kind of failure in a normal GC that causes access
+       faults. */
+    AVER(res == ResOK);
 
     /* The pool should've done the job of removing the greyness that */
     /* was causing the segment to be protected, so that the mutator */
@@ -1254,19 +1293,30 @@ void TraceSegAccess(Arena arena, Seg seg, AccessSet mode)
 }
 
 
-/* TraceFix -- fix a reference */
+/* TraceFix2 -- second stage of fixing a reference
+ *
+ * TraceFix is on the critical path.  A one-instruction difference in the
+ * early parts of this code will have a significant impact on overall run
+ * time.  The priority is to eliminate irrelevant references early and fast
+ * using the colour information stored in the tract table.
+ */
 
-Res TraceFix(ScanState ss, Ref *refIO)
+static Res TraceFix2(ScanState ss, Ref *refIO)
 {
   Ref ref;
   Tract tract;
-  Pool pool;
 
+  /* Special AVER macros are used on the critical path. */
   /* See <design/trace/#fix.noaver> */
   AVERT_CRITICAL(ScanState, ss);
   AVER_CRITICAL(refIO != NULL);
 
   ref = *refIO;
+
+  /* The zone test should already have been passed by MPS_FIX1 in mps.h. */
+  AVER_CRITICAL(ZoneSetInter(ss->white,
+                             ZoneSetAdd(ss->arena, ZoneSetEMPTY, ref)) !=
+                ZoneSetEMPTY);
 
   STATISTIC(++ss->fixRefCount);
   EVENT4(TraceFix, ss, refIO, ref, ss->rank);
@@ -1277,17 +1327,18 @@ Res TraceFix(ScanState ss, Ref *refIO)
       Seg seg;
       if(TRACT_SEG(&seg, tract)) {
         Res res;
+        Pool pool;
         STATISTIC(++ss->segRefCount);
         STATISTIC(++ss->whiteSegRefCount);
         EVENT1(TraceFixSeg, seg);
         EVENT0(TraceFixWhite);
         pool = TractPool(tract);
-        /* Could move the rank switch here from the class-specific */
-        /* fix methods. */
-        res = PoolFix(pool, ss, seg, refIO);
+        res = (*ss->fix)(pool, ss, seg, refIO);
         if(res != ResOK) {
-          /* Fix protocol (de facto): if Fix fails, ref must be unchanged */
-          /* Justification for this restriction:
+          /* PoolFixEmergency should never fail. */
+          AVER_CRITICAL(ss->fix != PoolFixEmergency);
+          /* Fix protocol (de facto): if Fix fails, ref must be unchanged
+           * Justification for this restriction:
            * A: it simplifies;
            * B: it's reasonable (given what may cause Fix to fail);
            * C: the code (here) already assumes this: it returns without 
@@ -1296,6 +1347,14 @@ Res TraceFix(ScanState ss, Ref *refIO)
           AVER(*refIO == ref);
           return res;
         }
+      } else {
+        /* Only tracts with segments ought to have been condemned. */
+        /* SegOfAddr FALSE => a ref into a non-seg Tract (poolmv etc) */
+        /* .notwhite: ...But it should NOT be white.  
+         * [I assert this both from logic, and from inspection of the 
+         * current condemn code.  RHSK 2010-11-30]
+         */
+        NOTREACHED;
       }
     } else {
       /* Tract isn't white. Don't compute seg for non-statistical */
@@ -1322,56 +1381,18 @@ Res TraceFix(ScanState ss, Ref *refIO)
 }
 
 
-/* TraceFixEmergency -- fix a reference in emergency mode */
+/* mps_fix2 -- external interface to TraceFix
+ *
+ * We rely on compiler inlining to make this equivalent to TraceFix, because
+ * the name "TraceFix" is pervasive in the MPS.  That's also why this
+ * function is in trace.c and not mpsi.c.
+ */
 
-Res TraceFixEmergency(ScanState ss, Ref *refIO)
+mps_res_t mps_fix2(mps_ss_t mps_ss, mps_addr_t *mps_ref_io)
 {
-  Ref ref;
-  Tract tract;
-  Pool pool;
-
-  AVERT(ScanState, ss);
-  AVER(refIO != NULL);
-
-  ref = *refIO;
-
-  STATISTIC(++ss->fixRefCount);
-  EVENT4(TraceFix, ss, refIO, ref, ss->rank);
-
-  TRACT_OF_ADDR(&tract, ss->arena, ref);
-  if(tract) {
-    if(TraceSetInter(TractWhite(tract), ss->traces) != TraceSetEMPTY) {
-      Seg seg;
-      if(TRACT_SEG(&seg, tract)) {
-        STATISTIC(++ss->segRefCount);
-        STATISTIC(++ss->whiteSegRefCount);
-        EVENT1(TraceFixSeg, seg);
-        EVENT0(TraceFixWhite);
-        pool = TractPool(tract);
-        PoolFixEmergency(pool, ss, seg, refIO);
-      }
-    } else {
-      /* Tract isn't white. Don't compute seg for non-statistical */
-      /* variety. See <design/trace/#fix.tractofaddr> */
-      STATISTIC_STAT
-        ({
-          Seg seg;
-          if(TRACT_SEG(&seg, tract)) {
-            ++ss->segRefCount;
-            EVENT1(TraceFixSeg, seg);
-          }
-        });
-    }
-  } else {
-    /* See <design/trace/#exact.legal> */
-    AVER(ss->rank < RankEXACT ||
-         !ArenaIsReservedAddr(ss->arena, ref));
-  }
-
-  /* See <design/trace/#fix.fixed.all> */
-  ss->fixedSummary = RefSetAdd(ss->arena, ss->fixedSummary, *refIO);
-
-  return ResOK;
+  ScanState ss = (ScanState)mps_ss;
+  Ref *refIO = (Ref *)mps_ref_io;
+  return TraceFix2(ss, refIO);
 }
 
 
@@ -1430,7 +1451,7 @@ void TraceScanSingleRef(TraceSet ts, Rank rank, Arena arena,
 
   res = traceScanSingleRefRes(ts, rank, arena, seg, refIO);
   if(res != ResOK) {
-    traceSetSignalEmergency(ts, arena);
+    ArenaSetEmergency(arena, TRUE);
     res = traceScanSingleRefRes(ts, rank, arena, seg, refIO);
     /* Ought to be OK in emergency mode now. */
   }
@@ -1652,7 +1673,18 @@ static void TraceStartGenDesc_diag(GenDesc desc, Bool top, Index i)
   }
 }
 
-void TraceStart(Trace trace, double mortality, double finishingTime)
+
+/* TraceStart -- start a trace whose white set has been established
+ *
+ * The main job of TraceStart is to set up the grey list for a trace.  The
+ * trace is first created with TraceCreate, objects are whitened, then
+ * TraceStart is called to initialise the tracing process.
+ *
+ * NOTE: At present, TraceStart also flips the mutator, so there is no
+ * grey-mutator tracing.
+ */
+
+Res TraceStart(Trace trace, double mortality, double finishingTime)
 {
   Arena arena;
   Res res;
@@ -1783,9 +1815,7 @@ void TraceStart(Trace trace, double mortality, double finishingTime)
   TracePostStartMessage(trace);
 
   /* All traces must flip at beginning at the moment. */
-  traceFlip(trace);
-
-  return;
+  return traceFlip(trace);
 }
 
 
@@ -1801,6 +1831,7 @@ void TraceStart(Trace trace, double mortality, double finishingTime)
 void TraceQuantum(Trace trace)
 {
   Size pollEnd;
+  Arena arena = trace->arena;
 
   pollEnd = traceWorkClock(trace) + trace->rate;
   do {
@@ -1810,13 +1841,16 @@ void TraceQuantum(Trace trace)
         NOTREACHED;
         break;
       case TraceFLIPPED: {
-        Arena arena = trace->arena;
         Seg seg;
         Rank rank;
 
         if(traceFindGrey(&seg, &rank, arena, trace->ti)) {
+          Res res;
           AVER((SegPool(seg)->class->attr & AttrSCAN) != 0);
-          traceScanSeg(TraceSetSingle(trace), rank, arena, seg);
+          res = traceScanSeg(TraceSetSingle(trace), rank, arena, seg);
+          /* Allocation failures should be handled by emergency mode, and we
+             don't expect any other error in a normal GC trace. */
+          AVER(res == ResOK);
         } else {
           trace->state = TraceRECLAIM;
         }
@@ -1830,7 +1864,7 @@ void TraceQuantum(Trace trace)
         break;
     }
   } while(trace->state != TraceFINISHED
-          && (trace->emergency || traceWorkClock(trace) < pollEnd));
+          && (ArenaEmergency(arena) || traceWorkClock(trace) < pollEnd));
 }
 
 /* TraceStartCollectAll: start a trace which condemns everything in
@@ -1859,12 +1893,25 @@ Res TraceStartCollectAll(Trace *traceReturn, Arena arena, int why)
     /* Run out of time, should really try a smaller collection. @@@@ */
     finishingTime = 0.0;
   }
-  TraceStart(trace, TraceTopGenMortality, finishingTime);
+  res = TraceStart(trace, TraceTopGenMortality, finishingTime);
+  if (res != ResOK)
+    goto failStart;
   *traceReturn = trace;
   return ResOK;
 
+failStart:
+  /* TODO: We can't back-out from a failed TraceStart that has
+     already done some scanning, so this error path is somewhat bogus if it
+     destroys the trace.  In the current system, TraceStartCollectAll is
+     only used for a normal GC, so TraceStart should not fail and this case
+     should never be reached.  There's a chance the mutator will survive
+     if the assertion isn't hit, so drop through anyway. */
+  NOTREACHED;
 failCondemn:
   TraceDestroy(trace);
+  /* We don't know how long it'll be before another collection.  Make sure
+     the next one starts in normal mode. */
+  ArenaSetEmergency(arena, FALSE);
   return res;
 }
 
@@ -1933,7 +1980,9 @@ Size TracePoll(Globals globals)
           goto failCondemn;
         trace->chain = firstChain;
         ChainStartGC(firstChain, trace);
-        TraceStart(trace, mortality, trace->condemned * TraceWorkFactor);
+        res = TraceStart(trace, mortality, trace->condemned * TraceWorkFactor);
+        /* We don't expect normal GC traces to fail to start. */
+        AVER(res == ResOK);
         scannedSize = traceWorkClock(trace);
       }
     } /* (dynamicDeferral > 0.0) */
@@ -1950,12 +1999,18 @@ Size TracePoll(Globals globals)
     scannedSize = traceWorkClock(trace) - oldScanned;
     if(trace->state == TraceFINISHED) {
       TraceDestroy(trace);
+      /* A trace finished, and hopefully reclaimed some memory, so clear any
+         emergency. */
+      ArenaSetEmergency(arena, FALSE);
     }
   }
   return scannedSize;
 
 failCondemn:
   TraceDestroy(trace);
+  /* This is an unlikely case, but clear the emergency flag so the next attempt
+     starts normally. */
+  ArenaSetEmergency(arena, FALSE);
 failStart:
   return (Size)0;
 }

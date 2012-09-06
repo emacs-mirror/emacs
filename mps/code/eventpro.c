@@ -340,6 +340,19 @@ void EventDestroy(EventProc proc, Event event)
 
 /* EventProcCreate -- initialize the module */
 
+static void *tableAlloc(void *closure, size_t size)
+{
+  UNUSED(closure);
+  return malloc(size);
+}
+
+static void tableFree(void *closure, void *p, size_t size)
+{
+  UNUSED(closure);
+  UNUSED(size);
+  free(p);
+}
+
 Res EventProcCreate(EventProc *procReturn,
                     EventProcReader reader,
                     void *readerP)
@@ -356,9 +369,14 @@ Res EventProcCreate(EventProc *procReturn,
   assert(sizeof(Word) >= sizeof(Addr));
 
   proc->reader = reader; proc->readerP = readerP;
-  res = TableCreate(&proc->internTable, (size_t)1<<4);
+  res = TableCreate(&proc->internTable,
+                    (size_t)1<<4,
+                    tableAlloc, tableFree, NULL,
+                    (Word)-1, (Word)-2);  /* because MPS IDs are serials from zero up */
   if (res != ResOK) goto failIntern;
-  res = TableCreate(&proc->labelTable, (size_t)1<<7);
+  res = TableCreate(&proc->labelTable, (size_t)1<<7,
+                    tableAlloc, tableFree, NULL,
+                    0, 1);    /* no Addrs down here */
   if (res != ResOK) goto failLabel;
   proc->cachedEvent = NULL;
   *procReturn = proc;
@@ -374,23 +392,25 @@ failIntern:
 
 /* EventProcDestroy -- finish the module */
 
-static void deallocItem(Word key, void *value)
+static void deallocItem(void *closure, Word key, void *value)
 {
   UNUSED(key);
+  UNUSED(closure);
   free(value);
 }
 
-static void deallocSym(Word key, void *value)
+static void deallocSym(void *closure, Word key, void *value)
 {
   UNUSED(key);
+  UNUSED(closure);
   eventStringDestroy(((Symbol)value)->name);
   free(value);
 }
 
 void EventProcDestroy(EventProc proc)
 {
-  TableMap(proc->labelTable, deallocItem);
-  TableMap(proc->internTable, deallocSym);
+  TableMap(proc->labelTable, deallocItem, NULL);
+  TableMap(proc->internTable, deallocSym, NULL);
   TableDestroy(proc->labelTable);
   TableDestroy(proc->internTable);
   if (proc->cachedEvent != NULL)

@@ -167,6 +167,9 @@ const char *TraceStartWhyToString(int why)
   case TraceStartWhyWALK:
     r = "Walking all live objects.";
     break;
+  case TraceStartWhyEXTENSION:
+    r = "Extension: an MPS extension started the trace.";
+    break;
   default:
     NOTREACHED;
     r = "Unknown reason (internal error).";
@@ -590,6 +593,10 @@ void ArenaPark(Globals globals)
       }
     TRACE_SET_ITER_END(ti, trace, arena->busyTraces, arena);
   }
+  
+  /* Clear any emergency flag so that the next collection starts normally.
+     Any traces that have been finished may have reclaimed memory. */
+  ArenaSetEmergency(arena, FALSE);
 }
 
 /* ArenaStartCollect -- start a collection of everything in the
