@@ -1717,12 +1717,12 @@ passed in.  If LITERAL is set, no checking is done, anyway."
   (replace-match newtext fixedcase literal)
   noedit)
 
-(defvar replace-search-function 'search-forward
+(defvar replace-search-function nil
   "Function to use when searching for strings to replace.
 It is used by `query-replace' and `replace-string', and is called
 with three arguments, as if it were `search-forward'.")
 
-(defvar replace-re-search-function 're-search-forward
+(defvar replace-re-search-function nil
   "Function to use when searching for regexps to replace.
 It is used by `query-replace-regexp', `replace-regexp',
 `query-replace-regexp-eval', and `map-query-replace-regexp'.
@@ -1755,9 +1755,14 @@ make, or the user didn't cancel the call."
          (nocasify (not (and case-replace case-fold-search)))
          (literal (or (not regexp-flag) (eq regexp-flag 'literal)))
          (search-function
-	  (if regexp-flag
-	      replace-re-search-function
-	    replace-search-function))
+	  (or (if regexp-flag
+		  replace-re-search-function
+		replace-search-function)
+	      (let ((isearch-regexp regexp-flag)
+		    (isearch-word delimited-flag)
+		    (isearch-case-fold-search case-fold-search)
+		    (isearch-forward t))
+		(isearch-search-fun))))
          (search-string from-string)
          (real-match-data nil)       ; The match data for the current match.
          (next-replacement nil)
@@ -1811,12 +1816,6 @@ make, or the user didn't cancel the call."
                                (vector repeat-count repeat-count
                                        replacements replacements)))))
 
-    (if delimited-flag
-	(setq search-function 're-search-forward
-	      search-string (concat "\\b"
-				    (if regexp-flag from-string
-				      (regexp-quote from-string))
-				    "\\b")))
     (when query-replace-lazy-highlight
       (setq isearch-lazy-highlight-last-string nil))
 
@@ -1898,7 +1897,7 @@ make, or the user didn't cancel the call."
 		    (replace-highlight
 		     (nth 0 real-match-data) (nth 1 real-match-data)
 		     start end search-string
-		     (or delimited-flag regexp-flag) case-fold-search))
+		     regexp-flag delimited-flag case-fold-search))
 		  (setq noedit
 			(replace-match-maybe-edit
 			 next-replacement nocasify literal
@@ -1917,7 +1916,7 @@ make, or the user didn't cancel the call."
 		  (replace-highlight
 		   (match-beginning 0) (match-end 0)
 		   start end search-string
-		   (or delimited-flag regexp-flag) case-fold-search)
+		   regexp-flag delimited-flag case-fold-search)
 		  ;; Bind message-log-max so we don't fill up the message log
 		  ;; with a bunch of identical messages.
 		  (let ((message-log-max nil)
@@ -2099,15 +2098,11 @@ make, or the user didn't cancel the call."
 		 (if (= replace-count 1) "" "s")))
     (or (and keep-going stack) multi-buffer)))
 
-(defvar isearch-error)
-(defvar isearch-forward)
-(defvar isearch-case-fold-search)
-(defvar isearch-string)
-
 (defvar replace-overlay nil)
 
 (defun replace-highlight (match-beg match-end range-beg range-end
-			  string regexp case-fold)
+			  search-string regexp-flag delimited-flag
+			  case-fold-search)
   (if query-replace-highlight
       (if replace-overlay
 	  (move-overlay replace-overlay match-beg match-end (current-buffer))
@@ -2115,13 +2110,11 @@ make, or the user didn't cancel the call."
 	(overlay-put replace-overlay 'priority 1001) ;higher than lazy overlays
 	(overlay-put replace-overlay 'face 'query-replace)))
   (if query-replace-lazy-highlight
-      (let ((isearch-string string)
-	    (isearch-regexp regexp)
-	    ;; Set isearch-word to nil because word-replace is regexp-based,
-	    ;; so `isearch-search-fun' should not use `word-search-forward'.
-	    (isearch-word nil)
+      (let ((isearch-string search-string)
+	    (isearch-regexp regexp-flag)
+	    (isearch-word delimited-flag)
 	    (search-whitespace-regexp nil)
-	    (isearch-case-fold-search case-fold)
+	    (isearch-case-fold-search case-fold-search)
 	    (isearch-forward t)
 	    (isearch-error nil))
 	(isearch-lazy-highlight-new-loop range-beg range-end))))

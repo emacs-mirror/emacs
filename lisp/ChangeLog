@@ -1,3 +1,17 @@
+2012-09-06  Juri Linkov  <juri@jurta.org>
+
+	* replace.el (replace-search-function)
+	(replace-re-search-function): Set default values to nil.
+	(perform-replace): Let-bind isearch-related variables based on
+	replace-related values, call `isearch-search-fun' and let-bind
+	the result to `search-function'.  Remove code that sets
+	`search-function' and `search-string' separately for
+	`delimited-flag'.
+	(replace-highlight): Add new argument `delimited-flag' and
+	rename other arguments to the names used in `perform-replace'.
+	Let-bind `isearch-word' to the argument `delimited-flag'.
+	(Bug#10885, bug#10887)
+
 2012-09-05  Martin Rudalics  <rudalics@gmx.at>
 
 	* help.el (temp-buffer-max-height): New default value.
