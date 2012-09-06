@@ -278,6 +278,7 @@ static void gc_sweep (void);
 static Lisp_Object make_pure_vector (ptrdiff_t);
 static void mark_glyph_matrix (struct glyph_matrix *);
 static void mark_face_cache (struct face_cache *);
+static void mark_buffer (struct buffer *);
 
 #if !defined REL_ALLOC || defined SYSTEM_MALLOC
 static void refill_memory_reserve (void);
@@ -3281,7 +3282,10 @@ allocate_buffer (void)
 
   XSETPVECTYPESIZE (b, PVEC_BUFFER, (offsetof (struct buffer, own_text)
 				     - header_size) / word_size);
-  /* Note that the fields of B are not initialized.  */
+  /* Put B on the chain of all buffers including killed ones.  */
+  b->header.next.buffer = all_buffers;
+  all_buffers = b;
+  /* Note that the rest fields of B are not initialized.  */
   return b;
 }
 
@@ -5473,6 +5477,9 @@ See Info node `(elisp)Garbage Collection'.  */)
 
   /* Mark all the special slots that serve as the roots of accessibility.  */
 
+  mark_buffer (&buffer_defaults);
+  mark_buffer (&buffer_local_symbols);
+
   for (i = 0; i < staticidx; i++)
     mark_object (*staticvec[i]);
 
@@ -5950,9 +5957,7 @@ mark_object (Lisp_Object arg)
 
 #ifdef GC_CHECK_MARKED_OBJECTS
 	m = mem_find (po);
-	if (m == MEM_NIL && !SUBRP (obj)
-	    && po != &buffer_defaults
-	    && po != &buffer_local_symbols)
+	if (m == MEM_NIL && !SUBRP (obj))
 	  emacs_abort ();
 #endif /* GC_CHECK_MARKED_OBJECTS */
 
@@ -5969,15 +5974,14 @@ mark_object (Lisp_Object arg)
 	  {
 	  case PVEC_BUFFER:
 #ifdef GC_CHECK_MARKED_OBJECTS
-	    if (po != &buffer_defaults && po != &buffer_local_symbols)
-	      {
-		struct buffer *b;
-		FOR_EACH_BUFFER (b)
-		  if (b == po)
-		    break;
-		if (b == NULL)
-		  emacs_abort ();
-	      }
+	    {
+	      struct buffer *b;
+	      FOR_EACH_BUFFER (b)
+		if (b == po)
+		  break;
+	      if (b == NULL)
+		emacs_abort ();
+	    }
 #endif /* GC_CHECK_MARKED_OBJECTS */
 	    mark_buffer ((struct buffer *) ptr);
 	    break;

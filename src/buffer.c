@@ -60,10 +60,6 @@ struct buffer *all_buffers;
 
 struct buffer alignas (GCALIGNMENT) buffer_defaults;
 
-/* A Lisp_Object pointer to the above, used for staticpro */
-
-static Lisp_Object Vbuffer_defaults;
-
 /* This structure marks which slots in a buffer have corresponding
    default values in buffer_defaults.
    Each such slot has a nonzero value in this structure.
@@ -86,9 +82,6 @@ struct buffer buffer_local_flags;
    buffer-local.  It is indexed and accessed in the same way as the above. */
 
 struct buffer alignas (GCALIGNMENT) buffer_local_symbols;
-
-/* A Lisp_Object pointer to the above, used for staticpro */
-static Lisp_Object Vbuffer_local_symbols;
 
 /* Return the symbol of the per-buffer variable at offset OFFSET in
    the buffer structure.  */
@@ -595,10 +588,6 @@ even if it is dead.  The return value is never nil.  */)
   bset_width_table (b, Qnil);
   b->prevent_redisplay_optimizations_p = 1;
 
-  /* Put this on the chain of all buffers including killed ones.  */
-  b->header.next.buffer = all_buffers;
-  all_buffers = b;
-
   /* An ordinary buffer normally doesn't need markers
      to handle BEGV and ZV.  */
   bset_pt_marker (b, Qnil);
@@ -818,10 +807,6 @@ CLONE nil means the indirect buffer's state is reset to default values.  */)
   b->newline_cache = 0;
   b->width_run_cache = 0;
   bset_width_table (b, Qnil);
-
-  /* Put this on the chain of all buffers including killed ones.  */
-  b->header.next.buffer = all_buffers;
-  all_buffers = b;
 
   name = Fcopy_sequence (name);
   set_string_intervals (name, NULL);
@@ -5145,10 +5130,11 @@ init_buffer_once (void)
   buffer_local_symbols.indirections = 0;
   set_buffer_intervals (&buffer_defaults, NULL);
   set_buffer_intervals (&buffer_local_symbols, NULL);
+  /* This is not strictly necessary, but let's make them initialized.  */
+  bset_name (&buffer_defaults, build_pure_c_string (" *buffer-defaults*"));
+  bset_name (&buffer_local_symbols, build_pure_c_string (" *buffer-local-symbols*"));
   XSETPVECTYPESIZE (&buffer_defaults, PVEC_BUFFER, pvecsize);
-  XSETBUFFER (Vbuffer_defaults, &buffer_defaults);
   XSETPVECTYPESIZE (&buffer_local_symbols, PVEC_BUFFER, pvecsize);
-  XSETBUFFER (Vbuffer_local_symbols, &buffer_local_symbols);
 
   /* Set up the default values of various buffer slots.  */
   /* Must do these before making the first buffer! */
@@ -5430,8 +5416,6 @@ syms_of_buffer (void)
   last_overlay_modification_hooks
     = Fmake_vector (make_number (10), Qnil);
 
-  staticpro (&Vbuffer_defaults);
-  staticpro (&Vbuffer_local_symbols);
   staticpro (&Qfundamental_mode);
   staticpro (&Qmode_class);
   staticpro (&QSFundamental);

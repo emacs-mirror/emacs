@@ -1,3 +1,18 @@
+2012-09-06  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Explicitly mark buffer_defaults and buffer_local_symbols.
+	* alloc.c (Fgarbage_collect): Mark buffer_defaults and
+	mark_local_symbols here.
+	(mark_object): If GC_CHECK_MARKED_OBJECTS, simplify checking
+	since special buffers aren't marked here any more.
+	(allocate_buffer): Chain new buffer with all_buffers here...
+	* buffer.c (Fget_buffer_create, Fmake_indirect_buffer): ...and
+	not here.
+	(Vbuffer_defaults, Vbuffer_local_symbols): Remove.
+	(syms_of_buffer): Remove staticpro of the above.
+	(init_buffer_once): Set names for buffer_defaults and
+	buffer_local_symbols.
+
 2012-09-06  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Use bool for booleans in font-related modules.
