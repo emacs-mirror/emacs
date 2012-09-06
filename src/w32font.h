@@ -77,7 +77,7 @@ int w32font_has_char (Lisp_Object entity, int c);
 int w32font_text_extents (struct font *font, unsigned *code, int nglyphs,
                           struct font_metrics *metrics);
 int w32font_draw (struct glyph_string *s, int from, int to,
-                  int x, int y, int with_background);
+                  int x, int y, bool with_background);
 
 
 int uniscribe_check_otf (LOGFONT *font, Lisp_Object otf_spec);

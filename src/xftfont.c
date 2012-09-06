@@ -52,7 +52,7 @@ struct xftfont_info
   /* The following five members must be here in this order to be
      compatible with struct ftfont_info (in ftfont.c).  */
 #ifdef HAVE_LIBOTF
-  int maybe_otf;	  /* Flag to tell if this may be OTF or not.  */
+  bool maybe_otf;	  /* Flag to tell if this may be OTF or not.  */
   OTF *otf;
 #endif	/* HAVE_LIBOTF */
   FT_Size ft_size;
@@ -92,7 +92,7 @@ xftfont_get_colors (FRAME_PTR f, struct face *face, GC gc, struct xftface_info *
   else
     {
       XGCValues xgcv;
-      int fg_done = 0, bg_done = 0;
+      bool fg_done = 0, bg_done = 0;
 
       BLOCK_INPUT;
       XGetGCValues (FRAME_X_DISPLAY (f), gc,
@@ -111,7 +111,7 @@ xftfont_get_colors (FRAME_PTR f, struct face *face, GC gc, struct xftface_info *
 	    *bg = xftface_info->xft_fg, bg_done = 1;
 	}
 
-      if (fg_done + bg_done < 2)
+      if (! (fg_done & bg_done))
 	{
 	  XColor colors[2];
 
@@ -136,19 +136,6 @@ xftfont_get_colors (FRAME_PTR f, struct face *face, GC gc, struct xftface_info *
     }
 }
 
-
-static Lisp_Object xftfont_list (Lisp_Object, Lisp_Object);
-static Lisp_Object xftfont_match (Lisp_Object, Lisp_Object);
-static Lisp_Object xftfont_open (FRAME_PTR, Lisp_Object, int);
-static void xftfont_close (FRAME_PTR, struct font *);
-static int xftfont_prepare_face (FRAME_PTR, struct face *);
-static void xftfont_done_face (FRAME_PTR, struct face *);
-static int xftfont_has_char (Lisp_Object, int);
-static unsigned xftfont_encode_char (struct font *, int);
-static int xftfont_text_extents (struct font *, unsigned *, int,
-                                 struct font_metrics *);
-static int xftfont_draw (struct glyph_string *, int, int, int, int, int);
-static int xftfont_end_for_frame (FRAME_PTR f);
 
 struct font_driver xftfont_driver;
 
@@ -470,7 +457,7 @@ xftfont_open (FRAME_PTR f, Lisp_Object entity, int pixel_size)
       font->underline_thickness = 0;
     }
 #ifdef HAVE_LIBOTF
-  xftfont_info->maybe_otf = ft_face->face_flags & FT_FACE_FLAG_SFNT;
+  xftfont_info->maybe_otf = (ft_face->face_flags & FT_FACE_FLAG_SFNT) != 0;
   xftfont_info->otf = NULL;
 #endif	/* HAVE_LIBOTF */
   xftfont_info->ft_size = ft_face->size;
@@ -630,7 +617,8 @@ xftfont_get_xft_draw (FRAME_PTR f)
 }
 
 static int
-xftfont_draw (struct glyph_string *s, int from, int to, int x, int y, int with_background)
+xftfont_draw (struct glyph_string *s, int from, int to, int x, int y,
+              bool with_background)
 {
   FRAME_PTR f = s->f;
   struct face *face = s->face;
@@ -711,15 +699,17 @@ xftfont_end_for_frame (FRAME_PTR f)
   return 0;
 }
 
-static int
-xftfont_cached_font_ok (struct frame *f, Lisp_Object font_object, Lisp_Object entity)
+static bool
+xftfont_cached_font_ok (struct frame *f, Lisp_Object font_object,
+                        Lisp_Object entity)
 {
   struct xftfont_info *info = (struct xftfont_info *) XFONT_OBJECT (font_object);
   FcPattern *oldpat = info->xftfont->pattern;
   Display *display = FRAME_X_DISPLAY (f);
   FcPattern *pat = FcPatternCreate ();
   FcBool b1, b2;
-  int ok = 0, i1, i2, r1, r2;
+  bool ok = 0;
+  int i1, i2, r1, r2;
 
   xftfont_add_rendering_parameters (pat, entity);
   XftDefaultSubstitute (display, FRAME_X_SCREEN_NUMBER (f), pat);

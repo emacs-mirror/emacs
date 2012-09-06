@@ -1,3 +1,28 @@
+2012-09-06  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use bool for booleans in font-related modules.
+	* font.c (font_intern_prop, font_style_to_value)
+	(font_style_symbolic, font_parse_xlfd, font_parse_fcname)
+	(generate_otf_features, font_check_otf_features, font_check_otf)
+	(font_match_p, font_list_entities, font_at):
+	* fontset.c (fontset_id_valid_p, reorder_font_vector
+	(fontset_find_font, Fset_fontset_font)
+	(face_suitable_for_char_p) [0]:
+	* ftfont.c (fc_initialized, ftfont_get_open_type_spec)
+	(ftfont_open, ftfont_text_extents, ftfont_check_otf):
+	(m17n_flt_initialized, ftfont_shape_by_flt):
+	* ftxfont.c (ftxfont_draw_bitmap, ftxfont_draw):
+	* nsfont.m (nsfont_draw):
+	* w32font.c (w32font_draw):
+	* w32term.c (x_draw_glyphless_glyph_string_foreground):
+	Use bool for booleans.
+	* font.h: Adjust to above API changes.
+	(struct font, struct font_driver, struct font_driver_list):
+	Use bool for booleans.
+	(struct font): Remove useless member encoding_type.
+	All users removed.
+	* fontset.c, xftfont.c: Omit unnecessary static decls.
+
 2012-09-06  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* alloc.c (mark_object): Revert window marking code

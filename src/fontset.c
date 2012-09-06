@@ -185,21 +185,12 @@ void (*check_window_system_func) (void);
 
 
 /* Prototype declarations for static functions.  */
-static void fontset_add (Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object);
-static Lisp_Object fontset_find_font (Lisp_Object, int, struct face *,
-                                      int, int);
-static void reorder_font_vector (Lisp_Object, struct font *);
-static Lisp_Object fontset_font (Lisp_Object, int, struct face *, int);
 static Lisp_Object make_fontset (Lisp_Object, Lisp_Object, Lisp_Object);
-static Lisp_Object fontset_pattern_regexp (Lisp_Object);
-static void accumulate_script_ranges (Lisp_Object, Lisp_Object,
-                                      Lisp_Object);
-static void set_fontset_font (Lisp_Object, Lisp_Object);
 
-/* Return 1 if ID is a valid fontset id, else return 0.
+/* Return true if ID is a valid fontset id.
    Optimized away if ENABLE_CHECKING is not defined.  */
 
-static int
+static bool
 fontset_id_valid_p (int id)
 {
   return (id >= 0 && id < ASIZE (Vfontset_table) - 1);
@@ -413,7 +404,7 @@ reorder_font_vector (Lisp_Object font_group, struct font *font)
   Lisp_Object vec, font_object;
   int size;
   int i;
-  int score_changed = 0;
+  bool score_changed = 0;
 
   if (font)
     XSETFONT (font_object, font);
@@ -544,10 +535,11 @@ fontset_get_font_group (Lisp_Object fontset, int c)
    ID is a charset-id that must be preferred, or -1 meaning no
    preference.
 
-   If FALLBACK is nonzero, search only fallback fonts.  */
+   If FALLBACK, search only fallback fonts.  */
 
 static Lisp_Object
-fontset_find_font (Lisp_Object fontset, int c, struct face *face, int id, int fallback)
+fontset_find_font (Lisp_Object fontset, int c, struct face *face, int id,
+                   bool fallback)
 {
   Lisp_Object vec, font_group;
   int i, charset_matched = 0, found_index;
@@ -919,11 +911,11 @@ free_face_fontset (FRAME_PTR f, struct face *face)
 
 
 #if 0
-/* Return 1 if FACE is suitable for displaying character C.
-   Otherwise return 0.  Called from the macro FACE_SUITABLE_FOR_CHAR_P
+/* Return true if FACE is suitable for displaying character C.
+   Called from the macro FACE_SUITABLE_FOR_CHAR_P
    when C is not an ASCII character.  */
 
-int
+bool
 face_suitable_for_char_p (struct face *face, int c)
 {
   Lisp_Object fontset, rfont_def;
@@ -1470,7 +1462,7 @@ appended.  By default, FONT-SPEC overrides the previous settings.  */)
   Lisp_Object range_list;
   struct charset *charset = NULL;
   Lisp_Object fontname;
-  int ascii_changed = 0;
+  bool ascii_changed = 0;
 
   fontset = check_fontset_name (name, &frame);
 

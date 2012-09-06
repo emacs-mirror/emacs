@@ -625,7 +625,7 @@ static unsigned int nsfont_encode_char (struct font *font, int c);
 static int nsfont_text_extents (struct font *font, unsigned int *code,
                                 int nglyphs, struct font_metrics *metrics);
 static int nsfont_draw (struct glyph_string *s, int from, int to, int x, int y,
-                        int with_background);
+                        bool with_background);
 
 struct font_driver nsfont_driver =
   {
@@ -833,7 +833,6 @@ nsfont_open (FRAME_PTR f, Lisp_Object font_entity, int pixel_size)
   font = (struct font *) font_info;
   font->pixel_size = [sfont pointSize];
   font->driver = &nsfont_driver;
-  font->encoding_type = FONT_ENCODING_NOT_DECIDED;
   font->encoding_charset = -1;
   font->repertory_charset = -1;
   font->default_ascent = 0;
@@ -1042,12 +1041,12 @@ nsfont_text_extents (struct font *font, unsigned int *code, int nglyphs,
 
 
 /* Draw glyphs between FROM and TO of S->char2b at (X Y) pixel
-   position of frame F with S->FACE and S->GC.  If WITH_BACKGROUND
-   is nonzero, fill the background in advance.  It is assured that
-   WITH_BACKGROUND is zero when (FROM > 0 || TO < S->nchars). */
+   position of frame F with S->FACE and S->GC.  If WITH_BACKGROUND,
+   fill the background in advance.  It is assured that WITH_BACKGROUND
+   is false when (FROM > 0 || TO < S->nchars). */
 static int
 nsfont_draw (struct glyph_string *s, int from, int to, int x, int y,
-             int with_background)
+             bool with_background)
 /* NOTE: focus and clip must be set
      also, currently assumed (true in nsterm.m call) from ==0, to ==nchars */
 {

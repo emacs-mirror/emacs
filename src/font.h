@@ -320,19 +320,10 @@ struct font
      negative if that information is not in the font.  */
   int underline_position;
 
-  /* 1 if `vertical-centering-font-regexp' matches this font name.
+  /* True if `vertical-centering-font-regexp' matches this font name.
      In this case, we render characters at vertical center positions
      of lines.  */
-  int vertical_centering;
-
-  /* Encoding type of the font.  The value is one of
-     0, 1, 2, or 3:
-	0: code points 0x20..0x7F or 0x2020..0x7F7F are used
-	1: code points 0xA0..0xFF or 0xA0A0..0xFFFF are used
-	2: code points 0x20A0..0x7FFF are used
-	3: code points 0xA020..0xFF7F are used
-     If the member `font_encoder' is not NULL, this member is ignored.  */
-  unsigned char encoding_type;
+  bool vertical_centering;
 
   /* The baseline position of a font is normally `ascent' value of the
      font.  However, there exist many fonts which don't set `ascent' to
@@ -506,9 +497,9 @@ struct font_driver
   /* Symbol indicating the type of the font-driver.  */
   Lisp_Object type;
 
-  /* 1 iff the font's foundry, family, and adstyle names are case
+  /* True iff the font's foundry, family, and adstyle names are case
      sensitive.  */
-  int case_sensitive;
+  bool case_sensitive;
 
   /* Return a cache of font-entities on frame F.  The cache must be a
      cons whose cdr part is the actual cache area.  */
@@ -592,11 +583,11 @@ struct font_driver
 
   /* Optional.
      Draw glyphs between FROM and TO of S->char2b at (X Y) pixel
-     position of frame F with S->FACE and S->GC.  If WITH_BACKGROUND
-     is nonzero, fill the background in advance.  It is assured that
-     WITH_BACKGROUND is zero when (FROM > 0 || TO < S->nchars).  */
+     position of frame F with S->FACE and S->GC.  If WITH_BACKGROUND,
+     fill the background in advance.  It is assured that WITH_BACKGROUND
+     is false when (FROM > 0 || TO < S->nchars).  */
   int (*draw) (struct glyph_string *s, int from, int to,
-               int x, int y, int with_background);
+               int x, int y, bool with_background);
 
   /* Optional.
      Store bitmap data for glyph-code CODE of FONT in BITMAP.  It is
@@ -648,7 +639,7 @@ struct font_driver
      short, return -1.  */
   int (*otf_drive) (struct font *font, Lisp_Object features,
                     Lisp_Object gstring_in, int from, int to,
-                    Lisp_Object gstring_out, int idx, int alternate_subst);
+                    Lisp_Object gstring_out, int idx, bool alternate_subst);
 
   /* Optional.
      Make the font driver ready for frame F.  Usually this function
@@ -699,9 +690,9 @@ struct font_driver
 
      Return non-zero if FONT_OBJECT can be used as a (cached) font
      for ENTITY on frame F.  */
-  int (*cached_font_ok) (struct frame *f,
-                         Lisp_Object font_object,
-                         Lisp_Object entity);
+  bool (*cached_font_ok) (struct frame *f,
+                          Lisp_Object font_object,
+                          Lisp_Object entity);
 };
 
 
@@ -711,9 +702,9 @@ struct font_driver
 
 struct font_driver_list
 {
-  /* 1 iff this driver is currently used.  It is ignored in the global
+  /* True iff this driver is currently used.  It is ignored in the global
      font driver list.*/
-  int on;
+  bool on;
   /* Pointer to the font driver.  */
   struct font_driver *driver;
   /* Pointer to the next element of the chain.  */
@@ -744,12 +735,12 @@ extern Lisp_Object find_font_encoding (Lisp_Object);
 extern int font_registry_charsets (Lisp_Object, struct charset **,
                                    struct charset **);
 extern int font_style_to_value (enum font_property_index prop,
-                                Lisp_Object name, int noerror);
+                                Lisp_Object name, bool noerror);
 extern Lisp_Object font_style_symbolic (Lisp_Object font,
                                         enum font_property_index prop,
-                                        int for_face);
+                                        bool for_face);
 
-extern int font_match_p (Lisp_Object spec, Lisp_Object font);
+extern bool font_match_p (Lisp_Object spec, Lisp_Object font);
 extern Lisp_Object font_list_entities (Lisp_Object frame,
                                        Lisp_Object spec);
 
@@ -774,7 +765,7 @@ extern Lisp_Object font_open_by_spec (FRAME_PTR f, Lisp_Object spec);
 extern Lisp_Object font_open_by_name (FRAME_PTR f, Lisp_Object name);
 
 extern Lisp_Object font_intern_prop (const char *str, ptrdiff_t len,
-				     int force_symbol);
+				     bool force_symbol);
 extern void font_update_sort_order (int *order);
 
 extern void font_parse_family_registry (Lisp_Object family,

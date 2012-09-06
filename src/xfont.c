@@ -126,7 +126,7 @@ static int xfont_has_char (Lisp_Object, int);
 static unsigned xfont_encode_char (struct font *, int);
 static int xfont_text_extents (struct font *, unsigned *, int,
                                struct font_metrics *);
-static int xfont_draw (struct glyph_string *, int, int, int, int, int);
+static int xfont_draw (struct glyph_string *, int, int, int, int, bool);
 static int xfont_check (FRAME_PTR, struct font *);
 
 struct font_driver xfont_driver =
@@ -217,9 +217,9 @@ xfont_encode_coding_xlfd (char *xlfd)
 /* Check if CHARS (cons or vector) is supported by XFONT whose
    encoding charset is ENCODING (XFONT is NULL) or by a font whose
    registry corresponds to ENCODING and REPERTORY.
-   Return 1 if supported, return 0 otherwise.  */
+   Return true if supported.  */
 
-static int
+static bool
 xfont_chars_supported (Lisp_Object chars, XFontStruct *xfont,
 		       struct charset *encoding, struct charset *repertory)
 {
@@ -1019,7 +1019,8 @@ xfont_text_extents (struct font *font, unsigned int *code, int nglyphs, struct f
 }
 
 static int
-xfont_draw (struct glyph_string *s, int from, int to, int x, int y, int with_background)
+xfont_draw (struct glyph_string *s, int from, int to, int x, int y,
+            bool with_background)
 {
   XFontStruct *xfont = ((struct xfont_info *) s->font)->xfont;
   int len = to - from;
@@ -1040,7 +1041,7 @@ xfont_draw (struct glyph_string *s, int from, int to, int x, int y, int with_bac
       for (i = 0; i < len ; i++)
 	str[i] = XCHAR2B_BYTE2 (s->char2b + from + i);
       BLOCK_INPUT;
-      if (with_background > 0)
+      if (with_background)
 	{
 	  if (s->padding_p)
 	    for (i = 0; i < len; i++)
@@ -1066,7 +1067,7 @@ xfont_draw (struct glyph_string *s, int from, int to, int x, int y, int with_bac
     }
 
   BLOCK_INPUT;
-  if (with_background > 0)
+  if (with_background)
     {
       if (s->padding_p)
 	for (i = 0; i < len; i++)
