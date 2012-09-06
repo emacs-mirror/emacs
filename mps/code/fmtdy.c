@@ -78,9 +78,9 @@
 
 #define ALIGN           sizeof(mps_word_t)
 
-#define MPS_WORD_WIDTH (sizeof(mps_word_t) * CHAR_BIT)
-#define MPS_WORD_SHIFT (MPS_WORD_WIDTH == 64 ? 6 : 5)
-/* MPS_WORD_SHIFT is a bit hacky, but good enough for tests. */
+#define FMTDY_WORD_WIDTH (sizeof(mps_word_t) * CHAR_BIT)
+#define FMTDY_WORD_SHIFT (FMTDY_WORD_WIDTH == 64 ? 6 : 5)
+/* FMTDY_WORD_SHIFT is a bit hacky, but good enough for tests. */
 
 #ifdef FMTDY_COUNTING
 #define FMTDY_COUNT(x) x
@@ -124,7 +124,7 @@ int dylan_wrapper_check(mps_word_t *w)
   assert(ww[WF] == (((WS - 1) << 2) | 2));  /* fields with patterns */
   assert((ww[WV] & 0x00ffffff) == 0);/* non-traceable vector */
   /* Code in this file only works for version 2 */
-  assert(((ww[WV] >> (MPS_WORD_WIDTH - 8)) & 0xff) == 2);
+  assert(((ww[WV] >> (FMTDY_WORD_WIDTH - 8)) & 0xff) == 2);
   assert(ww[WS] == ((1 << 2) | 1));  /* one pattern word in wrapper wrapper */
   /* The first field is traceable, the second field can be traced, */
   /* but doesn't need to be. */
@@ -139,7 +139,7 @@ int dylan_wrapper_check(mps_word_t *w)
   fl = fh >> 2;         /* fixed part length */
   ff = fh & 3;          /* fixed part format code */
   vh = w[WV];            /* variable part header */
-  version = (vh >> (MPS_WORD_WIDTH - 8)) & 0xff;
+  version = (vh >> (FMTDY_WORD_WIDTH - 8)) & 0xff;
   assert(version == 2); /* Code in this file only works for version 2 */
   unused(version);
   reserved = (vh >> 8) & 0xff;
@@ -197,12 +197,12 @@ int dylan_wrapper_check(mps_word_t *w)
   assert(ff == 2 || t == 0);
 
   /* The number of patterns is (fixed fields+31)/32. */
-  assert(ff != 2 || t == ((fl + MPS_WORD_WIDTH - 1) / MPS_WORD_WIDTH));
+  assert(ff != 2 || t == ((fl + FMTDY_WORD_WIDTH - 1) / FMTDY_WORD_WIDTH));
 
   /* The patterns are random bits, so we can't check them.  However, */
   /* the left-over bits in the last pattern should be zero. */
 
-  assert(ff != 2 || (w[WS+t] >> ((fh>>2) & (MPS_WORD_WIDTH-1))) == 0);
+  assert(ff != 2 || (w[WS+t] >> ((fh>>2) & (FMTDY_WORD_WIDTH-1))) == 0);
 
   return 1;
 }
@@ -339,7 +339,7 @@ static mps_res_t dylan_scan_pat(mps_ss_t mps_ss,
   MPS_SCAN_BEGIN(mps_ss) {
           p = base;
           goto in;
-    pat:  p += MPS_WORD_WIDTH;
+    pat:  p += FMTDY_WORD_WIDTH;
           if(p >= limit) goto out;
     in:   pp = p;
           pat = *pc++;
@@ -355,7 +355,7 @@ static mps_res_t dylan_scan_pat(mps_ss_t mps_ss,
           res = MPS_FIX2(mps_ss, pp-1);
           if(res == MPS_RES_OK) goto loop;
           return res;
-    out:  assert(p < limit + MPS_WORD_WIDTH);
+    out:  assert(p < limit + FMTDY_WORD_WIDTH);
           assert(pc == pats + nr_pats);
   } MPS_SCAN_END(mps_ss);
 
@@ -364,10 +364,10 @@ static mps_res_t dylan_scan_pat(mps_ss_t mps_ss,
 
 
 #define NONWORD_LENGTH(_vt, _es) \
-  ((_es) < MPS_WORD_SHIFT ? \
-   ((_vt) + ((mps_word_t)1 << (MPS_WORD_SHIFT - (_es))) - 1) >> \
-     (MPS_WORD_SHIFT - (_es)) : \
-   (_vt) << ((_es) - MPS_WORD_SHIFT))
+  ((_es) < FMTDY_WORD_SHIFT ? \
+   ((_vt) + ((mps_word_t)1 << (FMTDY_WORD_SHIFT - (_es))) - 1) >> \
+     (FMTDY_WORD_SHIFT - (_es)) : \
+   (_vt) << ((_es) - FMTDY_WORD_SHIFT))
 
 
 extern mps_res_t dylan_scan1(mps_ss_t mps_ss, mps_addr_t *object_io)
