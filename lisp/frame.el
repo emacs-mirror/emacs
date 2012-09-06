@@ -1657,6 +1657,10 @@ terminals, cursor blinking is controlled by the terminal."
 
 (make-variable-buffer-local 'show-trailing-whitespace)
 
+;; Defined in dispnew.c.
+(make-obsolete-variable
+ 'window-system-version "it does not give useful information." "24.3")
+
 (provide 'frame)
 
 ;;; frame.el ends here

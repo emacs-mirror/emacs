@@ -695,6 +695,7 @@ by the underlying C implementation.
 
 ** `automount-dir-prefix' is obsolete.
 ** `buffer-has-markers-at' is obsolete.
+** `window-system-version' is obsolete.
 
 * Changes in Emacs 24.3 on non-free operating systems
 
