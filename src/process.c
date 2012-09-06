@@ -6518,9 +6518,9 @@ record_child_status_change (void)
 #if (defined WINDOWSNT \
      || (defined USG && !defined GNU_LINUX \
 	 && !(defined HPUX && defined WNOHANG)))
-enum { CAN_HANDLE_MULTIPLE_CHILDREN = 1 };
-#else
 enum { CAN_HANDLE_MULTIPLE_CHILDREN = 0 };
+#else
+enum { CAN_HANDLE_MULTIPLE_CHILDREN = 1 };
 #endif
 
 static void

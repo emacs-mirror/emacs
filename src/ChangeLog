@@ -1,3 +1,8 @@
+2012-09-06  Eli Zaretskii  <eliz@gnu.org>
+
+	* process.c (CAN_HANDLE_MULTIPLE_CHILDREN): Fix a typo that broke
+	SIGCHLD handling on systems that don't have WNOHANG.  (Bug#12327)
+
 2012-09-06  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Explicitly mark buffer_defaults and buffer_local_symbols.
