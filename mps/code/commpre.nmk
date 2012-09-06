@@ -11,7 +11,8 @@
 # Alas, due to shortcomings in nmake, it is not possible to use only one
 # common fragment.
 #
-# %%PART: Add a new parameter for the files included in the part
+# %%PART: When adding a new part, add a new parameter for the files included
+# in the part
 # Parameters:
 #   PFM      platform code, e.g. "nti3mv"
 #   PFMDEFS  /D options to define platforms preprocessor symbols
@@ -40,7 +41,8 @@
 # CHECK PARAMETERS
 #
 #
-# %%PART: Add checks for the parameter with the sources for the new part.
+# %%PART: When adding a new part, add checks for the parameter with the
+# sources for the new part.
 
 !IFNDEF PFM
 !ERROR commpre.nmk: PFM not defined
@@ -112,7 +114,8 @@ CFLAGSINTERNAL = /Zi
 CFLAGSEXTERNAL =
 
 # The combinations of variety
-# %%VARIETY: Define a macro containing the set of flags for the new variety.
+# %%VARIETY: When adding a new variety, define a macro containing the set
+# of flags for the new variety.
 CFRASH = /DCONFIG_VAR_RASH $(CRTFLAGSHOT)  $(CFLAGSHOT)  $(CFLAGSEXTERNAL)
 CFHOT  = /DCONFIG_VAR_HOT  $(CRTFLAGSHOT)  $(CFLAGSHOT)  $(CFLAGSEXTERNAL)
 CFDIAG = /DCONFIG_VAR_DIAG $(CRTFLAGSHOT)  $(CFLAGSHOT)  $(CFLAGSINTERNAL)
@@ -122,7 +125,8 @@ CFCOOL = /DCONFIG_VAR_COOL $(CRTFLAGSCOOL) $(CFLAGSCOOL) $(CFLAGSINTERNAL)
 # optimization and debug information
 
 # LINKER FLAGS
-# %%VARIETY: define a macro containing the flags for the new variety
+# %%VARIETY: When adding a new variety, define a macro containing the flags
+# for the new variety
 LINKER = link
 LINKFLAGSCOMMON = /nologo
 LINKFLAGSINTERNAL = /DEBUG
@@ -137,7 +141,8 @@ LFCOOL = $(LINKFLAGSCOOL)   $(LINKFLAGSINTERNAL)
 #LFCV = /PROFILE /DEBUG:full /DEBUGTYPE:cv
 
 # Library manager
-# %%VARIETY: define a macro containing the flags for the new variety
+# %%VARIETY: When adding a new variety, define a macro containing the flags
+# for the new variety
 LIBMAN = lib                  # can't call this LIB - it screws the environment
 LIBFLAGSCOMMON = /nologo
 
@@ -152,7 +157,7 @@ LIBFLAGSCOOL =
 
 
 # == Common definitions ==
-# %%PART: Add your part here, unless it's platform-specific
+# %%PART: When adding a new part, add it here, unless it's platform-specific
 # [It is not possible use a macro, like $(PFM), in a substitution,
 # hence all parts end up being platform-specific.]
 

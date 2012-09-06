@@ -38,13 +38,15 @@ TESTLIB = <testlib>
 
 
 # Source to object file mappings and CFLAGS amalgamation
-# %%VARIETY %%PART: Add new macros which expand to the files included
-# in the part for each variety
-# %%VARIETY: Add a CFLAGS macro which expands to the flags that that variety
-# should use when compiling C.  And a LINKFLAGS macro which expands to the
-# flags that the variety should use when building executables.  And a LIBFLAGS
+#
+# %%VARIETY %%PART: When adding a new variety or part, add new macros which
+# expand to the files included in the part for each variety
+#
+# %%VARIETY: When adding a new variety, add a CFLAGS macro which expands to
+# the flags that that variety should use when compiling C.  And a LINKFLAGS
 # macro which expands to the flags that the variety should use when building
-# libraries
+# executables.  And a LIBFLAGS macro which expands to the flags that the
+# variety should use when building libraries
 
 !IF "$(VARIETY)" == "hot"
 CFLAGS=$(CFLAGSCOMMONPRE) $(CFHOT) $(CFLAGSCOMMONPOST)
@@ -157,6 +159,9 @@ TESTLIBOBJ0 = $(TESTLIB:<=w3i6mv\rash\)
 #TESTLIBOBJ = $(TESTLIBOBJ0:>=.obj)
 
 !ENDIF
+
+# %%PART: When adding a new part, add new macros which expand to the object
+# files included in the part
 
 MPMOBJ = $(MPMOBJ0:>=.obj)
 PLINTHOBJ = $(PLINTHOBJ0:>=.obj)

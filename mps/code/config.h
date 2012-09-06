@@ -19,11 +19,11 @@
 #define config_h
 
 
-/* Variety Configuration */
-
-/* Then deal with CONFIG_VAR_* build directives.  These are translated into
-   the directives CONFIG_ASSERT, CONFIG_STATS, CONFIG_LOG, etc. which control
-   actual compilation features. */
+/* CONFIG_VAR_* -- variety Configuration
+ *
+ * These are translated into the directives CONFIG_ASSERT, CONFIG_STATS,
+ * CONFIG_LOG, etc. which control actual compilation features.
+ */
 
 /* CONFIG_VAR_RASH -- the rash and reckless variety
  *
@@ -384,7 +384,6 @@
 #define ARENA_INIT_SPARE_COMMIT_LIMIT   ((Size)10uL*1024uL*1024uL)
 #define THREAD_MULTI
 #define PROTECTION
-#define DONGLE_NONE
 #define PROD_CHECKLEVEL_INITIAL CheckLevelSHALLOW
 
 
