@@ -127,22 +127,14 @@ extern unsigned CheckLevel;
 #else
 
 #define AVER(cond)                  ASSERT(cond, #cond)
-#define AVERT(type, val) \
-  ASSERT(type ## Check(val), "TypeCheck " #type ": " #val)
+#define AVERT                       ASSERT_TYPECHECK
 
 #endif
 
 #if defined(AVER_AND_CHECK_ALL)
 
-#define AVER_CRITICAL(cond) \
-  BEGIN \
-    ASSERT(cond, #cond); \
-  END
-
-#define AVERT_CRITICAL(type, val) \
-  BEGIN \
-    ASSERT(type ## Check(val), "TypeCheck " #type ": " #val); \
-  END
+#define AVER_CRITICAL(cond)         ASSERT(cond, #cond)
+#define AVERT_CRITICAL              ASSERT_TYPECHECK
 
 #else
 
@@ -208,7 +200,7 @@ extern unsigned CheckLevel;
  *
  *  - check fields that it "owns" with CHECKL, like asserts
  *
- *  - check "down" values which are its "children" with CHEKCD
+ *  - check "down" values which are its "children" with CHECKD
  *
  *  - check "up" values which are its "parents" with CHECKU.
  *
