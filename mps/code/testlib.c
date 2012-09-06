@@ -32,6 +32,15 @@ struct itimerspec; /* stop complaints from time.h */
 #endif
 
 
+/* fail -- like assert, but (notionally) returns a value, so usable in an expression */
+
+int fail(void)
+{
+  Insist(FALSE);
+  return 1111UL;
+}
+
+
 /* rnd -- a random number generator
  *
  * We use the (Multiplicative) Linear Congruential Generator

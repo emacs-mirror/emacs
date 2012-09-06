@@ -13,14 +13,46 @@
 
 typedef struct TableStruct *Table;
 
-extern Res TableCreate(Table *tableReturn, size_t length);
+#define TableSig        ((Sig)0x5192AB13) /* SIGnature TABLE */
+
+typedef void *(*TableAllocMethod)(void *closure, size_t size);
+typedef void (*TableFreeMethod)(void *closure, void *p, size_t size);
+
+typedef struct TableEntryStruct {
+  Word key;
+  void *value;
+} TableEntryStruct, *TableEntry;
+
+typedef struct TableStruct {
+  Sig sig;                      /* <design/sig/> */
+  Count length;                 /* Number of slots in the array */
+  Count count;                  /* Active entries in the table */
+  TableEntry array;             /* Array of table slots */
+  TableAllocMethod alloc;
+  TableFreeMethod free;
+  void *allocClosure;
+  Word unusedKey;               /* key marking unused (undefined) entries */
+  Word deletedKey;              /* key marking deleted entries */
+} TableStruct;
+
+extern Res TableCreate(Table *tableReturn,
+                       Count length,
+                       TableAllocMethod tableAlloc,
+                       TableFreeMethod tableFree,
+                       void *allocClosure,
+                       Word unusedKey,
+                       Word deletedKey);
 extern void TableDestroy(Table table);
+extern Bool TableCheck(Table table);
 extern Res TableDefine(Table table, Word key, void *value);
 extern Res TableRedefine(Table table, Word key, void *value);
 extern Bool TableLookup(void **valueReturn, Table table, Word key);
 extern Res TableRemove(Table table, Word key);
-extern size_t TableCount(Table table);
-extern void TableMap(Table table, void(*fun)(Word key, void *value));
+extern Count TableCount(Table table);
+extern void TableMap(Table table,
+                     void(*fun)(void *closure, Word key, void *value),
+                     void *closure);
+extern Res TableGrow(Table table, Count extraCapacity);
 
 
 #endif /* table_h */

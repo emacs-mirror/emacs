@@ -16,7 +16,6 @@ SRCID(ssw3mv, "$Id$");
 Res StackScan(ScanState ss, Addr *stackBot)
 {
   jmp_buf jb;
-  Addr *stackTop;
 
   /* We rely on the fact that Microsoft C's setjmp stores the callee-save
      registers in the jmp_buf. */
@@ -25,11 +24,6 @@ Res StackScan(ScanState ss, Addr *stackBot)
   /* These checks will just serve to warn us at compile-time if the
      setjmp.h header changes to indicate that the registers we want aren't
      saved any more. */
-#if defined(MPS_ARCH_I3)
-  AVER(sizeof(((_JUMP_BUFFER *)jb)->Edi) == sizeof(Addr));
-  AVER(sizeof(((_JUMP_BUFFER *)jb)->Esi) == sizeof(Addr));
-  AVER(sizeof(((_JUMP_BUFFER *)jb)->Ebx) == sizeof(Addr));
-#elif defined(MPS_ARCH_I6)
   AVER(sizeof(((_JUMP_BUFFER *)jb)->Rdi) == sizeof(Addr));
   AVER(sizeof(((_JUMP_BUFFER *)jb)->Rsi) == sizeof(Addr));
   AVER(sizeof(((_JUMP_BUFFER *)jb)->Rbp) == sizeof(Addr));
@@ -37,12 +31,16 @@ Res StackScan(ScanState ss, Addr *stackBot)
   AVER(sizeof(((_JUMP_BUFFER *)jb)->R13) == sizeof(Addr));
   AVER(sizeof(((_JUMP_BUFFER *)jb)->R14) == sizeof(Addr));
   AVER(sizeof(((_JUMP_BUFFER *)jb)->R15) == sizeof(Addr));
-#else
-#error "StackScan not verified for the target architecture"
-#endif
 
-  stackTop = (Addr *)jb;
-  AVER(AddrIsAligned((Addr)stackTop, sizeof(Addr)));  /* .align */
+  /* The layout of the jmp_buf forces us to harmlessly scan Rsp as well. */
+  AVER(offsetof(_JUMP_BUFFER, Rsp) == offsetof(_JUMP_BUFFER, Rbx) + 8);
+  AVER(offsetof(_JUMP_BUFFER, Rbp) == offsetof(_JUMP_BUFFER, Rbx) + 16);
+  AVER(offsetof(_JUMP_BUFFER, Rsi) == offsetof(_JUMP_BUFFER, Rbx) + 24);
+  AVER(offsetof(_JUMP_BUFFER, Rdi) == offsetof(_JUMP_BUFFER, Rbx) + 32);
+  AVER(offsetof(_JUMP_BUFFER, R12) == offsetof(_JUMP_BUFFER, Rbx) + 40);
+  AVER(offsetof(_JUMP_BUFFER, R13) == offsetof(_JUMP_BUFFER, Rbx) + 48);
+  AVER(offsetof(_JUMP_BUFFER, R14) == offsetof(_JUMP_BUFFER, Rbx) + 56);
+  AVER(offsetof(_JUMP_BUFFER, R15) == offsetof(_JUMP_BUFFER, Rbx) + 64);
 
-  return TraceScanAreaTagged(ss, stackTop, stackBot);
+  return StackScanInner(ss, stackBot, (Addr *)&((_JUMP_BUFFER *)jb)->Rbx, 9);
 }

@@ -8,60 +8,75 @@
  */
 
 #include "table.h"
-#include "mpmtypes.h"
+#include "mpm.h"
 
 #include <stddef.h>
-#include <stdlib.h>
-#include <assert.h>
-#include <stdio.h>
-#include "mpstd.h"
-
-typedef unsigned long ulong;
 
 
-#define tableUNUSED    ((Word)0x2AB7E040)
-#define tableDELETED   ((Word)0x2AB7EDE7)
-#define tableACTIVE    ((Word)0x2AB7EAC2)
+SRCID(table, "$Id$");
 
 
-typedef struct TableEntryStruct *TableEntry;
-typedef struct TableEntryStruct {
-  Word status;
-  Word key;
-  void *value;
-} TableEntryStruct;
+/* TableHash -- return a hash value from an address
+ *
+ * This uses a single cycle of an MLCG, more commonly seen as a 
+ * pseudorandom number generator.  It works extremely well as a 
+ * hash function.
+ *
+ * (In particular, it is substantially better than simply doing this:
+ *   seed = (unsigned long)addr * 48271;
+ * Tested by RHSK 2010-12-28.)
+ *
+ * This MLCG is a full period generator: it cycles through every 
+ * number from 1 to m-1 before repeating.  Therefore, no two numbers 
+ * in that range hash to the same value.  Furthermore, it has prime 
+ * modulus, which tends to avoid recurring patterns in the low-order 
+ * bits, which is good because the hash will be used modulus the 
+ * number of slots in the table.
+ *
+ * Of course it's only a 31-bit cycle, so we start by losing the top 
+ * bit of the address, but that's hardly a great problem.
+ *
+ * The implementation is quite subtle.  See rnd() in testlib.c, where 
+ * it has been exhaustively (ie: totally) tested.  RHSK 2010-12-28.
+ *
+ * TODO: Check how this works out on 64-bit. RB 2012-09-04
+ */
+ 
+#define R_m 2147483647UL
+#define R_a 48271UL
 
+typedef Word Hash;
 
-typedef struct TableStruct {
-  size_t length;
-  size_t count;
-  size_t limit;
-  TableEntry array;
-} TableStruct;
-
-
-
-/* sizeFloorLog2 -- logarithm base 2 */
-
-static size_t sizeFloorLog2(size_t size)
+static Hash TableHash(Word key)
 {
-  size_t l = 0;
-
-  assert(size != 0);
-  while(size > 1) {
-    ++l;
-    size >>= 1;
-  }
-  return l;
+  Hash seed = (Hash)(key & 0x7FFFFFFF);
+  /* requires m == 2^31-1, a < 2^16 */
+  Hash bot = R_a * (seed & 0x7FFF);
+  Hash top = R_a * (seed >> 15);
+  seed = bot + ((top & 0xFFFF) << 15) + (top >> 16);
+  if(seed > R_m)
+    seed -= R_m;
+  return seed;
 }
 
 
-/* TableHash -- table hashing function */
-
-static ulong TableHash(Word key)
+Bool TableCheck(Table table)
 {
-  /* Shift some randomness into the low bits. */
-  return (ulong)((key >> 10) + key);
+  CHECKS(Table, table);
+  CHECKL(table->count <= table->length);
+  CHECKL(table->length == 0 || table->array != NULL);
+  CHECKL(FUNCHECK(table->alloc));
+  CHECKL(FUNCHECK(table->free));
+  /* can't check allocClosure -- it could be anything */
+  CHECKL(table->unusedKey != table->deletedKey);
+  return TRUE;
+}
+
+
+static Bool entryIsActive(Table table, TableEntry entry)
+{
+  return !(entry->key == table->unusedKey ||
+           entry->key == table->deletedKey);
 }
 
 
@@ -72,69 +87,126 @@ static ulong TableHash(Word key)
  * that all the items still fit in after growing the table.
  */
 
-static TableEntry TableFind(Table table, Word key, int skip_deleted)
+static TableEntry TableFind(Table table, Word key, Bool skip_deleted)
 {
-  ulong hash;
-  size_t i, mask = table->length - 1;
- 
+  Hash hash;
+  Index i;
+  Word mask;
+
+  /* .find.visit: Ensure the length is a power of two so that the stride
+     is coprime and so visits all entries in the array eventually. */
+  AVER(WordIsP2(table->length)); /* .find.visit */
+
+  mask = table->length - 1; 
   hash = TableHash(key) & mask;
   i = hash;
   do {
-    switch (table->array[i].status) {
-    case tableACTIVE:
-      if (table->array[i].key == key)
-        return &table->array[i];
-      break;
-    case tableDELETED:
-      if (!skip_deleted)
-        return &table->array[i];
-      break;
-    case tableUNUSED:
+    Word k = table->array[i].key;
+    if (k == key ||
+        k == table->unusedKey ||
+        (!skip_deleted && key == table->deletedKey))
       return &table->array[i];
-      break;
-    }
-    i = (i + 1) & mask;
+    i = (i + (hash | 1)) & mask; /* .find.visit */
   } while(i != hash);
 
   return NULL;
 }
 
 
-/* TableGrow -- doubles the size of the table */
+/* TableGrow -- increase the capacity of the table
+ *
+ * Ensure the transform's hashtable can accommodate N entries (filled 
+ * slots), without becoming cramped.  If necessary, resize the 
+ * hashtable by allocating a new one and rehashing all old entries.
+ * If insufficient memory, return error without modifying table.
+ *
+ * .hash.spacefraction: As with all closed hash tables, we must choose 
+ * an appropriate proportion of slots to remain free.  More free slots 
+ * help avoid large-sized contiguous clumps of full cells and their 
+ * associated linear search costs. 
+ *
+ * .hash.initial: Any reasonable number.
+ *
+ * .hash.growth: A compromise between space inefficency (growing bigger 
+ * than required) and time inefficiency (growing too slowly, with all 
+ * the rehash costs at every step).  A factor of 2 means that at the 
+ * point of growing to a size X table, hash-work equivalent to filling 
+ * a size-X table has already been done.  So we do at most 2x the 
+ * hash-work we would have done if we had been able to guess the right 
+ * table size initially.
+ *
+ * Numbers of slots maintain this relation:
+ *     occupancy <= capacity < enough <= cSlots
+ */
 
-static Res TableGrow(Table table)
+#define SPACEFRACTION 0.75      /* .hash.spacefraction */
+
+Res TableGrow(Table table, Count extraCapacity)
 {
   TableEntry oldArray, newArray;
-  size_t i, oldLength, newLength;
+  Count oldLength, newLength;
+  Count required, minimum;
+  Count i, found;
 
+  required = table->count + extraCapacity;
+  if (required < table->count)  /* overflow? */
+    return ResLIMIT;
+
+  /* Calculate the minimum table length that would allow for the required
+     capacity without growing again. */
+  minimum = (Count)(required / SPACEFRACTION);
+  if (minimum < required)       /* overflow? */
+    return ResLIMIT;
+
+  /* Double the table length until it's larger than the minimum */
   oldLength = table->length;
+  newLength = oldLength;
+  while(newLength < minimum) {
+    Count doubled = newLength > 0 ? newLength * 2 : 1; /* .hash.growth */
+    if (doubled <= newLength)   /* overflow? */
+      return ResLIMIT;
+    newLength = doubled;
+  }
+
+  if (newLength == oldLength)   /* already enough space? */
+    return ResOK;
+
+  /* TODO: An event would be good here */
+
   oldArray = table->array;
-  newLength = oldLength * 2;
-  newArray = malloc(sizeof(TableEntryStruct) * newLength);
-  if(newArray == NULL) return ResMEMORY;
+  newArray = table->alloc(table->allocClosure,
+                          sizeof(TableEntryStruct) * newLength);
+  if(newArray == NULL)
+    return ResMEMORY;
 
   for(i = 0; i < newLength; ++i) {
-    newArray[i].key = 0;
+    newArray[i].key = table->unusedKey;
     newArray[i].value = NULL;
-    newArray[i].status = tableUNUSED;
   }
  
   table->length = newLength;
   table->array = newArray;
-  table->limit *= 2;
 
+  found = 0;
   for(i = 0; i < oldLength; ++i) {
-    if (oldArray[i].status == tableACTIVE) {
+    if (entryIsActive(table, &oldArray[i])) {
       TableEntry entry;
-      entry = TableFind(table, oldArray[i].key, 0 /* none deleted */);
-      assert(entry != NULL);
-      assert(entry->status == tableUNUSED);
+      entry = TableFind(table, oldArray[i].key, FALSE /* none deleted */);
+      AVER(entry != NULL);
+      AVER(entry->key == table->unusedKey);
       entry->key = oldArray[i].key;
       entry->value = oldArray[i].value;
-      entry->status = tableACTIVE;
+      ++found;
     }
   }
-  free(oldArray);
+  AVER(found == table->count);
+
+  if (oldLength > 0) {
+    AVER(oldArray != NULL);
+    table->free(table->allocClosure,
+                oldArray,
+                sizeof(TableEntryStruct) * oldLength);
+  }
 
   return ResOK;
 }
@@ -142,35 +214,44 @@ static Res TableGrow(Table table)
 
 /* TableCreate -- makes a new table */
 
-extern Res TableCreate(Table *tableReturn, size_t length)
+extern Res TableCreate(Table *tableReturn,
+                       Count length,
+                       TableAllocMethod tableAlloc,
+                       TableFreeMethod tableFree,
+                       void *allocClosure,
+                       Word unusedKey,
+                       Word deletedKey)
 {
   Table table;
-  size_t i;
+  Res res;
 
-  assert(tableReturn != NULL);
+  AVER(tableReturn != NULL);
+  AVER(FUNCHECK(tableAlloc));
+  AVER(FUNCHECK(tableFree));
+  AVER(unusedKey != deletedKey);
 
-  table = malloc(sizeof(TableStruct));
-  if(table == NULL) goto failMallocTable;
-  if (length < 2) length = 2;
-  /* Table size is length rounded up to the next power of 2. */
-  table->length = (size_t)1 << (sizeFloorLog2(length-1) + 1);
+  table = tableAlloc(allocClosure, sizeof(TableStruct));
+  if(table == NULL)
+    return ResMEMORY;
+
+  table->length = 0;
   table->count = 0;
-  table->limit = (size_t)(.5 * length);
-  table->array = malloc(sizeof(TableEntryStruct) * length);
-  if(table->array == NULL) goto failMallocArray;
-  for(i = 0; i < length; ++i) {
-    table->array[i].key = 0;
-    table->array[i].value = NULL;
-    table->array[i].status = tableUNUSED;
-  }
+  table->array = NULL;
+  table->alloc = tableAlloc;
+  table->free = tableFree;
+  table->allocClosure = allocClosure;
+  table->unusedKey = unusedKey;
+  table->deletedKey = deletedKey;
+  table->sig = TableSig;
+  
+  AVERT(Table, table);
+
+  res = TableGrow(table, length);
+  if (res != ResOK)
+    return res;
  
   *tableReturn = table;
   return ResOK;
-
-failMallocArray:
-  free(table);
-failMallocTable:
-  return ResMEMORY;
 }
 
 
@@ -178,9 +259,15 @@ failMallocTable:
 
 extern void TableDestroy(Table table)
 {
-  assert(table != NULL);
-  free(table->array);
-  free(table);
+  AVER(table != NULL);
+  if (table->length > 0) {
+    AVER(table->array != NULL);
+    table->free(table->allocClosure,
+                table->array,
+                sizeof(TableEntryStruct) * table->length);
+  }
+  table->sig = SigInvalid;
+  table->free(table->allocClosure, table, sizeof(TableStruct));
 }
 
 
@@ -188,9 +275,9 @@ extern void TableDestroy(Table table)
 
 extern Bool TableLookup(void **valueReturn, Table table, Word key)
 {
-  TableEntry entry = TableFind(table, key, 1 /* skip deleted */);
+  TableEntry entry = TableFind(table, key, TRUE /* skip deleted */);
 
-  if(entry == NULL || entry->status != tableACTIVE)
+  if(entry == NULL || !entryIsActive(table, entry))
     return FALSE;
   *valueReturn = entry->value;
   return TRUE;
@@ -202,24 +289,26 @@ extern Bool TableLookup(void **valueReturn, Table table, Word key)
 extern Res TableDefine(Table table, Word key, void *value)
 {
   TableEntry entry;
+  
+  AVER(key != table->unusedKey);
+  AVER(key != table->deletedKey);
 
-  if (table->count >= table->limit) {
-    Res res = TableGrow(table);
+  if (table->count >= table->length * SPACEFRACTION) {
+    Res res = TableGrow(table, 1);
     if(res != ResOK) return res;
-    entry = TableFind(table, key, 0 /* no deletions yet */);
-    assert(entry != NULL);
-    if (entry->status == tableACTIVE)
+    entry = TableFind(table, key, FALSE /* no deletions yet */);
+    AVER(entry != NULL);
+    if (entryIsActive(table, entry))
       return ResFAIL;
   } else {
-    entry = TableFind(table, key, 1 /* skip deleted */);
-    if (entry != NULL && entry->status == tableACTIVE)
+    entry = TableFind(table, key, TRUE /* skip deleted */);
+    if (entry != NULL && entryIsActive(table, entry))
       return ResFAIL;
     /* Search again to find the best slot, deletions included. */
-    entry = TableFind(table, key, 0 /* don't skip deleted */);
-    assert(entry != NULL);
+    entry = TableFind(table, key, FALSE /* don't skip deleted */);
+    AVER(entry != NULL);
   }
 
-  entry->status = tableACTIVE;
   entry->key = key;
   entry->value = value;
   ++table->count;
@@ -232,11 +321,11 @@ extern Res TableDefine(Table table, Word key, void *value)
 
 extern Res TableRedefine(Table table, Word key, void *value)
 {
-  TableEntry entry = TableFind(table, key, 1 /* skip deletions */);
+  TableEntry entry = TableFind(table, key, TRUE /* skip deletions */);
  
-  if (entry == NULL || entry->status != tableACTIVE)
+  if (entry == NULL || !entryIsActive(table, entry))
     return ResFAIL;
-  assert(entry->key == key);
+  AVER(entry->key == key);
   entry->value = value;
   return ResOK;
 }
@@ -246,11 +335,11 @@ extern Res TableRedefine(Table table, Word key, void *value)
 
 extern Res TableRemove(Table table, Word key)
 {
-  TableEntry entry = TableFind(table, key, 1);
+  TableEntry entry = TableFind(table, key, TRUE);
 
-  if (entry == NULL || entry->status != tableACTIVE)
+  if (entry == NULL || !entryIsActive(table, entry))
     return ResFAIL;
-  entry->status = tableDELETED;
+  entry->key = table->deletedKey;
   --table->count;
   return ResOK;
 }
@@ -258,18 +347,20 @@ extern Res TableRemove(Table table, Word key)
 
 /* TableMap -- apply a function to all the mappings */
 
-extern void TableMap(Table table, void(*fun)(Word key, void*value))
+extern void TableMap(Table table,
+                     void (*fun)(void *closure, Word key, void*value),
+                     void *closure)
 {
-  size_t i;
+  Index i;
   for (i = 0; i < table->length; i++)
-    if (table->array[i].status == tableACTIVE)
-      (*fun)(table->array[i].key, table->array[i].value);
+    if (entryIsActive(table, &table->array[i]))
+      (*fun)(closure, table->array[i].key, table->array[i].value);
 }
 
 
 /* TableCount -- count the number of mappings in the table */
 
-extern size_t TableCount(Table table)
+extern Count TableCount(Table table)
 {
   return table->count;
 }
