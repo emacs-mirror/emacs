@@ -33,6 +33,14 @@
   :type 'boolean
   :group 'matching)
 
+(defcustom replace-lax-whitespace nil
+  "Non-nil means `query-replace' matches a sequence of whitespace chars.
+When you enter a space or spaces in the strings or regexps to be replaced,
+it will match any sequence matched by the regexp `search-whitespace-regexp'."
+  :type 'boolean
+  :group 'matching
+  :version "24.3")
+
 (defvar query-replace-history nil
   "Default history list for query-replace commands.
 See `query-replace-from-history-variable' and
@@ -226,6 +234,10 @@ letters.  \(Transferring the case pattern means that if the old text
 matched is all caps, or capitalized, then its replacement is upcased
 or capitalized.)
 
+If `replace-lax-whitespace' is non-nil, a space or spaces in the string
+to be replaced will match a sequence of whitespace chars defined by the
+regexp in `search-whitespace-regexp'.
+
 Third arg DELIMITED (prefix arg if interactive), if non-nil, means replace
 only matches surrounded by word boundaries.
 Fourth and fifth arg START and END specify the region to operate on.
@@ -269,6 +281,10 @@ pattern of the old text to the new text, if `case-replace' and
 \(Transferring the case pattern means that if the old text matched is
 all caps, or capitalized, then its replacement is upcased or
 capitalized.)
+
+If `replace-lax-whitespace' is non-nil, a space or spaces in the regexp
+to be replaced will match a sequence of whitespace chars defined by the
+regexp in `search-whitespace-regexp'.
 
 Third arg DELIMITED (prefix arg if interactive), if non-nil, means replace
 only matches surrounded by word boundaries.
@@ -345,6 +361,10 @@ minibuffer.
 
 Preserves case in each replacement if `case-replace' and `case-fold-search'
 are non-nil and REGEXP has no uppercase letters.
+
+If `replace-lax-whitespace' is non-nil, a space or spaces in the regexp
+to be replaced will match a sequence of whitespace chars defined by the
+regexp in `search-whitespace-regexp'.
 
 Third arg DELIMITED (prefix arg if interactive), if non-nil, means replace
 only matches that are surrounded by word boundaries.
@@ -437,6 +457,10 @@ are non-nil and FROM-STRING has no uppercase letters.
 \(Preserving case means that if the string matched is all caps, or capitalized,
 then its replacement is upcased or capitalized.)
 
+If `replace-lax-whitespace' is non-nil, a space or spaces in the string
+to be replaced will match a sequence of whitespace chars defined by the
+regexp in `search-whitespace-regexp'.
+
 In Transient Mark mode, if the mark is active, operate on the contents
 of the region.  Otherwise, operate from point to the end of the buffer.
 
@@ -474,6 +498,10 @@ and TO-STRING is also null.)"
   "Replace things after point matching REGEXP with TO-STRING.
 Preserve case in each match if `case-replace' and `case-fold-search'
 are non-nil and REGEXP has no uppercase letters.
+
+If `replace-lax-whitespace' is non-nil, a space or spaces in the regexp
+to be replaced will match a sequence of whitespace chars defined by the
+regexp in `search-whitespace-regexp'.
 
 In Transient Mark mode, if the mark is active, operate on the contents
 of the region.  Otherwise, operate from point to the end of the buffer.
@@ -1760,6 +1788,10 @@ make, or the user didn't cancel the call."
 		replace-search-function)
 	      (let ((isearch-regexp regexp-flag)
 		    (isearch-word delimited-flag)
+		    (isearch-lax-whitespace
+		     (and replace-lax-whitespace (not regexp-flag)))
+		    (isearch-regexp-lax-whitespace
+		     (and replace-lax-whitespace regexp-flag))
 		    (isearch-case-fold-search case-fold-search)
 		    (isearch-forward t))
 		(isearch-search-fun))))
@@ -2113,7 +2145,10 @@ make, or the user didn't cancel the call."
       (let ((isearch-string search-string)
 	    (isearch-regexp regexp-flag)
 	    (isearch-word delimited-flag)
-	    (search-whitespace-regexp nil)
+	    (isearch-lax-whitespace
+	     (and replace-lax-whitespace (not regexp-flag)))
+	    (isearch-regexp-lax-whitespace
+	     (and replace-lax-whitespace regexp-flag))
 	    (isearch-case-fold-search case-fold-search)
 	    (isearch-forward t)
 	    (isearch-error nil))

@@ -197,6 +197,13 @@ of one or more whitespace characters defined by the variable
 `isearch-lax-whitespace'.  In regexp incremental search, it toggles
 the value of the variable `isearch-regexp-lax-whitespace'.
 
+** query-replace changes
+
+*** When new option `replace-lax-whitespace' is non-nil,
+and you enter a space or spaces in the strings or regexps
+to be replaced, `query-replace' will match any sequence matched
+by the regexp `search-whitespace-regexp'.
+
 ** M-x move-to-column, if called interactively with no prefix arg, now
 prompts for a column number.
 

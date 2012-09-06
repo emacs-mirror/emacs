@@ -1,5 +1,23 @@
 2012-09-06  Juri Linkov  <juri@jurta.org>
 
+	* replace.el (replace-lax-whitespace): New defcustom.
+	(query-replace, query-replace-regexp, query-replace-regexp-eval)
+	(replace-string, replace-regexp): Mention it in docstrings.
+	(perform-replace, replace-highlight): Let-bind
+	isearch-lax-whitespace and isearch-regexp-lax-whitespace according
+	to the values of replace-lax-whitespace and regexp-flag.
+	Don't let-bind search-whitespace-regexp.  (Bug#10885)
+
+	* isearch.el (isearch-query-replace): Let-bind
+	replace-lax-whitespace instead of let-binding
+	replace-search-function and replace-re-search-function.
+	(isearch-lazy-highlight-search): Let-bind isearch-lax-whitespace
+	and isearch-regexp-lax-whitespace to lazy-highlight variables.
+	(isearch-toggle-symbol): Set isearch-regexp to nil
+	in isearch-word mode (like in isearch-toggle-word).
+
+2012-09-06  Juri Linkov  <juri@jurta.org>
+
 	* replace.el (replace-search-function)
 	(replace-re-search-function): Set default values to nil.
 	(perform-replace): Let-bind isearch-related variables based on
