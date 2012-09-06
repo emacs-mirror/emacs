@@ -1720,7 +1720,7 @@ score in `gnus-newsgroup-scored' by SCORE."
 (defun gnus-score-decode-text-parts ()
   (labels ((mm-text-parts (handle)
                         (cond ((stringp (car handle))
-                               (let ((parts (mapcan 'mm-text-parts (cdr handle))))
+                               (let ((parts (mapcan #'mm-text-parts (cdr handle))))
                                  (if (equal "multipart/alternative" (car handle))
                                      ;; pick the first supported alternative
                                      (list (car parts))
@@ -1730,7 +1730,7 @@ score in `gnus-newsgroup-scored' by SCORE."
                                (when (string-match "^text/" (mm-handle-media-type handle))
                                  (list handle)))
 
-                              (t (mapcan 'mm-text-parts handle))))
+                              (t (mapcan #'mm-text-parts handle))))
            (my-mm-display-part (handle)
                                (when handle
                                  (save-restriction

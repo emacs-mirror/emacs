@@ -1,3 +1,16 @@
+2012-09-06  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-score.el (gnus-score-decode-text-parts): Use #' for
+	mm-text-parts used in labels macro to make it work with XEmacs 21.5.
+
+	* gnus-util.el (gnus-string-prefix-p): New function, an alias to
+	string-prefix-p in Emacs >=23.2.
+
+	* nnmaildir.el (nnmaildir--ensure-suffix, nnmaildir--add-flag)
+	(nnmaildir--remove-flag, nnmaildir--scan): Use gnus-string-match-p
+	instead of string-match-p.
+	(nnmaildir--scan): Use gnus-string-prefix-p instead of string-prefix-p.
+
 2012-09-06  Kenichi Handa  <handa@gnu.org>
 
 	* qp.el (quoted-printable-decode-region): Fix previous change; handle
