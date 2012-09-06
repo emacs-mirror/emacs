@@ -134,7 +134,6 @@
 		3114A6D1156E9829001E0AA3 /* eventcnv.c in Sources */ = {isa = PBXBuildFile; fileRef = 3114A6D0156E9829001E0AA3 /* eventcnv.c */; };
 		3114A6D7156E9923001E0AA3 /* libmps.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 31EEABFB156AAF9D00714D05 /* libmps.a */; };
 		3114A6DA156E9950001E0AA3 /* eventpro.c in Sources */ = {isa = PBXBuildFile; fileRef = 3114A6D9156E9950001E0AA3 /* eventpro.c */; };
-		3114A6DC156E995A001E0AA3 /* table.c in Sources */ = {isa = PBXBuildFile; fileRef = 3114A6DB156E995A001E0AA3 /* table.c */; };
 		3114A6DD156E9A0F001E0AA3 /* libmps.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 31EEABFB156AAF9D00714D05 /* libmps.a */; };
 		3124CAC3156BE40100753214 /* awlut.c in Sources */ = {isa = PBXBuildFile; fileRef = 3124CAC2156BE40100753214 /* awlut.c */; };
 		3124CAC4156BE40D00753214 /* libmps.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 31EEABFB156AAF9D00714D05 /* libmps.a */; };
@@ -943,7 +942,6 @@
 		3114A6C6156E9815001E0AA3 /* eventcnv */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = eventcnv; sourceTree = BUILT_PRODUCTS_DIR; };
 		3114A6D0156E9829001E0AA3 /* eventcnv.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = eventcnv.c; sourceTree = "<group>"; };
 		3114A6D9156E9950001E0AA3 /* eventpro.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = eventpro.c; sourceTree = "<group>"; };
-		3114A6DB156E995A001E0AA3 /* table.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = table.c; sourceTree = "<group>"; };
 		3124CAB8156BE3EC00753214 /* awlut */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = awlut; sourceTree = BUILT_PRODUCTS_DIR; };
 		3124CAC2156BE40100753214 /* awlut.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = awlut.c; sourceTree = "<group>"; };
 		3124CAC6156BE48D00753214 /* fmtdy.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = fmtdy.c; sourceTree = "<group>"; };
@@ -1298,7 +1296,6 @@
 		3114A6D8156E9942001E0AA3 /* eventcnv */ = {
 			isa = PBXGroup;
 			children = (
-				3114A6DB156E995A001E0AA3 /* table.c */,
 				3114A6D9156E9950001E0AA3 /* eventpro.c */,
 				3114A6D0156E9829001E0AA3 /* eventcnv.c */,
 			);
@@ -2335,7 +2332,6 @@
 			files = (
 				3114A6D1156E9829001E0AA3 /* eventcnv.c in Sources */,
 				3114A6DA156E9950001E0AA3 /* eventpro.c in Sources */,
-				3114A6DC156E995A001E0AA3 /* table.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
