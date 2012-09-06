@@ -11,7 +11,7 @@
 # PSEUDO-TARGETS
 
 # "all" builds all the varieties of all targets
-# %%TARGET: Add the target to the all dependencies.
+# %%TARGET: When adding a new target, add it to the all dependencies.
 
 all: mpmss.exe amcss.exe amsss.exe amssshe.exe segsmss.exe awlut.exe awluthe.exe\
      mpsicv.exe lockutw3.exe lockcov.exe poolncv.exe locv.exe qs.exe apss.exe \
@@ -25,8 +25,9 @@ all: mpmss.exe amcss.exe amsss.exe amssshe.exe segsmss.exe awlut.exe awluthe.exe
 
 # Convenience targets
 
-# %%TARGET: Add a pseudo-target for the new target here, first rule for
-# variety-dependent targets, and second for variety-independent ones.
+# %%TARGET: When adding a new target, add a pseudo-target for it here,
+# first rule for variety-dependent targets, and second for
+# variety-independent ones.
 
 mpmss.exe amcss.exe amcsshe.exe amsss.exe amssshe.exe segsmss.exe awlut.exe awluthe.exe dwstress.exe \
      mpsicv.exe lockutw3.exe lockcov.exe poolncv.exe locv.exe qs.exe apss.exe \
@@ -52,9 +53,10 @@ clean:
 	-echo y | rmdir/s $(PFM)
 
 # target target
-# %%VARIETY: Optionally, add a recursive make call for the new variety,
-#  if it should be built by default.
-# Only the varieties needed for development and internal customers are made.
+# %%VARIETY: When adding a new variety, optionally, add a recursive make
+# call for the new variety, if it should be built by default.  It probably
+# shouldn't without a product design decision and an update of the readme
+# and build manual!
 # Depends on there being no file called "target".
 
 !IFDEF TARGET
@@ -94,7 +96,8 @@ mpsicv.cov:
 # of source files in case method (1) won't work on some future constrained
 # platform.
 #
-# %%VARIETY: Add a rule for how to build the MPS library for the variety
+# %%VARIETY: When adding a new variety, add a rule for how to build the
+# MPS library for the variety
 
 $(PFM)\rash\mps.lib: $(PFM)\rash\mps.obj
 	$(ECHO) $@
@@ -133,7 +136,7 @@ $(PFM)\ti\mps.lib: \
 # the generic rules below, and should not include commands to execute.
 # For a library this is not possible and the target should include commands
 # to build it.
-# %%TARGET: Add your new target here
+# %%TARGET: When adding a new target, add your new target here
 
 !IFDEF VARIETY
 
