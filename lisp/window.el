@@ -5918,6 +5918,88 @@ WINDOW was scrolled."
 	  (error (setq delta nil)))
 	delta))))
 
+(defcustom fit-frame-to-buffer-bottom-margin 4
+  "Bottom margin for `fit-frame-to-buffer'.
+This is the number of lines `fit-frame-to-buffer' leaves free at the
+bottom of the display in order to not obscure the system task bar."
+  :type 'integer
+  :version "24.2"
+  :group 'windows)
+
+(defun fit-frame-to-buffer (&optional frame max-height min-height)
+  "Adjust height of FRAME to display its buffer's contents exactly.
+FRAME can be any live frame and defaults to the selected one.
+
+Optional argument MAX-HEIGHT specifies the maximum height of
+FRAME and defaults to the height of the display below the current
+top line of FRAME minus FIT-FRAME-TO-BUFFER-BOTTOM-MARGIN.
+Optional argument MIN-HEIGHT specifies the minimum height of
+FRAME."
+  (interactive)
+  (setq frame (window-normalize-frame frame))
+  (let* ((root (frame-root-window frame))
+	 (frame-min-height
+	  (+ (- (frame-height frame) (window-total-size root))
+	     window-min-height))
+	 (frame-top (frame-parameter frame 'top))
+	 (top (if (consp frame-top)
+		  (funcall (car frame-top) (cadr frame-top))
+		frame-top))
+	 (frame-max-height
+	  (- (/ (- (x-display-pixel-height frame) top)
+		(frame-char-height frame))
+	     fit-frame-to-buffer-bottom-margin))
+	 (compensate 0)
+	 delta)
+    (when (and (window-live-p root) (not (window-size-fixed-p root)))
+      (with-selected-window root
+	(cond
+	 ((not max-height)
+	  (setq max-height frame-max-height))
+	 ((numberp max-height)
+	  (setq max-height (min max-height frame-max-height)))
+	 (t
+	  (error "%s is an invalid maximum height" max-height)))
+	(cond
+	 ((not min-height)
+	  (setq min-height frame-min-height))
+	 ((numberp min-height)
+	  (setq min-height (min min-height frame-min-height)))
+	 (t
+	  (error "%s is an invalid minimum height" min-height)))
+	;; When tool-bar-mode is enabled and we have just created a new
+	;; frame, reserve lines for toolbar resizing.  This is needed
+	;; because for reasons unknown to me Emacs (1) reserves one line
+	;; for the toolbar when making the initial frame and toolbars
+	;; are enabled, and (2) later adds the remaining lines needed.
+	;; Our code runs IN BETWEEN (1) and (2).  YMMV when you're on a
+	;; system that behaves differently.
+	(let ((quit-restore (window-parameter root 'quit-restore))
+	      (lines (tool-bar-lines-needed frame)))
+	  (when (and quit-restore (eq (car quit-restore) 'frame)
+		     (not (zerop lines)))
+	    (setq compensate (1- lines))))
+	(message "%s" compensate)
+	(setq delta
+	      ;; Always count a final newline - we don't do any
+	      ;; post-processing, so let's play safe.
+	      (+ (count-screen-lines nil nil t)
+		 (- (window-body-size))
+		 compensate)))
+      ;; Move away from final newline.
+      (when (and (eobp) (bolp) (not (bobp)))
+	(set-window-point root (line-beginning-position 0)))
+      (set-window-start root (point-min))
+      (set-window-vscroll root 0)
+      (condition-case nil
+	  (set-frame-height
+	   frame
+	   (min (max (+ (frame-height frame) delta)
+		     min-height)
+		max-height))
+	(error (setq delta nil))))
+    delta))
+
 (defun window-safely-shrinkable-p (&optional window)
   "Return t if WINDOW can be shrunk without shrinking other windows.
 WINDOW defaults to the selected window."

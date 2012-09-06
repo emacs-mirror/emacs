@@ -10601,12 +10601,12 @@ set_message (const char *s, Lisp_Object string,
   message_buf_print = 0;
   help_echo_showing_p = 0;
 
-  if (NILP (Vinhibit_debug_on_message) &&
-      STRINGP (Vdebug_on_message) &&
-      fast_string_match (Vdebug_on_message, string) >= 0) {
-    specbind (Qinhibit_debug_on_message, Qt);
-    call_debugger (Fcons (Qerror, Fcons (string, Qnil)));
-  }
+  if (NILP (Vinhibit_debug_on_message) && STRINGP (Vdebug_on_message)
+      && fast_string_match (Vdebug_on_message, string) >= 0)
+    {
+      specbind (Qinhibit_debug_on_message, Qt);
+      call_debugger (list2 (Qerror, string));
+    }
 
   unbind_to (count, Qnil);
 }

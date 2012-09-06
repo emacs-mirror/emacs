@@ -14972,12 +14972,6 @@ $as_echo "#define BROKEN_GET_CURRENT_DIR_NAME 1" >>confdefs.h
 $as_echo "#define BROKEN_PTY_READ_AFTER_EAGAIN 1" >>confdefs.h
 
     ;;
-
-      darwin)
-
-$as_echo "#define NO_ABORT 1" >>confdefs.h
-
-    ;;
 esac
 
 case $opsys in

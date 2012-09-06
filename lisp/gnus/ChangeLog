@@ -3,9 +3,54 @@
 	* qp.el (quoted-printable-decode-region): Fix previous change; handle
 	lowercase a..f.
 
-2012-09-03  Lars Ingebrigtsen  <larsi@gnus.org>
+2012-09-05  Magnus Henoch  <magnus.henoch@gmail.com>
 
-	* dgnushack.el: XEmacs 21.5 compilation fix.
+	* nnmaildir.el (nnmaildir--article-set-flags): Fix compilation error.
+
+2012-09-05  Martin Stjernholm  <mast@lysator.liu.se>
+
+	* gnus-demon.el (gnus-demon-init): Fixed regression when IDLE is t and
+	TIME is set.
+
+2012-09-05  Juri Linkov  <juri@jurta.org>
+
+	* gnus-group.el (gnus-read-ephemeral-bug-group): Allow opening more
+	than one group at a time (bug#11961).
+
+2012-09-05  Julien Danjou  <julien@danjou.info>
+
+	* gnus-srvr.el (gnus-server-open-server): Don't message on failure:
+	this hide the real reason with a message giving absolutely no hint.
+
+2012-09-05  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-group.el (gnus-group-mark-article-read): Propagate the read mark
+	to the backend (bug#11804).
+
+	* message.el (message-insert-newsgroups): Don't insert newsgroup
+	duplicates (bug#12275).
+
+2012-09-05  John Wiegley  <johnw@newartisans.com>
+
+	* gnus.el (gnus-expand-group-parameters): Allow regexp substitutions in
+	sieve rules.
+
+2012-09-05  Jan Tatarik  <jan.tatarik@gmail.com>
+
+	* gnus-score.el (gnus-score-decode-text-parts): Use #' for the local
+	function.
+
+	* gnus-logic.el (gnus-advanced-body): Allow scoring on decoded bodies.
+
+	* gnus-score.el (gnus-score-decode-text-parts): Ditto.
+
+2012-09-05  Magnus Henoch  <magnus.henoch@gmail.com>
+
+	* nnmaildir.el: Make nnmaildir understand and write maildir flags.
+	That is, rename files from "unique:2," to "unique:2,S" for "seen", etc.
+	This should make nnmaildir more usable with offlineimap.
+
+2012-09-03  Lars Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus-notifications.el (gnus-notifications-notify): Use it.
 
@@ -2304,8 +2349,6 @@
 	is not fully working.
 
 2011-06-30  Lars Magne Ingebrigtsen  <larsi@gnus.org>
-
-	* dgnushack.el: Autoload sha1 on XEmacs.
 
 	* gnus-group.el (gnus-read-ephemeral-emacs-bug-group): Take an optional
 	quit window configuration.

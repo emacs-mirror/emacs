@@ -37,9 +37,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    Define FLOAT_CHECK_ERRNO if the float library routines set errno.
    This has no effect if HAVE_MATHERR is defined.
 
-   Define FLOAT_CATCH_SIGILL if the float library routines signal SIGILL.
-   (What systems actually do this?  Please let us know.)
-
    Define FLOAT_CHECK_DOMAIN if the float library doesn't handle errors by
    either setting errno, or signaling SIGFPE/SIGILL.  Otherwise, domain and
    range checking will happen before calling the float routines.  This has
@@ -99,14 +96,10 @@ extern double logb (double);
 # include <errno.h>
 #endif
 
-#ifdef FLOAT_CATCH_SIGILL
-static void float_error ();
-#endif
-
-/* Nonzero while executing in floating point.
+/* True while executing in floating point.
    This tells float_error what to do.  */
 
-static int in_float;
+static bool in_float;
 
 /* If an argument is out of range for a mathematical function,
    here is the actual argument value to use in the error message.
@@ -947,31 +940,6 @@ Rounds the value toward zero.  */)
   return make_float (d);
 }
 
-#ifdef FLOAT_CATCH_SIGILL
-static void
-float_error (int signo)
-{
-  if (! in_float)
-    fatal_error_signal (signo);
-
-#ifdef BSD_SYSTEM
-  sigsetmask (SIGEMPTYMASK);
-#else
-  /* Must reestablish handler each time it is called.  */
-  signal (SIGILL, float_error);
-#endif /* BSD_SYSTEM */
-
-  SIGNAL_THREAD_CHECK (signo);
-  in_float = 0;
-
-  xsignal1 (Qarith_error, float_error_arg);
-}
-
-/* Another idea was to replace the library function `infnan'
-   where SIGILL is signaled.  */
-
-#endif /* FLOAT_CATCH_SIGILL */
-
 #ifdef HAVE_MATHERR
 int
 matherr (struct exception *x)
@@ -1006,9 +974,6 @@ matherr (struct exception *x)
 void
 init_floatfns (void)
 {
-#ifdef FLOAT_CATCH_SIGILL
-  signal (SIGILL, float_error);
-#endif
   in_float = 0;
 }
 

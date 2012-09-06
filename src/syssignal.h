@@ -133,24 +133,5 @@ char *strsignal (int);
 
 #ifdef FORWARD_SIGNAL_TO_MAIN_THREAD
 extern pthread_t main_thread;
-#define SIGNAL_THREAD_CHECK(signo)                                      \
-  do {                                                                  \
-    if (!pthread_equal (pthread_self (), main_thread))			\
-      {                                                                 \
-        /* POSIX says any thread can receive the signal.  On GNU/Linux  \
-           that is not true, but for other systems (FreeBSD at least)   \
-           it is.  So direct the signal to the correct thread and block \
-           it from this thread.  */                                     \
-        sigset_t new_mask;                                              \
-                                                                        \
-        sigemptyset (&new_mask);                                        \
-        sigaddset (&new_mask, signo);                                   \
-        pthread_sigmask (SIG_BLOCK, &new_mask, 0);                      \
-        pthread_kill (main_thread, signo);                              \
-        return;                                                         \
-      }                                                                 \
-   } while (0)
-
-#else /* not FORWARD_SIGNAL_TO_MAIN_THREAD */
-#define SIGNAL_THREAD_CHECK(signo)
-#endif /* not FORWARD_SIGNAL_TO_MAIN_THREAD */
+void handle_on_main_thread (int, signal_handler_t);
+#endif

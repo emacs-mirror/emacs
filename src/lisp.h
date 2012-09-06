@@ -909,14 +909,6 @@ enum
   (ASCII_CHAR_P (IDX) ? CHAR_TABLE_REF_ASCII ((CT), (IDX))	\
    : char_table_ref ((CT), (IDX)))
 
-/* Almost equivalent to Faref (CT, IDX).  However, if the result is
-   not a character, return IDX.
-
-   For these characters, do not check validity of CT
-   and do not follow parent.  */
-#define CHAR_TABLE_TRANSLATE(CT, IDX)	\
-  char_table_translate (CT, IDX)
-
 /* Equivalent to Faset (CT, IDX, VAL) with optimization for ASCII and
    8-bit European characters.  Do not check validity of CT.  */
 #define CHAR_TABLE_SET(CT, IDX, VAL)					\
@@ -1205,9 +1197,9 @@ struct Lisp_Hash_Table
   struct Lisp_Hash_Table *next_weak;
 
   /* C function to compare two keys.  */
-  int (*cmpfn) (struct Lisp_Hash_Table *,
-		Lisp_Object, EMACS_UINT,
-		Lisp_Object, EMACS_UINT);
+  bool (*cmpfn) (struct Lisp_Hash_Table *,
+		 Lisp_Object, EMACS_UINT,
+		 Lisp_Object, EMACS_UINT);
 
   /* C function to compute hash code.  */
   EMACS_UINT (*hashfn) (struct Lisp_Hash_Table *, Lisp_Object);
@@ -3151,9 +3143,9 @@ EXFUN (Fread_file_name, 6);     /* not a normal DEFUN */
 extern Lisp_Object close_file_unwind (Lisp_Object);
 extern Lisp_Object restore_point_unwind (Lisp_Object);
 extern _Noreturn void report_file_error (const char *, Lisp_Object);
-extern int internal_delete_file (Lisp_Object);
+extern void internal_delete_file (Lisp_Object);
 extern void syms_of_fileio (void);
-extern Lisp_Object make_temp_name (Lisp_Object, int);
+extern Lisp_Object make_temp_name (Lisp_Object, bool);
 extern Lisp_Object Qdelete_file;
 
 /* Defined in search.c */
@@ -3264,9 +3256,6 @@ extern bool display_arg;
 extern Lisp_Object decode_env_path (const char *, const char *);
 extern Lisp_Object empty_unibyte_string, empty_multibyte_string;
 extern Lisp_Object Qfile_name_handler_alist;
-#ifdef FLOAT_CATCH_SIGILL
-extern void fatal_error_signal (int);
-#endif
 extern _Noreturn void fatal_error_backtrace (int, int);
 extern Lisp_Object Qkill_emacs;
 #if HAVE_SETLOCALE
@@ -3555,32 +3544,6 @@ extern void init_system_name (void);
 
 #define make_fixnum_or_float(val) \
    (FIXNUM_OVERFLOW_P (val) ? make_float (val) : make_number (val))
-
-
-/* Checks the `cycle check' variable CHECK to see if it indicates that
-   EL is part of a cycle; CHECK must be either Qnil or a value returned
-   by an earlier use of CYCLE_CHECK.  SUSPICIOUS is the number of
-   elements after which a cycle might be suspected; after that many
-   elements, this macro begins consing in order to keep more precise
-   track of elements.
-
-   Returns nil if a cycle was detected, otherwise a new value for CHECK
-   that includes EL.
-
-   CHECK is evaluated multiple times, EL and SUSPICIOUS 0 or 1 times, so
-   the caller should make sure that's ok.  */
-
-#define CYCLE_CHECK(check, el, suspicious)	\
-  (NILP (check)					\
-   ? make_number (0)				\
-   : (INTEGERP (check)				\
-      ? (XFASTINT (check) < (suspicious)	\
-	 ? make_number (XFASTINT (check) + 1)	\
-	 : Fcons (el, Qnil))			\
-      : (!NILP (Fmemq ((el), (check)))		\
-	 ? Qnil					\
-	 : Fcons ((el), (check)))))
-
 
 /* SAFE_ALLOCA normally allocates memory on the stack, but if size is
    larger than MAX_ALLOCA, use xmalloc to avoid overflowing the stack.  */

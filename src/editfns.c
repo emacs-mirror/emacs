@@ -2783,8 +2783,8 @@ determines whether case is significant or ignored.  */)
 
       if (!NILP (trt))
 	{
-	  c1 = CHAR_TABLE_TRANSLATE (trt, c1);
-	  c2 = CHAR_TABLE_TRANSLATE (trt, c2);
+	  c1 = char_table_translate (trt, c1);
+	  c2 = char_table_translate (trt, c2);
 	}
       if (c1 < c2)
 	return make_number (- 1 - chars);

@@ -1,3 +1,34 @@
+2012-09-05  Martin Rudalics  <rudalics@gmx.at>
+
+	* help.el (temp-buffer-max-height): New default value.
+	(temp-buffer-resize-frames): New option.
+	(resize-temp-buffer-window): Optionally resize frame.
+
+	* window.el (fit-frame-to-buffer-bottom-margin): New option.
+	(fit-frame-to-buffer): New function.
+
+2012-09-05  Glenn Morris  <rgm@gnu.org>
+
+	* emulation/cua-rect.el (cua--init-rectangles):
+	* textmodes/picture.el (picture-mode-map):
+	* play/blackbox.el (blackbox-mode-map): Remap right-char and left-char
+	like forward-char and backward-char.  (Bug#12317)
+
+2012-09-05  Leo Liu  <sdl.web@gmail.com>
+
+	* progmodes/flymake.el (flymake-warning-re): New variable.
+	(flymake-parse-line): Use it.
+
+2012-09-05  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/holidays.el (holiday-christian-holidays):
+	Rename an entry.  (Bug#12289)
+
+2012-09-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/sh-script.el (sh-font-lock-paren): Don't burp at BOB
+	(bug#12222).
+
 2012-09-04  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* loadup.el: Load macroexp.  Remove hack.

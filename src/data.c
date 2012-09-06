@@ -3207,16 +3207,17 @@ syms_of_data (void)
   XSYMBOL (intern_c_string ("most-negative-fixnum"))->constant = 1;
 }
 
-#ifndef FORWARD_SIGNAL_TO_MAIN_THREAD
-_Noreturn
-#endif
-static void
-arith_error (int signo)
+static _Noreturn void
+handle_arith_signal (int sig)
 {
   sigsetmask (SIGEMPTYMASK);
-
-  SIGNAL_THREAD_CHECK (signo);
   xsignal0 (Qarith_error);
+}
+
+static void
+deliver_arith_signal (int sig)
+{
+  handle_on_main_thread (sig, handle_arith_signal);
 }
 
 void
@@ -3230,5 +3231,5 @@ init_data (void)
   if (!initialized)
     return;
 #endif /* CANNOT_DUMP */
-  signal (SIGFPE, arith_error);
+  signal (SIGFPE, deliver_arith_signal);
 }

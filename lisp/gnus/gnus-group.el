@@ -2481,7 +2481,8 @@ the bug number, and browsing the URL must return mbox output."
 			 "/.*$" ""))))
       (write-region (point-min) (point-max) tmpfile)
       (gnus-group-read-ephemeral-group
-       "gnus-read-ephemeral-bug"
+       (format "gnus-read-ephemeral-bug:%s"
+	       (mapconcat 'number-to-string ids ","))
        `(nndoc ,tmpfile
 	       (nndoc-article-type mbox))
        nil window-conf))
@@ -4670,6 +4671,8 @@ you the groups that have both dormant articles and cached articles."
 	      (setq mark gnus-expirable-mark))
 	    (setq mark (gnus-request-update-mark
 			group article mark))
+	    (gnus-request-set-mark
+	     group (list (list (list article) 'add '(read))))
 	    (gnus-mark-article-as-read article mark)
 	    (setq gnus-newsgroup-active (gnus-active group))
 	    (when active

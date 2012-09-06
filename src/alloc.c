@@ -4981,7 +4981,8 @@ valid_pointer_p (void *p)
 #endif
 }
 
-/* Return 1 if OBJ is a valid lisp object.
+/* Return 2 if OBJ is a killed or special buffer object.
+   Return 1 if OBJ is a valid lisp object.
    Return 0 if OBJ is NOT a valid lisp object.
    Return -1 if we cannot validate OBJ.
    This function can be quite slow,
@@ -5001,6 +5002,9 @@ valid_lisp_object_p (Lisp_Object obj)
   p = (void *) XPNTR (obj);
   if (PURE_POINTER_P (p))
     return 1;
+
+  if (p == &buffer_defaults || p == &buffer_local_symbols)
+    return 2;
 
 #if !GC_MARK_STACK
   return valid_pointer_p (p);
@@ -5027,7 +5031,7 @@ valid_lisp_object_p (Lisp_Object obj)
       return 0;
 
     case MEM_TYPE_BUFFER:
-      return live_buffer_p (m, p);
+      return live_buffer_p (m, p) ? 1 : 2;
 
     case MEM_TYPE_CONS:
       return live_cons_p (m, p);
@@ -5834,23 +5838,29 @@ mark_overlay (struct Lisp_Overlay *ptr)
 static void
 mark_buffer (struct buffer *buffer)
 {
-  /* This is handled much like other pseudovectors...  */
-  mark_vectorlike ((struct Lisp_Vector *) buffer);
+  if (NILP (BVAR (buffer, name)))
+    /* If the buffer is killed, mark just the buffer itself.  */
+    VECTOR_MARK (buffer);
+  else
+    {
+      /* This is handled much like other pseudovectors...  */
+      mark_vectorlike ((struct Lisp_Vector *) buffer);
 
-  /* ...but there are some buffer-specific things.  */
+      /* ...but there are some buffer-specific things.  */
 
-  MARK_INTERVAL_TREE (buffer_intervals (buffer));
+      MARK_INTERVAL_TREE (buffer_intervals (buffer));
 
-  /* For now, we just don't mark the undo_list.  It's done later in
-     a special way just before the sweep phase, and after stripping
-     some of its elements that are not needed any more.  */
+      /* For now, we just don't mark the undo_list.  It's done later in
+	 a special way just before the sweep phase, and after stripping
+	 some of its elements that are not needed any more.  */
 
-  mark_overlay (buffer->overlays_before);
-  mark_overlay (buffer->overlays_after);
+      mark_overlay (buffer->overlays_before);
+      mark_overlay (buffer->overlays_after);
 
-  /* If this is an indirect buffer, mark its base buffer.  */
-  if (buffer->base_buffer && !VECTOR_MARKED_P (buffer->base_buffer))
-    mark_buffer (buffer->base_buffer);
+      /* If this is an indirect buffer, mark its base buffer.  */
+      if (buffer->base_buffer && !VECTOR_MARKED_P (buffer->base_buffer))
+	mark_buffer (buffer->base_buffer);
+    }
 }
 
 /* Determine type of generic Lisp_Object and mark it accordingly.  */
@@ -5993,24 +6003,38 @@ mark_object (Lisp_Object arg)
 
 	  case PVEC_FRAME:
 	    {
-	      mark_vectorlike (ptr);
-	      mark_face_cache (((struct frame *) ptr)->face_cache);
+	      struct frame *f = (struct frame *) ptr;
+
+	      if (FRAME_LIVE_P (f))
+		{
+		  mark_vectorlike (ptr);
+		  mark_face_cache (f->face_cache);
+		}
+	      else
+		/* If the frame is deleted, mark just the frame itself.  */
+		VECTOR_MARK (ptr);
 	    }
 	    break;
 
 	  case PVEC_WINDOW:
 	    {
 	      struct window *w = (struct window *) ptr;
+	      bool leaf = NILP (w->hchild) && NILP (w->vchild);
 
-	      mark_vectorlike (ptr);
-	      /* Mark glyphs for leaf windows.  Marking window
-		 matrices is sufficient because frame matrices
-		 use the same glyph memory.  */
-	      if (NILP (w->hchild) && NILP (w->vchild)
-		  && w->current_matrix)
+	      if (leaf && NILP (w->buffer))
+		/* If the window is deleted, mark just the window itself.  */
+		VECTOR_MARK (ptr);
+	      else
 		{
-		  mark_glyph_matrix (w->current_matrix);
-		  mark_glyph_matrix (w->desired_matrix);
+		  mark_vectorlike (ptr);
+		  /* Mark glyphs for leaf windows.  Marking window
+		     matrices is sufficient because frame matrices
+		     use the same glyph memory.  */
+		  if (leaf && w->current_matrix)
+		    {
+		      mark_glyph_matrix (w->current_matrix);
+		      mark_glyph_matrix (w->desired_matrix);
+		    }
 		}
 	    }
 	    break;

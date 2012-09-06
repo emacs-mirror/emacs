@@ -6576,15 +6576,17 @@ freeze_window_starts (struct frame *f, int freeze_p)
 /* Return 1 if window configurations CONFIGURATION1 and CONFIGURATION2
    describe the same state of affairs.  This is used by Fequal.
 
-   ignore_positions non-zero means ignore non-matching scroll positions
+   IGNORE_POSITIONS means ignore non-matching scroll positions
    and the like.
 
    This ignores a couple of things like the dedication status of
    window, combination_limit and the like.  This might have to be
    fixed.  */
 
-int
-compare_window_configurations (Lisp_Object configuration1, Lisp_Object configuration2, int ignore_positions)
+bool
+compare_window_configurations (Lisp_Object configuration1,
+			       Lisp_Object configuration2,
+			       bool ignore_positions)
 {
   register struct save_window_data *d1, *d2;
   struct Lisp_Vector *sws1, *sws2;

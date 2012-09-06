@@ -977,6 +977,9 @@ from compile.el")
 ;;   :type '(repeat (string number number number))
 ;;)
 
+(defvar flymake-warning-re "^[wW]arning"
+  "Regexp matching against err-text to detect a warning.")
+
 (defun flymake-parse-line (line)
   "Parse LINE to see if it is an error or warning.
 Return its components if so, nil otherwise."
@@ -997,7 +1000,7 @@ Return its components if so, nil otherwise."
 				  (match-string (nth 4 (car patterns)) line)
 				(flymake-patch-err-text (substring line (match-end 0)))))
 	  (or err-text (setq err-text "<no error text>"))
-	  (if (and err-text (string-match "^[wW]arning" err-text))
+	  (if (and err-text (string-match flymake-warning-re err-text))
 	      (setq err-type "w")
 	    )
 	  (flymake-log 3 "parse line: file-idx=%s line-idx=%s file=%s line=%s text=%s" file-idx line-idx

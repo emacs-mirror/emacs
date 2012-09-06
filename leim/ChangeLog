@@ -1,3 +1,7 @@
+2012-09-05  Eli Zaretskii  <eliz@gnu.org>
+
+	* quail/hebrew.el ("yiddish-royal"): Fix several bogus entries.
+
 2012-08-17  Daniel Bergey  <bergey@alum.mit.edu>  (tiny change)
 
 	* quail/indian.el (quail-define-inscript-package):
