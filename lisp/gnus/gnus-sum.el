@@ -12522,9 +12522,8 @@ If REVERSE, save parts that do not match TYPE."
                         (not (memq article gnus-newsgroup-cached)))))
     (let ((face (funcall (gnus-summary-highlight-line-0))))
       (unless (eq face (get-text-property beg 'face))
-	(gnus-put-text-property-excluding-characters-with-faces
-	 beg (point-at-eol) 'face
-	 (setq face (if (boundp face) (symbol-value face) face)))
+	(add-face beg (point-at-eol)
+		  (setq face (if (boundp face) (symbol-value face) face)))
 	(when gnus-summary-highlight-line-function
 	  (funcall gnus-summary-highlight-line-function article face))))))
 

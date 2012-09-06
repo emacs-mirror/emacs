@@ -1669,9 +1669,7 @@ and ends at END."
                       gnus-group-highlight))))
     (unless (eq face (get-text-property beg 'face))
       (let ((inhibit-read-only t))
-        (gnus-put-text-property-excluding-characters-with-faces
-         beg end 'face
-         (if (boundp face) (symbol-value face) face)))
+        (add-face beg end (if (boundp face) (symbol-value face) face)))
       (gnus-extent-start-open beg))))
 
 (defun gnus-group-get-icon (group)
@@ -2388,7 +2386,7 @@ specified by `gnus-gmane-group-download-format'."
 	       group start (+ start range)))
       (write-region (point-min) (point-max) tmpfile)
       (gnus-group-read-ephemeral-group
-       (format "%s.start-%s.range-%s" group start range)
+       (format "nndoc+ephemeral:%s.start-%s.range-%s" group start range)
        `(nndoc ,tmpfile
 	       (nndoc-article-type mbox))))
     (delete-file tmpfile)))
@@ -2481,7 +2479,7 @@ the bug number, and browsing the URL must return mbox output."
 			 "/.*$" ""))))
       (write-region (point-min) (point-max) tmpfile)
       (gnus-group-read-ephemeral-group
-       (format "gnus-read-ephemeral-bug:%s"
+       (format "nndoc+ephemeral:bug#%s"
 	       (mapconcat 'number-to-string ids ","))
        `(nndoc ,tmpfile
 	       (nndoc-article-type mbox))

@@ -1,3 +1,27 @@
+2012-09-06  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-util.el: Fix compilation error on XEmacs 21.4.
+
+2012-09-06  Juri Linkov  <juri@jurta.org>
+
+	* gnus-group.el (gnus-read-ephemeral-gmane-group): Change the naming
+	scheme for buffer names to be more consistent with other group and
+	article buffer names in Gnus.
+
+2012-09-06  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-util.el
+	(gnus-put-text-property-excluding-characters-with-faces): Remove.
+
+	* gnus-compat.el: Define compat function `add-face' from Wolfgang
+	Jenkner.
+
+	* gnus-group.el (gnus-group-highlight-line): Use combining faces.
+
+	* gnus-sum.el (gnus-summary-highlight-line): Ditto.
+
+	* gnus-salt.el (gnus-tree-highlight-node): Ditto.
+
 2012-09-06  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-score.el (gnus-score-decode-text-parts): Use #' for

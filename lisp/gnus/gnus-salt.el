@@ -660,9 +660,7 @@ Two predefined functions are available:
 		    (not (eval (caar list))))
 	  (setq list (cdr list)))))
     (unless (eq (setq face (cdar list)) (get-text-property beg 'face))
-      (gnus-put-text-property-excluding-characters-with-faces
-       beg end 'face
-       (if (boundp face) (symbol-value face) face)))))
+      (add-face beg end (if (boundp face) (symbol-value face) face)))))
 
 (defun gnus-tree-indent (level)
   (insert (make-string (1- (* (1+ gnus-tree-node-length) level)) ? )))

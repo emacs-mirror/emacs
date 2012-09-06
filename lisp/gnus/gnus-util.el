@@ -866,19 +866,6 @@ If there's no subdirectory, delete DIRECTORY as well."
 	  (setq beg (point)))
 	(gnus-overlay-put (gnus-make-overlay beg (point)) prop val)))))
 
-(defun gnus-put-text-property-excluding-characters-with-faces (beg end
-								   prop val)
-  "The same as `put-text-property', but don't put props on characters with the `gnus-face' property."
-  (let ((b beg))
-    (while (/= b end)
-      (when (get-text-property b 'gnus-face)
-	(setq b (next-single-property-change b 'gnus-face nil end)))
-      (when (/= b end)
-	(inline
-	  (gnus-put-text-property
-	   b (setq b (next-single-property-change b 'gnus-face nil end))
-	   prop val))))))
-
 (defmacro gnus-faces-at (position)
   "Return a list of faces at POSITION."
   (if (featurep 'xemacs)
@@ -1932,8 +1919,11 @@ Same as `string-match' except this function does not change the match data."
     "Return non-nil if STR1 is a prefix of STR2.
 If IGNORE-CASE is non-nil, the comparison is done without paying attention
 to case differences."
-    (eq t (compare-strings str1 nil nil
-			   str2 0 (length str1) ignore-case))))
+    (and (<= (length str1) (length str2))
+	 (let ((prefix (substring str2 0 (length str1))))
+	   (if ignore-case
+	       (string-equal (downcase str1) (downcase prefix))
+	     (string-equal str1 prefix))))))
 
 (eval-and-compile
   (if (fboundp 'macroexpand-all)
