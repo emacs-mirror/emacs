@@ -6019,22 +6019,18 @@ mark_object (Lisp_Object arg)
 	  case PVEC_WINDOW:
 	    {
 	      struct window *w = (struct window *) ptr;
-	      bool leaf = NILP (w->hchild) && NILP (w->vchild);
-
-	      if (leaf && NILP (w->buffer))
-		/* If the window is deleted, mark just the window itself.  */
-		VECTOR_MARK (ptr);
-	      else
+	      
+	      /* Even if the window is deleted, we can't mark just the window
+		 itself because set-window-configuration can resurrect it.  */
+	      mark_vectorlike (ptr);
+	      /* Mark glyphs for leaf windows.  Marking window
+		 matrices is sufficient because frame matrices
+		 use the same glyph memory.  */
+	      if (NILP (w->hchild) && NILP (w->vchild)
+		  && w->current_matrix)
 		{
-		  mark_vectorlike (ptr);
-		  /* Mark glyphs for leaf windows.  Marking window
-		     matrices is sufficient because frame matrices
-		     use the same glyph memory.  */
-		  if (leaf && w->current_matrix)
-		    {
-		      mark_glyph_matrix (w->current_matrix);
-		      mark_glyph_matrix (w->desired_matrix);
-		    }
+		  mark_glyph_matrix (w->current_matrix);
+		  mark_glyph_matrix (w->desired_matrix);
 		}
 	    }
 	    break;
