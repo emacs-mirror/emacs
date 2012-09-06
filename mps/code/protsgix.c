@@ -78,6 +78,8 @@ static void sigHandle(int sig, siginfo_t *info, void *context)  /* .sigh.args */
   /* sigset renamed to asigset due to clash with global on Darwin. */
   sigset_t asigset, oldset;
   struct sigaction sa;
+  
+  UNUSED(context);
 
   UNUSED(context);
   AVER(sig == PROT_SIGNAL);

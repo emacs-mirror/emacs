@@ -20,6 +20,7 @@ mkdir %mpsreleasename%
 
 mkdir %mpsreleasename%\include
 copy mps.h %mpsreleasename%\include
+copy mpstr.h %mpsreleasename%\include
 copy mpsavm.h %mpsreleasename%\include
 copy mpsacl.h %mpsreleasename%\include
 copy mpscamc.h %mpsreleasename%\include

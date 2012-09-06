@@ -50,21 +50,19 @@ SRCID(ssixi6, "$Id$");
 Res StackScan(ScanState ss, Addr *stackBot)
 {
   Addr calleeSaveRegs[6];
-  Addr *stackTop;
-  Res res;
-
+  
+  /* .assume.asm.stack */
+  /* Store the callee save registers on the stack so they get scanned
+   * as they may contain roots.
+   */
   ASMV("mov %%rbp, %0" : "=m" (calleeSaveRegs[0]));
   ASMV("mov %%rbx, %0" : "=m" (calleeSaveRegs[1]));
   ASMV("mov %%r12, %0" : "=m" (calleeSaveRegs[2]));
   ASMV("mov %%r13, %0" : "=m" (calleeSaveRegs[3]));
   ASMV("mov %%r14, %0" : "=m" (calleeSaveRegs[4]));
   ASMV("mov %%r15, %0" : "=m" (calleeSaveRegs[5]));
-  ASMV("mov %%rsp, %0" : "=r" (stackTop) :);    /* stackTop = rsp */
-
-  AVER(AddrIsAligned((Addr)stackTop, sizeof(Addr)));  /* .assume.align */
-  res = TraceScanAreaTagged(ss, stackTop, stackBot);
-
-  return res;
+  
+  return StackScanInner(ss, stackBot, calleeSaveRegs, NELEMS(calleeSaveRegs));
 }
 
 

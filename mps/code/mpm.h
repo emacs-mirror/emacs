@@ -210,7 +210,7 @@ extern Res PoolScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg);
 extern Res (PoolFix)(Pool pool, ScanState ss, Seg seg, Addr *refIO);
 #define PoolFix(pool, ss, seg, refIO) \
   ((*(pool)->fix)(pool, ss, seg, refIO))
-extern void PoolFixEmergency(Pool pool, ScanState ss, Seg seg, Addr *refIO);
+extern Res PoolFixEmergency(Pool pool, ScanState ss, Seg seg, Addr *refIO);
 extern void PoolReclaim(Pool pool, Trace trace, Seg seg);
 extern void PoolTraceEnd(Pool pool, Trace trace);
 extern void PoolWalk(Pool pool, Seg seg, FormattedObjectsStepMethod f,
@@ -374,14 +374,11 @@ extern void TraceDestroy(Trace trace);
 
 extern Res TraceAddWhite(Trace trace, Seg seg);
 extern Res TraceCondemnZones(Trace trace, ZoneSet condemnedSet);
-extern void TraceStart(Trace trace, double mortality,
-                       double finishingTime);
+extern Res TraceStart(Trace trace, double mortality, double finishingTime);
 extern Size TracePoll(Globals globals);
 
 extern Rank TraceRankForAccess(Arena arena, Seg seg);
 extern void TraceSegAccess(Arena arena, Seg seg, AccessSet mode);
-extern Res TraceFix(ScanState ss, Ref *refIO);
-extern Res TraceFixEmergency(ScanState ss, Ref *refIO);
 
 extern void TraceQuantum(Trace trace);
 extern Res TraceStartCollectAll(Trace *traceReturn, Arena arena, int why);
@@ -421,12 +418,11 @@ extern double TraceWorkFactor;
 #define TRACE_FIX1(ss, ref) \
   (SCANt = (Word)1 << ((Word)(ref) >> SCANzoneShift & (MPS_WORD_WIDTH-1)), \
    SCANsummary |= SCANt, \
-   SCANwhite & SCANt)
+   (SCANwhite & SCANt) != 0)
 
 /* Equivalent to <code/mps.h> MPS_FIX2 */
 
-#define TRACE_FIX2(ss, refIO) \
-  ((*(ss)->fix)(ss, refIO))
+#define TRACE_FIX2(ss, refIO) mps_fix2((mps_ss_t)(ss), (mps_addr_t *)(refIO))
 
 /* Equivalent to <code/mps.h> MPS_FIX */
 
@@ -521,6 +517,9 @@ extern void ArenaRestoreProtection(Globals globals);
 extern Res ArenaStartCollect(Globals globals, int why);
 extern Res ArenaCollect(Globals globals, int why);
 extern Bool ArenaHasAddr(Arena arena, Addr addr);
+
+extern void ArenaSetEmergency(Arena arena, Bool emergency);
+extern Bool ArenaEmergency(Arena arean);
 
 extern Res ControlInit(Arena arena);
 extern void ControlFinish(Arena arena);

@@ -337,14 +337,29 @@ buffer are output via the plinth.  This is set on a per-kind basis (see
 all event kinds are off.  You may switch some kinds on using a 
 debugger.
 
-For example, to enable Ref events using gdb (see impl.h.eventcom for numeric 
+For example, to enable Pool events using gdb (see impl.h.eventcom for numeric 
 codes):
 
-  break TraceCreate
-  run
-  delete 1
-  print EventKindControl |= 4
-  continue
+    rb@silverbird$ gdb ./xci3gc/cool/amcss
+    (gdb) break GlobalsInit
+    (gdb) run
+    ...
+    (gdb) print EventKindControl |= 2
+    $2 = 2
+    (gdb) continue
+    ...
+    (gdb) quit
+    rb@silverbird$ ./xci3gc/cool/eventcnv -v | sort | head
+    0000178EA03ACF6D PoolInit                9C1E0    9C000 0005E040
+    0000178EA03C2825 PoolInitMFS             9C0D8    9C000     1000        C
+    0000178EA03C2C27 PoolInitMFS             9C14C    9C000     1000       44
+    0000178EA03C332C PoolInitMV              9C080    9C000     1000       20    10000
+    0000178EA03F4DB4 BufferInit             2FE2C4   2FE1B0        0
+    0000178EA03F4EC8 BufferInitSeg          2FE2C4   2FE1B0        0
+    0000178EA03F57DA AMCGenCreate           2FE1B0   2FE288
+    0000178EA03F67B5 BufferInit             2FE374   2FE1B0        0
+    0000178EA03F6827 BufferInitSeg          2FE374   2FE1B0        0
+    0000178EA03F6B72 AMCGenCreate           2FE1B0   2FE338
 
 .control.env: The initial value of EventKindControl is read from the C environment
 when the ANSI Plinth is used, and so event output can be controlled like this:

@@ -189,7 +189,6 @@ typedef mps_addr_t (*mps_fmt_class_t)(mps_addr_t);
 /* .ss: See also <code/mpsi.c#check.ss> and <code/mpmst.h#ss>. */
 
 typedef struct mps_ss_s {
-  mps_res_t (*fix)(mps_ss_t, mps_addr_t *);
   mps_word_t w0, w1, w2;
 } mps_ss_s;
 
@@ -640,10 +639,10 @@ extern mps_res_t mps_fix(mps_ss_t, mps_addr_t *);
   (_mps_wt = (mps_word_t)1 << ((mps_word_t)(ref) >> _mps_w0 \
                                & (sizeof(mps_word_t) * CHAR_BIT - 1)), \
    _mps_w2 |= _mps_wt, \
-   _mps_w1 & _mps_wt)
+   (_mps_w1 & _mps_wt) != 0)
 
-#define MPS_FIX2(ss, ref_io) \
-  ((*(ss)->fix)(ss, ref_io))
+extern mps_res_t mps_fix2(mps_ss_t, mps_addr_t *);
+#define MPS_FIX2(ss, ref_io) mps_fix2(ss, ref_io)
 
 #define MPS_FIX12(ss, ref_io) \
   (MPS_FIX1(ss, *(ref_io)) ? \

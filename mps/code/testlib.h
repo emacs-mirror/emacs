@@ -88,6 +88,7 @@
 #define PRIXLONGEST "llX"
 #define PRIwWORD "16"
 typedef unsigned long long ulongest_t;
+typedef long long longest_t;
 #define MPS_WORD_CONST(n) (n##ull)
 #else
 #define PRIuLONGEST "lu"
@@ -95,6 +96,7 @@ typedef unsigned long long ulongest_t;
 #define PRIXLONGEST "lX"
 #define PRIwWORD "8"
 typedef unsigned long ulongest_t;
+typedef long longest_t;
 #define MPS_WORD_CONST(n) (n##ul)
 #endif
 #define PRIXPTR     "0"PRIwWORD PRIXLONGEST
@@ -162,6 +164,11 @@ extern void verror(const char *format, va_list args);
     NOOP; \
   else \
     cdie(cond, condstring "\n" __FILE__ "\n" STR(__LINE__))
+
+
+/* fail -- like assert, but (notionally) returns a value, so usable in an expression */
+
+extern int fail(void);
 
 
 /* rnd -- random number generator
