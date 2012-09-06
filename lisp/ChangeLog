@@ -1,7 +1,3 @@
-2012-09-06  Chong Yidong  <cyd@gnu.org>
-
-	* progmodes/vhdl-mode.el 
-
 2012-09-06  Rüdiger Sonderfeld  <ruediger@c-plusplus.de>
 
 	* progmodes/vhdl-mode.el (vhdl-speedbar-initialize): Don't use
@@ -13,6 +9,9 @@
 2012-09-06  Chong Yidong  <cyd@gnu.org>
 
 	* frame.el (window-system-version): Mark as obsolete.
+
+	* speedbar.el (speedbar-update-flag, speedbar-mode): Remove uses
+	of obsolete variable speedbar-key-map.
 
 2012-09-06  Juri Linkov  <juri@jurta.org>
 

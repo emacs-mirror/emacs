@@ -763,7 +763,7 @@ DIRECTORY-EXPRESSION to `speedbar-ignored-directory-expressions'."
   "Non-nil means to automatically update the display.
 When this is nil then speedbar will not follow the attached frame's directory.
 If you want to change this while speedbar is active, either use
-\\[customize] or call \\<speedbar-key-map> `\\[speedbar-toggle-updates]'."
+\\[customize] or call \\<speedbar-mode-map> `\\[speedbar-toggle-updates]'."
   :group 'speedbar
   :initialize 'custom-initialize-default
   :set (lambda (sym val)
@@ -1083,7 +1083,7 @@ Return nil if it doesn't exist."
 
 (define-derived-mode speedbar-mode fundamental-mode "Speedbar"
   "Major mode for managing a display of directories and tags.
-\\<speedbar-key-map>
+\\<speedbar-mode-map>
 The first line represents the default directory of the speedbar frame.
 Each directory segment is a button which jumps speedbar's default
 directory to that directory.  Buttons are activated by clicking `\\[speedbar-click]'.
@@ -1120,7 +1120,7 @@ category of tags.  Click the {+} to expand the category.  Jump-able
 tags start with >.  Click the name of the tag to go to that position
 in the selected file.
 
-\\{speedbar-key-map}"
+\\{speedbar-mode-map}"
   (save-excursion
     (setq font-lock-keywords nil) ;; no font-locking please
     (setq truncate-lines t)
