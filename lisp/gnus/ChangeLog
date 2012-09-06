@@ -1,3 +1,8 @@
+2012-09-06  Kenichi Handa  <handa@gnu.org>
+
+	* qp.el (quoted-printable-decode-region): Fix previous change; handle
+	lowercase a..f.
+
 2012-09-03  Lars Ingebrigtsen  <larsi@gnus.org>
 
 	* dgnushack.el: XEmacs 21.5 compilation fix.

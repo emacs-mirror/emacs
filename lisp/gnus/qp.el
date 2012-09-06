@@ -55,8 +55,12 @@ them into characters should be done separately."
       ;; recognize them as the corresponding uppercase letters.''
       (let ((case-fold-search t)
 	    (decode-hex #'(lambda (n1 n2)
-			    (+ (* (if (<= n1 ?9) (- n1 ?0) (+ (- n1 ?A) 10)) 16)
-			       (if (<= n2 ?9) (- n2 ?0) (+ (- n2 ?A) 10))))))
+			    (+ (* (if (<= n1 ?9) (- n1 ?0)
+				    (if (<= n1 ?F) (+ (- n1 ?A) 10)
+				      (+ (- n1 ?a) 10))) 16)
+			       (if (<= n2 ?9) (- n2 ?0)
+				 (if (<= n2 ?F) (+ (- n2 ?A) 10)
+				   (+ (- n2 ?a) 10)))))))
 	(narrow-to-region from to)
 	;; Do this in case we're called from Gnus, say, in a buffer
 	;; which already contains non-ASCII characters which would
