@@ -1,3 +1,8 @@
+2012-09-06  Kenichi Handa  <handa@gnu.org>
+
+	* qp.el (quoted-printable-decode-region): Fix previous change; handle
+	lowercase a..f.
+
 2012-09-05  Magnus Henoch  <magnus.henoch@gmail.com>
 
 	* nnmaildir.el (nnmaildir--article-set-flags): Fix compilation error.
