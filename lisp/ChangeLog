@@ -1,5 +1,17 @@
 2012-09-06  Chong Yidong  <cyd@gnu.org>
 
+	* progmodes/vhdl-mode.el 
+
+2012-09-06  Rüdiger Sonderfeld  <ruediger@c-plusplus.de>
+
+	* progmodes/vhdl-mode.el (vhdl-speedbar-initialize): Don't use
+	obsolete alias speedbar-key-map.
+	(vhdl-doc-variable, vhdl-doc-mode): Use called-interactively-p.
+	(vhdl-index-menu-init): Don't use obsolete variable
+	font-lock-maximum-size.
+
+2012-09-06  Chong Yidong  <cyd@gnu.org>
+
 	* frame.el (window-system-version): Mark as obsolete.
 
 2012-09-06  Juri Linkov  <juri@jurta.org>
