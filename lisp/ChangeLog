@@ -1,3 +1,9 @@
+2012-09-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/cl-macs.el (cl--do-arglist): Understand _ on &key args
+	(bug#12367).
+	(cl--make-usage-args): Strip _ from argument names.
+
 2012-09-06  Rüdiger Sonderfeld  <ruediger@c-plusplus.de>
 
 	* progmodes/vhdl-mode.el (vhdl-speedbar-initialize): Don't use
