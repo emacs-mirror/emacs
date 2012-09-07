@@ -378,12 +378,10 @@ adding the desired buffer's name to the list
 expression to the list @code{same-window-regexps}.  By default, these
 variables are @code{nil}, so this step is skipped.
 
-@vindex display-buffer-reuse-frames
 @item
 Otherwise, if the buffer is already displayed in an existing window,
 ``reuse'' that window.  Normally, only windows on the selected frame
 are considered, but windows on other frames are also reusable if you
-change @code{display-buffer-reuse-frames} to @code{t}, or if you
 change @code{pop-up-frames} (see below) to @code{t}.
 
 @item

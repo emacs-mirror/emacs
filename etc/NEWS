@@ -671,7 +671,7 @@ specifies frame parameters to give any newly-created frame.
 *** The following variables are obsolete, as they can be replaced by
 appropriate entries in the `display-buffer-alist' function introduced
 in Emacs 24.1:
-
++++
 **** `display-buffer-reuse-frames'
 **** `special-display-regexps'
 **** `special-display-frame-alist'

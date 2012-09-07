@@ -1728,8 +1728,7 @@ A frame means consider windows on that frame only.
 @end itemize
 
 If @var{alist} contains no @code{reusable-frames} entry, this function
-normally searches just the selected frame; however, if either the
-variable @code{display-buffer-reuse-frames} or the variable
+normally searches just the selected frame; however, if the variable
 @code{pop-up-frames} is non-@code{nil}, it searches all frames on the
 current terminal.  @xref{Choosing Window Options}.
 
@@ -1768,14 +1767,6 @@ windows are dedicated to another buffer (@pxref{Dedicated Windows}).
 The behavior of the standard display actions of @code{display-buffer}
 (@pxref{Choosing Window}) can be modified by a variety of user
 options.
-
-@defopt display-buffer-reuse-frames
-If the value of this variable is non-@code{nil}, @code{display-buffer}
-may search all frames on the current terminal when looking for a
-window already displaying the specified buffer.  The default is
-@code{nil}.  This variable is consulted by the action function
-@code{display-buffer-reuse-window} (@pxref{Display Action Functions}).
-@end defopt
 
 @defopt pop-up-windows
 If the value of this variable is non-@code{nil}, @code{display-buffer}

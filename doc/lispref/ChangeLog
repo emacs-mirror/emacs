@@ -1,5 +1,9 @@
 2012-09-07  Chong Yidong  <cyd@gnu.org>
 
+	* windows.texi (Display Action Functions)
+	(Choosing Window Options): Remove obsolete variable
+	display-buffer-reuse-frames.
+
 	* positions.texi (Narrowing): Document buffer-narrowed-p.
 
 	* markers.texi (Moving Markers): Add xref to Point (Bug#7151).
