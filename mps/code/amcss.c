@@ -182,8 +182,8 @@ static void *test(void *arg, size_t s)
   die(mps_pool_create(&pool, arena, mps_class_amc(), format, chain),
       "pool_create(amc)");
 
-  die(mps_ap_create(&ap, pool, MPS_RANK_EXACT), "BufferCreate");
-  die(mps_ap_create(&busy_ap, pool, MPS_RANK_EXACT), "BufferCreate 2");
+  die(mps_ap_create(&ap, pool, mps_rank_exact()), "BufferCreate");
+  die(mps_ap_create(&busy_ap, pool, mps_rank_exact()), "BufferCreate 2");
 
   for(i = 0; i < exactRootsCOUNT; ++i)
     exactRoots[i] = objNULL;
@@ -191,12 +191,12 @@ static void *test(void *arg, size_t s)
     ambigRoots[i] = rnd_addr();
 
   die(mps_root_create_table_masked(&exactRoot, arena,
-                                   MPS_RANK_EXACT, (mps_rm_t)0,
+                                   mps_rank_exact(), (mps_rm_t)0,
                                    &exactRoots[0], exactRootsCOUNT,
                                    (mps_word_t)1),
       "root_create_table(exact)");
   die(mps_root_create_table(&ambigRoot, arena,
-                            MPS_RANK_AMBIG, (mps_rm_t)0,
+                            mps_rank_ambig(), (mps_rm_t)0,
                             &ambigRoots[0], ambigRootsCOUNT),
       "root_create_table(ambig)");
 

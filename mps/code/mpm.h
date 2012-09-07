@@ -366,6 +366,14 @@ extern Bool ScanStateCheck(ScanState ss);
 extern void ScanStateSetSummary(ScanState ss, RefSet summary);
 extern RefSet ScanStateSummary(ScanState ss);
 
+/* See impl.h.mpmst.ss */
+#define ScanStateZoneShift(ss)             ((Shift)(ss)->ss_s._zs)
+#define ScanStateWhite(ss)                 ((ZoneSet)(ss)->ss_s._w)
+#define ScanStateUnfixedSummary(ss)        ((RefSet)(ss)->ss_s._ufs)
+#define ScanStateSetZoneShift(ss, shift)   ((void)((ss)->ss_s._zs = (shift)))
+#define ScanStateSetWhite(ss, zs)          ((void)((ss)->ss_s._w = (zs)))
+#define ScanStateSetUnfixedSummary(ss, rs) ((void)((ss)->ss_s._ufs = (rs)))
+
 extern Bool TraceIdCheck(TraceId id);
 extern Bool TraceSetCheck(TraceSet ts);
 extern Bool TraceCheck(Trace trace);
@@ -405,11 +413,11 @@ extern double TraceWorkFactor;
 #define TRACE_SCAN_BEGIN(ss) \
   BEGIN \
     /* Check range on zoneShift before casting to Shift. */ \
-    AVER((ss)->zoneShift < MPS_WORD_WIDTH); \
+    AVER(ScanStateZoneShift(ss) < MPS_WORD_WIDTH); \
     { \
-      Shift SCANzoneShift = (Shift)(ss)->zoneShift; \
-      ZoneSet SCANwhite = (ss)->white; \
-      RefSet SCANsummary = (ss)->unfixedSummary; \
+      Shift SCANzoneShift = ScanStateZoneShift(ss); \
+      ZoneSet SCANwhite = ScanStateWhite(ss); \
+      RefSet SCANsummary = ScanStateUnfixedSummary(ss); \
       Word SCANt; \
       {
 
@@ -422,7 +430,7 @@ extern double TraceWorkFactor;
 
 /* Equivalent to <code/mps.h> MPS_FIX2 */
 
-#define TRACE_FIX2(ss, refIO) mps_fix2((mps_ss_t)(ss), (mps_addr_t *)(refIO))
+#define TRACE_FIX2(ss, refIO) _mps_fix2((mps_ss_t)(ss), (mps_addr_t *)(refIO))
 
 /* Equivalent to <code/mps.h> MPS_FIX */
 
@@ -433,7 +441,7 @@ extern double TraceWorkFactor;
 
 #define TRACE_SCAN_END(ss) \
       } \
-      (ss)->unfixedSummary = SCANsummary; \
+      ScanStateSetUnfixedSummary(ss, SCANsummary); \
     } \
   END
 
@@ -693,9 +701,11 @@ extern Res BufferDescribe(Buffer buffer, mps_lib_FILE *stream);
 extern Res BufferReserve(Addr *pReturn, Buffer buffer, Size size,
                          Bool withReservoirPermit);
 /* macro equivalent for BufferReserve, keep in sync with <code/buffer.c> */
+/* TODO: Perhaps this isn't really necessary now that we build the MPS with
+   more global optimisation and inlining. RB 2012-09-07 */
 #define BUFFER_RESERVE(pReturn, buffer, size, withReservoirPermit) \
   (AddrAdd(BufferAlloc(buffer), size) > BufferAlloc(buffer) && \
-   AddrAdd(BufferAlloc(buffer), size) <= BufferAP(buffer)->limit ? \
+   AddrAdd(BufferAlloc(buffer), size) <= (Addr)BufferAP(buffer)->limit ? \
      (*(pReturn) = BufferAlloc(buffer), \
       BufferAP(buffer)->alloc = AddrAdd(BufferAlloc(buffer), size), \
       ResOK) : \
@@ -706,6 +716,8 @@ extern Res BufferFill(Addr *pReturn, Buffer buffer, Size size,
 
 extern Bool BufferCommit(Buffer buffer, Addr p, Size size);
 /* macro equivalent for BufferCommit, keep in sync with <code/buffer.c> */
+/* TODO: Perhaps this isn't really necessary now that we build the MPS with
+ more global optimisation and inlining. RB 2012-09-07 */
 #define BUFFER_COMMIT(buffer, p, size) \
   (BufferAP(buffer)->init = BufferAlloc(buffer), \
    BufferAP(buffer)->limit != 0 || BufferTrip(buffer, p, size))
@@ -721,10 +733,10 @@ extern void BufferAttach(Buffer buffer,
 extern void BufferDetach(Buffer buffer, Pool pool);
 extern void BufferFlip(Buffer buffer);
 
-extern AP (BufferAP)(Buffer buffer);
-#define BufferAP(buffer)        (&(buffer)->apStruct)
-extern Buffer BufferOfAP(AP ap);
-#define BufferOfAP(ap)          PARENT(BufferStruct, apStruct, ap)
+extern mps_ap_t (BufferAP)(Buffer buffer);
+#define BufferAP(buffer)        (&(buffer)->ap_s)
+extern Buffer BufferOfAP(mps_ap_t ap);
+#define BufferOfAP(ap)          PARENT(BufferStruct, ap_s, ap)
 
 #define BufferArena(buffer) ((buffer)->arena)
 #define BufferPool(buffer)  ((buffer)->pool)
@@ -736,8 +748,8 @@ extern void BufferSetRankSet(Buffer buffer, RankSet rankset);
 
 #define BufferBase(buffer)      ((buffer)->base)
 #define BufferGetInit(buffer) /* see .trans.bufferinit */ \
-  (BufferAP(buffer)->init)
-#define BufferAlloc(buffer)     (BufferAP(buffer)->alloc)
+  ((Addr)(BufferAP(buffer)->init))
+#define BufferAlloc(buffer)     ((Addr)(BufferAP(buffer)->alloc))
 #define BufferLimit(buffer)     ((buffer)->poolLimit)
 extern Addr BufferScanLimit(Buffer buffer);
 
@@ -890,11 +902,11 @@ extern Res MutatorFaultContextScan(ScanState ss, MutatorFaultContext mfc);
 
 /* Location Dependency -- see <code/ld.c> */
 
-extern void LDReset(LD ld, Arena arena);
-extern void LDAdd(LD ld, Arena arena, Addr addr);
-extern Bool LDIsStale(LD ld, Arena arena, Addr addr);
+extern void LDReset(mps_ld_t ld, Arena arena);
+extern void LDAdd(mps_ld_t ld, Arena arena, Addr addr);
+extern Bool LDIsStale(mps_ld_t ld, Arena arena, Addr addr);
 extern void LDAge(Arena arena, RefSet moved);
-extern void LDMerge(LD ld, Arena arena, LD from);
+extern void LDMerge(mps_ld_t ld, Arena arena, mps_ld_t from);
 
 
 /* Root Interface -- see <code/root.c> */

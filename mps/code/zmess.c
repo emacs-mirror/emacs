@@ -326,10 +326,10 @@ static void *testscriptB(void *arg, size_t s)
   for(i = 0; i < myrootCOUNT; ++i) {
     myroot[i] = NULL;
   }
-  die(mps_root_create_table(&root_table, arena, MPS_RANK_EXACT, (mps_rm_t)0,
+  die(mps_root_create_table(&root_table, arena, mps_rank_exact(), (mps_rm_t)0,
                             myroot, (size_t)myrootCOUNT),
       "root_create");
-  die(mps_ap_create(&ap, amc, MPS_RANK_EXACT), "ap_create");
+  die(mps_ap_create(&ap, amc, mps_rank_exact()), "ap_create");
   
   /* root_stackreg: stack & registers are ambiguous roots = mutator's workspace */
   die(mps_root_create_reg(&root_stackreg, arena,

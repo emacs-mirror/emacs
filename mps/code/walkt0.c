@@ -147,13 +147,13 @@ static void *test(void *arg, size_t s)
     die(mps_pool_create(&pool, arena, mps_class_amc(), format, chain),
         "pool_create(amc)");
 
-    die(mps_ap_create(&ap, pool, MPS_RANK_EXACT), "ap_create");
+    die(mps_ap_create(&ap, pool, mps_rank_exact()), "ap_create");
 
     for(i = 0; i < exactRootsCOUNT; ++i)
         exactRoots[i] = objNULL;
 
     die(mps_root_create_table_masked(&exactRoot, arena,
-                                     MPS_RANK_EXACT, (mps_rm_t)0,
+                                     mps_rank_exact(), (mps_rm_t)0,
                                      &exactRoots[0], exactRootsCOUNT,
                                      (mps_word_t)1),
         "root_create_table(exact)");

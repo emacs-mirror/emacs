@@ -57,7 +57,7 @@ SRCID(ld, "$Id$");
  * because if the epoch advances after it is read the dependency
  * will simply include movement for more time than necessary.
  */
-void LDReset(LD ld, Arena arena)
+void LDReset(mps_ld_t ld, Arena arena)
 {
   Bool b;
   Seg seg;
@@ -68,8 +68,8 @@ void LDReset(LD ld, Arena arena)
   b = SegOfAddr(&seg, arena, (Addr)ld);
   if (b)
     ShieldExpose(arena, seg);   /* .ld.access */
-  ld->epoch = arena->epoch;
-  ld->rs = RefSetEMPTY;
+  ld->_epoch = arena->epoch;
+  ld->_rs = RefSetEMPTY;
   if (b)
     ShieldCover(arena, seg);
 }
@@ -93,12 +93,12 @@ void LDReset(LD ld, Arena arena)
  * were used first only the new location of the reference would end up
  * in the set.
  */
-void LDAdd(LD ld, Arena arena, Addr addr)
+void LDAdd(mps_ld_t ld, Arena arena, Addr addr)
 {
-  AVER(ld->epoch <= arena->epoch);
+  AVER(ld->_epoch <= arena->epoch);
   /* AVERT(Arena, arena) -- see .add.lock-free */
 
-  ld->rs = RefSetAdd(arena, ld->rs, addr);
+  ld->_rs = RefSetAdd(arena, ld->_rs, addr);
 }
 
 
@@ -115,36 +115,36 @@ void LDAdd(LD ld, Arena arena, Addr addr)
  * with everything which has moved since it was initialized.
  *
  * .stale.recent.conservative: The refset from the history table is
- * loaded before we check whether ld->epoch is "recent" with respect to
+ * loaded before we check whether ld->_epoch is "recent" with respect to
  * the current epoch.  This means that we may (conservatively) decide
  * to use the prehistory instead.
  *
  * .stale.old: Otherwise, if the dependency is older than the length
  * of the history, check it against all movement that has ever occured.
  */
-Bool LDIsStale(LD ld, Arena arena, Addr addr)
+Bool LDIsStale(mps_ld_t ld, Arena arena, Addr addr)
 {
   RefSet rs;
 
   UNUSED(addr);
 
-  AVER(ld->epoch <= arena->epoch);
+  AVER(ld->_epoch <= arena->epoch);
   /* AVERT(Arena, arena) -- .stale.thread-safe */
 
-  if (arena->epoch == ld->epoch) /* .stale.current */
+  if (arena->epoch == ld->_epoch) /* .stale.current */
     return FALSE;
 
   /* Load the history refset, _then_ check to see if it's recent.
    * This may in fact load an okay refset, which we decide to throw
    * away and use the pre-history instead. */
-  rs = arena->history[ld->epoch % LDHistoryLENGTH];
+  rs = arena->history[ld->_epoch % LDHistoryLENGTH];
   /* .stale.recent */
   /* .stale.recent.conservative */
-  if (arena->epoch - ld->epoch > LDHistoryLENGTH) {
+  if (arena->epoch - ld->_epoch > LDHistoryLENGTH) {
     rs = arena->prehistory;     /* .stale.old */
   }
 
-  return RefSetInter(ld->rs, rs) != RefSetEMPTY;
+  return RefSetInter(ld->_rs, rs) != RefSetEMPTY;
 }
 
 
@@ -191,22 +191,22 @@ void LDAge(Arena arena, RefSet rs)
  * (rest of the) MPS.  It is unnecessary to claim locks before calling
  * this function.
  */
-void LDMerge(LD ld, Arena arena, LD from)
+void LDMerge(mps_ld_t ld, Arena arena, mps_ld_t from)
 {
   /* AVERT(Arena, arena); -- .merge.lock-free */
   AVER(ld != NULL);
-  AVER(ld->epoch <= arena->epoch);
+  AVER(ld->_epoch <= arena->epoch);
   AVER(from != NULL);
-  AVER(from->epoch <= arena->epoch);
+  AVER(from->_epoch <= arena->epoch);
 
   /* If a reference has been added since epoch e1 then I've */
   /* certainly added since epoch e0 where e0 < e1.  Therefore */
   /* the epoch of the merged ld is the minimum. */
-  if (from->epoch < ld->epoch)
-    ld->epoch = from->epoch;
+  if (from->_epoch < ld->_epoch)
+    ld->_epoch = from->_epoch;
 
   /* The set of references added is the union of the two. */
-  ld->rs = RefSetUnion(ld->rs, from->rs);
+  ld->_rs = RefSetUnion(ld->_rs, from->_rs);
 }
 
 

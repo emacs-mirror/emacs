@@ -431,19 +431,19 @@ static void *test(void *arg, size_t s)
   }
 
   die(mps_root_create_table_masked(&exactRoot, arena,
-                                   MPS_RANK_EXACT, (mps_rm_t)0,
+                                   mps_rank_exact(), (mps_rm_t)0,
                                    &exactRoots[0], exactRootsCOUNT,
                                    MPS_WORD_CONST(1)),
       "root_create_table(exact)");
   die(mps_root_create_table(&ambigRoot, arena,
-                            MPS_RANK_AMBIG, (mps_rm_t)0,
+                            mps_rank_ambig(), (mps_rm_t)0,
                             &ambigRoots[0], ambigRootsCOUNT),
       "root_create_table(ambig)");
 
   obj = objNULL;
 
   die(mps_root_create(&singleRoot, arena,
-                      MPS_RANK_EXACT, (mps_rm_t)0,
+                      mps_rank_exact(), (mps_rm_t)0,
                       &root_single, &obj, 0),
       "root_create(single)");
 
@@ -457,7 +457,7 @@ static void *test(void *arg, size_t s)
   addr_pool_test(arena, alloced_obj, mv, make(), amcpool, format);
 
   die(mps_root_create_fmt(&fmtRoot, arena,
-                          MPS_RANK_EXACT, (mps_rm_t)0,
+                          mps_rank_exact(), (mps_rm_t)0,
                           dylan_fmt_A()->scan,
                           alloced_obj,
                           (mps_addr_t)(((char*)alloced_obj)+asize)),
@@ -587,7 +587,7 @@ int main(int argc, char **argv)
   die(mps_thread_reg(&thread, arena), "thread_reg");
 
   die(mps_root_create_reg(&reg_root, arena,
-                          MPS_RANK_AMBIG, (mps_rm_t)0,
+                          mps_rank_ambig(), (mps_rm_t)0,
                           thread, &mps_stack_scan_ambig,
                           marker, (size_t)0),
       "root_create_reg");

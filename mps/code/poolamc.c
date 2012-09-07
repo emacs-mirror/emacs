@@ -217,7 +217,7 @@ static void AMCSegSketch(Seg seg, char *pbSketch, size_t cbSketch)
     Bool mut = BufferIsMutator(buffer);
     Bool flipped = ((buffer->mode & BufferModeFLIPPED) != 0);
     Bool trapped = BufferIsTrapped(buffer);
-    Bool limitzeroed = (buffer->apStruct.limit == 0);
+    Bool limitzeroed = (buffer->ap_s.limit == 0);
 
     pbSketch[3] = 'X';  /* I don't know what's going on! */
 
@@ -1540,10 +1540,10 @@ static Res amcScanNailed(Bool *totalReturn, ScanState ss, Pool pool,
     DIAG_SINGLEF(( "amcScanNailed_loop",
       "scan completed, but had to loop $U times:\n", (WriteFU)loops,
       " SegSummary:        $B\n", (WriteFB)SegSummary(seg),
-      " ss.white:          $B\n", (WriteFB)ss->white,
-      " ss.unfixedSummary: $B", (WriteFB)ss->unfixedSummary,
+      " ss.white:          $B\n", (WriteFB)ScanStateWhite(ss),
+      " ss.unfixedSummary: $B", (WriteFB)ScanStateUnfixedSummary(ss),
         "$S\n", (WriteFS)( 
-          (RefSetSub(ss->unfixedSummary, SegSummary(seg)))
+          (RefSetSub(ScanStateUnfixedSummary(ss), SegSummary(seg)))
           ? ""
           : " <=== This would have failed .verify.segsummary!"
           ),

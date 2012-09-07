@@ -51,14 +51,14 @@ Bool BufferCheck(Buffer buffer)
   CHECKL(buffer->emptySize <= buffer->fillSize);
   CHECKL(buffer->alignment == buffer->pool->alignment);
   CHECKL(AlignCheck(buffer->alignment));
-  CHECKL(BoolCheck(buffer->apStruct.enabled));
+  CHECKL(BoolCheck(buffer->ap_s._enabled));
 
-  if (buffer->apStruct.enabled) {
+  if (buffer->ap_s._enabled) {
     /* no useful check for frameptr - mutator may be updating it */
-    CHECKL(BoolCheck(buffer->apStruct.lwPopPending));
+    CHECKL(BoolCheck(buffer->ap_s._lwpoppending));
   } else {
-    CHECKL(buffer->apStruct.lwPopPending == FALSE);
-    CHECKL(buffer->apStruct.frameptr == NULL);
+    CHECKL(buffer->ap_s._lwpoppending == FALSE);
+    CHECKL(buffer->ap_s._frameptr == NULL);
   }
 
   /* If any of the buffer's fields indicate that it is reset, make */
@@ -68,15 +68,15 @@ Bool BufferCheck(Buffer buffer)
     /* nothing to check */
   } else if ((buffer->mode & BufferModeATTACHED) == 0
              || buffer->base == (Addr)0
-             || buffer->apStruct.init == (Addr)0
-             || buffer->apStruct.alloc == (Addr)0
+             || buffer->ap_s.init == (Addr)0
+             || buffer->ap_s.alloc == (Addr)0
              || buffer->poolLimit == (Addr)0) {
     CHECKL((buffer->mode & BufferModeATTACHED) == 0);
     CHECKL(buffer->base == (Addr)0);
     CHECKL(buffer->initAtFlip == (Addr)0);
-    CHECKL(buffer->apStruct.init == (Addr)0);
-    CHECKL(buffer->apStruct.alloc == (Addr)0);
-    CHECKL(buffer->apStruct.limit == (Addr)0);
+    CHECKL(buffer->ap_s.init == (Addr)0);
+    CHECKL(buffer->ap_s.alloc == (Addr)0);
+    CHECKL(buffer->ap_s.limit == (Addr)0);
     /* Nothing reliable to check for lightweight frame state */
     CHECKL(buffer->poolLimit == (Addr)0);
   } else {
@@ -88,16 +88,16 @@ Bool BufferCheck(Buffer buffer)
 
     /* These fields should obey the ordering */
     /* base <= init <= alloc <= poolLimit */
-    CHECKL(buffer->base <= buffer->apStruct.init);
-    CHECKL(buffer->apStruct.init <= buffer->apStruct.alloc);
-    CHECKL(buffer->apStruct.alloc <= buffer->poolLimit);
+    CHECKL((mps_addr_t)buffer->base <= buffer->ap_s.init);
+    CHECKL(buffer->ap_s.init <= buffer->ap_s.alloc);
+    CHECKL(buffer->ap_s.alloc <= (mps_addr_t)buffer->poolLimit);
 
     /* Check that the fields are aligned to the buffer alignment. */
     CHECKL(AddrIsAligned(buffer->base, buffer->alignment));
     CHECKL(AddrIsAligned(buffer->initAtFlip, buffer->alignment));
-    CHECKL(AddrIsAligned(buffer->apStruct.init, buffer->alignment));
-    CHECKL(AddrIsAligned(buffer->apStruct.alloc, buffer->alignment));
-    CHECKL(AddrIsAligned(buffer->apStruct.limit, buffer->alignment));
+    CHECKL(AddrIsAligned(buffer->ap_s.init, buffer->alignment));
+    CHECKL(AddrIsAligned(buffer->ap_s.alloc, buffer->alignment));
+    CHECKL(AddrIsAligned(buffer->ap_s.limit, buffer->alignment));
     CHECKL(AddrIsAligned(buffer->poolLimit, buffer->alignment));
 
     /* .lwcheck: If LW frames are enabled, the buffer may become */
@@ -106,7 +106,7 @@ Bool BufferCheck(Buffer buffer)
     /* Read a snapshot value of the limit field. Use this to determine */
     /* if we are trapped, and to permit more useful checking when not */
     /* yet trapped. */
-    aplimit = buffer->apStruct.limit;
+    aplimit = buffer->ap_s.limit;
 
     /* If the buffer isn't trapped then "limit" should be the limit */
     /* set by the owning pool.  Otherwise, "init" is either at the */
@@ -117,17 +117,17 @@ Bool BufferCheck(Buffer buffer)
     /* is kept at zero to avoid misuse (see */
     /* request.dylan.170429.sol.zero). */
 
-    if ((buffer->apStruct.enabled && aplimit == (Addr)0) /* see .lwcheck */
-        || (!buffer->apStruct.enabled && BufferIsTrapped(buffer))) {
+    if ((buffer->ap_s._enabled && aplimit == (Addr)0) /* see .lwcheck */
+        || (!buffer->ap_s._enabled && BufferIsTrapped(buffer))) {
       /* .check.use-trapped: This checking function uses BufferIsTrapped, */
       /* So BufferIsTrapped can't do checking as that would cause an */
       /* infinite loop. */
       CHECKL(aplimit == (Addr)0);
       if (buffer->mode & BufferModeFLIPPED) {
-        CHECKL(buffer->apStruct.init == buffer->initAtFlip
-               || buffer->apStruct.init == buffer->apStruct.alloc);
+        CHECKL(buffer->ap_s.init == buffer->initAtFlip
+               || buffer->ap_s.init == buffer->ap_s.alloc);
         CHECKL(buffer->base <= buffer->initAtFlip);
-        CHECKL(buffer->initAtFlip <= buffer->apStruct.init);
+        CHECKL(buffer->initAtFlip <= (Addr)buffer->ap_s.init);
       }
       /* Nothing special to check in the logged mode. */
     } else {
@@ -174,9 +174,9 @@ Res BufferDescribe(Buffer buffer, mps_lib_FILE *stream)
                "  alignment $W\n",   (WriteFW)buffer->alignment,
                "  base $A\n",        buffer->base,
                "  initAtFlip $A\n",  buffer->initAtFlip,
-               "  init $A\n",        buffer->apStruct.init,
-               "  alloc $A\n",       buffer->apStruct.alloc,
-               "  limit $A\n",       buffer->apStruct.limit,
+               "  init $A\n",        buffer->ap_s.init,
+               "  alloc $A\n",       buffer->ap_s.alloc,
+               "  limit $A\n",       buffer->ap_s.limit,
                "  poolLimit $A\n",   buffer->poolLimit,
                NULL);
   if (res != ResOK) return res;
@@ -223,12 +223,15 @@ static Res BufferInitV(Buffer buffer, BufferClass class,
   buffer->alignment = pool->alignment; /* .trans.mod */
   buffer->base = (Addr)0;
   buffer->initAtFlip = (Addr)0;
-  buffer->apStruct.init = (Addr)0;
-  buffer->apStruct.alloc = (Addr)0;
-  buffer->apStruct.limit = (Addr)0;
-  buffer->apStruct.frameptr = NULL;
-  buffer->apStruct.enabled = FALSE;
-  buffer->apStruct.lwPopPending = FALSE;
+  /* In the next three assignements we really mean zero, not NULL, because
+     the bit pattern is compared.  It's pretty unlikely we'll encounter
+     a platform where this makes a difference. */
+  buffer->ap_s.init = (mps_addr_t)0;
+  buffer->ap_s.alloc = (mps_addr_t)0;
+  buffer->ap_s.limit = (mps_addr_t)0;
+  buffer->ap_s._frameptr = NULL;
+  buffer->ap_s._enabled = FALSE;
+  buffer->ap_s._lwpoppending = FALSE;
   buffer->poolLimit = (Addr)0;
   buffer->rampCount = 0;
 
@@ -327,7 +330,7 @@ void BufferDetach(Buffer buffer, Pool pool)
     Size spare;
 
     buffer->mode |= BufferModeTRANSITION;
-    init = buffer->apStruct.init;
+    init = buffer->ap_s.init;
     limit = buffer->poolLimit;
     /* Ask the owning pool to do whatever it needs to before the */
     /* buffer is detached (e.g. copy buffer state into pool state). */
@@ -353,9 +356,9 @@ void BufferDetach(Buffer buffer, Pool pool)
     /* Reset the buffer. */
     buffer->base = (Addr)0;
     buffer->initAtFlip = (Addr)0;
-    buffer->apStruct.init = (Addr)0;
-    buffer->apStruct.alloc = (Addr)0;
-    buffer->apStruct.limit = (Addr)0;
+    buffer->ap_s.init = (mps_addr_t)0;
+    buffer->ap_s.alloc = (mps_addr_t)0;
+    buffer->ap_s.limit = (mps_addr_t)0;
     buffer->poolLimit = (Addr)0;
     buffer->mode &=
       ~(BufferModeATTACHED|BufferModeFLIPPED|BufferModeTRANSITION);
@@ -445,7 +448,7 @@ Bool BufferIsReady(Buffer buffer)
 {
   AVERT(Buffer, buffer);
 
-  return buffer->apStruct.init == buffer->apStruct.alloc;
+  return buffer->ap_s.init == buffer->ap_s.alloc;
 }
 
 
@@ -470,9 +473,9 @@ static void BufferSetUnflipped(Buffer buffer)
   AVERT(Buffer, buffer);
   AVER(buffer->mode & BufferModeFLIPPED);
   buffer->mode &= ~BufferModeFLIPPED;
-  /* restore apStruct.limit if appropriate */
+  /* restore ap_s.limit if appropriate */
   if (!BufferIsTrapped(buffer)) {
-    buffer->apStruct.limit = buffer->poolLimit;
+    buffer->ap_s.limit = buffer->poolLimit;
   }
   buffer->initAtFlip = (Addr)0;
 }
@@ -486,16 +489,16 @@ static void BufferSetUnflipped(Buffer buffer)
 FrameState BufferFrameState(Buffer buffer)
 {
   AVERT(Buffer, buffer);
-  if (buffer->apStruct.enabled) {
-    if (buffer->apStruct.lwPopPending) {
+  if (buffer->ap_s._enabled) {
+    if (buffer->ap_s._lwpoppending) {
       return BufferFramePOP_PENDING;
     } else {
-      AVER(buffer->apStruct.frameptr == NULL);
+      AVER(buffer->ap_s._frameptr == NULL);
       return BufferFrameVALID;
     }
   } else {
-    AVER(buffer->apStruct.frameptr == NULL);
-    AVER(buffer->apStruct.lwPopPending == FALSE);
+    AVER(buffer->ap_s._frameptr == NULL);
+    AVER(buffer->ap_s._lwpoppending == FALSE);
     return BufferFrameDISABLED;
   }
 }
@@ -510,9 +513,9 @@ void BufferFrameSetState(Buffer buffer, FrameState state)
 {
   AVERT(Buffer, buffer);
   AVER(state == BufferFrameVALID || state == BufferFrameDISABLED);
-  buffer->apStruct.frameptr = NULL;
-  buffer->apStruct.lwPopPending = FALSE;
-  buffer->apStruct.enabled = (state == BufferFrameVALID);
+  buffer->ap_s._frameptr = NULL;
+  buffer->ap_s._lwpoppending = FALSE;
+  buffer->ap_s._enabled = (state == BufferFrameVALID);
 }
 
 
@@ -528,8 +531,8 @@ void BufferSetAllocAddr(Buffer buffer, Addr addr)
   AVER(buffer->base <= addr);
   AVER(buffer->poolLimit >= addr);
 
-  buffer->apStruct.init = addr;
-  buffer->apStruct.alloc = addr;
+  buffer->ap_s.init = addr;
+  buffer->ap_s.alloc = addr;
 }
 
 
@@ -545,13 +548,13 @@ static void BufferFrameNotifyPopPending(Buffer buffer)
   Pool pool;
   AVER(BufferIsTrappedByMutator(buffer));
   AVER(BufferFrameState(buffer) == BufferFramePOP_PENDING);
-  frame = (AllocFrame)buffer->apStruct.frameptr;
+  frame = (AllocFrame)buffer->ap_s._frameptr;
   /* Unset PopPending state & notify the pool */
   BufferFrameSetState(buffer, BufferFrameVALID);
   /* If the frame is no longer trapped, undo the trap by resetting */
   /* the AP limit pointer */
   if (!BufferIsTrapped(buffer)) {
-    buffer->apStruct.limit = buffer->poolLimit;
+    buffer->ap_s.limit = buffer->poolLimit;
   }
   pool = BufferPool(buffer);
   (*pool->class->framePopPending)(pool, buffer, frame);
@@ -571,7 +574,7 @@ Res BufferFramePush(AllocFrame *frameReturn, Buffer buffer)
 
 
   /* Process any flip or PopPending */
-  if (!BufferIsReset(buffer) && buffer->apStruct.limit == (Addr)0) {
+  if (!BufferIsReset(buffer) && buffer->ap_s.limit == (Addr)0) {
     /* .fill.unflip: If the buffer is flipped then we unflip the buffer. */
     if (buffer->mode & BufferModeFLIPPED) {
       BufferSetUnflipped(buffer);
@@ -622,10 +625,11 @@ Res BufferReserve(Addr *pReturn, Buffer buffer, Size size,
   /* Is there enough room in the unallocated portion of the buffer to */
   /* satisfy the request?  If so, just increase the alloc marker and */
   /* return a pointer to the area below it. */
-  next = AddrAdd(buffer->apStruct.alloc, size);
-  if (next > buffer->apStruct.alloc && next <= buffer->apStruct.limit) {
-    buffer->apStruct.alloc = next;
-    *pReturn = buffer->apStruct.init;
+  next = AddrAdd(buffer->ap_s.alloc, size);
+  if (next > (Addr)buffer->ap_s.alloc &&
+      next <= (Addr)buffer->ap_s.limit) {
+    buffer->ap_s.alloc = next;
+    *pReturn = buffer->ap_s.init;
     return ResOK;
   }
 
@@ -653,13 +657,13 @@ void BufferAttach(Buffer buffer, Addr base, Addr limit,
   /* Set up the buffer to point at the supplied region */
   buffer->mode |= BufferModeATTACHED;
   buffer->base = base;
-  buffer->apStruct.init = init;
-  buffer->apStruct.alloc = AddrAdd(init, size);
+  buffer->ap_s.init = init;
+  buffer->ap_s.alloc = AddrAdd(init, size);
   /* only set limit if not logged */
   if ((buffer->mode & BufferModeLOGGED) == 0) {
-    buffer->apStruct.limit = limit;
+    buffer->ap_s.limit = limit;
   } else {
-    AVER(buffer->apStruct.limit == (Addr)0);
+    AVER(buffer->ap_s.limit == (Addr)0);
   }
   AVER(buffer->initAtFlip == (Addr)0);
   buffer->poolLimit = limit;
@@ -710,7 +714,7 @@ Res BufferFill(Addr *pReturn, Buffer buffer, Size size,
 
   /* If we're here because the buffer was trapped, then we attempt */
   /* the allocation here. */
-  if (!BufferIsReset(buffer) && buffer->apStruct.limit == (Addr)0) {
+  if (!BufferIsReset(buffer) && buffer->ap_s.limit == (Addr)0) {
     /* .fill.unflip: If the buffer is flipped then we unflip the buffer. */
     if (buffer->mode & BufferModeFLIPPED) {
       BufferSetUnflipped(buffer);
@@ -722,21 +726,21 @@ Res BufferFill(Addr *pReturn, Buffer buffer, Size size,
     }
 
     /* .fill.logged: If the buffer is logged then we leave it logged. */
-    next = AddrAdd(buffer->apStruct.alloc, size);
-    if (next > buffer->apStruct.alloc &&
-       next <= buffer->poolLimit) {
-      buffer->apStruct.alloc = next;
+    next = AddrAdd(buffer->ap_s.alloc, size);
+    if (next > (Addr)buffer->ap_s.alloc &&
+        next <= (Addr)buffer->poolLimit) {
+      buffer->ap_s.alloc = next;
       if (buffer->mode & BufferModeLOGGED) {
-        EVENT3(BufferReserve, buffer, buffer->apStruct.init, size);
+        EVENT3(BufferReserve, buffer, buffer->ap_s.init, size);
       }
-      *pReturn = buffer->apStruct.init;
+      *pReturn = buffer->ap_s.init;
       return ResOK;
     }
   }
 
   /* There really isn't enough room for the allocation now. */
-  AVER(AddrAdd(buffer->apStruct.alloc, size) > buffer->poolLimit
-       || AddrAdd(buffer->apStruct.alloc, size) < buffer->apStruct.alloc);
+  AVER(AddrAdd(buffer->ap_s.alloc, size) > buffer->poolLimit ||
+       AddrAdd(buffer->ap_s.alloc, size) < (Addr)buffer->ap_s.alloc);
 
   BufferDetach(buffer, pool);
 
@@ -752,7 +756,7 @@ Res BufferFill(Addr *pReturn, Buffer buffer, Size size,
   BufferAttach(buffer, base, limit, base, size);
 
   if (buffer->mode & BufferModeLOGGED) {
-    EVENT3(BufferReserve, buffer, buffer->apStruct.init, size);
+    EVENT3(BufferReserve, buffer, buffer->ap_s.init, size);
   }
 
   *pReturn = base;
@@ -776,13 +780,13 @@ Bool BufferCommit(Buffer buffer, Addr p, Size size)
   /* .commit.before: If a flip occurs before this point, when the */
   /* pool reads "initAtFlip" it will point below the object, so it */
   /* will be trashed and the commit must fail when trip is called.  */
-  AVER(p == buffer->apStruct.init);
-  AVER(AddrAdd(buffer->apStruct.init, size) == buffer->apStruct.alloc);
+  AVER(p == buffer->ap_s.init);
+  AVER(AddrAdd(buffer->ap_s.init, size) == buffer->ap_s.alloc);
 
   /* .commit.update: Atomically update the init pointer to declare */
   /* that the object is initialized (though it may be invalid if a */
   /* flip occurred). */
-  buffer->apStruct.init = buffer->apStruct.alloc;
+  buffer->ap_s.init = buffer->ap_s.alloc;
 
   /* .improve.memory-barrier: Memory barrier here on the DEC Alpha */
   /* (and other relaxed memory order architectures). */
@@ -791,7 +795,7 @@ Bool BufferCommit(Buffer buffer, Addr p, Size size)
   /* be collected.  The commit must succeed when trip is called.  */
   /* The pointer "p" will have been fixed up.  (@@@@ Will it?) */
   /* .commit.trip: Trip the buffer if a flip has occurred. */
-  if (buffer->apStruct.limit == 0)
+  if (buffer->ap_s.limit == 0)
     return BufferTrip(buffer, p, size);
 
   /* No flip occurred, so succeed. */
@@ -817,7 +821,7 @@ Bool BufferTrip(Buffer buffer, Addr p, Size size)
 
   /* The limit field should be zero, because that's how trip gets */
   /* called.  See .commit.trip. */
-  AVER(buffer->apStruct.limit == 0);
+  AVER(buffer->ap_s.limit == 0);
   /* Of course we should be trapped. */
   AVER(BufferIsTrapped(buffer));
   /* But the mutator shouldn't have caused the trap */
@@ -825,7 +829,7 @@ Bool BufferTrip(Buffer buffer, Addr p, Size size)
 
   /* The init and alloc fields should be equal at this point, because */
   /* the step .commit.update has happened. */
-  AVER(buffer->apStruct.init == buffer->apStruct.alloc);
+  AVER(buffer->ap_s.init == buffer->ap_s.alloc);
 
   /* The p parameter points at the base address of the allocated */
   /* block, the end of which should now coincide with the init and */
@@ -835,7 +839,7 @@ Bool BufferTrip(Buffer buffer, Addr p, Size size)
   /* it seems like the algorithms could be modified to cope with the */
   /* case of the object having been copied between Commit updating i */
   /* and testing limit) */
-  AVER(AddrAdd(p, size) == buffer->apStruct.init);
+  AVER(AddrAdd(p, size) == buffer->ap_s.init);
 
   pool = BufferPool(buffer);
 
@@ -847,13 +851,13 @@ Bool BufferTrip(Buffer buffer, Addr p, Size size)
   /* Otherwise (see .commit.after) the object is valid (will've been */
   /* scanned) so commit can simply succeed. */
   if ((buffer->mode & BufferModeFLIPPED)
-      && buffer->apStruct.init != buffer->initAtFlip) {
+      && buffer->ap_s.init != buffer->initAtFlip) {
     /* Reset just enough state for Reserve/Fill to work. */
     /* The buffer is left trapped and we leave the untrapping */
     /* for the next reserve (which goes out of line to Fill */
     /* (.fill.unflip) because the buffer is still trapped) */
-    buffer->apStruct.init = p;
-    buffer->apStruct.alloc = p;
+    buffer->ap_s.init = p;
+    buffer->ap_s.alloc = p;
     return FALSE;
   }
 
@@ -901,9 +905,9 @@ void BufferFlip(Buffer buffer)
       && (buffer->mode & BufferModeFLIPPED) == 0
       && !BufferIsReset(buffer)) {
     AVER(buffer->initAtFlip == (Addr)0);
-    buffer->initAtFlip = buffer->apStruct.init;
+    buffer->initAtFlip = buffer->ap_s.init;
     /* Memory Barrier here? @@@@ */
-    buffer->apStruct.limit = (Addr)0;
+    buffer->ap_s.limit = (Addr)0;
     buffer->mode |= BufferModeFLIPPED;
   }
 }
@@ -922,7 +926,7 @@ Addr BufferScanLimit(Buffer buffer)
   if (buffer->mode & BufferModeFLIPPED) {
     return buffer->initAtFlip;
   } else {
-    return buffer->apStruct.init;
+    return buffer->ap_s.init;
   }
 }
 
@@ -984,9 +988,9 @@ Bool BufferIsTrapped(Buffer buffer)
 
 Bool BufferIsTrappedByMutator(Buffer buffer)
 {
-  AVER(!buffer->apStruct.lwPopPending || buffer->apStruct.enabled);
+  AVER(!buffer->ap_s._lwpoppending || buffer->ap_s._enabled);
   /* Can't check buffer, see .check.use-trapped */
-  return buffer->apStruct.lwPopPending;
+  return buffer->ap_s._lwpoppending;
 }
 
 

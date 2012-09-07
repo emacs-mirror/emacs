@@ -118,7 +118,7 @@ typedef long longest_t;
  * argument on stderr and exits the program.  Otherwise does nothing.
  *
  * Typical use:
- *   die(mps_ap_create(&ap, pool, MPS_RANK_EXACT), "APCreate");
+ *   die(mps_ap_create(&ap, pool, mps_rank_exact()), "APCreate");
  */
 
 extern void die(mps_res_t res, const char *s);

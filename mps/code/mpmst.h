@@ -343,33 +343,15 @@ typedef struct BufferClassStruct {
 } BufferClassStruct;
 
 
-
-
-/* APStruct -- allocation point structure
- *
- * AP are part of the design of buffers see <design/buffer/>.
- *
- * The allocation point is exported to the client code so that it can
- * do in-line buffered allocation.
- *
- * .ap: This structure must match <code/mps.h#ap>.  See also
- * <code/mpsi.c#check.ap>.  */
-
-typedef struct APStruct {
-  Addr init;                    /* limit of initialized area */
-  Addr alloc;                   /* limit of allocated area */
-  Addr limit;                   /* limit of allocation buffer */
-  Addr frameptr;                /* lightweight frame pointer */
-  Bool enabled;                 /* lightweight frame status */
-  Bool lwPopPending;            /* lightweight pop pending? */
-} APStruct;
-
-
 /* BufferStruct -- allocation buffer structure
  *
  * See <code/buffer.c>, <design/buffer/>.
  *
- * The buffer contains an AP which may be exported to the client.  */
+ * The buffer contains an AP which may be exported to the client.
+ * AP are part of the design of buffers see <design/buffer/>.
+ * The allocation point is exported to the client code so that it can
+ * do in-line buffered allocation.
+ */
 
 #define BufferSig       ((Sig)0x519B0FFE) /* SIGnature BUFFEr */
 
@@ -386,7 +368,7 @@ typedef struct BufferStruct {
   double emptySize;             /* bytes emptied from this buffer */
   Addr base;                    /* base address of allocation buffer */
   Addr initAtFlip;              /* limit of initialized data at flip */
-  APStruct apStruct;            /* the allocation point */
+  mps_ap_s ap_s;                /* the allocation point */
   Addr poolLimit;               /* the pool's idea of the limit */
   Align alignment;              /* allocation alignment */
   unsigned rampCount;           /* see <code/buffer.c#ramp.hack> */
@@ -435,40 +417,32 @@ typedef struct FormatStruct {
 } FormatStruct;
 
 
-/* LDStruct -- location dependency structure
- *
- * See design.mps.ld, and <code/ld.c>.
- *
- * A version of this structure is exported to the client.  .ld.struct:
- * This must be kept in sync with <code/mps.h#ld>.  See also
- * <code/mpsi.c#check.ld>.  */
-
-typedef struct LDStruct {
-  Epoch epoch;          /* epoch when ld was last reset / init'ed */
-  RefSet rs;            /* RefSet of Add'ed references */
-} LDStruct;
-
-
 /* ScanState
  *
  * .ss: See <code/trace.c>.
  *
- * .ss: The first three fields of the trace structure must match the
- * external scan state structure (mps_ss_s) thus:
- *   ss->zoneShift      mps_ss->w0
- *   ss->white          mps_ss->w1
- *   ss->unfixedSummary mps_ss->w2
- * See <code/mps.h#ss> and <code/mpsi.c#check.ss>.  This is why the Sig
- * field is in the middle of this structure.  .ss.zone: The zoneShift
- * field is therefore declared as Word rather than Shift.  */
+ * .ss: The mps_ss field of the scan state structure is exported
+ * through the MPS interface to optimise the critical path scan loop.
+ *
+ * .ss.zone: For binary compatibility, the zone shift is exported as
+ * a word rather than a shift, so that the external mps_ss_s is a uniform
+ * three-word structure.  See <code/mps.h#ss> and <design/interface-c>.
+ *
+ *   zs  Shift   zoneShift       copy of arena->zoneShift.  See .ss.zone
+ *   w   ZoneSet white           white set, for inline fix test
+ *   ufs RefSet  unfixedSummary  accumulated summary of scanned references
+ *
+ * NOTE: The mps_ss structure used to be obfuscated to preserve Harlequin's
+ * trade secrets in the MPS technology.  These days they just seek to
+ * emphasize the abstraction, and could maybe be given better names and
+ * types.  RB 2012-09-07
+ */
 
 #define ScanStateSig    ((Sig)0x5195CA45) /* SIGnature SCAN State */
 
 typedef struct ScanStateStruct {
-  Word zoneShift;               /* copy of arena->zoneShift.  See .ss.zone */
-  ZoneSet white;                /* white set, for inline fix test */
-  RefSet unfixedSummary;        /* accumulated summary of scanned references */
   Sig sig;                      /* <design/sig/> */
+  struct mps_ss_s ss_s;         /* .ss <http://bash.org/?400459> */
   Arena arena;                  /* owning arena */
   PoolFixMethod fix;            /* third stage fix function */
   void *fixClosure;             /* closure data for fix */
@@ -630,7 +604,7 @@ typedef struct GlobalsStruct {
 
 #define ArenaSig        ((Sig)0x519A6E4A) /* SIGnature ARENA */
 
-typedef struct ArenaStruct {
+typedef struct mps_arena_s {
   GlobalsStruct globals; /* must be first, see <design/arena/#globals> */
   Serial serial;
 
