@@ -1,0 +1,59 @@
+# Makefile.in -- source for autoconf Makefile
+#
+# $Id$
+# Copyright (C) 2012 Ravenbrook Limited.  See end of file for license.
+#
+# YOU DON"T NEED AUTOCONF TO BUILD THE MPS
+# This is just here for people who want or expect a configure script.
+# See [Building the Memory Pool System](manual/build.txt) for how best
+# to build and integrate the MPS.
+#
+
+MPS_TARGET_PF=@MPS_TARGET_PF@
+
+BUILD_TARGET=build-via-make
+CLEAN_TARGET=clean-make-build
+
+ifeq ($(MPS_TARGET_PF),MPS_PF_LII4GC)
+	MPS_TARGET_NAME=lii4gc
+endif
+ifeq ($(MPS_TARGET_PF),MPS_PF_LII6GC)
+	MPS_TARGET_NAME=lii6gc
+endif
+ifeq ($(MPS_TARGET_PF),MPS_PF_XCI3LL)
+	BUILD_TARGET=build-via-xcode
+	CLEAN_TARGET=clean-xcode-build
+endif
+ifeq ($(MPS_TARGET_PF),MPS_PF_XCI6LL)
+	BUILD_TARGET=build-via-xcode
+	CLEAN_TARGET=clean-xcode-build
+endif
+ifeq ($(MPS_TARGET_PF),MPS_PF_FRI4GC)
+	MPS_TARGET_NAME=fri4gc
+endif
+ifeq ($(MPS_TARGET_PF),MPS_PF_FRI6GC)
+	MPS_TARGET_NAME=fri6gc
+endif
+
+all: $(BUILD_TARGET)
+	$(BUILD)
+
+build-via-make:
+	make -C code -f $(MPS_TARGET_NAME).gmk
+
+clean-make-build:
+	rm -r code/$(MPS_TARGET_NAME)/
+
+build-via-xcode:
+	xcodebuild -project code/mps.xcodeproj
+
+clean-xcode-build:
+	rm -r code/build/
+
+Makefile: Makefile.in config.status
+	./config.status Makefile
+
+clean: $(CLEAN_TARGET)
+
+distclean: clean
+	rm -rf autom4te.cache/ config.log config.status configure Makefile
