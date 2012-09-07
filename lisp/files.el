@@ -2145,7 +2145,7 @@ unless NOMODES is non-nil."
 	 (not buffer-read-only)
 	 (save-excursion
 	   (goto-char (point-max))
-	   (insert "\n")))
+	   (ignore-errors (insert "\n"))))
     (when (and buffer-read-only
 	       view-read-only
 	       (not (eq (get major-mode 'mode-class) 'special)))

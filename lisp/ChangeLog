@@ -1,5 +1,8 @@
 2012-09-07  Chong Yidong  <cyd@gnu.org>
 
+	* files.el (after-find-file): Don't fail on a read-only buffer if
+	require-final-newline is `visit' or `visit-save' (Bug#11156).
+
 	* subr.el (read-char-choice): Allow quitting via ESC ESC.
 
 	* userlock.el (ask-user-about-supersession-threat): Use
