@@ -90,15 +90,23 @@ be highly efficient.
 ----------------------------------
 Very briefly, the critical path consists of five stages:
 
-  1. The scanner, which iterates over pointers in objects.
-  
-  2. The first-stage fix, which filters out pointers inline in the scanner.
+  1. The scanner, which iterates over pointers in objects.  The MPS has
+     several internal scanners, but the most important ones will be format
+     scanners in client code registered through `mps_format_create`
+     functions.  [Insert ref to manual explaining how to write a good
+     scanner.]
+
+  2. The first-stage fix, which filters out pointers inline in the
+     scanner.  This is implemented in `MPS_FIX` macros in
+     [mps.h](..\code\mps.h).
 
   3. The second-stage fix, which filters out pointers using general
-     information about segments.
+     information about segments.  This is `_mps_fix2` in
+     [trace.c](..\code\trace.c).
 
   4. The third-stage fix, which filters out pointers using pool-specific
-     information.
+     information.  Implemented in pool class functions called `AMCFix`,
+     `LOFix`, etc. in pool*.c.
      
   5. Preserving the object, which might entail
   
@@ -108,6 +116,8 @@ Very briefly, the critical path consists of five stages:
      
      - adding it to a queue of objects to be scanned later, if it
        contains pointers
+
+     Found in or near the pool class fix functions.
 
 
 5. The format scanner
