@@ -117,13 +117,13 @@ static void *test(void *arg, size_t s)
   die(mps_chain_create(&chain, arena, genCOUNT, testChain), "chain_create");
   die(mps_pool_create(&amc, arena, mps_class_amc(), fmt, chain),
       "pool_create amc\n");
-  die(mps_root_create_table(&mps_root[0], arena, MPS_RANK_EXACT, (mps_rm_t)0,
+  die(mps_root_create_table(&mps_root[0], arena, mps_rank_exact(), (mps_rm_t)0,
                             root, (size_t)rootCOUNT),
       "root_create\n");
-  die(mps_root_create_table(&mps_root[1], arena, MPS_RANK_EXACT, (mps_rm_t)0,
+  die(mps_root_create_table(&mps_root[1], arena, mps_rank_exact(), (mps_rm_t)0,
                             &p, (size_t)1),
       "root_create\n");
-  die(mps_ap_create(&ap, amc, MPS_RANK_EXACT), "ap_create\n");
+  die(mps_ap_create(&ap, amc, mps_rank_exact()), "ap_create\n");
 
   /* Make registered-for-finalization objects. */
   /* <design/poolmrg/#test.promise.ut.alloc> */

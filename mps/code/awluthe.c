@@ -262,7 +262,7 @@ static void *setup(void *v, size_t s)
   arena = guff->arena;
   thr = guff->thr;
 
-  die(mps_root_create_reg(&stack, arena, MPS_RANK_AMBIG, 0, thr,
+  die(mps_root_create_reg(&stack, arena, mps_rank_ambig(), 0, thr,
                           mps_stack_scan_ambig, v, 0),
       "Root Create\n");
   EnsureHeaderFormat(&dylanfmt, arena);
@@ -272,13 +272,13 @@ static void *setup(void *v, size_t s)
   die(mps_pool_create(&tablepool, arena, mps_class_awl(), dylanweakfmt,
                       dylan_weak_dependent),
       "Table Pool Create\n");
-  die(mps_ap_create(&leafap, leafpool, MPS_RANK_EXACT),
+  die(mps_ap_create(&leafap, leafpool, mps_rank_exact()),
       "Leaf AP Create\n");
-  die(mps_ap_create(&exactap, tablepool, MPS_RANK_EXACT),
+  die(mps_ap_create(&exactap, tablepool, mps_rank_exact()),
       "Exact AP Create\n");
-  die(mps_ap_create(&weakap, tablepool, MPS_RANK_WEAK),
+  die(mps_ap_create(&weakap, tablepool, mps_rank_weak()),
       "Weak AP Create\n");
-  die(mps_ap_create(&bogusap, tablepool, MPS_RANK_EXACT),
+  die(mps_ap_create(&bogusap, tablepool, mps_rank_exact()),
       "Bogus AP Create\n");
 
   test(leafap, exactap, weakap, bogusap);

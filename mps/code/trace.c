@@ -40,12 +40,12 @@ Bool ScanStateCheck(ScanState ss)
   CHECKS(ScanState, ss);
   CHECKL(FUNCHECK(ss->fix));
   /* Can't check ss->fixClosure. */
-  CHECKL(ss->zoneShift == ss->arena->zoneShift);
+  CHECKL(ScanStateZoneShift(ss) == ss->arena->zoneShift);
   white = ZoneSetEMPTY;
   TRACE_SET_ITER(ti, trace, ss->traces, ss->arena)
     white = ZoneSetUnion(white, ss->arena->trace[ti].white);
   TRACE_SET_ITER_END(ti, trace, ss->traces, ss->arena);
-  CHECKL(ss->white == white);
+  CHECKL(ScanStateWhite(ss) == white);
   CHECKU(Arena, ss->arena);
   /* Summaries could be anything, and can't be checked. */
   CHECKL(TraceSetCheck(ss->traces));
@@ -94,12 +94,12 @@ void ScanStateInit(ScanState ss, TraceSet ts, Arena arena,
 
   ss->rank = rank;
   ss->traces = ts;
-  ss->zoneShift = arena->zoneShift;
-  ss->unfixedSummary = RefSetEMPTY;
+  ScanStateSetZoneShift(ss, arena->zoneShift);
+  ScanStateSetUnfixedSummary(ss, RefSetEMPTY);
   ss->fixedSummary = RefSetEMPTY;
   ss->arena = arena;
   ss->wasMarked = TRUE;
-  ss->white = white;
+  ScanStateSetWhite(ss, white);
   STATISTIC(ss->fixRefCount = (Count)0);
   STATISTIC(ss->segRefCount = (Count)0);
   STATISTIC(ss->whiteSegRefCount = (Count)0);
@@ -1108,7 +1108,7 @@ void ScanStateSetSummary(ScanState ss, RefSet summary)
   AVERT(ScanState, ss);
   /* Can't check summary, as it can be anything. */
 
-  ss->unfixedSummary = RefSetEMPTY;
+  ScanStateSetUnfixedSummary(ss, RefSetEMPTY);
   ss->fixedSummary = summary;
   AVER(ScanStateSummary(ss) == summary);
 }
@@ -1127,7 +1127,8 @@ RefSet ScanStateSummary(ScanState ss)
   AVERT(ScanState, ss);
 
   return RefSetUnion(ss->fixedSummary,
-                     RefSetDiff(ss->unfixedSummary, ss->white));
+                     RefSetDiff(ScanStateUnfixedSummary(ss),
+                                ScanStateWhite(ss)));
 }
 
 
@@ -1156,16 +1157,17 @@ static Res traceScanSegRes(TraceSet ts, Rank rank, Arena arena, Seg seg)
     /* Setup result code to return later. */
     res = ResOK;
   } else {      /* scan it */
-    ScanStateStruct ss;
-    ScanStateInit(&ss, ts, arena, rank, white);
+    ScanStateStruct ssStruct;
+    ScanState ss = &ssStruct;
+    ScanStateInit(ss, ts, arena, rank, white);
 
     /* Expose the segment to make sure we can scan it. */
     ShieldExpose(arena, seg);
-    res = PoolScan(&wasTotal, &ss, SegPool(seg), seg);
+    res = PoolScan(&wasTotal, ss, SegPool(seg), seg);
     /* Cover, regardless of result */
     ShieldCover(arena, seg);
 
-    traceSetUpdateCounts(ts, arena, &ss, traceAccountingPhaseSegScan);
+    traceSetUpdateCounts(ts, arena, ss, traceAccountingPhaseSegScan);
     /* Count segments scanned pointlessly */
     STATISTIC_STAT
       ({
@@ -1186,19 +1188,19 @@ static Res traceScanSegRes(TraceSet ts, Rank rank, Arena arena, Seg seg)
     /* .verify.segsummary: were the seg contents, as found by this 
      * scan, consistent with the recorded SegSummary?
      */
-    AVER(RefSetSub(ss.unfixedSummary, SegSummary(seg)));
+    AVER(RefSetSub(ScanStateUnfixedSummary(ss), SegSummary(seg)));
 
     if(res != ResOK || !wasTotal) {
       /* scan was partial, so... */
       /* scanned summary should be ORed into segment summary. */
-      SegSetSummary(seg, RefSetUnion(SegSummary(seg), ScanStateSummary(&ss)));
+      SegSetSummary(seg, RefSetUnion(SegSummary(seg), ScanStateSummary(ss)));
     } else {
       /* all objects on segment have been scanned, so... */
       /* scanned summary should replace the segment summary. */
-      SegSetSummary(seg, ScanStateSummary(&ss));
+      SegSetSummary(seg, ScanStateSummary(ss));
     }
 
-    ScanStateFinish(&ss);
+    ScanStateFinish(ss);
   }
 
   if(res == ResOK) {
@@ -1314,7 +1316,7 @@ static Res TraceFix2(ScanState ss, Ref *refIO)
   ref = *refIO;
 
   /* The zone test should already have been passed by MPS_FIX1 in mps.h. */
-  AVER_CRITICAL(ZoneSetInter(ss->white,
+  AVER_CRITICAL(ZoneSetInter(ScanStateWhite(ss),
                              ZoneSetAdd(ss->arena, ZoneSetEMPTY, ref)) !=
                 ZoneSetEMPTY);
 
@@ -1388,7 +1390,7 @@ static Res TraceFix2(ScanState ss, Ref *refIO)
  * function is in trace.c and not mpsi.c.
  */
 
-mps_res_t mps_fix2(mps_ss_t mps_ss, mps_addr_t *mps_ref_io)
+mps_res_t _mps_fix2(mps_ss_t mps_ss, mps_addr_t *mps_ref_io)
 {
   ScanState ss = (ScanState)mps_ss;
   Ref *refIO = (Ref *)mps_ref_io;

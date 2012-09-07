@@ -338,11 +338,11 @@ static void *go(void *p, size_t s)
   die(mps_chain_create(&chain, arena, genCOUNT, testChain), "chain_create");
   die(mps_pool_create(&pool, arena, mps_class_amc(), format, chain),
       "AMCCreate");
-  die(mps_ap_create(&ap, pool, MPS_RANK_EXACT), "APCreate");
-  die(mps_root_create_table(&regroot, arena, MPS_RANK_AMBIG, 0,
+  die(mps_ap_create(&ap, pool, mps_rank_exact()), "APCreate");
+  die(mps_root_create_table(&regroot, arena, mps_rank_ambig(), 0,
       (mps_addr_t *)reg, NREGS),
       "RootCreateTable");
-  die(mps_root_create_table(&actroot, arena, MPS_RANK_AMBIG, 0,
+  die(mps_root_create_table(&actroot, arena, mps_rank_ambig(), 0,
       (mps_addr_t *)&activationStack, sizeof(QSCell)/sizeof(mps_addr_t)),
       "RootCreateTable");
 
