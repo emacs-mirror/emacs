@@ -16,6 +16,7 @@
 #endif
 
 #include <stdio.h>
+#include <stdlib.h>
 #include "config.h"  /* to get platform configurations */
 
 
@@ -30,11 +31,16 @@ static FILE *ioFile = NULL;
 mps_res_t mps_io_create(mps_io_t *mps_io_r)
 {
   FILE *f;
+  char *filename;
 
   if(ioFile != NULL) /* See <code/event.c#trans.log> */
     return MPS_RES_LIMIT; /* Cannot currently open more than one log */
 
-  f = fopen("mpsio.log", "wb");
+  filename = getenv("MPS_TELEMETRY_FILENAME");
+  if(filename == NULL)
+    filename = "mpsio.log";
+
+  f = fopen(filename, "wb");
   if(f == NULL)
     return MPS_RES_IO;
  

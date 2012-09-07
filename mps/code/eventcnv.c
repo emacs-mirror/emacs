@@ -68,7 +68,7 @@ static char *prog; /* program name */
 static Bool verbose = FALSE;
 /* style: '\0' for human-readable, 'L' for Lisp, 'C' for CDF. */
 static char style = '\0';
-static Bool reportEvents = FALSE;
+static Bool reportStats = FALSE;
 static Bool eventEnabled[EventCodeMAX+1];
 static Word bucketSize = 0;
 
@@ -165,7 +165,7 @@ static char *parseArgs(int argc, char *argv[])
         verbose = TRUE;
         break;
       case 'e': { /* event statistics */
-        reportEvents = TRUE;
+        reportStats = TRUE;
         ++ i;
         if (i == argc)
           usageError();
@@ -199,9 +199,20 @@ static char *parseArgs(int argc, char *argv[])
 }
 
 
-/* processEvent -- process event */
+/* recordEvent -- record event
+ *
+ * This is the beginning of a system to model MPS state as events are read,
+ * but for the moment it just records which strings have been interned
+ * and which addresses have been labelled with them.
+ *
+ * NOTE: Since branch/2012-08-21/diagnostic-telemetry events are no longer
+ * in order in the event stream, so eventcnv would need some serious
+ * rethinking to model state.  It's questionable that it should attempt it
+ * or event try to label addresses, but instead leave that to later stages of
+ * processing.  RB 2012-09-07
+ */
 
-static void processEvent(EventProc proc, Event event, EventClock etime)
+static void recordEvent(EventProc proc, Event event, EventClock etime)
 {
   Res res;
 
@@ -314,7 +325,7 @@ static void reportBucketResults(EventClock bucketLimit)
     EVENT_CLOCK_PRINT(stdout, bucketLimit);
     break;
   }
-  if (reportEvents) {
+  if (reportStats) {
     reportEventResults(bucketEventCount);
   }
 }
@@ -331,14 +342,7 @@ static void clearBucket(void)
 }
 
 
-/* readLog -- read and parse log
- *
- * This is the heart of eventcnv: It reads an event log using EventRead.
- * It updates the counters.  If verbose is true, it looks up the format,
- * parses the arguments, and prints a representation of the event.  Each
- * argument is printed using printArg (see RELATION, below), except for
- * some event types that are handled specially.
- */
+/* printParam* -- printing functions for event parameter types */
 
 static void printParamA(EventProc proc, char *styleConv, Addr addr)
 {
@@ -398,6 +402,15 @@ static void printParamB(EventProc proc, char *styleConv, Bool b)
 }
 
 
+/* readLog -- read and parse log
+ *
+ * This is the heart of eventcnv: It reads an event log using EventRead.
+ * It updates the counters.  If verbose is true, it looks up the format,
+ * parses the arguments, and prints a representation of the event.  Each
+ * argument is printed using printArg (see RELATION, below), except for
+ * some event types that are handled specially.
+ */
+
 static void readLog(EventProc proc)
 {
   EventCode c;
@@ -405,7 +418,7 @@ static void readLog(EventProc proc)
   char *styleConv = NULL; /* suppress uninit warning */
 
   /* Print event count header. */
-  if (reportEvents) {
+  if (reportStats) {
     if (style == '\0') {
       printf("  bucket:");
       for(c = 0; c <= EventCodeMAX; ++c)
@@ -452,7 +465,7 @@ static void readLog(EventProc proc)
         bucketLimit += bucketSize;
       } while (eventTime >= bucketLimit);
     }
-    if (reportEvents) {
+    if (reportStats) {
       ++bucketEventCount[code];
       ++totalEventCount[code];
     }
@@ -481,7 +494,7 @@ static void readLog(EventProc proc)
         break;
       }
 
-     switch (event->any.code) {
+     switch (code) {
 
      case EventLabelCode:
        switch (style) {
@@ -567,14 +580,14 @@ static void readLog(EventProc proc)
        case code: \
          EVENT_##name##_PARAMS(EVENT_PARAM_PRINT, name) \
          break;
-       switch (event->any.code) { EVENT_LIST(EVENT_PRINT, X) }
+       switch (code) { EVENT_LIST(EVENT_PRINT, X) }
      }
 
       if (style == 'L') putchar(')');
       putchar('\n');
       fflush(stdout);
     }
-    processEvent(proc, event, eventTime);
+    recordEvent(proc, event, eventTime);
     EventDestroy(proc, event);
   } /* while(!feof(input)) */
 
@@ -582,18 +595,21 @@ static void readLog(EventProc proc)
   if (bucketSize != 0) {
     reportBucketResults(eventTime);
   }
-  if (reportEvents) {
+  if (reportStats) {
     /* report totals */
     switch (style) {
-    case '\0': {
+    case '\0':
       printf("\n     run:");
-    } break;
-    case 'L': {
+      break;
+    case 'L':
       printf("(t");
-    } break;
-    case 'C': {
+      break;
+    case 'C':
+      /* FIXME: This attempted to print the event stats on a row that
+         resembled a kind of final event, but the event clock no longer runs
+         monotonically upwards. */
       EVENT_CLOCK_PRINT(stdout, eventTime+1);
-    } break;
+      break;
     }
     reportEventResults(totalEventCount);
 
