@@ -1,5 +1,7 @@
 2012-09-07  Chong Yidong  <cyd@gnu.org>
 
+	* simple.el (count-words--buffer-message): Fix narrowing check.
+
 	* help.el (describe-key-briefly): Allow the message to be seen
 	when invoked from the minibuffer (Bug#7014).
 

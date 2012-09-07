@@ -1008,7 +1008,7 @@ END, without printing any message."
 
 (defun count-words--buffer-message ()
   (count-words--message
-   (if (= (point-max) (1+ (buffer-size)))
+   (if (= (- (point-max) (point-min)) (buffer-size))
        "Buffer"
      "Narrowed part of buffer")
    (point-min) (point-max)))
