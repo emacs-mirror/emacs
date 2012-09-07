@@ -57,6 +57,13 @@ VALUES-PLIST is a list with alternating index and value elements."
                   (cadr values-plist)))
       (setq values-plist (cddr values-plist)))))
 
+(defun ruby-assert-face (content pos face)
+  (with-temp-buffer
+    (insert content)
+    (ruby-mode)
+    (font-lock-fontify-buffer)
+    (should (eq face (get-text-property pos 'face)))))
+
 (ert-deftest ruby-indent-after-symbol-made-from-string-interpolation ()
   "It can indent the line after symbol made using string interpolation."
   (ruby-should-indent "def foo(suffix)\n  :\"bar#{suffix}\"\n"
@@ -83,6 +90,11 @@ VALUES-PLIST is a list with alternating index and value elements."
     (ruby-should-indent "foo = [\n1" ruby-indent-level)
     (ruby-should-indent "foo = {\na: b" ruby-indent-level)
     (ruby-should-indent "foo(\na" ruby-indent-level)))
+
+(ert-deftest ruby-indent-after-keyword-in-a-string ()
+  (ruby-should-indent "a = \"abc\nif\"\n  " 0)
+  (ruby-should-indent "a = %w[abc\n       def]\n  " 0)
+  (ruby-should-indent "a = \"abc\n      def\"\n  " 0))
 
 (ert-deftest ruby-indent-simple ()
   (ruby-should-indent-buffer
@@ -216,6 +228,19 @@ VALUES-PLIST is a list with alternating index and value elements."
     (ruby-toggle-block)
     (should (string= "foo {|b|\n}\n" (buffer-substring-no-properties
                                       (point-min) (point-max))))))
+
+(ert-deftest ruby-recognize-symbols-starting-with-at-character ()
+  (ruby-assert-face ":@abc" 3 'font-lock-constant-face))
+
+(ert-deftest ruby-hash-character-not-interpolation ()
+  (ruby-assert-face "\"This is #{interpolation}\"" 15
+                    'font-lock-variable-name-face)
+  (ruby-assert-face "\"This is \\#{no interpolation} despite the #\""
+                    15 'font-lock-string-face)
+  (ruby-assert-face "#@comment, not ruby code" 3 'font-lock-comment-face)
+  (ruby-assert-state "#@comment, not ruby code" 4 t)
+  (ruby-assert-face "# A comment cannot have #{an interpolation} in it"
+                    30 'font-lock-comment-face))
 
 (provide 'ruby-mode-tests)
 

@@ -51,6 +51,23 @@
 	Let-bind `isearch-word' to the argument `delimited-flag'.
 	(Bug#10885, bug#10887)
 
+2012-09-07  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* progmodes/ruby-mode.el (ruby-indent-beg-re): Add pieces from
+	ruby-beginning-of-indent, simplify, allow all keywords to have
+	indentation before them.
+	(ruby-beginning-of-indent): Adjust for above.  Search until the
+	found point is not inside a string or comment.
+	(ruby-font-lock-keywords): Allow symbols to start with "@"
+	character, give them higher priority than variables.
+	(ruby-syntax-propertize-function)
+	(ruby-font-lock-syntactic-keywords): Remove the "not comments"
+	matchers.  Expression expansions are not comments when inside a
+	string, and there comment syntax status is irrelevant.
+	(ruby-match-expression-expansion): New function.  Check that
+	expression expansion is inside a string, and it's not escaped.
+	(ruby-font-lock-keywords): Use it.
+
 2012-09-05  Martin Rudalics  <rudalics@gmx.at>
 
 	* help.el (temp-buffer-max-height): New default value.

@@ -1,3 +1,7 @@
+2012-09-07  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* automated/ruby-mode-tests.el: New tests (Bug#11613).
+
 2012-08-28  Chong Yidong  <cyd@gnu.org>
 
 	* automated/files.el: Test every combination of values for

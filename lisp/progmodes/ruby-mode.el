@@ -64,8 +64,8 @@
   "Regexp to match keywords that nest without blocks.")
 
 (defconst ruby-indent-beg-re
-  (concat "\\(\\s *" (regexp-opt '("class" "module" "def") t) "\\)\\|"
-          (regexp-opt '("if" "unless" "case" "while" "until" "for" "begin")))
+  (concat "^\\s *" (regexp-opt '("class" "module" "def" "if" "unless" "case"
+                                 "while" "until" "for" "begin")) "\\_>")
   "Regexp to match where the indentation gets deeper.")
 
 (defconst ruby-modifier-beg-keywords
@@ -848,19 +848,18 @@ move forward."
 With ARG, move forward multiple defuns.  Negative ARG means
 move backward."
   (interactive "p")
-  (and (re-search-forward (concat "^\\(" ruby-block-end-re "\\)\\($\\|\\b[^_]\\)")
-                          nil 'move (or arg 1))
+  (and (re-search-forward ruby-indent-beg-re nil 'move (or arg 1))
        (beginning-of-line))
   (forward-line 1))
 
 (defun ruby-beginning-of-indent ()
-  "TODO: document"
-  ;; I don't understand this function.
-  ;; It seems like it should move to the line where indentation should deepen,
-  ;; but ruby-indent-beg-re only accounts for whitespace before class, module and def,
-  ;; so this will only match other block beginners at the beginning of the line.
-  (and (re-search-backward (concat "^\\(" ruby-indent-beg-re "\\)\\_>") nil 'move)
-       (beginning-of-line)))
+  "Backtrack to a line which can be used as a reference for
+calculating indentation on the lines after it."
+  (while (and (re-search-backward ruby-indent-beg-re nil 'move)
+              (if (ruby-in-ppss-context-p 'anything)
+                  t
+                ;; We can stop, then.
+                (beginning-of-line)))))
 
 (defun ruby-move-to-block (n)
   "Move to the beginning (N < 0) or the end (N > 0) of the current block
@@ -1171,8 +1170,6 @@ It will be properly highlighted even when the call omits parens."))
         (ruby-syntax-enclosing-percent-literal end)
         (funcall
          (syntax-propertize-rules
-          ;; #{ }, #$hoge, #@foo are not comments.
-          ("\\(#\\)[{$@]" (1 "."))
           ;; $' $" $` .... are variables.
           ;; ?' ?" ?` are ascii codes.
           ("\\([?$]\\)[#\"'`]"
@@ -1304,8 +1301,7 @@ This should only be called after matching against `ruby-here-doc-end-re'."
                   (concat "-?\\([\"']\\|\\)" contents "\\1"))))))
 
   (defconst ruby-font-lock-syntactic-keywords
-    `( ;; #{ }, #$hoge, #@foo are not comments
-    ("\\(#\\)[{$@]" 1 (1 . nil))
+    `(
     ;; the last $', $", $` in the respective string is not variable
     ;; the last ?', ?", ?` in the respective string is not ascii code
     ("\\(^\\|[\[ \t\n<+\(,=]\\)\\(['\"`]\\)\\(\\\\.\\|\\2\\|[^'\"`\n\\\\]\\)*?\\\\?[?$]\\(\\2\\)"
@@ -1527,6 +1523,9 @@ See `font-lock-syntax-table'.")
    ;; variables
    '("\\(^\\|[^_:.@$]\\|\\.\\.\\)\\b\\(nil\\|self\\|true\\|false\\)\\>"
      2 font-lock-variable-name-face)
+   ;; symbols
+   '("\\(^\\|[^:]\\)\\(:\\([-+~]@?\\|[/%&|^`]\\|\\*\\*?\\|<\\(<\\|=>?\\)?\\|>[>=]?\\|===?\\|=~\\|![~=]?\\|\\[\\]=?\\|@?\\(\\w\\|_\\)+\\([!?=]\\|\\b_*\\)\\|#{[^}\n\\\\]*\\(\\\\.[^}\n\\\\]*\\)*}\\)\\)"
+     2 font-lock-reference-face)
    ;; variables
    '("\\(\\$\\([^a-zA-Z0-9 \n]\\|[0-9]\\)\\)\\W"
      1 font-lock-variable-name-face)
@@ -1535,18 +1534,19 @@ See `font-lock-syntax-table'.")
    ;; constants
    '("\\(^\\|[^_]\\)\\b\\([A-Z]+\\(\\w\\|_\\)*\\)"
      2 font-lock-type-face)
-   ;; symbols
-   '("\\(^\\|[^:]\\)\\(:\\([-+~]@?\\|[/%&|^`]\\|\\*\\*?\\|<\\(<\\|=>?\\)?\\|>[>=]?\\|===?\\|=~\\|![~=]?\\|\\[\\]=?\\|\\(\\w\\|_\\)+\\([!?=]\\|\\b_*\\)\\|#{[^}\n\\\\]*\\(\\\\.[^}\n\\\\]*\\)*}\\)\\)"
-     2 font-lock-reference-face)
    '("\\(^\\s *\\|[\[\{\(,]\\s *\\|\\sw\\s +\\)\\(\\(\\sw\\|_\\)+\\):[^:]" 2 font-lock-reference-face)
    ;; expression expansion
-   '("#\\({[^}\n\\\\]*\\(\\\\.[^}\n\\\\]*\\)*}\\|\\(\\$\\|@\\|@@\\)\\(\\w\\|_\\)+\\)"
+   '(ruby-match-expression-expansion
      0 font-lock-variable-name-face t)
    ;; warn lower camel case
                                         ;'("\\<[a-z]+[a-z0-9]*[A-Z][A-Za-z0-9]*\\([!?]?\\|\\>\\)"
                                         ;  0 font-lock-warning-face)
    )
   "Additional expressions to highlight in Ruby mode.")
+
+(defun ruby-match-expression-expansion (limit)
+  (when (re-search-forward "[^\\]\\(\\\\\\\\\\)*\\(#\\({[^}\n\\\\]*\\(\\\\.[^}\n\\\\]*\\)*}\\|\\(\\$\\|@\\|@@\\)\\(\\w\\|_\\)+\\)\\)" limit 'move)
+    (ruby-in-ppss-context-p 'string)))
 
 ;;;###autoload
 (define-derived-mode ruby-mode prog-mode "Ruby"
