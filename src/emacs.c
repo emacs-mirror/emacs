@@ -1144,9 +1144,9 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
       /* Don't catch these signals in batch mode if dumping.
 	 On some machines, this sets static data that would make
 	 signal fail to work right when the dumped Emacs is run.  */
-      signal (SIGQUIT, deliver_fatal_signal);
-      signal (SIGILL, deliver_fatal_signal);
-      signal (SIGTRAP, deliver_fatal_signal);
+      sigaction (SIGQUIT, &fatal_error_action, 0);
+      sigaction (SIGILL, &fatal_error_action, 0);
+      sigaction (SIGTRAP, &fatal_error_action, 0);
 #ifdef SIGUSR1
       add_user_signal (SIGUSR1, "sigusr1");
 #endif

@@ -1,6 +1,9 @@
 2012-09-07  Paul Eggert  <eggert@cs.ucla.edu>
 
 	More signal-handler cleanup (Bug#12327).
+	* emacs.c (main): Convert three 'signal' calls to 'sigaction' calls.
+	Problem introduced when merging patches.  Noted by Eli Zaretskii in
+	<http://bugs.gnu.org/12327#67>.
 	* floatfns.c: Comment fix.
 	* lisp.h (force_auto_save_soon): Declare regardless of SIGDANGER.
 	SIGDANGER might not be in scope so "#ifdef SIGDANGER" is not right,
