@@ -115,7 +115,7 @@ void EventSync(void)
 
 /* EventInit -- start using the event system, initialize if necessary */
 
-Res EventInit(void)
+void EventInit(void)
 {
   /* Make local enums for all event params in order to check that the indexes
      in the parameter definition macros are in order, and that parameter
@@ -181,8 +181,6 @@ Res EventInit(void)
   } else {
     ++eventUserCount;
   }
-
-  return ResOK;
 }
 
 
@@ -386,26 +384,26 @@ void EventDump(mps_lib_FILE *stream)
 #else /* EVENT, not */
 
 
-void (EventSync)(void)
+void EventSync(void)
 {
   NOOP;
 }
 
 
-Res (EventInit)(void)
-{
-  return ResOK;
-}
-
-
-void (EventFinish)(void)
+void EventInit(void)
 {
   NOOP;
 }
 
 
-EventControlSet (EventControl)(EventControlSet resetMask,
-                               EventControlSet flipMask)
+void EventFinish(void)
+{
+  NOOP;
+}
+
+
+EventControlSet EventControl(EventControlSet resetMask,
+                             EventControlSet flipMask)
 {
   UNUSED(resetMask);
   UNUSED(flipMask);
@@ -413,7 +411,7 @@ EventControlSet (EventControl)(EventControlSet resetMask,
 }
 
 
-EventStringId (EventInternString)(const char *label)
+EventStringId EventInternString(const char *label)
 {
   UNUSED(label);
   /* EventInternString is reached in varieties without events, but the result
@@ -422,7 +420,7 @@ EventStringId (EventInternString)(const char *label)
 }
 
 
-Word (EventInternGenString)(size_t len, const char *label)
+Word EventInternGenString(size_t len, const char *label)
 {
   UNUSED(len); UNUSED(label);
   /* EventInternGenString is reached in varieties without events, but
@@ -431,7 +429,7 @@ Word (EventInternGenString)(size_t len, const char *label)
 }
 
 
-void (EventLabelAddr)(Addr addr, Word id)
+void EventLabelAddr(Addr addr, Word id)
 {
   UNUSED(addr);
   UNUSED(id);
