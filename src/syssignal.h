@@ -84,5 +84,6 @@ char *strsignal (int);
 
 #ifdef FORWARD_SIGNAL_TO_MAIN_THREAD
 extern pthread_t main_thread;
-void handle_on_main_thread (int, signal_handler_t);
 #endif
+
+void handle_on_main_thread (int, signal_handler_t);

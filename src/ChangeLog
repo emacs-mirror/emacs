@@ -1,3 +1,9 @@
+2012-09-07  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* syssignal.h (handle_on_main_thread): Always declare,
+	even if FORWARD_SIGNAL_TO_MAIN_THREAD is not defined.
+	This ports to platforms without HAVE_PTHREAD.
+
 2012-09-06  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Signal-handler cleanup (Bug#12327).
