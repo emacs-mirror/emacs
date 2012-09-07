@@ -1,3 +1,7 @@
+2012-09-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* alloc.c [ENABLE_CHECKING]: Include signal.h, since we need SIGABRT.
+
 2012-09-07  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* alloc.c (mark_buffer): Revert unsafe marking optimization.
