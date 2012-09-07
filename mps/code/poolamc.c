@@ -1453,7 +1453,7 @@ static Res amcScanNailedOnce(Bool *totalReturn, Bool *moreReturn,
       Addr q;
       q = (*format->skip)(p);
       if(amcNailGetMark(seg, p)) {
-        res = (*format->scan)(ss, p, q);
+        res = (*format->scan)(&ss->ss_s, p, q);
         if(res != ResOK) {
           *totalReturn = FALSE;
           *moreReturn = TRUE;
@@ -1476,7 +1476,7 @@ static Res amcScanNailedOnce(Bool *totalReturn, Bool *moreReturn,
     Addr q;
     q = (*format->skip)(p);
     if(amcNailGetMark(seg, p)) {
-      res = (*format->scan)(ss, p, q);
+      res = (*format->scan)(&ss->ss_s, p, q);
       if(res != ResOK) {
         *totalReturn = FALSE;
         *moreReturn = TRUE;
@@ -1601,7 +1601,7 @@ static Res AMCScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
       *totalReturn = TRUE;
       return ResOK;
     }
-    res = (*format->scan)(ss, base, limit);
+    res = (*format->scan)(&ss->ss_s, base, limit);
     if(res != ResOK) {
       *totalReturn = FALSE;
       return res;
@@ -1615,7 +1615,7 @@ static Res AMCScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
   AVER(SegBase(seg) <= base);
   AVER(base <= AddrAdd(SegLimit(seg), format->headerSize));
   if(base < limit) {
-    res = (*format->scan)(ss, base, limit);
+    res = (*format->scan)(&ss->ss_s, base, limit);
     if(res != ResOK) {
       *totalReturn = FALSE;
       return res;

@@ -820,7 +820,7 @@ static Res awlScanObject(Arena arena, AWL awl, ScanState ss,
       SegSetSummary(dependentSeg, RefSetUNIV);
   }
 
-  res = (*format->scan)(ss, base, limit);
+  res = (*format->scan)(&ss->ss_s, base, limit);
   if (res == ResOK)
     ss->scannedSize += AddrOffset(base, limit);
 

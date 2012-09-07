@@ -154,9 +154,13 @@ extern Res WriteF_v(mps_lib_FILE *stream, va_list args);
 extern Res WriteF_firstformat_v(mps_lib_FILE *stream,
                                 const char *firstformat, va_list args);
 
+#if defined(DIAG_WITH_STREAM_AND_WRITEF)
 extern int Stream_fputc(int c, mps_lib_FILE *stream);
 extern int Stream_fputs(const char *s, mps_lib_FILE *stream);
-
+#else
+#define Stream_fputc mps_lib_fputc
+#define Stream_fputs mps_lib_fputs
+#endif
 
 
 /* Miscellaneous support -- see <code/mpm.c> */
@@ -419,6 +423,8 @@ extern double TraceWorkFactor;
       ZoneSet SCANwhite = ScanStateWhite(ss); \
       RefSet SCANsummary = ScanStateUnfixedSummary(ss); \
       Word SCANt; \
+      mps_addr_t SCANref; \
+      Res SCANres; \
       {
 
 /* Equivalent to <code/mps.h> MPS_FIX1 */
@@ -430,7 +436,17 @@ extern double TraceWorkFactor;
 
 /* Equivalent to <code/mps.h> MPS_FIX2 */
 
-#define TRACE_FIX2(ss, refIO) _mps_fix2((mps_ss_t)(ss), (mps_addr_t *)(refIO))
+/* TODO: The ref is copied to avoid breaking strict aliasing rules that could
+   well affect optimised scan loops.  This code could be improved by
+   returning the fixed ref as a result and using longjmp to signal errors,
+   and that might well improve all scan loops too.  The problem is whether
+   some embedded client platforms support longjmp.  RB 2012-09-07 */
+
+#define TRACE_FIX2(ss, refIO) \
+  (SCANref = (mps_addr_t)*(refIO), \
+   SCANres = _mps_fix2(&(ss)->ss_s, &SCANref), \
+   *(refIO) = SCANref, \
+   SCANres)
 
 /* Equivalent to <code/mps.h> MPS_FIX */
 
