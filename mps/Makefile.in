@@ -10,36 +10,16 @@
 #
 
 MPS_TARGET_PF=@MPS_TARGET_PF@
+MPS_TARGET_NAME=@MPS_TARGET_NAME@
 
 BUILD_TARGET=build-via-make
 CLEAN_TARGET=clean-make-build
-
-ifeq ($(MPS_TARGET_PF),MPS_PF_LII4GC)
-	MPS_TARGET_NAME=lii4gc
-endif
-ifeq ($(MPS_TARGET_PF),MPS_PF_LII6GC)
-	MPS_TARGET_NAME=lii6gc
-endif
-ifeq ($(MPS_TARGET_PF),MPS_PF_XCI3LL)
-	BUILD_TARGET=build-via-xcode
-	CLEAN_TARGET=clean-xcode-build
-endif
-ifeq ($(MPS_TARGET_PF),MPS_PF_XCI6LL)
-	BUILD_TARGET=build-via-xcode
-	CLEAN_TARGET=clean-xcode-build
-endif
-ifeq ($(MPS_TARGET_PF),MPS_PF_FRI4GC)
-	MPS_TARGET_NAME=fri4gc
-endif
-ifeq ($(MPS_TARGET_PF),MPS_PF_FRI6GC)
-	MPS_TARGET_NAME=fri6gc
-endif
 
 all: $(BUILD_TARGET)
 	$(BUILD)
 
 build-via-make:
-	make -C code -f $(MPS_TARGET_NAME).gmk
+	$(MAKE) -C code -f $(MPS_TARGET_NAME).gmk
 
 clean-make-build:
 	rm -r code/$(MPS_TARGET_NAME)/
