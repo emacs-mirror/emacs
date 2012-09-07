@@ -1,5 +1,12 @@
 2012-09-07  Chong Yidong  <cyd@gnu.org>
 
+	* subr.el (read-char-choice): Allow quitting via ESC ESC.
+
+	* userlock.el (ask-user-about-supersession-threat): Use
+	read-char-choice (Bug#12093).
+
+2012-09-07  Chong Yidong  <cyd@gnu.org>
+
 	* subr.el (buffer-narrowed-p): New function.
 
 	* ses.el (ses-widen):

@@ -2237,7 +2237,8 @@ keyboard-quit events while waiting for a valid input."
     (error "Called `read-char-choice' without valid char choices"))
   (let (char done show-help (helpbuf " *Char Help*"))
     (let ((cursor-in-echo-area t)
-          (executing-kbd-macro executing-kbd-macro))
+          (executing-kbd-macro executing-kbd-macro)
+	  (esc-flag nil))
       (save-window-excursion	      ; in case we call help-form-show
 	(while (not done)
 	  (unless (get-text-property 0 'face prompt)
@@ -2261,8 +2262,12 @@ keyboard-quit events while waiting for a valid input."
 	    ;; there are no more events in the macro.  Attempt to
 	    ;; get an event interactively.
 	    (setq executing-kbd-macro nil))
-	   ((and (not inhibit-keyboard-quit) (eq char ?\C-g))
-	    (keyboard-quit))))))
+	   ((not inhibit-keyboard-quit)
+	    (cond
+	     ((and (null esc-flag) (eq char ?\e))
+	      (setq esc-flag t))
+	     ((memq char '(?\C-g ?\e))
+	      (keyboard-quit))))))))
     ;; Display the question with the answer.  But without cursor-in-echo-area.
     (message "%s%s" prompt (char-to-string char))
     char))
