@@ -5642,26 +5642,28 @@ buffer with the name BUFFER-OR-NAME and return that buffer."
 
 (defun switch-to-buffer (buffer-or-name &optional norecord force-same-window)
   "Switch to buffer BUFFER-OR-NAME in the selected window.
-If called interactively, prompt for the buffer name using the
+If the selected window cannot display the specified
+buffer (e.g. if it is a minibuffer window or strongly dedicated
+to another buffer), call `pop-to-buffer' to select the buffer in
+another window.
+
+If called interactively, read the buffer name using the
 minibuffer.  The variable `confirm-nonexistent-file-or-buffer'
 determines whether to request confirmation before creating a new
 buffer.
 
-BUFFER-OR-NAME may be a buffer, a string (a buffer name), or
-nil.  If BUFFER-OR-NAME is a string that does not identify an
-existing buffer, create a buffer with that name.  If
-BUFFER-OR-NAME is nil, switch to the buffer returned by
-`other-buffer'.
+BUFFER-OR-NAME may be a buffer, a string (a buffer name), or nil.
+If BUFFER-OR-NAME is a string that does not identify an existing
+buffer, create a buffer with that name.  If BUFFER-OR-NAME is
+nil, switch to the buffer returned by `other-buffer'.
 
-Optional argument NORECORD non-nil means do not put the buffer
-specified by BUFFER-OR-NAME at the front of the buffer list and
-do not make the window displaying it the most recently selected
-one.
+If optional argument NORECORD is non-nil, do not put the buffer
+at the front of the buffer list, and do not make the window
+displaying it the most recently selected one.
 
-If FORCE-SAME-WINDOW is non-nil, BUFFER-OR-NAME must be displayed
-in the selected window; signal an error if that is
-impossible (e.g. if the selected window is minibuffer-only).  If
-nil, BUFFER-OR-NAME may be displayed in another window.
+If optional argument FORCE-SAME-WINDOW is non-nil, the buffer
+must be displayed in the selected window; if that is impossible,
+signal an error rather than calling `pop-to-buffer'.
 
 Return the buffer switched to."
   (interactive

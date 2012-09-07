@@ -1,5 +1,7 @@
 2012-09-07  Chong Yidong  <cyd@gnu.org>
 
+	* window.el (switch-to-buffer): Doc fix (Bug#12181).
+
 	* files.el (after-find-file): Don't fail on a read-only buffer if
 	require-final-newline is `visit' or `visit-save' (Bug#11156).
 

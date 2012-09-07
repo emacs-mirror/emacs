@@ -5,6 +5,7 @@
 	* windows.texi (Display Action Functions)
 	(Choosing Window Options): Remove obsolete variable
 	display-buffer-reuse-frames.
+	(Switching Buffers): Minor doc tweak for switch-to-buffer.
 
 	* positions.texi (Narrowing): Document buffer-narrowed-p.
 
