@@ -246,7 +246,7 @@ typedef struct TraceMessageStruct *TraceMessage;  /* trace end */
 /* .fmt-methods: These methods must match those defined in the */
 /* MPS C Interface.  (See <code/mps.h#fmt-methods>.) */
 
-typedef Res  (*FormatScanMethod)(ScanState ss, Addr base, Addr limit);
+typedef Res  (*FormatScanMethod)(mps_ss_t ss, Addr base, Addr limit);
 typedef Addr (*FormatSkipMethod)(Addr object);
 typedef void (*FormatMoveMethod)(Addr object, Addr to);
 typedef Addr (*FormatIsMovedMethod)(Addr object);
@@ -259,8 +259,8 @@ typedef Addr (*FormatClassMethod)(Addr object);
 /* .root-methods: These methods must match those defined in the */
 /* MPS C Interface.  (See <code/mps.h#root-methods>.) */
 
-typedef Res (*RootScanMethod)(ScanState ss, void *p, size_t s);
-typedef Res (*RootScanRegMethod)(ScanState ss, Thread thread, void *p, size_t s);
+typedef Res (*RootScanMethod)(mps_ss_t ss, void *p, size_t s);
+typedef Res (*RootScanRegMethod)(mps_ss_t ss, Thread thread, void *p, size_t s);
 
 
 /* CONSTANTS */

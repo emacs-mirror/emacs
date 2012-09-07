@@ -1295,26 +1295,31 @@ void TraceSegAccess(Arena arena, Seg seg, AccessSet mode)
 }
 
 
-/* TraceFix2 -- second stage of fixing a reference
+/* _mps_fix2 (a.k.a. "TraceFix") -- second stage of fixing a reference
  *
- * TraceFix is on the [critical path](../design/critical-path.txt).  A
+ * _mps_fix2 is on the [critical path](../design/critical-path.txt).  A
  * one-instruction difference in the early parts of this code will have a
  * significant impact on overall run time.  The priority is to eliminate
  * irrelevant references early and fast using the colour information stored
  * in the tract table.
+ *
+ * The name "TraceFix" is pervasive in the MPS and its documents to describe
+ * this function.  Optimisation and strict aliasing rules have meant that we
+ * need to use the external name for it here.
  */
 
-static Res TraceFix2(ScanState ss, Ref *refIO)
+mps_res_t _mps_fix2(mps_ss_t mps_ss, mps_addr_t *mps_ref_io)
 {
+  ScanState ss = PARENT(ScanStateStruct, ss_s, mps_ss);
   Ref ref;
   Tract tract;
 
   /* Special AVER macros are used on the critical path. */
   /* See <design/trace/#fix.noaver> */
   AVERT_CRITICAL(ScanState, ss);
-  AVER_CRITICAL(refIO != NULL);
+  AVER_CRITICAL(mps_ref_io != NULL);
 
-  ref = *refIO;
+  ref = (Ref)*mps_ref_io;
 
   /* The zone test should already have been passed by MPS_FIX1 in mps.h. */
   AVER_CRITICAL(ZoneSetInter(ScanStateWhite(ss),
@@ -1322,7 +1327,7 @@ static Res TraceFix2(ScanState ss, Ref *refIO)
                 ZoneSetEMPTY);
 
   STATISTIC(++ss->fixRefCount);
-  EVENT4(TraceFix, ss, refIO, ref, ss->rank);
+  EVENT4(TraceFix, ss, mps_ref_io, ref, ss->rank);
 
   TRACT_OF_ADDR(&tract, ss->arena, ref);
   if(tract) {
@@ -1336,7 +1341,7 @@ static Res TraceFix2(ScanState ss, Ref *refIO)
         EVENT1(TraceFixSeg, seg);
         EVENT0(TraceFixWhite);
         pool = TractPool(tract);
-        res = (*ss->fix)(pool, ss, seg, refIO);
+        res = (*ss->fix)(pool, ss, seg, &ref);
         if(res != ResOK) {
           /* PoolFixEmergency should never fail. */
           AVER_CRITICAL(ss->fix != PoolFixEmergency);
@@ -1347,7 +1352,7 @@ static Res TraceFix2(ScanState ss, Ref *refIO)
            * C: the code (here) already assumes this: it returns without 
            *    updating ss->fixedSummary.  RHSK 2007-03-21.
            */
-          AVER(*refIO == ref);
+          AVER(ref == (Ref)*mps_ref_io);
           return res;
         }
       } else {
@@ -1378,24 +1383,10 @@ static Res TraceFix2(ScanState ss, Ref *refIO)
   }
 
   /* See <design/trace/#fix.fixed.all> */
-  ss->fixedSummary = RefSetAdd(ss->arena, ss->fixedSummary, *refIO);
-
+  ss->fixedSummary = RefSetAdd(ss->arena, ss->fixedSummary, ref);
+  
+  *mps_ref_io = (mps_addr_t)ref;
   return ResOK;
-}
-
-
-/* mps_fix2 -- external interface to TraceFix
- *
- * We rely on compiler inlining to make this equivalent to TraceFix, because
- * the name "TraceFix" is pervasive in the MPS.  That's also why this
- * function is in trace.c and not mpsi.c.
- */
-
-mps_res_t _mps_fix2(mps_ss_t mps_ss, mps_addr_t *mps_ref_io)
-{
-  ScanState ss = PARENT(ScanStateStruct, ss_s, mps_ss);
-  Ref *refIO = (Ref *)mps_ref_io;
-  return TraceFix2(ss, refIO);
 }
 
 
