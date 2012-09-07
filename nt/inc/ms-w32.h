@@ -127,7 +127,7 @@ typedef int ssize_t;
 
 struct sigaction {
   int sa_flags;
-  void (*sa_handler)(int);
+  void (_CALLBACK_ *sa_handler)(int);
   sigset_t sa_mask;
 };
 #define SIG_BLOCK       1

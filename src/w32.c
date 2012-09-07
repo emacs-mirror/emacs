@@ -1530,34 +1530,10 @@ is_unc_volume (const char *filename)
 }
 
 /* Routines that are no-ops on NT but are defined to get Emacs to compile.  */
-
-int
-sigsetmask (int signal_mask)
-{
-  return 0;
-}
-
-int
-sigmask (int sig)
-{
-  return 0;
-}
-
-int
-sigblock (int sig)
-{
-  return 0;
-}
-
-int
-sigunblock (int sig)
-{
-  return 0;
-}
-
 int
 sigemptyset (sigset_t *set)
 {
+  *set = 0;
   return 0;
 }
 

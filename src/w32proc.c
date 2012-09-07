@@ -103,6 +103,29 @@ sys_signal (int sig, signal_handler handler)
   return old;
 }
 
+/* Emulate sigaction. */
+int
+sigaction (int sig, const struct sigaction *act, struct sigaction *oact)
+{
+  signal_handler old;
+
+  if (sig != SIGCHLD)
+    {
+      errno = EINVAL;
+      return -1;
+    }
+  old = sig_handlers[sig];
+  if (act)
+    sig_handlers[sig] = act->sa_handler;
+  if (oact)
+    {
+      oact->sa_handler = old;
+      oact->sa_flags = 0;
+      oact->sa_mask = empty_mask;
+    }
+  return 0;
+}
+
 /* Defined in <process.h> which conflicts with the local copy */
 #define _P_NOWAIT 1
 

@@ -1,5 +1,10 @@
 2012-09-07  Eli Zaretskii  <eliz@gnu.org>
 
+	* w32proc.c (sigaction): New function, emulates Posix 'sigaction'.
+
+	* w32.c (sigemptyset): Empty the set.
+	(sigsetmask, sigmask, sigblock, sigunblock): Remove unused functions.
+
 	* alloc.c [ENABLE_CHECKING]: Include signal.h, since we need SIGABRT.
 
 2012-09-07  Dmitry Antipov  <dmantipov@yandex.ru>
