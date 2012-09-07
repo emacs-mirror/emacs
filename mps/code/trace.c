@@ -1297,10 +1297,11 @@ void TraceSegAccess(Arena arena, Seg seg, AccessSet mode)
 
 /* TraceFix2 -- second stage of fixing a reference
  *
- * TraceFix is on the critical path.  A one-instruction difference in the
- * early parts of this code will have a significant impact on overall run
- * time.  The priority is to eliminate irrelevant references early and fast
- * using the colour information stored in the tract table.
+ * TraceFix is on the [critical path](../design/critical-path.txt).  A
+ * one-instruction difference in the early parts of this code will have a
+ * significant impact on overall run time.  The priority is to eliminate
+ * irrelevant references early and fast using the colour information stored
+ * in the tract table.
  */
 
 static Res TraceFix2(ScanState ss, Ref *refIO)
@@ -1392,7 +1393,7 @@ static Res TraceFix2(ScanState ss, Ref *refIO)
 
 mps_res_t _mps_fix2(mps_ss_t mps_ss, mps_addr_t *mps_ref_io)
 {
-  ScanState ss = (ScanState)mps_ss;
+  ScanState ss = PARENT(ScanState, ss_s, mps_ss);
   Ref *refIO = (Ref *)mps_ref_io;
   return TraceFix2(ss, refIO);
 }

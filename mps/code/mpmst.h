@@ -423,6 +423,7 @@ typedef struct FormatStruct {
  *
  * .ss: The mps_ss field of the scan state structure is exported
  * through the MPS interface to optimise the critical path scan loop.
+ * See ["The critical path through the MPS"](../design/critical-path.txt).
  *
  * .ss.zone: For binary compatibility, the zone shift is exported as
  * a word rather than a shift, so that the external mps_ss_s is a uniform
