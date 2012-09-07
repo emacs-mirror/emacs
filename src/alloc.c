@@ -5842,29 +5842,23 @@ mark_overlay (struct Lisp_Overlay *ptr)
 static void
 mark_buffer (struct buffer *buffer)
 {
-  if (NILP (BVAR (buffer, name)))
-    /* If the buffer is killed, mark just the buffer itself.  */
-    VECTOR_MARK (buffer);
-  else
-    {
-      /* This is handled much like other pseudovectors...  */
-      mark_vectorlike ((struct Lisp_Vector *) buffer);
+  /* This is handled much like other pseudovectors...  */
+  mark_vectorlike ((struct Lisp_Vector *) buffer);
 
-      /* ...but there are some buffer-specific things.  */
+  /* ...but there are some buffer-specific things.  */
 
-      MARK_INTERVAL_TREE (buffer_intervals (buffer));
+  MARK_INTERVAL_TREE (buffer_intervals (buffer));
 
-      /* For now, we just don't mark the undo_list.  It's done later in
-	 a special way just before the sweep phase, and after stripping
-	 some of its elements that are not needed any more.  */
+  /* For now, we just don't mark the undo_list.  It's done later in
+     a special way just before the sweep phase, and after stripping
+     some of its elements that are not needed any more.  */
 
-      mark_overlay (buffer->overlays_before);
-      mark_overlay (buffer->overlays_after);
+  mark_overlay (buffer->overlays_before);
+  mark_overlay (buffer->overlays_after);
 
-      /* If this is an indirect buffer, mark its base buffer.  */
-      if (buffer->base_buffer && !VECTOR_MARKED_P (buffer->base_buffer))
-	mark_buffer (buffer->base_buffer);
-    }
+  /* If this is an indirect buffer, mark its base buffer.  */
+  if (buffer->base_buffer && !VECTOR_MARKED_P (buffer->base_buffer))
+    mark_buffer (buffer->base_buffer);
 }
 
 /* Determine type of generic Lisp_Object and mark it accordingly.  */
@@ -6003,26 +5997,14 @@ mark_object (Lisp_Object arg)
 	    break;
 
 	  case PVEC_FRAME:
-	    {
-	      struct frame *f = (struct frame *) ptr;
-
-	      if (FRAME_LIVE_P (f))
-		{
-		  mark_vectorlike (ptr);
-		  mark_face_cache (f->face_cache);
-		}
-	      else
-		/* If the frame is deleted, mark just the frame itself.  */
-		VECTOR_MARK (ptr);
-	    }
+	    mark_vectorlike (ptr);
+	    mark_face_cache (((struct frame *) ptr)->face_cache);
 	    break;
 
 	  case PVEC_WINDOW:
 	    {
 	      struct window *w = (struct window *) ptr;
-	      
-	      /* Even if the window is deleted, we can't mark just the window
-		 itself because set-window-configuration can resurrect it.  */
+
 	      mark_vectorlike (ptr);
 	      /* Mark glyphs for leaf windows.  Marking window
 		 matrices is sufficient because frame matrices

@@ -1,3 +1,8 @@
+2012-09-07  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* alloc.c (mark_buffer): Revert unsafe marking optimization.
+	(mark_object): Likewise for frame objects.
+
 2012-09-07  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* syssignal.h (handle_on_main_thread): Always declare,
