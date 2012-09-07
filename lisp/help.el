@@ -585,6 +585,8 @@ temporarily enables it to allow getting help on disabled items and buttons."
 	     (setq saved-yank-menu (copy-sequence yank-menu))
 	     (menu-bar-update-yank-menu "(any string)" nil))
 	   (setq key (read-key-sequence "Describe key (or click or menu item): "))
+	   ;; Clear the echo area message (Bug#7014).
+	   (message nil)
 	   ;; If KEY is a down-event, read and discard the
 	   ;; corresponding up-event.  Note that there are also
 	   ;; down-events on scroll bars and mode lines: the actual

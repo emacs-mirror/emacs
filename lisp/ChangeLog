@@ -1,3 +1,8 @@
+2012-09-07  Chong Yidong  <cyd@gnu.org>
+
+	* help.el (describe-key-briefly): Allow the message to be seen
+	when invoked from the minibuffer (Bug#7014).
+
 2012-09-07  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* progmodes/ruby-mode.el (ruby-end-of-defun)
