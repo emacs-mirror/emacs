@@ -1,3 +1,7 @@
+2012-09-07  Chong Yidong  <cyd@gnu.org>
+
+	* data.c (Flocal_variable_if_set_p): Doc fix (Bug#10713).
+
 2012-09-07  Paul Eggert  <eggert@cs.ucla.edu>
 
 	More signal-handler cleanup (Bug#12327).

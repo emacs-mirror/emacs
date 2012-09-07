@@ -1,5 +1,8 @@
 2012-09-07  Chong Yidong  <cyd@gnu.org>
 
+	* variables.texi (Creating Buffer-Local): Fix description of
+	local-variable-if-set-p (Bug#10713).
+
 	* eval.texi (Intro Eval): Add index entry for sexp (Bug#12233).
 
 	* windows.texi (Display Action Functions)

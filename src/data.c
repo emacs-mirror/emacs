@@ -1882,12 +1882,12 @@ BUFFER defaults to the current buffer.  */)
 
 DEFUN ("local-variable-if-set-p", Flocal_variable_if_set_p, Slocal_variable_if_set_p,
        1, 2, 0,
-       doc: /* Non-nil if VARIABLE will be local in buffer BUFFER when set there.
-More precisely, this means that setting the variable \(with `set' or`setq'),
-while it does not have a `let'-style binding that was made in BUFFER,
-will produce a buffer local binding.  See Info node
-`(elisp)Creating Buffer-Local'.
-BUFFER defaults to the current buffer.  */)
+       doc: /* Non-nil if VARIABLE is local in buffer BUFFER when set there.
+BUFFER defaults to the current buffer.
+
+More precisely, return non-nil if either VARIABLE already has a local
+value in BUFFER, or if VARIABLE is automatically buffer-local (see
+`make-variable-buffer-local').  */)
   (register Lisp_Object variable, Lisp_Object buffer)
 {
   struct Lisp_Symbol *sym;
