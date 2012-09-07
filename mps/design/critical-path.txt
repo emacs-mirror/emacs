@@ -1,6 +1,6 @@
 The critical path through the MPS
 =================================
-Richard Brooksby, 2012-09-07
+Richard Brooksby, Ravenbrook Limited, 2012-09-07
 
 
 1. Introduction
