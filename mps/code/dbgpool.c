@@ -416,9 +416,10 @@ static Res tagAlloc(PoolDebugMixin debug,
 {
   Tag tag;
   Res res;
+  Addr addr;
 
   UNUSED(pool);
-  res = PoolAlloc((Addr*)&tag, debug->tagPool, debug->tagSize, FALSE);
+  res = PoolAlloc(&addr, debug->tagPool, debug->tagSize, FALSE);
   if (res != ResOK) {
     if (withReservoir) { /* <design/object-debug/#out-of-space */
       debug->missingTags++;
@@ -427,6 +428,7 @@ static Res tagAlloc(PoolDebugMixin debug,
       return res;
     }
   }
+  tag = (Tag)addr;
   tag->addr = new; tag->size = size;
   SplayNodeInit(&tag->splayNode);
   /* In the future, we might call debug->tagInit here. */

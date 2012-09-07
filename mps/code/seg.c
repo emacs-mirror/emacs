@@ -62,6 +62,7 @@ Res SegAlloc(Seg *segReturn, SegClass class, SegPref pref,
   Seg seg;
   Addr base;
   va_list args;
+  void *p;
 
   AVER(segReturn != NULL);
   AVERT(SegClass, class);
@@ -80,9 +81,10 @@ Res SegAlloc(Seg *segReturn, SegClass class, SegPref pref,
     goto failArena;
 
   /* allocate the segment object from the control pool */
-  res = ControlAlloc((void **)&seg, arena, class->size, withReservoirPermit);
+  res = ControlAlloc(&p, arena, class->size, withReservoirPermit);
   if (res != ResOK)
     goto failControl;
+  seg = p;
 
   va_start(args, withReservoirPermit);
   seg->class = class;
@@ -555,6 +557,7 @@ Res SegSplit(Seg *segLoReturn, Seg *segHiReturn, Seg seg, Addr at,
   Arena arena;
   Res res;
   va_list args;
+  void *p;
 
   AVER(NULL != segLoReturn);
   AVER(NULL != segHiReturn);
@@ -572,10 +575,10 @@ Res SegSplit(Seg *segLoReturn, Seg *segHiReturn, Seg seg, Addr at,
   ShieldFlush(arena);  /* see <design/seg/#split-merge.shield> */
 
   /* Allocate the new segment object from the control pool */
-  res = ControlAlloc((void **)&segNew, arena, class->size,
-                     withReservoirPermit);
+  res = ControlAlloc(&p, arena, class->size, withReservoirPermit);
   if (ResOK != res)
     goto failControl;
+  segNew = p;
 
   /* Invoke class-specific methods to do the split */
   va_start(args, withReservoirPermit);

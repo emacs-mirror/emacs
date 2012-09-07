@@ -12,7 +12,7 @@ CFLAGSCOMPILER := \
 	-ansi -pedantic -Wall -Werror -Wpointer-arith \
 	-Wstrict-prototypes -Wmissing-prototypes \
 	-Winline -Waggregate-return -Wnested-externs \
-	-Wcast-qual -Wshadow
+	-Wcast-qual -Wshadow -Wstrict-aliasing=2
 CFLAGSDEBUG = -O -g3
 CFLAGSOPT = -O2 -g3
 
