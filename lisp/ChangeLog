@@ -1,7 +1,11 @@
+2012-09-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/byte-run.el (defun): Tweak message.  Simplify code.
+
 2012-09-07  Matt McClure  <mlm@aya.yale.edu>  (tiny change)
 
-	* progmodes/python.el (python-shell-send-string): When
-	default-directory is remote, create temp file on remote
+	* progmodes/python.el (python-shell-send-string):
+	When default-directory is remote, create temp file on remote
 	filesystem.
 	(python-shell-send-file): When file is remote, pass local view of
 	file paths to remote Python interpreter.  (Bug#12340)
@@ -15,8 +19,8 @@
 
 	* subr.el (read-char-choice): Allow quitting via ESC ESC.
 
-	* userlock.el (ask-user-about-supersession-threat): Use
-	read-char-choice (Bug#12093).
+	* userlock.el (ask-user-about-supersession-threat):
+	Use read-char-choice (Bug#12093).
 
 2012-09-07  Chong Yidong  <cyd@gnu.org>
 

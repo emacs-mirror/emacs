@@ -185,11 +185,10 @@ The return value is undefined.
                    ((and (featurep 'cl)
                          (memq (car x)  ;C.f. cl-do-proclaim.
                                '(special inline notinline optimize warn)))
-                    (if (null (stringp docstring))
-                        (push (list 'declare x) body)
-                      (setcdr body (cons (list 'declare x) (cdr body))))
+                    (push (list 'declare x)
+                          (if (stringp docstring) (cdr body) body))
                     nil)
-                   (t (message "Warning: Unknown defun property %S in %S"
+                   (t (message "Warning: Unknown defun property `%S' in %S"
                                (car x) name)))))
                    decls))
           (def (list 'defalias
