@@ -1,3 +1,11 @@
+2012-09-07  Matt McClure  <mlm@aya.yale.edu>  (tiny change)
+
+	* progmodes/python.el (python-shell-send-string): When
+	default-directory is remote, create temp file on remote
+	filesystem.
+	(python-shell-send-file): When file is remote, pass local view of
+	file paths to remote Python interpreter.  (Bug#12340)
+
 2012-09-07  Chong Yidong  <cyd@gnu.org>
 
 	* window.el (switch-to-buffer): Doc fix (Bug#12181).

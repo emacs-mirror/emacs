@@ -1824,7 +1824,11 @@ When MSG is non-nil messages the first line of STRING."
         (lines (split-string string "\n" t)))
     (and msg (message "Sent: %s..." (nth 0 lines)))
     (if (> (length lines) 1)
-        (let* ((temp-file-name (make-temp-file "py"))
+        (let* ((temporary-file-directory
+                (if (file-remote-p default-directory)
+                    (concat (file-remote-p default-directory) "/tmp")
+                  temporary-file-directory))
+               (temp-file-name (make-temp-file "py"))
                (file-name (or (buffer-file-name) temp-file-name)))
           (with-temp-file temp-file-name
             (insert string)
@@ -1931,8 +1935,14 @@ FILE-NAME."
   (interactive "fFile to send: ")
   (let* ((process (or process (python-shell-get-or-create-process)))
          (temp-file-name (when temp-file-name
-                           (expand-file-name temp-file-name)))
-         (file-name (or (expand-file-name file-name) temp-file-name)))
+                           (expand-file-name
+                            (or (file-remote-p temp-file-name 'localname)
+                                temp-file-name))))
+         (file-name (or (when file-name
+                          (expand-file-name
+                           (or (file-remote-p file-name 'localname)
+                               file-name)))
+                        temp-file-name)))
     (when (not file-name)
       (error "If FILE-NAME is nil then TEMP-FILE-NAME must be non-nil"))
     (python-shell-send-string
