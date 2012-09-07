@@ -516,7 +516,7 @@ static Res SNCScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
   }
  
   if (base < limit) {
-    res = (*format->scan)(ss, base, limit);
+    res = (*format->scan)(&ss->ss_s, base, limit);
     if (res != ResOK) {
       *totalReturn = FALSE;
       return res;

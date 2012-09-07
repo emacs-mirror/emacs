@@ -1237,7 +1237,7 @@ static Res amsScanObject(Seg seg, Index i, Addr p, Addr next, void *clos)
 
   /* @@@@ This isn't quite right for multiple traces. */
   if (closure->scanAllObjects || AMS_IS_GREY(seg, i)) {
-    res = (*format->scan)(closure->ss,
+    res = (*format->scan)(&closure->ss->ss_s,
                           AddrAdd(p, format->headerSize),
                           AddrAdd(next, format->headerSize));
     if (res != ResOK)
@@ -1331,7 +1331,7 @@ Res AMSScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
             next = AddrAdd(p, alignment);
           }
           j = AMS_ADDR_INDEX(seg, next);
-          res = (*format->scan)(ss, clientP, clientNext);
+          res = (*format->scan)(&ss->ss_s, clientP, clientNext);
           if (res != ResOK) {
             /* <design/poolams/#marked.scan.fail> */
             amsseg->marksChanged = TRUE;

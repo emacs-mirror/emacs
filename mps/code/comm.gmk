@@ -498,6 +498,18 @@ $(PFM)/$(VARIETY)/%:
 	$(CC) $(CFLAGS) $(LINKFLAGS) -o $@ $^ $(LIBS)
 
 
+# Special targets for development
+
+# Currently FreeBSD 7 GCC 4.2.1 is the best platform we have for warning
+# us about strict aliasing rule violations caused by type puns.  This
+# target reveals them, and produces an assembler output file that can be
+# examined to see if they're actually dangerous.  RB 2012-09-07
+
+find-puns: phony
+	{ echo '#include "mps.c"'; echo '#include "fmtdy.c"'; } | \
+	gcc -S -fverbose-asm -ansi -pedantic -Wall -Wstrict-aliasing=2 -O3 -x c -o pun.s -
+
+
 # C. COPYRIGHT AND LICENSE
 #
 # Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
