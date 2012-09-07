@@ -21,7 +21,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Xt features made by Fred Pierresteguy.  */
 
 #include <config.h>
-#include <signal.h>
 #include <stdio.h>
 #include <setjmp.h>
 
@@ -29,9 +28,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include "lisp.h"
 #include "blockinput.h"
-
-/* Need syssignal.h for various externs and definitions that may be required
-   by some configurations for calls to signal later in this source file.  */
 #include "syssignal.h"
 
 /* This may include sys/types.h, and that somehow loses
@@ -7766,7 +7762,9 @@ x_connection_signal (int signalnum)	/* If we don't have an argument, */
 #ifdef USG
   /* USG systems forget handlers when they are used;
      must reestablish each time */
-  signal (signalnum, x_connection_signal);
+  struct sigaction action;
+  emacs_sigaction_init (&action, x_connection_signal);
+  sigaction (signalnum, &action, 0);
 #endif /* USG */
 }
 
@@ -7876,10 +7874,15 @@ For details, see etc/PROBLEMS.\n",
     }
 
   /* Ordinary stack unwind doesn't deal with these.  */
+  {
+    sigset_t unblocked;
+    sigemptyset (&unblocked);
 #ifdef SIGIO
-  sigunblock (sigmask (SIGIO));
+    sigaddset (&unblocked, SIGIO);
 #endif
-  sigunblock (sigmask (SIGALRM));
+    sigaddset (&unblocked, SIGALRM);
+    pthread_sigmask (SIG_UNBLOCK, &unblocked, 0);
+  }
   TOTALLY_UNBLOCK_INPUT;
 
   unbind_to (idx, Qnil);
@@ -10759,6 +10762,8 @@ x_create_terminal (struct x_display_info *dpyinfo)
 void
 x_initialize (void)
 {
+  struct sigaction action;
+
   baud_rate = 19200;
 
   x_noop_count = 0;
@@ -10805,7 +10810,8 @@ x_initialize (void)
   XSetErrorHandler (x_error_handler);
   XSetIOErrorHandler (x_io_error_quitter);
 
-  signal (SIGPIPE, x_connection_signal);
+  emacs_sigaction_init (&action, x_connection_signal);
+  sigaction (SIGPIPE, &action, 0);
 }
 
 

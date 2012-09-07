@@ -50,9 +50,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <X11/ShellP.h>
 #include "../lwlib/lwlib.h"
 
-#include <signal.h>
-#include "syssignal.h"
-
 #include "character.h"
 #include "font.h"
 

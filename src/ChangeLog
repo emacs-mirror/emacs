@@ -1,3 +1,57 @@
+2012-09-06  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Signal-handler cleanup (Bug#12327).
+	Emacs's signal handlers were written in the old 4.2BSD style with
+	sigblock and sigmask and so forth, and this led to some
+	inefficiencies and confusion.  Rewrite these to use
+	pthread_sigmask etc. without copying signal sets around.  Also,
+	get rid of the confusing macros 'SIGNAL_THREAD_CHECK' and
+	'signal', and instead use functions that do not attempt to take
+	over the system name space.  This patch causes Emacs's text
+	segment to shrink by 0.7% on my platform, Fedora 17 x86-64.
+	* alloc.c, emacsgtkfixed.c, nsfns.m, widget.c, xmenu.c:
+	Do not include <signal.h> or "syssignal.h", as these
+	modules do not use signals.
+	* atimer.c, callproc.c, data.c, dispnew.c, emacs.c, floatfns.c:
+	* gtkutil.c, keyboard.c, process.c, sound.c, sysdep.c, term.c, xterm.c:
+	Do not include <signal.h>, as "syssignal.h" does that for us now.
+	* atimer.c (sigmask_atimers): New function.
+	(block_atimers, unblock_atimers): New functions,
+	replacing the old macros BLOCK_ATIMERS and UNBLOCK_ATIMERS.
+	All uses replaced.
+	* conf_post.h [SIGNAL_H_AHB]: Do not include <signal.h>;
+	no longer needed here.
+	* emacs.c (main): Inspect existing signal handler with sigaction,
+	so that there's	no need to block and unblock SIGHUP.
+	* sysdep.c (struct save_signal): New member 'action', replacing
+	old member 'handler'.
+	(save_signal_handlers, restore_signal_handlers):
+	Use sigaction instead of 'signal' to save and restore.
+	(get_set_sighandler, set_sighandler) [!WINDOWSNT]:
+	New function.  All users of 'signal' modified to use set_sighandler
+	if they're writeonly, and to use sys_signal if they're read+write.
+	(emacs_sigaction_init, forwarded_signal): New functions.
+	(sys_signal): Remove.  All uses replaced by calls to sigaction
+	and emacs_sigaction_init, or by direct calls to 'signal'.
+	(sys_sigmask) [!__GNUC__]: Remove; no longer needed.
+	(sys_sigblock, sys_sigunblock, sys_sigsetmask): Remove;
+	all uses replaced by pthread_sigmask etc. calls.
+	* syssignal.h: Include <signal.h>.
+	(emacs_sigaction_init, forwarded_signal): New decls.
+	(SIGMASKTYPE): Remove.  All uses replaced by its definiens, sigset_t.
+	(SIGEMPTYMASK): Remove; all uses replaced by its definiens, empty_mask.
+	(sigmask, sys_sigmask): Remove; no longer needed.
+	(sigpause): Remove.  All uses replaced by its definiens, sigsuspend.
+	(sigblock, sigunblock, sigfree):
+	(sigsetmask) [!defined sigsetmask]:
+	Remove.  All uses replaced by pthread_sigmask.
+	(signal): Remove.  Its remaining uses (with SIG_DFL and SIG_IGN)
+	no longer need to be replaced, and its typical old uses
+	are now done via emacs_sigaction_init and sigaction.
+	(sys_sigblock, sys_sigunblock, sys_sigsetmask): Remove decls.
+	(sys_sigdel): Remove; unused.
+	(NSIG): Remove a FIXME; the code's fine.  Remove an unnecessary ifdef.
+
 2012-09-06  Eli Zaretskii  <eliz@gnu.org>
 
 	* process.c (CAN_HANDLE_MULTIPLE_CHILDREN): Fix a typo that broke
@@ -50,7 +104,7 @@
 
 2012-09-05  Paul Eggert  <eggert@cs.ucla.edu>
 
-	Fix race conditions with signal handlers and errno.
+	Fix race conditions with signal handlers and errno (Bug#12327).
 	Be more systematic about preserving errno whenever a signal
 	handler returns, even if it's not in the main thread.  Do this by
 	renaming signal handlers to distinguish between signal delivery

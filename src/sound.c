@@ -48,7 +48,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "lisp.h"
 #include "dispextern.h"
 #include "atimer.h"
-#include <signal.h>
 #include "syssignal.h"
 /* END: Common Includes */
 
@@ -316,7 +315,12 @@ sound_perror (const char *msg)
 
   turn_on_atimers (1);
 #ifdef SIGIO
-  sigunblock (sigmask (SIGIO));
+  {
+    sigset_t unblocked;
+    sigemptyset (&unblocked);
+    sigaddset (&unblocked, SIGIO);
+    pthread_sigmask (SIG_UNBLOCK, &unblocked, 0);
+  }
 #endif
   if (saved_errno != 0)
     error ("%s: %s", msg, strerror (saved_errno));
@@ -728,6 +732,9 @@ static void
 vox_configure (struct sound_device *sd)
 {
   int val;
+#ifdef SIGIO
+  sigset_t blocked;
+#endif
 
   eassert (sd->fd >= 0);
 
@@ -736,7 +743,9 @@ vox_configure (struct sound_device *sd)
      troubles.  */
   turn_on_atimers (0);
 #ifdef SIGIO
-  sigblock (sigmask (SIGIO));
+  sigemptyset (&blocked);
+  sigaddset (&blocked, SIGIO);
+  pthread_sigmask (SIG_BLOCK, &blocked, 0);
 #endif
 
   val = sd->format;
@@ -770,7 +779,7 @@ vox_configure (struct sound_device *sd)
 
   turn_on_atimers (1);
 #ifdef SIGIO
-  sigunblock (sigmask (SIGIO));
+  pthread_sigmask (SIG_UNBLOCK, &blocked, 0);
 #endif
 }
 
@@ -786,7 +795,10 @@ vox_close (struct sound_device *sd)
 	 be interrupted by a signal.  Block the ones we know to cause
 	 troubles.  */
 #ifdef SIGIO
-      sigblock (sigmask (SIGIO));
+      sigset_t blocked;
+      sigemptyset (&blocked);
+      sigaddset (&blocked, SIGIO);
+      pthread_sigmask (SIG_BLOCK, &blocked, 0);
 #endif
       turn_on_atimers (0);
 
@@ -795,7 +807,7 @@ vox_close (struct sound_device *sd)
 
       turn_on_atimers (1);
 #ifdef SIGIO
-      sigunblock (sigmask (SIGIO));
+      pthread_sigmask (SIG_UNBLOCK, &blocked, 0);
 #endif
 
       /* Close the device.  */

@@ -20,7 +20,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 
 #include <config.h>
-#include <signal.h>
 #include <errno.h>
 #include <stdio.h>
 
@@ -322,7 +321,12 @@ fatal_error_backtrace (int sig, int backtrace_limit)
      going to send is probably blocked, so we have to unblock it if we
      want to really receive it.  */
 #ifndef MSDOS
-  sigunblock (sigmask (fatal_error_code));
+  {
+    sigset_t unblocked;
+    sigemptyset (&unblocked);
+    sigaddset (&unblocked, fatal_error_code);
+    pthread_sigmask (SIG_UNBLOCK, &unblocked, 0);
+  }
 #endif
 
   kill (getpid (), fatal_error_code);
@@ -339,7 +343,10 @@ static void deliver_danger_signal (int);
 static void
 handle_danger_signal (int sig)
 {
-  signal (sig, deliver_danger_signal);
+  struct sigaction action;
+  emacs_sigaction_init (&action, deliver_danger_signal);
+  sigaction (sig, &action, 0);
+
   malloc_warning ("Operating system warns that virtual memory is running low.\n");
 
   /* It might be unsafe to call do_auto_save now.  */
@@ -683,6 +690,7 @@ main (int argc, char **argv)
   char dname_arg2[80];
 #endif
   char *ch_to_dir;
+  struct sigaction fatal_error_action;
 
 #if GC_MARK_STACK
   stack_base = &dummy;
@@ -1103,6 +1111,7 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
     }
 
   init_signals ();
+  emacs_sigaction_init (&fatal_error_action, deliver_fatal_signal);
 
   /* Don't catch SIGHUP if dumping.  */
   if (1
@@ -1111,13 +1120,17 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
 #endif
       )
     {
-      sigblock (sigmask (SIGHUP));
       /* In --batch mode, don't catch SIGHUP if already ignored.
 	 That makes nohup work.  */
-      if (! noninteractive
-	  || signal (SIGHUP, SIG_IGN) != SIG_IGN)
-	signal (SIGHUP, deliver_fatal_signal);
-      sigunblock (sigmask (SIGHUP));
+      bool catch_SIGHUP = !noninteractive;
+      if (!catch_SIGHUP)
+	{
+	  struct sigaction old_action;
+	  sigaction (SIGHUP, 0, &old_action);
+	  catch_SIGHUP = old_action.sa_handler != SIG_IGN;
+	}
+      if (catch_SIGHUP)
+	sigaction (SIGHUP, &fatal_error_action, 0);
     }
 
   if (
@@ -1141,68 +1154,73 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
       add_user_signal (SIGUSR2, "sigusr2");
 #endif
 #ifdef SIGABRT
-      signal (SIGABRT, deliver_fatal_signal);
+      sigaction (SIGABRT, &fatal_error_action, 0);
 #endif
 #ifdef SIGHWE
-      signal (SIGHWE, deliver_fatal_signal);
+      sigaction (SIGHWE, &fatal_error_action, 0);
 #endif
 #ifdef SIGPRE
-      signal (SIGPRE, deliver_fatal_signal);
+      sigaction (SIGPRE, &fatal_error_action, 0);
 #endif
 #ifdef SIGORE
-      signal (SIGORE, deliver_fatal_signal);
+      sigaction (SIGORE, &fatal_error_action, 0);
 #endif
 #ifdef SIGUME
-      signal (SIGUME, deliver_fatal_signal);
+      sigaction (SIGUME, &fatal_error_action, 0);
 #endif
 #ifdef SIGDLK
-      signal (SIGDLK, deliver_fatal_signal);
+      sigaction (SIGDLK, &fatal_error_action, 0);
 #endif
 #ifdef SIGCPULIM
-      signal (SIGCPULIM, deliver_fatal_signal);
+      sigaction (SIGCPULIM, &fatal_error_action, 0);
 #endif
 #ifdef SIGIOT
       /* This is missing on some systems - OS/2, for example.  */
-      signal (SIGIOT, deliver_fatal_signal);
+      sigaction (SIGIOT, &fatal_error_action, 0);
 #endif
 #ifdef SIGEMT
-      signal (SIGEMT, deliver_fatal_signal);
+      sigaction (SIGEMT, &fatal_error_action, 0);
 #endif
-      signal (SIGFPE, deliver_fatal_signal);
+      sigaction (SIGFPE, &fatal_error_action, 0);
 #ifdef SIGBUS
-      signal (SIGBUS, deliver_fatal_signal);
+      sigaction (SIGBUS, &fatal_error_action, 0);
 #endif
-      signal (SIGSEGV, deliver_fatal_signal);
+      sigaction (SIGSEGV, &fatal_error_action, 0);
 #ifdef SIGSYS
-      signal (SIGSYS, deliver_fatal_signal);
+      sigaction (SIGSYS, &fatal_error_action, 0);
 #endif
       /*  May need special treatment on MS-Windows. See
           http://lists.gnu.org/archive/html/emacs-devel/2010-09/msg01062.html
           Please update the doc of kill-emacs, kill-emacs-hook, and
           NEWS if you change this.
       */
-      if (noninteractive) signal (SIGINT, deliver_fatal_signal);
-      signal (SIGTERM, deliver_fatal_signal);
+      if (noninteractive)
+	sigaction (SIGINT, &fatal_error_action, 0);
+      sigaction (SIGTERM, &fatal_error_action, 0);
 #ifdef SIGXCPU
-      signal (SIGXCPU, deliver_fatal_signal);
+      sigaction (SIGXCPU, &fatal_error_action, 0);
 #endif
 #ifdef SIGXFSZ
-      signal (SIGXFSZ, deliver_fatal_signal);
+      sigaction (SIGXFSZ, &fatal_error_action, 0);
 #endif /* SIGXFSZ */
 
 #ifdef SIGDANGER
       /* This just means available memory is getting low.  */
-      signal (SIGDANGER, deliver_danger_signal);
+      {
+	struct sigaction action;
+	emacs_sigaction_init (&action, deliver_danger_signal);
+	sigaction (SIGDANGER, &action, 0);
+      }
 #endif
 
 #ifdef AIX
 /* 20 is SIGCHLD, 21 is SIGTTIN, 22 is SIGTTOU.  */
-      signal (SIGXCPU, deliver_fatal_signal);
-      signal (SIGIOINT, deliver_fatal_signal);
-      signal (SIGGRANT, deliver_fatal_signal);
-      signal (SIGRETRACT, deliver_fatal_signal);
-      signal (SIGSOUND, deliver_fatal_signal);
-      signal (SIGMSG, deliver_fatal_signal);
+      sigaction (SIGXCPU, &fatal_error_action, 0);
+      sigaction (SIGIOINT, &fatal_error_action, 0);
+      sigaction (SIGGRANT, &fatal_error_action, 0);
+      sigaction (SIGRETRACT, &fatal_error_action, 0);
+      sigaction (SIGSOUND, &fatal_error_action, 0);
+      sigaction (SIGMSG, &fatal_error_action, 0);
 #endif /* AIX */
     }
 

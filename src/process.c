@@ -23,7 +23,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define PROCESS_INLINE EXTERN_INLINE
 
-#include <signal.h>
 #include <stdio.h>
 #include <errno.h>
 #include <setjmp.h>
@@ -1612,8 +1611,7 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
 #if !defined (WINDOWSNT) && defined (FD_CLOEXEC)
   int wait_child_setup[2];
 #endif
-  sigset_t procmask;
-  sigset_t blocked;
+  sigset_t blocked, procmask;
   struct sigaction sigint_action;
   struct sigaction sigquit_action;
   struct sigaction sigpipe_action;
@@ -1764,12 +1762,6 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
       {
 	int xforkin = forkin;
 	int xforkout = forkout;
-
-#if 0 /* This was probably a mistake--it duplicates code later on,
-	 but fails to handle all the cases.  */
-	/* Make sure SIGCHLD is not blocked in the child.  */
-	sigsetmask (SIGEMPTYMASK);
-#endif
 
 	/* Make the pty be the controlling terminal of the process.  */
 #ifdef HAVE_PTYS
@@ -5434,7 +5426,10 @@ static Lisp_Object process_sent_to;
 static _Noreturn void
 handle_pipe_signal (int sig)
 {
-  sigunblock (sigmask (SIGPIPE));
+  sigset_t unblocked;
+  sigemptyset (&unblocked);
+  sigaddset (&unblocked, SIGPIPE);
+  pthread_sigmask (SIG_UNBLOCK, &unblocked, 0);
   _longjmp (send_process_frame, 1);
 }
 
@@ -5534,7 +5529,7 @@ send_process (volatile Lisp_Object proc, const char *volatile buf,
   struct Lisp_Process *p = XPROCESS (proc);
   ssize_t rv;
   struct coding_system *coding;
-  void (*volatile old_sigpipe) (int);
+  struct sigaction old_sigpipe_action;
 
   if (p->raw_status_new)
     update_status (p);
@@ -5673,7 +5668,9 @@ send_process (volatile Lisp_Object proc, const char *volatile buf,
 	      /* Send this batch, using one or more write calls.  */
 	      ptrdiff_t written = 0;
 	      int outfd = p->outfd;
-	      old_sigpipe = signal (SIGPIPE, deliver_pipe_signal);
+	      struct sigaction action;
+	      emacs_sigaction_init (&action, deliver_pipe_signal);
+	      sigaction (SIGPIPE, &action, &old_sigpipe_action);
 #ifdef DATAGRAM_SOCKETS
 	      if (DATAGRAM_CHAN_P (outfd))
 		{
@@ -5684,7 +5681,7 @@ send_process (volatile Lisp_Object proc, const char *volatile buf,
 		    written = rv;
 		  else if (errno == EMSGSIZE)
 		    {
-		      signal (SIGPIPE, old_sigpipe);
+		      sigaction (SIGPIPE, &old_sigpipe_action, 0);
 		      report_file_error ("sending datagram",
 					 Fcons (proc, Qnil));
 		    }
@@ -5709,7 +5706,7 @@ send_process (volatile Lisp_Object proc, const char *volatile buf,
 		    }
 #endif
 		}
-	      signal (SIGPIPE, old_sigpipe);
+	      sigaction (SIGPIPE, &old_sigpipe_action, 0);
 
 	      if (rv < 0)
 		{
@@ -5769,7 +5766,7 @@ send_process (volatile Lisp_Object proc, const char *volatile buf,
     }
   else
     {
-      signal (SIGPIPE, old_sigpipe);
+      sigaction (SIGPIPE, &old_sigpipe_action, 0);
       proc = process_sent_to;
       p = XPROCESS (proc);
       p->raw_status_new = 0;
@@ -7389,7 +7386,11 @@ init_process_emacs (void)
 #ifndef CANNOT_DUMP
   if (! noninteractive || initialized)
 #endif
-    signal (SIGCHLD, deliver_child_signal);
+    {
+      struct sigaction action;
+      emacs_sigaction_init (&action, deliver_child_signal);
+      sigaction (SIGCHLD, &action, 0);
+    }
 #endif
 
   FD_ZERO (&input_wait_mask);

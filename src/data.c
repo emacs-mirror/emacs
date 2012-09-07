@@ -19,7 +19,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 
 #include <config.h>
-#include <signal.h>
 #include <stdio.h>
 #include <setjmp.h>
 
@@ -3210,7 +3209,7 @@ syms_of_data (void)
 static _Noreturn void
 handle_arith_signal (int sig)
 {
-  sigsetmask (SIGEMPTYMASK);
+  pthread_sigmask (SIG_SETMASK, &empty_mask, 0);
   xsignal0 (Qarith_error);
 }
 
@@ -3223,6 +3222,7 @@ deliver_arith_signal (int sig)
 void
 init_data (void)
 {
+  struct sigaction action;
   /* Don't do this if just dumping out.
      We don't want to call `signal' in this case
      so that we don't have trouble with dumping
@@ -3231,5 +3231,6 @@ init_data (void)
   if (!initialized)
     return;
 #endif /* CANNOT_DUMP */
-  signal (SIGFPE, deliver_arith_signal);
+  emacs_sigaction_init (&action, deliver_arith_signal);
+  sigaction (SIGFPE, &action, 0);
 }

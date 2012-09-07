@@ -21,7 +21,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define DISPEXTERN_INLINE EXTERN_INLINE
 
-#include <signal.h>
 #include <stdio.h>
 #include <setjmp.h>
 #include <unistd.h>
@@ -5560,7 +5559,9 @@ handle_window_change_signal (int sig)
   int width, height;
   struct tty_display_info *tty;
 
-  signal (SIGWINCH, deliver_window_change_signal);
+  struct sigaction action;
+  emacs_sigaction_init (&action, deliver_window_change_signal);
+  sigaction (SIGWINCH, &action, 0);
 
   /* The frame size change obviously applies to a single
      termcap-controlled terminal, but we can't decide which.
@@ -6175,7 +6176,11 @@ init_display (void)
 #ifndef CANNOT_DUMP
   if (initialized)
 #endif /* CANNOT_DUMP */
-    signal (SIGWINCH, deliver_window_change_signal);
+    {
+      struct sigaction action;
+      emacs_sigaction_init (&action, deliver_window_change_signal);
+      sigaction (SIGWINCH, &action, 0);
+    }
 #endif /* SIGWINCH */
 
   /* If running as a daemon, no need to initialize any frames/terminal. */

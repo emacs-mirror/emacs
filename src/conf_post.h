@@ -40,11 +40,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 #endif
 
-#ifdef SIGNAL_H_AHB
-#undef SIGNAL_H_AHB
-#include <signal.h>
-#endif
-
 /* This silences a few compilation warnings on FreeBSD.  */
 #ifdef BSD_SYSTEM_AHB
 #undef BSD_SYSTEM_AHB

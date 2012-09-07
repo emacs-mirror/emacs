@@ -25,7 +25,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <sys/file.h>
 #include <sys/time.h>
 #include <unistd.h>
-#include <signal.h>
 #include <setjmp.h>
 
 #include "lisp.h"
@@ -2932,7 +2931,10 @@ dissociate_if_controlling_tty (int fd)
       no_controlling_tty = 1;
 #else
 #ifdef TIOCNOTTY                /* Try BSD ioctls. */
-      sigblock (sigmask (SIGTTOU));
+      sigset_t blocked;
+      sigemptyset (&blocked);
+      sigaddset (&blocked, SIGTTOU);
+      pthread_sigmask (SIG_BLOCK, &blocked, 0);
       fd = emacs_open (DEV_TTY, O_RDWR, 0);
       if (fd != -1 && ioctl (fd, TIOCNOTTY, 0) != -1)
         {
@@ -2940,7 +2942,7 @@ dissociate_if_controlling_tty (int fd)
         }
       if (fd != -1)
         emacs_close (fd);
-      sigunblock (sigmask (SIGTTOU));
+      pthread_sigmask (SIG_UNBLOCK, &blocked, 0);
 #else
       /* Unknown system. */
       croak ();
@@ -3074,9 +3076,14 @@ init_tty (const char *name, const char *terminal_type, int must_succeed)
 
   /* On some systems, tgetent tries to access the controlling
      terminal. */
-  sigblock (sigmask (SIGTTOU));
-  status = tgetent (tty->termcap_term_buffer, terminal_type);
-  sigunblock (sigmask (SIGTTOU));
+  {
+    sigset_t blocked;
+    sigemptyset (&blocked);
+    sigaddset (&blocked, SIGTTOU);
+    pthread_sigmask (SIG_BLOCK, &blocked, 0);
+    status = tgetent (tty->termcap_term_buffer, terminal_type);
+    pthread_sigmask (SIG_UNBLOCK, &blocked, 0);
+  }
 
   if (status < 0)
     {

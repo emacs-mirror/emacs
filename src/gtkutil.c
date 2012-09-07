@@ -21,7 +21,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #ifdef USE_GTK
 #include <float.h>
-#include <signal.h>
 #include <stdio.h>
 #include <setjmp.h>
 
@@ -1979,7 +1978,10 @@ xg_get_file_name (FRAME_PTR f,
   /* I really don't know why this is needed, but without this the GLIBC add on
      library linuxthreads hangs when the Gnome file chooser backend creates
      threads.  */
-  sigblock (sigmask (__SIGRTMIN));
+  sigset_t blocked;
+  sigemptyset (&blocked);
+  sigaddset (&blocked, __SIGRTMIN);
+  pthread_sigmask (SIG_BLOCK, &blocked, 0);
 #endif /* HAVE_PTHREAD */
 
 #ifdef HAVE_GTK_FILE_SELECTION_NEW
@@ -2001,7 +2003,7 @@ xg_get_file_name (FRAME_PTR f,
   filesel_done = xg_dialog_run (f, w);
 
 #if defined (HAVE_PTHREAD) && defined (__SIGRTMIN)
-  sigunblock (sigmask (__SIGRTMIN));
+  pthread_sigmask (SIG_UNBLOCK, &blocked, 0);
 #endif
 
   if (filesel_done == GTK_RESPONSE_OK)
@@ -2057,7 +2059,10 @@ xg_get_font (FRAME_PTR f, const char *default_name)
   Lisp_Object font = Qnil;
 
 #if defined (HAVE_PTHREAD) && defined (__SIGRTMIN)
-  sigblock (sigmask (__SIGRTMIN));
+  sigset_t blocked;
+  sigemptyset (&blocked);
+  sigaddset (&blocked, __SIGRTMIN);
+  pthread_sigmask (SIG_BLOCK, &blocked, 0);
 #endif /* HAVE_PTHREAD */
 
   w = gtk_font_chooser_dialog_new
@@ -2086,7 +2091,7 @@ xg_get_font (FRAME_PTR f, const char *default_name)
   done = xg_dialog_run (f, w);
 
 #if defined (HAVE_PTHREAD) && defined (__SIGRTMIN)
-  sigunblock (sigmask (__SIGRTMIN));
+  pthread_sigmask (SIG_UNBLOCK, &blocked, 0);
 #endif
 
   if (done == GTK_RESPONSE_OK)

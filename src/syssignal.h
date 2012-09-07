@@ -17,6 +17,8 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
+#include <signal.h>
+
 extern void init_signals (void);
 
 #ifdef HAVE_PTHREAD
@@ -26,62 +28,15 @@ extern void init_signals (void);
 #define FORWARD_SIGNAL_TO_MAIN_THREAD
 #endif
 
-/* Don't #include <signal.h>.  That header should always be #included
-   before "config.h", because some configuration files (like s/hpux.h)
-   indicate that SIGIO doesn't work by #undef-ing SIGIO.  If this file
-   #includes <signal.h>, then that will re-#define SIGIO and confuse
-   things.  */
-/* XXX This is not correct anymore, there is a BROKEN_SIGIO macro. */
-
-#define SIGMASKTYPE sigset_t
-
-#define SIGEMPTYMASK (empty_mask)
 extern sigset_t empty_mask;
 
-/* POSIX pretty much destroys any possibility of writing sigmask as a
-   macro in standard C.  We always define our own version because the
-   predefined macro in Glibc 2.1 is only provided for compatibility for old
-   programs that use int as signal mask type.  */
-#undef sigmask
-#ifdef __GNUC__
-#define sigmask(SIG) 				\
-  ({						\
-    sigset_t _mask;				\
-    sigemptyset (&_mask);			\
-    sigaddset (&_mask, SIG);			\
-    _mask;					\
-  })
-#else /* ! defined (__GNUC__) */
-extern sigset_t sys_sigmask ();
-#define sigmask(SIG) (sys_sigmask (SIG))
-#endif /* ! defined (__GNUC__) */
-
-#undef sigpause
-#define sigpause(MASK)    sigsuspend (&(MASK))
-
-#define sigblock(SIG)    sys_sigblock (SIG)
-#define sigunblock(SIG)  sys_sigunblock (SIG)
-#ifndef sigsetmask
-#define sigsetmask(SIG)  sys_sigsetmask (SIG)
-#endif
-#undef signal
-#define signal(SIG,ACT)      sys_signal(SIG,ACT)
-
-/* Whether this is what all systems want or not, this is what
-   appears to be assumed in the source, for example data.c:arith_error.  */
 typedef void (*signal_handler_t) (int);
 
-signal_handler_t sys_signal (int signal_number, signal_handler_t action);
-sigset_t sys_sigblock   (sigset_t new_mask);
-sigset_t sys_sigunblock (sigset_t new_mask);
-sigset_t sys_sigsetmask (sigset_t new_mask);
+extern void emacs_sigaction_init (struct sigaction *, signal_handler_t);
+
 #if ! (defined TIOCNOTTY || defined USG5 || defined CYGWIN)
 _Noreturn void croak (char *);
 #endif
-
-#define sys_sigdel(MASK,SIG) sigdelset (&MASK,SIG)
-
-#define sigfree() sigsetmask (SIGEMPTYMASK)
 
 #if defined (SIGIO) && defined (BROKEN_SIGIO)
 # undef SIGIO
@@ -97,12 +52,8 @@ _Noreturn void croak (char *);
 #undef SIGPTY
 #endif
 
-
-/* FIXME?  Emacs only defines NSIG_MINIMUM on some platforms?  */
 #if NSIG < NSIG_MINIMUM
-# ifdef NSIG
-#  undef NSIG
-# endif
+# undef NSIG
 # define NSIG NSIG_MINIMUM
 #endif
 

@@ -19,7 +19,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 
 #include <config.h>
-#include <signal.h>
 #include <errno.h>
 #include <stdio.h>
 #include <setjmp.h>
@@ -506,9 +505,6 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 
     if (fd_output >= 0)
       fd1 = fd_output;
-#if 0  /* Some systems don't have sigblock.  */
-    mask = sigblock (sigmask (SIGCHLD));
-#endif
 
     /* Record that we're about to create a synchronous process.  */
     synch_process_alive = 1;

@@ -21,7 +21,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define KEYBOARD_INLINE EXTERN_INLINE
 
-#include <signal.h>
 #include <stdio.h>
 #include <setjmp.h>
 #include "lisp.h"
@@ -3680,7 +3679,7 @@ kbd_buffer_store_event_hold (register struct input_event *event,
       if (immediate_quit && NILP (Vinhibit_quit))
 	{
 	  immediate_quit = 0;
-	  sigfree ();
+	  pthread_sigmask (SIG_SETMASK, &empty_mask, 0);
 	  QUIT;
 	}
     }
@@ -3832,7 +3831,11 @@ kbd_buffer_get_event (KBOARD **kbp,
       unhold_keyboard_input ();
 #ifdef SIGIO
       if (!noninteractive)
-        signal (SIGIO, deliver_input_available_signal);
+	{
+	  struct sigaction action;
+	  emacs_sigaction_init (&action, deliver_input_available_signal);
+	  sigaction (SIGIO, &action, 0);
+	}
 #endif /* SIGIO */
       start_polling ();
     }
@@ -6780,10 +6783,12 @@ gobble_input (int expected)
 #ifdef SIGIO
   if (interrupt_input)
     {
-      SIGMASKTYPE mask;
-      mask = sigblock (sigmask (SIGIO));
+      sigset_t blocked, procmask;
+      sigemptyset (&blocked);
+      sigaddset (&blocked, SIGIO);
+      pthread_sigmask (SIG_BLOCK, &blocked, &procmask);
       read_avail_input (expected);
-      sigsetmask (mask);
+      pthread_sigmask (SIG_SETMASK, &procmask, 0);
     }
   else
 #ifdef POLL_FOR_INPUT
@@ -6792,10 +6797,12 @@ gobble_input (int expected)
      it's always set.  */
   if (!interrupt_input && poll_suppress_count == 0)
     {
-      SIGMASKTYPE mask;
-      mask = sigblock (sigmask (SIGALRM));
+      sigset_t blocked, procmask;
+      sigemptyset (&blocked);
+      sigaddset (&blocked, SIGALRM);
+      pthread_sigmask (SIG_BLOCK, &blocked, &procmask);
       read_avail_input (expected);
-      sigsetmask (mask);
+      pthread_sigmask (SIG_SETMASK, &procmask, 0);
     }
   else
 #endif
@@ -6831,10 +6838,12 @@ record_asynch_buffer_change (void)
 #ifdef SIGIO
   if (interrupt_input)
     {
-      SIGMASKTYPE mask;
-      mask = sigblock (sigmask (SIGIO));
+      sigset_t blocked, procmask;
+      sigemptyset (&blocked);
+      sigaddset (&blocked, SIGIO);
+      pthread_sigmask (SIG_BLOCK, &blocked, &procmask);
       kbd_buffer_store_event (&event);
-      sigsetmask (mask);
+      pthread_sigmask (SIG_SETMASK, &procmask, 0);
     }
   else
 #endif
@@ -7295,6 +7304,7 @@ static struct user_signal_info *user_signals = NULL;
 void
 add_user_signal (int sig, const char *name)
 {
+  struct sigaction action;
   struct user_signal_info *p;
 
   for (p = user_signals; p; p = p->next)
@@ -7309,7 +7319,8 @@ add_user_signal (int sig, const char *name)
   p->next = user_signals;
   user_signals = p;
 
-  signal (sig, deliver_user_signal);
+  emacs_sigaction_init (&action, deliver_user_signal);
+  sigaction (sig, &action, 0);
 }
 
 static void
@@ -7381,7 +7392,7 @@ store_user_signal_events (void)
   for (p = user_signals; p; p = p->next)
     if (p->npending > 0)
       {
-	SIGMASKTYPE mask;
+	sigset_t blocked, procmask;
 
 	if (nstored == 0)
 	  {
@@ -7391,7 +7402,10 @@ store_user_signal_events (void)
 	  }
 	nstored += p->npending;
 
-	mask = sigblock (sigmask (p->sig));
+	sigemptyset (&blocked);
+	sigaddset (&blocked, p->sig);
+	pthread_sigmask (SIG_BLOCK, &blocked, &procmask);
+
 	do
 	  {
 	    buf.code = p->sig;
@@ -7399,7 +7413,8 @@ store_user_signal_events (void)
 	    p->npending--;
 	  }
 	while (p->npending > 0);
-	sigsetmask (mask);
+
+	pthread_sigmask (SIG_SETMASK, &procmask, 0);
       }
 
   return nstored;
@@ -10838,7 +10853,10 @@ handle_interrupt (void)
       /* If SIGINT isn't blocked, don't let us be interrupted by
 	 another SIGINT, it might be harmful due to non-reentrancy
 	 in I/O functions.  */
-      sigblock (sigmask (SIGINT));
+      sigset_t blocked;
+      sigemptyset (&blocked);
+      sigaddset (&blocked, SIGINT);
+      pthread_sigmask (SIG_BLOCK, &blocked, 0);
 
       fflush (stdout);
       reset_all_sys_modes ();
@@ -10909,7 +10927,7 @@ handle_interrupt (void)
 #endif /* not MSDOS */
       fflush (stdout);
       init_all_sys_modes ();
-      sigfree ();
+      pthread_sigmask (SIG_SETMASK, &empty_mask, 0);
     }
   else
     {
@@ -10922,7 +10940,7 @@ handle_interrupt (void)
 	  struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
 
 	  immediate_quit = 0;
-          sigfree ();
+	  pthread_sigmask (SIG_SETMASK, &empty_mask, 0);
 	  saved = gl_state;
 	  GCPRO4 (saved.object, saved.global_code,
 		  saved.current_syntax_table, saved.old_prop);
@@ -10967,7 +10985,7 @@ quit_throw_to_read_char (int from_signal)
   if (!from_signal && EQ (Vquit_flag, Qkill_emacs))
     Fkill_emacs (Qnil);
 
-  sigfree ();
+  pthread_sigmask (SIG_SETMASK, &empty_mask, 0);
   /* Prevent another signal from doing this before we finish.  */
   clear_waiting_for_input ();
   input_pending = 0;
@@ -11402,17 +11420,23 @@ init_keyboard (void)
          SIGINT.  There is special code in interrupt_signal to exit
          Emacs on SIGINT when there are no termcap frames on the
          controlling terminal.  */
-      signal (SIGINT, deliver_interrupt_signal);
+      struct sigaction action;
+      emacs_sigaction_init (&action, deliver_interrupt_signal);
+      sigaction (SIGINT, &action, 0);
 #ifndef DOS_NT
       /* For systems with SysV TERMIO, C-g is set up for both SIGINT and
 	 SIGQUIT and we can't tell which one it will give us.  */
-      signal (SIGQUIT, deliver_interrupt_signal);
+      sigaction (SIGQUIT, &action, 0);
 #endif /* not DOS_NT */
     }
 /* Note SIGIO has been undef'd if FIONREAD is missing.  */
 #ifdef SIGIO
   if (!noninteractive)
-    signal (SIGIO, deliver_input_available_signal);
+    {
+      struct sigaction action;
+      emacs_sigaction_init (&action, deliver_input_available_signal);
+      sigaction (SIGIO, &action, 0);
+    }
 #endif /* SIGIO */
 
 /* Use interrupt input by default, if it works and noninterrupt input
@@ -11424,7 +11448,7 @@ init_keyboard (void)
   interrupt_input = 0;
 #endif
 
-  sigfree ();
+  pthread_sigmask (SIG_SETMASK, &empty_mask, 0);
   dribble = 0;
 
   if (keyboard_init_hook)

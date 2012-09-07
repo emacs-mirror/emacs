@@ -30,7 +30,6 @@ GNUstep port and post-20 update by Adrian Robert (arobert@cogsci.ucsd.edu)
    interpretation of even the system includes. */
 #include <config.h>
 
-#include <signal.h>
 #include <math.h>
 #include <setjmp.h>
 #include <c-strcase.h>
