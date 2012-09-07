@@ -1,11 +1,25 @@
 /* mps.h: RAVENBROOK MEMORY POOL SYSTEM C INTERFACE
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2012 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (c) 2002 Global Graphics Software.
  *
- * .readership: customers, MPS developers.
- * .sources: <design/interface-c/>.
+ * THIS HEADER IS NOT DOCUMENTATION.
+ * Please refer to the [MPS Manual](../manual/).
+ *
+ * But if you are a human reading this, please note:
+ *
+ * .naming: The MPS interface only uses identifiers beginning `mps_`,
+ * `MPS_` or `_mps_` and may use any identifiers with these prefixes in
+ * future.
+ *
+ * .naming.internal: Any idenfitier beginning with underscore is for
+ * internal use within the interface and may change or be withdrawn without
+ * warning.
+ *
+ * .readership: compilers, MPS developers.
+ *
+ * .sources: [The design of the MPS Interface to C](../design/interface-c).
  */
 
 #ifndef mps_h
@@ -85,16 +99,16 @@ enum {
  * <code/mpmtypes.h#message.types> */
 /* Not meant to be used by clients, they should use the macros below. */
 enum {
-  MPS_MESSAGE_TYPE_FINALIZATION,
-  MPS_MESSAGE_TYPE_GC,
-  MPS_MESSAGE_TYPE_GC_START
+  _mps_MESSAGE_TYPE_FINALIZATION,
+  _mps_MESSAGE_TYPE_GC,
+  _mps_MESSAGE_TYPE_GC_START
 };
 
 /* Message Types
  * This is what clients should use. */
-#define mps_message_type_finalization() MPS_MESSAGE_TYPE_FINALIZATION
-#define mps_message_type_gc() MPS_MESSAGE_TYPE_GC
-#define mps_message_type_gc_start() MPS_MESSAGE_TYPE_GC_START
+#define mps_message_type_finalization() _mps_MESSAGE_TYPE_FINALIZATION
+#define mps_message_type_gc() _mps_MESSAGE_TYPE_GC
+#define mps_message_type_gc_start() _mps_MESSAGE_TYPE_GC_START
 
 
 /* Reference Ranks
@@ -105,11 +119,6 @@ extern mps_rank_t mps_rank_ambig(void);
 extern mps_rank_t mps_rank_exact(void);
 extern mps_rank_t mps_rank_weak(void);
 
-/* These upper case symbolic forms are obsolescent. */
-/* Provided for source compatibility only. */
-#define MPS_RANK_AMBIG mps_rank_ambig()
-#define MPS_RANK_EXACT mps_rank_exact()
-#define MPS_RANK_WEAK mps_rank_weak()
 
 /* Root Modes */
 /* .rm: Keep in sync with <code/mpmtypes.h#rm> */
@@ -125,9 +134,9 @@ typedef struct mps_ap_s {       /* allocation point descriptor */
   mps_addr_t init;              /* limit of initialized memory */
   mps_addr_t alloc;             /* limit of allocated memory */
   mps_addr_t limit;             /* limit of available memory */
-  mps_addr_t frameptr;          /* lightweight frame pointer */
-  mps_bool_t enabled;           /* lightweight frame status */
-  mps_bool_t lwpoppending;      /* lightweight pop pending? */
+  mps_addr_t _frameptr;         /* lightweight frame pointer */
+  mps_bool_t _enabled;          /* lightweight frame status */
+  mps_bool_t _lwpoppending;     /* lightweight pop pending? */
 } mps_ap_s;
 
 
@@ -165,7 +174,7 @@ typedef struct mps_sac_class_s {
 /* .ld: Keep in sync with <code/mpmst.h#ld.struct>. */
 
 typedef struct mps_ld_s {       /* location dependency descriptor */
-  mps_word_t w0, w1;
+  mps_word_t _epoch, _rs;
 } mps_ld_s;
 
 
@@ -186,10 +195,10 @@ typedef mps_addr_t (*mps_fmt_class_t)(mps_addr_t);
 
 
 /* Scan State */
-/* .ss: See also <code/mpsi.c#check.ss> and <code/mpmst.h#ss>. */
+/* .ss: See also <code/mpmst.h#ss>. */
 
 typedef struct mps_ss_s {
-  mps_word_t w0, w1, w2;
+  mps_word_t _zs, _w, _ufs;
 } mps_ss_s;
 
 
@@ -629,20 +638,20 @@ extern mps_res_t mps_fix(mps_ss_t, mps_addr_t *);
 #define MPS_SCAN_BEGIN(ss) \
   MPS_BEGIN \
     mps_ss_t _ss = (ss); \
-    mps_word_t _mps_w0 = (_ss)->w0; \
-    mps_word_t _mps_w1 = (_ss)->w1; \
-    mps_word_t _mps_w2 = (_ss)->w2; \
+    mps_word_t _mps_zs = (_ss)->_zs; \
+    mps_word_t _mps_w = (_ss)->_w; \
+    mps_word_t _mps_ufs = (_ss)->_ufs; \
     mps_word_t _mps_wt; \
     {
 
 #define MPS_FIX1(ss, ref) \
-  (_mps_wt = (mps_word_t)1 << ((mps_word_t)(ref) >> _mps_w0 \
+  (_mps_wt = (mps_word_t)1 << ((mps_word_t)(ref) >> _mps_zs \
                                & (sizeof(mps_word_t) * CHAR_BIT - 1)), \
-   _mps_w2 |= _mps_wt, \
-   (_mps_w1 & _mps_wt) != 0)
+   _mps_ufs |= _mps_wt, \
+   (_mps_w & _mps_wt) != 0)
 
-extern mps_res_t mps_fix2(mps_ss_t, mps_addr_t *);
-#define MPS_FIX2(ss, ref_io) mps_fix2(ss, ref_io)
+extern mps_res_t _mps_fix2(mps_ss_t, mps_addr_t *);
+#define MPS_FIX2(ss, ref_io) _mps_fix2(ss, ref_io)
 
 #define MPS_FIX12(ss, ref_io) \
   (MPS_FIX1(ss, *(ref_io)) ? \
@@ -653,12 +662,12 @@ extern mps_res_t mps_fix2(mps_ss_t, mps_addr_t *);
 
 #define MPS_FIX_CALL(ss, call) \
   MPS_BEGIN \
-    (call); _mps_w2 |= (ss)->w2; \
+    (call); _mps_ufs |= (ss)->_ufs; \
   MPS_END
 
 #define MPS_SCAN_END(ss) \
    } \
-   (ss)->w2 = _mps_w2; \
+   (ss)->_ufs = _mps_ufs; \
   MPS_END
 
 

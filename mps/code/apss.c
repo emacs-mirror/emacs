@@ -57,7 +57,7 @@ static mps_res_t stress(mps_class_t class, size_t (*size)(int i),
   if (res != MPS_RES_OK)
     return res;
 
-  die(mps_ap_create(&ap, pool, MPS_RANK_EXACT), "BufferCreate");
+  die(mps_ap_create(&ap, pool, mps_rank_exact()), "BufferCreate");
 
   /* allocate a load of objects */
   for (i=0; i<testSetSIZE; ++i) {

@@ -67,9 +67,7 @@ typedef BufferClass SegBufClass;        /* <design/buffer/> */
 typedef BufferClass RankBufClass;       /* <design/buffer/> */
 typedef unsigned BufferMode;            /* <design/buffer/> */
 typedef unsigned FrameState;            /* <design/alloc-frame/> */
-typedef struct APStruct *AP;            /* <design/buffer/> */
 typedef struct FormatStruct *Format;    /* design.mps.format */
-typedef struct LDStruct *LD;            /* design.mps.ld */
 typedef struct LockStruct *Lock;        /* <code/lock.c>* */
 typedef struct PoolStruct *Pool;        /* <design/pool/> */
 typedef struct PoolClassStruct *PoolClass; /* <code/poolclas.c> */
@@ -94,7 +92,7 @@ typedef struct SegPrefStruct *SegPref;  /* design.mps.pref, <code/locus.c> */
 typedef int SegPrefKind;                /* design.mps.pref, <code/locus.c> */
 typedef struct ArenaClassStruct *ArenaClass; /* <design/arena/> */
 typedef ArenaClass AbstractArenaClass;  /* <code/arena.c> */
-typedef struct ArenaStruct *Arena;      /* <design/arena/> */
+typedef struct mps_arena_s *Arena;      /* <design/arena/> */
 typedef struct GlobalsStruct *Globals;  /* <design/arena/> */
 typedef struct VMStruct *VM;            /* <code/vm.c>* */
 typedef struct RootStruct *Root;        /* <code/root.c> */
