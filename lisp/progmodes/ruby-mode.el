@@ -839,8 +839,8 @@ and `\\' when preceded by `?'."
 With ARG, move backward multiple defuns.  Negative ARG means
 move forward."
   (interactive "p")
-  (and (re-search-backward (concat "^\\(" ruby-block-beg-re "\\)\\b")
-                           nil 'move (or arg 1))
+  (and (re-search-backward (concat "^\\s *\\(" ruby-block-beg-re "\\)\\_>")
+                           nil t (or arg 1))
        (beginning-of-line)))
 
 (defun ruby-end-of-defun (&optional arg)
@@ -848,7 +848,7 @@ move forward."
 With ARG, move forward multiple defuns.  Negative ARG means
 move backward."
   (interactive "p")
-  (and (re-search-forward ruby-indent-beg-re nil 'move (or arg 1))
+  (and (re-search-forward (concat "^\\s *" ruby-block-end-re) nil t (or arg 1))
        (beginning-of-line))
   (forward-line 1))
 

@@ -1,3 +1,9 @@
+2012-09-07  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* progmodes/ruby-mode.el (ruby-end-of-defun)
+	(ruby-beginning-of-defun): Simplify, allow indentation before
+	block beginning and end keywords.
+
 2012-09-06  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/cl-macs.el (cl--do-arglist): Understand _ on &key args
