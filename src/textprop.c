@@ -556,7 +556,8 @@ If POSITION is at the end of OBJECT, the value is nil.  */)
 
 DEFUN ("get-text-property", Fget_text_property, Sget_text_property, 2, 3, 0,
        doc: /* Return the value of POSITION's property PROP, in OBJECT.
-OBJECT is optional and defaults to the current buffer.
+OBJECT should be a buffer or a string; if omitted or nil, it defaults
+to the current buffer.
 If POSITION is at the end of OBJECT, the value is nil.  */)
   (Lisp_Object position, Lisp_Object prop, Lisp_Object object)
 {

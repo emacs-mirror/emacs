@@ -1,5 +1,7 @@
 2012-09-07  Chong Yidong  <cyd@gnu.org>
 
+	* textprop.c (Fget_text_property): Minor doc fix (Bug#12323).
+
 	* data.c (Flocal_variable_if_set_p): Doc fix (Bug#10713).
 
 2012-09-07  Paul Eggert  <eggert@cs.ucla.edu>
