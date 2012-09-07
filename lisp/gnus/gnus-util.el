@@ -866,6 +866,19 @@ If there's no subdirectory, delete DIRECTORY as well."
 	  (setq beg (point)))
 	(gnus-overlay-put (gnus-make-overlay beg (point)) prop val)))))
 
+(defun gnus-put-text-property-excluding-characters-with-faces (beg end
+								   prop val)
+  "The same as `put-text-property', but don't put props on characters with the `gnus-face' property."
+  (let ((b beg))
+    (while (/= b end)
+      (when (get-text-property b 'gnus-face)
+	(setq b (next-single-property-change b 'gnus-face nil end)))
+      (when (/= b end)
+	(inline
+	  (gnus-put-text-property
+	   b (setq b (next-single-property-change b 'gnus-face nil end))
+	   prop val))))))
+
 (defmacro gnus-faces-at (position)
   "Return a list of faces at POSITION."
   (if (featurep 'xemacs)

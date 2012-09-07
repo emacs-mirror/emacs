@@ -1669,7 +1669,9 @@ and ends at END."
                       gnus-group-highlight))))
     (unless (eq face (get-text-property beg 'face))
       (let ((inhibit-read-only t))
-        (add-face beg end (if (boundp face) (symbol-value face) face)))
+        (gnus-put-text-property-excluding-characters-with-faces
+         beg end 'face
+         (if (boundp face) (symbol-value face) face)))
       (gnus-extent-start-open beg))))
 
 (defun gnus-group-get-icon (group)
