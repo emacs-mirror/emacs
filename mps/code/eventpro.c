@@ -77,9 +77,6 @@ typedef struct {
 
 #define EVENT_FORMAT_PARAM(X, index, sort, ident) #sort
 
-#define EVENT_OFFSETS_PARAM(name, index, sort, ident) \
-  offsetof(Event##name##Struct, f##index),
-
 #define EVENT_INIT(X, name, code, always, kind) \
   {#name, \
    code, \
@@ -156,12 +153,13 @@ Bool EventCodeIsValid(EventCode code)
 static Res stringCopy(char **str_o, char *str)
 {
   char *newStr;
-  size_t len;
+  size_t len, size;
 
   len = strlen(str);
-  newStr = (char *)malloc(len + sizeof('\0'));
+  size = len + sizeof('\0');
+  newStr = (char *)malloc(size);
   if (newStr == NULL) return ResMEMORY;
-  memcpy(newStr, str, len + sizeof('\0'));
+  memcpy(newStr, str, size);
   *str_o = newStr;
   return ResOK;
 }
@@ -233,11 +231,14 @@ Res EventRead(Event *eventReturn, EventProc proc)
   Res res;
   EventAnyStruct anyStruct;
   Event event;
-  
+
+  /* Read the prefix common to all event structures, in order to decode the
+     event size. */
   res = proc->reader(proc->readerP, &anyStruct, sizeof(anyStruct));
   if (res != ResOK)
     return res;
 
+  /* Get memory for the event. */
   if (proc->cachedEvent != NULL) {
     event = proc->cachedEvent;
     proc->cachedEvent = NULL;
@@ -248,6 +249,7 @@ Res EventRead(Event *eventReturn, EventProc proc)
       return ResMEMORY;
   }
 
+  /* Copy the event prefix and read the rest of the event into the memory. */
   event->any = anyStruct;
   res = proc->reader(proc->readerP,
                      PointerAdd(event, sizeof(anyStruct)),

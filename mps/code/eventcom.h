@@ -135,7 +135,7 @@ enum EventKindEnum {
 
 enum EventDefinitionsEnum {
   EVENT_LIST(EVENT_ENUM, X)
-  EventEnumWarningSuppressor
+  EventEnumWarningSuppressor    /* suppress comma-at-end-of-enum warning */
 };
 
 
