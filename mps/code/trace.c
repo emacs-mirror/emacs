@@ -1393,7 +1393,7 @@ static Res TraceFix2(ScanState ss, Ref *refIO)
 
 mps_res_t _mps_fix2(mps_ss_t mps_ss, mps_addr_t *mps_ref_io)
 {
-  ScanState ss = PARENT(ScanState, ss_s, mps_ss);
+  ScanState ss = PARENT(ScanStateStruct, ss_s, mps_ss);
   Ref *refIO = (Ref *)mps_ref_io;
   return TraceFix2(ss, refIO);
 }
