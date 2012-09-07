@@ -47,11 +47,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #undef ASYNC
 #endif
 
-/* Interrupt input is not used if there is no FIONREAD.  */
-#ifndef FIONREAD
-#undef SIGIO
-#endif
-
 
 /* Try to establish the correct character to disable terminal functions
    in a system-independent manner.  Note that USG (at least) define

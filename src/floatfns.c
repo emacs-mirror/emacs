@@ -38,7 +38,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    This has no effect if HAVE_MATHERR is defined.
 
    Define FLOAT_CHECK_DOMAIN if the float library doesn't handle errors by
-   either setting errno, or signaling SIGFPE/SIGILL.  Otherwise, domain and
+   either setting errno, or signaling SIGFPE.  Otherwise, domain and
    range checking will happen before calling the float routines.  This has
    no effect if HAVE_MATHERR is defined (since matherr will be called when
    a domain error occurs.)

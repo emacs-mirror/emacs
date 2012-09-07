@@ -38,9 +38,12 @@ extern void emacs_sigaction_init (struct sigaction *, signal_handler_t);
 _Noreturn void croak (char *);
 #endif
 
-#if defined (SIGIO) && defined (BROKEN_SIGIO)
+/* Interrupt input is not used if there is no FIONREAD.  */
+#include <sys/ioctl.h>
+#if defined BROKEN_SIGIO || ! defined FIONREAD || defined BROKEN_FIONREAD
 # undef SIGIO
 #endif
+
 /* These are only used by AIX  */
 #if defined (SIGPOLL) && defined (BROKEN_SIGPOLL)
 #undef SIGPOLL

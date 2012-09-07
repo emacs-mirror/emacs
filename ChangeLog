@@ -1,3 +1,8 @@
+2012-09-07  Paul Eggert  <eggert@cs.ucla.edu>
+
+	More signal-handler cleanup (Bug#12327).
+	* configure.ac (FLOAT_CHECK_DOMAIN): Comment fix (Bug#12327).
+
 2012-09-06  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Signal-handler cleanup (Bug#12327).

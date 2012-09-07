@@ -1,3 +1,20 @@
+2012-09-07  Paul Eggert  <eggert@cs.ucla.edu>
+
+	More signal-handler cleanup (Bug#12327).
+	* floatfns.c: Comment fix.
+	* lisp.h (force_auto_save_soon): Declare regardless of SIGDANGER.
+	SIGDANGER might not be in scope so "#ifdef SIGDANGER" is not right,
+	and anyway the declaration is harmless even if SIGDANGER is not defined.
+	* syssignal.h (SIGIO): Also #undef if (! defined FIONREAD ||
+	defined BROKEN_FIONREAD).  systty.h formerly did this, but other
+	source files not surprisingly expected syssignal.h to define, or
+	not define, SIGIO, and it's cleaner to do it that way, for consistency.
+	Include <sys/ioctl.h>, for FIONREAD.
+	* systty.h (SIGIO): Do not #undef here; it's now syssignal.h's job.
+	This eliminates a problem whereby other files mysteriously had
+	to include "syssignal.h" before including "systty.h" if they
+	wanted to use "#ifdef SIGIO".
+
 2012-09-07  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32proc.c (sigaction): New function, emulates Posix 'sigaction'.

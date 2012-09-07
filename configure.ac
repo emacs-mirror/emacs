@@ -3212,7 +3212,7 @@ AC_DEFINE(CLASH_DETECTION, 1, [Define if you want lock files to be written,
   someone else has modified in his/her Emacs.])
 
 AH_TEMPLATE(FLOAT_CHECK_DOMAIN, [Define if the float library doesn't
-  handle errors by either setting errno, or signaling SIGFPE/SIGILL.])
+  handle errors by either setting errno, or signaling SIGFPE.])
 
 AH_TEMPLATE(HAVE_INVERSE_HYPERBOLIC, [Define if you have the functions
   acosh, asinh, and atanh.])
