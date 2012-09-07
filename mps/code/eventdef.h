@@ -30,6 +30,10 @@
  * Increment the minor version when adding new events,
  * the median version when changing an existing event,
  * and the major version when changing the format of the event file.
+ *
+ * TODO: These should go into a header that appears at the start of a
+ * telemetry stream, but they aren't currently used.  Keep updating them
+ * anyway.  RB 2012-09-07
  */
 
 #define EVENT_VERSION_MAJOR  ((unsigned)1)
@@ -50,6 +54,10 @@
  * it out.  This serves as documentation for what the event code means
  * in older logs, and prevents the codes being re-used.  See
  * <design/telemetry/#.reg.code>.
+ *
+ * TODO: Rather than commenting them out, we should leave them in and mark
+ * them in some other way, because this header is used by event decoders and
+ * they still want to decode those events.  RB 2012-09-07
  *
  * When you add an event type, you must also add an EVENT_*_PARAMS macro
  * specify its parameters below.
@@ -115,7 +123,7 @@
   EVENT(X, ArenaExtend        , 0x002f,  TRUE, Arena) \
   /* EVENT(X, ArenaRetract       , 0x0030,  TRUE, Arena) */ \
   /* EVENT(X, TraceSegGreyen     , 0x0031,  TRUE, Seg) */ \
-  /* RootScanned abuses kind, see .kind.abuse */ \
+  /* RootScan abuses kind, see .kind.abuse */ \
   EVENT(X, RootScan           , 0x0032, TRUE, Seg) \
   /* TraceStep abuses kind, see .kind.abuse */ \
   /* EVENT(X, TraceStep          , 0x0033,  TRUE, Seg) */ \
@@ -240,8 +248,6 @@
   PARAM(X,  0, P, amc) \
   PARAM(X,  1, P, seg) \
   PARAM(X,  2, P, ss)
-
-#define EVENT_AMCFix_PARAMS(PARAM, X)
 
 #define EVENT_AMCFixInPlace_PARAMS(PARAM, X)
 
