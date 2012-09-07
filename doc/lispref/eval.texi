@@ -40,6 +40,7 @@ interpreter.
 @cindex form
 @cindex expression
 @cindex S-expression
+@cindex sexp
   A Lisp object that is intended for evaluation is called a @dfn{form}
 or @dfn{expression}@footnote{It is sometimes also referred to as an
 @dfn{S-expression} or @dfn{sexp}, but we generally do not use this

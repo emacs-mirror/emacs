@@ -1,5 +1,7 @@
 2012-09-07  Chong Yidong  <cyd@gnu.org>
 
+	* eval.texi (Intro Eval): Add index entry for sexp (Bug#12233).
+
 	* windows.texi (Display Action Functions)
 	(Choosing Window Options): Remove obsolete variable
 	display-buffer-reuse-frames.
