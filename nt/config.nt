@@ -162,7 +162,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define FIRST_PTY_LETTER 'a'
 
 /* Define if the float library doesn't handle errors by either setting errno,
-   or signaling SIGFPE/SIGILL. */
+   or signaling SIGFPE. */
 #undef FLOAT_CHECK_DOMAIN
 
 /* Enable compile-time and run-time bounds-checking, and some warnings,
@@ -1189,9 +1189,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    `NO'. */
 #undef NARROWPROTO
 
-/* Do not define abort in emacs.c. */
-#undef NO_ABORT
-
 /* Define if XEditRes should not be used. */
 #undef NO_EDITRES
 
@@ -1312,9 +1309,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Make process_send_signal work by "typing" a signal character on the pty. */
 #undef SIGNALS_VIA_CHARACTERS
-
-/* Define if AH_BOTTOM should include signal.h. */
-#undef SIGNAL_H_AHB
 
 /* Define to l, ll, u, ul, ull, etc., as suitable for constants of type
    'sig_atomic_t'. */

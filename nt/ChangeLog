@@ -1,3 +1,8 @@
+2012-09-07  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt: Sync with autogen/config.in.
+	(NO_ABORT, SIGNAL_H_AHB): Remove.
+
 2012-09-07  Eli Zaretskii  <eliz@gnu.org>
 
 	* inc/ms-w32.h (struct sigaction): Declare sa_handler __cdecl.
