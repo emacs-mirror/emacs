@@ -8,6 +8,9 @@
 	* progmodes/ruby-mode.el (ruby-end-of-defun)
 	(ruby-beginning-of-defun): Simplify, allow indentation before
 	block beginning and end keywords.
+	(ruby-beginning-of-defun): Only consider 3 keywords defun beginners.
+	(ruby-end-of-defun): Expect that the point is at the beginning of
+	the defun.
 
 2012-09-06  Stefan Monnier  <monnier@iro.umontreal.ca>
 

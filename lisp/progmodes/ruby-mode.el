@@ -98,6 +98,10 @@
 
 (defconst ruby-block-end-re "\\_<end\\_>")
 
+(defconst ruby-defun-beg-re
+  '"\\(def\\|class\\|module\\)"
+  "Regexp to match the beginning of a defun, in the general sense.")
+
 (eval-and-compile
   (defconst ruby-here-doc-beg-re
   "\\(<\\)<\\(-\\)?\\(\\([a-zA-Z0-9_]+\\)\\|[\"]\\([^\"]+\\)[\"]\\|[']\\([^']+\\)[']\\)"
@@ -833,13 +837,12 @@ and `\\' when preceded by `?'."
           (+ indent ruby-indent-level)
         indent))))
 
-;; TODO: Why isn't one ruby-*-of-defun written in terms of the other?
 (defun ruby-beginning-of-defun (&optional arg)
   "Move backward to the beginning of the current top-level defun.
 With ARG, move backward multiple defuns.  Negative ARG means
 move forward."
   (interactive "p")
-  (and (re-search-backward (concat "^\\s *\\(" ruby-block-beg-re "\\)\\_>")
+  (and (re-search-backward (concat "^\\s *" ruby-defun-beg-re "\\_>")
                            nil t (or arg 1))
        (beginning-of-line)))
 
@@ -848,9 +851,9 @@ move forward."
 With ARG, move forward multiple defuns.  Negative ARG means
 move backward."
   (interactive "p")
-  (and (re-search-forward (concat "^\\s *" ruby-block-end-re) nil t (or arg 1))
-       (beginning-of-line))
-  (forward-line 1))
+  (ruby-forward-sexp)
+  (when (looking-back (concat "^\\s *" ruby-block-end-re))
+    (forward-line 1)))
 
 (defun ruby-beginning-of-indent ()
   "Backtrack to a line which can be used as a reference for
@@ -1050,7 +1053,7 @@ See `add-log-current-defun-function'."
         (let (mname mlist (indent 0))
           ;; get current method (or class/module)
           (if (re-search-backward
-               (concat "^[ \t]*\\(def\\|class\\|module\\)[ \t]+"
+               (concat "^[ \t]*" ruby-defun-beg-re "[ \t]+"
                        "\\("
                        ;; \\. and :: for class method
                         "\\([A-Za-z_]" ruby-symbol-re "*\\|\\.\\|::" "\\)"
