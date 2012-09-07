@@ -378,8 +378,8 @@ Res SegDescribe(Seg seg, mps_lib_FILE *stream)
 
 
 /* .seg.critical: These seg functions are low-level and used
- * through-out. They are therefore on the critical path and their
- * AVERs are so-marked.
+ * through-out. They are therefore on the
+ * [critical path](../design/critical-path.txt) and their AVERs are so-marked.
  */
 
 /* SegBase -- return the base address of a seg */
