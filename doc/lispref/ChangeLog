@@ -1,3 +1,10 @@
+2012-09-07  Chong Yidong  <cyd@gnu.org>
+
+	* markers.texi (Moving Markers): Add xref to Point (Bug#7151).
+
+	* syntax.texi (Low-Level Parsing): Add xref to Parser State
+	(Bug#12269).
+
 2012-09-04  Lars Ingebrigtsen  <larsi@gnus.org>
 
 	* debugging.texi (Explicit Debug): Document `debug-on-message'.

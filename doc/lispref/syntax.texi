@@ -878,6 +878,9 @@ This function parses a sexp in the current buffer starting at
 @var{start}, not scanning past @var{limit}.  It stops at position
 @var{limit} or when certain criteria described below are met, and sets
 point to the location where parsing stops.  It returns a parser state
+@ifinfo
+(@pxref{Parser State})
+@end ifinfo
 describing the status of the parse at the point where it stops.
 
 @cindex parenthesis depth

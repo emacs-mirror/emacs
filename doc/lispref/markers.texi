@@ -355,9 +355,9 @@ the current buffer.
 
 If @var{position} is less than 1, @code{set-marker} moves @var{marker}
 to the beginning of the buffer.  If @var{position} is greater than the
-size of the buffer, @code{set-marker} moves marker to the end of the
-buffer.  If @var{position} is @code{nil} or a marker that points
-nowhere, then @var{marker} is set to point nowhere.
+size of the buffer (@pxref{Point}), @code{set-marker} moves marker to
+the end of the buffer.  If @var{position} is @code{nil} or a marker
+that points nowhere, then @var{marker} is set to point nowhere.
 
 The value returned is @var{marker}.
 
