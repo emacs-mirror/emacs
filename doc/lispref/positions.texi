@@ -874,18 +874,18 @@ commands to a limited range of characters in a buffer.  The text that
 remains addressable is called the @dfn{accessible portion} of the
 buffer.
 
-  Narrowing is specified with two buffer positions which become the
-beginning and end of the accessible portion.  For most editing commands
-and most Emacs primitives, these positions replace the values of the
-beginning and end of the buffer.  While narrowing is in effect, no text
-outside the accessible portion is displayed, and point cannot move
-outside the accessible portion.
+  Narrowing is specified with two buffer positions, which become the
+beginning and end of the accessible portion.  For most editing
+commands and primitives, these positions replace the values of the
+beginning and end of the buffer.  While narrowing is in effect, no
+text outside the accessible portion is displayed, and point cannot
+move outside the accessible portion.  Note that narrowing does not
+alter actual buffer positions (@pxref{Point}); it only determines
+which positions are considered the accessible portion of the buffer.
+Most functions refuse to operate on text that is outside the
+accessible portion.
 
-  Values such as positions or line numbers, which usually count from the
-beginning of the buffer, do so despite narrowing, but the functions
-which use them refuse to operate on text that is inaccessible.
-
-  The commands for saving buffers are unaffected by narrowing; they save
+  Commands for saving buffers are unaffected by narrowing; they save
 the entire buffer regardless of any narrowing.
 
   If you need to display in a single buffer several very different
@@ -923,6 +923,11 @@ It is equivalent to the following expression:
 (narrow-to-region 1 (1+ (buffer-size)))
 @end example
 @end deffn
+
+@defun buffer-narrowed-p
+This function returns non-@code{nil} if the buffer is narrowed, and
+@code{nil} otherwise.
+@end defun
 
 @defspec save-restriction body@dots{}
 This special form saves the current bounds of the accessible portion,

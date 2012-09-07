@@ -645,6 +645,9 @@ The interpretation of the DECLS is determined by `defun-declarations-alist'.
 
 ** New error type and new function `user-error'.  Doesn't trigger the debugger.
 
++++
+** New utility function `buffer-narrowed-p'.
+
 ** Window changes
 
 *** The functions get-lru-window, get-mru-window and get-largest-window

@@ -2647,6 +2647,10 @@ directory if it does not exist."
 
 ;;;; Misc. useful functions.
 
+(defsubst buffer-narrowed-p ()
+  "Return non-nil if the current buffer is narrowed."
+  (/= (- (point-max) (point-min)) (buffer-size)))
+
 (defun find-tag-default ()
   "Determine default tag to search for, based on text at point.
 If there is no plausible default, return nil."

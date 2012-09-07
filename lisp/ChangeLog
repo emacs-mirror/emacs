@@ -1,6 +1,13 @@
 2012-09-07  Chong Yidong  <cyd@gnu.org>
 
-	* simple.el (count-words--buffer-message): Fix narrowing check.
+	* subr.el (buffer-narrowed-p): New function.
+
+	* ses.el (ses-widen):
+	* simple.el (count-words--buffer-message):
+	* net/browse-url.el (browse-url-of-buffer): Use it
+
+	* simple.el (count-words-region): Don't signal an error if there
+	is a non-nil prefix arg and the mark is not set.
 
 	* help.el (describe-key-briefly): Allow the message to be seen
 	when invoked from the minibuffer (Bug#7014).

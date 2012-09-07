@@ -743,7 +743,7 @@ narrowed."
     (and buffer (set-buffer buffer))
     (let ((file-name
 	   ;; Ignore real name if restricted
-	   (and (= (- (point-max) (point-min)) (buffer-size))
+	   (and (not (buffer-narrowed-p))
 		(or buffer-file-name
 		    (and (boundp 'dired-directory) dired-directory)))))
       (or file-name

@@ -1270,11 +1270,9 @@ when the width of cell (ROW,COL) has changed."
 ;; The data area
 ;;----------------------------------------------------------------------------
 
-(defun ses-narrowed-p () (/= (- (point-max) (point-min)) (buffer-size)))
-
 (defun ses-widen ()
   "Turn off narrowing, to be reenabled at end of command loop."
-  (if (ses-narrowed-p)
+  (if (buffer-narrowed-p)
       (setq ses--deferred-narrow t))
   (widen))
 
