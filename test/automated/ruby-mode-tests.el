@@ -237,10 +237,12 @@ VALUES-PLIST is a list with alternating index and value elements."
                     'font-lock-variable-name-face)
   (ruby-assert-face "\"This is \\#{no interpolation} despite the #\""
                     15 'font-lock-string-face)
-  (ruby-assert-face "#@comment, not ruby code" 3 'font-lock-comment-face)
-  (ruby-assert-state "#@comment, not ruby code" 4 t)
+  (ruby-assert-face "\n#@comment, not ruby code" 5 'font-lock-comment-face)
+  (ruby-assert-state "\n#@comment, not ruby code" 4 t)
   (ruby-assert-face "# A comment cannot have #{an interpolation} in it"
-                    30 'font-lock-comment-face))
+                    30 'font-lock-comment-face)
+  (ruby-assert-face "# #{comment}\n \"#{interpolation}\"" 16
+                    'font-lock-variable-name-face))
 
 (provide 'ruby-mode-tests)
 
