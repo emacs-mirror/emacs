@@ -5374,11 +5374,13 @@ not_in_argv (NSString *arg)
 
   if (oldr != rows || oldc != cols || neww != oldw || newh != oldh)
     {
+      NSView *view = FRAME_NS_VIEW (emacsframe);
       FRAME_PIXEL_WIDTH (emacsframe) = neww;
       FRAME_PIXEL_HEIGHT (emacsframe) = newh;
       change_frame_size (emacsframe, rows, cols, 0, 0, 1);
       SET_FRAME_GARBAGED (emacsframe);
       cancel_mouse_face (emacsframe);
+      [view setFrame: NSMakeRect (0, 0, neww, newh)];
     }
 }
 
