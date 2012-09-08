@@ -48,6 +48,39 @@ the middle is discarded, and just the beginning and end are displayed."
   :group 'debugger
   :version "21.1")
 
+(defcustom debugger-bury-or-kill 'bury
+  "How to proceed with the debugger buffer when exiting `debug'.
+The value used here affects the behavior of operations on any
+window previously showing the debugger buffer.
+
+`nil' means that if its window is not deleted when exiting the
+  debugger, invoking `switch-to-prev-buffer' will usually show
+  the debugger buffer again.
+
+`append' means that if the window is not deleted, the debugger
+  buffer moves to the end of the window's previous buffers so
+  it's less likely that a future invocation of
+  `switch-to-prev-buffer' will switch to it.  Also, it moves the
+  buffer to the end of the frame's buffer list.
+
+`bury' means that if the window is not deleted, its buffer is
+  removed from the window's list of previous buffers.  Also, it
+  moves the buffer to the end of the frame's buffer list.  This
+  value provides the most reliable remedy to not have
+  `switch-to-prev-buffer' switch to the debugger buffer again
+  without killing the buffer.
+
+`kill' means to kill the debugger buffer.
+
+The value used here is passed to `quit-restore-window'."
+  :type '(choice
+	  (const :tag "Keep alive" nil)
+	  (const :tag "Append" 'append)
+	  (const :tag "Bury" 'bury)
+	  (const :tag "Kill" 'kill))
+  :group 'debugger
+  :version "24.2")
+
 (defvar debug-function-list nil
   "List of functions currently set for debug on entry.")
 
@@ -59,6 +92,9 @@ the middle is discarded, and just the beginning and end are displayed."
 
 (defvar debugger-old-buffer nil
   "This is the buffer that was current when the debugger was entered.")
+
+(defvar debugger-previous-window nil
+  "This is the window last showing the debugger buffer.")
 
 (defvar debugger-previous-backtrace nil
   "The contents of the previous backtrace (including text properties).
@@ -133,7 +169,7 @@ first will be printed into the backtrace buffer."
                (with-current-buffer (get-buffer "*Backtrace*")
                  (list major-mode (buffer-string)))))
 	  (debugger-buffer (get-buffer-create "*Backtrace*"))
-	  (debugger-old-buffer (current-buffer))
+	  (debugger-window nil)
 	  (debugger-step-after-exit nil)
           (debugger-will-be-back nil)
 	  ;; Don't keep reading from an executing kbd macro!
@@ -184,78 +220,63 @@ first will be printed into the backtrace buffer."
 	    (cursor-in-echo-area nil))
 	(unwind-protect
 	    (save-excursion
-	      (save-window-excursion
-		(with-no-warnings
-		  (setq unread-command-char -1))
-		(when (eq (car debugger-args) 'debug)
-		  ;; Skip the frames for backtrace-debug, byte-code,
-		  ;; and implement-debug-on-entry.
-		  (backtrace-debug 4 t)
-		  ;; Place an extra debug-on-exit for macro's.
-		  (when (eq 'lambda (car-safe (cadr (backtrace-frame 4))))
-		    (backtrace-debug 5 t)))
-                (pop-to-buffer debugger-buffer)
-		(debugger-mode)
-		(debugger-setup-buffer debugger-args)
-		(when noninteractive
-		  ;; If the backtrace is long, save the beginning
-		  ;; and the end, but discard the middle.
-		  (when (> (count-lines (point-min) (point-max))
-			   debugger-batch-max-lines)
-		    (goto-char (point-min))
-		    (forward-line (/ 2 debugger-batch-max-lines))
-		    (let ((middlestart (point)))
-		      (goto-char (point-max))
-		      (forward-line (- (/ 2 debugger-batch-max-lines)
-				       debugger-batch-max-lines))
-		      (delete-region middlestart (point)))
-		    (insert "...\n"))
+	      (with-no-warnings
+		(setq unread-command-char -1))
+	      (when (eq (car debugger-args) 'debug)
+		;; Skip the frames for backtrace-debug, byte-code,
+		;; and implement-debug-on-entry.
+		(backtrace-debug 4 t)
+		;; Place an extra debug-on-exit for macro's.
+		(when (eq 'lambda (car-safe (cadr (backtrace-frame 4))))
+		  (backtrace-debug 5 t)))
+	      (pop-to-buffer
+	       debugger-buffer
+	       `((display-buffer-reuse-window
+		  display-buffer-in-previous-window)
+		  . (,(when debugger-previous-window
+			`(previous-window . ,debugger-previous-window)))))
+	      (setq debugger-window (selected-window))
+	      (setq debugger-previous-window debugger-window)
+	      (debugger-mode)
+	      (debugger-setup-buffer debugger-args)
+	      (when noninteractive
+		;; If the backtrace is long, save the beginning
+		;; and the end, but discard the middle.
+		(when (> (count-lines (point-min) (point-max))
+			 debugger-batch-max-lines)
 		  (goto-char (point-min))
-		  (message "%s" (buffer-string))
-		  (kill-emacs -1))
+		  (forward-line (/ 2 debugger-batch-max-lines))
+		  (let ((middlestart (point)))
+		    (goto-char (point-max))
+		    (forward-line (- (/ 2 debugger-batch-max-lines)
+				     debugger-batch-max-lines))
+		    (delete-region middlestart (point)))
+		  (insert "...\n"))
+		(goto-char (point-min))
+		(message "%s" (buffer-string))
+		(kill-emacs -1))
+	      (message "")
+	      (let ((standard-output nil)
+		    (buffer-read-only t))
 		(message "")
-		(let ((standard-output nil)
-		      (buffer-read-only t))
-		  (message "")
-		  ;; Make sure we unbind buffer-read-only in the right buffer.
-		  (save-excursion
-		    (recursive-edit)))))
-	  ;; Kill or at least neuter the backtrace buffer, so that users
-	  ;; don't try to execute debugger commands in an invalid context.
-	  (if (get-buffer-window debugger-buffer 0)
-	      ;; Still visible despite the save-window-excursion?  Maybe it
-	      ;; it's in a pop-up frame.  It would be annoying to delete and
-	      ;; recreate it every time the debugger stops, so instead we'll
-	      ;; erase it (and maybe hide it) but keep it alive.
-	      (with-current-buffer debugger-buffer
-		(with-selected-window (get-buffer-window debugger-buffer 0)
-                  (when (and (window-dedicated-p (selected-window))
-                             (not debugger-will-be-back))
-                    ;; If the window is not dedicated, burying the buffer
-                    ;; will mean that the frame created for it is left
-                    ;; around showing some random buffer, and next time we
-                    ;; pop to the debugger buffer we'll create yet
-                    ;; another frame.
-                    ;; If debugger-will-be-back is non-nil, the frame
-                    ;; would need to be de-iconified anyway immediately
-                    ;; after when we re-enter the debugger, so iconifying it
-                    ;; here would cause flashing.
-                    ;; Drew Adams is not happy with this: he wants to frame
-                    ;; to be left at the top-level, still working on how
-                    ;; best to do that.
-                    (bury-buffer))))
-            (unless debugger-previous-state
-              (kill-buffer debugger-buffer)))
-          ;; Restore the previous state of the debugger-buffer, in case we were
-          ;; in a recursive invocation of the debugger.
-          (when (buffer-live-p debugger-buffer)
-            (with-current-buffer debugger-buffer
-              (let ((inhibit-read-only t))
-                (erase-buffer)
-                (if (null debugger-previous-state)
-                    (fundamental-mode)
-                  (insert (nth 1 debugger-previous-state))
-                  (funcall (nth 0 debugger-previous-state))))))
+		;; Make sure we unbind buffer-read-only in the right buffer.
+		(save-excursion
+		  (recursive-edit))))
+	  (when (and (window-live-p debugger-window)
+		     (eq (window-buffer debugger-window) debugger-buffer))
+	    ;; Unshow debugger-buffer.
+	    (quit-restore-window debugger-window debugger-bury-or-kill))
+          ;; Restore previous state of debugger-buffer in case we were
+          ;; in a recursive invocation of the debugger, otherwise just
+          ;; erase the buffer and put it into fundamental mode.
+	  (when (buffer-live-p debugger-buffer)
+	    (with-current-buffer debugger-buffer
+	      (let ((inhibit-read-only t))
+		(erase-buffer)
+		(if (null debugger-previous-state)
+		    (fundamental-mode)
+		  (insert (nth 1 debugger-previous-state))
+		  (funcall (nth 0 debugger-previous-state))))))
 	  (with-timeout-unsuspend debugger-with-timeout-suspend)
 	  (set-match-data debugger-outer-match-data)))
       ;; Put into effect the modified values of these variables

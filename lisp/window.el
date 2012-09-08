@@ -5521,6 +5521,62 @@ the selected one."
 	     (window--display-buffer
 	      buffer window 'reuse display-buffer-mark-dedicated)))))
 
+(defun display-buffer-in-previous-window (buffer alist)
+  "Display BUFFER in a window previously showing it.
+If ALIST has a non-nil `inhibit-same-window' entry, the selected
+window is not eligible for reuse.
+
+If ALIST contains a `reusable-frames' entry, its value determines
+which frames to search for a reusable window:
+  nil -- the selected frame (actually the last non-minibuffer frame)
+  A frame   -- just that frame
+  `visible' -- all visible frames
+  0   -- all frames on the current terminal
+  t   -- all frames.
+
+If ALIST contains no `reusable-frames' entry, search just the
+selected frame if `display-buffer-reuse-frames' and
+`pop-up-frames' are both nil; search all frames on the current
+terminal if either of those variables is non-nil.
+
+If ALIST has a `previous-window' entry, the window specified by
+that entry will override any other window found by the methods
+above, even if that window never showed BUFFER before."
+  (let* ((alist-entry (assq 'reusable-frames alist))
+	 (inhibit-same-window
+	  (cdr (assq 'inhibit-same-window alist)))
+	 (frames (cond
+		  (alist-entry (cdr alist-entry))
+		  ((if (eq pop-up-frames 'graphic-only)
+		       (display-graphic-p)
+		     pop-up-frames)
+		   0)
+		  (display-buffer-reuse-frames 0)
+		  (t (last-nonminibuffer-frame))))
+	 entry best-window second-best-window window)
+    ;; Scan windows whether they have shown the buffer recently.
+    (catch 'best
+      (dolist (window (window-list-1 (frame-first-window) 'nomini frames))
+	(when (and (assq buffer (window-prev-buffers window))
+		   (not (window-dedicated-p window)))
+	  (if (eq window (selected-window))
+	      (unless inhibit-same-window
+		(setq second-best-window window))
+	    (setq best-window window)
+	    (throw 'best t)))))
+    ;; When ALIST has a `previous-window' entry, that entry may override
+    ;; anything we found so far.
+    (when (and (setq window (cdr (assq 'previous-window alist)))
+	       (window-live-p window)
+	       (not (window-dedicated-p window)))
+      (if (eq window (selected-window))
+	  (unless inhibit-same-window
+	    (setq second-best-window window))
+	(setq best-window window)))
+    ;; Return best or second best window found.
+    (when (setq window (or best-window second-best-window))
+      (window--display-buffer buffer window 'reuse))))
+
 (defun display-buffer-use-some-window (buffer alist)
   "Display BUFFER in an existing window.
 Search for a usable window, set that window to the buffer, and

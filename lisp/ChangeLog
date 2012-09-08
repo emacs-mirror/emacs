@@ -1,3 +1,13 @@
+2012-09-08  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (display-buffer-in-previous-window): New buffer
+	display action function.
+
+	* emacs-lisp/debug.el (debugger-bury-or-kill): New option.
+	(debugger-previous-window): New variable.
+	(debug): Rewrite using display-buffer-in-previous-window,
+	quit-restore-window and debugger-bury-or-kill.  (Bug#8789)
+
 2012-09-07  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/byte-run.el (defun): Tweak message.  Simplify code.

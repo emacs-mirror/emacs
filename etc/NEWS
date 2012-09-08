@@ -645,6 +645,8 @@ The interpretation of the DECLS is determined by `defun-declarations-alist'.
 
 ** New error type and new function `user-error'.  Doesn't trigger the debugger.
 
+** New option `debugger-bury-or-kill'.
+
 +++
 ** New utility function `buffer-narrowed-p'.
 
@@ -653,20 +655,25 @@ The interpretation of the DECLS is determined by `defun-declarations-alist'.
 *** The functions get-lru-window, get-mru-window and get-largest-window
 now accept a third argument to avoid choosing the selected window.
 
-*** New macro with-temp-buffer-window.
+*** New macro `with-temp-buffer-window'.
 
-*** New option temp-buffer-resize-frames.
+*** New option `temp-buffer-resize-frames'.
 
-*** New function fit-frame-to-buffer and new option
-    fit-frame-to-buffer-bottom-margin.
+*** New function `fit-frame-to-buffer' and new option
+    `fit-frame-to-buffer-bottom-margin'.
 
-*** New display action function display-buffer-below-selected.
+*** New display action functions `display-buffer-below-selected' and
+`display-buffer-in-previous-window'.
 
-*** New display action alist `inhibit-switch-frame', if non-nil, tells
-display action functions to avoid changing which frame is selected.
+*** New display action alist entry `inhibit-switch-frame', if non-nil,
+tells display action functions to avoid changing which frame is
+selected.
 
-*** New display action alist `pop-up-frame-parameters', if non-nil,
-specifies frame parameters to give any newly-created frame.
+*** New display action alist entry `pop-up-frame-parameters', if
+non-nil, specifies frame parameters to give any newly-created frame.
+
+*** New display action alist entry `previous-window', if non-nil,
+specifies window to reuse in `display-buffer-in-previous-window'.
 
 *** The following variables are obsolete, as they can be replaced by
 appropriate entries in the `display-buffer-alist' function introduced
