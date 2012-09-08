@@ -1,3 +1,8 @@
+2012-09-08  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* floatfns.c (Ftan): Use tan (x), not (sin (x) / cos (x)).
+	This produces more-accurate results.
+
 2012-09-08  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsterm.m (updateFrameSize): Call setFrame: on the view when size

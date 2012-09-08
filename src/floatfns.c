@@ -265,12 +265,12 @@ DEFUN ("tan", Ftan, Stan, 1, 1, 0,
   (register Lisp_Object arg)
 {
   double d = extract_float (arg);
-  double c = cos (d);
 #ifdef FLOAT_CHECK_DOMAIN
+  double c = cos (d);
   if (c == 0.0)
     domain_error ("tan", arg);
 #endif
-  IN_FLOAT (d = sin (d) / c, "tan", arg);
+  IN_FLOAT (d = tan (d), "tan", arg);
   return make_float (d);
 }
 
