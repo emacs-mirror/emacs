@@ -1410,7 +1410,6 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
     (define-key map "&" 'dired-do-async-shell-command)
     ;; Comparison commands
     (define-key map "=" 'dired-diff)
-    (define-key map "\M-=" 'dired-backup-diff)
     ;; Tree Dired commands
     (define-key map "\M-\C-?" 'dired-unmark-all-files)
     (define-key map "\M-\C-d" 'dired-tree-down)
@@ -3745,14 +3744,15 @@ Ask means pop up a menu for the user to select one of copy, move or link."
 ;;;;;;  dired-run-shell-command dired-do-shell-command dired-do-async-shell-command
 ;;;;;;  dired-clean-directory dired-do-print dired-do-touch dired-do-chown
 ;;;;;;  dired-do-chgrp dired-do-chmod dired-compare-directories dired-backup-diff
-;;;;;;  dired-diff) "dired-aux" "dired-aux.el" "9499f79f5853da0aa93d26465c7bf3a1")
+;;;;;;  dired-diff) "dired-aux" "dired-aux.el" "4b260eda371d319a6c8e8e5ec917e287")
 ;;; Generated autoloads from dired-aux.el
 
 (autoload 'dired-diff "dired-aux" "\
 Compare file at point with file FILE using `diff'.
-FILE defaults to the file at the mark.  (That's the mark set by
-\\[set-mark-command], not by Dired's \\[dired-mark] command.)
-The prompted-for FILE is the first file given to `diff'.
+If called interactively, prompt for FILE; if the file at point
+has a backup file, use that as the default.
+
+FILE is the first file given to `diff'.
 With prefix arg, prompt for second argument SWITCHES,
 which is the string of command switches for `diff'.
 

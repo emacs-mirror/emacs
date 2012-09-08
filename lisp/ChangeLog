@@ -1,3 +1,9 @@
+2012-09-08  Chong Yidong  <cyd@gnu.org>
+
+	* dired.el (dired-mode-map): Don't bind M-=.
+
+	* dired-aux.el (dired-diff): Use backup file as default.
+
 2012-09-08  Drew Adams  <drew.adams@oracle.com>
 
 	* subr.el (add-to-history): Fix delete usage (Bug#12314).
