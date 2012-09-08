@@ -650,7 +650,7 @@ ns_update_window_begin (struct window *w)
   struct frame *f = XFRAME (WINDOW_FRAME (w));
  Mouse_HLInfo *hlinfo = MOUSE_HL_INFO (f);
   NSTRACE (ns_update_window_begin);
-
+  fprintf(stderr, "%s\n", __func__);
   updated_window = w;
   set_output_cursor (&w->cursor);
 
@@ -683,6 +683,7 @@ ns_update_window_end (struct window *w, int cursor_on_p,
 {
   Mouse_HLInfo *hlinfo = MOUSE_HL_INFO (XFRAME (w->frame));
 
+  fprintf(stderr, "%s\n", __func__);
   /* note: this fn is nearly identical in all terms */
   if (!w->pseudo_window_p)
     {
@@ -1266,6 +1267,7 @@ x_set_window_size (struct frame *f, int change_grav, int cols, int rows)
    wr.origin.y += FRAME_PIXEL_HEIGHT (f) - pixelheight;
 
   [view setRows: rows andColumns: cols];
+  fprintf(stderr, "%s %d %d\n", __func__, cols, (int)wr.origin.x);
   [window setFrame: wr display: YES];
 
 /*fprintf (stderr, "\tx_set_window_size %d, %d\t%d, %d\n", cols, rows, pixelwidth, pixelheight); */
@@ -1283,6 +1285,7 @@ x_set_window_size (struct frame *f, int change_grav, int cols, int rows)
                      - NS_SCROLL_BAR_WIDTH (f), 0)
       : NSMakePoint (0, 0);
     [view setFrame: NSMakeRect (0, 0, pixelwidth, pixelheight)];
+    fprintf(stderr, "%s origin %d\n", __func__, (int)origin.x);
     [view setBoundsOrigin: origin];
   }
 
@@ -2297,12 +2300,20 @@ ns_draw_fringe_bitmap (struct window *w, struct glyph_row *row,
       [ns_lookup_indexed_color(face->background, f) set];
       NSRectFill (r);
       [img setXBMColor: ns_lookup_indexed_color(face->foreground, f)];
+#if !defined (NS_IMPL_COCOA) || MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_6
       [img drawInRect: r
               fromRect: NSZeroRect
              operation: NSCompositeSourceOver
               fraction: 1.0
            respectFlipped: YES
                 hints: nil];
+#else
+      {
+        NSPoint pt = r.origin;
+        pt.y += p->h;
+        [img compositeToPoint: pt operation: NSCompositeSourceOver];
+      }
+#endif
     }
   ns_unfocus (f);
 }
@@ -2961,12 +2972,19 @@ ns_dumpglyphs_image (struct glyph_string *s, NSRect r)
 
   /* Draw the image.. do we need to draw placeholder if img ==nil? */
   if (img != nil)
+    {
+#if !defined (NS_IMPL_COCOA) || MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_6
       [img drawInRect: br
-              fromRect: NSZeroRect
+             fromRect: NSZeroRect
              operation: NSCompositeSourceOver
               fraction: 1.0
            respectFlipped: YES
                 hints: nil];
+#else
+      [img compositeToPoint: NSMakePoint (x, y + s->slice.height)
+                  operation: NSCompositeSourceOver];
+#endif
+    }
 
   if (s->hl == DRAW_CURSOR)
     {
@@ -5380,6 +5398,7 @@ not_in_argv (NSString *arg)
       change_frame_size (emacsframe, rows, cols, 0, 0, 1);
       SET_FRAME_GARBAGED (emacsframe);
       cancel_mouse_face (emacsframe);
+      fprintf(stderr, "%s %d %d\n", __func__, cols, neww);
       [view setFrame: NSMakeRect (0, 0, neww, newh)];
     }
 }
@@ -6196,8 +6215,20 @@ not_in_argv (NSString *arg)
   NSTRACE (constrainFrameRect);
 
   if (nr_screens == 1)
-    return [super constrainFrameRect:frameRect toScreen:screen];
-
+    {
+      NSRect r = [super constrainFrameRect:frameRect toScreen:screen];
+      fprintf(stderr, "%s %d/%d %d/%d => %d/%d %d/%d\n", __func__,
+              (int)frameRect.origin.x,
+              (int)frameRect.origin.y,
+              (int)frameRect.size.width,
+              (int)frameRect.size.height,
+              (int)r.origin.x,
+              (int)r.origin.y,
+              (int)r.size.width,
+              (int)r.size.height);
+      return r;
+    }
+  
   if (f->output_data.ns->dont_constrain
       || ns_menu_bar_should_be_hidden ())
     return frameRect;

@@ -1,3 +1,8 @@
+2012-09-08  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.m (ns_draw_fringe_bitmap, ns_dumpglyphs_image): Take back
+	compositeToPoint for OSX < 10.6 (Bug#12390).
+
 2012-09-08  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* floatfns.c (Ftan): Use tan (x), not (sin (x) / cos (x)).
