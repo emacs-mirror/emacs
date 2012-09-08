@@ -104,6 +104,8 @@ mps_clock_t mps_clocks_per_sec(void)
 }
 
 
+/* mps_lib_telemetry_control -- get and interpret MPS_TELEMETRY_CONTROL */
+
 #ifdef MPS_BUILD_MV
 /* MSVC warning 4996 = stdio / C runtime 'unsafe' */
 /* Objects to: getenv.  See job001934. */
@@ -117,19 +119,21 @@ unsigned long mps_lib_telemetry_control(void)
   unsigned long mask;
   char buf[256];
   char *word;
-  char *sep = " ,";
+  char *sep = " ";
 
   s = getenv("MPS_TELEMETRY_CONTROL");
   if (s == NULL)
     return 0;
 
+  /* If the value can be read as a number, use it. */
   mask = strtoul(s, null, 0);
   if (mask != 0)
     return mask;
 
+  /* Split the value at spaces and try to patch the words against the names
+     of event kinds, enabling them if there's a match. */
   strncpy(buf, s, sizeof(buf) - 1);
   buf[sizeof(buf) - 1] = '\0';
-  
   for (word = strtok(buf, sep); word != NULL; word = strtok(NULL, sep)) {
 #define TELEMATCH(X, rowName, rowDoc) \
     if (strcmp(word, #rowName) == 0) \
