@@ -114,12 +114,30 @@ unsigned long mps_lib_telemetry_control(void)
 {
   char *s;
   char **null = NULL;
+  unsigned long mask;
+  char buf[256];
+  char *word;
+  char *sep = " ,";
 
   s = getenv("MPS_TELEMETRY_CONTROL");
-  if(s != NULL)
-    return strtoul(s, null, 0);
-  else
+  if (s == NULL)
     return 0;
+
+  mask = strtoul(s, null, 0);
+  if (mask != 0)
+    return mask;
+
+  strncpy(buf, s, sizeof(buf) - 1);
+  buf[sizeof(buf) - 1] = '\0';
+  
+  for (word = strtok(buf, sep); word != NULL; word = strtok(NULL, sep)) {
+#define TELEMATCH(X, rowName, rowDoc) \
+    if (strcmp(word, #rowName) == 0) \
+      mask |= (1ul << EventKind##rowName);
+    EventKindENUM(TELEMATCH, X)
+  }
+  
+  return mask;
 }
 
 
