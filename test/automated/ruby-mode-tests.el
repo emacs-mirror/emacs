@@ -40,8 +40,7 @@ The whitespace before and including \"|\" on each line is removed."
       (insert (fix-indent content))
       (ruby-mode)
       (indent-region (point-min) (point-max))
-      (should (string= (fix-indent expected) (buffer-substring-no-properties
-                                              (point-min) (point-max)))))))
+      (should (string= (fix-indent expected) (buffer-string))))))
 
 (defun ruby-assert-state (content &rest values-plist)
   "Assert syntax state values at the end of CONTENT.
@@ -213,21 +212,27 @@ VALUES-PLIST is a list with alternating index and value elements."
 
 (ert-deftest ruby-toggle-block-to-do-end ()
   (with-temp-buffer
-    (insert "foo {|b|\n}\n")
+    (insert "foo {|b|\n}")
     (ruby-mode)
-    (search-backward "{")
+    (beginning-of-line)
     (ruby-toggle-block)
-    (should (string= "foo do |b|\nend\n" (buffer-substring-no-properties
-                                          (point-min) (point-max))))))
+    (should (string= "foo do |b|\nend" (buffer-string)))))
 
 (ert-deftest ruby-toggle-block-to-brace ()
   (with-temp-buffer
-    (insert "foo do |b|\nend\n")
+    (insert "foo do |b|\nend")
     (ruby-mode)
-    (search-backward "do")
+    (beginning-of-line)
     (ruby-toggle-block)
-    (should (string= "foo {|b|\n}\n" (buffer-substring-no-properties
-                                      (point-min) (point-max))))))
+    (should (string= "foo {|b|\n}" (buffer-string)))))
+
+(ert-deftest ruby-toggle-block-to-multiline ()
+  (with-temp-buffer
+    (insert "foo {|b| b + 1}")
+    (ruby-mode)
+    (beginning-of-line)
+    (ruby-toggle-block)
+    (should (string= "foo do |b|\n  b + 1\nend" (buffer-string)))))
 
 (ert-deftest ruby-recognize-symbols-starting-with-at-character ()
   (ruby-assert-face ":@abc" 3 'font-lock-constant-face))

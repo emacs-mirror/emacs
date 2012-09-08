@@ -1,3 +1,11 @@
+2012-09-08  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* progmodes/ruby-mode.el (ruby-toggle-block): Guess the current block,
+	not just expect to be at its beginning.  Adjust callees.
+	Succeed when do-end block has no space before the pipe character.
+	(ruby-brace-to-do-end): When the original block is one-liner,
+	convert to multiline.  Reindent the result.
+
 2012-09-08  Jambunathan K  <kjambunathan@gmail.com>
 
 	* register.el (register): New group.
