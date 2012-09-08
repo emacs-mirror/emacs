@@ -92,6 +92,13 @@ Copy region into register @var{r} (@code{copy-to-register}).
 Insert text from register @var{r} (@code{insert-register}).
 @item M-x append-to-register @key{RET} @var{r}
 Append region to text in register @var{r}.
+
+@kindex C-x r +
+When register @var{r} contains text, you can use @kbd{C-x r +}
+(@code{increment-register}) to append to that register.  Note that
+command @kbd{C-x r +} behaves differently if @var{r} contains a
+number.  @xref{Number Registers}.
+
 @item M-x prepend-to-register @key{RET} @var{r}
 Prepend region to text in register @var{r}.
 @end table
@@ -115,6 +122,19 @@ region after appending it to the register.  The command
 @code{prepend-to-register} is similar, except that it @emph{prepends}
 the region text to the text in the register instead of
 @emph{appending} it.
+
+@vindex register-separator
+  When you are collecting text using @code{append-to-register} and
+@code{prepend-to-register}, you may want to separate individual
+collected pieces using a separator.  In that case, configure a
+@code{register-separator} and store the separator text in to that
+register.  For example, to get double newlines as text separator
+during the collection process, you can use the following setting.
+
+@example
+(setq register-separator ?+)
+(set-register register-separator "\n\n")
+@end example
 
 @kindex C-x r i
 @findex insert-register
@@ -191,8 +211,10 @@ Store @var{number} into register @var{r} (@code{number-to-register}).
 @item C-u @var{number} C-x r + @var{r}
 @kindex C-x r +
 @findex increment-register
-Increment the number in register @var{r} by @var{number}
-(@code{increment-register}).
+If @var{r} contains a number, increment the number in that register by
+@var{number}.  Note that command @kbd{C-x r +}
+(@code{increment-register}) behaves differently if @var{r} contains
+text.  @xref{Text Registers}.
 @item C-x r i @var{r}
 Insert the number from register @var{r} into the buffer.
 @end table

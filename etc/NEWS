@@ -182,6 +182,13 @@ just removing them, as done by `yank-excluded-properties'.
 delete-trailing-whitespace command should delete trailing lines at the
 end of the buffer.  It defaults to t.
 
++++
+** `C-x r +' is now overloaded to invoke `append-to-register.
++++
+** New option `separator-register'.  Separator register stores
+separator text for use with M-x append-to-register and M-x
+prepend-to-register.  See manual for details.
+
 ** Search changes
 
 *** Global `M-s _' starts a symbol (identifier) incremental search,

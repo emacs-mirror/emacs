@@ -1,15 +1,25 @@
+2012-09-08  Jambunathan K  <kjambunathan@gmail.com>
+
+	* register.el (register): New group.
+	(register-separator): New user option.
+	(increment-register): Route it to `append-to-register', if
+	register contains text.  Implication is that `C-x r +' can now be
+	used for appending to a text register (bug#12217).
+	(append-to-register, prepend-to-register): Add separator based on
+	`register-separator.
+
 2012-09-08  Alan Mackenzie  <acm@muc.de>
 
 	AWK Mode: make auto-newline work when there's "==" in the pattern.
 	* progmodes/cc-cmds.el (c-point-syntax): Handle virtual semicolons
 	correctly.
-	* progmodes/cc-engine.el (c-guess-basic-syntax CASE 5A.3): Test
-	more rigorously for "=" token.
+	* progmodes/cc-engine.el (c-guess-basic-syntax CASE 5A.3):
+	Test more rigorously for "=" token.
 
 2012-09-08  Dmitry Gutov  <dgutov@yandex.ru>
 
-	* progmodes/ruby-mode.el (ruby-match-expression-expansion): Only
-	fail when reached LIMIT.
+	* progmodes/ruby-mode.el (ruby-match-expression-expansion):
+	Only fail when reached LIMIT.
 
 2012-09-08  Chong Yidong  <cyd@gnu.org>
 
