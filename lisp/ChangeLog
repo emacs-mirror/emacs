@@ -1,3 +1,7 @@
+2012-09-08  Drew Adams  <drew.adams@oracle.com>
+
+	* subr.el (add-to-history): Fix delete usage (Bug#12314).
+
 2012-09-08  Chong Yidong  <cyd@gnu.org>
 
 	* subr.el (syntax-after, syntax-class): Doc fix.

@@ -1548,7 +1548,7 @@ if it is empty or a duplicate."
 	       (or keep-all
 		   (not (equal (car history) newelt))))
       (if history-delete-duplicates
-	  (delete newelt history))
+	  (setq history (delete newelt history)))
       (setq history (cons newelt history))
       (when (integerp maxelt)
 	(if (= 0 maxelt)
