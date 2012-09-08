@@ -103,6 +103,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 - (void) setWindowClosing: (BOOL)closing;
 - (EmacsToolbar *) toolbar;
 - (void) deleteWorkingText;
+- (void) updateFrameSize;
 
 #ifdef NS_IMPL_GNUSTEP
 /* Not declared, but useful. */

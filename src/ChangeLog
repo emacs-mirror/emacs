@@ -1,3 +1,30 @@
+2012-09-08  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.m (ns_clip_to_row): Remove code that deals with drawing fringe
+	in the internal border.
+	(x_set_window_size): Remove static variables and their usage.
+	(ns_redraw_scroll_bars): Fix NSTRACE arg.
+	(ns_after_update_window_line, ns_draw_fringe_bitmap): Remove
+	fringe/internal border adjustment (Bug#11052).
+	(ns_draw_fringe_bitmap): Make code more like other terms (xterm.c).
+	(ns_draw_window_cursor): Remove fringe/internal border adjustment.
+	(ns_fix_rect_ibw): Remove.
+	(ns_get_glyph_string_clip_rect): Remove call to ns_fix_rect_ibw.
+	(ns_dumpglyphs_box_or_relief): Ditto.
+	(ns_maybe_dumpglyphs_background): Remove fringe/internal border
+	adjustment.
+	(ns_dumpglyphs_image): Ditto.
+	(ns_dumpglyphs_stretch): Fix coding style. Remove fringe/internal
+	border adjustment.
+	(ns_set_vertical_scroll_bar): Remove variables barOnVeryLeft/Right and
+	their usage.  Add fringe_extended_p and its use as in other terms.
+	(ns_judge_scroll_bars): Code style fix.  Call updateFrameSize if
+	scroll bar was removed.
+	(updateFrameSize): New function.
+	(windowDidResize): Move code to updateFrameSize and call it.
+
+	* nsterm.h (EmacsView): Add updateFrameSize.
+
 2012-09-07  Chong Yidong  <cyd@gnu.org>
 
 	* textprop.c (Fget_text_property): Minor doc fix (Bug#12323).
