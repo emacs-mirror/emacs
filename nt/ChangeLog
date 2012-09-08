@@ -1,3 +1,8 @@
+2012-09-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* configure.bat <use_extensions>: Don't leave it set in the
+	environment when the script exits.
+
 2012-09-07  Juanma Barranquero  <lekktu@gmail.com>
 
 	* config.nt: Sync with autogen/config.in.
