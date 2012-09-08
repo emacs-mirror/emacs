@@ -1,3 +1,7 @@
+2012-09-08  Joel Bion  <jpbion@westvi.com>  (tiny change)
+
+	* pcmpl-gnu.el (pcmpl-gnu-tarfile-regexp): Add tar.xz.  (Bug#12382)
+
 2012-08-31  Glenn Morris  <rgm@gnu.org>
 
 	* emulation/cua-rect.el (cua--init-rectangles):
