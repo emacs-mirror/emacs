@@ -1,3 +1,9 @@
+2012-09-08  Chong Yidong  <cyd@gnu.org>
+
+	* syntax.texi (Syntax Table Internals): Define "raw syntax
+	descriptor" terminology (Bug#12383).
+	(Syntax Descriptors): Mention raw syntax descriptors.
+
 2012-09-07  Chong Yidong  <cyd@gnu.org>
 
 	* variables.texi (Creating Buffer-Local): Fix description of

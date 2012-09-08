@@ -1,3 +1,7 @@
+2012-09-08  Chong Yidong  <cyd@gnu.org>
+
+	* syntax.c (Fstring_to_syntax): Doc fix.
+
 2012-09-08  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsterm.m (ns_clip_to_row): Remove code that deals with drawing fringe

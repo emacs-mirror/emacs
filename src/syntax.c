@@ -921,11 +921,11 @@ DEFUN ("matching-paren", Fmatching_paren, Smatching_paren, 1, 1, 0,
 }
 
 DEFUN ("string-to-syntax", Fstring_to_syntax, Sstring_to_syntax, 1, 1, 0,
-       doc: /* Convert a syntax specification STRING into syntax cell form.
-STRING should be a string as it is allowed as argument of
-`modify-syntax-entry'.  Value is the equivalent cons cell
-\(CODE . MATCHING-CHAR) that can be used as value of a `syntax-table'
-text property.  */)
+       doc: /* Convert a syntax descriptor STRING into a raw syntax descriptor.
+STRING should be a string of the form allowed as argument of
+`modify-syntax-entry'.  The return value is a raw syntax descriptor: a
+cons cell \(CODE . MATCHING-CHAR) which can be used, for example, as
+the value of a `syntax-table' text property.  */)
   (Lisp_Object string)
 {
   register const unsigned char *p;
