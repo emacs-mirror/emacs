@@ -1550,8 +1550,7 @@ See `font-lock-syntax-table'.")
 (defun ruby-match-expression-expansion (limit)
   (when (re-search-forward "[^\\]\\(\\\\\\\\\\)*\\(#\\({[^}\n\\\\]*\\(\\\\.[^}\n\\\\]*\\)*}\\|\\(\\$\\|@\\|@@\\)\\(\\w\\|_\\)+\\)\\)" limit 'move)
     (or (ruby-in-ppss-context-p 'string)
-        (and (< (point) limit)
-             (ruby-match-expression-expansion limit)))))
+        (ruby-match-expression-expansion limit))))
 
 ;;;###autoload
 (define-derived-mode ruby-mode prog-mode "Ruby"
