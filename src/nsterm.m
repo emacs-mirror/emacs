@@ -650,7 +650,6 @@ ns_update_window_begin (struct window *w)
   struct frame *f = XFRAME (WINDOW_FRAME (w));
  Mouse_HLInfo *hlinfo = MOUSE_HL_INFO (f);
   NSTRACE (ns_update_window_begin);
-  fprintf(stderr, "%s\n", __func__);
   updated_window = w;
   set_output_cursor (&w->cursor);
 
@@ -683,7 +682,6 @@ ns_update_window_end (struct window *w, int cursor_on_p,
 {
   Mouse_HLInfo *hlinfo = MOUSE_HL_INFO (XFRAME (w->frame));
 
-  fprintf(stderr, "%s\n", __func__);
   /* note: this fn is nearly identical in all terms */
   if (!w->pseudo_window_p)
     {
@@ -1267,7 +1265,6 @@ x_set_window_size (struct frame *f, int change_grav, int cols, int rows)
    wr.origin.y += FRAME_PIXEL_HEIGHT (f) - pixelheight;
 
   [view setRows: rows andColumns: cols];
-  fprintf(stderr, "%s %d %d\n", __func__, cols, (int)wr.origin.x);
   [window setFrame: wr display: YES];
 
 /*fprintf (stderr, "\tx_set_window_size %d, %d\t%d, %d\n", cols, rows, pixelwidth, pixelheight); */
@@ -1285,7 +1282,6 @@ x_set_window_size (struct frame *f, int change_grav, int cols, int rows)
                      - NS_SCROLL_BAR_WIDTH (f), 0)
       : NSMakePoint (0, 0);
     [view setFrame: NSMakeRect (0, 0, pixelwidth, pixelheight)];
-    fprintf(stderr, "%s origin %d\n", __func__, (int)origin.x);
     [view setBoundsOrigin: origin];
   }
 
@@ -5398,7 +5394,6 @@ not_in_argv (NSString *arg)
       change_frame_size (emacsframe, rows, cols, 0, 0, 1);
       SET_FRAME_GARBAGED (emacsframe);
       cancel_mouse_face (emacsframe);
-      fprintf(stderr, "%s %d %d\n", __func__, cols, neww);
       [view setFrame: NSMakeRect (0, 0, neww, newh)];
     }
 }
@@ -6217,15 +6212,6 @@ not_in_argv (NSString *arg)
   if (nr_screens == 1)
     {
       NSRect r = [super constrainFrameRect:frameRect toScreen:screen];
-      fprintf(stderr, "%s %d/%d %d/%d => %d/%d %d/%d\n", __func__,
-              (int)frameRect.origin.x,
-              (int)frameRect.origin.y,
-              (int)frameRect.size.width,
-              (int)frameRect.size.height,
-              (int)r.origin.x,
-              (int)r.origin.y,
-              (int)r.size.width,
-              (int)r.size.height);
       return r;
     }
   
