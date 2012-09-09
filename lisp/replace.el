@@ -35,7 +35,15 @@
 
 (defcustom replace-lax-whitespace nil
   "Non-nil means `query-replace' matches a sequence of whitespace chars.
-When you enter a space or spaces in the strings or regexps to be replaced,
+When you enter a space or spaces in the strings to be replaced,
+it will match any sequence matched by the regexp `search-whitespace-regexp'."
+  :type 'boolean
+  :group 'matching
+  :version "24.3")
+
+(defcustom replace-regexp-lax-whitespace nil
+  "Non-nil means `query-replace-regexp' matches a sequence of whitespace chars.
+When you enter a space or spaces in the regexps to be replaced,
 it will match any sequence matched by the regexp `search-whitespace-regexp'."
   :type 'boolean
   :group 'matching
@@ -282,7 +290,7 @@ pattern of the old text to the new text, if `case-replace' and
 all caps, or capitalized, then its replacement is upcased or
 capitalized.)
 
-If `replace-lax-whitespace' is non-nil, a space or spaces in the regexp
+If `replace-regexp-lax-whitespace' is non-nil, a space or spaces in the regexp
 to be replaced will match a sequence of whitespace chars defined by the
 regexp in `search-whitespace-regexp'.
 
@@ -362,7 +370,7 @@ minibuffer.
 Preserves case in each replacement if `case-replace' and `case-fold-search'
 are non-nil and REGEXP has no uppercase letters.
 
-If `replace-lax-whitespace' is non-nil, a space or spaces in the regexp
+If `replace-regexp-lax-whitespace' is non-nil, a space or spaces in the regexp
 to be replaced will match a sequence of whitespace chars defined by the
 regexp in `search-whitespace-regexp'.
 
@@ -499,7 +507,7 @@ and TO-STRING is also null.)"
 Preserve case in each match if `case-replace' and `case-fold-search'
 are non-nil and REGEXP has no uppercase letters.
 
-If `replace-lax-whitespace' is non-nil, a space or spaces in the regexp
+If `replace-regexp-lax-whitespace' is non-nil, a space or spaces in the regexp
 to be replaced will match a sequence of whitespace chars defined by the
 regexp in `search-whitespace-regexp'.
 
@@ -1803,9 +1811,9 @@ make, or the user didn't cancel the call."
 	      (let ((isearch-regexp regexp-flag)
 		    (isearch-word delimited-flag)
 		    (isearch-lax-whitespace
-		     (and replace-lax-whitespace (not regexp-flag)))
+		     replace-lax-whitespace)
 		    (isearch-regexp-lax-whitespace
-		     (and replace-lax-whitespace regexp-flag))
+		     replace-regexp-lax-whitespace)
 		    (isearch-case-fold-search case-fold-search)
 		    (isearch-forward t))
 		(isearch-search-fun))))
@@ -2160,9 +2168,9 @@ make, or the user didn't cancel the call."
 	    (isearch-regexp regexp-flag)
 	    (isearch-word delimited-flag)
 	    (isearch-lax-whitespace
-	     (and replace-lax-whitespace (not regexp-flag)))
+	     replace-lax-whitespace)
 	    (isearch-regexp-lax-whitespace
-	     (and replace-lax-whitespace regexp-flag))
+	     replace-regexp-lax-whitespace)
 	    (isearch-case-fold-search case-fold-search)
 	    (isearch-forward t)
 	    (isearch-error nil))

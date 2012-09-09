@@ -1581,10 +1581,9 @@ way to run word replacements from Isearch is `M-s w ... M-%'."
 	;; `isearch-no-upper-case-p' in `perform-replace'
 	(search-upper-case nil)
 	(replace-lax-whitespace
-	 (and search-whitespace-regexp
-	      (if isearch-regexp
-		  isearch-regexp-lax-whitespace
-		isearch-lax-whitespace)))
+	 isearch-lax-whitespace)
+	(replace-regexp-lax-whitespace
+	 isearch-regexp-lax-whitespace)
 	;; Set `isearch-recursive-edit' to nil to prevent calling
 	;; `exit-recursive-edit' in `isearch-done' that terminates
 	;; the execution of this command when it is non-nil.
