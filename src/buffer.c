@@ -44,7 +44,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "keymap.h"
 #include "frame.h"
 
-struct buffer *current_buffer;		/* the current buffer */
+struct buffer *current_buffer;		/* The current buffer.  */
 
 /* First buffer in chain of all buffers (in reverse order of creation).
    Threaded through ->header.next.buffer.  */
@@ -74,12 +74,12 @@ struct buffer alignas (GCALIGNMENT) buffer_defaults;
    and the corresponding slot in buffer_defaults is not used.
 
    If a slot in this structure corresponding to a DEFVAR_PER_BUFFER is
-   zero, that is a bug */
+   zero, that is a bug.  */
 
 struct buffer buffer_local_flags;
 
 /* This structure holds the names of symbols whose values may be
-   buffer-local.  It is indexed and accessed in the same way as the above. */
+   buffer-local.  It is indexed and accessed in the same way as the above.  */
 
 struct buffer alignas (GCALIGNMENT) buffer_local_symbols;
 
@@ -108,7 +108,7 @@ static void call_overlay_mod_hooks (Lisp_Object list, Lisp_Object overlay,
 static void swap_out_buffer_local_variables (struct buffer *b);
 static void reset_buffer_local_variables (struct buffer *, bool);
 
-/* Alist of all buffer names vs the buffers. */
+/* Alist of all buffer names vs the buffers.  */
 /* This used to be a variable, but is no longer,
  to prevent lossage due to user rplac'ing this alist or its elements.  */
 Lisp_Object Vbuffer_alist;
@@ -127,7 +127,7 @@ static Lisp_Object Qpermanent_local_hook;
 
 static Lisp_Object Qprotected_field;
 
-static Lisp_Object QSFundamental;	/* A string "Fundamental" */
+static Lisp_Object QSFundamental;	/* A string "Fundamental".  */
 
 static Lisp_Object Qkill_buffer_hook;
 static Lisp_Object Qbuffer_list_update_hook;
