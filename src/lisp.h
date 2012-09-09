@@ -2687,7 +2687,6 @@ extern void syms_of_fns (void);
 
 /* Defined in floatfns.c */
 extern double extract_float (Lisp_Object);
-extern void init_floatfns (void);
 extern void syms_of_floatfns (void);
 extern Lisp_Object fmod_float (Lisp_Object x, Lisp_Object y);
 

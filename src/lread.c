@@ -50,7 +50,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 
 #include <unistd.h>
-#include <math.h>
 
 #ifdef HAVE_SETLOCALE
 #include <locale.h>

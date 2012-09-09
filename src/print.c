@@ -45,14 +45,8 @@ static Lisp_Object Qtemp_buffer_setup_hook;
 
 static Lisp_Object Qfloat_output_format;
 
-#include <math.h>
 #include <float.h>
 #include <ftoastr.h>
-
-/* Default to values appropriate for IEEE floating point.  */
-#ifndef DBL_DIG
-#define DBL_DIG 15
-#endif
 
 /* Avoid actual stack overflow in print.  */
 static ptrdiff_t print_depth;

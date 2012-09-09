@@ -36,17 +36,12 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "keymap.h"
 
 #include <float.h>
-/* If IEEE_FLOATING_POINT isn't defined, default it from FLT_*.  */
-#ifndef IEEE_FLOATING_POINT
 #if (FLT_RADIX == 2 && FLT_MANT_DIG == 24 \
      && FLT_MIN_EXP == -125 && FLT_MAX_EXP == 128)
 #define IEEE_FLOATING_POINT 1
 #else
 #define IEEE_FLOATING_POINT 0
 #endif
-#endif
-
-#include <math.h>
 
 Lisp_Object Qnil, Qt, Qquote, Qlambda, Qunbound;
 static Lisp_Object Qsubr;
@@ -2736,28 +2731,6 @@ Both must be integers or markers.  */)
   XSETINT (val, XINT (x) % XINT (y));
   return val;
 }
-
-#ifndef HAVE_FMOD
-double
-fmod (double f1, double f2)
-{
-  double r = f1;
-
-  if (f2 < 0.0)
-    f2 = -f2;
-
-  /* If the magnitude of the result exceeds that of the divisor, or
-     the sign of the result does not agree with that of the dividend,
-     iterate with the reduced value.  This does not yield a
-     particularly accurate result, but at least it will be in the
-     range promised by fmod.  */
-  do
-    r -= f2 * floor (r / f2);
-  while (f2 <= (r < 0 ? -r : r) || ((r < 0) != (f1 < 0) && ! isnan (r)));
-
-  return r;
-}
-#endif /* ! HAVE_FMOD */
 
 DEFUN ("mod", Fmod, Smod, 2, 2, 0,
        doc: /* Return X modulo Y.

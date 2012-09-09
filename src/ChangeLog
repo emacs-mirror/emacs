@@ -1,3 +1,35 @@
+2012-09-09  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Assume C89 or later for math functions (Bug#12381).
+	This simplifies the code, and makes it a bit smaller and faster,
+	and (most important) makes it easier to clean up signal handling
+	since we can stop worring about floating-point exceptions in
+	library code.  That was a problem before C89, but the problem
+	went away many years ago on all practical Emacs targets.
+	* data.c, image.c, lread.c, print.c:
+	Don't include <math.h>; no longer needed.
+	* data.c, floatfns.c (IEEE_FLOATING_POINT): Don't worry that it
+	might be autoconfigured, as that never happens.
+	* data.c (fmod):
+	* doprnt.c (DBL_MAX_10_EXP):
+	* print.c (DBL_DIG):
+	Remove.  C89 or later always defines these.
+	* floatfns.c (HAVE_MATHERR, FLOAT_CHECK_ERRNO, FLOAT_CHECK_DOMAIN)
+	(in_float, float_error_arg, float_error_arg2, float_error_fn_name)
+	(arith_error, domain_error, domain_error2):
+	Remove all this pre-C89 cruft.  Do not include <errno.h> as that's
+	no longer needed -- we simply return what C returns.  All uses removed.
+	(IN_FLOAT, IN_FLOAT2): Remove.  All uses replaced with
+	the wrapped code.
+	(FLOAT_TO_INT, FLOAT_TO_INT2, range_error, range_error2):
+	Remove.  All uses expanded, as these macros are no longer used
+	more than once and are now more trouble than they're worth.
+	(Ftan): Use tan, not sin / cos.
+	(Flogb): Assume C89 frexp.
+	(fmod_float): Assume C89 fmod.
+	(matherr) [HAVE_MATHERR]: Remove; no longer needed.
+	(init_floatfns): Remove.  All uses removed.
+
 2012-09-08  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsterm.m (ns_draw_fringe_bitmap, ns_dumpglyphs_image): Take back

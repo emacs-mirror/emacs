@@ -1302,17 +1302,6 @@ if test $emacs_cv_speed_t = yes; then
   	   [Define to 1 if `speed_t' is declared by <termios.h>.])
 fi
 
-AC_CACHE_CHECK(for struct exception, emacs_cv_struct_exception,
-AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <math.h>]],
-[[static struct exception x; x.arg1 = x.arg2 = x.retval; x.name = ""; x.type = 1;]])],
-  emacs_cv_struct_exception=yes, emacs_cv_struct_exception=no))
-HAVE_EXCEPTION=$emacs_cv_struct_exception
-dnl Define on Darwin so emacs symbols will not conflict with those
-dnl in the System framework.  Otherwise -prebind will not work.
-if test $emacs_cv_struct_exception != yes || test $opsys = darwin; then
-  AC_DEFINE(NO_MATHERR, 1, [Define to 1 if you don't have struct exception in math.h.])
-fi
-
 AC_CHECK_HEADERS_ONCE(sys/socket.h)
 AC_CHECK_HEADERS(net/if.h, , , [AC_INCLUDES_DEFAULT
 #if HAVE_SYS_SOCKET_H
@@ -2781,7 +2770,7 @@ AC_SUBST(BLESSMAIL_TARGET)
 
 AC_CHECK_FUNCS(gethostname \
 closedir getrusage get_current_dir_name \
-lrand48 logb frexp fmod cbrt setsid \
+lrand48 logb cbrt setsid \
 fpathconf select euidaccess getpagesize setlocale \
 utimes getrlimit setrlimit setpgid getcwd shutdown getaddrinfo \
 __fpending strsignal setitimer \
@@ -3210,12 +3199,6 @@ dnl So it is not clear that this #define still needs to exist.
 AC_DEFINE(CLASH_DETECTION, 1, [Define if you want lock files to be written,
   so that Emacs can tell instantly when you try to modify a file that
   someone else has modified in his/her Emacs.])
-
-AH_TEMPLATE(FLOAT_CHECK_DOMAIN, [Define if the float library doesn't
-  handle errors by either setting errno, or signaling SIGFPE.])
-
-AH_TEMPLATE(HAVE_INVERSE_HYPERBOLIC, [Define if you have the functions
-  acosh, asinh, and atanh.])
 
 dnl Everybody supports this, except MS.
 dnl Seems like the kind of thing we should be testing for, though.

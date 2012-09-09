@@ -1,3 +1,9 @@
+2012-09-09  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Assume C89 or later for math functions (Bug#12381).
+	* CPP-DEFINES (HAVE_FMOD, HAVE_FREXP, FLOAT_CHECK_DOMAIN)
+	(HAVE_INVERSE_HYPERBOLIC, NO_MATHERR): Remove.
+
 2012-09-04  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Simplify redefinition of 'abort' (Bug#12316).

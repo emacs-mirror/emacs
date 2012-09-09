@@ -114,10 +114,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    another macro.  */
 #include "character.h"
 
-#ifndef DBL_MAX_10_EXP
-#define DBL_MAX_10_EXP 308 /* IEEE double */
-#endif
-
 /* Generate output from a format-spec FORMAT,
    terminated at position FORMAT_END.
    (*FORMAT_END is not part of the format, but must exist and be readable.)

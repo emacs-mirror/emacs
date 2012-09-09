@@ -1587,7 +1587,6 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
   init_fringe ();
 #endif /* HAVE_WINDOW_SYSTEM */
   init_macros ();
-  init_floatfns ();
   init_window ();
   init_font ();
 
