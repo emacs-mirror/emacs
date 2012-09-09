@@ -3,7 +3,7 @@
 # $Id$
 # Copyright (C) 2012 Ravenbrook Limited.  See end of file for license.
 #
-# YOU DON'T NEED AUTOCONF TO BUILD THE MPS
+# YOU DON"T NEED AUTOCONF TO BUILD THE MPS
 # This is just here for people who want or expect a configure script.
 # See [Building the Memory Pool System](manual/build.txt) for how best
 # to build and integrate the MPS.
@@ -14,15 +14,9 @@
 #
 
 AC_PREREQ([2.50])
-AC_INIT([Memory Pool System Kit],
-        [master],
-        [mps-questions@ravenbrook.com],
-        [mps-kit],
-        [http://www.ravenbrook.com/project/mps/])
+AC_INIT([Memory Pool System], [master], [mps-questions@ravenbrook.com])
 AC_CONFIG_AUX_DIR(build-aux)
 AC_CONFIG_SRCDIR([code/mps.c])
-AC_REVISION([$Id$])
-
 
 # Checks for programs.
 AC_PROG_CC
@@ -63,12 +57,11 @@ case $host in
       MPS_TARGET_NAME=fri6gc
     ;;
   *)
-    AC_MSG_ERROR([MPS Kit does not support this platform out of the box.  See manual/build.txt])
+    AC_MSG_ERROR([MPS does not yet support this platform.])
 esac
 
 AC_SUBST(MPS_TARGET_PF)
 AC_SUBST(MPS_TARGET_NAME)
 AC_CONFIG_FILES(Makefile)
-AC_CONFIG_LINKS([code/GNUmakefile:code/]MPS_TARGET_NAME[.gmk])
 
 AC_OUTPUT
