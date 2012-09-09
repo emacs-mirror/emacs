@@ -2319,11 +2319,19 @@ floating point support."
 PROMPT is the string to display to ask the question.  It should
 end in a space; `y-or-n-p' adds \"(y or n) \" to it.
 
-No confirmation of the answer is requested; a single character is enough.
-Also accepts Space to mean yes, or Delete to mean no.  \(Actually, it uses
-the bindings in `query-replace-map'; see the documentation of that variable
-for more information.  In this case, the useful bindings are `act', `skip',
-`recenter', and `quit'.\)
+No confirmation of the answer is requested; a single character is
+enough.  SPC also means yes, and DEL means no.
+
+To be precise, this function translates user input into responses
+by consulting the bindings in `query-replace-map'; see the
+documentation of that variable for more information.  In this
+case, the useful bindings are `act', `skip', `recenter',
+`scroll-up', `scroll-down', and `quit'.
+An `act' response means yes, and a `skip' response means no.
+A `quit' response means to invoke `keyboard-quit'.
+If the user enters `recenter', `scroll-up', or `scroll-down'
+responses, perform the requested window recentering or scrolling
+and ask again.
 
 Under a windowing system a dialog box will be used if `last-nonmenu-event'
 is nil and `use-dialog-box' is non-nil."
@@ -2355,21 +2363,33 @@ is nil and `use-dialog-box' is non-nil."
                                "" " ")
                            "(y or n) "))
       (while
-          (let* ((key
+          (let* ((scroll-actions '(recenter scroll-up scroll-down
+				   scroll-other-window scroll-other-window-down))
+		 (key
                   (let ((cursor-in-echo-area t))
                     (when minibuffer-auto-raise
                       (raise-frame (window-frame (minibuffer-window))))
-                    (read-key (propertize (if (eq answer 'recenter)
+                    (read-key (propertize (if (memq answer scroll-actions)
                                               prompt
                                             (concat "Please answer y or n.  "
                                                     prompt))
                                           'face 'minibuffer-prompt)))))
             (setq answer (lookup-key query-replace-map (vector key) t))
             (cond
-             ((memq answer '(skip act)) nil)
-             ((eq answer 'recenter) (recenter) t)
-             ((memq answer '(exit-prefix quit)) (signal 'quit nil) t)
-             (t t)))
+	     ((memq answer '(skip act)) nil)
+	     ((eq answer 'recenter)
+	      (recenter) t)
+	     ((eq answer 'scroll-up)
+	      (ignore-errors (scroll-up-command)) t)
+	     ((eq answer 'scroll-down)
+	      (ignore-errors (scroll-down-command)) t)
+	     ((eq answer 'scroll-other-window)
+	      (ignore-errors (scroll-other-window)) t)
+	     ((eq answer 'scroll-other-window-down)
+	      (ignore-errors (scroll-other-window-down)) t)
+	     ((or (memq answer '(exit-prefix quit)) (eq key ?\e))
+	      (signal 'quit nil) t)
+	     (t t)))
         (ding)
         (discard-input))))
     (let ((ret (eq answer 'act)))

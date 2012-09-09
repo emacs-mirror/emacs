@@ -1223,38 +1223,19 @@ Return t if THEME was successfully loaded, nil otherwise."
   "Query the user about loading a Custom theme that may not be safe.
 The theme should be in the current buffer.  If the user agrees,
 query also about adding HASH to `custom-safe-themes'."
-  (if noninteractive
-      nil
-    (let ((exit-chars '(?y ?n ?\s))
-	  window prompt char)
-      (save-window-excursion
-	(rename-buffer "*Custom Theme*" t)
-	(emacs-lisp-mode)
-	(setq window (display-buffer (current-buffer)))
-	(setq prompt
-	      (format "Loading a theme can run Lisp code.  Really load?%s"
-		      (if (and window
-			       (< (line-number-at-pos (point-max))
-				  (window-body-height)))
-			  " (y or n) "
-			(push ?\C-v exit-chars)
-			"\nType y or n, or C-v to scroll: ")))
-	(goto-char (point-min))
-	(while (null char)
-	  (setq char (read-char-choice prompt exit-chars))
-	  (when (eq char ?\C-v)
-	    (if window
-		(with-selected-window window
-		  (condition-case nil
-		      (scroll-up)
-		    (error (goto-char (point-min))))))
-	    (setq char nil)))
-	(when (memq char '(?\s ?y))
-	  ;; Offer to save to `custom-safe-themes'.
-	  (and (or custom-file user-init-file)
-	       (y-or-n-p "Treat this theme as safe in future sessions? ")
-	       (customize-push-and-save 'custom-safe-themes (list hash)))
-	  t)))))
+  (unless noninteractive
+    (save-window-excursion
+      (rename-buffer "*Custom Theme*" t)
+      (emacs-lisp-mode)
+      (setq window (pop-to-buffer (current-buffer)))
+      (goto-char (point-min))
+      (prog1 (when (y-or-n-p "Loading a theme can run Lisp code.  Really load? ")
+	       ;; Offer to save to `custom-safe-themes'.
+	       (and (or custom-file user-init-file)
+		    (y-or-n-p "Treat this theme as safe in future sessions? ")
+		    (customize-push-and-save 'custom-safe-themes (list hash)))
+	       t)
+	(quit-window)))))
 
 (defun custom-theme-name-valid-p (name)
   "Return t if NAME is a valid name for a Custom theme, nil otherwise.

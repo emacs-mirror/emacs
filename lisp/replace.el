@@ -1617,14 +1617,28 @@ E to edit the replacement string"
     (define-key map "?" 'help)
     (define-key map "\C-g" 'quit)
     (define-key map "\C-]" 'quit)
-    (define-key map "\e" 'exit-prefix)
+    (define-key map "\C-v" 'scroll-up)
+    (define-key map "\M-v" 'scroll-down)
+    (define-key map [next] 'scroll-up)
+    (define-key map [prior] 'scroll-down)
+    (define-key map [?\C-\M-v] 'scroll-other-window)
+    (define-key map [M-next] 'scroll-other-window)
+    (define-key map [?\C-\M-\S-v] 'scroll-other-window-down)
+    (define-key map [M-prior] 'scroll-other-window-down)
+    ;; Binding ESC would prohibit the M-v binding.  Instead, callers
+    ;; should check for ESC specially.
+    ;; (define-key map "\e" 'exit-prefix)
     (define-key map [escape] 'exit-prefix)
     map)
-  "Keymap that defines the responses to questions in `query-replace'.
+  "Keymap of responses to questions posed by commands like `query-replace'.
 The \"bindings\" in this map are not commands; they are answers.
 The valid answers include `act', `skip', `act-and-show',
-`exit', `act-and-exit', `edit', `edit-replacement', `delete-and-edit',
-`recenter', `automatic', `backup', `exit-prefix', `quit', and `help'.")
+`act-and-exit', `exit', `exit-prefix', `recenter', `scroll-up',
+`scroll-down', `scroll-other-window', `scroll-other-window-down',
+`edit', `edit-replacement', `delete-and-edit', `automatic',
+`backup', `quit', and `help'.
+
+This keymap is used by `y-or-n-p' as well as `query-replace'.")
 
 (defvar multi-query-replace-map
   (let ((map (make-sparse-keymap)))

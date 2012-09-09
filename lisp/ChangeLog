@@ -1,5 +1,20 @@
 2012-09-09  Chong Yidong  <cyd@gnu.org>
 
+	* replace.el (query-replace-map): Bind four new symbols for
+	requesting window scrolling.
+
+	* subr.el (y-or-n-p): Handle the window-scrolling bindings in
+	query-replace-map (Bug#8948).
+
+	* custom.el (custom-theme-load-confirm): Use y-or-n-p.
+
+	* emacs-lisp/map-ynp.el (map-y-or-n-p): Don't bind scrolling keys
+	since they are now in query-replace-map.
+
+	* window.el (scroll-other-window-down): Make the arg optional.
+
+2012-09-09  Chong Yidong  <cyd@gnu.org>
+
 	* files.el (hack-local-variables-confirm): Use quit-window to kill
 	the *Local Variables* buffer.
 

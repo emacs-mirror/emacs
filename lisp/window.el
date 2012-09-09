@@ -6301,7 +6301,7 @@ This is different from `scroll-down-command' that scrolls a full screen."
 (put 'scroll-down-line 'scroll-command t)
 
 
-(defun scroll-other-window-down (lines)
+(defun scroll-other-window-down (&optional lines)
   "Scroll the \"other window\" down.
 For more details, see the documentation for `scroll-other-window'."
   (interactive "P")

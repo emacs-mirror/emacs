@@ -78,6 +78,10 @@ been adding them there, put them somewhere else, eg site-lisp.
 
 * Changes in Emacs 24.3
 
+** You can now scroll the selected window in most y-or-n prompts.
+Typing C-v or M-v at a prompt scrolls forward or backward
+respectively, without leaving the y-or-n prompt.
+
 ** Help changes
 
 *** `C-h f' (describe-function) can now perform autoloading.
