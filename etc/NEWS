@@ -188,10 +188,11 @@ end of the buffer.  It defaults to t.
 
 +++
 ** `C-x r +' is now overloaded to invoke `append-to-register.
+
 +++
-** New option `separator-register'.  Separator register stores
-separator text for use with M-x append-to-register and M-x
-prepend-to-register.  See manual for details.
+** New option `register-separator' specifies the register containing
+the text to put between collected texts for use with M-x
+append-to-register and M-x prepend-to-register.
 
 ** Search changes
 

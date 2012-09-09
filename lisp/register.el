@@ -79,10 +79,10 @@ A list of the form (FRAME-CONFIGURATION POSITION)
 (defgroup register nil
   "Register commands."
   :group 'convenience
-  :version "24.2.50")
+  :version "24.3")
 
-(defcustom separator-register nil
-  "Use contents of this register to separate collected text.
+(defcustom register-separator nil
+  "Register containing the text to put between collected texts, or nil if none.
 
 When collecting text with
 `append-to-register' (resp. `prepend-to-register') contents of
@@ -377,7 +377,7 @@ START and END are buffer positions indicating what to append."
   (interactive "cAppend to register: \nr\nP")
   (let ((reg (get-register register))
         (text (filter-buffer-substring start end))
-	(separator (and separator-register (get-register separator-register))))
+	(separator (and register-separator (get-register register-separator))))
     (set-register
      register (cond ((not reg) text)
                     ((stringp reg) (concat reg separator text))
@@ -395,7 +395,7 @@ START and END are buffer positions indicating what to prepend."
   (interactive "cPrepend to register: \nr\nP")
   (let ((reg (get-register register))
         (text (filter-buffer-substring start end))
-	(separator (and separator-register (get-register separator-register))))
+	(separator (and register-separator (get-register register-separator))))
     (set-register
      register (cond ((not reg) text)
                     ((stringp reg) (concat text separator reg))
