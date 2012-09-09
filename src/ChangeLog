@@ -1,3 +1,9 @@
+2012-09-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* dispnew.c (update_window_line): When the left margin area of a
+	screen line is updated, set the redraw_fringe_bitmaps_p flag of
+	that screen line.  (Bug#12277)
+
 2012-09-09  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Assume C89 or later for math functions (Bug#12381).

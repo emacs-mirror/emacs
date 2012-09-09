@@ -3951,6 +3951,11 @@ update_window_line (struct window *w, int vpos, bool *mouse_face_overwritten_p)
 	{
 	  changed_p = 1;
 	  update_marginal_area (w, LEFT_MARGIN_AREA, vpos);
+	  /* Setting this flag will ensure the vertical border, if
+	     any, between this window and the one on its left will be
+	     redrawn.  This is necessary because updating the left
+	     margin area can potentially draw over the border.  */
+	  current_row->redraw_fringe_bitmaps_p = 1;
 	}
 
       /* Update the display of the text area.  */
