@@ -1896,7 +1896,6 @@ special responses @code{recenter}, @code{scroll-up},
 @kbd{C-v}, @kbd{M-v}, @kbd{C-M-v} and @kbd{C-M-S-v} in
 @code{query-replace-map}), this function performs the specified window
 recentering or scrolling operation, and poses the question again.
-@end smallexample
 
 @noindent
 We show successive lines of echo area messages, but only one actually
