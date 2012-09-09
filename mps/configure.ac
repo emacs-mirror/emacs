@@ -20,7 +20,7 @@ AC_INIT([Memory Pool System Kit],
         [mps-questions@ravenbrook.com],
         [mps-kit],
         [http://www.ravenbrook.com/project/mps/])
-AC_CONFIG_AUX_DIR(build-aux)
+AC_CONFIG_AUX_DIR(tool/autoconf/build-aux)
 AC_CONFIG_SRCDIR([code/mps.c])
 
 # Checks for programs.
@@ -28,6 +28,8 @@ AC_PROG_CC
 
 AC_CANONICAL_HOST
 AC_MSG_CHECKING([target platform])
+BUILD_TARGET=build-via-make
+CLEAN_TARGET=clean-make-build
 case $host in
   i*86-*-linux*)
       AC_MSG_RESULT([Linux x86])
@@ -42,12 +44,14 @@ case $host in
   i*86-*-darwin*)
       AC_MSG_RESULT([Mac OS X x86])
       MPS_TARGET_PF=MPS_PF_XCI3LL
+      MPS_TARGET_NAME=xci3ll
       BUILD_TARGET=build-via-xcode
       CLEAN_TARGET=clean-xcode-build
     ;;
   x86_64-apple-darwin*)
       AC_MSG_RESULT([Mac OS X x86_64])
       MPS_TARGET_PF=MPS_PF_XCI6LL
+      MPS_TARGET_NAME=xci6ll
       BUILD_TARGET=build-via-xcode
       CLEAN_TARGET=clean-xcode-build
     ;;
@@ -62,11 +66,13 @@ case $host in
       MPS_TARGET_NAME=fri6gc
     ;;
   *)
-    AC_MSG_ERROR([MPS does not yet support this platform.])
+    AC_MSG_ERROR([MPS does not support this platform out of the box.  See manual/build.txt])
 esac
 
 AC_SUBST(MPS_TARGET_PF)
 AC_SUBST(MPS_TARGET_NAME)
+AC_SUBST(BUILD_TARGET)
+AC_SUBST(CLEAN_TARGET)
 AC_CONFIG_FILES(Makefile)
 
 AC_OUTPUT
