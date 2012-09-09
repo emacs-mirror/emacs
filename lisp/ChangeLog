@@ -1,3 +1,11 @@
+2012-09-08  Alan Mackenzie  <acm@muc.de>
+
+	AWK Mode: make auto-newline work when there's "==" in the pattern.
+	* progmodes/cc-cmds.el (c-point-syntax): Handle virtual semicolons
+	correctly.
+	* progmodes/cc-engine.el (c-guess-basic-syntax CASE 5A.3): Test
+	more rigorously for "=" token.
+
 2012-09-08  Joel Bion  <jpbion@westvi.com>  (tiny change)
 
 	* pcmpl-gnu.el (pcmpl-gnu-tarfile-regexp): Add tar.xz.  (Bug#12382)

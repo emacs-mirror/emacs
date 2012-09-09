@@ -9551,12 +9551,12 @@ comment at the start of cc-engine.el for more info."
 			     (setq tmpsymbol nil)
 			     (while (and (> (point) placeholder)
 					 (zerop (c-backward-token-2 1 t))
-					 (/= (char-after) ?=))
+					 (not (looking-at "=\\([^=]\\|$\\)")))
 			       (and c-opt-inexpr-brace-list-key
 				    (not tmpsymbol)
 				    (looking-at c-opt-inexpr-brace-list-key)
 				    (setq tmpsymbol 'topmost-intro-cont)))
-			     (eq (char-after) ?=))
+			     (looking-at "=\\([^=]\\|$\\)"))
 			   (looking-at c-brace-list-key))
 		       (save-excursion
 			 (while (and (< (point) indent-point)

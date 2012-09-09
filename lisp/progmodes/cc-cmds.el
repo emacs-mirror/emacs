@@ -493,13 +493,16 @@ inside a literal or a macro, nothing special happens."
       (insert-char ?\n 1)
       ;; In AWK (etc.) or in a macro, make sure this CR hasn't changed
       ;; the syntax.  (There might already be an escaped NL there.)
-      (when (or (c-at-vsemi-p (1- (point)))
-		(let ((pt (point)))
-		  (save-excursion
-		    (backward-char)
-		    (and (c-beginning-of-macro)
-			 (progn (c-end-of-macro)
-				(< (point) pt))))))
+      (when (or
+	     (save-excursion
+	       (c-skip-ws-backward (c-point 'bopl))
+	       (c-at-vsemi-p))
+	     (let ((pt (point)))
+	       (save-excursion
+		 (backward-char)
+		 (and (c-beginning-of-macro)
+		      (progn (c-end-of-macro)
+			     (< (point) pt))))))
 	(backward-char)
 	(insert-char ?\\ 1)
 	(forward-char))
