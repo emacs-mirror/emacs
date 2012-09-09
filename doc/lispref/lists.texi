@@ -1293,14 +1293,19 @@ compare @var{object} against the elements of the list.  For example:
 @defun delq object list
 @cindex deleting list elements
 This function destructively removes all elements @code{eq} to
-@var{object} from @var{list}.  The letter @samp{q} in @code{delq} says
-that it uses @code{eq} to compare @var{object} against the elements of
-the list, like @code{memq} and @code{remq}.
+@var{object} from @var{list}, and returns the resulting list.  The
+letter @samp{q} in @code{delq} says that it uses @code{eq} to compare
+@var{object} against the elements of the list, like @code{memq} and
+@code{remq}.
+
+Typically, when you invoke @code{delq}, you should use the return
+value by assigning it to the variable which held the original list.
+The reason for this is explained below.
 @end defun
 
-When @code{delq} deletes elements from the front of the list, it does so
-simply by advancing down the list and returning a sublist that starts
-after those elements:
+The @code{delq} function deletes elements from the front of the list
+by simply advancing down the list, and returning a sublist that starts
+after those elements.  For example:
 
 @example
 @group
@@ -1308,6 +1313,7 @@ after those elements:
 @end group
 @end example
 
+@noindent
 When an element to be deleted appears in the middle of the list,
 removing it involves changing the @sc{cdr}s (@pxref{Setcdr}).
 
@@ -1432,12 +1438,15 @@ Compare this with @code{memq}:
 @end defun
 
 @defun delete object sequence
-If @code{sequence} is a list, this function destructively removes all
-elements @code{equal} to @var{object} from @var{sequence}.  For lists,
-@code{delete} is to @code{delq} as @code{member} is to @code{memq}: it
-uses @code{equal} to compare elements with @var{object}, like
-@code{member}; when it finds an element that matches, it cuts the
-element out just as @code{delq} would.
+This function removes all elements @code{equal} to @var{object} from
+@var{sequence}, and returns the resulting sequence.
+
+If @var{sequence} is a list, @code{delete} is to @code{delq} as
+@code{member} is to @code{memq}: it uses @code{equal} to compare
+elements with @var{object}, like @code{member}; when it finds an
+element that matches, it cuts the element out just as @code{delq}
+would.  As with @code{delq}, you should typically use the return value
+by assigning it to the variable which held the original list.
 
 If @code{sequence} is a vector or string, @code{delete} returns a copy
 of @code{sequence} with all elements @code{equal} to @code{object}

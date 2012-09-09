@@ -1,5 +1,8 @@
 2012-09-09  Chong Yidong  <cyd@gnu.org>
 
+	* lists.texi (Sets And Lists): Explain that the return value for
+	delete should be used, like for delq.
+
 	* minibuf.texi (Yes-or-No Queries): Document recentering and
 	scrolling in y-or-n-p.  Remove gratuitous example.
 
