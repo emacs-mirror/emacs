@@ -1,3 +1,9 @@
+2012-09-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* lisp.h (make_lisp_ptr): New macro to replace XSET.
+	(XSETCONS, XSETVECTOR, XSETSTRING, XSETSYMBOL, XSETFLOAT, XSETMISC):
+	Use it.
+
 2012-09-09  Eli Zaretskii  <eliz@gnu.org>
 
 	* fringe.c (draw_fringe_bitmap_1): Don't reduce the width of the

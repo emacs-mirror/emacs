@@ -325,7 +325,7 @@ enum CHECK_LISP_OBJECT_TYPE { CHECK_LISP_OBJECT_TYPE = 1 };
 typedef EMACS_INT Lisp_Object;
 #define XLI(o) (o)
 #define XIL(i) (i)
-#define LISP_MAKE_RVALUE(o) (0+(o))
+#define LISP_MAKE_RVALUE(o) (0 + (o))
 #define LISP_INITIALLY_ZERO 0
 enum CHECK_LISP_OBJECT_TYPE { CHECK_LISP_OBJECT_TYPE = 0 };
 #endif /* CHECK_LISP_OBJECT_TYPE */
@@ -417,9 +417,9 @@ enum lsb_bits
 #define XINT(a) (XLI (a) >> INTTYPEBITS)
 #define XUINT(a) ((EMACS_UINT) XLI (a) >> INTTYPEBITS)
 #define make_number(N) XIL ((EMACS_INT) (N) << INTTYPEBITS)
-#define XSET(var, type, ptr)						   \
+#define make_lisp_ptr(ptr, type) \
   (eassert (XTYPE (XIL ((intptr_t) (ptr))) == 0), /* Check alignment.  */  \
-   (var) = XIL ((type) | (intptr_t) (ptr)))
+   XIL ((type) | (intptr_t) (ptr)))
 
 #define XPNTR(a) ((intptr_t) (XLI (a) & ~TYPEMASK))
 #define XUNTAG(a, type) ((intptr_t) (XLI (a) - (type)))
@@ -444,13 +444,13 @@ static EMACS_INT const VALMASK
 #define XUINT(a) ((EMACS_UINT) (XLI (a) & INTMASK))
 #define make_number(N) XIL ((EMACS_INT) (N) & INTMASK)
 
-#define XSET(var, type, ptr)				      \
-  ((var) = XIL ((EMACS_INT) ((EMACS_UINT) (type) << VALBITS)  \
-		+ ((intptr_t) (ptr) & VALMASK)))
+#define make_lisp_ptr(ptr, type) \
+  (XIL ((EMACS_INT) ((EMACS_UINT) (type) << VALBITS)  \
+	+ ((intptr_t) (ptr) & VALMASK)))
 
 #if DATA_SEG_BITS
 /* DATA_SEG_BITS forces extra bits to be or'd in with any pointers
-   which were stored in a Lisp_Object */
+   which were stored in a Lisp_Object.  */
 #define XPNTR(a) ((uintptr_t) ((XLI (a) & VALMASK)) | DATA_SEG_BITS))
 #else
 #define XPNTR(a) ((uintptr_t) (XLI (a) & VALMASK))
@@ -555,15 +555,15 @@ clip_to_bounds (ptrdiff_t lower, EMACS_INT num, ptrdiff_t upper)
 /* Construct a Lisp_Object from a value or address.  */
 
 #define XSETINT(a, b) (a) = make_number (b)
-#define XSETCONS(a, b) XSET (a, Lisp_Cons, b)
-#define XSETVECTOR(a, b) XSET (a, Lisp_Vectorlike, b)
-#define XSETSTRING(a, b) XSET (a, Lisp_String, b)
-#define XSETSYMBOL(a, b) XSET (a, Lisp_Symbol, b)
-#define XSETFLOAT(a, b) XSET (a, Lisp_Float, b)
+#define XSETCONS(a, b) (a) = make_lisp_ptr (b, Lisp_Cons)
+#define XSETVECTOR(a, b) (a) = make_lisp_ptr (b, Lisp_Vectorlike)
+#define XSETSTRING(a, b) (a) = make_lisp_ptr (b, Lisp_String)
+#define XSETSYMBOL(a, b) (a) = make_lisp_ptr (b, Lisp_Symbol)
+#define XSETFLOAT(a, b) (a) = make_lisp_ptr (b, Lisp_Float)
 
 /* Misc types.  */
 
-#define XSETMISC(a, b) XSET (a, Lisp_Misc, b)
+#define XSETMISC(a, b) (a) = make_lisp_ptr (b, Lisp_Misc)
 #define XSETMARKER(a, b) (XSETMISC (a, b), XMISCTYPE (a) = Lisp_Misc_Marker)
 
 /* Pseudovector types.  */
@@ -1619,7 +1619,7 @@ typedef struct {
   int mouse_face_image_state;
 } Mouse_HLInfo;
 
-/* Data type checking */
+/* Data type checking.  */
 
 #define NILP(x)  EQ (x, Qnil)
 
@@ -1992,7 +1992,7 @@ struct specbinding
   {
     Lisp_Object symbol, old_value;
     specbinding_func func;
-    Lisp_Object unused;		/* Dividing by 16 is faster than by 12 */
+    Lisp_Object unused;		/* Dividing by 16 is faster than by 12.  */
   };
 
 extern struct specbinding *specpdl;
@@ -2571,10 +2571,10 @@ extern Lisp_Object Qfont_spec, Qfont_entity, Qfont_object;
 
 EXFUN (Fbyteorder, 0) ATTRIBUTE_CONST;
 
-/* Defined in frame.c */
+/* Defined in frame.c.  */
 extern Lisp_Object Qframep;
 
-/* Defined in data.c */
+/* Defined in data.c.  */
 extern Lisp_Object indirect_function (Lisp_Object);
 extern Lisp_Object find_symbol_value (Lisp_Object);
 
@@ -2621,7 +2621,7 @@ extern void swap_in_global_binding (struct Lisp_Symbol *);
 extern void syms_of_cmds (void);
 extern void keys_of_cmds (void);
 
-/* Defined in coding.c */
+/* Defined in coding.c.  */
 extern Lisp_Object Qcharset;
 extern Lisp_Object detect_coding_system (const unsigned char *, ptrdiff_t,
                                          ptrdiff_t, bool, bool, Lisp_Object);
@@ -2629,7 +2629,7 @@ extern void init_coding (void);
 extern void init_coding_once (void);
 extern void syms_of_coding (void);
 
-/* Defined in character.c */
+/* Defined in character.c.  */
 EXFUN (Fmax_char, 0) ATTRIBUTE_CONST;
 extern ptrdiff_t chars_in_text (const unsigned char *, ptrdiff_t);
 extern ptrdiff_t multibyte_chars_in_text (const unsigned char *, ptrdiff_t);
@@ -2637,21 +2637,21 @@ extern int multibyte_char_to_unibyte (int) ATTRIBUTE_CONST;
 extern int multibyte_char_to_unibyte_safe (int) ATTRIBUTE_CONST;
 extern void syms_of_character (void);
 
-/* Defined in charset.c */
+/* Defined in charset.c.  */
 extern void init_charset (void);
 extern void init_charset_once (void);
 extern void syms_of_charset (void);
 /* Structure forward declarations.  */
 struct charset;
 
-/* Defined in composite.c */
+/* Defined in composite.c.  */
 extern void syms_of_composite (void);
 
-/* Defined in syntax.c */
+/* Defined in syntax.c.  */
 extern void init_syntax_once (void);
 extern void syms_of_syntax (void);
 
-/* Defined in fns.c */
+/* Defined in fns.c.  */
 extern Lisp_Object QCrehash_size, QCrehash_threshold;
 enum { NEXT_ALMOST_PRIME_LIMIT = 11 };
 EXFUN (Fidentity, 1) ATTRIBUTE_CONST;
@@ -2685,12 +2685,12 @@ extern Lisp_Object string_to_multibyte (Lisp_Object);
 extern Lisp_Object string_make_unibyte (Lisp_Object);
 extern void syms_of_fns (void);
 
-/* Defined in floatfns.c */
+/* Defined in floatfns.c.  */
 extern double extract_float (Lisp_Object);
 extern void syms_of_floatfns (void);
 extern Lisp_Object fmod_float (Lisp_Object x, Lisp_Object y);
 
-/* Defined in fringe.c */
+/* Defined in fringe.c.  */
 extern void syms_of_fringe (void);
 extern void init_fringe (void);
 #ifdef HAVE_WINDOW_SYSTEM
@@ -2698,13 +2698,13 @@ extern void mark_fringe_data (void);
 extern void init_fringe_once (void);
 #endif /* HAVE_WINDOW_SYSTEM */
 
-/* Defined in image.c */
+/* Defined in image.c.  */
 extern Lisp_Object QCascent, QCmargin, QCrelief;
 extern Lisp_Object QCconversion;
 extern int x_bitmap_mask (struct frame *, ptrdiff_t);
 extern void syms_of_image (void);
 
-/* Defined in insdel.c */
+/* Defined in insdel.c.  */
 extern Lisp_Object Qinhibit_modification_hooks;
 extern void move_gap (ptrdiff_t);
 extern void move_gap_both (ptrdiff_t, ptrdiff_t);
@@ -2750,7 +2750,7 @@ extern void replace_range_2 (ptrdiff_t, ptrdiff_t, ptrdiff_t, ptrdiff_t,
 			     const char *, ptrdiff_t, ptrdiff_t, bool);
 extern void syms_of_insdel (void);
 
-/* Defined in dispnew.c */
+/* Defined in dispnew.c.  */
 #if (defined PROFILING \
      && (defined __FreeBSD__ || defined GNU_LINUX || defined __MINGW32__))
 _Noreturn void __executable_start (void);
@@ -2761,7 +2761,7 @@ extern Lisp_Object sit_for (Lisp_Object, bool, int);
 extern void init_display (void);
 extern void syms_of_display (void);
 
-/* Defined in xdisp.c */
+/* Defined in xdisp.c.  */
 extern Lisp_Object Qinhibit_point_motion_hooks;
 extern Lisp_Object Qinhibit_redisplay, Qdisplay;
 extern Lisp_Object Qmenu_bar_update_hook;
@@ -2812,13 +2812,13 @@ extern Lisp_Object safe_eval (Lisp_Object);
 extern int pos_visible_p (struct window *, ptrdiff_t, int *,
                           int *, int *, int *, int *, int *);
 
-/* Defined in xsettings.c */
+/* Defined in xsettings.c.  */
 extern void syms_of_xsettings (void);
 
 /* Defined in vm-limit.c.  */
 extern void memory_warnings (void *, void (*warnfun) (const char *));
 
-/* Defined in alloc.c */
+/* Defined in alloc.c.  */
 extern void check_pure_size (void);
 extern void allocate_string_data (struct Lisp_String *, EMACS_INT, EMACS_INT);
 extern void reset_malloc_hooks (void);
@@ -2921,7 +2921,7 @@ extern void check_cons_list (void);
 #endif
 
 #ifdef REL_ALLOC
-/* Defined in ralloc.c */
+/* Defined in ralloc.c.  */
 extern void *r_alloc (void **, size_t);
 extern void r_alloc_free (void **);
 extern void *r_re_alloc (void **, size_t);
@@ -2929,7 +2929,7 @@ extern void r_alloc_reset_variable (void **, void **);
 extern void r_alloc_inhibit_buffer_relocation (int);
 #endif
 
-/* Defined in chartab.c */
+/* Defined in chartab.c.  */
 extern Lisp_Object copy_char_table (Lisp_Object);
 extern Lisp_Object char_table_ref (Lisp_Object, int);
 extern Lisp_Object char_table_ref_and_range (Lisp_Object, int,
@@ -2947,7 +2947,7 @@ extern void map_char_table_for_charset (void (*c_function) (Lisp_Object, Lisp_Ob
 extern Lisp_Object uniprop_table (Lisp_Object);
 extern void syms_of_chartab (void);
 
-/* Defined in print.c */
+/* Defined in print.c.  */
 extern Lisp_Object Vprin1_to_string_buffer;
 extern void debug_print (Lisp_Object) EXTERNALLY_VISIBLE;
 extern Lisp_Object Qstandard_output;
@@ -2964,7 +2964,7 @@ enum FLOAT_TO_STRING_BUFSIZE { FLOAT_TO_STRING_BUFSIZE = 350 };
 extern int float_to_string (char *, double);
 extern void syms_of_print (void);
 
-/* Defined in doprnt.c */
+/* Defined in doprnt.c.  */
 extern ptrdiff_t doprnt (char *, ptrdiff_t, const char *, const char *,
 			 va_list);
 extern ptrdiff_t esprintf (char *, char const *, ...)
@@ -3130,7 +3130,7 @@ extern Lisp_Object set_marker_restricted_both (Lisp_Object, Lisp_Object,
 extern Lisp_Object build_marker (struct buffer *, ptrdiff_t, ptrdiff_t);
 extern void syms_of_marker (void);
 
-/* Defined in fileio.c */
+/* Defined in fileio.c.  */
 
 extern Lisp_Object Qfile_error;
 extern Lisp_Object Qfile_exists_p;
@@ -3138,7 +3138,7 @@ extern Lisp_Object Qfile_directory_p;
 extern Lisp_Object Qinsert_file_contents;
 extern Lisp_Object Qfile_name_history;
 extern Lisp_Object expand_and_dir_to_file (Lisp_Object, Lisp_Object);
-EXFUN (Fread_file_name, 6);     /* not a normal DEFUN */
+EXFUN (Fread_file_name, 6);     /* Not a normal DEFUN.  */
 extern Lisp_Object close_file_unwind (Lisp_Object);
 extern Lisp_Object restore_point_unwind (Lisp_Object);
 extern _Noreturn void report_file_error (const char *, Lisp_Object);
@@ -3147,7 +3147,7 @@ extern void syms_of_fileio (void);
 extern Lisp_Object make_temp_name (Lisp_Object, bool);
 extern Lisp_Object Qdelete_file;
 
-/* Defined in search.c */
+/* Defined in search.c.  */
 extern void shrink_regexp_cache (void);
 extern void restore_search_regs (void);
 extern void record_unwind_save_match_data (void);
@@ -3322,14 +3322,14 @@ extern void init_callproc (void);
 extern void set_initial_environment (void);
 extern void syms_of_callproc (void);
 
-/* Defined in doc.c */
+/* Defined in doc.c.  */
 extern Lisp_Object Qfunction_documentation;
 extern Lisp_Object read_doc_string (Lisp_Object);
 extern Lisp_Object get_doc_string (Lisp_Object, bool, bool);
 extern void syms_of_doc (void);
 extern int read_bytecode_char (bool);
 
-/* Defined in bytecode.c */
+/* Defined in bytecode.c.  */
 extern Lisp_Object Qbytecode;
 extern void syms_of_bytecode (void);
 extern struct byte_stack *byte_stack_list;
@@ -3340,12 +3340,12 @@ extern void unmark_byte_stack (void);
 extern Lisp_Object exec_byte_code (Lisp_Object, Lisp_Object, Lisp_Object,
 				   Lisp_Object, ptrdiff_t, Lisp_Object *);
 
-/* Defined in macros.c */
+/* Defined in macros.c.  */
 extern Lisp_Object Qexecute_kbd_macro;
 extern void init_macros (void);
 extern void syms_of_macros (void);
 
-/* Defined in undo.c */
+/* Defined in undo.c.  */
 extern Lisp_Object Qapply;
 extern Lisp_Object Qinhibit_read_only;
 extern void truncate_undo_list (struct buffer *);
@@ -3358,7 +3358,7 @@ extern void record_property_change (ptrdiff_t, ptrdiff_t,
 				    Lisp_Object, Lisp_Object,
                                     Lisp_Object);
 extern void syms_of_undo (void);
-/* Defined in textprop.c */
+/* Defined in textprop.c.  */
 extern Lisp_Object Qfont, Qmouse_face;
 extern Lisp_Object Qinsert_in_front_hooks, Qinsert_behind_hooks;
 extern Lisp_Object Qfront_sticky, Qrear_nonsticky;
@@ -3366,19 +3366,19 @@ extern Lisp_Object Qminibuffer_prompt;
 
 extern void report_interval_modification (Lisp_Object, Lisp_Object);
 
-/* Defined in menu.c */
+/* Defined in menu.c.  */
 extern void syms_of_menu (void);
 
-/* Defined in xmenu.c */
+/* Defined in xmenu.c.  */
 extern void syms_of_xmenu (void);
 
-/* Defined in termchar.h */
+/* Defined in termchar.h.  */
 struct tty_display_info;
 
-/* Defined in termhooks.h */
+/* Defined in termhooks.h.  */
 struct terminal;
 
-/* Defined in sysdep.c */
+/* Defined in sysdep.c.  */
 #ifndef HAVE_GET_CURRENT_DIR_NAME
 extern char *get_current_dir_name (void);
 #endif
@@ -3415,45 +3415,45 @@ extern void unlock_file (Lisp_Object);
 extern void unlock_buffer (struct buffer *);
 extern void syms_of_filelock (void);
 
-/* Defined in sound.c */
+/* Defined in sound.c.  */
 extern void syms_of_sound (void);
 
-/* Defined in category.c */
+/* Defined in category.c.  */
 extern void init_category_once (void);
 extern Lisp_Object char_category_set (int);
 extern void syms_of_category (void);
 
-/* Defined in ccl.c */
+/* Defined in ccl.c.  */
 extern void syms_of_ccl (void);
 
-/* Defined in dired.c */
+/* Defined in dired.c.  */
 extern void syms_of_dired (void);
 extern Lisp_Object directory_files_internal (Lisp_Object, Lisp_Object,
                                              Lisp_Object, Lisp_Object,
                                              bool, Lisp_Object);
 
-/* Defined in term.c */
+/* Defined in term.c.  */
 extern int *char_ins_del_vector;
 extern void syms_of_term (void);
 extern _Noreturn void fatal (const char *msgid, ...)
   ATTRIBUTE_FORMAT_PRINTF (1, 2);
 
-/* Defined in terminal.c */
+/* Defined in terminal.c.  */
 extern void syms_of_terminal (void);
 
-/* Defined in font.c */
+/* Defined in font.c.  */
 extern void syms_of_font (void);
 extern void init_font (void);
 
 #ifdef HAVE_WINDOW_SYSTEM
-/* Defined in fontset.c */
+/* Defined in fontset.c.  */
 extern void syms_of_fontset (void);
 
-/* Defined in xfns.c, w32fns.c, or macfns.c */
+/* Defined in xfns.c, w32fns.c, or macfns.c.  */
 extern Lisp_Object Qfont_param;
 #endif
 
-/* Defined in xfaces.c */
+/* Defined in xfaces.c.  */
 extern Lisp_Object Qdefault, Qtool_bar, Qfringe;
 extern Lisp_Object Qheader_line, Qscroll_bar, Qcursor;
 extern Lisp_Object Qmode_line_inactive;
@@ -3469,26 +3469,26 @@ extern Lisp_Object Vface_alternative_font_registry_alist;
 extern void syms_of_xfaces (void);
 
 #ifdef HAVE_X_WINDOWS
-/* Defined in xfns.c */
+/* Defined in xfns.c.  */
 extern void syms_of_xfns (void);
 
-/* Defined in xsmfns.c */
+/* Defined in xsmfns.c.  */
 extern void syms_of_xsmfns (void);
 
-/* Defined in xselect.c */
+/* Defined in xselect.c.  */
 extern void syms_of_xselect (void);
 
-/* Defined in xterm.c */
+/* Defined in xterm.c.  */
 extern void syms_of_xterm (void);
 #endif /* HAVE_X_WINDOWS */
 
 #ifdef HAVE_WINDOW_SYSTEM
-/* Defined in xterm.c, nsterm.m, w32term.c */
+/* Defined in xterm.c, nsterm.m, w32term.c.  */
 extern char *x_get_keysym_name (int);
 #endif /* HAVE_WINDOW_SYSTEM */
 
 #ifdef HAVE_LIBXML2
-/* Defined in xml.c */
+/* Defined in xml.c.  */
 extern void syms_of_xml (void);
 extern void xml_cleanup_parser (void);
 #endif
@@ -3499,12 +3499,12 @@ extern int have_menus_p (void);
 #endif
 
 #ifdef HAVE_DBUS
-/* Defined in dbusbind.c */
+/* Defined in dbusbind.c.  */
 void syms_of_dbusbind (void);
 #endif
 
 #ifdef DOS_NT
-/* Defined in msdos.c, w32.c */
+/* Defined in msdos.c, w32.c.  */
 extern char *emacs_root_dir (void);
 #endif /* DOS_NT */
 
@@ -3512,7 +3512,7 @@ extern char *emacs_root_dir (void);
    Used during startup to detect startup of dumped Emacs.  */
 extern bool initialized;
 
-extern int immediate_quit;	    /* Nonzero means ^G can quit instantly */
+extern int immediate_quit;	    /* Nonzero means ^G can quit instantly.  */
 
 extern void *xmalloc (size_t);
 extern void *xzalloc (size_t);
@@ -3545,7 +3545,7 @@ extern void init_system_name (void);
 /* SAFE_ALLOCA normally allocates memory on the stack, but if size is
    larger than MAX_ALLOCA, use xmalloc to avoid overflowing the stack.  */
 
-enum MAX_ALLOCA { MAX_ALLOCA = 16*1024 };
+enum MAX_ALLOCA { MAX_ALLOCA = 16 * 1024 };
 
 extern Lisp_Object safe_alloca_unwind (Lisp_Object);
 extern void *record_xmalloc (size_t);
