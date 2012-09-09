@@ -2951,20 +2951,16 @@ UNSAFE-VARS is the list of those that aren't marked as safe or risky.
 RISKY-VARS is the list of those that are marked as risky.
 If these settings come from directory-local variables, then
 DIR-NAME is the name of the associated directory.  Otherwise it is nil."
-  (if noninteractive
-      nil
-    (save-window-excursion
-      (let* ((name (or dir-name
-		       (if buffer-file-name
-			   (file-name-nondirectory buffer-file-name)
-			 (concat "buffer " (buffer-name)))))
-	     (offer-save (and (eq enable-local-variables t)
-			      unsafe-vars))
-	     (exit-chars
-	      (if offer-save '(?! ?y ?n ?\s ?\C-g) '(?y ?n ?\s ?\C-g)))
-	     (buf (pop-to-buffer "*Local Variables*"))
-	     prompt char)
-	(set (make-local-variable 'cursor-type) nil)
+  (unless noninteractive
+    (let ((name (cond (dir-name)
+		      (buffer-file-name
+		       (file-name-nondirectory buffer-file-name))
+		      ((concat "buffer " (buffer-name)))))
+	  (offer-save (and (eq enable-local-variables t)
+			   unsafe-vars))
+	  (buf (get-buffer-create "*Local Variables*")))
+      ;; Set up the contents of the *Local Variables* buffer.
+      (with-current-buffer buf
 	(erase-buffer)
 	(cond
 	 (unsafe-vars
@@ -2999,25 +2995,35 @@ n  -- to ignore the local variables list.")
 	  (let ((print-escape-newlines t))
 	    (prin1 (cdr elt) buf))
 	  (insert "\n"))
-	(setq prompt
-	      (format "Please type %s%s: "
-		      (if offer-save "y, n, or !" "y or n")
-		      (if (< (line-number-at-pos) (window-body-height))
-			  ""
-			(push ?\C-v exit-chars)
-			", or C-v to scroll")))
-	(goto-char (point-min))
-	(while (null char)
-	  (setq char (read-char-choice prompt exit-chars t))
-	  (when (eq char ?\C-v)
-	    (condition-case nil
-		(scroll-up)
-	      (error (goto-char (point-min))))
-	    (setq char nil)))
-	(kill-buffer buf)
-	(when (and offer-save (= char ?!) unsafe-vars)
-	  (customize-push-and-save 'safe-local-variable-values unsafe-vars))
-	(memq char '(?! ?\s ?y))))))
+	(set (make-local-variable 'cursor-type) nil)
+	(set-buffer-modified-p nil)
+	(goto-char (point-min)))
+
+      ;; Display the buffer and read a choice.
+      (save-window-excursion
+	(pop-to-buffer buf)
+	(let* ((exit-chars '(?y ?n ?\s ?\C-g ?\C-v))
+	       (prompt (format "Please type %s%s: "
+			       (if offer-save "y, n, or !" "y or n")
+			       (if (< (line-number-at-pos (point-max))
+				      (window-body-height))
+				   ""
+				 (push ?\C-v exit-chars)
+				 ", or C-v to scroll")))
+	       char)
+	  (if offer-save (push ?! exit-chars))
+	  (while (null char)
+	    (setq char (read-char-choice prompt exit-chars t))
+	    (when (eq char ?\C-v)
+	      (condition-case nil
+		  (scroll-up)
+		(error (goto-char (point-min))
+		       (recenter 1)))
+	      (setq char nil)))
+	  (when (and offer-save (= char ?!) unsafe-vars)
+	    (customize-push-and-save 'safe-local-variable-values unsafe-vars))
+	  (prog1 (memq char '(?! ?\s ?y))
+	    (quit-window t)))))))
 
 (defun hack-local-variables-prop-line (&optional mode-only)
   "Return local variables specified in the -*- line.
