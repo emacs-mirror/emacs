@@ -1,5 +1,9 @@
 2012-09-09  Eli Zaretskii  <eliz@gnu.org>
 
+	* fringe.c (draw_fringe_bitmap_1): Don't reduce the width of the
+	left fringe if the window has a left margin.  This avoids leaving
+	traces of the cursor because its leftmost pixel is not drawn over.
+
 	* dispnew.c (update_window_line): When the left margin area of a
 	screen line is updated, set the redraw_fringe_bitmaps_p flag of
 	that screen line.  (Bug#12277)
