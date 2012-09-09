@@ -3,7 +3,7 @@
 # $Id$
 # Copyright (C) 2012 Ravenbrook Limited.  See end of file for license.
 #
-# YOU DON"T NEED AUTOCONF TO BUILD THE MPS
+# YOU DON'T NEED AUTOCONF TO BUILD THE MPS
 # This is just here for people who want or expect a configure script.
 # See [Building the Memory Pool System](manual/build.txt) for how best
 # to build and integrate the MPS.
@@ -14,7 +14,12 @@
 #
 
 AC_PREREQ([2.50])
-AC_INIT([Memory Pool System], [master], [mps-questions@ravenbrook.com])
+# http://www.gnu.org/savannah-checkouts/gnu/autoconf/manual/autoconf-2.69/html_node/Initializing-configure.html#Initializing-configure
+AC_INIT([Memory Pool System Kit],
+        [master],
+        [mps-questions@ravenbrook.com],
+        [mps-kit],
+        [http://www.ravenbrook.com/project/mps/])
 AC_CONFIG_AUX_DIR(build-aux)
 AC_CONFIG_SRCDIR([code/mps.c])
 
