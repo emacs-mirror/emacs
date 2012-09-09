@@ -1,3 +1,10 @@
+2012-09-09  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-engine.el (c-state-cache-init): Initialise
+	c-state-semi-nonlit-pos-cache\(-limit\)? properly.
+	(c-record-parse-state-state): record
+	c-state-semi-nonlit-pos-cache\(-limit\)?.
+
 2012-09-09  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* register.el (register-separator): Rename from
