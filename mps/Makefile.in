@@ -3,7 +3,7 @@
 # $Id$
 # Copyright (C) 2012 Ravenbrook Limited.  See end of file for license.
 #
-# YOU DON"T NEED AUTOCONF TO BUILD THE MPS
+# YOU DON'T NEED AUTOCONF TO BUILD THE MPS
 # This is just here for people who want or expect a configure script.
 # See [Building the Memory Pool System](manual/build.txt) for how best
 # to build and integrate the MPS.
@@ -12,28 +12,31 @@
 MPS_TARGET_PF=@MPS_TARGET_PF@
 MPS_TARGET_NAME=@MPS_TARGET_NAME@
 
-BUILD_TARGET=build-via-make
-CLEAN_TARGET=clean-make-build
+BUILD_TARGET=@BUILD_TARGET@
+CLEAN_TARGET=@CLEAN_TARGET@
 
-all: $(BUILD_TARGET)
+all: @BUILD_TARGET@
 	$(BUILD)
 
 build-via-make:
 	$(MAKE) -C code -f $(MPS_TARGET_NAME).gmk
 
 clean-make-build:
-	rm -r code/$(MPS_TARGET_NAME)/
+	rm -rf code/$(MPS_TARGET_NAME)/
 
 build-via-xcode:
 	xcodebuild -project code/mps.xcodeproj
 
 clean-xcode-build:
-	rm -r code/build/
+	rm -rf code/build/
 
 Makefile: Makefile.in config.status
 	./config.status Makefile
 
-clean: $(CLEAN_TARGET)
+clean: @CLEAN_TARGET@
+
+configure: configure.ac
+	autoreconf -vif
 
 distclean: clean
-	rm -rf autom4te.cache/ config.log config.status configure Makefile
+	rm -rf autom4te.cache/ config.log config.status Makefile
