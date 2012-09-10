@@ -8887,38 +8887,6 @@ $as_echo "#define HAVE_SPEED_T 1" >>confdefs.h
 
 fi
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for struct exception" >&5
-$as_echo_n "checking for struct exception... " >&6; }
-if test "${emacs_cv_struct_exception+set}" = set; then :
-  $as_echo_n "(cached) " >&6
-else
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-#include <math.h>
-int
-main ()
-{
-static struct exception x; x.arg1 = x.arg2 = x.retval; x.name = ""; x.type = 1;
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_compile "$LINENO"; then :
-  emacs_cv_struct_exception=yes
-else
-  emacs_cv_struct_exception=no
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $emacs_cv_struct_exception" >&5
-$as_echo "$emacs_cv_struct_exception" >&6; }
-HAVE_EXCEPTION=$emacs_cv_struct_exception
-if test $emacs_cv_struct_exception != yes || test $opsys = darwin; then
-
-$as_echo "#define NO_MATHERR 1" >>confdefs.h
-
-fi
-
 
 
 
@@ -13209,7 +13177,7 @@ esac
 
 for ac_func in gethostname \
 closedir getrusage get_current_dir_name \
-lrand48 logb frexp fmod cbrt setsid \
+lrand48 logb cbrt setsid \
 fpathconf select euidaccess getpagesize setlocale \
 utimes getrlimit setrlimit setpgid getcwd shutdown getaddrinfo \
 __fpending strsignal setitimer \
@@ -14856,10 +14824,6 @@ $as_echo "#define AMPERSAND_FULL_NAME 1" >>confdefs.h
 
 
 $as_echo "#define CLASH_DETECTION 1" >>confdefs.h
-
-
-
-
 
 
 ## Note: PTYs are broken on darwin <6.  Use at your own risk.
