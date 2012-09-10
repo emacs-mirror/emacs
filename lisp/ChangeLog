@@ -1,3 +1,7 @@
+2012-09-10  Glenn Morris  <rgm@gnu.org>
+
+	* mail/emacsbug.el (report-emacs-bug): Trap load-path-shadows errors.
+
 2012-09-08  Alan Mackenzie  <acm@muc.de>
 
 	AWK Mode: make auto-newline work when there's "==" in the pattern.
