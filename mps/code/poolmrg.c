@@ -87,22 +87,22 @@ static Ref MRGRefPartRef(Arena arena, RefPart refPart)
 
   AVER(refPart != NULL);
 
-  ref = ArenaPeek(arena, (Addr)&refPart->ref);
+  ref = ArenaPeek(arena, &refPart->ref);
   return ref;
 }
 
-static Addr MRGRefPartRefAddr(RefPart refPart)
+static Ref *MRGRefPartRefAddr(RefPart refPart)
 {
   AVER(refPart != NULL);
 
-  return (Addr)&refPart->ref;
+  return &refPart->ref;
 }
 
 static void MRGRefPartSetRef(Arena arena, RefPart refPart, Ref ref)
 {
   AVER(refPart != NULL);
 
-  ArenaPoke(arena, (Addr)&refPart->ref, ref);
+  ArenaPoke(arena, &refPart->ref, ref);
 }
 
 
@@ -431,7 +431,7 @@ static void MRGMessageDelete(Message message)
 static void MRGMessageFinalizationRef(Ref *refReturn,
                                       Arena arena, Message message)
 {
-  Addr refAddr;
+  Ref *refp;
   Link link;
   Ref ref;
   RefPart refPart;
@@ -446,10 +446,10 @@ static void MRGMessageFinalizationRef(Ref *refReturn,
   AVER(link->state == MRGGuardianFINAL);
   refPart = MRGRefPartOfLink(link, arena);
 
-  refAddr = MRGRefPartRefAddr(refPart);
+  refp = MRGRefPartRefAddr(refPart);
 
   /* ensure that the reference is not (white and flipped) */
-  ref = (Ref)ArenaRead(arena, refAddr);
+  ref = ArenaRead(arena, refp);
 
   AVER(ref != 0);
   *refReturn = ref;

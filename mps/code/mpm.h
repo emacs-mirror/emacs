@@ -563,13 +563,13 @@ extern Res ControlDescribe(Arena arena, mps_lib_FILE *stream);
  * may not be in arena managed memory.  */
 
 /* Peek reads a value */
-extern Ref ArenaPeek(Arena arena, Addr addr);
-/* Same, but addr must be in seg */
-extern Ref ArenaPeekSeg(Arena arena, Seg seg, Addr addr);
+extern Ref ArenaPeek(Arena arena, Ref *p);
+/* Same, but p must be in seg */
+extern Ref ArenaPeekSeg(Arena arena, Seg seg, Ref *p);
 /* Poke stores a value */
-extern void ArenaPoke(Arena arena, Addr addr, Ref ref);
-/* Same, but addr must be in seg */
-extern void ArenaPokeSeg(Arena arena, Seg seg, Addr addr, Ref ref);
+extern void ArenaPoke(Arena arena, Ref *p, Ref ref);
+/* Same, but p must be in seg */
+extern void ArenaPokeSeg(Arena arena, Seg seg, Ref *p, Ref ref);
 
 
 /* Read/Write
@@ -581,7 +581,7 @@ extern void ArenaPokeSeg(Arena arena, Seg seg, Addr addr, Ref ref);
  *
  * Only Read provided right now.  */
 
-Ref ArenaRead(Arena arena, Addr addr);
+Ref ArenaRead(Arena arena, Ref *p);
 
 
 extern Size ArenaReserved(Arena arena);

@@ -847,70 +847,64 @@ Res ArenaDefinalize(Arena arena, Ref obj)
 
 /* Peek / Poke */
 
-Ref ArenaPeek(Arena arena, Addr addr)
+Ref ArenaPeek(Arena arena, Ref *p)
 {
   Seg seg;
-  Bool b;
+  Ref ref;
 
   AVERT(Arena, arena);
 
-  b = SegOfAddr(&seg, arena, addr);
-  if (b) {
-    return ArenaPeekSeg(arena, seg, addr);
-  } else {
-    Ref ref;
-    ref = *(Ref *)addr;
-    return ref;
-  }
+  if (SegOfAddr(&seg, arena, (Addr)p))
+    ref = ArenaPeekSeg(arena, seg, p);
+  else
+    ref = *p;
+  return ref;
 }
 
-Ref ArenaPeekSeg(Arena arena, Seg seg, Addr addr)
+Ref ArenaPeekSeg(Arena arena, Seg seg, Ref *p)
 {
   Ref ref;
 
   AVERT(Arena, arena);
   AVERT(Seg, seg);
 
-  AVER(SegBase(seg) <= addr);
-  AVER(addr < SegLimit(seg));
-  /* Consider checking addr's alignment using seg->pool->alignment */
+  AVER(SegBase(seg) <= (Addr)p);
+  AVER((Addr)p < SegLimit(seg));
+  /* TODO: Consider checking addr's alignment using seg->pool->alignment */
 
   ShieldExpose(arena, seg);
-  ref = *(Ref *)addr;
+  ref = *p;
   ShieldCover(arena, seg);
   return ref;
 }
 
-void ArenaPoke(Arena arena, Addr addr, Ref ref)
+void ArenaPoke(Arena arena, Ref *p, Ref ref)
 {
   Seg seg;
-  Bool b;
 
   AVERT(Arena, arena);
   /* Can't check addr as it is arbitrary */
   /* Can't check ref as it is arbitrary */
 
-  b = SegOfAddr(&seg, arena, addr);
-  if (b) {
-    ArenaPokeSeg(arena, seg, addr, ref);
-  } else {
-    *(Ref *)addr = ref;
-  }
+  if (SegOfAddr(&seg, arena, (Addr)p))
+    ArenaPokeSeg(arena, seg, p, ref);
+  else
+    *p = ref;
 }
 
-void ArenaPokeSeg(Arena arena, Seg seg, Addr addr, Ref ref)
+void ArenaPokeSeg(Arena arena, Seg seg, Ref *p, Ref ref)
 {
   RefSet summary;
 
   AVERT(Arena, arena);
   AVERT(Seg, seg);
-  AVER(SegBase(seg) <= addr);
-  AVER(addr < SegLimit(seg));
-  /* Consider checking addr's alignment using seg->pool->alignment */
+  AVER(SegBase(seg) <= (Addr)p);
+  AVER((Addr)p < SegLimit(seg));
+  /* TODO: Consider checking addr's alignment using seg->pool->alignment */
   /* ref is arbitrary and can't be checked */
 
   ShieldExpose(arena, seg);
-  *(Ref *)addr = ref;
+  *p = ref;
   summary = SegSummary(seg);
   summary = RefSetAdd(arena, summary, (Addr)ref);
   SegSetSummary(seg, summary);
@@ -923,14 +917,14 @@ void ArenaPokeSeg(Arena arena, Seg seg, Addr addr, Ref ref)
  * This forms part of a software barrier.  It provides fine-grain access
  * to single references in segments.  */
 
-Ref ArenaRead(Arena arena, Addr addr)
+Ref ArenaRead(Arena arena, Ref *p)
 {
   Bool b;
   Seg seg = NULL;       /* suppress "may be used uninitialized" */
 
   AVERT(Arena, arena);
 
-  b = SegOfAddr(&seg, arena, addr);
+  b = SegOfAddr(&seg, arena, (Addr)p);
   AVER(b == TRUE);
 
   /* .read.flipped: We AVER that the reference that we are reading */
@@ -944,10 +938,9 @@ Ref ArenaRead(Arena arena, Addr addr)
   /* .read.conservative: @@@@ Should scan at rank phase-of-trace, */
   /* not RankEXACT which is conservative.  See also */
   /* <code/trace.c#scan.conservative> for a similar nasty. */
-  TraceScanSingleRef(arena->flippedTraces, RankEXACT, arena,
-                     seg, (Ref *)addr);
+  TraceScanSingleRef(arena->flippedTraces, RankEXACT, arena, seg, p);
   /* get the possibly fixed reference */
-  return ArenaPeekSeg(arena, seg, addr);
+  return ArenaPeekSeg(arena, seg, p);
 }
 
 
