@@ -554,16 +554,16 @@ clip_to_bounds (ptrdiff_t lower, EMACS_INT num, ptrdiff_t upper)
 
 /* Construct a Lisp_Object from a value or address.  */
 
-#define XSETINT(a, b) (a) = make_number (b)
-#define XSETCONS(a, b) (a) = make_lisp_ptr (b, Lisp_Cons)
-#define XSETVECTOR(a, b) (a) = make_lisp_ptr (b, Lisp_Vectorlike)
-#define XSETSTRING(a, b) (a) = make_lisp_ptr (b, Lisp_String)
-#define XSETSYMBOL(a, b) (a) = make_lisp_ptr (b, Lisp_Symbol)
-#define XSETFLOAT(a, b) (a) = make_lisp_ptr (b, Lisp_Float)
+#define XSETINT(a, b) ((a) = make_number (b))
+#define XSETCONS(a, b) ((a) = make_lisp_ptr (b, Lisp_Cons))
+#define XSETVECTOR(a, b) ((a) = make_lisp_ptr (b, Lisp_Vectorlike))
+#define XSETSTRING(a, b) ((a) = make_lisp_ptr (b, Lisp_String))
+#define XSETSYMBOL(a, b) ((a) = make_lisp_ptr (b, Lisp_Symbol))
+#define XSETFLOAT(a, b) ((a) = make_lisp_ptr (b, Lisp_Float))
 
 /* Misc types.  */
 
-#define XSETMISC(a, b) (a) = make_lisp_ptr (b, Lisp_Misc)
+#define XSETMISC(a, b) ((a) = make_lisp_ptr (b, Lisp_Misc))
 #define XSETMARKER(a, b) (XSETMISC (a, b), XMISCTYPE (a) = Lisp_Misc_Marker)
 
 /* Pseudovector types.  */
