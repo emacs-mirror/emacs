@@ -57,9 +57,10 @@ The MPS arranges that objects which will probably die at the same time
 are in the same zones.
 
 The MPS allocates in "segments".  Each segment is of the order of one
-"page" of memory (usually 4KiB or 8KiB) but may be larger if there are
-large objects inside.  The MPS maintains a "summary" of all the the
-pointers in a segment from previous scans.
+"tract" of memory (generally the same as the operating system page
+size, usually 4KiB or 8KiB) but may be larger if there are large
+objects inside.  The MPS maintains a "summary" of the zones pointed to
+by all the pointers in a segment from previous scans.
 
 So, once the MPS has decided what to condemn, it can quickly eliminate
 all segments which definitely do not point to anything in those zones. 
@@ -82,8 +83,8 @@ must be preserved.  The pool class fix method must quickly distinguish
 between them.
 
 Furthermore, every object allocated is likely to be preserved at least
-once in its lifetime, so even the code that preserves an object needs to
-be highly efficient.
+once in its lifetime (except in some unusual applications), so even
+the code that preserves an object needs to be highly efficient.
 
 
 4. Where to find the critical path
@@ -110,12 +111,14 @@ Very briefly, the critical path consists of five stages:
      
   5. Preserving the object, which might entail
   
-     - [marking][] it to prevent it being recycled
+     - [marking][] it to prevent it being recycled; and/or
   
-     - [copying][] it and updating the original pointer
-     
+     - [copying][] it and updating the original pointer (or just
+       updating the pointer, if the object has previously been
+       copied); and/or
+
      - adding it to a queue of objects to be scanned later, if it
-       contains pointers
+       contains pointers.
 
      Found in or near the pool class fix functions.
 
@@ -264,16 +267,21 @@ can't be changed, so even a [copying] pool class can't move an object.
 On the other hand, if the pointer is weak (`RankWEAK`) then the pool fix
 method shouldn't preserve the object at all, even if it's condemned.
 
-The exact details of the logic that the pool fix must implement in order
-to co-operate with the MPM and other pools are beyond the scope of this
-document, which is about the critical path.  It being the critical path,
-it's important that whatever the pool fix does is simple and fast and
-returns to scanning as soon as possible.
+The exact details of the logic that the pool fix must implement in
+order to co-operate with the MPM and other pools are beyond the scope
+of this document, which is about the critical path.  Since it is on
+the critical path, it's important that whatever the pool fix does is
+simple and fast and returns to scanning as soon as possible.
 
-The first step, though, it to further filter out pointers which aren't
+The first step, though, is to further filter out pointers which aren't
 to objects, if that's its policy.  Then, it may preserve the object,
 according to its policy, and possibly ensure that the object gets
 scanned at some point in the future, if it contains more pointers.
+
+If the object is moved to preserve it (for instance, if the pool class
+implements a copying GC), or was already moved when fixing a previous
+reference to it, the reference being fixed must be updated (this is
+the origin of the term "fix").
 
 As a simple example, `LOFix` is the pool fix method for the Leaf Only
 pool class.  It implements a [marking] garbage collector, and does not
