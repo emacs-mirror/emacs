@@ -138,7 +138,7 @@ static Bool DecodeSimpleMov(unsigned int *regnumReturn,
   if(1 == mod) {
     /* Only know about single byte displacements, .assume.want */
     Word base;
-    Word index;
+    Word idx;           /* can't shadow index(3) */
     Word disp;
 
     if(4 == m) {
@@ -153,17 +153,17 @@ static Bool DecodeSimpleMov(unsigned int *regnumReturn,
       }
       disp = SignedInsElt(insvec, 3);
       base = RegValue(context, b);
-      index = RegValue(context, i) << s;
+      idx = RegValue(context, i) << s;
       *inslenReturn = 4;
     } else {
       /* MOV with reg1 & [reg2+byte] parameters */
       disp = SignedInsElt(insvec, 2);
       base = RegValue(context, m);
-      index = 0;
+      idx = 0;
       *inslenReturn = 3;
     }
     *regnumReturn = r;
-    *memReturn = (MRef)(base + index + disp);  /* .assume.i3 */
+    *memReturn = (MRef)(base + idx + disp);  /* .assume.i3 */
     return TRUE;
   }
 
