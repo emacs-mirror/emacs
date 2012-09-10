@@ -273,7 +273,7 @@ mkdir ${tempdir}
 ### README while the rest of the tar file is still unpacking.  Whoopee.
 echo "Making links to top-level files"
 ln INSTALL README BUGS ${tempdir}
-ln ChangeLog Makefile.in configure configure.ac ${tempdir}
+ln ChangeLog Makefile.in autogen.sh configure configure.ac ${tempdir}
 ln config.bat make-dist .dir-locals.el ${tempdir}
 ln aclocal.m4 ${tempdir}
 

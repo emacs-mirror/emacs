@@ -1,3 +1,19 @@
+2012-09-10  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Improve robustness of 'make bootstrap' (Bug#12376).
+	Run autogen.sh after bootstrap-clean, to avoid bzr pull issues.
+	* INSTALL, README: Document autogen.sh.
+	* Makefile.in (Makefile): Mark it as precious, since it's updated
+	atomically.
+	(MAKE_CONFIG_STATUS): New macro.
+	(config.status, bootstrap): Use it.  This causes 'make bootstrap'
+	to run config.status with the --recheck option, which is more
+	appropriate for a bootstrap.
+	(bootstrap): Run autogen.sh right after cleaning.  Don't worry
+	about failures due to missing tools.
+	* autogen.sh: Exit with status 101 when failing due to missing tools.
+	* make-dist: Distribute autogen.sh.
+
 2012-09-09  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Assume C89 or later for math functions (Bug#12381).

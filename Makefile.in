@@ -360,15 +360,17 @@ $(MAKEFILE_NAME): config.status $(srcdir)/src/config.in \
           $(srcdir)/Makefile.in $(SUBDIR_MAKEFILES_IN)
 	./config.status
 
-# Don't erase config.status if make is interrupted while refreshing it.
-.PRECIOUS: config.status
+# Don't erase these files if make is interrupted while refreshing them.
+.PRECIOUS: Makefile config.status
 
-config.status: ${srcdir}/configure ${srcdir}/lisp/version.el
+MAKE_CONFIG_STATUS = \
 	if [ -x ./config.status ]; then	\
 	    ./config.status --recheck;	\
 	else				\
 	    ./configure $(CONFIGURE_FLAGS); \
 	fi
+config.status: ${srcdir}/configure ${srcdir}/lisp/version.el
+	$(MAKE_CONFIG_STATUS)
 
 AUTOCONF_INPUTS = $(srcdir)/configure.ac $(srcdir)/aclocal.m4
 
@@ -383,6 +385,10 @@ AUTOMAKE_INPUTS = $(srcdir)/aclocal.m4 $(srcdir)/lib/Makefile.am \
   $(srcdir)/lib/gnulib.mk
 $(srcdir)/lib/Makefile.in: $(AUTOMAKE_INPUTS)
 	cd $(srcdir) && automake --gnu -a -c lib/Makefile
+
+# Regenerate files that this makefile would have made, if this makefile
+# had been built by Automake.  The name 'am--refresh' is for
+# compatibility with subsidiary Automake-generated makefiles.
 am--refresh: $(srcdir)/aclocal.m4 $(srcdir)/configure $(srcdir)/src/config.in
 .PHONY: am--refresh
 
@@ -776,8 +782,6 @@ bootstrap-clean: FRC
 	(cd lisp;     $(MAKE) $(MFLAGS) bootstrap-clean)
 	[ ! -f config.log ] || mv -f config.log config.log~
 	${top_bootclean}
-## configure; make bootstrap replaces the real config.log from configure
-## with the truncated one from config.status.  The former is more useful.
 
 ### `maintainer-clean'
 ###      Delete everything from the current directory that can be
@@ -883,14 +887,14 @@ dvi:
 
 .PHONY: bootstrap
 
-## configure; make bootstrap replaces the real config.log from configure
-## with the truncated one from config.status.  The former is more useful.
+# Bootstrapping does the following:
+#  * Remove files to start from a clean slate.
+#  * Run autogen.sh, but don't worry about exit status 101 (missing tools).
+#  * Build Makefile, to build the build procedure itself.
+#  * Do the actual build.
 bootstrap: bootstrap-clean FRC
-	if [ -x ./config.status ]; then           \
-	    ./config.status;                      \
-	else                                      \
-	    ./configure $(CONFIGURE_FLAGS);       \
-	fi
+	cd $(srcdir) && { ./autogen.sh || test $$? -eq 101; }
+	$(MAKE_CONFIG_STATUS)
 	$(MAKE) $(MFLAGS) info all
 
 .PHONY: check-declare
