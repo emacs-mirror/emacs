@@ -1,3 +1,7 @@
+2012-09-10  Juanma Barranquero  <lekktu@gmail.com>
+
+	* custom.el (custom-theme-load-confirm): Remove unneeded assignment.
+
 2012-09-10  Dan Nicolaescu  <dann@gnu.org>
 
 	* vc/diff-mode.el (diff-mode-menu): Bind

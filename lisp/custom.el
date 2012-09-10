@@ -1227,7 +1227,7 @@ query also about adding HASH to `custom-safe-themes'."
     (save-window-excursion
       (rename-buffer "*Custom Theme*" t)
       (emacs-lisp-mode)
-      (setq window (pop-to-buffer (current-buffer)))
+      (pop-to-buffer (current-buffer))
       (goto-char (point-min))
       (prog1 (when (y-or-n-p "Loading a theme can run Lisp code.  Really load? ")
 	       ;; Offer to save to `custom-safe-themes'.
