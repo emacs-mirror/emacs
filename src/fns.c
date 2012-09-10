@@ -1527,11 +1527,14 @@ The value is actually the first element of LIST whose cdr equals KEY.  */)
 }
 
 DEFUN ("delq", Fdelq, Sdelq, 2, 2, 0,
-       doc: /* Delete by side effect any occurrences of ELT as a member of LIST.
-The modified LIST is returned.  Comparison is done with `eq'.
-If the first member of LIST is ELT, there is no way to remove it by side effect;
-therefore, write `(setq foo (delq element foo))'
-to be sure of changing the value of `foo'.  */)
+       doc: /* Delete members of LIST which are `eq' to ELT, and return the result.
+More precisely, this function skips any members `eq' to ELT at the
+front of LIST, then removes members `eq' to ELT from the remaining
+sublist by modifying its list structure, then returns the resulting
+list.
+
+Write `(setq foo (delq element foo))' to be sure of correctly changing
+the value of a list `foo'.  */)
   (register Lisp_Object elt, Lisp_Object list)
 {
   register Lisp_Object tail, prev;
@@ -1559,13 +1562,19 @@ to be sure of changing the value of `foo'.  */)
 }
 
 DEFUN ("delete", Fdelete, Sdelete, 2, 2, 0,
-       doc: /* Delete by side effect any occurrences of ELT as a member of SEQ.
-SEQ must be a list, a vector, or a string.
-The modified SEQ is returned.  Comparison is done with `equal'.
-If SEQ is not a list, or the first member of SEQ is ELT, deleting it
-is not a side effect; it is simply using a different sequence.
-Therefore, write `(setq foo (delete element foo))'
-to be sure of changing the value of `foo'.  */)
+       doc: /* Delete members of SEQ which are `equal' to ELT, and return the result.
+SEQ must be a sequence (i.e. a list, a vector, or a string).
+The return value is a sequence of the same type.
+
+If SEQ is a list, this behaves like `delq', except that it compares
+with `equal' instead of `eq'.  In particular, it may remove elements
+by altering the list structure.
+
+If SEQ is not a list, deletion is never performed destructively;
+instead this function creates and returns a new vector or string.
+
+Write `(setq foo (delete element foo))' to be sure of correctly
+changing the value of a sequence `foo'.  */)
   (Lisp_Object elt, Lisp_Object seq)
 {
   if (VECTORP (seq))
