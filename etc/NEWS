@@ -355,6 +355,9 @@ The variable `diff-use-changed-face' defines whether to use
 the face `diff-changed', or `diff-removed' and `diff-added'
 to highlight changes in context diffs.
 
+*** The new command `diff-remove-trailing-whitespace' fixes trailing
+whitespace problems introduced by the diff.
+
 ** Ediff now uses the same color scheme as Diff mode
 on high color displays.
 
