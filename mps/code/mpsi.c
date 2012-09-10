@@ -113,35 +113,6 @@ static Bool mpsi_check(void)
   /* out to external. */
   CHECKL(COMPATTYPE(mps_clock_t, Clock));
 
-  /* Check sac_s/ExternalSACStruct compatibility by hand */
-  /* See <code/mps.h#sac> and <code/sac.h#sac>. */
-  CHECKL(sizeof(mps_sac_s) == sizeof(ExternalSACStruct));
-  CHECKL(COMPATFIELD(mps_sac_s, mps_middle, ExternalSACStruct, middle));
-  CHECKL(COMPATFIELD(mps_sac_s, mps_trapped,
-                    ExternalSACStruct, trapped));
-  CHECKL(COMPATFIELDAPPROX(mps_sac_s, mps_freelists,
-                          ExternalSACStruct, freelists));
-  CHECKL(sizeof(mps_sac_freelist_block_s)
-         == sizeof(SACFreeListBlockStruct));
-  CHECKL(COMPATFIELD(mps_sac_freelist_block_s, mps_size,
-                    SACFreeListBlockStruct, size));
-  CHECKL(COMPATFIELD(mps_sac_freelist_block_s, mps_count,
-                    SACFreeListBlockStruct, count));
-  CHECKL(COMPATFIELD(mps_sac_freelist_block_s, mps_count_max,
-                    SACFreeListBlockStruct, countMax));
-  CHECKL(COMPATFIELD(mps_sac_freelist_block_s, mps_blocks,
-                    SACFreeListBlockStruct, blocks));
-
-  /* Check sac_classes_s/SACClassesStruct compatibility by hand */
-  /* See <code/mps.h#sacc> and <code/sac.h#sacc>. */
-  CHECKL(sizeof(mps_sac_classes_s) == sizeof(SACClassesStruct));
-  CHECKL(COMPATFIELD(mps_sac_classes_s, mps_block_size,
-                    SACClassesStruct, blockSize));
-  CHECKL(COMPATFIELD(mps_sac_classes_s, mps_cached_count,
-                    SACClassesStruct, cachedCount));
-  CHECKL(COMPATFIELD(mps_sac_classes_s, mps_frequency,
-                    SACClassesStruct, frequency));
-
   return TRUE;
 }
 
@@ -1131,7 +1102,7 @@ mps_res_t mps_sac_create(mps_sac_t *mps_sac_o, mps_pool_t mps_pool,
   ArenaLeave(arena);
 
   if (res != ResOK) return (mps_res_t)res;
-  *mps_sac_o = (mps_sac_t)ExternalSACOfSAC(sac);
+  *mps_sac_o = ExternalSACOfSAC(sac);
   return (mps_res_t)res;
 }
 
@@ -1140,7 +1111,7 @@ mps_res_t mps_sac_create(mps_sac_t *mps_sac_o, mps_pool_t mps_pool,
 
 void mps_sac_destroy(mps_sac_t mps_sac)
 {
-  SAC sac = SACOfExternalSAC((ExternalSAC)mps_sac);
+  SAC sac = SACOfExternalSAC(mps_sac);
   Arena arena;
 
   AVER(TESTT(SAC, sac));
@@ -1158,7 +1129,7 @@ void mps_sac_destroy(mps_sac_t mps_sac)
 
 void mps_sac_flush(mps_sac_t mps_sac)
 {
-  SAC sac = SACOfExternalSAC((ExternalSAC)mps_sac);
+  SAC sac = SACOfExternalSAC(mps_sac);
   Arena arena;
 
   AVER(TESTT(SAC, sac));
@@ -1177,7 +1148,7 @@ void mps_sac_flush(mps_sac_t mps_sac)
 mps_res_t mps_sac_fill(mps_addr_t *p_o, mps_sac_t mps_sac, size_t size,
                        mps_bool_t has_reservoir_permit)
 {
-  SAC sac = SACOfExternalSAC((ExternalSAC)mps_sac);
+  SAC sac = SACOfExternalSAC(mps_sac);
   Arena arena;
   Addr p = NULL;        /* suppress "may be used uninitialized" */
   Res res;
@@ -1202,7 +1173,7 @@ mps_res_t mps_sac_fill(mps_addr_t *p_o, mps_sac_t mps_sac, size_t size,
 
 void mps_sac_empty(mps_sac_t mps_sac, mps_addr_t p, size_t size)
 {
-  SAC sac = SACOfExternalSAC((ExternalSAC)mps_sac);
+  SAC sac = SACOfExternalSAC(mps_sac);
   Arena arena;
 
   AVER(TESTT(SAC, sac));
@@ -1224,7 +1195,7 @@ mps_res_t mps_sac_alloc(mps_addr_t *p_o, mps_sac_t mps_sac, size_t size,
   Res res;
 
   AVER(p_o != NULL);
-  AVER(TESTT(SAC, SACOfExternalSAC((ExternalSAC)mps_sac)));
+  AVER(TESTT(SAC, SACOfExternalSAC(mps_sac)));
   AVER(size > 0);
 
   MPS_SAC_ALLOC_FAST(res, *p_o, mps_sac, size, (has_reservoir_permit != 0));
@@ -1236,7 +1207,7 @@ mps_res_t mps_sac_alloc(mps_addr_t *p_o, mps_sac_t mps_sac, size_t size,
 
 void mps_sac_free(mps_sac_t mps_sac, mps_addr_t p, size_t size)
 {
-  AVER(TESTT(SAC, SACOfExternalSAC((ExternalSAC)mps_sac)));
+  AVER(TESTT(SAC, SACOfExternalSAC(mps_sac)));
   /* Can't check p outside arena lock */
   AVER(size > 0);
 

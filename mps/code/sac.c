@@ -10,6 +10,9 @@
 SRCID(sac, "$Id$");
 
 
+typedef mps_sac_freelist_block_s *SACFreeListBlock;
+
+
 /* SACCheck -- check function for SACs */
 
 static Bool sacFreeListBlockCheck(SACFreeListBlock fb)
@@ -18,9 +21,9 @@ static Bool sacFreeListBlockCheck(SACFreeListBlock fb)
   Addr cb;
 
   /* nothing to check about size */
-  CHECKL(fb->count <= fb->countMax);
+  CHECKL(fb->_count <= fb->_count_max);
   /* check the freelist has the right number of blocks */
-  for (j = 0, cb = fb->blocks; j < fb->count; ++j) {
+  for (j = 0, cb = fb->_blocks; j < fb->_count; ++j) {
     CHECKL(cb != NULL);
     /* @@@@ ignoring shields for now */
     cb = *ADDR_PTR(Addr, cb);
@@ -34,38 +37,40 @@ static Bool SACCheck(SAC sac)
   Index i, j;
   Bool b;
   Size prevSize;
+  mps_sac_t esac;
 
   CHECKS(SAC, sac);
+  esac = ExternalSACOfSAC(sac);
   CHECKU(Pool, sac->pool);
   CHECKL(sac->classesCount > 0);
   CHECKL(sac->classesCount > sac->middleIndex);
-  CHECKL(BoolCheck(sac->esacStruct.trapped));
-  CHECKL(sac->esacStruct.middle > 0);
+  CHECKL(BoolCheck(esac->_trapped));
+  CHECKL(esac->_middle > 0);
   /* check classes above middle */
-  prevSize = sac->esacStruct.middle;
+  prevSize = esac->_middle;
   for (j = sac->middleIndex + 1, i = 0;
        j <= sac->classesCount; ++j, i += 2) {
-    CHECKL(prevSize < sac->esacStruct.freelists[i].size);
-    b = sacFreeListBlockCheck(&(sac->esacStruct.freelists[i]));
+    CHECKL(prevSize < esac->_freelists[i]._size);
+    b = sacFreeListBlockCheck(&(esac->_freelists[i]));
     if (!b) return b;
-    prevSize = sac->esacStruct.freelists[i].size;
+    prevSize = esac->_freelists[i]._size;
   }
   /* check overlarge class */
-  CHECKL(sac->esacStruct.freelists[i-2].size == SizeMAX);
-  CHECKL(sac->esacStruct.freelists[i-2].count == 0);
-  CHECKL(sac->esacStruct.freelists[i-2].countMax == 0);
-  CHECKL(sac->esacStruct.freelists[i-2].blocks == NULL);
+  CHECKL(esac->_freelists[i-2]._size == SizeMAX);
+  CHECKL(esac->_freelists[i-2]._count == 0);
+  CHECKL(esac->_freelists[i-2]._count_max == 0);
+  CHECKL(esac->_freelists[i-2]._blocks == NULL);
   /* check classes below middle */
-  prevSize = sac->esacStruct.middle;
+  prevSize = esac->_middle;
   for (j = sac->middleIndex, i = 1; j > 0; --j, i += 2) {
-    CHECKL(prevSize > sac->esacStruct.freelists[i].size);
-    b = sacFreeListBlockCheck(&(sac->esacStruct.freelists[i]));
+    CHECKL(prevSize > esac->_freelists[i]._size);
+    b = sacFreeListBlockCheck(&(esac->_freelists[i]));
     if (!b) return b;
-    prevSize = sac->esacStruct.freelists[i].size;
+    prevSize = esac->_freelists[i]._size;
   }
   /* check smallest class */
-  CHECKL(sac->esacStruct.freelists[i].size == 0);
-  b = sacFreeListBlockCheck(&(sac->esacStruct.freelists[i]));
+  CHECKL(esac->_freelists[i]._size == 0);
+  b = sacFreeListBlockCheck(&(esac->_freelists[i]));
   return b;
 }
 
@@ -81,7 +86,7 @@ static Size sacSize(Index middleIndex, Count classesCount)
     indexMax = 2 * (classesCount - middleIndex - 1);
   else
     indexMax = 1 + 2 * middleIndex;
-  return PointerOffset(&dummy, &dummy.esacStruct.freelists[indexMax+1]);
+  return PointerOffset(&dummy, &dummy.esac_s._freelists[indexMax+1]);
 }
 
 
@@ -97,6 +102,7 @@ Res SACCreate(SAC *sacReturn, Pool pool, Count classesCount,
   Index middleIndex;  /* index of the size in the middle */
   Size prevSize;
   unsigned totalFreq = 0;
+  mps_sac_t esac;
 
   AVER(sacReturn != NULL);
   AVERT(Pool, pool);
@@ -107,10 +113,10 @@ Res SACCreate(SAC *sacReturn, Pool pool, Count classesCount,
   /* to be large enough, but that gets complicated, if you have to */
   /* merge classes because of the adjustment. */
   for (i = 0; i < classesCount; ++i) {
-    AVER(classes[i].blockSize > 0);
-    AVER(SizeIsAligned(classes[i].blockSize, PoolAlignment(pool)));
-    AVER(prevSize < classes[i].blockSize);
-    prevSize = classes[i].blockSize;
+    AVER(classes[i]._block_size > 0);
+    AVER(SizeIsAligned(classes[i]._block_size, PoolAlignment(pool)));
+    AVER(prevSize < classes[i]._block_size);
+    prevSize = classes[i]._block_size;
     /* no restrictions on count */
     /* no restrictions on frequency */
   }
@@ -118,7 +124,7 @@ Res SACCreate(SAC *sacReturn, Pool pool, Count classesCount,
   /* Calculate frequency scale */
   for (i = 0; i < classesCount; ++i) {
     unsigned oldFreq = totalFreq;
-    totalFreq += classes[i].frequency;
+    totalFreq += classes[i]._frequency;
     AVER(oldFreq <= totalFreq); /* check for overflow */
     UNUSED(oldFreq); /* <code/mpm.c#check.unused> */
   }
@@ -126,10 +132,10 @@ Res SACCreate(SAC *sacReturn, Pool pool, Count classesCount,
   /* Find middle one */
   totalFreq /= 2;
   for (i = 0; i < classesCount; ++i) {
-    if (totalFreq < classes[i].frequency) break;
-    totalFreq -= classes[i].frequency;
+    if (totalFreq < classes[i]._frequency) break;
+    totalFreq -= classes[i]._frequency;
   }
-  if (totalFreq <= classes[i].frequency / 2)
+  if (totalFreq <= classes[i]._frequency / 2)
     middleIndex = i;
   else
     middleIndex = i + 1; /* there must exist another class at i+1 */
@@ -143,30 +149,31 @@ Res SACCreate(SAC *sacReturn, Pool pool, Count classesCount,
 
   /* Move classes in place */
   /* It's important this matches SACFind. */
+  esac = ExternalSACOfSAC(sac);
   for (j = middleIndex + 1, i = 0; j < classesCount; ++j, i += 2) {
-    sac->esacStruct.freelists[i].size = classes[j].blockSize;
-    sac->esacStruct.freelists[i].count = 0;
-    sac->esacStruct.freelists[i].countMax = classes[j].cachedCount;
-    sac->esacStruct.freelists[i].blocks = NULL;
+    esac->_freelists[i]._size = classes[j]._block_size;
+    esac->_freelists[i]._count = 0;
+    esac->_freelists[i]._count_max = classes[j]._cached_count;
+    esac->_freelists[i]._blocks = NULL;
   }
-  sac->esacStruct.freelists[i].size = SizeMAX;
-  sac->esacStruct.freelists[i].count = 0;
-  sac->esacStruct.freelists[i].countMax = 0;
-  sac->esacStruct.freelists[i].blocks = NULL;
+  esac->_freelists[i]._size = SizeMAX;
+  esac->_freelists[i]._count = 0;
+  esac->_freelists[i]._count_max = 0;
+  esac->_freelists[i]._blocks = NULL;
   for (j = middleIndex, i = 1; j > 0; --j, i += 2) {
-    sac->esacStruct.freelists[i].size = classes[j-1].blockSize;
-    sac->esacStruct.freelists[i].count = 0;
-    sac->esacStruct.freelists[i].countMax = classes[j].cachedCount;
-    sac->esacStruct.freelists[i].blocks = NULL;
+    esac->_freelists[i]._size = classes[j-1]._block_size;
+    esac->_freelists[i]._count = 0;
+    esac->_freelists[i]._count_max = classes[j]._cached_count;
+    esac->_freelists[i]._blocks = NULL;
   }
-  sac->esacStruct.freelists[i].size = 0;
-  sac->esacStruct.freelists[i].count = 0;
-  sac->esacStruct.freelists[i].countMax = classes[j].cachedCount;
-  sac->esacStruct.freelists[i].blocks = NULL;
+  esac->_freelists[i]._size = 0;
+  esac->_freelists[i]._count = 0;
+  esac->_freelists[i]._count_max = classes[j]._cached_count;
+  esac->_freelists[i]._blocks = NULL;
 
   /* finish init */
-  sac->esacStruct.trapped = FALSE;
-  sac->esacStruct.middle = classes[middleIndex].blockSize;
+  esac->_trapped = FALSE;
+  esac->_middle = classes[middleIndex]._block_size;
   sac->pool = pool;
   sac->classesCount = classesCount;
   sac->middleIndex = middleIndex;
@@ -202,22 +209,24 @@ static void sacFind(Index *iReturn, Size *blockSizeReturn,
                     SAC sac, Size size)
 {
   Index i, j;
+  mps_sac_t esac;
 
-  if (size > sac->esacStruct.middle) {
+  esac = ExternalSACOfSAC(sac);
+  if (size > esac->_middle) {
     i = 0; j = sac->middleIndex + 1;
     AVER(j <= sac->classesCount);
-    while (size > sac->esacStruct.freelists[i].size) {
+    while (size > esac->_freelists[i]._size) {
       AVER(j < sac->classesCount);
       i += 2; ++j;
     }
-    *blockSizeReturn = sac->esacStruct.freelists[i].size;
+    *blockSizeReturn = esac->_freelists[i]._size;
   } else {
-    Size prevSize = sac->esacStruct.middle;
+    Size prevSize = esac->_middle;
 
     i = 1; j = sac->middleIndex;
-    while (size <= sac->esacStruct.freelists[i].size) {
+    while (size <= esac->_freelists[i]._size) {
       AVER(j > 0);
-      prevSize = sac->esacStruct.freelists[i].size;
+      prevSize = esac->_freelists[i]._size;
       i += 2; --j;
     }
     *blockSizeReturn = prevSize;
@@ -235,23 +244,25 @@ Res SACFill(Addr *p_o, SAC sac, Size size, Bool hasReservoirPermit)
   Size blockSize;
   Addr p, fl;
   Res res = ResOK; /* stop compiler complaining */
+  mps_sac_t esac;
 
   AVER(p_o != NULL);
   AVERT(SAC, sac);
   AVER(size != 0);
   AVER(BoolCheck(hasReservoirPermit));
+  esac = ExternalSACOfSAC(sac);
 
   sacFind(&i, &blockSize, sac, size);
   /* Check it's empty (in the future, there will be other cases). */
-  AVER(sac->esacStruct.freelists[i].count == 0);
+  AVER(esac->_freelists[i]._count == 0);
 
   /* Fill 1/3 of the cache for this class. */
-  blockCount = sac->esacStruct.freelists[i].countMax / 3;
+  blockCount = esac->_freelists[i]._count_max / 3;
   /* Adjust size for the overlarge class. */
   if (blockSize == SizeMAX)
     /* .align: align 'cause some classes don't accept unaligned. */
     blockSize = SizeAlignUp(size, PoolAlignment(sac->pool));
-  for (j = 0, fl = sac->esacStruct.freelists[i].blocks;
+  for (j = 0, fl = esac->_freelists[i]._blocks;
        j <= blockCount; ++j) {
     res = PoolAlloc(&p, sac->pool, blockSize, hasReservoirPermit);
     if (res != ResOK)
@@ -266,10 +277,10 @@ Res SACFill(Addr *p_o, SAC sac, Size size, Bool hasReservoirPermit)
   }
 
   /* Take the last one off, and return it. */
-  sac->esacStruct.freelists[i].count = j - 1;
+  esac->_freelists[i]._count = j - 1;
   *p_o = fl;
   /* @@@@ ignoring shields for now */
-  sac->esacStruct.freelists[i].blocks = *ADDR_PTR(Addr, fl);
+  esac->_freelists[i]._blocks = *ADDR_PTR(Addr, fl);
   return ResOK;
 }
 
@@ -284,15 +295,17 @@ static void sacClassFlush(SAC sac, Index i, Size blockSize,
 {
   Addr cb, fl;
   Count j;
-
-  for (j = 0, fl = sac->esacStruct.freelists[i].blocks;
+  mps_sac_t esac;
+  
+  esac = ExternalSACOfSAC(sac);
+  for (j = 0, fl = esac->_freelists[i]._blocks;
        j < blockCount; ++j) {
     /* @@@@ ignoring shields for now */
     cb = fl; fl = *ADDR_PTR(Addr, cb);
     PoolFree(sac->pool, cb, blockSize);
   }
-  sac->esacStruct.freelists[i].count -= blockCount;
-  sac->esacStruct.freelists[i].blocks = fl;
+  esac->_freelists[i]._count -= blockCount;
+  esac->_freelists[i]._blocks = fl;
 }
 
 
@@ -302,34 +315,36 @@ void SACEmpty(SAC sac, Addr p, Size size)
 {
   Index i;
   Size blockSize;
-
+  mps_sac_t esac;
+  
   AVERT(SAC, sac);
   AVER(p != NULL);
   AVER(PoolHasAddr(sac->pool, p));
   AVER(size > 0);
+  esac = ExternalSACOfSAC(sac);
 
   sacFind(&i, &blockSize, sac, size);
   /* Check it's full (in the future, there will be other cases). */
-  AVER(sac->esacStruct.freelists[i].count
-       == sac->esacStruct.freelists[i].countMax);
+  AVER(esac->_freelists[i]._count
+       == esac->_freelists[i]._count_max);
 
   /* Adjust size for the overlarge class. */
   if (blockSize == SizeMAX)
     /* see .align */
     blockSize = SizeAlignUp(size, PoolAlignment(sac->pool));
-  if (sac->esacStruct.freelists[i].countMax > 0) {
+  if (esac->_freelists[i]._count_max > 0) {
     Count blockCount;
 
     /* Flush 2/3 of the cache for this class. */
     /* Computed as count - count/3, so that the rounding works out right. */
-    blockCount = sac->esacStruct.freelists[i].count;
-    blockCount -= sac->esacStruct.freelists[i].count / 3;
+    blockCount = esac->_freelists[i]._count;
+    blockCount -= esac->_freelists[i]._count / 3;
     sacClassFlush(sac, i, blockSize, (blockCount > 0) ? blockCount : 1);
     /* Leave the current one in the cache. */
-    sac->esacStruct.freelists[i].count += 1;
+    esac->_freelists[i]._count += 1;
     /* @@@@ ignoring shields for now */
-    *ADDR_PTR(Addr, p) = sac->esacStruct.freelists[i].blocks;
-    sac->esacStruct.freelists[i].blocks = p;
+    *ADDR_PTR(Addr, p) = esac->_freelists[i]._blocks;
+    esac->_freelists[i]._blocks = p;
   } else {
     /* Free even the current one. */
     PoolFree(sac->pool, p, blockSize);
@@ -343,25 +358,27 @@ void SACFlush(SAC sac)
 {
   Index i, j;
   Size prevSize;
+  mps_sac_t esac;
 
   AVERT(SAC, sac);
 
+  esac = ExternalSACOfSAC(sac);
   for (j = sac->middleIndex + 1, i = 0;
        j < sac->classesCount; ++j, i += 2) {
-    sacClassFlush(sac, i, sac->esacStruct.freelists[i].size,
-                  sac->esacStruct.freelists[i].count);
-    AVER(sac->esacStruct.freelists[i].blocks == NULL);
+    sacClassFlush(sac, i, esac->_freelists[i]._size,
+                  esac->_freelists[i]._count);
+    AVER(esac->_freelists[i]._blocks == NULL);
   }
   /* no need to flush overlarge, there's nothing there */
-  prevSize = sac->esacStruct.middle;
+  prevSize = esac->_middle;
   for (j = sac->middleIndex, i = 1; j > 0; --j, i += 2) {
-    sacClassFlush(sac, i, prevSize, sac->esacStruct.freelists[i].count);
-    AVER(sac->esacStruct.freelists[i].blocks == NULL);
-    prevSize = sac->esacStruct.freelists[i].size;
+    sacClassFlush(sac, i, prevSize, esac->_freelists[i]._count);
+    AVER(esac->_freelists[i]._blocks == NULL);
+    prevSize = esac->_freelists[i]._size;
   }
   /* flush smallest class */
-  sacClassFlush(sac, i, prevSize, sac->esacStruct.freelists[i].count);
-  AVER(sac->esacStruct.freelists[i].blocks == NULL);
+  sacClassFlush(sac, i, prevSize, esac->_freelists[i]._count);
+  AVER(esac->_freelists[i]._blocks == NULL);
 }
 
 
