@@ -1,3 +1,8 @@
+2012-09-10  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.m (ns_update_begin): Set clip path to whole view by using
+	NSBezierPath (Bug#12131).
+
 2012-09-10  Chong Yidong  <cyd@gnu.org>
 
 	* fns.c (Fdelq, Fdelete): Doc fix.

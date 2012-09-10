@@ -627,12 +627,21 @@ ns_update_begin (struct frame *f)
    -------------------------------------------------------------------------- */
 {
   NSView *view = FRAME_NS_VIEW (f);
+  NSRect r = [view frame];
+  NSBezierPath *bp = [NSBezierPath bezierPath];
   NSTRACE (ns_update_begin);
 
   ns_update_auto_hide_menu_bar ();
 
   ns_updating_frame = f;
   [view lockFocus];
+
+  /* drawRect may have been called for say the minibuffer, and then clip path
+     is for the minibuffer.  But the display engine may draw more because
+     we have set the frame as garbaged.  So reset clip path to the whole
+     view.  */
+  [bp appendBezierPathWithRect: r];
+  [bp setClip];
 
 #ifdef NS_IMPL_GNUSTEP
   uRect = NSMakeRect (0, 0, 0, 0);
