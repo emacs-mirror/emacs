@@ -924,7 +924,6 @@ Ref ArenaRead(Arena arena, Ref *p)
   Bool b;
   Seg seg = NULL;       /* suppress "may be used uninitialized" */
   Rank rank;
-  Ref ref;
 
   AVERT(Arena, arena);
 
