@@ -1530,7 +1530,7 @@ mps_res_t mps_finalize(mps_arena_t arena, mps_addr_t *refref)
 
   ArenaEnter(arena);
 
-  object = (Addr)ArenaPeek(arena, (Addr)refref);
+  object = (Addr)ArenaPeek(arena, (Ref *)refref);
   res = ArenaFinalize(arena, object);
 
   ArenaLeave(arena);
@@ -1547,7 +1547,7 @@ mps_res_t mps_definalize(mps_arena_t arena, mps_addr_t *refref)
 
   ArenaEnter(arena);
 
-  object = (Addr)ArenaPeek(arena, (Addr)refref);
+  object = (Addr)ArenaPeek(arena, (Ref *)refref);
   res = ArenaDefinalize(arena, object);
 
   ArenaLeave(arena);
@@ -1693,7 +1693,7 @@ void mps_message_finalization_ref(mps_addr_t *mps_addr_return,
 
   AVERT(Arena, arena);
   MessageFinalizationRef(&ref, arena, message);
-  ArenaPoke(arena, (Addr)mps_addr_return, ref);
+  ArenaPoke(arena, (Ref *)mps_addr_return, ref);
 
   ArenaLeave(arena);
 }
