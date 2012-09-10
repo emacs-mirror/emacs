@@ -46,8 +46,9 @@ index.
 
 The MPS Kit is distributed in source form.  You need to build it before
 using it.  The basic case is straightforward on supported platforms
-(see below).  Change to the code directory then
+(see below).
 
+    cd code
     cc -O2 -c mps.c     Unix / Mac OS X (with Xcode command line)
     cl /O2 /c mps.c     Windows (with Microsoft SDK or Visual Studio 2010)
 
