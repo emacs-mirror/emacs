@@ -82,9 +82,11 @@ those objects are still likely to be in segments with other objects that
 must be preserved.  The pool class fix method must quickly distinguish
 between them.
 
-Furthermore, every object allocated is likely to be preserved at least
-once in its lifetime (except in some unusual applications), so even
-the code that preserves an object needs to be highly efficient.
+Furthermore, many objects will be preserved at least once in their
+lifetime, so even the code that preserves an object needs to be highly
+efficient.  (Programs in languages like ML might not preserve 95% of
+their objects even once, but many other programs will preserve nearly
+all of theirs many times.)
 
 
 4. Where to find the critical path
