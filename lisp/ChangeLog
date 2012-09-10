@@ -1,3 +1,8 @@
+2012-09-10  Dan Nicolaescu  <dann@gnu.org>
+
+	* vc/diff-mode.el (diff-mode-menu): Bind
+	diff-remove-trailing-whitespace.
+
 2012-09-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/lisp-mode.el (emacs-list-byte-code-comment-re): New var.
