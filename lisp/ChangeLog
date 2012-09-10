@@ -1,3 +1,9 @@
+2012-09-10  Michael R. Mauger  <mmaug@yahoo.com>
+
+	* progmodes/sql.el: Version 3.1
+	(sql-db2-escape-newlines): New variable.
+	(sql-escape-newlines-filter): Use it.
+
 2012-09-10  Juanma Barranquero  <lekktu@gmail.com>
 
 	* custom.el (custom-theme-load-confirm): Remove unneeded assignment.

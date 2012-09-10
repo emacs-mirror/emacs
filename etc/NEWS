@@ -344,6 +344,14 @@ python-describe-symbol    | python-eldoc-at-point
 
 *** Accepts \r and \f as whitespace.
 
+** SQL Mode
+
+*** DB2 added `sql-db2-escape-newlines'
+
+If non-nil, newlines sent to the command interpreter will be escaped
+by a backslash.  The default does not escape the newlines and assumes
+that the sql statement will be terminated by a semicolon.
+
 ** Diff mode
 
 Faces for changes now use the same diff color scheme as in modern VCSes

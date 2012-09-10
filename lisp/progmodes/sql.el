@@ -4,7 +4,7 @@
 
 ;; Author: Alex Schroeder <alex@gnu.org>
 ;; Maintainer: Michael Mauger <mmaug@yahoo.com>
-;; Version: 3.0
+;; Version: 3.1
 ;; Keywords: comm languages processes
 ;; URL: http://savannah.gnu.org/projects/emacs/
 
@@ -218,9 +218,12 @@
 ;; Michael Mauger <mmaug@yahoo.com> -- improved product support
 ;; Drew Adams <drew.adams@oracle.com> -- Emacs 20 support
 ;; Harald Maier <maierh@myself.com> -- sql-send-string
-;; Stefan Monnier <monnier@iro.umontreal.ca> -- font-lock corrections; code polish
+;; Stefan Monnier <monnier@iro.umontreal.ca> -- font-lock corrections; 
+;;      code polish
 ;; Paul Sleigh <bat@flurf.net> -- MySQL keyword enhancement
 ;; Andrew Schein <andrew@andrewschein.com> -- sql-port bug
+;; Ian Bjorhovde <idbjorh@dataproxy.com> -- db2 escape newlines 
+;;      incorrectly enabled by default
 
 
 
@@ -876,6 +879,16 @@ You need to issue the following command in SQL*Plus to be safe:
 
 In older versions of SQL*Plus, this was the SET SCAN OFF command."
   :version "24.1"
+  :type 'boolean
+  :group 'SQL)
+
+(defcustom sql-db2-escape-newlines nil
+  "Non-nil if newlines should be escaped by a backslash in DB2 SQLi.
+
+When non-nil, Emacs will automatically insert a space and
+backslash prior to every newline in multi-line SQL statements as
+they are submitted to an interactive DB2 session."
+  :version "24.3"
   :type 'boolean
   :group 'SQL)
 
@@ -3188,20 +3201,23 @@ Placeholders are words starting with an ampersand like &this."
 
 ;; Using DB2 interactively, newlines must be escaped with " \".
 ;; The space before the backslash is relevant.
+
 (defun sql-escape-newlines-filter (string)
   "Escape newlines in STRING.
 Every newline in STRING will be preceded with a space and a backslash."
-  (let ((result "") (start 0) mb me)
-    (while (string-match "\n" string start)
-      (setq mb (match-beginning 0)
-	    me (match-end 0)
-	    result (concat result
-			   (substring string start mb)
-			   (if (and (> mb 1)
-				    (string-equal " \\" (substring string (- mb 2) mb)))
-			       "" " \\\n"))
-	    start me))
-    (concat result (substring string start))))
+  (if (not sql-db2-escape-newlines)
+      string
+    (let ((result "") (start 0) mb me)
+      (while (string-match "\n" string start)
+        (setq mb (match-beginning 0)
+              me (match-end 0)
+              result (concat result
+                             (substring string start mb)
+                             (if (and (> mb 1)
+                                      (string-equal " \\" (substring string (- mb 2) mb)))
+                                 "" " \\\n"))
+              start me))
+      (concat result (substring string start)))))
 
 
 
