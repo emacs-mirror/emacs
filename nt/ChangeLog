@@ -1,3 +1,9 @@
+2012-09-10  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt: Sync with autogen/config.in.
+	(FLOAT_CHECK_DOMAIN, HAVE_FMOD, HAVE_FREXP)
+	(HAVE_INVERSE_HYPERBOLIC, NO_MATHERR): Remove.
+
 2012-09-08  Eli Zaretskii  <eliz@gnu.org>
 
 	* configure.bat <use_extensions>: Don't leave it set in the

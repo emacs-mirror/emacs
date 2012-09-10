@@ -161,10 +161,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    */
 #define FIRST_PTY_LETTER 'a'
 
-/* Define if the float library doesn't handle errors by either setting errno,
-   or signaling SIGFPE. */
-#undef FLOAT_CHECK_DOMAIN
-
 /* Enable compile-time and run-time bounds-checking, and some warnings,
       without upsetting glibc 2.15+. */
    #if defined __OPTIMIZE__ && __OPTIMIZE__
@@ -377,9 +373,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the <fcntl.h> header file. */
 #undef HAVE_FCNTL_H
 
-/* Define to 1 if you have the `fmod' function. */
-#define HAVE_FMOD 1
-
 /* Define to 1 if you have the `fork' function. */
 #undef HAVE_FORK
 
@@ -391,9 +384,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 if using the freetype and fontconfig libraries. */
 #undef HAVE_FREETYPE
-
-/* Define to 1 if you have the `frexp' function. */
-#define HAVE_FREXP 1
 
 /* Define to 1 if fseeko (and presumably ftello) exists and is declared. */
 #undef HAVE_FSEEKO
@@ -548,9 +538,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 if you have the <inttypes.h> header file. */
 #undef HAVE_INTTYPES_H
-
-/* Define if you have the functions acosh, asinh, and atanh. */
-#undef HAVE_INVERSE_HYPERBOLIC
 
 /* Define to 1 if you have the jpeg library (-ljpeg). */
 #undef HAVE_JPEG
@@ -1191,9 +1178,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define if XEditRes should not be used. */
 #undef NO_EDITRES
-
-/* Define to 1 if you don't have struct exception in math.h. */
-#define NO_MATHERR 1
 
 /* Define to 1 if your C compiler doesn't accept -c and -o together. */
 #undef NO_MINUS_C_MINUS_O
