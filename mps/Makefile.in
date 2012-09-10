@@ -9,6 +9,7 @@
 # to build and integrate the MPS.
 #
 
+MAKE=@MAKE@
 MPS_TARGET_PF=@MPS_TARGET_PF@
 MPS_TARGET_NAME=@MPS_TARGET_NAME@
 
@@ -16,7 +17,6 @@ BUILD_TARGET=@BUILD_TARGET@
 CLEAN_TARGET=@CLEAN_TARGET@
 
 all: @BUILD_TARGET@
-	$(BUILD)
 
 build-via-make:
 	$(MAKE) -C code -f $(MPS_TARGET_NAME).gmk
