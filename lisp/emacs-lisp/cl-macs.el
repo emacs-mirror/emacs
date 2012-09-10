@@ -1463,8 +1463,15 @@ Valid clauses are:
 	  cl--loop-accum-var))))
 
 (defun cl--loop-build-ands (clauses)
+  "Return various representations of (and . CLAUSES).
+CLAUSES is a list of Elisp expressions, where clauses of the form
+\(progn E1 E2 E3 .. t) are the focus of particular optimizations.
+The return value has shape (COND BODY COMBO)
+such that COMBO is equivalent to (and . CLAUSES)."
   (let ((ands nil)
 	(body nil))
+    ;; Look through `clauses', trying to optimize (progn ,@A t) (progn ,@B) ,@C
+    ;; into (progn ,@A ,@B) ,@C.
     (while clauses
       (if (and (eq (car-safe (car clauses)) 'progn)
 	       (eq (car (last (car clauses))) t))
@@ -1475,6 +1482,7 @@ Valid clauses are:
 					     (cl-cdadr clauses)
 					   (list (cadr clauses))))
 				  (cddr clauses)))
+            ;; A final (progn ,@A t) is moved outside of the `and'.
 	    (setq body (cdr (butlast (pop clauses)))))
 	(push (pop clauses) ands)))
     (setq ands (or (nreverse ands) (list t)))

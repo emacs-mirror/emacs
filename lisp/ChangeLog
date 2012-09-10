@@ -1,3 +1,18 @@
+2012-09-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/lisp-mode.el (emacs-list-byte-code-comment-re): New var.
+	(emacs-lisp-byte-code-comment)
+	(emacs-lisp-byte-code-syntax-propertize, emacs-lisp-byte-code-mode):
+	New functions.
+	(eval-sexp-add-defvars): Don't skip defvars in column >0.
+	(eval-defun-2): Remove bogus interactive spec.
+	(lisp-indent-line): Remove redundant whole-exp code, now done in
+	indent-according-to-mode.
+	(save-match-data): Remove redundant indent data.
+
+	* emacs-lisp/benchmark.el (benchmark-run, benchmark-run-compiled):
+	Use `declare'.
+
 2012-09-09  Juri Linkov  <juri@jurta.org>
 
 	* replace.el (replace-regexp-lax-whitespace): New defcustom.
