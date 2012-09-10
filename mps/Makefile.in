@@ -22,13 +22,13 @@ build-via-make:
 	$(MAKE) -C code -f $(MPS_TARGET_NAME).gmk
 
 clean-make-build:
-	rm -rf code/$(MPS_TARGET_NAME)/
+	$(MAKE) -C code -f $(MPS_TARGET_NAME).gmk clean
 
 build-via-xcode:
 	xcodebuild -project code/mps.xcodeproj
 
 clean-xcode-build:
-	rm -rf code/build/
+	xcodebuild -project code/mps.xcodeproj clean
 
 Makefile: Makefile.in config.status
 	./config.status Makefile
