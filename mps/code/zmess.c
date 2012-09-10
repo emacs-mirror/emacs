@@ -341,10 +341,12 @@ static void *testscriptB(void *arg, size_t s)
   /* Each is a dylan vector with 2 slots, inited to: (index, NULL) */
   for(i = 0; i < myrootCOUNT; ++i) {
     mps_word_t v;
+    mps_addr_t v_ref;
     die(make_dylan_vector(&v, ap, 2), "make_dylan_vector");
     DYLAN_VECTOR_SLOT(v, 0) = DYLAN_INT(i);
     DYLAN_VECTOR_SLOT(v, 1) = (mps_word_t)NULL;
-    die(mps_finalize(arena, (mps_addr_t*)&v), "finalize");
+    v_ref = (mps_addr_t)v;
+    die(mps_finalize(arena, &v_ref), "finalize");
     myroot[i] = (void*)v;
     state[i] = rootSTATE;
   }
