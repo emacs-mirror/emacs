@@ -148,23 +148,23 @@ typedef struct mps_sac_s *mps_sac_t;
 #define MPS_SAC_CLASS_LIMIT ((size_t)8)
 
 typedef struct mps_sac_freelist_block_s {
-  size_t mps_size;
-  size_t mps_count;
-  size_t mps_count_max;
-  mps_addr_t mps_blocks;
+  size_t _size;
+  size_t _count;
+  size_t _count_max;
+  mps_addr_t _blocks;
 } mps_sac_freelist_block_s;
 
 typedef struct mps_sac_s {
-  size_t mps_middle;
-  mps_bool_t mps_trapped;
-  mps_sac_freelist_block_s mps_freelists[2 * MPS_SAC_CLASS_LIMIT];
+  size_t _middle;
+  mps_bool_t _trapped;
+  mps_sac_freelist_block_s _freelists[2 * MPS_SAC_CLASS_LIMIT];
 } mps_sac_s;
 
 /* .sacc: Keep in sync with <code/sac.h>. */
 typedef struct mps_sac_class_s {
-  size_t mps_block_size;
-  size_t mps_cached_count;
-  unsigned mps_frequency;
+  size_t _block_size;
+  size_t _cached_count;
+  unsigned _frequency;
 } mps_sac_class_s;
 
 #define mps_sac_classes_s mps_sac_class_s
@@ -386,19 +386,19 @@ extern void mps_sac_empty(mps_sac_t, mps_addr_t, size_t);
     size_t _mps_i, _mps_s; \
     \
     _mps_s = (size); \
-    if (_mps_s > (sac)->mps_middle) { \
+    if (_mps_s > (sac)->_middle) { \
       _mps_i = 0; \
-      while (_mps_s > (sac)->mps_freelists[_mps_i].mps_size) \
+      while (_mps_s > (sac)->_freelists[_mps_i]._size) \
         _mps_i += 2; \
     } else { \
       _mps_i = 1; \
-      while (_mps_s <= (sac)->mps_freelists[_mps_i].mps_size) \
+      while (_mps_s <= (sac)->_freelists[_mps_i]._size) \
         _mps_i += 2; \
     } \
-    if ((sac)->mps_freelists[_mps_i].mps_count != 0) { \
-      (p_o) = (sac)->mps_freelists[_mps_i].mps_blocks; \
-      (sac)->mps_freelists[_mps_i].mps_blocks = *(mps_addr_t *)(p_o); \
-      --(sac)->mps_freelists[_mps_i].mps_count; \
+    if ((sac)->_freelists[_mps_i]._count != 0) { \
+      (p_o) = (sac)->_freelists[_mps_i]._blocks; \
+      (sac)->_freelists[_mps_i]._blocks = *(mps_addr_t *)(p_o); \
+      --(sac)->_freelists[_mps_i]._count; \
       (res_o) = MPS_RES_OK; \
     } else \
       (res_o) = mps_sac_fill(&(p_o), sac, _mps_s, \
@@ -410,20 +410,20 @@ extern void mps_sac_empty(mps_sac_t, mps_addr_t, size_t);
     size_t _mps_i, _mps_s; \
     \
     _mps_s = (size); \
-    if (_mps_s > (sac)->mps_middle) { \
+    if (_mps_s > (sac)->_middle) { \
       _mps_i = 0; \
-      while (_mps_s > (sac)->mps_freelists[_mps_i].mps_size) \
+      while (_mps_s > (sac)->_freelists[_mps_i]._size) \
         _mps_i += 2; \
     } else { \
       _mps_i = 1; \
-      while (_mps_s <= (sac)->mps_freelists[_mps_i].mps_size) \
+      while (_mps_s <= (sac)->_freelists[_mps_i]._size) \
         _mps_i += 2; \
     } \
-    if ((sac)->mps_freelists[_mps_i].mps_count \
-        < (sac)->mps_freelists[_mps_i].mps_count_max) { \
-       *(mps_addr_t *)(p) = (sac)->mps_freelists[_mps_i].mps_blocks; \
-      (sac)->mps_freelists[_mps_i].mps_blocks = (p); \
-      ++(sac)->mps_freelists[_mps_i].mps_count; \
+    if ((sac)->_freelists[_mps_i]._count \
+        < (sac)->_freelists[_mps_i]._count_max) { \
+       *(mps_addr_t *)(p) = (sac)->_freelists[_mps_i]._blocks; \
+      (sac)->_freelists[_mps_i]._blocks = (p); \
+      ++(sac)->_freelists[_mps_i]._count; \
     } else \
       mps_sac_empty(sac, p, _mps_s); \
   MPS_END

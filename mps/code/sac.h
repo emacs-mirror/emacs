@@ -14,28 +14,6 @@
 #define sacClassLIMIT ((Count)8)
 
 
-/* ExternalSAC -- the external face of segregated allocation caches */
-/* .sac: This structure must match <code/mps.h#sac>. */
-
-typedef struct ExternalSACStruct *ExternalSAC;
-
-typedef struct SACFreeListBlockStruct {
-  Size size;
-  Count count;
-  Count countMax;
-  Addr blocks;
-} SACFreeListBlockStruct;
-
-typedef SACFreeListBlockStruct *SACFreeListBlock;
-
-typedef struct ExternalSACStruct {
-  size_t middle; /* block size for starting searches */
-  Bool trapped; /* trap status */
-  /* freelist, variable length */
-  SACFreeListBlockStruct freelists[2 * sacClassLIMIT];
-} ExternalSACStruct;
-
-
 /* SAC -- the real segregated allocation caches */
 
 #define SACSig ((Sig)0x5195AC99) /* SIGnature SAC */
@@ -47,12 +25,12 @@ typedef struct SACStruct {
   Pool pool;
   Count classesCount;  /* number of classes */
   Index middleIndex;   /* index of the middle */
-  ExternalSACStruct esacStruct; /* variable length, must be last */
+  mps_sac_s esac_s;     /* variable length, must be last */
 } SACStruct;
 
-#define SACOfExternalSAC(esac) PARENT(SACStruct, esacStruct, esac)
+#define SACOfExternalSAC(esac) PARENT(SACStruct, esac_s, esac)
 
-#define ExternalSACOfSAC(sac) (&((sac)->esacStruct))
+#define ExternalSACOfSAC(sac) (&((sac)->esac_s))
 
 #define SACArena(sac) PoolArena((sac)->pool)
 
@@ -60,13 +38,7 @@ typedef struct SACStruct {
 /* SACClasses -- structure for specifying classes in the cache */
 /* .sacc: This structure must match <code/mps.h#sacc>. */
 
-typedef struct SACClassesStruct *SACClasses;
-
-typedef struct SACClassesStruct {
-  Size blockSize;
-  Count cachedCount;
-  unsigned frequency;
-} SACClassesStruct;
+typedef struct mps_sac_classes_s *SACClasses;
 
 
 extern Res SACCreate(SAC *sac_o, Pool pool, Count classesCount,
