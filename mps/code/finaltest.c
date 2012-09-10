@@ -75,7 +75,8 @@ static void register_numbered_tree(mps_word_t tree, mps_arena_t arena)
 {
     /* don't finalize ints */
     if ((tree & 1) == 0) {
-        mps_finalize(arena, (mps_addr_t *)&tree);
+        mps_addr_t tree_ref = (mps_addr_t)tree;
+        mps_finalize(arena, &tree_ref);
         register_numbered_tree(DYLAN_VECTOR_SLOT(tree, 0), arena);
         register_numbered_tree(DYLAN_VECTOR_SLOT(tree, 1), arena);
     }
@@ -114,7 +115,8 @@ static void register_indirect_tree(mps_word_t tree, mps_arena_t arena)
     /* don't finalize ints */
     if ((tree & 1) == 0) {
         mps_word_t indirect = DYLAN_VECTOR_SLOT(tree,2);
-        mps_finalize(arena, (mps_addr_t *)&indirect);
+        mps_addr_t indirect_ref = (mps_addr_t)indirect;
+        mps_finalize(arena, &indirect_ref);
         register_indirect_tree(DYLAN_VECTOR_SLOT(tree, 0), arena);
         register_indirect_tree(DYLAN_VECTOR_SLOT(tree, 1), arena);
     }

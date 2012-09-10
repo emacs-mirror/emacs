@@ -18,6 +18,8 @@
  *  list length 1000 makes 40404 conses (by experiment).
  *
  *  Some registers are not nulled out when they could be.
+ *
+ *  TODO: There should be fewer casts and more unions.
  */
 
 #include "testlib.h"
@@ -64,7 +66,7 @@ enum {QSInt, QSRef, QSEvac, QSPadOne, QSPadMany};
 typedef struct QSCellStruct *QSCell;
 typedef struct QSCellStruct {
   mps_word_t tag;
-  mps_word_t value;
+  mps_addr_t value;
   QSCell tail;
 } QSCellStruct;
 
@@ -89,7 +91,7 @@ static mps_word_t listl;
 
 static QSCell activationStack;
 #define NREGS 3
-static mps_word_t reg[NREGS];
+static mps_addr_t reg[NREGS];
 static mps_word_t regtag[NREGS];
 
 
@@ -102,7 +104,7 @@ static mps_word_t regtag[NREGS];
  */
 
 /* should cons return in reg[0] or should it return via C? */
-static void cons(mps_word_t tag0, mps_word_t value0, QSCell tail)
+static void cons(mps_word_t tag0, mps_addr_t value0, QSCell tail)
 {
   mps_addr_t p;
   QSCell new;
@@ -116,7 +118,7 @@ static void cons(mps_word_t tag0, mps_word_t value0, QSCell tail)
     new->tail = tail;
   } while(!mps_commit(ap, p, sizeof(QSCellStruct)));
 
-  reg[0] = (mps_word_t)new;
+  reg[0] = (mps_addr_t)new;
   regtag[0] = QSRef;
   return;
 }
@@ -146,7 +148,7 @@ static void append(void)
   reg[0] = activationStack->tail->value;
   regtag[0] = activationStack->tail->tag;
   cdie(regtag[0] == QSRef, "append tail");
-  reg[0] = (mps_word_t)((QSCell)reg[0])->tail; /* (cdr x) */
+  reg[0] = (mps_addr_t)((QSCell)reg[0])->tail; /* (cdr x) */
   regtag[0] = QSRef;
   append();
   reg[1] = reg[0];
@@ -162,7 +164,7 @@ static void append(void)
   ret:
   /* null out reg[1] */
   regtag[1] = QSRef;
-  reg[1] = (mps_word_t)0;
+  reg[1] = (mps_addr_t)0;
   return;
 }
 
@@ -177,7 +179,7 @@ static void swap(void)
   regtag[1]=regtag[2];
   reg[1]=reg[2];
   regtag[2]=QSRef;
-  reg[2]=(mps_word_t)0;
+  reg[2]=(mps_addr_t)0;
 }
 
 
@@ -194,11 +196,13 @@ static void makerndlist(int l)
   listl = l;
   die(mps_alloc((mps_addr_t *)&list, mpool, (l * sizeof(mps_word_t))),
       "Alloc List");
-  reg[0] = (mps_word_t)0;
+  reg[0] = (mps_addr_t)0;
   regtag[0] = QSRef;
   for(i = 0; i < l; ++i) {
     r = rnd();
-    cons(QSInt, r, (QSCell)reg[0]);
+    cons(QSInt,
+         (mps_addr_t)r, /* TODO: dirty cast */
+         (QSCell)reg[0]);
     list[i] = r;
   }
 }
@@ -213,25 +217,25 @@ static void part(mps_word_t p)
   reg[2]=reg[0];
   cdie(regtag[2] == QSRef, "part 0");
   regtag[0]=QSRef;
-  reg[0]=(mps_word_t)0;
+  reg[0]=(mps_addr_t)0;
   regtag[1]=QSRef;
-  reg[1]=(mps_word_t)0;
+  reg[1]=(mps_addr_t)0;
 
   while(reg[2] != (mps_word_t)0) {
     cdie(((QSCell)reg[2])->tag == QSInt, "part int");
-    if(((QSCell)reg[2])->value < p) {
+    if((mps_word_t)((QSCell)reg[2])->value < p) {
       /* cons onto reg[0] */
       cons(QSInt, ((QSCell)reg[2])->value, (QSCell)reg[0]);
     } else {
       /* cons onto reg[1] */
-      cons(QSRef, (mps_word_t)reg[0], activationStack); /* save reg0 */
+      cons(QSRef, reg[0], activationStack); /* save reg0 */
       activationStack = (QSCell)reg[0];
       cons(QSInt, ((QSCell)reg[2])->value, (QSCell)reg[1]);
       reg[1]=reg[0];
       reg[0]=activationStack->value;
       activationStack = activationStack->tail;
     }
-    reg[2]=(mps_word_t)((QSCell)reg[2])->tail;
+    reg[2]=(mps_addr_t)((QSCell)reg[2])->tail;
   }
 }
 
@@ -251,8 +255,8 @@ static void qs(void)
   /* check that we have an int list */
   cdie(((QSCell)reg[0])->tag == QSInt, "qs int");
 
-  pivot = ((QSCell)reg[0])->value;
-  reg[0] = (mps_word_t)((QSCell)reg[0])->tail;
+  pivot = (mps_word_t)((QSCell)reg[0])->value;
+  reg[0] = (mps_addr_t)((QSCell)reg[0])->tail;
   part(pivot);
 
   cons(QSRef, reg[0], activationStack);
@@ -264,9 +268,9 @@ static void qs(void)
   regtag[0] = regtag[1];
   cdie(regtag[0] == QSRef, "qs 1");
   qs();
-  cons(QSInt, pivot, (QSCell)reg[0]);
+  cons(QSInt, (mps_addr_t)pivot, (QSCell)reg[0]);
   activationStack = activationStack->tail;
-  cons(QSRef, (mps_word_t)reg[0], activationStack);
+  cons(QSRef, reg[0], activationStack);
   activationStack = (QSCell)reg[0];
   reg[0] = activationStack->tail->value;
   regtag[0] = activationStack->tail->tag;
@@ -309,13 +313,13 @@ static void validate(void)
   reg[1] = reg[0];
   for(i = 0; i < listl; ++i) {
     cdie(((QSCell)reg[1])->tag == QSInt, "validate int");
-    if(((QSCell)reg[1])->value != list[i]) {
+    if((mps_word_t)((QSCell)reg[1])->value != list[i]) {
       fprintf(stdout,
               "mps_res_t: Element %"PRIuLONGEST" of the two lists do not match.\n",
               (ulongest_t)i);
       return;
     }
-    reg[1] = (mps_word_t)((QSCell)reg[1])->tail;
+    reg[1] = (mps_addr_t)((QSCell)reg[1])->tail;
   }
   cdie(reg[1] == (mps_word_t)0, "validate end");
   fprintf(stdout, "Note: Lists compare equal.\n");
@@ -339,8 +343,12 @@ static void *go(void *p, size_t s)
   die(mps_pool_create(&pool, arena, mps_class_amc(), format, chain),
       "AMCCreate");
   die(mps_ap_create(&ap, pool, mps_rank_exact()), "APCreate");
-  die(mps_root_create_table(&regroot, arena, mps_rank_ambig(), 0,
-      (mps_addr_t *)reg, NREGS),
+  die(mps_root_create_table(&regroot,
+                            arena,
+                            mps_rank_ambig(),
+                            0,
+                            reg,
+                            NREGS),
       "RootCreateTable");
   die(mps_root_create_table(&actroot, arena, mps_rank_ambig(), 0,
       (mps_addr_t *)&activationStack, sizeof(QSCell)/sizeof(mps_addr_t)),
@@ -474,7 +482,7 @@ static void move(mps_addr_t object, mps_addr_t to)
   cell = (QSCell)object;
 
   cell->tag = QSEvac;
-  cell->value = (mps_word_t)to;
+  cell->value = to;
 }
 
 
