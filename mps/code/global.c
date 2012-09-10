@@ -915,12 +915,16 @@ void ArenaPokeSeg(Arena arena, Seg seg, Ref *p, Ref ref)
 /* ArenaRead -- read a single reference, possibly through a barrier
  *
  * This forms part of a software barrier.  It provides fine-grain access
- * to single references in segments.  */
+ * to single references in segments.
+ * 
+ * See also PoolSingleAccess and PoolSegAccess. */
 
 Ref ArenaRead(Arena arena, Ref *p)
 {
   Bool b;
   Seg seg = NULL;       /* suppress "may be used uninitialized" */
+  Rank rank;
+  Ref ref;
 
   AVERT(Arena, arena);
 
@@ -935,10 +939,13 @@ Ref ArenaRead(Arena arena, Ref *p)
   /* it somewhere after having read it) references that are white. */
   AVER(TraceSetSub(SegWhite(seg), arena->flippedTraces));
 
-  /* .read.conservative: @@@@ Should scan at rank phase-of-trace, */
-  /* not RankEXACT which is conservative.  See also */
-  /* <code/trace.c#scan.conservative> for a similar nasty. */
-  TraceScanSingleRef(arena->flippedTraces, RankEXACT, arena, seg, p);
+  /* .read.conservative: Scan according to rank phase-of-trace, */
+  /* See <code/trace.c#scan.conservative> */
+  rank = TraceRankForAccess(arena, seg);
+  TraceScanSingleRef(arena->flippedTraces, rank, arena, seg, p);
+  /* We don't need to update the Seg Summary as in PoolSingleAccess
+   * because we are not changing it after it has been scanned. */
+  
   /* get the possibly fixed reference */
   return ArenaPeekSeg(arena, seg, p);
 }

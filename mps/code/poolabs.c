@@ -348,6 +348,8 @@ Res PoolNoAccess(Pool pool, Seg seg, Addr addr,
 
 /* SegAccess
  *
+ * See also PoolSingleAccess
+ *
  * Should be used (for the access method) by Pool Classes which intend
  * to handle page faults by scanning the entire segment and lowering
  * the barrier.
@@ -371,6 +373,8 @@ Res PoolSegAccess(Pool pool, Seg seg, Addr addr,
 
 
 /* SingleAccess
+ *
+ * See also ArenaRead, and PoolSegAccess.
  *
  * Handles page faults by attempting emulation.  If the faulting
  * instruction cannot be emulated then this function returns ResFAIL.
@@ -410,7 +414,7 @@ Res PoolSingleAccess(Pool pool, Seg seg, Addr addr,
       /* .single-access.assume.ref */
       /* .single-access.improve.format */
       ref = *(Ref *)addr;
-      /* Check that the reference is aligned to a word boundary */
+      /* .tagging: Check that the reference is aligned to a word boundary */
       /* (we assume it is not a reference otherwise). */
       if(WordIsAligned((Word)ref, sizeof(Word))) {
         Rank rank;
@@ -427,6 +431,8 @@ Res PoolSingleAccess(Pool pool, Seg seg, Addr addr,
 
     /* Update SegSummary according to the possibly changed reference. */
     ref = *(Ref *)addr;
+    /* .tagging: ought to check the reference for a tag.  But
+     * this is conservative. */
     SegSetSummary(seg, RefSetAdd(arena, SegSummary(seg), ref));
 
     ShieldCover(arena, seg);
