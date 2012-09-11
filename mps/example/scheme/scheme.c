@@ -487,7 +487,6 @@ static obj_t make_character(char c)
   mps_addr_t addr;
   size_t size = ALIGN(sizeof(character_s));
   do {
-    /* FIXME: Alignment! */
     mps_res_t res = mps_reserve(&addr, obj_ap, size);
     if (res != MPS_RES_OK) error("out of memory in make_character");
     obj = addr;
@@ -1391,7 +1390,7 @@ static obj_t entry_or(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 
 
 /* entry_let -- (let <bindings> <body>) */
-/* @@@@ Too much common code with let* */
+/* TODO: Too much common code with let* */
 
 static obj_t entry_let(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 {
@@ -1399,7 +1398,7 @@ static obj_t entry_let(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
   unless(TYPE(operands) == TYPE_PAIR &&
          TYPE(CDR(operands)) == TYPE_PAIR)
     error("%s: illegal syntax", operator->operator.name);
-  inner_env = make_pair(obj_empty, env);	/* @@@@ common with interpret */
+  inner_env = make_pair(obj_empty, env);	/* TODO: common with interpret */
   bindings = CAR(operands);
   while(TYPE(bindings) == TYPE_PAIR) {
     obj_t binding = CAR(bindings);
@@ -1425,7 +1424,7 @@ static obj_t entry_let(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 
 
 /* entry_let_star -- (let* <bindings> <body>) */
-/* @@@@ Too much common code with let */
+/* TODO: Too much common code with let */
 
 static obj_t entry_let_star(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 {
@@ -1433,7 +1432,7 @@ static obj_t entry_let_star(obj_t env, obj_t op_env, obj_t operator, obj_t opera
   unless(TYPE(operands) == TYPE_PAIR &&
          TYPE(CDR(operands)) == TYPE_PAIR)
     error("%s: illegal syntax", operator->operator.name);
-  inner_env = make_pair(obj_empty, env);	/* @@@@ common with interpret */
+  inner_env = make_pair(obj_empty, env);	/* TODO: common with interpret */
   bindings = CAR(operands);
   while(TYPE(bindings) == TYPE_PAIR) {
     obj_t binding = CAR(bindings);
@@ -1459,7 +1458,7 @@ static obj_t entry_let_star(obj_t env, obj_t op_env, obj_t operator, obj_t opera
 
 
 /* entry_letrec -- (letrec <bindings> <body>) */
-/* @@@@ Too much common code with let and let* */
+/* TODO: Too much common code with let and let* */
 
 static obj_t entry_letrec(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 {
@@ -1467,7 +1466,7 @@ static obj_t entry_letrec(obj_t env, obj_t op_env, obj_t operator, obj_t operand
   unless(TYPE(operands) == TYPE_PAIR &&
          TYPE(CDR(operands)) == TYPE_PAIR)
     error("%s: illegal syntax", operator->operator.name);
-  inner_env = make_pair(obj_empty, env);	/* @@@@ common with interpret */
+  inner_env = make_pair(obj_empty, env);	/* TODO: common with interpret */
   bindings = CAR(operands);
   while(TYPE(bindings) == TYPE_PAIR) {
     obj_t binding = CAR(bindings);
@@ -1525,7 +1524,7 @@ static obj_t entry_delay(obj_t env, obj_t op_env, obj_t operator, obj_t operands
 
 
 /* entry_quasiquote -- (quasiquote <template>) or `<template> */
-/* @@@@ blech. */
+/* TODO: blech. */
 
 static obj_t entry_quasiquote(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 {
@@ -1733,7 +1732,7 @@ static int equalp(obj_t obj1, obj_t obj2)
     return 0;
   if(TYPE(obj1) == TYPE_PAIR)
     return equalp(CAR(obj1), CAR(obj2)) && equalp(CDR(obj1), CDR(obj2));
-  /* @@@@ Similar recursion for vectors. */
+  /* TODO: Similar recursion for vectors. */
   return eqvp(obj1, obj2);
 }
 
@@ -1994,7 +1993,7 @@ static obj_t entry_divide(obj_t env, obj_t op_env, obj_t operator, obj_t operand
   if(args == obj_empty) {
     if(result == 0)
       error("%s: reciprocal of zero", operator->operator.name);
-    result = 1/result;	/* @@@@ pretty meaningless for integers */
+    result = 1/result;	/* TODO: pretty meaningless for integers */
   } else {
     while(TYPE(args) == TYPE_PAIR) {
       unless(TYPE(CAR(args)) == TYPE_INTEGER)
@@ -2041,12 +2040,12 @@ static obj_t entry_open_in(obj_t env, obj_t op_env, obj_t operator, obj_t operan
     error("%s: argument must be a string", operator->operator.name);
   stream = fopen(filename->string.string, "r");
   if(stream == NULL)
-    error("%s: cannot open input file", operator->operator.name); /* @@@@ return error */
+    error("%s: cannot open input file", operator->operator.name); /* TODO: return error */
   return make_port(filename, stream);
 }
 
 
-/* @@@@ This doesn't work if the promise refers to its own value. */
+/* TODO: This doesn't work if the promise refers to its own value. */
 
 static obj_t entry_force(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 {
@@ -2208,7 +2207,7 @@ static obj_t entry_string_to_symbol(obj_t env, obj_t op_env, obj_t operator, obj
   eval_args(operator->operator.name, env, op_env, operands, 1, &string);
   unless(TYPE(string) == TYPE_STRING)
     error("%s: argument must be a string", operator->operator.name);
-  /* @@@@ Should pass length to intern to avoid problems with NUL termination. */
+  /* TODO: Should pass length to intern to avoid problems with NUL termination. */
   return intern(string->string.string);
 }
 
@@ -2580,7 +2579,7 @@ static void mps_chat(void)
       break;
     case mps_message_type_gc():
       printf("Collection finished.\n");
-      /* FIXME: Print statistics */
+      /* TODO: Print statistics */
       break;
     default:
       printf("Unknown message from MPS!\n");
