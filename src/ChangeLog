@@ -1,3 +1,7 @@
+2012-09-11  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* xdisp.c (Qinhibit_debug_on_message): Now static.
+
 2012-09-10  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsterm.m (ns_update_begin): Set clip path to whole view by using

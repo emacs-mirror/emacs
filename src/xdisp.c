@@ -364,7 +364,7 @@ static Lisp_Object Qslice;
 Lisp_Object Qcenter;
 static Lisp_Object Qmargin, Qpointer;
 static Lisp_Object Qline_height;
-Lisp_Object Qinhibit_debug_on_message;
+static Lisp_Object Qinhibit_debug_on_message;
 
 /* These setters are used only in this file, so they can be private.  */
 static inline void
