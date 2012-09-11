@@ -433,7 +433,7 @@ write_subdir=if [ -f $${subdir}/subdirs.el ]; \
 ### Install the executables that were compiled specifically for this machine.
 ### We do install-arch-indep first because the executable needs the
 ### Lisp files and DOC file to work properly.
-install-arch-dep: install-arch-indep install-doc
+install-arch-dep: src install-arch-indep install-doc
 	umask 022; ${MKDIR_P} $(DESTDIR)${bindir}
 	cd lib-src && \
 	  $(MAKE) install $(MFLAGS) prefix=${prefix} \
@@ -502,7 +502,7 @@ set_installuser=for installuser in $${LOGNAME} $${USERNAME} $${USER} \
 ## work correctly, and therefore no idea when tar can be replaced.
 ## See also these comments from 2004 about cp -r working fine:
 ## http://lists.gnu.org/archive/html/autoconf-patches/2004-11/msg00005.html
-install-arch-indep: install-info install-man ${INSTALL_ARCH_INDEP_EXTRA}
+install-arch-indep: lisp leim install-info install-man ${INSTALL_ARCH_INDEP_EXTRA}
 	umask 022 ; \
 	locallisppath='${locallisppath}'; \
 	IFS=:; \
@@ -573,7 +573,7 @@ install-arch-indep: install-info install-man ${INSTALL_ARCH_INDEP_EXTRA}
 
 ## Note that install-arch-indep deletes and recreates the entire
 ## installed etc/ directory, so we need it to run before this does.
-install-doc: install-arch-indep
+install-doc: src install-arch-indep
 	-unset CDPATH; \
 	umask 022; ${MKDIR_P} $(DESTDIR)${docdir} ; \
 	if [ `cd ./etc; /bin/pwd` != `cd $(DESTDIR)${docdir}; /bin/pwd` ]; \
