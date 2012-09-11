@@ -2001,7 +2001,10 @@ extern ptrdiff_t specpdl_size;
 
 #define SPECPDL_INDEX()	(specpdl_ptr - specpdl)
 
-/* Everything needed to describe an active condition case.  */
+/* Everything needed to describe an active condition case.
+
+   Members are volatile if their values need to survive _longjmp when
+   a 'struct handler' is a local variable.  */
 struct handler
   {
     /* The handler clauses and variable from the condition-case form.  */
@@ -2012,10 +2015,12 @@ struct handler
        error: handle all conditions, and errors can run the debugger
               or display a backtrace.  */
     Lisp_Object handler;
-    Lisp_Object var;
+
+    Lisp_Object volatile var;
+
     /* Fsignal stores here the condition-case clause that applies,
        and Fcondition_case thus knows which clause to run.  */
-    Lisp_Object chosen_clause;
+    Lisp_Object volatile chosen_clause;
 
     /* Used to effect the longjump out to the handler.  */
     struct catchtag *tag;
@@ -2041,19 +2046,21 @@ struct handler
    of the catch form.
 
    All the other members are concerned with restoring the interpreter
-   state.  */
+   state.
 
+   Members are volatile if their values need to survive _longjmp when
+   a 'struct catchtag' is a local variable.  */
 struct catchtag
 {
   Lisp_Object tag;
-  Lisp_Object val;
-  struct catchtag *next;
+  Lisp_Object volatile val;
+  struct catchtag *volatile next;
   struct gcpro *gcpro;
   jmp_buf jmp;
   struct backtrace *backlist;
   struct handler *handlerlist;
   EMACS_INT lisp_eval_depth;
-  ptrdiff_t pdlcount;
+  ptrdiff_t volatile pdlcount;
   int poll_suppress_count;
   int interrupt_input_blocked;
   struct byte_stack *byte_stack;

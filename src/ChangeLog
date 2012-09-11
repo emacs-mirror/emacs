@@ -1,5 +1,15 @@
 2012-09-11  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Avoid _setjmp/_longjmp problems with local nonvolatile variables.
+	If a nonvolatile local variable is written before a _longjmp to
+	the frame containing the variable, and is read after the _longjmp,
+	the value read is indeterminate.  Some local variables of type
+	'struct handler' and 'struct catchtag' are used in this way, so
+	mark each of their slots as volatile if the slot can be set before
+	_longjmp and read afterwards.
+	* lisp.h (struct handler): var and chosen_clause are now volatile.
+	(struct catchtag): val, next, and pdlcount are now volatile.
+
 	* bidi.c (bidi_push_it, bidi_pop_it):
 	* fns.c (copy_hash_table):
 	* image.c (define_image_type):
