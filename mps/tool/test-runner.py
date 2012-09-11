@@ -7,8 +7,8 @@
 # Background: knowing the history of MPS development for Configura is
 # an advantage.
 # Peer documents:
-#  <http://info.ravenbrook.com/project/mps/master/procedure/release-build/>.
-#  <http://info.ravenbrook.com/project/mps/master/procedure/release-configura/>.
+#  <http://info.ravenbrook.com/project/mps/version/1.110/procedure/release-build/>.
+#  <http://info.ravenbrook.com/project/mps/version/1.110/procedure/release-configura/>.
 
 # What do we test?
 # Not much -- this procedure is for a quick test before shipping,
