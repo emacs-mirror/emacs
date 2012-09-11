@@ -1,3 +1,12 @@
+2012-09-11  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.m (ns_judge_scroll_bars): Pass NO to updateFrameSize.
+	(updateFrameSize:): Add delay parameter to updateFrameSize, send it
+	to change_frame_size (Bug#12388).
+	(windowDidResize:): Pass YES to updateFrameSize.
+
+	* nsterm.h: Add delay parameter to updateFrameSize.
+
 2012-09-11  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Discard killed buffers from deleted window and frame objects.

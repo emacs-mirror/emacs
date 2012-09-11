@@ -3727,7 +3727,7 @@ ns_judge_scroll_bars (struct frame *f)
     }
 
   if (removed) 
-    [eview updateFrameSize];
+    [eview updateFrameSize: NO];
 }
 
 
@@ -5362,7 +5362,7 @@ not_in_argv (NSString *arg)
   return NO;
 }
 
-- (void) updateFrameSize
+- (void) updateFrameSize: (BOOL) delay;
 {
   NSWindow *window = [self window];
   NSRect wr = [window frame];
@@ -5400,7 +5400,7 @@ not_in_argv (NSString *arg)
       NSView *view = FRAME_NS_VIEW (emacsframe);
       FRAME_PIXEL_WIDTH (emacsframe) = neww;
       FRAME_PIXEL_HEIGHT (emacsframe) = newh;
-      change_frame_size (emacsframe, rows, cols, 0, 0, 1);
+      change_frame_size (emacsframe, rows, cols, 0, delay, 0);
       SET_FRAME_GARBAGED (emacsframe);
       cancel_mouse_face (emacsframe);
       [view setFrame: NSMakeRect (0, 0, neww, newh)];
@@ -5503,7 +5503,7 @@ not_in_argv (NSString *arg)
         x_set_window_size (emacsframe, 0, cols, rows);
       else
         {
-          [self updateFrameSize];
+          [self updateFrameSize: YES];
         }
     }
 #endif
