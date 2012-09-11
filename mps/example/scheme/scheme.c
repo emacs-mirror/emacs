@@ -20,6 +20,8 @@
  * collection cycles.  Note that there's never any waiting for the MPS.
  * THAT'S THE POINT.
  *
+ * To find the code that's particularly related to the MPS, search for %%MPS.
+ *
  *
  * MPS TO DO LIST
  * - make the symbol table weak to show how to use weak references
@@ -168,8 +170,9 @@ typedef struct vector_s {
 
 /* fwd, fwd2, pad1 -- MPS forwarding and padding objects
  *
- * These object types are here to satisfy the MPS Format Protocol for
- * format variant "A".
+ * %%MPS: These object types are here to satisfy the MPS Format Protocol
+ * for format variant "A".  See [type mps_fmt_A_s in the reference
+ * manual](../../reference/index.html#mps_fmt_A_s).
  *
  * The MPS needs to be able to replace any object with forwarding object
  * or [broken heart](http://www.memorymanagement.org/glossary/b.html#broken.heart)
@@ -310,11 +313,30 @@ static jmp_buf *error_handler;
 static char error_message[MSGMAX+1];
 
 
-/* MPS pools */
+/* MPS globals
+ *
+ * %%MPS: These are global variables holding MPS values for use by the
+ * interpreter.  In a more sophisticated integration some of these might
+ * be thread local.  See `main` for where these are set up.
+ *
+ * `arena` is the global state of the MPS, and there's usually only one
+ * per process.
+ *
+ * `obj_pool` is the memory pool in which the Scheme objects are allocated.
+ * It is an instance of the Automatic Mostly Copying (AMC) pool class, which
+ * is a general-purpose garbage collector for use when there are formatted
+ * objects in the pool, but ambiguous references in thread stacks and
+ * registers.
+ *
+ * `obj_ap` is an Allocation Point that allows fast in-line non-locking
+ * allocation in a memory pool.  This would usually be thread-local, but
+ * this interpreter is single-threaded.  See `make_pair` etc. for how this
+ * is used with the reserve/commit protocol.
+ */
 
-mps_arena_t arena;
-mps_pool_t obj_pool;
-mps_ap_t obj_ap;
+static mps_arena_t arena;       /* the arena */
+static mps_pool_t obj_pool;     /* pool for ordinary Scheme objects */
+static mps_ap_t obj_ap;         /* allocation point used to allocate objects */
 
 
 /* SUPPORT FUNCTIONS */
@@ -348,11 +370,15 @@ static void error(char *format, ...)
  * Each object type has a function here that allocates an instance of
  * that type.
  *
- * These functions illustrate the two-phase MPS Allocation Point Protocol
- * with `reserve` and `commmit`.  This protocol allows very fast in-line
- * allocation without locking, but there is a very tiny chance that the
- * object must be re-initialized.  In nearly all cases, however, it's
+ * %%MPS: These functions illustrate the two-phase MPS Allocation Point
+ * Protocol with `reserve` and `commmit`.  This protocol allows very fast
+ * in-line allocation without locking, but there is a very tiny chance that
+ * the object must be re-initialized.  In nearly all cases, however, it's
  * just a pointer bump.
+ *
+ * NOTE: We could reduce duplicated code here using macros, but we want to
+ * write these out because this is code to illustrate how to use the
+ * protocol.
  */
 
 #define ALIGN(size) \
@@ -362,6 +388,9 @@ static obj_t make_pair(obj_t car, obj_t cdr)
 {
   obj_t obj;
   mps_addr_t addr;
+  /* When using the allocation point protocol it is up to the client
+     code to ensure that all requests are for aligned sizes, because in
+     nearly all cases `mps_reserve` is just an increment to a pointer. */
   size_t size = ALIGN(sizeof(pair_s));
   do {
     mps_res_t res = mps_reserve(&addr, obj_ap, size);
@@ -370,6 +399,12 @@ static obj_t make_pair(obj_t car, obj_t cdr)
     obj->pair.type = TYPE_PAIR;
     CAR(obj) = car;
     CDR(obj) = cdr;
+    /* `mps_commit` returns false on very rare occasions (when an MPS epoch
+       change has happened since reserve) but in those cases the object must
+       be re-initialized.  It's therefore important not to do anything you
+       don't want to repeat between reserve and commit.  Also, the shorter
+       the time between reserve and commit, the less likely commit is to
+       return false. */
   } while(!mps_commit(obj_ap, addr, size));
   total += sizeof(pair_s);
   return obj;
@@ -2310,7 +2345,8 @@ static struct {char *name; entry_t entry;} funtab[] = {
 
 /* MPS Format
  *
- * These functions satisfy the MPS Format Protocol for format variant "A".
+ * %%MPS: These functions satisfy the MPS Format Protocol for format
+ * variant "A".
  *
  * In general, MPS format methods are performance critical, as they're used
  * on the MPS [critical path](..\..\design\critical-path.txt).
@@ -2329,8 +2365,9 @@ static struct {char *name; entry_t entry;} funtab[] = {
 
 /* obj_scan -- object format scanner
  *
- * The job of the scanner is to identify references in a contiguous group
- * of objects in memory.
+ * %%MPS: The job of the scanner is to identify references in a contiguous
+ * group of objects in memory, by passing them to the "fix" operation.
+ * This code is highly performance critical.
  */
 
 static mps_res_t obj_scan(mps_ss_t ss, mps_addr_t base, mps_addr_t limit)
@@ -2411,9 +2448,9 @@ static mps_res_t obj_scan(mps_ss_t ss, mps_addr_t base, mps_addr_t limit)
 }
 
 
-/* obj_skip -- object format skip method
+/* obj_skip -- object format skip method                        %%MPS
  *
- * The job of skip is to return the address where the next object would
+ * The job of `obj_skip` is to return the address where the next object would
  * be allocated.  This isn't quite the same as the size of the object,
  * since there may be some rounding according to the memory pool alignment
  * chosen.  This interpreter has chosen to align to single words.
@@ -2473,9 +2510,9 @@ static mps_addr_t obj_skip(mps_addr_t base)
 }
 
 
-/* obj_isfwd -- object format forwarded test
+/* obj_isfwd -- object format forwarded test                    %%MPS
  *
- * The job of obj_isfwd is to detect whether an object has been replaced
+ * The job of `obj_isfwd` is to detect whether an object has been replaced
  * by a forwarding object, and return the address of the new copy if it has,
  * otherwise NULL.  Note that this will return NULL for padding objects
  * because their `fwd` field is set to NULL.
@@ -2494,12 +2531,12 @@ static mps_addr_t obj_isfwd(mps_addr_t addr)
 }
 
 
-/* obj_fwd -- object format forwarding method
+/* obj_fwd -- object format forwarding method                   %%MPS
  *
- * The job of obj_fwd is to replace an object by a forwarding object that
+ * The job of `obj_fwd` is to replace an object by a forwarding object that
  * points at a new copy of the object.  The object must be detected by
  * `obj_isfwd`.  In this case, we have to be careful to replace two-word
- * objects with a FWD2 object, because the FWD object won't fit.
+ * objects with a `FWD2` object, because the `FWD` object won't fit.
  */
 
 static void obj_fwd(mps_addr_t old, mps_addr_t new)
@@ -2519,14 +2556,14 @@ static void obj_fwd(mps_addr_t old, mps_addr_t new)
 }
 
 
-/* obj_pad -- object format padding method
+/* obj_pad -- object format padding method                      %%MPS
  *
- * The job of obj_pad is to fill in a block of memory with a padding
+ * The job of `obj_pad` is to fill in a block of memory with a padding
  * object that will be skipped by `obj_scan` or `obj_skip` but does
  * nothing else.  Because we've chosen to align to single words, we may
  * have to pad a single word, so we have a special single-word padding
- * object, PAD1 for that purpose.  Otherwise we can use forwarding objects
- * with their `fwd` fields set to NULL.
+ * object, `PAD1` for that purpose.  Otherwise we can use forwarding
+ * objects with their `fwd` fields set to `NULL`.
  */
 
 static void obj_pad(mps_addr_t addr, size_t size)
@@ -2546,9 +2583,9 @@ static void obj_pad(mps_addr_t addr, size_t size)
 }
 
 
-/* obj_copy -- object format copy method
+/* obj_copy -- object format copy method                        %%MPS
  *
- * The job of obj_copy is to make a copy of an object.
+ * The job of `obj_copy` is to make a copy of an object.
  * TODO: Explain why this exists.
  */
 
@@ -2560,7 +2597,30 @@ static void obj_copy(mps_addr_t old, mps_addr_t new)
 }
 
 
-/* mps_chat -- get and display MPS messages */
+/* obj_fmt_s -- object format parameter structure               %%MPS
+ *
+ * This is simply a gathering of the object format methods and the chosen
+ * pool alignment for passing to `mps_fmt_create_A`.
+ */
+
+struct mps_fmt_A_s obj_fmt_s = {
+  sizeof(mps_word_t),
+  obj_scan,
+  obj_skip,
+  obj_copy,
+  obj_fwd,
+  obj_isfwd,
+  obj_pad
+};
+
+
+/* mps_chat -- get and display MPS messages                     %%MPS
+ *
+ * The MPS message protocol allows the MPS to communicate various things
+ * to the client code.  Because the MPS may run asynchronously the client
+ * must poll the MPS to pick up messages.  This function shows how this
+ * is done.
+ */
 
 static void mps_chat(void)
 {
@@ -2589,7 +2649,7 @@ static void mps_chat(void)
 }
 
 
-/* start -- the main program
+/* start -- the main program                                    %%MPS
  *
  * This is the main body of the Scheme interpreter program, invoked by
  * `mps_tramp` so that its stack and exception handling can be managed
@@ -2672,35 +2732,24 @@ static void *start(void *p, size_t s)
 }
 
 
-/* obj_fmt_s -- object format parameter structure
+/* obj_gen_params -- initial setup for generational GC          %%MPS
  *
- * This is simply a gathering of the object format methods and the chosen
- * pool alignment for passing to `mps_fmt_create_A`.
+ * FIXME: explain this
  */
 
-struct mps_fmt_A_s obj_fmt_s = {
-  sizeof(mps_word_t),
-  obj_scan,
-  obj_skip,
-  obj_copy,
-  obj_fwd,
-  obj_isfwd,
-  obj_pad
+static mps_gen_param_s obj_gen_params[] = {
+  { 150, 0.85 },
+  { 170, 0.45 }
 };
 
 
-/* main -- program entry point and MPS initialization */
+/* main -- program entry point and MPS initialization           %%MPS */
 
 int main(int argc, char *argv[])
 {
   mps_res_t res;
   mps_chain_t obj_chain;
   mps_fmt_t obj_fmt;
-  /* FIXME: explain this */
-  mps_gen_param_s obj_gen_params[] = {
-    { 150, 0.85 },
-    { 170, 0.45 }
-  };
   mps_thr_t thread;
   mps_root_t reg_root;
   void *r;
