@@ -166,8 +166,10 @@ This is typically a function to add in
                                             (or (mail-fetch-field "From") "")))
                        (address (cadr address-components)))
                   ;; Ignore mails from ourselves
-                  (unless (gnus-string-match-p gnus-ignored-from-addresses
-                                               address)
+                  (unless (and gnus-ignored-from-addresses
+                               address
+                               (gnus-string-match-p gnus-ignored-from-addresses
+                                                    address))
                     (let* ((photo-file (gnus-notifications-get-photo-file address))
                            (notification-id (gnus-notifications-notify
                                              (or (car address-components) address)

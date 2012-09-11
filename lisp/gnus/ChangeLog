@@ -1,3 +1,8 @@
+2012-09-11  Julien Danjou  <julien@danjou.info>
+
+	* gnus-notifications.el (gnus-notifications): Check for nil values in
+	ignored addresses check.
+
 2012-09-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* qp.el (quoted-printable-decode-region): Inline+CSE+strength-reduction.
