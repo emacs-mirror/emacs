@@ -3911,6 +3911,11 @@ The properties used on SYMBOL are `composefunc', `sendfunc',
   (put symbol 'hookvar (or hookvar 'mail-send-hook)))
 
 (defun set-temporary-overlay-map (map &optional keep-pred)
+  "Set MAP as a temporary overlay map.
+When KEEP-PRED is `t', using a key from the temporary keymap
+leaves this keymap activated.  KEEP-PRED can also be a function,
+which will have the same effect when it returns `t'.
+When KEEP-PRED is nil, the temporary keymap is used only once."
   (let* ((clearfunsym (make-symbol "clear-temporary-overlay-map"))
          (overlaysym (make-symbol "t"))
          (alist (list (cons overlaysym map)))

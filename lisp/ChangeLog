@@ -1,5 +1,10 @@
 2012-09-11  Bastien Guerry  <bzg@gnu.org>
 
+	* subr.el (set-temporary-overlay-map): Add a docstring.
+	(bug#12346)
+
+2012-09-11  Bastien Guerry  <bzg@gnu.org>
+
 	* minibuffer.el (completion-table-subvert): Fix docstring.
 	(bug#12347)
 
