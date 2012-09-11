@@ -3602,7 +3602,7 @@ kbd_buffer_store_event_hold (register struct input_event *event,
 
 	  if (hold_quit)
 	    {
-	      memcpy (hold_quit, event, sizeof (*event));
+	      *hold_quit = *event;
 	      return;
 	    }
 

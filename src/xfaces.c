@@ -661,7 +661,7 @@ x_create_gc (struct frame *f,
 	     XGCValues *xgcv)
 {
   GC gc = xmalloc (sizeof *gc);
-  memcpy (gc, xgcv, sizeof (XGCValues));
+  *gc = *xgcv;
   return gc;
 }
 

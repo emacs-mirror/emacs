@@ -6367,9 +6367,8 @@ process has been transmitted to the serial port.  */)
       if (!proc_encode_coding_system[new_outfd])
 	proc_encode_coding_system[new_outfd]
 	  = xmalloc (sizeof (struct coding_system));
-      memcpy (proc_encode_coding_system[new_outfd],
-	      proc_encode_coding_system[old_outfd],
-	      sizeof (struct coding_system));
+      *proc_encode_coding_system[new_outfd]
+	= *proc_encode_coding_system[old_outfd];
       memset (proc_encode_coding_system[old_outfd], 0,
 	      sizeof (struct coding_system));
 

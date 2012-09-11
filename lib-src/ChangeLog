@@ -1,3 +1,8 @@
+2012-09-11  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* pop.c (socket_connection) [HAVE_GETADDRINFO]:
+	Prefer assignment to memcpy when either will do.
+
 2012-08-31  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* etags.c (consider_token): Always zero-terminate token buffer.

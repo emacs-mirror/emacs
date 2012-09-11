@@ -1,5 +1,14 @@
 2012-09-11  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* bidi.c (bidi_push_it, bidi_pop_it):
+	* fns.c (copy_hash_table):
+	* image.c (define_image_type):
+	* keyboard.c (kbd_buffer_store_event_hold):
+	* process.c (Fprocess_send_eof):
+	* xfaces.c (x_create_gc) [HAVE_NS]:
+	* xgselect.c (xg_select):
+	Prefer assignment to memcpy when either will do.
+
 	* alloc.c (discard_killed_buffers): Tune and simplify a bit.
 	Use pointer-to-a-pointer to simplify and avoid a NILP check each
 	time an item is removed.  No need to mark this function 'inline';

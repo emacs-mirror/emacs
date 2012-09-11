@@ -3680,7 +3680,7 @@ copy_hash_table (struct Lisp_Hash_Table *h1)
 
   h2 = allocate_hash_table ();
   next = h2->header.next.vector;
-  memcpy (h2, h1, sizeof *h2);
+  *h2 = *h1;
   h2->header.next.vector = next;
   h2->key_and_value = Fcopy_sequence (h1->key_and_value);
   h2->hash = Fcopy_sequence (h1->hash);

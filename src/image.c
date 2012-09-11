@@ -593,7 +593,7 @@ define_image_type (struct image_type *type, int loaded)
       /* Make a copy of TYPE to avoid a bus error in a dumped Emacs.
          The initialized data segment is read-only.  */
       struct image_type *p = xmalloc (sizeof *p);
-      memcpy (p, type, sizeof *p);
+      *p = *type;
       p->next = image_types;
       image_types = p;
       success = Qt;

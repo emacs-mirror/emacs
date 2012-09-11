@@ -49,9 +49,9 @@ xg_select (int fds_lim, SELECT_TYPE *rfds, SELECT_TYPE *wfds, SELECT_TYPE *efds,
 	 && g_main_context_pending (context = g_main_context_default ())))
     return pselect (fds_lim, rfds, wfds, efds, timeout, sigmask);
 
-  if (rfds) memcpy (&all_rfds, rfds, sizeof (all_rfds));
+  if (rfds) all_rfds = *rfds;
   else FD_ZERO (&all_rfds);
-  if (wfds) memcpy (&all_wfds, wfds, sizeof (all_rfds));
+  if (wfds) all_wfds = *wfds;
   else FD_ZERO (&all_wfds);
 
   n_gfds = g_main_context_query (context, G_PRIORITY_LOW, &tmo_in_millisec,
