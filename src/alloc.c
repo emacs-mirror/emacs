@@ -5868,25 +5868,21 @@ mark_buffer (struct buffer *buffer)
 /* Remove killed buffers or items whose car is a killed buffer
    from LIST and return changed LIST.  Called during GC.  */
 
-static inline Lisp_Object
+static Lisp_Object
 discard_killed_buffers (Lisp_Object list)
 {
-  Lisp_Object tail, prev, tem;
+  Lisp_Object *prev = &list;
+  Lisp_Object tail;
 
-  for (tail = list, prev = Qnil; CONSP (tail); tail = XCDR (tail))
+  for (tail = list; CONSP (tail); tail = XCDR (tail))
     {
-      tem = XCAR (tail);
+      Lisp_Object tem = XCAR (tail);
       if (CONSP (tem))
 	tem = XCAR (tem);
       if (BUFFERP (tem) && !BUFFER_LIVE_P (XBUFFER (tem)))
-	{
-	  if (NILP (prev))
-	    list = XCDR (tail);
-	  else
-	    XSETCDR (prev, XCDR (tail));
-	}
+	*prev = XCDR (tail);
       else
-	prev = tail;
+	prev = &XCDR_AS_LVALUE (tail);
     }
   return list;
 }
@@ -6045,7 +6041,7 @@ mark_object (Lisp_Object arg)
 	    {
 	      struct window *w = (struct window *) ptr;
 	      bool leaf = NILP (w->hchild) && NILP (w->vchild);
-	      
+
 	      /* For live windows, Lisp code filters out killed buffers
 		 from both buffer lists.  For dead windows, we do it here
 		 in attempt to help GC to reclaim killed buffers faster.  */

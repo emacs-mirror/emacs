@@ -1,3 +1,10 @@
+2012-09-11  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* alloc.c (discard_killed_buffers): Tune and simplify a bit.
+	Use pointer-to-a-pointer to simplify and avoid a NILP check each
+	time an item is removed.  No need to mark this function 'inline';
+	the compiler knows better than we do.
+
 2012-09-11  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsterm.m (ns_judge_scroll_bars): Pass NO to updateFrameSize.
