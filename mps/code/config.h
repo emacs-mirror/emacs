@@ -393,6 +393,14 @@
 #define AMCLargeSegPAGES ((Count)8)
 
 
+/* Pool Class AWL configuration -- see poolawl.c for usage */
+
+#define AWL_HAVE_SEG_SA_LIMIT   TRUE
+#define AWL_SEG_SA_LIMIT        200     /* TODO: Improve guesswork with measurements */
+#define AWL_HAVE_TOTAL_SA_LIMIT FALSE
+#define AWL_TOTAL_SA_LIMIT      0
+
+
 #endif /* config_h */
 
 
