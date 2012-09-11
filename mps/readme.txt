@@ -56,8 +56,8 @@ This will produce an object file you can link with your project.  For
 details of how to configure the MPS, build libraries and tests, use
 IDEs, autoconf, etc. see [Building the MPS](manual/build.txt).
 
-A quick start to writing code that uses the MPS is the ["hello-world"
-example](example/hello-world/).
+For an example of using the MPS, see the [scheme interpreter
+example](example/scheme/).
 
 Then, to program and integrate the MPS you'll definitely need to read
 the [manual](manual/).
