@@ -213,7 +213,7 @@ Creating an arena
 -----------------
 
 Look up the reference manual entry for mps_arena_class_cl() at
-<http://www.ravenbrook.com/project/mps/master/manual/reference/#
+<http://www.ravenbrook.com/project/mps/version/1.110/manual/reference/#
 mps_arena_class_cl>.  The notes and example code in the manual entry
 describe the additional parameters that we need to pass to
 "mps_arena_create()".  For a "CL" class arena, we first allocate a big
@@ -303,7 +303,7 @@ If you attempt to look up the reference manual entries for
 missing.  Section 4 of the reference manual lists them as valid
 client-callable functions, but currently undocumented:
 
-  <http://www.ravenbrook.com/project/mps/master/manual/reference/#section-4>
+  <http://www.ravenbrook.com/project/mps/version/1.110/manual/reference/#section-4>
 
 Don't despair.  Look in the "code" subdirectory of the MPS-kit, and find
 the file "poolmv.h".
