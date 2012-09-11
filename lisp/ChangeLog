@@ -1,6 +1,11 @@
 2012-09-11  Bastien Guerry  <bzg@gnu.org>
 
-	* help-fns.el (describe-variable): Fix typo.
+	* minibuffer.el (completion-table-subvert): Fix docstring.
+	(bug#12347)
+
+2012-09-11  Bastien Guerry  <bzg@gnu.org>
+
+	* help-fns.el (describe-variable): Fix typo. (bug#12346)
 
 2012-09-10  Michael R. Mauger  <mmaug@yahoo.com>
 

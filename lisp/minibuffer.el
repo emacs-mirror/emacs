@@ -211,10 +211,10 @@ case sensitive instead."
       (complete-with-action action table string pred))))
 
 (defun completion-table-subvert (table s1 s2)
-  "Completion table that replaces the prefix S1 with S2 in STRING.
+  "Return a completion table from TABLE with S1 replaced by S2.
 The result is a completion table which completes strings of the
-form (concat S1 S) in the same way as TABLE completes strings of
-the form (concat S2 S)."
+form (concat S2 S) in the same way as TABLE completes strings of
+the form (concat S1 S)."
   (lambda (string pred action)
     (let* ((str (if (eq t (compare-strings string 0 (length s1) s1 nil nil
                                            completion-ignore-case))
