@@ -1,3 +1,8 @@
+2012-09-11  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/shadow.el (load-path-shadows-font-lock-keywords):
+	Be more robust about locating simple.el.
+
 2012-09-10  Glenn Morris  <rgm@gnu.org>
 
 	* mail/emacsbug.el (report-emacs-bug): Trap load-path-shadows errors.
