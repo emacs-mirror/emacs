@@ -2591,6 +2591,7 @@ x_draw_glyph_string (struct glyph_string *s)
                 w32_set_clip_rectangle (next->hdc, NULL);
 		next->hl = save;
 		next->num_clips = 0;
+		next->clip_head = s->next;
 	      }
 	}
     }

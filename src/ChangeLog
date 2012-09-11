@@ -1,3 +1,13 @@
+2012-09-11  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* xdisp.c (right_overwritten, right_overwriting): Also handle gstring
+	composition cases (Bug#12364).
+
+	* xterm.c (x_draw_glyph_string): Avoid overwriting inverted left
+	overhang of succeeding glyphs overlapping box cursor.
+
+	* w32term.c (x_draw_glyph_string): Likewise.
+
 2012-09-11  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Simplify, document, and port floating-point (Bug#12381).

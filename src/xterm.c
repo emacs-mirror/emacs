@@ -2975,6 +2975,7 @@ x_draw_glyph_string (struct glyph_string *s)
 		XSetClipMask (next->display, next->gc, None);
 		next->hl = save;
 		next->num_clips = 0;
+		next->clip_head = s->next;
 	      }
 	}
     }
