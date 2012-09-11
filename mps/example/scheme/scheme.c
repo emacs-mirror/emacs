@@ -172,9 +172,9 @@ typedef struct vector_s {
 } vector_s;
 
 
-/* fwd, fwd2, pad1 -- MPS forwarding and padding objects
+/* fwd, fwd2, pad1 -- MPS forwarding and padding objects        %%MPS
  *
- * %%MPS: These object types are here to satisfy the MPS Format Protocol
+ * These object types are here to satisfy the MPS Format Protocol
  * for format variant "A".  See [type mps_fmt_A_s in the reference
  * manual](../../reference/index.html#mps_fmt_A_s).
  *
