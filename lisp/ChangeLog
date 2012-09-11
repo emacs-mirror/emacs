@@ -1,3 +1,7 @@
+2012-09-11  Bastien Guerry  <bzg@gnu.org>
+
+	* help-fns.el (describe-variable): Fix typo.
+
 2012-09-10  Michael R. Mauger  <mmaug@yahoo.com>
 
 	* progmodes/sql.el: Version 3.1
