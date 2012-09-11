@@ -2107,7 +2107,7 @@ DEFUN ("combine-after-change-execute", Fcombine_after_change_execute,
      non-nil, and insertion calls a file handler (e.g. through
      lock_file) which scribbles into a temp file -- cyd  */
   if (!BUFFERP (combine_after_change_buffer)
-      || NILP (BVAR (XBUFFER (combine_after_change_buffer), name)))
+      || !BUFFER_LIVE_P (XBUFFER (combine_after_change_buffer)))
     {
       combine_after_change_list = Qnil;
       return Qnil;

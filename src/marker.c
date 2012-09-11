@@ -407,7 +407,7 @@ Returns nil if MARKER points into a dead buffer.  */)
 	 does not preserve the buffer from being GC'd (it's weak), so
 	 markers have to be unlinked from their buffer as soon as the buffer
 	 is killed.  */
-      eassert (!NILP (BVAR (XBUFFER (buf), name)));
+      eassert (BUFFER_LIVE_P (XBUFFER (buf)));
       return buf;
     }
   return Qnil;
@@ -462,13 +462,13 @@ live_buffer (Lisp_Object buffer)
   if (NILP (buffer))
     {
       b = current_buffer;
-      eassert (!NILP (BVAR (b, name)));
+      eassert (BUFFER_LIVE_P (b));
     }
   else
     {
       CHECK_BUFFER (buffer);
       b = XBUFFER (buffer);
-      if (NILP (BVAR (b, name)))
+      if (!BUFFER_LIVE_P (b))
        b = NULL;
     }
   return b;
@@ -595,7 +595,7 @@ unchain_marker (register struct Lisp_Marker *marker)
       register struct Lisp_Marker *tail, **prev;
 
       /* No dead buffers here.  */
-      eassert (!NILP (BVAR (b, name)));
+      eassert (BUFFER_LIVE_P (b));
 
       marker->buffer = NULL;
       prev = &BUF_MARKERS (b);

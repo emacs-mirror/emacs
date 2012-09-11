@@ -3682,7 +3682,7 @@ build_marker (struct buffer *buf, ptrdiff_t charpos, ptrdiff_t bytepos)
   struct Lisp_Marker *m;
 
   /* No dead buffers here.  */
-  eassert (!NILP (BVAR (buf, name)));
+  eassert (BUFFER_LIVE_P (buf));
 
   /* Every character is at least one byte.  */
   eassert (charpos <= bytepos);

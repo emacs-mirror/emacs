@@ -1873,7 +1873,7 @@ print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag
 	}
       else if (BUFFERP (obj))
 	{
-	  if (NILP (BVAR (XBUFFER (obj), name)))
+	  if (!BUFFER_LIVE_P (XBUFFER (obj)))
 	    strout ("#<killed buffer>", -1, -1, printcharfun);
 	  else if (escapeflag)
 	    {

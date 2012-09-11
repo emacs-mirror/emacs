@@ -5298,7 +5298,7 @@ read_process_output (Lisp_Object proc, register int channel)
     }
 
   /* If no filter, write into buffer if it isn't dead.  */
-  else if (!NILP (p->buffer) && !NILP (BVAR (XBUFFER (p->buffer), name)))
+  else if (!NILP (p->buffer) && BUFFER_LIVE_P (XBUFFER (p->buffer)))
     {
       Lisp_Object old_read_only;
       ptrdiff_t old_begv, old_zv;
@@ -6722,7 +6722,7 @@ status_notify (struct Lisp_Process *deleting_process)
 
 	      /* Avoid error if buffer is deleted
 		 (probably that's why the process is dead, too) */
-	      if (NILP (BVAR (XBUFFER (buffer), name)))
+	      if (!BUFFER_LIVE_P (XBUFFER (buffer)))
 		continue;
 	      Fset_buffer (buffer);
 

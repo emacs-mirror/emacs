@@ -3667,7 +3667,7 @@ handle_fontified_prop (struct it *it)
       	}
       /* There isn't much we can reasonably do to protect against
       	 misbehaving fontification, but here's a fig leaf.  */
-      else if (!NILP (BVAR (obuf, name)))
+      else if (BUFFER_LIVE_P (obuf))
       	set_buffer_internal_1 (obuf);
 
       /* The fontification code may have added/removed text.
@@ -9910,7 +9910,7 @@ ensure_echo_area_buffers (void)
 
   for (i = 0; i < 2; ++i)
     if (!BUFFERP (echo_buffer[i])
-	|| NILP (BVAR (XBUFFER (echo_buffer[i]), name)))
+	|| !BUFFER_LIVE_P (XBUFFER (echo_buffer[i])))
       {
 	char name[30];
 	Lisp_Object old_buffer;

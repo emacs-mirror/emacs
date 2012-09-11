@@ -1734,7 +1734,7 @@ readevalloop (Lisp_Object readcharfun,
     {
       ptrdiff_t count1 = SPECPDL_INDEX ();
 
-      if (b != 0 && NILP (BVAR (b, name)))
+      if (b != 0 && !BUFFER_LIVE_P (b))
 	error ("Reading from killed buffer");
 
       if (!NILP (start))

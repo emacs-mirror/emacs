@@ -959,7 +959,10 @@ bset_width_table (struct buffer *b, Lisp_Object val)
   b->INTERNAL_FIELD (width_table) = val;
 }
 
-
+/* Convenient check whether buffer B is live.  */
+
+#define BUFFER_LIVE_P(b) (!NILP (BVAR (b, name)))
+
 /* Chain of all buffers, including killed ones.  */
 
 extern struct buffer *all_buffers;

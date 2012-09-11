@@ -1,3 +1,10 @@
+2012-09-11  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Convenient macro to check whether the buffer is live.
+	* buffer.h (BUFFER_LIVE_P): New macro.
+	* alloc.c, buffer.c, editfns.c, insdel.c, lread.c, marker.c:
+	* minibuf.c, print.c, process.c, window.c, xdisp.c: Use it.
+
 2012-09-11  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* xdisp.c (right_overwritten, right_overwriting): Also handle gstring

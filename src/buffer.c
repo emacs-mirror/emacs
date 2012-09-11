@@ -388,7 +388,7 @@ DEFUN ("buffer-live-p", Fbuffer_live_p, Sbuffer_live_p, 1, 1, 0,
 Value is nil if OBJECT is not a buffer or if it has been killed.  */)
   (Lisp_Object object)
 {
-  return ((BUFFERP (object) && ! NILP (BVAR (XBUFFER (object), name)))
+  return ((BUFFERP (object) && BUFFER_LIVE_P (XBUFFER (object)))
 	  ? Qt : Qnil);
 }
 
@@ -776,7 +776,7 @@ CLONE nil means the indirect buffer's state is reset to default values.  */)
   base_buffer = Fget_buffer (base_buffer);
   if (NILP (base_buffer))
     error ("No such buffer: `%s'", SDATA (tem));
-  if (NILP (BVAR (XBUFFER (base_buffer), name)))
+  if (!BUFFER_LIVE_P (XBUFFER (base_buffer)))
     error ("Base buffer has been killed");
 
   if (SCHARS (name) == 0)
@@ -1553,7 +1553,7 @@ exists, return the buffer `*scratch*' (creating it if necessary).  */)
     {
       buf = XCAR (tail);
       if (BUFFERP (buf) && !EQ (buf, buffer)
-	  && !NILP (BVAR (XBUFFER (buf), name))
+	  && BUFFER_LIVE_P (XBUFFER (buf))
 	  && (SREF (BVAR (XBUFFER (buf), name), 0) != ' ')
 	  /* If the frame has a buffer_predicate, disregard buffers that
 	     don't fit the predicate.  */
@@ -1573,7 +1573,7 @@ exists, return the buffer `*scratch*' (creating it if necessary).  */)
     {
       buf = Fcdr (XCAR (tail));
       if (BUFFERP (buf) && !EQ (buf, buffer)
-	  && !NILP (BVAR (XBUFFER (buf), name))
+	  && BUFFER_LIVE_P (XBUFFER (buf))
 	  && (SREF (BVAR (XBUFFER (buf), name), 0) != ' ')
 	  /* If the frame has a buffer_predicate, disregard buffers that
 	     don't fit the predicate.  */
@@ -1615,7 +1615,7 @@ other_buffer_safely (Lisp_Object buffer)
     {
       buf = Fcdr (XCAR (tail));
       if (BUFFERP (buf) && !EQ (buf, buffer)
-	  && !NILP (BVAR (XBUFFER (buf), name))
+	  && BUFFER_LIVE_P (XBUFFER (buf))
 	  && (SREF (BVAR (XBUFFER (buf), name), 0) != ' '))
 	return buf;
     }
@@ -1734,7 +1734,7 @@ cleaning up all windows currently displaying the buffer to be killed. */)
   b = XBUFFER (buffer);
 
   /* Avoid trouble for buffer already dead.  */
-  if (NILP (BVAR (b, name)))
+  if (!BUFFER_LIVE_P (b))
     return Qnil;
 
   /* Query if the buffer is still modified.  */
@@ -1770,7 +1770,7 @@ cleaning up all windows currently displaying the buffer to be killed. */)
   }
 
   /* If the hooks have killed the buffer, exit now.  */
-  if (NILP (BVAR (b, name)))
+  if (!BUFFER_LIVE_P (b))
     return Qt;
 
   /* We have no more questions to ask.  Verify that it is valid
@@ -1802,7 +1802,7 @@ cleaning up all windows currently displaying the buffer to be killed. */)
       UNGCPRO;
 
       /* Exit if we now have killed the base buffer (Bug#11665).  */
-      if (NILP (BVAR (b, name)))
+      if (!BUFFER_LIVE_P (b))
 	return Qt;
     }
 
@@ -1813,7 +1813,7 @@ cleaning up all windows currently displaying the buffer to be killed. */)
   replace_buffer_in_windows (buffer);
 
   /* Exit if replacing the buffer in windows has killed our buffer.  */
-  if (NILP (BVAR (b, name)))
+  if (!BUFFER_LIVE_P (b))
     return Qt;
 
   /* Make this buffer not be current.  Exit if it is the sole visible
@@ -1846,7 +1846,7 @@ cleaning up all windows currently displaying the buffer to be killed. */)
 
   /* Killing buffer processes may run sentinels which may have killed
      our buffer.  */
-  if (NILP (BVAR (b, name)))
+  if (!BUFFER_LIVE_P (b))
     return Qt;
 
   /* These may run Lisp code and into infinite loops (if someone
@@ -1878,7 +1878,7 @@ cleaning up all windows currently displaying the buffer to be killed. */)
     }
 
   /* Deleting an auto-save file could have killed our buffer.  */
-  if (NILP (BVAR (b, name)))
+  if (!BUFFER_LIVE_P (b))
     return Qt;
 
   if (b->base_buffer)
@@ -2047,7 +2047,7 @@ the current buffer's major mode.  */)
 
   CHECK_BUFFER (buffer);
 
-  if (NILP (BVAR (XBUFFER (buffer), name)))
+  if (!BUFFER_LIVE_P (XBUFFER (buffer)))
     error ("Attempt to set major mode for a dead buffer");
 
   if (strcmp (SSDATA (BVAR (XBUFFER (buffer), name)), "*scratch*") == 0)
@@ -2183,7 +2183,7 @@ ends when the current command terminates.  Use `switch-to-buffer' or
   buffer = Fget_buffer (buffer_or_name);
   if (NILP (buffer))
     nsberror (buffer_or_name);
-  if (NILP (BVAR (XBUFFER (buffer), name)))
+  if (!BUFFER_LIVE_P (XBUFFER (buffer)))
     error ("Selecting deleted buffer");
   set_buffer_internal (XBUFFER (buffer));
   return buffer;
@@ -2194,7 +2194,7 @@ ends when the current command terminates.  Use `switch-to-buffer' or
 Lisp_Object
 set_buffer_if_live (Lisp_Object buffer)
 {
-  if (! NILP (BVAR (XBUFFER (buffer), name)))
+  if (BUFFER_LIVE_P (XBUFFER (buffer)))
     set_buffer_internal (XBUFFER (buffer));
   return Qnil;
 }
@@ -2289,7 +2289,7 @@ DEFUN ("buffer-swap-text", Fbuffer_swap_text, Sbuffer_swap_text,
   CHECK_BUFFER (buffer);
   other_buffer = XBUFFER (buffer);
 
-  if (NILP (BVAR (other_buffer, name)))
+  if (!BUFFER_LIVE_P (other_buffer))
     error ("Cannot swap a dead buffer's text");
 
   /* Actually, it probably works just fine.
@@ -2685,7 +2685,7 @@ current buffer is cleared.  */)
   /* Copy this buffer's new multibyte status
      into all of its indirect buffers.  */
   FOR_EACH_BUFFER (other)
-    if (other->base_buffer == current_buffer && !NILP (BVAR (other, name)))
+    if (other->base_buffer == current_buffer && BUFFER_LIVE_P (other))
       {
 	BVAR (other, enable_multibyte_characters)
 	  = BVAR (current_buffer, enable_multibyte_characters);

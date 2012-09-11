@@ -798,7 +798,7 @@ get_minibuffer (EMACS_INT depth)
       Vminibuffer_list = nconc2 (Vminibuffer_list, tail);
     }
   buf = Fcar (tail);
-  if (NILP (buf) || NILP (BVAR (XBUFFER (buf), name)))
+  if (NILP (buf) || !BUFFER_LIVE_P (XBUFFER (buf)))
     {
       buf = Fget_buffer_create
 	(make_formatted_string (name, " *Minibuf-%"pI"d*", depth));

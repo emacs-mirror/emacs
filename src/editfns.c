@@ -2613,7 +2613,7 @@ They default to the values of (point-min) and (point-max) in BUFFER.  */)
   if (NILP (buf))
     nsberror (buffer);
   bp = XBUFFER (buf);
-  if (NILP (BVAR (bp, name)))
+  if (!BUFFER_LIVE_P (bp))
     error ("Selecting deleted buffer");
 
   if (NILP (start))
@@ -2677,7 +2677,7 @@ determines whether case is significant or ignored.  */)
       if (NILP (buf1))
 	nsberror (buffer1);
       bp1 = XBUFFER (buf1);
-      if (NILP (BVAR (bp1, name)))
+      if (!BUFFER_LIVE_P (bp1))
 	error ("Selecting deleted buffer");
     }
 
@@ -2715,7 +2715,7 @@ determines whether case is significant or ignored.  */)
       if (NILP (buf2))
 	nsberror (buffer2);
       bp2 = XBUFFER (buf2);
-      if (NILP (BVAR (bp2, name)))
+      if (!BUFFER_LIVE_P (bp2))
 	error ("Selecting deleted buffer");
     }
 
