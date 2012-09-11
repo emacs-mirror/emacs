@@ -249,7 +249,7 @@ typedef union obj_u {
 static size_t total;
 
 
-/* symtab -- symbol table
+/* symtab -- symbol table                                       %%MPS
  *
  * The symbol table is a hash-table containing objects of TYPE_SYMBOL.
  * When a string is "interned" it is looked up in the table, and added
@@ -317,9 +317,9 @@ static jmp_buf *error_handler;
 static char error_message[MSGMAX+1];
 
 
-/* MPS globals
+/* MPS globals                                                  %%MPS
  *
- * %%MPS: These are global variables holding MPS values for use by the
+ * These are global variables holding MPS values for use by the
  * interpreter.  In a more sophisticated integration some of these might
  * be thread local.  See `main` for where these are set up.
  *
@@ -369,12 +369,12 @@ static void error(char *format, ...)
 }
 
 
-/* make_* -- object constructors
+/* make_* -- object constructors                                %%MPS
  *
  * Each object type has a function here that allocates an instance of
  * that type.
  *
- * %%MPS: These functions illustrate the two-phase MPS Allocation Point
+ * These functions illustrate the two-phase MPS Allocation Point
  * Protocol with `reserve` and `commmit`.  This protocol allows very fast
  * in-line allocation without locking, but there is a very tiny chance that
  * the object must be re-initialized.  In nearly all cases, however, it's
@@ -2347,9 +2347,9 @@ static struct {char *name; entry_t entry;} funtab[] = {
 };
 
 
-/* MPS Format
+/* MPS Format                                                   %%MPS
  *
- * %%MPS: These functions satisfy the MPS Format Protocol for format
+ * These functions satisfy the MPS Format Protocol for format
  * variant "A".
  *
  * In general, MPS format methods are performance critical, as they're used
@@ -2367,9 +2367,9 @@ static struct {char *name; entry_t entry;} funtab[] = {
  */
 
 
-/* obj_scan -- object format scanner
+/* obj_scan -- object format scanner                            %%MPS
  *
- * %%MPS: The job of the scanner is to identify references in a contiguous
+ * The job of the scanner is to identify references in a contiguous
  * group of objects in memory, by passing them to the "fix" operation.
  * This code is highly performance critical.
  */
