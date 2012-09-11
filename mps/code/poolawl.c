@@ -289,50 +289,79 @@ DEFINE_SEG_CLASS(AWLSegClass, class)
 }
 
 
-/* Single access permission control parameters */
+/* Single access pattern control parameters
+ *
+ * These control the number of expensive emulated single-accesses we allow
+ * before we give up and scan a segment at whatever rank, possibly causing
+ * retention of weak objects.
+ *
+ * AWLSegSALimit is the number of accesses for a single segment in a GC cycle.
+ * AWLTotalSALimit is the total number of accesses during a GC cycle.
+ *
+ * These should be set in config.h, but are here in static variables so that
+ * it's possible to tweak them in a debugger.
+ */
 
-Count AWLSegSALimit = 0; /* Number of single accesses permitted per segment */
-Bool AWLHaveSegSALimit = FALSE;  /* When TRUE, AWLSegSALimit applies */
+Count AWLSegSALimit = AWL_SEG_SA_LIMIT;
+Bool AWLHaveSegSALimit = AWL_HAVE_SEG_SA_LIMIT;
 
-Count AWLTotalSALimit = 0; /* Number of single accesses permitted in a row */
-Bool AWLHaveTotalSALimit = FALSE;  /* When TRUE, AWLTotalSALimit applies */
+Count AWLTotalSALimit = AWL_TOTAL_SA_LIMIT;
+Bool AWLHaveTotalSALimit = AWL_HAVE_TOTAL_SA_LIMIT;
 
 
 /* Determine whether to permit scanning a single ref. */
 
-static Bool AWLCanTrySingleAccess(AWL awl, Seg seg, Addr addr)
+static Bool AWLCanTrySingleAccess(Arena arena, AWL awl, Seg seg, Addr addr)
 {
+  AWLSeg awlseg;
+
   AVERT(AWL, awl);
   AVERT(Seg, seg);
   AVER(addr != NULL);
 
   /* .assume.noweak */
   /* .assume.alltraceable */
-  if(RankSetIsMember(SegRankSet(seg), RankWEAK)) {
-    AWLSeg awlseg;
+  if (!RankSetIsMember(SegRankSet(seg), RankWEAK))
+    return FALSE;
 
-    awlseg = Seg2AWLSeg(seg);
-    AVERT(AWLSeg, awlseg);
-
-    if(AWLHaveTotalSALimit) {
-      if(AWLTotalSALimit < awl->succAccesses) {
-        STATISTIC(awl->stats.declined++);
-        return FALSE; /* decline single access because of total limit */
-      }
-    }
-
-    if(AWLHaveSegSALimit) {
-      if(AWLSegSALimit < awlseg->singleAccesses) {
-        STATISTIC(awl->stats.declined++);
-        return FALSE; /* decline single access because of segment limit */
-      }
-    }
-
-    return TRUE;
-
-  } else {
-    return FALSE; /* Single access only for weak segs (.assume.noweak) */
+  /* If there are no traces in progress then the segment isn't read
+     protected and this is just an ordinary write barrier hit.  No need to
+     scan at all. */
+  if (arena->flippedTraces == TraceSetEMPTY) {
+    AVER(!(SegSM(seg) & AccessREAD));
+    return FALSE;
   }
+
+  /* The trace is already in the weak band, so we can scan the whole
+     segment without retention anyway.  Go for it. */
+  if (TraceRankForAccess(arena, seg) == RankWEAK)
+    return FALSE;
+
+  awlseg = Seg2AWLSeg(seg);
+  AVERT(AWLSeg, awlseg);
+
+  /* If there have been too many single accesses in a row then don't
+     keep trying them, even if it means retaining objects. */
+  if(AWLHaveTotalSALimit) {
+    if(awl->succAccesses >= AWLTotalSALimit) {
+      STATISTIC(awl->stats.declined++);
+      EVENT2(AWLDeclineTotal, seg, awl->succAccesses);
+      return FALSE; /* decline single access because of total limit */
+    }
+  }
+
+  /* If there have been too many single accesses to this segment
+     then don't keep trying them, even if it means retaining objects.
+     (Observed behaviour in Open Dylan 2012-09-10 by RB.) */
+  if(AWLHaveSegSALimit) {
+    if(awlseg->singleAccesses >= AWLSegSALimit) {
+      STATISTIC(awl->stats.declined++);
+      EVENT2(AWLDeclineSeg, seg, awlseg->singleAccesses);
+      return FALSE; /* decline single access because of segment limit */
+    }
+  }
+
+  return TRUE;
 }
 
 
@@ -1116,9 +1145,9 @@ static Res AWLAccess(Pool pool, Seg seg, Addr addr,
   AVER(SegBase(seg) <= addr);
   AVER(addr < SegLimit(seg));
   AVER(SegPool(seg) == pool);
-
+  
   /* Attempt scanning a single reference if permitted */
-  if(AWLCanTrySingleAccess(awl, seg, addr)) {
+  if(AWLCanTrySingleAccess(PoolArena(pool), awl, seg, addr)) {
     res = PoolSingleAccess(pool, seg, addr, mode, context);
     switch(res) {
       case ResOK:

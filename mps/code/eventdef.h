@@ -68,7 +68,7 @@
  */
  
 #define EventNameMAX ((size_t)19)
-#define EventCodeMAX ((EventCode)0x0071)
+#define EventCodeMAX ((EventCode)0x0073)
 
 #define EVENT_LIST(EVENT, X) \
   /*       0123456789012345678 <- don't exceed without changing EventNameMAX */ \
@@ -177,7 +177,9 @@
   EVENT(X, MessagesExist      , 0x006E,  TRUE, Arena) \
   EVENT(X, ChainCondemnAuto   , 0x006F,  TRUE, Trace) \
   EVENT(X, TraceFindGrey      , 0x0070,  TRUE, Trace) \
-  EVENT(X, TraceBandAdvance   , 0x0071,  TRUE, Trace)
+  EVENT(X, TraceBandAdvance   , 0x0071,  TRUE, Trace) \
+  EVENT(X, AWLDeclineTotal    , 0x0072,  TRUE, Trace) \
+  EVENT(X, AWLDeclineSeg      , 0x0073,  TRUE, Trace)
   
 
 /* Remember to update EventNameMAX and EventCodeMAX in eventcom.h! 
@@ -609,6 +611,14 @@
   PARAM(X,  0, P, arena) \
   PARAM(X,  1, W, ti) \
   PARAM(X,  2, W, rank)
+
+#define EVENT_AWLDeclineTotal_PARAMS(PARAM, X) \
+  PARAM(X,  0, P, seg)          /* segment declined single access */ \
+  PARAM(X,  1, U, succAccesses) /* total successive accesses */
+
+#define EVENT_AWLDeclineSeg_PARAMS(PARAM, X) \
+  PARAM(X,  0, P, seg)          /* segment declined single access */ \
+  PARAM(X,  1, U, singleAccesses) /* single accesses this cycle */
 
 
 #endif /* eventdef_h */
