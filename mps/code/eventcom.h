@@ -18,6 +18,10 @@
  *
  * On platforms that support it, we want to stamp events with a very cheap
  * and fast high-resolution timer.
+ *
+ * TODO: This is a sufficiently complicated nest of ifdefs that it should
+ * be quarantined in its own header with KEEP OUT signs attached.
+ * RB 2012-09-11
  */
 
 /* TODO: Clang supposedly provides a cross-platform builtin for a fast
@@ -36,9 +40,32 @@
    <http://msdn.microsoft.com/en-US/library/twchhe95%28v=vs.100%29.aspx> */
 #if (defined(MPS_ARCH_I3) || defined(MPS_ARCH_I6)) && defined(MPS_BUILD_MV)
 
+typedef unsigned __int64 EventClock;
+
+#if _MSC_VER >= 1400
+
 #pragma intrinsic(__rdtsc)
 
-typedef unsigned __int64 EventClock;
+#else /* _MSC_VER < 1400 */
+
+/* Fake the __rdtsc intrinsic for old Microsoft C versions. */
+static __inline unsigned __int64 __rdtsc()
+{
+  union {
+    struct {
+      unsigned low, high;
+    } half;
+    unsigned __int64 whole;
+  } li;
+  __asm {
+    __asm __emit 0fh __asm __emit 031h      ; rdtsc
+    mov li.half.high, edx
+    mov li.half.low, eax
+  }
+  return li.whole;
+}
+
+#endif /* _MSC_VER >= 1400 */
 
 #define EVENT_CLOCK(lvalue) \
   BEGIN \
