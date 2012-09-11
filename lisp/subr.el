@@ -252,7 +252,9 @@ Treated as a declaration when used at the right place in a
 
 (defmacro ignore-errors (&rest body)
   "Execute BODY; if an error occurs, return nil.
-Otherwise, return result of last form in BODY."
+Otherwise, return result of last form in BODY.
+See also `with-demoted-errors' that does something similar
+without silencing all errors."
   (declare (debug t) (indent 0))
   `(condition-case nil (progn ,@body) (error nil)))
 

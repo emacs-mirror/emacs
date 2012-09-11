@@ -1,3 +1,7 @@
+2012-09-11  Leo Liu  <sdl.web@gmail.com>
+
+	* subr.el (ignore-errors): Mention with-demoted-errors in doc-string.
+
 2012-09-11  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/shadow.el (load-path-shadows-font-lock-keywords):
