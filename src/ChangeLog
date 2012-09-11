@@ -1,5 +1,26 @@
 2012-09-11  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Simplify, document, and port floating-point (Bug#12381).
+	The porting part of this patch fixes bugs on non-IEEE platforms
+	with frexp, ldexp, logb.
+	* data.c, lisp.h (Qdomain_error, Qsingularity_error, Qunderflow_error):
+	Now static.
+	* floatfns.c: Simplify discussion of functions that Emacs doesn't
+	support, by removing commented-out code and briefly listing the
+	C89 functions excluded.  The commented-out stuff was confusing
+	maintenance, e.g., we thought we needed cbrt but it was commented out.
+	(logb): Remove decl; no longer needed.
+	(isfinite): New macro, if not already supplied.
+	(isnan): Don't replace any existing macro.
+	(Ffrexp, Fldexp): Define even if !HAVE_COPYSIGN, as frexp and ldexp
+	are present on all C89 platforms.
+	(Ffrexp): Do not special-case zero, as frexp does the right thing
+	for that case.
+	(Flogb): Do not use logb, as it doesn't have the desired meaning
+	on hosts that use non-base-2 floating point.  Instead, stick with
+	frexp, which is C89 anyway.  Do not pass an infinity or a NaN to
+	frexp, to avoid getting an unspecified result.
+
 	* xdisp.c (Qinhibit_debug_on_message): Now static.
 
 2012-09-10  Jan Djärv  <jan.h.d@swipnet.se>

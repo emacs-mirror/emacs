@@ -2689,8 +2689,8 @@ if test $emacs_cv_netdb_declares_h_errno = yes; then
   AC_DEFINE(HAVE_H_ERRNO, 1, [Define to 1 if netdb.h declares h_errno.])
 fi
 
-# fmod, logb, and frexp are found in -lm on most systems.
-# On HPUX 9.01, -lm does not contain logb, so check for sqrt.
+# sqrt and other floating-point functions such as fmod and frexp
+# are found in -lm on most systems.
 AC_CHECK_LIB(m, sqrt)
 
 # Check for mail-locking functions in a "mail" library.  Probably this should
@@ -2770,7 +2770,7 @@ AC_SUBST(BLESSMAIL_TARGET)
 
 AC_CHECK_FUNCS(gethostname \
 closedir getrusage get_current_dir_name \
-lrand48 logb cbrt setsid \
+lrand48 setsid \
 fpathconf select euidaccess getpagesize setlocale \
 utimes getrlimit setrlimit setpgid getcwd shutdown getaddrinfo \
 __fpending strsignal setitimer \

@@ -2559,8 +2559,7 @@ extern Lisp_Object Qchar_table_p, Qvector_or_char_table_p;
 
 extern Lisp_Object Qcdr;
 
-extern Lisp_Object Qrange_error, Qdomain_error, Qsingularity_error;
-extern Lisp_Object Qoverflow_error, Qunderflow_error;
+extern Lisp_Object Qrange_error, Qoverflow_error;
 
 extern Lisp_Object Qfloatp;
 extern Lisp_Object Qnumberp, Qnumber_or_marker_p;

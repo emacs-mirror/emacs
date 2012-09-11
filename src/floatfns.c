@@ -22,9 +22,10 @@ You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 
-/* C89 requires only these math.h functions:
-   acos, asin, atan, atan2, ceil, cos, cosh, exp, fabs, floor, fmod,
-   frexp, ldexp, log, log10, modf, pow, sin, sinh, sqrt, tan, tanh.
+/* C89 requires only the following math.h functions, and Emacs omits
+   the starred functions since we haven't found a use for them:
+   acos, asin, atan, atan2, ceil, cos, *cosh, exp, fabs, floor, fmod,
+   frexp, ldexp, log, log10, *modf, pow, sin, *sinh, sqrt, tan, *tanh.
  */
 
 #include <config.h>
@@ -42,10 +43,12 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <math.h>
 
-/* This declaration is omitted on some systems, like Ultrix.  */
-#if !defined (HPUX) && defined (HAVE_LOGB) && !defined (logb)
-extern double logb (double);
-#endif /* not HPUX and HAVE_LOGB and no logb macro */
+#ifndef isfinite
+# define isfinite(x) ((x) - (x) == 0)
+#endif
+#ifndef isnan
+# define isnan(x) ((x) != (x))
+#endif
 
 /* Extract a Lisp number as a `double', or signal an error.  */
 
@@ -126,9 +129,6 @@ DEFUN ("tan", Ftan, Stan, 1, 1, 0,
   return make_float (d);
 }
 
-#undef isnan
-#define isnan(x) ((x) != (x))
-
 DEFUN ("isnan", Fisnan, Sisnan, 1, 1, 0,
        doc: /* Return non nil iff argument X is a NaN.  */)
   (Lisp_Object x)
@@ -153,6 +153,7 @@ Cause an error if X1 or X2 is not a float.  */)
 
   return make_float (copysign (f1, f2));
 }
+#endif
 
 DEFUN ("frexp", Ffrexp, Sfrexp, 1, 1, 0,
        doc: /* Get significand and exponent of a floating point number.
@@ -167,15 +168,9 @@ If X is zero, both parts (SGNFCAND and EXP) are zero.  */)
   (Lisp_Object x)
 {
   double f = XFLOATINT (x);
-
-  if (f == 0.0)
-    return Fcons (make_float (0.0), make_number (0));
-  else
-    {
-      int exponent;
-      double sgnfcand = frexp (f, &exponent);
-      return Fcons (make_float (sgnfcand), make_number (exponent));
-    }
+  int exponent;
+  double sgnfcand = frexp (f, &exponent);
+  return Fcons (make_float (sgnfcand), make_number (exponent));
 }
 
 DEFUN ("ldexp", Fldexp, Sldexp, 1, 2, 0,
@@ -187,118 +182,6 @@ Returns the floating point value resulting from multiplying SGNFCAND
   CHECK_NUMBER (exponent);
   return make_float (ldexp (XFLOATINT (sgnfcand), XINT (exponent)));
 }
-#endif
-
-#if 0 /* Leave these out unless we find there's a reason for them.  */
-
-DEFUN ("bessel-j0", Fbessel_j0, Sbessel_j0, 1, 1, 0,
-       doc: /* Return the bessel function j0 of ARG.  */)
-  (Lisp_Object arg)
-{
-  double d = extract_float (arg);
-  d = j0 (d);
-  return make_float (d);
-}
-
-DEFUN ("bessel-j1", Fbessel_j1, Sbessel_j1, 1, 1, 0,
-       doc: /* Return the bessel function j1 of ARG.  */)
-  (Lisp_Object arg)
-{
-  double d = extract_float (arg);
-  d = j1 (d);
-  return make_float (d);
-}
-
-DEFUN ("bessel-jn", Fbessel_jn, Sbessel_jn, 2, 2, 0,
-       doc: /* Return the order N bessel function output jn of ARG.
-The first arg (the order) is truncated to an integer.  */)
-  (Lisp_Object n, Lisp_Object arg)
-{
-  int i1 = extract_float (n);
-  double f2 = extract_float (arg);
-
-  f2 = jn (i1, f2);
-  return make_float (f2);
-}
-
-DEFUN ("bessel-y0", Fbessel_y0, Sbessel_y0, 1, 1, 0,
-       doc: /* Return the bessel function y0 of ARG.  */)
-  (Lisp_Object arg)
-{
-  double d = extract_float (arg);
-  d = y0 (d);
-  return make_float (d);
-}
-
-DEFUN ("bessel-y1", Fbessel_y1, Sbessel_y1, 1, 1, 0,
-       doc: /* Return the bessel function y1 of ARG.  */)
-  (Lisp_Object arg)
-{
-  double d = extract_float (arg);
-  d = y1 (d);
-  return make_float (d);
-}
-
-DEFUN ("bessel-yn", Fbessel_yn, Sbessel_yn, 2, 2, 0,
-       doc: /* Return the order N bessel function output yn of ARG.
-The first arg (the order) is truncated to an integer.  */)
-  (Lisp_Object n, Lisp_Object arg)
-{
-  int i1 = extract_float (n);
-  double f2 = extract_float (arg);
-
-  f2 = yn (i1, f2);
-  return make_float (f2);
-}
-
-#endif
-
-#if 0 /* Leave these out unless we see they are worth having.  */
-
-DEFUN ("erf", Ferf, Serf, 1, 1, 0,
-       doc: /* Return the mathematical error function of ARG.  */)
-  (Lisp_Object arg)
-{
-  double d = extract_float (arg);
-  d = erf (d);
-  return make_float (d);
-}
-
-DEFUN ("erfc", Ferfc, Serfc, 1, 1, 0,
-       doc: /* Return the complementary error function of ARG.  */)
-  (Lisp_Object arg)
-{
-  double d = extract_float (arg);
-  d = erfc (d);
-  return make_float (d);
-}
-
-DEFUN ("log-gamma", Flog_gamma, Slog_gamma, 1, 1, 0,
-       doc: /* Return the log gamma of ARG.  */)
-  (Lisp_Object arg)
-{
-  double d = extract_float (arg);
-  d = lgamma (d);
-  return make_float (d);
-}
-
-DEFUN ("cube-root", Fcube_root, Scube_root, 1, 1, 0,
-       doc: /* Return the cube root of ARG.  */)
-  (Lisp_Object arg)
-{
-  double d = extract_float (arg);
-#ifdef HAVE_CBRT
-  d = cbrt (d);
-#else
-  if (d >= 0.0)
-    d = pow (d, 1.0/3.0);
-  else
-    d = -pow (-d, 1.0/3.0);
-#endif
-  return make_float (d);
-}
-
-#endif
 
 DEFUN ("exp", Fexp, Sexp, 1, 1, 0,
        doc: /* Return the exponential base e of ARG.  */)
@@ -383,63 +266,6 @@ DEFUN ("sqrt", Fsqrt, Ssqrt, 1, 1, 0,
   return make_float (d);
 }
 
-#if 0 /* Not clearly worth adding.  */
-
-DEFUN ("acosh", Facosh, Sacosh, 1, 1, 0,
-       doc: /* Return the inverse hyperbolic cosine of ARG.  */)
-  (Lisp_Object arg)
-{
-  double d = extract_float (arg);
-  d = acosh (d);
-  return make_float (d);
-}
-
-DEFUN ("asinh", Fasinh, Sasinh, 1, 1, 0,
-       doc: /* Return the inverse hyperbolic sine of ARG.  */)
-  (Lisp_Object arg)
-{
-  double d = extract_float (arg);
-  d = asinh (d);
-  return make_float (d);
-}
-
-DEFUN ("atanh", Fatanh, Satanh, 1, 1, 0,
-       doc: /* Return the inverse hyperbolic tangent of ARG.  */)
-  (Lisp_Object arg)
-{
-  double d = extract_float (arg);
-  d = atanh (d);
-  return make_float (d);
-}
-
-DEFUN ("cosh", Fcosh, Scosh, 1, 1, 0,
-       doc: /* Return the hyperbolic cosine of ARG.  */)
-  (Lisp_Object arg)
-{
-  double d = extract_float (arg);
-  d = cosh (d);
-  return make_float (d);
-}
-
-DEFUN ("sinh", Fsinh, Ssinh, 1, 1, 0,
-       doc: /* Return the hyperbolic sine of ARG.  */)
-  (Lisp_Object arg)
-{
-  double d = extract_float (arg);
-  d = sinh (d);
-  return make_float (d);
-}
-
-DEFUN ("tanh", Ftanh, Stanh, 1, 1, 0,
-       doc: /* Return the hyperbolic tangent of ARG.  */)
-  (Lisp_Object arg)
-{
-  double d = extract_float (arg);
-  d = tanh (d);
-  return make_float (d);
-}
-#endif
-
 DEFUN ("abs", Fabs, Sabs, 1, 1, 0,
        doc: /* Return the absolute value of ARG.  */)
   (register Lisp_Object arg)
@@ -477,16 +303,15 @@ This is the same as the exponent of a float.  */)
 
   if (f == 0.0)
     value = MOST_NEGATIVE_FIXNUM;
-  else
+  else if (isfinite (f))
     {
-#ifdef HAVE_LOGB
-      value = logb (f);
-#else
       int ivalue;
       frexp (f, &ivalue);
       value = ivalue - 1;
-#endif
     }
+  else
+    value = MOST_POSITIVE_FIXNUM;
+
   XSETINT (val, value);
   return val;
 }
@@ -719,27 +544,9 @@ syms_of_floatfns (void)
   defsubr (&Sisnan);
 #ifdef HAVE_COPYSIGN
   defsubr (&Scopysign);
+#endif
   defsubr (&Sfrexp);
   defsubr (&Sldexp);
-#endif
-#if 0
-  defsubr (&Sacosh);
-  defsubr (&Sasinh);
-  defsubr (&Satanh);
-  defsubr (&Scosh);
-  defsubr (&Ssinh);
-  defsubr (&Stanh);
-  defsubr (&Sbessel_y0);
-  defsubr (&Sbessel_y1);
-  defsubr (&Sbessel_yn);
-  defsubr (&Sbessel_j0);
-  defsubr (&Sbessel_j1);
-  defsubr (&Sbessel_jn);
-  defsubr (&Serf);
-  defsubr (&Serfc);
-  defsubr (&Slog_gamma);
-  defsubr (&Scube_root);
-#endif
   defsubr (&Sfceiling);
   defsubr (&Sffloor);
   defsubr (&Sfround);

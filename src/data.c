@@ -71,8 +71,8 @@ Lisp_Object Qchar_table_p, Qvector_or_char_table_p;
 Lisp_Object Qcdr;
 static Lisp_Object Qad_advice_info, Qad_activate_internal;
 
-Lisp_Object Qrange_error, Qdomain_error, Qsingularity_error;
-Lisp_Object Qoverflow_error, Qunderflow_error;
+static Lisp_Object Qdomain_error, Qsingularity_error, Qunderflow_error;
+Lisp_Object Qrange_error, Qoverflow_error;
 
 Lisp_Object Qfloatp;
 Lisp_Object Qnumberp, Qnumber_or_marker_p;

@@ -1,3 +1,16 @@
+2012-09-11  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Simplify, document, and port floating-point (Bug#12381).
+	* numbers.texi (Float Basics, Arithmetic Operations, Math Functions):
+	Document that / and mod (with floating point arguments), along
+	with asin, acos, log, log10, expt and sqrt, return special values
+	instead of signaling exceptions.
+	(Float Basics): Document that logb operates on the absolute value
+	of its argument.
+	(Math Functions): Document that (log ARG BASE) also returns NaN if
+	BASE is negative.  Document that (expt X Y) returns NaN if X is a
+	finite negative number and Y a finite non-integer.
+
 2012-09-09  Chong Yidong  <cyd@gnu.org>
 
 	* lists.texi (Sets And Lists): Explain that the return value for

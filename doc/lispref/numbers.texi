@@ -196,6 +196,14 @@ numerical functions return such values in cases where there is no
 correct answer.  For example, @code{(/ 0.0 0.0)} returns a NaN.  (NaN
 values can also carry a sign, but for practical purposes there's no
 significant difference between different NaN values in Emacs Lisp.)
+
+When a function is documented to return a NaN, it returns an
+implementation-defined value when Emacs is running on one of the
+now-rare platforms that do not use @acronym{IEEE} floating point.  For
+example, @code{(log -1.0)} typically returns a NaN, but on
+non-@acronym{IEEE} platforms it returns an implementation-defined
+value.
+
 Here are the read syntaxes for these special floating point values:
 
 @table @asis
@@ -241,7 +249,7 @@ numbers.
 
 @defun logb number
 This function returns the binary exponent of @var{number}.  More
-precisely, the value is the logarithm of @var{number} base 2, rounded
+precisely, the value is the logarithm of |@var{number}| base 2, rounded
 down to an integer.
 
 @example
@@ -694,7 +702,8 @@ arguments.  It also permits floating point arguments; it rounds the
 quotient downward (towards minus infinity) to an integer, and uses that
 quotient to compute the remainder.
 
-An @code{arith-error} results if @var{divisor} is 0.
+If @var{divisor} is zero, @code{mod} signals an @code{arith-error}
+error if both arguments are integers, and returns a NaN otherwise.
 
 @example
 @group
@@ -1096,8 +1105,8 @@ pi/2
 @tex
 @math{\pi/2}
 @end tex
-(inclusive) whose sine is @var{arg}; if, however, @var{arg} is out of
-range (outside [@minus{}1, 1]), it signals a @code{domain-error} error.
+(inclusive) whose sine is @var{arg}.  If @var{arg} is out of range
+(outside [@minus{}1, 1]), @code{asin} returns a NaN.
 @end defun
 
 @defun acos arg
@@ -1108,8 +1117,8 @@ pi
 @tex
 @math{\pi}
 @end tex
-(inclusive) whose cosine is @var{arg}; if, however, @var{arg} is out
-of range (outside [@minus{}1, 1]), it signals a @code{domain-error} error.
+(inclusive) whose cosine is @var{arg}.  If @var{arg} is out of range
+(outside [@minus{}1, 1]), @code{acos} returns a NaN.
 @end defun
 
 @defun atan y &optional x
@@ -1141,8 +1150,8 @@ This is the exponential function; it returns @math{e} to the power
 @defun log arg &optional base
 This function returns the logarithm of @var{arg}, with base
 @var{base}.  If you don't specify @var{base}, the natural base
-@math{e} is used.  If @var{arg} is negative, it signals a
-@code{domain-error} error.
+@math{e} is used.  If @var{arg} or @var{base} is negative, @code{log}
+returns a NaN.
 @end defun
 
 @ignore
@@ -1160,21 +1169,21 @@ lose accuracy.
 @end ignore
 
 @defun log10 arg
-This function returns the logarithm of @var{arg}, with base 10.  If
-@var{arg} is negative, it signals a @code{domain-error} error.
-@code{(log10 @var{x})} @equiv{} @code{(log @var{x} 10)}, at least
-approximately.
+This function returns the logarithm of @var{arg}, with base 10:
+@code{(log10 @var{x})} @equiv{} @code{(log @var{x} 10)}.
 @end defun
 
 @defun expt x y
 This function returns @var{x} raised to power @var{y}.  If both
 arguments are integers and @var{y} is positive, the result is an
 integer; in this case, overflow causes truncation, so watch out.
+If @var{x} is a finite negative number and @var{y} is a finite
+non-integer, @code{expt} returns a NaN.
 @end defun
 
 @defun sqrt arg
 This returns the square root of @var{arg}.  If @var{arg} is negative,
-it signals a @code{domain-error} error.
+@code{sqrt} returns a NaN.
 @end defun
 
 In addition, Emacs defines the following common mathematical

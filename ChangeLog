@@ -1,3 +1,9 @@
+2012-09-11  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Simplify, document, and port floating-point (Bug#12381).
+	* configure.ac (logb, cbrt): Do not check for these functions,
+	as they are not being used.
+
 2012-09-10  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Improve robustness of 'make bootstrap' (Bug#12376).

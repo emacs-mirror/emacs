@@ -729,6 +729,14 @@ table, but with a different prefix.
 must be in the range 1000..9999.  It now works with any year supported
 by the underlying C implementation.
 
+** Floating point
+
+*** When floating point functions such as `log' are given invalid
+arguments, e.g., (log -1.0), they now uniformly return special values
+such as NaNs instead of signaling errors.  Previously, these functions
+returned NaNs on some platforms but signaled errors on others.  The affected
+functions are acos, asin, tan, exp, expt, log, log10, sqrt, and mod.
+
 ** New function file-name-base.
 
 ** New function `tty-top-frame' returns the topmost frame of a text terminal.
