@@ -12926,8 +12926,8 @@ $as_echo "#define HAVE_H_ERRNO 1" >>confdefs.h
 
 fi
 
-# fmod, logb, and frexp are found in -lm on most systems.
-# On HPUX 9.01, -lm does not contain logb, so check for sqrt.
+# sqrt and other floating-point functions such as fmod and frexp
+# are found in -lm on most systems.
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for sqrt in -lm" >&5
 $as_echo_n "checking for sqrt in -lm... " >&6; }
 if test "${ac_cv_lib_m_sqrt+set}" = set; then :
@@ -13177,7 +13177,7 @@ esac
 
 for ac_func in gethostname \
 closedir getrusage get_current_dir_name \
-lrand48 logb cbrt setsid \
+lrand48 setsid \
 fpathconf select euidaccess getpagesize setlocale \
 utimes getrlimit setrlimit setpgid getcwd shutdown getaddrinfo \
 __fpending strsignal setitimer \

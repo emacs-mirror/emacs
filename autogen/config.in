@@ -246,9 +246,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if strtold conforms to C99. */
 #undef HAVE_C99_STRTOLD
 
-/* Define to 1 if you have the `cbrt' function. */
-#undef HAVE_CBRT
-
 /* Define to 1 if you have the `cfmakeraw' function. */
 #undef HAVE_CFMAKERAW
 
@@ -637,9 +634,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 if you have the `localtime_r' function. */
 #undef HAVE_LOCALTIME_R
-
-/* Define to 1 if you have the `logb' function. */
-#undef HAVE_LOGB
 
 /* Define to 1 if you support file names longer than 14 characters. */
 #undef HAVE_LONG_FILE_NAMES
