@@ -5865,6 +5865,32 @@ mark_buffer (struct buffer *buffer)
     mark_buffer (buffer->base_buffer);
 }
 
+/* Remove killed buffers or items whose car is a killed buffer
+   from LIST and return changed LIST.  Called during GC.  */
+
+static inline Lisp_Object
+discard_killed_buffers (Lisp_Object list)
+{
+  Lisp_Object tail, prev, tem;
+
+  for (tail = list, prev = Qnil; CONSP (tail); tail = XCDR (tail))
+    {
+      tem = XCAR (tail);
+      if (CONSP (tem))
+	tem = XCAR (tem);
+      if (BUFFERP (tem) && !BUFFER_LIVE_P (XBUFFER (tem)))
+	{
+	  if (NILP (prev))
+	    list = XCDR (tail);
+	  else
+	    XSETCDR (prev, XCDR (tail));
+	}
+      else
+	prev = tail;
+    }
+  return list;
+}
+
 /* Determine type of generic Lisp_Object and mark it accordingly.  */
 
 void
@@ -6001,20 +6027,41 @@ mark_object (Lisp_Object arg)
 	    break;
 
 	  case PVEC_FRAME:
-	    mark_vectorlike (ptr);
-	    mark_face_cache (((struct frame *) ptr)->face_cache);
+	    {
+	      struct frame *f = (struct frame *) ptr;
+
+	      /* For live frames, killed buffers are filtered out by
+		 store_frame_param.  For dead frames, we do it here in
+		 attempt to help GC to reclaim killed buffers faster.  */
+	      if (!FRAME_LIVE_P (f))
+		fset_buffer_list (f, discard_killed_buffers (f->buffer_list));
+
+	      mark_vectorlike (ptr);
+	      mark_face_cache (f->face_cache);
+	    }
 	    break;
 
 	  case PVEC_WINDOW:
 	    {
 	      struct window *w = (struct window *) ptr;
+	      bool leaf = NILP (w->hchild) && NILP (w->vchild);
+	      
+	      /* For live windows, Lisp code filters out killed buffers
+		 from both buffer lists.  For dead windows, we do it here
+		 in attempt to help GC to reclaim killed buffers faster.  */
+	      if (leaf && NILP (w->buffer))
+		{
+		  wset_prev_buffers
+		    (w, discard_killed_buffers (w->prev_buffers));
+		  wset_next_buffers
+		    (w, discard_killed_buffers (w->next_buffers));
+		}
 
 	      mark_vectorlike (ptr);
 	      /* Mark glyphs for leaf windows.  Marking window
 		 matrices is sufficient because frame matrices
 		 use the same glyph memory.  */
-	      if (NILP (w->hchild) && NILP (w->vchild)
-		  && w->current_matrix)
+	      if (leaf && w->current_matrix)
 		{
 		  mark_glyph_matrix (w->current_matrix);
 		  mark_glyph_matrix (w->desired_matrix);
@@ -6081,10 +6128,14 @@ mark_object (Lisp_Object arg)
 	  case SYMBOL_LOCALIZED:
 	    {
 	      struct Lisp_Buffer_Local_Value *blv = SYMBOL_BLV (ptr);
-	      /* If the value is forwarded to a buffer or keyboard field,
-		 these are marked when we see the corresponding object.
-		 And if it's forwarded to a C variable, either it's not
-		 a Lisp_Object var, or it's staticpro'd already.  */
+	      Lisp_Object where = blv->where;
+	      /* If the value is set up for a killed buffer or deleted
+		 frame, restore it's global binding.  If the value is
+		 forwarded to a C variable, either it's not a Lisp_Object
+		 var, or it's staticpro'd already.  */
+	      if ((BUFFERP (where) && !BUFFER_LIVE_P (XBUFFER (where)))
+		  || (FRAMEP (where) && !FRAME_LIVE_P (XFRAME (where))))
+		swap_in_global_binding (ptr);
 	      mark_object (blv->where);
 	      mark_object (blv->valcell);
 	      mark_object (blv->defcell);

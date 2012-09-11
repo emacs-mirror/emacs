@@ -414,7 +414,16 @@ wset_window_end_vpos (struct window *w, Lisp_Object val)
 {
   w->window_end_vpos = val;
 }
-
+WINDOW_INLINE void
+wset_prev_buffers (struct window *w, Lisp_Object val)
+{
+  w->prev_buffers = val;
+}
+WINDOW_INLINE void
+wset_next_buffers (struct window *w, Lisp_Object val)
+{
+  w->next_buffers = val;
+}
 
 /* 1 if W is a minibuffer window.  */
 

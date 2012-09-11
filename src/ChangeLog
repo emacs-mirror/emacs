@@ -1,5 +1,19 @@
 2012-09-11  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	Discard killed buffers from deleted window and frame objects.
+	This reduces an amount of references to killed buffers and
+	helps GC to reclaim them faster.
+	* alloc.c (discard_killed_buffers): New function.
+	(mark_object): Use it for deleted windows and frames.
+	(mark_object): If symbol's value is set up for a killed buffer
+	or deleted frame, restore it's global binding.
+	* data.c (swap_in_global_binding): Add GC notice.
+	(swap_in_symval_forwarding): Use convenient set_blv_where.
+	* window.c (wset_next_buffers, wset_prev_buffers): Move ...
+	* window.h: ... to here.
+
+2012-09-11  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	Convenient macro to check whether the buffer is live.
 	* buffer.h (BUFFER_LIVE_P): New macro.
 	* alloc.c, buffer.c, editfns.c, insdel.c, lread.c, marker.c:

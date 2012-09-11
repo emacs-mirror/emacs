@@ -176,11 +176,6 @@ wset_new_total (struct window *w, Lisp_Object val)
   w->new_total = val;
 }
 static inline void
-wset_next_buffers (struct window *w, Lisp_Object val)
-{
-  w->next_buffers = val;
-}
-static inline void
 wset_normal_cols (struct window *w, Lisp_Object val)
 {
   w->normal_cols = val;
@@ -199,11 +194,6 @@ static inline void
 wset_pointm (struct window *w, Lisp_Object val)
 {
   w->pointm = val;
-}
-static inline void
-wset_prev_buffers (struct window *w, Lisp_Object val)
-{
-  w->prev_buffers = val;
 }
 static inline void
 wset_right_fringe_width (struct window *w, Lisp_Object val)
