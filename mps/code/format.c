@@ -40,11 +40,11 @@ Bool FormatCheck(Format format)
 }
 
 
-static Addr FormatDefaultClass(Addr object)
+static mps_addr_t FormatDefaultClass(mps_addr_t object)
 {
   AVER(object != NULL);
 
-  return ((Addr *)object)[0];
+  return ((mps_addr_t *)object)[0];
 }
 
 
@@ -53,13 +53,13 @@ static Addr FormatDefaultClass(Addr object)
 Res FormatCreate(Format *formatReturn, Arena arena,
                  Align alignment,
                  FormatVariety variety,
-                 FormatScanMethod scan,
-                 FormatSkipMethod skip,
-                 FormatMoveMethod move,
-                 FormatIsMovedMethod isMoved,
-                 FormatCopyMethod copy,
-                 FormatPadMethod pad,
-                 FormatClassMethod class,
+                 mps_fmt_scan_t scan,
+                 mps_fmt_skip_t skip,
+                 mps_fmt_fwd_t move,
+                 mps_fmt_isfwd_t isMoved,
+                 mps_fmt_copy_t copy,
+                 mps_fmt_pad_t pad,
+                 mps_fmt_class_t class,
                  Size headerSize)
 {
   Format format;
