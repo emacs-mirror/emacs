@@ -1,3 +1,7 @@
+2012-09-12  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* texinfo.tex: Merge from gnulib.
+
 2012-08-06  Aurélien Aptel  <aurelien.aptel@gmail.com>
 
 	* url.texi (Parsed URLs): Adjust to the code's use of defstruct

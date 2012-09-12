@@ -3,7 +3,7 @@
 % Load plain if necessary, i.e., if running under initex.
 \expandafter\ifx\csname fmtname\endcsname\relax\input plain\fi
 %
-\def\texinfoversion{2012-07-29.17}
+\def\texinfoversion{2012-09-05.06}
 %
 % Copyright 1985, 1986, 1988, 1990, 1991, 1992, 1993, 1994, 1995,
 % 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
@@ -594,7 +594,7 @@
 \def\:{\spacefactor=1000 }
 
 % @* forces a line break.
-\def\*{\hfil\break\hbox{}\ignorespaces}
+\def\*{\unskip\hfil\break\hbox{}\ignorespaces}
 
 % @/ allows a line break.
 \let\/=\allowbreak
@@ -3269,6 +3269,20 @@ end
   \finishedtitlepagetrue
 }
 
+% Settings used for typesetting titles: no hyphenation, no indentation,
+% don't worry much about spacing, ragged right.  This should be used
+% inside a \vbox, and fonts need to be set appropriately first.  Because
+% it is always used for titles, nothing else, we call \rmisbold.  \par
+% should be specified before the end of the \vbox, since a vbox is a group.
+% 
+\def\raggedtitlesettings{%
+  \rmisbold
+  \hyphenpenalty=10000
+  \parindent=0pt
+  \tolerance=5000
+  \ptexraggedright
+}
+
 % Macros to be used within @titlepage:
 
 \let\subtitlerm=\tenrm
@@ -3276,7 +3290,7 @@ end
 
 \parseargdef\title{%
   \checkenv\titlepage
-  \leftline{\titlefonts\rmisbold #1}
+  \vbox{\titlefonts \raggedtitlesettings #1\par}%
   % print a rule at the page bottom also.
   \finishedtitlepagefalse
   \vskip4pt \hrule height 4pt width \hsize \vskip4pt
@@ -5579,14 +5593,6 @@ end
 
 % Define @majorheading, @heading and @subheading
 
-% NOTE on use of \vbox for chapter headings, section headings, and such:
-%       1) We use \vbox rather than the earlier \line to permit
-%          overlong headings to fold.
-%       2) \hyphenpenalty is set to 10000 because hyphenation in a
-%          heading is obnoxious; this forbids it.
-%       3) Likewise, headings look best if no \parindent is used, and
-%          if justification is not attempted.  Hence \raggedright.
-
 \def\majorheading{%
   {\advance\chapheadingskip by 10pt \chapbreak }%
   \parsearg\chapheadingzzz
@@ -5594,10 +5600,8 @@ end
 
 \def\chapheading{\chapbreak \parsearg\chapheadingzzz}
 \def\chapheadingzzz#1{%
-  {\chapfonts \vbox{\hyphenpenalty=10000\tolerance=5000
-                    \parindent=0pt\ptexraggedright
-                    \rmisbold #1\hfill}}%
-  \bigskip \par\penalty 200\relax
+  \vbox{\chapfonts \raggedtitlesettings #1\par}%
+  \nobreak\bigskip \nobreak
   \suppressfirstparagraphindent
 }
 
@@ -5756,8 +5760,7 @@ end
     %
     % Typeset the actual heading.
     \nobreak % Avoid page breaks at the interline glue.
-    \vbox{\hyphenpenalty=10000 \tolerance=5000 \parindent=0pt \ptexraggedright
-          \hangindent=\wd0 \centerparametersmaybe
+    \vbox{\raggedtitlesettings \hangindent=\wd0 \centerparametersmaybe
           \unhbox0 #1\par}%
   }%
   \nobreak\bigskip % no page break after a chapter title
@@ -5779,18 +5782,18 @@ end
 \def\setchapterstyle #1 {\csname CHAPF#1\endcsname}
 %
 \def\unnchfopen #1{%
-\chapoddpage {\chapfonts \vbox{\hyphenpenalty=10000\tolerance=5000
-                       \parindent=0pt\ptexraggedright
-                       \rmisbold #1\hfill}}\bigskip \par\nobreak
+  \chapoddpage
+  \vbox{\chapfonts \raggedtitlesettings #1\par}%
+  \nobreak\bigskip\nobreak
 }
 \def\chfopen #1#2{\chapoddpage {\chapfonts
 \vbox to 3in{\vfil \hbox to\hsize{\hfil #2} \hbox to\hsize{\hfil #1} \vfil}}%
 \par\penalty 5000 %
 }
 \def\centerchfopen #1{%
-\chapoddpage {\chapfonts \vbox{\hyphenpenalty=10000\tolerance=5000
-                       \parindent=0pt
-                       \hfill {\rmisbold #1}\hfill}}\bigskip \par\nobreak
+  \chapoddpage
+  \vbox{\chapfonts \raggedtitlesettings \hfill #1\hfill}%
+  \nobreak\bigskip \nobreak
 }
 \def\CHAPFopen{%
   \global\let\chapmacro=\chfopen
