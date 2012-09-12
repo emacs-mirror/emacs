@@ -21,7 +21,7 @@
 
 #include "mpswin.h"
 
-typedef struct ThreadStruct {   /* Win32 thread structure */
+typedef struct mps_thr_s {      /* Win32 thread structure */
   Sig sig;                      /* <design/sig/> */
   Serial serial;                /* from arena->threadSerial */
   Arena arena;                  /* owning arena */

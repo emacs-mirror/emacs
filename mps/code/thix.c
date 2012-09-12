@@ -43,7 +43,7 @@ SRCID(thix, "$Id$");
 
 /* ThreadStruct -- thread desriptor */
 
-typedef struct ThreadStruct {    /* PThreads thread structure */
+typedef struct mps_thr_s {       /* PThreads thread structure */
   Sig sig;                       /* <design/sig/> */
   Serial serial;                 /* from arena->threadSerial */
   Arena arena;                   /* owning arena */
