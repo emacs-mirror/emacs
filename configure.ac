@@ -138,7 +138,7 @@ dnl This should be the last --with option, because --with-x is
 dnl added later on when we find the path of X, and it's best to
 dnl keep them together visually.
 AC_ARG_WITH([x-toolkit],[AS_HELP_STRING([--with-x-toolkit=KIT],
- [use an X toolkit (KIT one of: yes or gtk, gtk3, lucid or athena, motif, no)])],
+ [use an X toolkit (KIT one of: yes or gtk, gtk2, gtk3, lucid or athena, motif, no)])],
 [	  case "${withval}" in
 	    y | ye | yes )	val=gtk ;;
 	    n | no )		val=no  ;;
@@ -146,11 +146,13 @@ AC_ARG_WITH([x-toolkit],[AS_HELP_STRING([--with-x-toolkit=KIT],
 	    a | at | ath | athe | athen | athena )	val=athena ;;
 	    m | mo | mot | moti | motif )	val=motif ;;
 	    g | gt | gtk  )	val=gtk ;;
+	    gtk2  )	val=gtk2 ;;
 	    gtk3  )	val=gtk3 ;;
 	    * )
 AC_MSG_ERROR([`--with-x-toolkit=$withval' is invalid;
-this option's value should be `yes', `no', `lucid', `athena', `motif', `gtk' or
-`gtk3'.  `yes' and `gtk' are synonyms. `athena' and `lucid' are synonyms.])
+this option's value should be `yes', `no', `lucid', `athena', `motif', `gtk',
+`gtk2' or `gtk3'.  `yes' and `gtk' are synonyms.
+`athena' and `lucid' are synonyms.])
 	    ;;
 	  esac
 	  with_x_toolkit=$val
@@ -1578,6 +1580,9 @@ case "${window_system}" in
 dnl Don't set this for GTK.  A lot of tests below assumes Xt when
 dnl USE_X_TOOLKIT is set.
             USE_X_TOOLKIT=none ;;
+      gtk2 ) with_gtk2=yes
+             term_header=gtkutil.h
+             USE_X_TOOLKIT=none ;;
       gtk3 ) with_gtk3=yes
              term_header=gtkutil.h
              USE_X_TOOLKIT=none ;;
@@ -1900,34 +1905,40 @@ fi
 
 HAVE_GTK=no
 GTK_OBJ=
-if test "${with_gtk3}" = "yes"; then
+check_gtk2=no
+gtk3_pkg_errors=
+if test "${with_gtk3}" = "yes" || test "${with_gtk}" = "yes" || test "$USE_X_TOOLKIT" = "maybe"; then
   GLIB_REQUIRED=2.28
   GTK_REQUIRED=3.0
   GTK_MODULES="gtk+-3.0 >= $GTK_REQUIRED glib-2.0 >= $GLIB_REQUIRED"
 
   dnl Checks for libraries.
   PKG_CHECK_MODULES(GTK, $GTK_MODULES, pkg_check_gtk=yes, pkg_check_gtk=no)
-  if test "$pkg_check_gtk" = "no" && test "$USE_X_TOOLKIT" != "maybe"; then
+  if test "$pkg_check_gtk" = "no" && test "$with_gtk3" = "yes"; then
      AC_MSG_ERROR($GTK_PKG_ERRORS)
   fi
-  AC_DEFINE(HAVE_GTK3, 1, [Define to 1 if using GTK 3 or later.])
-  GTK_OBJ=emacsgtkfixed.o
-  term_header=gtkutil.h
+  if test "$pkg_check_gtk" = "yes"; then
+     AC_DEFINE(HAVE_GTK3, 1, [Define to 1 if using GTK 3 or later.])
+     GTK_OBJ=emacsgtkfixed.o
+     term_header=gtkutil.h
+  else
+     check_gtk2=yes
+     gtk3_pkg_errors="$GTK_PKG_ERRORS "
+  fi
 fi
 
-if test "$pkg_check_gtk" != "yes"; then
-  HAVE_GTK=no
-if test "${with_gtk}" = "yes" || test "$USE_X_TOOLKIT" = "maybe"; then
+if test "${with_gtk2}" = "yes" || test "$check_gtk2" = "yes"; then
   GLIB_REQUIRED=2.10
   GTK_REQUIRED=2.10
   GTK_MODULES="gtk+-2.0 >= $GTK_REQUIRED glib-2.0 >= $GLIB_REQUIRED"
 
   dnl Checks for libraries.
   PKG_CHECK_MODULES(GTK, $GTK_MODULES, pkg_check_gtk=yes, pkg_check_gtk=no)
-  if test "$pkg_check_gtk" = "no" && test "$USE_X_TOOLKIT" != "maybe"; then
-     AC_MSG_ERROR($GTK_PKG_ERRORS)
+  if test "$pkg_check_gtk" = "no"; then
+     if test "$USE_X_TOOLKIT" = "maybe" || test "$with_gtk" = "yes" || test "$with_gtk2" = "yes"; then
+     	AC_MSG_ERROR($gtk3_pkg_errors$GTK_PKG_ERRORS)
+     fi
   fi
-fi
 fi
 
 if test x"$pkg_check_gtk" = xyes; then

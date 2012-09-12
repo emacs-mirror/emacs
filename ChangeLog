@@ -1,3 +1,11 @@
+2012-09-12  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* configure.ac: No --with-x-toolkit given: Try gtk3 toolkit first
+	and then gtk2 if not found.
+	--with-x-toolkit=gtk|yes: As above, but fail if gtk2 or gt3 not found.
+	--with-x-toolkit=gtk2: Only try gtk2, fail if not found.
+	--with-x-toolkit=gtk3: Only try gtk3, fail if not found.
+
 2012-09-11  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (install-arch-dep, install-arch-indep, install-doc):
