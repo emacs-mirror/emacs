@@ -618,6 +618,16 @@ mv /var/lib/mailman/spam/not-really-spam.msg /var/lib/mailman/not-spam/
 Also check that the sender was not added to the auto-discard/reject list
 in the debbugs-submit Mailman interface.
 
+If you don't have the actual mail, just the mailman moderation mail
+version of it, you need to extract the original mail, and add the
+following headers:
+
+1) The leading envelope From line.
+2) Message-ID (get it from /var/log/mailman/vette).
+3) X-Debbugs-Envelope-To: submit
+
+Then pipe it to receive as above.
+
 ** Administrivia
 
 The debbugs-submit list should have the administrivia option off,
