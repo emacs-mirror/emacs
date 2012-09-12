@@ -707,7 +707,7 @@ usage: (defvar SYMBOL &optional INITVALUE DOCSTRING)  */)
       else
 	{ /* Check if there is really a global binding rather than just a let
 	     binding that shadows the global unboundness of the var.  */
-	  volatile struct specbinding *pdl = specpdl_ptr;
+	  struct specbinding *pdl = specpdl_ptr;
 	  while (pdl > specpdl)
 	    {
 	      if (EQ ((--pdl)->symbol, sym) && !pdl->func
@@ -1204,12 +1204,9 @@ See also the function `signal' for more info.
 usage: (condition-case VAR BODYFORM &rest HANDLERS)  */)
   (Lisp_Object args)
 {
-  register Lisp_Object bodyform, handlers;
-  volatile Lisp_Object var;
-
-  var      = Fcar (args);
-  bodyform = Fcar (Fcdr (args));
-  handlers = Fcdr (Fcdr (args));
+  Lisp_Object var = Fcar (args);
+  Lisp_Object bodyform = Fcar (Fcdr (args));
+  Lisp_Object handlers = Fcdr (Fcdr (args));
 
   return internal_lisp_condition_case (var, bodyform, handlers);
 }

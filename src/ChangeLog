@@ -1,3 +1,19 @@
+2012-09-12  Paul Eggert  <eggert@cs.ucla.edu>
+
+	More fixes for 'volatile' and setjmp/longjmp.
+	* eval.c (Fdefvar, Fcondition_case): Remove unnecessary 'volatile's.
+	* image.c (struct png_load_context) [HAVE_PNG]: New type.
+	(png_load_body) [HAVE_PNG]:
+	(jpeg_load_body) [HAVE_JPEG]:
+	New function, with most of the old parent function's body.
+	(png_load) [HAVE_PNG]:
+	(jpeg_load) [HAVE_JPEG]:
+	Invoke the new function, to avoid longjmp munging our locals.
+	(struct my_jpeg_error_mgr) [HAVE_JPEG]: New members cinfo, failure_code.
+	(my_error_exit) [HAVE_JPEG]: Don't trust 'setjmp' to return 2 when
+	longjmp is passed 2, as the C standard doesn't guarantee this.
+	Instead, store the failure code into mgr->failure_code.
+
 2012-09-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* keyboard.c (read_char, requeued_events_pending_p, Finput_pending_p)
