@@ -68,7 +68,7 @@ typedef union EventClockUnion {
 
 #define EVENT_CLOCK(lvalue) \
   BEGIN \
-    __declspec(align(16)) LARGE_INTEGER _count; \
+    LARGE_INTEGER _count; \
     QueryPerformanceCounter(&_count); \
     (lvalue) = _count.QuadPart; \
   END
