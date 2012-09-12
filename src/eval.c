@@ -69,7 +69,7 @@ Lisp_Object Qautoload, Qmacro, Qexit, Qinteractive, Qcommandp;
 Lisp_Object Qinhibit_quit;
 Lisp_Object Qand_rest;
 static Lisp_Object Qand_optional;
-static Lisp_Object Qdebug_on_error;
+static Lisp_Object Qinhibit_debugger;
 static Lisp_Object Qdeclare;
 Lisp_Object Qinternal_interpreter_environment, Qclosure;
 
@@ -229,7 +229,7 @@ call_debugger (Lisp_Object arg)
   specbind (intern ("debugger-may-continue"),
 	    debug_while_redisplaying ? Qnil : Qt);
   specbind (Qinhibit_redisplay, Qnil);
-  specbind (Qdebug_on_error, Qnil);
+  specbind (Qinhibit_debugger, Qt);
 
 #if 0 /* Binding this prevents execution of Lisp code during
 	 redisplay, which necessarily leads to display problems.  */
@@ -1725,6 +1725,7 @@ maybe_call_debugger (Lisp_Object conditions, Lisp_Object sig, Lisp_Object data)
       /* Don't try to run the debugger with interrupts blocked.
 	 The editing loop would return anyway.  */
       ! INPUT_BLOCKED_P
+      && NILP (Vinhibit_debugger)
       /* Does user want to enter debugger for this kind of error?  */
       && (EQ (sig, Qquit)
 	  ? debug_on_quit
@@ -3467,7 +3468,7 @@ before making `inhibit-quit' nil.  */);
 
   DEFSYM (Qinhibit_quit, "inhibit-quit");
   DEFSYM (Qautoload, "autoload");
-  DEFSYM (Qdebug_on_error, "debug-on-error");
+  DEFSYM (Qinhibit_debugger, "inhibit-debugger");
   DEFSYM (Qmacro, "macro");
   DEFSYM (Qdeclare, "declare");
 
@@ -3482,6 +3483,12 @@ before making `inhibit-quit' nil.  */);
   DEFSYM (Qclosure, "closure");
   DEFSYM (Qdebug, "debug");
 
+  DEFVAR_LISP ("inhibit-debugger", Vinhibit_debugger,
+	       doc: /* Non-nil means never enter the debugger.
+Normally set while the debugger is already active, to avoid recursive
+invocations.  */);
+  Vinhibit_debugger = Qnil;
+
   DEFVAR_LISP ("debug-on-error", Vdebug_on_error,
 	       doc: /* Non-nil means enter debugger if an error is signaled.
 Does not apply to errors handled by `condition-case' or those
@@ -3491,7 +3498,7 @@ if one of its condition symbols appears in the list.
 When you evaluate an expression interactively, this variable
 is temporarily non-nil if `eval-expression-debug-on-error' is non-nil.
 The command `toggle-debug-on-error' toggles this.
-See also the variable `debug-on-quit'.  */);
+See also the variable `debug-on-quit' and `inhibit-debugger'.  */);
   Vdebug_on_error = Qnil;
 
   DEFVAR_LISP ("debug-ignored-errors", Vdebug_ignored_errors,

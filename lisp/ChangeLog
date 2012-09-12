@@ -1,3 +1,8 @@
+2012-09-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/debug.el (debug): Don't bind debug-on-error since
+	inhibit-debugger is bound instead.
+
 2012-09-11  Bastien Guerry  <bzg@gnu.org>
 
 	* subr.el (set-temporary-overlay-map): Add a docstring.
@@ -24,8 +29,8 @@
 
 2012-09-10  Dan Nicolaescu  <dann@gnu.org>
 
-	* vc/diff-mode.el (diff-mode-menu): Bind
-	diff-remove-trailing-whitespace.
+	* vc/diff-mode.el (diff-mode-menu):
+	Bind diff-remove-trailing-whitespace.
 
 2012-09-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 

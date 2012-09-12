@@ -162,8 +162,6 @@ first will be printed into the backtrace buffer."
     (unless noninteractive
       (message "Entering debugger..."))
     (let (debugger-value
-	  (debug-on-error nil)
-	  (debug-on-quit nil)
 	  (debugger-previous-state
            (if (get-buffer "*Backtrace*")
                (with-current-buffer (get-buffer "*Backtrace*")

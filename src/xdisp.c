@@ -364,7 +364,6 @@ static Lisp_Object Qslice;
 Lisp_Object Qcenter;
 static Lisp_Object Qmargin, Qpointer;
 static Lisp_Object Qline_height;
-static Lisp_Object Qinhibit_debug_on_message;
 
 /* These setters are used only in this file, so they can be private.  */
 static inline void
@@ -10590,8 +10589,6 @@ static void
 set_message (const char *s, Lisp_Object string,
 	     ptrdiff_t nbytes, int multibyte_p)
 {
-  ptrdiff_t count = SPECPDL_INDEX ();
-
   message_enable_multibyte
     = ((s && multibyte_p)
        || (STRINGP (string) && STRING_MULTIBYTE (string)));
@@ -10601,14 +10598,9 @@ set_message (const char *s, Lisp_Object string,
   message_buf_print = 0;
   help_echo_showing_p = 0;
 
-  if (NILP (Vinhibit_debug_on_message) && STRINGP (Vdebug_on_message)
+  if (STRINGP (Vdebug_on_message)
       && fast_string_match (Vdebug_on_message, string) >= 0)
-    {
-      specbind (Qinhibit_debug_on_message, Qt);
-      call_debugger (list2 (Qerror, string));
-    }
-
-  unbind_to (count, Qnil);
+    call_debugger (list2 (Qerror, string));
 }
 
 
@@ -12800,7 +12792,7 @@ overlay_arrow_at_row (struct it *it, struct glyph_row *row)
 		    return make_number (fringe_bitmap);
 		}
 #endif
-	      return make_number (-1); /* Use default arrow bitmap */
+	      return make_number (-1); /* Use default arrow bitmap.  */
 	    }
 	  return overlay_arrow_string_or_property (var);
 	}
@@ -29316,11 +29308,6 @@ Its value should be an ASCII acronym string, `hex-code', `empty-box', or
   DEFVAR_LISP ("debug-on-message", Vdebug_on_message,
 	       doc: /* If non-nil, debug if a message matching this regexp is displayed.  */);
   Vdebug_on_message = Qnil;
-
-  DEFVAR_LISP ("inhibit-debug-on-message", Vinhibit_debug_on_message,
-	       doc: /* If non-nil, inhibit `debug-on-message' from entering the debugger.  */);
-  Vinhibit_debug_on_message = Qnil;
-  DEFSYM(Qinhibit_debug_on_message, "inhibit-debug-on-message");
 }
 
 

@@ -1,3 +1,13 @@
+2012-09-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* eval.c: Add `inhibit-debugger'.
+	(Qinhibit_debugger): New symbol.
+	(call_debugger): Bind it instead of Qdebug_on_error.
+	(maybe_call_debugger): Test Vinhibit_debugger.
+	(syms_of_eval): Define inhibit-debugger.
+	* xdisp.c (set_message): Don't bind Qinhibit_debug_on_message.
+	(syms_of_xdisp): Remove inhibit-debug-on-message.
+
 2012-09-11  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Avoid _setjmp/_longjmp problems with local nonvolatile variables.

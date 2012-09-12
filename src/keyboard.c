@@ -4133,7 +4133,7 @@ kbd_buffer_get_event (KBOARD **kbp,
 		*used_mouse_menu = 1;
 #endif
 #ifdef HAVE_NS
-	      /* certain system events are non-key events */
+	      /* Certain system events are non-key events.  */
 	      if (used_mouse_menu
                   && event->kind == NS_NONKEY_EVENT)
 		*used_mouse_menu = 1;
@@ -4161,7 +4161,7 @@ kbd_buffer_get_event (KBOARD **kbp,
 	 so x remains nil.  */
       x = Qnil;
 
-      /* XXX Can f or mouse_position_hook be NULL here? */
+      /* XXX Can f or mouse_position_hook be NULL here?  */
       if (f && FRAME_TERMINAL (f)->mouse_position_hook)
         (*FRAME_TERMINAL (f)->mouse_position_hook) (&f, 0, &bar_window,
                                                     &part, &x, &y, &t);
