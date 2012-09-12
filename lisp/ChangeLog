@@ -1,3 +1,10 @@
+2012-09-12  Martin Rudalics  <rudalics@gmx.at>
+
+	* emacs-lisp/debug.el (debugger-previous-window-height): New
+	variable.
+	(debug): When debugger-jumping-flag is non-nil try to restore
+	height of debugger window.  (Bug#8789)
+
 2012-09-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/edebug.el (edebug-enter): Don't mess with

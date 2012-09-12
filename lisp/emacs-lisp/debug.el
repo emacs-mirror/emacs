@@ -96,6 +96,9 @@ The value used here is passed to `quit-restore-window'."
 (defvar debugger-previous-window nil
   "This is the window last showing the debugger buffer.")
 
+(defvar debugger-previous-window-height nil
+  "The last recorded height of `debugger-previous-window'.")
+
 (defvar debugger-previous-backtrace nil
   "The contents of the previous backtrace (including text properties).
 This is to optimize `debugger-make-xrefs'.")
@@ -234,7 +237,17 @@ first will be printed into the backtrace buffer."
 		  . (,(when debugger-previous-window
 			`(previous-window . ,debugger-previous-window)))))
 	      (setq debugger-window (selected-window))
-	      (setq debugger-previous-window debugger-window)
+	      (if (eq debugger-previous-window debugger-window)
+		  (when debugger-jumping-flag
+		    ;; Try to restore previous height of debugger
+		    ;; window.
+		    (condition-case nil
+			(window-resize
+			 debugger-window
+			 (- debugger-previous-window-height
+			    (window-total-size debugger-window)))
+		      (error nil)))
+		(setq debugger-previous-window debugger-window))
 	      (debugger-mode)
 	      (debugger-setup-buffer debugger-args)
 	      (when noninteractive
@@ -262,6 +275,9 @@ first will be printed into the backtrace buffer."
 		  (recursive-edit))))
 	  (when (and (window-live-p debugger-window)
 		     (eq (window-buffer debugger-window) debugger-buffer))
+	    ;; Record height of debugger window.
+	    (setq debugger-previous-window-height
+		  (window-total-size debugger-window))
 	    ;; Unshow debugger-buffer.
 	    (quit-restore-window debugger-window debugger-bury-or-kill))
           ;; Restore previous state of debugger-buffer in case we were
