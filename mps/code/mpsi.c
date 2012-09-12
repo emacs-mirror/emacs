@@ -1194,8 +1194,7 @@ mps_res_t mps_root_create(mps_root_t *mps_root_o, mps_arena_t arena,
   AVER(mps_rm == (mps_rm_t)0);
 
   /* See .root-mode. */
-  res = RootCreateFun(&root, arena, rank,
-                      (RootScanMethod)mps_root_scan, p, s);
+  res = RootCreateFun(&root, arena, rank, mps_root_scan, p, s);
 
   ArenaLeave(arena);
 
@@ -1308,8 +1307,7 @@ mps_res_t mps_root_create_reg(mps_root_t *mps_root_o, mps_arena_t arena,
 
   /* See .root-mode. */
   res = RootCreateReg(&root, arena, rank, thread,
-                      (RootScanRegMethod)mps_reg_scan,
-                      reg_scan_p, mps_size);
+                      mps_reg_scan, reg_scan_p, mps_size);
 
   ArenaLeave(arena);
 

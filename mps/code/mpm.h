@@ -936,14 +936,14 @@ extern Res RootCreateTableMasked(Root *rootReturn, Arena arena,
                                  Word mask);
 extern Res RootCreateReg(Root *rootReturn, Arena arena,
                            Rank rank, Thread thread,
-                           RootScanRegMethod scan,
+                           mps_reg_scan_t scan,
                            void *p, size_t s);
 extern Res RootCreateFmt(Root *rootReturn, Arena arena,
                            Rank rank, RootMode mode,
                            FormatScanMethod scan,
                            Addr base, Addr limit);
 extern Res RootCreateFun(Root *rootReturn, Arena arena,
-                        Rank rank, RootScanMethod scan,
+                        Rank rank, mps_root_scan_t scan,
                         void *p, size_t s);
 extern void RootDestroy(Root root);
 extern Bool RootModeCheck(RootMode mode);
