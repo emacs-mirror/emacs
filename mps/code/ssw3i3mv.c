@@ -5,6 +5,15 @@
  *
  * This scans the stack and fixes the registers which may contain roots.
  * See <design/thread-manager/>.
+ *
+ * REFERENCES
+ *
+ * "Argument Passing and Naming Conventions"; MSDN; Microsoft Corporation;
+ * <http://msdn.microsoft.com/en-us/library/984x0h58%28v=vs.100%29.aspx>.
+ *
+ * "Calling conventions for different C++ compilers and operating systems";
+ * Agner Fog; Copenhagen University College of Engineering; 2012-02-29;
+ * <http://agner.org./optimize/calling_conventions.pdf>.
  */
 
 #include "mpm.h"
