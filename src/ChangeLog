@@ -5,6 +5,8 @@
 	that fails, clear the desired glyph matrix before returning a
 	failure indication to the caller.  Fixes leaving garbled display
 	when fast scrolling with a down-key.  (Bug#12403)
+	(compute_stop_pos_backwards): Fix a typo that caused crashes while
+	scrolling through multibyte text.
 
 2012-09-12  Jan Djärv  <jan.h.d@swipnet.se>
 

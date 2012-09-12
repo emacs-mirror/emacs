@@ -7669,7 +7669,7 @@ compute_stop_pos_backwards (struct it *it)
     {
       it->end_charpos = min (charpos + 1, ZV);
       charpos = max (charpos - SCAN_BACK_LIMIT, BEGV);
-      SET_TEXT_POS (pos, charpos, BYTE_TO_CHAR (charpos));
+      SET_TEXT_POS (pos, charpos, CHAR_TO_BYTE (charpos));
       reseat_1 (it, pos, 0);
       compute_stop_pos (it);
       /* We must advance forward, right?  */
