@@ -25,10 +25,12 @@ clean-make-build:
 	$(MAKE) -C code -f $(MPS_TARGET_NAME).gmk clean
 
 build-via-xcode:
-	xcodebuild -project code/mps.xcodeproj
+	xcodebuild -project code/mps.xcodeproj -config Release
+	xcodebuild -project code/mps.xcodeproj -config Debug
 
 clean-xcode-build:
-	xcodebuild -project code/mps.xcodeproj clean
+	xcodebuild -project code/mps.xcodeproj -config Release clean
+	xcodebuild -project code/mps.xcodeproj -config Debug clean
 
 Makefile: Makefile.in config.status
 	./config.status Makefile
