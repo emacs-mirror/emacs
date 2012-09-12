@@ -1,5 +1,11 @@
 2012-09-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/edebug.el (edebug-enter): Don't mess with
+	overriding-local-map and pre/post-command-hook here.
+	(edebug-recursive-edit): Do it here instead (bug#12345).
+	(edebug-outside-unread-command-char): Remove all uses of
+	unread-command-char.
+
 	* emacs-lisp/debug.el (debug): Don't bind debug-on-error since
 	inhibit-debugger is bound instead.
 

@@ -2248,47 +2248,14 @@ error is signaled again.
 	    (debug-on-quit edebug-on-quit)
 
 	    ;; Lexical bindings must be uncompiled for this to work.
-	    (cl-lexical-debug t)
-
-	    (edebug-outside-overriding-local-map overriding-local-map)
-	    (edebug-outside-overriding-terminal-local-map
-	     overriding-terminal-local-map)
-
-	    ;; Save the outside value of executing macro.  (here??)
-	    (edebug-outside-executing-macro executing-kbd-macro)
-	    (edebug-outside-pre-command-hook
-	     (edebug-var-status 'pre-command-hook))
-	    (edebug-outside-post-command-hook
-	     (edebug-var-status 'post-command-hook)))
+	    (cl-lexical-debug t))
 	(unwind-protect
-	    (let (;; Don't keep reading from an executing kbd macro
-		  ;; within edebug unless edebug-continue-kbd-macro is
-		  ;; non-nil.  Again, local binding may not be best.
-		  (executing-kbd-macro
-		   (if edebug-continue-kbd-macro executing-kbd-macro))
-
-		  ;; Don't get confused by the user's keymap changes.
-		  (overriding-local-map nil)
-		  (overriding-terminal-local-map nil)
-
-		  (signal-hook-function 'edebug-signal)
-
-		  ;; Disable command hooks.  This is essential when
-		  ;; a hook function is instrumented - to avoid infinite loop.
-		  ;; This may be more than we need, however.
-		  (pre-command-hook nil)
-		  (post-command-hook nil))
+	    (let ((signal-hook-function 'edebug-signal))
 	      (setq edebug-execution-mode (or edebug-next-execution-mode
 					      edebug-initial-mode
 					      edebug-execution-mode)
 		    edebug-next-execution-mode nil)
-	      (edebug-enter edebug-function edebug-args edebug-body))
-	  ;; Reset global variables in case outside value was changed.
-	  (setq executing-kbd-macro edebug-outside-executing-macro)
-	  (edebug-restore-status
-	   'post-command-hook edebug-outside-post-command-hook)
-	  (edebug-restore-status
-	   'pre-command-hook edebug-outside-pre-command-hook)))
+	      (edebug-enter edebug-function edebug-args edebug-body))))
 
     (let* ((edebug-data (get edebug-function 'edebug))
 	   (edebug-def-mark (car edebug-data)) ; mark at def start
@@ -2804,7 +2771,6 @@ MSG is printed after `::::} '."
 ;; in versions where the variable is *not* built-in.
 
 ;; Emacs 18  FIXME
-(defvar edebug-outside-unread-command-char)
 
 ;; Emacs 19.
 (defvar edebug-outside-last-command-event)
@@ -2813,15 +2779,6 @@ MSG is printed after `::::} '."
 (defvar edebug-outside-last-event-frame)
 (defvar edebug-outside-last-nonmenu-event)
 (defvar edebug-outside-track-mouse)
-
-;; Disable byte compiler warnings about unread-command-char and -event
-;; (maybe works with byte-compile-version 2.22 at least)
-(defvar edebug-unread-command-char-warning)
-(defvar edebug-unread-command-event-warning)
-(eval-when-compile			; FIXME
-  (setq edebug-unread-command-char-warning
-	(get 'unread-command-char 'byte-obsolete-variable))
-  (put 'unread-command-char 'byte-obsolete-variable nil))
 
 (defun edebug-recursive-edit ()
   ;; Start up a recursive edit inside of edebug.
@@ -2844,14 +2801,24 @@ MSG is printed after `::::} '."
 
 	(edebug-outside-map (current-local-map))
 
-	(edebug-outside-standard-output standard-output)
+        (edebug-outside-overriding-local-map overriding-local-map)
+        (edebug-outside-overriding-terminal-local-map
+         overriding-terminal-local-map)
+
+        ;; Save the outside value of executing macro.  (here??)
+        (edebug-outside-executing-macro executing-kbd-macro)
+        (edebug-outside-pre-command-hook
+         (edebug-var-status 'pre-command-hook))
+        (edebug-outside-post-command-hook
+         (edebug-var-status 'post-command-hook))
+
+        (edebug-outside-standard-output standard-output)
 	(edebug-outside-standard-input standard-input)
 	(edebug-outside-defining-kbd-macro defining-kbd-macro)
 
 	(edebug-outside-last-command last-command)
 	(edebug-outside-this-command this-command)
 
-	(edebug-outside-unread-command-char unread-command-char) ; FIXME
 	(edebug-outside-current-prefix-arg current-prefix-arg)
 
 	(edebug-outside-last-input-event last-input-event)
@@ -2867,9 +2834,6 @@ MSG is printed after `::::} '."
 	      ;; We could set these to the values for previous edebug call.
 	      (last-command last-command)
 	      (this-command this-command)
-
-	      ;; Assume no edebug command sets unread-command-char.
-	      (unread-command-char -1)
 	      (current-prefix-arg nil)
 
 	      ;; More for Emacs 19
@@ -2879,13 +2843,29 @@ MSG is printed after `::::} '."
 	      (last-nonmenu-event nil)
 	      (track-mouse nil)
 
-	      ;; Bind again to outside values.
+	      ;; Don't keep reading from an executing kbd macro
+              ;; within edebug unless edebug-continue-kbd-macro is
+              ;; non-nil.  Again, local binding may not be best.
+              (executing-kbd-macro
+               (if edebug-continue-kbd-macro executing-kbd-macro))
+
+              ;; Don't get confused by the user's keymap changes.
+              (overriding-local-map nil)
+              (overriding-terminal-local-map nil)
+
+		  ;; Bind again to outside values.
 	      (debug-on-error edebug-outside-debug-on-error)
 	      (debug-on-quit edebug-outside-debug-on-quit)
 
 	      ;; Don't keep defining a kbd macro.
 	      (defining-kbd-macro
 		(if edebug-continue-kbd-macro defining-kbd-macro))
+
+	      ;; Disable command hooks.  This is essential when
+	      ;; a hook function is instrumented - to avoid infinite loop.
+	      ;; This may be more than we need, however.
+	      (pre-command-hook nil)
+	      (post-command-hook nil)
 
 	      ;; others??
 	      )
@@ -2933,7 +2913,6 @@ MSG is printed after `::::} '."
        last-command-event edebug-outside-last-command-event
        last-command edebug-outside-last-command
        this-command edebug-outside-this-command
-       unread-command-char edebug-outside-unread-command-char
        current-prefix-arg edebug-outside-current-prefix-arg
        last-input-event edebug-outside-last-input-event
        last-event-frame edebug-outside-last-event-frame
@@ -2942,9 +2921,13 @@ MSG is printed after `::::} '."
 
        standard-output edebug-outside-standard-output
        standard-input edebug-outside-standard-input
-       defining-kbd-macro edebug-outside-defining-kbd-macro
-       ))
-    ))
+       defining-kbd-macro edebug-outside-defining-kbd-macro)
+
+      (setq executing-kbd-macro edebug-outside-executing-macro)
+      (edebug-restore-status
+       'post-command-hook edebug-outside-post-command-hook)
+      (edebug-restore-status
+       'pre-command-hook edebug-outside-pre-command-hook))))
 
 
 ;;; Display related functions
@@ -3562,7 +3545,6 @@ Return the result of the last expression."
 	   (last-command-event edebug-outside-last-command-event)
 	   (last-command edebug-outside-last-command)
 	   (this-command edebug-outside-this-command)
-	   (unread-command-char edebug-outside-unread-command-char)
 	   (unread-command-events edebug-outside-unread-command-events)
 	   (current-prefix-arg edebug-outside-current-prefix-arg)
 	   (last-input-event edebug-outside-last-input-event)
@@ -3602,7 +3584,6 @@ Return the result of the last expression."
 	  edebug-outside-last-command-event last-command-event
 	  edebug-outside-last-command last-command
 	  edebug-outside-this-command this-command
-	  edebug-outside-unread-command-char unread-command-char
 	  edebug-outside-unread-command-events unread-command-events
 	  edebug-outside-current-prefix-arg current-prefix-arg
 	  edebug-outside-last-input-event last-input-event
@@ -4240,7 +4221,7 @@ It is removed when you hit any char."
   (let ((buffer-read-only nil))
     (undo-boundary)
     (edebug-display-freq-count)
-    (setq unread-command-char (read-char))
+    (setq unread-command-events (append unread-command-events (read-event)))
     ;; Yuck!  This doesn't seem to work at all for me.
     (undo)))
 
@@ -4356,13 +4337,6 @@ With prefix argument, make it a temporary breakpoint."
 
 ;; Extension for bytecomp to resolve undefined function references.
 ;; Requires new byte compiler.
-
-;; Reenable byte compiler warnings about unread-command-char and -event.
-;; Disabled before edebug-recursive-edit.
-(eval-when-compile
-  (if edebug-unread-command-char-warning
-      (put 'unread-command-char 'byte-obsolete-variable
-	   edebug-unread-command-char-warning)))
 
 (eval-when-compile
   ;; The body of eval-when-compile seems to get evaluated with eval-defun.
