@@ -60,17 +60,17 @@ typedef union EventClockUnion {
 
 #else /* _MSC_VER < 1400 */
 
-/* Fake the __rdtsc intrinsic for old Microsoft C versions. */
+/* This is mostly a patch for Open Dylan's bootstrap on Windows, which is
+   using Microsoft Visual Studio 6 because of support for CodeView debugging
+   information. */
+
+#include <windows.h> /* KILL IT WITH FIRE! */
 
 #define EVENT_CLOCK(lvalue) \
   BEGIN \
-    EventClockUnion ecu; \
-    __asm { \
-      __asm __emit 0fh __asm __emit 031h      ; rdtsc \
-      mov ecu.half.high, edx \
-      mov ecu.half.low, eax \
-    } \
-    (lvalue) = ecu.whole; \
+    __declspec(align(16)) LARGE_INTEGER _count; \
+    QueryPerformanceCounter(&_count); \
+    (lvalue) = _count.QuadPart; \
   END
   
 #endif /* _MSC_VER < 1400 */
