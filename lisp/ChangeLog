@@ -1,5 +1,28 @@
 2012-09-12  Stephen Berman  <stephen.berman@gmx.net>
 
+	* calendar/todos.el (todos-file-do, todos-file-done):
+	Change default location to directory "~/.emacs.d/".
+	(todos-completion-ignore-case, todos-categories-buffer):
+	New defcustoms.
+	(todos-prefix-string, todos-item-header): New faces.
+	(todos-prefix-face, todos-item-header-face): Corresponding
+	new variables.
+	(todos-rename-category, todos-delete-category)
+	(todos-display-categories, todos-move-item): New commands.
+	(todos-mode-map): Add key bindings for new commands and for
+	todos-add-category, which had no key binding.
+	(todos-jump-to-category-noninteractively): New function.
+	(todos-top-priorities): Comment out code using a previously
+	deleted variable.
+	(todos-completing-read): Allow SPC to insert a space when entering
+	a new category name; use todos-completion-ignore-case.
+	(todos-font-lock-keywords, todos-window-configuration):
+	New variables.
+	(todos-mode): Make mode-name "TODOS"; make font-lock-defaults,
+	word-wrap, and wrap-prefix local variables.
+
+2012-09-12  Stephen Berman  <stephen.berman@gmx.net>
+
 	* calendar/todos.el (todos-list-categories): Fix typos.
 	(todos-show): Ensure file is in todos-mode.
 
