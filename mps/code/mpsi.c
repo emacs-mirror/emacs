@@ -165,12 +165,6 @@ size_t mps_arena_reserved(mps_arena_t arena)
   return (size_t)size;
 }
 
-/* for backward compatibility */
-size_t mps_space_reserved(mps_space_t mps_space)
-{
-  return mps_arena_reserved(mps_space);
-}
-
 size_t mps_arena_committed(mps_arena_t arena)
 {
   Size size;
@@ -180,12 +174,6 @@ size_t mps_arena_committed(mps_arena_t arena)
   ArenaLeave(arena);
 
   return (size_t)size;
-}
-
-/* for backward compatibility */
-size_t mps_space_committed(mps_space_t mps_space)
-{
-  return mps_arena_committed(mps_space);
 }
 
 size_t mps_arena_spare_committed(mps_arena_t arena)
@@ -248,12 +236,6 @@ void mps_arena_clamp(mps_arena_t arena)
   ArenaLeave(arena);
 }
 
-/* for backward compatibility */
-void mps_space_clamp(mps_space_t mps_space)
-{
-  mps_arena_clamp(mps_space);
-}
-
 
 void mps_arena_release(mps_arena_t arena)
 {
@@ -262,26 +244,14 @@ void mps_arena_release(mps_arena_t arena)
   ArenaLeave(arena);
 }
 
-/* for backward compatibility */
-void mps_space_release(mps_space_t mps_space)
-{
-  mps_arena_release(mps_space);
-}
 
-
-void mps_arena_park(mps_space_t mps_space)
+void mps_arena_park(mps_arena_t arena)
 {
-  Arena arena = (Arena)mps_space;
   ArenaEnter(arena);
   ArenaPark(ArenaGlobals(arena));
   ArenaLeave(arena);
 }
 
-/* for backward compatibility */
-void mps_space_park(mps_space_t mps_space)
-{
-  mps_arena_park(mps_space);
-}
 
 void mps_arena_expose(mps_arena_t arena)
 {
@@ -306,20 +276,18 @@ void mps_arena_unsafe_restore_protection(mps_arena_t arena)
 }
 
 
-mps_res_t mps_arena_start_collect(mps_space_t mps_space)
+mps_res_t mps_arena_start_collect(mps_arena_t arena)
 {
   Res res;
-  Arena arena = (Arena)mps_space;
   ArenaEnter(arena);
   res = ArenaStartCollect(ArenaGlobals(arena), TraceStartWhyCLIENTFULL_INCREMENTAL);
   ArenaLeave(arena);
   return res;
 }
 
-mps_res_t mps_arena_collect(mps_space_t mps_space)
+mps_res_t mps_arena_collect(mps_arena_t arena)
 {
   Res res;
-  Arena arena = (Arena)mps_space;
   ArenaEnter(arena);
   res = ArenaCollect(ArenaGlobals(arena), TraceStartWhyCLIENTFULL_BLOCK);
   ArenaLeave(arena);
@@ -335,12 +303,6 @@ mps_bool_t mps_arena_step(mps_arena_t arena,
   b = ArenaStep(ArenaGlobals(arena), interval, multiplier);
   ArenaLeave(arena);
   return b;
-}
-
-/* for backward compatibility */
-mps_res_t mps_space_collect(mps_space_t mps_space)
-{
-  return mps_arena_collect(mps_space);
 }
 
 
