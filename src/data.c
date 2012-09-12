@@ -1164,7 +1164,7 @@ set_internal (Lisp_Object symbol, Lisp_Object newval, Lisp_Object where,
 	   the default binding is loaded, the loaded binding may be the
 	   wrong one.  */
 	if (!EQ (blv->where, where)
-	    /* Also unload a global binding (if the var is local_if_set). */
+	    /* Also unload a global binding (if the var is local_if_set).  */
 	    || (EQ (blv->valcell, blv->defcell)))
 	  {
 	    /* The currently loaded binding is not necessarily valid.

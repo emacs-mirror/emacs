@@ -110,10 +110,6 @@ This is to optimize `debugger-make-xrefs'.")
 (defvar debugger-outer-track-mouse)
 (defvar debugger-outer-last-command)
 (defvar debugger-outer-this-command)
-;; unread-command-char is obsolete,
-;; but we still save and restore it
-;; in case some user program still tries to set it.
-(defvar debugger-outer-unread-command-char)
 (defvar debugger-outer-unread-command-events)
 (defvar debugger-outer-unread-post-input-method-events)
 (defvar debugger-outer-last-input-event)
@@ -185,8 +181,6 @@ first will be printed into the backtrace buffer."
 	  (debugger-outer-track-mouse track-mouse)
 	  (debugger-outer-last-command last-command)
 	  (debugger-outer-this-command this-command)
-	  (debugger-outer-unread-command-char
-	   (with-no-warnings unread-command-char))
 	  (debugger-outer-unread-command-events unread-command-events)
 	  (debugger-outer-unread-post-input-method-events
 	   unread-post-input-method-events)
@@ -221,8 +215,6 @@ first will be printed into the backtrace buffer."
 	    (cursor-in-echo-area nil))
 	(unwind-protect
 	    (save-excursion
-	      (with-no-warnings
-		(setq unread-command-char -1))
 	      (when (eq (car debugger-args) 'debug)
 		;; Skip the frames for backtrace-debug, byte-code,
 		;; and implement-debug-on-entry.
@@ -302,8 +294,6 @@ first will be printed into the backtrace buffer."
       (setq track-mouse debugger-outer-track-mouse)
       (setq last-command debugger-outer-last-command)
       (setq this-command debugger-outer-this-command)
-      (with-no-warnings
-	(setq unread-command-char debugger-outer-unread-command-char))
       (setq unread-command-events debugger-outer-unread-command-events)
       (setq unread-post-input-method-events
 	    debugger-outer-unread-post-input-method-events)
@@ -605,16 +595,7 @@ Applies to the frame whose line point is on in the backtrace."
           (cursor-in-echo-area debugger-outer-cursor-in-echo-area))
       (set-match-data debugger-outer-match-data)
       (prog1
-	  (let ((save-ucc (with-no-warnings unread-command-char)))
-	    (unwind-protect
-		(progn
-		  (with-no-warnings
-		    (setq unread-command-char debugger-outer-unread-command-char))
-		  (prog1 (progn ,@body)
-		    (with-no-warnings
-		      (setq debugger-outer-unread-command-char unread-command-char))))
-	      (with-no-warnings
-		(setq unread-command-char save-ucc))))
+          (progn ,@body)
         (setq debugger-outer-match-data (match-data))
         (setq debugger-outer-load-read-function load-read-function)
         (setq debugger-outer-overriding-terminal-local-map

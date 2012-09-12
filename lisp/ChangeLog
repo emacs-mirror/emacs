@@ -1,3 +1,19 @@
+2012-09-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/debug.el (debugger-outer-unread-command-char, debug)
+	(debugger-env-macro): Remove support for unread-command-char.
+
+	* subr.el (set-temporary-overlay-map): Minimize slightly the impact of
+	the temporary map re-appearing on emulation-mode-map-alists.
+
+	* emacs-lisp/edebug.el (def-edebug-form-spec): Remove, it's been broken
+	since 22.1.
+
+	* ehelp.el (with-electric-help): Accept functions in
+	electric-help-form-to-execute.
+	(electric-help-execute-extended, electric-help-ctrl-x-prefix): Use it.
+	And replace unread-command-char -> unread-command-events.
+
 2012-09-12  Michael Albinus  <michael.albinus@gmx.de>
 
 	Sync with Tramp 2.2.6.
@@ -9,8 +25,8 @@
 
 2012-09-12  Martin Rudalics  <rudalics@gmx.at>
 
-	* emacs-lisp/debug.el (debugger-previous-window-height): New
-	variable.
+	* emacs-lisp/debug.el (debugger-previous-window-height):
+	New variable.
 	(debug): When debugger-jumping-flag is non-nil try to restore
 	height of debugger window.  (Bug#8789)
 

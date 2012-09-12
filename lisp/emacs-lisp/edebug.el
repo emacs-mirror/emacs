@@ -235,11 +235,6 @@ If the result is non-nil, then break.  Errors are ignored."
 
 ;;; Form spec utilities.
 
-(defmacro def-edebug-form-spec (symbol spec-form)
-  "For compatibility with old version."
-  (def-edebug-spec symbol (eval spec-form)))
-(make-obsolete 'def-edebug-form-spec 'def-edebug-spec "22.1")
-
 (defun get-edebug-spec (symbol)
   ;; Get the spec of symbol resolving all indirection.
   (let ((edebug-form-spec nil)

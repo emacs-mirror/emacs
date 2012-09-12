@@ -638,7 +638,7 @@ are deprecated and will be removed eventually.
 
 *** `facemenu-unlisted-faces'
 *** `rmail-decode-mime-charset'
-*** `last-input-char' and `last-command-char'
+*** `last-input-char', `last-command-char', `unread-command-char'.
 
 
 * Lisp changes in Emacs 24.3

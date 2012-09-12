@@ -1250,11 +1250,6 @@ is converted into a string by expressing it in decimal."
  'mode-line-inverse-video
  "use the appropriate faces instead."
  "21.1")
-(make-obsolete-variable
- 'unread-command-char
- "use `unread-command-events' instead.  That variable is a list of events
-to reread, so it now uses nil to mean `no event', instead of -1."
- "before 19.15")
 
 ;; Lisp manual only updated in 22.1.
 (define-obsolete-variable-alias 'executing-macro 'executing-kbd-macro
@@ -3928,6 +3923,7 @@ When KEEP-PRED is nil, the temporary keymap is used only once."
                                   (lookup-key ',map
                                               (this-command-keys-vector))))
                             (t `(funcall ',keep-pred)))
+               (set ',overlaysym nil)   ;Just in case.
                (remove-hook 'pre-command-hook ',clearfunsym)
                (setq emulation-mode-map-alists
                      (delq ',alist emulation-mode-map-alists))))))

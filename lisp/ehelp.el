@@ -193,7 +193,9 @@ BUFFER is put back into its original major mode."
 	(replace-buffer-in-windows buffer)
 	;; must do this outside of save-window-excursion
 	(bury-buffer buffer))
-      (eval electric-help-form-to-execute))))
+      (if (functionp electric-help-form-to-execute)
+          (funcall electric-help-form-to-execute)
+        (eval electric-help-form-to-execute)))))
 
 (defun electric-help-command-loop ()
   (catch 'exit
@@ -349,14 +351,19 @@ will select it.)"
 ;; continues with execute-extended-command.
 (defun electric-help-execute-extended (_prefixarg)
   (interactive "p")
-  (setq electric-help-form-to-execute '(execute-extended-command nil))
+  (setq electric-help-form-to-execute
+        (lambda () (execute-extended-command nil)))
   (electric-help-retain))
 
 ;; This is to be buond to C-x in ehelp mode. Retains ehelp buffer and then
 ;; continues with ctrl-x prefix.
 (defun electric-help-ctrl-x-prefix (_prefixarg)
   (interactive "p")
-  (setq electric-help-form-to-execute '(progn (message nil) (setq unread-command-char ?\C-x)))
+  (setq electric-help-form-to-execute
+        (lambda ()
+          (message nil)
+          (setq unread-command-events
+                (append unread-command-events '(?\C-x)))))
   (electric-help-retain))
 
 

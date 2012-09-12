@@ -4210,7 +4210,7 @@ NUMBER-OF-STATIC-VARIABLES:"
 ;; this will select the buffer from which the buffer menu was
 ;; invoked.  But this buffer is not displayed in the buffer list if
 ;; it isn't a tree buffer.  I therefore let the buffer menu command
-;; loop read the command `p' via `unread-command-char'.  This command
+;; loop read the command `p' via `unread-command-events'.  This command
 ;; has no effect since we are on the first line of the buffer.
 
 (defvar electric-buffer-menu-mode-hook nil)
