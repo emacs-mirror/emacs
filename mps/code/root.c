@@ -53,7 +53,7 @@ typedef struct RootStruct {
       size_t s;                 /* passed to scan */
     } reg;
     struct {
-      FormatScanMethod scan;    /* format-like scanner */
+      mps_fmt_scan_t scan;      /* format-like scanner */
       Addr base, limit;         /* passed to scan */
     } fmt;
   } the;
@@ -315,7 +315,7 @@ Res RootCreateReg(Root *rootReturn, Arena arena,
 }
 
 Res RootCreateFmt(Root *rootReturn, Arena arena,
-                  Rank rank, RootMode mode, FormatScanMethod scan,
+                  Rank rank, RootMode mode, mps_fmt_scan_t scan,
                   Addr base, Addr limit)
 {
   union RootUnion theUnion;
