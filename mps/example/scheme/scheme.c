@@ -267,11 +267,15 @@ static size_t symtab_size;
 static mps_root_t symtab_root;
 
 
-/* special objects
+/* special objects                                              %%MPS
  *
  * These global variables are initialized to point to objects of
  * TYPE_SPECIAL by main.  They are used as markers for various
  * special purposes.
+ *
+ * These static global variable refer to object allocated in the `obj_pool`
+ * and so they must also be declared to the MPS as roots.
+ * See `globals_scan`.
  */
 
 static obj_t obj_empty;		/* (), the empty list */
@@ -2074,13 +2078,23 @@ static obj_t entry_open_in(obj_t env, obj_t op_env, obj_t operator, obj_t operan
 {
   obj_t filename;
   FILE *stream;
+  obj_t port;
+  mps_addr_t port_ref;
   eval_args(operator->operator.name, env, op_env, operands, 1, &filename);
   unless(TYPE(filename) == TYPE_STRING)
     error("%s: argument must be a string", operator->operator.name);
   stream = fopen(filename->string.string, "r");
   if(stream == NULL)
     error("%s: cannot open input file", operator->operator.name); /* TODO: return error */
-  return make_port(filename, stream);
+  port = make_port(filename, stream);
+
+  /* %%MPS: Register the port object for finalization.  When the object is
+     no longer referenced elsewhere, a message will be received in `mps_chat`
+     so that the file can be closed.  See `mps_chat`. */
+  port_ref = port;
+  mps_finalize(arena, &port_ref);
+
+  return port;
 }
 
 
@@ -2251,6 +2265,23 @@ static obj_t entry_string_to_symbol(obj_t env, obj_t op_env, obj_t operator, obj
 }
 
 
+/* entry_gc -- full garbage collection now                      %%MPS
+ *
+ * This is an example of a direct interface from the language to the MPS.
+ * The `gc` function in Scheme will cause the MPS to perform a complete
+ * garbage collection of the entire arena right away.
+ */
+
+static obj_t entry_gc(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
+{
+  mps_res_t res = mps_arena_collect(arena);
+  if (res != MPS_RES_OK)
+    error("Couldn't collect: %d", res);
+  mps_arena_release(arena);
+  return obj_undefined;
+}
+
+
 /* INITIALIZATION */
 
 
@@ -2343,7 +2374,8 @@ static struct {char *name; entry_t entry;} funtab[] = {
   {"vector-fill!", entry_vector_fill},
   {"eval", entry_eval},
   {"symbol->string", entry_symbol_to_string},
-  {"string->symbol", entry_string_to_symbol}
+  {"string->symbol", entry_string_to_symbol},
+  {"gc", entry_gc}
 };
 
 
@@ -2618,6 +2650,27 @@ struct mps_fmt_A_s obj_fmt_s = {
 };
 
 
+/* globals_scan -- scan static global variables                 %%MPS
+ *
+ * The static global variables are all used to hold values that are set
+ * up using the `sptab` and `isymtab` tables, and conveniently we have
+ * a list of pointers to those variables.  This is a custom root scanning
+ * method that uses them to fix those variables.
+ */
+
+static mps_res_t globals_scan(mps_ss_t ss, void *p, size_t s)
+{
+  MPS_SCAN_BEGIN(ss) {
+    size_t i;
+    for (i = 0; i < LENGTH(sptab); ++i)
+      FIX(*sptab[i].varp);
+    for (i = 0; i < LENGTH(isymtab); ++i)
+      FIX(*isymtab[i].varp);
+  } MPS_SCAN_END(ss);
+  return MPS_RES_OK;
+}
+
+
 /* mps_chat -- get and display MPS messages                     %%MPS
  *
  * The MPS message protocol allows the MPS to communicate various things
@@ -2635,20 +2688,47 @@ static void mps_chat(void)
     mps_bool_t b;
     b = mps_message_get(&message, arena, type);
     assert(b); /* we just checked there was one */
-    switch (type) {
-    case mps_message_type_gc_start():
+    
+    if (type == mps_message_type_gc_start()) {
       printf("Collection %lu started.\n", (unsigned long)mps_collections(arena));
       printf("  Why: %s\n", mps_message_gc_start_why(arena, message));
       printf("  Clock: %lu\n", (unsigned long)mps_message_clock(arena, message));
-      break;
-    case mps_message_type_gc():
+
+    } else if (type == mps_message_type_gc()) {
+      size_t live = mps_message_gc_live_size(arena, message);
+      size_t condemned = mps_message_gc_condemned_size(arena, message);
+      size_t not_condemned = mps_message_gc_not_condemned_size(arena, message);
       printf("Collection finished.\n");
-      /* TODO: Print statistics */
-      break;
-    default:
+      printf("    live %lu\n", (unsigned long)live);
+      printf("    condemned %lu\n", (unsigned long)condemned);
+      printf("    not_condemned %lu\n", (unsigned long)not_condemned);
+      printf("    clock: %lu\n", (unsigned long)mps_message_clock(arena, message));
+
+    /* A finalization message is received when an object registered earlier
+       with `mps_finalize` would have been recycled if it hadn't been
+       registered.  This means there are no other references to the object.
+       In this interpreter, we register ports with open files for
+       finalization, so that we can close the file (and release operating
+       system resources) when a port object gets lost without being
+       properly closed first.  Note, however, that finalization isn't
+       reliable or prompt.  Treat it as an optimization. */
+    } else if (type == mps_message_type_finalization()) {
+      mps_addr_t port_ref;
+      obj_t port;
+      mps_message_finalization_ref(&port_ref, arena, message);
+      port = port_ref;
+      /* We're only expecting ports to be finalized as they're the only
+         objects registered for finalization.  See `entry_open_in`. */
+      assert(TYPE(port) == TYPE_PORT);
+      printf("Port to file \"%s\" is dying. Closing file.\n",
+             port->port.name->string.string);
+      (void)fclose(port->port.stream);
+
+    } else {
       printf("Unknown message from MPS!\n");
-      break;
     }
+
+    mps_message_discard(arena, message);
   }
 }
 
@@ -2666,6 +2746,7 @@ static void *start(void *p, size_t s)
   volatile obj_t env, op_env, obj;
   jmp_buf jb;
   mps_res_t res;
+  mps_root_t globals_root;
   
   puts("MPS Toy Scheme Example");
   
@@ -2687,6 +2768,15 @@ static void *start(void *p, size_t s)
   if(res != MPS_RES_OK) error("Couldn't register symtab root");
 
   error_handler = &jb;
+
+  /* By contrast with the symbol table, we *must* register the globals as
+     roots before we start making things to put into them, because making
+     stuff might cause a garbage collection and throw away their contents
+     if they're not registered.  Since they're static variables they'll
+     contain NULL pointers, and are scannable from the start. */
+  res = mps_root_create(&globals_root, arena, mps_rank_exact(), 0,
+                        globals_scan, NULL, 0);
+  if (res != MPS_RES_OK) error("Couldn't register globals root");
 
   if(!setjmp(*error_handler)) {
     for(i = 0; i < LENGTH(sptab); ++i)
@@ -2731,6 +2821,10 @@ static void *start(void *p, size_t s)
   }
 
   puts("Bye.");
+
+  /* See comment at the end of `main` about cleaning up. */
+  mps_root_destroy(symtab_root);
+  mps_root_destroy(globals_root);
 
   return 0;
 }
