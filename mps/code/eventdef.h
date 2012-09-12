@@ -614,11 +614,11 @@
 
 #define EVENT_AWLDeclineTotal_PARAMS(PARAM, X) \
   PARAM(X,  0, P, seg)          /* segment declined single access */ \
-  PARAM(X,  1, U, succAccesses) /* total successive accesses */
+  PARAM(X,  1, W, succAccesses) /* total successive accesses */
 
 #define EVENT_AWLDeclineSeg_PARAMS(PARAM, X) \
   PARAM(X,  0, P, seg)          /* segment declined single access */ \
-  PARAM(X,  1, U, singleAccesses) /* single accesses this cycle */
+  PARAM(X,  1, W, singleAccesses) /* single accesses this cycle */
 
 
 #endif /* eventdef_h */
