@@ -42,44 +42,63 @@
 
 typedef unsigned __int64 EventClock;
 
+typedef union EventClockUnion {
+  struct {
+    unsigned low, high;
+  } half;
+  unsigned __int64 whole;
+} EventClockUnion;
+
 #if _MSC_VER >= 1400
 
 #pragma intrinsic(__rdtsc)
-
-#else /* _MSC_VER < 1400 */
-
-/* Fake the __rdtsc intrinsic for old Microsoft C versions. */
-static __inline unsigned __int64 __rdtsc()
-{
-  union {
-    struct {
-      unsigned low, high;
-    } half;
-    unsigned __int64 whole;
-  } li;
-  __asm {
-    __asm __emit 0fh __asm __emit 031h      ; rdtsc
-    mov li.half.high, edx
-    mov li.half.low, eax
-  }
-  return li.whole;
-}
-
-#endif /* _MSC_VER >= 1400 */
 
 #define EVENT_CLOCK(lvalue) \
   BEGIN \
     (lvalue) = __rdtsc(); \
   END
 
-#define EVENT_CLOCK_PRINT(stream, clock) fprintf(stream, "%llX", clock)
+#else /* _MSC_VER < 1400 */
+
+/* Fake the __rdtsc intrinsic for old Microsoft C versions. */
+
+#define EVENT_CLOCK(lvalue) \
+  BEGIN \
+    EventClockUnion ecu; \
+    __asm { \
+      __asm __emit 0fh __asm __emit 031h      ; rdtsc \
+      mov ecu.half.high, edx \
+      mov ecu.half.low, eax \
+    } \
+    (lvalue) = ecu.whole; \
+  END
+  
+#endif /* _MSC_VER < 1400 */
 
 #if defined(MPS_ARCH_I3)
+
+/* We can't use a shift to get the top half of the 64-bit event clock,
+   because that introduces a dependency on `__aullshr` in the C run-time. */
+
+#define EVENT_CLOCK_PRINT(stream, clock) \
+  fprintf(stream, "%08lX%08lX", \
+          (*(EventClockUnion *)&(clock)).half.high, \
+          (*(EventClockUnion *)&(clock)).half.low)
+
 #define EVENT_CLOCK_WRITE(stream, clock) \
-  WriteF(stream, "$W$W", (WriteFW)((clock) >> 32), (WriteFW)clock, NULL)
+  WriteF(stream, "$W$W", \
+         (*(EventClockUnion *)&(clock)).half.high, \
+         (*(EventClockUnion *)&(clock)).half.low, \
+         NULL)
+
 #elif defined(MPS_ARCH_I6)
+
+#define EVENT_CLOCK_PRINT(stream, clock) \
+  fprintf(stream, "%016lX", (clock));
+
 #define EVENT_CLOCK_WRITE(stream, clock) \
   WriteF(stream, "$W", (WriteFW)(clock), NULL)
+
 #endif
 
 #endif /* Microsoft C on Intel */
