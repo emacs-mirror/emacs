@@ -67,10 +67,10 @@ typedef BufferClass SegBufClass;        /* <design/buffer/> */
 typedef BufferClass RankBufClass;       /* <design/buffer/> */
 typedef unsigned BufferMode;            /* <design/buffer/> */
 typedef unsigned FrameState;            /* <design/alloc-frame/> */
-typedef struct FormatStruct *Format;    /* design.mps.format */
+typedef struct mps_fmt_s *Format;       /* design.mps.format */
 typedef struct LockStruct *Lock;        /* <code/lock.c>* */
-typedef struct PoolStruct *Pool;        /* <design/pool/> */
-typedef struct PoolClassStruct *PoolClass; /* <code/poolclas.c> */
+typedef struct mps_pool_s *Pool;        /* <design/pool/> */
+typedef struct mps_class_s *PoolClass;  /* <code/poolclas.c> */
 typedef PoolClass AbstractPoolClass;    /* <code/poolabs.c> */
 typedef PoolClass AbstractAllocFreePoolClass; /* <code/poolabs.c> */
 typedef PoolClass AbstractBufferPoolClass; /* <code/poolabs.c> */
@@ -79,7 +79,7 @@ typedef PoolClass AbstractScanPoolClass; /* <code/poolabs.c> */
 typedef PoolClass AbstractCollectPoolClass; /* <code/poolabs.c> */
 typedef struct TraceStruct *Trace;      /* <design/trace/> */
 typedef struct ScanStateStruct *ScanState; /* <design/trace/> */
-typedef struct ChainStruct *Chain;      /* <design/trace/> */
+typedef struct mps_chain_s *Chain;      /* <design/trace/> */
 typedef struct TractStruct *Tract;      /* <design/arena/> */
 typedef struct ChunkStruct *Chunk;      /* <code/tract.c> */
 typedef struct ChunkCacheEntryStruct *ChunkCacheEntry; /* <code/tract.c> */
@@ -90,7 +90,7 @@ typedef struct SegClassStruct *SegClass; /* <code/seg.c> */
 typedef SegClass GCSegClass;            /* <code/seg.c> */
 typedef struct SegPrefStruct *SegPref;  /* design.mps.pref, <code/locus.c> */
 typedef int SegPrefKind;                /* design.mps.pref, <code/locus.c> */
-typedef struct ArenaClassStruct *ArenaClass; /* <design/arena/> */
+typedef struct mps_arena_class_s *ArenaClass; /* <design/arena/> */
 typedef ArenaClass AbstractArenaClass;  /* <code/arena.c> */
 typedef struct mps_arena_s *Arena;      /* <design/arena/> */
 typedef struct GlobalsStruct *Globals;  /* <design/arena/> */
@@ -223,7 +223,7 @@ typedef PoolDebugMixin (*PoolDebugMixinMethod)(Pool pool);
  */
 
 typedef unsigned MessageType;
-typedef struct MessageStruct *Message;
+typedef struct mps_message_s *Message;
 typedef struct MessageClassStruct *MessageClass;
 
 /* Message*Method -- <design/message/> */

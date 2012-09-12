@@ -46,7 +46,7 @@
 
 #define PoolClassSig    ((Sig)0x519C7A55) /* SIGnature pool CLASS */
 
-typedef struct PoolClassStruct {
+typedef struct mps_class_s {
   ProtocolClassStruct protocol;
   const char *name;             /* class name string */
   size_t size;                  /* size of outer structure */
@@ -93,7 +93,7 @@ typedef struct PoolClassStruct {
 
 #define PoolSig         ((Sig)0x519B0019) /* SIGnature POOL */
 
-typedef struct PoolStruct {     /* generic structure */
+typedef struct mps_pool_s {     /* generic structure */
   Sig sig;                      /* <design/sig/> */
   Serial serial;                /* from arena->poolSerial */
   PoolClass class;              /* pool class structure */
@@ -218,7 +218,7 @@ typedef struct MessageClassStruct {
  *
  * See <design/message/#message.struct>.  */
 
-typedef struct MessageStruct {
+typedef struct mps_message_s {
   Sig sig;                      /* <design/sig/> */
   Arena arena;                  /* owning arena */
   MessageClass class;           /* Message Class Structure */
@@ -399,7 +399,7 @@ typedef struct SegBufStruct {
 
 #define FormatSig       ((Sig)0x519F63A2) /* Signature FoRMAT */
 
-typedef struct FormatStruct {
+typedef struct mps_fmt_s {
   Sig sig;
   Serial serial;                /* from arena->formatSerial */
   FormatVariety variety;        /* format variety (e.g. A) */
@@ -530,7 +530,7 @@ typedef struct ChunkCacheEntryStruct {
 
 #define ArenaClassSig   ((Sig)0x519A6C1A) /* SIGnature ARena CLAss */
 
-typedef struct ArenaClassStruct {
+typedef struct mps_arena_class_s {
   ProtocolClassStruct protocol;
   char *name;                   /* class name string */
   size_t size;                  /* size of outer structure */
