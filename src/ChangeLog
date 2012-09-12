@@ -1,3 +1,9 @@
+2012-09-12  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32proc.c (sys_kill): If PID is our process ID and the signal is
+	SIGABRT, call emacs_abort.  Avoids silently exiting upon assertion
+	violation.  (Bug#12426)
+
 2012-09-12  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* image.c (jpeg_memory_src): Don't assume string len fits in unsigned.
