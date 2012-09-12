@@ -1,3 +1,8 @@
+2012-09-12  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (x_wm_set_size_hint): Use 1 col for base_width so it
+	does not become zero (Bug#12234).  Backport from trunk.
+
 2012-08-24  Chong Yidong  <cyd@gnu.org>
 
 	* Version 24.2 released.
