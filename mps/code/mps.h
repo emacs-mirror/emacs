@@ -179,8 +179,7 @@ typedef struct mps_ld_s {       /* location dependency descriptor */
 
 /* Format and Root Method Types */
 /* see design.mps.root-interface */
-/* .fmt-methods: Keep in sync with <code/mpmtypes.h#fmt-methods> */
-/* .root-methods: Keep in sync with <code/mpmtypes.h#root-methods> */
+/* see design.mps.format-interface */
 
 typedef mps_res_t (*mps_root_scan_t)(mps_ss_t, void *, size_t);
 typedef mps_res_t (*mps_fmt_scan_t)(mps_ss_t, mps_addr_t, mps_addr_t);

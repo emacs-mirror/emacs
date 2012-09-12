@@ -463,12 +463,12 @@ mps_res_t mps_fmt_create_A(mps_fmt_t *mps_fmt_o,
                      arena,
                      (Align)mps_fmt_A->align,
                      FormatVarietyA,
-                     (FormatScanMethod)mps_fmt_A->scan,
-                     (FormatSkipMethod)mps_fmt_A->skip,
-                     (FormatMoveMethod)mps_fmt_A->fwd,
-                     (FormatIsMovedMethod)mps_fmt_A->isfwd,
-                     (FormatCopyMethod)mps_fmt_A->copy,
-                     (FormatPadMethod)mps_fmt_A->pad,
+                     mps_fmt_A->scan,
+                     mps_fmt_A->skip,
+                     mps_fmt_A->fwd,
+                     mps_fmt_A->isfwd,
+                     mps_fmt_A->copy,
+                     mps_fmt_A->pad,
                      NULL,
                      (Size)0);
 
@@ -497,13 +497,13 @@ mps_res_t mps_fmt_create_B(mps_fmt_t *mps_fmt_o,
                      arena,
                      (Align)mps_fmt_B->align,
                      FormatVarietyB,
-                     (FormatScanMethod)mps_fmt_B->scan,
-                     (FormatSkipMethod)mps_fmt_B->skip,
-                     (FormatMoveMethod)mps_fmt_B->fwd,
-                     (FormatIsMovedMethod)mps_fmt_B->isfwd,
-                     (FormatCopyMethod)mps_fmt_B->copy,
-                     (FormatPadMethod)mps_fmt_B->pad,
-                     (FormatClassMethod)mps_fmt_B->mps_class,
+                     mps_fmt_B->scan,
+                     mps_fmt_B->skip,
+                     mps_fmt_B->fwd,
+                     mps_fmt_B->isfwd,
+                     mps_fmt_B->copy,
+                     mps_fmt_B->pad,
+                     mps_fmt_B->mps_class,
                      (Size)0);
 
   ArenaLeave(arena);
@@ -531,12 +531,12 @@ mps_res_t mps_fmt_create_auto_header(mps_fmt_t *mps_fmt_o,
                      arena,
                      (Align)mps_fmt->align,
                      FormatVarietyAutoHeader,
-                     (FormatScanMethod)mps_fmt->scan,
-                     (FormatSkipMethod)mps_fmt->skip,
-                     (FormatMoveMethod)mps_fmt->fwd,
-                     (FormatIsMovedMethod)mps_fmt->isfwd,
+                     mps_fmt->scan,
+                     mps_fmt->skip,
+                     mps_fmt->fwd,
+                     mps_fmt->isfwd,
                      NULL,
-                     (FormatPadMethod)mps_fmt->pad,
+                     mps_fmt->pad,
                      NULL,
                      (Size)mps_fmt->mps_headerSize);
 
@@ -565,12 +565,12 @@ mps_res_t mps_fmt_create_fixed(mps_fmt_t *mps_fmt_o,
                      arena,
                      (Align)mps_fmt_fixed->align,
                      FormatVarietyFixed,
-                     (FormatScanMethod)mps_fmt_fixed->scan,
+                     mps_fmt_fixed->scan,
                      NULL,
-                     (FormatMoveMethod)mps_fmt_fixed->fwd,
-                     (FormatIsMovedMethod)mps_fmt_fixed->isfwd,
+                     mps_fmt_fixed->fwd,
+                     mps_fmt_fixed->isfwd,
                      NULL,
-                     (FormatPadMethod)mps_fmt_fixed->pad,
+                     mps_fmt_fixed->pad,
                      NULL,
                      (Size)0);
 
@@ -1265,11 +1265,10 @@ mps_res_t mps_root_create_table_masked(mps_root_t *mps_root_o,
 
 mps_res_t mps_root_create_fmt(mps_root_t *mps_root_o, mps_arena_t arena,
                               mps_rank_t mps_rank, mps_rm_t mps_rm,
-                              mps_fmt_scan_t mps_fmt_scan,
+                              mps_fmt_scan_t scan,
                               mps_addr_t base, mps_addr_t limit)
 {
   Rank rank = (Rank)mps_rank;
-  FormatScanMethod scan = (FormatScanMethod)mps_fmt_scan;
   Root root;
   RootMode mode = (RootMode)mps_rm;
   Res res;

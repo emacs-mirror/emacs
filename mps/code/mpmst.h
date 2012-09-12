@@ -406,13 +406,13 @@ typedef struct FormatStruct {
   Arena arena;                  /* owning arena */
   RingStruct arenaRing;         /* formats are attached to the arena */
   Align alignment;              /* alignment of formatted objects */
-  FormatScanMethod scan;
-  FormatSkipMethod skip;
-  FormatMoveMethod move;
-  FormatIsMovedMethod isMoved;
-  FormatCopyMethod copy;
-  FormatPadMethod pad;
-  FormatClassMethod class;      /* pointer indicating class */
+  mps_fmt_scan_t scan;
+  mps_fmt_skip_t skip;
+  mps_fmt_fwd_t move;
+  mps_fmt_isfwd_t isMoved;
+  mps_fmt_copy_t copy;
+  mps_fmt_pad_t pad;
+  mps_fmt_class_t class;        /* pointer indicating class */
   Size headerSize;              /* size of header */
 } FormatStruct;
 
