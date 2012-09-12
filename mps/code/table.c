@@ -16,7 +16,7 @@
 SRCID(table, "$Id$");
 
 
-/* TableHash -- return a hash value from an address
+/* tableHash -- return a hash value from an address
  *
  * This uses a single cycle of an MLCG, more commonly seen as a 
  * pseudorandom number generator.  It works extremely well as a 
@@ -36,10 +36,16 @@ SRCID(table, "$Id$");
  * Of course it's only a 31-bit cycle, so we start by losing the top 
  * bit of the address, but that's hardly a great problem.
  *
+ * See `rnd` in testlib.c for more technical details.
+ *
  * The implementation is quite subtle.  See rnd() in testlib.c, where 
  * it has been exhaustively (ie: totally) tested.  RHSK 2010-12-28.
  *
- * TODO: Check how this works out on 64-bit. RB 2012-09-04
+ * NOTE: According to NB, still a fine function for producing a 31-bit hash
+ * value, although of course it only hashes on the lower 31 bits of the
+ * key; we could cheaply make it choose a different 31 bits if we'd prefer
+ * (e.g. ((key >> 2) & 0x7FFFFFFF)), or combine more of the key bits (e.g.
+ * ((key ^ (key >> 31)) & 0x7fffffff)).
  */
  
 #define R_m 2147483647UL
@@ -47,16 +53,16 @@ SRCID(table, "$Id$");
 
 typedef Word Hash;
 
-static Hash TableHash(Word key)
+static Hash tableHash(Word key)
 {
-  Hash seed = (Hash)(key & 0x7FFFFFFF);
+  Hash hash = (Hash)(key & 0x7FFFFFFF);
   /* requires m == 2^31-1, a < 2^16 */
-  Hash bot = R_a * (seed & 0x7FFF);
-  Hash top = R_a * (seed >> 15);
-  seed = bot + ((top & 0xFFFF) << 15) + (top >> 16);
-  if(seed > R_m)
-    seed -= R_m;
-  return seed;
+  Hash bot = R_a * (hash & 0x7FFF);
+  Hash top = R_a * (hash >> 15);
+  hash = bot + ((top & 0xFFFF) << 15) + (top >> 16);
+  if(hash > R_m)
+    hash -= R_m;
+  return hash;
 }
 
 
@@ -80,14 +86,14 @@ static Bool entryIsActive(Table table, TableEntry entry)
 }
 
 
-/* TableFind -- finds the entry for this key, or NULL
+/* tableFind -- finds the entry for this key, or NULL
  *
  * .worst: In the worst case, this looks at every slot before giving up,
  * but that's what you have to do in a closed hash table, to make sure
  * that all the items still fit in after growing the table.
  */
 
-static TableEntry TableFind(Table table, Word key, Bool skip_deleted)
+static TableEntry tableFind(Table table, Word key, Bool skip_deleted)
 {
   Hash hash;
   Index i;
@@ -98,7 +104,7 @@ static TableEntry TableFind(Table table, Word key, Bool skip_deleted)
   AVER(WordIsP2(table->length)); /* .find.visit */
 
   mask = table->length - 1; 
-  hash = TableHash(key) & mask;
+  hash = tableHash(key) & mask;
   i = hash;
   do {
     Word k = table->array[i].key;
@@ -191,7 +197,7 @@ Res TableGrow(Table table, Count extraCapacity)
   for(i = 0; i < oldLength; ++i) {
     if (entryIsActive(table, &oldArray[i])) {
       TableEntry entry;
-      entry = TableFind(table, oldArray[i].key, FALSE /* none deleted */);
+      entry = tableFind(table, oldArray[i].key, FALSE /* none deleted */);
       AVER(entry != NULL);
       AVER(entry->key == table->unusedKey);
       entry->key = oldArray[i].key;
@@ -275,7 +281,7 @@ extern void TableDestroy(Table table)
 
 extern Bool TableLookup(void **valueReturn, Table table, Word key)
 {
-  TableEntry entry = TableFind(table, key, TRUE /* skip deleted */);
+  TableEntry entry = tableFind(table, key, TRUE /* skip deleted */);
 
   if(entry == NULL || !entryIsActive(table, entry))
     return FALSE;
@@ -296,16 +302,16 @@ extern Res TableDefine(Table table, Word key, void *value)
   if (table->count >= table->length * SPACEFRACTION) {
     Res res = TableGrow(table, 1);
     if(res != ResOK) return res;
-    entry = TableFind(table, key, FALSE /* no deletions yet */);
+    entry = tableFind(table, key, FALSE /* no deletions yet */);
     AVER(entry != NULL);
     if (entryIsActive(table, entry))
       return ResFAIL;
   } else {
-    entry = TableFind(table, key, TRUE /* skip deleted */);
+    entry = tableFind(table, key, TRUE /* skip deleted */);
     if (entry != NULL && entryIsActive(table, entry))
       return ResFAIL;
     /* Search again to find the best slot, deletions included. */
-    entry = TableFind(table, key, FALSE /* don't skip deleted */);
+    entry = tableFind(table, key, FALSE /* don't skip deleted */);
     AVER(entry != NULL);
   }
 
@@ -321,8 +327,12 @@ extern Res TableDefine(Table table, Word key, void *value)
 
 extern Res TableRedefine(Table table, Word key, void *value)
 {
-  TableEntry entry = TableFind(table, key, TRUE /* skip deletions */);
+  TableEntry entry;
  
+  AVER(key != table->unusedKey);
+  AVER(key != table->deletedKey);
+
+  entry = tableFind(table, key, TRUE /* skip deletions */);
   if (entry == NULL || !entryIsActive(table, entry))
     return ResFAIL;
   AVER(entry->key == key);
@@ -335,8 +345,12 @@ extern Res TableRedefine(Table table, Word key, void *value)
 
 extern Res TableRemove(Table table, Word key)
 {
-  TableEntry entry = TableFind(table, key, TRUE);
+  TableEntry entry;
 
+  AVER(key != table->unusedKey);
+  AVER(key != table->deletedKey);
+
+  entry = tableFind(table, key, TRUE);
   if (entry == NULL || !entryIsActive(table, entry))
     return ResFAIL;
   entry->key = table->deletedKey;
