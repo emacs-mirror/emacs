@@ -33,7 +33,7 @@ typedef struct RootStruct {
   RootVar var;                  /* union discriminator */
   union RootUnion {
     struct {
-      RootScanMethod scan;      /* the function which does the scanning */
+      mps_root_scan_t scan;     /* the function which does the scanning */
       void *p;                  /* environment for scan */
       size_t s;                 /* environment for scan */
     } fun;
@@ -47,7 +47,7 @@ typedef struct RootStruct {
       Word mask;                /* tag mask for scanning */
     } tableMasked;
     struct {
-      RootScanRegMethod scan;   /* function for scanning registers */
+      mps_reg_scan_t scan;      /* function for scanning registers */
       Thread thread;            /* passed to scan */
       void *p;                  /* passed to scan */
       size_t s;                 /* passed to scan */
@@ -296,7 +296,7 @@ Res RootCreateTableMasked(Root *rootReturn, Arena arena,
 
 Res RootCreateReg(Root *rootReturn, Arena arena,
                   Rank rank, Thread thread,
-                  RootScanRegMethod scan, void *p, size_t s)
+                  mps_reg_scan_t scan, void *p, size_t s)
 {
   union RootUnion theUnion;
 
@@ -336,7 +336,7 @@ Res RootCreateFmt(Root *rootReturn, Arena arena,
 }
 
 Res RootCreateFun(Root *rootReturn, Arena arena, Rank rank,
-                  RootScanMethod scan, void *p, size_t s)
+                  mps_root_scan_t scan, void *p, size_t s)
 {
   union RootUnion theUnion;
 

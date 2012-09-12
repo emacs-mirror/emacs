@@ -17,7 +17,7 @@
 SRCID(than, "$Id$");
 
 
-typedef struct ThreadStruct {   /* ANSI fake thread structure */
+typedef struct mps_thr_s {      /* ANSI fake thread structure */
   Sig sig;                      /* <design/sig/> */
   Serial serial;                /* from arena->threadSerial */
   Arena arena;                  /* owning arena */

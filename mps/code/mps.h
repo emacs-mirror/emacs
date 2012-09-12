@@ -178,6 +178,7 @@ typedef struct mps_ld_s {       /* location dependency descriptor */
 
 
 /* Format and Root Method Types */
+/* see design.mps.root-interface */
 /* .fmt-methods: Keep in sync with <code/mpmtypes.h#fmt-methods> */
 /* .root-methods: Keep in sync with <code/mpmtypes.h#root-methods> */
 

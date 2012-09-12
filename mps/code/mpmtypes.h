@@ -96,7 +96,7 @@ typedef struct mps_arena_s *Arena;      /* <design/arena/> */
 typedef struct GlobalsStruct *Globals;  /* <design/arena/> */
 typedef struct VMStruct *VM;            /* <code/vm.c>* */
 typedef struct RootStruct *Root;        /* <code/root.c> */
-typedef struct ThreadStruct *Thread;    /* <code/th.c>* */
+typedef struct mps_thr_s *Thread;       /* <code/th.c>* */
 typedef struct MutatorFaultContextStruct
         *MutatorFaultContext;           /* <design/prot/> */
 typedef struct PoolDebugMixinStruct *PoolDebugMixin;
@@ -253,14 +253,6 @@ typedef Addr (*FormatIsMovedMethod)(Addr object);
 typedef void (*FormatCopyMethod)(Addr object, Addr to);
 typedef void (*FormatPadMethod)(Addr base, Size size);
 typedef Addr (*FormatClassMethod)(Addr object);
-
-
-/* Root*Method -- see design.mps.root-interface */
-/* .root-methods: These methods must match those defined in the */
-/* MPS C Interface.  (See <code/mps.h#root-methods>.) */
-
-typedef Res (*RootScanMethod)(mps_ss_t ss, void *p, size_t s);
-typedef Res (*RootScanRegMethod)(mps_ss_t ss, Thread thread, void *p, size_t s);
 
 
 /* CONSTANTS */
