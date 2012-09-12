@@ -1,3 +1,7 @@
+2012-09-12  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* image.c (jpeg_memory_src): Don't assume string len fits in unsigned.
+
 2012-09-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* eval.c: Add `inhibit-debugger'.

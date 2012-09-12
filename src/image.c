@@ -6181,7 +6181,7 @@ our_memory_skip_input_data (j_decompress_ptr cinfo, long int num_bytes)
    reading the image.  */
 
 static void
-jpeg_memory_src (j_decompress_ptr cinfo, JOCTET *data, unsigned int len)
+jpeg_memory_src (j_decompress_ptr cinfo, JOCTET *data, ptrdiff_t len)
 {
   struct jpeg_source_mgr *src;
 
