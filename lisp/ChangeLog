@@ -1,3 +1,12 @@
+2012-09-12  Michael Albinus  <michael.albinus@gmx.de>
+
+	Sync with Tramp 2.2.6.
+
+	* net/tramp.el (tramp-accept-process-output): Don't use
+	JUST-THIS-ONE in the XEmacs case.
+
+	* net/trampver.el: Update release number.
+
 2012-09-12  Martin Rudalics  <rudalics@gmx.at>
 
 	* emacs-lisp/debug.el (debugger-previous-window-height): New
