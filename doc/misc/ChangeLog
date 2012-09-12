@@ -1,3 +1,11 @@
+2012-09-12  Michael Albinus  <michael.albinus@gmx.de>
+
+	Sync with Tramp 2.2.6.
+
+	* tramp.texi (Bug Reports): Cleanup caches before a test run.
+
+	* trampver.texi: Update release number.
+
 2012-09-12  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* texinfo.tex: Merge from gnulib.
