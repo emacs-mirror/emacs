@@ -3,7 +3,7 @@
 % Load plain if necessary, i.e., if running under initex.
 \expandafter\ifx\csname fmtname\endcsname\relax\input plain\fi
 %
-\def\texinfoversion{2012-09-05.06}
+\def\texinfoversion{2012-09-12.16}
 %
 % Copyright 1985, 1986, 1988, 1990, 1991, 1992, 1993, 1994, 1995,
 % 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
@@ -2272,8 +2272,6 @@ end
 
 \gdef\markupsetcodequoteleft{\let`\codequoteleft}
 \gdef\markupsetcodequoteright{\let'\codequoteright}
-
-\gdef\markupsetnoligaturesquoteleft{\let`\noligaturesquoteleft}
 }
 
 \let\markupsetuplqcode \markupsetcodequoteleft
@@ -2281,6 +2279,9 @@ end
 %
 \let\markupsetuplqexample \markupsetcodequoteleft
 \let\markupsetuprqexample \markupsetcodequoteright
+%
+\let\markupsetuplqkbd     \markupsetcodequoteleft
+\let\markupsetuprqkbd     \markupsetcodequoteright
 %
 \let\markupsetuplqsamp \markupsetcodequoteleft
 \let\markupsetuprqsamp \markupsetcodequoteright
@@ -2290,8 +2291,6 @@ end
 %
 \let\markupsetuplqverbatim \markupsetcodequoteleft
 \let\markupsetuprqverbatim \markupsetcodequoteright
-
-\let\markupsetuplqkbd \markupsetnoligaturesquoteleft
 
 % Allow an option to not use regular directed right quote/apostrophe
 % (char 0x27), but instead the undirected quote from cmtt (char 0x0d).
@@ -2382,8 +2381,7 @@ end
   \aftersmartic
 }
 
-% like \smartslanted except unconditionally uses \ttsl, and no ic.
-% @var is set to this for defun arguments.
+% Unconditional use \ttsl, and no ic.  @var is set to this for defuns.
 \def\ttslanted#1{{\ttsl #1}}
 
 % @cite is like \smartslanted except unconditionally use \sl.  We never want
@@ -2695,10 +2693,6 @@ end
   \let\email=\uref
 \fi
 
-% @kbd is like @code, except that if the argument is just one @key command,
-% then @kbd has no effect.
-\def\kbd#1{{\setupmarkupstyle{kbd}\def\look{#1}\expandafter\kbdfoo\look??\par}}
-
 % @kbdinputstyle -- arg is `distinct' (@kbd uses slanted tty font always),
 %   `example' (@kbd uses ttsl only inside of @example and friends),
 %   or `code' (@kbd uses normal tty font always).
@@ -2722,11 +2716,17 @@ end
 % Default is `distinct'.
 \kbdinputstyle distinct
 
+% @kbd is like @code, except that if the argument is just one @key command,
+% then @kbd has no effect.
+\def\kbd#1{{\def\look{#1}\expandafter\kbdsub\look??\par}}
+
 \def\xkey{\key}
-\def\kbdfoo#1#2#3\par{\def\one{#1}\def\three{#3}\def\threex{??}%
-\ifx\one\xkey\ifx\threex\three \key{#2}%
-\else{\tclose{\kbdfont\setupmarkupstyle{kbd}\look}}\fi
-\else{\tclose{\kbdfont\setupmarkupstyle{kbd}\look}}\fi}
+\def\kbdsub#1#2#3\par{%
+  \def\one{#1}\def\three{#3}\def\threex{??}%
+  \ifx\one\xkey\ifx\threex\three \key{#2}%
+  \else{\tclose{\kbdfont\setupmarkupstyle{kbd}\look}}\fi
+  \else{\tclose{\kbdfont\setupmarkupstyle{kbd}\look}}\fi
+}
 
 % definition of @key that produces a lozenge.  Doesn't adjust to text size.
 %\setfont\keyrm\rmshape{8}{1000}{OT1}
@@ -4257,7 +4257,7 @@ end
 }
 \def\ifcmddefinedfail{\doignore{ifcommanddefined}}
 
-% @ifcommandnotdefined CMD ... handlded similar to @ifclear above.
+% @ifcommandnotdefined CMD ... handled similar to @ifclear above.
 \makecond{ifcommandnotdefined}
 \def\ifcommandnotdefined{%
   \parsearg{\doifcmddefined{\else \let\next=\ifcmdnotdefinedfail}}}
@@ -7072,7 +7072,10 @@ end
   \df \sl \hyphenchar\font=0
   %
   % On the other hand, if an argument has two dashes (for instance), we
-  % want a way to get ttsl.  Let's try @var for that.
+  % want a way to get ttsl.  We used to recommend @var for that, so
+  % leave the code in, but it's strange for @var to lead to typewriter.
+  % Nowadays we recommend @code, since the difference between a ttsl hyphen
+  % and a tt hyphen is pretty tiny.  @code also disables ?` !`.
   \def\var##1{{\setupmarkupstyle{var}\ttslanted{##1}}}%
   #1%
   \sl\hyphenchar\font=45
