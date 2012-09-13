@@ -1,3 +1,9 @@
+2012-09-13  Kenichi Handa  <handa@gnu.org>
+
+	* language/chinese.el ("Chinese-GB", "Chinese-BIG5")
+	("Chinese-CNS", "Chinese-EUC-TW"): Add chinese-gbk to
+	`coding-priority' property of these language environment.
+
 2012-09-13  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix glitches caused by addition of psec to timers (Bug#12430).
