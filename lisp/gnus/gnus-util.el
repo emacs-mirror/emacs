@@ -1964,6 +1964,11 @@ definitions to shadow the loaded ones for use in file byte-compilation."
 (defun gnus-bound-and-true-p (sym)
   (and (boundp sym) (symbol-value sym)))
 
+(if (fboundp 'timer--function)
+    (defalias 'gnus-timer--function 'timer--function)
+  (defun gnus-timer--function (timer)
+    (elt timer 5)))
+
 (provide 'gnus-util)
 
 ;;; gnus-util.el ends here

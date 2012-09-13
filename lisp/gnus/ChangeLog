@@ -1,3 +1,9 @@
+2012-09-13  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-util.el (gnus-timer--function): New function.
+
+	* gnus-art.el (gnus-article-stop-animations): Use it.
+
 2012-09-13  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix glitches caused by addition of psec to timers.
