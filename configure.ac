@@ -4384,11 +4384,7 @@ End:
 #### It makes printing result more understandable as using GTK sets
 #### toolkit_scroll_bars to yes by default.
 if test "${HAVE_GTK}" = "yes"; then
-  if test "${with_gtk3}" = "yes"; then
-    USE_X_TOOLKIT=GTK3
-  else
-    USE_X_TOOLKIT=GTK
-  fi
+  USE_X_TOOLKIT=GTK
 fi
 
 echo "

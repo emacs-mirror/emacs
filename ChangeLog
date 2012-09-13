@@ -1,6 +1,7 @@
 2012-09-13  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* configure.ac: Reorder Xaw3d messages.
+	Report Gtk+ 3 as GTK.
 
 2012-09-13  Paul Eggert  <eggert@cs.ucla.edu>
 
