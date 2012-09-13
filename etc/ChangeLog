@@ -1,3 +1,7 @@
+2012-09-13  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* NEWS: Document timer format change (Bug#12430).
+
 2012-09-11  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Simplify, document, and port floating-point (Bug#12381).

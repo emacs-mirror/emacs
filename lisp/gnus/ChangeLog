@@ -1,3 +1,9 @@
+2012-09-13  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix glitches caused by addition of psec to timers.
+	* gnus-art.el (gnus-article-stop-animations): Use timer--function
+	rather than raw access to timer vector.
+
 2012-09-11  Julien Danjou  <julien@danjou.info>
 
 	* gnus-notifications.el (gnus-notifications): Check for nil values in

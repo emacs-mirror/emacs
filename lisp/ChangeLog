@@ -1,3 +1,11 @@
+2012-09-13  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix glitches caused by addition of psec to timers (Bug#12430).
+	* image.el (image-animate-timer):
+	* time.el (display-time-world-timer):
+	Use timer--function and timer--args rather than raw access to
+	timer vector.
+
 2012-09-13  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/bytecomp.el (byte-compile-warning-prefix):

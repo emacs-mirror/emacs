@@ -645,8 +645,8 @@ number, play until that number of seconds has elapsed."
     (while tail
       (setq timer (car tail)
 	    tail (cdr tail))
-      (if (and (eq (aref timer 5) 'image-animate-timeout)
-	       (eq (car-safe (aref timer 6)) image))
+      (if (and (eq (timer--function timer) 'image-animate-timeout)
+	       (eq (car-safe (timer--args timer)) image))
 	  (setq tail nil)
 	(setq timer nil)))
     timer))
