@@ -25,6 +25,7 @@ AC_CONFIG_SRCDIR([code/mps.c])
 
 # Checks for programs.
 AC_PROG_CC
+AC_PROG_INSTALL
 
 AC_CANONICAL_HOST
 AC_MSG_CHECKING([target platform])
