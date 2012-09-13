@@ -30,39 +30,36 @@ AC_CANONICAL_HOST
 AC_MSG_CHECKING([target platform])
 BUILD_TARGET=build-via-make
 CLEAN_TARGET=clean-make-build
+INSTALL_TARGET=install-make-build
 case $host in
   i*86-*-linux*)
       AC_MSG_RESULT([Linux x86])
-      MPS_TARGET_PF=MPS_PF_LI3C
       MPS_TARGET_NAME=lii3gc
     ;;
   x86_64-*-linux*)
       AC_MSG_RESULT([Linux x86_64])
-      MPS_TARGET_PF=MPS_PF_LII6GC
       MPS_TARGET_NAME=lii6gc
     ;;
   i*86-*-darwin*)
       AC_MSG_RESULT([Mac OS X x86])
-      MPS_TARGET_PF=MPS_PF_XCI3LL
       MPS_TARGET_NAME=xci3ll
       BUILD_TARGET=build-via-xcode
       CLEAN_TARGET=clean-xcode-build
+      INSTALL_TARGET=install-xcode-build
     ;;
   x86_64-apple-darwin*)
       AC_MSG_RESULT([Mac OS X x86_64])
-      MPS_TARGET_PF=MPS_PF_XCI6LL
       MPS_TARGET_NAME=xci6ll
       BUILD_TARGET=build-via-xcode
       CLEAN_TARGET=clean-xcode-build
+      INSTALL_TARGET=install-xcode-build
     ;;
   i*86-*-freebsd*)
       AC_MSG_RESULT([FreeBSD x86])
-      MPS_TARGET_PF=MPS_PF_FRI3GC
       MPS_TARGET_NAME=fri3gc
     ;;
   amd64-*-freebsd*)
       AC_MSG_RESULT([FreeBSD x86_64])
-      MPS_TARGET_PF=MPS_PF_FRI6GC
       MPS_TARGET_NAME=fri6gc
     ;;
   *)
@@ -74,10 +71,10 @@ if ! $MAKE --version | grep -q "GNU" 2> /dev/null; then
   AC_MSG_ERROR([MPS requires GNU make to build from configure, but see manual/build.txt])
 fi
 
-AC_SUBST(MPS_TARGET_PF)
 AC_SUBST(MPS_TARGET_NAME)
 AC_SUBST(BUILD_TARGET)
 AC_SUBST(CLEAN_TARGET)
+AC_SUBST(INSTALL_TARGET)
 AC_CONFIG_FILES(Makefile)
 
 AC_OUTPUT
