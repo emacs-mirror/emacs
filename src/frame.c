@@ -1299,6 +1299,11 @@ delete_frame (Lisp_Object frame, Lisp_Object force)
      structures can still refer to it.  */
   fset_menu_bar_vector (f, Qnil);
 
+  /* If FRAME's buffer lists contains killed
+     buffers, this helps GC to reclaim them.  */
+  fset_buffer_list (f, Qnil);
+  fset_buried_buffer_list (f, Qnil);
+
   free_font_driver_list (f);
   xfree (f->namebuf);
   xfree (f->decode_mode_spec_buffer);

@@ -5865,16 +5865,16 @@ mark_buffer (struct buffer *buffer)
     mark_buffer (buffer->base_buffer);
 }
 
-/* Remove killed buffers or items whose car is a killed buffer
-   from LIST and return changed LIST.  Called during GC.  */
+/* Remove killed buffers or items whose car is a killed buffer from
+   LIST, and mark other items. Return changed LIST, which is marked.  */
 
 static Lisp_Object
-discard_killed_buffers (Lisp_Object list)
+mark_discard_killed_buffers (Lisp_Object list)
 {
-  Lisp_Object *prev = &list;
-  Lisp_Object tail;
+  Lisp_Object tail, *prev = &list;
 
-  for (tail = list; CONSP (tail); tail = XCDR (tail))
+  for (tail = list; CONSP (tail) && !CONS_MARKED_P (XCONS (tail));
+       tail = XCDR (tail))
     {
       Lisp_Object tem = XCAR (tail);
       if (CONSP (tem))
@@ -5882,7 +5882,11 @@ discard_killed_buffers (Lisp_Object list)
       if (BUFFERP (tem) && !BUFFER_LIVE_P (XBUFFER (tem)))
 	*prev = XCDR (tail);
       else
-	prev = &XCDR_AS_LVALUE (tail);
+	{
+	  CONS_MARK (XCONS (tail));
+	  mark_object (XCAR (tail));
+	  prev = &XCDR_AS_LVALUE (tail);
+	}
     }
   return list;
 }
@@ -6023,18 +6027,8 @@ mark_object (Lisp_Object arg)
 	    break;
 
 	  case PVEC_FRAME:
-	    {
-	      struct frame *f = (struct frame *) ptr;
-
-	      /* For live frames, killed buffers are filtered out by
-		 store_frame_param.  For dead frames, we do it here in
-		 attempt to help GC to reclaim killed buffers faster.  */
-	      if (!FRAME_LIVE_P (f))
-		fset_buffer_list (f, discard_killed_buffers (f->buffer_list));
-
-	      mark_vectorlike (ptr);
-	      mark_face_cache (f->face_cache);
-	    }
+	    mark_vectorlike (ptr);
+	    mark_face_cache (((struct frame *) ptr)->face_cache);
 	    break;
 
 	  case PVEC_WINDOW:
@@ -6048,9 +6042,9 @@ mark_object (Lisp_Object arg)
 	      if (leaf && NILP (w->buffer))
 		{
 		  wset_prev_buffers
-		    (w, discard_killed_buffers (w->prev_buffers));
+		    (w, mark_discard_killed_buffers (w->prev_buffers));
 		  wset_next_buffers
-		    (w, discard_killed_buffers (w->next_buffers));
+		    (w, mark_discard_killed_buffers (w->next_buffers));
 		}
 
 	      mark_vectorlike (ptr);
