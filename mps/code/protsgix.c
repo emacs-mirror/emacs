@@ -80,8 +80,6 @@ static void sigHandle(int sig, siginfo_t *info, void *context)  /* .sigh.args */
   struct sigaction sa;
   
   UNUSED(context);
-
-  UNUSED(context);
   AVER(sig == PROT_SIGNAL);
 
   /* .sigh.context */

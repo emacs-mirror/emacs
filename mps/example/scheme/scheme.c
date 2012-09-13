@@ -2052,6 +2052,48 @@ static obj_t entry_divide(obj_t env, obj_t op_env, obj_t operator, obj_t operand
 }
 
 
+static obj_t entry_lessthan(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
+{
+  obj_t arg, args;
+  long last;
+  eval_args_rest(operator->operator.name, env, op_env, operands, &args, 1, &arg);
+  unless(TYPE(arg) == TYPE_INTEGER)
+    error("%s: first argument must be an integer", operator->operator.name);
+  last = arg->integer.integer;
+  while(TYPE(args) == TYPE_PAIR) {
+    unless(TYPE(CAR(args)) == TYPE_INTEGER)
+      error("%s: arguments must be integers", operator->operator.name);
+    if (last >= CAR(args)->integer.integer)
+      return obj_false;
+    last = CAR(args)->integer.integer;
+    args = CDR(args);
+  }
+  assert(args == obj_empty); /* eval_args_rest always returns a list */
+  return obj_true;
+}
+
+
+static obj_t entry_greaterthan(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
+{
+  obj_t arg, args;
+  long last;
+  eval_args_rest(operator->operator.name, env, op_env, operands, &args, 1, &arg);
+  unless(TYPE(arg) == TYPE_INTEGER)
+    error("%s: first argument must be an integer", operator->operator.name);
+  last = arg->integer.integer;
+  while(TYPE(args) == TYPE_PAIR) {
+    unless(TYPE(CAR(args)) == TYPE_INTEGER)
+      error("%s: arguments must be integers", operator->operator.name);
+    if (last <= CAR(args)->integer.integer)
+      return obj_false;
+    last = CAR(args)->integer.integer;
+    args = CDR(args);
+  }
+  assert(args == obj_empty); /* eval_args_rest always returns a list */
+  return obj_true;
+}
+
+
 static obj_t entry_reverse(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 {
   obj_t arg, result;
@@ -2359,6 +2401,8 @@ static struct {char *name; entry_t entry;} funtab[] = {
   {"-", entry_subtract},
   {"*", entry_multiply},
   {"/", entry_divide},
+  {"<", entry_lessthan},
+  {">", entry_greaterthan},
   {"reverse", entry_reverse},
   {"the-environment", entry_environment},
   {"open-input-file", entry_open_in},
