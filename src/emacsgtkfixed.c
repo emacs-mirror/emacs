@@ -28,9 +28,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "xterm.h"
 
 /* Silence a bogus diagnostic; see GNOME bug 683906.  */
-#include <verify.h>
-#undef G_STATIC_ASSERT
-#define G_STATIC_ASSERT(x) verify (x)
+#if (__GNUC__ == 4 && 6 <= __GNUC_MINOR__) || 4 < __GNUC__
+# pragma GCC diagnostic push
+# pragma GCC diagnostic ignored "-Wunused-local-typedefs"
+#endif
 
 #define EMACS_TYPE_FIXED emacs_fixed_get_type ()
 #define EMACS_FIXED(obj) \

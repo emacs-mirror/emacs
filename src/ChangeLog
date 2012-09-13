@@ -1,5 +1,10 @@
 2012-09-13  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Better workaround for GNOME bug when --enable-gcc-warnings.
+	* emacsgtkfixed.c (G_STATIC_ASSERT): Remove, undoing last change.
+	Instead, disable -Wunused-local-typedefs.  See Dmitry Antipov in
+	<http://lists.gnu.org/archive/html/emacs-devel/2012-09/msg00335.html>.
+
 	Simplify SIGIO usage (Bug#12408).
 	The code that dealt with SIGIO was crufty and confusing, e.g., it
 	played tricks like "#undef SIGIO" but these tricks were not used
