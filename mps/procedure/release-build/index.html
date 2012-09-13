@@ -71,7 +71,6 @@ and the correct release name. </p> </li>
 
 <li><p> In
     <code>version/<i>VERSION</i>/code/version.c</code>,
-    and <code>w3build.bat</code>,
     set
     <code>MPS_RELEASE</code>
     to the correct value (see the rules in the comments),
@@ -90,7 +89,7 @@ version/VERSION/...</code> </blockquote> </li>
 </ol>
 
 
-<h3><a id="section-2.2" name="section-2.2">2.2. MPS Kit Tarball</a></h3>
+<h3><a id="section-2.2" name="section-2.2">2.2. MPS Kit Tarball and Zip file</a></h3>
 
 <p> On a Unix box: </p>
 
@@ -113,67 +112,28 @@ version/VERSION/...</code> </blockquote> </li>
 
 <li>
 
-  <p> Create a tarball containing the MPS sources, and open it for add: </p>
+  <p> Create a tarball and a zip file containing the MPS sources, and open it for add: </p>
 
   <blockquote><code>
     cp -R version/VERSION mps-kit-RELEASE <br />
     mkdir -p release/RELEASE<br />
     tar cf - mps-kit-RELEASE | gzip -c &gt; release/RELEASE/mps-kit-RELEASE.tar.gz <br />
+    zip -r release/RELEASE/mps-kit-RELEASE.zip mps-cet-kit-RELEASE
     rm -r mps-kit-RELEASE<br />
     p4 add release/RELEASE/mps-kit-RELEASE.tar.gz
+    p4 add release/RELEASE/mps-kit-RELEASE.zip
   </code></blockquote>
 
 </li>
 
-<li>
-
-  <p> Add the readme.txt file to the release directory: </p>
-
-  <blockquote><code>
-    p4 integrate version/VERSION/readme.txt release/RELEASE/readme.txt
-  </code></blockquote>
-
-</li>
-
-<li> <p> Submit the tarball and the readme.txt file to Perforce with
-the comment "MPS: adding the MPS Kit tarball and readme.txt file for
+<li> <p> Submit the release files to Perforce with
+the comment "MPS: adding the MPS Kit tarball and zip file for
 release RELEASE." </p> </li>
 
 </ol>
 
 
-<h3><a id="section-2.3" name="section-2.3">2.3. MPS Kit Zip file</a></h3>
-
-<p> On a Microsoft Windows box: </p>
-
-<ol>
-
-<li> <p> Sync the version sources to the CHANGELEVEL you determined in step 2.1.  Sync the version sources to a clean area of the disk, to be sure that there are no extraneous files around. </p> </li>
-
-<li> <p> Using the Windows file-browser, copy the version/VERSION directory, paste a copy, and rename it mps-kit-RELEASE. </p></li>
-
-<li> <p> Use the Info-ZIP command-line utility "zip" to create a new archive of these files, called "mps-kit-RELEASE.zip" in the directory "release/RELEASE": </p>
-  <blockquote> <pre><code>zip -r  release\RELEASE\mps-kit-RELEASE.zip  mps-kit-RELEASE</code></pre> </blockquote>
-</li>
-
-<li> <p> Make a self-extracting archive called "mps-kit-RELEASE.exe" from "mps-kit-RELEASE.zip" (in the same directory).  The approved way to do this is to prepend the "unzipsfx.exe" extractor (here presumed to be "C:\local\bin\unzipsfx.exe"), and then adjust the offsets in the resulting file: </p>
-  <blockquote> <pre><code>copy /b  C:\local\bin\unzipsfx.exe+release\RELEASE\mps-kit-RELEASE.zip  release\RELEASE\mps-kit-RELEASE.exe
-zip -A  release\RELEASE\mps-kit-RELEASE.exe
-</code></pre> </blockquote>
-</li>
-
-<li> <p> You can check both archives like this: </p>
-  <blockquote> <pre><code>unzip -tq  release\RELEASE\mps-kit-RELEASE.zip
-unzip -tq  release\RELEASE\mps-kit-RELEASE.exe
-</code></pre> </blockquote>
-</li>
-
-<li> <p> Add the zip file and the self-extracting archive to Perforce with the comment "MPS: adding the MPS Kit zip file for release RELEASE." </p> </li>
-
-</ol>
-
-
-<h3><a id="section-2.4" name="section-2.4">2.4. Registering the release</a></h3>
+<h3><a id="section-2.4" name="section-2.4">2.3. Registering the release</a></h3>
 
 <ol>
 
@@ -330,6 +290,21 @@ RELEASE."  </p></li>
   <td><a href="mailto:gdr@ravenbrook.com">GDR</a></td>
 
   <td>Use the project updater to register new releases.</td>
+
+</tr>
+
+<tr valign="top">
+
+  <td>2012&#x2011;09&#x2011;13</td>
+
+  <td><a href="mailto:rb@ravenbrook.com">RB</a></td>
+
+  <td>
+    <ul>
+      <li> Don't copy the readme.txt to the release directory, since it no longer has that dual role. </li>
+      <li> Make the zip file on a Unix box with the zip utility, since compatibility has improved. </li>
+    </ul>
+  </td>
 
 </tr>
 
