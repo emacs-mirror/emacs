@@ -1,5 +1,11 @@
 2012-09-13  Glenn Morris  <rgm@gnu.org>
 
+	* calc/calc.el (math-compose-expr):
+	* calc/calc-ext.el (math-compose-expr):
+	* progmodes/cc-defs.el (cl-macroexpand-all):
+	* progmodes/cc-langs.el (delete-duplicates, mapcan)
+	(cl-macroexpand-all): Update declarations.
+
 	* vc/vc.el: No need to require ediff.
 	(ediff-load-version-control): Declare.
 	(ediff-vc-internal): Fix declaration.
