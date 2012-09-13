@@ -107,9 +107,6 @@ extern char *getwd (char *);
 
 static int emacs_get_tty (int, struct emacs_tty *);
 static int emacs_set_tty (int, struct emacs_tty *, int);
-#if defined TIOCNOTTY || defined USG5 || defined CYGWIN
-static _Noreturn void croak (char *);
-#endif
 
 /* ULLONG_MAX is missing on Red Hat Linux 7.3; see Bug#11781.  */
 #ifndef ULLONG_MAX
@@ -513,7 +510,7 @@ sys_subshell (void)
   saved_handlers[0].code = SIGINT;
   saved_handlers[1].code = SIGQUIT;
   saved_handlers[2].code = SIGTERM;
-#ifdef SIGIO
+#ifdef USABLE_SIGIO
   saved_handlers[3].code = SIGIO;
   saved_handlers[4].code = 0;
 #else
@@ -642,120 +639,74 @@ restore_signal_handlers (struct save_signal *saved_handlers)
     }
 }
 
-#ifndef SIGIO
-/* If SIGIO is broken, don't do anything. */
-void
-init_sigio (int fd)
-{
-}
-
-static void
-reset_sigio (int fd)
-{
-}
-
-void
-request_sigio (void)
-{
-}
-
-void
-unrequest_sigio (void)
-{
-}
-
-#else
-#ifdef F_SETFL
-
+#ifdef USABLE_SIGIO
 static int old_fcntl_flags[MAXDESC];
+#endif
 
 void
 init_sigio (int fd)
 {
-#ifdef FASYNC
+#ifdef USABLE_SIGIO
   old_fcntl_flags[fd] = fcntl (fd, F_GETFL, 0) & ~FASYNC;
   fcntl (fd, F_SETFL, old_fcntl_flags[fd] | FASYNC);
-#endif
   interrupts_deferred = 0;
+#endif
 }
 
 static void
 reset_sigio (int fd)
 {
-#ifdef FASYNC
+#ifdef USABLE_SIGIO
   fcntl (fd, F_SETFL, old_fcntl_flags[fd]);
 #endif
 }
 
-#ifdef FASYNC		/* F_SETFL does not imply existence of FASYNC */
-/* XXX Uhm, FASYNC is not used anymore here. */
-/* XXX Yeah, but you need it for SIGIO, don't you? */
-
 void
 request_sigio (void)
 {
+#ifdef USABLE_SIGIO
   sigset_t unblocked;
 
   if (noninteractive)
     return;
 
   sigemptyset (&unblocked);
-#ifdef SIGWINCH
+# ifdef SIGWINCH
   sigaddset (&unblocked, SIGWINCH);
-#endif
+# endif
   sigaddset (&unblocked, SIGIO);
   pthread_sigmask (SIG_UNBLOCK, &unblocked, 0);
 
   interrupts_deferred = 0;
+#endif
 }
 
 void
 unrequest_sigio (void)
 {
+#ifdef USABLE_SIGIO
   sigset_t blocked;
 
   if (noninteractive)
     return;
 
-#if 0 /* XXX What's wrong with blocking SIGIO under X?  */
-  if (x_display_list)
-    return;
-#endif
-
   sigemptyset (&blocked);
-#ifdef SIGWINCH
+# ifdef SIGWINCH
   sigaddset (&blocked, SIGWINCH);
-#endif
+# endif
   sigaddset (&blocked, SIGIO);
   pthread_sigmask (SIG_BLOCK, &blocked, 0);
   interrupts_deferred = 1;
-}
-
-#else /* no FASYNC */
-#ifndef MSDOS
-
-void
-request_sigio (void)
-{
-  if (noninteractive || read_socket_hook)
-    return;
-
-  croak ("request_sigio");
+#endif
 }
 
 void
-unrequest_sigio (void)
+ignore_sigio (void)
 {
-  if (noninteractive || read_socket_hook)
-    return;
-
-  croak ("unrequest_sigio");
+#ifdef USABLE_SIGIO
+  signal (SIGIO, SIG_IGN);
+#endif
 }
-
-#endif /* MSDOS */
-#endif /* FASYNC */
-#endif /* F_SETFL */
-#endif /* SIGIO */
 
 
 /* Getting and setting emacs_tty structures.  */
@@ -2051,19 +2002,6 @@ getwd (char *pathname)
 }
 
 #endif /* !defined (HAVE_GETWD) || defined (BROKEN_GETWD) */
-
-/*
- *	This function will go away as soon as all the stubs fixed. (fnf)
- */
-
-void
-croak (char *badfunc)
-{
-  printf ("%s not yet implemented\r\n", badfunc);
-  reset_all_sys_modes ();
-  exit (1);
-}
-
 #endif /* USG */
 
 /* Directory routines for systems that don't have them. */

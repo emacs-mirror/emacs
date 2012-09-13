@@ -2035,12 +2035,10 @@ shut_down_emacs (int sig, Lisp_Object stuff)
   unlock_all_files ();
 #endif
 
-#ifdef SIGIO
   /* There is a tendency for a SIGIO signal to arrive within exit,
      and cause a SIGHUP because the input descriptor is already closed.  */
   unrequest_sigio ();
-  signal (SIGIO, SIG_IGN);
-#endif
+  ignore_sigio ();
 
 #ifdef WINDOWSNT
   term_ntproc ();

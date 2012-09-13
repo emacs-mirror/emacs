@@ -133,22 +133,6 @@ You lose; /* Emacs for DOS must be compiled with DJGPP */
 #endif
 #endif  /* MSDOS */
 
-#ifdef USG5_4
-/* Get FIONREAD from <sys/filio.h>.  Get <sys/ttold.h> to get struct tchars.
-   But get <termio.h> first to make sure ttold.h doesn't interfere.  */
-#include <sys/wait.h>
-
-#ifdef emacs
-#include <sys/filio.h>
-#include <termio.h>
-#include <sys/ttold.h>
-#include <signal.h>
-#include <sys/stream.h>
-#include <sys/stropts.h>
-#include <sys/termios.h>
-#endif
-#endif  /* USG5_4 */
-
 /* Mac OS X / GNUstep need a bit more pure memory.  Of the existing knobs,
    SYSTEM_PURESIZE_EXTRA seems like the least likely to cause problems.  */
 #ifdef HAVE_NS

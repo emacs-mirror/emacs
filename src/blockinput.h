@@ -67,15 +67,10 @@ extern int pending_atimers;
    If doing signal-driven input, and a signal came in when input was
    blocked, reinvoke the signal handler now to deal with it.
 
-   We used to have two possible definitions of this macro - one for
-   when SIGIO was #defined, and one for when it wasn't; when SIGIO
-   wasn't #defined, we wouldn't bother to check if we should re-invoke
-   the signal handler.  But that doesn't work very well; some of the
-   files which use this macro don't #include the right files to get
-   SIGIO.
-
-   So, we always test interrupt_input_pending now; that's not too
-   expensive, and it'll never get set if we don't need to resignal.  */
+   Always test interrupt_input_pending; that's not too expensive, and
+   it'll never get set if we don't need to resignal.  This is simpler
+   than dealing here with every configuration option that might affect
+   whether interrupt_input_pending can be nonzero.  */
 
 #define UNBLOCK_INPUT 				\
   do						\

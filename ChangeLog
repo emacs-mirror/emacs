@@ -1,3 +1,13 @@
+2012-09-13  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Simplify SIGIO usage (Bug#12408).
+	* configure.ac (NO_TERMIO, BROKEN_FIONREAD, BROKEN_SIGAIO)
+	(BROKEN_SIGPOLL, BROKEN_SIGPTY): Remove.
+	(USABLE_FIONREAD, USABLE_SIGIO): New symbols.  All uses of
+	'defined SIGIO' replaced with 'defined USABLE_SIGIO', with no need
+	to #undef SIGIO now (which was error-prone).  Likewise, all uses
+	of 'defined FIONREAD' replaced with 'defined USABLE_FIONREAD'.
+
 2012-09-12  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* configure.ac: No --with-x-toolkit given: Try gtk3 toolkit first

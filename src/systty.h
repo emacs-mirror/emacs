@@ -17,10 +17,8 @@ You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Include the proper files.  */
+
 #ifndef DOS_NT
-#ifndef NO_TERMIO
-#include <termio.h>
-#endif /* not NO_TERMIO */
 #include <termios.h>
 #include <fcntl.h>
 #endif /* not DOS_NT */
@@ -37,15 +35,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif /* AIX */
 
 #include <unistd.h>
-
-
-/* Special cases - inhibiting the use of certain features.  */
-
-/* Allow configure to inhibit use of FIONREAD.  */
-#ifdef BROKEN_FIONREAD
-#undef FIONREAD
-#undef ASYNC
-#endif
 
 
 /* Try to establish the correct character to disable terminal functions

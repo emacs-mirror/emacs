@@ -1,3 +1,9 @@
+2012-09-13  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Simplify SIGIO usage (Bug#12408).
+	* CPP_DEFINES (BROKEN_SIGAIO, BROKEN_SIGIO, BROKEN_SIGPOLL)
+	(BROKEN_SIGPTY, NO_TERMIO): Remove.
+
 2012-09-11  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Simplify, document, and port floating-point (Bug#12381).

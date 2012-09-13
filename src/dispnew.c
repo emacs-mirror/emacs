@@ -5971,7 +5971,7 @@ sit_for (Lisp_Object timeout, bool reading, int do_display)
     wrong_type_argument (Qnumberp, timeout);
 
 
-#ifdef SIGIO
+#ifdef USABLE_SIGIO
   gobble_input (0);
 #endif
 

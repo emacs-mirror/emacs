@@ -3271,10 +3271,6 @@ esac
 
 
 case $opsys in
-  darwin | gnu | hpux* | *bsd )
-    AC_DEFINE(NO_TERMIO, 1, [Define if termio.h should not be included.])
-    ;;
-
   irix6-5 | sol2* | unixware )
     dnl Some SVr4s don't define NSIG in sys/signal.h for ANSI environments;
     dnl instead, there's a system variable _sys_nsig.  Unfortunately, we
@@ -3284,26 +3280,16 @@ case $opsys in
     ;;
 esac
 
+emacs_broken_SIGIO=no
 
 case $opsys in
   dnl SIGIO exists, but the feature doesn't work in the way Emacs needs.
   dnl See eg <http://article.gmane.org/gmane.os.openbsd.ports/46831>.
   hpux* | irix6-5 | openbsd | sol2* | unixware )
-    AC_DEFINE(BROKEN_SIGIO, 1, [Define if SIGIO should not be used.])
+    emacs_broken_SIGIO=yes
     ;;
 
   aix4-2)
-    dnl BUILD 9008 - FIONREAD problem still exists in X-Windows.
-    AC_DEFINE(BROKEN_FIONREAD, 1, [Define if FIONREAD should not be used.])
-    dnl As we define BROKEN_FIONREAD, SIGIO will be undefined in systty.h.
-    dnl But, on AIX, SIGAIO, SIGPTY, and SIGPOLL are defined as SIGIO,
-    dnl which causes compilation error at init_signals in sysdep.c.
-    dnl So, we define these macros so that syssignal.h detects them
-    dnl and undefine SIGAIO, SIGPTY and SIGPOLL.
-    AC_DEFINE(BROKEN_SIGAIO, 1, [Define if SIGAIO should not be used.])
-    AC_DEFINE(BROKEN_SIGPOLL,1, [Define if SIGPOLL should not be used.])
-    AC_DEFINE(BROKEN_SIGPTY, 1, [Define if SIGPTY should not be used.])
-
     dnl On AIX Emacs uses the gmalloc.c malloc implementation.  But given
     dnl the way this system works, libc functions that return malloced
     dnl memory use the libc malloc implementation. Calling xfree or
@@ -3379,7 +3365,7 @@ dnl The choice is controlled by the variable interrupt_input.
 dnl
 dnl Define INTERRUPT_INPUT to make interrupt_input = 1 the default (use SIGIO)
 dnl
-dnl Emacs uses the presence or absence of the SIGIO and BROKEN_SIGIO macros
+dnl Emacs uses the presence of the USABLE_SIGIO macro
 dnl to indicate whether or not signal-driven I/O is possible.  It uses
 dnl INTERRUPT_INPUT to decide whether to use it by default.
 dnl
@@ -3899,6 +3885,46 @@ case $opsys in
     AC_DEFINE(USG5_4, [])
     ;;
 esac
+
+AC_CACHE_CHECK([for usable FIONREAD], [emacs_cv_usable_FIONREAD],
+  [case $opsys in
+     aix4-2)
+       dnl BUILD 9008 - FIONREAD problem still exists in X-Windows.
+       emacs_cv_usable_FIONREAD=no
+       ;;
+
+     *)
+       AC_COMPILE_IFELSE(
+	 [AC_LANG_PROGRAM([[#include <sys/types.h>
+			    #include <sys/ioctl.h>
+			    #ifdef USG5_4
+			    # include <sys/filio.h>
+			    #endif
+			  ]],
+			  [[int foo = ioctl (0, FIONREAD, &foo);]])],
+	 [emacs_cv_usable_FIONREAD=yes],
+	 [emacs_cv_usable_FIONREAD=no])
+       ;;
+   esac])
+if test $emacs_cv_usable_FIONREAD = yes; then
+  AC_DEFINE([USABLE_FIONREAD], [1], [Define to 1 if FIONREAD is usable.])
+
+  if test $emacs_broken_SIGIO = no; then
+    AC_CACHE_CHECK([for usable SIGIO], [emacs_cv_usable_SIGIO],
+      [AC_COMPILE_IFELSE(
+	 [AC_LANG_PROGRAM([[#include <fcntl.h>
+			    #include <signal.h>
+			  ]],
+			  [[int foo = SIGIO | F_SETFL | FASYNC;]])],
+	 [emacs_cv_usable_SIGIO=yes],
+	 [emacs_cv_usable_SIGIO=no])],
+      [emacs_cv_usable_SIGIO=yes],
+      [emacs_cv_usable_SIGIO=no])
+    if test $emacs_cv_usable_SIGIO = yes; then
+      AC_DEFINE([USABLE_SIGIO], [1], [Define to 1 if SIGIO is usable.])
+    fi
+  fi
+fi
 
 
 case $opsys in

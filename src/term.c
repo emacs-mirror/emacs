@@ -2944,8 +2944,7 @@ dissociate_if_controlling_tty (int fd)
         emacs_close (fd);
       pthread_sigmask (SIG_UNBLOCK, &blocked, 0);
 #else
-      /* Unknown system. */
-      croak ();
+# error "Unknown system."
 #endif  /* ! TIOCNOTTY */
 #endif  /* ! USG */
     }

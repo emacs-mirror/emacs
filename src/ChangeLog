@@ -1,5 +1,41 @@
 2012-09-13  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Simplify SIGIO usage (Bug#12408).
+	The code that dealt with SIGIO was crufty and confusing, e.g., it
+	played tricks like "#undef SIGIO" but these tricks were not used
+	consistently.  Simplify mostly by not #undeffing standard symbols,
+	e.g., use "defined USABLE_SIGIO" (our symbol, which we can define
+	or not as we please) rather than "defined SIGIO" (standard symbol
+	that we probably shouldn't #undef).
+	* conf_post.h [USG5_4]: Do not include <sys/wait.h> here.
+	Modules that need it can include it.
+	[USG5_4 && emacs]: Likewise, do not include the streams stuff here.
+	* dispextern.h (ignore_sigio): New decl.
+	* emacs.c (shut_down_emacs): Invoke unrequest_sigio
+	unconditionally, since it's now a no-op if !USABLE_SIGIO.
+	* emacs.c (shut_down_emacs):
+	* keyboard.c (kbd_buffer_store_event_hold):
+	Use ignore_sigio rather than invoking 'signal' directly.
+	* keyboard.c (USABLE_FIONREAD && USG5_4): Include <sys/filio.h>,
+	for FIONREAD.
+	(FIONREAD, SIGIO): Do not #undef.
+	(tty_read_avail_input): Use #error rather than a syntax error.
+	* process.c [USG5_4]: Include <sys/stream.h> and <sys/stropts.h>,
+	for I_PIPE, used by SETUP_SLAVE_PTY.
+	(DATAGRAM_SOCKETS): Simplify defn, based on USABLE_FIONREAD.
+	* sysdep.c (croak): Remove; no longer needed.  This bit of
+	temporary code, with Fred N. Fish's comment that it's temporary,
+	has been in Emacs since at least 1992!
+	(init_sigio, reset_sigio, request_sigio, unrequest_sigio):
+	Arrange for them to be no-ops in all cases when ! USABLE_SIGIO.
+	* syssignal.h (croak): Remove decl.
+	(SIGIO, SIGPOO, SIGAIO, SIGPTY): Do not #undef; that's too fragile.
+	* systty.h [!NO_TERMIO]: Do not include <termio.h>; no longer needed
+	now that we're termios-only.
+	(FIONREAD, ASYNC) [BROKEN_FIONREAD]: Do not #undef.
+	* term.c (dissociate_if_controlling_tty): Use #error rather than
+	a run-time error.
+
 	Work around GCC and GNOME bugs when --enable-gcc-warnings.
 	* emacsgtkfixed.c (G_STATIC_ASSERT): Redefine to use 'verify',
 	to work around GNOME bug 683906.
