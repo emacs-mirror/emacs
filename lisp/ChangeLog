@@ -1,3 +1,27 @@
+2012-09-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/edebug.el: Use lexical-binding.
+	Remove the "edebug-" prefix from non-dynamically-scoped variables.
+	Mark unused args with underscore.
+	(edebug-save-restriction, edebug-outside-excursion): Use `declare'.
+	(edebug-form-data): Use defvar-local.
+	(edebug-make-before-and-after-form, edebug-make-after-form):
+	Use backquote.
+	(edebug-args, edebug-value, edebug-after-index, edebug-arg-mode):
+	Not dynamically scoped any more.
+	(edebug--enter-trace): Add arguments `function' and `args'.
+	Rename from edebug-enter-trace.
+	(edebug-enter): Call it accordingly.  Bind edebug-function explicitly.
+	(edebug--update-coverage): Add `after-index' and `value' args.
+	Rename from edebug-update-coverage.
+	(edebug-slow-after): Call it accordingly.
+	(edebug--recursive-edit): Add arg `arg-mode'.  Rename from
+	edebug-recursive-edit.
+	(edebug--display): Call it accordingly.  Add args `value',
+	`offset-index', and `arg-mode'.  Rename from edebug-display.
+	(edebug-debugger, edebug): Call it accordingly.
+	(edebug-eval-display-list): Use dolist.
+
 2012-09-12  Juri Linkov  <juri@jurta.org>
 
 	* info.el (Info-search): Don't check for isearch-mode and
