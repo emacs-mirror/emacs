@@ -96,16 +96,16 @@
 2012-09-11  Bastien Guerry  <bzg@gnu.org>
 
 	* subr.el (set-temporary-overlay-map): Add a docstring.
-	(bug#12346)
+	(Bug#12346)
 
 2012-09-11  Bastien Guerry  <bzg@gnu.org>
 
 	* minibuffer.el (completion-table-subvert): Fix docstring.
-	(bug#12347)
+	(Bug#12347)
 
 2012-09-11  Bastien Guerry  <bzg@gnu.org>
 
-	* help-fns.el (describe-variable): Fix typo. (bug#12346)
+	* help-fns.el (describe-variable): Fix typo.  (Bug#12346)
 
 2012-09-10  Michael R. Mauger  <mmaug@yahoo.com>
 
@@ -125,9 +125,8 @@
 2012-09-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/lisp-mode.el (emacs-list-byte-code-comment-re): New var.
-	(emacs-lisp-byte-code-comment)
-	(emacs-lisp-byte-code-syntax-propertize, emacs-lisp-byte-code-mode):
-	New functions.
+	(emacs-lisp-byte-code-comment, emacs-lisp-byte-code-syntax-propertize)
+	(emacs-lisp-byte-code-mode): New functions.
 	(eval-sexp-add-defvars): Don't skip defvars in column >0.
 	(eval-defun-2): Remove bogus interactive spec.
 	(lisp-indent-line): Remove redundant whole-exp code, now done in
@@ -1614,7 +1613,7 @@
 	* calc-mode.el (calc-basic-simplification-mode): Rename from
 	`calc-limited-simplification-mode'.
 	(calc-alg-simplification-mode): New function.
-	(calc-set-simplify-mode):  Adjust message.
+	(calc-set-simplify-mode): Adjust message.
 
 	* calc.el (calc-set-mode-line): Adjust mode line display for
 	basic simplification mode.
@@ -1812,7 +1811,7 @@
 	* notifications.el (notifications-on-action-signal)
 	(notifications-on-closed-signal): Use also the bus address for the map.
 	(notifications-notify, notifications-close-notification)
-	(notifications-get-capabilities):  Add optional argument BUS.
+	(notifications-get-capabilities): Add optional argument BUS.
 
 2012-07-27  Tassilo Horn  <tsdh@gnu.org>
 
@@ -1932,7 +1931,7 @@
 	ses-cell-set-formula or ses-set-cell to change the cell and handle
 	the undo at the same time, but rather use lower level new macros
 	`ses-cell-formula-aset' and `ses-cell-references-aset' and handle
-	the undo directly. Refresh the mode line.
+	the undo directly.  Refresh the mode line.
 
 2012-07-21  Leo Liu  <sdl.web@gmail.com>
 
@@ -5348,13 +5347,13 @@
 	* progmodes/verilog-mode.el (font-lock-keywords):
 	Fix mis-highligting auto.  Reported by Craig Barner.
 	(verilog-auto, verilog-auto-undef): Add AUTOUNDEF to remove
-	defines from global name space. Reported by Dan Dever.
+	defines from global name space.  Reported by Dan Dever.
 	(verilog-auto-reset, verilog-auto-reset-widths)
 	(verilog-auto-tieoff): Support using unbased numbers for
 	AUTORESET and AUTOTIEOFF.
 	(verilog-submit-bug-report): Update variable list.
 	(verilog-read-auto-params): Fix AUTOINPUT regexps containing
-	parenthesis from not matching. Reported by Michael Rytting.
+	parenthesis from not matching.  Reported by Michael Rytting.
 	(verilog-auto-template-lint): Fix hash error when linting modules
 	with no used templates.
 	(verilog-warn, verilog-warn-error)
@@ -5364,12 +5363,12 @@
 	(verilog-read-auto-template): Add `verilog-auto-template-warn-unused'
 	to report unused template errors.  Reported by Brad Dobbie.
 	(verilog-read-decls): Fix AUTOWIRE etc on supply0, supply1 type
-	nets, bug438. Reported by Vns Blore.
+	nets, bug438.  Reported by Vns Blore.
 	(verilog-auto-inout-module, verilog-auto-reg)
 	(verilog-read-decls, verilog-read-sub-decls-sig)
 	(verilog-signals-edit-wire-reg, verilog-signals-with):
 	Fix passing of Verilog data types in ANSI input/output ports
-	such as "output logic" into the AUTOs. Special case "wire" and
+	such as "output logic" into the AUTOs.  Special case "wire" and
 	"reg" for backwards compatibility presuming Verilog 2001.
 	(verilog-auto-ascii-enum): Add "auto enum" as alias.
 	(verilog-preprocess): Fix replication of preprocess output.
@@ -5390,7 +5389,7 @@
 	(verilog-read-decls): Fix 'parameter type' not appearing in
 	AUTOINSTPARAM, bug340.  Reported by Jonathan Greenlaw.
 	(verilog-auto-logic): Fix when AUTOLOGIC present to properly do
-	AUTOINPUTs, bug411. Reported by Jonathan Greenlaw.
+	AUTOINPUTs, bug411.  Reported by Jonathan Greenlaw.
 	(verilog-read-auto-lisp): Avoid syntax-ppss warning on AUTOLISP.
 	Reported by David Kravitz.
 

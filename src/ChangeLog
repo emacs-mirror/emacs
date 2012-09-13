@@ -287,7 +287,7 @@
 	(ns_maybe_dumpglyphs_background): Remove fringe/internal border
 	adjustment.
 	(ns_dumpglyphs_image): Ditto.
-	(ns_dumpglyphs_stretch): Fix coding style. Remove fringe/internal
+	(ns_dumpglyphs_stretch): Fix coding style.  Remove fringe/internal
 	border adjustment.
 	(ns_set_vertical_scroll_bar): Remove variables barOnVeryLeft/Right and
 	their usage.  Add fringe_extended_p and its use as in other terms.
@@ -368,7 +368,7 @@
 	* conf_post.h [SIGNAL_H_AHB]: Do not include <signal.h>;
 	no longer needed here.
 	* emacs.c (main): Inspect existing signal handler with sigaction,
-	so that there's	no need to block and unblock SIGHUP.
+	so that there's no need to block and unblock SIGHUP.
 	* sysdep.c (struct save_signal): New member 'action', replacing
 	old member 'handler'.
 	(save_signal_handlers, restore_signal_handlers):
@@ -895,18 +895,18 @@
 2012-08-28  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsmenu.m (initWithContentRect:styleMask:backing:defer:): Initialize
-	button_values to NULL. Call setStykeMask so dialogs get a close button.
+	button_values to NULL.  Call setStykeMask so dialogs get a close button.
 	(windowShouldClose:): Set window_closed.
 	(dealloc): New member, free button_values.
-	(process_dialog:): Make member function. Remove window argument,
-	replace window with self. Count buttons and allocate and store values
+	(process_dialog:): Make member function.  Remove window argument,
+	replace window with self.  Count buttons and allocate and store values
 	in button_values.
 	(addButton:value:row:): value is int with the name tag.  Call setTag
-	with tag. Remove return self, declare return value as void.
+	with tag.  Remove return self, declare return value as void.
 	(addString:row:): Remove return self, declare return value as void.
 	(addSplit): Remove return self, declare return value as void.
 	(clicked:): Remove return self, declare return value as void.
-	Set dialog_return to button_values[seltag]. Code formatting change.
+	Set dialog_return to button_values[seltag].  Code formatting change.
 	(initFromContents:isQuestion:): Adjust call to process_dialog.
 	Code formatting change.
 	(timeout_handler:): Set timer_fired to YES.
@@ -1241,7 +1241,7 @@
 
 	* fontset.c (FONTSET_ADD): Return void, not Lisp_Object.
 	Otherwise, the compiler complains about (A?B:C) where B is void
-	and C is Lisp_Object.  This fixes an incompatibility with Sun C	5.12.
+	and C is Lisp_Object.  This fixes an incompatibility with Sun C 5.12.
 	(fontset_add): Return void, for FONTSET_ADD.
 
 2012-08-21  Paul Eggert  <eggert@cs.ucla.edu>
@@ -1757,7 +1757,7 @@
 	Start main loop and wait for application defined event.
 	Inform select thread to stop selecting after main loop is exited.
 	(ns_term_init): Create selfds pipe and set non-blocking.
-	Initialize select_mutex. Start the select thread (fd_handler).
+	Initialize select_mutex.  Start the select thread (fd_handler).
 	(fd_handler:): Loop forever, wait for info from the main thread
 	to either start or stop selecting.  When select returns, send
 	and appdefined event.
@@ -1889,7 +1889,7 @@
 	(xg_create_tool_bar): Allocate and initialize a xg_frame_tb_info
 	if not present.
 	(update_frame_tool_bar): Return early if data in xg_frame_tb_info
-	is up to date. Otherwise store new data.
+	is up to date.  Otherwise store new data.
 	(free_frame_tool_bar): Free xg_frame_tb_info if present.
 
 2012-08-13  Dmitry Antipov  <dmantipov@yandex.ru>
@@ -1916,7 +1916,7 @@
 2012-08-11  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsterm.m (not_in_argv): New function.
-	(application:openFile,	application:openTempFile:):
+	(application:openFile, application:openTempFile:):
 	(application:openFileWithoutUI:, application:openFiles:): Open file
 	if not_in_argv returns non-zero (bug#12171).
 
@@ -3103,7 +3103,7 @@
 
 2012-07-21  Jan Djärv  <jan.h.d@swipnet.se>
 
-	* nsterm.m (accessibilityAttributeValue): New function. (Bug#11134).
+	* nsterm.m (accessibilityAttributeValue): New function.  (Bug#11134).
 	(conversationIdentifier): Return value is NSInteger.
 	* nsterm.m (accessibilityAttributeValue): Surround with NS_IMPL_COCOA.
 
@@ -5613,7 +5613,7 @@
 	* lisp.h (struct vectorlike_header): New field `nbytes',
 	adjust comment accordingly.
 	* alloc.c (enum mem_type): New type `MEM_TYPE_VECTOR_BLOCK'
-	to denote vector blocks. Adjust users (live_vector_p,
+	to denote vector blocks.  Adjust users (live_vector_p,
 	mark_maybe_pointer, valid_lisp_object_p) accordingly.
 	(COMMON_MULTIPLE): Move outside #if USE_LSB_TAG.
 	(VECTOR_BLOCK_SIZE, vroundup, VECTOR_BLOCK_BYTES),
@@ -5627,7 +5627,7 @@
 	(allocate_vector_from_block, init_vectors, allocate_vector_from_block)
 	(sweep_vectors): New functions.
 	(allocate_vectorlike): Return `zero_vector' as the only vector of
-	0 items. Allocate new vector from block if vector size is less than
+	0 items.  Allocate new vector from block if vector size is less than
 	or equal to VBLOCK_BYTES_MAX.
 	(Fgarbage_collect): Move all vector sweeping code to sweep_vectors.
 	(init_alloc_once): Add call to init_vectors.
@@ -5717,7 +5717,7 @@
 	change it's type from Lisp_Object to bitfield.
 	Change type of 'force_start', 'optional_new_start',
 	'last_had_star', 'update_mode_line' and 'start_at_line_beg'
-	fields from Lisp_Object to bitfield. Adjust users accordingly.
+	fields from Lisp_Object to bitfield.  Adjust users accordingly.
 
 2012-05-31  Paul Eggert  <eggert@cs.ucla.edu>
 
