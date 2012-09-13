@@ -50,9 +50,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to the number of bits in type 'wint_t'. */
 #undef BITSIZEOF_WINT_T
 
-/* Define if FIONREAD should not be used. */
-#undef BROKEN_FIONREAD
-
 /* Define if getwd should not be used. */
 #undef BROKEN_GETWD
 
@@ -64,18 +61,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define if SA_RESTART should only be used in batch mode. */
 #undef BROKEN_SA_RESTART
-
-/* Define if SIGAIO should not be used. */
-#undef BROKEN_SIGAIO
-
-/* Define if SIGIO should not be used. */
-#undef BROKEN_SIGIO
-
-/* Define if SIGPOLL should not be used. */
-#undef BROKEN_SIGPOLL
-
-/* Define if SIGPTY should not be used. */
-#undef BROKEN_SIGPTY
 
 /* Define if the system is compatible with BSD 4.2. */
 #undef BSD4_2
@@ -1166,9 +1151,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if your C compiler doesn't accept -c and -o together. */
 #undef NO_MINUS_C_MINUS_O
 
-/* Define if termio.h should not be included. */
-#undef NO_TERMIO
-
 /* Minimum value of NSIG. */
 #undef NSIG_MINIMUM
 
@@ -1352,6 +1334,12 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define if the system has Unix98 PTYs. */
 #undef UNIX98_PTYS
+
+/* Define to 1 if FIONREAD is usable. */
+#undef USABLE_FIONREAD
+
+/* Define to 1 if SIGIO is usable. */
+#undef USABLE_SIGIO
 
 /* How to get a user's full name. */
 #undef USER_FULL_NAME

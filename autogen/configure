@@ -2062,8 +2062,8 @@ Optional Packages:
                           string giving default POP mail host
   --without-sound         don't compile with sound support
   --without-sync-input    process async input synchronously
-  --with-x-toolkit=KIT    use an X toolkit (KIT one of: yes or gtk, gtk3,
-                          lucid or athena, motif, no)
+  --with-x-toolkit=KIT    use an X toolkit (KIT one of: yes or gtk, gtk2,
+                          gtk3, lucid or athena, motif, no)
   --with-wide-int         prefer wide Emacs integers (typically 62-bit)
   --without-xpm           don't compile with XPM image support
   --without-jpeg          don't compile with JPEG image support
@@ -3956,11 +3956,13 @@ if test "${with_x_toolkit+set}" = set; then :
 	    a | at | ath | athe | athen | athena )	val=athena ;;
 	    m | mo | mot | moti | motif )	val=motif ;;
 	    g | gt | gtk  )	val=gtk ;;
+	    gtk2  )	val=gtk2 ;;
 	    gtk3  )	val=gtk3 ;;
 	    * )
 as_fn_error "\`--with-x-toolkit=$withval' is invalid;
-this option's value should be \`yes', \`no', \`lucid', \`athena', \`motif', \`gtk' or
-\`gtk3'.  \`yes' and \`gtk' are synonyms. \`athena' and \`lucid' are synonyms." "$LINENO" 5
+this option's value should be \`yes', \`no', \`lucid', \`athena', \`motif', \`gtk',
+\`gtk2' or \`gtk3'.  \`yes' and \`gtk' are synonyms.
+\`athena' and \`lucid' are synonyms." "$LINENO" 5
 	    ;;
 	  esac
 	  with_x_toolkit=$val
@@ -9562,6 +9564,9 @@ case "${window_system}" in
       gtk ) with_gtk=yes
             term_header=gtkutil.h
             USE_X_TOOLKIT=none ;;
+      gtk2 ) with_gtk2=yes
+             term_header=gtkutil.h
+             USE_X_TOOLKIT=none ;;
       gtk3 ) with_gtk3=yes
              term_header=gtkutil.h
              USE_X_TOOLKIT=none ;;
@@ -10511,7 +10516,9 @@ fi
 
 HAVE_GTK=no
 GTK_OBJ=
-if test "${with_gtk3}" = "yes"; then
+check_gtk2=no
+gtk3_pkg_errors=
+if test "${with_gtk3}" = "yes" || test "${with_gtk}" = "yes" || test "$USE_X_TOOLKIT" = "maybe"; then
   GLIB_REQUIRED=2.28
   GTK_REQUIRED=3.0
   GTK_MODULES="gtk+-3.0 >= $GTK_REQUIRED glib-2.0 >= $GLIB_REQUIRED"
@@ -10566,19 +10573,22 @@ $as_echo "no" >&6; }
      pkg_check_gtk=no
   fi
 
-  if test "$pkg_check_gtk" = "no" && test "$USE_X_TOOLKIT" != "maybe"; then
+  if test "$pkg_check_gtk" = "no" && test "$with_gtk3" = "yes"; then
      as_fn_error "$GTK_PKG_ERRORS" "$LINENO" 5
   fi
+  if test "$pkg_check_gtk" = "yes"; then
 
 $as_echo "#define HAVE_GTK3 1" >>confdefs.h
 
-  GTK_OBJ=emacsgtkfixed.o
-  term_header=gtkutil.h
+     GTK_OBJ=emacsgtkfixed.o
+     term_header=gtkutil.h
+  else
+     check_gtk2=yes
+     gtk3_pkg_errors="$GTK_PKG_ERRORS "
+  fi
 fi
 
-if test "$pkg_check_gtk" != "yes"; then
-  HAVE_GTK=no
-if test "${with_gtk}" = "yes" || test "$USE_X_TOOLKIT" = "maybe"; then
+if test "${with_gtk2}" = "yes" || test "$check_gtk2" = "yes"; then
   GLIB_REQUIRED=2.10
   GTK_REQUIRED=2.10
   GTK_MODULES="gtk+-2.0 >= $GTK_REQUIRED glib-2.0 >= $GLIB_REQUIRED"
@@ -10633,10 +10643,11 @@ $as_echo "no" >&6; }
      pkg_check_gtk=no
   fi
 
-  if test "$pkg_check_gtk" = "no" && test "$USE_X_TOOLKIT" != "maybe"; then
-     as_fn_error "$GTK_PKG_ERRORS" "$LINENO" 5
+  if test "$pkg_check_gtk" = "no"; then
+     if test "$USE_X_TOOLKIT" = "maybe" || test "$with_gtk" = "yes" || test "$with_gtk2" = "yes"; then
+     	as_fn_error "$gtk3_pkg_errors$GTK_PKG_ERRORS" "$LINENO" 5
+     fi
   fi
-fi
 fi
 
 if test x"$pkg_check_gtk" = xyes; then
@@ -11161,8 +11172,6 @@ HAVE_XAW3D=no
 LUCID_LIBW=
 if test x"${USE_X_TOOLKIT}" = xmaybe || test x"${USE_X_TOOLKIT}" = xLUCID; then
   if test "$with_xaw3d" != no; then
-    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for xaw3d" >&5
-$as_echo_n "checking for xaw3d... " >&6; }
     if test "${emacs_cv_xaw3d+set}" = set; then :
   $as_echo_n "(cached) " >&6
 else
@@ -11233,6 +11242,8 @@ fi
     emacs_cv_xaw3d=no
   fi
   if test $emacs_cv_xaw3d = yes; then
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for xaw3d" >&5
+$as_echo_n "checking for xaw3d... " >&6; }
     { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes; using Lucid toolkit" >&5
 $as_echo "yes; using Lucid toolkit" >&6; }
     USE_X_TOOLKIT=LUCID
@@ -11242,6 +11253,8 @@ $as_echo "yes; using Lucid toolkit" >&6; }
 $as_echo "#define HAVE_XAW3D 1" >>confdefs.h
 
   else
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for xaw3d" >&5
+$as_echo_n "checking for xaw3d... " >&6; }
     { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
     { $as_echo "$as_me:${as_lineno-$LINENO}: checking for libXaw" >&5
@@ -14891,12 +14904,6 @@ esac
 
 
 case $opsys in
-  darwin | gnu | hpux* | *bsd )
-
-$as_echo "#define NO_TERMIO 1" >>confdefs.h
-
-    ;;
-
   irix6-5 | sol2* | unixware )
 
 $as_echo "#define NSIG_MINIMUM 32" >>confdefs.h
@@ -14904,28 +14911,14 @@ $as_echo "#define NSIG_MINIMUM 32" >>confdefs.h
     ;;
 esac
 
+emacs_broken_SIGIO=no
 
 case $opsys in
       hpux* | irix6-5 | openbsd | sol2* | unixware )
-
-$as_echo "#define BROKEN_SIGIO 1" >>confdefs.h
-
+    emacs_broken_SIGIO=yes
     ;;
 
   aix4-2)
-
-$as_echo "#define BROKEN_FIONREAD 1" >>confdefs.h
-
-
-$as_echo "#define BROKEN_SIGAIO 1" >>confdefs.h
-
-
-$as_echo "#define BROKEN_SIGPOLL 1" >>confdefs.h
-
-
-$as_echo "#define BROKEN_SIGPTY 1" >>confdefs.h
-
-
 
 $as_echo "#define BROKEN_GET_CURRENT_DIR_NAME 1" >>confdefs.h
 
@@ -15636,6 +15629,85 @@ $as_echo "#define SOLARIS2 /**/" >>confdefs.h
 
     ;;
 esac
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for usable FIONREAD" >&5
+$as_echo_n "checking for usable FIONREAD... " >&6; }
+if test "${emacs_cv_usable_FIONREAD+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  case $opsys in
+     aix4-2)
+              emacs_cv_usable_FIONREAD=no
+       ;;
+
+     *)
+       cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <sys/types.h>
+			    #include <sys/ioctl.h>
+			    #ifdef USG5_4
+			    # include <sys/filio.h>
+			    #endif
+
+int
+main ()
+{
+int foo = ioctl (0, FIONREAD, &foo);
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+  emacs_cv_usable_FIONREAD=yes
+else
+  emacs_cv_usable_FIONREAD=no
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+       ;;
+   esac
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $emacs_cv_usable_FIONREAD" >&5
+$as_echo "$emacs_cv_usable_FIONREAD" >&6; }
+if test $emacs_cv_usable_FIONREAD = yes; then
+
+$as_echo "#define USABLE_FIONREAD 1" >>confdefs.h
+
+
+  if test $emacs_broken_SIGIO = no; then
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for usable SIGIO" >&5
+$as_echo_n "checking for usable SIGIO... " >&6; }
+if test "${emacs_cv_usable_SIGIO+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <fcntl.h>
+			    #include <signal.h>
+
+int
+main ()
+{
+int foo = SIGIO | F_SETFL | FASYNC;
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+  emacs_cv_usable_SIGIO=yes
+else
+  emacs_cv_usable_SIGIO=no
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $emacs_cv_usable_SIGIO" >&5
+$as_echo "$emacs_cv_usable_SIGIO" >&6; }
+    if test $emacs_cv_usable_SIGIO = yes; then
+
+$as_echo "#define USABLE_SIGIO 1" >>confdefs.h
+
+    fi
+  fi
+fi
 
 
 case $opsys in
