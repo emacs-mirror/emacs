@@ -244,7 +244,10 @@ List has a form of (file-name full-file-name (attribute-list))."
 			     (function dired-check-process)
 			     (append
 			      (list operation program)
-			      (unless (string-equal new-attribute "")
+			      (unless (or (string-equal new-attribute "")
+					  ;; Use `eq' instead of `equal'
+					  ;; to detect empty input (bug#12399).
+					  (eq new-attribute default))
 				(if (eq op-symbol 'touch)
 				    (list "-t" new-attribute)
 				  (list new-attribute)))
