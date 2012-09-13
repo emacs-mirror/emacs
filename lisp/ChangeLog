@@ -1,3 +1,8 @@
+2012-09-13  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/bytecomp.el (byte-compile-warning-prefix):
+	If not compiling a file, try using load-file-name.
+
 2012-09-13  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/edebug.el (edebug-outside-unread-command-events):

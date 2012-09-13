@@ -1016,6 +1016,10 @@ Each function's symbol gets added to `byte-compile-noruntime-functions'."
 		     ((bufferp byte-compile-current-file)
 		      (format "Buffer %s:"
 			      (buffer-name byte-compile-current-file)))
+		     ;; We might be simply loading a file that
+		     ;; contains explicit calls to byte-compile functions.
+		     ((stringp load-file-name)
+		      (format "%s:" (file-relative-name load-file-name dir)))
 		     (t "")))
 	 (pos (if (and byte-compile-current-file
 		       (integerp byte-compile-read-position))
