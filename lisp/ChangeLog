@@ -1,5 +1,9 @@
 2012-09-13  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/edebug.el (edebug-outside-unread-command-events):
+	Fix last change.
+	(edebug-update-eval-list): Use `push'.
+
 	* emacs-lisp/edebug.el: Use lexical-binding.
 	Remove the "edebug-" prefix from non-dynamically-scoped variables.
 	Mark unused args with underscore.

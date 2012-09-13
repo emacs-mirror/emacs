@@ -2480,6 +2480,7 @@ MSG is printed after `::::} '."
 ;; Emacs 19 adds an arg to mark and mark-marker.
 (defalias 'edebug-mark-marker 'mark-marker)
 
+(defvar edebug-outside-unread-command-events)
 
 (defun edebug--display (value offset-index arg-mode)
   (unless (marker-position edebug-def-mark)
@@ -2763,7 +2764,6 @@ MSG is printed after `::::} '."
 
 ;; Emacs 19.
 (defvar edebug-outside-last-command-event)
-(defvar edebug-outside-unread-command-events)
 (defvar edebug-outside-last-input-event)
 (defvar edebug-outside-last-event-frame)
 (defvar edebug-outside-last-nonmenu-event)
@@ -3906,10 +3906,9 @@ Options:
     ))
 
 (defun edebug-create-eval-buffer ()
-  (if (not (and edebug-eval-buffer (buffer-name edebug-eval-buffer)))
-      (progn
-	(set-buffer (setq edebug-eval-buffer (get-buffer-create "*edebug*")))
-	(edebug-eval-mode))))
+  (unless (and edebug-eval-buffer (buffer-name edebug-eval-buffer))
+    (set-buffer (setq edebug-eval-buffer (get-buffer-create "*edebug*")))
+    (edebug-eval-mode)))
 
 ;; Should generalize this to be callable outside of edebug
 ;; with calls in user functions, e.g. (edebug-eval-display)
@@ -3947,7 +3946,7 @@ May only be called from within `edebug--recursive-edit'."
     (if (not (eobp))
 	(progn
 	  (forward-sexp 1)
-	  (setq new-list (cons (edebug-last-sexp) new-list))))
+	  (push (edebug-last-sexp) new-list)))
 
     (while (re-search-forward "^;" nil t)
       (forward-line 1)
@@ -3956,7 +3955,7 @@ May only be called from within `edebug--recursive-edit'."
 	       (not (eobp)))
 	  (progn
 	    (forward-sexp 1)
-	    (setq new-list (cons (edebug-last-sexp) new-list)))))
+	    (push (edebug-last-sexp) new-list))))
 
     (setq edebug-eval-list (nreverse new-list))
     (edebug-eval-redisplay)
