@@ -1,3 +1,12 @@
+2012-09-13  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Work around GCC and GNOME bugs when --enable-gcc-warnings.
+	* emacsgtkfixed.c (G_STATIC_ASSERT): Redefine to use 'verify',
+	to work around GNOME bug 683906.
+	* image.c (jpeg_load_body) [HAVE_JPEG && lint]: Pacify gcc -Wclobber.
+	(struct my_jpeg_error_mgr) [HAVE_JPEG && lint]: New member fp.
+	This works around GCC bug 54561.
+
 2012-09-12  Paul Eggert  <eggert@cs.ucla.edu>
 
 	More fixes for 'volatile' and setjmp/longjmp.

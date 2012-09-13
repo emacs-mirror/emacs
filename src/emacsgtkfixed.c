@@ -27,6 +27,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "frame.h"
 #include "xterm.h"
 
+/* Silence a bogus diagnostic; see GNOME bug 683906.  */
+#include <verify.h>
+#undef G_STATIC_ASSERT
+#define G_STATIC_ASSERT(x) verify (x)
+
 #define EMACS_TYPE_FIXED emacs_fixed_get_type ()
 #define EMACS_FIXED(obj) \
   G_TYPE_CHECK_INSTANCE_CAST (obj, EMACS_TYPE_FIXED, EmacsFixed)

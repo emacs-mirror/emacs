@@ -6140,6 +6140,9 @@ struct my_jpeg_error_mgr
       MY_JPEG_INVALID_IMAGE_SIZE,
       MY_JPEG_CANNOT_CREATE_X
     } failure_code;
+#ifdef lint
+  FILE *fp;
+#endif
 };
 
 
@@ -6392,6 +6395,8 @@ jpeg_load_body (struct frame *f, struct image *img,
       return 0;
     }
 
+  IF_LINT (mgr->fp = fp);
+
   /* Customize libjpeg's error handling to call my_error_exit when an
      error is detected.  This function will perform a longjmp.  */
   mgr->cinfo.err = fn_jpeg_std_error (&mgr->pub);
@@ -6429,6 +6434,9 @@ jpeg_load_body (struct frame *f, struct image *img,
       x_clear_image (f, img);
       return 0;
     }
+
+  /* Silence a bogus diagnostic; see GCC bug 54561.  */
+  IF_LINT (fp = mgr->fp);
 
   /* Create the JPEG decompression object.  Let it read from fp.
 	 Read the JPEG image header.  */
