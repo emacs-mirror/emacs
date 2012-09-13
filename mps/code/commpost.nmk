@@ -232,7 +232,7 @@ $(PFM)\$(VARIETY)\zmess.exe: $(PFM)\$(VARIETY)\zmess.obj \
 	$(TESTLIBOBJ)
 
 $(PFM)\$(VARIETY)\eventcnv.exe: $(PFM)\$(VARIETY)\eventcnv.obj \
-	$(PFM)\$(VARIETY)\eventpro.obj $(MPMOBJ) $(PLINTHOBJ)
+	$(PFM)\$(VARIETY)\eventpro.obj $(PFM)\$(VARIETY)\mps.lib
 
 $(PFM)\$(VARIETY)\replay.exe: $(PFM)\$(VARIETY)\replay.obj \
   $(PFM)\$(VARIETY)\eventrep.obj \
