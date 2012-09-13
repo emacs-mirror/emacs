@@ -1,6 +1,6 @@
 ;;; cit-cpp.el --- C++ specific things for our integ test.
 
-;; Copyright (C) 2008, 2009, 2010 Eric M. Ludlam
+;; Copyright (C) 2008, 2009, 2010, 2012 Eric M. Ludlam
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -22,6 +22,7 @@
 ;;; Commentary:
 ;;
 ;; C++ specific code for the cedet integration tests.
+;; Add some C code too!
 
 ;;; Code:
 
@@ -104,6 +105,21 @@
    )
   "Tags to be inserted into a source file.")
 
+(defvar cit-plain-c-tags
+  (list
+   (semantic-tag-new-include "string.h" nil)
+   (semantic-tag-new-function
+    "main" "int"
+    (list (semantic-tag-new-variable "argc" "int")
+	  (semantic-tag-new-variable "argv" "char"
+				     nil
+				     :pointer 2 ))
+    :code "   int myInt = 0;
+   char *myStr = strdup(\"MOOSE\");
+")
+   )
+  "Tags to be inserted into plain.c.")
+
 (defvar cit-main-cpp-tags
   (list
    (semantic-tag-new-include "foo.hpp" nil)
@@ -148,6 +164,11 @@ MAKE-TYPE is the type of make process to use."
   (cit-srecode-fill-with-stuff "src/main.cpp" cit-main-cpp-tags)
   ;; 1 e) Tell EDE where the srcs are
   (ede-add-file "Prog")
+
+  ;; Have some plain C code too to test the C code generator
+  (cit-srecode-fill-with-stuff "src/plain.c" cit-plain-c-tags)
+  (ede-new-target "Plain" "program" "n")
+  (ede-add-file "Plain")
 
   (let ((p (ede-current-project)))
     (if (string= make-type "Automake")
