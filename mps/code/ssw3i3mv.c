@@ -1,4 +1,4 @@
-/* ssw3i3.c: WIN32/INTEL STACK SCANNING
+/* ssw3i3mv.c: STACK SCANNING FOR WIN32 WITH MICROSOFT C
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
@@ -6,20 +6,20 @@
  *  This scans the stack and fixes the registers which may contain
  *  roots.  See <design/thread-manager/>.
  *
- *  The registers edi, esi, ebx are the registers defined to be preserved
- *  across function calls and therefore may contain roots.
- *  These are pushed on the stack for scanning.
+ * REFERENCES
  *
- * ASSUMPTIONS
+ * "Argument Passing and Naming Conventions"; MSDN; Microsoft Corporation;
+ * <http://msdn.microsoft.com/en-us/library/984x0h58%28v=vs.100%29.aspx>.
  *
- * .align: The stack pointer is assumed to be aligned on a word
- * boundary.
+ * "Calling conventions for different C++ compilers and operating systems";
+ * Agner Fog; Copenhagen University College of Engineering; 2012-02-29;
+ * <http://agner.org./optimize/calling_conventions.pdf>.
  */
 
 
 #include "mpm.h"
 
-SRCID(ssw3i3, "$Id$");
+SRCID(ssw3i3mv, "$Id$");
 
 
 Res StackScan(ScanState ss, Addr *stackBot)

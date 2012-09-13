@@ -64,7 +64,7 @@ typedef struct PoolGenStruct {
 
 #define ChainSig ((Sig)0x519C8A14)  /* SIGnature CHAIN */
 
-typedef struct ChainStruct {
+typedef struct mps_chain_s {
   Sig sig;
   Arena arena;
   RingStruct chainRing; /* list of chains in the arena */
