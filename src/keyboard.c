@@ -4330,7 +4330,7 @@ decode_timer (Lisp_Object timer, EMACS_TIME *result)
   if (! NILP (vector[0]))
     return 0;
 
-  return decode_time_components (vector[1], vector[2], vector[3], vector[4],
+  return decode_time_components (vector[1], vector[2], vector[3], vector[8],
 				 result, 0);
 }
 
@@ -4532,7 +4532,7 @@ in the same style as (current-time).
 
 The value when Emacs is not idle is nil.
 
-NSEC is a multiple of the system clock resolution.  */)
+PSEC is a multiple of the system clock resolution.  */)
   (void)
 {
   if (EMACS_TIME_VALID_P (timer_idleness_start_time))

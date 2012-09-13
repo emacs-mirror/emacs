@@ -110,7 +110,7 @@ file-attributes and format-time-string, have been changed accordingly.
 Old-format time stamps are still accepted.
 
 ** The format of timers in timer-list and timer-idle-list is now
-[HIGH-SECONDS LOW-SECONDS USECS PSECS REPEAT-DELAY FUNCTION ARGS IDLE-DELAY].
+[TRIGGERED-P HI-SECS LO-SECS USECS REPEAT-DELAY FUNCTION ARGS IDLE-DELAY PSECS].
 The PSECS slot is new, and uses picosecond resolution.  It can be
 accessed via the new timer--psecs accessor.
 

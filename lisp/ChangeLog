@@ -1,3 +1,10 @@
+2012-09-13  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use a more backwards-compatible timer format (Bug#12430).
+	* emacs-lisp/timer.el (timer): PSECS is now at the end, rather than
+	being right after USECS, as that better supports old code that
+	inadvisedly looked directly at the timer vector.
+
 2012-09-13  Kenichi Handa  <handa@gnu.org>
 
 	* language/chinese.el ("Chinese-GB", "Chinese-BIG5")
