@@ -587,10 +587,10 @@ PACKAGE_URL='http://www.ravenbrook.com/project/mps/'
 ac_unique_file="code/mps.c"
 ac_subst_vars='LTLIBOBJS
 LIBOBJS
+INSTALL_TARGET
 CLEAN_TARGET
 BUILD_TARGET
 MPS_TARGET_NAME
-MPS_TARGET_PF
 MAKE
 host_os
 host_vendor
@@ -2642,45 +2642,42 @@ case $host_os in *\ *) host_os=`echo "$host_os" | sed 's/ /-/g'`;; esac
 $as_echo_n "checking target platform... " >&6; }
 BUILD_TARGET=build-via-make
 CLEAN_TARGET=clean-make-build
+INSTALL_TARGET=install-make-build
 case $host in
   i*86-*-linux*)
       { $as_echo "$as_me:${as_lineno-$LINENO}: result: Linux x86" >&5
 $as_echo "Linux x86" >&6; }
-      MPS_TARGET_PF=MPS_PF_LI3C
       MPS_TARGET_NAME=lii3gc
     ;;
   x86_64-*-linux*)
       { $as_echo "$as_me:${as_lineno-$LINENO}: result: Linux x86_64" >&5
 $as_echo "Linux x86_64" >&6; }
-      MPS_TARGET_PF=MPS_PF_LII6GC
       MPS_TARGET_NAME=lii6gc
     ;;
   i*86-*-darwin*)
       { $as_echo "$as_me:${as_lineno-$LINENO}: result: Mac OS X x86" >&5
 $as_echo "Mac OS X x86" >&6; }
-      MPS_TARGET_PF=MPS_PF_XCI3LL
       MPS_TARGET_NAME=xci3ll
       BUILD_TARGET=build-via-xcode
       CLEAN_TARGET=clean-xcode-build
+      INSTALL_TARGET=install-xcode-build
     ;;
   x86_64-apple-darwin*)
       { $as_echo "$as_me:${as_lineno-$LINENO}: result: Mac OS X x86_64" >&5
 $as_echo "Mac OS X x86_64" >&6; }
-      MPS_TARGET_PF=MPS_PF_XCI6LL
       MPS_TARGET_NAME=xci6ll
       BUILD_TARGET=build-via-xcode
       CLEAN_TARGET=clean-xcode-build
+      INSTALL_TARGET=install-xcode-build
     ;;
   i*86-*-freebsd*)
       { $as_echo "$as_me:${as_lineno-$LINENO}: result: FreeBSD x86" >&5
 $as_echo "FreeBSD x86" >&6; }
-      MPS_TARGET_PF=MPS_PF_FRI3GC
       MPS_TARGET_NAME=fri3gc
     ;;
   amd64-*-freebsd*)
       { $as_echo "$as_me:${as_lineno-$LINENO}: result: FreeBSD x86_64" >&5
 $as_echo "FreeBSD x86_64" >&6; }
-      MPS_TARGET_PF=MPS_PF_FRI6GC
       MPS_TARGET_NAME=fri6gc
     ;;
   *)
