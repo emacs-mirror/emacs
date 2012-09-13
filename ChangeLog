@@ -1,3 +1,7 @@
+2012-09-13  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* configure.ac: Reorder Xaw3d messages.
+
 2012-09-13  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Simplify SIGIO usage (Bug#12408).
