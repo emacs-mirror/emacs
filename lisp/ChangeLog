@@ -1,3 +1,10 @@
+2012-09-13  Glenn Morris  <rgm@gnu.org>
+
+	* vc/vc.el: No need to require ediff.
+	(ediff-load-version-control): Declare.
+	(ediff-vc-internal): Fix declaration.
+	(vc-version-ediff): Require ediff.
+
 2012-09-13  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Use a more backwards-compatible timer format (Bug#12430).
