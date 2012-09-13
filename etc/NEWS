@@ -65,6 +65,14 @@ renamed to '--enable-check-lisp-object-type', as the resulting
 Lisp_Object type no longer uses a union to implement the compile time
 check that this option enables.
 
+---
+** The default toolkit has been changed to Gtk+ version 3.
+If you don't pass --with-x-toolkit to configure or if you pass
+--with-x-toolkit=gtk or --with-x-toolkit=yes, configure will try to build
+with Gtk+ version 3, and if that fails, try Gtk+ version 2.
+You can explicitly require a specific version by passing
+--with-x-toolkit=gtk2 or --with-x-toolkit=gtk3 to configure.
+
 
 * Startup Changes in Emacs 24.3
 

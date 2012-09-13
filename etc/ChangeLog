@@ -1,3 +1,7 @@
+2012-09-13  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* NEWS (--with-x-toolkit): Mention that Gtk+ 3 is now default.
+
 2012-09-13  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* NEWS: Document timer format change (Bug#12430).
