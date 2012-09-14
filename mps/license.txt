@@ -12,13 +12,23 @@ system) you can easily license the MPS under different terms from
 Ravenbrook.  Please write to us <mps-questions@ravenbrook.com> for more
 information.
 
+The open source license for the MPS is the [Sleepycat License][] also
+known as the "Berkeley Database License".  This license is [GPL
+compatible][] and [OSI approved][].  The MPS is "multi licensed" in a
+manner similar to MySQL.
+
+[Sleepycat License]: https://en.wikipedia.org/wiki/Sleepycat_License
+[GPL compatible]: http://www.gnu.org/licenses/license-list.html
+[OSI approved]: http://opensource.org/licenses/sleepycat
+
 
 License
 -------
 
 Copyright (C) 2001-2012 Ravenbrook Limited <http://www.ravenbrook.com/>.
-All rights reserved.  This is an open source license.  Contact
-Ravenbrook for commercial licensing options.
+All rights reserved.  This is the open source license for the Memory
+Pool System, but it is not the only one.  Contact Ravenbrook
+<mps-questions@ravenbrook.com> if you would like a different license.
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are
