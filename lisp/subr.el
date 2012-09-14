@@ -80,6 +80,7 @@ For more information, see Info node `(elisp)Declaring Functions'."
 (defmacro noreturn (form)
   "Evaluate FORM, expecting it not to return.
 If FORM does return, signal an error."
+  (declare (debug t))
   `(prog1 ,form
      (error "Form marked with `noreturn' did return")))
 
@@ -87,6 +88,7 @@ If FORM does return, signal an error."
   "Evaluate FORM, expecting a constant return value.
 This is the global do-nothing version.  There is also `testcover-1value'
 that complains if FORM ever does return differing values."
+  (declare (debug t))
   form)
 
 (defmacro def-edebug-spec (symbol spec)

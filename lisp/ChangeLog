@@ -1,3 +1,42 @@
+2012-09-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/edebug.el: Miscellaneous cleanup.
+	Remove obsolete byte-compiler hack that tried to silence some warnings.
+	(edebug-submit-bug-report): Remove.
+	(edebug-get-buffer-window, edebug-sit-for, edebug-input-pending-p):
+	Remove aliases, use the un-prefixed name instead.
+	(edebug-pop-to-buffer): Consider other frames.
+	(edebug-original-read):: Make it more obvious that it's always defined.
+	(edebug--make-form-data-entry, edebug--form-data-name)
+	(edebug--form-data-begin, edebug--form-data-end): Rename from the
+	single-dashed name, and implement with cl-defstruct.
+	(edebug-set-form-data-entry): Use the standard accessors.
+	(edebug-make-top-form-data-entry): Use push.
+	(edebug-no-match): Drop useless `funcall'.
+	(mapcar, mapconcat, mapatoms, apply, funcall): Don't add debug specs
+	to functions.
+	(defsubst, dont-compile, eval-when-compile, eval-and-compile)
+	(delay-mode-hooks, with-temp-file, with-temp-message, ad-dolist)
+	(with-syntax-table, push, pop, 1value, noreturn, defadvice)
+	(easy-menu-define, with-custom-print): Remove redundant specs.
+	(edebug-outside-overriding-local-map)
+	(edebug-outside-overriding-terminal-local-map): Remove, unused.
+	(edebug--display): Bind unread-command-events directly to nil rather
+	than binding it to unread-command-events and later setting it to nil.
+	(edebug--display): Kill edebug-eval-buffer here...
+	(edebug--recursive-edit): ...rather than here.
+	Bind standard-output and standard-input.
+	(edebug-eval): Check cl-macroexpand-all is fboundp.
+	(edebug-temp-display-freq-count): Fix last change.
+
+	* emacs-lisp/easymenu.el (easy-menu-define): Add `debug' spec.
+	* subr.el (noreturn, 1value): Add `debug' spec.
+	* emacs-lisp/advice.el: Require cl-lib.
+	(ad-copy-tree): Remove, use copy-tree instead.
+	(ad-dolist): Remove use dolist or cl-dolist instead.
+	(ad-do-return): Remove, use cl-return instead.
+	(defadvice): Add `debug' spec.
+
 2012-09-13  Juri Linkov  <juri@jurta.org>
 
 	* dired-aux.el (dired-do-chxxx): Use `eq' to detect empty input.

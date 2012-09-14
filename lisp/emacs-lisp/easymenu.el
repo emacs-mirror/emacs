@@ -148,7 +148,7 @@ unselectable text.  A string consisting solely of hyphens is displayed
 as a solid horizontal line.
 
 A menu item can be a list with the same format as MENU.  This is a submenu."
-  (declare (indent defun))
+  (declare (indent defun) (debug (symbolp body)))
   `(progn
      ,(if symbol `(defvar ,symbol nil ,doc))
      (easy-menu-do-define (quote ,symbol) ,maps ,doc ,menu)))
