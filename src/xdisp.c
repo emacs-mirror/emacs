@@ -21039,8 +21039,7 @@ are the selected window and the WINDOW's buffer).  */)
     : EQ (face, Qtool_bar) ? TOOL_BAR_FACE_ID
     : DEFAULT_FACE_ID;
 
-  if (XBUFFER (buffer) != current_buffer)
-    old_buffer = current_buffer;
+  old_buffer = current_buffer;
 
   /* Save things including mode_line_proptrans_alist,
      and set that to nil so that we don't alter the outer value.  */
@@ -21051,8 +21050,7 @@ are the selected window and the WINDOW's buffer).  */)
   mode_line_proptrans_alist = Qnil;
 
   Fselect_window (window, Qt);
-  if (old_buffer)
-    set_buffer_internal_1 (XBUFFER (buffer));
+  set_buffer_internal_1 (XBUFFER (buffer));
 
   init_iterator (&it, w, -1, -1, NULL, face_id);
 
