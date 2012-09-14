@@ -1,3 +1,18 @@
+2012-09-12  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (try_window_reusing_current_matrix): Under bidi
+	reordering, locate the cursor by calling set_cursor_from_row; if
+	that fails, clear the desired glyph matrix before returning a
+	failure indication to the caller.  Fixes leaving garbled display
+	when fast scrolling with a down-key.  (Bug#12403)
+	(compute_stop_pos_backwards): Fix a typo that caused crashes while
+	scrolling through multibyte text.
+
+2012-09-12  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (x_wm_set_size_hint): Use 1 col for base_width so it
+	does not become zero (Bug#12234).  Backport from trunk.
+
 2012-08-24  Chong Yidong  <cyd@gnu.org>
 
 	* Version 24.2 released.

@@ -1,3 +1,17 @@
+2012-09-12  Jose Marino  <marinoj@nso.edu>  (tiny change)
+
+	* progmodes/idlw-shell.el (idlwave-shell-complete-filename):
+	Fix 2011-05-17 change.  (Bug#12418)
+
+2012-09-11  Leo Liu  <sdl.web@gmail.com>
+
+	* subr.el (ignore-errors): Mention with-demoted-errors in doc-string.
+
+2012-09-11  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/shadow.el (load-path-shadows-font-lock-keywords):
+	Be more robust about locating simple.el.
+
 2012-09-10  Glenn Morris  <rgm@gnu.org>
 
 	* mail/emacsbug.el (report-emacs-bug): Trap load-path-shadows errors.

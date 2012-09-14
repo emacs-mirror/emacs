@@ -7669,7 +7669,7 @@ compute_stop_pos_backwards (struct it *it)
     {
       it->end_charpos = min (charpos + 1, ZV);
       charpos = max (charpos - SCAN_BACK_LIMIT, BEGV);
-      SET_TEXT_POS (pos, charpos, BYTE_TO_CHAR (charpos));
+      SET_TEXT_POS (pos, charpos, CHAR_TO_BYTE (charpos));
       reseat_1 (it, pos, 0);
       compute_stop_pos (it);
       /* We must advance forward, right?  */
@@ -16593,28 +16593,33 @@ try_window_reusing_current_matrix (struct window *w)
 	    }
 	  if (row < bottom_row)
 	    {
-	      struct glyph *glyph = row->glyphs[TEXT_AREA] + w->cursor.hpos;
-	      struct glyph *end = row->glyphs[TEXT_AREA] + row->used[TEXT_AREA];
-
-	      /* Can't use this optimization with bidi-reordered glyph
-		 rows, unless cursor is already at point. */
+	      /* Can't simply scan the row for point with
+		 bidi-reordered glyph rows.  Let set_cursor_from_row
+		 figure out where to put the cursor, and if it fails,
+		 give up.  */
 	      if (!NILP (BVAR (XBUFFER (w->buffer), bidi_display_reordering)))
 		{
-		  if (!(w->cursor.hpos >= 0
-			&& w->cursor.hpos < row->used[TEXT_AREA]
-			&& BUFFERP (glyph->object)
-			&& glyph->charpos == PT))
-		    return 0;
+		  if (!set_cursor_from_row (w, row, w->current_matrix,
+					    0, 0, 0, 0))
+		    {
+		      clear_glyph_matrix (w->desired_matrix);
+		      return 0;
+		    }
 		}
 	      else
-		for (; glyph < end
-		       && (!BUFFERP (glyph->object)
-			   || glyph->charpos < PT);
-		     glyph++)
-		  {
-		    w->cursor.hpos++;
-		    w->cursor.x += glyph->pixel_width;
-		  }
+		{
+		  struct glyph *glyph = row->glyphs[TEXT_AREA] + w->cursor.hpos;
+		  struct glyph *end = row->glyphs[TEXT_AREA] + row->used[TEXT_AREA];
+
+		  for (; glyph < end
+			 && (!BUFFERP (glyph->object)
+			     || glyph->charpos < PT);
+		       glyph++)
+		    {
+		      w->cursor.hpos++;
+		      w->cursor.x += glyph->pixel_width;
+		    }
+		}
 	    }
 	}
 
