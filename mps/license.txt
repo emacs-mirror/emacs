@@ -13,9 +13,9 @@ Ravenbrook.  Please write to us <mps-questions@ravenbrook.com> for more
 information.
 
 The open source license for the MPS is the [Sleepycat License][] also
-known as the "Berkeley Database License".  This license is [GPL
-compatible][] and [OSI approved][].  The MPS is "multi licensed" in a
-manner similar to MySQL.
+known as the "Berkeley Database License".  This license is
+[GPL compatible][] and [OSI approved][].  The MPS is "multi licensed" in
+a manner similar to MySQL.
 
 [Sleepycat License]: https://en.wikipedia.org/wiki/Sleepycat_License
 [GPL compatible]: http://www.gnu.org/licenses/license-list.html
@@ -63,6 +63,20 @@ USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
 ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+
+Exceptions
+----------
+
+### Open Dylan
+
+Software that makes use of the Memory Pool System only via the Dylan
+programming language using the Open Dylan implementation and any
+accompanying software is exempt from clause 3 of the license, provided
+that the Dylan program is not providing memory management services.  For
+the avoidance of doubt, this exemption does not apply to software
+directly using a copy of the Memory Pool System received as part of the
+Open Dylan source code.
 
 ---
 
