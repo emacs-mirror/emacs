@@ -482,7 +482,6 @@ WINDOW_H       = $(SRC)/window.h \
 $(BLD)/alloc.$(O) : \
 	$(SRC)/alloc.c \
 	$(SRC)/puresize.h \
-	$(SRC)/syssignal.h \
 	$(SRC)/w32.h \
 	$(NT_INC)/unistd.h \
 	$(GNU_LIB)/verify.h \
