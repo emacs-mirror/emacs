@@ -1189,9 +1189,10 @@ AC_DEFUN([PKG_CHECK_MODULES], [
             $1_CFLAGS=""
             $1_LIBS=""
             ## If we have a custom action on failure, don't print errors, but
-            ## do set a variable so people can do so.
-            $1_PKG_ERRORS=`$PKG_CONFIG --errors-to-stdout --print-errors "$2"`
-            ifelse([$4], ,echo $$1_PKG_ERRORS,)
+	    ## do set a variable so people can do so.  Do it in a subshell
+	    ## to capture any diagnostics in invoking pkg-config.
+	    $1_PKG_ERRORS=`($PKG_CONFIG --print-errors "$2") 2>&1`
+	    ifelse([$4], ,echo "$$1_PKG_ERRORS",)
         fi
 
         AC_SUBST($1_CFLAGS)
@@ -1934,10 +1935,10 @@ if test "${with_gtk2}" = "yes" || test "$check_gtk2" = "yes"; then
 
   dnl Checks for libraries.
   PKG_CHECK_MODULES(GTK, $GTK_MODULES, pkg_check_gtk=yes, pkg_check_gtk=no)
-  if test "$pkg_check_gtk" = "no"; then
-     if test "$USE_X_TOOLKIT" = "maybe" || test "$with_gtk" = "yes" || test "$with_gtk2" = "yes"; then
-     	AC_MSG_ERROR($gtk3_pkg_errors$GTK_PKG_ERRORS)
-     fi
+  if test "$pkg_check_gtk" = "no" &&
+     { test "$with_gtk" = yes || test "$with_gtk2" = "yes"; }
+  then
+    AC_MSG_ERROR($gtk3_pkg_errors$GTK_PKG_ERRORS)
   fi
 fi
 
