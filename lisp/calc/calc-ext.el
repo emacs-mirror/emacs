@@ -61,7 +61,7 @@
 (declare-function math-vector-is-string "calccomp" (a))
 (declare-function math-vector-to-string "calccomp" (a &optional quoted))
 (declare-function math-format-radix-float "calc-bin" (a prec))
-(declare-function math-compose-expr "calccomp" (a prec))
+(declare-function math-compose-expr "calccomp" (a prec &optional div))
 (declare-function math-abs "calc-arith" (a))
 (declare-function math-format-bignum-binary "calc-bin" (a))
 (declare-function math-format-bignum-octal "calc-bin" (a))

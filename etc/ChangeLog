@@ -1,3 +1,8 @@
+2012-09-13  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use a more backwards-compatible timer format (Bug#12430).
+	* NEWS: Document it, plus fix a typo.
+
 2012-09-13  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* NEWS (--with-x-toolkit): Mention that Gtk+ 3 is now default.

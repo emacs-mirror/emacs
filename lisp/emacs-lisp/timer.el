@@ -28,8 +28,8 @@
 ;;; Code:
 
 ;; Layout of a timer vector:
-;; [triggered-p high-seconds low-seconds usecs psecs repeat-delay
-;;  function args idle-delay]
+;; [triggered-p high-seconds low-seconds usecs repeat-delay
+;;  function args idle-delay psecs]
 ;; triggered-p is nil if the timer is active (waiting to be triggered),
 ;;  t if it is inactive ("already triggered", in theory)
 
@@ -42,7 +42,7 @@
             (:type vector)
             (:conc-name timer--))
   (triggered t)
-  high-seconds low-seconds usecs psecs repeat-delay function args idle-delay)
+  high-seconds low-seconds usecs repeat-delay function args idle-delay psecs)
 
 (defun timerp (object)
   "Return t if OBJECT is a timer."

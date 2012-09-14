@@ -1,3 +1,19 @@
+2012-09-14  Martin Rudalics  <rudalics@gmx.at>
+
+	* xdisp.c (Fformat_mode_line): Unconditionally save/restore
+	current buffer (Bug#12387).
+
+2012-09-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in ($(BLD)/alloc.$(O)): Update dependencies.
+
+2012-09-13  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use a more backwards-compatible timer format (Bug#12430).
+	* keyboard.c (decode_timer): Get PSECS from the 8th (origin-0)
+	vector element, not from the 4th, since PSECS is now at the end.
+	(Fcurrent_idle_time): Doc fix.
+
 2012-09-13  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Function to mark objects and remove killed buffers at once.

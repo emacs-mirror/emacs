@@ -653,7 +653,6 @@
 
 (require 'vc-hooks)
 (require 'vc-dispatcher)
-(require 'ediff)
 
 (declare-function diff-setup-whitespace "diff-mode" ())
 
@@ -1698,7 +1697,9 @@ saving the buffer."
     (vc-diff-internal t (vc-deduce-fileset t) nil nil
 		      (called-interactively-p 'interactive))))
 
-(declare-function ediff-vc-internal (rev1 rev2 &optional startup-hooks))
+(declare-function ediff-load-version-control "ediff" (&optional silent))
+(declare-function ediff-vc-internal "ediff-vers"
+                  (rev1 rev2 &optional startup-hooks))
 
 ;;;###autoload
 (defun vc-version-ediff (files rev1 rev2)
@@ -1719,7 +1720,8 @@ repository history using ediff."
    ;; FIXME We only support running ediff on one file for now.
    ;; We could spin off an ediff session per file in the file set.
    ((= (length files) 1)
-    (ediff-load-version-control)
+    (require 'ediff)
+    (ediff-load-version-control)  ; loads ediff-vers
     (find-file (car files))             ;FIXME: find-file from Elisp is bad.
     (ediff-vc-internal rev1 rev2 nil))
    (t
