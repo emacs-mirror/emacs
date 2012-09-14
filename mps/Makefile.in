@@ -63,3 +63,7 @@ make-install-dirs:
 	mkdir -p $(prefix)/include
 
 install: @INSTALL_TARGET@
+
+test: @BUILD_TARGET@
+	$(MAKE) -C code VARIETY=cool testrun
+	$(MAKE) -C code VARIETY=hot testrun
