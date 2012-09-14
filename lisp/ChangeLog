@@ -1,3 +1,8 @@
+2012-09-14  Juri Linkov  <juri@jurta.org>
+
+	* dired-aux.el (dired-do-chmod): Use `eq' to detect empty input.
+	(Bug#12399)
+
 2012-09-14  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/advice.el (ad-prognify): Remove, use macroexp-progn.
