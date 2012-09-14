@@ -18,6 +18,10 @@
  *
  * On platforms that support it, we want to stamp events with a very cheap
  * and fast high-resolution timer.
+ *
+ * TODO: This is a sufficiently complicated nest of ifdefs that it should
+ * be quarantined in its own header with KEEP OUT signs attached.
+ * RB 2012-09-11
  */
 
 /* TODO: Clang supposedly provides a cross-platform builtin for a fast
@@ -36,23 +40,65 @@
    <http://msdn.microsoft.com/en-US/library/twchhe95%28v=vs.100%29.aspx> */
 #if (defined(MPS_ARCH_I3) || defined(MPS_ARCH_I6)) && defined(MPS_BUILD_MV)
 
-#pragma intrinsic(__rdtsc)
-
 typedef unsigned __int64 EventClock;
+
+typedef union EventClockUnion {
+  struct {
+    unsigned low, high;
+  } half;
+  unsigned __int64 whole;
+} EventClockUnion;
+
+#if _MSC_VER >= 1400
+
+#pragma intrinsic(__rdtsc)
 
 #define EVENT_CLOCK(lvalue) \
   BEGIN \
     (lvalue) = __rdtsc(); \
   END
 
-#define EVENT_CLOCK_PRINT(stream, clock) fprintf(stream, "%llX", clock)
+#else /* _MSC_VER < 1400 */
+
+/* This is mostly a patch for Open Dylan's bootstrap on Windows, which is
+   using Microsoft Visual Studio 6 because of support for CodeView debugging
+   information. */
+
+#include <windows.h> /* KILL IT WITH FIRE! */
+
+#define EVENT_CLOCK(lvalue) \
+  BEGIN \
+    LARGE_INTEGER _count; \
+    QueryPerformanceCounter(&_count); \
+    (lvalue) = _count.QuadPart; \
+  END
+  
+#endif /* _MSC_VER < 1400 */
 
 #if defined(MPS_ARCH_I3)
+
+/* We can't use a shift to get the top half of the 64-bit event clock,
+   because that introduces a dependency on `__aullshr` in the C run-time. */
+
+#define EVENT_CLOCK_PRINT(stream, clock) \
+  fprintf(stream, "%08lX%08lX", \
+          (*(EventClockUnion *)&(clock)).half.high, \
+          (*(EventClockUnion *)&(clock)).half.low)
+
 #define EVENT_CLOCK_WRITE(stream, clock) \
-  WriteF(stream, "$W$W", (WriteFW)((clock) >> 32), (WriteFW)clock, NULL)
+  WriteF(stream, "$W$W", \
+         (*(EventClockUnion *)&(clock)).half.high, \
+         (*(EventClockUnion *)&(clock)).half.low, \
+         NULL)
+
 #elif defined(MPS_ARCH_I6)
+
+#define EVENT_CLOCK_PRINT(stream, clock) \
+  fprintf(stream, "%016lX", (clock));
+
 #define EVENT_CLOCK_WRITE(stream, clock) \
   WriteF(stream, "$W", (WriteFW)(clock), NULL)
+
 #endif
 
 #endif /* Microsoft C on Intel */

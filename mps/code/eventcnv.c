@@ -80,7 +80,8 @@ static void everror(const char *format, ...)
   va_list args;
 
   fflush(stdout); /* sync */
-  fprintf(stderr, "%s: @%"PRIuLONGEST" ", prog, (ulongest_t)eventTime);
+  fprintf(stderr, "%s: @", prog);
+  EVENT_CLOCK_PRINT(stderr, eventTime);
   va_start(args, format);
   vfprintf(stderr, format, args);
   fprintf(stderr, "\n");
@@ -605,10 +606,13 @@ static void readLog(EventProc proc)
       printf("(t");
       break;
     case 'C':
-      /* FIXME: This attempted to print the event stats on a row that
-         resembled a kind of final event, but the event clock no longer runs
-         monotonically upwards. */
-      EVENT_CLOCK_PRINT(stdout, eventTime+1);
+      {
+        /* FIXME: This attempted to print the event stats on a row that
+           resembled a kind of final event, but the event clock no longer runs
+           monotonically upwards. */
+        EventClock last = eventTime + 1;
+        EVENT_CLOCK_PRINT(stdout, last);
+      }
       break;
     }
     reportEventResults(totalEventCount);
