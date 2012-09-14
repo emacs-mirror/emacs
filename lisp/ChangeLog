@@ -1,5 +1,7 @@
 2012-09-14  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/advice.el (ad-prognify): Remove, use macroexp-progn.
+
 	* emacs-lisp/edebug.el: Miscellaneous cleanup.
 	Remove obsolete byte-compiler hack that tried to silence some warnings.
 	(edebug-submit-bug-report): Remove.
