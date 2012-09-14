@@ -100,6 +100,8 @@ extern void _free_internal (void *);
 #if ! defined SYSTEM_MALLOC && ! defined SYNC_INPUT
 #ifdef HAVE_PTHREAD
 
+# include "syssignal.h"
+
 /* When GTK uses the file chooser dialog, different backends can be loaded
    dynamically.  One such a backend is the Gnome VFS backend that gets loaded
    if you run Gnome.  That backend creates several threads and also allocates

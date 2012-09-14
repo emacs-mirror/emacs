@@ -128,7 +128,7 @@ AC_ARG_WITH([mailhost],[AS_HELP_STRING([--with-mailhost=HOSTNAME],
 
 OPTION_DEFAULT_ON([sound],[don't compile with sound support])
 
-OPTION_DEFAULT_ON([sync-input],[process async input synchronously])
+OPTION_DEFAULT_ON([sync-input],[don't process async input synchronously])
 if test "$with_sync_input" = yes; then
    AC_DEFINE(SYNC_INPUT, 1, [Process async input synchronously.])
 fi

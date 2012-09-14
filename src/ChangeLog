@@ -1,3 +1,8 @@
+2012-09-14  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* alloc.c [!SYSTEM_MALLOC && !SYNC_INPUT && HAVE_PTHREAD]:
+	Include "syssignal.h", for 'main_thread'.
+
 2012-09-14  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Avoid out-of-range marker position (Bug#12426).
