@@ -1,3 +1,9 @@
+2012-09-14  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* fileio.c (Ffile_selinux_context): Only call freecon when
+	lgetfilecon succeeded.
+	(Fset_file_selinux_context): Likewise.  (Bug#12444)
+
 2012-09-12  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (try_window_reusing_current_matrix): Under bidi
