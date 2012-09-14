@@ -1,3 +1,10 @@
+2012-09-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt: Sync with autogen/config.in.
+	(BROKEN_FIONREAD, BROKEN_SIGAIO, BROKEN_SIGIO, BROKEN_SIGPOLL)
+	(BROKEN_SIGPTY, HAVE_CBRT, HAVE_LOGB, NO_TERMIO): Remove.
+	(USABLE_FIONREAD, USABLE_SIGIO): New macros.
+
 2012-09-10  Juanma Barranquero  <lekktu@gmail.com>
 
 	* config.nt: Sync with autogen/config.in.
