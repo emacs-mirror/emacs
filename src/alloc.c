@@ -1346,8 +1346,6 @@ emacs_blocked_malloc (size_t size, const void *ptr)
   __malloc_hook = emacs_blocked_malloc;
   UNBLOCK_INPUT_ALLOC;
 
-  MALLOC_PROBE (size);
-
   /* fprintf (stderr, "%p malloc\n", value); */
   return value;
 }
