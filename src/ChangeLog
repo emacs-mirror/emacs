@@ -1,3 +1,25 @@
+2012-09-15  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Port better to POSIX hosts lacking _setjmp (Bug#12446).
+	* lisp.h: Include <setjmp.h> here, since we use its symbols here.
+	All instances of '#include <setjmp.h>' removed, if the
+	only reason for the instance was because "lisp.h" was included.
+	(sys_jmp_buf, sys_setjmp, sys_longjmp): New symbols.
+	Unless otherwise specified, replace all uses of jmp_buf, _setjmp,
+	and _longjmp with the new symbols.  Emacs already uses _setjmp if
+	available, so this change affects only POSIXish hosts that have
+	sigsetjmp but not _setjmp, such as some versions of Solaris and
+	Unixware.  (Also, POSIX-2008 marks _setjmp as obsolescent.)
+	* image.c (_setjmp, _longjmp) [HAVE_PNG && !HAVE__SETJMP]: New macros.
+	(png_load_body) [HAVE_PNG]:
+	(PNG_LONGJMP) [HAVE_PNG && PNG_LIBPNG_VER < 10500]:
+	(PNG_JMPBUF) [HAVE_PNG && PNG_LIBPNG_VER >= 10500]:
+	Use _setjmp and _longjmp rather than sys_setjmp and sys_longjmp,
+	since PNG requires jmp_buf.  This is the only exception to the
+	general rule that we now use sys_setjmp and sys_longjmp.
+	This exception is OK since this code does not change the signal
+	mask or longjmp out of a signal handler.
+
 2012-09-14  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* alloc.c [!SYSTEM_MALLOC && !SYNC_INPUT && HAVE_PTHREAD]:

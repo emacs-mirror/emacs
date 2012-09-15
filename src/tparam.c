@@ -19,7 +19,7 @@ Boston, MA 02110-1301, USA.  */
 
 /* Emacs config.h may rename various library functions such as malloc.  */
 #include <config.h>
-#include <setjmp.h>
+
 #include "lisp.h"		/* for xmalloc */
 #include "tparam.h"
 

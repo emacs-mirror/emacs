@@ -24,7 +24,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <stdio.h>
 #include <errno.h>
 #include <limits.h>
-#include <setjmp.h>
 
 #include <c-ctype.h>
 

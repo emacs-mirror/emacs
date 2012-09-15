@@ -25,7 +25,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <sys/file.h>
 #include <errno.h>
 #include <limits.h>	/* For CHAR_BIT.  */
-#include <setjmp.h>
 #include <stat-time.h>
 #include "lisp.h"
 #include "intervals.h"

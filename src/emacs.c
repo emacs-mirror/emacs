@@ -25,7 +25,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <sys/types.h>
 #include <sys/file.h>
-#include <setjmp.h>
 #include <unistd.h>
 
 #include "lisp.h"

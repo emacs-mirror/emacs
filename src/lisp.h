@@ -20,6 +20,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifndef EMACS_LISP_H
 #define EMACS_LISP_H
 
+#include <setjmp.h>
 #include <stdalign.h>
 #include <stdarg.h>
 #include <stdbool.h>
@@ -1963,7 +1964,24 @@ extern void defvar_kboard (struct Lisp_Kboard_Objfwd *, const char *, int);
     static struct Lisp_Kboard_Objfwd ko_fwd;			\
     defvar_kboard (&ko_fwd, lname, offsetof (KBOARD, vname ## _)); \
   } while (0)
+
+/* Save and restore the instruction and environment pointers,
+   without affecting the signal mask.  */
 
+#ifdef HAVE__SETJMP
+typedef jmp_buf sys_jmp_buf;
+# define sys_setjmp(j) _setjmp (j)
+# define sys_longjmp(j, v) _longjmp (j, v)
+#elif defined HAVE_SIGSETJMP
+typedef sigjmp_buf sys_jmp_buf;
+# define sys_setjmp(j) sigsetjmp (j, 0)
+# define sys_longjmp(j, v) siglongjmp (j, v)
+#else
+/* A non-POSIX platform; assume longjmp does not affect the sigmask.  */
+typedef jmp_buf sys_jmp_buf;
+# define sys_setjmp(j) setjmp (j)
+# define sys_longjmp(j, v) longjmp (j, v)
+#endif
 
 
 /* Structure for recording Lisp call stack for backtrace purposes.  */
@@ -2056,7 +2074,7 @@ struct catchtag
   Lisp_Object volatile val;
   struct catchtag *volatile next;
   struct gcpro *gcpro;
-  jmp_buf jmp;
+  sys_jmp_buf jmp;
   struct backtrace *backlist;
   struct handler *handlerlist;
   EMACS_INT lisp_eval_depth;

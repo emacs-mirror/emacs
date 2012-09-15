@@ -1,3 +1,9 @@
+2012-09-15  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Port better to POSIX hosts lacking _setjmp (Bug#12446).
+	* configure.ac (HAVE__SETJMP, HAVE_SIGSETJMP): New symbols.
+	(_setjmp, _longjmp): Remove.
+
 2012-09-14  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* configure.ac (--without-sync-input): Fix typo in usage message.

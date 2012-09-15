@@ -26,7 +26,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <epaths.h>
 
 #include <stdio.h>
-#include <setjmp.h>
 
 #include "lisp.h"
 

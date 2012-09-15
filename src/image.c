@@ -5514,6 +5514,13 @@ init_png_functions (Lisp_Object libraries)
 
 #endif /* HAVE_NTGUI */
 
+/* Possibly inefficient/inexact substitutes for _setjmp and _longjmp.
+   Do not use sys_setjmp, as PNG supports only jmp_buf.  The _longjmp
+   substitute may munge the signal mask, but that should be OK here.  */
+#ifndef HAVE__SETJMP
+# define _setjmp(j) setjmp (j)
+# define _longjmp longjmp
+#endif
 
 #if (PNG_LIBPNG_VER < 10500)
 #define PNG_LONGJMP(ptr) (_longjmp ((ptr)->jmpbuf, 1))
@@ -5593,7 +5600,7 @@ png_read_from_file (png_structp png_ptr, png_bytep data, png_size_t length)
 
 struct png_load_context
 {
-  /* These are members so that _longjmp doesn't munge local variables.  */
+  /* These are members so that longjmp doesn't munge local variables.  */
   png_struct *png_ptr;
   png_info *info_ptr;
   png_info *end_info;
@@ -6129,9 +6136,9 @@ jpeg_resync_to_restart_wrapper (j_decompress_ptr cinfo, int desired)
 struct my_jpeg_error_mgr
 {
   struct jpeg_error_mgr pub;
-  jmp_buf setjmp_buffer;
+  sys_jmp_buf setjmp_buffer;
 
-  /* The remaining members are so that _longjmp doesn't munge local
+  /* The remaining members are so that longjmp doesn't munge local
      variables.  */
   struct jpeg_decompress_struct cinfo;
   enum
@@ -6151,7 +6158,7 @@ my_error_exit (j_common_ptr cinfo)
 {
   struct my_jpeg_error_mgr *mgr = (struct my_jpeg_error_mgr *) cinfo->err;
   mgr->failure_code = MY_JPEG_ERROR_EXIT;
-  _longjmp (mgr->setjmp_buffer, 1);
+  sys_longjmp (mgr->setjmp_buffer, 1);
 }
 
 
@@ -6401,7 +6408,7 @@ jpeg_load_body (struct frame *f, struct image *img,
      error is detected.  This function will perform a longjmp.  */
   mgr->cinfo.err = fn_jpeg_std_error (&mgr->pub);
   mgr->pub.error_exit = my_error_exit;
-  if (_setjmp (mgr->setjmp_buffer))
+  if (sys_setjmp (mgr->setjmp_buffer))
     {
       switch (mgr->failure_code)
 	{
@@ -6460,14 +6467,14 @@ jpeg_load_body (struct frame *f, struct image *img,
   if (!check_image_size (f, width, height))
     {
       mgr->failure_code = MY_JPEG_INVALID_IMAGE_SIZE;
-      _longjmp (mgr->setjmp_buffer, 1);
+      sys_longjmp (mgr->setjmp_buffer, 1);
     }
 
   /* Create X image and pixmap.  */
   if (!x_create_x_image_and_pixmap (f, width, height, 0, &ximg, &img->pixmap))
     {
       mgr->failure_code = MY_JPEG_CANNOT_CREATE_X;
-      _longjmp (mgr->setjmp_buffer, 1);
+      sys_longjmp (mgr->setjmp_buffer, 1);
     }
 
   /* Allocate colors.  When color quantization is used,

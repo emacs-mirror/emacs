@@ -22,7 +22,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <config.h>
 #include <limits.h>
 #include <stdio.h>      /* termhooks.h needs this */
-#include <setjmp.h>
 
 #ifdef HAVE_SYS_TYPES_H
 #include <sys/types.h>
