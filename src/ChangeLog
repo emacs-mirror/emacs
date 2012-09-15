@@ -1,3 +1,10 @@
+2012-09-15  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Port _setjmp fix to POSIXish hosts as well as Microsoft.
+	* image.c (_setjmp) [!HAVE__SETJMP]: Restore definition, as
+	it's needed on POSIXish hosts that lack _setjmp.  Attempt to solve
+	the Microsoft problem in a different way, by altering ../nt/config.nt.
+
 2012-09-15  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32xfns.c:

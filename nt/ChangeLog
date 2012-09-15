@@ -1,3 +1,10 @@
+2012-09-15  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Port _setjmp fix to POSIXish hosts as well as Microsoft.
+	* config.nt: Attempt to sync with autogen/config.in.
+	(HAVE_SIGSETJMP, HAVE__SETJMP): New macros.
+	(_longjmp, _setjmp): Remove.
+
 2012-09-14  Juanma Barranquero  <lekktu@gmail.com>
 
 	* config.nt: Sync with autogen/config.in.

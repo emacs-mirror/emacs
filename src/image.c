@@ -5520,9 +5520,7 @@ init_png_functions (Lisp_Object libraries)
    MinGW (MS-Windows) uses _setjmp and defines setjmp to _setjmp in
    the system header setjmp.h; don't mess up that.  */
 #ifndef HAVE__SETJMP
-# ifndef setjmp
-#  define _setjmp(j) setjmp (j)
-# endif
+# define _setjmp(j) setjmp (j)
 # define _longjmp longjmp
 #endif
 
