@@ -1,5 +1,8 @@
 2012-09-15  Glenn Morris  <rgm@gnu.org>
 
+	* version.el (emacs-bzr-version-bzr): New function.
+	(emacs-bzr-get-version): Add optional EXTERNAL argument.
+
 	* vc/vc-bzr.el (vc-bzr-working-revision): For lightweight local
 	checkouts, check the parent dirstate matches the branch.
 	Add "--tree" to "bzr revno" arguments.  Don't try to shorten the
