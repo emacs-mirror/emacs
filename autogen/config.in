@@ -791,6 +791,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if 'wint_t' is a signed integer type. */
 #undef HAVE_SIGNED_WINT_T
 
+/* Define to 1 if sigsetjmp and siglongjmp work. The value of this symbol is
+   irrelevant if HAVE__SETJMP is defined. */
+#undef HAVE_SIGSETJMP
+
 /* Define to 1 if the system has the type `sigset_t'. */
 #undef HAVE_SIGSET_T
 
@@ -1073,6 +1077,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 if you have the `_ftime' function. */
 #undef HAVE__FTIME
+
+/* Define to 1 if _setjmp and _longjmp work. */
+#undef HAVE__SETJMP
 
 /* Define to 1 if you have the `__builtin_unwind_init' function. */
 #undef HAVE___BUILTIN_UNWIND_INIT
@@ -1501,14 +1508,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to compiler's equivalent of C99 restrict keyword in array
    declarations. Define as empty for no equivalent. */
 #undef __restrict_arr
-
-/* Define to longjmp if _setjmp and _longjmp do not work. Because longjmp may
-   alter signal masks, callers of _longjmp should not assume that it leaves
-   signal masks alone. */
-#undef _longjmp
-
-/* Define to setjmp if _setjmp and _longjmp do not work. See _longjmp. */
-#undef _setjmp
 
 /* Some platforms that do not use configure define this to include extra
    configuration information. */
