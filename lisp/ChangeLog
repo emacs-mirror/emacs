@@ -1,3 +1,11 @@
+2012-09-15  Glenn Morris  <rgm@gnu.org>
+
+	* version.el (emacs-bzr-version): Doc fix.
+	(emacs-bzr-version-dirstate): New function.
+	(emacs-bzr-get-version): For lightweight checkouts, if the parent
+	is local try and check that it matches the branch.  If not, just
+	use dirstate information.  (Bug#12441)
+
 2012-09-14  Juri Linkov  <juri@jurta.org>
 
 	* dired-aux.el (dired-do-chmod): Use `eq' to detect empty input.

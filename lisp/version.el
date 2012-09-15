@@ -87,23 +87,36 @@ to the system configuration; look at `system-configuration' instead."
 ;; Set during dumping, this is a defvar so that it can be setq'd.
 (defvar emacs-bzr-version nil
   "String giving the bzr revision from which this Emacs was built.
-Value is the bzr revision number and a revision ID separated by a blank.
+The format is: [revno] revision_id, where revno may be absent.
 Value is nil if Emacs was not built from a bzr checkout, or if we could
 not determine the revision.")
 
+(defun emacs-bzr-version-dirstate (dir)
+  "Try to return as a string the bzr revision ID of directory DIR.
+This uses the dirstate file's parent revision entry.
+Returns nil if unable to find this information."
+  (let ((file (expand-file-name ".bzr/checkout/dirstate" dir)))
+    (when (file-readable-p file)
+      (with-temp-buffer
+        (insert-file-contents file)
+        (and (looking-at "#bazaar dirstate flat format 3")
+             (forward-line 3)
+             (looking-at "[0-9]+\0\\([^\0\n]+\\)\0")
+             (match-string 1))))))
+
 (defun emacs-bzr-get-version (&optional dir)
-  "Try to return as a string the bzr revision number of the Emacs sources.
-Value is the bzr revision number and a revision ID separated by a blank.
+  "Try to return as a string the bzr revision of the Emacs sources.
+The format is: [revno] revision_id, where revno may be absent.
 Value is nil if the sources do not seem to be under bzr, or if we could
 not determine the revision.  Note that this reports on the current state
 of the sources, which may not correspond to the running Emacs.
 
 Optional argument DIR is a directory to use instead of `source-directory'."
   (or dir (setq dir source-directory))
-  (when (file-directory-p (setq dir (expand-file-name ".bzr/branch" dir)))
-    (let (file loc)
+  (when (file-directory-p dir)
+    (let (file loc rev)
       (cond ((file-readable-p
-              (setq file (expand-file-name "last-revision" dir)))
+              (setq file (expand-file-name ".bzr/branch/last-revision" dir)))
              (with-temp-buffer
                (insert-file-contents file)
                (goto-char (point-max))
@@ -112,14 +125,26 @@ Optional argument DIR is a directory to use instead of `source-directory'."
                (buffer-string)))
             ;; OK, no last-revision.  Is it a lightweight checkout?
             ((file-readable-p
-              (setq file (expand-file-name "location" dir)))
-             ;; If the parent branch is local, try looking there for the revid.
-             (if (setq loc (with-temp-buffer
+              (setq file (expand-file-name ".bzr/branch/location" dir)))
+             (setq rev (emacs-bzr-version-dirstate dir))
+             ;; If the parent branch is local, try looking there for the rev.
+             ;; Note: there is no guarantee that the parent branch's rev
+             ;; corresponds to this branch.  This branch could have
+             ;; been made with a specific -r revno argument, or the
+             ;; parent could have been updated since this branch was created.
+             ;; To try and detect this, we check the dirstate revids
+             ;; to see if they match.
+             (if (and (setq loc (with-temp-buffer
                              (insert-file-contents file)
                              (if (looking-at "file://\\(.*\\)")
                                  (match-string 1))))
-                 (emacs-bzr-get-version loc)))
-            ;; Could fall back to eg `bzr testament' at this point.
+                      (equal rev (emacs-bzr-version-dirstate loc)))
+                 (emacs-bzr-get-version loc)
+               ;; If parent does not match, the best we can do without
+               ;; calling external commands is to use the dirstate rev.
+               rev))
+            ;; At this point, could fall back to:
+            ;; bzr version-info --custom --template='{revno} {revision_id}\n'
             ))))
 
 ;; We put version info into the executable in the form that `ident' uses.
