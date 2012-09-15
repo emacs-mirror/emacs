@@ -1,8 +1,34 @@
+2012-09-15  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32xfns.c:
+	* w32uniscribe.c:
+	* w32term.c:
+	* w32select.c:
+	* w32reg.c:
+	* w32proc.c:
+	* w32menu.c:
+	* w32inevt.c:
+	* w32heap.c:
+	* w32font.c:
+	* w32fns.c:
+	* w32console.c:
+	* w32.c:
+	* w16select.c: Remove inclusion of setjmp.h, as it is now included
+	by lisp.h.  This completes removal of setjmp.h inclusion
+	erroneously announced in the previous commit.  (Bug#12446)
+
+	* lisp.h [!HAVE__SETJMP, !HAVE_SIGSETJMP]: Make the commentary
+	more accurate.
+
+	* image.c (_setjmp) [!HAVE__SETJMP]: Define only if 'setjmp' is
+	not defined as a macro.  The latter happens on MS-Windows.
+	(Bug#12446)
+
 2012-09-15  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Port better to POSIX hosts lacking _setjmp (Bug#12446).
 	* lisp.h: Include <setjmp.h> here, since we use its symbols here.
-	All instances of '#include <setjmp.h>' removed, if the
+	Some instances of '#include <setjmp.h>' removed, if the
 	only reason for the instance was because "lisp.h" was included.
 	(sys_jmp_buf, sys_setjmp, sys_longjmp): New symbols.
 	Unless otherwise specified, replace all uses of jmp_buf, _setjmp,

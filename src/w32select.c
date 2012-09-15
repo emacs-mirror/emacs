@@ -73,7 +73,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
  */
 
 #include <config.h>
-#include <setjmp.h>
 #include "lisp.h"
 #include "w32term.h"	/* for all of the w32 includes */
 #include "w32heap.h"	/* os_subtype */

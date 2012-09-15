@@ -21,7 +21,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <math.h>
 #include <ctype.h>
 #include <commdlg.h>
-#include <setjmp.h>
 
 #include "lisp.h"
 #include "w32term.h"

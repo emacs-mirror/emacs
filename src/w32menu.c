@@ -22,7 +22,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <signal.h>
 #include <stdio.h>
 #include <mbstring.h>
-#include <setjmp.h>
 
 #include "lisp.h"
 #include "keyboard.h"

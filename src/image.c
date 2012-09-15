@@ -5516,9 +5516,13 @@ init_png_functions (Lisp_Object libraries)
 
 /* Possibly inefficient/inexact substitutes for _setjmp and _longjmp.
    Do not use sys_setjmp, as PNG supports only jmp_buf.  The _longjmp
-   substitute may munge the signal mask, but that should be OK here.  */
+   substitute may munge the signal mask, but that should be OK here.
+   MinGW (MS-Windows) uses _setjmp and defines setjmp to _setjmp in
+   the system header setjmp.h; don't mess up that.  */
 #ifndef HAVE__SETJMP
-# define _setjmp(j) setjmp (j)
+# ifndef setjmp
+#  define _setjmp(j) setjmp (j)
+# endif
 # define _longjmp longjmp
 #endif
 

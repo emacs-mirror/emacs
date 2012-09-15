@@ -1977,7 +1977,8 @@ typedef sigjmp_buf sys_jmp_buf;
 # define sys_setjmp(j) sigsetjmp (j, 0)
 # define sys_longjmp(j, v) siglongjmp (j, v)
 #else
-/* A non-POSIX platform; assume longjmp does not affect the sigmask.  */
+/* A platform that uses neither _longjmp nor siglongjmp; assume
+   longjmp does not affect the sigmask.  */
 typedef jmp_buf sys_jmp_buf;
 # define sys_setjmp(j) setjmp (j)
 # define sys_longjmp(j, v) longjmp (j, v)

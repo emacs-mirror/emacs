@@ -25,7 +25,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <config.h>
 #include <stdio.h>
 #include <windows.h>
-#include <setjmp.h>
 
 #ifndef MOUSE_MOVED
 #define MOUSE_MOVED   1
