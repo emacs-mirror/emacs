@@ -1,5 +1,10 @@
 2012-09-15  Glenn Morris  <rgm@gnu.org>
 
+	* vc/vc-bzr.el (vc-bzr-working-revision): For lightweight local
+	checkouts, check the parent dirstate matches the branch.
+	Add "--tree" to "bzr revno" arguments.  Don't try to shorten the
+	empty string.
+
 	* version.el (emacs-bzr-version): Doc fix.
 	(emacs-bzr-version-dirstate): New function.
 	(emacs-bzr-get-version): For lightweight checkouts, if the parent
