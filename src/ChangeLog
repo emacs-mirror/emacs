@@ -3,6 +3,19 @@
 	* font.c (Ffont_shape_gstring): Don't adjust grapheme cluster
 	here, but just check the validity of glyphs in the glyph-string.
 
+2012-09-14  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* alloc.c [!SYSTEM_MALLOC && !SYNC_INPUT && HAVE_PTHREAD]:
+	Include "syssignal.h", for 'main_thread'.
+
+2012-09-14  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Avoid out-of-range marker position (Bug#12426).
+	* insdel.c (replace_range, replace_range_2): Adjust
+	markers before overlays, as suggested by comments.
+	(insert_1_both, insert_from_buffer_1, adjust_after_replace):
+	Remove redundant check before calling offset_intervals.
+
 2012-09-14  Martin Rudalics  <rudalics@gmx.at>
 
 	* xdisp.c (Fformat_mode_line): Unconditionally save/restore

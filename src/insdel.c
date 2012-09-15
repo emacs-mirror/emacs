@@ -840,8 +840,7 @@ insert_1_both (const char *string,
 			     PT + nchars, PT_BYTE + nbytes,
 			     before_markers);
 
-  if (buffer_intervals (current_buffer))
-    offset_intervals (current_buffer, PT, nchars);
+  offset_intervals (current_buffer, PT, nchars);
 
   if (!inherit && buffer_intervals (current_buffer))
     set_text_properties (make_number (PT), make_number (PT + nchars),
@@ -1153,8 +1152,7 @@ insert_from_buffer_1 (struct buffer *buf,
 			     PT_BYTE + outgoing_nbytes,
 			     0);
 
-  if (buffer_intervals (current_buffer))
-    offset_intervals (current_buffer, PT, nchars);
+  offset_intervals (current_buffer, PT, nchars);
 
   /* Get the intervals for the part of the string we are inserting.  */
   intervals = buffer_intervals (buf);
@@ -1222,8 +1220,7 @@ adjust_after_replace (ptrdiff_t from, ptrdiff_t from_byte,
   else if (len < nchars_del)
     adjust_overlays_for_delete (from, nchars_del - len);
 
-  if (buffer_intervals (current_buffer))
-    offset_intervals (current_buffer, from, len - nchars_del);
+  offset_intervals (current_buffer, from, len - nchars_del);
 
   if (from < PT)
     adjust_point (len - nchars_del, len_byte - nbytes_del);
@@ -1394,15 +1391,15 @@ replace_range (ptrdiff_t from, ptrdiff_t to, Lisp_Object new,
 
   eassert (GPT <= GPT_BYTE);
 
-  /* Adjust the overlay center as needed.  This must be done after
-     adjusting the markers that bound the overlays.  */
-  adjust_overlays_for_delete (from, nchars_del);
-  adjust_overlays_for_insert (from, inschars);
-
   /* Adjust markers for the deletion and the insertion.  */
   if (markers)
     adjust_markers_for_replace (from, from_byte, nchars_del, nbytes_del,
 				inschars, outgoing_insbytes);
+
+  /* Adjust the overlay center as needed.  This must be done after
+     adjusting the markers that bound the overlays.  */
+  adjust_overlays_for_delete (from, nchars_del);
+  adjust_overlays_for_insert (from, inschars);
 
   offset_intervals (current_buffer, from, inschars - nchars_del);
 
@@ -1510,6 +1507,12 @@ replace_range_2 (ptrdiff_t from, ptrdiff_t from_byte,
 
   eassert (GPT <= GPT_BYTE);
 
+  /* Adjust markers for the deletion and the insertion.  */
+  if (markers
+      && ! (nchars_del == 1 && inschars == 1 && nbytes_del == insbytes))
+    adjust_markers_for_replace (from, from_byte, nchars_del, nbytes_del,
+				inschars, insbytes);
+
   /* Adjust the overlay center as needed.  This must be done after
      adjusting the markers that bound the overlays.  */
   if (nchars_del != inschars)
@@ -1517,12 +1520,6 @@ replace_range_2 (ptrdiff_t from, ptrdiff_t from_byte,
       adjust_overlays_for_insert (from, inschars);
       adjust_overlays_for_delete (from + inschars, nchars_del);
     }
-
-  /* Adjust markers for the deletion and the insertion.  */
-  if (markers
-      && ! (nchars_del == 1 && inschars == 1 && nbytes_del == insbytes))
-    adjust_markers_for_replace (from, from_byte, nchars_del, nbytes_del,
-				inschars, insbytes);
 
   offset_intervals (current_buffer, from, inschars - nchars_del);
 

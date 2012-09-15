@@ -281,7 +281,10 @@ Symbolic modes like `g+w' are allowed."
 		 "Change mode of %s to: "
 		 nil 'chmod arg files default))
 	 num-modes)
-    (cond ((equal modes "")
+    (cond ((or (equal modes "")
+	       ;; Use `eq' instead of `equal'
+	       ;; to detect empty input (bug#12399).
+	       (eq modes default))
 	   ;; We used to treat empty input as DEFAULT, but that is not
 	   ;; such a good idea (Bug#9361).
 	   (error "No file mode specified"))

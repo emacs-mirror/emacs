@@ -1746,6 +1746,7 @@
 (provide 'advice-preload)
 ;; During a normal load this is a noop:
 (require 'advice-preload "advice.el")
+(require 'macroexp)
 (eval-when-compile (require 'cl-lib))
 
 ;; @@ Variable definitions:
@@ -2538,11 +2539,6 @@ For that it has to be fbound with a non-autoload definition."
 	 (byte-compile symbol)
 	 (fset function (symbol-function symbol))))))
 
-(defun ad-prognify (forms)
-  (cond ((<= (length forms) 1)
-	 (car forms))
-	(t (cons 'progn forms))))
-
 ;; @@@ Accessing argument lists:
 ;; =============================
 
@@ -2954,7 +2950,7 @@ should be modified.  The assembled function will be returned."
                   before-forms)
              (setq before-forms
                    `((unwind-protect
-                         ,(ad-prognify before-forms)
+                         ,(macroexp-progn before-forms)
                        ,@(ad-body-forms
                           (ad-advice-definition advice))))))
             (t (setq before-forms
@@ -2971,12 +2967,12 @@ should be modified.  The assembled function will be returned."
             (ad-substitute-tree
              (function (lambda (form) (eq form 'ad-do-it)))
              (function (lambda (form) around-form))
-             (ad-prognify (ad-body-forms (ad-advice-definition advice))))))
+             (macroexp-progn (ad-body-forms (ad-advice-definition advice))))))
 
     (setq after-forms
 	  (if (and around-form-protected before-forms)
 	      `((unwind-protect
-                     ,(ad-prognify before-forms)
+                     ,(macroexp-progn before-forms)
                   ,around-form))
               (append before-forms (list around-form))))
     (dolist (advice afters)
@@ -2984,7 +2980,7 @@ should be modified.  The assembled function will be returned."
                   after-forms)
              (setq after-forms
                    `((unwind-protect
-                         ,(ad-prognify after-forms)
+                         ,(macroexp-progn after-forms)
                        ,@(ad-body-forms
                           (ad-advice-definition advice))))))
             (t (setq after-forms
@@ -3013,7 +3009,7 @@ should be modified.  The assembled function will be returned."
 			     (ad-body-forms (ad-advice-definition advice))))
 		 (ad-get-enabled-advices function hook-name))))
     (if hook-forms
-	(ad-prognify (apply 'append hook-forms)))))
+	(macroexp-progn (apply 'append hook-forms)))))
 
 
 ;; @@ Caching:

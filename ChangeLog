@@ -1,3 +1,14 @@
+2012-09-14  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* configure.ac (--without-sync-input): Fix typo in usage message.
+
+	* configure.ac: Port to hosts lacking gtk.
+	(PKG_CHECK_MODULES): Capture pkg-config diagnostics
+	better, in particular, problems in invoking pkg-config itself.
+	This is useful on hosts that don't have pkg-config.
+	(GTK_MODULES): Do not exit 'configure' simply because gtk3
+	and gtk2 are both missing.  Problem found on Solaris 8.
+
 2012-09-13  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* configure.ac: Reorder Xaw3d messages.
