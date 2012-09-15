@@ -113,7 +113,7 @@ of the sources, which may not correspond to the running Emacs.
 
 Optional argument DIR is a directory to use instead of `source-directory'."
   (or dir (setq dir source-directory))
-  (when (file-directory-p dir)
+  (when (file-directory-p (expand-file-name ".bzr/branch" dir))
     (let (file loc rev)
       (cond ((file-readable-p
               (setq file (expand-file-name ".bzr/branch/last-revision" dir)))
