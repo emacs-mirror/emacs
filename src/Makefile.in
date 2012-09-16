@@ -514,7 +514,6 @@ mostlyclean:
 clean: mostlyclean
 	rm -f emacs-*.*.*$(EXEEXT) emacs$(EXEEXT)
 	-rm -rf $(DEPDIR)
-	-cd ../nextstep && $(MAKE) $(MFLAGS) clean
 
 ## bootstrap-clean is used to clean up just before a bootstrap.
 ## It should remove all files generated during a compilation/bootstrap,

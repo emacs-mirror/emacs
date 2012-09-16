@@ -1,5 +1,7 @@
 2012-09-16  Glenn Morris  <rgm@gnu.org>
 
+	* Makefile.in (clean): No longer run nextstep's clean.
+
 	* Makefile.in (ns_appdir, ns_appbindir, ns_appsrc): Remove variables.
 	(ns_frag): Remove.
 	(ns-app): Move here from ns.mk, and simplify.
