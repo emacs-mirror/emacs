@@ -61,7 +61,6 @@ distclean: clean
 	  GNUstep/Emacs.base/Resources/Emacs.desktop \
 	  Cocoa/Emacs.base/Contents/Info.plist \
 	  Cocoa/Emacs.base/Contents/Resources/English.lproj/InfoPlist.strings
-	[ `cd ${srcdir} && /bin/pwd` = `/bin/pwd` ] || rm -rf ${ns_appsrc}
 
 maintainer-clean: distclean
 
