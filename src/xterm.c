@@ -7129,24 +7129,16 @@ XTread_socket (struct terminal *terminal, int expected, struct input_event *hold
   if (interrupt_input_blocked)
     {
       interrupt_input_pending = 1;
-#ifdef SYNC_INPUT
       pending_signals = 1;
-#endif
       return -1;
     }
 
   interrupt_input_pending = 0;
-#ifdef SYNC_INPUT
   pending_signals = pending_atimers;
-#endif
   BLOCK_INPUT;
 
   /* So people can tell when we have read the available input.  */
   input_signal_count++;
-
-#ifndef SYNC_INPUT
-  ++handling_signal;
-#endif
 
   /* For debugging, this gives a way to fake an I/O error.  */
   if (terminal->display_info.x == XTread_socket_fake_io_error)
@@ -7236,9 +7228,6 @@ XTread_socket (struct terminal *terminal, int expected, struct input_event *hold
       pending_autoraise_frame = 0;
     }
 
-#ifndef SYNC_INPUT
-  --handling_signal;
-#endif
   UNBLOCK_INPUT;
 
   return count;
@@ -7788,7 +7777,6 @@ x_connection_closed (Display *dpy, const char *error_message)
 
   error_msg = alloca (strlen (error_message) + 1);
   strcpy (error_msg, error_message);
-  handling_signal = 0;
 
   /* Inhibit redisplay while frames are being deleted. */
   specbind (Qinhibit_redisplay, Qt);

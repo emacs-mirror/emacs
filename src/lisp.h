@@ -2107,22 +2107,16 @@ extern char *stack_bottom;
    If quit-flag is set to `kill-emacs' the SIGINT handler has received
    a request to exit Emacs when it is safe to do.  */
 
-#ifdef SYNC_INPUT
 extern void process_pending_signals (void);
 extern int pending_signals;
-#define ELSE_PENDING_SIGNALS				\
-  else if (pending_signals)				\
-    process_pending_signals ();
-#else  /* not SYNC_INPUT */
-#define ELSE_PENDING_SIGNALS
-#endif	/* not SYNC_INPUT */
 
 extern void process_quit_flag (void);
 #define QUIT						\
   do {							\
     if (!NILP (Vquit_flag) && NILP (Vinhibit_quit))	\
       process_quit_flag ();				\
-    ELSE_PENDING_SIGNALS				\
+    else if (pending_signals)				\
+      process_pending_signals ();			\
   } while (0)
 
 
@@ -2846,8 +2840,6 @@ extern void memory_warnings (void *, void (*warnfun) (const char *));
 /* Defined in alloc.c.  */
 extern void check_pure_size (void);
 extern void allocate_string_data (struct Lisp_String *, EMACS_INT, EMACS_INT);
-extern void reset_malloc_hooks (void);
-extern void uninterrupt_malloc (void);
 extern void malloc_warning (const char *);
 extern _Noreturn void memory_full (size_t);
 extern _Noreturn void buffer_memory_full (ptrdiff_t);
@@ -3043,7 +3035,6 @@ extern Lisp_Object Qand_rest;
 extern Lisp_Object Vautoload_queue;
 extern Lisp_Object Vsignaling_function;
 extern Lisp_Object inhibit_lisp_code;
-extern int handling_signal;
 #if BYTE_MARK_STACK
 extern struct catchtag *catchlist;
 extern struct handler *handlerlist;

@@ -64,8 +64,4 @@ extern void emacs_sigaction_init (struct sigaction *, signal_handler_t);
 char *strsignal (int);
 #endif
 
-#ifdef FORWARD_SIGNAL_TO_MAIN_THREAD
-extern pthread_t main_thread;
-#endif
-
 void handle_on_main_thread (int, signal_handler_t);

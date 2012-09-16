@@ -90,7 +90,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 char *_getpty();
 #endif
 
-#undef SA_RESTART     /* not the same as defining BROKEN_SA_RESTART */
 #endif /* IRIX6_5 */
 
 #ifdef MSDOS

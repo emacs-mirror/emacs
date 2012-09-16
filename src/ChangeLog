@@ -1,5 +1,47 @@
 2012-09-16  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Remove configure's --without-sync-input option (Bug#12450).
+	When auditing signal-handling in preparation for cleaning it up,
+	I found that SYNC_INPUT has race conditions and would be a real
+	pain to fix.  Since it's an undocumented and deprecated
+	configure-time option, now seems like a good time to remove it.
+	Also see <http://bugs.gnu.org/11080#16>.
+	* alloc.c (_bytes_used, __malloc_extra_blocks, _malloc_internal)
+	(_free_internal) [!DOUG_LEA_MALLOC]: Remove decls.
+	(alloc_mutex) [!SYSTEM_MALLOC && !SYNC_INPUT && HAVE_PTHREAD]:
+	(malloc_hysteresis):
+	(check_depth) [XMALLOC_OVERRUN_CHECK]:
+	(MALLOC_BLOCK_INPUT, MALLOC_UNBLOCK_INPUT):
+	(__malloc_hook, __realloc_hook, __free_hook, BYTES_USED)
+	(dont_register_blocks, bytes_used_when_reconsidered)
+	(bytes_used_when_full, emacs_blocked_free, emacs_blocked_malloc)
+	(emacs_blocked_realloc, reset_malloc_hooks, uninterrupt_malloc):
+	[!SYSTEM_MALLOC && !SYNC_INPUT]:
+	Remove. All uses removed.
+	(MALLOC_BLOCK_INPUT, MALLOC_UNBLOCK_INPUT): Use a different
+	implementation, one that depends on whether the new macro
+	XMALLOC_BLOCK_INPUT_CHECK is defined, not on whether SYNC_INPUT
+	is defined.
+	* atimer.c (run_timers, handle_alarm_signal):
+	* keyboard.c (pending_signal, poll_for_input_1, poll_for_input)
+	(handle_async_input, process_pending_signals)
+	(handle_input_available_signal, init_keyboard):
+	* nsterm.m (ns_read_socket):
+	* process.c (wait_reading_process_output):
+	* regex.c (immediate_quit, IMMEDIATE_QUIT_CHECK):
+	* sysdep.c (emacs_sigaction_init) [SA_RESTART]:
+	(emacs_write):
+	* xterm.c (XTread_socket):
+	Assume SYNC_INPUT.
+	* conf_post.h (SA_RESTART) [IRIX6_5]: Do not #undef.
+	* eval.c (handling_signal): Remove.  All uses removed.
+	* lisp.h (ELSE_PENDING_SIGNALS): Remove.
+	All uses replaced with the SYNC_INPUT version.
+	(reset_malloc_hooks, uninterrupt_malloc, handling_signal):
+	Remove decls.
+	* sysdep.c, syssignal.h (main_thread) [FORWARD_SIGNAL_TO_MAIN_THREAD]:
+	Now static.
+
 	* font.c (Ffont_shape_gstring): Remove unused local.
 
 2012-09-16  Glenn Morris  <rgm@gnu.org>

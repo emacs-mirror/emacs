@@ -1,3 +1,9 @@
+2012-09-16  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Remove configure's --without-sync-input option (Bug#12450).
+	* TODO (Make SYNC_INPUT the default): Remove, as the code now
+	behaves as if SYNC_INPUT is always true.
+
 2012-09-13  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Use a more backwards-compatible timer format (Bug#12430).

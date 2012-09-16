@@ -117,12 +117,6 @@ static EMACS_INT when_entered_debugger;
 
 Lisp_Object Vsignaling_function;
 
-/* Set to non-zero while processing X events.  Checked in Feval to
-   make sure the Lisp interpreter isn't called from a signal handler,
-   which is unsafe because the interpreter isn't reentrant.  */
-
-int handling_signal;
-
 /* If non-nil, Lisp code must not be run since some part of Emacs is
    in an inconsistent state.  Currently, x-create-frame uses this to
    avoid triggering window-configuration-change-hook while the new
@@ -1106,7 +1100,6 @@ unwind_to_catch (struct catchtag *catch, Lisp_Object value)
   /* Restore certain special C variables.  */
   set_poll_suppress_count (catch->poll_suppress_count);
   UNBLOCK_INPUT_TO (catch->interrupt_input_blocked);
-  handling_signal = 0;
   immediate_quit = 0;
 
   do
@@ -1486,7 +1479,7 @@ See also the function `condition-case'.  */)
   struct handler *h;
   struct backtrace *bp;
 
-  immediate_quit = handling_signal = 0;
+  immediate_quit = 0;
   abort_on_gc = 0;
   if (gc_in_progress || waiting_for_input)
     emacs_abort ();
@@ -2038,9 +2031,6 @@ eval_sub (Lisp_Object form)
   Lisp_Object funcar;
   struct backtrace backtrace;
   struct gcpro gcpro1, gcpro2, gcpro3;
-
-  if (handling_signal)
-    emacs_abort ();
 
   if (SYMBOLP (form))
     {
@@ -3104,8 +3094,6 @@ specbind (Lisp_Object symbol, Lisp_Object value)
 {
   struct Lisp_Symbol *sym;
 
-  eassert (!handling_signal);
-
   CHECK_SYMBOL (symbol);
   sym = XSYMBOL (symbol);
   if (specpdl_ptr == specpdl + specpdl_size)
@@ -3199,8 +3187,6 @@ specbind (Lisp_Object symbol, Lisp_Object value)
 void
 record_unwind_protect (Lisp_Object (*function) (Lisp_Object), Lisp_Object arg)
 {
-  eassert (!handling_signal);
-
   if (specpdl_ptr == specpdl + specpdl_size)
     grow_specpdl ();
   specpdl_ptr->func = function;

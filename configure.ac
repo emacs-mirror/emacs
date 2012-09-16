@@ -128,11 +128,6 @@ AC_ARG_WITH([mailhost],[AS_HELP_STRING([--with-mailhost=HOSTNAME],
 
 OPTION_DEFAULT_ON([sound],[don't compile with sound support])
 
-OPTION_DEFAULT_ON([sync-input],[don't process async input synchronously])
-if test "$with_sync_input" = yes; then
-   AC_DEFINE(SYNC_INPUT, 1, [Process async input synchronously.])
-fi
-
 dnl FIXME currently it is not the last.
 dnl This should be the last --with option, because --with-x is
 dnl added later on when we find the path of X, and it's best to
@@ -3949,11 +3944,6 @@ case $opsys in
     ;;
 
   hpux11)
-    dnl See comments in sysdep.c:sys_signal.
-    dnl SA_RESTART resets the timeout of `select' on hpux11.
-    dnl Defining BROKEN_SA_RESTART is not the same as undef'ing SA_RESTART.
-    AC_DEFINE(BROKEN_SA_RESTART, 1, [Define if SA_RESTART should only
-      be used in batch mode.])
     dnl It works to open the pty's tty in the parent (Emacs), then
     dnl close and reopen it in the child.
     AC_DEFINE(USG_SUBTTY_WORKS, 1, [Define for USG systems where it

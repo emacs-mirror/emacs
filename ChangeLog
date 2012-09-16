@@ -1,3 +1,8 @@
+2012-09-16  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Remove configure's --without-sync-input option (Bug#12450).
+	* configure.ac (SYNC_INPUT, BROKEN_SA_RESTART): Remove.
+
 2012-09-16  Glenn Morris  <rgm@gnu.org>
 
 	Increase compartmentalization of Nextstep builds rules,

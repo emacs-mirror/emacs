@@ -673,8 +673,7 @@ find_interval (register INTERVAL tree, register ptrdiff_t position)
 
   eassert (relative_position <= TOTAL_LENGTH (tree));
 
-  if (!handling_signal)
-    tree = balance_possible_root_interval (tree);
+  tree = balance_possible_root_interval (tree);
 
   while (1)
     {

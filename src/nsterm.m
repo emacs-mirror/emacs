@@ -3355,16 +3355,12 @@ ns_read_socket (struct terminal *terminal, int expected,
   if (interrupt_input_blocked)
     {
       interrupt_input_pending = 1;
-#ifdef SYNC_INPUT
       pending_signals = 1;
-#endif
       return -1;
     }
 
   interrupt_input_pending = 0;
-#ifdef SYNC_INPUT
   pending_signals = pending_atimers;
-#endif
 
   BLOCK_INPUT;
   n_emacs_events_pending = 0;
@@ -3726,7 +3722,7 @@ ns_judge_scroll_bars (struct frame *f)
       removed = YES;
     }
 
-  if (removed) 
+  if (removed)
     [eview updateFrameSize: NO];
 }
 
@@ -3988,7 +3984,6 @@ ns_term_init (Lisp_Object display_name)
   /* count object allocs (About, click icon); on OS X use ObjectAlloc tool */
   /*GSDebugAllocationActive (YES); */
   BLOCK_INPUT;
-  handling_signal = 0;
 
   baud_rate = 38400;
   Fset_input_interrupt_mode (Qnil);
@@ -6239,7 +6234,7 @@ not_in_argv (NSString *arg)
       NSRect r = [super constrainFrameRect:frameRect toScreen:screen];
       return r;
     }
-  
+
   if (f->output_data.ns->dont_constrain
       || ns_menu_bar_should_be_hidden ())
     return frameRect;

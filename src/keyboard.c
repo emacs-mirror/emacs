@@ -84,9 +84,7 @@ int interrupt_input_pending;
    pending_atimers separately, to reduce code size.  So, any code that
    changes interrupt_input_pending or pending_atimers should update
    this too.  */
-#ifdef SYNC_INPUT
 int pending_signals;
-#endif
 
 #define KBD_BUFFER_SIZE 4096
 
@@ -2010,17 +2008,9 @@ static struct atimer *poll_timer;
 void
 poll_for_input_1 (void)
 {
-/* Tell ns_read_socket() it is being called asynchronously so it can avoid
-   doing anything dangerous.  */
-#ifdef HAVE_NS
-  ++handling_signal;
-#endif
   if (interrupt_input_blocked == 0
       && !waiting_for_input)
     read_avail_input (0);
-#ifdef HAVE_NS
-  --handling_signal;
-#endif
 }
 
 /* Timer callback function for poll_timer.  TIMER is equal to
@@ -2031,12 +2021,8 @@ poll_for_input (struct atimer *timer)
 {
   if (poll_suppress_count == 0)
     {
-#ifdef SYNC_INPUT
       interrupt_input_pending = 1;
       pending_signals = 1;
-#else
-      poll_for_input_1 ();
-#endif
     }
 }
 
@@ -7176,19 +7162,12 @@ tty_read_avail_input (struct terminal *terminal,
   return nread;
 }
 
-#if defined SYNC_INPUT || defined USABLE_SIGIO
 static void
 handle_async_input (void)
 {
   interrupt_input_pending = 0;
-#ifdef SYNC_INPUT
   pending_signals = pending_atimers;
-#endif
-/* Tell ns_read_socket() it is being called asynchronously so it can avoid
-   doing anything dangerous.  */
-#ifdef HAVE_NS
-  ++handling_signal;
-#endif
+
   while (1)
     {
       int nread;
@@ -7199,13 +7178,8 @@ handle_async_input (void)
       if (nread <= 0)
 	break;
     }
-#ifdef HAVE_NS
-  --handling_signal;
-#endif
 }
-#endif /* SYNC_INPUT || USABLE_SIGIO */
 
-#ifdef SYNC_INPUT
 void
 process_pending_signals (void)
 {
@@ -7213,24 +7187,17 @@ process_pending_signals (void)
     handle_async_input ();
   do_pending_atimers ();
 }
-#endif
 
 #ifdef USABLE_SIGIO
 
 static void
 handle_input_available_signal (int sig)
 {
-#ifdef SYNC_INPUT
   interrupt_input_pending = 1;
   pending_signals = 1;
-#endif
 
   if (input_available_clear_time)
     *input_available_clear_time = make_emacs_time (0, 0);
-
-#ifndef SYNC_INPUT
-  handle_async_input ();
-#endif
 }
 
 static void
@@ -11365,9 +11332,7 @@ init_keyboard (void)
   input_pending = 0;
   interrupt_input_blocked = 0;
   interrupt_input_pending = 0;
-#ifdef SYNC_INPUT
   pending_signals = 0;
-#endif
 
   /* This means that command_loop_1 won't try to select anything the first
      time through.  */

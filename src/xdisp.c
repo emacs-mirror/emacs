@@ -9290,12 +9290,6 @@ add_to_log (const char *format, Lisp_Object arg1, Lisp_Object arg2)
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
   USE_SAFE_ALLOCA;
 
-  /* Do nothing if called asynchronously.  Inserting text into
-     a buffer may call after-change-functions and alike and
-     that would means running Lisp asynchronously.  */
-  if (handling_signal)
-    return;
-
   fmt = msg = Qnil;
   GCPRO4 (fmt, msg, arg1, arg2);
 
