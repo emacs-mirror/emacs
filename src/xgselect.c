@@ -19,14 +19,12 @@ along with GNU Emacs.  If not, see <http§://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 
-#include <setjmp.h>
 #include "xgselect.h"
 
 #if defined (USE_GTK) || defined (HAVE_GCONF) || defined (HAVE_GSETTINGS)
 
 #include <glib.h>
 #include <errno.h>
-#include <setjmp.h>
 #include "xterm.h"
 
 int

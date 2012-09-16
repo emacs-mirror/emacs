@@ -31,7 +31,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <dpmi.h>
 #include <go32.h>
 #include <sys/farptr.h>
-#include <setjmp.h>
 #include "lisp.h"
 #include "dispextern.h"	/* frame.h seems to want this */
 #include "frame.h"	/* Need this to get the X window of selected_frame */

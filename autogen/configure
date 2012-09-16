@@ -2061,7 +2061,7 @@ Optional Packages:
   --with-mailhost=HOSTNAME
                           string giving default POP mail host
   --without-sound         don't compile with sound support
-  --without-sync-input    process async input synchronously
+  --without-sync-input    don't process async input synchronously
   --with-x-toolkit=KIT    use an X toolkit (KIT one of: yes or gtk, gtk2,
                           gtk3, lucid or athena, motif, no)
   --with-wide-int         prefer wide Emacs integers (typically 62-bit)
@@ -8578,8 +8578,9 @@ $as_echo "no" >&6; }
             ALSA_CFLAGS=""
             ALSA_LIBS=""
             ## If we have a custom action on failure, don't print errors, but
-            ## do set a variable so people can do so.
-            ALSA_PKG_ERRORS=`$PKG_CONFIG --errors-to-stdout --print-errors "$ALSA_MODULES"`
+	    ## do set a variable so people can do so.  Do it in a subshell
+	    ## to capture any diagnostics in invoking pkg-config.
+	    ALSA_PKG_ERRORS=`($PKG_CONFIG --print-errors "$ALSA_MODULES") 2>&1`
 
         fi
 
@@ -10398,8 +10399,9 @@ $as_echo "no" >&6; }
             RSVG_CFLAGS=""
             RSVG_LIBS=""
             ## If we have a custom action on failure, don't print errors, but
-            ## do set a variable so people can do so.
-            RSVG_PKG_ERRORS=`$PKG_CONFIG --errors-to-stdout --print-errors "$RSVG_MODULE"`
+	    ## do set a variable so people can do so.  Do it in a subshell
+	    ## to capture any diagnostics in invoking pkg-config.
+	    RSVG_PKG_ERRORS=`($PKG_CONFIG --print-errors "$RSVG_MODULE") 2>&1`
 
         fi
 
@@ -10468,8 +10470,9 @@ $as_echo "no" >&6; }
             IMAGEMAGICK_CFLAGS=""
             IMAGEMAGICK_LIBS=""
             ## If we have a custom action on failure, don't print errors, but
-            ## do set a variable so people can do so.
-            IMAGEMAGICK_PKG_ERRORS=`$PKG_CONFIG --errors-to-stdout --print-errors "$IMAGEMAGICK_MODULE"`
+	    ## do set a variable so people can do so.  Do it in a subshell
+	    ## to capture any diagnostics in invoking pkg-config.
+	    IMAGEMAGICK_PKG_ERRORS=`($PKG_CONFIG --print-errors "$IMAGEMAGICK_MODULE") 2>&1`
 
         fi
 
@@ -10554,8 +10557,9 @@ $as_echo "no" >&6; }
             GTK_CFLAGS=""
             GTK_LIBS=""
             ## If we have a custom action on failure, don't print errors, but
-            ## do set a variable so people can do so.
-            GTK_PKG_ERRORS=`$PKG_CONFIG --errors-to-stdout --print-errors "$GTK_MODULES"`
+	    ## do set a variable so people can do so.  Do it in a subshell
+	    ## to capture any diagnostics in invoking pkg-config.
+	    GTK_PKG_ERRORS=`($PKG_CONFIG --print-errors "$GTK_MODULES") 2>&1`
 
         fi
 
@@ -10624,8 +10628,9 @@ $as_echo "no" >&6; }
             GTK_CFLAGS=""
             GTK_LIBS=""
             ## If we have a custom action on failure, don't print errors, but
-            ## do set a variable so people can do so.
-            GTK_PKG_ERRORS=`$PKG_CONFIG --errors-to-stdout --print-errors "$GTK_MODULES"`
+	    ## do set a variable so people can do so.  Do it in a subshell
+	    ## to capture any diagnostics in invoking pkg-config.
+	    GTK_PKG_ERRORS=`($PKG_CONFIG --print-errors "$GTK_MODULES") 2>&1`
 
         fi
 
@@ -10643,10 +10648,10 @@ $as_echo "no" >&6; }
      pkg_check_gtk=no
   fi
 
-  if test "$pkg_check_gtk" = "no"; then
-     if test "$USE_X_TOOLKIT" = "maybe" || test "$with_gtk" = "yes" || test "$with_gtk2" = "yes"; then
-     	as_fn_error "$gtk3_pkg_errors$GTK_PKG_ERRORS" "$LINENO" 5
-     fi
+  if test "$pkg_check_gtk" = "no" &&
+     { test "$with_gtk" = yes || test "$with_gtk2" = "yes"; }
+  then
+    as_fn_error "$gtk3_pkg_errors$GTK_PKG_ERRORS" "$LINENO" 5
   fi
 fi
 
@@ -10785,8 +10790,9 @@ $as_echo "no" >&6; }
             DBUS_CFLAGS=""
             DBUS_LIBS=""
             ## If we have a custom action on failure, don't print errors, but
-            ## do set a variable so people can do so.
-            DBUS_PKG_ERRORS=`$PKG_CONFIG --errors-to-stdout --print-errors "dbus-1 >= 1.0"`
+	    ## do set a variable so people can do so.  Do it in a subshell
+	    ## to capture any diagnostics in invoking pkg-config.
+	    DBUS_PKG_ERRORS=`($PKG_CONFIG --print-errors "dbus-1 >= 1.0") 2>&1`
 
         fi
 
@@ -10865,8 +10871,9 @@ $as_echo "no" >&6; }
             GSETTINGS_CFLAGS=""
             GSETTINGS_LIBS=""
             ## If we have a custom action on failure, don't print errors, but
-            ## do set a variable so people can do so.
-            GSETTINGS_PKG_ERRORS=`$PKG_CONFIG --errors-to-stdout --print-errors "gio-2.0 >= 2.26"`
+	    ## do set a variable so people can do so.  Do it in a subshell
+	    ## to capture any diagnostics in invoking pkg-config.
+	    GSETTINGS_PKG_ERRORS=`($PKG_CONFIG --print-errors "gio-2.0 >= 2.26") 2>&1`
 
         fi
 
@@ -10926,8 +10933,9 @@ $as_echo "no" >&6; }
             GCONF_CFLAGS=""
             GCONF_LIBS=""
             ## If we have a custom action on failure, don't print errors, but
-            ## do set a variable so people can do so.
-            GCONF_PKG_ERRORS=`$PKG_CONFIG --errors-to-stdout --print-errors "gconf-2.0 >= 2.13"`
+	    ## do set a variable so people can do so.  Do it in a subshell
+	    ## to capture any diagnostics in invoking pkg-config.
+	    GCONF_PKG_ERRORS=`($PKG_CONFIG --print-errors "gconf-2.0 >= 2.13") 2>&1`
 
         fi
 
@@ -10986,8 +10994,9 @@ $as_echo "no" >&6; }
             GOBJECT_CFLAGS=""
             GOBJECT_LIBS=""
             ## If we have a custom action on failure, don't print errors, but
-            ## do set a variable so people can do so.
-            GOBJECT_PKG_ERRORS=`$PKG_CONFIG --errors-to-stdout --print-errors "gobject-2.0 >= 2.0"`
+	    ## do set a variable so people can do so.  Do it in a subshell
+	    ## to capture any diagnostics in invoking pkg-config.
+	    GOBJECT_PKG_ERRORS=`($PKG_CONFIG --print-errors "gobject-2.0 >= 2.0") 2>&1`
 
         fi
 
@@ -11119,8 +11128,9 @@ $as_echo "no" >&6; }
             LIBGNUTLS_CFLAGS=""
             LIBGNUTLS_LIBS=""
             ## If we have a custom action on failure, don't print errors, but
-            ## do set a variable so people can do so.
-            LIBGNUTLS_PKG_ERRORS=`$PKG_CONFIG --errors-to-stdout --print-errors "gnutls >= 2.6.6"`
+	    ## do set a variable so people can do so.  Do it in a subshell
+	    ## to capture any diagnostics in invoking pkg-config.
+	    LIBGNUTLS_PKG_ERRORS=`($PKG_CONFIG --print-errors "gnutls >= 2.6.6") 2>&1`
 
         fi
 
@@ -11748,8 +11758,9 @@ $as_echo "no" >&6; }
             FONTCONFIG_CFLAGS=""
             FONTCONFIG_LIBS=""
             ## If we have a custom action on failure, don't print errors, but
-            ## do set a variable so people can do so.
-            FONTCONFIG_PKG_ERRORS=`$PKG_CONFIG --errors-to-stdout --print-errors "fontconfig >= 2.2.0"`
+	    ## do set a variable so people can do so.  Do it in a subshell
+	    ## to capture any diagnostics in invoking pkg-config.
+	    FONTCONFIG_PKG_ERRORS=`($PKG_CONFIG --print-errors "fontconfig >= 2.2.0") 2>&1`
 
         fi
 
@@ -11806,8 +11817,9 @@ $as_echo "no" >&6; }
             XFT_CFLAGS=""
             XFT_LIBS=""
             ## If we have a custom action on failure, don't print errors, but
-            ## do set a variable so people can do so.
-            XFT_PKG_ERRORS=`$PKG_CONFIG --errors-to-stdout --print-errors "xft >= 0.13.0"`
+	    ## do set a variable so people can do so.  Do it in a subshell
+	    ## to capture any diagnostics in invoking pkg-config.
+	    XFT_PKG_ERRORS=`($PKG_CONFIG --print-errors "xft >= 0.13.0") 2>&1`
 
         fi
 
@@ -11973,8 +11985,9 @@ $as_echo "no" >&6; }
             FREETYPE_CFLAGS=""
             FREETYPE_LIBS=""
             ## If we have a custom action on failure, don't print errors, but
-            ## do set a variable so people can do so.
-            FREETYPE_PKG_ERRORS=`$PKG_CONFIG --errors-to-stdout --print-errors "freetype2"`
+	    ## do set a variable so people can do so.  Do it in a subshell
+	    ## to capture any diagnostics in invoking pkg-config.
+	    FREETYPE_PKG_ERRORS=`($PKG_CONFIG --print-errors "freetype2") 2>&1`
 
         fi
 
@@ -12033,8 +12046,9 @@ $as_echo "no" >&6; }
             LIBOTF_CFLAGS=""
             LIBOTF_LIBS=""
             ## If we have a custom action on failure, don't print errors, but
-            ## do set a variable so people can do so.
-            LIBOTF_PKG_ERRORS=`$PKG_CONFIG --errors-to-stdout --print-errors "libotf"`
+	    ## do set a variable so people can do so.  Do it in a subshell
+	    ## to capture any diagnostics in invoking pkg-config.
+	    LIBOTF_PKG_ERRORS=`($PKG_CONFIG --print-errors "libotf") 2>&1`
 
         fi
 
@@ -12141,8 +12155,9 @@ $as_echo "no" >&6; }
             M17N_FLT_CFLAGS=""
             M17N_FLT_LIBS=""
             ## If we have a custom action on failure, don't print errors, but
-            ## do set a variable so people can do so.
-            M17N_FLT_PKG_ERRORS=`$PKG_CONFIG --errors-to-stdout --print-errors "m17n-flt"`
+	    ## do set a variable so people can do so.  Do it in a subshell
+	    ## to capture any diagnostics in invoking pkg-config.
+	    M17N_FLT_PKG_ERRORS=`($PKG_CONFIG --print-errors "m17n-flt") 2>&1`
 
         fi
 
@@ -12830,8 +12845,9 @@ $as_echo "no" >&6; }
             LIBXML2_CFLAGS=""
             LIBXML2_LIBS=""
             ## If we have a custom action on failure, don't print errors, but
-            ## do set a variable so people can do so.
-            LIBXML2_PKG_ERRORS=`$PKG_CONFIG --errors-to-stdout --print-errors "libxml-2.0 > 2.6.17"`
+	    ## do set a variable so people can do so.  Do it in a subshell
+	    ## to capture any diagnostics in invoking pkg-config.
+	    LIBXML2_PKG_ERRORS=`($PKG_CONFIG --print-errors "libxml-2.0 > 2.6.17") 2>&1`
 
         fi
 
@@ -15461,13 +15477,45 @@ rm -f core conftest.err conftest.$ac_objext \
 fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $emacs_cv_func__setjmp" >&5
 $as_echo "$emacs_cv_func__setjmp" >&6; }
-if test $emacs_cv_func__setjmp = no; then
+if test $emacs_cv_func__setjmp = yes; then
 
-$as_echo "#define _setjmp setjmp" >>confdefs.h
+$as_echo "#define HAVE__SETJMP 1" >>confdefs.h
 
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for sigsetjmp" >&5
+$as_echo_n "checking for sigsetjmp... " >&6; }
+if test "${emacs_cv_func_sigsetjmp+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <setjmp.h>
 
-$as_echo "#define _longjmp longjmp" >>confdefs.h
+int
+main ()
+{
+sigjmp_buf j;
+	   if (! sigsetjmp (j, 1))
+	     siglongjmp (j, 1);
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  emacs_cv_func_sigsetjmp=yes
+else
+  emacs_cv_func_sigsetjmp=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $emacs_cv_func_sigsetjmp" >&5
+$as_echo "$emacs_cv_func_sigsetjmp" >&6; }
+  if test $emacs_cv_func_sigsetjmp = yes; then
 
+$as_echo "#define HAVE_SIGSETJMP 1" >>confdefs.h
+
+  fi
 fi
 
 case $opsys in

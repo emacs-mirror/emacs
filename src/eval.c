@@ -19,7 +19,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 #include <limits.h>
-#include <setjmp.h>
 #include <stdio.h>
 #include "lisp.h"
 #include "blockinput.h"
@@ -1072,7 +1071,7 @@ internal_catch (Lisp_Object tag, Lisp_Object (*func) (Lisp_Object), Lisp_Object 
   catchlist = &c;
 
   /* Call FUNC.  */
-  if (! _setjmp (c.jmp))
+  if (! sys_setjmp (c.jmp))
     c.val = (*func) (arg);
 
   /* Throw works by a longjmp that comes right here.  */
@@ -1140,7 +1139,7 @@ unwind_to_catch (struct catchtag *catch, Lisp_Object value)
   backtrace_list = catch->backlist;
   lisp_eval_depth = catch->lisp_eval_depth;
 
-  _longjmp (catch->jmp, 1);
+  sys_longjmp (catch->jmp, 1);
 }
 
 DEFUN ("throw", Fthrow, Sthrow, 2, 2, 0,
@@ -1246,7 +1245,7 @@ internal_lisp_condition_case (volatile Lisp_Object var, Lisp_Object bodyform,
   c.interrupt_input_blocked = interrupt_input_blocked;
   c.gcpro = gcprolist;
   c.byte_stack = byte_stack_list;
-  if (_setjmp (c.jmp))
+  if (sys_setjmp (c.jmp))
     {
       if (!NILP (h.var))
 	specbind (h.var, c.val);
@@ -1301,7 +1300,7 @@ internal_condition_case (Lisp_Object (*bfun) (void), Lisp_Object handlers,
   c.interrupt_input_blocked = interrupt_input_blocked;
   c.gcpro = gcprolist;
   c.byte_stack = byte_stack_list;
-  if (_setjmp (c.jmp))
+  if (sys_setjmp (c.jmp))
     {
       return (*hfun) (c.val);
     }
@@ -1339,7 +1338,7 @@ internal_condition_case_1 (Lisp_Object (*bfun) (Lisp_Object), Lisp_Object arg,
   c.interrupt_input_blocked = interrupt_input_blocked;
   c.gcpro = gcprolist;
   c.byte_stack = byte_stack_list;
-  if (_setjmp (c.jmp))
+  if (sys_setjmp (c.jmp))
     {
       return (*hfun) (c.val);
     }
@@ -1381,7 +1380,7 @@ internal_condition_case_2 (Lisp_Object (*bfun) (Lisp_Object, Lisp_Object),
   c.interrupt_input_blocked = interrupt_input_blocked;
   c.gcpro = gcprolist;
   c.byte_stack = byte_stack_list;
-  if (_setjmp (c.jmp))
+  if (sys_setjmp (c.jmp))
     {
       return (*hfun) (c.val);
     }
@@ -1425,7 +1424,7 @@ internal_condition_case_n (Lisp_Object (*bfun) (ptrdiff_t, Lisp_Object *),
   c.interrupt_input_blocked = interrupt_input_blocked;
   c.gcpro = gcprolist;
   c.byte_stack = byte_stack_list;
-  if (_setjmp (c.jmp))
+  if (sys_setjmp (c.jmp))
     {
       return (*hfun) (c.val, nargs, args);
     }

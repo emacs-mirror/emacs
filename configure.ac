@@ -3774,13 +3774,24 @@ AC_CACHE_CHECK([for _setjmp], [emacs_cv_func__setjmp],
 	   _longjmp (j, 1);]])],
      [emacs_cv_func__setjmp=yes],
      [emacs_cv_func__setjmp=no])])
-if test $emacs_cv_func__setjmp = no; then
-  AC_DEFINE([_setjmp], [setjmp],
-    [Define to setjmp if _setjmp and _longjmp do not work.  See _longjmp.])
-  AC_DEFINE([_longjmp], [longjmp],
-    [Define to longjmp if _setjmp and _longjmp do not work.
-     Because longjmp may alter signal masks, callers of _longjmp
-     should not assume that it leaves signal masks alone.])
+if test $emacs_cv_func__setjmp = yes; then
+  AC_DEFINE([HAVE__SETJMP], 1, [Define to 1 if _setjmp and _longjmp work.])
+else
+  AC_CACHE_CHECK([for sigsetjmp], [emacs_cv_func_sigsetjmp],
+    [AC_LINK_IFELSE(
+       [AC_LANG_PROGRAM(
+	 [[#include <setjmp.h>
+	 ]],
+	 [[sigjmp_buf j;
+	   if (! sigsetjmp (j, 1))
+	     siglongjmp (j, 1);]])],
+       [emacs_cv_func_sigsetjmp=yes],
+       [emacs_cv_func_sigsetjmp=no])])
+  if test $emacs_cv_func_sigsetjmp = yes; then
+    AC_DEFINE([HAVE_SIGSETJMP], 1,
+      [Define to 1 if sigsetjmp and siglongjmp work.
+       The value of this symbol is irrelevant if HAVE__SETJMP is defined.])
+  fi
 fi
 
 case $opsys in

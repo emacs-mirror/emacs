@@ -1,4 +1,17 @@
+2012-09-16  Chong Yidong  <cyd@gnu.org>
+
+	* window.el (special-display-popup-frame): Doc fix (Bug#8853).
+	(display-buffer-function): Mark as obsolete.
+
+	* progmodes/compile.el (compilation-parse-errors): Accept list
+	values similar to font-lock-keywords (Bug#12136).  Suggested by
+	Oleksandr Manzyuk.
+	(compilation-error-regexp-alist): Doc fix.
+
 2012-09-15  Glenn Morris  <rgm@gnu.org>
+
+	* version.el (emacs-bzr-version-bzr): New function.
+	(emacs-bzr-get-version): Add optional EXTERNAL argument.
 
 	* vc/vc-bzr.el (vc-bzr-working-revision): For lightweight local
 	checkouts, check the parent dirstate matches the branch.

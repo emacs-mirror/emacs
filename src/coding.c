@@ -285,7 +285,6 @@ encode_coding_XXX (struct coding_system *coding)
 
 #include <config.h>
 #include <stdio.h>
-#include <setjmp.h>
 
 #include "lisp.h"
 #include "character.h"

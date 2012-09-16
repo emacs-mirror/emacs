@@ -25,12 +25,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <stdio.h>
 #include <errno.h>
-#include <setjmp.h>
 #include <sys/types.h>		/* Some typedefs are used in sys/file.h.  */
 #include <sys/file.h>
 #include <sys/stat.h>
-#include <setjmp.h>
-
 #include <unistd.h>
 #include <fcntl.h>
 
@@ -5421,7 +5418,7 @@ read_process_output (Lisp_Object proc, register int channel)
 
 /* Sending data to subprocess */
 
-static jmp_buf send_process_frame;
+static sys_jmp_buf send_process_frame;
 static Lisp_Object process_sent_to;
 
 static _Noreturn void
@@ -5431,7 +5428,7 @@ handle_pipe_signal (int sig)
   sigemptyset (&unblocked);
   sigaddset (&unblocked, SIGPIPE);
   pthread_sigmask (SIG_UNBLOCK, &unblocked, 0);
-  _longjmp (send_process_frame, 1);
+  sys_longjmp (send_process_frame, 1);
 }
 
 static void
@@ -5640,7 +5637,7 @@ send_process (volatile Lisp_Object proc, const char *volatile buf,
   /* 2000-09-21: Emacs 20.7, sparc-sun-solaris-2.6, GCC 2.95.2,
      CFLAGS="-g -O": The value of the parameter `proc' is clobbered
      when returning with longjmp despite being declared volatile.  */
-  if (!_setjmp (send_process_frame))
+  if (!sys_setjmp (send_process_frame))
     {
       p = XPROCESS (proc);  /* Repair any setjmp clobbering.  */
       process_sent_to = proc;

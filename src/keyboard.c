@@ -22,7 +22,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define KEYBOARD_INLINE EXTERN_INLINE
 
 #include <stdio.h>
-#include <setjmp.h>
+
 #include "lisp.h"
 #include "termchar.h"
 #include "termopts.h"
@@ -145,7 +145,7 @@ static ptrdiff_t before_command_echo_length;
 
 /* For longjmp to where kbd input is being done.  */
 
-static jmp_buf getcjmp;
+static sys_jmp_buf getcjmp;
 
 /* True while doing kbd input.  */
 int waiting_for_input;
@@ -434,8 +434,8 @@ static Lisp_Object modify_event_symbol (ptrdiff_t, int, Lisp_Object,
                                         Lisp_Object *, ptrdiff_t);
 static Lisp_Object make_lispy_switch_frame (Lisp_Object);
 static int help_char_p (Lisp_Object);
-static void save_getcjmp (jmp_buf);
-static void restore_getcjmp (jmp_buf);
+static void save_getcjmp (sys_jmp_buf);
+static void restore_getcjmp (sys_jmp_buf);
 static Lisp_Object apply_modifiers (int, Lisp_Object);
 static void clear_event (struct input_event *);
 static Lisp_Object restore_kboard_configuration (Lisp_Object);
@@ -2315,8 +2315,8 @@ read_char (int commandflag, ptrdiff_t nmaps, Lisp_Object *maps,
 {
   volatile Lisp_Object c;
   ptrdiff_t jmpcount;
-  jmp_buf local_getcjmp;
-  jmp_buf save_jump;
+  sys_jmp_buf local_getcjmp;
+  sys_jmp_buf save_jump;
   volatile int key_already_recorded = 0;
   Lisp_Object tem, save;
   volatile Lisp_Object previous_echo_area_message;
@@ -2562,7 +2562,7 @@ read_char (int commandflag, ptrdiff_t nmaps, Lisp_Object *maps,
      it *must not* be in effect when we call redisplay.  */
 
   jmpcount = SPECPDL_INDEX ();
-  if (_setjmp (local_getcjmp))
+  if (sys_setjmp (local_getcjmp))
     {
       /* Handle quits while reading the keyboard.  */
       /* We must have saved the outer value of getcjmp here,
@@ -3394,13 +3394,13 @@ record_char (Lisp_Object c)
    See read_process_output.  */
 
 static void
-save_getcjmp (jmp_buf temp)
+save_getcjmp (sys_jmp_buf temp)
 {
   memcpy (temp, getcjmp, sizeof getcjmp);
 }
 
 static void
-restore_getcjmp (jmp_buf temp)
+restore_getcjmp (sys_jmp_buf temp)
 {
   memcpy (getcjmp, temp, sizeof getcjmp);
 }
@@ -10979,7 +10979,7 @@ quit_throw_to_read_char (int from_signal)
     do_switch_frame (make_lispy_switch_frame (internal_last_event_frame),
 		     0, 0, Qnil);
 
-  _longjmp (getcjmp, 1);
+  sys_longjmp (getcjmp, 1);
 }
 
 DEFUN ("set-input-interrupt-mode", Fset_input_interrupt_mode,

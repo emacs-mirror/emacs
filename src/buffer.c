@@ -26,7 +26,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <sys/param.h>
 #include <errno.h>
 #include <stdio.h>
-#include <setjmp.h>
 #include <unistd.h>
 
 #include <verify.h>

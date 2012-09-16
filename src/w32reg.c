@@ -19,7 +19,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Written by Kevin Gallo */
 
 #include <config.h>
-#include <setjmp.h>
 #include "lisp.h"
 #include "w32term.h"
 #include "blockinput.h"

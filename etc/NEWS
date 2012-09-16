@@ -735,6 +735,7 @@ in Emacs 24.1:
 **** `special-display-frame-alist'
 **** `special-display-buffer-names'
 **** `special-display-function'
+**** `display-buffer-function'
 
 ** Completion
 

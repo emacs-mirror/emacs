@@ -22,7 +22,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <sys/types.h>
 #include <sys/file.h>	/* Must be after sys/types.h for USG*/
-#include <setjmp.h>
 #include <fcntl.h>
 #include <unistd.h>
 

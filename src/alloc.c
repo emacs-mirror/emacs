@@ -24,7 +24,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <stdio.h>
 #include <limits.h>		/* For CHAR_BIT.  */
-#include <setjmp.h>
 
 #ifdef ENABLE_CHECKING
 #include <signal.h>		/* For SIGABRT. */
@@ -45,7 +44,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "frame.h"
 #include "blockinput.h"
 #include "termhooks.h"		/* For struct terminal.  */
-#include <setjmp.h>
+
 #include <verify.h>
 
 /* GC_CHECK_MARKED_OBJECTS means do sanity checks on allocated objects.
@@ -4764,14 +4763,14 @@ test_setjmp (void)
 {
   char buf[10];
   register int x;
-  jmp_buf jbuf;
+  sys_jmp_buf jbuf;
 
   /* Arrange for X to be put in a register.  */
   sprintf (buf, "1");
   x = strlen (buf);
   x = 2 * x - 1;
 
-  _setjmp (jbuf);
+  sys_setjmp (jbuf);
   if (longjmps_done == 1)
     {
       /* Came here after the longjmp at the end of the function.
@@ -4796,7 +4795,7 @@ test_setjmp (void)
   ++longjmps_done;
   x = 2;
   if (longjmps_done == 1)
-    _longjmp (jbuf, 1);
+    sys_longjmp (jbuf, 1);
 }
 
 #endif /* not GC_SAVE_REGISTERS_ON_STACK && not GC_SETJMP_WORKS */
@@ -4902,7 +4901,7 @@ mark_stack (void)
   /* jmp_buf may not be aligned enough on darwin-ppc64 */
   union aligned_jmpbuf {
     Lisp_Object o;
-    jmp_buf j;
+    sys_jmp_buf j;
   } j;
   volatile bool stack_grows_down_p = (char *) &j > (char *) stack_base;
 #endif
@@ -4938,7 +4937,7 @@ mark_stack (void)
     }
 #endif /* GC_SETJMP_WORKS */
 
-  _setjmp (j.j);
+  sys_setjmp (j.j);
   end = stack_grows_down_p ? (char *) &j + sizeof j : (char *) &j;
 #endif /* not GC_SAVE_REGISTERS_ON_STACK */
 #endif /* not HAVE___BUILTIN_UNWIND_INIT */

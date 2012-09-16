@@ -23,7 +23,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <execinfo.h>
 #include <stdio.h>
-#include <setjmp.h>
 #ifdef HAVE_PWD_H
 #include <pwd.h>
 #include <grp.h>

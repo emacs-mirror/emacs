@@ -28,7 +28,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <fcntl.h>
 #include <signal.h>
 #include <sys/file.h>
-#include <setjmp.h>
 
 /* must include CRT headers *before* config.h */
 #include <config.h>

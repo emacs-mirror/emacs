@@ -21,7 +21,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <unistd.h>
 #include <time.h>
-#include <setjmp.h>
 
 #include <intprops.h>
 

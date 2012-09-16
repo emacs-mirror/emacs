@@ -19,7 +19,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <config.h>
 #include "tparam.h"
 
-#include <setjmp.h>
 #include "lisp.h"
 
 /* Define these variables that serve as global parameters to termcap,

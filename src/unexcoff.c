@@ -120,7 +120,6 @@ static int pagemask;
 
 #define ADDR_CORRECT(x) ((char *)(x) - (char*)0)
 
-#include <setjmp.h>
 #include "lisp.h"
 
 static void

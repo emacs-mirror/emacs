@@ -33,7 +33,7 @@ by Hallvard:
  */
 
 #include <config.h>
-#include <setjmp.h>
+
 #include "lisp.h"
 #include "character.h"
 #include "buffer.h"
