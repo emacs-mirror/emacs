@@ -488,9 +488,10 @@ What matched the HYPERLINK'th subexpression has `mouse-face' and
 `compilation-message-face' applied.  If this is nil, the text
 matched by the whole REGEXP becomes the hyperlink.
 
-Additional HIGHLIGHTs take the shape (SUBMATCH FACE), where SUBMATCH is
-the number of a submatch that should be highlighted when it matches,
-and FACE is an expression returning the face to use for that submatch.."
+Additional HIGHLIGHTs take the shape (SUBMATCH FACE), where
+SUBMATCH is the number of a submatch and FACE is an expression
+which evaluates to a face (more precisely, a valid value for the
+`font-lock-face' property) for highlighting the submatch."
   :type '(repeat (choice (symbol :tag "Predefined symbol")
 			 (sexp :tag "Error specification")))
   :link `(file-link :tag "example file"
@@ -1334,7 +1335,9 @@ to `compilation-error-regexp-alist' if RULES is nil."
                   (let ((face (eval (car extra-item))))
                     (cond
                      ((null face))
-                     ((symbolp face)
+                     ((or (symbolp face)
+			  (stringp face)
+			  (listp face))
                       (put-text-property
                        (match-beginning mn) (match-end mn)
                        'font-lock-face face))
