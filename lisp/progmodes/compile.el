@@ -490,8 +490,10 @@ matched by the whole REGEXP becomes the hyperlink.
 
 Additional HIGHLIGHTs take the shape (SUBMATCH FACE), where
 SUBMATCH is the number of a submatch and FACE is an expression
-which evaluates to a face (more precisely, a valid value for the
-`font-lock-face' property) for highlighting the submatch."
+which evaluates to a face name (a symbol or string).
+Alternatively, FACE can evaluate to a property list of the
+form (face FACE PROP1 VAL1 PROP2 VAL2 ...), in which case all the
+listed text properties PROP# are given values VAL# as well."
   :type '(repeat (choice (symbol :tag "Predefined symbol")
 			 (sexp :tag "Error specification")))
   :link `(file-link :tag "example file"
@@ -1329,18 +1331,27 @@ to `compilation-error-regexp-alist' if RULES is nil."
             (compilation--put-prop
              end-col 'font-lock-face compilation-column-face)
 
+	    ;; Obey HIGHLIGHT.
             (dolist (extra-item (nthcdr 6 item))
               (let ((mn (pop extra-item)))
                 (when (match-beginning mn)
                   (let ((face (eval (car extra-item))))
                     (cond
                      ((null face))
-                     ((or (symbolp face)
-			  (stringp face)
-			  (listp face))
+                     ((or (symbolp face) (stringp face))
                       (put-text-property
                        (match-beginning mn) (match-end mn)
                        'font-lock-face face))
+		     ((and (listp face)
+			   (eq (car face) 'face)
+			   (or (symbolp (cadr face))
+			       (stringp (cadr face))))
+                      (put-text-property
+                       (match-beginning mn) (match-end mn)
+                       'font-lock-face (cadr face))
+                      (add-text-properties
+                       (match-beginning mn) (match-end mn)
+                       (nthcdr 2 face)))
                      (t
                       (error "Don't know how to handle face %S"
                              face)))))))

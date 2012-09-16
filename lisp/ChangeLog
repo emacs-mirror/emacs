@@ -1,7 +1,8 @@
 2012-09-16  Chong Yidong  <cyd@gnu.org>
 
-	* progmodes/compile.el (compilation-parse-errors): Apply any value
-	that is a valid font-lock-face property (Bug#12136).
+	* progmodes/compile.el (compilation-parse-errors): Accept list
+	values similar to font-lock-keywords (Bug#12136).  Suggested by
+	Oleksandr Manzyuk.
 	(compilation-error-regexp-alist): Doc fix.
 
 2012-09-15  Glenn Morris  <rgm@gnu.org>
