@@ -493,6 +493,17 @@ as first char even if `ido-enable-prefix' is nil."
   :type 'boolean
   :group 'ido)
 
+;; See http://debbugs.gnu.org/2042 for more info.
+(defcustom ido-buffer-disable-smart-matches t
+  "Non-nil means not to re-order matches for buffer switching.
+By default, ido aranges matches in the following order:
+
+  full-matches > suffix matches > prefix matches > remaining matches
+
+which can get in the way for buffer switching."
+  :type 'boolean
+  :group 'ido)
+
 (defcustom ido-confirm-unique-completion nil
   "Non-nil means that even a unique completion must be confirmed.
 This means that \\[ido-complete] must always be followed by \\[ido-exit-minibuffer]
@@ -3688,10 +3699,17 @@ This is to make them appear as if they were \"virtual buffers\"."
 	 (rex0 (if ido-enable-regexp text (regexp-quote text)))
 	 (rexq (concat rex0 (if slash ".*/" "")))
 	 (re (if ido-enable-prefix (concat "\\`" rexq) rexq))
-	 (full-re (and do-full (not ido-enable-regexp) (not (string-match "\$\\'" rex0))
+	 (full-re (and do-full
+		       (and (eq ido-cur-item 'buffer)
+			    (not ido-buffer-disable-smart-matches))
+		       (not ido-enable-regexp)
+		       (not (string-match "\$\\'" rex0))
 		       (concat "\\`" rex0 (if slash "/" "") "\\'")))
 	 (suffix-re (and do-full slash
-			 (not ido-enable-regexp) (not (string-match "\$\\'" rex0))
+			 (and (eq ido-cur-item 'buffer)
+			      (not ido-buffer-disable-smart-matches))
+			 (not ido-enable-regexp)
+			 (not (string-match "\$\\'" rex0))
 			 (concat rex0 "/\\'")))
 	 (prefix-re (and full-re (not ido-enable-prefix)
 			 (concat "\\`" rexq)))
