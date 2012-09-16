@@ -4551,6 +4551,9 @@ of the window used."
 	  (function :tag "function"))
   :group 'windows)
 
+(make-obsolete-variable 'display-buffer-function
+			'display-buffer-alist "24.3")
+
 ;; Eventually, we want to turn this into a defvar; instead of
 ;; customizing this, the user should use a `pop-up-frame-parameters'
 ;; alist entry in `display-buffer-base-action'.
