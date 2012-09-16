@@ -1,3 +1,8 @@
+2012-09-16  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mail/mailabbrev.el (mail-abbrev-expand-hook): Work for a mail aliasee
+	that holds many addresses.
+
 2012-09-16  Chong Yidong  <cyd@gnu.org>
 
 	* align.el (align-areas): Call the indication function with
