@@ -1,3 +1,8 @@
+2012-09-16  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.c (Fwindow_parameter, Fset_window_parameter): Accept
+	any window as argument (Bug#12452).
+
 2012-09-16  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsfns.m (Fx_open_connection): Move initialization of ns_*_types
