@@ -47,6 +47,9 @@
 ;; and will be forced to bootstrap a new one.
 (setq srecode-map-save-file nil)
 
+;; Turn on Semantic
+(semantic-mode 1)
+
 ;; Disable asking lots of questions while the tests are running.
 (setq ede-project-directories t)
 
