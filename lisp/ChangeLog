@@ -1,5 +1,7 @@
 2012-09-16  Chong Yidong  <cyd@gnu.org>
 
+	* window.el (special-display-popup-frame): Doc fix (Bug#8853).
+
 	* progmodes/compile.el (compilation-parse-errors): Accept list
 	values similar to font-lock-keywords (Bug#12136).  Suggested by
 	Oleksandr Manzyuk.
