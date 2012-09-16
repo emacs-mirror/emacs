@@ -11,7 +11,7 @@
 	* make-dist (nextstep/templates): Add directory.
 	(nextstep/Cocoa/Emacs.base/Contents/Resources/English.lproj): Remove.
 	(nextstep/Cocoa/Emacs.base/Contents)
-	(nextstep/GNUstep/Emacs.base/Resources): Update contents.
+	(nextstep, nextstep/GNUstep/Emacs.base/Resources): Update contents.
 
 2012-09-15  Paul Eggert  <eggert@cs.ucla.edu>
 

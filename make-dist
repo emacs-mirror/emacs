@@ -404,7 +404,7 @@ echo "Making links to \`msdos'"
 
 echo "Making links to \`nextstep'"
 (cd nextstep
- ln ChangeLog README INSTALL ../${tempdir}/nextstep)
+ ln ChangeLog README INSTALL Makefile.in ../${tempdir}/nextstep)
 
 echo "Making links to \`nextstep/templates'"
 (cd nextstep/templates
