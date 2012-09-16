@@ -1201,7 +1201,10 @@ have been aligned.  No changes will be made to the buffer."
 	      (gocol col) cur)
 	  (when area
 	    (if func
-		(funcall func (car area) (cdr area) change)
+		(funcall func
+			 (marker-position (car area))
+			 (marker-position (cdr area))
+			 change)
 	      (if (not (and justify
 			    (consp (cdr area))))
 		  (goto-char (cdr area))

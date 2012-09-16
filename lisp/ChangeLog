@@ -1,5 +1,8 @@
 2012-09-16  Chong Yidong  <cyd@gnu.org>
 
+	* align.el (align-areas): Call the indication function with
+	positions instead of markers for arguments (Bug#12343).
+
 	* files.el (parse-colon-path): Use split-string (Bug#12351).
 
 	* window.el (special-display-popup-frame): Doc fix (Bug#8853).
