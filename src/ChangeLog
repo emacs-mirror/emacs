@@ -1,3 +1,13 @@
+2012-09-16  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsfns.m (Fx_open_connection): Move initialization of ns_*_types
+	to ns_term_init to avoid memory leak.
+
+	* nsterm.m (ns_update_begin): Initialize bp after lcokFocus, use
+	explicit retain/release.
+	(ns_term_init): Only allow one display.  Initialize outerpool and
+	ns_*_types.
+
 2012-09-15  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Port _setjmp fix to POSIXish hosts as well as Microsoft.
