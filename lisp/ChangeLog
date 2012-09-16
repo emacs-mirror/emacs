@@ -1,5 +1,7 @@
 2012-09-16  Chong Yidong  <cyd@gnu.org>
 
+	* files.el (parse-colon-path): Use split-string (Bug#12351).
+
 	* window.el (special-display-popup-frame): Doc fix (Bug#8853).
 	(display-buffer-function): Mark as obsolete.
 
