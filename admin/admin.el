@@ -126,39 +126,7 @@ Root must be the root of an Emacs source tree."
     (set-version-in-file root "nt/emacsclient.rc" comma-space-version
 			 (rx (and "\"ProductVersion\"" (0+ space) ?,
 				  (0+ space) ?\" (submatch (1+ (in "0-9, ")))
-				  "\\0\""))))
-  ;; nextstep.
-  (set-version-in-file
-   root "nextstep/Cocoa/Emacs.base/Contents/Info.plist"
-   version (rx (and "CFBundleGetInfoString" (1+ anything) "Emacs" (1+ space)
-                    (submatch (1+ (in "0-9."))))))
-  (set-version-in-file
-   root "nextstep/Cocoa/Emacs.base/Contents/Info.plist"
-   version (rx (and "CFBundleShortVersionString" (1+ not-newline) ?\n
-                    (0+ not-newline) "<string>" (0+ space)
-                    (submatch (1+ (in "0-9."))))))
-  (set-version-in-file
-   root "nextstep/Cocoa/Emacs.base/Contents/Resources/English.lproj/InfoPlist.strings"
-   version (rx (and "CFBundleShortVersionString" (0+ space) ?= (0+ space)
-                    ?\" (0+ space) "Version" (1+ space)
-                    (submatch (1+ (in "0-9."))))))
-  (set-version-in-file
-   root "nextstep/Cocoa/Emacs.base/Contents/Resources/English.lproj/InfoPlist.strings"
-   version (rx (and "CFBundleGetInfoString" (0+ space) ?= (0+ space)
-                    ?\" (0+ space) "Emacs version" (1+ space)
-                    (submatch (1+ (in "0-9."))))))
-  (set-version-in-file
-   root "nextstep/GNUstep/Emacs.base/Resources/Info-gnustep.plist"
-   version (rx (and "ApplicationRelease" (0+ space) ?= (0+ space)
-                    ?\" (0+ space) (submatch (1+ (in "0-9."))))))
-  (set-version-in-file
-   root "nextstep/GNUstep/Emacs.base/Resources/Info-gnustep.plist"
-   version (rx (and "FullVersionID" (0+ space) ?= (0+ space)
-                    ?\" (0+ space) "Emacs" (1+ space)
-                    (submatch (1+ (in "0-9."))))))
-  (set-version-in-file
-   root "nextstep/GNUstep/Emacs.base/Resources/Emacs.desktop"
-   version (rx (and "Version=" (submatch (1+ (in "0-9.")))))))
+				  "\\0\"")))))
 
 ;; Note this makes some assumptions about form of short copyright.
 (defun set-copyright (root copyright)
@@ -188,16 +156,16 @@ Root must be the root of an Emacs source tree."
   (string-match "\\(.*[0-9]\\{4\\} *\\)\\(.*\\)" copyright)
   ;; nextstep.
   (set-version-in-file
-   root "nextstep/Cocoa/Emacs.base/Contents/Info.plist"
+   root "nextstep/templates/Info.plist.in"
    copyright (rx (and "CFBundleGetInfoString" (1+ anything) "Emacs" (1+ space)
                     (1+ (in "0-9.")) (1+ space)
                     (submatch (1+ (not (in ?\<)))))))
   (set-version-in-file
-   root "nextstep/Cocoa/Emacs.base/Contents/Resources/English.lproj/InfoPlist.strings"
+   root "nextstep/templates/InfoPlist.strings.in"
    copyright (rx (and "NSHumanReadableCopyright" (0+ space) ?\= (0+ space)
                     ?\" (submatch (1+ (not (in ?\")))))))
   (set-version-in-file
-   root "nextstep/GNUstep/Emacs.base/Resources/Info-gnustep.plist"
+   root "nextstep/templates/Info-gnustep.plist.in"
    copyright (rx (and "Copyright" (0+ space) ?\= (0+ space)
                       ?\" (submatch (1+ (not (in ?\")))))))
   (when (string-match "\\([0-9]\\{4\\}\\)" copyright)

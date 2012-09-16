@@ -1,3 +1,18 @@
+2012-09-16  Glenn Morris  <rgm@gnu.org>
+
+	Increase compartmentalization of Nextstep builds rules,
+	and store Emacs version number in fewer versioned files.
+	* configure.ac (ns_appsrc): Use relative names.
+	(ns_frag): Remove.
+	(Info-gnustep.plist, Emacs.desktop, Info.plist, InfoPlist.strings)
+	(nextstep/Makefile): Generate these nextstep files.
+	(SUBDIR_MAKEFILES): Add nextstep.
+	* Makefile.in (clean, distclean, bootstrap-clean): Add nextstep.
+	* make-dist (nextstep/templates): Add directory.
+	(nextstep/Cocoa/Emacs.base/Contents/Resources/English.lproj): Remove.
+	(nextstep/Cocoa/Emacs.base/Contents)
+	(nextstep/GNUstep/Emacs.base/Resources): Update contents.
+
 2012-09-15  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Port better to POSIX hosts lacking _setjmp (Bug#12446).

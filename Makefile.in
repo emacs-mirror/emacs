@@ -737,6 +737,7 @@ clean: FRC
 	-(cd doc/lispref &&   $(MAKE) $(MFLAGS) clean)
 	-(cd doc/lispintro &&   $(MAKE) $(MFLAGS) clean)
 	(cd leim;     $(MAKE) $(MFLAGS) clean)
+	(cd nextstep && $(MAKE) $(MFLAGS) clean)
 
 ### `bootclean'
 ###      Delete all files that need to be remade for a clean bootstrap.
@@ -763,6 +764,7 @@ distclean: FRC
 	(cd doc/lispintro &&    $(MAKE) $(MFLAGS) distclean)
 	(cd leim;     $(MAKE) $(MFLAGS) distclean)
 	(cd lisp;     $(MAKE) $(MFLAGS) distclean)
+	(cd nextstep && $(MAKE) $(MFLAGS) distclean)
 	${top_distclean}
 
 ### `bootstrap-clean'
@@ -780,6 +782,7 @@ bootstrap-clean: FRC
 	-(cd doc/lispintro &&   $(MAKE) $(MFLAGS) maintainer-clean)
 	(cd leim;     $(MAKE) $(MFLAGS) maintainer-clean)
 	(cd lisp;     $(MAKE) $(MFLAGS) bootstrap-clean)
+	(cd nextstep && $(MAKE) $(MFLAGS) maintainer-clean)
 	[ ! -f config.log ] || mv -f config.log config.log~
 	${top_bootclean}
 

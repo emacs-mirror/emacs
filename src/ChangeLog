@@ -1,4 +1,12 @@
-2012-09-17  Kenichi Handa  <handa@gnu.org>
+2012-09-16  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (ns_appdir, ns_appbindir, ns_appsrc): Remove variables.
+	(ns_frag): Remove.
+	(ns-app): Move here from ns.mk, and simplify.
+	(clean): Simplify nextstep entry.
+	* ns.mk: Remove file.
+
+2012-09-16  Kenichi Handa  <handa@gnu.org>
 
 	* font.c (Ffont_shape_gstring): Fix previous change; GLYPHs may
 	not covert the last few charactes.

@@ -1,3 +1,8 @@
+2012-09-16  Glenn Morris  <rgm@gnu.org>
+
+	* admin.el (set-version): No more need to set nextstep versions.
+	(set-copyright): Update for moved nextstep files.
+
 2012-09-13  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Simplify SIGIO usage (Bug#12408).
