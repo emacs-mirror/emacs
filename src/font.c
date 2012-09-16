@@ -4330,10 +4330,10 @@ GSTRING.  */)
     LGSTRING_SET_GLYPH (gstring, XINT (n), Qnil);
 
   /* Check FROM_IDX and TO_IDX of each GLYPH in GSTRING to assure that
-     GLYPHS covers all characters in GSTRING.  More formally, provided
-     that NCHARS is the number of characters in GSTRING, N is the
-     number of glyphs, and GLYPHS[i] is the ith glyph, FROM_IDX and
-     TO_IDX of each glyph must satisfy these conditions:
+     GLYPHS covers all characters (except for the last few ones) in
+     GSTRING.  More formally, provided that NCHARS is the number of
+     characters in GSTRING and GLYPHS[i] is the ith glyph, FROM_IDX
+     and TO_IDX of each glyph must satisfy these conditions:
 
        GLYPHS[0].FROM_IDX == 0
        GLYPHS[i].FROM_IDX <= GLYPHS[i].TO_IDX
@@ -4342,8 +4342,7 @@ GSTRING.  */)
          GLYPHS[i].TO_IDX == GLYPHS[i-1].TO_IDX
        else
          ;; Be sure to cover all characters.
-         GLYPHS[i].FROM_IDX == GLYPHS[i-1].TO_IDX + 1
-       GLYPHS[N-1].TO_IDX == NCHARS - 1 */
+         GLYPHS[i].FROM_IDX == GLYPHS[i-1].TO_IDX + 1 */
   glyph = LGSTRING_GLYPH (gstring, 0);
   from = LGLYPH_FROM (glyph);
   to = LGLYPH_TO (glyph);
@@ -4362,8 +4361,6 @@ GSTRING.  */)
       from = LGLYPH_FROM (glyph);
       to = LGLYPH_TO (glyph);
     }
-  if (to != LGSTRING_CHAR_LEN (gstring) - 1)
-    goto shaper_error;
   return composition_gstring_put_cache (gstring, XINT (n));
 
  shaper_error:
