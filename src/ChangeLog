@@ -1,3 +1,8 @@
+2012-09-16  Kenichi Handa  <handa@gnu.org>
+
+	* font.c (Ffont_shape_gstring): Don't adjust grapheme cluster
+	here, but just check the validity of glyphs in the glyph-string.
+
 2012-09-16  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.c (Fwindow_parameter, Fset_window_parameter): Accept
