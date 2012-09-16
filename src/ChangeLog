@@ -1,3 +1,7 @@
+2012-09-16  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* font.c (Ffont_shape_gstring): Remove unused local.
+
 2012-09-16  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (clean): No longer run nextstep's clean.

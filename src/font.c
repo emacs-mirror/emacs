@@ -4303,7 +4303,7 @@ GSTRING.  */)
 {
   struct font *font;
   Lisp_Object font_object, n, glyph;
-  ptrdiff_t i, j, from, to;
+  ptrdiff_t i, from, to;
 
   if (! composition_gstring_p (gstring))
     signal_error ("Invalid glyph-string: ", gstring);
