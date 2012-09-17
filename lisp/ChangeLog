@@ -11,9 +11,10 @@
 	* mail/rmailmm.el (rmail-mime-toggle-raw): Do rmail-mime-insert
 	only in the mime-shown mode, not in raw mode.
 	(rmail-mime): Toggle off mime by displaying the message without
-	mime processing.
+	mime processing.  (Bug#12305)
 
-	* mail/rmail.el (rmail-retry-failure): Turn off mime processing first.
+	* mail/rmail.el (rmail-retry-failure):
+	Turn off mime processing first.  (Bug#12037)
 
 	* epa-mail.el (epa-mail-encrypt): Fix bug when a name has no key.
 
