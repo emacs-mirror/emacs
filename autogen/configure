@@ -1143,6 +1143,7 @@ srcdir
 canonical
 configuration
 version
+copyright
 KRB4LIB
 DESLIB
 KRB5LIB
@@ -1330,8 +1331,7 @@ PACKAGE_NAME
 PATH_SEPARATOR
 SHELL'
 ac_subst_files='deps_frag
-lisp_frag
-ns_frag'
+lisp_frag'
 ac_user_opts='
 enable_option_checking
 with_all
@@ -1343,7 +1343,6 @@ with_mmdf
 with_mail_unlink
 with_mailhost
 with_sound
-with_sync_input
 with_x_toolkit
 with_wide_int
 with_xpm
@@ -2061,7 +2060,6 @@ Optional Packages:
   --with-mailhost=HOSTNAME
                           string giving default POP mail host
   --without-sound         don't compile with sound support
-  --without-sync-input    don't process async input synchronously
   --with-x-toolkit=KIT    use an X toolkit (KIT one of: yes or gtk, gtk2,
                           gtk3, lucid or athena, motif, no)
   --with-wide-int         prefer wide Emacs integers (typically 62-bit)
@@ -3931,20 +3929,6 @@ else
      with_sound=$with_features
 fi
 
-
-
-# Check whether --with-sync-input was given.
-if test "${with_sync_input+set}" = set; then :
-  withval=$with_sync_input;
-else
-     with_sync_input=$with_features
-fi
-
-if test "$with_sync_input" = yes; then
-
-$as_echo "#define SYNC_INPUT 1" >>confdefs.h
-
-fi
 
 
 # Check whether --with-x-toolkit was given.
@@ -9414,13 +9398,13 @@ if test "${with_ns}" != no; then
      ns_appdir=`pwd`/nextstep/Emacs.app
      ns_appbindir=${ns_appdir}/Contents/MacOS
      ns_appresdir=${ns_appdir}/Contents/Resources
-     ns_appsrc=${srcdir}/nextstep/Cocoa/Emacs.base
+     ns_appsrc=Cocoa/Emacs.base
   elif test -f $GNUSTEP_CONFIG_FILE; then
      NS_IMPL_GNUSTEP=yes
      ns_appdir=`pwd`/nextstep/Emacs.app
      ns_appbindir=${ns_appdir}
      ns_appresdir=${ns_appdir}/Resources
-     ns_appsrc=${srcdir}/nextstep/GNUstep/Emacs.base
+     ns_appsrc=GNUstep/Emacs.base
           GNUSTEP_SYSTEM_HEADERS="$(. $GNUSTEP_CONFIG_FILE; echo $GNUSTEP_SYSTEM_HEADERS)"
      GNUSTEP_SYSTEM_LIBRARIES="$(. $GNUSTEP_CONFIG_FILE; echo $GNUSTEP_SYSTEM_LIBRARIES)"
           GNUSTEP_LOCAL_HEADERS="$(. $GNUSTEP_CONFIG_FILE; echo $GNUSTEP_LOCAL_HEADERS)"
@@ -9510,7 +9494,6 @@ fi
 
 INSTALL_ARCH_INDEP_EXTRA=install-etc
 ns_self_contained=no
-ns_frag=/dev/null
 NS_OBJ=
 NS_OBJC_OBJ=
 if test "${HAVE_NS}" = yes; then
@@ -9534,12 +9517,10 @@ if test "${HAVE_NS}" = yes; then
      leimdir="\${ns_appresdir}/leim"
      INSTALL_ARCH_INDEP_EXTRA=
   fi
-  ns_frag=$srcdir/src/ns.mk
   NS_OBJC_OBJ="nsterm.o nsfns.o nsmenu.o nsselect.o nsimage.o nsfont.o"
 fi
 CFLAGS="$tmp_CFLAGS"
 CPPFLAGS="$tmp_CPPFLAGS"
-
 
 
 
@@ -14508,6 +14489,11 @@ else
 $as_echo "no" >&6; }
 fi
 
+case $canonical in
+  *-solaris2.4 | *-solaris2.4.*)
+        : ${ac_cv_func_vfork_works=no};;
+esac
+
 ac_fn_c_check_type "$LINENO" "pid_t" "ac_cv_type_pid_t" "$ac_includes_default"
 if test "x$ac_cv_type_pid_t" = x""yes; then :
 
@@ -15767,9 +15753,6 @@ $as_echo "#define G_SLICE_ALWAYS_MALLOC 1" >>confdefs.h
 
   hpux11)
 
-$as_echo "#define BROKEN_SA_RESTART 1" >>confdefs.h
-
-
 $as_echo "#define USG_SUBTTY_WORKS 1" >>confdefs.h
 
     ;;
@@ -15803,6 +15786,14 @@ if test "x$GCC" = xyes \
 fi
 
 version=$PACKAGE_VERSION
+
+copyright="Copyright (C) 2012 Free Software Foundation, Inc."
+
+cat >>confdefs.h <<_ACEOF
+#define COPYRIGHT "$copyright"
+_ACEOF
+
+
 
 ### Specify what sort of things we'll be editing into Makefile and config.h.
 ### Use configuration here uncanonicalized to avoid exceeding size limits.
@@ -24391,9 +24382,19 @@ test "${prefix}" != NONE &&
 test "${exec_prefix}" != NONE &&
   exec_prefix=`echo "${exec_prefix}" | sed 's,\([^/]\)/*$,\1,'`
 
-SUBDIR_MAKEFILES="lib/Makefile lib-src/Makefile oldXMenu/Makefile doc/emacs/Makefile doc/misc/Makefile doc/lispintro/Makefile doc/lispref/Makefile src/Makefile lwlib/Makefile lisp/Makefile leim/Makefile"
+if test "$HAVE_NS" = "yes"; then
+  if test "$NS_IMPL_GNUSTEP" = yes; then
+    ac_config_files="$ac_config_files nextstep/GNUstep/Emacs.base/Resources/Info-gnustep.plist:nextstep/templates/Info-gnustep.plist.in nextstep/GNUstep/Emacs.base/Resources/Emacs.desktop:nextstep/templates/Emacs.desktop.in"
 
-ac_config_files="$ac_config_files Makefile lib/Makefile lib-src/Makefile oldXMenu/Makefile doc/emacs/Makefile doc/misc/Makefile doc/lispintro/Makefile doc/lispref/Makefile src/Makefile lwlib/Makefile lisp/Makefile leim/Makefile"
+  else
+    ac_config_files="$ac_config_files nextstep/Cocoa/Emacs.base/Contents/Info.plist:nextstep/templates/Info.plist.in nextstep/Cocoa/Emacs.base/Contents/Resources/English.lproj/InfoPlist.strings:nextstep/templates/InfoPlist.strings.in"
+
+  fi
+fi
+
+SUBDIR_MAKEFILES="lib/Makefile lib-src/Makefile oldXMenu/Makefile doc/emacs/Makefile doc/misc/Makefile doc/lispintro/Makefile doc/lispref/Makefile src/Makefile lwlib/Makefile lisp/Makefile leim/Makefile nextstep/Makefile"
+
+ac_config_files="$ac_config_files Makefile lib/Makefile lib-src/Makefile oldXMenu/Makefile doc/emacs/Makefile doc/misc/Makefile doc/lispintro/Makefile doc/lispref/Makefile src/Makefile lwlib/Makefile lisp/Makefile leim/Makefile nextstep/Makefile"
 
 
 opt_makefile=test/automated/Makefile
@@ -25233,6 +25234,10 @@ do
   case $ac_config_target in
     "src/config.h") CONFIG_HEADERS="$CONFIG_HEADERS src/config.h:src/config.in" ;;
     "depfiles") CONFIG_COMMANDS="$CONFIG_COMMANDS depfiles" ;;
+    "nextstep/GNUstep/Emacs.base/Resources/Info-gnustep.plist") CONFIG_FILES="$CONFIG_FILES nextstep/GNUstep/Emacs.base/Resources/Info-gnustep.plist:nextstep/templates/Info-gnustep.plist.in" ;;
+    "nextstep/GNUstep/Emacs.base/Resources/Emacs.desktop") CONFIG_FILES="$CONFIG_FILES nextstep/GNUstep/Emacs.base/Resources/Emacs.desktop:nextstep/templates/Emacs.desktop.in" ;;
+    "nextstep/Cocoa/Emacs.base/Contents/Info.plist") CONFIG_FILES="$CONFIG_FILES nextstep/Cocoa/Emacs.base/Contents/Info.plist:nextstep/templates/Info.plist.in" ;;
+    "nextstep/Cocoa/Emacs.base/Contents/Resources/English.lproj/InfoPlist.strings") CONFIG_FILES="$CONFIG_FILES nextstep/Cocoa/Emacs.base/Contents/Resources/English.lproj/InfoPlist.strings:nextstep/templates/InfoPlist.strings.in" ;;
     "Makefile") CONFIG_FILES="$CONFIG_FILES Makefile" ;;
     "lib/Makefile") CONFIG_FILES="$CONFIG_FILES lib/Makefile" ;;
     "lib-src/Makefile") CONFIG_FILES="$CONFIG_FILES lib-src/Makefile" ;;
@@ -25245,6 +25250,7 @@ do
     "lwlib/Makefile") CONFIG_FILES="$CONFIG_FILES lwlib/Makefile" ;;
     "lisp/Makefile") CONFIG_FILES="$CONFIG_FILES lisp/Makefile" ;;
     "leim/Makefile") CONFIG_FILES="$CONFIG_FILES leim/Makefile" ;;
+    "nextstep/Makefile") CONFIG_FILES="$CONFIG_FILES nextstep/Makefile" ;;
     "test/automated/Makefile") CONFIG_FILES="$CONFIG_FILES test/automated/Makefile" ;;
     "admin/unidata/Makefile") CONFIG_FILES="$CONFIG_FILES admin/unidata/Makefile" ;;
     "mkdirs") CONFIG_COMMANDS="$CONFIG_COMMANDS mkdirs" ;;

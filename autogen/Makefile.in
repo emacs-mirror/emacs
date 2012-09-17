@@ -787,6 +787,7 @@ builddir = @builddir@
 cache_file = @cache_file@
 canonical = @canonical@
 configuration = @configuration@
+copyright = @copyright@
 datadir = @datadir@
 datarootdir = @datarootdir@
 docdir = @docdir@
