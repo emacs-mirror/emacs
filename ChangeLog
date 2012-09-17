@@ -1,5 +1,14 @@
 2012-09-17  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* Makefile.in: Fix build error on FreeBSD.
+	($(MAKEFILE_NAME)): Pass MAKE='$(MAKE)' to config.status's env.
+	Suggested by Wolfgang Jenker in
+	<http://lists.gnu.org/archive/html/emacs-devel/2012-09/msg00430.html>.
+	(MAKE_CONFIG_STATUS): Remove.  Remaining use expanded.
+	This undoes part of the 2012-09-10 patch.
+	(bootstrap): Run ./configure, rather than trying to run config.status
+	if it exists.  That builds src/epaths.h more reliably.
+
 	Remove no-longer-needed Solaris 2.4 vfork bug workaround.
 	* configure.ac (ac_cv_func_vfork_works): Default to 'no' on
 	Solaris 2.4, so that AC_FUNC_VFORK doesn't think vfork works.

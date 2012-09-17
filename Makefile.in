@@ -358,19 +358,17 @@ blessmail: Makefile src FRC
 MAKEFILE_NAME = Makefile
 $(MAKEFILE_NAME): config.status $(srcdir)/src/config.in \
           $(srcdir)/Makefile.in $(SUBDIR_MAKEFILES_IN)
-	./config.status
+	MAKE='$(MAKE)' ./config.status
 
 # Don't erase these files if make is interrupted while refreshing them.
 .PRECIOUS: Makefile config.status
 
-MAKE_CONFIG_STATUS = \
+config.status: ${srcdir}/configure ${srcdir}/lisp/version.el
 	if [ -x ./config.status ]; then	\
 	    ./config.status --recheck;	\
 	else				\
 	    ./configure $(CONFIGURE_FLAGS); \
 	fi
-config.status: ${srcdir}/configure ${srcdir}/lisp/version.el
-	$(MAKE_CONFIG_STATUS)
 
 AUTOCONF_INPUTS = $(srcdir)/configure.ac $(srcdir)/aclocal.m4
 
@@ -897,7 +895,7 @@ dvi:
 #  * Do the actual build.
 bootstrap: bootstrap-clean FRC
 	cd $(srcdir) && { ./autogen.sh || test $$? -eq 101; }
-	$(MAKE_CONFIG_STATUS)
+	./configure $(CONFIGURE_FLAGS)
 	$(MAKE) $(MFLAGS) info all
 
 .PHONY: check-declare
