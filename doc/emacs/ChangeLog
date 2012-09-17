@@ -1,3 +1,8 @@
+2012-09-17  Chong Yidong  <cyd@gnu.org>
+
+	* building.texi (GDB User Interface Layout): Remove reference to
+	removed variable gdb-use-separate-io-buffer (Bug#12454).
+
 2012-09-08  Jambunathan K  <kjambunathan@gmail.com>
 
 	* regs.texi (Text Registers): `C-x r +' can now be used instead of
