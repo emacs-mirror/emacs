@@ -501,6 +501,7 @@ By default, ido aranges matches in the following order:
   full-matches > suffix matches > prefix matches > remaining matches
 
 which can get in the way for buffer switching."
+  :version "24.3"
   :type 'boolean
   :group 'ido)
 
