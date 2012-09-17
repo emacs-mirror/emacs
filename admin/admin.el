@@ -26,6 +26,8 @@
 
 ;;; Code:
 
+(defvar add-log-time-format)		; in add-log
+
 (defun add-release-logs (root version)
   "Add \"Version VERSION released.\" change log entries in ROOT.
 Root must be the root of an Emacs source tree."
@@ -415,7 +417,7 @@ Also generate PostScript output in PS-DEST."
 	(setq done t))
        (t
 	(if (eobp)
-	    (error "Parse error in %s" f))
+	    (error "Parse error in %s" f)) ; f is bound in manual-html-node
 	(unless open-td
 	  (setq done t))))
       (forward-line 1))))

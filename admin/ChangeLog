@@ -1,5 +1,7 @@
 2012-09-17  Glenn Morris  <rgm@gnu.org>
 
+	* admin.el (add-log-time-format): Declare.
+
 	* admin.el (cusver-scan, cusver-check): Bind local variables.
 
 	* admin.el (set-version): Set major version in
