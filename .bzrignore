@@ -66,6 +66,8 @@ doc/**/*.pdf
 !doc/lispintro/cons-*.pdf
 !doc/lispintro/drawers.pdf
 !doc/lispintro/lambda-*.pdf
+etc/refcards/*.aux
+etc/refcards/*.log
 info/*.info
 admin/unidata/unidata.txt
 build-aux/compile

@@ -1,5 +1,12 @@
 2012-09-17  Glenn Morris  <rgm@gnu.org>
 
+	* admin.el (cusver-scan, cusver-check): Bind local variables.
+
+	* admin.el (set-version): Set major version in
+	etc/refcards/ru-refcard.tex and etc/refcards/emacsver.tex.
+	(set-copyright): In etc/refcards, only change ru-refcard.tex
+	and emacsver.tex.
+
 	* admin.el (set-copyright): No more need to set copyrights for
 	nextstep, or .c files.  Add configure.ac and config.nt.
 

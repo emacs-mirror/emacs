@@ -1,3 +1,23 @@
+2012-09-17  Glenn Morris  <rgm@gnu.org>
+
+	* refcards/emacsver.tex: New file.
+	* refcards/calccard.tex, refcards/cs-dired-ref.tex:
+	* refcards/cs-refcard.tex, refcards/cs-survival.tex:
+	* refcards/de-refcard.tex, refcards/dired-ref.tex:
+	* refcards/emacsver.tex, refcards/fr-dired-ref.tex:
+	* refcards/fr-refcard.tex, refcards/fr-survival.tex:
+	* refcards/orgcard.tex, refcards/pl-refcard.tex:
+	* refcards/pt-br-refcard.tex, refcards/refcard.tex:
+	* refcards/sk-dired-ref.tex, refcards/sk-refcard.tex:
+	* refcards/sk-survival.tex, refcards/survival.tex:
+	* refcards/vipcard.tex, refcards/viperCard.tex: Include emacsver.tex.
+	* refcards/calccard.tex (\emacsversionnumber):
+	Rename to \versionemacs, same as all the other refcards.
+	* refcards/Makefile (ENVADD): New variable.
+	(sk-dired-ref.pdf, sk-survival.pdf, pl-refcard.pdf)
+	(%.pdf, %,dvi, sk-dired-ref.dvi, sk-survival.dvi, pl-refcard.dvi):
+	Depend on emacsver.tex.  Add "." to TEXINPUTS for TeX commands.
+
 2012-09-16  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Remove configure's --without-sync-input option (Bug#12450).

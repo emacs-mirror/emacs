@@ -47,26 +47,27 @@ VIPER_CARDS_PDF = vipcard.pdf viperCard.pdf
 viper-cards_pdf: ${VIPER_CARDS_PDF}
 viper-cards_ps: ${VIPER_CARDS_PDF:.pdf=.ps}
 
+ENVADD = TEXINPUTS=".:"
 
 ## PDF files.
 
 ## The page layouts (a4/letter) are written directly in the .tex files.
 
 cs-refcard.pdf cs-dired-ref.pdf cs-survival.pdf sk-refcard.pdf \
-sk-dired-ref.pdf sk-survival.pdf: %.pdf:	%.tex
+sk-dired-ref.pdf sk-survival.pdf: %.pdf: %.tex emacsver.tex
 	if pdfcsplain --version > /dev/null 2> /dev/null; then \
-	  pdfcsplain $<; \
+	  ${ENVADD} pdfcsplain $<; \
 	else \
-	  csplain "\pdfoutput=1\input $<"; \
+	  ${ENVADD} csplain "\pdfoutput=1\input $<"; \
 	fi
 
 ## Some versions of pdfmex seem to create dvi by default, hence output-format.
-pl-refcard.pdf: %.pdf: %.tex
+pl-refcard.pdf: %.pdf: %.tex emacsver.tex
 	if ! kpsewhich -format=fmt mex > /dev/null && \
 	  ! pdfmex --version > /dev/null 2> /dev/null; then \
 	  echo "No mex format found."; false; \
 	fi
-	pdftex -output-format=pdf $<
+	${ENVADD} pdftex -output-format=pdf $<
 
 ru-refcard.pdf: %.pdf: %.tex
 	pdflatex $<
@@ -81,21 +82,21 @@ gnus-booklet.pdf: gnus-refcard.tex gnus-logo.pdf
 	pdflatex -jobname=gnus-booklet '\def\booklettrue{}\def\letterpapertrue{}\input{gnus-refcard}'
 
 ## Everything not explicitly listed above.
-%.pdf: %.tex
-	pdftex $<
+%.pdf: %.tex emacsver.tex
+	${ENVADD} pdftex $<
 
 
 ## dvi files.
 
 cs-refcard.dvi cs-dired-ref.dvi cs-survival.dvi sk-refcard.dvi \
-sk-dired-ref.dvi sk-survival.dvi: %.dvi:	%.tex
-	csplain $<
+sk-dired-ref.dvi sk-survival.dvi: %.dvi: %.tex emacsver.tex
+	${ENVADD} csplain $<
 
-pl-refcard.dvi: %.dvi: %.tex
+pl-refcard.dvi: %.dvi: %.tex emacsver.tex
 	if ! kpsewhich -format=fmt mex > /dev/null; then \
 	  echo "No mex format found."; false; \
 	fi
-	tex $<
+	${ENVADD} tex $<
 
 ru-refcard.dvi gnus-refcard.dvi: %.dvi: %.tex
 	latex $<
@@ -105,8 +106,8 @@ gnus-booklet.dvi: gnus-refcard.tex
 	mv gnus-refcard.dvi $@
 
 ## Everything not explicitly listed above.
-%.dvi: %.tex
-	tex $<
+%.dvi: %.tex emacsver.tex
+	${ENVADD} tex $<
 
 
 ## PostScript files.

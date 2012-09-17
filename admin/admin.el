@@ -126,7 +126,16 @@ Root must be the root of an Emacs source tree."
     (set-version-in-file root "nt/emacsclient.rc" comma-space-version
 			 (rx (and "\"ProductVersion\"" (0+ space) ?,
 				  (0+ space) ?\" (submatch (1+ (in "0-9, ")))
-				  "\\0\"")))))
+				  "\\0\"")))
+    (when (string-match "\\([0-9]\\{2,\\}\\)" version)
+      (setq version (match-string 1 version))
+      (set-version-in-file root "etc/refcards/ru-refcard.tex" version
+			   "\\\\newcommand{\\\\versionemacs}\\[0\\]\
+{\\([0-9]\\{2,\\}\\)}.+%.+version of Emacs")
+      (set-version-in-file root "etc/refcards/emacsver.tex" version
+			   "\\\\def\\\\versionemacs\
+{\\([0-9]\\{2,\\}\\)}.+%.+version of Emacs"))))
+
 
 ;; Note this makes some assumptions about form of short copyright.
 (defun set-copyright (root copyright)
@@ -150,19 +159,14 @@ Root must be the root of an Emacs source tree."
   (set-version-in-file root "lib-src/rcs2log" copyright
         	       (rx (and "Copyright" (0+ space) ?= (0+ space)
         			?\' (submatch (1+ nonl)))))
-  ;; This one is a nuisance, as it needs to be split over two lines.
-  (string-match "\\(.*[0-9]\\{4\\} *\\)\\(.*\\)" copyright)
   (when (string-match "\\([0-9]\\{4\\}\\)" copyright)
     (setq copyright (match-string 1 copyright))
-    (dolist (file (directory-files (expand-file-name "etc/refcards" root)
-                                   t "\\.tex\\'"))
-      (unless (string-match "gnus-refcard\\.tex" file)
-        (set-version-in-file
-         root file copyright
-         (concat (if (string-match "ru-refcard\\.tex" file)
-                     "\\\\newcommand{\\\\cyear}\\[0\\]{"
-                   "\\\\def\\\\year{")
-                 "\\([0-9]\\{4\\}\\)}.+%.+copyright year"))))))
+    (set-version-in-file root "etc/refcards/ru-refcard.tex" copyright
+			 "\\\\newcommand{\\\\cyear}\\[0\\]\
+{\\([0-9]\\{4\\}\\)}.+%.+copyright year")
+    (set-version-in-file root "etc/refcards/emacsver.tex" copyright
+			 "\\\\def\\\\year\
+{\\([0-9]\\{4\\}\\)}.+%.+copyright year")))
 
 ;;; Various bits of magic for generating the web manuals
 
@@ -443,7 +447,7 @@ If optional argument OLD is non-nil, also scan for defvars."
   (let ((m (format "Scanning %s..." file))
 	(re (format "^[ \t]*\\((def%s\\)[ \t\n]"
 		    (if old "\\(?:custom\\|var\\)" "custom")))
-        alist var ver)
+        alist var ver form)
     (message "%s" m)
     (with-temp-buffer
       (insert-file-contents file)
@@ -502,7 +506,7 @@ changes (in a non-trivial way).  This function does not check for that."
 			(mapcar
 			 (lambda (file)
 			   (cons file (cusver-scan file))) newfiles)))
-	 oldcus result thisfile)
+	 oldcus result thisfile file)
     (message "Reading old defcustoms...")
     (dolist (file oldfiles)
       (setq oldcus (append oldcus (cusver-scan file t))))
