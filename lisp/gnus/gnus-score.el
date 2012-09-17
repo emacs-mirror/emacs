@@ -1717,105 +1717,140 @@ score in `gnus-newsgroup-scored' by SCORE."
 	  (setq entries rest)))))
   nil)
 
+(defun gnus-score-decode-text-parts ()
+  (labels ((mm-text-parts (handle)
+                        (cond ((stringp (car handle))
+                               (let ((parts (mapcan #'mm-text-parts (cdr handle))))
+                                 (if (equal "multipart/alternative" (car handle))
+                                     ;; pick the first supported alternative
+                                     (list (car parts))
+                                   parts)))
+
+                              ((bufferp (car handle))
+                               (when (string-match "^text/" (mm-handle-media-type handle))
+                                 (list handle)))
+
+                              (t (mapcan #'mm-text-parts handle))))
+           (my-mm-display-part (handle)
+                               (when handle
+                                 (save-restriction
+                                   (narrow-to-region (point) (point))
+                                   (mm-display-inline handle)
+                                   (goto-char (point-max))))))
+
+    (let (;(mm-text-html-renderer 'w3m-standalone)
+          (handles (mm-dissect-buffer t)))
+      (save-excursion
+        (article-goto-body)
+        (delete-region (point) (point-max))
+        (mapc #'my-mm-display-part (mm-text-parts handles))
+        handles))))
+
 (defun gnus-score-body (scores header now expire &optional trace)
-  (if gnus-agent-fetching
-      nil
-    (save-excursion
-      (setq gnus-scores-articles
-	    (sort gnus-scores-articles
-		  (lambda (a1 a2)
-		    (< (mail-header-number (car a1))
-		       (mail-header-number (car a2))))))
-      (set-buffer nntp-server-buffer)
-      (save-restriction
-	(let* ((buffer-read-only nil)
-	       (articles gnus-scores-articles)
-	       (all-scores scores)
-	       (request-func (cond ((string= "head" header)
-				    'gnus-request-head)
-				   ((string= "body" header)
-				    'gnus-request-body)
-				   (t 'gnus-request-article)))
-	       entries alist ofunc article last)
-	  (when articles
-	    (setq last (mail-header-number (caar (last articles))))
-	  ;; Not all backends support partial fetching.  In that case,
-	    ;; we just fetch the entire article.
-	    (unless (gnus-check-backend-function
-		     (and (string-match "^gnus-" (symbol-name request-func))
-			  (intern (substring (symbol-name request-func)
-					     (match-end 0))))
-		     gnus-newsgroup-name)
-	      (setq ofunc request-func)
-	      (setq request-func 'gnus-request-article))
-	    (while articles
-	      (setq article (mail-header-number (caar articles)))
-	      (gnus-message 7 "Scoring article %s of %s..." article last)
-	      (widen)
-	      (when (funcall request-func article gnus-newsgroup-name)
-		(goto-char (point-min))
-	    ;; If just parts of the article is to be searched, but the
-	    ;; backend didn't support partial fetching, we just narrow
-		;; to the relevant parts.
-		(when ofunc
-		  (if (eq ofunc 'gnus-request-head)
-		      (narrow-to-region
-		       (point)
-		       (or (search-forward "\n\n" nil t) (point-max)))
-		    (narrow-to-region
-		     (or (search-forward "\n\n" nil t) (point))
-		     (point-max))))
-		(setq scores all-scores)
-		;; Find matches.
-		(while scores
-		  (setq alist (pop scores)
-			entries (assoc header alist))
-		  (while (cdr entries) ;First entry is the header index.
-		    (let* ((rest (cdr entries))
-			   (kill (car rest))
-			   (match (nth 0 kill))
-			   (type (or (nth 3 kill) 's))
-			   (score (or (nth 1 kill)
-				      gnus-score-interactive-default-score))
-			   (date (nth 2 kill))
-			   (found nil)
-			   (case-fold-search
-			    (not (or (eq type 'R) (eq type 'S)
-				     (eq type 'Regexp) (eq type 'String))))
-			   (search-func
-			    (cond ((or (eq type 'r) (eq type 'R)
-				       (eq type 'regexp) (eq type 'Regexp))
-				   're-search-forward)
-				  ((or (eq type 's) (eq type 'S)
-				       (eq type 'string) (eq type 'String))
-				   'search-forward)
-				  (t
-				   (error "Invalid match type: %s" type)))))
-		      (goto-char (point-min))
-		      (when (funcall search-func match nil t)
-			;; Found a match, update scores.
-			(setcdr (car articles) (+ score (cdar articles)))
-			(setq found t)
-			(when trace
-			  (push
-			   (cons (car-safe (rassq alist gnus-score-cache))
-				 kill)
-			   gnus-score-trace)))
-		      ;; Update expire date
-		      (unless trace
-			(cond
-			 ((null date))	;Permanent entry.
-			 ((and found gnus-update-score-entry-dates)
-			  ;; Match, update date.
-			  (gnus-score-set 'touched '(t) alist)
-			  (setcar (nthcdr 2 kill) now))
-			 ((and expire (< date expire)) ;Old entry, remove.
-			  (gnus-score-set 'touched '(t) alist)
-			  (setcdr entries (cdr rest))
-			  (setq rest entries))))
-		      (setq entries rest)))))
-	      (setq articles (cdr articles)))))))
-    nil))
+    (if gnus-agent-fetching
+       nil
+     (save-excursion
+       (setq gnus-scores-articles
+             (sort gnus-scores-articles
+                   (lambda (a1 a2)
+                     (< (mail-header-number (car a1))
+                        (mail-header-number (car a2))))))
+       (set-buffer nntp-server-buffer)
+       (save-restriction
+         (let* ((buffer-read-only nil)
+                (articles gnus-scores-articles)
+                (all-scores scores)
+                (request-func (cond ((string= "head" header)
+                                     'gnus-request-head)
+                                    ;; We need to peek at the headers to detect
+                                    ;; the content encoding
+                                    ((string= "body" header)
+                                     'gnus-request-article)
+                                    (t 'gnus-request-article)))
+                entries alist ofunc article last)
+           (when articles
+             (setq last (mail-header-number (caar (last articles))))
+             ;; Not all backends support partial fetching.  In that case,
+             ;; we just fetch the entire article.
+             (unless (gnus-check-backend-function
+                      (and (string-match "^gnus-" (symbol-name request-func))
+                           (intern (substring (symbol-name request-func)
+                                              (match-end 0))))
+                      gnus-newsgroup-name)
+               (setq ofunc request-func)
+               (setq request-func 'gnus-request-article))
+             (while articles
+               (setq article (mail-header-number (caar articles)))
+               (gnus-message 7 "Scoring article %s of %s..." article last)
+               (widen)
+               (let (handles)
+                 (when (funcall request-func article gnus-newsgroup-name)
+                  (when (string= "body" header)
+                    (setq handles (gnus-score-decode-text-parts)))
+                  (goto-char (point-min))
+                  ;; If just parts of the article is to be searched, but the
+                  ;; backend didn't support partial fetching, we just narrow
+                  ;; to the relevant parts.
+                  (when ofunc
+                    (if (eq ofunc 'gnus-request-head)
+                        (narrow-to-region
+                         (point)
+                         (or (search-forward "\n\n" nil t) (point-max)))
+                      (narrow-to-region
+                       (or (search-forward "\n\n" nil t) (point))
+                       (point-max))))
+                  (setq scores all-scores)
+                  ;; Find matches.
+                  (while scores
+                    (setq alist (pop scores)
+                          entries (assoc header alist))
+                    (while (cdr entries) ;First entry is the header index.
+                      (let* ((rest (cdr entries))
+                             (kill (car rest))
+                             (match (nth 0 kill))
+                             (type (or (nth 3 kill) 's))
+                             (score (or (nth 1 kill)
+                                        gnus-score-interactive-default-score))
+                             (date (nth 2 kill))
+                             (found nil)
+                             (case-fold-search
+                              (not (or (eq type 'R) (eq type 'S)
+                                       (eq type 'Regexp) (eq type 'String))))
+                             (search-func
+                              (cond ((or (eq type 'r) (eq type 'R)
+                                         (eq type 'regexp) (eq type 'Regexp))
+                                     're-search-forward)
+                                    ((or (eq type 's) (eq type 'S)
+                                         (eq type 'string) (eq type 'String))
+                                     'search-forward)
+                                    (t
+                                     (error "Invalid match type: %s" type)))))
+                        (goto-char (point-min))
+                        (when (funcall search-func match nil t)
+                          ;; Found a match, update scores.
+                          (setcdr (car articles) (+ score (cdar articles)))
+                          (setq found t)
+                          (when trace
+                            (push
+                             (cons (car-safe (rassq alist gnus-score-cache))
+                                   kill)
+                             gnus-score-trace)))
+                        ;; Update expire date
+                        (unless trace
+                          (cond
+                           ((null date)) ;Permanent entry.
+                           ((and found gnus-update-score-entry-dates)
+                            ;; Match, update date.
+                            (gnus-score-set 'touched '(t) alist)
+                            (setcar (nthcdr 2 kill) now))
+                           ((and expire (< date expire)) ;Old entry, remove.
+                            (gnus-score-set 'touched '(t) alist)
+                            (setcdr entries (cdr rest))
+                            (setq rest entries))))
+                        (setq entries rest))))
+                  (when handles (mm-destroy-parts handles))))
+               (setq articles (cdr articles)))))))
+     nil))
 
 (defun gnus-score-thread (scores header now expire &optional trace)
   (gnus-score-followup scores header now expire trace t))

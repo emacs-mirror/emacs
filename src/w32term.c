@@ -20,7 +20,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <config.h>
 #include <signal.h>
 #include <stdio.h>
-#include <setjmp.h>
 #include "lisp.h"
 #include "blockinput.h"
 #include "w32term.h"
@@ -2440,7 +2439,7 @@ x_draw_glyph_string (struct glyph_string *s)
       break;
 
     default:
-      abort ();
+      emacs_abort ();
     }
 
   if (!s->for_overlaps)
@@ -2605,6 +2604,7 @@ x_draw_glyph_string (struct glyph_string *s)
                 w32_set_clip_rectangle (next->hdc, NULL);
 		next->hl = save;
 		next->num_clips = 0;
+		next->clip_head = s->next;
 	      }
 	}
     }
@@ -2640,7 +2640,7 @@ x_delete_glyphs (struct frame *f, register int n)
   if (! FRAME_W32_P (f))
     return;
 
-  abort ();
+  emacs_abort ();
 }
 
 
@@ -2723,7 +2723,7 @@ x_ins_del_lines (struct frame *f, int vpos, int n)
   if (! FRAME_W32_P (f))
     return;
 
-  abort ();
+  emacs_abort ();
 }
 
 
@@ -3445,7 +3445,7 @@ x_window_to_scroll_bar (Window window_id)
       frame = XCAR (tail);
       /* All elements of Vframe_list should be frames.  */
       if (! FRAMEP (frame))
-	abort ();
+	emacs_abort ();
 
       /* Scan this frame's scroll bar list for a scroll bar with the
 	 right window ID.  */
@@ -3868,7 +3868,7 @@ w32_redeem_scroll_bar (struct window *window)
 
   /* We can't redeem this window's scroll bar if it doesn't have one.  */
   if (NILP (window->vertical_scroll_bar))
-    abort ();
+    emacs_abort ();
 
   bar = XSCROLL_BAR (window->vertical_scroll_bar);
 
@@ -3887,7 +3887,7 @@ w32_redeem_scroll_bar (struct window *window)
       else
         /* If its prev pointer is nil, it must be at the front of
            one or the other!  */
-        abort ();
+        emacs_abort ();
     }
   else
     XSCROLL_BAR (bar->prev)->next = bar->next;
@@ -3942,7 +3942,7 @@ w32_scroll_bar_handle_click (struct scroll_bar *bar, W32Msg *msg,
 			     struct input_event *emacs_event)
 {
   if (! WINDOWP (bar->window))
-    abort ();
+    emacs_abort ();
 
   emacs_event->kind = SCROLL_BAR_CLICK_EVENT;
   emacs_event->code = 0;
@@ -4177,6 +4177,7 @@ w32_read_socket (struct terminal *terminal, int expected,
   if (interrupt_input_blocked)
     {
       interrupt_input_pending = 1;
+      pending_signals = 1;
       return -1;
     }
 
@@ -5255,7 +5256,7 @@ w32_draw_window_cursor (struct window *w, struct glyph_row *glyph_row,
 	  break;
 
 	default:
-	  abort ();
+	  emacs_abort ();
 	}
     }
 }

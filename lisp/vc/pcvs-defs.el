@@ -57,11 +57,7 @@ versions, such as the one in SunOS-4.")
 ;;;;	     END OF THINGS TO CHECK WHEN INSTALLING
 ;;;; --------------------------------------------------------
 
-;;;;
 ;;;;	User configuration variables:
-;;;;
-;;;; NOTE: these should be set in your ~/.emacs (or site-lisp/default.el) file.
-;;;;
 
 (defgroup pcl-cvs nil
   "Special support for the CVS versioning system."

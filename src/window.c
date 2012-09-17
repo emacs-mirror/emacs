@@ -23,7 +23,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define WINDOW_INLINE EXTERN_INLINE
 
 #include <stdio.h>
-#include <setjmp.h>
 
 #include "lisp.h"
 #include "character.h"
@@ -176,11 +175,6 @@ wset_new_total (struct window *w, Lisp_Object val)
   w->new_total = val;
 }
 static inline void
-wset_next_buffers (struct window *w, Lisp_Object val)
-{
-  w->next_buffers = val;
-}
-static inline void
 wset_normal_cols (struct window *w, Lisp_Object val)
 {
   w->normal_cols = val;
@@ -199,11 +193,6 @@ static inline void
 wset_pointm (struct window *w, Lisp_Object val)
 {
   w->pointm = val;
-}
-static inline void
-wset_prev_buffers (struct window *w, Lisp_Object val)
-{
-  w->prev_buffers = val;
 }
 static inline void
 wset_right_fringe_width (struct window *w, Lisp_Object val)
@@ -386,7 +375,7 @@ the first window of that frame.  */)
       else if (! NILP (XWINDOW (window)->vchild))
 	window = XWINDOW (window)->vchild;
       else
-	abort ();
+	emacs_abort ();
     }
 
   return window;
@@ -1289,7 +1278,7 @@ If they are in the windows's left or right marginal areas, `left-margin'\n\
       return Qnil;
 
     default:
-      abort ();
+      emacs_abort ();
     }
 }
 
@@ -1866,23 +1855,23 @@ return value is a list of elements of the form (PARAMETER . VALUE).  */)
 DEFUN ("window-parameter", Fwindow_parameter, Swindow_parameter,
        2, 2, 0,
        doc:  /* Return WINDOW's value for PARAMETER.
-WINDOW must be a valid window and defaults to the selected one.  */)
+WINDOW can be any window and defaults to the selected one.  */)
   (Lisp_Object window, Lisp_Object parameter)
 {
   Lisp_Object result;
 
-  result = Fassq (parameter, decode_valid_window (window)->window_parameters);
+  result = Fassq (parameter, decode_any_window (window)->window_parameters);
   return CDR_SAFE (result);
 }
 
 DEFUN ("set-window-parameter", Fset_window_parameter,
        Sset_window_parameter, 3, 3, 0,
        doc: /* Set WINDOW's value of PARAMETER to VALUE.
-WINDOW must be a valid window and defaults to the selected one.
+WINDOW can be any window and defaults to the selected one.
 Return VALUE.  */)
   (Lisp_Object window, Lisp_Object parameter, Lisp_Object value)
 {
-  register struct window *w = decode_valid_window (window);
+  register struct window *w = decode_any_window (window);
   Lisp_Object old_alist_elt;
 
   old_alist_elt = Fassq (parameter, w->window_parameters);
@@ -1948,7 +1937,7 @@ unshow_buffer (register struct window *w)
   buf = w->buffer;
   b = XBUFFER (buf);
   if (b != XMARKER (w->pointm)->buffer)
-    abort ();
+    emacs_abort ();
 
 #if 0
   if (w == XWINDOW (selected_window)
@@ -2668,8 +2657,8 @@ window_loop (enum window_loop type, Lisp_Object obj, int mini, Lisp_Object frame
 	    /* Check for a window that has a killed buffer.  */
 	  case CHECK_ALL_WINDOWS:
 	    if (! NILP (w->buffer)
-		&& NILP (BVAR (XBUFFER (w->buffer), name)))
-	      abort ();
+		&& !BUFFER_LIVE_P (XBUFFER (w->buffer)))
+	      emacs_abort ();
 	    break;
 
 	  case WINDOW_LOOP_UNUSED:
@@ -3273,7 +3262,7 @@ This function runs `window-scroll-functions' before running
   XSETWINDOW (window, w);
   buffer = Fget_buffer (buffer_or_name);
   CHECK_BUFFER (buffer);
-  if (NILP (BVAR (XBUFFER (buffer), name)))
+  if (!BUFFER_LIVE_P (XBUFFER (buffer)))
     error ("Attempt to display deleted buffer");
 
   tem = w->buffer;
@@ -3338,7 +3327,7 @@ displaying that buffer.  */)
 
   if (STRINGP (object))
     object = Fget_buffer (object);
-  if (BUFFERP (object) && !NILP (BVAR (XBUFFER (object), name)))
+  if (BUFFERP (object) && BUFFER_LIVE_P (XBUFFER (object)))
     {
       /* Walk all windows looking for buffer, and force update
 	 of each of those windows.  */
@@ -5549,7 +5538,7 @@ the return value is nil.  Otherwise the value is t.  */)
   saved_windows = XVECTOR (data->saved_windows);
 
   new_current_buffer = data->current_buffer;
-  if (NILP (BVAR (XBUFFER (new_current_buffer), name)))
+  if (!BUFFER_LIVE_P (XBUFFER (new_current_buffer)))
     new_current_buffer = Qnil;
   else
     {
@@ -5624,7 +5613,7 @@ the return value is nil.  Otherwise the value is t.  */)
 	  w = XWINDOW (window);
 	  if (!NILP (w->buffer)
 	      && !EQ (w->buffer, p->buffer)
-	      && !NILP (BVAR (XBUFFER (p->buffer), name)))
+	      && BUFFER_LIVE_P (XBUFFER (p->buffer)))
 	    /* If a window we restore gets another buffer, record the
 	       window's old buffer.  */
 	    call1 (Qrecord_window_buffer, window);
@@ -5774,7 +5763,7 @@ the return value is nil.  Otherwise the value is t.  */)
 	  if (NILP (p->buffer))
 	    /* An internal window.  */
 	    wset_buffer (w, p->buffer);
-	  else if (!NILP (BVAR (XBUFFER (p->buffer), name)))
+	  else if (BUFFER_LIVE_P (XBUFFER (p->buffer)))
 	    /* If saved buffer is alive, install it.  */
 	    {
 	      wset_buffer (w, p->buffer);
@@ -5793,7 +5782,7 @@ the return value is nil.  Otherwise the value is t.  */)
 		Fgoto_char (w->pointm);
 	     }
 	   else if (!NILP (w->buffer)
-		    && !NILP (BVAR (XBUFFER (w->buffer), name)))
+		    && BUFFER_LIVE_P (XBUFFER (w->buffer)))
 	     /* Keep window's old buffer; make sure the markers are
 		real.  */
 	     {
@@ -6576,15 +6565,17 @@ freeze_window_starts (struct frame *f, int freeze_p)
 /* Return 1 if window configurations CONFIGURATION1 and CONFIGURATION2
    describe the same state of affairs.  This is used by Fequal.
 
-   ignore_positions non-zero means ignore non-matching scroll positions
+   IGNORE_POSITIONS means ignore non-matching scroll positions
    and the like.
 
    This ignores a couple of things like the dedication status of
    window, combination_limit and the like.  This might have to be
    fixed.  */
 
-int
-compare_window_configurations (Lisp_Object configuration1, Lisp_Object configuration2, int ignore_positions)
+bool
+compare_window_configurations (Lisp_Object configuration1,
+			       Lisp_Object configuration2,
+			       bool ignore_positions)
 {
   register struct save_window_data *d1, *d2;
   struct Lisp_Vector *sws1, *sws2;

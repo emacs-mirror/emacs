@@ -3516,8 +3516,7 @@ usage (int error)
 static _Noreturn void
 version (void)
 {
-  /* Makes it easier to update automatically. */
-  char emacs_copyright[] = "Copyright (C) 2012 Free Software Foundation, Inc.";
+  char emacs_copyright[] = COPYRIGHT;
 
   printf ("ebrowse %s\n", VERSION);
   puts (emacs_copyright);

@@ -1229,13 +1229,6 @@ systems for HTML/XML files automatically."
    For use by sml-mode, python-mode, tex-mode, scheme-mode, lisp-mode,
    haskell-mode, tuareg-mode, ...
 
-** Make SYNC_INPUT the default. [true since 2008-03-11]
-   All loops using immediate_quit need to be checked to ensure that
-   C-g can interrupt them, in case of an infinite loop.  Once we
-   switch to using SYNC_INPUT, we can remove the BLOCK_INPUTs in the
-   allocation functions (allocate_string etc.) without worrying about
-   data munging.
-
 ** Add "link" button class
    Add a standard button-class named "link", and make all other link-like
    button classes inherit from it.  Set the default face of the "link" button

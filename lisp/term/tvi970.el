@@ -93,7 +93,7 @@
   "Terminal initialization function for tvi970."
   ;; Use inheritance to let the main keymap override these defaults.
   ;; This way we don't override terminfo-derived settings or settings
-  ;; made in the .emacs file.
+  ;; made in the init file.
   (let ((m (copy-keymap tvi970-terminal-map)))
     (set-keymap-parent m (keymap-parent input-decode-map))
     (set-keymap-parent input-decode-map m))

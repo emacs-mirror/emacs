@@ -1796,7 +1796,13 @@ Delete the text being considered, then enter a recursive edit to replace
 it.
 
 @item recenter
-Redisplay and center the window, then ask the same question again.
+@itemx scroll-up
+@itemx scroll-down
+@itemx scroll-other-window
+@itemx scroll-other-window-down
+Perform the specified window scroll operation, then ask the same
+question again.  Only @code{y-or-n-p} and related functions use this
+answer.
 
 @item quit
 Perform a quit right away.  Only @code{y-or-n-p} and related functions

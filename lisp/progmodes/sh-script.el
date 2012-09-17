@@ -1062,21 +1062,22 @@ subshells can nest."
               (backward-char 1))
             (when (eq (char-before) ?|)
               (backward-char 1) t)))
-      (when (progn (backward-char 2)
-                   (if (> start (line-end-position))
-                       (put-text-property (point) (1+ start)
-                                          'syntax-multiline t))
-                   ;; FIXME: The `in' may just be a random argument to
-                   ;; a normal command rather than the real `in' keyword.
-                   ;; I.e. we should look back to try and find the
-                   ;; corresponding `case'.
-                   (and (looking-at ";[;&]\\|\\_<in")
-                        ;; ";; esac )" is a case that looks like a case-pattern
-                        ;; but it's really just a close paren after a case
-                        ;; statement.  I.e. if we skipped over `esac' just now,
-                        ;; we're not looking at a case-pattern.
-                        (not (looking-at "..[ \t\n]+esac[^[:word:]_]"))))
-        sh-st-punc))))
+      (and (> (point) (1+ (point-min)))
+           (progn (backward-char 2)
+                  (if (> start (line-end-position))
+                      (put-text-property (point) (1+ start)
+                                         'syntax-multiline t))
+                  ;; FIXME: The `in' may just be a random argument to
+                  ;; a normal command rather than the real `in' keyword.
+                  ;; I.e. we should look back to try and find the
+                  ;; corresponding `case'.
+                  (and (looking-at ";[;&]\\|\\_<in")
+                       ;; ";; esac )" is a case that looks like a case-pattern
+                       ;; but it's really just a close paren after a case
+                       ;; statement.  I.e. if we skipped over `esac' just now,
+                       ;; we're not looking at a case-pattern.
+                       (not (looking-at "..[ \t\n]+esac[^[:word:]_]"))))
+           sh-st-punc))))
 
 (defun sh-font-lock-backslash-quote ()
   (if (eq (save-excursion (nth 3 (syntax-ppss (match-beginning 0)))) ?\')

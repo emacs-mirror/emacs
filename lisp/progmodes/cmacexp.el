@@ -49,7 +49,7 @@
 
 ;; INSTALLATION ======================================================
 
-;; Put the following in your ~/.emacs file.
+;; Put the following in your init file.
 
 ;; If you want the *Macroexpansion* window to be not higher than
 ;; necessary:

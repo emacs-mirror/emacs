@@ -23,7 +23,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <config.h>
 #include <float.h>
 #include <stdio.h>
-#include <setjmp.h>
 
 #include <c-ctype.h>
 
@@ -216,13 +215,12 @@ static int num_font_drivers;
 
 
 /* Return a Lispy value of a font property value at STR and LEN bytes.
-   If STR is "*", return nil.
-   If FORCE_SYMBOL is zero and all characters in STR are digits,
-   return an integer.  Otherwise, return a symbol interned from
-   STR.  */
+   If STR is "*", return nil.  If FORCE_SYMBOL, or if STR does not
+   consist entirely of one or more digits, return a symbol interned
+   from STR.  Otherwise, return an integer.  */
 
 Lisp_Object
-font_intern_prop (const char *str, ptrdiff_t len, int force_symbol)
+font_intern_prop (const char *str, ptrdiff_t len, bool force_symbol)
 {
   ptrdiff_t i;
   Lisp_Object tem;
@@ -306,7 +304,8 @@ font_pixel_size (FRAME_PTR f, Lisp_Object spec)
    VAL is an integer.  */
 
 int
-font_style_to_value (enum font_property_index prop, Lisp_Object val, int noerror)
+font_style_to_value (enum font_property_index prop, Lisp_Object val,
+                     bool noerror)
 {
   Lisp_Object table = AREF (font_style_table, prop - FONT_WEIGHT_INDEX);
   int len;
@@ -385,7 +384,8 @@ font_style_to_value (enum font_property_index prop, Lisp_Object val, int noerror
 }
 
 Lisp_Object
-font_style_symbolic (Lisp_Object font, enum font_property_index prop, int for_face)
+font_style_symbolic (Lisp_Object font, enum font_property_index prop,
+                     bool for_face)
 {
   Lisp_Object val = AREF (font, prop);
   Lisp_Object table, elt;
@@ -1101,7 +1101,7 @@ font_parse_xlfd (char *name, ptrdiff_t len, Lisp_Object font)
     }
   else
     {
-      int wild_card_found = 0;
+      bool wild_card_found = 0;
       Lisp_Object prop[XLFD_LAST_INDEX];
 
       if (FONT_ENTITY_P (font))
@@ -1337,7 +1337,7 @@ font_parse_fcname (char *name, ptrdiff_t len, Lisp_Object font)
 	}
       else if (*p == '-')
 	{
-	  int decimal = 0, size_found = 1;
+	  bool decimal = 0, size_found = 1;
 	  for (q = p + 1; *q && *q != ':'; q++)
 	    if (! c_isdigit (*q))
 	      {
@@ -1938,7 +1938,7 @@ generate_otf_features (Lisp_Object spec, char *features)
 {
   Lisp_Object val;
   char *p;
-  int asterisk;
+  bool asterisk;
 
   p = features;
   *p = '\0';
@@ -2302,11 +2302,12 @@ font_update_sort_order (int *order)
     }
 }
 
-static int
-font_check_otf_features (Lisp_Object script, Lisp_Object langsys, Lisp_Object features, Lisp_Object table)
+static bool
+font_check_otf_features (Lisp_Object script, Lisp_Object langsys,
+                         Lisp_Object features, Lisp_Object table)
 {
   Lisp_Object val;
-  int negative;
+  bool negative;
 
   table = assq_no_quit (script, table);
   if (NILP (table))
@@ -2342,7 +2343,7 @@ font_check_otf_features (Lisp_Object script, Lisp_Object langsys, Lisp_Object fe
 
 /* Check if OTF_CAPABILITY satisfies SPEC (otf-spec).  */
 
-static int
+static bool
 font_check_otf (Lisp_Object spec, Lisp_Object otf_capability)
 {
   Lisp_Object script, langsys = Qnil, gsub = Qnil, gpos = Qnil;
@@ -2376,7 +2377,7 @@ font_check_otf (Lisp_Object spec, Lisp_Object otf_capability)
 /* Check if FONT (font-entity or font-object) matches with the font
    specification SPEC.  */
 
-int
+bool
 font_match_p (Lisp_Object spec, Lisp_Object font)
 {
   Lisp_Object prop[FONT_SPEC_MAX], *props;
@@ -2694,7 +2695,7 @@ font_list_entities (Lisp_Object frame, Lisp_Object spec)
   Lisp_Object ftype, val;
   Lisp_Object list = Qnil;
   int size;
-  int need_filtering = 0;
+  bool need_filtering = 0;
   int i;
 
   eassert (FONT_SPEC_P (spec));
@@ -3036,15 +3037,14 @@ font_select_entity (Lisp_Object frame, Lisp_Object entities, Lisp_Object *attrs,
 {
   Lisp_Object font_entity;
   Lisp_Object prefer;
-  int result, i;
+  int i;
   FRAME_PTR f = XFRAME (frame);
 
   if (NILP (XCDR (entities))
       && ASIZE (XCAR (entities)) == 1)
     {
       font_entity = AREF (XCAR (entities), 0);
-      if (c < 0
-	  || (result = font_has_char (f, font_entity, c)) > 0)
+      if (c < 0 || font_has_char (f, font_entity, c) > 0)
 	return font_entity;
       return Qnil;
     }
@@ -3618,7 +3618,7 @@ font_at (int c, ptrdiff_t pos, struct face *face, struct window *w,
 	 Lisp_Object string)
 {
   FRAME_PTR f;
-  int multibyte;
+  bool multibyte;
   Lisp_Object font_object;
 
   multibyte = (NILP (string)
@@ -4295,12 +4295,15 @@ to get the correct visual image of character sequences set in the
 header of the glyph-string.
 
 If the shaping was successful, the value is GSTRING itself or a newly
-created glyph-string.  Otherwise, the value is nil.  */)
+created glyph-string.  Otherwise, the value is nil.
+
+See the documentation of `composition-get-gstring' for the format of
+GSTRING.  */)
   (Lisp_Object gstring)
 {
   struct font *font;
   Lisp_Object font_object, n, glyph;
-  ptrdiff_t i, j, from, to;
+  ptrdiff_t i, from, to;
 
   if (! composition_gstring_p (gstring))
     signal_error ("Invalid glyph-string: ", gstring);
@@ -4326,44 +4329,42 @@ created glyph-string.  Otherwise, the value is nil.  */)
   if (XINT (n) < LGSTRING_GLYPH_LEN (gstring))
     LGSTRING_SET_GLYPH (gstring, XINT (n), Qnil);
 
+  /* Check FROM_IDX and TO_IDX of each GLYPH in GSTRING to assure that
+     GLYPHS covers all characters (except for the last few ones) in
+     GSTRING.  More formally, provided that NCHARS is the number of
+     characters in GSTRING and GLYPHS[i] is the ith glyph, FROM_IDX
+     and TO_IDX of each glyph must satisfy these conditions:
+
+       GLYPHS[0].FROM_IDX == 0
+       GLYPHS[i].FROM_IDX <= GLYPHS[i].TO_IDX
+       if (GLYPHS[i].FROM_IDX == GLYPHS[i-1].FROM_IDX)
+         ;; GLYPHS[i] and GLYPHS[i-1] belongs to the same grapheme cluster
+         GLYPHS[i].TO_IDX == GLYPHS[i-1].TO_IDX
+       else
+         ;; Be sure to cover all characters.
+         GLYPHS[i].FROM_IDX == GLYPHS[i-1].TO_IDX + 1 */
   glyph = LGSTRING_GLYPH (gstring, 0);
   from = LGLYPH_FROM (glyph);
   to = LGLYPH_TO (glyph);
-  for (i = 1, j = 0; i < LGSTRING_GLYPH_LEN (gstring); i++)
+  if (from != 0 || to < from)
+    goto shaper_error;
+  for (i = 1; i < LGSTRING_GLYPH_LEN (gstring); i++)
     {
-      Lisp_Object this = LGSTRING_GLYPH (gstring, i);
-
-      if (NILP (this))
+      glyph = LGSTRING_GLYPH (gstring, i);
+      if (NILP (glyph))
 	break;
-      if (NILP (LGLYPH_ADJUSTMENT (this)))
-	{
-	  if (j < i - 1)
-	    for (; j < i; j++)
-	      {
-		glyph = LGSTRING_GLYPH (gstring, j);
-		LGLYPH_SET_FROM (glyph, from);
-		LGLYPH_SET_TO (glyph, to);
-	      }
-	  from = LGLYPH_FROM (this);
-	  to = LGLYPH_TO (this);
-	  j = i;
-	}
-      else
-	{
-	  if (from > LGLYPH_FROM (this))
-	    from = LGLYPH_FROM (this);
-	  if (to < LGLYPH_TO (this))
-	    to = LGLYPH_TO (this);
-	}
+      if (! (LGLYPH_FROM (glyph) <= LGLYPH_TO (glyph)
+	     && (LGLYPH_FROM (glyph) == from
+		 ? LGLYPH_TO (glyph) == to
+		 : LGLYPH_FROM (glyph) == to + 1)))
+	goto shaper_error;
+      from = LGLYPH_FROM (glyph);
+      to = LGLYPH_TO (glyph);
     }
-  if (j < i - 1)
-    for (; j < i; j++)
-      {
-	glyph = LGSTRING_GLYPH (gstring, j);
-	LGLYPH_SET_FROM (glyph, from);
-	LGLYPH_SET_TO (glyph, to);
-      }
   return composition_gstring_put_cache (gstring, XINT (n));
+
+ shaper_error:
+  return Qnil;
 }
 
 DEFUN ("font-variation-glyphs", Ffont_variation_glyphs, Sfont_variation_glyphs,

@@ -28,7 +28,7 @@
 ;;
 ;; INSTALLATION:
 ;;
-;; Add this line to your .emacs file:
+;; Add this line to your init file:
 ;;
 ;;   (require 'generic-x)
 ;;

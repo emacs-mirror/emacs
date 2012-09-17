@@ -27,8 +27,6 @@ INLINE_HEADER_BEGIN
 # define WINDOW_INLINE INLINE
 #endif
 
-extern Lisp_Object Qleft, Qright;
-
 /* Windows are allocated as if they were vectors, but then the
 Lisp data type is changed to Lisp_Window.  They are garbage
 collected along with the vectors.
@@ -416,7 +414,16 @@ wset_window_end_vpos (struct window *w, Lisp_Object val)
 {
   w->window_end_vpos = val;
 }
-
+WINDOW_INLINE void
+wset_prev_buffers (struct window *w, Lisp_Object val)
+{
+  w->prev_buffers = val;
+}
+WINDOW_INLINE void
+wset_next_buffers (struct window *w, Lisp_Object val)
+{
+  w->next_buffers = val;
+}
 
 /* 1 if W is a minibuffer window.  */
 
@@ -973,7 +980,7 @@ extern Lisp_Object Qwindowp, Qwindow_live_p;
 extern Lisp_Object Vwindow_list;
 
 extern struct window *decode_live_window (Lisp_Object);
-extern int compare_window_configurations (Lisp_Object, Lisp_Object, int);
+extern bool compare_window_configurations (Lisp_Object, Lisp_Object, bool);
 extern void mark_window_cursors_off (struct window *);
 extern int window_internal_height (struct window *);
 extern int window_body_cols (struct window *w);

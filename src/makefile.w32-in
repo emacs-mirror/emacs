@@ -482,7 +482,6 @@ WINDOW_H       = $(SRC)/window.h \
 $(BLD)/alloc.$(O) : \
 	$(SRC)/alloc.c \
 	$(SRC)/puresize.h \
-	$(SRC)/syssignal.h \
 	$(SRC)/w32.h \
 	$(NT_INC)/unistd.h \
 	$(GNU_LIB)/verify.h \
@@ -1365,6 +1364,7 @@ $(BLD)/sysdep.$(O) : \
 	$(NT_INC)/sys/stat.h \
 	$(NT_INC)/unistd.h \
 	$(GNU_LIB)/allocator.h \
+	$(GNU_LIB)/execinfo.h \
 	$(GNU_LIB)/ignore-value.h \
 	$(GNU_LIB)/utimens.h \
 	$(BLOCKINPUT_H) \

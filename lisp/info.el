@@ -1882,9 +1882,7 @@ If DIRECTION is `backward', search in the reverse direction."
 	  (while (and (not give-up)
 		      (or (null found)
 			  (not (funcall isearch-filter-predicate beg-found found))))
-	    (let ((search-spaces-regexp
-		   (if (or (not isearch-mode) isearch-regexp)
-		       Info-search-whitespace-regexp)))
+	    (let ((search-spaces-regexp Info-search-whitespace-regexp))
 	      (if (if backward
 		      (re-search-backward regexp bound t)
 		    (re-search-forward regexp bound t))
@@ -1904,9 +1902,7 @@ If DIRECTION is `backward', search in the reverse direction."
 	  (if (null Info-current-subfile)
 	      (if isearch-mode
 		  (signal 'search-failed (list regexp "end of manual"))
-		(let ((search-spaces-regexp
-		       (if (or (not isearch-mode) isearch-regexp)
-			   Info-search-whitespace-regexp)))
+		(let ((search-spaces-regexp Info-search-whitespace-regexp))
 		  (if backward
 		      (re-search-backward regexp)
 		    (re-search-forward regexp))))
@@ -1964,9 +1960,7 @@ If DIRECTION is `backward', search in the reverse direction."
 		(while (and (not give-up)
 			    (or (null found)
 				(not (funcall isearch-filter-predicate beg-found found))))
-		  (let ((search-spaces-regexp
-			 (if (or (not isearch-mode) isearch-regexp)
-			     Info-search-whitespace-regexp)))
+		  (let ((search-spaces-regexp Info-search-whitespace-regexp))
 		    (if (if backward
 			    (re-search-backward regexp nil t)
 			  (re-search-forward regexp nil t))
@@ -2034,21 +2028,26 @@ If DIRECTION is `backward', search in the reverse direction."
 (defun Info-isearch-search ()
   (if Info-isearch-search
       (lambda (string &optional bound noerror count)
-	(Info-search
-	 (cond
-	  (isearch-word
-	   ;; Lax version of word search
-	   (let ((lax (not (or isearch-nonincremental
-			       (eq (length string)
-				   (length (isearch--state-string
-					    (car isearch-cmds))))))))
-	     (if (functionp isearch-word)
-		 (funcall isearch-word string lax)
-	       (word-search-regexp string lax))))
-	  (isearch-regexp string)
-	  (t (regexp-quote string)))
-	 bound noerror count
-	 (unless isearch-forward 'backward))
+	(let ((Info-search-whitespace-regexp
+	       (if (if isearch-regexp
+		       isearch-regexp-lax-whitespace
+		     isearch-lax-whitespace)
+		   search-whitespace-regexp)))
+	  (Info-search
+	   (cond
+	    (isearch-word
+	     ;; Lax version of word search
+	     (let ((lax (not (or isearch-nonincremental
+				 (eq (length string)
+				     (length (isearch--state-string
+					      (car isearch-cmds))))))))
+	       (if (functionp isearch-word)
+		   (funcall isearch-word string lax)
+		 (word-search-regexp string lax))))
+	    (isearch-regexp string)
+	    (t (regexp-quote string)))
+	   bound noerror count
+	   (unless isearch-forward 'backward)))
 	(point))
     (isearch-search-fun-default)))
 
@@ -4157,8 +4156,6 @@ Advanced commands:
        'Info-isearch-push-state)
   (set (make-local-variable 'isearch-filter-predicate)
        'Info-isearch-filter)
-  (set (make-local-variable 'search-whitespace-regexp)
-       Info-search-whitespace-regexp)
   (set (make-local-variable 'revert-buffer-function)
        'Info-revert-buffer-function)
   (Info-set-mode-line)

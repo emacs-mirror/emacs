@@ -612,13 +612,15 @@ Leaves the region surrounding the rectangle."
     (define-key map [remap self-insert-command] 'picture-self-insert)
     (define-key map [remap self-insert-command] 'picture-self-insert)
     (define-key map [remap completion-separator-self-insert-command]
-      'picture-self-insert)
+			  'picture-self-insert)
     (define-key map [remap completion-separator-self-insert-autofilling]
-      'picture-self-insert)
+			  'picture-self-insert)
     (define-key map [remap forward-char] 'picture-forward-column)
+    (define-key map [remap right-char] 'picture-forward-column)
     (define-key map [remap backward-char] 'picture-backward-column)
+    (define-key map [remap left-char] 'picture-backward-column)
     (define-key map [remap delete-char] 'picture-clear-column)
-    ;; There are two possibilities for what is normally on DEL.
+      ;; There are two possibilities for what is normally on DEL.
     (define-key map [remap backward-delete-char-untabify]
       'picture-backward-clear-column)
     (define-key map [remap delete-backward-char] 'picture-backward-clear-column)

@@ -21,12 +21,17 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <config.h>
 
 #include "emacsgtkfixed.h"
-#include <signal.h>
 #include <stdio.h>
-#include <setjmp.h>
+
 #include "lisp.h"
 #include "frame.h"
 #include "xterm.h"
+
+/* Silence a bogus diagnostic; see GNOME bug 683906.  */
+#if (__GNUC__ == 4 && 6 <= __GNUC_MINOR__) || 4 < __GNUC__
+# pragma GCC diagnostic push
+# pragma GCC diagnostic ignored "-Wunused-local-typedefs"
+#endif
 
 #define EMACS_TYPE_FIXED emacs_fixed_get_type ()
 #define EMACS_FIXED(obj) \

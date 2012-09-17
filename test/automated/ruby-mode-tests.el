@@ -40,8 +40,7 @@ The whitespace before and including \"|\" on each line is removed."
       (insert (fix-indent content))
       (ruby-mode)
       (indent-region (point-min) (point-max))
-      (should (string= (fix-indent expected) (buffer-substring-no-properties
-                                              (point-min) (point-max)))))))
+      (should (string= (fix-indent expected) (buffer-string))))))
 
 (defun ruby-assert-state (content &rest values-plist)
   "Assert syntax state values at the end of CONTENT.
@@ -56,6 +55,13 @@ VALUES-PLIST is a list with alternating index and value elements."
                        (parse-partial-sexp (point-min) (point)))
                   (cadr values-plist)))
       (setq values-plist (cddr values-plist)))))
+
+(defun ruby-assert-face (content pos face)
+  (with-temp-buffer
+    (insert content)
+    (ruby-mode)
+    (font-lock-fontify-buffer)
+    (should (eq face (get-text-property pos 'face)))))
 
 (ert-deftest ruby-indent-after-symbol-made-from-string-interpolation ()
   "It can indent the line after symbol made using string interpolation."
@@ -83,6 +89,11 @@ VALUES-PLIST is a list with alternating index and value elements."
     (ruby-should-indent "foo = [\n1" ruby-indent-level)
     (ruby-should-indent "foo = {\na: b" ruby-indent-level)
     (ruby-should-indent "foo(\na" ruby-indent-level)))
+
+(ert-deftest ruby-indent-after-keyword-in-a-string ()
+  (ruby-should-indent "a = \"abc\nif\"\n  " 0)
+  (ruby-should-indent "a = %w[abc\n       def]\n  " 0)
+  (ruby-should-indent "a = \"abc\n      def\"\n  " 0))
 
 (ert-deftest ruby-indent-simple ()
   (ruby-should-indent-buffer
@@ -201,21 +212,42 @@ VALUES-PLIST is a list with alternating index and value elements."
 
 (ert-deftest ruby-toggle-block-to-do-end ()
   (with-temp-buffer
-    (insert "foo {|b|\n}\n")
+    (insert "foo {|b|\n}")
     (ruby-mode)
-    (search-backward "{")
+    (beginning-of-line)
     (ruby-toggle-block)
-    (should (string= "foo do |b|\nend\n" (buffer-substring-no-properties
-                                          (point-min) (point-max))))))
+    (should (string= "foo do |b|\nend" (buffer-string)))))
 
 (ert-deftest ruby-toggle-block-to-brace ()
   (with-temp-buffer
-    (insert "foo do |b|\nend\n")
+    (insert "foo do |b|\nend")
     (ruby-mode)
-    (search-backward "do")
+    (beginning-of-line)
     (ruby-toggle-block)
-    (should (string= "foo {|b|\n}\n" (buffer-substring-no-properties
-                                      (point-min) (point-max))))))
+    (should (string= "foo {|b|\n}" (buffer-string)))))
+
+(ert-deftest ruby-toggle-block-to-multiline ()
+  (with-temp-buffer
+    (insert "foo {|b| b + 1}")
+    (ruby-mode)
+    (beginning-of-line)
+    (ruby-toggle-block)
+    (should (string= "foo do |b|\n  b + 1\nend" (buffer-string)))))
+
+(ert-deftest ruby-recognize-symbols-starting-with-at-character ()
+  (ruby-assert-face ":@abc" 3 'font-lock-constant-face))
+
+(ert-deftest ruby-hash-character-not-interpolation ()
+  (ruby-assert-face "\"This is #{interpolation}\"" 15
+                    'font-lock-variable-name-face)
+  (ruby-assert-face "\"This is \\#{no interpolation} despite the #\""
+                    15 'font-lock-string-face)
+  (ruby-assert-face "\n#@comment, not ruby code" 5 'font-lock-comment-face)
+  (ruby-assert-state "\n#@comment, not ruby code" 4 t)
+  (ruby-assert-face "# A comment cannot have #{an interpolation} in it"
+                    30 'font-lock-comment-face)
+  (ruby-assert-face "# #{comment}\n \"#{interpolation}\"" 16
+                    'font-lock-variable-name-face))
 
 (provide 'ruby-mode-tests)
 

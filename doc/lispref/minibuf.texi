@@ -1888,47 +1888,14 @@ Echo Area}), which uses the same screen space as the minibuffer.  The
 cursor moves to the echo area while the question is being asked.
 
 The answers and their meanings, even @samp{y} and @samp{n}, are not
-hardwired.  The keymap @code{query-replace-map} specifies them.
-@xref{Search and Replace}.
-
-In the following example, the user first types @kbd{q}, which is
-invalid.  At the next prompt the user types @kbd{y}.
-
-@c Need an interactive example, because otherwise the return value
-@c obscures the display of the valid answer.
-@smallexample
-@group
-(defun ask ()
-  (interactive)
-  (y-or-n-p "Do you need a lift? "))
-
-;; @r{After evaluation of the preceding definition, @kbd{M-x ask}}
-;;   @r{causes the following prompt to appear in the echo area:}
-@end group
-
-@group
----------- Echo area ----------
-Do you need a lift? (y or n)
----------- Echo area ----------
-@end group
-
-;; @r{If the user then types @kbd{q}, the following appears:}
-
-@group
----------- Echo area ----------
-Please answer y or n.  Do you need a lift? (y or n)
----------- Echo area ----------
-@end group
-
-;; @r{When the user types a valid answer,}
-;;   @r{it is displayed after the question:}
-
-@group
----------- Echo area ----------
-Do you need a lift? (y or n) y
----------- Echo area ----------
-@end group
-@end smallexample
+hardwired, and are specified by the keymap @code{query-replace-map}
+(@pxref{Search and Replace}).  In particular, if the user enters the
+special responses @code{recenter}, @code{scroll-up},
+@code{scroll-down}, @code{scroll-other-window}, or
+@code{scroll-other-window-down} (respectively bound to @kbd{C-l},
+@kbd{C-v}, @kbd{M-v}, @kbd{C-M-v} and @kbd{C-M-S-v} in
+@code{query-replace-map}), this function performs the specified window
+recentering or scrolling operation, and poses the question again.
 
 @noindent
 We show successive lines of echo area messages, but only one actually

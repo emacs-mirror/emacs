@@ -1302,9 +1302,10 @@ This returns @code{t} if @var{variable} is buffer-local in buffer
 @end defun
 
 @defun local-variable-if-set-p variable &optional buffer
-This returns @code{t} if @var{variable} will become buffer-local in
-buffer @var{buffer} (which defaults to the current buffer) if it is
-set there.
+This returns @code{t} if @var{variable} either has a buffer-local
+value in buffer @var{buffer}, or is automatically buffer-local.
+Otherwise, it returns @code{nil}.  If omitted or @code{nil},
+@var{buffer} defaults to the current buffer.
 @end defun
 
 @defun buffer-local-value variable buffer

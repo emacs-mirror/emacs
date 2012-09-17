@@ -1,3 +1,145 @@
+2012-09-17  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Remove no-longer-needed Solaris 2.4 vfork bug workaround.
+	* configure.ac (ac_cv_func_vfork_works): Default to 'no' on
+	Solaris 2.4, so that AC_FUNC_VFORK doesn't think vfork works.
+
+2012-09-17  Glenn Morris  <rgm@gnu.org>
+
+	* configure.ac (copyright): New output variable.
+	(COPYRIGHT): New AC_DEFINE.
+
+2012-09-16  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Remove configure's --without-sync-input option (Bug#12450).
+	* configure.ac (SYNC_INPUT, BROKEN_SA_RESTART): Remove.
+
+2012-09-16  Glenn Morris  <rgm@gnu.org>
+
+	Increase compartmentalization of Nextstep builds rules,
+	and store Emacs version number in fewer versioned files.
+	* configure.ac (ns_appsrc): Use relative names.
+	(ns_frag): Remove.
+	(Info-gnustep.plist, Emacs.desktop, Info.plist, InfoPlist.strings)
+	(nextstep/Makefile): Generate these nextstep files.
+	(SUBDIR_MAKEFILES): Add nextstep.
+	* Makefile.in (clean, distclean, bootstrap-clean): Add nextstep.
+	* make-dist (nextstep/templates): Add directory.
+	(nextstep/Cocoa/Emacs.base/Contents/Resources/English.lproj): Remove.
+	(nextstep/Cocoa/Emacs.base/Contents)
+	(nextstep, nextstep/GNUstep/Emacs.base/Resources): Update contents.
+
+2012-09-15  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Port better to POSIX hosts lacking _setjmp (Bug#12446).
+	* configure.ac (HAVE__SETJMP, HAVE_SIGSETJMP): New symbols.
+	(_setjmp, _longjmp): Remove.
+
+2012-09-14  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* configure.ac (--without-sync-input): Fix typo in usage message.
+
+	* configure.ac: Port to hosts lacking gtk.
+	(PKG_CHECK_MODULES): Capture pkg-config diagnostics
+	better, in particular, problems in invoking pkg-config itself.
+	This is useful on hosts that don't have pkg-config.
+	(GTK_MODULES): Do not exit 'configure' simply because gtk3
+	and gtk2 are both missing.  Problem found on Solaris 8.
+
+2012-09-13  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* configure.ac: Reorder Xaw3d messages.
+	Report Gtk+ 3 as GTK.
+
+2012-09-13  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Simplify SIGIO usage (Bug#12408).
+	* configure.ac (NO_TERMIO, BROKEN_FIONREAD, BROKEN_SIGAIO)
+	(BROKEN_SIGPOLL, BROKEN_SIGPTY): Remove.
+	(USABLE_FIONREAD, USABLE_SIGIO): New symbols.  All uses of
+	'defined SIGIO' replaced with 'defined USABLE_SIGIO', with no need
+	to #undef SIGIO now (which was error-prone).  Likewise, all uses
+	of 'defined FIONREAD' replaced with 'defined USABLE_FIONREAD'.
+
+2012-09-12  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* configure.ac: No --with-x-toolkit given: Try gtk3 toolkit first
+	and then gtk2 if not found.
+	--with-x-toolkit=gtk|yes: As above, but fail if gtk2 or gt3 not found.
+	--with-x-toolkit=gtk2: Only try gtk2, fail if not found.
+	--with-x-toolkit=gtk3: Only try gtk3, fail if not found.
+
+2012-09-11  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (install-arch-dep, install-arch-indep, install-doc):
+	Be more explicit about dependencies, for parallel `make install'.
+
+2012-09-11  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Simplify, document, and port floating-point (Bug#12381).
+	* configure.ac (logb, cbrt): Do not check for these functions,
+	as they are not being used.
+
+2012-09-10  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Improve robustness of 'make bootstrap' (Bug#12376).
+	Run autogen.sh after bootstrap-clean, to avoid bzr pull issues.
+	* INSTALL, README: Document autogen.sh.
+	* Makefile.in (Makefile): Mark it as precious, since it's updated
+	atomically.
+	(MAKE_CONFIG_STATUS): New macro.
+	(config.status, bootstrap): Use it.  This causes 'make bootstrap'
+	to run config.status with the --recheck option, which is more
+	appropriate for a bootstrap.
+	(bootstrap): Run autogen.sh right after cleaning.  Don't worry
+	about failures due to missing tools.
+	* autogen.sh: Exit with status 101 when failing due to missing tools.
+	* make-dist: Distribute autogen.sh.
+
+2012-09-09  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Assume C89 or later for math functions (Bug#12381).
+	* configure.ac (frexp, fmod): Remove checks for these functions,
+	as we now assume them.
+	(FLOAT_CHECK_DOMAIN, HAVE_INVERSE_HYPERBOLIC, NO_MATHERR)
+	(HAVE_EXCEPTION):
+	Remove; no longer needed.
+
+2012-09-07  Paul Eggert  <eggert@cs.ucla.edu>
+
+	More signal-handler cleanup (Bug#12327).
+	* configure.ac (FLOAT_CHECK_DOMAIN): Comment fix (Bug#12327).
+
+2012-09-06  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Signal-handler cleanup (Bug#12327).
+	* configure.ac (PTY_OPEN, PTY_TTY_NAME_SPRINTF):
+	Adjust to syssignal.h changes.
+	(SIGNAL_H_AB): Remove; no longer needed.
+
+2012-09-04  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Simplify redefinition of 'abort' (Bug#12316).
+	* configure.ac (NO_ABRT): Remove.
+
+	* configure.ac (_setjmp, _longjmp): Check by compiling
+	instead of by guessing.  The guesses were wrong for
+	recent versions of Solaris, such as Solaris 11.
+
+2012-09-03  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* configure.ac (WARN_CFLAGS): Omit -Wjump-misses-init.
+	It generates false alarms in doc.c, regex.c, xdisp.c.  See
+	<http://lists.gnu.org/archive/html/emacs-devel/2012-09/msg00040.html>.
+
+	Merge from gnulib, incorporating:
+	2012-08-29 stdbool: be more compatible with mixed C/C++ compiles
+	2011-11-30 manywarnings: update the list of "all" warnings
+
+2012-09-02  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* configure.ac (HAVE_GOBJECT): Check for gobject-2.0 (Bug#12332).
+
 2012-09-01  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* configure.ac (_FORTIFY_SOURCE): Define only when optimizing.

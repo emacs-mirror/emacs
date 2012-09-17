@@ -33,6 +33,22 @@
   :type 'boolean
   :group 'matching)
 
+(defcustom replace-lax-whitespace nil
+  "Non-nil means `query-replace' matches a sequence of whitespace chars.
+When you enter a space or spaces in the strings to be replaced,
+it will match any sequence matched by the regexp `search-whitespace-regexp'."
+  :type 'boolean
+  :group 'matching
+  :version "24.3")
+
+(defcustom replace-regexp-lax-whitespace nil
+  "Non-nil means `query-replace-regexp' matches a sequence of whitespace chars.
+When you enter a space or spaces in the regexps to be replaced,
+it will match any sequence matched by the regexp `search-whitespace-regexp'."
+  :type 'boolean
+  :group 'matching
+  :version "24.3")
+
 (defvar query-replace-history nil
   "Default history list for query-replace commands.
 See `query-replace-from-history-variable' and
@@ -226,6 +242,10 @@ letters.  \(Transferring the case pattern means that if the old text
 matched is all caps, or capitalized, then its replacement is upcased
 or capitalized.)
 
+If `replace-lax-whitespace' is non-nil, a space or spaces in the string
+to be replaced will match a sequence of whitespace chars defined by the
+regexp in `search-whitespace-regexp'.
+
 Third arg DELIMITED (prefix arg if interactive), if non-nil, means replace
 only matches surrounded by word boundaries.
 Fourth and fifth arg START and END specify the region to operate on.
@@ -269,6 +289,10 @@ pattern of the old text to the new text, if `case-replace' and
 \(Transferring the case pattern means that if the old text matched is
 all caps, or capitalized, then its replacement is upcased or
 capitalized.)
+
+If `replace-regexp-lax-whitespace' is non-nil, a space or spaces in the regexp
+to be replaced will match a sequence of whitespace chars defined by the
+regexp in `search-whitespace-regexp'.
 
 Third arg DELIMITED (prefix arg if interactive), if non-nil, means replace
 only matches surrounded by word boundaries.
@@ -345,6 +369,10 @@ minibuffer.
 
 Preserves case in each replacement if `case-replace' and `case-fold-search'
 are non-nil and REGEXP has no uppercase letters.
+
+If `replace-regexp-lax-whitespace' is non-nil, a space or spaces in the regexp
+to be replaced will match a sequence of whitespace chars defined by the
+regexp in `search-whitespace-regexp'.
 
 Third arg DELIMITED (prefix arg if interactive), if non-nil, means replace
 only matches that are surrounded by word boundaries.
@@ -437,6 +465,10 @@ are non-nil and FROM-STRING has no uppercase letters.
 \(Preserving case means that if the string matched is all caps, or capitalized,
 then its replacement is upcased or capitalized.)
 
+If `replace-lax-whitespace' is non-nil, a space or spaces in the string
+to be replaced will match a sequence of whitespace chars defined by the
+regexp in `search-whitespace-regexp'.
+
 In Transient Mark mode, if the mark is active, operate on the contents
 of the region.  Otherwise, operate from point to the end of the buffer.
 
@@ -474,6 +506,10 @@ and TO-STRING is also null.)"
   "Replace things after point matching REGEXP with TO-STRING.
 Preserve case in each match if `case-replace' and `case-fold-search'
 are non-nil and REGEXP has no uppercase letters.
+
+If `replace-regexp-lax-whitespace' is non-nil, a space or spaces in the regexp
+to be replaced will match a sequence of whitespace chars defined by the
+regexp in `search-whitespace-regexp'.
 
 In Transient Mark mode, if the mark is active, operate on the contents
 of the region.  Otherwise, operate from point to the end of the buffer.
@@ -1589,14 +1625,28 @@ E to edit the replacement string"
     (define-key map "?" 'help)
     (define-key map "\C-g" 'quit)
     (define-key map "\C-]" 'quit)
-    (define-key map "\e" 'exit-prefix)
+    (define-key map "\C-v" 'scroll-up)
+    (define-key map "\M-v" 'scroll-down)
+    (define-key map [next] 'scroll-up)
+    (define-key map [prior] 'scroll-down)
+    (define-key map [?\C-\M-v] 'scroll-other-window)
+    (define-key map [M-next] 'scroll-other-window)
+    (define-key map [?\C-\M-\S-v] 'scroll-other-window-down)
+    (define-key map [M-prior] 'scroll-other-window-down)
+    ;; Binding ESC would prohibit the M-v binding.  Instead, callers
+    ;; should check for ESC specially.
+    ;; (define-key map "\e" 'exit-prefix)
     (define-key map [escape] 'exit-prefix)
     map)
-  "Keymap that defines the responses to questions in `query-replace'.
+  "Keymap of responses to questions posed by commands like `query-replace'.
 The \"bindings\" in this map are not commands; they are answers.
 The valid answers include `act', `skip', `act-and-show',
-`exit', `act-and-exit', `edit', `edit-replacement', `delete-and-edit',
-`recenter', `automatic', `backup', `exit-prefix', `quit', and `help'.")
+`act-and-exit', `exit', `exit-prefix', `recenter', `scroll-up',
+`scroll-down', `scroll-other-window', `scroll-other-window-down',
+`edit', `edit-replacement', `delete-and-edit', `automatic',
+`backup', `quit', and `help'.
+
+This keymap is used by `y-or-n-p' as well as `query-replace'.")
 
 (defvar multi-query-replace-map
   (let ((map (make-sparse-keymap)))
@@ -1717,12 +1767,12 @@ passed in.  If LITERAL is set, no checking is done, anyway."
   (replace-match newtext fixedcase literal)
   noedit)
 
-(defvar replace-search-function 'search-forward
+(defvar replace-search-function nil
   "Function to use when searching for strings to replace.
 It is used by `query-replace' and `replace-string', and is called
 with three arguments, as if it were `search-forward'.")
 
-(defvar replace-re-search-function 're-search-forward
+(defvar replace-re-search-function nil
   "Function to use when searching for regexps to replace.
 It is used by `query-replace-regexp', `replace-regexp',
 `query-replace-regexp-eval', and `map-query-replace-regexp'.
@@ -1755,9 +1805,18 @@ make, or the user didn't cancel the call."
          (nocasify (not (and case-replace case-fold-search)))
          (literal (or (not regexp-flag) (eq regexp-flag 'literal)))
          (search-function
-	  (if regexp-flag
-	      replace-re-search-function
-	    replace-search-function))
+	  (or (if regexp-flag
+		  replace-re-search-function
+		replace-search-function)
+	      (let ((isearch-regexp regexp-flag)
+		    (isearch-word delimited-flag)
+		    (isearch-lax-whitespace
+		     replace-lax-whitespace)
+		    (isearch-regexp-lax-whitespace
+		     replace-regexp-lax-whitespace)
+		    (isearch-case-fold-search case-fold-search)
+		    (isearch-forward t))
+		(isearch-search-fun))))
          (search-string from-string)
          (real-match-data nil)       ; The match data for the current match.
          (next-replacement nil)
@@ -1811,12 +1870,6 @@ make, or the user didn't cancel the call."
                                (vector repeat-count repeat-count
                                        replacements replacements)))))
 
-    (if delimited-flag
-	(setq search-function 're-search-forward
-	      search-string (concat "\\b"
-				    (if regexp-flag from-string
-				      (regexp-quote from-string))
-				    "\\b")))
     (when query-replace-lazy-highlight
       (setq isearch-lazy-highlight-last-string nil))
 
@@ -1898,7 +1951,7 @@ make, or the user didn't cancel the call."
 		    (replace-highlight
 		     (nth 0 real-match-data) (nth 1 real-match-data)
 		     start end search-string
-		     (or delimited-flag regexp-flag) case-fold-search))
+		     regexp-flag delimited-flag case-fold-search))
 		  (setq noedit
 			(replace-match-maybe-edit
 			 next-replacement nocasify literal
@@ -1917,7 +1970,7 @@ make, or the user didn't cancel the call."
 		  (replace-highlight
 		   (match-beginning 0) (match-end 0)
 		   start end search-string
-		   (or delimited-flag regexp-flag) case-fold-search)
+		   regexp-flag delimited-flag case-fold-search)
 		  ;; Bind message-log-max so we don't fill up the message log
 		  ;; with a bunch of identical messages.
 		  (let ((message-log-max nil)
@@ -2099,15 +2152,11 @@ make, or the user didn't cancel the call."
 		 (if (= replace-count 1) "" "s")))
     (or (and keep-going stack) multi-buffer)))
 
-(defvar isearch-error)
-(defvar isearch-forward)
-(defvar isearch-case-fold-search)
-(defvar isearch-string)
-
 (defvar replace-overlay nil)
 
 (defun replace-highlight (match-beg match-end range-beg range-end
-			  string regexp case-fold)
+			  search-string regexp-flag delimited-flag
+			  case-fold-search)
   (if query-replace-highlight
       (if replace-overlay
 	  (move-overlay replace-overlay match-beg match-end (current-buffer))
@@ -2115,13 +2164,14 @@ make, or the user didn't cancel the call."
 	(overlay-put replace-overlay 'priority 1001) ;higher than lazy overlays
 	(overlay-put replace-overlay 'face 'query-replace)))
   (if query-replace-lazy-highlight
-      (let ((isearch-string string)
-	    (isearch-regexp regexp)
-	    ;; Set isearch-word to nil because word-replace is regexp-based,
-	    ;; so `isearch-search-fun' should not use `word-search-forward'.
-	    (isearch-word nil)
-	    (search-whitespace-regexp nil)
-	    (isearch-case-fold-search case-fold)
+      (let ((isearch-string search-string)
+	    (isearch-regexp regexp-flag)
+	    (isearch-word delimited-flag)
+	    (isearch-lax-whitespace
+	     replace-lax-whitespace)
+	    (isearch-regexp-lax-whitespace
+	     replace-regexp-lax-whitespace)
+	    (isearch-case-fold-search case-fold-search)
 	    (isearch-forward t)
 	    (isearch-error nil))
 	(isearch-lazy-highlight-new-loop range-beg range-end))))

@@ -3824,12 +3824,28 @@ You should probably use `gnus-find-method-for-group' instead."
   "Go through PARAMETERS and expand them according to the match data."
   (let (new)
     (dolist (elem parameters)
-      (if (and (stringp (cdr elem))
-	       (string-match "\\\\[0-9&]" (cdr elem)))
-	  (push (cons (car elem)
-		      (gnus-expand-group-parameter match (cdr elem) group))
-		new)
-	(push elem new)))
+      (cond
+       ((and (stringp (cdr elem))
+             (string-match "\\\\[0-9&]" (cdr elem)))
+        (push (cons (car elem)
+                    (gnus-expand-group-parameter match (cdr elem) group))
+              new))
+       ;; For `sieve' group parameters, perform substitutions for every
+       ;; string within the match rule.  This allows for parameters such
+       ;; as:
+       ;;  ("list\\.\\(.*\\)"
+       ;;   (sieve header :is "list-id" "<\\1.domain.org>"))
+       ((eq 'sieve (car elem))
+        (push (mapcar (lambda (sieve-elem)
+                        (if (and (stringp sieve-elem)
+                                 (string-match "\\\\[0-9&]" sieve-elem))
+                            (gnus-expand-group-parameter match sieve-elem
+                                                         group)
+                          sieve-elem))
+                      (cdr elem))
+              new))
+       (t
+	(push elem new))))
     new))
 
 (defun gnus-group-fast-parameter (group symbol &optional allow-list)
@@ -3861,9 +3877,20 @@ The function `gnus-group-find-parameter' will do that for you."
 	      (when this-result
 		(setq result (car this-result))
 		;; Expand if necessary.
-		(if (and (stringp result) (string-match "\\\\[0-9&]" result))
-		    (setq result (gnus-expand-group-parameter
-				  (car head) result group)))))))
+		(cond
+                 ((and (stringp result) (string-match "\\\\[0-9&]" result))
+                  (setq result (gnus-expand-group-parameter
+                                (car head) result group)))
+                 ;; For `sieve' group parameters, perform substitutions
+                 ;; for every string within the match rule (see above).
+                 ((eq symbol 'sieve)
+                  (setq result
+                        (mapcar (lambda (elem)
+                                  (if (stringp elem)
+                                      (gnus-expand-group-parameter (car head)
+                                                                   elem group)
+                                    elem))
+                                result))))))))
 	;; Done.
 	result))))
 

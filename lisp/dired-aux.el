@@ -54,43 +54,30 @@ into this list; they also should call `dired-log' to log the errors.")
 ;;;###autoload
 (defun dired-diff (file &optional switches)
   "Compare file at point with file FILE using `diff'.
-FILE defaults to the file at the mark.  (That's the mark set by
-\\[set-mark-command], not by Dired's \\[dired-mark] command.)
-The prompted-for FILE is the first file given to `diff'.
+If called interactively, prompt for FILE; if the file at point
+has a backup file, use that as the default.
+
+FILE is the first file given to `diff'.
 With prefix arg, prompt for second argument SWITCHES,
 which is the string of command switches for `diff'."
   (interactive
    (let* ((current (dired-get-filename t))
-	  ;; Get the file at the mark.
-	  (file-at-mark (if (mark t)
-			    (save-excursion (goto-char (mark t))
-					    (dired-get-filename t t))))
-	  ;; Use it as default if it's not the same as the current file,
-	  ;; and the target dir is the current dir or the mark is active.
-	  (default (if (and (not (equal file-at-mark current))
-			    (or (equal (dired-dwim-target-directory)
-				       (dired-current-directory))
-				mark-active))
-		       file-at-mark))
-	  (target-dir (if default
-			  (dired-current-directory)
-			(dired-dwim-target-directory)))
-	  (defaults (dired-dwim-target-defaults (list current) target-dir)))
-     (require 'diff)
-     (list
-      (minibuffer-with-setup-hook
-	  (lambda ()
-	    (set (make-local-variable 'minibuffer-default-add-function) nil)
-	    (setq minibuffer-default defaults))
-	(read-file-name
-	 (format "Diff %s with%s: " current
-		 (if default (format " (default %s)" default) ""))
-	 target-dir default t))
-      (if current-prefix-arg
-	  (read-string "Options for diff: "
-		       (if (stringp diff-switches)
-			   diff-switches
-			 (mapconcat 'identity diff-switches " ")))))))
+	  (oldf (file-newest-backup current))
+	  (dir (if oldf (file-name-directory oldf))))
+     (list (read-file-name
+	    (format "Diff %s with%s: "
+		    (file-name-nondirectory current)
+		    (if oldf
+			(concat " (default "
+				(file-name-nondirectory oldf)
+				")")
+		      ""))
+	    dir oldf t)
+	   (if current-prefix-arg
+	       (read-string "Options for diff: "
+			    (if (stringp diff-switches)
+				diff-switches
+			      (mapconcat 'identity diff-switches " ")))))))
   (let ((current (dired-get-filename t)))
     (when (or (equal (expand-file-name file)
 		     (expand-file-name current))
@@ -257,7 +244,10 @@ List has a form of (file-name full-file-name (attribute-list))."
 			     (function dired-check-process)
 			     (append
 			      (list operation program)
-			      (unless (string-equal new-attribute "")
+			      (unless (or (string-equal new-attribute "")
+					  ;; Use `eq' instead of `equal'
+					  ;; to detect empty input (bug#12399).
+					  (eq new-attribute default))
 				(if (eq op-symbol 'touch)
 				    (list "-t" new-attribute)
 				  (list new-attribute)))
@@ -291,7 +281,10 @@ Symbolic modes like `g+w' are allowed."
 		 "Change mode of %s to: "
 		 nil 'chmod arg files default))
 	 num-modes)
-    (cond ((equal modes "")
+    (cond ((or (equal modes "")
+	       ;; Use `eq' instead of `equal'
+	       ;; to detect empty input (bug#12399).
+	       (eq modes default))
 	   ;; We used to treat empty input as DEFAULT, but that is not
 	   ;; such a good idea (Bug#9361).
 	   (error "No file mode specified"))

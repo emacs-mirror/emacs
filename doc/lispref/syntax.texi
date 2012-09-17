@@ -130,6 +130,10 @@ comment-ender), and the entry for @samp{/} is @samp{@w{. 14}} (i.e.,
 punctuation, matching character slot unused, first character of a
 comment-starter, second character of a comment-ender).
 
+  Emacs also defines @dfn{raw syntax descriptors}, which are used to
+describe syntax classes at a lower level.  @xref{Syntax Table
+Internals}.
+
 @menu
 * Syntax Class Table::      Table of syntax classes.
 * Syntax Flags::            Additional flags each character can have.
@@ -531,8 +535,9 @@ the current buffer's syntax table to determine the syntax for the
 underlying text character.
 
 @item @code{(@var{syntax-code} . @var{matching-char})}
-A cons cell of this format specifies the syntax for the underlying
-text character.  (@pxref{Syntax Table Internals})
+A cons cell of this format is a raw syntax descriptor (@pxref{Syntax
+Table Internals}), which directly specifies a syntax class for the
+underlying text character.
 
 @item @code{nil}
 If the property is @code{nil}, the character's syntax is determined from
@@ -878,6 +883,9 @@ This function parses a sexp in the current buffer starting at
 @var{start}, not scanning past @var{limit}.  It stops at position
 @var{limit} or when certain criteria described below are met, and sets
 point to the location where parsing stops.  It returns a parser state
+@ifinfo
+(@pxref{Parser State})
+@end ifinfo
 describing the status of the parse at the point where it stops.
 
 @cindex parenthesis depth
@@ -937,16 +945,20 @@ documented in this section.  This internal format can also be assigned
 as syntax properties (@pxref{Syntax Properties}).
 
 @cindex syntax code
-  Each entry in a syntax table is a cons cell of the form
-@code{(@var{syntax-code} . @var{matching-char})}.  @var{syntax-code}
-is an integer that encodes the syntax class and syntax flags,
-according to the table below.  @var{matching-char}, if non-@code{nil},
-specifies a matching character (similar to the second character in a
-syntax descriptor).
+@cindex raw syntax descriptor
+  Each entry in a syntax table is a @dfn{raw syntax descriptor}: a
+cons cell of the form @code{(@var{syntax-code}
+. @var{matching-char})}.  @var{syntax-code} is an integer which
+encodes the syntax class and syntax flags, according to the table
+below.  @var{matching-char}, if non-@code{nil}, specifies a matching
+character (similar to the second character in a syntax descriptor).
+
+  Here are the syntax codes corresponding to the various syntax
+classes:
 
 @multitable @columnfractions .2 .3 .2 .3
 @item
-@i{Syntax code} @tab @i{Class} @tab @i{Syntax code} @tab @i{Class}
+@i{Code} @tab @i{Class} @tab @i{Code} @tab @i{Class}
 @item
 0 @tab whitespace @tab 8 @tab paired delimiter
 @item
@@ -967,7 +979,7 @@ syntax descriptor).
 
 @noindent
 For example, in the standard syntax table, the entry for @samp{(} is
-@code{(4 . 41)}.  (41 is the character code for @samp{)}.)
+@code{(4 . 41)}.  41 is the character code for @samp{)}.
 
   Syntax flags are encoded in higher order bits, starting 16 bits from
 the least significant bit.  This table gives the power of two which
@@ -987,33 +999,35 @@ corresponds to each syntax flag.
 @end multitable
 
 @defun string-to-syntax @var{desc}
-Given a syntax descriptor @var{desc}, this function returns the
-corresponding internal form, a cons cell @code{(@var{syntax-code}
-. @var{matching-char})}.
+Given a syntax descriptor @var{desc} (a string), this function returns
+the corresponding raw syntax descriptor.
 @end defun
 
 @defun syntax-after pos
-This function returns the syntax code of the character in the buffer
-after position @var{pos}, taking account of syntax properties as well
-as the syntax table.  If @var{pos} is outside the buffer's accessible
-portion (@pxref{Narrowing, accessible portion}), this function returns
-@code{nil}.
+This function returns the raw syntax descriptor for the character in
+the buffer after position @var{pos}, taking account of syntax
+properties as well as the syntax table.  If @var{pos} is outside the
+buffer's accessible portion (@pxref{Narrowing, accessible portion}),
+the return value is @code{nil}.
 @end defun
 
 @defun syntax-class syntax
-This function returns the syntax class of the syntax code
-@var{syntax}.  (It masks off the high 16 bits that hold the flags
-encoded in the syntax descriptor.)  If @var{syntax} is @code{nil}, it
-returns @code{nil}; this is so evaluating the expression
+This function returns the syntax code for the raw syntax descriptor
+@var{syntax}.  More precisely, it takes the raw syntax descriptor's
+@var{syntax-code} component, masks off the high 16 bits which record
+the syntax flags, and returns the resulting integer.
+
+If @var{syntax} is @code{nil}, the return value is returns @code{nil}.
+This is so that the expression
 
 @example
 (syntax-class (syntax-after pos))
 @end example
 
 @noindent
-where @code{pos} is outside the buffer's accessible portion, will
-yield @code{nil} without throwing errors or producing wrong syntax
-class codes.
+evaluates to @code{nil} if @code{pos} is outside the buffer's
+accessible portion, without throwing errors or returning an incorrect
+code.
 @end defun
 
 @node Categories

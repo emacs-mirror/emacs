@@ -30,9 +30,7 @@ GNUstep port and post-20 update by Adrian Robert (arobert@cogsci.ucsd.edu)
    interpretation of even the system includes. */
 #include <config.h>
 
-#include <signal.h>
 #include <math.h>
-#include <setjmp.h>
 #include <c-strcase.h>
 
 #include "lisp.h"
@@ -1797,19 +1795,6 @@ terminate Emacs if we can't open the connection.
         error ("OpenStep on %s not responding.\n",
                SSDATA (display));
     }
-
-  /* Register our external input/output types, used for determining
-     applicable services and also drag/drop eligibility. */
-  ns_send_types = [[NSArray arrayWithObjects: NSStringPboardType, nil] retain];
-  ns_return_types = [[NSArray arrayWithObjects: NSStringPboardType, nil]
-                      retain];
-  ns_drag_types = [[NSArray arrayWithObjects:
-                            NSStringPboardType,
-                            NSTabularTextPboardType,
-                            NSFilenamesPboardType,
-                            NSURLPboardType,
-                            NSColorPboardType,
-                            NSFontPboardType, nil] retain];
 
   return Qnil;
 }

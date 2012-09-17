@@ -360,15 +360,17 @@ $(MAKEFILE_NAME): config.status $(srcdir)/src/config.in \
           $(srcdir)/Makefile.in $(SUBDIR_MAKEFILES_IN)
 	./config.status
 
-# Don't erase config.status if make is interrupted while refreshing it.
-.PRECIOUS: config.status
+# Don't erase these files if make is interrupted while refreshing them.
+.PRECIOUS: Makefile config.status
 
-config.status: ${srcdir}/configure ${srcdir}/lisp/version.el
+MAKE_CONFIG_STATUS = \
 	if [ -x ./config.status ]; then	\
 	    ./config.status --recheck;	\
 	else				\
 	    ./configure $(CONFIGURE_FLAGS); \
 	fi
+config.status: ${srcdir}/configure ${srcdir}/lisp/version.el
+	$(MAKE_CONFIG_STATUS)
 
 AUTOCONF_INPUTS = $(srcdir)/configure.ac $(srcdir)/aclocal.m4
 
@@ -383,6 +385,10 @@ AUTOMAKE_INPUTS = $(srcdir)/aclocal.m4 $(srcdir)/lib/Makefile.am \
   $(srcdir)/lib/gnulib.mk
 $(srcdir)/lib/Makefile.in: $(AUTOMAKE_INPUTS)
 	cd $(srcdir) && automake --gnu -a -c lib/Makefile
+
+# Regenerate files that this makefile would have made, if this makefile
+# had been built by Automake.  The name 'am--refresh' is for
+# compatibility with subsidiary Automake-generated makefiles.
 am--refresh: $(srcdir)/aclocal.m4 $(srcdir)/configure $(srcdir)/src/config.in
 .PHONY: am--refresh
 
@@ -427,7 +433,7 @@ write_subdir=if [ -f $${subdir}/subdirs.el ]; \
 ### Install the executables that were compiled specifically for this machine.
 ### We do install-arch-indep first because the executable needs the
 ### Lisp files and DOC file to work properly.
-install-arch-dep: install-arch-indep install-doc
+install-arch-dep: src install-arch-indep install-doc
 	umask 022; ${MKDIR_P} $(DESTDIR)${bindir}
 	cd lib-src && \
 	  $(MAKE) install $(MFLAGS) prefix=${prefix} \
@@ -496,7 +502,7 @@ set_installuser=for installuser in $${LOGNAME} $${USERNAME} $${USER} \
 ## work correctly, and therefore no idea when tar can be replaced.
 ## See also these comments from 2004 about cp -r working fine:
 ## http://lists.gnu.org/archive/html/autoconf-patches/2004-11/msg00005.html
-install-arch-indep: install-info install-man ${INSTALL_ARCH_INDEP_EXTRA}
+install-arch-indep: lisp leim install-info install-man ${INSTALL_ARCH_INDEP_EXTRA}
 	umask 022 ; \
 	locallisppath='${locallisppath}'; \
 	IFS=:; \
@@ -567,7 +573,7 @@ install-arch-indep: install-info install-man ${INSTALL_ARCH_INDEP_EXTRA}
 
 ## Note that install-arch-indep deletes and recreates the entire
 ## installed etc/ directory, so we need it to run before this does.
-install-doc: install-arch-indep
+install-doc: src install-arch-indep
 	-unset CDPATH; \
 	umask 022; ${MKDIR_P} $(DESTDIR)${docdir} ; \
 	if [ `cd ./etc; /bin/pwd` != `cd $(DESTDIR)${docdir}; /bin/pwd` ]; \
@@ -731,6 +737,7 @@ clean: FRC
 	-(cd doc/lispref &&   $(MAKE) $(MFLAGS) clean)
 	-(cd doc/lispintro &&   $(MAKE) $(MFLAGS) clean)
 	(cd leim;     $(MAKE) $(MFLAGS) clean)
+	(cd nextstep && $(MAKE) $(MFLAGS) clean)
 
 ### `bootclean'
 ###      Delete all files that need to be remade for a clean bootstrap.
@@ -757,6 +764,7 @@ distclean: FRC
 	(cd doc/lispintro &&    $(MAKE) $(MFLAGS) distclean)
 	(cd leim;     $(MAKE) $(MFLAGS) distclean)
 	(cd lisp;     $(MAKE) $(MFLAGS) distclean)
+	(cd nextstep && $(MAKE) $(MFLAGS) distclean)
 	${top_distclean}
 
 ### `bootstrap-clean'
@@ -774,10 +782,9 @@ bootstrap-clean: FRC
 	-(cd doc/lispintro &&   $(MAKE) $(MFLAGS) maintainer-clean)
 	(cd leim;     $(MAKE) $(MFLAGS) maintainer-clean)
 	(cd lisp;     $(MAKE) $(MFLAGS) bootstrap-clean)
+	(cd nextstep && $(MAKE) $(MFLAGS) maintainer-clean)
 	[ ! -f config.log ] || mv -f config.log config.log~
 	${top_bootclean}
-## configure; make bootstrap replaces the real config.log from configure
-## with the truncated one from config.status.  The former is more useful.
 
 ### `maintainer-clean'
 ###      Delete everything from the current directory that can be
@@ -883,14 +890,14 @@ dvi:
 
 .PHONY: bootstrap
 
-## configure; make bootstrap replaces the real config.log from configure
-## with the truncated one from config.status.  The former is more useful.
+# Bootstrapping does the following:
+#  * Remove files to start from a clean slate.
+#  * Run autogen.sh, but don't worry about exit status 101 (missing tools).
+#  * Build Makefile, to build the build procedure itself.
+#  * Do the actual build.
 bootstrap: bootstrap-clean FRC
-	if [ -x ./config.status ]; then           \
-	    ./config.status;                      \
-	else                                      \
-	    ./configure $(CONFIGURE_FLAGS);       \
-	fi
+	cd $(srcdir) && { ./autogen.sh || test $$? -eq 101; }
+	$(MAKE_CONFIG_STATUS)
 	$(MAKE) $(MFLAGS) info all
 
 .PHONY: check-declare

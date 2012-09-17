@@ -658,22 +658,13 @@ Not actually set up until the first time you use it.")
 
 (defun parse-colon-path (search-path)
   "Explode a search path into a list of directory names.
-Directories are separated by occurrences of `path-separator'
-\(which is colon in GNU and GNU-like systems)."
-  ;; We could use split-string here.
-  (and search-path
-       (let (cd-list (cd-start 0) cd-colon)
-	 (setq search-path (concat search-path path-separator))
-	 (while (setq cd-colon (string-match path-separator search-path cd-start))
-	   (setq cd-list
-		 (nconc cd-list
-			(list (if (= cd-start cd-colon)
-				   nil
-				(substitute-in-file-name
-				 (file-name-as-directory
-				  (substring search-path cd-start cd-colon)))))))
-	   (setq cd-start (+ cd-colon 1)))
-	 cd-list)))
+Directories are separated by `path-separator' (which is colon in
+GNU and Unix systems).  Substitute environment variables into the
+resulting list of directory names."
+  (when (stringp search-path)
+    (mapcar (lambda (f)
+	      (substitute-in-file-name (file-name-as-directory f)))
+	    (split-string search-path path-separator t))))
 
 (defun cd-absolute (dir)
   "Change current directory to given absolute file name DIR."
@@ -2145,7 +2136,7 @@ unless NOMODES is non-nil."
 	 (not buffer-read-only)
 	 (save-excursion
 	   (goto-char (point-max))
-	   (insert "\n")))
+	   (ignore-errors (insert "\n"))))
     (when (and buffer-read-only
 	       view-read-only
 	       (not (eq (get major-mode 'mode-class) 'special)))
@@ -2951,20 +2942,16 @@ UNSAFE-VARS is the list of those that aren't marked as safe or risky.
 RISKY-VARS is the list of those that are marked as risky.
 If these settings come from directory-local variables, then
 DIR-NAME is the name of the associated directory.  Otherwise it is nil."
-  (if noninteractive
-      nil
-    (save-window-excursion
-      (let* ((name (or dir-name
-		       (if buffer-file-name
-			   (file-name-nondirectory buffer-file-name)
-			 (concat "buffer " (buffer-name)))))
-	     (offer-save (and (eq enable-local-variables t)
-			      unsafe-vars))
-	     (exit-chars
-	      (if offer-save '(?! ?y ?n ?\s ?\C-g) '(?y ?n ?\s ?\C-g)))
-	     (buf (pop-to-buffer "*Local Variables*"))
-	     prompt char)
-	(set (make-local-variable 'cursor-type) nil)
+  (unless noninteractive
+    (let ((name (cond (dir-name)
+		      (buffer-file-name
+		       (file-name-nondirectory buffer-file-name))
+		      ((concat "buffer " (buffer-name)))))
+	  (offer-save (and (eq enable-local-variables t)
+			   unsafe-vars))
+	  (buf (get-buffer-create "*Local Variables*")))
+      ;; Set up the contents of the *Local Variables* buffer.
+      (with-current-buffer buf
 	(erase-buffer)
 	(cond
 	 (unsafe-vars
@@ -2999,25 +2986,35 @@ n  -- to ignore the local variables list.")
 	  (let ((print-escape-newlines t))
 	    (prin1 (cdr elt) buf))
 	  (insert "\n"))
-	(setq prompt
-	      (format "Please type %s%s: "
-		      (if offer-save "y, n, or !" "y or n")
-		      (if (< (line-number-at-pos) (window-body-height))
-			  ""
-			(push ?\C-v exit-chars)
-			", or C-v to scroll")))
-	(goto-char (point-min))
-	(while (null char)
-	  (setq char (read-char-choice prompt exit-chars t))
-	  (when (eq char ?\C-v)
-	    (condition-case nil
-		(scroll-up)
-	      (error (goto-char (point-min))))
-	    (setq char nil)))
-	(kill-buffer buf)
-	(when (and offer-save (= char ?!) unsafe-vars)
-	  (customize-push-and-save 'safe-local-variable-values unsafe-vars))
-	(memq char '(?! ?\s ?y))))))
+	(set (make-local-variable 'cursor-type) nil)
+	(set-buffer-modified-p nil)
+	(goto-char (point-min)))
+
+      ;; Display the buffer and read a choice.
+      (save-window-excursion
+	(pop-to-buffer buf)
+	(let* ((exit-chars '(?y ?n ?\s ?\C-g ?\C-v))
+	       (prompt (format "Please type %s%s: "
+			       (if offer-save "y, n, or !" "y or n")
+			       (if (< (line-number-at-pos (point-max))
+				      (window-body-height))
+				   ""
+				 (push ?\C-v exit-chars)
+				 ", or C-v to scroll")))
+	       char)
+	  (if offer-save (push ?! exit-chars))
+	  (while (null char)
+	    (setq char (read-char-choice prompt exit-chars t))
+	    (when (eq char ?\C-v)
+	      (condition-case nil
+		  (scroll-up)
+		(error (goto-char (point-min))
+		       (recenter 1)))
+	      (setq char nil)))
+	  (when (and offer-save (= char ?!) unsafe-vars)
+	    (customize-push-and-save 'safe-local-variable-values unsafe-vars))
+	  (prog1 (memq char '(?! ?\s ?y))
+	    (quit-window t)))))))
 
 (defun hack-local-variables-prop-line (&optional mode-only)
   "Return local variables specified in the -*- line.
@@ -5350,23 +5347,26 @@ non-nil, it is called instead of rereading visited file contents."
 	     (not (file-exists-p file-name)))
 	   (error "Auto-save file %s not current"
 		  (abbreviate-file-name file-name)))
-	  ((save-window-excursion
-	     (with-output-to-temp-buffer "*Directory*"
-	       (buffer-disable-undo standard-output)
-	       (save-excursion
-		 (let ((switches dired-listing-switches))
-		   (if (file-symlink-p file)
-		       (setq switches (concat switches " -L")))
-		   (set-buffer standard-output)
-		   ;; Use insert-directory-safely, not insert-directory,
-		   ;; because these files might not exist.  In particular,
-		   ;; FILE might not exist if the auto-save file was for
-		   ;; a buffer that didn't visit a file, such as "*mail*".
-		   ;; The code in v20.x called `ls' directly, so we need
-		   ;; to emulate what `ls' did in that case.
-		   (insert-directory-safely file switches)
-		   (insert-directory-safely file-name switches))))
-	     (yes-or-no-p (format "Recover auto save file %s? " file-name)))
+	  ((with-temp-buffer-window
+	    "*Directory*" nil
+	    #'(lambda (window _value)
+		(with-selected-window window
+		  (unwind-protect
+		      (yes-or-no-p (format "Recover auto save file %s? " file-name))
+		    (when (window-live-p window)
+		      (quit-restore-window window 'kill)))))
+	    (with-current-buffer standard-output
+	      (let ((switches dired-listing-switches))
+		(if (file-symlink-p file)
+		    (setq switches (concat switches " -L")))
+		;; Use insert-directory-safely, not insert-directory,
+		;; because these files might not exist.  In particular,
+		;; FILE might not exist if the auto-save file was for
+		;; a buffer that didn't visit a file, such as "*mail*".
+		;; The code in v20.x called `ls' directly, so we need
+		;; to emulate what `ls' did in that case.
+		(insert-directory-safely file switches)
+		(insert-directory-safely file-name switches))))
 	   (switch-to-buffer (find-file-noselect file t))
 	   (let ((inhibit-read-only t)
 		 ;; Keep the current buffer-file-coding-system.
@@ -6327,8 +6327,15 @@ if any returns nil.  If `confirm-kill-emacs' is non-nil, calls it."
 		    (setq active t))
 	       (setq processes (cdr processes)))
 	     (or (not active)
-		 (progn (list-processes t)
-			(yes-or-no-p "Active processes exist; kill them and exit anyway? ")))))
+		 (with-temp-buffer-window
+		  (get-buffer-create "*Process List*") nil
+		  #'(lambda (window _value)
+		      (with-selected-window window
+			(unwind-protect
+			    (yes-or-no-p "Active processes exist; kill them and exit anyway? ")
+			  (when (window-live-p window)
+			    (quit-restore-window window 'kill)))))
+		  (list-processes t)))))
        ;; Query the user for other things, perhaps.
        (run-hook-with-args-until-failure 'kill-emacs-query-functions)
        (or (null confirm-kill-emacs)

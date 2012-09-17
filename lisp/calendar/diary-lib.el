@@ -200,19 +200,21 @@ holidays), or hard copy output."
   'diary-list-entries-hook "23.1")
 
 (defcustom diary-list-entries-hook nil
-  "List of functions called after diary file is culled for relevant entries.
-You might wish to add `diary-include-other-diary-files', in which case
-you will probably also want to add `diary-mark-included-diary-files' to
-`diary-mark-entries-hook'.  For example, you could use
+  "Hook run after diary file is culled for relevant entries.
+
+If you add `diary-include-other-diary-files' to this hook, you
+will probably also want to add `diary-mark-included-diary-files'
+to `diary-mark-entries-hook'.  For example, to cause the fancy
+diary buffer to be displayed with diary entries from various
+included files, each day's entries sorted into lexicographic
+order, add the following to your init file:
 
      (setq diary-display-function 'diary-fancy-display)
      (add-hook 'diary-list-entries-hook 'diary-include-other-diary-files)
      (add-hook 'diary-list-entries-hook 'diary-sort-entries t)
 
-in your `.emacs' file to cause the fancy diary buffer to be displayed with
-diary entries from various included files, each day's entries sorted into
-lexicographic order.  Note how the sort function is placed last,
-so that it can sort the entries included from other files.
+Note how the sort function is placed last, so that it can sort
+the entries included from other files.
 
 This hook runs after `diary-nongregorian-listing-hook'.  These two hooks
 differ only if you are using included diary files.  In that case,
@@ -532,7 +534,7 @@ If so, return the expanded file name, otherwise signal an error."
   "Generate the diary window for ARG days starting with the current date.
 If no argument is provided, the number of days of diary entries is governed
 by the variable `diary-number-of-entries'.  A value of ARG less than 1
-does nothing.  This function is suitable for execution in a `.emacs' file."
+does nothing.  This function is suitable for execution in an init file."
   (interactive "P")
   (diary-check-diary-file)
   (diary-list-entries (calendar-current-date)
@@ -1230,8 +1232,8 @@ Mail is sent to the address specified by `diary-mail-addr'.
 
 Here is an example of a script to call `diary-mail-entries',
 suitable for regular scheduling using cron (or at).  Note that
-since `emacs -script' does not load your `.emacs' file, you
-should ensure that all relevant variables are set.
+since `emacs -script' does not load your init file, you should
+ensure that all relevant variables are set.
 
 #!/usr/bin/emacs -script
 ;; diary-rem.el - run the Emacs diary-reminder

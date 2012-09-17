@@ -276,8 +276,9 @@ You have the following commands at your disposal:
 \\[2C-merge]   Merge both buffers
 \\[2C-dissociate]   Dissociate the two buffers
 
-These keybindings can be customized in your ~/.emacs by `2C-mode-map',
-`2C-minor-mode-map' and by binding `2C-command' to some prefix.
+These keybindings can be customized in your init file by
+`2C-mode-map', `2C-minor-mode-map' and by binding `2C-command' to
+some prefix.
 
 The appearance of the screen can be customized by the variables
 `2C-window-width', `2C-beyond-fill-column', `2C-mode-line-format' and

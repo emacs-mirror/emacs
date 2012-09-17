@@ -35,7 +35,6 @@ GNUstep port and post-20 update by Adrian Robert (arobert@cogsci.ucsd.edu)
 #include <time.h>
 #include <signal.h>
 #include <unistd.h>
-#include <setjmp.h>
 
 #include <c-ctype.h>
 #include <c-strcase.h>
@@ -627,12 +626,22 @@ ns_update_begin (struct frame *f)
    -------------------------------------------------------------------------- */
 {
   NSView *view = FRAME_NS_VIEW (f);
+  NSRect r = [view frame];
+  NSBezierPath *bp;
   NSTRACE (ns_update_begin);
 
   ns_update_auto_hide_menu_bar ();
 
   ns_updating_frame = f;
   [view lockFocus];
+
+  /* drawRect may have been called for say the minibuffer, and then clip path
+     is for the minibuffer.  But the display engine may draw more because
+     we have set the frame as garbaged.  So reset clip path to the whole
+     view.  */
+  bp = [[NSBezierPath bezierPathWithRect: r] retain];
+  [bp setClip];
+  [bp release];
 
 #ifdef NS_IMPL_GNUSTEP
   uRect = NSMakeRect (0, 0, 0, 0);
@@ -650,7 +659,6 @@ ns_update_window_begin (struct window *w)
   struct frame *f = XFRAME (WINDOW_FRAME (w));
  Mouse_HLInfo *hlinfo = MOUSE_HL_INFO (f);
   NSTRACE (ns_update_window_begin);
-
   updated_window = w;
   set_output_cursor (&w->cursor);
 
@@ -871,24 +879,11 @@ ns_clip_to_row (struct window *w, struct glyph_row *row, int area, BOOL gc)
 
   window_box (w, area, &window_x, &window_y, &window_width, 0);
 
-  clip_rect.origin.x = window_x - FRAME_INTERNAL_BORDER_WIDTH (f);
+  clip_rect.origin.x = window_x;
   clip_rect.origin.y = WINDOW_TO_FRAME_PIXEL_Y (w, max (0, row->y));
   clip_rect.origin.y = max (clip_rect.origin.y, window_y);
-  clip_rect.size.width = window_width + 2 * FRAME_INTERNAL_BORDER_WIDTH (f);
+  clip_rect.size.width = window_width;
   clip_rect.size.height = row->visible_height;
-
-  /* allow a full-height row at the top when requested
-     (used to draw fringe all the way through internal border area) */
-  if (gc && clip_rect.origin.y < 5)
-    {
-      clip_rect.origin.y -= FRAME_INTERNAL_BORDER_WIDTH (f);
-      clip_rect.size.height += FRAME_INTERNAL_BORDER_WIDTH (f);
-    }
-
-  /* likewise at bottom */
-  if (gc &&
-      FRAME_PIXEL_HEIGHT (f) - (clip_rect.origin.y + clip_rect.size.height) < 5)
-    clip_rect.size.height += FRAME_INTERNAL_BORDER_WIDTH (f);
 
   ns_focus (f, &clip_rect, 1);
 }
@@ -1237,18 +1232,10 @@ x_set_window_size (struct frame *f, int change_grav, int cols, int rows)
   NSRect wr = [window frame];
   int tb = FRAME_EXTERNAL_TOOL_BAR (f);
   int pixelwidth, pixelheight;
-  static int oldRows, oldCols, oldFontWidth, oldFontHeight;
-  static int oldTB;
-  static struct frame *oldF;
 
   NSTRACE (x_set_window_size);
 
-  if (view == nil ||
-      (f == oldF
-       && rows == oldRows && cols == oldCols
-       && oldFontWidth == FRAME_COLUMN_WIDTH (f)
-       && oldFontHeight == FRAME_LINE_HEIGHT (f)
-       && oldTB == tb))
+  if (view == nil)
     return;
 
 /*fprintf (stderr, "\tsetWindowSize: %d x %d, font size %d x %d\n", cols, rows, FRAME_COLUMN_WIDTH (f), FRAME_LINE_HEIGHT (f)); */
@@ -1256,12 +1243,6 @@ x_set_window_size (struct frame *f, int change_grav, int cols, int rows)
   BLOCK_INPUT;
 
   check_frame_size (f, &rows, &cols);
-  oldF = f;
-  oldRows = rows;
-  oldCols = cols;
-  oldFontWidth = FRAME_COLUMN_WIDTH (f);
-  oldFontHeight = FRAME_LINE_HEIGHT (f);
-  oldTB = tb;
 
   f->scroll_bar_actual_width = NS_SCROLL_BAR_WIDTH (f);
   compute_fringe_widths (f, 0);
@@ -1939,7 +1920,7 @@ ns_redraw_scroll_bars (struct frame *f)
   int i;
   id view;
   NSArray *subviews = [[FRAME_NS_VIEW (f) superview] subviews];
-  NSTRACE (ns_judge_scroll_bars);
+  NSTRACE (ns_redraw_scroll_bars);
   for (i =[subviews count]-1; i >= 0; i--)
     {
       view = [subviews objectAtIndex: i];
@@ -2125,9 +2106,9 @@ ns_after_update_window_line (struct glyph_row *desired_row)
     desired_row->redraw_fringe_bitmaps_p = 1;
 
   /* When a window has disappeared, make sure that no rest of
-     full-width rows stays visible in the internal border.
-     Under NS this is drawn inside the fringes. */
+     full-width rows stays visible in the internal border.  */
   if (windows_or_buffers_changed
+      && desired_row->full_width_p
       && (f = XFRAME (w->frame),
 	  width = FRAME_INTERNAL_BORDER_WIDTH (f),
 	  width != 0)
@@ -2136,24 +2117,11 @@ ns_after_update_window_line (struct glyph_row *desired_row)
     {
       int y = WINDOW_TO_FRAME_PIXEL_Y (w, max (0, desired_row->y));
 
-      /* Internal border is drawn below the tool bar.  */
-      if (WINDOWP (f->tool_bar_window)
-	  && w == XWINDOW (f->tool_bar_window))
-	y -= width;
-      /* end copy from other terms */
-
       BLOCK_INPUT;
-      if (!desired_row->full_width_p)
-        {
-          int x1 = WINDOW_LEFT_SCROLL_BAR_AREA_WIDTH (w)
-            + WINDOW_LEFT_FRINGE_WIDTH (w);
-          int x2 = WINDOW_LEFT_SCROLL_BAR_AREA_WIDTH (w)
-            + FRAME_PIXEL_WIDTH (f) - NS_SCROLL_BAR_WIDTH (f)
-            - WINDOW_RIGHT_FRINGE_WIDTH (w)
-            - FRAME_INTERNAL_BORDER_WIDTH (f);
-          ns_clear_frame_area (f, x1, y, width, height);
-          ns_clear_frame_area (f, x2, y, width, height);
-        }
+      ns_clear_frame_area (f, 0, y, width, height);
+      ns_clear_frame_area (f,
+                           FRAME_PIXEL_WIDTH (f) - width,
+                           y, width, height);
       UNBLOCK_INPUT;
     }
 }
@@ -2238,17 +2206,6 @@ ns_draw_fringe_bitmap (struct window *w, struct glyph_row *row,
   int rowY;
   static EmacsImage **bimgs = NULL;
   static int nBimgs = 0;
-  /* NS-specific: move internal border inside fringe */
-  int x = p->bx < 0 ? p->x : p->bx;
-  int wd = p->bx < 0 ? p->wd : p->nx;
-  BOOL fringeOnVeryLeft
-    = x - WINDOW_LEFT_SCROLL_BAR_COLS (w) * WINDOW_FRAME_COLUMN_WIDTH (w)
-      - FRAME_INTERNAL_BORDER_WIDTH (f) < 10;
-  BOOL fringeOnVeryRight
-    = FRAME_PIXEL_WIDTH (f) - x - wd - FRAME_INTERNAL_BORDER_WIDTH (f)
-      - WINDOW_RIGHT_SCROLL_BAR_COLS (w) * WINDOW_FRAME_COLUMN_WIDTH (w) < 10;
-  int xAdjust = FRAME_INTERNAL_BORDER_WIDTH (f) *
-    (fringeOnVeryLeft ? -1 : (fringeOnVeryRight ? 1 : 0));
 
   /* grow bimgs if needed */
   if (nBimgs < max_used_fringe_bitmap)
@@ -2263,22 +2220,68 @@ ns_draw_fringe_bitmap (struct window *w, struct glyph_row *row,
   rowY = WINDOW_TO_FRAME_PIXEL_Y (w, row->y);
   ns_clip_to_row (w, row, -1, YES);
 
-  if (p->bx >= 0 && !p->overlay_p)
+  if (!p->overlay_p)
     {
-      int yAdjust = rowY - FRAME_INTERNAL_BORDER_WIDTH (f) < 5 ?
-        -FRAME_INTERNAL_BORDER_WIDTH (f) : 0;
-      int yIncr = FRAME_PIXEL_HEIGHT (f) - (p->by+yAdjust + p->ny) < 5 ?
-        FRAME_INTERNAL_BORDER_WIDTH (f) : 0
-        + (yAdjust ? FRAME_INTERNAL_BORDER_WIDTH (f) : 0);
-      NSRect r = NSMakeRect (p->bx+xAdjust, p->by+yAdjust, p->nx, p->ny+yIncr);
-      NSRectClip (r);
-      [ns_lookup_indexed_color(face->background, f) set];
-      NSRectFill (r);
+      int bx = p->bx, by = p->by, nx = p->nx, ny = p->ny;
+
+      /* If the fringe is adjacent to the left (right) scroll bar of a
+	 leftmost (rightmost, respectively) window, then extend its
+	 background to the gap between the fringe and the bar.  */
+      if ((WINDOW_LEFTMOST_P (w)
+	   && WINDOW_HAS_VERTICAL_SCROLL_BAR_ON_LEFT (w))
+	  || (WINDOW_RIGHTMOST_P (w)
+	      && WINDOW_HAS_VERTICAL_SCROLL_BAR_ON_RIGHT (w)))
+	{
+	  int sb_width = WINDOW_CONFIG_SCROLL_BAR_WIDTH (w);
+
+	  if (sb_width > 0)
+	    {
+	      int bar_area_x = WINDOW_SCROLL_BAR_AREA_X (w);
+	      int bar_area_width = (WINDOW_CONFIG_SCROLL_BAR_COLS (w)
+				    * FRAME_COLUMN_WIDTH (f));
+
+	      if (bx < 0)
+		{
+		  /* Bitmap fills the fringe.  */
+		  if (bar_area_x + bar_area_width == p->x)
+		    bx = bar_area_x + sb_width;
+		  else if (p->x + p->wd == bar_area_x)
+		    bx = bar_area_x;
+		  if (bx >= 0)
+		    {
+		      int header_line_height = WINDOW_HEADER_LINE_HEIGHT (w);
+
+		      nx = bar_area_width - sb_width;
+		      by = WINDOW_TO_FRAME_PIXEL_Y (w, max (header_line_height,
+							    row->y));
+		      ny = row->visible_height;
+		    }
+		}
+	      else
+		{
+		  if (bar_area_x + bar_area_width == bx)
+		    {
+		      bx = bar_area_x + sb_width;
+		      nx += bar_area_width - sb_width;
+		    }
+		  else if (bx + nx == bar_area_x)
+		    nx += bar_area_width - sb_width;
+		}
+	    }
+	}
+
+      if (bx >= 0 && nx > 0)
+        {
+          NSRect r = NSMakeRect (bx, by, nx, ny);
+          NSRectClip (r);
+          [ns_lookup_indexed_color (face->background, f) set];
+          NSRectFill (r);
+        }
     }
 
   if (p->which)
     {
-      NSRect r = NSMakeRect (p->x+xAdjust, p->y, p->wd, p->h);
+      NSRect r = NSMakeRect (p->x, p->y, p->wd, p->h);
       EmacsImage *img = bimgs[p->which - 1];
 
       if (!img)
@@ -2288,7 +2291,7 @@ ns_draw_fringe_bitmap (struct window *w, struct glyph_row *row,
           int i;
           unsigned char *cbits = xmalloc (len);
 
-          for (i =0; i<len; i++)
+          for (i = 0; i < len; i++)
             cbits[i] = ~(bits[i] & 0xff);
           img = [[EmacsImage alloc] initFromXBM: cbits width: 8 height: p->h
                                            flip: NO];
@@ -2302,12 +2305,20 @@ ns_draw_fringe_bitmap (struct window *w, struct glyph_row *row,
       [ns_lookup_indexed_color(face->background, f) set];
       NSRectFill (r);
       [img setXBMColor: ns_lookup_indexed_color(face->foreground, f)];
+#if !defined (NS_IMPL_COCOA) || MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_6
       [img drawInRect: r
               fromRect: NSZeroRect
              operation: NSCompositeSourceOver
               fraction: 1.0
            respectFlipped: YES
                 hints: nil];
+#else
+      {
+        NSPoint pt = r.origin;
+        pt.y += p->h;
+        [img compositeToPoint: pt operation: NSCompositeSourceOver];
+      }
+#endif
     }
   ns_unfocus (f);
 }
@@ -2385,14 +2396,6 @@ ns_draw_window_cursor (struct window *w, struct glyph_row *glyph_row,
   r.origin.x = fx, r.origin.y = fy;
   r.size.height = h;
   r.size.width = w->phys_cursor_width;
-
-  /* FIXME: if we overwrite the internal border area, it does not get erased;
-     fix by truncating cursor, but better would be to erase properly */
-  overspill = r.origin.x + r.size.width -
-    WINDOW_TEXT_TO_FRAME_PIXEL_X (w, WINDOW_BOX_RIGHT_EDGE_X (w)
-      - WINDOW_TOTAL_FRINGE_WIDTH (w) - FRAME_INTERNAL_BORDER_WIDTH (f));
-  if (overspill > 0)
-    r.size.width -= overspill;
 
   /* TODO: only needed in rare cases with last-resort font in HELLO..
      should we do this more efficiently? */
@@ -2517,31 +2520,6 @@ hide_hourglass (void)
 
    ========================================================================== */
 
-
-static inline NSRect
-ns_fix_rect_ibw (NSRect r, int fibw, int frame_pixel_width)
-/* --------------------------------------------------------------------------
-    Under NS we draw internal borders inside fringes, and want full-width
-    rendering to go all the way to edge.  This function makes that correction.
-   -------------------------------------------------------------------------- */
-{
-  if (r.origin.y <= fibw+1)
-    {
-      r.size.height += r.origin.y;
-      r.origin.y = 0;
-    }
-  if (r.origin.x <= fibw+1)
-    {
-      r.size.width += r.origin.x;
-      r.origin.x = 0;
-    }
-  if (frame_pixel_width - (r.origin.x+r.size.width) <= fibw+1)
-    r.size.width += fibw;
-
-  return r;
-}
-
-
 static int
 ns_get_glyph_string_clip_rect (struct glyph_string *s, NativeRectangle *nr)
 /* --------------------------------------------------------------------------
@@ -2551,14 +2529,6 @@ ns_get_glyph_string_clip_rect (struct glyph_string *s, NativeRectangle *nr)
    -------------------------------------------------------------------------- */
 {
   int n = get_glyph_string_clip_rects (s, nr, 2);
-  if (s->row->full_width_p)
-    {
-      *nr = ns_fix_rect_ibw (*nr, FRAME_INTERNAL_BORDER_WIDTH (s->f),
-                            FRAME_PIXEL_WIDTH (s->f));
-      if (n == 2)
-        *nr = ns_fix_rect_ibw (*(nr+1), FRAME_INTERNAL_BORDER_WIDTH (s->f),
-                              FRAME_PIXEL_WIDTH (s->f));
-    }
   return n;
 }
 
@@ -2883,11 +2853,6 @@ ns_dumpglyphs_box_or_relief (struct glyph_string *s)
 
   r = NSMakeRect (s->x, s->y, right_x - s->x + 1, s->height);
 
-  /* expand full-width row over internal borders */
-  if (s->row->full_width_p)
-    r = ns_fix_rect_ibw (r, FRAME_INTERNAL_BORDER_WIDTH (s->f),
-                        FRAME_PIXEL_WIDTH (s->f));
-
   /* TODO: Sometimes box_color is 0 and this seems wrong; should investigate. */
   if (s->face->box == FACE_SIMPLE_BOX && s->face->box_color)
     {
@@ -2943,26 +2908,6 @@ ns_maybe_dumpglyphs_background (struct glyph_string *s, char force_p)
               NSRect r = NSMakeRect (s->x, s->y + box_line_width,
                                     s->background_width,
                                     s->height-2*box_line_width);
-
-              /* expand full-width row over internal borders */
-              if (s->row->full_width_p)
-                {
-                  int fibw = FRAME_INTERNAL_BORDER_WIDTH (s->f);
-                  if (r.origin.y <= fibw+1 + box_line_width)
-                    {
-                      r.size.height += r.origin.y;
-                      r.origin.y = 0;
-                    }
-                  if (r.origin.x <= fibw+1)
-                    {
-                      r.size.width += 2*r.origin.x;
-                      r.origin.x = 0;
-                    }
-                  if (FRAME_PIXEL_WIDTH (s->f) - (r.origin.x + r.size.width)
-                      <= fibw+1)
-                    r.size.width += fibw;
-                }
-
               NSRectFill (r);
             }
 
@@ -3028,34 +2973,23 @@ ns_dumpglyphs_image (struct glyph_string *s, NSRect r)
       br = NSMakeRect (x, y, s->slice.width, s->slice.height);
     }
 
-  /* expand full-width row over internal borders */
-  if (s->row->full_width_p)
-    {
-      int fibw = FRAME_INTERNAL_BORDER_WIDTH (s->f);
-      if (br.origin.y <= fibw+1 + box_line_vwidth)
-        {
-          br.size.height += br.origin.y;
-          br.origin.y = 0;
-        }
-      if (br.origin.x <= fibw+1 + box_line_vwidth)
-        {
-          br.size.width += br.origin.x;
-          br.origin.x = 0;
-        }
-      if (FRAME_PIXEL_WIDTH (s->f) - (br.origin.x + br.size.width) <= fibw+1)
-        br.size.width += fibw;
-    }
-
   NSRectFill (br);
 
   /* Draw the image.. do we need to draw placeholder if img ==nil? */
   if (img != nil)
+    {
+#if !defined (NS_IMPL_COCOA) || MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_6
       [img drawInRect: br
-              fromRect: NSZeroRect
+             fromRect: NSZeroRect
              operation: NSCompositeSourceOver
               fraction: 1.0
            respectFlipped: YES
                 hints: nil];
+#else
+      [img compositeToPoint: NSMakePoint (x, y + s->slice.height)
+                  operation: NSCompositeSourceOver];
+#endif
+    }
 
   if (s->hl == DRAW_CURSOR)
     {
@@ -3143,7 +3077,7 @@ ns_dumpglyphs_stretch (struct glyph_string *s)
       bgCol = ns_lookup_indexed_color (NS_FACE_BACKGROUND (face), s->f);
       fgCol = ns_lookup_indexed_color (NS_FACE_FOREGROUND (face), s->f);
 
-      for (i=0; i<n; i++)
+      for (i = 0; i < n; ++i)
         {
           if (!s->row->full_width_p)
             {
@@ -3171,13 +3105,6 @@ ns_dumpglyphs_stretch (struct glyph_string *s)
                  rows erroneously have visible_height set to 0.  Not sure
                  where this is coming from as other terms seem not to show. */
               r[i].size.height = min (s->height, s->row->visible_height);
-            }
-
-          /* expand full-width rows over internal borders */
-          else
-            {
-              r[i] = ns_fix_rect_ibw (r[i], FRAME_INTERNAL_BORDER_WIDTH (s->f),
-                                      FRAME_PIXEL_WIDTH (s->f));
             }
 
           [bgCol set];
@@ -3340,7 +3267,7 @@ ns_draw_glyph_string (struct glyph_string *s)
       break;
 
     default:
-      abort ();
+      emacs_abort ();
     }
 
   /* Draw box if not done already. */
@@ -3428,16 +3355,12 @@ ns_read_socket (struct terminal *terminal, int expected,
   if (interrupt_input_blocked)
     {
       interrupt_input_pending = 1;
-#ifdef SYNC_INPUT
       pending_signals = 1;
-#endif
       return -1;
     }
 
   interrupt_input_pending = 0;
-#ifdef SYNC_INPUT
   pending_signals = pending_atimers;
-#endif
 
   BLOCK_INPUT;
   n_emacs_events_pending = 0;
@@ -3475,7 +3398,7 @@ ns_read_socket (struct terminal *terminal, int expected,
 
       if (++apploopnr != 1)
         {
-          abort ();
+          emacs_abort ();
         }
       [NSApp run];
       --apploopnr;
@@ -3515,7 +3438,7 @@ ns_select (int nfds, fd_set *readfds, fd_set *writefds,
   [outerpool release];
   outerpool = [[NSAutoreleasePool alloc] init];
 
-  
+
   send_appdefined = YES;
   if (nr > 0)
     {
@@ -3568,7 +3491,7 @@ ns_select (int nfds, fd_set *readfds, fd_set *writefds,
   emacs_event = &event;
   if (++apploopnr != 1)
     {
-      abort();
+      emacs_abort ();
     }
   [NSApp run];
   --apploopnr;
@@ -3586,7 +3509,7 @@ ns_select (int nfds, fd_set *readfds, fd_set *writefds,
     {
       int t;
       if ([ev type] != NSApplicationDefined)
-        abort ();
+        emacs_abort ();
 
       t = [ev data1];
       last_appdefined_event = 0;
@@ -3639,9 +3562,9 @@ ns_set_vertical_scroll_bar (struct window *window,
   struct frame *f = XFRAME (WINDOW_FRAME (window));
   EmacsView *view = FRAME_NS_VIEW (f);
   int window_y, window_height;
-  BOOL barOnVeryLeft, barOnVeryRight;
   int top, left, height, width, sb_width, sb_left;
   EmacsScroller *bar;
+  BOOL fringe_extended_p;
 
   /* optimization; display engine sends WAY too many of these.. */
   if (!NILP (window->vertical_scroll_bar))
@@ -3668,25 +3591,26 @@ ns_set_vertical_scroll_bar (struct window *window,
   width = WINDOW_CONFIG_SCROLL_BAR_COLS (window) * FRAME_COLUMN_WIDTH (f);
   left = WINDOW_SCROLL_BAR_AREA_X (window);
 
-  if (top < 5) /* top scrollbar adjustment */
-    {
-      top -= FRAME_INTERNAL_BORDER_WIDTH (f);
-      height += FRAME_INTERNAL_BORDER_WIDTH (f);
-    }
-
   /* allow for displaying a skinnier scrollbar than char area allotted */
   sb_width = (WINDOW_CONFIG_SCROLL_BAR_WIDTH (window) > 0) ?
     WINDOW_CONFIG_SCROLL_BAR_WIDTH (window) : width;
-
-  barOnVeryLeft = left < 5;
-  barOnVeryRight = FRAME_PIXEL_WIDTH (f) - left - width < 5;
-  sb_left = left + FRAME_INTERNAL_BORDER_WIDTH (f)
-      * (barOnVeryLeft ? -1 : (barOnVeryRight ? 1 : 0));
+  sb_left = left;
 
   r = NSMakeRect (sb_left, top, sb_width, height);
   /* the parent view is flipped, so we need to flip y value */
   v = [view frame];
   r.origin.y = (v.size.height - r.size.height - r.origin.y);
+
+  if (WINDOW_HAS_VERTICAL_SCROLL_BAR_ON_LEFT (window))
+    fringe_extended_p = (WINDOW_LEFTMOST_P (window)
+			 && WINDOW_LEFT_FRINGE_WIDTH (window)
+			 && (WINDOW_HAS_FRINGES_OUTSIDE_MARGINS (window)
+			     || WINDOW_LEFT_MARGIN_COLS (window) == 0));
+  else
+    fringe_extended_p = (WINDOW_RIGHTMOST_P (window)
+			 && WINDOW_RIGHT_FRINGE_WIDTH (window)
+			 && (WINDOW_HAS_FRINGES_OUTSIDE_MARGINS (window)
+			     || WINDOW_RIGHT_MARGIN_COLS (window) == 0));
 
   XSETWINDOW (win, window);
   BLOCK_INPUT;
@@ -3707,7 +3631,14 @@ ns_set_vertical_scroll_bar (struct window *window,
 
   if (NILP (window->vertical_scroll_bar))
     {
-      ns_clear_frame_area (f, sb_left, top, width, height);
+      if (width > 0 && height > 0)
+	{
+	  if (fringe_extended_p)
+	    ns_clear_frame_area (f, sb_left, top, sb_width, height);
+	  else
+	    ns_clear_frame_area (f, left, top, width, height);
+        }
+
       bar = [[EmacsScroller alloc] initFrame: r window: win];
       wset_vertical_scroll_bar (window, make_save_value (bar, 0));
     }
@@ -3778,14 +3709,21 @@ ns_judge_scroll_bars (struct frame *f)
 {
   int i;
   id view;
-  NSArray *subviews = [[FRAME_NS_VIEW (f) superview] subviews];
+  EmacsView *eview = FRAME_NS_VIEW (f);
+  NSArray *subviews = [[eview superview] subviews];
+  BOOL removed = NO;
+
   NSTRACE (ns_judge_scroll_bars);
-  for (i =[subviews count]-1; i >= 0; i--)
+  for (i = [subviews count]-1; i >= 0; --i)
     {
       view = [subviews objectAtIndex: i];
       if (![view isKindOfClass: [EmacsScroller class]]) continue;
       [view judge];
+      removed = YES;
     }
+
+  if (removed)
+    [eview updateFrameSize: NO];
 }
 
 
@@ -4035,33 +3973,34 @@ ns_term_init (Lisp_Object display_name)
   static int ns_initialized = 0;
   Lisp_Object tmp;
 
+  if (ns_initialized) return x_display_list;
+  ns_initialized = 1;
+
   NSTRACE (ns_term_init);
+
+  [outerpool release];
+  outerpool = [[NSAutoreleasePool alloc] init];
 
   /* count object allocs (About, click icon); on OS X use ObjectAlloc tool */
   /*GSDebugAllocationActive (YES); */
   BLOCK_INPUT;
-  handling_signal = 0;
 
-  if (!ns_initialized)
+  baud_rate = 38400;
+  Fset_input_interrupt_mode (Qnil);
+
+  if (selfds[0] == -1)
     {
-      baud_rate = 38400;
-      Fset_input_interrupt_mode (Qnil);
-
-      if (selfds[0] == -1)
+      if (pipe (selfds) == -1)
         {
-          if (pipe (selfds) == -1)
-            {
-              fprintf (stderr, "Failed to create pipe: %s\n",
-                       emacs_strerror (errno));
-              abort ();
-            }
-
-          fcntl (selfds[0], F_SETFL, O_NONBLOCK|fcntl (selfds[0], F_GETFL));
-          FD_ZERO (&select_readfds);
-          FD_ZERO (&select_writefds);
-          pthread_mutex_init (&select_mutex, NULL);
+          fprintf (stderr, "Failed to create pipe: %s\n",
+                   emacs_strerror (errno));
+          emacs_abort ();
         }
-      ns_initialized = 1;
+
+      fcntl (selfds[0], F_SETFL, O_NONBLOCK|fcntl (selfds[0], F_GETFL));
+      FD_ZERO (&select_readfds);
+      FD_ZERO (&select_writefds);
+      pthread_mutex_init (&select_mutex, NULL);
     }
 
   ns_pending_files = [[NSMutableArray alloc] init];
@@ -4252,6 +4191,20 @@ ns_term_init (Lisp_Object display_name)
   }
 #endif /* MAC OS X menu setup */
 
+  /* Register our external input/output types, used for determining
+     applicable services and also drag/drop eligibility. */
+  ns_send_types = [[NSArray arrayWithObjects: NSStringPboardType, nil] retain];
+  ns_return_types = [[NSArray arrayWithObjects: NSStringPboardType, nil]
+                      retain];
+  ns_drag_types = [[NSArray arrayWithObjects:
+                            NSStringPboardType,
+                            NSTabularTextPboardType,
+                            NSFilenamesPboardType,
+                            NSURLPboardType,
+                            NSColorPboardType,
+                            NSFontPboardType, nil] retain];
+
+  
   [NSApp run];
   ns_do_open_file = YES;
   return dpyinfo;
@@ -4273,7 +4226,7 @@ ns_term_shutdown (int sig)
     }
   else // force a stack trace to happen
     {
-      abort();
+      emacs_abort ();
     }
 }
 
@@ -4534,10 +4487,10 @@ not_in_argv (NSString *arg)
   /* Don't open files from the command line unconditionally,
      Cocoa parses the command line wrong, --option value tries to open value
      if --option is the last option.  */
-  while ((file = [files nextObject]) != nil) 
+  while ((file = [files nextObject]) != nil)
     if (ns_do_open_file || not_in_argv (file))
       [ns_pending_files addObject: file];
-  
+
   [self replyToOpenOrPrint: NSApplicationDelegateReplySuccess];
 
 }
@@ -4604,7 +4557,7 @@ not_in_argv (NSString *arg)
 
   /* NSTRACE (fd_handler); */
 
-  for (;;) 
+  for (;;)
     {
       [pool release];
       pool = [[NSAutoreleasePool alloc] init];
@@ -4889,7 +4842,7 @@ not_in_argv (NSString *arg)
       is_right_key = (flags & NSRightCommandKeyMask) == NSRightCommandKeyMask;
       is_left_key = (flags & NSLeftCommandKeyMask) == NSLeftCommandKeyMask
         || (! is_right_key && (flags & NSCommandKeyMask) == NSCommandKeyMask);
-      
+
       if (is_right_key)
         emacs_event->modifiers |= parse_solitary_modifier
           (EQ (ns_right_command_modifier, Qleft)
@@ -5420,6 +5373,50 @@ not_in_argv (NSString *arg)
   return NO;
 }
 
+- (void) updateFrameSize: (BOOL) delay;
+{
+  NSWindow *window = [self window];
+  NSRect wr = [window frame];
+#ifdef NS_IMPL_GNUSTEP
+  int extra = 3;
+#else
+  int extra = 0;
+#endif
+
+  int oldc = cols, oldr = rows;
+  int oldw = FRAME_PIXEL_WIDTH (emacsframe),
+    oldh = FRAME_PIXEL_HEIGHT (emacsframe);
+  int neww, newh;
+
+  cols = FRAME_PIXEL_WIDTH_TO_TEXT_COLS (emacsframe, wr.size.width + extra);
+
+  if (cols < MINWIDTH)
+    cols = MINWIDTH;
+
+  rows = FRAME_PIXEL_HEIGHT_TO_TEXT_LINES
+    (emacsframe, wr.size.height
+     - FRAME_NS_TITLEBAR_HEIGHT (emacsframe) + extra
+     - FRAME_TOOLBAR_HEIGHT (emacsframe));
+
+  if (rows < MINHEIGHT)
+    rows = MINHEIGHT;
+
+  neww = (int)wr.size.width - emacsframe->border_width;
+  newh = ((int)wr.size.height
+          - FRAME_NS_TITLEBAR_HEIGHT (emacsframe)
+          - FRAME_TOOLBAR_HEIGHT (emacsframe));
+
+  if (oldr != rows || oldc != cols || neww != oldw || newh != oldh)
+    {
+      NSView *view = FRAME_NS_VIEW (emacsframe);
+      FRAME_PIXEL_WIDTH (emacsframe) = neww;
+      FRAME_PIXEL_HEIGHT (emacsframe) = newh;
+      change_frame_size (emacsframe, rows, cols, 0, delay, 0);
+      SET_FRAME_GARBAGED (emacsframe);
+      cancel_mouse_face (emacsframe);
+      [view setFrame: NSMakeRect (0, 0, neww, newh)];
+    }
+}
 
 - (NSSize)windowWillResize: (NSWindow *)sender toSize: (NSSize)frameSize
 /* normalize frame to gridded text size */
@@ -5517,16 +5514,7 @@ not_in_argv (NSString *arg)
         x_set_window_size (emacsframe, 0, cols, rows);
       else
         {
-          NSWindow *window = [self window];
-          NSRect wr = [window frame];
-          FRAME_PIXEL_WIDTH (emacsframe) = (int)wr.size.width
-            - emacsframe->border_width;
-          FRAME_PIXEL_HEIGHT (emacsframe) = (int)wr.size.height
-            - FRAME_NS_TITLEBAR_HEIGHT (emacsframe)
-            - FRAME_TOOLBAR_HEIGHT (emacsframe);
-          change_frame_size (emacsframe, rows, cols, 0, 0, 1);
-          SET_FRAME_GARBAGED (emacsframe);
-          cancel_mouse_face (emacsframe);
+          [self updateFrameSize: YES];
         }
     }
 #endif
@@ -5853,7 +5841,7 @@ not_in_argv (NSString *arg)
   NSTRACE (menuDown);
   if (context_menu_value == -1)
     context_menu_value = [sender tag];
-  else 
+  else
     {
       NSInteger tag = [sender tag];
       find_and_call_menu_selection (emacsframe, emacsframe->menu_bar_items_used,
@@ -6180,7 +6168,7 @@ not_in_argv (NSString *arg)
   Lisp_Object str = Qnil;
   struct frame *f = SELECTED_FRAME ();
   struct buffer *curbuf = XBUFFER (XWINDOW (f->selected_window)->buffer);
- 
+
   if ([attribute isEqualToString:NSAccessibilityRoleAttribute])
     return NSAccessibilityTextFieldRole;
 
@@ -6193,13 +6181,13 @@ not_in_argv (NSString *arg)
     {
       if (! NILP (BVAR (curbuf, mark_active)))
           str = ns_get_local_selection (QPRIMARY, QUTF8_STRING);
-      
+
       if (NILP (str))
         {
           ptrdiff_t start_byte = BUF_BEGV_BYTE (curbuf);
           ptrdiff_t byte_range = BUF_ZV_BYTE (curbuf) - start_byte;
           ptrdiff_t range = BUF_ZV (curbuf) - BUF_BEGV (curbuf);
-          
+
           if (! NILP (BVAR (curbuf, enable_multibyte_characters)))
             str = make_uninit_multibyte_string (range, byte_range);
           else
@@ -6209,9 +6197,9 @@ not_in_argv (NSString *arg)
           memcpy (SDATA (str), BYTE_POS_ADDR (start_byte), byte_range);
         }
     }
-  
-  
-  if (! NILP (str)) 
+
+
+  if (! NILP (str))
     {
       if (CONSP (str) && SYMBOLP (XCAR (str)))
         {
@@ -6226,7 +6214,7 @@ not_in_argv (NSString *arg)
           return nsStr;
         }
     }
-  
+
   return [super accessibilityAttributeValue:attribute];
 }
 #endif /* NS_IMPL_COCOA */
@@ -6242,7 +6230,10 @@ not_in_argv (NSString *arg)
   NSTRACE (constrainFrameRect);
 
   if (nr_screens == 1)
-    return [super constrainFrameRect:frameRect toScreen:screen];
+    {
+      NSRect r = [super constrainFrameRect:frameRect toScreen:screen];
+      return r;
+    }
 
   if (f->output_data.ns->dont_constrain
       || ns_menu_bar_should_be_hidden ())

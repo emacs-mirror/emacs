@@ -21,17 +21,12 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Xt features made by Fred Pierresteguy.  */
 
 #include <config.h>
-#include <signal.h>
 #include <stdio.h>
-#include <setjmp.h>
 
 #ifdef HAVE_X_WINDOWS
 
 #include "lisp.h"
 #include "blockinput.h"
-
-/* Need syssignal.h for various externs and definitions that may be required
-   by some configurations for calls to signal later in this source file.  */
 #include "syssignal.h"
 
 /* This may include sys/types.h, and that somehow loses
@@ -51,7 +46,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <fcntl.h>
 #include <errno.h>
-#include <setjmp.h>
 #include <sys/stat.h>
 /* Caused redefinition of DBL_DIG on Netbsd; seems not to be needed.  */
 /* #include <sys/param.h>  */
@@ -164,13 +158,6 @@ struct x_display_info *x_display_list;
    records previous values returned by x-list-fonts.  */
 
 Lisp_Object x_display_name_list;
-
-/* Frame being updated by update_frame.  This is declared in term.c.
-   This is set by update_begin and looked at by all the XT functions.
-   It is zero while not inside an update.  In that case, the XT
-   functions assume that `selected_frame' is the frame to apply to.  */
-
-extern struct frame *updating_frame;
 
 /* This is a frame waiting to be auto-raised, within XTread_socket.  */
 
@@ -1474,7 +1461,7 @@ x_frame_of_widget (Widget widget)
 	&& f->output_data.x->widget == widget)
       return f;
 
-  abort ();
+  emacs_abort ();
 }
 
 /* Allocate a color which is lighter or darker than *PIXEL by FACTOR
@@ -2703,7 +2690,7 @@ x_draw_underwave (struct glyph_string *s)
     y2 += dy;
 
   if (INT_MAX - dx < xmax)
-    abort ();
+    emacs_abort ();
 
   while (x1 <= xmax)
     {
@@ -2812,7 +2799,7 @@ x_draw_glyph_string (struct glyph_string *s)
       break;
 
     default:
-      abort ();
+      emacs_abort ();
     }
 
   if (!s->for_overlaps)
@@ -2986,6 +2973,7 @@ x_draw_glyph_string (struct glyph_string *s)
 		XSetClipMask (next->display, next->gc, None);
 		next->hl = save;
 		next->num_clips = 0;
+		next->clip_head = s->next;
 	      }
 	}
     }
@@ -3012,7 +3000,7 @@ x_shift_glyphs_for_insert (struct frame *f, int x, int y, int width, int height,
 static void
 x_delete_glyphs (struct frame *f, register int n)
 {
-  abort ();
+  emacs_abort ();
 }
 
 
@@ -3285,7 +3273,7 @@ XTset_terminal_window (struct frame *f, int n)
 static void
 x_ins_del_lines (struct frame *f, int vpos, int n)
 {
-  abort ();
+  emacs_abort ();
 }
 
 
@@ -4122,7 +4110,7 @@ x_window_to_scroll_bar (Display *display, Window window_id)
       frame = XCAR (tail);
       /* All elements of Vframe_list should be frames.  */
       if (! FRAMEP (frame))
-	abort ();
+	emacs_abort ();
 
       if (! FRAME_X_P (XFRAME (frame)))
         continue;
@@ -5441,7 +5429,7 @@ XTredeem_scroll_bar (struct window *window)
 
   /* We can't redeem this window's scroll bar if it doesn't have one.  */
   if (NILP (window->vertical_scroll_bar))
-    abort ();
+    emacs_abort ();
 
   bar = XSCROLL_BAR (window->vertical_scroll_bar);
 
@@ -5460,7 +5448,7 @@ XTredeem_scroll_bar (struct window *window)
       else
 	/* If its prev pointer is nil, it must be at the front of
 	   one or the other!  */
-	abort ();
+	emacs_abort ();
     }
   else
     XSCROLL_BAR (bar->prev)->next = bar->next;
@@ -5558,7 +5546,7 @@ static void
 x_scroll_bar_handle_click (struct scroll_bar *bar, XEvent *event, struct input_event *emacs_event)
 {
   if (! WINDOWP (bar->window))
-    abort ();
+    emacs_abort ();
 
   emacs_event->kind = SCROLL_BAR_CLICK_EVENT;
   emacs_event->code = event->xbutton.button - Button1;
@@ -6464,7 +6452,7 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventptr,
                 }
               else if (status_return != XLookupKeySym
                        && status_return != XLookupBoth)
-                abort ();
+                emacs_abort ();
             }
           else
             nbytes = XLookupString (&event.xkey, (char *) copy_bufptr,
@@ -7141,24 +7129,16 @@ XTread_socket (struct terminal *terminal, int expected, struct input_event *hold
   if (interrupt_input_blocked)
     {
       interrupt_input_pending = 1;
-#ifdef SYNC_INPUT
       pending_signals = 1;
-#endif
       return -1;
     }
 
   interrupt_input_pending = 0;
-#ifdef SYNC_INPUT
   pending_signals = pending_atimers;
-#endif
   BLOCK_INPUT;
 
   /* So people can tell when we have read the available input.  */
   input_signal_count++;
-
-#ifndef SYNC_INPUT
-  ++handling_signal;
-#endif
 
   /* For debugging, this gives a way to fake an I/O error.  */
   if (terminal->display_info.x == XTread_socket_fake_io_error)
@@ -7248,9 +7228,6 @@ XTread_socket (struct terminal *terminal, int expected, struct input_event *hold
       pending_autoraise_frame = 0;
     }
 
-#ifndef SYNC_INPUT
-  --handling_signal;
-#endif
   UNBLOCK_INPUT;
 
   return count;
@@ -7503,7 +7480,7 @@ x_draw_window_cursor (struct window *w, struct glyph_row *glyph_row, int x, int 
 	      break;
 
 	    default:
-	      abort ();
+	      emacs_abort ();
 	    }
 	}
 
@@ -7773,7 +7750,9 @@ x_connection_signal (int signalnum)	/* If we don't have an argument, */
 #ifdef USG
   /* USG systems forget handlers when they are used;
      must reestablish each time */
-  signal (signalnum, x_connection_signal);
+  struct sigaction action;
+  emacs_sigaction_init (&action, x_connection_signal);
+  sigaction (signalnum, &action, 0);
 #endif /* USG */
 }
 
@@ -7798,7 +7777,6 @@ x_connection_closed (Display *dpy, const char *error_message)
 
   error_msg = alloca (strlen (error_message) + 1);
   strcpy (error_msg, error_message);
-  handling_signal = 0;
 
   /* Inhibit redisplay while frames are being deleted. */
   specbind (Qinhibit_redisplay, Qt);
@@ -7850,13 +7828,13 @@ x_connection_closed (Display *dpy, const char *error_message)
 	 (https://bugzilla.gnome.org/show_bug.cgi?id=85715).  Once,
 	 the resulting Glib error message loop filled a user's disk.
 	 To avoid this, kill Emacs unconditionally on disconnect.  */
-      shut_down_emacs (0, 0, Qnil);
+      shut_down_emacs (0, Qnil);
       fprintf (stderr, "%s\n\
 When compiled with GTK, Emacs cannot recover from X disconnects.\n\
 This is a GTK bug: https://bugzilla.gnome.org/show_bug.cgi?id=85715\n\
 For details, see etc/PROBLEMS.\n",
 	       error_msg);
-      abort ();
+      emacs_abort ();
 #endif /* USE_GTK */
 
       /* Indicate that this display is dead.  */
@@ -7866,7 +7844,7 @@ For details, see etc/PROBLEMS.\n",
       dpyinfo->terminal->reference_count--;
       if (dpyinfo->reference_count != 0)
         /* We have just closed all frames on this display. */
-        abort ();
+        emacs_abort ();
 
       {
 	Lisp_Object tmp;
@@ -7883,10 +7861,15 @@ For details, see etc/PROBLEMS.\n",
     }
 
   /* Ordinary stack unwind doesn't deal with these.  */
-#ifdef SIGIO
-  sigunblock (sigmask (SIGIO));
+  {
+    sigset_t unblocked;
+    sigemptyset (&unblocked);
+#ifdef USABLE_SIGIO
+    sigaddset (&unblocked, SIGIO);
 #endif
-  sigunblock (sigmask (SIGALRM));
+    sigaddset (&unblocked, SIGALRM);
+    pthread_sigmask (SIG_UNBLOCK, &unblocked, 0);
+  }
   TOTALLY_UNBLOCK_INPUT;
 
   unbind_to (idx, Qnil);
@@ -10424,10 +10407,8 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
   fcntl (connection, F_SETOWN, getpid ());
 #endif /* ! defined (F_SETOWN) */
 
-#ifdef SIGIO
   if (interrupt_input)
     init_sigio (connection);
-#endif /* ! defined (SIGIO) */
 
 #ifdef USE_LUCID
   {
@@ -10443,7 +10424,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
     to.addr = (XPointer)&font;
     x_catch_errors (dpy);
     if (!XtCallConverter (dpy, XtCvtStringToFont, &d, 1, &fr, &to, NULL))
-      abort ();
+      emacs_abort ();
     if (x_had_errors_p (dpy) || !XQueryFont (dpy, font))
       XrmPutLineResource (&xrdb, "Emacs.dialog.*.font: 9x15");
     x_uncatch_errors ();
@@ -10609,8 +10590,6 @@ x_activate_timeout_atimer (void)
 
 /* Set up use of X before we make the first connection.  */
 
-extern frame_parm_handler x_frame_parm_handlers[];
-
 static struct redisplay_interface x_redisplay_interface =
   {
     x_frame_parm_handlers,
@@ -10768,6 +10747,8 @@ x_create_terminal (struct x_display_info *dpyinfo)
 void
 x_initialize (void)
 {
+  struct sigaction action;
+
   baud_rate = 19200;
 
   x_noop_count = 0;
@@ -10814,7 +10795,8 @@ x_initialize (void)
   XSetErrorHandler (x_error_handler);
   XSetIOErrorHandler (x_io_error_quitter);
 
-  signal (SIGPIPE, x_connection_signal);
+  emacs_sigaction_init (&action, x_connection_signal);
+  sigaction (SIGPIPE, &action, 0);
 }
 
 

@@ -32,7 +32,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <unistd.h>
 #include <limits.h>
 #include <sys/types.h>
-#include <setjmp.h>
 #include <c-ctype.h>
 #include "lisp.h"
 #include "character.h"
@@ -636,7 +635,7 @@ load_charset (struct charset *charset, int control_flag)
   else
     {
       if (! CHARSET_UNIFIED_P (charset))
-	abort ();
+	emacs_abort ();
       map = CHARSET_UNIFY_MAP (charset);
     }
   if (STRINGP (map))
@@ -2025,10 +2024,10 @@ CH in the charset.  */)
   c = XFASTINT (ch);
   charset = CHAR_CHARSET (c);
   if (! charset)
-    abort ();
+    emacs_abort ();
   code = ENCODE_CHAR (charset, c);
   if (code == CHARSET_INVALID_CODE (charset))
-    abort ();
+    emacs_abort ();
   dimension = CHARSET_DIMENSION (charset);
   for (val = Qnil; dimension > 0; dimension--)
     {

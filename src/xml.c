@@ -20,7 +20,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #ifdef HAVE_LIBXML2
 
-#include <setjmp.h>
 #include <libxml/tree.h>
 #include <libxml/parser.h>
 #include <libxml/HTMLparser.h>

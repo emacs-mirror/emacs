@@ -199,7 +199,7 @@
 (declare-function calc-div-fractions "calc-frac" (a b))
 (declare-function math-div-objects-fancy "calc-arith" (a b))
 (declare-function math-div-symb-fancy "calc-arith" (a b))
-(declare-function math-compose-expr "calccomp" (a prec))
+(declare-function math-compose-expr "calccomp" (a prec &optional div))
 (declare-function math-comp-width "calccomp" (c))
 (declare-function math-composition-to-string "calccomp" (c &optional width))
 (declare-function math-stack-value-offset-fancy "calccomp" ())

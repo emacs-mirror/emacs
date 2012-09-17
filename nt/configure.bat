@@ -949,4 +949,6 @@ set HAVE_PNG=
 set HAVE_TIFF=
 set HAVE_XPM=
 set dbginfo=
+endlocal
+set use_extensions=
 

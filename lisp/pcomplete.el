@@ -28,7 +28,7 @@
 ;; argument position.
 ;;
 ;; To use pcomplete with shell-mode, for example, you will need the
-;; following in your .emacs file:
+;; following in your init file:
 ;;
 ;;   (add-hook 'shell-mode-hook 'pcomplete-shell-setup)
 ;;

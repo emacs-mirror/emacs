@@ -81,7 +81,7 @@
 
 ;;; INSTALLATION
 
-;; Add the following lines to your `.emacs' file:
+;; Add the following lines to your init file:
 ;;
 ;;   (require 'rst)
 ;;

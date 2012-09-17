@@ -31,7 +31,7 @@
 
 ;; To install: put this file on the load-path and add Git to the list
 ;; of supported backends in `vc-handled-backends'; the following line,
-;; placed in your ~/.emacs, will accomplish this:
+;; placed in your init file, will accomplish this:
 ;;
 ;;     (add-to-list 'vc-handled-backends 'Git)
 

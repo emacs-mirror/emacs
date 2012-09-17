@@ -89,7 +89,6 @@ static int adjust_lnnoptrs (int, int, const char *);
 
 static int pagemask;
 
-#include <setjmp.h>
 #include "lisp.h"
 
 static void

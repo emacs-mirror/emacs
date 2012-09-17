@@ -32,13 +32,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 
-#if 0  /* Why was this included?  And without syssignal.h?  */
-/* On 4.3 this loses if it comes after xterm.h.  */
-#include <signal.h>
-#endif
-
 #include <stdio.h>
-#include <setjmp.h>
 
 #include "lisp.h"
 #include "keyboard.h"
@@ -169,7 +163,7 @@ mouse_position_for_popup (FRAME_PTR f, int *x, int *y)
   int dummy;
 
   if (! FRAME_X_P (f))
-    abort ();
+    emacs_abort ();
 
   BLOCK_INPUT;
 
@@ -636,7 +630,7 @@ void
 x_activate_menubar (FRAME_PTR f)
 {
   if (! FRAME_X_P (f))
-    abort ();
+    emacs_abort ();
 
   if (!f->output_data.x->saved_menu_event->type)
     return;
@@ -852,7 +846,7 @@ update_frame_menubar (FRAME_PTR f)
   int columns, rows;
 
   if (! FRAME_X_P (f))
-    abort ();
+    emacs_abort ();
 
   x = f->output_data.x;
 
@@ -940,7 +934,7 @@ set_frame_menubar (FRAME_PTR f, int first_time, int deep_p)
   int *submenu_top_level_items, *submenu_n_panes;
 
   if (! FRAME_X_P (f))
-    abort ();
+    emacs_abort ();
 
   menubar_widget = f->output_data.x->menubar_widget;
 
@@ -1299,7 +1293,7 @@ free_frame_menubar (FRAME_PTR f)
   Widget menubar_widget;
 
   if (! FRAME_X_P (f))
-    abort ();
+    emacs_abort ();
 
   menubar_widget = f->output_data.x->menubar_widget;
 
@@ -1450,7 +1444,7 @@ create_and_show_popup_menu (FRAME_PTR f, widget_value *first_wv, int x, int y,
 #endif
 
   if (! FRAME_X_P (f))
-    abort ();
+    emacs_abort ();
 
   xg_crazy_callback_abort = 1;
   menu = xg_create_widget ("popup", first_wv->name, f, first_wv,
@@ -1557,7 +1551,7 @@ create_and_show_popup_menu (FRAME_PTR f, widget_value *first_wv,
   Widget menu;
 
   if (! FRAME_X_P (f))
-    abort ();
+    emacs_abort ();
 
 #ifdef USE_LUCID
   apply_systemfont_to_menu (f, f->output_data.x->widget);
@@ -1646,7 +1640,7 @@ xmenu_show (FRAME_PTR f, int x, int y, int for_click, int keymaps,
   ptrdiff_t specpdl_count = SPECPDL_INDEX ();
 
   if (! FRAME_X_P (f))
-    abort ();
+    emacs_abort ();
 
   *error_name = NULL;
 
@@ -1792,7 +1786,7 @@ xmenu_show (FRAME_PTR f, int x, int y, int for_click, int keymaps,
 	  else if (EQ (type, QCradio))
 	    wv->button_type = BUTTON_TYPE_RADIO;
 	  else
-	    abort ();
+	    emacs_abort ();
 
 	  wv->selected = !NILP (selected);
 
@@ -1930,7 +1924,7 @@ create_and_show_dialog (FRAME_PTR f, widget_value *first_wv)
   GtkWidget *menu;
 
   if (! FRAME_X_P (f))
-    abort ();
+    emacs_abort ();
 
   menu = xg_create_widget ("dialog", first_wv->name, f, first_wv,
                            G_CALLBACK (dialog_selection_callback),
@@ -1977,7 +1971,7 @@ create_and_show_dialog (FRAME_PTR f, widget_value *first_wv)
   LWLIB_ID dialog_id;
 
   if (!FRAME_X_P (f))
-    abort ();
+    emacs_abort ();
 
   dialog_id = widget_id_tick++;
 #ifdef USE_LUCID
@@ -2036,7 +2030,7 @@ xdialog_show (FRAME_PTR f,
   ptrdiff_t specpdl_count = SPECPDL_INDEX ();
 
   if (! FRAME_X_P (f))
-    abort ();
+    emacs_abort ();
 
   *error_name = NULL;
 
@@ -2301,7 +2295,7 @@ xmenu_show (FRAME_PTR f, int x, int y, int for_click, int keymaps,
   ptrdiff_t specpdl_count = SPECPDL_INDEX ();
 
   if (! FRAME_X_P (f) && ! FRAME_MSDOS_P (f))
-    abort ();
+    emacs_abort ();
 
   *error_name = 0;
   if (menu_items_n_panes == 0)

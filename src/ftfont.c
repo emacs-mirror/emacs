@@ -21,8 +21,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 #include <stdio.h>
-#include <setjmp.h>
-
 #include <fontconfig/fontconfig.h>
 #include <fontconfig/fcfreetype.h>
 
@@ -45,7 +43,7 @@ static Lisp_Object Qfreetype;
 static Lisp_Object Qmonospace, Qsans_serif, Qserif, Qmono, Qsans, Qsans__serif;
 
 /* Flag to tell if FcInit is already called or not.  */
-static int fc_initialized;
+static bool fc_initialized;
 
 /* Handle to a FreeType library instance.  */
 static FT_Library ft_library;
@@ -65,7 +63,7 @@ struct ftfont_info
 #ifdef HAVE_LIBOTF
   /* The following four members must be here in this order to be
      compatible with struct xftfont_info (in xftfont.c).  */
-  int maybe_otf;	/* Flag to tell if this may be OTF or not.  */
+  bool maybe_otf;	/* Flag to tell if this may be OTF or not.  */
   OTF *otf;
 #endif	/* HAVE_LIBOTF */
   FT_Size ft_size;
@@ -543,9 +541,9 @@ struct font_driver ftfont_driver =
     /* We can't draw a text without device dependent functions.  */
     NULL,			/* draw */
     ftfont_get_bitmap,
-    NULL,			/* get_bitmap */
     NULL,			/* free_bitmap */
     NULL,			/* get_outline */
+    NULL,			/* free_outline */
     ftfont_anchor_point,
 #ifdef HAVE_LIBOTF
     ftfont_otf_capability,
@@ -661,7 +659,8 @@ ftfont_get_open_type_spec (Lisp_Object otf_spec)
 {
   struct OpenTypeSpec *spec = malloc (sizeof *spec);
   Lisp_Object val;
-  int i, j, negative;
+  int i, j;
+  bool negative;
 
   if (! spec)
     return NULL;
@@ -1185,7 +1184,7 @@ ftfont_open (FRAME_PTR f, Lisp_Object entity, int pixel_size)
   FT_Size ft_size;
   FT_UInt size;
   Lisp_Object val, filename, idx, cache, font_object;
-  int scalable;
+  bool scalable;
   int spacing;
   char name[256];
   int i, len;
@@ -1243,7 +1242,7 @@ ftfont_open (FRAME_PTR f, Lisp_Object entity, int pixel_size)
   ftfont_info->ft_size = ft_face->size;
   ftfont_info->index = XINT (idx);
 #ifdef HAVE_LIBOTF
-  ftfont_info->maybe_otf = ft_face->face_flags & FT_FACE_FLAG_SFNT;
+  ftfont_info->maybe_otf = (ft_face->face_flags & FT_FACE_FLAG_SFNT) != 0;
   ftfont_info->otf = NULL;
 #endif	/* HAVE_LIBOTF */
   /* This means that there's no need of transformation.  */
@@ -1392,7 +1391,8 @@ ftfont_text_extents (struct font *font, unsigned int *code, int nglyphs, struct 
   struct ftfont_info *ftfont_info = (struct ftfont_info *) font;
   FT_Face ft_face = ftfont_info->ft_size->face;
   int width = 0;
-  int i, first;
+  int i;
+  bool first;
 
   if (ftfont_info->ft_size != ft_face->size)
     FT_Activate_Size (ftfont_info->ft_size);
@@ -1630,7 +1630,7 @@ ftfont_get_metrics (MFLTFont *font, MFLTGlyphString *gstring,
 	    FT_Glyph_Metrics *m;
 
 	    if (FT_Load_Glyph (ft_face, g->code, FT_LOAD_DEFAULT) != 0)
-	      abort ();
+	      emacs_abort ();
 	    m = &ft_face->glyph->metrics;
 	    if (flt_font_ft->matrix)
 	      {
@@ -1682,10 +1682,12 @@ ftfont_check_otf (MFLTFont *font, MFLTOtfSpec *spec)
   struct MFLTFontFT *flt_font_ft = (struct MFLTFontFT *) font;
   OTF *otf = flt_font_ft->otf;
   OTF_Tag *tags;
-  int i, n, negative;
+  int i, n;
+  bool negative;
 
   if (FEATURE_ANY (0) && FEATURE_ANY (1))
-    /* Return 1 iff any of GSUB or GPOS support the script (and language).  */
+    /* Return true iff any of GSUB or GPOS support the script (and
+       language).  */
     return (otf
 	    && (OTF_check_features (otf, 0, spec->script, spec->langsys,
 				    NULL, 0) > 0
@@ -2390,7 +2392,7 @@ ftfont_drive_otf (MFLTFont *font, MFLTOtfSpec *spec, MFLTGlyphString *in,
 
 static MFLTGlyphString gstring;
 
-static int m17n_flt_initialized;
+static bool m17n_flt_initialized;
 
 static Lisp_Object
 ftfont_shape_by_flt (Lisp_Object lgstring, struct font *font,
@@ -2400,7 +2402,7 @@ ftfont_shape_by_flt (Lisp_Object lgstring, struct font *font,
   ptrdiff_t i;
   struct MFLTFontFT flt_font_ft;
   MFLT *flt = NULL;
-  int with_variation_selector = 0;
+  bool with_variation_selector = 0;
 
   if (! m17n_flt_initialized)
     {
@@ -2421,7 +2423,7 @@ ftfont_shape_by_flt (Lisp_Object lgstring, struct font *font,
 	break;
       c = LGLYPH_CHAR (g);
       if (CHAR_VARIATION_SELECTOR_P (c))
-	with_variation_selector++;
+	with_variation_selector = 1;
     }
 
   len = i;

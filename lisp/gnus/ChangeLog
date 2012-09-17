@@ -1,3 +1,129 @@
+2012-09-13  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-util.el (gnus-timer--function): New function.
+
+	* gnus-art.el (gnus-article-stop-animations): Use it.
+
+2012-09-13  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix glitches caused by addition of psec to timers.
+	* gnus-art.el (gnus-article-stop-animations): Use timer--function
+	rather than raw access to timer vector.
+
+2012-09-11  Julien Danjou  <julien@danjou.info>
+
+	* gnus-notifications.el (gnus-notifications): Check for nil values in
+	ignored addresses check.
+
+2012-09-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* qp.el (quoted-printable-decode-region): Inline+CSE+strength-reduction.
+
+2012-09-07  Chong Yidong  <cyd@gnu.org>
+
+	* gnus-util.el
+	(gnus-put-text-property-excluding-characters-with-faces): Restore.
+
+	* gnus-salt.el (gnus-tree-highlight-node):
+	* gnus-sum.el (gnus-summary-highlight-line):
+	* gnus-group.el (gnus-group-highlight-line): Revert use of add-face.
+
+2012-09-06  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-util.el: Fix compilation error on XEmacs 21.4.
+
+2012-09-06  Juri Linkov  <juri@jurta.org>
+
+	* gnus-group.el (gnus-read-ephemeral-gmane-group): Change the naming
+	scheme for buffer names to be more consistent with other group and
+	article buffer names in Gnus.
+
+2012-09-06  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-util.el
+	(gnus-put-text-property-excluding-characters-with-faces): Remove.
+
+	* gnus-compat.el: Define compat function `add-face' from Wolfgang
+	Jenkner.
+
+	* gnus-group.el (gnus-group-highlight-line): Use combining faces.
+
+	* gnus-sum.el (gnus-summary-highlight-line): Ditto.
+
+	* gnus-salt.el (gnus-tree-highlight-node): Ditto.
+
+2012-09-06  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-score.el (gnus-score-decode-text-parts): Use #' for
+	mm-text-parts used in labels macro to make it work with XEmacs 21.5.
+
+	* gnus-util.el (gnus-string-prefix-p): New function, an alias to
+	string-prefix-p in Emacs >=23.2.
+
+	* nnmaildir.el (nnmaildir--ensure-suffix, nnmaildir--add-flag)
+	(nnmaildir--remove-flag, nnmaildir--scan): Use gnus-string-match-p
+	instead of string-match-p.
+	(nnmaildir--scan): Use gnus-string-prefix-p instead of string-prefix-p.
+
+2012-09-06  Kenichi Handa  <handa@gnu.org>
+
+	* qp.el (quoted-printable-decode-region): Fix previous change; handle
+	lowercase a..f.
+
+2012-09-05  Magnus Henoch  <magnus.henoch@gmail.com>
+
+	* nnmaildir.el (nnmaildir--article-set-flags): Fix compilation error.
+
+2012-09-05  Martin Stjernholm  <mast@lysator.liu.se>
+
+	* gnus-demon.el (gnus-demon-init): Fixed regression when IDLE is t and
+	TIME is set.
+
+2012-09-05  Juri Linkov  <juri@jurta.org>
+
+	* gnus-group.el (gnus-read-ephemeral-bug-group): Allow opening more
+	than one group at a time (bug#11961).
+
+2012-09-05  Julien Danjou  <julien@danjou.info>
+
+	* gnus-srvr.el (gnus-server-open-server): Don't message on failure:
+	this hide the real reason with a message giving absolutely no hint.
+
+2012-09-05  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-group.el (gnus-group-mark-article-read): Propagate the read mark
+	to the backend (bug#11804).
+
+	* message.el (message-insert-newsgroups): Don't insert newsgroup
+	duplicates (bug#12275).
+
+2012-09-05  John Wiegley  <johnw@newartisans.com>
+
+	* gnus.el (gnus-expand-group-parameters): Allow regexp substitutions in
+	sieve rules.
+
+2012-09-05  Jan Tatarik  <jan.tatarik@gmail.com>
+
+	* gnus-score.el (gnus-score-decode-text-parts): Use #' for the local
+	function.
+
+	* gnus-logic.el (gnus-advanced-body): Allow scoring on decoded bodies.
+
+	* gnus-score.el (gnus-score-decode-text-parts): Ditto.
+
+2012-09-05  Magnus Henoch  <magnus.henoch@gmail.com>
+
+	* nnmaildir.el: Make nnmaildir understand and write maildir flags.
+	That is, rename files from "unique:2," to "unique:2,S" for "seen", etc.
+	This should make nnmaildir more usable with offlineimap.
+
+2012-09-03  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-notifications.el (gnus-notifications-notify): Use it.
+
+	* gnus-fun.el (gnus-funcall-no-warning): New function to silence
+	warnings on XEmacs.
+
 2012-09-01  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Better seeds for (random).
@@ -2290,8 +2416,6 @@
 	is not fully working.
 
 2011-06-30  Lars Magne Ingebrigtsen  <larsi@gnus.org>
-
-	* dgnushack.el: Autoload sha1 on XEmacs.
 
 	* gnus-group.el (gnus-read-ephemeral-emacs-bug-group): Take an optional
 	quit window configuration.

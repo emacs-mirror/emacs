@@ -79,7 +79,7 @@
 
     ;; Store any proxying information - this will not overwrite an old
     ;; entry, so that people can still set this information in their
-    ;; .emacs file
+    ;; init file
     (cond
      (cur-proxy nil)			; Keep their old settings
      ((null env-proxy) nil)		; No proxy setup

@@ -1,3 +1,599 @@
+2012-09-17  Richard Stallman  <rms@gnu.org>
+
+	* epa-mail.el (epa-mail-encrypt): Fix bug when a name has no key.
+
+2012-09-17  Chong Yidong  <cyd@gnu.org>
+
+	* shell.el (shell-file-name-chars, shell-file-name-quote-list)
+	(shell-dynamic-complete-functions): Convert to defcustom.
+	(shell-prompt-pattern, shell-completion-fignore): Doc fix.
+
+	* bookmark.el (bookmark-bmenu-toggle-filenames): Doc fixes.
+	* comint.el (comint-prompt-read-only):
+	* custom.el (defcustom):
+	* hi-lock.el (hi-lock-mode):
+	* ibuffer.el (ibuffer-formats):
+	* ielm.el (ielm-prompt-read-only):
+	* novice.el (disable-command):
+	* saveplace.el (toggle-save-place):
+	* speedbar.el (speedbar-supported-extension-expressions):
+	* startup.el (auto-save-list-file-prefix, init-file-user)
+	(after-init-hook, inhibit-startup-echo-area-message):
+	* strokes.el (strokes-help):
+	* time-stamp.el (time-stamp):
+	* calendar/calendar.el (calendar, diary-file):
+	* calendar/diary-lib.el (diary-mail-entries, diary)
+	(diary-list-entries-hook):
+	* calendar/holidays.el (holidays, calendar-holidays):
+	* calendar/lunar.el (lunar-phases):
+	* calendar/solar.el (sunrise-sunset):
+	* emulation/edt.el (edt-load-keys):
+	* emulation/viper.el (viper-mode):
+	* eshell/em-alias.el (eshell-command-aliases-list):
+	* eshell/esh-util.el (eshell-convert-numeric-arguments):
+	* international/ogonek.el (ogonek-information):
+	* net/tramp-cmds.el (tramp-bug):
+	* net/quickurl.el (quickurl-reread-hook-postfix):
+	* play/decipher.el (decipher-font-lock-keywords):
+	* progmodes/cc-styles.el (c-set-style):
+	* progmodes/idlw-shell.el (idlwave-shell-prompt-pattern):
+	* progmodes/inf-lisp.el (inferior-lisp-prompt):
+	* progmodes/octave-mod.el (octave-mode):
+	* progmodes/sql.el (sql-mode, sql-interactive-mode, sql-password):
+	* progmodes/verilog-mode.el (verilog-read-defines):
+	* textmodes/two-column.el (2C-mode): Likewise.
+
+2012-09-16  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mail/mailabbrev.el (mail-abbrev-expand-hook): Work for a mail aliasee
+	that holds many addresses.
+
+2012-09-16  Chong Yidong  <cyd@gnu.org>
+
+	* align.el (align-areas): Call the indication function with
+	positions instead of markers for arguments (Bug#12343).
+
+	* files.el (parse-colon-path): Use split-string (Bug#12351).
+
+	* window.el (special-display-popup-frame): Doc fix (Bug#8853).
+	(display-buffer-function): Mark as obsolete.
+
+	* progmodes/compile.el (compilation-parse-errors): Accept list
+	values similar to font-lock-keywords (Bug#12136).  Suggested by
+	Oleksandr Manzyuk.
+	(compilation-error-regexp-alist): Doc fix.
+
+2012-09-15  Glenn Morris  <rgm@gnu.org>
+
+	* version.el (emacs-bzr-version-bzr): New function.
+	(emacs-bzr-get-version): Add optional EXTERNAL argument.
+
+	* vc/vc-bzr.el (vc-bzr-working-revision): For lightweight local
+	checkouts, check the parent dirstate matches the branch.
+	Add "--tree" to "bzr revno" arguments.  Don't try to shorten the
+	empty string.
+
+	* version.el (emacs-bzr-version): Doc fix.
+	(emacs-bzr-version-dirstate): New function.
+	(emacs-bzr-get-version): For lightweight checkouts, if the parent
+	is local try and check that it matches the branch.  If not, just
+	use dirstate information.  (Bug#12441)
+
+2012-09-14  Juri Linkov  <juri@jurta.org>
+
+	* dired-aux.el (dired-do-chmod): Use `eq' to detect empty input.
+	(Bug#12399)
+
+2012-09-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/advice.el (ad-prognify): Remove, use macroexp-progn.
+
+	* emacs-lisp/edebug.el: Miscellaneous cleanup.
+	Remove obsolete byte-compiler hack that tried to silence some warnings.
+	(edebug-submit-bug-report): Remove.
+	(edebug-get-buffer-window, edebug-sit-for, edebug-input-pending-p):
+	Remove aliases, use the un-prefixed name instead.
+	(edebug-pop-to-buffer): Consider other frames.
+	(edebug-original-read):: Make it more obvious that it's always defined.
+	(edebug--make-form-data-entry, edebug--form-data-name)
+	(edebug--form-data-begin, edebug--form-data-end): Rename from the
+	single-dashed name, and implement with cl-defstruct.
+	(edebug-set-form-data-entry): Use the standard accessors.
+	(edebug-make-top-form-data-entry): Use push.
+	(edebug-no-match): Drop useless `funcall'.
+	(mapcar, mapconcat, mapatoms, apply, funcall): Don't add debug specs
+	to functions.
+	(defsubst, dont-compile, eval-when-compile, eval-and-compile)
+	(delay-mode-hooks, with-temp-file, with-temp-message, ad-dolist)
+	(with-syntax-table, push, pop, 1value, noreturn, defadvice)
+	(easy-menu-define, with-custom-print): Remove redundant specs.
+	(edebug-outside-overriding-local-map)
+	(edebug-outside-overriding-terminal-local-map): Remove, unused.
+	(edebug--display): Bind unread-command-events directly to nil rather
+	than binding it to unread-command-events and later setting it to nil.
+	(edebug--display): Kill edebug-eval-buffer here...
+	(edebug--recursive-edit): ...rather than here.
+	Bind standard-output and standard-input.
+	(edebug-eval): Check cl-macroexpand-all is fboundp.
+	(edebug-temp-display-freq-count): Fix last change.
+
+	* emacs-lisp/easymenu.el (easy-menu-define): Add `debug' spec.
+	* subr.el (noreturn, 1value): Add `debug' spec.
+	* emacs-lisp/advice.el: Require cl-lib.
+	(ad-copy-tree): Remove, use copy-tree instead.
+	(ad-dolist): Remove use dolist or cl-dolist instead.
+	(ad-do-return): Remove, use cl-return instead.
+	(defadvice): Add `debug' spec.
+
+2012-09-13  Juri Linkov  <juri@jurta.org>
+
+	* dired-aux.el (dired-do-chxxx): Use `eq' to detect empty input.
+	(Bug#12399)
+
+2012-09-13  Glenn Morris  <rgm@gnu.org>
+
+	* calc/calc.el (math-compose-expr):
+	* calc/calc-ext.el (math-compose-expr):
+	* progmodes/cc-defs.el (cl-macroexpand-all):
+	* progmodes/cc-langs.el (delete-duplicates, mapcan)
+	(cl-macroexpand-all): Update declarations.
+
+	* vc/vc.el: No need to require ediff.
+	(ediff-load-version-control): Declare.
+	(ediff-vc-internal): Fix declaration.
+	(vc-version-ediff): Require ediff.
+
+2012-09-13  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use a more backwards-compatible timer format (Bug#12430).
+	* emacs-lisp/timer.el (timer): PSECS is now at the end, rather than
+	being right after USECS, as that better supports old code that
+	inadvisedly looked directly at the timer vector.
+
+2012-09-13  Kenichi Handa  <handa@gnu.org>
+
+	* language/chinese.el ("Chinese-GB", "Chinese-BIG5")
+	("Chinese-CNS", "Chinese-EUC-TW"): Add chinese-gbk to
+	`coding-priority' property of these language environment.
+
+2012-09-13  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix glitches caused by addition of psec to timers (Bug#12430).
+	* image.el (image-animate-timer):
+	* time.el (display-time-world-timer):
+	Use timer--function and timer--args rather than raw access to
+	timer vector.
+
+2012-09-13  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/bytecomp.el (byte-compile-warning-prefix):
+	If not compiling a file, try using load-file-name.
+
+2012-09-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/edebug.el (edebug-outside-unread-command-events):
+	Fix last change.
+	(edebug-update-eval-list): Use `push'.
+
+	* emacs-lisp/edebug.el: Use lexical-binding.
+	Remove the "edebug-" prefix from non-dynamically-scoped variables.
+	Mark unused args with underscore.
+	(edebug-save-restriction, edebug-outside-excursion): Use `declare'.
+	(edebug-form-data): Use defvar-local.
+	(edebug-make-before-and-after-form, edebug-make-after-form):
+	Use backquote.
+	(edebug-args, edebug-value, edebug-after-index, edebug-arg-mode):
+	Not dynamically scoped any more.
+	(edebug--enter-trace): Add arguments `function' and `args'.
+	Rename from edebug-enter-trace.
+	(edebug-enter): Call it accordingly.  Bind edebug-function explicitly.
+	(edebug--update-coverage): Add `after-index' and `value' args.
+	Rename from edebug-update-coverage.
+	(edebug-slow-after): Call it accordingly.
+	(edebug--recursive-edit): Add arg `arg-mode'.  Rename from
+	edebug-recursive-edit.
+	(edebug--display): Call it accordingly.  Add args `value',
+	`offset-index', and `arg-mode'.  Rename from edebug-display.
+	(edebug-debugger, edebug): Call it accordingly.
+	(edebug-eval-display-list): Use dolist.
+
+2012-09-12  Juri Linkov  <juri@jurta.org>
+
+	* info.el (Info-search): Don't check for isearch-mode and
+	isearch-regexp before let-binding search-spaces-regexp to
+	Info-search-whitespace-regexp.
+	(Info-isearch-search): Let-bind Info-search-whitespace-regexp to
+	search-whitespace-regexp if isearch-lax-whitespace or
+	isearch-regexp-lax-whitespace is non-nil.
+	(Info-mode): Don't set local variable search-whitespace-regexp.
+	http://lists.gnu.org/archive/html/emacs-devel/2012-08/msg00811.html
+
+2012-09-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/debug.el (debugger-outer-unread-command-char, debug)
+	(debugger-env-macro): Remove support for unread-command-char.
+
+	* subr.el (set-temporary-overlay-map): Minimize slightly the impact of
+	the temporary map re-appearing on emulation-mode-map-alists.
+
+	* emacs-lisp/edebug.el (def-edebug-form-spec): Remove, it's been broken
+	since 22.1.
+
+	* ehelp.el (with-electric-help): Accept functions in
+	electric-help-form-to-execute.
+	(electric-help-execute-extended, electric-help-ctrl-x-prefix): Use it.
+	And replace unread-command-char -> unread-command-events.
+
+2012-09-12  Michael Albinus  <michael.albinus@gmx.de>
+
+	Sync with Tramp 2.2.6.
+
+	* net/tramp.el (tramp-accept-process-output): Don't use
+	JUST-THIS-ONE in the XEmacs case.
+
+	* net/trampver.el: Update release number.
+
+2012-09-12  Martin Rudalics  <rudalics@gmx.at>
+
+	* emacs-lisp/debug.el (debugger-previous-window-height):
+	New variable.
+	(debug): When debugger-jumping-flag is non-nil try to restore
+	height of debugger window.  (Bug#8789)
+
+2012-09-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/edebug.el (edebug-enter): Don't mess with
+	overriding-local-map and pre/post-command-hook here.
+	(edebug-recursive-edit): Do it here instead (bug#12345).
+	(edebug-outside-unread-command-char): Remove all uses of
+	unread-command-char.
+
+	* emacs-lisp/debug.el (debug): Don't bind debug-on-error since
+	inhibit-debugger is bound instead.
+
+2012-09-11  Bastien Guerry  <bzg@gnu.org>
+
+	* subr.el (set-temporary-overlay-map): Add a docstring.
+	(Bug#12346)
+
+2012-09-11  Bastien Guerry  <bzg@gnu.org>
+
+	* minibuffer.el (completion-table-subvert): Fix docstring.
+	(Bug#12347)
+
+2012-09-11  Bastien Guerry  <bzg@gnu.org>
+
+	* help-fns.el (describe-variable): Fix typo.  (Bug#12346)
+
+2012-09-10  Michael R. Mauger  <mmaug@yahoo.com>
+
+	* progmodes/sql.el: Version 3.1
+	(sql-db2-escape-newlines): New variable.
+	(sql-escape-newlines-filter): Use it.
+
+2012-09-10  Juanma Barranquero  <lekktu@gmail.com>
+
+	* custom.el (custom-theme-load-confirm): Remove unneeded assignment.
+
+2012-09-10  Dan Nicolaescu  <dann@gnu.org>
+
+	* vc/diff-mode.el (diff-mode-menu):
+	Bind diff-remove-trailing-whitespace.
+
+2012-09-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/lisp-mode.el (emacs-list-byte-code-comment-re): New var.
+	(emacs-lisp-byte-code-comment, emacs-lisp-byte-code-syntax-propertize)
+	(emacs-lisp-byte-code-mode): New functions.
+	(eval-sexp-add-defvars): Don't skip defvars in column >0.
+	(eval-defun-2): Remove bogus interactive spec.
+	(lisp-indent-line): Remove redundant whole-exp code, now done in
+	indent-according-to-mode.
+	(save-match-data): Remove redundant indent data.
+
+	* emacs-lisp/benchmark.el (benchmark-run, benchmark-run-compiled):
+	Use `declare'.
+
+2012-09-09  Juri Linkov  <juri@jurta.org>
+
+	* replace.el (replace-regexp-lax-whitespace): New defcustom.
+	(replace-lax-whitespace, query-replace-regexp)
+	(query-replace-regexp-eval, replace-regexp): Doc fix.
+	(perform-replace, replace-highlight): Let-bind
+	isearch-lax-whitespace to replace-lax-whitespace and
+	isearch-regexp-lax-whitespace to replace-regexp-lax-whitespace.
+
+	* isearch.el (isearch-query-replace): Let-bind
+	replace-lax-whitespace to isearch-lax-whitespace and
+	replace-regexp-lax-whitespace to
+	isearch-regexp-lax-whitespace.  (Bug#10885)
+
+2012-09-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* eshell/em-unix.el (eshell/sudo): Explicitly drop return value.
+
+2012-09-09  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-engine.el (c-state-cache-init):
+	Initialise c-state-semi-nonlit-pos-cache\(-limit\)? properly.
+	(c-record-parse-state-state):
+	Record c-state-semi-nonlit-pos-cache\(-limit\)?.
+
+2012-09-09  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* register.el (register-separator): Rename from
+	separator-register.  All uses changed.  Doc fix.
+	(register): Fix version.
+
+2012-09-09  Chong Yidong  <cyd@gnu.org>
+
+	* replace.el (query-replace-map): Bind four new symbols for
+	requesting window scrolling.
+
+	* subr.el (y-or-n-p): Handle the window-scrolling bindings in
+	query-replace-map (Bug#8948).
+
+	* custom.el (custom-theme-load-confirm): Use y-or-n-p.
+
+	* emacs-lisp/map-ynp.el (map-y-or-n-p): Don't bind scrolling keys
+	since they are now in query-replace-map.
+
+	* window.el (scroll-other-window-down): Make the arg optional.
+
+2012-09-09  Chong Yidong  <cyd@gnu.org>
+
+	* files.el (hack-local-variables-confirm): Use quit-window to kill
+	the *Local Variables* buffer.
+
+2012-09-08  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* progmodes/ruby-mode.el (ruby-toggle-block): Guess the current block,
+	not just expect to be at its beginning.  Adjust callees.
+	Succeed when do-end block has no space before the pipe character.
+	(ruby-brace-to-do-end): When the original block is one-liner,
+	convert to multiline.  Reindent the result.
+
+2012-09-08  Jambunathan K  <kjambunathan@gmail.com>
+
+	* register.el (register): New group.
+	(register-separator): New user option.
+	(increment-register): Route it to `append-to-register', if
+	register contains text.  Implication is that `C-x r +' can now be
+	used for appending to a text register (bug#12217).
+	(append-to-register, prepend-to-register): Add separator based on
+	`register-separator.
+
+2012-09-08  Alan Mackenzie  <acm@muc.de>
+
+	AWK Mode: make auto-newline work when there's "==" in the pattern.
+	* progmodes/cc-cmds.el (c-point-syntax): Handle virtual semicolons
+	correctly.
+	* progmodes/cc-engine.el (c-guess-basic-syntax CASE 5A.3):
+	Test more rigorously for "=" token.
+
+2012-09-08  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* progmodes/ruby-mode.el (ruby-match-expression-expansion):
+	Only fail when reached LIMIT.
+
+2012-09-08  Chong Yidong  <cyd@gnu.org>
+
+	* dired.el (dired-mode-map): Don't bind M-=.
+
+	* dired-aux.el (dired-diff): Use backup file as default.
+
+2012-09-08  Drew Adams  <drew.adams@oracle.com>
+
+	* subr.el (add-to-history): Fix delete usage (Bug#12314).
+
+2012-09-08  Chong Yidong  <cyd@gnu.org>
+
+	* subr.el (syntax-after, syntax-class): Doc fix.
+
+2012-09-08  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (display-buffer-in-previous-window): New buffer
+	display action function.
+
+	* emacs-lisp/debug.el (debugger-bury-or-kill): New option.
+	(debugger-previous-window): New variable.
+	(debug): Rewrite using display-buffer-in-previous-window,
+	quit-restore-window and debugger-bury-or-kill.  (Bug#8789)
+
+2012-09-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/byte-run.el (defun): Tweak message.  Simplify code.
+
+2012-09-07  Matt McClure  <mlm@aya.yale.edu>  (tiny change)
+
+	* progmodes/python.el (python-shell-send-string):
+	When default-directory is remote, create temp file on remote
+	filesystem.
+	(python-shell-send-file): When file is remote, pass local view of
+	file paths to remote Python interpreter.  (Bug#12340)
+
+2012-09-07  Chong Yidong  <cyd@gnu.org>
+
+	* window.el (switch-to-buffer): Doc fix (Bug#12181).
+
+	* files.el (after-find-file): Don't fail on a read-only buffer if
+	require-final-newline is `visit' or `visit-save' (Bug#11156).
+
+	* subr.el (read-char-choice): Allow quitting via ESC ESC.
+
+	* userlock.el (ask-user-about-supersession-threat):
+	Use read-char-choice (Bug#12093).
+
+2012-09-07  Chong Yidong  <cyd@gnu.org>
+
+	* subr.el (buffer-narrowed-p): New function.
+
+	* ses.el (ses-widen):
+	* simple.el (count-words--buffer-message):
+	* net/browse-url.el (browse-url-of-buffer): Use it
+
+	* simple.el (count-words-region): Don't signal an error if there
+	is a non-nil prefix arg and the mark is not set.
+
+	* help.el (describe-key-briefly): Allow the message to be seen
+	when invoked from the minibuffer (Bug#7014).
+
+2012-09-07  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* progmodes/ruby-mode.el (ruby-end-of-defun)
+	(ruby-beginning-of-defun): Simplify, allow indentation before
+	block beginning and end keywords.
+	(ruby-beginning-of-defun): Only consider 3 keywords defun beginners.
+	(ruby-end-of-defun): Expect that the point is at the beginning of
+	the defun.
+
+2012-09-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/cl-macs.el (cl--do-arglist): Understand _ on &key args
+	(bug#12367).
+	(cl--make-usage-args): Strip _ from argument names.
+
+2012-09-06  Rüdiger Sonderfeld  <ruediger@c-plusplus.de>
+
+	* progmodes/vhdl-mode.el (vhdl-speedbar-initialize): Don't use
+	obsolete alias speedbar-key-map.
+	(vhdl-doc-variable, vhdl-doc-mode): Use called-interactively-p.
+	(vhdl-index-menu-init): Don't use obsolete variable
+	font-lock-maximum-size.
+
+2012-09-06  Chong Yidong  <cyd@gnu.org>
+
+	* frame.el (window-system-version): Mark as obsolete.
+
+	* speedbar.el (speedbar-update-flag, speedbar-mode): Remove uses
+	of obsolete variable speedbar-key-map.
+
+2012-09-06  Juri Linkov  <juri@jurta.org>
+
+	* replace.el (replace-lax-whitespace): New defcustom.
+	(query-replace, query-replace-regexp, query-replace-regexp-eval)
+	(replace-string, replace-regexp): Mention it in docstrings.
+	(perform-replace, replace-highlight): Let-bind
+	isearch-lax-whitespace and isearch-regexp-lax-whitespace according
+	to the values of replace-lax-whitespace and regexp-flag.
+	Don't let-bind search-whitespace-regexp.  (Bug#10885)
+
+	* isearch.el (isearch-query-replace): Let-bind
+	replace-lax-whitespace instead of let-binding
+	replace-search-function and replace-re-search-function.
+	(isearch-lazy-highlight-search): Let-bind isearch-lax-whitespace
+	and isearch-regexp-lax-whitespace to lazy-highlight variables.
+	(isearch-toggle-symbol): Set isearch-regexp to nil
+	in isearch-word mode (like in isearch-toggle-word).
+
+2012-09-06  Juri Linkov  <juri@jurta.org>
+
+	* replace.el (replace-search-function)
+	(replace-re-search-function): Set default values to nil.
+	(perform-replace): Let-bind isearch-related variables based on
+	replace-related values, call `isearch-search-fun' and let-bind
+	the result to `search-function'.  Remove code that sets
+	`search-function' and `search-string' separately for
+	`delimited-flag'.
+	(replace-highlight): Add new argument `delimited-flag' and
+	rename other arguments to the names used in `perform-replace'.
+	Let-bind `isearch-word' to the argument `delimited-flag'.
+	(Bug#10885, bug#10887)
+
+2012-09-07  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* progmodes/ruby-mode.el (ruby-indent-beg-re): Add pieces from
+	ruby-beginning-of-indent, simplify, allow all keywords to have
+	indentation before them.
+	(ruby-beginning-of-indent): Adjust for above.  Search until the
+	found point is not inside a string or comment.
+	(ruby-font-lock-keywords): Allow symbols to start with "@"
+	character, give them higher priority than variables.
+	(ruby-syntax-propertize-function)
+	(ruby-font-lock-syntactic-keywords): Remove the "not comments"
+	matchers.  Expression expansions are not comments when inside a
+	string, and there comment syntax status is irrelevant.
+	(ruby-match-expression-expansion): New function.  Check that
+	expression expansion is inside a string, and it's not escaped.
+	(ruby-font-lock-keywords): Use it.
+
+2012-09-05  Martin Rudalics  <rudalics@gmx.at>
+
+	* help.el (temp-buffer-max-height): New default value.
+	(temp-buffer-resize-frames): New option.
+	(resize-temp-buffer-window): Optionally resize frame.
+
+	* window.el (fit-frame-to-buffer-bottom-margin): New option.
+	(fit-frame-to-buffer): New function.
+
+2012-09-05  Glenn Morris  <rgm@gnu.org>
+
+	* emulation/cua-rect.el (cua--init-rectangles):
+	* textmodes/picture.el (picture-mode-map):
+	* play/blackbox.el (blackbox-mode-map): Remap right-char and left-char
+	like forward-char and backward-char.  (Bug#12317)
+
+2012-09-05  Leo Liu  <sdl.web@gmail.com>
+
+	* progmodes/flymake.el (flymake-warning-re): New variable.
+	(flymake-parse-line): Use it.
+
+2012-09-05  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/holidays.el (holiday-christian-holidays):
+	Rename an entry.  (Bug#12289)
+
+2012-09-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/sh-script.el (sh-font-lock-paren): Don't burp at BOB
+	(bug#12222).
+
+2012-09-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* loadup.el: Load macroexp.  Remove hack.
+	* emacs-lisp/macroexp.el (macroexp--eval-if-compile): New function.
+	(macroexp--expand-all): Use it to get better warnings.
+	(macroexp--backtrace, macroexp--trim-backtrace-frame)
+	(internal-macroexpand-for-load): New functions.
+	(macroexp--pending-eager-loads): New var.
+	(emacs-startup-hook): New hack to replace one in loadup.el.
+	* emacs-lisp/cl-macs.el (cl--compiler-macro-list*)
+	(cl--compiler-macro-cXXr): Move to top, before they can be used.
+	(cl-psetf): Simplify.
+	(cl-defstruct): Add indent rule.
+
+2012-09-04  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* mail/smtpmail.el (smtpmail-send-it): Prefer the From: header
+	over `user-mail-address' for the SMTP MAIL FROM envelope.
+	(smtpmail-via-smtp): Ditto.
+
+2012-09-04  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* progmodes/ruby-mode.el: Clean up keybindings.
+	(ruby-mode-map): Don't bind ruby-electric-brace,
+	ruby-beginning-of-defun, ruby-end-of-defun, ruby-mark-defun,
+	backward-kill-word, reindent-then-newline-and-indent.
+	(ruby-mark-defun): Remove.
+	(ruby-electric-brace): Remove.  Obsoleted by electric-indent-chars.
+	(ruby-mode): Set local beginning-of-defun-function and
+	end-of-defun-function values.
+
+2012-09-03  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (temp-buffer-window-setup-hook)
+	(temp-buffer-window-show-hook): New hooks.
+	(temp-buffer-window-setup, temp-buffer-window-show)
+	(with-temp-buffer-window): New functions.
+	(fit-window-to-buffer): Remove unused optional argument OVERRIDE.
+	(special-display-popup-frame): Make sure the window used shows BUFFER.
+
+	* help.el (temp-buffer-resize-mode): Fix doc-string.
+	(resize-temp-buffer-window): New optional argument WINDOW.
+
+	* files.el (recover-file, save-buffers-kill-emacs):
+	* dired.el (dired-mark-pop-up): Use with-temp-buffer-window.
+
 2012-09-02  Michael Albinus  <michael.albinus@gmx.de>
 
 	* eshell/em-unix.el (eshell/sudo): When we have an ad-hoc
@@ -132,8 +728,8 @@
 2012-08-29  Michael Albinus  <michael.albinus@gmx.de>
 
 	* eshell/esh-ext.el (eshell-external-command): Do not examine
-	remote shell scripts.  See
-	<https://bugs.launchpad.net/ubuntu/+source/emacs23/+bug/1035790>.
+	remote shell scripts.
+	See <https://bugs.launchpad.net/ubuntu/+source/emacs23/+bug/1035790>.
 
 	* net/tramp-sh.el (tramp-remote-path): Add "/sbin" and
 	"/usr/local/sbin".
@@ -1175,7 +1771,7 @@
 	* calc-mode.el (calc-basic-simplification-mode): Rename from
 	`calc-limited-simplification-mode'.
 	(calc-alg-simplification-mode): New function.
-	(calc-set-simplify-mode):  Adjust message.
+	(calc-set-simplify-mode): Adjust message.
 
 	* calc.el (calc-set-mode-line): Adjust mode line display for
 	basic simplification mode.
@@ -1373,7 +1969,7 @@
 	* notifications.el (notifications-on-action-signal)
 	(notifications-on-closed-signal): Use also the bus address for the map.
 	(notifications-notify, notifications-close-notification)
-	(notifications-get-capabilities):  Add optional argument BUS.
+	(notifications-get-capabilities): Add optional argument BUS.
 
 2012-07-27  Tassilo Horn  <tsdh@gnu.org>
 
@@ -1493,7 +2089,7 @@
 	ses-cell-set-formula or ses-set-cell to change the cell and handle
 	the undo at the same time, but rather use lower level new macros
 	`ses-cell-formula-aset' and `ses-cell-references-aset' and handle
-	the undo directly. Refresh the mode line.
+	the undo directly.  Refresh the mode line.
 
 2012-07-21  Leo Liu  <sdl.web@gmail.com>
 
@@ -4909,13 +5505,13 @@
 	* progmodes/verilog-mode.el (font-lock-keywords):
 	Fix mis-highligting auto.  Reported by Craig Barner.
 	(verilog-auto, verilog-auto-undef): Add AUTOUNDEF to remove
-	defines from global name space. Reported by Dan Dever.
+	defines from global name space.  Reported by Dan Dever.
 	(verilog-auto-reset, verilog-auto-reset-widths)
 	(verilog-auto-tieoff): Support using unbased numbers for
 	AUTORESET and AUTOTIEOFF.
 	(verilog-submit-bug-report): Update variable list.
 	(verilog-read-auto-params): Fix AUTOINPUT regexps containing
-	parenthesis from not matching. Reported by Michael Rytting.
+	parenthesis from not matching.  Reported by Michael Rytting.
 	(verilog-auto-template-lint): Fix hash error when linting modules
 	with no used templates.
 	(verilog-warn, verilog-warn-error)
@@ -4925,12 +5521,12 @@
 	(verilog-read-auto-template): Add `verilog-auto-template-warn-unused'
 	to report unused template errors.  Reported by Brad Dobbie.
 	(verilog-read-decls): Fix AUTOWIRE etc on supply0, supply1 type
-	nets, bug438. Reported by Vns Blore.
+	nets, bug438.  Reported by Vns Blore.
 	(verilog-auto-inout-module, verilog-auto-reg)
 	(verilog-read-decls, verilog-read-sub-decls-sig)
 	(verilog-signals-edit-wire-reg, verilog-signals-with):
 	Fix passing of Verilog data types in ANSI input/output ports
-	such as "output logic" into the AUTOs. Special case "wire" and
+	such as "output logic" into the AUTOs.  Special case "wire" and
 	"reg" for backwards compatibility presuming Verilog 2001.
 	(verilog-auto-ascii-enum): Add "auto enum" as alias.
 	(verilog-preprocess): Fix replication of preprocess output.
@@ -4951,7 +5547,7 @@
 	(verilog-read-decls): Fix 'parameter type' not appearing in
 	AUTOINSTPARAM, bug340.  Reported by Jonathan Greenlaw.
 	(verilog-auto-logic): Fix when AUTOLOGIC present to properly do
-	AUTOINPUTs, bug411. Reported by Jonathan Greenlaw.
+	AUTOINPUTs, bug411.  Reported by Jonathan Greenlaw.
 	(verilog-read-auto-lisp): Avoid syntax-ppss warning on AUTOLISP.
 	Reported by David Kravitz.
 

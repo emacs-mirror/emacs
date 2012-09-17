@@ -1,3 +1,901 @@
+2012-09-17  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32term.c (w32_read_socket): Set pending_signals to 1, like
+	xterm.c does.  Reported by Daniel Colascione <dancol@dancol.org>.
+
+	* ralloc.c (r_alloc_init) [!SYSTEM_MALLOC]: Initialize
+	__malloc_extra_blocks to 32 instead of 64, like alloc.c did in
+	emacs_blocked_malloc, now deleted.
+
+2012-09-17  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Remove no-longer-needed Solaris 2.4 vfork bug workaround.
+	The workaround was for improving performance on Solaris 2.4, but
+	is getting in the way now.  Emacs will still work if someone is
+	still running Solaris 2.4 in a museum somewhere; Sun dropped
+	support for Solaris 2.4 in 2003.
+	* callproc.c (Fcall_process) [HAVE_WORKING_VFORK]:
+	* process.c (create_process) [HAVE_WORKING_VFORK]:
+	Omit now-unnecessary workaround for the Solaris 2.4 vfork bug,
+	since Emacs no longer uses vfork on that platform.
+
+2012-09-17  Glenn Morris  <rgm@gnu.org>
+
+	* emacs.c: Use COPYRIGHT.
+
+2012-09-16  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Remove configure's --without-sync-input option (Bug#12450).
+	When auditing signal-handling in preparation for cleaning it up,
+	I found that SYNC_INPUT has race conditions and would be a real
+	pain to fix.  Since it's an undocumented and deprecated
+	configure-time option, now seems like a good time to remove it.
+	Also see <http://bugs.gnu.org/11080#16>.
+	* alloc.c (_bytes_used, __malloc_extra_blocks, _malloc_internal)
+	(_free_internal) [!DOUG_LEA_MALLOC]: Remove decls.
+	(alloc_mutex) [!SYSTEM_MALLOC && !SYNC_INPUT && HAVE_PTHREAD]:
+	(malloc_hysteresis):
+	(check_depth) [XMALLOC_OVERRUN_CHECK]:
+	(MALLOC_BLOCK_INPUT, MALLOC_UNBLOCK_INPUT):
+	(__malloc_hook, __realloc_hook, __free_hook, BYTES_USED)
+	(dont_register_blocks, bytes_used_when_reconsidered)
+	(bytes_used_when_full, emacs_blocked_free, emacs_blocked_malloc)
+	(emacs_blocked_realloc, reset_malloc_hooks, uninterrupt_malloc):
+	[!SYSTEM_MALLOC && !SYNC_INPUT]:
+	Remove. All uses removed.
+	(MALLOC_BLOCK_INPUT, MALLOC_UNBLOCK_INPUT): Use a different
+	implementation, one that depends on whether the new macro
+	XMALLOC_BLOCK_INPUT_CHECK is defined, not on whether SYNC_INPUT
+	is defined.
+	* atimer.c (run_timers, handle_alarm_signal):
+	* keyboard.c (pending_signal, poll_for_input_1, poll_for_input)
+	(handle_async_input, process_pending_signals)
+	(handle_input_available_signal, init_keyboard):
+	* nsterm.m (ns_read_socket):
+	* process.c (wait_reading_process_output):
+	* regex.c (immediate_quit, IMMEDIATE_QUIT_CHECK):
+	* sysdep.c (emacs_sigaction_init) [SA_RESTART]:
+	(emacs_write):
+	* xterm.c (XTread_socket):
+	Assume SYNC_INPUT.
+	* conf_post.h (SA_RESTART) [IRIX6_5]: Do not #undef.
+	* eval.c (handling_signal): Remove.  All uses removed.
+	* lisp.h (ELSE_PENDING_SIGNALS): Remove.
+	All uses replaced with the SYNC_INPUT version.
+	(reset_malloc_hooks, uninterrupt_malloc, handling_signal):
+	Remove decls.
+	* sysdep.c, syssignal.h (main_thread) [FORWARD_SIGNAL_TO_MAIN_THREAD]:
+	Now static.
+
+	* font.c (Ffont_shape_gstring): Remove unused local.
+
+2012-09-16  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (clean): No longer run nextstep's clean.
+
+	* Makefile.in (ns_appdir, ns_appbindir, ns_appsrc): Remove variables.
+	(ns_frag): Remove.
+	(ns-app): Move here from ns.mk, and simplify.
+	(clean): Simplify nextstep entry.
+	* ns.mk: Remove file.
+
+2012-09-16  Kenichi Handa  <handa@gnu.org>
+
+	* font.c (Ffont_shape_gstring): Fix previous change; GLYPHs may
+	not covert the last few charactes.
+
+2012-09-16  Kenichi Handa  <handa@gnu.org>
+
+	* font.c (Ffont_shape_gstring): Don't adjust grapheme cluster
+	here, but just check the validity of glyphs in the glyph-string.
+
+2012-09-16  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.c (Fwindow_parameter, Fset_window_parameter): Accept
+	any window as argument (Bug#12452).
+
+2012-09-16  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsfns.m (Fx_open_connection): Move initialization of ns_*_types
+	to ns_term_init to avoid memory leak.
+
+	* nsterm.m (ns_update_begin): Initialize bp after lcokFocus, use
+	explicit retain/release.
+	(ns_term_init): Only allow one display.  Initialize outerpool and
+	ns_*_types.
+
+2012-09-15  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Port _setjmp fix to POSIXish hosts as well as Microsoft.
+	* image.c (_setjmp) [!HAVE__SETJMP]: Restore definition, as
+	it's needed on POSIXish hosts that lack _setjmp.  Attempt to solve
+	the Microsoft problem in a different way, by altering ../nt/config.nt.
+
+2012-09-15  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32xfns.c:
+	* w32uniscribe.c:
+	* w32term.c:
+	* w32select.c:
+	* w32reg.c:
+	* w32proc.c:
+	* w32menu.c:
+	* w32inevt.c:
+	* w32heap.c:
+	* w32font.c:
+	* w32fns.c:
+	* w32console.c:
+	* w32.c:
+	* w16select.c: Remove inclusion of setjmp.h, as it is now included
+	by lisp.h.  This completes removal of setjmp.h inclusion
+	erroneously announced in the previous commit.  (Bug#12446)
+
+	* lisp.h [!HAVE__SETJMP, !HAVE_SIGSETJMP]: Make the commentary
+	more accurate.
+
+	* image.c (_setjmp) [!HAVE__SETJMP]: Define only if 'setjmp' is
+	not defined as a macro.  The latter happens on MS-Windows.
+	(Bug#12446)
+
+2012-09-15  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Port better to POSIX hosts lacking _setjmp (Bug#12446).
+	* lisp.h: Include <setjmp.h> here, since we use its symbols here.
+	Some instances of '#include <setjmp.h>' removed, if the
+	only reason for the instance was because "lisp.h" was included.
+	(sys_jmp_buf, sys_setjmp, sys_longjmp): New symbols.
+	Unless otherwise specified, replace all uses of jmp_buf, _setjmp,
+	and _longjmp with the new symbols.  Emacs already uses _setjmp if
+	available, so this change affects only POSIXish hosts that have
+	sigsetjmp but not _setjmp, such as some versions of Solaris and
+	Unixware.  (Also, POSIX-2008 marks _setjmp as obsolescent.)
+	* image.c (_setjmp, _longjmp) [HAVE_PNG && !HAVE__SETJMP]: New macros.
+	(png_load_body) [HAVE_PNG]:
+	(PNG_LONGJMP) [HAVE_PNG && PNG_LIBPNG_VER < 10500]:
+	(PNG_JMPBUF) [HAVE_PNG && PNG_LIBPNG_VER >= 10500]:
+	Use _setjmp and _longjmp rather than sys_setjmp and sys_longjmp,
+	since PNG requires jmp_buf.  This is the only exception to the
+	general rule that we now use sys_setjmp and sys_longjmp.
+	This exception is OK since this code does not change the signal
+	mask or longjmp out of a signal handler.
+
+2012-09-14  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* alloc.c [!SYSTEM_MALLOC && !SYNC_INPUT && HAVE_PTHREAD]:
+	Include "syssignal.h", for 'main_thread'.
+
+2012-09-14  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Avoid out-of-range marker position (Bug#12426).
+	* insdel.c (replace_range, replace_range_2): Adjust
+	markers before overlays, as suggested by comments.
+	(insert_1_both, insert_from_buffer_1, adjust_after_replace):
+	Remove redundant check before calling offset_intervals.
+
+2012-09-14  Martin Rudalics  <rudalics@gmx.at>
+
+	* xdisp.c (Fformat_mode_line): Unconditionally save/restore
+	current buffer (Bug#12387).
+
+2012-09-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in ($(BLD)/alloc.$(O)): Update dependencies.
+
+2012-09-13  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use a more backwards-compatible timer format (Bug#12430).
+	* keyboard.c (decode_timer): Get PSECS from the 8th (origin-0)
+	vector element, not from the 4th, since PSECS is now at the end.
+	(Fcurrent_idle_time): Doc fix.
+
+2012-09-13  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Function to mark objects and remove killed buffers at once.
+	* alloc.c (discard_killed_buffers): Rename to ...
+	(mark_discard_killed buffers) ... new name.  Add marking
+	of remaining objects.  Fix comment.  Adjust users.
+	(mark_object): Do not touch frame buffer lists here.
+	* frame.c (delete_frame): Reset frame buffer lists here.
+
+2012-09-13  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Better workaround for GNOME bug when --enable-gcc-warnings.
+	* emacsgtkfixed.c (G_STATIC_ASSERT): Remove, undoing last change.
+	Instead, disable -Wunused-local-typedefs.  See Dmitry Antipov in
+	<http://lists.gnu.org/archive/html/emacs-devel/2012-09/msg00335.html>.
+
+	Simplify SIGIO usage (Bug#12408).
+	The code that dealt with SIGIO was crufty and confusing, e.g., it
+	played tricks like "#undef SIGIO" but these tricks were not used
+	consistently.  Simplify mostly by not #undeffing standard symbols,
+	e.g., use "defined USABLE_SIGIO" (our symbol, which we can define
+	or not as we please) rather than "defined SIGIO" (standard symbol
+	that we probably shouldn't #undef).
+	* conf_post.h [USG5_4]: Do not include <sys/wait.h> here.
+	Modules that need it can include it.
+	[USG5_4 && emacs]: Likewise, do not include the streams stuff here.
+	* dispextern.h (ignore_sigio): New decl.
+	* emacs.c (shut_down_emacs): Invoke unrequest_sigio
+	unconditionally, since it's now a no-op if !USABLE_SIGIO.
+	* emacs.c (shut_down_emacs):
+	* keyboard.c (kbd_buffer_store_event_hold):
+	Use ignore_sigio rather than invoking 'signal' directly.
+	* keyboard.c (USABLE_FIONREAD && USG5_4): Include <sys/filio.h>,
+	for FIONREAD.
+	(FIONREAD, SIGIO): Do not #undef.
+	(tty_read_avail_input): Use #error rather than a syntax error.
+	* process.c [USG5_4]: Include <sys/stream.h> and <sys/stropts.h>,
+	for I_PIPE, used by SETUP_SLAVE_PTY.
+	(DATAGRAM_SOCKETS): Simplify defn, based on USABLE_FIONREAD.
+	* sysdep.c (croak): Remove; no longer needed.  This bit of
+	temporary code, with Fred N. Fish's comment that it's temporary,
+	has been in Emacs since at least 1992!
+	(init_sigio, reset_sigio, request_sigio, unrequest_sigio):
+	Arrange for them to be no-ops in all cases when ! USABLE_SIGIO.
+	* syssignal.h (croak): Remove decl.
+	(SIGIO, SIGPOO, SIGAIO, SIGPTY): Do not #undef; that's too fragile.
+	* systty.h [!NO_TERMIO]: Do not include <termio.h>; no longer needed
+	now that we're termios-only.
+	(FIONREAD, ASYNC) [BROKEN_FIONREAD]: Do not #undef.
+	* term.c (dissociate_if_controlling_tty): Use #error rather than
+	a run-time error.
+
+	Work around GCC and GNOME bugs when --enable-gcc-warnings.
+	* emacsgtkfixed.c (G_STATIC_ASSERT): Redefine to use 'verify',
+	to work around GNOME bug 683906.
+	* image.c (jpeg_load_body) [HAVE_JPEG && lint]: Pacify gcc -Wclobber.
+	(struct my_jpeg_error_mgr) [HAVE_JPEG && lint]: New member fp.
+	This works around GCC bug 54561.
+
+2012-09-12  Paul Eggert  <eggert@cs.ucla.edu>
+
+	More fixes for 'volatile' and setjmp/longjmp.
+	* eval.c (Fdefvar, Fcondition_case): Remove unnecessary 'volatile's.
+	* image.c (struct png_load_context) [HAVE_PNG]: New type.
+	(png_load_body) [HAVE_PNG]:
+	(jpeg_load_body) [HAVE_JPEG]:
+	New function, with most of the old parent function's body.
+	(png_load) [HAVE_PNG]:
+	(jpeg_load) [HAVE_JPEG]:
+	Invoke the new function, to avoid longjmp munging our locals.
+	(struct my_jpeg_error_mgr) [HAVE_JPEG]: New members cinfo, failure_code.
+	(my_error_exit) [HAVE_JPEG]: Don't trust 'setjmp' to return 2 when
+	longjmp is passed 2, as the C standard doesn't guarantee this.
+	Instead, store the failure code into mgr->failure_code.
+
+2012-09-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keyboard.c (read_char, requeued_events_pending_p, Finput_pending_p)
+	(Fdiscard_input, quit_throw_to_read_char, init_keyboard)
+	(syms_of_keyboard): Remove support for unread-command-char.
+
+2012-09-12  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32proc.c (sys_kill): If PID is our process ID and the signal is
+	SIGABRT, call emacs_abort.  Avoids silently exiting upon assertion
+	violation.  (Bug#12426)
+
+2012-09-12  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* image.c (jpeg_memory_src): Don't assume string len fits in unsigned.
+
+2012-09-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* eval.c: Add `inhibit-debugger'.
+	(Qinhibit_debugger): New symbol.
+	(call_debugger): Bind it instead of Qdebug_on_error.
+	(maybe_call_debugger): Test Vinhibit_debugger.
+	(syms_of_eval): Define inhibit-debugger.
+	* xdisp.c (set_message): Don't bind Qinhibit_debug_on_message.
+	(syms_of_xdisp): Remove inhibit-debug-on-message.
+
+2012-09-11  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Avoid _setjmp/_longjmp problems with local nonvolatile variables.
+	If a nonvolatile local variable is written before a _longjmp to
+	the frame containing the variable, and is read after the _longjmp,
+	the value read is indeterminate.  Some local variables of type
+	'struct handler' and 'struct catchtag' are used in this way, so
+	mark each of their slots as volatile if the slot can be set before
+	_longjmp and read afterwards.
+	* lisp.h (struct handler): var and chosen_clause are now volatile.
+	(struct catchtag): val, next, and pdlcount are now volatile.
+
+	* bidi.c (bidi_push_it, bidi_pop_it):
+	* fns.c (copy_hash_table):
+	* image.c (define_image_type):
+	* keyboard.c (kbd_buffer_store_event_hold):
+	* process.c (Fprocess_send_eof):
+	* xfaces.c (x_create_gc) [HAVE_NS]:
+	* xgselect.c (xg_select):
+	Prefer assignment to memcpy when either will do.
+
+	* alloc.c (discard_killed_buffers): Tune and simplify a bit.
+	Use pointer-to-a-pointer to simplify and avoid a NILP check each
+	time an item is removed.  No need to mark this function 'inline';
+	the compiler knows better than we do.
+
+2012-09-11  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.m (ns_judge_scroll_bars): Pass NO to updateFrameSize.
+	(updateFrameSize:): Add delay parameter to updateFrameSize, send it
+	to change_frame_size (Bug#12388).
+	(windowDidResize:): Pass YES to updateFrameSize.
+
+	* nsterm.h: Add delay parameter to updateFrameSize.
+
+2012-09-11  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Discard killed buffers from deleted window and frame objects.
+	This reduces an amount of references to killed buffers and
+	helps GC to reclaim them faster.
+	* alloc.c (discard_killed_buffers): New function.
+	(mark_object): Use it for deleted windows and frames.
+	(mark_object): If symbol's value is set up for a killed buffer
+	or deleted frame, restore it's global binding.
+	* data.c (swap_in_global_binding): Add GC notice.
+	(swap_in_symval_forwarding): Use convenient set_blv_where.
+	* window.c (wset_next_buffers, wset_prev_buffers): Move ...
+	* window.h: ... to here.
+
+2012-09-11  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Convenient macro to check whether the buffer is live.
+	* buffer.h (BUFFER_LIVE_P): New macro.
+	* alloc.c, buffer.c, editfns.c, insdel.c, lread.c, marker.c:
+	* minibuf.c, print.c, process.c, window.c, xdisp.c: Use it.
+
+2012-09-11  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* xdisp.c (right_overwritten, right_overwriting): Also handle gstring
+	composition cases (Bug#12364).
+
+	* xterm.c (x_draw_glyph_string): Avoid overwriting inverted left
+	overhang of succeeding glyphs overlapping box cursor.
+
+	* w32term.c (x_draw_glyph_string): Likewise.
+
+2012-09-11  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Simplify, document, and port floating-point (Bug#12381).
+	The porting part of this patch fixes bugs on non-IEEE platforms
+	with frexp, ldexp, logb.
+	* data.c, lisp.h (Qdomain_error, Qsingularity_error, Qunderflow_error):
+	Now static.
+	* floatfns.c: Simplify discussion of functions that Emacs doesn't
+	support, by removing commented-out code and briefly listing the
+	C89 functions excluded.  The commented-out stuff was confusing
+	maintenance, e.g., we thought we needed cbrt but it was commented out.
+	(logb): Remove decl; no longer needed.
+	(isfinite): New macro, if not already supplied.
+	(isnan): Don't replace any existing macro.
+	(Ffrexp, Fldexp): Define even if !HAVE_COPYSIGN, as frexp and ldexp
+	are present on all C89 platforms.
+	(Ffrexp): Do not special-case zero, as frexp does the right thing
+	for that case.
+	(Flogb): Do not use logb, as it doesn't have the desired meaning
+	on hosts that use non-base-2 floating point.  Instead, stick with
+	frexp, which is C89 anyway.  Do not pass an infinity or a NaN to
+	frexp, to avoid getting an unspecified result.
+
+	* xdisp.c (Qinhibit_debug_on_message): Now static.
+
+2012-09-10  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.m (ns_update_begin): Set clip path to whole view by using
+	NSBezierPath (Bug#12131).
+
+2012-09-10  Chong Yidong  <cyd@gnu.org>
+
+	* fns.c (Fdelq, Fdelete): Doc fix.
+
+2012-09-10  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* lisp.h (XSETINT, XSETCONS, XSETVECTOR, XSETSTRING, XSETSYMBOL)
+	(XSETFLOAT, XSETMISC): Parenthesize macro bodies.
+
+2012-09-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* lisp.h (make_lisp_ptr): New macro to replace XSET.
+	(XSETCONS, XSETVECTOR, XSETSTRING, XSETSYMBOL, XSETFLOAT, XSETMISC):
+	Use it.
+
+2012-09-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* fringe.c (draw_fringe_bitmap_1): Don't reduce the width of the
+	left fringe if the window has a left margin.  This avoids leaving
+	traces of the cursor because its leftmost pixel is not drawn over.
+
+	* dispnew.c (update_window_line): When the left margin area of a
+	screen line is updated, set the redraw_fringe_bitmaps_p flag of
+	that screen line.  (Bug#12277)
+
+2012-09-09  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Assume C89 or later for math functions (Bug#12381).
+	This simplifies the code, and makes it a bit smaller and faster,
+	and (most important) makes it easier to clean up signal handling
+	since we can stop worring about floating-point exceptions in
+	library code.  That was a problem before C89, but the problem
+	went away many years ago on all practical Emacs targets.
+	* data.c, image.c, lread.c, print.c:
+	Don't include <math.h>; no longer needed.
+	* data.c, floatfns.c (IEEE_FLOATING_POINT): Don't worry that it
+	might be autoconfigured, as that never happens.
+	* data.c (fmod):
+	* doprnt.c (DBL_MAX_10_EXP):
+	* print.c (DBL_DIG):
+	Remove.  C89 or later always defines these.
+	* floatfns.c (HAVE_MATHERR, FLOAT_CHECK_ERRNO, FLOAT_CHECK_DOMAIN)
+	(in_float, float_error_arg, float_error_arg2, float_error_fn_name)
+	(arith_error, domain_error, domain_error2):
+	Remove all this pre-C89 cruft.  Do not include <errno.h> as that's
+	no longer needed -- we simply return what C returns.  All uses removed.
+	(IN_FLOAT, IN_FLOAT2): Remove.  All uses replaced with
+	the wrapped code.
+	(FLOAT_TO_INT, FLOAT_TO_INT2, range_error, range_error2):
+	Remove.  All uses expanded, as these macros are no longer used
+	more than once and are now more trouble than they're worth.
+	(Ftan): Use tan, not sin / cos.
+	(Flogb): Assume C89 frexp.
+	(fmod_float): Assume C89 fmod.
+	(matherr) [HAVE_MATHERR]: Remove; no longer needed.
+	(init_floatfns): Remove.  All uses removed.
+
+2012-09-08  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.m (ns_draw_fringe_bitmap, ns_dumpglyphs_image): Take back
+	compositeToPoint for OSX < 10.6 (Bug#12390).
+
+2012-09-08  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* floatfns.c (Ftan): Use tan (x), not (sin (x) / cos (x)).
+	This produces more-accurate results.
+
+2012-09-08  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.m (updateFrameSize): Call setFrame: on the view when size
+	changes (Bug#12088).
+
+2012-09-08  Chong Yidong  <cyd@gnu.org>
+
+	* syntax.c (Fstring_to_syntax): Doc fix.
+
+2012-09-08  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.m (ns_clip_to_row): Remove code that deals with drawing fringe
+	in the internal border.
+	(x_set_window_size): Remove static variables and their usage.
+	(ns_redraw_scroll_bars): Fix NSTRACE arg.
+	(ns_after_update_window_line, ns_draw_fringe_bitmap): Remove
+	fringe/internal border adjustment (Bug#11052).
+	(ns_draw_fringe_bitmap): Make code more like other terms (xterm.c).
+	(ns_draw_window_cursor): Remove fringe/internal border adjustment.
+	(ns_fix_rect_ibw): Remove.
+	(ns_get_glyph_string_clip_rect): Remove call to ns_fix_rect_ibw.
+	(ns_dumpglyphs_box_or_relief): Ditto.
+	(ns_maybe_dumpglyphs_background): Remove fringe/internal border
+	adjustment.
+	(ns_dumpglyphs_image): Ditto.
+	(ns_dumpglyphs_stretch): Fix coding style.  Remove fringe/internal
+	border adjustment.
+	(ns_set_vertical_scroll_bar): Remove variables barOnVeryLeft/Right and
+	their usage.  Add fringe_extended_p and its use as in other terms.
+	(ns_judge_scroll_bars): Code style fix.  Call updateFrameSize if
+	scroll bar was removed.
+	(updateFrameSize): New function.
+	(windowDidResize): Move code to updateFrameSize and call it.
+
+	* nsterm.h (EmacsView): Add updateFrameSize.
+
+2012-09-07  Chong Yidong  <cyd@gnu.org>
+
+	* textprop.c (Fget_text_property): Minor doc fix (Bug#12323).
+
+	* data.c (Flocal_variable_if_set_p): Doc fix (Bug#10713).
+
+2012-09-07  Paul Eggert  <eggert@cs.ucla.edu>
+
+	More signal-handler cleanup (Bug#12327).
+	* emacs.c (main): Convert three 'signal' calls to 'sigaction' calls.
+	Problem introduced when merging patches.  Noted by Eli Zaretskii in
+	<http://bugs.gnu.org/12327#67>.
+	* floatfns.c: Comment fix.
+	* lisp.h (force_auto_save_soon): Declare regardless of SIGDANGER.
+	SIGDANGER might not be in scope so "#ifdef SIGDANGER" is not right,
+	and anyway the declaration is harmless even if SIGDANGER is not defined.
+	* syssignal.h (SIGIO): Also #undef if (! defined FIONREAD ||
+	defined BROKEN_FIONREAD).  systty.h formerly did this, but other
+	source files not surprisingly expected syssignal.h to define, or
+	not define, SIGIO, and it's cleaner to do it that way, for consistency.
+	Include <sys/ioctl.h>, for FIONREAD.
+	* systty.h (SIGIO): Do not #undef here; it's now syssignal.h's job.
+	This eliminates a problem whereby other files mysteriously had
+	to include "syssignal.h" before including "systty.h" if they
+	wanted to use "#ifdef SIGIO".
+
+2012-09-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32proc.c (sigaction): New function, emulates Posix 'sigaction'.
+
+	* w32.c (sigemptyset): Empty the set.
+	(sigsetmask, sigmask, sigblock, sigunblock): Remove unused functions.
+
+	* alloc.c [ENABLE_CHECKING]: Include signal.h, since we need SIGABRT.
+
+2012-09-07  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* alloc.c (mark_buffer): Revert unsafe marking optimization.
+	(mark_object): Likewise for frame objects.
+
+2012-09-07  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* syssignal.h (handle_on_main_thread): Always declare,
+	even if FORWARD_SIGNAL_TO_MAIN_THREAD is not defined.
+	This ports to platforms without HAVE_PTHREAD.
+
+2012-09-06  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Signal-handler cleanup (Bug#12327).
+	Emacs's signal handlers were written in the old 4.2BSD style with
+	sigblock and sigmask and so forth, and this led to some
+	inefficiencies and confusion.  Rewrite these to use
+	pthread_sigmask etc. without copying signal sets around.  Also,
+	get rid of the confusing macros 'SIGNAL_THREAD_CHECK' and
+	'signal', and instead use functions that do not attempt to take
+	over the system name space.  This patch causes Emacs's text
+	segment to shrink by 0.7% on my platform, Fedora 17 x86-64.
+	* alloc.c, emacsgtkfixed.c, nsfns.m, widget.c, xmenu.c:
+	Do not include <signal.h> or "syssignal.h", as these
+	modules do not use signals.
+	* atimer.c, callproc.c, data.c, dispnew.c, emacs.c, floatfns.c:
+	* gtkutil.c, keyboard.c, process.c, sound.c, sysdep.c, term.c, xterm.c:
+	Do not include <signal.h>, as "syssignal.h" does that for us now.
+	* atimer.c (sigmask_atimers): New function.
+	(block_atimers, unblock_atimers): New functions,
+	replacing the old macros BLOCK_ATIMERS and UNBLOCK_ATIMERS.
+	All uses replaced.
+	* conf_post.h [SIGNAL_H_AHB]: Do not include <signal.h>;
+	no longer needed here.
+	* emacs.c (main): Inspect existing signal handler with sigaction,
+	so that there's no need to block and unblock SIGHUP.
+	* sysdep.c (struct save_signal): New member 'action', replacing
+	old member 'handler'.
+	(save_signal_handlers, restore_signal_handlers):
+	Use sigaction instead of 'signal' to save and restore.
+	(get_set_sighandler, set_sighandler) [!WINDOWSNT]:
+	New function.  All users of 'signal' modified to use set_sighandler
+	if they're writeonly, and to use sys_signal if they're read+write.
+	(emacs_sigaction_init, forwarded_signal): New functions.
+	(sys_signal): Remove.  All uses replaced by calls to sigaction
+	and emacs_sigaction_init, or by direct calls to 'signal'.
+	(sys_sigmask) [!__GNUC__]: Remove; no longer needed.
+	(sys_sigblock, sys_sigunblock, sys_sigsetmask): Remove;
+	all uses replaced by pthread_sigmask etc. calls.
+	* syssignal.h: Include <signal.h>.
+	(emacs_sigaction_init, forwarded_signal): New decls.
+	(SIGMASKTYPE): Remove.  All uses replaced by its definiens, sigset_t.
+	(SIGEMPTYMASK): Remove; all uses replaced by its definiens, empty_mask.
+	(sigmask, sys_sigmask): Remove; no longer needed.
+	(sigpause): Remove.  All uses replaced by its definiens, sigsuspend.
+	(sigblock, sigunblock, sigfree):
+	(sigsetmask) [!defined sigsetmask]:
+	Remove.  All uses replaced by pthread_sigmask.
+	(signal): Remove.  Its remaining uses (with SIG_DFL and SIG_IGN)
+	no longer need to be replaced, and its typical old uses
+	are now done via emacs_sigaction_init and sigaction.
+	(sys_sigblock, sys_sigunblock, sys_sigsetmask): Remove decls.
+	(sys_sigdel): Remove; unused.
+	(NSIG): Remove a FIXME; the code's fine.  Remove an unnecessary ifdef.
+
+2012-09-06  Eli Zaretskii  <eliz@gnu.org>
+
+	* process.c (CAN_HANDLE_MULTIPLE_CHILDREN): Fix a typo that broke
+	SIGCHLD handling on systems that don't have WNOHANG.  (Bug#12327)
+
+2012-09-06  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Explicitly mark buffer_defaults and buffer_local_symbols.
+	* alloc.c (Fgarbage_collect): Mark buffer_defaults and
+	mark_local_symbols here.
+	(mark_object): If GC_CHECK_MARKED_OBJECTS, simplify checking
+	since special buffers aren't marked here any more.
+	(allocate_buffer): Chain new buffer with all_buffers here...
+	* buffer.c (Fget_buffer_create, Fmake_indirect_buffer): ...and
+	not here.
+	(Vbuffer_defaults, Vbuffer_local_symbols): Remove.
+	(syms_of_buffer): Remove staticpro of the above.
+	(init_buffer_once): Set names for buffer_defaults and
+	buffer_local_symbols.
+
+2012-09-06  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use bool for booleans in font-related modules.
+	* font.c (font_intern_prop, font_style_to_value)
+	(font_style_symbolic, font_parse_xlfd, font_parse_fcname)
+	(generate_otf_features, font_check_otf_features, font_check_otf)
+	(font_match_p, font_list_entities, font_at):
+	* fontset.c (fontset_id_valid_p, reorder_font_vector
+	(fontset_find_font, Fset_fontset_font)
+	(face_suitable_for_char_p) [0]:
+	* ftfont.c (fc_initialized, ftfont_get_open_type_spec)
+	(ftfont_open, ftfont_text_extents, ftfont_check_otf):
+	(m17n_flt_initialized, ftfont_shape_by_flt):
+	* ftxfont.c (ftxfont_draw_bitmap, ftxfont_draw):
+	* nsfont.m (nsfont_draw):
+	* w32font.c (w32font_draw):
+	* w32term.c (x_draw_glyphless_glyph_string_foreground):
+	Use bool for booleans.
+	* font.h: Adjust to above API changes.
+	(struct font, struct font_driver, struct font_driver_list):
+	Use bool for booleans.
+	(struct font): Remove useless member encoding_type.
+	All users removed.
+	* fontset.c, xftfont.c: Omit unnecessary static decls.
+
+2012-09-06  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* alloc.c (mark_object): Revert window marking code
+	since it's unsafe for the Fset_window_configuration.
+
+2012-09-05  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix race conditions with signal handlers and errno (Bug#12327).
+	Be more systematic about preserving errno whenever a signal
+	handler returns, even if it's not in the main thread.  Do this by
+	renaming signal handlers to distinguish between signal delivery
+	and signal handling.  All uses changed.
+	* atimer.c (deliver_alarm_signal): Rename from alarm_signal_handler.
+	* data.c (deliver_arith_signal): Rename from arith_error.
+	* dispnew.c (deliver_window_change_signal): Rename from
+	window_change_signal.
+	* emacs.c (deliver_error_signal): Rename from fatal_error_signal.
+	(deliver_danger_signal) [SIGDANGER]: Rename from memory_warning_signal.
+	* keyboard.c (deliver_input_available_signal): Rename from
+	input_available_signal.
+	(deliver_user_signal): Rename from handle_user_signal.
+	(deliver_interrupt_signal): Rename from interrupt_signal.
+	* process.c (deliver_pipe_signal): Rename from send_process_trap.
+	(deliver_child_signal): Rename from sigchld_handler.
+	* atimer.c (handle_alarm_signal):
+	* data.c (handle_arith_signal):
+	* dispnew.c (handle_window_change_signal):
+	* emacs.c (handle_fatal_signal, handle_danger_signal):
+	* keyboard.c (handle_input_available_signal):
+	* keyboard.c (handle_user_signal, handle_interrupt_signal):
+	* process.c (handle_pipe_signal, handle_child_signal):
+	New functions, with the actual signal-handling code taken from the
+	original respective signal handlers, sans the sporadic attempts to
+	preserve errno, since that's now done by handle_on_main_thread.
+	* atimer.c (alarm_signal_handler): Remove unnecessary decl.
+	* emacs.c, floatfns.c, lisp.h: Remove unused FLOAT_CATCH_SIGKILL cruft.
+	* emacs.c (main_thread) [FORWARD_SIGNAL_TO_MAIN_THREAD]:
+	Move to sysdep.c.
+	(main) [FORWARD_SIGNAL_TO_MAIN_THREAD]:
+	Move initialization of main_thread to sysdep.c's init_signals.
+	* process.c (waitpid) [!WNOHANG]: #define to wait; that's good enough for
+	our usage, and simplifies the mainline code.
+	(record_child_status_change): New static function, as a helper
+	for handle_child_signal, and with most of the old child handler's
+	contents.
+	(CAN_HANDLE_MULTIPLE_CHILDREN): New constant.
+	(handle_child_signal): Use the above.
+	* sysdep.c (main_thread) [FORWARD_SIGNAL_TO_MAIN_THREAD]:
+	Moved here from emacs.c.
+	(init_signals) [FORWARD_SIGNAL_TO_MAIN_THREAD]: Initialize it;
+	code moved here from emacs.c's main function.
+	* sysdep.c, syssignal.h (handle_on_main_thread): New function,
+	replacing the old SIGNAL_THREAD_CHECK.  All uses changed.  This
+	lets callers save and restore errno properly.
+
+2012-09-05  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Remove redundant or unused things here and there.
+	* lisp.h (CYCLE_CHECK, CHAR_TABLE_TRANSLATE): Remove.
+	* conf_post.h (RE_TRANSLATE): Use char_table_translate.
+	* editfns.c (Fcompare_buffer_substrings): Likewise.
+	* frame.h (struct terminal, struct font_driver_list):
+	Remove redundant declarations.
+	* window.h (Qleft, Qright): Likewise.
+
+2012-09-05  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Do not mark objects from deleted buffers, windows and frames.
+	* alloc.c (mark_buffer): Mark just the buffer if it is dead.
+	(mark_object): Likewise for windows and frames.
+
+2012-09-05  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* alloc.c (valid_lisp_object_p): Treat killed buffers,
+	buffer_defaults and buffer_local_symbols as valid objects.
+	Return special value to denote them.
+
+2012-09-05  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* fileio.c, filelock.c, floatfns.c, fns.c: Use bool for boolean.
+	* fileio.c (auto_saving, auto_save_error_occurred, make_temp_name)
+	(Fexpand_file_name, barf_or_query_if_file_exists, Fcopy_file)
+	(file_name_absolute_p, Fsubstitute_in_file_name):
+	(check_executable, check_writable, Ffile_accessible_directory_p)
+	(Fset_file_selinux_context, Fdefault_file_modes)
+	(Finsert_file_contents, choose_write_coding_system)
+	(Fwrite_region, build_annotations, a_write, e_write)
+	(Fdo_auto_save):
+	* filelock.c (boot_time_initialized, get_boot_time)
+	(get_boot_time_1, lock_file_1, within_one_second):
+	* floatfns.c (in_float):
+	* fns.c (concat, internal_equal, Frequire, base64_encode_1)
+	(base64_decode_1, cmpfn_eql, cmpfn_user_defined)
+	(sweep_weak_table, sweep_weak_hash_tables, secure_hash):
+	* lisp.h (struct Lisp_Hash_Table.cmpfn):
+	* window.c (compare_window_configurations):
+	Use bool for booleans.
+	* fileio.c (auto_saving_dir_umask, auto_saving_mode_bits)
+	(Fdefault_file_modes): Now mode_t, not int, for modes.
+	(Fdo_auto_save): Set a boolean to 1 rather than using ++.
+	(internal_delete_file): Now returns void, not a (boolean) int,
+	since nobody was looking at the return value.
+	* lisp.h, window.h: Adjust to above API changes.
+
+	* xdisp.c (set_message): Simplify and reindent last change.
+
+2012-09-05  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in ($(BLD)/sysdep.$(O)): Update dependencies.
+
+2012-09-04  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* eval.c (call_debugger): Make the function non-static so that we
+	can call it from set_message.
+
+	* xdisp.c (set_message): Implement the new variable `debug-on-message'.
+	(syms_of_xdisp): Defvar it and `inhibit-debug-on-message'.
+
+2012-09-04  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Give more-useful info on a fatal error (Bug#12328).
+	* alloc.c [ENABLE_CHECKING]: Do not include <execinfo.h>.
+	(die) [ENABLE_CHECKING]: Call fatal_error_backtrace instead
+	of doing the work ourselves.
+	* emacs.c (fatal_error_signal): Let fatal_error_backtrace
+	do most of the work.
+	(fatal_error_backtrace): New function, taken from the guts
+	of the old fatal_error_signal, but with a new option to output
+	a backtrace.
+	(shut_down_emacs) [!DOS_NT]: Use strsignal to give more-useful
+	info about the signal than just its number.
+	* lisp.h (fatal_error_backtrace, emacs_backtrace): New decls.
+	* sysdep.c: Include <execinfo.h>
+	(emacs_backtrace): New function, taken partly from the previous
+	code of the 'die' function.
+	(emacs_abort): Call fatal_error_backtrace rather than abort.
+
+2012-09-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* lread.c (readevalloop): Call internal-macroexpand-for-load to perform
+	eager (load-time) macro-expansion.
+	* lisp.mk (lisp): Add macroexp.
+
+2012-09-04  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Simplify redefinition of 'abort' (Bug#12316).
+	Do not try to redefine the 'abort' function.  Instead, redo
+	the code so that it calls 'emacs_abort' rather than 'abort'.
+	This removes the need for the NO_ABORT configure-time macro
+	and makes it easier to change the abort code to do a backtrace.
+	* .gdbinit: Just stop at emacs_abort, not at w32_abort or abort.
+	* emacs.c (abort) [!DOS_NT && !NO_ABORT]:
+	Remove; sysdep.c's emacs_abort now takes its place.
+	* lisp.h (emacs_abort): New decl.  All calls from Emacs code to
+	'abort' changed to use 'emacs_abort'.
+	* msdos.c (dos_abort) [defined abort]: Remove; not used.
+	(abort) [!defined abort]: Rename to ...
+	(emacs_abort): ... new name.
+	* sysdep.c (emacs_abort) [!HAVE_NTGUI]: New function, taking
+	the place of the old 'abort' in emacs.c.
+	* w32.c, w32fns.c (abort): Do not #undef.
+	* w32.c (emacs_abort): Rename from w32_abort.
+
+2012-09-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32uniscribe.c (uniscribe_shape): Reverse the sign of
+	offsets[j].dv, since the y axis of the screen coordinates points
+	down, while the y axis of the font definition coordinates points
+	up.  This fixes display of Arabic diacritics such as KASRA and
+	KASRATAN.  (Bug#11860)
+
+2012-09-04  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Be more systematic about _setjmp vs setjmp.
+	* alloc.c (test_setjmp, mark_stack):
+	* image.c (PNG_LONGJMP) [PNG_LIBPNG_VER < 10500]:
+	(PNG_JMPBUF) [! (PNG_LIBPNG_VER < 10500)]:
+	(png_load, my_error_exit, jpeg_load):
+	* process.c (send_process_trap, send_process):
+	Uniformly prefer _setjmp and _longjmp to setjmp and longjmp.
+	The underscored versions are up to 30x faster on some hosts.
+	Formerly, the code used setjmp+longjmp sometimes and
+	_setjmp+_longjmp at other times, with no particular reason to
+	prefer setjmp+longjmp.
+
+2012-09-03  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix minor problem found by static checking.
+	* buffer.c (Fdelete_all_overlays): Return nil.
+
+2012-09-03  Martin Rudalics  <rudalics@gmx.at>
+
+	* buffer.c (Fdelete_all_overlays): New function.
+
+2012-09-03  Chong Yidong  <cyd@gnu.org>
+
+	* gtkutil.c: Add extern decl for Qxft.
+
+2012-09-02  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* emacs.c, eval.c: Use bool for boolean.
+	* emacs.c (initialized, inhibit_window_system, running_asynch_code):
+	(malloc_using_checking) [DOUG_LEA_MALLOC]:
+	(display_arg) [HAVE_X_WINDOWS || HAVE_NS]:
+	(noninteractive, no_site_lisp, fatal_error_in_progress, argmatch)
+	(main, decode_env_path, Fdaemon_initialized):
+	* eval.c (call_debugger, Finteractive_p, interactive_p):
+	(unwind_to_catch, Fsignal, wants_debugger, skip_debugger)
+	(maybe_call_debugger, Fbacktrace):
+	* process.c (read_process_output, exec_sentinel):
+	Use bool for booleans.
+	* emacs.c (shut_down_emacs): Omit unused boolean argument NO_X.
+	All callers changed.
+	* eval.c (interactive_p): Omit always-true boolean argument
+	EXCLUDE_SUBRS_P.  All callers changed.
+	* dispextern.h, lisp.h: Reflect above API changes.
+	* firstfile.c (dummy): Use the address of 'main', whose signature
+	won't change, instead of the address of 'initialize', whose
+	signature just changed from int to bool.
+	* lisp.h (fatal_error_in_progress): New decl of boolean, moved here ...
+	* msdos.c (fatal_error_in_progress): ... from here.
+	* xdisp.c (redisplaying_p): Now a boolean.  Set it to 1 instead
+	of incrementing it.
+	(redisplay_internal, unwind_redisplay): Simply clear
+	REDISPLAYING_P when unwinding, instead of saving its previous,
+	always-false value and then restoring it.
+
+	Clean up some extern decls.
+	Mostly, this hoists extern decls out of .c files and into .h files.
+	That way, we're more likely to catch errors if the interfaces change.
+	* alloc.c [USE_GTK]: Include "gtkutil.h" so that we need not
+	declare xg_mark_data.
+	* dispextern.h (x_frame_parm_handlers):
+	* font.h (Qxft):
+	* lisp.h (Qlexical_binding, Qinternal_interpreter_environment)
+	(Qextra_light, Qlight, Qsemi_light, Qsemi_bold, Qbold, Qextra_bold)
+	(Qultra_bold, Qoblique, Qitalic):
+	Move extern decl here from .c file.
+	* alloc.c (xg_mark_data) [USE_GTK]:
+	* doc.c (Qclosure):
+	* eval.c (Qlexical_binding):
+	* fns.c (time) [!HAVE_UNISTD_H]:
+	* gtkutil.c (Qxft, Qnormal, Qextra_light, Qlight, Qsemi_light)
+	(Qsemi_bold, Qbold, Qextra_bold, Qultra_bold, Qoblique, Qitalic):
+	* image.c (Vlibrary_cache, QCloaded_from) [HAVE_NTGUI]:
+	* lread.c (Qinternal_interpreter_environment):
+	* minibuf.c (Qbuffer):
+	* process.c (QCfamily, QCfilter):
+	* widget.c (free_frame_faces):
+	* xfaces.c (free_frame_menubar) [USE_X_TOOLKIT]:
+	* xfont.c (x_clear_errors):
+	* xterm.c (x_frame_parm_handlers):
+	Remove now-redundant extern decls.
+	* keyboard.c, keyboard.h (ignore_mouse_drag_p) [USE_GTK || HAVE_NS]:
+	* xfaces.c (Qultra_light, Qreverse_oblique, Qreverse_italic):
+	Now static.
+	* xfaces.c: Remove unnecessary static decls.
+	* xterm.c (updating_frame): Remove decl of nonexistent object.
+
+	* Makefile.in (gl-stamp): Don't scan $(SOME_MACHINE_OBJECTS)
+	when building globals.h, as the objects that are not built on
+	this host are not needed to compile C files on this host.
+
 2012-09-02  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* gtkutil.h: Remove prototype for x_wm_set_size_hint.
@@ -187,18 +1085,18 @@
 2012-08-28  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsmenu.m (initWithContentRect:styleMask:backing:defer:): Initialize
-	button_values to NULL. Call setStykeMask so dialogs get a close button.
+	button_values to NULL.  Call setStykeMask so dialogs get a close button.
 	(windowShouldClose:): Set window_closed.
 	(dealloc): New member, free button_values.
-	(process_dialog:): Make member function. Remove window argument,
-	replace window with self. Count buttons and allocate and store values
+	(process_dialog:): Make member function.  Remove window argument,
+	replace window with self.  Count buttons and allocate and store values
 	in button_values.
 	(addButton:value:row:): value is int with the name tag.  Call setTag
-	with tag. Remove return self, declare return value as void.
+	with tag.  Remove return self, declare return value as void.
 	(addString:row:): Remove return self, declare return value as void.
 	(addSplit): Remove return self, declare return value as void.
 	(clicked:): Remove return self, declare return value as void.
-	Set dialog_return to button_values[seltag]. Code formatting change.
+	Set dialog_return to button_values[seltag].  Code formatting change.
 	(initFromContents:isQuestion:): Adjust call to process_dialog.
 	Code formatting change.
 	(timeout_handler:): Set timer_fired to YES.
@@ -533,7 +1431,7 @@
 
 	* fontset.c (FONTSET_ADD): Return void, not Lisp_Object.
 	Otherwise, the compiler complains about (A?B:C) where B is void
-	and C is Lisp_Object.  This fixes an incompatibility with Sun C	5.12.
+	and C is Lisp_Object.  This fixes an incompatibility with Sun C 5.12.
 	(fontset_add): Return void, for FONTSET_ADD.
 
 2012-08-21  Paul Eggert  <eggert@cs.ucla.edu>
@@ -1049,7 +1947,7 @@
 	Start main loop and wait for application defined event.
 	Inform select thread to stop selecting after main loop is exited.
 	(ns_term_init): Create selfds pipe and set non-blocking.
-	Initialize select_mutex. Start the select thread (fd_handler).
+	Initialize select_mutex.  Start the select thread (fd_handler).
 	(fd_handler:): Loop forever, wait for info from the main thread
 	to either start or stop selecting.  When select returns, send
 	and appdefined event.
@@ -1181,7 +2079,7 @@
 	(xg_create_tool_bar): Allocate and initialize a xg_frame_tb_info
 	if not present.
 	(update_frame_tool_bar): Return early if data in xg_frame_tb_info
-	is up to date. Otherwise store new data.
+	is up to date.  Otherwise store new data.
 	(free_frame_tool_bar): Free xg_frame_tb_info if present.
 
 2012-08-13  Dmitry Antipov  <dmantipov@yandex.ru>
@@ -1208,7 +2106,7 @@
 2012-08-11  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsterm.m (not_in_argv): New function.
-	(application:openFile,	application:openTempFile:):
+	(application:openFile, application:openTempFile:):
 	(application:openFileWithoutUI:, application:openFiles:): Open file
 	if not_in_argv returns non-zero (bug#12171).
 
@@ -2395,7 +3293,7 @@
 
 2012-07-21  Jan Djärv  <jan.h.d@swipnet.se>
 
-	* nsterm.m (accessibilityAttributeValue): New function. (Bug#11134).
+	* nsterm.m (accessibilityAttributeValue): New function.  (Bug#11134).
 	(conversationIdentifier): Return value is NSInteger.
 	* nsterm.m (accessibilityAttributeValue): Surround with NS_IMPL_COCOA.
 
@@ -4905,7 +5803,7 @@
 	* lisp.h (struct vectorlike_header): New field `nbytes',
 	adjust comment accordingly.
 	* alloc.c (enum mem_type): New type `MEM_TYPE_VECTOR_BLOCK'
-	to denote vector blocks. Adjust users (live_vector_p,
+	to denote vector blocks.  Adjust users (live_vector_p,
 	mark_maybe_pointer, valid_lisp_object_p) accordingly.
 	(COMMON_MULTIPLE): Move outside #if USE_LSB_TAG.
 	(VECTOR_BLOCK_SIZE, vroundup, VECTOR_BLOCK_BYTES),
@@ -4919,7 +5817,7 @@
 	(allocate_vector_from_block, init_vectors, allocate_vector_from_block)
 	(sweep_vectors): New functions.
 	(allocate_vectorlike): Return `zero_vector' as the only vector of
-	0 items. Allocate new vector from block if vector size is less than
+	0 items.  Allocate new vector from block if vector size is less than
 	or equal to VBLOCK_BYTES_MAX.
 	(Fgarbage_collect): Move all vector sweeping code to sweep_vectors.
 	(init_alloc_once): Add call to init_vectors.
@@ -5009,7 +5907,7 @@
 	change it's type from Lisp_Object to bitfield.
 	Change type of 'force_start', 'optional_new_start',
 	'last_had_star', 'update_mode_line' and 'start_at_line_beg'
-	fields from Lisp_Object to bitfield. Adjust users accordingly.
+	fields from Lisp_Object to bitfield.  Adjust users accordingly.
 
 2012-05-31  Paul Eggert  <eggert@cs.ucla.edu>
 

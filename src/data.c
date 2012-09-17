@@ -19,9 +19,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 
 #include <config.h>
-#include <signal.h>
 #include <stdio.h>
-#include <setjmp.h>
 
 #include <intprops.h>
 
@@ -37,17 +35,12 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "keymap.h"
 
 #include <float.h>
-/* If IEEE_FLOATING_POINT isn't defined, default it from FLT_*.  */
-#ifndef IEEE_FLOATING_POINT
 #if (FLT_RADIX == 2 && FLT_MANT_DIG == 24 \
      && FLT_MIN_EXP == -125 && FLT_MAX_EXP == 128)
 #define IEEE_FLOATING_POINT 1
 #else
 #define IEEE_FLOATING_POINT 0
 #endif
-#endif
-
-#include <math.h>
 
 Lisp_Object Qnil, Qt, Qquote, Qlambda, Qunbound;
 static Lisp_Object Qsubr;
@@ -77,8 +70,8 @@ Lisp_Object Qchar_table_p, Qvector_or_char_table_p;
 Lisp_Object Qcdr;
 static Lisp_Object Qad_advice_info, Qad_activate_internal;
 
-Lisp_Object Qrange_error, Qdomain_error, Qsingularity_error;
-Lisp_Object Qoverflow_error, Qunderflow_error;
+static Lisp_Object Qdomain_error, Qsingularity_error, Qunderflow_error;
+Lisp_Object Qrange_error, Qoverflow_error;
 
 Lisp_Object Qfloatp;
 Lisp_Object Qnumberp, Qnumber_or_marker_p;
@@ -108,7 +101,7 @@ wrong_type_argument (register Lisp_Object predicate, register Lisp_Object value)
      to try and do that by checking the tagbits, but nowadays all
      tagbits are potentially valid.  */
   /* if ((unsigned int) XTYPE (value) >= Lisp_Type_Limit)
-   *   abort (); */
+   *   emacs_abort (); */
 
   xsignal2 (Qwrong_type_argument, predicate, value);
 }
@@ -182,7 +175,7 @@ for example, (type-of 1) returns `integer'.  */)
 	case Lisp_Misc_Float:
 	  return Qfloat;
 	}
-      abort ();
+      emacs_abort ();
 
     case Lisp_Vectorlike:
       if (WINDOW_CONFIGURATIONP (object))
@@ -217,7 +210,7 @@ for example, (type-of 1) returns `integer'.  */)
       return Qfloat;
 
     default:
-      abort ();
+      emacs_abort ();
     }
 }
 
@@ -551,7 +544,7 @@ DEFUN ("boundp", Fboundp, Sboundp, 1, 1, 0,
       /* In set_internal, we un-forward vars when their value is
 	 set to Qunbound. */
       return Qt;
-    default: abort ();
+    default: emacs_abort ();
     }
 
   return (EQ (valcontents, Qunbound) ? Qnil : Qt);
@@ -864,7 +857,7 @@ do_symval_forwarding (register union Lisp_Fwd *valcontents)
 	 don't think anything will break.  --lorentey  */
       return *(Lisp_Object *)(XKBOARD_OBJFWD (valcontents)->offset
 			      + (char *)FRAME_KBOARD (SELECTED_FRAME ()));
-    default: abort ();
+    default: emacs_abort ();
     }
 }
 
@@ -950,12 +943,14 @@ store_symval_forwarding (union Lisp_Fwd *valcontents, register Lisp_Object newva
       break;
 
     default:
-      abort (); /* goto def; */
+      emacs_abort (); /* goto def; */
     }
 }
 
-/* Set up SYMBOL to refer to its global binding.
-   This makes it safe to alter the status of other bindings.  */
+/* Set up SYMBOL to refer to its global binding.  This makes it safe
+   to alter the status of other bindings.  BEWARE: this may be called
+   during the mark phase of GC, where we assume that Lisp_Object slots
+   of BLV are marked after this function has changed them.  */
 
 void
 swap_in_global_binding (struct Lisp_Symbol *symbol)
@@ -1014,7 +1009,7 @@ swap_in_symval_forwarding (struct Lisp_Symbol *symbol, struct Lisp_Buffer_Local_
 	else
 	  {
 	    tem1 = assq_no_quit (var, BVAR (current_buffer, local_var_alist));
-	    XSETBUFFER (blv->where, current_buffer);
+	    set_blv_where (blv, Fcurrent_buffer ());
 	  }
       }
       if (!(blv->found = !NILP (tem1)))
@@ -1055,7 +1050,7 @@ find_symbol_value (Lisp_Object symbol)
       /* FALLTHROUGH */
     case SYMBOL_FORWARDED:
       return do_symval_forwarding (SYMBOL_FWD (sym));
-    default: abort ();
+    default: emacs_abort ();
     }
 }
 
@@ -1168,7 +1163,7 @@ set_internal (Lisp_Object symbol, Lisp_Object newval, Lisp_Object where,
 	   the default binding is loaded, the loaded binding may be the
 	   wrong one.  */
 	if (!EQ (blv->where, where)
-	    /* Also unload a global binding (if the var is local_if_set). */
+	    /* Also unload a global binding (if the var is local_if_set).  */
 	    || (EQ (blv->valcell, blv->defcell)))
 	  {
 	    /* The currently loaded binding is not necessarily valid.
@@ -1265,7 +1260,7 @@ set_internal (Lisp_Object symbol, Lisp_Object newval, Lisp_Object where,
 	  store_symval_forwarding (/* sym, */ innercontents, newval, buf);
 	break;
       }
-    default: abort ();
+    default: emacs_abort ();
     }
   return;
 }
@@ -1316,7 +1311,7 @@ default_value (Lisp_Object symbol)
 	/* For other variables, get the current value.  */
 	return do_symval_forwarding (valcontents);
       }
-    default: abort ();
+    default: emacs_abort ();
     }
 }
 
@@ -1414,7 +1409,7 @@ for this variable.  */)
 	else
 	  return Fset (symbol, value);
       }
-    default: abort ();
+    default: emacs_abort ();
     }
 }
 
@@ -1538,7 +1533,7 @@ The function `default-value' gets the default value and `set-default' sets it.  
       else if (BUFFER_OBJFWDP (valcontents.fwd))
 	return variable;
       break;
-    default: abort ();
+    default: emacs_abort ();
     }
 
   if (sym->constant)
@@ -1611,7 +1606,7 @@ Instead, use `add-hook' and specify t for the LOCAL argument.  */)
 	error ("Symbol %s may not be buffer-local",
 	       SDATA (SYMBOL_NAME (variable)));
       break;
-    default: abort ();
+    default: emacs_abort ();
     }
 
   if (sym->constant)
@@ -1718,7 +1713,7 @@ From now on the default value will apply in this buffer.  Return VARIABLE.  */)
       if (blv->frame_local)
 	return variable;
       break;
-    default: abort ();
+    default: emacs_abort ();
     }
 
   /* Get rid of this buffer's alist element, if any.  */
@@ -1800,7 +1795,7 @@ frame-local bindings).  */)
 	error ("Symbol %s may not be frame-local",
 	       SDATA (SYMBOL_NAME (variable)));
       break;
-    default: abort ();
+    default: emacs_abort ();
     }
 
   if (sym->constant)
@@ -1877,18 +1872,18 @@ BUFFER defaults to the current buffer.  */)
 	  }
 	return Qnil;
       }
-    default: abort ();
+    default: emacs_abort ();
     }
 }
 
 DEFUN ("local-variable-if-set-p", Flocal_variable_if_set_p, Slocal_variable_if_set_p,
        1, 2, 0,
-       doc: /* Non-nil if VARIABLE will be local in buffer BUFFER when set there.
-More precisely, this means that setting the variable \(with `set' or`setq'),
-while it does not have a `let'-style binding that was made in BUFFER,
-will produce a buffer local binding.  See Info node
-`(elisp)Creating Buffer-Local'.
-BUFFER defaults to the current buffer.  */)
+       doc: /* Non-nil if VARIABLE is local in buffer BUFFER when set there.
+BUFFER defaults to the current buffer.
+
+More precisely, return non-nil if either VARIABLE already has a local
+value in BUFFER, or if VARIABLE is automatically buffer-local (see
+`make-variable-buffer-local').  */)
   (register Lisp_Object variable, Lisp_Object buffer)
 {
   struct Lisp_Symbol *sym;
@@ -1912,7 +1907,7 @@ BUFFER defaults to the current buffer.  */)
     case SYMBOL_FORWARDED:
       /* All BUFFER_OBJFWD slots become local if they are set.  */
       return (BUFFER_OBJFWDP (SYMBOL_FWD (sym)) ? Qt : Qnil);
-    default: abort ();
+    default: emacs_abort ();
     }
 }
 
@@ -1956,7 +1951,7 @@ If the current binding is global (the default), the value is nil.  */)
 	return SYMBOL_BLV (sym)->where;
       else
 	return Qnil;
-    default: abort ();
+    default: emacs_abort ();
     }
 }
 
@@ -2272,7 +2267,7 @@ arithcompare (Lisp_Object num1, Lisp_Object num2, enum comparison comparison)
       return Qnil;
 
     default:
-      abort ();
+      emacs_abort ();
     }
 }
 
@@ -2738,28 +2733,6 @@ Both must be integers or markers.  */)
   return val;
 }
 
-#ifndef HAVE_FMOD
-double
-fmod (double f1, double f2)
-{
-  double r = f1;
-
-  if (f2 < 0.0)
-    f2 = -f2;
-
-  /* If the magnitude of the result exceeds that of the divisor, or
-     the sign of the result does not agree with that of the dividend,
-     iterate with the reduced value.  This does not yield a
-     particularly accurate result, but at least it will be in the
-     range promised by fmod.  */
-  do
-    r -= f2 * floor (r / f2);
-  while (f2 <= (r < 0 ? -r : r) || ((r < 0) != (f1 < 0) && ! isnan (r)));
-
-  return r;
-}
-#endif /* ! HAVE_FMOD */
-
 DEFUN ("mod", Fmod, Smod, 2, 2, 0,
        doc: /* Return X modulo Y.
 The result falls between zero (inclusive) and Y (exclusive).
@@ -3207,21 +3180,23 @@ syms_of_data (void)
   XSYMBOL (intern_c_string ("most-negative-fixnum"))->constant = 1;
 }
 
-#ifndef FORWARD_SIGNAL_TO_MAIN_THREAD
-_Noreturn
-#endif
-static void
-arith_error (int signo)
+static _Noreturn void
+handle_arith_signal (int sig)
 {
-  sigsetmask (SIGEMPTYMASK);
-
-  SIGNAL_THREAD_CHECK (signo);
+  pthread_sigmask (SIG_SETMASK, &empty_mask, 0);
   xsignal0 (Qarith_error);
+}
+
+static void
+deliver_arith_signal (int sig)
+{
+  handle_on_main_thread (sig, handle_arith_signal);
 }
 
 void
 init_data (void)
 {
+  struct sigaction action;
   /* Don't do this if just dumping out.
      We don't want to call `signal' in this case
      so that we don't have trouble with dumping
@@ -3230,5 +3205,6 @@ init_data (void)
   if (!initialized)
     return;
 #endif /* CANNOT_DUMP */
-  signal (SIGFPE, arith_error);
+  emacs_sigaction_init (&action, deliver_arith_signal);
+  sigaction (SIGFPE, &action, 0);
 }

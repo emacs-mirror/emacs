@@ -139,9 +139,8 @@
 ;; feedmail-send-it. Hers's the best way to use the stuff in this
 ;; file:
 ;;
-;; Save this file as feedmail.el somewhere on your elisp
-;; loadpath; byte-compile it.  Put the following lines somewhere in
-;; your ~/.emacs stuff:
+;; Save this file as feedmail.el somewhere on your elisp loadpath;
+;; byte-compile it.  Put the following lines in your init file:
 ;;
 ;;     (setq send-mail-function 'feedmail-send-it)
 ;;     (autoload 'feedmail-send-it "feedmail")

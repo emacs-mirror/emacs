@@ -17,9 +17,8 @@ You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
-#include <signal.h>
 #include <stdio.h>
-#include <setjmp.h>
+
 #include "lisp.h"
 #include "syssignal.h"
 #include "systime.h"
@@ -41,7 +40,7 @@ static struct atimer *stopped_atimers;
 
 static struct atimer *atimers;
 
-/* Non-zero means alarm_signal_handler has found ripe timers but
+/* Non-zero means alarm signal handler has found ripe timers but
    interrupt_input_blocked was non-zero.  In this case, timer
    functions are not called until the next UNBLOCK_INPUT because timer
    functions are expected to call X, and X cannot be assumed to be
@@ -51,8 +50,24 @@ int pending_atimers;
 
 /* Block/unblock SIGALRM.  */
 
-#define BLOCK_ATIMERS   sigblock (sigmask (SIGALRM))
-#define UNBLOCK_ATIMERS sigunblock (sigmask (SIGALRM))
+static void
+sigmask_atimers (int how)
+{
+  sigset_t blocked;
+  sigemptyset (&blocked);
+  sigaddset (&blocked, SIGALRM);
+  pthread_sigmask (how, &blocked, 0);
+}
+static void
+block_atimers (void)
+{
+  sigmask_atimers (SIG_BLOCK);
+}
+static void
+unblock_atimers (void)
+{
+  sigmask_atimers (SIG_UNBLOCK);
+}
 
 /* Function prototypes.  */
 
@@ -60,8 +75,6 @@ static void set_alarm (void);
 static void schedule_atimer (struct atimer *);
 static struct atimer *append_atimer_lists (struct atimer *,
                                            struct atimer *);
-static void alarm_signal_handler (int signo);
-
 
 /* Start a new atimer of type TYPE.  TIME specifies when the timer is
    ripe.  FN is the function to call when the timer fires.
@@ -111,7 +124,7 @@ start_atimer (enum atimer_type type, EMACS_TIME timestamp, atimer_callback fn,
   t->fn = fn;
   t->client_data = client_data;
 
-  BLOCK_ATIMERS;
+  block_atimers ();
 
   /* Compute the timer's expiration time.  */
   switch (type)
@@ -132,7 +145,7 @@ start_atimer (enum atimer_type type, EMACS_TIME timestamp, atimer_callback fn,
 
   /* Insert the timer in the list of active atimers.  */
   schedule_atimer (t);
-  UNBLOCK_ATIMERS;
+  unblock_atimers ();
 
   /* Arrange for a SIGALRM at the time the next atimer is ripe.  */
   set_alarm ();
@@ -148,7 +161,7 @@ cancel_atimer (struct atimer *timer)
 {
   int i;
 
-  BLOCK_ATIMERS;
+  block_atimers ();
 
   for (i = 0; i < 2; ++i)
     {
@@ -175,7 +188,7 @@ cancel_atimer (struct atimer *timer)
 	}
     }
 
-  UNBLOCK_ATIMERS;
+  unblock_atimers ();
 }
 
 
@@ -206,7 +219,7 @@ append_atimer_lists (struct atimer *list_1, struct atimer *list_2)
 void
 stop_other_atimers (struct atimer *t)
 {
-  BLOCK_ATIMERS;
+  block_atimers ();
 
   if (t)
     {
@@ -231,7 +244,7 @@ stop_other_atimers (struct atimer *t)
 
   stopped_atimers = append_atimer_lists (atimers, stopped_atimers);
   atimers = t;
-  UNBLOCK_ATIMERS;
+  unblock_atimers ();
 }
 
 
@@ -246,7 +259,7 @@ run_all_atimers (void)
       struct atimer *t = atimers;
       struct atimer *next;
 
-      BLOCK_ATIMERS;
+      block_atimers ();
       atimers = stopped_atimers;
       stopped_atimers = NULL;
 
@@ -257,7 +270,7 @@ run_all_atimers (void)
 	  t = next;
 	}
 
-      UNBLOCK_ATIMERS;
+      unblock_atimers ();
     }
 }
 
@@ -356,7 +369,6 @@ run_timers (void)
   if (! atimers)
     pending_atimers = 0;
 
-#ifdef SYNC_INPUT
   if (pending_atimers)
     pending_signals = 1;
   else
@@ -364,42 +376,36 @@ run_timers (void)
       pending_signals = interrupt_input_pending;
       set_alarm ();
     }
-#else
-  if (! pending_atimers)
-    set_alarm ();
-#endif
 }
 
 
 /* Signal handler for SIGALRM.  SIGNO is the signal number, i.e.
    SIGALRM.  */
 
-void
-alarm_signal_handler (int signo)
+static void
+handle_alarm_signal (int sig)
 {
-#ifndef SYNC_INPUT
-  SIGNAL_THREAD_CHECK (signo);
-#endif
-
   pending_atimers = 1;
-#ifdef SYNC_INPUT
   pending_signals = 1;
-#else
-  run_timers ();
-#endif
+}
+
+static void
+deliver_alarm_signal (int sig)
+{
+  handle_on_main_thread (sig, handle_alarm_signal);
 }
 
 
-/* Call alarm_signal_handler for pending timers.  */
+/* Call alarm signal handler for pending timers.  */
 
 void
 do_pending_atimers (void)
 {
   if (pending_atimers)
     {
-      BLOCK_ATIMERS;
+      block_atimers ();
       run_timers ();
-      UNBLOCK_ATIMERS;
+      unblock_atimers ();
     }
 }
 
@@ -412,7 +418,9 @@ turn_on_atimers (bool on)
 {
   if (on)
     {
-      signal (SIGALRM, alarm_signal_handler);
+      struct sigaction action;
+      emacs_sigaction_init (&action, deliver_alarm_signal);
+      sigaction (SIGALRM, &action, 0);
       set_alarm ();
     }
   else
@@ -423,8 +431,10 @@ turn_on_atimers (bool on)
 void
 init_atimer (void)
 {
+  struct sigaction action;
   free_atimers = stopped_atimers = atimers = NULL;
   pending_atimers = 0;
   /* pending_signals is initialized in init_keyboard.*/
-  signal (SIGALRM, alarm_signal_handler);
+  emacs_sigaction_init (&action, deliver_alarm_signal);
+  sigaction (SIGALRM, &action, 0);
 }

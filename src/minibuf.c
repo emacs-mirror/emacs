@@ -21,7 +21,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <config.h>
 #include <errno.h>
 #include <stdio.h>
-#include <setjmp.h>
 
 #include "lisp.h"
 #include "commands.h"
@@ -110,7 +109,7 @@ choose_minibuf_frame (void)
       /* I don't think that any frames may validly have a null minibuffer
 	 window anymore.  */
       if (NILP (sf->minibuffer_window))
-	abort ();
+	emacs_abort ();
 
       /* Under X, we come here with minibuf_window being the
 	 minibuffer window of the unused termcap window created in
@@ -798,7 +797,7 @@ get_minibuffer (EMACS_INT depth)
       Vminibuffer_list = nconc2 (Vminibuffer_list, tail);
     }
   buf = Fcar (tail);
-  if (NILP (buf) || NILP (BVAR (XBUFFER (buf), name)))
+  if (NILP (buf) || !BUFFER_LIVE_P (XBUFFER (buf)))
     {
       buf = Fget_buffer_create
 	(make_formatted_string (name, " *Minibuf-%"pI"d*", depth));
@@ -1860,7 +1859,6 @@ the values STRING, PREDICATE and `lambda'.  */)
 }
 
 static Lisp_Object Qmetadata;
-extern Lisp_Object Qbuffer;
 
 DEFUN ("internal-complete-buffer", Finternal_complete_buffer, Sinternal_complete_buffer, 3, 3, 0,
        doc: /* Perform completion on buffer names.

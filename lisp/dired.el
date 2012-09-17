@@ -1410,7 +1410,6 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
     (define-key map "&" 'dired-do-async-shell-command)
     ;; Comparison commands
     (define-key map "=" 'dired-diff)
-    (define-key map "\M-=" 'dired-backup-diff)
     ;; Tree Dired commands
     (define-key map "\M-\C-?" 'dired-unmark-all-files)
     (define-key map "\M-\C-d" 'dired-tree-down)
@@ -2973,36 +2972,43 @@ If t, confirmation is never needed."
 		      (const shell) (const symlink) (const touch)
 		      (const uncompress))))
 
-(defun dired-mark-pop-up (bufname op-symbol files function &rest args)
+(defun dired-mark-pop-up (buffer-or-name op-symbol files function &rest args)
   "Return FUNCTION's result on ARGS after showing which files are marked.
-Displays the file names in a buffer named BUFNAME;
- nil gives \" *Marked Files*\".
-This uses function `dired-pop-to-buffer' to do that.
+Displays the file names in a window showing a buffer named
+BUFFER-OR-NAME; the default name being \" *Marked Files*\".  The
+window is not shown if there is just one file, `dired-no-confirm'
+is t, or OP-SYMBOL is a member of the list in `dired-no-confirm'.
 
-FUNCTION should not manipulate files, just read input
- (an argument or confirmation).
-The window is not shown if there is just one file or
- OP-SYMBOL is a member of the list in `dired-no-confirm'.
 FILES is the list of marked files.  It can also be (t FILENAME)
 in the case of one marked file, to distinguish that from using
-just the current file."
-  (or bufname (setq bufname  " *Marked Files*"))
+just the current file.
+
+FUNCTION should not manipulate files, just read input \(an
+argument or confirmation)."
   (if (or (eq dired-no-confirm t)
 	  (memq op-symbol dired-no-confirm)
 	  ;; If FILES defaulted to the current line's file.
 	  (= (length files) 1))
       (apply function args)
-    (with-current-buffer (get-buffer-create bufname)
-      (erase-buffer)
-      ;; Handle (t FILE) just like (FILE), here.
-      ;; That value is used (only in some cases), to mean
-      ;; just one file that was marked, rather than the current line file.
-      (dired-format-columns-of-files (if (eq (car files) t) (cdr files) files))
-      (remove-text-properties (point-min) (point-max)
-			      '(mouse-face nil help-echo nil)))
-    (save-window-excursion
-      (dired-pop-to-buffer bufname)
-      (apply function args))))
+    (let ((buffer (get-buffer-create (or buffer-or-name " *Marked Files*"))))
+      (with-current-buffer buffer
+	(let ((split-height-threshold 0))
+	  (with-temp-buffer-window
+	   buffer
+	   (cons 'display-buffer-below-selected nil)
+	   #'(lambda (window _value)
+	       (with-selected-window window
+		 (unwind-protect
+		     (apply function args)
+		   (when (window-live-p window)
+		     (quit-restore-window window 'kill)))))
+	   ;; Handle (t FILE) just like (FILE), here.  That value is
+	   ;; used (only in some cases), to mean just one file that was
+	   ;; marked, rather than the current line file.
+	   (dired-format-columns-of-files
+	    (if (eq (car files) t) (cdr files) files))
+	   (remove-text-properties (point-min) (point-max)
+				   '(mouse-face nil help-echo nil))))))))
 
 (defun dired-format-columns-of-files (files)
   (let ((beg (point)))
@@ -3738,14 +3744,15 @@ Ask means pop up a menu for the user to select one of copy, move or link."
 ;;;;;;  dired-run-shell-command dired-do-shell-command dired-do-async-shell-command
 ;;;;;;  dired-clean-directory dired-do-print dired-do-touch dired-do-chown
 ;;;;;;  dired-do-chgrp dired-do-chmod dired-compare-directories dired-backup-diff
-;;;;;;  dired-diff) "dired-aux" "dired-aux.el" "9499f79f5853da0aa93d26465c7bf3a1")
+;;;;;;  dired-diff) "dired-aux" "dired-aux.el" "3c768e470d5d053d0049e0286ce38da7")
 ;;; Generated autoloads from dired-aux.el
 
 (autoload 'dired-diff "dired-aux" "\
 Compare file at point with file FILE using `diff'.
-FILE defaults to the file at the mark.  (That's the mark set by
-\\[set-mark-command], not by Dired's \\[dired-mark] command.)
-The prompted-for FILE is the first file given to `diff'.
+If called interactively, prompt for FILE; if the file at point
+has a backup file, use that as the default.
+
+FILE is the first file given to `diff'.
 With prefix arg, prompt for second argument SWITCHES,
 which is the string of command switches for `diff'.
 

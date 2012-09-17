@@ -208,9 +208,10 @@ the evaluated constant value at compile time."
 
 ;; Suppress "might not be defined at runtime" warning.
 ;; This file is only used when compiling other cc files.
-(declare-function delete-duplicates "cl-seq" (cl-seq &rest cl-keys))
-(declare-function mapcan "cl-extra" (cl-func cl-seq &rest cl-rest))
-(declare-function cl-macroexpand-all "cl-extra" (form &optional env))
+;; These are defined in cl as aliases to the cl- versions.
+(declare-function delete-duplicates "cl-seq" (cl-seq &rest cl-keys) t)
+(declare-function mapcan "cl-extra" (cl-func cl-seq &rest cl-rest) t)
+(declare-function cl-macroexpand-all "cl" (form &optional env))
 
 (eval-and-compile
   ;; Some helper functions used when building the language constants.

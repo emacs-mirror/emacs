@@ -575,7 +575,8 @@ To turn off the world time display, go to that window and type `q'."
     (let ((list timer-list))
       (while list
         (let ((elt (pop list)))
-          (when (equal (symbol-name (aref elt 5)) "display-time-world-timer")
+          (when (equal (symbol-name (timer--function elt))
+		       "display-time-world-timer")
             (cancel-timer elt)))))))
 
 ;;;###autoload

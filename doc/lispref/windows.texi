@@ -1492,12 +1492,10 @@ to make a buffer current to modify it in Lisp, use
 @code{set-buffer}.  @xref{Current Buffer}.
 
 @deffn Command switch-to-buffer buffer-or-name &optional norecord force-same-window
-This function displays @var{buffer-or-name} in the selected window,
-and makes it the current buffer.  (In contrast, @code{set-buffer}
-makes the buffer current but does not display it; @pxref{Current
-Buffer}).  It is often used interactively (as the binding of @kbd{C-x
-b}), as well as in Lisp programs.  The return value is the buffer
-switched to.
+This command attempts to display @var{buffer-or-name} in the selected
+window, and makes it the current buffer.  It is often used
+interactively (as the binding of @kbd{C-x b}), as well as in Lisp
+programs.  The return value is the buffer switched to.
 
 If @var{buffer-or-name} is @code{nil}, it defaults to the buffer
 returned by @code{other-buffer} (@pxref{The Buffer List}).  If
@@ -1506,17 +1504,18 @@ buffer, this function creates a new buffer with that name; the new
 buffer's major mode is determined by the variable @code{major-mode}
 (@pxref{Major Modes}).
 
-Normally the specified buffer is put at the front of the buffer
+Normally, the specified buffer is put at the front of the buffer
 list---both the global buffer list and the selected frame's buffer
 list (@pxref{The Buffer List}).  However, this is not done if the
 optional argument @var{norecord} is non-@code{nil}.
 
-If this function is unable to display the buffer in the selected
-window---usually because the selected window is a minibuffer window or
-is strongly dedicated to its buffer (@pxref{Dedicated Windows})---then
-it normally tries to display the buffer in some other window, in the
-manner of @code{pop-to-buffer} (see below).  However, if the optional
-argument @var{force-same-window} is non-@code{nil}, it signals an error
+Sometimes, @code{switch-to-buffer} may be unable to display the buffer
+in the selected window.  This happens if the selected window is a
+minibuffer window, or if the selected window is strongly dedicated to
+its buffer (@pxref{Dedicated Windows}).  In that case, the command
+normally tries to display the buffer in some other window, by invoking
+@code{pop-to-buffer} (see below).  However, if the optional argument
+@var{force-same-window} is non-@code{nil}, it signals an error
 instead.
 @end deffn
 
@@ -1728,8 +1727,7 @@ A frame means consider windows on that frame only.
 @end itemize
 
 If @var{alist} contains no @code{reusable-frames} entry, this function
-normally searches just the selected frame; however, if either the
-variable @code{display-buffer-reuse-frames} or the variable
+normally searches just the selected frame; however, if the variable
 @code{pop-up-frames} is non-@code{nil}, it searches all frames on the
 current terminal.  @xref{Choosing Window Options}.
 
@@ -1768,14 +1766,6 @@ windows are dedicated to another buffer (@pxref{Dedicated Windows}).
 The behavior of the standard display actions of @code{display-buffer}
 (@pxref{Choosing Window}) can be modified by a variety of user
 options.
-
-@defopt display-buffer-reuse-frames
-If the value of this variable is non-@code{nil}, @code{display-buffer}
-may search all frames on the current terminal when looking for a
-window already displaying the specified buffer.  The default is
-@code{nil}.  This variable is consulted by the action function
-@code{display-buffer-reuse-window} (@pxref{Display Action Functions}).
-@end defopt
 
 @defopt pop-up-windows
 If the value of this variable is non-@code{nil}, @code{display-buffer}

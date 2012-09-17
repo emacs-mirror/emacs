@@ -21,7 +21,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <config.h>
 #include <sys/types.h>
 #include <stdio.h>
-#include <setjmp.h>
 
 #ifdef HAVE_PWD_H
 #include <pwd.h>
@@ -2613,7 +2612,7 @@ They default to the values of (point-min) and (point-max) in BUFFER.  */)
   if (NILP (buf))
     nsberror (buffer);
   bp = XBUFFER (buf);
-  if (NILP (BVAR (bp, name)))
+  if (!BUFFER_LIVE_P (bp))
     error ("Selecting deleted buffer");
 
   if (NILP (start))
@@ -2677,7 +2676,7 @@ determines whether case is significant or ignored.  */)
       if (NILP (buf1))
 	nsberror (buffer1);
       bp1 = XBUFFER (buf1);
-      if (NILP (BVAR (bp1, name)))
+      if (!BUFFER_LIVE_P (bp1))
 	error ("Selecting deleted buffer");
     }
 
@@ -2715,7 +2714,7 @@ determines whether case is significant or ignored.  */)
       if (NILP (buf2))
 	nsberror (buffer2);
       bp2 = XBUFFER (buf2);
-      if (NILP (BVAR (bp2, name)))
+      if (!BUFFER_LIVE_P (bp2))
 	error ("Selecting deleted buffer");
     }
 
@@ -2783,8 +2782,8 @@ determines whether case is significant or ignored.  */)
 
       if (!NILP (trt))
 	{
-	  c1 = CHAR_TABLE_TRANSLATE (trt, c1);
-	  c2 = CHAR_TABLE_TRANSLATE (trt, c2);
+	  c1 = char_table_translate (trt, c1);
+	  c2 = char_table_translate (trt, c2);
 	}
       if (c1 < c2)
 	return make_number (- 1 - chars);
@@ -4263,7 +4262,7 @@ usage: (format STRING &rest OBJECTS)  */)
     }
 
   if (bufsize < p - buf)
-    abort ();
+    emacs_abort ();
 
   if (maybe_combine_byte)
     nchars = multibyte_chars_in_text ((unsigned char *) buf, p - buf);
@@ -4603,7 +4602,7 @@ Transposing beyond buffer boundaries is an error.  */)
 				     len1_byte, end2, start2_byte + len2_byte)
 	  || count_combining_after (BYTE_POS_ADDR (start1_byte),
 				    len1_byte, end2, start2_byte + len2_byte))
-	abort ();
+	emacs_abort ();
     }
   else
     {
@@ -4615,7 +4614,7 @@ Transposing beyond buffer boundaries is an error.  */)
 				    len2_byte, end1, start1_byte + len1_byte)
 	  || count_combining_after (BYTE_POS_ADDR (start1_byte),
 				    len1_byte, end2, start2_byte + len2_byte))
-	abort ();
+	emacs_abort ();
     }
 #endif
 

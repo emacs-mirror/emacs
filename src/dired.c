@@ -22,7 +22,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <stdio.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <setjmp.h>
 
 #ifdef HAVE_PWD_H
 #include <pwd.h>
@@ -275,7 +274,7 @@ directory_files_internal (Lisp_Object directory, Lisp_Object full,
 
 		  /* Some bug somewhere.  */
 		  if (nchars > nbytes)
-		    abort ();
+		    emacs_abort ();
 
 		  STRING_SET_CHARS (fullname, nchars);
 		  if (nchars == nbytes)

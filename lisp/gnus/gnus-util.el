@@ -1926,6 +1926,18 @@ Same as `string-match' except this function does not change the match data."
     (save-match-data
       (string-match regexp string start))))
 
+(if (fboundp 'string-prefix-p)
+    (defalias 'gnus-string-prefix-p 'string-prefix-p)
+  (defun gnus-string-prefix-p (str1 str2 &optional ignore-case)
+    "Return non-nil if STR1 is a prefix of STR2.
+If IGNORE-CASE is non-nil, the comparison is done without paying attention
+to case differences."
+    (and (<= (length str1) (length str2))
+	 (let ((prefix (substring str2 0 (length str1))))
+	   (if ignore-case
+	       (string-equal (downcase str1) (downcase prefix))
+	     (string-equal str1 prefix))))))
+
 (eval-and-compile
   (if (fboundp 'macroexpand-all)
       (defalias 'gnus-macroexpand-all 'macroexpand-all)
@@ -1951,6 +1963,11 @@ definitions to shadow the loaded ones for use in file byte-compilation."
 ;; We don't use `bound-and-true-p' because it's not in XEmacs.
 (defun gnus-bound-and-true-p (sym)
   (and (boundp sym) (symbol-value sym)))
+
+(if (fboundp 'timer--function)
+    (defalias 'gnus-timer--function 'timer--function)
+  (defun gnus-timer--function (timer)
+    (elt timer 5)))
 
 (provide 'gnus-util)
 

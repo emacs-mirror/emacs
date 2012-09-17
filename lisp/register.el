@@ -76,6 +76,22 @@ A list of the form (WINDOW-CONFIGURATION POSITION)
 A list of the form (FRAME-CONFIGURATION POSITION)
  represents a saved frame configuration plus a saved value of point.")
 
+(defgroup register nil
+  "Register commands."
+  :group 'convenience
+  :version "24.3")
+
+(defcustom register-separator nil
+  "Register containing the text to put between collected texts, or nil if none.
+
+When collecting text with
+`append-to-register' (resp. `prepend-to-register') contents of
+this register is added to the beginning (resp. end) of the marked
+text."
+  :group 'register
+  :type '(choice (const :tag "None" nil)
+		 (character :tag "Use register" :value ?+)))
+
 (defun get-register (register)
   "Return contents of Emacs register named REGISTER, or nil if none."
   (cdr (assq register register-alist)))
@@ -192,13 +208,24 @@ Interactively, NUMBER is the prefix arg (none means nil)."
 			(string-to-number (match-string 0)))
 		    0))))
 
-(defun increment-register (number register)
-  "Add NUMBER to the contents of register REGISTER.
-Interactively, NUMBER is the prefix arg."
-  (interactive "p\ncIncrement register: ")
-  (or (numberp (get-register register))
-      (error "Register does not contain a number"))
-  (set-register register (+ number (get-register register))))
+(defun increment-register (prefix register)
+  "Augment contents of REGISTER.
+Interactively, PREFIX is in raw form.
+
+If REGISTER contains a number, add `prefix-numeric-value' of
+PREFIX to it.
+
+If REGISTER is empty or if it contains text, call
+`append-to-register' with `delete-flag' set to PREFIX."
+  (interactive "P\ncIncrement register: ")
+  (let ((register-val (get-register register)))
+    (cond
+     ((numberp register-val)
+      (let ((number (prefix-numeric-value prefix)))
+	(set-register register (+ number register-val))))
+     ((or (not register-val) (stringp register-val))
+      (append-to-register register (region-beginning) (region-end) prefix))
+     (t (error "Register does not contain a number or text")))))
 
 (defun view-register (register)
   "Display what is contained in register named REGISTER.
@@ -349,10 +376,11 @@ Called from program, takes four args: REGISTER, START, END and DELETE-FLAG.
 START and END are buffer positions indicating what to append."
   (interactive "cAppend to register: \nr\nP")
   (let ((reg (get-register register))
-        (text (filter-buffer-substring start end)))
+        (text (filter-buffer-substring start end))
+	(separator (and register-separator (get-register register-separator))))
     (set-register
      register (cond ((not reg) text)
-                    ((stringp reg) (concat reg text))
+                    ((stringp reg) (concat reg separator text))
                     (t (error "Register does not contain text")))))
   (cond (delete-flag
 	 (delete-region start end))
@@ -366,10 +394,11 @@ Called from program, takes four args: REGISTER, START, END and DELETE-FLAG.
 START and END are buffer positions indicating what to prepend."
   (interactive "cPrepend to register: \nr\nP")
   (let ((reg (get-register register))
-        (text (filter-buffer-substring start end)))
+        (text (filter-buffer-substring start end))
+	(separator (and register-separator (get-register register-separator))))
     (set-register
      register (cond ((not reg) text)
-                    ((stringp reg) (concat text reg))
+                    ((stringp reg) (concat text separator reg))
                     (t (error "Register does not contain text")))))
   (cond (delete-flag
 	 (delete-region start end))

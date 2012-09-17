@@ -1042,7 +1042,7 @@ Please send all bug fixes and enhancements to
 ;; variables `ps-bold-faces', `ps-italic-faces' and `ps-underlined-faces'.
 ;; These variables contain lists of faces that ps-print should consider bold,
 ;; italic or underline; to set them, put code like the following into your
-;; .emacs file:
+;; init file:
 ;;
 ;;      (setq ps-bold-faces '(my-blue-face))
 ;;      (setq ps-italic-faces '(my-red-face))

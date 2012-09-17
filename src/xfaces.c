@@ -204,7 +204,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <stdio.h>              /* This needs to be before termchar.h */
-#include <setjmp.h>
 
 #include "lisp.h"
 #include "character.h"
@@ -315,9 +314,10 @@ static Lisp_Object QCfontset;
 Lisp_Object Qnormal;
 Lisp_Object Qbold;
 static Lisp_Object Qline, Qwave;
-Lisp_Object Qultra_light, Qextra_light, Qlight;
+static Lisp_Object Qultra_light, Qreverse_oblique, Qreverse_italic;
+Lisp_Object Qextra_light, Qlight;
 Lisp_Object Qsemi_light, Qsemi_bold, Qextra_bold, Qultra_bold;
-Lisp_Object Qoblique, Qreverse_oblique, Qreverse_italic;
+Lisp_Object Qoblique;
 Lisp_Object Qitalic;
 static Lisp_Object Qultra_condensed, Qextra_condensed;
 Lisp_Object Qcondensed;
@@ -452,18 +452,7 @@ static int menu_face_changed_default;
 struct table_entry;
 struct named_merge_point;
 
-static void map_tty_color (struct frame *, struct face *,
-			   enum lface_attribute_index, int *);
-static Lisp_Object resolve_face_name (Lisp_Object, int);
 static void set_font_frame_param (Lisp_Object, Lisp_Object);
-static int get_lface_attributes (struct frame *, Lisp_Object, Lisp_Object *,
-				 int, struct named_merge_point *);
-static ptrdiff_t load_pixmap (struct frame *, Lisp_Object,
-			      unsigned *, unsigned *);
-static struct frame *frame_or_selected_frame (Lisp_Object, int);
-static void load_face_colors (struct frame *, struct face *, Lisp_Object *);
-static void free_face_colors (struct frame *, struct face *);
-static int face_color_gray_p (struct frame *, const char *);
 static struct face *realize_face (struct face_cache *, Lisp_Object *,
 				  int);
 static struct face *realize_non_ascii_face (struct frame *, Lisp_Object,
@@ -473,38 +462,11 @@ static struct face *realize_tty_face (struct face_cache *, Lisp_Object *);
 static int realize_basic_faces (struct frame *);
 static int realize_default_face (struct frame *);
 static void realize_named_face (struct frame *, Lisp_Object, int);
-static int lface_fully_specified_p (Lisp_Object *);
-static int lface_equal_p (Lisp_Object *, Lisp_Object *);
-static unsigned hash_string_case_insensitive (Lisp_Object);
-static unsigned lface_hash (Lisp_Object *);
-static int lface_same_font_attributes_p (Lisp_Object *, Lisp_Object *);
 static struct face_cache *make_face_cache (struct frame *);
 static void clear_face_gcs (struct face_cache *);
 static void free_face_cache (struct face_cache *);
-static int face_fontset (Lisp_Object *);
-static void merge_face_vectors (struct frame *, Lisp_Object *, Lisp_Object*,
-				struct named_merge_point *);
 static int merge_face_ref (struct frame *, Lisp_Object, Lisp_Object *,
 			   int, struct named_merge_point *);
-static int set_lface_from_font (struct frame *, Lisp_Object, Lisp_Object,
-				int);
-static Lisp_Object lface_from_face_name (struct frame *, Lisp_Object, int);
-static struct face *make_realized_face (Lisp_Object *);
-static void cache_face (struct face_cache *, struct face *, unsigned);
-static void uncache_face (struct face_cache *, struct face *);
-
-#ifdef HAVE_WINDOW_SYSTEM
-
-static GC x_create_gc (struct frame *, unsigned long, XGCValues *);
-static void x_free_gc (struct frame *, GC);
-
-#ifdef USE_X_TOOLKIT
-static void x_update_menu_appearance (struct frame *);
-
-extern void free_frame_menubar (struct frame *);
-#endif /* USE_X_TOOLKIT */
-
-#endif /* HAVE_WINDOW_SYSTEM */
 
 
 /***********************************************************************
@@ -547,7 +509,7 @@ unregister_color (unsigned long pixel)
   if (color_count[pixel] > 0)
     --color_count[pixel];
   else
-    abort ();
+    emacs_abort ();
 }
 
 
@@ -698,7 +660,7 @@ x_create_gc (struct frame *f,
 	     XGCValues *xgcv)
 {
   GC gc = xmalloc (sizeof *gc);
-  memcpy (gc, xgcv, sizeof (XGCValues));
+  *gc = *xgcv;
   return gc;
 }
 
@@ -764,7 +726,7 @@ init_frame_faces (struct frame *f)
   if (!FRAME_NS_P (f) || FRAME_NS_WINDOW (f))
 #endif
     if (!realize_basic_faces (f))
-	abort ();
+	emacs_abort ();
 }
 
 
@@ -808,7 +770,7 @@ recompute_basic_faces (struct frame *f)
     {
       clear_face_cache (0);
       if (!realize_basic_faces (f))
-	abort ();
+	emacs_abort ();
     }
 }
 
@@ -1145,7 +1107,7 @@ defined_color (struct frame *f, const char *color_name, XColor *color_def,
     return ns_defined_color (f, color_name, color_def, alloc, 1);
 #endif
   else
-    abort ();
+    emacs_abort ();
 }
 
 
@@ -1341,7 +1303,7 @@ load_color (struct frame *f, struct face *face, Lisp_Object name,
 	  break;
 
 	default:
-	  abort ();
+	  emacs_abort ();
 	}
     }
 #ifdef GLYPH_DEBUG
@@ -4585,7 +4547,7 @@ lookup_named_face (struct frame *f, Lisp_Object symbol, int signal_p)
 	return -1;
       default_face = FACE_FROM_ID (f, DEFAULT_FACE_ID);
       if (default_face == NULL)
-	abort ();  /* realize_basic_faces must have set it up  */
+	emacs_abort (); /* realize_basic_faces must have set it up  */
     }
 
   if (! get_lface_attributes (f, symbol, symbol_attrs, signal_p, 0))
@@ -4628,7 +4590,7 @@ lookup_basic_face (struct frame *f, int face_id)
     case MENU_FACE_ID:			name = Qmenu;			break;
 
     default:
-      abort ();	    /* the caller is supposed to pass us a basic face id */
+      emacs_abort (); /* the caller is supposed to pass us a basic face id */
     }
 
   /* Do a quick scan through Vface_remapping_alist, and return immediately
@@ -4749,7 +4711,7 @@ lookup_derived_face (struct frame *f, Lisp_Object symbol, int face_id,
   struct face *default_face = FACE_FROM_ID (f, face_id);
 
   if (!default_face)
-    abort ();
+    emacs_abort ();
 
   if (!get_lface_attributes (f, symbol, symbol_attrs, signal_p, 0))
     return -1;
@@ -5139,7 +5101,7 @@ face for italic.  */)
 	error ("Cannot realize default face");
       def_face = FACE_FROM_ID (f, DEFAULT_FACE_ID);
       if (def_face == NULL)
-	abort ();  /* realize_basic_faces must have set it up  */
+	emacs_abort ();  /* realize_basic_faces must have set it up  */
     }
 
   /* Dispatch to the appropriate handler.  */
@@ -5424,7 +5386,7 @@ realize_default_face (struct frame *f)
       else if (FRAME_INITIAL_P (f) || FRAME_TERMCAP_P (f) || FRAME_MSDOS_P (f))
 	ASET (lface, LFACE_FOREGROUND_INDEX, build_string (unspecified_fg));
       else
-	abort ();
+	emacs_abort ();
     }
 
   if (UNSPECIFIEDP (LFACE_BACKGROUND (lface)))
@@ -5439,7 +5401,7 @@ realize_default_face (struct frame *f)
       else if (FRAME_INITIAL_P (f) || FRAME_TERMCAP_P (f) || FRAME_MSDOS_P (f))
 	ASET (lface, LFACE_BACKGROUND_INDEX, build_string (unspecified_bg));
       else
-	abort ();
+	emacs_abort ();
     }
 
   if (UNSPECIFIEDP (LFACE_STIPPLE (lface)))
@@ -5539,7 +5501,7 @@ realize_face (struct face_cache *cache, Lisp_Object *attrs, int former_face_id)
       face = make_realized_face (attrs);
     }
   else
-    abort ();
+    emacs_abort ();
 
   /* Insert the new face.  */
   cache_face (cache, face, lface_hash (attrs));
@@ -5634,7 +5596,7 @@ realize_x_face (struct face_cache *cache, Lisp_Object *attrs)
 	  if (default_face)
 	    fontset = default_face->fontset;
 	  if (fontset == -1)
-	    abort ();
+	    emacs_abort ();
 	}
       if (! FONT_OBJECT_P (attrs[LFACE_FONT_INDEX]))
 	attrs[LFACE_FONT_INDEX]

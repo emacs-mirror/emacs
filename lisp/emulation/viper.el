@@ -351,7 +351,7 @@ user decide when to invoke Viper in a major mode."
 If t, viperize Emacs.  If nil -- don't.  If `ask', ask the user.
 This variable is used primarily when Viper is being loaded.
 
-Must be set in `~/.emacs' before Viper is loaded.
+Must be set in your init file before Viper is loaded.
 DO NOT set this variable interactively, unless you are using the customization
 widget."
   :type '(choice (const nil) (const t) (const ask))
@@ -1173,7 +1173,7 @@ If you wish to Viperize AND make this your way of life, please put
 	(setq viper-mode t)
 	(require 'viper)
 
-in your .emacs file (preferably, close to the top).
+in your init file (preferably, close to the top).
 These two lines must come in the order given.
 
 ** Viper users:

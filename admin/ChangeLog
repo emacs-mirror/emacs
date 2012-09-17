@@ -1,3 +1,49 @@
+2012-09-17  Glenn Morris  <rgm@gnu.org>
+
+	* admin.el (add-log-time-format): Declare.
+
+	* admin.el (cusver-scan, cusver-check): Bind local variables.
+
+	* admin.el (set-version): Set major version in
+	etc/refcards/ru-refcard.tex and etc/refcards/emacsver.tex.
+	(set-copyright): In etc/refcards, only change ru-refcard.tex
+	and emacsver.tex.
+
+	* admin.el (set-copyright): No more need to set copyrights for
+	nextstep, or .c files.  Add configure.ac and config.nt.
+
+2012-09-16  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Remove configure's --without-sync-input option (Bug#12450).
+	* CPP-DEFINES (BROKEN_SA_RESTART, SA_RESTART): Remove.
+
+2012-09-16  Glenn Morris  <rgm@gnu.org>
+
+	* admin.el (set-version): No more need to set nextstep versions.
+	(set-copyright): Update for moved nextstep files.
+
+2012-09-13  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Simplify SIGIO usage (Bug#12408).
+	* CPP_DEFINES (BROKEN_SIGAIO, BROKEN_SIGIO, BROKEN_SIGPOLL)
+	(BROKEN_SIGPTY, NO_TERMIO): Remove.
+
+2012-09-11  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Simplify, document, and port floating-point (Bug#12381).
+	* CPP-DEFINES (HAVE_CBRT, HAVE_LOGB, logb): Remove.
+
+2012-09-09  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Assume C89 or later for math functions (Bug#12381).
+	* CPP-DEFINES (HAVE_FMOD, HAVE_FREXP, FLOAT_CHECK_DOMAIN)
+	(HAVE_INVERSE_HYPERBOLIC, NO_MATHERR): Remove.
+
+2012-09-04  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Simplify redefinition of 'abort' (Bug#12316).
+	* CPP-DEFINES (NO_ABORT): Remove.
+
 2012-08-28  Glenn Morris  <rgm@gnu.org>
 
 	* bzrmerge.el (bzrmerge-merges): Allow unversioned files in the tree.

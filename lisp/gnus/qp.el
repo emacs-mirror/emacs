@@ -53,10 +53,7 @@ them into characters should be done separately."
       ;; or both of which are lowercase letters in "abcdef", is
       ;; formally illegal. A robust implementation might choose to
       ;; recognize them as the corresponding uppercase letters.''
-      (let ((case-fold-search t)
-	    (decode-hex #'(lambda (n1 n2)
-			    (+ (* (if (<= n1 ?9) (- n1 ?0) (+ (- n1 ?A) 10)) 16)
-			       (if (<= n2 ?9) (- n2 ?0) (+ (- n2 ?A) 10))))))
+      (let ((case-fold-search t))
 	(narrow-to-region from to)
 	;; Do this in case we're called from Gnus, say, in a buffer
 	;; which already contains non-ASCII characters which would
@@ -74,8 +71,15 @@ them into characters should be done separately."
 		 (let* ((n (/ (- (match-end 0) (point)) 3))
 			(str (make-string n 0)))
 		   (dotimes (i n)
-		     (aset str i (funcall decode-hex (char-after (1+ (point)))
-					  (char-after (+ 2 (point)))))
+                     (let ((n1 (char-after (1+ (point))))
+                           (n2 (char-after (+ 2 (point)))))
+                       (aset str i
+                             (+ (* 16 (- n1 (if (<= n1 ?9) ?0
+                                              (if (<= n1 ?F) (- ?A 10)
+                                                (- ?a 10)))))
+                                (- n2 (if (<= n2 ?9) ?0
+                                        (if (<= n2 ?F) (- ?A 10)
+                                          (- ?a 10)))))))
 		     (forward-char 3))
 		   (delete-region (match-beginning 0) (match-end 0))
 		   (insert str)))

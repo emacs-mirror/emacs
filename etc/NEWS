@@ -65,6 +65,14 @@ renamed to '--enable-check-lisp-object-type', as the resulting
 Lisp_Object type no longer uses a union to implement the compile time
 check that this option enables.
 
+---
+** The default toolkit has been changed to Gtk+ version 3.
+If you don't pass --with-x-toolkit to configure or if you pass
+--with-x-toolkit=gtk or --with-x-toolkit=yes, configure will try to build
+with Gtk+ version 3, and if that fails, try Gtk+ version 2.
+You can explicitly require a specific version by passing
+--with-x-toolkit=gtk2 or --with-x-toolkit=gtk3 to configure.
+
 
 * Startup Changes in Emacs 24.3
 
@@ -77,6 +85,10 @@ been adding them there, put them somewhere else, eg site-lisp.
 
 
 * Changes in Emacs 24.3
+
+** You can now scroll the selected window in most y-or-n prompts.
+Typing C-v or M-v at a prompt scrolls forward or backward
+respectively, without leaving the y-or-n prompt.
 
 ** Help changes
 
@@ -96,6 +108,16 @@ component is new.  PSEC is typically a multiple of 1000 on current
 machines.  Other functions that use this format, such as
 file-attributes and format-time-string, have been changed accordingly.
 Old-format time stamps are still accepted.
+
+** The format of timers in timer-list and timer-idle-list is now
+[TRIGGERED-P HI-SECS LO-SECS USECS REPEAT-DELAY FUNCTION ARGS IDLE-DELAY PSECS].
+The PSECS slot is new, and uses picosecond resolution.  It can be
+accessed via the new timer--psecs accessor.
+
+** Emacs now generates backtraces on fatal errors.
+On encountering a fatal error, Emacs now outputs a textual description
+of the fatal signal, and a short backtrace on platforms like glibc
+that support backtraces.
 
 ** New functions `system-users', `system-groups' return lists of the user
 name, group names known to the system (where possible).
@@ -177,6 +199,14 @@ just removing them, as done by `yank-excluded-properties'.
 delete-trailing-whitespace command should delete trailing lines at the
 end of the buffer.  It defaults to t.
 
++++
+** `C-x r +' is now overloaded to invoke `append-to-register.
+
++++
+** New option `register-separator' specifies the register containing
+the text to put between collected texts for use with M-x
+append-to-register and M-x prepend-to-register.
+
 ** Search changes
 
 *** Global `M-s _' starts a symbol (identifier) incremental search,
@@ -191,6 +221,13 @@ of one or more whitespace characters defined by the variable
 `isearch-toggle-lax-whitespace' toggles the value of the variable
 `isearch-lax-whitespace'.  In regexp incremental search, it toggles
 the value of the variable `isearch-regexp-lax-whitespace'.
+
+** query-replace changes
+
+*** When new option `replace-lax-whitespace' is non-nil,
+and you enter a space or spaces in the strings or regexps
+to be replaced, `query-replace' will match any sequence matched
+by the regexp `search-whitespace-regexp'.
 
 ** M-x move-to-column, if called interactively with no prefix arg, now
 prompts for a column number.
@@ -320,6 +357,14 @@ python-describe-symbol    | python-eldoc-at-point
 
 *** Accepts \r and \f as whitespace.
 
+** SQL Mode
+
+*** DB2 added `sql-db2-escape-newlines'
+
+If non-nil, newlines sent to the command interpreter will be escaped
+by a backslash.  The default does not escape the newlines and assumes
+that the sql statement will be terminated by a semicolon.
+
 ** Diff mode
 
 Faces for changes now use the same diff color scheme as in modern VCSes
@@ -330,6 +375,9 @@ insertions in green (new faces `diff-refine-added' and
 The variable `diff-use-changed-face' defines whether to use
 the face `diff-changed', or `diff-removed' and `diff-added'
 to highlight changes in context diffs.
+
+*** The new command `diff-remove-trailing-whitespace' fixes trailing
+whitespace problems introduced by the diff.
 
 ** Ediff now uses the same color scheme as Diff mode
 on high color displays.
@@ -410,6 +458,13 @@ channel keys found, if any.
 *** `dired-do-async-shell-command' executes each file sequentially
 if the command ends in `;' (when operating on multiple files).
 Otherwise, it executes the command on each file in parallel.
+
+*** The minibuffer default for `=' (`dired-diff) has changed.
+It is now the backup file for the file at point, if one exists, rather
+than the file at the mark.
+
+*** `M-=' is no longer bound to `dired-backup-diff' in Dired buffers.
+The global binding for `M-=', `count-words-region' is in effect.
 
 ** Shell
 
@@ -596,10 +651,17 @@ are deprecated and will be removed eventually.
 
 *** `facemenu-unlisted-faces'
 *** `rmail-decode-mime-charset'
-*** `last-input-char' and `last-command-char'
+*** `last-input-char', `last-command-char', `unread-command-char'.
 
 
 * Lisp changes in Emacs 24.3
+
+** Interpreted files get eagerly macro-expanded during load.
+This can significantly speed up execution of non-byte-compiled code, but can
+also bump into harmless and previously unnoticed cyclic dependencies.
+These should not be fatal: they will simply cause the macro-calls to be left
+for later expansion (as before), but will also result in a warning describing
+the cycle.
 
 ** New minor mode `read-only-mode' to replace toggle-read-only (now obsolete).
 
@@ -626,26 +688,54 @@ The interpretation of the DECLS is determined by `defun-declarations-alist'.
 
 ** New error type and new function `user-error'.  Doesn't trigger the debugger.
 
+** Debugger
+*** New option `debugger-bury-or-kill'.
+
+*** Set `debug-on-message' to enter the debugger when a certain
+message is displayed in the echo area.  This can be useful when trying
+to work out which code is doing something.
+
+*** New var `inhibit-debugger', automatically set to prevent accidental
+recursive invocations.
+
++++
+** New utility function `buffer-narrowed-p'.
+
 ** Window changes
 
 *** The functions get-lru-window, get-mru-window and get-largest-window
 now accept a third argument to avoid choosing the selected window.
 
-*** New display action alist `inhibit-switch-frame', if non-nil, tells
-display action functions to avoid changing which frame is selected.
+*** New macro `with-temp-buffer-window'.
 
-*** New display action alist `pop-up-frame-parameters', if non-nil,
-specifies frame parameters to give any newly-created frame.
+*** New option `temp-buffer-resize-frames'.
+
+*** New function `fit-frame-to-buffer' and new option
+    `fit-frame-to-buffer-bottom-margin'.
+
+*** New display action functions `display-buffer-below-selected' and
+`display-buffer-in-previous-window'.
+
+*** New display action alist entry `inhibit-switch-frame', if non-nil,
+tells display action functions to avoid changing which frame is
+selected.
+
+*** New display action alist entry `pop-up-frame-parameters', if
+non-nil, specifies frame parameters to give any newly-created frame.
+
+*** New display action alist entry `previous-window', if non-nil,
+specifies window to reuse in `display-buffer-in-previous-window'.
 
 *** The following variables are obsolete, as they can be replaced by
 appropriate entries in the `display-buffer-alist' function introduced
 in Emacs 24.1:
-
++++
 **** `display-buffer-reuse-frames'
 **** `special-display-regexps'
 **** `special-display-frame-alist'
 **** `special-display-buffer-names'
 **** `special-display-function'
+**** `display-buffer-function'
 
 ** Completion
 
@@ -661,12 +751,21 @@ table, but with a different prefix.
 must be in the range 1000..9999.  It now works with any year supported
 by the underlying C implementation.
 
+** Floating point
+
+*** When floating point functions such as `log' are given invalid
+arguments, e.g., (log -1.0), they now uniformly return special values
+such as NaNs instead of signaling errors.  Previously, these functions
+returned NaNs on some platforms but signaled errors on others.  The affected
+functions are acos, asin, tan, exp, expt, log, log10, sqrt, and mod.
+
 ** New function file-name-base.
 
 ** New function `tty-top-frame' returns the topmost frame of a text terminal.
 
 ** `automount-dir-prefix' is obsolete.
 ** `buffer-has-markers-at' is obsolete.
+** `window-system-version' is obsolete.
 
 * Changes in Emacs 24.3 on non-free operating systems
 
@@ -1398,6 +1497,10 @@ If you had that set, you need to put
   machine smtp.whatever.foo port 25 key "~/.my_smtp_tls.key" cert "~/.my_smtp_tls.cert"
 
 in your ~/.authinfo file instead.
+
+*** SMTPmail defaults to using the address in the From: header as the
+SMTP MAIL FROM envelope.  To override this, set `mail-envelope-from'
+to the address you wish to use instead.
 
 ** SQL mode
 

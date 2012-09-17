@@ -309,7 +309,7 @@ there (in decreasing order of priority)."
       ;; existing frame.  We need to explicitly include
       ;; default-frame-alist in the parameters of the screen we
       ;; create here, so that its new value, gleaned from the user's
-      ;; .emacs file, will be applied to the existing screen.
+      ;; init file, will be applied to the existing screen.
       (if (not (eq (cdr (or (assq 'minibuffer initial-frame-alist)
 			    (assq 'minibuffer window-system-frame-alist)
 			    (assq 'minibuffer default-frame-alist)
@@ -1667,6 +1667,10 @@ terminals, cursor blinking is controlled by the terminal."
   'auto-hscroll-mode "22.1")
 
 (make-variable-buffer-local 'show-trailing-whitespace)
+
+;; Defined in dispnew.c.
+(make-obsolete-variable
+ 'window-system-version "it does not give useful information." "24.3")
 
 (provide 'frame)
 

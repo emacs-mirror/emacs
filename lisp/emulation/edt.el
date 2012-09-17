@@ -48,7 +48,7 @@
 
 ;; You can have the EDT Emulation start up automatically, each time
 ;; you initiate a GNU Emacs session, by adding the following line to
-;; your .emacs file:
+;; your init file:
 ;;
 ;;    (add-hook term-setup-hook 'edt-emulation-on)
 
@@ -75,7 +75,7 @@
 ;;      default, this feature is enabled, with the top margin set to
 ;;      10% of the window and the bottom margin set to 15% of the
 ;;      window.  To change these settings, you can invoke the function
-;;      edt-set-scroll-margins in your .emacs file.  For example, the
+;;      edt-set-scroll-margins in your init file.  For example, the
 ;;      following line
 ;;
 ;;           (edt-set-scroll-margins "20%" "25%")
@@ -363,7 +363,7 @@ This means that an edt-user.el file was found in the user's `load-path'.")
 ;;;
 ;;;         (setq edt-keep-current-page-delimiter t)
 ;;;
-;;; in your .emacs file.
+;;; in your init file.
 
 (defun edt-page-forward (num)
   "Move forward to just after next page delimiter.
@@ -1961,14 +1961,14 @@ created."
      Ack!!  You're running the Enhanced EDT Emulation without loading an
      EDT key mapping file.  To create an EDT key mapping file, run the
      edt-mapper program.  It is safest to run it from an Emacs loaded
-     without any of your own customizations found in your .emacs file, etc.
+     without any of your own customizations found in your init file, etc.
      The reason for this is that some user customizations confuse edt-mapper.
      You can do this by quitting Emacs and then invoking Emacs again as
      follows:
 
           emacs -q -l edt-mapper
 
-     [NOTE:  If you do nothing out of the ordinary in your .emacs file, and
+     [NOTE:  If you do nothing out of the ordinary in your init file, and
      the search for edt-mapper is successful, you can try running it now.]
 
      The library edt-mapper includes these same directions on how to

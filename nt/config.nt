@@ -54,9 +54,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to the number of bits in type 'wint_t'. */
 #undef BITSIZEOF_WINT_T
 
-/* Define if FIONREAD should not be used. */
-#undef BROKEN_FIONREAD
-
 /* Define if getwd should not be used. */
 #undef BROKEN_GETWD
 
@@ -68,18 +65,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define if SA_RESTART should only be used in batch mode. */
 #undef BROKEN_SA_RESTART
-
-/* Define if SIGAIO should not be used. */
-#undef BROKEN_SIGAIO
-
-/* Define if SIGIO should not be used. */
-#undef BROKEN_SIGIO
-
-/* Define if SIGPOLL should not be used. */
-#undef BROKEN_SIGPOLL
-
-/* Define if SIGPTY should not be used. */
-#undef BROKEN_SIGPTY
 
 /* Define if the system is compatible with BSD 4.2. */
 #undef BSD4_2
@@ -100,6 +85,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    instantly when you try to modify a file that someone else has modified in
    his/her Emacs. */
 #undef CLASH_DETECTION
+
+/* Short copyright string for this version of Emacs. */
+#define COPYRIGHT "Copyright (C) 2012 Free Software Foundation, Inc."
 
 /* Define to one of '_getb67', 'GETB67', 'getb67' for Cray-2 and Cray-YMP
    systems. This function is required for 'alloca.c' support on those systems.
@@ -161,9 +149,12 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    */
 #define FIRST_PTY_LETTER 'a'
 
-/* Define if the float library doesn't handle errors by either setting errno,
-   or signaling SIGFPE/SIGILL. */
-#undef FLOAT_CHECK_DOMAIN
+/* Enable compile-time and run-time bounds-checking, and some warnings,
+      without upsetting glibc 2.15+. */
+   #if defined __OPTIMIZE__ && __OPTIMIZE__
+   # define _FORTIFY_SOURCE 2
+   #endif
+
 
 /* Define to 1 if futimesat mishandles a NULL file name. */
 #undef FUTIMESAT_NULL_BUG
@@ -248,9 +239,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 if strtold conforms to C99. */
 #undef HAVE_C99_STRTOLD
-
-/* Define to 1 if you have the `cbrt' function. */
-#undef HAVE_CBRT
 
 /* Define to 1 if you have the `cfmakeraw' function. */
 #undef HAVE_CFMAKERAW
@@ -370,9 +358,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the <fcntl.h> header file. */
 #undef HAVE_FCNTL_H
 
-/* Define to 1 if you have the `fmod' function. */
-#define HAVE_FMOD 1
-
 /* Define to 1 if you have the `fork' function. */
 #undef HAVE_FORK
 
@@ -384,9 +369,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 if using the freetype and fontconfig libraries. */
 #undef HAVE_FREETYPE
-
-/* Define to 1 if you have the `frexp' function. */
-#define HAVE_FREXP 1
 
 /* Define to 1 if fseeko (and presumably ftello) exists and is declared. */
 #undef HAVE_FSEEKO
@@ -542,9 +524,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the <inttypes.h> header file. */
 #undef HAVE_INTTYPES_H
 
-/* Define if you have the functions acosh, asinh, and atanh. */
-#undef HAVE_INVERSE_HYPERBOLIC
-
 /* Define to 1 if you have the jpeg library (-ljpeg). */
 #undef HAVE_JPEG
 
@@ -652,9 +631,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 if you have the `localtime_r' function. */
 #undef HAVE_LOCALTIME_R
-
-/* Define to 1 if you have the `logb' function. */
-#define HAVE_LOGB 1
 
 /* Define to 1 if you support file names longer than 14 characters. */
 #define HAVE_LONG_FILE_NAMES 1
@@ -826,6 +802,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 if 'wint_t' is a signed integer type. */
 #undef HAVE_SIGNED_WINT_T
+
+/* Define to 1 if sigsetjmp and siglongjmp work. The value of this symbol is
+   irrelevant if HAVE__SETJMP is defined. */
+#undef HAVE_SIGSETJMP
 
 /* Define to 1 if the system has the type `sigset_t'. */
 #undef HAVE_SIGSET_T
@@ -1111,6 +1091,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the `_ftime' function. */
 #undef HAVE__FTIME
 
+/* Define to 1 if _setjmp and _longjmp work. */
+#define HAVE__SETJMP 1
+
 /* Define to 1 if you have the `__builtin_unwind_init' function. */
 #undef HAVE___BUILTIN_UNWIND_INIT
 
@@ -1182,20 +1165,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    `NO'. */
 #undef NARROWPROTO
 
-/* Do not define abort in emacs.c. */
-#undef NO_ABORT
-
 /* Define if XEditRes should not be used. */
 #undef NO_EDITRES
 
-/* Define to 1 if you don't have struct exception in math.h. */
-#define NO_MATHERR 1
-
 /* Define to 1 if your C compiler doesn't accept -c and -o together. */
 #undef NO_MINUS_C_MINUS_O
-
-/* Define if termio.h should not be included. */
-#undef NO_TERMIO
 
 /* Minimum value of NSIG. */
 #undef NSIG_MINIMUM
@@ -1306,9 +1280,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Make process_send_signal work by "typing" a signal character on the pty. */
 #undef SIGNALS_VIA_CHARACTERS
 
-/* Define if AH_BOTTOM should include signal.h. */
-#undef SIGNAL_H_AHB
-
 /* Define to l, ll, u, ul, ull, etc., as suitable for constants of type
    'sig_atomic_t'. */
 #undef SIG_ATOMIC_T_SUFFIX
@@ -1383,6 +1354,12 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define if the system has Unix98 PTYs. */
 #undef UNIX98_PTYS
+
+/* Define to 1 if FIONREAD is usable. */
+#define USABLE_FIONREAD 1
+
+/* Define to 1 if SIGIO is usable. */
+#undef USABLE_SIGIO
 
 /* How to get a user's full name. */
 #define USER_FULL_NAME pw->pw_gecos
@@ -1468,9 +1445,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Number of bits in a file offset, on hosts where this is settable. */
 #undef _FILE_OFFSET_BITS
 
-/* enable compile-time and run-time bounds-checking, and some warnings */
-#undef _FORTIFY_SOURCE
-
 /* Define to 1 if Gnulib overrides 'struct stat' on Windows so that struct
    stat.st_size becomes 64-bit. */
 #undef _GL_WINDOWS_64_BIT_ST_SIZE
@@ -1546,12 +1520,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to compiler's equivalent of C99 restrict keyword in array
    declarations. Define as empty for no equivalent. */
 #undef __restrict_arr
-
-/* Some platforms redefine this. */
-#undef _longjmp
-
-/* Some platforms redefine this. */
-#undef _setjmp
 
 /* Some platforms that do not use configure define this to include extra
    configuration information. */

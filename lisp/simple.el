@@ -974,7 +974,9 @@ rather than the region.
 
 If called from Lisp, return the number of words between positions
 START and END."
-  (interactive "r\nP")
+  (interactive (if current-prefix-arg
+		   (list nil nil current-prefix-arg)
+		 (list (region-beginning) (region-end) nil)))
   (cond ((not (called-interactively-p 'any))
 	 (count-words start end))
 	(arg
@@ -1008,9 +1010,7 @@ END, without printing any message."
 
 (defun count-words--buffer-message ()
   (count-words--message
-   (if (= (point-max) (1+ (buffer-size)))
-       "Buffer"
-     "Narrowed part of buffer")
+   (if (buffer-narrowed-p) "Narrowed part of buffer" "Buffer")
    (point-min) (point-max)))
 
 (defun count-words--message (str start end)

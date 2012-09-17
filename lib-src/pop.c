@@ -1083,7 +1083,7 @@ socket_connection (char *host, int flags)
           if (it->ai_addrlen == sizeof (addr))
             {
               struct sockaddr_in *in_a = (struct sockaddr_in *) it->ai_addr;
-              memcpy (&addr.sin_addr, &in_a->sin_addr, sizeof (addr.sin_addr));
+              addr.sin_addr = in_a->sin_addr;
               if (! connect (sock, (struct sockaddr *) &addr, sizeof (addr)))
                 break;
             }

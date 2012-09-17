@@ -391,35 +391,24 @@ double-quotes."
 (defun mail-abbrev-expand-hook ()
   "For use as the fourth arg to `define-abbrev'.
 After expanding a mail-abbrev, if Auto Fill mode is on and we're past the
-fill-column, break the line at the previous comma, and indent the next line."
-  ;; Disable abbrev mode to avoid recursion in indent-relative expanding
-  ;; part of the abbrev expansion as an abbrev itself.
-  (let ((abbrev-mode nil))
-    (save-excursion
-      (let ((p (point))
-	    bol comma fp)
-	(beginning-of-line)
-	(setq bol (point))
-	(goto-char p)
-	(while (and auto-fill-function
-		    (>= (current-column) fill-column)
-		    (search-backward "," bol t))
-	  (setq comma (point))
-	  (forward-char 1)		; Now we are just past the comma.
-	  (insert "\n")
-	  (delete-horizontal-space)
-	  (setq p (point))
-	  (indent-relative)
-	  (setq fp (buffer-substring p (point)))
-	  ;; Go to the end of the new line.
-	  (end-of-line)
-	  (if (> (current-column) fill-column)
-	      ;; It's still too long; do normal auto-fill.
-	      (let ((fill-prefix (or fp "\t")))
-		(do-auto-fill)))
-	  ;; Resume the search.
-	  (goto-char comma)
-	  )))))
+fill-column, break the line at the previous comma, and indent the next line
+with a space."
+  (when auto-fill-function
+    (let (p)
+      (save-excursion
+	(while (>= (current-column) fill-column)
+	  (while (and (search-backward "," (point-at-bol) 'move)
+		      (>= (current-column) (1- fill-column))
+		      (setq p (point))))
+	  (when (or (not (bolp))
+		    (and p (goto-char p)))
+	    (setq p nil)
+	    (forward-char 1)
+	    (insert "\n")
+	    (when (looking-at "[\t ]+")
+	      (delete-region (point) (match-end 0)))
+	    (insert " ")
+	    (end-of-line)))))))
 
 ;;; Syntax tables and abbrev-expansion
 

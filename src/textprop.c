@@ -17,7 +17,7 @@ You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
-#include <setjmp.h>
+
 #include "lisp.h"
 #include "intervals.h"
 #include "character.h"
@@ -556,7 +556,8 @@ If POSITION is at the end of OBJECT, the value is nil.  */)
 
 DEFUN ("get-text-property", Fget_text_property, Sget_text_property, 2, 3, 0,
        doc: /* Return the value of POSITION's property PROP, in OBJECT.
-OBJECT is optional and defaults to the current buffer.
+OBJECT should be a buffer or a string; if omitted or nil, it defaults
+to the current buffer.
 If POSITION is at the end of OBJECT, the value is nil.  */)
   (Lisp_Object position, Lisp_Object prop, Lisp_Object object)
 {

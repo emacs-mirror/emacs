@@ -19,7 +19,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <config.h>
 #include "tparam.h"
 
-#include <setjmp.h>
 #include "lisp.h"
 
 /* Define these variables that serve as global parameters to termcap,
@@ -46,7 +45,7 @@ tparam (const char *string, char *outstring, int len,
 
   /* Emacs always should pass a null OUTSTRING and zero LEN.  */
   if (outstring || len)
-    abort ();
+    emacs_abort ();
 
   temp = tparm (string, arg1, arg2, arg3, arg4);
   return xstrdup (temp);

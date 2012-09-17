@@ -113,7 +113,7 @@ extern Lisp_Object composition_temp;
    && (end - start) == COMPOSITION_LENGTH (prop))
 
 /* Return the Nth glyph of composition specified by CMP.  CMP is a
-   pointer to `struct composition'. */
+   pointer to `struct composition'.  */
 #define COMPOSITION_GLYPH(cmp, n)					\
   XINT (XVECTOR (XVECTOR (XHASH_TABLE (composition_hash_table)		\
 			  ->key_and_value)				\

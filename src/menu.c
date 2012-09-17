@@ -20,7 +20,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 #include <stdio.h>
-#include <setjmp.h>
 #include <limits.h> /* for INT_MAX */
 
 #include "lisp.h"
@@ -737,7 +736,7 @@ digest_single_submenu (int start, int end, int top_level_items)
 
 	  /* All items should be contained in panes.  */
 	  if (panes_seen == 0)
-	    abort ();
+	    emacs_abort ();
 
 	  item_name = AREF (menu_items, i + MENU_ITEMS_ITEM_NAME);
 	  enable = AREF (menu_items, i + MENU_ITEMS_ITEM_ENABLE);
@@ -811,7 +810,7 @@ digest_single_submenu (int start, int end, int top_level_items)
 	  else if (EQ (type, QCtoggle))
 	    wv->button_type = BUTTON_TYPE_TOGGLE;
 	  else
-	    abort ();
+	    emacs_abort ();
 
 	  wv->selected = !NILP (selected);
 	  if (! STRINGP (help))

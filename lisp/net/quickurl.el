@@ -164,7 +164,7 @@ To make use of this do something like:
 
   (setq quickurl-postfix quickurl-reread-hook-postfix)
 
-in your ~/.emacs (after loading/requiring quickurl).")
+in your init file (after loading/requiring quickurl).")
 
 ;; Non-customize variables.
 

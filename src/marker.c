@@ -18,7 +18,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 
 #include <config.h>
-#include <setjmp.h>
+
 #include "lisp.h"
 #include "character.h"
 #include "buffer.h"
@@ -59,7 +59,7 @@ byte_char_debug_check (struct buffer *b, ptrdiff_t charpos, ptrdiff_t bytepos)
 				      bytepos - BUF_BEG_BYTE (b));
 
   if (charpos - 1 != nchars)
-    abort ();
+    emacs_abort ();
 }
 
 #else /* not MARKER_DEBUG */
@@ -67,7 +67,7 @@ byte_char_debug_check (struct buffer *b, ptrdiff_t charpos, ptrdiff_t bytepos)
 #define byte_char_debug_check(b, charpos, bytepos) do { } while (0)
 
 #endif /* MARKER_DEBUG */
- 
+
 void
 clear_charpos_cache (struct buffer *b)
 {
@@ -142,7 +142,7 @@ buf_charpos_to_bytepos (struct buffer *b, ptrdiff_t charpos)
   ptrdiff_t best_below, best_below_byte;
 
   if (charpos < BUF_BEG (b) || charpos > BUF_Z (b))
-    abort ();
+    emacs_abort ();
 
   best_above = BUF_Z (b);
   best_above_byte = BUF_Z_BYTE (b);
@@ -296,7 +296,7 @@ buf_bytepos_to_charpos (struct buffer *b, ptrdiff_t bytepos)
   ptrdiff_t best_below, best_below_byte;
 
   if (bytepos < BUF_BEG_BYTE (b) || bytepos > BUF_Z_BYTE (b))
-    abort ();
+    emacs_abort ();
 
   best_above = BUF_Z (b);
   best_above_byte = BUF_Z_BYTE (b);
@@ -407,7 +407,7 @@ Returns nil if MARKER points into a dead buffer.  */)
 	 does not preserve the buffer from being GC'd (it's weak), so
 	 markers have to be unlinked from their buffer as soon as the buffer
 	 is killed.  */
-      eassert (!NILP (BVAR (XBUFFER (buf), name)));
+      eassert (BUFFER_LIVE_P (XBUFFER (buf)));
       return buf;
     }
   return Qnil;
@@ -462,13 +462,13 @@ live_buffer (Lisp_Object buffer)
   if (NILP (buffer))
     {
       b = current_buffer;
-      eassert (!NILP (BVAR (b, name)));
+      eassert (BUFFER_LIVE_P (b));
     }
   else
     {
       CHECK_BUFFER (buffer);
       b = XBUFFER (buffer);
-      if (NILP (BVAR (b, name)))
+      if (!BUFFER_LIVE_P (b))
        b = NULL;
     }
   return b;
@@ -506,7 +506,7 @@ set_marker_internal (Lisp_Object marker, Lisp_Object position,
   else
     {
       register ptrdiff_t charpos, bytepos;
-    
+
       CHECK_NUMBER_COERCE_MARKER (position);
       charpos = clip_to_bounds (restricted ? BUF_BEGV (b) : BUF_BEG (b),
                                XINT (position),
@@ -570,8 +570,8 @@ set_marker_restricted_both (Lisp_Object marker, Lisp_Object buffer,
 
   if (b)
     {
-      attach_marker 
-	(m, b, 
+      attach_marker
+	(m, b,
 	 clip_to_bounds (BUF_BEGV (b), charpos, BUF_ZV (b)),
 	 clip_to_bounds (BUF_BEGV_BYTE (b), bytepos, BUF_ZV_BYTE (b)));
     }
@@ -595,7 +595,7 @@ unchain_marker (register struct Lisp_Marker *marker)
       register struct Lisp_Marker *tail, **prev;
 
       /* No dead buffers here.  */
-      eassert (!NILP (BVAR (b, name)));
+      eassert (BUFFER_LIVE_P (b));
 
       marker->buffer = NULL;
       prev = &BUF_MARKERS (b);
@@ -605,12 +605,12 @@ unchain_marker (register struct Lisp_Marker *marker)
 	  {
 	    if (*prev == BUF_MARKERS (b))
 	      {
-		/* Deleting first marker from the buffer's chain.  Crash 
+		/* Deleting first marker from the buffer's chain.  Crash
 		   if new first marker in chain does not say it belongs
 		   to the same buffer, or at least that they have the same
 		   base buffer.  */
 		if (tail->next && b->text != tail->next->buffer->text)
-		  abort ();
+		  emacs_abort ();
 	      }
 	    *prev = tail->next;
 	    /* We have removed the marker from the chain;

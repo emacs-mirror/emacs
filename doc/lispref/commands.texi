@@ -2738,17 +2738,6 @@ This function converts the string or vector @var{key} to a list of
 individual events, which you can put in @code{unread-command-events}.
 @end defun
 
-@ignore
-@defvar unread-command-char
-This variable holds a character to be read as command input.
-A value of -1 means ``empty''.
-
-This variable is mostly obsolete now that you can use
-@code{unread-command-events} instead; it exists only to support programs
-written for Emacs versions 18 and earlier.
-@end defvar
-@end ignore
-
 @defun input-pending-p
 @cindex waiting for command key input
 This function determines whether any command input is currently

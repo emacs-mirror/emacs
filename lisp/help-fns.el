@@ -936,7 +936,7 @@ file-local variable.\n")
 		(princ "  This variable is safe as a file local variable ")
 		(princ "if its value\n  satisfies the predicate ")
 		(princ (if (byte-code-function-p safe-var)
-			   "which is byte-compiled expression.\n"
+			   "which is a byte-compiled expression.\n"
 			 (format "`%s'.\n" safe-var))))
 
               (if extra-line (terpri))

@@ -26,7 +26,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <limits.h>
 #include <errno.h>
 #include <math.h>
-#include <setjmp.h>
 
 #include "lisp.h"
 #include "w32term.h"
@@ -2368,7 +2367,7 @@ w32_msg_pump (deferred_msg * msg_buf)
               CoInitialize (NULL);
 	      w32_createwindow ((struct frame *) msg.wParam);
 	      if (!PostThreadMessage (dwMainThreadId, WM_EMACS_DONE, 0, 0))
-		abort ();
+		emacs_abort ();
 	      break;
 	    case WM_EMACS_SETLOCALE:
 	      SetThreadLocale (msg.wParam);
@@ -2378,7 +2377,7 @@ w32_msg_pump (deferred_msg * msg_buf)
 	      result = (int) ActivateKeyboardLayout ((HKL) msg.wParam, 0);
 	      if (!PostThreadMessage (dwMainThreadId, WM_EMACS_DONE,
 				      result, 0))
-		abort ();
+		emacs_abort ();
 	      break;
 	    case WM_EMACS_REGISTER_HOT_KEY:
 	      focus_window = GetFocus ();
@@ -2399,7 +2398,7 @@ w32_msg_pump (deferred_msg * msg_buf)
                  GC.  */
 	      XSETCAR ((Lisp_Object) ((EMACS_INT) msg.lParam), Qnil);
 	      if (!PostThreadMessage (dwMainThreadId, WM_EMACS_DONE, 0, 0))
-		abort ();
+		emacs_abort ();
 	      break;
 	    case WM_EMACS_TOGGLE_LOCK_KEY:
 	      {
@@ -2431,7 +2430,7 @@ w32_msg_pump (deferred_msg * msg_buf)
 		  }
 		if (!PostThreadMessage (dwMainThreadId, WM_EMACS_DONE,
 					cur_state, 0))
-		  abort ();
+		  emacs_abort ();
 	      }
 	      break;
 #ifdef MSG_DEBUG
@@ -2486,11 +2485,11 @@ send_deferred_msg (deferred_msg * msg_buf,
 {
   /* Only input thread can send deferred messages.  */
   if (GetCurrentThreadId () != dwWindowsThreadId)
-    abort ();
+    emacs_abort ();
 
   /* It is an error to send a message that is already deferred.  */
   if (find_deferred_msg (hwnd, msg) != NULL)
-    abort ();
+    emacs_abort ();
 
   /* Enforced synchronization is not needed because this is the only
      function that alters deferred_msg_head, and the following critical
@@ -2563,7 +2562,7 @@ w32_msg_worker (void *arg)
   PeekMessage (&msg, NULL, 0, 0, PM_NOREMOVE);
 
   if (!PostThreadMessage (dwMainThreadId, WM_EMACS_DONE, 0, 0))
-    abort ();
+    emacs_abort ();
 
   memset (&dummy_buf, 0, sizeof (dummy_buf));
   dummy_buf.w32msg.msg.hwnd = NULL;
@@ -3224,7 +3223,7 @@ w32_wnd_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		msg = WM_MBUTTONUP;
 		button_state &= ~MMOUSE;
 
-		if (button_state) abort ();
+		if (button_state) emacs_abort ();
 	      }
 	    else
 	      return 0;
@@ -3455,7 +3454,7 @@ w32_wnd_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	/* Detect if message has already been deferred; in this case
 	   we cannot return any sensible value to ignore this.  */
 	if (find_deferred_msg (hwnd, msg) != NULL)
-	  abort ();
+	  emacs_abort ();
 
         menubar_in_use = 1;
 
@@ -3930,7 +3929,7 @@ my_create_window (struct frame * f)
   MSG msg;
 
   if (!PostThreadMessage (dwWindowsThreadId, WM_EMACS_CREATEWINDOW, (WPARAM)f, 0))
-    abort ();
+    emacs_abort ();
   GetMessage (&msg, NULL, WM_EMACS_DONE, WM_EMACS_DONE);
 }
 
@@ -6490,7 +6489,7 @@ w32_parse_hot_key (Lisp_Object key)
       lisp_modifiers = XINT (Fcar (Fcdr (c)));
       c = Fcar (c);
       if (!SYMBOLP (c))
-	abort ();
+	emacs_abort ();
       vk_code = lookup_vk_code (SDATA (SYMBOL_NAME (c)));
     }
   else if (INTEGERP (c))
@@ -7685,10 +7684,8 @@ globals_of_w32fns (void)
   syms_of_w32uniscribe ();
 }
 
-#undef abort
-
 void
-w32_abort (void)
+emacs_abort (void)
 {
   int button;
   button = MessageBox (NULL,

@@ -60,9 +60,7 @@
 
 ;;; Installation:
 ;;
-;; Insert the following lines in your init file--typically ~/.emacs
-;; (GNU Emacs and XEmacs <21.4), or ~/.xemacs/init.el (XEmacs
-;; 21.4)--to use this mode when editing Prolog files under Emacs:
+;; Insert the following lines in your init file:
 ;;
 ;; (setq load-path (cons "/usr/lib/xemacs/site-lisp" load-path))
 ;; (autoload 'run-prolog "prolog" "Start a Prolog sub-process." t)

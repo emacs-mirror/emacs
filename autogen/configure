@@ -1143,6 +1143,7 @@ srcdir
 canonical
 configuration
 version
+copyright
 KRB4LIB
 DESLIB
 KRB5LIB
@@ -1181,6 +1182,8 @@ LIBGNUTLS_CFLAGS
 LIBSELINUX_LIBS
 SETTINGS_LIBS
 SETTINGS_CFLAGS
+GOBJECT_LIBS
+GOBJECT_CFLAGS
 GCONF_LIBS
 GCONF_CFLAGS
 GSETTINGS_LIBS
@@ -1328,8 +1331,7 @@ PACKAGE_NAME
 PATH_SEPARATOR
 SHELL'
 ac_subst_files='deps_frag
-lisp_frag
-ns_frag'
+lisp_frag'
 ac_user_opts='
 enable_option_checking
 with_all
@@ -1341,7 +1343,6 @@ with_mmdf
 with_mail_unlink
 with_mailhost
 with_sound
-with_sync_input
 with_x_toolkit
 with_wide_int
 with_xpm
@@ -2059,9 +2060,8 @@ Optional Packages:
   --with-mailhost=HOSTNAME
                           string giving default POP mail host
   --without-sound         don't compile with sound support
-  --without-sync-input    process async input synchronously
-  --with-x-toolkit=KIT    use an X toolkit (KIT one of: yes or gtk, gtk3,
-                          lucid or athena, motif, no)
+  --with-x-toolkit=KIT    use an X toolkit (KIT one of: yes or gtk, gtk2,
+                          gtk3, lucid or athena, motif, no)
   --with-wide-int         prefer wide Emacs integers (typically 62-bit)
   --without-xpm           don't compile with XPM image support
   --without-jpeg          don't compile with JPEG image support
@@ -3931,20 +3931,6 @@ fi
 
 
 
-# Check whether --with-sync-input was given.
-if test "${with_sync_input+set}" = set; then :
-  withval=$with_sync_input;
-else
-     with_sync_input=$with_features
-fi
-
-if test "$with_sync_input" = yes; then
-
-$as_echo "#define SYNC_INPUT 1" >>confdefs.h
-
-fi
-
-
 # Check whether --with-x-toolkit was given.
 if test "${with_x_toolkit+set}" = set; then :
   withval=$with_x_toolkit; 	  case "${withval}" in
@@ -3954,11 +3940,13 @@ if test "${with_x_toolkit+set}" = set; then :
 	    a | at | ath | athe | athen | athena )	val=athena ;;
 	    m | mo | mot | moti | motif )	val=motif ;;
 	    g | gt | gtk  )	val=gtk ;;
+	    gtk2  )	val=gtk2 ;;
 	    gtk3  )	val=gtk3 ;;
 	    * )
 as_fn_error "\`--with-x-toolkit=$withval' is invalid;
-this option's value should be \`yes', \`no', \`lucid', \`athena', \`motif', \`gtk' or
-\`gtk3'.  \`yes' and \`gtk' are synonyms. \`athena' and \`lucid' are synonyms." "$LINENO" 5
+this option's value should be \`yes', \`no', \`lucid', \`athena', \`motif', \`gtk',
+\`gtk2' or \`gtk3'.  \`yes' and \`gtk' are synonyms.
+\`athena' and \`lucid' are synonyms." "$LINENO" 5
 	    ;;
 	  esac
 	  with_x_toolkit=$val
@@ -7216,6 +7204,7 @@ fi
   nw="$nw -Wswitch-default"         # Too many warnings for now
   nw="$nw -Wfloat-equal"            # warns about high-quality code
   nw="$nw -Winline"                 # OK to ignore 'inline'
+  nw="$nw -Wjump-misses-init"       # We sometimes safely jump over init.
   nw="$nw -Wsync-nand"              # irrelevant here, and provokes ObjC warning
   nw="$nw -Wunsafe-loop-optimizations" # OK to suppress unsafe optimizations
 
@@ -7305,95 +7294,118 @@ $as_echo "$gl_cv_cc_nomfi_needed" >&6; }
 
   gl_manywarn_set=
   for gl_manywarn_item in \
-    -Wall \
     -W \
-    -Wformat-y2k \
-    -Wformat-nonliteral \
-    -Wformat-security \
-    -Winit-self \
-    -Wmissing-include-dirs \
-    -Wswitch-default \
-    -Wswitch-enum \
-    -Wunused \
-    -Wunknown-pragmas \
-    -Wstrict-aliasing \
-    -Wstrict-overflow \
-    -Wsystem-headers \
-    -Wfloat-equal \
-    -Wtraditional \
-    -Wtraditional-conversion \
-    -Wdeclaration-after-statement \
-    -Wundef \
-    -Wshadow \
-    -Wunsafe-loop-optimizations \
-    -Wpointer-arith \
-    -Wbad-function-cast \
-    -Wc++-compat \
-    -Wcast-qual \
-    -Wcast-align \
-    -Wwrite-strings \
-    -Wconversion \
-    -Wsign-conversion \
-    -Wlogical-op \
-    -Waggregate-return \
-    -Wstrict-prototypes \
-    -Wold-style-definition \
-    -Wmissing-prototypes \
-    -Wmissing-declarations \
-    -Wmissing-noreturn \
-    -Wmissing-format-attribute \
-    -Wpacked \
-    -Wpadded \
-    -Wredundant-decls \
-    -Wnested-externs \
-    -Wunreachable-code \
-    -Winline \
-    -Winvalid-pch \
-    -Wlong-long \
-    -Wvla \
-    -Wvolatile-register-var \
-    -Wdisabled-optimization \
-    -Wstack-protector \
-    -Woverlength-strings \
-    -Wbuiltin-macro-redefined \
-    -Wmudflap \
-    -Wpacked-bitfield-compat \
-    -Wsync-nand \
-    ; do
-    gl_manywarn_set="$gl_manywarn_set $gl_manywarn_item"
-  done
-  # The following are not documented in the manual but are included in
-  # output from gcc --help=warnings.
-  for gl_manywarn_item in \
-    -Wattributes \
-    -Wcoverage-mismatch \
-    -Wunused-macros \
-    ; do
-    gl_manywarn_set="$gl_manywarn_set $gl_manywarn_item"
-  done
-  # More warnings from gcc 4.6.2 --help=warnings.
-  for gl_manywarn_item in \
     -Wabi \
+    -Waddress \
+    -Wall \
+    -Warray-bounds \
+    -Wattributes \
+    -Wbad-function-cast \
+    -Wbuiltin-macro-redefined \
+    -Wcast-align \
+    -Wchar-subscripts \
+    -Wclobbered \
+    -Wcomment \
+    -Wcomments \
+    -Wcoverage-mismatch \
     -Wcpp \
     -Wdeprecated \
     -Wdeprecated-declarations \
+    -Wdisabled-optimization \
     -Wdiv-by-zero \
     -Wdouble-promotion \
+    -Wempty-body \
     -Wendif-labels \
+    -Wenum-compare \
     -Wextra \
     -Wformat-contains-nul \
     -Wformat-extra-args \
+    -Wformat-nonliteral \
+    -Wformat-security \
+    -Wformat-y2k \
     -Wformat-zero-length \
     -Wformat=2 \
+    -Wfree-nonheap-object \
+    -Wignored-qualifiers \
+    -Wimplicit \
+    -Wimplicit-function-declaration \
+    -Wimplicit-int \
+    -Winit-self \
+    -Winline \
+    -Wint-to-pointer-cast \
+    -Winvalid-memory-model \
+    -Winvalid-pch \
+    -Wjump-misses-init \
+    -Wlogical-op \
+    -Wmain \
+    -Wmaybe-uninitialized \
+    -Wmissing-braces \
+    -Wmissing-declarations \
+    -Wmissing-field-initializers \
+    -Wmissing-format-attribute \
+    -Wmissing-include-dirs \
+    -Wmissing-noreturn \
+    -Wmissing-parameter-type \
+    -Wmissing-prototypes \
+    -Wmudflap \
     -Wmultichar \
+    -Wnarrowing \
+    -Wnested-externs \
+    -Wnonnull \
     -Wnormalized=nfc \
+    -Wold-style-declaration \
+    -Wold-style-definition \
     -Woverflow \
+    -Woverlength-strings \
+    -Woverride-init \
+    -Wpacked \
+    -Wpacked-bitfield-compat \
+    -Wparentheses \
+    -Wpointer-arith \
+    -Wpointer-sign \
     -Wpointer-to-int-cast \
     -Wpragmas \
+    -Wreturn-type \
+    -Wsequence-point \
+    -Wshadow \
+    -Wsizeof-pointer-memaccess \
+    -Wstack-protector \
+    -Wstrict-aliasing \
+    -Wstrict-overflow \
+    -Wstrict-prototypes \
     -Wsuggest-attribute=const \
+    -Wsuggest-attribute=format \
     -Wsuggest-attribute=noreturn \
     -Wsuggest-attribute=pure \
+    -Wswitch \
+    -Wswitch-default \
+    -Wsync-nand \
+    -Wsystem-headers \
     -Wtrampolines \
+    -Wtrigraphs \
+    -Wtype-limits \
+    -Wuninitialized \
+    -Wunknown-pragmas \
+    -Wunreachable-code \
+    -Wunsafe-loop-optimizations \
+    -Wunused \
+    -Wunused-but-set-parameter \
+    -Wunused-but-set-variable \
+    -Wunused-function \
+    -Wunused-label \
+    -Wunused-local-typedefs \
+    -Wunused-macros \
+    -Wunused-parameter \
+    -Wunused-result \
+    -Wunused-value \
+    -Wunused-variable \
+    -Wvarargs \
+    -Wvariadic-macros \
+    -Wvector-operation-performance \
+    -Wvla \
+    -Wvolatile-register-var \
+    -Wwrite-strings \
+    \
     ; do
     gl_manywarn_set="$gl_manywarn_set $gl_manywarn_item"
   done
@@ -8550,8 +8562,9 @@ $as_echo "no" >&6; }
             ALSA_CFLAGS=""
             ALSA_LIBS=""
             ## If we have a custom action on failure, don't print errors, but
-            ## do set a variable so people can do so.
-            ALSA_PKG_ERRORS=`$PKG_CONFIG --errors-to-stdout --print-errors "$ALSA_MODULES"`
+	    ## do set a variable so people can do so.  Do it in a subshell
+	    ## to capture any diagnostics in invoking pkg-config.
+	    ALSA_PKG_ERRORS=`($PKG_CONFIG --print-errors "$ALSA_MODULES") 2>&1`
 
         fi
 
@@ -8858,38 +8871,6 @@ $as_echo "$emacs_cv_speed_t" >&6; }
 if test $emacs_cv_speed_t = yes; then
 
 $as_echo "#define HAVE_SPEED_T 1" >>confdefs.h
-
-fi
-
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for struct exception" >&5
-$as_echo_n "checking for struct exception... " >&6; }
-if test "${emacs_cv_struct_exception+set}" = set; then :
-  $as_echo_n "(cached) " >&6
-else
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-#include <math.h>
-int
-main ()
-{
-static struct exception x; x.arg1 = x.arg2 = x.retval; x.name = ""; x.type = 1;
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_compile "$LINENO"; then :
-  emacs_cv_struct_exception=yes
-else
-  emacs_cv_struct_exception=no
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $emacs_cv_struct_exception" >&5
-$as_echo "$emacs_cv_struct_exception" >&6; }
-HAVE_EXCEPTION=$emacs_cv_struct_exception
-if test $emacs_cv_struct_exception != yes || test $opsys = darwin; then
-
-$as_echo "#define NO_MATHERR 1" >>confdefs.h
 
 fi
 
@@ -9417,13 +9398,13 @@ if test "${with_ns}" != no; then
      ns_appdir=`pwd`/nextstep/Emacs.app
      ns_appbindir=${ns_appdir}/Contents/MacOS
      ns_appresdir=${ns_appdir}/Contents/Resources
-     ns_appsrc=${srcdir}/nextstep/Cocoa/Emacs.base
+     ns_appsrc=Cocoa/Emacs.base
   elif test -f $GNUSTEP_CONFIG_FILE; then
      NS_IMPL_GNUSTEP=yes
      ns_appdir=`pwd`/nextstep/Emacs.app
      ns_appbindir=${ns_appdir}
      ns_appresdir=${ns_appdir}/Resources
-     ns_appsrc=${srcdir}/nextstep/GNUstep/Emacs.base
+     ns_appsrc=GNUstep/Emacs.base
           GNUSTEP_SYSTEM_HEADERS="$(. $GNUSTEP_CONFIG_FILE; echo $GNUSTEP_SYSTEM_HEADERS)"
      GNUSTEP_SYSTEM_LIBRARIES="$(. $GNUSTEP_CONFIG_FILE; echo $GNUSTEP_SYSTEM_LIBRARIES)"
           GNUSTEP_LOCAL_HEADERS="$(. $GNUSTEP_CONFIG_FILE; echo $GNUSTEP_LOCAL_HEADERS)"
@@ -9513,7 +9494,6 @@ fi
 
 INSTALL_ARCH_INDEP_EXTRA=install-etc
 ns_self_contained=no
-ns_frag=/dev/null
 NS_OBJ=
 NS_OBJC_OBJ=
 if test "${HAVE_NS}" = yes; then
@@ -9537,12 +9517,10 @@ if test "${HAVE_NS}" = yes; then
      leimdir="\${ns_appresdir}/leim"
      INSTALL_ARCH_INDEP_EXTRA=
   fi
-  ns_frag=$srcdir/src/ns.mk
   NS_OBJC_OBJ="nsterm.o nsfns.o nsmenu.o nsselect.o nsimage.o nsfont.o"
 fi
 CFLAGS="$tmp_CFLAGS"
 CPPFLAGS="$tmp_CPPFLAGS"
-
 
 
 
@@ -9568,6 +9546,9 @@ case "${window_system}" in
       gtk ) with_gtk=yes
             term_header=gtkutil.h
             USE_X_TOOLKIT=none ;;
+      gtk2 ) with_gtk2=yes
+             term_header=gtkutil.h
+             USE_X_TOOLKIT=none ;;
       gtk3 ) with_gtk3=yes
              term_header=gtkutil.h
              USE_X_TOOLKIT=none ;;
@@ -10399,8 +10380,9 @@ $as_echo "no" >&6; }
             RSVG_CFLAGS=""
             RSVG_LIBS=""
             ## If we have a custom action on failure, don't print errors, but
-            ## do set a variable so people can do so.
-            RSVG_PKG_ERRORS=`$PKG_CONFIG --errors-to-stdout --print-errors "$RSVG_MODULE"`
+	    ## do set a variable so people can do so.  Do it in a subshell
+	    ## to capture any diagnostics in invoking pkg-config.
+	    RSVG_PKG_ERRORS=`($PKG_CONFIG --print-errors "$RSVG_MODULE") 2>&1`
 
         fi
 
@@ -10469,8 +10451,9 @@ $as_echo "no" >&6; }
             IMAGEMAGICK_CFLAGS=""
             IMAGEMAGICK_LIBS=""
             ## If we have a custom action on failure, don't print errors, but
-            ## do set a variable so people can do so.
-            IMAGEMAGICK_PKG_ERRORS=`$PKG_CONFIG --errors-to-stdout --print-errors "$IMAGEMAGICK_MODULE"`
+	    ## do set a variable so people can do so.  Do it in a subshell
+	    ## to capture any diagnostics in invoking pkg-config.
+	    IMAGEMAGICK_PKG_ERRORS=`($PKG_CONFIG --print-errors "$IMAGEMAGICK_MODULE") 2>&1`
 
         fi
 
@@ -10517,7 +10500,9 @@ fi
 
 HAVE_GTK=no
 GTK_OBJ=
-if test "${with_gtk3}" = "yes"; then
+check_gtk2=no
+gtk3_pkg_errors=
+if test "${with_gtk3}" = "yes" || test "${with_gtk}" = "yes" || test "$USE_X_TOOLKIT" = "maybe"; then
   GLIB_REQUIRED=2.28
   GTK_REQUIRED=3.0
   GTK_MODULES="gtk+-3.0 >= $GTK_REQUIRED glib-2.0 >= $GLIB_REQUIRED"
@@ -10553,8 +10538,9 @@ $as_echo "no" >&6; }
             GTK_CFLAGS=""
             GTK_LIBS=""
             ## If we have a custom action on failure, don't print errors, but
-            ## do set a variable so people can do so.
-            GTK_PKG_ERRORS=`$PKG_CONFIG --errors-to-stdout --print-errors "$GTK_MODULES"`
+	    ## do set a variable so people can do so.  Do it in a subshell
+	    ## to capture any diagnostics in invoking pkg-config.
+	    GTK_PKG_ERRORS=`($PKG_CONFIG --print-errors "$GTK_MODULES") 2>&1`
 
         fi
 
@@ -10572,19 +10558,22 @@ $as_echo "no" >&6; }
      pkg_check_gtk=no
   fi
 
-  if test "$pkg_check_gtk" = "no" && test "$USE_X_TOOLKIT" != "maybe"; then
+  if test "$pkg_check_gtk" = "no" && test "$with_gtk3" = "yes"; then
      as_fn_error "$GTK_PKG_ERRORS" "$LINENO" 5
   fi
+  if test "$pkg_check_gtk" = "yes"; then
 
 $as_echo "#define HAVE_GTK3 1" >>confdefs.h
 
-  GTK_OBJ=emacsgtkfixed.o
-  term_header=gtkutil.h
+     GTK_OBJ=emacsgtkfixed.o
+     term_header=gtkutil.h
+  else
+     check_gtk2=yes
+     gtk3_pkg_errors="$GTK_PKG_ERRORS "
+  fi
 fi
 
-if test "$pkg_check_gtk" != "yes"; then
-  HAVE_GTK=no
-if test "${with_gtk}" = "yes" || test "$USE_X_TOOLKIT" = "maybe"; then
+if test "${with_gtk2}" = "yes" || test "$check_gtk2" = "yes"; then
   GLIB_REQUIRED=2.10
   GTK_REQUIRED=2.10
   GTK_MODULES="gtk+-2.0 >= $GTK_REQUIRED glib-2.0 >= $GLIB_REQUIRED"
@@ -10620,8 +10609,9 @@ $as_echo "no" >&6; }
             GTK_CFLAGS=""
             GTK_LIBS=""
             ## If we have a custom action on failure, don't print errors, but
-            ## do set a variable so people can do so.
-            GTK_PKG_ERRORS=`$PKG_CONFIG --errors-to-stdout --print-errors "$GTK_MODULES"`
+	    ## do set a variable so people can do so.  Do it in a subshell
+	    ## to capture any diagnostics in invoking pkg-config.
+	    GTK_PKG_ERRORS=`($PKG_CONFIG --print-errors "$GTK_MODULES") 2>&1`
 
         fi
 
@@ -10639,10 +10629,11 @@ $as_echo "no" >&6; }
      pkg_check_gtk=no
   fi
 
-  if test "$pkg_check_gtk" = "no" && test "$USE_X_TOOLKIT" != "maybe"; then
-     as_fn_error "$GTK_PKG_ERRORS" "$LINENO" 5
+  if test "$pkg_check_gtk" = "no" &&
+     { test "$with_gtk" = yes || test "$with_gtk2" = "yes"; }
+  then
+    as_fn_error "$gtk3_pkg_errors$GTK_PKG_ERRORS" "$LINENO" 5
   fi
-fi
 fi
 
 if test x"$pkg_check_gtk" = xyes; then
@@ -10780,8 +10771,9 @@ $as_echo "no" >&6; }
             DBUS_CFLAGS=""
             DBUS_LIBS=""
             ## If we have a custom action on failure, don't print errors, but
-            ## do set a variable so people can do so.
-            DBUS_PKG_ERRORS=`$PKG_CONFIG --errors-to-stdout --print-errors "dbus-1 >= 1.0"`
+	    ## do set a variable so people can do so.  Do it in a subshell
+	    ## to capture any diagnostics in invoking pkg-config.
+	    DBUS_PKG_ERRORS=`($PKG_CONFIG --print-errors "dbus-1 >= 1.0") 2>&1`
 
         fi
 
@@ -10860,8 +10852,9 @@ $as_echo "no" >&6; }
             GSETTINGS_CFLAGS=""
             GSETTINGS_LIBS=""
             ## If we have a custom action on failure, don't print errors, but
-            ## do set a variable so people can do so.
-            GSETTINGS_PKG_ERRORS=`$PKG_CONFIG --errors-to-stdout --print-errors "gio-2.0 >= 2.26"`
+	    ## do set a variable so people can do so.  Do it in a subshell
+	    ## to capture any diagnostics in invoking pkg-config.
+	    GSETTINGS_PKG_ERRORS=`($PKG_CONFIG --print-errors "gio-2.0 >= 2.26") 2>&1`
 
         fi
 
@@ -10921,8 +10914,9 @@ $as_echo "no" >&6; }
             GCONF_CFLAGS=""
             GCONF_LIBS=""
             ## If we have a custom action on failure, don't print errors, but
-            ## do set a variable so people can do so.
-            GCONF_PKG_ERRORS=`$PKG_CONFIG --errors-to-stdout --print-errors "gconf-2.0 >= 2.13"`
+	    ## do set a variable so people can do so.  Do it in a subshell
+	    ## to capture any diagnostics in invoking pkg-config.
+	    GCONF_PKG_ERRORS=`($PKG_CONFIG --print-errors "gconf-2.0 >= 2.13") 2>&1`
 
         fi
 
@@ -10950,6 +10944,61 @@ $as_echo "#define HAVE_GCONF 1" >>confdefs.h
 fi
 
 if test "$HAVE_GSETTINGS" = "yes" || test "$HAVE_GCONF" = "yes"; then
+
+  succeeded=no
+
+  if test "$PKG_CONFIG" = "no" ; then
+     HAVE_GOBJECT=no
+  else
+     PKG_CONFIG_MIN_VERSION=0.9.0
+     if $PKG_CONFIG --atleast-pkgconfig-version $PKG_CONFIG_MIN_VERSION; then
+        { $as_echo "$as_me:${as_lineno-$LINENO}: checking for gobject-2.0 >= 2.0" >&5
+$as_echo_n "checking for gobject-2.0 >= 2.0... " >&6; }
+
+        if $PKG_CONFIG --exists "gobject-2.0 >= 2.0" 2>&5 &&
+	   GOBJECT_CFLAGS=`$PKG_CONFIG --cflags "gobject-2.0 >= 2.0" 2>&5` &&
+	   GOBJECT_LIBS=`$PKG_CONFIG --libs "gobject-2.0 >= 2.0" 2>&5`; then
+	    edit_cflags="
+	      s,///*,/,g
+	      s/^/ /
+	      s/ -I/ $isystem/g
+	      s/^ //
+	    "
+	    GOBJECT_CFLAGS=`$as_echo "$GOBJECT_CFLAGS" | sed -e "$edit_cflags"`
+	    GOBJECT_LIBS=`$as_echo "$GOBJECT_LIBS" | sed -e 's,///*,/,g'`
+            { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes CFLAGS='$GOBJECT_CFLAGS' LIBS='$GOBJECT_LIBS'" >&5
+$as_echo "yes CFLAGS='$GOBJECT_CFLAGS' LIBS='$GOBJECT_LIBS'" >&6; }
+            succeeded=yes
+        else
+            { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+            GOBJECT_CFLAGS=""
+            GOBJECT_LIBS=""
+            ## If we have a custom action on failure, don't print errors, but
+	    ## do set a variable so people can do so.  Do it in a subshell
+	    ## to capture any diagnostics in invoking pkg-config.
+	    GOBJECT_PKG_ERRORS=`($PKG_CONFIG --print-errors "gobject-2.0 >= 2.0") 2>&1`
+
+        fi
+
+
+
+     else
+        echo "*** Your version of pkg-config is too old. You need version $PKG_CONFIG_MIN_VERSION or newer."
+        echo "*** See http://www.freedesktop.org/software/pkgconfig"
+     fi
+  fi
+
+  if test $succeeded = yes; then
+     HAVE_GOBJECT=yes
+  else
+     HAVE_GOBJECT=no
+  fi
+
+    if test "$HAVE_GOBJECT" = "yes"; then
+       SETTINGS_CFLAGS="$SETTINGS_CFLAGS $GOBJECT_CFLAGS"
+       SETTINGS_LIBS="$SETTINGS_LIBS $GOBJECT_LIBS"
+    fi
     SAVE_CFLAGS="$CFLAGS"
     SAVE_LIBS="$LIBS"
     CFLAGS="$SETTINGS_CFLAGS $CFLAGS"
@@ -11060,8 +11109,9 @@ $as_echo "no" >&6; }
             LIBGNUTLS_CFLAGS=""
             LIBGNUTLS_LIBS=""
             ## If we have a custom action on failure, don't print errors, but
-            ## do set a variable so people can do so.
-            LIBGNUTLS_PKG_ERRORS=`$PKG_CONFIG --errors-to-stdout --print-errors "gnutls >= 2.6.6"`
+	    ## do set a variable so people can do so.  Do it in a subshell
+	    ## to capture any diagnostics in invoking pkg-config.
+	    LIBGNUTLS_PKG_ERRORS=`($PKG_CONFIG --print-errors "gnutls >= 2.6.6") 2>&1`
 
         fi
 
@@ -11113,8 +11163,6 @@ HAVE_XAW3D=no
 LUCID_LIBW=
 if test x"${USE_X_TOOLKIT}" = xmaybe || test x"${USE_X_TOOLKIT}" = xLUCID; then
   if test "$with_xaw3d" != no; then
-    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for xaw3d" >&5
-$as_echo_n "checking for xaw3d... " >&6; }
     if test "${emacs_cv_xaw3d+set}" = set; then :
   $as_echo_n "(cached) " >&6
 else
@@ -11185,6 +11233,8 @@ fi
     emacs_cv_xaw3d=no
   fi
   if test $emacs_cv_xaw3d = yes; then
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for xaw3d" >&5
+$as_echo_n "checking for xaw3d... " >&6; }
     { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes; using Lucid toolkit" >&5
 $as_echo "yes; using Lucid toolkit" >&6; }
     USE_X_TOOLKIT=LUCID
@@ -11194,6 +11244,8 @@ $as_echo "yes; using Lucid toolkit" >&6; }
 $as_echo "#define HAVE_XAW3D 1" >>confdefs.h
 
   else
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for xaw3d" >&5
+$as_echo_n "checking for xaw3d... " >&6; }
     { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
     { $as_echo "$as_me:${as_lineno-$LINENO}: checking for libXaw" >&5
@@ -11687,8 +11739,9 @@ $as_echo "no" >&6; }
             FONTCONFIG_CFLAGS=""
             FONTCONFIG_LIBS=""
             ## If we have a custom action on failure, don't print errors, but
-            ## do set a variable so people can do so.
-            FONTCONFIG_PKG_ERRORS=`$PKG_CONFIG --errors-to-stdout --print-errors "fontconfig >= 2.2.0"`
+	    ## do set a variable so people can do so.  Do it in a subshell
+	    ## to capture any diagnostics in invoking pkg-config.
+	    FONTCONFIG_PKG_ERRORS=`($PKG_CONFIG --print-errors "fontconfig >= 2.2.0") 2>&1`
 
         fi
 
@@ -11745,8 +11798,9 @@ $as_echo "no" >&6; }
             XFT_CFLAGS=""
             XFT_LIBS=""
             ## If we have a custom action on failure, don't print errors, but
-            ## do set a variable so people can do so.
-            XFT_PKG_ERRORS=`$PKG_CONFIG --errors-to-stdout --print-errors "xft >= 0.13.0"`
+	    ## do set a variable so people can do so.  Do it in a subshell
+	    ## to capture any diagnostics in invoking pkg-config.
+	    XFT_PKG_ERRORS=`($PKG_CONFIG --print-errors "xft >= 0.13.0") 2>&1`
 
         fi
 
@@ -11912,8 +11966,9 @@ $as_echo "no" >&6; }
             FREETYPE_CFLAGS=""
             FREETYPE_LIBS=""
             ## If we have a custom action on failure, don't print errors, but
-            ## do set a variable so people can do so.
-            FREETYPE_PKG_ERRORS=`$PKG_CONFIG --errors-to-stdout --print-errors "freetype2"`
+	    ## do set a variable so people can do so.  Do it in a subshell
+	    ## to capture any diagnostics in invoking pkg-config.
+	    FREETYPE_PKG_ERRORS=`($PKG_CONFIG --print-errors "freetype2") 2>&1`
 
         fi
 
@@ -11972,8 +12027,9 @@ $as_echo "no" >&6; }
             LIBOTF_CFLAGS=""
             LIBOTF_LIBS=""
             ## If we have a custom action on failure, don't print errors, but
-            ## do set a variable so people can do so.
-            LIBOTF_PKG_ERRORS=`$PKG_CONFIG --errors-to-stdout --print-errors "libotf"`
+	    ## do set a variable so people can do so.  Do it in a subshell
+	    ## to capture any diagnostics in invoking pkg-config.
+	    LIBOTF_PKG_ERRORS=`($PKG_CONFIG --print-errors "libotf") 2>&1`
 
         fi
 
@@ -12080,8 +12136,9 @@ $as_echo "no" >&6; }
             M17N_FLT_CFLAGS=""
             M17N_FLT_LIBS=""
             ## If we have a custom action on failure, don't print errors, but
-            ## do set a variable so people can do so.
-            M17N_FLT_PKG_ERRORS=`$PKG_CONFIG --errors-to-stdout --print-errors "m17n-flt"`
+	    ## do set a variable so people can do so.  Do it in a subshell
+	    ## to capture any diagnostics in invoking pkg-config.
+	    M17N_FLT_PKG_ERRORS=`($PKG_CONFIG --print-errors "m17n-flt") 2>&1`
 
         fi
 
@@ -12769,8 +12826,9 @@ $as_echo "no" >&6; }
             LIBXML2_CFLAGS=""
             LIBXML2_LIBS=""
             ## If we have a custom action on failure, don't print errors, but
-            ## do set a variable so people can do so.
-            LIBXML2_PKG_ERRORS=`$PKG_CONFIG --errors-to-stdout --print-errors "libxml-2.0 > 2.6.17"`
+	    ## do set a variable so people can do so.  Do it in a subshell
+	    ## to capture any diagnostics in invoking pkg-config.
+	    LIBXML2_PKG_ERRORS=`($PKG_CONFIG --print-errors "libxml-2.0 > 2.6.17") 2>&1`
 
         fi
 
@@ -12878,8 +12936,8 @@ $as_echo "#define HAVE_H_ERRNO 1" >>confdefs.h
 
 fi
 
-# fmod, logb, and frexp are found in -lm on most systems.
-# On HPUX 9.01, -lm does not contain logb, so check for sqrt.
+# sqrt and other floating-point functions such as fmod and frexp
+# are found in -lm on most systems.
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for sqrt in -lm" >&5
 $as_echo_n "checking for sqrt in -lm... " >&6; }
 if test "${ac_cv_lib_m_sqrt+set}" = set; then :
@@ -13129,7 +13187,7 @@ esac
 
 for ac_func in gethostname \
 closedir getrusage get_current_dir_name \
-lrand48 logb frexp fmod cbrt setsid \
+lrand48 setsid \
 fpathconf select euidaccess getpagesize setlocale \
 utimes getrlimit setrlimit setpgid getcwd shutdown getaddrinfo \
 __fpending strsignal setitimer \
@@ -14431,6 +14489,11 @@ else
 $as_echo "no" >&6; }
 fi
 
+case $canonical in
+  *-solaris2.4 | *-solaris2.4.*)
+        : ${ac_cv_func_vfork_works=no};;
+esac
+
 ac_fn_c_check_type "$LINENO" "pid_t" "ac_cv_type_pid_t" "$ac_includes_default"
 if test "x$ac_cv_type_pid_t" = x""yes; then :
 
@@ -14778,10 +14841,6 @@ $as_echo "#define AMPERSAND_FULL_NAME 1" >>confdefs.h
 $as_echo "#define CLASH_DETECTION 1" >>confdefs.h
 
 
-
-
-
-
 ## Note: PTYs are broken on darwin <6.  Use at your own risk.
 
 $as_echo "#define HAVE_PTYS 1" >>confdefs.h
@@ -14847,12 +14906,6 @@ esac
 
 
 case $opsys in
-  darwin | gnu | hpux* | *bsd )
-
-$as_echo "#define NO_TERMIO 1" >>confdefs.h
-
-    ;;
-
   irix6-5 | sol2* | unixware )
 
 $as_echo "#define NSIG_MINIMUM 32" >>confdefs.h
@@ -14860,28 +14913,14 @@ $as_echo "#define NSIG_MINIMUM 32" >>confdefs.h
     ;;
 esac
 
+emacs_broken_SIGIO=no
 
 case $opsys in
       hpux* | irix6-5 | openbsd | sol2* | unixware )
-
-$as_echo "#define BROKEN_SIGIO 1" >>confdefs.h
-
+    emacs_broken_SIGIO=yes
     ;;
 
   aix4-2)
-
-$as_echo "#define BROKEN_FIONREAD 1" >>confdefs.h
-
-
-$as_echo "#define BROKEN_SIGAIO 1" >>confdefs.h
-
-
-$as_echo "#define BROKEN_SIGPOLL 1" >>confdefs.h
-
-
-$as_echo "#define BROKEN_SIGPTY 1" >>confdefs.h
-
-
 
 $as_echo "#define BROKEN_GET_CURRENT_DIR_NAME 1" >>confdefs.h
 
@@ -14890,12 +14929,6 @@ $as_echo "#define BROKEN_GET_CURRENT_DIR_NAME 1" >>confdefs.h
   freebsd)
 
 $as_echo "#define BROKEN_PTY_READ_AFTER_EAGAIN 1" >>confdefs.h
-
-    ;;
-
-      darwin)
-
-$as_echo "#define NO_ABORT 1" >>confdefs.h
 
     ;;
 esac
@@ -14965,7 +14998,7 @@ case $opsys in
   cygwin )
     $as_echo "#define PTY_ITERATION int i; for (i = 0; i < 1; i++)" >>confdefs.h
 
-        $as_echo "#define PTY_OPEN  do { int dummy; SIGMASKTYPE mask; mask = sigblock (sigmask (SIGCHLD)); if (-1 == openpty (&fd, &dummy, pty_name, 0, 0)) fd = -1; sigsetmask (mask); if (fd >= 0) emacs_close (dummy); } while (0)" >>confdefs.h
+        $as_echo "#define PTY_OPEN  do { int dummy; sigset_t blocked, procmask; sigemptyset (&blocked); sigaddset (&blocked, SIGCHLD); pthread_sigmask (SIG_BLOCK, &blocked, &procmask); if (-1 == openpty (&fd, &dummy, pty_name, 0, 0)) fd = -1; pthread_sigmask (SIG_SETMASK, &procmask, 0); if (fd >= 0) emacs_close (dummy); } while (0)" >>confdefs.h
 
     $as_echo "#define PTY_NAME_SPRINTF /**/" >>confdefs.h
 
@@ -14998,7 +15031,7 @@ $as_echo "#define UNIX98_PTYS 1" >>confdefs.h
 
       $as_echo "#define PTY_ITERATION int i; for (i = 0; i < 1; i++)" >>confdefs.h
 
-                  $as_echo "#define PTY_TTY_NAME_SPRINTF { char *ptyname; sigblock (sigmask (SIGCHLD)); if (grantpt (fd) == -1 || unlockpt (fd) == -1 || !(ptyname = ptsname(fd))) { sigunblock (sigmask (SIGCHLD)); close (fd); return -1; } snprintf (pty_name, sizeof pty_name, \"%s\", ptyname); sigunblock (sigmask (SIGCHLD)); }" >>confdefs.h
+                  $as_echo "#define PTY_TTY_NAME_SPRINTF { char *ptyname = 0; sigset_t blocked; sigemptyset (&blocked); sigaddset (&blocked, SIGCHLD); pthread_sigmask (SIG_BLOCK, &blocked, 0); if (grantpt (fd) != -1 && unlockpt (fd) != -1) ptyname = ptsname(fd); pthread_sigmask (SIG_UNBLOCK, &blocked, 0); if (!ptyname) { close (fd); return -1; } snprintf (pty_name, sizeof pty_name, \"%s\", ptyname); }" >>confdefs.h
 
             if test "x$ac_cv_func_posix_openpt" = xyes; then
         $as_echo "#define PTY_OPEN fd = posix_openpt (O_RDWR | O_NOCTTY)" >>confdefs.h
@@ -15043,12 +15076,12 @@ $as_echo "#define UNIX98_PTYS 1" >>confdefs.h
     ;;
 
   sol2* )
-                            $as_echo "#define PTY_TTY_NAME_SPRINTF { char *ptsname (int), *ptyname; sigblock (sigmask (SIGCLD)); if (grantpt (fd) == -1) { emacs_close (fd); return -1; } sigunblock (sigmask (SIGCLD)); if (unlockpt (fd) == -1) { emacs_close (fd); return -1; } if (!(ptyname = ptsname (fd))) { emacs_close (fd); return -1; } snprintf (pty_name, sizeof pty_name, \"%s\", ptyname); }" >>confdefs.h
+                $as_echo "#define PTY_TTY_NAME_SPRINTF { char *ptsname (int), *ptyname; int grantpt_result; sigset_t blocked; sigemptyset (&blocked); sigaddset (&blocked, SIGCLD); pthread_sigmask (SIG_BLOCK, &blocked, 0); grantpt_result = grantpt (fd); pthread_sigmask (SIG_UNBLOCK, &blocked, 0); if (grantpt_result == -1 || unlockpt (fd) == -1 || !(ptyname = ptsname (fd))) { emacs_close (fd); return -1; } snprintf (pty_name, sizeof pty_name, \"%s\", ptyname); }" >>confdefs.h
 
     ;;
 
   unixware )
-        $as_echo "#define PTY_TTY_NAME_SPRINTF { char *ptsname (int), *ptyname; sigblock(sigmask(SIGCLD)); if (grantpt(fd) == -1) fatal(\"could not grant slave pty\"); sigunblock(sigmask(SIGCLD)); if (unlockpt(fd) == -1) fatal(\"could not unlock slave pty\"); if (!(ptyname = ptsname(fd))) fatal (\"could not enable slave pty\"); snprintf (pty_name, sizeof pty_name, \"%s\", ptyname); }" >>confdefs.h
+        $as_echo "#define PTY_TTY_NAME_SPRINTF { char *ptsname (int), *ptyname; int grantpt_result; sigset_t blocked; sigemptyset (&blocked); sigaddset (&blocked, SIGCLD); pthread_sigmask (SIG_BLOCK, &blocked, 0); grantpt_result = grantpt (fd); pthread_sigmask (SIG_UNBLOCK, &blocked, 0); if (grantpt_result == -1) fatal(\"could not grant slave pty\"); if (unlockpt(fd) == -1) fatal(\"could not unlock slave pty\"); if (!(ptyname = ptsname(fd))) fatal (\"could not enable slave pty\"); snprintf (pty_name, sizeof pty_name, \"%s\", ptyname); }" >>confdefs.h
 
     ;;
 esac
@@ -15401,15 +15434,78 @@ else
       ;;
   esac
 fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for _setjmp" >&5
+$as_echo_n "checking for _setjmp... " >&6; }
+if test "${emacs_cv_func__setjmp+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <setjmp.h>
+
+int
+main ()
+{
+jmp_buf j;
+	 if (! _setjmp (j))
+	   _longjmp (j, 1);
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  emacs_cv_func__setjmp=yes
+else
+  emacs_cv_func__setjmp=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $emacs_cv_func__setjmp" >&5
+$as_echo "$emacs_cv_func__setjmp" >&6; }
+if test $emacs_cv_func__setjmp = yes; then
+
+$as_echo "#define HAVE__SETJMP 1" >>confdefs.h
+
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for sigsetjmp" >&5
+$as_echo_n "checking for sigsetjmp... " >&6; }
+if test "${emacs_cv_func_sigsetjmp+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <setjmp.h>
+
+int
+main ()
+{
+sigjmp_buf j;
+	   if (! sigsetjmp (j, 1))
+	     siglongjmp (j, 1);
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  emacs_cv_func_sigsetjmp=yes
+else
+  emacs_cv_func_sigsetjmp=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $emacs_cv_func_sigsetjmp" >&5
+$as_echo "$emacs_cv_func_sigsetjmp" >&6; }
+  if test $emacs_cv_func_sigsetjmp = yes; then
+
+$as_echo "#define HAVE_SIGSETJMP 1" >>confdefs.h
+
+  fi
+fi
 
 case $opsys in
   sol2* | unixware )
-
-$as_echo "#define _setjmp setjmp" >>confdefs.h
-
-
-$as_echo "#define _longjmp longjmp" >>confdefs.h
-
 
 $as_echo "#define TIOCSIGSEND TIOCSIGNAL" >>confdefs.h
 
@@ -15421,12 +15517,6 @@ case $opsys in
   hpux* | sol2* )
 
 $as_echo "#define XOS_NEEDS_TIME_H 1" >>confdefs.h
-
-    ;;
-
-  netbsd | openbsd )
-
-$as_echo "#define SIGNAL_H_AHB 1" >>confdefs.h
 
     ;;
 esac
@@ -15574,6 +15664,85 @@ $as_echo "#define SOLARIS2 /**/" >>confdefs.h
     ;;
 esac
 
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for usable FIONREAD" >&5
+$as_echo_n "checking for usable FIONREAD... " >&6; }
+if test "${emacs_cv_usable_FIONREAD+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  case $opsys in
+     aix4-2)
+              emacs_cv_usable_FIONREAD=no
+       ;;
+
+     *)
+       cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <sys/types.h>
+			    #include <sys/ioctl.h>
+			    #ifdef USG5_4
+			    # include <sys/filio.h>
+			    #endif
+
+int
+main ()
+{
+int foo = ioctl (0, FIONREAD, &foo);
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+  emacs_cv_usable_FIONREAD=yes
+else
+  emacs_cv_usable_FIONREAD=no
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+       ;;
+   esac
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $emacs_cv_usable_FIONREAD" >&5
+$as_echo "$emacs_cv_usable_FIONREAD" >&6; }
+if test $emacs_cv_usable_FIONREAD = yes; then
+
+$as_echo "#define USABLE_FIONREAD 1" >>confdefs.h
+
+
+  if test $emacs_broken_SIGIO = no; then
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for usable SIGIO" >&5
+$as_echo_n "checking for usable SIGIO... " >&6; }
+if test "${emacs_cv_usable_SIGIO+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <fcntl.h>
+			    #include <signal.h>
+
+int
+main ()
+{
+int foo = SIGIO | F_SETFL | FASYNC;
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+  emacs_cv_usable_SIGIO=yes
+else
+  emacs_cv_usable_SIGIO=no
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $emacs_cv_usable_SIGIO" >&5
+$as_echo "$emacs_cv_usable_SIGIO" >&6; }
+    if test $emacs_cv_usable_SIGIO = yes; then
+
+$as_echo "#define USABLE_SIGIO 1" >>confdefs.h
+
+    fi
+  fi
+fi
+
 
 case $opsys in
           cygwin)
@@ -15583,9 +15752,6 @@ $as_echo "#define G_SLICE_ALWAYS_MALLOC 1" >>confdefs.h
     ;;
 
   hpux11)
-
-$as_echo "#define BROKEN_SA_RESTART 1" >>confdefs.h
-
 
 $as_echo "#define USG_SUBTTY_WORKS 1" >>confdefs.h
 
@@ -15620,6 +15786,14 @@ if test "x$GCC" = xyes \
 fi
 
 version=$PACKAGE_VERSION
+
+copyright="Copyright (C) 2012 Free Software Foundation, Inc."
+
+cat >>confdefs.h <<_ACEOF
+#define COPYRIGHT "$copyright"
+_ACEOF
+
+
 
 ### Specify what sort of things we'll be editing into Makefile and config.h.
 ### Use configuration here uncanonicalized to avoid exceeding size limits.
@@ -24119,11 +24293,7 @@ fi
 #### It makes printing result more understandable as using GTK sets
 #### toolkit_scroll_bars to yes by default.
 if test "${HAVE_GTK}" = "yes"; then
-  if test "${with_gtk3}" = "yes"; then
-    USE_X_TOOLKIT=GTK3
-  else
-    USE_X_TOOLKIT=GTK
-  fi
+  USE_X_TOOLKIT=GTK
 fi
 
 echo "
@@ -24212,9 +24382,19 @@ test "${prefix}" != NONE &&
 test "${exec_prefix}" != NONE &&
   exec_prefix=`echo "${exec_prefix}" | sed 's,\([^/]\)/*$,\1,'`
 
-SUBDIR_MAKEFILES="lib/Makefile lib-src/Makefile oldXMenu/Makefile doc/emacs/Makefile doc/misc/Makefile doc/lispintro/Makefile doc/lispref/Makefile src/Makefile lwlib/Makefile lisp/Makefile leim/Makefile"
+if test "$HAVE_NS" = "yes"; then
+  if test "$NS_IMPL_GNUSTEP" = yes; then
+    ac_config_files="$ac_config_files nextstep/GNUstep/Emacs.base/Resources/Info-gnustep.plist:nextstep/templates/Info-gnustep.plist.in nextstep/GNUstep/Emacs.base/Resources/Emacs.desktop:nextstep/templates/Emacs.desktop.in"
 
-ac_config_files="$ac_config_files Makefile lib/Makefile lib-src/Makefile oldXMenu/Makefile doc/emacs/Makefile doc/misc/Makefile doc/lispintro/Makefile doc/lispref/Makefile src/Makefile lwlib/Makefile lisp/Makefile leim/Makefile"
+  else
+    ac_config_files="$ac_config_files nextstep/Cocoa/Emacs.base/Contents/Info.plist:nextstep/templates/Info.plist.in nextstep/Cocoa/Emacs.base/Contents/Resources/English.lproj/InfoPlist.strings:nextstep/templates/InfoPlist.strings.in"
+
+  fi
+fi
+
+SUBDIR_MAKEFILES="lib/Makefile lib-src/Makefile oldXMenu/Makefile doc/emacs/Makefile doc/misc/Makefile doc/lispintro/Makefile doc/lispref/Makefile src/Makefile lwlib/Makefile lisp/Makefile leim/Makefile nextstep/Makefile"
+
+ac_config_files="$ac_config_files Makefile lib/Makefile lib-src/Makefile oldXMenu/Makefile doc/emacs/Makefile doc/misc/Makefile doc/lispintro/Makefile doc/lispref/Makefile src/Makefile lwlib/Makefile lisp/Makefile leim/Makefile nextstep/Makefile"
 
 
 opt_makefile=test/automated/Makefile
@@ -25054,6 +25234,10 @@ do
   case $ac_config_target in
     "src/config.h") CONFIG_HEADERS="$CONFIG_HEADERS src/config.h:src/config.in" ;;
     "depfiles") CONFIG_COMMANDS="$CONFIG_COMMANDS depfiles" ;;
+    "nextstep/GNUstep/Emacs.base/Resources/Info-gnustep.plist") CONFIG_FILES="$CONFIG_FILES nextstep/GNUstep/Emacs.base/Resources/Info-gnustep.plist:nextstep/templates/Info-gnustep.plist.in" ;;
+    "nextstep/GNUstep/Emacs.base/Resources/Emacs.desktop") CONFIG_FILES="$CONFIG_FILES nextstep/GNUstep/Emacs.base/Resources/Emacs.desktop:nextstep/templates/Emacs.desktop.in" ;;
+    "nextstep/Cocoa/Emacs.base/Contents/Info.plist") CONFIG_FILES="$CONFIG_FILES nextstep/Cocoa/Emacs.base/Contents/Info.plist:nextstep/templates/Info.plist.in" ;;
+    "nextstep/Cocoa/Emacs.base/Contents/Resources/English.lproj/InfoPlist.strings") CONFIG_FILES="$CONFIG_FILES nextstep/Cocoa/Emacs.base/Contents/Resources/English.lproj/InfoPlist.strings:nextstep/templates/InfoPlist.strings.in" ;;
     "Makefile") CONFIG_FILES="$CONFIG_FILES Makefile" ;;
     "lib/Makefile") CONFIG_FILES="$CONFIG_FILES lib/Makefile" ;;
     "lib-src/Makefile") CONFIG_FILES="$CONFIG_FILES lib-src/Makefile" ;;
@@ -25066,6 +25250,7 @@ do
     "lwlib/Makefile") CONFIG_FILES="$CONFIG_FILES lwlib/Makefile" ;;
     "lisp/Makefile") CONFIG_FILES="$CONFIG_FILES lisp/Makefile" ;;
     "leim/Makefile") CONFIG_FILES="$CONFIG_FILES leim/Makefile" ;;
+    "nextstep/Makefile") CONFIG_FILES="$CONFIG_FILES nextstep/Makefile" ;;
     "test/automated/Makefile") CONFIG_FILES="$CONFIG_FILES test/automated/Makefile" ;;
     "admin/unidata/Makefile") CONFIG_FILES="$CONFIG_FILES admin/unidata/Makefile" ;;
     "mkdirs") CONFIG_COMMANDS="$CONFIG_COMMANDS mkdirs" ;;

@@ -40,7 +40,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 #include <stdio.h>
-#include <setjmp.h>
+
 #include "lisp.h"
 #include "commands.h"
 #include "character.h"
@@ -2923,7 +2923,7 @@ You type        Translation\n\
 	  char *title, *p;
 
 	  if (!SYMBOLP (modes[i]))
-	    abort ();
+	    emacs_abort ();
 
 	  p = title = alloca (42 + SCHARS (SYMBOL_NAME (modes[i])));
 	  *p++ = '\f';

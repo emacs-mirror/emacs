@@ -33,7 +33,7 @@
 ;; INSTALLATION
 ;;
 ;; To use goto-address in a particular mode (for example, while
-;; reading mail in mh-e), add something like this in your .emacs file:
+;; reading mail in mh-e), add this to your init file:
 ;;
 ;; (add-hook 'mh-show-mode-hook 'goto-address)
 ;;

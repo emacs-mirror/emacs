@@ -84,7 +84,7 @@ Numeric form is tested using the regular expression
 NOTE: If you find that numeric conversions are interfering with the
 specification of filenames (for example, in calling `find-file', or
 some other Lisp function that deals with files, not numbers), add the
-following in your .emacs file:
+following in your init file:
 
   (put 'find-file 'eshell-no-numeric-conversions t)
 

@@ -1,4 +1,4 @@
-;;; advice.el --- an overloading mechanism for Emacs Lisp functions
+;;; advice.el --- An overloading mechanism for Emacs Lisp functions
 
 ;; Copyright (C) 1993-1994, 2000-2012 Free Software Foundation, Inc.
 
@@ -1746,7 +1746,8 @@
 (provide 'advice-preload)
 ;; During a normal load this is a noop:
 (require 'advice-preload "advice.el")
-
+(require 'macroexp)
+(eval-when-compile (require 'cl-lib))
 
 ;; @@ Variable definitions:
 ;; ========================
@@ -1812,54 +1813,6 @@ generates a copy of TREE."
          (funcall fUnCtIoN tReE))
         (t tReE)))
 
-;; this is just faster than `ad-substitute-tree':
-(defun ad-copy-tree (tree)
-  "Return a copy of the list structure of TREE."
-  (cond ((consp tree)
-	 (cons (ad-copy-tree (car tree))
-	       (ad-copy-tree (cdr tree))))
-	(t tree)))
-
-(defmacro ad-dolist (varform &rest body)
-  "A Common-Lisp-style dolist iterator with the following syntax:
-
-    (ad-dolist (VAR INIT-FORM [RESULT-FORM])
-       BODY-FORM...)
-
-which will iterate over the list yielded by INIT-FORM binding VAR to the
-current head at every iteration.  If RESULT-FORM is supplied its value will
-be returned at the end of the iteration, nil otherwise.  The iteration can be
-exited prematurely with `(ad-do-return [VALUE])'."
-  (let ((expansion
-         `(let ((ad-dO-vAr ,(car (cdr varform)))
-                ,(car varform))
-           (while ad-dO-vAr
-             (setq ,(car varform) (car ad-dO-vAr))
-             ,@body
-             ;;work around a backquote bug:
-             ;;(` ((,@ '(foo)) (bar))) => (append '(foo) '(((bar)))) wrong
-             ;;(` ((,@ '(foo)) (, '(bar)))) => (append '(foo) (list '(bar)))
-             ,'(setq ad-dO-vAr (cdr ad-dO-vAr)))
-           ,(car (cdr (cdr varform))))))
-    ;;ok, this wastes some cons cells but only during compilation:
-    (if (catch 'contains-return
-	  (ad-substitute-tree
-	   (function (lambda (subtree)
-             (cond ((eq (car-safe subtree) 'ad-dolist))
-                   ((eq (car-safe subtree) 'ad-do-return)
-                    (throw 'contains-return t)))))
-	   'identity body)
-	  nil)
-	`(catch 'ad-dO-eXiT ,expansion)
-        expansion)))
-
-(defmacro ad-do-return (value)
-  `(throw 'ad-dO-eXiT ,value))
-
-(if (not (get 'ad-dolist 'lisp-indent-hook))
-    (put 'ad-dolist 'lisp-indent-hook 1))
-
-
 ;; @@ Save real definitions of subrs used by Advice:
 ;; =================================================
 ;; Advice depends on the real, unmodified functionality of various subrs,
@@ -1924,16 +1877,16 @@ exited prematurely with `(ad-do-return [VALUE])'."
      ad-advised-functions)))
 
 (defmacro ad-do-advised-functions (varform &rest body)
-  "`ad-dolist'-style iterator that maps over `ad-advised-functions'.
+  "`dolist'-style iterator that maps over `ad-advised-functions'.
 \(ad-do-advised-functions (VAR [RESULT-FORM])
    BODY-FORM...)
 On each iteration VAR will be bound to the name of an advised function
 \(a symbol)."
-  `(ad-dolist (,(car varform)
+  `(cl-dolist (,(car varform)
                ad-advised-functions
                ,(car (cdr varform)))
-    (setq ,(car varform) (intern (car ,(car varform))))
-    ,@body))
+     (setq ,(car varform) (intern (car ,(car varform))))
+     ,@body))
 
 (if (not (get 'ad-do-advised-functions 'lisp-indent-hook))
     (put 'ad-do-advised-functions 'lisp-indent-hook 1))
@@ -1948,7 +1901,7 @@ On each iteration VAR will be bound to the name of an advised function
   `(put ,function 'ad-advice-info ,advice-info))
 
 (defmacro ad-copy-advice-info (function)
-  `(ad-copy-tree (get ,function 'ad-advice-info)))
+  `(copy-tree (get ,function 'ad-advice-info)))
 
 (defmacro ad-is-advised (function)
   "Return non-nil if FUNCTION has any advice info associated with it.
@@ -2022,8 +1975,8 @@ either t or nil, and DEFINITION should be a list of the form
 
 (defun ad-has-enabled-advice (function class)
   "True if at least one of FUNCTION's advices in CLASS is enabled."
-  (ad-dolist (advice (ad-get-advice-info-field function class))
-    (if (ad-advice-enabled advice) (ad-do-return t))))
+  (cl-dolist (advice (ad-get-advice-info-field function class))
+    (if (ad-advice-enabled advice) (cl-return t))))
 
 (defun ad-has-redefining-advice (function)
   "True if FUNCTION's advice info defines at least 1 redefining advice.
@@ -2036,14 +1989,14 @@ Redefining advices affect the construction of an advised definition."
 (defun ad-has-any-advice (function)
   "True if the advice info of FUNCTION defines at least one advice."
   (and (ad-is-advised function)
-       (ad-dolist (class ad-advice-classes nil)
+       (cl-dolist (class ad-advice-classes nil)
 	 (if (ad-get-advice-info-field function class)
-	     (ad-do-return t)))))
+	     (cl-return t)))))
 
 (defun ad-get-enabled-advices (function class)
   "Return the list of enabled advices of FUNCTION in CLASS."
   (let (enabled-advices)
-    (ad-dolist (advice (ad-get-advice-info-field function class))
+    (dolist (advice (ad-get-advice-info-field function class))
       (if (ad-advice-enabled advice)
 	  (push advice enabled-advices)))
     (reverse enabled-advices)))
@@ -2151,7 +2104,7 @@ function at point for which PREDICATE returns non-nil)."
 	    (ad-do-advised-functions (function)
 	      (if (or (null predicate)
 		      (funcall predicate function))
-		  (ad-do-return function)))
+		  (cl-return function)))
 	    (error "ad-read-advised-function: %s"
 		   "There are no qualifying advised functions")))
   (let* ((ad-pReDiCaTe predicate)
@@ -2184,9 +2137,9 @@ be returned on empty input (defaults to the first non-empty advice
 class of FUNCTION)."
   (setq default
 	(or default
-	    (ad-dolist (class ad-advice-classes)
+	    (cl-dolist (class ad-advice-classes)
 	      (if (ad-get-advice-info-field function class)
-		  (ad-do-return class)))
+		  (cl-return class)))
 	    (error "ad-read-advice-class: `%s' has no advices" function)))
   (let ((class (completing-read
 		(format "%s (default %s): " (or prompt "Class") default)
@@ -2255,18 +2208,18 @@ NAME can be a symbol or a regular expression matching part of an advice name.
 If CLASS is `any' all valid advice classes will be checked."
   (if (ad-is-advised function)
       (let (found-advice)
-	(ad-dolist (advice-class ad-advice-classes)
+	(cl-dolist (advice-class ad-advice-classes)
 	  (if (or (eq class 'any) (eq advice-class class))
 	      (setq found-advice
-		    (ad-dolist (advice (ad-get-advice-info-field
+		    (cl-dolist (advice (ad-get-advice-info-field
 					function advice-class))
 		      (if (or (and (stringp name)
 				   (string-match
 				    name (symbol-name
 					  (ad-advice-name advice))))
 			      (eq name (ad-advice-name advice)))
-			  (ad-do-return advice)))))
-	  (if found-advice (ad-do-return found-advice))))))
+			  (cl-return advice)))))
+	  (if found-advice (cl-return found-advice))))))
 
 (defun ad-enable-advice-internal (function class name flag)
   "Set enable FLAG of FUNCTION's advices in CLASS matching NAME.
@@ -2277,10 +2230,10 @@ considered.  The number of changed advices will be returned (or nil if
 FUNCTION was not advised)."
   (if (ad-is-advised function)
       (let ((matched-advices 0))
-	(ad-dolist (advice-class ad-advice-classes)
+	(dolist (advice-class ad-advice-classes)
 	  (if (or (eq class 'any) (eq advice-class class))
-	      (ad-dolist (advice (ad-get-advice-info-field
-				  function advice-class))
+	      (dolist (advice (ad-get-advice-info-field
+                               function advice-class))
 		(cond ((or (and (stringp name)
 				(string-match
 				 name (symbol-name (ad-advice-name advice))))
@@ -2586,11 +2539,6 @@ For that it has to be fbound with a non-autoload definition."
 	 (byte-compile symbol)
 	 (fset function (symbol-function symbol))))))
 
-(defun ad-prognify (forms)
-  (cond ((<= (length forms) 1)
-	 (car forms))
-	(t (cons 'progn forms))))
-
 ;; @@@ Accessing argument lists:
 ;; =============================
 
@@ -2868,8 +2816,8 @@ in any of these classes."
     (if origdoc (setq paragraphs (list origdoc)))
     (unless (eq style 'plain)
       (push (concat "This " origtype " is advised.") paragraphs))
-    (ad-dolist (class ad-advice-classes)
-      (ad-dolist (advice (ad-get-enabled-advices function class))
+    (dolist (class ad-advice-classes)
+      (dolist (advice (ad-get-enabled-advices function class))
 	(setq advice-docstring
 	      (ad-make-single-advice-docstring advice class style))
 	(if advice-docstring
@@ -2891,24 +2839,24 @@ in any of these classes."
 
 (defun ad-advised-arglist (function)
   "Find first defined arglist in FUNCTION's redefining advices."
-  (ad-dolist (advice (append (ad-get-enabled-advices function 'before)
+  (cl-dolist (advice (append (ad-get-enabled-advices function 'before)
 			     (ad-get-enabled-advices function 'around)
 			     (ad-get-enabled-advices function 'after)))
     (let ((arglist (ad-arglist (ad-advice-definition advice))))
       (if arglist
 	  ;; We found the first one, use it:
-	  (ad-do-return arglist)))))
+	  (cl-return arglist)))))
 
 (defun ad-advised-interactive-form (function)
   "Find first interactive form in FUNCTION's redefining advices."
-  (ad-dolist (advice (append (ad-get-enabled-advices function 'before)
+  (cl-dolist (advice (append (ad-get-enabled-advices function 'before)
 			     (ad-get-enabled-advices function 'around)
 			     (ad-get-enabled-advices function 'after)))
     (let ((interactive-form
 	   (ad-interactive-form (ad-advice-definition advice))))
       (if interactive-form
 	  ;; We found the first one, use it:
-	  (ad-do-return interactive-form)))))
+	  (cl-return interactive-form)))))
 
 ;; @@@ Putting it all together:
 ;; ============================
@@ -2997,47 +2945,47 @@ and BEFORES, AROUNDS and AFTERS are the lists of advices with which ORIG
 should be modified.  The assembled function will be returned."
 
   (let (before-forms around-form around-form-protected after-forms definition)
-    (ad-dolist (advice befores)
-               (cond ((and (ad-advice-protected advice)
-                           before-forms)
-                      (setq before-forms
-                            `((unwind-protect
-                                   ,(ad-prognify before-forms)
-                                ,@(ad-body-forms
-                                   (ad-advice-definition advice))))))
-                     (t (setq before-forms
-                              (append before-forms
-                                      (ad-body-forms (ad-advice-definition advice)))))))
+    (dolist (advice befores)
+      (cond ((and (ad-advice-protected advice)
+                  before-forms)
+             (setq before-forms
+                   `((unwind-protect
+                         ,(macroexp-progn before-forms)
+                       ,@(ad-body-forms
+                          (ad-advice-definition advice))))))
+            (t (setq before-forms
+                     (append before-forms
+                             (ad-body-forms (ad-advice-definition advice)))))))
 
     (setq around-form `(setq ad-return-value ,orig))
-    (ad-dolist (advice (reverse arounds))
-               ;; If any of the around advices is protected then we
-               ;; protect the complete around advice onion:
-               (if (ad-advice-protected advice)
-                   (setq around-form-protected t))
-               (setq around-form
-                     (ad-substitute-tree
-                      (function (lambda (form) (eq form 'ad-do-it)))
-                      (function (lambda (form) around-form))
-                      (ad-prognify (ad-body-forms (ad-advice-definition advice))))))
+    (dolist (advice (reverse arounds))
+      ;; If any of the around advices is protected then we
+      ;; protect the complete around advice onion:
+      (if (ad-advice-protected advice)
+          (setq around-form-protected t))
+      (setq around-form
+            (ad-substitute-tree
+             (function (lambda (form) (eq form 'ad-do-it)))
+             (function (lambda (form) around-form))
+             (macroexp-progn (ad-body-forms (ad-advice-definition advice))))))
 
     (setq after-forms
 	  (if (and around-form-protected before-forms)
 	      `((unwind-protect
-                     ,(ad-prognify before-forms)
+                     ,(macroexp-progn before-forms)
                   ,around-form))
               (append before-forms (list around-form))))
-    (ad-dolist (advice afters)
-               (cond ((and (ad-advice-protected advice)
-                           after-forms)
-                      (setq after-forms
-                            `((unwind-protect
-                                   ,(ad-prognify after-forms)
-                                ,@(ad-body-forms
-                                   (ad-advice-definition advice))))))
-                     (t (setq after-forms
-                              (append after-forms
-                                      (ad-body-forms (ad-advice-definition advice)))))))
+    (dolist (advice afters)
+      (cond ((and (ad-advice-protected advice)
+                  after-forms)
+             (setq after-forms
+                   `((unwind-protect
+                         ,(macroexp-progn after-forms)
+                       ,@(ad-body-forms
+                          (ad-advice-definition advice))))))
+            (t (setq after-forms
+                     (append after-forms
+                             (ad-body-forms (ad-advice-definition advice)))))))
 
     (setq definition
 	  `(,@(if (memq type '(macro special-form)) '(macro))
@@ -3061,7 +3009,7 @@ should be modified.  The assembled function will be returned."
 			     (ad-body-forms (ad-advice-definition advice))))
 		 (ad-get-enabled-advices function hook-name))))
     (if hook-forms
-	(ad-prognify (apply 'append hook-forms)))))
+	(macroexp-progn (apply 'append hook-forms)))))
 
 
 ;; @@ Caching:
@@ -3171,11 +3119,11 @@ advised definition from scratch."
 	(nth 2 cache-id)))))
 
 (defun ad-verify-cache-class-id (cache-class-id advices)
-  (ad-dolist (advice advices (null cache-class-id))
+  (cl-dolist (advice advices (null cache-class-id))
     (if (ad-advice-enabled advice)
 	(if (eq (car cache-class-id) (ad-advice-name advice))
 	    (setq cache-class-id (cdr cache-class-id))
-	  (ad-do-return nil)))))
+	  (cl-return nil)))))
 
 ;; There should be a way to monitor if and why a cache verification failed
 ;; in order to determine whether a certain preactivation could be used or
@@ -3670,7 +3618,16 @@ See Info node `(elisp)Advising Functions' for comprehensive documentation.
 usage: (defadvice FUNCTION (CLASS NAME [POSITION] [ARGLIST] FLAG...)
           [DOCSTRING] [INTERACTIVE-FORM]
           BODY...)"
-  (declare (doc-string 3))
+  (declare (doc-string 3)
+           (debug (&define name  ;; thing being advised.
+                           (name ;; class is [&or "before" "around" "after"
+                                 ;;               "activation" "deactivation"]
+                            name ;; name of advice
+                            &rest sexp ;; optional position and flags
+                            )
+                           [&optional stringp]
+                           [&optional ("interactive" interactive)]
+                           def-body)))
   (if (not (ad-name-p function))
       (error "defadvice: Invalid function name: %s" function))
   (let* ((class (car args))

@@ -178,6 +178,8 @@ when editing big diffs)."
     ["Unified -> Context"	diff-unified->context
      :help "Convert unified diffs to context diffs"]
     ;;["Fixup Headers"		diff-fixup-modifs	(not buffer-read-only)]
+    ["Remove trailing whitespace" diff-remove-trailing-whitespace
+     :help "Remove trailing whitespace problems introduced by the diff"]
     ["Show trailing whitespace" whitespace-mode
      :style toggle :selected (bound-and-true-p whitespace-mode)
      :help "Show trailing whitespace in modified lines"]

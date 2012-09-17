@@ -127,7 +127,7 @@ typedef int ssize_t;
 
 struct sigaction {
   int sa_flags;
-  void (*sa_handler)(int);
+  void (_CALLBACK_ *sa_handler)(int);
   sigset_t sa_mask;
 };
 #define SIG_BLOCK       1
@@ -334,16 +334,7 @@ extern char *get_emacs_configuration_options (void);
 #include <malloc.h>
 #endif
 
-/* stdlib.h must be included after redefining malloc & friends, but
-   before redefining abort.  Isn't library redefinition funny?  */
 #include <stdlib.h>
-
-/* Redefine abort.  */
-#ifdef HAVE_NTGUI
-#define abort	w32_abort
-extern _Noreturn void w32_abort (void);
-#endif
-
 #include <sys/stat.h>
 
 /* Define for those source files that do not include enough NT system files.  */

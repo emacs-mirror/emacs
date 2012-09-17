@@ -60,6 +60,8 @@
 ;; is in a loop, the repeated macro-expansion becomes terribly costly, so we
 ;; memoize previous macro expansions to try and avoid recomputing them
 ;; over and over again.
+;; FIXME: Now that macroexpansion is also performed when loading an interpreted
+;; file, this is not a real problem any more.
 (defconst pcase--memoize (make-hash-table :weakness 'key :test 'eq))
 ;; (defconst pcase--memoize-1 (make-hash-table :test 'eq))
 ;; (defconst pcase--memoize-2 (make-hash-table :weakness 'key :test 'equal))

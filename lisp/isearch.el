@@ -1405,6 +1405,7 @@ Use `isearch-exit' to quit without signaling."
   (interactive)
   (setq isearch-word (unless (eq isearch-word 'isearch-symbol-regexp)
 		       'isearch-symbol-regexp))
+  (if isearch-word (setq isearch-regexp nil))
   (setq isearch-success t isearch-adjusted t)
   (isearch-update))
 
@@ -1579,14 +1580,10 @@ way to run word replacements from Isearch is `M-s w ... M-%'."
 	;; set `search-upper-case' to nil to not call
 	;; `isearch-no-upper-case-p' in `perform-replace'
 	(search-upper-case nil)
-	(replace-search-function
-	 (if (and isearch-lax-whitespace (not regexp-flag))
-	     #'search-forward-lax-whitespace
-	   replace-search-function))
-	(replace-re-search-function
-	 (if (and isearch-regexp-lax-whitespace regexp-flag)
-	     #'re-search-forward-lax-whitespace
-	   replace-re-search-function))
+	(replace-lax-whitespace
+	 isearch-lax-whitespace)
+	(replace-regexp-lax-whitespace
+	 isearch-regexp-lax-whitespace)
 	;; Set `isearch-recursive-edit' to nil to prevent calling
 	;; `exit-recursive-edit' in `isearch-done' that terminates
 	;; the execution of this command when it is non-nil.
@@ -2956,10 +2953,14 @@ Attempt to do the search exactly the way the pending Isearch would."
       (let ((case-fold-search isearch-lazy-highlight-case-fold-search)
 	    (isearch-regexp isearch-lazy-highlight-regexp)
 	    (isearch-word isearch-lazy-highlight-word)
+	    (isearch-lax-whitespace
+	     isearch-lazy-highlight-lax-whitespace)
+	    (isearch-regexp-lax-whitespace
+	     isearch-lazy-highlight-regexp-lax-whitespace)
+	    (isearch-forward isearch-lazy-highlight-forward)
 	    (search-invisible nil)	; don't match invisible text
 	    (retry t)
 	    (success nil)
-	    (isearch-forward isearch-lazy-highlight-forward)
 	    (bound (if isearch-lazy-highlight-forward
 		       (min (or isearch-lazy-highlight-end-limit (point-max))
 			    (if isearch-lazy-highlight-wrapped

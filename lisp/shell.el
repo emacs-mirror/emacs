@@ -46,7 +46,7 @@
 
 ;; YOUR .EMACS FILE
 ;;=============================================================================
-;; Some suggestions for your .emacs file.
+;; Some suggestions for your init file.
 ;;
 ;; ;; Define M-# to run some strange command:
 ;; (eval-after-load "shell"
@@ -136,9 +136,7 @@ how Shell mode treats paragraphs.
 
 The pattern should probably not match more than one line.  If it does,
 Shell mode may become confused trying to distinguish prompt from input
-on lines which don't start with a prompt.
-
-This is a fine thing to set in your `.emacs' file."
+on lines which don't start with a prompt."
   :type 'regexp
   :group 'shell)
 
@@ -146,9 +144,7 @@ This is a fine thing to set in your `.emacs' file."
   "List of suffixes to be disregarded during file/command completion.
 This variable is used to initialize `comint-completion-fignore' in the shell
 buffer.  The default is nil, for compatibility with most shells.
-Some people like (\"~\" \"#\" \"%\").
-
-This is a fine thing to set in your `.emacs' file."
+Some people like (\"~\" \"#\" \"%\")."
   :type '(repeat (string :tag "Suffix"))
   :group 'shell)
 
@@ -158,31 +154,29 @@ This variable is used to initialize `comint-delimiter-argument-list' in the
 shell buffer.  The value may depend on the operating system or shell."
   :type '(choice (const nil)
 		 (repeat :tag "List of characters" character))
-  ;; Reverted.
-;;  :version "24.1"			; changed to nil (bug#8027)
   :group 'shell)
 
-(defvar shell-file-name-chars
+(defcustom shell-file-name-chars
   (if (memq system-type '(ms-dos windows-nt cygwin))
       "~/A-Za-z0-9_^$!#%&{}@`'.,:()-"
     "[]~/A-Za-z0-9+@:_.$#%,={}-")
   "String of characters valid in a file name.
 This variable is used to initialize `comint-file-name-chars' in the
-shell buffer.  The value may depend on the operating system or shell.
+shell buffer.  The value may depend on the operating system or shell."
+  :type 'string
+  :group 'shell)
 
-This is a fine thing to set in your `.emacs' file.")
-
-(defvar shell-file-name-quote-list
+(defcustom shell-file-name-quote-list
   (if (memq system-type '(ms-dos windows-nt))
       nil
     (append shell-delimiter-argument-list '(?\s ?$ ?\* ?\! ?\" ?\' ?\` ?\# ?\\)))
   "List of characters to quote when in a file name.
 This variable is used to initialize `comint-file-name-quote-list' in the
-shell buffer.  The value may depend on the operating system or shell.
+shell buffer.  The value may depend on the operating system or shell."
+  :type '(repeat character)
+  :group 'shell)
 
-This is a fine thing to set in your `.emacs' file.")
-
-(defvar shell-dynamic-complete-functions
+(defcustom shell-dynamic-complete-functions
   '(comint-c-a-p-replace-by-expanded-history
     shell-environment-variable-completion
     shell-command-completion
@@ -192,9 +186,9 @@ This is a fine thing to set in your `.emacs' file.")
     comint-filename-completion)
   "List of functions called to perform completion.
 This variable is used to initialize `comint-dynamic-complete-functions' in the
-shell buffer.
-
-This is a fine thing to set in your `.emacs' file.")
+shell buffer."
+  :type '(repeat function)
+  :group 'shell)
 
 (defcustom shell-command-regexp "[^;&|\n]+"
   "Regexp to match a single command within a pipeline.

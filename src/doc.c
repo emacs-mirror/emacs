@@ -22,7 +22,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <sys/types.h>
 #include <sys/file.h>	/* Must be after sys/types.h for USG*/
-#include <setjmp.h>
 #include <fcntl.h>
 #include <unistd.h>
 
@@ -37,7 +36,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 Lisp_Object Qfunction_documentation;
 
-extern Lisp_Object Qclosure;
 /* Buffer used for reading from documentation file.  */
 static char *get_doc_string_buffer;
 static ptrdiff_t get_doc_string_buffer_size;

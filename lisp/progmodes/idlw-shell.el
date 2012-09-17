@@ -48,7 +48,7 @@
 ;;
 ;; Follow the instructions in the INSTALL file of the distribution.
 ;; In short, put this file on your load path and add the following
-;; lines to your .emacs file:
+;; lines to your init file:
 ;;
 ;; (autoload 'idlwave-shell "idlw-shell" "IDLWAVE Shell" t)
 ;;
@@ -111,9 +111,7 @@ For example, \"^\r?IDL> \" or \"^\r?WAVE> \".
 The \"^\r?\" is needed, to indicate the beginning of the line, with
 optional return character (which IDL seems to output randomly).
 This variable is used to initialize `comint-prompt-regexp' in the
-process buffer.
-
-This is a fine thing to set in your `.emacs' file."
+process buffer."
   :group 'idlwave-shell-general-setup
   :type 'regexp)
 

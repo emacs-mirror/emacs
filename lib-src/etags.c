@@ -836,8 +836,7 @@ etags --help --lang=ada.");
 static void
 print_version (void)
 {
-  /* Makes it easier to update automatically. */
-  char emacs_copyright[] = "Copyright (C) 2012 Free Software Foundation, Inc.";
+  char emacs_copyright[] = COPYRIGHT;
 
   printf ("%s (%s %s)\n", (CTAGS) ? "ctags" : "etags", EMACS_NAME, VERSION);
   puts (emacs_copyright);

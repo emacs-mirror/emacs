@@ -33,7 +33,7 @@
 ;; Installation
 ;; ------------
 
-;; Add the following lines to your Emacs startup file (`~/.emacs').
+;; Add the following lines to your init file:
 ;; (add-to-list 'load-path "/path/to/bubbles/")
 ;; (autoload 'bubbles "bubbles" "Play Bubbles" t)
 

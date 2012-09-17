@@ -102,10 +102,9 @@
 ;;       (abbrev-mode 1)             ; turn on abbreviation mode
 ;;       (f90-add-imenu-menu)        ; extra menu with functions etc.
 ;;       (if f90-auto-keyword-case   ; change case of all keywords on startup
-;;           (f90-change-keywords f90-auto-keyword-case))
-;;       ))
+;;           (f90-change-keywords f90-auto-keyword-case))))
 ;;
-;; in your .emacs file. You can also customize the lists
+;; in your init file. You can also customize the lists
 ;; f90-font-lock-keywords, etc.
 ;;
 ;; The auto-fill and abbreviation minor modes are accessible from the F90 menu,

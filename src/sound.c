@@ -44,11 +44,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <unistd.h>
 #include <sys/types.h>
 #include <errno.h>
-#include <setjmp.h>
+
 #include "lisp.h"
 #include "dispextern.h"
 #include "atimer.h"
-#include <signal.h>
 #include "syssignal.h"
 /* END: Common Includes */
 
@@ -315,8 +314,13 @@ sound_perror (const char *msg)
   int saved_errno = errno;
 
   turn_on_atimers (1);
-#ifdef SIGIO
-  sigunblock (sigmask (SIGIO));
+#ifdef USABLE_SIGIO
+  {
+    sigset_t unblocked;
+    sigemptyset (&unblocked);
+    sigaddset (&unblocked, SIGIO);
+    pthread_sigmask (SIG_UNBLOCK, &unblocked, 0);
+  }
 #endif
   if (saved_errno != 0)
     error ("%s: %s", msg, strerror (saved_errno));
@@ -728,6 +732,9 @@ static void
 vox_configure (struct sound_device *sd)
 {
   int val;
+#ifdef USABLE_SIGIO
+  sigset_t blocked;
+#endif
 
   eassert (sd->fd >= 0);
 
@@ -735,8 +742,10 @@ vox_configure (struct sound_device *sd)
      interrupted by a signal.  Block the ones we know to cause
      troubles.  */
   turn_on_atimers (0);
-#ifdef SIGIO
-  sigblock (sigmask (SIGIO));
+#ifdef USABLE_SIGIO
+  sigemptyset (&blocked);
+  sigaddset (&blocked, SIGIO);
+  pthread_sigmask (SIG_BLOCK, &blocked, 0);
 #endif
 
   val = sd->format;
@@ -769,8 +778,8 @@ vox_configure (struct sound_device *sd)
     }
 
   turn_on_atimers (1);
-#ifdef SIGIO
-  sigunblock (sigmask (SIGIO));
+#ifdef USABLE_SIGIO
+  pthread_sigmask (SIG_UNBLOCK, &blocked, 0);
 #endif
 }
 
@@ -785,8 +794,11 @@ vox_close (struct sound_device *sd)
       /* On GNU/Linux, it seems that the device driver doesn't like to
 	 be interrupted by a signal.  Block the ones we know to cause
 	 troubles.  */
-#ifdef SIGIO
-      sigblock (sigmask (SIGIO));
+#ifdef USABLE_SIGIO
+      sigset_t blocked;
+      sigemptyset (&blocked);
+      sigaddset (&blocked, SIGIO);
+      pthread_sigmask (SIG_BLOCK, &blocked, 0);
 #endif
       turn_on_atimers (0);
 
@@ -794,8 +806,8 @@ vox_close (struct sound_device *sd)
       ioctl (sd->fd, SNDCTL_DSP_SYNC, NULL);
 
       turn_on_atimers (1);
-#ifdef SIGIO
-      sigunblock (sigmask (SIGIO));
+#ifdef USABLE_SIGIO
+      pthread_sigmask (SIG_UNBLOCK, &blocked, 0);
 #endif
 
       /* Close the device.  */
@@ -843,7 +855,7 @@ vox_choose_format (struct sound_device *sd, struct sound *s)
 	}
     }
   else
-    abort ();
+    emacs_abort ();
 }
 
 
@@ -1138,7 +1150,7 @@ alsa_choose_format (struct sound_device *sd, struct sound *s)
 	}
     }
   else
-    abort ();
+    emacs_abort ();
 }
 
 

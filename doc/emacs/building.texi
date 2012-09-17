@@ -888,10 +888,6 @@ displays the following frame layout:
 @end group
 @end smallexample
 
-  However, if @code{gdb-use-separate-io-buffer} is @code{nil}, the I/O
-buffer does not appear and the primary source buffer occupies the full
-width of the frame.
-
 @findex gdb-restore-windows
 @findex gdb-many-windows
   If you ever change the window layout, you can restore the ``many

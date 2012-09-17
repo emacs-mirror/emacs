@@ -126,7 +126,6 @@
    that make sense only in Emacs. */
 #ifdef emacs
 
-# include <setjmp.h>
 # include "lisp.h"
 # include "character.h"
 # include "buffer.h"
@@ -1832,9 +1831,9 @@ typedef struct
 /* The next available element.  */
 #define COMPILE_STACK_TOP (compile_stack.stack[compile_stack.avail])
 
-/* Explicit quit checking is only used on NTemacs and whenever we
-   use polling to process input events.  */
-#if defined emacs && (defined WINDOWSNT || defined SYNC_INPUT) && defined QUIT
+/* Explicit quit checking is needed for Emacs, which uses polling to
+   process input events.  */
+#ifdef emacs
 extern int immediate_quit;
 # define IMMEDIATE_QUIT_CHECK			\
     do {					\

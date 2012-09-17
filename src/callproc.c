@@ -19,10 +19,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 
 #include <config.h>
-#include <signal.h>
 #include <errno.h>
 #include <stdio.h>
-#include <setjmp.h>
 #include <sys/types.h>
 #include <unistd.h>
 
@@ -498,17 +496,9 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
     register char **save_environ = environ;
     register int fd1 = fd[1];
     int fd_error = fd1;
-#ifdef HAVE_WORKING_VFORK
-    sigset_t procmask;
-    sigset_t blocked;
-    struct sigaction sigpipe_action;
-#endif
 
     if (fd_output >= 0)
       fd1 = fd_output;
-#if 0  /* Some systems don't have sigblock.  */
-    mask = sigblock (sigmask (SIGCHLD));
-#endif
 
     /* Record that we're about to create a synchronous process.  */
     synch_process_alive = 1;
@@ -592,17 +582,6 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 		       0, current_dir);
 #else  /* not WINDOWSNT */
 
-#ifdef HAVE_WORKING_VFORK
-    /* On many hosts (e.g. Solaris 2.4), if a vforked child calls `signal',
-       this sets the parent's signal handlers as well as the child's.
-       So delay all interrupts whose handlers the child might munge,
-       and record the current handlers so they can be restored later.  */
-    sigemptyset (&blocked);
-    sigaddset (&blocked, SIGPIPE);
-    sigaction (SIGPIPE, 0, &sigpipe_action);
-    pthread_sigmask (SIG_BLOCK, &blocked, &procmask);
-#endif
-
     BLOCK_INPUT;
 
     /* vfork, and prevent local vars from being clobbered by the vfork.  */
@@ -650,21 +629,12 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 	/* GConf causes us to ignore SIGPIPE, make sure it is restored
 	   in the child.  */
 	signal (SIGPIPE, SIG_DFL);
-#ifdef HAVE_WORKING_VFORK
-	pthread_sigmask (SIG_SETMASK, &procmask, 0);
-#endif
 
 	child_setup (filefd, fd1, fd_error, (char **) new_argv,
 		     0, current_dir);
       }
 
     UNBLOCK_INPUT;
-
-#ifdef HAVE_WORKING_VFORK
-    /* Restore the signal state.  */
-    sigaction (SIGPIPE, &sigpipe_action, 0);
-    pthread_sigmask (SIG_SETMASK, &procmask, 0);
-#endif
 
 #endif /* not WINDOWSNT */
 

@@ -4,7 +4,7 @@
 
 ;; Author: Alex Schroeder <alex@gnu.org>
 ;; Maintainer: Michael Mauger <mmaug@yahoo.com>
-;; Version: 3.0
+;; Version: 3.1
 ;; Keywords: comm languages processes
 ;; URL: http://savannah.gnu.org/projects/emacs/
 
@@ -218,9 +218,12 @@
 ;; Michael Mauger <mmaug@yahoo.com> -- improved product support
 ;; Drew Adams <drew.adams@oracle.com> -- Emacs 20 support
 ;; Harald Maier <maierh@myself.com> -- sql-send-string
-;; Stefan Monnier <monnier@iro.umontreal.ca> -- font-lock corrections; code polish
+;; Stefan Monnier <monnier@iro.umontreal.ca> -- font-lock corrections; 
+;;      code polish
 ;; Paul Sleigh <bat@flurf.net> -- MySQL keyword enhancement
 ;; Andrew Schein <andrew@andrewschein.com> -- sql-port bug
+;; Ian Bjorhovde <idbjorh@dataproxy.com> -- db2 escape newlines 
+;;      incorrectly enabled by default
 
 
 
@@ -265,9 +268,8 @@
 
 (defcustom sql-password ""
   "Default password.
-
-Storing your password in a textfile such as ~/.emacs could be dangerous.
-Customizing your password will store it in your ~/.emacs file."
+If you customize this, the value will be stored in your init
+file.  Since that is a plaintext file, this could be dangerous."
   :type 'string
   :group 'SQL
   :risky t)
@@ -879,6 +881,16 @@ In older versions of SQL*Plus, this was the SET SCAN OFF command."
   :type 'boolean
   :group 'SQL)
 
+(defcustom sql-db2-escape-newlines nil
+  "Non-nil if newlines should be escaped by a backslash in DB2 SQLi.
+
+When non-nil, Emacs will automatically insert a space and
+backslash prior to every newline in multi-line SQL statements as
+they are submitted to an interactive DB2 session."
+  :version "24.3"
+  :type 'boolean
+  :group 'SQL)
+
 ;; Customization for SQLite
 
 (defcustom sql-sqlite-program (or (executable-find "sqlite3")
@@ -1272,8 +1284,8 @@ Based on `comint-mode-map'.")
    ["List all objects" sql-list-all (sql-get-product-feature sql-product :list-all)]
    ["List table details" sql-list-table (sql-get-product-feature sql-product :list-table)]))
 
-;; Abbreviations -- if you want more of them, define them in your
-;; ~/.emacs file.  Abbrevs have to be enabled in your ~/.emacs, too.
+;; Abbreviations -- if you want more of them, define them in your init
+;; file.  Abbrevs have to be enabled in your init file, too.
 
 (defvar sql-mode-abbrev-table nil
   "Abbrev table used in `sql-mode' and `sql-interactive-mode'.")
@@ -3188,20 +3200,23 @@ Placeholders are words starting with an ampersand like &this."
 
 ;; Using DB2 interactively, newlines must be escaped with " \".
 ;; The space before the backslash is relevant.
+
 (defun sql-escape-newlines-filter (string)
   "Escape newlines in STRING.
 Every newline in STRING will be preceded with a space and a backslash."
-  (let ((result "") (start 0) mb me)
-    (while (string-match "\n" string start)
-      (setq mb (match-beginning 0)
-	    me (match-end 0)
-	    result (concat result
-			   (substring string start mb)
-			   (if (and (> mb 1)
-				    (string-equal " \\" (substring string (- mb 2) mb)))
-			       "" " \\\n"))
-	    start me))
-    (concat result (substring string start))))
+  (if (not sql-db2-escape-newlines)
+      string
+    (let ((result "") (start 0) mb me)
+      (while (string-match "\n" string start)
+        (setq mb (match-beginning 0)
+              me (match-end 0)
+              result (concat result
+                             (substring string start mb)
+                             (if (and (> mb 1)
+                                      (string-equal " \\" (substring string (- mb 2) mb)))
+                                 "" " \\\n"))
+              start me))
+      (concat result (substring string start)))))
 
 
 
@@ -3699,8 +3714,8 @@ For information on how to create multiple SQLi buffers, see
 `sql-interactive-mode'.
 
 Note that SQL doesn't have an escape character unless you specify
-one.  If you specify backslash as escape character in SQL,
-you must tell Emacs.  Here's how to do that in your `~/.emacs' file:
+one.  If you specify backslash as escape character in SQL, you
+must tell Emacs.  Here's how to do that in your init file:
 
 \(add-hook 'sql-mode-hook
           (lambda ()
@@ -3790,7 +3805,7 @@ cause the window to scroll to the end of the buffer.
 If you want to make SQL buffers limited in length, add the function
 `comint-truncate-buffer' to `comint-output-filter-functions'.
 
-Here is an example for your .emacs file.  It keeps the SQLi buffer a
+Here is an example for your init file.  It keeps the SQLi buffer a
 certain length.
 
 \(add-hook 'sql-interactive-mode-hook

@@ -41,9 +41,14 @@ The file `configure.ac' is the input used by the autoconf program to
 construct the `configure' script.  Since Emacs has some configuration
 requirements that autoconf can't meet directly, and for historical
 reasons, `configure.ac' uses an unholy marriage of custom-baked
-configuration code and autoconf macros.  If you want to rebuild
-`configure' from `configure.ac', you will need to install a recent
-version of autoconf and GNU m4.
+configuration code and autoconf macros.
+
+The shell script `autogen.sh' generates 'configure' and other files by
+running the GNU build tools autoconf and automake, which in turn use
+GNU m4 and Perl.  If you want to use it, you will need to install
+recent versions of these build tools.  This should be needed only if
+you edit files like `configure.ac' that specify Emacs's autobuild
+procedure.
 
 The file `Makefile.in' is a template used by `configure' to create
 `Makefile'.

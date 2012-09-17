@@ -19,7 +19,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 #include <stdio.h>
-#include <math.h>
 #include <unistd.h>
 
 #ifdef HAVE_PNG
@@ -575,7 +574,6 @@ static int x_build_heuristic_mask (struct frame *, struct image *,
                                    Lisp_Object);
 #ifdef WINDOWSNT
 extern Lisp_Object Vlibrary_cache;
-
 #define CACHE_IMAGE_TYPE(type, status) \
   do { Vlibrary_cache = Fcons (Fcons (type, status), Vlibrary_cache); } while (0)
 #else
@@ -600,7 +598,7 @@ define_image_type (struct image_type *type, int loaded)
       /* Make a copy of TYPE to avoid a bus error in a dumped Emacs.
          The initialized data segment is read-only.  */
       struct image_type *p = xmalloc (sizeof *p);
-      memcpy (p, type, sizeof *p);
+      *p = *type;
       p->next = image_types;
       image_types = p;
       success = Qt;
@@ -847,7 +845,7 @@ parse_image_spec (Lisp_Object spec, struct image_keyword *keywords,
 	  break;
 
 	default:
-	  abort ();
+	  emacs_abort ();
 	  break;
 	}
 
@@ -5528,15 +5526,24 @@ init_png_functions (Lisp_Object libraries)
 
 #endif /* WINDOWSNT */
 
+/* Possibly inefficient/inexact substitutes for _setjmp and _longjmp.
+   Do not use sys_setjmp, as PNG supports only jmp_buf.  The _longjmp
+   substitute may munge the signal mask, but that should be OK here.
+   MinGW (MS-Windows) uses _setjmp and defines setjmp to _setjmp in
+   the system header setjmp.h; don't mess up that.  */
+#ifndef HAVE__SETJMP
+# define _setjmp(j) setjmp (j)
+# define _longjmp longjmp
+#endif
 
 #if (PNG_LIBPNG_VER < 10500)
-#define PNG_LONGJMP(ptr) (longjmp ((ptr)->jmpbuf, 1))
+#define PNG_LONGJMP(ptr) (_longjmp ((ptr)->jmpbuf, 1))
 #define PNG_JMPBUF(ptr) ((ptr)->jmpbuf)
 #else
 /* In libpng version 1.5, the jmpbuf member is hidden. (Bug#7908)  */
 #define PNG_LONGJMP(ptr) (fn_png_longjmp ((ptr), 1))
 #define PNG_JMPBUF(ptr) \
-  (*fn_png_set_longjmp_fn ((ptr), longjmp, sizeof (jmp_buf)))
+  (*fn_png_set_longjmp_fn ((ptr), _longjmp, sizeof (jmp_buf)))
 #endif
 
 /* Error and warning handlers installed when the PNG library
@@ -5605,20 +5612,31 @@ png_read_from_file (png_structp png_ptr, png_bytep data, png_size_t length)
 /* Load PNG image IMG for use on frame F.  Value is non-zero if
    successful.  */
 
+struct png_load_context
+{
+  /* These are members so that longjmp doesn't munge local variables.  */
+  png_struct *png_ptr;
+  png_info *info_ptr;
+  png_info *end_info;
+  FILE *fp;
+  png_byte *pixels;
+  png_byte **rows;
+};
+
 static int
-png_load (struct frame *f, struct image *img)
+png_load_body (struct frame *f, struct image *img, struct png_load_context *c)
 {
   Lisp_Object file, specified_file;
   Lisp_Object specified_data;
   int x, y;
   ptrdiff_t i;
   XImagePtr ximg, mask_img = NULL;
-  png_struct *png_ptr = NULL;
+  png_struct *png_ptr;
   png_info *info_ptr = NULL, *end_info = NULL;
-  FILE *volatile fp = NULL;
+  FILE *fp = NULL;
   png_byte sig[8];
-  png_byte * volatile pixels = NULL;
-  png_byte ** volatile rows = NULL;
+  png_byte *pixels = NULL;
+  png_byte **rows = NULL;
   png_uint_32 width, height;
   int bit_depth, color_type, interlace_type;
   png_byte channels;
@@ -5685,40 +5703,46 @@ png_load (struct frame *f, struct image *img)
   png_ptr = fn_png_create_read_struct (PNG_LIBPNG_VER_STRING,
 				       NULL, my_png_error,
 				       my_png_warning);
-  if (!png_ptr)
+  if (png_ptr)
     {
-      if (fp) fclose (fp);
-      return 0;
+      info_ptr = fn_png_create_info_struct (png_ptr);
+      end_info = fn_png_create_info_struct (png_ptr);
     }
 
-  info_ptr = fn_png_create_info_struct (png_ptr);
-  if (!info_ptr)
-    {
-      fn_png_destroy_read_struct (&png_ptr, NULL, NULL);
-      if (fp) fclose (fp);
-      return 0;
-    }
+  c->png_ptr = png_ptr;
+  c->info_ptr = info_ptr;
+  c->end_info = end_info;
+  c->fp = fp;
+  c->pixels = pixels;
+  c->rows = rows;
 
-  end_info = fn_png_create_info_struct (png_ptr);
-  if (!end_info)
+  if (! (info_ptr && end_info))
     {
-      fn_png_destroy_read_struct (&png_ptr, &info_ptr, NULL);
+      fn_png_destroy_read_struct (&c->png_ptr, &c->info_ptr, &c->end_info);
+      png_ptr = 0;
+    }
+  if (! png_ptr)
+    {
       if (fp) fclose (fp);
       return 0;
     }
 
   /* Set error jump-back.  We come back here when the PNG library
      detects an error.  */
-  if (setjmp (PNG_JMPBUF (png_ptr)))
+  if (_setjmp (PNG_JMPBUF (png_ptr)))
     {
     error:
-      if (png_ptr)
-        fn_png_destroy_read_struct (&png_ptr, &info_ptr, &end_info);
-      xfree (pixels);
-      xfree (rows);
-      if (fp) fclose (fp);
+      if (c->png_ptr)
+	fn_png_destroy_read_struct (&c->png_ptr, &c->info_ptr, &c->end_info);
+      xfree (c->pixels);
+      xfree (c->rows);
+      if (c->fp)
+	fclose (c->fp);
       return 0;
     }
+
+  /* Silence a bogus diagnostic; see GCC bug 54561.  */
+  IF_LINT (fp = c->fp);
 
   /* Read image info.  */
   if (!NILP (specified_data))
@@ -5835,8 +5859,8 @@ png_load (struct frame *f, struct image *img)
   if (min (PTRDIFF_MAX, SIZE_MAX) / sizeof *rows < height
       || min (PTRDIFF_MAX, SIZE_MAX) / sizeof *pixels / height < row_bytes)
     memory_full (SIZE_MAX);
-  pixels = xmalloc (sizeof *pixels * row_bytes * height);
-  rows = xmalloc (height * sizeof *rows);
+  c->pixels = pixels = xmalloc (sizeof *pixels * row_bytes * height);
+  c->rows = rows = xmalloc (height * sizeof *rows);
   for (i = 0; i < height; ++i)
     rows[i] = pixels + i * row_bytes;
 
@@ -5846,7 +5870,7 @@ png_load (struct frame *f, struct image *img)
   if (fp)
     {
       fclose (fp);
-      fp = NULL;
+      c->fp = NULL;
     }
 
   /* Create an image and pixmap serving as mask if the PNG image
@@ -5921,7 +5945,7 @@ png_load (struct frame *f, struct image *img)
 #endif /* COLOR_TABLE_SUPPORT */
 
   /* Clean up.  */
-  fn_png_destroy_read_struct (&png_ptr, &info_ptr, &end_info);
+  fn_png_destroy_read_struct (&c->png_ptr, &c->info_ptr, &c->end_info);
   xfree (rows);
   xfree (pixels);
 
@@ -5948,6 +5972,13 @@ png_load (struct frame *f, struct image *img)
     }
 
   return 1;
+}
+
+static int
+png_load (struct frame *f, struct image *img)
+{
+  struct png_load_context c;
+  return png_load_body (f, img, &c);
 }
 
 #else /* HAVE_PNG */
@@ -6125,7 +6156,20 @@ jpeg_resync_to_restart_wrapper (j_decompress_ptr cinfo, int desired)
 struct my_jpeg_error_mgr
 {
   struct jpeg_error_mgr pub;
-  jmp_buf setjmp_buffer;
+  sys_jmp_buf setjmp_buffer;
+
+  /* The remaining members are so that longjmp doesn't munge local
+     variables.  */
+  struct jpeg_decompress_struct cinfo;
+  enum
+    {
+      MY_JPEG_ERROR_EXIT,
+      MY_JPEG_INVALID_IMAGE_SIZE,
+      MY_JPEG_CANNOT_CREATE_X
+    } failure_code;
+#ifdef lint
+  FILE *fp;
+#endif
 };
 
 
@@ -6133,7 +6177,8 @@ static _Noreturn void
 my_error_exit (j_common_ptr cinfo)
 {
   struct my_jpeg_error_mgr *mgr = (struct my_jpeg_error_mgr *) cinfo->err;
-  longjmp (mgr->setjmp_buffer, 1);
+  mgr->failure_code = MY_JPEG_ERROR_EXIT;
+  sys_longjmp (mgr->setjmp_buffer, 1);
 }
 
 
@@ -6201,7 +6246,7 @@ our_memory_skip_input_data (j_decompress_ptr cinfo, long int num_bytes)
    reading the image.  */
 
 static void
-jpeg_memory_src (j_decompress_ptr cinfo, JOCTET *data, unsigned int len)
+jpeg_memory_src (j_decompress_ptr cinfo, JOCTET *data, ptrdiff_t len)
 {
   struct jpeg_source_mgr *src;
 
@@ -6339,17 +6384,15 @@ jpeg_file_src (j_decompress_ptr cinfo, FILE *fp)
    from the JPEG lib.  */
 
 static int
-jpeg_load (struct frame *f, struct image *img)
+jpeg_load_body (struct frame *f, struct image *img,
+		struct my_jpeg_error_mgr *mgr)
 {
-  struct jpeg_decompress_struct cinfo;
-  struct my_jpeg_error_mgr mgr;
   Lisp_Object file, specified_file;
   Lisp_Object specified_data;
-  FILE * volatile fp = NULL;
+  FILE *fp = NULL;
   JSAMPARRAY buffer;
   int row_stride, x, y;
   XImagePtr ximg = NULL;
-  int rc;
   unsigned long *colors;
   int width, height;
 
@@ -6379,26 +6422,37 @@ jpeg_load (struct frame *f, struct image *img)
       return 0;
     }
 
+  IF_LINT (mgr->fp = fp);
+
   /* Customize libjpeg's error handling to call my_error_exit when an
      error is detected.  This function will perform a longjmp.  */
-  cinfo.err = fn_jpeg_std_error (&mgr.pub);
-  mgr.pub.error_exit = my_error_exit;
-
-  if ((rc = setjmp (mgr.setjmp_buffer)) != 0)
+  mgr->cinfo.err = fn_jpeg_std_error (&mgr->pub);
+  mgr->pub.error_exit = my_error_exit;
+  if (sys_setjmp (mgr->setjmp_buffer))
     {
-      if (rc == 1)
+      switch (mgr->failure_code)
 	{
-	  /* Called from my_error_exit.  Display a JPEG error.  */
-	  char buf[JMSG_LENGTH_MAX];
-	  cinfo.err->format_message ((j_common_ptr) &cinfo, buf);
-	  image_error ("Error reading JPEG image `%s': %s", img->spec,
-		       build_string (buf));
+	case MY_JPEG_ERROR_EXIT:
+	  {
+	    char buf[JMSG_LENGTH_MAX];
+	    mgr->cinfo.err->format_message ((j_common_ptr) &mgr->cinfo, buf);
+	    image_error ("Error reading JPEG image `%s': %s", img->spec,
+			 build_string (buf));
+	    break;
+	  }
+
+	case MY_JPEG_INVALID_IMAGE_SIZE:
+	  image_error ("Invalid image size (see `max-image-size')", Qnil, Qnil);
+	  break;
+
+	case MY_JPEG_CANNOT_CREATE_X:
+	  break;
 	}
 
       /* Close the input file and destroy the JPEG object.  */
       if (fp)
-	fclose ((FILE *) fp);
-      fn_jpeg_destroy_decompress (&cinfo);
+	fclose (fp);
+      fn_jpeg_destroy_decompress (&mgr->cinfo);
 
       /* If we already have an XImage, free that.  */
       x_destroy_x_image (ximg);
@@ -6408,46 +6462,52 @@ jpeg_load (struct frame *f, struct image *img)
       return 0;
     }
 
+  /* Silence a bogus diagnostic; see GCC bug 54561.  */
+  IF_LINT (fp = mgr->fp);
+
   /* Create the JPEG decompression object.  Let it read from fp.
 	 Read the JPEG image header.  */
-  fn_jpeg_CreateDecompress (&cinfo, JPEG_LIB_VERSION, sizeof (cinfo));
+  fn_jpeg_CreateDecompress (&mgr->cinfo, JPEG_LIB_VERSION, sizeof *&mgr->cinfo);
 
   if (NILP (specified_data))
-    jpeg_file_src (&cinfo, (FILE *) fp);
+    jpeg_file_src (&mgr->cinfo, fp);
   else
-    jpeg_memory_src (&cinfo, SDATA (specified_data),
+    jpeg_memory_src (&mgr->cinfo, SDATA (specified_data),
 		     SBYTES (specified_data));
 
-  fn_jpeg_read_header (&cinfo, 1);
+  fn_jpeg_read_header (&mgr->cinfo, 1);
 
   /* Customize decompression so that color quantization will be used.
 	 Start decompression.  */
-  cinfo.quantize_colors = 1;
-  fn_jpeg_start_decompress (&cinfo);
-  width = img->width = cinfo.output_width;
-  height = img->height = cinfo.output_height;
+  mgr->cinfo.quantize_colors = 1;
+  fn_jpeg_start_decompress (&mgr->cinfo);
+  width = img->width = mgr->cinfo.output_width;
+  height = img->height = mgr->cinfo.output_height;
 
   if (!check_image_size (f, width, height))
     {
-      image_error ("Invalid image size (see `max-image-size')", Qnil, Qnil);
-      longjmp (mgr.setjmp_buffer, 2);
+      mgr->failure_code = MY_JPEG_INVALID_IMAGE_SIZE;
+      sys_longjmp (mgr->setjmp_buffer, 1);
     }
 
   /* Create X image and pixmap.  */
   if (!x_create_x_image_and_pixmap (f, width, height, 0, &ximg, &img->pixmap))
-    longjmp (mgr.setjmp_buffer, 2);
+    {
+      mgr->failure_code = MY_JPEG_CANNOT_CREATE_X;
+      sys_longjmp (mgr->setjmp_buffer, 1);
+    }
 
   /* Allocate colors.  When color quantization is used,
-     cinfo.actual_number_of_colors has been set with the number of
-     colors generated, and cinfo.colormap is a two-dimensional array
-     of color indices in the range 0..cinfo.actual_number_of_colors.
+     mgr->cinfo.actual_number_of_colors has been set with the number of
+     colors generated, and mgr->cinfo.colormap is a two-dimensional array
+     of color indices in the range 0..mgr->cinfo.actual_number_of_colors.
      No more than 255 colors will be generated.  */
   {
     int i, ir, ig, ib;
 
-    if (cinfo.out_color_components > 2)
+    if (mgr->cinfo.out_color_components > 2)
       ir = 0, ig = 1, ib = 2;
-    else if (cinfo.out_color_components > 1)
+    else if (mgr->cinfo.out_color_components > 1)
       ir = 0, ig = 1, ib = 0;
     else
       ir = 0, ig = 0, ib = 0;
@@ -6457,15 +6517,15 @@ jpeg_load (struct frame *f, struct image *img)
        a default color, and we don't have to care about which colors
        can be freed safely, and which can't.  */
     init_color_table ();
-    colors = alloca (cinfo.actual_number_of_colors * sizeof *colors);
+    colors = alloca (mgr->cinfo.actual_number_of_colors * sizeof *colors);
 
-    for (i = 0; i < cinfo.actual_number_of_colors; ++i)
+    for (i = 0; i < mgr->cinfo.actual_number_of_colors; ++i)
       {
 	/* Multiply RGB values with 255 because X expects RGB values
 	   in the range 0..0xffff.  */
-	int r = cinfo.colormap[ir][i] << 8;
-	int g = cinfo.colormap[ig][i] << 8;
-	int b = cinfo.colormap[ib][i] << 8;
+	int r = mgr->cinfo.colormap[ir][i] << 8;
+	int g = mgr->cinfo.colormap[ig][i] << 8;
+	int b = mgr->cinfo.colormap[ib][i] << 8;
 	colors[i] = lookup_rgb_color (f, r, g, b);
       }
 
@@ -6477,21 +6537,21 @@ jpeg_load (struct frame *f, struct image *img)
   }
 
   /* Read pixels.  */
-  row_stride = width * cinfo.output_components;
-  buffer = cinfo.mem->alloc_sarray ((j_common_ptr) &cinfo, JPOOL_IMAGE,
-				    row_stride, 1);
+  row_stride = width * mgr->cinfo.output_components;
+  buffer = mgr->cinfo.mem->alloc_sarray ((j_common_ptr) &mgr->cinfo,
+					 JPOOL_IMAGE, row_stride, 1);
   for (y = 0; y < height; ++y)
     {
-      fn_jpeg_read_scanlines (&cinfo, buffer, 1);
-      for (x = 0; x < cinfo.output_width; ++x)
+      fn_jpeg_read_scanlines (&mgr->cinfo, buffer, 1);
+      for (x = 0; x < mgr->cinfo.output_width; ++x)
 	XPutPixel (ximg, x, y, colors[buffer[0][x]]);
     }
 
   /* Clean up.  */
-  fn_jpeg_finish_decompress (&cinfo);
-  fn_jpeg_destroy_decompress (&cinfo);
+  fn_jpeg_finish_decompress (&mgr->cinfo);
+  fn_jpeg_destroy_decompress (&mgr->cinfo);
   if (fp)
-    fclose ((FILE *) fp);
+    fclose (fp);
 
   /* Maybe fill in the background field while we have ximg handy. */
   if (NILP (image_spec_value (img->spec, QCbackground, NULL)))
@@ -6502,6 +6562,13 @@ jpeg_load (struct frame *f, struct image *img)
   x_put_x_image (f, ximg, img->pixmap, width, height);
   x_destroy_x_image (ximg);
   return 1;
+}
+
+static int
+jpeg_load (struct frame *f, struct image *img)
+{
+  struct my_jpeg_error_mgr mgr;
+  return jpeg_load_body (f, img, &mgr);
 }
 
 #else /* HAVE_JPEG */

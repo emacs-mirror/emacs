@@ -28,7 +28,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <fcntl.h>
 #include <signal.h>
 #include <sys/file.h>
-#include <setjmp.h>
 
 /* must include CRT headers *before* config.h */
 #include <config.h>
@@ -87,6 +86,29 @@ sys_signal (int sig, signal_handler handler)
   old = sig_handlers[sig];
   sig_handlers[sig] = handler;
   return old;
+}
+
+/* Emulate sigaction. */
+int
+sigaction (int sig, const struct sigaction *act, struct sigaction *oact)
+{
+  signal_handler old;
+
+  if (sig != SIGCHLD)
+    {
+      errno = EINVAL;
+      return -1;
+    }
+  old = sig_handlers[sig];
+  if (act)
+    sig_handlers[sig] = act->sa_handler;
+  if (oact)
+    {
+      oact->sa_handler = old;
+      oact->sa_flags = 0;
+      oact->sa_mask = empty_mask;
+    }
+  return 0;
 }
 
 /* Defined in <process.h> which conflicts with the local copy */
@@ -162,7 +184,7 @@ delete_child (child_process *cp)
   /* Should not be deleting a child that is still needed. */
   for (i = 0; i < MAXDESC; i++)
     if (fd_info[i].cp == cp)
-      abort ();
+      emacs_abort ();
 
   if (!CHILD_ACTIVE (cp))
     return;
@@ -302,7 +324,7 @@ create_child (char *exe, char *cmdline, char *env, int is_gui_app,
   DWORD flags;
   char dir[ MAXPATHLEN ];
 
-  if (cp == NULL) abort ();
+  if (cp == NULL) emacs_abort ();
 
   memset (&start, 0, sizeof (start));
   start.cb = sizeof (start);
@@ -391,7 +413,7 @@ register_child (int pid, int fd)
   if (fd_info[fd].cp != NULL)
     {
       DebPrint (("register_child: fd_info[%d] apparently in use!\n", fd));
-      abort ();
+      emacs_abort ();
     }
 
   fd_info[fd].cp = cp;
@@ -445,7 +467,7 @@ sys_wait (int *status)
       /* We want to wait for a specific child */
       wait_hnd[nh] = dead_child->procinfo.hProcess;
       cps[nh] = dead_child;
-      if (!wait_hnd[nh]) abort ();
+      if (!wait_hnd[nh]) emacs_abort ();
       nh++;
       active = 0;
       goto get_result;
@@ -493,7 +515,7 @@ sys_wait (int *status)
       active -= WAIT_ABANDONED_0;
     }
   else
-    abort ();
+    emacs_abort ();
 
 get_result:
   if (!GetExitCodeProcess (wait_hnd[active], &retval))
@@ -1175,7 +1197,7 @@ sys_select (int nfds, SELECT_TYPE *rfds, SELECT_TYPE *wfds, SELECT_TYPE *efds,
 #endif
 		wait_hnd[nh] = cp->char_avail;
 		fdindex[nh] = i;
-		if (!wait_hnd[nh]) abort ();
+		if (!wait_hnd[nh]) emacs_abort ();
 		nh++;
 #ifdef FULL_DEBUG
 		DebPrint (("select waiting on child %d fd %d\n",
@@ -1262,7 +1284,7 @@ count_children:
       active -= WAIT_ABANDONED_0;
     }
   else
-    abort ();
+    emacs_abort ();
 
   /* Loop over all handles after active (now officially documented as
      being the first signaled handle in the array).  We do this to
@@ -1391,6 +1413,9 @@ sys_kill (int pid, int sig)
   HANDLE proc_hand;
   int need_to_free = 0;
   int rc = 0;
+
+  if (pid == getpid () && sig == SIGABRT)
+    emacs_abort ();
 
   /* Only handle signals that will result in the process dying */
   if (sig != SIGINT && sig != SIGKILL && sig != SIGQUIT && sig != SIGHUP)

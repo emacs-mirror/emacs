@@ -185,11 +185,10 @@ The return value is undefined.
                    ((and (featurep 'cl)
                          (memq (car x)  ;C.f. cl-do-proclaim.
                                '(special inline notinline optimize warn)))
-                    (if (null (stringp docstring))
-                        (push (list 'declare x) body)
-                      (setcdr body (cons (list 'declare x) (cdr body))))
+                    (push (list 'declare x)
+                          (if (stringp docstring) (cdr body) body))
                     nil)
-                   (t (message "Warning: Unknown defun property %S in %S"
+                   (t (message "Warning: Unknown defun property `%S' in %S"
                                (car x) name)))))
                    decls))
           (def (list 'defalias
@@ -313,7 +312,7 @@ This uses `defvaralias' and `make-obsolete-variable' (which see).
 See the Info node `(elisp)Variable Aliases' for more details.
 
 If CURRENT-NAME is a defcustom (more generally, any variable
-where OBSOLETE-NAME may be set, e.g. in a .emacs file, before the
+where OBSOLETE-NAME may be set, e.g. in an init file, before the
 alias is defined), then the define-obsolete-variable-alias
 statement should be evaluated before the defcustom, if user
 customizations are to be respected.  The simplest way to achieve

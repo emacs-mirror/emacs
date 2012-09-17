@@ -41,7 +41,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define INTERVALS_INLINE EXTERN_INLINE
 
-#include <setjmp.h>
 #include <intprops.h>
 #include "lisp.h"
 #include "intervals.h"
@@ -199,13 +198,13 @@ intervals_equal (INTERVAL i0, INTERVAL i1)
       i0_sym = XCAR (i0_cdr);
       i0_cdr = XCDR (i0_cdr);
       if (!CONSP (i0_cdr))
-	return 0;		/* abort (); */
+	return 0;
       i1_val = i1->plist;
       while (CONSP (i1_val) && !EQ (XCAR (i1_val), i0_sym))
 	{
 	  i1_val = XCDR (i1_val);
 	  if (!CONSP (i1_val))
-	    return 0;		/* abort (); */
+	    return 0;
 	  i1_val = XCDR (i1_val);
 	}
 
@@ -223,7 +222,7 @@ intervals_equal (INTERVAL i0, INTERVAL i1)
 
       i1_cdr = XCDR (i1_cdr);
       if (!CONSP (i1_cdr))
-	return 0;		/* abort (); */
+	return 0;
       i1_cdr = XCDR (i1_cdr);
     }
 
@@ -674,8 +673,7 @@ find_interval (register INTERVAL tree, register ptrdiff_t position)
 
   eassert (relative_position <= TOTAL_LENGTH (tree));
 
-  if (!handling_signal)
-    tree = balance_possible_root_interval (tree);
+  tree = balance_possible_root_interval (tree);
 
   while (1)
     {
@@ -1253,7 +1251,7 @@ delete_interval (register INTERVAL i)
       else if (STRINGP (owner))
 	set_string_intervals (owner, parent);
       else
-	abort ();
+	emacs_abort ();
 
       return;
     }
@@ -1408,7 +1406,7 @@ offset_intervals (struct buffer *buffer, ptrdiff_t start, ptrdiff_t length)
 				    start, length);
   else
     {
-      IF_LINT (if (length < - TYPE_MAXIMUM (ptrdiff_t)) abort ();)
+      lint_assume (- TYPE_MAXIMUM (ptrdiff_t) <= length);
       adjust_intervals_for_deletion (buffer, start, -length);
     }
 }
@@ -1468,7 +1466,7 @@ merge_interval_right (register INTERVAL i)
 
   /* This must be the rightmost or last interval and cannot
      be merged right.  The caller should have known.  */
-  abort ();
+  emacs_abort ();
 }
 
 /* Merge interval I with its lexicographic predecessor. The resulting
@@ -1524,7 +1522,7 @@ merge_interval_left (register INTERVAL i)
 
   /* This must be the leftmost or first interval and cannot
      be merged left.  The caller should have known.  */
-  abort ();
+  emacs_abort ();
 }
 
 /* Create a copy of SOURCE but with the default value of UP.  */
@@ -2170,7 +2168,7 @@ get_property_and_range (ptrdiff_t pos, Lisp_Object prop, Lisp_Object *val,
   else if (STRINGP (object))
     i = find_interval (string_intervals (object), pos);
   else
-    abort ();
+    emacs_abort ();
 
   if (!i || (i->position + LENGTH (i) <= pos))
     return 0;
@@ -2209,7 +2207,7 @@ get_local_map (register ptrdiff_t position, register struct buffer *buffer,
 
   /* Perhaps we should just change `position' to the limit.  */
   if (position > BUF_ZV (buffer) || position < BUF_BEGV (buffer))
-    abort ();
+    emacs_abort ();
 
   /* Ignore narrowing, so that a local map continues to be valid even if
      the visible region contains no characters and hence no properties.  */

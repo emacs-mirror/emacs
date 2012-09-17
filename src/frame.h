@@ -81,9 +81,6 @@ enum fullscreen_type
 #define FRAME_FOREGROUND_PIXEL(f) ((f)->foreground_pixel)
 #define FRAME_BACKGROUND_PIXEL(f) ((f)->background_pixel)
 
-struct terminal;
-
-struct font_driver_list;
 
 struct frame
 {
@@ -981,7 +978,7 @@ extern Lisp_Object selected_frame;
      ((FRAMEP (selected_frame)				\
        && FRAME_LIVE_P (XFRAME (selected_frame)))	\
       ? XFRAME (selected_frame)				\
-      : (abort (), (struct frame *) 0))
+      : (emacs_abort (), (struct frame *) 0))
 
 
 /***********************************************************************

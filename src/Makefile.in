@@ -252,9 +252,6 @@ MSDOS_OBJ =
 ## w16select.o termcap.o if MSDOS && HAVE_X_WINDOWS.
 MSDOS_X_OBJ =
 
-ns_appdir=@ns_appdir@
-ns_appbindir=@ns_appbindir@
-ns_appsrc=@ns_appsrc@
 NS_OBJ=@NS_OBJ@
 ## nsterm.o nsfns.o nsmenu.o nsselect.o nsimage.o nsfont.o if HAVE_NS.
 NS_OBJC_OBJ=@NS_OBJC_OBJ@
@@ -453,7 +450,7 @@ GLOBAL_SOURCES = $(base_obj:.o=.c) $(NS_OBJC_OBJ:.o=.m)
 
 gl-stamp: $(libsrc)/make-docfile$(EXEEXT) $(GLOBAL_SOURCES)
 	@rm -f gl-tmp
-	$(libsrc)/make-docfile -d $(srcdir) -g $(SOME_MACHINE_OBJECTS) $(obj) > gl-tmp
+	$(libsrc)/make-docfile -d $(srcdir) -g $(obj) > gl-tmp
 	$(srcdir)/../build-aux/move-if-change gl-tmp globals.h
 	echo timestamp > $@
 
@@ -506,8 +503,9 @@ $(OLDXMENU): $(OLDXMENU_TARGET)
 doc.o: buildobj.h
 
 
-## If HAVE_NS, some ns-specific rules (for OTHER_FILES) are inserted here.
-@ns_frag@
+ns-app: emacs$(EXEEXT)
+	cd ../nextstep && $(MAKE) $(MFLAGS) all
+
 
 .PHONY: mostlyclean clean bootstrap-clean distclean maintainer-clean
 .PHONY: versionclean extraclean frc
@@ -521,7 +519,6 @@ mostlyclean:
 clean: mostlyclean
 	rm -f emacs-*.*.*$(EXEEXT) emacs$(EXEEXT)
 	-rm -rf $(DEPDIR)
-	test "X$(ns_appdir)" = "X" || rm -rf $(ns_appdir)
 
 ## bootstrap-clean is used to clean up just before a bootstrap.
 ## It should remove all files generated during a compilation/bootstrap,

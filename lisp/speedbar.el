@@ -706,7 +706,7 @@ will be stripped by a simplified optimizer when compiled into a
 singular expression.  This variable will be turned into
 `speedbar-file-regexp' for use with speedbar.  You should use the
 function `speedbar-add-supported-extension' to add a new extension at
-runtime, or use the configuration dialog to set it in your .emacs file.
+runtime, or use the configuration dialog to set it in your init file.
 If you add an extension to this list, and it does not appear, you may
 need to also modify `completion-ignored-extension' which will also help
 file completion."
@@ -763,7 +763,7 @@ DIRECTORY-EXPRESSION to `speedbar-ignored-directory-expressions'."
   "Non-nil means to automatically update the display.
 When this is nil then speedbar will not follow the attached frame's directory.
 If you want to change this while speedbar is active, either use
-\\[customize] or call \\<speedbar-key-map> `\\[speedbar-toggle-updates]'."
+\\[customize] or call \\<speedbar-mode-map> `\\[speedbar-toggle-updates]'."
   :group 'speedbar
   :initialize 'custom-initialize-default
   :set (lambda (sym val)
@@ -1083,7 +1083,7 @@ Return nil if it doesn't exist."
 
 (define-derived-mode speedbar-mode fundamental-mode "Speedbar"
   "Major mode for managing a display of directories and tags.
-\\<speedbar-key-map>
+\\<speedbar-mode-map>
 The first line represents the default directory of the speedbar frame.
 Each directory segment is a button which jumps speedbar's default
 directory to that directory.  Buttons are activated by clicking `\\[speedbar-click]'.
@@ -1120,7 +1120,7 @@ category of tags.  Click the {+} to expand the category.  Jump-able
 tags start with >.  Click the name of the tag to go to that position
 in the selected file.
 
-\\{speedbar-key-map}"
+\\{speedbar-mode-map}"
   (save-excursion
     (setq font-lock-keywords nil) ;; no font-locking please
     (setq truncate-lines t)

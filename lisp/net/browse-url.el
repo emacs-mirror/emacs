@@ -122,8 +122,7 @@
 ;; the buffer, use:
 ;; M-x browse-url
 
-;; To display a URL by shift-clicking on it, put this in your ~/.emacs
-;; file:
+;; To display a URL by shift-clicking on it, put this in your init file:
 ;;      (global-set-key [S-mouse-2] 'browse-url-at-mouse)
 ;; (Note that using Shift-mouse-1 is not desirable because
 ;; that event has a standard meaning in Emacs.)
@@ -743,7 +742,7 @@ narrowed."
     (and buffer (set-buffer buffer))
     (let ((file-name
 	   ;; Ignore real name if restricted
-	   (and (= (- (point-max) (point-min)) (buffer-size))
+	   (and (not (buffer-narrowed-p))
 		(or buffer-file-name
 		    (and (boundp 'dired-directory) dired-directory)))))
       (or file-name

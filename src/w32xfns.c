@@ -19,7 +19,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <config.h>
 #include <signal.h>
 #include <stdio.h>
-#include <setjmp.h>
 
 #include "lisp.h"
 #include "keyboard.h"
@@ -131,7 +130,7 @@ get_frame_dc (FRAME_PTR f)
   HDC hdc;
 
   if (f->output_method != output_w32)
-    abort ();
+    emacs_abort ();
 
   enter_crit ();
 

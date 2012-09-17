@@ -28,7 +28,7 @@
 ;; time.
 ;;
 ;; To use this package, put it in a directory in your load-path, and
-;; put this in your .emacs file:
+;; put this in your init file:
 ;;
 ;; (load "mail-hist" nil t)
 ;;

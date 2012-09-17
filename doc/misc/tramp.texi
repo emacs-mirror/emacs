@@ -2853,6 +2853,9 @@ If you can identify a minimal test case that reproduces the problem,
 include that with your bug report.  This will make it much easier for
 the development team to analyze and correct the problem.
 
+Sometimes, there might be also problems due to Tramp caches.  Flush
+all caches before running the test, @ref{Cleanup remote connections}.
+
 Before reporting the bug, you should set the verbosity level to 6
 (@pxref{Traces and Profiles, Traces}) in the @file{~/.emacs} file and
 repeat the bug.  Then, include the contents of the @file{*tramp/foo*}

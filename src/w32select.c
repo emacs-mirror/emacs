@@ -73,7 +73,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
  */
 
 #include <config.h>
-#include <setjmp.h>
 #include "lisp.h"
 #include "w32term.h"	/* for all of the w32 includes */
 #include "w32heap.h"	/* os_subtype */
@@ -399,7 +398,7 @@ run_protected (Lisp_Object (*code) (Lisp_Object), Lisp_Object arg)
 
   BLOCK_INPUT;
 
-  /* Fsignal calls abort() if it sees that waiting_for_input is
+  /* Fsignal calls emacs_abort () if it sees that waiting_for_input is
      set.  */
   owfi = waiting_for_input;
   waiting_for_input = 0;

@@ -290,9 +290,9 @@ If this variable is nil, all regions are treated as small."
 ;;*    Mode specific options enable users to disable flyspell on        */
 ;;*    certain word depending of the emacs mode. For instance, when     */
 ;;*    using flyspell with mail-mode add the following expression       */
-;;*    in your .emacs file:                                             */
+;;*    in your init file:                                               */
 ;;*       (add-hook 'mail-mode                                          */
-;;*    	     (lambda () (setq flyspell-generic-check-word-predicate    */
+;;*    	     (lambda () (setq flyspell-generic-check-word-predicate     */
 ;;*    			       'mail-mode-flyspell-verify)))            */
 ;;*---------------------------------------------------------------------*/
 (defvar flyspell-generic-check-word-predicate nil
@@ -488,7 +488,7 @@ invoking `ispell-change-dictionary'.
 Consider using the `ispell-parser' to check your text.  For instance
 consider adding:
 \(add-hook 'tex-mode-hook (function (lambda () (setq ispell-parser 'tex))))
-in your .emacs file.
+in your init file.
 
 \\[flyspell-region] checks all words inside a region.
 \\[flyspell-buffer] checks the whole buffer."

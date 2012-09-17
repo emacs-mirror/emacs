@@ -3292,11 +3292,33 @@ or in the synonym headers, defined by `message-header-synonyms'."
 (defun message-insert-newsgroups ()
   "Insert the Newsgroups header from the article being replied to."
   (interactive)
-  (when (and (message-position-on-field "Newsgroups")
-	     (mail-fetch-field "newsgroups")
-	     (not (string-match "\\` *\\'" (mail-fetch-field "newsgroups"))))
-    (insert ","))
-  (insert (or (message-fetch-reply-field "newsgroups") "")))
+  (let ((old-newsgroups (mail-fetch-field "newsgroups"))
+	(new-newsgroups (message-fetch-reply-field "newsgroups"))
+	(first t)
+	insert-newsgroups)
+    (message-position-on-field "Newsgroups")
+    (cond
+     ((not new-newsgroups)
+      (error "No Newsgroups to insert"))
+     ((not old-newsgroups)
+      (insert new-newsgroups))
+     (t
+      (setq new-newsgroups (split-string new-newsgroups "[, ]+")
+	    old-newsgroups (split-string old-newsgroups "[, ]+"))
+      (dolist (group new-newsgroups)
+	(unless (member group old-newsgroups)
+	  (push group insert-newsgroups)))
+      (if (null insert-newsgroups)
+	  (error "Newgroup%s already in the header"
+		 (if (> (length new-newsgroups) 1)
+		     "s" ""))
+	(when old-newsgroups
+	  (setq first nil))
+	(dolist (group insert-newsgroups)
+	  (unless first
+	    (insert ","))
+	  (setq first nil)
+	  (insert group)))))))
 
 
 

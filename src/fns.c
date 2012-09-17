@@ -21,7 +21,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <unistd.h>
 #include <time.h>
-#include <setjmp.h>
 
 #include <intprops.h>
 
@@ -51,11 +50,7 @@ static Lisp_Object Qcodeset, Qdays, Qmonths, Qpaper;
 
 static Lisp_Object Qmd5, Qsha1, Qsha224, Qsha256, Qsha384, Qsha512;
 
-static int internal_equal (Lisp_Object , Lisp_Object, int, int);
-
-#ifndef HAVE_UNISTD_H
-extern long time ();
-#endif
+static bool internal_equal (Lisp_Object, Lisp_Object, int, bool);
 
 DEFUN ("identity", Fidentity, Sidentity, 1, 1, 0,
        doc: /* Return the argument unchanged.  */)
@@ -356,7 +351,7 @@ Symbols are also allowed; their print names are used instead.  */)
 }
 
 static Lisp_Object concat (ptrdiff_t nargs, Lisp_Object *args,
-			   enum Lisp_Type target_type, int last_special);
+			   enum Lisp_Type target_type, bool last_special);
 
 /* ARGSUSED */
 Lisp_Object
@@ -454,19 +449,19 @@ struct textprop_rec
 
 static Lisp_Object
 concat (ptrdiff_t nargs, Lisp_Object *args,
-	enum Lisp_Type target_type, int last_special)
+	enum Lisp_Type target_type, bool last_special)
 {
   Lisp_Object val;
-  register Lisp_Object tail;
-  register Lisp_Object this;
+  Lisp_Object tail;
+  Lisp_Object this;
   ptrdiff_t toindex;
   ptrdiff_t toindex_byte = 0;
-  register EMACS_INT result_len;
-  register EMACS_INT result_len_byte;
+  EMACS_INT result_len;
+  EMACS_INT result_len_byte;
   ptrdiff_t argnum;
   Lisp_Object last_tail;
   Lisp_Object prev;
-  int some_multibyte;
+  bool some_multibyte;
   /* When we make a multibyte string, we can't copy text properties
      while concatenating each string because the length of resulting
      string can't be decided until we finish the whole concatenation.
@@ -1531,11 +1526,14 @@ The value is actually the first element of LIST whose cdr equals KEY.  */)
 }
 
 DEFUN ("delq", Fdelq, Sdelq, 2, 2, 0,
-       doc: /* Delete by side effect any occurrences of ELT as a member of LIST.
-The modified LIST is returned.  Comparison is done with `eq'.
-If the first member of LIST is ELT, there is no way to remove it by side effect;
-therefore, write `(setq foo (delq element foo))'
-to be sure of changing the value of `foo'.  */)
+       doc: /* Delete members of LIST which are `eq' to ELT, and return the result.
+More precisely, this function skips any members `eq' to ELT at the
+front of LIST, then removes members `eq' to ELT from the remaining
+sublist by modifying its list structure, then returns the resulting
+list.
+
+Write `(setq foo (delq element foo))' to be sure of correctly changing
+the value of a list `foo'.  */)
   (register Lisp_Object elt, Lisp_Object list)
 {
   register Lisp_Object tail, prev;
@@ -1563,13 +1561,19 @@ to be sure of changing the value of `foo'.  */)
 }
 
 DEFUN ("delete", Fdelete, Sdelete, 2, 2, 0,
-       doc: /* Delete by side effect any occurrences of ELT as a member of SEQ.
-SEQ must be a list, a vector, or a string.
-The modified SEQ is returned.  Comparison is done with `equal'.
-If SEQ is not a list, or the first member of SEQ is ELT, deleting it
-is not a side effect; it is simply using a different sequence.
-Therefore, write `(setq foo (delete element foo))'
-to be sure of changing the value of `foo'.  */)
+       doc: /* Delete members of SEQ which are `equal' to ELT, and return the result.
+SEQ must be a sequence (i.e. a list, a vector, or a string).
+The return value is a sequence of the same type.
+
+If SEQ is a list, this behaves like `delq', except that it compares
+with `equal' instead of `eq'.  In particular, it may remove elements
+by altering the list structure.
+
+If SEQ is not a list, deletion is never performed destructively;
+instead this function creates and returns a new vector or string.
+
+Write `(setq foo (delete element foo))' to be sure of correctly
+changing the value of a sequence `foo'.  */)
   (Lisp_Object elt, Lisp_Object seq)
 {
   if (VECTORP (seq))
@@ -1992,10 +1996,10 @@ of strings.  (`equal' ignores text properties.)  */)
 
 /* DEPTH is current depth of recursion.  Signal an error if it
    gets too deep.
-   PROPS, if non-nil, means compare string text properties too.  */
+   PROPS means compare string text properties too.  */
 
-static int
-internal_equal (register Lisp_Object o1, register Lisp_Object o2, int depth, int props)
+static bool
+internal_equal (Lisp_Object o1, Lisp_Object o2, int depth, bool props)
 {
   if (depth > 200)
     error ("Stack overflow in equal");
@@ -2593,9 +2597,9 @@ Normally the return value is FEATURE.
 The normal messages at start and end of loading FILENAME are suppressed.  */)
   (Lisp_Object feature, Lisp_Object filename, Lisp_Object noerror)
 {
-  register Lisp_Object tem;
+  Lisp_Object tem;
   struct gcpro gcpro1, gcpro2;
-  int from_file = load_in_progress;
+  bool from_file = load_in_progress;
 
   CHECK_SYMBOL (feature);
 
@@ -2921,8 +2925,8 @@ static const short base64_char_to_value[128] =
    base64 characters.  */
 
 
-static ptrdiff_t base64_encode_1 (const char *, char *, ptrdiff_t, int, int);
-static ptrdiff_t base64_decode_1 (const char *, char *, ptrdiff_t, int,
+static ptrdiff_t base64_encode_1 (const char *, char *, ptrdiff_t, bool, bool);
+static ptrdiff_t base64_decode_1 (const char *, char *, ptrdiff_t, bool,
 				  ptrdiff_t *);
 
 DEFUN ("base64-encode-region", Fbase64_encode_region, Sbase64_encode_region,
@@ -2957,7 +2961,7 @@ into shorter lines.  */)
 				    encoded, length, NILP (no_line_break),
 				    !NILP (BVAR (current_buffer, enable_multibyte_characters)));
   if (encoded_length > allength)
-    abort ();
+    emacs_abort ();
 
   if (encoded_length < 0)
     {
@@ -3013,7 +3017,7 @@ into shorter lines.  */)
 				    encoded, length, NILP (no_line_break),
 				    STRING_MULTIBYTE (string));
   if (encoded_length > allength)
-    abort ();
+    emacs_abort ();
 
   if (encoded_length < 0)
     {
@@ -3030,7 +3034,7 @@ into shorter lines.  */)
 
 static ptrdiff_t
 base64_encode_1 (const char *from, char *to, ptrdiff_t length,
-		 int line_break, int multibyte)
+		 bool line_break, bool multibyte)
 {
   int counter = 0;
   ptrdiff_t i = 0;
@@ -3137,7 +3141,7 @@ If the region can't be decoded, signal an error and don't modify the buffer.  */
   ptrdiff_t old_pos = PT;
   ptrdiff_t decoded_length;
   ptrdiff_t inserted_chars;
-  int multibyte = !NILP (BVAR (current_buffer, enable_multibyte_characters));
+  bool multibyte = !NILP (BVAR (current_buffer, enable_multibyte_characters));
   USE_SAFE_ALLOCA;
 
   validate_region (&beg, &end);
@@ -3158,7 +3162,7 @@ If the region can't be decoded, signal an error and don't modify the buffer.  */
 				    decoded, length,
 				    multibyte, &inserted_chars);
   if (decoded_length > allength)
-    abort ();
+    emacs_abort ();
 
   if (decoded_length < 0)
     {
@@ -3208,7 +3212,7 @@ DEFUN ("base64-decode-string", Fbase64_decode_string, Sbase64_decode_string,
   decoded_length = base64_decode_1 (SSDATA (string), decoded, length,
 				    0, NULL);
   if (decoded_length > length)
-    abort ();
+    emacs_abort ();
   else if (decoded_length >= 0)
     decoded_string = make_unibyte_string (decoded, decoded_length);
   else
@@ -3222,13 +3226,13 @@ DEFUN ("base64-decode-string", Fbase64_decode_string, Sbase64_decode_string,
 }
 
 /* Base64-decode the data at FROM of LENGTH bytes into TO.  If
-   MULTIBYTE is nonzero, the decoded result should be in multibyte
+   MULTIBYTE, the decoded result should be in multibyte
    form.  If NCHARS_RETURN is not NULL, store the number of produced
    characters in *NCHARS_RETURN.  */
 
 static ptrdiff_t
 base64_decode_1 (const char *from, char *to, ptrdiff_t length,
-		 int multibyte, ptrdiff_t *nchars_return)
+		 bool multibyte, ptrdiff_t *nchars_return)
 {
   ptrdiff_t i = 0;		/* Used inside READ_QUADRUPLET_BYTE */
   char *e = to;
@@ -3344,7 +3348,7 @@ static Lisp_Object Qhash_table_test, Qkey_or_value, Qkey_and_value;
 static struct Lisp_Hash_Table *check_hash_table (Lisp_Object);
 static ptrdiff_t get_key_arg (Lisp_Object, ptrdiff_t, Lisp_Object *, char *);
 static void maybe_resize_hash_table (struct Lisp_Hash_Table *);
-static int sweep_weak_table (struct Lisp_Hash_Table *, int);
+static bool sweep_weak_table (struct Lisp_Hash_Table *, bool);
 
 
 
@@ -3436,10 +3440,10 @@ larger_vector (Lisp_Object vec, ptrdiff_t incr_min, ptrdiff_t nitems_max)
  ***********************************************************************/
 
 /* Compare KEY1 which has hash code HASH1 and KEY2 with hash code
-   HASH2 in hash table H using `eql'.  Value is non-zero if KEY1 and
+   HASH2 in hash table H using `eql'.  Value is true if KEY1 and
    KEY2 are the same.  */
 
-static int
+static bool
 cmpfn_eql (struct Lisp_Hash_Table *h,
 	   Lisp_Object key1, EMACS_UINT hash1,
 	   Lisp_Object key2, EMACS_UINT hash2)
@@ -3451,10 +3455,10 @@ cmpfn_eql (struct Lisp_Hash_Table *h,
 
 
 /* Compare KEY1 which has hash code HASH1 and KEY2 with hash code
-   HASH2 in hash table H using `equal'.  Value is non-zero if KEY1 and
+   HASH2 in hash table H using `equal'.  Value is true if KEY1 and
    KEY2 are the same.  */
 
-static int
+static bool
 cmpfn_equal (struct Lisp_Hash_Table *h,
 	     Lisp_Object key1, EMACS_UINT hash1,
 	     Lisp_Object key2, EMACS_UINT hash2)
@@ -3464,10 +3468,10 @@ cmpfn_equal (struct Lisp_Hash_Table *h,
 
 
 /* Compare KEY1 which has hash code HASH1, and KEY2 with hash code
-   HASH2 in hash table H using H->user_cmp_function.  Value is non-zero
+   HASH2 in hash table H using H->user_cmp_function.  Value is true
    if KEY1 and KEY2 are the same.  */
 
-static int
+static bool
 cmpfn_user_defined (struct Lisp_Hash_Table *h,
 		    Lisp_Object key1, EMACS_UINT hash1,
 		    Lisp_Object key2, EMACS_UINT hash2)
@@ -3675,7 +3679,7 @@ copy_hash_table (struct Lisp_Hash_Table *h1)
 
   h2 = allocate_hash_table ();
   next = h2->header.next.vector;
-  memcpy (h2, h1, sizeof *h2);
+  *h2 = *h1;
   h2->header.next.vector = next;
   h2->key_and_value = Fcopy_sequence (h1->key_and_value);
   h2->hash = Fcopy_sequence (h1->hash);
@@ -3927,16 +3931,16 @@ hash_clear (struct Lisp_Hash_Table *h)
 			   Weak Hash Tables
  ************************************************************************/
 
-/* Sweep weak hash table H.  REMOVE_ENTRIES_P non-zero means remove
+/* Sweep weak hash table H.  REMOVE_ENTRIES_P means remove
    entries from the table that don't survive the current GC.
-   REMOVE_ENTRIES_P zero means mark entries that are in use.  Value is
-   non-zero if anything was marked.  */
+   !REMOVE_ENTRIES_P means mark entries that are in use.  Value is
+   true if anything was marked.  */
 
-static int
-sweep_weak_table (struct Lisp_Hash_Table *h, int remove_entries_p)
+static bool
+sweep_weak_table (struct Lisp_Hash_Table *h, bool remove_entries_p)
 {
   ptrdiff_t bucket, n;
-  int marked;
+  bool marked;
 
   n = ASIZE (h->index) & ~ARRAY_MARK_FLAG;
   marked = 0;
@@ -3953,7 +3957,7 @@ sweep_weak_table (struct Lisp_Hash_Table *h, int remove_entries_p)
 	  ptrdiff_t i = XFASTINT (idx);
 	  bool key_known_to_survive_p = survives_gc_p (HASH_KEY (h, i));
 	  bool value_known_to_survive_p = survives_gc_p (HASH_VALUE (h, i));
-	  int remove_p;
+	  bool remove_p;
 
 	  if (EQ (h->weak, Qkey))
 	    remove_p = !key_known_to_survive_p;
@@ -3964,7 +3968,7 @@ sweep_weak_table (struct Lisp_Hash_Table *h, int remove_entries_p)
 	  else if (EQ (h->weak, Qkey_and_value))
 	    remove_p = !(key_known_to_survive_p && value_known_to_survive_p);
 	  else
-	    abort ();
+	    emacs_abort ();
 
 	  next = HASH_NEXT (h, i);
 
@@ -4026,7 +4030,7 @@ void
 sweep_weak_hash_tables (void)
 {
   struct Lisp_Hash_Table *h, *used, *next;
-  int marked;
+  bool marked;
 
   /* Mark all keys and values that are in use.  Keep on marking until
      there is no more change.  This is necessary for cases like
@@ -4260,7 +4264,7 @@ sxhash (Lisp_Object obj, int depth)
       break;
 
     default:
-      abort ();
+      emacs_abort ();
     }
 
   return hash;
@@ -4678,7 +4682,7 @@ secure_hash (Lisp_Object algorithm, Lisp_Object object, Lisp_Object start, Lisp_
 	    coding_system = Vcoding_system_for_write;
 	  else
 	    {
-	      int force_raw_text = 0;
+	      bool force_raw_text = 0;
 
 	      coding_system = BVAR (XBUFFER (object), buffer_file_coding_system);
 	      if (NILP (coding_system)

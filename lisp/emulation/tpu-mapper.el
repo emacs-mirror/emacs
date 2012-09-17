@@ -81,7 +81,7 @@ Finally, you will be prompted for the name of the file to store the key
 definitions.  If you chose the default, TPU-edt will find it and load it
 automatically.  If you specify a different file name, you will need to
 set the variable ``tpu-xkeys-file'' before starting TPU-edt.  Here's how
-you might go about doing that in your .emacs file.
+you might go about doing that in your init file.
 
   (setq tpu-xkeys-file (expand-file-name \"~/.my-emacs-x-keys\"))
   (tpu-edt)

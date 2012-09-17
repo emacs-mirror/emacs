@@ -163,8 +163,8 @@
 ;;    and type `tpu-edt' followed by a carriage return.
 
 ;;    If you like TPU-edt and want to use it all the time, you can start
-;;    TPU-edt using the Emacs initialization file, .emacs.  Simply create
-;;    a .emacs file in your home directory containing the line:
+;;    TPU-edt using the Emacs initialization file, .emacs.  Simply add
+;;    the following line to your init file:
 
 ;;        (tpu-edt)
 
@@ -2440,7 +2440,7 @@ If FILE is nil, try to load a default file.  The default file names are
 
 
 ;;;### (autoloads (tpu-set-cursor-bound tpu-set-cursor-free tpu-set-scroll-margins
-;;;;;;  tpu-cursor-free-mode) "tpu-extras" "tpu-extras.el" "76f06905db4c5bfb3b86491a51512a0e")
+;;;;;;  tpu-cursor-free-mode) "tpu-extras" "tpu-extras.el" "bf5e7322f9a2c324a3bb306415813374")
 ;;; Generated autoloads from tpu-extras.el
 
 (autoload 'tpu-cursor-free-mode "tpu-extras" "\

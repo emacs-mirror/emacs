@@ -3293,7 +3293,9 @@ for process communication also."
       ;; Under Windows XP, accept-process-output doesn't return
       ;; sometimes.  So we add an additional timeout.
       (with-timeout ((or timeout 1))
-	(accept-process-output proc timeout timeout-msecs (and proc t))))
+	(if (featurep 'xemacs)
+	    (accept-process-output proc timeout timeout-msecs)
+	  (accept-process-output proc timeout timeout-msecs (and proc t)))))
     (tramp-message proc 10 "\n%s" (buffer-string))))
 
 (defun tramp-check-for-regexp (proc regexp)

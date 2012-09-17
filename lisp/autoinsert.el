@@ -36,7 +36,7 @@
 ;;     setq auto-insert-directory to an appropriate slash-terminated value
 ;;
 ;;  You can also customize the variable `auto-insert-mode' to load the
-;;  package.  Alternatively, add the following to your .emacs file:
+;;  package.  Alternatively, add the following to your init file:
 ;;  (auto-insert-mode 1)
 ;;
 ;;  Author:  Charlie Martin

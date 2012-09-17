@@ -1,3 +1,22 @@
+2012-09-17  Glenn Morris  <rgm@gnu.org>
+
+	* templates/Info-gnustep.plist.in, templates/InfoPlist.strings.in:
+	* templates/Info.plist.in: Let configure set copyright.
+
+2012-09-16  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in: New file.
+	* templates: New directory.
+	* templates/Emacs.desktop.in, templates/Info-gnustep.plist.in:
+	* templates/Info.plist.in, templates/InfoPlist.strings.in:
+	Move here from various Cocoa/, GNUstep/ locations.
+	Let configure set the version number.
+	* Cocoa/Emacs.base/Contents/Info.plist:
+	* Cocoa/Emacs.base/Contents/Resources/English.lproj/InfoPlist.strings:
+	* GNUstep/Emacs.base/Resources/Info-gnustep.plist:
+	* GNUstep/Emacs.base/Resources/Emacs.desktop: Move to templates/.
+	* Cocoa/Emacs.base/Contents/Resources/English.lproj: Remove directory.
+
 2012-04-07  Glenn Morris  <rgm@gnu.org>
 
 	* Cocoa/Emacs.base/Contents/Info.plist:

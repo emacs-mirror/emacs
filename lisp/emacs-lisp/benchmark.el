@@ -53,6 +53,7 @@ FORMS once.
 Return a list of the total elapsed time for execution, the number of
 garbage collections that ran, and the time taken by garbage collection.
 See also `benchmark-run-compiled'."
+  (declare (indent 1) (debug t))
   (unless (natnump repetitions)
     (setq forms (cons repetitions forms)
 	  repetitions 1))
@@ -69,8 +70,6 @@ See also `benchmark-run-compiled'."
 		`(benchmark-elapse ,@forms))
 	     (- gcs-done ,gcs)
 	     (- gc-elapsed ,gc)))))
-(put 'benchmark-run 'edebug-form-spec t)
-(put 'benchmark-run 'lisp-indent-function 2)
 
 ;;;###autoload
 (defmacro benchmark-run-compiled (&optional repetitions &rest forms)
@@ -78,6 +77,7 @@ See also `benchmark-run-compiled'."
 This is like `benchmark-run', but what is timed is a funcall of the
 byte code obtained by wrapping FORMS in a `lambda' and compiling the
 result.  The overhead of the `lambda's is accounted for."
+  (declare (indent 1) (debug t))
   (unless (natnump repetitions)
     (setq forms (cons repetitions forms)
 	  repetitions 1))
@@ -96,8 +96,6 @@ result.  The overhead of the `lambda's is accounted for."
 					  (funcall ,lambda-code))))
 		`(benchmark-elapse (funcall ,code)))
 	     (- gcs-done ,gcs) (- gc-elapsed ,gc)))))
-(put 'benchmark-run-compiled 'edebug-form-spec t)
-(put 'benchmark-run-compiled 'lisp-indent-function 2)
 
 ;;;###autoload
 (defun benchmark (repetitions form)
