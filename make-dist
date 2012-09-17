@@ -408,7 +408,7 @@ echo "Making links to \`nextstep'"
 
 echo "Making links to \`nextstep/templates'"
 (cd nextstep/templates
- ln Emacs.desktop.in Info-gnustep.plist.in Info.plist.in InfoPlist.strings.in../../${tempdir}/nextstep/templates)
+ ln Emacs.desktop.in Info-gnustep.plist.in Info.plist.in InfoPlist.strings.in ../../${tempdir}/nextstep/templates)
 
 echo "Making links to \`nextstep/Cocoa/Emacs.base/Contents'"
 (cd nextstep/Cocoa/Emacs.base/Contents
