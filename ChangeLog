@@ -1,3 +1,9 @@
+2012-09-17  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* Makefile.in (bootstrap): Revert last change.  Run config.status
+	after config.status --recheck, run configure from $(srcdir).
+	(config.status): Run configure from $(srcdir).
+
 2012-09-17  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* Makefile.in: Fix build error on FreeBSD.

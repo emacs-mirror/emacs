@@ -367,7 +367,7 @@ config.status: ${srcdir}/configure ${srcdir}/lisp/version.el
 	if [ -x ./config.status ]; then	\
 	    ./config.status --recheck;	\
 	else				\
-	    ./configure $(CONFIGURE_FLAGS); \
+	    $(srcdir)/configure $(CONFIGURE_FLAGS); \
 	fi
 
 AUTOCONF_INPUTS = $(srcdir)/configure.ac $(srcdir)/aclocal.m4
@@ -895,7 +895,12 @@ dvi:
 #  * Do the actual build.
 bootstrap: bootstrap-clean FRC
 	cd $(srcdir) && { ./autogen.sh || autogen/copy_autogen; }
-	./configure $(CONFIGURE_FLAGS)
+	if [ -x config.status ]; then \
+	    ./config.status --recheck && \
+	    ./config.status; \
+	else \
+	    $(srcdir)/configure $(CONFIGURE_FLAGS); \
+	fi
 	$(MAKE) $(MFLAGS) info all
 
 .PHONY: check-declare
