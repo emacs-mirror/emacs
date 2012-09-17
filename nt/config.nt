@@ -63,9 +63,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define on FreeBSD to work around an issue when reading from a PTY. */
 #undef BROKEN_PTY_READ_AFTER_EAGAIN
 
-/* Define if SA_RESTART should only be used in batch mode. */
-#undef BROKEN_SA_RESTART
-
 /* Define if the system is compatible with BSD 4.2. */
 #undef BSD4_2
 
@@ -1307,9 +1304,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 on System V Release 4. */
 #undef SVR4
-
-/* Process async input synchronously. */
-#undef SYNC_INPUT
 
 /* Define to use system malloc. */
 #undef SYSTEM_MALLOC
