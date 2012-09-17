@@ -103,10 +103,50 @@
 
 ;;; Code:
 
+;; FIXME: Check through major mode conventions again.
+
 ;; FIXME: Add proper ";;;###autoload" comments.
 
 ;; FIXME: When 24.1 is common place remove use of `lexical-let' and put "-*-
 ;;        lexical-binding: t -*-" in the first line.
+
+;; FIXME: Use `testcover'.
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Support for `testcover'
+
+(when (boundp 'testcover-1value-functions)
+  ;; Below `lambda' is used in a loop with varying parameters and is thus not
+  ;; 1valued.
+  (setq testcover-1value-functions
+	(delq 'lambda testcover-1value-functions))
+  (add-to-list 'testcover-compose-functions 'lambda))
+
+(defun rst-testcover-defcustom ()
+  "Remove all customized variables from `testcover-module-constants'.
+This seems to be a bug in `testcover': `defcustom' variables are
+considered constants.  Revert it with this function after each `defcustom'."
+  (when (boundp 'testcover-module-constants)
+    (setq testcover-module-constants
+	  (delq nil
+		(mapcar
+		 (lambda (sym)
+		   (if (not (plist-member (symbol-plist sym) 'standard-value))
+		       sym))
+		 testcover-module-constants)))))
+
+(defun rst-testcover-add-compose (fun)
+  "Add FUN to `testcover-compose-functions'."
+  (when (boundp 'testcover-compose-functions)
+    (add-to-list 'testcover-compose-functions fun)))
+
+(defun rst-testcover-add-1value (fun)
+  "Add FUN to `testcover-1value-functions'."
+  (when (boundp 'testcover-1value-functions)
+    (add-to-list 'testcover-1value-functions fun)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Common Lisp stuff
 
 ;; Only use of macros is allowed - may be replaced by `cl-lib' some time.
 (eval-when-compile
@@ -160,6 +200,7 @@ Comparison done with `equal'."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Versions
 
+;; testcover: ok.
 (defun rst-extract-version (delim-re head-re re tail-re var &optional default)
   "Extract the version from a variable according to the given regexes.
 Return the version after regex DELIM-RE and HEAD-RE matching RE
@@ -173,7 +214,7 @@ and before TAIL-RE and DELIM-RE in VAR or DEFAULT for no match."
 ;; Use CVSHeader to really get information from CVS and not other version
 ;; control systems.
 (defconst rst-cvs-header
-  "$CVSHeader: sm/rst_el/rst.el,v 1.301 2012-07-30 19:29:46 stefan Exp $")
+  "$CVSHeader: sm/rst_el/rst.el,v 1.309.2.1 2012-09-17 17:30:49 stefan Exp $")
 (defconst rst-cvs-rev
   (rst-extract-version "\\$" "CVSHeader: \\S + " "[0-9]+\\(?:\\.[0-9]+\\)+"
 		       " .*" rst-cvs-header "0.0")
@@ -483,6 +524,8 @@ argument list for `rst-re'.")
 (defvar rst-re-alist) ; Forward declare to use it in `rst-re'.
 
 ;; FIXME: Use `sregex` or `rx` instead of re-inventing the wheel.
+(rst-testcover-add-compose 'rst-re)
+;; testcover: ok.
 (defun rst-re (&rest args)
   "Interpret ARGS as regular expressions and return a regex string.
 Each element of ARGS may be one of the following:
@@ -556,6 +599,7 @@ After interpretation of ARGS the results are concatenated as for
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Mode definition
 
+;; testcover: ok.
 (defun rst-define-key (keymap key def &rest deprecated)
   "Bind like `define-key' but add deprecated key definitions.
 KEYMAP, KEY, and DEF are as in `define-key'.  DEPRECATED key
@@ -734,6 +778,7 @@ This inherits from Text mode.")
 The hook for `text-mode' is run before this one."
   :group 'rst
   :type '(hook))
+(rst-testcover-defcustom)
 
 ;; Pull in variable definitions silencing byte-compiler.
 (require 'newcomment)
@@ -949,6 +994,7 @@ file."
 			(const :tag "Underline only" simple))
 		 (integer :tag "Indentation for overline and underline type"
 			  :value 0))))
+(rst-testcover-defcustom)
 
 (defcustom rst-default-indent 1
   "Number of characters to indent the section title.
@@ -958,7 +1004,7 @@ from a simple adornment style to a over-and-under adornment
 style."
   :group 'rst-adjust
   :type '(integer))
-
+(rst-testcover-defcustom)
 
 (defun rst-compare-adornments (ado1 ado2)
   "Compare adornments.
@@ -979,7 +1025,8 @@ not found."
       (setq cur (cdr cur)))
     cur))
 
-
+;; testcover: FIXME: Test with `rst-preferred-adornments' == nil. Add test
+;; `rst-adjust-no-preference'.
 (defun rst-suggest-new-adornment (allados &optional prev)
   "Suggest a new, different adornment from all that have been seen.
 
@@ -1032,7 +1079,7 @@ requested adornment."
         len)
 
       ;; Fixup whitespace at the beginning and end of the line.
-      (if (or (null indent) (eq style 'simple))
+      (if (or (null indent) (eq style 'simple)) ;; testcover: ok.
           (setq indent 0))
       (beginning-of-line)
       (delete-horizontal-space)
@@ -1046,7 +1093,8 @@ requested adornment."
 
       ;; Remove previous line if it is an adornment.
       (save-excursion
-        (forward-line -1)
+        (forward-line -1) ;; testcover: FIXME: Doesn't work when in first line
+			  ;; of buffer.
 	(if (and (looking-at (rst-re 'ado-beg-2-1))
 		 ;; Avoid removing the underline of a title right above us.
 		 (save-excursion (forward-line -1)
@@ -1055,7 +1103,8 @@ requested adornment."
 
       ;; Remove following line if it is an adornment.
       (save-excursion
-        (forward-line +1)
+        (forward-line +1) ;; testcover: FIXME: Doesn't work when in last line
+			  ;; of buffer.
         (if (looking-at (rst-re 'ado-beg-2-1))
 	    (rst-delete-entire-line))
         ;; Add a newline if we're at the end of the buffer, for the subsequence
@@ -1071,13 +1120,14 @@ requested adornment."
             (insert (make-string len char))))
 
       ;; Insert underline.
-      (forward-line +1)
+      (1value ;; Line has been inserted above.
+       (forward-line +1))
       (open-line 1)
       (insert (make-string len char))
 
-      (forward-line +1)
-      (goto-char marker)
-      ))
+      (1value ;; Line has been inserted above.
+       (forward-line +1))
+      (goto-char marker)))
 
 (defun rst-classify-adornment (adornment end)
   "Classify adornment for section titles and transitions.
@@ -1104,11 +1154,14 @@ Return nil if no syntactically valid adornment is found."
 	       (ado-re (rst-re ado-ch 'adorep3-hlp))
 	       (end-pnt (point))
 	       (beg-pnt (progn
-			  (forward-line 0)
+			  (1value ;; No lines may be left to move.
+			   (forward-line 0))
 			  (point)))
 	       (nxt-emp ; Next line nonexistent or empty
 		(save-excursion
 		  (or (not (zerop (forward-line 1)))
+		      ;; testcover: FIXME: Add test classifying at the end of
+		      ;; buffer.
 		      (looking-at (rst-re 'lin-end)))))
 	       (prv-emp ; Previous line nonexistent or empty
 		(save-excursion
@@ -1117,7 +1170,9 @@ Return nil if no syntactically valid adornment is found."
 	       (ttl-blw ; Title found below starting here.
 		(save-excursion
 		  (and
-		   (zerop (forward-line 1))
+		   (zerop (forward-line 1)) ;; testcover: FIXME: Add test
+					    ;; classifying at the end of
+					    ;; buffer.
 		   (looking-at (rst-re 'ttl-beg))
 		   (point))))
 	       (ttl-abv ; Title found above starting here.
@@ -1129,7 +1184,9 @@ Return nil if no syntactically valid adornment is found."
 	       (und-fnd ; Matching underline found starting here.
 		(save-excursion
 		  (and ttl-blw
-		   (zerop (forward-line 2))
+		   (zerop (forward-line 2)) ;; testcover: FIXME: Add test
+					    ;; classifying at the end of
+					    ;; buffer.
 		   (looking-at (rst-re ado-re 'lin-end))
 		   (point))))
 	       (ovr-fnd ; Matching overline found starting here.
@@ -1174,8 +1231,8 @@ Return nil if no syntactically valid adornment is found."
 	    (setq key nil)))
 	  (if key
 	      (list key
-		    (or beg-ovr beg-txt beg-und)
-		    (or end-und end-txt end-ovr)
+		    (or beg-ovr beg-txt)
+		    (or end-und end-txt)
 		    beg-ovr end-ovr beg-txt end-txt beg-und end-und)))))))
 
 (defun rst-find-title-line ()
@@ -1193,7 +1250,8 @@ in the first element.  If there is no adornment around the title
 CHARACTER is also nil and match groups for overline and underline
 are nil."
   (save-excursion
-    (forward-line 0)
+    (1value ;; No lines may be left to move.
+     (forward-line 0))
     (let ((orig-pnt (point))
 	  (orig-end (line-end-position)))
       (cond
@@ -1253,6 +1311,7 @@ t when no section adornments were found.  Value depends on
 `rst-all-sections'.")
 (make-variable-buffer-local 'rst-section-hierarchy)
 
+(rst-testcover-add-1value 'rst-reset-section-caches)
 (defun rst-reset-section-caches ()
   "Reset all section cache variables.
 Should be called by interactive functions which deal with sections."
@@ -1354,9 +1413,7 @@ Return a list of the previous and next adornments."
     (if (and cur (caar cur))
         (setq next (if (= curline (caar cur)) (cdr cur) cur)))
 
-    (mapcar 'cdar (list prev next))
-    ))
-
+    (mapcar 'cdar (list prev next))))
 
 (defun rst-adornment-complete-p (ado)
   "Return true if the adornment ADO around point is complete."
@@ -1369,8 +1426,7 @@ Return a list of the previous and next adornments."
   (let* ((char (car ado))
          (style (cadr ado))
          (indent (caddr ado))
-         (endcol (save-excursion (end-of-line) (current-column)))
-         )
+         (endcol (save-excursion (end-of-line) (current-column))))
     (if char
         (let ((exps (rst-re "^" char (format "\\{%d\\}" (+ endcol indent)) "$")))
           (and
@@ -1380,9 +1436,7 @@ Return a list of the previous and next adornments."
            (or (not (eq style 'over-and-under))
                (save-excursion (forward-line -1)
                                (beginning-of-line)
-                               (looking-at exps))))
-          ))
-    ))
+                               (looking-at exps))))))))
 
 
 (defun rst-get-next-adornment
@@ -1414,8 +1468,7 @@ REVERSE-DIRECTION is used to reverse the cycling order."
         cur))
 
      ;; If not found, take the first of all adornments.
-     suggestion
-     )))
+     suggestion)))
 
 
 ;; FIXME: A line "``/`` full" is not accepted as a section title.
@@ -1456,7 +1509,7 @@ b. a negative numerical argument, which generally inverts the
          (reverse-direction (and pfxarg (< (prefix-numeric-value pfxarg) 0)))
          (toggle-style (and pfxarg (not reverse-direction))))
 
-    (if (rst-portable-mark-active-p)
+    (if (use-region-p)
         ;; Adjust adornments within region.
         (rst-promote-region (and pfxarg t))
       ;; Adjust adornment around point.
@@ -1466,15 +1519,14 @@ b. a negative numerical argument, which generally inverts the
     (run-hooks 'rst-adjust-hook)
 
     ;; Make sure to reset the cursor position properly after we're done.
-    (goto-char origpt)
-
-    ))
+    (goto-char origpt)))
 
 (defcustom rst-adjust-hook nil
   "Hooks to be run after running `rst-adjust'."
   :group 'rst-adjust
   :type '(hook)
   :package-version '(rst . "1.1.0"))
+(rst-testcover-defcustom)
 
 (defcustom rst-new-adornment-down nil
   "Controls level of new adornment for section headers."
@@ -1483,6 +1535,7 @@ b. a negative numerical argument, which generally inverts the
 	  (const :tag "Same level as previous one" nil)
 	  (const :tag "One level down relative to the previous one" t))
   :package-version '(rst . "1.1.0"))
+(rst-testcover-defcustom)
 
 (defun rst-adjust-adornment (pfxarg)
   "Call `rst-adjust-adornment-work' interactively.
@@ -1741,8 +1794,7 @@ hierarchy is similar to that used by `rst-adjust-adornment-work'."
          (region-begin-line (line-number-at-pos (region-beginning)))
          (region-end-line (line-number-at-pos (region-end)))
 
-         marker-list
-         )
+         marker-list)
 
     ;; Skip the markers that come before the region beginning.
     (while (and cur (< (caar cur) region-begin-line))
@@ -1771,8 +1823,7 @@ hierarchy is similar to that used by `rst-adjust-adornment-work'."
 
 	;; Clear marker to avoid slowing down the editing after we're done.
 	(set-marker (car p) nil))
-      (setq deactivate-mark nil)
-      )))
+      (setq deactivate-mark nil))))
 
 
 
@@ -1792,9 +1843,7 @@ in ADORNMENTS."
           (apply 'rst-update-section x)
           (goto-char (point-max))
           (insert "\n")
-          (incf level)
-          ))
-    )))
+          (incf level))))))
 
 (defun rst-straighten-adornments ()
   "Redo all the adornments in the current buffer.
@@ -1822,10 +1871,7 @@ in order to adapt it to our preferred style."
 	(apply 'rst-update-section (nth (car lm) rst-preferred-adornments))
 
 	;; Reset the marker to avoid slowing down editing until it gets GC'ed.
-	(set-marker (cdr lm) nil)
-	)
-    )))
-
+	(set-marker (cdr lm) nil)))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1906,7 +1952,7 @@ and the column of the point."
 			    (looking-at pfx-re)))))) ; ...pfx at same level.
 	  (push (cons (point) (current-column))
                 pfx))
-	(forward-line 1)) )
+	(forward-line 1)))
     (nreverse pfx)))
 
 (defun rst-insert-list-pos (newitem)
@@ -2005,6 +2051,7 @@ starting item, for example 'e' for 'A)' style.  The position is also arranged by
 				    :tag (char-to-string char) char))
 			    rst-bullets)))
   :package-version '(rst . "1.1.0"))
+(rst-testcover-defcustom)
 
 (defun rst-insert-list-continue (curitem prefer-roman)
   "Insert a list item with list start CURITEM including its indentation level.
@@ -2206,8 +2253,7 @@ list destructively."
       (setq node (cons nil (cdaar children))))
 
     ;; Return this node with its children.
-    (cons node children)
-    ))
+    (cons node children)))
 
 
 (defun rst-section-tree-point (node &optional point)
@@ -2241,11 +2287,8 @@ container subtree node that we're returning."
 		(let ((sub (rst-section-tree-point (car last) curpoint)))
 		  (setq path (car sub)
 			outtree (cdr sub)))
-	      (setq outtree node))
-
-	    )))
-    (cons (cons (car node) path) outtree)
-    ))
+	      (setq outtree node)))))
+    (cons (cons (car node) path) outtree)))
 
 
 (defgroup rst-toc nil
@@ -2257,6 +2300,7 @@ container subtree node that we're returning."
   "Indentation for table-of-contents display.
 Also used for formatting insertion, when numbering is disabled."
   :group 'rst-toc)
+(rst-testcover-defcustom)
 
 (defcustom rst-toc-insert-style 'fixed
   "Insertion style for table-of-contents.
@@ -2267,10 +2311,12 @@ indentation style:
 - aligned: numbering, titles aligned under each other
 - listed: numbering, with dashes like list items (EXPERIMENTAL)"
   :group 'rst-toc)
+(rst-testcover-defcustom)
 
 (defcustom rst-toc-insert-number-separator "  "
   "Separator that goes between the TOC number and the title."
   :group 'rst-toc)
+(rst-testcover-defcustom)
 
 ;; This is used to avoid having to change the user's mode.
 (defvar rst-toc-insert-click-keymap
@@ -2282,7 +2328,7 @@ indentation style:
 (defcustom rst-toc-insert-max-level nil
   "If non-nil, maximum depth of the inserted TOC."
   :group 'rst-toc)
-
+(rst-testcover-defcustom)
 
 (defun rst-toc-insert (&optional pfxarg)
   "Insert a simple text rendering of the table of contents.
@@ -2316,8 +2362,7 @@ The TOC is inserted indented at the current column."
       (delete-region init-point (+ init-point (length initial-indent)))
 
       ;; Delete the last newline added.
-      (delete-char -1)
-    )))
+      (delete-char -1))))
 
 (defun rst-toc-insert-node (node level indent pfx)
   "Insert tree node NODE in table-of-contents.
@@ -2343,9 +2388,7 @@ level to align."
 	;; is generated automatically.
 	(put-text-property b (point) 'mouse-face 'highlight)
 	(put-text-property b (point) 'rst-toc-target (cadar node))
-	(put-text-property b (point) 'keymap rst-toc-insert-click-keymap)
-
-	)
+	(put-text-property b (point) 'keymap rst-toc-insert-click-keymap))
       (insert "\n")
 
       ;; Prepare indent for children.
@@ -2362,9 +2405,7 @@ level to align."
 
 	     ((eq rst-toc-insert-style 'listed)
 	      (concat (substring indent 0 -3)
-		      (concat (make-string (+ (length pfx) 2) ? ) " - ")))
-	     ))
-      )
+		      (concat (make-string (+ (length pfx) 2) ? ) " - "))))))
 
     (if (or (eq rst-toc-insert-max-level nil)
             (< level rst-toc-insert-max-level))
@@ -2382,8 +2423,7 @@ level to align."
                 (if (cdr node)
                     (setq fmt (format "%%-%dd"
                                       (1+ (floor (log10 (length
-							 (cdr node))))))))
-                ))
+							 (cdr node))))))))))
 
           (dolist (child (cdr node))
             (rst-toc-insert-node child
@@ -2391,9 +2431,7 @@ level to align."
 				 indent
 				 (if do-child-numbering
 				     (concat pfx (format fmt count)) pfx))
-            (incf count)))
-
-      )))
+            (incf count))))))
 
 
 (defun rst-toc-update ()
@@ -2468,8 +2506,7 @@ file-write hook to always make it up-to-date automatically."
         ;; Add link on lines.
         (put-text-property b (point) 'rst-toc-target (cadar node))
 
-        (insert "\n")
-	))
+        (insert "\n")))
 
   (dolist (child (cdr node))
     (rst-toc-node child (1+ level))))
@@ -2517,8 +2554,7 @@ brings the cursor in that section."
 	 line
 
          ;; Create a temporary buffer.
-         (buf (get-buffer-create rst-toc-buffer-name))
-         )
+         (buf (get-buffer-create rst-toc-buffer-name)))
 
     (with-current-buffer buf
       (let ((inhibit-read-only t))
@@ -2531,8 +2567,7 @@ brings the cursor in that section."
 
 	;; Count the lines to our found node.
 	(let ((linefound (rst-toc-count-lines sectree our-node)))
-	  (setq line (if (cdr linefound) (car linefound) 0)))
-        ))
+	  (setq line (if (cdr linefound) (car linefound) 0)))))
     (display-buffer buf)
     (pop-to-buffer buf)
 
@@ -2541,8 +2576,7 @@ brings the cursor in that section."
 
     ;; Move the cursor near the right section in the TOC.
     (goto-char (point-min))
-    (forward-line (1- line))
-    ))
+    (forward-line (1- line))))
 
 
 (defun rst-toc-mode-find-section ()
@@ -2644,8 +2678,7 @@ backwards in the file (default is to use 1)."
          (curline (line-number-at-pos))
 
          (cur allados)
-         (idx 0)
-         )
+         (idx 0))
 
     ;; Find the index of the "next" adornment w.r.t. to the current line.
     (while (and cur (< (caar cur) curline))
@@ -2666,8 +2699,7 @@ backwards in the file (default is to use 1)."
         (progn
           (goto-char (point-min))
           (forward-line (1- (car cur))))
-      (if (> offset 0) (goto-char (point-max)) (goto-char (point-min))))
-    ))
+      (if (> offset 0) (goto-char (point-max)) (goto-char (point-min))))))
 
 (defun rst-backward-section ()
   "Like `rst-forward-section', except move back one title."
@@ -2686,7 +2718,7 @@ for negative COUNT."
     (error "Cannot mark zero sections"))
   (cond ((and allow-extend
 	      (or (and (eq last-command this-command) (mark t))
-		  (rst-portable-mark-active-p)))
+		  (use-region-p)))
 	 (set-mark
 	  (save-excursion
 	    (goto-char (mark))
@@ -2742,17 +2774,14 @@ of each paragraph only."
 	    (valid (and (= curcol leftcol)
 			(not (looking-at (rst-re 'lin-end))))
 		   (and (= curcol leftcol)
-			(not (looking-at (rst-re 'lin-end)))))
-	    )
+			(not (looking-at (rst-re 'lin-end))))))
 	  ((>= (point) endm))
 
 	(if (if ,first-only
 		(and valid (not previous))
 	      valid)
 	    ,body-consequent
-	  ,body-alternative)
-
-	))))
+	  ,body-alternative)))))
 
 ;; FIXME: This needs to be refactored. Probably this is simply a function
 ;;        applying BODY rather than a macro.
@@ -2785,13 +2814,10 @@ first of a paragraph."
 	    (,isleftmost (and (not ,isempty)
 			      (= (current-column) ,leftmost))
 			 (and (not ,isempty)
-			      (= (current-column) ,leftmost)))
-	    )
+			      (= (current-column) ,leftmost))))
 	  ((>= (point) endm))
 
-	(progn ,@body)
-
-	)))))
+	(progn ,@body))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Indentation
@@ -2817,26 +2843,31 @@ here."
   "Indentation when there is no more indentation point given."
   :group 'rst-indent
   :type '(integer))
+(rst-testcover-defcustom)
 
 (defcustom rst-indent-field 3
   "Indentation for first line after a field or 0 to always indent for content."
   :group 'rst-indent
   :type '(integer))
+(rst-testcover-defcustom)
 
 (defcustom rst-indent-literal-normal 3
   "Default indentation for literal block after a markup on an own line."
   :group 'rst-indent
   :type '(integer))
+(rst-testcover-defcustom)
 
 (defcustom rst-indent-literal-minimized 2
   "Default indentation for literal block after a minimized markup."
   :group 'rst-indent
   :type '(integer))
+(rst-testcover-defcustom)
 
 (defcustom rst-indent-comment 3
   "Default indentation for first line of a comment."
   :group 'rst-indent
   :type '(integer))
+(rst-testcover-defcustom)
 
 ;; FIXME: Must consider other tabs:
 ;;        * Line blocks
@@ -3116,8 +3147,7 @@ do all lines instead of just paragraphs."
      (let ((ins-string (format "%d. " (incf count))))
        (setq last-insert-len (length ins-string))
        (insert ins-string))
-     (insert (make-string last-insert-len ?\ ))
-     )))
+     (insert (make-string last-insert-len ?\ )))))
 
 (defun rst-bullet-list-region (beg end all)
   "Add bullets to all the leftmost paragraphs in the given region.
@@ -3127,8 +3157,7 @@ do all lines instead of just paragraphs."
   (rst-iterate-leftmost-paragraphs
    beg end (not all)
    (insert (car rst-preferred-bullets) " ")
-   (insert "  ")
-   ))
+   (insert "  ")))
 
 ;; FIXME: Does not deal with a varying number of digits appropriately.
 ;; FIXME: Does not deal with multiple levels independently.
@@ -3143,18 +3172,13 @@ Renumber as necessary.  Region is from BEG to END."
 		   (cons (copy-marker (car x))
 			 (cdr x)))
 		 (rst-find-pfx-in-region beg end (rst-re 'itmany-sta-1))))
-	 (count 1)
-	 )
+	 (count 1))
     (save-excursion
       (dolist (x items)
 	(goto-char (car x))
 	(looking-at (rst-re 'itmany-beg-1))
 	(replace-match (format "%d." count) nil nil nil 1)
-	(incf count)
-	))
-    ))
-
-
+	(incf count)))))
 
 ;;------------------------------------------------------------------------------
 
@@ -3202,6 +3226,7 @@ Region is from RBEG to REND.  With PFXARG set the empty lines too."
   :version "24.1"
   :group 'rst-faces
   :type '(face))
+(rst-testcover-defcustom)
 (make-obsolete-variable 'rst-block-face
                         "customize the face `rst-block' instead."
                         "24.1")
@@ -3216,6 +3241,7 @@ Region is from RBEG to REND.  With PFXARG set the empty lines too."
   :version "24.1"
   :group 'rst-faces
   :type '(face))
+(rst-testcover-defcustom)
 (make-obsolete-variable 'rst-external-face
                         "customize the face `rst-external' instead."
                         "24.1")
@@ -3230,6 +3256,7 @@ Region is from RBEG to REND.  With PFXARG set the empty lines too."
   :version "24.1"
   :group 'rst-faces
   :type '(face))
+(rst-testcover-defcustom)
 (make-obsolete-variable 'rst-definition-face
                         "customize the face `rst-definition' instead."
                         "24.1")
@@ -3246,6 +3273,7 @@ Region is from RBEG to REND.  With PFXARG set the empty lines too."
   "Directives and roles."
   :group 'rst-faces
   :type '(face))
+(rst-testcover-defcustom)
 (make-obsolete-variable 'rst-directive-face
                         "customize the face `rst-directive' instead."
                         "24.1")
@@ -3260,6 +3288,7 @@ Region is from RBEG to REND.  With PFXARG set the empty lines too."
   :version "24.1"
   :group 'rst-faces
   :type '(face))
+(rst-testcover-defcustom)
 (make-obsolete-variable 'rst-comment-face
                         "customize the face `rst-comment' instead."
                         "24.1")
@@ -3274,6 +3303,7 @@ Region is from RBEG to REND.  With PFXARG set the empty lines too."
   :version "24.1"
   :group 'rst-faces
   :type '(face))
+(rst-testcover-defcustom)
 (make-obsolete-variable 'rst-emphasis1-face
                         "customize the face `rst-emphasis1' instead."
                         "24.1")
@@ -3287,6 +3317,7 @@ Region is from RBEG to REND.  With PFXARG set the empty lines too."
   "Double emphasis."
   :group 'rst-faces
   :type '(face))
+(rst-testcover-defcustom)
 (make-obsolete-variable 'rst-emphasis2-face
                         "customize the face `rst-emphasis2' instead."
                         "24.1")
@@ -3301,6 +3332,7 @@ Region is from RBEG to REND.  With PFXARG set the empty lines too."
   :version "24.1"
   :group 'rst-faces
   :type '(face))
+(rst-testcover-defcustom)
 (make-obsolete-variable 'rst-literal-face
                         "customize the face `rst-literal' instead."
                         "24.1")
@@ -3315,6 +3347,7 @@ Region is from RBEG to REND.  With PFXARG set the empty lines too."
   :version "24.1"
   :group 'rst-faces
   :type '(face))
+(rst-testcover-defcustom)
 (make-obsolete-variable 'rst-reference-face
                         "customize the face `rst-reference' instead."
                         "24.1")
@@ -3368,6 +3401,7 @@ Recompute the faces.  VAL is the value to set."
   :group 'rst-faces-defaults
   :type '(integer)
   :set 'rst-set-level-default)
+(rst-testcover-defcustom)
 ;; FIXME: It should be possible to give "#RRGGBB" type of color values.
 ;;        Together with a `rst-level-face-end-light' this could be used for
 ;;        computing steps.
@@ -3378,6 +3412,7 @@ Recompute the faces.  VAL is the value to set."
   :group 'rst-faces-defaults
   :type '(string)
   :set 'rst-set-level-default)
+(rst-testcover-defcustom)
 ;; FIXME LEVEL-FACE: This needs to be done differently: The faces must specify
 ;;                   how they behave for dark and light background using the
 ;;                   relevant options explained in `defface'.
@@ -3391,12 +3426,14 @@ The default depends on whether the value of `frame-background-mode' is
   :group 'rst-faces-defaults
   :type '(integer)
   :set 'rst-set-level-default)
+(rst-testcover-defcustom)
 (defcustom rst-level-face-format-light "%2d"
   "The format for the lightness factor appended to the base name of the color.
 This value is expanded by `format' with an integer."
   :group 'rst-faces-defaults
   :type '(string)
   :set 'rst-set-level-default)
+(rst-testcover-defcustom)
 ;; FIXME LEVEL-FACE: This needs to be done differently: The faces must specify
 ;;                   how they behave for dark and light background using the
 ;;                   relevant options explained in `defface'.
@@ -3420,6 +3457,7 @@ This color is used as background for section title text on level
   :group 'rst-faces-defaults
   :type '(integer)
   :set 'rst-set-level-default)
+(rst-testcover-defcustom)
 
 (defcustom rst-adornment-faces-alist
   ;; FIXME LEVEL-FACE: Must be redone if `rst-level-face-max' is changed
@@ -3447,6 +3485,7 @@ group."
 	   (const :tag "section title adornment" nil))
 	  :value-type (face))
   :set-after '(rst-level-face-max))
+(rst-testcover-defcustom)
 
 (defun rst-define-level-faces ()
   "Define the faces for the section title text faces from the values."
@@ -3663,8 +3702,7 @@ variable of the `rst-faces-defaults' group is customized. Use
     ;;   Indentation is not required for doctest blocks.
     (,(rst-re 'lin-beg '(:grp (:alt ">>>" ell-tag)) '(:grp ".+"))
      (1 rst-block-face)
-     (2 rst-literal-face))
-    )
+     (2 rst-literal-face)))
   "Keywords to highlight in rst mode.")
 
 (defvar font-lock-beg)
@@ -3974,6 +4012,7 @@ string)) to be used for converting the document."
                                      (string :tag "Options"))))
   :group 'rst
   :package-version "1.2.0")
+(rst-testcover-defcustom)
 
 ;; FIXME: Must be `defcustom`.
 (defvar rst-compile-primary-toolset 'html
@@ -3999,11 +4038,8 @@ string)) to be used for converting the document."
 	(setq prevdir dir)
         (setq dir (expand-file-name (file-name-directory
                                      (directory-file-name
-				      (file-name-directory dir)))))
-	)
-      (or (and dir (concat dir file-name)) nil)
-    )))
-
+				      (file-name-directory dir))))))
+      (or (and dir (concat dir file-name)) nil))))
 
 (require 'compile)
 
@@ -4041,8 +4077,7 @@ select the alternative tool-set."
     ;; Invoke the compile command.
     (if (or compilation-read-command use-alt)
         (call-interactively 'compile)
-      (compile compile-command))
-    ))
+      (compile compile-command))))
 
 (defun rst-compile-alt-toolset ()
   "Compile command with the alternative tool-set."
@@ -4166,8 +4201,7 @@ column is used (fill-column vs. end of previous/next line)."
           (cond ((equal last-command 'rst-repeat-last-character)
                  (if (= curcol fill-column) prevcol fill-column))
                 (t (save-excursion
-                     (if (zerop prevcol) fill-column prevcol)))
-                )) )
+                     (if (zerop prevcol) fill-column prevcol))))))
     (end-of-line)
     (if (> (current-column) rightmost-column)
         ;; Shave characters off the end.
@@ -4176,17 +4210,7 @@ column is used (fill-column vs. end of previous/next line)."
                        (point))
       ;; Fill with last characters.
       (insert-char (preceding-char)
-                   (- rightmost-column (current-column))))
-    ))
-
-
-(defun rst-portable-mark-active-p ()
-  "Return non-nil if the mark is active.
-This is a portable function."
-  (cond
-   ((fboundp 'region-active-p) (region-active-p))
-   ((boundp 'transient-mark-mode) (and transient-mark-mode mark-active))
-   (t mark-active)))
+                   (- rightmost-column (current-column))))))
 
 
 

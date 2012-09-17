@@ -1,3 +1,26 @@
+2012-09-17  Stefan Merten  <smerten@oekonux.de>
+
+	* rst.el: Add support for `testcover'.
+	(rst-defcustom-testcover, rst-testcover-add-compose)
+	(rst-testcover-add-1value): New functions.
+	(rst-portable-mark-active-p): Replace by `use-region-p'.
+	(rst-update-section, rst-classify-adornment)
+	(rst-find-title-line): Mark `1value' forms.
+	(rst-classify-adornment): Remove superfluous form.
+	(rst-update-section, rst-get-adornments-around)
+	(rst-adornment-complete-p, rst-get-next-adornment)
+	(rst-adjust, rst-promote-region)
+	(rst-display-adornments-hierarchy, rst-straighten-adornments)
+	(rst-find-pfx-in-region, rst-section-tree-rec)
+	(rst-section-tree-point, rst-toc-insert, rst-toc-insert-node)
+	(rst-toc-node, rst-toc, rst-forward-section)
+	(rst-iterate-leftmost-paragraphs)
+	(rst-iterate-leftmost-paragraphs-2, rst-enumerate-region)
+	(rst-bullet-list-region)
+	(rst-convert-bullets-to-enumeration, rst-font-lock-keywords)
+	(rst-compile-find-conf, rst-compile)
+	(rst-repeat-last-character): Fix style.
+
 2012-09-17  Chong Yidong  <cyd@gnu.org>
 
 	* comint.el (comint--complete-file-name-data): Don't add a space
