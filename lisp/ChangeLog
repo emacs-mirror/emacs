@@ -1,3 +1,7 @@
+2012-09-17  Richard Stallman  <rms@gnu.org>
+
+	* epa-mail.el (epa-mail-encrypt): Fix bug when a name has no key.
+
 2012-09-17  Chong Yidong  <cyd@gnu.org>
 
 	* shell.el (shell-file-name-chars, shell-file-name-quote-list)
