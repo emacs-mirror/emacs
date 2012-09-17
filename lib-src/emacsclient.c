@@ -144,6 +144,9 @@ int current_frame = 1;
 /* The display on which Emacs should work.  --display.  */
 const char *display = NULL;
 
+/* The alternate display we should try if Emacs does not support display.  */
+const char *alt_display = NULL;
+
 /* The parent window ID, if we are opening a frame via XEmbed.  */
 char *parent_id = NULL;
 
@@ -581,16 +584,29 @@ decode_options (int argc, char **argv)
      Without the -c option, we used to set `display' to $DISPLAY by
      default, but this changed the default behavior and is sometimes
      inconvenient.  So we force users to use "--display $DISPLAY" if
-     they want Emacs to connect to their current display.  */
+     they want Emacs to connect to their current display.
+
+     Some window systems have a notion of default display not
+     reflected in the DISPLAY variable.  If the user didn't give us an
+     explicit display, try this platform-specific after trying the
+     display in DISPLAY (if any).  */
   if (!current_frame && !tty && !display)
     {
-      display = egetenv ("DISPLAY");
-#ifdef NS_IMPL_COCOA
-      /* Under Cocoa, we don't really use displays the same way as in X,
-         so provide a dummy. */
-      if (!display || strlen (display) == 0)
-        display = "ns";
+      /* Set these here so we use a default_display only when the user
+         didn't give us an explicit display.  */
+#if defined (NS_IMPL_COCOA)
+      alt_display = "ns";
+#elif defined (HAVE_NTGUI)
+      alt_display = "windows";
 #endif
+
+      display = egetenv ("DISPLAY");
+    }
+
+  if (!display)
+    {
+      display = alt_display;
+      alt_display = NULL;
     }
 
   /* A null-string display is invalid.  */
@@ -1541,8 +1557,10 @@ main (int argc, char **argv)
   progname = argv[0];
 
 #ifdef HAVE_NTGUI
-  /* On Windows 7 and later, we need to explicitly associate emacsclient
-     with emacs so the UI behaves sensibly.  */
+  /* On Windows 7 and later, we need to explicitly associate
+     emacsclient with emacs so the UI behaves sensibly.  This
+     association does no harm if we're not actually connecting to an
+     Emacs using a window display.  */
   w32_set_user_model_id ();
 #endif /* HAVE_NTGUI */
 
@@ -1581,6 +1599,7 @@ main (int argc, char **argv)
     }
 
 #ifdef HAVE_NTGUI
+  if (display && !strcmp (display, "windows"))
   w32_give_focus ();
 #endif /* HAVE_NTGUI */
 
@@ -1751,46 +1770,56 @@ main (int argc, char **argv)
 	  if (end_p != NULL)
 	    *end_p++ = '\0';
 
-	  if (strprefix ("-emacs-pid ", p))
-	    {
-	      /* -emacs-pid PID: The process id of the Emacs process. */
-	      emacs_pid = strtol (p + strlen ("-emacs-pid"), NULL, 10);
-	    }
-	  else if (strprefix ("-window-system-unsupported ", p))
-	    {
-	      /* -window-system-unsupported: Emacs was compiled without X
-		 support.  Try again on the terminal. */
-	      nowait = 0;
-	      tty = 1;
-	      goto retry;
-	    }
-	  else if (strprefix ("-print ", p))
-	    {
-	      /* -print STRING: Print STRING on the terminal. */
-	      str = unquote_argument (p + strlen ("-print "));
-	      if (needlf)
-		printf ("\n");
-	      printf ("%s", str);
-	      needlf = str[0] == '\0' ? needlf : str[strlen (str) - 1] != '\n';
-	    }
-	  else if (strprefix ("-print-nonl ", p))
-	    {
-	      /* -print-nonl STRING: Print STRING on the terminal.
-	         Used to continue a preceding -print command.  */
-	      str = unquote_argument (p + strlen ("-print-nonl "));
-	      printf ("%s", str);
-	      needlf = str[0] == '\0' ? needlf : str[strlen (str) - 1] != '\n';
-	    }
-	  else if (strprefix ("-error ", p))
-	    {
-	      /* -error DESCRIPTION: Signal an error on the terminal. */
-	      str = unquote_argument (p + strlen ("-error "));
-	      if (needlf)
-		printf ("\n");
-	      fprintf (stderr, "*ERROR*: %s", str);
-	      needlf = str[0] == '\0' ? needlf : str[strlen (str) - 1] != '\n';
-	      exit_status = EXIT_FAILURE;
-	    }
+          if (strprefix ("-emacs-pid ", p))
+            {
+              /* -emacs-pid PID: The process id of the Emacs process. */
+              emacs_pid = strtol (p + strlen ("-emacs-pid"), NULL, 10);
+            }
+          else if (strprefix ("-window-system-unsupported ", p))
+            {
+              /* -window-system-unsupported: Emacs was compiled without support
+                 for whatever window system we tried.  Try the alternate
+                 display, or, failing that, try the terminal.  */
+              if (alt_display)
+                {
+                  display = alt_display;
+                  alt_display = NULL;
+                }
+              else
+                {
+                  nowait = 0;
+                  tty = 1;
+                }
+
+              goto retry;
+            }
+          else if (strprefix ("-print ", p))
+            {
+              /* -print STRING: Print STRING on the terminal. */
+              str = unquote_argument (p + strlen ("-print "));
+              if (needlf)
+                printf ("\n");
+              printf ("%s", str);
+              needlf = str[0] == '\0' ? needlf : str[strlen (str) - 1] != '\n';
+            }
+          else if (strprefix ("-print-nonl ", p))
+            {
+              /* -print-nonl STRING: Print STRING on the terminal.
+                 Used to continue a preceding -print command.  */
+              str = unquote_argument (p + strlen ("-print-nonl "));
+              printf ("%s", str);
+              needlf = str[0] == '\0' ? needlf : str[strlen (str) - 1] != '\n';
+            }
+          else if (strprefix ("-error ", p))
+            {
+              /* -error DESCRIPTION: Signal an error on the terminal. */
+              str = unquote_argument (p + strlen ("-error "));
+              if (needlf)
+                printf ("\n");
+              fprintf (stderr, "*ERROR*: %s", str);
+              needlf = str[0] == '\0' ? needlf : str[strlen (str) - 1] != '\n';
+              exit_status = EXIT_FAILURE;
+            }
 #ifdef SIGSTOP
 	  else if (strprefix ("-suspend ", p))
 	    {
