@@ -1208,7 +1208,7 @@ r_alloc_init (void)
      the relocatable blocks much less often.  The number used to be
      64, but alloc.c would override that with 32 in code that was
      removed when SYNC_INPUT became the only input handling mode.
-     That code was condition on !DOUG_LEA_MALLOC, so the call to
+     That code was conditioned on !DOUG_LEA_MALLOC, so the call to
      mallopt above is left unchanged.  (Actually, I think there's no
      system nowadays that uses DOUG_LEA_MALLOC and also uses
      REL_ALLOC.)  */
