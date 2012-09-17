@@ -4162,6 +4162,7 @@ w32_read_socket (struct terminal *terminal, int expected,
   if (interrupt_input_blocked)
     {
       interrupt_input_pending = 1;
+      pending_signals = 1;
       return -1;
     }
 

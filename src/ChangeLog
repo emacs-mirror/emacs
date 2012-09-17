@@ -1,5 +1,8 @@
 2012-09-17  Eli Zaretskii  <eliz@gnu.org>
 
+	* w32term.c (w32_read_socket): Set pending_signals to 1, like
+	xterm.c does.  Reported by Daniel Colascione <dancol@dancol.org>.
+
 	* ralloc.c (r_alloc_init) [!SYSTEM_MALLOC]: Initialize
 	__malloc_extra_blocks to 32 instead of 64, like alloc.c did in
 	emacs_blocked_malloc, now deleted.
