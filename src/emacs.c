@@ -161,6 +161,22 @@ static void *my_heap_start;
 static uprintmax_t heap_bss_diff;
 #endif
 
+/* To run as a daemon under Cocoa or Windows, we must do a fork+exec,
+   not a simple fork.
+
+   On Cocoa, CoreFoundation lib fails in forked process:
+   http://developer.apple.com/ReleaseNotes/
+   CoreFoundation/CoreFoundation.html)
+
+   On Windows, a Cygwin fork child cannot access the USER subsystem.
+
+   We mark being in the exec'd process by a daemon name argument of
+   form "--daemon=\nFD0,FD1\nNAME" where FD are the pipe file descriptors,
+   NAME is the original daemon name, if any. */
+#if defined (NS_IMPL_COCOA) || defined (HAVE_NTGUI)
+# define DAEMON_MUST_EXEC
+#endif
+
 /* Nonzero means running Emacs without interactive terminal.  */
 int noninteractive;
 
@@ -694,9 +710,9 @@ main (int argc, char **argv)
   int no_loadup = 0;
   char *junk = 0;
   char *dname_arg = 0;
-#ifdef NS_IMPL_COCOA
+#ifdef DAEMON_MUST_EXEC
   char dname_arg2[80];
-#endif
+#endif /* DAEMON_MUST_EXEC */
   char *ch_to_dir;
 
 #if GC_MARK_STACK
@@ -998,25 +1014,19 @@ main (int argc, char **argv)
 	  exit (1);
 	}
 
-#ifndef NS_IMPL_COCOA
+#ifndef DAEMON_MUST_EXEC
 #ifdef USE_GTK
       fprintf (stderr, "\nWarning: due to a long standing Gtk+ bug\nhttp://bugzilla.gnome.org/show_bug.cgi?id=85715\n\
 Emacs might crash when run in daemon mode and the X11 connection is unexpectedly lost.\n\
 Using an Emacs configured with --with-x-toolkit=lucid does not have this problem.\n");
-#endif
+#endif /* USE_GTK */
       f = fork ();
-#else /* NS_IMPL_COCOA */
-      /* Under Cocoa we must do fork+exec as CoreFoundation lib fails in
-         forked process: http://developer.apple.com/ReleaseNotes/
-                                  CoreFoundation/CoreFoundation.html)
-         We mark being in the exec'd process by a daemon name argument of
-         form "--daemon=\nFD0,FD1\nNAME" where FD are the pipe file descriptors,
-         NAME is the original daemon name, if any. */
+#else /* DAEMON_MUST_EXEC */
       if (!dname_arg || !strchr (dname_arg, '\n'))
 	  f = fork ();  /* in orig */
       else
 	  f = 0;  /* in exec'd */
-#endif /* NS_IMPL_COCOA */
+#endif /* !DAEMON_MUST_EXEC */
       if (f > 0)
 	{
 	  int retval;
@@ -1052,7 +1062,7 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
 	  exit (1);
 	}
 
-#ifdef NS_IMPL_COCOA
+#ifdef DAEMON_MUST_EXEC
       {
         /* In orig process, forked as child, OR in exec'd. */
         if (!dname_arg || !strchr (dname_arg, '\n'))
@@ -1088,7 +1098,7 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
                 dname_arg2);
         dname_arg = *dname_arg2 ? dname_arg2 : NULL;
       }
-#endif /* NS_IMPL_COCOA */
+#endif /* DAEMON_MUST_EXEC */
 
       if (dname_arg)
        	daemon_name = xstrdup (dname_arg);
