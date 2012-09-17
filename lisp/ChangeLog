@@ -1,3 +1,9 @@
+2012-09-17  Chong Yidong  <cyd@gnu.org>
+
+	* shell.el (shell-file-name-chars, shell-file-name-quote-list)
+	(shell-dynamic-complete-functions): Convert to defcustom.
+	(shell-prompt-pattern, shell-completion-fignore): Doc fix.
+
 2012-09-16  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* mail/mailabbrev.el (mail-abbrev-expand-hook): Work for a mail aliasee
