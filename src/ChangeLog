@@ -1,5 +1,9 @@
 2012-09-17  Eli Zaretskii  <eliz@gnu.org>
 
+	* search.c (scan_buffer): Use character positions in calls to
+	region_cache_forward and region_cache_backward, not byte
+	positions.  (Bug#12196)
+
 	* w32term.c (w32_read_socket): Set pending_signals to 1, like
 	xterm.c does.  Reported by Daniel Colascione <dancol@dancol.org>.
 
