@@ -890,11 +890,11 @@ dvi:
 
 # Bootstrapping does the following:
 #  * Remove files to start from a clean slate.
-#  * Run autogen.sh, but don't worry about exit status 101 (missing tools).
+#  * Run autogen.sh, falling back on copy_autogen if autogen.sh fails.
 #  * Build Makefile, to build the build procedure itself.
 #  * Do the actual build.
 bootstrap: bootstrap-clean FRC
-	cd $(srcdir) && { ./autogen.sh || test $$? -eq 101; }
+	cd $(srcdir) && { ./autogen.sh || autogen/copy_autogen; }
 	./configure $(CONFIGURE_FLAGS)
 	$(MAKE) $(MFLAGS) info all
 

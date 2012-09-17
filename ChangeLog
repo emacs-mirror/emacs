@@ -8,6 +8,14 @@
 	This undoes part of the 2012-09-10 patch.
 	(bootstrap): Run ./configure, rather than trying to run config.status
 	if it exists.  That builds src/epaths.h more reliably.
+	Run autogen/copy_autogen if autogen.sh fails,
+	to create 'configure'; problem reported by Andreas Schwab in
+	<http://lists.gnu.org/archive/html/emacs-devel/2012-09/msg00438.html>.
+	* autogen.sh: Exit with status 1 when failing due to missing tools,
+	reverting the 2012-09-10 change to this file.
+	* autogen/copy_autogen: Fail if one of the subsidiary actions fail.
+	Use 'cp -f' for the build-aux files, since the destinations are
+	typically read-only.
 
 	Remove no-longer-needed Solaris 2.4 vfork bug workaround.
 	* configure.ac (ac_cv_func_vfork_works): Default to 'no' on
