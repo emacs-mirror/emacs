@@ -480,7 +480,7 @@ The relevant features are:
 
       ;; Use inheritance to let the main keymap override those defaults.
       ;; This way we don't override terminfo-derived settings or settings
-      ;; made in the .emacs file.
+      ;; made in the init file.
       (set-keymap-parent map (keymap-parent input-decode-map))
       (set-keymap-parent input-decode-map map)))
 

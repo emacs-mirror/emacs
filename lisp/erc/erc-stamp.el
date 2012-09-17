@@ -43,7 +43,7 @@ group provides settings related to the format and display
 of timestamp information in `erc-mode' buffer.
 
 For timestamping to be activated, you just need to load `erc-stamp'
-in your .emacs file or interactively using `load-library'."
+in your init file or interactively using `load-library'."
   :group 'erc)
 
 (defcustom erc-timestamp-format "[%H:%M]"

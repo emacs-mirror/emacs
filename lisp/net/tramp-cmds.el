@@ -204,7 +204,7 @@ useful thing to do is to put
 
   (setq tramp-verbose 9)
 
-in the ~/.emacs file and to repeat the bug.  Then, include the
+in your init file and to repeat the bug.  Then, include the
 contents of the *tramp/foo* buffer and the *debug tramp/foo*
 buffer in your bug report.
 

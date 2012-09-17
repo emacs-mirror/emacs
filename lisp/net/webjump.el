@@ -38,7 +38,7 @@
 ;; example sites.  You'll probably want to override it with your own favorite
 ;; sites.  The documentation for the variable describes the syntax.
 
-;; You may wish to add something like the following to your `.emacs' file:
+;; You may wish to add something like the following to your init file:
 ;;
 ;;   (require 'webjump)
 ;;   (global-set-key "\C-cj" 'webjump)

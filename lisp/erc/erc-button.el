@@ -25,7 +25,7 @@
 
 ;; Heavily borrowed from gnus-art.el. Thanks to the original authors.
 ;; This buttonizes nicks and other stuff to make it all clickable.
-;; To enable, add to your ~/.emacs:
+;; To enable, add to your init file:
 ;; (require 'erc-button)
 ;; (erc-button-mode 1)
 ;;

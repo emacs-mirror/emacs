@@ -123,13 +123,13 @@ own!):
   no upper limit on its size.  The size will also be aligned to the
   right.
 
-Thus, if you wanted to use these two formats, add
+Thus, if you wanted to use these two formats, the appropriate
+value for this variable would be
 
- (setq ibuffer-formats '((mark \" \" name)
-		         (mark modified read-only
-			  (name 16 16 :left) (size 6 -1 :right))))
-
-to your ~/.emacs file.
+  '((mark \" \" name)
+    (mark modified read-only
+          (name 16 16 :left)
+          (size 6 -1 :right)))
 
 Using \\[ibuffer-switch-format], you can rotate the display between
 the specified formats in the list."

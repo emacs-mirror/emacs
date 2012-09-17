@@ -34,7 +34,7 @@
 ;; README's, MANIFEST's, and so on.  Submit bugs or suggestions with
 ;; M-x ffap-bug.
 ;;
-;; For the default installation, add this line to your .emacs file:
+;; For the default installation, add this line to your init file:
 ;;
 ;; (ffap-bindings)                      ; do default key bindings
 ;;
@@ -206,7 +206,7 @@ Sensible values are nil, \"news\", or \"mailto\"."
 ;; those features interesting but not clear winners (a matter of
 ;; personal taste) I try to leave options to enable them.  Read
 ;; through this section for features that you like, put an appropriate
-;; enabler in your .emacs file.
+;; enabler in your init file.
 
 (defcustom ffap-dired-wildcards "[*?][^/]*\\'"
   "A regexp matching filename wildcard characters, or nil.

@@ -37,7 +37,7 @@
 ;; When this minor mode is on, the faces of the current line are updated with
 ;; every insertion or deletion.
 ;;
-;; To turn Font Lock mode on automatically, add this to your ~/.emacs file:
+;; To turn Font Lock mode on automatically, add this to your init file:
 ;;
 ;;  (add-hook 'emacs-lisp-mode-hook 'turn-on-font-lock)
 ;;

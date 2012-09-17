@@ -933,14 +933,7 @@ and then safely save them for later use, send letters to friends
 extracting the strokes for editing use once again, so the editing
 cycle can continue.
 
-Strokes are easy to program and fun to use.  To start strokes going,
-you'll want to put the following line in your .emacs file as mentioned
-in the commentary to strokes.el.
-
-This will load strokes when and only when you start Emacs on a window
-system, with a mouse or other pointer device defined.
-
-To toggle strokes-mode, you just do
+To toggle strokes-mode, invoke the command
 
 > M-x strokes-mode
 

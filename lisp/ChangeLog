@@ -4,6 +4,41 @@
 	(shell-dynamic-complete-functions): Convert to defcustom.
 	(shell-prompt-pattern, shell-completion-fignore): Doc fix.
 
+	* bookmark.el (bookmark-bmenu-toggle-filenames): Doc fixes.
+	* comint.el (comint-prompt-read-only):
+	* custom.el (defcustom):
+	* hi-lock.el (hi-lock-mode):
+	* ibuffer.el (ibuffer-formats):
+	* ielm.el (ielm-prompt-read-only):
+	* novice.el (disable-command):
+	* saveplace.el (toggle-save-place):
+	* speedbar.el (speedbar-supported-extension-expressions):
+	* startup.el (auto-save-list-file-prefix, init-file-user)
+	(after-init-hook, inhibit-startup-echo-area-message):
+	* strokes.el (strokes-help):
+	* time-stamp.el (time-stamp):
+	* calendar/calendar.el (calendar, diary-file):
+	* calendar/diary-lib.el (diary-mail-entries, diary)
+	(diary-list-entries-hook):
+	* calendar/holidays.el (holidays, calendar-holidays):
+	* calendar/lunar.el (lunar-phases):
+	* calendar/solar.el (sunrise-sunset):
+	* emulation/edt.el (edt-load-keys):
+	* emulation/viper.el (viper-mode):
+	* eshell/em-alias.el (eshell-command-aliases-list):
+	* eshell/esh-util.el (eshell-convert-numeric-arguments):
+	* international/ogonek.el (ogonek-information):
+	* net/tramp-cmds.el (tramp-bug):
+	* net/quickurl.el (quickurl-reread-hook-postfix):
+	* play/decipher.el (decipher-font-lock-keywords):
+	* progmodes/cc-styles.el (c-set-style):
+	* progmodes/idlw-shell.el (idlwave-shell-prompt-pattern):
+	* progmodes/inf-lisp.el (inferior-lisp-prompt):
+	* progmodes/octave-mod.el (octave-mode):
+	* progmodes/sql.el (sql-mode, sql-interactive-mode, sql-password):
+	* progmodes/verilog-mode.el (verilog-read-defines):
+	* textmodes/two-column.el (2C-mode): Likewise.
+
 2012-09-16  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* mail/mailabbrev.el (mail-abbrev-expand-hook): Work for a mail aliasee

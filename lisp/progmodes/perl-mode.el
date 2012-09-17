@@ -28,14 +28,14 @@
 ;;; Commentary:
 
 ;; To enter perl-mode automatically, add (autoload 'perl-mode "perl-mode")
-;; to your .emacs file and change the first line of your perl script to:
+;; to your init file and change the first line of your perl script to:
 ;; #!/usr/bin/perl --	 # -*-Perl-*-
 ;; With arguments to perl:
 ;; #!/usr/bin/perl -P-	 # -*-Perl-*-
 ;; To handle files included with do 'filename.pl';, add something like
 ;; (setq auto-mode-alist (append (list (cons "\\.pl\\'" 'perl-mode))
 ;;                               auto-mode-alist))
-;; to your .emacs file; otherwise the .pl suffix defaults to prolog-mode.
+;; to your init file; otherwise the .pl suffix defaults to prolog-mode.
 
 ;; This code is based on the 18.53 version c-mode.el, with extensive
 ;; rewriting.  Most of the features of c-mode survived intact.

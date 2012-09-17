@@ -144,10 +144,7 @@ You can toggle whether files are shown with \\<bookmark-bmenu-mode-map>\\[bookma
 
 (defcustom bookmark-bmenu-toggle-filenames t
   "Non-nil means show filenames when listing bookmarks.
-This may result in truncated bookmark names.  To disable this, put the
-following in your `.emacs' file:
-
-\(setq bookmark-bmenu-toggle-filenames nil)"
+A non-nil value may result in truncated bookmark names."
   :type 'boolean
   :group 'bookmark)
 

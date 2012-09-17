@@ -237,7 +237,7 @@ The following keywords are meaningful:
 	is `default-value'.
 :require
 	VALUE should be a feature symbol.  If you save a value
-	for this option, then when your `.emacs' file loads the value,
+	for this option, then when your init file loads the value,
 	it does (require VALUE) first.
 :set-after VARIABLES
 	Specifies that SYMBOL should be set after the list of variables

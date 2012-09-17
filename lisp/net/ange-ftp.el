@@ -79,7 +79,7 @@
 ;; that this change will take effect for the current GNU Emacs session only.
 ;; See below for a discussion of non-UNIX hosts.  If a large number of
 ;; machines with similar hostnames have this problem then it is easier to set
-;; the value of ange-ftp-dumb-unix-host-regexp in your .emacs file. ange-ftp
+;; the value of ange-ftp-dumb-unix-host-regexp in your init file.  ange-ftp
 ;; is unable to automatically recognize dumb unix hosts.
 
 ;; File name completion:
@@ -275,10 +275,10 @@
 
 ;; VMS support:
 ;;
-;; Ange-ftp has full support for VMS hosts.  It
-;; should be able to automatically recognize any VMS machine. However, if it
-;; fails to do this, you can use the command ange-ftp-add-vms-host.  As well,
-;; you can set the variable ange-ftp-vms-host-regexp in your .emacs file. We
+;; Ange-ftp has full support for VMS hosts.  It should be able to
+;; automatically recognize any VMS machine. However, if it fails to do
+;; this, you can use the command ange-ftp-add-vms-host.  Also, you can
+;; set the variable ange-ftp-vms-host-regexp in your init file.  We
 ;; would be grateful if you would report any failures to automatically
 ;; recognize a VMS host as a bug.
 ;;
@@ -332,7 +332,7 @@
 ;; the Michigan terminal system.  It should be able to automatically
 ;; recognize any MTS machine. However, if it fails to do this, you can use
 ;; the command ange-ftp-add-mts-host.  As well, you can set the variable
-;; ange-ftp-mts-host-regexp in your .emacs file. We would be grateful if you
+;; ange-ftp-mts-host-regexp in your init file. We would be grateful if you
 ;; would report any failures to automatically recognize a MTS host as a bug.
 ;;
 ;; Filename syntax:
@@ -358,7 +358,7 @@
 ;; CMS.  It should be able to automatically recognize any CMS machine.
 ;; However, if it fails to do this, you can use the command
 ;; ange-ftp-add-cms-host.  As well, you can set the variable
-;; ange-ftp-cms-host-regexp in your .emacs file. We would be grateful if you
+;; ange-ftp-cms-host-regexp in your init file. We would be grateful if you
 ;; would report any failures to automatically recognize a CMS host as a bug.
 ;;
 ;; Filename syntax:

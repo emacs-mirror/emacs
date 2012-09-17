@@ -74,7 +74,7 @@
 ;; align-?-modes variables (for example, `align-dq-string-modes'), use
 ;; `add-to-list', or some similar function which checks first to see
 ;; if the value is already there.  Since the user may customize that
-;; mode list, and then write your mode name into their .emacs file,
+;; mode list, and then write your mode name into their init file,
 ;; causing the symbol already to be present the next time they load
 ;; your package.
 

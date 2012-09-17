@@ -32,7 +32,7 @@
 ;; GNU MDK from `https://savannah.gnu.org/projects/mdk/' and
 ;; `ftp://ftp.gnu.org/pub/gnu/mdk'.
 ;;
-;; To use this mode, place the following in your .emacs file:
+;; To use this mode, place the following in your init file:
 ;; `(load-file "/PATH-TO-FILE/mixal-mode.el")'.
 ;; When you load a file with the extension .mixal the mode will be started
 ;; automatic.  If you want to start the mode manual, use `M-x mixal-mode'.

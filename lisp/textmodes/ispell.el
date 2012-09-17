@@ -1127,7 +1127,8 @@ aspell is used along with Emacs).")
 
     ;; If Emacs flavor supports [:alpha:] use it for global dicts.  If
     ;; spellchecker also supports UTF-8 via command-line option use it
-    ;; in communication.  This does not affect definitions in ~/.emacs.
+    ;; in communication.  This does not affect definitions in your
+    ;; init file.
     (if ispell-emacs-alpha-regexp
      	(let (tmp-dicts-alist)
     	  (dolist (adict ispell-dictionary-alist)
@@ -3680,7 +3681,7 @@ use the `x' command.  (Any subsequent regions will be checked.)
 The `X' command aborts sending the message so that you can edit the buffer.
 
 To spell-check whenever a message is sent, include the appropriate lines
-in your .emacs file:
+in your init file:
    (add-hook 'message-send-hook 'ispell-message)  ;; GNUS 5
    (add-hook 'news-inews-hook 'ispell-message)    ;; GNUS 4
    (add-hook 'mail-send-hook  'ispell-message)

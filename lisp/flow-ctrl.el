@@ -31,7 +31,7 @@
 ;;
 ;; To invoke these adjustments, a user need only invoke the function
 ;; enable-flow-control-on with a list of terminal types in his/her own
-;; .emacs file.  As arguments, give it the names of one or more terminal
+;; init file.  As arguments, give it the names of one or more terminal
 ;; types in use by that user which require flow control adjustments.
 ;; Here's an example:
 ;;

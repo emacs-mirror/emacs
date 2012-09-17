@@ -126,7 +126,7 @@
 ;; again.
 ;;
 ;; To use the package regularly place this file in the site library
-;; directory and add the next expression in your .emacs file.  Make
+;; directory and add the next expression in your init file.  Make
 ;; sure that directory is included in the `load-path'.
 ;;
 ;;   (require 'table)
@@ -342,10 +342,10 @@
 ;;     (function (lambda ()
 ;;       (local-set-key [<key sequence>] '<function>))))
 ;;
-;; Above code is well known ~/.emacs idiom for customizing a mode
-;; specific keymap however it does not work for this package.  This is
-;; because there is no table mode in effect.  This package does not
-;; use a local map therefore you must modify `table-cell-map'
+;; Adding the above to your init file is a common way to customize a
+;; mode specific keymap.  However it does not work for this package.
+;; This is because there is no table mode in effect.  This package
+;; does not use a local map therefore you must modify `table-cell-map'
 ;; explicitly.  The correct way of achieving above task is:
 ;;
 ;;   (add-hook 'table-cell-map-hook

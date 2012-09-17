@@ -168,9 +168,7 @@ This variable is only used if the variable
 More precise choices:
 Lucid Common Lisp: \"^\\\\(>\\\\|\\\\(->\\\\)+\\\\) *\"
 franz: \"^\\\\(->\\\\|<[0-9]*>:\\\\) *\"
-kcl: \"^>+ *\"
-
-This is a fine thing to set in your .emacs file or through Custom."
+kcl: \"^>+ *\""
   :type 'regexp
   :group 'inferior-lisp)
 

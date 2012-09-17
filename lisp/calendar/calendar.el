@@ -593,7 +593,7 @@ You can customize `diary-date-forms' to your preferred format.
 Three default styles are provided: `diary-american-date-forms',
 `diary-european-date-forms', and `diary-iso-date-forms'.
 You can choose between these by setting `calendar-date-style' in your
-.emacs file, or by using `calendar-set-date-style' when in the calendar.
+init file, or by using `calendar-set-date-style' when in the calendar.
 
 A diary entry can be preceded by the character `diary-nonmarking-symbol'
 \(ordinarily `&') to make that entry nonmarking--that is, it will not be
@@ -1276,7 +1276,7 @@ Runs the following hooks:
    generating a calendar, if today's date is visible or not, respectively
 `calendar-initial-window-hook' - after first creating a calendar
 
-This function is suitable for execution in a .emacs file."
+This function is suitable for execution in an init file."
   (interactive "P")
   ;; Avoid loading cal-x unless it will be used.
   (if (and (memq calendar-setup '(one-frame two-frames calendar-only))

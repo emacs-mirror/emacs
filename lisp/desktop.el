@@ -34,7 +34,7 @@
 ;;		- some local variables
 
 ;; To use this, use customize to turn on desktop-save-mode or add the
-;; following line somewhere in your .emacs file:
+;; following line somewhere in your init file:
 ;;
 ;;	(desktop-save-mode 1)
 ;;

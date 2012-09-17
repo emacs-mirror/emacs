@@ -585,12 +585,12 @@ Variables you can use to customize Octave mode
 Turning on Octave mode runs the hook `octave-mode-hook'.
 
 To begin using this mode for all `.m' files that you edit, add the
-following lines to your `.emacs' file:
+following lines to your init file:
 
   (add-to-list 'auto-mode-alist '(\"\\\\.m\\\\'\" . octave-mode))
 
 To automatically turn on the abbrev and auto-fill features,
-add the following lines to your `.emacs' file as well:
+add the following lines to your init file as well:
 
   (add-hook 'octave-mode-hook
 	    (lambda ()

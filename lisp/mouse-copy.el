@@ -35,7 +35,7 @@
 ;; If you like mouse-copy, you should also check out mouse-drag
 ;; for ``one-click scrolling''.
 ;;
-;; To use mouse-copy, place the following in your .emacs file:
+;; To use mouse-copy, place the following in your init file:
 ;;	(require 'mouse-copy)
 ;;     (global-set-key [M-down-mouse-1] 'mouse-drag-secondary-pasting)
 ;;     (global-set-key [M-S-down-mouse-1] 'mouse-drag-secondary-moving)

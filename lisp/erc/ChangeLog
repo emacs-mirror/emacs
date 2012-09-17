@@ -1,3 +1,9 @@
+2012-09-17  Chong Yidong  <cyd@gnu.org>
+
+	* erc-page.el (erc-page-function): 
+
+	* erc-stamp.el (erc-stamp): Doc fix.
+
 2012-08-21  Josh Feinstein <jlf@foxtail.org>
 
 	* erc-join.el (erc-autojoin-timing): Fix defcustom type.

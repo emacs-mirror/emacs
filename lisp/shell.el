@@ -46,7 +46,7 @@
 
 ;; YOUR .EMACS FILE
 ;;=============================================================================
-;; Some suggestions for your .emacs file.
+;; Some suggestions for your init file.
 ;;
 ;; ;; Define M-# to run some strange command:
 ;; (eval-after-load "shell"

@@ -71,12 +71,13 @@ once you are familiar with the contents of the startup screen."
   "Non-nil inhibits the initial startup echo area message.
 Setting this variable takes effect
 only if you do it with the customization buffer
-or if your `.emacs' file contains a line of this form:
+or if your init file contains a line of this form:
  (setq inhibit-startup-echo-area-message \"YOUR-USER-NAME\")
-If your `.emacs' file is byte-compiled, use the following form instead:
+If your init file is byte-compiled, use the following form
+instead:
  (eval '(setq inhibit-startup-echo-area-message \"YOUR-USER-NAME\"))
-Thus, someone else using a copy of your `.emacs' file will see
-the startup message unless he personally acts to inhibit it."
+Thus, someone else using a copy of your init file will see the
+startup message unless he personally acts to inhibit it."
   :type '(choice (const :tag "Don't inhibit")
 		 (string :tag "Enter your user name, to inhibit"))
   :group 'initialization)
@@ -261,10 +262,14 @@ and VALUE is the value which is given to that frame parameter
   "Normal hook run after handling urgent options but before loading init files.")
 
 (defvar after-init-hook nil
-  "Normal hook run after loading the init files, `~/.emacs' and `default.el'.
-There is no `condition-case' around the running of these functions;
-therefore, if you set `debug-on-error' non-nil in `.emacs',
-an error in one of these functions will invoke the debugger.")
+  "Normal hook run after initializing the Emacs session.
+It is run after Emacs loads the init file, `default' library, the
+abbrevs file, and additional Lisp packages (if any), and setting
+the value of `after-init-time'.
+
+There is no `condition-case' around the running of this hook;
+therefore, if `debug-on-error' is non-nil, an error in one of
+these functions will invoke the debugger.")
 
 (defvar emacs-startup-hook nil
   "Normal hook run after loading init files and handling the command line.")
@@ -296,7 +301,7 @@ the user's init file.")
   :group 'initialization)
 
 (defvar init-file-user nil
-  "Identity of user whose `.emacs' file is or was read.
+  "Identity of user whose init file is or was read.
 The value is nil if `-q' or `--no-init-file' was specified,
 meaning do not load any init file.
 
@@ -306,7 +311,7 @@ or it may be a string containing a user's name meaning
 use that person's init file.
 
 In either of the latter cases, `(concat \"~\" init-file-user \"/\")'
-evaluates to the name of the directory where the `.emacs' file was
+evaluates to the name of the directory where the init file was
 looked for.
 
 Setting `init-file-user' does not prevent Emacs from loading
@@ -365,7 +370,7 @@ init file is read, in case it sets `mail-host-address'."
 	(t
 	 (concat user-emacs-directory "auto-save-list/.saves-")))
   "Prefix for generating `auto-save-list-file-name'.
-This is used after reading your `.emacs' file to initialize
+This is used after reading your init file to initialize
 `auto-save-list-file-name', by appending Emacs's pid and the system name,
 if you have not already set `auto-save-list-file-name' yourself.
 Directories in the prefix will be created if necessary.
