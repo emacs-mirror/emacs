@@ -1,3 +1,9 @@
+2012-09-17  Eli Zaretskii  <eliz@gnu.org>
+
+	* ralloc.c (r_alloc_init) [!SYSTEM_MALLOC]: Initialize
+	__malloc_extra_blocks to 32 instead of 64, like alloc.c did in
+	emacs_blocked_malloc, now deleted.
+
 2012-09-17  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Remove no-longer-needed Solaris 2.4 vfork bug workaround.
