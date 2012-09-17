@@ -1,3 +1,8 @@
+2012-09-17  Glenn Morris  <rgm@gnu.org>
+
+	* admin.el (set-copyright): No more need to set copyrights for
+	nextstep, or .c files.  Add configure.ac and config.nt.
+
 2012-09-16  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Remove configure's --without-sync-input option (Bug#12450).

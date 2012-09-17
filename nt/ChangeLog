@@ -1,3 +1,7 @@
+2012-09-17  Glenn Morris  <rgm@gnu.org>
+
+	* config.nt (COPYRIGHT): New.
+
 2012-09-15  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Port _setjmp fix to POSIXish hosts as well as Microsoft.

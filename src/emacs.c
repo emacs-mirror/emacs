@@ -88,7 +88,7 @@ extern void moncontrol (int mode);
 #endif
 
 static const char emacs_version[] = VERSION;
-static const char emacs_copyright[] = "Copyright (C) 2012 Free Software Foundation, Inc.";
+static const char emacs_copyright[] = COPYRIGHT;
 
 /* Empty lisp strings.  To avoid having to build any others.  */
 Lisp_Object empty_unibyte_string, empty_multibyte_string;

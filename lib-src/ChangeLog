@@ -1,3 +1,8 @@
+2012-09-17  Glenn Morris  <rgm@gnu.org>
+
+	* ebrowse.c (version):
+	* etags.c (print_version): Use COPYRIGHT.
+
 2012-09-11  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* pop.c (socket_connection) [HAVE_GETADDRINFO]:

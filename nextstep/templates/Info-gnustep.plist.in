@@ -11,7 +11,7 @@
 	"Carl Edman (NeXTstep)",
 	"..see etc/NEXTSTEP"
     );
-    Copyright = "Copyright (C) 2012 Free Software Foundation, Inc.";
+    Copyright = "@copyright@";
     CopyrightDescription = "Released under the GNU General Public License Version 3 or later";
     FullVersionID = "Emacs @version@, NS Windowing";
     NSExecutable = Emacs;

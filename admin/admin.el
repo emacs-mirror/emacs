@@ -140,34 +140,18 @@ Root must be the root of an Emacs source tree."
                          (format-time-string "%Y")))))
   (unless (file-exists-p (expand-file-name "src/emacs.c" root))
     (error "%s doesn't seem to be the root of an Emacs source tree" root))
-  (set-version-in-file root "src/emacs.c" copyright
-		       (rx (and "emacs_copyright" (0+ (not (in ?\")))
+  (set-version-in-file root "configure.ac" copyright
+		       (rx (and bol "copyright" (0+ (not (in ?\")))
         			?\" (submatch (1+ (not (in ?\")))) ?\")))
-  (set-version-in-file root "lib-src/ebrowse.c" copyright
-                       (rx (and "emacs_copyright" (0+ (not (in ?\")))
-        			?\" (submatch (1+ (not (in ?\")))) ?\")))
-  (set-version-in-file root "lib-src/etags.c" copyright
-                       (rx (and "emacs_copyright" (0+ (not (in ?\")))
-        			?\" (submatch (1+ (not (in ?\")))) ?\")))
+  (set-version-in-file root "nt/config.nt" copyright
+		       (rx (and bol "#" (0+ blank) "define" (1+ blank)
+				"COPYRIGHT" (1+ blank)
+				?\" (submatch (1+ (not (in ?\")))) ?\")))
   (set-version-in-file root "lib-src/rcs2log" copyright
         	       (rx (and "Copyright" (0+ space) ?= (0+ space)
         			?\' (submatch (1+ nonl)))))
   ;; This one is a nuisance, as it needs to be split over two lines.
   (string-match "\\(.*[0-9]\\{4\\} *\\)\\(.*\\)" copyright)
-  ;; nextstep.
-  (set-version-in-file
-   root "nextstep/templates/Info.plist.in"
-   copyright (rx (and "CFBundleGetInfoString" (1+ anything) "Emacs" (1+ space)
-                    (1+ (in "0-9.")) (1+ space)
-                    (submatch (1+ (not (in ?\<)))))))
-  (set-version-in-file
-   root "nextstep/templates/InfoPlist.strings.in"
-   copyright (rx (and "NSHumanReadableCopyright" (0+ space) ?\= (0+ space)
-                    ?\" (submatch (1+ (not (in ?\")))))))
-  (set-version-in-file
-   root "nextstep/templates/Info-gnustep.plist.in"
-   copyright (rx (and "Copyright" (0+ space) ?\= (0+ space)
-                      ?\" (submatch (1+ (not (in ?\")))))))
   (when (string-match "\\([0-9]\\{4\\}\\)" copyright)
     (setq copyright (match-string 1 copyright))
     (dolist (file (directory-files (expand-file-name "etc/refcards" root)
