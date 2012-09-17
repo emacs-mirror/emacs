@@ -4068,6 +4068,13 @@ The variable `rmail-retry-ignored-headers' is a regular expression
 specifying headers which should not be copied into the new message."
   (interactive)
   (require 'mail-utils)
+  (if rmail-enable-mime
+      (with-current-buffer rmail-buffer
+	(if (rmail-mime-message-p)
+	    (let ((rmail-mime-mbox-buffer rmail-view-buffer)
+		  (rmail-mime-view-buffer rmail-buffer))
+	      (rmail-mime-toggle-raw 'raw)))))
+
   (let ((rmail-this-buffer (current-buffer))
 	(msgnum rmail-current-message)
 	bounce-start bounce-end bounce-indent resending
@@ -4598,7 +4605,7 @@ With prefix argument N moves forward N messages with these labels.
 
 ;;;***
 
-;;;### (autoloads (rmail-mime) "rmailmm" "rmailmm.el" "cd7656f82944d0b92b0d093a5f3a4c36")
+;;;### (autoloads (rmail-mime) "rmailmm" "rmailmm.el" "0c18b83f914803d1216e1a9df7ea5275")
 ;;; Generated autoloads from rmailmm.el
 
 (autoload 'rmail-mime "rmailmm" "\

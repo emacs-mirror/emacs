@@ -1,5 +1,7 @@
 2012-09-17  Richard Stallman  <rms@gnu.org>
 
+	* mail/rmail.el (rmail-retry-failure): Turn off mime processing first.
+
 	* epa-mail.el (epa-mail-encrypt): Fix bug when a name has no key.
 
 2012-09-17  Chong Yidong  <cyd@gnu.org>
