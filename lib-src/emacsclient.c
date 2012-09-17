@@ -597,7 +597,7 @@ decode_options (int argc, char **argv)
 #if defined (NS_IMPL_COCOA)
       alt_display = "ns";
 #elif defined (HAVE_NTGUI)
-      alt_display = "windows";
+      alt_display = "w32";
 #endif
 
       display = egetenv ("DISPLAY");
@@ -1599,7 +1599,7 @@ main (int argc, char **argv)
     }
 
 #ifdef HAVE_NTGUI
-  if (display && !strcmp (display, "windows"))
+  if (display && !strcmp (display, "w32"))
   w32_give_focus ();
 #endif /* HAVE_NTGUI */
 

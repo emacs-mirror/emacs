@@ -39,7 +39,7 @@
 ;; this file, which works in close coordination with src/nsfns.m.
 
 ;;; Code:
-
+(eval-when-compile (require 'cl-lib))
 (or (featurep 'ns)
     (error "%s: Loading ns-win.el but not compiled for GNUstep/MacOS"
            (invocation-name)))
@@ -897,6 +897,7 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
 ;; defines functions and variables that we use now.
 (defun ns-initialize-window-system ()
   "Initialize Emacs for Nextstep (Cocoa / GNUstep) windowing."
+  (cl-assert (not ns-initialized))
 
   ;; PENDING: not needed?
   (setq command-line-args (x-handle-args command-line-args))
@@ -924,6 +925,7 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
   (x-apply-session-resources)
   (setq ns-initialized t))
 
+(add-to-list 'display-format-alist '("\\`ns\\'" . ns))
 (add-to-list 'handle-args-function-alist '(ns . x-handle-args))
 (add-to-list 'frame-creation-function-alist '(ns . x-create-frame-with-faces))
 (add-to-list 'window-system-initialization-alist '(ns . ns-initialize-window-system))

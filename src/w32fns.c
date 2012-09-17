@@ -4892,12 +4892,21 @@ terminate Emacs if we can't open the connection.
   unsigned char *xrm_option;
   struct w32_display_info *dpyinfo;
 
+  CHECK_STRING (display);
+
+  /* Signal an error in order to encourage correct use from callers.
+   * If we ever support multiple window systems in the same Emacs,
+   * we'll need callers to be precise about what window system they
+   * want.  */
+
+  if (strcmp (SSDATA (display), "w32") != 0)
+    error ("The name of the display in this Emacs must be \"w32\"");
+
   /* If initialization has already been done, return now to avoid
      overwriting critical parts of one_w32_display_info.  */
   if (w32_in_use)
     return Qnil;
 
-  CHECK_STRING (display);
   if (! NILP (xrm_string))
     CHECK_STRING (xrm_string);
 

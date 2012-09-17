@@ -68,6 +68,7 @@
 ;; (if (not (eq window-system 'w32))
 ;;     (error "%s: Loading w32-win.el but not compiled for w32" (invocation-name)))
 
+(eval-when-compile (require 'cl-lib))
 (require 'frame)
 (require 'mouse)
 (require 'scroll-bar)
@@ -240,6 +241,7 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
 
 (defun w32-initialize-window-system ()
   "Initialize Emacs for W32 GUI frames."
+  (cl-assert (not w32-initialized))
 
   ;; Do the actual Windows setup here; the above code just defines
   ;; functions and variables that we use now.
@@ -253,7 +255,7 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
             ;; so as not to choke when we use it in X resource queries.
             (replace-regexp-in-string "[.*]" "-" (invocation-name))))
 
-  (x-open-connection "" x-command-line-resources
+  (x-open-connection "w32" x-command-line-resources
                      ;; Exit with a fatal error if this fails and we
                      ;; are the initial display
                      (eq initial-window-system 'w32))
@@ -304,7 +306,7 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
           (setq default-frame-alist
                 (cons '(reverse . t) default-frame-alist)))))
 
-  ;; Don't let Emacs suspend under w32 gui
+  ;; Don't let Emacs suspend under Windows.
   (add-hook 'suspend-hook 'x-win-suspend-error)
 
   ;; Turn off window-splitting optimization; w32 is usually fast enough
@@ -322,6 +324,7 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
   (x-apply-session-resources)
   (setq w32-initialized t))
 
+(add-to-list 'display-format-alist '("\\`w32\\'" . w32))
 (add-to-list 'handle-args-function-alist '(w32 . x-handle-args))
 (add-to-list 'frame-creation-function-alist '(w32 . x-create-frame-with-faces))
 (add-to-list 'window-system-initialization-alist '(w32 . w32-initialize-window-system))
