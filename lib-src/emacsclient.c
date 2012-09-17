@@ -44,6 +44,10 @@ char *w32_getenv (char *);
 
 #else /* !WINDOWSNT */
 
+# ifdef HAVE_NTGUI
+# include <windows.h>
+# endif /* HAVE_NTGUI */
+
 # include "syswait.h"
 
 # ifdef HAVE_INET_SOCKETS
@@ -182,9 +186,7 @@ struct option longopts[] =
   { "socket-name",	required_argument, NULL, 's' },
 #endif
   { "server-file",	required_argument, NULL, 'f' },
-#ifndef WINDOWSNT
   { "display",	required_argument, NULL, 'd' },
-#endif
   { "parent-id", required_argument, NULL, 'p' },
   { 0, 0, 0, 0 }
 };
@@ -385,32 +387,6 @@ w32_getenv (char *envvar)
   return NULL;
 }
 
-void
-w32_set_user_model_id (void)
-{
-  HMODULE shell;
-  HRESULT (WINAPI * set_user_model) (wchar_t * id);
-
-  /* On Windows 7 and later, we need to set the user model ID
-     to associate emacsclient launched files with Emacs frames
-     in the UI.  */
-  shell = LoadLibrary ("shell32.dll");
-  if (shell)
-    {
-      set_user_model
-	= (void *) GetProcAddress (shell,
-				   "SetCurrentProcessExplicitAppUserModelID");
-      /* If the function is defined, then we are running on Windows 7
-	 or newer, and the UI uses this to group related windows
-	 together.  Since emacs, runemacs, emacsclient are related, we
-	 want them grouped even though the executables are different,
-	 so we need to set a consistent ID between them.  */
-      if (set_user_model)
-	set_user_model (L"GNU.Emacs");
-
-      FreeLibrary (shell);
-    }
-}
 
 int
 w32_window_app (void)
@@ -1415,9 +1391,36 @@ set_socket (int no_exit_if_error)
   exit (EXIT_FAILURE);
 }
 
-#ifdef WINDOWSNT
+#ifdef HAVE_NTGUI
 FARPROC set_fg;  /* Pointer to AllowSetForegroundWindow.  */
 FARPROC get_wc;  /* Pointer to RealGetWindowClassA.  */
+
+void
+w32_set_user_model_id (void)
+{
+  HMODULE shell;
+  HRESULT (WINAPI * set_user_model) (wchar_t * id);
+
+  /* On Windows 7 and later, we need to set the user model ID
+     to associate emacsclient launched files with Emacs frames
+     in the UI.  */
+  shell = LoadLibrary ("shell32.dll");
+  if (shell)
+    {
+      set_user_model
+	= (void *) GetProcAddress (shell,
+				   "SetCurrentProcessExplicitAppUserModelID");
+      /* If the function is defined, then we are running on Windows 7
+	 or newer, and the UI uses this to group related windows
+	 together.  Since emacs, runemacs, emacsclient are related, we
+	 want them grouped even though the executables are different,
+	 so we need to set a consistent ID between them.  */
+      if (set_user_model)
+	set_user_model (L"GNU.Emacs");
+
+      FreeLibrary (shell);
+    }
+}
 
 BOOL CALLBACK
 w32_find_emacs_process (HWND hWnd, LPARAM lParam)
@@ -1467,7 +1470,7 @@ w32_give_focus (void)
       && (get_wc = GetProcAddress (user32, "RealGetWindowClassA")))
     EnumWindows (w32_find_emacs_process, (LPARAM) 0);
 }
-#endif
+#endif /* HAVE_NTGUI */
 
 /* Start the emacs daemon and try to connect to it.  */
 
@@ -1537,11 +1540,11 @@ main (int argc, char **argv)
   main_argv = argv;
   progname = argv[0];
 
-#ifdef WINDOWSNT
+#ifdef HAVE_NTGUI
   /* On Windows 7 and later, we need to explicitly associate emacsclient
      with emacs so the UI behaves sensibly.  */
   w32_set_user_model_id ();
-#endif
+#endif /* HAVE_NTGUI */
 
   /* Process options.  */
   decode_options (argc, argv);
@@ -1577,9 +1580,9 @@ main (int argc, char **argv)
       fail ();
     }
 
-#ifdef WINDOWSNT
+#ifdef HAVE_NTGUI
   w32_give_focus ();
-#endif
+#endif /* HAVE_NTGUI */
 
   /* Send over our environment and current directory. */
   if (!current_frame)

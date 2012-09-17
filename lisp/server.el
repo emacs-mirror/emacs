@@ -1114,9 +1114,13 @@ The following commands are accepted by the client:
                        tty-type (pop args-left)
                        dontkill (or dontkill
                                     (not use-current-frame)))
-                 ;; On Windows, emacsclient always asks for a tty frame.
-                 ;; If running a GUI server, force the frame type to GUI.
-                 (when (eq window-system 'w32)
+                 ;; On Windows, emacsclient always asks for a tty
+                 ;; frame.  If running a GUI server, force the frame
+                 ;; type to GUI.  (Cygwin is perfectly happy with
+                 ;; multi-tty support, so don't override the user's
+                 ;; choice there.)
+                 (when (and (eq system-type 'windows-nt)
+                            (eq window-system 'w32))
                    (push "-window-system" args-left)))
 
                 ;; -position LINE[:COLUMN]:  Set point to the given
