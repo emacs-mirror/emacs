@@ -20,6 +20,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <signal.h>
 #include <stdio.h>
 #include <setjmp.h>
+
 #include "lisp.h"
 #include "keyboard.h"
 #include "frame.h"
@@ -33,7 +34,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define myfree(lp) GlobalFreePtr (lp)
 
 CRITICAL_SECTION critsect;
+
+#ifdef WINDOWSNT
 extern HANDLE keyboard_handle;
+#endif /* WINDOWSNT */
+
 HANDLE input_available = NULL;
 HANDLE interrupt_handle = NULL;
 
@@ -44,7 +49,11 @@ init_crit (void)
 
   /* For safety, input_available should only be reset by get_next_msg
      when the input queue is empty, so make it a manual reset event. */
-  keyboard_handle = input_available = CreateEvent (NULL, TRUE, FALSE, NULL);
+  input_available = CreateEvent (NULL, TRUE, FALSE, NULL);
+
+#ifdef WINDOWSNT
+  keyboard_handle = input_available;
+#endif /* WINDOWSNT */
 
   /* interrupt_handle is signaled when quit (C-g) is detected, so that
      blocking system calls can be interrupted.  We make it a manual
@@ -241,6 +250,22 @@ get_next_msg (W32Msg * lpmsg, BOOL bWait)
   return (bRet);
 }
 
+extern char * w32_strerror (int error_no);
+
+/* Tell the main thread that we have input available; if the main
+   thread is blocked in select(), we wake it up here.  */
+static void
+notify_msg_ready (void)
+{
+  SetEvent (input_available);
+
+#ifdef CYGWIN
+  /* Wakes up the main thread, which is blocked select()ing for /dev/windows,
+     among other files.  */
+  (void) PostThreadMessage (dwMainThreadId, WM_EMACS_INPUT_READY, 0, 0);
+#endif /* CYGWIN */
+}
+
 BOOL
 post_msg (W32Msg * lpmsg)
 {
@@ -264,8 +289,7 @@ post_msg (W32Msg * lpmsg)
     }
 
   lpTail = lpNew;
-  SetEvent (input_available);
-
+  notify_msg_ready ();
   leave_crit ();
 
   return (TRUE);
@@ -286,7 +310,7 @@ prepend_msg (W32Msg *lpmsg)
   nQueue++;
   lpNew->lpNext = lpHead;
   lpHead = lpNew;
-
+  notify_msg_ready ();
   leave_crit ();
 
   return (TRUE);

@@ -621,7 +621,7 @@ typedef struct frame *FRAME_PTR;
 #define FRAME_INITIAL_P(f) ((f)->output_method == output_initial)
 #define FRAME_TERMCAP_P(f) ((f)->output_method == output_termcap)
 #define FRAME_X_P(f) ((f)->output_method == output_x_window)
-#ifndef WINDOWSNT
+#ifndef HAVE_NTGUI
 #define FRAME_W32_P(f) (0)
 #else
 #define FRAME_W32_P(f) ((f)->output_method == output_w32)
@@ -1213,7 +1213,7 @@ extern Lisp_Object x_new_font (struct frame *, Lisp_Object, int);
 
 extern Lisp_Object Qface_set_after_frame_default;
 
-#ifdef WINDOWSNT
+#ifdef HAVE_NTGUI
 extern void x_fullscreen_adjust (struct frame *f, int *, int *,
                                  int *, int *);
 #endif
@@ -1285,6 +1285,7 @@ extern char *x_get_resource_string (const char *, const char *);
 #endif
 
 extern void x_query_colors (struct frame *f, XColor *, int);
+extern void x_query_color (struct frame *f, XColor *);
 
 /* In xmenu.c */
 extern void set_frame_menubar (FRAME_PTR, int, int);

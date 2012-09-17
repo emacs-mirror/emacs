@@ -3139,7 +3139,7 @@ int draw_window_fringes (struct window *, int);
 int update_window_fringes (struct window *, int);
 void compute_fringe_widths (struct frame *, int);
 
-#ifdef WINDOWSNT
+#ifdef HAVE_NTGUI
 void w32_init_fringe (struct redisplay_interface *);
 void w32_reset_fringes (void);
 #endif
@@ -3241,7 +3241,7 @@ extern char unspecified_fg[], unspecified_bg[];
 #ifdef HAVE_X_WINDOWS
 void gamma_correct (struct frame *, XColor *);
 #endif
-#ifdef WINDOWSNT
+#ifdef HAVE_NTGUI
 void gamma_correct (struct frame *, COLORREF *);
 #endif
 

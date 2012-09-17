@@ -37,9 +37,20 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #ifdef WINDOWSNT
 #include <fcntl.h>
-#include <windows.h> /* just for w32.h */
 #include "w32.h"
-#include "w32heap.h" /* for prototype of sbrk */
+#endif
+
+#if defined (WINDOWSNT)
+#include "w32heap.h"
+#endif
+
+#if defined (WINDOWSNT) || defined (HAVE_NTGUI)
+#include "w32select.h"
+#include "w32font.h"
+#endif
+
+#if defined (HAVE_NTGUI) && defined (CYGWIN)
+#include "cygw32.h"
 #endif
 
 #ifdef NS_IMPL_GNUSTEP
@@ -1484,6 +1495,9 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
 #ifdef WINDOWSNT
       syms_of_ntproc ();
 #endif /* WINDOWSNT */
+#if defined (CYGWIN) && defined (HAVE_NTGUI)
+      syms_of_cygw32 ();
+#endif /* defined(CYGWIN) && defined (HAVE_NTGUI) */
       syms_of_window ();
       syms_of_xdisp ();
       syms_of_font ();
@@ -1514,10 +1528,13 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
 #ifdef HAVE_NTGUI
       syms_of_w32term ();
       syms_of_w32fns ();
-      syms_of_w32select ();
       syms_of_w32menu ();
       syms_of_fontset ();
 #endif /* HAVE_NTGUI */
+
+#ifdef HAVE_W32SELECT
+      syms_of_w32select ();
+#endif /* HAVE_W32SELECT */
 
 #ifdef MSDOS
       syms_of_xmenu ();
@@ -1561,8 +1578,11 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
       globals_of_w32font ();
       globals_of_w32fns ();
       globals_of_w32menu ();
-      globals_of_w32select ();
 #endif  /* HAVE_NTGUI */
+
+#ifdef HAVE_W32SELECT
+      globals_of_w32select ();
+#endif /* HAVE_W32SELECT */
     }
 
   init_charset ();

@@ -967,7 +967,6 @@ extern int x_alloc_lighter_color_for_widget (Widget, Display *, Colormap,
                                              double, int);
 #endif
 extern int x_alloc_nearest_color (struct frame *, Colormap, XColor *);
-extern void x_query_color (struct frame *f, XColor *);
 extern void x_clear_area (Display *, Window, int, int, int, int, int);
 #if defined HAVE_MENUS && !defined USE_X_TOOLKIT && !defined USE_GTK
 extern void x_mouse_leave (struct x_display_info *);

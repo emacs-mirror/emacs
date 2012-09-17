@@ -2670,7 +2670,8 @@ See also `locale-charset-language-names', `locale-language-names',
     ;; On Windows, override locale-coding-system,
     ;; default-file-name-coding-system, keyboard-coding-system,
     ;; terminal-coding-system with system codepage.
-    (when (boundp 'w32-ansi-code-page)
+    (when (and (eq system-type 'windows-nt)
+               (boundp 'w32-ansi-code-page))
       (let ((code-page-coding (intern (format "cp%d" w32-ansi-code-page))))
 	(when (coding-system-p code-page-coding)
 	  (unless frame (setq locale-coding-system code-page-coding))

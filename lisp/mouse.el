@@ -1151,7 +1151,7 @@ regardless of where you click."
   (or mouse-yank-at-point (mouse-set-point click))
   (let ((primary
 	 (cond
-	  ((eq system-type 'windows-nt)
+	  ((eq (framep (selected-frame)) 'w32)
 	   ;; MS-Windows emulates PRIMARY in x-get-selection, but not
 	   ;; in x-get-selection-value (the latter only accesses the
 	   ;; clipboard).  So try PRIMARY first, in case they selected

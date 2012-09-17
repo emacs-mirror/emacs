@@ -68,20 +68,6 @@ extern BOOL WINAPI IsValidLocale (LCID, DWORD);
 
 Lisp_Object Qhigh, Qlow;
 
-#ifdef EMACSDEBUG
-void
-_DebPrint (const char *fmt, ...)
-{
-  char buf[1024];
-  va_list args;
-
-  va_start (args, fmt);
-  vsprintf (buf, fmt, args);
-  va_end (args);
-  OutputDebugString (buf);
-}
-#endif
-
 typedef void (_CALLBACK_ *signal_handler) (int);
 
 /* Signal handlers...SIG_DFL == 0 so this is initialized correctly.  */

@@ -524,7 +524,7 @@ The optional argument PARAMETERS specifies additional frame parameters."
 	   (ns-initialize-window-system))
 	 (make-frame `((window-system . ns)
 		       (display . ,display) . ,parameters)))
-	((eq system-type 'windows-nt)
+	((eq window-system 'w32)
 	 ;; On Windows, ignore DISPLAY.
 	 (make-frame parameters))
 	(t
@@ -1260,7 +1260,7 @@ frame's display)."
     (cond
      ((eq frame-type 'pc)
       (msdos-mouse-p))
-     ((eq system-type 'windows-nt)
+     ((eq frame-type 'w32)
       (with-no-warnings
        (> w32-num-mouse-buttons 0)))
      ((memq frame-type '(x ns))

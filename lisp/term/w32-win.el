@@ -1,4 +1,4 @@
-;;; w32-win.el --- parse switches controlling interface with W32 window system
+;;; w32-win.el --- parse switches controlling interface with W32 window system -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1993-1994, 2001-2012  Free Software Foundation, Inc.
 
@@ -102,7 +102,22 @@
 ;;   (interactive "e")
 ;;   (princ event))
 
-(defun w32-drag-n-drop (event)
+(defun w32-handle-dropped-file (window file-name)
+  (let ((f (if (eq system-type 'cygwin)
+               (cygwin-convert-path-from-windows file-name t)
+             (subst-char-in-string ?\\ ?/ file-name)))
+        (coding (or file-name-coding-system
+                    default-file-name-coding-system)))
+
+    (setq file-name
+          (mapconcat 'url-hexify-string
+                     (split-string (encode-coding-string f coding)
+                                   "/")
+                     "/")))
+		(dnd-handle-one-url window 'private
+				    (concat "file:" file-name)))
+
+(defun w32-drag-n-drop (event &optional new-frame)
   "Edit the files listed in the drag-n-drop EVENT.
 Switch to a buffer editing the last file dropped."
   (interactive "e")
@@ -116,26 +131,21 @@ Switch to a buffer editing the last file dropped."
 	   (y (cdr coords)))
       (if (and (> x 0) (> y 0))
 	  (set-frame-selected-window nil window))
-      (mapc (lambda (file-name)
-		(let ((f (subst-char-in-string ?\\ ?/ file-name))
-		      (coding (or file-name-coding-system
-				  default-file-name-coding-system)))
-		  (setq file-name
-			(mapconcat 'url-hexify-string
-				   (split-string (encode-coding-string f coding)
-						 "/")
-				   "/")))
-		(dnd-handle-one-url window 'private
-				    (concat "file:" file-name)))
-		(car (cdr (cdr event)))))
-  (raise-frame)))
+
+      (when new-frame
+        (select-frame (make-frame)))
+      (raise-frame)
+      (setq window (selected-window))
+
+      (mapc (apply-partially #'w32-handle-dropped-file window)
+            (car (cdr (cdr event)))))))
 
 (defun w32-drag-n-drop-other-frame (event)
   "Edit the files listed in the drag-n-drop EVENT, in other frames.
 May create new frames, or reuse existing ones.  The frame editing
 the last file dropped is selected."
   (interactive "e")
-  (mapcar 'find-file-other-frame (car (cdr (cdr event)))))
+  (w32-drag-n-drop event t))
 
 ;; Bind the drag-n-drop event.
 (global-set-key [drag-n-drop] 'w32-drag-n-drop)

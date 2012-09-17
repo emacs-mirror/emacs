@@ -52,7 +52,14 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "atimer.h"
 #include "keymap.h"
 
+#ifdef WINDOWSNT
 #include "w32heap.h"
+#endif
+
+#ifndef WINDOWSNT
+#include <io.h> /* for get_osfhandle */
+#endif
+
 #include <shellapi.h>
 
 #include "font.h"
@@ -103,7 +110,7 @@ struct w32_display_info *x_display_list;
 Lisp_Object w32_display_name_list;
 
 
-#ifndef GLYPHSET
+#if !defined (GLYPHSET) && _WIN32_WINNT < 0x500
 /* Pre Windows 2000, this was not available, but define it here so
    that Emacs compiled on such a platform will run on newer versions.  */
 
@@ -122,7 +129,7 @@ typedef struct tagGLYPHSET
   WCRANGE ranges[1];
 } GLYPHSET;
 
-#endif
+#endif /* compiling for pre-Win2k */
 
 /* Dynamic linking to SetLayeredWindowAttribute (only since 2000).  */
 BOOL (WINAPI *pfnSetLayeredWindowAttributes) (HWND, COLORREF, BYTE, DWORD);
@@ -190,6 +197,13 @@ static int volatile input_signal_count;
 #else
 static int input_signal_count;
 #endif
+
+#ifdef CYGWIN
+int w32_message_fd = -1;
+#endif /* CYGWIN */
+
+/* Keyboard code page - may be changed by language-change events.  */
+static int keyboard_codepage;
 
 static void x_update_window_end (struct window *, int, int);
 static void w32_handle_tool_bar_click (struct frame *,
@@ -4158,6 +4172,7 @@ w32_read_socket (struct terminal *terminal, int expected,
   struct frame *f;
   struct w32_display_info *dpyinfo = &one_w32_display_info;
   Mouse_HLInfo *hlinfo = &dpyinfo->mouse_highlight;
+  static char buf[1];
 
   if (interrupt_input_blocked)
     {
@@ -4171,11 +4186,18 @@ w32_read_socket (struct terminal *terminal, int expected,
   /* So people can tell when we have read the available input.  */
   input_signal_count++;
 
+  /* Process any incoming thread messages.  */
+  drain_message_queue ();
+
   /* TODO: ghostscript integration. */
   while (get_next_msg (&msg, FALSE))
     {
       struct input_event inev;
       int do_help = 0;
+
+      /* DebPrint (("w32_read_socket: %s time:%u\n", */
+      /*            w32_name_of_message (msg.msg.message), */
+      /*            msg.msg.time)); */
 
       EVENT_INIT (inev);
       inev.kind = NO_EVENT;
@@ -6309,8 +6331,15 @@ w32_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
     w32_defined_color (0, "black", &color, 1);
   }
 
-  /* Add the default keyboard.  */
+#ifdef WINDOWSNT
+  /* Add the default keyboard.  When !WINDOWSNT, we're using the
+     standard Emacs console handling machinery and don't need an
+     explicit FD here.  */
   add_keyboard_wait_descriptor (0);
+#elif CYGWIN
+  /* /dev/windows wakes us up when we have a thread message pending.  */
+  add_keyboard_wait_descriptor (w32_message_fd);
+#endif
 
   /* Create Fringe Bitmaps and store them for later use.
 
@@ -6320,15 +6349,6 @@ w32_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
      need to bitswap and convert to unsigned shorts before creating
      the bitmaps.  */
   w32_init_fringe (terminal->rif);
-
-#ifdef F_SETOWN
-  fcntl (connection, F_SETOWN, getpid ());
-#endif /* ! defined (F_SETOWN) */
-
-#ifdef SIGIO
-  if (interrupt_input)
-    init_sigio (connection);
-#endif /* ! defined (SIGIO) */
 
   UNBLOCK_INPUT;
 
@@ -6379,6 +6399,7 @@ x_delete_display (struct w32_display_info *dpyinfo)
 
   w32_reset_fringes ();
 }
+
 
 /* Set up use of W32.  */
 
@@ -6415,6 +6436,11 @@ w32_initialize (void)
       if (set_user_model)
 	set_user_model (L"GNU.Emacs");
     }
+
+#ifdef CYGWIN
+  if ((w32_message_fd = open ("/dev/windows", O_RDWR | O_CLOEXEC)) == -1)
+    fatal ("opening /dev/windows: %s", strerror (errno));
+#endif /* CYGWIN */
 
   /* Initialize w32_use_visible_system_caret based on whether a screen
      reader is in use.  */
@@ -6576,4 +6602,6 @@ With MS Windows or Nextstep, the value is t.  */);
 
   staticpro (&last_mouse_motion_frame);
   last_mouse_motion_frame = Qnil;
+
+  Fprovide (intern_c_string ("w32"), Qnil);
 }
