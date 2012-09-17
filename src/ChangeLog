@@ -1,3 +1,15 @@
+2012-09-17  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Remove no-longer-needed Solaris 2.4 vfork bug workaround.
+	The workaround was for improving performance on Solaris 2.4, but
+	is getting in the way now.  Emacs will still work if someone is
+	still running Solaris 2.4 in a museum somewhere; Sun dropped
+	support for Solaris 2.4 in 2003.
+	* callproc.c (Fcall_process) [HAVE_WORKING_VFORK]:
+	* process.c (create_process) [HAVE_WORKING_VFORK]:
+	Omit now-unnecessary workaround for the Solaris 2.4 vfork bug,
+	since Emacs no longer uses vfork on that platform.
+
 2012-09-17  Glenn Morris  <rgm@gnu.org>
 
 	* emacs.c: Use COPYRIGHT.

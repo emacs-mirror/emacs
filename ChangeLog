@@ -1,3 +1,9 @@
+2012-09-17  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Remove no-longer-needed Solaris 2.4 vfork bug workaround.
+	* configure.ac (ac_cv_func_vfork_works): Default to 'no' on
+	Solaris 2.4, so that AC_FUNC_VFORK doesn't think vfork works.
+
 2012-09-17  Glenn Morris  <rgm@gnu.org>
 
 	* configure.ac (copyright): New output variable.

@@ -3155,6 +3155,14 @@ else
   AC_MSG_RESULT(no)
 fi
 
+dnl Check for a Solaris 2.4 vfork bug that Autoconf misses (through 2.69).
+dnl This can be removed once we assume Autoconf 2.70.
+case $canonical in
+  *-solaris2.4 | *-solaris2.4.*)
+    dnl Disable the Autoconf-generated vfork test.
+    : ${ac_cv_func_vfork_works=no};;
+esac
+
 AC_FUNC_FORK
 
 AC_CHECK_FUNCS(snprintf)
