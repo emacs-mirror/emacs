@@ -451,9 +451,12 @@ Same as `pcomplete' but using the standard completion UI."
           (list beg (point) table
                 :predicate pred
                 :exit-function
+		;; If completion is finished, add a terminating space.
+		;; We used to also do this if STATUS is `sole', but
+		;; that does not work right when completion cycling.
                 (unless (zerop (length pcomplete-termination-string))
-                  (lambda (_s finished)
-                    (when (memq finished '(sole finished))
+                  (lambda (_s status)
+                    (when (eq status 'finished)
                       (if (looking-at
                            (regexp-quote pcomplete-termination-string))
                           (goto-char (match-end 0))

@@ -1,3 +1,11 @@
+2012-09-17  Chong Yidong  <cyd@gnu.org>
+
+	* comint.el (comint--complete-file-name-data): Don't add a space
+	if the status is `sole'; that adds a gratuitous space in the
+	completion-cycling case (Bug#12092).
+
+	* pcomplete.el (pcomplete-completions-at-point): Likewise.
+
 2012-09-17  Richard Stallman  <rms@gnu.org>
 
 	* mail/rmailmm.el (rmail-mime-toggle-raw): Do rmail-mime-insert
