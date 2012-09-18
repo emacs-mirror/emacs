@@ -1,3 +1,8 @@
+2012-09-18  Eli Zaretskii  <eliz@gnu.org>
+
+	* configure.bat: Include stddef.h before gif_lib.h, to have size_t
+	defined, as needed by giflib-5.0.0.  (Bug#12464)
+
 2012-09-17  Juanma Barranquero  <lekktu@gmail.com>
 
 	* config.nt: Sync with autogen/config.in.
