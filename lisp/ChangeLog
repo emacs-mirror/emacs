@@ -1,3 +1,10 @@
+2012-09-18  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* progmodes/ruby-mode.el (ruby-brace-to-do-end): Don't add extra
+	whitespace after "end".
+	(ruby-do-end-to-brace): Collapse block to one line if it fits
+	within fill-column.
+
 2012-09-18  Martin Rudalics  <rudalics@gmx.at>
 
 	* emacs-lisp/debug.el (debugger-bury-or-kill): Fix customization
