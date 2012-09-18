@@ -3763,17 +3763,22 @@ Ask means pop up a menu for the user to select one of copy, move or link."
 ;;;;;;  dired-run-shell-command dired-do-shell-command dired-do-async-shell-command
 ;;;;;;  dired-clean-directory dired-do-print dired-do-touch dired-do-chown
 ;;;;;;  dired-do-chgrp dired-do-chmod dired-compare-directories dired-backup-diff
-;;;;;;  dired-diff) "dired-aux" "dired-aux.el" "3650b53533253c50b10e2aa8c9005ebf")
+;;;;;;  dired-diff) "dired-aux" "dired-aux.el" "2a883f0d481a8d0292eb90c09ae36a8e")
 ;;; Generated autoloads from dired-aux.el
 
 (autoload 'dired-diff "dired-aux" "\
 Compare file at point with file FILE using `diff'.
-If called interactively, prompt for FILE; if the file at point
-has a backup file, use that as the default.
+If called interactively, prompt for FILE.  If the file at point
+has a backup file, use that as the default.  If the mark is active
+in Transient Mark mode, use the file at the mark as the default.
+\(That's the mark set by \\[set-mark-command], not by Dired's
+\\[dired-mark] command.)
 
-FILE is the first file given to `diff'.
-With prefix arg, prompt for second argument SWITCHES,
-which is the string of command switches for `diff'.
+FILE is the first file given to `diff'.  The file at point
+is the second file given to `diff'.
+
+With prefix arg, prompt for second argument SWITCHES, which is
+the string of command switches for the third argument of `diff'.
 
 \(fn FILE &optional SWITCHES)" t nil)
 

@@ -1,5 +1,11 @@
 2012-09-18  Juri Linkov  <juri@jurta.org>
 
+	* dired-aux.el (dired-diff): Restore original functionality of
+	getting the default value, but keep new feature of using the
+	latest existing backup file (`diff-latest-backup-file').
+
+2012-09-18  Juri Linkov  <juri@jurta.org>
+
 	* dired.el (dired-mark): If the region is active in Transient Mark
 	mode, mark all files in the active region.  Doc fix.
 	(dired-unmark, dired-flag-file-deletion, dired-unmark-backward):
