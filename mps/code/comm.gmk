@@ -430,15 +430,13 @@ endif
 # GENERIC RULES
 #
 # These generate build output in the <pfm>/<variety> directory.
-# Note that we can't used "mkdir -p" to create this directory because
-# it's broken (w.r.t. the man page) under OSF/1.
 
 # Object files
 
 define run-cc
 $(ECHO) "$(PFM): $@"
-test -d $(PFM) || mkdir $(PFM)
-test -d $(PFM)/$(VARIETY) || mkdir $(PFM)/$(VARIETY)
+mkdir -p $(PFM)
+mkdir -p $(PFM)/$(VARIETY)
 $(CC) $(CFLAGS) -c -o $@ $<
 endef
 
@@ -462,17 +460,29 @@ ifdef gendep
 
 $(PFM)/$(VARIETY)/%.d: %.c
 	$(ECHO) "$(PFM): $@"
-	test -d $(PFM) || mkdir $(PFM)
-	test -d $(PFM)/$(VARIETY) || mkdir $(PFM)/$(VARIETY)
+	mkdir -p $(PFM)
+	mkdir -p $(PFM)/$(VARIETY)
 	$(gendep)
 
 ifdef VARIETY
 ifdef TARGET
+
+# %%VARIETY: When adding a new variety, add the dependencies files for it
+# here.
+ifeq ($(VARIETY),rash)
+include $(PFM)/$(VARIETY)/mps.d
+else
+ifeq ($(VARIETY),hot)
+include $(PFM)/$(VARIETY)/mps.d
+else
 # %%PART: When adding a new part, add the dependency file macro for the new
 # part here.
 include $(MPMDEP) $(AMSDEP) $(AMCDEP) $(LODEP) \
   $(AWLDEP) $(POOLNDEP) $(TESTLIBDEP) $(FMTDYDEP) $(FMTHETSTDEP) \
   $(PLINTHDEP) $(EVENTPROCDEP)
+endif
+endif
+
 endif
 endif
 
