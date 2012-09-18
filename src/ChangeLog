@@ -1,3 +1,8 @@
+2012-09-18  Glenn Morris  <rgm@gnu.org>
+
+	* eval.c (Frun_hook_with_args_until_success)
+	(Frun_hook_with_args_until_failure): Doc fixes.  (Bug#12393)
+
 2012-09-14  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* fileio.c (Ffile_selinux_context): Only call freecon when
