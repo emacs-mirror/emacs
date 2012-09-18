@@ -1,3 +1,10 @@
+2012-09-18  Juri Linkov  <juri@jurta.org>
+
+	* dired-aux.el (dired-do-chxxx, dired-do-chmod): Default file
+	attributes for M-n are pulled from the file at point.
+	(dired-do-chgrp, dired-do-chown, dired-do-touch): Doc fix.
+	Suggested by Drew Adams.  (Bug#10624)
+
 2012-09-18  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* progmodes/ruby-mode.el (ruby-brace-to-do-end): Don't add extra

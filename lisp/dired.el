@@ -3744,7 +3744,7 @@ Ask means pop up a menu for the user to select one of copy, move or link."
 ;;;;;;  dired-run-shell-command dired-do-shell-command dired-do-async-shell-command
 ;;;;;;  dired-clean-directory dired-do-print dired-do-touch dired-do-chown
 ;;;;;;  dired-do-chgrp dired-do-chmod dired-compare-directories dired-backup-diff
-;;;;;;  dired-diff) "dired-aux" "dired-aux.el" "3c768e470d5d053d0049e0286ce38da7")
+;;;;;;  dired-diff) "dired-aux" "dired-aux.el" "3650b53533253c50b10e2aa8c9005ebf")
 ;;; Generated autoloads from dired-aux.el
 
 (autoload 'dired-diff "dired-aux" "\
@@ -3798,22 +3798,30 @@ Examples of PREDICATE:
 (autoload 'dired-do-chmod "dired-aux" "\
 Change the mode of the marked (or next ARG) files.
 Symbolic modes like `g+w' are allowed.
+Type M-n to pull the file attributes of the file at point
+into the minibuffer.
 
 \(fn &optional ARG)" t nil)
 
 (autoload 'dired-do-chgrp "dired-aux" "\
 Change the group of the marked (or next ARG) files.
+Type M-n to pull the file attributes of the file at point
+into the minibuffer.
 
 \(fn &optional ARG)" t nil)
 
 (autoload 'dired-do-chown "dired-aux" "\
 Change the owner of the marked (or next ARG) files.
+Type M-n to pull the file attributes of the file at point
+into the minibuffer.
 
 \(fn &optional ARG)" t nil)
 
 (autoload 'dired-do-touch "dired-aux" "\
 Change the timestamp of the marked (or next ARG) files.
 This calls touch.
+Type M-n to pull the file attributes of the file at point
+into the minibuffer.
 
 \(fn &optional ARG)" t nil)
 

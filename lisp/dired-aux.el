@@ -223,10 +223,17 @@ List has a form of (file-name full-file-name (attribute-list))."
   ;; OP-SYMBOL is the type of operation (for use in `dired-mark-pop-up').
   ;; ARG describes which files to use, as in `dired-get-marked-files'.
   (let* ((files (dired-get-marked-files t arg))
-	 (default (and (eq op-symbol 'touch)
-		       (stringp (car files))
-		       (format-time-string "%Y%m%d%H%M.%S"
-					   (nth 5 (file-attributes (car files))))))
+	 ;; The source of default file attributes is the file at point.
+	 (default-file (dired-get-filename t))
+	 (default (when default-file
+		    (cond ((eq op-symbol 'touch)
+			   (format-time-string
+			    "%Y%m%d%H%M.%S"
+			    (nth 5 (file-attributes default-file))))
+			  ((eq op-symbol 'chown)
+			   (nth 2 (file-attributes default-file 'string)))
+			  ((eq op-symbol 'chgrp)
+			   (nth 3 (file-attributes default-file 'string))))))
 	 (prompt (concat "Change " attribute-name " of %s to"
 			 (if (eq op-symbol 'touch)
 			     " (default now): "
@@ -263,11 +270,15 @@ List has a form of (file-name full-file-name (attribute-list))."
 ;;;###autoload
 (defun dired-do-chmod (&optional arg)
   "Change the mode of the marked (or next ARG) files.
-Symbolic modes like `g+w' are allowed."
+Symbolic modes like `g+w' are allowed.
+Type M-n to pull the file attributes of the file at point
+into the minibuffer."
   (interactive "P")
   (let* ((files (dired-get-marked-files t arg))
-	 (modestr (and (stringp (car files))
-		       (nth 8 (file-attributes (car files)))))
+	 ;; The source of default file attributes is the file at point.
+	 (default-file (dired-get-filename t))
+	 (modestr (when default-file
+		    (nth 8 (file-attributes default-file))))
 	 (default
 	   (and (stringp modestr)
 		(string-match "^.\\(...\\)\\(...\\)\\(...\\)$" modestr)
@@ -300,7 +311,9 @@ Symbolic modes like `g+w' are allowed."
 
 ;;;###autoload
 (defun dired-do-chgrp (&optional arg)
-  "Change the group of the marked (or next ARG) files."
+  "Change the group of the marked (or next ARG) files.
+Type M-n to pull the file attributes of the file at point
+into the minibuffer."
   (interactive "P")
   (if (memq system-type '(ms-dos windows-nt))
       (error "chgrp not supported on this system"))
@@ -308,7 +321,9 @@ Symbolic modes like `g+w' are allowed."
 
 ;;;###autoload
 (defun dired-do-chown (&optional arg)
-  "Change the owner of the marked (or next ARG) files."
+  "Change the owner of the marked (or next ARG) files.
+Type M-n to pull the file attributes of the file at point
+into the minibuffer."
   (interactive "P")
   (if (memq system-type '(ms-dos windows-nt))
       (error "chown not supported on this system"))
@@ -317,7 +332,9 @@ Symbolic modes like `g+w' are allowed."
 ;;;###autoload
 (defun dired-do-touch (&optional arg)
   "Change the timestamp of the marked (or next ARG) files.
-This calls touch."
+This calls touch.
+Type M-n to pull the file attributes of the file at point
+into the minibuffer."
   (interactive "P")
   (dired-do-chxxx "Timestamp" dired-touch-program 'touch arg))
 
