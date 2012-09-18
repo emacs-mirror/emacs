@@ -1,3 +1,7 @@
+2012-09-18  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* configure.ac (HAVE_GTK): Mention if we use GTK2 or GTK3.
+
 2012-09-17  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* Makefile.in (bootstrap): Revert last change.  Run config.status

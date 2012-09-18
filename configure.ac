@@ -1914,6 +1914,7 @@ if test "${with_gtk3}" = "yes" || test "${with_gtk}" = "yes" || test "$USE_X_TOO
      AC_DEFINE(HAVE_GTK3, 1, [Define to 1 if using GTK 3 or later.])
      GTK_OBJ=emacsgtkfixed.o
      term_header=gtkutil.h
+     USE_GTK_TOOLKIT="GTK3"
   else
      check_gtk2=yes
      gtk3_pkg_errors="$GTK_PKG_ERRORS "
@@ -1932,6 +1933,7 @@ if test "${with_gtk2}" = "yes" || test "$check_gtk2" = "yes"; then
   then
     AC_MSG_ERROR($gtk3_pkg_errors$GTK_PKG_ERRORS)
   fi
+  test "$pkg_check_gtk" = "yes" && USE_GTK_TOOLKIT="GTK2"
 fi
 
 if test x"$pkg_check_gtk" = xyes; then
@@ -4396,7 +4398,7 @@ End:
 #### It makes printing result more understandable as using GTK sets
 #### toolkit_scroll_bars to yes by default.
 if test "${HAVE_GTK}" = "yes"; then
-  USE_X_TOOLKIT=GTK
+  USE_X_TOOLKIT="$USE_GTK_TOOLKIT"
 fi
 
 echo "
