@@ -463,6 +463,10 @@ Otherwise, it executes the command on each file in parallel.
 `dired-do-chown', `dired-do-touch' pulls the file attributes of the
 file at point.
 
+*** When the region is active, `m' (`dired-mark'), `u' (`dired-unmark'),
+`DEL' (`dired-unmark-backward'), `d' (`dired-flag-file-deletion')
+mark/unmark/flag all files in the active region.
+
 *** The minibuffer default for `=' (`dired-diff) has changed.
 It is now the backup file for the file at point, if one exists, rather
 than the file at the mark.

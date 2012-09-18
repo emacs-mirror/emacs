@@ -1,5 +1,12 @@
 2012-09-18  Juri Linkov  <juri@jurta.org>
 
+	* dired.el (dired-mark): If the region is active in Transient Mark
+	mode, mark all files in the active region.  Doc fix.
+	(dired-unmark, dired-flag-file-deletion, dired-unmark-backward):
+	Doc fix.  (Bug#10624)
+
+2012-09-18  Juri Linkov  <juri@jurta.org>
+
 	* dired-aux.el (dired-do-chxxx, dired-do-chmod): Default file
 	attributes for M-n are pulled from the file at point.
 	(dired-do-chgrp, dired-do-chown, dired-do-touch): Doc fix.
