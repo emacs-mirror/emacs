@@ -1,3 +1,9 @@
+2012-09-18  Chong Yidong  <cyd@gnu.org>
+
+	* custom.el (defface): Doc fix.
+
+	* cus-edit.el (custom-unlispify-remove-prefixes): Add warning.
+
 2012-09-18  Martin Blais  <blais@furius.ca>  (tiny change)
 
 	* progmodes/compile.el (compilation-start): Use compilation-always-kill

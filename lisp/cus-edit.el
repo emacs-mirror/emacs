@@ -526,7 +526,10 @@ WIDGET is the widget to apply the filter entries of MENU on."
   :type 'boolean)
 
 (defcustom custom-unlispify-remove-prefixes nil
-  "Non-nil means remove group prefixes from option names in buffer."
+  "Non-nil means remove group prefixes from option names in buffer.
+Discarding prefixes often leads to confusing names for options
+and faces in Customize buffers, so do not set this to a non-nil
+value unless you are sure you know what it does."
   :group 'custom-menu
   :group 'custom-buffer
   :type 'boolean)

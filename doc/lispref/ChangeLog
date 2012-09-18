@@ -1,3 +1,17 @@
+2012-09-18  Chong Yidong  <cyd@gnu.org>
+
+	* display.texi (Faces): Discuss anonymous faces.
+	(Face Attributes): Tweak intro.
+	(Defining Faces): Move after the Face Attributes node.  Copyedits.
+	(Displaying Faces): Describe role of inheritance.
+
+	* customize.texi (Customization): Define customization more
+	carefully (Bug#11440).
+	(Common Keywords): Add xref to Constant Variables.
+
+	* variables.texi (Defining Variables): Link to defcustom's node
+	instead of the higher-level Customization chapter.
+
 2012-09-11  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Simplify, document, and port floating-point (Bug#12381).

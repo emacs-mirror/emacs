@@ -6,13 +6,30 @@
 @chapter Customization Settings
 
 @cindex customization item
-  This chapter describes how to declare customizable variables and
-customization groups for classifying them.  We use the term
-@dfn{customization item} to include customizable variables,
-customization groups, as well as faces.
+  Users of Emacs can customize variables and faces without writing
+Lisp code, by using the Customize interface.  @xref{Easy
+Customization,,, emacs, The GNU Emacs Manual}.  This chapter describes
+how to define @dfn{customization items} that users can interact with
+through the Customize interface.
 
-  @xref{Defining Faces}, for the @code{defface} macro, which is used
-for declaring customizable faces.
+  Customization items include customizable variables, which are
+defined with the
+@ifinfo
+@code{defcustom} macro (@pxref{Variable Definitions});
+@end ifinfo
+@ifnotinfo
+@code{defcustom} macro;
+@end ifnotinfo
+customizable faces, which are defined with @code{defface} (described
+separately in @ref{Defining Faces}); and @dfn{customization groups},
+defined with
+@ifinfo
+@code{defgroup} (@pxref{Group Definitions}),
+@end ifinfo
+@ifnotinfo
+@code{defgroup},
+@end ifnotinfo
+which act as containers for groups of related customization items.
 
 @menu
 * Common Keywords::         Common keyword arguments for all kinds of
@@ -29,9 +46,10 @@ for declaring customizable faces.
 
 @cindex customization keywords
   The customization declarations that we will describe in the next few
-sections (@code{defcustom}, @code{defgroup}, etc.) all accept keyword
-arguments for specifying various information.  This section describes
-keywords that apply to all types of customization declarations.
+sections---@code{defcustom}, @code{defgroup}, etc.---all accept
+keyword arguments (@pxref{Constant Variables}) for specifying various
+information.  This section describes keywords that apply to all types
+of customization declarations.
 
   All of these keywords, except @code{:tag}, can be used more than once
 in a given item.  Each use of the keyword has an independent effect.
@@ -188,14 +206,14 @@ choice is the official name of the package, such as MH-E or Gnus.
 @cindex define customization group
 @cindex customization groups, defining
 
-  Each Emacs Lisp package should have one main customization group which
-contains all the options, faces and other groups in the package.  If the
-package has a small number of options and faces, use just one group and
-put everything in it.  When there are more than twelve or so options and
-faces, then you should structure them into subgroups, and put the
-subgroups under the package's main customization group.  It is OK to
-put some of the options and faces in the package's main group alongside
-the subgroups.
+  Each Emacs Lisp package should have one main customization group
+which contains all the options, faces and other groups in the package.
+If the package has a small number of options and faces, use just one
+group and put everything in it.  When there are more than twenty or so
+options and faces, then you should structure them into subgroups, and
+put the subgroups under the package's main customization group.  It is
+OK to put some of the options and faces in the package's main group
+alongside the subgroups.
 
   The package's main or only group should be a member of one or more of
 the standard customization groups.  (To display the full list of them,
@@ -251,7 +269,17 @@ confusing names for options and faces.
 @node Variable Definitions
 @section Defining Customization Variables
 @cindex define customization options
-@cindex customization variables, how to define
+@cindex customizable variables, how to define
+@cindex user options, how to define
+
+  @dfn{Customizable variables}, also called @dfn{user options}, are
+global Lisp variables whose values can be set through the Customize
+interface.  Unlike other global variables, which are defined with
+@code{defvar} (@pxref{Defining Variables}), customizable variables are
+defined using the @code{defcustom} macro.  In addition to calling
+@code{defvar} as a subroutine, @code{defcustom} states how the
+variable should be displayed in the Customize interface, the values it
+is allowed to take, etc.
 
 @defmac defcustom option standard doc [keyword value]@dots{}
 This macro declares @var{option} as a user option (i.e.@: a
@@ -291,13 +319,14 @@ has not been assigned the right value yet.  In that case, use
 standard value after Emacs starts up.
 @end defmac
 
-  @code{defcustom} accepts the following additional keywords:
+  In addition to the keywords listed in @ref{Common Keywords}, this
+macro accepts the following keywords:
 
 @table @code
 @item :type @var{type}
 Use @var{type} as the data type for this option.  It specifies which
-values are legitimate, and how to display the value.
-@xref{Customization Types}, for more information.
+values are legitimate, and how to display the value
+(@pxref{Customization Types}).
 
 @item :options @var{value-list}
 @kindex options@r{, @code{defcustom} keyword}
