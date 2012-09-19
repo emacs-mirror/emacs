@@ -1,5 +1,10 @@
 2012-09-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/macroexp.el (macroexp--funcall-if-compiled): Rename from
+	macroexp--eval-if-compile.
+	(macroexp--funcall-and-return, macroexp--warn-and-return): New funs.
+	(macroexp--expand-all): Use them (bug#12371).
+
 	* doc-view.el (doc-view-guess-paper-size)
 	(doc-view-scale-bounding-box): Fix unbound `caddr'.
 
@@ -174,8 +179,8 @@
 	(display-buffer-function): Mark as obsolete.
 
 	* progmodes/compile.el (compilation-parse-errors): Accept list
-	values similar to font-lock-keywords (Bug#12136).  Suggested by
-	Oleksandr Manzyuk.
+	values similar to font-lock-keywords (Bug#12136).
+	Suggested by Oleksandr Manzyuk.
 	(compilation-error-regexp-alist): Doc fix.
 
 2012-09-15  Glenn Morris  <rgm@gnu.org>

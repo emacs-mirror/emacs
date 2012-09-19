@@ -100,19 +100,34 @@ each clause."
     (error (message "Compiler-macro error for %S: %S" (car form) err)
            form)))
 
-(defun macroexp--eval-if-compile (&rest _forms)
+(defun macroexp--funcall-if-compiled (_form)
   "Pseudo function used internally by macroexp to delay warnings.
 The purpose is to delay warnings to bytecomp.el, so they can use things
 like `byte-compile-log-warning' to get better file-and-line-number data
 and also to avoid outputting the warning during normal execution."
   nil)
-(put 'macroexp--eval-if-compile 'byte-compile
+(put 'macroexp--funcall-if-compiled 'byte-compile
      (lambda (form)
-       (mapc (lambda (x) (funcall (eval x))) (cdr form))
+       (funcall (eval (cadr form)))
        (byte-compile-constant nil)))
 
-(autoload 'byte-compile-warn-obsolete "bytecomp")
-(autoload 'byte-compile-log-warning "bytecomp")
+(defun macroexp--funcall-and-return (when-compiled when-interpreted form)
+  ;; FIXME: ¡¡Major Ugly Hack!! To determine whether the output of this
+  ;; macro-expansion will be processed by the byte-compiler, we check
+  ;; circumstantial evidence.
+  (if (member '(declare-function . byte-compile-macroexpand-declare-function)
+              macroexpand-all-environment)
+      `(progn
+         (macroexp--funcall-if-compiled ',when-compiled)
+         ,form)
+    (funcall when-interpreted)
+    form))
+
+(defun macroexp--warn-and-return (msg form)
+  (macroexp--funcall-and-return
+   (lambda () (byte-compile-log-warning msg t))
+   (lambda () (message "%s" msg))
+   form))
 
 (defun macroexp--expand-all (form)
   "Expand all macros in FORM.
@@ -133,9 +148,10 @@ Assumes the caller has bound `macroexpand-all-environment'."
                      (car-safe form)
                      (symbolp (car form))
                      (get (car form) 'byte-obsolete-info))
-                `(progn (macroexp--eval-if-compile
-                         (lambda () (byte-compile-warn-obsolete ',(car form))))
-                        ,new-form)
+                (macroexp--funcall-and-return
+                 (lambda () (byte-compile-warn-obsolete ',(car form)))
+                 #'ignore      ;FIXME: We should `message' something.
+                 new-form)
               new-form)))
     (pcase form
       (`(cond . ,clauses)
@@ -178,26 +194,16 @@ Assumes the caller has bound `macroexpand-all-environment'."
       ;; First arg is a function:
       (`(,(and fun (or `funcall `apply `mapcar `mapatoms `mapconcat `mapc))
          ',(and f `(lambda . ,_)) . ,args)
-       (byte-compile-log-warning
+       (macroexp--warn-and-return
         (format "%s quoted with ' rather than with #'"
                 (list 'lambda (nth 1 f) '...))
-        t)
-       ;; We don't use `macroexp--cons' since there's clearly a change.
-       (cons fun
-             (cons (macroexp--expand-all (list 'function f))
-                   (macroexp--all-forms args))))
+        (macroexp--expand-all `(,fun ,f . ,args))))
       ;; Second arg is a function:
       (`(,(and fun (or `sort)) ,arg1 ',(and f `(lambda . ,_)) . ,args)
-       (byte-compile-log-warning
+       (macroexp--warn-and-return
         (format "%s quoted with ' rather than with #'"
                 (list 'lambda (nth 1 f) '...))
-        t)
-       ;; We don't use `macroexp--cons' since there's clearly a change.
-       (cons fun
-             (cons (macroexp--expand-all arg1)
-                   (cons (macroexp--expand-all
-                          (list 'function f))
-                         (macroexp--all-forms args)))))
+        (macroexp--expand-all `(,fun ,arg1 ,f . ,args))))
       (`(,func . ,_)
        ;; Macro expand compiler macros.  This cannot be delayed to
        ;; byte-optimize-form because the output of the compiler-macro can
