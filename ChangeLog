@@ -1,3 +1,8 @@
+2012-09-19  Tassilo Horn  <tsdh@gnu.org>
+
+	* doc/emacs/misc.texi (DocView Slicing): Document new slice from
+	BoundingBox feature.
+
 2012-09-18  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* configure.ac (HAVE_GTK): Mention if we use GTK2 or GTK3.

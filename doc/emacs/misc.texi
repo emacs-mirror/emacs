@@ -411,6 +411,10 @@ m} (@code{doc-view-set-slice-using-mouse}), where you use the mouse to
 select the slice.
 @c ??? How does this work?
 
+  The most convenient way is to set the optimal slice by using
+BoundingBox information automatically determined from the document by
+typing @kbd{s b} (@code{doc-view-set-slice-using-mouse}).
+
 @findex doc-view-reset-slice
   To cancel the selected slice, type @kbd{s r}
 (@code{doc-view-reset-slice}).  Then DocView shows the entire page

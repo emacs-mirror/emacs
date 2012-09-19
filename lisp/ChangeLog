@@ -1,3 +1,14 @@
+2012-09-19  Tassilo Horn  <tsdh@gnu.org>
+
+	New feature: set optimal slice from BoundingBox information.
+	* doc-view.el (doc-view-mode-map): Add keybinding.
+	(doc-view-menu): Add menu entry.
+	(doc-view-set-slice): Adapt docstring.
+	(doc-view-get-bounding-box, doc-view-guess-paper-size)
+	(doc-view-scale-bounding-box)
+	(doc-view-set-slice-from-bounding-box): New functions.
+	(doc-view-paper-sizes): New defvar.
+
 2012-09-19  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/macroexp.el (byte-compile-warn-obsolete)
