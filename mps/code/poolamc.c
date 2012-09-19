@@ -1664,8 +1664,7 @@ static void amcFixInPlace(Pool pool, Seg seg, ScanState ss, Ref *refIO)
     return;
   }
   SegSetNailed(seg, TraceSetUnion(SegNailed(seg), ss->traces));
-  if(SegRankSet(seg) != RankSetEMPTY)
-    SegSetGrey(seg, TraceSetUnion(SegGrey(seg), ss->traces));
+  SegSetGrey(seg, TraceSetUnion(SegGrey(seg), ss->traces));
 }
 
 
@@ -1727,9 +1726,6 @@ Res AMCFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
   Buffer buffer;       /* buffer to allocate new copy into */
   amcGen gen;          /* generation of old copy of object */
   TraceSet grey;       /* greyness of object being relocated */
-  TraceSet toGrey;     /* greyness of object's destination */
-  RefSet summary;      /* summary of object being relocated */
-  RefSet toSummary;    /* summary of object's destination */
   Seg toSeg;           /* segment to which object is being relocated */
 
   /* <design/trace/#fix.noaver> */
@@ -1786,9 +1782,7 @@ Res AMCFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
       /* Segment only needs greying if there are new traces for */
       /* which we are nailing. */
       if(!TraceSetSub(ss->traces, SegNailed(seg))) {
-        if(SegRankSet(seg) != RankSetEMPTY) {
-          SegSetGrey(seg, TraceSetUnion(SegGrey(seg), ss->traces));
-        }
+        SegSetGrey(seg, TraceSetUnion(SegGrey(seg), ss->traces));
         SegSetNailed(seg, TraceSetUnion(SegNailed(seg), ss->traces));
       }
       res = ResOK;
@@ -1823,16 +1817,8 @@ Res AMCFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
       /* Since we're moving an object from one segment to another, */
       /* union the greyness and the summaries together. */
       grey = TraceSetUnion(ss->traces, SegGrey(seg));
-      toGrey = SegGrey(toSeg);
-      if(TraceSetDiff(grey, toGrey) != TraceSetEMPTY
-          && SegRankSet(seg) != RankSetEMPTY) {
-        SegSetGrey(toSeg, TraceSetUnion(toGrey, grey));
-      }
-      summary = SegSummary(seg);
-      toSummary = SegSummary(toSeg);
-      if(RefSetDiff(summary, toSummary) != RefSetEMPTY) {
-        SegSetSummary(toSeg, RefSetUnion(toSummary, summary));
-      }
+      SegSetGrey(toSeg, TraceSetUnion(SegGrey(toSeg), grey));
+      SegSetSummary(toSeg, RefSetUnion(SegSummary(toSeg), SegSummary(seg)));
 
       /* <design/trace/#fix.copy> */
       (void)AddrCopy(newRef, ref, length);  /* .exposed.seg */
@@ -1877,9 +1863,6 @@ static Res AMCHeaderFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
   Buffer buffer;       /* buffer to allocate new copy into */
   amcGen gen;          /* generation of old copy of object */
   TraceSet grey;       /* greyness of object being relocated */
-  TraceSet toGrey;     /* greyness of object's destination */
-  RefSet summary;      /* summary of object being relocated */
-  RefSet toSummary;    /* summary of object's destination */
   Seg toSeg;           /* segment to which object is being relocated */
 
   /* <design/trace/#fix.noaver> */
@@ -1937,8 +1920,7 @@ static Res AMCHeaderFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
       /* Segment only needs greying if there are new traces for */
       /* which we are nailing. */
       if(!TraceSetSub(ss->traces, SegNailed(seg))) {
-        if(SegRankSet(seg) != RankSetEMPTY)
-          SegSetGrey(seg, TraceSetUnion(SegGrey(seg), ss->traces));
+        SegSetGrey(seg, TraceSetUnion(SegGrey(seg), ss->traces));
         SegSetNailed(seg, TraceSetUnion(SegNailed(seg), ss->traces));
       }
       res = ResOK;
@@ -1976,14 +1958,8 @@ static Res AMCHeaderFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
       /* Since we're moving an object from one segment to another, */
       /* union the greyness and the summaries together. */
       grey = TraceSetUnion(ss->traces, SegGrey(seg));
-      toGrey = SegGrey(toSeg);
-      if(TraceSetDiff(grey, toGrey) != TraceSetEMPTY
-          && SegRankSet(seg) != RankSetEMPTY)
-        SegSetGrey(toSeg, TraceSetUnion(toGrey, grey));
-      summary = SegSummary(seg);
-      toSummary = SegSummary(toSeg);
-      if(RefSetDiff(summary, toSummary) != RefSetEMPTY)
-        SegSetSummary(toSeg, RefSetUnion(toSummary, summary));
+      SegSetGrey(toSeg, TraceSetUnion(SegGrey(toSeg), grey));
+      SegSetSummary(toSeg, RefSetUnion(SegSummary(toSeg), SegSummary(seg)));
 
       /* <design/trace/#fix.copy> */
       (void)AddrCopy(newBase, AddrSub(ref, headerSize), length);  /* .exposed.seg */
