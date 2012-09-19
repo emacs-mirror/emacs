@@ -289,7 +289,7 @@ e.g. @kbd{C-u 4 C-y} reinserts the fourth most recent kill.
 
   On graphical displays, @kbd{C-y} first checks if another application
 has placed any text in the system clipboard more recently than the
-last Emacs kill.  If so, it inserts the text in the clipboard instead.
+last Emacs kill.  If so, it inserts the clipboard's text instead.
 Thus, Emacs effectively treats ``cut'' or ``copy'' clipboard
 operations performed in other applications like Emacs kills, except
 that they are not recorded in the kill ring.  @xref{Cut and Paste},

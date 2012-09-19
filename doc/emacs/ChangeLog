@@ -1,3 +1,7 @@
+2012-09-19  Chong Yidong  <cyd@gnu.org>
+
+	* killing.texi (Yanking): Minor clarification (Bug#12469).
+
 2012-09-17  Chong Yidong  <cyd@gnu.org>
 
 	* building.texi (GDB User Interface Layout): Remove reference to
