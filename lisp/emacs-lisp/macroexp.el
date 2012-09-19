@@ -111,6 +111,9 @@ and also to avoid outputting the warning during normal execution."
        (mapc (lambda (x) (funcall (eval x))) (cdr form))
        (byte-compile-constant nil)))
 
+(autoload 'byte-compile-warn-obsolete "bytecomp")
+(autoload 'byte-compile-log-warning "bytecomp")
+
 (defun macroexp--expand-all (form)
   "Expand all macros in FORM.
 This is an internal version of `macroexpand-all'.

@@ -1,5 +1,8 @@
 2012-09-19  Glenn Morris  <rgm@gnu.org>
 
+	* emacs-lisp/macroexp.el (byte-compile-warn-obsolete)
+	(byte-compile-log-warning): Autoload.  (Bug#12371)
+
 	* calendar/calendar.el (calendar-american-month-header)
 	(calendar-european-month-header, calendar-iso-month-header)
 	(calendar-month-header): New options.
