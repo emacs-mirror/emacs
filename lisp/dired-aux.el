@@ -70,7 +70,7 @@ the string of command switches for the third argument of `diff'."
   (interactive
    (let* ((current (dired-get-filename t))
 	  ;; Get the latest existing backup file.
-	  (oldf (diff-latest-backup-file current))
+	  (oldf (progn (require 'diff) (diff-latest-backup-file current)))
 	  ;; Get the file at the mark.
 	  (file-at-mark (if (and transient-mark-mode mark-active)
 			    (save-excursion (goto-char (mark t))
@@ -248,7 +248,7 @@ List has a form of (file-name full-file-name (attribute-list))."
   ;; ARG describes which files to use, as in `dired-get-marked-files'.
   (let* ((files (dired-get-marked-files t arg))
 	 ;; The source of default file attributes is the file at point.
-	 (default-file (dired-get-filename t))
+	 (default-file (dired-get-filename t t))
 	 (default (when default-file
 		    (cond ((eq op-symbol 'touch)
 			   (format-time-string
@@ -300,7 +300,7 @@ into the minibuffer."
   (interactive "P")
   (let* ((files (dired-get-marked-files t arg))
 	 ;; The source of default file attributes is the file at point.
-	 (default-file (dired-get-filename t))
+	 (default-file (dired-get-filename t t))
 	 (modestr (when default-file
 		    (nth 8 (file-attributes default-file))))
 	 (default
