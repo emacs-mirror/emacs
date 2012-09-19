@@ -747,7 +747,7 @@ w32_console_read_socket (struct terminal *terminal,
                          int expected,
                          struct input_event *hold_quit)
 {
-  int nev, ret = 0, add;
+  int nev, add;
   int isdead;
 
   if (interrupt_input_blocked)
@@ -767,8 +767,7 @@ w32_console_read_socket (struct terminal *terminal,
 	  /* If nev == -1, there was some kind of error
 	     If nev == 0 then waitp must be zero and no events were available
 	     so return.  */
-	  UNBLOCK_INPUT;
-	  return nev;
+	  break;
         }
 
       while (nev > 0)
@@ -812,9 +811,6 @@ w32_console_read_socket (struct terminal *terminal,
 	  queue_ptr++;
 	  nev--;
         }
-
-      if (ret > 0 || expected == 0)
-	break;
     }
 
   /* We don't get told about changes in the window size (only the buffer
@@ -824,5 +820,5 @@ w32_console_read_socket (struct terminal *terminal,
     maybe_generate_resize_event ();
 
   UNBLOCK_INPUT;
-  return ret;
+  return nev;
 }
