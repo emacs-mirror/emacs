@@ -3912,50 +3912,27 @@ x_default_parameter (struct frame *f, Lisp_Object alist, Lisp_Object prop,
  */
 
 static int
-read_integer (register char *string, char **NextString)
-{
-  register int Result = 0;
-  int Sign = 1;
-
-  if (*string == '+')
-    string++;
-  else if (*string == '-')
-    {
-      string++;
-      Sign = -1;
-    }
-  for (; (*string >= '0') && (*string <= '9'); string++)
-    {
-      Result = (Result * 10) + (*string - '0');
-    }
-  *NextString = string;
-  if (Sign >= 0)
-    return (Result);
-  else
-    return (-Result);
-}
-
-int
 XParseGeometry (char *string,
 		int *x, int *y,
 		unsigned int *width, unsigned int *height)
 {
   int mask = NoValue;
-  register char *strind;
-  unsigned int tempWidth, tempHeight;
-  int tempX, tempY;
+  char *strind;
+  unsigned long int tempWidth, tempHeight;
+  long int tempX, tempY;
   char *nextCharacter;
 
-  if ((string == NULL) || (*string == '\0')) return (mask);
+  if (string == NULL || *string == '\0')
+    return mask;
   if (*string == '=')
     string++;  /* ignore possible '=' at beg of geometry spec */
 
-  strind = (char *)string;
+  strind = string;
   if (*strind != '+' && *strind != '-' && *strind != 'x')
     {
-      tempWidth = read_integer (strind, &nextCharacter);
+      tempWidth = strtoul (strind, &nextCharacter, 10);
       if (strind == nextCharacter)
-	return (0);
+	return 0;
       strind = nextCharacter;
       mask |= WidthValue;
     }
@@ -3963,53 +3940,30 @@ XParseGeometry (char *string,
   if (*strind == 'x' || *strind == 'X')
     {
       strind++;
-      tempHeight = read_integer (strind, &nextCharacter);
+      tempHeight = strtoul (strind, &nextCharacter, 10);
       if (strind == nextCharacter)
-	return (0);
+	return 0;
       strind = nextCharacter;
       mask |= HeightValue;
     }
 
-  if ((*strind == '+') || (*strind == '-'))
+  if (*strind == '+' || *strind == '-')
     {
       if (*strind == '-')
-	{
-	  strind++;
-	  tempX = -read_integer (strind, &nextCharacter);
-	  if (strind == nextCharacter)
-	    return (0);
-	  strind = nextCharacter;
-	  mask |= XNegative;
-
-	}
-      else
-	{
-	  strind++;
-	  tempX = read_integer (strind, &nextCharacter);
-	  if (strind == nextCharacter)
-	    return (0);
-	  strind = nextCharacter;
-	}
+	mask |= XNegative;
+      tempX = strtol (strind, &nextCharacter, 10);
+      if (strind == nextCharacter)
+	return 0;
+      strind = nextCharacter;
       mask |= XValue;
-      if ((*strind == '+') || (*strind == '-'))
+      if (*strind == '+' || *strind == '-')
 	{
 	  if (*strind == '-')
-	    {
-	      strind++;
-	      tempY = -read_integer (strind, &nextCharacter);
-	      if (strind == nextCharacter)
-		return (0);
-	      strind = nextCharacter;
-	      mask |= YNegative;
-	    }
-	  else
-	    {
-	      strind++;
-	      tempY = read_integer (strind, &nextCharacter);
-	      if (strind == nextCharacter)
-		return (0);
-	      strind = nextCharacter;
-	    }
+	    mask |= YNegative;
+	  tempY = strtol (strind, &nextCharacter, 10);
+	  if (strind == nextCharacter)
+	    return 0;
+	  strind = nextCharacter;
 	  mask |= YValue;
 	}
     }
@@ -4017,17 +3971,18 @@ XParseGeometry (char *string,
   /* If strind isn't at the end of the string then it's an invalid
      geometry specification. */
 
-  if (*strind != '\0') return (0);
+  if (*strind != '\0')
+    return 0;
 
   if (mask & XValue)
-    *x = tempX;
+    *x = clip_to_bounds (INT_MIN, tempX, INT_MAX);
   if (mask & YValue)
-    *y = tempY;
+    *y = clip_to_bounds (INT_MIN, tempY, INT_MAX);
   if (mask & WidthValue)
-    *width = tempWidth;
+    *width = min (tempWidth, UINT_MAX);
   if (mask & HeightValue)
-    *height = tempHeight;
-  return (mask);
+    *height = min (tempHeight, UINT_MAX);
+  return mask;
 }
 
 #endif /* !defined (HAVE_X_WINDOWS) && defined (NoValue) */
