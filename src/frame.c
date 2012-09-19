@@ -3897,6 +3897,140 @@ x_default_parameter (struct frame *f, Lisp_Object alist, Lisp_Object prop,
 }
 
 
+#if !defined (HAVE_X_WINDOWS) && defined (NoValue)
+
+/*
+ *    XParseGeometry parses strings of the form
+ *   "=<width>x<height>{+-}<xoffset>{+-}<yoffset>", where
+ *   width, height, xoffset, and yoffset are unsigned integers.
+ *   Example:  "=80x24+300-49"
+ *   The equal sign is optional.
+ *   It returns a bitmask that indicates which of the four values
+ *   were actually found in the string.  For each value found,
+ *   the corresponding argument is updated;  for each value
+ *   not found, the corresponding argument is left unchanged.
+ */
+
+static int
+read_integer (register char *string, char **NextString)
+{
+  register int Result = 0;
+  int Sign = 1;
+
+  if (*string == '+')
+    string++;
+  else if (*string == '-')
+    {
+      string++;
+      Sign = -1;
+    }
+  for (; (*string >= '0') && (*string <= '9'); string++)
+    {
+      Result = (Result * 10) + (*string - '0');
+    }
+  *NextString = string;
+  if (Sign >= 0)
+    return (Result);
+  else
+    return (-Result);
+}
+
+int
+XParseGeometry (char *string,
+		int *x, int *y,
+		unsigned int *width, unsigned int *height)
+{
+  int mask = NoValue;
+  register char *strind;
+  unsigned int tempWidth, tempHeight;
+  int tempX, tempY;
+  char *nextCharacter;
+
+  if ((string == NULL) || (*string == '\0')) return (mask);
+  if (*string == '=')
+    string++;  /* ignore possible '=' at beg of geometry spec */
+
+  strind = (char *)string;
+  if (*strind != '+' && *strind != '-' && *strind != 'x')
+    {
+      tempWidth = read_integer (strind, &nextCharacter);
+      if (strind == nextCharacter)
+	return (0);
+      strind = nextCharacter;
+      mask |= WidthValue;
+    }
+
+  if (*strind == 'x' || *strind == 'X')
+    {
+      strind++;
+      tempHeight = read_integer (strind, &nextCharacter);
+      if (strind == nextCharacter)
+	return (0);
+      strind = nextCharacter;
+      mask |= HeightValue;
+    }
+
+  if ((*strind == '+') || (*strind == '-'))
+    {
+      if (*strind == '-')
+	{
+	  strind++;
+	  tempX = -read_integer (strind, &nextCharacter);
+	  if (strind == nextCharacter)
+	    return (0);
+	  strind = nextCharacter;
+	  mask |= XNegative;
+
+	}
+      else
+	{
+	  strind++;
+	  tempX = read_integer (strind, &nextCharacter);
+	  if (strind == nextCharacter)
+	    return (0);
+	  strind = nextCharacter;
+	}
+      mask |= XValue;
+      if ((*strind == '+') || (*strind == '-'))
+	{
+	  if (*strind == '-')
+	    {
+	      strind++;
+	      tempY = -read_integer (strind, &nextCharacter);
+	      if (strind == nextCharacter)
+		return (0);
+	      strind = nextCharacter;
+	      mask |= YNegative;
+	    }
+	  else
+	    {
+	      strind++;
+	      tempY = read_integer (strind, &nextCharacter);
+	      if (strind == nextCharacter)
+		return (0);
+	      strind = nextCharacter;
+	    }
+	  mask |= YValue;
+	}
+    }
+
+  /* If strind isn't at the end of the string then it's an invalid
+     geometry specification. */
+
+  if (*strind != '\0') return (0);
+
+  if (mask & XValue)
+    *x = tempX;
+  if (mask & YValue)
+    *y = tempY;
+  if (mask & WidthValue)
+    *width = tempWidth;
+  if (mask & HeightValue)
+    *height = tempHeight;
+  return (mask);
+}
+
+#endif /* !defined (HAVE_X_WINDOWS) && defined (NoValue) */
 
 
 /* NS used to define x-parse-geometry in ns-win.el, but that confused
@@ -3917,15 +4051,16 @@ or a list (- N) meaning -N pixels relative to bottom/right corner.
 On Nextstep, this just calls `ns-parse-geometry'.  */)
   (Lisp_Object string)
 {
-#ifdef HAVE_NS
-  return call1 (Qns_parse_geometry, string);
-#else
   int geometry, x, y;
   unsigned int width, height;
   Lisp_Object result;
 
   CHECK_STRING (string);
 
+#ifdef HAVE_NS
+  if (strchr (SSDATA (string), ' ') != NULL)
+    return call1 (Qns_parse_geometry, string);
+#endif
   geometry = XParseGeometry (SSDATA (string),
 			     &x, &y, &width, &height);
   result = Qnil;
@@ -3961,7 +4096,6 @@ On Nextstep, this just calls `ns-parse-geometry'.  */)
     result = Fcons (Fcons (Qheight, make_number (height)), result);
 
   return result;
-#endif /* HAVE_NS */
 }
 
 

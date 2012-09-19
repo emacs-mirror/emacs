@@ -1,3 +1,15 @@
+2012-09-19  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* w32xfns.c (read_integer, XParseGeometry): Move to frame.c.
+
+	* nsfns.m (XParseGeometry): Remove.
+	(Fx_create_frame): Call x_set_offset to correctly interpret
+	top_pos in geometry.
+
+	* frame.c (read_integer, XParseGeometry): Moved from w32xfns.c.
+	(Fx_parse_geometry): If there is a space in string, call
+	Qns_parse_geometry, otherwise do as on other terms (Bug#12368).
+
 2012-09-17  Eli Zaretskii  <eliz@gnu.org>
 
 	* search.c (scan_buffer): Use character positions in calls to

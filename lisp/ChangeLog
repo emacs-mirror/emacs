@@ -1,3 +1,7 @@
+2012-09-19  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* startup.el (command-line-ns-option-alist): Add -g and --geometry.
+
 2012-09-18  Juri Linkov  <juri@jurta.org>
 
 	* dired-aux.el (dired-diff): Restore original functionality of
