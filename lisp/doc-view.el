@@ -1068,15 +1068,15 @@ dragging it to its bottom-right corner.  See also
 		   (round (/ (* 100.0 x) y))))
     (let ((ar (div iw ih))
 	  (al (mapcar (lambda (l)
-			(list (div (cadr l) (caddr l)) (car l)))
+			(list (div (nth 1 l) (nth 2 l)) (car l)))
 		      doc-view-paper-sizes)))
       (cadr (assoc ar al)))))
 
 (defun doc-view-scale-bounding-box (ps iw ih bb)
-  (list (/ (* (nth 0 bb) iw) (cadr (assoc ps doc-view-paper-sizes)))
-	(/ (* (nth 1 bb) ih) (caddr (assoc ps doc-view-paper-sizes)))
-	(/ (* (nth 2 bb) iw) (cadr (assoc ps doc-view-paper-sizes)))
-	(/ (* (nth 3 bb) ih) (caddr (assoc ps doc-view-paper-sizes)))))
+  (list (/ (* (nth 0 bb) iw) (nth 1 (assoc ps doc-view-paper-sizes)))
+	(/ (* (nth 1 bb) ih) (nth 2 (assoc ps doc-view-paper-sizes)))
+	(/ (* (nth 2 bb) iw) (nth 1 (assoc ps doc-view-paper-sizes)))
+	(/ (* (nth 3 bb) ih) (nth 2 (assoc ps doc-view-paper-sizes)))))
 
 (defun doc-view-set-slice-from-bounding-box (&optional force-paper-size)
   "Set the slice from the document's BoundingBox information.

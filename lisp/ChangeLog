@@ -1,3 +1,8 @@
+2012-09-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* doc-view.el (doc-view-guess-paper-size)
+	(doc-view-scale-bounding-box): Fix unbound `caddr'.
+
 2012-09-19  Tassilo Horn  <tsdh@gnu.org>
 
 	New feature: set optimal slice from BoundingBox information.
