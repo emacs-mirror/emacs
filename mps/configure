@@ -2569,6 +2569,12 @@ ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
 ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
+ac_ext=c
+ac_cpp='$CPP $CPPFLAGS'
+ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
+ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_c_compiler_gnu
+
 # Find a good install program.  We prefer a C program (faster),
 # so one script is as good as another.  But avoid the broken or
 # incompatible versions:
@@ -2663,6 +2669,15 @@ test -z "$INSTALL_SCRIPT" && INSTALL_SCRIPT='${INSTALL}'
 test -z "$INSTALL_DATA" && INSTALL_DATA='${INSTALL} -m 644'
 
 
+AX_CFLAGS_WARN_ALL
+
+# These flags aren't used for building the MPS, but for sample programs.
+CFLAGS_GC="-ansi -pedantic -Wall -Werror -Wpointer-arith \
+	-Wstrict-prototypes -Wmissing-prototypes \
+	-Winline -Waggregate-return -Wnested-externs \
+	-Wcast-qual -Wshadow -Wstrict-aliasing=2 -O -g3"
+CFLAGS_LL="$CFLAGS_GC -Wno-extended-offsetof"
+
 # Make sure we can run config.sub.
 $SHELL "$ac_aux_dir/config.sub" sun4 >/dev/null 2>&1 ||
   as_fn_error $? "cannot run $SHELL $ac_aux_dir/config.sub" "$LINENO" 5
@@ -2744,11 +2759,13 @@ case $host in
       { $as_echo "$as_me:${as_lineno-$LINENO}: result: Linux x86" >&5
 $as_echo "Linux x86" >&6; }
       MPS_TARGET_NAME=lii3gc
+      CFLAGS="$CFLAGS_GC"
     ;;
   x86_64-*-linux*)
       { $as_echo "$as_me:${as_lineno-$LINENO}: result: Linux x86_64" >&5
 $as_echo "Linux x86_64" >&6; }
       MPS_TARGET_NAME=lii6gc
+      CFLAGS="$CFLAGS_GC"
     ;;
   i*86-*-darwin*)
       { $as_echo "$as_me:${as_lineno-$LINENO}: result: Mac OS X x86" >&5
@@ -2757,6 +2774,7 @@ $as_echo "Mac OS X x86" >&6; }
       BUILD_TARGET=build-via-xcode
       CLEAN_TARGET=clean-xcode-build
       INSTALL_TARGET=install-xcode-build
+      CFLAGS="$CFLAGS_LL"
     ;;
   x86_64-apple-darwin*)
       { $as_echo "$as_me:${as_lineno-$LINENO}: result: Mac OS X x86_64" >&5
@@ -2765,16 +2783,19 @@ $as_echo "Mac OS X x86_64" >&6; }
       BUILD_TARGET=build-via-xcode
       CLEAN_TARGET=clean-xcode-build
       INSTALL_TARGET=install-xcode-build
+      CFLAGS="$CFLAGS_LL"
     ;;
   i*86-*-freebsd*)
       { $as_echo "$as_me:${as_lineno-$LINENO}: result: FreeBSD x86" >&5
 $as_echo "FreeBSD x86" >&6; }
       MPS_TARGET_NAME=fri3gc
+      CFLAGS="$CFLAGS_GC"
     ;;
   amd64-*-freebsd*)
       { $as_echo "$as_me:${as_lineno-$LINENO}: result: FreeBSD x86_64" >&5
 $as_echo "FreeBSD x86_64" >&6; }
       MPS_TARGET_NAME=fri6gc
+      CFLAGS="$CFLAGS_GC"
     ;;
   *)
     as_fn_error $? "MPS does not support this platform out of the box.  See manual/build.txt" "$LINENO" 5
@@ -2831,7 +2852,8 @@ fi
 
 
 
-ac_config_files="$ac_config_files Makefile"
+
+ac_config_files="$ac_config_files Makefile example/scheme/Makefile"
 
 
 cat >confcache <<\_ACEOF
@@ -3542,6 +3564,7 @@ for ac_config_target in $ac_config_targets
 do
   case $ac_config_target in
     "Makefile") CONFIG_FILES="$CONFIG_FILES Makefile" ;;
+    "example/scheme/Makefile") CONFIG_FILES="$CONFIG_FILES example/scheme/Makefile" ;;
 
   *) as_fn_error $? "invalid argument: \`$ac_config_target'" "$LINENO" 5;;
   esac
