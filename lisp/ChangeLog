@@ -1,3 +1,11 @@
+2012-09-19  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/calendar.el (calendar-american-month-header)
+	(calendar-european-month-header, calendar-iso-month-header)
+	(calendar-month-header): New options.
+	(calendar-set-date-style): Set calendar-month-header.  Redraw calendar.
+	(calendar-generate-month): Use calendar-month-header.  (Bug#9510)
+
 2012-09-19  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* startup.el (command-line-ns-option-alist): Add -g and --geometry.
