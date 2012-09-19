@@ -10567,6 +10567,7 @@ $as_echo "#define HAVE_GTK3 1" >>confdefs.h
 
      GTK_OBJ=emacsgtkfixed.o
      term_header=gtkutil.h
+     USE_GTK_TOOLKIT="GTK3"
   else
      check_gtk2=yes
      gtk3_pkg_errors="$GTK_PKG_ERRORS "
@@ -10634,6 +10635,7 @@ $as_echo "no" >&6; }
   then
     as_fn_error "$gtk3_pkg_errors$GTK_PKG_ERRORS" "$LINENO" 5
   fi
+  test "$pkg_check_gtk" = "yes" && USE_GTK_TOOLKIT="GTK2"
 fi
 
 if test x"$pkg_check_gtk" = xyes; then
@@ -24293,7 +24295,7 @@ fi
 #### It makes printing result more understandable as using GTK sets
 #### toolkit_scroll_bars to yes by default.
 if test "${HAVE_GTK}" = "yes"; then
-  USE_X_TOOLKIT=GTK
+  USE_X_TOOLKIT="$USE_GTK_TOOLKIT"
 fi
 
 echo "
