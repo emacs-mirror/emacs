@@ -267,7 +267,12 @@ void SegSetGrey(Seg seg, TraceSet grey)
 {
   AVERT(Seg, seg);
   AVER(TraceSetCheck(grey));
-  seg->class->setGrey(seg, grey);
+  AVER(SegRankSet(seg) != RankSetEMPTY);
+
+  /* Don't dispatch to the class method if there's no actual change in
+     greyness, or if the segment doesn't contain any references. */
+  if (grey != SegGrey(seg) && SegRankSet(seg) != RankSetEMPTY)
+    seg->class->setGrey(seg, grey);
 }
 
 
@@ -295,6 +300,7 @@ void SegSetRankSet(Seg seg, RankSet rankSet)
 {
   AVERT(Seg, seg);
   AVER(RankSetCheck(rankSet));
+  AVER(rankSet != RankSetEMPTY || SegSummary(seg) == RefSetEMPTY);
   seg->class->setRankSet(seg, rankSet);
 }
 
@@ -304,11 +310,13 @@ void SegSetRankSet(Seg seg, RankSet rankSet)
 void SegSetSummary(Seg seg, RefSet summary)
 {
   AVERT(Seg, seg);
+  AVER(summary == RefSetEMPTY || SegRankSet(seg) != RankSetEMPTY);
 
 #ifdef PROTECTION_NONE
   summary = RefSetUNIV;
 #endif
-  seg->class->setSummary(seg, summary);
+  if (summary != SegSummary(seg))
+    seg->class->setSummary(seg, summary);
 }
 
 
@@ -1150,6 +1158,10 @@ static void gcSegSetGreyInternal(Seg seg, TraceSet oldGrey, TraceSet grey)
       AVER(RankSetIsSingle(seg->rankSet));
       for(rank = 0; rank < RankLIMIT; ++rank)
         if (RankSetIsMember(seg->rankSet, rank)) {
+          /* NOTE: We push the segment onto the front of the queue, so that
+             we preserve some locality of scanning, and so that we tend to
+             forward objects that are closely linked to the same or nearby
+             segments. */
           RingInsert(ArenaGreyRing(arena, rank), &gcseg->greyRing);
           break;
         }

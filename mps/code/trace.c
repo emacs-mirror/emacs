@@ -525,13 +525,15 @@ static Res rootFlip(Root root, void *p)
  * The main job of traceFlip is to scan references which can't be protected
  * from the mutator, changing the colour of the mutator from grey to black
  * with respect to a trace.  The mutator threads are suspended while this
- * is happening, and the mutator perceives and instantaneous change in all
+ * is happening, and the mutator perceives an instantaneous change in all
  * the references, enforced by the shield (barrier) system.
  *
  * NOTE: We don't have a way to shield the roots, so they are all scanned
- * here.  This is a coincidence.  There is no particular reason that the
- * roots have to be scanned at flip time.  (The thread registers are unlikely
- * ever to be protectable on stock hardware, however.)
+ * here.  This is a coincidence.  There is no theoretical reason that the
+ * roots have to be scanned at flip time, provided we could protect them
+ * from the mutator.  (The thread registers are unlikely ever to be
+ * protectable on stock hardware, however, as they were -- kind of -- on
+ * Lisp machines.)
  *
  * NOTE: Ambiguous references may only exist in roots, because we can't
  * shield the exact roots and defer them for later scanning (after ambiguous
@@ -1254,9 +1256,12 @@ void TraceSegAccess(Arena arena, Seg seg, AccessSet mode)
     Trace trace;
     TraceId ti;
     Rank rank;
+    TraceSet traces;
+
+    AVER(SegRankSet(seg) != RankSetEMPTY);
     
     /* Pick set of traces to scan for: */
-    TraceSet traces = arena->flippedTraces;
+    traces = arena->flippedTraces;
     rank = TraceRankForAccess(arena, seg);
     res = traceScanSeg(traces, rank, arena, seg);      
 
