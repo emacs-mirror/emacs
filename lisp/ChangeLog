@@ -1,3 +1,8 @@
+2012-09-20  Juri Linkov  <juri@jurta.org>
+
+	* dired-aux.el (dired-diff): Remove (require 'diff) since
+	`diff-latest-backup-file' is now autoloaded.
+
 2012-09-20  Chong Yidong  <cyd@gnu.org>
 
 	* vc/diff.el (diff-latest-backup-file): Autoload.

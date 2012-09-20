@@ -51,8 +51,6 @@ into this list; they also should call `dired-log' to log the errors.")
 (defconst dired-star-subst-regexp "\\(^\\|[ \t]\\)\\*\\([ \t]\\|$\\)")
 (defconst dired-quark-subst-regexp "\\(^\\|[ \t]\\)\\?\\([ \t]\\|$\\)")
 
-(declare-function diff-latest-backup-file "diff" (fn)) ; actually belongs into files.el
-
 ;;;###autoload
 (defun dired-diff (file &optional switches)
   "Compare file at point with file FILE using `diff'.
@@ -70,7 +68,7 @@ the string of command switches for the third argument of `diff'."
   (interactive
    (let* ((current (dired-get-filename t))
 	  ;; Get the latest existing backup file.
-	  (oldf (progn (require 'diff) (diff-latest-backup-file current)))
+	  (oldf (diff-latest-backup-file current))
 	  ;; Get the file at the mark.
 	  (file-at-mark (if (and transient-mark-mode mark-active)
 			    (save-excursion (goto-char (mark t))
