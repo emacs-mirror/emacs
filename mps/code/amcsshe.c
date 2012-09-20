@@ -23,8 +23,8 @@
 #define headerFACTOR      ((float)(20 + headerSIZE) / 20)
 /* headerFACTOR measures how much larger objects are compared to fmtdy. */
 #define testArenaSIZE     ((size_t)(1000*headerFACTOR)*1024)
-#define gen1SIZE          ((size_t)150*headerFACTOR)
-#define gen2SIZE          ((size_t)170*headerFACTOR)
+#define gen1SIZE          ((size_t)(150*headerFACTOR))
+#define gen2SIZE          ((size_t)(170*headerFACTOR))
 #define avLEN             3
 #define exactRootsCOUNT   200
 #define ambigRootsCOUNT   50

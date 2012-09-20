@@ -183,9 +183,9 @@ static void swap(void)
 }
 
 
-static void makerndlist(int l)
+static void makerndlist(unsigned l)
 {
-  int i;
+  unsigned i;
   mps_word_t r;
 
   cdie(l > 0, "list len");
