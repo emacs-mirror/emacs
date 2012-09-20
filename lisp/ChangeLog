@@ -1,5 +1,7 @@
 2012-09-20  Juri Linkov  <juri@jurta.org>
 
+	* replace.el (read-regexp): Add HISTORY arg.  (Bug#7567)
+
 	* replace.el (read-regexp): Don't add ": " when PROMPT already
 	ends with a colon and space.  (Bug#12321)
 

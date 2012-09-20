@@ -574,14 +574,17 @@ of `history-length', which see.")
 (defvar occur-collect-regexp-history '("\\1")
   "History of regexp for occur's collect operation")
 
-(defun read-regexp (prompt &optional default-value)
+(defun read-regexp (prompt &optional default-value history)
   "Read regexp as a string using the regexp history and some useful defaults.
 When PROMPT doesn't end with a colon and space, it adds a final \": \".
 If DEFAULT-VALUE is non-nil, it displays the first default in the prompt.
 The optional argument DEFAULT-VALUE provides the value to display
 in the minibuffer prompt that is returned if the user just types RET.
 Values available via M-n are the string at point, the last isearch
-regexp, the last isearch string, and the last replacement regexp."
+regexp, the last isearch string, and the last replacement regexp.
+
+Non-nil HISTORY is a symbol to use for the history list.
+If HISTORY is nil, `regexp-history' is used."
   (let* ((defaults
 	   (list (regexp-quote
 		  (or (funcall (or find-tag-default-function
@@ -603,11 +606,11 @@ regexp, the last isearch string, and the last replacement regexp."
 				 (query-replace-descr default-value)))
 		       (t
 			(format "%s: " prompt)))
-		 nil nil nil 'regexp-history defaults t)))
+		 nil nil nil (or history 'regexp-history) defaults t)))
     (if (equal input "")
 	(or default-value input)
       (prog1 input
-	(add-to-history 'regexp-history input)))))
+	(add-to-history (or history 'regexp-history) input)))))
 
 
 (defalias 'delete-non-matching-lines 'keep-lines)
