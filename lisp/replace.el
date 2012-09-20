@@ -576,10 +576,10 @@ of `history-length', which see.")
 
 (defun read-regexp (prompt &optional default-value)
   "Read regexp as a string using the regexp history and some useful defaults.
-Prompt for a regular expression with PROMPT (without a colon and
-space) in the minibuffer.  The optional argument DEFAULT-VALUE
-provides the value to display in the minibuffer prompt that is
-returned if the user just types RET.
+When PROMPT doesn't end with a colon and space, it adds a final \": \".
+If DEFAULT-VALUE is non-nil, it displays the first default in the prompt.
+The optional argument DEFAULT-VALUE provides the value to display
+in the minibuffer prompt that is returned if the user just types RET.
 Values available via M-n are the string at point, the last isearch
 regexp, the last isearch string, and the last replacement regexp."
   (let* ((defaults
@@ -595,13 +595,15 @@ regexp, the last isearch string, and the last replacement regexp."
 	 (defaults (delete-dups (delq nil (delete "" defaults))))
 	 ;; Don't add automatically the car of defaults for empty input
 	 (history-add-new-input nil)
-	 (input
-	  (read-from-minibuffer
-	   (if default-value
-	       (format "%s (default %s): " prompt
-		       (query-replace-descr default-value))
-	     (format "%s: " prompt))
-	   nil nil nil 'regexp-history defaults t)))
+	 (input (read-from-minibuffer
+		 (cond ((string-match-p ":[ \t]*\\'" prompt)
+			prompt)
+		       (default-value
+			 (format "%s (default %s): " prompt
+				 (query-replace-descr default-value)))
+		       (t
+			(format "%s: " prompt)))
+		 nil nil nil 'regexp-history defaults t)))
     (if (equal input "")
 	(or default-value input)
       (prog1 input

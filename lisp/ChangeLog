@@ -1,3 +1,8 @@
+2012-09-20  Juri Linkov  <juri@jurta.org>
+
+	* replace.el (read-regexp): Don't add ": " when PROMPT already
+	ends with a colon and space.  (Bug#12321)
+
 2012-09-20  Tassilo Horn  <tsdh@gnu.org>
 
 	* doc-view.el (doc-view-display): Better fix for the cl-assertion
