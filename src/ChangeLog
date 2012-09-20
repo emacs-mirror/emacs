@@ -1,3 +1,7 @@
+2012-09-20  Juanma Barranquero  <lekktu@gmail.com>
+
+	* w32gui.h (XParseGeometry): Do not declare.
+
 2012-09-19  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* w32inevt.c (w32_console_read_socket): Return -1 on failure, not 0.

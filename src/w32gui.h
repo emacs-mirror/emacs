@@ -118,9 +118,6 @@ extern int nCmdShow;
 #define PBaseSize	(1L << 8) /* program specified base for incrementing */
 #define PWinGravity	(1L << 9) /* program specified window gravity */
 
-extern int XParseGeometry (char *, int *, int *, unsigned *, unsigned *);
-
-
 typedef struct {
     int x, y;
     unsigned width, height;
