@@ -2815,7 +2815,11 @@ static void *start(void *p, size_t s)
   mps_res_t res;
   mps_root_t globals_root;
   
-  puts("MPS Toy Scheme Example");
+  puts("MPS Toy Scheme Example\n"
+       "The prompt shows total allocated bytes and number of collections.\n"
+       "Try (vector-length (make-vector 100000 1)) to see the MPS in action.\n"
+       "You can force a complete garbage collection with (gc).\n"
+       "If you recurse too much the interpreter may crash from using too much C stack.");
   
   total = (size_t)0;
   
