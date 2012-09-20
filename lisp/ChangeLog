@@ -1,5 +1,9 @@
 2012-09-20  Juri Linkov  <juri@jurta.org>
 
+	* replace.el (read-regexp): Rename DEFAULT-VALUE arg to DEFAULTS
+	and allow accepting a list of strings prepended to a list of
+	standard default values.  Doc fix.  (Bug#12321)
+
 	* replace.el (read-regexp): Add HISTORY arg.  (Bug#7567)
 
 	* replace.el (read-regexp): Don't add ": " when PROMPT already
