@@ -1,3 +1,8 @@
+2012-09-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* calc/calc.el: Fix last change by removing the whole chunk, since it
+	was only needed back when Calc was not bundled.
+
 2012-09-20  Martin Rudalics  <rudalics@gmx.at>
 
 	* emacs-lisp/debug.el (debug): Restore assignment to

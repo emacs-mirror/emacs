@@ -912,34 +912,6 @@ Used by `calc-user-invocation'.")
 (defvar calc-embedded-mode-hook nil
   "Hook run when starting embedded mode.")
 
-;; Set up the autoloading linkage.
-(let ((name (and (fboundp 'calc-dispatch)
-                 (autoloadp (symbol-function 'calc-dispatch))))
-      (p load-path))
-
-  ;; If Calc files exist on the load-path, we're all set.
-  (while (and p (not (file-exists-p
-                      (expand-file-name "calc-misc.elc" (car p)))))
-    (setq p (cdr p)))
-  (or p
-
-      ;; If Calc is autoloaded using a path name, look there for Calc files.
-      ;; This works for both relative ("calc/calc.elc") and absolute paths.
-      (and name (file-name-directory name)
-           (let ((p2 load-path)
-                 (name2 (concat (file-name-directory name)
-                                "calc-misc.elc")))
-             (while (and p2 (not (file-exists-p
-                                  (expand-file-name name2 (car p2)))))
-               (setq p2 (cdr p2)))
-             (when p2
-               (setq load-path (nconc load-path
-                                      (list
-                                       (directory-file-name
-                                        (file-name-directory
-                                         (expand-file-name
-                                          name (car p2))))))))))))
-
 ;; The following modes use specially-formatted data.
 (put 'calc-mode 'mode-class 'special)
 (put 'calc-trail-mode 'mode-class 'special)
