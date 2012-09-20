@@ -32,7 +32,6 @@ void MeterInit(Meter meter, char *name, void *owner)
   sym = EventInternString(name);
   EventLabelAddr((Addr)meter, sym); /* see .trans.label */
   EVENT2(MeterInit, meter, owner);
-  UNUSED(owner); /* @@@@ hack */
 }
 
 
@@ -100,7 +99,6 @@ void MeterEmit(Meter meter)
 {
   EVENT6(MeterValues, meter, meter->total, meter->meanSquared,
                meter->count, meter->max, meter->min);
-  UNUSED(meter); /* @@@@ hack */
 }
 
 

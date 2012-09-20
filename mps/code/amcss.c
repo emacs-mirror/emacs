@@ -80,44 +80,40 @@ static void report(mps_arena_t arena)
 
     cdie(mps_message_get(&message, arena, type), "message get");
 
-    switch(type) {
-      /* @@@@ is using these macros in a switch supported? */
-      case mps_message_type_gc_start(): {
-        nCollsStart += 1;
-        printf("\n{\n  Collection %d started.  Because:\n", nCollsStart);
-        printf("    %s\n", mps_message_gc_start_why(arena, message));
-        printf("    clock: %"PRIuLONGEST"\n", (ulongest_t)mps_message_clock(arena, message));
-        break;
-      }
-      case mps_message_type_gc(): {
-        size_t live, condemned, not_condemned;
-        
-        nCollsDone += 1;
-        live = mps_message_gc_live_size(arena, message);
-        condemned = mps_message_gc_condemned_size(arena, message);
-        not_condemned = mps_message_gc_not_condemned_size(arena, message);
+    if (type == mps_message_type_gc_start()) {
+      nCollsStart += 1;
+      printf("\n{\n  Collection %d started.  Because:\n", nCollsStart);
+      printf("    %s\n", mps_message_gc_start_why(arena, message));
+      printf("    clock: %"PRIuLONGEST"\n", (ulongest_t)mps_message_clock(arena, message));
 
-        printf("\n  Collection %d finished:\n", nCollsDone);
-        printf("    live %"PRIuLONGEST"\n", (ulongest_t)live);
-        printf("    condemned %"PRIuLONGEST"\n", (ulongest_t)condemned);
-        printf("    not_condemned %"PRIuLONGEST"\n", (ulongest_t)not_condemned);
-        printf("    clock: %"PRIuLONGEST"\n", (ulongest_t)mps_message_clock(arena, message));
-        printf("}\n");
+    } else if (type == mps_message_type_gc()) {
+      size_t live, condemned, not_condemned;
+      
+      nCollsDone += 1;
+      live = mps_message_gc_live_size(arena, message);
+      condemned = mps_message_gc_condemned_size(arena, message);
+      not_condemned = mps_message_gc_not_condemned_size(arena, message);
 
-        if(condemned > (gen1SIZE + gen2SIZE + (size_t)128) * 1024) {
-          /* When condemned size is larger than could happen in a gen 2
-           * collection (discounting ramps, natch), guess that was a dynamic
-           * collection, and reset the commit limit, so it doesn't run out. */
-          die(mps_arena_commit_limit_set(arena, 2 * testArenaSIZE),
-            "set limit");
-        }
-        break;
+      printf("\n  Collection %d finished:\n", nCollsDone);
+      printf("    live %"PRIuLONGEST"\n", (ulongest_t)live);
+      printf("    condemned %"PRIuLONGEST"\n", (ulongest_t)condemned);
+      printf("    not_condemned %"PRIuLONGEST"\n", (ulongest_t)not_condemned);
+      printf("    clock: %"PRIuLONGEST"\n", (ulongest_t)mps_message_clock(arena, message));
+      printf("}\n");
+
+      if(condemned > (gen1SIZE + gen2SIZE + (size_t)128) * 1024) {
+        /* When condemned size is larger than could happen in a gen 2
+         * collection (discounting ramps, natch), guess that was a dynamic
+         * collection, and reset the commit limit, so it doesn't run out. */
+        die(mps_arena_commit_limit_set(arena, 2 * testArenaSIZE),
+          "set limit");
       }
-      default: {
-        cdie(0, "unknown message type");
-        break;
-      }
+
+    } else {
+      cdie(0, "unknown message type");
+      break;
     }
+
     mps_message_discard(arena, message);
   }
 
@@ -223,7 +219,7 @@ static void *test(void *arg, size_t s)
       /* test mps_arena_has_addr */
       {
         size_t hitRatio;
-        int hitsWanted = 4;  /* aim for 4 hits (on average) */
+        unsigned hitsWanted = 4;  /* aim for 4 hits (on average) */
         /* [Note: The for-loop condition used to be "i < 4 * hitRatio",
          *  with "4" an unexplained naked constant.  I have now labelled
          *  it "hitsWanted", as I think that is the intent.  RHSK]

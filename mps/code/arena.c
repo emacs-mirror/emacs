@@ -675,8 +675,16 @@ Size ArenaAvail(Arena arena)
   Size sSwap;
 
   sSwap = ArenaReserved(arena);
-  if (sSwap > arena->commitLimit) sSwap = arena->commitLimit;
-  /* @@@@ sSwap should take actual paging file size into account */
+  if (sSwap > arena->commitLimit)
+    sSwap = arena->commitLimit;
+
+  /* TODO: sSwap should take into account the amount of backing store
+     available to supply the arena with memory.  This would be the amount
+     available in the paging file, which is possibly the amount of free
+     disk space in some circumstances.  We'd have to see whether we can get
+     this information from the operating system.  It also depends on the
+     arena class, of course. */
+
   return sSwap - arena->committed + arena->spareCommitted;
 }
 
