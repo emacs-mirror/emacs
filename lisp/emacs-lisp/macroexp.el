@@ -149,7 +149,7 @@ Assumes the caller has bound `macroexpand-all-environment'."
                      (symbolp (car form))
                      (get (car form) 'byte-obsolete-info))
                 (macroexp--funcall-and-return
-                 (lambda () (byte-compile-warn-obsolete ',(car form)))
+                 (lambda () (byte-compile-warn-obsolete (car form)))
                  #'ignore      ;FIXME: We should `message' something.
                  new-form)
               new-form)))

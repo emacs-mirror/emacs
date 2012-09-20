@@ -1,3 +1,7 @@
+2012-09-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/macroexp.el (macroexp--expand-all): Fix last change.
+
 2012-09-19  Juri Linkov  <juri@jurta.org>
 
 	* dired-aux.el (dired-diff): Add (require 'diff) because
