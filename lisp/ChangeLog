@@ -1,3 +1,8 @@
+2012-09-20  Martin Rudalics  <rudalics@gmx.at>
+
+	* emacs-lisp/debug.el (debug): Restore assignment to
+	debugger-old-buffer removed on 2012-09-08.
+
 2012-09-20  Juri Linkov  <juri@jurta.org>
 
 	* dired-aux.el (dired-diff): Remove (require 'diff) since

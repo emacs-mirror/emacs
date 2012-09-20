@@ -166,6 +166,7 @@ first will be printed into the backtrace buffer."
                (with-current-buffer (get-buffer "*Backtrace*")
                  (list major-mode (buffer-string)))))
 	  (debugger-buffer (get-buffer-create "*Backtrace*"))
+	  (debugger-old-buffer (current-buffer))
 	  (debugger-window nil)
 	  (debugger-step-after-exit nil)
           (debugger-will-be-back nil)
