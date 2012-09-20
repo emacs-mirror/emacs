@@ -111,23 +111,30 @@ and also to avoid outputting the warning during normal execution."
        (funcall (eval (cadr form)))
        (byte-compile-constant nil)))
 
-(defun macroexp--funcall-and-return (when-compiled when-interpreted form)
-  ;; FIXME: ¡¡Major Ugly Hack!! To determine whether the output of this
-  ;; macro-expansion will be processed by the byte-compiler, we check
-  ;; circumstantial evidence.
-  (if (member '(declare-function . byte-compile-macroexpand-declare-function)
-              macroexpand-all-environment)
+(defun macroexp--warn-and-return (msg form)
+  (let ((when-compiled (lambda () (byte-compile-log-warning msg t))))
+    (cond
+     ((null msg) form)
+     ;; FIXME: ¡¡Major Ugly Hack!! To determine whether the output of this
+     ;; macro-expansion will be processed by the byte-compiler, we check
+     ;; circumstantial evidence.
+     ((member '(declare-function . byte-compile-macroexpand-declare-function)
+                macroexpand-all-environment)
       `(progn
          (macroexp--funcall-if-compiled ',when-compiled)
-         ,form)
-    (funcall when-interpreted)
-    form))
+         ,form))
+     (t
+      (message "%s" msg)
+      form))))
 
-(defun macroexp--warn-and-return (msg form)
-  (macroexp--funcall-and-return
-   (lambda () (byte-compile-log-warning msg t))
-   (lambda () (message "%s" msg))
-   form))
+(defun macroexp--obsolete-warning (fun obsolescence-data type)
+  (let ((instead (car obsolescence-data))
+        (asof (nth 2 obsolescence-data)))
+    (format "`%s' is an obsolete %s%s%s" fun type
+            (if asof (concat " (as of " asof ")") "")
+            (cond ((stringp instead) (concat "; " instead))
+                  (instead (format "; use `%s' instead." instead))
+                  (t ".")))))
 
 (defun macroexp--expand-all (form)
   "Expand all macros in FORM.
@@ -148,10 +155,11 @@ Assumes the caller has bound `macroexpand-all-environment'."
                      (car-safe form)
                      (symbolp (car form))
                      (get (car form) 'byte-obsolete-info))
-                (macroexp--funcall-and-return
-                 (lambda () (byte-compile-warn-obsolete (car form)))
-                 #'ignore      ;FIXME: We should `message' something.
-                 new-form)
+                (let* ((fun (car form))
+                       (obsolete (get fun 'byte-obsolete-info)))
+                  (macroexp--warn-and-return
+                   (macroexp--obsolete-warning fun obsolete "macro")
+                   new-form))
               new-form)))
     (pcase form
       (`(cond . ,clauses)

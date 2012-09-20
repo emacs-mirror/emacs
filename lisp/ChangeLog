@@ -1,5 +1,12 @@
 2012-09-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/macroexp.el (macroexp--obsolete-warning): New function.
+	(macroexp--expand-all): Use it.
+	(macroexp--funcall-and-return): Remove by folding it into its sole
+	caller (macroexp--warn-and-return).
+	* emacs-lisp/bytecomp.el (byte-compile-warn-obsolete):
+	Use macroexp--obsolete-warning.
+
 	* calc/calc.el: Fix last change by removing the whole chunk, since it
 	was only needed back when Calc was not bundled.
 
