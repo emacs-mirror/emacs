@@ -1,3 +1,16 @@
+2012-09-20  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Omit unused arg EXPECTED from socket hooks.
+	* keyboard.c (gobble_input, read_avail_input, tty_read_avail_input):
+	* nsterm.m (ns_term_init):
+	* termhooks.h (struct terminal.read_socket_hook):
+	* w32inevt.c (w32_console_read_socket):
+	* w32term.c (w32_read_socket):
+	* xterm.c (XTread_socket):
+	Omit unused arg EXPECTED.  All callers changed.
+	(store_user_signal_events): Return void, not int, since callers no
+	longer care about the return value.  All uses changed.
+
 2012-09-20  Juanma Barranquero  <lekktu@gmail.com>
 
 	* w32gui.h (XParseGeometry): Do not declare.

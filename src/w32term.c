@@ -4137,8 +4137,6 @@ static char dbcs_lead = 0;
    We return the number of characters stored into the buffer,
    thus pretending to be `read'.
 
-   EXPECTED is nonzero if the caller knows input is available.
-
    Some of these messages are reposted back to the message queue since the
    system calls the windows proc directly in a context where we cannot return
    the data nor can we guarantee the state we are in.  So if we dispatch them
@@ -4149,7 +4147,7 @@ static char dbcs_lead = 0;
 */
 
 static int
-w32_read_socket (struct terminal *terminal, int expected,
+w32_read_socket (struct terminal *terminal,
 		 struct input_event *hold_quit)
 {
   int count = 0;

@@ -5971,7 +5971,7 @@ sit_for (Lisp_Object timeout, bool reading, int do_display)
 
 
 #ifdef USABLE_SIGIO
-  gobble_input (0);
+  gobble_input ();
 #endif
 
   wait_reading_process_output (sec, nsec, reading ? -1 : 1, do_display,

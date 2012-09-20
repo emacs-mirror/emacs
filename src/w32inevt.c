@@ -744,7 +744,6 @@ maybe_generate_resize_event (void)
 
 int
 w32_console_read_socket (struct terminal *terminal,
-                         int expected,
                          struct input_event *hold_quit)
 {
   int nev, add;

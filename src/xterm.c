@@ -7109,19 +7109,15 @@ x_dispatch_event (XEvent *event, Display *display)
 
 
 /* Read events coming from the X server.
-   This routine is called by the SIGIO handler only if SYNC_INPUT is
-   not defined.
-   We return as soon as there are no more events to be read.
+   Return as soon as there are no more events to be read.
 
-   We return the number of characters stored into the buffer,
+   Return the number of characters stored into the buffer,
    thus pretending to be `read' (except the characters we store
    in the keyboard buffer can be multibyte, so are not necessarily
-   C chars).
-
-   EXPECTED is nonzero if the caller knows input is available.  */
+   C chars).  */
 
 static int
-XTread_socket (struct terminal *terminal, int expected, struct input_event *hold_quit)
+XTread_socket (struct terminal *terminal, struct input_event *hold_quit)
 {
   int count = 0;
   int event_found = 0;

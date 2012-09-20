@@ -3336,8 +3336,7 @@ ns_send_appdefined (int value)
 }
 
 static int
-ns_read_socket (struct terminal *terminal, int expected,
-                struct input_event *hold_quit)
+ns_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 /* --------------------------------------------------------------------------
      External (hook): Post an event to ourself and keep reading events until
      we read it back again.  In effect process all events which were waiting.
@@ -4204,7 +4203,7 @@ ns_term_init (Lisp_Object display_name)
                             NSColorPboardType,
                             NSFontPboardType, nil] retain];
 
-  
+
   [NSApp run];
   ns_do_open_file = YES;
   return dpyinfo;

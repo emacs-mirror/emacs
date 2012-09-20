@@ -413,7 +413,7 @@ static EMACS_TIME timer_last_idleness_start_time;
 /* Function for init_keyboard to call with no args (if nonzero).  */
 static void (*keyboard_init_hook) (void);
 
-static int read_avail_input (int);
+static int read_avail_input (void);
 static void get_input_pending (int *, int);
 static int readable_events (int);
 static Lisp_Object read_char_x_menu_prompt (ptrdiff_t, Lisp_Object *,
@@ -448,7 +448,7 @@ static void timer_stop_idle (void);
 static void timer_resume_idle (void);
 static void deliver_user_signal (int);
 static char *find_user_signal_name (int);
-static int store_user_signal_events (void);
+static void store_user_signal_events (void);
 
 /* These setters are used only in this file, so they can be private.  */
 static inline void
@@ -2010,7 +2010,7 @@ poll_for_input_1 (void)
 {
   if (interrupt_input_blocked == 0
       && !waiting_for_input)
-    read_avail_input (0);
+    read_avail_input ();
 }
 
 /* Timer callback function for poll_timer.  TIMER is equal to
@@ -3843,7 +3843,7 @@ kbd_buffer_get_event (KBOARD **kbp,
 	 interrupt handlers have not read it, read it now.  */
 
 #ifdef USABLE_SIGIO
-      gobble_input (0);
+      gobble_input ();
 #endif
       if (kbd_fetch_ptr != kbd_store_ptr)
 	break;
@@ -3869,8 +3869,7 @@ kbd_buffer_get_event (KBOARD **kbp,
 	wait_reading_process_output (0, 0, -1, 1, Qnil, NULL, 0);
 
       if (!interrupt_input && kbd_fetch_ptr == kbd_store_ptr)
-	/* Pass 1 for EXPECT since we just waited to have input.  */
-	read_avail_input (1);
+	read_avail_input ();
     }
 
   if (CONSP (Vunread_command_events))
@@ -6734,14 +6733,14 @@ get_input_pending (int *addr, int flags)
     return;
 
   /* Try to read some input and see how much we get.  */
-  gobble_input (0);
+  gobble_input ();
   *addr = (!NILP (Vquit_flag) || readable_events (flags));
 }
 
 /* Interface to read_avail_input, blocking SIGIO or SIGALRM if necessary.  */
 
 void
-gobble_input (int expected)
+gobble_input (void)
 {
 #ifdef USABLE_SIGIO
   if (interrupt_input)
@@ -6750,7 +6749,7 @@ gobble_input (int expected)
       sigemptyset (&blocked);
       sigaddset (&blocked, SIGIO);
       pthread_sigmask (SIG_BLOCK, &blocked, &procmask);
-      read_avail_input (expected);
+      read_avail_input ();
       pthread_sigmask (SIG_SETMASK, &procmask, 0);
     }
   else
@@ -6764,13 +6763,13 @@ gobble_input (int expected)
       sigemptyset (&blocked);
       sigaddset (&blocked, SIGALRM);
       pthread_sigmask (SIG_BLOCK, &blocked, &procmask);
-      read_avail_input (expected);
+      read_avail_input ();
       pthread_sigmask (SIG_SETMASK, &procmask, 0);
     }
   else
 #endif
 #endif
-    read_avail_input (expected);
+    read_avail_input ();
 }
 
 /* Put a BUFFER_SWITCH_EVENT in the buffer
@@ -6826,15 +6825,14 @@ record_asynch_buffer_change (void)
    this is a bad time to try to read input.  */
 
 static int
-read_avail_input (int expected)
+read_avail_input (void)
 {
   int nread = 0;
   int err = 0;
   struct terminal *t;
 
   /* Store pending user signal events, if any.  */
-  if (store_user_signal_events ())
-    expected = 0;
+  store_user_signal_events ();
 
   /* Loop through the available terminals, and call their input hooks.  */
   t = terminal_list;
@@ -6851,11 +6849,8 @@ read_avail_input (int expected)
           hold_quit.kind = NO_EVENT;
 
           /* No need for FIONREAD or fcntl; just say don't wait.  */
-          while (nr = (*t->read_socket_hook) (t, expected, &hold_quit), nr > 0)
-            {
-              nread += nr;
-              expected = 0;
-            }
+          while (0 < (nr = (*t->read_socket_hook) (t, &hold_quit)))
+	    nread += nr;
 
           if (nr == -1)          /* Not OK to read input now.  */
             {
@@ -6950,7 +6945,6 @@ decode_keyboard_code (struct tty_display_info *tty,
 
 int
 tty_read_avail_input (struct terminal *terminal,
-                      int expected,
                       struct input_event *hold_quit)
 {
   /* Using KBD_BUFFER_SIZE - 1 here avoids reading more than
@@ -7170,8 +7164,7 @@ handle_async_input (void)
 
   while (1)
     {
-      int nread;
-      nread = read_avail_input (1);
+      int nread = read_avail_input ();
       /* -1 means it's not ok to read the input now.
 	 UNBLOCK_INPUT will read it later; now, avoid infinite loop.
 	 0 means there was no keyboard input available.  */
@@ -7323,25 +7316,25 @@ find_user_signal_name (int sig)
   return NULL;
 }
 
-static int
+static void
 store_user_signal_events (void)
 {
   struct user_signal_info *p;
   struct input_event buf;
-  int nstored = 0;
+  bool buf_initialized = 0;
 
   for (p = user_signals; p; p = p->next)
     if (p->npending > 0)
       {
 	sigset_t blocked, procmask;
 
-	if (nstored == 0)
+	if (! buf_initialized)
 	  {
 	    memset (&buf, 0, sizeof buf);
 	    buf.kind = USER_SIGNAL_EVENT;
 	    buf.frame_or_window = selected_frame;
+	    buf_initialized = 1;
 	  }
-	nstored += p->npending;
 
 	sigemptyset (&blocked);
 	sigaddset (&blocked, p->sig);
@@ -7357,8 +7350,6 @@ store_user_signal_events (void)
 
 	pthread_sigmask (SIG_SETMASK, &procmask, 0);
       }
-
-  return nstored;
 }
 
 

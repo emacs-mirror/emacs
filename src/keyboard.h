@@ -523,7 +523,7 @@ extern void input_poll_signal (int);
 extern void start_polling (void);
 extern void stop_polling (void);
 extern void set_poll_suppress_count (int);
-extern void gobble_input (int);
+extern void gobble_input (void);
 extern int input_polling_used (void);
 extern void clear_input_pending (void);
 extern int requeued_events_pending_p (void);
@@ -547,8 +547,7 @@ extern Lisp_Object menu_item_eval_property (Lisp_Object);
 extern int  kbd_buffer_events_waiting (int);
 extern void add_user_signal (int, const char *);
 
-extern int tty_read_avail_input (struct terminal *, int,
-                                 struct input_event *);
+extern int tty_read_avail_input (struct terminal *, struct input_event *);
 extern EMACS_TIME timer_check (void);
 extern void mark_kboards (void);
 
