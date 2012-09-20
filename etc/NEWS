@@ -419,6 +419,8 @@ the experience for Sphinx users.
 
 *** Package version in `rst-version'.
 
+*** Support `imenu' and `which-func'.
+
 ** New `derived-mode' filter for Ibuffer, bound to `/ M'.
 `/ m' is now bound to filter by used-mode, which used to be bound to `/ M'.
 

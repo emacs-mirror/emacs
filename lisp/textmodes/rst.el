@@ -112,6 +112,9 @@
 
 ;; FIXME: Use `testcover'.
 
+;; FIXME: The adornment classification often called `ado' should be a
+;;        `defstruct'.
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Support for `testcover'
 
@@ -214,7 +217,7 @@ and before TAIL-RE and DELIM-RE in VAR or DEFAULT for no match."
 ;; Use CVSHeader to really get information from CVS and not other version
 ;; control systems.
 (defconst rst-cvs-header
-  "$CVSHeader: sm/rst_el/rst.el,v 1.309.2.1 2012-09-17 17:30:49 stefan Exp $")
+  "$CVSHeader: sm/rst_el/rst.el,v 1.324 2012-09-20 18:52:46 stefan Exp $")
 (defconst rst-cvs-rev
   (rst-extract-version "\\$" "CVSHeader: \\S + " "[0-9]+\\(?:\\.[0-9]+\\)+"
 		       " .*" rst-cvs-header "0.0")
@@ -843,6 +846,12 @@ highlighting.
        'rst-comment-region)
   (set (make-local-variable 'uncomment-region-function)
        'rst-uncomment-region)
+
+  ;; Imenu and which function.
+  ;; FIXME: Check documentation of `which-function' for alternative ways to
+  ;;        determine the current function name.
+  (set (make-local-variable 'imenu-create-index-function)
+       'rst-imenu-create-index)
 
   ;; Font lock.
   (set (make-local-variable 'font-lock-defaults)
@@ -2170,126 +2179,112 @@ adjust.  If bullets are found on levels beyond the
 ;; Table of contents
 ;; =================
 
-(defun rst-get-stripped-line ()
-  "Return the line at cursor, stripped from whitespace."
-  (re-search-forward (rst-re "\\S .*\\S ") (line-end-position))
-  (buffer-substring-no-properties (match-beginning 0)
-                                  (match-end 0)) )
-
+;; FIXME: Return value should be a `defstruct'.
 (defun rst-section-tree ()
-  "Get the hierarchical tree of section titles.
-
-Returns a hierarchical tree of the sections titles in the
-document.  This can be used to generate a table of contents for
-the document.  The top node will always be a nil node, with the
-top level titles as children (there may potentially be more than
-one).
-
-Each section title consists in a cons of the stripped title
-string and a marker to the section in the original text document.
-
-If there are missing section levels, the section titles are
-inserted automatically, and the title string is set to nil, and
-the marker set to the first non-nil child of itself.
-Conceptually, the nil nodes--i.e.\ those which have no title--are
-to be considered as being the same line as their first non-nil
-child.  This has advantages later in processing the graph."
-
+  "Return the hierarchical tree of section titles.
+A tree entry looks like ((TITLE MARKER) CHILD...).  TITLE is the
+stripped text of the section title.  MARKER is a marker for the
+beginning of the title text.  For the top node or a missing
+section level node TITLE is nil and MARKER points to the title
+text of the first child.  Each CHILD is another tree entry.  The
+CHILD list may be empty."
   (let ((hier (rst-get-hierarchy))
-	(levels (make-hash-table :test 'equal :size 10))
-	lines)
+	(ch-sty2level (make-hash-table :test 'equal :size 10))
+	lev-ttl-mrk-l)
 
     (let ((lev 0))
       (dolist (ado hier)
 	;; Compare just the character and indent in the hash table.
-        (puthash (cons (car ado) (cadr ado)) lev levels)
+        (puthash (cons (car ado) (cadr ado)) lev ch-sty2level)
         (incf lev)))
 
-    ;; Create a list of lines that contains (text, level, marker) for each
-    ;; adornment.
+    ;; Create a list that contains (LEVEL TITLE MARKER) for each adornment.
     (save-excursion
-      (setq lines
+      (setq lev-ttl-mrk-l
             (mapcar (lambda (ado)
                       (goto-char (point-min))
-                      (forward-line (1- (car ado)))
-                      (list (gethash (cons (cadr ado) (caddr ado)) levels)
-                            (rst-get-stripped-line)
-                            (progn
-                              (beginning-of-line 1)
-                              (point-marker))))
+                      (1value ;; This should really succeed.
+		       (forward-line (1- (car ado))))
+                      (list (gethash (cons (cadr ado) (caddr ado)) ch-sty2level)
+			    ;; Get title.
+			    (save-excursion
+			      (if (re-search-forward
+				   (rst-re "\\S .*\\S ") (line-end-position) t)
+				  (buffer-substring-no-properties
+				   (match-beginning 0) (match-end 0))
+				""))
+			    (point-marker)))
                     (rst-find-all-adornments))))
-    (let ((lcontnr (cons nil lines)))
-      (rst-section-tree-rec lcontnr -1))))
+    (cdr (rst-section-tree-rec lev-ttl-mrk-l -1))))
 
+;; FIXME: Return value should be a `defstruct'.
+(defun rst-section-tree-rec (remaining lev)
+  "Process the first entry of REMAINING expected to be on level LEV.
+REMAINING is the remaining list of adornments consisting
+of (LEVEL TITLE MARKER) entries.
 
-(defun rst-section-tree-rec (ados lev)
-  "Recursive guts of the section tree construction.
-ADOS is a cons cell whose cdr is the remaining list of
-adornments, and we change it as we consume them.  LEV is
-the current level of that node.  This function returns a
-pair of the subtree that was built.  This treats the ADOS
-list destructively."
+Return (UNPROCESSED (TITLE MARKER) CHILD...) for the first entry
+of REMAINING where TITLE is nil if the expected level is not
+matched.  UNPROCESSED is the list of still unprocessed entries.
+Each CHILD is a child of this entry in the same format but
+without UNPROCESSED."
+  (let ((cur (car remaining))
+	(unprocessed remaining)
+        ttl-mrk children)
+    ;; If the current adornment matches expected level.
+    (when (and cur (= (car cur) lev))
+      ;; Consume the current entry and create the current node with it.
+      (setq unprocessed (cdr remaining))
+      (setq ttl-mrk (cdr cur)))
 
-  (let ((nado (cadr ados))
-        node
-        children)
-
-    ;; If the next adornment matches our level.
-    (when (and nado (= (car nado) lev))
-      ;; Pop the next adornment and create the current node with it.
-      (setcdr ados (cddr ados))
-      (setq node (cdr nado)) )
-    ;; Else we let the node title/marker be unset.
-
-    ;; Build the child nodes.
-    (while (and (cdr ados) (> (caadr ados) lev))
-      (setq children
-            (cons (rst-section-tree-rec ados (1+ lev))
-                  children)))
+    ;; Build the child nodes as long as they have deeper level.
+    (while (and unprocessed (> (caar unprocessed) lev))
+      (let ((rem-children (rst-section-tree-rec unprocessed (1+ lev))))
+	(setq children (cons (cdr rem-children) children))
+	(setq unprocessed (car rem-children))))
     (setq children (reverse children))
 
-    ;; If node is still unset, we use the marker of the first child.
-    (when (eq node nil)
-      (setq node (cons nil (cdaar children))))
+    (cons unprocessed
+	  (cons (or ttl-mrk
+		    ;; Node on this level missing - use nil as text and the
+		    ;; marker of the first child.
+		    (cons nil (cdaar children)))
+		children))))
 
-    ;; Return this node with its children.
-    (cons node children)))
+(defun rst-section-tree-point (tree &optional point)
+  "Return section containing POINT by returning the closest node in TREE.
+TREE is a section tree as returned by `rst-section-tree'
+consisting of (NODE CHILD...) entries.  POINT defaults to the
+current point.  A NODE must have the structure (IGNORED MARKER
+...).
 
-
-(defun rst-section-tree-point (node &optional point)
-  "Find tree node at point.
-Given a computed and valid section tree in NODE and a point
-POINT (default being the current point in the current buffer),
-find and return the node within the section tree where the cursor
-lives.
-
-Return values: a pair of (parent path, container subtree).
-The parent path is simply a list of the nodes above the
-container subtree node that we're returning."
-
-  (let (path outtree)
-
-    (let* ((curpoint (or point (point))))
-
-      ;; Check if we are before the current node.
-      (if (and (cadar node) (>= curpoint (cadar node)))
-
-	  ;; Iterate all the children, looking for one that might contain the
-	  ;; current section.
-	  (let ((curnode (cdr node))
-		last)
-
-	    (while (and curnode (>= curpoint (cadaar curnode)))
-	      (setq last curnode
-		    curnode (cdr curnode)))
-
-	    (if last
-		(let ((sub (rst-section-tree-point (car last) curpoint)))
-		  (setq path (car sub)
-			outtree (cdr sub)))
-	      (setq outtree node)))))
-    (cons (cons (car node) path) outtree)))
-
+Return (PATH NODE CHILD...).  NODE is the node where POINT is in
+if any.  PATH is a list of nodes from the top of the tree down to
+and including NODE.  List of CHILD are the children of NODE if
+any."
+  (setq point (or point (point)))
+  (let ((cur (car tree))
+	(children (cdr tree)))
+    ;; Point behind current node?
+    (if (and (cadr cur) (>= point (cadr cur)))
+	;; Iterate all the children, looking for one that might contain the
+	;; current section.
+	(let (found)
+	  (while (and children (>= point (cadaar children)))
+	    (setq found children
+		  children (cdr children)))
+	  (if found
+	      ;; Found section containing point in children.
+	      (let ((sub (rst-section-tree-point (car found) point)))
+		;; Extend path with current node and return NODE CHILD... from
+		;; sub.
+		(cons (cons cur (car sub)) (cdr sub)))
+	    ;; Point in this section: Start a new path with current node and
+	    ;; return current NODE CHILD...
+	    (cons (list cur) tree)))
+      ;; Current node behind point: start a new path with current node and
+      ;; no NODE CHILD...
+      (list (list cur)))))
 
 (defgroup rst-toc nil
   "Settings for reStructuredText table of contents."
@@ -4130,6 +4125,79 @@ buffer, if the region is not selected."
     ;; Note: you could also use (compile command) to view the compilation
     ;; output.
     ))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Imenu support.
+
+;; FIXME: Integrate this properly. Consider a key binding.
+
+;; Based on code from Masatake YAMATO <yamato@redhat.com>.
+
+(defun rst-imenu-find-adornments-for-position (adornments pos)
+  "Find adornments cell in ADORNMENTS for position POS."
+  (let ((a nil))
+    (while adornments
+      (if (and (car adornments)
+	       (eq (car (car adornments)) pos))
+	  (setq a adornments
+		adornments nil)
+	(setq adornments (cdr adornments))))
+    a))
+
+(defun rst-imenu-convert-cell (elt adornments)
+  "Convert a cell ELT in a tree returned from `rst-section-tree' to imenu index.
+ADORNMENTS is used as hint information for conversion."
+  (let* ((kar (car elt))
+	 (kdr (cdr elt))
+	 (title (car kar)))
+    (if kar
+	(let* ((p (marker-position (cadr kar)))
+	       (adornments
+		(rst-imenu-find-adornments-for-position adornments p))
+	       (a (car adornments))
+	       (adornments (cdr adornments))
+	       ;; FIXME: Overline adornment characters need to be in front so
+	       ;;        they become visible even for long title lines. May be
+	       ;;        an additional level number is also useful.
+	       (title (format "%s%s%s"
+			      (make-string (1+ (nth 3 a)) (nth 1 a))
+			      title
+			      (if (eq (nth 2 a) 'simple)
+				  ""
+				(char-to-string (nth 1 a))))))
+	  (cons title
+		(if (null kdr)
+		    p
+		  (cons
+		   ;; A bit ugly but this make which-func happy.
+		   (cons title p)
+		   (mapcar (lambda (elt0)
+			     (rst-imenu-convert-cell elt0 adornments))
+			   kdr)))))
+      nil)))
+
+;; FIXME: Document title and subtitle need to be handled properly. They should
+;;        get an own "Document" top level entry.
+(defun rst-imenu-create-index ()
+  "Create index for imenu.
+Return as described for `imenu--index-alist'."
+  (rst-reset-section-caches)
+  (let ((tree (rst-section-tree))
+	;; Translate line notation to point notation.
+	(adornments (save-excursion
+		      (mapcar (lambda (ln-ado)
+				(cons (progn
+					(goto-char (point-min))
+					(forward-line (1- (car ln-ado)))
+					;; FIXME: Need to consider
+					;;        `imenu-use-markers' here?
+					(point))
+				      (cdr ln-ado)))
+			      (rst-find-all-adornments)))))
+    (delete nil (mapcar (lambda (elt)
+			  (rst-imenu-convert-cell elt adornments))
+			tree))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

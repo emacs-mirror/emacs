@@ -1,3 +1,15 @@
+2012-09-20  Stefan Merten  <smerten@oekonux.de>
+
+	* rst.el: Integrate support for `imenu' and `which-function'.
+	Fixes feature request bug#11711.
+	(rst-mode): Create `imenu-create-index-function'.
+	(rst-get-stripped-line): Delete after refactoring.
+	(rst-section-tree, rst-section-tree-rec)
+	(rst-section-tree-point): Refactor and document properly.
+	(rst-imenu-find-adornments-for-position)
+	(rst-imenu-convert-cell, rst-imenu-create-index): New
+	function.
+
 2012-09-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/macroexp.el (macroexp--obsolete-warning): New function.
