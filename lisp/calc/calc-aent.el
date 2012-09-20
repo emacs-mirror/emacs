@@ -286,8 +286,7 @@ The value t means abort and give an error message.")
 
 ;;;###autoload
 (defun calc-alg-entry (&optional initial prompt)
-  (let* ((sel-mode nil)
-	 (calc-dollar-values (mapcar 'calc-get-stack-element
+  (let* ((calc-dollar-values (mapcar #'calc-get-stack-element
 				     (nthcdr calc-stack-top calc-stack)))
 	 (calc-dollar-used 0)
 	 (calc-plain-entry t)

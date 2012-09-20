@@ -1,5 +1,14 @@
 2012-09-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* calc/calc.el: Remove redundant autoload shape check.
+	(sel-mode): Don't defvar.
+	(calc-get-stack-element): Add `sel-mode' arg instead.
+	(calc-top, calc-top-list): Pass it this additional argument.
+	* calc/calc-store.el (calc-store-map):
+	* calc/calc-map.el (calc-apply, calc-reduce, calc-map)
+	(calc-map-equation, calc-outer-product, calc-inner-product):
+	* calc/calc-aent.el (calc-alg-entry): Don't bind sel-mode.
+
 	* emacs-lisp/macroexp.el (macroexp--expand-all): Fix last change.
 
 2012-09-19  Juri Linkov  <juri@jurta.org>

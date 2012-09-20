@@ -235,8 +235,7 @@
 (defun calc-store-map (&optional oper var)
   (interactive)
   (calc-wrapper
-   (let* ((sel-mode nil)
-	  (calc-dollar-values (mapcar 'calc-get-stack-element
+   (let* ((calc-dollar-values (mapcar #'calc-get-stack-element
 				      (nthcdr calc-stack-top calc-stack)))
 	  (calc-dollar-used 0)
 	  (oper (or oper (calc-get-operator "Store Mapping")))

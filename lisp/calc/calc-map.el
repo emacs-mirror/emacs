@@ -32,8 +32,7 @@
 (defun calc-apply (&optional oper)
   (interactive)
   (calc-wrapper
-   (let* ((sel-mode nil)
-	  (calc-dollar-values (mapcar 'calc-get-stack-element
+   (let* ((calc-dollar-values (mapcar #'calc-get-stack-element
 				      (nthcdr calc-stack-top calc-stack)))
 	  (calc-dollar-used 0)
 	  (oper (or oper (calc-get-operator "Apply"
@@ -53,11 +52,10 @@
 (defun calc-reduce (&optional oper accum)
   (interactive)
   (calc-wrapper
-   (let* ((sel-mode nil)
-	  (nest (calc-is-hyperbolic))
+   (let* ((nest (calc-is-hyperbolic))
 	  (rev (calc-is-inverse))
 	  (nargs (if (and nest (not rev)) 2 1))
-	  (calc-dollar-values (mapcar 'calc-get-stack-element
+	  (calc-dollar-values (mapcar #'calc-get-stack-element
 				      (nthcdr calc-stack-top calc-stack)))
 	  (calc-dollar-used 0)
 	  (calc-mapping-dir (and (not accum) (not nest) ""))
@@ -99,8 +97,7 @@
 (defun calc-map (&optional oper)
   (interactive)
   (calc-wrapper
-   (let* ((sel-mode nil)
-	  (calc-dollar-values (mapcar 'calc-get-stack-element
+   (let* ((calc-dollar-values (mapcar #'calc-get-stack-element
 				      (nthcdr calc-stack-top calc-stack)))
 	  (calc-dollar-used 0)
 	  (calc-mapping-dir "")
@@ -120,8 +117,7 @@
 (defun calc-map-equation (&optional oper)
   (interactive)
   (calc-wrapper
-   (let* ((sel-mode nil)
-	  (calc-dollar-values (mapcar 'calc-get-stack-element
+   (let* ((calc-dollar-values (mapcar #'calc-get-stack-element
 				      (nthcdr calc-stack-top calc-stack)))
 	  (calc-dollar-used 0)
 	  (oper (or oper (calc-get-operator "Map-equation")))
@@ -152,8 +148,7 @@
 (defun calc-outer-product (&optional oper)
   (interactive)
   (calc-wrapper
-   (let* ((sel-mode nil)
-	  (calc-dollar-values (mapcar 'calc-get-stack-element
+   (let* ((calc-dollar-values (mapcar #'calc-get-stack-element
 				      (nthcdr calc-stack-top calc-stack)))
 	  (calc-dollar-used 0)
 	  (oper (or oper (calc-get-operator "Outer" 2))))
@@ -170,8 +165,7 @@
 (defun calc-inner-product (&optional mul-oper add-oper)
   (interactive)
   (calc-wrapper
-   (let* ((sel-mode nil)
-	  (calc-dollar-values (mapcar 'calc-get-stack-element
+   (let* ((calc-dollar-values (mapcar #'calc-get-stack-element
 				      (nthcdr calc-stack-top calc-stack)))
 	  (calc-dollar-used 0)
 	  (mul-oper (or mul-oper (calc-get-operator "Inner (Mult)" 2)))
