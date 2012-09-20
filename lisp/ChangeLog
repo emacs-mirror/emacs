@@ -1,3 +1,7 @@
+2012-09-20  Chong Yidong  <cyd@gnu.org>
+
+	* vc/diff.el (diff-latest-backup-file): Autoload.
+
 2012-09-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* calc/calc.el: Remove redundant autoload shape check.

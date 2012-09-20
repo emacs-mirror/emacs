@@ -197,7 +197,8 @@ With prefix arg, prompt for diff switches."
 	    ori file))
     (diff bak ori switches)))
 
-(defun diff-latest-backup-file (fn)	; actually belongs into files.el
+;;;###autoload
+(defun diff-latest-backup-file (fn)
   "Return the latest existing backup of FILE, or nil."
   (let ((handler (find-file-name-handler fn 'diff-latest-backup-file)))
     (if handler
