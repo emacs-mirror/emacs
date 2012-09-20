@@ -3178,8 +3178,8 @@ As always, hidden subdirs are not affected."
 (defvar dired-regexp-history nil
   "History list of regular expressions used in Dired commands.")
 
-(defun dired-read-regexp (prompt)
-  (read-from-minibuffer prompt nil nil nil 'dired-regexp-history))
+(defun dired-read-regexp (prompt &optional default history)
+  (read-regexp prompt default (or history 'dired-regexp-history)))
 
 (defun dired-mark-files-regexp (regexp &optional marker-char)
   "Mark all files matching REGEXP for use in later commands.

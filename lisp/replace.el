@@ -128,20 +128,21 @@ wants to replace FROM with TO."
   (if query-replace-interactive
       (car (if regexp-flag regexp-search-ring search-ring))
     (let* ((history-add-new-input nil)
+	   (prompt
+	    (if query-replace-defaults
+		(format "%s (default %s -> %s): " prompt
+			(query-replace-descr (car query-replace-defaults))
+			(query-replace-descr (cdr query-replace-defaults)))
+	      (format "%s: " prompt)))
 	   (from
 	    ;; The save-excursion here is in case the user marks and copies
 	    ;; a region in order to specify the minibuffer input.
 	    ;; That should not clobber the region for the query-replace itself.
 	    (save-excursion
-	      (read-from-minibuffer
-	       (if query-replace-defaults
-		   (format "%s (default %s -> %s): " prompt
-			   (query-replace-descr (car query-replace-defaults))
-			   (query-replace-descr (cdr query-replace-defaults)))
-		 (format "%s: " prompt))
-	       nil nil nil
-	       query-replace-from-history-variable
-	       nil t))))
+	      (if regexp-flag
+		  (read-regexp prompt nil query-replace-from-history-variable)
+		(read-from-minibuffer
+		 prompt nil nil nil query-replace-from-history-variable nil t)))))
       (if (and (zerop (length from)) query-replace-defaults)
 	  (cons (car query-replace-defaults)
 		(query-replace-compile-replacement
@@ -1139,9 +1140,9 @@ which means to discard all text properties."
 		  "\\&"
 		;; Get the regexp for collection pattern.
 		(let ((default (car occur-collect-regexp-history)))
-		  (read-string
+		  (read-regexp
 		   (format "Regexp to collect (default %s): " default)
-		   nil 'occur-collect-regexp-history default)))
+		   default 'occur-collect-regexp-history)))
 	    ;; Otherwise normal occur takes numerical prefix argument.
 	    (when current-prefix-arg
 	      (prefix-numeric-value current-prefix-arg))))))
@@ -1228,14 +1229,10 @@ See also `multi-occur'."
    (cons
     (let* ((default (car regexp-history))
 	   (input
-	    (read-from-minibuffer
+	    (read-regexp
 	     (if current-prefix-arg
 		 "List lines in buffers whose names match regexp: "
-	       "List lines in buffers whose filenames match regexp: ")
-	     nil
-	     nil
-	     nil
-	     'regexp-history)))
+	       "List lines in buffers whose filenames match regexp: "))))
       (if (equal input "")
 	  default
 	input))

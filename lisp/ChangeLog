@@ -1,5 +1,18 @@
 2012-09-20  Juri Linkov  <juri@jurta.org>
 
+	* replace.el (query-replace-read-from): Use `read-regexp' instead
+	of `read-from-minibuffer' when `regexp-flag' is non-nil.
+	(occur-read-primary-args): Use `read-regexp' instead of
+	`read-string'.
+	(multi-occur-in-matching-buffers): Use `read-regexp' instead of
+	`read-from-minibuffer'.
+	* isearch.el (isearch-occur): Use `read-regexp' instead of
+	`read-string'.
+	* dired.el (dired-read-regexp): Use `read-regexp' instead of
+	`read-from-minibuffer'.
+	* progmodes/grep.el (grep-read-regexp): Use `read-regexp' instead
+	of `read-string'.  (Bug#7567)
+
 	* replace.el (read-regexp): Rename DEFAULT-VALUE arg to DEFAULTS
 	and allow accepting a list of strings prepended to a list of
 	standard default values.  Doc fix.  (Bug#12321)

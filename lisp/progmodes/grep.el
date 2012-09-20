@@ -817,11 +817,11 @@ substitution string.  Note dynamic scoping of variables.")
 (defun grep-read-regexp ()
   "Read regexp arg for interactive grep."
   (let ((default (grep-tag-default)))
-    (read-string
+    (read-regexp
      (concat "Search for"
 	     (if (and default (> (length default) 0))
 		 (format " (default \"%s\"): " default) ": "))
-     nil 'grep-regexp-history default)))
+     default 'grep-regexp-history)))
 
 (defun grep-read-files (regexp)
   "Read files arg for interactive grep."

@@ -750,6 +750,14 @@ in Emacs 24.1:
 **** `special-display-function'
 **** `display-buffer-function'
 
+** Minibuffer
+
+*** `read-regexp' has a new argument HISTORY; the first argument PROMPT
+of `read-regexp' accepts a string ending with a colon and space, and its
+second argument DEFAULTS can be a list of strings accessible via M-n
+in the minibuffer ahead of other hard-coded useful regexp-related values.
+More commands use `read-regexp' now to read their regexp arguments.
+
 ** Completion
 
 *** New function `completion-table-with-quoting' to handle completion
