@@ -1,3 +1,8 @@
+2012-09-20  Tassilo Horn  <tsdh@gnu.org>
+
+	* doc-view.el (doc-view-display): Better fix for the cl-assertion
+	error.
+
 2012-09-20  Stefan Merten  <smerten@oekonux.de>
 
 	* rst.el: Integrate support for `imenu' and `which-function'.

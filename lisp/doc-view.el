@@ -1169,15 +1169,16 @@ Predicate for sorting `doc-view-current-files'."
 If FORCE is non-nil, start viewing even if the document does not
 have the page we want to view."
   (with-current-buffer buffer
-    (let ((prev-pages doc-view-current-files))
+    (let ((prev-pages doc-view-current-files)
+	  (windows (get-buffer-window-list buffer nil t)))
       (setq doc-view-current-files
             (sort (directory-files (doc-view-current-cache-dir) t
                                    "page-[0-9]+\\.png" t)
                   'doc-view-sort))
-      (dolist (win (or (get-buffer-window-list buffer nil t)
-		       (list (let ((w (selected-window)))
-			       (set-window-buffer w buffer)
-			       w))))
+      (unless windows
+	(switch-to-buffer buffer)
+	(setq windows (get-buffer-window-list buffer nil t)))
+      (dolist (win windows)
 	(let* ((page (doc-view-current-page win))
 	       (pagefile (expand-file-name (format "page-%d.png" page)
 					   (doc-view-current-cache-dir))))
