@@ -623,7 +623,7 @@ print_load_command_name (int lc)
 #endif
 #ifdef LC_DATA_IN_CODE
     case LC_DATA_IN_CODE:
-      printf ("LC_DATA_IN_CODE");
+      printf ("LC_DATA_IN_CODE  ");
       break;
 #endif
 #ifdef LC_SOURCE_VERSION
