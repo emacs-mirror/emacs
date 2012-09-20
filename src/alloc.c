@@ -5521,7 +5521,7 @@ mark_buffer (struct buffer *buffer)
 }
 
 /* Remove killed buffers or items whose car is a killed buffer from
-   LIST, and mark other items. Return changed LIST, which is marked.  */
+   LIST, and mark other items.  Return changed LIST, which is marked.  */
 
 static Lisp_Object
 mark_discard_killed_buffers (Lisp_Object list)
@@ -5543,6 +5543,7 @@ mark_discard_killed_buffers (Lisp_Object list)
 	  prev = &XCDR_AS_LVALUE (tail);
 	}
     }
+  mark_object (tail);
   return list;
 }
 
@@ -5691,18 +5692,8 @@ mark_object (Lisp_Object arg)
 	      struct window *w = (struct window *) ptr;
 	      bool leaf = NILP (w->hchild) && NILP (w->vchild);
 
-	      /* For live windows, Lisp code filters out killed buffers
-		 from both buffer lists.  For dead windows, we do it here
-		 in attempt to help GC to reclaim killed buffers faster.  */
-	      if (leaf && NILP (w->buffer))
-		{
-		  wset_prev_buffers
-		    (w, mark_discard_killed_buffers (w->prev_buffers));
-		  wset_next_buffers
-		    (w, mark_discard_killed_buffers (w->next_buffers));
-		}
-
 	      mark_vectorlike (ptr);
+
 	      /* Mark glyphs for leaf windows.  Marking window
 		 matrices is sufficient because frame matrices
 		 use the same glyph memory.  */
@@ -5711,6 +5702,15 @@ mark_object (Lisp_Object arg)
 		  mark_glyph_matrix (w->current_matrix);
 		  mark_glyph_matrix (w->desired_matrix);
 		}
+
+	      /* Filter out killed buffers from both buffer lists
+		 in attempt to help GC to reclaim killed buffers faster.
+		 We can do it elsewhere for live windows, but this is the
+		 best place to do it for dead windows.  */
+	      wset_prev_buffers
+		(w, mark_discard_killed_buffers (w->prev_buffers));
+	      wset_next_buffers
+		(w, mark_discard_killed_buffers (w->next_buffers));
 	    }
 	    break;
 
