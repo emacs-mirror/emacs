@@ -33,7 +33,7 @@ static mps_res_t dylan_header_scan(mps_ss_t mps_ss,
   mps_addr_t p = base;
 
   while(p < limit) {
-      int header = *(int*)((char*)p - headerSIZE);
+      mps_word_t header = (mps_word_t)*(int*)((char*)p - headerSIZE);
       switch(headerType(header)) {
       case realTYPE:
           assert(header == realHeader);
@@ -63,8 +63,8 @@ static mps_res_t dylan_header_scan_weak(mps_ss_t mps_ss,
   mps_res_t res;
 
   while(base < limit) {
-      int header;
-      header = *(int*)((char*)base - headerSIZE);
+      mps_word_t header;
+      header = (mps_word_t)*(int*)((char*)base - headerSIZE);
       switch(headerType(header)) {
       case realTYPE:
           assert(header == realHeader);
@@ -90,8 +90,8 @@ static mps_res_t dylan_header_scan_weak(mps_ss_t mps_ss,
 static mps_addr_t dylan_header_skip(mps_addr_t object)
 {
   mps_addr_t *p;        /* cursor in object */
-  int header;
-  header = *(int*)((char*)object - headerSIZE);
+  mps_word_t header;
+  header = (mps_word_t)*(int*)((char*)object - headerSIZE);
   switch(headerType(header)) {
   case realTYPE:
       assert(header == realHeader);
@@ -111,9 +111,9 @@ static mps_addr_t dylan_header_skip(mps_addr_t object)
 
 static mps_addr_t dylan_header_isfwd(mps_addr_t object)
 {
-  int header;
+  mps_word_t header;
 
-  header = *(int*)((char*)object - headerSIZE);
+  header = (mps_word_t)*(int*)((char*)object - headerSIZE);
   if (headerType(header) != realTYPE)
     return NULL;
 

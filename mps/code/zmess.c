@@ -279,7 +279,7 @@ static void testscriptC(mps_arena_t arena, const char *script)
         return;
       }
     }
-    Insist(pmNext - am < NELEMS(am));
+    Insist(am <= pmNext && pmNext < am + NELEMS(am));
     script++;
   }
 }

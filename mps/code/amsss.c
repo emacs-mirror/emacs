@@ -57,30 +57,26 @@ static void report(void)
 
     cdie(mps_message_get(&message, arena, type), "message get");
 
-    switch(type) {
-    /* @@@@ is using these macros in a switch supported? */
-    case mps_message_type_gc_start():
+    if (type == mps_message_type_gc_start()) {
       printf("\nCollection start %d.  Because:\n", ++nStart);
       printf("%s\n", mps_message_gc_start_why(arena, message));
 
-      break;
-    case mps_message_type_gc():
-      {
-        size_t live, condemned, not_condemned;
+    } else if (type == mps_message_type_gc()) {
+      size_t live, condemned, not_condemned;
 
-        live = mps_message_gc_live_size(arena, message);
-        condemned = mps_message_gc_condemned_size(arena, message);
-        not_condemned = mps_message_gc_not_condemned_size(arena, message);
+      live = mps_message_gc_live_size(arena, message);
+      condemned = mps_message_gc_condemned_size(arena, message);
+      not_condemned = mps_message_gc_not_condemned_size(arena, message);
 
-        printf("\nCollection complete %d:\n", ++nComplete);
-        printf("live %"PRIuLONGEST"\n", (ulongest_t)live);
-        printf("condemned %"PRIuLONGEST"\n", (ulongest_t)condemned);
-        printf("not_condemned %"PRIuLONGEST"\n", (ulongest_t)not_condemned);
-      }
-      break;
-    default:
+      printf("\nCollection complete %d:\n", ++nComplete);
+      printf("live %"PRIuLONGEST"\n", (ulongest_t)live);
+      printf("condemned %"PRIuLONGEST"\n", (ulongest_t)condemned);
+      printf("not_condemned %"PRIuLONGEST"\n", (ulongest_t)not_condemned);
+
+    } else {
       cdie(0, "unknown message type");
     }
+
     mps_message_discard(arena, message);
   }
 

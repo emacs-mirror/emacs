@@ -80,7 +80,7 @@ static mps_res_t stress(mps_class_t class,
   for (k = 0; k < testLOOPS; ++k) {
     /* shuffle all the objects */
     for (i=0; i<testSetSIZE; ++i) {
-      int j = rnd()%(testSetSIZE-i);
+      int j = (int)(rnd()%(unsigned)(testSetSIZE-i));
       void *tp;
       size_t ts;
      
