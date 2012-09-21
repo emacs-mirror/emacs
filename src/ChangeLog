@@ -1,3 +1,30 @@
+2012-09-21  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* unexmacosx.c: Define LC_DATA_IN_CODE if not defined.
+	(print_load_command_name): Add case LC_DATA_IN_CODE.
+	(dump_it) [LC_DATA_IN_CODE]: Call copy_linkedit_data.
+
+2012-09-21  Glenn Morris  <rgm@gnu.org>
+
+	* eval.c (Frun_hook_with_args_until_success)
+	(Frun_hook_with_args_until_failure): Doc fixes.  (Bug#12393)
+
+2012-09-21  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* fileio.c (Ffile_selinux_context): Only call freecon when
+	lgetfilecon succeeded.
+	(Fset_file_selinux_context): Likewise.  (Bug#12444)
+
+2012-09-21  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (try_window_reusing_current_matrix): Under bidi
+	reordering, locate the cursor by calling set_cursor_from_row; if
+	that fails, clear the desired glyph matrix before returning a
+	failure indication to the caller.  Fixes leaving garbled display
+	when fast scrolling with a down-key.  (Bug#12403)
+	(compute_stop_pos_backwards): Fix a typo that caused crashes while
+	scrolling through multibyte text.
+
 2012-09-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* alloc.c (mark_object) <PVEC_WINDOW>: Mark prev/next_buffers *after*

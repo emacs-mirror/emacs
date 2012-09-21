@@ -1,3 +1,31 @@
+2012-09-21  Leo Liu  <sdl.web@gmail.com>
+
+	IDO: Disable match re-ordering for buffer switching.
+	* ido.el (ido-buffer-disable-smart-matches): New variable.
+	(ido-set-matches-1): Use it.  (Bug#2042)
+
+2012-09-21  Jose Marino  <marinoj@nso.edu>  (tiny change)
+
+	* progmodes/idlw-shell.el (idlwave-shell-complete-filename):
+	Fix 2011-05-17 change.  (Bug#12418)
+
+2012-09-21  Leo Liu  <sdl.web@gmail.com>
+
+	* subr.el (ignore-errors): Mention with-demoted-errors in doc-string.
+
+2012-09-21  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/shadow.el (load-path-shadows-font-lock-keywords):
+	Be more robust about locating simple.el.
+
+2012-09-21  Glenn Morris  <rgm@gnu.org>
+
+	* mail/emacsbug.el (report-emacs-bug): Trap load-path-shadows errors.
+
+2012-09-21  Joel Bion  <jpbion@westvi.com>  (tiny change)
+
+	* pcmpl-gnu.el (pcmpl-gnu-tarfile-regexp): Add tar.xz.  (Bug#12382)
+
 2012-09-20  Juri Linkov  <juri@jurta.org>
 
 	* replace.el (query-replace-read-from): Use `read-regexp' instead

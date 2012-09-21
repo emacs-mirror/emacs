@@ -117,6 +117,13 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <assert.h>
 
+/* LC_DATA_IN_CODE is not defined in mach-o/loader.h on OS X 10.7.
+   But it is used if we build with "Command Line Tools for Xcode 4.5
+   (OS X Lion) - Septemper 2012".  */
+#ifndef LC_DATA_IN_CODE
+#define LC_DATA_IN_CODE 0x29 /* table of non-instructions in __text */
+#endif
+
 #ifdef _LP64
 #define mach_header			mach_header_64
 #define segment_command			segment_command_64
@@ -610,6 +617,11 @@ print_load_command_name (int lc)
 #ifdef LC_MAIN
     case LC_MAIN:
       printf ("LC_MAIN          ");
+      break;
+#endif
+#ifdef LC_DATA_IN_CODE
+    case LC_DATA_IN_CODE:
+      printf ("LC_DATA_IN_CODE  ");
       break;
 #endif
 #ifdef LC_SOURCE_VERSION
@@ -1178,9 +1190,9 @@ copy_dyld_info (struct load_command *lc, long delta)
 #endif
 
 #ifdef LC_FUNCTION_STARTS
-/* Copy a LC_FUNCTION_STARTS/LC_DYLIB_CODE_SIGN_DRS load command from
-   the input file to the output file, adjusting the data offset
-   field.  */
+/* Copy a LC_FUNCTION_STARTS/LC_DATA_IN_CODE/LC_DYLIB_CODE_SIGN_DRS
+   load command from the input file to the output file, adjusting the
+   data offset field.  */
 static void
 copy_linkedit_data (struct load_command *lc, long delta)
 {
@@ -1274,6 +1286,9 @@ dump_it (void)
 #endif
 #ifdef LC_FUNCTION_STARTS
       case LC_FUNCTION_STARTS:
+#ifdef LC_DATA_IN_CODE
+      case LC_DATA_IN_CODE:
+#endif
 #ifdef LC_DYLIB_CODE_SIGN_DRS
       case LC_DYLIB_CODE_SIGN_DRS:
 #endif
