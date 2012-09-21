@@ -1,3 +1,8 @@
+2012-09-21  Chong Yidong  <cyd@gnu.org>
+
+	* image.c (define_image_type): Avoid adding duplicate types to
+	image_types (Bug#12463).  Suggested by Jörg Walter.
+
 2012-09-21  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* unexmacosx.c: Define LC_DATA_IN_CODE if not defined.
