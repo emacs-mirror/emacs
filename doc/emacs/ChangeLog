@@ -1,3 +1,7 @@
+2012-09-21  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* trouble.texi (Crashing): Document addr2line.
+
 2012-09-19  Chong Yidong  <cyd@gnu.org>
 
 	* killing.texi (Yanking): Minor clarification (Bug#12469).
