@@ -5,6 +5,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "amcss", "amcss\amcss.vcxpro
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mps", "mps\mps.vcxproj", "{339B244A-C76F-4663-A39D-FA90B97F5381}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "eventcnv", "eventcnv\eventcnv.vcxproj", "{945E1C40-AADC-4F3D-B59E-3028338805A5}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -28,6 +30,13 @@ Global
 		{339B244A-C76F-4663-A39D-FA90B97F5381}.Release|Win32.ActiveCfg = Release|Win32
 		{339B244A-C76F-4663-A39D-FA90B97F5381}.Release|Win32.Build.0 = Release|Win32
 		{339B244A-C76F-4663-A39D-FA90B97F5381}.Release|x64.ActiveCfg = Release|Win32
+		{945E1C40-AADC-4F3D-B59E-3028338805A5}.Debug|Win32.ActiveCfg = Debug|Win32
+		{945E1C40-AADC-4F3D-B59E-3028338805A5}.Debug|Win32.Build.0 = Debug|Win32
+		{945E1C40-AADC-4F3D-B59E-3028338805A5}.Debug|x64.ActiveCfg = Debug|x64
+		{945E1C40-AADC-4F3D-B59E-3028338805A5}.Debug|x64.Build.0 = Debug|x64
+		{945E1C40-AADC-4F3D-B59E-3028338805A5}.Release|Win32.ActiveCfg = Release|Win32
+		{945E1C40-AADC-4F3D-B59E-3028338805A5}.Release|Win32.Build.0 = Release|Win32
+		{945E1C40-AADC-4F3D-B59E-3028338805A5}.Release|x64.ActiveCfg = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
