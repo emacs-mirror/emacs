@@ -1,3 +1,7 @@
+2012-09-12  Glenn Morris  <rgm@gnu.org>
+
+	* debugging.texi (Using Debugger): Fix typo.
+
 2012-09-18  Chong Yidong  <cyd@gnu.org>
 
 	* display.texi (Faces): Discuss anonymous faces.

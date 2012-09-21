@@ -2399,6 +2399,7 @@ If it is a list of functions, those functions are called, in order,
 with the given arguments ARGS, until one of them
 returns a non-nil value.  Then we return that value.
 However, if they all return nil, we return nil.
+If the value of HOOK is nil, this function returns nil.
 
 Do not use `make-local-variable' to make a hook variable buffer-local.
 Instead, use `add-hook' and specify t for the LOCAL argument.
@@ -2420,10 +2421,12 @@ DEFUN ("run-hook-with-args-until-failure", Frun_hook_with_args_until_failure,
 HOOK should be a symbol, a hook variable.  If HOOK has a non-nil
 value, that value may be a function or a list of functions to be
 called to run the hook.  If the value is a function, it is called with
-the given arguments and its return value is returned.
+the given arguments.  Then we return nil if the function returns nil,
+and t if it returns non-nil.
 If it is a list of functions, those functions are called, in order,
 with the given arguments ARGS, until one of them returns nil.
-Then we return nil.  However, if they all return non-nil, we return non-nil.
+Then we return nil.  However, if they all return non-nil, we return t.
+If the value of HOOK is nil, this function returns t.
 
 Do not use `make-local-variable' to make a hook variable buffer-local.
 Instead, use `add-hook' and specify t for the LOCAL argument.
