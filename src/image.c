@@ -597,9 +597,15 @@ define_image_type (struct image_type *type, int loaded)
     success = Qnil;
   else
     {
+      struct image_type *p;
+      Lisp_Object target_type = *(type->type);
+      for (p = image_types; p; p = p->next)
+      	if (EQ (*(p->type), target_type))
+      	  return Qt;
+
       /* Make a copy of TYPE to avoid a bus error in a dumped Emacs.
          The initialized data segment is read-only.  */
-      struct image_type *p = (struct image_type *) xmalloc (sizeof *p);
+      p = (struct image_type *) xmalloc (sizeof *p);
       memcpy (p, type, sizeof *p);
       p->next = image_types;
       image_types = p;
