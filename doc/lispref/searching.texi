@@ -1278,20 +1278,18 @@ search.  It works by means of the match data.
 
 @cindex case in replacements
 @defun replace-match replacement &optional fixedcase literal string subexp
-This function replaces the text in the buffer (or in @var{string}) that
-was matched by the last search.  It replaces that text with
-@var{replacement}.
+This function performs a replacement operation on a buffer or string.
 
-If you did the last search in a buffer, you should specify @code{nil}
-for @var{string} and make sure that the current buffer when you call
-@code{replace-match} is the one in which you did the searching or
-matching.  Then @code{replace-match} does the replacement by editing
-the buffer; it leaves point at the end of the replacement text, and
-returns @code{t}.
+If you did the last search in a buffer, you should omit the
+@var{string} argument or specify @code{nil} for it, and make sure that
+the current buffer is the one in which you performed the last search.
+Then this function edits the buffer, replacing the matched text with
+@var{replacement}.  It leaves point at the end of the replacement
+text, and returns @code{t}.
 
-If you did the search in a string, pass the same string as @var{string}.
-Then @code{replace-match} does the replacement by constructing and
-returning a new string.
+If you performed the last search on a string, pass the same string as
+@var{string}.  Then this function returns a new string, in which the
+matched text is replaced by @var{replacement}.
 
 If @var{fixedcase} is non-@code{nil}, then @code{replace-match} uses
 the replacement text without case conversion; otherwise, it converts

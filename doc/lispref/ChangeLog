@@ -1,3 +1,7 @@
+2012-09-22  Chong Yidong  <cyd@gnu.org>
+
+	* searching.texi (Replacing Match): Minor clarification.
+
 2012-09-22  Eli Zaretskii  <eliz@gnu.org>
 
 	* edebug.texi (Instrumenting): Improve indexing.

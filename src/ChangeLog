@@ -1,5 +1,16 @@
 2012-09-22  Chong Yidong  <cyd@gnu.org>
 
+	* search.c (Freplace_match): Doc fix (Bug#12325).
+
+	* minibuf.c (Finternal_complete_buffer): Doc fix (Bug#12391).
+
+	* editfns.c (Fline_beginning_position): Doc fix (Bug#12416).
+	(Fline_end_position): Doc fix.
+
+	* cmds.c (Fforward_char, Fbackward_char): Doc fix (Bug#12414).
+
+2012-09-22  Chong Yidong  <cyd@gnu.org>
+
 	* dispextern.h (struct image_type): Add new slot, storing a type
 	initialization function.
 

@@ -90,12 +90,17 @@ MODE (you can override this with the :variable keyword, see below).
 DOC is the documentation for the mode toggle command.
 
 The defined mode command takes one optional (prefix) argument.
-Interactively with no prefix argument it toggles the mode.
-With a prefix argument, it enables the mode if the argument is
-positive and otherwise disables it.  When called from Lisp, it
-enables the mode if the argument is omitted or nil, and toggles
-the mode if the argument is `toggle'.  If DOC is nil this
-function adds a basic doc-string stating these facts.
+Interactively with no prefix argument, it toggles the mode.
+A prefix argument enables the mode if the argument is positive,
+and disables it otherwise.
+
+When called from Lisp, the mode command toggles the mode if the
+argument is `toggle', disables the mode if the argument is a
+non-positive integer, and enables the mode otherwise (including
+if the argument is omitted or nil or a positive integer).
+
+If DOC is nil, give the mode command a basic doc-string
+documenting what its argument does.
 
 Optional INIT-VALUE is the initial value of the mode's variable.
 Optional LIGHTER is displayed in the mode line when the mode is on.

@@ -2220,15 +2220,14 @@ DEFUN ("replace-match", Freplace_match, Sreplace_match, 1, 5, 0,
        doc: /* Replace text matched by last search with NEWTEXT.
 Leave point at the end of the replacement text.
 
-If second arg FIXEDCASE is non-nil, do not alter case of replacement text.
-Otherwise maybe capitalize the whole text, or maybe just word initials,
-based on the replaced text.
-If the replaced text has only capital letters
-and has at least one multiletter word, convert NEWTEXT to all caps.
-Otherwise if all words are capitalized in the replaced text,
-capitalize each word in NEWTEXT.
+If optional second arg FIXEDCASE is non-nil, do not alter the case of
+the replacement text.  Otherwise, maybe capitalize the whole text, or
+maybe just word initials, based on the replaced text.  If the replaced
+text has only capital letters and has at least one multiletter word,
+convert NEWTEXT to all caps.  Otherwise if all words are capitalized
+in the replaced text, capitalize each word in NEWTEXT.
 
-If third arg LITERAL is non-nil, insert NEWTEXT literally.
+If optional third arg LITERAL is non-nil, insert NEWTEXT literally.
 Otherwise treat `\\' as special:
   `\\&' in NEWTEXT means substitute original matched text.
   `\\N' means substitute what matched the Nth `\\(...\\)'.
@@ -2239,13 +2238,11 @@ Otherwise treat `\\' as special:
   Any other character following `\\' signals an error.
 Case conversion does not apply to these substitutions.
 
-FIXEDCASE and LITERAL are optional arguments.
-
-The optional fourth argument STRING can be a string to modify.
-This is meaningful when the previous match was done against STRING,
-using `string-match'.  When used this way, `replace-match'
-creates and returns a new string made by copying STRING and replacing
-the part of STRING that was matched.
+If optional fourth argument STRING is non-nil, it should be a string
+to act on; this should be the string on which the previous match was
+done via `string-match'.  In this case, `replace-match' creates and
+returns a new string, made by copying STRING and replacing the part of
+STRING that was matched (the original STRING itself is not altered).
 
 The optional fifth argument SUBEXP specifies a subexpression;
 it says to replace just that subexpression with NEWTEXT,
