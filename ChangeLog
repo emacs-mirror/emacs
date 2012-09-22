@@ -1,5 +1,9 @@
 2012-09-22  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* Makefile.in (bootstrap): Simplify build procedure.
+	Suggested by Wolfgang Jenker in
+	<http://lists.gnu.org/archive/html/emacs-devel/2012-09/msg00456.html>.
+
 	Merge from gnulib, incorporating:
 	2012-09-22 sockets, sys_stat: remove AC_C_INLINE in MSVC-only cases
 

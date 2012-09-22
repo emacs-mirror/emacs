@@ -889,18 +889,13 @@ dvi:
 .PHONY: bootstrap
 
 # Bootstrapping does the following:
-#  * Remove files to start from a clean slate.
+#  * Remove files to start from a bootstrap-clean slate.
 #  * Run autogen.sh, falling back on copy_autogen if autogen.sh fails.
-#  * Build Makefile, to build the build procedure itself.
+#  * Rebuild Makefile, to update the build procedure itself.
 #  * Do the actual build.
 bootstrap: bootstrap-clean FRC
 	cd $(srcdir) && { ./autogen.sh || autogen/copy_autogen; }
-	if [ -x config.status ]; then \
-	    ./config.status --recheck && \
-	    ./config.status; \
-	else \
-	    $(srcdir)/configure $(CONFIGURE_FLAGS); \
-	fi
+	$(MAKE) $(MFLAGS) Makefile
 	$(MAKE) $(MFLAGS) info all
 
 .PHONY: check-declare
