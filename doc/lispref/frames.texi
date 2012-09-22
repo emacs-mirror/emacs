@@ -1773,10 +1773,12 @@ where each pane is a list of form
 (@var{title} @var{item1} @var{item2}...)
 @end example
 
-Each item should normally be a cons cell @code{(@var{line} . @var{value})},
-where @var{line} is a string, and @var{value} is the value to return if
-that @var{line} is chosen.  An item can also be a string; this makes a
-non-selectable line in the menu.
+Each @var{item} should be a cons cell, @code{(@var{line} . @var{value})},
+where @var{line} is a string and @var{value} is the value to return if
+that @var{line} is chosen.  Unlike in a menu keymap, a @code{nil}
+@var{value} does not make the menu item non-selectable.
+Alternatively, each @var{item} can be a string rather than a cons
+cell; this makes a non-selectable menu item.
 
 If the user gets rid of the menu without making a valid choice, for
 instance by clicking the mouse away from a valid choice or by typing

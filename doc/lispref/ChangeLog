@@ -1,3 +1,7 @@
+2012-09-22  Chong Yidong  <cyd@gnu.org>
+
+	* frames.texi (Pop-Up Menus): Minor clarification (Bug#11148).
+
 2012-09-21  Glenn Morris  <rgm@gnu.org>
 
 	* debugging.texi (Using Debugger): Fix typo.
