@@ -1,3 +1,8 @@
+2012-09-22  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (next_overlay_string): Initialize it->end_charpos for
+	the new overlay string.  (Bug#10159)
+
 2012-09-22  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* emacs.c (shut_down_emacs): Don't assume stderr is buffered,
