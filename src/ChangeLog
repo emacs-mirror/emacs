@@ -1,3 +1,10 @@
+2012-09-22  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* .gdbinit: Just stop at fatal_error_backtrace.
+	See Stefan Monnier's request in
+	<http://lists.gnu.org/archive/html/emacs-devel/2012-09/msg00549.html>.
+	Remove no-longer-used query of system type.
+
 2012-09-22  Chong Yidong  <cyd@gnu.org>
 
 	* search.c (Freplace_match): Doc fix (Bug#12325).
