@@ -358,19 +358,17 @@ blessmail: Makefile src FRC
 MAKEFILE_NAME = Makefile
 $(MAKEFILE_NAME): config.status $(srcdir)/src/config.in \
           $(srcdir)/Makefile.in $(SUBDIR_MAKEFILES_IN)
-	./config.status
+	MAKE='$(MAKE)' ./config.status
 
 # Don't erase these files if make is interrupted while refreshing them.
 .PRECIOUS: Makefile config.status
 
-MAKE_CONFIG_STATUS = \
+config.status: ${srcdir}/configure ${srcdir}/lisp/version.el
 	if [ -x ./config.status ]; then	\
 	    ./config.status --recheck;	\
 	else				\
-	    ./configure $(CONFIGURE_FLAGS); \
+	    $(srcdir)/configure $(CONFIGURE_FLAGS); \
 	fi
-config.status: ${srcdir}/configure ${srcdir}/lisp/version.el
-	$(MAKE_CONFIG_STATUS)
 
 AUTOCONF_INPUTS = $(srcdir)/configure.ac $(srcdir)/aclocal.m4
 
@@ -737,6 +735,7 @@ clean: FRC
 	-(cd doc/lispref &&   $(MAKE) $(MFLAGS) clean)
 	-(cd doc/lispintro &&   $(MAKE) $(MFLAGS) clean)
 	(cd leim;     $(MAKE) $(MFLAGS) clean)
+	(cd nextstep && $(MAKE) $(MFLAGS) clean)
 
 ### `bootclean'
 ###      Delete all files that need to be remade for a clean bootstrap.
@@ -763,6 +762,7 @@ distclean: FRC
 	(cd doc/lispintro &&    $(MAKE) $(MFLAGS) distclean)
 	(cd leim;     $(MAKE) $(MFLAGS) distclean)
 	(cd lisp;     $(MAKE) $(MFLAGS) distclean)
+	(cd nextstep && $(MAKE) $(MFLAGS) distclean)
 	${top_distclean}
 
 ### `bootstrap-clean'
@@ -780,6 +780,7 @@ bootstrap-clean: FRC
 	-(cd doc/lispintro &&   $(MAKE) $(MFLAGS) maintainer-clean)
 	(cd leim;     $(MAKE) $(MFLAGS) maintainer-clean)
 	(cd lisp;     $(MAKE) $(MFLAGS) bootstrap-clean)
+	(cd nextstep && $(MAKE) $(MFLAGS) maintainer-clean)
 	[ ! -f config.log ] || mv -f config.log config.log~
 	${top_bootclean}
 
@@ -889,12 +890,17 @@ dvi:
 
 # Bootstrapping does the following:
 #  * Remove files to start from a clean slate.
-#  * Run autogen.sh, but don't worry about exit status 101 (missing tools).
+#  * Run autogen.sh, falling back on copy_autogen if autogen.sh fails.
 #  * Build Makefile, to build the build procedure itself.
 #  * Do the actual build.
 bootstrap: bootstrap-clean FRC
-	cd $(srcdir) && { ./autogen.sh || test $$? -eq 101; }
-	$(MAKE_CONFIG_STATUS)
+	cd $(srcdir) && { ./autogen.sh || autogen/copy_autogen; }
+	if [ -x config.status ]; then \
+	    ./config.status --recheck && \
+	    ./config.status; \
+	else \
+	    $(srcdir)/configure $(CONFIGURE_FLAGS); \
+	fi
 	$(MAKE) $(MFLAGS) info all
 
 .PHONY: check-declare

@@ -3483,7 +3483,7 @@ If X is not an error form, return 1."
 			(substring str i))))
     str))
 
-;;; Users can redefine this in their .emacs files.
+;;; Users can redefine this in their init files.
 (defvar calc-keypad-user-menu nil
   "If non-nil, this describes an additional menu for calc-keypad.
 It should contain a list of three rows.

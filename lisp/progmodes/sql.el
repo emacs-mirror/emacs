@@ -268,9 +268,8 @@
 
 (defcustom sql-password ""
   "Default password.
-
-Storing your password in a textfile such as ~/.emacs could be dangerous.
-Customizing your password will store it in your ~/.emacs file."
+If you customize this, the value will be stored in your init
+file.  Since that is a plaintext file, this could be dangerous."
   :type 'string
   :group 'SQL
   :risky t)
@@ -1285,8 +1284,8 @@ Based on `comint-mode-map'.")
    ["List all objects" sql-list-all (sql-get-product-feature sql-product :list-all)]
    ["List table details" sql-list-table (sql-get-product-feature sql-product :list-table)]))
 
-;; Abbreviations -- if you want more of them, define them in your
-;; ~/.emacs file.  Abbrevs have to be enabled in your ~/.emacs, too.
+;; Abbreviations -- if you want more of them, define them in your init
+;; file.  Abbrevs have to be enabled in your init file, too.
 
 (defvar sql-mode-abbrev-table nil
   "Abbrev table used in `sql-mode' and `sql-interactive-mode'.")
@@ -3715,8 +3714,8 @@ For information on how to create multiple SQLi buffers, see
 `sql-interactive-mode'.
 
 Note that SQL doesn't have an escape character unless you specify
-one.  If you specify backslash as escape character in SQL,
-you must tell Emacs.  Here's how to do that in your `~/.emacs' file:
+one.  If you specify backslash as escape character in SQL, you
+must tell Emacs.  Here's how to do that in your init file:
 
 \(add-hook 'sql-mode-hook
           (lambda ()
@@ -3806,7 +3805,7 @@ cause the window to scroll to the end of the buffer.
 If you want to make SQL buffers limited in length, add the function
 `comint-truncate-buffer' to `comint-output-filter-functions'.
 
-Here is an example for your .emacs file.  It keeps the SQLi buffer a
+Here is an example for your init file.  It keeps the SQLi buffer a
 certain length.
 
 \(add-hook 'sql-interactive-mode-hook

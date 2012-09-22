@@ -1863,20 +1863,36 @@ height.
 
   A @dfn{face} is a collection of graphical @dfn{attributes} for
 displaying text: font, foreground color, background color, optional
-underlining, and so on.  Faces control how Emacs displays text in
-buffers, as well as other parts of the frame such as the mode line.
-@xref{Standard Faces,,, emacs, The GNU Emacs Manual}, for the list of
-faces Emacs normally comes with.
+underlining, etc.  Faces control how Emacs displays text in buffers,
+as well as other parts of the frame such as the mode line.
 
-@cindex face id
-  For most purposes, you refer to a face in Lisp programs using its
-@dfn{face name}, which is usually a Lisp symbol.  For backward
-compatibility, a face name can also be a string, which is equivalent
-to a Lisp symbol of the same name.
+@cindex anonymous face
+  One way to represent a face is as a property list of attributes,
+like @code{(:foreground "red" :weight bold)}.  For example, you can
+assign such an @dfn{anonymous face} as the value of the @code{face}
+text property; this causes Emacs to display the underlying text with
+the specified attributes.  @xref{Special Properties}.
+
+@cindex face name
+  More commonly, a face is referred to via a @dfn{face name}: a Lisp
+symbol which is associated with a set of face attributes.  Named faces
+are defined using the @code{defface} macro (@pxref{Defining Faces}).
+Emacs defines several standard named faces; @xref{Standard Faces,,,
+emacs, The GNU Emacs Manual}.
+
+  Many parts of Emacs require named faces, and do not accept anonymous
+faces.  These include the functions documented in @ref{Attribute
+Functions}, and the variable @code{font-lock-keywords}
+(@pxref{Search-based Fontification}).  Unless otherwise stated, we
+will use the term @dfn{face} to refer only to named faces.
+
+  For backward compatibility, you can also use a string to specify a
+face name; that is equivalent to a Lisp symbol with the same name.
 
 @defun facep object
-This function returns a non-@code{nil} value if @var{object} is a Lisp
-symbol or string that names a face.  Otherwise, it returns @code{nil}.
+This function returns a non-@code{nil} value if @var{object} is a
+named face: a Lisp symbol or string which serves as a face name.
+Otherwise, it returns @code{nil}.
 @end defun
 
   By default, each face name corresponds to the same set of attributes
@@ -1884,8 +1900,8 @@ in all frames.  But you can also assign a face name a special set of
 attributes in one frame (@pxref{Attribute Functions}).
 
 @menu
-* Defining Faces::      How to define a face.
 * Face Attributes::     What is in a face?
+* Defining Faces::      How to define a face.
 * Attribute Functions::  Functions to examine and set face attributes.
 * Displaying Faces::     How Emacs combines the faces specified for a character.
 * Face Remapping::      Remapping faces to alternative definitions.
@@ -1900,161 +1916,21 @@ attributes in one frame (@pxref{Attribute Functions}).
 * Low-Level Font::      Lisp representation for character display fonts.
 @end menu
 
-@node Defining Faces
-@subsection Defining Faces
-
-  The @code{defface} macro defines a face and specifies its default
-appearance.  The user can subsequently customize the face using the
-Customize interface (@pxref{Customization}).
-
-@defmac defface face spec doc [keyword value]@dots{}
-This macro declares @var{face} as a customizable face whose default
-attributes are given by @var{spec}.  You should not quote the symbol
-@var{face}, and it should not end in @samp{-face} (that would be
-redundant).  The argument @var{doc} is a documentation string for the
-face.  The additional @var{keyword} arguments have the same meanings
-as in @code{defgroup} and @code{defcustom} (@pxref{Common Keywords}).
-
-When @code{defface} executes, it defines the face according to
-@var{spec}, then uses any customizations that were read from the
-init file (@pxref{Init File}) to override that specification.
-
-When you evaluate a @code{defface} form with @kbd{C-M-x} in Emacs
-Lisp mode (@code{eval-defun}), a special feature of @code{eval-defun}
-overrides any customizations of the face.  This way, the face reflects
-exactly what the @code{defface} says.
-
-@cindex face specification
-The @var{spec} argument is a @dfn{face specification}, which states
-how the face should appear on different kinds of terminals.  It should
-be an alist whose elements each have the form
-
-@example
-(@var{display} . @var{plist})
-@end example
-
-@noindent
-@var{display} specifies a class of terminals (see below), while
-@var{plist} is a property list of face attributes and their values,
-specifying how the face appears on such terminals
-@iftex
-(see the next section for details about face attributes).
-@end iftex
-@ifnottex
-(@pxref{Face Attributes}, for details about face attributes).
-@end ifnottex
-
-The @var{display} part of an element of @var{spec} determines which
-frames the element matches.  If more than one element of @var{spec}
-matches a given frame, the first element that matches is the one used
-for that frame.  There are three possibilities for @var{display}:
-
-@table @asis
-@item @code{default}
-This element of @var{spec} doesn't match any frames; instead, it
-specifies defaults that apply to all frames.  This element, if used,
-must be the first element of @var{spec}.  Each of the following
-elements can override any or all of these defaults.
-
-@item @code{t}
-This element of @var{spec} matches all frames.  Therefore, any
-subsequent elements of @var{spec} are never used.  Normally
-@code{t} is used in the last (or only) element of @var{spec}.
-
-@item a list
-If @var{display} is a list, each element should have the form
-@code{(@var{characteristic} @var{value}@dots{})}.  Here
-@var{characteristic} specifies a way of classifying frames, and the
-@var{value}s are possible classifications which @var{display} should
-apply to.  Here are the possible values of @var{characteristic}:
-
-@table @code
-@item type
-The kind of window system the frame uses---either @code{graphic} (any
-graphics-capable display), @code{x}, @code{pc} (for the MS-DOS console),
-@code{w32} (for MS Windows 9X/NT/2K/XP), or @code{tty} 
-(a non-graphics-capable display).
-@xref{Window Systems, window-system}.
-
-@item class
-What kinds of colors the frame supports---either @code{color},
-@code{grayscale}, or @code{mono}.
-
-@item background
-The kind of background---either @code{light} or @code{dark}.
-
-@item min-colors
-An integer that represents the minimum number of colors the frame
-should support.  This matches a frame if its
-@code{display-color-cells} value is at least the specified integer.
-
-@item supports
-Whether or not the frame can display the face attributes given in
-@var{value}@dots{} (@pxref{Face Attributes}).  @xref{Display Face
-Attribute Testing}, for more information on exactly how this testing
-is done.
-@end table
-
-If an element of @var{display} specifies more than one @var{value} for a
-given @var{characteristic}, any of those values is acceptable.  If
-@var{display} has more than one element, each element should specify a
-different @var{characteristic}; then @emph{each} characteristic of the
-frame must match one of the @var{value}s specified for it in
-@var{display}.
-@end table
-@end defmac
-
-  Here's how the standard face @code{highlight} is defined:
-
-@example
-(defface highlight
-  '((((class color) (min-colors 88) (background light))
-     :background "darkseagreen2")
-    (((class color) (min-colors 88) (background dark))
-     :background "darkolivegreen")
-    (((class color) (min-colors 16) (background light))
-     :background "darkseagreen2")
-    (((class color) (min-colors 16) (background dark))
-     :background "darkolivegreen")
-    (((class color) (min-colors 8))
-     :background "green" :foreground "black")
-    (t :inverse-video t))
-  "Basic face for highlighting."
-  :group 'basic-faces)
-@end example
-
-  Internally, Emacs stores the face's default specification in its
-@code{face-defface-spec} symbol property (@pxref{Property Lists}).
-The @code{saved-face} property stores the face specification saved by
-the user, using the customization buffer; the @code{customized-face}
-property stores the face specification customized for the current
-session, but not saved; and the @code{theme-face} property stores an
-alist associating the active customization settings and Custom themes
-with their specifications for that face.  The face's documentation
-string is stored in the @code{face-documentation} property.  But
-normally you should not try to set any of these properties directly.
-@xref{Applying Customizations}, for the @code{custom-set-faces}
-function, which is used to apply customized face settings.
-
-  People are sometimes tempted to create variables whose values
-specify a face to use.  In the vast majority of cases, this is not
-necessary; it is preferable to simply use faces directly.
-
 @node Face Attributes
 @subsection Face Attributes
 @cindex face attributes
 
-  The effect of using a face is determined by a fixed set of @dfn{face
-attributes}.  This table lists all the face attributes, their possible
-values, and their effects.  You can specify more than one face for a
-given piece of text; Emacs merges the attributes of all the faces to
-determine how to display the text.  @xref{Displaying Faces}.
+  @dfn{Face attributes} determine the visual appearance of a face.
+The following table lists all the face attributes, their possible
+values, and their effects.
 
-  In addition to the values given below, each face attribute can also
-have the value @code{unspecified}.  This special value means the face
-doesn't specify that attribute.  In face merging, when the first face
-fails to specify a particular attribute, the next face gets a chance.
-However, the @code{default} face must specify all attributes.
+  Apart from the values given below, each face attribute can have the
+value @code{unspecified}.  This special value means that the face
+doesn't specify that attribute directly.  An @code{unspecified}
+attribute tells Emacs to refer instead to a parent face (see the
+description @code{:inherit} attribute below); or, failing that, to an
+underlying face (@pxref{Displaying Faces}).  The @code{default} face
+must specify all attributes.
 
   Some of these attributes are meaningful only on certain kinds of
 displays.  If your display cannot handle a certain attribute, the
@@ -2063,7 +1939,7 @@ attribute is ignored.
 @table @code
 @item :family
 Font family or fontset (a string).  @xref{Fonts,,, emacs, The GNU
-Emacs Manual}, for more information about font families; the function
+Emacs Manual}, for more information about font families.  The function
 @code{font-family-list} (see below) returns a list of available family
 names.  @xref{Fontsets}, for information about fontsets.
 
@@ -2083,9 +1959,8 @@ The height of the font.  In the simplest case, this is an integer in
 units of 1/10 point.
 
 The value can also be a floating point number or a function, which
-specifies the height relative to an @dfn{underlying face} (i.e., a
-face that has a lower priority in the list described in
-@ref{Displaying Faces}).  If the value is a floating point number,
+specifies the height relative to an @dfn{underlying face}
+(@pxref{Displaying Faces}).  If the value is a floating point number,
 that specifies the amount by which to scale the height of the
 underlying face.  If the value is a function, that function is called
 with one argument, the height of the underlying face, and returns the
@@ -2261,11 +2136,147 @@ suitable for use with @code{:stipple} (see above).  It returns
 @code{nil} otherwise.
 @end defun
 
+@node Defining Faces
+@subsection Defining Faces
+
+  The usual way to define a face is through the @code{defface} macro.
+This macro defines a face name, and associates that name with a set of
+face attributes.  It also sets up the face so that the user can
+customize it via the Customize interface (@pxref{Customization}).
+
+@defmac defface face spec doc [keyword value]@dots{}
+This macro declares @var{face} as a customizable face whose default
+attributes are given by @var{spec}.  You should not quote the symbol
+@var{face}, and it should not end in @samp{-face} (that would be
+redundant).  The argument @var{doc} is a documentation string for the
+face.  The additional @var{keyword} arguments have the same meanings
+as in @code{defgroup} and @code{defcustom} (@pxref{Common Keywords}).
+
+When @code{defface} executes, it defines the face according to
+@var{spec}, then uses any customizations that were read from the
+init file (@pxref{Init File}) to override that specification.
+
+When you evaluate a @code{defface} form with @kbd{C-M-x} in Emacs
+Lisp mode (@code{eval-defun}), a special feature of @code{eval-defun}
+overrides any customizations of the face.  This way, the face reflects
+exactly what the @code{defface} says.
+
+@cindex face specification
+The @var{spec} argument is a @dfn{face specification}, which states
+how the face should appear on different kinds of terminals.  It should
+be an alist whose elements each have the form
+
+@example
+(@var{display} . @var{plist})
+@end example
+
+@noindent
+@var{display} specifies a class of terminals (see below).  @var{plist}
+is a property list of face attributes and their values, specifying how
+the face appears on such terminals.  For backward compatibility, you
+can also write an element as @code{(@var{display} @var{plist})}.
+
+The @var{display} part of an element of @var{spec} determines which
+terminals the element matches.  If more than one element of @var{spec}
+matches a given terminal, the first element that matches is the one
+used for that terminal.  There are three possibilities for
+@var{display}:
+
+@table @asis
+@item @code{default}
+This element of @var{spec} doesn't match any terminal; instead, it
+specifies defaults that apply to all terminals.  This element, if
+used, must be the first element of @var{spec}.  Each of the following
+elements can override any or all of these defaults.
+
+@item @code{t}
+This element of @var{spec} matches all terminals.  Therefore, any
+subsequent elements of @var{spec} are never used.  Normally @code{t}
+is used in the last (or only) element of @var{spec}.
+
+@item a list
+If @var{display} is a list, each element should have the form
+@code{(@var{characteristic} @var{value}@dots{})}.  Here
+@var{characteristic} specifies a way of classifying terminals, and the
+@var{value}s are possible classifications which @var{display} should
+apply to.  Here are the possible values of @var{characteristic}:
+
+@table @code
+@item type
+The kind of window system the terminal uses---either @code{graphic}
+(any graphics-capable display), @code{x}, @code{pc} (for the MS-DOS
+console), @code{w32} (for MS Windows 9X/NT/2K/XP), or @code{tty} (a
+non-graphics-capable display).  @xref{Window Systems, window-system}.
+
+@item class
+What kinds of colors the terminal supports---either @code{color},
+@code{grayscale}, or @code{mono}.
+
+@item background
+The kind of background---either @code{light} or @code{dark}.
+
+@item min-colors
+An integer that represents the minimum number of colors the terminal
+should support.  This matches a terminal if its
+@code{display-color-cells} value is at least the specified integer.
+
+@item supports
+Whether or not the terminal can display the face attributes given in
+@var{value}@dots{} (@pxref{Face Attributes}).  @xref{Display Face
+Attribute Testing}, for more information on exactly how this testing
+is done.
+@end table
+
+If an element of @var{display} specifies more than one @var{value} for
+a given @var{characteristic}, any of those values is acceptable.  If
+@var{display} has more than one element, each element should specify a
+different @var{characteristic}; then @emph{each} characteristic of the
+terminal must match one of the @var{value}s specified for it in
+@var{display}.
+@end table
+@end defmac
+
+  Here's how the standard face @code{highlight} is defined:
+
+@example
+(defface highlight
+  '((((class color) (min-colors 88) (background light))
+     :background "darkseagreen2")
+    (((class color) (min-colors 88) (background dark))
+     :background "darkolivegreen")
+    (((class color) (min-colors 16) (background light))
+     :background "darkseagreen2")
+    (((class color) (min-colors 16) (background dark))
+     :background "darkolivegreen")
+    (((class color) (min-colors 8))
+     :background "green" :foreground "black")
+    (t :inverse-video t))
+  "Basic face for highlighting."
+  :group 'basic-faces)
+@end example
+
+  Internally, Emacs stores the face's default specification in its
+@code{face-defface-spec} symbol property (@pxref{Property Lists}).
+The @code{saved-face} property stores the face specification saved by
+the user, using the customization buffer; the @code{customized-face}
+property stores the face specification customized for the current
+session, but not saved; and the @code{theme-face} property stores an
+alist associating the active customization settings and Custom themes
+with their specifications for that face.  The face's documentation
+string is stored in the @code{face-documentation} property.  But
+normally you should not try to set any of these properties directly.
+@xref{Applying Customizations}, for the @code{custom-set-faces}
+function, which is used to apply customized face settings.
+
+  People are sometimes tempted to create variables whose values
+specify a face to use.  In the vast majority of cases, this is not
+necessary; it is preferable to simply use faces directly.
+
 @node Attribute Functions
 @subsection Face Attribute Functions
 
   This section describes the functions for accessing and modifying the
-attributes of an existing face.
+attributes of an existing named face.
 
 @defun set-face-attribute face frame &rest arguments
 This function sets one or more attributes of @var{face} for
@@ -2467,8 +2478,12 @@ This function returns the @code{:inverse-video} attribute of face @var{face}.
 @node Displaying Faces
 @subsection Displaying Faces
 
-  Here is how Emacs determines the face to use for displaying any
-given piece of text:
+  When Emacs displays a given piece of text, the visual appearance of
+the text may be determined by faces drawn from different sources.  If
+these various sources together specify more than one face for a
+particular character, Emacs merges the attributes of the various
+faces.  Here is the order in which Emacs merges the faces, from
+highest to lowest priority:
 
 @itemize @bullet
 @item
@@ -2482,11 +2497,11 @@ Manual}.
 
 @item
 If the text lies within an overlay with a non-@code{nil} @code{face}
-property, Emacs applies the face or face attributes specified by that
-property.  If the overlay has a @code{mouse-face} property and the
-mouse is ``near enough'' to the overlay, Emacs applies the face or
-face attributes specified by the @code{mouse-face} property instead.
-@xref{Overlay Properties}.
+property, Emacs applies the face(s) specified by that property.  If
+the overlay has a @code{mouse-face} property and the mouse is ``near
+enough'' to the overlay, Emacs applies the face or face attributes
+specified by the @code{mouse-face} property instead.  @xref{Overlay
+Properties}.
 
 When multiple overlays cover one character, an overlay with higher
 priority overrides those with lower priority.  @xref{Overlays}.
@@ -2508,11 +2523,12 @@ If any given attribute has not been specified during the preceding
 steps, Emacs applies the attribute of the @code{default} face.
 @end itemize
 
-  If these various sources together specify more than one face for a
-particular character, Emacs merges the attributes of the various faces
-specified.  For each attribute, Emacs tries using the above order
-(i.e.@: first the face of any special glyph; then the face for region
-highlighting, if appropriate; and so on).
+  At each stage, if a face has a valid @code{:inherit} attribute,
+Emacs treats any attribute with an @code{unspecified} value as having
+the corresponding value drawn from the parent face(s).  @pxref{Face
+Attributes}.  Note that the parent face(s) may also leave the
+attribute unspecified; in that case, the attribute remains unspecified
+at the next level of face merging.
 
 @node Face Remapping
 @subsection Face Remapping

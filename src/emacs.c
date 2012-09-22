@@ -88,7 +88,7 @@ extern void moncontrol (int mode);
 #endif
 
 static const char emacs_version[] = VERSION;
-static const char emacs_copyright[] = "Copyright (C) 2012 Free Software Foundation, Inc.";
+static const char emacs_copyright[] = COPYRIGHT;
 
 /* Empty lisp strings.  To avoid having to build any others.  */
 Lisp_Object empty_unibyte_string, empty_multibyte_string;
@@ -848,14 +848,10 @@ main (int argc, char **argv)
   /* Arrange to get warning messages as memory fills up.  */
   memory_warnings (0, malloc_warning);
 
-  /* Call malloc at least once, to run the initial __malloc_hook.
+  /* Call malloc at least once, to run malloc_initialize_hook.
      Also call realloc and free for consistency.  */
   free (realloc (malloc (4), 4));
 
-# ifndef SYNC_INPUT
-  /* Arrange to disable interrupt input inside malloc etc.  */
-  uninterrupt_malloc ();
-# endif /* not SYNC_INPUT */
 #endif	/* not SYSTEM_MALLOC */
 
 #if defined (MSDOS) || defined (WINDOWSNT)
@@ -2143,12 +2139,6 @@ You must run Emacs in batch mode in order to dump it.  */)
     memory_warnings (my_edata, malloc_warning);
   }
 #endif /* not WINDOWSNT */
-#if defined (HAVE_PTHREAD) && !defined SYNC_INPUT
-  /* Pthread may call malloc before main, and then we will get an endless
-     loop, because pthread_self (see alloc.c) calls malloc the first time
-     it is called on some systems.  */
-  reset_malloc_hooks ();
-#endif
 #endif /* not SYSTEM_MALLOC */
 #ifdef DOUG_LEA_MALLOC
   malloc_state_ptr = malloc_get_state ();

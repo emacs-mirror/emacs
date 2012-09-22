@@ -219,12 +219,16 @@ VALUES-PLIST is a list with alternating index and value elements."
     (should (string= "foo do |b|\nend" (buffer-string)))))
 
 (ert-deftest ruby-toggle-block-to-brace ()
-  (with-temp-buffer
-    (insert "foo do |b|\nend")
-    (ruby-mode)
-    (beginning-of-line)
-    (ruby-toggle-block)
-    (should (string= "foo {|b|\n}" (buffer-string)))))
+  (let ((pairs '((16 . "foo {|b| b + 2 }")
+                 (15 . "foo {|b|\n  b + 2\n}"))))
+    (dolist (pair pairs)
+      (with-temp-buffer
+        (let ((fill-column (car pair)))
+          (insert "foo do |b|\n  b + 2\nend")
+          (ruby-mode)
+          (beginning-of-line)
+          (ruby-toggle-block)
+          (should (string= (cdr pair) (buffer-string))))))))
 
 (ert-deftest ruby-toggle-block-to-multiline ()
   (with-temp-buffer

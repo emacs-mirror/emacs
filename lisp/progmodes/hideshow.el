@@ -52,7 +52,7 @@
 ;;
 ;; First make sure hideshow.el is in a directory in your `load-path'.
 ;; You can optionally byte-compile it using `M-x byte-compile-file'.
-;; Then, add the following to your ~/.emacs:
+;; Then, add the following to your init file:
 ;;
 ;; (load-library "hideshow")
 ;; (add-hook 'X-mode-hook               ; other modes similarly

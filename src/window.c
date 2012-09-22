@@ -3462,7 +3462,11 @@ make_window (void)
   wset_vertical_scroll_bar_type (w, Qt);
   wset_window_end_pos (w, make_number (0));
   wset_window_end_vpos (w, make_number (0));
-
+  /* These Lisp fields are marked specially so they're not set to nil by
+     allocate_window.  */
+  wset_prev_buffers (w, Qnil);
+  wset_next_buffers (w, Qnil);
+  
   /* Initialize non-Lisp data.  Note that allocate_window zeroes out all
      non-Lisp data, so do it only for slots which should not be zero.  */
   w->nrows_scale_factor = w->ncols_scale_factor = 1;

@@ -94,7 +94,7 @@
 
 ;; Installation:
 ;;
-;; Put the following line in your `.emacs' file:
+;; Put the following line in your init file:
 ;;
 ;;     (windmove-default-keybindings)         ; shifted arrow keys
 ;;

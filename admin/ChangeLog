@@ -1,3 +1,27 @@
+2012-09-17  Glenn Morris  <rgm@gnu.org>
+
+	* admin.el (add-log-time-format): Declare.
+
+	* admin.el (cusver-scan, cusver-check): Bind local variables.
+
+	* admin.el (set-version): Set major version in
+	etc/refcards/ru-refcard.tex and etc/refcards/emacsver.tex.
+	(set-copyright): In etc/refcards, only change ru-refcard.tex
+	and emacsver.tex.
+
+	* admin.el (set-copyright): No more need to set copyrights for
+	nextstep, or .c files.  Add configure.ac and config.nt.
+
+2012-09-16  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Remove configure's --without-sync-input option (Bug#12450).
+	* CPP-DEFINES (BROKEN_SA_RESTART, SA_RESTART): Remove.
+
+2012-09-16  Glenn Morris  <rgm@gnu.org>
+
+	* admin.el (set-version): No more need to set nextstep versions.
+	(set-copyright): Update for moved nextstep files.
+
 2012-09-13  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Simplify SIGIO usage (Bug#12408).

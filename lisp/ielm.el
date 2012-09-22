@@ -59,7 +59,7 @@ override the read-only-ness of IELM prompts is to call
 `comint-kill-whole-line' or `comint-kill-region' with no
 narrowing in effect.  This way you will be certain that none of
 the remaining prompts will be accidentally messed up.  You may
-wish to put something like the following in your `.emacs' file:
+wish to put something like the following in your init file:
 
 \(add-hook 'ielm-mode-hook
 	  (lambda ()

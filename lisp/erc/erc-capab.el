@@ -48,7 +48,7 @@
 
 ;;; Usage:
 
-;; Put the following in your ~/.emacs file.
+;; Put the following in your init file.
 
 ;; (require 'erc-capab)
 ;; (erc-capab-identify-mode 1)

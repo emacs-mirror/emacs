@@ -3097,21 +3097,37 @@ argument or confirmation)."
 (defun dired-mark (arg)
   "Mark the current (or next ARG) files.
 If on a subdir headerline, mark all its files except `.' and `..'.
+If the region is active in Transient Mark mode, mark all files
+in the active region.
 
 Use \\[dired-unmark-all-files] to remove all marks
 and \\[dired-unmark] on a subdir to remove the marks in
 this subdir."
   (interactive "P")
-  (if (dired-get-subdir)
-      (save-excursion (dired-mark-subdir-files))
+  (cond
+   ;; Mark files in the active region.
+   ((and transient-mark-mode mark-active)
+    (save-excursion
+      (let ((beg (region-beginning))
+	    (end (region-end)))
+	(dired-mark-files-in-region
+	 (progn (goto-char beg) (line-beginning-position))
+	 (progn (goto-char end) (line-beginning-position))))))
+   ;; Mark subdir files from the subdir headerline.
+   ((dired-get-subdir)
+    (save-excursion (dired-mark-subdir-files)))
+   ;; Mark the current (or next ARG) files.
+   (t
     (let ((inhibit-read-only t))
       (dired-repeat-over-lines
        (prefix-numeric-value arg)
-       (function (lambda () (delete-char 1) (insert dired-marker-char)))))))
+       (function (lambda () (delete-char 1) (insert dired-marker-char))))))))
 
 (defun dired-unmark (arg)
   "Unmark the current (or next ARG) files.
-If looking at a subdir, unmark all its files except `.' and `..'."
+If looking at a subdir, unmark all its files except `.' and `..'.
+If the region is active in Transient Mark mode, unmark all files
+in the active region."
   (interactive "P")
   (let ((dired-marker-char ?\040))
     (dired-mark arg)))
@@ -3119,8 +3135,9 @@ If looking at a subdir, unmark all its files except `.' and `..'."
 (defun dired-flag-file-deletion (arg)
   "In Dired, flag the current line's file for deletion.
 With prefix arg, repeat over several lines.
-
-If on a subdir headerline, mark all its files except `.' and `..'."
+If on a subdir headerline, flag all its files except `.' and `..'.
+If the region is active in Transient Mark mode, flag all files
+in the active region."
   (interactive "P")
   (let ((dired-marker-char dired-del-marker))
     (dired-mark arg)))
@@ -3128,7 +3145,9 @@ If on a subdir headerline, mark all its files except `.' and `..'."
 (defun dired-unmark-backward (arg)
   "In Dired, move up lines and remove marks or deletion flags there.
 Optional prefix ARG says how many lines to unmark/unflag; default
-is one line."
+is one line.
+If the region is active in Transient Mark mode, unmark all files
+in the active region."
   (interactive "p")
   (dired-unmark (- arg)))
 
@@ -3159,8 +3178,8 @@ As always, hidden subdirs are not affected."
 (defvar dired-regexp-history nil
   "History list of regular expressions used in Dired commands.")
 
-(defun dired-read-regexp (prompt)
-  (read-from-minibuffer prompt nil nil nil 'dired-regexp-history))
+(defun dired-read-regexp (prompt &optional default history)
+  (read-regexp prompt default (or history 'dired-regexp-history)))
 
 (defun dired-mark-files-regexp (regexp &optional marker-char)
   "Mark all files matching REGEXP for use in later commands.
@@ -3744,17 +3763,22 @@ Ask means pop up a menu for the user to select one of copy, move or link."
 ;;;;;;  dired-run-shell-command dired-do-shell-command dired-do-async-shell-command
 ;;;;;;  dired-clean-directory dired-do-print dired-do-touch dired-do-chown
 ;;;;;;  dired-do-chgrp dired-do-chmod dired-compare-directories dired-backup-diff
-;;;;;;  dired-diff) "dired-aux" "dired-aux.el" "3c768e470d5d053d0049e0286ce38da7")
+;;;;;;  dired-diff) "dired-aux" "dired-aux.el" "244227ae609852d3dc10ab3fc40ba9ab")
 ;;; Generated autoloads from dired-aux.el
 
 (autoload 'dired-diff "dired-aux" "\
 Compare file at point with file FILE using `diff'.
-If called interactively, prompt for FILE; if the file at point
-has a backup file, use that as the default.
+If called interactively, prompt for FILE.  If the file at point
+has a backup file, use that as the default.  If the mark is active
+in Transient Mark mode, use the file at the mark as the default.
+\(That's the mark set by \\[set-mark-command], not by Dired's
+\\[dired-mark] command.)
 
-FILE is the first file given to `diff'.
-With prefix arg, prompt for second argument SWITCHES,
-which is the string of command switches for `diff'.
+FILE is the first file given to `diff'.  The file at point
+is the second file given to `diff'.
+
+With prefix arg, prompt for second argument SWITCHES, which is
+the string of command switches for the third argument of `diff'.
 
 \(fn FILE &optional SWITCHES)" t nil)
 
@@ -3798,22 +3822,30 @@ Examples of PREDICATE:
 (autoload 'dired-do-chmod "dired-aux" "\
 Change the mode of the marked (or next ARG) files.
 Symbolic modes like `g+w' are allowed.
+Type M-n to pull the file attributes of the file at point
+into the minibuffer.
 
 \(fn &optional ARG)" t nil)
 
 (autoload 'dired-do-chgrp "dired-aux" "\
 Change the group of the marked (or next ARG) files.
+Type M-n to pull the file attributes of the file at point
+into the minibuffer.
 
 \(fn &optional ARG)" t nil)
 
 (autoload 'dired-do-chown "dired-aux" "\
 Change the owner of the marked (or next ARG) files.
+Type M-n to pull the file attributes of the file at point
+into the minibuffer.
 
 \(fn &optional ARG)" t nil)
 
 (autoload 'dired-do-touch "dired-aux" "\
 Change the timestamp of the marked (or next ARG) files.
 This calls touch.
+Type M-n to pull the file attributes of the file at point
+into the minibuffer.
 
 \(fn &optional ARG)" t nil)
 

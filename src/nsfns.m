@@ -870,16 +870,6 @@ x_set_icon_type (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 }
 
 
-/* Xism; we stub out (we do implement this in ns-win.el) */
-int
-XParseGeometry (char *string, int *x, int *y,
-                unsigned int *width, unsigned int *height)
-{
-  message1 ("Warning: XParseGeometry not supported under NS.\n");
-  return 0;
-}
-
-
 /* TODO: move to nsterm? */
 int
 ns_lisp_to_cursor_type (Lisp_Object arg)
@@ -1398,6 +1388,9 @@ This function is an internal primitive--use `make-frame' instead.  */)
       fset_param_alist (f, Fcons (XCAR (tem), f->param_alist));
 
   UNGCPRO;
+
+  if (window_prompting & USPosition)
+    x_set_offset (f, f->left_pos, f->top_pos, 1);
 
   /* Make sure windows on this frame appear in calls to next-window
      and similar functions.  */

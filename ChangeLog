@@ -1,3 +1,66 @@
+2012-09-19  Tassilo Horn  <tsdh@gnu.org>
+
+	* doc/emacs/misc.texi (DocView Slicing): Document new slice from
+	BoundingBox feature.
+
+2012-09-18  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* configure.ac (HAVE_GTK): Mention if we use GTK2 or GTK3.
+
+2012-09-17  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* Makefile.in (bootstrap): Revert last change.  Run config.status
+	after config.status --recheck, run configure from $(srcdir).
+	(config.status): Run configure from $(srcdir).
+
+2012-09-17  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* Makefile.in: Fix build error on FreeBSD.
+	($(MAKEFILE_NAME)): Pass MAKE='$(MAKE)' to config.status's env.
+	Suggested by Wolfgang Jenker in
+	<http://lists.gnu.org/archive/html/emacs-devel/2012-09/msg00430.html>.
+	(MAKE_CONFIG_STATUS): Remove.  Remaining use expanded.
+	This undoes part of the 2012-09-10 patch.
+	(bootstrap): Run ./configure, rather than trying to run config.status
+	if it exists.  That builds src/epaths.h more reliably.
+	Run autogen/copy_autogen if autogen.sh fails,
+	to create 'configure'; problem reported by Andreas Schwab in
+	<http://lists.gnu.org/archive/html/emacs-devel/2012-09/msg00438.html>.
+	* autogen.sh: Exit with status 1 when failing due to missing tools,
+	reverting the 2012-09-10 change to this file.
+	* autogen/copy_autogen: Fail if one of the subsidiary actions fail.
+	Use 'cp -f' for the build-aux files, since the destinations are
+	typically read-only.
+
+	Remove no-longer-needed Solaris 2.4 vfork bug workaround.
+	* configure.ac (ac_cv_func_vfork_works): Default to 'no' on
+	Solaris 2.4, so that AC_FUNC_VFORK doesn't think vfork works.
+
+2012-09-17  Glenn Morris  <rgm@gnu.org>
+
+	* configure.ac (copyright): New output variable.
+	(COPYRIGHT): New AC_DEFINE.
+
+2012-09-16  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Remove configure's --without-sync-input option (Bug#12450).
+	* configure.ac (SYNC_INPUT, BROKEN_SA_RESTART): Remove.
+
+2012-09-16  Glenn Morris  <rgm@gnu.org>
+
+	Increase compartmentalization of Nextstep builds rules,
+	and store Emacs version number in fewer versioned files.
+	* configure.ac (ns_appsrc): Use relative names.
+	(ns_frag): Remove.
+	(Info-gnustep.plist, Emacs.desktop, Info.plist, InfoPlist.strings)
+	(nextstep/Makefile): Generate these nextstep files.
+	(SUBDIR_MAKEFILES): Add nextstep.
+	* Makefile.in (clean, distclean, bootstrap-clean): Add nextstep.
+	* make-dist (nextstep/templates): Add directory.
+	(nextstep/Cocoa/Emacs.base/Contents/Resources/English.lproj): Remove.
+	(nextstep/Cocoa/Emacs.base/Contents)
+	(nextstep, nextstep/GNUstep/Emacs.base/Resources): Update contents.
+
 2012-09-15  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Port better to POSIX hosts lacking _setjmp (Bug#12446).

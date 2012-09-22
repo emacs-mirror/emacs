@@ -343,12 +343,12 @@ See the documentation for `calendar-holidays' for details."
   "List of notable days for the command \\[holidays].
 
 Additional holidays are easy to add to the list, just put them in the
-list `holiday-other-holidays' in your .emacs file.  Similarly, by setting
+list `holiday-other-holidays' in your init file.  Similarly, by setting
 any of `holiday-general-holidays', `holiday-local-holidays',
 `holiday-christian-holidays', `holiday-hebrew-holidays',
 `holiday-islamic-holidays', `holiday-bahai-holidays',
 `holiday-oriental-holidays', or `holiday-solar-holidays' to nil in your
-.emacs file, you can eliminate unwanted categories of holidays.
+init file, you can eliminate unwanted categories of holidays.
 
 The aforementioned variables control the holiday choices offered
 by the function `holiday-list' when it is called interactively.
@@ -523,7 +523,7 @@ use instead of point."
 (defun holidays (&optional arg)
   "Display the holidays for last month, this month, and next month.
 If called with an optional prefix argument ARG, prompts for month and year.
-This function is suitable for execution in a .emacs file."
+This function is suitable for execution in a init file."
   (interactive "P")
   (save-excursion
     (let* ((completion-ignore-case t)

@@ -25,7 +25,7 @@
 
 ;; This module allows you to systematically replace text in incoming
 ;; messages.  Load erc-replace, and customize `erc-replace-alist'.
-;; Then add to your ~/.emacs:
+;; Then add to your init file:
 
 ;; (require 'erc-replace)
 ;; (erc-replace-mode 1)

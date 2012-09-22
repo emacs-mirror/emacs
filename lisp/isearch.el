@@ -1649,9 +1649,9 @@ characters in that string."
 		 (isearch-done nil t)
 		 (isearch-clean-overlays)
 		 (let ((default (car occur-collect-regexp-history)))
-		   (read-string
+		   (read-regexp
 		    (format "Regexp to collect (default %s): " default)
-		    nil 'occur-collect-regexp-history default)))
+		    default 'occur-collect-regexp-history)))
 	     ;; Otherwise normal occur takes numerical prefix argument.
 	     (when current-prefix-arg
 	       (prefix-numeric-value current-prefix-arg))))))

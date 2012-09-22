@@ -301,7 +301,7 @@ there (in decreasing order of priority)."
       ;; existing frame.  We need to explicitly include
       ;; default-frame-alist in the parameters of the screen we
       ;; create here, so that its new value, gleaned from the user's
-      ;; .emacs file, will be applied to the existing screen.
+      ;; init file, will be applied to the existing screen.
       (if (not (eq (cdr (or (assq 'minibuffer initial-frame-alist)
 			    (assq 'minibuffer window-system-frame-alist)
 			    (assq 'minibuffer default-frame-alist)

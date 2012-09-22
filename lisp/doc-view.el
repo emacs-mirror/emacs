@@ -3,8 +3,8 @@
 
 ;; Copyright (C) 2007-2012 Free Software Foundation, Inc.
 ;;
-;; Author: Tassilo Horn <tassilo@member.fsf.org>
-;; Maintainer: Tassilo Horn <tassilo@member.fsf.org>
+;; Author: Tassilo Horn <tsdh@gnu.org>
+;; Maintainer: Tassilo Horn <tsdh@gnu.org>
 ;; Keywords: files, pdf, ps, dvi
 
 ;; This file is part of GNU Emacs.
@@ -57,16 +57,21 @@
 ;; pages won't be displayed before conversion of the document finished
 ;; completely.
 ;;
-;; DocView lets you select a slice of the displayed pages.  This slice will be
-;; remembered and applied to all pages of the current document.  This enables
-;; you to cut away the margins of a document to save some space.  To select a
-;; slice you can use `doc-view-set-slice' (bound to `s s') which will query you
-;; for the coordinates of the slice's top-left corner and its width and height.
-;; A much more convenient way to do the same is offered by the command
-;; `doc-view-set-slice-using-mouse' (bound to `s m').  After invocation you
-;; only have to press mouse-1 at the top-left corner and drag it to the
-;; bottom-right corner of the desired slice.  To reset the slice use
-;; `doc-view-reset-slice' (bound to `s r').
+;; DocView lets you select a slice of the displayed pages.  This slice
+;; will be remembered and applied to all pages of the current
+;; document.  This enables you to cut away the margins of a document
+;; to save some space.  To select a slice you can use
+;; `doc-view-set-slice' (bound to `s s') which will query you for the
+;; coordinates of the slice's top-left corner and its width and
+;; height.  A much more convenient way to do the same is offered by
+;; the command `doc-view-set-slice-using-mouse' (bound to `s m').
+;; After invocation you only have to press mouse-1 at the top-left
+;; corner and drag it to the bottom-right corner of the desired slice.
+;; Even more accurate and convenient is to use
+;; `doc-view-set-slice-from-bounding-box' (bound to `s b') which uses
+;; the BoundingBox information of the current page to set an optimal
+;; slice.  To reset the slice use `doc-view-reset-slice' (bound to `s
+;; r').
 ;;
 ;; You can also search within the document.  The command `doc-view-search'
 ;; (bound to `C-s') queries for a search regexp and initializes a list of all
@@ -103,7 +108,6 @@
 ;; - share more code with image-mode.
 ;; - better menu.
 ;; - Bind slicing to a drag event.
-;; - doc-view-fit-doc-to-window and doc-view-fit-window-to-doc?
 ;; - zoom the region around the cursor (like xdvi).
 ;; - get rid of the silly arrow in the fringe.
 ;; - improve anti-aliasing (pdf-utils gets it better).
@@ -340,6 +344,7 @@ Can be `dvi', `pdf', or `ps'.")
     ;; Slicing the image
     (define-key map (kbd "s s")       'doc-view-set-slice)
     (define-key map (kbd "s m")       'doc-view-set-slice-using-mouse)
+    (define-key map (kbd "s b")       'doc-view-set-slice-from-bounding-box)
     (define-key map (kbd "s r")       'doc-view-reset-slice)
     ;; Searching
     (define-key map (kbd "C-s")       'doc-view-search)
@@ -381,6 +386,7 @@ Can be `dvi', `pdf', or `ps'.")
      )
     "---"
     ["Set Slice"		doc-view-set-slice-using-mouse]
+    ["Set Slice (BoundingBox)"  doc-view-set-slice-from-bounding-box]
     ["Set Slice (manual)"	doc-view-set-slice]
     ["Reset Slice"		doc-view-reset-slice]
     "---"
@@ -991,8 +997,9 @@ You can use this function to tell doc-view not to display the
 margins of the document.  It prompts for the top-left corner (X
 and Y) of the slice to display and its WIDTH and HEIGHT.
 
-See `doc-view-set-slice-using-mouse' for a more convenient way to
-do that.  To reset the slice use `doc-view-reset-slice'."
+See `doc-view-set-slice-using-mouse' and
+`doc-view-set-slice-from-bounding-box' for more convenient ways
+to do that.  To reset the slice use `doc-view-reset-slice'."
   (interactive
    (let* ((size (image-size (doc-view-current-image) t))
 	  (a (read-number (format "Top-left X (0..%d): " (car size))))
@@ -1022,6 +1029,79 @@ dragging it to its bottom-right corner.  See also
 	  (setq h (- (cdr (posn-object-x-y (event-end e))) y))
 	  (setq done t))))
     (doc-view-set-slice x y w h)))
+
+(defun doc-view-get-bounding-box ()
+  "Get the BoundingBox information of the current page."
+  (let* ((page (doc-view-current-page))
+	 (o (shell-command-to-string
+	     (concat doc-view-ghostscript-program
+		     " -dSAFER -dBATCH -dNOPAUSE -q -sDEVICE=bbox "
+		     (format "-dFirstPage=%s -dLastPage=%s %s"
+			     page page
+			     doc-view-buffer-file-name)))))
+    (save-match-data
+      (when (string-match (concat "%%BoundingBox: "
+				  "\\([[:digit:]]+\\) \\([[:digit:]]+\\) "
+				  "\\([[:digit:]]+\\) \\([[:digit:]]+\\)") o)
+	(mapcar #'string-to-number
+		(list (match-string 1 o)
+		      (match-string 2 o)
+		      (match-string 3 o)
+		      (match-string 4 o)))))))
+
+(defvar doc-view-paper-sizes
+  '((a4 595 842)
+    (a4-landscape 842 595)
+    (letter 612 792)
+    (letter-landscape 792 612)
+    (legal 612 1008)
+    (legal-landscape 1008 612)
+    (a3 842 1191)
+    (a3-landscape 1191 842)
+    (tabloid 792 1224)
+    (ledger 1224 792))
+  "An alist from paper size names to dimensions.")
+
+(defun doc-view-guess-paper-size (iw ih)
+  "Guess the paper size according to the aspect ratio."
+  (cl-labels ((div (x y)
+		   (round (/ (* 100.0 x) y))))
+    (let ((ar (div iw ih))
+	  (al (mapcar (lambda (l)
+			(list (div (nth 1 l) (nth 2 l)) (car l)))
+		      doc-view-paper-sizes)))
+      (cadr (assoc ar al)))))
+
+(defun doc-view-scale-bounding-box (ps iw ih bb)
+  (list (/ (* (nth 0 bb) iw) (nth 1 (assoc ps doc-view-paper-sizes)))
+	(/ (* (nth 1 bb) ih) (nth 2 (assoc ps doc-view-paper-sizes)))
+	(/ (* (nth 2 bb) iw) (nth 1 (assoc ps doc-view-paper-sizes)))
+	(/ (* (nth 3 bb) ih) (nth 2 (assoc ps doc-view-paper-sizes)))))
+
+(defun doc-view-set-slice-from-bounding-box (&optional force-paper-size)
+  "Set the slice from the document's BoundingBox information.
+The result is that the margins are almost completely cropped,
+much more accurate than could be done manually using
+`doc-view-set-slice-using-mouse'."
+  (interactive "P")
+  (let ((bb (doc-view-get-bounding-box)))
+    (if (not bb)
+	(message "BoundingBox couldn't be determined")
+      (let* ((is (image-size (doc-view-current-image) t))
+	     (iw (car is))
+	     (ih (cdr is))
+	     (ps (or (and (null force-paper-size) (doc-view-guess-paper-size iw ih))
+		     (intern (completing-read "Paper size: "
+					      (mapcar #'car doc-view-paper-sizes)
+					      nil t))))
+	     (bb (doc-view-scale-bounding-box ps iw ih bb))
+	     (x1 (nth 0 bb))
+	     (y1 (nth 1 bb))
+	     (x2 (nth 2 bb))
+	     (y2 (nth 3 bb)))
+	;; We keep a 2 pixel margin.
+	(doc-view-set-slice (- x1 2) (- ih y2 2)
+			    (+ (- x2 x1) 4) (+ (- y2 y1) 4))))))
 
 (defun doc-view-reset-slice ()
   "Reset the current slice.
@@ -1089,13 +1169,16 @@ Predicate for sorting `doc-view-current-files'."
 If FORCE is non-nil, start viewing even if the document does not
 have the page we want to view."
   (with-current-buffer buffer
-    (let ((prev-pages doc-view-current-files))
+    (let ((prev-pages doc-view-current-files)
+	  (windows (get-buffer-window-list buffer nil t)))
       (setq doc-view-current-files
             (sort (directory-files (doc-view-current-cache-dir) t
                                    "page-[0-9]+\\.png" t)
                   'doc-view-sort))
-      (dolist (win (or (get-buffer-window-list buffer nil t)
-		       (list (selected-window))))
+      (unless windows
+	(switch-to-buffer buffer)
+	(setq windows (get-buffer-window-list buffer nil t)))
+      (dolist (win windows)
 	(let* ((page (doc-view-current-page win))
 	       (pagefile (expand-file-name (format "page-%d.png" page)
 					   (doc-view-current-cache-dir))))
@@ -1103,8 +1186,8 @@ have the page we want to view."
 		    (and (not (member pagefile prev-pages))
 			 (member pagefile doc-view-current-files)))
 	    (with-selected-window win
-				  (cl-assert (eq (current-buffer) buffer))
-				  (doc-view-goto-page page))))))))
+	      (cl-assert (eq (current-buffer) buffer) t)
+	      (doc-view-goto-page page))))))))
 
 (defun doc-view-buffer-message ()
   ;; Only show this message initially, not when refreshing the buffer (in which

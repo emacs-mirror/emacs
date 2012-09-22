@@ -52,14 +52,14 @@
 ;;
 ;;  Setup:
 ;;
-;;    Put the following code in your .emacs file.  This turns on
+;;    Put the following code in your init file.  This turns on
 ;;    hi-lock mode and adds a "Regexp Highlighting" entry
 ;;    to the edit menu.
 ;;
 ;;    (global-hi-lock-mode 1)
 ;;
 ;;    To enable the use of patterns found in files (presumably placed
-;;    there by hi-lock) include the following in your .emacs file:
+;;    there by hi-lock) include the following in your init file:
 ;;
 ;;    (setq hi-lock-file-patterns-policy 'ask)
 ;;
@@ -356,7 +356,7 @@ Hi-lock: end is found.  A mode is excluded if it's in the list
        "Possible archaic use of (hi-lock-mode).
 Use (global-hi-lock-mode 1) in .emacs to enable hi-lock for all buffers,
 use (hi-lock-mode 1) for individual buffers.  For compatibility with Emacs
-versions before 22 use the following in your .emacs file:
+versions before 22 use the following in your init file:
 
         (if (functionp 'global-hi-lock-mode)
             (global-hi-lock-mode 1)

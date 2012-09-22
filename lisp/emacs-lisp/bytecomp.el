@@ -1115,18 +1115,12 @@ Each function's symbol gets added to `byte-compile-noruntime-functions'."
   "Warn that SYMBOL (a variable or function) is obsolete."
   (when (byte-compile-warning-enabled-p 'obsolete)
     (let* ((funcp (get symbol 'byte-obsolete-info))
-	   (obsolete (or funcp (get symbol 'byte-obsolete-variable)))
-	   (instead (car obsolete))
-	   (asof (nth 2 obsolete)))
+           (msg (macroexp--obsolete-warning
+                 symbol
+                 (or funcp (get symbol 'byte-obsolete-variable))
+                 (if funcp "function" "variable"))))
       (unless (and funcp (memq symbol byte-compile-not-obsolete-funcs))
-	(byte-compile-warn "`%s' is an obsolete %s%s%s" symbol
-			   (if funcp "function" "variable")
-			   (if asof (concat " (as of " asof ")") "")
-			   (cond ((stringp instead)
-				  (concat "; " instead))
-				 (instead
-				  (format "; use `%s' instead." instead))
-				 (t ".")))))))
+	(byte-compile-warn "%s" msg)))))
 
 (defun byte-compile-report-error (error-info)
   "Report Lisp error in compilation.  ERROR-INFO is the error data."

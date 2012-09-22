@@ -26,7 +26,7 @@
 
 ;;  Use the functions defined here to customize TPU-edt to your tastes by
 ;;  setting scroll margins and/or turning on free cursor mode.  Here's an
-;;  example for your .emacs file.
+;;  example for your init file.
 
 ;;     (tpu-set-cursor-free)                   ; Set cursor free.
 ;;     (tpu-set-scroll-margins "10%" "15%")    ; Set scroll margins.

@@ -66,6 +66,8 @@ doc/**/*.pdf
 !doc/lispintro/cons-*.pdf
 !doc/lispintro/drawers.pdf
 !doc/lispintro/lambda-*.pdf
+etc/refcards/*.aux
+etc/refcards/*.log
 info/*.info
 admin/unidata/unidata.txt
 build-aux/compile
@@ -130,6 +132,10 @@ lisp/eshell/esh-groups.el
 lisp/finder-inf.el
 lisp/gnus/_dir-locals.el
 nextstep/Emacs.app
+nextstep/Cocoa/Emacs.base/Contents/Info.plist
+nextstep/Cocoa/Emacs.base/Contents/Resources/English.lproj
+nextstep/GNUstep/Emacs.base/Resources/Emacs.desktop
+nextstep/GNUstep/Emacs.base/Resources/Info-gnustep.plist
 nt/config.log
 src/_dbxinit
 src/_gdbinit

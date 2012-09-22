@@ -369,7 +369,6 @@ run_timers (void)
   if (! atimers)
     pending_atimers = 0;
 
-#ifdef SYNC_INPUT
   if (pending_atimers)
     pending_signals = 1;
   else
@@ -377,10 +376,6 @@ run_timers (void)
       pending_signals = interrupt_input_pending;
       set_alarm ();
     }
-#else
-  if (! pending_atimers)
-    set_alarm ();
-#endif
 }
 
 
@@ -391,11 +386,7 @@ static void
 handle_alarm_signal (int sig)
 {
   pending_atimers = 1;
-#ifdef SYNC_INPUT
   pending_signals = 1;
-#else
-  run_timers ();
-#endif
 }
 
 static void

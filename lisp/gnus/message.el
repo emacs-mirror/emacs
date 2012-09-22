@@ -3160,8 +3160,12 @@ M-RET    `message-newline-and-reformat' (break the line and reformat)."
 
 (defun message-in-body-p ()
   "Return t if point is in the message body."
-  (let ((body (save-excursion (message-goto-body))))
-    (>= (point) body)))
+  (>= (point)
+      (save-excursion
+	(goto-char (point-min))
+	(or (search-forward (concat "\n" mail-header-separator "\n") nil t)
+	    (search-forward-regexp "[^:]+:\\([^\n]\\|\n[ \t]\\)+\n\n" nil t))
+	(point))))
 
 (defun message-goto-eoh ()
   "Move point to the end of the headers."

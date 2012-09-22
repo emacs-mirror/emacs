@@ -674,7 +674,7 @@ scan_buffer (register int target, ptrdiff_t start, ptrdiff_t end,
            obstacle --- the last character the dumb search loop should
            examine.  */
 	ptrdiff_t ceiling_byte = CHAR_TO_BYTE (end) - 1;
-	ptrdiff_t start_byte = CHAR_TO_BYTE (start);
+	ptrdiff_t start_byte;
 	ptrdiff_t tem;
 
         /* If we're looking for a newline, consult the newline cache
@@ -684,9 +684,11 @@ scan_buffer (register int target, ptrdiff_t start, ptrdiff_t end,
             ptrdiff_t next_change;
             immediate_quit = 0;
             while (region_cache_forward
-                   (current_buffer, newline_cache, start_byte, &next_change))
-              start_byte = next_change;
+                   (current_buffer, newline_cache, start, &next_change))
+              start = next_change;
             immediate_quit = allow_quit;
+
+	    start_byte = CHAR_TO_BYTE (start);
 
             /* START should never be after END.  */
             if (start_byte > ceiling_byte)
@@ -694,8 +696,10 @@ scan_buffer (register int target, ptrdiff_t start, ptrdiff_t end,
 
             /* Now the text after start is an unknown region, and
                next_change is the position of the next known region. */
-            ceiling_byte = min (next_change - 1, ceiling_byte);
+            ceiling_byte = min (CHAR_TO_BYTE (next_change) - 1, ceiling_byte);
           }
+	else
+	  start_byte = CHAR_TO_BYTE (start);
 
         /* The dumb loop can only scan text stored in contiguous
            bytes. BUFFER_CEILING_OF returns the last character
@@ -747,7 +751,7 @@ scan_buffer (register int target, ptrdiff_t start, ptrdiff_t end,
       {
         /* The last character to check before the next obstacle.  */
 	ptrdiff_t ceiling_byte = CHAR_TO_BYTE (end);
-	ptrdiff_t start_byte = CHAR_TO_BYTE (start);
+	ptrdiff_t start_byte;
 	ptrdiff_t tem;
 
         /* Consult the newline cache, if appropriate.  */
@@ -756,9 +760,11 @@ scan_buffer (register int target, ptrdiff_t start, ptrdiff_t end,
             ptrdiff_t next_change;
             immediate_quit = 0;
             while (region_cache_backward
-                   (current_buffer, newline_cache, start_byte, &next_change))
-              start_byte = next_change;
+                   (current_buffer, newline_cache, start, &next_change))
+              start = next_change;
             immediate_quit = allow_quit;
+
+	    start_byte = CHAR_TO_BYTE (start);
 
             /* Start should never be at or before end.  */
             if (start_byte <= ceiling_byte)
@@ -766,8 +772,10 @@ scan_buffer (register int target, ptrdiff_t start, ptrdiff_t end,
 
             /* Now the text before start is an unknown region, and
                next_change is the position of the next known region. */
-            ceiling_byte = max (next_change, ceiling_byte);
+            ceiling_byte = max (CHAR_TO_BYTE (next_change), ceiling_byte);
           }
+	else
+	  start_byte = CHAR_TO_BYTE (start);
 
         /* Stop scanning before the gap.  */
 	tem = BUFFER_FLOOR_OF (start_byte - 1);

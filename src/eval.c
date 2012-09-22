@@ -117,12 +117,6 @@ static EMACS_INT when_entered_debugger;
 
 Lisp_Object Vsignaling_function;
 
-/* Set to non-zero while processing X events.  Checked in Feval to
-   make sure the Lisp interpreter isn't called from a signal handler,
-   which is unsafe because the interpreter isn't reentrant.  */
-
-int handling_signal;
-
 /* If non-nil, Lisp code must not be run since some part of Emacs is
    in an inconsistent state.  Currently, x-create-frame uses this to
    avoid triggering window-configuration-change-hook while the new
@@ -1106,7 +1100,6 @@ unwind_to_catch (struct catchtag *catch, Lisp_Object value)
   /* Restore certain special C variables.  */
   set_poll_suppress_count (catch->poll_suppress_count);
   UNBLOCK_INPUT_TO (catch->interrupt_input_blocked);
-  handling_signal = 0;
   immediate_quit = 0;
 
   do
@@ -1486,7 +1479,7 @@ See also the function `condition-case'.  */)
   struct handler *h;
   struct backtrace *bp;
 
-  immediate_quit = handling_signal = 0;
+  immediate_quit = 0;
   abort_on_gc = 0;
   if (gc_in_progress || waiting_for_input)
     emacs_abort ();
@@ -2039,9 +2032,6 @@ eval_sub (Lisp_Object form)
   struct backtrace backtrace;
   struct gcpro gcpro1, gcpro2, gcpro3;
 
-  if (handling_signal)
-    emacs_abort ();
-
   if (SYMBOLP (form))
     {
       /* Look up its binding in the lexical environment.
@@ -2409,6 +2399,7 @@ If it is a list of functions, those functions are called, in order,
 with the given arguments ARGS, until one of them
 returns a non-nil value.  Then we return that value.
 However, if they all return nil, we return nil.
+If the value of HOOK is nil, this function returns nil.
 
 Do not use `make-local-variable' to make a hook variable buffer-local.
 Instead, use `add-hook' and specify t for the LOCAL argument.
@@ -2430,10 +2421,12 @@ DEFUN ("run-hook-with-args-until-failure", Frun_hook_with_args_until_failure,
 HOOK should be a symbol, a hook variable.  If HOOK has a non-nil
 value, that value may be a function or a list of functions to be
 called to run the hook.  If the value is a function, it is called with
-the given arguments and its return value is returned.
+the given arguments.  Then we return nil if the function returns nil,
+and t if it returns non-nil.
 If it is a list of functions, those functions are called, in order,
 with the given arguments ARGS, until one of them returns nil.
-Then we return nil.  However, if they all return non-nil, we return non-nil.
+Then we return nil.  However, if they all return non-nil, we return t.
+If the value of HOOK is nil, this function returns t.
 
 Do not use `make-local-variable' to make a hook variable buffer-local.
 Instead, use `add-hook' and specify t for the LOCAL argument.
@@ -3104,8 +3097,6 @@ specbind (Lisp_Object symbol, Lisp_Object value)
 {
   struct Lisp_Symbol *sym;
 
-  eassert (!handling_signal);
-
   CHECK_SYMBOL (symbol);
   sym = XSYMBOL (symbol);
   if (specpdl_ptr == specpdl + specpdl_size)
@@ -3199,8 +3190,6 @@ specbind (Lisp_Object symbol, Lisp_Object value)
 void
 record_unwind_protect (Lisp_Object (*function) (Lisp_Object), Lisp_Object arg)
 {
-  eassert (!handling_signal);
-
   if (specpdl_ptr == specpdl + specpdl_size)
     grow_specpdl ();
   specpdl_ptr->func = function;

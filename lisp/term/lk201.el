@@ -75,7 +75,7 @@
 (defun terminal-init-lk201 ()
   ;; Use inheritance to let the main keymap override these defaults.
   ;; This way we don't override terminfo-derived settings or settings
-  ;; made in the .emacs file.
+  ;; made in the init file.
   (let ((m (copy-keymap lk201-function-map)))
     (set-keymap-parent m (keymap-parent input-decode-map))
     (set-keymap-parent input-decode-map m)))

@@ -23,7 +23,7 @@
 ;;; Commentary:
 
 ;; This module hides quit/join messages if a netsplit occurs.
-;; To enable, add the following to your ~/.emacs:
+;; To enable, add the following to your init file:
 ;; (require 'erc-netsplit)
 ;; (erc-netsplit-mode 1)
 

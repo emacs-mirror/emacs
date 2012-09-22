@@ -43,7 +43,7 @@ Please send all bug fixes and enhancements to
 ;;
 ;; This package translates an EBNF to a syntactic chart on PostScript.
 ;;
-;; To use ebnf2ps, insert in your ~/.emacs:
+;; To use ebnf2ps, insert in your init file:
 ;;
 ;;        (require 'ebnf2ps)
 ;;
@@ -772,7 +772,7 @@ Please send all bug fixes and enhancements to
 ;;
 ;; To set the above options you may:
 ;;
-;; a) insert the code in your ~/.emacs, like:
+;; a) insert the code in your init file, like:
 ;;
 ;;	 (setq ebnf-terminal-shape 'bevel)
 ;;

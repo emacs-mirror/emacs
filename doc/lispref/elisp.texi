@@ -1366,8 +1366,8 @@ Overlays
 
 Faces
 
-* Defining Faces::          How to define a face.
 * Face Attributes::         What is in a face?
+* Defining Faces::          How to define a face.
 * Attribute Functions::     Functions to examine and set face attributes.
 * Displaying Faces::        How Emacs combines the faces specified for
                               a character.

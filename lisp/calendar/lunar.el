@@ -236,7 +236,7 @@ use instead of point."
 (defun lunar-phases (&optional arg)
   "Display the quarters of the moon for last month, this month, and next month.
 If called with an optional prefix argument ARG, prompts for month and year.
-This function is suitable for execution in a .emacs file."
+This function is suitable for execution in an init file."
   (interactive "P")
   (save-excursion
     (let* ((date (if arg (calendar-read-date t)

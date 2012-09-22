@@ -29,7 +29,7 @@
 ;; customizable variables.
 
 ;; Usage:
-;; Put (erc-match-mode 1) into your ~/.emacs file.
+;; Put (erc-match-mode 1) into your init file.
 
 ;;; Code:
 

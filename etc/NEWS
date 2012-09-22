@@ -419,6 +419,8 @@ the experience for Sphinx users.
 
 *** Package version in `rst-version'.
 
+*** Support `imenu' and `which-func'.
+
 ** New `derived-mode' filter for Ibuffer, bound to `/ M'.
 `/ m' is now bound to filter by used-mode, which used to be bound to `/ M'.
 
@@ -438,6 +440,9 @@ This package has been rewritten to use Tabulated List mode.
 Use `Buffer-menu-name-width' and `Buffer-menu-size-width' instead.
 
 ** Calendar
+
+*** You can customize the header text that appears above each calendar month.
+See the variable `calendar-month-header'.
 
 *** The calendars produced by cal-html include holidays.
 Customize cal-html-holidays to change this.
@@ -459,9 +464,17 @@ channel keys found, if any.
 if the command ends in `;' (when operating on multiple files).
 Otherwise, it executes the command on each file in parallel.
 
+*** Typing M-n in the minibuffer of `dired-do-chmod', `dired-do-chgrp',
+`dired-do-chown', `dired-do-touch' pulls the file attributes of the
+file at point.
+
+*** When the region is active, `m' (`dired-mark'), `u' (`dired-unmark'),
+`DEL' (`dired-unmark-backward'), `d' (`dired-flag-file-deletion')
+mark/unmark/flag all files in the active region.
+
 *** The minibuffer default for `=' (`dired-diff) has changed.
-It is now the backup file for the file at point, if one exists, rather
-than the file at the mark.
+It is now the backup file for the file at point, if one exists.
+In Transient Mark mode the default is the file at the active mark.
 
 *** `M-=' is no longer bound to `dired-backup-diff' in Dired buffers.
 The global binding for `M-=', `count-words-region' is in effect.
@@ -736,6 +749,14 @@ in Emacs 24.1:
 **** `special-display-buffer-names'
 **** `special-display-function'
 **** `display-buffer-function'
+
+** Minibuffer
+
+*** `read-regexp' has a new argument HISTORY; the first argument PROMPT
+of `read-regexp' accepts a string ending with a colon and space, and its
+second argument DEFAULTS can be a list of strings accessible via M-n
+in the minibuffer ahead of other hard-coded useful regexp-related values.
+More commands use `read-regexp' now to read their regexp arguments.
 
 ** Completion
 

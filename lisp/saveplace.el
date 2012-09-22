@@ -56,13 +56,12 @@ This means when you visit a file, point goes to the last place
 where it was when you previously visited the same file.
 This variable is automatically buffer-local.
 
-If you wish your place in any file to always be automatically saved,
-simply put this in your `~/.emacs' file:
+If you wish your place in any file to always be automatically
+saved, set this to t using the Customize facility, or put the
+following code in your init file:
 
 \(setq-default save-place t)
-\(require 'saveplace)
-
-or else use the Custom facility to set this option."
+\(require 'saveplace)"
   :type 'boolean
   :require 'saveplace
   :group 'save-place)
@@ -148,7 +147,8 @@ even in a later Emacs session.
 If called with a prefix arg, the mode is enabled if and only if
 the argument is positive.
 
-To save places automatically in all files, put this in your `.emacs' file:
+To save places automatically in all files, put this in your init
+file:
 
 \(setq-default save-place t\)"
   (interactive "P")

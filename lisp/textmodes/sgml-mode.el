@@ -451,7 +451,7 @@ the next N words.  In Transient Mark mode, when the mark is active,
 N defaults to -1, which means to wrap it around the current region.
 
 If you like upcased tags, put (setq sgml-transformation-function 'upcase)
-in your `.emacs' file.
+in your init file.
 
 Use \\[sgml-validate] to validate your document with an SGML parser.
 

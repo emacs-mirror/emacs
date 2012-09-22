@@ -128,11 +128,6 @@ AC_ARG_WITH([mailhost],[AS_HELP_STRING([--with-mailhost=HOSTNAME],
 
 OPTION_DEFAULT_ON([sound],[don't compile with sound support])
 
-OPTION_DEFAULT_ON([sync-input],[don't process async input synchronously])
-if test "$with_sync_input" = yes; then
-   AC_DEFINE(SYNC_INPUT, 1, [Process async input synchronously.])
-fi
-
 dnl FIXME currently it is not the last.
 dnl This should be the last --with option, because --with-x is
 dnl added later on when we find the path of X, and it's best to
@@ -1461,13 +1456,13 @@ if test "${with_ns}" != no; then
      ns_appdir=`pwd`/nextstep/Emacs.app
      ns_appbindir=${ns_appdir}/Contents/MacOS
      ns_appresdir=${ns_appdir}/Contents/Resources
-     ns_appsrc=${srcdir}/nextstep/Cocoa/Emacs.base
+     ns_appsrc=Cocoa/Emacs.base
   elif test -f $GNUSTEP_CONFIG_FILE; then
      NS_IMPL_GNUSTEP=yes
      ns_appdir=`pwd`/nextstep/Emacs.app
      ns_appbindir=${ns_appdir}
      ns_appresdir=${ns_appdir}/Resources
-     ns_appsrc=${srcdir}/nextstep/GNUstep/Emacs.base
+     ns_appsrc=GNUstep/Emacs.base
      dnl FIXME sourcing this several times in subshells seems inefficient.
      GNUSTEP_SYSTEM_HEADERS="$(. $GNUSTEP_CONFIG_FILE; echo $GNUSTEP_SYSTEM_HEADERS)"
      GNUSTEP_SYSTEM_LIBRARIES="$(. $GNUSTEP_CONFIG_FILE; echo $GNUSTEP_SYSTEM_LIBRARIES)"
@@ -1521,7 +1516,6 @@ AC_SUBST(TEMACS_LDFLAGS2)
 
 INSTALL_ARCH_INDEP_EXTRA=install-etc
 ns_self_contained=no
-ns_frag=/dev/null
 NS_OBJ=
 NS_OBJC_OBJ=
 if test "${HAVE_NS}" = yes; then
@@ -1548,7 +1542,6 @@ if test "${HAVE_NS}" = yes; then
      leimdir="\${ns_appresdir}/leim"
      INSTALL_ARCH_INDEP_EXTRA=
   fi
-  ns_frag=$srcdir/src/ns.mk
   NS_OBJC_OBJ="nsterm.o nsfns.o nsmenu.o nsselect.o nsimage.o nsfont.o"
 fi
 CFLAGS="$tmp_CFLAGS"
@@ -1558,7 +1551,6 @@ AC_SUBST(ns_self_contained)
 AC_SUBST(NS_OBJ)
 AC_SUBST(NS_OBJC_OBJ)
 AC_SUBST(LIB_STANDARD)
-AC_SUBST_FILE(ns_frag)
 
 ## $window_system is now set to the window system we will
 ## ultimately use.
@@ -1922,6 +1914,7 @@ if test "${with_gtk3}" = "yes" || test "${with_gtk}" = "yes" || test "$USE_X_TOO
      AC_DEFINE(HAVE_GTK3, 1, [Define to 1 if using GTK 3 or later.])
      GTK_OBJ=emacsgtkfixed.o
      term_header=gtkutil.h
+     USE_GTK_TOOLKIT="GTK3"
   else
      check_gtk2=yes
      gtk3_pkg_errors="$GTK_PKG_ERRORS "
@@ -1940,6 +1933,7 @@ if test "${with_gtk2}" = "yes" || test "$check_gtk2" = "yes"; then
   then
     AC_MSG_ERROR($gtk3_pkg_errors$GTK_PKG_ERRORS)
   fi
+  test "$pkg_check_gtk" = "yes" && USE_GTK_TOOLKIT="GTK2"
 fi
 
 if test x"$pkg_check_gtk" = xyes; then
@@ -3163,6 +3157,14 @@ else
   AC_MSG_RESULT(no)
 fi
 
+dnl Check for a Solaris 2.4 vfork bug that Autoconf misses (through 2.69).
+dnl This can be removed once we assume Autoconf 2.70.
+case $canonical in
+  *-solaris2.4 | *-solaris2.4.*)
+    dnl Disable the Autoconf-generated vfork test.
+    : ${ac_cv_func_vfork_works=no};;
+esac
+
 AC_FUNC_FORK
 
 AC_CHECK_FUNCS(snprintf)
@@ -3952,11 +3954,6 @@ case $opsys in
     ;;
 
   hpux11)
-    dnl See comments in sysdep.c:sys_signal.
-    dnl SA_RESTART resets the timeout of `select' on hpux11.
-    dnl Defining BROKEN_SA_RESTART is not the same as undef'ing SA_RESTART.
-    AC_DEFINE(BROKEN_SA_RESTART, 1, [Define if SA_RESTART should only
-      be used in batch mode.])
     dnl It works to open the pty's tty in the parent (Emacs), then
     dnl close and reopen it in the child.
     AC_DEFINE(USG_SUBTTY_WORKS, 1, [Define for USG systems where it
@@ -3990,6 +3987,11 @@ if test "x$GCC" = xyes \
 fi
 
 version=$PACKAGE_VERSION
+
+copyright="Copyright (C) 2012 Free Software Foundation, Inc."
+AC_DEFINE_UNQUOTED(COPYRIGHT, ["$copyright"],
+  [Short copyright string for this version of Emacs.])
+AC_SUBST(copyright)
 
 ### Specify what sort of things we'll be editing into Makefile and config.h.
 ### Use configuration here uncanonicalized to avoid exceeding size limits.
@@ -4396,7 +4398,7 @@ End:
 #### It makes printing result more understandable as using GTK sets
 #### toolkit_scroll_bars to yes by default.
 if test "${HAVE_GTK}" = "yes"; then
-  USE_X_TOOLKIT=GTK
+  USE_X_TOOLKIT="$USE_GTK_TOOLKIT"
 fi
 
 echo "
@@ -4484,6 +4486,16 @@ fi
 test "${exec_prefix}" != NONE &&
   exec_prefix=`echo "${exec_prefix}" | sed 's,\([^/]\)/*$,\1,'`]
 
+if test "$HAVE_NS" = "yes"; then
+  if test "$NS_IMPL_GNUSTEP" = yes; then
+    AC_CONFIG_FILES([nextstep/GNUstep/Emacs.base/Resources/Info-gnustep.plist:nextstep/templates/Info-gnustep.plist.in \
+      nextstep/GNUstep/Emacs.base/Resources/Emacs.desktop:nextstep/templates/Emacs.desktop.in])
+  else
+    AC_CONFIG_FILES([nextstep/Cocoa/Emacs.base/Contents/Info.plist:nextstep/templates/Info.plist.in \
+      nextstep/Cocoa/Emacs.base/Contents/Resources/English.lproj/InfoPlist.strings:nextstep/templates/InfoPlist.strings.in])
+  fi
+fi
+
 dnl Obviously there is duplication here wrt $SUBDIR_MAKEFILES.
 dnl You _can_ use that variable in AC_CONFIG_FILES, so long as any directory
 dnl using automake (ie lib/) is explicitly listed and not "hidden" in a variable
@@ -4492,12 +4504,12 @@ dnl This will work, but you get a config.status that is not quite right
 dnl (see http://lists.gnu.org/archive/html/bug-autoconf/2008-08/msg00028.html).
 dnl That doesn't have any obvious consequences for Emacs, but on the whole
 dnl it seems better to just live with the duplication.
-SUBDIR_MAKEFILES="lib/Makefile lib-src/Makefile oldXMenu/Makefile doc/emacs/Makefile doc/misc/Makefile doc/lispintro/Makefile doc/lispref/Makefile src/Makefile lwlib/Makefile lisp/Makefile leim/Makefile"
+SUBDIR_MAKEFILES="lib/Makefile lib-src/Makefile oldXMenu/Makefile doc/emacs/Makefile doc/misc/Makefile doc/lispintro/Makefile doc/lispref/Makefile src/Makefile lwlib/Makefile lisp/Makefile leim/Makefile nextstep/Makefile"
 
 AC_CONFIG_FILES([Makefile lib/Makefile lib-src/Makefile oldXMenu/Makefile \
        doc/emacs/Makefile doc/misc/Makefile doc/lispintro/Makefile \
        doc/lispref/Makefile src/Makefile lwlib/Makefile lisp/Makefile \
-       leim/Makefile])
+       leim/Makefile nextstep/Makefile])
 
 dnl test/ is not present in release tarfiles.
 opt_makefile=test/automated/Makefile

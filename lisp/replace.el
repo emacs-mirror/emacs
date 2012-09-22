@@ -128,20 +128,21 @@ wants to replace FROM with TO."
   (if query-replace-interactive
       (car (if regexp-flag regexp-search-ring search-ring))
     (let* ((history-add-new-input nil)
+	   (prompt
+	    (if query-replace-defaults
+		(format "%s (default %s -> %s): " prompt
+			(query-replace-descr (car query-replace-defaults))
+			(query-replace-descr (cdr query-replace-defaults)))
+	      (format "%s: " prompt)))
 	   (from
 	    ;; The save-excursion here is in case the user marks and copies
 	    ;; a region in order to specify the minibuffer input.
 	    ;; That should not clobber the region for the query-replace itself.
 	    (save-excursion
-	      (read-from-minibuffer
-	       (if query-replace-defaults
-		   (format "%s (default %s -> %s): " prompt
-			   (query-replace-descr (car query-replace-defaults))
-			   (query-replace-descr (cdr query-replace-defaults)))
-		 (format "%s: " prompt))
-	       nil nil nil
-	       query-replace-from-history-variable
-	       nil t))))
+	      (if regexp-flag
+		  (read-regexp prompt nil query-replace-from-history-variable)
+		(read-from-minibuffer
+		 prompt nil nil nil query-replace-from-history-variable nil t)))))
       (if (and (zerop (length from)) query-replace-defaults)
 	  (cons (car query-replace-defaults)
 		(query-replace-compile-replacement
@@ -574,38 +575,47 @@ of `history-length', which see.")
 (defvar occur-collect-regexp-history '("\\1")
   "History of regexp for occur's collect operation")
 
-(defun read-regexp (prompt &optional default-value)
-  "Read regexp as a string using the regexp history and some useful defaults.
-Prompt for a regular expression with PROMPT (without a colon and
-space) in the minibuffer.  The optional argument DEFAULT-VALUE
-provides the value to display in the minibuffer prompt that is
-returned if the user just types RET.
-Values available via M-n are the string at point, the last isearch
-regexp, the last isearch string, and the last replacement regexp."
-  (let* ((defaults
-	   (list (regexp-quote
-		  (or (funcall (or find-tag-default-function
-				   (get major-mode 'find-tag-default-function)
-				   'find-tag-default))
-		      ""))
-		 (car regexp-search-ring)
-		 (regexp-quote (or (car search-ring) ""))
-		 (car (symbol-value
-		       query-replace-from-history-variable))))
+(defun read-regexp (prompt &optional defaults history)
+  "Read and return a regular expression as a string.
+When PROMPT doesn't end with a colon and space, it adds a final \": \".
+If DEFAULTS is non-nil, it displays the first default in the prompt.
+
+Non-nil optional arg DEFAULTS is a string or a list of strings that
+are prepended to a list of standard default values, which include the
+string at point, the last isearch regexp, the last isearch string, and
+the last replacement regexp.
+
+Non-nil HISTORY is a symbol to use for the history list.
+If HISTORY is nil, `regexp-history' is used."
+  (let* ((default (if (consp defaults) (car defaults) defaults))
+	 (defaults
+	   (append
+	    (if (listp defaults) defaults (list defaults))
+	    (list (regexp-quote
+		   (or (funcall (or find-tag-default-function
+				    (get major-mode 'find-tag-default-function)
+				    'find-tag-default))
+		       ""))
+		  (car regexp-search-ring)
+		  (regexp-quote (or (car search-ring) ""))
+		  (car (symbol-value
+			query-replace-from-history-variable)))))
 	 (defaults (delete-dups (delq nil (delete "" defaults))))
-	 ;; Don't add automatically the car of defaults for empty input
+	 ;; Do not automatically add default to the history for empty input.
 	 (history-add-new-input nil)
-	 (input
-	  (read-from-minibuffer
-	   (if default-value
-	       (format "%s (default %s): " prompt
-		       (query-replace-descr default-value))
-	     (format "%s: " prompt))
-	   nil nil nil 'regexp-history defaults t)))
+	 (input (read-from-minibuffer
+		 (cond ((string-match-p ":[ \t]*\\'" prompt)
+			prompt)
+		       (default
+			 (format "%s (default %s): " prompt
+				 (query-replace-descr default)))
+		       (t
+			(format "%s: " prompt)))
+		 nil nil nil (or history 'regexp-history) defaults t)))
     (if (equal input "")
-	(or default-value input)
+	(or default input)
       (prog1 input
-	(add-to-history 'regexp-history input)))))
+	(add-to-history (or history 'regexp-history) input)))))
 
 
 (defalias 'delete-non-matching-lines 'keep-lines)
@@ -1130,9 +1140,9 @@ which means to discard all text properties."
 		  "\\&"
 		;; Get the regexp for collection pattern.
 		(let ((default (car occur-collect-regexp-history)))
-		  (read-string
+		  (read-regexp
 		   (format "Regexp to collect (default %s): " default)
-		   nil 'occur-collect-regexp-history default)))
+		   default 'occur-collect-regexp-history)))
 	    ;; Otherwise normal occur takes numerical prefix argument.
 	    (when current-prefix-arg
 	      (prefix-numeric-value current-prefix-arg))))))
@@ -1219,14 +1229,10 @@ See also `multi-occur'."
    (cons
     (let* ((default (car regexp-history))
 	   (input
-	    (read-from-minibuffer
+	    (read-regexp
 	     (if current-prefix-arg
 		 "List lines in buffers whose names match regexp: "
-	       "List lines in buffers whose filenames match regexp: ")
-	     nil
-	     nil
-	     nil
-	     'regexp-history)))
+	       "List lines in buffers whose filenames match regexp: "))))
       (if (equal input "")
 	  default
 	input))

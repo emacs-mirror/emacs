@@ -237,7 +237,7 @@ The following keywords are meaningful:
 	is `default-value'.
 :require
 	VALUE should be a feature symbol.  If you save a value
-	for this option, then when your `.emacs' file loads the value,
+	for this option, then when your init file loads the value,
 	it does (require VALUE) first.
 :set-after VARIABLES
 	Specifies that SYMBOL should be set after the list of variables
@@ -350,68 +350,62 @@ FACE does not need to be quoted.
 
 Third argument DOC is the face documentation.
 
-If FACE has been set with `custom-set-faces', set the face attributes
-as specified by that function, otherwise set the face attributes
-according to SPEC.
+If FACE has been set with `custom-set-faces', set the face
+attributes as specified by that function, otherwise set the face
+attributes according to SPEC.
 
-The remaining arguments should have the form
-
-   [KEYWORD VALUE]...
-
+The remaining arguments should have the form [KEYWORD VALUE]...
 For a list of valid keywords, see the common keywords listed in
 `defcustom'.
 
-SPEC should be an alist of the form ((DISPLAY ATTS)...).
+SPEC should be an alist of the form
 
-In the first element, DISPLAY can be `default'.  The ATTS in that
-element then act as defaults for all the following elements.
+   ((DISPLAY . ATTS)...)
 
-Aside from that, DISPLAY specifies conditions to match some or
-all frames.  For each frame, the first element of SPEC where the
-DISPLAY conditions are satisfied is the one that applies to that
-frame.  The ATTRs in this element take effect, and the following
-elements are ignored, on that frame.
+where DISPLAY is a form specifying conditions to match certain
+terminals and ATTS is a property list (ATTR VALUE ATTR VALUE...)
+specifying face attributes and values for frames on those
+terminals.  On each terminal, the first element with a matching
+DISPLAY specification takes effect, and the remaining elements in
+SPEC are disregarded.
 
-In the last element, DISPLAY can be t.  That element applies to a
-frame if none of the previous elements (except the `default' if
-any) did.
+As a special exception, in the first element of SPEC, DISPLAY can
+be the special value `default'.  Then the ATTS in that element
+act as defaults for all the following elements.
 
-ATTS is a list of face attributes followed by their values:
-  (ATTR VALUE ATTR VALUE...)
+For backward compatibility, elements of SPEC can be written
+as (DISPLAY ATTS) instead of (DISPLAY . ATTS).
 
-The possible attributes are `:family', `:width', `:height', `:weight',
-`:slant', `:underline', `:overline', `:strike-through', `:box',
-`:foreground', `:background', `:stipple', `:inverse-video', and `:inherit'.
+Each DISPLAY can have the following values:
+ - `default' (only in the first element).
+ - The symbol t, which matches all terminals.
+ - An alist of conditions.  Each alist element must have the form
+   (REQ ITEM...).  A matching terminal must satisfy each
+   specified condition by matching one of its ITEMs.  Each REQ
+   must be one of the following:
+   - `type' (the terminal type).
+     Each ITEM must be one of the values returned by
+     `window-system'.  Under X, additional allowed values are
+     `motif', `lucid', `gtk' and `x-toolkit'.
+   - `class' (the terminal's color support).
+     Each ITEM should be one of `color', `grayscale', or `mono'.
+   - `background' (what color is used for the background text)
+     Each ITEM should be one of `light' or `dark'.
+   - `min-colors' (the minimum number of supported colors)
+     Each ITEM should be an integer, which is compared with the
+     result of `display-color-cells'.
+   - `supports' (match terminals supporting certain attributes).
+     Each ITEM should be a list of face attributes.  See
+     `display-supports-face-attributes-p' for more information on
+     exactly how testing is done.
 
-DISPLAY can be `default' (only in the first element), the symbol
-t (only in the last element) to match all frames, or an alist of
-conditions of the form \(REQ ITEM...).  For such an alist to
-match a frame, each of the conditions must be satisfied, meaning
-that the REQ property of the frame must match one of the
-corresponding ITEMs.  These are the defined REQ values:
+In the ATTS property list, possible attributes are `:family',
+`:width', `:height', `:weight', `:slant', `:underline',
+`:overline', `:strike-through', `:box', `:foreground',
+`:background', `:stipple', `:inverse-video', and `:inherit'.
 
-`type' (the value of `window-system')
-  Under X, in addition to the values `window-system' can take,
-  `motif', `lucid', `gtk' and `x-toolkit' are allowed, and match when
-  the Motif toolkit, Lucid toolkit, GTK toolkit or any X toolkit is in use.
-
-`class' (the frame's color support)
-  Should be one of `color', `grayscale', or `mono'.
-
-`background' (what color is used for the background text)
-  Should be one of `light' or `dark'.
-
-`min-colors' (the minimum number of colors the frame should support)
-  Should be an integer, it is compared with the result of
-  `display-color-cells'.
-
-`supports' (only match frames that support the specified face attributes)
-  Should be a list of face attributes.  See the documentation for
-  the function `display-supports-face-attributes-p' for more
-  information on exactly how testing is done.
-
-See Info node `(elisp) Customization' in the Emacs Lisp manual
-for more information."
+See Info node `(elisp) Faces' in the Emacs Lisp manual for more
+information."
   (declare (doc-string 3))
   ;; It is better not to use backquote in this file,
   ;; because that makes a bootstrapping problem

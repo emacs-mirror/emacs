@@ -87,7 +87,7 @@
 ;; If you are using Newsticker as part of GNU Emacs there is no need to
 ;; perform any installation steps in order to use Newsticker.  Otherwise
 ;; place Newsticker in a directory where Emacs can find it.  Add the
-;; following line to your Emacs startup file (`~/.emacs').
+;; following line to your init file:
 ;;   (add-to-list 'load-path "/path/to/newsticker/")
 ;;   (autoload 'newsticker-start "newsticker" "Emacs Newsticker" t)
 ;;   (autoload 'newsticker-show-news "newsticker" "Emacs Newsticker" t)

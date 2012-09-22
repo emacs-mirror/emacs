@@ -220,13 +220,6 @@ struct window
     /* t means this window's child windows are not (re-)combined.  */
     Lisp_Object combination_limit;
 
-    /* Alist of <buffer, window-start, window-point> triples listing
-       buffers previously shown in this window.  */
-    Lisp_Object prev_buffers;
-
-    /* List of buffers re-shown in this window.  */
-    Lisp_Object next_buffers;
-
     /* An alist with parameters.  */
     Lisp_Object window_parameters;
 
@@ -237,6 +230,14 @@ struct window
     /* Glyph matrices.  */
     struct glyph_matrix *current_matrix;
     struct glyph_matrix *desired_matrix;
+
+    /* The two Lisp_Object fields below are marked in a special way,
+       which is why they're placed after `current_matrix'.  */
+    /* Alist of <buffer, window-start, window-point> triples listing
+       buffers previously shown in this window.  */
+    Lisp_Object prev_buffers;
+    /* List of buffers re-shown in this window.  */
+    Lisp_Object next_buffers;
 
     /* Number saying how recently window was selected.  */
     int use_time;

@@ -287,10 +287,10 @@ for subdir in site-lisp \
 	      `find etc lisp admin -type d` \
 	      doc doc/emacs doc/misc doc/man doc/lispref doc/lispintro \
 	      info m4 msdos \
-	      nextstep nextstep/Cocoa nextstep/Cocoa/Emacs.base \
+	      nextstep nextstep/templates \
+	      nextstep/Cocoa nextstep/Cocoa/Emacs.base \
 	      nextstep/Cocoa/Emacs.base/Contents \
 	      nextstep/Cocoa/Emacs.base/Contents/Resources \
-	      nextstep/Cocoa/Emacs.base/Contents/Resources/English.lproj \
 	      nextstep/GNUstep \
 	      nextstep/GNUstep/Emacs.base \
 	      nextstep/GNUstep/Emacs.base/Resources
@@ -404,23 +404,23 @@ echo "Making links to \`msdos'"
 
 echo "Making links to \`nextstep'"
 (cd nextstep
- ln ChangeLog README INSTALL ../${tempdir}/nextstep)
+ ln ChangeLog README INSTALL Makefile.in ../${tempdir}/nextstep)
+
+echo "Making links to \`nextstep/templates'"
+(cd nextstep/templates
+ ln Emacs.desktop.in Info-gnustep.plist.in Info.plist.in InfoPlist.strings.in ../../${tempdir}/nextstep/templates)
 
 echo "Making links to \`nextstep/Cocoa/Emacs.base/Contents'"
 (cd nextstep/Cocoa/Emacs.base/Contents
- ln Info.plist PkgInfo ../../../../${tempdir}/nextstep/Cocoa/Emacs.base/Contents)
+ ln PkgInfo ../../../../${tempdir}/nextstep/Cocoa/Emacs.base/Contents)
 
 echo "Making links to \`nextstep/Cocoa/Emacs.base/Contents/Resources'"
 (cd nextstep/Cocoa/Emacs.base/Contents/Resources
  ln Credits.html *.icns ../../../../../${tempdir}/nextstep/Cocoa/Emacs.base/Contents/Resources)
 
-echo "Making links to \`nextstep/Cocoa/Emacs.base/Contents/Resources/English.lproj'"
-(cd nextstep/Cocoa/Emacs.base/Contents/Resources/English.lproj
- ln InfoPlist.strings ../../../../../../${tempdir}/nextstep/Cocoa/Emacs.base/Contents/Resources/English.lproj)
-
 echo "Making links to \`nextstep/GNUstep/Emacs.base/Resources'"
 (cd nextstep/GNUstep/Emacs.base/Resources
- ln Emacs.desktop Info-gnustep.plist README emacs.tiff ../../../../${tempdir}/nextstep/GNUstep/Emacs.base/Resources )
+ ln README emacs.tiff ../../../../${tempdir}/nextstep/GNUstep/Emacs.base/Resources )
 
 echo "Making links to \`oldXMenu'"
 (cd oldXMenu

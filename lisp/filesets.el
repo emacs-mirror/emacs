@@ -35,7 +35,7 @@
 ;; inclusion group (i.e. a base file including other files).
 
 ;; Usage:
-;; 1. Put (require 'filesets) and (filesets-init) in your .emacs file.
+;; 1. Put (require 'filesets) and (filesets-init) in your init file.
 ;; 2. Type ;; M-x filesets-edit or choose "Edit Filesets" from the menu.
 ;; 3. Save your customizations.
 

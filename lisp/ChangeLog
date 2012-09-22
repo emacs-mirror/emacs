@@ -1,4 +1,293 @@
+2012-09-21  Leo Liu  <sdl.web@gmail.com>
+
+	IDO: Disable match re-ordering for buffer switching.
+	* ido.el (ido-buffer-disable-smart-matches): New variable.
+	(ido-set-matches-1): Use it.  (Bug#2042)
+
+2012-09-21  Jose Marino  <marinoj@nso.edu>  (tiny change)
+
+	* progmodes/idlw-shell.el (idlwave-shell-complete-filename):
+	Fix 2011-05-17 change.  (Bug#12418)
+
+2012-09-21  Leo Liu  <sdl.web@gmail.com>
+
+	* subr.el (ignore-errors): Mention with-demoted-errors in doc-string.
+
+2012-09-21  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/shadow.el (load-path-shadows-font-lock-keywords):
+	Be more robust about locating simple.el.
+
+2012-09-21  Glenn Morris  <rgm@gnu.org>
+
+	* mail/emacsbug.el (report-emacs-bug): Trap load-path-shadows errors.
+
+2012-09-21  Joel Bion  <jpbion@westvi.com>  (tiny change)
+
+	* pcmpl-gnu.el (pcmpl-gnu-tarfile-regexp): Add tar.xz.  (Bug#12382)
+
+2012-09-20  Juri Linkov  <juri@jurta.org>
+
+	* replace.el (query-replace-read-from): Use `read-regexp' instead
+	of `read-from-minibuffer' when `regexp-flag' is non-nil.
+	(occur-read-primary-args): Use `read-regexp' instead of
+	`read-string'.
+	(multi-occur-in-matching-buffers): Use `read-regexp' instead of
+	`read-from-minibuffer'.
+	* isearch.el (isearch-occur): Use `read-regexp' instead of
+	`read-string'.
+	* dired.el (dired-read-regexp): Use `read-regexp' instead of
+	`read-from-minibuffer'.
+	* progmodes/grep.el (grep-read-regexp): Use `read-regexp' instead
+	of `read-string'.  (Bug#7567)
+
+	* replace.el (read-regexp): Rename DEFAULT-VALUE arg to DEFAULTS
+	and allow accepting a list of strings prepended to a list of
+	standard default values.  Doc fix.  (Bug#12321)
+
+	* replace.el (read-regexp): Add HISTORY arg.  (Bug#7567)
+
+	* replace.el (read-regexp): Don't add ": " when PROMPT already
+	ends with a colon and space.  (Bug#12321)
+
+2012-09-20  Tassilo Horn  <tsdh@gnu.org>
+
+	* doc-view.el (doc-view-display): Better fix for the cl-assertion
+	error.
+
+2012-09-20  Stefan Merten  <smerten@oekonux.de>
+
+	* rst.el: Integrate support for `imenu' and `which-function'.
+	Fixes feature request bug#11711.
+	(rst-mode): Create `imenu-create-index-function'.
+	(rst-get-stripped-line): Delete after refactoring.
+	(rst-section-tree, rst-section-tree-rec)
+	(rst-section-tree-point): Refactor and document properly.
+	(rst-imenu-find-adornments-for-position)
+	(rst-imenu-convert-cell, rst-imenu-create-index): New
+	function.
+
+2012-09-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/macroexp.el (macroexp--obsolete-warning): New function.
+	(macroexp--expand-all): Use it.
+	(macroexp--funcall-and-return): Remove by folding it into its sole
+	caller (macroexp--warn-and-return).
+	* emacs-lisp/bytecomp.el (byte-compile-warn-obsolete):
+	Use macroexp--obsolete-warning.
+
+	* calc/calc.el: Fix last change by removing the whole chunk, since it
+	was only needed back when Calc was not bundled.
+
+2012-09-20  Martin Rudalics  <rudalics@gmx.at>
+
+	* emacs-lisp/debug.el (debug): Restore assignment to
+	debugger-old-buffer removed on 2012-09-08.
+
+2012-09-20  Juri Linkov  <juri@jurta.org>
+
+	* dired-aux.el (dired-diff): Remove (require 'diff) since
+	`diff-latest-backup-file' is now autoloaded.
+
+2012-09-20  Chong Yidong  <cyd@gnu.org>
+
+	* vc/diff.el (diff-latest-backup-file): Autoload.
+
+2012-09-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* calc/calc.el: Remove redundant autoload shape check.
+	(sel-mode): Don't defvar.
+	(calc-get-stack-element): Add `sel-mode' arg instead.
+	(calc-top, calc-top-list): Pass it this additional argument.
+	* calc/calc-store.el (calc-store-map):
+	* calc/calc-map.el (calc-apply, calc-reduce, calc-map)
+	(calc-map-equation, calc-outer-product, calc-inner-product):
+	* calc/calc-aent.el (calc-alg-entry): Don't bind sel-mode.
+
+	* emacs-lisp/macroexp.el (macroexp--expand-all): Fix last change.
+
+2012-09-19  Juri Linkov  <juri@jurta.org>
+
+	* dired-aux.el (dired-diff): Add (require 'diff) because
+	`diff-latest-backup-file' is not autoloaded.
+	(dired-do-chxxx, dired-do-chmod): Set `no-error-if-not-filep' arg
+	of `dired-get-filename' to t to not report error when there is
+	no default file on the current line.
+
+2012-09-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/macroexp.el (macroexp--funcall-if-compiled): Rename from
+	macroexp--eval-if-compile.
+	(macroexp--funcall-and-return, macroexp--warn-and-return): New funs.
+	(macroexp--expand-all): Use them (bug#12371).
+
+	* doc-view.el (doc-view-guess-paper-size)
+	(doc-view-scale-bounding-box): Fix unbound `caddr'.
+
+2012-09-19  Tassilo Horn  <tsdh@gnu.org>
+
+	New feature: set optimal slice from BoundingBox information.
+	* doc-view.el (doc-view-mode-map): Add keybinding.
+	(doc-view-menu): Add menu entry.
+	(doc-view-set-slice): Adapt docstring.
+	(doc-view-get-bounding-box, doc-view-guess-paper-size)
+	(doc-view-scale-bounding-box)
+	(doc-view-set-slice-from-bounding-box): New functions.
+	(doc-view-paper-sizes): New defvar.
+
+2012-09-19  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/macroexp.el (byte-compile-warn-obsolete)
+	(byte-compile-log-warning): Autoload.  (Bug#12371)
+
+	* calendar/calendar.el (calendar-american-month-header)
+	(calendar-european-month-header, calendar-iso-month-header)
+	(calendar-month-header): New options.
+	(calendar-set-date-style): Set calendar-month-header.  Redraw calendar.
+	(calendar-generate-month): Use calendar-month-header.  (Bug#9510)
+
+2012-09-19  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* startup.el (command-line-ns-option-alist): Add -g and --geometry.
+
+2012-09-18  Juri Linkov  <juri@jurta.org>
+
+	* dired-aux.el (dired-diff): Restore original functionality of
+	getting the default value, but keep new feature of using the
+	latest existing backup file (`diff-latest-backup-file').
+
+2012-09-18  Juri Linkov  <juri@jurta.org>
+
+	* dired.el (dired-mark): If the region is active in Transient Mark
+	mode, mark all files in the active region.  Doc fix.
+	(dired-unmark, dired-flag-file-deletion, dired-unmark-backward):
+	Doc fix.  (Bug#10624)
+
+2012-09-18  Juri Linkov  <juri@jurta.org>
+
+	* dired-aux.el (dired-do-chxxx, dired-do-chmod): Default file
+	attributes for M-n are pulled from the file at point.
+	(dired-do-chgrp, dired-do-chown, dired-do-touch): Doc fix.
+	Suggested by Drew Adams.  (Bug#10624)
+
+2012-09-18  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* progmodes/ruby-mode.el (ruby-brace-to-do-end): Don't add extra
+	whitespace after "end".
+	(ruby-do-end-to-brace): Collapse block to one line if it fits
+	within fill-column.
+
+2012-09-18  Martin Rudalics  <rudalics@gmx.at>
+
+	* emacs-lisp/debug.el (debugger-bury-or-kill): Fix customization
+	value.
+	(debug): Don't remove debugger window when debugger is expected
+	to be back.
+
+2012-09-18  Chong Yidong  <cyd@gnu.org>
+
+	* custom.el (defface): Doc fix.
+
+	* cus-edit.el (custom-unlispify-remove-prefixes): Add warning.
+
+2012-09-18  Martin Blais  <blais@furius.ca>  (tiny change)
+
+	* progmodes/compile.el (compilation-start): Use compilation-always-kill
+	to initialize query-on-exit; then test that instead (bug#12288).
+
+2012-09-17  Stefan Merten  <smerten@oekonux.de>
+
+	* rst.el: Add support for `testcover'.
+	(rst-defcustom-testcover, rst-testcover-add-compose)
+	(rst-testcover-add-1value): New functions.
+	(rst-portable-mark-active-p): Replace by `use-region-p'.
+	(rst-update-section, rst-classify-adornment)
+	(rst-find-title-line): Mark `1value' forms.
+	(rst-classify-adornment): Remove superfluous form.
+	(rst-update-section, rst-get-adornments-around)
+	(rst-adornment-complete-p, rst-get-next-adornment)
+	(rst-adjust, rst-promote-region)
+	(rst-display-adornments-hierarchy, rst-straighten-adornments)
+	(rst-find-pfx-in-region, rst-section-tree-rec)
+	(rst-section-tree-point, rst-toc-insert, rst-toc-insert-node)
+	(rst-toc-node, rst-toc, rst-forward-section)
+	(rst-iterate-leftmost-paragraphs)
+	(rst-iterate-leftmost-paragraphs-2, rst-enumerate-region)
+	(rst-bullet-list-region)
+	(rst-convert-bullets-to-enumeration, rst-font-lock-keywords)
+	(rst-compile-find-conf, rst-compile)
+	(rst-repeat-last-character): Fix style.
+
+2012-09-17  Chong Yidong  <cyd@gnu.org>
+
+	* comint.el (comint--complete-file-name-data): Don't add a space
+	if the status is `sole'; that adds a gratuitous space in the
+	completion-cycling case (Bug#12092).
+
+	* pcomplete.el (pcomplete-completions-at-point): Likewise.
+
+2012-09-17  Richard Stallman  <rms@gnu.org>
+
+	* mail/rmailmm.el (rmail-mime-toggle-raw): Do rmail-mime-insert
+	only in the mime-shown mode, not in raw mode.
+	(rmail-mime): Toggle off mime by displaying the message without
+	mime processing.  (Bug#12305)
+
+	* mail/rmail.el (rmail-retry-failure):
+	Turn off mime processing first.  (Bug#12037)
+
+	* epa-mail.el (epa-mail-encrypt): Fix bug when a name has no key.
+
+2012-09-17  Chong Yidong  <cyd@gnu.org>
+
+	* shell.el (shell-file-name-chars, shell-file-name-quote-list)
+	(shell-dynamic-complete-functions): Convert to defcustom.
+	(shell-prompt-pattern, shell-completion-fignore): Doc fix.
+
+	* bookmark.el (bookmark-bmenu-toggle-filenames): Doc fixes.
+	* comint.el (comint-prompt-read-only):
+	* custom.el (defcustom):
+	* hi-lock.el (hi-lock-mode):
+	* ibuffer.el (ibuffer-formats):
+	* ielm.el (ielm-prompt-read-only):
+	* novice.el (disable-command):
+	* saveplace.el (toggle-save-place):
+	* speedbar.el (speedbar-supported-extension-expressions):
+	* startup.el (auto-save-list-file-prefix, init-file-user)
+	(after-init-hook, inhibit-startup-echo-area-message):
+	* strokes.el (strokes-help):
+	* time-stamp.el (time-stamp):
+	* calendar/calendar.el (calendar, diary-file):
+	* calendar/diary-lib.el (diary-mail-entries, diary)
+	(diary-list-entries-hook):
+	* calendar/holidays.el (holidays, calendar-holidays):
+	* calendar/lunar.el (lunar-phases):
+	* calendar/solar.el (sunrise-sunset):
+	* emulation/edt.el (edt-load-keys):
+	* emulation/viper.el (viper-mode):
+	* eshell/em-alias.el (eshell-command-aliases-list):
+	* eshell/esh-util.el (eshell-convert-numeric-arguments):
+	* international/ogonek.el (ogonek-information):
+	* net/tramp-cmds.el (tramp-bug):
+	* net/quickurl.el (quickurl-reread-hook-postfix):
+	* play/decipher.el (decipher-font-lock-keywords):
+	* progmodes/cc-styles.el (c-set-style):
+	* progmodes/idlw-shell.el (idlwave-shell-prompt-pattern):
+	* progmodes/inf-lisp.el (inferior-lisp-prompt):
+	* progmodes/octave-mod.el (octave-mode):
+	* progmodes/sql.el (sql-mode, sql-interactive-mode, sql-password):
+	* progmodes/verilog-mode.el (verilog-read-defines):
+	* textmodes/two-column.el (2C-mode): Likewise.
+
+2012-09-16  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mail/mailabbrev.el (mail-abbrev-expand-hook): Work for a mail aliasee
+	that holds many addresses.
+
 2012-09-16  Chong Yidong  <cyd@gnu.org>
+
+	* align.el (align-areas): Call the indication function with
+	positions instead of markers for arguments (Bug#12343).
 
 	* files.el (parse-colon-path): Use split-string (Bug#12351).
 
@@ -6,8 +295,8 @@
 	(display-buffer-function): Mark as obsolete.
 
 	* progmodes/compile.el (compilation-parse-errors): Accept list
-	values similar to font-lock-keywords (Bug#12136).  Suggested by
-	Oleksandr Manzyuk.
+	values similar to font-lock-keywords (Bug#12136).
+	Suggested by Oleksandr Manzyuk.
 	(compilation-error-regexp-alist): Doc fix.
 
 2012-09-15  Glenn Morris  <rgm@gnu.org>
@@ -1610,7 +1899,7 @@
 	:local as the address.
 	(list-processes): Doc fix.
 
-2012-08-04  Michal Nazarewicz  <mina86@mina86.com>  (tiny change)
+2012-08-04  Michal Nazarewicz  <mina86@mina86.com>
 
 	* lisp/mpc.el: Support password in host argument.
 	(mpc--proc-connect): Parse and use new password element.

@@ -47,7 +47,7 @@
 ;; To turn RefTeX Mode on and off in a buffer, use `M-x reftex-mode'.
 ;;
 ;; To turn on RefTeX Mode for all LaTeX files, add the following lines
-;; to your .emacs file:
+;; to your init file:
 ;;
 ;;   (add-hook 'LaTeX-mode-hook 'turn-on-reftex)   ; AUCTeX LaTeX mode
 ;;   (add-hook 'latex-mode-hook 'turn-on-reftex)   ; Emacs latex mode
@@ -99,7 +99,7 @@
 ;;
 ;; To turn RefTeX Mode on and off in a particular buffer, use `M-x
 ;; reftex-mode'.  To turn on RefTeX Mode for all LaTeX files, add the
-;; following lines to your `.emacs' file:
+;; following lines to your init file:
 ;;
 ;;      (add-hook 'LaTeX-mode-hook 'turn-on-reftex)   ; with AUCTeX LaTeX mode
 ;;      (add-hook 'latex-mode-hook 'turn-on-reftex)   ; with Emacs latex mode

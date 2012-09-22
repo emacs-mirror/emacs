@@ -1609,14 +1609,10 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
 #if !defined (WINDOWSNT) && defined (FD_CLOEXEC)
   int wait_child_setup[2];
 #endif
+#ifdef SIGCHLD
   sigset_t blocked, procmask;
-  struct sigaction sigint_action;
-  struct sigaction sigquit_action;
-  struct sigaction sigpipe_action;
-#ifdef AIX
-  struct sigaction sighup_action;
 #endif
-  /* Use volatile to protect variables from being clobbered by longjmp.  */
+  /* Use volatile to protect variables from being clobbered by vfork.  */
   volatile int forkin, forkout;
   volatile int pty_flag = 0;
 
@@ -1708,25 +1704,13 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
   XPROCESS (process)->pty_flag = pty_flag;
   pset_status (XPROCESS (process), Qrun);
 
+#ifdef SIGCHLD
   /* Delay interrupts until we have a chance to store
      the new fork's pid in its process structure */
   sigemptyset (&blocked);
-#ifdef SIGCHLD
   sigaddset (&blocked, SIGCHLD);
-#endif
-#ifdef HAVE_WORKING_VFORK
-  /* On many hosts (e.g. Solaris 2.4), if a vforked child calls `signal',
-     this sets the parent's signal handlers as well as the child's.
-     So delay all interrupts whose handlers the child might munge,
-     and record the current handlers so they can be restored later.  */
-  sigaddset (&blocked, SIGINT );  sigaction (SIGINT , 0, &sigint_action );
-  sigaddset (&blocked, SIGQUIT);  sigaction (SIGQUIT, 0, &sigquit_action);
-  sigaddset (&blocked, SIGPIPE);  sigaction (SIGPIPE, 0, &sigpipe_action);
-#ifdef AIX
-  sigaddset (&blocked, SIGHUP );  sigaction (SIGHUP , 0, &sighup_action );
-#endif
-#endif /* HAVE_WORKING_VFORK */
   pthread_sigmask (SIG_BLOCK, &blocked, &procmask);
+#endif
 
   FD_SET (inchannel, &input_wait_mask);
   FD_SET (inchannel, &non_keyboard_wait_mask);
@@ -1879,8 +1863,10 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
 	   in the child.  */
 	signal (SIGPIPE, SIG_DFL);
 
+#ifdef SIGCHLD
 	/* Stop blocking signals in the child.  */
 	pthread_sigmask (SIG_SETMASK, &procmask, 0);
+#endif
 
 	if (pty_flag)
 	  child_setup_tty (xforkout);
@@ -1959,19 +1945,10 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
 #endif
     }
 
-  /* Restore the signal state whether vfork succeeded or not.
-     (We will signal an error, below, if it failed.)  */
-#ifdef HAVE_WORKING_VFORK
-  /* Restore the parent's signal handlers.  */
-  sigaction (SIGINT, &sigint_action, 0);
-  sigaction (SIGQUIT, &sigquit_action, 0);
-  sigaction (SIGPIPE, &sigpipe_action, 0);
-#ifdef AIX
-  sigaction (SIGHUP, &sighup_action, 0);
-#endif
-#endif /* HAVE_WORKING_VFORK */
+#ifdef SIGCHLD
   /* Stop blocking signals in the parent.  */
   pthread_sigmask (SIG_SETMASK, &procmask, 0);
+#endif
 
   /* Now generate the error if vfork failed.  */
   if (pid < 0)
@@ -4395,10 +4372,8 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 	 Otherwise, do pending quit if requested.  */
       if (read_kbd >= 0)
 	QUIT;
-#ifdef SYNC_INPUT
       else
 	process_pending_signals ();
-#endif
 
       /* Exit now if the cell we're waiting for became non-nil.  */
       if (! NILP (wait_for_cell) && ! NILP (XCAR (wait_for_cell)))

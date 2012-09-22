@@ -1556,20 +1556,20 @@ Returns the compilation buffer created."
 	      (get-buffer-create
                (compilation-buffer-name name-of-mode mode name-function)))
       (let ((comp-proc (get-buffer-process (current-buffer))))
-	(if comp-proc
-	    (if (or (not (eq (process-status comp-proc) 'run))
-                    compilation-always-kill
-		    (yes-or-no-p
-		     (format "A %s process is running; kill it? "
-			     name-of-mode)))
-		(condition-case ()
-		    (progn
-		      (interrupt-process comp-proc)
-		      (sit-for 1)
-		      (delete-process comp-proc))
-		  (error nil))
-	      (error "Cannot have two processes in `%s' at once"
-		     (buffer-name)))))
+      (if comp-proc
+          (if (or (not (eq (process-status comp-proc) 'run))
+                  (eq (process-query-on-exit-flag comp-proc) nil)
+                  (yes-or-no-p
+                   (format "A %s process is running; kill it? "
+                           name-of-mode)))
+              (condition-case ()
+                  (progn
+                    (interrupt-process comp-proc)
+                    (sit-for 1)
+                    (delete-process comp-proc))
+                (error nil))
+            (error "Cannot have two processes in `%s' at once"
+                   (buffer-name)))))
       ;; first transfer directory from where M-x compile was called
       (setq default-directory thisdir)
       ;; Make compilation buffer read-only.  The filter can still write it.
@@ -1624,7 +1624,7 @@ Returns the compilation buffer created."
       (let ((process-environment
 	     (append
 	      compilation-environment
-	      (if (if (boundp 'system-uses-terminfo) ; `if' for compiler warning
+	      (if (if (boundp 'system-uses-terminfo);`If' for compiler warning.
 		      system-uses-terminfo)
 		  (list "TERM=dumb" "TERMCAP="
 			(format "COLUMNS=%d" (window-width)))
@@ -1674,13 +1674,20 @@ Returns the compilation buffer created."
 			   nil `("-c" ,command))))
 		     (start-file-process-shell-command (downcase mode-name)
 						       outbuf command))))
-	      ;; Make the buffer's mode line show process state.
-	      (setq mode-line-process
-		    '(:propertize ":%s" face compilation-mode-line-run))
-	      (set-process-sentinel proc 'compilation-sentinel)
-	      (unless (eq mode t)
-		;; Keep the comint filter, since it's needed for proper handling
-		;; of the prompts.
+              ;; Make the buffer's mode line show process state.
+              (setq mode-line-process
+                    '(:propertize ":%s" face compilation-mode-line-run))
+
+              ;; Set the process as killable without query by default.
+              ;; This allows us to start a new compilation without
+              ;; getting prompted.
+              (when compilation-always-kill
+                (set-process-query-on-exit-flag proc nil))
+
+              (set-process-sentinel proc 'compilation-sentinel)
+              (unless (eq mode t)
+                ;; Keep the comint filter, since it's needed for proper
+		;; handling of the prompts.
 		(set-process-filter proc 'compilation-filter))
 	      ;; Use (point-max) here so that output comes in
 	      ;; after the initial text,

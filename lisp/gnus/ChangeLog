@@ -1,3 +1,14 @@
+2012-09-17  Richard Stallman  <rms@gnu.org>
+
+	* message.el (message-in-body-p): Don't set mark or modify buffer.
+
+	* mml.el (mml-attach-file): Doc fix.
+	(mml-attach-external, mml-attach-buffer, mml-attach-file):
+	Set mail-encode-mml when in Mail mode.
+	Simplify code to set HEAD and move back to HEAD.
+	(mml-insert-multipart, mml-insert-part):
+	Set mail-encode-mml when in Mail mode.
+
 2012-09-13  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-util.el (gnus-timer--function): New function.

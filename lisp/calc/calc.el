@@ -912,35 +912,6 @@ Used by `calc-user-invocation'.")
 (defvar calc-embedded-mode-hook nil
   "Hook run when starting embedded mode.")
 
-;; Set up the autoloading linkage.
-(let ((name (and (fboundp 'calc-dispatch)
-                 (autoloadp (symbol-function 'calc-dispatch))
-                 (nth 1 (symbol-function 'calc-dispatch))))
-      (p load-path))
-
-  ;; If Calc files exist on the load-path, we're all set.
-  (while (and p (not (file-exists-p
-                      (expand-file-name "calc-misc.elc" (car p)))))
-    (setq p (cdr p)))
-  (or p
-
-      ;; If Calc is autoloaded using a path name, look there for Calc files.
-      ;; This works for both relative ("calc/calc.elc") and absolute paths.
-      (and name (file-name-directory name)
-           (let ((p2 load-path)
-                 (name2 (concat (file-name-directory name)
-                                "calc-misc.elc")))
-             (while (and p2 (not (file-exists-p
-                                  (expand-file-name name2 (car p2)))))
-               (setq p2 (cdr p2)))
-             (when p2
-               (setq load-path (nconc load-path
-                                      (list
-                                       (directory-file-name
-                                        (file-name-directory
-                                         (expand-file-name
-                                          name (car p2))))))))))))
-
 ;; The following modes use specially-formatted data.
 (put 'calc-mode 'mode-class 'special)
 (put 'calc-trail-mode 'mode-class 'special)
@@ -1353,12 +1324,12 @@ Notations:  3.14e6     3.14 * 10^6
 \\{calc-mode-map}
 "
   (interactive)
-  (mapc (function
+  (mapc (function           ;FIXME: Why (set-default v (symbol-value v)) ?!?!?
 	 (lambda (v) (set-default v (symbol-value v)))) calc-local-var-list)
   (kill-all-local-variables)
   (use-local-map (if (eq calc-algebraic-mode 'total)
 		     (progn (require 'calc-ext) calc-alg-map) calc-mode-map))
-  (mapc (function (lambda (v) (make-local-variable v))) calc-local-var-list)
+  (mapc #'make-local-variable calc-local-var-list)
   (make-local-variable 'overlay-arrow-position)
   (make-local-variable 'overlay-arrow-string)
   (add-hook 'change-major-mode-hook 'font-lock-defontify nil t)
@@ -1395,7 +1366,7 @@ Notations:  3.14e6     3.14 * 10^6
   (if calc-buffer-list (setq calc-stack (copy-sequence calc-stack)))
   (add-to-list 'calc-buffer-list (current-buffer) t))
 
-(defvar calc-check-defines 'calc-check-defines)  ; suitable for run-hooks
+(defvar calc-check-defines 'calc-check-defines)  ; Suitable for run-hooks.
 (defun calc-check-defines ()
   (if (symbol-plist 'calc-define)
       (let ((plist (copy-sequence (symbol-plist 'calc-define))))
@@ -1943,8 +1914,7 @@ See calc-keypad for details."
 		(delete-region (point) (point-max))))
 	    (calc-set-command-flag 'renum-stack))))))
 
-(defvar sel-mode)
-(defun calc-get-stack-element (x)
+(defun calc-get-stack-element (x &optional sel-mode)
   (cond ((eq sel-mode 'entry)
 	 x)
 	((eq sel-mode 'sel)
@@ -1961,9 +1931,9 @@ See calc-keypad for details."
 (defun calc-top (&optional n sel-mode)
   (or n (setq n 1))
   (calc-check-stack n)
-  (calc-get-stack-element (nth (+ n calc-stack-top -1) calc-stack)))
+  (calc-get-stack-element (nth (+ n calc-stack-top -1) calc-stack) sel-mode))
 
-(defun calc-top-n (&optional n sel-mode)    ; in case precision has changed
+(defun calc-top-n (&optional n sel-mode)    ; In case precision has changed.
   (math-check-complete (calc-normalize (calc-top n sel-mode))))
 
 (defun calc-top-list (&optional n m sel-mode)
@@ -1974,7 +1944,8 @@ See calc-keypad for details."
        (let ((top (copy-sequence (nthcdr (+ m calc-stack-top -1)
 					 calc-stack))))
 	 (setcdr (nthcdr (1- n) top) nil)
-	 (nreverse (mapcar 'calc-get-stack-element top)))))
+	 (nreverse
+          (mapcar (lambda (x) (calc-get-stack-element x sel-mode)) top)))))
 
 (defun calc-top-list-n (&optional n m sel-mode)
   (mapcar 'math-check-complete

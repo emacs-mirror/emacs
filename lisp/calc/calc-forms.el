@@ -494,7 +494,7 @@
 			      (car res))))))))
 
 
-;;; It is safe to redefine these in your .emacs file to use a different
+;;; It is safe to redefine these in your init file to use a different
 ;;; language.
 
 (defvar math-long-weekday-names '( "Sunday" "Monday" "Tuesday" "Wednesday"

@@ -588,10 +588,7 @@ extern NSString *NSMenuDidBeginTrackingNotification;
      From 10.6 on, we could also use -[NSMenu propertiesToUpdate]: In the
      key press case, NSMenuPropertyItemImage (e.g.) won't be set.
   */
-  if (trackingMenu == 0
-      /* Also, don't try this if from an event picked up asynchronously,
-         as lots of lisp evaluation happens in ns_update_menubar. */
-      || handling_signal != 0)
+  if (trackingMenu == 0)
     return;
 /*fprintf (stderr, "Updating menu '%s'\n", [[self title] UTF8String]); NSLog (@"%@\n", event); */
   ns_update_menubar (frame, 1, self);

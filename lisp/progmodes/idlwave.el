@@ -51,7 +51,7 @@
 ;;
 ;; Follow the instructions in the INSTALL file of the distribution.
 ;; In short, put this file on your load path and add the following
-;; lines to your .emacs file:
+;; lines to your init file:
 ;;
 ;; (autoload 'idlwave-mode "idlwave" "IDLWAVE Mode" t)
 ;; (autoload 'idlwave-shell "idlw-shell" "IDLWAVE Shell" t)
@@ -746,7 +746,7 @@ or even '?'.  '.' is not a good choice because it can make structure
 field names act like abbrevs in certain circumstances.
 
 Changes to this in `idlwave-mode-hook' will have no effect.  Instead a user
-must set it directly using `setq' in the .emacs file before idlwave.el
+must set it directly using `setq' in the init file before idlwave.el
 is loaded."
   :group 'idlwave-abbrev-and-indent-action
   :type 'string)

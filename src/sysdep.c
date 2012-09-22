@@ -1447,27 +1447,21 @@ emacs_sigaction_init (struct sigaction *action, signal_handler_t handler)
   action->sa_handler = handler;
   action->sa_flags = 0;
 #if defined (SA_RESTART)
-  /* Emacs mostly works better with restartable system services. If this
-     flag exists, we probably want to turn it on here.
-     However, on some systems (only hpux11 at present) this resets the
-     timeout of `select' which means that `select' never finishes if
-     it keeps getting signals.
-     We define BROKEN_SA_RESTART on those systems.  */
-  /* It's not clear why the comment above says "mostly works better".  --Stef
-     When SYNC_INPUT is set, we don't want SA_RESTART because we need to poll
+  /* SA_RESTART causes interruptible functions with timeouts (e.g.,
+     'select') to reset their timeout on some platforms (e.g.,
+     HP-UX 11), which is not what we want.  Also, when Emacs is
+     interactive, we don't want SA_RESTART because we need to poll
      for pending input so we need long-running syscalls to be interrupted
      after a signal that sets the interrupt_input_pending flag.  */
   /* Non-interactive keyboard input goes through stdio, where we always
      want restartable system calls.  */
-# if defined (BROKEN_SA_RESTART) || defined (SYNC_INPUT)
   if (noninteractive)
-# endif
     action->sa_flags = SA_RESTART;
 #endif
 }
 
 #ifdef FORWARD_SIGNAL_TO_MAIN_THREAD
-pthread_t main_thread;
+static pthread_t main_thread;
 #endif
 
 /* If we are on the main thread, handle the signal SIG with HANDLER.
@@ -1914,11 +1908,9 @@ emacs_write (int fildes, const char *buf, ptrdiff_t nbyte)
 	{
 	  if (errno == EINTR)
 	    {
-#ifdef SYNC_INPUT
 	      /* I originally used `QUIT' but that might causes files to
 		 be truncated if you hit C-g in the middle of it.  --Stef  */
 	      process_pending_signals ();
-#endif
 	      continue;
 	    }
 	  else

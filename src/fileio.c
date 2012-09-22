@@ -2833,9 +2833,8 @@ or if SELinux is disabled, or if Emacs lacks SELinux support.  */)
 	  if (context_range_get (context))
 	    values[3] = build_string (context_range_get (context));
 	  context_free (context);
+	  freecon (con);
 	}
-      if (con)
-	freecon (con);
     }
 #endif
 
@@ -2914,12 +2913,10 @@ compiled with SELinux support.  */)
 	    report_file_error ("Doing lsetfilecon", Fcons (absname, Qnil));
 
 	  context_free (parsed_con);
+	  freecon (con);
 	}
       else
 	report_file_error ("Doing lgetfilecon", Fcons (absname, Qnil));
-
-      if (con)
-	freecon (con);
     }
 #endif
 

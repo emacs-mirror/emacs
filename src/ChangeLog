@@ -3,6 +3,171 @@
 	* composite.c (composition_reseat_it): Handle the case that a
 	grapheme cluster is not covered by a single font (Bug#12352).
 
+2012-09-21  Chong Yidong  <cyd@gnu.org>
+
+	* image.c (define_image_type): Avoid adding duplicate types to
+	image_types (Bug#12463).  Suggested by Jörg Walter.
+
+2012-09-21  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* unexmacosx.c: Define LC_DATA_IN_CODE if not defined.
+	(print_load_command_name): Add case LC_DATA_IN_CODE.
+	(dump_it) [LC_DATA_IN_CODE]: Call copy_linkedit_data.
+
+2012-09-21  Glenn Morris  <rgm@gnu.org>
+
+	* eval.c (Frun_hook_with_args_until_success)
+	(Frun_hook_with_args_until_failure): Doc fixes.  (Bug#12393)
+
+2012-09-21  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* fileio.c (Ffile_selinux_context): Only call freecon when
+	lgetfilecon succeeded.
+	(Fset_file_selinux_context): Likewise.  (Bug#12444)
+
+2012-09-21  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (try_window_reusing_current_matrix): Under bidi
+	reordering, locate the cursor by calling set_cursor_from_row; if
+	that fails, clear the desired glyph matrix before returning a
+	failure indication to the caller.  Fixes leaving garbled display
+	when fast scrolling with a down-key.  (Bug#12403)
+	(compute_stop_pos_backwards): Fix a typo that caused crashes while
+	scrolling through multibyte text.
+
+2012-09-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* alloc.c (mark_object) <PVEC_WINDOW>: Mark prev/next_buffers *after*
+	calling mark_vectorlike since that's the one that marks the window.
+	(mark_discard_killed_buffers): Mark the final cdr.
+	* window.h (struct window): Move prev/next_buffers to the
+	non-standard fields.
+	* window.c (make_window): Initialize prev/next_buffers manually.
+
+2012-09-20  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Omit unused arg EXPECTED from socket hooks.
+	* keyboard.c (gobble_input, read_avail_input, tty_read_avail_input):
+	* nsterm.m (ns_term_init):
+	* termhooks.h (struct terminal.read_socket_hook):
+	* w32inevt.c (w32_console_read_socket):
+	* w32term.c (w32_read_socket):
+	* xterm.c (XTread_socket):
+	Omit unused arg EXPECTED.  All callers changed.
+	(store_user_signal_events): Return void, not int, since callers no
+	longer care about the return value.  All uses changed.
+
+2012-09-20  Juanma Barranquero  <lekktu@gmail.com>
+
+	* w32gui.h (XParseGeometry): Do not declare.
+
+2012-09-19  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* w32inevt.c (w32_console_read_socket): Return -1 on failure, not 0.
+	Ignore 'expected'. See Eli Zaretskii in
+	<http://bugs.gnu.org/12471#8> (last line).
+
+	* frame.c (read_integer): Remove.  All uses replaced by strtol/strtoul.
+	(XParseGeometry): Now static.  Substitute extremal values for
+	values that are out of range.
+
+2012-09-19  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* w32xfns.c (read_integer, XParseGeometry): Move to frame.c.
+
+	* nsfns.m (XParseGeometry): Remove.
+	(Fx_create_frame): Call x_set_offset to correctly interpret
+	top_pos in geometry.
+
+	* frame.c (read_integer, XParseGeometry): Moved from w32xfns.c.
+	(Fx_parse_geometry): If there is a space in string, call
+	Qns_parse_geometry, otherwise do as on other terms (Bug#12368).
+
+2012-09-17  Eli Zaretskii  <eliz@gnu.org>
+
+	* search.c (scan_buffer): Use character positions in calls to
+	region_cache_forward and region_cache_backward, not byte
+	positions.  (Bug#12196)
+
+	* w32term.c (w32_read_socket): Set pending_signals to 1, like
+	xterm.c does.  Reported by Daniel Colascione <dancol@dancol.org>.
+
+	* ralloc.c (r_alloc_init) [!SYSTEM_MALLOC]: Initialize
+	__malloc_extra_blocks to 32 instead of 64, like alloc.c did in
+	emacs_blocked_malloc, now deleted.
+
+2012-09-17  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Remove no-longer-needed Solaris 2.4 vfork bug workaround.
+	The workaround was for improving performance on Solaris 2.4, but
+	is getting in the way now.  Emacs will still work if someone is
+	still running Solaris 2.4 in a museum somewhere; Sun dropped
+	support for Solaris 2.4 in 2003.
+	* callproc.c (Fcall_process) [HAVE_WORKING_VFORK]:
+	* process.c (create_process) [HAVE_WORKING_VFORK]:
+	Omit now-unnecessary workaround for the Solaris 2.4 vfork bug,
+	since Emacs no longer uses vfork on that platform.
+
+2012-09-17  Glenn Morris  <rgm@gnu.org>
+
+	* emacs.c: Use COPYRIGHT.
+
+2012-09-16  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Remove configure's --without-sync-input option (Bug#12450).
+	When auditing signal-handling in preparation for cleaning it up,
+	I found that SYNC_INPUT has race conditions and would be a real
+	pain to fix.  Since it's an undocumented and deprecated
+	configure-time option, now seems like a good time to remove it.
+	Also see <http://bugs.gnu.org/11080#16>.
+	* alloc.c (_bytes_used, __malloc_extra_blocks, _malloc_internal)
+	(_free_internal) [!DOUG_LEA_MALLOC]: Remove decls.
+	(alloc_mutex) [!SYSTEM_MALLOC && !SYNC_INPUT && HAVE_PTHREAD]:
+	(malloc_hysteresis):
+	(check_depth) [XMALLOC_OVERRUN_CHECK]:
+	(MALLOC_BLOCK_INPUT, MALLOC_UNBLOCK_INPUT):
+	(__malloc_hook, __realloc_hook, __free_hook, BYTES_USED)
+	(dont_register_blocks, bytes_used_when_reconsidered)
+	(bytes_used_when_full, emacs_blocked_free, emacs_blocked_malloc)
+	(emacs_blocked_realloc, reset_malloc_hooks, uninterrupt_malloc):
+	[!SYSTEM_MALLOC && !SYNC_INPUT]:
+	Remove. All uses removed.
+	(MALLOC_BLOCK_INPUT, MALLOC_UNBLOCK_INPUT): Use a different
+	implementation, one that depends on whether the new macro
+	XMALLOC_BLOCK_INPUT_CHECK is defined, not on whether SYNC_INPUT
+	is defined.
+	* atimer.c (run_timers, handle_alarm_signal):
+	* keyboard.c (pending_signal, poll_for_input_1, poll_for_input)
+	(handle_async_input, process_pending_signals)
+	(handle_input_available_signal, init_keyboard):
+	* nsterm.m (ns_read_socket):
+	* process.c (wait_reading_process_output):
+	* regex.c (immediate_quit, IMMEDIATE_QUIT_CHECK):
+	* sysdep.c (emacs_sigaction_init) [SA_RESTART]:
+	(emacs_write):
+	* xterm.c (XTread_socket):
+	Assume SYNC_INPUT.
+	* conf_post.h (SA_RESTART) [IRIX6_5]: Do not #undef.
+	* eval.c (handling_signal): Remove.  All uses removed.
+	* lisp.h (ELSE_PENDING_SIGNALS): Remove.
+	All uses replaced with the SYNC_INPUT version.
+	(reset_malloc_hooks, uninterrupt_malloc, handling_signal):
+	Remove decls.
+	* sysdep.c, syssignal.h (main_thread) [FORWARD_SIGNAL_TO_MAIN_THREAD]:
+	Now static.
+
+	* font.c (Ffont_shape_gstring): Remove unused local.
+
+2012-09-16  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (clean): No longer run nextstep's clean.
+
+	* Makefile.in (ns_appdir, ns_appbindir, ns_appsrc): Remove variables.
+	(ns_frag): Remove.
+	(ns-app): Move here from ns.mk, and simplify.
+	(clean): Simplify nextstep entry.
+	* ns.mk: Remove file.
+
 2012-09-17  Kenichi Handa  <handa@gnu.org>
 
 	* font.c (Ffont_shape_gstring): Fix previous change; GLYPHs may

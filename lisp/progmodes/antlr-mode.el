@@ -69,7 +69,7 @@
 ;; This file requires Emacs-20.3, XEmacs-20.4 or higher and package cc-mode.
 
 ;; If antlr-mode is not part of your distribution, put this file into your
-;; load-path and the following into your ~/.emacs:
+;; load-path and the following into your init file:
 ;;   (autoload 'antlr-mode "antlr-mode" nil t)
 ;;   (setq auto-mode-alist (cons '("\\.g\\'" . antlr-mode) auto-mode-alist))
 ;;   (add-hook 'speedbar-load-hook  ; would be too late in antlr-mode.el

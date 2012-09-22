@@ -24,7 +24,7 @@
 ;;; Commentary:
 
 ;; Highlights keywords and pals (friends), and hides or highlights fools
-;; (using a dark color).  Add to your ~/.emacs:
+;; (using a dark color).  Add to your init file:
 
 ;; (require 'erc-track)
 ;; (erc-track-mode 1)

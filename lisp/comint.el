@@ -181,7 +181,7 @@ override the read-only-ness of comint prompts is to call
 `comint-kill-whole-line' or `comint-kill-region' with no
 narrowing in effect.  This way you will be certain that none of
 the remaining prompts will be accidentally messed up.  You may
-wish to put something like the following in your `.emacs' file:
+wish to put something like the following in your init file:
 
 \(add-hook 'comint-mode-hook
 	  (lambda ()
@@ -3161,8 +3161,8 @@ See `completion-table-with-quoting' and `comint-unquote-function'.")
           (complete-with-action action table string pred))))
      (unless (zerop (length filesuffix))
        (list :exit-function
-             (lambda (_s finished)
-               (when (memq finished '(sole finished))
+             (lambda (_s status)
+               (when (eq status 'finished)
                  (if (looking-at (regexp-quote filesuffix))
                      (goto-char (match-end 0))
                    (insert filesuffix)))))))))
