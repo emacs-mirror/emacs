@@ -36,7 +36,7 @@
 	* help.el (temp-buffer-resize-regexps): New option.
 	(temp-buffer-resize-mode): Rewrite doc-string.
 	(resize-temp-buffer-window): Obey temp-buffer-resize-regexps.
-	Don't resize reused window.  Suggested by Glen Morris.
+	Don't resize reused window.  Suggested by Glenn Morris.
 
 2012-09-22  Stefan Merten  <smerten@oekonux.de>
 
