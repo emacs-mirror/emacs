@@ -2138,7 +2138,8 @@ struct it
   const unsigned char *s;
 
   /* Number of characters in the string (s, or it->string) we iterate
-     over.  */
+     over.  Used only in display_string and its subroutines; never
+     used for overlay strings and strings from display properties.  */
   ptrdiff_t string_nchars;
 
   /* Start and end of a visible region; -1 if the region is not
