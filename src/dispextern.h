@@ -2767,6 +2767,10 @@ struct image_type
   /* Free resources of image IMG which is used on frame F.  */
   void (* free) (struct frame *f, struct image *img);
 
+  /* Initialization function (used for dynamic loading of image
+     libraries on Windows), or NULL if none.  */
+  int (* init) (Lisp_Object);
+
   /* Next in list of all supported image types.  */
   struct image_type *next;
 };
