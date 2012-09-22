@@ -1,3 +1,8 @@
+2012-09-22  Kenichi Handa  <handa@gnu.org>
+
+	* composite.c (composition_reseat_it): Handle the case that a
+	grapheme cluster is not covered by a single font (Bug#12352).
+
 2012-09-21  Chong Yidong  <cyd@gnu.org>
 
 	* image.c (define_image_type): Avoid adding duplicate types to
@@ -163,7 +168,7 @@
 	(clean): Simplify nextstep entry.
 	* ns.mk: Remove file.
 
-2012-09-16  Kenichi Handa  <handa@gnu.org>
+2012-09-17  Kenichi Handa  <handa@gnu.org>
 
 	* font.c (Ffont_shape_gstring): Fix previous change; GLYPHs may
 	not covert the last few charactes.
