@@ -1,3 +1,17 @@
+2012-09-22  Stefan Merten  <smerten@oekonux.de>
+
+	* rst.el: Revamp section title faces.
+	(rst-official-version)
+	(rst-package-emacs-version-alist): Sync with official version
+	V1.4.0.
+	(rst-faces-defaults, rst-set-level-default)
+	(rst-level-face-max, rst-level-face-base-color)
+	(rst-level-face-base-light, rst-level-face-format-light)
+	(rst-level-face-step-light, rst-define-level-faces): Obsolete.
+	(rst-adornment-faces-alist): Match new setup.
+	(rst-level-1, rst-level-2, rst-level-3, rst-level-4)
+	(rst-level-5, rst-level-6): New faces.
+
 2012-09-22  Chong Yidong  <cyd@gnu.org>
 
 	* simple.el (undo): Handle indirect buffers (Bug#8207).
