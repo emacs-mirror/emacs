@@ -1,3 +1,12 @@
+2012-09-22  Eli Zaretskii  <eliz@gnu.org>
+
+	* keyboard.c (timer_check_2): Move calculation of 'timers' and
+	'idle_timers' from here ...
+	(timer_check): ... to here.  Use Fcopy_sequence to copy the timer
+	lists, to avoid infloops when the timer does something stupid,
+	like reinvoke itself with the same or smaller time-out.
+	(Bug#12447)
+
 2012-09-22  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.c (Fsplit_window_internal): Handle only Qt value of
