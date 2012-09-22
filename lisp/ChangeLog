@@ -9,6 +9,7 @@
 	(Bug#10909).
 
 	* simple.el (shell-command-on-region): Doc fix.
+	(read-only-mode): Doc fix.
 
 2012-09-22  Eli Zaretskii  <eliz@gnu.org>
 

@@ -6971,7 +6971,7 @@ positive, otherwise make it writable.  If buffer is read-only
 and `view-read-only' is non-nil, enter view mode.
 
 Do not call this from a Lisp program unless you really intend to
-do the same thing as the \\[toggle-read-only] command, including
+do the same thing as the \\[read-only-mode] command, including
 possibly enabling or disabling View mode.  Also, note that this
 command works by setting the variable `buffer-read-only', which
 does not affect read-only regions caused by text properties.  To
