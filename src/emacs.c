@@ -27,6 +27,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <sys/file.h>
 #include <unistd.h>
 
+#include <ignore-value.h>
+
 #include "lisp.h"
 
 #ifdef HAVE_WINDOW_SYSTEM
@@ -2012,7 +2014,12 @@ shut_down_emacs (int sig, Lisp_Object stuff)
       {
 	reset_all_sys_modes ();
 	if (sig && sig != SIGTERM)
-	  fprintf (stderr, "Fatal error %d: %s", sig, strsignal (sig));
+	  {
+	    char buf[100];
+	    int buflen = snprintf (buf, sizeof buf, "Fatal error %d: %s",
+				   sig, strsignal (sig));
+	    ignore_value (write (STDERR_FILENO, buf, buflen));
+	  }
       }
   }
 #else
