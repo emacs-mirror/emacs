@@ -1,5 +1,8 @@
 2012-09-22  Chong Yidong  <cyd@gnu.org>
 
+	* files.el (ctl-x-map): Bind C-x C-q to read-only-mode
+	(Bug#12462).
+
 	* repeat.el (repeat): Doc fix (Bug#12348).
 
 	* emacs-lisp/easy-mmode.el (define-minor-mode): Doc fix
