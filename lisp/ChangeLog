@@ -1,3 +1,7 @@
+2012-09-22  Chong Yidong  <cyd@gnu.org>
+
+	* simple.el (undo): Handle indirect buffers (Bug#8207).
+
 2012-09-21  Leo Liu  <sdl.web@gmail.com>
 
 	IDO: Disable match re-ordering for buffer switching.

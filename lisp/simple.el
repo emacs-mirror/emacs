@@ -1855,9 +1855,13 @@ as an argument limits undo to changes within the current region."
   ;; another undo command will find the undo history empty
   ;; and will get another error.  To begin undoing the undos,
   ;; you must type some other command.
-  (let ((modified (buffer-modified-p))
-	(recent-save (recent-auto-save-p))
-	message)
+  (let* ((modified (buffer-modified-p))
+	 ;; For an indirect buffer, look in the base buffer for the
+	 ;; auto-save data.
+	 (base-buffer (or (buffer-base-buffer) (current-buffer)))
+	 (recent-save (with-current-buffer base-buffer
+			(recent-auto-save-p)))
+	 message)
     ;; If we get an error in undo-start,
     ;; the next command should not be a "consecutive undo".
     ;; So set `this-command' to something other than `undo'.
@@ -1935,7 +1939,8 @@ as an argument limits undo to changes within the current region."
     ;; Record what the current undo list says,
     ;; so the next command can tell if the buffer was modified in between.
     (and modified (not (buffer-modified-p))
-	 (delete-auto-save-file-if-necessary recent-save))
+	 (with-current-buffer base-buffer
+	   (delete-auto-save-file-if-necessary recent-save)))
     ;; Display a message announcing success.
     (if message
 	(message "%s" message))))

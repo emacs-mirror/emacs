@@ -1341,9 +1341,13 @@ A non-nil FLAG means mark the buffer modified.  */)
   /* If buffer becoming modified, lock the file.
      If buffer becoming unmodified, unlock the file.  */
 
-  fn = BVAR (current_buffer, file_truename);
+  struct buffer *b = current_buffer->base_buffer
+    ? current_buffer->base_buffer
+    : current_buffer;
+
+  fn = BVAR (b, file_truename);
   /* Test buffer-file-name so that binding it to nil is effective.  */
-  if (!NILP (fn) && ! NILP (BVAR (current_buffer, filename)))
+  if (!NILP (fn) && ! NILP (BVAR (b, filename)))
     {
       bool already = SAVE_MODIFF < MODIFF;
       if (!already && !NILP (flag))

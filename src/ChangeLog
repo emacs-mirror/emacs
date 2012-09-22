@@ -1,3 +1,8 @@
+2012-09-22  Chong Yidong  <cyd@gnu.org>
+
+	* buffer.c (Fset_buffer_modified_p): Handle indirect buffers
+	(Bug#8207).
+
 2012-09-22  Kenichi Handa  <handa@gnu.org>
 
 	* composite.c (composition_reseat_it): Handle the case that a
