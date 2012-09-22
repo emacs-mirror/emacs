@@ -719,15 +719,21 @@ recursive invocations.
 *** The functions get-lru-window, get-mru-window and get-largest-window
 now accept a third argument to avoid choosing the selected window.
 
+*** Additional values recognized for option `window-combination-limit'.
+
 *** New macro `with-temp-buffer-window'.
 
-*** New option `temp-buffer-resize-frames'.
+*** New options `temp-buffer-resize-frames' and
+`temp-buffer-resize-regexps'.
+
+*** `temp-buffer-resize-mode' no longer resizes windows that have been
+reused.
 
 *** New function `fit-frame-to-buffer' and new option
-    `fit-frame-to-buffer-bottom-margin'.
+`fit-frame-to-buffer-bottom-margin'.
 
-*** New display action functions `display-buffer-below-selected' and
-`display-buffer-in-previous-window'.
+*** New display action functions `display-buffer-below-selected',
+`display-buffer-at-bottom' and `display-buffer-in-previous-window'.
 
 *** New display action alist entry `inhibit-switch-frame', if non-nil,
 tells display action functions to avoid changing which frame is

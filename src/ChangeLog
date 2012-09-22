@@ -1,3 +1,11 @@
+2012-09-22  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.c (Fsplit_window_internal): Handle only Qt value of
+	Vwindow_combination_limit separately.
+	(Qtemp_buffer_resize): New symbol.
+	(Vwindow_combination_limit): New default value.  Rewrite
+	doc-string.
+
 2012-09-22  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (next_overlay_string): Initialize it->end_charpos for

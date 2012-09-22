@@ -1,3 +1,18 @@
+2012-09-22  Martin Rudalics  <rudalics@gmx.at>
+
+	* cus-start.el (window-combination-limit): Add new optional
+	values.
+	* window.el (temp-buffer-window-show)
+	(window--try-to-split-window): Handle new values of
+	window-combination-limit (Bug#1806).
+	(split-window): Test window-combination-limit for t instead of
+	non-nil.
+	(display-buffer-at-bottom): New buffer display action function.
+	* help.el (temp-buffer-resize-regexps): New option.
+	(temp-buffer-resize-mode): Rewrite doc-string.
+	(resize-temp-buffer-window): Obey temp-buffer-resize-regexps.
+	Don't resize reused window.  Suggested by Glen Morris.
+
 2012-09-22  Stefan Merten  <smerten@oekonux.de>
 
 	* rst.el: Revamp section title faces.
