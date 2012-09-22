@@ -2015,10 +2015,12 @@ shut_down_emacs (int sig, Lisp_Object stuff)
 	reset_all_sys_modes ();
 	if (sig && sig != SIGTERM)
 	  {
-	    char buf[100];
-	    int buflen = snprintf (buf, sizeof buf, "Fatal error %d: %s",
-				   sig, strsignal (sig));
+	    static char const format[] = "Fatal error %d: ";
+	    char buf[sizeof format - 2 + INT_STRLEN_BOUND (int)];
+	    int buflen = sprintf (buf, format, sig);
+	    char const *sig_desc = strsignal (sig);
 	    ignore_value (write (STDERR_FILENO, buf, buflen));
+	    ignore_value (write (STDERR_FILENO, sig_desc, strlen (sig_desc)));
 	  }
       }
   }
