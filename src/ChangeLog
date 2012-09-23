@@ -1,3 +1,8 @@
+2012-09-23  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xterm.c (x_term_init): Call fixup_locale before and after calling
+	gtk_init (Bug#12392).
+
 2012-09-23  Chong Yidong  <cyd@gnu.org>
 
 	* w32.c (w32_delayed_load): Remove LIBRARIES argument; always use

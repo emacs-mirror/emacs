@@ -9957,11 +9957,13 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
            Call before gtk_init so Gtk+ event filters comes after our.  */
         gdk_window_add_filter (NULL, event_handler_gdk, NULL);
 
+        /* gtk_init does set_locale.  Fix locale before and after.  */
+        fixup_locale ();
         gtk_init (&argc, &argv2);
+        fixup_locale ();
+
         g_log_remove_handler ("GLib", id);
 
-        /* gtk_init does set_locale.  We must fix locale after calling it.  */
-        fixup_locale ();
         xg_initialize ();
 
         dpy = DEFAULT_GDK_DISPLAY ();
