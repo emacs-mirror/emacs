@@ -17,6 +17,7 @@
 	(init_tiff_functions, init_gif_functions, init_svg_functions):
 	Arglist and w32_delayed_load calling convention changed.
 	(gs_type): Remove init_gs_functions; there is no such function.
+	(valid_image_p, make_image): Fix caller to lookup_image_type.
 
 2012-09-23  Paul Eggert  <eggert@cs.ucla.edu>
 

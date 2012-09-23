@@ -562,7 +562,7 @@ static Lisp_Object Qlaplace, Qemboss, Qedge_detection, Qheuristic;
 /* Function prototypes.  */
 
 static struct image_type *define_image_type (struct image_type *, Lisp_Object);
-static struct image_type *lookup_image_type (Lisp_Object, Lisp_Object);
+static struct image_type *lookup_image_type (Lisp_Object);
 static void image_error (const char *format, Lisp_Object, Lisp_Object);
 static void x_laplace (struct frame *, struct image *);
 static void x_emboss (struct frame *, struct image *);
@@ -648,7 +648,7 @@ valid_image_p (Lisp_Object object)
 	    if (CONSP (tem) && SYMBOLP (XCAR (tem)))
 	      {
 		struct image_type *type;
-		type = lookup_image_type (XCAR (tem), Qnil);
+		type = lookup_image_type (XCAR (tem));
 		if (type)
 		  valid_p = type->valid_p (object);
 	      }
@@ -981,7 +981,7 @@ make_image (Lisp_Object spec, EMACS_UINT hash)
 
   eassert (valid_image_p (spec));
   img->dependencies = NILP (file) ? Qnil : list1 (file);
-  img->type = lookup_image_type (image_spec_value (spec, QCtype, NULL), Qnil);
+  img->type = lookup_image_type (image_spec_value (spec, QCtype, NULL));
   eassert (img->type != NULL);
   img->spec = spec;
   img->lisp_data = Qnil;
