@@ -285,6 +285,7 @@ static void *ns_pool;
 _Noreturn void
 terminate_due_to_signal (int sig, int backtrace_limit)
 {
+  signal (sig, SIG_DFL);
   totally_unblock_input ();
 
   /* If fatal error occurs in code below, avoid infinite recursion.  */

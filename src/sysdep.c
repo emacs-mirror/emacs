@@ -1763,7 +1763,7 @@ init_signals (bool dumping)
 
   sigfillset (&process_fatal_action.sa_mask);
   process_fatal_action.sa_handler = deliver_fatal_signal;
-  process_fatal_action.sa_flags = emacs_sigaction_flags () | SA_NODEFER;
+  process_fatal_action.sa_flags = emacs_sigaction_flags ();
 
   sigfillset (&thread_fatal_action.sa_mask);
   thread_fatal_action.sa_handler = deliver_fatal_thread_signal;
@@ -2044,7 +2044,6 @@ emacs_backtrace (int backtrace_limit)
 void
 emacs_abort (void)
 {
-  signal (SIGABRT, SIG_DFL);
   terminate_due_to_signal (SIGABRT, 10);
 }
 #endif

@@ -1,3 +1,14 @@
+2012-09-23  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Do not use SA_NODEFER.
+	Problem reported by Dani Moncayo in
+	<http://lists.gnu.org/archive/html/emacs-devel/2012-09/msg00557.html>.
+	* alloc.c (die):
+	* sysdep.c (emacs_abort): Do not reset signal handler.
+	* emacs.c (terminate_due_to_signal): Reset signal handler here.
+	* sysdep.c (init_signals): Do not use SA_NODEFER.  It wasn't
+	wanted even on POSIXish hosts, and it doesn't work on Windows.
+
 2012-09-23  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xterm.c (x_term_init): Call fixup_locale before and after calling
