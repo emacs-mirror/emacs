@@ -2979,7 +2979,8 @@ ns_dumpglyphs_image (struct glyph_string *s, NSRect r)
   if (img != nil)
     {
 #if !defined (NS_IMPL_COCOA) || MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_6
-      [img drawInRect: br
+      NSRect dr = NSMakeRect (x, y, s->slice.width, s->slice.height);
+      [img drawInRect: dr
              fromRect: NSZeroRect
              operation: NSCompositeSourceOver
               fraction: 1.0
