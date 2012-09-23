@@ -1,3 +1,8 @@
+2012-09-23  Juanma Barranquero  <lekktu@gmail.com>
+
+	* w32term.c (w32_read_socket): Remove leftover reference to
+	interrupt_input_pending.
+
 2012-09-23  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Do not use SA_NODEFER.

@@ -4157,7 +4157,6 @@ w32_read_socket (struct terminal *terminal,
   struct w32_display_info *dpyinfo = &one_w32_display_info;
   Mouse_HLInfo *hlinfo = &dpyinfo->mouse_highlight;
 
-  interrupt_input_pending = 0;
   block_input ();
 
   /* So people can tell when we have read the available input.  */
