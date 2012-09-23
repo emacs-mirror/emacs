@@ -3333,7 +3333,6 @@ extern int wait_reading_process_output (intmax_t, int, int, int,
 #endif
 extern void add_keyboard_wait_descriptor (int);
 extern void delete_keyboard_wait_descriptor (int);
-extern void record_child_status_change (pid_t, int);
 #ifdef HAVE_GPM
 extern void add_gpm_wait_descriptor (int);
 extern void delete_gpm_wait_descriptor (int);
@@ -3421,8 +3420,6 @@ extern void init_sys_modes (struct tty_display_info *);
 extern void reset_sys_modes (struct tty_display_info *);
 extern void init_all_sys_modes (void);
 extern void reset_all_sys_modes (void);
-extern void wait_for_termination (pid_t);
-extern void interruptible_wait_for_termination (pid_t);
 extern void flush_pending_output (int) ATTRIBUTE_CONST;
 extern void child_setup_tty (int);
 extern void setup_pty (int);

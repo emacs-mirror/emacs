@@ -1,5 +1,13 @@
 2012-09-23  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Move pid_t related decls out of lisp.h.
+	* lisp.h, syswait.h (record_child_status_change, wait_for_termination)
+	(interruptible_wait_for_termination):
+	Move these decls from lisp.h to syswait.h, since they use pid_t.
+	Needed on FreeBSD; see Herbert J. Skuhra in
+	<http://lists.gnu.org/archive/html/emacs-devel/2012-09/msg00571.html>.
+	* callproc.c: Include syswait.h.
+
 	gnutls.c, gtkutil.c: Use bool for boolean.
 	* gnutls.c (gnutls_global_initialized, init_gnutls_functions)
 	(emacs_gnutls_handle_error):

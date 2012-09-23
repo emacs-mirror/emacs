@@ -51,6 +51,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "process.h"
 #include "syssignal.h"
 #include "systty.h"
+#include "syswait.h"
 #include "blockinput.h"
 #include "frame.h"
 #include "termhooks.h"
