@@ -755,10 +755,16 @@ They are removed from `ibuffer-saved-filter-groups'."
 The value from `ibuffer-saved-filter-groups' is used."
   (interactive
    (list
-    (if (null ibuffer-saved-filter-groups)
-	(error "No saved filters")
-      (completing-read "Switch to saved filter group: "
-		       ibuffer-saved-filter-groups nil t))))
+    (cond ((null ibuffer-saved-filter-groups)
+           (error "No saved filters"))
+          ;; `ibuffer-saved-filter-groups' is a user variable that defaults
+          ;; to nil.  We assume that with one element in this list the user
+          ;; knows what she wants.  See bug#12331.
+          ((null (cdr ibuffer-saved-filter-groups))
+           (caar ibuffer-saved-filter-groups))
+          (t
+           (completing-read "Switch to saved filter group: "
+                            ibuffer-saved-filter-groups nil t)))))
   (setq ibuffer-filter-groups (cdr (assoc name ibuffer-saved-filter-groups))
 	ibuffer-hidden-filter-groups nil)
   (ibuffer-update nil t))
