@@ -411,7 +411,7 @@ server properties.
 ** In Perl mode, new option `perl-indent-parens-as-block' causes non-block
 closing brackets to be aligned with the line of the opening bracket.
 
-** In Proced mode, new command `proced-renice' renices selected processes.
+** In Proced mode, new command `proced-renice' renices marked processes.
 
 ** Python mode
 
