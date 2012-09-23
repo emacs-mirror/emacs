@@ -1,3 +1,8 @@
+2012-09-23  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* Makefile.in (bootstrap): Set MAKEFILE_NAME when building Makefile,
+	to avoid problems with recursion when using GNU make.
+
 2012-09-22  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* Makefile.in (bootstrap): Simplify build procedure.
