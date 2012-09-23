@@ -25,7 +25,17 @@ AC_CONFIG_SRCDIR([code/mps.c])
 
 # Checks for programs.
 AC_PROG_CC
+AC_LANG_C
 AC_PROG_INSTALL
+
+AX_CFLAGS_WARN_ALL
+
+# These flags aren't used for building the MPS, but for sample programs.
+CFLAGS_GC="-ansi -pedantic -Wall -Werror -Wpointer-arith \
+	-Wstrict-prototypes -Wmissing-prototypes \
+	-Winline -Waggregate-return -Wnested-externs \
+	-Wcast-qual -Wshadow -Wstrict-aliasing=2 -O -g3"
+CFLAGS_LL="$CFLAGS_GC -Wno-extended-offsetof"
 
 AC_CANONICAL_HOST
 AC_MSG_CHECKING([target platform])
@@ -36,10 +46,12 @@ case $host in
   i*86-*-linux*)
       AC_MSG_RESULT([Linux x86])
       MPS_TARGET_NAME=lii3gc
+      CFLAGS="$CFLAGS_GC"
     ;;
   x86_64-*-linux*)
       AC_MSG_RESULT([Linux x86_64])
       MPS_TARGET_NAME=lii6gc
+      CFLAGS="$CFLAGS_GC"
     ;;
   i*86-*-darwin*)
       AC_MSG_RESULT([Mac OS X x86])
@@ -47,6 +59,7 @@ case $host in
       BUILD_TARGET=build-via-xcode
       CLEAN_TARGET=clean-xcode-build
       INSTALL_TARGET=install-xcode-build
+      CFLAGS="$CFLAGS_LL"
     ;;
   x86_64-apple-darwin*)
       AC_MSG_RESULT([Mac OS X x86_64])
@@ -54,14 +67,17 @@ case $host in
       BUILD_TARGET=build-via-xcode
       CLEAN_TARGET=clean-xcode-build
       INSTALL_TARGET=install-xcode-build
+      CFLAGS="$CFLAGS_LL"
     ;;
   i*86-*-freebsd*)
       AC_MSG_RESULT([FreeBSD x86])
       MPS_TARGET_NAME=fri3gc
+      CFLAGS="$CFLAGS_GC"
     ;;
   amd64-*-freebsd*)
       AC_MSG_RESULT([FreeBSD x86_64])
       MPS_TARGET_NAME=fri6gc
+      CFLAGS="$CFLAGS_GC"
     ;;
   *)
     AC_MSG_ERROR([MPS does not support this platform out of the box.  See manual/build.txt])
@@ -76,6 +92,9 @@ AC_SUBST(MPS_TARGET_NAME)
 AC_SUBST(BUILD_TARGET)
 AC_SUBST(CLEAN_TARGET)
 AC_SUBST(INSTALL_TARGET)
-AC_CONFIG_FILES(Makefile)
+AC_SUBST(CFLAGS)
+AC_CONFIG_FILES(Makefile example/scheme/Makefile)
 
 AC_OUTPUT
+
+echo 1>&2 "CONFIGURE/MAKE IS NOT THE BEST WAY TO BUILD THE MPS -- see <manual/build.txt>"
