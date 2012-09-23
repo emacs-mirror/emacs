@@ -561,7 +561,7 @@ static Lisp_Object Qlaplace, Qemboss, Qedge_detection, Qheuristic;
 
 /* Function prototypes.  */
 
-static struct image_type *define_image_type (struct image_type *, Lisp_Object);
+static struct image_type *define_image_type (struct image_type *);
 static struct image_type *lookup_image_type (Lisp_Object);
 static void image_error (const char *format, Lisp_Object, Lisp_Object);
 static void x_laplace (struct frame *, struct image *);
