@@ -897,16 +897,27 @@ possible indentation levels and saves it in the variable
 `python-indent-levels'.  Afterwards it sets the variable
 `python-indent-current-level' correctly so offset is equal
 to (`nth' `python-indent-current-level' `python-indent-levels')"
-  (if (or (and (eq this-command 'indent-for-tab-command)
-               (eq last-command this-command))
-          force-toggle)
-      (if (not (equal python-indent-levels '(0)))
-          (python-indent-toggle-levels)
-        (python-indent-calculate-levels))
-    (python-indent-calculate-levels))
-  (beginning-of-line)
-  (delete-horizontal-space)
-  (indent-to (nth python-indent-current-level python-indent-levels))
+  (or
+   (and (or (and (eq this-command 'indent-for-tab-command)
+                 (eq last-command this-command))
+            force-toggle)
+        (not (equal python-indent-levels '(0)))
+        (or (python-indent-toggle-levels) t))
+   (python-indent-calculate-levels))
+  (let* ((starting-pos (point-marker))
+         (indent-ending-position
+          (+ (line-beginning-position) (current-indentation)))
+         (follow-indentation-p
+          (or (bolp)
+              (and (<= (line-beginning-position) starting-pos)
+                   (>= indent-ending-position starting-pos))))
+         (next-indent (nth python-indent-current-level python-indent-levels)))
+    (unless (= next-indent (current-indentation))
+      (beginning-of-line)
+      (delete-horizontal-space)
+      (indent-to next-indent)
+      (goto-char starting-pos))
+    (and follow-indentation-p (back-to-indentation)))
   (python-info-closing-block-message))
 
 (defun python-indent-line-function ()

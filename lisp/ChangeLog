@@ -1,3 +1,8 @@
+2012-09-23  Fabián Ezequiel Gallina  <fgallina@cuca>
+
+	* progmodes/python.el (python-indent-line): More consistent cursor
+	movement behavior.
+
 2012-09-23  Stefan Merten  <smerten@oekonux.de>
 
 	* textmodes/rst.el: Fix compiler warning.
