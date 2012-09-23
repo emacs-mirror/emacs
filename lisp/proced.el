@@ -28,8 +28,11 @@
 ;; listed.  See `proced-mode' for getting started.
 ;;
 ;; To do:
-;; - interactive temporary customizability of flags in `proced-grammar-alist'
-;; - allow "sudo kill PID", "renice PID"
+;; - Interactive temporary customizability of flags in `proced-grammar-alist'
+;; - Allow "sudo kill PID", "sudo renice PID"
+;;   `proced-send-signal' operates on multiple processes one by one.
+;;   With "sudo" we want to execute one "kill" or "renice" command
+;;   for all marked processes. Is there a `sudo-call-process'?
 ;;
 ;; Thoughts and Ideas
 ;; - Currently, `process-attributes' returns the list of
@@ -61,6 +64,11 @@ the external command (usually \"kill\")."
   :group 'proced
   :type '(choice (function :tag "function")
                  (string :tag "command")))
+
+(defcustom proced-renice-command "renice"
+  "Name of renice command."
+  :group 'proced
+  :type '(string :tag "command"))
 
 (defcustom proced-signal-list
   '( ;; signals supported on all POSIX compliant systems
@@ -491,6 +499,7 @@ Important: the match ends just after the marker.")
     (define-key km "o" 'proced-omit-processes)
     (define-key km "x" 'proced-send-signal) ; Dired compatibility
     (define-key km "k" 'proced-send-signal) ; kill processes
+    (define-key km "r" 'proced-renice) ; renice processes
     ;; misc
     (define-key km "h" 'describe-mode)
     (define-key km "?" 'proced-help)
@@ -561,8 +570,11 @@ Important: the match ends just after the marker.")
      :style toggle
      :selected (eval proced-auto-update-flag)
      :help "Auto Update of Proced Buffer"]
+    "--"
     ["Send signal" proced-send-signal
-     :help "Send Signal to Marked Processes"]))
+     :help "Send Signal to Marked Processes"]
+    ["Renice" proced-renice
+     :help "Renice Marked Processes"]))
 
 ;; helper functions
 (defun proced-marker-regexp ()
@@ -1686,14 +1698,11 @@ After updating a displayed Proced buffer run the normal hook
 Preserves point and marks."
   (proced-update t))
 
-(defun proced-send-signal (&optional signal)
-  "Send a SIGNAL to the marked processes.
-If no process is marked, operate on current process.
-SIGNAL may be a string (HUP, INT, TERM, etc.) or a number.
-If SIGNAL is nil display marked processes and query interactively for SIGNAL.
-After sending the signal, this command runs the normal hook
-`proced-after-send-signal-hook'."
-  (interactive)
+(defun proced-marked-processes ()
+  "Return marked processes as alist of PIDs.
+If no process is marked return alist with the PID of the process point is on.
+The cdrs of the alist are the text strings displayed by Proced for these
+processes.  They are used for error messages."
   (let ((regexp (proced-marker-regexp))
         process-alist)
     ;; collect marked processes
@@ -1706,102 +1715,183 @@ After sending the signal, this command runs the normal hook
                      (+ 2 (line-beginning-position))
                      (line-end-position)))
               process-alist)))
-    (setq process-alist
-          (if process-alist
-              (nreverse process-alist)
-            ;; take current process
-            (list (cons (proced-pid-at-point)
+    (if process-alist
+        (nreverse process-alist)
+      ;; take current process
+      (let ((pid (proced-pid-at-point)))
+        (if pid
+            (list (cons pid
                         (buffer-substring-no-properties
                          (+ 2 (line-beginning-position))
-                         (line-end-position))))))
+                         (line-end-position)))))))))
+
+(defmacro proced-with-processes-buffer (process-alist &rest body)
+  "Execute the forms in BODY in a temporary buffer displaying PROCESS-ALIST.
+PROCESS-ALIST is an alist of process PIDs as in `proced-process-alist'.
+The value returned is the value of the last form in BODY."
+  (declare (indent 1) (debug t))
+  ;; Use leading space in buffer name to make this buffer ephemeral
+  `(let ((bufname  " *Marked Processes*")
+         (header-line (substring-no-properties proced-header-line)))
+     (with-current-buffer (get-buffer-create bufname)
+       (setq truncate-lines t
+             proced-header-line header-line ; inherit header line
+             header-line-format '(:eval (proced-header-line)))
+       (add-hook 'post-command-hook 'force-mode-line-update nil t)
+       (let ((inhibit-read-only t))
+         (erase-buffer)
+         (buffer-disable-undo)
+         (setq buffer-read-only t)
+         (dolist (process ,process-alist)
+           (insert "  " (cdr process) "\n"))
+         (delete-char -1)
+         (goto-char (point-min)))
+       (save-window-excursion
+         ;; Analogous to `dired-pop-to-buffer'
+         ;; Don't split window horizontally.  (Bug#1806)
+         (let (split-width-threshold)
+           (pop-to-buffer (current-buffer)))
+         (fit-window-to-buffer (get-buffer-window) nil 1)
+         ,@body))))
+
+(defun proced-send-signal (&optional signal process-alist)
+  "Send a SIGNAL to processes in PROCESS-ALIST.
+PROCESS-ALIST is an alist as returned by `proced-marked-processes'.
+Interactively, PROCESS-ALIST contains the marked processes.
+If no process is marked, it contains the process point is on,
+SIGNAL may be a string (HUP, INT, TERM, etc.) or a number.
+After sending SIGNAL to all processes in PROCESS-ALIST, this command
+runs the normal hook `proced-after-send-signal-hook'.
+
+For backward compatibility SIGNAL and PROCESS-ALIST may be nil.
+Then PROCESS-ALIST contains the marked processes or the process point is on
+and SIGNAL is queried interactively.  This noninteractive usage is still
+supported but discouraged.  It will be removed in a future version of Emacs."
+  (interactive
+   (let* ((process-alist (proced-marked-processes))
+          (pnum (if (= 1 (length process-alist))
+                    "1 process"
+                  (format "%d processes" (length process-alist))))
+          (completion-ignore-case t)
+          (completion-extra-properties
+           '(:annotation-function
+             (lambda (s) (cdr (assoc s proced-signal-list))))))
+     (proced-with-processes-buffer process-alist
+       (list (completing-read (concat "Send signal [" pnum
+                                      "] (default TERM): ")
+                              proced-signal-list
+                              nil nil nil nil "TERM")
+             process-alist))))
+
+  (unless (and signal process-alist)
+    ;; Discouraged usge (supported for backward compatibility):
+    ;; The new calling sequence separates more cleanly between the parts
+    ;; of the code required for interactive and noninteractive calls so that
+    ;; the command can be used more flexibly in noninteractive ways, too.
+    (unless (get 'proced-send-signal 'proced-outdated)
+       (put 'proced-send-signal 'proced-outdated t)
+       (message "Outdated usage of `proced-send-signal'")
+       (sit-for 2))
+    (setq process-alist (proced-marked-processes))
     (unless signal
-      ;; Display marked processes (code taken from `dired-mark-pop-up').
-      (let ((bufname  " *Marked Processes*") ; use leading space in buffer name
-					; to make this buffer ephemeral
-            (header-line (substring-no-properties proced-header-line)))
-        (with-current-buffer (get-buffer-create bufname)
-          (setq truncate-lines t
-                proced-header-line header-line ; inherit header line
-                header-line-format '(:eval (proced-header-line)))
-          (add-hook 'post-command-hook 'force-mode-line-update nil t)
-          (let ((inhibit-read-only t))
-            (erase-buffer)
-            (buffer-disable-undo)
-            (setq buffer-read-only t)
-            (dolist (process process-alist)
-              (insert "  " (cdr process) "\n"))
-            (delete-char -1)
-            (goto-char (point-min)))
-          (save-window-excursion
-            ;; Analogous to `dired-pop-to-buffer'
-            ;; Don't split window horizontally.  (Bug#1806)
-            (let (split-width-threshold)
-              (pop-to-buffer (current-buffer)))
-            (fit-window-to-buffer (get-buffer-window) nil 1)
-            (let* ((completion-ignore-case t)
-                   (pnum (if (= 1 (length process-alist))
-                             "1 process"
-                           (format "%d processes" (length process-alist))))
-                   (completion-extra-properties
-                    '(:annotation-function
-                      (lambda (s) (cdr (assoc s proced-signal-list))))))
-              (setq signal
-                    (completing-read (concat "Send signal [" pnum
-                                             "] (default TERM): ")
-                                     proced-signal-list
-                                     nil nil nil nil "TERM")))))))
-    ;; send signal
-    (let ((count 0)
-          failures)
-      ;; Why not always use `signal-process'?  See
-      ;; http://lists.gnu.org/archive/html/emacs-devel/2008-03/msg02955.html
-      (if (functionp proced-signal-function)
-          ;; use built-in `signal-process'
-          (let ((signal (if (stringp signal)
-                            (if (string-match "\\`[0-9]+\\'" signal)
-                                (string-to-number signal)
-                              (make-symbol signal))
-                          signal)))   ; number
-            (dolist (process process-alist)
-              (condition-case err
-                  (if (zerop (funcall
-                              proced-signal-function (car process) signal))
-                      (setq count (1+ count))
-                    (proced-log "%s\n" (cdr process))
-                    (push (cdr process) failures))
-                (error ; catch errors from failed signals
-                 (proced-log "%s\n" err)
-                 (proced-log "%s\n" (cdr process))
-                 (push (cdr process) failures)))))
-        ;; use external system call
-        (let ((signal (concat "-" (if (numberp signal)
-                                      (number-to-string signal) signal))))
+      (let ((pnum (if (= 1 (length process-alist))
+                      "1 process"
+                    (format "%d processes" (length process-alist))))
+            (completion-ignore-case t)
+            (completion-extra-properties
+             '(:annotation-function
+               (lambda (s) (cdr (assoc s proced-signal-list))))))
+        (proced-with-processes-buffer process-alist
+          (setq signal (completing-read (concat "Send signal [" pnum
+                                                "] (default TERM): ")
+                                        proced-signal-list
+                                        nil nil nil nil "TERM"))))))
+
+  (let (failures)
+    ;; Why not always use `signal-process'?  See
+    ;; http://lists.gnu.org/archive/html/emacs-devel/2008-03/msg02955.html
+    (if (functionp proced-signal-function)
+        ;; use built-in `signal-process'
+        (let ((signal (if (stringp signal)
+                          (if (string-match "\\`[0-9]+\\'" signal)
+                              (string-to-number signal)
+                            (make-symbol signal))
+                        signal)))   ; number
           (dolist (process process-alist)
-            (with-temp-buffer
-              (condition-case nil
-                  (if (zerop (call-process
-                              proced-signal-function nil t nil
-                              signal (number-to-string (car process))))
-                      (setq count (1+ count))
-                    (proced-log (current-buffer))
-                    (proced-log "%s\n" (cdr process))
-                    (push (cdr process) failures))
-                (error ; catch errors from failed signals
-                 (proced-log (current-buffer))
-                 (proced-log "%s\n" (cdr process))
-                 (push (cdr process) failures)))))))
-      (if failures
-          ;; Proced error message are not always very precise.
-          ;; Can we issue a useful one-line summary in the
-          ;; message area (using FAILURES) if only one signal failed?
-          (proced-log-summary
-           signal
-           (format "%d of %d signal%s failed"
-                   (length failures) (length process-alist)
-                   (if (= 1 (length process-alist)) "" "s")))
-        (proced-success-message "Sent signal to" count)))
-    ;; final clean-up
-    (run-hooks 'proced-after-send-signal-hook)))
+            (condition-case err
+                (unless (zerop (funcall
+                                proced-signal-function (car process) signal))
+                  (proced-log "%s\n" (cdr process))
+                  (push (cdr process) failures))
+              (error ; catch errors from failed signals
+               (proced-log "%s\n" err)
+               (proced-log "%s\n" (cdr process))
+               (push (cdr process) failures)))))
+      ;; use external system call
+      (let ((signal (format "-%s" signal)))
+        (dolist (process process-alist)
+          (with-temp-buffer
+            (condition-case nil
+                (unless (zerop (call-process
+                                proced-signal-function nil t nil
+                                signal (number-to-string (car process))))
+                  (proced-log (current-buffer))
+                  (proced-log "%s\n" (cdr process))
+                  (push (cdr process) failures))
+              (error ; catch errors from failed signals
+               (proced-log (current-buffer))
+               (proced-log "%s\n" (cdr process))
+               (push (cdr process) failures)))))))
+    (if failures
+        ;; Proced error message are not always very precise.
+        ;; Can we issue a useful one-line summary in the
+        ;; message area (using FAILURES) if only one signal failed?
+        (proced-log-summary
+         (format "Signal %s" signal)
+         (format "%d of %d signal%s failed"
+                 (length failures) (length process-alist)
+                 (if (= 1 (length process-alist)) "" "s")))
+      (proced-success-message "Sent signal to" (length process-alist))))
+  ;; final clean-up
+  (run-hooks 'proced-after-send-signal-hook))
+
+(defun proced-renice (priority process-alist)
+  "Renice the processes in PROCESS-ALIST to PRIORITY.
+PROCESS-ALIST is an alist as returned by `proced-marked-processes'.
+Interactively, PROCESS-ALIST contains the marked processes.
+If no process is marked, it contains the process point is on,
+After renicing all processes in PROCESS-ALIST, this command runs
+the normal hook `proced-after-send-signal-hook'."
+  (interactive
+   (let ((process-alist (proced-marked-processes)))
+     (proced-with-processes-buffer process-alist
+       (list (read-number "New priority: ")
+             process-alist))))
+  (if (numberp priority)
+      (setq priority (number-to-string priority)))
+  (let (failures)
+    (dolist (process process-alist)
+      (with-temp-buffer
+        (condition-case nil
+            (unless (zerop (call-process
+                            proced-renice-command nil t nil
+                            priority (number-to-string (car process))))
+              (proced-log (current-buffer))
+              (proced-log "%s\n" (cdr process))
+              (push (cdr process) failures))
+          (error ; catch errors from failed renice
+           (proced-log (current-buffer))
+           (proced-log "%s\n" (cdr process))
+           (push (cdr process) failures)))))
+    (if failures
+        (proced-log-summary
+         (format "Renice %s" priority)
+         (format "%d of %d renice%s failed"
+                 (length failures) (length process-alist)
+                 (if (= 1 (length process-alist)) "" "s")))
+      (proced-success-message "Reniced" (length process-alist))))
+  ;; final clean-up
+  (run-hooks 'proced-after-send-signal-hook))
 
 ;; similar to `dired-why'
 (defun proced-why ()
