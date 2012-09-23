@@ -1,3 +1,7 @@
+2012-09-23  Stefan Merten  <smerten@oekonux.de>
+
+	* textmodes/rst.el: Fix compiler warning.
+
 2012-09-23  Roland Winkler  <winkler@gnu.org>
 
 	* textmodes/bibtex.el (bibtex-autokey-transcriptions): Transcribe
@@ -79,7 +83,7 @@
 
 2012-09-22  Stefan Merten  <smerten@oekonux.de>
 
-	* rst.el: Revamp section title faces.
+	* textmodes/rst.el: Revamp section title faces.
 	(rst-official-version)
 	(rst-package-emacs-version-alist): Sync with official version
 	V1.4.0.
@@ -154,7 +158,7 @@
 
 2012-09-20  Stefan Merten  <smerten@oekonux.de>
 
-	* rst.el: Integrate support for `imenu' and `which-function'.
+	* textmodes/rst.el: Integrate support for `imenu' and `which-function'.
 	Fixes feature request bug#11711.
 	(rst-mode): Create `imenu-create-index-function'.
 	(rst-get-stripped-line): Delete after refactoring.
@@ -294,7 +298,7 @@
 
 2012-09-17  Stefan Merten  <smerten@oekonux.de>
 
-	* rst.el: Add support for `testcover'.
+	* textmodes/rst.el: Add support for `testcover'.
 	(rst-defcustom-testcover, rst-testcover-add-compose)
 	(rst-testcover-add-1value): New functions.
 	(rst-portable-mark-active-p): Replace by `use-region-p'.
@@ -2130,7 +2134,7 @@
 
 2012-07-30  Stefan Merten  <smerten@oekonux.de>
 
-	* rst.el: Silence `checkdoc-ispell'.
+	* textmodes/rst.el: Silence `checkdoc-ispell'.
 	(rst-cvs-header, rst-svn-rev, rst-svn-timestamp)
 	(rst-official-version, rst-official-cvs-rev)
 	(rst-package-emacs-version-alist): Update to upstream V1.3.1.
