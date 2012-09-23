@@ -181,7 +181,7 @@ On Mac OS X, you can build from the command line with:
 On most platforms, the output of the build goes to a directory named
 after the platform (e.g. `fri3gc`) so that you can share the source tree
 across platforms.  On Mac OS X the output goes in a directory called
-`build`.  Building generates "mps.a" or "mps.lib" or equivalent, a
+`xc`.  Building generates "mps.a" or "mps.lib" or equivalent, a
 library of object code which you can link with your application, subject
 to the MPS licensing conditions (see [license.txt](../license.txt).  It
 also generates a number of test programs, such as "amcss" (a stress test
