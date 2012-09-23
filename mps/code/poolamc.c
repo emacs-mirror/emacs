@@ -943,6 +943,16 @@ static Res amcInitComm(Pool pool, RankSet rankSet, va_list arg)
   Index i;
   size_t genArraySize;
   size_t genCount;
+  
+  /* Suppress a warning about this structure not being used when there
+     are no statistics.  Note that simply making the declaration conditional
+     does not work, because we carefully reference expressions inside
+     STATISTICS to prevent such warnings on parameters and local variables.
+     It's just that clang 4.0 on Mac OS X does some sort of extra check
+     that produces a special warnings about static variables. */
+#if !defined(STATISTICS)
+  UNUSED(pageretstruct_Zero);
+#endif
 
   AVER(pool != NULL);
 

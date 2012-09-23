@@ -3143,6 +3143,7 @@
 					"-Wno-extended-offsetof",
 				);
 				SDKROOT = macosx;
+				SYMROOT = xc;
 				WARNING_CFLAGS = (
 					"-pedantic",
 					"-Wpointer-arith",
@@ -3508,6 +3509,7 @@
 					"-Wno-extended-offsetof",
 				);
 				SDKROOT = macosx;
+				SYMROOT = xc;
 				WARNING_CFLAGS = (
 					"-pedantic",
 					"-Wpointer-arith",
@@ -3560,6 +3562,7 @@
 					"-Wno-extended-offsetof",
 				);
 				SDKROOT = macosx;
+				SYMROOT = xc;
 				WARNING_CFLAGS = (
 					"-pedantic",
 					"-Wpointer-arith",

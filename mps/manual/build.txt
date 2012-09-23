@@ -27,14 +27,14 @@ libraries, tools, and tests.  See "Building the MPS for development".
 
 In the simplest case, you can compile the MPS to an object file with just:
 
-    cc -c mps.c           (Unix/Mac OS)
+    cc -c mps.c           (Unix/Mac OS X)
     cl /c mps.c           (Windows)
   
 This will build a "hot" variety (for production) object file for use
 with "mps.h".  You can greatly improve performance by allowing global
 optimization, for example:
 
-    cc -O2 -c mps.c       (Unix/Mac OS)
+    cc -O2 -c mps.c       (Unix/Mac OS X)
     cl /O2 /c mps.c       (Windows)
 
 
@@ -59,7 +59,7 @@ myformat.c, then you could make a file mymps.c containing
 
 then
 
-    cc -O2 -c mymps.c     (Unix/Mac OS)
+    cc -O2 -c mymps.c     (Unix/Mac OS X)
     cl /O2 /c mymps.c     (Windows)
 
 This will get your format code inlined with the MPS garbage collector.
@@ -78,7 +78,7 @@ but you must then provide your own implementation of
 [mpsliban.c](../code/mpsliban.c).
 
 If you want to do anything beyond these simple cases, use the MPS build
-as described in section 5.2, "Building the MPS for development".
+as described in the section "Building the MPS for development" below.
 
 
 Building the MPS for development
@@ -203,6 +203,8 @@ Document History
 
 - 2012-09-05  RB    First draft ready for version 1.110, based partly on
   the old readme, which had grown far too long.
+
+- 2012-09-19  RB    Tidying up a few points after feedback from GDR.
 
 
 Copyright and Licence
