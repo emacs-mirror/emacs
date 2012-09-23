@@ -252,7 +252,7 @@
 
 
 #else
-#error "Unable to detect target platform"
+#error "The MPS Kit does not have a configuration for this platform out of the box; see manual/build.txt"
 #endif
 
 
