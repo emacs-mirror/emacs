@@ -1834,7 +1834,7 @@ adjust_glyphs (struct frame *f)
 {
   /* Block input so that expose events and other events that access
      glyph matrices are not processed while we are changing them.  */
-  BLOCK_INPUT;
+  block_input ();
 
   if (f)
     adjust_frame_glyphs (f);
@@ -1846,7 +1846,7 @@ adjust_glyphs (struct frame *f)
 	adjust_frame_glyphs (XFRAME (lisp_frame));
     }
 
-  UNBLOCK_INPUT;
+  unblock_input ();
 }
 
 
@@ -2242,7 +2242,7 @@ free_glyphs (struct frame *f)
     {
       /* Block interrupt input so that we don't get surprised by an X
          event while we're in an inconsistent state.  */
-      BLOCK_INPUT;
+      block_input ();
       f->glyphs_initialized_p = 0;
 
       /* Release window sub-matrices.  */
@@ -2287,7 +2287,7 @@ free_glyphs (struct frame *f)
 	  f->desired_pool = f->current_pool = NULL;
 	}
 
-      UNBLOCK_INPUT;
+      unblock_input ();
     }
 }
 
@@ -5563,10 +5563,6 @@ handle_window_change_signal (int sig)
   int width, height;
   struct tty_display_info *tty;
 
-  struct sigaction action;
-  emacs_sigaction_init (&action, deliver_window_change_signal);
-  sigaction (SIGWINCH, &action, 0);
-
   /* The frame size change obviously applies to a single
      termcap-controlled terminal, but we can't decide which.
      Therefore, we resize the frames corresponding to each tty.
@@ -5599,7 +5595,7 @@ handle_window_change_signal (int sig)
 static void
 deliver_window_change_signal (int sig)
 {
-  handle_on_main_thread (sig, handle_window_change_signal);
+  deliver_process_signal (sig, handle_window_change_signal);
 }
 #endif /* SIGWINCH */
 
@@ -5708,7 +5704,7 @@ change_frame_size_1 (struct frame *f, int newheight, int newwidth,
       && new_frame_total_cols == FRAME_TOTAL_COLS (f))
     return;
 
-  BLOCK_INPUT;
+  block_input ();
 
 #ifdef MSDOS
   /* We only can set screen dimensions to certain values supported
@@ -5760,7 +5756,7 @@ change_frame_size_1 (struct frame *f, int newheight, int newwidth,
   SET_FRAME_GARBAGED (f);
   f->resized_p = 1;
 
-  UNBLOCK_INPUT;
+  unblock_input ();
 
   record_unwind_current_buffer ();
 
@@ -5791,9 +5787,9 @@ FILE = nil means just close any termscript file currently open.  */)
 
   if (tty->termscript != 0)
   {
-    BLOCK_INPUT;
+    block_input ();
     fclose (tty->termscript);
-    UNBLOCK_INPUT;
+    unblock_input ();
   }
   tty->termscript = 0;
 
@@ -5824,7 +5820,7 @@ when TERMINAL is nil.  */)
 
   /* ??? Perhaps we should do something special for multibyte strings here.  */
   CHECK_STRING (string);
-  BLOCK_INPUT;
+  block_input ();
 
   if (!t)
     error ("Unknown terminal device");
@@ -5849,7 +5845,7 @@ when TERMINAL is nil.  */)
     }
   fwrite (SDATA (string), 1, SBYTES (string), out);
   fflush (out);
-  UNBLOCK_INPUT;
+  unblock_input ();
   return Qnil;
 }
 

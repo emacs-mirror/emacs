@@ -3533,9 +3533,9 @@ x_set_alpha (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
     f->alpha[i] = newval[i];
 
 #if defined (HAVE_X_WINDOWS) || defined (HAVE_NTGUI) || defined (NS_IMPL_COCOA)
-  BLOCK_INPUT;
+  block_input ();
   x_set_frame_alpha (f);
-  UNBLOCK_INPUT;
+  unblock_input ();
 #endif
 
   return;

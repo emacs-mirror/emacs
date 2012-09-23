@@ -523,7 +523,7 @@ extern void input_poll_signal (int);
 extern void start_polling (void);
 extern void stop_polling (void);
 extern void set_poll_suppress_count (int);
-extern void gobble_input (void);
+extern int gobble_input (void);
 extern int input_polling_used (void);
 extern void clear_input_pending (void);
 extern int requeued_events_pending_p (void);

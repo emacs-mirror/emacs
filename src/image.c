@@ -407,9 +407,9 @@ x_destroy_bitmap (FRAME_PTR f, ptrdiff_t id)
 
       if (--bm->refcount == 0)
 	{
-	  BLOCK_INPUT;
+	  block_input ();
 	  free_bitmap_record (dpyinfo, bm);
-	  UNBLOCK_INPUT;
+	  unblock_input ();
 	}
     }
 }
@@ -470,19 +470,19 @@ x_create_bitmap_mask (struct frame *f, ptrdiff_t id)
   width = x_bitmap_width (f, id);
   height = x_bitmap_height (f, id);
 
-  BLOCK_INPUT;
+  block_input ();
   ximg = XGetImage (FRAME_X_DISPLAY (f), pixmap, 0, 0, width, height,
 		    ~0, ZPixmap);
 
   if (!ximg)
     {
-      UNBLOCK_INPUT;
+      unblock_input ();
       return -1;
     }
 
   result = x_create_x_image_and_pixmap (f, width, height, 1, &mask_img, &mask);
 
-  UNBLOCK_INPUT;
+  unblock_input ();
   if (!result)
     {
       XDestroyImage (ximg);
@@ -514,7 +514,7 @@ x_create_bitmap_mask (struct frame *f, ptrdiff_t id)
 	}
     }
 
-  eassert (interrupt_input_blocked);
+  eassert (input_blocked_p ());
   gc = XCreateGC (FRAME_X_DISPLAY (f), mask, 0, NULL);
   XPutImage (FRAME_X_DISPLAY (f), mask, gc, mask_img, 0, 0, 0, 0,
 	     width, height);
@@ -593,7 +593,7 @@ define_image_type (struct image_type *type, Lisp_Object libraries)
   Lisp_Object target_type = *type->type;
   int type_valid = 1;
 
-  BLOCK_INPUT;
+  block_input ();
 
   for (p = image_types; p; p = p->next)
     if (EQ (*p->type, target_type))
@@ -625,7 +625,7 @@ define_image_type (struct image_type *type, Lisp_Object libraries)
     }
 
  done:
-  UNBLOCK_INPUT;
+  unblock_input ();
   return p;
 }
 
@@ -1328,9 +1328,9 @@ x_clear_image_1 (struct frame *f, struct image *img, int pixmap_p, int mask_p,
 static void
 x_clear_image (struct frame *f, struct image *img)
 {
-  BLOCK_INPUT;
+  block_input ();
   x_clear_image_1 (f, img, 1, 1, 1);
-  UNBLOCK_INPUT;
+  unblock_input ();
 }
 
 
@@ -1485,7 +1485,7 @@ clear_image_cache (struct frame *f, Lisp_Object filter)
 
       /* Block input so that we won't be interrupted by a SIGIO
 	 while being in an inconsistent state.  */
-      BLOCK_INPUT;
+      block_input ();
 
       if (!NILP (filter))
 	{
@@ -1551,7 +1551,7 @@ clear_image_cache (struct frame *f, Lisp_Object filter)
 	  ++windows_or_buffers_changed;
 	}
 
-      UNBLOCK_INPUT;
+      unblock_input ();
     }
 }
 
@@ -1716,7 +1716,7 @@ lookup_image (struct frame *f, Lisp_Object spec)
   /* If not found, create a new image and cache it.  */
   if (img == NULL)
     {
-      BLOCK_INPUT;
+      block_input ();
       img = make_image (spec, hash);
       cache_image (f, img);
       img->load_failed_p = img->type->load (f, img) == 0;
@@ -1787,7 +1787,7 @@ lookup_image (struct frame *f, Lisp_Object spec)
 	    postprocess_image (f, img);
 	}
 
-      UNBLOCK_INPUT;
+      unblock_input ();
     }
 
   /* We're using IMG, so set its timestamp to `now'.  */
@@ -1940,7 +1940,7 @@ x_create_x_image_and_pixmap (struct frame *f, int width, int height, int depth,
   Window window = FRAME_X_WINDOW (f);
   Screen *screen = FRAME_X_SCREEN (f);
 
-  eassert (interrupt_input_blocked);
+  eassert (input_blocked_p ());
 
   if (depth <= 0)
     depth = DefaultDepthOfScreen (screen);
@@ -2078,7 +2078,7 @@ x_create_x_image_and_pixmap (struct frame *f, int width, int height, int depth,
 static void
 x_destroy_x_image (XImagePtr ximg)
 {
-  eassert (interrupt_input_blocked);
+  eassert (input_blocked_p ());
   if (ximg)
     {
 #ifdef HAVE_X_WINDOWS
@@ -2107,7 +2107,7 @@ x_put_x_image (struct frame *f, XImagePtr ximg, Pixmap pixmap, int width, int he
 #ifdef HAVE_X_WINDOWS
   GC gc;
 
-  eassert (interrupt_input_blocked);
+  eassert (input_blocked_p ());
   gc = XCreateGC (FRAME_X_DISPLAY (f), pixmap, 0, NULL);
   XPutImage (FRAME_X_DISPLAY (f), pixmap, gc, ximg, 0, 0, 0, 0, width, height);
   XFreeGC (FRAME_X_DISPLAY (f), gc);
@@ -4311,12 +4311,12 @@ lookup_pixel_color (struct frame *f, unsigned long pixel)
       x_query_color (f, &color);
       rc = x_alloc_nearest_color (f, cmap, &color);
 #else
-      BLOCK_INPUT;
+      block_input ();
       cmap = DefaultColormapOfScreen (FRAME_X_SCREEN (f));
       color.pixel = pixel;
       XQueryColor (NULL, cmap, &color);
       rc = x_alloc_nearest_color (f, cmap, &color);
-      UNBLOCK_INPUT;
+      unblock_input ();
 #endif /* HAVE_X_WINDOWS */
 
       if (rc)
@@ -8656,11 +8656,11 @@ gs_load (struct frame *f, struct image *img)
   if (x_check_image_size (0, img->width, img->height))
     {
       /* Only W32 version did BLOCK_INPUT here.  ++kfs */
-      BLOCK_INPUT;
+      block_input ();
       img->pixmap = XCreatePixmap (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 				   img->width, img->height,
 				   DefaultDepthOfScreen (FRAME_X_SCREEN (f)));
-      UNBLOCK_INPUT;
+      unblock_input ();
     }
 
   if (!img->pixmap)
@@ -8736,7 +8736,7 @@ x_kill_gs_process (Pixmap pixmap, struct frame *f)
     {
       XImagePtr ximg;
 
-      BLOCK_INPUT;
+      block_input ();
 
       /* Try to get an XImage for img->pixmep.  */
       ximg = XGetImage (FRAME_X_DISPLAY (f), img->pixmap,
@@ -8779,15 +8779,15 @@ x_kill_gs_process (Pixmap pixmap, struct frame *f)
 	image_error ("Cannot get X image of `%s'; colors will not be freed",
 		     img->spec, Qnil);
 
-      UNBLOCK_INPUT;
+      unblock_input ();
     }
 #endif /* HAVE_X_WINDOWS */
 
   /* Now that we have the pixmap, compute mask and transform the
      image if requested.  */
-  BLOCK_INPUT;
+  block_input ();
   postprocess_image (f, img);
-  UNBLOCK_INPUT;
+  unblock_input ();
 }
 
 #endif /* HAVE_GHOSTSCRIPT */

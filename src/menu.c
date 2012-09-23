@@ -573,9 +573,9 @@ xmalloc_widget_value (void)
 {
   widget_value *value;
 
-  BLOCK_INPUT;
+  block_input ();
   value = malloc_widget_value ();
-  UNBLOCK_INPUT;
+  unblock_input ();
 
   return value;
 }
@@ -602,9 +602,9 @@ free_menubar_widget_value_tree (widget_value *wv)
       free_menubar_widget_value_tree (wv->next);
       wv->next = (widget_value *) 0xDEADBEEF;
     }
-  BLOCK_INPUT;
+  block_input ();
   free_widget_value (wv);
-  UNBLOCK_INPUT;
+  unblock_input ();
 }
 
 /* Create a tree of widget_value objects
@@ -1313,7 +1313,7 @@ no quit occurs and `x-popup-menu' returns nil.  */)
 #endif
 
   /* Display them in a menu.  */
-  BLOCK_INPUT;
+  block_input ();
 
   /* FIXME: Use a terminal hook!  */
 #if defined HAVE_NTGUI
@@ -1332,7 +1332,7 @@ no quit occurs and `x-popup-menu' returns nil.  */)
 			  last_event_timestamp);
 #endif
 
-  UNBLOCK_INPUT;
+  unblock_input ();
 
 #ifdef HAVE_NS
   unbind_to (specpdl_count, Qnil);

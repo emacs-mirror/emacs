@@ -590,7 +590,7 @@ xg_check_special_colors (struct frame *f,
   if (! FRAME_GTK_WIDGET (f) || ! (get_bg || get_fg))
     return success_p;
 
-  BLOCK_INPUT;
+  block_input ();
   {
 #ifdef HAVE_GTK3
     GtkStyleContext *gsty
@@ -620,7 +620,7 @@ xg_check_special_colors (struct frame *f,
 #endif
 
   }
-  UNBLOCK_INPUT;
+  unblock_input ();
   return success_p;
 }
 
@@ -725,7 +725,7 @@ xg_prepare_tooltip (FRAME_PTR f,
 
   if (!x->ttip_lbl) return 0;
 
-  BLOCK_INPUT;
+  block_input ();
   encoded_string = ENCODE_UTF_8 (string);
   widget = GTK_WIDGET (x->ttip_lbl);
   gwin = gtk_widget_get_window (GTK_WIDGET (x->ttip_window));
@@ -753,7 +753,7 @@ xg_prepare_tooltip (FRAME_PTR f,
   if (width) *width = req.width;
   if (height) *height = req.height;
 
-  UNBLOCK_INPUT;
+  unblock_input ();
 
   return 1;
 #endif /* USE_GTK_TOOLTIP */
@@ -769,10 +769,10 @@ xg_show_tooltip (FRAME_PTR f, int root_x, int root_y)
   struct x_output *x = f->output_data.x;
   if (x->ttip_window)
     {
-      BLOCK_INPUT;
+      block_input ();
       gtk_window_move (x->ttip_window, root_x, root_y);
       gtk_widget_show_all (GTK_WIDGET (x->ttip_window));
-      UNBLOCK_INPUT;
+      unblock_input ();
     }
 #endif
 }
@@ -789,7 +789,7 @@ xg_hide_tooltip (FRAME_PTR f)
   if (f->output_data.x->ttip_window)
     {
       GtkWindow *win = f->output_data.x->ttip_window;
-      BLOCK_INPUT;
+      block_input ();
       gtk_widget_hide (GTK_WIDGET (win));
 
       if (g_object_get_data (G_OBJECT (win), "restore-tt"))
@@ -799,7 +799,7 @@ xg_hide_tooltip (FRAME_PTR f)
           GtkSettings *settings = gtk_settings_get_for_screen (screen);
           g_object_set (settings, "gtk-enable-tooltips", TRUE, NULL);
         }
-      UNBLOCK_INPUT;
+      unblock_input ();
 
       ret = 1;
     }
@@ -1007,7 +1007,7 @@ xg_win_to_widget (Display *dpy, Window wdesc)
   gpointer gdkwin;
   GtkWidget *gwdesc = 0;
 
-  BLOCK_INPUT;
+  block_input ();
 
   gdkwin = gdk_x11_window_lookup_for_display (gdk_x11_lookup_xdisplay (dpy),
                                               wdesc);
@@ -1019,7 +1019,7 @@ xg_win_to_widget (Display *dpy, Window wdesc)
       gwdesc = gtk_get_event_widget (&event);
     }
 
-  UNBLOCK_INPUT;
+  unblock_input ();
   return gwdesc;
 }
 
@@ -1123,7 +1123,7 @@ xg_create_frame_widgets (FRAME_PTR f)
 #endif
   char *title = 0;
 
-  BLOCK_INPUT;
+  block_input ();
 
   if (FRAME_X_EMBEDDED_P (f))
     {
@@ -1161,7 +1161,7 @@ xg_create_frame_widgets (FRAME_PTR f)
       if (whbox) gtk_widget_destroy (whbox);
       if (wfixed) gtk_widget_destroy (wfixed);
 
-      UNBLOCK_INPUT;
+      unblock_input ();
       return 0;
     }
 
@@ -1275,7 +1275,7 @@ xg_create_frame_widgets (FRAME_PTR f)
       }
   }
 
-  UNBLOCK_INPUT;
+  unblock_input ();
 
   return 1;
 }
@@ -1397,12 +1397,12 @@ x_wm_set_size_hint (FRAME_PTR f, long int flags, int user_position)
 		 &f->output_data.x->size_hints,
 		 sizeof (size_hints)) != 0)
     {
-      BLOCK_INPUT;
+      block_input ();
       gtk_window_set_geometry_hints (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
                                      NULL, &size_hints, hint_flags);
       f->output_data.x->size_hints = size_hints;
       f->output_data.x->hint_flags = hint_flags;
-      UNBLOCK_INPUT;
+      unblock_input ();
     }
 }
 
@@ -1417,9 +1417,9 @@ xg_set_background_color (FRAME_PTR f, long unsigned int bg)
 {
   if (FRAME_GTK_WIDGET (f))
     {
-      BLOCK_INPUT;
+      block_input ();
       xg_set_widget_bg (f, FRAME_GTK_WIDGET (f), FRAME_BACKGROUND_PIXEL (f));
-      UNBLOCK_INPUT;
+      unblock_input ();
     }
 }
 
@@ -1637,14 +1637,14 @@ pop_down_dialog (Lisp_Object arg)
   struct Lisp_Save_Value *p = XSAVE_VALUE (arg);
   struct xg_dialog_data *dd = (struct xg_dialog_data *) p->pointer;
 
-  BLOCK_INPUT;
+  block_input ();
   if (dd->w) gtk_widget_destroy (dd->w);
   if (dd->timerid != 0) g_source_remove (dd->timerid);
 
   g_main_loop_quit (dd->loop);
   g_main_loop_unref (dd->loop);
 
-  UNBLOCK_INPUT;
+  unblock_input ();
 
   return Qnil;
 }
@@ -1973,16 +1973,6 @@ xg_get_file_name (FRAME_PTR f,
   int filesel_done = 0;
   xg_get_file_func func;
 
-#if defined (HAVE_PTHREAD) && defined (__SIGRTMIN)
-  /* I really don't know why this is needed, but without this the GLIBC add on
-     library linuxthreads hangs when the Gnome file chooser backend creates
-     threads.  */
-  sigset_t blocked;
-  sigemptyset (&blocked);
-  sigaddset (&blocked, __SIGRTMIN);
-  pthread_sigmask (SIG_BLOCK, &blocked, 0);
-#endif /* HAVE_PTHREAD */
-
 #ifdef HAVE_GTK_FILE_SELECTION_NEW
 
   if (xg_uses_old_file_dialog ())
@@ -2000,11 +1990,6 @@ xg_get_file_name (FRAME_PTR f,
   gtk_widget_set_name (w, "emacs-filedialog");
 
   filesel_done = xg_dialog_run (f, w);
-
-#if defined (HAVE_PTHREAD) && defined (__SIGRTMIN)
-  pthread_sigmask (SIG_UNBLOCK, &blocked, 0);
-#endif
-
   if (filesel_done == GTK_RESPONSE_OK)
     fn = (*func) (w);
 
@@ -2057,13 +2042,6 @@ xg_get_font (FRAME_PTR f, const char *default_name)
   int done = 0;
   Lisp_Object font = Qnil;
 
-#if defined (HAVE_PTHREAD) && defined (__SIGRTMIN)
-  sigset_t blocked;
-  sigemptyset (&blocked);
-  sigaddset (&blocked, __SIGRTMIN);
-  pthread_sigmask (SIG_BLOCK, &blocked, 0);
-#endif /* HAVE_PTHREAD */
-
   w = gtk_font_chooser_dialog_new
     ("Pick a font", GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)));
 
@@ -2088,11 +2066,6 @@ xg_get_font (FRAME_PTR f, const char *default_name)
 
   gtk_widget_set_name (w, "emacs-fontdialog");
   done = xg_dialog_run (f, w);
-
-#if defined (HAVE_PTHREAD) && defined (__SIGRTMIN)
-  pthread_sigmask (SIG_UNBLOCK, &blocked, 0);
-#endif
-
   if (done == GTK_RESPONSE_OK)
     {
 #if USE_NEW_GTK_FONT_CHOOSER
@@ -3358,7 +3331,7 @@ xg_update_frame_menubar (FRAME_PTR f)
   if (x->menubar_widget && gtk_widget_get_parent (x->menubar_widget))
     return 0; /* Already done this, happens for frames created invisible.  */
 
-  BLOCK_INPUT;
+  block_input ();
 
   gtk_box_pack_start (GTK_BOX (x->vbox_widget), x->menubar_widget,
                       FALSE, FALSE, 0);
@@ -3378,7 +3351,7 @@ xg_update_frame_menubar (FRAME_PTR f)
       FRAME_MENUBAR_HEIGHT (f) = req.height;
       xg_height_or_width_changed (f);
     }
-  UNBLOCK_INPUT;
+  unblock_input ();
 
   return 1;
 }
@@ -3393,7 +3366,7 @@ free_frame_menubar (FRAME_PTR f)
 
   if (x->menubar_widget)
     {
-      BLOCK_INPUT;
+      block_input ();
 
       gtk_container_remove (GTK_CONTAINER (x->vbox_widget), x->menubar_widget);
        /* The menubar and its children shall be deleted when removed from
@@ -3401,7 +3374,7 @@ free_frame_menubar (FRAME_PTR f)
       x->menubar_widget = 0;
       FRAME_MENUBAR_HEIGHT (f) = 0;
       xg_height_or_width_changed (f);
-      UNBLOCK_INPUT;
+      unblock_input ();
     }
 }
 
@@ -3838,7 +3811,7 @@ xg_set_toolkit_scroll_bar_thumb (struct scroll_bar *bar,
 
       if (changed || int_gtk_range_get_value (GTK_RANGE (wscroll)) != value)
       {
-        BLOCK_INPUT;
+        block_input ();
 
         /* gtk_range_set_value invokes the callback.  Set
            ignore_gtk_scrollbar to make the callback do nothing  */
@@ -3851,7 +3824,7 @@ xg_set_toolkit_scroll_bar_thumb (struct scroll_bar *bar,
 
         xg_ignore_gtk_scrollbar = 0;
 
-        UNBLOCK_INPUT;
+        unblock_input ();
       }
     }
 }
@@ -4642,7 +4615,7 @@ update_frame_tool_bar (FRAME_PTR f)
   if (! FRAME_GTK_WIDGET (f))
     return;
 
-  BLOCK_INPUT;
+  block_input ();
 
   if (RANGED_INTEGERP (1, Vtool_bar_button_margin, INT_MAX))
     {
@@ -4684,7 +4657,7 @@ update_frame_tool_bar (FRAME_PTR f)
       && ! NILP (Fequal (tbinfo->style, style))
       && ! NILP (Fequal (tbinfo->last_tool_bar, f->tool_bar_items)))
     {
-      UNBLOCK_INPUT;
+      unblock_input ();
       return;
     }
 
@@ -4895,7 +4868,7 @@ update_frame_tool_bar (FRAME_PTR f)
         xg_height_or_width_changed (f);
     }
 
-  UNBLOCK_INPUT;
+  unblock_input ();
 }
 
 /* Deallocate all resources for the tool bar on frame F.
@@ -4910,7 +4883,7 @@ free_frame_tool_bar (FRAME_PTR f)
     {
       struct xg_frame_tb_info *tbinfo;
       int is_packed = x->handlebox_widget != 0;
-      BLOCK_INPUT;
+      block_input ();
       /* We may have created the toolbar_widget in xg_create_tool_bar, but
          not the x->handlebox_widget which is created in xg_pack_tool_bar.  */
       if (is_packed)
@@ -4942,7 +4915,7 @@ free_frame_tool_bar (FRAME_PTR f)
 
       xg_height_or_width_changed (f);
 
-      UNBLOCK_INPUT;
+      unblock_input ();
     }
 }
 
@@ -4954,7 +4927,7 @@ xg_change_toolbar_position (FRAME_PTR f, Lisp_Object pos)
   if (! x->toolbar_widget || ! x->handlebox_widget)
     return 1;
 
-  BLOCK_INPUT;
+  block_input ();
   g_object_ref (x->handlebox_widget);
   if (x->toolbar_in_hbox)
     gtk_container_remove (GTK_CONTAINER (x->hbox_widget),
@@ -4967,7 +4940,7 @@ xg_change_toolbar_position (FRAME_PTR f, Lisp_Object pos)
   if (xg_update_tool_bar_sizes (f))
     xg_height_or_width_changed (f);
 
-  UNBLOCK_INPUT;
+  unblock_input ();
   return 1;
 }
 

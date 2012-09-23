@@ -146,7 +146,7 @@ ns_update_menubar (struct frame *f, int deep_p, EmacsMenu *submenu)
   XSETFRAME (Vmenu_updating_frame, f);
 /*fprintf (stderr, "ns_update_menubar: frame: %p\tdeep: %d\tsub: %p\n", f, deep_p, submenu); */
 
-  BLOCK_INPUT;
+  block_input ();
   pool = [[NSAutoreleasePool alloc] init];
 
   /* Menu may have been created automatically; if so, discard it. */
@@ -271,7 +271,7 @@ ns_update_menubar (struct frame *f, int deep_p, EmacsMenu *submenu)
 	  discard_menu_items ();
 	  unbind_to (specpdl_count, Qnil);
           [pool release];
-          UNBLOCK_INPUT;
+          unblock_input ();
 	  return;
         }
 
@@ -333,7 +333,7 @@ ns_update_menubar (struct frame *f, int deep_p, EmacsMenu *submenu)
               discard_menu_items ();
               unbind_to (specpdl_count, Qnil);
               [pool release];
-              UNBLOCK_INPUT;
+              unblock_input ();
               return;
             }
         }
@@ -404,7 +404,7 @@ ns_update_menubar (struct frame *f, int deep_p, EmacsMenu *submenu)
         {
           free_menubar_widget_value_tree (first_wv);
           [pool release];
-          UNBLOCK_INPUT;
+          unblock_input ();
           return;
         }
 
@@ -435,7 +435,7 @@ ns_update_menubar (struct frame *f, int deep_p, EmacsMenu *submenu)
             {
               free_menubar_widget_value_tree (first_wv);
               [pool release];
-              UNBLOCK_INPUT;
+              unblock_input ();
               return;
             }
         }
@@ -498,7 +498,7 @@ ns_update_menubar (struct frame *f, int deep_p, EmacsMenu *submenu)
     [NSApp setMainMenu: menu];
 
   [pool release];
-  UNBLOCK_INPUT;
+  unblock_input ();
 
 }
 
@@ -1012,10 +1012,10 @@ free_frame_tool_bar (FRAME_PTR f)
     Under NS we just hide the toolbar until it might be needed again.
    -------------------------------------------------------------------------- */
 {
-  BLOCK_INPUT;
+  block_input ();
   [[FRAME_NS_VIEW (f) toolbar] setVisible: NO];
   FRAME_TOOLBAR_HEIGHT (f) = 0;
-  UNBLOCK_INPUT;
+  unblock_input ();
 }
 
 void
@@ -1029,7 +1029,7 @@ update_frame_tool_bar (FRAME_PTR f)
   NSWindow *window = [view window];
   EmacsToolbar *toolbar = [view toolbar];
 
-  BLOCK_INPUT;
+  block_input ();
   [toolbar clearActive];
 
   /* update EmacsToolbar as in GtkUtils, build items list */
@@ -1115,7 +1115,7 @@ update_frame_tool_bar (FRAME_PTR f)
   FRAME_TOOLBAR_HEIGHT (f) =
     NSHeight ([window frameRectForContentRect: NSMakeRect (0, 0, 0, 0)])
     - FRAME_NS_TITLEBAR_HEIGHT (f);
-  UNBLOCK_INPUT;
+    unblock_input ();
 }
 
 
@@ -1355,7 +1355,7 @@ pop_down_menu (Lisp_Object arg)
   struct Lisp_Save_Value *p = XSAVE_VALUE (arg);
   struct Popdown_data *unwind_data = (struct Popdown_data *) p->pointer;
 
-  BLOCK_INPUT;
+  block_input ();
   if (popup_activated_flag)
     {
       EmacsDialogPanel *panel = unwind_data->dialog;
@@ -1366,7 +1366,7 @@ pop_down_menu (Lisp_Object arg)
     }
 
   xfree (unwind_data);
-  UNBLOCK_INPUT;
+  unblock_input ();
 
   return Qnil;
 }
@@ -1434,7 +1434,7 @@ ns_popup_dialog (Lisp_Object position, Lisp_Object contents, Lisp_Object header)
        the dialog.  */
     contents = Fcons (title, Fcons (Fcons (build_string ("Ok"), Qt), Qnil));
 
-  BLOCK_INPUT;
+  block_input ();
   pool = [[NSAutoreleasePool alloc] init];
   dialog = [[EmacsDialogPanel alloc] initFromContents: contents
                                            isQuestion: isQ];
@@ -1452,7 +1452,7 @@ ns_popup_dialog (Lisp_Object position, Lisp_Object contents, Lisp_Object header)
     unbind_to (specpdl_count, Qnil);  /* calls pop_down_menu */
   }
 
-  UNBLOCK_INPUT;
+  unblock_input ();
 
   return tem;
 }

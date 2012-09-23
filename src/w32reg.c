@@ -84,7 +84,7 @@ w32_get_string_resource (char *name, char *class, DWORD dwexptype)
 
  trykey:
 
-  BLOCK_INPUT;
+  block_input ();
 
   /* Check both the current user and the local machine to see if we have
      any resources */
@@ -115,7 +115,7 @@ w32_get_string_resource (char *name, char *class, DWORD dwexptype)
       RegCloseKey (hrootkey);
     }
 
-  UNBLOCK_INPUT;
+  unblock_input ();
 
   if (!ok)
     {

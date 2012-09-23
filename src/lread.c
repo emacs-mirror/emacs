@@ -408,9 +408,9 @@ unreadchar (Lisp_Object readcharfun, int c)
     {
       if (load_each_byte)
 	{
-	  BLOCK_INPUT;
+	  block_input ();
 	  ungetc (c, instream);
-	  UNBLOCK_INPUT;
+	  unblock_input ();
 	}
       else
 	unread_char = c;
@@ -431,28 +431,28 @@ readbyte_from_file (int c, Lisp_Object readcharfun)
 {
   if (c >= 0)
     {
-      BLOCK_INPUT;
+      block_input ();
       ungetc (c, instream);
-      UNBLOCK_INPUT;
+      unblock_input ();
       return 0;
     }
 
-  BLOCK_INPUT;
+  block_input ();
   c = getc (instream);
 
 #ifdef EINTR
   /* Interrupted reads have been observed while reading over the network.  */
   while (c == EOF && ferror (instream) && errno == EINTR)
     {
-      UNBLOCK_INPUT;
+      unblock_input ();
       QUIT;
-      BLOCK_INPUT;
+      block_input ();
       clearerr (instream);
       c = getc (instream);
     }
 #endif
 
-  UNBLOCK_INPUT;
+  unblock_input ();
 
   return (c == EOF ? -1 : c);
 }
@@ -753,9 +753,9 @@ DEFUN ("get-file-char", Fget_file_char, Sget_file_char, 0, 0, 0,
   (void)
 {
   register Lisp_Object val;
-  BLOCK_INPUT;
+  block_input ();
   XSETINT (val, getc (instream));
-  UNBLOCK_INPUT;
+  unblock_input ();
   return val;
 }
 
@@ -1350,9 +1350,9 @@ load_unwind (Lisp_Object arg)  /* Used as unwind-protect function in load.  */
   FILE *stream = (FILE *) XSAVE_VALUE (arg)->pointer;
   if (stream != NULL)
     {
-      BLOCK_INPUT;
+      block_input ();
       fclose (stream);
-      UNBLOCK_INPUT;
+      unblock_input ();
     }
   return Qnil;
 }

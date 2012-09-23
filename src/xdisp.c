@@ -275,6 +275,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <limits.h>
 
 #include "lisp.h"
+#include "atimer.h"
 #include "keyboard.h"
 #include "frame.h"
 #include "window.h"
@@ -11402,11 +11403,11 @@ x_cursor_to (int vpos, int hpos, int y, int x)
      This will also set the cursor position of W.  */
   if (updated_window == NULL)
     {
-      BLOCK_INPUT;
+      block_input ();
       display_and_set_cursor (w, 1, hpos, vpos, x, y);
       if (FRAME_RIF (SELECTED_FRAME ())->flush_display_optional)
 	FRAME_RIF (SELECTED_FRAME ())->flush_display_optional (SELECTED_FRAME ());
-      UNBLOCK_INPUT;
+      unblock_input ();
     }
 }
 
@@ -11520,11 +11521,11 @@ update_tool_bar (struct frame *f, int save_match_data)
               /* Redisplay that happens asynchronously due to an expose event
                  may access f->tool_bar_items.  Make sure we update both
                  variables within BLOCK_INPUT so no such event interrupts.  */
-              BLOCK_INPUT;
+              block_input ();
               fset_tool_bar_items (f, new_tool_bar);
               f->n_tool_bar_items = new_n_tool_bar;
               w->update_mode_line = 1;
-              UNBLOCK_INPUT;
+              unblock_input ();
             }
 
 	  UNGCPRO;
@@ -16205,10 +16206,10 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
 				    || w->pseudo_window_p)))
     {
       update_begin (f);
-      BLOCK_INPUT;
+      block_input ();
       if (draw_window_fringes (w, 1))
 	x_draw_vertical_border (w);
-      UNBLOCK_INPUT;
+      unblock_input ();
       update_end (f);
     }
 #endif /* HAVE_WINDOW_SYSTEM */
@@ -25327,7 +25328,7 @@ x_write_glyphs (struct glyph *start, int len)
   if (updated_row->reversed_p && chpos >= updated_row->used[TEXT_AREA])
     chpos = updated_row->used[TEXT_AREA] - 1;
 
-  BLOCK_INPUT;
+  block_input ();
 
   /* Write glyphs.  */
 
@@ -25345,7 +25346,7 @@ x_write_glyphs (struct glyph *start, int len)
       && chpos < hpos + len)
     updated_window->phys_cursor_on_p = 0;
 
-  UNBLOCK_INPUT;
+  unblock_input ();
 
   /* Advance the output cursor.  */
   output_cursor.hpos += len;
@@ -25368,7 +25369,7 @@ x_insert_glyphs (struct glyph *start, int len)
   ptrdiff_t hpos;
 
   eassert (updated_window && updated_row);
-  BLOCK_INPUT;
+  block_input ();
   w = updated_window;
   f = XFRAME (WINDOW_FRAME (w));
 
@@ -25402,7 +25403,7 @@ x_insert_glyphs (struct glyph *start, int len)
   /* Advance the output cursor.  */
   output_cursor.hpos += len;
   output_cursor.x += shift_by_width;
-  UNBLOCK_INPUT;
+  unblock_input ();
 }
 
 
@@ -25471,10 +25472,10 @@ x_clear_end_of_line (int to_x)
   /* Prevent inadvertently clearing to end of the X window.  */
   if (to_x > from_x && to_y > from_y)
     {
-      BLOCK_INPUT;
+      block_input ();
       FRAME_RIF (f)->clear_frame_area (f, from_x, from_y,
                                        to_x - from_x, to_y - from_y);
-      UNBLOCK_INPUT;
+      unblock_input ();
     }
 }
 
@@ -25801,7 +25802,7 @@ x_fix_overlapping_area (struct window *w, struct glyph_row *row,
 {
   int i, x;
 
-  BLOCK_INPUT;
+  block_input ();
 
   x = 0;
   for (i = 0; i < row->used[area];)
@@ -25829,7 +25830,7 @@ x_fix_overlapping_area (struct window *w, struct glyph_row *row,
 	}
     }
 
-  UNBLOCK_INPUT;
+  unblock_input ();
 }
 
 
@@ -26047,7 +26048,7 @@ display_and_set_cursor (struct window *w, int on,
       || (0 <= hpos && hpos < glyph_row->used[TEXT_AREA]))
     glyph = glyph_row->glyphs[TEXT_AREA] + hpos;
 
-  eassert (interrupt_input_blocked);
+  eassert (input_blocked_p ());
 
   /* Set new_cursor_type to the cursor we want to be displayed.  */
   new_cursor_type = get_window_cursor_type (w, glyph,
@@ -26117,10 +26118,10 @@ update_window_cursor (struct window *w, int on)
       if (row->reversed_p && hpos >= row->used[TEXT_AREA])
 	hpos = row->used[TEXT_AREA] - 1;
 
-      BLOCK_INPUT;
+      block_input ();
       display_and_set_cursor (w, on, hpos, vpos,
 			      w->phys_cursor.x, w->phys_cursor.y);
-      UNBLOCK_INPUT;
+      unblock_input ();
     }
 }
 
@@ -26298,10 +26299,10 @@ show_mouse_face (Mouse_HLInfo *hlinfo, enum draw_glyphs_face draw)
 	  if (row->reversed_p && hpos >= row->used[TEXT_AREA])
 	    hpos = row->used[TEXT_AREA] - 1;
 
-	  BLOCK_INPUT;
+	  block_input ();
 	  display_and_set_cursor (w, 1, hpos, w->phys_cursor.vpos,
 				  w->phys_cursor.x, w->phys_cursor.y);
-	  UNBLOCK_INPUT;
+	  unblock_input ();
 	}
 #endif	/* HAVE_WINDOW_SYSTEM */
     }
@@ -28116,11 +28117,11 @@ x_clear_window_mouse_face (struct window *w)
   Mouse_HLInfo *hlinfo = MOUSE_HL_INFO (XFRAME (w->frame));
   Lisp_Object window;
 
-  BLOCK_INPUT;
+  block_input ();
   XSETWINDOW (window, w);
   if (EQ (window, hlinfo->mouse_face_window))
     clear_mouse_face (hlinfo);
-  UNBLOCK_INPUT;
+  unblock_input ();
 }
 
 

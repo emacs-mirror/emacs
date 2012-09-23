@@ -101,9 +101,9 @@ static Lisp_Object
 directory_files_internal_unwind (Lisp_Object dh)
 {
   DIR *d = (DIR *) XSAVE_VALUE (dh)->pointer;
-  BLOCK_INPUT;
+  block_input ();
   closedir (d);
-  UNBLOCK_INPUT;
+  unblock_input ();
   return Qnil;
 }
 
@@ -164,9 +164,9 @@ directory_files_internal (Lisp_Object directory, Lisp_Object full,
   /* Now *bufp is the compiled form of MATCH; don't call anything
      which might compile a new regexp until we're done with the loop!  */
 
-  BLOCK_INPUT;
+  block_input ();
   d = opendir (SSDATA (dirfilename));
-  UNBLOCK_INPUT;
+  unblock_input ();
   if (d == NULL)
     report_file_error ("Opening directory", Fcons (directory, Qnil));
 
@@ -310,9 +310,9 @@ directory_files_internal (Lisp_Object directory, Lisp_Object full,
 	}
     }
 
-  BLOCK_INPUT;
+  block_input ();
   closedir (d);
-  UNBLOCK_INPUT;
+  unblock_input ();
 #ifdef WINDOWSNT
   if (attrs)
     Vw32_get_true_file_attributes = w32_save;
@@ -486,9 +486,9 @@ file_name_completion (Lisp_Object file, Lisp_Object dirname, bool all_flag,
 
   encoded_dir = ENCODE_FILE (dirname);
 
-  BLOCK_INPUT;
+  block_input ();
   d = opendir (SSDATA (Fdirectory_file_name (encoded_dir)));
-  UNBLOCK_INPUT;
+  unblock_input ();
   if (!d)
     report_file_error ("Opening directory", Fcons (dirname, Qnil));
 
@@ -962,10 +962,10 @@ so last access time will always be midnight of that day.  */)
 
   if (!(NILP (id_format) || EQ (id_format, Qinteger)))
     {
-      BLOCK_INPUT;
+      block_input ();
       uname = stat_uname (&s);
       gname = stat_gname (&s);
-      UNBLOCK_INPUT;
+      unblock_input ();
     }
   if (uname)
     values[2] = DECODE_SYSTEM (build_string (uname));

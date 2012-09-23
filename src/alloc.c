@@ -633,13 +633,13 @@ static void
 malloc_block_input (void)
 {
   if (block_input_in_memory_allocators)
-    BLOCK_INPUT;
+    block_input ();
 }
 static void
 malloc_unblock_input (void)
 {
   if (block_input_in_memory_allocators)
-    UNBLOCK_INPUT;
+    unblock_input ();
 }
 # define MALLOC_BLOCK_INPUT malloc_block_input ()
 # define MALLOC_UNBLOCK_INPUT malloc_unblock_input ()
@@ -5125,7 +5125,7 @@ See Info node `(elisp)Garbage Collection'.  */)
   if (garbage_collection_messages)
     message1_nolog ("Garbage collecting...");
 
-  BLOCK_INPUT;
+  block_input ();
 
   shrink_regexp_cache ();
 
@@ -5242,7 +5242,7 @@ See Info node `(elisp)Garbage Collection'.  */)
   dump_zombies ();
 #endif
 
-  UNBLOCK_INPUT;
+  unblock_input ();
 
   check_cons_list ();
 
@@ -6393,9 +6393,10 @@ bool suppress_checking;
 void
 die (const char *msg, const char *file, int line)
 {
+  signal (SIGABRT, SIG_DFL);
   fprintf (stderr, "\r\n%s:%d: Emacs fatal error: %s\r\n",
 	   file, line, msg);
-  fatal_error_backtrace (SIGABRT, INT_MAX);
+  terminate_due_to_signal (SIGABRT, INT_MAX);
 }
 #endif
 

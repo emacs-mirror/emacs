@@ -1,3 +1,137 @@
+2012-09-23  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Simplify and avoid signal-handling races (Bug#12471).
+	* alloc.c (die):
+	* sysdep.c (emacs_abort) [HAVE_NTGUI]:
+	Avoid recursive loop if there's a fatal error in the function itself.
+	* atimer.c (pending_atimers):
+	* blockinput.h: Don't include "atimer.h"; no longer needed.
+	(interrupt_input_pending): Remove.  All uses removed.
+	pending_signals now counts both atimers and ordinary interrupts.
+	This is less racy than having three separate pending-signal flags.
+	(block_input, unblock_input, totally_unblock_input, unblock_input_to)
+	(input_blocked_p):
+	Rename from their upper-case counterparts BLOCK_INPUT,
+	UNBLOCK_INPUT, TOTALLY_UNBLOCK_INPUT, UNBLOCK_INPUT_TO,
+	INPUT_BLOCKED_P, and turn into functions.  All uses changed.
+	This makes it easier to access volatile variables more accurately.
+	(BLOCK_INPUT_RESIGNAL): Remove.  All uses replaced by unblock_input ().
+	(input_blocked_p): Prefer this to 'interrupt_input_blocked', as
+	that's more reliable if the code is buggy and sets
+	interrupt_input_blocked to a negative value.  All uses changed.
+	* atimer.c (deliver_alarm_signal):
+	Remove.  No need to deliver this to the parent; any thread can
+	handle this signal now.  All uses replaced by underlying handler.
+	* atimer.c (turn_on_atimers):
+	* dispnew.c (handle_window_change_signal):
+	* emacs.c (handle_danger_signal):
+	* keyboard.c (kbd_buffer_get_event):
+	Don't reestablish signal handler; not needed with sigaction.
+	* blockinput.h (UNBLOCK_INPUT_TO, TOTALLY_UNBLOCK_INPUT)
+	(UNBLOCK_INPUT_TO):
+	Rework to avoid unnecessary accesses to volatile variables.
+	(UNBLOCK_INPUT_TO): Now a function.
+	(totally_unblock_input, unblock_input): New decls.
+	* data.c (handle_arith_signal, deliver_arith_signal): Move to sysdep.c
+	(init_data): Remove.  Necessary stuff now done in init_signal.
+	* emacs.c, xdisp.c: Include "atimer.h", since we invoke atimer functions.
+	* emacs.c (handle_fatal_signal, deliver_fatal_signal): Move to sysdep.c.
+	(fatal_error_code): Remove; no longer needed.
+	(terminate_due_to_signal): Rename from fatal_error_backtrace, since
+	it doesn't always backtrace.  All uses changed.  No need to reset
+	signal to default, since sigaction and/or die does that for us now.
+	Use emacs_raise (FOO), not kill (getpid (), FOO).
+	(main): Check more-accurately whether we're dumping.
+	Move fatal-error setup to sysdep.c
+	* floatfns.c: Do not include "syssignal.h"; no longer needed.
+	* gtkutil.c (xg_get_file_name, xg_get_font):
+	Remove no-longer-needed signal-mask manipulation.
+	* keyboard.c, process.c (POLL_FOR_INPUT):
+	Don't depend on USE_ASYNC_EVENTS, a symbol that is never defined.
+	* keyboard.c (read_avail_input): Remove.
+	All uses replaced by gobble_input.
+	(Ftop_level): Use TOTALLY_UNBLOCK_INPUT rather than open code.
+	(kbd_buffer_store_event_hold, gobble_input):
+	(record_asynch_buffer_change) [USABLE_SIGIO]:
+	(store_user_signal_events):
+	No need to mess with signal mask.
+	(gobble_input): If blocking input and there are terminals, simply
+	set pending_signals to 1 and return.  All hooks changed to not
+	worry about whether input is blocked.
+	(process_pending_signals): Clear pending_signals before processing
+	them, in case a signal comes in while we're processing.
+	By convention callers now test pending_signals before calling us.
+	(UNBLOCK_INPUT_TO, unblock_input, totally_unblock_input):
+	New functions, to support changes to blockinput.h.
+	(handle_input_available_signal): Now extern.
+	(reinvoke_input_signal): Remove.  All uses replaced by
+	handle_async_input.
+	(quit_count): Now volatile, since a signal handler uses it.
+	(handle_interrupt): Now takes bool IN_SIGNAL_HANDLER as arg.  All
+	callers changed.  Block SIGINT only if not already blocked.
+	Clear sigmask reliably, even if Fsignal returns, which it can.
+	Omit unnecessary accesses to volatile var.
+	(quit_throw_to_read_char): No need to restore sigmask.
+	* keyboard.c (gobble_input, handle_user_signal):
+	* process.c (wait_reading_process_output):
+	Call signal-handling code rather than killing ourselves.
+	* lisp.h: Include <float.h>, for...
+	(IEEE_FLOATING_POINT): New macro, moved here to avoid duplication.
+	(pending_signals): Now volatile.
+	(syms_of_data): Now const if IEEE floating point.
+	(handle_input_available_signal) [USABLE_SIGIO]:
+	(terminate_due_to_signal, record_child_status_change): New decls.
+	* process.c (create_process): Avoid disaster if memory is exhausted
+	while we're processing a vfork, by tightening the critical section
+	around the vfork.
+	(send_process_frame, process_sent_to, handle_pipe_signal)
+	(deliver_pipe_signal): Remove.  No longer needed, as Emacs now
+	ignores SIGPIPE.
+	(send_process): No need for setjmp/longjmp any more, since the
+	SIGPIPE stuff is now gone.  Instead, report an error if errno
+	is EPIPE.
+	(record_child_status_change): Now extern.  PID and W are now args.
+	Return void, not bool.  All callers changed.
+	* sysdep.c (wait_debugging) [(BSD_SYSTEM || HPUX) && !defined (__GNU__)]:
+	Remove.  All uses removed.  This bug should be fixed now in a
+	different way.
+	(wait_for_termination_1): Use waitpid rather than sigsuspend,
+	and record the child status change directly.  This avoids the
+	need to futz with the signal mask.
+	(process_fatal_action): Move here from emacs.c.
+	(emacs_sigaction_flags): New function, containing
+	much of what used to be in emacs_sigaction_init.
+	(emacs_sigaction_init): Use it.  Block nonfatal system signals that are
+	caught by emacs, to make races less likely.
+	(deliver_process_signal): Rename from handle_on_main_thread.
+	All uses changed.
+	(BACKTRACE_LIMIT_MAX): Now at top level.
+	(thread_backtrace_buffer, threadback_backtrace_pointers):
+	New static vars.
+	(deliver_thread_signal, deliver_fatal_thread_signal):
+	New functions, for more-accurate delivery of thread-specific signals.
+	(handle_fatal_signal, deliver_fatal_signal): Move here from emacs.c.
+	(deliver_arith_signal): Handle in this thread, not
+	in the main thread, since it's triggered by this thread.
+	(maybe_fatal_sig): New function.
+	(init_signals): New arg DUMPING so that we can be more accurate
+	about whether we're dumping.  Caller changed.
+	Treat thread-specific signals differently from process-general signals.
+	Block all signals while handling fatal error; that's safer.
+	xsignal from SIGFPE only on non-IEEE hosts, treating it as fatal
+	on IEEE hosts.
+	When batch, ignore SIGHUP, SIGINT, SIGTERM if they were already ignored.
+	Ignore SIGPIPE unless batch.
+	(emacs_backtrace): Output backtrace for the appropriate thread,
+	which is not necessarily the main thread.
+	* syssignal.h: Include <stdbool.h>.
+	(emacs_raise): New macro.
+	* xterm.c (x_connection_signal): Remove; no longer needed
+	now that we use sigaction.
+	(x_connection_closed): No need to mess with sigmask now.
+	(x_initialize): No need to reset SIGPIPE handler here, since
+	init_signals does this for us now.
+
 2012-09-23  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsterm.m (ns_dumpglyphs_image): dr is a new rect to draw image into,

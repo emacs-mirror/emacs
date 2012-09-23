@@ -1,3 +1,8 @@
+2012-09-23  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Simplify and avoid signal-handling races (Bug#12471).
+	* inc/ms-w32.h (emacs_raise): New macro.
+
 2012-09-18  Eli Zaretskii  <eliz@gnu.org>
 
 	* configure.bat: Include stddef.h before gif_lib.h, to have size_t

@@ -821,7 +821,7 @@ nsfont_open (FRAME_PTR f, Lisp_Object font_entity, int pixel_size)
   font_info->glyphs = xzalloc (0x100 * sizeof *font_info->glyphs);
   font_info->metrics = xzalloc (0x100 * sizeof *font_info->metrics);
 
-  BLOCK_INPUT;
+  block_input ();
 
   /* for metrics */
   sfont = [nsfont screenFont];
@@ -932,7 +932,7 @@ nsfont_open (FRAME_PTR f, Lisp_Object font_entity, int pixel_size)
     font->props[FONT_FULLNAME_INDEX] =
       make_unibyte_string (font_info->name, strlen (font_info->name));
   }
-  UNBLOCK_INPUT;
+  unblock_input ();
 
   return font_object;
 }
@@ -1316,7 +1316,7 @@ ns_uni_to_glyphs (struct nsfont_info *font_info, unsigned char block)
     fprintf (stderr, "%p\tFinding glyphs for glyphs in block %d\n",
             font_info, block);
 
- BLOCK_INPUT;
+  block_input ();
 
 #ifdef NS_IMPL_COCOA
   if (firstTime)
@@ -1373,7 +1373,7 @@ ns_uni_to_glyphs (struct nsfont_info *font_info, unsigned char block)
 #endif
   }
 
-  UNBLOCK_INPUT;
+  unblock_input ();
   xfree (unichars);
 }
 
@@ -1398,7 +1398,7 @@ ns_glyph_metrics (struct nsfont_info *font_info, unsigned char block)
     numGlyphs = 0x10000;
 #endif
 
- BLOCK_INPUT;
+  block_input ();
  sfont = [font_info->nsfont screenFont];
 
   font_info->metrics[block] = xzalloc (0x100 * sizeof (struct font_metrics));
@@ -1427,7 +1427,7 @@ ns_glyph_metrics (struct nsfont_info *font_info, unsigned char block)
       metrics->ascent = r.size.height - metrics->descent;
 /*-lrint (hshrink* [sfont descender] - expand * hd/2); */
     }
-  UNBLOCK_INPUT;
+  unblock_input ();
 }
 
 

@@ -1838,13 +1838,6 @@ properties on the list.  This function never signals an error.  */)
       halftail = XCDR (halftail);
       if (EQ (tail, halftail))
 	break;
-
-#if 0 /* Unsafe version.  */
-      /* This function can be called asynchronously
-	 (setup_coding_system).  Don't QUIT in that case.  */
-      if (!interrupt_input_blocked)
-	QUIT;
-#endif
     }
 
   return Qnil;

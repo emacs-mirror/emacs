@@ -156,7 +156,7 @@ compile_pattern_1 (struct regexp_cache *cp, Lisp_Object pattern, Lisp_Object tra
   re_set_whitespace_regexp (NULL);
 
   re_set_syntax (old);
-  /* UNBLOCK_INPUT;  */
+  /* unblock_input ();  */
   if (val)
     xsignal1 (Qinvalid_regexp, build_string (val));
 

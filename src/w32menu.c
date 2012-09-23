@@ -221,9 +221,9 @@ otherwise it is "Question". */)
     list_of_panes (Fcons (contents, Qnil));
 
     /* Display them in a dialog box.  */
-    BLOCK_INPUT;
+    block_input ();
     selection = w32_dialog_show (f, 0, title, header, &error_name);
-    UNBLOCK_INPUT;
+    unblock_input ();
 
     discard_menu_items ();
     FRAME_X_DISPLAY_INFO (f)->grabbed = 0;
@@ -571,7 +571,7 @@ set_frame_menubar (FRAME_PTR f, int first_time, int deep_p)
 
   /* Create or update the menu bar widget.  */
 
-  BLOCK_INPUT;
+  block_input ();
 
   if (menubar_widget)
     {
@@ -601,7 +601,7 @@ set_frame_menubar (FRAME_PTR f, int first_time, int deep_p)
       x_set_window_size (f, 0, FRAME_COLS (f), FRAME_LINES (f));
   }
 
-  UNBLOCK_INPUT;
+  unblock_input ();
 }
 
 /* Called from Fx_create_frame to create the initial menubar of a frame
@@ -624,7 +624,7 @@ initialize_frame_menubar (FRAME_PTR f)
 void
 free_frame_menubar (FRAME_PTR f)
 {
-  BLOCK_INPUT;
+  block_input ();
 
   {
     HMENU old = GetMenu (FRAME_W32_WINDOW (f));
@@ -633,7 +633,7 @@ free_frame_menubar (FRAME_PTR f)
     DestroyMenu (old);
   }
 
-  UNBLOCK_INPUT;
+  unblock_input ();
 }
 
 

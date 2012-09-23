@@ -480,9 +480,9 @@ x_set_title (struct frame *f, Lisp_Object name)
 
   if (FRAME_MSDOS_P (f))
     {
-      BLOCK_INPUT;
+      block_input ();
       w95_set_virtual_machine_title (SDATA (name));
-      UNBLOCK_INPUT;
+      unblock_input ();
     }
 }
 #endif /* !HAVE_X_WINDOWS */

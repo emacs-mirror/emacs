@@ -362,7 +362,7 @@ xfont_list_pattern (Display *display, const char *pattern,
 	}
     }
 
-  BLOCK_INPUT;
+  block_input ();
   x_catch_errors (display);
 
   for (limit = 512; ; limit *= 2)
@@ -479,7 +479,7 @@ xfont_list_pattern (Display *display, const char *pattern,
     }
 
   x_uncatch_errors ();
-  UNBLOCK_INPUT;
+  unblock_input ();
 
   FONT_ADD_LOG ("xfont-list", build_string (pattern), list);
   return list;
@@ -588,7 +588,7 @@ xfont_match (Lisp_Object frame, Lisp_Object spec)
   if (xfont_encode_coding_xlfd (name) < 0)
     return Qnil;
 
-  BLOCK_INPUT;
+  block_input ();
   entity = Qnil;
   xfont = XLoadQueryFont (display, name);
   if (xfont)
@@ -615,7 +615,7 @@ xfont_match (Lisp_Object frame, Lisp_Object spec)
 	}
       XFreeFont (display, xfont);
     }
-  UNBLOCK_INPUT;
+  unblock_input ();
 
   FONT_ADD_LOG ("xfont-match", spec, entity);
   return entity;
@@ -632,7 +632,7 @@ xfont_list_family (Lisp_Object frame)
   char *last_family IF_LINT (= 0);
   int last_len;
 
-  BLOCK_INPUT;
+  block_input ();
   x_catch_errors (dpyinfo->display);
   names = XListFonts (dpyinfo->display, "-*-*-*-*-*-*-*-*-*-*-*-*-*-*",
 		      0x8000, &num_fonts);
@@ -673,7 +673,7 @@ xfont_list_family (Lisp_Object frame)
 
   XFreeFontNames (names);
   x_uncatch_errors ();
-  UNBLOCK_INPUT;
+  unblock_input ();
 
   return list;
 }
@@ -717,7 +717,7 @@ xfont_open (FRAME_PTR f, Lisp_Object entity, int pixel_size)
       return Qnil;
     }
 
-  BLOCK_INPUT;
+  block_input ();
   x_catch_errors (display);
   xfont = XLoadQueryFont (display, name);
   if (x_had_errors_p (display))
@@ -784,7 +784,7 @@ xfont_open (FRAME_PTR f, Lisp_Object entity, int pixel_size)
       XFree (p0);
     }
   x_uncatch_errors ();
-  UNBLOCK_INPUT;
+  unblock_input ();
 
   if (! xfont)
     {
@@ -866,7 +866,7 @@ xfont_open (FRAME_PTR f, Lisp_Object entity, int pixel_size)
 	}
     }
 
-  BLOCK_INPUT;
+  block_input ();
   font->underline_thickness
     = (XGetFontProperty (xfont, XA_UNDERLINE_THICKNESS, &value)
        ? (long) value : 0);
@@ -882,7 +882,7 @@ xfont_open (FRAME_PTR f, Lisp_Object entity, int pixel_size)
   font->default_ascent
     = (XGetFontProperty (xfont, dpyinfo->Xatom_MULE_DEFAULT_ASCENT, &value)
        ? (long) value : 0);
-  UNBLOCK_INPUT;
+  unblock_input ();
 
   if (NILP (fullname))
     fullname = AREF (font_object, FONT_NAME_INDEX);
@@ -897,18 +897,18 @@ xfont_open (FRAME_PTR f, Lisp_Object entity, int pixel_size)
 static void
 xfont_close (FRAME_PTR f, struct font *font)
 {
-  BLOCK_INPUT;
+  block_input ();
   XFreeFont (FRAME_X_DISPLAY (f), ((struct xfont_info *) font)->xfont);
-  UNBLOCK_INPUT;
+  unblock_input ();
 }
 
 static int
 xfont_prepare_face (FRAME_PTR f, struct face *face)
 {
-  BLOCK_INPUT;
+  block_input ();
   XSetFont (FRAME_X_DISPLAY (f), face->gc,
 	    ((struct xfont_info *) face->font)->xfont->fid);
-  UNBLOCK_INPUT;
+  unblock_input ();
 
   return 0;
 }
@@ -1028,9 +1028,9 @@ xfont_draw (struct glyph_string *s, int from, int to, int x, int y,
 
   if (s->gc != s->face->gc)
     {
-      BLOCK_INPUT;
+      block_input ();
       XSetFont (s->display, gc, xfont->fid);
-      UNBLOCK_INPUT;
+      unblock_input ();
     }
 
   if (xfont->min_byte1 == 0 && xfont->max_byte1 == 0)
@@ -1039,7 +1039,7 @@ xfont_draw (struct glyph_string *s, int from, int to, int x, int y,
       char *str = SAFE_ALLOCA (len);
       for (i = 0; i < len ; i++)
 	str[i] = XCHAR2B_BYTE2 (s->char2b + from + i);
-      BLOCK_INPUT;
+      block_input ();
       if (with_background)
 	{
 	  if (s->padding_p)
@@ -1060,12 +1060,12 @@ xfont_draw (struct glyph_string *s, int from, int to, int x, int y,
 	    XDrawString (FRAME_X_DISPLAY (s->f), FRAME_X_WINDOW (s->f),
 			 gc, x, y, str, len);
 	}
-      UNBLOCK_INPUT;
+      unblock_input ();
       SAFE_FREE ();
       return s->nchars;
     }
 
-  BLOCK_INPUT;
+  block_input ();
   if (with_background)
     {
       if (s->padding_p)
@@ -1086,7 +1086,7 @@ xfont_draw (struct glyph_string *s, int from, int to, int x, int y,
 	XDrawString16 (FRAME_X_DISPLAY (s->f), FRAME_X_WINDOW (s->f),
 		       gc, x, y, s->char2b + from, len);
     }
-  UNBLOCK_INPUT;
+  unblock_input ();
 
   return len;
 }

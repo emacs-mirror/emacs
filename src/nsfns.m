@@ -615,7 +615,7 @@ ns_set_name_as_filename (struct frame *f)
   if (f->explicit_name || ! NILP (f->title) || ns_in_resize)
     return;
 
-  BLOCK_INPUT;
+  block_input ();
   pool = [[NSAutoreleasePool alloc] init];
   filename = BVAR (XBUFFER (buf), filename);
   name = BVAR (XBUFFER (buf), name);
@@ -640,7 +640,7 @@ ns_set_name_as_filename (struct frame *f)
   if (title && (! strcmp (title, SSDATA (encoded_name))))
     {
       [pool release];
-      UNBLOCK_INPUT;
+      unblock_input ();
       return;
     }
 
@@ -678,7 +678,7 @@ ns_set_name_as_filename (struct frame *f)
     }
 
   [pool release];
-  UNBLOCK_INPUT;
+  unblock_input ();
 }
 
 
@@ -689,11 +689,11 @@ ns_set_doc_edited (struct frame *f, Lisp_Object arg)
   NSAutoreleasePool *pool;
   if (!MINI_WINDOW_P (XWINDOW (f->selected_window)))
     {
-      BLOCK_INPUT;
+      block_input ();
       pool = [[NSAutoreleasePool alloc] init];
       [[view window] setDocumentEdited: !NILP (arg)];
       [pool release];
-      UNBLOCK_INPUT;
+      unblock_input ();
     }
 }
 
@@ -771,14 +771,14 @@ ns_implicitly_set_icon_type (struct frame *f)
 
   NSTRACE (ns_implicitly_set_icon_type);
 
-  BLOCK_INPUT;
+  block_input ();
   pool = [[NSAutoreleasePool alloc] init];
   if (f->output_data.ns->miniimage
       && [[NSString stringWithUTF8String: SSDATA (f->name)]
                isEqualToString: [(NSImage *)f->output_data.ns->miniimage name]])
     {
       [pool release];
-      UNBLOCK_INPUT;
+      unblock_input ();
       return;
     }
 
@@ -786,7 +786,7 @@ ns_implicitly_set_icon_type (struct frame *f)
   if (CONSP (tem) && ! NILP (XCDR (tem)))
     {
       [pool release];
-      UNBLOCK_INPUT;
+      unblock_input ();
       return;
     }
 
@@ -826,7 +826,7 @@ ns_implicitly_set_icon_type (struct frame *f)
   f->output_data.ns->miniimage = image;
   [view setMiniwindowImage: setMini];
   [pool release];
-  UNBLOCK_INPUT;
+  unblock_input ();
 }
 
 
@@ -1232,7 +1232,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
   f->resx = dpyinfo->resx;
   f->resy = dpyinfo->resy;
 
-  BLOCK_INPUT;
+  block_input ();
   register_font_driver (&nsfont_driver, f);
   x_default_parameter (f, parms, Qfont_backend, Qnil,
 			"fontBackend", "FontBackend", RES_TYPE_STRING);
@@ -1247,7 +1247,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
                                  build_string ([[font fontName] UTF8String]),
                                  "font", "Font", RES_TYPE_STRING);
   }
-  UNBLOCK_INPUT;
+  unblock_input ();
 
   x_default_parameter (f, parms, Qborder_width, make_number (0),
 		       "borderwidth", "BorderWidth", RES_TYPE_NUMBER);
@@ -1411,10 +1411,10 @@ FRAME nil means use the selected frame.  */)
   if (dpyinfo->x_focus_frame != f)
     {
       EmacsView *view = FRAME_NS_VIEW (f);
-      BLOCK_INPUT;
+      block_input ();
       [NSApp activateIgnoringOtherApps: YES];
       [[view window] makeKeyAndOrderFront: view];
-      UNBLOCK_INPUT;
+      unblock_input ();
     }
 
   return Qnil;
@@ -1511,7 +1511,7 @@ Optional arg INIT, if non-nil, provides a default file name to use.  */)
   [panel setDelegate: fileDelegate];
 
   panelOK = 0;
-  BLOCK_INPUT;
+  block_input ();
   if (NILP (mustmatch))
     {
       ret = [panel runModalForDirectory: dirS file: initS];
@@ -1528,7 +1528,7 @@ Optional arg INIT, if non-nil, provides a default file name to use.  */)
     fname = build_string ([[panel filename] UTF8String]);
 
   [[FRAME_NS_VIEW (SELECTED_FRAME ()) window] makeKeyWindow];
-  UNBLOCK_INPUT;
+  unblock_input ();
 
   return ret ? fname : Qnil;
 }
@@ -1899,7 +1899,7 @@ The optional argument FRAME is currently ignored.  */)
         error ("non-Nextstep frame used in `ns-list-colors'");
     }
 
-  BLOCK_INPUT;
+  block_input ();
 
   colorlists = [[NSColorList availableColorLists] objectEnumerator];
   while ((clist = [colorlists nextObject]))
@@ -1917,7 +1917,7 @@ The optional argument FRAME is currently ignored.  */)
         }
     }
 
-  UNBLOCK_INPUT;
+  unblock_input ();
 
   return list;
 }
@@ -2115,7 +2115,7 @@ In case the execution fails, an error is signaled. */)
   CHECK_STRING (script);
   check_ns ();
 
-  BLOCK_INPUT;
+  block_input ();
 
   as_script = script;
   as_result = &result;
@@ -2141,7 +2141,7 @@ In case the execution fails, an error is signaled. */)
   as_status = 0;
   as_script = Qnil;
   as_result = 0;
-  UNBLOCK_INPUT;
+  unblock_input ();
   if (status == 0)
     return result;
   else if (!STRINGP (result))
@@ -2548,7 +2548,7 @@ Text larger than the specified size is clipped.  */)
   else
     CHECK_NUMBER (dy);
 
-  BLOCK_INPUT;
+  block_input ();
   if (ns_tooltip == nil)
     ns_tooltip = [[EmacsTooltip alloc] init];
   else
@@ -2563,7 +2563,7 @@ Text larger than the specified size is clipped.  */)
 		  &root_x, &root_y);
 
   [ns_tooltip showAtX: root_x Y: root_y for: XINT (timeout)];
-  UNBLOCK_INPUT;
+  unblock_input ();
 
   UNGCPRO;
   return unbind_to (count, Qnil);

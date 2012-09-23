@@ -1199,9 +1199,9 @@ r_alloc_init (void)
 #endif
 
 #ifdef DOUG_LEA_MALLOC
-  BLOCK_INPUT;
+  block_input ();
   mallopt (M_TOP_PAD, 64 * 4096);
-  UNBLOCK_INPUT;
+  unblock_input ();
 #else
 #ifndef SYSTEM_MALLOC
   /* Give GNU malloc's morecore some hysteresis so that we move all

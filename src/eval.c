@@ -1076,7 +1076,7 @@ internal_catch (Lisp_Object tag, Lisp_Object (*func) (Lisp_Object), Lisp_Object 
 /* Unwind the specbind, catch, and handler stacks back to CATCH, and
    jump to that CATCH, returning VALUE as the value of that catch.
 
-   This is the guts Fthrow and Fsignal; they differ only in the way
+   This is the guts of Fthrow and Fsignal; they differ only in the way
    they choose the catch tag to throw to.  A catch tag for a
    condition-case form has a TAG of Qnil.
 
@@ -1085,7 +1085,7 @@ internal_catch (Lisp_Object tag, Lisp_Object (*func) (Lisp_Object), Lisp_Object 
    the handler stack as we go, so that the proper handlers are in
    effect for each unwind-protect clause we run.  At the end, restore
    some static info saved in CATCH, and longjmp to the location
-   specified in the
+   specified there.
 
    This is used for correct unwinding in Fthrow and Fsignal.  */
 
@@ -1099,7 +1099,7 @@ unwind_to_catch (struct catchtag *catch, Lisp_Object value)
 
   /* Restore certain special C variables.  */
   set_poll_suppress_count (catch->poll_suppress_count);
-  UNBLOCK_INPUT_TO (catch->interrupt_input_blocked);
+  unblock_input_to (catch->interrupt_input_blocked);
   immediate_quit = 0;
 
   do
@@ -1113,16 +1113,6 @@ unwind_to_catch (struct catchtag *catch, Lisp_Object value)
       catchlist = catchlist->next;
     }
   while (! last_time);
-
-#if HAVE_X_WINDOWS
-  /* If x_catch_errors was done, turn it off now.
-     (First we give unbind_to a chance to do that.)  */
-#if 0 /* This would disable x_catch_errors after x_connection_closed.
-	 The catch must remain in effect during that delicate
-	 state. --lorentey  */
-  x_fully_uncatch_errors ();
-#endif
-#endif
 
   byte_stack_list = catch->byte_stack;
   gcprolist = catch->gcpro;
@@ -1713,7 +1703,7 @@ maybe_call_debugger (Lisp_Object conditions, Lisp_Object sig, Lisp_Object data)
   if (
       /* Don't try to run the debugger with interrupts blocked.
 	 The editing loop would return anyway.  */
-      ! INPUT_BLOCKED_P
+      ! input_blocked_p ()
       && NILP (Vinhibit_debugger)
       /* Does user want to enter debugger for this kind of error?  */
       && (EQ (sig, Qquit)

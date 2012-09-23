@@ -25,6 +25,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <stdarg.h>
 #include <stdbool.h>
 #include <stddef.h>
+#include <float.h>
 #include <inttypes.h>
 #include <limits.h>
 
@@ -1487,6 +1488,16 @@ struct Lisp_Float
 #define XFLOAT_DATA(f) (0 ? XFLOAT (f)->u.data :  XFLOAT (f)->u.data)
 #define XFLOAT_INIT(f, n) (XFLOAT (f)->u.data = (n))
 
+/* Most hosts nowadays use IEEE floating point, so they use IEC 60559
+   representations, have infinities and NaNs, and do not trap on
+   exceptions.  Define IEEE_FLOATING_POINT if this host is one of the
+   typical ones.  The C11 macro __STDC_IEC_559__ is close to what is
+   wanted here, but is not quite right because Emacs does not require
+   all the features of C11 Annex F (and does not require C11 at all,
+   for that matter).  */
+#define IEEE_FLOATING_POINT (FLT_RADIX == 2 && FLT_MANT_DIG == 24 \
+			     && FLT_MIN_EXP == -125 && FLT_MAX_EXP == 128)
+
 /* A character, declared with the following typedef, is a member
    of some character set associated with the current buffer.  */
 #ifndef _UCHAR_T  /* Protect against something in ctab.h on AIX.  */
@@ -2108,7 +2119,7 @@ extern char *stack_bottom;
    a request to exit Emacs when it is safe to do.  */
 
 extern void process_pending_signals (void);
-extern int pending_signals;
+extern int volatile pending_signals;
 
 extern void process_quit_flag (void);
 #define QUIT						\
@@ -2633,7 +2644,6 @@ extern _Noreturn Lisp_Object wrong_type_argument (Lisp_Object, Lisp_Object);
 extern Lisp_Object do_symval_forwarding (union Lisp_Fwd *);
 extern void set_internal (Lisp_Object, Lisp_Object, Lisp_Object, bool);
 extern void syms_of_data (void);
-extern void init_data (void);
 extern void swap_in_global_binding (struct Lisp_Symbol *);
 
 /* Defined in cmds.c */
@@ -3227,6 +3237,9 @@ extern int input_pending;
 extern Lisp_Object menu_bar_items (Lisp_Object);
 extern Lisp_Object tool_bar_items (Lisp_Object, int *);
 extern void discard_mouse_events (void);
+#ifdef USABLE_SIGIO
+void handle_input_available_signal (int);
+#endif
 extern Lisp_Object pending_funcalls;
 extern int detect_input_pending (void);
 extern int detect_input_pending_ignore_squeezables (void);
@@ -3269,7 +3282,7 @@ extern bool display_arg;
 extern Lisp_Object decode_env_path (const char *, const char *);
 extern Lisp_Object empty_unibyte_string, empty_multibyte_string;
 extern Lisp_Object Qfile_name_handler_alist;
-extern _Noreturn void fatal_error_backtrace (int, int);
+extern _Noreturn void terminate_due_to_signal (int, int);
 extern Lisp_Object Qkill_emacs;
 #if HAVE_SETLOCALE
 void fixup_locale (void);
@@ -3320,6 +3333,7 @@ extern int wait_reading_process_output (intmax_t, int, int, int,
 #endif
 extern void add_keyboard_wait_descriptor (int);
 extern void delete_keyboard_wait_descriptor (int);
+extern void record_child_status_change (pid_t, int);
 #ifdef HAVE_GPM
 extern void add_gpm_wait_descriptor (int);
 extern void delete_gpm_wait_descriptor (int);
