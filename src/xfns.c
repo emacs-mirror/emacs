@@ -656,8 +656,8 @@ x_set_tool_bar_position (struct frame *f,
   if (EQ (new_value, old_value)) return;
 
 #ifdef USE_GTK
-  if (xg_change_toolbar_position (f, new_value))
-    fset_tool_bar_position (f, new_value);
+  xg_change_toolbar_position (f, new_value);
+  fset_tool_bar_position (f, new_value);
 #endif
 }
 
@@ -4985,13 +4985,14 @@ Text larger than the specified size is clipped.  */)
 #ifdef USE_GTK
   if (x_gtk_use_system_tooltips)
     {
-      int ok;
+      bool ok;
 
       /* Hide a previous tip, if any.  */
       Fx_hide_tip ();
 
       block_input ();
-      if ((ok = xg_prepare_tooltip (f, string, &width, &height)) != 0)
+      ok = xg_prepare_tooltip (f, string, &width, &height);
+      if (ok)
         {
 	  compute_tip_xy (f, parms, dx, dy, width, height, &root_x, &root_y);
           xg_show_tooltip (f, root_x, root_y);

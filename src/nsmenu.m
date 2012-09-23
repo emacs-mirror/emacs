@@ -115,13 +115,13 @@ popup_activated (void)
 
 /* --------------------------------------------------------------------------
     Update menubar.  Three cases:
-    1) deep_p = 0, submenu = nil: Fresh switch onto a frame -- either set up
+    1) ! deep_p, submenu = nil: Fresh switch onto a frame -- either set up
        just top-level menu strings (OS X), or goto case (2) (GNUstep).
-    2) deep_p = 1, submenu = nil: Recompute all submenus.
-    3) deep_p = 1, submenu = non-nil: Update contents of a single submenu.
+    2) deep_p, submenu = nil: Recompute all submenus.
+    3) deep_p, submenu = non-nil: Update contents of a single submenu.
    -------------------------------------------------------------------------- */
 void
-ns_update_menubar (struct frame *f, int deep_p, EmacsMenu *submenu)
+ns_update_menubar (struct frame *f, bool deep_p, EmacsMenu *submenu)
 {
   NSAutoreleasePool *pool;
   id menu = [NSApp mainMenu];
@@ -507,7 +507,7 @@ ns_update_menubar (struct frame *f, int deep_p, EmacsMenu *submenu)
    frame's menus have changed, and the *step representation should be updated
    from Lisp. */
 void
-set_frame_menubar (struct frame *f, int first_time, int deep_p)
+set_frame_menubar (struct frame *f, bool first_time, bool deep_p)
 {
   ns_update_menubar (f, deep_p, nil);
 }
@@ -1766,7 +1766,7 @@ ns_popup_dialog (Lisp_Object position, Lisp_Object contents, Lisp_Object header)
 }
 
 
- 
+
 - (void)timeout_handler: (NSTimer *)timedEntry
 {
   NSEvent *nxev = [NSEvent otherEventWithType: NSApplicationDefined

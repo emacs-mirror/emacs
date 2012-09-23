@@ -85,7 +85,7 @@ MessageBoxW_Proc unicode_message_box = NULL;
 
 Lisp_Object Qdebug_on_next_call;
 
-void set_frame_menubar (FRAME_PTR, int, int);
+void set_frame_menubar (FRAME_PTR, bool, bool);
 
 #ifdef HAVE_DIALOGS
 static Lisp_Object w32_dialog_show (FRAME_PTR, int, Lisp_Object, char**);
@@ -356,7 +356,7 @@ menubar_selection_callback (FRAME_PTR f, void * client_data)
    it is set the first time this is called, from initialize_frame_menubar.  */
 
 void
-set_frame_menubar (FRAME_PTR f, int first_time, int deep_p)
+set_frame_menubar (FRAME_PTR f, bool first_time, bool deep_p)
 {
   HMENU menubar_widget = f->output_data.w32->menubar_widget;
   Lisp_Object items;

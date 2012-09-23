@@ -834,13 +834,13 @@ menubar_selection_callback (Widget widget, LWLIB_ID id, XtPointer client_data)
 #endif /* not USE_GTK */
 
 /* Recompute all the widgets of frame F, when the menu bar has been
-   changed.  Value is non-zero if widgets were updated.  */
+   changed.  */
 
-static int
+static void
 update_frame_menubar (FRAME_PTR f)
 {
 #ifdef USE_GTK
-  return xg_update_frame_menubar (f);
+  xg_update_frame_menubar (f);
 #else
   struct x_output *x;
   int columns, rows;
@@ -851,7 +851,7 @@ update_frame_menubar (FRAME_PTR f)
   x = f->output_data.x;
 
   if (!x->menubar_widget || XtIsManaged (x->menubar_widget))
-    return 0;
+    return;
 
   block_input ();
   /* Save the size of the frame because the pane widget doesn't accept
@@ -882,7 +882,6 @@ update_frame_menubar (FRAME_PTR f)
   EmacsFrameSetCharSize (x->edit_widget, columns, rows);
   unblock_input ();
 #endif
-  return 1;
 }
 
 #ifdef USE_LUCID
@@ -921,7 +920,7 @@ apply_systemfont_to_menu (struct frame *f, Widget w)
    it is set the first time this is called, from initialize_frame_menubar.  */
 
 void
-set_frame_menubar (FRAME_PTR f, int first_time, int deep_p)
+set_frame_menubar (FRAME_PTR f, bool first_time, bool deep_p)
 {
   xt_or_gtk_widget menubar_widget;
 #ifdef USE_X_TOOLKIT

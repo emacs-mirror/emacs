@@ -1,3 +1,30 @@
+2012-09-23  Paul Eggert  <eggert@cs.ucla.edu>
+
+	gnutls.c, gtkutil.c: Use bool for boolean.
+	* gnutls.c (gnutls_global_initialized, init_gnutls_functions)
+	(emacs_gnutls_handle_error):
+	* gtkutil.c (xg_check_special_colors, xg_prepare_tooltip)
+	(xg_hide_tooltip, xg_create_frame_widgets)
+	(create_dialog, xg_uses_old_file_dialog)
+	(xg_get_file_with_chooser, xg_get_file_with_selection)
+	(xg_get_file_name, xg_have_tear_offs, create_menus, xg_create_widget)
+	(xg_item_label_same_p, xg_update_menubar)
+	(xg_modify_menubar_widgets, xg_event_is_for_menubar)
+	(xg_ignore_gtk_scrollbar, xg_set_toolkit_scroll_bar_thumb)
+	(xg_event_is_for_scrollbar, xg_pack_tool_bar, xg_make_tool_item)
+	(is_box_type, xg_tool_item_stale_p, xg_update_tool_bar_sizes)
+	(update_frame_tool_bar, free_frame_tool_bar):
+	* gtkutil.c, w32term.c, xterm.c (x_wm_set_size_hint):
+	* nsmenu.m (ns_update_menubar):
+	* nsmenu.m, w32menu.c, xmenu.c (set_frame_menubar):
+	* xfns.c (Fx_show_tip) [USE_GTK]:
+	Use bool for boolean.
+	* gtkutil.c (xg_update_frame_menubar):
+	* xmenu.c (update_frame_menubar):
+	Return void, not int, since caller ignores return value.
+	* gtkutil.c (xg_change_toolbar_position):
+	Return void, not 1.
+
 2012-09-23  Juanma Barranquero  <lekktu@gmail.com>
 
 	* makefile.w32-in (BLOCKINPUT_H): Remove.
