@@ -1,3 +1,13 @@
+2012-09-23  Chong Yidong  <cyd@gnu.org>
+
+	* buffers.texi (Read Only Buffers): Document read-only-mode.
+
+	* keymaps.texi (Alias Menu Items): Replace toggle-read-only with
+	read-only-mode.
+
+	* backups.texi (Auto-Saving): Refer to Minor Mode Conventions for
+	calling conventions.
+
 2012-09-22  Chong Yidong  <cyd@gnu.org>
 
 	* searching.texi (Replacing Match): Minor clarification.

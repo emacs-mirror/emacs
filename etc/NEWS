@@ -94,7 +94,7 @@ respectively, without exiting from the prompt.
 next and previous path separator, respectively.
 
 ** Mode line changes
-
+---
 *** New option `mode-line-default-help-echo' specifies the help text
 (shown in a tooltip or in the echo area) for any part of the mode line
 that does not have its own specialized help text.
@@ -143,6 +143,7 @@ or expression to evaluate.
 ** In the Package Menu, newly-available packages are listed as "new",
 and sorted above the other "available" packages by default.
 
++++
 ** `C-x C-q' is now bound to the new minor mode `read-only-mode'.
 This minor mode replaces `toggle-read-only', which is now obsolete.
 

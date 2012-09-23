@@ -441,12 +441,14 @@ buffer-auto-save-file-name
 @end defvar
 
 @deffn Command auto-save-mode arg
-When used interactively without an argument, this command is a toggle
-switch: it turns on auto-saving of the current buffer if it is off,
-and vice versa.  When called from Lisp with no argument, it turns
-auto-saving on.  With an argument @var{arg}, it turns auto-saving on
-if the value of @var{arg} is @code{t}, a nonempty list, or a positive
-integer; otherwise, it turns auto-saving off.
+This is the mode command for Auto Save mode, a buffer-local minor
+mode.  When Auto Save mode is enabled, auto-saving is enabled in the
+buffer.  The calling convention is the same as for other minor mode
+commands (@pxref{Minor Mode Conventions}).
+
+Unlike most minor modes, there is no @code{auto-save-mode} variable.
+Auto Save mode is enabled if @code{buffer-auto-save-file-name} is
+non-@code{nil} and @code{buffer-saved-size} (see below) is non-zero.
 @end deffn
 
 @defun auto-save-file-name-p filename

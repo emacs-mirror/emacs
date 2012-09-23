@@ -1,3 +1,10 @@
+2012-09-23  Chong Yidong  <cyd@gnu.org>
+
+	* buffers.texi (Misc Buffer): Replace toggle-read-only with
+	read-only-mode.
+
+	* files.texi (Visiting): Likewise.
+
 2012-09-22  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* trouble.texi (Crashing): Document ulimit -c.
