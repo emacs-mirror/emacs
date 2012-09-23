@@ -1,5 +1,13 @@
 2012-09-23  Chong Yidong  <cyd@gnu.org>
 
+	* bindings.el (mode-line-toggle-read-only):
+	* bs.el (bs-toggle-readonly):
+	* buff-menu.el (Buffer-menu-toggle-read-only):
+	* dired.el (dired-toggle-read-only):
+	* ibuffer.el (ibuffer-do-toggle-read-only): Use read-only-mode.
+
+2012-09-23  Chong Yidong  <cyd@gnu.org>
+
 	* image.el (image-type-available-p): Adapt to init-image-library
 	argument changes.
 

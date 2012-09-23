@@ -1964,7 +1964,7 @@ Otherwise, call `toggle-read-only'."
   (interactive)
   (if (derived-mode-p 'dired-mode)
       (wdired-change-to-wdired-mode)
-    (call-interactively 'toggle-read-only)))
+    (read-only-mode 'toggle)))
 
 (defun dired-next-line (arg)
   "Move down lines then position at filename.

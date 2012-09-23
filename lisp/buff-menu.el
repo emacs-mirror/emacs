@@ -520,7 +520,7 @@ This behaves like invoking \\[toggle-read-only] in that buffer."
   (interactive)
   (let ((read-only
          (with-current-buffer (Buffer-menu-buffer t)
-           (call-interactively 'toggle-read-only)
+           (read-only-mode 'toggle)
            buffer-read-only)))
     (tabulated-list-set-col 1 (if read-only "%" " ") t)))
 
