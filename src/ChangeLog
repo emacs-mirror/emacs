@@ -1,3 +1,12 @@
+2012-09-23  Eli Zaretskii  <eliz@gnu.org>
+
+	* .gdbinit: Set breakpoint on terminate_due_to_signal, not on
+	fatal_error_backtrace.
+
+	* w32proc.c (sys_kill): Undo last change: don't do anything when
+	invoked to deliver SIGABRT to our own process.  This is now
+	handled by emacs_raise.
+
 2012-09-23  Juanma Barranquero  <lekktu@gmail.com>
 
 	* w32term.c (w32_read_socket): Remove leftover reference to

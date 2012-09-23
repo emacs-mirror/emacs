@@ -1,3 +1,7 @@
+2012-09-23  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/ms-w32.h (emacs_raise): Redefine to invoke emacs_abort.
+
 2012-09-23  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Simplify and avoid signal-handling races (Bug#12471).
