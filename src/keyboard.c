@@ -4496,6 +4496,9 @@ timer_check (void)
   Lisp_Object timers, idle_timers;
   struct gcpro gcpro1, gcpro2;
 
+  Lisp_Object tem = Vinhibit_quit;
+  Vinhibit_quit = Qt;
+
   /* We use copies of the timers' lists to allow a timer to add itself
      again, without locking up Emacs if the newly added timer is
      already ripe when added.  */
@@ -4507,6 +4510,8 @@ timer_check (void)
     idle_timers = Fcopy_sequence (Vtimer_idle_list);
   else
     idle_timers = Qnil;
+
+  Vinhibit_quit = tem;
 
   GCPRO2 (timers, idle_timers);
 

@@ -1,3 +1,7 @@
+2012-09-23  Chong Yidong  <cyd@gnu.org>
+
+	* keyboard.c (timer_check): Avoid quitting during Fcopy_sequence.
+
 2012-09-22  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* .gdbinit: Just stop at fatal_error_backtrace.
