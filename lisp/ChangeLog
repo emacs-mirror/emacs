@@ -1,3 +1,8 @@
+2012-09-23  Chong Yidong  <cyd@gnu.org>
+
+	* image.el (image-type-available-p): Adapt to init-image-library
+	argument changes.
+
 2012-09-22  Juri Linkov  <juri@jurta.org>
 
 	* dired.el (dired-mode-map): Add [remap read-only-mode] for

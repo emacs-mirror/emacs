@@ -579,15 +579,10 @@ static int x_build_heuristic_mask (struct frame *, struct image *,
   do { Vimage_types = Fcons (type, Vimage_types); } while (0)
 
 /* Define a new image type from TYPE.  This adds a copy of TYPE to
-   image_types and caches the loading status of TYPE.
-
-   LIBRARIES is an alist associating dynamic libraries to external
-   files implementing them, which is passed to the image library
-   initialization function if necessary.  A nil value defaults to
-   Vdynamic_library_alist.  */
+   image_types and caches the loading status of TYPE.  */
 
 static struct image_type *
-define_image_type (struct image_type *type, Lisp_Object libraries)
+define_image_type (struct image_type *type)
 {
   struct image_type *p = NULL;
   Lisp_Object target_type = *type->type;
@@ -609,7 +604,7 @@ define_image_type (struct image_type *type, Lisp_Object libraries)
       else
 #endif
 	{
-	  type_valid = type->init (libraries);
+	  type_valid = type->init ();
 	  CACHE_IMAGE_TYPE (target_type, type_valid ? Qt : Qnil);
 	}
     }
@@ -3053,7 +3048,7 @@ static const struct image_keyword xpm_format[XPM_LAST] =
 };
 
 #ifdef HAVE_NTGUI
-static int init_xpm_functions (Lisp_Object);
+static int init_xpm_functions (void);
 #else
 #define init_xpm_functions NULL
 #endif
@@ -3267,11 +3262,11 @@ DEF_IMGLIB_FN (int, XpmReadFileToImage, (Display *, char *, xpm_XImage **,
 DEF_IMGLIB_FN (void, XImageFree, (xpm_XImage *));
 
 static int
-init_xpm_functions (Lisp_Object libraries)
+init_xpm_functions (void)
 {
   HMODULE library;
 
-  if (!(library = w32_delayed_load (libraries, Qxpm)))
+  if (!(library = w32_delayed_load (Qxpm)))
     return 0;
 
   LOAD_IMGLIB_FN (library, XpmFreeAttributes);
@@ -5397,7 +5392,7 @@ static const struct image_keyword png_format[PNG_LAST] =
 };
 
 #ifdef HAVE_NTGUI
-static int init_png_functions (Lisp_Object);
+static int init_png_functions (void);
 #else
 #define init_png_functions NULL
 #endif
@@ -5469,11 +5464,11 @@ DEF_IMGLIB_FN (jmp_buf *, png_set_longjmp_fn, (png_structp, png_longjmp_ptr, siz
 #endif /* libpng version >= 1.5 */
 
 static int
-init_png_functions (Lisp_Object libraries)
+init_png_functions (void)
 {
   HMODULE library;
 
-  if (!(library = w32_delayed_load (libraries, Qpng)))
+  if (!(library = w32_delayed_load (Qpng)))
     return 0;
 
   LOAD_IMGLIB_FN (library, png_get_io_ptr);
@@ -6056,7 +6051,7 @@ static const struct image_keyword jpeg_format[JPEG_LAST] =
 };
 
 #ifdef HAVE_NTGUI
-static int init_jpeg_functions (Lisp_Object);
+static int init_jpeg_functions (void);
 #else
 #define init_jpeg_functions NULL
 #endif
@@ -6125,11 +6120,11 @@ DEF_IMGLIB_FN (struct jpeg_error_mgr *, jpeg_std_error, (struct jpeg_error_mgr *
 DEF_IMGLIB_FN (boolean, jpeg_resync_to_restart, (j_decompress_ptr, int));
 
 static int
-init_jpeg_functions (Lisp_Object libraries)
+init_jpeg_functions (void)
 {
   HMODULE library;
 
-  if (!(library = w32_delayed_load (libraries, Qjpeg)))
+  if (!(library = w32_delayed_load (Qjpeg)))
     return 0;
 
   LOAD_IMGLIB_FN (library, jpeg_finish_decompress);
@@ -6648,7 +6643,7 @@ static const struct image_keyword tiff_format[TIFF_LAST] =
 };
 
 #ifdef HAVE_NTGUI
-static int init_tiff_functions (Lisp_Object);
+static int init_tiff_functions (void);
 #else
 #define init_tiff_functions NULL
 #endif
@@ -6702,11 +6697,11 @@ DEF_IMGLIB_FN (void, TIFFClose, (TIFF *));
 DEF_IMGLIB_FN (int, TIFFSetDirectory, (TIFF *, tdir_t));
 
 static int
-init_tiff_functions (Lisp_Object libraries)
+init_tiff_functions (void)
 {
   HMODULE library;
 
-  if (!(library = w32_delayed_load (libraries, Qtiff)))
+  if (!(library = w32_delayed_load (Qtiff)))
     return 0;
 
   LOAD_IMGLIB_FN (library, TIFFSetErrorHandler);
@@ -7103,7 +7098,7 @@ static const struct image_keyword gif_format[GIF_LAST] =
 };
 
 #ifdef HAVE_NTGUI
-static int init_gif_functions (Lisp_Object);
+static int init_gif_functions (void);
 #else
 #define init_gif_functions NULL
 #endif
@@ -7175,11 +7170,11 @@ DEF_IMGLIB_FN (GifFileType *, DGifOpen, (void *, InputFunc));
 DEF_IMGLIB_FN (GifFileType *, DGifOpenFileName, (const char *));
 
 static int
-init_gif_functions (Lisp_Object libraries)
+init_gif_functions (void)
 {
   HMODULE library;
 
-  if (!(library = w32_delayed_load (libraries, Qgif)))
+  if (!(library = w32_delayed_load (Qgif)))
     return 0;
 
   LOAD_IMGLIB_FN (library, DGifCloseFile);
@@ -7600,7 +7595,7 @@ static struct image_keyword imagemagick_format[IMAGEMAGICK_LAST] =
   };
 
 #ifdef HAVE_NTGUI
-static int init_imagemagick_functions (Lisp_Object);
+static int init_imagemagick_functions (void);
 #else
 #define init_imagemagick_functions NULL
 #endif
@@ -8154,7 +8149,7 @@ static const struct image_keyword svg_format[SVG_LAST] =
 };
 
 #ifdef HAVE_NTGUI
-static int init_svg_functions (Lisp_Object);
+static int init_svg_functions (void);
 #else
 #define init_svg_functions NULL
 #endif
@@ -8218,14 +8213,14 @@ DEF_IMGLIB_FN (void, g_error_free);
 Lisp_Object Qgdk_pixbuf, Qglib, Qgobject;
 
 static int
-init_svg_functions (Lisp_Object libraries)
+init_svg_functions (void)
 {
   HMODULE library, gdklib, glib, gobject;
 
-  if (!(glib = w32_delayed_load (libraries, Qglib))
-      || !(gobject = w32_delayed_load (libraries, Qgobject))
-      || !(gdklib = w32_delayed_load (libraries, Qgdk_pixbuf))
-      || !(library = w32_delayed_load (libraries, Qsvg)))
+  if (!(glib = w32_delayed_load (Qglib))
+      || !(gobject = w32_delayed_load (Qgobject))
+      || !(gdklib = w32_delayed_load (Qgdk_pixbuf))
+      || !(library = w32_delayed_load (Qsvg)))
     return 0;
 
   LOAD_IMGLIB_FN (library, rsvg_handle_new);
@@ -8549,12 +8544,6 @@ static const struct image_keyword gs_format[GS_LAST] =
   {":background",	IMAGE_STRING_OR_NIL_VALUE,		0}
 };
 
-#ifdef HAVE_NTGUI
-static int init_gs_functions (Lisp_Object);
-#else
-#define init_gs_functions NULL
-#endif
-
 /* Structure describing the image type `ghostscript'.  */
 
 static struct image_type gs_type =
@@ -8563,7 +8552,7 @@ static struct image_type gs_type =
   gs_image_p,
   gs_load,
   gs_clear_image,
-  init_gs_functions,
+  NULL,
   NULL
 };
 
@@ -8826,77 +8815,69 @@ DEFUN ("lookup-image", Flookup_image, Slookup_image, 1, 1, 0, "")
 			    Initialization
  ***********************************************************************/
 
-DEFUN ("init-image-library", Finit_image_library, Sinit_image_library, 2, 2, 0,
+DEFUN ("init-image-library", Finit_image_library, Sinit_image_library, 1, 1, 0,
        doc: /* Initialize image library implementing image type TYPE.
 Return non-nil if TYPE is a supported image type.
 
-Image types pbm and xbm are prebuilt; other types are loaded here.
-Libraries to load are specified in alist LIBRARIES (usually, the value
-of `dynamic-library-alist', which see).  */)
-  (Lisp_Object type, Lisp_Object libraries)
+If image libraries are loaded dynamically (currently only the case on
+MS-Windows), load the library for TYPE if it is not yet loaded, using
+the library file(s) specified by `dynamic-library-alist'.  */)
+  (Lisp_Object type)
 {
-  return lookup_image_type (type, libraries) ? Qt : Qnil;
+  return lookup_image_type (type) ? Qt : Qnil;
 }
 
 /* Look up image type TYPE, and return a pointer to its image_type
-   structure.  Return 0 if TYPE is not a known image type.
-
-   LIBRARIES is an alist associating dynamic libraries to external
-   files implementing them, which is passed to the image library
-   initialization function if necessary.  A nil value defaults to
-   Vdynamic_library_alist.  */
+   structure.  Return 0 if TYPE is not a known image type.  */
 
 static struct image_type *
-lookup_image_type (Lisp_Object type, Lisp_Object libraries)
+lookup_image_type (Lisp_Object type)
 {
-  if (NILP (libraries))
-    libraries = Vdynamic_library_alist;
-
   /* Types pbm and xbm are built-in and always available.  */
   if (EQ (type, Qpbm))
-    return define_image_type (&pbm_type, libraries);
+    return define_image_type (&pbm_type);
 
   if (EQ (type, Qxbm))
-    return define_image_type (&xbm_type, libraries);
+    return define_image_type (&xbm_type);
 
 #if defined (HAVE_XPM) || defined (HAVE_NS)
   if (EQ (type, Qxpm))
-    return define_image_type (&xpm_type, libraries);
+    return define_image_type (&xpm_type);
 #endif
 
 #if defined (HAVE_JPEG) || defined (HAVE_NS)
   if (EQ (type, Qjpeg))
-    return define_image_type (&jpeg_type, libraries);
+    return define_image_type (&jpeg_type);
 #endif
 
 #if defined (HAVE_TIFF) || defined (HAVE_NS)
   if (EQ (type, Qtiff))
-    return define_image_type (&tiff_type, libraries);
+    return define_image_type (&tiff_type);
 #endif
 
 #if defined (HAVE_GIF) || defined (HAVE_NS)
   if (EQ (type, Qgif))
-    return define_image_type (&gif_type, libraries);
+    return define_image_type (&gif_type);
 #endif
 
 #if defined (HAVE_PNG) || defined (HAVE_NS)
   if (EQ (type, Qpng))
-    return define_image_type (&png_type, libraries);
+    return define_image_type (&png_type);
 #endif
 
 #if defined (HAVE_RSVG)
   if (EQ (type, Qsvg))
-    return define_image_type (&svg_type, libraries);
+    return define_image_type (&svg_type);
 #endif
 
 #if defined (HAVE_IMAGEMAGICK)
   if (EQ (type, Qimagemagick))
-    return define_image_type (&imagemagick_type, libraries);
+    return define_image_type (&imagemagick_type);
 #endif
 
 #ifdef HAVE_GHOSTSCRIPT
   if (EQ (type, Qpostscript))
-    return define_image_type (&gs_type, libraries);
+    return define_image_type (&gs_type);
 #endif
 
   return NULL;

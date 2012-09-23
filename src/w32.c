@@ -6525,29 +6525,27 @@ sys_localtime (const time_t *t)
 
 Lisp_Object Vlibrary_cache;
 
-/* The argument LIBRARIES is an alist that associates a symbol
-   LIBRARY_ID, identifying an external DLL library known to Emacs, to
-   a list of filenames under which the library is usually found.  In
-   most cases, the argument passed as LIBRARIES is the variable
-   `dynamic-library-alist', which is initialized to a list of common
-   library names.  If the function loads the library successfully, it
-   returns the handle of the DLL, and records the filename in the
-   property :loaded-from of LIBRARY_ID; it returns NULL if the library
-   could not be found, or when it was already loaded (because the
-   handle is not recorded anywhere, and so is lost after use).  It
-   would be trivial to save the handle too in :loaded-from, but
-   currently there's no use case for it.  */
+/* Try loading LIBRARY_ID from the file(s) specified in
+   Vdynamic_library_alist.  If the library is loaded successfully,
+   return the handle of the DLL, and record the filename in the
+   property :loaded-from of LIBRARY_ID.  If the library could not be
+   found, or when it was already loaded (because the handle is not
+   recorded anywhere, and so is lost after use), return NULL.
+
+   We could also save the handle in :loaded-from, but currently
+   there's no use case for it.  */
 HMODULE
-w32_delayed_load (Lisp_Object libraries, Lisp_Object library_id)
+w32_delayed_load (Lisp_Object library_id)
 {
   HMODULE library_dll = NULL;
 
   CHECK_SYMBOL (library_id);
 
-  if (CONSP (libraries) && NILP (Fassq (library_id, Vlibrary_cache)))
+  if (CONSP (Vdynamic_library_alist)
+      && NILP (Fassq (library_id, Vlibrary_cache)))
     {
       Lisp_Object found = Qnil;
-      Lisp_Object dlls = Fassq (library_id, libraries);
+      Lisp_Object dlls = Fassq (library_id, Vdynamic_library_alist);
 
       if (CONSP (dlls))
         for (dlls = XCDR (dlls); CONSP (dlls); dlls = XCDR (dlls))

@@ -1,3 +1,23 @@
+2012-09-23  Chong Yidong  <cyd@gnu.org>
+
+	* w32.c (w32_delayed_load): Remove LIBRARIES argument; always use
+	Vdynamic_library_alist.
+
+	* gnutls.c (init_gnutls_functions): Caller changed; remove arg.
+	(Fgnutls_available_p): Caller changed.
+
+	* xml.c (init_libxml2_functions, Flibxml_parse_html_region)
+	(Flibxml_parse_xml_region): Likewise.
+
+	* dispextern.h (struct image_type): Remove arg from init function.
+
+	* image.c (Finit_image_library, lookup_image_type)
+	(define_image_type): Remove now-unneeded second arg.
+	(init_xpm_functions, init_png_functions, init_jpeg_functions)
+	(init_tiff_functions, init_gif_functions, init_svg_functions):
+	Arglist and w32_delayed_load calling convention changed.
+	(gs_type): Remove init_gs_functions; there is no such function.
+
 2012-09-23  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Simplify and avoid signal-handling races (Bug#12471).

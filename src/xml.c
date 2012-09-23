@@ -82,7 +82,7 @@ libxml2_loaded_p (void)
 #endif	/* !WINDOWSNT */
 
 static int
-init_libxml2_functions (Lisp_Object libraries)
+init_libxml2_functions (void)
 {
 #ifdef WINDOWSNT
   if (libxml2_loaded_p ())
@@ -91,7 +91,7 @@ init_libxml2_functions (Lisp_Object libraries)
     {
       HMODULE library;
 
-      if (!(library = w32_delayed_load (libraries, Qlibxml2_dll)))
+      if (!(library = w32_delayed_load (Qlibxml2_dll)))
 	{
 	  message ("%s", "libxml2 library not found");
 	  return 0;
@@ -257,7 +257,7 @@ DEFUN ("libxml-parse-html-region", Flibxml_parse_html_region,
 If BASE-URL is non-nil, it is used to expand relative URLs.  */)
   (Lisp_Object start, Lisp_Object end, Lisp_Object base_url)
 {
-  if (init_libxml2_functions (Vdynamic_library_alist))
+  if (init_libxml2_functions ())
     return parse_region (start, end, base_url, 1);
   return Qnil;
 }
@@ -269,7 +269,7 @@ DEFUN ("libxml-parse-xml-region", Flibxml_parse_xml_region,
 If BASE-URL is non-nil, it is used to expand relative URLs.  */)
   (Lisp_Object start, Lisp_Object end, Lisp_Object base_url)
 {
-  if (init_libxml2_functions (Vdynamic_library_alist))
+  if (init_libxml2_functions ())
     return parse_region (start, end, base_url, 0);
   return Qnil;
 }

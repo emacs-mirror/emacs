@@ -142,12 +142,12 @@ DEF_GNUTLS_FN (int, gnutls_x509_crt_import,
 DEF_GNUTLS_FN (int, gnutls_x509_crt_init, (gnutls_x509_crt_t *));
 
 static int
-init_gnutls_functions (Lisp_Object libraries)
+init_gnutls_functions (void)
 {
   HMODULE library;
   int max_log_level = 1;
 
-  if (!(library = w32_delayed_load (libraries, Qgnutls_dll)))
+  if (!(library = w32_delayed_load (Qgnutls_dll)))
     {
       GNUTLS_LOG (1, max_log_level, "GnuTLS library not found");
       return 0;
@@ -656,7 +656,7 @@ DEFUN ("gnutls-available-p", Fgnutls_available_p, Sgnutls_available_p, 0, 0, 0,
   else
     {
       Lisp_Object status;
-      status = init_gnutls_functions (Vdynamic_library_alist) ? Qt : Qnil;
+      status = init_gnutls_functions () ? Qt : Qnil;
       Vlibrary_cache = Fcons (Fcons (Qgnutls_dll, status), Vlibrary_cache);
       return status;
     }

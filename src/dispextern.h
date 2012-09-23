@@ -2769,7 +2769,7 @@ struct image_type
 
   /* Initialization function (used for dynamic loading of image
      libraries on Windows), or NULL if none.  */
-  int (* init) (Lisp_Object);
+  int (* init) (void);
 
   /* Next in list of all supported image types.  */
   struct image_type *next;
