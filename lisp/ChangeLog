@@ -1,5 +1,13 @@
 2012-09-23  Roland Winkler  <winkler@gnu.org>
 
+	* proced.el (proced-renice-command): New variable.
+	(proced-marked-processes): New function.
+	(proced-with-processes-buffer): New macro.
+	(proced-send-signal): Use them.
+	(proced-renice): New command bound to r.
+
+2012-09-23  Roland Winkler  <winkler@gnu.org>
+
 	* ibuf-ext.el (ibuffer-switch-to-saved-filter-groups): If list
 	ibuffer-saved-filter-groups has one element, shortcut the call of
 	completing-read.  (Bug#12331)
