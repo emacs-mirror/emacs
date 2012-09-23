@@ -738,17 +738,18 @@ Field boundaries are not noticed if `inhibit-field-text-motion' is non-nil.  */)
 DEFUN ("line-beginning-position",
        Fline_beginning_position, Sline_beginning_position, 0, 1, 0,
        doc: /* Return the character position of the first character on the current line.
-With argument N not nil or 1, move forward N - 1 lines first.
-If scan reaches end of buffer, return that position.
+With optional argument N, scan forward N - 1 lines first.
+If the scan reaches the end of the buffer, return that position.
 
-The returned position is of the first character in the logical order,
-i.e. the one that has the smallest character position.
+This function ignores text display directionality; it returns the
+position of the first character in logical order, i.e. the smallest
+character position on the line.
 
 This function constrains the returned position to the current field
-unless that would be on a different line than the original,
+unless that position would be on a different line than the original,
 unconstrained result.  If N is nil or 1, and a front-sticky field
 starts at point, the scan stops as soon as it starts.  To ignore field
-boundaries bind `inhibit-field-text-motion' to t.
+boundaries, bind `inhibit-field-text-motion' to t.
 
 This function does not move point.  */)
   (Lisp_Object n)
@@ -782,8 +783,9 @@ DEFUN ("line-end-position", Fline_end_position, Sline_end_position, 0, 1, 0,
 With argument N not nil or 1, move forward N - 1 lines first.
 If scan reaches end of buffer, return that position.
 
-The returned position is of the last character in the logical order,
-i.e. the character whose buffer position is the largest one.
+This function ignores text display directionality; it returns the
+position of the last character in logical order, i.e. the largest
+character position on the line.
 
 This function constrains the returned position to the current field
 unless that would be on a different line than the original,

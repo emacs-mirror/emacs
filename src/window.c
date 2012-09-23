@@ -60,8 +60,7 @@ static Lisp_Object Qwindow_deletable_p, Qdelete_window, Qdisplay_buffer;
 static Lisp_Object Qreplace_buffer_in_windows, Qget_mru_window;
 static Lisp_Object Qwindow_resize_root_window, Qwindow_resize_root_window_vertically;
 static Lisp_Object Qscroll_up, Qscroll_down, Qscroll_command;
-static Lisp_Object Qsafe, Qabove, Qbelow;
-static Lisp_Object Qclone_of;
+static Lisp_Object Qsafe, Qabove, Qbelow, Qtemp_buffer_resize, Qclone_of;
 
 static int displayed_window_lines (struct window *);
 static int count_windows (struct window *);
@@ -613,10 +612,10 @@ WINDOW are never \(re-)combined with WINDOW's siblings.  */)
 DEFUN ("set-window-combination-limit", Fset_window_combination_limit, Sset_window_combination_limit, 2, 2, 0,
        doc: /* Set combination limit of window WINDOW to LIMIT; return LIMIT.
 WINDOW must be a valid window and defaults to the selected one.
-If LIMIT is nil, child windows of WINDOW can be recombined with
-WINDOW's siblings.  LIMIT t means that child windows of WINDOW are
-never \(re-)combined with WINDOW's siblings.  Other values are reserved
-for future use.  */)
+If LIMIT is nil, child windows of WINDOW can be recombined with WINDOW's
+siblings.  LIMIT t means that child windows of WINDOW are never
+\(re-)combined with WINDOW's siblings.  Other values are reserved for
+future use.  */)
   (Lisp_Object window, Lisp_Object limit)
 {
   wset_combination_limit (decode_valid_window (window), limit);
@@ -3466,7 +3465,7 @@ make_window (void)
      allocate_window.  */
   wset_prev_buffers (w, Qnil);
   wset_next_buffers (w, Qnil);
-  
+
   /* Initialize non-Lisp data.  Note that allocate_window zeroes out all
      non-Lisp data, so do it only for slots which should not be zero.  */
   w->nrows_scale_factor = w->ncols_scale_factor = 1;
@@ -3848,7 +3847,7 @@ set correctly.  See the code of `split-window' for how this is done.  */)
      We do that if either `window-combination-limit' is t, or OLD has no
      parent, or OLD is ortho-combined.  */
   combination_limit =
-    !NILP (Vwindow_combination_limit)
+    EQ (Vwindow_combination_limit, Qt)
     || NILP (o->parent)
     || NILP (horflag
 	     ? (XWINDOW (o->parent)->hchild)
@@ -3903,9 +3902,9 @@ set correctly.  See the code of `split-window' for how this is done.  */)
 
       make_parent_window (old, horflag);
       p = XWINDOW (o->parent);
-      /* Store value of `window-combination-limit' in new parent's
-	 combination_limit slot.  */
-      wset_combination_limit (p, Vwindow_combination_limit);
+      /* Store t in the new parent's combination_limit slot to avoid
+	that its children get merged into another window.  */
+      wset_combination_limit (p, Qt);
       /* These get applied below.  */
       wset_new_total (p, horflag ? o->total_cols : o->total_lines);
       wset_new_normal (p, new_normal);
@@ -6705,6 +6704,7 @@ syms_of_window (void)
   DEFSYM (Qreplace_buffer_in_windows, "replace-buffer-in-windows");
   DEFSYM (Qrecord_window_buffer, "record-window-buffer");
   DEFSYM (Qget_mru_window, "get-mru-window");
+  DEFSYM (Qtemp_buffer_resize, "temp-buffer-resize");
   DEFSYM (Qtemp_buffer_show_hook, "temp-buffer-show-hook");
   DEFSYM (Qabove, "above");
   DEFSYM (Qbelow, "below");
@@ -6800,23 +6800,36 @@ This variable takes no effect if `window-combination-limit' is non-nil.  */);
   Vwindow_combination_resize = Qnil;
 
   DEFVAR_LISP ("window-combination-limit", Vwindow_combination_limit,
-	       doc: /* If t, splitting a window makes a new parent window.
-If this variable is nil, splitting a window will create a new parent
-window only if the window has no parent window or the window shall
-become a combination orthogonal to the one it is part of.
+	       doc: /* If non-nil, splitting a window makes a new parent window.
+The following values are recognized:
 
-If this variable is t, splitting a window always creates a new parent
-window.  If all splits behave this way, each frame's window tree is a
-binary tree and every window but the frame's root window has exactly one
-sibling.
+nil means splitting a window will create a new parent window only if the
+    window has no parent window or the window shall become a combination
+    orthogonal to the one it is part of.
 
-Other values are reserved for future use.
+`temp-buffer-resize' means that splitting a window for displaying a
+    temporary buffer makes a new parent window provided
+    `temp-buffer-resize-mode' is enabled.  Otherwise, this value is
+    handled like nil.
 
-The value of this variable is also assigned to the combination limit of
-the new parent window.  The combination limit of a window can be
-retrieved via the function `window-combination-limit' and altered by the
-function `set-window-combination-limit'.  */);
-  Vwindow_combination_limit = Qnil;
+`temp-buffer' means that splitting a window for displaying a temporary
+    buffer always makes a new parent window.  Otherwise, this value is
+    handled like nil.
+
+
+`display-buffer' means that splitting a window for displaying a buffer
+    always makes a new parent window.  Since temporary buffers are
+    displayed by the function `display-buffer', this value is stronger
+    than `temp-buffer'.  Splitting a window for other purpose makes a
+    new parent window only if needed.
+
+t means that splitting a window always creates a new parent window.  If
+    all splits behave this way, each frame's window tree is a binary
+    tree and every window but the frame's root window has exactly one
+    sibling.
+
+Other values are reserved for future use.  */);
+  Vwindow_combination_limit = Qtemp_buffer_resize;
 
   DEFVAR_LISP ("window-persistent-parameters", Vwindow_persistent_parameters,
 	       doc: /* Alist of persistent window parameters.

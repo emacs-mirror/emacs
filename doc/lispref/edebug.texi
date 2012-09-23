@@ -150,6 +150,7 @@ display a list of all Edebug commands.
 
 @node Instrumenting
 @subsection Instrumenting for Edebug
+@cindex instrumenting for Edebug
 
   In order to use Edebug to debug Lisp code, you must first
 @dfn{instrument} the code.  Instrumenting code inserts additional code
@@ -179,9 +180,11 @@ to loading or evaluations in the minibuffer.  The command @kbd{M-x
 edebug-all-forms} toggles this option.
 
 @findex edebug-eval-top-level-form
+@findex edebug-defun
   Another command, @kbd{M-x edebug-eval-top-level-form}, is available to
 instrument any top-level form regardless of the values of
 @code{edebug-all-defs} and @code{edebug-all-forms}.
+@code{edebug-defun} is an alias for @code{edebug-eval-top-level-form}.
 
   While Edebug is active, the command @kbd{I}
 (@code{edebug-instrument-callee}) instruments the definition of the

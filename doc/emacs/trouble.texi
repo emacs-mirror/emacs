@@ -282,10 +282,15 @@ itself, and the reserve supply may not be enough.
 @subsection When Emacs Crashes
 
   Emacs is not supposed to crash, but if it does, before it exits it
-reports some information about the crash to the standard error stream
-@code{stderr}.  This report may be useful to someone who later debugs
-the same version of Emacs on the same platform.  The format of this
-report depends on the platform, and some platforms support backtraces.
+reports a brief summary  of the crash to the standard error stream
+@code{stderr}.  If enabled, a crashed Emacs also generates a core dump
+containing voluminous data about the crash.  On many platforms you can
+enable core dumps by putting the shell command @samp{ulimit -c unlimited}
+into your shell startup script.  The crash report and core dump can be
+used when debugging the same version of Emacs on the same platform.
+
+The format of the crash report depends on the platform, and some
+platforms support backtraces.
 Here is an example, generated on x86-64 GNU/Linux with version 2.15 of
 the GNU C Library:
 

@@ -111,7 +111,19 @@ to `display-buffer'."
       (set-buffer-modified-p nil)
       (setq buffer-read-only t)
       (goto-char (point-min))
-      (when (setq window (display-buffer buffer action))
+      (when (let ((window-combination-limit
+		   ;; When `window-combination-limit' equals
+		   ;; `temp-buffer' or `temp-buffer-resize' and
+		   ;; `temp-buffer-resize-mode' is enabled in this
+		   ;; buffer bind it to t so resizing steals space
+		   ;; preferably from the window that was split.
+		   (if (or (eq window-combination-limit 'temp-buffer)
+			   (and (eq window-combination-limit
+				    'temp-buffer-resize)
+				temp-buffer-resize-mode))
+		       t
+		     window-combination-limit)))
+	      (setq window (display-buffer buffer action)))
 	(setq frame (window-frame window))
 	(unless (eq frame (selected-frame))
 	  (raise-frame frame))
@@ -3678,9 +3690,8 @@ frame.  The selected window is not changed by this function."
 	 (parent (window-parent window))
 	 (function (window-parameter window 'split-window))
 	 (window-side (window-parameter window 'window-side))
-	 ;; Rebind `window-combination-limit' and
-	 ;; `window-combination-resize' since in some cases we may have
-	 ;; to override their value.
+	 ;; Rebind the following two variables since in some cases we
+	 ;; have to override their value.
 	 (window-combination-limit window-combination-limit)
 	 (window-combination-resize window-combination-resize)
 	 atom-root)
@@ -3738,7 +3749,7 @@ frame.  The selected window is not changed by this function."
 	      (and window-combination-resize
 		   (or (window-parameter window 'window-side)
 		       (not (eq window-combination-resize 'side)))
-		   (not window-combination-limit)
+		   (not (eq window-combination-limit t))
 		   ;; Resize makes sense in iso-combinations only.
 		   (window-combined-p window horizontal)))
 	     ;; `old-size' is the current size of WINDOW.
@@ -3818,7 +3829,7 @@ frame.  The selected window is not changed by this function."
 	      ;; Make new-parent non-nil if we need a new parent window;
 	      ;; either because we want to nest or because WINDOW is not
 	      ;; iso-combined.
-	      (or window-combination-limit
+	      (or (eq window-combination-limit t)
 		  (not (window-combined-p window horizontal))))
 	(setq new-normal
 	      ;; Make new-normal the normal size of the new window.
@@ -5066,12 +5077,19 @@ Return value returned by `split-window-preferred-function' if it
 represents a live window, nil otherwise."
       (and (window-live-p window)
 	   (not (frame-parameter (window-frame window) 'unsplittable))
-	   (let ((new-window
-		  ;; Since `split-window-preferred-function' might
-		  ;; throw an error use `condition-case'.
-		  (condition-case nil
-		      (funcall split-window-preferred-function window)
-		    (error nil))))
+	   (let* ((window-combination-limit
+		   ;; When `window-combination-limit' equals
+		   ;; `display-buffer' bind it to t so resizing steals
+		   ;; space preferably from the window that was split.
+		   (if (eq window-combination-limit 'display-buffer)
+		       t
+		     window-combination-limit))
+		  (new-window
+		   ;; Since `split-window-preferred-function' might
+		   ;; throw an error use `condition-case'.
+		   (condition-case nil
+		       (funcall split-window-preferred-function window)
+		     (error nil))))
 	     (and (window-live-p new-window) new-window))))
 
 (defun window--frame-usable-p (frame)
@@ -5520,6 +5538,29 @@ the selected one."
 	     (window--display-buffer
 	      buffer window 'window display-buffer-mark-dedicated))
 	(and (setq window (window-in-direction 'below))
+	     (not (window-dedicated-p window))
+	     (window--display-buffer
+	      buffer window 'reuse display-buffer-mark-dedicated)))))
+
+(defun display-buffer-at-bottom (buffer _alist)
+  "Try displaying BUFFER in a window at the botom of the selected frame.
+This either splits the window at the bottom of the frame or the
+frame's root window, or reuses an existing window at the bottom
+of the selected frame."
+  (let (bottom-window window)
+    (walk-window-tree (lambda (window) (setq bottom-window window)))
+    (or (and (not (frame-parameter nil 'unsplittable))
+	     (setq window (window--try-to-split-window bottom-window))
+	     (window--display-buffer
+	      buffer window 'window display-buffer-mark-dedicated))
+	(and (not (frame-parameter nil 'unsplittable))
+	     (setq window
+		   (condition-case nil
+		       (split-window (frame-root-window))
+		     (error nil)))
+	     (window--display-buffer
+	      buffer window 'window display-buffer-mark-dedicated))
+	(and (setq window bottom-window)
 	     (not (window-dedicated-p window))
 	     (window--display-buffer
 	      buffer window 'reuse display-buffer-mark-dedicated)))))

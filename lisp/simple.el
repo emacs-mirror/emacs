@@ -1855,9 +1855,13 @@ as an argument limits undo to changes within the current region."
   ;; another undo command will find the undo history empty
   ;; and will get another error.  To begin undoing the undos,
   ;; you must type some other command.
-  (let ((modified (buffer-modified-p))
-	(recent-save (recent-auto-save-p))
-	message)
+  (let* ((modified (buffer-modified-p))
+	 ;; For an indirect buffer, look in the base buffer for the
+	 ;; auto-save data.
+	 (base-buffer (or (buffer-base-buffer) (current-buffer)))
+	 (recent-save (with-current-buffer base-buffer
+			(recent-auto-save-p)))
+	 message)
     ;; If we get an error in undo-start,
     ;; the next command should not be a "consecutive undo".
     ;; So set `this-command' to something other than `undo'.
@@ -1935,7 +1939,8 @@ as an argument limits undo to changes within the current region."
     ;; Record what the current undo list says,
     ;; so the next command can tell if the buffer was modified in between.
     (and modified (not (buffer-modified-p))
-	 (delete-auto-save-file-if-necessary recent-save))
+	 (with-current-buffer base-buffer
+	   (delete-auto-save-file-if-necessary recent-save)))
     ;; Display a message announcing success.
     (if message
 	(message "%s" message))))
@@ -2599,8 +2604,6 @@ is encoded using coding-system specified by `process-coding-system-alist',
 falling back to `default-process-coding-system' if no match for COMMAND
 is found in `process-coding-system-alist'.
 
-The noninteractive arguments are START, END, COMMAND,
-OUTPUT-BUFFER, REPLACE, ERROR-BUFFER, and DISPLAY-ERROR-BUFFER.
 Noninteractive callers can specify coding systems by binding
 `coding-system-for-read' and `coding-system-for-write'.
 
@@ -2608,34 +2611,34 @@ If the command generates output, the output may be displayed
 in the echo area or in a buffer.
 If the output is short enough to display in the echo area
 \(determined by the variable `max-mini-window-height' if
-`resize-mini-windows' is non-nil), it is shown there.  Otherwise
-it is displayed in the buffer `*Shell Command Output*'.  The output
-is available in that buffer in both cases.
+`resize-mini-windows' is non-nil), it is shown there.
+Otherwise it is displayed in the buffer `*Shell Command Output*'.
+The output is available in that buffer in both cases.
 
 If there is output and an error, a message about the error
-appears at the end of the output.
+appears at the end of the output.  If there is no output, or if
+output is inserted in the current buffer, the buffer `*Shell
+Command Output*' is deleted.
 
-If there is no output, or if output is inserted in the current buffer,
-then `*Shell Command Output*' is deleted.
+Optional fourth arg OUTPUT-BUFFER specifies where to put the
+command's output.  If the value is a buffer or buffer name, put
+the output there.  Any other value, including nil, means to
+insert the output in the current buffer.  In either case, the
+output is inserted after point (leaving mark after it).
 
-If the optional fourth argument OUTPUT-BUFFER is non-nil,
-that says to put the output in some other buffer.
-If OUTPUT-BUFFER is a buffer or buffer name, put the output there.
-If OUTPUT-BUFFER is not a buffer and not nil,
-insert output in the current buffer.
-In either case, the output is inserted after point (leaving mark after it).
-
-If REPLACE, the optional fifth argument, is non-nil, that means insert
-the output in place of text from START to END, putting point and mark
+Optional fifth arg REPLACE, if non-nil, means to insert the
+output in place of text from START to END, putting point and mark
 around it.
 
-If optional sixth argument ERROR-BUFFER is non-nil, it is a buffer
-or buffer name to which to direct the command's standard error output.
-If it is nil, error output is mingled with regular output.
-If DISPLAY-ERROR-BUFFER is non-nil, display the error buffer if there
-were any errors.  (This is always t, interactively.)
-In an interactive call, the variable `shell-command-default-error-buffer'
-specifies the value of ERROR-BUFFER."
+Optional sixth arg ERROR-BUFFER, if non-nil, specifies a buffer
+or buffer name to which to direct the command's standard error
+output.  If nil, error output is mingled with regular output.
+When called interactively, `shell-command-default-error-buffer'
+is used for ERROR-BUFFER.
+
+Optional seventh arg DISPLAY-ERROR-BUFFER, if non-nil, means to
+display the error buffer if there were any errors.  When called
+interactively, this is t."
   (interactive (let (string)
 		 (unless (mark)
 		   (error "The mark is not set now, so there is no region"))
@@ -6968,7 +6971,7 @@ positive, otherwise make it writable.  If buffer is read-only
 and `view-read-only' is non-nil, enter view mode.
 
 Do not call this from a Lisp program unless you really intend to
-do the same thing as the \\[toggle-read-only] command, including
+do the same thing as the \\[read-only-mode] command, including
 possibly enabling or disabling View mode.  Also, note that this
 command works by setting the variable `buffer-read-only', which
 does not affect read-only regions caused by text properties.  To

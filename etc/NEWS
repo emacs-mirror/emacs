@@ -86,9 +86,21 @@ been adding them there, put them somewhere else, eg site-lisp.
 
 * Changes in Emacs 24.3
 
-** You can now scroll the selected window in most y-or-n prompts.
-Typing C-v or M-v at a prompt scrolls forward or backward
-respectively, without leaving the y-or-n prompt.
+** Most y-or-n prompts now allow you to scroll the selected window.
+Typing C-v or M-v at a y-or-n prompt scrolls forward or backward
+respectively, without exiting from the prompt.
+
+** In minibuffer filename prompts, `C-M-f' and `C-M-b' now move to the
+next and previous path separator, respectively.
+
+** Mode line changes
+
+*** New option `mode-line-default-help-echo' specifies the help text
+(shown in a tooltip or in the echo area) for any part of the mode line
+that does not have its own specialized help text.
+
+*** You can now click mouse-3 in the coding system indicator to
+invokes `set-buffer-file-coding-system'.
 
 ** Help changes
 
@@ -101,29 +113,6 @@ correctly.  To disable this, set `help-enable-auto-load' to nil.
 *** `C-h f' now reports previously-autoloaded functions as "autoloaded",
 even after their associated libraries have been loaded (and the
 autoloads have been redefined as functions).
-
-** The function `current-time' now returns extended-format time stamps
-(HIGH LOW USEC PSEC) that use picosecond resolution; the PSEC
-component is new.  PSEC is typically a multiple of 1000 on current
-machines.  Other functions that use this format, such as
-file-attributes and format-time-string, have been changed accordingly.
-Old-format time stamps are still accepted.
-
-** The format of timers in timer-list and timer-idle-list is now
-[TRIGGERED-P HI-SECS LO-SECS USECS REPEAT-DELAY FUNCTION ARGS IDLE-DELAY PSECS].
-The PSECS slot is new, and uses picosecond resolution.  It can be
-accessed via the new timer--psecs accessor.
-
-** Emacs now generates backtraces on fatal errors.
-On encountering a fatal error, Emacs now outputs a textual description
-of the fatal signal, and a short backtrace on platforms like glibc
-that support backtraces.
-
-** New functions `system-users', `system-groups' return lists of the user
-name, group names known to the system (where possible).
-
-** If your Emacs was built from a bzr checkout, the new variable
-`emacs-bzr-version' contains information about which bzr revision was used.
 
 ** ImageMagick support, if available, is automatically enabled.
 It is no longer necessary to call `imagemagick-register-types'
@@ -143,125 +132,136 @@ treated as images.
 *** Images displayed via ImageMagick now support transparency and the
 :background image spec property.
 
-** Internationalization changes
+** Server and client changes
 
-*** New language environment: Persian.
+*** emacsclient now obeys string values for `initial-buffer-choice',
+if it is told to open a new frame without specifying any file to visit
+or expression to evaluate.
 
-** Face underlining can now use a wave.
-See the "Face Attributes" section of the Elisp manual.
+*** New option `server-auth-key' specifies a shared server key.
 
-** New fringe bitmap exclamation-mark.
+** In the Package Menu, newly-available packages are listed as "new",
+and sorted above the other "available" packages by default.
 
-** String values for `initial-buffer-choice' also apply to emacsclient
-frames, if emacsclient is only told to open a new frame without
-specifying any file to visit or expression to evaluate.
+** `C-x C-q' is now bound to the new minor mode `read-only-mode'.
+This minor mode replaces `toggle-read-only', which is now obsolete.
+
+** Emacs now generates backtraces on fatal errors.
+On encountering a fatal error, Emacs now outputs a textual description
+of the fatal signal, and a short backtrace on platforms like glibc
+that support backtraces.
+
+** If your Emacs was built from a bzr checkout, the new variable
+`emacs-bzr-version' contains information about the bzr revision used.
 
 +++
-** You can prevent the creation of lock files by setting `create-lockfiles'
-to nil.  Use with caution, and only if you really need to.
+** New variable `create-lockfiles' specifies usage of lockfiles.
+It defaults to t.  Changing it to nil inhibits the creation of lock
+files (use this with caution).
 
 +++
 ** Using "unibyte: t" in Lisp source files is obsolete.
 Use "coding: raw-text" instead.
 
-** Mode line changes
-
-*** New option `mode-line-default-help-echo' specifies the help text
-(shown in a tooltip or in the echo area) for any part of the mode line
-that does not have its own specialized help text.
-
-*** You can now click mouse-3 in the coding system indicator to
-invokes `set-buffer-file-coding-system'.
-
 +++
 ** Setting `enable-remote-dir-locals' to non-nil allows directory
 local variables on remote hosts.
 
-+++
-** `insert-char' is now a command, and `ucs-insert' an obsolete alias
-for it.
-
+---
 ** The entry for PCL-CVS has been removed from the Tools menu.
 The PCL-CVS commands are still available via the keyboard.
+
+** Internationalization changes
+---
+*** New language environment: Persian.
+---
+*** New input method `vietnamese-vni'.
 
 
 * Editing Changes in Emacs 24.3
 
++++
+** `C-x 8 RET' is now bound to `insert-char', which is now a command.
+`ucs-insert' is now an obsolete alias for `insert-char'.
+
+---
 ** The `z' key no longer has a binding in most special modes.
 It used to be bound to `kill-this-buffer', but `z' is too easy to
 accidentally type.
 
-** New option `yank-handled-properties' allows processing of text
-properties on yanked text, in more ways that are more general than
-just removing them, as done by `yank-excluded-properties'.
+** New option `delete-trailing-lines' specifies whether
+M-x delete-trailing-whitespace should delete trailing lines at the end
+of the buffer.  It defaults to t.
 
-** New option `delete-trailing-lines' specifies whether the M-x
-delete-trailing-whitespace command should delete trailing lines at the
-end of the buffer.  It defaults to t.
+** Search and Replace changes
 
-+++
-** `C-x r +' is now overloaded to invoke `append-to-register.
+*** Non-regexp Isearch now performs "lax" space matching.
+Each sequence of spaces in the supplied search string may match any
+sequence of one or more whitespace characters, as specified by the
+variable `search-whitespace-regexp'.  (This variable is also used by a
+similar existing feature for regexp Isearch).
 
-+++
-** New option `register-separator' specifies the register containing
-the text to put between collected texts for use with M-x
-append-to-register and M-x prepend-to-register.
+*** New Isearch command `M-s SPC' toggles lax space matching.
+This applies to both ordinary and regexp Isearch.
 
-** Search changes
+*** New option `replace-lax-whitespace'.
+If non-nil, `query-replace' uses flexible whitespace matching too.
+The default is nil.
 
 *** Global `M-s _' starts a symbol (identifier) incremental search,
 and `M-s _' in Isearch toggles symbol search mode.
 `M-s c' in Isearch toggles search case-sensitivity.
 
-*** `M-s SPC' in Isearch toggles whitespace matching mode
-in both ordinary and regexp incremental search, so that each
-sequence of spaces in the search string matches any combination
-of one or more whitespace characters defined by the variable
-`search-whitespace-regexp'.  In ordinary incremental search,
-`isearch-toggle-lax-whitespace' toggles the value of the variable
-`isearch-lax-whitespace'.  In regexp incremental search, it toggles
-the value of the variable `isearch-regexp-lax-whitespace'.
+** Register changes
++++
+*** `C-x r +' is now overloaded to invoke `append-to-register.
++++
+*** New option `register-separator' specifies the register containing
+the text to put between collected texts for use with M-x
+append-to-register and M-x prepend-to-register.
 
-** query-replace changes
+** `C-u M-=' now counts lines/words/characters in the entire buffer.
 
-*** When new option `replace-lax-whitespace' is non-nil,
-and you enter a space or spaces in the strings or regexps
-to be replaced, `query-replace' will match any sequence matched
-by the regexp `search-whitespace-regexp'.
+** New binding `M-g c' for `goto-char'.
 
 ** M-x move-to-column, if called interactively with no prefix arg, now
 prompts for a column number.
 
-** `mouse-avoidance-banish-position' can now be used to customize
-`mouse-avoidance-mode' further.
-
-** `C-u M-=' now counts lines/words/characters in the entire buffer.
-
-** `C-M-f' and `C-M-b' will now move to the path name separator
-character when doing minibuffer filename prompts.
-
-** `goto-char' is now bound to `M-g c'.
-
 ** New command `C-x r M-w' (copy-rectangle-as-kill).
 It copies the region-rectangle as the last rectangle kill.
 
-** New input method `vietnamese-vni'.
+** New option `yank-handled-properties' allows processing of text
+properties on yanked text, in more ways that are more general than
+just removing them, as done by `yank-excluded-properties'.
 
 
 * Changes in Specialized Modes and Packages in Emacs 24.3
 
-** Compilation has a new `compilation-always-kill' configuration variable.
+** Apropos
 
-** Term changes
+*** The faces used by Apropos are now directly customizable.
+These faces are named `apropos-symbol', `apropos-keybinding', and so on;
+see the `apropos' Custom group for details.
 
-The variables `term-default-fg-color' and `term-default-bg-color' are
-now deprecated in favor of the `term-face' face, that you can
-customize.  Also, it is now possible to customize how are displayed the
-ANSI terminal colors and styles by customizing the corresponding
-`term-color-<COLOR>', `term-color-underline' and `term-color-bold'
-faces.
+**** The old options whose values specified faces to use were removed
+(i.e. `apropos-symbol-face', `apropos-keybinding-face', etc.).
+
+** Buffer Menu
+This package has been rewritten to use Tabulated List mode.
+
+*** Option `Buffer-menu-buffer+size-width' is now obsolete.
+Use `Buffer-menu-name-width' and `Buffer-menu-size-width' instead.
+
+** Calendar
+
+*** You can customize the header text that appears above each calendar month.
+See the variable `calendar-month-header'.
+
+*** The calendars produced by cal-html include holidays.
+Customize cal-html-holidays to change this.
 
 ** CL
+
 *** CL's main entry is now (require 'cl-lib).
 `cl-lib' is like the old `cl' except that it uses the namespace cleanly,
 i.e. all its definitions have the "cl-" prefix (and internal definitions use
@@ -287,10 +287,128 @@ closures, so such closures will only work if `lexical-binding' is in use.
 A side effect is that vars without corresponding value are bound to nil
 rather than making them unbound.
 
+** Compilation mode
+
+*** New option `compilation-always-kill'.
+
+** Customize
+
+*** `custom-reset-button-menu' now defaults to t.
+
+*** Non-option variables are never matched in `customize-apropos' and
+`customize-apropos-options' (i.e. the prefix argument does nothing for
+these commands now).
+
 ** Desktop
 
 *** `desktop-path' no longer includes the "." directory.  Desktop
 files are now located in ~/.emacs.d by default.
+
+** D-Bus
+
++++
+*** New variables `dbus-compiled-version' and `dbus-runtime-version'.
+
++++
+*** The D-Bus object manager interface is implemented.
+
++++
+*** Variables of type :(u)int32 and :(u)int64 accept floating points,
+if their value does not fit into Emacs's integer range.
+
++++
+*** The function `dbus-call-method' works non-blocking now, it can be
+interrupted by C-g.  `dbus-call-method-non-blocking' is obsolete.
+
++++
+*** Signals can be sent also as unicast message.
+
++++
+*** The argument list of `dbus-register-signal' has been extended,
+according to the new match rule types of D-Bus.  See the manual for
+details.
+
++++
+*** `dbus-init-bus' supports private connections.
+
++++
+*** There is a new function `dbus-setenv'.
+
+** Diff mode
+
+*** Changes are now highlighted using the same color scheme as in
+modern VCSes.  Deletions are displayed in red (new faces
+`diff-refine-removed' and `smerge-refined-removed' and new definition
+of `diff-removed'), insertions in green (new faces `diff-refine-added'
+and `smerge-refined-added' and new definition of `diff-added').
+
+*** The variable `diff-use-changed-face' defines whether to use the
+face `diff-changed', or `diff-removed' and `diff-added' to highlight
+changes in context diffs.
+
+*** The new command `diff-remove-trailing-whitespace' fixes trailing
+whitespace problems introduced by the diff.
+
+** Dired
+
+*** `dired-do-async-shell-command' executes each file sequentially
+if the command ends in `;' (when operating on multiple files).
+Otherwise, it executes the command on each file in parallel.
+
+*** Typing M-n in the minibuffer of `dired-do-chmod', `dired-do-chgrp',
+`dired-do-chown', `dired-do-touch' pulls the file attributes of the
+file at point.
+
+*** When the region is active, `m' (`dired-mark'), `u' (`dired-unmark'),
+`DEL' (`dired-unmark-backward'), `d' (`dired-flag-file-deletion')
+mark/unmark/flag all files in the active region.
+
+*** The minibuffer default for `=' (`dired-diff) has changed.
+It is now the backup file for the file at point, if one exists.
+In Transient Mark mode the default is the file at the active mark.
+
+*** `M-=' is no longer bound to `dired-backup-diff' in Dired buffers.
+The global binding for `M-=', `count-words-region' is in effect.
+
+** Ediff now uses the same color scheme as Diff mode.
+
+** erc will look up server/channel names via auth-source and use the
+channel keys found, if any.
+
+** Flymake uses fringe bitmaps to indicate errors and warnings.
+See flymake-fringe-indicator-position, flymake-error-bitmap and
+flymake-warning-bitmap.
+
+** Follow mode
+
+*** The obsolete variable `follow-mode-off-hook' has been removed.
+
+*** Follow mode no longer works by using advice.
+The option `follow-intercept-processes' has been removed.
+
+** FFAP
+
+*** The option `ffap-url-unwrap-remote' can now be a list of strings,
+specifying URL types which should be converted to remote file names at
+the FFAP prompt.  The default is now '("ftp").
+
+** Ibuffer
+
+*** New `derived-mode' filter, bound to `/ M'.
+The old binding for `/ M' (filter by used-mode) is now bound to `/ m'.
+
+** Mouse Avoidance mode
+
+The new variable `mouse-avoidance-banish-position' can now be used to
+customize Mouse Avoidance mode further.
+
++++
+** notifications.el supports now version 1.2 of the Notifications API.
+The function `notifications-get-capabilities' returns the supported
+server properties.
+
+** In Perl mode, new option `perl-indent-parens-as-block' causes non-block
+closing brackets to be aligned with the line of the opening bracket.
 
 ** Python mode
 
@@ -347,50 +465,6 @@ python-send-string        | python-shell-send-string
 python-switch-to-python   | python-shell-switch-to-shell
 python-describe-symbol    | python-eldoc-at-point
 
-** VHDL mode
-
-*** The free software compiler GHDL is supported (and now the default).
-
-*** Support for the VHDL-AMS packages has been added/updated.
-
-*** Updated to the 2002 revision of the VHDL standard.
-
-*** Accepts \r and \f as whitespace.
-
-** SQL Mode
-
-*** DB2 added `sql-db2-escape-newlines'
-
-If non-nil, newlines sent to the command interpreter will be escaped
-by a backslash.  The default does not escape the newlines and assumes
-that the sql statement will be terminated by a semicolon.
-
-** Diff mode
-
-Faces for changes now use the same diff color scheme as in modern VCSes
-where deletions are displayed in red (new faces `diff-refine-removed'
-and `smerge-refined-removed' and new definition of `diff-removed'),
-insertions in green (new faces `diff-refine-added' and
-`smerge-refined-added' and new definition of `diff-added').
-The variable `diff-use-changed-face' defines whether to use
-the face `diff-changed', or `diff-removed' and `diff-added'
-to highlight changes in context diffs.
-
-*** The new command `diff-remove-trailing-whitespace' fixes trailing
-whitespace problems introduced by the diff.
-
-** Ediff now uses the same color scheme as Diff mode
-on high color displays.
-
-** Flymake uses fringe bitmaps to indicate errors and warnings.
-See flymake-fringe-indicator-position, flymake-error-bitmap and
-flymake-warning-bitmap.
-
-** `sh-script'
-*** Pairing of parens/quotes uses electric-pair-mode instead of skeleton-pair.
-*** `sh-electric-here-document-mode' now controls auto-insertion of here-docs.
-*** `sh-use-smie' lets you choose a new indentation and navigation code.
-
 ** reStructuredText mode
 
 *** Rebind nearly all keys making room for more keys and complying
@@ -421,63 +495,13 @@ the experience for Sphinx users.
 
 *** Support `imenu' and `which-func'.
 
-** New `derived-mode' filter for Ibuffer, bound to `/ M'.
-`/ m' is now bound to filter by used-mode, which used to be bound to `/ M'.
+** SH Script mode
 
-** Apropos
+*** Pairing of parens/quotes uses electric-pair-mode instead of skeleton-pair.
 
-*** The faces used by Apropos are now directly customizable.
-These faces are named `apropos-symbol', `apropos-keybinding', and so on;
-see the `apropos' Custom group for details.
+*** `sh-electric-here-document-mode' now controls auto-insertion of here-docs.
 
-**** The old options whose values specified faces to use were removed
-(i.e. `apropos-symbol-face', `apropos-keybinding-face', etc.).
-
-** Buffer Menu
-This package has been rewritten to use Tabulated List mode.
-
-*** Option `Buffer-menu-buffer+size-width' is now obsolete.
-Use `Buffer-menu-name-width' and `Buffer-menu-size-width' instead.
-
-** Calendar
-
-*** You can customize the header text that appears above each calendar month.
-See the variable `calendar-month-header'.
-
-*** The calendars produced by cal-html include holidays.
-Customize cal-html-holidays to change this.
-
-** Customize
-
-*** `custom-reset-button-menu' now defaults to t.
-
-*** Non-option variables are never matched in `customize-apropos' and
-`customize-apropos-options' (i.e. the prefix argument does nothing for
-these commands now).
-
-** erc will look up server/channel names via auth-source and use the
-channel keys found, if any.
-
-** Dired
-
-*** `dired-do-async-shell-command' executes each file sequentially
-if the command ends in `;' (when operating on multiple files).
-Otherwise, it executes the command on each file in parallel.
-
-*** Typing M-n in the minibuffer of `dired-do-chmod', `dired-do-chgrp',
-`dired-do-chown', `dired-do-touch' pulls the file attributes of the
-file at point.
-
-*** When the region is active, `m' (`dired-mark'), `u' (`dired-unmark'),
-`DEL' (`dired-unmark-backward'), `d' (`dired-flag-file-deletion')
-mark/unmark/flag all files in the active region.
-
-*** The minibuffer default for `=' (`dired-diff) has changed.
-It is now the backup file for the file at point, if one exists.
-In Transient Mark mode the default is the file at the active mark.
-
-*** `M-=' is no longer bound to `dired-backup-diff' in Dired buffers.
-The global binding for `M-=', `count-words-region' is in effect.
+*** `sh-use-smie' lets you choose a new indentation and navigation code.
 
 ** Shell
 
@@ -485,82 +509,34 @@ The global binding for `M-=', `count-words-region' is in effect.
 for a new asynchronous shell command when the default output buffer
 `*Async Shell Command*' is already taken by another running command.
 
-** FFAP
+** SQL Mode
 
-*** The option `ffap-url-unwrap-remote' can now be a list of strings,
-specifying URL types which should be converted to remote file names at
-the FFAP prompt.  The default is now '("ftp").
+*** DB2 added `sql-db2-escape-newlines'
 
-** Follow mode
-
-*** The obsolete variable `follow-mode-off-hook' has been removed.
-
-*** Follow mode no longer works by using advice.
-The option `follow-intercept-processes' has been removed.
-
-** The `server-auth-key' variable can be used to set a permanent
-shared key for Emacs Server.
-
-** In Perl mode, new option `perl-indent-parens-as-block' causes non-block
-closing brackets to be aligned with the line of the opening bracket.
-
-** FIXME something happened to ses.el, 2012-04-17.
-
-** which-function-mode now applies to all applicable major modes by default.
-
-** Tramp
-
-+++
-*** The syntax has been extended in order to allow ad-hoc proxy
-definitions.  See the manual for details.
-
-+++
-*** Remote processes are now supported also on remote Windows host.
-
-** D-Bus
-
-+++
-*** New variables `dbus-compiled-version' and `dbus-runtime-version'.
-
-+++
-*** The D-Bus object manager interface is implemented.
-
-+++
-*** Variables of type :(u)int32 and :(u)int64 accept floating points,
-if their value does not fit into Emacs's integer range.
-
-+++
-*** The function `dbus-call-method' works non-blocking now, it can be
-interrupted by C-g.  `dbus-call-method-non-blocking' is obsolete.
-
-+++
-*** Signals can be sent also as unicast message.
-
-+++
-*** The argument list of `dbus-register-signal' has been extended,
-according to the new match rule types of D-Bus.  See the manual for
-details.
-
-+++
-*** `dbus-init-bus' supports private connections.
-
-+++
-*** There is a new function `dbus-setenv'.
-
-+++
-** notifications.el supports now version 1.2 of the Notifications API.
-The function `notifications-get-capabilities' returns the supported
-server properties.
-
-** Package Menu
-
-*** Newly-available packages are listed in the Package Menu as "new",
-and sorted above the other "available" packages by default.
+If non-nil, newlines sent to the command interpreter will be escaped
+by a backslash.  The default does not escape the newlines and assumes
+that the sql statement will be terminated by a semicolon.
 
 ** Tabulated List and packages derived from it
 
 *** New command `tabulated-list-sort', bound to `S', sorts the column
 at point, or the Nth column if a numeric prefix argument is given.
+
+** Term
+
+The variables `term-default-fg-color' and `term-default-bg-color' are
+now deprecated in favor of the `term-face' face, that you can
+customize.  Also, it is now possible to customize how are displayed the
+ANSI terminal colors and styles by customizing the corresponding
+`term-color-<COLOR>', `term-color-underline' and `term-color-bold'
+faces.
+
+** Tramp
++++
+*** The syntax has been extended in order to allow ad-hoc proxy
+definitions.  See the manual for details.
++++
+*** Remote processes are now supported also on remote Windows host.
 
 ** URL
 
@@ -573,6 +549,22 @@ and the `attributes' slot is always nil.
 *** New function `url-encode-url' for encoding a URI string.
 The `url-retrieve' function now uses this to encode its URL argument,
 in case that is not properly encoded.
+
+** VHDL mode
+
+*** The free software compiler GHDL is supported (and now the default).
+
+*** Support for the VHDL-AMS packages has been added/updated.
+
+*** Updated to the 2002 revision of the VHDL standard.
+
+*** Accepts \r and \f as whitespace.
+
+** which-function-mode now applies to all applicable major modes by default.
+
+
+** FIXME something happened to ses.el, 2012-04-17.
+
 
 ** Obsolete packages:
 
@@ -660,7 +652,7 @@ are deprecated and will be removed eventually.
 **** inactivate-current-input-method-function ->
      deactivate-current-input-method-function
 
-** The following obsolete variables and varaliases have been removed:
+** Some obsolete variables and variable aliases were removed:
 
 *** `facemenu-unlisted-faces'
 *** `rmail-decode-mime-charset'
@@ -669,39 +661,25 @@ are deprecated and will be removed eventually.
 
 * Lisp changes in Emacs 24.3
 
-** Interpreted files get eagerly macro-expanded during load.
-This can significantly speed up execution of non-byte-compiled code, but can
-also bump into harmless and previously unnoticed cyclic dependencies.
-These should not be fatal: they will simply cause the macro-calls to be left
-for later expansion (as before), but will also result in a warning describing
-the cycle.
-
-** New minor mode `read-only-mode' to replace toggle-read-only (now obsolete).
-
-** New functions `autoloadp' and `autoload-do-load'.
-
-** New function `posnp' to test if an object is a `posn'.
-
-** `function-get' fetches the property of a function, following aliases.
-
-** `toggle-read-only' accepts a second argument specifying whether to
-print a message, if called from Lisp.
-
 ** CL-style generalized variables are now in core Elisp.
-`setf' is autoloaded and `push' and `pop' accept generalized variables.
+`setf' is autoloaded; `push' and `pop' accept generalized variables.
 
 ** `defun' also accepts a (declare DECLS) form, like `defmacro'.
 The interpretation of the DECLS is determined by `defun-declarations-alist'.
 
-** `macro-declaration-function' is obsolete, use `macro-declarations-alist'.
+** Completion
 
-** New function `set-temporary-overlay-map'.
+*** New function `completion-table-with-quoting' to handle completion
+in the presence of quoting, such as file completion in shell buffers.
 
-** New macros `setq-local' and `defvar-local'.
+*** New function `completion-table-subvert' to use an existing completion
+table, but with a different prefix.
 
-** New error type and new function `user-error'.  Doesn't trigger the debugger.
+** Debugger changes
 
-** Debugger
+*** New error type and new function `user-error'.
+These do not trigger the debugger.
+
 *** New option `debugger-bury-or-kill'.
 
 *** Set `debug-on-message' to enter the debugger when a certain
@@ -711,23 +689,34 @@ to work out which code is doing something.
 *** New var `inhibit-debugger', automatically set to prevent accidental
 recursive invocations.
 
-+++
-** New utility function `buffer-narrowed-p'.
+** Minibuffer
+
+*** `read-regexp' has a new argument HISTORY; the first argument PROMPT
+of `read-regexp' accepts a string ending with a colon and space, and its
+second argument DEFAULTS can be a list of strings accessible via M-n
+in the minibuffer ahead of other hard-coded useful regexp-related values.
+More commands use `read-regexp' now to read their regexp arguments.
 
 ** Window changes
 
 *** The functions get-lru-window, get-mru-window and get-largest-window
 now accept a third argument to avoid choosing the selected window.
 
+*** Additional values recognized for option `window-combination-limit'.
+
 *** New macro `with-temp-buffer-window'.
 
-*** New option `temp-buffer-resize-frames'.
+*** New options `temp-buffer-resize-frames' and
+`temp-buffer-resize-regexps'.
+
+*** `temp-buffer-resize-mode' no longer resizes windows that have been
+reused.
 
 *** New function `fit-frame-to-buffer' and new option
-    `fit-frame-to-buffer-bottom-margin'.
+`fit-frame-to-buffer-bottom-margin'.
 
-*** New display action functions `display-buffer-below-selected' and
-`display-buffer-in-previous-window'.
+*** New display action functions `display-buffer-below-selected',
+`display-buffer-at-bottom' and `display-buffer-in-previous-window'.
 
 *** New display action alist entry `inhibit-switch-frame', if non-nil,
 tells display action functions to avoid changing which frame is
@@ -750,43 +739,64 @@ in Emacs 24.1:
 **** `special-display-function'
 **** `display-buffer-function'
 
-** Minibuffer
-
-*** `read-regexp' has a new argument HISTORY; the first argument PROMPT
-of `read-regexp' accepts a string ending with a colon and space, and its
-second argument DEFAULTS can be a list of strings accessible via M-n
-in the minibuffer ahead of other hard-coded useful regexp-related values.
-More commands use `read-regexp' now to read their regexp arguments.
-
-** Completion
-
-*** New function `completion-table-with-quoting' to handle completion
-in the presence of quoting, such as file completion in shell buffers.
-
-*** New function `completion-table-subvert' to use an existing completion
-table, but with a different prefix.
-
 ** Time
 
 *** `current-time-string' no longer requires that its argument's year
 must be in the range 1000..9999.  It now works with any year supported
 by the underlying C implementation.
 
-** Floating point
+*** `current-time' now returns extended-format time stamps
+(HIGH LOW USEC PSEC), where the new PSEC slot specifies picoseconds.
+PSEC is typically a multiple of 1000 on current machines.  Other
+functions that use this format, such as file-attributes and
+format-time-string, have been changed accordingly.  Old-format time
+stamps are still accepted.
 
-*** When floating point functions such as `log' are given invalid
-arguments, e.g., (log -1.0), they now uniformly return special values
-such as NaNs instead of signaling errors.  Previously, these functions
-returned NaNs on some platforms but signaled errors on others.  The affected
-functions are acos, asin, tan, exp, expt, log, log10, sqrt, and mod.
+*** The format of timers in timer-list and timer-idle-list is now
+[TRIGGERED-P HI-SECS LO-SECS USECS REPEAT-DELAY FUNCTION ARGS IDLE-DELAY PSECS].
+The PSECS slot is new, and uses picosecond resolution.  It can be
+accessed via the new timer--psecs accessor.
 
-** New function file-name-base.
+** Floating point functions now always return special values like NaN,
+instead of signaling errors, if given invalid args, e.g. (log -1.0).
+Previously, they returned NaNs on some platforms but signaled errors
+on others.  The affected functions are acos, asin, tan, exp, expt,
+log, log10, sqrt, and mod.
 
-** New function `tty-top-frame' returns the topmost frame of a text terminal.
+** Interpreted files are eagerly macro-expanded during load.
+This can significantly speed up execution of non-byte-compiled code,
+but can also bump into harmless and previously unnoticed cyclic
+dependencies.  These should not be fatal: they will simply cause the
+macro-calls to be left for later expansion (as before), but will also
+result in a warning describing the cycle.
 
-** `automount-dir-prefix' is obsolete.
-** `buffer-has-markers-at' is obsolete.
-** `window-system-version' is obsolete.
+** Misc new functions:
+
+*** `autoloadp'
+*** `autoload-do-load'.
+*** `buffer-narrowed-p' tests if the buffer is narrowed.
+*** `file-name-base' returns a file name sans directory and extension.
+*** `function-get' fetches a function property, following aliases.
+*** `posnp' tests if an object is a `posn'.
+*** `set-temporary-overlay-map' sets up a temporary overlay map.
+*** `system-users' returns the user names on the system.
+*** `system-groups' returns the group names on the system.
+*** `tty-top-frame' returns the topmost frame of a text terminal.
+
+** New macros `setq-local' and `defvar-local'.
+
+** New fringe bitmap exclamation-mark.
+
+** Face underlining can now use a wave.
+See the "Face Attributes" section of the Elisp manual.
+
+** The following functions and variables are obsolete:
+
+*** `automount-dir-prefix'
+*** `buffer-has-markers-at'
+*** `macro-declaration-function' (use `macro-declarations-alist').
+*** `window-system-version'
+
 
 * Changes in Emacs 24.3 on non-free operating systems
 

@@ -5346,6 +5346,7 @@ next_overlay_string (struct it *it)
       SET_TEXT_POS (it->current.string_pos, 0, 0);
       it->method = GET_FROM_STRING;
       it->stop_charpos = 0;
+      it->end_charpos = SCHARS (it->string);
       if (it->cmp_it.stop_pos >= 0)
 	it->cmp_it.stop_pos = 0;
       it->prev_stop = 0;

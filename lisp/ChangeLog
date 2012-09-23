@@ -1,3 +1,66 @@
+2012-09-22  Juri Linkov  <juri@jurta.org>
+
+	* dired.el (dired-mode-map): Add [remap read-only-mode] for
+	`dired-toggle-read-only'.  (Bug#12462)
+
+2012-09-22  Martin Rudalics  <rudalics@gmx.at>
+
+	* subr.el (temp-output-buffer-show): New function.
+	(with-output-to-temp-buffer): Call temp-output-buffer-show
+	instead of internal-temp-output-buffer-show.
+
+2012-09-22  Chong Yidong  <cyd@gnu.org>
+
+	* files.el (ctl-x-map): Bind C-x C-q to read-only-mode
+	(Bug#12462).
+
+	* repeat.el (repeat): Doc fix (Bug#12348).
+
+	* emacs-lisp/easy-mmode.el (define-minor-mode): Doc fix
+	(Bug#10909).
+
+	* simple.el (shell-command-on-region): Doc fix.
+	(read-only-mode): Doc fix.
+
+2012-09-22  Eli Zaretskii  <eliz@gnu.org>
+
+	* emacs-lisp/timer.el (run-with-idle-timer)
+	(timer-activate-when-idle): Warn against reinvoking an idle timer
+	from within its own timer action.  (Bug#12447)
+
+2012-09-22  Martin Rudalics  <rudalics@gmx.at>
+
+	* cus-start.el (window-combination-limit): Add new optional
+	values.
+	* window.el (temp-buffer-window-show)
+	(window--try-to-split-window): Handle new values of
+	window-combination-limit (Bug#1806).
+	(split-window): Test window-combination-limit for t instead of
+	non-nil.
+	(display-buffer-at-bottom): New buffer display action function.
+	* help.el (temp-buffer-resize-regexps): New option.
+	(temp-buffer-resize-mode): Rewrite doc-string.
+	(resize-temp-buffer-window): Obey temp-buffer-resize-regexps.
+	Don't resize reused window.  Suggested by Glenn Morris.
+
+2012-09-22  Stefan Merten  <smerten@oekonux.de>
+
+	* rst.el: Revamp section title faces.
+	(rst-official-version)
+	(rst-package-emacs-version-alist): Sync with official version
+	V1.4.0.
+	(rst-faces-defaults, rst-set-level-default)
+	(rst-level-face-max, rst-level-face-base-color)
+	(rst-level-face-base-light, rst-level-face-format-light)
+	(rst-level-face-step-light, rst-define-level-faces): Obsolete.
+	(rst-adornment-faces-alist): Match new setup.
+	(rst-level-1, rst-level-2, rst-level-3, rst-level-4)
+	(rst-level-5, rst-level-6): New faces.
+
+2012-09-22  Chong Yidong  <cyd@gnu.org>
+
+	* simple.el (undo): Handle indirect buffers (Bug#8207).
+
 2012-09-21  Leo Liu  <sdl.web@gmail.com>
 
 	IDO: Disable match re-ordering for buffer switching.

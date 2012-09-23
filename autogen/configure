@@ -23382,8 +23382,6 @@ done
 
 
 
-
-
      if test $gl_cv_have_include_next = yes; then
        gl_cv_next_sys_stat_h='<'sys/stat.h'>'
      else

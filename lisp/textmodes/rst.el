@@ -217,7 +217,7 @@ and before TAIL-RE and DELIM-RE in VAR or DEFAULT for no match."
 ;; Use CVSHeader to really get information from CVS and not other version
 ;; control systems.
 (defconst rst-cvs-header
-  "$CVSHeader: sm/rst_el/rst.el,v 1.324 2012-09-20 18:52:46 stefan Exp $")
+  "$CVSHeader: sm/rst_el/rst.el,v 1.327.2.1 2012-09-22 09:06:56 stefan Exp $")
 (defconst rst-cvs-rev
   (rst-extract-version "\\$" "CVSHeader: \\S + " "[0-9]+\\(?:\\.[0-9]+\\)+"
 		       " .*" rst-cvs-header "0.0")
@@ -231,22 +231,22 @@ and before TAIL-RE and DELIM-RE in VAR or DEFAULT for no match."
 ;; Use LastChanged... to really get information from SVN.
 (defconst rst-svn-rev
   (rst-extract-version "\\$" "LastChangedRevision: " "[0-9]+" " "
-		       "$LastChangedRevision: 7490 $")
+		       "$LastChangedRevision: 7515 $")
   "The SVN revision of this file.
 SVN revision is the upstream (docutils) revision.")
 (defconst rst-svn-timestamp
   (rst-extract-version "\\$" "LastChangedDate: " ".+?+" " "
-		       "$LastChangedDate: 2012-07-30 21:29:33 +0200 (Mon, 30 Jul 2012) $")
+		       "$LastChangedDate: 2012-09-20 23:28:53 +0200 (Thu, 20 Sep 2012) $")
   "The SVN time stamp of this file.")
 
 ;; Maintained by the release process.
 (defconst rst-official-version
   (rst-extract-version "%" "OfficialVersion: " "[0-9]+\\(?:\\.[0-9]+\\)+" " "
-		       "%OfficialVersion: 1.3.1 %")
+		       "%OfficialVersion: 1.4.0 %")
   "Official version of the package.")
 (defconst rst-official-cvs-rev
   (rst-extract-version "[%$]" "Revision: " "[0-9]+\\(?:\\.[0-9]+\\)+" " "
-		       "%Revision: 1.301 %")
+		       "$Revision: 1.327.2.1 $")
   "CVS revision of this file in the official version.")
 
 (defconst rst-version
@@ -265,6 +265,7 @@ in parentheses follows the development revision and the time stamp.")
     ("1.2.1" . "24.3")
     ("1.3.0" . "24.3")
     ("1.3.1" . "24.3")
+    ("1.4.0" . "24.3")
     ))
 
 (unless (assoc rst-official-version rst-package-emacs-version-alist)
@@ -3359,118 +3360,64 @@ Region is from RBEG to REND.  With PFXARG set the empty lines too."
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; FIXME LEVEL-FACE: May be this complicated mechanism should be replaced
-;;                   simply by a number of customizable faces `rst-header-%d'
-;;                   which by default are set properly for dark and light
-;;                   background.  Initialization should come from the old
-;;                   variables if they exist.  A maximum level of 6 should
-;;                   suffice - after that the last level should be repeated.
-;;                   Only `rst-adornment-faces-alist' is needed outside this
-;;                   block.  Would also fix docutils-Bugs-3479594.
+(dolist (var '(rst-level-face-max rst-level-face-base-color
+				  rst-level-face-base-light
+				  rst-level-face-format-light
+				  rst-level-face-step-light
+				  rst-level-1-face
+				  rst-level-2-face
+				  rst-level-3-face
+				  rst-level-4-face
+				  rst-level-5-face
+				  rst-level-6-face))
+  (make-obsolete-variable var "customize the faces `rst-level-*' instead."
+			  "24.3"))
 
-(defgroup rst-faces-defaults nil
-  "Values used to generate default faces for section titles on all levels.
-Tweak these if you are content with how section title faces are built in
-general but you do not like the details."
-  :group 'rst-faces
-  :version "21.1")
+;; Define faces for the first 6 levels. More levels are possible, however.
+(defface rst-level-1 '((((background light)) (:background "grey85"))
+		       (((background dark)) (:background "grey15")))
+  "Default face for section title text at level 1."
+  :package-version '(rst . "1.4.0"))
 
-(defun rst-set-level-default (sym val)
-  "Set custom variable SYM affecting section title text face.
-Recompute the faces.  VAL is the value to set."
-  (custom-set-default sym val)
-  ;; Also defines the faces initially when all values are available.
-  (and (boundp 'rst-level-face-max)
-       (boundp 'rst-level-face-format-light)
-       (boundp 'rst-level-face-base-color)
-       (boundp 'rst-level-face-step-light)
-       (boundp 'rst-level-face-base-light)
-       (fboundp 'rst-define-level-faces)
-       (rst-define-level-faces)))
+(defface rst-level-2 '((((background light)) (:background "grey78"))
+		       (((background dark)) (:background "grey22")))
+  "Default face for section title text at level 2."
+  :package-version '(rst . "1.4.0"))
 
-;; Faces for displaying items on several levels.  These definitions define
-;; different shades of gray where the lightest one (i.e. least contrasting on a
-;; light background) is used for level 1.
-(defcustom rst-level-face-max 6
-  "Maximum depth of levels for which section title faces are defined."
-  :group 'rst-faces-defaults
-  :type '(integer)
-  :set 'rst-set-level-default)
-(rst-testcover-defcustom)
-;; FIXME: It should be possible to give "#RRGGBB" type of color values.
-;;        Together with a `rst-level-face-end-light' this could be used for
-;;        computing steps.
-;; FIXME: This variable should be combined with `rst-level-face-format-light'
-;;        to a single string.
-(defcustom rst-level-face-base-color "grey"
-  "Base name of the color for creating background colors in section title faces."
-  :group 'rst-faces-defaults
-  :type '(string)
-  :set 'rst-set-level-default)
-(rst-testcover-defcustom)
-;; FIXME LEVEL-FACE: This needs to be done differently: The faces must specify
-;;                   how they behave for dark and light background using the
-;;                   relevant options explained in `defface'.
-(defcustom rst-level-face-base-light
-  (if (eq frame-background-mode 'dark)
-      15
-    85)
-  "The lightness factor for the base color.  This value is used for level 1.
-The default depends on whether the value of `frame-background-mode' is
-`dark' or not."
-  :group 'rst-faces-defaults
-  :type '(integer)
-  :set 'rst-set-level-default)
-(rst-testcover-defcustom)
-(defcustom rst-level-face-format-light "%2d"
-  "The format for the lightness factor appended to the base name of the color.
-This value is expanded by `format' with an integer."
-  :group 'rst-faces-defaults
-  :type '(string)
-  :set 'rst-set-level-default)
-(rst-testcover-defcustom)
-;; FIXME LEVEL-FACE: This needs to be done differently: The faces must specify
-;;                   how they behave for dark and light background using the
-;;                   relevant options explained in `defface'.
-;; FIXME: Alternatively there could be a customizable variable
-;;        `rst-level-face-end-light' which defines the end value and steps are
-;;        computed
-(defcustom rst-level-face-step-light
-  (if (eq frame-background-mode 'dark)
-      7
-    -7)
-  "The step width to use for the next color.
-The formula
+(defface rst-level-3 '((((background light)) (:background "grey71"))
+		       (((background dark)) (:background "grey29")))
+  "Default face for section title text at level 3."
+  :package-version '(rst . "1.4.0"))
 
-    `rst-level-face-base-light'
-    + (`rst-level-face-max' - 1) * `rst-level-face-step-light'
+(defface rst-level-4 '((((background light)) (:background "grey64"))
+		       (((background dark)) (:background "grey36")))
+  "Default face for section title text at level 4."
+  :package-version '(rst . "1.4.0"))
 
-must result in a color level which appended to `rst-level-face-base-color'
-using `rst-level-face-format-light' results in a valid color such as `grey50'.
-This color is used as background for section title text on level
-`rst-level-face-max'."
-  :group 'rst-faces-defaults
-  :type '(integer)
-  :set 'rst-set-level-default)
-(rst-testcover-defcustom)
+(defface rst-level-5 '((((background light)) (:background "grey57"))
+		       (((background dark)) (:background "grey43")))
+  "Default face for section title text at level 5."
+  :package-version '(rst . "1.4.0"))
+
+(defface rst-level-6 '((((background light)) (:background "grey50"))
+		       (((background dark)) (:background "grey50")))
+  "Default face for section title text at level 6."
+  :package-version '(rst . "1.4.0"))
 
 (defcustom rst-adornment-faces-alist
-  ;; FIXME LEVEL-FACE: Must be redone if `rst-level-face-max' is changed
-  (let ((alist (copy-sequence '((t . rst-transition)
-                                (nil . rst-adornment))))
-	(i 1))
-    (while (<= i rst-level-face-max)
-      ;; FIXME: why not `push'?
-      (nconc alist (list (cons i (intern (format "rst-level-%d-face" i)))))
-      (setq i (1+ i)))
-    alist)
-  "Faces for the various adornment types.
+  '((t . rst-transition)
+    (nil . rst-adornment)
+    (1 . rst-level-1)
+    (2 . rst-level-2)
+    (3 . rst-level-3)
+    (4 . rst-level-4)
+    (5 . rst-level-5)
+    (6 . rst-level-6))
+    "Faces for the various adornment types.
 Key is a number (for the section title text of that level
 starting with 1), t (for transitions) or nil (for section title
-adornment).  If you generally do not like how section title text
-faces are set up tweak here.  If the general idea is ok for you
-but you do not like the details check the Rst Faces Defaults
-group."
+adornment).  If you need levels beyond 6 you have to define faces
+of your own."
   :group 'rst-faces
   :type '(alist
 	  :key-type
@@ -3478,33 +3425,8 @@ group."
 	   (integer :tag "Section level")
 	   (const :tag "transitions" t)
 	   (const :tag "section title adornment" nil))
-	  :value-type (face))
-  :set-after '(rst-level-face-max))
+	  :value-type (face)))
 (rst-testcover-defcustom)
-
-(defun rst-define-level-faces ()
-  "Define the faces for the section title text faces from the values."
-  ;; All variables used here must be checked in `rst-set-level-default'.
-  (let ((i 1))
-    (while (<= i rst-level-face-max)
-      (let ((sym (intern (format "rst-level-%d-face" i)))
-	    (doc (format "Default face for showing section title text at level %d.
-This symbol is *not* meant for customization but modified if a
-variable of the `rst-faces-defaults' group is customized. Use
-`rst-adornment-faces-alist' for customization instead." i))
-	    (col (format (concat "%s" rst-level-face-format-light)
-			 rst-level-face-base-color
-			 (+ (* (1- i) rst-level-face-step-light)
-			    rst-level-face-base-light))))
-	(make-empty-face sym)
-	(set-face-doc-string sym doc)
-	(set-face-background sym col)
-	(set sym sym)
-	(setq i (1+ i))))))
-
-;; FIXME LEVEL-FACE: This is probably superfluous since it is done by the
-;;                   customization / `rst-set-level-default'.
-(rst-define-level-faces)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 

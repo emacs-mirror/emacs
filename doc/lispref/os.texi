@@ -1864,6 +1864,13 @@ It blocks out any idle timers that ought to run during that time.
 @end itemize
 
 @noindent
+For similar reasons, do not write an idle timer function that sets
+up another idle time (including the same idle timer) with the
+@var{secs} argument less or equal to the current idleness time.  Such
+a timer will run almost immediately, and continue running again and
+again, instead of waiting for the next time Emacs becomes idle.
+
+@noindent
 The correct approach is for the idle timer to reschedule itself after
 a brief pause, using the method in the @code{timer-function} example
 above.

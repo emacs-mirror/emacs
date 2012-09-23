@@ -3138,6 +3138,45 @@ in which case `save-window-excursion' cannot help."
        (unwind-protect (progn ,@body)
          (set-window-configuration ,c)))))
 
+(defun temp-output-buffer-show (buffer)
+  "Internal function for `with-output-to-temp-buffer'."
+  (with-current-buffer buffer
+    (set-buffer-modified-p nil)
+    (goto-char (point-min)))
+
+  (if temp-buffer-show-function
+      (funcall temp-buffer-show-function buffer)
+    (with-current-buffer buffer
+      (let* ((window
+	      (let ((window-combination-limit
+		   ;; When `window-combination-limit' equals
+		   ;; `temp-buffer' or `temp-buffer-resize' and
+		   ;; `temp-buffer-resize-mode' is enabled in this
+		   ;; buffer bind it to t so resizing steals space
+		   ;; preferably from the window that was split.
+		   (if (or (eq window-combination-limit 'temp-buffer)
+			   (and (eq window-combination-limit
+				    'temp-buffer-resize)
+				temp-buffer-resize-mode))
+		       t
+		     window-combination-limit)))
+		(display-buffer buffer)))
+	     (frame (and window (window-frame window))))
+	(when window
+	  (unless (eq frame (selected-frame))
+	    (make-frame-visible frame))
+	  (setq minibuffer-scroll-window window)
+	  (set-window-hscroll window 0)
+	  ;; Don't try this with NOFORCE non-nil!
+	  (set-window-start window (point-min) t)
+	  ;; This hould not be necessary.
+	  (set-window-point window (point-min))
+	  ;; Run `temp-buffer-show-hook', with the chosen window selected.
+	  (with-selected-window window
+	    (run-hooks 'temp-buffer-show-hook))))))
+  ;; Return nil.
+  nil)
+
 (defmacro with-output-to-temp-buffer (bufname &rest body)
   "Bind `standard-output' to buffer BUFNAME, eval BODY, then show that buffer.
 
@@ -3183,7 +3222,7 @@ if it uses `temp-buffer-show-function'."
                    (run-hooks 'temp-buffer-setup-hook)))))
             (standard-output ,buf))
        (prog1 (progn ,@body)
-         (internal-temp-output-buffer-show ,buf)))))
+         (temp-output-buffer-show ,buf)))))
 
 (defmacro with-temp-file (file &rest body)
   "Create a new buffer, evaluate BODY there, and write the buffer to FILE.

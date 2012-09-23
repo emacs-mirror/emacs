@@ -1493,6 +1493,8 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
     (define-key map (kbd "M-s f C-s")   'dired-isearch-filenames)
     (define-key map (kbd "M-s f M-C-s") 'dired-isearch-filenames-regexp)
     ;; misc
+    (define-key map [remap read-only-mode] 'dired-toggle-read-only)
+    ;; `toggle-read-only' is an obsolete alias for `read-only-mode'
     (define-key map [remap toggle-read-only] 'dired-toggle-read-only)
     (define-key map "?" 'dired-summary)
     (define-key map "\177" 'dired-unmark-backward)

@@ -1,3 +1,7 @@
+2012-09-22  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* trouble.texi (Crashing): Document ulimit -c.
+
 2012-09-21  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* trouble.texi (Crashing): Document addr2line.

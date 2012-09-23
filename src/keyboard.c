@@ -4333,25 +4333,18 @@ decode_timer (Lisp_Object timer, EMACS_TIME *result)
    should be done.  */
 
 static EMACS_TIME
-timer_check_2 (void)
+timer_check_2 (Lisp_Object timers, Lisp_Object idle_timers)
 {
   EMACS_TIME nexttime;
   EMACS_TIME now;
   EMACS_TIME idleness_now;
-  Lisp_Object timers, idle_timers, chosen_timer;
-  struct gcpro gcpro1, gcpro2, gcpro3;
+  Lisp_Object chosen_timer;
+  struct gcpro gcpro1;
 
   nexttime = invalid_emacs_time ();
 
-  /* Always consider the ordinary timers.  */
-  timers = Vtimer_list;
-  /* Consider the idle timers only if Emacs is idle.  */
-  if (EMACS_TIME_VALID_P (timer_idleness_start_time))
-    idle_timers = Vtimer_idle_list;
-  else
-    idle_timers = Qnil;
   chosen_timer = Qnil;
-  GCPRO3 (timers, idle_timers, chosen_timer);
+  GCPRO1 (chosen_timer);
 
   /* First run the code that was delayed.  */
   while (CONSP (pending_funcalls))
@@ -4500,13 +4493,30 @@ EMACS_TIME
 timer_check (void)
 {
   EMACS_TIME nexttime;
+  Lisp_Object timers, idle_timers;
+  struct gcpro gcpro1, gcpro2;
+
+  /* We use copies of the timers' lists to allow a timer to add itself
+     again, without locking up Emacs if the newly added timer is
+     already ripe when added.  */
+
+  /* Always consider the ordinary timers.  */
+  timers = Fcopy_sequence (Vtimer_list);
+  /* Consider the idle timers only if Emacs is idle.  */
+  if (EMACS_TIME_VALID_P (timer_idleness_start_time))
+    idle_timers = Fcopy_sequence (Vtimer_idle_list);
+  else
+    idle_timers = Qnil;
+
+  GCPRO2 (timers, idle_timers);
 
   do
     {
-      nexttime = timer_check_2 ();
+      nexttime = timer_check_2 (timers, idle_timers);
     }
   while (EMACS_SECS (nexttime) == 0 && EMACS_NSECS (nexttime) == 0);
 
+  UNGCPRO;
   return nexttime;
 }
 
