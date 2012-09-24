@@ -29376,7 +29376,7 @@ init_xdisp (void)
    the following three functions in w32fns.c.  */
 #ifndef WINDOWSNT
 
-/* Platform-independent portion of hourglass implementation. */
+/* Platform-independent portion of hourglass implementation.  */
 
 /* Cancel a currently active hourglass timer, and start a new one.  */
 void

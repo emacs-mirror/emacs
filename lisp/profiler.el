@@ -20,7 +20,7 @@
 
 ;;; Commentary:
 
-;; 
+;;
 
 ;;; Code:
 
@@ -237,6 +237,7 @@ be same type."
 
 (defun profiler-calltree-compute-percentages (tree)
   (let ((total-count 0))
+    ;; FIXME: the memory profiler's total wraps around all too easily!
     (dolist (child (profiler-calltree-children tree))
       (cl-incf total-count (profiler-calltree-count child)))
     (unless (zerop total-count)

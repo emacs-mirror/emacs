@@ -3525,18 +3525,17 @@ extern int have_menus_p (void);
 void syms_of_dbusbind (void);
 #endif
 
-/* Defined in profiler.c */
-extern bool sample_profiler_running;
+
+/* Defined in profiler.c.  */
 extern bool memory_profiler_running;
 extern void malloc_probe (size_t);
-extern void gc_probe (size_t, size_t);
 #define MALLOC_PROBE(size)			\
   do {						\
     if (memory_profiler_running)		\
       malloc_probe (size);			\
   } while (0)
-
 extern void syms_of_profiler (void);
+
 
 #ifdef DOS_NT
 /* Defined in msdos.c, w32.c */

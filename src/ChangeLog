@@ -1,5 +1,15 @@
 2012-09-24  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* profiler.c (evict_lower_half): Fix typo.
+	(PROFILER_CPU_SUPPORT): Check and define if cpu-profiler is supported.
+	Don't compile the cpu-profiler code, if not supported.
+	(malloc_probe): Presume memory_log is non-nil.
+	(syms_of_profiler): Don't defsubr functions when they aren't defined.
+
+	* lisp.h (sample_profiler_running, gc_probe): Don't declare.
+
+2012-09-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
 	* xdisp.c (Qautomatic_redisplay): New constant.
 	(redisplay_internal): Record itself in backtrace_list.
 	(syms_of_xdisp): Define Qautomatic_redisplay.

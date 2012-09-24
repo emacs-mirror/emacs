@@ -126,7 +126,7 @@ static void evict_lower_half (log_t *log)
 	  int j;
 	  eassert (VECTORP (key));
 	  for (j = 0; j < ASIZE (key); j++)
-	    ASET (key, i, Qnil);
+	    ASET (key, j, Qnil);
 	}
 	set_hash_key_slot (log, i, key);
       }
@@ -189,6 +189,9 @@ record_backtrace (log_t *log, size_t count)
 }
 
 /* Sample profiler.  */
+
+#if defined SIGPROF && defined HAVE_SETITIMER
+#define PROFILER_CPU_SUPPORT
 
 static Lisp_Object cpu_log;
 /* Separate counter for the time spent in the GC.  */
@@ -279,7 +282,7 @@ log is collected and SLOTS is a list of slots.  */)
   cpu_gc_count = 0;
   return result;
 }
-
+#endif
 
 /* Memory profiler.  */
 
@@ -365,12 +368,11 @@ sigprof_handler (int signal, siginfo_t *info, void *ctx)
 }
 
 /* Record that the current backtrace allocated SIZE bytes.  */
-/* FIXME: Inline it everywhere!  */
 void
 malloc_probe (size_t size)
 {
-  if (HASH_TABLE_P (memory_log))
-    record_backtrace (XHASH_TABLE (memory_log), size);
+  eassert (HASH_TABLE_P (memory_log));
+  record_backtrace (XHASH_TABLE (memory_log), size);
 }
 
 void
@@ -383,17 +385,18 @@ syms_of_profiler (void)
 	      doc: /* FIXME */);
   profiler_slot_heap_size = 10000;
 
-  cpu_log = memory_log = Qnil;
-  staticpro (&cpu_log);
-  staticpro (&memory_log);
-
   /* FIXME: Rename things to start with "profiler-", to use "cpu" instead of
      "sample", and to make them sound like they're internal or something.  */
+#ifdef PROFILER_CPU_SUPPORT
+  cpu_log = Qnil;
+  staticpro (&cpu_log);
   defsubr (&Ssample_profiler_start);
   defsubr (&Ssample_profiler_stop);
   defsubr (&Ssample_profiler_running_p);
   defsubr (&Ssample_profiler_log);
-
+#endif
+  memory_log = Qnil;
+  staticpro (&memory_log);
   defsubr (&Smemory_profiler_start);
   defsubr (&Smemory_profiler_stop);
   defsubr (&Smemory_profiler_running_p);
