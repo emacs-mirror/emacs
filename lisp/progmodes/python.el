@@ -1919,19 +1919,18 @@ Returns the output.  See `python-shell-send-string-no-output'."
 
 (defun python-shell-send-buffer (&optional arg)
   "Send the entire buffer to inferior Python process.
-
-With prefix ARG include lines surrounded by \"if __name__ == '__main__':\""
+With prefix ARG allow execution of code inside blocks delimited
+by \"if __name__== '__main__':\""
   (interactive "P")
   (save-restriction
     (widen)
-    (python-shell-send-region
-     (point-min)
-     (or (and
-          (not arg)
-          (save-excursion
-            (re-search-forward (python-rx if-name-main) nil t))
-          (match-beginning 0))
-         (point-max)))))
+    (let ((str (buffer-substring (point-min) (point-max))))
+      (and
+       (not arg)
+       (setq str (replace-regexp-in-string
+                  (python-rx if-name-main)
+                  "if __name__ == '__main__ ':" str)))
+      (python-shell-send-string str))))
 
 (defun python-shell-send-defun (arg)
   "Send the current defun to inferior Python process.
