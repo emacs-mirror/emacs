@@ -1218,7 +1218,8 @@ COMMAND may result in an alias being executed, or a plain command."
     ;; If the function exists, but is defined in an eshell module
     ;; that's not currently enabled, don't report it as found
     (if (and file
-	     (string-match "\\(em\\|esh\\)-\\(.*\\)\\(\\.el\\)?\\'" file))
+	     (string-match "\\(em\\|esh\\)-\\([[:alnum:]]+\\)\\(\\.elc?\\)?\\'"
+			   file))
 	(let ((module-sym
 	       (intern (file-name-base (concat "eshell-" (match-string 2 file))))))
 	  (if (and (functionp sym)

@@ -1,3 +1,8 @@
+2012-09-24  Glenn Morris  <rgm@gnu.org>
+
+	* eshell/esh-cmd.el (eshell-find-alias-function):
+	Tighten up file-name regexp.  (Bug#12499)
+
 2012-09-24  Fabián Ezequiel Gallina  <fgallina@cuca>
 
 	Enhancements for triple-quote string syntax.
