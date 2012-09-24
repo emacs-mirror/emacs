@@ -287,7 +287,7 @@ enum xembed_message
 
 /* Used in x_flush.  */
 
-static int x_alloc_nearest_color_1 (Display *, Colormap, XColor *);
+static bool x_alloc_nearest_color_1 (Display *, Colormap, XColor *);
 static void x_set_window_size_1 (struct frame *, int, int, int);
 static void x_raise_frame (struct frame *);
 static void x_lower_frame (struct frame *);
@@ -899,8 +899,8 @@ static void x_compute_glyph_string_overhangs (struct glyph_string *);
 static void x_set_cursor_gc (struct glyph_string *);
 static void x_set_mode_line_face_gc (struct glyph_string *);
 static void x_set_mouse_face_gc (struct glyph_string *);
-static int x_alloc_lighter_color (struct frame *, Display *, Colormap,
-                                  unsigned long *, double, int);
+static bool x_alloc_lighter_color (struct frame *, Display *, Colormap,
+				   unsigned long *, double, int);
 static void x_setup_relief_color (struct frame *, struct relief *,
                                   double, int, unsigned long);
 static void x_setup_relief_colors (struct glyph_string *);
@@ -1469,9 +1469,9 @@ x_frame_of_widget (Widget widget)
    If this produces the same color as PIXEL, try a color where all RGB
    values have DELTA added.  Return the allocated color in *PIXEL.
    DISPLAY is the X display, CMAP is the colormap to operate on.
-   Value is non-zero if successful.  */
+   Value is true if successful.  */
 
-int
+bool
 x_alloc_lighter_color_for_widget (Widget widget, Display *display, Colormap cmap,
 				  unsigned long *pixel, double factor, int delta)
 {
@@ -1696,15 +1696,15 @@ x_query_color (struct frame *f, XColor *color)
 
 /* Allocate the color COLOR->pixel on DISPLAY, colormap CMAP.  If an
    exact match can't be allocated, try the nearest color available.
-   Value is non-zero if successful.  Set *COLOR to the color
+   Value is true if successful.  Set *COLOR to the color
    allocated.  */
 
-static int
+static bool
 x_alloc_nearest_color_1 (Display *dpy, Colormap cmap, XColor *color)
 {
-  int rc;
+  bool rc;
 
-  rc = XAllocColor (dpy, cmap, color);
+  rc = XAllocColor (dpy, cmap, color) != 0;
   if (rc == 0)
     {
       /* If we got to this point, the colormap is full, so we're going
@@ -1735,7 +1735,7 @@ x_alloc_nearest_color_1 (Display *dpy, Colormap cmap, XColor *color)
       color->red   = cells[nearest].red;
       color->green = cells[nearest].green;
       color->blue  = cells[nearest].blue;
-      rc = XAllocColor (dpy, cmap, color);
+      rc = XAllocColor (dpy, cmap, color) != 0;
     }
   else
     {
@@ -1768,10 +1768,10 @@ x_alloc_nearest_color_1 (Display *dpy, Colormap cmap, XColor *color)
 
 /* Allocate the color COLOR->pixel on frame F, colormap CMAP.  If an
    exact match can't be allocated, try the nearest color available.
-   Value is non-zero if successful.  Set *COLOR to the color
+   Value is true if successful.  Set *COLOR to the color
    allocated.  */
 
-int
+bool
 x_alloc_nearest_color (struct frame *f, Colormap cmap, XColor *color)
 {
   gamma_correct (f, color);
@@ -1821,12 +1821,12 @@ x_copy_color (struct frame *f, long unsigned int pixel)
    DISPLAY is the X display, CMAP is the colormap to operate on.
    Value is non-zero if successful.  */
 
-static int
+static bool
 x_alloc_lighter_color (struct frame *f, Display *display, Colormap cmap, long unsigned int *pixel, double factor, int delta)
 {
   XColor color, new;
   long bright;
-  int success_p;
+  bool success_p;
 
   /* Get RGB color values.  */
   color.pixel = *pixel;

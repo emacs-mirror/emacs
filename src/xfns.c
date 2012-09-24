@@ -575,15 +575,15 @@ gamma_correct (struct frame *f, XColor *color)
 
 
 /* Decide if color named COLOR_NAME is valid for use on frame F.  If
-   so, return the RGB values in COLOR.  If ALLOC_P is non-zero,
-   allocate the color.  Value is zero if COLOR_NAME is invalid, or
+   so, return the RGB values in COLOR.  If ALLOC_P,
+   allocate the color.  Value is false if COLOR_NAME is invalid, or
    no color could be allocated.  */
 
-int
+bool
 x_defined_color (struct frame *f, const char *color_name,
-		 XColor *color, int alloc_p)
+		 XColor *color, bool alloc_p)
 {
-  int success_p = 0;
+  bool success_p = 0;
   Display *dpy = FRAME_X_DISPLAY (f);
   Colormap cmap = FRAME_X_COLORMAP (f);
 
@@ -592,7 +592,7 @@ x_defined_color (struct frame *f, const char *color_name,
   success_p = xg_check_special_colors (f, color_name, color);
 #endif
   if (!success_p)
-    success_p = XParseColor (dpy, cmap, color_name, color);
+    success_p = XParseColor (dpy, cmap, color_name, color) != 0;
   if (success_p && alloc_p)
     success_p = x_alloc_nearest_color (f, cmap, color);
   unblock_input ();

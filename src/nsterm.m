@@ -1575,18 +1575,18 @@ ns_query_color(void *col, XColor *color_def, int setPixel)
 }
 
 
-int
+bool
 ns_defined_color (struct frame *f,
                   const char *name,
                   XColor *color_def,
-                  int alloc,
-                  char makeIndex)
+                  bool alloc,
+                  bool makeIndex)
 /* --------------------------------------------------------------------------
-         Return 1 if named color found, and set color_def rgb accordingly.
+         Return true if named color found, and set color_def rgb accordingly.
          If makeIndex and alloc are nonzero put the color in the color_table,
          and set color_def pixel to the resulting index.
          If makeIndex is zero, set color_def pixel to ARGB.
-         Return 0 if not found
+         Return false if not found
    -------------------------------------------------------------------------- */
 {
   NSColor *col;

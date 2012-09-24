@@ -749,11 +749,11 @@ extern Lisp_Object ns_cursor_type_to_lisp (int arg);
 extern void ns_set_name_as_filename (struct frame *f);
 extern void ns_set_doc_edited (struct frame *f, Lisp_Object arg);
 
-extern int
+extern bool
 ns_defined_color (struct frame *f,
                   const char *name,
-                  XColor *color_def, int alloc,
-                  char makeIndex);
+                  XColor *color_def, bool alloc,
+                  bool makeIndex);
 extern void
 ns_query_color (void *col, XColor *color_def, int setPixel);
 
@@ -799,8 +799,8 @@ struct image;
 extern void *ns_image_from_XBM (unsigned char *bits, int width, int height);
 extern void *ns_image_for_XPM (int width, int height, int depth);
 extern void *ns_image_from_file (Lisp_Object file);
-extern int ns_load_image (struct frame *f, struct image *img,
-                          Lisp_Object spec_file, Lisp_Object spec_data);
+extern bool ns_load_image (struct frame *f, struct image *img,
+			   Lisp_Object spec_file, Lisp_Object spec_data);
 extern int ns_image_width (void *img);
 extern int ns_image_height (void *img);
 extern unsigned long ns_get_pixel (void *img, int x, int y);

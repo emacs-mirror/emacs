@@ -78,7 +78,7 @@ ns_image_from_file (Lisp_Object file)
   return [EmacsImage allocInitFromFile: file];
 }
 
-int
+bool
 ns_load_image (struct frame *f, struct image *img,
                Lisp_Object spec_file, Lisp_Object spec_data)
 {

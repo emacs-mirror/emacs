@@ -1,3 +1,41 @@
+2012-09-24  Paul Eggert  <eggert@cs.ucla.edu>
+
+	image.c, indent.c: Use bool for booleans.
+	* dispextern.h (struct image_type): Members valid_p, load, init
+	now return bool, not int.  All uses changed.
+	* image.c: Omit unnecessary static decls.
+	(x_create_bitmap_mask, x_build_heuristic_mask):
+	Return void, not int, since callers don't care about the return value.
+	(x_create_bitmap_mask, define_image_type, valid_image_p)
+	(struct image_keyword, parse_image_spec, image_spec_value)
+	(check_image_size, image_background)
+	(image_background_transparent, x_clear_image_1)
+	(postprocess_image, lookup_image, x_check_image_size)
+	(x_create_x_image_and_pixmap, xbm_image_p)
+	(Create_Pixmap_From_Bitmap_Data, xbm_read_bitmap_data)
+	(xbm_load_image, xbm_file_p, xbm_load, xpm_lookup_color)
+	(init_xpm_functions, xpm_valid_color_symbols_p, xpm_image_p)
+	(xpm_load, xpm_load_image, lookup_rgb_color, lookup_pixel_color)
+	(x_to_xcolors, x_build_heuristic_mask, pbm_image_p, pbm_load)
+	(png_image_p, init_png_functions, png_load_body, png_load)
+	(jpeg_image_p, init_jpeg_functions, jpeg_load_body, jpeg_load)
+	(tiff_image_p, init_tiff_functions, tiff_load, gif_image_p)
+	(init_gif_functions, gif_load, imagemagick_image_p)
+	(imagemagick_load_image, imagemagick_load, svg_image_p)
+	(init_svg_functions, svg_load, svg_load_image, gs_image_p)
+	(gs_load):
+	* nsimage.m (ns_load_image):
+	* nsterm.m (ns_defined_color):
+	* xfaces.c (tty_lookup_color, tty_defined_color, defined_color):
+	* xfns.c (x_defined_color):
+	* xterm.c (x_alloc_lighter_color_for_widget)
+	(x_alloc_nearest_color_1, x_alloc_nearest_color)
+	(x_alloc_lighter_color):
+	* indent.c (disptab_matches_widthtab, current_column)
+	(scan_for_column, string_display_width, indented_beyond_p)
+	(compute_motion, vmotion, Fvertical_motion):
+	Use bool for booleans.
+
 2012-09-24  Chong Yidong  <cyd@gnu.org>
 
 	* chartab.c (Fset_char_table_default): Obsolete function removed.

@@ -991,7 +991,7 @@ parse_rgb_list (Lisp_Object rgb_list, XColor *color)
    non-zero, then the `standard' definition of the same color is
    returned in it.  */
 
-static int
+static bool
 tty_lookup_color (struct frame *f, Lisp_Object color, XColor *tty_color,
 		  XColor *std_color)
 {
@@ -1052,11 +1052,11 @@ tty_lookup_color (struct frame *f, Lisp_Object color, XColor *tty_color,
 
 /* A version of defined_color for non-X frames.  */
 
-static int
+static bool
 tty_defined_color (struct frame *f, const char *color_name,
-		   XColor *color_def, int alloc)
+		   XColor *color_def, bool alloc)
 {
-  int status = 1;
+  bool status = 1;
 
   /* Defaults.  */
   color_def->pixel = FACE_TTY_DEFAULT_COLOR;
@@ -1084,13 +1084,13 @@ tty_defined_color (struct frame *f, const char *color_name,
 
 /* Decide if color named COLOR_NAME is valid for the display
    associated with the frame F; if so, return the rgb values in
-   COLOR_DEF.  If ALLOC is nonzero, allocate a new colormap cell.
+   COLOR_DEF.  If ALLOC, allocate a new colormap cell.
 
    This does the right thing for any type of frame.  */
 
-static int
+static bool
 defined_color (struct frame *f, const char *color_name, XColor *color_def,
-	       int alloc)
+	       bool alloc)
 {
   if (!FRAME_WINDOW_P (f))
     return tty_defined_color (f, color_name, color_def, alloc);
