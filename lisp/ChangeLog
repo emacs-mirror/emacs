@@ -1,3 +1,11 @@
+2012-09-24  Fabián Ezequiel Gallina  <fgallina@cuca>
+
+	Enhancements for triple-quote string syntax.
+	* progmodes/python.el (python-quote-syntax): Remove.
+	(python-syntax-propertize-function): New value.
+	(python-syntax-count-quotes, python-syntax-stringify): New
+	functions.
+
 2012-09-24  Chong Yidong  <cyd@gnu.org>
 
 	* iswitchb.el (iswitchb-read-buffer): Move

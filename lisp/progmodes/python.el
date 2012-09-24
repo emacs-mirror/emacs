@@ -497,52 +497,68 @@ The type returned can be `comment', `string' or `paren'."
      (1 font-lock-variable-name-face nil nil))))
 
 (defconst python-syntax-propertize-function
-  ;; Make outer chars of matching triple-quote sequences into generic
-  ;; string delimiters.  Fixme: Is there a better way?
-  ;; First avoid a sequence preceded by an odd number of backslashes.
   (syntax-propertize-rules
-   (;; ¡Backrefs don't work in syntax-propertize-rules!
-    (concat "\\(?:\\([RUru]\\)[Rr]?\\|^\\|[^\\]\\(?:\\\\.\\)*\\)" ;Prefix.
-            "\\(?:\\('\\)'\\('\\)\\|\\(?2:\"\\)\"\\(?3:\"\\)\\)")
-    (3 (ignore (python-quote-syntax))))))
+   ((rx
+     ;; Match even number of backslashes.
+     (or (not (any ?\\ ?\' ?\")) point) (* ?\\ ?\\)
+     ;; Match single or triple quotes of any kind.
+     (group (or  "\"" "\"\"\"" "'" "'''")))
+    (1 (ignore (python-syntax-stringify))))
+   ((rx
+     ;; Match odd number of backslashes.
+     (or (not (any ?\\)) point) ?\\ (* ?\\ ?\\)
+     ;; Followed by even number of equal quotes.
+     (group (or  "\"\"" "\"\"\"\"" "''" "''''")))
+    (1 (ignore (python-syntax-stringify))))))
 
-(defun python-quote-syntax ()
-  "Put `syntax-table' property correctly on triple quote.
-Used for syntactic keywords.  N is the match number (1, 2 or 3)."
-  ;; Given a triple quote, we have to check the context to know
-  ;; whether this is an opening or closing triple or whether it's
-  ;; quoted anyhow, and should be ignored.  (For that we need to do
-  ;; the same job as `syntax-ppss' to be correct and it seems to be OK
-  ;; to use it here despite initial worries.)  We also have to sort
-  ;; out a possible prefix -- well, we don't _have_ to, but I think it
-  ;; should be treated as part of the string.
+(defsubst python-syntax-count-quotes (quote-char &optional point limit)
+  "Count number of quotes around point (max is 3).
+QUOTE-CHAR is the quote char to count.  Optional argument POINT is
+the point where scan starts (defaults to current point) and LIMIT
+is used to limit the scan."
+  (let ((i 0))
+    (while (and (< i 3)
+                (or (not limit) (< (+ point i) limit))
+                (eq (char-after (+ point i)) quote-char))
+      (incf i))
+    i))
 
-  ;; Test cases:
-  ;;  ur"""ar""" x='"' # """
-  ;; x = ''' """ ' a
-  ;; '''
-  ;; x '"""' x """ \"""" x
-  (save-excursion
-    (goto-char (match-beginning 0))
-    (let ((syntax (save-match-data (syntax-ppss))))
-      (cond
-       ((eq t (nth 3 syntax))           ; after unclosed fence
-        ;; Consider property for the last char if in a fenced string.
-        (goto-char (nth 8 syntax))  ; fence position
-        (skip-chars-forward "uUrR") ; skip any prefix
-        ;; Is it a matching sequence?
-        (if (eq (char-after) (char-after (match-beginning 2)))
-            (put-text-property (match-beginning 3) (match-end 3)
-                               'syntax-table (string-to-syntax "|"))))
-       ((match-end 1)
-        ;; Consider property for initial char, accounting for prefixes.
-        (put-text-property (match-beginning 1) (match-end 1)
-                           'syntax-table (string-to-syntax "|")))
-       (t
-        ;; Consider property for initial char, accounting for prefixes.
-        (put-text-property (match-beginning 2) (match-end 2)
-                           'syntax-table (string-to-syntax "|"))))
-      )))
+(defun python-syntax-stringify ()
+  "Put `syntax-table' property correctly on single/triple quotes."
+  (let* ((num-quotes
+          (let ((n (length (match-string-no-properties 1))))
+            ;; This corrects the quote count when matching odd number
+            ;; of backslashes followed by even number of quotes.
+            (or (and (= 1 (logand n 1)) n) (1- n))))
+         (ppss (prog2
+                   (backward-char num-quotes)
+                   (syntax-ppss)
+                 (forward-char num-quotes)))
+         (string-start (and (not (nth 4 ppss)) (nth 8 ppss)))
+         (quote-starting-pos (- (point) num-quotes))
+         (quote-ending-pos (point))
+         (num-closing-quotes
+          (and string-start
+               (python-syntax-count-quotes
+                (char-before) string-start quote-starting-pos))))
+    (cond ((and string-start (= num-closing-quotes 0))
+           ;; This set of quotes doesn't match the string starting
+           ;; kind. Do nothing.
+           nil)
+          ((not string-start)
+           ;; This set of quotes delimit the start of a string.
+           (put-text-property quote-starting-pos (1+ quote-starting-pos)
+                              'syntax-table (string-to-syntax "|")))
+          ((= num-quotes num-closing-quotes)
+           ;; This set of quotes delimit the end of a string.
+           (put-text-property (1- quote-ending-pos) quote-ending-pos
+                              'syntax-table (string-to-syntax "|")))
+          ((> num-quotes num-closing-quotes)
+           ;; This may only happen whenever a triple quote is closing
+           ;; a single quoted string. Add string delimiter syntax to
+           ;; all three quotes.
+           (put-text-property quote-starting-pos quote-ending-pos
+                              'syntax-table (string-to-syntax "|"))))))
 
 (defvar python-mode-syntax-table
   (let ((table (make-syntax-table)))
