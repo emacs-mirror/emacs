@@ -254,7 +254,7 @@ usually do not have translators for other languages.\n\n")))
 					   nil "-d")))
 		     (buffer-string)))))
       (if (stringp lsb)
-	  (insert "LSB Release " lsb "\n")))
+	  (insert "System " lsb "\n")))
     (when (and system-configuration-options
 	       (not (equal system-configuration-options "")))
       (insert "Configured using:\n `configure "
