@@ -10,6 +10,8 @@
 
 	* vc/log-edit.el (cvs-changelog-full-paragraphs)
 	(cvs-commit-buffer-require-final-newline): Remove.
+	(log-edit-require-final-newline)
+	(log-edit-changelog-full-paragraphs): Default to t.
 
 	* vc/pcvs-defs.el (cvs-diff-buffer-name, cvs-diff-ignore-marks)
 	* vc/vc-hooks.el (vc-ignore-vc-files, vc-master-templates)
