@@ -660,6 +660,18 @@ are deprecated and will be removed eventually.
 *** `facemenu-unlisted-faces'
 *** `rmail-decode-mime-charset'
 *** `last-input-char', `last-command-char', `unread-command-char'.
+*** `iswitchb-read-buffer'
+*** `sc-version', `sc-submit-bug-report'
+*** `set-char-table-default'
+*** `compile-internal'
+*** `cvs-commit-buffer-require-final-newline'
+(use `'log-edit-require-final-newline'instead)
+*** `cvs-changelog-full-paragraphs'
+(use `log-edit-changelog-full-paragraphs' instead)
+*** `cvs-diff-ignore-marks', `cvs-diff-buffer-name'
+*** `vc-ignore-vc-files' (use `vc-handled-backends' instead)
+*** `vc-master-templates' (use `vc-handled-backends' instead)
+*** `vc-checkout-carefully'
 
 
 * Lisp changes in Emacs 24.3

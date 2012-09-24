@@ -748,12 +748,10 @@ Faces `compilation-error-face', `compilation-warning-face',
 (defvar compilation-leave-directory-face 'font-lock-builtin-face
   "Face name to use for leaving directory messages.")
 
-
-
 ;; Used for compatibility with the old compile.el.
 (defvar compilation-parse-errors-function nil)
-(make-obsolete 'compilation-parse-errors-function
-               'compilation-error-regexp-alist "24.1")
+(make-obsolete-variable 'compilation-parse-errors-function
+			'compilation-error-regexp-alist "24.1")
 
 (defcustom compilation-auto-jump-to-first-error nil
   "If non-nil, automatically jump to the first error during compilation."
@@ -1498,24 +1496,6 @@ Otherwise, construct a buffer name from NAME-OF-MODE."
 	 (buffer-name))
 	(t
 	 (concat "*" (downcase name-of-mode) "*"))))
-
-;; This is a rough emulation of the old hack, until the transition to new
-;; compile is complete.
-(defun compile-internal (command error-message
-				 &optional _name-of-mode parser
-				 error-regexp-alist name-function
-				 _enter-regexp-alist _leave-regexp-alist
-				 file-regexp-alist _nomessage-regexp-alist
-				 _no-async highlight-regexp _local-map)
-  (if parser
-      (error "Compile now works very differently, see `compilation-error-regexp-alist'"))
-  (let ((compilation-error-regexp-alist
-	 (append file-regexp-alist (or error-regexp-alist
-				       compilation-error-regexp-alist)))
-	(compilation-error (replace-regexp-in-string "^No more \\(.+\\)s\\.?"
-						     "\\1" error-message)))
-    (compilation-start command nil name-function highlight-regexp)))
-(make-obsolete 'compile-internal 'compilation-start "22.1")
 
 (defcustom compilation-always-kill nil
   "If t, always kill a running compilation process before starting a new one.

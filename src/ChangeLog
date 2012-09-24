@@ -1,3 +1,7 @@
+2012-09-24  Chong Yidong  <cyd@gnu.org>
+
+	* chartab.c (Fset_char_table_default): Obsolete function removed.
+
 2012-09-23  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Move pid_t related decls out of lisp.h.

@@ -1,5 +1,36 @@
 2012-09-24  Chong Yidong  <cyd@gnu.org>
 
+	* iswitchb.el (iswitchb-read-buffer): Move
+	iswitchb-define-mode-map code here, and delete that obsolete
+	function.
+
+	* mail/supercite.el (sc-version): Remove obsolete function.
+	(sc-describe): Don't mark as obsolete, since it is bound.
+	(sc-submit-bug-report): Remove.
+
+	* vc/log-edit.el (cvs-changelog-full-paragraphs)
+	(cvs-commit-buffer-require-final-newline): Remove.
+
+	* vc/pcvs-defs.el (cvs-diff-buffer-name, cvs-diff-ignore-marks)
+	* vc/vc-hooks.el (vc-ignore-vc-files, vc-master-templates)
+	* vc/vc.el (vc-checkout-carefully): Likewise.
+
+	* vc/emerge.el (emerge-mode): Make it an obsolete alias.
+	(emerge-version): Remove.
+
+	* progmodes/compile.el (compile-internal): Remove.
+	(compilation-parse-errors-function): Fix typo.
+
+	* international/mule.el (set-char-table-default): Remove.
+	(set-coding-priority, make-coding-system, generic-char-p)
+	(charset-list, charset-bytes, charset-id): Use declare to mark
+	functions as obsolete.
+
+	* vc/pcvs-defs.el (cvs-buffer-name-alist)
+	(cvs-invert-ignore-marks): Remove references to obsolete vars.
+	* vc/vc-hooks.el (vc-default-registered): Don't use
+	vc-master-templates.
+
 	* font-lock.el (font-lock-reference-face): Use
 	define-obsolete-variable-alias.
 

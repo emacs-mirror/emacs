@@ -808,16 +808,6 @@ is sensitive to blank lines."
 		       (string :tag "Comment End")))
   :group 'vc)
 
-(defcustom vc-checkout-carefully (= (user-uid) 0)
-  "Non-nil means be extra-careful in checkout.
-Verify that the file really is not locked
-and that its contents match what the repository version says."
-  :type 'boolean
-  :group 'vc)
-(make-obsolete-variable 'vc-checkout-carefully
-                        "the corresponding checks are always done now."
-                        "21.1")
-
 
 ;; Variables users don't need to see
 
