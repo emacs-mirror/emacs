@@ -4096,6 +4096,13 @@ sweep_weak_hash_tables (void)
 
 #define SXHASH_MAX_LEN   7
 
+/* Combine two integers X and Y for hashing.  The result might not fit
+   into a Lisp integer.  */
+
+#define SXHASH_COMBINE(X, Y)						\
+  ((((EMACS_UINT) (X) << 4) + ((EMACS_UINT) (X) >> (BITS_PER_EMACS_INT - 4))) \
+   + (EMACS_UINT) (Y))
+
 /* Hash X, returning a value that fits into a Lisp integer.  */
 #define SXHASH_REDUCE(X) \
   ((((X) ^ (X) >> (BITS_PER_EMACS_INT - FIXNUM_BITS))) & INTMASK)

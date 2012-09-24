@@ -32,7 +32,11 @@
   :group 'lisp
   :prefix "profiler-")
 
-
+(defcustom profiler-sample-interval 1
+  "Default sample interval in millisecond."
+  :type 'integer
+  :group 'profiler)
+
 ;;; Utilities
 
 (defun profiler-ensure-string (object)
@@ -90,55 +94,34 @@
 
 ;;; Entries
 
-(defun profiler-entry= (entry1 entry2)
-  "Return t if ENTRY1 and ENTRY2 are same."
-  (or (eq entry1 entry2)
-      (and (stringp entry1)
-	   (stringp entry2)
-	   (string= entry1 entry2))))
-
 (defun profiler-entry-format (entry)
   "Format ENTRY in human readable string.  ENTRY would be a
 function name of a function itself."
-  (cond ((and (consp entry)
-	      (or (eq (car entry) 'lambda)
-		  (eq (car entry) 'closure)))
-	 (format "#<closure 0x%x>" (sxhash entry)))
-	((eq (type-of entry) 'compiled-function)
+  (cond ((memq (car-safe entry) '(closure lambda))
+	 (format "#<lambda 0x%x>" (sxhash entry)))
+	((byte-code-function-p entry)
 	 (format "#<compiled 0x%x>" (sxhash entry)))
-	((subrp entry)
-	 (subr-name entry))
-	((symbolp entry)
-	 (symbol-name entry))
-	((stringp entry)
-	 entry)
+	((or (subrp entry) (symbolp entry) (stringp entry))
+	 (format "%s" entry))
 	(t
 	 (format "#<unknown 0x%x>" (sxhash entry)))))
 
-
-;;; Backtrace data structure
-
-(defun profiler-backtrace-reverse (backtrace)
-  (cl-case (car backtrace)
-    ((t gc)
-     ;; Make sure Others node and GC node always be at top.
-     (cons (car backtrace)
-	   (reverse (cdr backtrace))))
-    (t (reverse backtrace))))
-
-
-;;; Slot data structure
-
-(cl-defstruct (profiler-slot (:type list)
-			     (:constructor profiler-make-slot))
-  backtrace count elapsed)
-
-
 ;;; Log data structure
 
-(cl-defstruct (profiler-log (:type list)
-			    (:constructor profiler-make-log))
-  type diff-p timestamp slots)
+;; The C code returns the log in the form of a hash-table where the keys are
+;; vectors (of size profiler-max-stack-depth, holding truncated
+;; backtraces, where the first element is the top of the stack) and
+;; the values are integers (which count how many times this backtrace
+;; has been seen, multiplied by a "weight factor" which is either the
+;; sample-interval or the memory being allocated).
+;; We extend it by adding a few other entries to the hash-table, most notably:
+;; - Key `type' has a value indicating the kind of log (`memory' or `cpu').
+;; - Key `timestamp' has a value giving the time when the log was obtained.
+;; - Key `diff-p' indicates if this log represents a diff between two logs.
+
+(defun profiler-log-timestamp (log) (gethash 'timestamp log))
+(defun profiler-log-type (log) (gethash 'type log))
+(defun profiler-log-diff-p (log) (gethash 'diff-p log))
 
 (defun profiler-log-diff (log1 log2)
   "Compare LOG1 with LOG2 and return a diff log.  Both logs must
@@ -146,16 +129,17 @@ be same type."
   (unless (eq (profiler-log-type log1)
 	      (profiler-log-type log2))
     (error "Can't compare different type of logs"))
-  (let ((slots (profiler-log-slots log2)))
-    (dolist (slot (profiler-log-slots log1))
-      (push (profiler-make-slot :backtrace (profiler-slot-backtrace slot)
-				:count (- (profiler-slot-count slot))
-				:elapsed (- (profiler-slot-elapsed slot)))
-	    slots))
-    (profiler-make-log :type (profiler-log-type log1)
-		       :diff-p t
-		       :timestamp (current-time)
-		       :slots slots)))
+  (let ((newlog (make-hash-table :test 'equal)))
+    ;; Make a copy of `log1' into `newlog'.
+    (maphash (lambda (backtrace count) (puthash backtrace count newlog))
+             log1)
+    (puthash 'diff-p t newlog)
+    (maphash (lambda (backtrace count)
+               (when (vectorp backtrace)
+                 (puthash backtrace (- (gethash backtrace log1 0) count)
+                          newlog)))
+             log2)
+    newlog))
 
 (defun profiler-log-fixup-entry (entry)
   (if (symbolp entry)
@@ -165,21 +149,16 @@ be same type."
 (defun profiler-log-fixup-backtrace (backtrace)
   (mapcar 'profiler-log-fixup-entry backtrace))
 
-(defun profiler-log-fixup-slot (slot)
-  (let ((backtrace (profiler-slot-backtrace slot)))
-    (profiler-make-slot :backtrace (profiler-log-fixup-backtrace backtrace)
-			:count (profiler-slot-count slot)
-			:elapsed (profiler-slot-elapsed slot))))
-
 (defun profiler-log-fixup (log)
   "Fixup LOG so that the log could be serialized into file."
-  (cl-loop for slot in (profiler-log-slots log)
-	   collect (profiler-log-fixup-slot slot) into slots
-	   finally return
-	   (profiler-make-log :type (profiler-log-type log)
-			      :diff-p (profiler-log-diff-p log)
-			      :timestamp (profiler-log-timestamp log)
-			      :slots slots)))
+  (let ((newlog (make-hash-table :test 'equal)))
+    (maphash (lambda (backtrace count)
+               (puthash (if (not (vectorp backtrace))
+                            backtrace
+                          (profiler-log-fixup-backtrace backtrace))
+                        count newlog))
+             log)
+    newlog))
 
 (defun profiler-log-write-file (log filename &optional confirm)
   "Write LOG into FILENAME."
@@ -201,7 +180,6 @@ be same type."
 (cl-defstruct (profiler-calltree (:constructor profiler-make-calltree))
   entry
   (count 0) (count-percent "")
-  (elapsed 0) (elapsed-percent "")
   parent children)
 
 (defun profiler-calltree-leaf-p (tree)
@@ -210,24 +188,11 @@ be same type."
 (defun profiler-calltree-count< (a b)
   (cond ((eq (profiler-calltree-entry a) t) t)
 	((eq (profiler-calltree-entry b) t) nil)
-	((eq (profiler-calltree-entry a) 'gc) t)
-	((eq (profiler-calltree-entry b) 'gc) nil)
 	(t (< (profiler-calltree-count a)
 	      (profiler-calltree-count b)))))
 
 (defun profiler-calltree-count> (a b)
   (not (profiler-calltree-count< a b)))
-
-(defun profiler-calltree-elapsed< (a b)
-  (cond ((eq (profiler-calltree-entry a) t) t)
-	((eq (profiler-calltree-entry b) t) nil)
-	((eq (profiler-calltree-entry a) 'gc) t)
-	((eq (profiler-calltree-entry b) 'gc) nil)
-	(t (< (profiler-calltree-elapsed a)
-	      (profiler-calltree-elapsed b)))))
-
-(defun profiler-calltree-elapsed> (a b)
-  (not (profiler-calltree-elapsed< a b)))
 
 (defun profiler-calltree-depth (tree)
   (let ((parent (profiler-calltree-parent tree)))
@@ -239,58 +204,47 @@ be same type."
   "Return a child tree of ENTRY under TREE."
   ;; OPTIMIZED
   (let (result (children (profiler-calltree-children tree)))
+    ;; FIXME: Use `assoc'.
     (while (and children (null result))
       (let ((child (car children)))
-	(when (profiler-entry= (profiler-calltree-entry child) entry)
+	(when (equal (profiler-calltree-entry child) entry)
 	  (setq result child))
 	(setq children (cdr children))))
     result))
 
-(defun profiler-calltree-walk (calltree function &rest args)
-  (apply function calltree args)
+(defun profiler-calltree-walk (calltree function)
+  (funcall function calltree)
   (dolist (child (profiler-calltree-children calltree))
-    (apply 'profiler-calltree-walk child function args)))
+    (profiler-calltree-walk child function)))
 
 (defun profiler-calltree-build-1 (tree log &optional reverse)
-  (dolist (slot (profiler-log-slots log))
-    (let ((backtrace (profiler-slot-backtrace slot))
-	  (count (profiler-slot-count slot))
-	  (elapsed (profiler-slot-elapsed slot))
-	  (node tree))
-      (dolist (entry (if reverse
-			 backtrace
-		       (profiler-backtrace-reverse backtrace)))
-	(let ((child (profiler-calltree-find node entry)))
-	  (unless child
-	    (setq child (profiler-make-calltree :entry entry :parent node))
-	    (push child (profiler-calltree-children node)))
-	  (cl-incf (profiler-calltree-count child) count)
-	  (cl-incf (profiler-calltree-elapsed child) elapsed)
-	  (setq node child))))))
-
-(defun profiler-calltree-compute-percentages-1 (node total-count total-elapsed)
-  (unless (zerop total-count)
-    (setf (profiler-calltree-count-percent node)
-	  (profiler-format-percent (profiler-calltree-count node)
-				   total-count)))
-  (unless (zerop total-elapsed)
-    (setf (profiler-calltree-elapsed-percent node)
-	  (profiler-format-percent (profiler-calltree-elapsed node)
-				   total-elapsed))))
+  (maphash
+   (lambda (backtrace count)
+     (when (vectorp backtrace)
+       (let ((node tree)
+	     (max (length backtrace)))
+	 (dotimes (i max)
+	   (let ((entry (aref backtrace (if reverse i (- max i 1)))))
+	     (when entry
+	       (let ((child (profiler-calltree-find node entry)))
+		 (unless child
+		   (setq child (profiler-make-calltree
+				:entry entry :parent node))
+		   (push child (profiler-calltree-children node)))
+		 (cl-incf (profiler-calltree-count child) count)
+		 (setq node child))))))))
+   log))
 
 (defun profiler-calltree-compute-percentages (tree)
-  (let ((total-count 0)
-	(total-elapsed 0))
+  (let ((total-count 0))
     (dolist (child (profiler-calltree-children tree))
-      (if (eq (profiler-calltree-entry child) 'gc)
-	  (profiler-calltree-compute-percentages child)
-	(cl-incf total-count (profiler-calltree-count child))
-	(cl-incf total-elapsed (profiler-calltree-elapsed child))))
-    (dolist (child (profiler-calltree-children tree))
-      (unless (eq (profiler-calltree-entry child) 'gc)
-	(profiler-calltree-walk
-	 child 'profiler-calltree-compute-percentages-1
-	 total-count total-elapsed)))))
+      (cl-incf total-count (profiler-calltree-count child)))
+    (unless (zerop total-count)
+      (profiler-calltree-walk
+       tree (lambda (node)
+              (setf (profiler-calltree-count-percent node)
+                    (profiler-format-percent (profiler-calltree-count node)
+                                             total-count)))))))
 
 (cl-defun profiler-calltree-build (log &key reverse)
   (let ((tree (profiler-make-calltree)))
@@ -332,14 +286,14 @@ be same type."
     (19 right ((14 right profiler-format-nbytes)
 	       (5 right)))))
 
-(defvar profiler-report-log nil
+(defvar-local profiler-report-log nil
   "The current profiler log.")
 
-(defvar profiler-report-reversed nil
+(defvar-local profiler-report-reversed nil
   "True if calltree is rendered in bottom-up.  Do not touch this
 variable directly.")
 
-(defvar profiler-report-order nil
+(defvar-local profiler-report-order nil
   "The value can be `ascending' or `descending'.  Do not touch
 this variable directly.")
 
@@ -347,8 +301,6 @@ this variable directly.")
   (let ((string (cond
 		 ((eq entry t)
 		  "Others")
-		 ((eq entry 'gc)
-		  "Garbage Collection")
 		 ((and (symbolp entry)
 		       (fboundp entry))
 		  (propertize (symbol-name entry)
@@ -357,7 +309,7 @@ this variable directly.")
 			      'help-echo "mouse-2 or RET jumps to definition"))
 		 (t
 		  (profiler-entry-format entry)))))
-    (propertize string 'entry entry)))
+    (propertize string 'profiler-entry entry)))
 
 (defun profiler-report-make-name-part (tree)
   (let* ((entry (profiler-calltree-entry tree))
@@ -377,31 +329,18 @@ this variable directly.")
 (defun profiler-report-line-format (tree)
   (let ((diff-p (profiler-log-diff-p profiler-report-log))
 	(name-part (profiler-report-make-name-part tree))
-	(elapsed (profiler-calltree-elapsed tree))
-	(elapsed-percent (profiler-calltree-elapsed-percent tree))
 	(count (profiler-calltree-count tree))
 	(count-percent (profiler-calltree-count-percent tree)))
-    (cl-ecase (profiler-log-type profiler-report-log)
-      (sample
-       (if diff-p
-	   (profiler-format profiler-report-sample-line-format
-			    name-part
-			    (list (if (> elapsed 0)
-				      (format "+%s" elapsed)
-				    elapsed)
-				  ""))
-	 (profiler-format profiler-report-sample-line-format
-			  name-part (list elapsed elapsed-percent))))
-      (memory
-       (if diff-p
-	   (profiler-format profiler-report-memory-line-format
-			  name-part
-			  (list (if (> count 0)
-				      (format "+%s" count)
-				    count)
-				""))
-	 (profiler-format profiler-report-memory-line-format
-			  name-part (list count count-percent)))))))
+    (profiler-format (cl-ecase (profiler-log-type profiler-report-log)
+		       (cpu profiler-report-sample-line-format)
+		       (memory profiler-report-memory-line-format))
+		     name-part
+		     (if diff-p
+			 (list (if (> count 0)
+				   (format "+%s" count)
+				 count)
+			       "")
+		       (list count count-percent)))))
 
 (defun profiler-report-insert-calltree (tree)
   (let ((line (profiler-report-line-format tree)))
@@ -416,10 +355,13 @@ this variable directly.")
 
 (defvar profiler-report-mode-map
   (let ((map (make-sparse-keymap)))
+    ;; FIXME: Add menu.
     (define-key map "n"	    'profiler-report-next-entry)
     (define-key map "p"	    'profiler-report-previous-entry)
-    (define-key map [down]  'profiler-report-next-entry)
-    (define-key map [up]    'profiler-report-previous-entry)
+    ;; I find it annoying more than helpful to not be able to navigate
+    ;; normally with the cursor keys.  --Stef
+    ;; (define-key map [down]  'profiler-report-next-entry)
+    ;; (define-key map [up]    'profiler-report-previous-entry)
     (define-key map "\r"    'profiler-report-toggle-entry)
     (define-key map "\t"    'profiler-report-toggle-entry)
     (define-key map "i"     'profiler-report-toggle-entry)
@@ -437,10 +379,9 @@ this variable directly.")
     map))
 
 (defun profiler-report-make-buffer-name (log)
-  (let ((time (format-time-string "%Y-%m-%d %T" (profiler-log-timestamp log))))
-    (cl-ecase (profiler-log-type log)
-      (sample (format "*CPU-Profiler-Report %s*" time))
-      (memory (format "*Memory-Profiler-Report %s*" time)))))
+  (format "*%s-Profiler-Report %s*"
+          (cl-ecase (profiler-log-type log) (cpu 'CPU) (memory 'Memory))
+          (format-time-string "%Y-%m-%d %T" (profiler-log-timestamp log))))
 
 (defun profiler-report-setup-buffer (log)
   "Make a buffer for LOG and return it."
@@ -455,10 +396,6 @@ this variable directly.")
 
 (define-derived-mode profiler-report-mode special-mode "Profiler-Report"
   "Profiler Report Mode."
-  (make-local-variable 'profiler-report-log)
-  (make-local-variable 'profiler-report-reversed)
-  (make-local-variable 'profiler-report-order)
-  (use-local-map profiler-report-mode-map)
   (setq buffer-read-only t
 	buffer-undo-list t
 	truncate-lines t))
@@ -470,7 +407,8 @@ this variable directly.")
   (get-text-property (point) 'calltree))
 
 (defun profiler-report-move-to-entry ()
-  (let ((point (next-single-property-change (line-beginning-position) 'entry)))
+  (let ((point (next-single-property-change (line-beginning-position)
+                                            'profiler-entry)))
     (if point
 	(goto-char point)
       (back-to-indentation))))
@@ -496,7 +434,7 @@ this variable directly.")
 			  (line-end-position) t)
       (let ((tree (profiler-report-calltree-at-point)))
 	(when tree
-	  (let ((buffer-read-only nil))
+	  (let ((inhibit-read-only t))
 	    (replace-match (concat profiler-report-open-mark " "))
 	    (forward-line)
 	    (profiler-report-insert-calltree-children tree)
@@ -514,7 +452,7 @@ this variable directly.")
 	     (start (line-beginning-position 2))
 	     d)
 	(when tree
-	  (let ((buffer-read-only nil))
+	  (let ((inhibit-read-only t))
 	    (replace-match (concat profiler-report-closed-mark " "))
 	    (while (and (eq (forward-line) 0)
 			(let ((child (get-text-property (point) 'calltree)))
@@ -549,29 +487,25 @@ otherwise collapse."
 	(require 'help-fns)
 	(describe-function entry)))))
 
-(cl-defun profiler-report-render-calltree-1 (log &key reverse (order 'descending))
+(cl-defun profiler-report-render-calltree-1
+    (log &key reverse (order 'descending))
   (let ((calltree (profiler-calltree-build profiler-report-log
 					   :reverse reverse)))
-    (cl-ecase (profiler-log-type log)
-      (sample
-       (setq header-line-format
+    (setq header-line-format
+	  (cl-ecase (profiler-log-type log)
+	    (cpu
 	     (profiler-report-header-line-format
 	      profiler-report-sample-line-format
 	      "Function" (list "Time (ms)" "%")))
-       (let ((predicate (cl-ecase order
-			  (ascending 'profiler-calltree-elapsed<)
-			  (descending 'profiler-calltree-elapsed>))))
-	 (profiler-calltree-sort calltree predicate)))
-      (memory
-       (setq header-line-format
+	    (memory
 	     (profiler-report-header-line-format
 	      profiler-report-memory-line-format
-	      "Function" (list "Bytes" "%")))
-       (let ((predicate (cl-ecase order
-			  (ascending 'profiler-calltree-count<)
-			  (descending 'profiler-calltree-count>))))
-	 (profiler-calltree-sort calltree predicate))))
-    (let ((buffer-read-only nil))
+	      "Function" (list "Bytes" "%")))))
+    (let ((predicate (cl-ecase order
+		       (ascending #'profiler-calltree-count<)
+		       (descending #'profiler-calltree-count>))))
+      (profiler-calltree-sort calltree predicate))
+    (let ((inhibit-read-only t))
       (erase-buffer)
       (profiler-report-insert-calltree-children calltree)
       (goto-char (point-min))
@@ -632,19 +566,15 @@ otherwise collapse."
 
 ;;; Profiler commands
 
-(defcustom profiler-sample-interval 10
-  "Default sample interval in millisecond."
-  :type 'integer
-  :group 'profiler)
-
 ;;;###autoload
 (defun profiler-start (mode)
-  "Start/restart profilers.  MODE can be one of `cpu', `mem',
-and `cpu+mem'.  If MODE is `cpu' or `cpu+mem', sample profiler
-will be started.  Also, if MODE is `mem' or `cpu+mem', then
-memory profiler will be started."
+  "Start/restart profilers.
+MODE can be one of `cpu', `mem', or `cpu+mem'.
+If MODE is `cpu' or `cpu+mem', time-based profiler will be started.
+Also, if MODE is `mem' or `cpu+mem', then memory profiler will be started."
   (interactive
-   (list (intern (completing-read "Mode: " '("cpu" "mem" "cpu+mem")
+   (list (intern (completing-read "Mode (default cpu): "
+                                  '("cpu" "mem" "cpu+mem")
 				  nil t nil nil "cpu"))))
   (cl-ecase mode
     (cpu
@@ -679,25 +609,29 @@ memory profiler will be started."
 (defun profiler-reset ()
   "Reset profiler log."
   (interactive)
-  (sample-profiler-reset)
-  (memory-profiler-reset)
+  (ignore (sample-profiler-log))
+  (ignore (memory-profiler-log))
   t)
 
-(defun sample-profiler-report ()
-  (let ((sample-log (sample-profiler-log)))
-    (when sample-log
-      (profiler-report-log sample-log))))
+(defun profiler--report-cpu ()
+  (let ((log (sample-profiler-log)))
+    (when log
+      (puthash 'type 'cpu log)
+      (puthash 'timestamp (current-time) log)
+      (profiler-report-log log))))
 
-(defun memory-profiler-report ()
-  (let ((memory-log (memory-profiler-log)))
-    (when memory-log
-      (profiler-report-log memory-log))))
+(defun profiler--report-memory ()
+  (let ((log (memory-profiler-log)))
+    (when log
+      (puthash 'type 'memory log)
+      (puthash 'timestamp (current-time) log)
+      (profiler-report-log log))))
 
 (defun profiler-report ()
   "Report profiling results."
   (interactive)
-  (sample-profiler-report)
-  (memory-profiler-report))
+  (profiler--report-cpu)
+  (profiler--report-memory))
 
 ;;;###autoload
 (defun profiler-find-log (filename)
@@ -709,25 +643,23 @@ memory profiler will be started."
 
 ;;; Profiling helpers
 
-(cl-defmacro with-sample-profiling ((&key (interval profiler-sample-interval)) &rest body)
-  `(progn
-     (sample-profiler-start ,interval)
-     (sample-profiler-reset)
-     (unwind-protect
-	 (progn ,@body)
-       (sample-profiler-stop)
-       (sample-profiler-report)
-       (sample-profiler-reset))))
+(cl-defmacro with-sample-profiling ((&key interval) &rest body)
+  `(unwind-protect
+       (progn
+         (ignore (sample-profiler-log))
+         (sample-profiler-start ,interval)
+         ,@body)
+     (sample-profiler-stop)
+     (profiler--report-cpu)))
 
-(cl-defmacro with-memory-profiling (() &rest body)
-  `(progn
-     (memory-profiler-start)
-     (memory-profiler-reset)
-     (unwind-protect
-	 (progn ,@body)
-       (memory-profiler-stop)
-       (memory-profiler-report)
-       (memory-profiler-reset))))
+(defmacro with-memory-profiling (&rest body)
+  `(unwind-protect
+       (progn
+         (ignore (memory-profiler-log))
+         (memory-profiler-start)
+         ,@body)
+     (memory-profiler-stop)
+     (profiler--report-memory)))
 
 (provide 'profiler)
 ;;; profiler.el ends here

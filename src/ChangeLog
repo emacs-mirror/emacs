@@ -1,3 +1,31 @@
+2012-09-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* xdisp.c (Qautomatic_redisplay): New constant.
+	(redisplay_internal): Record itself in backtrace_list.
+	(syms_of_xdisp): Define Qautomatic_redisplay.
+
+	* profiler.c: Remove filtering functionality.
+	(is_in_trace, Qgc): Remove vars.
+	(make_log, record_backtrace, Fsample_profiler_log):
+	Rewrite, using Elisp hash-tables.
+	(approximate_median, evict_lower_half): New functions.
+	(cpu_log): Rename from sample_log.
+	(cpu_gc_count): New var.
+	(Fsample_profiler_reset, Fmemory_profiler_reset): Remove.
+	(sigprof_handler): Add count to cpu_gc_count during GC, detected via
+	backtrace_list.
+	(block_sigprof, unblock_sigprof): Remove.
+	(gc_probe, mark_profiler): Remove functions.
+	(syms_of_profiler): Staticpro cpu_log and memory_log.
+
+	* lisp.h (SXHASH_COMBINE): Move back to...
+	* fns.c (SXHASH_COMBINE): ...here.
+
+	* alloc.c (Fgarbage_collect): Record itself in backtrace_list.
+	Don't set is_in_trace any more.  Don't call mark_profiler.
+	Only call gc_probe for the memory profiler.
+	(syms_of_alloc): Define Qautomatic_gc.
+
 2012-09-15  Tomohiro Matsuyama  <tomo@cx4a.org>
 
 	* alloc.c (emacs_blocked_malloc): Remove redundant MALLOC_PROBE.

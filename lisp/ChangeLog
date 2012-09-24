@@ -1,3 +1,35 @@
+2012-09-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* profiler.el (profiler-sample-interval): Move before first use.
+	Change default to 1ms.
+	(profiler-entry=, profiler-backtrace-reverse, profiler-log-fixup-slot)
+	(profiler-calltree-elapsed<, profiler-calltree-elapsed>): Remove functions.
+	(profiler-entry-format): Don't use type-of.
+	(profiler-slot, profiler-log): Remove structs.
+	(profiler-log-timestamp, profiler-log-type, profiler-log-diff-p):
+	Redefine for new log representation.
+	(profiler-log-diff, profiler-log-fixup, profiler-calltree-build-1):
+	Rewrite for new log representation.
+	(profiler-calltree): Remove `elapsed' fields.
+	(profiler-calltree-count<, profiler-report-make-entry-part):
+	Remove gc special case.
+	(profiler-calltree-find): Use equal.
+	(profiler-calltree-walk): Remove `args'; rely on closures instead.
+	(profiler-calltree-compute-percentages-1): Remove; inlined.
+	(profiler-calltree-compute-percentages): Simplify.
+	(profiler-report-log, profiler-report-reversed)
+	(profiler-report-order): Use defvar-local.
+	(profiler-report-line-format): Remove `elapsed', do a bit of CSE.
+	(profiler-report-mode-map): Remove up/down bindings.
+	(profiler-report-make-buffer-name): Simplify by CSE.
+	(profiler-report-mode): Remove redundant code.
+	(profiler-report-expand-entry, profiler-report-collapse-entry):
+	Use inhibit-read-only.
+	(profiler-report-render-calltree-1): Simplify by CSE.
+	(profiler-reset): Rewrite for new subroutines.
+	(profiler--report-cpu): Rename from sample-profiler-report.
+	(profiler--report-memory): Rename from memory-profiler-report.
+
 2012-08-22  Tomohiro Matsuyama  <tomo@cx4a.org>
 
 	* profiler.el: Switch to cl-lib.
@@ -35,8 +67,8 @@
 	* window.el (window-point-1, set-window-point-1): Remove.
 	(window-in-direction, record-window-buffer)
 	(set-window-buffer-start-and-point, split-window-below)
-	(window--state-get-1, display-buffer-record-window): Replace
-	calls to window-point-1 and set-window-point-1 by calls to
+	(window--state-get-1, display-buffer-record-window):
+	Replace calls to window-point-1 and set-window-point-1 by calls to
 	window-point and set-window-point respectively.
 
 2012-08-21  Glenn Morris  <rgm@gnu.org>
@@ -154,8 +186,8 @@
 	(yank-excluded-properties): Add font-lock-face and category.
 	(yank): Doc fix.
 
-	* subr.el (remove-yank-excluded-properties): Obey
-	yank-handled-properties.  The special handling of font-lock-face
+	* subr.el (remove-yank-excluded-properties):
+	Obey yank-handled-properties.  The special handling of font-lock-face
 	and category is now done this way, instead of being hard-coded.
 	(insert-for-yank-1): Remove font-lock-face handling.
 	(yank-handle-font-lock-face-property)
@@ -169,8 +201,8 @@
 
 2012-08-17  Michael Albinus  <michael.albinus@gmx.de>
 
-	* net/tramp-sh.el (tramp-sh-handle-start-file-process): Eliminate
-	superfluous prompt.  (Bug#12203)
+	* net/tramp-sh.el (tramp-sh-handle-start-file-process):
+	Eliminate superfluous prompt.  (Bug#12203)
 
 2012-08-17  Chong Yidong  <cyd@gnu.org>
 
@@ -197,8 +229,8 @@
 	(next-buffer, previous-buffer, split-window, balance-windows-2)
 	(set-window-text-height, window-buffer-height)
 	(fit-window-to-buffer, shrink-window-if-larger-than-buffer)
-	(truncated-partial-width-window-p): Minor code adjustments.  In
-	doc-strings state whether the argument window has to denote a
+	(truncated-partial-width-window-p): Minor code adjustments.
+	In doc-strings state whether the argument window has to denote a
 	live, valid or any window.
 
 2012-08-16  Phil Sainty  <psainty@orcon.net.nz>  (tiny change)

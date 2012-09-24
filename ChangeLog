@@ -1,3 +1,7 @@
+2012-09-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* .dir-locals.el (indent-tabs-mode): Remove personal preference.
+
 2012-08-21  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Merge from gnulib, incorporating:

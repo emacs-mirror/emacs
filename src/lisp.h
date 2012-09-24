@@ -2679,11 +2679,6 @@ extern void init_syntax_once (void);
 extern void syms_of_syntax (void);
 
 /* Defined in fns.c */
-/* Combine two integers X and Y for hashing.  The result might not fit
-   into a Lisp integer.  */
-#define SXHASH_COMBINE(X, Y)						\
-  ((((EMACS_UINT) (X) << 4) + ((EMACS_UINT) (X) >> (BITS_PER_EMACS_INT - 4))) \
-   + (EMACS_UINT) (Y))
 extern Lisp_Object QCrehash_size, QCrehash_threshold;
 enum { NEXT_ALMOST_PRIME_LIMIT = 11 };
 EXFUN (Fidentity, 1) ATTRIBUTE_CONST;
@@ -2921,6 +2916,7 @@ build_string (const char *str)
 
 extern Lisp_Object pure_cons (Lisp_Object, Lisp_Object);
 extern void make_byte_code (struct Lisp_Vector *);
+extern Lisp_Object Qautomatic_gc;
 extern Lisp_Object Qchar_table_extra_slots;
 extern struct Lisp_Vector *allocate_vector (EMACS_INT);
 extern struct Lisp_Vector *allocate_pseudovector (int memlen, int lisplen, int tag);
@@ -3532,19 +3528,14 @@ void syms_of_dbusbind (void);
 /* Defined in profiler.c */
 extern bool sample_profiler_running;
 extern bool memory_profiler_running;
-extern bool is_in_trace;
-extern Lisp_Object Qgc;
 extern void malloc_probe (size_t);
 extern void gc_probe (size_t, size_t);
-#define ENTER_TRACE (is_in_trace = 1)
-#define LEAVE_TRACE (is_in_trace = 0)
 #define MALLOC_PROBE(size)			\
   do {						\
     if (memory_profiler_running)		\
       malloc_probe (size);			\
   } while (0)
 
-extern void mark_profiler (void);
 extern void syms_of_profiler (void);
 
 #ifdef DOS_NT

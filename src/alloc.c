@@ -264,6 +264,7 @@ static Lisp_Object Qintervals;
 static Lisp_Object Qbuffers;
 static Lisp_Object Qstring_bytes, Qvector_slots, Qheap;
 static Lisp_Object Qgc_cons_threshold;
+Lisp_Object Qautomatic_gc;
 Lisp_Object Qchar_table_extra_slots;
 
 /* Hook run after GC has finished.  */
@@ -5421,6 +5422,7 @@ See Info node `(elisp)Garbage Collection'.  */)
   EMACS_TIME start;
   Lisp_Object retval = Qnil;
   size_t tot_before = 0;
+  struct backtrace backtrace;
 
   if (abort_on_gc)
     abort ();
@@ -5429,6 +5431,14 @@ See Info node `(elisp)Garbage Collection'.  */)
      if something is a pure object or not.  */
   if (pure_bytes_used_before_overflow)
     return Qnil;
+
+  /* Record this function, so it appears on the profiler's backtraces.  */
+  backtrace.next = backtrace_list;
+  backtrace.function = &Qautomatic_gc;
+  backtrace.args = &Qautomatic_gc;
+  backtrace.nargs = 0;
+  backtrace.debug_on_exit = 0;
+  backtrace_list = &backtrace;
 
   check_cons_list ();
 
@@ -5486,7 +5496,6 @@ See Info node `(elisp)Garbage Collection'.  */)
   shrink_regexp_cache ();
 
   gc_in_progress = 1;
-  is_in_trace = 1;
 
   /* Mark all the special slots that serve as the roots of accessibility.  */
 
@@ -5537,8 +5546,6 @@ See Info node `(elisp)Garbage Collection'.  */)
   }
   mark_backtrace ();
 #endif
-
-  mark_profiler ();
 
 #ifdef HAVE_WINDOW_SYSTEM
   mark_fringe_data ();
@@ -5607,7 +5614,6 @@ See Info node `(elisp)Garbage Collection'.  */)
   check_cons_list ();
 
   gc_in_progress = 0;
-  is_in_trace = 0;
 
   consing_since_gc = 0;
   if (gc_cons_threshold < GC_DEFAULT_THRESHOLD / 10)
@@ -5720,24 +5726,19 @@ See Info node `(elisp)Garbage Collection'.  */)
   gcs_done++;
 
   /* Collect profiling data.  */
-  if (sample_profiler_running || memory_profiler_running)
+  if (memory_profiler_running)
     {
       size_t swept = 0;
-      size_t elapsed = 0;
       if (memory_profiler_running)
 	{
 	  size_t tot_after = total_bytes_of_live_objects ();
 	  if (tot_before > tot_after)
 	    swept = tot_before - tot_after;
 	}
-      if (sample_profiler_running)
-	{
-	  EMACS_TIME since_start = sub_emacs_time (current_emacs_time (), start);
-	  elapsed = EMACS_TIME_TO_DOUBLE (since_start) * 1000;
-	}
-      gc_probe (swept, elapsed);
+      malloc_probe (swept);
     }
 
+  backtrace_list = backtrace.next;
   return retval;
 }
 
@@ -6867,6 +6868,7 @@ do hash-consing of the objects allocated to pure space.  */);
   DEFSYM (Qstring_bytes, "string-bytes");
   DEFSYM (Qvector_slots, "vector-slots");
   DEFSYM (Qheap, "heap");
+  DEFSYM (Qautomatic_gc, "Automatic GC");
 
   DEFSYM (Qgc_cons_threshold, "gc-cons-threshold");
   DEFSYM (Qchar_table_extra_slots, "char-table-extra-slots");
