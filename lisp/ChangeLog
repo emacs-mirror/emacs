@@ -1,3 +1,22 @@
+2012-09-24  Chong Yidong  <cyd@gnu.org>
+
+	* font-lock.el (font-lock-reference-face): Use
+	define-obsolete-variable-alias.
+
+	* generic-x.el (rul-generic-mode): Use font-lock-constant-face.
+	* calendar/calendar.el (calendar-font-lock-keywords):
+	* calendar/diary-lib.el (diary-font-lock-keywords)
+	(diary-fancy-font-lock-keywords):
+	* textmodes/reftex-sel.el (reftex-insert-docstruct):
+	* textmodes/reftex-index.el (reftex-insert-index):
+	* textmodes/reftex-cite.el (reftex-format-bib-entry):
+	* progmodes/ruby-mode.el (ruby-font-lock-keywords):
+	* progmodes/ps-mode.el (ps-mode-font-lock-keywords-1):
+	* progmodes/prolog.el (prolog-font-lock-keywords):
+	* progmodes/idlwave.el (idlwave-idl-keywords):
+	* progmodes/ada-mode.el (ada-font-lock-keywords):
+	* net/snmp-mode.el (snmp-font-lock-keywords-3): Likewise.
+
 2012-09-24  Glenn Morris  <rgm@gnu.org>
 
 	* mail/emacsbug.el (report-emacs-bug): Include `lsb_release -d'.

@@ -2400,10 +2400,10 @@ return a font-lock pattern matching array of MONTHS and marking SYMBOL."
     (cons
      (format "^%s?\\(%s\\)" (regexp-quote diary-nonmarking-symbol)
              (regexp-quote diary-sexp-entry-symbol))
-     '(1 font-lock-reference-face))
+     '(1 font-lock-constant-face))
     (cons
      (format "^%s" (regexp-quote diary-nonmarking-symbol))
-     'font-lock-reference-face)
+     'font-lock-constant-face)
     (cons
      (format "^%s?%s" (regexp-quote diary-nonmarking-symbol)
              (regexp-opt (mapcar 'regexp-quote
@@ -2411,7 +2411,7 @@ return a font-lock pattern matching array of MONTHS and marking SYMBOL."
                                        diary-islamic-entry-symbol
                                        diary-bahai-entry-symbol))
                          t))
-     '(1 font-lock-reference-face))
+     '(1 font-lock-constant-face))
     '(diary-font-lock-sexps . font-lock-keyword-face)
     ;; Don't need to worry about space around "-" because the first
     ;; match takes care of that.  It does mean the "-" itself may or
@@ -2482,7 +2482,7 @@ This depends on the calendar date style."
 (defvar diary-fancy-font-lock-keywords
   `((diary-fancy-date-matcher . diary-face)
     ("^.*\\([aA]nniversary\\|[bB]irthday\\).*$" . 'diary-anniversary)
-    ("^.*Yahrzeit.*$" . font-lock-reference-face)
+    ("^.*Yahrzeit.*$" . font-lock-constant-face)
     ("^\\(Erev \\)?Rosh Hodesh.*" . font-lock-function-name-face)
     ("^Day.*omer.*$" . font-lock-builtin-face)
     ("^Parashat.*$" . font-lock-comment-face)

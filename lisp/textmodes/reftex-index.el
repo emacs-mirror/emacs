@@ -585,9 +585,7 @@ SPC=view TAB=goto RET=goto+hide [e]dit [q]uit [r]escan [f]ollow [?]Help
           (if (memq reftex-highlight-selection '(mouse both))
               reftex-mouse-selected-face
             nil))
-         (index-face (reftex-verified-face reftex-label-face
-                                           'font-lock-constant-face
-                                           'font-lock-reference-face))
+         (index-face reftex-label-face)
          sublist cell from to first-char)
 
     ;; Make the sublist and sort it

@@ -2298,7 +2298,7 @@ Negative years are interpreted as years BC; -1 being 1 BC, and so on."
     ;; First two chars of each day are used in the calendar.
     (,(regexp-opt (mapcar (lambda (x) (substring x 0 calendar-day-header-width))
                           calendar-day-name-array))
-     . font-lock-reference-face))
+     . font-lock-constant-face))
   "Default keywords to highlight in Calendar mode.")
 
 (defun calendar-day-name (date &optional abbrev absolute)

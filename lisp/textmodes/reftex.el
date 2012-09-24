@@ -2311,9 +2311,7 @@ IGNORE-WORDS List of words which should be removed from the string."
   ;; Return the first valid face in FACES, or nil if none is valid.
   ;; Also, when finding a nil element in FACES, return nil.  This
   ;; function is just a safety net to catch name changes of builtin
-  ;; fonts. Currently it is only used for reftex-label-face, which has
-  ;; as default font-lock-reference-face, which was recently renamed
-  ;; to font-lock-constant-face.
+  ;; fonts. Currently it is only used for reftex-label-face.
   (let (face)
     (catch 'exit
       (while (setq face (pop faces))
