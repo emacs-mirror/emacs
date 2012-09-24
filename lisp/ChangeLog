@@ -1,3 +1,7 @@
+2012-09-24  Glenn Morris  <rgm@gnu.org>
+
+	* mail/emacsbug.el (report-emacs-bug): Include `lsb_release -d'.
+
 2012-09-23  Fabián Ezequiel Gallina  <fgallina@cuca>
 
 	* progmodes/python.el (python-indent-line): More consistent cursor
