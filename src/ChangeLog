@@ -1,3 +1,8 @@
+2012-09-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* bytecode.c (exec_byte_code): Signal an error instead of aborting,
+	when encountering an unknown bytecode.
+
 2012-09-24  Paul Eggert  <eggert@cs.ucla.edu>
 
 	image.c, indent.c: Use bool for booleans.
