@@ -1,3 +1,10 @@
+2012-09-25  Eli Zaretskii  <eliz@gnu.org>
+
+	* coding.c (CHAR_STRING_ADVANCE_NO_UNIFY): Make it an alias of
+	CHAR_STRING_ADVANCE.
+	(STRING_CHAR_ADVANCE_NO_UNIFY): Make it an alias of
+	STRING_CHAR_ADVANCE.
+
 2012-09-25  Juanma Barranquero  <lekktu@gmail.com>
 
 	Move Vlibrary_cache to emacs.c and reset before dumping.
