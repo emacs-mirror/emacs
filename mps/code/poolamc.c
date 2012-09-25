@@ -1444,8 +1444,6 @@ static Res amcScanNailedOnce(Bool *totalReturn, Bool *moreReturn,
   Bool total = TRUE;
   Size bytesScanned = 0;
 
-  UNUSED(amc); /* Actually only unused when telemetry is off. @@@@ */
-
   EVENT3(AMCScanBegin, amc, seg, ss); /* @@@@ use own event */
 
   format = pool->format;
