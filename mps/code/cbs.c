@@ -314,7 +314,6 @@ Res CBSInit(Arena arena, CBS cbs, void *owner,
 
   AVERT(CBS, cbs);
   EVENT2(CBSInit, cbs, owner);
-  UNUSED(owner); /* @@@@ hack: unused in non-event varieties */
   CBSLeave(cbs);
   return ResOK;
 }
