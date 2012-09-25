@@ -561,6 +561,7 @@ $(BLD)/callproc.$(O) : \
 	$(SRC)/commands.h \
 	$(SRC)/composite.h \
 	$(SRC)/epaths.h \
+	$(SRC)/syswait.h \
 	$(SRC)/w32.h \
 	$(NT_INC)/sys/file.h \
 	$(NT_INC)/unistd.h \
