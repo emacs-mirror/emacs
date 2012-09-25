@@ -1,3 +1,8 @@
+2012-09-25  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-article-browse-delete-temp-files): Never ask again
+	a user about whether to delete temp files if once a user answered as n.
+
 2012-09-17  Richard Stallman  <rms@gnu.org>
 
 	* message.el (message-in-body-p): Don't set mark or modify buffer.
