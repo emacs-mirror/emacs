@@ -1444,7 +1444,7 @@ static Res amcScanNailedOnce(Bool *totalReturn, Bool *moreReturn,
   Bool total = TRUE;
   Size bytesScanned = 0;
 
-  EVENT3(AMCScanBegin, amc, seg, ss); /* @@@@ use own event */
+  EVENT3(AMCScanBegin, amc, seg, ss); /* TODO: consider using own event */
 
   format = pool->format;
   amcSegNailboard(seg)->newMarks = FALSE;
@@ -1499,7 +1499,7 @@ static Res amcScanNailedOnce(Bool *totalReturn, Bool *moreReturn,
   AVER(p == limit);
 
 returnGood:
-  EVENT3(AMCScanEnd, amc, seg, ss); /* @@@@ use own event */
+  EVENT3(AMCScanEnd, amc, seg, ss); /* TODO: consider using own event */
 
   AVER(bytesScanned <= SegSize(seg));
   ss->scannedSize += bytesScanned;
@@ -1707,7 +1707,9 @@ static Res AMCFixEmergency(Pool pool, ScanState ss, Seg seg,
   ShieldCover(arena, seg);
   if(newRef != (Addr)0) {
     /* Object has been forwarded already, so snap-out pointer. */
-    /* Useful weak pointer semantics not implemented. @@@@ */
+    /* TODO: Implement weak pointer semantics in emergency fixing.  This
+       would be a good idea since we really want to reclaim as much as
+       possible in an emergency. */
     *refIO = newRef;
     return ResOK;
   }

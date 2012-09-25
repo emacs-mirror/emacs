@@ -859,7 +859,7 @@ Bool MVCheck(MV mv)
   CHECKL(mv->extendBy > 0);
   CHECKL(mv->avgSize > 0);
   CHECKL(mv->extendBy >= mv->avgSize);
-  /* @@@@ Could do more checks here. */
+  /* TODO: More checks are possible.  Consider what else could be checked. */
   return TRUE;
 }
 

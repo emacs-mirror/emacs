@@ -139,7 +139,7 @@ Res PoolInitV(Pool pool, Arena arena, PoolClass class, va_list args)
     /* putting another lock in the code. */
     class->labelled = TRUE;
     classId = EventInternString(class->name);
-    /* @@@@ this breaks <design/type/#addr.use> */
+    /* NOTE: this breaks <design/type/#addr.use> */
     EventLabelAddr((Addr)class, classId);
   }
 
