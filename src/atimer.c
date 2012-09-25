@@ -40,6 +40,13 @@ static struct atimer *stopped_atimers;
 
 static struct atimer *atimers;
 
+/* The alarm timer and whether it was properly initialized, if
+   POSIX timers are available.  */
+#ifdef SIGEV_SIGNAL
+static timer_t alarm_timer;
+static bool alarm_timer_ok;
+#endif
+
 /* Block/unblock SIGALRM.  */
 
 static void
@@ -287,14 +294,25 @@ set_alarm (void)
 #ifdef HAVE_SETITIMER
       struct itimerval it;
 #endif
+      EMACS_TIME now, interval;
 
-      /* Determine s/us till the next timer is ripe.  */
-      EMACS_TIME now = current_emacs_time ();
+#ifdef SIGEV_SIGNAL
+      if (alarm_timer_ok)
+	{
+	  struct itimerspec ispec;
+	  ispec.it_value = atimers->expiration;
+	  ispec.it_interval.tv_sec = ispec.it_interval.tv_nsec = 0;
+	  if (timer_settime (alarm_timer, 0, &ispec, 0) == 0)
+	    return;
+	}
+#endif
 
-      /* Don't set the interval to 0; this disables the timer.  */
-      EMACS_TIME interval = (EMACS_TIME_LE (atimers->expiration, now)
-			     ? make_emacs_time (0, 1000 * 1000)
-			     : sub_emacs_time (atimers->expiration, now));
+      /* Determine interval till the next timer is ripe.
+	 Don't set the interval to 0; this disables the timer.  */
+      now = current_emacs_time ();
+      interval = (EMACS_TIME_LE (atimers->expiration, now)
+		  ? make_emacs_time (0, 1000 * 1000)
+		  : sub_emacs_time (atimers->expiration, now));
 
 #ifdef HAVE_SETITIMER
 
@@ -398,6 +416,13 @@ void
 init_atimer (void)
 {
   struct sigaction action;
+#ifdef SIGEV_SIGNAL
+  struct sigevent sigev;
+  sigev.sigev_notify = SIGEV_SIGNAL;
+  sigev.sigev_signo = SIGALRM;
+  sigev.sigev_value.sival_ptr = &alarm_timer;
+  alarm_timer_ok = timer_create (CLOCK_REALTIME, &sigev, &alarm_timer) == 0;
+#endif
   free_atimers = stopped_atimers = atimers = NULL;
   /* pending_signals is initialized in init_keyboard.*/
   emacs_sigaction_init (&action, handle_alarm_signal);
