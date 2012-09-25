@@ -650,7 +650,6 @@ Bool SegCheck(Seg seg)
   TRACT_TRACT_FOR(tract, addr, arena, seg->firstTract, seg->limit) {
     Seg trseg = NULL; /* suppress compiler warning */
 
-    UNUSED(trseg); /* @@@@ unused in hot varieties */
     CHECKL(TractCheck(tract));  /* <design/check/#type.no-sig> */
     CHECKL(TRACT_SEG(&trseg, tract) && (trseg == seg));
     CHECKL(TractWhite(tract) == seg->white);
@@ -1258,7 +1257,6 @@ static void gcSegSetWhite(Seg seg, TraceSet white)
   TRACT_TRACT_FOR(tract, addr, arena, seg->firstTract, limit) {
     Seg trseg = NULL; /* suppress compiler warning */
 
-    UNUSED(trseg); /* @@@@ unused in hot varieties */
     AVER_CRITICAL(TractCheck(tract));  /* <design/check/#type.no-sig> */
     AVER_CRITICAL(TRACT_SEG(&trseg, tract) && (trseg == seg));
     TractSetWhite(tract, white);
