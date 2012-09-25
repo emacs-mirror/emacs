@@ -1258,7 +1258,7 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
   globals_of_w32 ();
   /* Initialize environment from registry settings.  */
   init_environment (argv);
-  init_ntproc ();	/* must precede init_editfns.  */
+  init_ntproc (dumping); /* must precede init_editfns.  */
 #endif
 
   /* Initialize and GC-protect Vinitial_environment and
@@ -1906,7 +1906,7 @@ shut_down_emacs (int sig, Lisp_Object stuff)
   ignore_sigio ();
 
 #ifdef WINDOWSNT
-  term_ntproc ();
+  term_ntproc (0);
 #endif
 
   /* Do this only if terminating normally, we want glyph matrices

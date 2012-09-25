@@ -6624,8 +6624,9 @@ check_windows_init_file (void)
 }
 
 void
-term_ntproc (void)
+term_ntproc (int ignored)
 {
+  (void)ignored;
   /* shutdown the socket interface if necessary */
   term_winsock ();
 
@@ -6633,7 +6634,7 @@ term_ntproc (void)
 }
 
 void
-init_ntproc (void)
+init_ntproc (int dumping)
 {
   /* Initialize the socket interface now if available and requested by
      the user by defining PRELOAD_WINSOCK; otherwise loading will be
@@ -6710,7 +6711,8 @@ init_ntproc (void)
 
   /* unfortunately, atexit depends on implementation of malloc */
   /* atexit (term_ntproc); */
-  signal (SIGABRT, term_ntproc);
+  if (!dumping)
+    signal (SIGABRT, term_ntproc);
 
   /* determine which drives are fixed, for GetCachedVolumeInformation */
   {

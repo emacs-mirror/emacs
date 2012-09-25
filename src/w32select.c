@@ -474,7 +474,10 @@ term_w32select (void)
 {
   /* This is needed to trigger WM_RENDERALLFORMATS. */
   if (clipboard_owner != NULL)
-    DestroyWindow (clipboard_owner);
+    {
+      DestroyWindow (clipboard_owner);
+      clipboard_owner = NULL;
+    }
 }
 
 static void

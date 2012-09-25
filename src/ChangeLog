@@ -1,5 +1,29 @@
 2012-09-25  Eli Zaretskii  <eliz@gnu.org>
 
+	* w32proc.c (sys_signal): Handle all signals defined by the
+	MS-Windows runtime, not just SIGCHLD.  Actually install the signal
+	handlers for signals supported by Windows.  Don't override
+	term_ntproc as the handler for SIGABRT.
+	(sigaction): Rewrite to call sys_signal instead of duplicating its
+	code.
+	(sys_kill): Improve commentary.
+
+	* w32.c (term_ntproc): Accept (and ignore) one argument, for
+	consistency with a signature of a signal handler.  All callers
+	changed.
+	(init_ntproc): Accept an argument DUMPING.  If dumping, don't
+	install term_ntproc as a signal handler for SIGABRT, as that
+	should be done by the dumped Emacs.
+
+	* w32.h (init_ntproc, term_ntproc): Adjust prototypes.
+
+	* w32select.c (term_w32select): Protect against repeated
+	invocation by setting clipboard_owner to NULL after calling
+	DestroyWindow.
+
+	* emacs.c (shut_down_emacs, main): Adapt the calls to init_ntproc
+	and term_ntproc to their modified signatures.
+
 	* character.c (char_string, string_char): Remove calls to
 	MAYBE_UNIFY_CHAR.  See the discussion starting at
 	http://lists.gnu.org/archive/html/emacs-devel/2012-09/msg00433.html
