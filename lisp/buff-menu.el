@@ -64,13 +64,13 @@ minus `Buffer-menu-size-width'.  This use is deprecated."
 			"24.3")
 
 (defcustom Buffer-menu-name-width 19
-  "Width of buffer size column in the Buffer Menu."
+  "Width of buffer name column in the Buffer Menu."
   :type 'number
   :group 'Buffer-menu
   :version "24.3")
 
 (defcustom Buffer-menu-size-width 7
-  "Width of buffer name column in the Buffer Menu."
+  "Width of buffer size column in the Buffer Menu."
   :type 'number
   :group 'Buffer-menu
   :version "24.3")

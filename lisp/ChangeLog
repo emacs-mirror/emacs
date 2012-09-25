@@ -1,5 +1,8 @@
 2012-09-25  Glenn Morris  <rgm@gnu.org>
 
+	* buff-menu.el (Buffer-menu-name-width, Buffer-menu-size-width):
+	Doc fixes.
+
 	* eshell/em-term.el (eshell-term-name):
 	Default to term-term-name.  (Bug#12485)
 
