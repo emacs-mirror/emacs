@@ -1,3 +1,7 @@
+2012-09-25  Chong Yidong  <cyd@gnu.org>
+
+	* xdisp.c (mode_line_inverse_video): Delete obsolete variable.
+
 2012-09-24  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* bytecode.c (exec_byte_code): Signal an error instead of aborting,

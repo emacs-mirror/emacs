@@ -593,6 +593,7 @@ Has a preference for looking backward when not directly on a symbol."
 
 (defun url-generate-unique-filename (&optional fmt)
   "Generate a unique filename in `url-temporary-directory'."
+  (declare (obsolete make-temp-file "23.1"))
   ;; This variable is obsolete, but so is this function.
   (let ((tempdir (with-no-warnings url-temporary-directory)))
     (if (not fmt)
@@ -614,7 +615,6 @@ Has a preference for looking backward when not directly on a symbol."
 	  (setq x (1+ x)
 		fname (format fmt (concat base (int-to-string x)))))
 	(expand-file-name fname tempdir)))))
-(make-obsolete 'url-generate-unique-filename 'make-temp-file "23.1")
 
 (defun url-extract-mime-headers ()
   "Set `url-current-mime-headers' in current buffer."

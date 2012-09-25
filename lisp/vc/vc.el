@@ -1506,8 +1506,9 @@ to override the value of `vc-diff-switches' and `diff-switches'."
       (when (listp switches) switches))))
 
 ;; Old def for compatibility with Emacs-21.[123].
-(defmacro vc-diff-switches-list (backend) `(vc-switches ',backend 'diff))
-(make-obsolete 'vc-diff-switches-list 'vc-switches "22.1")
+(defmacro vc-diff-switches-list (backend)
+  (declare (obsolete vc-switches "22.1"))
+  `(vc-switches ',backend 'diff))
 
 (defun vc-diff-finish (buffer messages)
   ;; The empty sync output case has already been handled, so the only

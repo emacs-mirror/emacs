@@ -1414,6 +1414,7 @@ just append to the file, in Babyl format if necessary."
 
 (defun mail-sent-via ()
   "Make a Sent-via header line from each To or CC header line."
+  (declare (obsolete "nobody can remember what it is for." "24.1"))
   (interactive)
   (save-excursion
     ;; put a marker at the end of the header
@@ -1433,9 +1434,6 @@ just append to the file, in Babyl format if necessary."
 				   (point)))))
 	  ;; Insert a copy, with altered header field name.
 	  (insert-before-markers "Sent-via:" to-line))))))
-
-(make-obsolete 'mail-sent-via "nobody can remember what it is for." "24.1")
-
 
 (defun mail-to ()
   "Move point to end of To field, creating it if necessary."

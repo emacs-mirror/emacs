@@ -587,12 +587,6 @@ Key bindings:
 ;;; Font locking
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; XEmacs compatibility
-(when (featurep 'xemacs)
-  (require 'font-lock)
-  (copy-face 'font-lock-reference-face 'font-lock-constant-face)
-  (copy-face 'font-lock-preprocessor-face 'font-lock-builtin-face))
-
 (defun vera-font-lock-match-item (limit)
   "Match, and move over, any declaration item after point.
 Adapted from `font-lock-match-c-style-declaration-item-and-skip-to-next'."

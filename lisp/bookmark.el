@@ -1048,11 +1048,10 @@ The return value has the form (BUFFER . POINT).
 
 Note: this function is deprecated and is present for Emacs 22
 compatibility only."
+  (declare (obsolete bookmark-handle-bookmark "23.1"))
   (save-excursion
     (bookmark-handle-bookmark bookmark)
     (cons (current-buffer) (point))))
-
-(make-obsolete 'bookmark-jump-noselect 'bookmark-handle-bookmark "23.1")
 
 (defun bookmark-handle-bookmark (bookmark-name-or-record)
   "Call BOOKMARK-NAME-OR-RECORD's handler or `bookmark-default-handler'

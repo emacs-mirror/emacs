@@ -155,28 +155,22 @@ If PROMPT is non-nil, prompt for the month and year to use."
 (defun calendar-one-frame-setup (&optional prompt)
   "Display calendar and diary in a single dedicated frame.
 See `calendar-frame-setup' for more information."
+  (declare (obsolete calendar-frame-setup "23.1"))
   (calendar-frame-setup 'one-frame prompt))
-
-(make-obsolete 'calendar-one-frame-setup 'calendar-frame-setup "23.1")
-
 
 ;;;###cal-autoload
 (defun calendar-only-one-frame-setup (&optional prompt)
   "Display calendar in a dedicated frame.
 See `calendar-frame-setup' for more information."
+  (declare (obsolete calendar-frame-setup "23.1"))
   (calendar-frame-setup 'calendar-only prompt))
-
-(make-obsolete 'calendar-only-one-frame-setup 'calendar-frame-setup "23.1")
-
 
 ;;;###cal-autoload
 (defun calendar-two-frame-setup (&optional prompt)
   "Display calendar and diary in separate, dedicated frames.
 See `calendar-frame-setup' for more information."
+  (declare (obsolete calendar-frame-setup "23.1"))
   (calendar-frame-setup 'two-frames prompt))
-
-(make-obsolete 'calendar-two-frame-setup 'calendar-frame-setup "23.1")
-
 
 ;; Undocumented and probably useless.
 (defvar cal-x-load-hook nil

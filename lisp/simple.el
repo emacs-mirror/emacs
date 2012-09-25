@@ -6380,9 +6380,8 @@ With prefix argument N, move N items (negative N means move backward)."
       (point))))
 
 (defun choose-completion-delete-max-match (string)
+  (declare (obsolete choose-completion-guess-base-position "23.2"))
   (delete-region (choose-completion-guess-base-position string) (point)))
-(make-obsolete 'choose-completion-delete-max-match
-               'choose-completion-guess-base-position "23.2")
 
 (defvar choose-completion-string-functions nil
   "Functions that may override the normal insertion of a completion choice.

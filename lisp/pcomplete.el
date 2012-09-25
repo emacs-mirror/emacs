@@ -724,6 +724,7 @@ this is `comint-dynamic-complete-functions'."
 
 (defun pcomplete-parse-comint-arguments ()
   "Parse whitespace separated arguments in the current region."
+  (declare (obsolete comint-parse-pcomplete-arguments "24.1"))
   (let ((begin (save-excursion (comint-bol nil) (point)))
 	(end (point))
 	begins args)
@@ -743,8 +744,6 @@ this is `comint-dynamic-complete-functions'."
 	(push (buffer-substring-no-properties (car begins) (point))
               args))
       (cons (nreverse args) (nreverse begins)))))
-(make-obsolete 'pcomplete-parse-comint-arguments
-               'comint-parse-pcomplete-arguments "24.1")
 
 (defun pcomplete-parse-arguments (&optional expand-p)
   "Parse the command line arguments.  Most completions need this info."

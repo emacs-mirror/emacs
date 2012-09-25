@@ -276,10 +276,10 @@ A mode's class is the first ancestor which is NOT a derived mode.
 Use the `derived-mode-parent' property of the symbol to trace backwards.
 Since major-modes might all derive from `fundamental-mode', this function
 is not very useful."
+  (declare (obsolete derived-mode-p "22.1"))
   (while (get mode 'derived-mode-parent)
     (setq mode (get mode 'derived-mode-parent)))
   mode)
-(make-obsolete 'derived-mode-class 'derived-mode-p "22.1")
 
 
 ;;; PRIVATE

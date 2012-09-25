@@ -1,3 +1,7 @@
+2012-09-25  Chong Yidong  <cyd@gnu.org>
+
+	* erc.el (erc-send-command): Use define-obsolete-function-alias.
+
 2012-09-17  Chong Yidong  <cyd@gnu.org>
 
 	* erc-page.el (erc-page-function): 

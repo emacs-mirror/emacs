@@ -1,3 +1,84 @@
+2012-09-25  Chong Yidong  <cyd@gnu.org>
+
+	* bookmark.el (bookmark-jump-noselect): Use a declare form to mark
+	this function obsolete.
+
+	* calendar/cal-x.el (calendar-two-frame-setup)
+	(calendar-only-one-frame-setup, calendar-one-frame-setup):
+	* calendar/calendar.el (american-calendar, european-calendar)
+	(calendar-for-loop):
+	* comint.el (comint-dynamic-simple-complete)
+	(comint-dynamic-complete-as-filename, comint-unquote-filename):
+	* desktop.el (desktop-load-default):
+	* dired-x.el (dired-omit-here-always)
+	(dired-hack-local-variables, dired-default-directory):
+	* emacs-lisp/derived.el (derived-mode-class):
+	* emacs-lisp/timer.el (timer-set-time-with-usecs):
+	* emacs-lock.el (toggle-emacs-lock):
+	* epa.el (epa-display-verify-result):
+	* epg.el (epg-sign-keys, epg-start-sign-keys)
+	(epg-passphrase-callback-function):
+	* eshell/esh-util.el (eshell-for):
+	* eshell/eshell.el (eshell-remove-from-window-buffer-names)
+	(eshell-add-to-window-buffer-names):
+	* files.el (locate-file-completion):
+	* imenu.el (imenu-example--create-c-index)
+	(imenu-example--create-lisp-index)
+	(imenu-example--lisp-extract-index-name)
+	(imenu-example--name-and-position):
+	* international/mule-cmds.el (princ-list):
+	* international/mule-diag.el (decode-codepage-char):
+	* international/mule-util.el (detect-coding-with-priority):
+	* iswitchb.el (iswitchb-read-buffer):
+	* mail/mailalias.el (mail-complete):
+	* mail/sendmail.el (mail-sent-via):
+	* mouse.el (mouse-popup-menubar-stuff, mouse-popup-menubar)
+	(mouse-major-mode-menu):
+	* password-cache.el (password-read-and-add):
+	* pcomplete.el (pcomplete-parse-comint-arguments):
+	* progmodes/sh-script.el (sh-maybe-here-document):
+	* replace.el (query-replace-regexp-eval):
+	* savehist.el (savehist-load):
+	* simple.el (choose-completion-delete-max-match):
+	* term.el (term-dynamic-simple-complete):
+	* vc/ediff-init.el (ediff-check-version):
+	* vc/ediff-wind.el (ediff-choose-window-setup-function-automatically):
+	* vc/vc.el (vc-diff-switches-list):
+	* view.el (view-return-to-alist-update): Likewise.
+
+	* subr.el (eval-next-after-load, makehash, insert-string)
+	(assoc-ignore-representation, assoc-ignore-case): Use declare to
+	mark obsolete.
+	(mode-line-inverse-video): Variable deleted.
+
+	* international/mule-util.el (string-to-sequence): Remove.
+
+	* calendar/calendar.el (calendar-version):
+	* calendar/icalendar.el (icalendar-extract-ical-from-buffer)
+	(icalendar-convert-diary-to-ical):
+	* cus-edit.el (custom-mode):
+	* ansi-color.el (ansi-color-unfontify-region):
+	* international/latin1-disp.el (latin1-char-displayable-p):
+	* progmodes/cwarn.el (turn-on-cwarn-mode):
+	* progmodes/which-func.el (which-func-update-1): Use
+	define-obsolete-function-alias.
+
+	* net/newst-backend.el (newsticker-cache-filename):
+	* net/newst-treeview.el (newsticker-groups-filename): Fix
+	incorrect obsolescence declaration.
+
+	* allout.el (allout-passphrase-hint-string): Likewise.
+	(allout-init): Use a declare form to mark obsolete.
+
+	* emacs-lisp/byte-run.el (make-obsolete): Doc fix; emphasize that
+	this applies to functions.
+
+	* iswitchb.el (iswitchb-read-buffer): Move code of
+	iswitchb-define-mode-map here, and delete that obsolete function.
+
+	* net/snmp-mode.el (snmp-font-lock-keywords-3): Don't use obsolete
+	font-lock-reference-face.
+
 2012-09-25  Glenn Morris  <rgm@gnu.org>
 
 	* buff-menu.el (Buffer-menu-name-width, Buffer-menu-size-width):
@@ -25,10 +106,6 @@
 	functions.
 
 2012-09-24  Chong Yidong  <cyd@gnu.org>
-
-	* iswitchb.el (iswitchb-read-buffer): Move
-	iswitchb-define-mode-map code here, and delete that obsolete
-	function.
 
 	* mail/supercite.el (sc-version): Remove obsolete function.
 	(sc-describe): Don't mark as obsolete, since it is bound.

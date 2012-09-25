@@ -1,3 +1,9 @@
+2012-09-25  Chong Yidong  <cyd@gnu.org>
+
+	* url-parse.el (url-recreate-url-attributes):
+	* url-util.el (url-generate-unique-filename): Use declare to mark
+	obsolete.
+
 2012-08-14  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* url-http.el (url-http-parse-headers): Re-enable file-name-handlers

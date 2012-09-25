@@ -128,7 +128,7 @@ Example: (\"Topmost group\" \"feed1\" (\"subgroup1\" \"feed 2\")
   "Name of the newsticker groups settings file."
   :type 'string
   :group 'newsticker-treeview)
-(make-obsolete 'newsticker-groups-filename 'newsticker-dir "23.1")
+(make-obsolete-variable 'newsticker-groups-filename 'newsticker-dir "23.1")
 
 ;; ======================================================================
 ;;; internal variables

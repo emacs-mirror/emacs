@@ -378,34 +378,32 @@ regexp in `search-whitespace-regexp'.
 Third arg DELIMITED (prefix arg if interactive), if non-nil, means replace
 only matches that are surrounded by word boundaries.
 Fourth and fifth arg START and END specify the region to operate on."
+  (declare (obsolete "use the `\\,' feature of `query-replace-regexp'
+for interactive calls, and `search-forward-regexp'/`replace-match'
+for Lisp calls." "22.1"))
   (interactive
    (progn
-   (barf-if-buffer-read-only)
-   (let* ((from
-	   ;; Let-bind the history var to disable the "foo -> bar" default.
-	   ;; Maybe we shouldn't disable this default, but for now I'll
-	   ;; leave it off.  --Stef
-	   (let ((query-replace-to-history-variable nil))
-	     (query-replace-read-from "Query replace regexp" t)))
-	  (to (list (read-from-minibuffer
-		     (format "Query replace regexp %s with eval: "
-			     (query-replace-descr from))
-		     nil nil t query-replace-to-history-variable from t))))
-     ;; We make TO a list because replace-match-string-symbols requires one,
-     ;; and the user might enter a single token.
-     (replace-match-string-symbols to)
-     (list from (car to) current-prefix-arg
-	   (if (and transient-mark-mode mark-active)
-	       (region-beginning))
-	   (if (and transient-mark-mode mark-active)
-	       (region-end))))))
+     (barf-if-buffer-read-only)
+     (let* ((from
+	     ;; Let-bind the history var to disable the "foo -> bar"
+	     ;; default.  Maybe we shouldn't disable this default, but
+	     ;; for now I'll leave it off.  --Stef
+	     (let ((query-replace-to-history-variable nil))
+	       (query-replace-read-from "Query replace regexp" t)))
+	    (to (list (read-from-minibuffer
+		       (format "Query replace regexp %s with eval: "
+			       (query-replace-descr from))
+		       nil nil t query-replace-to-history-variable from t))))
+       ;; We make TO a list because replace-match-string-symbols requires one,
+       ;; and the user might enter a single token.
+       (replace-match-string-symbols to)
+       (list from (car to) current-prefix-arg
+	     (if (and transient-mark-mode mark-active)
+		 (region-beginning))
+	     (if (and transient-mark-mode mark-active)
+		 (region-end))))))
   (perform-replace regexp (cons 'replace-eval-replacement to-expr)
 		   t 'literal delimited nil nil start end))
-
-(make-obsolete 'query-replace-regexp-eval
-  "for interactive use, use the special `\\,' feature of
-`query-replace-regexp' instead.  Non-interactively, a loop
-using `search-forward-regexp' and `replace-match' is preferred." "22.1")
 
 (defun map-query-replace-regexp (regexp to-strings &optional n start end)
   "Replace some matches for REGEXP with various strings, in rotation.

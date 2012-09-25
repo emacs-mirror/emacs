@@ -655,7 +655,7 @@ are deprecated and will be removed eventually.
 **** inactivate-current-input-method-function ->
      deactivate-current-input-method-function
 
-** Some obsolete variables and variable aliases were removed:
+** Some obsolete functions and variables were removed:
 
 *** `facemenu-unlisted-faces'
 *** `rmail-decode-mime-charset'
@@ -663,7 +663,9 @@ are deprecated and will be removed eventually.
 *** `iswitchb-read-buffer'
 *** `sc-version', `sc-submit-bug-report'
 *** `set-char-table-default'
+*** `string-to-sequence' (use `string-to-list' or `string-to-vector').
 *** `compile-internal'
+*** `mode-line-inverse-video'
 *** `cvs-commit-buffer-require-final-newline'
 (use `'log-edit-require-final-newline'instead)
 *** `cvs-changelog-full-paragraphs'

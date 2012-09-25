@@ -2228,9 +2228,9 @@ and `face'."
 	     (setq widget nil)))))
   (widget-setup))
 
-(make-obsolete 'custom-show "this widget type is no longer supported." "24.1")
 (defun custom-show (widget value)
   "Non-nil if WIDGET should be shown with VALUE by default."
+  (declare (obsolete "this widget type is no longer supported." "24.1"))
   (let ((show (widget-get widget :custom-show)))
     (if (functionp show)
 	(funcall show widget value)
@@ -4823,12 +4823,7 @@ if that value is non-nil."
 
 (put 'Custom-mode 'mode-class 'special)
 
-;; backward-compatibility
-(defun custom-mode ()
-  "Non-interactive variant of `Custom-mode'."
-  (Custom-mode))
-(make-obsolete 'custom-mode 'Custom-mode "23.1")
-(put 'custom-mode 'mode-class 'special)
+(define-obsolete-function-alias 'custom-mode 'Custom-mode "23.1")
 
 (add-to-list 'debug-ignored-errors "^Invalid face:? ")
 

@@ -4048,6 +4048,7 @@ Returns `partial' if completed as far as possible with the completion matches.
 Returns `listed' if a completion listing was shown.
 
 See also `term-dynamic-complete-filename'."
+  (declare (obsolete completion-in-region "23.2"))
   (let* ((completion-ignore-case nil)
 	 (candidates (mapcar (function (lambda (x) (list x))) candidates))
 	 (completions (all-completions stub candidates)))
@@ -4081,8 +4082,6 @@ See also `term-dynamic-complete-filename'."
  		   (t
 		    (message "Partially completed")
 		    'partial)))))))
-(make-obsolete 'term-dynamic-simple-complete 'completion-in-region "23.2")
-
 
 (defun term-dynamic-list-filename-completions ()
   "List in help buffer possible completions of the filename at point."

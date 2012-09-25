@@ -20162,10 +20162,6 @@ display_menu_bar (struct window *w)
      this.  */
   it.paragraph_embedding = L2R;
 
-  if (! mode_line_inverse_video)
-    /* Force the menu-bar to be displayed in the default face.  */
-    it.base_face_id = it.face_id = DEFAULT_FACE_ID;
-
   /* Clear all rows of the menu bar.  */
   for (i = 0; i < FRAME_MENU_BAR_LINES (f); ++i)
     {
@@ -20334,10 +20330,6 @@ display_mode_line (struct window *w, enum face_id face_id, Lisp_Object format)
   prepare_desired_row (it.glyph_row);
 
   it.glyph_row->mode_line_p = 1;
-
-  if (! mode_line_inverse_video)
-    /* Force the mode-line to be displayed in the default face.  */
-    it.base_face_id = it.face_id = DEFAULT_FACE_ID;
 
   /* FIXME: This should be controlled by a user option.  But
      supporting such an option is not trivial, since the mode line is
@@ -28929,12 +28921,6 @@ A value of nil means to respect the value of `truncate-lines'.
 
 If `word-wrap' is enabled, you might want to reduce this.  */);
   Vtruncate_partial_width_windows = make_number (50);
-
-  DEFVAR_BOOL ("mode-line-inverse-video", mode_line_inverse_video,
-    doc: /* When nil, display the mode-line/header-line/menu-bar in the default face.
-Any other value means to use the appropriate face, `mode-line',
-`header-line', or `menu' respectively.  */);
-  mode_line_inverse_video = 1;
 
   DEFVAR_LISP ("line-number-display-limit", Vline_number_display_limit,
     doc: /* Maximum buffer size for which line number should be displayed.
