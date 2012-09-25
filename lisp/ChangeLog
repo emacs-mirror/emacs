@@ -1,5 +1,11 @@
 2012-09-25  Chong Yidong  <cyd@gnu.org>
 
+	* subr.el (declare): Doc fix.
+
+	* help-fns.el (help-fns--obsolete): Handle macros properly.
+
+2012-09-25  Chong Yidong  <cyd@gnu.org>
+
 	* bookmark.el (bookmark-jump-noselect): Use a declare form to mark
 	this function obsolete.
 

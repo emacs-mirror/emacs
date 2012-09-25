@@ -488,13 +488,17 @@ suitable file is found, return nil."
       (insert "'.\n"))))
 
 (defun help-fns--obsolete (function)
-  (let* ((obsolete (and
-                    ;; `function' might be a lambda construct.
-                    (symbolp function)
-                    (get function 'byte-obsolete-info)))
+  ;; Ignore lambda constructs, keyboard macros, etc.
+  (let* ((obsolete (and (symbolp function)
+			(get function 'byte-obsolete-info)))
          (use (car obsolete)))
     (when obsolete
-      (insert "\nThis function is obsolete")
+      (insert "\nThis "
+	      (if (eq (car-safe (symbol-function 'with-current-buffer))
+		      'macro)
+		  "macro"
+		"function")
+	      " is obsolete")
       (when (nth 2 obsolete)
         (insert (format " since %s" (nth 2 obsolete))))
       (insert (cond ((stringp use) (concat ";\n" use))
@@ -611,7 +615,7 @@ FILE is the file where FUNCTION was probably defined."
 	(fill-region-as-paragraph (save-excursion (goto-char pt1) (forward-line 0) (point))
 				  (point)))
       (terpri)(terpri)
-      
+
       (let* ((doc-raw (condition-case err
 			  (documentation function t)
 			(error (format "No Doc! %S" err))))
