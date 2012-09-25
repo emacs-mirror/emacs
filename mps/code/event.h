@@ -118,22 +118,22 @@ extern Word EventKindControl;
 
 #define EVENT0(name) NOOP
 /* The following lines were generated with
-  python -c 'for i in range(1,15): print "#define EVENT%d(name, %s) NOOP" % (i, ", ".join(["p%d" % j for j in range(0, i)]))'
+ python -c 'for i in range(1,15): print "#define EVENT%d(name, %s) BEGIN %s END" % (i, ", ".join(["p%d" % j for j in range(0, i)]), " ".join(["UNUSED(p%d);" % j for j in range(0, i)]))'
  */
-#define EVENT1(name, p0) NOOP
-#define EVENT2(name, p0, p1) NOOP
-#define EVENT3(name, p0, p1, p2) NOOP
-#define EVENT4(name, p0, p1, p2, p3) NOOP
-#define EVENT5(name, p0, p1, p2, p3, p4) NOOP
-#define EVENT6(name, p0, p1, p2, p3, p4, p5) NOOP
-#define EVENT7(name, p0, p1, p2, p3, p4, p5, p6) NOOP
-#define EVENT8(name, p0, p1, p2, p3, p4, p5, p6, p7) NOOP
-#define EVENT9(name, p0, p1, p2, p3, p4, p5, p6, p7, p8) NOOP
-#define EVENT10(name, p0, p1, p2, p3, p4, p5, p6, p7, p8, p9) NOOP
-#define EVENT11(name, p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10) NOOP
-#define EVENT12(name, p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11) NOOP
-#define EVENT13(name, p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12) NOOP
-#define EVENT14(name, p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13) NOOP
+#define EVENT1(name, p0) BEGIN UNUSED(p0); END
+#define EVENT2(name, p0, p1) BEGIN UNUSED(p0); UNUSED(p1); END
+#define EVENT3(name, p0, p1, p2) BEGIN UNUSED(p0); UNUSED(p1); UNUSED(p2); END
+#define EVENT4(name, p0, p1, p2, p3) BEGIN UNUSED(p0); UNUSED(p1); UNUSED(p2); UNUSED(p3); END
+#define EVENT5(name, p0, p1, p2, p3, p4) BEGIN UNUSED(p0); UNUSED(p1); UNUSED(p2); UNUSED(p3); UNUSED(p4); END
+#define EVENT6(name, p0, p1, p2, p3, p4, p5) BEGIN UNUSED(p0); UNUSED(p1); UNUSED(p2); UNUSED(p3); UNUSED(p4); UNUSED(p5); END
+#define EVENT7(name, p0, p1, p2, p3, p4, p5, p6) BEGIN UNUSED(p0); UNUSED(p1); UNUSED(p2); UNUSED(p3); UNUSED(p4); UNUSED(p5); UNUSED(p6); END
+#define EVENT8(name, p0, p1, p2, p3, p4, p5, p6, p7) BEGIN UNUSED(p0); UNUSED(p1); UNUSED(p2); UNUSED(p3); UNUSED(p4); UNUSED(p5); UNUSED(p6); UNUSED(p7); END
+#define EVENT9(name, p0, p1, p2, p3, p4, p5, p6, p7, p8) BEGIN UNUSED(p0); UNUSED(p1); UNUSED(p2); UNUSED(p3); UNUSED(p4); UNUSED(p5); UNUSED(p6); UNUSED(p7); UNUSED(p8); END
+#define EVENT10(name, p0, p1, p2, p3, p4, p5, p6, p7, p8, p9) BEGIN UNUSED(p0); UNUSED(p1); UNUSED(p2); UNUSED(p3); UNUSED(p4); UNUSED(p5); UNUSED(p6); UNUSED(p7); UNUSED(p8); UNUSED(p9); END
+#define EVENT11(name, p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10) BEGIN UNUSED(p0); UNUSED(p1); UNUSED(p2); UNUSED(p3); UNUSED(p4); UNUSED(p5); UNUSED(p6); UNUSED(p7); UNUSED(p8); UNUSED(p9); UNUSED(p10); END
+#define EVENT12(name, p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11) BEGIN UNUSED(p0); UNUSED(p1); UNUSED(p2); UNUSED(p3); UNUSED(p4); UNUSED(p5); UNUSED(p6); UNUSED(p7); UNUSED(p8); UNUSED(p9); UNUSED(p10); UNUSED(p11); END
+#define EVENT13(name, p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12) BEGIN UNUSED(p0); UNUSED(p1); UNUSED(p2); UNUSED(p3); UNUSED(p4); UNUSED(p5); UNUSED(p6); UNUSED(p7); UNUSED(p8); UNUSED(p9); UNUSED(p10); UNUSED(p11); UNUSED(p12); END
+#define EVENT14(name, p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13) BEGIN UNUSED(p0); UNUSED(p1); UNUSED(p2); UNUSED(p3); UNUSED(p4); UNUSED(p5); UNUSED(p6); UNUSED(p7); UNUSED(p8); UNUSED(p9); UNUSED(p10); UNUSED(p11); UNUSED(p12); UNUSED(p13); END
 
 
 #endif /* EVENT */
