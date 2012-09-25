@@ -141,7 +141,7 @@ static Res NDescribe(Pool pool, mps_lib_FILE *stream)
   poolN = PoolPoolN(pool);
   AVERT(PoolN, poolN);
 
-  UNUSED(stream); /* @@@@ should output something here */
+  UNUSED(stream); /* TODO: should output something here */
 
   return ResOK;
 }
