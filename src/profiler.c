@@ -25,17 +25,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <setjmp.h>
 #include "lisp.h"
 
-/* True if sampling profiler is running.  */
-
-bool sample_profiler_running;
-
-/* True if memory profiler is running.  */
-
-bool memory_profiler_running;
-
-static void sigprof_handler (int, siginfo_t *, void *);
-
-
 /* Logs.  */
 
 typedef struct Lisp_Hash_Table log_t;
@@ -193,6 +182,9 @@ record_backtrace (log_t *log, size_t count)
 #if defined SIGPROF && defined HAVE_SETITIMER
 #define PROFILER_CPU_SUPPORT
 
+/* True if sampling profiler is running.  */
+static bool profiler_cpu_running;
+
 static Lisp_Object cpu_log;
 /* Separate counter for the time spent in the GC.  */
 static EMACS_INT cpu_gc_count;
@@ -200,154 +192,6 @@ static EMACS_INT cpu_gc_count;
 /* The current sample interval in millisecond.  */
 
 static int current_sample_interval;
-
-DEFUN ("sample-profiler-start", Fsample_profiler_start, Ssample_profiler_start,
-       1, 1, 0,
-       doc: /* Start or restart sample profiler.  Sample profiler will
-take samples each SAMPLE-INTERVAL in millisecond.  See also
-`profiler-slot-heap-size' and `profiler-max-stack-depth'.  */)
-  (Lisp_Object sample_interval)
-{
-  struct sigaction sa;
-  struct itimerval timer;
-
-  if (sample_profiler_running)
-    error ("Sample profiler is already running");
-
-  if (NILP (cpu_log))
-    {
-      cpu_gc_count = 0;
-      cpu_log = make_log (profiler_slot_heap_size,
-			  profiler_max_stack_depth);
-    }
-
-  current_sample_interval = XINT (sample_interval);
-
-  sa.sa_sigaction = sigprof_handler;
-  sa.sa_flags = SA_RESTART | SA_SIGINFO;
-  sigemptyset (&sa.sa_mask);
-  sigaction (SIGPROF, &sa, 0);
-
-  timer.it_interval.tv_sec = 0;
-  timer.it_interval.tv_usec = current_sample_interval * 1000;
-  timer.it_value = timer.it_interval;
-  setitimer (ITIMER_PROF, &timer, 0);
-
-  sample_profiler_running = 1;
-
-  return Qt;
-}
-
-DEFUN ("sample-profiler-stop", Fsample_profiler_stop, Ssample_profiler_stop,
-       0, 0, 0,
-       doc: /* Stop sample profiler.  Profiler log will be kept.  */)
-  (void)
-{
-  if (!sample_profiler_running)
-    error ("Sample profiler is not running");
-  sample_profiler_running = 0;
-
-  setitimer (ITIMER_PROF, 0, 0);
-
-  return Qt;
-}
-
-DEFUN ("sample-profiler-running-p",
-       Fsample_profiler_running_p, Ssample_profiler_running_p,
-       0, 0, 0,
-       doc: /* Return t if sample profiler is running.  */)
-  (void)
-{
-  return sample_profiler_running ? Qt : Qnil;
-}
-
-DEFUN ("sample-profiler-log",
-       Fsample_profiler_log, Ssample_profiler_log,
-       0, 0, 0,
-       doc: /* Return sample profiler log.  The data is a list of
-(sample nil TIMESTAMP SLOTS), where TIMESTAMP is a timestamp when the
-log is collected and SLOTS is a list of slots.  */)
-  (void)
-{
-  Lisp_Object result = cpu_log;
-  /* Here we're making the log visible to Elisp , so it's not safe any
-     more for our use afterwards since we can't rely on its special
-     pre-allocated keys anymore.  So we have to allocate a new one.  */
-  cpu_log = (sample_profiler_running
-	     ? make_log (profiler_slot_heap_size, profiler_max_stack_depth)
-	     : Qnil);
-  Fputhash (Fmake_vector (make_number (1), Qautomatic_gc),
-	    make_number (cpu_gc_count),
-	    result);
-  cpu_gc_count = 0;
-  return result;
-}
-#endif
-
-/* Memory profiler.  */
-
-static Lisp_Object memory_log;
-
-DEFUN ("memory-profiler-start", Fmemory_profiler_start, Smemory_profiler_start,
-       0, 0, 0,
-       doc: /* Start/restart memory profiler.  See also
-`profiler-slot-heap-size' and `profiler-max-stack-depth'.  */)
-  (void)
-{
-  if (memory_profiler_running)
-    error ("Memory profiler is already running");
-
-  if (NILP (memory_log))
-    memory_log = make_log (profiler_slot_heap_size,
-			   profiler_max_stack_depth);
-
-  memory_profiler_running = 1;
-
-  return Qt;
-}
-
-DEFUN ("memory-profiler-stop",
-       Fmemory_profiler_stop, Smemory_profiler_stop,
-       0, 0, 0,
-       doc: /* Stop memory profiler.  Profiler log will be kept.  */)
-  (void)
-{
-  if (!memory_profiler_running)
-    error ("Memory profiler is not running");
-  memory_profiler_running = 0;
-
-  return Qt;
-}
-
-DEFUN ("memory-profiler-running-p",
-       Fmemory_profiler_running_p, Smemory_profiler_running_p,
-       0, 0, 0,
-       doc: /* Return t if memory profiler is running.  */)
-  (void)
-{
-  return memory_profiler_running ? Qt : Qnil;
-}
-
-DEFUN ("memory-profiler-log",
-       Fmemory_profiler_log, Smemory_profiler_log,
-       0, 0, 0,
-       doc: /* Return memory profiler log.  The data is a list of
-(memory nil TIMESTAMP SLOTS), where TIMESTAMP is a timestamp when the
-log is collected and SLOTS is a list of slots.  */)
-  (void)
-{
-  Lisp_Object result = memory_log;
-  /* Here we're making the log visible to Elisp , so it's not safe any
-     more for our use afterwards since we can't rely on its special
-     pre-allocated keys anymore.  So we have to allocate a new one.  */
-  memory_log = (memory_profiler_running
-		? make_log (profiler_slot_heap_size, profiler_max_stack_depth)
-		: Qnil);
-  return result;
-}
-
-
-/* Signals and probes.  */
 
 /* Signal handler for sample profiler.  */
 
@@ -367,6 +211,163 @@ sigprof_handler (int signal, siginfo_t *info, void *ctx)
     record_backtrace (XHASH_TABLE (cpu_log), current_sample_interval);
 }
 
+DEFUN ("profiler-cpu-start", Fprofiler_cpu_start, Sprofiler_cpu_start,
+       1, 1, 0,
+       doc: /* Start or restart the cpu profiler.
+The cpu profiler will take call-stack samples each SAMPLE-INTERVAL (expressed in milliseconds).
+See also `profiler-log-size' and `profiler-max-stack-depth'.  */)
+  (Lisp_Object sample_interval)
+{
+  struct sigaction sa;
+  struct itimerval timer;
+
+  if (profiler_cpu_running)
+    error ("Sample profiler is already running");
+
+  if (NILP (cpu_log))
+    {
+      cpu_gc_count = 0;
+      cpu_log = make_log (profiler_log_size,
+			  profiler_max_stack_depth);
+    }
+
+  current_sample_interval = XINT (sample_interval);
+
+  sa.sa_sigaction = sigprof_handler;
+  sa.sa_flags = SA_RESTART | SA_SIGINFO;
+  sigemptyset (&sa.sa_mask);
+  sigaction (SIGPROF, &sa, 0);
+
+  timer.it_interval.tv_sec = 0;
+  timer.it_interval.tv_usec = current_sample_interval * 1000;
+  timer.it_value = timer.it_interval;
+  setitimer (ITIMER_PROF, &timer, 0);
+
+  profiler_cpu_running = 1;
+
+  return Qt;
+}
+
+DEFUN ("profiler-cpu-stop", Fprofiler_cpu_stop, Sprofiler_cpu_stop,
+       0, 0, 0,
+       doc: /* Stop the cpu profiler.  The profiler log is not affected.  */)
+  (void)
+{
+  if (!profiler_cpu_running)
+    error ("Sample profiler is not running");
+  profiler_cpu_running = 0;
+
+  setitimer (ITIMER_PROF, 0, 0);
+
+  return Qt;
+}
+
+DEFUN ("profiler-cpu-running-p",
+       Fprofiler_cpu_running_p, Sprofiler_cpu_running_p,
+       0, 0, 0,
+       doc: /* Return non-nil iff cpu profiler is running.  */)
+  (void)
+{
+  return profiler_cpu_running ? Qt : Qnil;
+}
+
+DEFUN ("profiler-cpu-log", Fprofiler_cpu_log, Sprofiler_cpu_log,
+       0, 0, 0,
+       doc: /* Return the current cpu profiler log.
+The log is a hash-table mapping backtraces to counters which represent
+the amount of time spent at those points.  Every backtrace is a vector
+of functions, where the last few elements may be nil.
+Before returning, a new log is allocated for future samples.  */)
+  (void)
+{
+  Lisp_Object result = cpu_log;
+  /* Here we're making the log visible to Elisp , so it's not safe any
+     more for our use afterwards since we can't rely on its special
+     pre-allocated keys anymore.  So we have to allocate a new one.  */
+  cpu_log = (profiler_cpu_running
+	     ? make_log (profiler_log_size, profiler_max_stack_depth)
+	     : Qnil);
+  Fputhash (Fmake_vector (make_number (1), Qautomatic_gc),
+	    make_number (cpu_gc_count),
+	    result);
+  cpu_gc_count = 0;
+  return result;
+}
+#endif	/* not defined PROFILER_CPU_SUPPORT */
+
+/* Memory profiler.  */
+
+/* True if memory profiler is running.  */
+bool profiler_memory_running;
+
+static Lisp_Object memory_log;
+
+DEFUN ("profiler-memory-start", Fprofiler_memory_start, Sprofiler_memory_start,
+       0, 0, 0,
+       doc: /* Start/restart the memory profiler.
+The memory profiler will take samples of the call-stack whenever a new
+allocation takes place.  Note that most small allocations only trigger
+the profiler occasionally.
+See also `profiler-log-size' and `profiler-max-stack-depth'.  */)
+  (void)
+{
+  if (profiler_memory_running)
+    error ("Memory profiler is already running");
+
+  if (NILP (memory_log))
+    memory_log = make_log (profiler_log_size,
+			   profiler_max_stack_depth);
+
+  profiler_memory_running = 1;
+
+  return Qt;
+}
+
+DEFUN ("profiler-memory-stop",
+       Fprofiler_memory_stop, Sprofiler_memory_stop,
+       0, 0, 0,
+       doc: /* Stop the memory profiler.  The profiler log is not affected.  */)
+  (void)
+{
+  if (!profiler_memory_running)
+    error ("Memory profiler is not running");
+  profiler_memory_running = 0;
+
+  return Qt;
+}
+
+DEFUN ("profiler-memory-running-p",
+       Fprofiler_memory_running_p, Sprofiler_memory_running_p,
+       0, 0, 0,
+       doc: /* Return non-nil if memory profiler is running.  */)
+  (void)
+{
+  return profiler_memory_running ? Qt : Qnil;
+}
+
+DEFUN ("profiler-memory-log",
+       Fprofiler_memory_log, Sprofiler_memory_log,
+       0, 0, 0,
+       doc: /* Return the current memory profiler log.
+The log is a hash-table mapping backtraces to counters which represent
+the amount of memory allocated at those points.  Every backtrace is a vector
+of functions, where the last few elements may be nil.
+Before returning, a new log is allocated for future samples.  */)
+  (void)
+{
+  Lisp_Object result = memory_log;
+  /* Here we're making the log visible to Elisp , so it's not safe any
+     more for our use afterwards since we can't rely on its special
+     pre-allocated keys anymore.  So we have to allocate a new one.  */
+  memory_log = (profiler_memory_running
+		? make_log (profiler_log_size, profiler_max_stack_depth)
+		: Qnil);
+  return result;
+}
+
+
+/* Signals and probes.  */
+
 /* Record that the current backtrace allocated SIZE bytes.  */
 void
 malloc_probe (size_t size)
@@ -379,26 +380,26 @@ void
 syms_of_profiler (void)
 {
   DEFVAR_INT ("profiler-max-stack-depth", profiler_max_stack_depth,
-	      doc: /* FIXME */);
+	      doc: /* Number of elements from the call-stack recorded in the log.  */);
   profiler_max_stack_depth = 16;
-  DEFVAR_INT ("profiler-slot-heap-size", profiler_slot_heap_size,
-	      doc: /* FIXME */);
-  profiler_slot_heap_size = 10000;
+  DEFVAR_INT ("profiler-log-size", profiler_log_size,
+	      doc: /* Number of distinct call-stacks that can be recorded in a profiler log.
+If the log gets full, some of the least-seen call-stacks will be evicted
+to make room for new entries.  */);
+  profiler_log_size = 10000;
 
-  /* FIXME: Rename things to start with "profiler-", to use "cpu" instead of
-     "sample", and to make them sound like they're internal or something.  */
 #ifdef PROFILER_CPU_SUPPORT
   cpu_log = Qnil;
   staticpro (&cpu_log);
-  defsubr (&Ssample_profiler_start);
-  defsubr (&Ssample_profiler_stop);
-  defsubr (&Ssample_profiler_running_p);
-  defsubr (&Ssample_profiler_log);
+  defsubr (&Sprofiler_cpu_start);
+  defsubr (&Sprofiler_cpu_stop);
+  defsubr (&Sprofiler_cpu_running_p);
+  defsubr (&Sprofiler_cpu_log);
 #endif
   memory_log = Qnil;
   staticpro (&memory_log);
-  defsubr (&Smemory_profiler_start);
-  defsubr (&Smemory_profiler_stop);
-  defsubr (&Smemory_profiler_running_p);
-  defsubr (&Smemory_profiler_log);
+  defsubr (&Sprofiler_memory_start);
+  defsubr (&Sprofiler_memory_stop);
+  defsubr (&Sprofiler_memory_running_p);
+  defsubr (&Sprofiler_memory_log);
 }

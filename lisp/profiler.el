@@ -579,30 +579,30 @@ Also, if MODE is `mem' or `cpu+mem', then memory profiler will be started."
 				  nil t nil nil "cpu"))))
   (cl-ecase mode
     (cpu
-     (sample-profiler-start profiler-sample-interval)
+     (profiler-cpu-start profiler-sample-interval)
      (message "CPU profiler started"))
     (mem
-     (memory-profiler-start)
+     (profiler-memory-start)
      (message "Memory profiler started"))
     (cpu+mem
-     (sample-profiler-start profiler-sample-interval)
-     (memory-profiler-start)
+     (profiler-cpu-start profiler-sample-interval)
+     (profiler-memory-start)
      (message "CPU and memory profiler started"))))
 
 (defun profiler-stop ()
   "Stop started profilers.  Profiler logs will be kept."
   (interactive)
   (cond
-   ((and (sample-profiler-running-p)
-	 (memory-profiler-running-p))
-    (sample-profiler-stop)
-    (memory-profiler-stop)
+   ((and (profiler-cpu-running-p)
+	 (profiler-memory-running-p))
+    (profiler-cpu-stop)
+    (profiler-memory-stop)
     (message "CPU and memory profiler stopped"))
-   ((sample-profiler-running-p)
-    (sample-profiler-stop)
+   ((profiler-cpu-running-p)
+    (profiler-cpu-stop)
     (message "CPU profiler stopped"))
-   ((memory-profiler-running-p)
-    (memory-profiler-stop)
+   ((profiler-memory-running-p)
+    (profiler-memory-stop)
     (message "Memory profiler stopped"))
    (t
     (error "No profilers started"))))
@@ -610,19 +610,19 @@ Also, if MODE is `mem' or `cpu+mem', then memory profiler will be started."
 (defun profiler-reset ()
   "Reset profiler log."
   (interactive)
-  (ignore (sample-profiler-log))
-  (ignore (memory-profiler-log))
+  (ignore (profiler-cpu-log))
+  (ignore (profiler-memory-log))
   t)
 
 (defun profiler--report-cpu ()
-  (let ((log (sample-profiler-log)))
+  (let ((log (profiler-cpu-log)))
     (when log
       (puthash 'type 'cpu log)
       (puthash 'timestamp (current-time) log)
       (profiler-report-log log))))
 
 (defun profiler--report-memory ()
-  (let ((log (memory-profiler-log)))
+  (let ((log (profiler-memory-log)))
     (when log
       (puthash 'type 'memory log)
       (puthash 'timestamp (current-time) log)
@@ -647,19 +647,19 @@ Also, if MODE is `mem' or `cpu+mem', then memory profiler will be started."
 (cl-defmacro with-sample-profiling ((&key interval) &rest body)
   `(unwind-protect
        (progn
-         (ignore (sample-profiler-log))
-         (sample-profiler-start ,interval)
+         (ignore (profiler-cpu-log))
+         (profiler-cpu-start ,interval)
          ,@body)
-     (sample-profiler-stop)
+     (profiler-cpu-stop)
      (profiler--report-cpu)))
 
 (defmacro with-memory-profiling (&rest body)
   `(unwind-protect
        (progn
-         (ignore (memory-profiler-log))
-         (memory-profiler-start)
+         (ignore (profiler-memory-log))
+         (profiler-memory-start)
          ,@body)
-     (memory-profiler-stop)
+     (profiler-memory-stop)
      (profiler--report-memory)))
 
 (provide 'profiler)

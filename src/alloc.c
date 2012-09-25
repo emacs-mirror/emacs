@@ -5447,7 +5447,7 @@ See Info node `(elisp)Garbage Collection'.  */)
   FOR_EACH_BUFFER (nextb)
     compact_buffer (nextb);
 
-  if (memory_profiler_running)
+  if (profiler_memory_running)
     tot_before = total_bytes_of_live_objects ();
 
   start = current_emacs_time ();
@@ -5726,15 +5726,12 @@ See Info node `(elisp)Garbage Collection'.  */)
   gcs_done++;
 
   /* Collect profiling data.  */
-  if (memory_profiler_running)
+  if (profiler_memory_running)
     {
       size_t swept = 0;
-      if (memory_profiler_running)
-	{
-	  size_t tot_after = total_bytes_of_live_objects ();
-	  if (tot_before > tot_after)
-	    swept = tot_before - tot_after;
-	}
+      size_t tot_after = total_bytes_of_live_objects ();
+      if (tot_before > tot_after)
+	swept = tot_before - tot_after;
       malloc_probe (swept);
     }
 

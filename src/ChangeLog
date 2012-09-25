@@ -1,3 +1,9 @@
+2012-09-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* profiler.c: Rename sample_profiler_* to profiler_cpu_* and
+	memory_profiler_* to profiler_memory_*.  Move sigprof_handler before
+	its first use, inside the PROFILER_CPU_SUPPORT conditional.
+
 2012-09-24  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* profiler.c (evict_lower_half): Fix typo.

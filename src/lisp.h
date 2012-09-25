@@ -3527,11 +3527,11 @@ void syms_of_dbusbind (void);
 
 
 /* Defined in profiler.c.  */
-extern bool memory_profiler_running;
+extern bool profiler_memory_running;
 extern void malloc_probe (size_t);
 #define MALLOC_PROBE(size)			\
   do {						\
-    if (memory_profiler_running)		\
+    if (profiler_memory_running)		\
       malloc_probe (size);			\
   } while (0)
 extern void syms_of_profiler (void);
