@@ -15,7 +15,9 @@
 #include <stdarg.h>
 
 
-/* @@@@ Hack due to missing mpscmfs.h */
+/* TODO: Decide whether we should support the MPS pool class externally,
+   create mpscmfs.h, and replace this extern with proper use of its
+   interface. */
 extern mps_class_t PoolClassMFS(void);
 
 

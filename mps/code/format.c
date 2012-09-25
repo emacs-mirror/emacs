@@ -26,7 +26,10 @@ Bool FormatCheck(Format format)
          || format->variety == FormatVarietyAutoHeader);
   CHECKL(RingCheck(&format->arenaRing));
   CHECKL(AlignCheck(format->alignment));
-  /* @@@@ alignment should be less than maximum allowed */
+  /* TODO: Define the concept of the maximum alignment it is possible to
+     request from the MPS, document and provide an interface to it, and then
+     check that this alignment is not greater than that, as well as all other
+     alignments. */
   CHECKL(FUNCHECK(format->scan));
   CHECKL(format->variety == FormatVarietyFixed
          ? format->skip == NULL : FUNCHECK(format->skip));
