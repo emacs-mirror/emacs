@@ -1,3 +1,10 @@
+2012-09-25  Eli Zaretskii  <eliz@gnu.org>
+
+	* character.c (char_string, string_char): Remove calls to
+	MAYBE_UNIFY_CHAR.  See the discussion starting at
+	http://lists.gnu.org/archive/html/emacs-devel/2012-09/msg00433.html
+	for the details.
+
 2012-09-25  Chong Yidong  <cyd@gnu.org>
 
 	* xdisp.c (mode_line_inverse_video): Delete obsolete variable.
