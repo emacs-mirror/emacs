@@ -1,8 +1,12 @@
+2012-09-25  Glenn Morris  <rgm@gnu.org>
+
+	* eshell/em-term.el (eshell-term-name):
+	Default to term-term-name.  (Bug#12485)
+
 2012-09-24  Fabián Ezequiel Gallina  <fgallina@cuca>
 
-	* progmodes/python.el:
-	(python-shell-send-buffer): Better handling of "if __name__ ==
-	'__main__':" conditionals when sending the buffer.
+	* progmodes/python.el (python-shell-send-buffer): Better handling
+	of "if __name__ == '__main__':" conditionals when sending the buffer.
 
 2012-09-24  Glenn Morris  <rgm@gnu.org>
 

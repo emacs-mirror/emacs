@@ -63,10 +63,13 @@ which commands are considered visual in nature."
   :type '(repeat string)
   :group 'eshell-term)
 
-(defcustom eshell-term-name "eterm"
+;; If you change this from term-term-name, you need to ensure that the
+;; value you choose exists in the system's terminfo database.  (Bug#12485)
+(defcustom eshell-term-name term-term-name
   "Name to use for the TERM variable when running visual commands.
 See `term-term-name' in term.el for more information on how this is
 used."
+  :version "24.3"	       ; eterm -> term-term-name = eterm-color
   :type 'string
   :group 'eshell-term)
 
