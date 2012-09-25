@@ -2731,6 +2731,7 @@ extern void init_fringe_once (void);
 extern Lisp_Object QCascent, QCmargin, QCrelief;
 extern Lisp_Object QCconversion;
 extern int x_bitmap_mask (struct frame *, ptrdiff_t);
+extern void reset_image_types (void);
 extern void syms_of_image (void);
 
 /* Defined in insdel.c.  */
@@ -3284,6 +3285,9 @@ extern Lisp_Object empty_unibyte_string, empty_multibyte_string;
 extern Lisp_Object Qfile_name_handler_alist;
 extern _Noreturn void terminate_due_to_signal (int, int);
 extern Lisp_Object Qkill_emacs;
+#ifdef WINDOWSNT
+extern Lisp_Object Vlibrary_cache;
+#endif
 #if HAVE_SETLOCALE
 void fixup_locale (void);
 void synchronize_system_messages_locale (void);

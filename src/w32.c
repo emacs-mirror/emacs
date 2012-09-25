@@ -6521,10 +6521,6 @@ sys_localtime (const time_t *t)
 
 
 
-/* Delayed loading of libraries.  */
-
-Lisp_Object Vlibrary_cache;
-
 /* Try loading LIBRARY_ID from the file(s) specified in
    Vdynamic_library_alist.  If the library is loaded successfully,
    return the handle of the DLL, and record the filename in the
@@ -6768,9 +6764,6 @@ globals_of_w32 (void)
     GetProcAddress (kernel32, "GetProcessTimes");
 
   DEFSYM (QCloaded_from, ":loaded-from");
-
-  Vlibrary_cache = Qnil;
-  staticpro (&Vlibrary_cache);
 
   g_b_init_is_windows_9x = 0;
   g_b_init_open_process_token = 0;

@@ -96,6 +96,11 @@ static const char emacs_copyright[] = COPYRIGHT;
 /* Empty lisp strings.  To avoid having to build any others.  */
 Lisp_Object empty_unibyte_string, empty_multibyte_string;
 
+#ifdef WINDOWSNT
+/* Cache for externally loaded libraries.  */
+Lisp_Object Vlibrary_cache;
+#endif
+
 /* Set after Emacs has started up the first time.
    Prevents reinitialization of the Lisp world and keymaps
    on subsequent starts.  */
@@ -2025,6 +2030,13 @@ You must run Emacs in batch mode in order to dump it.  */)
   free (malloc_state_ptr);
 #endif
 
+#ifdef WINDOWSNT
+  Vlibrary_cache = Qnil;
+#endif
+#ifdef HAVE_WINDOW_SYSTEM
+  reset_image_types ();
+#endif
+
   Vpurify_flag = tem;
 
   return unbind_to (count, Qnil);
@@ -2356,6 +2368,11 @@ Also note that this is not a generic facility for accessing external
 libraries; only those already known by Emacs will be loaded.  */);
   Vdynamic_library_alist = Qnil;
   Fput (intern_c_string ("dynamic-library-alist"), Qrisky_local_variable, Qt);
+
+#ifdef WINDOWSNT
+  Vlibrary_cache = Qnil;
+  staticpro (&Vlibrary_cache);
+#endif
 
   /* Make sure IS_DAEMON starts up as false.  */
   daemon_pipe[1] = 0;

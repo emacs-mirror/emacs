@@ -1,3 +1,21 @@
+2012-09-25  Juanma Barranquero  <lekktu@gmail.com>
+
+	Move Vlibrary_cache to emacs.c and reset before dumping.
+
+	* lisp.h (reset_image_types): Declare.
+	[WINDOWSNT] (Vlibrary_cache): Declare.
+
+	* image.c (reset_image_types): New function.
+
+	* emacs.c [WINDOWSNT] (Vlibrary_cache): Move from w32.c.
+	(syms_of_emacs) [WINDOWSNT] <Vlibrary_cache>: Initialize and staticpro.
+	(Fdump_emacs): Reset Vlibrary_cache and image_types.
+
+	* w32.c (Vlibrary_cache): Do not define; moved to emacs.c
+	(globals_of_w32) <Vlibrary_cache>: Do not initialize.
+
+	* w32.h (Vlibrary_cache): Do not declare.
+
 2012-09-25  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32proc.c (sys_signal): Handle all signals defined by the

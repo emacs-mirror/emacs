@@ -8831,12 +8831,24 @@ lookup_image_type (Lisp_Object type)
   return NULL;
 }
 
+/* Reset image_types before dumping.
+   Called from Fdump_emacs.  */
+
+void
+reset_image_types (void)
+{
+  while (image_types)
+    {
+      struct image_type *next = image_types->next;
+      xfree (image_types);
+      image_types = next;
+    }
+}
+
 void
 syms_of_image (void)
 {
-  /* Initialize this only once, since that's what we do with Vimage_types
-     and they are supposed to be in sync.  Initializing here gives correct
-     operation on GNU/Linux of calling dump-emacs after loading some images.  */
+  /* Initialize this only once; it will be reset before dumping.  */
   image_types = NULL;
 
   /* Must be defined now because we're going to update it below, while
