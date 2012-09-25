@@ -1,3 +1,13 @@
+2012-09-25  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (window--resize-child-windows): When resizing child
+	windows proportionally, process them in reverse order to
+	preserve the "when splitting a window the new one gets the odd
+	line" behavior.
+	(window--resize-root-window-vertically): When resizing the
+	minibuffer window try to affect only windows at the bottom of the
+	frame.  (Bug#12419)
+
 2012-09-25  Chong Yidong  <cyd@gnu.org>
 
 	* subr.el (declare): Doc fix.

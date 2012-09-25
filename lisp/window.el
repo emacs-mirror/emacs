@@ -2079,9 +2079,9 @@ preferably only resize windows adjacent to EDGE.
 Return the symbol `normalized' if new normal sizes have been
 already set by this routine."
   (let* ((first (window-child parent))
-	 (sub first)
+	 (last (window-last-child parent))
 	 (parent-total (+ (window-total-size parent horizontal) delta))
-	 best-window best-value)
+	 sub best-window best-value)
 
     (if (and edge (memq trail '(before after))
 	     (progn
@@ -2125,7 +2125,7 @@ already set by this routine."
 	  ;; normal sizes have been already set.
 	  'normalized)
       ;; Resize all windows proportionally.
-      (setq sub first)
+      (setq sub last)
       (while sub
 	(cond
 	 ((or (window--resize-child-windows-skip-p sub)
@@ -2154,14 +2154,14 @@ already set by this routine."
 		 parent-total)
 	      (window-normal-size sub horizontal)))))
 
-	(setq sub (window-right sub)))
+	(setq sub (window-left sub)))
 
       (cond
        ((< delta 0)
 	;; Shrink windows by delta.
 	(setq best-window t)
 	(while (and best-window (not (zerop delta)))
-	  (setq sub first)
+	  (setq sub last)
 	  (setq best-window nil)
 	  (setq best-value most-negative-fixnum)
 	  (while sub
@@ -2171,7 +2171,7 @@ already set by this routine."
 	      (setq best-window sub)
 	      (setq best-value (cdr (window-new-normal sub))))
 
-	    (setq sub (window-right sub)))
+	    (setq sub (window-left sub)))
 
 	  (when best-window
 	    (setq delta (1+ delta)))
@@ -2188,7 +2188,7 @@ already set by this routine."
 	;; Enlarge windows by delta.
 	(setq best-window t)
 	(while (and best-window (not (zerop delta)))
-	  (setq sub first)
+	  (setq sub last)
 	  (setq best-window nil)
 	  (setq best-value most-positive-fixnum)
 	  (while sub
@@ -2197,7 +2197,7 @@ already set by this routine."
 	      (setq best-window sub)
 	      (setq best-value (window-new-normal sub)))
 
-	    (setq sub (window-right sub)))
+	    (setq sub (window-left sub)))
 
 	  (when best-window
 	    (setq delta (1- delta)))
@@ -2209,7 +2209,7 @@ already set by this routine."
 	      (window-normal-size best-window horizontal))))))
 
       (when best-window
-	(setq sub first)
+	(setq sub last)
 	(while sub
 	  (when (or (consp (window-new-normal sub))
 		    (numberp (window-new-normal sub)))
@@ -2227,7 +2227,7 @@ already set by this routine."
 		;; recursively even if it's size does not change.
 		(window--resize-this-window
 		 sub delta horizontal ignore nil trail edge))))
-	  (setq sub (window-right sub)))))))
+	  (setq sub (window-left sub)))))))
 
 (defun window--resize-siblings (window delta &optional horizontal ignore trail edge)
   "Resize other windows when WINDOW is resized vertically by DELTA lines.
@@ -2406,27 +2406,33 @@ Return the number of lines that were recovered.
 This function is only called by the minibuffer window resizing
 routines.  It resizes windows proportionally and never deletes
 any windows."
-  (when (numberp delta)
-    (let (ignore)
-      (cond
-       ((< delta 0)
-	(setq delta (window-sizable window delta)))
-       ((> delta 0)
-	(unless (window-sizable window delta)
-	  (setq ignore t))))
-
-      (window--resize-reset (window-frame window))
-      ;; Ideally, we would resize just the last window in a combination
-      ;; but that's not feasible for the following reason: If we grow
-      ;; the minibuffer window and the last window cannot be shrunk any
-      ;; more, we shrink another window instead.  But if we then shrink
-      ;; the minibuffer window again, the last window might get enlarged
-      ;; and the state after shrinking is not the state before growing.
-      ;; So, in practice, we'd need a history variable to record how to
-      ;; proceed.  But I'm not sure how such a variable could work with
-      ;; repeated minibuffer window growing steps.
-      (window--resize-this-window window delta nil ignore t)
-      delta)))
+  (let ((frame (window-frame window))
+	ignore)
+    (cond
+     ((not (numberp delta))
+      (setq delta 0))
+     ((zerop delta))
+     ((< delta 0)
+      (setq delta (window-sizable window delta))
+      (window--resize-reset frame)
+      ;; When shrinking the root window, emulate an edge drag in order
+      ;; to not resize other windows if we can avoid it (Bug#12419).
+      (window--resize-this-window
+       window delta nil ignore t 'before
+       (+ (window-top-line window) (window-total-size window)))
+      ;; Don't record new normal sizes to make sure that shrinking back
+      ;; proportionally works as intended.
+      (walk-window-tree
+       (lambda (window) (set-window-new-normal window 'ignore)) frame t))
+     ((> delta 0)
+      (window--resize-reset frame)
+      (unless (window-sizable window delta)
+	(setq ignore t))
+      ;; When growing the root window, resize proportionally.  This
+      ;; should give windows back their original sizes (hopefully).
+      (window--resize-this-window window delta nil ignore t)))
+     ;; Return the possibly adjusted DELTA.
+     delta))
 
 (defun adjust-window-trailing-edge (window delta &optional horizontal)
   "Move WINDOW's bottom edge by DELTA lines.
