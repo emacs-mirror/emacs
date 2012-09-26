@@ -1,3 +1,11 @@
+2012-09-26  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* character.h (MAYBE_UNIFY_CHAR): Remove.
+	* charset.c, charset.h (maybe_unify_char): Now static.
+	* charset.c (decode_char): Use maybe_unify_char, not MAYBE_UNIFY_CHAR.
+	Since this stuff is now private to charset.c, there's no need for
+	a public macro and no need to inline by hand.
+
 2012-09-26  Tomohiro Matsuyama  <tomo@cx4a.org>
             Stefan Monnier  <monnier@iro.umontreal.ca>
             Juanma Barranquero  <lekktu@gmail.com>

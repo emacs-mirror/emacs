@@ -1617,7 +1617,7 @@ only `ascii', `eight-bit-control', and `eight-bit-graphic'. */)
 /* Return a unified character code for C (>= 0x110000).  VAL is a
    value of Vchar_unify_table for C; i.e. it is nil, an integer, or a
    charset symbol.  */
-int
+static int
 maybe_unify_char (int c, Lisp_Object val)
 {
   struct charset *charset;
@@ -1723,8 +1723,12 @@ decode_char (struct charset *charset, unsigned int code)
 	{
 	  c = char_index + CHARSET_CODE_OFFSET (charset);
 	  if (CHARSET_UNIFIED_P (charset)
-	      && c > MAX_UNICODE_CHAR)
-	    MAYBE_UNIFY_CHAR (c);
+	      && MAX_UNICODE_CHAR < c && c <= MAX_5_BYTE_CHAR)
+	    {
+	      /* Unify C with a Unicode character if possible.  */
+	      Lisp_Object val = CHAR_TABLE_REF (Vchar_unify_table, c);
+	      c = maybe_unify_char (c, val);
+	    }
 	}
     }
 

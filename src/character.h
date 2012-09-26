@@ -554,23 +554,6 @@ INLINE_HEADER_BEGIN
   } while (0)
 
 
-/* If C is a character to be unified with a Unicode character, return
-   the unified Unicode character.  */
-
-#define MAYBE_UNIFY_CHAR(c)				\
-  do {							\
-    if (c > MAX_UNICODE_CHAR && c <= MAX_5_BYTE_CHAR)	\
-      {							\
-	Lisp_Object val;				\
-	val = CHAR_TABLE_REF (Vchar_unify_table, c);	\
-	if (INTEGERP (val))				\
-	  c = XFASTINT (val);				\
-	else if (! NILP (val))				\
-	  c = maybe_unify_char (c, val);		\
-      }							\
-  } while (0)
-
-
 /* Return a non-outlandish value for the tab width.  */
 
 #define SANE_TAB_WIDTH(buf) \
