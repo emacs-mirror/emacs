@@ -976,6 +976,7 @@ $(BLD)/xml.$(O) : \
 
 $(BLD)/profiler.$(O) : \
 	$(SRC)/profiler.c \
+	$(NT_INC)/sys/time.h \
 	$(CONFIG_H) \
 	$(LISP_H)
 

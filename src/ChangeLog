@@ -1,3 +1,7 @@
+2012-09-26  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in ($(BLD)/profiler.$(O)): Update dependencies.
+
 2012-09-26  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* character.h (MAYBE_UNIFY_CHAR): Remove.
