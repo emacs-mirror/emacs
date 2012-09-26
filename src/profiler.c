@@ -214,7 +214,7 @@ static int current_sample_interval;
 /* Signal handler for sample profiler.  */
 
 static void
-sigprof_handler (int signal, siginfo_t *info, void *ctx)
+sigprof_handler (int signal)
 {
   eassert (HASH_TABLE_P (cpu_log));
   if (backtrace_list && EQ (*backtrace_list->function, Qautomatic_gc))
@@ -251,8 +251,8 @@ See also `profiler-log-size' and `profiler-max-stack-depth'.  */)
 
   current_sample_interval = XINT (sample_interval);
 
-  sa.sa_sigaction = sigprof_handler;
-  sa.sa_flags = SA_RESTART | SA_SIGINFO;
+  sa.sa_handler = sigprof_handler;
+  sa.sa_flags = SA_RESTART;
   sigemptyset (&sa.sa_mask);
   sigaction (SIGPROF, &sa, 0);
 

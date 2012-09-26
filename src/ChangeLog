@@ -1,3 +1,7 @@
+2012-09-26  Tomohiro Matsuyama  <tomo@cx4a.org>
+
+	* profiler.c (Fprofiler_cpu_start): Remove unnecessary flag SA_SIGINFO.
+
 2012-09-26  Juanma Barranquero  <lekktu@gmail.com>
 
 	* makefile.w32-in ($(BLD)/profiler.$(O)): Update dependencies.
