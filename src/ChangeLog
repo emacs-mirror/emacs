@@ -359,7 +359,7 @@
 2012-09-23  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsterm.m (ns_dumpglyphs_image): dr is a new rect to draw image into,
-	background rect may be larger (Bug#12445).
+	background rect may be larger (Bug#12245).
 
 2012-09-23  Chong Yidong  <cyd@gnu.org>
 
