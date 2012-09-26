@@ -678,6 +678,11 @@ are deprecated and will be removed eventually.
 
 * Lisp changes in Emacs 24.3
 
+** New sampling-based Elisp profiler.
+Try M-x profiler-start ... M-x profiler-stop; and then M-x profiler-report.
+The sampling rate can be based on CPU time (only supported on some
+systems), or based on memory allocations.
+
 ** CL-style generalized variables are now in core Elisp.
 `setf' is autoloaded; `push' and `pop' accept generalized variables.
 

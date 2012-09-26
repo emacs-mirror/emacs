@@ -1419,6 +1419,8 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
       syms_of_ntterm ();
 #endif /* WINDOWSNT */
 
+      syms_of_profiler ();
+
       keys_of_casefiddle ();
       keys_of_cmds ();
       keys_of_buffer ();

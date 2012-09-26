@@ -125,6 +125,7 @@ OBJ2 =  $(BLD)/sysdep.$(O)		\
 	$(BLD)/terminal.$(O)            \
 	$(BLD)/menu.$(O)		\
 	$(BLD)/xml.$(O)			\
+	$(BLD)/profiler.$(O)		\
 	$(BLD)/w32term.$(O)		\
 	$(BLD)/w32xfns.$(O)		\
 	$(BLD)/w32fns.$(O)		\
@@ -222,7 +223,7 @@ GLOBAL_SOURCES =   dosfns.c msdos.c \
 	process.c callproc.c unexw32.c \
 	region-cache.c sound.c atimer.c \
 	doprnt.c intervals.c textprop.c composite.c \
-	gnutls.c xml.c
+	gnutls.c xml.c profiler.c
 SOME_MACHINE_OBJECTS = dosfns.o msdos.o \
 	xterm.o xfns.o xmenu.o xselect.o xrdb.o xsmfns.o dbusbind.o
 obj = $(GLOBAL_SOURCES:.c=.o)
@@ -970,6 +971,11 @@ $(BLD)/xml.$(O) : \
 	$(SRC)/w32.h \
 	$(BUFFER_H) \
 	$(CHARACTER_H) \
+	$(CONFIG_H) \
+	$(LISP_H)
+
+$(BLD)/profiler.$(O) : \
+	$(SRC)/profiler.c \
 	$(CONFIG_H) \
 	$(LISP_H)
 

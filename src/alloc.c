@@ -205,6 +205,7 @@ static Lisp_Object Qintervals;
 static Lisp_Object Qbuffers;
 static Lisp_Object Qstring_bytes, Qvector_slots, Qheap;
 static Lisp_Object Qgc_cons_threshold;
+Lisp_Object Qautomatic_gc;
 Lisp_Object Qchar_table_extra_slots;
 
 /* Hook run after GC has finished.  */
@@ -648,6 +649,13 @@ malloc_unblock_input (void)
 # define MALLOC_UNBLOCK_INPUT ((void) 0)
 #endif
 
+#define MALLOC_PROBE(size)			\
+  do {						\
+    if (profiler_memory_running)		\
+      malloc_probe (size);			\
+  } while (0)
+
+
 /* Like malloc but check for no memory and block interrupt input..  */
 
 void *
@@ -661,6 +669,7 @@ xmalloc (size_t size)
 
   if (!val && size)
     memory_full (size);
+  MALLOC_PROBE (size);
   return val;
 }
 
@@ -678,6 +687,7 @@ xzalloc (size_t size)
   if (!val && size)
     memory_full (size);
   memset (val, 0, size);
+  MALLOC_PROBE (size);
   return val;
 }
 
@@ -699,6 +709,7 @@ xrealloc (void *block, size_t size)
 
   if (!val && size)
     memory_full (size);
+  MALLOC_PROBE (size);
   return val;
 }
 
@@ -888,6 +899,7 @@ lisp_malloc (size_t nbytes, enum mem_type type)
   MALLOC_UNBLOCK_INPUT;
   if (!val && nbytes)
     memory_full (nbytes);
+  MALLOC_PROBE (nbytes);
   return val;
 }
 
@@ -1092,6 +1104,8 @@ lisp_align_malloc (size_t nbytes, enum mem_type type)
 #endif
 
   MALLOC_UNBLOCK_INPUT;
+
+  MALLOC_PROBE (nbytes);
 
   eassert (0 == ((uintptr_t) val) % BLOCK_ALIGN);
   return val;
@@ -5043,6 +5057,23 @@ bounded_number (EMACS_INT number)
   return make_number (min (MOST_POSITIVE_FIXNUM, number));
 }
 
+/* Calculate total bytes of live objects.  */
+
+static size_t
+total_bytes_of_live_objects (void)
+{
+  size_t tot = 0;
+  tot += total_conses  * sizeof (struct Lisp_Cons);
+  tot += total_symbols * sizeof (struct Lisp_Symbol);
+  tot += total_markers * sizeof (union Lisp_Misc);
+  tot += total_string_bytes;
+  tot += total_vector_slots * word_size;
+  tot += total_floats  * sizeof (struct Lisp_Float);
+  tot += total_intervals * sizeof (struct interval);
+  tot += total_strings * sizeof (struct Lisp_String);
+  return tot;
+}
+
 DEFUN ("garbage-collect", Fgarbage_collect, Sgarbage_collect, 0, 0, "",
        doc: /* Reclaim storage for Lisp objects no longer needed.
 Garbage collection happens automatically if you cons more than
@@ -5068,6 +5099,8 @@ See Info node `(elisp)Garbage Collection'.  */)
   ptrdiff_t count = SPECPDL_INDEX ();
   EMACS_TIME start;
   Lisp_Object retval = Qnil;
+  size_t tot_before = 0;
+  struct backtrace backtrace;
 
   if (abort_on_gc)
     emacs_abort ();
@@ -5077,12 +5110,23 @@ See Info node `(elisp)Garbage Collection'.  */)
   if (pure_bytes_used_before_overflow)
     return Qnil;
 
+  /* Record this function, so it appears on the profiler's backtraces.  */
+  backtrace.next = backtrace_list;
+  backtrace.function = &Qautomatic_gc;
+  backtrace.args = &Qautomatic_gc;
+  backtrace.nargs = 0;
+  backtrace.debug_on_exit = 0;
+  backtrace_list = &backtrace;
+
   check_cons_list ();
 
   /* Don't keep undo information around forever.
      Do this early on, so it is no problem if the user quits.  */
   FOR_EACH_BUFFER (nextb)
     compact_buffer (nextb);
+
+  if (profiler_memory_running)
+    tot_before = total_bytes_of_live_objects ();
 
   start = current_emacs_time ();
 
@@ -5255,16 +5299,7 @@ See Info node `(elisp)Garbage Collection'.  */)
   gc_relative_threshold = 0;
   if (FLOATP (Vgc_cons_percentage))
     { /* Set gc_cons_combined_threshold.  */
-      double tot = 0;
-
-      tot += total_conses  * sizeof (struct Lisp_Cons);
-      tot += total_symbols * sizeof (struct Lisp_Symbol);
-      tot += total_markers * sizeof (union Lisp_Misc);
-      tot += total_string_bytes;
-      tot += total_vector_slots * word_size;
-      tot += total_floats  * sizeof (struct Lisp_Float);
-      tot += total_intervals * sizeof (struct interval);
-      tot += total_strings * sizeof (struct Lisp_String);
+      double tot = total_bytes_of_live_objects ();
 
       tot *= XFLOAT_DATA (Vgc_cons_percentage);
       if (0 < tot)
@@ -5367,6 +5402,17 @@ See Info node `(elisp)Garbage Collection'.  */)
 
   gcs_done++;
 
+  /* Collect profiling data.  */
+  if (profiler_memory_running)
+    {
+      size_t swept = 0;
+      size_t tot_after = total_bytes_of_live_objects ();
+      if (tot_before > tot_after)
+	swept = tot_before - tot_after;
+      malloc_probe (swept);
+    }
+
+  backtrace_list = backtrace.next;
   return retval;
 }
 
@@ -6527,6 +6573,7 @@ do hash-consing of the objects allocated to pure space.  */);
   DEFSYM (Qstring_bytes, "string-bytes");
   DEFSYM (Qvector_slots, "vector-slots");
   DEFSYM (Qheap, "heap");
+  DEFSYM (Qautomatic_gc, "Automatic GC");
 
   DEFSYM (Qgc_cons_threshold, "gc-cons-threshold");
   DEFSYM (Qchar_table_extra_slots, "char-table-extra-slots");

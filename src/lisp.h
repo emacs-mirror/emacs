@@ -2031,6 +2031,18 @@ extern ptrdiff_t specpdl_size;
 
 #define SPECPDL_INDEX()	(specpdl_ptr - specpdl)
 
+struct backtrace
+{
+  struct backtrace *next;
+  Lisp_Object *function;
+  Lisp_Object *args;	/* Points to vector of args.  */
+  ptrdiff_t nargs;	/* Length of vector.  */
+  /* Nonzero means call value of debugger when done with this operation.  */
+  unsigned int debug_on_exit : 1;
+};
+
+extern struct backtrace *backtrace_list;
+
 /* Everything needed to describe an active condition case.
 
    Members are volatile if their values need to survive _longjmp when
@@ -2916,6 +2928,7 @@ build_string (const char *str)
 
 extern Lisp_Object pure_cons (Lisp_Object, Lisp_Object);
 extern void make_byte_code (struct Lisp_Vector *);
+extern Lisp_Object Qautomatic_gc;
 extern Lisp_Object Qchar_table_extra_slots;
 extern struct Lisp_Vector *allocate_vector (EMACS_INT);
 extern struct Lisp_Vector *allocate_pseudovector (int memlen, int lisplen, int tag);
@@ -3533,6 +3546,13 @@ extern int have_menus_p (void);
 /* Defined in dbusbind.c.  */
 void syms_of_dbusbind (void);
 #endif
+
+
+/* Defined in profiler.c.  */
+extern bool profiler_memory_running;
+extern void malloc_probe (size_t);
+extern void syms_of_profiler (void);
+
 
 #ifdef DOS_NT
 /* Defined in msdos.c, w32.c.  */

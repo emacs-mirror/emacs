@@ -1,3 +1,29 @@
+2012-09-26  Tomohiro Matsuyama  <tomo@cx4a.org>
+            Stefan Monnier  <monnier@iro.umontreal.ca>
+            Juanma Barranquero  <lekktu@gmail.com>
+
+	* profiler.c: New file.
+	* Makefile.in (base_obj): Add profiler.o.
+	* makefile.w32-in (OBJ2, GLOBAL_SOURCES): Add profiler.c.
+	($(BLD)/profiler.$(O)): New target.
+	* emacs.c (main): Call syms_of_profiler.
+	* alloc.c (Qautomatic_gc): New constant.
+	(MALLOC_PROBE): New macro.
+	(xmalloc, xzalloc, xrealloc, lisp_malloc, lisp_align_malloc): Use it.
+	(total_bytes_of_live_objects): New function.
+	(Fgarbage_collect): Use it.  Record itself in backtrace_list.
+	Call malloc_probe for the memory profiler.
+	(syms_of_alloc): Define Qautomatic_gc.
+	* eval.c (eval_sub, Ffuncall): Reorder assignments to avoid
+	race condition.
+	(struct backtrace): Move definition...
+	* lisp.h (struct backtrace): ..here.
+	(Qautomatic_gc, profiler_memory_running): Declare vars.
+	(malloc_probe, syms_of_profiler): Declare functions.
+	* xdisp.c (Qautomatic_redisplay): New constant.
+	(redisplay_internal): Record itself in backtrace_list.
+	(syms_of_xdisp): Define Qautomatic_redisplay.
+
 2012-09-25  Juanma Barranquero  <lekktu@gmail.com>
 
 	* makefile.w32-in ($(BLD)/callproc.$(O)): Update dependencies.
@@ -291,8 +317,8 @@
 	(reinvoke_input_signal): Remove.  All uses replaced by
 	handle_async_input.
 	(quit_count): Now volatile, since a signal handler uses it.
-	(handle_interrupt): Now takes bool IN_SIGNAL_HANDLER as arg.  All
-	callers changed.  Block SIGINT only if not already blocked.
+	(handle_interrupt): Now takes bool IN_SIGNAL_HANDLER as arg.
+	All callers changed.  Block SIGINT only if not already blocked.
 	Clear sigmask reliably, even if Fsignal returns, which it can.
 	Omit unnecessary accesses to volatile var.
 	(quit_throw_to_read_char): No need to restore sigmask.
@@ -392,8 +418,8 @@
 	if it is defined.  Arguments and return value changed.
 	(valid_image_p, make_image): Callers changed.
 	(xbm_type, xpm_type, pbm_type, png_type, jpeg_type, tiff_type)
-	(gif_type, imagemagick_type, svg_type, gs_type): Add
-	initialization functions.
+	(gif_type, imagemagick_type, svg_type, gs_type):
+	Add initialization functions.
 	(Finit_image_library): Call lookup_image_type.
 	(CHECK_LIB_AVAILABLE): Macro deleted.
 	(lookup_image_type): Call define_image_type here, rather than via
@@ -415,8 +441,8 @@
 	* window.c (Fsplit_window_internal): Handle only Qt value of
 	Vwindow_combination_limit separately.
 	(Qtemp_buffer_resize): New symbol.
-	(Vwindow_combination_limit): New default value.  Rewrite
-	doc-string.
+	(Vwindow_combination_limit): New default value.
+	Rewrite doc-string.
 
 2012-09-22  Eli Zaretskii  <eliz@gnu.org>
 
@@ -515,7 +541,7 @@
 	(Fx_create_frame): Call x_set_offset to correctly interpret
 	top_pos in geometry.
 
-	* frame.c (read_integer, XParseGeometry): Moved from w32xfns.c.
+	* frame.c (read_integer, XParseGeometry): Move from w32xfns.c.
 	(Fx_parse_geometry): If there is a space in string, call
 	Qns_parse_geometry, otherwise do as on other terms (Bug#12368).
 
@@ -616,8 +642,8 @@
 
 2012-09-16  Martin Rudalics  <rudalics@gmx.at>
 
-	* window.c (Fwindow_parameter, Fset_window_parameter): Accept
-	any window as argument (Bug#12452).
+	* window.c (Fwindow_parameter, Fset_window_parameter):
+	Accept any window as argument (Bug#12452).
 
 2012-09-16  Jan Djärv  <jan.h.d@swipnet.se>
 
@@ -692,8 +718,8 @@
 2012-09-14  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Avoid out-of-range marker position (Bug#12426).
-	* insdel.c (replace_range, replace_range_2): Adjust
-	markers before overlays, as suggested by comments.
+	* insdel.c (replace_range, replace_range_2):
+	Adjust markers before overlays, as suggested by comments.
 	(insert_1_both, insert_from_buffer_1, adjust_after_replace):
 	Remove redundant check before calling offset_intervals.
 
@@ -992,8 +1018,8 @@
 	in the internal border.
 	(x_set_window_size): Remove static variables and their usage.
 	(ns_redraw_scroll_bars): Fix NSTRACE arg.
-	(ns_after_update_window_line, ns_draw_fringe_bitmap): Remove
-	fringe/internal border adjustment (Bug#11052).
+	(ns_after_update_window_line, ns_draw_fringe_bitmap):
+	Remove fringe/internal border adjustment (Bug#11052).
 	(ns_draw_fringe_bitmap): Make code more like other terms (xterm.c).
 	(ns_draw_window_cursor): Remove fringe/internal border adjustment.
 	(ns_fix_rect_ibw): Remove.
@@ -1210,8 +1236,8 @@
 	(init_signals) [FORWARD_SIGNAL_TO_MAIN_THREAD]: Initialize it;
 	code moved here from emacs.c's main function.
 	* sysdep.c, syssignal.h (handle_on_main_thread): New function,
-	replacing the old SIGNAL_THREAD_CHECK.  All uses changed.  This
-	lets callers save and restore errno properly.
+	replacing the old SIGNAL_THREAD_CHECK.  All uses changed.
+	This lets callers save and restore errno properly.
 
 2012-09-05  Dmitry Antipov  <dmantipov@yandex.ru>
 
@@ -1520,8 +1546,8 @@
 	* process.c: Include TERM_HEADER instead of listing all possible
 	window-system headers.
 
-	* nsterm.h: Remove declarations now in frame.h.  Define
-	FRAME_X_SCREEN, FRAME_X_VISUAL.
+	* nsterm.h: Remove declarations now in frame.h.
+	Define FRAME_X_SCREEN, FRAME_X_VISUAL.
 
 	* menu.c: Include TERM_HEADER instead of listing all possible
 	window-system headers.
@@ -1717,8 +1743,8 @@
 
 	* nsterm.h (NSPanel): New class variable dialog_return.
 
-	* nsmenu.m (initWithContentRect:styleMask:backing:defer:): Initialize
-	dialog_return.
+	* nsmenu.m (initWithContentRect:styleMask:backing:defer:):
+	Initialize dialog_return.
 	(windowShouldClose:): Use stop instead of stopModalWithCode.
 	(clicked:): Ditto, and also set dialog_return (Bug#12258).
 	(timeout_handler:): Use stop instead of abortModal.  Send a dummy
