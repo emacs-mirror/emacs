@@ -1,3 +1,7 @@
+2012-09-26  Juanma Barranquero  <lekktu@gmail.com>
+
+	* window.el (temp-buffer-window-setup): Fix typo in docstring.
+
 2012-09-25  Wilson Snyder  <wsnyder@wsnyder.org>
 
 	* verilog-mode.el (verilog-auto-ascii-enum, verilog-auto-inout)

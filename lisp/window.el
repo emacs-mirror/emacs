@@ -84,7 +84,7 @@ This hook is run by `with-temp-buffer-window' with the buffer
 displayed and current and its window selected.")
 
 (defun temp-buffer-window-setup (buffer-or-name)
-  "Set up temporary buffer specified by BUFFER-OR-NAME 
+  "Set up temporary buffer specified by BUFFER-OR-NAME.
 Return the buffer."
   (let ((old-dir default-directory)
 	(buffer (get-buffer-create buffer-or-name)))
@@ -903,7 +903,7 @@ of all windows on FRAME to nil."
 		     (if right (throw 'reset t) (setq right t)))
 		    ((eq side 'bottom)
 		     (if bottom (throw 'reset t) (setq bottom t)))
-		    (t 
+		    (t
 		     (throw 'reset t))))
 		 frame t))
 	      ;; If there's a side window, there must be at least one
