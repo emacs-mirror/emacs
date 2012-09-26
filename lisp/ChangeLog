@@ -1,3 +1,8 @@
+2012-09-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/testcover.el (testcover-after): Add gv-expander.
+	(testcover-reinstrument): Simplify with CSE.
+
 2012-09-26  Juanma Barranquero  <lekktu@gmail.com>
 
 	* window.el (temp-buffer-window-setup): Fix typo in docstring.
@@ -13,9 +18,9 @@
 	newline.  Reported by Andrew Jones.
 	(verilog-auto-inst) Support expanding $clog2 in AUTOINST.
 	Reported by Brad Dobbie.
-	(verilog-batch-delete-trailing-whitespace): Create
-	verilog-batch-delete-trailing-whitespace.  Reported by Brad
-	Dobbie.
+	(verilog-batch-delete-trailing-whitespace):
+	Create verilog-batch-delete-trailing-whitespace.
+	Reported by Brad Dobbie.
 	(verilog-auto-inout-param): Support AUTOINOUTPARAM for copying
 	parameters from another module.  Reported by Dan Katz.
 	(verilog-auto, verilog-auto-assign-modport)
@@ -105,12 +110,12 @@
 	* ansi-color.el (ansi-color-unfontify-region):
 	* international/latin1-disp.el (latin1-char-displayable-p):
 	* progmodes/cwarn.el (turn-on-cwarn-mode):
-	* progmodes/which-func.el (which-func-update-1): Use
-	define-obsolete-function-alias.
+	* progmodes/which-func.el (which-func-update-1):
+	Use define-obsolete-function-alias.
 
 	* net/newst-backend.el (newsticker-cache-filename):
-	* net/newst-treeview.el (newsticker-groups-filename): Fix
-	incorrect obsolescence declaration.
+	* net/newst-treeview.el (newsticker-groups-filename):
+	Fix incorrect obsolescence declaration.
 
 	* allout.el (allout-passphrase-hint-string): Likewise.
 	(allout-init): Use a declare form to mark obsolete.
@@ -147,8 +152,8 @@
 	Enhancements for triple-quote string syntax.
 	* progmodes/python.el (python-quote-syntax): Remove.
 	(python-syntax-propertize-function): New value.
-	(python-syntax-count-quotes, python-syntax-stringify): New
-	functions.
+	(python-syntax-count-quotes, python-syntax-stringify):
+	New functions.
 
 2012-09-24  Chong Yidong  <cyd@gnu.org>
 
@@ -181,8 +186,8 @@
 	* vc/vc-hooks.el (vc-default-registered): Don't use
 	vc-master-templates.
 
-	* font-lock.el (font-lock-reference-face): Use
-	define-obsolete-variable-alias.
+	* font-lock.el (font-lock-reference-face):
+	Use define-obsolete-variable-alias.
 
 	* generic-x.el (rul-generic-mode): Use font-lock-constant-face.
 	* calendar/calendar.el (calendar-font-lock-keywords):
@@ -213,8 +218,8 @@
 
 2012-09-23  Roland Winkler  <winkler@gnu.org>
 
-	* textmodes/bibtex.el (bibtex-autokey-transcriptions): Transcribe
-	also LaTeX hyphenation.
+	* textmodes/bibtex.el (bibtex-autokey-transcriptions):
+	Transcribe also LaTeX hyphenation.
 	(bibtex-reformat): Bug fix. Do not quote twice the elements of
 	bibtex-reformat-previous-options.
 
@@ -374,8 +379,8 @@
 	(rst-section-tree, rst-section-tree-rec)
 	(rst-section-tree-point): Refactor and document properly.
 	(rst-imenu-find-adornments-for-position)
-	(rst-imenu-convert-cell, rst-imenu-create-index): New
-	function.
+	(rst-imenu-convert-cell, rst-imenu-create-index):
+	New function.
 
 2012-09-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 

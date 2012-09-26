@@ -269,7 +269,7 @@ The return value is the last VAL in the list.
 ;;;###autoload
 (put 'gv-place 'edebug-form-spec 'edebug-match-form)
 ;; CL did the equivalent of:
-;;(gv-define-expand edebug-after (lambda (before index place) place))
+;;(gv-define-macroexpand edebug-after (lambda (before index place) place))
 
 (put 'edebug-after 'gv-expander
      (lambda (do before index place)
