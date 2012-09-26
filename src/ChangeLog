@@ -8,7 +8,7 @@
 	They avoid a race if the timer is too close to the current time.
 	* atimer.c (alarm_timer, alarm_timer_ok) [SIGEV_SIGNAL]: New static vars.
 	(set_alarm) [SIGEV_SIGNAL]: Use POSIX timers if available.
-	(init_atimer) [SIGEV_SIGAL]: Initialize them.
+	(init_atimer) [SIGEV_SIGNAL]: Initialize them.
 
 2012-09-25  Eli Zaretskii  <eliz@gnu.org>
 
