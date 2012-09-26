@@ -1,3 +1,28 @@
+2012-09-25  Wilson Snyder  <wsnyder@wsnyder.org>
+
+	* verilog-mode.el (verilog-auto-ascii-enum, verilog-auto-inout)
+	(verilog-auto-input, verilog-auto-insert-lisp)
+	(verilog-auto-output, verilog-auto-output-every, verilog-auto-reg)
+	(verilog-auto-reg-input, verilog-auto-tieoff, verilog-auto-undef)
+	(verilog-auto-unused, verilog-auto-wire)
+	(verilog-forward-or-insert-line): Fix AUTOs with no trailing
+	newline.  Reported by Andrew Jones.
+	(verilog-auto-inst) Support expanding $clog2 in AUTOINST.
+	Reported by Brad Dobbie.
+	(verilog-batch-delete-trailing-whitespace): Create
+	verilog-batch-delete-trailing-whitespace.  Reported by Brad
+	Dobbie.
+	(verilog-auto-inout-param): Support AUTOINOUTPARAM for copying
+	parameters from another module.  Reported by Dan Katz.
+	(verilog-auto, verilog-auto-assign-modport)
+	(verilog-auto-inout-modport): Add AUTOASSIGNMODPORT and
+	AUTOINOUTMODPORT for UVM interface module shell generation.
+	Reported by Brad Dobbie.
+	(verilog-auto-inst-interfaced-ports): Make default nil, as more
+	standard behavior.
+	(verilog-auto): Fix AUTO parameters with parenthesis arguments.
+	Reported by Matt Martin.
+
 2012-09-25  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (window--resize-child-windows): When resizing child
