@@ -136,6 +136,8 @@ record_backtrace (log_t *log, size_t count)
   ptrdiff_t asize;
 
   if (!INTEGERP (log->next_free))
+    /* FIXME: transfer the evicted counts to a special entry rather
+       than dropping them on the floor.  */
     evict_lower_half (log);
   index = XINT (log->next_free);
 
@@ -145,6 +147,7 @@ record_backtrace (log_t *log, size_t count)
 
   /* Copy the backtrace contents into working memory.  */
   for (; i < asize && backlist; i++, backlist = backlist->next)
+    /* FIXME: For closures we should ignore the environment.  */
     ASET (backtrace, i, *backlist->function);
 
   /* Make sure that unused space of working memory is filled with nil.  */
@@ -172,7 +175,18 @@ record_backtrace (log_t *log, size_t count)
 
 	/* FIXME: If the hash-table is almost full, we should set
 	   some global flag so that some Elisp code can offload its
-	   data elsewhere, so as to avoid the eviction code.  */
+	   data elsewhere, so as to avoid the eviction code.
+	   There are 2 ways to do that, AFAICT:
+	   - Set a flag checked in QUIT, such that QUIT can then call
+	     Fprofiler_cpu_log and stash the full log for later use.
+	   - Set a flag check in post-gc-hook, so that Elisp code can call
+	     profiler-cpu-log.  That gives us more flexibility since that
+	     Elisp code can then do all kinds of fun stuff like write
+	     the log to disk.  Or turn it right away into a call tree.
+	   Of course, using Elisp is generally preferable, but it may
+	   take longer until we get a chance to run the Elisp code, so
+	   there's more risk that the table will get full before we
+	   get there.  */
       }
   }
 }
