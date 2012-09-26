@@ -1,3 +1,10 @@
+2012-09-26  Juanma Barranquero  <lekktu@gmail.com>
+
+	* international/uni-bidi.el:
+	* international/uni-category.el:
+	* international/uni-name.el:
+	* international/uni-numeric.el: Regenerate.
+
 2012-09-26  Tomohiro Matsuyama  <tomo@cx4a.org>
             Stefan Monnier  <monnier@iro.umontreal.ca>
 
