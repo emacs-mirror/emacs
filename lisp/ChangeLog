@@ -9752,7 +9752,7 @@
 	Declare as obsolete.
 	(ns-get-pasteboard, ns-paste-secondary):
 	Use ns-get-selection-internal.
-	(ns-set-pasteboard,  ns-copy-including-secondary):
+	(ns-set-pasteboard, ns-copy-including-secondary):
 	Use ns-store-selection-internal.
 
 2011-12-17  Chong Yidong  <cyd@gnu.org>
