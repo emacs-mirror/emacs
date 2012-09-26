@@ -257,19 +257,20 @@ See also `profiler-log-size' and `profiler-max-stack-depth'.  */)
   timer.it_value = timer.it_interval;
   setitimer (ITIMER_PROF, &timer, 0);
 
-  profiler_cpu_running = 1;
+  profiler_cpu_running = true;
 
   return Qt;
 }
 
 DEFUN ("profiler-cpu-stop", Fprofiler_cpu_stop, Sprofiler_cpu_stop,
        0, 0, 0,
-       doc: /* Stop the cpu profiler.  The profiler log is not affected.  */)
+       doc: /* Stop the cpu profiler.  The profiler log is not affected.
+Return non-nil if the profiler was running.  */)
   (void)
 {
   if (!profiler_cpu_running)
-    error ("Sample profiler is not running");
-  profiler_cpu_running = 0;
+    return Qnil;
+  profiler_cpu_running = false;
 
   setitimer (ITIMER_PROF, 0, 0);
 
@@ -332,7 +333,7 @@ See also `profiler-log-size' and `profiler-max-stack-depth'.  */)
     memory_log = make_log (profiler_log_size,
 			   profiler_max_stack_depth);
 
-  profiler_memory_running = 1;
+  profiler_memory_running = true;
 
   return Qt;
 }
@@ -340,13 +341,13 @@ See also `profiler-log-size' and `profiler-max-stack-depth'.  */)
 DEFUN ("profiler-memory-stop",
        Fprofiler_memory_stop, Sprofiler_memory_stop,
        0, 0, 0,
-       doc: /* Stop the memory profiler.  The profiler log is not affected.  */)
+       doc: /* Stop the memory profiler.  The profiler log is not affected.
+Return non-nil if the profiler was running.  */)
   (void)
 {
   if (!profiler_memory_running)
-    error ("Memory profiler is not running");
-  profiler_memory_running = 0;
-
+    return Qnil;
+  profiler_memory_running = false;
   return Qt;
 }
 
@@ -403,6 +404,7 @@ to make room for new entries.  */);
   profiler_log_size = 10000;
 
 #ifdef PROFILER_CPU_SUPPORT
+  profiler_cpu_running = false;
   cpu_log = Qnil;
   staticpro (&cpu_log);
   defsubr (&Sprofiler_cpu_start);
@@ -410,6 +412,7 @@ to make room for new entries.  */);
   defsubr (&Sprofiler_cpu_running_p);
   defsubr (&Sprofiler_cpu_log);
 #endif
+  profiler_memory_running = false;
   memory_log = Qnil;
   staticpro (&memory_log);
   defsubr (&Sprofiler_memory_start);

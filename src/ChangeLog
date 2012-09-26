@@ -1,3 +1,9 @@
+2012-09-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* profiler.c (Fprofiler_cpu_stop, Fprofiler_memory_stop):
+	Return whether the profiler was running, instead of signaling an error
+	if it wasn't.
+
 2012-09-26  Juanma Barranquero  <lekktu@gmail.com>
 
 	* makefile.w32-in (OBJ2, GLOBAL_SOURCES): Add profiler.c.
@@ -106,8 +112,8 @@
 	* w32uniscribe.c (uniscribe_shape): Fix producing gstring
 	components for RTL text (Bug#11860).  Adjust X-OFFSET of each
 	non-base glyph for the width of the base character, according to
-	what x_draw_composite_glyph_string_foreground expects.  Generate
-	WADJUST value according to composition_gstring_width's
+	what x_draw_composite_glyph_string_foreground expects.
+	Generate WADJUST value according to composition_gstring_width's
 	expectations, to produce correct width of the composed character.
 	Reverse the sign of the DU offset produced by ScriptPlace.
 

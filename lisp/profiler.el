@@ -574,9 +574,10 @@ MODE can be one of `cpu', `mem', or `cpu+mem'.
 If MODE is `cpu' or `cpu+mem', time-based profiler will be started.
 Also, if MODE is `mem' or `cpu+mem', then memory profiler will be started."
   (interactive
-   (list (intern (completing-read "Mode (default cpu): "
-                                  '("cpu" "mem" "cpu+mem")
-				  nil t nil nil "cpu"))))
+   (list (if (not (fboundp 'profiler-cpu-start)) 'mem
+           (intern (completing-read "Mode (default cpu): "
+                                    '("cpu" "mem" "cpu+mem")
+                                    nil t nil nil "cpu")))))
   (cl-ecase mode
     (cpu
      (profiler-cpu-start profiler-sample-interval)
@@ -592,30 +593,24 @@ Also, if MODE is `mem' or `cpu+mem', then memory profiler will be started."
 (defun profiler-stop ()
   "Stop started profilers.  Profiler logs will be kept."
   (interactive)
-  (cond
-   ((and (profiler-cpu-running-p)
-	 (profiler-memory-running-p))
-    (profiler-cpu-stop)
-    (profiler-memory-stop)
-    (message "CPU and memory profiler stopped"))
-   ((profiler-cpu-running-p)
-    (profiler-cpu-stop)
-    (message "CPU profiler stopped"))
-   ((profiler-memory-running-p)
-    (profiler-memory-stop)
-    (message "Memory profiler stopped"))
-   (t
-    (error "No profilers started"))))
+  (let ((cpu (if (fboundp 'profiler-cpu-stop) (profiler-cpu-stop)))
+        (mem (profiler-memory-stop)))
+    (message "%s profiler stopped"
+             (cond ((and mem cpu) "CPU and memory")
+                   (mem "Memory")
+                   (cpu "CPU")
+                   (t "No")))))
 
 (defun profiler-reset ()
   "Reset profiler log."
   (interactive)
-  (ignore (profiler-cpu-log))
+  (when (fboundp 'profiler-cpu-log)
+    (ignore (profiler-cpu-log)))
   (ignore (profiler-memory-log))
   t)
 
 (defun profiler--report-cpu ()
-  (let ((log (profiler-cpu-log)))
+  (let ((log (if (fboundp 'profiler-cpu-log) (profiler-cpu-log))))
     (when log
       (puthash 'type 'cpu log)
       (puthash 'timestamp (current-time) log)

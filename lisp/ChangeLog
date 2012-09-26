@@ -1,3 +1,11 @@
+2012-09-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* profiler.el (profiler-start): Don't prompt for choice when there
+	isn't any.
+	(profiler-stop): Use new semantics of profiler-*-stop.
+	(profiler-reset, profiler--report-cpu): Don't signal an error if the
+	cpu profiler is not available.
+
 2012-09-24  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* profiler.el (profiler-sample-interval): Move before first use.
