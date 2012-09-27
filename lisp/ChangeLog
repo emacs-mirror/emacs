@@ -1,3 +1,8 @@
+2012-09-27  Glenn Morris  <rgm@gnu.org>
+
+	* vc/vc.el (vc-next-action): Only gripe about committing read-only
+	files for RCS and SCCS.  (Bug#9781)
+
 2012-09-27  Chong Yidong  <cyd@gnu.org>
 
 	* progmodes/verilog-mode.el (verilog-mode-release-emacs): Fix last

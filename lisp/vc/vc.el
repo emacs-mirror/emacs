@@ -1105,24 +1105,27 @@ For old-style locking-based version control systems, like RCS:
      ;; Files have local changes
      ((vc-compatible-state state 'edited)
       (let ((ready-for-commit files))
-	;; If files are edited but read-only, give user a chance to correct.
-	(dolist (file files)
-	  ;; If committing a mix of removed and edited files, the
-	  ;; fileset has state = 'edited.  Rather than checking the
-	  ;; state of each individual file in the fileset, it seems
-	  ;; simplest to just check if the file exists.	 Bug#9781.
-	  (when (and (file-exists-p file) (not (file-writable-p file)))
-	    ;; Make the file+buffer read-write.
-	    (unless (y-or-n-p (format "%s is edited but read-only; make it writable and continue? " file))
-	      (error "Aborted"))
-            ;; Maybe we somehow lost permissions on the directory.
-            (condition-case nil
-                (set-file-modes file (logior (file-modes file) 128))
-              (error (error "Unable to make file writable")))
-	    (let ((visited (get-file-buffer file)))
-	      (when visited
-		(with-current-buffer visited
-		  (read-only-mode -1))))))
+	;; CVS, SVN and bzr don't care about read-only (bug#9781).
+	;; RCS does, SCCS might (someone should check...).
+	(when (memq backend '(RCS SCCS))
+	  ;; If files are edited but read-only, give user a chance to correct.
+	  (dolist (file files)
+	    ;; If committing a mix of removed and edited files, the
+	    ;; fileset has state = 'edited.  Rather than checking the
+	    ;; state of each individual file in the fileset, it seems
+	    ;; simplest to just check if the file exists.	 Bug#9781.
+	    (when (and (file-exists-p file) (not (file-writable-p file)))
+	      ;; Make the file+buffer read-write.
+	      (unless (y-or-n-p (format "%s is edited but read-only; make it writable and continue? " file))
+		(error "Aborted"))
+	      ;; Maybe we somehow lost permissions on the directory.
+	      (condition-case nil
+		  (set-file-modes file (logior (file-modes file) 128))
+		(error (error "Unable to make file writable")))
+	      (let ((visited (get-file-buffer file)))
+		(when visited
+		  (with-current-buffer visited
+		    (read-only-mode -1)))))))
 	;; Allow user to revert files with no changes
 	(save-excursion
           (dolist (file files)
