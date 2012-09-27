@@ -104,7 +104,6 @@
 
 (eval-when-compile
   (require 'imenu)
-  (require 'outline)
   (require 'dabbrev)
   (require 'add-log))
 
@@ -543,6 +542,9 @@ Uses variables `tcl-proc-regexp' and `tcl-keyword-list'."
 ;;
 ;; The mode itself.
 ;;
+
+(defvar outline-regexp)
+(defvar outline-level)
 
 ;;;###autoload
 (define-derived-mode tcl-mode prog-mode "Tcl"

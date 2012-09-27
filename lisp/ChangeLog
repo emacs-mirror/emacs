@@ -1,5 +1,7 @@
 2012-09-27  Glenn Morris  <rgm@gnu.org>
 
+	* progmodes/tcl.el: Don't require outline when compiling.
+	(outline-regexp, outline-level): Declare.
 	* textmodes/sgml-mode.el: Don't require outline when compiling.
 	(outline-regexp, outline-heading-end-regexp, outline-level): Declare.
 
