@@ -42,7 +42,7 @@ static struct atimer *atimers;
 
 /* The alarm timer and whether it was properly initialized, if
    POSIX timers are available.  */
-#ifdef SIGEV_SIGNAL
+#ifdef HAVE_TIMER_SETTIME
 static timer_t alarm_timer;
 static bool alarm_timer_ok;
 #endif
@@ -296,7 +296,7 @@ set_alarm (void)
 #endif
       EMACS_TIME now, interval;
 
-#ifdef SIGEV_SIGNAL
+#ifdef HAVE_TIMER_SETTIME
       if (alarm_timer_ok)
 	{
 	  struct itimerspec ispec;
@@ -416,7 +416,7 @@ void
 init_atimer (void)
 {
   struct sigaction action;
-#ifdef SIGEV_SIGNAL
+#ifdef HAVE_TIMER_SETTIME
   struct sigevent sigev;
   sigev.sigev_notify = SIGEV_SIGNAL;
   sigev.sigev_signo = SIGALRM;

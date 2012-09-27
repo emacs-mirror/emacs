@@ -111,6 +111,7 @@ AC_DEFUN([gl_EARLY],
   # Code from module sys_time:
   # Code from module time:
   # Code from module time_r:
+  # Code from module timer-time:
   # Code from module timespec:
   # Code from module timespec-add:
   # Code from module timespec-sub:
@@ -263,6 +264,7 @@ AC_DEFUN([gl_INIT],
     gl_PREREQ_TIME_R
   fi
   gl_TIME_MODULE_INDICATOR([time_r])
+  gl_TIMER_TIME
   gl_TIMESPEC
   gl_UNISTD_H
   gl_UTIMENS
@@ -661,6 +663,7 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/sys_time_h.m4
   m4/time_h.m4
   m4/time_r.m4
+  m4/timer_time.m4
   m4/timespec.m4
   m4/tm_gmtoff.m4
   m4/unistd_h.m4

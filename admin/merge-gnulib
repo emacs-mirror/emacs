@@ -34,7 +34,7 @@ GNULIB_MODULES='
   manywarnings mktime pselect pthread_sigmask readlink
   socklen stat-time stdalign stdarg stdbool stdio
   strftime strtoimax strtoumax symlink sys_stat
-  sys_time time timespec-add timespec-sub utimens
+  sys_time time timer-time timespec-add timespec-sub utimens
   warnings
 '
 

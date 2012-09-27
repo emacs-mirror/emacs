@@ -1,3 +1,10 @@
+2012-09-27  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Check more robustly for timer_settime.
+	* atimer.c (alarm_timer, alarm_timer_ok, set_alarm, init_atimer):
+	Use HAVE_TIMER_SETTIME, not SIGEV_SIGNAL, to decide whether to
+	call timer_settime.
+
 2012-09-26  Tomohiro Matsuyama  <tomo@cx4a.org>
 
 	* profiler.c (Fprofiler_cpu_start): Remove unnecessary flag SA_SIGINFO.

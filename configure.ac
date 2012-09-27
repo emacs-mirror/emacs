@@ -571,6 +571,9 @@ else
   test "x$NON_GCC_TEST_OPTIONS" != x && CC="$CC $NON_GCC_TEST_OPTIONS"
 fi
 
+# Avoid gnulib's threadlib module, as we do threads our own way.
+AC_DEFUN([gl_THREADLIB])
+
 # Initialize gnulib right after choosing the compiler.
 gl_EARLY
 
