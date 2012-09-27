@@ -315,7 +315,7 @@ representation will be parsed correctly."
      (control-char
       (format "\\%c" control-char))
      ;; ASCIIish printable character.
-     ((and (> char 31) (< char 128))
+     ((and (> char 31) (< char 127))
       (format "%c" char))
      ;; Fallback: UCS code point in \uNNNN form.
      (t
