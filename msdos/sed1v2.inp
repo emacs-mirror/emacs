@@ -106,6 +106,7 @@ s/\.h\.in/.h-in/
 /^LIBSELINUX_LIBS *=/s/@LIBSELINUX_LIBS@//
 /^LIB_PTHREAD_SIGMASK *=/s/@[^@\n]*@//
 /^LIB_CLOCK_GETTIME *=/s/@[^@\n]*@//g
+/^LIB_TIMER_TIME *=/s/@[^@\n]*@//g
 /^LIBGNUTLS_LIBS *=/s/@[^@\n]*@//
 /^LIBGNUTLS_CFLAGS *=/s/@[^@\n]*@//
 /^GETLOADAVG_LIBS *=/s/@[^@\n]*@//

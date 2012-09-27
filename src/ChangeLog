@@ -1,6 +1,8 @@
 2012-09-27  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Check more robustly for timer_settime.
+	* Makefile.in (LIB_TIMER_TIME): New macro.
+	(LIBES): Add it.
 	* atimer.c (alarm_timer, alarm_timer_ok, set_alarm, init_atimer):
 	Use HAVE_TIMER_SETTIME, not SIGEV_SIGNAL, to decide whether to
 	call timer_settime.
