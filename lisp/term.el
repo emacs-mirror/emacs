@@ -994,7 +994,10 @@ is buffer-local."
   (setq term-ansi-current-reverse nil)
   (setq term-ansi-current-color 0)
   (setq term-ansi-current-invisible nil)
-  (setq term-ansi-face-already-done t)
+  ;; Stefan thought this should be t, but could not remember why.
+  ;; Setting it to t seems to cause bug#11785.  Setting it to nil
+  ;; again to see if there are other consequences...
+  (setq term-ansi-face-already-done nil)
   (setq term-ansi-current-bg-color 0))
 
 (define-derived-mode term-mode fundamental-mode "Term"
