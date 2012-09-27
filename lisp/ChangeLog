@@ -1,5 +1,17 @@
 2012-09-27  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* image-mode.el: Use lexical-binding.
+	(image-mode-winprops): Use t to stand for the window of
+	a buffer that's not displayed.
+	* doc-view.el (doc-view-new-window-function): Handle the new
+	t in winprops.
+	(doc-view-enlarge): Make it a real nop if the size is not changed.
+	(doc-view-display): Handle the case where the buffer is not (yet?)
+	displayed in any window.
+	(doc-view-saved-settings): New var.
+	(doc-view-mode): Use it.
+	(doc-view-fallback-mode): Set it.
+
 	* minibuf-eldef.el: Make it possible to replace (default ...) with [...].
 	Set lexical-binding.
 	(minibuffer-eldef-shorten-default): New var.

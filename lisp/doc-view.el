@@ -255,20 +255,23 @@ of the page moves to the previous page."
 ;;;; Internal Variables
 
 (defun doc-view-new-window-function (winprops)
+  ;; (message "New window %s for buf %s" (car winprops) (current-buffer))
+  (cl-assert (or (eq t (car winprops))
+                 (eq (window-buffer (car winprops)) (current-buffer))))
   (let ((ol (image-mode-window-get 'overlay winprops)))
-    (when (and ol (not (overlay-buffer ol)))
-      ;; I've seen `ol' be a dead overlay.  I do not yet know how this
-      ;; happened, so maybe the bug is elsewhere, but in the mean time,
-      ;; this seems like a safe approach.
-      (setq ol nil))
     (if ol
         (progn
-          (cl-assert (eq (overlay-buffer ol) (current-buffer)))
-          (setq ol (copy-overlay ol)))
-      (cl-assert (not (get-char-property (point-min) 'display)))
+          (setq ol (copy-overlay ol))
+          ;; `ol' might actually be dead.
+          (move-overlay ol (point-min) (point-max)))
       (setq ol (make-overlay (point-min) (point-max) nil t))
       (overlay-put ol 'doc-view t))
     (overlay-put ol 'window (car winprops))
+    (unless (windowp (car winprops))
+      ;; It's a pseudo entry.  Let's make sure it's not displayed (the
+      ;; `window' property is only effective if its value is a window).
+      (cl-assert (eq t (car winprops)))
+      (delete-overlay ol))
     (image-mode-window-put 'overlay ol winprops)))
 
 (defvar doc-view-current-files nil
@@ -560,7 +563,8 @@ at the top edge of the page moves to the previous page."
   "Kill the current converter process(es)."
   (interactive)
   (while (consp doc-view-current-converter-processes)
-    (ignore-errors ;; Maybe it's dead already?
+    (ignore-errors ;; Some entries might not be processes, and maybe
+		   ;; some are dead already?
       (kill-process (pop doc-view-current-converter-processes))))
   (when doc-view-current-timer
     (cancel-timer doc-view-current-timer)
@@ -663,19 +667,21 @@ OpenDocument format)."
 (defvar doc-view-shrink-factor 1.125)
 
 (defun doc-view-enlarge (factor)
-  "Enlarge the document."
+  "Enlarge the document by FACTOR."
   (interactive (list doc-view-shrink-factor))
   (if (eq (plist-get (cdr (doc-view-current-image)) :type)
 	  'imagemagick)
-      ;; ImageMagick supports on-the-fly-rescaling
-      (progn
-	(set (make-local-variable 'doc-view-image-width)
-	     (ceiling (* factor doc-view-image-width)))
-	(doc-view-insert-image (plist-get (cdr (doc-view-current-image)) :file)
-			       :width doc-view-image-width))
-    (set (make-local-variable 'doc-view-resolution)
-	 (ceiling (* factor doc-view-resolution)))
-    (doc-view-reconvert-doc)))
+      ;; ImageMagick supports on-the-fly-rescaling.
+      (let ((new (ceiling (* factor doc-view-image-width))))
+        (unless (equal new doc-view-image-width)
+          (set (make-local-variable 'doc-view-image-width) new)
+          (doc-view-insert-image
+           (plist-get (cdr (doc-view-current-image)) :file)
+           :width doc-view-image-width)))
+    (let ((new (ceiling (* factor doc-view-resolution))))
+      (unless (equal new doc-view-resolution)
+        (set (make-local-variable 'doc-view-resolution) new)
+        (doc-view-reconvert-doc)))))
 
 (defun doc-view-shrink (factor)
   "Shrink the document."
@@ -743,12 +749,14 @@ min {(window-width / image-width), (window-height / image-height)} times."
               (img-height (cdr (image-display-size
                                 (image-get-display-property) t))))
           (doc-view-enlarge (min (/ (float win-width) (float img-width))
-                                 (/ (float (- win-height 1)) (float img-height)))))
+                                 (/ (float (- win-height 1))
+                                    (float img-height)))))
       ;; If slice is set
       (let* ((slice-width (nth 2 slice))
              (slice-height (nth 3 slice))
              (scale-factor (min (/ (float win-width) (float slice-width))
-                                (/ (float (- win-height 1)) (float slice-height))))
+                                (/ (float (- win-height 1))
+                                   (float slice-height))))
              (new-slice (mapcar (lambda (x) (ceiling (* scale-factor x))) slice)))
         (doc-view-enlarge scale-factor)
         (setf (doc-view-current-slice) new-slice)
@@ -762,6 +770,7 @@ Should be invoked when the cached images aren't up-to-date."
   ;; Clear the old cached files
   (when (file-exists-p (doc-view-current-cache-dir))
     (delete-directory (doc-view-current-cache-dir) 'recursive))
+  (kill-local-variable 'doc-view-last-page-number)
   (doc-view-initiate-display))
 
 (defun doc-view-sentinel (proc event)
@@ -1169,24 +1178,23 @@ Predicate for sorting `doc-view-current-files'."
 If FORCE is non-nil, start viewing even if the document does not
 have the page we want to view."
   (with-current-buffer buffer
-    (let ((prev-pages doc-view-current-files)
-	  (windows (get-buffer-window-list buffer nil t)))
+    (let ((prev-pages doc-view-current-files))
       (setq doc-view-current-files
             (sort (directory-files (doc-view-current-cache-dir) t
                                    "page-[0-9]+\\.png" t)
                   'doc-view-sort))
-      (unless windows
-	(switch-to-buffer buffer)
-	(setq windows (get-buffer-window-list buffer nil t)))
-      (dolist (win windows)
+      (dolist (win (or (get-buffer-window-list buffer nil t)
+		       (list t)))
 	(let* ((page (doc-view-current-page win))
 	       (pagefile (expand-file-name (format "page-%d.png" page)
 					   (doc-view-current-cache-dir))))
 	  (when (or force
 		    (and (not (member pagefile prev-pages))
 			 (member pagefile doc-view-current-files)))
-	    (with-selected-window win
-	      (cl-assert (eq (current-buffer) buffer) t)
+	    (if (windowp win)
+		(with-selected-window win
+		  (cl-assert (eq (current-buffer) buffer) t)
+		  (doc-view-goto-page page))
 	      (doc-view-goto-page page))))))))
 
 (defun doc-view-buffer-message ()
@@ -1230,6 +1238,10 @@ For now these keys are useful:
 	(doc-view-doc->txt txt 'doc-view-open-text)))))
 
 ;;;;; Toggle between editing and viewing
+
+(defvar-local doc-view-saved-settings nil
+  "Doc-view settings saved while in some other mode.")
+(put 'doc-view-saved-settings 'permanent-local t)
 
 (defun doc-view-toggle-display ()
   "Toggle between editing a document as text or viewing it."
@@ -1483,13 +1495,16 @@ toggle between displaying the document or editing it as text.
       ;; returns nil for tar members.
       (doc-view-fallback-mode)
 
-    (let* ((prev-major-mode (if (eq major-mode 'doc-view-mode)
+    (let* ((prev-major-mode (if (derived-mode-p 'doc-view-mode)
 				doc-view-previous-major-mode
-			      (when (not (memq major-mode
-					       '(doc-view-mode fundamental-mode)))
+			      (unless (eq major-mode 'fundamental-mode)
 				major-mode))))
       (kill-all-local-variables)
-      (set (make-local-variable 'doc-view-previous-major-mode) prev-major-mode))
+      (set (make-local-variable 'doc-view-previous-major-mode)
+           prev-major-mode))
+
+    (dolist (var doc-view-saved-settings)
+      (set (make-local-variable (car var)) (cdr var)))
 
     ;; Figure out the document type.
     (unless doc-view-doc-type
@@ -1563,13 +1578,20 @@ toggle between displaying the document or editing it as text.
 
 (defun doc-view-fallback-mode ()
   "Fallback to the previous or next best major mode."
-  (if doc-view-previous-major-mode
-      (funcall doc-view-previous-major-mode)
-    (let ((auto-mode-alist (rassq-delete-all
-			    'doc-view-mode-maybe
-			    (rassq-delete-all 'doc-view-mode
-					      (copy-alist auto-mode-alist)))))
-      (normal-mode))))
+  (let ((vars (if (derived-mode-p 'doc-view-mode)
+                  (mapcar (lambda (var) (cons var (symbol-value var)))
+                          '(doc-view-resolution
+                            image-mode-winprops-alist)))))
+    (if doc-view-previous-major-mode
+        (funcall doc-view-previous-major-mode)
+      (let ((auto-mode-alist
+             (rassq-delete-all
+              'doc-view-mode-maybe
+              (rassq-delete-all 'doc-view-mode
+                                (copy-alist auto-mode-alist)))))
+        (normal-mode)))
+    (when vars
+      (setq-local doc-view-saved-settings vars))))
 
 ;;;###autoload
 (defun doc-view-mode-maybe ()
