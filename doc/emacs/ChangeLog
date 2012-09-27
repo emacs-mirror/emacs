@@ -1,3 +1,9 @@
+2012-09-27  Glenn Morris  <rgm@gnu.org>
+
+	* cal-xtra.texi (Advanced Calendar/Diary Usage):
+	Rename the section to be more general.
+	* emacs.texi: Update menu.
+
 2012-09-23  Chong Yidong  <cyd@gnu.org>
 
 	* buffers.texi (Misc Buffer): Replace toggle-read-only with

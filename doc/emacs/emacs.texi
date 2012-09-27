@@ -953,7 +953,7 @@ The Diary
 * Special Diary Entries::  Anniversaries, blocks of dates, cyclic entries, etc.
 
 @ifnottex
-Customizing the Calendar and Diary
+More advanced features of the Calendar and Diary
 
 * Calendar Customizing::   Calendar layout and hooks.
 * Holiday Customizing::    Defining your own holidays.
