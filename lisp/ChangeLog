@@ -1,5 +1,7 @@
 2012-09-27  Glenn Morris  <rgm@gnu.org>
 
+	* faces.el (x-display-name): Declare (for without-x builds).
+
 	* linum.el (linum-format): Don't autoload it.  Improve :type.
 
 	* progmodes/tcl.el: Don't require outline when compiling.
