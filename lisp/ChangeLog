@@ -1,5 +1,8 @@
 2012-09-27  Glenn Morris  <rgm@gnu.org>
 
+	* textmodes/sgml-mode.el: Don't require outline when compiling.
+	(outline-regexp, outline-heading-end-regexp, outline-level): Declare.
+
 	* term.el (term-ansi-reset):
 	Try setting term-ansi-face-already-done to nil.  (Bug#11785)
 
