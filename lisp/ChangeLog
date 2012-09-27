@@ -1,3 +1,7 @@
+2012-09-27  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* json.el (json-encode-char): Codes 128-160 aren't "ASCII printable".
+
 2012-09-27  Glenn Morris  <rgm@gnu.org>
 
 	* faces.el (x-display-name): Declare (for without-x builds).
