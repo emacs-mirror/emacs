@@ -1,3 +1,11 @@
+2012-09-27  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuf-eldef.el: Make it possible to replace (default ...) with [...].
+	Set lexical-binding.
+	(minibuffer-eldef-shorten-default): New var.
+	(minibuffer-default-in-prompt-regexps): Use it for new default.
+	(minibuf-eldef-setup-minibuffer): Add replacement functionality.
+
 2012-09-26  Juanma Barranquero  <lekktu@gmail.com>
 
 	* international/uni-bidi.el:

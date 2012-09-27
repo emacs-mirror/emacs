@@ -86,6 +86,9 @@ been adding them there, put them somewhere else, eg site-lisp.
 
 * Changes in Emacs 24.3
 
+** minibuffer-electric-default-mode can rewrite (default ...) to [...].
+Just set minibuffer-eldef-shorten-default to t before enabling the mode.
+
 ** Most y-or-n prompts now allow you to scroll the selected window.
 Typing C-v or M-v at a y-or-n prompt scrolls forward or backward
 respectively, without exiting from the prompt.
