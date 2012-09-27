@@ -1097,7 +1097,7 @@ shown are hard-coded to 8-12, 13-17."
       (cal-tex-longday "leftday" "2.75in"))
     (cal-tex-b-document)
     (cal-tex-cmd "\\pagestyle" "empty")
-    ;; Let's assume this is something to with twopage documents.
+    ;; Let's assume this is something to do with twopage documents.
     ;; It has the downside that we start with a blank page.
     ;; It doesn't make obvious sense when oddside and evenside margins
     ;; are the same (non-filofax), but consider the left and right
