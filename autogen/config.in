@@ -958,6 +958,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the tiff library (-ltiff). */
 #undef HAVE_TIFF
 
+/* Define to 1 if you have the `timer_settime' function. */
+#undef HAVE_TIMER_SETTIME
+
 /* Define if struct tm has the tm_gmtoff member. */
 #undef HAVE_TM_GMTOFF
 
