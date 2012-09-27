@@ -127,7 +127,7 @@
   "Version of this Verilog mode.")
 (defconst verilog-mode-release-date (substring "$$Date: 2012-09-17 20:43:10 -0400 (Mon, 17 Sep 2012) $$" 8 -3)
   "Release date of this Verilog mode.")
-(defconst verilog-mode-release-emacs nil
+(defconst verilog-mode-release-emacs t
   "If non-nil, this version of Verilog mode was released with Emacs itself.")
 
 (defun verilog-version ()

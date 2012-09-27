@@ -1,3 +1,13 @@
+2012-09-27  Chong Yidong  <cyd@gnu.org>
+
+	* progmodes/verilog-mode.el (verilog-mode-release-emacs): Fix last
+	change; value should be t.
+
+2012-09-27  Ivan Andrus  <darthandrus@gmail.com>
+
+	* emacs-lisp/package.el (package-delete): Don't signal an error if
+	the package directory is missing (Bug#12524).
+
 2012-09-27  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* image-mode.el: Use lexical-binding.
