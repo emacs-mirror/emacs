@@ -1,5 +1,7 @@
 2012-09-27  Glenn Morris  <rgm@gnu.org>
 
+	* linum.el (linum-format): Don't autoload it.  Improve :type.
+
 	* progmodes/tcl.el: Don't require outline when compiling.
 	(outline-regexp, outline-level): Declare.
 	* textmodes/sgml-mode.el: Don't require outline when compiling.
