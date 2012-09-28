@@ -1,5 +1,8 @@
 2012-09-28  Leo Liu  <sdl.web@gmail.com>
 
+	* pcomplete.el (pcomplete-show-completions): Use
+	minibuffer-message to make pcomplete usable in minibuffer.
+
 	* ido.el (ido-set-matches-1): Fix 2012-09-11 change.
 
 2012-09-16  Leo Liu  <sdl.web@gmail.com>

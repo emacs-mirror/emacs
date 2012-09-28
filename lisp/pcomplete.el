@@ -1139,7 +1139,7 @@ Typing SPC flushes the help buffer."
     (setq pcomplete-last-window-config (current-window-configuration)))
   (with-output-to-temp-buffer "*Completions*"
     (display-completion-list completions))
-  (message "Hit space to flush")
+  (minibuffer-message "Hit space to flush")
   (let (event)
     (prog1
         (catch 'done
