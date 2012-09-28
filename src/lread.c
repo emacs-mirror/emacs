@@ -784,6 +784,8 @@ lisp_file_lexically_bound_p (Lisp_Object readcharfun)
       while (ch != '\n' && ch != EOF)
         ch = READCHAR;
       if (ch == '\n') ch = READCHAR;
+      /* It is OK to leave the position after a #! line, since
+         that is what read1 does.  */
     }
 
   if (ch != ';')
