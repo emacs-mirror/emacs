@@ -1,5 +1,8 @@
 2012-09-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* type-break.el: Use lexical-binding.
+	(type-break-mode): Use define-minor-mode.
+
 	* emacs-lisp/pcase.el (pcase--mark-used): New.
 	(pcase--u1): Use it (bug#12512).
 
