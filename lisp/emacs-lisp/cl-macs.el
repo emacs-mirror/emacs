@@ -2686,7 +2686,6 @@ surrounded by (cl-block NAME ...).
 
 ;; Local variables:
 ;; byte-compile-dynamic: t
-;; byte-compile-warnings: (not cl-functions)
 ;; generated-autoload-file: "cl-loaddefs.el"
 ;; End:
 

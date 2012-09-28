@@ -1,3 +1,8 @@
+2012-09-28  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/bytecomp.el (byte-compile-cl-file-p):
+	Only "cl.el" counts as cl these days.
+
 2012-09-28  Juri Linkov  <juri@jurta.org>
 
 	Display archive errors in the echo area instead of inserting
