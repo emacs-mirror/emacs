@@ -1,5 +1,7 @@
 2012-09-28  Glenn Morris  <rgm@gnu.org>
 
+	* emacs-lisp/cl.el (flet): Fix case of obsolescence message.
+
 	* emacs-lisp/bytecomp.el (byte-compile-cl-file-p):
 	Only "cl.el" counts as cl these days.
 
