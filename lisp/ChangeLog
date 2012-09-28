@@ -1,3 +1,11 @@
+2012-09-28  Glenn Morris  <rgm@gnu.org>
+
+	* type-break.el (type-break-mode, type-break-interval)
+	(type-break-good-rest-interval, type-break-keystroke-threshold):
+	No need to autoload.
+	(type-break-good-rest-interval, type-break-keystroke-threshold):
+	Add :set-after.
+
 2012-09-28  Chong Yidong  <cyd@gnu.org>
 
 	* progmodes/verilog-mode.el (verilog-auto-inst-interfaced-ports):

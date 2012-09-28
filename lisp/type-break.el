@@ -69,7 +69,6 @@
   :prefix "type-break"
   :group 'keyboard)
 
-;;;###autoload
 (defcustom type-break-mode nil
   "Toggle typing break mode.
 See the docstring for the `type-break-mode' command for more information.
@@ -82,13 +81,11 @@ use either \\[customize] or the function `type-break-mode'."
   :group 'type-break
   :require 'type-break)
 
-;;;###autoload
 (defcustom type-break-interval (* 60 60)
   "Number of seconds between scheduled typing breaks."
   :type 'integer
   :group 'type-break)
 
-;;;###autoload
 (defcustom type-break-good-rest-interval (/ type-break-interval 6)
   "Number of seconds of idle time considered to be an adequate typing rest.
 
@@ -98,10 +95,10 @@ rest from typing, then the next typing break is simply rescheduled for later.
 
 If a break is interrupted before this much time elapses, the user will be
 asked whether or not really to interrupt the break."
+  :set-after '(type-break-interval)
   :type 'integer
   :group 'type-break)
 
-;;;###autoload
 (defcustom type-break-good-break-interval nil
   "Number of seconds considered to be an adequate explicit typing rest.
 
@@ -112,7 +109,6 @@ break interruptions when `type-break-good-rest-interval' is nil."
   :type 'integer
   :group 'type-break)
 
-;;;###autoload
 (defcustom type-break-keystroke-threshold
   ;; Assuming typing speed is 35wpm (on the average, do you really
   ;; type more than that in a minute?  I spend a lot of time reading mail
@@ -147,6 +143,7 @@ keystroke even though they really require multiple keys to generate them.
 
 The command `type-break-guesstimate-keystroke-threshold' can be used to
 guess a reasonably good pair of values for this variable."
+  :set-after '(type-break-interval)
   :type 'sexp
   :group 'type-break)
 
