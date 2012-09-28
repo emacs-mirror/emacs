@@ -347,7 +347,7 @@ static Lisp_Object Qfontification_functions;
 
 static Lisp_Object Qwrap_prefix;
 static Lisp_Object Qline_prefix;
-static Lisp_Object Qautomatic_redisplay;
+static Lisp_Object Qredisplay_internal;
 
 /* Non-nil means don't actually do any redisplay.  */
 
@@ -12975,8 +12975,8 @@ redisplay_internal (void)
 
   /* Record this function, so it appears on the profiler's backtraces.  */
   backtrace.next = backtrace_list;
-  backtrace.function = &Qautomatic_redisplay;
-  backtrace.args = &Qautomatic_redisplay;
+  backtrace.function = &Qredisplay_internal;
+  backtrace.args = &Qredisplay_internal;
   backtrace.nargs = 0;
   backtrace.debug_on_exit = 0;
   backtrace_list = &backtrace;
@@ -28694,7 +28694,7 @@ syms_of_xdisp (void)
   staticpro (&Vmessage_stack);
 
   DEFSYM (Qinhibit_redisplay, "inhibit-redisplay");
-  DEFSYM (Qautomatic_redisplay, "Automatic Redisplay");
+  DEFSYM (Qredisplay_internal, "redisplay_internal (C function)");
 
   message_dolog_marker1 = Fmake_marker ();
   staticpro (&message_dolog_marker1);

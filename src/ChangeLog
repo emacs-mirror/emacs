@@ -1,3 +1,8 @@
+2012-09-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (syms_of_xdisp) <Qredisplay_internal>: Rename from
+	Qautomatic_redisplay and change the symbol name.  All users changed.
+
 2012-09-28  Tomohiro Matsuyama  <tomo@cx4a.org>
 
 	* profiler.c (sigprof_handler): Fix race condition.
