@@ -1,3 +1,20 @@
+2012-09-28  Juri Linkov  <juri@jurta.org>
+
+	Display archive errors in the echo area instead of inserting
+	to the file buffer.
+
+	* arc-mode.el (archive-extract-by-stdout): Change arg STDERR-FILE
+	to STDERR-TEST that can be a regexp matching a successful output.
+	Create a temporary file and redirect stderr to it.  Search for
+	STDERR-TEST in the stderr output and display it in the echo area
+	if no match is found.
+	(archive-extract-by-file): New function like
+	`archive-extract-by-stdout' but extracting archives to files
+	and looking for successful matches in stdout.  Function body is
+	mostly copied from `archive-rar-extract'.
+	(archive-rar-extract): Use `archive-extract-by-file'.
+	(archive-7z-extract): Use `archive-extract-by-stdout'.  (Bug#10347)
+
 2012-09-28  Leo Liu  <sdl.web@gmail.com>
 
 	* pcomplete.el (pcomplete-show-completions): Use
