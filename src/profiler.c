@@ -24,6 +24,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <signal.h>
 #include <setjmp.h>
 #include "lisp.h"
+#include "syssignal.h"
 
 /* Logs.  */
 
@@ -214,7 +215,7 @@ static int current_sample_interval;
 /* Signal handler for sample profiler.  */
 
 static void
-sigprof_handler (int signal)
+sigprof_handler_1 (int signal)
 {
   eassert (HASH_TABLE_P (cpu_log));
   if (backtrace_list && EQ (*backtrace_list->function, Qautomatic_gc))
@@ -227,6 +228,12 @@ sigprof_handler (int signal)
     cpu_gc_count += current_sample_interval;
   else
     record_backtrace (XHASH_TABLE (cpu_log), current_sample_interval);
+}
+
+static void
+sigprof_handler (int signal)
+{
+  deliver_process_signal (signal, sigprof_handler_1);
 }
 
 DEFUN ("profiler-cpu-start", Fprofiler_cpu_start, Sprofiler_cpu_start,
