@@ -3701,14 +3701,14 @@ This is to make them appear as if they were \"virtual buffers\"."
 	 (rexq (concat rex0 (if slash ".*/" "")))
 	 (re (if ido-enable-prefix (concat "\\`" rexq) rexq))
 	 (full-re (and do-full
-		       (and (eq ido-cur-item 'buffer)
-			    (not ido-buffer-disable-smart-matches))
+		       (not (and (eq ido-cur-item 'buffer)
+				 ido-buffer-disable-smart-matches))
 		       (not ido-enable-regexp)
 		       (not (string-match "\$\\'" rex0))
 		       (concat "\\`" rex0 (if slash "/" "") "\\'")))
 	 (suffix-re (and do-full slash
-			 (and (eq ido-cur-item 'buffer)
-			      (not ido-buffer-disable-smart-matches))
+			 (not (and (eq ido-cur-item 'buffer)
+				   ido-buffer-disable-smart-matches))
 			 (not ido-enable-regexp)
 			 (not (string-match "\$\\'" rex0))
 			 (concat rex0 "/\\'")))

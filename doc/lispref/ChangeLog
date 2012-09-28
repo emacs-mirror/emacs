@@ -1,3 +1,7 @@
+2012-09-28  Leo Liu  <sdl.web@gmail.com>
+
+	* files.texi (Files): Fix typo.
+
 2012-09-23  Chong Yidong  <cyd@gnu.org>
 
 	* buffers.texi (Read Only Buffers): Document read-only-mode.

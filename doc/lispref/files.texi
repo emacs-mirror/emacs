@@ -29,7 +29,7 @@ arguments, except where noted.  @xref{Magic File Names}, for details.
   When file I/O functions signal Lisp errors, they usually use the
 condition @code{file-error} (@pxref{Handling Errors}).  The error
 message is in most cases obtained from the operating system, according
-to locale @code{system-message-locale}, and decoded using coding system
+to locale @code{system-messages-locale}, and decoded using coding system
 @code{locale-coding-system} (@pxref{Locales}).
 
 @menu

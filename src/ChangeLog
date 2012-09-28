@@ -1,3 +1,8 @@
+2012-09-28  Glenn Morris  <rgm@gnu.org>
+
+	* eval.c (Frun_hook_with_args, Frun_hook_with_args_until_success)
+	(Frun_hook_with_args_until_failure): Doc fixes.
+
 2012-09-28  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (syms_of_xdisp) <Qredisplay_internal>: Rename from
