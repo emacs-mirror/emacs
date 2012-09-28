@@ -1,3 +1,8 @@
+2012-09-28  Chong Yidong  <cyd@gnu.org>
+
+	* progmodes/verilog-mode.el (verilog-auto-inst-interfaced-ports):
+	Add :version tag.
+
 2012-09-27  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* json.el (json-encode-char): Codes 127-160 aren't "ASCII printable".

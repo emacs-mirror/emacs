@@ -1130,7 +1130,8 @@ won't merge conflict."
 (defcustom verilog-auto-inst-interfaced-ports nil
   "Non-nil means include interfaced ports in AUTOINST expansions."
   :group 'verilog-mode-auto
-  :type 'boolean)
+  :type 'boolean
+  :version "24.3")
 (put 'verilog-auto-inst-interfaced-ports 'safe-local-variable 'verilog-booleanp)
 
 (defcustom verilog-auto-input-ignore-regexp nil
