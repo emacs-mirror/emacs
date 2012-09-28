@@ -904,6 +904,11 @@ Start by converting PAGES, and then the rest."
                           (list "-raw" pdf txt)
                           callback))
 
+(defun doc-view-current-cache-doc-pdf ()
+  "Return the name of the doc.pdf in the current cache dir.
+  This file exists only if the current document isn't a PDF or PS file already."
+  (expand-file-name "doc.pdf" (doc-view-current-cache-dir)))
+
 (defun doc-view-doc->txt (txt callback)
   "Convert the current document to text and call CALLBACK when done."
   (make-directory (doc-view-current-cache-dir) t)
@@ -914,22 +919,17 @@ Start by converting PAGES, and then the rest."
     (`ps
      ;; Doc is a PS, so convert it to PDF (which will be converted to
      ;; TXT thereafter).
-     (let ((pdf (expand-file-name "doc.pdf"
-				  (doc-view-current-cache-dir))))
+     (let ((pdf (doc-view-current-cache-doc-pdf)))
        (doc-view-ps->pdf doc-view-buffer-file-name pdf
                          (lambda () (doc-view-pdf->txt pdf txt callback)))))
     (`dvi
      ;; Doc is a DVI.  This means that a doc.pdf already exists in its
      ;; cache subdirectory.
-     (doc-view-pdf->txt (expand-file-name "doc.pdf"
-                                          (doc-view-current-cache-dir))
-                        txt callback))
+     (doc-view-pdf->txt (doc-view-current-cache-doc-pdf) txt callback))
     (`odf
      ;; Doc is some ODF (or MS Office) doc.  This means that a doc.pdf
      ;; already exists in its cache subdirectory.
-     (doc-view-pdf->txt (expand-file-name "doc.pdf"
-                                          (doc-view-current-cache-dir))
-                        txt callback))
+     (doc-view-pdf->txt (doc-view-current-cache-doc-pdf) txt callback))
     (_ (error "DocView doesn't know what to do"))))
 
 (defun doc-view-ps->pdf (ps pdf callback)
@@ -969,13 +969,13 @@ Those files are saved in the directory given by the function
       (`dvi
        ;; DVI files have to be converted to PDF before Ghostscript can process
        ;; it.
-       (let ((pdf (expand-file-name "doc.pdf" doc-view-current-cache-dir)))
+       (let ((pdf (doc-view-current-cache-doc-pdf)))
          (doc-view-dvi->pdf doc-view-buffer-file-name pdf
                             (lambda () (doc-view-pdf/ps->png pdf png-file)))))
       (`odf
        ;; ODF files have to be converted to PDF before Ghostscript can
        ;; process it.
-       (let ((pdf (expand-file-name "doc.pdf" doc-view-current-cache-dir))
+       (let ((pdf (doc-view-current-cache-doc-pdf))
              (opdf (expand-file-name (concat (file-name-base doc-view-buffer-file-name)
                                              ".pdf")
                                      doc-view-current-cache-dir))
@@ -1042,12 +1042,15 @@ dragging it to its bottom-right corner.  See also
 (defun doc-view-get-bounding-box ()
   "Get the BoundingBox information of the current page."
   (let* ((page (doc-view-current-page))
+	 (doc (let ((cache-doc (doc-view-current-cache-doc-pdf)))
+		(if (file-exists-p cache-doc)
+		    cache-doc
+		  doc-view-buffer-file-name)))
 	 (o (shell-command-to-string
 	     (concat doc-view-ghostscript-program
 		     " -dSAFER -dBATCH -dNOPAUSE -q -sDEVICE=bbox "
 		     (format "-dFirstPage=%s -dLastPage=%s %s"
-			     page page
-			     doc-view-buffer-file-name)))))
+			     page page doc)))))
     (save-match-data
       (when (string-match (concat "%%BoundingBox: "
 				  "\\([[:digit:]]+\\) \\([[:digit:]]+\\) "

@@ -1,3 +1,10 @@
+2012-09-28  Tassilo Horn  <tsdh@gnu.org>
+
+	* doc-view.el (doc-view-current-cache-doc-pdf): New function.
+	(doc-view-doc->txt, doc-view-convert-current-doc): Use it.
+	(doc-view-get-bounding-box): Make bounding box slicing work for
+	ODF and DVI documents.
+
 2012-09-28  Glenn Morris  <rgm@gnu.org>
 
 	* type-break.el (type-break-mode, type-break-interval)
