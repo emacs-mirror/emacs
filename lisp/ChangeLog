@@ -1,3 +1,11 @@
+2012-09-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/pcase.el (pcase--mark-used): New.
+	(pcase--u1): Use it (bug#12512).
+
+	* custom.el (load-theme): Set buffer-file-name so the load is recorded
+	in load-history with the right file name.
+
 2012-09-28  Tassilo Horn  <tsdh@gnu.org>
 
 	* doc-view.el (doc-view-current-cache-doc-pdf): New function.

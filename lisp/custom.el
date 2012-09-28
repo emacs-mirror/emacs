@@ -1193,7 +1193,8 @@ Return t if THEME was successfully loaded, nil otherwise."
 			    (expand-file-name "themes/" data-directory)))
 		(member hash custom-safe-themes)
 		(custom-theme-load-confirm hash))
-	(let ((custom--inhibit-theme-enable t))
+	(let ((custom--inhibit-theme-enable t)
+              (buffer-file-name fn))    ;For load-history.
 	  (eval-buffer))
 	;; Optimization: if the theme changes the `default' face, put that
 	;; entry first.  This avoids some `frame-set-background-mode' rigmarole
