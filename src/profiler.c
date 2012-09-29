@@ -149,7 +149,7 @@ record_backtrace (log_t *log, size_t count)
   /* Copy the backtrace contents into working memory.  */
   for (; i < asize && backlist; i++, backlist = backlist->next)
     /* FIXME: For closures we should ignore the environment.  */
-    ASET (backtrace, i, *backlist->function);
+    ASET (backtrace, i, backlist->function);
 
   /* Make sure that unused space of working memory is filled with nil.  */
   for (; i < asize; i++)
@@ -218,7 +218,7 @@ static void
 sigprof_handler_1 (int signal)
 {
   eassert (HASH_TABLE_P (cpu_log));
-  if (backtrace_list && EQ (*backtrace_list->function, Qautomatic_gc))
+  if (backtrace_list && EQ (backtrace_list->function, Qautomatic_gc))
     /* Special case the time-count inside GC because the hash-table
        code is not prepared to be used while the GC is running.
        More specifically it uses ASIZE at many places where it does

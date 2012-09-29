@@ -5112,8 +5112,8 @@ See Info node `(elisp)Garbage Collection'.  */)
 
   /* Record this function, so it appears on the profiler's backtraces.  */
   backtrace.next = backtrace_list;
-  backtrace.function = &Qautomatic_gc;
-  backtrace.args = &Qautomatic_gc;
+  backtrace.function = Qautomatic_gc;
+  backtrace.args = &Qnil;
   backtrace.nargs = 0;
   backtrace.debug_on_exit = 0;
   backtrace_list = &backtrace;

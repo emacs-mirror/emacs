@@ -2034,7 +2034,7 @@ extern ptrdiff_t specpdl_size;
 struct backtrace
 {
   struct backtrace *next;
-  Lisp_Object *function;
+  Lisp_Object function;
   Lisp_Object *args;	/* Points to vector of args.  */
   ptrdiff_t nargs;	/* Length of vector.  */
   /* Nonzero means call value of debugger when done with this operation.  */

@@ -552,7 +552,7 @@ interactive_p (void)
 
   /* If this isn't a byte-compiled function, there may be a frame at
      the top for Finteractive_p.  If so, skip it.  */
-  fun = Findirect_function (*btp->function, Qnil);
+  fun = Findirect_function (btp->function, Qnil);
   if (SUBRP (fun) && (XSUBR (fun) == &Sinteractive_p
 		      || XSUBR (fun) == &Scalled_interactively_p))
     btp = btp->next;
@@ -565,7 +565,7 @@ interactive_p (void)
      If this isn't a byte-compiled function, then we may now be
      looking at several frames for special forms.  Skip past them.  */
   while (btp
-	 && (EQ (*btp->function, Qbytecode)
+	 && (EQ (btp->function, Qbytecode)
 	     || btp->nargs == UNEVALLED))
     btp = btp->next;
 
@@ -573,13 +573,13 @@ interactive_p (void)
      a special form, ignoring frames for Finteractive_p and/or
      Fbytecode at the top.  If this frame is for a built-in function
      (such as load or eval-region) return false.  */
-  fun = Findirect_function (*btp->function, Qnil);
+  fun = Findirect_function (btp->function, Qnil);
   if (SUBRP (fun))
     return 0;
 
   /* `btp' points to the frame of a Lisp function that called interactive-p.
      Return t if that function was called interactively.  */
-  if (btp && btp->next && EQ (*btp->next->function, Qcall_interactively))
+  if (btp && btp->next && EQ (btp->next->function, Qcall_interactively))
     return 1;
   return 0;
 }
@@ -1496,10 +1496,10 @@ See also the function `condition-case'.  */)
   if (backtrace_list && !NILP (error_symbol))
     {
       bp = backtrace_list->next;
-      if (bp && bp->function && EQ (*bp->function, Qerror))
+      if (bp && EQ (bp->function, Qerror))
 	bp = bp->next;
-      if (bp && bp->function)
-	Vsignaling_function = *bp->function;
+      if (bp)
+	Vsignaling_function = bp->function;
     }
 
   for (h = handlerlist; h; h = h->next)
@@ -1510,7 +1510,7 @@ See also the function `condition-case'.  */)
     }
 
   if (/* Don't run the debugger for a memory-full error.
-	 (There is no room in memory to do that!) */
+	 (There is no room in memory to do that!)  */
       !NILP (error_symbol)
       && (!NILP (Vdebug_on_signal)
 	  /* If no handler is present now, try to run the debugger.  */
@@ -2045,7 +2045,7 @@ eval_sub (Lisp_Object form)
   original_args = XCDR (form);
 
   backtrace.next = backtrace_list;
-  backtrace.function = &original_fun; /* This also protects them from gc.  */
+  backtrace.function = original_fun; /* This also protects them from gc.  */
   backtrace.args = &original_args;
   backtrace.nargs = UNEVALLED;
   backtrace.debug_on_exit = 0;
@@ -2713,7 +2713,7 @@ usage: (funcall FUNCTION &rest ARGUMENTS)  */)
     }
 
   backtrace.next = backtrace_list;
-  backtrace.function = &args[0];
+  backtrace.function = args[0];
   backtrace.args = &args[1];	/* This also GCPROs them.  */
   backtrace.nargs = nargs - 1;
   backtrace.debug_on_exit = 0;
@@ -3289,12 +3289,12 @@ Output stream used is value of `standard-output'.  */)
       write_string (backlist->debug_on_exit ? "* " : "  ", 2);
       if (backlist->nargs == UNEVALLED)
 	{
-	  Fprin1 (Fcons (*backlist->function, *backlist->args), Qnil);
+	  Fprin1 (Fcons (backlist->function, *backlist->args), Qnil);
 	  write_string ("\n", -1);
 	}
       else
 	{
-	  tem = *backlist->function;
+	  tem = backlist->function;
 	  Fprin1 (tem, Qnil);	/* This can QUIT.  */
 	  write_string ("(", -1);
 	  if (backlist->nargs == MANY)
@@ -3352,7 +3352,7 @@ If NFRAMES is more than the number of frames, the value is nil.  */)
   if (!backlist)
     return Qnil;
   if (backlist->nargs == UNEVALLED)
-    return Fcons (Qnil, Fcons (*backlist->function, *backlist->args));
+    return Fcons (Qnil, Fcons (backlist->function, *backlist->args));
   else
     {
       if (backlist->nargs == MANY) /* FIXME: Can this happen?  */
@@ -3360,7 +3360,7 @@ If NFRAMES is more than the number of frames, the value is nil.  */)
       else
 	tem = Flist (backlist->nargs, backlist->args);
 
-      return Fcons (Qt, Fcons (*backlist->function, tem));
+      return Fcons (Qt, Fcons (backlist->function, tem));
     }
 }
 

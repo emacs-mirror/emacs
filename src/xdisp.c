@@ -12975,8 +12975,8 @@ redisplay_internal (void)
 
   /* Record this function, so it appears on the profiler's backtraces.  */
   backtrace.next = backtrace_list;
-  backtrace.function = &Qredisplay_internal;
-  backtrace.args = &Qredisplay_internal;
+  backtrace.function = Qredisplay_internal;
+  backtrace.args = &Qnil;
   backtrace.nargs = 0;
   backtrace.debug_on_exit = 0;
   backtrace_list = &backtrace;
