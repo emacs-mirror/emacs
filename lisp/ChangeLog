@@ -1,5 +1,10 @@
 2012-09-29  Glenn Morris  <rgm@gnu.org>
 
+	* progmodes/inf-lisp.el (inferior-lisp-filter-regexp)
+	(inferior-lisp-program, inferior-lisp-load-command)
+	(inferior-lisp-prompt, inferior-lisp-mode-hook):
+	Do not autoload defcustoms.
+
 	* hippie-exp.el (hippie-expand-try-functions-list)
 	(hippie-expand-verbose, hippie-expand-dabbrev-skip-space)
 	(hippie-expand-dabbrev-as-symbol, hippie-expand-no-restriction)
