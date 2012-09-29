@@ -1,3 +1,14 @@
+2012-09-29  Glenn Morris  <rgm@gnu.org>
+
+	* hippie-exp.el (hippie-expand-try-functions-list)
+	(hippie-expand-verbose, hippie-expand-dabbrev-skip-space)
+	(hippie-expand-dabbrev-as-symbol, hippie-expand-no-restriction)
+	(hippie-expand-max-buffers, hippie-expand-ignore-buffers)
+	(hippie-expand-only-buffers): Do not autoload defcustoms.
+	* progmodes/vhdl-mode.el (vhdl-line-expand):
+	Explicitly load hippie-exp, so it does not get autoloaded
+	while hippie-expand-try-functions-list is let-bound.
+
 2012-09-28  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/cl.el (flet): Fix case of obsolescence message.

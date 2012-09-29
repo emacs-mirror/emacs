@@ -12522,6 +12522,7 @@ options vhdl-upper-case-{keywords,types,attributes,enum-values}."
 (defun vhdl-line-expand (&optional prefix-arg)
   "Hippie-expand current line."
   (interactive "P")
+  (require 'hippie-exp)
   (let ((case-fold-search t) (case-replace nil)
 	(hippie-expand-try-functions-list
 	 '(try-expand-line try-expand-line-all-buffers)))
