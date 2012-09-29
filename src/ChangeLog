@@ -1,3 +1,7 @@
+2012-09-29  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in ($(BLD)/profiler.$(O)): Update dependencies.
+
 2012-09-29  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* lisp.h (struct backtrace): Remove indirection for `function' field.
