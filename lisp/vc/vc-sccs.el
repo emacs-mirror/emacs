@@ -74,9 +74,8 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
   :version "24.1"     ; no longer consult the obsolete vc-header-alist
   :group 'vc-sccs)
 
-;;;###autoload
 (defcustom vc-sccs-master-templates
-  (purecopy '("%sSCCS/s.%s" "%ss.%s" vc-sccs-search-project-dir))
+  '("%sSCCS/s.%s" "%ss.%s" vc-sccs-search-project-dir)
   "Where to look for SCCS master files.
 For a description of possible values, see `vc-check-master-templates'."
   :type '(choice (const :tag "Use standard SCCS file names"

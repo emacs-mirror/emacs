@@ -1,17 +1,20 @@
 2012-09-29  Glenn Morris  <rgm@gnu.org>
 
-	* help-macro.el (three-step-help): Do not autoload defcustom.
+	* vc/vc-rcs.el (vc-rcs-master-templates):
+	* vc/vc-sccs.el (vc-sccs-master-templates): No need to autoload.
+
+	* help-macro.el (three-step-help): No need to autoload defcustom.
 
 	* progmodes/inf-lisp.el (inferior-lisp-filter-regexp)
 	(inferior-lisp-program, inferior-lisp-load-command)
 	(inferior-lisp-prompt, inferior-lisp-mode-hook):
-	Do not autoload defcustoms.
+	No need to autoload defcustoms.
 
 	* hippie-exp.el (hippie-expand-try-functions-list)
 	(hippie-expand-verbose, hippie-expand-dabbrev-skip-space)
 	(hippie-expand-dabbrev-as-symbol, hippie-expand-no-restriction)
 	(hippie-expand-max-buffers, hippie-expand-ignore-buffers)
-	(hippie-expand-only-buffers): Do not autoload defcustoms.
+	(hippie-expand-only-buffers): No need to autoload defcustoms.
 	* progmodes/vhdl-mode.el (vhdl-line-expand):
 	Explicitly load hippie-exp, so it does not get autoloaded
 	while hippie-expand-try-functions-list is let-bound.
