@@ -568,6 +568,9 @@ in case that is not properly encoded.
 
 ** which-function-mode now applies to all applicable major modes by default.
 
+---
+** winner-mode-hook now runs when the mode is disabled, as well as when it is
+enabled.
 
 ** FIXME something happened to ses.el, 2012-04-17.
 

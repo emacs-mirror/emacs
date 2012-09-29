@@ -1,5 +1,12 @@
 2012-09-29  Glenn Morris  <rgm@gnu.org>
 
+	* winner.el (winner-mode): Remove variable (let define-minor-mode
+	handle it).
+	(winner-dont-bind-my-keys, winner-boring-buffers, winner-mode-hook):
+	Doc fixes.
+	(winner-mode-leave-hook): Rename to winner-mode-off-hook.
+	(winner-mode): Use define-minor-mode.
+
 	* vc/vc-sccs.el (vc-sccs-registered): Use the progn trick to get
 	the full definition in loaddefs, rather than duplicating it.
 
