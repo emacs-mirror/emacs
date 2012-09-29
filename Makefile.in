@@ -281,6 +281,19 @@ all: ${SUBDIR}
 
 .PHONY: all ${SUBDIR} blessmail epaths-force FRC
 
+help::
+	$(info )
+	$(info make all               Compile and build Emacs.)
+	$(info make install           Install Emacs.)
+	$(info make TAGS              Update tags tables.)
+	$(info )
+	$(info make clean             Delete files created by building Emacs.)
+	$(info make distclean         Delete all files created by building or configuring.)
+	$(info make maintainer-clean  Like distclean, but delete more files: *.elc, etc.)
+	$(info make extra-clean       Like maintainer-clean, but delete backups and autosaves.)
+	$(info )
+	$(info make bootstrap         Compile and build from a clean state.)
+
 removenullpaths=sed -e 's/^://g' -e 's/:$$//g' -e 's/::/:/g'
 
 # Generate epaths.h from epaths.in.  This target is invoked by `configure'.

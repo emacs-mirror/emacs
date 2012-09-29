@@ -132,8 +132,8 @@ If a list, it is a list of the types of messages to be logged."
 (defun url-insert-entities-in-string (string)
   "Convert HTML markup-start characters to entity references in STRING.
 Also replaces the \" character, so that the result may be safely used as
-  an attribute value in a tag.  Returns a new string with the result of the
-  conversion.  Replaces these characters as follows:
+an attribute value in a tag.  Returns a new string with the result of the
+conversion.  Replaces these characters as follows:
     &  ==>  &amp;
     <  ==>  &lt;
     >  ==>  &gt;
@@ -294,7 +294,7 @@ Given a QUERY in the form:
   (key2 val2)
   (key3 val1 val2)
   (key4)
-  (key5 ""))
+  (key5 \"\"))
 
 \(This is the same format as produced by `url-parse-query-string')
 
