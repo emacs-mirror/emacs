@@ -107,13 +107,12 @@ For a description of possible values, see `vc-check-master-templates'."
 ;;; State-querying functions
 ;;;
 
-;; The autoload cookie below places vc-sccs-registered directly into
-;; loaddefs.el, so that vc-sccs.el does not need to be loaded for
-;; every file that is visited.  The definition is repeated below
-;; so that Help and etags can find it.
-
-;;;###autoload (defun vc-sccs-registered(f) (vc-default-registered 'SCCS f))
-(defun vc-sccs-registered (f) (vc-default-registered 'SCCS f))
+;; The autoload cookie below places vc-rcs-registered directly into
+;; loaddefs.el, so that vc-rcs.el does not need to be loaded for
+;; every file that is visited.
+;;;###autoload
+(progn
+(defun vc-sccs-registered (f) (vc-default-registered 'SCCS f)))
 
 (defun vc-sccs-state (file)
   "SCCS-specific function to compute the version control state."
