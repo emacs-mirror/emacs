@@ -69,7 +69,6 @@
 
 (require 'backquote)
 
-;;;###autoload
 (defcustom three-step-help nil
   "Non-nil means give more info about Help command in three steps.
 The three steps are simple prompt, prompt with all options, and

@@ -1,5 +1,7 @@
 2012-09-29  Glenn Morris  <rgm@gnu.org>
 
+	* help-macro.el (three-step-help): Do not autoload defcustom.
+
 	* progmodes/inf-lisp.el (inferior-lisp-filter-regexp)
 	(inferior-lisp-program, inferior-lisp-load-command)
 	(inferior-lisp-prompt, inferior-lisp-mode-hook):
