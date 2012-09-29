@@ -1,8 +1,5 @@
 2012-09-29  Glenn Morris  <rgm@gnu.org>
 
-	* vc/vc-rcs.el (vc-rcs-master-templates):
-	* vc/vc-sccs.el (vc-sccs-master-templates): No need to autoload.
-
 	* help-macro.el (three-step-help): No need to autoload defcustom.
 
 	* progmodes/inf-lisp.el (inferior-lisp-filter-regexp)

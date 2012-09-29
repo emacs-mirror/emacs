@@ -89,7 +89,9 @@ to use --brief and sets this variable to remember whether it worked."
   :type '(choice (const :tag "Work out" nil) (const yes) (const no))
   :group 'vc-rcs)
 
-(defcustom vc-rcs-master-templates '("%sRCS/%s,v" "%s%s,v" "%sRCS/%s")
+;;;###autoload
+(defcustom vc-rcs-master-templates
+  (purecopy '("%sRCS/%s,v" "%s%s,v" "%sRCS/%s"))
   "Where to look for RCS master files.
 For a description of possible values, see `vc-check-master-templates'."
   :type '(choice (const :tag "Use standard RCS file names"
