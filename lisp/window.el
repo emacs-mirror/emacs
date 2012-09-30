@@ -5191,7 +5191,7 @@ BUFFER and WINDOW are live."
 			height))))
 		 (delta (- new-height (window-total-size window))))
 	    (cond
-	     ((and (window-resizable-p window delta nil 'safe)
+	     ((and (window--resizable-p window delta nil 'safe)
 		   (window-combined-p window))
 	      (window-resize window delta nil 'safe))
 	     ((or (eq type 'frame)
@@ -5214,7 +5214,7 @@ BUFFER and WINDOW are live."
 			width))))
 		 (delta (- new-width (window-total-size window t))))
 	    (cond
-	     ((and (window-resizable-p window delta t 'safe)
+	     ((and (window--resizable-p window delta t 'safe)
 		   (window-combined-p window t))
 	      (window-resize window delta t 'safe))
 	     ((or (eq type 'frame)
