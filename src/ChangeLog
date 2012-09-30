@@ -1,3 +1,30 @@
+2012-09-30  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsfns.m (ns_frame_parm_handlers): Add x_set_fullscreen.
+
+	* nsterm.m (NEW_STYLE_FS): New define.
+	(ns_fullscreen_hook, windowWillEnterFullScreen)
+	(windowDidEnterFullScreen, windowWillExitFullScreen)
+	(windowDidExitFullScreen, toggleFullScreen, handleFS)
+	(setFSValue): New functions.
+	(EmacsFSWindow): New implementation.
+	(canBecomeKeyWindow): New function for EmacsFSWindow.
+	(ns_create_terminal): Set fullscreen_hook to ns_fullscreen_hook.
+	(dealloc): Release nonfs_window if in fullscreen.
+	(updateFrameSize:): Call windowDidMove to update top/left.
+	(windowWillResize:toSize:): Check if frame is still maximized.
+	(initFrameFromEmacs:): Initialize fs_state, fs_before_fs,
+	next_maximized, maximized_width, maximized_height and nonfs_window.
+	Call setCollectionBehavior if NEW_STYLE_FS.  Initialize bwidth and
+	tbar_height.
+	(windowWillUseStandardFrame:defaultFrame:): Update frame parameter
+	fullscreen. Set maximized_width/height.  Act on next_maximized.
+
+	* nsterm.h (MAC_OS_X_VERSION_10_7, MAC_OS_X_VERSION_10_8): New.
+	(EmacsView): Add variables for fullscreen.
+	(handleFS, setFSValue, toggleFullScreen): New in EmacsView.
+	(EmacsFSWindow): New interface for fullscreen.
+
 2012-09-30  Juanma Barranquero  <lekktu@gmail.com>
 
 	* makefile.w32-in ($(BLD)/profiler.$(O)): Update dependencies.

@@ -72,6 +72,11 @@ int term_trace_num = 0;
 #define NSTRACE(x)
 #endif
 
+#if defined (NS_IMPL_COCOA) && \
+  MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_7
+#define NEW_STYLE_FS
+#endif
+
 extern NSString *NSMenuDidBeginTrackingNotification;
 
 /* ==========================================================================
@@ -1306,6 +1311,17 @@ x_set_window_size (struct frame *f, int change_grav, int cols, int rows)
 }
 
 
+static void
+ns_fullscreen_hook (FRAME_PTR f)
+{
+  EmacsView *view = (EmacsView *)FRAME_NS_VIEW (f);
+  
+  if (! f->async_visible) return;
+
+  block_input ();
+  [view handleFS];
+  unblock_input ();
+}
 
 /* ==========================================================================
 
@@ -3932,7 +3948,7 @@ ns_create_terminal (struct ns_display_info *dpyinfo)
   terminal->frame_rehighlight_hook = ns_frame_rehighlight;
   terminal->frame_raise_lower_hook = ns_frame_raise_lower;
 
-  terminal->fullscreen_hook = 0; /* see XTfullscreen_hook */
+  terminal->fullscreen_hook = ns_fullscreen_hook;
 
   terminal->set_vertical_scroll_bar_hook = ns_set_vertical_scroll_bar;
   terminal->condemn_scroll_bars_hook = ns_condemn_scroll_bars;
@@ -4687,6 +4703,8 @@ not_in_argv (NSString *arg)
 {
   NSTRACE (EmacsView_dealloc);
   [toolbar release];
+  if (fs_state == FULLSCREEN_BOTH)
+    [nonfs_window release];
   [super dealloc];
 }
 
@@ -5405,6 +5423,7 @@ not_in_argv (NSString *arg)
       SET_FRAME_GARBAGED (emacsframe);
       cancel_mouse_face (emacsframe);
       [view setFrame: NSMakeRect (0, 0, neww, newh)];
+      [self windowDidMove:nil];   // Update top/left.
     }
 }
 
@@ -5413,6 +5432,19 @@ not_in_argv (NSString *arg)
 {
   NSTRACE (windowWillResize);
 /*fprintf (stderr,"Window will resize: %.0f x %.0f\n",frameSize.width,frameSize.height); */
+
+  if (fs_state == FULLSCREEN_MAXIMIZED
+      && (maximized_width != (int)frameSize.width
+          || maximized_height != (int)frameSize.height))
+    [self setFSValue: FULLSCREEN_NONE];
+  else if (fs_state == FULLSCREEN_WIDTH
+           && maximized_width != (int)frameSize.width)
+    [self setFSValue: FULLSCREEN_NONE];
+  else if (fs_state == FULLSCREEN_HEIGHT
+           && maximized_height != (int)frameSize.height)
+    [self setFSValue: FULLSCREEN_NONE];
+  if (fs_state == FULLSCREEN_NONE)
+    maximized_width = maximized_height = -1;
 
   cols = FRAME_PIXEL_WIDTH_TO_TEXT_COLS (emacsframe,
 #ifdef NS_IMPL_GNUSTEP
@@ -5595,6 +5627,10 @@ not_in_argv (NSString *arg)
   windowClosing = NO;
   processingCompose = NO;
   scrollbarsNeedingUpdate = 0;
+  fs_state = FULLSCREEN_NONE;
+  fs_before_fs = next_maximized = -1;
+  maximized_width = maximized_height = -1;
+  nonfs_window = nil;
 
 /*fprintf (stderr,"init with %d, %d\n",f->text_cols, f->text_lines); */
 
@@ -5619,9 +5655,13 @@ not_in_argv (NSString *arg)
                         backing: NSBackingStoreBuffered
                           defer: YES];
 
+#ifdef NEW_STYLE_FS
+    [win setCollectionBehavior:NSWindowCollectionBehaviorFullScreenPrimary];
+#endif
+
   wr = [win frame];
-  f->border_width = wr.size.width - r.size.width;
-  FRAME_NS_TITLEBAR_HEIGHT (f) = wr.size.height - r.size.height;
+  bwidth = f->border_width = wr.size.width - r.size.width;
+  tbar_height = FRAME_NS_TITLEBAR_HEIGHT (f) = wr.size.height - r.size.height;
 
   [win setAcceptsMouseMovedEvents: YES];
   [win setDelegate: self];
@@ -5727,27 +5767,50 @@ not_in_argv (NSString *arg)
 
   NSTRACE (windowWillUseStandardFrame);
 
-  if (abs (defaultFrame.size.height - result.size.height)
-      > FRAME_LINE_HEIGHT (emacsframe))
+  if (fs_before_fs != -1) /* Entering fullscreen */
+      {
+        result = defaultFrame;
+      }
+  else if (next_maximized == FULLSCREEN_HEIGHT
+      || (next_maximized == -1
+          && abs (defaultFrame.size.height - result.size.height)
+          > FRAME_LINE_HEIGHT (emacsframe)))
     {
       /* first click */
       ns_userRect = result;
-      result.size.height = defaultFrame.size.height;
+      maximized_height = result.size.height = defaultFrame.size.height;
+      maximized_width = -1;
       result.origin.y = defaultFrame.origin.y;
+      [self setFSValue: FULLSCREEN_HEIGHT];
+    }
+  else if (next_maximized == FULLSCREEN_WIDTH)
+    {
+      ns_userRect = result;
+      maximized_width = result.size.width = defaultFrame.size.width;
+      maximized_height = -1;
+      result.origin.x = defaultFrame.origin.x;
+      [self setFSValue: FULLSCREEN_WIDTH];
+    }
+  else if (next_maximized == FULLSCREEN_MAXIMIZED
+           || (next_maximized == -1
+               && abs (defaultFrame.size.width - result.size.width)
+               > FRAME_COLUMN_WIDTH (emacsframe)))
+    {
+      result = defaultFrame;  /* second click */
+      maximized_width = result.size.width;
+      maximized_height = result.size.height;
+      [self setFSValue: FULLSCREEN_MAXIMIZED];
     }
   else
     {
-      if (abs (defaultFrame.size.width - result.size.width)
-          > FRAME_COLUMN_WIDTH (emacsframe))
-        result = defaultFrame;  /* second click */
-      else
-        {
-          /* restore */
-          result = ns_userRect.size.height ? ns_userRect : result;
-          ns_userRect = NSMakeRect (0, 0, 0, 0);
-        }
+      /* restore */
+      result = ns_userRect.size.height ? ns_userRect : result;
+      ns_userRect = NSMakeRect (0, 0, 0, 0);
+      [self setFSValue: FULLSCREEN_NONE];
+      maximized_width = maximized_width = -1;
     }
 
+  if (fs_before_fs == -1) next_maximized = -1;
   [self windowWillResize: sender toSize: result.size];
   return result;
 }
@@ -5799,6 +5862,200 @@ not_in_argv (NSString *arg)
     }
 }
 
+- (void)windowWillEnterFullScreen:(NSNotification *)notification
+{
+  fs_before_fs = fs_state;
+}
+
+- (void)windowDidEnterFullScreen:(NSNotification *)notification
+{
+  [self setFSValue: FULLSCREEN_BOTH];
+#ifndef NEW_STYLE_FS
+  fprintf(stderr, "%s %d\n", __func__, FRAME_PIXEL_WIDTH (emacsframe));
+  [self windowDidBecomeKey:notification];
+#endif
+}
+
+- (void)windowWillExitFullScreen:(NSNotification *)notification
+{
+  if (next_maximized != -1)
+    fs_before_fs = next_maximized;
+}
+
+- (void)windowDidExitFullScreen:(NSNotification *)notification
+{
+  [self setFSValue: fs_before_fs];
+  fs_before_fs = -1;
+  if (next_maximized != -1)
+    [[self window] performZoom:self];
+}
+
+- (void)toggleFullScreen: (id)sender
+{
+  /* Bugs remain:
+     1) Having fullscreen in initial/default frame alist.
+     2) Fullscreen in default frame alist only applied to first frame.
+  */
+
+#ifdef NEW_STYLE_FS
+  [[self window] toggleFullScreen:sender];
+#else
+  NSWindow *w = [self window], *fw;
+  BOOL onFirstScreen = [[w screen]
+                         isEqual:[[NSScreen screens] objectAtIndex:0]];
+  struct frame *f = emacsframe;
+  NSSize sz;
+  NSRect r;
+  NSColor *col = ns_lookup_indexed_color (NS_FACE_BACKGROUND
+                                          (FRAME_DEFAULT_FACE (f)),
+                                          f);
+
+  sz.width = FRAME_COLUMN_WIDTH (f);
+  sz.height = FRAME_LINE_HEIGHT (f);
+
+  if (fs_state != FULLSCREEN_BOTH)
+    {
+      /* Hide dock and menubar if we are on the primary screen.  */
+      if (onFirstScreen)
+        {
+#if defined (NS_IMPL_COCOA) && \
+  MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_6
+          NSApplicationPresentationOptions options
+            = NSApplicationPresentationAutoHideDock
+            | NSApplicationPresentationAutoHideMenuBar;
+
+          [NSApp setPresentationOptions: options];
+#else
+          [NSMenu setMenuBarVisible:NO];
+#endif
+        }
+
+      fw = [[EmacsFSWindow alloc]
+                       initWithContentRect:[w contentRectForFrameRect:[w frame]]
+                                 styleMask:NSBorderlessWindowMask
+                                   backing:NSBackingStoreBuffered
+                                     defer:YES
+                                    screen:[w screen]];
+
+      [fw setContentView:[w contentView]];
+      [fw setTitle:[w title]];
+      [fw makeKeyAndOrderFront:NSApp];
+      [fw setDelegate:self];
+      [fw makeFirstResponder:self];
+      [fw setAcceptsMouseMovedEvents: YES];
+      [fw useOptimizedDrawing: YES];
+      [fw setResizeIncrements: sz];
+      [fw setBackgroundColor: col];
+      if ([col alphaComponent] != 1.0)
+        [fw setOpaque: NO];
+
+      f->border_width = 0;
+      FRAME_NS_TITLEBAR_HEIGHT (f) = 0;
+
+      nonfs_window = w;
+      [self windowWillEnterFullScreen:nil];
+      [w orderOut:self];
+      r = [fw frameRectForContentRect:[[fw screen] frame]];
+      [fw setFrame: r display:YES animate:YES];
+      [self windowDidEnterFullScreen:nil];
+    }
+  else
+    {
+      fw = w;
+      w = nonfs_window;
+
+      if (onFirstScreen)
+        {
+#if defined (NS_IMPL_COCOA) && \
+  MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_6
+          [NSApp setPresentationOptions: NSApplicationPresentationDefault];
+#else
+          [NSMenu setMenuBarVisible:YES];
+#endif
+        }
+
+      [w setContentView:[fw contentView]];
+      [w setResizeIncrements: sz];
+      [w setBackgroundColor: col];
+      if ([col alphaComponent] != 1.0)
+        [w setOpaque: NO];
+      
+      f->border_width = bwidth;
+      FRAME_NS_TITLEBAR_HEIGHT (f) = tbar_height;
+
+      [self windowWillExitFullScreen:nil];
+      [fw setFrame: [w frame] display:YES animate:YES];
+      [fw close];
+      [w makeKeyAndOrderFront:NSApp];
+      [self windowDidExitFullScreen:nil];
+    }
+#endif
+}
+
+- (void)handleFS
+{
+  if (fs_state != emacsframe->want_fullscreen)
+    {
+      if (fs_state == FULLSCREEN_BOTH)
+        {
+          [self toggleFullScreen:self];
+        }
+
+      switch (emacsframe->want_fullscreen)
+        {
+        case FULLSCREEN_BOTH:
+          [self toggleFullScreen:self];
+          break;
+        case FULLSCREEN_WIDTH:
+          next_maximized = FULLSCREEN_WIDTH;
+          if (fs_state != FULLSCREEN_BOTH)
+            [[self window] performZoom:self];
+          break;
+        case FULLSCREEN_HEIGHT:
+          next_maximized = FULLSCREEN_HEIGHT;
+          if (fs_state != FULLSCREEN_BOTH)
+            [[self window] performZoom:self];
+          break;
+        case FULLSCREEN_MAXIMIZED:
+          next_maximized = FULLSCREEN_MAXIMIZED;
+          if (fs_state != FULLSCREEN_BOTH)
+            [[self window] performZoom:self];
+          break;
+        case FULLSCREEN_NONE:
+          if (fs_state != FULLSCREEN_BOTH)
+            {
+              next_maximized = FULLSCREEN_NONE;
+              [[self window] performZoom:self];
+            }
+          break;
+        }
+  
+      emacsframe->want_fullscreen = FULLSCREEN_NONE;
+    }
+
+}
+
+- (void) setFSValue: (int)value
+{
+  Lisp_Object lval = Qnil;
+  switch (value)
+    {
+    case FULLSCREEN_BOTH:
+      lval = Qfullboth;
+      break;
+    case FULLSCREEN_WIDTH:
+      lval = Qfullwidth;
+      break;
+    case FULLSCREEN_HEIGHT:
+      lval = Qfullheight;
+      break;
+    case FULLSCREEN_MAXIMIZED:
+      lval = Qmaximized;
+      break;
+    }
+  store_frame_param (emacsframe, Qfullscreen, lval);
+  fs_state = value;
+}
 
 - (void)mouseEntered: (NSEvent *)theEvent
 {
@@ -6289,6 +6546,15 @@ not_in_argv (NSString *arg)
 
 @end /* EmacsWindow */
 
+
+@implementation EmacsFSWindow
+
+- (BOOL)canBecomeKeyWindow
+{
+  return YES;
+}
+
+@end
 
 /* ==========================================================================
 

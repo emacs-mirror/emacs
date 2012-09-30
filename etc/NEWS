@@ -187,6 +187,8 @@ The PCL-CVS commands are still available via the keyboard.
 ---
 *** New input method `vietnamese-vni'.
 
+** The NS port supports fullscreen.
+
 
 * Editing Changes in Emacs 24.3
 

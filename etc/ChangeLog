@@ -1,3 +1,7 @@
+2012-09-30  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* NEWS: The NS port supports fullscreen.
+
 2012-09-17  Glenn Morris  <rgm@gnu.org>
 
 	* refcards/emacsver.tex: New file.

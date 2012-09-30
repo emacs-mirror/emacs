@@ -38,6 +38,12 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifndef MAC_OS_X_VERSION_10_6
 #define MAC_OS_X_VERSION_10_6 1060
 #endif
+#ifndef MAC_OS_X_VERSION_10_7
+#define MAC_OS_X_VERSION_10_7 1070
+#endif
+#ifndef MAC_OS_X_VERSION_10_8
+#define MAC_OS_X_VERSION_10_8 1080
+#endif
 #endif /* NS_IMPL_COCOA */
 
 #ifdef __OBJC__
@@ -80,6 +86,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    BOOL windowClosing;
    NSString *workingText;
    BOOL processingCompose;
+   int fs_state, fs_before_fs, next_maximized, tbar_height, bwidth;
+   int maximized_width, maximized_height;
+   NSWindow *nonfs_window;
 @public
    struct frame *emacsframe;
    int rows, cols;
@@ -104,6 +113,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 - (EmacsToolbar *) toolbar;
 - (void) deleteWorkingText;
 - (void) updateFrameSize: (BOOL) delay;
+- (void) handleFS;
+- (void) setFSValue: (int)value;
+- (void) toggleFullScreen: (id) sender;
 
 #ifdef NS_IMPL_GNUSTEP
 /* Not declared, but useful. */
@@ -119,6 +131,12 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 }
 @end
 
+
+/* Fullscreen version of the above.  */
+@interface EmacsFSWindow : EmacsWindow
+{
+}
+@end
 
 /* ==========================================================================
 
