@@ -1,5 +1,8 @@
 2012-09-30  Chong Yidong  <cyd@gnu.org>
 
+	* simple.el (delete-trailing-whitespace): Avoid an unnecessary
+	restriction change.
+
 	* bindings.el (goto-map): Bind M-g TAB to move-to-column.
 
 	* help-fns.el (help-fns--obsolete): Fix last change.

@@ -606,7 +606,7 @@ buffer if the variable `delete-trailing-lines' is non-nil."
         (when (and (not end)
 		   delete-trailing-lines
                    ;; Really the end of buffer.
-                   (save-restriction (widen) (eobp))
+		   (= (point-max) (1+ (buffer-size)))
                    (<= (skip-chars-backward "\n") -2))
           (delete-region (1+ (point)) end-marker))
         (set-marker end-marker nil))))
