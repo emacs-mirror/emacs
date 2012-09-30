@@ -1,10 +1,14 @@
+2012-09-30  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* .gdbinit (xbacktrace): Adjust to recent "struct backtrace" change.
+
 2012-09-30  Eli Zaretskii  <eliz@gnu.org>
 
 	Support atimers and CPU profiler via profile.c on MS-Windows.
 	* w32proc.c (sig_mask, crit_sig): New static variables.
 	(sys_signal): Support SIGALRM and SIGPROF.
 	(sigemptyset, sigaddset, sigfillset, sigprocmask)
-	(pthread_sigmask, setpgrp): Moved here from w32.c.  sigaddset,
+	(pthread_sigmask, setpgrp): Move here from w32.c.  sigaddset,
 	sigfillset, and sigprocmask are no longer no-ops.
 	(sigismember): New function.
 	(struct itimer_data): New definition.
@@ -26,8 +30,8 @@
 	to hourglass timer expiration.
 	(start_hourglass, cancel_hourglass, DEFAULT_HOURGLASS_DELAY):
 	Remove, no longer used.
-	(w32_note_current_window, show_hourglass, hide_hourglass): New
-	functions, in support of hourglass cursor display similar to other
+	(w32_note_current_window, show_hourglass, hide_hourglass):
+	New functions, in support of hourglass cursor display similar to other
 	window systems.
 	(syms_of_w32fns): Don't initialize hourglass_timer.
 

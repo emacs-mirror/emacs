@@ -1121,15 +1121,15 @@ end
 define xbacktrace
   set $bt = backtrace_list
   while $bt
-    xgettype (*$bt->function)
+    xgettype ($bt->function)
     if $type == Lisp_Symbol
-      xprintsym (*$bt->function)
+      xprintsym ($bt->function)
       printf " (0x%x)\n", $bt->args
     else
-      xgetptr *$bt->function
+      xgetptr $bt->function
       printf "0x%x ", $ptr
       if $type == Lisp_Vectorlike
-	xgetptr (*$bt->function)
+	xgetptr ($bt->function)
         set $size = ((struct Lisp_Vector *) $ptr)->header.size
         if ($size & PSEUDOVECTOR_FLAG)
 	  output (enum pvec_type) (($size & PVEC_TYPE_MASK) >> PSEUDOVECTOR_SIZE_BITS)
