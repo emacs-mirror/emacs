@@ -1,3 +1,8 @@
+2012-09-30  Kenichi Handa  <handa@gnu.org>
+
+	* coding.c (decode_coding_ccl, encode_coding_ccl): Pay attention
+	to the buffer relocation which may be caused by ccl_driver.
+
 2012-09-22  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* .gdbinit: Just stop at fatal_error_backtrace.
