@@ -5059,6 +5059,7 @@ decode_coding_ccl (struct coding_system *coding)
   while (1)
     {
       const unsigned char *p = src;
+      ptrdiff_t offset;
       int i = 0;
 
       if (multibytep)
@@ -5076,8 +5077,17 @@ decode_coding_ccl (struct coding_system *coding)
 
       if (p == src_end && coding->mode & CODING_MODE_LAST_BLOCK)
 	ccl->last_block = 1;
+      /* As ccl_driver calls DECODE_CHAR, buffer may be relocated.  */
+      charset_map_loaded = 0;
       ccl_driver (ccl, source_charbuf, charbuf, i, charbuf_end - charbuf,
 		  charset_list);
+      if (charset_map_loaded
+	  && (offset = coding_change_source (coding)))
+	{
+	  p += offset;
+	  src += offset;
+	  src_end += offset;
+	}
       charbuf += ccl->produced;
       if (multibytep)
 	src += source_byteidx[ccl->consumed];
@@ -5130,8 +5140,15 @@ encode_coding_ccl (struct coding_system *coding)
 
   do
     {
+      ptrdiff_t offset;
+
+      /* As ccl_driver calls DECODE_CHAR, buffer may be relocated.  */
+      charset_map_loaded = 0;
       ccl_driver (ccl, charbuf, destination_charbuf,
 		  charbuf_end - charbuf, 1024, charset_list);
+      if (charset_map_loaded
+	  && (offset = coding_change_destination (coding)))
+	dst += offset;
       if (multibytep)
 	{
 	  ASSURE_DESTINATION (ccl->produced * 2);
