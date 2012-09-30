@@ -1,5 +1,8 @@
 2012-09-30  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* textmodes/text-mode.el (paragraph-indent-minor-mode): Make it
+	a proper minor-mode.
+
 	* textmodes/tex-mode.el (tex-mode-map): Don't bind paren keys.
 
 2012-09-29  Glenn Morris  <rgm@gnu.org>
