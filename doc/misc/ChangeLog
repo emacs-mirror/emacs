@@ -1,3 +1,207 @@
+2012-09-30  Achim Gratz  <Stromeko@Stromeko.DE>
+
+	* org.texi: Add description of ORG_ADD_CONTRIB to info
+	documentation.  Add link to Worg for more details.
+
+	* org.texi: Clarify installation procedure.  Provide link to the
+	build system description on Worg.
+
+	* org.texi: Remove reference to utils/, x11idle.c is now in
+	contrib/scripts.
+
+	* org.texi: Re-normalize to "Org mode" in manual.
+
+	* org.texi (Installation): Adapt documentation to new build
+	system.  Mention GNU ELPA (since it needs to be handled like Emacs
+	built-in Org).
+
+	* org.texi: Include "org-version.inc" instead of
+	"git-describe.texi".
+
+	* org.texi: Remove @set for VERSION and DATE and do an @include
+	git-describe.texi instead.
+
+2012-09-30  Adam Spiers  <orgmode@adamspiers.org>  (tiny change)
+
+	* org.texi: Fix typo in description of the 'Hooks' section.
+
+	* org.texi: Add ID to the list of special properties.
+
+2012-09-30  Andrew Hyatt  <ahyatt@gmail.com>  (tiny change)
+
+	* org.texi (Moving subtrees): Document the ability to archive to a
+	datetree.
+
+2012-09-30  Bastien Guerry  <bzg@altern.org>
+
+	* org.texi (Installation, Feedback, Batch execution): Use
+	(add-to-list 'load-path ... t) for the contrib dir.
+
+	* org.texi (results): Update documentation for ":results drawer"
+	and ":results org".
+
+	* org.texi (Column width and alignment): Fix typo.
+
+	* org.texi (Activation): Point to the "Conflicts" section.
+
+	* org.texi (Conflicts): Mention filladapt.el in the list of
+	conflicting packages.
+
+	* org.texi (Activation): Adding org-mode to `auto-mode-alist' is
+	not needed for versions of Emacs > 22.1.
+
+	* org.texi (History and Acknowledgments): Fix typo.
+
+	* org.texi (History and Acknowledgments): Add my own
+	acknowledgments.
+
+	* org.texi (Agenda commands): Document the new command and the new
+	option.
+
+	* org.texi (Agenda commands): Delete `org-agenda-action' section.
+	(Agenda commands): Reorder.  Document `*' to toggle persistent
+	marks.
+
+	* org.texi (Agenda dispatcher): Mention
+	`org-toggle-agenda-sticky'.
+	(Agenda commands, Exporting Agenda Views): Fix typo.
+
+	* org.texi (Templates in contexts, Setting Options): Update to
+	reflect changes in how contexts options are processed.
+
+	* org.texi (Templates in contexts): Document the new structure of
+	the variables `org-agenda-custom-commands-contexts' and
+	`org-capture-templates-contexts'.
+
+	* org.texi (Templates in contexts): Document the new option
+	`org-capture-templates-contexts'.
+	(Storing searches): Document the new option
+	`org-agenda-custom-commands-contexts'.
+
+	* org.texi (Formula syntax for Lisp): Reformat.
+
+	* org.texi (Special properties, Column attributes)
+	(Agenda column view): Document the new special property
+	CLOCKSUM_T.
+
+	* org.texi (Template expansion): Document the new %l template.
+
+	* org.texi (Fast access to TODO states): Fix documentation about
+	allowed characters for fast todo selection.
+
+	* org.texi (Weekly/daily agenda): Mention APPT_WARNTIME and its
+	use in `org-agenda-to-appt'.
+
+	* org.texi (Comment lines): Update wrt comments.
+
+	* org.texi (Resolving idle time): Document new keybinding.
+
+	* org.texi (Clocking commands): Document the use of S-M-<up/down>
+	on clock timestamps.
+
+	* org.texi (Fast access to TODO states): Explicitely says only
+	letters are supported as fast TODO selection keys.
+
+	* org.texi (Link abbreviations): Illustrate the use of the "%h"
+	specifier.  Document the new "%(my-function)" specifier.
+
+	* org.texi (Clocking commands): New cindex.
+	(Clocking commands): Update documentation for `org-clock-in'.
+	Document `org-clock-in-last'.  Mention `org-clock-out' and
+	`org-clock-in-last' as commands that can be globally bound.
+	(Resolving idle time): Document continuous clocking.
+
+	* org.texi (Top, Introduction): Fix formatting.
+	(Activation): Add index entries.
+	(Conventions): Update section.
+	(Embedded @LaTeX{}): Fix formatting.
+
+	* org.texi (Visibility cycling): Document `show-children'.
+
+	* org.texi (Using capture): Mention the `org-capture-last-stored'
+	bookmark as a way to jump to the last stored capture.
+
+	* org.texi (Uploading files): Fix typo.
+
+	* org.texi (Using capture): Document `C-0' as a prefix argument
+	for `org-capture'.
+
+	* org.texi (Agenda commands): Document persistent marks.
+
+	* org.texi (Template expansion): Update doc to reflect change.
+
+	* org.texi (Radio tables): Document the :no-escape parameter.
+
+	* org.texi (Repeated tasks): Document repeat cookies for years,
+	months, weeks, days and hours.
+
+	* org.texi (Export options): State that you can use the d: option
+	by specifying a list of drawers.
+
+	* org.texi (HTML preamble and postamble): Small doc improvement.
+
+2012-09-30  Brian van den Broek  <vanden@gmail.com>  (tiny change)
+
+	* org.texi: The sections in the Exporting section of the manual
+	left out articles in the description of the org-export-as-*
+	commands, among other places. This patch adds them, adds a few
+	missing prepositions, and switches instances of "an HTML" to "a
+	html" for internal consistency.
+
+	* org.texi: Alter several examples of headings with timestamps in
+	them to include the timestamps in the body instead of the heading.
+
+2012-09-30  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org.texi (Agenda dispatcher): Document sticky agenda views and
+	the new key for them.
+
+2012-09-30  Charles  <millarc@verizon.net>  (tiny change)
+
+	* org.texi (Advanced features): Fix error in table.
+
+2012-09-30  Feng Shu  <tumashu@gmail.com>
+
+	* org.texi (@LaTeX{} fragments): Document imagemagick as an
+	alternative to dvipng.
+
+2012-09-30  François Allisson  <francois@allisson.co>  (tiny change)
+
+	* org.texi: Remove extra curly bracket.
+
+2012-09-30  Giovanni Ridolfi  <giovanni.ridolfi@yahoo.it>  (tiny change)
+
+	* org.texi (org-clock-in-last and org-clock-cancel): Update the
+	defkeys.
+
+2012-09-30  Ippei FURUHASHI  <top.tuna+orgmode@gmail.com>  (tiny change)
+
+	* org.texi (Agenda commands): Fix two typos by giving
+	corresponding function names, according to
+	`org-agenda-view-mode-dispatch'.
+
+2012-09-30  Jan Bäcker  <jan.boecker@jboecker.de>
+
+	* org.texi (The spreadsheet): Fix typo.
+
+2012-09-30  Memnon Anon  <gegendosenfleisch@gmail.com>  (tiny change)
+
+	* org.texi (Tracking your habits): Point to the "Tracking TODO
+	state changes" section.
+
+2012-09-30  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org.texi (Literal examples): Remove reference to unknown
+	`org-export-latex-minted' variable. Also simplify footnote since
+	`org-export-latex-listings' documentation is exhaustive already.
+
+	* org.texi (Plain lists): Remove reference to now hard-coded
+	`bullet' automatic rule.
+
+2012-09-30  Toby S. Cubitt  <tsc25@cantab.net>
+
+	* org.texi: Updated documentation accordingly.
+
 2012-09-13  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* texinfo.tex: Merge from gnulib.

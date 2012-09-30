@@ -34,15 +34,28 @@
 ;; 3) we are adding the "file" and "cmdline" header arguments
 ;;
 ;; 4) there are no variables (at least for now)
+;;
+;; 5) it depends on a variable defined in org-exp-blocks (namely
+;;    `org-ditaa-jar-path') so be sure you have org-exp-blocks loaded
 
 ;;; Code:
 (require 'ob)
 
+(defvar org-ditaa-jar-path) ;; provided by org-exp-blocks
+
 (defvar org-babel-default-header-args:ditaa
-  '((:results . "file") (:exports . "results") (:java . "-Dfile.encoding=UTF-8"))
+  '((:results . "file")
+    (:exports . "results")
+    (:java . "-Dfile.encoding=UTF-8"))
   "Default arguments for evaluating a ditaa source block.")
 
-(defvar org-ditaa-jar-path)
+(defcustom org-ditaa-jar-option "-jar"
+  "Option for the ditaa jar file.
+Do not leave leading or trailing spaces in this string."
+  :group 'org-babel
+  :version "24.1"
+  :type 'string)
+
 (defun org-babel-execute:ditaa (body params)
   "Execute a block of Ditaa code with org-babel.
 This function is called by `org-babel-execute-src-block'."
@@ -55,7 +68,7 @@ This function is called by `org-babel-execute-src-block'."
 	 (cmdline (cdr (assoc :cmdline params)))
 	 (java (cdr (assoc :java params)))
 	 (in-file (org-babel-temp-file "ditaa-"))
-	 (cmd (concat "java " java " -jar "
+	 (cmd (concat "java " java " " org-ditaa-jar-option " "
 		      (shell-quote-argument
 		       (expand-file-name org-ditaa-jar-path))
 		      " " cmdline

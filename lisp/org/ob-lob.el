@@ -97,38 +97,49 @@ if so then run the appropriate source block from the Library."
 ;;;###autoload
 (defun org-babel-lob-get-info ()
   "Return a Library of Babel function call as a string."
-  (flet ((nonempty (a b)
-		   (let ((it (match-string a)))
-		     (if (= (length it) 0) (match-string b) it))))
-    (let ((case-fold-search t))
-      (save-excursion
-	(beginning-of-line 1)
-	(when (looking-at org-babel-lob-one-liner-regexp)
-	  (append
-	   (mapcar #'org-babel-clean-text-properties
-		   (list
-		    (format "%s%s(%s)%s"
-			    (nonempty 3 12)
-			    (if (not (= 0 (length (nonempty 5 14))))
-				(concat "[" (nonempty 5 14) "]") "")
-			    (or (nonempty 7 16) "")
-			    (or (nonempty 8 19) ""))
-		    (nonempty 9 18)))
-	   (list (length (if (= (length (match-string 12)) 0)
-			     (match-string 2) (match-string 11))))))))))
+  (let ((case-fold-search t)
+	(nonempty (lambda (a b)
+		    (let ((it (match-string a)))
+		      (if (= (length it) 0) (match-string b) it)))))
+    (save-excursion
+      (beginning-of-line 1)
+      (when (looking-at org-babel-lob-one-liner-regexp)
+	(append
+	 (mapcar #'org-no-properties
+		 (list
+		  (format "%s%s(%s)%s"
+			  (funcall nonempty 3 12)
+			  (if (not (= 0 (length (funcall nonempty 5 14))))
+			      (concat "[" (funcall nonempty 5 14) "]") "")
+			  (or (funcall nonempty 7 16) "")
+			  (or (funcall nonempty 8 19) ""))
+		  (funcall nonempty 9 18)))
+	 (list (length (if (= (length (match-string 12)) 0)
+			   (match-string 2) (match-string 11)))))))))
 
 (defun org-babel-lob-execute (info)
   "Execute the lob call specified by INFO."
-  (let ((params (org-babel-process-params
-		 (org-babel-merge-params
-		  org-babel-default-header-args
-		  (org-babel-params-from-properties)
-		  (org-babel-parse-header-arguments
-		   (org-babel-clean-text-properties
-		    (concat ":var results="
-			    (mapconcat #'identity (butlast info) " "))))))))
-    (org-babel-execute-src-block
-     nil (list "emacs-lisp" "results" params nil nil (nth 2 info)))))
+  (let* ((mkinfo (lambda (p) (list "emacs-lisp" "results" p nil nil (nth 2 info))))
+	 (pre-params (org-babel-merge-params
+		      org-babel-default-header-args
+		      (org-babel-params-from-properties)
+		      (org-babel-parse-header-arguments
+		       (org-no-properties
+			(concat ":var results="
+				(mapconcat #'identity (butlast info) " "))))))
+	 (pre-info (funcall mkinfo pre-params))
+	 (cache? (and (cdr (assoc :cache pre-params))
+		      (string= "yes" (cdr (assoc :cache pre-params)))))
+	 (new-hash (when cache? (org-babel-sha1-hash pre-info)))
+	 (old-hash (when cache? (org-babel-current-result-hash))))
+    (if (and cache? (equal new-hash old-hash))
+	(save-excursion (goto-char (org-babel-where-is-src-block-result))
+			(forward-line 1)
+			(message "%S" (org-babel-read-result)))
+      (prog1 (org-babel-execute-src-block
+	      nil (funcall mkinfo (org-babel-process-params pre-params)))
+	;; update the hash
+	(when new-hash (org-babel-set-current-result-hash new-hash))))))
 
 (provide 'ob-lob)
 

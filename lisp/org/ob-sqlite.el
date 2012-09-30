@@ -37,8 +37,18 @@
 
 (defvar org-babel-default-header-args:sqlite '())
 
-(defvar org-babel-header-arg-names:sqlite
-  '(db header echo bail csv column html line list separator nullvalue)
+(defvar org-babel-header-args:sqlite
+  '((db        . :any)
+    (header    . :any)
+    (echo      . :any)
+    (bail      . :any)
+    (csv       . :any)
+    (column    . :any)
+    (html      . :any)
+    (line      . :any)
+    (list      . :any)
+    (separator . :any)
+    (nullvalue . :any))
   "Sqlite specific header args.")
 
 (defun org-babel-expand-body:sqlite (body params)
@@ -61,7 +71,7 @@ This function is called by `org-babel-execute-src-block'."
 			   (list :header :echo :bail :column
 				 :csv :html :line :list))))
 	exit-code)
-    (unless db (error "ob-sqlite: can't evaluate without a database."))
+    (unless db (error "ob-sqlite: can't evaluate without a database"))
     (with-temp-buffer
       (insert
        (org-babel-eval
@@ -118,8 +128,8 @@ This function is called by `org-babel-execute-src-block'."
 		      (with-temp-file data-file
 			(insert (orgtbl-to-csv
 				 val '(:fmt (lambda (el) (if (stringp el)
-							el
-						      (format "%S" el)))))))
+							     el
+							   (format "%S" el)))))))
 		      data-file)
 		    (org-babel-temp-file "sqlite-data-"))
 		 (if (stringp val) val (format "%S" val))))
@@ -145,9 +155,9 @@ This function is called by `org-babel-execute-src-block'."
     table))
 
 (defun org-babel-prep-session:sqlite (session params)
-  "Raise an error because support for sqlite sessions isn't implemented.
+  "Raise an error because support for SQLite sessions isn't implemented.
 Prepare SESSION according to the header arguments specified in PARAMS."
-  (error "sqlite sessions not yet implemented"))
+  (error "SQLite sessions not yet implemented"))
 
 (provide 'ob-sqlite)
 

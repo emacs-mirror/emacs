@@ -105,7 +105,7 @@ being published.  Its value may be a string or regexp matching
 file names you don't want to be published.
 
 The :include property may be used to include extra files.  Its
-value may be a list of filenames to include. The filenames are
+value may be a list of filenames to include.  The filenames are
 considered relative to the base directory.
 
 When both :include and :exclude properties are given values, the
@@ -315,7 +315,7 @@ You could use brackets to delimit on what part the link will be.
 			 (format "%s" (or pub-func ""))))
   (concat "X" (if (fboundp 'sha1) (sha1 filename) (md5 filename))))
 
-(defun org-publish-needed-p (filename &optional pub-dir pub-func true-pub-dir)
+(defun org-publish-needed-p (filename &optional pub-dir pub-func true-pub-dir base-dir)
   "Return t if FILENAME should be published in PUB-DIR using PUB-FUNC.
 TRUE-PUB-DIR is where the file will truly end up.  Currently we are not using
 this - maybe it can eventually be used to check if the file is present at
@@ -325,7 +325,7 @@ function can still decide about that independently."
   (let ((rtn
 	 (if org-publish-use-timestamps-flag
 	     (org-publish-cache-file-needs-publishing
-	      filename pub-dir pub-func)
+	      filename pub-dir pub-func base-dir)
 	   ;; don't use timestamps, always return t
 	   t)))
     (if rtn
@@ -334,7 +334,7 @@ function can still decide about that independently."
 	(message   "Skipping unmodified file %s" filename)))
     rtn))
 
-(defun org-publish-update-timestamp (filename &optional pub-dir pub-func)
+(defun org-publish-update-timestamp (filename &optional pub-dir pub-func base-dir)
   "Update publishing timestamp for file FILENAME.
 If there is no timestamp, create one."
   (let ((key (org-publish-timestamp-filename filename pub-dir pub-func))
@@ -418,22 +418,22 @@ This splices all the components into the list."
 		 (setq retval (if org-sitemap-ignore-case
 				  (not (string-lessp (upcase B) (upcase A)))
 				(not (string-lessp B A))))))
-		((or (equal org-sitemap-sort-files 'chronologically)
-		     (equal org-sitemap-sort-files 'anti-chronologically))
-		 (let* ((adate (org-publish-find-date a))
-			(bdate (org-publish-find-date b))
-			(A (+ (lsh (car adate) 16) (cadr adate)))
-			(B (+ (lsh (car bdate) 16) (cadr bdate))))
-		   (setq retval (if (equal org-sitemap-sort-files 'chronologically)
-				    (<= A B)
-				  (>= A B)))))))
+	      ((or (equal org-sitemap-sort-files 'chronologically)
+		   (equal org-sitemap-sort-files 'anti-chronologically))
+	       (let* ((adate (org-publish-find-date a))
+		      (bdate (org-publish-find-date b))
+		      (A (+ (lsh (car adate) 16) (cadr adate)))
+		      (B (+ (lsh (car bdate) 16) (cadr bdate))))
+		 (setq retval (if (equal org-sitemap-sort-files 'chronologically)
+				  (<= A B)
+				(>= A B)))))))
       ;; Directory-wise wins:
       (when org-sitemap-sort-folders
         ;; a is directory, b not:
         (cond
          ((and (file-directory-p a) (not (file-directory-p b)))
           (setq retval (equal org-sitemap-sort-folders 'first)))
-          ;; a is not a directory, but b is:
+	 ;; a is not a directory, but b is:
          ((and (not (file-directory-p a)) (file-directory-p b))
           (setq retval (equal org-sitemap-sort-folders 'last))))))
     retval))
@@ -506,7 +506,7 @@ matching filenames."
     (setq org-publish-temp-files nil)
     (if org-sitemap-requested
 	(pushnew (expand-file-name (concat base-dir sitemap-filename))
-		  org-publish-temp-files))
+		 org-publish-temp-files))
     (org-publish-get-base-files-1 base-dir recurse match
 				  ;; FIXME distinguish exclude regexp
 				  ;; for skip-file and skip-dir?
@@ -536,14 +536,14 @@ matching filenames."
 		 (xm (concat "^" b (if r ".+" "[^/]+") "\\.\\(" x "\\)$")))
 	    (when
 		(or
-		   (and
+		 (and
 		  i (member filename
 			    (mapcar
 			     (lambda (file) (expand-file-name file b))
 			     i)))
-		   (and
-		    (not (and e (string-match e filename)))
-		    (string-match xm filename)))
+		 (and
+		  (not (and e (string-match e filename)))
+		  (string-match xm filename)))
 	      (setq project-name (car prj))
 	      (throw 'p-found project-name))))))
     (when up
@@ -600,10 +600,10 @@ PUB-DIR is the publishing directory."
 (defmacro org-publish-with-aux-preprocess-maybe (&rest body)
   "Execute BODY with a modified hook to preprocess for index."
   `(let ((org-export-preprocess-after-headline-targets-hook
-	 (if (plist-get project-plist :makeindex)
-	     (cons 'org-publish-aux-preprocess
-		   org-export-preprocess-after-headline-targets-hook)
-	   org-export-preprocess-after-headline-targets-hook)))
+	  (if (plist-get project-plist :makeindex)
+	      (cons 'org-publish-aux-preprocess
+		    org-export-preprocess-after-headline-targets-hook)
+	    org-export-preprocess-after-headline-targets-hook)))
      ,@body))
 (def-edebug-spec org-publish-with-aux-preprocess-maybe (body))
 
@@ -624,7 +624,7 @@ See `org-publish-org-to' to the list of arguments."
   "Publish an org file to HTML.
 See `org-publish-org-to' to the list of arguments."
   (org-publish-with-aux-preprocess-maybe
-    (org-publish-org-to "html" plist filename pub-dir)))
+   (org-publish-org-to "html" plist filename pub-dir)))
 
 (defun org-publish-org-to-org (plist filename pub-dir)
   "Publish an org file to HTML.
@@ -635,19 +635,19 @@ See `org-publish-org-to' to the list of arguments."
   "Publish an org file to ASCII.
 See `org-publish-org-to' to the list of arguments."
   (org-publish-with-aux-preprocess-maybe
-    (org-publish-org-to "ascii" plist filename pub-dir)))
+   (org-publish-org-to "ascii" plist filename pub-dir)))
 
 (defun org-publish-org-to-latin1 (plist filename pub-dir)
   "Publish an org file to Latin-1.
 See `org-publish-org-to' to the list of arguments."
   (org-publish-with-aux-preprocess-maybe
-    (org-publish-org-to "latin1" plist filename pub-dir)))
+   (org-publish-org-to "latin1" plist filename pub-dir)))
 
 (defun org-publish-org-to-utf8 (plist filename pub-dir)
   "Publish an org file to UTF-8.
 See `org-publish-org-to' to the list of arguments."
   (org-publish-with-aux-preprocess-maybe
-    (org-publish-org-to "utf8" plist filename pub-dir)))
+   (org-publish-org-to "utf8" plist filename pub-dir)))
 
 (defun org-publish-attachment (plist filename pub-dir)
   "Publish a file with no transformation of any kind.
@@ -705,15 +705,14 @@ See `org-publish-projects'."
     (if (listp publishing-function)
 	;; allow chain of publishing functions
 	(mapc (lambda (f)
-		(when (org-publish-needed-p filename pub-dir f tmp-pub-dir)
+		(when (org-publish-needed-p filename pub-dir f tmp-pub-dir base-dir)
 		  (funcall f project-plist filename tmp-pub-dir)
-		  (org-publish-update-timestamp filename pub-dir f)))
+		  (org-publish-update-timestamp filename pub-dir f base-dir)))
 	      publishing-function)
-      (when (org-publish-needed-p filename pub-dir publishing-function
-				  tmp-pub-dir)
+      (when (org-publish-needed-p filename pub-dir publishing-function tmp-pub-dir base-dir)
 	(funcall publishing-function project-plist filename tmp-pub-dir)
 	(org-publish-update-timestamp
-	 filename pub-dir publishing-function)))
+	 filename pub-dir publishing-function base-dir)))
     (unless no-cache (org-publish-write-cache-file))))
 
 (defun org-publish-projects (projects)
@@ -733,9 +732,9 @@ If :makeindex is set, also produce a file theindex.org."
 	  (sitemap-function (or (plist-get project-plist :sitemap-function)
 				'org-publish-org-sitemap))
 	  (org-sitemap-date-format (or (plist-get project-plist :sitemap-date-format)
-				   org-publish-sitemap-date-format))
+				       org-publish-sitemap-date-format))
 	  (org-sitemap-file-entry-format (or (plist-get project-plist :sitemap-file-entry-format)
-					 org-publish-sitemap-file-entry-format))
+					     org-publish-sitemap-file-entry-format))
 	  (preparation-function (plist-get project-plist :preparation-function))
 	  (completion-function (plist-get project-plist :completion-function))
 	  (files (org-publish-get-base-files project exclude-regexp)) file)
@@ -751,7 +750,7 @@ If :makeindex is set, also produce a file theindex.org."
 			    (plist-get project-plist :base-directory))
 			   project t))
        (when completion-function (run-hooks 'completion-function))
-     (org-publish-write-cache-file)))
+       (org-publish-write-cache-file)))
    (org-publish-expand-projects projects)))
 
 (defun org-publish-org-sitemap (project &optional sitemap-filename)
@@ -767,9 +766,9 @@ Default for SITEMAP-FILENAME is 'sitemap.org'."
 	 (files (nreverse (org-publish-get-base-files project exclude-regexp)))
 	 (sitemap-filename (concat dir (or sitemap-filename "sitemap.org")))
 	 (sitemap-title (or (plist-get project-plist :sitemap-title)
-			  (concat "Sitemap for project " (car project))))
+			    (concat "Sitemap for project " (car project))))
 	 (sitemap-style (or (plist-get project-plist :sitemap-style)
-			  'tree))
+			    'tree))
 	 (sitemap-sans-extension (plist-get project-plist :sitemap-sans-extension))
 	 (visiting (find-buffer-visiting sitemap-filename))
 	 (ifn (file-name-nondirectory sitemap-filename))
@@ -833,10 +832,10 @@ Default for SITEMAP-FILENAME is 'sitemap.org'."
 
 (defun org-publish-format-file-entry (fmt file project-plist)
   (format-spec fmt
-	     `((?t . ,(org-publish-find-title file t))
-	       (?d . ,(format-time-string org-sitemap-date-format
-					  (org-publish-find-date file)))
-	       (?a . ,(or (plist-get project-plist :author) user-full-name)))))
+	       `((?t . ,(org-publish-find-title file t))
+		 (?d . ,(format-time-string org-sitemap-date-format
+					    (org-publish-find-date file)))
+		 (?a . ,(or (plist-get project-plist :author) user-full-name)))))
 
 (defun org-publish-find-title (file &optional reset)
   "Find the title of FILE in project."
@@ -902,7 +901,7 @@ It returns time in `current-time' format."
 	   ;; If this function is called in batch mode,
 	   ;; project is still a string here.
 	   (list (assoc project org-publish-project-alist))
-	   (list project))))))
+	 (list project))))))
 
 ;;;###autoload
 (defun org-publish-all (&optional force)
@@ -1033,25 +1032,24 @@ the project."
     ;; Create theindex.org if it doesn't exist already
     (let ((index-file (expand-file-name "theindex.org" directory)))
       (unless (file-exists-p index-file)
-       (setq ibuffer (find-file-noselect index-file))
-       (with-current-buffer ibuffer
-         (erase-buffer)
-         (insert "\n\n#+include: \"theindex.inc\"\n\n")
-         (save-buffer))
-       (kill-buffer ibuffer)))))
+	(setq ibuffer (find-file-noselect index-file))
+	(with-current-buffer ibuffer
+	  (erase-buffer)
+	  (insert "\n\n#+INCLUDE: \"theindex.inc\"\n\n")
+	  (save-buffer))
+	(kill-buffer ibuffer)))))
 
 ;; Caching functions:
 
 (defun org-publish-write-cache-file (&optional free-cache)
   "Write `org-publish-cache' to file.
 If FREE-CACHE, empty the cache."
-  (unless org-publish-cache
-    (error "%s" "`org-publish-write-cache-file' called, but no cache present"))
+  (or org-publish-cache
+      (error "`org-publish-write-cache-file' called, but no cache present"))
 
   (let ((cache-file (org-publish-cache-get ":cache-file:")))
-    (unless cache-file
-      (error
-       "%s" "Cannot find cache-file name in `org-publish-write-cache-file'"))
+    (or cache-file
+	(error "Cannot find cache-file name in `org-publish-write-cache-file'"))
     (with-temp-file cache-file
       (let ((print-level nil)
 	    (print-length nil))
@@ -1068,9 +1066,8 @@ If FREE-CACHE, empty the cache."
 (defun org-publish-initialize-cache (project-name)
   "Initialize the projects cache if not initialized yet and return it."
 
-  (unless project-name
-    (error "%s%s" "Cannot initialize `org-publish-cache' without projects name"
-	   " in `org-publish-initialize-cache'"))
+  (or project-name
+      (error "Cannot initialize `org-publish-cache' without projects name in `org-publish-initialize-cache'"))
 
   (unless (file-exists-p org-publish-timestamp-directory)
     (make-directory org-publish-timestamp-directory t))
@@ -1105,23 +1102,24 @@ If FREE-CACHE, empty the cache."
       (clrhash org-publish-cache))
   (setq org-publish-cache nil))
 
-(defun org-publish-cache-file-needs-publishing (filename &optional pub-dir pub-func)
+(defun org-publish-cache-file-needs-publishing (filename &optional pub-dir pub-func base-dir)
   "Check the timestamp of the last publishing of FILENAME.
 Return `t', if the file needs publishing.  The function also
 checks if any included files have been more recently published,
 so that the file including them will be republished as well."
-  (unless org-publish-cache
-    (error "%s" "`org-publish-cache-file-needs-publishing' called, but no cache present"))
+  (or org-publish-cache
+      (error "`org-publish-cache-file-needs-publishing' called, but no cache present"))
   (let* ((key (org-publish-timestamp-filename filename pub-dir pub-func))
 	 (pstamp (org-publish-cache-get key))
 	 (visiting (find-buffer-visiting filename))
+	 (case-fold-search t)
 	 included-files-ctime buf)
 
     (when (equal (file-name-extension filename) "org")
       (setq buf (find-file (expand-file-name filename)))
       (with-current-buffer buf
 	(goto-char (point-min))
-	(while (re-search-forward "^#\\+INCLUDE:[ \t]+\"?\\([^ \t\n\r\"]*\\)\"?[ \t]*.*$" nil t)
+	(while (re-search-forward "^#\\+include:[ \t]+\"\\([^\t\n\r\"]*\\)\"[ \t]*.*$" nil t)
 	  (let* ((included-file (expand-file-name (match-string 1))))
 	    (add-to-list 'included-files-ctime
 			 (org-publish-cache-ctime-of-src included-file) t))))
@@ -1173,28 +1171,24 @@ If the entry will be created, unless NO-CREATE is not nil."
   "Return the value stored in `org-publish-cache' for key KEY.
 Returns nil, if no value or nil is found, or the cache does not
 exist."
-  (unless org-publish-cache
-    (error "%s" "`org-publish-cache-get' called, but no cache present"))
+  (or org-publish-cache
+      (error "`org-publish-cache-get' called, but no cache present"))
   (gethash key org-publish-cache))
 
 (defun org-publish-cache-set (key value)
   "Store KEY VALUE pair in `org-publish-cache'.
 Returns value on success, else nil."
-  (unless org-publish-cache
-    (error "%s" "`org-publish-cache-set' called, but no cache present"))
+  (or org-publish-cache
+      (error "`org-publish-cache-set' called, but no cache present"))
   (puthash key value org-publish-cache))
 
-(defun org-publish-cache-ctime-of-src (filename)
-  "Get the FILENAME ctime as an integer."
-  (let* ((symlink-maybe (or (file-symlink-p filename) filename))
-	 (src-attr (file-attributes (if (file-name-absolute-p symlink-maybe)
-					symlink-maybe
-				      (expand-file-name
-				       symlink-maybe
-				       (file-name-directory filename))))))
-    (+
-     (lsh (car (nth 5 src-attr)) 16)
-     (cadr (nth 5 src-attr)))))
+(defun org-publish-cache-ctime-of-src (file)
+  "Get the ctime of filename F as an integer."
+  (let ((attr (file-attributes
+	       (expand-file-name (or (file-symlink-p file) file)
+				 (file-name-directory file)))))
+    (+ (lsh (car (nth 5 attr)) 16)
+       (cadr (nth 5 attr)))))
 
 (provide 'org-publish)
 

@@ -44,7 +44,7 @@
 (defvar org-babel-default-header-args:python '())
 
 (defvar org-babel-python-command "python"
-  "Name of command for executing python code.")
+  "Name of command for executing Python code.")
 
 (defvar org-babel-python-mode (if (featurep 'xemacs) 'python-mode 'python)
   "Preferred python mode for use in running python interactively.
@@ -99,7 +99,7 @@ VARS contains resolved variable references"
 ;; helper functions
 
 (defun org-babel-variable-assignments:python (params)
-  "Return list of python statements assigning the block's variables"
+  "Return a list of Python statements assigning the block's variables."
   (mapcar
    (lambda (pair)
      (format "%s=%s"
@@ -160,7 +160,7 @@ then create.  Return the initialized session."
 	  (py-shell)
 	  (setq python-buffer (concat "*" bufname "*"))))
        (t
-	(error "No function available for running an inferior python.")))
+	(error "No function available for running an inferior Python")))
       (setq org-babel-python-buffers
 	    (cons (cons session python-buffer)
 		  (assq-delete-all session org-babel-python-buffers)))
@@ -190,7 +190,7 @@ open('%s', 'w').write( pprint.pformat(main()) )")
 
 (defun org-babel-python-evaluate
   (session body &optional result-type result-params preamble)
-  "Evaluate BODY as python code."
+  "Evaluate BODY as Python code."
   (if session
       (org-babel-python-evaluate-session
        session body result-type result-params)
@@ -201,7 +201,7 @@ open('%s', 'w').write( pprint.pformat(main()) )")
   (body &optional result-type result-params preamble)
   "Evaluate BODY in external python process.
 If RESULT-TYPE equals 'output then return standard output as a
-string. If RESULT-TYPE equals 'value then return the value of the
+string.  If RESULT-TYPE equals 'value then return the value of the
 last statement in BODY, as elisp."
   ((lambda (raw)
      (if (or (member "code" result-params)
@@ -236,24 +236,25 @@ last statement in BODY, as elisp."
   (session body &optional result-type result-params)
   "Pass BODY to the Python process in SESSION.
 If RESULT-TYPE equals 'output then return standard output as a
-string. If RESULT-TYPE equals 'value then return the value of the
+string.  If RESULT-TYPE equals 'value then return the value of the
 last statement in BODY, as elisp."
-  (flet ((send-wait () (comint-send-input nil t) (sleep-for 0 5))
+  (let* ((send-wait (lambda () (comint-send-input nil t) (sleep-for 0 5)))
 	 (dump-last-value
-	  (tmp-file pp)
-	  (mapc
-	   (lambda (statement) (insert statement) (send-wait))
-	   (if pp
-	       (list
-		"import pprint"
-		(format "open('%s', 'w').write(pprint.pformat(_))"
-			(org-babel-process-file-name tmp-file 'noquote)))
-	     (list (format "open('%s', 'w').write(str(_))"
-			   (org-babel-process-file-name tmp-file 'noquote))))))
-	 (input-body (body)
-		     (mapc (lambda (line) (insert line) (send-wait))
-			   (split-string body "[\r\n]"))
-		     (send-wait)))
+	  (lambda
+	    (tmp-file pp)
+	    (mapc
+	     (lambda (statement) (insert statement) (funcall send-wait))
+	     (if pp
+		 (list
+		  "import pprint"
+		  (format "open('%s', 'w').write(pprint.pformat(_))"
+			  (org-babel-process-file-name tmp-file 'noquote)))
+	       (list (format "open('%s', 'w').write(str(_))"
+			     (org-babel-process-file-name tmp-file 'noquote)))))))
+	 (input-body (lambda (body)
+		       (mapc (lambda (line) (insert line) (funcall send-wait))
+			     (split-string body "[\r\n]"))
+		       (funcall send-wait))))
     ((lambda (results)
        (unless (string= (substring org-babel-python-eoe-indicator 1 -1) results)
 	 (if (or (member "code" result-params)
@@ -269,25 +270,25 @@ last statement in BODY, as elisp."
 	 (butlast
 	  (org-babel-comint-with-output
 	      (session org-babel-python-eoe-indicator t body)
-	    (input-body body)
-	    (send-wait) (send-wait)
+	    (funcall input-body body)
+	    (funcall send-wait) (funcall send-wait)
 	    (insert org-babel-python-eoe-indicator)
-	    (send-wait))
+	    (funcall send-wait))
 	  2) "\n"))
        (value
 	(let ((tmp-file (org-babel-temp-file "python-")))
 	  (org-babel-comint-with-output
 	      (session org-babel-python-eoe-indicator nil body)
 	    (let ((comint-process-echoes nil))
-	      (input-body body)
-	      (dump-last-value tmp-file (member "pp" result-params))
-	      (send-wait) (send-wait)
+	      (funcall input-body body)
+	      (funcall dump-last-value tmp-file (member "pp" result-params))
+	      (funcall send-wait) (funcall send-wait)
 	      (insert org-babel-python-eoe-indicator)
-	      (send-wait)))
+	      (funcall send-wait)))
 	  (org-babel-eval-read-file tmp-file)))))))
 
 (defun org-babel-python-read-string (string)
-  "Strip 's from around python string"
+  "Strip 's from around Python string."
   (if (string-match "^'\\([^\000]+\\)'$" string)
       (match-string 1 string)
     string))

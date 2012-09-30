@@ -25,16 +25,16 @@
 ;;; Commentary:
 
 ;; This library enables the use of PicoLisp in the multi-language
-;; programming framework Org-Babel. PicoLisp is a minimal yet
+;; programming framework Org-Babel.  PicoLisp is a minimal yet
 ;; fascinating lisp dialect and a highly productive application
 ;; framework for web-based client-server applications on top of
-;; object-oriented databases. A good way to learn PicoLisp is to first
+;; object-oriented databases.  A good way to learn PicoLisp is to first
 ;; read Paul Grahams essay "The hundred year language"
 ;; (http://www.paulgraham.com/hundred.html) and then study the various
 ;; documents and essays published in the PicoLisp wiki
 ;; (http://picolisp.com/5000/-2.html). PicoLisp is included in some
 ;; GNU/Linux Distributions, and can be downloaded here:
-;; http://software-lab.de/down.html. It ships with a picolisp-mode and
+;; http://software-lab.de/down.html.  It ships with a picolisp-mode and
 ;; a inferior-picolisp-mode for Emacs (to be found in the /lib/el/
 ;; directory).
 
