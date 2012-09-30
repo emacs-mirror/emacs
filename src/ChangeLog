@@ -1,3 +1,8 @@
+2012-09-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* profiler.c (Fprofiler_cpu_stop): Use timer_settime only if
+	HAVE_TIMER_SETTIME is defined.
+
 2012-09-30  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Profiler improvements: more-accurate timers, overflow checks.
@@ -8,7 +13,7 @@
 	(record_backtrace, handle_profiler_signal): Saturate on fixnum overflow.
 	(profiler_timer, profiler_timer_ok) [HAVE_TIMER_SETTIME]:
 	New static vars.
-	(enum profiler_cpu_running): New enumn.
+	(enum profiler_cpu_running): New enum.
 	(profiler_cpu_running): Now of that enum type, not bool.
 	All uses changed to store the new value.
 	(handle_profiler_signal): Rename from sigprof_handler_1,

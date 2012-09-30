@@ -349,6 +349,7 @@ Return non-nil if the profiler was running.  */)
     case NOT_RUNNING:
       return Qnil;
 
+#ifdef HAVE_TIMER_SETTIME
     case TIMER_SETTIME_RUNNING:
       {
 	struct itimerspec disable;
@@ -356,6 +357,7 @@ Return non-nil if the profiler was running.  */)
 	timer_settime (profiler_timer, 0, &disable, 0);
       }
       break;
+#endif
 
     case SETITIMER_RUNNING:
       {
