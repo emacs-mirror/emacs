@@ -1,5 +1,8 @@
 2012-09-30  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* winner.el (winner-mode-map): Obey winner-dont-bind-my-keys here.
+	(minor-mode-map-alist): Remove redundant code.
+
 	* vc/pcvs.el (cvs-cleanup-collection): Keep entries that are currently
 	visited in a buffer.
 	(cvs-insert-visited-file): New function.

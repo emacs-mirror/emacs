@@ -64,7 +64,7 @@
   :group 'windows)
 
 (defcustom winner-dont-bind-my-keys nil
-  "Non-nil means do not use `winner-mode-map' in Winner mode."
+  "Non-nil means do not bind keys in Winner mode."
   :type  'boolean
   :group 'winner)
 
@@ -338,8 +338,9 @@ You may want to include buffer names such as *Help*, *Apropos*,
 
 (defvar winner-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map [(control c) left] 'winner-undo)
-    (define-key map [(control c) right] 'winner-redo)
+    (unless winner-dont-bind-my-keys
+      (define-key map [(control c) left] 'winner-undo)
+      (define-key map [(control c) right] 'winner-redo))
     map)
   "Keymap for Winner mode.")
 
@@ -434,13 +435,6 @@ In other words, \"undo\" changes in window configuration."
     (unless (eq (selected-window) (minibuffer-window))
       (message "Winner undid undo")))
    (t (error "Previous command was not a `winner-undo'"))))
-
-;;; To be evaluated when the package is loaded:
-
-(unless (or (assq 'winner-mode minor-mode-map-alist)
-	    winner-dont-bind-my-keys)
-  (push (cons 'winner-mode winner-mode-map)
-	minor-mode-map-alist))
 
 (provide 'winner)
 ;;; winner.el ends here
