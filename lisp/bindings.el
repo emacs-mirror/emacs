@@ -898,6 +898,7 @@ if `inhibit-field-text-motion' is non-nil."
 (define-key goto-map "\M-n" 'next-error)
 (define-key goto-map    "p" 'previous-error)
 (define-key goto-map "\M-p" 'previous-error)
+(define-key goto-map   "\t" 'move-to-column)
 
 (defvar search-map (make-sparse-keymap)
   "Keymap for search related commands.")

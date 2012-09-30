@@ -1,5 +1,7 @@
 2012-09-30  Chong Yidong  <cyd@gnu.org>
 
+	* bindings.el (goto-map): Bind M-g TAB to move-to-column.
+
 	* help-fns.el (help-fns--obsolete): Fix last change.
 
 2012-09-30  Stefan Monnier  <monnier@iro.umontreal.ca>

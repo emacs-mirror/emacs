@@ -184,6 +184,15 @@ The PCL-CVS commands are still available via the keyboard.
 
 * Editing Changes in Emacs 24.3
 
+** Navigation command changes
+
+*** New binding `M-g c' for `goto-char'.
+
+*** New binding `M-g TAB' for `move-to-column'.
+
+*** `M-g TAB' (`move-to-column') prompts for a column number if called
+interactively with no prefix arg.  Previously, it moved to column 1.
+
 +++
 ** `C-x 8 RET' is now bound to `insert-char', which is now a command.
 `ucs-insert' is now an obsolete alias for `insert-char'.
@@ -225,11 +234,6 @@ the text to put between collected texts for use with M-x
 append-to-register and M-x prepend-to-register.
 
 ** `C-u M-=' now counts lines/words/characters in the entire buffer.
-
-** New binding `M-g c' for `goto-char'.
-
-** M-x move-to-column, if called interactively with no prefix arg, now
-prompts for a column number.
 
 ** New command `C-x r M-w' (copy-rectangle-as-kill).
 It copies the region-rectangle as the last rectangle kill.
