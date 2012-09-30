@@ -1467,13 +1467,15 @@ DEFUN ("ns-popup-color-panel", Fns_popup_color_panel, Sns_popup_color_panel,
 }
 
 
-DEFUN ("ns-read-file-name", Fns_read_file_name, Sns_read_file_name, 1, 4, 0,
+DEFUN ("ns-read-file-name", Fns_read_file_name, Sns_read_file_name, 1, 5, 0,
        doc: /* Use a graphical panel to read a file name, using prompt PROMPT.
 Optional arg DIR, if non-nil, supplies a default directory.
 Optional arg MUSTMATCH, if non-nil, means the returned file or
 directory must exist.
-Optional arg INIT, if non-nil, provides a default file name to use.  */)
-     (Lisp_Object prompt, Lisp_Object dir, Lisp_Object mustmatch, Lisp_Object init)
+Optional arg INIT, if non-nil, provides a default file name to use.
+Optional arg DIR_ONLY_P, if non-nil, means choose only directories.  */)
+  (Lisp_Object prompt, Lisp_Object dir, Lisp_Object mustmatch,
+   Lisp_Object init, Lisp_Object dir_only_p)
 {
   static id fileDelegate = nil;
   int ret;
@@ -1498,21 +1500,36 @@ Optional arg INIT, if non-nil, provides a default file name to use.  */)
   if ([dirS characterAtIndex: 0] == '~')
     dirS = [dirS stringByExpandingTildeInPath];
 
-  panel = NILP (mustmatch) ?
+  panel = NILP (mustmatch) && NILP (dir_only_p) ?
     (id)[EmacsSavePanel savePanel] : (id)[EmacsOpenPanel openPanel];
 
   [panel setTitle: promptS];
 
-  /* Puma (10.1) does not have */
-  if ([panel respondsToSelector: @selector (setAllowsOtherFileTypes:)])
-    [panel setAllowsOtherFileTypes: YES];
-
+  [panel setAllowsOtherFileTypes: YES];
   [panel setTreatsFilePackagesAsDirectories: YES];
   [panel setDelegate: fileDelegate];
 
   panelOK = 0;
+  if (! NILP (dir_only_p)) 
+    {
+      [panel setCanChooseDirectories: YES];
+      [panel setCanChooseFiles: NO];
+    }
+  
   block_input ();
-  if (NILP (mustmatch))
+#if defined (NS_IMPL_COCOA) && \
+  MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_6
+  if (! NILP (mustmatch) || ! NILP (dir_only_p))
+    [panel setAllowedFileTypes: nil];
+  if (dirS) [panel setDirectoryURL: [NSURL fileURLWithPath: dirS]];
+  if (initS && NILP (Ffile_directory_p (init)))
+    [panel setNameFieldStringValue: [initS lastPathComponent]];
+  else
+    [panel setNameFieldStringValue: @""];
+    
+  ret = [panel runModal];
+#else
+  if (NILP (mustmatch) && NILP (dir_only_p))
     {
       ret = [panel runModalForDirectory: dirS file: initS];
     }
@@ -1521,6 +1538,7 @@ Optional arg INIT, if non-nil, provides a default file name to use.  */)
       [panel setCanChooseDirectories: YES];
       ret = [panel runModalForDirectory: dirS file: initS types: nil];
     }
+#endif
 
   ret = (ret == NSOKButton) || panelOK;
 

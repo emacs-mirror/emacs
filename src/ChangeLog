@@ -1,5 +1,14 @@
 2012-09-30  Jan Djärv  <jan.h.d@swipnet.se>
 
+	* xfns.c (Fx_file_dialog): Update comment.
+
+	* w32fns.c (Fx_file_dialog): Update comment.
+
+	* nsfns.m (Fns_read_file_name): Add argument DIR_ONLY_P.
+	Initialize panel name field if OSX >= 10.6.
+
+	* fileio.c (Fnext_read_file_uses_dialog_p): Add HAVE_NS.
+
 	* nsfns.m (ns_frame_parm_handlers): Add x_set_fullscreen.
 
 	* nsterm.m (NEW_STYLE_FS): New define.
