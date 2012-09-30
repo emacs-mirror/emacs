@@ -107,8 +107,8 @@ For a description of possible values, see `vc-check-master-templates'."
 ;;; State-querying functions
 ;;;
 
-;; The autoload cookie below places vc-rcs-registered directly into
-;; loaddefs.el, so that vc-rcs.el does not need to be loaded for
+;; The autoload cookie below places vc-sccs-registered directly into
+;; loaddefs.el, so that vc-sccs.el does not need to be loaded for
 ;; every file that is visited.
 ;;;###autoload
 (progn
