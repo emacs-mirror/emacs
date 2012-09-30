@@ -494,8 +494,7 @@ suitable file is found, return nil."
          (use (car obsolete)))
     (when obsolete
       (insert "\nThis "
-	      (if (eq (car-safe (symbol-function 'with-current-buffer))
-		      'macro)
+	      (if (eq (car-safe (symbol-function function)) 'macro)
 		  "macro"
 		"function")
 	      " is obsolete")
