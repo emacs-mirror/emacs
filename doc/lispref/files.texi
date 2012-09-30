@@ -1187,7 +1187,7 @@ link to.
 @end example
 @end defun
 
-@defun file-attributes filename &optional id-format
+@defun file-attributes filename &optional id-format follow-symlinks
 @anchor{Definition of file-attributes}
 This function returns a list of attributes of file @var{filename}.  If
 the specified file cannot be opened, it returns @code{nil}.
@@ -1197,6 +1197,9 @@ valid values are @code{'string} and @code{'integer}.  The latter is
 the default, but we plan to change that, so you should specify a
 non-@code{nil} value for @var{id-format} if you use the returned
 @acronym{UID} or @acronym{GID}.
+The optional parameter @var{follow-symlinks} says whether to follow
+@var{filename} if it is a symbolic link; if @code{t}, symbolic links
+are followed and if @code{nil} they are not.
 
 The elements of the list, in order, are:
 
@@ -2961,8 +2964,7 @@ between consecutive checks.  For example:
   (let ((remote-file-name-inhibit-cache
          (- display-time-interval 5)))
     (and (file-exists-p file)
-         (< 0 (nth 7 (file-attributes
-                       (file-chase-links file)))))))
+         (< 0 (nth 7 (file-attributes file nil t))))))
 @end example
 @end defopt
 

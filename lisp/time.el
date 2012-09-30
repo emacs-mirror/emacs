@@ -485,7 +485,7 @@ update which can wait for the next redisplay."
 (defun display-time-file-nonempty-p (file)
   (let ((remote-file-name-inhibit-cache (- display-time-interval 5)))
     (and (file-exists-p file)
-	 (< 0 (nth 7 (file-attributes (file-chase-links file)))))))
+	 (< 0 (nth 7 (file-attributes file nil t))))))
 
 ;;;###autoload
 (define-minor-mode display-time-mode

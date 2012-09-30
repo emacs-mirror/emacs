@@ -1,3 +1,11 @@
+2012-09-30  Paul Eggert  <eggert@cs.ucla.edu>
+
+	file-attributes has a new optional arg FOLLOW-SYMLINKS.
+	* files.el (remote-file-name-inhibit-cache):
+	* time.el (display-time-file-nonempty-p): Use it.
+	* files.el (after-find-file): Don't chase links before calling
+	file-exists-p, as file-exists-p already does the right thing.
+
 2012-09-30  Ralf Angeli  <angeli@caeruleus.net>
 
 	Merge from standalone RefTeX repository.

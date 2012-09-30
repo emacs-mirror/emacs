@@ -1,3 +1,9 @@
+2012-09-30  Paul Eggert  <eggert@cs.ucla.edu>
+
+	file-attributes has a new optional arg FOLLOW-SYMLINKS.
+	* dired.c (directory_files_internal, Ffile_attributes):
+	New arg follow_symlinks.  All uses changed.
+
 2012-09-30  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* .gdbinit (xbacktrace): Adjust to recent "struct backtrace" change.

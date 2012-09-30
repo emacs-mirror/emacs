@@ -1014,7 +1014,7 @@ consecutive checks.  For example:
   (defun display-time-file-nonempty-p (file)
     (let ((remote-file-name-inhibit-cache (- display-time-interval 5)))
       (and (file-exists-p file)
-           (< 0 (nth 7 (file-attributes (file-chase-links file)))))))"
+           (< 0 (nth 7 (file-attributes file nil t))))))"
   :group 'files
   :version "24.1"
   :type `(choice
@@ -2082,8 +2082,7 @@ unless NOMODES is non-nil."
 	     ((and error (file-attributes buffer-file-name))
 	      (setq buffer-read-only t)
 	      (if (and (file-symlink-p buffer-file-name)
-		       (not (file-exists-p
-			     (file-chase-links buffer-file-name))))
+		       (not (file-exists-p buffer-file-name)))
 		  "Symbolic link that points to nonexistent file"
 		"File exists, but cannot be read"))
 	     ((not buffer-read-only)
