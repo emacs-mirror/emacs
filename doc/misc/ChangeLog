@@ -46,12 +46,6 @@
 	system.  Mention GNU ELPA (since it needs to be handled like Emacs
 	built-in Org).
 
-	* org.texi: Include "org-version.inc" instead of
-	"git-describe.texi".
-
-	* org.texi: Remove @set for VERSION and DATE and do an @include
-	git-describe.texi instead.
-
 2012-09-30  Adam Spiers  <orgmode@adamspiers.org>  (tiny change)
 
 	* org.texi: Fix typo in description of the 'Hooks' section.
