@@ -1,3 +1,9 @@
+2012-09-30  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* sysdep.c (handle_fatal_signal): Bump backtrace size to 40.
+	Suggested by Eli Zaretskii in
+	<http://lists.gnu.org/archive/html/emacs-devel/2012-09/msg00796.html>.
+
 2012-09-29  Juanma Barranquero  <lekktu@gmail.com>
 
 	* makefile.w32-in ($(BLD)/profiler.$(O)): Update dependencies.

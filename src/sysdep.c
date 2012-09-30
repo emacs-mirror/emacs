@@ -1549,7 +1549,7 @@ static char *my_sys_siglist[NSIG];
 static void
 handle_fatal_signal (int sig)
 {
-  terminate_due_to_signal (sig, 10);
+  terminate_due_to_signal (sig, 40);
 }
 
 static void
