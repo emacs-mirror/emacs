@@ -1,5 +1,7 @@
 2012-09-30  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* vc/ediff-util.el (ediff-diff-at-point): Don't assume point-min==1.
+
 	* tutorial.el (help-with-tutorial): Use minibuffer-with-setup-hook.
 
 	* textmodes/text-mode.el (paragraph-indent-minor-mode): Make it

@@ -1907,8 +1907,8 @@ in the specified buffer."
 
       (cond ((eq which-diff 'after) (1+ diff-no))
 	    ((eq which-diff 'before) diff-no)
-	    ((< (abs (count-lines pos (max 1 prev-end)))
-		(abs (count-lines pos (max 1 beg))))
+	    ((< (abs (count-lines pos (max (point-min) prev-end)))
+		(abs (count-lines pos (max (point-min) beg))))
 	     diff-no) 	    ; choose prev difference
 	    (t
 	     (1+ diff-no))) ; choose next difference
