@@ -1,3 +1,10 @@
+2012-09-30  Fabián Ezequiel Gallina  <fgallina@cuca>
+
+	Enhancements for triple-quote string syntax.
+	* progmodes/python.el (python-syntax-propertize-function): Match
+	both quote cases in one regexp.
+	(python-syntax-stringify): Handle matches properly.
+
 2012-09-30  Juri Linkov  <juri@jurta.org>
 
 	* arc-mode.el (archive-summarize): Let-bind `buffer-file-truename'
