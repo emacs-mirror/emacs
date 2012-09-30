@@ -343,14 +343,17 @@ automatically."
   `((log-edit-match-to-eoh
      (,(concat "^\\(\\([[:alpha:]]+\\):\\)" log-edit-header-contents-regexp)
       (progn (goto-char (match-beginning 0)) (match-end 0)) nil
-      (1 (if (assoc (match-string 2) log-edit-headers-alist)
+      (1 (if (assoc-string (match-string 2) log-edit-headers-alist t)
              'log-edit-header
            'log-edit-unknown-header)
          nil lax)
       ;; From `log-edit-header-contents-regexp':
-      (3 (or (cdr (assoc (match-string 2) log-edit-headers-alist))
+      (3 (or (cdr (assoc-string (match-string 2) log-edit-headers-alist t))
              'log-edit-header)
-         nil lax)))))
+         nil lax))
+     ("^\n"
+      (progn (goto-char (match-end 0)) (1+ (match-end 0))) nil
+      (0 '(:height 0.1 :inverse-video t))))))
 
 (defvar log-edit-font-lock-gnu-style nil
   "If non-nil, highlight common failures to follow the GNU coding standards.")
@@ -574,7 +577,7 @@ If you want to abort the commit, simply delete the buffer."
   (or (= (point-min) (point-max))
       (save-excursion
         (goto-char (point-min))
-        (while (and (looking-at "^\\([a-zA-Z]+: \\)?$")
+        (while (and (looking-at "^\\([a-zA-Z]+: ?\\)?$")
                     (zerop (forward-line 1))))
         (eobp))))
 
@@ -807,7 +810,7 @@ where LOGBUFFER is the name of the ChangeLog buffer, and each
                  change-log-default-name)
              ;; `find-change-log' uses `change-log-default-name' if set
              ;; and sets it before exiting, so we need to work around
-             ;; that memoizing which is undesired here
+             ;; that memoizing which is undesired here.
              (setq change-log-default-name nil)
              (find-change-log)))))
     (with-current-buffer (find-file-noselect changelog-file-name)

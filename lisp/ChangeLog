@@ -1,5 +1,9 @@
 2012-09-30  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* vc/log-edit.el (log-edit-font-lock-keywords): Ignore case to
+	chose face.
+	(log-edit-empty-buffer-p): Don't require a space after a header.
+
 	* vc/ediff-util.el (ediff-diff-at-point): Don't assume point-min==1.
 
 	* tutorial.el (help-with-tutorial): Use minibuffer-with-setup-hook.
