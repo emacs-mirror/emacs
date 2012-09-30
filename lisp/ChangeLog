@@ -1,5 +1,12 @@
 2012-09-30  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* vc/pcvs.el (cvs-cleanup-collection): Keep entries that are currently
+	visited in a buffer.
+	(cvs-insert-visited-file): New function.
+	(find-file-hook): Use it.
+
+	* vc/pcvs-info.el (cvs-fileinfo-pp): Don't use non-existent faces.
+
 	* vc/log-edit.el (log-edit-font-lock-keywords): Ignore case to
 	chose face.
 	(log-edit-empty-buffer-p): Don't require a space after a header.
