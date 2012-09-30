@@ -201,6 +201,8 @@ extern struct w32_display_info *w32_term_init (Lisp_Object,
 extern int x_display_pixel_height (struct w32_display_info *);
 extern int x_display_pixel_width (struct w32_display_info *);
 
+extern Lisp_Object x_get_focus_frame (struct frame *);
+
 
 #define PIX_TYPE COLORREF
 

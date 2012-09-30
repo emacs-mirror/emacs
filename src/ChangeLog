@@ -4,6 +4,7 @@
 	* w32term.h (SCROLL_BAR_PACK, SCROLL_BAR_UNPACK): Define for x64.
 	(SET_SCROLL_BAR_W32_WINDOW): Cast ID to intptr_t, for
 	compatibility with x64.
+	(x_get_focus_frame): Add prototype.
 
 	* w32term.c (w32_draw_underwave): Don't use GCC extensions for
 	defining an XRectangle structure.
