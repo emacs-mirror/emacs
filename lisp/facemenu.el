@@ -464,7 +464,8 @@ These special properties include `invisible', `intangible' and `read-only'."
 `(rgb-dist . COLOR)' sorts by the RGB distance to the specified color.
 `hsv' sorts by hue, saturation, value.
 `(hsv-dist . COLOR)' sorts by the HSV distance to the specified color
-and excludes grayscale colors."
+and excludes grayscale colors.
+`luminance' sorts by relative luminance in the CIE XYZ color space."
   :type '(choice (const :tag "Unsorted" nil)
 		 (const :tag "Color Name" name)
 		 (const :tag "Red-Green-Blue" rgb)
@@ -474,7 +475,8 @@ and excludes grayscale colors."
 		 (const :tag "Hue-Saturation-Value" hsv)
 		 (cons :tag "Distance on HSV cylinder"
 		       (const :tag "Distance from Color" hsv-dist)
-		       (color :tag "Source Color Name")))
+		       (color :tag "Source Color Name"))
+		 (const :tag "Luminance" luminance))
   :group 'facemenu
   :version "24.1")
 
@@ -504,7 +506,12 @@ filter out the color from the output."
 	(+ (expt (- 180 (abs (- 180 (abs (- (nth 0 c-hsv) ; wrap hue
 					    (nth 0 o-hsv)))))) 2)
 	   (expt (- (nth 1 c-hsv) (nth 1 o-hsv)) 2)
-	   (expt (- (nth 2 c-hsv) (nth 2 o-hsv)) 2)))))))
+	   (expt (- (nth 2 c-hsv) (nth 2 o-hsv)) 2)))))
+   ((eq list-colors-sort 'luminance)
+    (let ((c-rgb (color-name-to-rgb color)))
+      (+ (* (nth 0 c-rgb) 0.21266729)
+	 (* (nth 1 c-rgb) 0.7151522)
+	 (* (nth 2 c-rgb) 0.0721750))))))
 
 (defun list-colors-display (&optional list buffer-name callback)
   "Display names of defined colors, and show what they look like.

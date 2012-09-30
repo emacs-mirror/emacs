@@ -979,7 +979,7 @@ this variable represents.")
 (defface ediff-fine-diff-A
   (if (featurep 'emacs)
       '((((class color) (min-colors 88) (background light))
-	 :background "#ffaaaa")
+	 :background "#ffbbbb")
 	(((class color) (min-colors 88) (background dark))
 	 :background "#aa2222")
 	(((class color) (min-colors 16))

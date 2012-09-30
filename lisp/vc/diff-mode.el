@@ -1899,7 +1899,7 @@ For use in `add-log-current-defun-function'."
   '((default
      :inherit diff-refine-change)
     (((class color) (min-colors 88) (background light))
-     :background "#ffaaaa")
+     :background "#ffbbbb")
     (((class color) (min-colors 88) (background dark))
      :background "#aa2222"))
   "Face used for removed characters shown by `diff-refine-hunk'."

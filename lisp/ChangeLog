@@ -1,3 +1,13 @@
+2012-09-30  Juri Linkov  <juri@jurta.org>
+
+	* facemenu.el (list-colors-sort): Add option "Luminance".
+	(list-colors-sort-key): Implement it.
+
+	* vc/diff-mode.el (diff-refine-removed):
+	* vc/ediff-init.el (ediff-fine-diff-A):
+	* vc/smerge-mode.el (smerge-refined-removed):
+	Change background color "#ffaaaa" to "#ffbbbb".  (Bug#10181)
+
 2012-09-30  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* term/ns-win.el (x-file-dialog): New function.
