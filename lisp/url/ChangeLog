@@ -1,3 +1,11 @@
+2012-09-30  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* url-handlers.el (url-file-handler): Don't assume any url-FOO function
+	is a good handler for FOO.
+	(url-copy-file, url-file-local-copy, url-insert-file-contents)
+	(url-file-name-completion, url-file-name-all-completions)
+	(url-handlers-create-wrapper): Explicitly register as handler.
+
 2012-09-29  Bastien Guerry  <bzg@gnu.org>
 
 	* url-util.el (url-insert-entities-in-string)
