@@ -187,8 +187,11 @@ The PCL-CVS commands are still available via the keyboard.
 ---
 *** New input method `vietnamese-vni'.
 
-** The NS port supports fullscreen.
-
+** NextStep/OSX port changes.
+---
+*** Fullscreen and frame parameter fullscreen is supported.
+---
+*** A file dialog is used when open/saved is done from the menu/toolbar.
 
 * Editing Changes in Emacs 24.3
 

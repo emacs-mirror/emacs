@@ -1,6 +1,7 @@
 2012-09-30  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* NEWS: The NS port supports fullscreen.
+	Mention that the file dialog is used on NS.
 
 2012-09-17  Glenn Morris  <rgm@gnu.org>
 

@@ -1,3 +1,7 @@
+2012-09-30  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* term/ns-win.el (x-file-dialog): New function.
+
 2012-09-30  Juanma Barranquero  <lekktu@gmail.com>
 
 	* ido.el (ido-max-directory-size): Default to nil; the current
