@@ -976,10 +976,10 @@ $(BLD)/xml.$(O) : \
 
 $(BLD)/profiler.$(O) : \
 	$(SRC)/profiler.c \
-	$(NT_INC)/sys/time.h \
 	$(CONFIG_H) \
 	$(LISP_H) \
-	$(SYSSIGNAL_H)
+	$(SYSSIGNAL_H) \
+	$(SYSTIME_H)
 
 $(BLD)/image.$(O) : \
 	$(SRC)/image.c \
