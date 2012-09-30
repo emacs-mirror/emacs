@@ -1,5 +1,7 @@
 2012-09-30  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* tutorial.el (help-with-tutorial): Use minibuffer-with-setup-hook.
+
 	* textmodes/text-mode.el (paragraph-indent-minor-mode): Make it
 	a proper minor-mode.
 
