@@ -1,3 +1,9 @@
+2012-09-30  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* syssignal.h (PROFILER_CPU_SUPPORT): Don't define if PROFILING.
+	Suggested by Eli Zaretskii in
+	<http://lists.gnu.org/archive/html/emacs-devel/2012-09/msg00811.html>.
+
 2012-09-30  Eli Zaretskii  <eliz@gnu.org>
 
 	* profiler.c (Fprofiler_cpu_stop): Use timer_settime only if
