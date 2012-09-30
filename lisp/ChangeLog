@@ -1,3 +1,7 @@
+2012-09-30  Juanma Barranquero  <lekktu@gmail.com>
+
+	* ido.el (ido-buffer-disable-smart-matches): Fix typo in docstring.
+
 2012-09-28  Leo Liu  <sdl.web@gmail.com>
 
 	* pcomplete.el (pcomplete-show-completions): Use
