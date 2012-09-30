@@ -1010,7 +1010,6 @@ Atoms are compared by `eql'; cons cells are compared recursively.
 
 ;; Local variables:
 ;; byte-compile-dynamic: t
-;; byte-compile-warnings: (not cl-functions)
 ;; generated-autoload-file: "cl-loaddefs.el"
 ;; End:
 

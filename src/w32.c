@@ -6521,33 +6521,27 @@ sys_localtime (const time_t *t)
 
 
 
-/* Delayed loading of libraries.  */
+/* Try loading LIBRARY_ID from the file(s) specified in
+   Vdynamic_library_alist.  If the library is loaded successfully,
+   return the handle of the DLL, and record the filename in the
+   property :loaded-from of LIBRARY_ID.  If the library could not be
+   found, or when it was already loaded (because the handle is not
+   recorded anywhere, and so is lost after use), return NULL.
 
-Lisp_Object Vlibrary_cache;
-
-/* The argument LIBRARIES is an alist that associates a symbol
-   LIBRARY_ID, identifying an external DLL library known to Emacs, to
-   a list of filenames under which the library is usually found.  In
-   most cases, the argument passed as LIBRARIES is the variable
-   `dynamic-library-alist', which is initialized to a list of common
-   library names.  If the function loads the library successfully, it
-   returns the handle of the DLL, and records the filename in the
-   property :loaded-from of LIBRARY_ID; it returns NULL if the library
-   could not be found, or when it was already loaded (because the
-   handle is not recorded anywhere, and so is lost after use).  It
-   would be trivial to save the handle too in :loaded-from, but
-   currently there's no use case for it.  */
+   We could also save the handle in :loaded-from, but currently
+   there's no use case for it.  */
 HMODULE
-w32_delayed_load (Lisp_Object libraries, Lisp_Object library_id)
+w32_delayed_load (Lisp_Object library_id)
 {
   HMODULE library_dll = NULL;
 
   CHECK_SYMBOL (library_id);
 
-  if (CONSP (libraries) && NILP (Fassq (library_id, Vlibrary_cache)))
+  if (CONSP (Vdynamic_library_alist)
+      && NILP (Fassq (library_id, Vlibrary_cache)))
     {
       Lisp_Object found = Qnil;
-      Lisp_Object dlls = Fassq (library_id, libraries);
+      Lisp_Object dlls = Fassq (library_id, Vdynamic_library_alist);
 
       if (CONSP (dlls))
         for (dlls = XCDR (dlls); CONSP (dlls); dlls = XCDR (dlls))
@@ -6626,8 +6620,9 @@ check_windows_init_file (void)
 }
 
 void
-term_ntproc (void)
+term_ntproc (int ignored)
 {
+  (void)ignored;
   /* shutdown the socket interface if necessary */
   term_winsock ();
 
@@ -6635,7 +6630,7 @@ term_ntproc (void)
 }
 
 void
-init_ntproc (void)
+init_ntproc (int dumping)
 {
   /* Initialize the socket interface now if available and requested by
      the user by defining PRELOAD_WINSOCK; otherwise loading will be
@@ -6712,7 +6707,8 @@ init_ntproc (void)
 
   /* unfortunately, atexit depends on implementation of malloc */
   /* atexit (term_ntproc); */
-  signal (SIGABRT, term_ntproc);
+  if (!dumping)
+    signal (SIGABRT, term_ntproc);
 
   /* determine which drives are fixed, for GetCachedVolumeInformation */
   {
@@ -6768,9 +6764,6 @@ globals_of_w32 (void)
     GetProcAddress (kernel32, "GetProcessTimes");
 
   DEFSYM (QCloaded_from, ":loaded-from");
-
-  Vlibrary_cache = Qnil;
-  staticpro (&Vlibrary_cache);
 
   g_b_init_is_windows_9x = 0;
   g_b_init_open_process_token = 0;

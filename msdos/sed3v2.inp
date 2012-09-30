@@ -36,6 +36,7 @@ s/-DVERSION[^ ]* //
 /^LIBS_MAIL *=/s/@[^@\n]*@//g
 /^LIBS_SYSTEM *=/s/@[^@\n]*@//g
 /^LIB_CLOCK_GETTIME *=/s/@[^@\n]*@//g
+/^LIB_TIMER_TIME *=/s/@[^@\n]*@//g
 /^CFLAGS *=/s!=.*$!=-O2 -g!
 /^C_SWITCH_SYSTEM *=/s!=.*$!=-DMSDOS -I../msdos!
 /^C_SWITCH_MACHINE *=/s/@C_SWITCH_MACHINE@//

@@ -753,9 +753,9 @@ append to existing target file.  */)
 {
   if (initial_stderr_stream != NULL)
     {
-      BLOCK_INPUT;
+      block_input ();
       fclose (stderr);
-      UNBLOCK_INPUT;
+      unblock_input ();
     }
   stderr = initial_stderr_stream;
   initial_stderr_stream = NULL;

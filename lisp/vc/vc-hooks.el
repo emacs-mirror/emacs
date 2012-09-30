@@ -34,18 +34,6 @@
 
 ;; Customization Variables (the rest is in vc.el)
 
-(defvar vc-ignore-vc-files nil)
-(make-obsolete-variable 'vc-ignore-vc-files
-                        "set `vc-handled-backends' to nil to disable VC."
-			"21.1")
-
-(defvar vc-master-templates ())
-(make-obsolete-variable 'vc-master-templates
- "to define master templates for a given BACKEND, use
-vc-BACKEND-master-templates.  To enable or disable VC for a given
-BACKEND, use `vc-handled-backends'."
- "21.1")
-
 (defcustom vc-ignore-dir-regexp
   ;; Stop SMB, automounter, AFS, and DFS host lookups.
   locate-dominating-stop-dir-regexp
@@ -586,16 +574,7 @@ If FILE is not registered, this function always returns nil."
   "Check if FILE is registered in BACKEND using vc-BACKEND-master-templates."
   (let ((sym (vc-make-backend-sym backend 'master-templates)))
     (unless (get backend 'vc-templates-grabbed)
-      (put backend 'vc-templates-grabbed t)
-      (set sym (append (delq nil
-			     (mapcar
-			      (lambda (template)
-				(and (consp template)
-				     (eq (cdr template) backend)
-				     (car template)))
-                              (with-no-warnings
-                               vc-master-templates)))
-		       (symbol-value sym))))
+      (put backend 'vc-templates-grabbed t))
     (let ((result (vc-check-master-templates file (symbol-value sym))))
       (if (stringp result)
 	  (vc-file-setprop file 'vc-name result)

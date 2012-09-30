@@ -248,6 +248,13 @@ usually do not have translators for other languages.\n\n")))
                     "', version "
 		    (mapconcat 'number-to-string (x-server-version) ".") "\n")
 	  (error t)))
+    (let ((lsb (with-temp-buffer
+		 (if (eq 0 (ignore-errors
+			     (call-process "lsb_release" nil '(t nil)
+					   nil "-d")))
+		     (buffer-string)))))
+      (if (stringp lsb)
+	  (insert "System " lsb "\n")))
     (when (and system-configuration-options
 	       (not (equal system-configuration-options "")))
       (insert "Configured using:\n `configure "

@@ -631,6 +631,7 @@ WINDOWS_64_BIT_OFF_T
 HAVE_UNISTD_H
 NEXT_AS_FIRST_DIRECTIVE_UNISTD_H
 NEXT_UNISTD_H
+LIB_TIMER_TIME
 PTHREAD_H_DEFINES_STRUCT_TIMESPEC
 SYS_TIME_H_DEFINES_STRUCT_TIMESPEC
 TIME_H_DEFINES_STRUCT_TIMESPEC
@@ -5723,6 +5724,9 @@ else
   test "x$NON_GCC_TEST_OPTIONS" != x && CC="$CC $NON_GCC_TEST_OPTIONS"
 fi
 
+# Avoid gnulib's threadlib module, as we do threads our own way.
+
+
 # Initialize gnulib right after choosing the compiler.
 
 ac_ext=c
@@ -7006,6 +7010,7 @@ esac
   # Code from module sys_time:
   # Code from module time:
   # Code from module time_r:
+  # Code from module timer-time:
   # Code from module timespec:
   # Code from module timespec-add:
   # Code from module timespec-sub:
@@ -19229,6 +19234,7 @@ done
 
 
 
+
   ac_fn_c_check_type "$LINENO" "sigset_t" "ac_cv_type_sigset_t" "
       #include <signal.h>
       /* Mingw defines sigset_t not in <signal.h>, but in <sys/types.h>.  */
@@ -21655,11 +21661,61 @@ $as_echo "$gl_cv_sig_pselect" >&6; }
   LIB_PTHREAD_SIGMASK=
 
 
-                    if test $ac_cv_func_pthread_sigmask = yes; then
-                  :
+
+
+    if test "$gl_threads_api" = posix; then
+      if test $ac_cv_func_pthread_sigmask = yes; then
+                :
+      else
+        if test -n "$LIBMULTITHREAD"; then
+          { $as_echo "$as_me:${as_lineno-$LINENO}: checking for pthread_sigmask in $LIBMULTITHREAD" >&5
+$as_echo_n "checking for pthread_sigmask in $LIBMULTITHREAD... " >&6; }
+if test "${gl_cv_func_pthread_sigmask_in_LIBMULTITHREAD+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  gl_save_LIBS="$LIBS"
+             LIBS="$LIBS $LIBMULTITHREAD"
+             cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <pthread.h>
+                    #include <signal.h>
+
+int
+main ()
+{
+return pthread_sigmask (0, (sigset_t *) 0, (sigset_t *) 0);
+  ;
+  return 0;
+}
+
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  gl_cv_func_pthread_sigmask_in_LIBMULTITHREAD=yes
+else
+  gl_cv_func_pthread_sigmask_in_LIBMULTITHREAD=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+             LIBS="$gl_save_LIBS"
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $gl_cv_func_pthread_sigmask_in_LIBMULTITHREAD" >&5
+$as_echo "$gl_cv_func_pthread_sigmask_in_LIBMULTITHREAD" >&6; }
+          if test $gl_cv_func_pthread_sigmask_in_LIBMULTITHREAD = yes; then
+                        LIB_PTHREAD_SIGMASK="$LIBMULTITHREAD"
+          else
+                        HAVE_PTHREAD_SIGMASK=0
+          fi
+        else
+                    HAVE_PTHREAD_SIGMASK=0
+        fi
+      fi
     else
-            HAVE_PTHREAD_SIGMASK=0
-                        REPLACE_PTHREAD_SIGMASK=1
+                                          if test $ac_cv_func_pthread_sigmask = yes; then
+        REPLACE_PTHREAD_SIGMASK=1
+      else
+        HAVE_PTHREAD_SIGMASK=0
+      fi
     fi
 
 
@@ -23575,6 +23631,102 @@ $as_echo "$gl_cv_time_r_posix" >&6; }
 
 
 
+
+
+
+
+
+
+  LIB_TIMER_TIME=
+
+  gl_saved_libs=$LIBS
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing timer_settime" >&5
+$as_echo_n "checking for library containing timer_settime... " >&6; }
+if test "${ac_cv_search_timer_settime+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_func_search_save_LIBS=$LIBS
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char timer_settime ();
+int
+main ()
+{
+return timer_settime ();
+  ;
+  return 0;
+}
+_ACEOF
+for ac_lib in '' rt posix4; do
+  if test -z "$ac_lib"; then
+    ac_res="none required"
+  else
+    ac_res=-l$ac_lib
+    LIBS="-l$ac_lib  $ac_func_search_save_LIBS"
+  fi
+  if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_search_timer_settime=$ac_res
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext
+  if test "${ac_cv_search_timer_settime+set}" = set; then :
+  break
+fi
+done
+if test "${ac_cv_search_timer_settime+set}" = set; then :
+
+else
+  ac_cv_search_timer_settime=no
+fi
+rm conftest.$ac_ext
+LIBS=$ac_func_search_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_search_timer_settime" >&5
+$as_echo "$ac_cv_search_timer_settime" >&6; }
+ac_res=$ac_cv_search_timer_settime
+if test "$ac_res" != no; then :
+  test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
+  test "$ac_cv_search_timer_settime" = "none required" ||
+                    LIB_TIMER_TIME=$ac_cv_search_timer_settime
+fi
+
+                    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+#include <features.h>
+#ifdef __GNU_LIBRARY__
+ #if ((__GLIBC__ == 2 && __GLIBC_MINOR__ >= 2) || (__GLIBC__ > 2)) \
+     && !defined __UCLIBC__
+  Thread emulation available
+ #endif
+#endif
+
+_ACEOF
+if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
+  $EGREP "Thread" >/dev/null 2>&1; then :
+  LIB_TIMER_TIME="$LIB_TIMER_TIME $LIBMULTITHREAD"
+fi
+rm -f conftest*
+
+    for ac_func in timer_settime
+do :
+  ac_fn_c_check_func "$LINENO" "timer_settime" "ac_cv_func_timer_settime"
+if test "x$ac_cv_func_timer_settime" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_TIMER_SETTIME 1
+_ACEOF
+
+fi
+done
+
+  LIBS=$gl_saved_libs
 
   :
 

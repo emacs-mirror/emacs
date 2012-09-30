@@ -459,7 +459,7 @@ DEFUN ("w16-set-clipboard-data", Fw16_set_clipboard_data, Sw16_set_clipboard_dat
   if ( !FRAME_MSDOS_P (XFRAME (frame)))
     goto done;
 
-  BLOCK_INPUT;
+  block_input ();
 
   if (!open_clipboard ())
     goto error;
@@ -520,7 +520,7 @@ DEFUN ("w16-set-clipboard-data", Fw16_set_clipboard_data, Sw16_set_clipboard_dat
 
  unblock:
   xfree (dst);
-  UNBLOCK_INPUT;
+  unblock_input ();
 
   /* Notify user if the text is too large to fit into DOS memory.
      (This will happen somewhere after 600K bytes (470K in DJGPP v1.x),
@@ -565,7 +565,7 @@ DEFUN ("w16-get-clipboard-data", Fw16_get_clipboard_data, Sw16_get_clipboard_dat
   if ( !FRAME_MSDOS_P (XFRAME (frame)))
     goto done;
 
-  BLOCK_INPUT;
+  block_input ();
 
   if (!open_clipboard ())
     goto unblock;
@@ -626,7 +626,7 @@ DEFUN ("w16-get-clipboard-data", Fw16_get_clipboard_data, Sw16_get_clipboard_dat
   close_clipboard ();
 
  unblock:
-  UNBLOCK_INPUT;
+  unblock_input ();
 
  done:
 

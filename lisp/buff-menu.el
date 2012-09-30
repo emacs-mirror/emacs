@@ -64,13 +64,13 @@ minus `Buffer-menu-size-width'.  This use is deprecated."
 			"24.3")
 
 (defcustom Buffer-menu-name-width 19
-  "Width of buffer size column in the Buffer Menu."
+  "Width of buffer name column in the Buffer Menu."
   :type 'number
   :group 'Buffer-menu
   :version "24.3")
 
 (defcustom Buffer-menu-size-width 7
-  "Width of buffer name column in the Buffer Menu."
+  "Width of buffer size column in the Buffer Menu."
   :type 'number
   :group 'Buffer-menu
   :version "24.3")
@@ -520,7 +520,7 @@ This behaves like invoking \\[toggle-read-only] in that buffer."
   (interactive)
   (let ((read-only
          (with-current-buffer (Buffer-menu-buffer t)
-           (call-interactively 'toggle-read-only)
+           (read-only-mode 'toggle)
            buffer-read-only)))
     (tabulated-list-set-col 1 (if read-only "%" " ") t)))
 

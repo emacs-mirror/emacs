@@ -1214,8 +1214,8 @@ show environment DISPLAY
 show environment TERM
 
 # When debugging, it is handy to be able to "return" from
-# fatal_error_backtrace when an assertion failure is non-fatal.
-break fatal_error_backtrace
+# terminate_due_to_signal when an assertion failure is non-fatal.
+break terminate_due_to_signal
 
 # x_error_quitter is defined only on X.  But window-system is set up
 # only at run time, during Emacs startup, so we need to defer setting

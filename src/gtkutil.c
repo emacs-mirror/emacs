@@ -576,21 +576,21 @@ get_utf8_string (const char *str)
 
 /* Check for special colors used in face spec for region face.
    The colors are fetched from the Gtk+ theme.
-   Return 1 if color was found, 0 if not.  */
+   Return true if color was found, false if not.  */
 
-int
+bool
 xg_check_special_colors (struct frame *f,
                          const char *color_name,
                          XColor *color)
 {
-  int success_p = 0;
-  int get_bg = strcmp ("gtk_selection_bg_color", color_name) == 0;
-  int get_fg = !get_bg && strcmp ("gtk_selection_fg_color", color_name) == 0;
+  bool success_p = 0;
+  bool get_bg = strcmp ("gtk_selection_bg_color", color_name) == 0;
+  bool get_fg = !get_bg && strcmp ("gtk_selection_fg_color", color_name) == 0;
 
   if (! FRAME_GTK_WIDGET (f) || ! (get_bg || get_fg))
     return success_p;
 
-  BLOCK_INPUT;
+  block_input ();
   {
 #ifdef HAVE_GTK3
     GtkStyleContext *gsty
@@ -604,8 +604,9 @@ xg_check_special_colors (struct frame *f,
       gtk_style_context_get_background_color (gsty, state, &col);
 
     sprintf (buf, "rgbi:%lf/%lf/%lf", col.red, col.green, col.blue);
-    success_p = XParseColor (FRAME_X_DISPLAY (f), FRAME_X_COLORMAP (f),
-                             buf, color);
+    success_p = (XParseColor (FRAME_X_DISPLAY (f), FRAME_X_COLORMAP (f),
+			      buf, color)
+		 != 0);
 #else
     GtkStyle *gsty = gtk_widget_get_style (FRAME_GTK_WIDGET (f));
     GdkColor *grgb = get_bg
@@ -620,7 +621,7 @@ xg_check_special_colors (struct frame *f,
 #endif
 
   }
-  UNBLOCK_INPUT;
+  unblock_input ();
   return success_p;
 }
 
@@ -703,9 +704,9 @@ qttip_cb (GtkWidget  *widget,
 #endif /* USE_GTK_TOOLTIP */
 
 /* Prepare a tooltip to be shown, i.e. calculate WIDTH and HEIGHT.
-   Return zero if no system tooltip available, non-zero otherwise.  */
+   Return true if a system tooltip is available.  */
 
-int
+bool
 xg_prepare_tooltip (FRAME_PTR f,
                     Lisp_Object string,
                     int *width,
@@ -725,7 +726,7 @@ xg_prepare_tooltip (FRAME_PTR f,
 
   if (!x->ttip_lbl) return 0;
 
-  BLOCK_INPUT;
+  block_input ();
   encoded_string = ENCODE_UTF_8 (string);
   widget = GTK_WIDGET (x->ttip_lbl);
   gwin = gtk_widget_get_window (GTK_WIDGET (x->ttip_window));
@@ -753,7 +754,7 @@ xg_prepare_tooltip (FRAME_PTR f,
   if (width) *width = req.width;
   if (height) *height = req.height;
 
-  UNBLOCK_INPUT;
+  unblock_input ();
 
   return 1;
 #endif /* USE_GTK_TOOLTIP */
@@ -769,27 +770,27 @@ xg_show_tooltip (FRAME_PTR f, int root_x, int root_y)
   struct x_output *x = f->output_data.x;
   if (x->ttip_window)
     {
-      BLOCK_INPUT;
+      block_input ();
       gtk_window_move (x->ttip_window, root_x, root_y);
       gtk_widget_show_all (GTK_WIDGET (x->ttip_window));
-      UNBLOCK_INPUT;
+      unblock_input ();
     }
 #endif
 }
 
 /* Hide tooltip if shown.  Do nothing if not shown.
-   Return non-zero if tip was hidden, non-zero if not (i.e. not using
+   Return true if tip was hidden, false if not (i.e. not using
    system tooltips).  */
 
-int
+bool
 xg_hide_tooltip (FRAME_PTR f)
 {
-  int ret = 0;
+  bool ret = 0;
 #ifdef USE_GTK_TOOLTIP
   if (f->output_data.x->ttip_window)
     {
       GtkWindow *win = f->output_data.x->ttip_window;
-      BLOCK_INPUT;
+      block_input ();
       gtk_widget_hide (GTK_WIDGET (win));
 
       if (g_object_get_data (G_OBJECT (win), "restore-tt"))
@@ -799,7 +800,7 @@ xg_hide_tooltip (FRAME_PTR f)
           GtkSettings *settings = gtk_settings_get_for_screen (screen);
           g_object_set (settings, "gtk-enable-tooltips", TRUE, NULL);
         }
-      UNBLOCK_INPUT;
+      unblock_input ();
 
       ret = 1;
     }
@@ -1007,7 +1008,7 @@ xg_win_to_widget (Display *dpy, Window wdesc)
   gpointer gdkwin;
   GtkWidget *gwdesc = 0;
 
-  BLOCK_INPUT;
+  block_input ();
 
   gdkwin = gdk_x11_window_lookup_for_display (gdk_x11_lookup_xdisplay (dpy),
                                               wdesc);
@@ -1019,7 +1020,7 @@ xg_win_to_widget (Display *dpy, Window wdesc)
       gwdesc = gtk_get_event_widget (&event);
     }
 
-  UNBLOCK_INPUT;
+  unblock_input ();
   return gwdesc;
 }
 
@@ -1110,9 +1111,9 @@ delete_cb (GtkWidget *widget,
 }
 
 /* Create and set up the GTK widgets for frame F.
-   Return 0 if creation failed, non-zero otherwise.  */
+   Return true if creation succeeded.  */
 
-int
+bool
 xg_create_frame_widgets (FRAME_PTR f)
 {
   GtkWidget *wtop;
@@ -1123,7 +1124,7 @@ xg_create_frame_widgets (FRAME_PTR f)
 #endif
   char *title = 0;
 
-  BLOCK_INPUT;
+  block_input ();
 
   if (FRAME_X_EMBEDDED_P (f))
     {
@@ -1161,7 +1162,7 @@ xg_create_frame_widgets (FRAME_PTR f)
       if (whbox) gtk_widget_destroy (whbox);
       if (wfixed) gtk_widget_destroy (wfixed);
 
-      UNBLOCK_INPUT;
+      unblock_input ();
       return 0;
     }
 
@@ -1275,7 +1276,7 @@ xg_create_frame_widgets (FRAME_PTR f)
       }
   }
 
-  UNBLOCK_INPUT;
+  unblock_input ();
 
   return 1;
 }
@@ -1309,11 +1310,11 @@ xg_free_frame_widgets (FRAME_PTR f)
 /* Set the normal size hints for the window manager, for frame F.
    FLAGS is the flags word to use--or 0 meaning preserve the flags
    that the window now has.
-   If USER_POSITION is nonzero, we set the User Position
+   If USER_POSITION, set the User Position
    flag (this is useful when FLAGS is 0).  */
 
 void
-x_wm_set_size_hint (FRAME_PTR f, long int flags, int user_position)
+x_wm_set_size_hint (FRAME_PTR f, long int flags, bool user_position)
 {
   /* Must use GTK routines here, otherwise GTK resets the size hints
      to its own defaults.  */
@@ -1397,12 +1398,12 @@ x_wm_set_size_hint (FRAME_PTR f, long int flags, int user_position)
 		 &f->output_data.x->size_hints,
 		 sizeof (size_hints)) != 0)
     {
-      BLOCK_INPUT;
+      block_input ();
       gtk_window_set_geometry_hints (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
                                      NULL, &size_hints, hint_flags);
       f->output_data.x->size_hints = size_hints;
       f->output_data.x->hint_flags = hint_flags;
-      UNBLOCK_INPUT;
+      unblock_input ();
     }
 }
 
@@ -1417,9 +1418,9 @@ xg_set_background_color (FRAME_PTR f, long unsigned int bg)
 {
   if (FRAME_GTK_WIDGET (f))
     {
-      BLOCK_INPUT;
+      block_input ();
       xg_set_widget_bg (f, FRAME_GTK_WIDGET (f), FRAME_BACKGROUND_PIXEL (f));
-      UNBLOCK_INPUT;
+      unblock_input ();
     }
 }
 
@@ -1519,7 +1520,7 @@ create_dialog (widget_value *wv,
 
   /* If the number of buttons is greater than 4, make two rows of buttons
      instead.  This looks better.  */
-  int make_two_rows = total_buttons > 4;
+  bool make_two_rows = total_buttons > 4;
 
   if (right_buttons == 0) right_buttons = total_buttons/2;
   left_buttons = total_buttons - right_buttons;
@@ -1637,14 +1638,14 @@ pop_down_dialog (Lisp_Object arg)
   struct Lisp_Save_Value *p = XSAVE_VALUE (arg);
   struct xg_dialog_data *dd = (struct xg_dialog_data *) p->pointer;
 
-  BLOCK_INPUT;
+  block_input ();
   if (dd->w) gtk_widget_destroy (dd->w);
   if (dd->timerid != 0) g_source_remove (dd->timerid);
 
   g_main_loop_quit (dd->loop);
   g_main_loop_unref (dd->loop);
 
-  UNBLOCK_INPUT;
+  unblock_input ();
 
   return Qnil;
 }
@@ -1716,10 +1717,9 @@ xg_dialog_run (FRAME_PTR f, GtkWidget *w)
 /***********************************************************************
                       File dialog functions
  ***********************************************************************/
-/* Return non-zero if the old file selection dialog is being used.
-   Return zero if not.  */
+/* Return true if the old file selection dialog is being used.  */
 
-int
+bool
 xg_uses_old_file_dialog (void)
 {
 #ifdef HAVE_GTK_FILE_SELECTION_NEW
@@ -1790,7 +1790,7 @@ xg_toggle_notify_cb (GObject *gobject, GParamSpec *arg1, gpointer user_data)
    F is the current frame.
    PROMPT is a prompt to show to the user.  May not be NULL.
    DEFAULT_FILENAME is a default selection to be displayed.  May be NULL.
-   If MUSTMATCH_P is non-zero, the returned file name must be an existing
+   If MUSTMATCH_P, the returned file name must be an existing
    file.  (Actually, this only has cosmetic effects, the user can
    still enter a non-existing file.)  *FUNC is set to a function that
    can be used to retrieve the selected file name from the returned widget.
@@ -1801,7 +1801,7 @@ static GtkWidget *
 xg_get_file_with_chooser (FRAME_PTR f,
 			  char *prompt,
 			  char *default_filename,
-			  int mustmatch_p, int only_dir_p,
+			  bool mustmatch_p, bool only_dir_p,
 			  xg_get_file_func *func)
 {
   char msgbuf[1024];
@@ -1913,7 +1913,7 @@ xg_get_file_name_from_selector (GtkWidget *w)
    F is the current frame.
    PROMPT is a prompt to show to the user.  May not be NULL.
    DEFAULT_FILENAME is a default selection to be displayed.  May be NULL.
-   If MUSTMATCH_P is non-zero, the returned file name must be an existing
+   If MUSTMATCH_P, the returned file name must be an existing
    file.  *FUNC is set to a function that can be used to retrieve the
    selected file name from the returned widget.
 
@@ -1923,7 +1923,7 @@ static GtkWidget *
 xg_get_file_with_selection (FRAME_PTR f,
                             char *prompt,
                             char *default_filename,
-                            int mustmatch_p, int only_dir_p,
+                            bool mustmatch_p, bool only_dir_p,
                             xg_get_file_func *func)
 {
   GtkWidget *filewin;
@@ -1955,7 +1955,7 @@ xg_get_file_with_selection (FRAME_PTR f,
    F is the current frame.
    PROMPT is a prompt to show to the user.  May not be NULL.
    DEFAULT_FILENAME is a default selection to be displayed.  May be NULL.
-   If MUSTMATCH_P is non-zero, the returned file name must be an existing
+   If MUSTMATCH_P, the returned file name must be an existing
    file.
 
    Returns a file name or NULL if no file was selected.
@@ -1965,23 +1965,13 @@ char *
 xg_get_file_name (FRAME_PTR f,
                   char *prompt,
                   char *default_filename,
-                  int mustmatch_p,
-                  int only_dir_p)
+                  bool mustmatch_p,
+                  bool only_dir_p)
 {
   GtkWidget *w = 0;
   char *fn = 0;
   int filesel_done = 0;
   xg_get_file_func func;
-
-#if defined (HAVE_PTHREAD) && defined (__SIGRTMIN)
-  /* I really don't know why this is needed, but without this the GLIBC add on
-     library linuxthreads hangs when the Gnome file chooser backend creates
-     threads.  */
-  sigset_t blocked;
-  sigemptyset (&blocked);
-  sigaddset (&blocked, __SIGRTMIN);
-  pthread_sigmask (SIG_BLOCK, &blocked, 0);
-#endif /* HAVE_PTHREAD */
 
 #ifdef HAVE_GTK_FILE_SELECTION_NEW
 
@@ -2000,11 +1990,6 @@ xg_get_file_name (FRAME_PTR f,
   gtk_widget_set_name (w, "emacs-filedialog");
 
   filesel_done = xg_dialog_run (f, w);
-
-#if defined (HAVE_PTHREAD) && defined (__SIGRTMIN)
-  pthread_sigmask (SIG_UNBLOCK, &blocked, 0);
-#endif
-
   if (filesel_done == GTK_RESPONSE_OK)
     fn = (*func) (w);
 
@@ -2057,13 +2042,6 @@ xg_get_font (FRAME_PTR f, const char *default_name)
   int done = 0;
   Lisp_Object font = Qnil;
 
-#if defined (HAVE_PTHREAD) && defined (__SIGRTMIN)
-  sigset_t blocked;
-  sigemptyset (&blocked);
-  sigaddset (&blocked, __SIGRTMIN);
-  pthread_sigmask (SIG_BLOCK, &blocked, 0);
-#endif /* HAVE_PTHREAD */
-
   w = gtk_font_chooser_dialog_new
     ("Pick a font", GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)));
 
@@ -2088,11 +2066,6 @@ xg_get_font (FRAME_PTR f, const char *default_name)
 
   gtk_widget_set_name (w, "emacs-fontdialog");
   done = xg_dialog_run (f, w);
-
-#if defined (HAVE_PTHREAD) && defined (__SIGRTMIN)
-  pthread_sigmask (SIG_UNBLOCK, &blocked, 0);
-#endif
-
   if (done == GTK_RESPONSE_OK)
     {
 #if USE_NEW_GTK_FONT_CHOOSER
@@ -2430,9 +2403,9 @@ make_menu_item (const char *utf8_label,
 
 static int xg_detached_menus;
 
-/* Returns non-zero if there are detached menus.  */
+/* Return true if there are detached menus.  */
 
-int
+bool
 xg_have_tear_offs (void)
 {
   return xg_detached_menus > 0;
@@ -2536,10 +2509,9 @@ xg_create_one_menuitem (widget_value *item,
    SELECT_CB is the callback to use when a menu item is selected.
    DEACTIVATE_CB is the callback to use when a sub menu is not shown anymore.
    HIGHLIGHT_CB is the callback to call when entering/leaving menu items.
-   POP_UP_P is non-zero if we shall create a popup menu.
-   MENU_BAR_P is non-zero if we shall create a menu bar.
-   ADD_TEAROFF_P is non-zero if we shall add a tearoff menu item.  Ignored
-   if MENU_BAR_P is non-zero.
+   If POP_UP_P, create a popup menu.
+   If MENU_BAR_P, create a menu bar.
+   If ADD_TEAROFF_P, add a tearoff menu item.  Ignored if MENU_BAR_P.
    TOPMENU is the topmost GtkWidget that others shall be placed under.
    It may be NULL, in that case we create the appropriate widget
    (menu bar or menu item depending on POP_UP_P and MENU_BAR_P)
@@ -2559,9 +2531,9 @@ create_menus (widget_value *data,
               GCallback select_cb,
               GCallback deactivate_cb,
               GCallback highlight_cb,
-              int pop_up_p,
-              int menu_bar_p,
-              int add_tearoff_p,
+              bool pop_up_p,
+              bool menu_bar_p,
+              bool add_tearoff_p,
               GtkWidget *topmenu,
               xg_menu_cb_data *cl_data,
               const char *name)
@@ -2701,8 +2673,8 @@ xg_create_widget (const char *type, const char *name, FRAME_PTR f, widget_value 
 		  GCallback highlight_cb)
 {
   GtkWidget *w = 0;
-  int menu_bar_p = strcmp (type, "menubar") == 0;
-  int pop_up_p = strcmp (type, "popup") == 0;
+  bool menu_bar_p = strcmp (type, "menubar") == 0;
+  bool pop_up_p = strcmp (type, "popup") == 0;
 
   if (strcmp (type, "dialog") == 0)
     {
@@ -2755,12 +2727,12 @@ xg_get_menu_item_label (GtkMenuItem *witem)
   return gtk_label_get_label (wlabel);
 }
 
-/* Return non-zero if the menu item WITEM has the text LABEL.  */
+/* Return true if the menu item WITEM has the text LABEL.  */
 
-static int
+static bool
 xg_item_label_same_p (GtkMenuItem *witem, const char *label)
 {
-  int is_same = 0;
+  bool is_same = 0;
   char *utf8_label = get_utf8_string (label);
   const char *old_label = witem ? xg_get_menu_item_label (witem) : 0;
 
@@ -2851,8 +2823,8 @@ xg_update_menubar (GtkWidget *menubar,
     {
       GtkMenuItem *witem = GTK_MENU_ITEM (iter->data);
       GtkMenuItem *witem2 = 0;
-      int val_in_menubar = 0;
-      int iter_in_new_menubar = 0;
+      bool val_in_menubar = 0;
+      bool iter_in_new_menubar = 0;
       GList *iter2;
       widget_value *cur;
 
@@ -3130,7 +3102,7 @@ xg_update_submenu (GtkWidget *submenu,
   GList *list = 0;
   GList *iter;
   widget_value *cur;
-  int has_tearoff_p = 0;
+  bool has_tearoff_p = 0;
   GList *first_radio = 0;
 
   if (submenu)
@@ -3252,7 +3224,7 @@ xg_update_submenu (GtkWidget *submenu,
 /* Update the MENUBAR.
    F is the frame the menu bar belongs to.
    VAL describes the contents of the menu bar.
-   If DEEP_P is non-zero, rebuild all but the top level menu names in
+   If DEEP_P, rebuild all but the top level menu names in
    the MENUBAR.  If DEEP_P is zero, just rebuild the names in the menubar.
    SELECT_CB is the callback to use when a menu item is selected.
    DEACTIVATE_CB is the callback to use when a sub menu is not shown anymore.
@@ -3260,7 +3232,7 @@ xg_update_submenu (GtkWidget *submenu,
 
 void
 xg_modify_menubar_widgets (GtkWidget *menubar, FRAME_PTR f, widget_value *val,
-			   int deep_p,
+			   bool deep_p,
                            GCallback select_cb, GCallback deactivate_cb,
 			   GCallback highlight_cb)
 {
@@ -3344,21 +3316,21 @@ menubar_map_cb (GtkWidget *w, gpointer user_data)
 }
 
 /* Recompute all the widgets of frame F, when the menu bar has been
-   changed.  Value is non-zero if widgets were updated.  */
+   changed.  */
 
-int
+void
 xg_update_frame_menubar (FRAME_PTR f)
 {
   struct x_output *x = f->output_data.x;
   GtkRequisition req;
 
   if (!x->menubar_widget || gtk_widget_get_mapped (x->menubar_widget))
-    return 0;
+    return;
 
   if (x->menubar_widget && gtk_widget_get_parent (x->menubar_widget))
-    return 0; /* Already done this, happens for frames created invisible.  */
+    return; /* Already done this, happens for frames created invisible.  */
 
-  BLOCK_INPUT;
+  block_input ();
 
   gtk_box_pack_start (GTK_BOX (x->vbox_widget), x->menubar_widget,
                       FALSE, FALSE, 0);
@@ -3378,9 +3350,7 @@ xg_update_frame_menubar (FRAME_PTR f)
       FRAME_MENUBAR_HEIGHT (f) = req.height;
       xg_height_or_width_changed (f);
     }
-  UNBLOCK_INPUT;
-
-  return 1;
+  unblock_input ();
 }
 
 /* Get rid of the menu bar of frame F, and free its storage.
@@ -3393,7 +3363,7 @@ free_frame_menubar (FRAME_PTR f)
 
   if (x->menubar_widget)
     {
-      BLOCK_INPUT;
+      block_input ();
 
       gtk_container_remove (GTK_CONTAINER (x->vbox_widget), x->menubar_widget);
        /* The menubar and its children shall be deleted when removed from
@@ -3401,11 +3371,11 @@ free_frame_menubar (FRAME_PTR f)
       x->menubar_widget = 0;
       FRAME_MENUBAR_HEIGHT (f) = 0;
       xg_height_or_width_changed (f);
-      UNBLOCK_INPUT;
+      unblock_input ();
     }
 }
 
-int
+bool
 xg_event_is_for_menubar (FRAME_PTR f, XEvent *event)
 {
   struct x_output *x = f->output_data.x;
@@ -3452,7 +3422,7 @@ xg_event_is_for_menubar (FRAME_PTR f, XEvent *event)
         break;
     }
   g_list_free (list);
-  return iter == 0 ? 0 : 1;
+  return iter != 0;
 }
 
 
@@ -3465,7 +3435,7 @@ xg_event_is_for_menubar (FRAME_PTR f, XEvent *event)
 /* Setting scroll bar values invokes the callback.  Use this variable
    to indicate that callback should do nothing.  */
 
-int xg_ignore_gtk_scrollbar;
+bool xg_ignore_gtk_scrollbar;
 
 /* The width of the scroll bar for the current theme.  */
 
@@ -3791,7 +3761,7 @@ xg_set_toolkit_scroll_bar_thumb (struct scroll_bar *bar,
       int size, value;
       int old_size;
       int new_step;
-      int changed = 0;
+      bool changed = 0;
 
       adj = gtk_range_get_adjustment (GTK_RANGE (wscroll));
 
@@ -3838,7 +3808,7 @@ xg_set_toolkit_scroll_bar_thumb (struct scroll_bar *bar,
 
       if (changed || int_gtk_range_get_value (GTK_RANGE (wscroll)) != value)
       {
-        BLOCK_INPUT;
+        block_input ();
 
         /* gtk_range_set_value invokes the callback.  Set
            ignore_gtk_scrollbar to make the callback do nothing  */
@@ -3851,22 +3821,20 @@ xg_set_toolkit_scroll_bar_thumb (struct scroll_bar *bar,
 
         xg_ignore_gtk_scrollbar = 0;
 
-        UNBLOCK_INPUT;
+        unblock_input ();
       }
     }
 }
 
-/* Return non-zero if EVENT is for a scroll bar in frame F.
+/* Return true if EVENT is for a scroll bar in frame F.
    When the same X window is used for several Gtk+ widgets, we cannot
    say for sure based on the X window alone if an event is for the
-   frame.  This function does additional checks.
+   frame.  This function does additional checks.  */
 
-   Return non-zero if the event is for a scroll bar, zero otherwise.  */
-
-int
+bool
 xg_event_is_for_scrollbar (FRAME_PTR f, XEvent *event)
 {
-  int retval = 0;
+  bool retval = 0;
 
   if (f && event->type == ButtonPress && event->xbutton.button < 4)
     {
@@ -4297,7 +4265,7 @@ static void
 xg_pack_tool_bar (FRAME_PTR f, Lisp_Object pos)
 {
   struct x_output *x = f->output_data.x;
-  int into_hbox = EQ (pos, Qleft) || EQ (pos, Qright);
+  bool into_hbox = EQ (pos, Qleft) || EQ (pos, Qright);
 
   toolbar_set_orientation (x->toolbar_widget,
                            into_hbox
@@ -4329,7 +4297,7 @@ xg_pack_tool_bar (FRAME_PTR f, Lisp_Object pos)
     }
   else
     {
-      int vbox_pos = x->menubar_widget ? 1 : 0;
+      bool vbox_pos = x->menubar_widget != 0;
       gtk_handle_box_set_handle_position (GTK_HANDLE_BOX (x->handlebox_widget),
                                           GTK_POS_LEFT);
       gtk_box_pack_start (GTK_BOX (x->vbox_widget), x->handlebox_widget,
@@ -4420,7 +4388,7 @@ xg_make_tool_item (FRAME_PTR f,
                    GtkWidget *wimage,
                    GtkWidget **wbutton,
                    const char *label,
-                   int i, int horiz, int text_image)
+                   int i, bool horiz, bool text_image)
 {
   GtkToolItem *ti = gtk_tool_item_new ();
   GtkWidget *vb = gtk_box_new (horiz
@@ -4515,11 +4483,11 @@ xg_make_tool_item (FRAME_PTR f,
   return ti;
 }
 
-static int
-is_box_type (GtkWidget *vb, int is_horizontal)
+static bool
+is_box_type (GtkWidget *vb, bool is_horizontal)
 {
 #ifdef HAVE_GTK3
-  int ret = 0;
+  bool ret = 0;
   if (GTK_IS_BOX (vb))
     {
       GtkOrientation ori = gtk_orientable_get_orientation (GTK_ORIENTABLE (vb));
@@ -4533,10 +4501,10 @@ is_box_type (GtkWidget *vb, int is_horizontal)
 }
 
 
-static int
+static bool
 xg_tool_item_stale_p (GtkWidget *wbutton, const char *stock_name,
 		      const char *icon_name, const struct image *img,
-		      const char *label, int horiz)
+		      const char *label, bool horiz)
 {
   gpointer old;
   GtkWidget *wimage;
@@ -4578,7 +4546,7 @@ xg_tool_item_stale_p (GtkWidget *wbutton, const char *stock_name,
   return 0;
 }
 
-static int
+static bool
 xg_update_tool_bar_sizes (FRAME_PTR f)
 {
   struct x_output *x = f->output_data.x;
@@ -4634,15 +4602,15 @@ update_frame_tool_bar (FRAME_PTR f)
   GtkToolbar *wtoolbar;
   GtkToolItem *ti;
   GtkTextDirection dir;
-  int pack_tool_bar = x->handlebox_widget == NULL;
+  bool pack_tool_bar = x->handlebox_widget == NULL;
   Lisp_Object style;
-  int text_image, horiz;
+  bool text_image, horiz;
   struct xg_frame_tb_info *tbinfo;
 
   if (! FRAME_GTK_WIDGET (f))
     return;
 
-  BLOCK_INPUT;
+  block_input ();
 
   if (RANGED_INTEGERP (1, Vtool_bar_button_margin, INT_MAX))
     {
@@ -4684,7 +4652,7 @@ update_frame_tool_bar (FRAME_PTR f)
       && ! NILP (Fequal (tbinfo->style, style))
       && ! NILP (Fequal (tbinfo->last_tool_bar, f->tool_bar_items)))
     {
-      UNBLOCK_INPUT;
+      unblock_input ();
       return;
     }
 
@@ -4700,8 +4668,8 @@ update_frame_tool_bar (FRAME_PTR f)
 
   for (i = j = 0; i < f->n_tool_bar_items; ++i)
     {
-      int enabled_p = !NILP (PROP (TOOL_BAR_ITEM_ENABLED_P));
-      int selected_p = !NILP (PROP (TOOL_BAR_ITEM_SELECTED_P));
+      bool enabled_p = !NILP (PROP (TOOL_BAR_ITEM_ENABLED_P));
+      bool selected_p = !NILP (PROP (TOOL_BAR_ITEM_SELECTED_P));
       int idx;
       ptrdiff_t img_id;
       int icon_size = 0;
@@ -4714,7 +4682,7 @@ update_frame_tool_bar (FRAME_PTR f)
       Lisp_Object rtl;
       GtkWidget *wbutton = NULL;
       Lisp_Object specified_file;
-      int vert_only = ! NILP (PROP (TOOL_BAR_ITEM_VERT_ONLY));
+      bool vert_only = ! NILP (PROP (TOOL_BAR_ITEM_VERT_ONLY));
       const char *label
 	= (EQ (style, Qimage) || (vert_only && horiz)) ? NULL
 	: STRINGP (PROP (TOOL_BAR_ITEM_LABEL))
@@ -4895,7 +4863,7 @@ update_frame_tool_bar (FRAME_PTR f)
         xg_height_or_width_changed (f);
     }
 
-  UNBLOCK_INPUT;
+  unblock_input ();
 }
 
 /* Deallocate all resources for the tool bar on frame F.
@@ -4909,8 +4877,8 @@ free_frame_tool_bar (FRAME_PTR f)
   if (x->toolbar_widget)
     {
       struct xg_frame_tb_info *tbinfo;
-      int is_packed = x->handlebox_widget != 0;
-      BLOCK_INPUT;
+      bool is_packed = x->handlebox_widget != 0;
+      block_input ();
       /* We may have created the toolbar_widget in xg_create_tool_bar, but
          not the x->handlebox_widget which is created in xg_pack_tool_bar.  */
       if (is_packed)
@@ -4942,19 +4910,19 @@ free_frame_tool_bar (FRAME_PTR f)
 
       xg_height_or_width_changed (f);
 
-      UNBLOCK_INPUT;
+      unblock_input ();
     }
 }
 
-int
+void
 xg_change_toolbar_position (FRAME_PTR f, Lisp_Object pos)
 {
   struct x_output *x = f->output_data.x;
 
   if (! x->toolbar_widget || ! x->handlebox_widget)
-    return 1;
+    return;
 
-  BLOCK_INPUT;
+  block_input ();
   g_object_ref (x->handlebox_widget);
   if (x->toolbar_in_hbox)
     gtk_container_remove (GTK_CONTAINER (x->hbox_widget),
@@ -4967,8 +4935,7 @@ xg_change_toolbar_position (FRAME_PTR f, Lisp_Object pos)
   if (xg_update_tool_bar_sizes (f))
     xg_height_or_width_changed (f);
 
-  UNBLOCK_INPUT;
-  return 1;
+  unblock_input ();
 }
 
 

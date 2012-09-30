@@ -60,7 +60,7 @@ static Lisp_Object Qwindow_deletable_p, Qdelete_window, Qdisplay_buffer;
 static Lisp_Object Qreplace_buffer_in_windows, Qget_mru_window;
 static Lisp_Object Qwindow_resize_root_window, Qwindow_resize_root_window_vertically;
 static Lisp_Object Qscroll_up, Qscroll_down, Qscroll_command;
-static Lisp_Object Qsafe, Qabove, Qbelow, Qtemp_buffer_resize, Qclone_of;
+static Lisp_Object Qsafe, Qabove, Qbelow, Qwindow_size, Qclone_of;
 
 static int displayed_window_lines (struct window *);
 static int count_windows (struct window *);
@@ -2819,7 +2819,7 @@ window-start value is reasonable when this function is called.  */)
 	}
     }
 
-  BLOCK_INPUT;
+  block_input ();
   if (!FRAME_INITIAL_P (f))
     {
         Mouse_HLInfo *hlinfo = MOUSE_HL_INFO (f);
@@ -2961,7 +2961,7 @@ window-start value is reasonable when this function is called.  */)
     }
 
   adjust_glyphs (f);
-  UNBLOCK_INPUT;
+  unblock_input ();
 
   run_window_configuration_change_hook (f);
 
@@ -3696,14 +3696,14 @@ be applied on the Elisp level.  */)
 	       (horflag ? r->total_cols : r->total_lines)))
     return Qnil;
 
-  BLOCK_INPUT;
+  block_input ();
   window_resize_apply (r, horflag);
 
   windows_or_buffers_changed++;
   FRAME_WINDOW_SIZES_CHANGED (f) = 1;
 
   adjust_glyphs (f);
-  UNBLOCK_INPUT;
+  unblock_input ();
 
   run_window_configuration_change_hook (f);
 
@@ -3973,13 +3973,13 @@ set correctly.  See the code of `split-window' for how this is done.  */)
   wset_new_total (n, total_size);
   wset_new_normal (n, normal_size);
 
-  BLOCK_INPUT;
+  block_input ();
   window_resize_apply (p, horflag);
   adjust_glyphs (f);
   /* Set buffer of NEW to buffer of reference window.  Don't run
      any hooks.  */
   set_window_buffer (new, r->buffer, 0, 1);
-  UNBLOCK_INPUT;
+  unblock_input ();
 
   /* Maybe we should run the scroll functions in Elisp (which already
      runs the configuration change hook).  */
@@ -4060,7 +4060,7 @@ Signal an error when WINDOW is the only window on its frame.  */)
     {
 
       /* Block input.  */
-      BLOCK_INPUT;
+      block_input ();
       window_resize_apply (p, horflag);
 
       /* If this window is referred to by the dpyinfo's mouse
@@ -4132,7 +4132,7 @@ Signal an error when WINDOW is the only window on its frame.  */)
 	  else
 	    fset_selected_window (f, new_selected_window);
 
-	  UNBLOCK_INPUT;
+	  unblock_input ();
 
 	  /* Now look whether `get-mru-window' gets us something.  */
 	  mru_window = call1 (Qget_mru_window, frame);
@@ -4147,7 +4147,7 @@ Signal an error when WINDOW is the only window on its frame.  */)
 	    fset_selected_window (f, new_selected_window);
 	}
       else
-	UNBLOCK_INPUT;
+	unblock_input ();
 
       /* Must be run by the caller:
 	 run_window_configuration_change_hook (f);  */
@@ -4197,7 +4197,7 @@ grow_mini_window (struct window *w, int delta)
 		 root, make_number (- delta));
   if (INTEGERP (value) && window_resize_check (r, 0))
     {
-      BLOCK_INPUT;
+      block_input ();
       window_resize_apply (r, 0);
 
       /* Grow the mini-window.  */
@@ -4209,7 +4209,7 @@ grow_mini_window (struct window *w, int delta)
       w->last_overlay_modified = 0;
 
       adjust_glyphs (f);
-      UNBLOCK_INPUT;
+      unblock_input ();
     }
 }
 
@@ -4234,7 +4234,7 @@ shrink_mini_window (struct window *w)
 		     root, make_number (size - 1));
       if (INTEGERP (value) && window_resize_check (r, 0))
 	{
-	  BLOCK_INPUT;
+	  block_input ();
 	  window_resize_apply (r, 0);
 
 	  /* Shrink the mini-window.  */
@@ -4246,7 +4246,7 @@ shrink_mini_window (struct window *w)
 	  w->last_overlay_modified = 0;
 
 	  adjust_glyphs (f);
-	  UNBLOCK_INPUT;
+	  unblock_input ();
 	}
       /* If the above failed for whatever strange reason we must make a
 	 one window frame here.  The same routine will be needed when
@@ -4278,7 +4278,7 @@ DEFUN ("resize-mini-window-internal", Fresize_mini_window_internal, Sresize_mini
       && XINT (w->new_total) > 0
       && height == XINT (r->new_total) + XINT (w->new_total))
     {
-      BLOCK_INPUT;
+      block_input ();
       window_resize_apply (r, 0);
 
       wset_total_lines (w, w->new_total);
@@ -4288,7 +4288,7 @@ DEFUN ("resize-mini-window-internal", Fresize_mini_window_internal, Sresize_mini
       windows_or_buffers_changed++;
       FRAME_WINDOW_SIZES_CHANGED (f) = 1;
       adjust_glyphs (f);
-      UNBLOCK_INPUT;
+      unblock_input ();
 
       run_window_configuration_change_hook (f);
       return Qt;
@@ -5624,7 +5624,7 @@ the return value is nil.  Otherwise the value is t.  */)
 
       /* The mouse highlighting code could get screwed up
 	 if it runs during this.  */
-      BLOCK_INPUT;
+      block_input ();
 
       if (data->frame_lines != previous_frame_lines
 	  || data->frame_cols != previous_frame_cols)
@@ -5875,7 +5875,7 @@ the return value is nil.  Otherwise the value is t.  */)
 	}
 
       adjust_glyphs (f);
-      UNBLOCK_INPUT;
+      unblock_input ();
 
       /* Scan dead buffer windows.  */
       for (; CONSP (dead_windows); dead_windows = XCDR (dead_windows))
@@ -6704,7 +6704,7 @@ syms_of_window (void)
   DEFSYM (Qreplace_buffer_in_windows, "replace-buffer-in-windows");
   DEFSYM (Qrecord_window_buffer, "record-window-buffer");
   DEFSYM (Qget_mru_window, "get-mru-window");
-  DEFSYM (Qtemp_buffer_resize, "temp-buffer-resize");
+  DEFSYM (Qwindow_size, "window-size");
   DEFSYM (Qtemp_buffer_show_hook, "temp-buffer-show-hook");
   DEFSYM (Qabove, "above");
   DEFSYM (Qbelow, "below");
@@ -6804,18 +6804,18 @@ This variable takes no effect if `window-combination-limit' is non-nil.  */);
 The following values are recognized:
 
 nil means splitting a window will create a new parent window only if the
-    window has no parent window or the window shall become a combination
-    orthogonal to the one it is part of.
+    window has no parent window or the window shall become part of a
+    combination orthogonal to the one it is part of.
 
-`temp-buffer-resize' means that splitting a window for displaying a
-    temporary buffer makes a new parent window provided
-    `temp-buffer-resize-mode' is enabled.  Otherwise, this value is
-    handled like nil.
+`window-size' means that splitting a window for displaying a buffer
+    makes a new parent window provided `display-buffer' is supposed to
+    explicitly set the window's size due to the presence of a
+    `window-height' or `window-width' entry in the alist used by
+    `display-buffer'.  Otherwise, this value is handled like nil.
 
 `temp-buffer' means that splitting a window for displaying a temporary
     buffer always makes a new parent window.  Otherwise, this value is
     handled like nil.
-
 
 `display-buffer' means that splitting a window for displaying a buffer
     always makes a new parent window.  Since temporary buffers are
@@ -6829,7 +6829,7 @@ t means that splitting a window always creates a new parent window.  If
     sibling.
 
 Other values are reserved for future use.  */);
-  Vwindow_combination_limit = Qtemp_buffer_resize;
+  Vwindow_combination_limit = Qwindow_size;
 
   DEFVAR_LISP ("window-persistent-parameters", Vwindow_persistent_parameters,
 	       doc: /* Alist of persistent window parameters.

@@ -139,8 +139,8 @@
   (message (concat "ERC: The function `defvaralias' is not bound.  See the "
 		   "NEWS file for variable name changes since ERC 5.0.4.")))
 
-(defalias 'erc-send-command 'erc-server-send)
-(erc-make-obsolete 'erc-send-command 'erc-server-send "ERC 5.1")
+(define-obsolete-function-alias 'erc-send-command
+  'erc-server-send "ERC 5.1")
 
 ;; tunable connection and authentication parameters
 

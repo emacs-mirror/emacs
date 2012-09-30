@@ -54,6 +54,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "window.h"
 
 #include "systty.h"
+#include "atimer.h"
 #include "blockinput.h"
 #include "syssignal.h"
 #include "process.h"
@@ -94,6 +95,11 @@ static const char emacs_copyright[] = COPYRIGHT;
 
 /* Empty lisp strings.  To avoid having to build any others.  */
 Lisp_Object empty_unibyte_string, empty_multibyte_string;
+
+#ifdef WINDOWSNT
+/* Cache for externally loaded libraries.  */
+Lisp_Object Vlibrary_cache;
+#endif
 
 /* Set after Emacs has started up the first time.
    Prevents reinitialization of the Lisp world and keymaps
@@ -269,9 +275,6 @@ Report bugs to bug-gnu-emacs@gnu.org.  First, please see the Bugs\n\
 section of the Emacs manual or the file BUGS.\n"
 
 
-/* Signal code for the fatal signal that was received.  */
-static int fatal_error_code;
-
 /* True if handling a fatal error already.  */
 bool fatal_error_in_progress;
 
@@ -282,28 +285,13 @@ static void *ns_pool;
 
 
 
-/* Handle bus errors, invalid instruction, etc.  */
-static void
-handle_fatal_signal (int sig)
-{
-  fatal_error_backtrace (sig, 10);
-}
-
-static void
-deliver_fatal_signal (int sig)
-{
-  handle_on_main_thread (sig, handle_fatal_signal);
-}
-
 /* Report a fatal error due to signal SIG, output a backtrace of at
    most BACKTRACE_LIMIT lines, and exit.  */
 _Noreturn void
-fatal_error_backtrace (int sig, int backtrace_limit)
+terminate_due_to_signal (int sig, int backtrace_limit)
 {
-  fatal_error_code = sig;
   signal (sig, SIG_DFL);
-
-  TOTALLY_UNBLOCK_INPUT;
+  totally_unblock_input ();
 
   /* If fatal error occurs in code below, avoid infinite recursion.  */
   if (! fatal_error_in_progress)
@@ -318,19 +306,18 @@ fatal_error_backtrace (int sig, int backtrace_limit)
     }
 
   /* Signal the same code; this time it will really be fatal.
-     Remember that since we're in a signal handler, the signal we're
-     going to send is probably blocked, so we have to unblock it if we
-     want to really receive it.  */
+     Since we're in a signal handler, the signal is blocked, so we
+     have to unblock it if we want to really receive it.  */
 #ifndef MSDOS
   {
     sigset_t unblocked;
     sigemptyset (&unblocked);
-    sigaddset (&unblocked, fatal_error_code);
+    sigaddset (&unblocked, sig);
     pthread_sigmask (SIG_UNBLOCK, &unblocked, 0);
   }
 #endif
 
-  kill (getpid (), fatal_error_code);
+  emacs_raise (sig);
 
   /* This shouldn't be executed, but it prevents a warning.  */
   exit (1);
@@ -339,15 +326,9 @@ fatal_error_backtrace (int sig, int backtrace_limit)
 #ifdef SIGDANGER
 
 /* Handler for SIGDANGER.  */
-static void deliver_danger_signal (int);
-
 static void
 handle_danger_signal (int sig)
 {
-  struct sigaction action;
-  emacs_sigaction_init (&action, deliver_danger_signal);
-  sigaction (sig, &action, 0);
-
   malloc_warning ("Operating system warns that virtual memory is running low.\n");
 
   /* It might be unsafe to call do_auto_save now.  */
@@ -357,7 +338,7 @@ handle_danger_signal (int sig)
 static void
 deliver_danger_signal (int sig)
 {
-  handle_on_main_thread (sig, handle_danger_signal);
+  deliver_process_signal (sig, handle_danger_signal);
 }
 #endif
 
@@ -680,6 +661,7 @@ main (int argc, char **argv)
 #endif
   char stack_bottom_variable;
   bool do_initial_setlocale;
+  bool dumping;
   int skip_args = 0;
 #ifdef HAVE_SETRLIMIT
   struct rlimit rlim;
@@ -691,7 +673,6 @@ main (int argc, char **argv)
   char dname_arg2[80];
 #endif
   char *ch_to_dir;
-  struct sigaction fatal_error_action;
 
 #if GC_MARK_STACK
   stack_base = &dummy;
@@ -777,12 +758,11 @@ main (int argc, char **argv)
 	exit (1);
       }
 
+  dumping = !initialized && (strcmp (argv[argc - 1], "dump") == 0
+			     || strcmp (argv[argc - 1], "bootstrap") == 0);
 
 #ifdef HAVE_PERSONALITY_LINUX32
-  if (!initialized
-      && (strcmp (argv[argc-1], "dump") == 0
-          || strcmp (argv[argc-1], "bootstrap") == 0)
-      && ! getenv ("EMACS_HEAP_EXEC"))
+  if (dumping && ! getenv ("EMACS_HEAP_EXEC"))
     {
       static char heapexec[] = "EMACS_HEAP_EXEC=true";
       /* Set this so we only do this once.  */
@@ -1107,119 +1087,7 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
 #endif
     }
 
-  init_signals ();
-  emacs_sigaction_init (&fatal_error_action, deliver_fatal_signal);
-
-  /* Don't catch SIGHUP if dumping.  */
-  if (1
-#ifndef CANNOT_DUMP
-      && initialized
-#endif
-      )
-    {
-      /* In --batch mode, don't catch SIGHUP if already ignored.
-	 That makes nohup work.  */
-      bool catch_SIGHUP = !noninteractive;
-      if (!catch_SIGHUP)
-	{
-	  struct sigaction old_action;
-	  sigaction (SIGHUP, 0, &old_action);
-	  catch_SIGHUP = old_action.sa_handler != SIG_IGN;
-	}
-      if (catch_SIGHUP)
-	sigaction (SIGHUP, &fatal_error_action, 0);
-    }
-
-  if (
-#ifndef CANNOT_DUMP
-      ! noninteractive || initialized
-#else
-      1
-#endif
-      )
-    {
-      /* Don't catch these signals in batch mode if dumping.
-	 On some machines, this sets static data that would make
-	 signal fail to work right when the dumped Emacs is run.  */
-      sigaction (SIGQUIT, &fatal_error_action, 0);
-      sigaction (SIGILL, &fatal_error_action, 0);
-      sigaction (SIGTRAP, &fatal_error_action, 0);
-#ifdef SIGUSR1
-      add_user_signal (SIGUSR1, "sigusr1");
-#endif
-#ifdef SIGUSR2
-      add_user_signal (SIGUSR2, "sigusr2");
-#endif
-#ifdef SIGABRT
-      sigaction (SIGABRT, &fatal_error_action, 0);
-#endif
-#ifdef SIGHWE
-      sigaction (SIGHWE, &fatal_error_action, 0);
-#endif
-#ifdef SIGPRE
-      sigaction (SIGPRE, &fatal_error_action, 0);
-#endif
-#ifdef SIGORE
-      sigaction (SIGORE, &fatal_error_action, 0);
-#endif
-#ifdef SIGUME
-      sigaction (SIGUME, &fatal_error_action, 0);
-#endif
-#ifdef SIGDLK
-      sigaction (SIGDLK, &fatal_error_action, 0);
-#endif
-#ifdef SIGCPULIM
-      sigaction (SIGCPULIM, &fatal_error_action, 0);
-#endif
-#ifdef SIGIOT
-      /* This is missing on some systems - OS/2, for example.  */
-      sigaction (SIGIOT, &fatal_error_action, 0);
-#endif
-#ifdef SIGEMT
-      sigaction (SIGEMT, &fatal_error_action, 0);
-#endif
-      sigaction (SIGFPE, &fatal_error_action, 0);
-#ifdef SIGBUS
-      sigaction (SIGBUS, &fatal_error_action, 0);
-#endif
-      sigaction (SIGSEGV, &fatal_error_action, 0);
-#ifdef SIGSYS
-      sigaction (SIGSYS, &fatal_error_action, 0);
-#endif
-      /*  May need special treatment on MS-Windows. See
-          http://lists.gnu.org/archive/html/emacs-devel/2010-09/msg01062.html
-          Please update the doc of kill-emacs, kill-emacs-hook, and
-          NEWS if you change this.
-      */
-      if (noninteractive)
-	sigaction (SIGINT, &fatal_error_action, 0);
-      sigaction (SIGTERM, &fatal_error_action, 0);
-#ifdef SIGXCPU
-      sigaction (SIGXCPU, &fatal_error_action, 0);
-#endif
-#ifdef SIGXFSZ
-      sigaction (SIGXFSZ, &fatal_error_action, 0);
-#endif /* SIGXFSZ */
-
-#ifdef SIGDANGER
-      /* This just means available memory is getting low.  */
-      {
-	struct sigaction action;
-	emacs_sigaction_init (&action, deliver_danger_signal);
-	sigaction (SIGDANGER, &action, 0);
-      }
-#endif
-
-#ifdef AIX
-/* 20 is SIGCHLD, 21 is SIGTTIN, 22 is SIGTTOU.  */
-      sigaction (SIGXCPU, &fatal_error_action, 0);
-      sigaction (SIGIOINT, &fatal_error_action, 0);
-      sigaction (SIGGRANT, &fatal_error_action, 0);
-      sigaction (SIGRETRACT, &fatal_error_action, 0);
-      sigaction (SIGSOUND, &fatal_error_action, 0);
-      sigaction (SIGMSG, &fatal_error_action, 0);
-#endif /* AIX */
-    }
+  init_signals (dumping);
 
   noninteractive1 = noninteractive;
 
@@ -1281,7 +1149,6 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
     }
 
   init_eval ();
-  init_data ();
   init_atimer ();
   running_asynch_code = 0;
   init_random ();
@@ -1396,7 +1263,7 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
   globals_of_w32 ();
   /* Initialize environment from registry settings.  */
   init_environment (argv);
-  init_ntproc ();	/* must precede init_editfns.  */
+  init_ntproc (dumping); /* must precede init_editfns.  */
 #endif
 
   /* Initialize and GC-protect Vinitial_environment and
@@ -1407,8 +1274,7 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
   /* egetenv is a pretty low-level facility, which may get called in
      many circumstances; it seems flimsy to put off initializing it
      until calling init_callproc.  Do not do it when dumping.  */
-  if (initialized || ((strcmp (argv[argc-1], "dump") != 0
-		       && strcmp (argv[argc-1], "bootstrap") != 0)))
+  if (! dumping)
     set_initial_environment ();
 
   /* AIX crashes are reported in system versions 3.2.3 and 3.2.4
@@ -1552,6 +1418,8 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
 #ifdef WINDOWSNT
       syms_of_ntterm ();
 #endif /* WINDOWSNT */
+
+      syms_of_profiler ();
 
       keys_of_casefiddle ();
       keys_of_cmds ();
@@ -2045,7 +1913,7 @@ shut_down_emacs (int sig, Lisp_Object stuff)
   ignore_sigio ();
 
 #ifdef WINDOWSNT
-  term_ntproc ();
+  term_ntproc (0);
 #endif
 
   /* Do this only if terminating normally, we want glyph matrices
@@ -2162,6 +2030,13 @@ You must run Emacs in batch mode in order to dump it.  */)
 #endif
 #ifdef DOUG_LEA_MALLOC
   free (malloc_state_ptr);
+#endif
+
+#ifdef WINDOWSNT
+  Vlibrary_cache = Qnil;
+#endif
+#ifdef HAVE_WINDOW_SYSTEM
+  reset_image_types ();
 #endif
 
   Vpurify_flag = tem;
@@ -2495,6 +2370,11 @@ Also note that this is not a generic facility for accessing external
 libraries; only those already known by Emacs will be loaded.  */);
   Vdynamic_library_alist = Qnil;
   Fput (intern_c_string ("dynamic-library-alist"), Qrisky_local_variable, Qt);
+
+#ifdef WINDOWSNT
+  Vlibrary_cache = Qnil;
+  staticpro (&Vlibrary_cache);
+#endif
 
   /* Make sure IS_DAEMON starts up as false.  */
   daemon_pipe[1] = 0;

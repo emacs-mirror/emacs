@@ -1275,12 +1275,21 @@ describe events by their types; thus, if there is a key binding for
 @var{event-type} is @code{mouse-1}.
 
 @item @var{position}
-This is the position where the mouse click occurred.  The actual
-format of @var{position} depends on what part of a window was clicked
-on.
+@cindex mouse position list
+This is a @dfn{mouse position list} specifying where the mouse click
+occurred; see below for details.
 
-For mouse click events in the text area, mode line, header line, or in
-the marginal areas, @var{position} has this form:
+@item @var{click-count}
+This is the number of rapid repeated presses so far of the same mouse
+button.  @xref{Repeat Events}.
+@end table
+
+  To access the contents of a mouse position list in the
+@var{position} slot of a click event, you should typically use the
+functions documented in @ref{Accessing Mouse}.  The explicit format of
+the list depends on where the click occurred.  For clicks in the text
+area, mode line, header line, or in the fringe or marginal areas, the
+mouse position list has the form
 
 @example
 (@var{window} @var{pos-or-area} (@var{x} . @var{y}) @var{timestamp}
@@ -1289,18 +1298,16 @@ the marginal areas, @var{position} has this form:
 @end example
 
 @noindent
-The meanings of these list elements are documented below.
-@xref{Accessing Mouse}, for functions that let you easily access these
-elements.
+The meanings of these list elements are as follows:
 
 @table @asis
 @item @var{window}
-This is the window in which the click occurred.
+The window in which the click occurred.
 
 @item @var{pos-or-area}
-This is the buffer position of the character clicked on in the text
-area, or if clicked outside the text area, it is the window area in
-which the click occurred.  It is one of the symbols @code{mode-line},
+The buffer position of the character clicked on in the text area; or,
+if the click was outside the text area, the window area where it
+occurred.  It is one of the symbols @code{mode-line},
 @code{header-line}, @code{vertical-line}, @code{left-margin},
 @code{right-margin}, @code{left-fringe}, or @code{right-fringe}.
 
@@ -1310,22 +1317,23 @@ happens after the imaginary prefix keys for the event are registered
 by Emacs.  @xref{Key Sequence Input}.
 
 @item @var{x}, @var{y}
-These are the relative pixel coordinates of the click.  For clicks in
-the text area of a window, the coordinate origin @code{(0 . 0)} is
-taken to be the top left corner of the text area.  @xref{Window
-Sizes}.  For clicks in a mode line or header line, the coordinate
-origin is the top left corner of the window itself.  For fringes,
-margins, and the vertical border, @var{x} does not have meaningful
-data.  For fringes and margins, @var{y} is relative to the bottom edge
-of the header line.  In all cases, the @var{x} and @var{y} coordinates
-increase rightward and downward respectively.
+The relative pixel coordinates of the click.  For clicks in the text
+area of a window, the coordinate origin @code{(0 . 0)} is taken to be
+the top left corner of the text area.  @xref{Window Sizes}.  For
+clicks in a mode line or header line, the coordinate origin is the top
+left corner of the window itself.  For fringes, margins, and the
+vertical border, @var{x} does not have meaningful data.  For fringes
+and margins, @var{y} is relative to the bottom edge of the header
+line.  In all cases, the @var{x} and @var{y} coordinates increase
+rightward and downward respectively.
 
 @item @var{timestamp}
-This is the time at which the event occurred, in milliseconds.
+The time at which the event occurred, as an integer number of
+milliseconds since a system-dependent initial time.
 
 @item @var{object}
-This is either @code{nil} if there is no string-type text property at
-the click position, or a cons cell of the form (@var{string}
+Either @code{nil} if there is no string-type text property at the
+click position, or a cons cell of the form (@var{string}
 . @var{string-pos}) if there is one:
 
 @table @asis
@@ -1371,8 +1379,7 @@ These are the pixel width and height of @var{object} or, if this is
 @code{nil}, those of the character glyph clicked on.
 @end table
 
-@sp 1
-For mouse clicks on a scroll-bar, @var{position} has this form:
+For clicks on a scroll bar, @var{position} has this form:
 
 @example
 (@var{window} @var{area} (@var{portion} . @var{whole}) @var{timestamp} @var{part})
@@ -1380,32 +1387,35 @@ For mouse clicks on a scroll-bar, @var{position} has this form:
 
 @table @asis
 @item @var{window}
-This is the window whose scroll-bar was clicked on.
+The window whose scroll bar was clicked on.
 
 @item @var{area}
-This is the scroll bar where the click occurred.  It is one of the
-symbols @code{vertical-scroll-bar} or @code{horizontal-scroll-bar}.
+This is the symbol @code{vertical-scroll-bar}.
 
 @item @var{portion}
-This is the distance of the click from the top or left end of
-the scroll bar.
+The number of pixels from the top of the scroll bar to the click
+position.  On some toolkits, including GTK+, Emacs cannot extract this
+data, so the value is always @code{0}.
 
 @item @var{whole}
-This is the length of the entire scroll bar.
+The total length, in pixels, of the scroll bar.  On some toolkits,
+including GTK+, Emacs cannot extract this data, so the value is always
+@code{0}.
 
 @item @var{timestamp}
-This is the time at which the event occurred, in milliseconds.
+The time at which the event occurred, in milliseconds.  On some
+toolkits, including GTK+, Emacs cannot extract this data, so the value
+is always @code{0}.
 
 @item @var{part}
-This is the part of the scroll-bar which was clicked on.  It is one
-of the symbols @code{above-handle}, @code{handle}, @code{below-handle},
-@code{up}, @code{down}, @code{top}, @code{bottom}, and @code{end-scroll}.
+The part of the scroll bar on which the click occurred.  It is one of
+the symbols @code{handle} (the scroll bar handle), @code{above-handle}
+(the area above the handle), @code{below-handle} (the area below the
+handle), @code{up} (the up arrow at one end of the scroll bar), or
+@code{down} (the down arrow at one end of the scroll bar).
+@c The `top', `bottom', and `end-scroll' codes don't seem to be used.
 @end table
 
-@item @var{click-count}
-This is the number of rapid repeated presses so far of the same mouse
-button.  @xref{Repeat Events}.
-@end table
 
 @node Drag Events
 @subsection Drag Events
@@ -1429,10 +1439,9 @@ For a drag event, the name of the symbol @var{event-type} contains the
 prefix @samp{drag-}.  For example, dragging the mouse with button 2
 held down generates a @code{drag-mouse-2} event.  The second and third
 elements of the event give the starting and ending position of the
-drag.  They have the same form as @var{position} in a click event
-(@pxref{Click Events}) that is not on the scroll bar part of the
-window.  You can access the second element of any mouse event in the
-same way, with no need to distinguish drag events from others.
+drag, as mouse position lists (@pxref{Click Events}).  You can access
+the second element of any mouse event in the same way, with no need to
+distinguish drag events from others.
 
 The @samp{drag-} prefix follows the modifier key prefixes such as
 @samp{C-} and @samp{M-}.
@@ -1575,13 +1584,14 @@ represented by lists that look like this:
 (mouse-movement POSITION)
 @end example
 
-The second element of the list describes the current position of the
-mouse, just as in a click event (@pxref{Click Events}).
+@noindent
+@var{position} is a mouse position list (@pxref{Click Events}),
+specifying the current position of the mouse cursor.
 
-The special form @code{track-mouse} enables generation of motion events
-within its body.  Outside of @code{track-mouse} forms, Emacs does not
-generate events for mere motion of the mouse, and these events do not
-appear.  @xref{Mouse Tracking}.
+The special form @code{track-mouse} enables generation of motion
+events within its body.  Outside of @code{track-mouse} forms, Emacs
+does not generate events for mere motion of the mouse, and these
+events do not appear.  @xref{Mouse Tracking}.
 
 @node Focus Events
 @subsection Focus Events
@@ -1648,13 +1658,11 @@ frame has already been made visible, Emacs has no work to do.
 @cindex @code{wheel-up} event
 @cindex @code{wheel-down} event
 @item (wheel-up @var{position})
-@item (wheel-down @var{position})
-These kinds of event are generated by moving a mouse wheel.  Their
-usual meaning is a kind of scroll or zoom.
-
-The element @var{position} is a list describing the position of the
-event, in the same format as used in a mouse-click event (@pxref{Click
-Events}).
+@itemx (wheel-down @var{position})
+These kinds of event are generated by moving a mouse wheel.  The
+@var{position} element is a mouse position list (@pxref{Click
+Events}), specifying the position of the mouse cursor when the event
+occurred.
 
 @vindex mouse-wheel-up-event
 @vindex mouse-wheel-down-event
@@ -1922,14 +1930,8 @@ must be the last element of the list.  For example,
   This section describes convenient functions for accessing the data in
 a mouse button or motion event.
 
-  These two functions return the starting or ending position of a
-mouse-button event, as a list of this form (@pxref{Click Events}):
-
-@example
-(@var{window} @var{pos-or-area} (@var{x} . @var{y}) @var{timestamp}
- @var{object} @var{text-pos} (@var{col} . @var{row})
- @var{image} (@var{dx} . @var{dy}) (@var{width} . @var{height}))
-@end example
+  The following two functions return a mouse position list
+(@pxref{Click Events}), specifying the position of a mouse event.
 
 @defun event-start event
 This returns the starting position of @var{event}.
@@ -1948,9 +1950,15 @@ event, the value is actually the starting position, which is the only
 position such events have.
 @end defun
 
+@defun posnp object
+This function returns non-@code{nil} if @var{object} is a mouse
+oposition list, in either of the formats documented in @ref{Click
+Events}); and @code{nil} otherwise.
+@end defun
+
 @cindex mouse position list, accessing
-  These functions take a position list as described above, and
-return various parts of it.
+  These functions take a mouse position list as argument, and return
+various parts of it:
 
 @defun posn-window position
 Return the window that @var{position} is in.

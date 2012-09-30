@@ -69,9 +69,8 @@
   :group 'lisp
   :version "22.1")
 
-;;;###autoload
 (defcustom inferior-lisp-filter-regexp
-  (purecopy "\\`\\s *\\(:\\(\\w\\|\\s_\\)\\)?\\s *\\'")
+  "\\`\\s *\\(:\\(\\w\\|\\s_\\)\\)?\\s *\\'"
   "What not to save on inferior Lisp's input history.
 Input matching this regexp is not saved on the input history in Inferior Lisp
 mode.  Default is whitespace followed by 0 or 1 single-letter colon-keyword
@@ -137,14 +136,12 @@ mode.  Default is whitespace followed by 0 or 1 single-letter colon-keyword
   (define-key inferior-lisp-mode-map "\C-cv"
     'lisp-show-variable-documentation))
 
-;;;###autoload
-(defcustom inferior-lisp-program (purecopy "lisp")
+(defcustom inferior-lisp-program "lisp"
   "Program name for invoking an inferior Lisp in Inferior Lisp mode."
   :type 'string
   :group 'inferior-lisp)
 
-;;;###autoload
-(defcustom inferior-lisp-load-command (purecopy "(load \"%s\")\n")
+(defcustom inferior-lisp-load-command "(load \"%s\")\n"
   "Format-string for building a Lisp expression to load a file.
 This format string should use `%s' to substitute a file name
 and should result in a Lisp expression that will command the inferior Lisp
@@ -155,8 +152,7 @@ but it works only in Common Lisp."
   :type 'string
   :group 'inferior-lisp)
 
-;;;###autoload
-(defcustom inferior-lisp-prompt (purecopy "^[^> \n]*>+:? *")
+(defcustom inferior-lisp-prompt "^[^> \n]*>+:? *"
   "Regexp to recognize prompts in the Inferior Lisp mode.
 Defaults to \"^[^> \\n]*>+:? *\", which works pretty good for Lucid, kcl,
 and franz.  This variable is used to initialize `comint-prompt-regexp' in the
@@ -207,7 +203,6 @@ one process, this does the right thing.  If you run multiple
 processes, you can change `inferior-lisp-buffer' to another process
 buffer with \\[set-variable].")
 
-;;;###autoload
 (defvar inferior-lisp-mode-hook '()
   "Hook for customizing Inferior Lisp mode.")
 

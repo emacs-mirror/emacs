@@ -2110,7 +2110,7 @@ Argument BOUND is a buffer position limiting searching."
            (if (eq prolog-system 'mercury)
                (list
                 (prolog-make-keywords-regexp prolog-mode-specificators-i t)
-                0 'font-lock-reference-face)))
+                0 'font-lock-constant-face)))
           (directives
            (if (eq prolog-system 'mercury)
                (list

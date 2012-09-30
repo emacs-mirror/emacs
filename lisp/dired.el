@@ -1964,7 +1964,7 @@ Otherwise, call `toggle-read-only'."
   (interactive)
   (if (derived-mode-p 'dired-mode)
       (wdired-change-to-wdired-mode)
-    (call-interactively 'toggle-read-only)))
+    (read-only-mode 'toggle)))
 
 (defun dired-next-line (arg)
   "Move down lines then position at filename.
@@ -2997,7 +2997,8 @@ argument or confirmation)."
 	(let ((split-height-threshold 0))
 	  (with-temp-buffer-window
 	   buffer
-	   (cons 'display-buffer-below-selected nil)
+	   (cons 'display-buffer-below-selected
+		 '((window-height . fit-window-to-buffer)))
 	   #'(lambda (window _value)
 	       (with-selected-window window
 		 (unwind-protect
@@ -4268,7 +4269,7 @@ instead.
 ;;;***
 
 ;;;### (autoloads (dired-do-relsymlink dired-jump-other-window dired-jump)
-;;;;;;  "dired-x" "dired-x.el" "d2461aa6efb8c1d7de8f245728ab448e")
+;;;;;;  "dired-x" "dired-x.el" "a4e6844421c2c5e6fde90e959fbcc26f")
 ;;; Generated autoloads from dired-x.el
 
 (autoload 'dired-jump "dired-x" "\

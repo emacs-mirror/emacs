@@ -271,9 +271,14 @@ the return value (nil if RESULT is omitted).
          ,@(cdr (cdr spec))))))
 
 (defmacro declare (&rest _specs)
-  "Do not evaluate any arguments and return nil.
-Treated as a declaration when used at the right place in a
-`defmacro' form.  \(See Info anchor `(elisp)Definition of declare'.)"
+  "Do not evaluate any arguments, and return nil.
+If a `declare' form appears as the first form in the body of a
+`defun' or `defmacro' form, SPECS specifies various additional
+information about the function or macro; these go into effect
+during the evaluation of the `defun' or `defmacro' form.
+
+The possible values of SPECS are specified by
+`defun-declarations-alist' and `macro-declarations-alist'."
   ;; FIXME: edebug spec should pay attention to defun-declarations-alist.
   nil)
 ))
@@ -461,18 +466,18 @@ If TEST is omitted or nil, `equal' is used."
       (setq tail (cdr tail)))
     value))
 
-(make-obsolete 'assoc-ignore-case 'assoc-string "22.1")
 (defun assoc-ignore-case (key alist)
   "Like `assoc', but ignores differences in case and text representation.
 KEY must be a string.  Upper-case and lower-case letters are treated as equal.
 Unibyte strings are converted to multibyte for comparison."
+  (declare (obsolete assoc-string "22.1"))
   (assoc-string key alist t))
 
-(make-obsolete 'assoc-ignore-representation 'assoc-string "22.1")
 (defun assoc-ignore-representation (key alist)
   "Like `assoc', but ignores differences in text representation.
 KEY must be a string.
 Unibyte strings are converted to multibyte for comparison."
+  (declare (obsolete assoc-string "22.1"))
   (assoc-string key alist nil))
 
 (defun member-ignore-case (elt list)
@@ -1179,12 +1184,13 @@ be a list of the form returned by `event-start' and `event-end'."
   "Mocklisp-compatibility insert function.
 Like the function `insert' except that any argument that is a number
 is converted into a string by expressing it in decimal."
+  (declare (obsolete insert "22.1"))
   (dolist (el args)
     (insert (if (integerp el) (number-to-string el) el))))
-(make-obsolete 'insert-string 'insert "22.1")
 
-(defun makehash (&optional test) (make-hash-table :test (or test 'eql)))
-(make-obsolete 'makehash 'make-hash-table "22.1")
+(defun makehash (&optional test)
+  (declare (obsolete make-hash-table "22.1"))
+  (make-hash-table :test (or test 'eql)))
 
 ;; These are used by VM and some old programs
 (defalias 'focus-frame 'ignore "")
@@ -1249,11 +1255,6 @@ is converted into a string by expressing it in decimal."
 
 (make-obsolete 'process-filter-multibyte-p nil "23.1")
 (make-obsolete 'set-process-filter-multibyte nil "23.1")
-
-(make-obsolete-variable
- 'mode-line-inverse-video
- "use the appropriate faces instead."
- "21.1")
 
 ;; Lisp manual only updated in 22.1.
 (define-obsolete-variable-alias 'executing-macro 'executing-kbd-macro
@@ -1911,8 +1912,8 @@ This function is called directly from the C code."
   "Read the following input sexp, and run it whenever FILE is loaded.
 This makes or adds to an entry on `after-load-alist'.
 FILE should be the name of a library, with no directory name."
+  (declare (obsolete eval-after-load "23.2"))
   (eval-after-load file (read)))
-(make-obsolete 'eval-next-after-load `eval-after-load "23.2")
 
 (defun display-delayed-warnings ()
   "Display delayed warnings from `delayed-warnings-list'.

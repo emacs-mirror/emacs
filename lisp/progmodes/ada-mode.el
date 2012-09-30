@@ -5218,11 +5218,11 @@ Return nil if no body was found."
      ;; correctly highlight a with_clause that spans multiple lines.
      (list (concat "\\<\\(goto\\|raise\\|use\\|with\\)"
 		   "[ \t]+\\([a-zA-Z0-9_., \t]+\\)\\W")
-	   '(1 font-lock-keyword-face) '(2 font-lock-reference-face nil t))
+	   '(1 font-lock-keyword-face) '(2 font-lock-constant-face nil t))
 
      ;;
      ;; Goto tags.
-     '("<<\\(\\sw+\\)>>" 1 font-lock-reference-face)
+     '("<<\\(\\sw+\\)>>" 1 font-lock-constant-face)
 
      ;; Highlight based-numbers (R. Reagan <robin-reply@reagans.org>)
      (list "\\([0-9]+#[0-9a-fA-F_]+#\\)" '(1 font-lock-constant-face t))

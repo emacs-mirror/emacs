@@ -4079,11 +4079,10 @@ option followed by a colon `:' if the option accepts an argument."
 (defun sh-maybe-here-document (arg)
   "Insert self.  Without prefix, following unquoted `<' inserts here document.
 The document is bounded by `sh-here-document-word'."
+  (declare (obsolete sh-electric-here-document-mode "24.3"))
   (interactive "*P")
   (self-insert-command (prefix-numeric-value arg))
   (or arg (sh--maybe-here-document)))
-(make-obsolete 'sh--maybe-here-document
-               'sh-electric-here-document-mode "24.3")
 
 (defun sh--maybe-here-document ()
   (or (not (looking-back "[^<]<<"))

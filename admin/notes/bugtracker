@@ -610,7 +610,7 @@ An /etc/aliases entry redirects it to the real emacs-bug-tracker address.
 All discarded messages are stored in /var/lib/mailman/spam.
 If a non-spam message accidentally gets discarded, just do:
 
-cat /var/lib/mailman/spam/not-really-spam.msg | /usr/lib/debbugs/receive
+/usr/lib/debbugs/receive < /var/lib/mailman/spam/not-really-spam.msg
 chown Debian-debbugs:Debian-debbugs /var/lib/debbugs/spool/incoming/*
 ... check it works ...
 mv /var/lib/mailman/spam/not-really-spam.msg /var/lib/mailman/not-spam/

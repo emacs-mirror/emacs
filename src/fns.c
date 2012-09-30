@@ -61,8 +61,9 @@ DEFUN ("identity", Fidentity, Sidentity, 1, 1, 0,
 
 DEFUN ("random", Frandom, Srandom, 0, 1, 0,
        doc: /* Return a pseudo-random number.
-All integers representable in Lisp are equally likely.
-  On most systems, this is 29 bits' worth.
+All integers representable in Lisp, i.e. between `most-negative-fixnum'
+and `most-positive-fixnum', inclusive, are equally likely.
+
 With positive integer LIMIT, return random number in interval [0,LIMIT).
 With argument t, set the random number seed from the current time and pid.
 Other values of LIMIT are ignored.  */)
@@ -1838,13 +1839,6 @@ properties on the list.  This function never signals an error.  */)
       halftail = XCDR (halftail);
       if (EQ (tail, halftail))
 	break;
-
-#if 0 /* Unsafe version.  */
-      /* This function can be called asynchronously
-	 (setup_coding_system).  Don't QUIT in that case.  */
-      if (!interrupt_input_blocked)
-	QUIT;
-#endif
     }
 
   return Qnil;

@@ -275,6 +275,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <limits.h>
 
 #include "lisp.h"
+#include "atimer.h"
 #include "keyboard.h"
 #include "frame.h"
 #include "window.h"
@@ -332,10 +333,10 @@ static Lisp_Object Qinhibit_eval_during_redisplay;
 static Lisp_Object Qbuffer_position, Qposition, Qobject;
 static Lisp_Object Qright_to_left, Qleft_to_right;
 
-/* Cursor shapes */
+/* Cursor shapes.  */
 Lisp_Object Qbar, Qhbar, Qbox, Qhollow;
 
-/* Pointer shapes */
+/* Pointer shapes.  */
 static Lisp_Object Qarrow, Qhand;
 Lisp_Object Qtext;
 
@@ -346,6 +347,7 @@ static Lisp_Object Qfontification_functions;
 
 static Lisp_Object Qwrap_prefix;
 static Lisp_Object Qline_prefix;
+static Lisp_Object Qredisplay_internal;
 
 /* Non-nil means don't actually do any redisplay.  */
 
@@ -11402,11 +11404,11 @@ x_cursor_to (int vpos, int hpos, int y, int x)
      This will also set the cursor position of W.  */
   if (updated_window == NULL)
     {
-      BLOCK_INPUT;
+      block_input ();
       display_and_set_cursor (w, 1, hpos, vpos, x, y);
       if (FRAME_RIF (SELECTED_FRAME ())->flush_display_optional)
 	FRAME_RIF (SELECTED_FRAME ())->flush_display_optional (SELECTED_FRAME ());
-      UNBLOCK_INPUT;
+      unblock_input ();
     }
 }
 
@@ -11520,11 +11522,11 @@ update_tool_bar (struct frame *f, int save_match_data)
               /* Redisplay that happens asynchronously due to an expose event
                  may access f->tool_bar_items.  Make sure we update both
                  variables within BLOCK_INPUT so no such event interrupts.  */
-              BLOCK_INPUT;
+              block_input ();
               fset_tool_bar_items (f, new_tool_bar);
               f->n_tool_bar_items = new_n_tool_bar;
               w->update_mode_line = 1;
-              UNBLOCK_INPUT;
+              unblock_input ();
             }
 
 	  UNGCPRO;
@@ -12928,12 +12930,13 @@ redisplay_internal (void)
   struct frame *sf;
   int polling_stopped_here = 0;
   Lisp_Object old_frame = selected_frame;
+  struct backtrace backtrace;
 
   /* Non-zero means redisplay has to consider all windows on all
      frames.  Zero means, only selected_window is considered.  */
   int consider_all_windows_p;
 
-  /* Non-zero means redisplay has to redisplay the miniwindow */
+  /* Non-zero means redisplay has to redisplay the miniwindow.  */
   int update_miniwindow_p = 0;
 
   TRACE ((stderr, "redisplay_internal %d\n", redisplaying_p));
@@ -12969,6 +12972,14 @@ redisplay_internal (void)
   record_unwind_protect (unwind_redisplay, selected_frame);
   redisplaying_p = 1;
   specbind (Qinhibit_free_realized_faces, Qnil);
+
+  /* Record this function, so it appears on the profiler's backtraces.  */
+  backtrace.next = backtrace_list;
+  backtrace.function = Qredisplay_internal;
+  backtrace.args = &Qnil;
+  backtrace.nargs = 0;
+  backtrace.debug_on_exit = 0;
+  backtrace_list = &backtrace;
 
   {
     Lisp_Object tail, frame;
@@ -13667,6 +13678,7 @@ redisplay_internal (void)
 #endif /* HAVE_WINDOW_SYSTEM */
 
  end_of_redisplay:
+  backtrace_list = backtrace.next;
   unbind_to (count, Qnil);
   RESUME_POLLING;
 }
@@ -16205,10 +16217,10 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
 				    || w->pseudo_window_p)))
     {
       update_begin (f);
-      BLOCK_INPUT;
+      block_input ();
       if (draw_window_fringes (w, 1))
 	x_draw_vertical_border (w);
-      UNBLOCK_INPUT;
+      unblock_input ();
       update_end (f);
     }
 #endif /* HAVE_WINDOW_SYSTEM */
@@ -20161,10 +20173,6 @@ display_menu_bar (struct window *w)
      this.  */
   it.paragraph_embedding = L2R;
 
-  if (! mode_line_inverse_video)
-    /* Force the menu-bar to be displayed in the default face.  */
-    it.base_face_id = it.face_id = DEFAULT_FACE_ID;
-
   /* Clear all rows of the menu bar.  */
   for (i = 0; i < FRAME_MENU_BAR_LINES (f); ++i)
     {
@@ -20333,10 +20341,6 @@ display_mode_line (struct window *w, enum face_id face_id, Lisp_Object format)
   prepare_desired_row (it.glyph_row);
 
   it.glyph_row->mode_line_p = 1;
-
-  if (! mode_line_inverse_video)
-    /* Force the mode-line to be displayed in the default face.  */
-    it.base_face_id = it.face_id = DEFAULT_FACE_ID;
 
   /* FIXME: This should be controlled by a user option.  But
      supporting such an option is not trivial, since the mode line is
@@ -25327,7 +25331,7 @@ x_write_glyphs (struct glyph *start, int len)
   if (updated_row->reversed_p && chpos >= updated_row->used[TEXT_AREA])
     chpos = updated_row->used[TEXT_AREA] - 1;
 
-  BLOCK_INPUT;
+  block_input ();
 
   /* Write glyphs.  */
 
@@ -25345,7 +25349,7 @@ x_write_glyphs (struct glyph *start, int len)
       && chpos < hpos + len)
     updated_window->phys_cursor_on_p = 0;
 
-  UNBLOCK_INPUT;
+  unblock_input ();
 
   /* Advance the output cursor.  */
   output_cursor.hpos += len;
@@ -25368,7 +25372,7 @@ x_insert_glyphs (struct glyph *start, int len)
   ptrdiff_t hpos;
 
   eassert (updated_window && updated_row);
-  BLOCK_INPUT;
+  block_input ();
   w = updated_window;
   f = XFRAME (WINDOW_FRAME (w));
 
@@ -25402,7 +25406,7 @@ x_insert_glyphs (struct glyph *start, int len)
   /* Advance the output cursor.  */
   output_cursor.hpos += len;
   output_cursor.x += shift_by_width;
-  UNBLOCK_INPUT;
+  unblock_input ();
 }
 
 
@@ -25471,10 +25475,10 @@ x_clear_end_of_line (int to_x)
   /* Prevent inadvertently clearing to end of the X window.  */
   if (to_x > from_x && to_y > from_y)
     {
-      BLOCK_INPUT;
+      block_input ();
       FRAME_RIF (f)->clear_frame_area (f, from_x, from_y,
                                        to_x - from_x, to_y - from_y);
-      UNBLOCK_INPUT;
+      unblock_input ();
     }
 }
 
@@ -25801,7 +25805,7 @@ x_fix_overlapping_area (struct window *w, struct glyph_row *row,
 {
   int i, x;
 
-  BLOCK_INPUT;
+  block_input ();
 
   x = 0;
   for (i = 0; i < row->used[area];)
@@ -25829,7 +25833,7 @@ x_fix_overlapping_area (struct window *w, struct glyph_row *row,
 	}
     }
 
-  UNBLOCK_INPUT;
+  unblock_input ();
 }
 
 
@@ -26047,7 +26051,7 @@ display_and_set_cursor (struct window *w, int on,
       || (0 <= hpos && hpos < glyph_row->used[TEXT_AREA]))
     glyph = glyph_row->glyphs[TEXT_AREA] + hpos;
 
-  eassert (interrupt_input_blocked);
+  eassert (input_blocked_p ());
 
   /* Set new_cursor_type to the cursor we want to be displayed.  */
   new_cursor_type = get_window_cursor_type (w, glyph,
@@ -26117,10 +26121,10 @@ update_window_cursor (struct window *w, int on)
       if (row->reversed_p && hpos >= row->used[TEXT_AREA])
 	hpos = row->used[TEXT_AREA] - 1;
 
-      BLOCK_INPUT;
+      block_input ();
       display_and_set_cursor (w, on, hpos, vpos,
 			      w->phys_cursor.x, w->phys_cursor.y);
-      UNBLOCK_INPUT;
+      unblock_input ();
     }
 }
 
@@ -26298,10 +26302,10 @@ show_mouse_face (Mouse_HLInfo *hlinfo, enum draw_glyphs_face draw)
 	  if (row->reversed_p && hpos >= row->used[TEXT_AREA])
 	    hpos = row->used[TEXT_AREA] - 1;
 
-	  BLOCK_INPUT;
+	  block_input ();
 	  display_and_set_cursor (w, 1, hpos, w->phys_cursor.vpos,
 				  w->phys_cursor.x, w->phys_cursor.y);
-	  UNBLOCK_INPUT;
+	  unblock_input ();
 	}
 #endif	/* HAVE_WINDOW_SYSTEM */
     }
@@ -28116,11 +28120,11 @@ x_clear_window_mouse_face (struct window *w)
   Mouse_HLInfo *hlinfo = MOUSE_HL_INFO (XFRAME (w->frame));
   Lisp_Object window;
 
-  BLOCK_INPUT;
+  block_input ();
   XSETWINDOW (window, w);
   if (EQ (window, hlinfo->mouse_face_window))
     clear_mouse_face (hlinfo);
-  UNBLOCK_INPUT;
+  unblock_input ();
 }
 
 
@@ -28690,6 +28694,7 @@ syms_of_xdisp (void)
   staticpro (&Vmessage_stack);
 
   DEFSYM (Qinhibit_redisplay, "inhibit-redisplay");
+  DEFSYM (Qredisplay_internal, "redisplay_internal (C function)");
 
   message_dolog_marker1 = Fmake_marker ();
   staticpro (&message_dolog_marker1);
@@ -28928,12 +28933,6 @@ A value of nil means to respect the value of `truncate-lines'.
 
 If `word-wrap' is enabled, you might want to reduce this.  */);
   Vtruncate_partial_width_windows = make_number (50);
-
-  DEFVAR_BOOL ("mode-line-inverse-video", mode_line_inverse_video,
-    doc: /* When nil, display the mode-line/header-line/menu-bar in the default face.
-Any other value means to use the appropriate face, `mode-line',
-`header-line', or `menu' respectively.  */);
-  mode_line_inverse_video = 1;
 
   DEFVAR_LISP ("line-number-display-limit", Vline_number_display_limit,
     doc: /* Maximum buffer size for which line number should be displayed.
@@ -29362,7 +29361,7 @@ init_xdisp (void)
    the following three functions in w32fns.c.  */
 #ifndef WINDOWSNT
 
-/* Platform-independent portion of hourglass implementation. */
+/* Platform-independent portion of hourglass implementation.  */
 
 /* Cancel a currently active hourglass timer, and start a new one.  */
 void

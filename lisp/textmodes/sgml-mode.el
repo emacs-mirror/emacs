@@ -34,7 +34,6 @@
 
 (eval-when-compile
   (require 'skeleton)
-  (require 'outline)
   (require 'cl-lib))
 
 (defgroup sgml nil
@@ -1937,6 +1936,10 @@ This takes effect when first loading the library.")
     ("var" . "Math variable face")
     ("wbr" . "Enable <br> within <nobr>"))
   "Value of `sgml-tag-help' for HTML mode.")
+
+(defvar outline-regexp)
+(defvar outline-heading-end-regexp)
+(defvar outline-level)
 
 
 ;;;###autoload

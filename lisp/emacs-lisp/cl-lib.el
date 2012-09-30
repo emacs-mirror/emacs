@@ -745,7 +745,6 @@ If ALIST is non-nil, the new pairs are prepended to it."
 
 ;; Local variables:
 ;; byte-compile-dynamic: t
-;; byte-compile-warnings: (not cl-functions)
 ;; End:
 
 ;;; cl-lib.el ends here

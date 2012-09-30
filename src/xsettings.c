@@ -929,7 +929,7 @@ init_xsettings (struct x_display_info *dpyinfo)
 {
   Display *dpy = dpyinfo->display;
 
-  BLOCK_INPUT;
+  block_input ();
 
   /* Select events so we can detect client messages sent when selection
      owner changes.  */
@@ -939,7 +939,7 @@ init_xsettings (struct x_display_info *dpyinfo)
   if (dpyinfo->xsettings_window != None)
     read_and_apply_settings (dpyinfo, False);
 
-  UNBLOCK_INPUT;
+  unblock_input ();
 }
 
 void

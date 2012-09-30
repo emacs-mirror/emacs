@@ -253,7 +253,9 @@ convention was modified."
            advertised-signature-table))
 
 (defun make-obsolete (obsolete-name current-name &optional when)
-  "Make the byte-compiler warn that OBSOLETE-NAME is obsolete.
+  "Make the byte-compiler warn that function OBSOLETE-NAME is obsolete.
+OBSOLETE-NAME should be a function name or macro name (a symbol).
+
 The warning will say that CURRENT-NAME should be used instead.
 If CURRENT-NAME is a string, that is the `use instead' message
 \(it should end with a period, and not start with a capital).

@@ -284,23 +284,24 @@ not it is actually displayed."
 (defun mouse-major-mode-menu (event &optional prefix)
   "Pop up a mode-specific menu of mouse commands.
 Default to the Edit menu if the major mode doesn't define a menu."
+  (declare (obsolete mouse-menu-major-mode-map "23.1"))
   (interactive "@e\nP")
   (run-hooks 'activate-menubar-hook 'menu-bar-update-hook)
   (popup-menu (mouse-menu-major-mode-map) event prefix))
-(make-obsolete 'mouse-major-mode-menu 'mouse-menu-major-mode-map "23.1")
 
 (defun mouse-popup-menubar (event prefix)
   "Pop up a menu equivalent to the menu bar for keyboard EVENT with PREFIX.
 The contents are the items that would be in the menu bar whether or
 not it is actually displayed."
+  (declare (obsolete mouse-menu-bar-map "23.1"))
   (interactive "@e \nP")
   (run-hooks 'activate-menubar-hook 'menu-bar-update-hook)
   (popup-menu (mouse-menu-bar-map) (unless (integerp event) event) prefix))
-(make-obsolete 'mouse-popup-menubar 'mouse-menu-bar-map "23.1")
 
 (defun mouse-popup-menubar-stuff (event prefix)
   "Popup a menu like either `mouse-major-mode-menu' or `mouse-popup-menubar'.
 Use the former if the menu bar is showing, otherwise the latter."
+  (declare (obsolete nil "23.1"))
   (interactive "@e\nP")
   (run-hooks 'activate-menubar-hook 'menu-bar-update-hook)
   (popup-menu
@@ -308,7 +309,6 @@ Use the former if the menu bar is showing, otherwise the latter."
        (mouse-menu-bar-map)
      (mouse-menu-major-mode-map))
    event prefix))
-(make-obsolete 'mouse-popup-menubar-stuff nil "23.1")
 
 ;; Commands that operate on windows.
 

@@ -709,6 +709,9 @@ rectangle, depending on the command that uses them.
 @item C-x r k
 Kill the text of the region-rectangle, saving its contents as the
 ``last killed rectangle'' (@code{kill-rectangle}).
+@item C-x r M-w
+Save the text of the region-rectangle as the ``last killed rectangle''
+(@code{copy-rectangle-as-kill}).
 @item C-x r d
 Delete the text of the region-rectangle (@code{delete-rectangle}).
 @item C-x r y
@@ -756,6 +759,12 @@ only records the most recent rectangle killed.  This is because
 yanking a rectangle is so different from yanking linear text that
 different yank commands have to be used.  Yank-popping is not defined
 for rectangles.
+
+@kindex C-x r M-w
+@findex copy-rectangle-as-kill
+  @kbd{C-x r M-w} (@code{copy-rectangle-as-kill}) is the equivalent of
+@kbd{M-w} for rectangles: it records the rectangle as the ``last
+killed rectangle'', without deleting the text from the buffer.
 
 @kindex C-x r y
 @findex yank-rectangle

@@ -123,9 +123,9 @@
 ;;; Code:
 
 ;; This variable will always hold the version number of the mode
-(defconst verilog-mode-version "800"
+(defconst verilog-mode-version (substring "$$Revision: 820 $$" 12 -3)
   "Version of this Verilog mode.")
-(defconst verilog-mode-release-date "2012-04-23-GNU"
+(defconst verilog-mode-release-date (substring "$$Date: 2012-09-17 20:43:10 -0400 (Mon, 17 Sep 2012) $$" 8 -3)
   "Release date of this Verilog mode.")
 (defconst verilog-mode-release-emacs t
   "If non-nil, this version of Verilog mode was released with Emacs itself.")
@@ -1127,10 +1127,11 @@ won't merge conflict."
   :type 'integer)
 (put 'verilog-auto-inst-column 'safe-local-variable 'integerp)
 
-(defcustom verilog-auto-inst-interfaced-ports t
+(defcustom verilog-auto-inst-interfaced-ports nil
   "Non-nil means include interfaced ports in AUTOINST expansions."
   :group 'verilog-mode-auto
-  :type 'boolean)
+  :type 'boolean
+  :version "24.3")
 (put 'verilog-auto-inst-interfaced-ports 'safe-local-variable 'verilog-booleanp)
 
 (defcustom verilog-auto-input-ignore-regexp nil
@@ -1431,12 +1432,18 @@ If set will become buffer local.")
        :help		"Help on AUTOARG - declaring module port list"]
       ["AUTOASCIIENUM"			(describe-function 'verilog-auto-ascii-enum)
        :help		"Help on AUTOASCIIENUM - creating ASCII for enumerations"]
+      ["AUTOASSIGNMODPORT"		(describe-function 'verilog-auto-assign-modport)
+       :help		"Help on AUTOASSIGNMODPORT - creating assignments to/from modports"]
       ["AUTOINOUTCOMP"			(describe-function 'verilog-auto-inout-comp)
        :help		"Help on AUTOINOUTCOMP - copying complemented i/o from another file"]
       ["AUTOINOUTIN"			(describe-function 'verilog-auto-inout-in)
-       :help		"Help on AUTOINOUTCOMP - copying i/o from another file as all inputs"]
+       :help		"Help on AUTOINOUTIN - copying i/o from another file as all inputs"]
+      ["AUTOINOUTMODPORT"		(describe-function 'verilog-auto-inout-modport)
+       :help		"Help on AUTOINOUTMODPORT - copying i/o from an interface modport"]
       ["AUTOINOUTMODULE"		(describe-function 'verilog-auto-inout-module)
        :help		"Help on AUTOINOUTMODULE - copying i/o from another file"]
+      ["AUTOINOUTPARAM"			(describe-function 'verilog-auto-inout-param)
+       :help		"Help on AUTOINOUTPARAM - copying parameters from another file"]
       ["AUTOINSERTLISP"			(describe-function 'verilog-auto-insert-lisp)
        :help		"Help on AUTOINSERTLISP - insert text from a lisp function"]
       ["AUTOINOUT"			(describe-function 'verilog-auto-inout)
@@ -1706,12 +1713,19 @@ This speeds up complicated regexp matches."
 ;;(verilog-re-search-backward-substr "-end" "get-end-of" nil t) ;;-end (test bait)
 
 (defun verilog-delete-trailing-whitespace ()
-  "Delete trailing spaces or tabs, but not newlines nor linefeeds."
+  "Delete trailing spaces or tabs, but not newlines nor linefeeds.
+Also add missing final newline.
+
+To call this from the command line, see \\[verilog-batch-diff-auto].
+
+To call on \\[verilog-auto], set `verilog-auto-delete-trailing-whitespace'."
   ;; Similar to `delete-trailing-whitespace' but that's not present in XEmacs
   (save-excursion
     (goto-char (point-min))
     (while (re-search-forward "[ \t]+$" nil t)  ;; Not syntactic WS as no formfeed
-      (replace-match "" nil nil))))
+      (replace-match "" nil nil))
+    (goto-char (point-max))
+    (unless (bolp) (insert "\n"))))
 
 (defvar compile-command)
 
@@ -5128,6 +5142,15 @@ with \\[verilog-delete-auto] on all command-line files, and saves the buffers."
     (error "Use verilog-batch-delete-auto only with --batch"))  ;; Otherwise we'd mess up buffer modes
   (verilog-batch-execute-func `verilog-delete-auto))
 
+(defun verilog-batch-delete-trailing-whitespace ()
+  "For use with --batch, perform whitespace deletion as a stand-alone tool.
+This sets up the appropriate Verilog mode environment, removes
+whitespace with \\[verilog-delete-trailing-whitespace] on all
+command-line files, and saves the buffers."
+  (unless noninteractive
+    (error "Use verilog-batch-delete-trailing-whitepace only with --batch"))  ;; Otherwise we'd mess up buffer modes
+  (verilog-batch-execute-func `verilog-delete-trailing-whitespace))
+
 (defun verilog-batch-diff-auto ()
   "For use with --batch, perform automatic differences as a stand-alone tool.
 This sets up the appropriate Verilog mode environment, expand automatics
@@ -7479,6 +7502,19 @@ See also `verilog-sk-header' for an alternative format."
 (defsubst verilog-alw-get-uses-delayed (sigs)
   (aref sigs 0))
 
+(defsubst verilog-modport-new (name clockings decls)
+  (list name clockings decls))
+(defsubst verilog-modport-name (sig)
+  (car sig))
+(defsubst verilog-modport-clockings (sig)
+  (nth 1 sig)) ;; Returns list of names
+(defsubst verilog-modport-clockings-add (sig val)
+  (setcar (nthcdr 1 sig) (cons val (nth 1 sig))))
+(defsubst verilog-modport-decls (sig)
+  (nth 2 sig)) ;; Returns verilog-decls-* structure
+(defsubst verilog-modport-decls-set (sig val)
+  (setcar (nthcdr 2 sig) val))
+
 (defsubst verilog-modi-new (name fob pt type)
   (vector name fob pt type))
 (defsubst verilog-modi-name (modi)
@@ -7496,8 +7532,15 @@ See also `verilog-sk-header' for an alternative format."
 
 ;; Signal reading for given module
 ;; Note these all take modi's - as returned from verilog-modi-current
-(defsubst verilog-decls-new (out inout in vars unuseds assigns consts gparams interfaces)
-  (vector out inout in vars unuseds assigns consts gparams interfaces))
+(defsubst verilog-decls-new (out inout in vars modports assigns consts gparams interfaces)
+  (vector out inout in vars modports assigns consts gparams interfaces))
+(defsubst verilog-decls-append (a b)
+  (cond ((not a) b) ((not b) a)
+	(t (vector (append (aref a 0) (aref b 0))   (append (aref a 1) (aref b 1))
+		   (append (aref a 2) (aref b 2))   (append (aref a 3) (aref b 3))
+		   (append (aref a 4) (aref b 4))   (append (aref a 5) (aref b 5))
+		   (append (aref a 6) (aref b 6))   (append (aref a 7) (aref b 7))
+		   (append (aref a 8) (aref b 8))))))
 (defsubst verilog-decls-get-outputs (decls)
   (aref decls 0))
 (defsubst verilog-decls-get-inouts (decls)
@@ -7506,8 +7549,8 @@ See also `verilog-sk-header' for an alternative format."
   (aref decls 2))
 (defsubst verilog-decls-get-vars (decls)
   (aref decls 3))
-;;(defsubst verilog-decls-get-unused (decls)
-;;  (aref decls 4))
+(defsubst verilog-decls-get-modports (decls) ;; Also for clocking blocks; contains another verilog-decls struct
+  (aref decls 4))  ;; Returns verilog-modport* structure
 (defsubst verilog-decls-get-assigns (decls)
   (aref decls 5))
 (defsubst verilog-decls-get-consts (decls)
@@ -7516,6 +7559,7 @@ See also `verilog-sk-header' for an alternative format."
   (aref decls 7))
 (defsubst verilog-decls-get-interfaces (decls)
   (aref decls 8))
+
 
 (defsubst verilog-subdecls-new (out inout in intf intfd)
   (vector out inout in intf intfd))
@@ -7534,6 +7578,36 @@ See also `verilog-sk-header' for an alternative format."
   "Return signals in standard form from SIGNAME-LIST, a simple list of names."
   (mapcar (lambda (name) (verilog-sig-new name nil nil nil nil nil nil nil nil))
 	  signame-list))
+
+(defun verilog-signals-in (in-list not-list)
+  "Return list of signals in IN-LIST that are also in NOT-LIST.
+Also remove any duplicates in IN-LIST.
+Signals must be in standard (base vector) form."
+  ;; This function is hot, so implemented as O(1)
+  (cond ((eval-when-compile (fboundp 'make-hash-table))
+	 (let ((ht (make-hash-table :test 'equal :rehash-size 4.0))
+	       (ht-not (make-hash-table :test 'equal :rehash-size 4.0))
+	       out-list)
+	   (while not-list
+	     (puthash (car (car not-list)) t ht-not)
+	     (setq not-list (cdr not-list)))
+	   (while in-list
+	     (when (and (gethash (verilog-sig-name (car in-list)) ht-not)
+			(not (gethash (verilog-sig-name (car in-list)) ht)))
+	       (setq out-list (cons (car in-list) out-list))
+	       (puthash (verilog-sig-name (car in-list)) t ht))
+	     (setq in-list (cdr in-list)))
+	   (nreverse out-list)))
+	;; Slower Fallback if no hash tables (pre Emacs 21.1/XEmacs 21.4)
+	(t
+	 (let (out-list)
+	   (while in-list
+	     (if (and (assoc (verilog-sig-name (car in-list)) not-list)
+		      (not (assoc (verilog-sig-name (car in-list)) out-list)))
+		 (setq out-list (cons (car in-list) out-list)))
+	     (setq in-list (cdr in-list)))
+	   (nreverse out-list)))))
+;;(verilog-signals-in '(("A" "") ("B" "") ("DEL" "[2:3]")) '(("DEL" "") ("C" "")))
 
 (defun verilog-signals-not-in (in-list not-list)
   "Return list of signals in IN-LIST that aren't also in NOT-LIST.
@@ -7556,8 +7630,8 @@ Signals must be in standard (base vector) form."
 	(t
 	 (let (out-list)
 	   (while in-list
-	     (if (not (or (assoc (verilog-sig-name (car in-list)) not-list)
-			  (assoc (verilog-sig-name (car in-list)) out-list)))
+	     (if (and (not (assoc (verilog-sig-name (car in-list)) not-list))
+		      (not (assoc (verilog-sig-name (car in-list)) out-list)))
 		 (setq out-list (cons (car in-list) out-list)))
 	     (setq in-list (cdr in-list)))
 	   (nreverse out-list)))))
@@ -7702,30 +7776,35 @@ Tieoff value uses `verilog-active-low-regexp' and
 ;; Dumping
 ;;
 
-(defun verilog-decls-princ (decls)
+(defun verilog-decls-princ (decls &optional header prefix)
   "For debug, dump the `verilog-read-decls' structure DECLS."
-  (verilog-signals-princ (verilog-decls-get-outputs decls)
-			 "Outputs:\n" "  ")
-  (verilog-signals-princ (verilog-decls-get-inouts decls)
-			 "Inout:\n" "  ")
-  (verilog-signals-princ (verilog-decls-get-inputs decls)
-			 "Inputs:\n" "  ")
-  (verilog-signals-princ (verilog-decls-get-vars decls)
-			 "Vars:\n" "  ")
-  (verilog-signals-princ (verilog-decls-get-assigns decls)
-			 "Assigns:\n" "  ")
-  (verilog-signals-princ (verilog-decls-get-consts decls)
-			 "Consts:\n" "  ")
-  (verilog-signals-princ (verilog-decls-get-gparams decls)
-			 "Gparams:\n" "  ")
-  (verilog-signals-princ (verilog-decls-get-interfaces decls)
-			 "Interfaces:\n" "  ")
-  (princ "\n"))
+  (when decls
+    (if header (princ header))
+    (setq prefix (or prefix ""))
+    (verilog-signals-princ (verilog-decls-get-outputs decls)
+			   (concat prefix "Outputs:\n") (concat prefix "  "))
+    (verilog-signals-princ (verilog-decls-get-inouts decls)
+			   (concat prefix "Inout:\n") (concat prefix "  "))
+    (verilog-signals-princ (verilog-decls-get-inputs decls)
+			   (concat prefix "Inputs:\n") (concat prefix "  "))
+    (verilog-signals-princ (verilog-decls-get-vars decls)
+			   (concat prefix "Vars:\n") (concat prefix "  "))
+    (verilog-signals-princ (verilog-decls-get-assigns decls)
+			   (concat prefix "Assigns:\n") (concat prefix "  "))
+    (verilog-signals-princ (verilog-decls-get-consts decls)
+			   (concat prefix "Consts:\n") (concat prefix "  "))
+    (verilog-signals-princ (verilog-decls-get-gparams decls)
+			   (concat prefix "Gparams:\n") (concat prefix "  "))
+    (verilog-signals-princ (verilog-decls-get-interfaces decls)
+			   (concat prefix "Interfaces:\n") (concat prefix "  "))
+    (verilog-modport-princ (verilog-decls-get-modports decls)
+			   (concat prefix "Modports:\n") (concat prefix "  "))
+    (princ "\n")))
 
 (defun verilog-signals-princ (signals &optional header prefix)
   "For debug, dump internal SIGNALS structures, with HEADER and PREFIX."
   (when signals
-    (princ header)
+    (if header (princ header))
     (while signals
       (let ((sig (car signals)))
 	(setq signals (cdr signals))
@@ -7740,6 +7819,21 @@ Tieoff value uses `verilog-active-low-regexp' and
 	(princ "  dim=") (princ (verilog-sig-multidim sig))
 	(princ "  modp=") (princ (verilog-sig-modport sig))
 	(princ "\n")))))
+
+(defun verilog-modport-princ (modports &optional header prefix)
+  "For debug, dump internal MODPORT structures, with HEADER and PREFIX."
+  (when modports
+    (if header (princ header))
+    (while modports
+      (let ((sig (car modports)))
+	(setq modports (cdr modports))
+	(princ prefix)
+	(princ "\"") (princ (verilog-modport-name sig)) (princ "\"")
+	(princ "  clockings=") (princ (verilog-modport-clockings sig))
+	(princ "\n")
+	(verilog-decls-princ (verilog-modport-decls sig)
+			     (concat prefix "  syms:\n")
+			     (concat prefix "    "))))))
 
 ;;
 ;; Port/Wire/Etc Reading
@@ -7851,11 +7945,12 @@ Optional NUM-PARAM and MAX-PARAM check for a specific number of parameters."
 Return an array of [outputs inouts inputs wire reg assign const]."
   (let ((end-mod-point (or (verilog-get-end-of-defun t) (point-max)))
 	(functask 0) (paren 0) (sig-paren 0) (v2kargs-ok t)
-	in-modport ptype ign-prop
+	in-modport in-clocking ptype ign-prop
 	sigs-in sigs-out sigs-inout sigs-var sigs-assign sigs-const
-	sigs-gparam sigs-intf
+	sigs-gparam sigs-intf sigs-modports
 	vec expect-signal keywd newsig rvalue enum io signed typedefed multidim
-	modport)
+	modport
+	varstack tmp)
     (save-excursion
       (verilog-beg-of-defun-quick)
       (setq sigs-const (verilog-read-auto-constants (point) end-mod-point))
@@ -7881,6 +7976,17 @@ Return an array of [outputs inouts inputs wire reg assign const]."
 	  (or (re-search-forward "[^\\]\"" nil t)	;; don't forward-char first, since we look for a non backslash first
 	      (error "%s: Unmatched quotes, at char %d" (verilog-point-text) (point))))
 	 ((eq ?\; (following-char))
+	  (when (and in-modport (not (eq in-modport t))) ;; end of a modport declaration
+	    (verilog-modport-decls-set
+	     in-modport
+	     (verilog-decls-new sigs-out sigs-inout sigs-in
+				nil nil nil nil nil nil))
+	    ;; Pop from varstack to restore state to pre-clocking
+	    (setq tmp (car varstack)
+		  varstack (cdr varstack)
+		  sigs-out (aref tmp 0)
+		  sigs-inout (aref tmp 1)
+		  sigs-in (aref tmp 2)))
 	  (setq vec nil  io nil  expect-signal nil  newsig nil  paren 0  rvalue nil
 		v2kargs-ok nil  in-modport nil  ign-prop nil)
 	  (forward-char 1))
@@ -7974,15 +8080,17 @@ Return an array of [outputs inouts inputs wire reg assign const]."
 		 (setq signed keywd))
 		((member keywd '("assert" "assume" "cover" "expect" "restrict"))
 		 (setq ign-prop t))
-		((member keywd '("class" "clocking" "covergroup" "function"
+		((member keywd '("class" "covergroup" "function"
 				 "property" "randsequence" "sequence" "task"))
 		 (unless ign-prop
 		   (setq functask (1+ functask))))
-		((member keywd '("endclass" "endclocking" "endgroup" "endfunction"
+		((member keywd '("endclass" "endgroup" "endfunction"
 				 "endproperty" "endsequence" "endtask"))
 		 (setq functask (1- functask)))
 		((equal keywd "modport")
 		 (setq in-modport t))
+		((equal keywd "clocking")
+		 (setq in-clocking t))
 		((equal keywd "type")
 		 (setq ptype t))
 		;; Ifdef?  Ignore name of define
@@ -8008,11 +8116,47 @@ Return an array of [outputs inouts inputs wire reg assign const]."
 		 (goto-char (match-end 0))
 		 (when (not rvalue)
 		   (setq expect-signal nil)))
+		;; "modport <keywd>"
+		((and (eq in-modport t)
+		      (not (member keywd verilog-keywords)))
+		 (setq in-modport (verilog-modport-new keywd nil nil))
+		 (setq sigs-modports (cons in-modport sigs-modports))
+		 ;; Push old sig values to stack and point to new signal list
+		 (setq varstack (cons (vector sigs-out sigs-inout sigs-in)
+				      varstack))
+		 (setq sigs-in nil  sigs-inout nil  sigs-out nil))
+		;; "modport x (clocking <keywd>)"
+		((and in-modport in-clocking)
+		 (verilog-modport-clockings-add in-modport keywd)
+		 (setq in-clocking nil))
+		;; endclocking
+		((and in-clocking
+		      (equal keywd "endclocking"))
+		 (unless (eq in-clocking t)
+		   (verilog-modport-decls-set
+		    in-clocking
+		    (verilog-decls-new sigs-out sigs-inout sigs-in
+				       nil nil nil nil nil nil))
+		   ;; Pop from varstack to restore state to pre-clocking
+		   (setq tmp (car varstack)
+			 varstack (cdr varstack)
+			 sigs-out (aref tmp 0)
+			 sigs-inout (aref tmp 1)
+			 sigs-in (aref tmp 2)))
+		 (setq in-clocking nil))
+		;; "clocking <keywd>"
+		((and (eq in-clocking t)
+		      (not (member keywd verilog-keywords)))
+		 (setq in-clocking (verilog-modport-new keywd nil nil))
+		 (setq sigs-modports (cons in-clocking sigs-modports))
+		 ;; Push old sig values to stack and point to new signal list
+		 (setq varstack (cons (vector sigs-out sigs-inout sigs-in)
+				      varstack))
+		 (setq sigs-in nil  sigs-inout nil  sigs-out nil))
 		;; New signal, maybe?
 		((and expect-signal
 		      (not rvalue)
 		      (eq functask 0)
-		      (not in-modport)
 		      (not (member keywd verilog-keywords)))
 		 ;; Add new signal to expect-signal's variable
 		 (setq newsig (verilog-sig-new keywd vec nil nil enum signed typedefed multidim modport))
@@ -8022,15 +8166,17 @@ Return an array of [outputs inouts inputs wire reg assign const]."
 	  (forward-char 1)))
 	(skip-syntax-forward " "))
       ;; Return arguments
-      (verilog-decls-new (nreverse sigs-out)
-			 (nreverse sigs-inout)
-			 (nreverse sigs-in)
-			 (nreverse sigs-var)
-			 nil
-			 (nreverse sigs-assign)
-			 (nreverse sigs-const)
-			 (nreverse sigs-gparam)
-			 (nreverse sigs-intf)))))
+      (setq tmp (verilog-decls-new (nreverse sigs-out)
+				   (nreverse sigs-inout)
+				   (nreverse sigs-in)
+				   (nreverse sigs-var)
+				   (nreverse sigs-modports)
+				   (nreverse sigs-assign)
+				   (nreverse sigs-const)
+				   (nreverse sigs-gparam)
+				   (nreverse sigs-intf)))
+      ;;(if dbg (verilog-decls-princ tmp))
+      tmp)))
 
 (defvar verilog-read-sub-decls-in-interfaced nil
   "For `verilog-read-sub-decls', process next signal as under interfaced block.")
@@ -9352,12 +9498,12 @@ Return modi if successful, else print message unless IGNORE-ERROR is true."
 	   ;;(message "verilog-modi-lookup: HIT %S" modi)
 	   modi)
 	  ;; Miss
-	  (t (let* ((realmod (verilog-symbol-detick module t))
-		    (orig-filenames (verilog-module-filenames realmod current))
+	  (t (let* ((realname (verilog-symbol-detick module t))
+		    (orig-filenames (verilog-module-filenames realname current))
 		    (filenames orig-filenames)
 		    mif)
 	       (while (and filenames (not mif))
-		 (if (not (setq mif (verilog-module-inside-filename-p realmod (car filenames))))
+		 (if (not (setq mif (verilog-module-inside-filename-p realname (car filenames))))
 		     (setq filenames (cdr filenames))))
 	       ;; mif has correct form to become later elements of modi
 	       (cond (mif (setq modi mif))
@@ -9365,8 +9511,8 @@ Return modi if successful, else print message unless IGNORE-ERROR is true."
 			(or ignore-error
 			    (error (concat (verilog-point-text)
 					   ": Can't locate " module " module definition"
-					   (if (not (equal module realmod))
-					       (concat " (Expanded macro to " realmod ")")
+					   (if (not (equal module realname))
+					       (concat " (Expanded macro to " realname ")")
 					     "")
 					   "\n    Check the verilog-library-directories variable."
 					   "\n    I looked in (if not listed, doesn't exist):\n\t"
@@ -9465,6 +9611,45 @@ and invalidating the cache."
      (progn ,@body)))
 
 
+(defun verilog-modi-modport-lookup-one (modi name &optional ignore-error)
+  "Given a MODI, return the declarations related to the given modport NAME."
+  ;; Recursive routine - see below
+  (let* ((realname (verilog-symbol-detick name t))
+	 (modport (assoc name (verilog-decls-get-modports (verilog-modi-get-decls modi)))))
+    (or modport ignore-error
+	(error (concat (verilog-point-text)
+		       ": Can't locate " name " modport definition"
+		       (if (not (equal name realname))
+			   (concat " (Expanded macro to " realname ")")
+			 ""))))
+    (let* ((decls (verilog-modport-decls modport))
+	   (clks (verilog-modport-clockings modport)))
+      ;; Now expand any clocking's
+      (while clks
+	(setq decls (verilog-decls-append
+		     decls
+		     (verilog-modi-modport-lookup-one modi (car clks) ignore-error)))
+	(setq clks (cdr clks)))
+      decls)))
+
+(defun verilog-modi-modport-lookup (modi name-re &optional ignore-error)
+  "Given a MODI, return the declarations related to the given modport NAME-RE.
+If the modport points to any clocking blocks, expand the signals to include
+those clocking block's signals."
+  ;; Recursive routine - see below
+  (let* ((mod-decls (verilog-modi-get-decls modi))
+	 (clks (verilog-decls-get-modports mod-decls))
+	 (name-re (concat "^" name-re "$"))
+	 (decls (verilog-decls-new nil nil nil nil nil nil nil nil nil)))
+    ;; Pull in all modports
+    (while clks
+      (when (string-match name-re (verilog-modport-name (car clks)))
+	(setq decls (verilog-decls-append
+		     decls
+		     (verilog-modi-modport-lookup-one modi (verilog-modport-name (car clks)) ignore-error))))
+      (setq clks (cdr clks)))
+    decls))
+
 (defun verilog-signals-matching-enum (in-list enum)
   "Return all signals in IN-LIST matching the given ENUM."
   (let (out-list)
@@ -9544,6 +9729,13 @@ if non-nil."
    (verilog-decls-get-inouts decls)
    (verilog-decls-get-inputs decls)))
 
+(defun verilog-decls-get-iovars (decls)
+  (append
+   (verilog-decls-get-vars decls)
+   (verilog-decls-get-outputs decls)
+   (verilog-decls-get-inouts decls)
+   (verilog-decls-get-inputs decls)))
+
 (defsubst verilog-modi-cache-add-outputs (modi sig-list)
   (verilog-modi-cache-add modi 'verilog-read-decls 0 sig-list))
 (defsubst verilog-modi-cache-add-inouts (modi sig-list)
@@ -9552,6 +9744,8 @@ if non-nil."
   (verilog-modi-cache-add modi 'verilog-read-decls 2 sig-list))
 (defsubst verilog-modi-cache-add-vars (modi sig-list)
   (verilog-modi-cache-add modi 'verilog-read-decls 3 sig-list))
+(defsubst verilog-modi-cache-add-gparams (modi sig-list)
+  (verilog-modi-cache-add modi 'verilog-read-decls 7 sig-list))
 
 
 ;;
@@ -9608,6 +9802,8 @@ When MODI is non-null, also add to modi-cache, for tracking."
 	   (when verilog-auto-declare-nettype
 	     (verilog-modi-cache-add-vars modi sigs)))
 	  ((equal direction "interface"))
+	  ((equal direction "parameter")
+	   (verilog-modi-cache-add-gparams modi sigs))
 	  (t
 	   (error "Unsupported verilog-insert-definition direction: %s" direction))))
   (or dont-sort
@@ -9653,6 +9849,11 @@ Presumes that any newlines end a list element."
       (setq need-indent (string-match "\n$" (car stuff))
 	    stuff (cdr stuff)))))
 ;;(let ((indent-pt 10)) (verilog-insert-indent "hello\n" "addon" "there\n"))
+
+(defun verilog-forward-or-insert-line ()
+  "Move forward a line, unless at EOB, then insert a newline."
+  (if (eobp) (insert "\n")
+    (forward-line)))
 
 (defun verilog-repair-open-comma ()
   "Insert comma if previous argument is other than an open parenthesis or endif."
@@ -9741,6 +9942,17 @@ This repairs those mis-inserted by an AUTOARG."
 			"\\([])}:*+-]\\)")
 		out)
 	  (setq out (replace-match "\\1\\2\\3" nil nil out)))
+	(while (string-match
+		(concat "\\([[({:*+-]\\)"  ; - must be last
+			"\\$clog2\\s *(\\<\\([0-9]+\\))"
+			"\\([])}:*+-]\\)")
+		out)
+	  (setq out (replace-match
+		     (concat
+		      (match-string 1 out)
+		      (int-to-string (verilog-clog2 (string-to-number (match-string 2 out))))
+		      (match-string 3 out))
+		     nil nil out)))
 	;; For precedence do * before +/-
 	(while (string-match
 		(concat "\\([[({:*+-]\\)"
@@ -9777,6 +9989,7 @@ This repairs those mis-inserted by an AUTOARG."
 			       post)
 		       nil nil out)) )))
       out)))
+
 ;;(verilog-simplify-range-expression "[1:3]") ;; 1
 ;;(verilog-simplify-range-expression "[(1):3]") ;; 1
 ;;(verilog-simplify-range-expression "[(((16)+1)+1+(1+1))]")  ;;20
@@ -9785,6 +9998,14 @@ This repairs those mis-inserted by an AUTOARG."
 ;;(verilog-simplify-range-expression "[(FOO*4+1-1)]") ;; FOO*4+0
 ;;(verilog-simplify-range-expression "[(func(BAR))]") ;; func(BAR)
 ;;(verilog-simplify-range-expression "[FOO-1+1-1+1]") ;; FOO-0
+;;(verilog-simplify-range-expression "[$clog2(2)]") ;; 1
+;;(verilog-simplify-range-expression "[$clog2(7)]") ;; 3
+
+(defun verilog-clog2 (value)
+  "Compute $clog2 - ceiling log2 of VALUE."
+  (if (< value 1)
+      0
+    (ceiling (/ (log value) (log 2)))))
 
 (defun verilog-typedef-name-p (variable-name)
   "Return true if the VARIABLE-NAME is a type definition."
@@ -10347,6 +10568,86 @@ Avoid declaring ports manually, as it makes code harder to maintain."
       (unless (eq (char-before) ?/ )
 	(insert "\n"))
       (indent-to verilog-indent-level-declaration))))
+
+(defun verilog-auto-assign-modport ()
+  "Expand AUTOASSIGNMODPORT statements, as part of \\[verilog-auto].
+Take input/output/inout statements from the specified interface
+and modport and use to build assignments into the modport, for
+making verification modules that connect to UVM interfaces.
+
+  The first parameter is the name of an interface.
+
+  The second parameter is a regexp of modports to read from in
+  that interface.
+
+  The third parameter is the instance name to use to dot reference into.
+
+  The optional fourth parameter is a regular expression, and only
+  signals matching the regular expression will be included.
+
+Limitations:
+
+  Interface names must be resolvable to filenames.  See `verilog-auto-inst'.
+
+  Inouts are not supported, as assignments must be unidirectional.
+
+  If a signal is part of the interface header and in both a
+  modport and the interface itself, it will not be listed.  (As
+  this would result in a syntax error when the connections are
+  made.)
+
+See the example in `verilog-auto-inout-modport'."
+  (save-excursion
+    (let* ((params (verilog-read-auto-params 3 4))
+	   (submod (nth 0 params))
+	   (modport-re (nth 1 params))
+	   (inst-name (nth 2 params))
+	   (regexp (nth 3 params))
+	   direction-re submodi) ;; direction argument not supported until requested
+      ;; Lookup position, etc of co-module
+      ;; Note this may raise an error
+      (when (setq submodi (verilog-modi-lookup submod t))
+	(let* ((indent-pt (current-indentation))
+	       (modi (verilog-modi-current))
+	       (submoddecls (verilog-modi-get-decls submodi))
+	       (submodportdecls (verilog-modi-modport-lookup submodi modport-re))
+	       (sig-list-i (verilog-signals-in ;; Decls doesn't have data types, must resolve
+			    (verilog-decls-get-vars submoddecls)
+			    (verilog-signals-not-in
+			     (verilog-decls-get-inputs submodportdecls)
+			     (verilog-decls-get-ports submoddecls))))
+	       (sig-list-o (verilog-signals-in ;; Decls doesn't have data types, must resolve
+			    (verilog-decls-get-vars submoddecls)
+			    (verilog-signals-not-in
+			     (verilog-decls-get-outputs submodportdecls)
+			     (verilog-decls-get-ports submoddecls)))))
+	  (forward-line 1)
+	  (setq sig-list-i  (verilog-signals-edit-wire-reg
+			     (verilog-signals-matching-dir-re
+			      (verilog-signals-matching-regexp sig-list-i regexp)
+			      "input" direction-re))
+		sig-list-o  (verilog-signals-edit-wire-reg
+			     (verilog-signals-matching-dir-re
+			      (verilog-signals-matching-regexp sig-list-o regexp)
+			      "output" direction-re)))
+	  (setq sig-list-i (sort (copy-alist sig-list-i) `verilog-signals-sort-compare))
+	  (setq sig-list-o (sort (copy-alist sig-list-o) `verilog-signals-sort-compare))
+	  (when (or sig-list-i sig-list-o)
+	    (verilog-insert-indent "// Beginning of automatic assignments from modport\n")
+	    ;; Don't sort them so an upper AUTOINST will match the main module
+	    (let ((sigs sig-list-o))
+	      (while sigs
+		(verilog-insert-indent "assign " (verilog-sig-name (car sigs))
+				       " = " inst-name
+				       "." (verilog-sig-name (car sigs)) ";\n")
+		(setq sigs (cdr sigs))))
+	    (let ((sigs sig-list-i))
+	      (while sigs
+		(verilog-insert-indent "assign " inst-name
+				       "." (verilog-sig-name (car sigs))
+				       " = " (verilog-sig-name (car sigs)) ";\n")
+		(setq sigs (cdr sigs))))
+	    (verilog-insert-indent "// End of automatics\n")))))))
 
 (defun verilog-auto-inst-port-map (port-st)
   nil)
@@ -11067,8 +11368,8 @@ Typing \\[verilog-auto] will make this into:
 			      (verilog-subdecls-get-interfaced modsubdecls)
 			      (verilog-subdecls-get-outputs modsubdecls)
 			      (verilog-subdecls-get-inouts modsubdecls)))))
-      (forward-line 1)
       (when sig-list
+	(verilog-forward-or-insert-line)
 	(verilog-insert-indent "// Beginning of automatic regs (for this module's undeclared outputs)\n")
 	(verilog-insert-definition modi sig-list "reg" indent-pt nil)
 	(verilog-insert-indent "// End of automatics\n")))))
@@ -11122,8 +11423,8 @@ Typing \\[verilog-auto] will make this into:
 			       (verilog-subdecls-get-inouts modsubdecls))
 		       (append (verilog-decls-get-signals moddecls)
 			       (verilog-decls-get-assigns moddecls))))))
-      (forward-line 1)
       (when sig-list
+	(verilog-forward-or-insert-line)
 	(verilog-insert-indent "// Beginning of automatic reg inputs (for undeclared instantiated-module inputs)\n")
 	(verilog-insert-definition modi sig-list "reg" indent-pt nil)
 	(verilog-insert-indent "// End of automatics\n")))))
@@ -11210,8 +11511,8 @@ Typing \\[verilog-auto] will make this into:
 		       (append (verilog-subdecls-get-outputs modsubdecls)
 			       (verilog-subdecls-get-inouts modsubdecls))
 		       (verilog-decls-get-signals moddecls)))))
-      (forward-line 1)
       (when sig-list
+	(verilog-forward-or-insert-line)
 	(verilog-insert-indent "// Beginning of automatic wires (for undeclared instantiated-module outputs)\n")
 	(verilog-insert-definition modi sig-list "wire" indent-pt nil)
 	(verilog-insert-indent "// End of automatics\n")
@@ -11221,7 +11522,7 @@ Typing \\[verilog-auto] will make this into:
 	;; syntax-ppss which is broken when change hooks are disabled.
 	))))
 
-(defun verilog-auto-output (&optional with-params)
+(defun verilog-auto-output ()
   "Expand AUTOOUTPUT statements, as part of \\[verilog-auto].
 Make output statements for any output signal from an /*AUTOINST*/ that
 isn't an input to another AUTOINST.  This is useful for modules which
@@ -11273,8 +11574,8 @@ same expansion will result from only extracting outputs starting with ov:
   (save-excursion
     ;; Point must be at insertion point.
     (let* ((indent-pt (current-indentation))
-	   (regexp (and with-params
-			(nth 0 (verilog-read-auto-params 1))))
+	   (params (verilog-read-auto-params 0 1))
+	   (regexp (nth 0 params))
 	   (v2k  (verilog-in-paren-quick))
 	   (modi (verilog-modi-current))
 	   (moddecls (verilog-modi-get-decls modi))
@@ -11290,7 +11591,7 @@ same expansion will result from only extracting outputs starting with ov:
 			sig-list regexp)))
       (setq sig-list (verilog-signals-not-matching-regexp
 		      sig-list verilog-auto-output-ignore-regexp))
-      (forward-line 1)
+      (verilog-forward-or-insert-line)
       (when v2k (verilog-repair-open-comma))
       (when sig-list
 	(verilog-insert-indent "// Beginning of automatic outputs (from unused autoinst outputs)\n")
@@ -11340,7 +11641,7 @@ Typing \\[verilog-auto] will make this into:
 		      (verilog-signals-not-in
 		       (verilog-decls-get-signals moddecls)
 		       (verilog-decls-get-ports moddecls)))))
-      (forward-line 1)
+      (verilog-forward-or-insert-line)
       (when v2k (verilog-repair-open-comma))
       (when sig-list
 	(verilog-insert-indent "// Beginning of automatic outputs (every signal)\n")
@@ -11348,7 +11649,7 @@ Typing \\[verilog-auto] will make this into:
 	(verilog-insert-indent "// End of automatics\n"))
       (when v2k (verilog-repair-close-comma)))))
 
-(defun verilog-auto-input (&optional with-params)
+(defun verilog-auto-input ()
   "Expand AUTOINPUT statements, as part of \\[verilog-auto].
 Make input statements for any input signal into an /*AUTOINST*/ that
 isn't declared elsewhere inside the module.  This is useful for modules which
@@ -11399,8 +11700,8 @@ same expansion will result from only extracting inputs starting with i:
 	   /*AUTOINPUT(\"^i\")*/"
   (save-excursion
     (let* ((indent-pt (current-indentation))
-	   (regexp (and with-params
-			(nth 0 (verilog-read-auto-params 1))))
+	   (params (verilog-read-auto-params 0 1))
+	   (regexp (nth 0 params))
 	   (v2k  (verilog-in-paren-quick))
 	   (modi (verilog-modi-current))
 	   (moddecls (verilog-modi-get-decls modi))
@@ -11420,7 +11721,7 @@ same expansion will result from only extracting inputs starting with i:
 			sig-list regexp)))
       (setq sig-list (verilog-signals-not-matching-regexp
 		      sig-list verilog-auto-input-ignore-regexp))
-      (forward-line 1)
+      (verilog-forward-or-insert-line)
       (when v2k (verilog-repair-open-comma))
       (when sig-list
 	(verilog-insert-indent "// Beginning of automatic inputs (from unused autoinst inputs)\n")
@@ -11428,7 +11729,7 @@ same expansion will result from only extracting inputs starting with i:
 	(verilog-insert-indent "// End of automatics\n"))
       (when v2k (verilog-repair-close-comma)))))
 
-(defun verilog-auto-inout (&optional with-params)
+(defun verilog-auto-inout ()
   "Expand AUTOINOUT statements, as part of \\[verilog-auto].
 Make inout statements for any inout signal in an /*AUTOINST*/ that
 isn't declared elsewhere inside the module.
@@ -11479,8 +11780,8 @@ same expansion will result from only extracting inouts starting with i:
   (save-excursion
     ;; Point must be at insertion point.
     (let* ((indent-pt (current-indentation))
-	   (regexp (and with-params
-			(nth 0 (verilog-read-auto-params 1))))
+	   (params (verilog-read-auto-params 0 1))
+	   (regexp (nth 0 params))
 	   (v2k  (verilog-in-paren-quick))
 	   (modi (verilog-modi-current))
 	   (moddecls (verilog-modi-get-decls modi))
@@ -11497,7 +11798,7 @@ same expansion will result from only extracting inouts starting with i:
 			sig-list regexp)))
       (setq sig-list (verilog-signals-not-matching-regexp
 		      sig-list verilog-auto-inout-ignore-regexp))
-      (forward-line 1)
+      (verilog-forward-or-insert-line)
       (when v2k (verilog-repair-open-comma))
       (when sig-list
 	(verilog-insert-indent "// Beginning of automatic inouts (from unused autoinst inouts)\n")
@@ -11739,6 +12040,225 @@ same expansion will result from only extracting signals starting with i:
 	   /*AUTOINOUTCOMP(\"ExampMain\",\"^i\")*/"
   (verilog-auto-inout-module nil t))
 
+(defun verilog-auto-inout-param ()
+  "Expand AUTOINOUTPARAM statements, as part of \\[verilog-auto].
+Take input/output/inout statements from the specified module and insert
+into the current module.  This is useful for making null templates and
+shell modules which need to have identical I/O with another module.
+Any I/O which are already defined in this module will not be redefined.
+For the complement of this function, see `verilog-auto-inout-comp',
+and to make monitors with all inputs, see `verilog-auto-inout-in'.
+
+Limitations:
+  If placed inside the parenthesis of a module declaration, it creates
+  Verilog 2001 style, else uses Verilog 1995 style.
+
+  Concatenation and outputting partial buses is not supported.
+
+  Module names must be resolvable to filenames.  See `verilog-auto-inst'.
+
+  Signals are not inserted in the same order as in the original module,
+  though they will appear to be in the same order to an AUTOINST
+  instantiating either module.
+
+  Signals declared as \"output reg\" or \"output wire\" etc will
+  lose the wire/reg declaration so that shell modules may
+  generate those outputs differently.  However, \"output logic\"
+  is propagated.
+
+An example:
+
+	module ExampShell (/*AUTOARG*/);
+	   /*AUTOINOUTMODULE(\"ExampMain\")*/
+	endmodule
+
+	module ExampMain (i,o,io);
+          input i;
+          output o;
+          inout io;
+        endmodule
+
+Typing \\[verilog-auto] will make this into:
+
+	module ExampShell (/*AUTOARG*/i,o,io);
+	   /*AUTOINOUTMODULE(\"ExampMain\")*/
+           // Beginning of automatic in/out/inouts (from specific module)
+           output o;
+           inout io;
+           input i;
+	   // End of automatics
+	endmodule
+
+You may also provide an optional regular expression, in which case only
+signals matching the regular expression will be included.  For example the
+same expansion will result from only extracting signals starting with i:
+
+	   /*AUTOINOUTMODULE(\"ExampMain\",\"^i\")*/
+
+You may also provide an optional second regular expression, in
+which case only signals which have that pin direction and data
+type will be included.  This matches against everything before
+the signal name in the declaration, for example against
+\"input\" (single bit), \"output logic\" (direction and type) or
+\"output [1:0]\" (direction and implicit type).  You also
+probably want to skip spaces in your regexp.
+
+For example, the below will result in matching the output \"o\"
+against the previous example's module:
+
+	   /*AUTOINOUTMODULE(\"ExampMain\",\"\",\"^output.*\")*/
+
+You may also provide an optional third regular expression, in
+which case any parameter names that match the given regexp will
+be included.  Including parameters is off by default.  To include
+all signals and parameters, use:
+
+	   /*AUTOINOUTMODULE(\"ExampMain\",\".*\",\".*\",\".*\")*/"
+  (save-excursion
+    (let* ((params (verilog-read-auto-params 1 2))
+	   (submod (nth 0 params))
+	   (regexp (nth 1 params))
+	   submodi)
+      ;; Lookup position, etc of co-module
+      ;; Note this may raise an error
+      (when (setq submodi (verilog-modi-lookup submod t))
+	(let* ((indent-pt (current-indentation))
+	       (v2k  (verilog-in-paren-quick))
+	       (modi (verilog-modi-current))
+	       (moddecls (verilog-modi-get-decls modi))
+	       (submoddecls (verilog-modi-get-decls submodi))
+	       (sig-list-p  (verilog-signals-not-in
+			     (verilog-decls-get-gparams submoddecls)
+			     (append (verilog-decls-get-gparams moddecls)))))
+	  (forward-line 1)
+	  (setq sig-list-p  (verilog-signals-matching-regexp sig-list-p regexp))
+	  (when v2k (verilog-repair-open-comma))
+	  (when sig-list-p
+	    (verilog-insert-indent "// Beginning of automatic parameters (from specific module)\n")
+	    ;; Don't sort them so an upper AUTOINST will match the main module
+	    (verilog-insert-definition modi sig-list-p  "parameter" indent-pt v2k t)
+	    (verilog-insert-indent "// End of automatics\n"))
+	  (when v2k (verilog-repair-close-comma)))))))
+
+(defun verilog-auto-inout-modport ()
+  "Expand AUTOINOUTMODPORT statements, as part of \\[verilog-auto].
+Take input/output/inout statements from the specified interface
+and modport and insert into the current module.  This is useful
+for making verification modules that connect to UVM interfaces.
+
+  The first parameter is the name of an interface.
+
+  The second parameter is a regexp of modports to read from in
+  that interface.
+
+  The optional third parameter is a regular expression, and only
+  signals matching the regular expression will be included.
+
+Limitations:
+  If placed inside the parenthesis of a module declaration, it creates
+  Verilog 2001 style, else uses Verilog 1995 style.
+
+  Interface names must be resolvable to filenames.  See `verilog-auto-inst'.
+
+As with other autos, any inputs/outputs declared in the module
+will suppress the AUTO from redeclarating an inputs/outputs by
+the same name.
+
+An example:
+
+	interface ExampIf
+	  ( input logic clk );
+	   logic        req_val;
+	   logic [7:0]  req_dat;
+	   clocking mon_clkblk @(posedge clk);
+	      input     req_val;
+	      input     req_dat;
+	   endclocking
+	   modport mp(clocking mon_clkblk);
+	endinterface
+
+	module ExampMain
+	( input clk,
+	  /*AUTOINOUTMODPORT(\"ExampIf\" \"mp\")*/
+	  // Beginning of automatic in/out/inouts (from modport)
+	  input	[7:0] req_dat,
+	  input       req_val
+	  // End of automatics
+	);
+	/*AUTOASSIGNMODPORT(\"ExampIf\" \"mp\")*/
+	endmodule
+
+Typing \\[verilog-auto] will make this into:
+
+	...
+	module ExampMain
+	( input clk,
+	  /*AUTOINOUTMODPORT(\"ExampIf\" \"mp\")*/
+	  // Beginning of automatic in/out/inouts (from modport)
+	  input			req_dat,
+	  input			req_val
+	  // End of automatics
+	);
+
+If the modport is part of a UVM monitor/driver class, this
+creates a wrapper module that may be used to instantiate the
+driver/monitor using AUTOINST in the testbench."
+  (save-excursion
+    (let* ((params (verilog-read-auto-params 2 3))
+	   (submod (nth 0 params))
+	   (modport-re (nth 1 params))
+	   (regexp (nth 2 params))
+	   direction-re submodi) ;; direction argument not supported until requested
+      ;; Lookup position, etc of co-module
+      ;; Note this may raise an error
+      (when (setq submodi (verilog-modi-lookup submod t))
+	(let* ((indent-pt (current-indentation))
+	       (v2k  (verilog-in-paren-quick))
+	       (modi (verilog-modi-current))
+	       (moddecls (verilog-modi-get-decls modi))
+	       (submoddecls (verilog-modi-get-decls submodi))
+	       (submodportdecls (verilog-modi-modport-lookup submodi modport-re))
+	       (sig-list-i (verilog-signals-in ;; Decls doesn't have data types, must resolve
+			    (verilog-decls-get-vars submoddecls)
+			    (verilog-signals-not-in
+			     (verilog-decls-get-inputs submodportdecls)
+			     (append (verilog-decls-get-ports submoddecls)
+				     (verilog-decls-get-ports moddecls)))))
+	       (sig-list-o (verilog-signals-in ;; Decls doesn't have data types, must resolve
+			    (verilog-decls-get-vars submoddecls)
+			    (verilog-signals-not-in
+			     (verilog-decls-get-outputs submodportdecls)
+			     (append (verilog-decls-get-ports submoddecls)
+				     (verilog-decls-get-ports moddecls)))))
+	       (sig-list-io (verilog-signals-in ;; Decls doesn't have data types, must resolve
+			     (verilog-decls-get-vars submoddecls)
+			     (verilog-signals-not-in
+			      (verilog-decls-get-inouts submodportdecls)
+			      (append (verilog-decls-get-ports submoddecls)
+				      (verilog-decls-get-ports moddecls))))))
+	  (forward-line 1)
+	  (setq sig-list-i  (verilog-signals-edit-wire-reg
+			     (verilog-signals-matching-dir-re
+			      (verilog-signals-matching-regexp sig-list-i regexp)
+			      "input" direction-re))
+		sig-list-o  (verilog-signals-edit-wire-reg
+			     (verilog-signals-matching-dir-re
+			      (verilog-signals-matching-regexp sig-list-o regexp)
+			      "output" direction-re))
+		sig-list-io (verilog-signals-edit-wire-reg
+			     (verilog-signals-matching-dir-re
+			      (verilog-signals-matching-regexp sig-list-io regexp)
+			      "inout" direction-re)))
+	  (when v2k (verilog-repair-open-comma))
+	  (when (or sig-list-i sig-list-o sig-list-io)
+	    (verilog-insert-indent "// Beginning of automatic in/out/inouts (from modport)\n")
+	    ;; Don't sort them so an upper AUTOINST will match the main module
+	    (verilog-insert-definition modi sig-list-o  "output" indent-pt v2k t)
+	    (verilog-insert-definition modi sig-list-io "inout" indent-pt v2k t)
+	    (verilog-insert-definition modi sig-list-i  "input" indent-pt v2k t)
+	    (verilog-insert-indent "// End of automatics\n"))
+	  (when v2k (verilog-repair-close-comma)))))))
+
 (defun verilog-auto-insert-lisp ()
   "Expand AUTOINSERTLISP statements, as part of \\[verilog-auto].
 The Lisp code provided is called, and the Lisp code calls
@@ -11789,7 +12309,7 @@ text:
 				       (backward-sexp 1)  ;; Inside comment
 				       (point))) ;; Beginning paren
 	   (cmd (buffer-substring-no-properties cmd-beg-pt cmd-end-pt)))
-      (forward-line 1)
+      (verilog-forward-or-insert-line)
       ;; Some commands don't move point (like insert-file) so we always
       ;; add the begin/end comments, then delete it if not needed
       (verilog-insert-indent "// Beginning of automatic insert lisp\n")
@@ -12042,6 +12562,7 @@ value's width is generated.
 An example of making a stub for another module:
 
     module ExampStub (/*AUTOINST*/);
+	/*AUTOINOUTPARAM(\"Foo\")*/
 	/*AUTOINOUTMODULE(\"Foo\")*/
         /*AUTOTIEOFF*/
         // verilator lint_off UNUSED
@@ -12054,6 +12575,7 @@ An example of making a stub for another module:
 Typing \\[verilog-auto] will make this into:
 
     module ExampStub (/*AUTOINST*/...);
+	/*AUTOINOUTPARAM(\"Foo\")*/
 	/*AUTOINOUTMODULE(\"Foo\")*/
         // Beginning of autotieoff
         output [2:0] foo;
@@ -12084,7 +12606,7 @@ Typing \\[verilog-auto] will make this into:
       (setq sig-list (verilog-signals-not-matching-regexp
 		      sig-list verilog-auto-tieoff-ignore-regexp))
       (when sig-list
-	(forward-line 1)
+	(verilog-forward-or-insert-line)
 	(verilog-insert-indent "// Beginning of automatic tieoffs (for this module's unterminated outputs)\n")
 	(setq sig-list (sort (copy-alist sig-list) `verilog-signals-sort-compare))
 	(verilog-modi-cache-add-vars modi sig-list)  ; Before we trash list
@@ -12161,7 +12683,7 @@ defines the regular expression will be undefed."
       ;; Insert
       (setq defs (sort defs 'string<))
       (when defs
-	(forward-line 1)
+	(verilog-forward-or-insert-line)
 	(verilog-insert-indent "// Beginning of automatic undefs\n")
 	(while defs
 	  (verilog-insert-indent "`undef " (car defs) "\n")
@@ -12198,6 +12720,7 @@ You can add signals you do not want included in AUTOUNUSED with
 An example of making a stub for another module:
 
     module ExampStub (/*AUTOINST*/);
+	/*AUTOINOUTPARAM(\"Examp\")*/
 	/*AUTOINOUTMODULE(\"Examp\")*/
         /*AUTOTIEOFF*/
         // verilator lint_off UNUSED
@@ -12236,7 +12759,7 @@ Typing \\[verilog-auto] will make this into:
       (setq sig-list (verilog-signals-not-matching-regexp
 		      sig-list verilog-auto-unused-ignore-regexp))
       (when sig-list
-	(forward-line 1)
+	(verilog-forward-or-insert-line)
 	(verilog-insert-indent "// Beginning of automatic unused inputs\n")
 	(setq sig-list (sort (copy-alist sig-list) `verilog-signals-sort-compare))
 	(while sig-list
@@ -12335,10 +12858,7 @@ Typing \\[verilog-auto] will make this into:
 	   ;;
 	   (sig-list-consts (append (verilog-decls-get-consts moddecls)
 				    (verilog-decls-get-gparams moddecls)))
-	   (sig-list-all  (append (verilog-decls-get-vars moddecls)
-				  (verilog-decls-get-outputs moddecls)
-				  (verilog-decls-get-inouts moddecls)
-				  (verilog-decls-get-inputs moddecls)))
+	   (sig-list-all  (verilog-decls-get-iovars moddecls))
 	   ;;
 	   (undecode-sig (or (assoc undecode-name sig-list-all)
 			     (error "%s: Signal %s not found in design" (verilog-point-text) undecode-name)))
@@ -12371,7 +12891,7 @@ Typing \\[verilog-auto] will make this into:
 						      elim-regexp)))
 		tmp-sigs (cdr tmp-sigs))))
       ;;
-      (forward-line 1)
+      (verilog-forward-or-insert-line)
       (verilog-insert-indent "// Beginning of automatic ASCII enum decoding\n")
       (let ((decode-sig-list (list (list ascii-name (format "[%d:0]" (- (* ascii-chars 8) 1))
 					 (concat "Decode of " undecode-name) nil nil))))
@@ -12506,9 +13026,12 @@ Or check if AUTOs have the same expansion
 Using \\[describe-function], see also:
     `verilog-auto-arg'          for AUTOARG module instantiations
     `verilog-auto-ascii-enum'   for AUTOASCIIENUM enumeration decoding
+    `verilog-auto-assign-modport' for AUTOASSIGNMODPORT assignment to/from modport
     `verilog-auto-inout-comp'   for AUTOINOUTCOMP copy complemented i/o
     `verilog-auto-inout-in'     for AUTOINOUTIN inputs for all i/o
+    `verilog-auto-inout-modport'  for AUTOINOUTMODPORT i/o from an interface modport
     `verilog-auto-inout-module' for AUTOINOUTMODULE copying i/o from elsewhere
+    `verilog-auto-inout-param'  for AUTOINOUTPARAM copying params from elsewhere
     `verilog-auto-inout'        for AUTOINOUT making hierarchy inouts
     `verilog-auto-input'        for AUTOINPUT making hierarchy inputs
     `verilog-auto-insert-lisp'  for AUTOINSERTLISP insert code from lisp function
@@ -12598,27 +13121,24 @@ Wilson Snyder (wsnyder@wsnyder.org)."
 	       (verilog-auto-re-search-do "/\\*\\(AUTOSENSE\\|AS\\)\\*/" 'verilog-auto-sense)
 	       (verilog-auto-re-search-do "/\\*AUTORESET\\*/" 'verilog-auto-reset)
 	       ;; Must be done before autoin/out as creates a reg
-	       (verilog-auto-re-search-do "/\\*AUTOASCIIENUM([^)]*)\\*/" 'verilog-auto-ascii-enum)
+	       (verilog-auto-re-search-do "/\\*AUTOASCIIENUM(.*?)\\*/" 'verilog-auto-ascii-enum)
 	       ;;
 	       ;; first in/outs from other files
-	       (verilog-auto-re-search-do "/\\*AUTOINOUTMODULE([^)]*)\\*/" 'verilog-auto-inout-module)
-	       (verilog-auto-re-search-do "/\\*AUTOINOUTCOMP([^)]*)\\*/" 'verilog-auto-inout-comp)
-	       (verilog-auto-re-search-do "/\\*AUTOINOUTIN([^)]*)\\*/" 'verilog-auto-inout-in)
+	       (verilog-auto-re-search-do "/\\*AUTOINOUTMODPORT(.*?)\\*/" 'verilog-auto-inout-modport)
+	       (verilog-auto-re-search-do "/\\*AUTOINOUTMODULE(.*?)\\*/" 'verilog-auto-inout-module)
+	       (verilog-auto-re-search-do "/\\*AUTOINOUTCOMP(.*?)\\*/" 'verilog-auto-inout-comp)
+	       (verilog-auto-re-search-do "/\\*AUTOINOUTIN(.*?)\\*/" 'verilog-auto-inout-in)
+	       (verilog-auto-re-search-do "/\\*AUTOINOUTPARAM(.*?)\\*/" 'verilog-auto-inout-param)
 	       ;; next in/outs which need previous sucked inputs first
-	       (verilog-auto-re-search-do "/\\*AUTOOUTPUT\\((\"[^\"]*\")\\)\\*/"
-					  (lambda () (verilog-auto-output t)))
-	       (verilog-auto-re-search-do "/\\*AUTOOUTPUT\\*/" 'verilog-auto-output)
-	       (verilog-auto-re-search-do "/\\*AUTOINPUT\\((\"[^\"]*\")\\)\\*/"
-					  (lambda () (verilog-auto-input t)))
-	       (verilog-auto-re-search-do "/\\*AUTOINPUT\\*/"  'verilog-auto-input)
-	       (verilog-auto-re-search-do "/\\*AUTOINOUT\\((\"[^\"]*\")\\)\\*/"
-					  (lambda () (verilog-auto-inout t)))
-	       (verilog-auto-re-search-do "/\\*AUTOINOUT\\*/" 'verilog-auto-inout)
+	       (verilog-auto-re-search-do "/\\*AUTOOUTPUT\\((.*?)\\)?\\*/" 'verilog-auto-output)
+	       (verilog-auto-re-search-do "/\\*AUTOINPUT\\((.*?)\\)?\\*/" 'verilog-auto-input)
+	       (verilog-auto-re-search-do "/\\*AUTOINOUT\\((.*?)\\)?\\*/" 'verilog-auto-inout)
 	       ;; Then tie off those in/outs
 	       (verilog-auto-re-search-do "/\\*AUTOTIEOFF\\*/" 'verilog-auto-tieoff)
 	       ;; These can be anywhere after AUTOINSERTLISP
-	       (verilog-auto-re-search-do "/\\*AUTOUNDEF\\((\"[^\"]*\")\\)?\\*/" 'verilog-auto-undef)
+	       (verilog-auto-re-search-do "/\\*AUTOUNDEF\\((.*?)\\)?\\*/" 'verilog-auto-undef)
 	       ;; Wires/regs must be after inputs/outputs
+	       (verilog-auto-re-search-do "/\\*AUTOASSIGNMODPORT(.*?)\\*/" 'verilog-auto-assign-modport)
 	       (verilog-auto-re-search-do "/\\*AUTOLOGIC\\*/" 'verilog-auto-logic)
 	       (verilog-auto-re-search-do "/\\*AUTOWIRE\\*/" 'verilog-auto-wire)
 	       (verilog-auto-re-search-do "/\\*AUTOREG\\*/" 'verilog-auto-reg)
@@ -12696,7 +13216,7 @@ Wilson Snyder (wsnyder@wsnyder.org)."
 ;;
 ;; Place the templates into Verilog Mode.  They may be inserted under any key.
 ;; C-c C-t will be the default.  If you use templates a lot, you
-;; may want to consider moving the binding to another key in your .emacs
+;; may want to consider moving the binding to another key in your init
 ;; file.
 ;;
 ;; Note \C-c and letter are reserved for users

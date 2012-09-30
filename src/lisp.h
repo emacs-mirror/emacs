@@ -25,6 +25,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <stdarg.h>
 #include <stdbool.h>
 #include <stddef.h>
+#include <float.h>
 #include <inttypes.h>
 #include <limits.h>
 
@@ -1487,6 +1488,16 @@ struct Lisp_Float
 #define XFLOAT_DATA(f) (0 ? XFLOAT (f)->u.data :  XFLOAT (f)->u.data)
 #define XFLOAT_INIT(f, n) (XFLOAT (f)->u.data = (n))
 
+/* Most hosts nowadays use IEEE floating point, so they use IEC 60559
+   representations, have infinities and NaNs, and do not trap on
+   exceptions.  Define IEEE_FLOATING_POINT if this host is one of the
+   typical ones.  The C11 macro __STDC_IEC_559__ is close to what is
+   wanted here, but is not quite right because Emacs does not require
+   all the features of C11 Annex F (and does not require C11 at all,
+   for that matter).  */
+#define IEEE_FLOATING_POINT (FLT_RADIX == 2 && FLT_MANT_DIG == 24 \
+			     && FLT_MIN_EXP == -125 && FLT_MAX_EXP == 128)
+
 /* A character, declared with the following typedef, is a member
    of some character set associated with the current buffer.  */
 #ifndef _UCHAR_T  /* Protect against something in ctab.h on AIX.  */
@@ -2020,6 +2031,18 @@ extern ptrdiff_t specpdl_size;
 
 #define SPECPDL_INDEX()	(specpdl_ptr - specpdl)
 
+struct backtrace
+{
+  struct backtrace *next;
+  Lisp_Object function;
+  Lisp_Object *args;	/* Points to vector of args.  */
+  ptrdiff_t nargs;	/* Length of vector.  */
+  /* Nonzero means call value of debugger when done with this operation.  */
+  unsigned int debug_on_exit : 1;
+};
+
+extern struct backtrace *backtrace_list;
+
 /* Everything needed to describe an active condition case.
 
    Members are volatile if their values need to survive _longjmp when
@@ -2108,7 +2131,7 @@ extern char *stack_bottom;
    a request to exit Emacs when it is safe to do.  */
 
 extern void process_pending_signals (void);
-extern int pending_signals;
+extern int volatile pending_signals;
 
 extern void process_quit_flag (void);
 #define QUIT						\
@@ -2633,7 +2656,6 @@ extern _Noreturn Lisp_Object wrong_type_argument (Lisp_Object, Lisp_Object);
 extern Lisp_Object do_symval_forwarding (union Lisp_Fwd *);
 extern void set_internal (Lisp_Object, Lisp_Object, Lisp_Object, bool);
 extern void syms_of_data (void);
-extern void init_data (void);
 extern void swap_in_global_binding (struct Lisp_Symbol *);
 
 /* Defined in cmds.c */
@@ -2721,6 +2743,7 @@ extern void init_fringe_once (void);
 extern Lisp_Object QCascent, QCmargin, QCrelief;
 extern Lisp_Object QCconversion;
 extern int x_bitmap_mask (struct frame *, ptrdiff_t);
+extern void reset_image_types (void);
 extern void syms_of_image (void);
 
 /* Defined in insdel.c.  */
@@ -2905,6 +2928,7 @@ build_string (const char *str)
 
 extern Lisp_Object pure_cons (Lisp_Object, Lisp_Object);
 extern void make_byte_code (struct Lisp_Vector *);
+extern Lisp_Object Qautomatic_gc;
 extern Lisp_Object Qchar_table_extra_slots;
 extern struct Lisp_Vector *allocate_vector (EMACS_INT);
 extern struct Lisp_Vector *allocate_pseudovector (int memlen, int lisplen, int tag);
@@ -3227,6 +3251,9 @@ extern int input_pending;
 extern Lisp_Object menu_bar_items (Lisp_Object);
 extern Lisp_Object tool_bar_items (Lisp_Object, int *);
 extern void discard_mouse_events (void);
+#ifdef USABLE_SIGIO
+void handle_input_available_signal (int);
+#endif
 extern Lisp_Object pending_funcalls;
 extern int detect_input_pending (void);
 extern int detect_input_pending_ignore_squeezables (void);
@@ -3244,7 +3271,7 @@ extern void keys_of_keyboard (void);
 /* Defined in indent.c.  */
 extern ptrdiff_t current_column (void);
 extern void invalidate_current_column (void);
-extern int indented_beyond_p (ptrdiff_t, ptrdiff_t, EMACS_INT);
+extern bool indented_beyond_p (ptrdiff_t, ptrdiff_t, EMACS_INT);
 extern void syms_of_indent (void);
 
 /* Defined in frame.c.  */
@@ -3269,8 +3296,11 @@ extern bool display_arg;
 extern Lisp_Object decode_env_path (const char *, const char *);
 extern Lisp_Object empty_unibyte_string, empty_multibyte_string;
 extern Lisp_Object Qfile_name_handler_alist;
-extern _Noreturn void fatal_error_backtrace (int, int);
+extern _Noreturn void terminate_due_to_signal (int, int);
 extern Lisp_Object Qkill_emacs;
+#ifdef WINDOWSNT
+extern Lisp_Object Vlibrary_cache;
+#endif
 #if HAVE_SETLOCALE
 void fixup_locale (void);
 void synchronize_system_messages_locale (void);
@@ -3407,8 +3437,6 @@ extern void init_sys_modes (struct tty_display_info *);
 extern void reset_sys_modes (struct tty_display_info *);
 extern void init_all_sys_modes (void);
 extern void reset_all_sys_modes (void);
-extern void wait_for_termination (pid_t);
-extern void interruptible_wait_for_termination (pid_t);
 extern void flush_pending_output (int) ATTRIBUTE_CONST;
 extern void child_setup_tty (int);
 extern void setup_pty (int);
@@ -3518,6 +3546,13 @@ extern int have_menus_p (void);
 /* Defined in dbusbind.c.  */
 void syms_of_dbusbind (void);
 #endif
+
+
+/* Defined in profiler.c.  */
+extern bool profiler_memory_running;
+extern void malloc_probe (size_t);
+extern void syms_of_profiler (void);
+
 
 #ifdef DOS_NT
 /* Defined in msdos.c, w32.c.  */

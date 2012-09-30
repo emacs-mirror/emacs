@@ -808,16 +808,6 @@ is sensitive to blank lines."
 		       (string :tag "Comment End")))
   :group 'vc)
 
-(defcustom vc-checkout-carefully (= (user-uid) 0)
-  "Non-nil means be extra-careful in checkout.
-Verify that the file really is not locked
-and that its contents match what the repository version says."
-  :type 'boolean
-  :group 'vc)
-(make-obsolete-variable 'vc-checkout-carefully
-                        "the corresponding checks are always done now."
-                        "21.1")
-
 
 ;; Variables users don't need to see
 
@@ -1115,24 +1105,27 @@ For old-style locking-based version control systems, like RCS:
      ;; Files have local changes
      ((vc-compatible-state state 'edited)
       (let ((ready-for-commit files))
-	;; If files are edited but read-only, give user a chance to correct.
-	(dolist (file files)
-	  ;; If committing a mix of removed and edited files, the
-	  ;; fileset has state = 'edited.  Rather than checking the
-	  ;; state of each individual file in the fileset, it seems
-	  ;; simplest to just check if the file exists.	 Bug#9781.
-	  (when (and (file-exists-p file) (not (file-writable-p file)))
-	    ;; Make the file+buffer read-write.
-	    (unless (y-or-n-p (format "%s is edited but read-only; make it writable and continue? " file))
-	      (error "Aborted"))
-            ;; Maybe we somehow lost permissions on the directory.
-            (condition-case nil
-                (set-file-modes file (logior (file-modes file) 128))
-              (error (error "Unable to make file writable")))
-	    (let ((visited (get-file-buffer file)))
-	      (when visited
-		(with-current-buffer visited
-		  (read-only-mode -1))))))
+	;; CVS, SVN and bzr don't care about read-only (bug#9781).
+	;; RCS does, SCCS might (someone should check...).
+	(when (memq backend '(RCS SCCS))
+	  ;; If files are edited but read-only, give user a chance to correct.
+	  (dolist (file files)
+	    ;; If committing a mix of removed and edited files, the
+	    ;; fileset has state = 'edited.  Rather than checking the
+	    ;; state of each individual file in the fileset, it seems
+	    ;; simplest to just check if the file exists.	 Bug#9781.
+	    (when (and (file-exists-p file) (not (file-writable-p file)))
+	      ;; Make the file+buffer read-write.
+	      (unless (y-or-n-p (format "%s is edited but read-only; make it writable and continue? " file))
+		(error "Aborted"))
+	      ;; Maybe we somehow lost permissions on the directory.
+	      (condition-case nil
+		  (set-file-modes file (logior (file-modes file) 128))
+		(error (error "Unable to make file writable")))
+	      (let ((visited (get-file-buffer file)))
+		(when visited
+		  (with-current-buffer visited
+		    (read-only-mode -1)))))))
 	;; Allow user to revert files with no changes
 	(save-excursion
           (dolist (file files)
@@ -1516,8 +1509,9 @@ to override the value of `vc-diff-switches' and `diff-switches'."
       (when (listp switches) switches))))
 
 ;; Old def for compatibility with Emacs-21.[123].
-(defmacro vc-diff-switches-list (backend) `(vc-switches ',backend 'diff))
-(make-obsolete 'vc-diff-switches-list 'vc-switches "22.1")
+(defmacro vc-diff-switches-list (backend)
+  (declare (obsolete vc-switches "22.1"))
+  `(vc-switches ',backend 'diff))
 
 (defun vc-diff-finish (buffer messages)
   ;; The empty sync output case has already been handled, so the only

@@ -1509,21 +1509,22 @@ precedence.
 @cindex client frame
 @item -c
 Create a new graphical @dfn{client frame}, instead of using an
-existing Emacs frame.  If you omit a filename argument while supplying
-the @samp{-c} option, the new frame displays the @file{*scratch*}
-buffer (@pxref{Buffers}).  See below for the special behavior of
-@kbd{C-x C-c} in a client frame.
-
-If Emacs is unable to create a new graphical frame (e.g.@: if it is
-unable to connect to the X server), it tries to create a text terminal
-client frame, as though you had supplied the @samp{-t} option instead
-(see below).
+existing Emacs frame.  See below for the special behavior of @kbd{C-x
+C-c} in a client frame.  If Emacs cannot create a new graphical frame
+(e.g.@: if it cannot connect to the X server), it tries to create a
+text terminal client frame, as though you had supplied the @samp{-t}
+option instead.
 
 On MS-Windows, a single Emacs session cannot display frames on both
 graphical and text terminals, nor on multiple text terminals.  Thus,
 if the Emacs server is running on a text terminal, the @samp{-c}
 option, like the @samp{-t} option, creates a new frame in the server's
 current text terminal.  @xref{Windows Startup}.
+
+If you omit a filename argument while supplying the @samp{-c} option,
+the new frame displays the @file{*scratch*} buffer by default.  If
+@code{initial-buffer-choice} is a string (@pxref{Entering Emacs}), the
+new frame displays that file or directory instead.
 
 @item -F @var{alist}
 @itemx --frame-parameters=@var{alist}
@@ -1545,38 +1546,24 @@ evaluate, @emph{not} as a list of files to visit.
 @item -f @var{server-file}
 @itemx --server-file=@var{server-file}
 @cindex @env{EMACS_SERVER_FILE} environment variable
-@cindex server file
-@vindex server-use-tcp
-@vindex server-host
 Specify a @dfn{server file} for connecting to an Emacs server via TCP.
 
 An Emacs server usually uses an operating system feature called a
 ``local socket'' to listen for connections.  Some operating systems,
 such as Microsoft Windows, do not support local sockets; in that case,
-Emacs uses TCP instead.  When you start the Emacs server, Emacs
-creates a server file containing some TCP information that
-@command{emacsclient} needs for making the connection.  By default,
-the server file is in @file{~/.emacs.d/server/}.  On Microsoft
-Windows, if @command{emacsclient} does not find the server file there,
-it looks in the @file{.emacs.d/server/} subdirectory of the directory
-pointed to by the @env{APPDATA} environment variable.  You can tell
-@command{emacsclient} to use a specific server file with the @samp{-f}
-or @samp{--server-file} option, or by setting the
-@env{EMACS_SERVER_FILE} environment variable.
+the server communicates with @command{emacsclient} via TCP.
 
-Even if local sockets are available, you can tell Emacs to use TCP by
-setting the variable @code{server-use-tcp} to @code{t}.  One advantage
-of TCP is that the server can accept connections from remote machines.
-For this to work, you must (i) set the variable @code{server-host} to
-the hostname or IP address of the machine on which the Emacs server
-runs, and (ii) provide @command{emacsclient} with the server file.
-(One convenient way to do the latter is to put the server file on a
-networked file system such as NFS.)
-
+@vindex server-auth-dir
+@cindex server file
 @vindex server-port
-  When the Emacs server is using TCP, the variable @code{server-port}
-determines the port number to listen on; the default value,
-@code{nil}, means to choose a random port when the server starts.
+When you start a TCP Emacs server, Emacs creates a @dfn{server file}
+containing the TCP information to be used by @command{emacsclient} to
+connect to the server.  The variable @code{server-auth-dir} specifies
+the directory containing the server file; by default, this is
+@file{~/.emacs.d/server/}.  To tell @command{emacsclient} to connect
+to the server over TCP with a specific server file, use the @samp{-f}
+or @samp{--server-file} option, or set the @env{EMACS_SERVER_FILE}
+environment variable.
 
 @item -n
 @itemx --no-wait
@@ -1606,19 +1593,14 @@ server it finds.  (This option is not supported on MS-Windows.)
 @itemx --tty
 @itemx -nw
 Create a new client frame on the current text terminal, instead of
-using an existing Emacs frame.  This is similar to the @samp{-c}
-option, above, except that it creates a text terminal frame
-(@pxref{Non-Window Terminals}).  If you omit a filename argument while
-supplying this option, the new frame displays the @file{*scratch*}
-buffer (@pxref{Buffers}).  See below for the special behavior of
-@kbd{C-x C-c} in a client frame.
+using an existing Emacs frame.  This behaves just like the @samp{-c}
+option, described above, except that it creates a text terminal frame
+(@pxref{Non-Window Terminals}).
 
-On MS-Windows, a single Emacs session cannot display frames on both
-graphical and text terminals, nor on multiple text terminals.  Thus,
-if the Emacs server is using the graphical display, @samp{-t} behaves
-like @samp{-c} (see above); whereas if the Emacs server is running on
-a text terminal, it creates a new frame in its current text terminal.
-@xref{Windows Startup}.
+On MS-Windows, @samp{-t} behaves just like @samp{-c} if the Emacs
+server is using the graphical display, but if the Emacs server is
+running on a text terminal, it creates a new frame in the current text
+terminal.
 @end table
 
   The new graphical or text terminal frames created by the @samp{-c}

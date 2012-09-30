@@ -981,26 +981,6 @@ function is called, the window to be resized is selected."
   :group 'help
   :version "24.2")
 
-(defcustom temp-buffer-resize-frames nil
-  "Non-nil means `temp-buffer-resize-mode' can resize frames.
-A frame can be resized if and only if its root window is a live
-window.  The height of the root window is subject to the values of
-`temp-buffer-max-height' and `window-min-height'."
-  :type 'boolean
-  :version "24.2"
-  :group 'help)
-
-(defcustom temp-buffer-resize-regexps nil
-  "List of regexps that inhibit Temp Buffer Resize mode.
-Any window of a buffer whose name matches one of these regular
-expressions is left alone by Temp Buffer Resize mode."
-  :type '(repeat
-	  :tag "Buffer"
-	  :value ""
-	  (regexp :format "%v"))
-  :version "24.3"
-  :group 'help)
-
 (define-minor-mode temp-buffer-resize-mode
   "Toggle auto-resizing temporary buffer windows (Temp Buffer Resize Mode).
 With a prefix argument ARG, enable Temp Buffer Resize mode if ARG
@@ -1014,9 +994,8 @@ fit the buffer's contents, but never more than
 
 A window is resized only if it has been specially created for the
 buffer.  Windows that have shown another buffer before are not
-resized.  A window showing a buffer whose name matches any of the
-expressions in `temp-buffer-resize-regexps' is not resized.  A
-frame is resized only if `temp-buffer-resize-frames' is non-nil.
+resized.  A frame is resized only if `fit-frame-to-buffer' is
+non-nil.
 
 This mode is used by `help', `apropos' and `completion' buffers,
 and some others."
@@ -1034,33 +1013,28 @@ WINDOW can be any live window and defaults to the selected one.
 Do not make WINDOW higher than `temp-buffer-max-height' nor
 smaller than `window-min-height'.  Do nothing if WINDOW is not
 vertically combined or some of its contents are scrolled out of
-view.  Do nothing if the name of WINDOW's buffer matches an
-expression in `temp-buffer-resize-regexps'."
+view."
   (setq window (window-normalize-window window t))
   (let ((buffer-name (buffer-name (window-buffer window))))
-    (unless (catch 'found
-	      (dolist (regexp temp-buffer-resize-regexps)
-		(when (string-match regexp buffer-name)
-		  (throw 'found t))))
-      (let ((height (if (functionp temp-buffer-max-height)
-			(with-selected-window window
-			  (funcall temp-buffer-max-height (window-buffer)))
-		      temp-buffer-max-height))
-	    (quit-cadr (cadr (window-parameter window 'quit-restore))))
-	(cond
-	 ;; Don't resize WINDOW if it showed another buffer before.
-	 ((and (eq quit-cadr 'window)
-	       (pos-visible-in-window-p (point-min) window)
-	       (window-combined-p window))
-	  (fit-window-to-buffer window height))
-	 ((and temp-buffer-resize-frames
-	       (eq quit-cadr 'frame)
-	       (eq window (frame-root-window window)))
-	  (let ((frame (window-frame window)))
-	    (fit-frame-to-buffer
-	     frame (+ (frame-height frame)
-		      (- (window-total-size window))
-		      height)))))))))
+    (let ((height (if (functionp temp-buffer-max-height)
+		      (with-selected-window window
+			(funcall temp-buffer-max-height (window-buffer)))
+		    temp-buffer-max-height))
+	  (quit-cadr (cadr (window-parameter window 'quit-restore))))
+      (cond
+       ;; Don't resize WINDOW if it showed another buffer before.
+       ((and (eq quit-cadr 'window)
+	     (pos-visible-in-window-p (point-min) window)
+	     (window-combined-p window))
+	(fit-window-to-buffer window height))
+       ((and fit-frame-to-buffer
+	     (eq quit-cadr 'frame)
+	     (eq window (frame-root-window window)))
+	(let ((frame (window-frame window)))
+	  (fit-frame-to-buffer
+	   frame (+ (frame-height frame)
+		    (- (window-total-size window))
+		    height))))))))
 
 ;;; Help windows.
 (defcustom help-window-select 'other

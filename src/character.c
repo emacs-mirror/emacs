@@ -126,8 +126,6 @@ char_string (unsigned int c, unsigned char *p)
       c &= ~CHAR_MODIFIER_MASK;
     }
 
-  MAYBE_UNIFY_CHAR (c);
-
   if (c <= MAX_3_BYTE_CHAR)
     {
       bytes = CHAR_STRING (c, p);
@@ -194,8 +192,6 @@ string_char (const unsigned char *p, const unsigned char **advanced, int *len)
 	   | ((p)[4] & 0x3F));
       p += 5;
     }
-
-  MAYBE_UNIFY_CHAR (c);
 
   if (len)
     *len = p - saved_p;

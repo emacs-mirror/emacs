@@ -43,7 +43,10 @@
 If the value is nil and `inhibit-startup-screen' is nil, show the
 startup screen.  If the value is a string, visit the specified file
 or directory using `find-file'.  If t, open the `*scratch*'
-buffer."
+buffer.
+
+A string value also causes emacsclient to open the specified file
+or directory when no target file is specified."
   :type '(choice
 	  (const     :tag "Startup screen" nil)
 	  (directory :tag "Directory" :value "~/")

@@ -1,3 +1,17 @@
+2012-09-27  Glenn Morris  <rgm@gnu.org>
+
+	* admin.el (set-version): Set msdos.c's Vwindow_system_version.
+
+2012-09-27  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Check more robustly for timer_settime.
+	* merge-gnulib (GNULIB_MODULES): Add timer-time.
+
+2012-09-26  Juanma Barranquero  <lekktu@gmail.com>
+
+	* unidata/BidiMirroring.txt:
+	* unidata/UnicodeData.txt: Update to Unicode 6.2.
+
 2012-09-17  Glenn Morris  <rgm@gnu.org>
 
 	* admin.el (add-log-time-format): Declare.

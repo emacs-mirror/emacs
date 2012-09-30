@@ -86,19 +86,34 @@ typedef void (_CALLBACK_ *signal_handler) (int);
 /* Signal handlers...SIG_DFL == 0 so this is initialized correctly.  */
 static signal_handler sig_handlers[NSIG];
 
-/* Fake signal implementation to record the SIGCHLD handler.  */
+/* Improve on the CRT 'signal' implementation so that we could record
+   the SIGCHLD handler.  */
 signal_handler
 sys_signal (int sig, signal_handler handler)
 {
   signal_handler old;
 
-  if (sig != SIGCHLD)
+  /* SIGCHLD is needed for supporting subprocesses, see sys_kill
+     below.  All the others are the only ones supported by the MS
+     runtime.  */
+  if (!(sig == SIGCHLD || sig == SIGSEGV || sig == SIGILL
+	|| sig == SIGFPE || sig == SIGABRT || sig == SIGTERM))
     {
       errno = EINVAL;
       return SIG_ERR;
     }
   old = sig_handlers[sig];
-  sig_handlers[sig] = handler;
+  /* SIGABRT is treated specially because w32.c installs term_ntproc
+     as its handler, so we don't want to override that afterwards.
+     Aborting Emacs works specially anyway: either by calling
+     emacs_abort directly or through terminate_due_to_signal, which
+     calls emacs_abort through emacs_raise.  */
+  if (!(sig == SIGABRT && old == term_ntproc))
+    {
+      sig_handlers[sig] = handler;
+      if (sig != SIGCHLD)
+	signal (sig, handler);
+    }
   return old;
 }
 
@@ -106,23 +121,26 @@ sys_signal (int sig, signal_handler handler)
 int
 sigaction (int sig, const struct sigaction *act, struct sigaction *oact)
 {
-  signal_handler old;
+  signal_handler old = SIG_DFL;
+  int retval = 0;
 
-  if (sig != SIGCHLD)
+  if (act)
+    old = sys_signal (sig, act->sa_handler);
+  else if (oact)
+    old = sig_handlers[sig];
+
+  if (old == SIG_ERR)
     {
       errno = EINVAL;
-      return -1;
+      retval = -1;
     }
-  old = sig_handlers[sig];
-  if (act)
-    sig_handlers[sig] = act->sa_handler;
   if (oact)
     {
       oact->sa_handler = old;
       oact->sa_flags = 0;
       oact->sa_mask = empty_mask;
     }
-  return 0;
+  return retval;
 }
 
 /* Defined in <process.h> which conflicts with the local copy */
@@ -1420,6 +1438,7 @@ find_child_console (HWND hwnd, LPARAM arg)
   return TRUE;
 }
 
+/* Emulate 'kill', but only for other processes.  */
 int
 sys_kill (int pid, int sig)
 {
@@ -1427,9 +1446,6 @@ sys_kill (int pid, int sig)
   HANDLE proc_hand;
   int need_to_free = 0;
   int rc = 0;
-
-  if (pid == getpid () && sig == SIGABRT)
-    emacs_abort ();
 
   /* Only handle signals that will result in the process dying */
   if (sig != SIGINT && sig != SIGKILL && sig != SIGQUIT && sig != SIGHUP)
@@ -1441,6 +1457,11 @@ sys_kill (int pid, int sig)
   cp = find_child_pid (pid);
   if (cp == NULL)
     {
+      /* We were passed a PID of something other than our subprocess.
+	 If that is our own PID, we will send to ourself a message to
+	 close the selected frame, which does not necessarily
+	 terminates Emacs.  But then we are not supposed to call
+	 sys_kill with our own PID.  */
       proc_hand = OpenProcess (PROCESS_TERMINATE, 0, pid);
       if (proc_hand == NULL)
         {

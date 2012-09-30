@@ -753,6 +753,7 @@ to temp files in buffer jobs and when Ediff needs to find fine differences."
   "Check the current version against MAJOR and MINOR version numbers.
 The comparison uses operator OP, which may be any of: =, >, >=, <, <=.
 TYPE-OF-EMACS is either 'xemacs or 'emacs."
+  (declare (obsolete version< "23.1"))
   (and (cond ((eq type-of-emacs 'xemacs) (featurep 'xemacs))
 	     ((eq type-of-emacs 'emacs) (featurep 'emacs))
 	     (t))
@@ -766,9 +767,6 @@ TYPE-OF-EMACS is either 'xemacs or 'emacs."
 		     t)))
 	     (t
 	      (error "%S: Invalid op in ediff-check-version" op)))))
-
-;; ediff-check-version seems to be totally unused anyway.
-(make-obsolete 'ediff-check-version 'version< "23.1")
 
 (defun ediff-color-display-p ()
   (condition-case nil

@@ -1,3 +1,22 @@
+2012-09-30  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Merge from gnulib, incorporating:
+	2012-09-28 extern-inline: provide a -Wundef safe config.h
+
+2012-09-27  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Check more robustly for timer_settime.
+	This should fix an OS X build problem reported by Ivan Andrus in
+	<http://lists.gnu.org/archive/html/emacs-devel/2012-09/msg00671.html>.
+	* configure.ac (gl_THREADLIB): Define to empty, since Emacs
+	does threads its own way.
+	* lib/gnulib.mk, m4/gnulib-comp.m4: Regenerate.
+
+2012-09-23  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* Makefile.in (bootstrap): Set MAKEFILE_NAME when building Makefile,
+	to avoid problems with recursion when using GNU make.
+
 2012-09-22  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* Makefile.in (bootstrap): Simplify build procedure.

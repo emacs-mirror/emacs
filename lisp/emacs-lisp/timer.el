@@ -146,14 +146,13 @@ TIME must be in the internal format returned by, e.g., `current-time'.
 The microsecond count from TIME is ignored, and USECS is used instead.
 If optional fourth argument DELTA is a positive number, make the timer
 fire repeatedly that many seconds apart."
+  (declare (obsolete "use `timer-set-time' and `timer-inc-time' instead."
+		     "22.1"))
   (setf (timer--time timer) time)
   (setf (timer--usecs timer) usecs)
   (setf (timer--psecs timer) 0)
   (setf (timer--repeat-delay timer) (and (numberp delta) (> delta 0) delta))
   timer)
-(make-obsolete 'timer-set-time-with-usecs
-               "use `timer-set-time' and `timer-inc-time' instead."
-               "22.1")
 
 (defun timer-set-function (timer function &optional args)
   "Make TIMER call FUNCTION with optional ARGS when triggering."

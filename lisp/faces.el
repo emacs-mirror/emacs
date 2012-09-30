@@ -1867,6 +1867,7 @@ Return nil if it has no specified face."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (declare-function x-parse-geometry "frame.c" (string))
+(defvar x-display-name)
 
 (defun x-handle-named-frame-geometry (parameters)
   "Add geometry parameters for a named frame to parameter list PARAMETERS.

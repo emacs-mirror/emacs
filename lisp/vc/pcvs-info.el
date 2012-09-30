@@ -124,7 +124,7 @@ to confuse some users sometimes."
 (define-obsolete-face-alias 'cvs-marked-face 'cvs-marked "22.1")
 
 (defface cvs-msg
-  '((t (:slant italic)))
+  '((t :slant italic))
   "PCL-CVS face used to highlight CVS messages."
   :group 'pcl-cvs)
 (define-obsolete-face-alias 'cvs-msg-face 'cvs-msg "22.1")
@@ -358,7 +358,7 @@ For use by the cookie package."
 			     ;;(MOD-CONFLICT "Not Removed")
 			     (`DEAD	  "")
 			     (_ (capitalize (symbol-name type)))))
-		      (face (let ((sym (intern
+		      (face (let ((sym (intern-soft
 					(concat "cvs-fi-"
 						(downcase (symbol-name type))
 						"-face"))))

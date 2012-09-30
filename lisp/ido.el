@@ -714,7 +714,7 @@ See also `ido-dir-file-cache' and `ido-save-directory-list-file'."
   :type 'integer
   :group 'ido)
 
-(defcustom ido-max-directory-size 30000
+(defcustom ido-max-directory-size nil
   "Maximum size (in bytes) for directories to use ido completion.
 If you enter a directory with a size larger than this size, ido will
 not provide the normal completion.  To show the completions, use C-a."
@@ -3701,14 +3701,14 @@ This is to make them appear as if they were \"virtual buffers\"."
 	 (rexq (concat rex0 (if slash ".*/" "")))
 	 (re (if ido-enable-prefix (concat "\\`" rexq) rexq))
 	 (full-re (and do-full
-		       (and (eq ido-cur-item 'buffer)
-			    (not ido-buffer-disable-smart-matches))
+		       (not (and (eq ido-cur-item 'buffer)
+				 ido-buffer-disable-smart-matches))
 		       (not ido-enable-regexp)
 		       (not (string-match "\$\\'" rex0))
 		       (concat "\\`" rex0 (if slash "/" "") "\\'")))
 	 (suffix-re (and do-full slash
-			 (and (eq ido-cur-item 'buffer)
-			      (not ido-buffer-disable-smart-matches))
+			 (not (and (eq ido-cur-item 'buffer)
+				   ido-buffer-disable-smart-matches))
 			 (not ido-enable-regexp)
 			 (not (string-match "\$\\'" rex0))
 			 (concat rex0 "/\\'")))

@@ -1216,11 +1216,12 @@ COMMAND may result in an alias being executed, or a plain command."
   (let* ((sym (intern-soft (concat "eshell/" name)))
 	 (file (symbol-file sym 'defun)))
     ;; If the function exists, but is defined in an eshell module
-    ;; that's not currently enabled, don't report it as found
+    ;; that's not currently enabled, don't report it as found.
     (if (and file
-	     (string-match "\\(em\\|esh\\)-\\(.*\\)\\(\\.el\\)?\\'" file))
+	     (setq file (file-name-base file))
+	     (string-match "\\`\\(em\\|esh\\)-\\([[:alnum:]]+\\)\\'" file))
 	(let ((module-sym
-	       (intern (file-name-base (concat "eshell-" (match-string 2 file))))))
+	       (intern (concat "eshell-" (match-string 2 file)))))
 	  (if (and (functionp sym)
 		   (or (null module-sym)
 		       (eshell-using-module module-sym)

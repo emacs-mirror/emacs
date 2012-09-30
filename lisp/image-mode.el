@@ -1,4 +1,4 @@
-;;; image-mode.el --- support for visiting image files
+;;; image-mode.el --- support for visiting image files  -*- lexical-binding: t -*-
 ;;
 ;; Copyright (C) 2005-2012 Free Software Foundation, Inc.
 ;;
@@ -31,6 +31,11 @@
 ;; resulting buffer file is saved to another name it will correctly save
 ;; the image data to the new file.
 
+;; Todo:
+
+;; Consolidate with doc-view to make them work on directories of images or on
+;; image files containing various "pages".
+
 ;;; Code:
 
 (require 'image)
@@ -38,8 +43,7 @@
 
 ;;; Image mode window-info management.
 
-(defvar image-mode-winprops-alist t)
-(make-variable-buffer-local 'image-mode-winprops-alist)
+(defvar-local image-mode-winprops-alist t)
 
 (defvar image-mode-new-window-functions nil
   "Special hook run when image data is requested in a new window.
@@ -47,9 +51,13 @@ It is called with one argument, the initial WINPROPS.")
 
 (defun image-mode-winprops (&optional window cleanup)
   "Return winprops of WINDOW.
-A winprops object has the shape (WINDOW . ALIST)."
+A winprops object has the shape (WINDOW . ALIST).
+WINDOW defaults to `selected-window' if it displays the current buffer, and
+otherwise it defaults to t, used for times when the buffer is not displayed."
   (cond ((null window)
-	 (setq window (selected-window)))
+         (setq window
+               (if (eq (current-buffer) (window-buffer)) (selected-window) t)))
+        ((eq window t))
 	((not (windowp window))
 	 (error "Not a window: %s" window)))
   (when cleanup

@@ -605,9 +605,9 @@ static inline GC
 x_create_gc (struct frame *f, long unsigned int mask, XGCValues *xgcv)
 {
   GC gc;
-  BLOCK_INPUT;
+  block_input ();
   gc = XCreateGC (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), mask, xgcv);
-  UNBLOCK_INPUT;
+  unblock_input ();
   IF_DEBUG (++ngcs);
   return gc;
 }
@@ -618,7 +618,7 @@ x_create_gc (struct frame *f, long unsigned int mask, XGCValues *xgcv)
 static inline void
 x_free_gc (struct frame *f, GC gc)
 {
-  eassert (interrupt_input_blocked);
+  eassert (input_blocked_p ());
   IF_DEBUG (eassert (--ngcs >= 0));
   XFreeGC (FRAME_X_DISPLAY (f), gc);
 }
@@ -632,9 +632,9 @@ static inline GC
 x_create_gc (struct frame *f, unsigned long mask, XGCValues *xgcv)
 {
   GC gc;
-  BLOCK_INPUT;
+  block_input ();
   gc = XCreateGC (NULL, FRAME_W32_WINDOW (f), mask, xgcv);
-  UNBLOCK_INPUT;
+  unblock_input ();
   IF_DEBUG (++ngcs);
   return gc;
 }
@@ -907,7 +907,7 @@ load_pixmap (FRAME_PTR f, Lisp_Object name, unsigned int *w_ptr,
 
   CHECK_TYPE (!NILP (Fbitmap_spec_p (name)), Qbitmap_spec_p, name);
 
-  BLOCK_INPUT;
+  block_input ();
   if (CONSP (name))
     {
       /* Decode a bitmap spec into a bitmap.  */
@@ -927,7 +927,7 @@ load_pixmap (FRAME_PTR f, Lisp_Object name, unsigned int *w_ptr,
       /* It must be a string -- a file name.  */
       bitmap_id = x_create_bitmap_from_file (f, name);
     }
-  UNBLOCK_INPUT;
+  unblock_input ();
 
   if (bitmap_id < 0)
     {
@@ -991,7 +991,7 @@ parse_rgb_list (Lisp_Object rgb_list, XColor *color)
    non-zero, then the `standard' definition of the same color is
    returned in it.  */
 
-static int
+static bool
 tty_lookup_color (struct frame *f, Lisp_Object color, XColor *tty_color,
 		  XColor *std_color)
 {
@@ -1052,11 +1052,11 @@ tty_lookup_color (struct frame *f, Lisp_Object color, XColor *tty_color,
 
 /* A version of defined_color for non-X frames.  */
 
-static int
+static bool
 tty_defined_color (struct frame *f, const char *color_name,
-		   XColor *color_def, int alloc)
+		   XColor *color_def, bool alloc)
 {
-  int status = 1;
+  bool status = 1;
 
   /* Defaults.  */
   color_def->pixel = FACE_TTY_DEFAULT_COLOR;
@@ -1084,13 +1084,13 @@ tty_defined_color (struct frame *f, const char *color_name,
 
 /* Decide if color named COLOR_NAME is valid for the display
    associated with the frame F; if so, return the rgb values in
-   COLOR_DEF.  If ALLOC is nonzero, allocate a new colormap cell.
+   COLOR_DEF.  If ALLOC, allocate a new colormap cell.
 
    This does the right thing for any type of frame.  */
 
-static int
+static bool
 defined_color (struct frame *f, const char *color_name, XColor *color_def,
-	       int alloc)
+	       bool alloc)
 {
   if (!FRAME_WINDOW_P (f))
     return tty_defined_color (f, color_name, color_def, alloc);
@@ -1364,9 +1364,9 @@ unload_color (struct frame *f, long unsigned int pixel)
 #ifdef HAVE_X_WINDOWS
   if (pixel != -1)
     {
-      BLOCK_INPUT;
+      block_input ();
       x_free_colors (f, &pixel, 1);
-      UNBLOCK_INPUT;
+      unblock_input ();
     }
 #endif
 }
@@ -1382,7 +1382,7 @@ free_face_colors (struct frame *f, struct face *face)
   if (face->colors_copied_bitwise_p)
     return;
 
-  BLOCK_INPUT;
+  block_input ();
 
   if (!face->foreground_defaulted_p)
     {
@@ -1424,7 +1424,7 @@ free_face_colors (struct frame *f, struct face *face)
       IF_DEBUG (--ncolors_allocated);
     }
 
-  UNBLOCK_INPUT;
+  unblock_input ();
 #endif /* HAVE_X_WINDOWS */
 }
 
@@ -3438,10 +3438,10 @@ DEFUN ("internal-face-x-get-resource", Finternal_face_x_get_resource,
   CHECK_STRING (resource);
   CHECK_STRING (class);
   CHECK_LIVE_FRAME (frame);
-  BLOCK_INPUT;
+  block_input ();
   value = display_x_get_resource (FRAME_X_DISPLAY_INFO (XFRAME (frame)),
 				  resource, class, Qnil, Qnil);
-  UNBLOCK_INPUT;
+  unblock_input ();
   return value;
 }
 
@@ -4114,12 +4114,12 @@ free_realized_face (struct frame *f, struct face *face)
 	    free_face_fontset (f, face);
 	  if (face->gc)
 	    {
-	      BLOCK_INPUT;
+	      block_input ();
 	      if (face->font)
 		font_done_for_face (f, face);
 	      x_free_gc (f, face->gc);
 	      face->gc = 0;
-	      UNBLOCK_INPUT;
+	      unblock_input ();
 	    }
 
 	  free_face_colors (f, face);
@@ -4153,7 +4153,7 @@ prepare_face_for_display (struct frame *f, struct face *face)
       xgcv.graphics_exposures = False;
 #endif
 
-      BLOCK_INPUT;
+      block_input ();
 #ifdef HAVE_X_WINDOWS
       if (face->stipple)
 	{
@@ -4165,7 +4165,7 @@ prepare_face_for_display (struct frame *f, struct face *face)
       face->gc = x_create_gc (f, mask, &xgcv);
       if (face->font)
 	font_prepare_for_face (f, face);
-      UNBLOCK_INPUT;
+      unblock_input ();
     }
 #endif /* HAVE_WINDOW_SYSTEM */
 }
@@ -4263,12 +4263,12 @@ clear_face_gcs (struct face_cache *c)
 	  struct face *face = c->faces_by_id[i];
 	  if (face && face->gc)
 	    {
-	      BLOCK_INPUT;
+	      block_input ();
 	      if (face->font)
 		font_done_for_face (c->f, face);
 	      x_free_gc (c->f, face->gc);
 	      face->gc = 0;
-	      UNBLOCK_INPUT;
+	      unblock_input ();
 	    }
 	}
 #endif /* HAVE_WINDOW_SYSTEM */
@@ -4292,7 +4292,7 @@ free_realized_faces (struct face_cache *c)
       /* We must block input here because we can't process X events
 	 safely while only some faces are freed, or when the frame's
 	 current matrix still references freed faces.  */
-      BLOCK_INPUT;
+      block_input ();
 
       for (i = 0; i < c->used; ++i)
 	{
@@ -4314,7 +4314,7 @@ free_realized_faces (struct face_cache *c)
 	  ++windows_or_buffers_changed;
 	}
 
-      UNBLOCK_INPUT;
+      unblock_input ();
     }
 }
 
@@ -5275,7 +5275,7 @@ realize_basic_faces (struct frame *f)
 
   /* Block input here so that we won't be surprised by an X expose
      event, for instance, without having the faces set up.  */
-  BLOCK_INPUT;
+  block_input ();
   specbind (Qscalable_fonts_allowed, Qt);
 
   if (realize_default_face (f))
@@ -5306,7 +5306,7 @@ realize_basic_faces (struct frame *f)
     }
 
   unbind_to (count, Qnil);
-  UNBLOCK_INPUT;
+  unblock_input ();
   return success_p;
 }
 
@@ -6352,7 +6352,7 @@ where R,G,B are numbers between 0 and 255 and name is an arbitrary string.  */)
       int red, green, blue;
       int num;
 
-      BLOCK_INPUT;
+      block_input ();
 
       while (fgets (buf, sizeof (buf), fp) != NULL) {
 	if (sscanf (buf, "%u %u %u %n", &red, &green, &blue, &num) == 3)
@@ -6372,7 +6372,7 @@ where R,G,B are numbers between 0 and 255 and name is an arbitrary string.  */)
       }
       fclose (fp);
 
-      UNBLOCK_INPUT;
+      unblock_input ();
     }
 
   return cmap;

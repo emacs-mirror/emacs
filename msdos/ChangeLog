@@ -1,3 +1,8 @@
+2012-09-27  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Check more robustly for timer_settime.
+	* sed1v2.inp, sed3v2.inp (LIB_TIMER_TIME): New macro.
+
 2012-08-04  Eli Zaretskii  <eliz@gnu.org>
 
 	* sedlibmk.inp (allocator.$(OBJEXT), careadlinkat.$(OBJEXT)): Fix

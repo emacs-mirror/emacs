@@ -753,13 +753,13 @@ tty_write_glyphs (struct frame *f, struct glyph *string, int len)
       conversion_buffer = encode_terminal_code (string, n, coding);
       if (coding->produced > 0)
 	{
-	  BLOCK_INPUT;
+	  block_input ();
 	  fwrite (conversion_buffer, 1, coding->produced, tty->output);
 	  if (ferror (tty->output))
 	    clearerr (tty->output);
 	  if (tty->termscript)
 	    fwrite (conversion_buffer, 1, coding->produced, tty->termscript);
-	  UNBLOCK_INPUT;
+	  unblock_input ();
 	}
       string += n;
 
@@ -814,13 +814,13 @@ tty_write_glyphs_with_face (register struct frame *f, register struct glyph *str
   conversion_buffer = encode_terminal_code (string, len, coding);
   if (coding->produced > 0)
     {
-      BLOCK_INPUT;
+      block_input ();
       fwrite (conversion_buffer, 1, coding->produced, tty->output);
       if (ferror (tty->output))
 	clearerr (tty->output);
       if (tty->termscript)
 	fwrite (conversion_buffer, 1, coding->produced, tty->termscript);
-      UNBLOCK_INPUT;
+      unblock_input ();
     }
 
   /* Turn appearance modes off.  */
@@ -900,13 +900,13 @@ tty_insert_glyphs (struct frame *f, struct glyph *start, int len)
 
       if (coding->produced > 0)
 	{
-	  BLOCK_INPUT;
+	  block_input ();
 	  fwrite (conversion_buffer, 1, coding->produced, tty->output);
 	  if (ferror (tty->output))
 	    clearerr (tty->output);
 	  if (tty->termscript)
 	    fwrite (conversion_buffer, 1, coding->produced, tty->termscript);
-	  UNBLOCK_INPUT;
+	  unblock_input ();
 	}
 
       OUTPUT1_IF (tty, tty->TS_pad_inserted_char);

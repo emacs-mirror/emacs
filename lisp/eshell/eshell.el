@@ -243,16 +243,14 @@ shells such as bash, zsh, rc, 4dos."
 
 (defun eshell-add-to-window-buffer-names ()
   "Add `eshell-buffer-name' to `same-window-buffer-names'."
+  (declare (obsolete nil "24.3"))
   (add-to-list 'same-window-buffer-names eshell-buffer-name))
-(make-obsolete 'eshell-add-to-window-buffer-names
-	       "no longer needed." "24.3")
 
 (defun eshell-remove-from-window-buffer-names ()
   "Remove `eshell-buffer-name' from `same-window-buffer-names'."
+  (declare (obsolete nil "24.3"))
   (setq same-window-buffer-names
 	(delete eshell-buffer-name same-window-buffer-names)))
-(make-obsolete 'eshell-remove-from-window-buffer-names
-	       "no longer needed." "24.3")
 
 (defcustom eshell-load-hook nil
   "A hook run once Eshell has been loaded."

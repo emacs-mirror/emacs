@@ -542,10 +542,7 @@
          (t ""))))
     (setq authors (reftex-truncate authors 30 t t))
     (when (reftex-use-fonts)
-      (put-text-property 0 (length key)     'face
-                         (reftex-verified-face reftex-label-face
-                                               'font-lock-constant-face
-                                               'font-lock-reference-face)
+      (put-text-property 0 (length key)     'face reftex-label-face
                          key)
       (put-text-property 0 (length authors) 'face reftex-bib-author-face
                          authors)

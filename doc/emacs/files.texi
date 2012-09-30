@@ -246,7 +246,7 @@ Archives}, for more about these features.
 or that is marked read-only, Emacs makes the buffer read-only too, so
 that you won't go ahead and make changes that you'll have trouble
 saving afterward.  You can make the buffer writable with @kbd{C-x C-q}
-(@code{toggle-read-only}).  @xref{Misc Buffer}.
+(@code{read-only-mode}).  @xref{Misc Buffer}.
 
 @kindex C-x C-r
 @findex find-file-read-only

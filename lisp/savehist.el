@@ -209,6 +209,7 @@ histories, which is probably undesirable."
 If `savehist-file' is in the old format that doesn't record
 the value of `savehist-minibuffer-history-variables', that
 value is deducted from the contents of the file."
+  (declare (obsolete savehist-mode "22.1"))
   (savehist-mode 1)
   ;; Old versions of savehist distributed with XEmacs didn't save
   ;; savehist-minibuffer-history-variables.  If that variable is nil
@@ -225,7 +226,6 @@ value is deducted from the contents of the file."
 		;; Collect VAR, i.e. (nth form 1).
                 (push (nth 1 form) vars))
               vars)))))
-(make-obsolete 'savehist-load 'savehist-mode "22.1")
 
 (defun savehist-install ()
   "Hook savehist into Emacs.

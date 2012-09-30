@@ -212,7 +212,7 @@ unless they visit files: such buffers are used internally by Emacs.
 
 @table @kbd
 @item C-x C-q
-Toggle read-only status of buffer (@code{toggle-read-only}).
+Toggle read-only status of buffer (@code{read-only-mode}).
 @item M-x rename-buffer @key{RET} @var{name} @key{RET}
 Change the name of the current buffer.
 @item M-x rename-uniquely
@@ -231,9 +231,9 @@ buffers are usually made by subsystems such as Dired and Rmail that
 have special commands to operate on the text; also by visiting a file
 whose access control says you cannot write it.
 
-@findex toggle-read-only
+@findex read-only-mode
 @vindex view-read-only
- The command @kbd{C-x C-q} (@code{toggle-read-only}) makes a read-only
+ The command @kbd{C-x C-q} (@code{read-only-mode}) makes a read-only
 buffer writable, and makes a writable buffer read-only.  This works by
 setting the variable @code{buffer-read-only}, which has a local value
 in each buffer and makes the buffer read-only if its value is

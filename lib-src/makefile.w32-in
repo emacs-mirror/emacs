@@ -140,7 +140,7 @@ obj =   dosfns.o msdos.o \
 	process.o callproc.o unexw32.o \
 	region-cache.o sound.o atimer.o \
 	doprnt.o intervals.o textprop.o composite.o \
-	gnutls.o xml.o
+	gnutls.o xml.o profiler.o
 
 #
 # These are the lisp files that are loaded up in loadup.el

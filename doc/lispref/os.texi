@@ -70,13 +70,11 @@ in their turn.  The files @file{subdirs.el} are normally generated
 automatically when Emacs is installed.
 
 @item
-It registers input methods by loading any @file{leim-list.el} file
-found in the @code{load-path}.
-
-@c It removes PWD from the environment if it is not accurate.
-@c It abbreviates default-directory.
-
-@c Now normal-top-level calls command-line.
+If the library @file{leim-list.el} exists, Emacs loads it.  This
+optional library is intended for registering input methods; Emacs
+looks for it in @code{load-path} (@pxref{Library Search}), skipping
+those directories containing the standard Emacs libraries (since
+@file{leim-list.el} should not exist in those directories).
 
 @vindex before-init-time
 @item
@@ -1159,6 +1157,20 @@ This function returns the effective @acronym{UID} of the user.
 The value may be a floating point number.
 @end defun
 
+@defun system-users
+This function returns a list of strings, listing the user names on the
+system.  If Emacs cannot retrieve this information, the return value
+is a list containing just the value of @code{user-real-login-name}.
+@end defun
+
+@cindex user groups
+@defun system-groups
+This function returns a list of strings, listing the names of user
+groups on the system.  If Emacs cannot retrieve this information, the
+return value is @code{nil}.
+@end defun
+
+
 @node Time of Day
 @section Time of Day
 
@@ -1812,43 +1824,6 @@ minutes, and even if there have been garbage collections and autosaves.
 input.  Then it becomes idle again, and all the idle timers that are
 set up to repeat will subsequently run another time, one by one.
 
-@defun current-idle-time
-If Emacs is idle, this function returns the length of time Emacs has
-been idle, as a list of four integers: @code{(@var{sec-high}
-@var{sec-low} @var{microsec} @var{picosec})}, using the same format as
-@code{current-time} (@pxref{Time of Day}).
-
-When Emacs is not idle, @code{current-idle-time} returns @code{nil}.
-This is a convenient way to test whether Emacs is idle.
-
-The main use of this function is when an idle timer function wants to
-``take a break'' for a while.  It can set up another idle timer to
-call the same function again, after a few seconds more idleness.
-Here's an example:
-
-@smallexample
-(defvar resume-timer nil
-  "Timer that `timer-function' used to reschedule itself, or nil.")
-
-(defun timer-function ()
-  ;; @r{If the user types a command while @code{resume-timer}}
-  ;; @r{is active, the next time this function is called from}
-  ;; @r{its main idle timer, deactivate @code{resume-timer}.}
-  (when resume-timer
-    (cancel-timer resume-timer))
-  ...@var{do the work for a while}...
-  (when @var{taking-a-break}
-    (setq resume-timer
-          (run-with-idle-timer
-            ;; Compute an idle time @var{break-length}
-            ;; more than the current value.
-            (time-add (current-idle-time)
-                      (seconds-to-time @var{break-length}))
-            nil
-            'timer-function))))
-@end smallexample
-@end defun
-
   Do not write an idle timer function containing a loop which does a
 certain amount of processing each time around, and exits when
 @code{(input-pending-p)} is non-@code{nil}.  This approach seems very
@@ -1864,16 +1839,50 @@ It blocks out any idle timers that ought to run during that time.
 @end itemize
 
 @noindent
-For similar reasons, do not write an idle timer function that sets
-up another idle time (including the same idle timer) with the
-@var{secs} argument less or equal to the current idleness time.  Such
-a timer will run almost immediately, and continue running again and
-again, instead of waiting for the next time Emacs becomes idle.
+Similarly, do not write an idle timer function that sets up another
+idle timer (including the same idle timer) with @var{secs} argument
+less than or equal to the current idleness time.  Such a timer will
+run almost immediately, and continue running again and again, instead
+of waiting for the next time Emacs becomes idle.  The correct approach
+is to reschedule with an appropriate increment of the current value of
+the idleness time, as described below.
 
-@noindent
-The correct approach is for the idle timer to reschedule itself after
-a brief pause, using the method in the @code{timer-function} example
-above.
+@defun current-idle-time
+If Emacs is idle, this function returns the length of time Emacs has
+been idle, as a list of four integers: @code{(@var{sec-high}
+@var{sec-low} @var{microsec} @var{picosec})}, using the same format as
+@code{current-time} (@pxref{Time of Day}).
+
+When Emacs is not idle, @code{current-idle-time} returns @code{nil}.
+This is a convenient way to test whether Emacs is idle.
+@end defun
+
+  The main use of @code{current-idle-time} is when an idle timer
+function wants to ``take a break'' for a while.  It can set up another
+idle timer to call the same function again, after a few seconds more
+idleness.  Here's an example:
+
+@example
+(defvar my-resume-timer nil
+  "Timer for `my-timer-function' to reschedule itself, or nil.")
+
+(defun my-timer-function ()
+  ;; @r{If the user types a command while @code{my-resume-timer}}
+  ;; @r{is active, the next time this function is called from}
+  ;; @r{its main idle timer, deactivate @code{my-resume-timer}.}
+  (when my-resume-timer
+    (cancel-timer my-resume-timer))
+  ...@var{do the work for a while}...
+  (when @var{taking-a-break}
+    (setq my-resume-timer
+          (run-with-idle-timer
+            ;; Compute an idle time @var{break-length}
+            ;; more than the current value.
+            (time-add (current-idle-time)
+                      (seconds-to-time @var{break-length}))
+            nil
+            'my-timer-function))))
+@end example
 
 @node Terminal Input
 @section Terminal Input
@@ -1907,7 +1916,6 @@ If @var{flow} is non-@code{nil}, then Emacs uses @sc{xon/xoff}
 (@kbd{C-q}, @kbd{C-s}) flow control for output to the terminal.  This
 has no effect except in @sc{cbreak} mode.
 
-@c Emacs 19 feature
 The argument @var{meta} controls support for input character codes
 above 127.  If @var{meta} is @code{t}, Emacs converts characters with
 the 8th bit set into Meta characters.  If @var{meta} is @code{nil},
@@ -1916,7 +1924,6 @@ it as a parity bit.  If @var{meta} is neither @code{t} nor @code{nil},
 Emacs uses all 8 bits of input unchanged.  This is good for terminals
 that use 8-bit character sets.
 
-@c Emacs 19 feature
 If @var{quit-char} is non-@code{nil}, it specifies the character to
 use for quitting.  Normally this character is @kbd{C-g}.
 @xref{Quitting}.
@@ -1925,7 +1932,6 @@ use for quitting.  Normally this character is @kbd{C-g}.
 The @code{current-input-mode} function returns the input mode settings
 Emacs is currently using.
 
-@c Emacs 19 feature
 @defun current-input-mode
 This function returns the current mode for reading keyboard input.  It
 returns a list, corresponding to the arguments of @code{set-input-mode},

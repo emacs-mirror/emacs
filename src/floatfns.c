@@ -31,15 +31,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <config.h>
 
 #include "lisp.h"
-#include "syssignal.h"
-
-#include <float.h>
-#if (FLT_RADIX == 2 && FLT_MANT_DIG == 24 \
-     && FLT_MIN_EXP == -125 && FLT_MAX_EXP == 128)
-#define IEEE_FLOATING_POINT 1
-#else
-#define IEEE_FLOATING_POINT 0
-#endif
 
 #include <math.h>
 

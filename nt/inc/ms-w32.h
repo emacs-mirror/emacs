@@ -203,6 +203,9 @@ struct sigaction {
 #define kill    sys_kill
 #define signal  sys_signal
 
+/* Internal signals.  */
+#define emacs_raise(sig) emacs_abort()
+
 /* termcap.c calls that are emulated.  */
 #define tputs   sys_tputs
 #define tgetstr sys_tgetstr

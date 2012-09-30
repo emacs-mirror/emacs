@@ -355,6 +355,10 @@ blessmail: Makefile src FRC
 # config.status overrides MAKEFILE_NAME with a bogus name when creating
 # src/epaths.h, so that 'make epaths-force' does not recursively invoke
 # config.status and overwrite config.status while executing it (Bug#11214).
+#
+# 'make bootstrap' overrides MAKEFILE_NAME to a nonexistent file but
+# then attempts to build that file.  This forces 'Makefile', 'lib/Makefile',
+# etc. to be built without running into similar recursion problems.
 MAKEFILE_NAME = Makefile
 $(MAKEFILE_NAME): config.status $(srcdir)/src/config.in \
           $(srcdir)/Makefile.in $(SUBDIR_MAKEFILES_IN)
@@ -895,7 +899,7 @@ dvi:
 #  * Do the actual build.
 bootstrap: bootstrap-clean FRC
 	cd $(srcdir) && { ./autogen.sh || autogen/copy_autogen; }
-	$(MAKE) $(MFLAGS) Makefile
+	$(MAKE) $(MFLAGS) MAKEFILE_NAME=force-Makefile force-Makefile
 	$(MAKE) $(MFLAGS) info all
 
 .PHONY: check-declare

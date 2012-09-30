@@ -567,7 +567,7 @@ w32_console_mouse_position (FRAME_PTR *f,
 			    Lisp_Object *y,
 			    Time *time)
 {
-  BLOCK_INPUT;
+  block_input ();
 
   insist = insist;
 
@@ -580,7 +580,7 @@ w32_console_mouse_position (FRAME_PTR *f,
   XSETINT (*y, movement_pos.Y);
   *time = movement_time;
 
-  UNBLOCK_INPUT;
+  unblock_input ();
 }
 
 /* Remember mouse motion and notify emacs.  */
@@ -749,14 +749,7 @@ w32_console_read_socket (struct terminal *terminal,
   int nev, add;
   int isdead;
 
-  if (interrupt_input_blocked)
-    {
-      interrupt_input_pending = 1;
-      return -1;
-    }
-
-  interrupt_input_pending = 0;
-  BLOCK_INPUT;
+  block_input ();
 
   for (;;)
     {
@@ -818,6 +811,6 @@ w32_console_read_socket (struct terminal *terminal,
   if (!w32_use_full_screen_buffer)
     maybe_generate_resize_event ();
 
-  UNBLOCK_INPUT;
+  unblock_input ();
   return nev;
 }

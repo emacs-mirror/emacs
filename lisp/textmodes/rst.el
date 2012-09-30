@@ -118,7 +118,8 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Support for `testcover'
 
-(when (boundp 'testcover-1value-functions)
+(when (and (boundp 'testcover-1value-functions)
+	   (boundp 'testcover-compose-functions))
   ;; Below `lambda' is used in a loop with varying parameters and is thus not
   ;; 1valued.
   (setq testcover-1value-functions
@@ -217,7 +218,7 @@ and before TAIL-RE and DELIM-RE in VAR or DEFAULT for no match."
 ;; Use CVSHeader to really get information from CVS and not other version
 ;; control systems.
 (defconst rst-cvs-header
-  "$CVSHeader: sm/rst_el/rst.el,v 1.327.2.1 2012-09-22 09:06:56 stefan Exp $")
+  "$CVSHeader: sm/rst_el/rst.el,v 1.327.2.2 2012-09-23 14:44:25 stefan Exp $")
 (defconst rst-cvs-rev
   (rst-extract-version "\\$" "CVSHeader: \\S + " "[0-9]+\\(?:\\.[0-9]+\\)+"
 		       " .*" rst-cvs-header "0.0")
@@ -246,7 +247,7 @@ SVN revision is the upstream (docutils) revision.")
   "Official version of the package.")
 (defconst rst-official-cvs-rev
   (rst-extract-version "[%$]" "Revision: " "[0-9]+\\(?:\\.[0-9]+\\)+" " "
-		       "$Revision: 1.327.2.1 $")
+		       "$Revision: 1.327.2.2 $")
   "CVS revision of this file in the official version.")
 
 (defconst rst-version

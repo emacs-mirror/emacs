@@ -391,7 +391,7 @@ run_protected (Lisp_Object (*code) (Lisp_Object), Lisp_Object arg)
   extern int waiting_for_input; /* from keyboard.c */
   int owfi;
 
-  BLOCK_INPUT;
+  block_input ();
 
   /* Fsignal calls emacs_abort () if it sees that waiting_for_input is
      set.  */
@@ -402,7 +402,7 @@ run_protected (Lisp_Object (*code) (Lisp_Object), Lisp_Object arg)
 
   waiting_for_input = owfi;
 
-  UNBLOCK_INPUT;
+  unblock_input ();
 }
 
 static Lisp_Object
@@ -474,7 +474,10 @@ term_w32select (void)
 {
   /* This is needed to trigger WM_RENDERALLFORMATS. */
   if (clipboard_owner != NULL)
-    DestroyWindow (clipboard_owner);
+    {
+      DestroyWindow (clipboard_owner);
+      clipboard_owner = NULL;
+    }
 }
 
 static void
@@ -694,7 +697,7 @@ DEFUN ("w32-set-clipboard-data", Fw32_set_clipboard_data,
   current_num_nls = 0;
   current_requires_encoding = 0;
 
-  BLOCK_INPUT;
+  block_input ();
 
   /* Check for non-ASCII characters.  While we are at it, count the
      number of LFs, so we know how many CRs we will have to add later
@@ -782,7 +785,7 @@ DEFUN ("w32-set-clipboard-data", Fw32_set_clipboard_data,
   current_coding_system = Qnil;
 
  done:
-  UNBLOCK_INPUT;
+  unblock_input ();
 
   return (ok ? string : Qnil);
 }
@@ -810,7 +813,7 @@ DEFUN ("w32-get-clipboard-data", Fw32_get_clipboard_data,
   setup_config ();
   actual_clipboard_type = cfg_clipboard_type;
 
-  BLOCK_INPUT;
+  block_input ();
 
   if (!OpenClipboard (clipboard_owner))
     goto done;
@@ -1000,7 +1003,7 @@ DEFUN ("w32-get-clipboard-data", Fw32_get_clipboard_data,
   CloseClipboard ();
 
  done:
-  UNBLOCK_INPUT;
+  unblock_input ();
 
   return (ret);
 }

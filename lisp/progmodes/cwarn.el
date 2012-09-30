@@ -191,13 +191,7 @@ if ARG is omitted or nil."
   (if font-lock-mode (font-lock-fontify-buffer)))
 
 ;;;###autoload
-(defun turn-on-cwarn-mode ()
-  "Turn on CWarn mode.
-
-This function is designed to be added to hooks, for example:
-  (add-hook 'c-mode-hook 'turn-on-cwarn-mode)"
-  (cwarn-mode 1))
-(make-obsolete 'turn-on-cwarn-mode 'cwarn-mode "24.1")
+(define-obsolete-function-alias 'turn-on-cwarn-mode 'cwarn-mode "24.1")
 
 ;;}}}
 ;;{{{ Help functions

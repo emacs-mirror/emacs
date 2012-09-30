@@ -846,7 +846,7 @@ CONST2 may be evaluated multiple times."
 (defun byte-compile-cl-file-p (file)
   "Return non-nil if FILE is one of the CL files."
   (and (stringp file)
-       (string-match "^cl\\>" (file-name-nondirectory file))))
+       (string-match "^cl\\.el" (file-name-nondirectory file))))
 
 (defun byte-compile-eval (form)
   "Eval FORM and mark the functions defined therein.

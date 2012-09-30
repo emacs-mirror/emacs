@@ -234,9 +234,7 @@ It creates the Imenu index for the buffer, if necessary."
 	 (error "Error in which-func-update: %S" info))))))
 
 ;;;###autoload
-(defun which-func-mode (&optional arg)
-  (which-function-mode arg))
-(make-obsolete 'which-func-mode 'which-function-mode "24.1")
+(define-obsolete-function-alias 'which-func-mode 'which-function-mode "24.1")
 
 (defvar which-func-update-timer nil)
 

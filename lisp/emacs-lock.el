@@ -249,9 +249,9 @@ Other values are interpreted as usual."
 
 (defun toggle-emacs-lock ()
   "Toggle `emacs-lock-from-exiting' for the current buffer."
+  (declare (obsolete emacs-lock-mode "24.1"))
   (interactive)
   (call-interactively 'emacs-lock-mode))
-(make-obsolete 'toggle-emacs-lock 'emacs-lock-mode "24.1")
 
 (provide 'emacs-lock)
 

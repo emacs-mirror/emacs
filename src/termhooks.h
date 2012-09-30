@@ -591,8 +591,7 @@ struct terminal
   /* Called to read input events.
 
      TERMINAL indicates which terminal device to read from.  Input
-     events should be read into BUF, the size of which is given in
-     SIZE.
+     events should be read into HOLD_QUIT.
 
      A positive return value indicates that that many input events
      were read into BUF.

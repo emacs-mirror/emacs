@@ -1001,17 +1001,15 @@ The valid styles are described in the documentation of `calendar-date-style'."
 
 (defun european-calendar ()
   "Set the interpretation and display of dates to the European style."
+  (declare (obsolete calendar-set-date-style "23.1"))
   (interactive)
   (calendar-set-date-style 'european))
 
-(make-obsolete 'european-calendar 'calendar-set-date-style "23.1")
-
 (defun american-calendar ()
   "Set the interpretation and display of dates to the American style."
+  (declare (obsolete calendar-set-date-style "23.1"))
   (interactive)
   (calendar-set-date-style 'american))
-
-(make-obsolete 'american-calendar 'calendar-set-date-style "23.1")
 
 (define-obsolete-variable-alias 'holidays-in-diary-buffer
   'diary-show-holidays-flag "23.1")
@@ -1148,13 +1146,12 @@ MON defaults to `displayed-month'.  YR defaults to `displayed-year'."
   "Execute a for loop.
 Evaluate BODY with VAR bound to successive integers from INIT to FINAL,
 inclusive.  The standard macro `dotimes' is preferable in most cases."
-  (declare (debug (symbolp "from" form "to" form "do" body))
+  (declare (obsolete "use `dotimes' or `while' instead." "23.1")
+	   (debug (symbolp "from" form "to" form "do" body))
            (indent defun))
   `(let ((,var (1- ,init)))
     (while (>= ,final (setq ,var (1+ ,var)))
       ,@body)))
-
-(make-obsolete 'calendar-for-loop "use `dotimes' or `while' instead." "23.1")
 
 (defmacro calendar-sum (index initial condition expression)
   "For INDEX = INITIAL, +1, ... (as long as CONDITION holds), sum EXPRESSION."
@@ -2298,7 +2295,7 @@ Negative years are interpreted as years BC; -1 being 1 BC, and so on."
     ;; First two chars of each day are used in the calendar.
     (,(regexp-opt (mapcar (lambda (x) (substring x 0 calendar-day-header-width))
                           calendar-day-name-array))
-     . font-lock-reference-face))
+     . font-lock-constant-face))
   "Default keywords to highlight in Calendar mode.")
 
 (defun calendar-day-name (date &optional abbrev absolute)
@@ -2655,13 +2652,7 @@ If called by a mouse-event, pops up a menu with the result."
                 "---")
             (calendar-string-spread (list str) ?- width)))))
 
-(defun calendar-version ()
-  "Display the Calendar version."
-  (interactive)
-  (message "GNU Emacs %s" emacs-version))
-
-(make-obsolete 'calendar-version 'emacs-version "23.1")
-
+(define-obsolete-function-alias 'calendar-version 'emacs-version "23.1")
 
 (run-hooks 'calendar-load-hook)
 

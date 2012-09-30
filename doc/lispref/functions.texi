@@ -23,6 +23,7 @@ define them.
 * Closures::              Functions that enclose a lexical environment.
 * Obsolete Functions::    Declaring functions obsolete.
 * Inline Functions::      Functions that the compiler will expand inline.
+* Declare Form::          Adding additional information about a function.
 * Declaring Functions::   Telling the compiler that a function is defined.
 * Function Safety::       Determining whether a function is safe to call.
 * Related Topics::        Cross-references to specific Lisp primitives
@@ -521,7 +522,7 @@ Scheme.)
 is called @dfn{defining a function}, and it is done with the
 @code{defun} special form.
 
-@defspec defun name argument-list body-forms...
+@defmac defun name argument-list body-forms...
 @code{defun} is the usual way to define new Lisp functions.  It
 defines the symbol @var{name} as a function that looks like this:
 
@@ -578,7 +579,7 @@ without any hesitation or notification.  Emacs does not prevent you
 from doing this, because redefining a function is sometimes done
 deliberately, and there is no way to distinguish deliberate
 redefinition from unintentional redefinition.
-@end defspec
+@end defmac
 
 @cindex function aliases
 @defun defalias name definition &optional docstring
@@ -1132,29 +1133,46 @@ examining or altering the structure of closure objects.
 @node Obsolete Functions
 @section Declaring Functions Obsolete
 
-You can use @code{make-obsolete} to declare a function obsolete.  This
-indicates that the function may be removed at some stage in the future.
+  You can mark a named function as @dfn{obsolete}, meaning that it may
+be removed at some point in the future.  This causes Emacs to warn
+that the function is obsolete whenever it byte-compiles code
+containing that function, and whenever it displays the documentation
+for that function.  In all other respects, an obsolete function
+behaves like any other function.
+
+  The easiest way to mark a function as obsolete is to put a
+@code{(declare (obsolete @dots{}))} form in the function's
+@code{defun} definition.  @xref{Declare Form}.  Alternatively, you can
+use the @code{make-obsolete} function, described below.
+
+  A macro (@pxref{Macros}) can also be marked obsolete with
+@code{make-obsolete}; this has the same effects as for a function.  An
+alias for a function or macro can also be marked as obsolete; this
+makes the alias itself obsolete, not the function or macro which it
+resolves to.
 
 @defun make-obsolete obsolete-name current-name &optional when
-This function makes the byte compiler warn that the function
-@var{obsolete-name} is obsolete.  If @var{current-name} is a symbol, the
-warning message says to use @var{current-name} instead of
-@var{obsolete-name}.  @var{current-name} does not need to be an alias for
-@var{obsolete-name}; it can be a different function with similar
-functionality.  If @var{current-name} is a string, it is the warning
-message.
+This function marks @var{obsolete-name} as obsolete.
+@var{obsolete-name} should be a symbol naming a function or macro, or
+an alias for a function or macro.
+
+If @var{current-name} is a symbol, the warning message says to use
+@var{current-name} instead of @var{obsolete-name}.  @var{current-name}
+does not need to be an alias for @var{obsolete-name}; it can be a
+different function with similar functionality.  @var{current-name} can
+also be a string, which serves as the warning message.  The message
+should begin in lower case, and end with a period.  It can also be
+@code{nil}, in which case the warning message provides no additional
+details.
 
 If provided, @var{when} should be a string indicating when the function
 was first made obsolete---for example, a date or a release number.
 @end defun
 
-You can define a function as an alias and declare it obsolete at the
-same time using the macro @code{define-obsolete-function-alias}:
-
 @defmac define-obsolete-function-alias obsolete-name current-name &optional when docstring
-This macro marks the function @var{obsolete-name} obsolete and also
-defines it as an alias for the function @var{current-name}.  It is
-equivalent to the following:
+This convenience macro marks the function @var{obsolete-name} obsolete
+and also defines it as an alias for the function @var{current-name}.
+It is equivalent to the following:
 
 @example
 (defalias @var{obsolete-name} @var{current-name} @var{docstring})
@@ -1235,6 +1253,63 @@ body uses the arguments, as you do for macros.
 
   After an inline function is defined, its inline expansion can be
 performed later on in the same file, just like macros.
+
+@node Declare Form
+@section The @code{declare} Form
+@findex declare
+
+  @code{declare} is a special macro which can be used to add ``meta''
+properties to a function or macro: for example, marking it as
+obsolete, or giving its forms a special @key{TAB} indentation
+convention in Emacs Lisp mode.
+
+@anchor{Definition of declare}
+@defmac declare @var{specs}@dots{}
+This macro ignores its arguments and evaluates to @code{nil}; it has
+no run-time effect.  However, when a @code{declare} form occurs as the
+@emph{very first form} in the body of a @code{defun} function
+definition or a @code{defmacro} macro definition (@pxref{Defining
+Macros}, for a description of @code{defmacro}), it appends the
+properties specified by @var{specs} to the function or macro.  This
+work is specially performed by the @code{defun} and @code{defmacro}
+macros.
+
+Note that if you put a @code{declare} form in an interactive function,
+it should go before the @code{interactive} form.
+
+Each element in @var{specs} should have the form @code{(@var{property}
+@var{args}@dots{})}, which should not be quoted.  These have the
+following effects:
+
+@table @code
+@item (advertised-calling-convention @var{signature} @var{when})
+This acts like a call to @code{set-advertised-calling-convention}
+(@pxref{Obsolete Functions}); @var{signature} specifies the correct
+argument list for calling the function or macro, and @var{when} should
+be a string indicating when the variable was first made obsolete.
+
+@item (debug @var{edebug-form-spec})
+This is valid for macros only.  When stepping through the macro with
+Edebug, use @var{edebug-form-spec}.  @xref{Instrumenting Macro Calls}.
+
+@item (doc-string @var{n})
+Use element number @var{n}, if any, as the documentation string.
+
+@item (indent @var{indent-spec})
+Indent calls to this function or macro according to @var{indent-spec}.
+This is typically used for macros, though it works for functions too.
+@xref{Indenting Macros}.
+
+@item (obsolete @var{current-name} @var{when})
+Mark the function or macro as obsolete, similar to a call to
+@code{make-obsolete} (@pxref{Obsolete Functions}).  @var{current-name}
+should be a symbol (in which case the warning message says to use that
+instead), a string (specifying the warning message), or @code{nil} (in
+which case the warning message gives no extra details).  @var{when}
+should be a string indicating when the function or macro was first
+made obsolete.
+@end table
+@end defmac
 
 @node Declaring Functions
 @section Telling the Compiler that a Function is Defined

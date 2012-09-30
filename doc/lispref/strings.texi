@@ -35,28 +35,31 @@ keyboard character events.
 @node String Basics
 @section String and Character Basics
 
-  Characters are represented in Emacs Lisp as integers;
-whether an integer is a character or not is determined only by how it is
-used.  Thus, strings really contain integers.  @xref{Character Codes},
-for details about character representation in Emacs.
+  A character is a Lisp object which represents a single character of
+text.  In Emacs Lisp, characters are simply integers; whether an
+integer is a character or not is determined only by how it is used.
+@xref{Character Codes}, for details about character representation in
+Emacs.
 
-  The length of a string (like any array) is fixed, and cannot be
-altered once the string exists.  Strings in Lisp are @emph{not}
-terminated by a distinguished character code.  (By contrast, strings in
-C are terminated by a character with @acronym{ASCII} code 0.)
+  A string is a fixed sequence of characters.  It is a type of
+sequence called a @dfn{array}, meaning that its length is fixed and
+cannot be altered once it is created (@pxref{Sequences Arrays
+Vectors}).  Unlike in C, Emacs Lisp strings are @emph{not} terminated
+by a distinguished character code.
 
   Since strings are arrays, and therefore sequences as well, you can
-operate on them with the general array and sequence functions.
-(@xref{Sequences Arrays Vectors}.)  For example, you can access or
-change individual characters in a string using the functions @code{aref}
-and @code{aset} (@pxref{Array Functions}).  However, note that
-@code{length} should @emph{not} be used for computing the width of a
-string on display; use @code{string-width} (@pxref{Width}) instead.
+operate on them with the general array and sequence functions
+documented in @ref{Sequences Arrays Vectors}.  For example, you can
+access or change individual characters in a string using the functions
+@code{aref} and @code{aset} (@pxref{Array Functions}).  However, note
+that @code{length} should @emph{not} be used for computing the width
+of a string on display; use @code{string-width} (@pxref{Width})
+instead.
 
-  There are two text representations for non-@acronym{ASCII} characters in
-Emacs strings (and in buffers): unibyte and multibyte (@pxref{Text
-Representations}).  For most Lisp programming, you don't need to be
-concerned with these two representations.
+  There are two text representations for non-@acronym{ASCII}
+characters in Emacs strings (and in buffers): unibyte and multibyte.
+For most Lisp programming, you don't need to be concerned with these
+two representations.  @xref{Text Representations}, for details.
 
   Sometimes key sequences are represented as unibyte strings.  When a
 unibyte string is a key sequence, string elements in the range 128 to
@@ -88,7 +91,7 @@ for information about the syntax of characters and strings.
 representations and to encode and decode character codes.
 
 @node Predicates for Strings
-@section The Predicates for Strings
+@section Predicates for Strings
 
 For more information about general sequence and array predicates,
 see @ref{Sequences Arrays Vectors}, and @ref{Arrays}.

@@ -443,7 +443,6 @@ since it could result in memory overflow and make Emacs crash."
 	     (hscroll-step windows number "22.1")
 	     (truncate-partial-width-windows display boolean "23.1")
 	     (make-cursor-line-fully-visible windows boolean)
-	     (mode-line-inverse-video mode-line boolean)
 	     (mode-line-in-non-selected-windows mode-line boolean "22.1")
 	     (line-number-display-limit display
 					(choice integer

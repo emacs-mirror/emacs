@@ -2288,12 +2288,12 @@ command but with different enable conditions.  The best way to do this
 in Emacs now is with extended menu items; before that feature existed,
 it could be done by defining alias commands and using them in menu
 items.  Here's an example that makes two aliases for
-@code{toggle-read-only} and gives them different enable conditions:
+@code{read-only-mode} and gives them different enable conditions:
 
 @example
-(defalias 'make-read-only 'toggle-read-only)
+(defalias 'make-read-only 'read-only-mode)
 (put 'make-read-only 'menu-enable '(not buffer-read-only))
-(defalias 'make-writable 'toggle-read-only)
+(defalias 'make-writable 'read-only-mode)
 (put 'make-writable 'menu-enable 'buffer-read-only)
 @end example
 
@@ -2310,7 +2310,7 @@ itself).  To request this, give the alias symbol a non-@code{nil}
 
 @noindent
 causes menu items for @code{make-read-only} and @code{make-writable} to
-show the keyboard bindings for @code{toggle-read-only}.
+show the keyboard bindings for @code{read-only-mode}.
 
 @node Toolkit Differences
 @subsubsection Toolkit Differences

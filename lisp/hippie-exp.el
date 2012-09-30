@@ -199,7 +199,6 @@
 
 (defvar he-search-window ())
 
-;;;###autoload
 (defcustom hippie-expand-try-functions-list
   '(try-complete-file-name-partially
     try-complete-file-name
@@ -217,31 +216,26 @@ or insert functions in this list."
   :type '(repeat function)
   :group 'hippie-expand)
 
-;;;###autoload
 (defcustom hippie-expand-verbose t
   "Non-nil makes `hippie-expand' output which function it is trying."
   :type 'boolean
   :group 'hippie-expand)
 
-;;;###autoload
 (defcustom hippie-expand-dabbrev-skip-space nil
   "Non-nil means tolerate trailing spaces in the abbreviation to expand."
   :group 'hippie-expand
   :type 'boolean)
 
-;;;###autoload
 (defcustom hippie-expand-dabbrev-as-symbol t
   "Non-nil means expand as symbols, i.e. syntax `_' is considered a letter."
   :group 'hippie-expand
   :type 'boolean)
 
-;;;###autoload
 (defcustom hippie-expand-no-restriction t
   "Non-nil means that narrowed buffers are widened during search."
   :group 'hippie-expand
   :type 'boolean)
 
-;;;###autoload
 (defcustom hippie-expand-max-buffers ()
   "The maximum number of buffers (apart from the current) searched.
 If nil, all buffers are searched."
@@ -249,15 +243,13 @@ If nil, all buffers are searched."
 		 integer)
   :group 'hippie-expand)
 
-;;;###autoload
-(defcustom hippie-expand-ignore-buffers (list (purecopy "^ \\*.*\\*$") 'dired-mode)
+(defcustom hippie-expand-ignore-buffers '("^ \\*.*\\*$" dired-mode)
   "A list specifying which buffers not to search (if not current).
 Can contain both regexps matching buffer names (as strings) and major modes
 \(as atoms)"
   :type '(repeat (choice regexp (symbol :tag "Major Mode")))
   :group 'hippie-expand)
 
-;;;###autoload
 (defcustom hippie-expand-only-buffers ()
   "A list specifying the only buffers to search (in addition to current).
 Can contain both regexps matching buffer names (as strings) and major modes

@@ -1045,11 +1045,10 @@ Using it may cause conflicts.  Use it anyway? " owner)))))
 (defun desktop-load-default ()
   "Load the `default' start-up library manually.
 Also inhibit further loading of it."
+  (declare (obsolete desktop-save-mode "22.1"))
   (unless inhibit-default-init	        ; safety check
     (load "default" t t)
     (setq inhibit-default-init t)))
-(make-obsolete 'desktop-load-default
-               'desktop-save-mode "22.1")
 
 ;; ----------------------------------------------------------------------------
 ;;;###autoload

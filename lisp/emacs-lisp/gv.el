@@ -1,22 +1,25 @@
-;;; gv.el --- Generalized variables  -*- lexical-binding: t -*-
+;;; gv.el --- generalized variables  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2012  Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: extensions
+;; Package: emacs
 
-;; This program is free software; you can redistribute it and/or modify
+;; This file is part of GNU Emacs.
+
+;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or
 ;; (at your option) any later version.
 
-;; This program is distributed in the hope that it will be useful,
+;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -266,7 +269,7 @@ The return value is the last VAL in the list.
 ;;;###autoload
 (put 'gv-place 'edebug-form-spec 'edebug-match-form)
 ;; CL did the equivalent of:
-;;(gv-define-expand edebug-after (lambda (before index place) place))
+;;(gv-define-macroexpand edebug-after (lambda (before index place) place))
 
 (put 'edebug-after 'gv-expander
      (lambda (do before index place)

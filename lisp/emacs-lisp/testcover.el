@@ -270,9 +270,9 @@ value, 'maybe if either is acceptable."
       (setq id (nth 2 form))
       (setcdr form (nthcdr 2 form))
       (setq val (testcover-reinstrument (nth 2 form)))
-      (if (eq val t)
-	  (setcar form 'testcover-1value)
-	(setcar form 'testcover-after))
+      (setcar form (if (eq val t)
+                       'testcover-1value
+                     'testcover-after))
       (when val
 	;;1-valued or potentially 1-valued
 	(aset testcover-vector id '1value))
@@ -359,9 +359,9 @@ value, 'maybe if either is acceptable."
 					      ,(nth 3 (cadr form))))
 	t)
        (t
-	(if (eq (car (cadr form)) 'edebug-after)
-	    (setq id (car (nth 3 (cadr form))))
-	  (setq id (car (cadr form))))
+	(setq id (car (if (eq (car (cadr form)) 'edebug-after)
+                          (nth 3 (cadr form))
+                        (cadr form))))
 	(let ((testcover-1value-functions
 	       (cons id testcover-1value-functions)))
 	  (testcover-reinstrument (cadr form))))))
@@ -379,9 +379,9 @@ value, 'maybe if either is acceptable."
 				   ,(nth 3 (cadr form))))
 	'maybe)
        (t
-	(if (eq (car (cadr form)) 'edebug-after)
-	    (setq id (car (nth 3 (cadr form))))
-	  (setq id (car (cadr form))))
+	(setq id (car (if (eq (car (cadr form)) 'edebug-after)
+                          (nth 3 (cadr form))
+                        (cadr form))))
 	(let ((testcover-noreturn-functions
 	       (cons id testcover-noreturn-functions)))
 	  (testcover-reinstrument (cadr form))))))
@@ -447,6 +447,12 @@ binding `testcover-vector' to the code-coverage vector for TESTCOVER-SYM
 (defun testcover-after (idx val)
   "Internal function for coverage testing.  Returns VAL after installing it in
 `testcover-vector' at offset IDX."
+  (declare (gv-expander (lambda (do)
+                          (gv-letplace (getter setter) val
+                            (funcall do getter
+                                     (lambda (store)
+                                       `(progn (testcover-after ,idx ,getter)
+                                               ,(funcall setter store))))))))
   (cond
    ((eq (aref testcover-vector idx) 'unknown)
     (aset testcover-vector idx val))

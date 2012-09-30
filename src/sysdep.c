@@ -279,10 +279,6 @@ init_baud_rate (int fd)
 
 
 
-/* Set nonzero to make following function work under dbx
-   (at least for bsd).  */
-int wait_debugging EXTERNALLY_VISIBLE;
-
 #ifndef MSDOS
 
 static void
@@ -290,48 +286,24 @@ wait_for_termination_1 (pid_t pid, int interruptible)
 {
   while (1)
     {
-#if (defined (BSD_SYSTEM) || defined (HPUX)) && !defined (__GNU__)
-      /* Note that kill returns -1 even if the process is just a zombie now.
-	 But inevitably a SIGCHLD interrupt should be generated
-	 and child_sig will do waitpid and make the process go away.  */
-      /* There is some indication that there is a bug involved with
-	 termination of subprocesses, perhaps involving a kernel bug too,
-	 but no idea what it is.  Just as a hunch we signal SIGCHLD to see
-	 if that causes the problem to go away or get worse.  */
-      sigset_t sigchild_mask;
-      sigemptyset (&sigchild_mask);
-      sigaddset (&sigchild_mask, SIGCHLD);
-      pthread_sigmask (SIG_SETMASK, &sigchild_mask, 0);
-
-      if (0 > kill (pid, 0))
-	{
-	  pthread_sigmask (SIG_SETMASK, &empty_mask, 0);
-	  kill (getpid (), SIGCHLD);
-	  break;
-	}
-      if (wait_debugging)
-	sleep (1);
-      else
-	sigsuspend (&empty_mask);
-#else /* not BSD_SYSTEM, and not HPUX version >= 6 */
 #ifdef WINDOWSNT
       wait (0);
       break;
 #else /* not WINDOWSNT */
-      sigset_t blocked;
-      sigemptyset (&blocked);
-      sigaddset (&blocked, SIGCHLD);
-      pthread_sigmask (SIG_BLOCK, &blocked, 0);
-      errno = 0;
-      if (kill (pid, 0) == -1 && errno == ESRCH)
+      int status;
+      int wait_result = waitpid (pid, &status, 0);
+      if (wait_result < 0)
 	{
-	  pthread_sigmask (SIG_UNBLOCK, &blocked, 0);
+	  if (errno != EINTR)
+	    break;
+	}
+      else
+	{
+	  record_child_status_change (wait_result, status);
 	  break;
 	}
 
-      sigsuspend (&empty_mask);
 #endif /* not WINDOWSNT */
-#endif /* not BSD_SYSTEM, and not HPUX version >= 6 */
       if (interruptible)
 	QUIT;
     }
@@ -1438,40 +1410,80 @@ init_system_name (void)
 
 sigset_t empty_mask;
 
+static struct sigaction process_fatal_action;
+
+static int
+emacs_sigaction_flags (void)
+{
+#ifdef SA_RESTART
+  /* SA_RESTART causes interruptible functions with timeouts (e.g.,
+     'select') to reset their timeout on some platforms (e.g.,
+     HP-UX 11), which is not what we want.  Also, when Emacs is
+     interactive, we don't want SA_RESTART because we need to poll
+     for pending input so we need long-running syscalls to be interrupted
+     after a signal that sets pending_signals.
+
+     Non-interactive keyboard input goes through stdio, where we
+     always want restartable system calls.  */
+  if (noninteractive)
+    return SA_RESTART;
+#endif
+  return 0;
+}
+
 /* Store into *ACTION a signal action suitable for Emacs, with handler
    HANDLER.  */
 void
 emacs_sigaction_init (struct sigaction *action, signal_handler_t handler)
 {
   sigemptyset (&action->sa_mask);
-  action->sa_handler = handler;
-  action->sa_flags = 0;
-#if defined (SA_RESTART)
-  /* SA_RESTART causes interruptible functions with timeouts (e.g.,
-     'select') to reset their timeout on some platforms (e.g.,
-     HP-UX 11), which is not what we want.  Also, when Emacs is
-     interactive, we don't want SA_RESTART because we need to poll
-     for pending input so we need long-running syscalls to be interrupted
-     after a signal that sets the interrupt_input_pending flag.  */
-  /* Non-interactive keyboard input goes through stdio, where we always
-     want restartable system calls.  */
-  if (noninteractive)
-    action->sa_flags = SA_RESTART;
+
+  /* When handling a signal, block nonfatal system signals that are caught
+     by Emacs.  This makes race conditions less likely.  */
+  sigaddset (&action->sa_mask, SIGALRM);
+#ifdef SIGCHLD
+  sigaddset (&action->sa_mask, SIGCHLD);
 #endif
+#ifdef SIGDANGER
+  sigaddset (&action->sa_mask, SIGDANGER);
+#endif
+#ifdef PROFILER_CPU_SUPPORT
+  sigaddset (&action->sa_mask, SIGPROF);
+#endif
+#ifdef SIGWINCH
+  sigaddset (&action->sa_mask, SIGWINCH);
+#endif
+  if (! noninteractive)
+    {
+      sigaddset (&action->sa_mask, SIGINT);
+      sigaddset (&action->sa_mask, SIGQUIT);
+#ifdef USABLE_SIGIO
+      sigaddset (&action->sa_mask, SIGIO);
+#endif
+    }
+
+  if (! IEEE_FLOATING_POINT)
+    sigaddset (&action->sa_mask, SIGFPE);
+
+  action->sa_handler = handler;
+  action->sa_flags = emacs_sigaction_flags ();
 }
 
 #ifdef FORWARD_SIGNAL_TO_MAIN_THREAD
 static pthread_t main_thread;
 #endif
 
-/* If we are on the main thread, handle the signal SIG with HANDLER.
+/* SIG has arrived at the current process.  Deliver it to the main
+   thread, which should handle it with HANDLER.
+
+   If we are on the main thread, handle the signal SIG with HANDLER.
    Otherwise, redirect the signal to the main thread, blocking it from
    this thread.  POSIX says any thread can receive a signal that is
    associated with a process, process group, or asynchronous event.
    On GNU/Linux that is not true, but for other systems (FreeBSD at
    least) it is.  */
 void
-handle_on_main_thread (int sig, signal_handler_t handler)
+deliver_process_signal (int sig, signal_handler_t handler)
 {
   /* Preserve errno, to avoid race conditions with signal handlers that
      might change errno.  Races can occur even in single-threaded hosts.  */
@@ -1494,6 +1506,39 @@ handle_on_main_thread (int sig, signal_handler_t handler)
 
   errno = old_errno;
 }
+
+/* Static location to save a fatal backtrace in a thread.
+   FIXME: If two subsidiary threads fail simultaneously, the resulting
+   backtrace may be garbage.  */
+enum { BACKTRACE_LIMIT_MAX = 500 };
+static void *thread_backtrace_buffer[BACKTRACE_LIMIT_MAX + 1];
+static int thread_backtrace_npointers;
+
+/* SIG has arrived at the current thread.
+   If we are on the main thread, handle the signal SIG with HANDLER.
+   Otherwise, this is a fatal error in the handling thread.  */
+static void
+deliver_thread_signal (int sig, signal_handler_t handler)
+{
+  int old_errno = errno;
+
+#ifdef FORWARD_SIGNAL_TO_MAIN_THREAD
+  if (! pthread_equal (pthread_self (), main_thread))
+    {
+      thread_backtrace_npointers
+	= backtrace (thread_backtrace_buffer, BACKTRACE_LIMIT_MAX);
+      sigaction (sig, &process_fatal_action, 0);
+      pthread_kill (main_thread, sig);
+
+      /* Avoid further damage while the main thread is exiting.  */
+      while (1)
+	sigsuspend (&empty_mask);
+    }
+#endif
+
+  handler (sig);
+  errno = old_errno;
+}
 
 #if !defined HAVE_STRSIGNAL && !HAVE_DECL_SYS_SIGLIST
 static char *my_sys_siglist[NSIG];
@@ -1503,9 +1548,60 @@ static char *my_sys_siglist[NSIG];
 # define sys_siglist my_sys_siglist
 #endif
 
-void
-init_signals (void)
+/* Handle bus errors, invalid instruction, etc.  */
+static void
+handle_fatal_signal (int sig)
 {
+  terminate_due_to_signal (sig, 40);
+}
+
+static void
+deliver_fatal_signal (int sig)
+{
+  deliver_process_signal (sig, handle_fatal_signal);
+}
+
+static void
+deliver_fatal_thread_signal (int sig)
+{
+  deliver_thread_signal (sig, handle_fatal_signal);
+}
+
+static _Noreturn void
+handle_arith_signal (int sig)
+{
+  pthread_sigmask (SIG_SETMASK, &empty_mask, 0);
+  xsignal0 (Qarith_error);
+}
+
+static void
+deliver_arith_signal (int sig)
+{
+  deliver_thread_signal (sig, handle_arith_signal);
+}
+
+/* Treat SIG as a terminating signal, unless it is already ignored and
+   we are in --batch mode.  Among other things, this makes nohup work.  */
+static void
+maybe_fatal_sig (int sig)
+{
+  bool catch_sig = !noninteractive;
+  if (!catch_sig)
+    {
+      struct sigaction old_action;
+      sigaction (sig, 0, &old_action);
+      catch_sig = old_action.sa_handler != SIG_IGN;
+    }
+  if (catch_sig)
+    sigaction (sig, &process_fatal_action, 0);
+}
+
+void
+init_signals (bool dumping)
+{
+  struct sigaction thread_fatal_action;
+  struct sigaction action;
+
   sigemptyset (&empty_mask);
 
 #ifdef FORWARD_SIGNAL_TO_MAIN_THREAD
@@ -1515,9 +1611,7 @@ init_signals (void)
 #if !defined HAVE_STRSIGNAL && !HAVE_DECL_SYS_SIGLIST
   if (! initialized)
     {
-# ifdef SIGABRT
       sys_siglist[SIGABRT] = "Aborted";
-# endif
 # ifdef SIGAIO
       sys_siglist[SIGAIO] = "LAN I/O interrupt";
 # endif
@@ -1545,9 +1639,7 @@ init_signals (void)
 # ifdef SIGEMT
       sys_siglist[SIGEMT] = "Emulation trap";
 # endif
-# ifdef SIGFPE
       sys_siglist[SIGFPE] = "Arithmetic exception";
-# endif
 # ifdef SIGFREEZE
       sys_siglist[SIGFREEZE] = "SIGFREEZE";
 # endif
@@ -1557,12 +1649,8 @@ init_signals (void)
 # ifdef SIGHUP
       sys_siglist[SIGHUP] = "Hangup";
 # endif
-# ifdef SIGILL
       sys_siglist[SIGILL] = "Illegal instruction";
-# endif
-# ifdef SIGINT
       sys_siglist[SIGINT] = "Interrupt";
-# endif
 # ifdef SIGIO
       sys_siglist[SIGIO] = "I/O possible";
 # endif
@@ -1611,9 +1699,7 @@ init_signals (void)
 # ifdef SIGSAK
       sys_siglist[SIGSAK] = "Secure attention";
 # endif
-# ifdef SIGSEGV
       sys_siglist[SIGSEGV] = "Segmentation violation";
-# endif
 # ifdef SIGSOUND
       sys_siglist[SIGSOUND] = "Sound completed";
 # endif
@@ -1626,9 +1712,7 @@ init_signals (void)
 # ifdef SIGSYS
       sys_siglist[SIGSYS] = "Bad argument to system call";
 # endif
-# ifdef SIGTERM
       sys_siglist[SIGTERM] = "Terminated";
-# endif
 # ifdef SIGTHAW
       sys_siglist[SIGTHAW] = "SIGTHAW";
 # endif
@@ -1673,6 +1757,129 @@ init_signals (void)
 # endif
     }
 #endif /* !defined HAVE_STRSIGNAL && !defined HAVE_DECL_SYS_SIGLIST */
+
+  /* Don't alter signal handlers if dumping.  On some machines,
+     changing signal handlers sets static data that would make signals
+     fail to work right when the dumped Emacs is run.  */
+  if (dumping)
+    return;
+
+  sigfillset (&process_fatal_action.sa_mask);
+  process_fatal_action.sa_handler = deliver_fatal_signal;
+  process_fatal_action.sa_flags = emacs_sigaction_flags ();
+
+  sigfillset (&thread_fatal_action.sa_mask);
+  thread_fatal_action.sa_handler = deliver_fatal_thread_signal;
+  thread_fatal_action.sa_flags = process_fatal_action.sa_flags;
+
+  /* SIGINT may need special treatment on MS-Windows.  See
+     http://lists.gnu.org/archive/html/emacs-devel/2010-09/msg01062.html
+     Please update the doc of kill-emacs, kill-emacs-hook, and
+     NEWS if you change this.  */
+
+  maybe_fatal_sig (SIGHUP);
+  maybe_fatal_sig (SIGINT);
+  maybe_fatal_sig (SIGTERM);
+
+  /* Emacs checks for write errors, so it can safely ignore SIGPIPE.
+     However, in batch mode leave SIGPIPE alone, as that causes Emacs
+     to behave more like typical batch applications do.  */
+  if (! noninteractive)
+    signal (SIGPIPE, SIG_IGN);
+
+  sigaction (SIGQUIT, &process_fatal_action, 0);
+  sigaction (SIGILL, &thread_fatal_action, 0);
+  sigaction (SIGTRAP, &thread_fatal_action, 0);
+
+  /* Typically SIGFPE is thread-specific and is fatal, like SIGILL.
+     But on a non-IEEE host SIGFPE can come from a trap in the Lisp
+     interpreter's floating point operations, so treat SIGFPE as an
+     arith-error if it arises in the main thread.  */
+  if (IEEE_FLOATING_POINT)
+    sigaction (SIGFPE, &thread_fatal_action, 0);
+  else
+    {
+      emacs_sigaction_init (&action, deliver_arith_signal);
+      sigaction (SIGFPE, &action, 0);
+    }
+
+#ifdef SIGUSR1
+  add_user_signal (SIGUSR1, "sigusr1");
+#endif
+#ifdef SIGUSR2
+  add_user_signal (SIGUSR2, "sigusr2");
+#endif
+  sigaction (SIGABRT, &thread_fatal_action, 0);
+#ifdef SIGPRE
+  sigaction (SIGPRE, &thread_fatal_action, 0);
+#endif
+#ifdef SIGORE
+  sigaction (SIGORE, &thread_fatal_action, 0);
+#endif
+#ifdef SIGUME
+  sigaction (SIGUME, &thread_fatal_action, 0);
+#endif
+#ifdef SIGDLK
+  sigaction (SIGDLK, &process_fatal_action, 0);
+#endif
+#ifdef SIGCPULIM
+  sigaction (SIGCPULIM, &process_fatal_action, 0);
+#endif
+#ifdef SIGIOT
+  sigaction (SIGIOT, &thread_fatal_action, 0);
+#endif
+#ifdef SIGEMT
+  sigaction (SIGEMT, &thread_fatal_action, 0);
+#endif
+#ifdef SIGBUS
+  sigaction (SIGBUS, &thread_fatal_action, 0);
+#endif
+  sigaction (SIGSEGV, &thread_fatal_action, 0);
+#ifdef SIGSYS
+  sigaction (SIGSYS, &thread_fatal_action, 0);
+#endif
+  sigaction (SIGTERM, &process_fatal_action, 0);
+#ifdef SIGPROF
+  signal (SIGPROF, SIG_IGN);
+#endif
+#ifdef SIGVTALRM
+  sigaction (SIGVTALRM, &process_fatal_action, 0);
+#endif
+#ifdef SIGXCPU
+  sigaction (SIGXCPU, &process_fatal_action, 0);
+#endif
+#ifdef SIGXFSZ
+  sigaction (SIGXFSZ, &process_fatal_action, 0);
+#endif
+
+#ifdef SIGDANGER
+  /* This just means available memory is getting low.  */
+  emacs_sigaction_init (&action, deliver_danger_signal);
+  sigaction (SIGDANGER, &action, 0);
+#endif
+
+  /* AIX-specific signals.  */
+#ifdef SIGGRANT
+  sigaction (SIGGRANT, &process_fatal_action, 0);
+#endif
+#ifdef SIGMIGRATE
+  sigaction (SIGMIGRATE, &process_fatal_action, 0);
+#endif
+#ifdef SIGMSG
+  sigaction (SIGMSG, &process_fatal_action, 0);
+#endif
+#ifdef SIGRETRACT
+  sigaction (SIGRETRACT, &process_fatal_action, 0);
+#endif
+#ifdef SIGSAK
+  sigaction (SIGSAK, &process_fatal_action, 0);
+#endif
+#ifdef SIGSOUND
+  sigaction (SIGSOUND, &process_fatal_action, 0);
+#endif
+#ifdef SIGTALRM
+  sigaction (SIGTALRM, &thread_fatal_action, 0);
+#endif
 }
 
 #ifndef HAVE_RANDOM
@@ -1811,23 +2018,36 @@ snprintf (char *buf, size_t bufsize, char const *format, ...)
 void
 emacs_backtrace (int backtrace_limit)
 {
-  enum { BACKTRACE_LIMIT_MAX = 500 };
-  void *buffer[BACKTRACE_LIMIT_MAX + 1];
+  void *main_backtrace_buffer[BACKTRACE_LIMIT_MAX + 1];
   int bounded_limit = min (backtrace_limit, BACKTRACE_LIMIT_MAX);
-  int npointers = backtrace (buffer, bounded_limit + 1);
+  void *buffer;
+  int npointers;
+
+  if (thread_backtrace_npointers)
+    {
+      buffer = thread_backtrace_buffer;
+      npointers = thread_backtrace_npointers;
+    }
+  else
+    {
+      buffer = main_backtrace_buffer;
+      npointers = backtrace (buffer, bounded_limit + 1);
+    }
+
   if (npointers)
-    ignore_value (write (STDERR_FILENO, "\nBacktrace:\n", 12));
-  backtrace_symbols_fd (buffer, bounded_limit, STDERR_FILENO);
-  if (bounded_limit < npointers)
-    ignore_value (write (STDERR_FILENO, "...\n", 4));
+    {
+      ignore_value (write (STDERR_FILENO, "\nBacktrace:\n", 12));
+      backtrace_symbols_fd (buffer, npointers, STDERR_FILENO);
+      if (bounded_limit < npointers)
+	ignore_value (write (STDERR_FILENO, "...\n", 4));
+    }
 }
 
 #ifndef HAVE_NTGUI
-/* Using emacs_abort lets GDB return from a breakpoint here.  */
 void
 emacs_abort (void)
 {
-  fatal_error_backtrace (SIGABRT, 10);
+  terminate_due_to_signal (SIGABRT, 10);
 }
 #endif
 
@@ -1910,7 +2130,8 @@ emacs_write (int fildes, const char *buf, ptrdiff_t nbyte)
 	    {
 	      /* I originally used `QUIT' but that might causes files to
 		 be truncated if you hit C-g in the middle of it.  --Stef  */
-	      process_pending_signals ();
+	      if (pending_signals)
+		process_pending_signals ();
 	      continue;
 	    }
 	  else
@@ -1975,11 +2196,11 @@ getwd (char *pathname)
   char *npath, *spath;
   extern char *getcwd (char *, size_t);
 
-  BLOCK_INPUT;			/* getcwd uses malloc */
+  block_input ();			/* getcwd uses malloc */
   spath = npath = getcwd ((char *) 0, MAXPATHLEN);
   if (spath == 0)
     {
-      UNBLOCK_INPUT;
+      unblock_input ();
       return spath;
     }
   /* On Altos 3068, getcwd can return @hostname/dir, so discard
@@ -1988,7 +2209,7 @@ getwd (char *pathname)
     npath++;
   strcpy (pathname, npath);
   free (spath);			/* getcwd uses malloc */
-  UNBLOCK_INPUT;
+  unblock_input ();
   return pathname;
 }
 
@@ -2422,7 +2643,7 @@ get_up_time (void)
   FILE *fup;
   EMACS_TIME up = make_emacs_time (0, 0);
 
-  BLOCK_INPUT;
+  block_input ();
   fup = fopen ("/proc/uptime", "r");
 
   if (fup)
@@ -2453,7 +2674,7 @@ get_up_time (void)
 	}
       fclose (fup);
     }
-  UNBLOCK_INPUT;
+  unblock_input ();
 
   return up;
 }
@@ -2467,7 +2688,7 @@ procfs_ttyname (int rdev)
   FILE *fdev = NULL;
   char name[PATH_MAX];
 
-  BLOCK_INPUT;
+  block_input ();
   fdev = fopen ("/proc/tty/drivers", "r");
 
   if (fdev)
@@ -2499,7 +2720,7 @@ procfs_ttyname (int rdev)
 	}
       fclose (fdev);
     }
-  UNBLOCK_INPUT;
+  unblock_input ();
   return build_string (name);
 }
 
@@ -2509,7 +2730,7 @@ procfs_get_total_memory (void)
   FILE *fmem = NULL;
   unsigned long retval = 2 * 1024 * 1024; /* default: 2GB */
 
-  BLOCK_INPUT;
+  block_input ();
   fmem = fopen ("/proc/meminfo", "r");
 
   if (fmem)
@@ -2528,7 +2749,7 @@ procfs_get_total_memory (void)
 	}
       fclose (fmem);
     }
-  UNBLOCK_INPUT;
+  unblock_input ();
   return retval;
 }
 
@@ -2574,17 +2795,17 @@ system_process_attributes (Lisp_Object pid)
   /* euid egid */
   uid = st.st_uid;
   attrs = Fcons (Fcons (Qeuid, make_fixnum_or_float (uid)), attrs);
-  BLOCK_INPUT;
+  block_input ();
   pw = getpwuid (uid);
-  UNBLOCK_INPUT;
+  unblock_input ();
   if (pw)
     attrs = Fcons (Fcons (Quser, build_string (pw->pw_name)), attrs);
 
   gid = st.st_gid;
   attrs = Fcons (Fcons (Qegid, make_fixnum_or_float (gid)), attrs);
-  BLOCK_INPUT;
+  block_input ();
   gr = getgrgid (gid);
-  UNBLOCK_INPUT;
+  unblock_input ();
   if (gr)
     attrs = Fcons (Fcons (Qgroup, build_string (gr->gr_name)), attrs);
 
@@ -2812,17 +3033,17 @@ system_process_attributes (Lisp_Object pid)
   /* euid egid */
   uid = st.st_uid;
   attrs = Fcons (Fcons (Qeuid, make_fixnum_or_float (uid)), attrs);
-  BLOCK_INPUT;
+  block_input ();
   pw = getpwuid (uid);
-  UNBLOCK_INPUT;
+  unblock_input ();
   if (pw)
     attrs = Fcons (Fcons (Quser, build_string (pw->pw_name)), attrs);
 
   gid = st.st_gid;
   attrs = Fcons (Fcons (Qegid, make_fixnum_or_float (gid)), attrs);
-  BLOCK_INPUT;
+  block_input ();
   gr = getgrgid (gid);
-  UNBLOCK_INPUT;
+  unblock_input ();
   if (gr)
     attrs = Fcons (Fcons (Qgroup, build_string (gr->gr_name)), attrs);
 
@@ -2943,17 +3164,17 @@ system_process_attributes (Lisp_Object pid)
 
   attrs = Fcons (Fcons (Qeuid, make_fixnum_or_float (proc.ki_uid)), attrs);
 
-  BLOCK_INPUT;
+  block_input ();
   pw = getpwuid (proc.ki_uid);
-  UNBLOCK_INPUT;
+  unblock_input ();
   if (pw)
     attrs = Fcons (Fcons (Quser, build_string (pw->pw_name)), attrs);
 
   attrs = Fcons (Fcons (Qegid, make_fixnum_or_float (proc.ki_svgid)), attrs);
 
-  BLOCK_INPUT;
+  block_input ();
   gr = getgrgid (proc.ki_svgid);
-  UNBLOCK_INPUT;
+  unblock_input ();
   if (gr)
     attrs = Fcons (Fcons (Qgroup, build_string (gr->gr_name)), attrs);
 
@@ -2993,9 +3214,9 @@ system_process_attributes (Lisp_Object pid)
   attrs = Fcons (Fcons (Qpgrp, make_fixnum_or_float (proc.ki_pgid)), attrs);
   attrs = Fcons (Fcons (Qsess, make_fixnum_or_float (proc.ki_sid)),  attrs);
 
-  BLOCK_INPUT;
+  block_input ();
   ttyname = proc.ki_tdev == NODEV ? NULL : devname (proc.ki_tdev, S_IFCHR);
-  UNBLOCK_INPUT;
+  unblock_input ();
   if (ttyname)
     attrs = Fcons (Fcons (Qtty, build_string (ttyname)), attrs);
 

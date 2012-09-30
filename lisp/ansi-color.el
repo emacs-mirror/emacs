@@ -230,8 +230,8 @@ This is a good function to put in `comint-output-filter-functions'."
 	  (t
 	   (ansi-color-apply-on-region start-marker end-marker)))))
 
-(defalias 'ansi-color-unfontify-region 'font-lock-default-unfontify-region)
-(make-obsolete 'ansi-color-unfontify-region "not needed any more" "24.1")
+(define-obsolete-function-alias 'ansi-color-unfontify-region
+  'font-lock-default-unfontify-region "24.1")
 
 ;; Working with strings
 (defvar ansi-color-context nil

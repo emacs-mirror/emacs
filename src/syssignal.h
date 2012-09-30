@@ -18,14 +18,20 @@ You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <signal.h>
+#include <stdbool.h>
 
-extern void init_signals (void);
+extern void init_signals (bool);
 
 #ifdef HAVE_PTHREAD
 #include <pthread.h>
 /* If defined, asynchronous signals delivered to a non-main thread are
    forwarded to the main thread.  */
 #define FORWARD_SIGNAL_TO_MAIN_THREAD
+#endif
+
+#if (defined SIGPROF && (defined HAVE_TIMER_SETTIME || defined HAVE_SETITIMER) \
+     && !defined PROFILING)
+# define PROFILER_CPU_SUPPORT
 #endif
 
 extern sigset_t empty_mask;
@@ -37,6 +43,10 @@ extern void emacs_sigaction_init (struct sigaction *, signal_handler_t);
 #if NSIG < NSIG_MINIMUM
 # undef NSIG
 # define NSIG NSIG_MINIMUM
+#endif
+
+#ifndef emacs_raise
+# define emacs_raise(sig) raise (sig)
 #endif
 
 /* On bsd, [man says] kill does not accept a negative number to kill a pgrp.
@@ -64,4 +74,4 @@ extern void emacs_sigaction_init (struct sigaction *, signal_handler_t);
 char *strsignal (int);
 #endif
 
-void handle_on_main_thread (int, signal_handler_t);
+void deliver_process_signal (int, signal_handler_t);

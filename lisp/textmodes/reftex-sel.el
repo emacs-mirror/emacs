@@ -245,12 +245,8 @@ During a selection process, these are the local bindings.
           (if (memq reftex-highlight-selection '(mouse both))
               reftex-mouse-selected-face
             nil))
-         (label-face (reftex-verified-face reftex-label-face
-                                           'font-lock-constant-face
-                                           'font-lock-reference-face))
-         (index-face (reftex-verified-face reftex-index-face
-                                           'font-lock-constant-face
-                                           'font-lock-reference-face))
+         (label-face reftex-label-face)
+         (index-face reftex-index-face)
          all cell text label typekey note comment master-dir-re
          prev-inserted offset from to index-tag docstruct-symbol)
 
