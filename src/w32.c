@@ -1528,52 +1528,6 @@ is_unc_volume (const char *filename)
   return 1;
 }
 
-/* Routines that are no-ops on NT but are defined to get Emacs to compile.  */
-int
-sigemptyset (sigset_t *set)
-{
-  *set = 0;
-  return 0;
-}
-
-int
-sigaddset (sigset_t *set, int signo)
-{
-  return 0;
-}
-
-int
-sigfillset (sigset_t *set)
-{
-  return 0;
-}
-
-int
-sigprocmask (int how, const sigset_t *set, sigset_t *oset)
-{
-  return 0;
-}
-
-int
-pthread_sigmask (int how, const sigset_t *set, sigset_t *oset)
-{
-  if (sigprocmask (how, set, oset) == -1)
-    return EINVAL;
-  return 0;
-}
-
-int
-setpgrp (int pid, int gid)
-{
-  return 0;
-}
-
-int
-alarm (int seconds)
-{
-  return 0;
-}
-
 #define REG_ROOT "SOFTWARE\\GNU\\Emacs"
 
 LPBYTE
@@ -6623,6 +6577,9 @@ void
 term_ntproc (int ignored)
 {
   (void)ignored;
+
+  term_timers ();
+
   /* shutdown the socket interface if necessary */
   term_winsock ();
 
@@ -6632,6 +6589,8 @@ term_ntproc (int ignored)
 void
 init_ntproc (int dumping)
 {
+  sigset_t initial_mask = 0;
+
   /* Initialize the socket interface now if available and requested by
      the user by defining PRELOAD_WINSOCK; otherwise loading will be
      delayed until open-network-stream is called (w32-has-winsock can
@@ -6708,7 +6667,12 @@ init_ntproc (int dumping)
   /* unfortunately, atexit depends on implementation of malloc */
   /* atexit (term_ntproc); */
   if (!dumping)
-    signal (SIGABRT, term_ntproc);
+    {
+      /* Make sure we start with all signals unblocked.  */
+      sigprocmask (SIG_SETMASK, &initial_mask, NULL);
+      signal (SIGABRT, term_ntproc);
+    }
+  init_timers ();
 
   /* determine which drives are fixed, for GetCachedVolumeInformation */
   {

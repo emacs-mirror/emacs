@@ -29357,10 +29357,6 @@ init_xdisp (void)
   help_echo_showing_p = 0;
 }
 
-/* Since w32 does not support atimers, it defines its own implementation of
-   the following three functions in w32fns.c.  */
-#ifndef WINDOWSNT
-
 /* Platform-independent portion of hourglass implementation.  */
 
 /* Cancel a currently active hourglass timer, and start a new one.  */
@@ -29382,6 +29378,10 @@ start_hourglass (void)
     delay = EMACS_TIME_FROM_DOUBLE (XFLOAT_DATA (Vhourglass_delay));
   else
     delay = make_emacs_time (DEFAULT_HOURGLASS_DELAY, 0);
+
+#ifdef WINDOWSNT
+  w32_note_current_window ();
+#endif
 
   hourglass_atimer = start_atimer (ATIMER_RELATIVE, delay,
 				   show_hourglass, NULL);
@@ -29405,4 +29405,3 @@ cancel_hourglass (void)
     hide_hourglass ();
 #endif
 }
-#endif /* ! WINDOWSNT  */

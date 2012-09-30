@@ -121,7 +121,7 @@ extern char *getenv ();
 #include <sys/types.h>
 
 #ifdef _MSC_VER
-typedef unsigned long sigset_t;
+typedef int sigset_t;
 typedef int ssize_t;
 #endif
 
@@ -130,6 +130,7 @@ struct sigaction {
   void (_CALLBACK_ *sa_handler)(int);
   sigset_t sa_mask;
 };
+#define SA_RESTART      0
 #define SIG_BLOCK       1
 #define SIG_SETMASK     2
 #define SIG_UNBLOCK     3
@@ -293,6 +294,7 @@ struct timespec
 #define SIGPIPE 13              /* Write on pipe with no readers */
 #define SIGALRM 14              /* Alarm */
 #define SIGCHLD 18              /* Death of child */
+#define SIGPROF 19              /* Profiling */
 
 #ifndef NSIG
 #define NSIG 23

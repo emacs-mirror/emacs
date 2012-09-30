@@ -1,3 +1,42 @@
+2012-09-30  Eli Zaretskii  <eliz@gnu.org>
+
+	Support atimers and CPU profiler via profile.c on MS-Windows.
+	* w32proc.c (sig_mask, crit_sig): New static variables.
+	(sys_signal): Support SIGALRM and SIGPROF.
+	(sigemptyset, sigaddset, sigfillset, sigprocmask)
+	(pthread_sigmask, setpgrp): Moved here from w32.c.  sigaddset,
+	sigfillset, and sigprocmask are no longer no-ops.
+	(sigismember): New function.
+	(struct itimer_data): New definition.
+	(ticks_now, real_itimer, prof_itimer, clocks_min, crit_real)
+	(crit_prof): New static variables.
+	(MAX_SINGLE_SLEEP): New definition.
+	(timer_loop, stop_timer_thread, term_timers, init_timers)
+	(start_timer_thread, getitimer, setitimer): New functions.
+	(alarm): No longer a no-op, calls setitimer.
+
+	* w32.c (term_ntproc): Call term_timers.
+	(init_ntproc): Make sure all signals are unblocked at startup, to
+	erase any traces of dumping.  Call init_timers.
+
+	* w32fns.c (hourglass_timer, HOURGLASS_ID): Remove.
+	Windows-specific code to display the hourglass mouse pointer is no
+	longer used.
+	(w32_wnd_proc): Remove code that handled the WM_TIMER message due
+	to hourglass timer expiration.
+	(start_hourglass, cancel_hourglass, DEFAULT_HOURGLASS_DELAY):
+	Remove, no longer used.
+	(w32_note_current_window, show_hourglass, hide_hourglass): New
+	functions, in support of hourglass cursor display similar to other
+	window systems.
+	(syms_of_w32fns): Don't initialize hourglass_timer.
+
+	* xdisp.c (start_hourglass, cancel_hourglass): Now used on
+	WINDOWSNT as well.
+	(start_hourglass) [WINDOWSNT]: Call w32_note_current_window.
+
+	* w32.h (init_timers, term_timers): Add prototypes.
+
 2012-09-30  Kenichi Handa  <handa@gnu.org>
 
 	* coding.c (decode_coding_ccl, encode_coding_ccl): Pay attention

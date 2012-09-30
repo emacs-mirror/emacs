@@ -79,9 +79,7 @@ extern void w32_menu_display_help (HWND, HMENU, UINT, UINT);
 extern void w32_free_menu_strings (HWND);
 extern const char *map_w32_filename (const char *, const char **);
 
-/* If non-zero, a w32 timer that, when it expires, displays an
-   hourglass cursor on all frames.  */
-static unsigned hourglass_timer = 0;
+/* If non-NULL, a handle to a frame where to display the hourglass cursor.  */
 static HWND hourglass_hwnd = NULL;
 
 #ifndef IDC_HAND
@@ -175,7 +173,6 @@ unsigned int msh_mousewheel = 0;
 #define MOUSE_BUTTON_ID	1
 #define MOUSE_MOVE_ID	2
 #define MENU_FREE_ID 3
-#define HOURGLASS_ID 4
 /* The delay (milliseconds) before a menu is freed after WM_EXITMENULOOP
    is received.  */
 #define MENU_FREE_DELAY 1000
@@ -3313,12 +3310,6 @@ w32_wnd_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
               menubar_in_use = 0;
 	    }
 	}
-      else if (wParam == hourglass_timer)
-	{
-	  KillTimer (hwnd, hourglass_timer);
-	  hourglass_timer = 0;
-	  w32_show_hourglass (x_window_to_frame (dpyinfo, hwnd));
-	}
       return 0;
 
     case WM_NCACTIVATE:
@@ -5040,66 +5031,50 @@ no value of TYPE (always string in the MS Windows case).  */)
 				Busy cursor
  ***********************************************************************/
 
-/* Default number of seconds to wait before displaying an hourglass
-   cursor.  Duplicated from xdisp.c, but cannot use the version there
-   due to lack of atimers on w32.  */
-#define DEFAULT_HOURGLASS_DELAY 1
-
-/* Cancel a currently active hourglass timer, and start a new one.  */
-
 void
-start_hourglass (void)
+w32_note_current_window (void)
 {
-  DWORD delay;
-  int secs, msecs = 0;
   struct frame * f = SELECTED_FRAME ();
 
-  /* No cursors on non GUI frames.  */
   if (!FRAME_W32_P (f))
     return;
 
-  cancel_hourglass ();
-
-  if (INTEGERP (Vhourglass_delay)
-      && XINT (Vhourglass_delay) > 0)
-    secs = XFASTINT (Vhourglass_delay);
-  else if (FLOATP (Vhourglass_delay)
-	   && XFLOAT_DATA (Vhourglass_delay) > 0)
-    {
-      Lisp_Object tem;
-      tem = Ftruncate (Vhourglass_delay, Qnil);
-      secs = XFASTINT (tem);
-      msecs = (XFLOAT_DATA (Vhourglass_delay) - secs) * 1000;
-    }
-  else
-    secs = DEFAULT_HOURGLASS_DELAY;
-
-  delay = secs * 1000 + msecs;
   hourglass_hwnd = FRAME_W32_WINDOW (f);
-  hourglass_timer = SetTimer (hourglass_hwnd, HOURGLASS_ID, delay, NULL);
 }
-
-
-/* Cancel the hourglass cursor timer if active, hide an hourglass
-   cursor if shown.  */
 
 void
-cancel_hourglass (void)
+show_hourglass (struct atimer *timer)
 {
-  if (hourglass_timer)
-    {
-      KillTimer (hourglass_hwnd, hourglass_timer);
-      hourglass_timer = 0;
-    }
+  struct frame *f;
 
-  if (hourglass_shown_p)
-    w32_hide_hourglass ();
+  hourglass_atimer = NULL;
+
+  block_input ();
+  f = x_window_to_frame (&one_w32_display_info,
+				       hourglass_hwnd);
+
+  if (f)
+    f->output_data.w32->hourglass_p = 0;
+  else
+    f = SELECTED_FRAME ();
+
+  if (!FRAME_W32_P (f))
+    return;
+
+  w32_show_hourglass (f);
+  unblock_input ();
+}
+
+void
+hide_hourglass (void)
+{
+  block_input ();
+  w32_hide_hourglass ();
+  unblock_input ();
 }
 
 
-/* Timer function of hourglass_timer.
-
-   Display an hourglass cursor.  Set the hourglass_p flag in display info
+/* Display an hourglass cursor.  Set the hourglass_p flag in display info
    to indicate that an hourglass cursor is shown.  */
 
 static void
@@ -7123,8 +7098,6 @@ only be necessary if the default setting causes problems.  */);
 
   check_window_system_func = check_w32;
 
-
-  hourglass_timer = 0;
   hourglass_hwnd = NULL;
 
   defsubr (&Sx_show_tip);

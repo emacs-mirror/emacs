@@ -774,7 +774,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define HAVE_SENDTO 1
 
 /* Define to 1 if you have the `setitimer' function. */
-#undef HAVE_SETITIMER
+#define HAVE_SETITIMER 1
 
 /* Define to 1 if you have the `setlocale' function. */
 #define HAVE_SETLOCALE 1

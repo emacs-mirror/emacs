@@ -200,8 +200,6 @@ record_backtrace (log_t *log, EMACS_INT count)
 
 /* Sample profiler.  */
 
-/* FIXME: Add support for the CPU profiler in W32.  */
-
 #ifdef PROFILER_CPU_SUPPORT
 
 /* The profiler timer and whether it was properly initialized, if

@@ -86,18 +86,23 @@ typedef void (_CALLBACK_ *signal_handler) (int);
 /* Signal handlers...SIG_DFL == 0 so this is initialized correctly.  */
 static signal_handler sig_handlers[NSIG];
 
+static sigset_t sig_mask;
+
+static CRITICAL_SECTION crit_sig;
+
 /* Improve on the CRT 'signal' implementation so that we could record
-   the SIGCHLD handler.  */
+   the SIGCHLD handler and fake interval timers.  */
 signal_handler
 sys_signal (int sig, signal_handler handler)
 {
   signal_handler old;
 
   /* SIGCHLD is needed for supporting subprocesses, see sys_kill
-     below.  All the others are the only ones supported by the MS
-     runtime.  */
+     below.  SIGALRM and SIGPROF are used by setitimer.  All the
+     others are the only ones supported by the MS runtime.  */
   if (!(sig == SIGCHLD || sig == SIGSEGV || sig == SIGILL
-	|| sig == SIGFPE || sig == SIGABRT || sig == SIGTERM))
+	|| sig == SIGFPE || sig == SIGABRT || sig == SIGTERM
+	|| sig == SIGALRM || sig == SIGPROF))
     {
       errno = EINVAL;
       return SIG_ERR;
@@ -111,7 +116,7 @@ sys_signal (int sig, signal_handler handler)
   if (!(sig == SIGABRT && old == term_ntproc))
     {
       sig_handlers[sig] = handler;
-      if (sig != SIGCHLD)
+      if (!(sig == SIGCHLD || sig == SIGALRM || sig == SIGPROF))
 	signal (sig, handler);
     }
   return old;
@@ -141,6 +146,523 @@ sigaction (int sig, const struct sigaction *act, struct sigaction *oact)
       oact->sa_mask = empty_mask;
     }
   return retval;
+}
+
+/* Emulate signal sets and blocking of signals used by timers.  */
+
+int
+sigemptyset (sigset_t *set)
+{
+  *set = 0;
+  return 0;
+}
+
+int
+sigaddset (sigset_t *set, int signo)
+{
+  if (!set)
+    {
+      errno = EINVAL;
+      return -1;
+    }
+  if (signo < 0 || signo >= NSIG)
+    {
+      errno = EINVAL;
+      return -1;
+    }
+
+  *set |= (1U << signo);
+
+  return 0;
+}
+
+int
+sigfillset (sigset_t *set)
+{
+  if (!set)
+    {
+      errno = EINVAL;
+      return -1;
+    }
+
+  *set = 0xFFFFFFFF;
+  return 0;
+}
+
+int
+sigprocmask (int how, const sigset_t *set, sigset_t *oset)
+{
+  if (!(how == SIG_BLOCK || how == SIG_UNBLOCK || how == SIG_SETMASK))
+    {
+      errno = EINVAL;
+      return -1;
+    }
+
+  if (oset)
+    *oset = sig_mask;
+
+  if (!set)
+    return 0;
+
+  switch (how)
+    {
+    case SIG_BLOCK:
+      sig_mask |= *set;
+      break;
+    case SIG_SETMASK:
+      sig_mask = *set;
+      break;
+    case SIG_UNBLOCK:
+      /* FIXME: Catch signals that are blocked and reissue them when
+	 they are unblocked.  Important for SIGALRM and SIGPROF only.  */
+      sig_mask &= ~(*set);
+      break;
+    }
+
+  return 0;
+}
+
+int
+pthread_sigmask (int how, const sigset_t *set, sigset_t *oset)
+{
+  if (sigprocmask (how, set, oset) == -1)
+    return EINVAL;
+  return 0;
+}
+
+int
+sigismember (const sigset_t *set, int signo)
+{
+  if (signo < 0 || signo >= NSIG)
+    {
+      errno = EINVAL;
+      return -1;
+    }
+  if (signo > sizeof (*set) * BITS_PER_CHAR)
+    emacs_abort ();
+
+  return (*set & (1U << signo)) != 0;
+}
+
+int
+setpgrp (int pid, int gid)
+{
+  return 0;
+}
+
+/* Emulations of interval timers.
+
+   Limitations: only ITIMER_REAL and ITIMER_PROF are supported.
+
+   Implementation: a separate thread is started for each timer type,
+   the thread calls the appropriate signal handler when the timer
+   expires, after stopping the thread which installed the timer.  */
+
+/* FIXME: clock_t counts overflow after 49 days, need to handle the
+   wrap-around.  */
+struct itimer_data {
+  clock_t expire;
+  clock_t reload;
+  int terminate;
+  int type;
+  HANDLE caller_thread;
+  HANDLE timer_thread;
+};
+
+static clock_t ticks_now;
+static struct itimer_data real_itimer, prof_itimer;
+static clock_t clocks_min;
+
+static CRITICAL_SECTION crit_real, crit_prof;
+
+#define MAX_SINGLE_SLEEP 30
+
+static DWORD WINAPI
+timer_loop (LPVOID arg)
+{
+  struct itimer_data *itimer = (struct itimer_data *)arg;
+  int which = itimer->type;
+  int sig = (which == ITIMER_REAL) ? SIGALRM : SIGPROF;
+  CRITICAL_SECTION *crit = (which == ITIMER_REAL) ? &crit_real : &crit_prof;
+  const DWORD max_sleep = MAX_SINGLE_SLEEP * 1000 / CLOCKS_PER_SEC;
+  int new_count = 0;
+
+  while (1)
+    {
+      DWORD sleep_time;
+      signal_handler handler;
+      clock_t now, expire, reload;
+
+      /* Load new values if requested by setitimer.  */
+      EnterCriticalSection (crit);
+      expire = itimer->expire;
+      reload = itimer->reload;
+      LeaveCriticalSection (crit);
+      if (itimer->terminate)
+	return 0;
+
+      if (itimer->expire == 0)
+	{
+	  /* We are idle.  */
+	  Sleep (max_sleep);
+	  continue;
+	}
+
+      expire = itimer->expire;
+      if (expire > (now = clock ()))
+	sleep_time = expire - now;
+      else
+	sleep_time = 0;
+      /* Don't sleep too long at a time, to be able to see the
+	 termination flag without too long a delay.  */
+      while (sleep_time > max_sleep)
+	{
+	  if (itimer->terminate)
+	    return 0;
+	  Sleep (max_sleep);
+	  expire = itimer->expire;
+	  sleep_time = (expire > (now = clock ())) ? expire - now : 0;
+	}
+      if (itimer->terminate)
+	return 0;
+      if (sleep_time > 0)
+	{
+	  Sleep (sleep_time * 1000 / CLOCKS_PER_SEC);
+	  /* Always sleep past the expiration time, to make sure we
+	     never call the handler _before_ the expiration time,
+	     always slightly after it.  Sleep(0) relinquishes the rest
+	     of the scheduled slot, so that we let other threads
+	     work.  */
+	  while (clock () < expire)
+	    Sleep (0);
+	}
+
+      if (itimer->expire == 0)
+	continue;
+
+      /* Time's up.  */
+      handler = sig_handlers[sig];
+      if (!(handler == SIG_DFL || handler == SIG_IGN || handler == SIG_ERR)
+	  /* FIXME: Don't ignore masked signals.  Instead, record that
+	     they happened and reissue them when the signal is
+	     unblocked.  */
+	  && !sigismember (&sig_mask, sig)
+	  /* Simulate masking of SIGALRM and SIGPROF when processing
+	     fatal signals.  */
+	  && !fatal_error_in_progress
+	  && itimer->caller_thread)
+	{
+	  /* Simulate a signal delivered to the thread which installed
+	     the timer, by suspending that thread while the handler
+	     runs.  */
+	  DWORD result = SuspendThread (itimer->caller_thread);
+
+	  if (result == (DWORD)-1)
+	    {
+	      DebPrint (("Thread %d exiting with status 2\n", which));
+	      return 2;
+	    }
+	  handler (sig);
+	  ResumeThread (itimer->caller_thread);
+	}
+
+      if (itimer->expire == 0)
+	continue;
+
+      /* Update expiration time and loop.  */
+      EnterCriticalSection (crit);
+      expire = itimer->expire;
+      reload = itimer->reload;
+      if (reload > 0)
+	{
+	  now = clock ();
+	  if (expire <= now)
+	    {
+	      clock_t lag = now - expire;
+
+	      /* If we missed some opportunities (presumably while
+		 sleeping or while the signal handler ran), skip
+		 them.  */
+	      if (lag > reload)
+		expire = now - (lag % reload);
+
+	      expire += reload;
+	    }
+	}
+      else
+	expire = 0;	/* become idle */
+      itimer->expire = expire;
+      LeaveCriticalSection (crit);
+    }
+  return 0;
+}
+
+static void
+stop_timer_thread (int which)
+{
+  struct itimer_data *itimer =
+    (which == ITIMER_REAL) ? &real_itimer : &prof_itimer;
+  int i;
+  DWORD exit_code = 255;
+  BOOL status, err;
+
+  /* Signal the thread that it should terminate.  */
+  itimer->terminate = 1;
+
+  if (itimer->timer_thread == NULL)
+    return;
+
+  /* Wait for the timer thread to terminate voluntarily, then kill it
+     if it doesn't.  This loop waits twice more than the maximum
+     amount of time a timer thread sleeps, see above.  */
+  for (i = 0; i < MAX_SINGLE_SLEEP / 5; i++)
+    {
+      if (!((status = GetExitCodeThread (itimer->timer_thread, &exit_code))
+	    && exit_code == STILL_ACTIVE))
+	break;
+      Sleep (10);
+    }
+  if ((status == FALSE && (err = GetLastError ()) == ERROR_INVALID_HANDLE)
+      || exit_code == STILL_ACTIVE)
+    {
+      if (!(status == FALSE && err == ERROR_INVALID_HANDLE))
+	TerminateThread (itimer->timer_thread, 0);
+    }
+
+  /* Clean up.  */
+  CloseHandle (itimer->timer_thread);
+  itimer->timer_thread = NULL;
+  if (itimer->caller_thread)
+    {
+      CloseHandle (itimer->caller_thread);
+      itimer->caller_thread = NULL;
+    }
+}
+
+/* This is called at shutdown time from term_ntproc.  */
+void
+term_timers (void)
+{
+  if (real_itimer.timer_thread)
+    stop_timer_thread (ITIMER_REAL);
+  if (prof_itimer.timer_thread)
+    stop_timer_thread (ITIMER_PROF);
+
+  DeleteCriticalSection (&crit_real);
+  DeleteCriticalSection (&crit_prof);
+  DeleteCriticalSection (&crit_sig);
+}
+
+/* This is called at initialization time from init_ntproc.  */
+void
+init_timers (void)
+{
+  /* Make sure we start with zeroed out itimer structures, since
+     dumping may have left there traces of threads long dead.  */
+  memset (&real_itimer, 0, sizeof real_itimer);
+  memset (&prof_itimer, 0, sizeof prof_itimer);
+
+  InitializeCriticalSection (&crit_real);
+  InitializeCriticalSection (&crit_prof);
+  InitializeCriticalSection (&crit_sig);
+}
+
+static int
+start_timer_thread (int which)
+{
+  DWORD exit_code;
+  struct itimer_data *itimer =
+    (which == ITIMER_REAL) ? &real_itimer : &prof_itimer;
+
+  if (itimer->timer_thread
+      && GetExitCodeThread (itimer->timer_thread, &exit_code)
+      && exit_code == STILL_ACTIVE)
+    return 0;
+
+  /* Start a new thread.  */
+  if (!DuplicateHandle (GetCurrentProcess (), GetCurrentThread (),
+			GetCurrentProcess (), &itimer->caller_thread, 0,
+			FALSE, DUPLICATE_SAME_ACCESS))
+    {
+      errno = ESRCH;
+      return -1;
+    }
+
+  itimer->terminate = 0;
+  itimer->type = which;
+  /* Request that no more than 64KB of stack be reserved for this
+     thread, to avoid reserving too much memory, which would get in
+     the way of threads we start to wait for subprocesses.  See also
+     new_child below.  */
+  itimer->timer_thread = CreateThread (NULL, 64 * 1024, timer_loop,
+				       (void *)itimer, 0x00010000, NULL);
+
+  if (!itimer->timer_thread)
+    {
+      CloseHandle (itimer->caller_thread);
+      itimer->caller_thread = NULL;
+      errno = EAGAIN;
+      return -1;
+    }
+
+  /* This is needed to make sure that the timer thread running for
+     profiling gets CPU as soon as the Sleep call terminates. */
+  if (which == ITIMER_PROF)
+    SetThreadPriority (itimer->caller_thread, THREAD_PRIORITY_TIME_CRITICAL);
+
+  return 0;
+}
+
+/* Most of the code of getitimer and setitimer (but not of their
+   subroutines) was shamelessly stolen from itimer.c in the DJGPP
+   library, see www.delorie.com/djgpp.  */
+int
+getitimer (int which, struct itimerval *value)
+{
+  volatile clock_t *t_expire;
+  volatile clock_t *t_reload;
+  clock_t expire, reload;
+  __int64 usecs;
+  CRITICAL_SECTION *crit;
+
+  ticks_now = clock ();
+
+  if (!value)
+    {
+      errno = EFAULT;
+      return -1;
+    }
+
+  if (which != ITIMER_REAL && which != ITIMER_PROF)
+    {
+      errno = EINVAL;
+      return -1;
+    }
+
+  t_expire = (which == ITIMER_REAL) ? &real_itimer.expire: &prof_itimer.expire;
+  t_reload = (which == ITIMER_REAL) ? &real_itimer.reload: &prof_itimer.reload;
+  crit = (which == ITIMER_REAL) ? &crit_real : &crit_prof;
+
+  EnterCriticalSection (crit);
+  reload = *t_reload;
+  expire = *t_expire;
+  LeaveCriticalSection (crit);
+
+  if (expire)
+    expire -= ticks_now;
+
+  value->it_value.tv_sec    = expire / CLOCKS_PER_SEC;
+  usecs = (expire % CLOCKS_PER_SEC) * (__int64)1000000 / CLOCKS_PER_SEC;
+  value->it_value.tv_usec   = usecs;
+  value->it_interval.tv_sec = reload / CLOCKS_PER_SEC;
+  usecs = (reload % CLOCKS_PER_SEC) * (__int64)1000000 / CLOCKS_PER_SEC;
+  value->it_interval.tv_usec= usecs;
+
+  return 0;
+}
+
+int
+setitimer(int which, struct itimerval *value, struct itimerval *ovalue)
+{
+  volatile clock_t *t_expire, *t_reload;
+  clock_t expire, reload, expire_old, reload_old;
+  __int64 usecs;
+  CRITICAL_SECTION *crit;
+
+  /* Posix systems expect timer values smaller than the resolution of
+     the system clock be rounded up to the clock resolution.  First
+     time we are called, measure the clock tick resolution.  */
+  if (!clocks_min)
+    {
+      clock_t t1, t2;
+
+      for (t1 = clock (); (t2 = clock ()) == t1; )
+	;
+      clocks_min = t2 - t1;
+    }
+
+  if (ovalue)
+    {
+      if (getitimer (which, ovalue)) /* also sets ticks_now */
+	return -1;		     /* errno already set */
+    }
+  else
+    ticks_now = clock ();
+
+  if (which != ITIMER_REAL && which != ITIMER_PROF)
+    {
+      errno = EINVAL;
+      return -1;
+    }
+
+  t_expire =
+    (which == ITIMER_REAL) ? &real_itimer.expire : &prof_itimer.expire;
+  t_reload =
+    (which == ITIMER_REAL) ? &real_itimer.reload : &prof_itimer.reload;
+
+  crit = (which == ITIMER_REAL) ? &crit_real : &crit_prof;
+
+  if (!value
+      || (value->it_value.tv_sec == 0 && value->it_value.tv_usec == 0))
+    {
+      EnterCriticalSection (crit);
+      /* Disable the timer.  */
+      *t_expire = 0;
+      *t_reload = 0;
+      LeaveCriticalSection (crit);
+      return 0;
+    }
+
+  reload = value->it_interval.tv_sec * CLOCKS_PER_SEC;
+
+  usecs = value->it_interval.tv_usec;
+  if (value->it_interval.tv_sec == 0
+      && usecs && usecs * CLOCKS_PER_SEC < clocks_min * 1000000)
+    reload = clocks_min;
+  else
+    {
+      usecs *= CLOCKS_PER_SEC;
+      reload += usecs / 1000000;
+    }
+
+  expire = value->it_value.tv_sec * CLOCKS_PER_SEC;
+  usecs = value->it_value.tv_usec;
+  if (value->it_value.tv_sec == 0
+      && usecs * CLOCKS_PER_SEC < clocks_min * 1000000)
+    expire = clocks_min;
+  else
+    {
+      usecs *= CLOCKS_PER_SEC;
+      expire += usecs / 1000000;
+    }
+
+  expire += ticks_now;
+
+  EnterCriticalSection (crit);
+  expire_old = *t_expire;
+  reload_old = *t_reload;
+  if (!(expire == expire_old && reload == reload_old))
+    {
+      *t_reload = reload;
+      *t_expire = expire;
+    }
+  LeaveCriticalSection (crit);
+
+  return start_timer_thread (which);
+}
+
+int
+alarm (int seconds)
+{
+  struct itimerval new_values;
+
+  new_values.it_value.tv_sec = seconds;
+  new_values.it_value.tv_usec = 0;
+  new_values.it_interval.tv_sec = new_values.it_interval.tv_usec = 0;
+
+  setitimer (ITIMER_REAL, &new_values, NULL);
+
+  return seconds;
 }
 
 /* Defined in <process.h> which conflicts with the local copy */

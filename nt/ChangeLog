@@ -1,3 +1,15 @@
+2012-09-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/sys/time.h (ITIMER_REAL, ITIMER_PROF): Define.
+	(struct itimerval): Define.
+	(getitimer, setitimer): Add prototypes.
+
+	* inc/ms-w32.h <sigset_t> [_MSVC_VER]: Make the typedef consistent
+	with MinGW.
+	(SA_RESTART, SIGPROF): Define.
+
+	* config.nt (HAVE_SETITIMER): Define to 1.
+
 2012-09-30  Juanma Barranquero  <lekktu@gmail.com>
 
 	* config.nt: Sync with autogen/config.in.
