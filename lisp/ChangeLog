@@ -1,3 +1,146 @@
+2012-09-30  Ralf Angeli  <angeli@caeruleus.net>
+
+	Merge from standalone RefTeX repository.
+
+	The following ChangeLog entries are shortened versions of the
+	original ones with file paths adapted.  A not so strongly edited
+	version of the original ChangeLog can be found in the commit log.
+
+	* textmodes/reftex-auc.el: Move `provide' call to bottom of file.
+	(reftex-arg-cite): Use `reftex-cite-key-separator'.  Correctly
+	handle new value type returned by `reftex-citation'.
+
+	* textmodes/reftex-cite.el (reftex-create-bibtex-file): Make sure
+	that entries with whitespace at various places are found.  Doc
+	fix. Include entries that are cross-referenced from cited entries.
+	Include @String definitions in the resulting bib file.  Add header
+	and footer defined in `reftex-create-bibtex-header' and
+	`reftex-create-bibtex-footer'.
+	(reftex-do-citation): Make it possible again to insert
+	non-existent entries.  Save match data when asking for optional
+	arguments. Return all keys, not just the first one.
+	(reftex-all-used-citation-keys): Fix regexp to correctly extract
+	all citations in the same line.
+	(reftex-parse-bibtex-entry): Accept additional optional argument
+	`raw' and keep quotes or braces if it is non-nil.  Match fields
+	containing hyphens besides word constituents.
+	(reftex-get-string-refs): New function.
+	(reftex-extract-bib-entries): Check if BibTeX file changed on disk
+	and ask if it should be reread in case it did.
+	(reftex-pop-to-bibtex-entry)
+	(reftex-extract-bib-entries-from-thebibliography): Match \bibitem
+	entries with spaces or tabs in front of arguments.
+	(reftex-pop-to-bibtex-entry, reftex-extract-bib-entries)
+	(reftex-parse-bibtex-entry, reftex-create-bibtex-file): Match
+	entries containing numbers and symbol constituents.
+	(reftex-do-citation, reftex-figure-out-cite-format): Use
+	`reftex-cite-key-separator'.
+
+	* textmodes/reftex-dcr.el: Move provide statement to end of file.
+	(reftex-mouse-view-crossref): Explain why point is set.
+
+	* textmodes/reftex-global.el: Whitespace changes.
+
+	* textmodes/reftex-index.el: Move provide statement to end of
+	file.
+	(reftex-index-selection-or-word): Use `reftex-region-active-p'.
+	(reftex-index-visit-phrases-buffer): Set marker when visiting
+	buffer.  This allows for returning from the phrases file to the
+	file one was just editing instead of the file where the last
+	phrases was added from.
+	(reftex-index-phrases-syntax-table): New variable.  Give ?\"
+	punctuation syntax as it usually is not used as string quote in
+	TeX-related modes and may occur unmatched.  The change also
+	prevents fontification of quoted content.
+	(reftex-index-phrases-mode): Use it.
+
+	* textmodes/reftex-parse.el (reftex-parse-from-file): Move
+	backward one char if a `\' was matched after a section macro.
+	(reftex-parse-from-file): Use beginning of match instead of end as
+	bound.
+
+	* textmodes/reftex-ref.el: Adapt creation of
+	`reftex-<package>-<macro>' functions to new structure of
+	`reftex-ref-style-alist'.
+	(reftex-reference): Use `reftex-ref-style-list' function.  Adapt
+	to new structure of `reftex-ref-style-alist'.  Prompt for a
+	reference macro if `reftex-ref-macro-prompt' is non-nil.
+	(reftex-reference): Pass refstyle to `reftex-format-special'.
+	Determine reference macro by looking at
+	`reftex-ref-style-default-list' and `reftex-ref-style-alist'.  Use
+	only one special format function.
+	(reftex-varioref-vref, reftex-fancyref-fref)
+	(reftex-fancyref-Fref): Remove definitions.  The functions are now
+	generated from `reftex-ref-style-alist'.
+	(reftex-format-vref, reftex-format-Fref, reftex-format-fref):
+	Remove.
+	(reftex-format-special): New function.
+
+	* textmodes/reftex-sel.el
+	(reftex-select-cycle-ref-style-internal): Adapt to new structure
+	of `reftex-ref-style-alist'. Remove code for testing macro type.
+	(reftex-select-toggle-varioref)
+	(reftex-select-toggle-fancyref): Remove.
+	(reftex-select-cycle-ref-style-internal)
+	(reftex-select-cycle-ref-style-forward)
+	(reftex-select-cycle-ref-style-backward): New functions.
+	(reftex-select-label-map): Use `v' and `V' for general cycling
+	through reference styles.  Add `p' for switching between number
+	and page reference types.
+
+	* textmodes/reftex-toc.el (reftex-re-enlarge): Call
+	`enlarge-window' only if there is something to do because in Emacs
+	the horizontal version throws an error even if the parameter is 0.
+
+	* textmodes/reftex-vars.el (reftex-label-alist): Doc fix.
+	(reftex-plug-into-AUCTeX): Doc fix.
+	(reftex-vref-is-default, reftex-fref-is-default): Adapt doc
+	string.  Adapt to new name.
+	(reftex-ref-style-alist): Change structure so that it is not
+	possible to use multiple different package names within a style.
+	Remove the symbols for symbols for macro type distinction.  Add
+	characters for macro selection.
+	(reftex-ref-macro-prompt, reftex-create-bibtex-header)
+	(reftex-create-bibtex-footer): New variables.
+	(reftex-format-ref-function): Mention third argument of special
+	format function.
+	(reftex-ref-style-alist, reftex-ref-style-default-list): New
+	variables.
+	(reftex-vref-is-default, reftex-fref-is-default): Adapt doc string
+	to new implementation.  Mark as obsolete.  Add compatibility code
+	for honoring the variable values in case they are set.
+	(reftex-cite-format-builtin, reftex-bibliography-commands): Add
+	support for ConTeXt.
+	(reftex-format-ref-function, reftex-format-cite-function): Fix
+	custom type.
+	(reftex-cite-key-separator): New variable.
+
+	* textmodes/reftex.el (reftex-syntax-table-for-bib)
+	(reftex-mode): Do not derive `reftex-syntax-table-for-bib' from
+	`reftex-syntax-table' because parens have to retain their paren
+	syntax in order for parsing of BibTeX entries like @book(...) to
+	work.
+	(reftex-in-comment): Do not error out if `comment-start-skip' is
+	not set.  Deal correctly with escaped comment characters.
+	(reftex-tie-multifile-symbols): Add doc string.  Initialize
+	`reftex-ref-style-list'.
+	(reftex-untie-multifile-symbols): Add doc string.
+	(reftex-add-index-macros): Doc fix.
+	(reftex-ref-style-activate, reftex-ref-style-toggle)
+	(reftex-ref-style-list): New functions.
+	(reftex-mode-menu): Use them.  Adapt to new structure of
+	`reftex-ref-style-alist'.
+	(reftex-select-with-char): Kill the RefTeX Select buffer when
+	done.
+	(reftex-remove-if): New function.
+	(reftex-erase-all-selection-and-index-buffers)
+	(reftex-mode-menu): Reference styles are now computed from
+	`reftex-ref-style-alist'.  Fix typo.
+	(reftex-report-bug): New function.
+	(reftex-uniquify, reftex-uniquify-by-car): Replace O(n^2)
+	algorithms with O(n log n).  Introduce optional argument SORT (not
+	yet used).
+
 2012-09-30  Fabián Ezequiel Gallina  <fgallina@cuca>
 
 	Enhancements for triple-quote string syntax.

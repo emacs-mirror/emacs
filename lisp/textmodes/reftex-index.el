@@ -4,8 +4,6 @@
 
 ;; Author: Carsten Dominik <dominik@science.uva.nl>
 ;; Maintainer: auctex-devel@gnu.org
-;; Version: 4.31
-;; Package: reftex
 
 ;; This file is part of GNU Emacs.
 
@@ -27,17 +25,15 @@
 ;;; Code:
 
 (eval-when-compile (require 'cl))
-(provide 'reftex-index)
+(declare-function texmathp "ext:texmathp" ())
+
 (require 'reftex)
-;;;
 
 ;; START remove for XEmacs release
 (defvar mark-active)
 (defvar transient-mark-mode)
 (defvar TeX-master)
 ;; END remove for XEmacs release
-
-(declare-function texmathp "ext:texmathp" ())
 
 (defun reftex-index-selection-or-word (&optional arg phrase)
   "Put selection or the word near point into the default index macro.
@@ -52,9 +48,7 @@ which is part of AUCTeX, the string is first processed with the
   (interactive "P")
   (let* ((use-default (not (equal arg '(16))))  ; check for double prefix
          ;; check if we have an active selection
-         (active (if (featurep 'xemacs)
-                     (and zmacs-regions (region-exists-p))  ; XEmacs
-                   (and transient-mark-mode mark-active)))  ; Emacs
+         (active (reftex-region-active-p))
          (beg (if active
                   (region-beginning)
                 (save-excursion
@@ -1244,7 +1238,11 @@ This gets refreshed in every phrases command.")
 
     map)
   "Keymap used for *toc* buffer.")
-
+(defvar reftex-index-phrases-syntax-table
+  (let ((table (make-syntax-table)))
+    (modify-syntax-entry ?\" "." table)
+    table)
+  "Syntax table for RefTeX Index Phrases mode.")
 
 (defun reftex-index-phrase-selection-or-word (arg)
   "Add current selection or word at point to the phrases buffer.
@@ -1264,6 +1262,7 @@ You get a chance to edit the entry in the phrases buffer - finish with
   "Switch to the phrases buffer, initialize if empty."
   (interactive)
   (reftex-access-scan-info)
+  (set-marker reftex-index-return-marker (point))
   (let* ((master (reftex-TeX-master-file))
          (name (concat (file-name-sans-extension master)
                        reftex-index-phrase-file-extension)))
@@ -1371,6 +1370,7 @@ For more information see the RefTeX User Manual.
 Here are all local bindings.
 
 \\{reftex-index-phrases-mode-map}"
+  :syntax-table reftex-index-phrases-syntax-table
   (set (make-local-variable 'font-lock-defaults)
        reftex-index-phrases-font-lock-defaults)
   (easy-menu-add reftex-index-phrases-menu reftex-index-phrases-mode-map)
@@ -2093,5 +2093,6 @@ Does not do a save-excursion."
                                   reftex-index-phrases-macro-data "\n"))))
     (reftex-select-with-char prompt help delay)))
 
+(provide 'reftex-index)
 
 ;;; reftex-index.el ends here

@@ -3,7 +3,6 @@
 
 ;; Author: Carsten Dominik <dominik@science.uva.nl>
 ;; Maintainer: auctex-devel@gnu.org
-;; Version: 4.31
 ;; Keywords: tex
 
 ;; This file is part of GNU Emacs.
@@ -21,10 +20,8 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
-;;---------------------------------------------------------------------------
-;;
 ;;; Commentary:
-;;
+
 ;; RefTeX is a minor mode with distinct support for \ref, \label, \cite,
 ;; and \index commands in (multi-file) LaTeX documents.
 ;; - A table of contents provides easy access to any part of a document.
@@ -34,243 +31,23 @@
 ;; - Text phrases can be collected in a file, for later global indexing.
 ;; - The index preview buffer helps to check and edit index entries.
 ;;
-;;
-;; INSTALLATION
-;; ------------
-;;
-;; - If this file is part of an X/Emacs distribution, it is installed.
-;; - For XEmacs 21.x, you need to install the RefTeX plug-in package
-;;   available from the XEmacs distribution sites.
-;; - If you have downloaded this file from the maintainers webpage, follow
-;;   the instructions in the INSTALL file of the distribution.
-;;
-;; To turn RefTeX Mode on and off in a buffer, use `M-x reftex-mode'.
-;;
-;; To turn on RefTeX Mode for all LaTeX files, add the following lines
-;; to your init file:
-;;
-;;   (add-hook 'LaTeX-mode-hook 'turn-on-reftex)   ; AUCTeX LaTeX mode
-;;   (add-hook 'latex-mode-hook 'turn-on-reftex)   ; Emacs latex mode
-;;
-;;
-;; DOCUMENTATION
-;; -------------
-;;
-;; See below for a short summary of how to use RefTeX.
-;;
-;; There is an extensive texinfo document describing RefTeX in detail.
+;; There is an extensive Texinfo document describing RefTeX in detail.
 ;; One way to view this documentation is `M-x reftex-info RET'.
 ;;
 ;; The documentation in various formats is also available at
 ;;
-;;     http://zon.astro.uva.nl/~dominik/Tools/
-;;
-;;---------------------------------------------------------------------------
-;;
-;; Introduction
-;; ************
-;;
-;; RefTeX is a specialized package for support of labels, references,
-;; citations, and the index in LaTeX.  RefTeX wraps itself round 4 LaTeX
-;; macros: `\label', `\ref', `\cite', and `\index'.  Using these macros
-;; usually requires looking up different parts of the document and
-;; searching through BibTeX database files.  RefTeX automates these
-;; time-consuming tasks almost entirely.  It also provides functions to
-;; display the structure of a document and to move around in this
-;; structure quickly.
-;;
-;;    *Note Imprint::, for information about who to contact for help, bug
-;; reports or suggestions.
-;;
-;; Environment
-;; ===========
-;;
-;; RefTeX needs to access all files which are part of a multifile
-;; document, and the BibTeX database files requested by the
-;; `\bibliography' command.  To find these files, RefTeX will require a
-;; search path, i.e. a list of directories to check.  Normally this list
-;; is stored in the environment variables `TEXINPUTS' and `BIBINPUTS'
-;; which are also used by RefTeX.  However, on some systems these
-;; variables do not contain the full search path.  If RefTeX does not work
-;; for you because it cannot find some files, read *Note Finding Files::.
-;;
-;; Entering RefTeX Mode
-;; ====================
-;;
-;; To turn RefTeX Mode on and off in a particular buffer, use `M-x
-;; reftex-mode'.  To turn on RefTeX Mode for all LaTeX files, add the
-;; following lines to your init file:
-;;
-;;      (add-hook 'LaTeX-mode-hook 'turn-on-reftex)   ; with AUCTeX LaTeX mode
-;;      (add-hook 'latex-mode-hook 'turn-on-reftex)   ; with Emacs latex mode
-;;
-;; RefTeX in a Nutshell
-;; ====================
-;;
-;;   1. Table of Contents
-;;      Typing `C-c =' (`reftex-toc') will show a table of contents of the
-;;      document.  This buffer can display sections, labels and index
-;;      entries defined in the document.  From the buffer, you can jump
-;;      quickly to every part of your document.  Press `?' to get help.
-;;
-;;   2. Labels and References
-;;      RefTeX helps to create unique labels and to find the correct key
-;;      for references quickly.  It distinguishes labels for different
-;;      environments, knows about all standard environments (and many
-;;      others), and can be configured to recognize any additional labeled
-;;      environments you have defined yourself (variable
-;;      `reftex-label-alist').
-;;
-;;         * Creating Labels
-;;           Type `C-c (' (`reftex-label') to insert a label at point.
-;;           RefTeX will either
-;;              - derive a label from context (default for section labels)
-;;              - prompt for a label string (default for figures and
-;;                tables) or
-;;              - insert a simple label made of a prefix and a number (all
-;;                other environments)
-;;
-;;           Which labels are created how is configurable with the variable
-;;           `reftex-insert-label-flags'.
-;;
-;;         * Referencing Labels
-;;           To make a reference, type `C-c )' (`reftex-reference').  This
-;;           shows an outline of the document with all labels of a certain
-;;           type (figure, equation,...) and some label context.
-;;           Selecting a label inserts a `\ref{LABEL}' macro into the
-;;           original buffer.
-;;
-;;   3. Citations
-;;      Typing `C-c [' (`reftex-citation') will let you specify a regular
-;;      expression to search in current BibTeX database files (as
-;;      specified in the `\bibliography' command) and pull out a list of
-;;      matches for you to choose from.  The list is _formatted_ and
-;;      sorted.  The selected article is referenced as `\cite{KEY}' (see
-;;      the variable `reftex-cite-format' if you want to insert different
-;;      macros).
-;;
-;;   4. Index Support
-;;      RefTeX helps to enter index entries.  It also compiles all entries
-;;      into an alphabetically sorted `*Index*' buffer which you can use
-;;      to check and edit the entries.  RefTeX knows about the standard
-;;      index macros and can be configured to recognize any additional
-;;      macros you have defined (`reftex-index-macros').  Multiple indices
-;;      are supported.
-;;
-;;         * Creating Index Entries
-;;           To index the current selection or the word at point, type
-;;           `C-c /' (`reftex-index-selection-or-word').  The default macro
-;;           `reftex-index-default-macro' will be used.  For a more
-;;           complex entry type `C-c <' (`reftex-index'), select any of
-;;           the index macros and enter the arguments with completion.
-;;
-;;         * The Index Phrases File (Delayed Indexing)
-;;           Type `C-c \' (`reftex-index-phrase-selection-or-word') to add
-;;           the current word or selection to a special _index phrase
-;;           file_.  RefTeX can later search the document for occurrences
-;;           of these phrases and let you interactively index the matches.
-;;
-;;         * Displaying and Editing the Index
-;;           To display the compiled index in a special buffer, type `C-c
-;;           >' (`reftex-display-index').  From that buffer you can check
-;;           and edit all entries.
-;;
-;;   5. Viewing Cross-References
-;;      When point is on the KEY argument of a cross-referencing macro
-;;      (`\label', `\ref', `\cite', `\bibitem', `\index', and variations)
-;;      or inside a BibTeX database entry, you can press `C-c &'
-;;      (`reftex-view-crossref') to display corresponding locations in the
-;;      document and associated BibTeX database files.
-;;      When the enclosing macro is `\cite' or `\ref' and no other message
-;;      occupies the echo area, information about the citation or label
-;;      will automatically be displayed in the echo area.
-;;
-;;   6. Multifile Documents
-;;      Multifile Documents are fully supported.  The included files must
-;;      have a file variable `TeX-master' or `tex-main-file' pointing to
-;;      the master file.  RefTeX provides cross-referencing information
-;;      from all parts of the document, and across document borders
-;;      (`xr.sty').
-;;
-;;   7. Document Parsing
-;;      RefTeX needs to parse the document in order to find labels and
-;;      other information.  It does it automatically once and updates its
-;;      list internally when `reftex-label' and `reftex-index' are used.
-;;      To enforce reparsing, call any of the commands described above
-;;      with a raw `C-u' prefix, or press the `r' key in the label
-;;      selection buffer, the table of contents buffer, or the index
-;;      buffer.
-;;
-;;   8. AUCTeX
-;;      If your major LaTeX mode is AUCTeX, RefTeX can cooperate with it
-;;      (see variable `reftex-plug-into-AUCTeX').  AUCTeX contains style
-;;      files which trigger appropriate settings in RefTeX, so that for
-;;      many of the popular LaTeX packages no additional customizations
-;;      will be necessary.
-;;
-;;   9. Useful Settings
-;;      To make RefTeX faster for large documents, try these:
-;;           (setq reftex-enable-partial-scans t)
-;;           (setq reftex-save-parse-info t)
-;;           (setq reftex-use-multiple-selection-buffers t)
-;;
-;;      To integrate with AUCTeX, use
-;;           (setq reftex-plug-into-AUCTeX t)
-;;
-;;      To make your own LaTeX macro definitions known to RefTeX,
-;;      customize the variables
-;;           `reftex-label-alist'          (for label macros/environments)
-;;           `reftex-section-levels'       (for sectioning commands)
-;;           `reftex-cite-format'          (for `\cite'-like macros)
-;;           `reftex-index-macros'         (for `\index'-like macros)
-;;           `reftex-index-default-macro'  (to set the default macro)
-;;      If you have a large number of macros defined, you may want to write
-;;      an AUCTeX style file to support them with both AUCTeX and RefTeX.
-;;
-;;  10. Where Next?
-;;      Go ahead and use RefTeX.  Use its menus until you have picked up
-;;      the key bindings.  For an overview of what you can do in each of
-;;      the different special buffers, press `?'.  Read the manual if you
-;;      get stuck, of if you are curious what else might be available.
-;;      The first part of the manual explains in a tutorial way how to use
-;;      and customize RefTeX.  The second part is a command and variable
-;;      reference.
-;;
-;;---------------------------------------------------------------------------
-;;
-;; AUTHOR
-;; ======
-;;
-;; Carsten Dominik <dominik@science.uva.nl>
-;;
-;;         with contributions from Stephen Eglen
+;;     http://www.gnu.org/software/auctex/manual/reftex.index.html
 ;;
 ;; RefTeX is bundled with Emacs and available as a plug-in package for
 ;; XEmacs 21.x.  If you need to install it yourself, you can find a
 ;; distribution at
 ;;
-;;    http://zon.astro.uva.nl/~dominik/Tools/
+;;    http://www.gnu.org/software/auctex/reftex.html
 ;;
-;; THANKS TO:
-;; ---------
-;; Thanks to the people on the Net who have used RefTeX and helped
-;; developing it with their reports.  In particular thanks to
-;;
-;;    Fran Burstall, Alastair Burt, Soren Dayton, Stephen Eglen,
-;;    Karl Eichwalder, Peter Galbraith, Dieter Kraft, Kai Grossjohann,
-;;    Frank Harrell, Adrian Lanz, Rory Molinari, Stefan Monnier,
-;;    Laurent Mugnier, Sudeep Kumar Palat, Daniel Polani, Robin Socha,
-;;    Richard Stanton, Allan Strand, Jan Vroonhof, Christoph Wedler,
-;;    Alan Williams.
-;;
-;; Finally thanks to Uwe Bolick who first got me (some years ago) into
-;; supporting LaTeX labels and references with an editor (which was
-;; MicroEmacs at the time).
-;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;
-;;;;;;
-
+;; RefTeX was written by Carsten Dominik <dominik@science.uva.nl> with
+;; contributions from Stephen Eglen.  It is currently maintained by
+;; the AUCTeX project.
+
 ;;; Code:
 
 (eval-when-compile (require 'cl))
@@ -289,52 +66,13 @@
     (set symbol value)))
 
 
-;;; =========================================================================
-;;;
-;;; Configuration variables
-
+;; Configuration variables
 (require 'reftex-vars)
 
 
-;;; =========================================================================
-;;;
-;;; Define the formal stuff for a minor mode named RefTeX.
-;;;
+;;; Autoloads
 
-(defconst reftex-version "RefTeX version 4.31"
-  "Version string for RefTeX.")
-
-(defvar reftex-mode-map (make-sparse-keymap)
-  "Keymap for RefTeX mode.")
-
-(defvar reftex-mode-menu nil)
-(defvar reftex-syntax-table nil)
-(defvar reftex-syntax-table-for-bib nil)
-
-(unless reftex-syntax-table
-  (setq reftex-syntax-table (copy-syntax-table))
-  (modify-syntax-entry ?\( "." reftex-syntax-table)
-  (modify-syntax-entry ?\) "." reftex-syntax-table))
-
-(unless reftex-syntax-table-for-bib
-  (setq reftex-syntax-table-for-bib
-        (copy-syntax-table reftex-syntax-table))
-  (modify-syntax-entry ?\' "." reftex-syntax-table-for-bib)
-  (modify-syntax-entry ?\" "." reftex-syntax-table-for-bib)
-  (modify-syntax-entry ?\[ "." reftex-syntax-table-for-bib)
-  (modify-syntax-entry ?\] "." reftex-syntax-table-for-bib))
-
-;; The following definitions are out of place, but I need them here
-;; to make the compilation of reftex-mode not complain.
-(defvar reftex-auto-view-crossref-timer nil
-  "The timer used for auto-view-crossref.")
-(defvar reftex-toc-auto-recenter-timer nil
-  "The idle timer used to recenter the toc window.")
-
-;;; =========================================================================
-;;;
-;;; Parser functions
-
+;; Parser functions
 (autoload 'reftex-parse-one "reftex-parse"
   "Re-parse this file." t)
 (autoload 'reftex-parse-all "reftex-parse"
@@ -358,11 +96,7 @@
 (autoload 'reftex-ensure-index-support "reftex-parse")
 (autoload 'reftex-everything-regexp "reftex-parse")
 
-
-;;; =========================================================================
-;;;
-;;; Labels and References
-
+;; Labels and References
 (autoload 'reftex-label-location "reftex-ref")
 (autoload 'reftex-label-info-update "reftex-ref")
 (autoload 'reftex-label-info "reftex-ref")
@@ -381,10 +115,7 @@
 (autoload 'reftex-goto-label "reftex-ref"
   "Prompt for label name and go to that location." t)
 
-;;; =========================================================================
-;;;
-;;; Table of contents
-
+;; Table of contents
 (autoload 'reftex-toc "reftex-toc"
   "Show the table of contents for the current document." t)
 (autoload 'reftex-toc-recenter "reftex-toc"
@@ -392,10 +123,7 @@
 (autoload 'reftex-toggle-auto-toc-recenter "reftex-toc"
   "Toggle automatic recentering of TOC window." t)
 
-;;; =========================================================================
-;;;
-;;; BibTeX citations.
-
+;; BibTeX citations.
 (autoload 'reftex-citep "reftex-cite")
 (autoload 'reftex-citet "reftex-cite")
 (autoload 'reftex-make-cite-echo-string "reftex-cite")
@@ -409,10 +137,7 @@
 (autoload 'reftex-bib-or-thebib "reftex-cite")
 (autoload 'reftex-create-bibtex-file "reftex-cite")
 
-;;; =========================================================================
-;;;
-;;; Selection
-
+;; Selection
 (autoload 'reftex-select-label-mode "reftex-sel")
 (autoload 'reftex-select-bib-mode "reftex-sel")
 (autoload 'reftex-find-start-point "reftex-sel")
@@ -420,11 +145,7 @@
 (autoload 'reftex-get-offset "reftex-sel")
 (autoload 'reftex-select-item "reftex-sel")
 
-
-;;; =========================================================================
-;;;
-;;; Index support
-
+;; Index support
 (autoload 'reftex-index "reftex-index"
  "Query for an index macro and insert it along with its arguments." t)
 (autoload 'reftex-index-selection-or-word "reftex-index"
@@ -442,11 +163,7 @@
 (autoload 'reftex-index-show-entry "reftex-index")
 (autoload 'reftex-index-select-tag "reftex-index")
 
-
-;;; =========================================================================
-;;;
-;;; View cross references
-
+;; View cross references
 (autoload 'reftex-view-crossref "reftex-dcr"
  "View cross reference of \\ref or \\cite macro at point." t)
 (autoload 'reftex-mouse-view-crossref "reftex-dcr"
@@ -455,11 +172,7 @@
 (autoload 'reftex-view-crossref-from-bibtex "reftex-dcr"
  "View location in a LaTeX document which cites the BibTeX entry at point." t)
 
-
-;;; =========================================================================
-;;;
-;;; Operations on entire Multifile documents
-
+;; Operations on entire Multifile documents
 (autoload 'reftex-create-tags-file "reftex-global"
  "Create TAGS file by running `etags' on the current document." t)
 (autoload 'reftex-grep-document "reftex-global"
@@ -477,11 +190,7 @@
 (autoload 'reftex-save-all-document-buffers "reftex-global"
  "Save all documents associated with the current document." t)
 
-
-;;; =========================================================================
-;;;
-;;; AUCTeX Interface
-
+;; AUCTeX Interface
 (autoload 'reftex-arg-label "reftex-auc")
 (autoload 'reftex-arg-cite "reftex-auc")
 (autoload 'reftex-arg-index-tag "reftex-auc")
@@ -494,6 +203,41 @@
 (autoload 'reftex-add-section-levels "reftex-auc")
 (autoload 'reftex-notice-new-section "reftex-auc")
 
+
+;;; =========================================================================
+;;;
+;;; Define the formal stuff for a minor mode named RefTeX.
+;;;
+
+(defconst reftex-version emacs-version
+  "Version string for RefTeX.")
+
+(defvar reftex-mode-map (make-sparse-keymap)
+  "Keymap for RefTeX mode.")
+
+(defvar reftex-mode-menu nil)
+(defvar reftex-syntax-table nil)
+(defvar reftex-syntax-table-for-bib nil)
+
+(unless reftex-syntax-table
+  (setq reftex-syntax-table (copy-syntax-table))
+  (modify-syntax-entry ?\( "." reftex-syntax-table)
+  (modify-syntax-entry ?\) "." reftex-syntax-table))
+
+(unless reftex-syntax-table-for-bib
+  (setq reftex-syntax-table-for-bib (copy-syntax-table))
+  (modify-syntax-entry ?\' "." reftex-syntax-table-for-bib)
+  (modify-syntax-entry ?\" "." reftex-syntax-table-for-bib)
+  (modify-syntax-entry ?\[ "." reftex-syntax-table-for-bib)
+  (modify-syntax-entry ?\] "." reftex-syntax-table-for-bib))
+
+;; The following definitions are out of place, but I need them here
+;; to make the compilation of reftex-mode not complain.
+(defvar reftex-auto-view-crossref-timer nil
+  "The timer used for auto-view-crossref.")
+(defvar reftex-toc-auto-recenter-timer nil
+  "The idle timer used to recenter the toc window.")
+
 ;;;###autoload
 (defun turn-on-reftex ()
   "Turn on RefTeX mode."
@@ -503,13 +247,7 @@
 (put 'reftex-mode :menu-tag "RefTeX Mode")
 ;;;###autoload
 (define-minor-mode reftex-mode
-  "Toggle RefTeX mode.
-With a prefix argument ARG, enable RefTeX mode if ARG is
-positive, and disable it otherwise.  If called from Lisp, enable
-the mode if ARG is omitted or nil.
-
-RefTeX mode is a buffer-local minor mode with distinct support
-for \\label, \\ref and \\cite in LaTeX.
+  "Minor mode with distinct support for \\label, \\ref and \\cite in LaTeX.
 
 \\<reftex-mode-map>A Table of Contents of the entire (multifile) document with browsing
 capabilities is available with `\\[reftex-toc]'.
@@ -559,8 +297,7 @@ on the menu bar.
         (modify-syntax-entry ?\( "." reftex-syntax-table)
         (modify-syntax-entry ?\) "." reftex-syntax-table)
 
-        (setq reftex-syntax-table-for-bib
-              (copy-syntax-table reftex-syntax-table))
+        (setq reftex-syntax-table-for-bib (copy-syntax-table))
         (modify-syntax-entry ?\' "." reftex-syntax-table-for-bib)
         (modify-syntax-entry ?\" "." reftex-syntax-table-for-bib)
         (modify-syntax-entry ?\[ "." reftex-syntax-table-for-bib)
@@ -635,16 +372,15 @@ on the menu bar.
   (incf reftex-multifile-index))
 
 (defun reftex-tie-multifile-symbols ()
-  ;; Tie the buffer-local symbols to globals connected with the master file.
-  ;; If the symbols for the current master file do not exist, they are created.
-
+  "Tie the buffer-local symbols to globals connected with the master file.
+If the symbols for the current master file do not exist, they are created."
   (let* ((master (file-truename (reftex-TeX-master-file)))
          (index (assoc master reftex-master-index-list))
          (symlist reftex-multifile-symbols)
          symbol symname newflag)
     ;; Find the correct index.
     (if index
-        ;; symbols do exist
+        ;; Symbols do exist
         (setq index (cdr index))
       ;; Get a new index and add info to the alist.
       (setq index (reftex-next-multifile-index)
@@ -661,13 +397,15 @@ on the menu bar.
       ;; Initialize if new symbols.
       (when newflag
         (set (symbol-value symbol) nil)
-        (put (symbol-value symbol) 'reftex-index-macros-style '(default))))
+        (put (symbol-value symbol) 'reftex-index-macros-style '(default))
+	(put (symbol-value symbol) 'reftex-ref-style-list
+	     reftex-ref-style-default-list)))
 
     ;; Return t if the symbols did already exist, nil when we've made them.
     (not newflag)))
 
 (defun reftex-untie-multifile-symbols ()
-  ;; Remove ties from multifile symbols, so that next use makes new ones.
+  "Remove ties from multifile symbols, so that next use makes new ones."
   (let ((symlist reftex-multifile-symbols)
         (symbol nil))
     (while symlist
@@ -761,7 +499,7 @@ for details.
 This function makes it possible to support RefTeX from AUCTeX style files.
 The entries in ENTRY-LIST will be processed after the user settings in
 `reftex-index-entries', and before the defaults.  Any changes made to
-`reftex-label-alist-style' will raise a flag to the effect that
+`reftex-index-macros-style' will raise a flag to the effect that
 the label information is recompiled on next use."
   (unless reftex-docstruct-symbol
     (reftex-tie-multifile-symbols))
@@ -782,6 +520,52 @@ the label information is recompiled on next use."
           (push entry list)))
       (when changed
         (put reftex-docstruct-symbol 'reftex-index-macros-style list)))))
+
+(defun reftex-ref-style-activate (style)
+  "Activate the referencing style STYLE."
+  (reftex-ref-style-toggle style 'activate))
+
+(defun reftex-ref-style-toggle (style &optional action)
+  "Activate or deactivate the referencing style STYLE.
+With the optional argument ACTION a certain action can be forced.
+The symbol `activate' will activate the style and `deactivate'
+will deactivate it."
+  (unless reftex-docstruct-symbol
+    (reftex-tie-multifile-symbols))
+  (when (and reftex-docstruct-symbol
+             (symbolp reftex-docstruct-symbol))
+    (let ((list (get reftex-docstruct-symbol 'reftex-ref-style-list))
+          changed)
+      (cond ((eq action 'activate)
+	     (unless (member style list)
+	       (setq reftex-tables-dirty t
+		     changed t)
+	       (add-to-list 'list style t)))
+	    ((eq action 'deactivate)
+	     (when (member style list)
+	       (setq reftex-tables-dirty t
+		     changed t)
+	       (delete style list)))
+	    (t
+	     (if (member style list)
+		 (delete style list)
+	       (add-to-list 'list style t))
+	     (setq reftex-tables-dirty t
+		   changed t)))
+      (when changed
+        (put reftex-docstruct-symbol 'reftex-ref-style-list list)))))
+
+(defun reftex-ref-style-list ()
+  "Return the list of referencing styles to be active at the moment."
+  ;; Initialize the value of `reftex-ref-style-list' and tie it to the
+  ;; docstruct symbol if necessary.
+  (unless reftex-docstruct-symbol
+    (reftex-tie-multifile-symbols))
+  (if (and reftex-docstruct-symbol
+           (symbolp reftex-docstruct-symbol)
+           (get reftex-docstruct-symbol 'reftex-ref-style-list))
+      (get reftex-docstruct-symbol 'reftex-ref-style-list)
+    reftex-ref-style-default-list))
 
 ;;; =========================================================================
 ;;;
@@ -1282,8 +1066,8 @@ This enforces rescanning the buffer on next use."
     ;; Calculate the regular expressions
     (let* (
 ;          (wbol "\\(\\`\\|[\n\r]\\)[ \t]*")
-           (wbol "\\(^\\)[ \t]*")  ; Need to keep the empty group because
-                                  ;;; because match number are hard coded
+           (wbol "\\(^\\)[ \t]*") ; Need to keep the empty group because
+                                  ; match numbers are hard coded
            (label-re (concat "\\(?:"
 			     ;; Normal \label{...}
 			     "\\\\label{\\([^}]*\\)}"
@@ -1299,10 +1083,16 @@ This enforces rescanning the buffer on next use."
                                           reftex-include-file-commands "\\|")
                                "\\)[{ \t]+\\([^} \t\n\r]+\\)"))
            (section-re
+	    ;; Including `\' as a character to be matched at the end
+	    ;; of the regexp will allow stuff like
+	    ;; \begin{foo}\label{bar} to be matched.  This will make
+	    ;; the parser to advance one char too much.  Therefore
+	    ;; `reftex-parse-from-file' will step one char back if a
+	    ;; section is found.
             (concat wbol "\\\\\\("
                     (mapconcat (lambda (x) (regexp-quote (car x)))
                                reftex-section-levels-all "\\|")
-                    "\\)\\*?\\(\\[[^]]*\\]\\)?[[{ \t\r\n]"))
+                    "\\)\\*?\\(\\[[^]]*\\]\\)?[[{ \t\r\n\\]"))
            (appendix-re (concat wbol "\\(\\\\appendix\\)"))
            (macro-re
             (if macros-with-labels
@@ -1780,9 +1570,18 @@ When DIE is non-nil, throw an error if file not found."
         "In unfinished selection process. Finish, or abort with \\[abort-recursive-edit]"))))
 
 (defun reftex-in-comment ()
+  "Return non-nil if point is in a comment."
   (save-excursion
-    (skip-chars-backward "^%\n\r")
-    (eq (preceding-char) ?%)))
+    (save-match-data
+      (let ((pos (point)))
+	(beginning-of-line)
+	(re-search-forward
+	 (or comment-start-skip
+	     ;; The parser may open files in fundamental mode if
+	     ;; `reftex-initialize-temporary-buffers' is nil, so here
+	     ;; is a default suitable for plain TeX and LaTeX.
+	     "\\(\\(^\\|[^\\\n]\\)\\(\\\\\\\\\\)*\\)\\(%+[ \t]*\\)")
+	 pos t)))))
 
 (defun reftex-no-props (string)
   ;; Return STRING with all text properties removed
@@ -1996,6 +1795,7 @@ When DIE is non-nil, throw an error if file not found."
                  (condition-case nil (scroll-down) (error nil))
                  (message "%s" prompt))
                 (t (message "")
+		   (reftex-kill-buffer "*RefTeX Select*")
                    (throw 'exit char)))
           (setq char (read-char-exclusive)))))))
 
@@ -2123,25 +1923,95 @@ When DIE is non-nil, throw an error if file not found."
       (setq list (cdr list)))
     (nreverse rtn)))
 
-(defun reftex-uniquify (list)
-  ;; Return a list of all elements in LIST, but each only once, keeping order
-  (let (new elm)
-    (while list
-      (setq elm (pop list))
-      (unless (member elm new)
-        (push elm new)))
-    (nreverse new)))
+(defun reftex-uniquify (list &optional sort)
+  ;; Return a list of all strings in LIST, but each only once, keeping order
+  ;; unless SORT is set (faster!).
+  (setq list (copy-sequence list))
+  (if sort
+      (progn
+	(setq list (sort list 'string<))
+	(let ((p list))
+	  (while (cdr p)
+	    (if (string= (car p) (car (cdr p)))
+		(setcdr p (cdr (cdr p)))
+	      (setq p (cdr p)))))
+	list)
+    (let ((p list) lst elt)
+      ;; push all sublists into lst in reverse(!) order
+      (while p
+	(push p lst)
+	(setq p (cdr p)))
+      ;; sort all sublists
+      (setq lst (sort lst (lambda (x1 x2) (string< (car x1) (car x2)))))
+      (while (cdr lst)
+	(setq elt (car (car lst)))
+	;; for equal elements in the sorted sublist, replace the
+	;; last(!) original list member with nil
+	(when (string= elt (car (cadr lst)))
+	  (setcar (pop lst) nil)
+	  (while (and (cdr lst) (string= elt (car (cadr lst))))
+	    (setcar (pop lst) nil)))
+	(pop lst)))
+    ;; weed out all nils and return.
+    (delq nil list)))
 
-(defun reftex-uniquify-by-car (alist &optional keep-list)
+(defun reftex-uniquify-by-car (alist &optional keep-list sort)
   ;; Return a list of all elements in ALIST, but each car only once.
   ;; Elements of KEEP-LIST are not removed even if duplicate.
-  (let (new elm)
-    (while alist
-      (setq elm (pop alist))
-      (if (or (member (car elm) keep-list)
-              (not (assoc (car elm) new)))
-          (push elm new)))
-    (nreverse new)))
+  ;; The order is kept unless SORT is set (faster!).
+  (setq keep-list (sort (copy-sequence keep-list) #'string<)
+	alist (copy-sequence alist))
+  (if sort
+      (let (lst elt)
+	(setq alist (sort alist (lambda(a b) (string< (car a) (car b)))))
+	(setq lst alist)
+	(while (cdr lst)
+	  (setq elt (car (car lst)))
+	  (when (string= elt (car (cadr lst)))
+	    (while (and keep-list (string< (car keep-list) elt))
+	      (pop keep-list))
+	    (if (and keep-list (string= elt (car keep-list)))
+		(progn
+		  (pop lst)
+		  (while (and (cdr lst)
+			      (string= elt (car (cadr lst))))
+		    (pop lst)))
+	      (setcdr lst (cdr (cdr lst)))
+	      (while (and (cdr lst)
+			  (string= elt (car (cadr lst))))
+		(setcdr lst (cdr (cdr lst))))))
+	  (pop lst))
+	alist)
+    (let ((p alist) lst elt)
+      (while p
+	(push p lst)
+	(setq p (cdr p)))
+      (setq lst (sort lst (lambda(a b) (string< (car (car a))
+						(car (car b))))))
+      (while (cdr lst)
+	(setq elt (car (car (car lst))))
+	(when (string= elt (car (car (cadr lst))))
+	  (while (and keep-list (string< (car keep-list) elt))
+	    (pop keep-list))
+	  (if (and keep-list (string= elt (car keep-list)))
+	      (progn
+		(pop lst)
+		(while (and (cdr lst)
+			    (string= elt (car (car (cadr lst)))))
+		  (pop lst)))
+	    (setcar (pop lst) nil)
+	    (while (and (cdr lst)
+			(string= elt (car (car (cadr lst)))))
+	      (setcar (pop lst) nil))))
+	(pop lst)))
+    (delq nil alist)))
+
+(defun reftex-remove-if (predicate list)
+  "Nondestructively remove all items from LIST which satisfy PREDICATE."
+  (let (result)
+    (dolist (elt list (nreverse result))
+      (unless (funcall predicate elt)
+	(push elt result)))))
 
 (defun reftex-abbreviate-title (string)
   (reftex-convert-string string "[-~ \t\n\r,;]" nil t t
@@ -2242,6 +2112,7 @@ IGNORE-WORDS List of words which should be removed from the string."
    ((> (length text) 100) (substring text 0 100))
    ((= (length text) 0) (make-string 1 ?\ ))
    (t text)))
+
 
 ;;; =========================================================================
 ;;;
@@ -2390,28 +2261,20 @@ IGNORE-WORDS List of words which should be removed from the string."
  "bibtex"
  '(define-key bibtex-mode-map "\C-c&" 'reftex-view-crossref-from-bibtex))
 
-;; If the user requests so, she can have a few more bindings:
 ;; For most of these commands there are already bindings in place.
 ;; Setting `reftex-extra-bindings' really is only there to spare users
 ;; the hassle of defining bindings in the user space themselves.  This
 ;; is why they violate the key binding recommendations.
-(defvar reftex-extra-bindings-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "t" 'reftex-toc)
-    (define-key map "l" 'reftex-label)
-    (define-key map "r" 'reftex-reference)
-    (define-key map "c" 'reftex-citation)
-    (define-key map "v" 'reftex-view-crossref)
-    (define-key map "g" 'reftex-grep-document)
-    (define-key map "s" 'reftex-search-document)
-    map)
-  "Reftex extra bindings map")
-
 (when reftex-extra-bindings
-  (define-key reftex-mode-map
-    reftex-extra-bindings-prefix
-    reftex-extra-bindings-map))
-
+  (loop for x in
+        '(("\C-ct" . reftex-toc)
+          ("\C-cl" . reftex-label)
+          ("\C-cr" . reftex-reference)
+          ("\C-cc" . reftex-citation)
+          ("\C-cv" . reftex-view-crossref)
+          ("\C-cg" . reftex-grep-document)
+          ("\C-cs" . reftex-search-document))
+        do (define-key reftex-mode-map (car x) (cdr x))))
 
 ;;; =========================================================================
 ;;;
@@ -2488,21 +2351,22 @@ IGNORE-WORDS List of words which should be removed from the string."
      :style radio :selected (eq reftex-auto-view-crossref 'window)]
     "--"
     "MISC"
-    ["AUC TeX Interface" reftex-toggle-plug-into-AUCTeX
+    ["AUCTeX Interface" reftex-toggle-plug-into-AUCTeX
      :style toggle :selected reftex-plug-into-AUCTeX]
     ["isearch whole document" reftex-isearch-minor-mode
      :style toggle :selected reftex-isearch-minor-mode])
    ("Reference Style"
-    ["Default" (setq reftex-vref-is-default nil
-                     reftex-fref-is-default nil)
-     :style radio :selected (not (or reftex-vref-is-default
-                                     reftex-fref-is-default))]
-    ["Varioref" (setq reftex-vref-is-default t
-                      reftex-fref-is-default nil)
-     :style radio :selected reftex-vref-is-default]
-    ["Fancyref" (setq reftex-fref-is-default t
-                      reftex-vref-is-default nil)
-     :style radio :selected reftex-fref-is-default])
+    ,@(let (list item)
+	(dolist (elt reftex-ref-style-alist)
+	  (setq elt (car elt)
+		item (vector
+		      elt
+		      `(reftex-ref-style-toggle ,elt)
+		      :style 'toggle
+		      :selected `(member ,elt (reftex-ref-style-list))))
+	  (unless (member item list)
+	    (add-to-list 'list item t)))
+	list))
    ("Citation Style"
     ,@(mapcar
        (lambda (x)
@@ -2568,6 +2432,9 @@ IGNORE-WORDS List of words which should be removed from the string."
         (message "\"Ref\"-menu now contains full customization menu"))
     (error "Cannot expand menu (outdated version of cus-edit.el)")))
 
+
+;;; Misc
+
 (defun reftex-show-commentary ()
   "Use the finder to view the file documentation from `reftex.el'."
   (interactive)
@@ -2578,6 +2445,36 @@ IGNORE-WORDS List of words which should be removed from the string."
 With optional NODE, go directly to that node."
   (interactive)
   (info (format "(reftex)%s" (or node ""))))
+
+(defun reftex-report-bug ()
+  "Report a bug in RefTeX.
+
+Don't hesitate to report any problems or inaccurate documentation.
+
+If you don't have setup sending mail from (X)Emacs, please copy the
+output buffer into your mail program, as it gives us important
+information about your RefTeX version and configuration."
+  (interactive)
+  (require 'reporter)
+  (let ((reporter-prompt-for-summary-p "Bug report subject: "))
+    (reporter-submit-bug-report
+     "bug-auctex@gnu.org"
+     reftex-version
+     (list 'window-system
+	   'reftex-plug-into-AUCTeX)
+     nil nil
+     "Remember to cover the basics, that is, what you expected to happen and
+what in fact did happen.
+
+Check if the bug is reproducable with an up-to-date version of
+RefTeX available from http://www.gnu.org/software/auctex/.
+
+If the bug is triggered by a specific \(La\)TeX file, you should try
+to produce a minimal sample file showing the problem and include it
+in your report.
+
+Your bug report will be posted to the AUCTeX bug reporting list.
+------------------------------------------------------------------------")))
 
 ;;; Install the kill-buffer and kill-emacs hooks ------------------------------
 
@@ -2593,7 +2490,5 @@ With optional NODE, go directly to that node."
 
 (setq reftex-tables-dirty t)  ; in case this file is evaluated by hand
 (provide 'reftex)
-
-;;;============================================================================
 
 ;;; reftex.el ends here

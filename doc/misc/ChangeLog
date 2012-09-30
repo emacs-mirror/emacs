@@ -1,3 +1,34 @@
+2012-09-30  Ralf Angeli  <angeli@caeruleus.net>
+
+	Merge from standalone RefTeX repository.
+
+	* reftex.texi: Express TeX, LaTeX, AUCTeX, BibTeX and RefTeX
+	with macros.
+	(Imprint): Mention Wolfgang in list of contributors.
+	(Creating Citations): Give a hint about how to
+	auto-revert the BibTeX database file when using external editors.
+	(Referencing Labels): Simplify section about reference macro
+	cycling.
+	(Options (Referencing Labels)): Adapt to new structure of
+	`reftex-ref-style-alist'.
+	(Referencing Labels, Reference Styles): Document changes in the
+	referencing functionality.
+	(Commands): Mention options for definition of header and footer in
+	BibTeX files.
+	(Options (Creating Citations)): Document
+	`reftex-create-bibtex-header' and `reftex-create-bibtex-footer'.
+	(Reference Styles): New section.
+	(varioref (LaTeX package), fancyref (LaTeX package)): Remove.
+	(Options (Referencing Labels)): Remove descriptions of deprecated
+	variables `reftex-vref-is-default' and `reftex-fref-is-default'.
+	Add descriptions for `reftex-ref-style-alist' and
+	`reftex-ref-style-default-list'.
+	(Referencing Labels): Update regarding reference styles.
+	(Citation Styles): Mention support for ConTeXt.
+	(Options (Defining Label Environments)): Fix typo.
+	(Options (Creating Citations)): Document
+	`reftex-cite-key-separator'.
+
 2012-09-30  Achim Gratz  <Stromeko@Stromeko.DE>
 
 	* org.texi: Add description of ORG_ADD_CONTRIB to info

@@ -4,8 +4,6 @@
 
 ;; Author: Carsten Dominik <dominik@science.uva.nl>
 ;; Maintainer: auctex-devel@gnu.org
-;; Version: 4.31
-;; Package: reftex
 
 ;; This file is part of GNU Emacs.
 
@@ -27,9 +25,8 @@
 ;;; Code:
 
 (eval-when-compile (require 'cl))
-(provide 'reftex-sel)
+
 (require 'reftex)
-;;;
 
 ;; Common bindings in reftex-select-label-mode-map
 ;; and reftex-select-bib-mode-map.
@@ -86,8 +83,8 @@
     (loop for x in
           '(("b"        . reftex-select-jump-to-previous)
             ("z"        . reftex-select-jump)
-            ("v"        . reftex-select-toggle-varioref)
-            ("V"        . reftex-select-toggle-fancyref)
+            ("v"        . reftex-select-cycle-ref-style-forward)
+            ("V"        . reftex-select-cycle-ref-style-backward)
             ("m"        . reftex-select-mark)
             ("u"        . reftex-select-unmark)
             (","        . reftex-select-mark-comma)
@@ -511,6 +508,7 @@ During a selection process, these are the local bindings.
 (defvar last-data)
 (defvar call-back)
 (defvar help-string)
+(defvar reftex-refstyle)
 
 ;; The selection commands
 
@@ -604,23 +602,28 @@ Useful for large TOC's."
   (setq reftex-last-follow-point -1)
   (setq cb-flag (not cb-flag)))
 
-(defvar reftex-refstyle)                ; from reftex-reference
+(defun reftex-select-cycle-ref-style-internal (&optional reverse)
+  "Cycle through macros used for referencing.
+Cycle in reverse order if optional argument REVERSE is non-nil."
+  (let (list)
+    (dolist (style (reftex-ref-style-list))
+      (mapc (lambda (x) (add-to-list 'list (car x) t))
+	    (nth 2 (assoc style reftex-ref-style-alist))))
+    (when reverse
+      (setq list (reverse list)))
+    (setq reftex-refstyle (or (cadr (member reftex-refstyle list)) (car list))))
+  (force-mode-line-update))
 
-(defun reftex-select-toggle-varioref ()
-  "Toggle the macro used for referencing the label between \\ref and \\vref."
+(defun reftex-select-cycle-ref-style-forward ()
+  "Cycle forward through macros used for referencing."
   (interactive)
-  (if (string= reftex-refstyle "\\ref")
-      (setq reftex-refstyle "\\vref")
-    (setq reftex-refstyle "\\ref"))
-  (force-mode-line-update))
-(defun reftex-select-toggle-fancyref ()
-  "Toggle the macro used for referencing the label between \\ref and \\vref."
+  (reftex-select-cycle-ref-style-internal))
+
+(defun reftex-select-cycle-ref-style-backward ()
+  "Cycle backward through macros used for referencing."
   (interactive)
-  (setq reftex-refstyle
-        (cond ((string= reftex-refstyle "\\ref") "\\fref")
-              ((string= reftex-refstyle "\\fref") "\\Fref")
-              (t "\\ref")))
-  (force-mode-line-update))
+  (reftex-select-cycle-ref-style-internal t))
+
 (defun reftex-select-show-insertion-point ()
   "Show the point from where selection was started in another window."
   (interactive)
@@ -721,7 +724,7 @@ Useful for large TOC's."
                                 (if sep
                                     (format "*%c%d* " sep (decf cnt))
                                   (format "*%d*  " (decf cnt)))))
-            reftex-select-marked)
+          reftex-select-marked)
     (message "Entry no longer marked")))
 
 (defun reftex-select-help ()
@@ -730,5 +733,7 @@ Useful for large TOC's."
   (with-output-to-temp-buffer "*RefTeX Help*"
     (princ help-string))
   (reftex-enlarge-to-fit "*RefTeX Help*" t))
+
+(provide 'reftex-sel)
 
 ;;; reftex-sel.el ends here
