@@ -1,3 +1,13 @@
+2012-09-30  Tomohiro Matsuyama  <tomo@cx4a.org>
+
+	* profiler.el (profiler-sampling-interval): Rename from
+	profiler-sample-interval.
+	(profiler-sampling-interval): Default to 10.
+	(profiler-find-profile): New command (was profiler-find-log).
+	(profiler-find-profile-other-window): New command.
+	(profiler-find-profile-other-frame): New command.
+	(profiler-profile): Introduce API-level data structure.
+
 2012-09-30  Paul Eggert  <eggert@cs.ucla.edu>
 
 	file-attributes has a new optional arg FOLLOW-SYMLINKS.

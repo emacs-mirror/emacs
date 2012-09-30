@@ -198,7 +198,7 @@ record_backtrace (log_t *log, EMACS_INT count)
   }
 }
 
-/* Sample profiler.  */
+/* Sampling profiler.  */
 
 #ifdef PROFILER_CPU_SUPPORT
 
@@ -220,10 +220,10 @@ static Lisp_Object cpu_log;
 /* Separate counter for the time spent in the GC.  */
 static EMACS_INT cpu_gc_count;
 
-/* The current sample interval in milliseconds.  */
-static EMACS_INT current_sample_interval;
+/* The current sampling interval in milliseconds.  */
+static EMACS_INT current_sampling_interval;
 
-/* Signal handler for sample profiler.  */
+/* Signal handler for sampling profiler.  */
 
 static void
 handle_profiler_signal (int signal)
@@ -235,11 +235,11 @@ handle_profiler_signal (int signal)
        not expect the ARRAY_MARK_FLAG to be set.  We could try and
        harden the hash-table code, but it doesn't seem worth the
        effort.  */
-    cpu_gc_count = saturated_add (cpu_gc_count, current_sample_interval);
+    cpu_gc_count = saturated_add (cpu_gc_count, current_sampling_interval);
   else
     {
       eassert (HASH_TABLE_P (cpu_log));
-      record_backtrace (XHASH_TABLE (cpu_log), current_sample_interval);
+      record_backtrace (XHASH_TABLE (cpu_log), current_sampling_interval);
     }
 }
 
@@ -250,21 +250,21 @@ deliver_profiler_signal (int signal)
 }
 
 static enum profiler_cpu_running
-setup_cpu_timer (Lisp_Object sample_interval)
+setup_cpu_timer (Lisp_Object sampling_interval)
 {
   struct sigaction action;
   struct itimerval timer;
   struct timespec interval;
 
-  if (! RANGED_INTEGERP (1, sample_interval,
+  if (! RANGED_INTEGERP (1, sampling_interval,
 			 (TYPE_MAXIMUM (time_t) < EMACS_INT_MAX / 1000
 			  ? (EMACS_INT) TYPE_MAXIMUM (time_t) * 1000 + 999
 			  : EMACS_INT_MAX)))
     return NOT_RUNNING;
 
-  current_sample_interval = XINT (sample_interval);
-  interval = make_emacs_time (current_sample_interval / 1000,
-			      current_sample_interval % 1000 * 1000000);
+  current_sampling_interval = XINT (sampling_interval);
+  interval = make_emacs_time (current_sampling_interval / 1000,
+			      current_sampling_interval % 1000 * 1000000);
   emacs_sigaction_init (&action, deliver_profiler_signal);
   sigaction (SIGPROF, &action, 0);
 
@@ -315,12 +315,12 @@ setup_cpu_timer (Lisp_Object sample_interval)
 DEFUN ("profiler-cpu-start", Fprofiler_cpu_start, Sprofiler_cpu_start,
        1, 1, 0,
        doc: /* Start or restart the cpu profiler.
-It takes call-stack samples each SAMPLE-INTERVAL milliseconds.
+It takes call-stack samples each SAMPLING-INTERVAL milliseconds.
 See also `profiler-log-size' and `profiler-max-stack-depth'.  */)
-  (Lisp_Object sample_interval)
+  (Lisp_Object sampling_interval)
 {
   if (profiler_cpu_running)
-    error ("Sample profiler is already running");
+    error ("CPU profiler is already running");
 
   if (NILP (cpu_log))
     {
@@ -329,9 +329,9 @@ See also `profiler-log-size' and `profiler-max-stack-depth'.  */)
 			  profiler_max_stack_depth);
     }
 
-  profiler_cpu_running = setup_cpu_timer (sample_interval);
+  profiler_cpu_running = setup_cpu_timer (sampling_interval);
   if (! profiler_cpu_running)
-    error ("Invalid sample interval");
+    error ("Invalid sampling interval");
 
   return Qt;
 }
