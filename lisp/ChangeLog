@@ -1,5 +1,12 @@
 2012-09-30  Juri Linkov  <juri@jurta.org>
 
+	* arc-mode.el (archive-summarize): Let-bind `buffer-file-truename'
+	to nil around the call to `add-text-properties' to prevent
+	directory time modification by lock_file.  (Bug#2295)
+	* tar-mode.el (tar-summarize-buffer): Idem.
+
+2012-09-30  Juri Linkov  <juri@jurta.org>
+
 	* facemenu.el (list-colors-sort): Add option "Luminance".
 	(list-colors-sort-key): Implement it.
 
@@ -2686,8 +2693,9 @@
 
 	* register.el (copy-to-register, copy-rectangle-to-register):
 	Deactivate the mark, and use indicate-copied-region (Bug#10056).
-	(append-to-register, prepend-to-register):
-	Call 2012-07-29  Juri Linkov  <juri@jurta.org>
+	(append-to-register, prepend-to-register): Call indicate-copied-region.
+
+2012-07-29  Juri Linkov  <juri@jurta.org>
 
 	* simple.el (async-shell-command-buffer): New defcustom.
 	(shell-command): Use it.  (Bug#4719)
