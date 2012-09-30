@@ -738,14 +738,11 @@ now accept a third argument to avoid choosing the selected window.
 
 *** New macro `with-temp-buffer-window'.
 
-*** New options `temp-buffer-resize-frames' and
-`temp-buffer-resize-regexps'.
-
 *** `temp-buffer-resize-mode' no longer resizes windows that have been
 reused.
 
-*** New function `fit-frame-to-buffer' and new option
-`fit-frame-to-buffer-bottom-margin'.
+*** New function `fit-frame-to-buffer' and new options
+`fit-frame-to-buffer' and `fit-frame-to-buffer-bottom-margin'.
 
 *** New display action functions `display-buffer-below-selected',
 `display-buffer-at-bottom' and `display-buffer-in-previous-window'.
@@ -759,6 +756,9 @@ non-nil, specifies frame parameters to give any newly-created frame.
 
 *** New display action alist entry `previous-window', if non-nil,
 specifies window to reuse in `display-buffer-in-previous-window'.
+
+*** New display action alist entries `window-height' and `window-width'
+to specify size of new window created by `display-buffer'.
 
 *** The following variables are obsolete, as they can be replaced by
 appropriate entries in the `display-buffer-alist' function introduced

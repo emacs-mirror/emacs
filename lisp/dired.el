@@ -2997,7 +2997,8 @@ argument or confirmation)."
 	(let ((split-height-threshold 0))
 	  (with-temp-buffer-window
 	   buffer
-	   (cons 'display-buffer-below-selected nil)
+	   (cons 'display-buffer-below-selected
+		 '((window-height . fit-window-to-buffer)))
 	   #'(lambda (window _value)
 	       (with-selected-window window
 		 (unwind-protect

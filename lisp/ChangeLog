@@ -1,3 +1,37 @@
+2012-09-30  Martin Rudalics  <rudalics@gmx.at>
+
+	In buffer display functions handle window-height/window-width
+	alist entries.  Suggested by Juri Linkov as fix for Bug#1806.
+	* window.el (window--display-buffer): New argument ALIST.  Obey
+	window-height and window-width alist entries.
+	(window--try-to-split-window): New argument ALIST.  Bind
+	window-combination-limit to t when the window's size shall be
+	changed and window-combination-limit equals `window-size'.
+	(display-buffer-in-atom-window)
+	(display-buffer-in-major-side-window)
+	(display-buffer-in-side-window, display-buffer-same-window)
+	(display-buffer-reuse-window, display-buffer-pop-up-frame)
+	(display-buffer-pop-up-window, display-buffer-below-selected)
+	(display-buffer-at-bottom, display-buffer-in-previous-window)
+	(display-buffer-use-some-window): Adjust all callers of
+	window--display-buffer and window--try-to-split-window.
+	(fit-frame-to-buffer): New option.
+	(fit-window-to-buffer): Can resize frames if fit-frame-to-buffer
+	is non-nil.
+	(display-buffer-in-major-side-window): Evaluate window-height /
+	window-width alist entries.
+
+	* help.el (temp-buffer-resize-frames)
+	(temp-buffer-resize-regexps): Remove options.
+	(temp-buffer-resize-mode): Adjust doc-string.
+	(resize-temp-buffer-window): Don't consult
+	temp-buffer-resize-regexps.  Use fit-frame-to-buffer instead of
+	temp-buffer-resize-frames.
+
+	* dired.el (dired-mark-pop-up): Call
+	display-buffer-below-selected with a fit-window-to-buffer alist
+	entry.
+
 2012-09-30  Chong Yidong  <cyd@gnu.org>
 
 	* simple.el (delete-trailing-whitespace): Avoid an unnecessary

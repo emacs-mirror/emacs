@@ -60,7 +60,7 @@ static Lisp_Object Qwindow_deletable_p, Qdelete_window, Qdisplay_buffer;
 static Lisp_Object Qreplace_buffer_in_windows, Qget_mru_window;
 static Lisp_Object Qwindow_resize_root_window, Qwindow_resize_root_window_vertically;
 static Lisp_Object Qscroll_up, Qscroll_down, Qscroll_command;
-static Lisp_Object Qsafe, Qabove, Qbelow, Qtemp_buffer_resize, Qclone_of;
+static Lisp_Object Qsafe, Qabove, Qbelow, Qwindow_size, Qclone_of;
 
 static int displayed_window_lines (struct window *);
 static int count_windows (struct window *);
@@ -6704,7 +6704,7 @@ syms_of_window (void)
   DEFSYM (Qreplace_buffer_in_windows, "replace-buffer-in-windows");
   DEFSYM (Qrecord_window_buffer, "record-window-buffer");
   DEFSYM (Qget_mru_window, "get-mru-window");
-  DEFSYM (Qtemp_buffer_resize, "temp-buffer-resize");
+  DEFSYM (Qwindow_size, "window-size");
   DEFSYM (Qtemp_buffer_show_hook, "temp-buffer-show-hook");
   DEFSYM (Qabove, "above");
   DEFSYM (Qbelow, "below");
@@ -6804,18 +6804,18 @@ This variable takes no effect if `window-combination-limit' is non-nil.  */);
 The following values are recognized:
 
 nil means splitting a window will create a new parent window only if the
-    window has no parent window or the window shall become a combination
-    orthogonal to the one it is part of.
+    window has no parent window or the window shall become part of a
+    combination orthogonal to the one it is part of.
 
-`temp-buffer-resize' means that splitting a window for displaying a
-    temporary buffer makes a new parent window provided
-    `temp-buffer-resize-mode' is enabled.  Otherwise, this value is
-    handled like nil.
+`window-size' means that splitting a window for displaying a buffer
+    makes a new parent window provided `display-buffer' is supposed to
+    explicitly set the window's size due to the presence of a
+    `window-height' or `window-width' entry in the alist used by
+    `display-buffer'.  Otherwise, this value is handled like nil.
 
 `temp-buffer' means that splitting a window for displaying a temporary
     buffer always makes a new parent window.  Otherwise, this value is
     handled like nil.
-
 
 `display-buffer' means that splitting a window for displaying a buffer
     always makes a new parent window.  Since temporary buffers are
@@ -6829,7 +6829,7 @@ t means that splitting a window always creates a new parent window.  If
     sibling.
 
 Other values are reserved for future use.  */);
-  Vwindow_combination_limit = Qtemp_buffer_resize;
+  Vwindow_combination_limit = Qwindow_size;
 
   DEFVAR_LISP ("window-persistent-parameters", Vwindow_persistent_parameters,
 	       doc: /* Alist of persistent window parameters.

@@ -1,3 +1,8 @@
+2012-09-30  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.c (Vwindow_combination_limit): New default value.
+	(Qwindow_size): New symbol replacing Qtemp_buffer_resize.
+
 2012-09-30  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* syssignal.h (PROFILER_CPU_SUPPORT): Don't define if PROFILING.
@@ -131,6 +136,7 @@
 	(redisplay_internal): Record itself in backtrace_list.
 	(syms_of_xdisp): Define Qautomatic_redisplay.
 
+2012-09-25  Eli Zaretskii  <eliz@gnu.org>
 2012-09-25  Juanma Barranquero  <lekktu@gmail.com>
 
 	* makefile.w32-in ($(BLD)/callproc.$(O)): Update dependencies.
