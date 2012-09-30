@@ -1,3 +1,9 @@
+2012-09-30  Juanma Barranquero  <lekktu@gmail.com>
+
+	* ido.el (ido-max-directory-size): Default to nil; the current
+	default is small for POSIX systems, and impractical on Windows 7
+	now that lstat returns directory sizes for NTFS.
+
 2012-09-30  Martin Rudalics  <rudalics@gmx.at>
 
 	In buffer display functions handle window-height/window-width
