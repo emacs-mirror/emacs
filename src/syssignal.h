@@ -29,6 +29,10 @@ extern void init_signals (bool);
 #define FORWARD_SIGNAL_TO_MAIN_THREAD
 #endif
 
+#if defined SIGPROF && (defined HAVE_TIMER_SETTIME || defined HAVE_SETITIMER)
+# define PROFILER_CPU_SUPPORT
+#endif
+
 extern sigset_t empty_mask;
 
 typedef void (*signal_handler_t) (int);

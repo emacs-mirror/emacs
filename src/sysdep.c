@@ -1447,6 +1447,9 @@ emacs_sigaction_init (struct sigaction *action, signal_handler_t handler)
 #ifdef SIGDANGER
   sigaddset (&action->sa_mask, SIGDANGER);
 #endif
+#ifdef PROFILER_CPU_SUPPORT
+  sigaddset (&action->sa_mask, SIGPROF);
+#endif
 #ifdef SIGWINCH
   sigaddset (&action->sa_mask, SIGWINCH);
 #endif
@@ -1837,7 +1840,7 @@ init_signals (bool dumping)
 #endif
   sigaction (SIGTERM, &process_fatal_action, 0);
 #ifdef SIGPROF
-  sigaction (SIGPROF, &process_fatal_action, 0);
+  signal (SIGPROF, SIG_IGN);
 #endif
 #ifdef SIGVTALRM
   sigaction (SIGVTALRM, &process_fatal_action, 0);

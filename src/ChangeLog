@@ -1,5 +1,39 @@
 2012-09-30  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Profiler improvements: more-accurate timers, overflow checks.
+	* profiler.c: Don't include stdio.h, limits.h, sys/time.h,
+	signal.h, setjmp.h.  Include systime.h instead.
+	(saturated_add): New function.
+	(record_backtrace, current_sample_interval): Use EMACS_INT, not size_t.
+	(record_backtrace, handle_profiler_signal): Saturate on fixnum overflow.
+	(profiler_timer, profiler_timer_ok) [HAVE_TIMER_SETTIME]:
+	New static vars.
+	(enum profiler_cpu_running): New enumn.
+	(profiler_cpu_running): Now of that enum type, not bool.
+	All uses changed to store the new value.
+	(handle_profiler_signal): Rename from sigprof_handler_1,
+	for consistency with other handlers.  Do not check whether
+	cpu_log is a hash-table if garbage collecting, since it
+	doesn't matter in that case.
+	(deliver_profiler_signal): Rename from sigprof_handler,
+	for consistency with other handlers.
+	(setup_cpu_timer): New function, with much of what used to be in
+	Fprofiler_cpu_start.  Check for out-of-range argument.
+	Prefer timer_settime if available, and prefer
+	thread cputime clocks, then process cputime clocks, then
+	monotonic clocks, to the old realtime clock.  Use make_timeval
+	to round more-correctly when falling back to setitimer.
+	(Fprofiler_cpu_start): Use it.
+	(Fprofiler_cpu_stop): Prefer timer_settime if available.
+	Don't assume that passing NULL as the 2nd argument of setitimer
+	is the same as passing a pointer to all-zero storage.
+	Ignore SIGPROF afterwards.
+	(malloc_probe): Saturate at MOST_POSITIVE_FIXNUM.
+	* sysdep.c (emacs_sigaction_init): Also mask out SIGPROF in
+	non-fatal signal handlers.  Ignore SIGPROF on startup.
+	* syssignal.h (PROFILER_CPU_SUPPORT): Define this macro here, not
+	in profiler.c, since sysdep.c now uses it.
+
 	* sysdep.c (handle_fatal_signal): Bump backtrace size to 40.
 	Suggested by Eli Zaretskii in
 	<http://lists.gnu.org/archive/html/emacs-devel/2012-09/msg00796.html>.
