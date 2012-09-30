@@ -1,3 +1,7 @@
+2012-09-30  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* textmodes/tex-mode.el (tex-mode-map): Don't bind paren keys.
+
 2012-09-29  Glenn Morris  <rgm@gnu.org>
 
 	* winner.el (winner-mode): Remove variable (let define-minor-mode
