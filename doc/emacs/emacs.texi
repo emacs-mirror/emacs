@@ -267,6 +267,7 @@ The Minibuffer
 * Minibuffer History::  Reusing recent minibuffer arguments.
 * Repetition::          Re-executing commands that used the minibuffer.
 * Passwords::           Entering passwords in the echo area.
+* Yes or No Prompts::   Replying yes or no in the echo area.
 
 Completion
 

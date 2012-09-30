@@ -37,78 +37,69 @@ handled.
 
 @table @code
 @item error
-@code{"error"}@*
-@xref{Errors}.
+The message is @samp{error}.  @xref{Errors}.
 
 @item quit
-@code{"Quit"}@*
-@xref{Quitting}.
+The message is @samp{Quit}.  @xref{Quitting}.
 
 @item args-out-of-range
-@code{"Args out of range"}@*
-This happens when trying to access an element beyond the range of a
-sequence or buffer.@*
-@xref{Sequences Arrays Vectors}, @xref{Text}.
+The message is @samp{Args out of range}.  This happens when trying to
+access an element beyond the range of a sequence, buffer, or other
+container-like object.  @xref{Sequences Arrays Vectors}, and
+@xref{Text}.
 
 @item arith-error
-@code{"Arithmetic error"}@*
+The message is @samp{Arithmetic error}.  This occurs when trying to
+perform integer division by zero.  @xref{Numeric Conversions}, and
 @xref{Arithmetic Operations}.
 
 @item beginning-of-buffer
-@code{"Beginning of buffer"}@*
-@xref{Character Motion}.
+The message is @samp{Beginning of buffer}.  @xref{Character Motion}.
 
 @item buffer-read-only
-@code{"Buffer is read-only"}@*
-@xref{Read Only Buffers}.
+The message is @samp{Buffer is read-only}.  @xref{Read Only Buffers}.
 
 @item circular-list
-@code{"List contains a loop"}@*
-This happens when some operations (e.g. resolving face names)
-encounter circular structures.@*
-@xref{Circular Objects}.
+The message is @samp{List contains a loop}.  This happens when a
+circular structure is encountered.  @xref{Circular Objects}.
 
 @item cl-assertion-failed
-@code{"Assertion failed"}@*
-This happens when the @code{assert} macro fails a test.@*
-@xref{Assertions,,, cl, Common Lisp Extensions}.
+The message is @samp{Assertion failed}.  This happens when the
+@code{assert} macro fails a test.  @xref{Assertions,,, cl, Common Lisp
+Extensions}.
 
 @item coding-system-error
-@code{"Invalid coding system"}@*
-@xref{Lisp and Coding Systems}.
+The message is @samp{Invalid coding system}.  @xref{Lisp and Coding
+Systems}.
 
 @item cyclic-function-indirection
-@code{"Symbol's chain of function indirections contains a loop"}@*
-@xref{Function Indirection}.
+The message is @samp{Symbol's chain of function indirections contains
+a loop}.  @xref{Function Indirection}.
 
 @item cyclic-variable-indirection
-@code{"Symbol's chain of variable indirections contains a loop"}@*
-@xref{Variable Aliases}.
+The message is @samp{Symbol's chain of variable indirections contains
+a loop}.  @xref{Variable Aliases}.
 
 @item dbus-error
-@code{"D-Bus error"}@*
-This is only defined if Emacs was compiled with D-Bus support.@*
-@xref{Errors and Events,,, dbus, D-Bus integration in Emacs}.
+The message is @samp{D-Bus error}.  This is only defined if Emacs was
+compiled with D-Bus support.  @xref{Errors and Events,,, dbus, D-Bus
+integration in Emacs}.
 
 @item end-of-buffer
-@code{"End of buffer"}@*
-@xref{Character Motion}.
+The message is @samp{End of buffer}.  @xref{Character Motion}.
 
 @item end-of-file
-@code{"End of file during parsing"}@*
-Note that this is not a subcategory of @code{file-error},
-because it pertains to the Lisp reader, not to file I/O.@*
-@xref{Input Functions}.
+The message is @samp{End of file during parsing}.  Note that this is
+not a subcategory of @code{file-error}, because it pertains to the
+Lisp reader, not to file I/O.  @xref{Input Functions}.
 
 @item file-already-exists
-This is a subcategory of @code{file-error}.@*
-@xref{Writing to Files}.
+This is a subcategory of @code{file-error}.  @xref{Writing to Files}.
 
 @item file-date-error
 This is a subcategory of @code{file-error}.  It occurs when
 @code{copy-file} tries and fails to set the last-modification time of
-the output file.@*
-@xref{Changing Files}.
+the output file.  @xref{Changing Files}.
 
 @item file-error
 We do not list the error-strings of this error and its subcategories,
@@ -116,122 +107,109 @@ because the error message is normally constructed from the data items
 alone when the error condition @code{file-error} is present.  Thus,
 the error-strings are not very relevant.  However, these error symbols
 do have @code{error-message} properties, and if no data is provided,
-the @code{error-message} property @emph{is} used.@*
-@xref{Files}.
+the @code{error-message} property @emph{is} used.  @xref{Files}.
 
 @c jka-compr.el
 @item compression-error
 This is a subcategory of @code{file-error}, which results from
-problems handling a compressed file.@*
-@xref{How Programs Do Loading}.
+problems handling a compressed file.  @xref{How Programs Do Loading}.
 
 @c userlock.el
 @item file-locked
-This is a subcategory of @code{file-error}.@*
-@xref{File Locks}.
+This is a subcategory of @code{file-error}.  @xref{File Locks}.
 
 @c userlock.el
 @item file-supersession
-This is a subcategory of @code{file-error}.@*
-@xref{Modification Time}.
+This is a subcategory of @code{file-error}.  @xref{Modification Time}.
 
 @c net/ange-ftp.el
 @item ftp-error
-This is a subcategory of @code{file-error}, which results from problems
-in accessing a remote file using ftp.@*
-@xref{Remote Files,,, emacs, The GNU Emacs Manual}.
+This is a subcategory of @code{file-error}, which results from
+problems in accessing a remote file using ftp.  @xref{Remote Files,,,
+emacs, The GNU Emacs Manual}.
 
 @item invalid-function
-@code{"Invalid function"}@*
-@xref{Function Indirection}.
+The message is @samp{Invalid function}.  @xref{Function Indirection}.
 
 @item invalid-read-syntax
-@code{"Invalid read syntax"}@*
-@xref{Printed Representation}.
+The message is @samp{Invalid read syntax}.  @xref{Printed
+Representation}.
 
 @item invalid-regexp
-@code{"Invalid regexp"}@*
-@xref{Regular Expressions}.
+The message is @samp{Invalid regexp}.  @xref{Regular Expressions}.
 
 @c simple.el
 @item mark-inactive
-@code{"The mark is not active now"}@*
-@xref{The Mark}.
+The message is @samp{The mark is not active now}.  @xref{The Mark}.
 
 @item no-catch
-@code{"No catch for tag"}@*
-@xref{Catch and Throw}.
+The message is @samp{No catch for tag}.  @xref{Catch and Throw}.
 
 @ignore
 @c Not actually used for anything?  Probably definition should be removed.
 @item protected-field
-@code{"Attempt to modify a protected field"}
+The message is @samp{Attempt to modify a protected fiel.
 @end ignore
 
 @item scan-error
-@code{"Scan error"}@*
-This happens when certain syntax-parsing functions
-find invalid syntax or mismatched parentheses.@*
-@xref{List Motion}, and @ref{Parsing Expressions}.
+The message is @samp{Scan error}.  This happens when certain
+syntax-parsing functions find invalid syntax or mismatched
+parentheses.  @xref{List Motion}, and @xref{Parsing Expressions}.
 
 @item search-failed
-@code{"Search failed"}@*
-@xref{Searching and Matching}.
+The message is @samp{Search failed}.  @xref{Searching and Matching}.
 
 @item setting-constant
-@code{"Attempt to set a constant symbol"}@*
-The values of the symbols @code{nil} and @code{t},
-and any symbols that start with @samp{:},
-may not be changed.@*
-@xref{Constant Variables, , Variables that Never Change}.
+The message is @samp{Attempt to set a constant symbol}.  This happens
+when attempting to assign values to @code{nil}, @code{t}, and keyword
+symbols.  @xref{Constant Variables}.
 
 @c simple.el
 @item text-read-only
-@code{"Text is read-only"}@*
-This is a subcategory of @code{buffer-read-only}.@*
-@xref{Special Properties}.
+The message is @samp{Text is read-only}.  This is a subcategory of
+@code{buffer-read-only}.  @xref{Special Properties}.
 
 @item undefined-color
-@code{"Undefined color"}@*
-@xref{Color Names}.
+The message is @samp{Undefined color}.  @xref{Color Names}.
 
 @item void-function
-@code{"Symbol's function definition is void"}@*
+The message is @samp{Symbol's function definition is void}.
 @xref{Function Cells}.
 
 @item void-variable
-@code{"Symbol's value as variable is void"}@*
+The message is @samp{Symbol's value as variable is void}.
 @xref{Accessing Variables}.
 
 @item wrong-number-of-arguments
-@code{"Wrong number of arguments"}@*
-@xref{Classifying Lists}.
+The message is @samp{Wrong number of arguments}.  @xref{Classifying
+Lists}.
 
 @item wrong-type-argument
-@code{"Wrong type argument"}@*
-@xref{Type Predicates}.
+The message is @samp{Wrong type argument}.  @xref{Type Predicates}.
 @end table
 
+@ignore    The following seem to be unused now.
   The following kinds of error, which are classified as special cases of
 @code{arith-error}, can occur on certain systems for invalid use of
 mathematical functions.  @xref{Math Functions}.
 
 @table @code
 @item domain-error
-@code{"Arithmetic domain error"}
+The message is @samp{Arithmetic domain error}.
 
 @item overflow-error
-@code{"Arithmetic overflow error"}@*
-This is a subcategory of @code{domain-error}.
+The message is @samp{Arithmetic overflow error}.  This is a subcategory
+of @code{domain-error}.
 
 @item range-error
-@code{"Arithmetic range error"}
+The message is @code{Arithmetic range error}.
 
 @item singularity-error
-@code{"Arithmetic singularity error"}@*
-This is a subcategory of @code{domain-error}.
+The mssage is @samp{Arithmetic singularity error}.  This is a
+subcategory of @code{domain-error}.
 
 @item underflow-error
-@code{"Arithmetic underflow error"}@*
-This is a subcategory of @code{domain-error}.
+The message is @samp{Arithmetic underflow error}.  This is a
+subcategory of @code{domain-error}.
 @end table
+@end ignore

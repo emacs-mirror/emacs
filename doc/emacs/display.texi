@@ -1044,9 +1044,9 @@ the left fringe, but no arrow bitmaps, use @code{((top .  left)
 @cindex whitespace, trailing
 @vindex show-trailing-whitespace
   It is easy to leave unnecessary spaces at the end of a line, or
-empty lines at the end of a file, without realizing it.  In most
-cases, this @dfn{trailing whitespace} has no effect, but there are
-special circumstances where it matters, and it can be a nuisance.
+empty lines at the end of a buffer, without realizing it.  In most
+cases, this @dfn{trailing whitespace} has no effect, but sometimes it
+can be a nuisance.
 
   You can make trailing whitespace at the end of a line visible by
 setting the buffer-local variable @code{show-trailing-whitespace} to
@@ -1061,9 +1061,13 @@ the location of point is enough to show you that the spaces are
 present.
 
 @findex delete-trailing-whitespace
+@vindex delete-trailing-lines
   Type @kbd{M-x delete-trailing-whitespace} to delete all trailing
-whitespace within the buffer.  If the region is active, it deletes all
-trailing whitespace in the region instead.
+whitespace.  This command deletes all extra spaces at the end of each
+line in the buffer, and all empty lines at the end of the buffer; to
+ignore the latter, change the varaible @code{delete-trailing-lines} to
+@code{nil}.  If the region is active, the command instead deletes
+extra spaces at the end of each line in the region.
 
 @vindex indicate-empty-lines
 @cindex unused lines

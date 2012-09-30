@@ -34,6 +34,13 @@
 
 2012-09-30  Chong Yidong  <cyd@gnu.org>
 
+	* server.el (server-host): Document the security implications.
+	(server-auth-key): Doc fix.
+
+	* startup.el (initial-buffer-choice): Doc fix.
+
+	* minibuffer.el (minibuffer-local-filename-syntax): Doc fix.
+
 	* simple.el (delete-trailing-whitespace): Avoid an unnecessary
 	restriction change.
 

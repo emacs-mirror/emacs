@@ -384,11 +384,13 @@ non-@acronym{ASCII} characters written as @code{?v@var{literal}}.
 @section Autoload
 @cindex autoload
 
-  The @dfn{autoload} facility allows you to register the existence of
-a function or macro, but put off loading the file that defines it.
-The first call to the function automatically reads the proper file, in
+  The @dfn{autoload} facility lets you register the existence of a
+function or macro, but put off loading the file that defines it.  The
+first call to the function automatically loads the proper library, in
 order to install the real definition and other associated code, then
 runs the real definition as if it had been loaded all along.
+Autoloading can also be triggered by looking up the documentation of
+the function or macro (@pxref{Documentation Basics}).
 
   There are two ways to set up an autoloaded function: by calling
 @code{autoload}, and by writing a special ``magic'' comment in the

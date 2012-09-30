@@ -243,7 +243,7 @@ by the innermost Lisp expression in the buffer around point,
 (That name appears as the default while you enter the argument.)  For
 example, if point is located following the text @samp{(make-vector
 (car x)}, the innermost list containing point is the one that starts
-with @samp{(make-vector}, so @kbd{C-h f @key{RET}} will describe the
+with @samp{(make-vector}, so @kbd{C-h f @key{RET}} describes the
 function @code{make-vector}.
 
   @kbd{C-h f} is also useful just to verify that you spelled a

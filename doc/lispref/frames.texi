@@ -1529,24 +1529,14 @@ track of such changes.  @xref{Misc Events}.
 @node Raising and Lowering
 @section Raising and Lowering Frames
 
-  Most window systems use a desktop metaphor.  Part of this metaphor is
-the idea that windows are stacked in a notional third dimension
-perpendicular to the screen surface, and thus ordered from ``highest''
-to ``lowest''.  Where two windows overlap, the one higher up covers
-the one underneath.  Even a window at the bottom of the stack can be
-seen if no other window overlaps it.
-
-@c @cindex raising a frame  redundant with raise-frame
+@cindex raising a frame
 @cindex lowering a frame
-  A window's place in this ordering is not fixed; in fact, users tend
-to change the order frequently.  @dfn{Raising} a window means moving
-it ``up'', to the top of the stack.  @dfn{Lowering} a window means
-moving it to the bottom of the stack.  This motion is in the notional
-third dimension only, and does not change the position of the window
-on the screen.
-
-  With Emacs, frames constitute the windows in the metaphor sketched
-above. You can raise and lower frames using these functions:
+  Most window systems use a desktop metaphor.  Part of this metaphor
+is the idea that system-level windows (e.g.@: Emacs frames) are
+stacked in a notional third dimension perpendicular to the screen
+surface.  Where two overlap, the one higher up covers the one
+underneath.  You can @dfn{raise} or @dfn{lower} a frame using the
+functions @code{raise-frame} and @code{lower-frame}.
 
 @deffn Command raise-frame &optional frame
 This function raises frame @var{frame} (default, the selected frame).

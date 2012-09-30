@@ -235,43 +235,8 @@ of constants and nonconstant parts.  To make this easier, use the
 @end example
 
   The body of a macro definition can include a @code{declare} form,
-which can specify how @key{TAB} should indent macro calls, and how to
-step through them for Edebug.
-
-@defmac declare @var{specs}@dots{}
-@anchor{Definition of declare}
-A @code{declare} form is used in a macro definition to specify various
-additional information about it.  The following specifications are
-currently supported:
-
-@table @code
-@item (debug @var{edebug-form-spec})
-Specify how to step through macro calls for Edebug.
-@xref{Instrumenting Macro Calls}.
-
-@item (indent @var{indent-spec})
-Specify how to indent calls to this macro.  @xref{Indenting Macros},
-for more details.
-
-@item (doc-string @var{number})
-Specify which element of the macro is the documentation string, if
-any.
-@end table
-
-A @code{declare} form only has its special effect in the body of a
-@code{defmacro} form if it immediately follows the documentation
-string, if present, or the argument list otherwise.  (Strictly
-speaking, @emph{several} @code{declare} forms can follow the
-documentation string or argument list, but since a @code{declare} form
-can have several @var{specs}, they can always be combined into a
-single form.)  When used at other places in a @code{defmacro} form, or
-outside a @code{defmacro} form, @code{declare} just returns @code{nil}
-without evaluating any @var{specs}.
-@end defmac
-
-  No macro absolutely needs a @code{declare} form, because that form
-has no effect on how the macro expands, on what the macro means in the
-program.  It only affects the secondary features listed above.
+which specifies additional properties about the macro.  @xref{Declare
+Form}.
 
 @node Problems with Macros
 @section Common Problems Using Macros

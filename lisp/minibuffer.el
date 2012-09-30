@@ -2332,7 +2332,7 @@ and `read-file-name-function'."
        (modify-syntax-entry c "." table))
      '(?/ ?: ?\\))
     table)
-  "Syntax table to be used in minibuffer for reading file name.")
+  "Syntax table used when reading a file name in the minibuffer.")
 
 ;; minibuffer-completing-file-name is a variable used internally in minibuf.c
 ;; to determine whether to use minibuffer-local-filename-completion-map or

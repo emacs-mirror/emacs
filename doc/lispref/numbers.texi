@@ -48,9 +48,8 @@ to
 @tex
 @math{2^{29}-1}),
 @end tex
-but some machines provide a wider range.  Many examples in this
-chapter assume that an integer has 30 bits and that floating point
-numbers are IEEE double precision.
+but many machines provide a wider range.  Many examples in this
+chapter assume the minimum integer width of 30 bits.
 @cindex overflow
 
   The Lisp reader reads an integer as a sequence of digits with optional
@@ -160,8 +159,9 @@ The value of this variable is the smallest integer that Emacs Lisp can
 handle.  It is negative.
 @end defvar
 
-  @xref{Character Codes, max-char}, for the maximum value of a valid
-character codepoint.
+  In Emacs Lisp, text characters are represented by integers.  Any
+integer between zero and the value of @code{max-char}, inclusive, is
+considered to be valid as a character.  @xref{String Basics}.
 
 @node Float Basics
 @section Floating Point Basics
@@ -171,8 +171,8 @@ character codepoint.
 not integral.  The precise range of floating point numbers is
 machine-specific; it is the same as the range of the C data type
 @code{double} on the machine you are using.  Emacs uses the
-@acronym{IEEE} floating point standard where possible (the standard is
-supported by most modern computers).
+@acronym{IEEE} floating point standard, which is supported by all
+modern computers.
 
   The read syntax for floating point numbers requires either a decimal
 point (with at least one digit following), an exponent, or both.  For
@@ -316,17 +316,16 @@ compare them, then you test whether two values are the same
 @emph{object}.  By contrast, @code{=} compares only the numeric values
 of the objects.
 
-  At present, each integer value has a unique Lisp object in Emacs Lisp.
+  In Emacs Lisp, each integer value is a unique Lisp object.
 Therefore, @code{eq} is equivalent to @code{=} where integers are
-concerned.  It is sometimes convenient to use @code{eq} for comparing an
-unknown value with an integer, because @code{eq} does not report an
-error if the unknown value is not a number---it accepts arguments of any
-type.  By contrast, @code{=} signals an error if the arguments are not
-numbers or markers.  However, it is a good idea to use @code{=} if you
-can, even for comparing integers, just in case we change the
-representation of integers in a future Emacs version.
+concerned.  It is sometimes convenient to use @code{eq} for comparing
+an unknown value with an integer, because @code{eq} does not report an
+error if the unknown value is not a number---it accepts arguments of
+any type.  By contrast, @code{=} signals an error if the arguments are
+not numbers or markers.  However, it is better programming practice to
+use @code{=} if you can, even for comparing integers.
 
-  Sometimes it is useful to compare numbers with @code{equal}; it
+  Sometimes it is useful to compare numbers with @code{equal}, which
 treats two numbers as equal if they have the same data type (both
 integers, or both floating point) and the same value.  By contrast,
 @code{=} can treat an integer and a floating point number as equal.
@@ -439,15 +438,16 @@ If @var{number} is already a floating point number, @code{float} returns
 it unchanged.
 @end defun
 
-There are four functions to convert floating point numbers to integers;
-they differ in how they round.  All accept an argument @var{number}
-and an optional argument @var{divisor}.  Both arguments may be
-integers or floating point numbers.  @var{divisor} may also be
+  There are four functions to convert floating point numbers to
+integers; they differ in how they round.  All accept an argument
+@var{number} and an optional argument @var{divisor}.  Both arguments
+may be integers or floating point numbers.  @var{divisor} may also be
 @code{nil}.  If @var{divisor} is @code{nil} or omitted, these
 functions convert @var{number} to an integer, or return it unchanged
 if it already is an integer.  If @var{divisor} is non-@code{nil}, they
 divide @var{number} by @var{divisor} and convert the result to an
-integer.  An @code{arith-error} results if @var{divisor} is 0.
+integer.  integer.  If @var{divisor} is zero (whether integer or
+floating-point), Emacs signals an @code{arith-error} error.
 
 @defun truncate number &optional divisor
 This returns @var{number}, converted to an integer by rounding towards
@@ -524,14 +524,12 @@ depending on your machine.
 @section Arithmetic Operations
 @cindex arithmetic operations
 
-  Emacs Lisp provides the traditional four arithmetic operations:
-addition, subtraction, multiplication, and division.  Remainder and modulus
-functions supplement the division functions.  The functions to
-add or subtract 1 are provided because they are traditional in Lisp and
-commonly used.
-
-  All of these functions except @code{%} return a floating point value
-if any argument is floating.
+  Emacs Lisp provides the traditional four arithmetic operations
+(addition, subtraction, multiplication, and division), as well as
+remainder and modulus functions, and functions to add or subtract 1.
+Except for @code{%}, each of these functions accepts both integer and
+floating point arguments, and returns a floating point number if any
+argument is a floating point number.
 
   It is important to note that in Emacs Lisp, arithmetic functions
 do not check for overflow.  Thus @code{(1+ 536870911)} may evaluate to
@@ -620,62 +618,55 @@ quotient.  If there are additional arguments @var{divisors}, then it
 divides @var{dividend} by each divisor in turn.  Each argument may be a
 number or a marker.
 
-If all the arguments are integers, then the result is an integer too.
-This means the result has to be rounded.  On most machines, the result
-is rounded towards zero after each division, but some machines may round
-differently with negative arguments.  This is because the Lisp function
-@code{/} is implemented using the C division operator, which also
-permits machine-dependent rounding.  As a practical matter, all known
-machines round in the standard fashion.
-
-@cindex @code{arith-error} in division
-If you divide an integer by 0, an @code{arith-error} error is signaled.
-(@xref{Errors}.)  Floating point division by zero returns either
-infinity or a NaN if your machine supports @acronym{IEEE} floating point;
-otherwise, it signals an @code{arith-error} error.
+If all the arguments are integers, the result is an integer, obtained
+by rounding the quotient towards zero after each division.
+(Hypothetically, some machines may have different rounding behavior
+for negative arguments, because @code{/} is implemented using the C
+division operator, which permits machine-dependent rounding; but this
+does not happen in practice.)
 
 @example
 @group
 (/ 6 2)
      @result{} 3
 @end group
+@group
 (/ 5 2)
      @result{} 2
+@end group
+@group
 (/ 5.0 2)
      @result{} 2.5
+@end group
+@group
 (/ 5 2.0)
      @result{} 2.5
+@end group
+@group
 (/ 5.0 2.0)
      @result{} 2.5
+@end group
+@group
 (/ 25 3 2)
      @result{} 4
+@end group
 @group
 (/ -17 6)
-     @result{} -2   @r{(could in theory be @minus{}3 on some machines)}
+     @result{} -2
 @end group
 @end example
+
+@cindex @code{arith-error} in division
+If you divide an integer by the integer 0, Emacs signals an
+@code{arith-error} error (@pxref{Errors}).  If you divide a floating
+point number by 0, or divide by the floating point number 0.0, the
+result is either positive or negative infinity (@pxref{Float Basics}).
 @end defun
 
 @defun % dividend divisor
 @cindex remainder
 This function returns the integer remainder after division of @var{dividend}
 by @var{divisor}.  The arguments must be integers or markers.
-
-For negative arguments, the remainder is in principle machine-dependent
-since the quotient is; but in practice, all known machines behave alike.
-
-An @code{arith-error} results if @var{divisor} is 0.
-
-@example
-(% 9 4)
-     @result{} 1
-(% -9 4)
-     @result{} -1
-(% 9 -4)
-     @result{} 1
-(% -9 -4)
-     @result{} -1
-@end example
 
 For any two integers @var{dividend} and @var{divisor},
 
@@ -687,7 +678,19 @@ For any two integers @var{dividend} and @var{divisor},
 @end example
 
 @noindent
-always equals @var{dividend}.
+always equals @var{dividend}.  If @var{divisor} is zero, Emacs signals
+an @code{arith-error} error.
+
+@example
+(% 9 4)
+     @result{} 1
+(% -9 4)
+     @result{} -1
+(% 9 -4)
+     @result{} 1
+(% -9 -4)
+     @result{} -1
+@end example
 @end defun
 
 @defun mod dividend divisor
@@ -697,10 +700,9 @@ in other words, the remainder after division of @var{dividend}
 by @var{divisor}, but with the same sign as @var{divisor}.
 The arguments must be numbers or markers.
 
-Unlike @code{%}, @code{mod} returns a well-defined result for negative
-arguments.  It also permits floating point arguments; it rounds the
-quotient downward (towards minus infinity) to an integer, and uses that
-quotient to compute the remainder.
+Unlike @code{%}, @code{mod} permits floating point arguments; it
+rounds the quotient downward (towards minus infinity) to an integer,
+and uses that quotient to compute the remainder.
 
 If @var{divisor} is zero, @code{mod} signals an @code{arith-error}
 error if both arguments are integers, and returns a NaN otherwise.
@@ -1086,8 +1088,8 @@ numbers as arguments.
 @defun sin arg
 @defunx cos arg
 @defunx tan arg
-These are the ordinary trigonometric functions, with argument measured
-in radians.
+These are the basic trigonometric functions, with argument @var{arg}
+measured in radians.
 @end defun
 
 @defun asin arg
@@ -1154,20 +1156,6 @@ This function returns the logarithm of @var{arg}, with base
 returns a NaN.
 @end defun
 
-@ignore
-@defun expm1 arg
-This function returns @code{(1- (exp @var{arg}))}, but it is more
-accurate than that when @var{arg} is negative and @code{(exp @var{arg})}
-is close to 1.
-@end defun
-
-@defun log1p arg
-This function returns @code{(log (1+ @var{arg}))}, but it is more
-accurate than that when @var{arg} is so small that adding 1 to it would
-lose accuracy.
-@end defun
-@end ignore
-
 @defun log10 arg
 This function returns the logarithm of @var{arg}, with base 10:
 @code{(log10 @var{x})} @equiv{} @code{(log @var{x} 10)}.
@@ -1201,20 +1189,20 @@ The mathematical constant @math{pi} (3.14159@dots{}).
 @section Random Numbers
 @cindex random numbers
 
-A deterministic computer program cannot generate true random numbers.
-For most purposes, @dfn{pseudo-random numbers} suffice.  A series of
-pseudo-random numbers is generated in a deterministic fashion.  The
-numbers are not truly random, but they have certain properties that
-mimic a random series.  For example, all possible values occur equally
-often in a pseudo-random series.
+  A deterministic computer program cannot generate true random
+numbers.  For most purposes, @dfn{pseudo-random numbers} suffice.  A
+series of pseudo-random numbers is generated in a deterministic
+fashion.  The numbers are not truly random, but they have certain
+properties that mimic a random series.  For example, all possible
+values occur equally often in a pseudo-random series.
 
-In Emacs, pseudo-random numbers are generated from a ``seed''.
-Starting from any given seed, the @code{random} function always
-generates the same sequence of numbers.  Emacs typically starts with a
-different seed each time, so the sequence of values of @code{random}
-typically differs in each Emacs run.
+  Pseudo-random numbers are generated from a ``seed''.  Starting from
+any given seed, the @code{random} function always generates the same
+sequence of numbers.  By default, Emacs initializes the random seed at
+startup, in such a way that the sequence of values of @code{random}
+(with overwhelming likelihood) differs in each Emacs run.
 
-Sometimes you want the random number sequence to be repeatable.  For
+  Sometimes you want the random number sequence to be repeatable.  For
 example, when debugging a program whose behavior depends on the random
 number sequence, it is helpful to get the same behavior in each
 program run.  To make the sequence repeat, execute @code{(random "")}.
@@ -1227,8 +1215,10 @@ This function returns a pseudo-random integer.  Repeated calls return a
 series of pseudo-random integers.
 
 If @var{limit} is a positive integer, the value is chosen to be
-nonnegative and less than @var{limit}.  Otherwise, the value
-might be any integer representable in Lisp.
+nonnegative and less than @var{limit}.  Otherwise, the value might be
+any integer representable in Lisp, i.e.@: an integer between
+@code{most-negative-fixnum} and @code{most-positive-fixnum}
+(@pxref{Integer Basics}).
 
 If @var{limit} is @code{t}, it means to choose a new seed based on the
 current time of day and on Emacs's process @acronym{ID} number.
