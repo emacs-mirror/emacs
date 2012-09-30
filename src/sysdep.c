@@ -54,6 +54,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifdef WINDOWSNT
 #define read sys_read
 #define write sys_write
+#ifndef STDERR_FILENO
+#define STDERR_FILENO fileno(GetStdHandle(STD_ERROR_HANDLE))
+#endif
 #include <windows.h>
 #endif /* not WINDOWSNT */
 

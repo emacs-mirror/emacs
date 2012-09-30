@@ -1738,7 +1738,8 @@ init_environment (char ** argv)
       /* FIXME: should use substring of get_emacs_configuration ().
 	 But I don't think the Windows build supports alpha, mips etc
          anymore, so have taken the easy option for now.  */
-      else if (p && xstrcasecmp (p, "\\i386") == 0)
+      else if (p && (xstrcasecmp (p, "\\i386") == 0
+                     || xstrcasecmp (p, "\\AMD64") == 0))
 	{
 	  *p = 0;
 	  p = strrchr (modname, '\\');
@@ -1886,7 +1887,16 @@ get_emacs_configuration (void)
     case PROCESSOR_INTEL_386:
     case PROCESSOR_INTEL_486:
     case PROCESSOR_INTEL_PENTIUM:
+#ifdef _WIN64
+      arch = "amd64";
+#else
       arch = "i386";
+#endif
+      break;
+#endif
+#ifdef PROCESSOR_AMD_X8664
+    case PROCESSOR_AMD_X8664:
+      arch = "amd64";
       break;
 #endif
 
@@ -6646,19 +6656,19 @@ init_ntproc (int dumping)
     fclose (stderr);
 
     if (stdin_save != INVALID_HANDLE_VALUE)
-      _open_osfhandle ((long) stdin_save, O_TEXT);
+      _open_osfhandle ((intptr_t) stdin_save, O_TEXT);
     else
       _open ("nul", O_TEXT | O_NOINHERIT | O_RDONLY);
     _fdopen (0, "r");
 
     if (stdout_save != INVALID_HANDLE_VALUE)
-      _open_osfhandle ((long) stdout_save, O_TEXT);
+      _open_osfhandle ((intptr_t) stdout_save, O_TEXT);
     else
       _open ("nul", O_TEXT | O_NOINHERIT | O_WRONLY);
     _fdopen (1, "w");
 
     if (stderr_save != INVALID_HANDLE_VALUE)
-      _open_osfhandle ((long) stderr_save, O_TEXT);
+      _open_osfhandle ((intptr_t) stderr_save, O_TEXT);
     else
       _open ("nul", O_TEXT | O_NOINHERIT | O_WRONLY);
     _fdopen (2, "w");
@@ -6779,7 +6789,7 @@ serial_open (char *port)
 		    OPEN_EXISTING, FILE_FLAG_OVERLAPPED, 0);
   if (hnd == INVALID_HANDLE_VALUE)
     error ("Could not open %s", port);
-  fd = (int) _open_osfhandle ((int) hnd, 0);
+  fd = (int) _open_osfhandle ((intptr_t) hnd, 0);
   if (fd == -1)
     error ("Could not open %s", port);
 

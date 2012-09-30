@@ -66,7 +66,7 @@ $(BLD)/preprep.exe: $(BLD)/preprep.$(O)
 # The resource file.  NT 3.10 requires the use of cvtres; even though
 # it is not necessary on later versions, it is still ok to use it.
 #
-$(TRES):	emacs.rc icons/emacs.ico emacs.manifest stamp_BLD
+$(TRES):	emacs.rc icons/emacs.ico $(EMACS_MANIFEST) stamp_BLD
 		$(RC) $(RC_OUT)$(TRES) emacs.rc
 
 $(CLIENTRES):	emacsclient.rc stamp_BLD

@@ -1,6 +1,10 @@
 Emacs ICON   icons\emacs.ico
 32649 CURSOR icons\hand.cur
-1 24 "emacs.manifest"
+#ifdef WIN64
+1 24 "emacs-x64.manifest"
+#else
+1 24 "emacs-x86.manifest"
+#endif
 
 #ifndef VS_VERSION_INFO
 #define VS_VERSION_INFO 1

@@ -137,7 +137,7 @@ struct MONITOR_INFO
 };
 
 /* Reportedly, MSVC does not have this in its headers.  */
-#ifdef _MSC_VER
+#if defined (_MSC_VER) && _WIN32_WINNT < 0x0500
 DECLARE_HANDLE(HMONITOR);
 #endif
 
@@ -2252,7 +2252,7 @@ static void
 w32_msg_pump (deferred_msg * msg_buf)
 {
   MSG msg;
-  int result;
+  WPARAM result;
   HWND focus_window;
 
   msh_mousewheel = RegisterWindowMessage (MSH_MOUSEWHEEL);
@@ -2283,7 +2283,7 @@ w32_msg_pump (deferred_msg * msg_buf)
 	      /* Reply is not expected.  */
 	      break;
 	    case WM_EMACS_SETKEYBOARDLAYOUT:
-	      result = (int) ActivateKeyboardLayout ((HKL) msg.wParam, 0);
+	      result = (WPARAM) ActivateKeyboardLayout ((HKL) msg.wParam, 0);
 	      if (!PostThreadMessage (dwMainThreadId, WM_EMACS_DONE,
 				      result, 0))
 		emacs_abort ();

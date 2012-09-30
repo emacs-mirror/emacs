@@ -74,6 +74,7 @@ extern void *sbrk ();
 #endif
 #ifdef WINDOWSNT
 #include "w32.h"
+#include "w32heap.h"	/* for sbrk */
 #endif
 
 #ifdef DOUG_LEA_MALLOC
@@ -6607,7 +6608,8 @@ The time is in seconds as a floating point value.  */);
 /* When compiled with GCC, GDB might say "No enum type named
    pvec_type" if we don't have at least one symbol with that type, and
    then xbacktrace could fail.  Similarly for the other enums and
-   their values.  */
+   their values.  Some non-GCC compilers don't like these constructs.  */
+#ifdef __GNUC__
 union
 {
   enum CHARTAB_SIZE_BITS CHARTAB_SIZE_BITS;
@@ -6627,3 +6629,4 @@ union
   enum lsb_bits lsb_bits;
 #endif
 } const EXTERNALLY_VISIBLE gdb_make_enums_visible = {0};
+#endif	/* __GNUC__ */

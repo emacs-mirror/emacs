@@ -139,15 +139,27 @@ OS_TYPE		= windowsnt
  ifeq "$(PROCESSOR_ARCHITECTURE)" "x86"
 ARCH		= i386
 CPU		= i386
+EMACS_HEAPSIZE	= 27
+EMACS_PURESIZE	= 5000000
+EMACS_MANIFEST	= emacs-x86.manifest
  else
   ifeq "$(PROCESSOR_ARCHITECTURE)" "MIPS"
 ARCH		= mips
+EMACS_HEAPSIZE	= 27
+EMACS_PURESIZE	= 5000000
+EMACS_MANIFEST	= emacs-mips.manifest
   else
    ifeq "$(PROCESSOR_ARCHITECTURE)" "ALPHA"
 ARCH		= alpha
+EMACS_HEAPSIZE	= 27
+EMACS_PURESIZE	= 5000000
+EMACS_MANIFEST	= emacs-alpha.manifest
    else
     ifeq "$(PROCESSOR_ARCHITECTURE)" "PPC"
 ARCH		= ppc
+EMACS_HEAPSIZE	= 27
+EMACS_PURESIZE	= 5000000
+EMACS_MANIFEST	= emacs-ppc.manifest
     else
      $(error Unknown architecture type "$(PROCESSOR_ARCHITECTURE)")
     endif

@@ -358,7 +358,7 @@ extern char *get_emacs_configuration_options (void);
 
 extern int getloadavg (double *, int);
 
-#if defined (__MINGW32__) || _MSC_VER >= 1400
+#if defined (__MINGW32__)
 
 /* Define to 1 if the system has the type `long long int'. */
 # define HAVE_LONG_LONG_INT 1
@@ -366,21 +366,37 @@ extern int getloadavg (double *, int);
 /* Define to 1 if the system has the type `unsigned long long int'. */
 # define HAVE_UNSIGNED_LONG_LONG_INT 1
 
-#elif _MSC_VER >= 1200
+#endif
 
+#ifdef _MSC_VER
+# if defined(_WIN64)
+typedef __int64 EMACS_INT;
+typedef unsigned __int64 EMACS_UINT;
+#  define EMACS_INT_MAX	          LLONG_MAX
+#  define PRIuMAX                 "llu"
+#  define pI			  "ll"
+/* Fix a bug in MSVC headers : stdint.h */
+#  define _INTPTR 2
+# elif defined(_WIN32)
 /* Temporarily disable wider-than-pointer integers until they're tested more.
    Build with CFLAGS='-DWIDE_EMACS_INT' to try them out.  */
 
-# ifdef WIDE_EMACS_INT
+#  ifdef WIDE_EMACS_INT
 
 /* Use pre-C99-style 64-bit integers.  */
 typedef __int64 EMACS_INT;
 typedef unsigned __int64 EMACS_UINT;
-# define EMACS_INT_MAX _I64_MAX
-# define pI "I64"
-
+#   define EMACS_INT_MAX           LLONG_MAX
+#   define PRIuMAX                 "llu"
+#   define pI			  "I64"
+#  else
+typedef int EMACS_INT;
+typedef unsigned int EMACS_UINT;
+#   define EMACS_INT_MAX           LONG_MAX
+#   define PRIuMAX                 "lu"
+#   define pI			  "l"
+#  endif
 # endif
-
 #endif
 
 /* We need a little extra space, see ../../lisp/loadup.el.  */
@@ -420,6 +436,22 @@ extern void _DebPrint (const char *fmt, ...);
 #define DebPrint(stuff)
 #endif
 
+#ifdef _MSC_VER
+#if _MSC_VER >= 800 && !defined(__cplusplus)
+/* Unnamed type definition in parentheses.
+   A structure, union, or enumerated type with no name is defined in a
+   parenthetical expression.  The type definition is meaningless.  */
+#pragma warning(disable:4116)
+/* 'argument' : conversion from 'type1' to 'type2', possible loss of
+   data A floating point type was converted to an integer type.  A
+   possible loss of data may have occurred.  */
+#pragma warning(disable:4244)
+/* Negative integral constant converted to unsigned type.
+   An expression converts a negative integer constant to an unsigned type.
+   The result of the expression is probably meaningless.  */
+#pragma warning(disable:4308)
+#endif
+#endif
 #define TERM_HEADER "w32term.h"
 
 

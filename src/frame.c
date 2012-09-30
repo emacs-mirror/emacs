@@ -3030,7 +3030,7 @@ x_report_frame_params (struct frame *f, Lisp_Object *alistptr)
 {
   char buf[16];
   Lisp_Object tem;
-  unsigned long w;
+  EMACS_UINT w;
 
   /* Represent negative positions (off the top or left screen edge)
      in a way that Fmodify_frame_parameters will understand correctly.  */
@@ -3067,17 +3067,17 @@ x_report_frame_params (struct frame *f, Lisp_Object *alistptr)
      MS-Windows it returns a value whose type is HANDLE, which is
      actually a pointer.  Explicit casting avoids compiler
      warnings.  */
-  w = (unsigned long) FRAME_X_WINDOW (f);
+  w = (EMACS_UINT) FRAME_X_WINDOW (f);
   store_in_alist (alistptr, Qwindow_id,
-		  make_formatted_string (buf, "%lu", w));
+		  make_formatted_string (buf, "%"pMu, w));
 #ifdef HAVE_X_WINDOWS
 #ifdef USE_X_TOOLKIT
   /* Tooltip frame may not have this widget.  */
   if (FRAME_X_OUTPUT (f)->widget)
 #endif
-    w = (unsigned long) FRAME_OUTER_WINDOW (f);
+    w = (EMACS_UINT) FRAME_OUTER_WINDOW (f);
   store_in_alist (alistptr, Qouter_window_id,
-		  make_formatted_string (buf, "%lu", w));
+		  make_formatted_string (buf, "%"pMu, w));
 #endif
   store_in_alist (alistptr, Qicon_name, f->icon_name);
   FRAME_SAMPLE_VISIBILITY (f);

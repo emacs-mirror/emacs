@@ -102,7 +102,7 @@ struct w32_display_info *x_display_list;
 Lisp_Object w32_display_name_list;
 
 
-#ifndef GLYPHSET
+#if _WIN32_WINNT < 0x0500
 /* Pre Windows 2000, this was not available, but define it here so
    that Emacs compiled on such a platform will run on newer versions.  */
 
@@ -360,7 +360,11 @@ w32_draw_underwave (struct glyph_string *s, COLORREF color)
 
   /* Find and set clipping rectangle */
 
-  wave_clip = (XRectangle){ x0, y0, width, wave_height };
+  wave_clip.x = x0;
+  wave_clip.y = y0;
+  wave_clip.width = width;
+  wave_clip.height = wave_height;
+
   get_glyph_string_clip_rect (s, &w32_string_clip);
   CONVERT_TO_XRECT (string_clip, w32_string_clip);
 

@@ -1,3 +1,75 @@
+2012-09-30  Fabrice Popineau  <fabrice.popineau@supelec.fr>
+
+	Support x64 build on MS-Windows.
+	* w32term.h (SCROLL_BAR_PACK, SCROLL_BAR_UNPACK): Define for x64.
+	(SET_SCROLL_BAR_W32_WINDOW): Cast ID to intptr_t, for
+	compatibility with x64.
+
+	* w32term.c (w32_draw_underwave): Don't use GCC extensions for
+	defining an XRectangle structure.
+
+	* w32proc.c (RVA_TO_PTR, w32_executable_type): Fix pointer
+	arithmetics for compatibility with x64.
+
+	* w32menu.c (add_menu_item): Use UINT_PTR instead of UINT, for
+	compatibility with x64.
+
+	* w32heap.h: Adjust prototypes and declarations.
+
+	* w32heap.c (RVA_TO_PTR, allocate_heap, sbrk, init_heap)
+	(round_heap): Use DWORD_PTR, ptrdiff_t and size_t instead of
+	DWORD, long, and unsigned long, for compatibility with x64.
+	(allocate_heap) [_WIN64]: Reserve 32GB of memory.
+	(sbrk): Argument is now of type ptrdiff_t.
+
+	* w32fns.c (HMONITOR): Condition declaration on _WIN32_WINNT being
+	less than 0x0500.
+	(w32_msg_pump): Use WPARAM type for 'result'.
+
+	* w32.c (init_environment, get_emacs_configuration): Support AMD64
+	architecture.
+	(init_ntproc): Cast arguments of _open_osfhandle to intptr_t, for
+	compatibility with x64.
+
+	* vm-limit.c (lim_data): Now size_t.
+	(check_memory_limits): Adjust prototypes of real_morecore and
+	__morecore to receive argument of type ptrdiff_t.  Use size_t for
+	five_percent and data_size.
+
+	* unexw32.c: Use DWORD_PTR instead of DWORD for file-scope
+	variables, for compatibility with x64.
+	(rva_to_section, offset_to_section, relocate_offset)
+	(OFFSET_TO_RVA, RVA_TO_OFFSET, RVA_TO_SECTION_OFFSET)
+	(PTR_TO_RVA, RVA_TO_PTR, OFFSET_TO_PTR, get_section_info)
+	(copy_executable_and_dump_data): Use DWORD_PTR instead of DWORD
+	for compatibility with x64.
+
+	* sysdep.c (STDERR_FILENO): Define if not already defined.
+
+	* ralloc.c (real_morecore): Argument type is now ptrdiff_t.
+	(__morecore): Argument type is now ptrdiff_t.
+	(ROUNDUP, MEM_ROUNDUP): Use size_t instead of 'unsigned long'.
+	(relinquish): Use ptrdiff_t type for 'excess'.
+	(r_alloc_sbrk): Argument type is now ptrdiff_t.
+
+	* makefile.w32-in (HEAPSIZE): Get value from EMACS_HEAPSIZE.
+	(bootstrap-temacs-CMD, bootstrap-temacs-SH): Use $(EMACS_PURESIZE)
+	instead of a literal number.
+
+	* gmalloc.c [WINDOWSNT]: Include w32heap.h.
+	(min): Define only if not already defined.
+
+	* frame.c (x_report_frame_params): Use EMACS_UINT for the return
+	value of FRAME_X_WINDOW, to fit a 64-bit pointer on 64-bit Windows
+	hosts.
+
+	* image.c (x_bitmap_pixmap): Return ptrdiff_t, not int, since
+	'bitmaps' is a pointer.
+
+	* dispextern.h (x_bitmap_pixmap): Adjust prototype.
+
+	* alloc.c (gdb_make_enums_visible): Now conditional on __GNUC__.
+
 2012-09-30  Paul Eggert  <eggert@cs.ucla.edu>
 
 	file-attributes has a new optional arg FOLLOW-SYMLINKS.

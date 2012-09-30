@@ -25,7 +25,7 @@ ALL = emacs
 EMACSLOADPATH=$(CURDIR)/../lisp
 
 # Size in MBs of the static heap in temacs.exe.
-HEAPSIZE = 27
+HEAPSIZE = $(EMACS_HEAPSIZE)
 
 LOCAL_FLAGS     = -Demacs=1 -I../lib -I../nt/inc -DHAVE_NTGUI=1 $(EMACS_EXTRA_C_FLAGS)
 
@@ -247,10 +247,10 @@ bootstrap: bootstrap-emacs
 # WARNING: Do NOT split the part inside $(ARGQUOTE)s into multiple lines as
 #          this can break with GNU Make 3.81 and later if sh.exe is used.
 bootstrap-temacs-CMD:
-	$(MAKE) $(MFLAGS) $(XMFLAGS) temacs CFLAGS=$(ARGQUOTE)$(ESC_CFLAGS) -DPURESIZE=5000000$(ARGQUOTE)
+	$(MAKE) $(MFLAGS) $(XMFLAGS) temacs CFLAGS=$(ARGQUOTE)$(ESC_CFLAGS) -DPURESIZE=$(EMACS_PURESIZE)$(ARGQUOTE)
 
 bootstrap-temacs-SH:
-	$(MAKE) $(MFLAGS) $(XMFLAGS) temacs CFLAGS=$(ARGQUOTE)$(CFLAGS) -DPURESIZE=5000000$(ARGQUOTE)
+	$(MAKE) $(MFLAGS) $(XMFLAGS) temacs CFLAGS=$(ARGQUOTE)$(CFLAGS) -DPURESIZE=$(EMACS_PURESIZE)$(ARGQUOTE)
 
 bootstrap-temacs:
 	$(MAKE) $(MFLAGS) bootstrap-temacs-$(SHELLTYPE)

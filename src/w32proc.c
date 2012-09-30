@@ -62,7 +62,7 @@ extern BOOL WINAPI IsValidLocale (LCID, DWORD);
 
 #define RVA_TO_PTR(var,section,filedata) \
   ((void *)((section)->PointerToRawData					\
-	    + ((DWORD)(var) - (section)->VirtualAddress)		\
+	    + ((DWORD_PTR)(var) - (section)->VirtualAddress)		\
 	    + (filedata).file_base))
 
 Lisp_Object Qhigh, Qlow;
@@ -1190,7 +1190,7 @@ w32_executable_type (char * filename,
       if (dos_header->e_magic != IMAGE_DOS_SIGNATURE)
 	goto unwind;
 
-      nt_header = (PIMAGE_NT_HEADERS) ((char *) dos_header + dos_header->e_lfanew);
+      nt_header = (PIMAGE_NT_HEADERS) ((unsigned char *) dos_header + dos_header->e_lfanew);
 
       if ((char *) nt_header > (char *) dos_header + executable.size)
 	{
