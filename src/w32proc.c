@@ -361,10 +361,8 @@ timer_loop (LPVOID arg)
 	  DWORD result = SuspendThread (itimer->caller_thread);
 
 	  if (result == (DWORD)-1)
-	    {
-	      DebPrint (("Thread %d exiting with status 2\n", which));
-	      return 2;
-	    }
+	    return 2;
+
 	  handler (sig);
 	  ResumeThread (itimer->caller_thread);
 	}
