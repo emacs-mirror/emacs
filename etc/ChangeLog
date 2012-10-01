@@ -11,6 +11,10 @@
 	Revert the FOLLOW-SYMLINKS change for file-attributes.
 	* NEWS: Undo last change.
 
+2012-09-30  Bastien Guerry  <bzg@gnu.org>
+
+	* refcards/orgcard.tex: Update version number.
+
 2012-09-30  Jambunathan K  <kjambunathan@gmail.com>
 
 	* org/OrgOdtContentTemplate.xml:
