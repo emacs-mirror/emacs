@@ -68,7 +68,7 @@ should return a grid vector array that is the new solution.
 ;;;***
 
 ;;;### (autoloads (ada-mode ada-add-extensions) "ada-mode" "progmodes/ada-mode.el"
-;;;;;;  (20427 14766 970343 0))
+;;;;;;  (20576 42138 697312 0))
 ;;; Generated autoloads from progmodes/ada-mode.el
 
 (autoload 'ada-add-extensions "ada-mode" "\
@@ -253,7 +253,7 @@ old-style time formats for entries are supported.
 
 ;;;### (autoloads (defadvice ad-activate ad-add-advice ad-disable-advice
 ;;;;;;  ad-enable-advice ad-default-compilation-action ad-redefinition-action)
-;;;;;;  "advice" "emacs-lisp/advice.el" (20497 6436 957082 0))
+;;;;;;  "advice" "emacs-lisp/advice.el" (20563 51044 242568 0))
 ;;; Generated autoloads from emacs-lisp/advice.el
 
 (defvar ad-redefinition-action 'warn "\
@@ -398,7 +398,7 @@ usage: (defadvice FUNCTION (CLASS NAME [POSITION] [ARGLIST] FLAG...)
 
 ;;;### (autoloads (align-newline-and-indent align-unhighlight-rule
 ;;;;;;  align-highlight-rule align-current align-entire align-regexp
-;;;;;;  align) "align" "align.el" (20515 36389 544939 0))
+;;;;;;  align) "align" "align.el" (20566 63671 243798 0))
 ;;; Generated autoloads from align.el
 
 (autoload 'align "align" "\
@@ -489,7 +489,7 @@ A replacement function for `newline-and-indent', aligning as it goes.
 
 ;;;### (autoloads (outlineify-sticky allout-mode allout-mode-p allout-auto-activation
 ;;;;;;  allout-setup allout-auto-activation-helper) "allout" "allout.el"
-;;;;;;  (20523 62082 997685 0))
+;;;;;;  (20577 33959 40183 0))
 ;;; Generated autoloads from allout.el
 
 (autoload 'allout-auto-activation-helper "allout" "\
@@ -910,7 +910,7 @@ outline hot-spot navigation (see `allout-mode').
 ;;;***
 
 ;;;### (autoloads (ange-ftp-hook-function ange-ftp-reread-dir) "ange-ftp"
-;;;;;;  "net/ange-ftp.el" (20501 3499 284800 0))
+;;;;;;  "net/ange-ftp.el" (20566 63671 243798 0))
 ;;; Generated autoloads from net/ange-ftp.el
 
 (defalias 'ange-ftp-re-read-dir 'ange-ftp-reread-dir)
@@ -965,7 +965,7 @@ the buffer *Birthday-Present-for-Name*.
 ;;;***
 
 ;;;### (autoloads (ansi-color-process-output ansi-color-for-comint-mode-on)
-;;;;;;  "ansi-color" "ansi-color.el" (20523 30501 603360 0))
+;;;;;;  "ansi-color" "ansi-color.el" (20577 33959 40183 0))
 ;;; Generated autoloads from ansi-color.el
 
 (autoload 'ansi-color-for-comint-mode-on "ansi-color" "\
@@ -991,7 +991,7 @@ This is a good function to put in `comint-output-filter-functions'.
 ;;;***
 
 ;;;### (autoloads (antlr-set-tabs antlr-mode antlr-show-makefile-rules)
-;;;;;;  "antlr-mode" "progmodes/antlr-mode.el" (20427 14766 970343
+;;;;;;  "antlr-mode" "progmodes/antlr-mode.el" (20566 63671 243798
 ;;;;;;  0))
 ;;; Generated autoloads from progmodes/antlr-mode.el
 
@@ -1160,8 +1160,8 @@ Returns list of symbols and documentation found.
 
 ;;;***
 
-;;;### (autoloads (archive-mode) "arc-mode" "arc-mode.el" (20387
-;;;;;;  44199 24128 0))
+;;;### (autoloads (archive-mode) "arc-mode" "arc-mode.el" (20585
+;;;;;;  28088 480237 0))
 ;;; Generated autoloads from arc-mode.el
 
 (autoload 'archive-mode "arc-mode" "\
@@ -1573,7 +1573,7 @@ Major mode for editing Autoconf configure.ac files.
 ;;;***
 
 ;;;### (autoloads (auto-insert-mode define-auto-insert auto-insert)
-;;;;;;  "autoinsert" "autoinsert.el" (20458 56750 651721 0))
+;;;;;;  "autoinsert" "autoinsert.el" (20566 63671 243798 0))
 ;;; Generated autoloads from autoinsert.el
 
 (autoload 'auto-insert "autoinsert" "\
@@ -1830,7 +1830,7 @@ seconds.
 ;;;***
 
 ;;;### (autoloads (benchmark benchmark-run-compiled benchmark-run)
-;;;;;;  "benchmark" "emacs-lisp/benchmark.el" (20355 10021 546955
+;;;;;;  "benchmark" "emacs-lisp/benchmark.el" (20557 48712 315579
 ;;;;;;  0))
 ;;; Generated autoloads from emacs-lisp/benchmark.el
 
@@ -1845,6 +1845,8 @@ See also `benchmark-run-compiled'.
 
 \(fn &optional REPETITIONS &rest FORMS)" nil t)
 
+(put 'benchmark-run 'lisp-indent-function '1)
+
 (autoload 'benchmark-run-compiled "benchmark" "\
 Time execution of compiled version of FORMS.
 This is like `benchmark-run', but what is timed is a funcall of the
@@ -1852,6 +1854,8 @@ byte code obtained by wrapping FORMS in a `lambda' and compiling the
 result.  The overhead of the `lambda's is accounted for.
 
 \(fn &optional REPETITIONS &rest FORMS)" nil t)
+
+(put 'benchmark-run-compiled 'lisp-indent-function '1)
 
 (autoload 'benchmark "benchmark" "\
 Print the time taken for REPETITIONS executions of FORM.
@@ -1864,7 +1868,7 @@ For non-interactive use see also `benchmark-run' and
 ;;;***
 
 ;;;### (autoloads (bibtex-search-entry bibtex-mode bibtex-initialize)
-;;;;;;  "bibtex" "textmodes/bibtex.el" (20439 5925 915283 0))
+;;;;;;  "bibtex" "textmodes/bibtex.el" (20576 13095 881042 0))
 ;;; Generated autoloads from textmodes/bibtex.el
 
 (autoload 'bibtex-initialize "bibtex" "\
@@ -1989,8 +1993,8 @@ Binhex decode region between START and END.
 
 ;;;***
 
-;;;### (autoloads (blackbox) "blackbox" "play/blackbox.el" (20545
-;;;;;;  57511 257469 0))
+;;;### (autoloads (blackbox) "blackbox" "play/blackbox.el" (20551
+;;;;;;  9899 283417 0))
 ;;; Generated autoloads from play/blackbox.el
 
 (autoload 'blackbox "blackbox" "\
@@ -2113,7 +2117,7 @@ a reflection.
 ;;;;;;  bookmark-save bookmark-write bookmark-delete bookmark-insert
 ;;;;;;  bookmark-rename bookmark-insert-location bookmark-relocate
 ;;;;;;  bookmark-jump-other-window bookmark-jump bookmark-set) "bookmark"
-;;;;;;  "bookmark.el" (20514 15527 107017 0))
+;;;;;;  "bookmark.el" (20585 28088 480237 0))
 ;;; Generated autoloads from bookmark.el
  (define-key ctl-x-r-map "b" 'bookmark-jump)
  (define-key ctl-x-r-map "m" 'bookmark-set)
@@ -2314,7 +2318,7 @@ Incremental search of bookmarks, hiding the non-matches as we go.
 ;;;;;;  browse-url-xdg-open browse-url-at-mouse browse-url-at-point
 ;;;;;;  browse-url browse-url-of-region browse-url-of-dired-file
 ;;;;;;  browse-url-of-buffer browse-url-of-file browse-url-browser-function)
-;;;;;;  "browse-url" "net/browse-url.el" (20478 3673 653810 0))
+;;;;;;  "browse-url" "net/browse-url.el" (20566 63671 243798 0))
 ;;; Generated autoloads from net/browse-url.el
 
 (defvar browse-url-browser-function 'browse-url-default-browser "\
@@ -2630,7 +2634,7 @@ from `browse-url-elinks-wrapper'.
 ;;;***
 
 ;;;### (autoloads (bs-show bs-customize bs-cycle-previous bs-cycle-next)
-;;;;;;  "bs" "bs.el" (20520 54308 826101 0))
+;;;;;;  "bs" "bs.el" (20576 13095 881042 0))
 ;;; Generated autoloads from bs.el
 
 (autoload 'bs-cycle-next "bs" "\
@@ -2670,8 +2674,8 @@ name of buffer configuration.
 
 ;;;***
 
-;;;### (autoloads (bubbles) "bubbles" "play/bubbles.el" (20478 3673
-;;;;;;  653810 0))
+;;;### (autoloads (bubbles) "bubbles" "play/bubbles.el" (20566 63671
+;;;;;;  243798 0))
 ;;; Generated autoloads from play/bubbles.el
 
 (autoload 'bubbles "bubbles" "\
@@ -2717,7 +2721,7 @@ Like `bug-reference-mode', but only buttonize in comments and strings.
 ;;;;;;  batch-byte-compile-if-not-done display-call-tree byte-compile
 ;;;;;;  compile-defun byte-compile-file byte-recompile-directory
 ;;;;;;  byte-force-recompile byte-compile-enable-warning byte-compile-disable-warning)
-;;;;;;  "bytecomp" "emacs-lisp/bytecomp.el" (20522 38631 876994 556000))
+;;;;;;  "bytecomp" "emacs-lisp/bytecomp.el" (20585 28088 480237 0))
 ;;; Generated autoloads from emacs-lisp/bytecomp.el
 (put 'byte-compile-dynamic 'safe-local-variable 'booleanp)
 (put 'byte-compile-disable-print-circle 'safe-local-variable 'booleanp)
@@ -2876,8 +2880,8 @@ from the cursor position.
 
 ;;;### (autoloads (defmath calc-embedded-activate calc-embedded calc-grab-rectangle
 ;;;;;;  calc-grab-region full-calc-keypad calc-keypad calc-eval quick-calc
-;;;;;;  full-calc calc calc-dispatch) "calc" "calc/calc.el" (20504
-;;;;;;  23200 130482 0))
+;;;;;;  full-calc calc calc-dispatch) "calc" "calc/calc.el" (20572
+;;;;;;  16038 402143 0))
 ;;; Generated autoloads from calc/calc.el
  (define-key ctl-x-map "*" 'calc-dispatch)
 
@@ -2984,8 +2988,8 @@ See the documentation for `calculator-mode' for more information.
 
 ;;;***
 
-;;;### (autoloads (calendar) "calendar" "calendar/calendar.el" (20457
-;;;;;;  35879 688143 0))
+;;;### (autoloads (calendar) "calendar" "calendar/calendar.el" (20577
+;;;;;;  33959 40183 0))
 ;;; Generated autoloads from calendar/calendar.el
 
 (autoload 'calendar "calendar" "\
@@ -3022,7 +3026,7 @@ Runs the following hooks:
    generating a calendar, if today's date is visible or not, respectively
 `calendar-initial-window-hook' - after first creating a calendar
 
-This function is suitable for execution in a .emacs file.
+This function is suitable for execution in an init file.
 
 \(fn &optional ARG)" t nil)
 
@@ -3094,7 +3098,7 @@ Obsoletes `c-forward-into-nomenclature'.
 ;;;***
 
 ;;;### (autoloads (c-guess-basic-syntax) "cc-engine" "progmodes/cc-engine.el"
-;;;;;;  (20486 36135 22104 0))
+;;;;;;  (20557 48712 315579 0))
 ;;; Generated autoloads from progmodes/cc-engine.el
 
 (autoload 'c-guess-basic-syntax "cc-engine" "\
@@ -3384,7 +3388,7 @@ Key bindings:
 ;;;***
 
 ;;;### (autoloads (c-set-offset c-add-style c-set-style) "cc-styles"
-;;;;;;  "progmodes/cc-styles.el" (20355 10021 546955 0))
+;;;;;;  "progmodes/cc-styles.el" (20566 63671 243798 0))
 ;;; Generated autoloads from progmodes/cc-styles.el
 
 (autoload 'c-set-style "cc-styles" "\
@@ -3401,8 +3405,8 @@ might get set too.
 If DONT-OVERRIDE is neither nil nor t, style variables whose default values
 have been set (more precisely, whose default values are not the symbol
 `set-from-style') will not be changed.  This avoids overriding global settings
-done in ~/.emacs.  It is useful to call c-set-style from a mode hook in this
-way.
+done in your init file.  It is useful to call c-set-style from a mode hook
+in this way.
 
 If DONT-OVERRIDE is t, style variables that already have values (i.e., whose
 values are not the symbol `set-from-style') will not be overridden.  CC Mode
@@ -4129,8 +4133,8 @@ For example, the function `case' has an indent property
 
 ;;;***
 
-;;;### (autoloads nil "cl-lib" "emacs-lisp/cl-lib.el" (20541 60450
-;;;;;;  834170 0))
+;;;### (autoloads nil "cl-lib" "emacs-lisp/cl-lib.el" (20582 12953
+;;;;;;  724727 481000))
 ;;; Generated autoloads from emacs-lisp/cl-lib.el
 
 (define-obsolete-variable-alias 'custom-print-functions 'cl-custom-print-functions "24.3")
@@ -4158,7 +4162,7 @@ a future Emacs interpreter will be able to use it.")
 ;;;***
 
 ;;;### (autoloads (c-macro-expand) "cmacexp" "progmodes/cmacexp.el"
-;;;;;;  (20495 51111 757560 0))
+;;;;;;  (20566 63671 243798 0))
 ;;; Generated autoloads from progmodes/cmacexp.el
 
 (autoload 'c-macro-expand "cmacexp" "\
@@ -4222,7 +4226,7 @@ If FRAME cannot display COLOR, return nil.
 ;;;### (autoloads (comint-redirect-results-list-from-process comint-redirect-results-list
 ;;;;;;  comint-redirect-send-command-to-process comint-redirect-send-command
 ;;;;;;  comint-run make-comint make-comint-in-buffer) "comint" "comint.el"
-;;;;;;  (20523 62082 997685 0))
+;;;;;;  (20577 33959 40183 0))
 ;;; Generated autoloads from comint.el
 
 (defvar comint-output-filter-functions '(ansi-color-process-output comint-postoutput-scroll-to-bottom comint-watch-for-password-prompt) "\
@@ -4359,8 +4363,8 @@ on third call it again advances points to the next difference and so on.
 ;;;;;;  compilation-shell-minor-mode compilation-mode compilation-start
 ;;;;;;  compile compilation-disable-input compile-command compilation-search-path
 ;;;;;;  compilation-ask-about-save compilation-window-height compilation-start-hook
-;;;;;;  compilation-mode-hook) "compile" "progmodes/compile.el" (20543
-;;;;;;  15782 195452 0))
+;;;;;;  compilation-mode-hook) "compile" "progmodes/compile.el" (20576
+;;;;;;  42138 697312 0))
 ;;; Generated autoloads from progmodes/compile.el
 
 (defvar compilation-mode-hook nil "\
@@ -5147,7 +5151,7 @@ Enable CUA selection mode without the C-z/C-x/C-c/C-v bindings.
 ;;;;;;  customize-mode customize customize-push-and-save customize-save-variable
 ;;;;;;  customize-set-variable customize-set-value custom-menu-sort-alphabetically
 ;;;;;;  custom-buffer-sort-alphabetically custom-browse-sort-alphabetically)
-;;;;;;  "cus-edit" "cus-edit.el" (20523 62082 997685 0))
+;;;;;;  "cus-edit" "cus-edit.el" (20577 33959 40183 0))
 ;;; Generated autoloads from cus-edit.el
 
 (defvar custom-browse-sort-alphabetically nil "\
@@ -5504,8 +5508,8 @@ Mode used for cvs status output.
 
 ;;;***
 
-;;;### (autoloads (global-cwarn-mode turn-on-cwarn-mode cwarn-mode)
-;;;;;;  "cwarn" "progmodes/cwarn.el" (20478 3673 653810 0))
+;;;### (autoloads (global-cwarn-mode cwarn-mode) "cwarn" "progmodes/cwarn.el"
+;;;;;;  (20577 33959 40183 0))
 ;;; Generated autoloads from progmodes/cwarn.el
 
 (autoload 'cwarn-mode "cwarn" "\
@@ -5523,13 +5527,7 @@ if ARG is omitted or nil.
 
 \(fn &optional ARG)" t nil)
 
-(autoload 'turn-on-cwarn-mode "cwarn" "\
-Turn on CWarn mode.
-
-This function is designed to be added to hooks, for example:
-  (add-hook 'c-mode-hook 'turn-on-cwarn-mode)
-
-\(fn)" nil nil)
+(define-obsolete-function-alias 'turn-on-cwarn-mode 'cwarn-mode "24.1")
 
 (defvar global-cwarn-mode nil "\
 Non-nil if Global-Cwarn mode is enabled.
@@ -5784,7 +5782,7 @@ There is some minimal font-lock support (see vars
 ;;;***
 
 ;;;### (autoloads (cancel-debug-on-entry debug-on-entry debug) "debug"
-;;;;;;  "emacs-lisp/debug.el" (20497 6436 957082 0))
+;;;;;;  "emacs-lisp/debug.el" (20572 16038 402143 0))
 ;;; Generated autoloads from emacs-lisp/debug.el
 
 (setq debugger 'debug)
@@ -5828,7 +5826,7 @@ To specify a nil argument interactively, exit with an empty minibuffer.
 ;;;***
 
 ;;;### (autoloads (decipher-mode decipher) "decipher" "play/decipher.el"
-;;;;;;  (20478 3673 653810 0))
+;;;;;;  (20566 63671 243798 0))
 ;;; Generated autoloads from play/decipher.el
 
 (autoload 'decipher "decipher" "\
@@ -5965,7 +5963,7 @@ any selection.
 ;;;***
 
 ;;;### (autoloads (derived-mode-init-mode-variables define-derived-mode)
-;;;;;;  "derived" "emacs-lisp/derived.el" (20437 50597 545250 0))
+;;;;;;  "derived" "emacs-lisp/derived.el" (20577 33959 40183 0))
 ;;; Generated autoloads from emacs-lisp/derived.el
 
 (autoload 'define-derived-mode "derived" "\
@@ -6069,7 +6067,7 @@ relevant to POS.
 ;;;### (autoloads (desktop-revert desktop-save-in-desktop-dir desktop-change-dir
 ;;;;;;  desktop-load-default desktop-read desktop-remove desktop-save
 ;;;;;;  desktop-clear desktop-locals-to-save desktop-save-mode) "desktop"
-;;;;;;  "desktop.el" (20497 6436 957082 0))
+;;;;;;  "desktop.el" (20577 33959 40183 0))
 ;;; Generated autoloads from desktop.el
 
 (defvar desktop-save-mode nil "\
@@ -6234,6 +6232,8 @@ Also inhibit further loading of it.
 
 \(fn)" nil nil)
 
+(make-obsolete 'desktop-load-default 'desktop-save-mode "22.1")
+
 (autoload 'desktop-change-dir "desktop" "\
 Change to desktop saved in DIRNAME.
 Kill the desktop as specified by variables `desktop-save-mode' and
@@ -6289,14 +6289,14 @@ Deuglify broken Outlook (Express) articles and redisplay.
 ;;;***
 
 ;;;### (autoloads (diary-mode diary-mail-entries diary) "diary-lib"
-;;;;;;  "calendar/diary-lib.el" (20530 32124 97707 678000))
+;;;;;;  "calendar/diary-lib.el" (20576 42138 697312 0))
 ;;; Generated autoloads from calendar/diary-lib.el
 
 (autoload 'diary "diary-lib" "\
 Generate the diary window for ARG days starting with the current date.
 If no argument is provided, the number of days of diary entries is governed
 by the variable `diary-number-of-entries'.  A value of ARG less than 1
-does nothing.  This function is suitable for execution in a `.emacs' file.
+does nothing.  This function is suitable for execution in an init file.
 
 \(fn &optional ARG)" t nil)
 
@@ -6307,8 +6307,8 @@ Mail is sent to the address specified by `diary-mail-addr'.
 
 Here is an example of a script to call `diary-mail-entries',
 suitable for regular scheduling using cron (or at).  Note that
-since `emacs -script' does not load your `.emacs' file, you
-should ensure that all relevant variables are set.
+since `emacs -script' does not load your init file, you should
+ensure that all relevant variables are set.
 
 #!/usr/bin/emacs -script
 ;; diary-rem.el - run the Emacs diary-reminder
@@ -6331,8 +6331,9 @@ Major mode for editing the diary file.
 
 ;;;***
 
-;;;### (autoloads (diff-buffer-with-file diff-backup diff diff-command
-;;;;;;  diff-switches) "diff" "vc/diff.el" (20476 31768 298871 0))
+;;;### (autoloads (diff-buffer-with-file diff-latest-backup-file
+;;;;;;  diff-backup diff diff-command diff-switches) "diff" "vc/diff.el"
+;;;;;;  (20570 60708 993668 0))
 ;;; Generated autoloads from vc/diff.el
 
 (defvar diff-switches (purecopy "-c") "\
@@ -6367,6 +6368,11 @@ With prefix arg, prompt for diff switches.
 
 \(fn FILE &optional SWITCHES)" t nil)
 
+(autoload 'diff-latest-backup-file "diff" "\
+Return the latest existing backup of FILE, or nil.
+
+\(fn FN)" nil nil)
+
 (autoload 'diff-buffer-with-file "diff" "\
 View the differences between BUFFER and its associated file.
 This requires the external program `diff' to be in your `exec-path'.
@@ -6376,7 +6382,7 @@ This requires the external program `diff' to be in your `exec-path'.
 ;;;***
 
 ;;;### (autoloads (diff-minor-mode diff-mode) "diff-mode" "vc/diff-mode.el"
-;;;;;;  (20523 62082 997685 0))
+;;;;;;  (20585 28088 480237 0))
 ;;; Generated autoloads from vc/diff-mode.el
 
 (autoload 'diff-mode "diff-mode" "\
@@ -6420,8 +6426,8 @@ Optional arguments are passed to `dig-invoke'.
 ;;;***
 
 ;;;### (autoloads (dired-mode dired-noselect dired-other-frame dired-other-window
-;;;;;;  dired dired-listing-switches) "dired" "dired.el" (20539 18737
-;;;;;;  159373 0))
+;;;;;;  dired dired-listing-switches) "dired" "dired.el" (20584 7212
+;;;;;;  455152 0))
 ;;; Generated autoloads from dired.el
 
 (defvar dired-listing-switches (purecopy "-al") "\
@@ -6777,8 +6783,8 @@ Locate SOA record and increment the serial field.
 ;;;***
 
 ;;;### (autoloads (doc-view-bookmark-jump doc-view-minor-mode doc-view-mode-maybe
-;;;;;;  doc-view-mode doc-view-mode-p) "doc-view" "doc-view.el" (20476
-;;;;;;  31768 298871 0))
+;;;;;;  doc-view-mode doc-view-mode-p) "doc-view" "doc-view.el" (20581
+;;;;;;  31014 234484 0))
 ;;; Generated autoloads from doc-view.el
 
 (autoload 'doc-view-mode-p "doc-view" "\
@@ -6865,7 +6871,7 @@ Switch to *dungeon* buffer and start game.
 
 ;;;### (autoloads (easy-mmode-defsyntax easy-mmode-defmap easy-mmode-define-keymap
 ;;;;;;  define-globalized-minor-mode define-minor-mode) "easy-mmode"
-;;;;;;  "emacs-lisp/easy-mmode.el" (20459 40320 865360 0))
+;;;;;;  "emacs-lisp/easy-mmode.el" (20574 57775 217760 0))
 ;;; Generated autoloads from emacs-lisp/easy-mmode.el
 
 (defalias 'easy-mmode-define-minor-mode 'define-minor-mode)
@@ -6877,12 +6883,17 @@ MODE (you can override this with the :variable keyword, see below).
 DOC is the documentation for the mode toggle command.
 
 The defined mode command takes one optional (prefix) argument.
-Interactively with no prefix argument it toggles the mode.
-With a prefix argument, it enables the mode if the argument is
-positive and otherwise disables it.  When called from Lisp, it
-enables the mode if the argument is omitted or nil, and toggles
-the mode if the argument is `toggle'.  If DOC is nil this
-function adds a basic doc-string stating these facts.
+Interactively with no prefix argument, it toggles the mode.
+A prefix argument enables the mode if the argument is positive,
+and disables it otherwise.
+
+When called from Lisp, the mode command toggles the mode if the
+argument is `toggle', disables the mode if the argument is a
+non-positive integer, and enables the mode otherwise (including
+if the argument is omitted or nil or a positive integer).
+
+If DOC is nil, give the mode command a basic doc-string
+documenting what its argument does.
 
 Optional INIT-VALUE is the initial value of the mode's variable.
 Optional LIGHTER is displayed in the mode line when the mode is on.
@@ -6995,8 +7006,8 @@ CSS contains a list of syntax specifications of the form (CHAR . SYNTAX).
 ;;;***
 
 ;;;### (autoloads (easy-menu-change easy-menu-create-menu easy-menu-do-define
-;;;;;;  easy-menu-define) "easymenu" "emacs-lisp/easymenu.el" (20437
-;;;;;;  50597 545250 0))
+;;;;;;  easy-menu-define) "easymenu" "emacs-lisp/easymenu.el" (20563
+;;;;;;  1062 543283 0))
 ;;; Generated autoloads from emacs-lisp/easymenu.el
 
 (autoload 'easy-menu-define "easymenu" "\
@@ -7150,7 +7161,7 @@ To implement dynamic menus, either call this from
 ;;;;;;  ebnf-eps-file ebnf-eps-directory ebnf-spool-region ebnf-spool-buffer
 ;;;;;;  ebnf-spool-file ebnf-spool-directory ebnf-print-region ebnf-print-buffer
 ;;;;;;  ebnf-print-file ebnf-print-directory ebnf-customize) "ebnf2ps"
-;;;;;;  "progmodes/ebnf2ps.el" (20495 51111 757560 0))
+;;;;;;  "progmodes/ebnf2ps.el" (20566 63671 243798 0))
 ;;; Generated autoloads from progmodes/ebnf2ps.el
 
 (autoload 'ebnf-customize "ebnf2ps" "\
@@ -7424,8 +7435,8 @@ See `ebnf-style-database' documentation.
 ;;;;;;  ebrowse-tags-find-declaration-other-window ebrowse-tags-find-definition
 ;;;;;;  ebrowse-tags-view-definition ebrowse-tags-find-declaration
 ;;;;;;  ebrowse-tags-view-declaration ebrowse-member-mode ebrowse-electric-choose-tree
-;;;;;;  ebrowse-tree-mode) "ebrowse" "progmodes/ebrowse.el" (20478
-;;;;;;  3673 653810 0))
+;;;;;;  ebrowse-tree-mode) "ebrowse" "progmodes/ebrowse.el" (20561
+;;;;;;  18280 338092 0))
 ;;; Generated autoloads from progmodes/ebrowse.el
 
 (autoload 'ebrowse-tree-mode "ebrowse" "\
@@ -7657,7 +7668,7 @@ an EDE controlled project.
 
 ;;;### (autoloads (edebug-all-forms edebug-all-defs edebug-eval-top-level-form
 ;;;;;;  edebug-basic-spec edebug-all-forms edebug-all-defs) "edebug"
-;;;;;;  "emacs-lisp/edebug.el" (20523 62082 997685 0))
+;;;;;;  "emacs-lisp/edebug.el" (20563 1062 543283 0))
 ;;; Generated autoloads from emacs-lisp/edebug.el
 
 (defvar edebug-all-defs nil "\
@@ -7987,7 +7998,7 @@ Display Ediff's registry.
 ;;;***
 
 ;;;### (autoloads (ediff-toggle-use-toolbar ediff-toggle-multiframe)
-;;;;;;  "ediff-util" "vc/ediff-util.el" (20355 10021 546955 0))
+;;;;;;  "ediff-util" "vc/ediff-util.el" (20584 7212 455152 0))
 ;;; Generated autoloads from vc/ediff-util.el
 
 (autoload 'ediff-toggle-multiframe "ediff-util" "\
@@ -8057,7 +8068,7 @@ or nil, use a compact 80-column format.
 ;;;***
 
 ;;;### (autoloads (edt-emulation-on edt-set-scroll-margins) "edt"
-;;;;;;  "emulation/edt.el" (20448 20900 17488 0))
+;;;;;;  "emulation/edt.el" (20566 63671 243798 0))
 ;;; Generated autoloads from emulation/edt.el
 
 (autoload 'edt-set-scroll-margins "edt" "\
@@ -8075,7 +8086,7 @@ Turn on EDT Emulation.
 ;;;***
 
 ;;;### (autoloads (electric-helpify with-electric-help) "ehelp" "ehelp.el"
-;;;;;;  (20355 10021 546955 0))
+;;;;;;  (20561 18280 338092 0))
 ;;; Generated autoloads from ehelp.el
 
 (autoload 'with-electric-help "ehelp" "\
@@ -8319,7 +8330,7 @@ displayed.
 ;;;***
 
 ;;;### (autoloads (emacs-lock-mode) "emacs-lock" "emacs-lock.el"
-;;;;;;  (20523 62082 997685 0))
+;;;;;;  (20577 33959 40183 0))
 ;;; Generated autoloads from emacs-lock.el
 
 (autoload 'emacs-lock-mode "emacs-lock" "\
@@ -8347,7 +8358,7 @@ Other values are interpreted as usual.
 ;;;***
 
 ;;;### (autoloads (report-emacs-bug-query-existing-bugs report-emacs-bug)
-;;;;;;  "emacsbug" "mail/emacsbug.el" (20523 62082 997685 0))
+;;;;;;  "emacsbug" "mail/emacsbug.el" (20576 13095 881042 0))
 ;;; Generated autoloads from mail/emacsbug.el
 
 (autoload 'report-emacs-bug "emacsbug" "\
@@ -8368,7 +8379,7 @@ The result is an alist with items of the form (URL SUBJECT NO).
 ;;;;;;  emerge-revisions emerge-files-with-ancestor-remote emerge-files-remote
 ;;;;;;  emerge-files-with-ancestor-command emerge-files-command emerge-buffers-with-ancestor
 ;;;;;;  emerge-buffers emerge-files-with-ancestor emerge-files) "emerge"
-;;;;;;  "vc/emerge.el" (20355 10021 546955 0))
+;;;;;;  "vc/emerge.el" (20576 42138 697312 0))
 ;;; Generated autoloads from vc/emerge.el
 
 (autoload 'emerge-files "emerge" "\
@@ -8469,8 +8480,8 @@ Commands:
 ;;;;;;  epa-sign-region epa-verify-cleartext-in-region epa-verify-region
 ;;;;;;  epa-decrypt-armor-in-region epa-decrypt-region epa-encrypt-file
 ;;;;;;  epa-sign-file epa-verify-file epa-decrypt-file epa-select-keys
-;;;;;;  epa-list-secret-keys epa-list-keys) "epa" "epa.el" (20434
-;;;;;;  17809 692608 0))
+;;;;;;  epa-list-secret-keys epa-list-keys) "epa" "epa.el" (20577
+;;;;;;  33959 40183 0))
 ;;; Generated autoloads from epa.el
 
 (autoload 'epa-list-keys "epa" "\
@@ -8697,7 +8708,7 @@ Encrypt marked files.
 
 ;;;### (autoloads (epa-global-mail-mode epa-mail-import-keys epa-mail-encrypt
 ;;;;;;  epa-mail-sign epa-mail-verify epa-mail-decrypt epa-mail-mode)
-;;;;;;  "epa-mail" "epa-mail.el" (20355 10021 546955 0))
+;;;;;;  "epa-mail" "epa-mail.el" (20566 63671 243798 0))
 ;;; Generated autoloads from epa-mail.el
 
 (autoload 'epa-mail-mode "epa-mail" "\
@@ -8767,8 +8778,8 @@ if ARG is omitted or nil.
 
 ;;;***
 
-;;;### (autoloads (epg-make-context) "epg" "epg.el" (20355 10021
-;;;;;;  546955 0))
+;;;### (autoloads (epg-make-context) "epg" "epg.el" (20577 33959
+;;;;;;  40183 0))
 ;;; Generated autoloads from epg.el
 
 (autoload 'epg-make-context "epg" "\
@@ -8800,7 +8811,7 @@ Look at CONFIG and try to expand GROUP.
 ;;;***
 
 ;;;### (autoloads (erc-handle-irc-url erc-tls erc erc-select-read-args)
-;;;;;;  "erc" "erc/erc.el" (20530 32114 546307 0))
+;;;;;;  "erc" "erc/erc.el" (20577 33959 40183 0))
 ;;; Generated autoloads from erc/erc.el
 
 (autoload 'erc-select-read-args "erc" "\
@@ -8855,15 +8866,15 @@ Otherwise, connect to HOST:PORT as USER and /join CHANNEL.
 
 ;;;***
 
-;;;### (autoloads nil "erc-button" "erc/erc-button.el" (20434 17809
-;;;;;;  692608 0))
+;;;### (autoloads nil "erc-button" "erc/erc-button.el" (20566 63671
+;;;;;;  243798 0))
 ;;; Generated autoloads from erc/erc-button.el
  (autoload 'erc-button-mode "erc-button" nil t)
 
 ;;;***
 
-;;;### (autoloads nil "erc-capab" "erc/erc-capab.el" (20355 10021
-;;;;;;  546955 0))
+;;;### (autoloads nil "erc-capab" "erc/erc-capab.el" (20566 63671
+;;;;;;  243798 0))
 ;;; Generated autoloads from erc/erc-capab.el
  (autoload 'erc-capab-identify-mode "erc-capab" nil t)
 
@@ -9065,7 +9076,7 @@ You can save every individual message by putting this function on
 ;;;### (autoloads (erc-delete-dangerous-host erc-add-dangerous-host
 ;;;;;;  erc-delete-keyword erc-add-keyword erc-delete-fool erc-add-fool
 ;;;;;;  erc-delete-pal erc-add-pal) "erc-match" "erc/erc-match.el"
-;;;;;;  (20531 24613 995935 0))
+;;;;;;  (20566 63671 243798 0))
 ;;; Generated autoloads from erc/erc-match.el
  (autoload 'erc-match-mode "erc-match")
 
@@ -9119,7 +9130,7 @@ Delete dangerous-host interactively to `erc-dangerous-hosts'.
 ;;;***
 
 ;;;### (autoloads (erc-cmd-WHOLEFT) "erc-netsplit" "erc/erc-netsplit.el"
-;;;;;;  (20355 10021 546955 0))
+;;;;;;  (20566 63671 243798 0))
 ;;; Generated autoloads from erc/erc-netsplit.el
  (autoload 'erc-netsplit-mode "erc-netsplit")
 
@@ -9174,7 +9185,7 @@ with args, toggle notify status of people.
 
 ;;;***
 
-;;;### (autoloads nil "erc-page" "erc/erc-page.el" (20355 10021 546955
+;;;### (autoloads nil "erc-page" "erc/erc-page.el" (20566 63671 243798
 ;;;;;;  0))
 ;;; Generated autoloads from erc/erc-page.el
  (autoload 'erc-page-mode "erc-page")
@@ -9188,8 +9199,8 @@ with args, toggle notify status of people.
 
 ;;;***
 
-;;;### (autoloads nil "erc-replace" "erc/erc-replace.el" (20355 10021
-;;;;;;  546955 0))
+;;;### (autoloads nil "erc-replace" "erc/erc-replace.el" (20566 63671
+;;;;;;  243798 0))
 ;;; Generated autoloads from erc/erc-replace.el
  (autoload 'erc-replace-mode "erc-replace")
 
@@ -9247,15 +9258,15 @@ This will add a speedbar major display mode.
 
 ;;;***
 
-;;;### (autoloads nil "erc-stamp" "erc/erc-stamp.el" (20434 17809
-;;;;;;  692608 0))
+;;;### (autoloads nil "erc-stamp" "erc/erc-stamp.el" (20566 63671
+;;;;;;  243798 0))
 ;;; Generated autoloads from erc/erc-stamp.el
  (autoload 'erc-timestamp-mode "erc-stamp" nil t)
 
 ;;;***
 
 ;;;### (autoloads (erc-track-minor-mode) "erc-track" "erc/erc-track.el"
-;;;;;;  (20427 14766 970343 0))
+;;;;;;  (20566 63671 243798 0))
 ;;; Generated autoloads from erc/erc-track.el
 
 (defvar erc-track-minor-mode nil "\
@@ -9315,7 +9326,7 @@ Add a file to `erc-xdcc-files'.
 
 ;;;### (autoloads (ert-describe-test ert-run-tests-interactively
 ;;;;;;  ert-run-tests-batch-and-exit ert-run-tests-batch ert-deftest)
-;;;;;;  "ert" "emacs-lisp/ert.el" (20355 10021 546955 0))
+;;;;;;  "ert" "emacs-lisp/ert.el" (20576 42138 697312 0))
 ;;; Generated autoloads from emacs-lisp/ert.el
 
 (autoload 'ert-deftest "ert" "\
@@ -9381,7 +9392,7 @@ Display the documentation for TEST-OR-TEST-NAME (a symbol or ert-test).
 ;;;***
 
 ;;;### (autoloads (ert-kill-all-test-buffers) "ert-x" "emacs-lisp/ert-x.el"
-;;;;;;  (20364 28960 773408 688000))
+;;;;;;  (20576 42138 697312 0))
 ;;; Generated autoloads from emacs-lisp/ert-x.el
 
 (put 'ert-with-test-buffer 'lisp-indent-function 1)
@@ -9407,7 +9418,7 @@ Emacs shell interactive mode.
 ;;;***
 
 ;;;### (autoloads (eshell-command-result eshell-command eshell) "eshell"
-;;;;;;  "eshell/eshell.el" (20523 62082 997685 0))
+;;;;;;  "eshell/eshell.el" (20577 33959 40183 0))
 ;;; Generated autoloads from eshell/eshell.el
 
 (autoload 'eshell "eshell" "\
@@ -10177,8 +10188,8 @@ This is used only in conjunction with `expand-add-abbrevs'.
 
 ;;;***
 
-;;;### (autoloads (f90-mode) "f90" "progmodes/f90.el" (20461 32935
-;;;;;;  300400 0))
+;;;### (autoloads (f90-mode) "f90" "progmodes/f90.el" (20566 63671
+;;;;;;  243798 0))
 ;;; Generated autoloads from progmodes/f90.el
 
 (autoload 'f90-mode "f90" "\
@@ -10408,8 +10419,8 @@ Besides the choice of face, it is the same as `buffer-face-mode'.
 
 ;;;### (autoloads (feedmail-queue-reminder feedmail-run-the-queue
 ;;;;;;  feedmail-run-the-queue-global-prompt feedmail-run-the-queue-no-prompts
-;;;;;;  feedmail-send-it) "feedmail" "mail/feedmail.el" (20501 3499
-;;;;;;  284800 0))
+;;;;;;  feedmail-send-it) "feedmail" "mail/feedmail.el" (20566 63671
+;;;;;;  243798 0))
 ;;; Generated autoloads from mail/feedmail.el
 
 (autoload 'feedmail-send-it "feedmail" "\
@@ -10464,7 +10475,7 @@ you can set `feedmail-queue-reminder-alist' to nil.
 
 ;;;### (autoloads (ffap-bindings ffap-guess-file-name-at-point dired-at-point
 ;;;;;;  ffap-at-mouse ffap-menu find-file-at-point ffap-next) "ffap"
-;;;;;;  "ffap.el" (20542 46798 773957 0))
+;;;;;;  "ffap.el" (20566 63671 243798 0))
 ;;; Generated autoloads from ffap.el
 
 (autoload 'ffap-next "ffap" "\
@@ -10656,8 +10667,8 @@ Copy directory-local variables to the -*- line.
 
 ;;;***
 
-;;;### (autoloads (filesets-init) "filesets" "filesets.el" (20476
-;;;;;;  31768 298871 0))
+;;;### (autoloads (filesets-init) "filesets" "filesets.el" (20566
+;;;;;;  63671 243798 0))
 ;;; Generated autoloads from filesets.el
 
 (autoload 'filesets-init "filesets" "\
@@ -11028,7 +11039,7 @@ Find packages matching a given keyword.
 ;;;***
 
 ;;;### (autoloads (enable-flow-control-on enable-flow-control) "flow-ctrl"
-;;;;;;  "flow-ctrl.el" (20355 10021 546955 0))
+;;;;;;  "flow-ctrl.el" (20566 63671 243798 0))
 ;;; Generated autoloads from flow-ctrl.el
 
 (autoload 'enable-flow-control "flow-ctrl" "\
@@ -11066,8 +11077,8 @@ to get the effect of a C-q.
 ;;;***
 
 ;;;### (autoloads (flymake-find-file-hook flymake-mode-off flymake-mode-on
-;;;;;;  flymake-mode) "flymake" "progmodes/flymake.el" (20482 39076
-;;;;;;  289170 0))
+;;;;;;  flymake-mode) "flymake" "progmodes/flymake.el" (20551 9899
+;;;;;;  283417 0))
 ;;; Generated autoloads from progmodes/flymake.el
 
 (autoload 'flymake-mode "flymake" "\
@@ -11097,7 +11108,7 @@ Turn flymake mode off.
 
 ;;;### (autoloads (flyspell-buffer flyspell-region flyspell-mode-off
 ;;;;;;  turn-off-flyspell turn-on-flyspell flyspell-mode flyspell-prog-mode)
-;;;;;;  "flyspell" "textmodes/flyspell.el" (20434 17809 692608 0))
+;;;;;;  "flyspell" "textmodes/flyspell.el" (20566 63671 243798 0))
 ;;; Generated autoloads from textmodes/flyspell.el
 
 (autoload 'flyspell-prog-mode "flyspell" "\
@@ -11133,7 +11144,7 @@ invoking `ispell-change-dictionary'.
 Consider using the `ispell-parser' to check your text.  For instance
 consider adding:
 \(add-hook 'tex-mode-hook (function (lambda () (setq ispell-parser 'tex))))
-in your .emacs file.
+in your init file.
 
 \\[flyspell-region] checks all words inside a region.
 \\[flyspell-buffer] checks the whole buffer.
@@ -11651,8 +11662,8 @@ DEFAULT-MAP specifies the default key map for ICON-LIST.
 ;;;***
 
 ;;;### (autoloads (gnus gnus-other-frame gnus-slave gnus-no-server
-;;;;;;  gnus-slave-no-server) "gnus" "gnus/gnus.el" (20503 45225
-;;;;;;  529939 0))
+;;;;;;  gnus-slave-no-server) "gnus" "gnus/gnus.el" (20552 30761
+;;;;;;  207103 0))
 ;;; Generated autoloads from gnus/gnus.el
 (when (fboundp 'custom-autoload)
  (custom-autoload 'gnus-select-method "gnus"))
@@ -11796,7 +11807,7 @@ If CLEAN, obsolete (ignore).
 ;;;***
 
 ;;;### (autoloads (gnus-article-prepare-display) "gnus-art" "gnus/gnus-art.el"
-;;;;;;  (20522 9637 465791 0))
+;;;;;;  (20578 54821 719276 0))
 ;;; Generated autoloads from gnus/gnus-art.el
 
 (autoload 'gnus-article-prepare-display "gnus-art" "\
@@ -11951,8 +11962,8 @@ Reminder user if there are unsent drafts.
 
 ;;;### (autoloads (gnus-convert-png-to-face gnus-convert-face-to-png
 ;;;;;;  gnus-face-from-file gnus-x-face-from-file gnus-insert-random-x-face-header
-;;;;;;  gnus-random-x-face) "gnus-fun" "gnus/gnus-fun.el" (20495
-;;;;;;  51111 757560 0))
+;;;;;;  gnus-random-x-face) "gnus-fun" "gnus/gnus-fun.el" (20549
+;;;;;;  54573 979353 0))
 ;;; Generated autoloads from gnus/gnus-fun.el
 
 (autoload 'gnus-random-x-face "gnus-fun" "\
@@ -12016,7 +12027,7 @@ If gravatars are already displayed, remove them.
 ;;;***
 
 ;;;### (autoloads (gnus-fetch-group-other-frame gnus-fetch-group)
-;;;;;;  "gnus-group" "gnus/gnus-group.el" (20495 51111 757560 0))
+;;;;;;  "gnus-group" "gnus/gnus-group.el" (20553 51627 169867 0))
 ;;; Generated autoloads from gnus/gnus-group.el
 
 (autoload 'gnus-fetch-group "gnus-group" "\
@@ -12218,7 +12229,7 @@ Like `message-reply'.
 ;;;***
 
 ;;;### (autoloads (gnus-notifications) "gnus-notifications" "gnus/gnus-notifications.el"
-;;;;;;  (20544 36659 880486 0))
+;;;;;;  (20559 4008 701730 0))
 ;;; Generated autoloads from gnus/gnus-notifications.el
 
 (autoload 'gnus-notifications "gnus-notifications" "\
@@ -12482,8 +12493,8 @@ Use \\[describe-mode] for more info.
 ;;;***
 
 ;;;### (autoloads (goto-address-prog-mode goto-address-mode goto-address
-;;;;;;  goto-address-at-point) "goto-addr" "net/goto-addr.el" (20355
-;;;;;;  10021 546955 0))
+;;;;;;  goto-address-at-point) "goto-addr" "net/goto-addr.el" (20566
+;;;;;;  63671 243798 0))
 ;;; Generated autoloads from net/goto-addr.el
 
 (define-obsolete-function-alias 'goto-address-at-mouse 'goto-address-at-point "22.1")
@@ -12543,8 +12554,8 @@ Retrieve MAIL-ADDRESS gravatar and returns it.
 
 ;;;### (autoloads (zrgrep rgrep lgrep grep-find grep grep-mode grep-compute-defaults
 ;;;;;;  grep-process-setup grep-setup-hook grep-find-command grep-command
-;;;;;;  grep-window-height) "grep" "progmodes/grep.el" (20369 14251
-;;;;;;  85829 0))
+;;;;;;  grep-window-height) "grep" "progmodes/grep.el" (20572 16038
+;;;;;;  402143 0))
 ;;; Generated autoloads from progmodes/grep.el
 
 (defvar grep-window-height nil "\
@@ -12813,7 +12824,7 @@ it if ARG is omitted or nil.
 
 ;;;### (autoloads (setf gv-define-simple-setter gv-define-setter
 ;;;;;;  gv--defun-declaration gv-define-expander gv-letplace gv-get)
-;;;;;;  "gv" "emacs-lisp/gv.el" (20542 46798 773957 0))
+;;;;;;  "gv" "emacs-lisp/gv.el" (20580 10161 446444 0))
 ;;; Generated autoloads from emacs-lisp/gv.el
 
 (autoload 'gv-get "gv" "\
@@ -12902,8 +12913,8 @@ The return value is the last VAL in the list.
 
 ;;;***
 
-;;;### (autoloads (handwrite) "handwrite" "play/handwrite.el" (20355
-;;;;;;  10021 546955 0))
+;;;### (autoloads (handwrite) "handwrite" "play/handwrite.el" (20566
+;;;;;;  63671 243798 0))
 ;;; Generated autoloads from play/handwrite.el
 
 (autoload 'handwrite "handwrite" "\
@@ -13126,7 +13137,7 @@ different regions.  With numeric argument ARG, behaves like
 ;;;### (autoloads (doc-file-to-info doc-file-to-man describe-categories
 ;;;;;;  describe-syntax describe-variable variable-at-point describe-function-1
 ;;;;;;  find-lisp-object-file-name help-C-file-name describe-function)
-;;;;;;  "help-fns" "help-fns.el" (20532 45476 981297 0))
+;;;;;;  "help-fns" "help-fns.el" (20584 7212 455152 0))
 ;;; Generated autoloads from help-fns.el
 
 (autoload 'describe-function "help-fns" "\
@@ -13202,21 +13213,6 @@ Produce an nroff buffer containing the doc-strings from the DOC file.
 Produce a texinfo buffer with sorted doc-strings from the DOC file.
 
 \(fn FILE)" t nil)
-
-;;;***
-
-;;;### (autoloads (three-step-help) "help-macro" "help-macro.el"
-;;;;;;  (20355 10021 546955 0))
-;;; Generated autoloads from help-macro.el
-
-(defvar three-step-help nil "\
-Non-nil means give more info about Help command in three steps.
-The three steps are simple prompt, prompt with all options, and
-window listing and describing the options.
-A value of nil means skip the middle step, so that \\[help-command] \\[help-command]
-gives the window that lists the options.")
-
-(custom-autoload 'three-step-help "help-macro" t)
 
 ;;;***
 
@@ -13436,7 +13432,7 @@ This discards the buffer's undo information.
 ;;;### (autoloads (hi-lock-write-interactive-patterns hi-lock-unface-buffer
 ;;;;;;  hi-lock-face-phrase-buffer hi-lock-face-buffer hi-lock-line-face-buffer
 ;;;;;;  global-hi-lock-mode hi-lock-mode) "hi-lock" "hi-lock.el"
-;;;;;;  (20522 9637 465791 0))
+;;;;;;  (20566 63671 243798 0))
 ;;; Generated autoloads from hi-lock.el
 
 (autoload 'hi-lock-mode "hi-lock" "\
@@ -13628,7 +13624,7 @@ Several variables affect how the hiding is done:
 ;;;***
 
 ;;;### (autoloads (turn-off-hideshow hs-minor-mode) "hideshow" "progmodes/hideshow.el"
-;;;;;;  (20541 6907 775259 0))
+;;;;;;  (20566 63671 243798 0))
 ;;; Generated autoloads from progmodes/hideshow.el
 
 (defvar hs-special-modes-alist (mapcar 'purecopy '((c-mode "{" "}" "/[*/]" nil nil) (c++-mode "{" "}" "/[*/]" nil nil) (bibtex-mode ("@\\S(*\\(\\s(\\)" 1)) (java-mode "{" "}" "/[*/]" nil nil) (js-mode "{" "}" "/[*/]" nil))) "\
@@ -13826,60 +13822,9 @@ See `highlight-changes-mode' for more information on Highlight-Changes mode.
 
 ;;;***
 
-;;;### (autoloads (make-hippie-expand-function hippie-expand hippie-expand-only-buffers
-;;;;;;  hippie-expand-ignore-buffers hippie-expand-max-buffers hippie-expand-no-restriction
-;;;;;;  hippie-expand-dabbrev-as-symbol hippie-expand-dabbrev-skip-space
-;;;;;;  hippie-expand-verbose hippie-expand-try-functions-list) "hippie-exp"
-;;;;;;  "hippie-exp.el" (20495 51111 757560 0))
+;;;### (autoloads (make-hippie-expand-function hippie-expand) "hippie-exp"
+;;;;;;  "hippie-exp.el" (20584 7212 455152 0))
 ;;; Generated autoloads from hippie-exp.el
-
-(defvar hippie-expand-try-functions-list '(try-complete-file-name-partially try-complete-file-name try-expand-all-abbrevs try-expand-list try-expand-line try-expand-dabbrev try-expand-dabbrev-all-buffers try-expand-dabbrev-from-kill try-complete-lisp-symbol-partially try-complete-lisp-symbol) "\
-The list of expansion functions tried in order by `hippie-expand'.
-To change the behavior of `hippie-expand', remove, change the order of,
-or insert functions in this list.")
-
-(custom-autoload 'hippie-expand-try-functions-list "hippie-exp" t)
-
-(defvar hippie-expand-verbose t "\
-Non-nil makes `hippie-expand' output which function it is trying.")
-
-(custom-autoload 'hippie-expand-verbose "hippie-exp" t)
-
-(defvar hippie-expand-dabbrev-skip-space nil "\
-Non-nil means tolerate trailing spaces in the abbreviation to expand.")
-
-(custom-autoload 'hippie-expand-dabbrev-skip-space "hippie-exp" t)
-
-(defvar hippie-expand-dabbrev-as-symbol t "\
-Non-nil means expand as symbols, i.e. syntax `_' is considered a letter.")
-
-(custom-autoload 'hippie-expand-dabbrev-as-symbol "hippie-exp" t)
-
-(defvar hippie-expand-no-restriction t "\
-Non-nil means that narrowed buffers are widened during search.")
-
-(custom-autoload 'hippie-expand-no-restriction "hippie-exp" t)
-
-(defvar hippie-expand-max-buffers nil "\
-The maximum number of buffers (apart from the current) searched.
-If nil, all buffers are searched.")
-
-(custom-autoload 'hippie-expand-max-buffers "hippie-exp" t)
-
-(defvar hippie-expand-ignore-buffers (list (purecopy "^ \\*.*\\*$") 'dired-mode) "\
-A list specifying which buffers not to search (if not current).
-Can contain both regexps matching buffer names (as strings) and major modes
-\(as atoms)")
-
-(custom-autoload 'hippie-expand-ignore-buffers "hippie-exp" t)
-
-(defvar hippie-expand-only-buffers nil "\
-A list specifying the only buffers to search (in addition to current).
-Can contain both regexps matching buffer names (as strings) and major modes
-\(as atoms).  If non-nil, this variable overrides the variable
-`hippie-expand-ignore-buffers'.")
-
-(custom-autoload 'hippie-expand-only-buffers "hippie-exp" t)
 
 (autoload 'hippie-expand "hippie-exp" "\
 Try to expand text before point, using multiple methods.
@@ -13956,7 +13901,7 @@ Global-Hl-Line mode uses the functions `global-hl-line-unhighlight' and
 ;;;;;;  holiday-bahai-holidays holiday-islamic-holidays holiday-christian-holidays
 ;;;;;;  holiday-hebrew-holidays holiday-other-holidays holiday-local-holidays
 ;;;;;;  holiday-oriental-holidays holiday-general-holidays) "holidays"
-;;;;;;  "calendar/holidays.el" (20530 32124 107724 973000))
+;;;;;;  "calendar/holidays.el" (20566 63671 243798 0))
 ;;; Generated autoloads from calendar/holidays.el
 
 (define-obsolete-variable-alias 'general-holidays 'holiday-general-holidays "23.1")
@@ -14031,7 +13976,7 @@ See the documentation for `calendar-holidays' for details.")
 
 (define-obsolete-variable-alias 'christian-holidays 'holiday-christian-holidays "23.1")
 
-(defvar holiday-christian-holidays (mapcar 'purecopy '((holiday-easter-etc) (holiday-fixed 12 25 "Christmas") (if calendar-christian-all-holidays-flag (append (holiday-fixed 1 6 "Epiphany") (holiday-julian 12 25 "Eastern Orthodox Christmas") (holiday-greek-orthodox-easter) (holiday-fixed 8 15 "Assumption") (holiday-advent 0 "Advent"))))) "\
+(defvar holiday-christian-holidays (mapcar 'purecopy '((holiday-easter-etc) (holiday-fixed 12 25 "Christmas") (if calendar-christian-all-holidays-flag (append (holiday-fixed 1 6 "Epiphany") (holiday-julian 12 25 "Christmas (Julian calendar)") (holiday-greek-orthodox-easter) (holiday-fixed 8 15 "Assumption") (holiday-advent 0 "Advent"))))) "\
 Christian holidays.
 See the documentation for `calendar-holidays' for details.")
 
@@ -14074,7 +14019,7 @@ See the documentation for `calendar-holidays' for details.")
 (autoload 'holidays "holidays" "\
 Display the holidays for last month, this month, and next month.
 If called with an optional prefix argument ARG, prompts for month and year.
-This function is suitable for execution in a .emacs file.
+This function is suitable for execution in a init file.
 
 \(fn &optional ARG)" t nil)
 
@@ -14116,7 +14061,7 @@ Convert HTML to plain text in the current buffer.
 ;;;***
 
 ;;;### (autoloads (htmlfontify-copy-and-link-dir htmlfontify-buffer)
-;;;;;;  "htmlfontify" "htmlfontify.el" (20355 10021 546955 0))
+;;;;;;  "htmlfontify" "htmlfontify.el" (20577 33959 40183 0))
 ;;; Generated autoloads from htmlfontify.el
 
 (autoload 'htmlfontify-buffer "htmlfontify" "\
@@ -14239,7 +14184,7 @@ bound to the current value of the filter.
 ;;;***
 
 ;;;### (autoloads (ibuffer ibuffer-other-window ibuffer-list-buffers)
-;;;;;;  "ibuffer" "ibuffer.el" (20542 46798 773957 0))
+;;;;;;  "ibuffer" "ibuffer.el" (20576 13312 649004 817000))
 ;;; Generated autoloads from ibuffer.el
 
 (autoload 'ibuffer-list-buffers "ibuffer" "\
@@ -14280,7 +14225,7 @@ FORMATS is the value to use for `ibuffer-formats'.
 
 ;;;### (autoloads (icalendar-import-buffer icalendar-import-file
 ;;;;;;  icalendar-export-region icalendar-export-file) "icalendar"
-;;;;;;  "calendar/icalendar.el" (20434 17809 692608 0))
+;;;;;;  "calendar/icalendar.el" (20577 33959 40183 0))
 ;;; Generated autoloads from calendar/icalendar.el
 
 (autoload 'icalendar-export-file "icalendar" "\
@@ -14397,7 +14342,7 @@ with no args, if that value is non-nil.
 ;;;***
 
 ;;;### (autoloads (idlwave-shell) "idlw-shell" "progmodes/idlw-shell.el"
-;;;;;;  (20427 14766 970343 0))
+;;;;;;  (20572 16038 402143 0))
 ;;; Generated autoloads from progmodes/idlw-shell.el
 
 (autoload 'idlwave-shell "idlw-shell" "\
@@ -14423,7 +14368,7 @@ See also the variable `idlwave-shell-prompt-pattern'.
 ;;;***
 
 ;;;### (autoloads (idlwave-mode) "idlwave" "progmodes/idlwave.el"
-;;;;;;  (20458 56750 651721 0))
+;;;;;;  (20576 42138 697312 0))
 ;;; Generated autoloads from progmodes/idlwave.el
 
 (autoload 'idlwave-mode "idlwave" "\
@@ -14557,8 +14502,8 @@ The main features of this mode are
 ;;;;;;  ido-find-alternate-file ido-find-file-other-window ido-find-file
 ;;;;;;  ido-find-file-in-dir ido-switch-buffer-other-frame ido-insert-buffer
 ;;;;;;  ido-kill-buffer ido-display-buffer ido-switch-buffer-other-window
-;;;;;;  ido-switch-buffer ido-mode ido-mode) "ido" "ido.el" (20495
-;;;;;;  51111 757560 0))
+;;;;;;  ido-switch-buffer ido-mode ido-mode) "ido" "ido.el" (20585
+;;;;;;  28088 480237 0))
 ;;; Generated autoloads from ido.el
 
 (defvar ido-mode nil "\
@@ -14817,7 +14762,7 @@ DEF, if non-nil, is the default value.
 
 ;;;***
 
-;;;### (autoloads (ielm) "ielm" "ielm.el" (20355 10021 546955 0))
+;;;### (autoloads (ielm) "ielm" "ielm.el" (20566 63671 243798 0))
 ;;; Generated autoloads from ielm.el
 
 (autoload 'ielm "ielm" "\
@@ -14850,7 +14795,7 @@ the mode if ARG is omitted or nil, and toggle it if ARG is `toggle'.
 ;;;;;;  create-image image-type-auto-detected-p image-type-available-p
 ;;;;;;  image-type image-type-from-file-name image-type-from-file-header
 ;;;;;;  image-type-from-buffer image-type-from-data) "image" "image.el"
-;;;;;;  (20523 62082 997685 0))
+;;;;;;  (20574 57775 217760 0))
 ;;; Generated autoloads from image.el
 
 (autoload 'image-type-from-data "image" "\
@@ -15251,7 +15196,7 @@ An image file is one whose name has an extension in
 ;;;***
 
 ;;;### (autoloads (image-bookmark-jump image-mode-as-text image-minor-mode
-;;;;;;  image-mode) "image-mode" "image-mode.el" (20476 31768 298871
+;;;;;;  image-mode) "image-mode" "image-mode.el" (20580 10161 446444
 ;;;;;;  0))
 ;;; Generated autoloads from image-mode.el
 
@@ -15297,7 +15242,7 @@ on these modes.
 ;;;***
 
 ;;;### (autoloads (imenu imenu-add-menubar-index imenu-add-to-menubar
-;;;;;;  imenu-sort-function) "imenu" "imenu.el" (20511 39332 974340
+;;;;;;  imenu-sort-function) "imenu" "imenu.el" (20577 33959 40183
 ;;;;;;  0))
 ;;; Generated autoloads from imenu.el
 
@@ -15468,55 +15413,9 @@ Convert old Emacs Devanagari characters to UCS.
 
 ;;;***
 
-;;;### (autoloads (inferior-lisp inferior-lisp-prompt inferior-lisp-load-command
-;;;;;;  inferior-lisp-program inferior-lisp-filter-regexp) "inf-lisp"
-;;;;;;  "progmodes/inf-lisp.el" (20355 10021 546955 0))
+;;;### (autoloads (inferior-lisp) "inf-lisp" "progmodes/inf-lisp.el"
+;;;;;;  (20584 7212 455152 0))
 ;;; Generated autoloads from progmodes/inf-lisp.el
-
-(defvar inferior-lisp-filter-regexp (purecopy "\\`\\s *\\(:\\(\\w\\|\\s_\\)\\)?\\s *\\'") "\
-What not to save on inferior Lisp's input history.
-Input matching this regexp is not saved on the input history in Inferior Lisp
-mode.  Default is whitespace followed by 0 or 1 single-letter colon-keyword
-\(as in :a, :c, etc.)")
-
-(custom-autoload 'inferior-lisp-filter-regexp "inf-lisp" t)
-
-(defvar inferior-lisp-program (purecopy "lisp") "\
-Program name for invoking an inferior Lisp in Inferior Lisp mode.")
-
-(custom-autoload 'inferior-lisp-program "inf-lisp" t)
-
-(defvar inferior-lisp-load-command (purecopy "(load \"%s\")\n") "\
-Format-string for building a Lisp expression to load a file.
-This format string should use `%s' to substitute a file name
-and should result in a Lisp expression that will command the inferior Lisp
-to load that file.  The default works acceptably on most Lisps.
-The string \"(progn (load \\\"%s\\\" :verbose nil :print t) (values))\\n\"
-produces cosmetically superior output for this application,
-but it works only in Common Lisp.")
-
-(custom-autoload 'inferior-lisp-load-command "inf-lisp" t)
-
-(defvar inferior-lisp-prompt (purecopy "^[^> \n]*>+:? *") "\
-Regexp to recognize prompts in the Inferior Lisp mode.
-Defaults to \"^[^> \\n]*>+:? *\", which works pretty good for Lucid, kcl,
-and franz.  This variable is used to initialize `comint-prompt-regexp' in the
-Inferior Lisp buffer.
-
-This variable is only used if the variable
-`comint-use-prompt-regexp' is non-nil.
-
-More precise choices:
-Lucid Common Lisp: \"^\\\\(>\\\\|\\\\(->\\\\)+\\\\) *\"
-franz: \"^\\\\(->\\\\|<[0-9]*>:\\\\) *\"
-kcl: \"^>+ *\"
-
-This is a fine thing to set in your .emacs file or through Custom.")
-
-(custom-autoload 'inferior-lisp-prompt "inf-lisp" t)
-
-(defvar inferior-lisp-mode-hook 'nil "\
-Hook for customizing Inferior Lisp mode.")
 
 (autoload 'inferior-lisp "inf-lisp" "\
 Run an inferior Lisp process, input and output via buffer `*inferior-lisp*'.
@@ -15537,7 +15436,7 @@ of `inferior-lisp-program').  Runs the hooks from
 ;;;;;;  Info-goto-emacs-key-command-node Info-goto-emacs-command-node
 ;;;;;;  Info-mode info-finder info-apropos Info-index Info-directory
 ;;;;;;  Info-on-current-buffer info-standalone info-emacs-bug info-emacs-manual
-;;;;;;  info info-other-window) "info" "info.el" (20540 39589 424586
+;;;;;;  info info-other-window) "info" "info.el" (20561 18280 338092
 ;;;;;;  0))
 ;;; Generated autoloads from info.el
 
@@ -16067,7 +15966,7 @@ Add submenus to the File menu, to convert to and from various formats.
 ;;;;;;  ispell-complete-word ispell-continue ispell-buffer ispell-comments-and-strings
 ;;;;;;  ispell-region ispell-change-dictionary ispell-kill-ispell
 ;;;;;;  ispell-help ispell-pdict-save ispell-word ispell-personal-dictionary)
-;;;;;;  "ispell" "textmodes/ispell.el" (20458 56750 651721 0))
+;;;;;;  "ispell" "textmodes/ispell.el" (20566 63671 243798 0))
 ;;; Generated autoloads from textmodes/ispell.el
 
 (put 'ispell-check-comments 'safe-local-variable (lambda (a) (memq a '(nil t exclusive))))
@@ -16280,7 +16179,7 @@ use the `x' command.  (Any subsequent regions will be checked.)
 The `X' command aborts sending the message so that you can edit the buffer.
 
 To spell-check whenever a message is sent, include the appropriate lines
-in your .emacs file:
+in your init file:
    (add-hook 'message-send-hook 'ispell-message)  ;; GNUS 5
    (add-hook 'news-inews-hook 'ispell-message)    ;; GNUS 4
    (add-hook 'mail-send-hook  'ispell-message)
@@ -16294,8 +16193,8 @@ You can bind this to the key C-c i in GNUS or mail by adding to
 
 ;;;***
 
-;;;### (autoloads (iswitchb-mode) "iswitchb" "iswitchb.el" (20495
-;;;;;;  51111 757560 0))
+;;;### (autoloads (iswitchb-mode) "iswitchb" "iswitchb.el" (20577
+;;;;;;  33959 40183 0))
 ;;; Generated autoloads from iswitchb.el
 
 (defvar iswitchb-mode nil "\
@@ -16773,8 +16672,8 @@ coding system names is determined from `latex-inputenc-coding-alist'.
 ;;;***
 
 ;;;### (autoloads (latin1-display-ucs-per-lynx latin1-display latin1-display)
-;;;;;;  "latin1-disp" "international/latin1-disp.el" (20355 10021
-;;;;;;  546955 0))
+;;;;;;  "latin1-disp" "international/latin1-disp.el" (20577 33959
+;;;;;;  40183 0))
 ;;; Generated autoloads from international/latin1-disp.el
 
 (defvar latin1-display nil "\
@@ -16840,18 +16739,9 @@ generations (this defaults to 1).
 
 ;;;***
 
-;;;### (autoloads (global-linum-mode linum-mode linum-format) "linum"
-;;;;;;  "linum.el" (20355 10021 546955 0))
+;;;### (autoloads (global-linum-mode linum-mode) "linum" "linum.el"
+;;;;;;  (20580 10161 446444 0))
 ;;; Generated autoloads from linum.el
-
-(defvar linum-format 'dynamic "\
-Format used to display line numbers.
-Either a format string like \"%7d\", `dynamic' to adapt the width
-as needed, or a function that is called with a line number as its
-argument and should evaluate to a string to be shown on that line.
-See also `linum-before-numbering-hook'.")
-
-(custom-autoload 'linum-format "linum" t)
 
 (autoload 'linum-mode "linum" "\
 Toggle display of line numbers in the left margin (Linum mode).
@@ -16919,7 +16809,7 @@ something strange, such as redefining an Emacs function.
 ;;;***
 
 ;;;### (autoloads (locate-with-filter locate locate-ls-subdir-switches)
-;;;;;;  "locate" "locate.el" (20355 10021 546955 0))
+;;;;;;  "locate" "locate.el" (20566 63671 243798 0))
 ;;; Generated autoloads from locate.el
 
 (defvar locate-ls-subdir-switches (purecopy "-al") "\
@@ -16971,8 +16861,8 @@ except that FILTER is not optional.
 
 ;;;***
 
-;;;### (autoloads (log-edit) "log-edit" "vc/log-edit.el" (20477 21160
-;;;;;;  227853 0))
+;;;### (autoloads (log-edit) "log-edit" "vc/log-edit.el" (20584 7212
+;;;;;;  455152 0))
 ;;; Generated autoloads from vc/log-edit.el
 
 (autoload 'log-edit "log-edit" "\
@@ -17149,14 +17039,14 @@ Otherwise they are treated as Emacs regexps (for backward compatibility).")
 
 ;;;***
 
-;;;### (autoloads (lunar-phases) "lunar" "calendar/lunar.el" (20355
-;;;;;;  10021 546955 0))
+;;;### (autoloads (lunar-phases) "lunar" "calendar/lunar.el" (20566
+;;;;;;  63671 243798 0))
 ;;; Generated autoloads from calendar/lunar.el
 
 (autoload 'lunar-phases "lunar" "\
 Display the quarters of the moon for last month, this month, and next month.
 If called with an optional prefix argument ARG, prompts for month and year.
-This function is suitable for execution in a .emacs file.
+This function is suitable for execution in an init file.
 
 \(fn &optional ARG)" t nil)
 
@@ -17172,20 +17062,6 @@ This function is suitable for execution in a .emacs file.
 A major mode to edit m4 macro files.
 
 \(fn)" t nil)
-
-;;;***
-
-;;;### (autoloads (macroexpand-all) "macroexp" "emacs-lisp/macroexp.el"
-;;;;;;  (20497 6436 957082 0))
-;;; Generated autoloads from emacs-lisp/macroexp.el
-
-(autoload 'macroexpand-all "macroexp" "\
-Return result of expanding macros at all levels in FORM.
-If no macros are expanded, FORM is returned unchanged.
-The second optional arg ENVIRONMENT specifies an environment of macro
-definitions to shadow the loaded ones for use in file byte-compilation.
-
-\(fn FORM &optional ENVIRONMENT)" nil nil)
 
 ;;;***
 
@@ -17312,7 +17188,7 @@ Convert mail domain DOMAIN to the country it corresponds to.
 
 ;;;### (autoloads (mail-hist-put-headers-into-history mail-hist-keep-history
 ;;;;;;  mail-hist-enable mail-hist-define-keys) "mail-hist" "mail/mail-hist.el"
-;;;;;;  (20355 10021 546955 0))
+;;;;;;  (20566 63671 243798 0))
 ;;; Generated autoloads from mail/mail-hist.el
 
 (autoload 'mail-hist-define-keys "mail-hist" "\
@@ -17419,8 +17295,8 @@ matches may be returned from the message body.
 ;;;***
 
 ;;;### (autoloads (define-mail-abbrev build-mail-abbrevs mail-abbrevs-setup
-;;;;;;  mail-abbrevs-mode) "mailabbrev" "mail/mailabbrev.el" (20387
-;;;;;;  44199 24128 0))
+;;;;;;  mail-abbrevs-mode) "mailabbrev" "mail/mailabbrev.el" (20566
+;;;;;;  63671 243798 0))
 ;;; Generated autoloads from mail/mailabbrev.el
 
 (defvar mail-abbrevs-mode nil "\
@@ -17471,7 +17347,7 @@ double-quotes.
 
 ;;;### (autoloads (mail-complete mail-completion-at-point-function
 ;;;;;;  define-mail-alias expand-mail-aliases mail-complete-style)
-;;;;;;  "mailalias" "mail/mailalias.el" (20355 10021 546955 0))
+;;;;;;  "mailalias" "mail/mailalias.el" (20577 33959 40183 0))
 ;;; Generated autoloads from mail/mailalias.el
 
 (defvar mail-complete-style 'angles "\
@@ -17519,6 +17395,8 @@ Completable headers are according to `mail-complete-alist'.  If none matches
 current header, calls `mail-complete-function' and passes prefix ARG if any.
 
 \(fn ARG)" t nil)
+
+(make-obsolete 'mail-complete 'mail-completion-at-point-function "24.1")
 
 ;;;***
 
@@ -17779,7 +17657,7 @@ recursion depth in the minibuffer prompt.  This is only useful if
 ;;;;;;  message-forward-make-body message-forward message-recover
 ;;;;;;  message-supersede message-cancel-news message-followup message-wide-reply
 ;;;;;;  message-reply message-news message-mail message-mode) "message"
-;;;;;;  "gnus/message.el" (20545 57511 257469 0))
+;;;;;;  "gnus/message.el" (20567 23165 75548 0))
 ;;; Generated autoloads from gnus/message.el
 
 (define-mail-user-agent 'message-user-agent 'message-mail 'message-send-and-exit 'message-kill-buffer 'message-send-hook)
@@ -18224,7 +18102,7 @@ to its second argument TM.
 ;;;***
 
 ;;;### (autoloads (minibuffer-electric-default-mode) "minibuf-eldef"
-;;;;;;  "minibuf-eldef.el" (20355 10021 546955 0))
+;;;;;;  "minibuf-eldef.el" (20580 10161 446444 0))
 ;;; Generated autoloads from minibuf-eldef.el
 
 (defvar minibuffer-electric-default-mode nil "\
@@ -18366,7 +18244,7 @@ whose file names match the specified wildcard.
 ;;;***
 
 ;;;### (autoloads (mixal-mode) "mixal-mode" "progmodes/mixal-mode.el"
-;;;;;;  (20355 10021 546955 0))
+;;;;;;  (20566 63671 243798 0))
 ;;; Generated autoloads from progmodes/mixal-mode.el
 
 (autoload 'mixal-mode "mixal-mode" "\
@@ -18458,7 +18336,7 @@ Assume text has been decoded if DECODED is non-nil.
 ;;;***
 
 ;;;### (autoloads (mml-attach-file mml-to-mime) "mml" "gnus/mml.el"
-;;;;;;  (20458 56750 651721 0))
+;;;;;;  (20567 23165 75548 0))
 ;;; Generated autoloads from gnus/mml.el
 
 (autoload 'mml-to-mime "mml" "\
@@ -18469,7 +18347,8 @@ Translate the current buffer from MML to MIME.
 (autoload 'mml-attach-file "mml" "\
 Attach a file to the outgoing MIME message.
 The file is not inserted or encoded until you send the message with
-`\\[message-send-and-exit]' or `\\[message-send]'.
+`\\[message-send-and-exit]' or `\\[message-send]' in Message mode,
+or `\\[mail-send-and-exit]' or `\\[mail-send]' in Mail mode.
 
 FILE is the name of the file to attach.  TYPE is its
 content-type, a string of the form \"type/subtype\".  DESCRIPTION
@@ -18609,7 +18488,7 @@ Convert NATO phonetic alphabet in region to ordinary ASCII text.
 ;;;***
 
 ;;;### (autoloads (mouse-drag-drag mouse-drag-throw) "mouse-drag"
-;;;;;;  "mouse-drag.el" (20355 10021 546955 0))
+;;;;;;  "mouse-drag.el" (20566 63671 243798 0))
 ;;; Generated autoloads from mouse-drag.el
 
 (autoload 'mouse-drag-throw "mouse-drag" "\
@@ -18707,7 +18586,7 @@ different buffer menu using the function `msb'.
 ;;;;;;  describe-current-coding-system describe-current-coding-system-briefly
 ;;;;;;  describe-coding-system describe-character-set list-charset-chars
 ;;;;;;  read-charset list-character-sets) "mule-diag" "international/mule-diag.el"
-;;;;;;  (20355 10021 546955 0))
+;;;;;;  (20577 33959 40183 0))
 ;;; Generated autoloads from international/mule-diag.el
 
 (autoload 'list-character-sets "mule-diag" "\
@@ -18843,18 +18722,9 @@ The default is 20.  If LIMIT is negative, do not limit the listing.
 ;;;;;;  detect-coding-with-priority with-coding-priority coding-system-translation-table-for-encode
 ;;;;;;  coding-system-translation-table-for-decode coding-system-pre-write-conversion
 ;;;;;;  coding-system-post-read-conversion lookup-nested-alist set-nested-alist
-;;;;;;  truncate-string-to-width store-substring string-to-sequence)
-;;;;;;  "mule-util" "international/mule-util.el" (20355 10021 546955
-;;;;;;  0))
+;;;;;;  truncate-string-to-width store-substring) "mule-util" "international/mule-util.el"
+;;;;;;  (20577 33959 40183 0))
 ;;; Generated autoloads from international/mule-util.el
-
-(autoload 'string-to-sequence "mule-util" "\
-Convert STRING to a sequence of TYPE which contains characters in STRING.
-TYPE should be `list' or `vector'.
-
-\(fn STRING TYPE)" nil nil)
-
-(make-obsolete 'string-to-sequence "use `string-to-list' or `string-to-vector'." "22.1")
 
 (defsubst string-to-list (string) "\
 Return a list of characters in STRING." (append string nil))
@@ -18963,6 +18833,8 @@ PRIORITY-LIST is an alist of coding categories vs the corresponding
 coding systems ordered by priority.
 
 \(fn FROM TO PRIORITY-LIST)" nil t)
+
+(make-obsolete 'detect-coding-with-priority 'with-coding-priority "23.1")
 
 (autoload 'detect-coding-with-language-environment "mule-util" "\
 Detect a coding system for the text between FROM and TO with LANG-ENV.
@@ -19185,7 +19057,7 @@ STARTTLS upgrades even if Emacs doesn't have built-in TLS functionality.
 ;;;***
 
 ;;;### (autoloads (newsticker-start newsticker-running-p) "newst-backend"
-;;;;;;  "net/newst-backend.el" (20355 10021 546955 0))
+;;;;;;  "net/newst-backend.el" (20577 33959 40183 0))
 ;;; Generated autoloads from net/newst-backend.el
 
 (autoload 'newsticker-running-p "newst-backend" "\
@@ -19251,7 +19123,7 @@ running already.
 ;;;***
 
 ;;;### (autoloads (newsticker-treeview) "newst-treeview" "net/newst-treeview.el"
-;;;;;;  (20434 17809 692608 0))
+;;;;;;  (20577 33959 40183 0))
 ;;; Generated autoloads from net/newst-treeview.el
 
 (autoload 'newsticker-treeview "newst-treeview" "\
@@ -19311,7 +19183,7 @@ Generate NOV databases in all nnml directories.
 ;;;***
 
 ;;;### (autoloads (disable-command enable-command disabled-command-function)
-;;;;;;  "novice" "novice.el" (20478 3673 653810 0))
+;;;;;;  "novice" "novice.el" (20566 63671 243798 0))
 ;;; Generated autoloads from novice.el
 
 (define-obsolete-variable-alias 'disabled-command-hook 'disabled-command-function "22.1")
@@ -19336,8 +19208,8 @@ to future sessions.
 (autoload 'disable-command "novice" "\
 Require special confirmation to execute COMMAND from now on.
 COMMAND must be a symbol.
-This command alters the user's .emacs file so that this will apply
-to future sessions.
+This command alters your init file so that this choice applies to
+future sessions.
 
 \(fn COMMAND)" t nil)
 
@@ -19458,7 +19330,7 @@ the variable `nxml-enabled-unicode-blocks'.
 ;;;;;;  org-babel-pop-to-session-maybe org-babel-load-in-session-maybe
 ;;;;;;  org-babel-expand-src-block-maybe org-babel-view-src-block-info
 ;;;;;;  org-babel-execute-maybe org-babel-execute-safely-maybe) "ob"
-;;;;;;  "org/ob.el" (20417 65331 139825 0))
+;;;;;;  "org/ob.el" (20585 28088 480237 0))
 ;;; Generated autoloads from org/ob.el
 
 (autoload 'org-babel-execute-safely-maybe "ob" "\
@@ -19546,13 +19418,13 @@ session.
 Initiate session for current code block.
 If called with a prefix argument then resolve any variable
 references in the header arguments and assign these variables in
-the session. Copy the body of the code block to the kill ring.
+the session.  Copy the body of the code block to the kill ring.
 
 \(fn &optional ARG INFO)" t nil)
 
 (autoload 'org-babel-switch-to-session "ob" "\
 Switch to the session of the current code block.
-Uses `org-babel-initiate-session' to start the session. If called
+Uses `org-babel-initiate-session' to start the session.  If called
 with a prefix argument then this is passed on to
 `org-babel-initiate-session'.
 
@@ -19674,7 +19546,7 @@ With optional prefix argument ARG, jump backward ARG many source blocks.
 \(fn &optional ARG)" t nil)
 
 (autoload 'org-babel-mark-block "ob" "\
-Mark current src block
+Mark current src block.
 
 \(fn)" t nil)
 
@@ -19692,8 +19564,8 @@ Describe all keybindings behind `org-babel-key-prefix'.
 ;;;***
 
 ;;;### (autoloads (org-babel-lob-get-info org-babel-lob-execute-maybe
-;;;;;;  org-babel-lob-ingest) "ob-lob" "org/ob-lob.el" (20355 10021
-;;;;;;  546955 0))
+;;;;;;  org-babel-lob-ingest) "ob-lob" "org/ob-lob.el" (20585 28088
+;;;;;;  480237 0))
 ;;; Generated autoloads from org/ob-lob.el
 
 (autoload 'org-babel-lob-ingest "ob-lob" "\
@@ -19718,7 +19590,7 @@ Return a Library of Babel function call as a string.
 
 ;;;### (autoloads (org-babel-tangle org-babel-tangle-file org-babel-load-file
 ;;;;;;  org-babel-tangle-lang-exts) "ob-tangle" "org/ob-tangle.el"
-;;;;;;  (20355 10021 546955 0))
+;;;;;;  (20585 28088 480237 0))
 ;;; Generated autoloads from org/ob-tangle.el
 
 (defvar org-babel-tangle-lang-exts '(("emacs-lisp" . "el")) "\
@@ -19783,7 +19655,7 @@ startup file, `~/.emacs-octave'.
 ;;;***
 
 ;;;### (autoloads (octave-mode) "octave-mod" "progmodes/octave-mod.el"
-;;;;;;  (20388 65061 302484 0))
+;;;;;;  (20566 63671 243798 0))
 ;;; Generated autoloads from progmodes/octave-mod.el
 
 (autoload 'octave-mode "octave-mod" "\
@@ -19844,12 +19716,12 @@ Variables you can use to customize Octave mode
 Turning on Octave mode runs the hook `octave-mode-hook'.
 
 To begin using this mode for all `.m' files that you edit, add the
-following lines to your `.emacs' file:
+following lines to your init file:
 
   (add-to-list 'auto-mode-alist '(\"\\\\.m\\\\'\" . octave-mode))
 
 To automatically turn on the abbrev and auto-fill features,
-add the following lines to your `.emacs' file as well:
+add the following lines to your init file as well:
 
   (add-hook 'octave-mode-hook
 	    (lambda ()
@@ -19865,13 +19737,16 @@ including a reproducible test case and send the message.
 
 ;;;***
 
-;;;### (autoloads (org-customize org-reload org-require-autoloaded-modules
-;;;;;;  org-submit-bug-report org-cycle-agenda-files org-switchb
-;;;;;;  org-map-entries org-open-link-from-string org-open-at-point-global
-;;;;;;  org-insert-link-global org-store-link org-run-like-in-org-mode
-;;;;;;  turn-on-orgstruct++ turn-on-orgstruct orgstruct-mode org-global-cycle
-;;;;;;  org-mode org-version org-babel-do-load-languages) "org" "org/org.el"
-;;;;;;  (20420 41510 996439 0))
+;;;### (autoloads (org-unindent-buffer org-transpose-element org-narrow-to-element
+;;;;;;  org-mark-element org-drag-element-forward org-drag-element-backward
+;;;;;;  org-up-element org-backward-element org-forward-element org-customize
+;;;;;;  org-reload org-require-autoloaded-modules org-submit-bug-report
+;;;;;;  org-cycle-agenda-files org-switchb org-map-entries org-update-all-dblocks
+;;;;;;  org-open-link-from-string org-open-at-point-global org-insert-link-global
+;;;;;;  org-store-link org-run-like-in-org-mode turn-on-orgstruct++
+;;;;;;  turn-on-orgstruct orgstruct-mode org-global-cycle org-mode
+;;;;;;  org-version org-babel-do-load-languages) "org" "org/org.el"
+;;;;;;  (20585 28088 480237 0))
 ;;; Generated autoloads from org/org.el
 
 (autoload 'org-babel-do-load-languages "org" "\
@@ -19881,9 +19756,11 @@ Load the languages defined in `org-babel-load-languages'.
 
 (autoload 'org-version "org" "\
 Show the org-mode version in the echo area.
-With prefix arg HERE, insert it at point.
+With prefix argument HERE, insert it at point.
+When FULL is non-nil, use a verbose version string.
+When MESSAGE is non-nil, display a message with the version.
 
-\(fn &optional HERE)" t nil)
+\(fn &optional HERE FULL MESSAGE)" t nil)
 
 (autoload 'org-mode "org" "\
 Outline-based notes management and organizer, alias
@@ -19986,6 +19863,12 @@ Org-mode syntax.
 Open a link in the string S, as if it was in Org-mode.
 
 \(fn S &optional ARG REFERENCE-BUFFER)" t nil)
+
+(autoload 'org-update-all-dblocks "org" "\
+Update all dynamic blocks in the buffer.
+This function can be used in a hook.
+
+\(fn)" t nil)
 
 (autoload 'org-map-entries "org" "\
 Call FUNC at each headline selected by MATCH in SCOPE.
@@ -20098,15 +19981,76 @@ Call the customize function with org as argument.
 
 \(fn)" t nil)
 
+(autoload 'org-forward-element "org" "\
+Move forward by one element.
+Move to the next element at the same level, when possible.
+
+\(fn)" t nil)
+
+(autoload 'org-backward-element "org" "\
+Move backward by one element.
+Move to the previous element at the same level, when possible.
+
+\(fn)" t nil)
+
+(autoload 'org-up-element "org" "\
+Move to upper element.
+
+\(fn)" t nil)
+
+(defvar org-element-greater-elements)
+
+(autoload 'org-drag-element-backward "org" "\
+Move backward element at point.
+
+\(fn)" t nil)
+
+(autoload 'org-drag-element-forward "org" "\
+Move forward element at point.
+
+\(fn)" t nil)
+
+(autoload 'org-mark-element "org" "\
+Put point at beginning of this element, mark at end.
+
+Interactively, if this command is repeated or (in Transient Mark
+mode) if the mark is active, it marks the next element after the
+ones already marked.
+
+\(fn)" t nil)
+
+(autoload 'org-narrow-to-element "org" "\
+Narrow buffer to current element.
+
+\(fn)" t nil)
+
+(autoload 'org-transpose-element "org" "\
+Transpose current and previous elements, keeping blank lines between.
+Point is moved after both elements.
+
+\(fn)" t nil)
+
+(autoload 'org-unindent-buffer "org" "\
+Un-indent the visible part of the buffer.
+Relative indentation (between items, inside blocks, etc.) isn't
+modified.
+
+\(fn)" t nil)
+
 ;;;***
 
 ;;;### (autoloads (org-agenda-to-appt org-calendar-goto-agenda org-agenda-check-for-timestamp-as-reason-to-ignore-todo-item
 ;;;;;;  org-diary org-agenda-list-stuck-projects org-tags-view org-todo-list
 ;;;;;;  org-search-view org-agenda-list org-batch-store-agenda-views
 ;;;;;;  org-store-agenda-views org-batch-agenda-csv org-batch-agenda
-;;;;;;  org-agenda) "org-agenda" "org/org-agenda.el" (20420 41510
-;;;;;;  996439 0))
+;;;;;;  org-agenda org-toggle-sticky-agenda) "org-agenda" "org/org-agenda.el"
+;;;;;;  (20585 28088 480237 0))
 ;;; Generated autoloads from org/org-agenda.el
+
+(autoload 'org-toggle-sticky-agenda "org-agenda" "\
+Toggle `org-agenda-sticky'.
+
+\(fn &optional ARG)" t nil)
 
 (autoload 'org-agenda "org-agenda" "\
 Dispatch agenda commands to collect entries to the agenda buffer.
@@ -20123,6 +20067,7 @@ M     Like `m', but select only TODO entries, no ordinary headlines.
 L     Create a timeline for the current buffer.
 e     Export views to associated files.
 s     Search entries for keywords.
+S     Search entries for keywords, only with TODO keywords.
 /     Multi occur across all agenda files and also files listed
       in `org-agenda-text-search-extra-files'.
 <     Restrict agenda commands to buffer, subtree, or region.
@@ -20142,7 +20087,7 @@ first press `<' once to indicate that the agenda should be temporarily
 Pressing `<' twice means to restrict to the current subtree or region
 \(if active).
 
-\(fn &optional ARG KEYS RESTRICTION)" t nil)
+\(fn &optional ARG ORG-KEYS RESTRICTION)" t nil)
 
 (autoload 'org-batch-agenda "org-agenda" "\
 Run an agenda command in batch mode and send the result to STDOUT.
@@ -20268,7 +20213,7 @@ the list to these.  When using \\[universal-argument], you will be prompted
 for a keyword.  A numeric prefix directly selects the Nth keyword in
 `org-todo-keywords-1'.
 
-\(fn ARG)" t nil)
+\(fn &optional ARG)" t nil)
 
 (autoload 'org-tags-view "org-agenda" "\
 Show all headlines for all `org-agenda-files' matching a TAGS criterion.
@@ -20285,7 +20230,7 @@ of what a project is and how to check if it stuck, customize the variable
 \(fn &rest IGNORE)" t nil)
 
 (autoload 'org-diary "org-agenda" "\
-Return diary information from org-files.
+Return diary information from org files.
 This function can be used in a \"sexp\" diary entry in the Emacs calendar.
 It accesses org files and extracts information from those files to be
 listed in the diary.  The function accepts arguments specifying what
@@ -20353,13 +20298,16 @@ By default `org-agenda-to-appt' will use :deadline, :scheduled
 and :timestamp entries.  See the docstring of `org-diary' for
 details and examples.
 
+If an entry as a APPT_WARNTIME property, its value will be used
+to override `appt-message-warning-time'.
+
 \(fn &optional REFRESH FILTER &rest ARGS)" t nil)
 
 ;;;***
 
 ;;;### (autoloads (org-archive-subtree-default-with-confirmation
 ;;;;;;  org-archive-subtree-default) "org-archive" "org/org-archive.el"
-;;;;;;  (20355 10021 546955 0))
+;;;;;;  (20585 28088 480237 0))
 ;;; Generated autoloads from org/org-archive.el
 
 (autoload 'org-archive-subtree-default "org-archive" "\
@@ -20379,8 +20327,8 @@ This command is set with the variable `org-archive-default-command'.
 ;;;### (autoloads (org-export-as-ascii org-export-region-as-ascii
 ;;;;;;  org-replace-region-by-ascii org-export-as-ascii-to-buffer
 ;;;;;;  org-export-as-utf8-to-buffer org-export-as-utf8 org-export-as-latin1-to-buffer
-;;;;;;  org-export-as-latin1) "org-ascii" "org/org-ascii.el" (20355
-;;;;;;  10021 546955 0))
+;;;;;;  org-export-as-latin1) "org-ascii" "org/org-ascii.el" (20585
+;;;;;;  28088 480237 0))
 ;;; Generated autoloads from org/org-ascii.el
 
 (autoload 'org-export-as-latin1 "org-ascii" "\
@@ -20453,8 +20401,8 @@ publishing directory.
 
 ;;;***
 
-;;;### (autoloads (org-attach) "org-attach" "org/org-attach.el" (20355
-;;;;;;  10021 546955 0))
+;;;### (autoloads (org-attach) "org-attach" "org/org-attach.el" (20585
+;;;;;;  28088 480237 0))
 ;;; Generated autoloads from org/org-attach.el
 
 (autoload 'org-attach "org-attach" "\
@@ -20466,7 +20414,7 @@ Shows a list of commands and prompts for another key to execute a command.
 ;;;***
 
 ;;;### (autoloads (org-bbdb-anniversaries) "org-bbdb" "org/org-bbdb.el"
-;;;;;;  (20355 10021 546955 0))
+;;;;;;  (20585 28088 480237 0))
 ;;; Generated autoloads from org/org-bbdb.el
 
 (autoload 'org-bbdb-anniversaries "org-bbdb" "\
@@ -20477,9 +20425,11 @@ Extract anniversaries from BBDB for display in the agenda.
 ;;;***
 
 ;;;### (autoloads (org-capture-import-remember-templates org-capture-insert-template-here
-;;;;;;  org-capture) "org-capture" "org/org-capture.el" (20355 10021
-;;;;;;  546955 0))
+;;;;;;  org-capture) "org-capture" "org/org-capture.el" (20585 28088
+;;;;;;  480237 0))
 ;;; Generated autoloads from org/org-capture.el
+
+(defvar org-capture-initial nil)
 
 (autoload 'org-capture "org-capture" "\
 Capture something.
@@ -20497,9 +20447,12 @@ stored.
 
 When called with a `C-0' (zero) prefix, insert a template at point.
 
-Lisp programs can set KEYS to a string associated with a template in
-`org-capture-templates'.  In this case, interactive selection will be
-bypassed.
+Lisp programs can set KEYS to a string associated with a template
+in `org-capture-templates'.  In this case, interactive selection
+will be bypassed.
+
+If `org-capture-use-agenda-date' is non-nil, capturing from the
+agenda will use the date at point as the default date.
 
 \(fn &optional GOTO KEYS)" t nil)
 
@@ -20515,9 +20468,23 @@ Set org-capture-templates to be similar to `org-remember-templates'.
 
 ;;;***
 
-;;;### (autoloads (org-clock-persistence-insinuate org-get-clocktable)
-;;;;;;  "org-clock" "org/org-clock.el" (20427 14766 970343 0))
+;;;### (autoloads (org-clock-persistence-insinuate org-get-clocktable
+;;;;;;  org-clock-in-last) "org-clock" "org/org-clock.el" (20585
+;;;;;;  28088 480237 0))
 ;;; Generated autoloads from org/org-clock.el
+
+(autoload 'org-clock-in-last "org-clock" "\
+Clock in the last closed clocked item.
+When already clocking in, send an warning.
+With a universal prefix argument, select the task you want to
+clock in from the last clocked in tasks.
+With two universal prefix arguments, start clocking using the
+last clock-out time, if any.
+With three universal prefix arguments, interactively prompt
+for a todo state to switch to, overriding the existing value
+`org-clock-in-switch-to-state'.
+
+\(fn &optional ARG)" t nil)
 
 (autoload 'org-get-clocktable "org-clock" "\
 Get a formatted clocktable with parameters according to PROPS.
@@ -20533,8 +20500,19 @@ Set up hooks for clock persistence.
 
 ;;;***
 
+;;;### (autoloads (org-check-version) "org-compat" "org/org-compat.el"
+;;;;;;  (20585 28088 480237 0))
+;;; Generated autoloads from org/org-compat.el
+
+(autoload 'org-check-version "org-compat" "\
+Try very hard to provide sensible version strings.
+
+\(fn)" nil t)
+
+;;;***
+
 ;;;### (autoloads (org-datetree-find-date-create) "org-datetree"
-;;;;;;  "org/org-datetree.el" (20355 10021 546955 0))
+;;;;;;  "org/org-datetree.el" (20585 28088 480237 0))
 ;;; Generated autoloads from org/org-datetree.el
 
 (autoload 'org-datetree-find-date-create "org-datetree" "\
@@ -20550,7 +20528,7 @@ tree can be found.
 ;;;### (autoloads (org-export-as-docbook org-export-as-docbook-pdf-and-open
 ;;;;;;  org-export-as-docbook-pdf org-export-region-as-docbook org-replace-region-by-docbook
 ;;;;;;  org-export-as-docbook-to-buffer org-export-as-docbook-batch)
-;;;;;;  "org-docbook" "org/org-docbook.el" (20355 10021 546955 0))
+;;;;;;  "org-docbook" "org/org-docbook.el" (20585 28088 480237 0))
 ;;; Generated autoloads from org/org-docbook.el
 
 (autoload 'org-export-as-docbook-batch "org-docbook" "\
@@ -20625,9 +20603,67 @@ publishing directory.
 
 ;;;***
 
+;;;### (autoloads (org-element-context org-element-at-point org-element-interpret-data)
+;;;;;;  "org-element" "org/org-element.el" (20585 28088 480237 0))
+;;; Generated autoloads from org/org-element.el
+
+(autoload 'org-element-interpret-data "org-element" "\
+Interpret DATA as Org syntax.
+
+DATA is a parse tree, an element, an object or a secondary string
+to interpret.
+
+Optional argument PARENT is used for recursive calls.  It contains
+the element or object containing data, or nil.
+
+Return Org syntax as a string.
+
+\(fn DATA &optional PARENT)" nil nil)
+
+(autoload 'org-element-at-point "org-element" "\
+Determine closest element around point.
+
+Return value is a list like (TYPE PROPS) where TYPE is the type
+of the element and PROPS a plist of properties associated to the
+element.
+
+Possible types are defined in `org-element-all-elements'.
+Properties depend on element or object type, but always
+include :begin, :end, :parent and :post-blank properties.
+
+As a special case, if point is at the very beginning of a list or
+sub-list, returned element will be that list instead of the first
+item.  In the same way, if point is at the beginning of the first
+row of a table, returned element will be the table instead of the
+first row.
+
+If optional argument KEEP-TRAIL is non-nil, the function returns
+a list of of elements leading to element at point.  The list's
+CAR is always the element at point.  Following positions contain
+element's siblings, then parents, siblings of parents, until the
+first element of current section.
+
+\(fn &optional KEEP-TRAIL)" nil nil)
+
+(autoload 'org-element-context "org-element" "\
+Return closest element or object around point.
+
+Return value is a list like (TYPE PROPS) where TYPE is the type
+of the element or object and PROPS a plist of properties
+associated to it.
+
+Possible types are defined in `org-element-all-elements' and
+`org-element-all-objects'.  Properties depend on element or
+object type, but always include :begin, :end, :parent
+and :post-blank properties.
+
+\(fn)" nil nil)
+
+;;;***
+
 ;;;### (autoloads (org-insert-export-options-template org-export-as-org
 ;;;;;;  org-export-visible org-export) "org-exp" "org/org-exp.el"
-;;;;;;  (20355 10021 546955 0))
+;;;;;;  (20585 28088 480237 0))
 ;;; Generated autoloads from org/org-exp.el
 
 (autoload 'org-export "org-exp" "\
@@ -20688,8 +20724,8 @@ Insert into the buffer a template with information for exporting.
 ;;;***
 
 ;;;### (autoloads (org-feed-show-raw-feed org-feed-goto-inbox org-feed-update
-;;;;;;  org-feed-update-all) "org-feed" "org/org-feed.el" (20355
-;;;;;;  10021 546955 0))
+;;;;;;  org-feed-update-all) "org-feed" "org/org-feed.el" (20585
+;;;;;;  28088 480237 0))
 ;;; Generated autoloads from org/org-feed.el
 
 (autoload 'org-feed-update-all "org-feed" "\
@@ -20717,7 +20753,7 @@ Show the raw feed buffer of a feed.
 ;;;***
 
 ;;;### (autoloads (org-footnote-normalize org-footnote-action) "org-footnote"
-;;;;;;  "org/org-footnote.el" (20378 29222 722320 0))
+;;;;;;  "org/org-footnote.el" (20585 28088 480237 0))
 ;;; Generated autoloads from org/org-footnote.el
 
 (autoload 'org-footnote-action "org-footnote" "\
@@ -20768,7 +20804,7 @@ Additional note on `org-footnote-insert-pos-for-preprocessor':
 ;;;### (autoloads (org-freemind-to-org-mode org-freemind-from-org-sparse-tree
 ;;;;;;  org-freemind-from-org-mode org-freemind-from-org-mode-node
 ;;;;;;  org-freemind-show org-export-as-freemind) "org-freemind"
-;;;;;;  "org/org-freemind.el" (20355 10021 546955 0))
+;;;;;;  "org/org-freemind.el" (20585 28088 480237 0))
 ;;; Generated autoloads from org/org-freemind.el
 
 (autoload 'org-export-as-freemind "org-freemind" "\
@@ -20829,7 +20865,7 @@ Convert FreeMind file MM-FILE to `org-mode' file ORG-FILE.
 ;;;### (autoloads (org-export-htmlize-generate-css org-export-as-html
 ;;;;;;  org-export-region-as-html org-replace-region-by-html org-export-as-html-to-buffer
 ;;;;;;  org-export-as-html-batch org-export-as-html-and-open) "org-html"
-;;;;;;  "org/org-html.el" (20355 10021 546955 0))
+;;;;;;  "org/org-html.el" (20585 28088 480237 0))
 ;;; Generated autoloads from org/org-html.el
 
 (put 'org-export-html-style-include-default 'safe-local-variable 'booleanp)
@@ -20923,7 +20959,7 @@ that uses these same face definitions.
 
 ;;;### (autoloads (org-export-icalendar-combine-agenda-files org-export-icalendar-all-agenda-files
 ;;;;;;  org-export-icalendar-this-file) "org-icalendar" "org/org-icalendar.el"
-;;;;;;  (20355 10021 546955 0))
+;;;;;;  (20585 28088 480237 0))
 ;;; Generated autoloads from org/org-icalendar.el
 
 (autoload 'org-export-icalendar-this-file "org-icalendar" "\
@@ -20951,7 +20987,7 @@ The file is stored under the name `org-combined-agenda-icalendar-file'.
 ;;;### (autoloads (org-id-store-link org-id-find-id-file org-id-find
 ;;;;;;  org-id-goto org-id-get-with-outline-drilling org-id-get-with-outline-path-completion
 ;;;;;;  org-id-get org-id-copy org-id-get-create) "org-id" "org/org-id.el"
-;;;;;;  (20545 57511 257469 0))
+;;;;;;  (20585 28088 480237 0))
 ;;; Generated autoloads from org/org-id.el
 
 (autoload 'org-id-get-create "org-id" "\
@@ -21020,7 +21056,7 @@ Store a link to the current entry, using its ID.
 ;;;***
 
 ;;;### (autoloads (org-indent-mode) "org-indent" "org/org-indent.el"
-;;;;;;  (20355 10021 546955 0))
+;;;;;;  (20585 28088 480237 0))
 ;;; Generated autoloads from org/org-indent.el
 
 (autoload 'org-indent-mode "org-indent" "\
@@ -21038,7 +21074,7 @@ during idle time.
 ;;;***
 
 ;;;### (autoloads (org-irc-store-link) "org-irc" "org/org-irc.el"
-;;;;;;  (20355 10021 546955 0))
+;;;;;;  (20585 28088 480237 0))
 ;;; Generated autoloads from org/org-irc.el
 
 (autoload 'org-irc-store-link "org-irc" "\
@@ -21051,7 +21087,7 @@ Dispatch to the appropriate function to store a link to an IRC session.
 ;;;### (autoloads (org-export-as-pdf-and-open org-export-as-pdf org-export-as-latex
 ;;;;;;  org-export-region-as-latex org-replace-region-by-latex org-export-as-latex-to-buffer
 ;;;;;;  org-export-as-latex-batch) "org-latex" "org/org-latex.el"
-;;;;;;  (20355 10021 546955 0))
+;;;;;;  (20585 28088 480237 0))
 ;;; Generated autoloads from org/org-latex.el
 
 (autoload 'org-export-as-latex-batch "org-latex" "\
@@ -21132,7 +21168,7 @@ Export as LaTeX, then process through to PDF, and open.
 
 ;;;### (autoloads (org-lparse-region org-replace-region-by org-lparse-to-buffer
 ;;;;;;  org-lparse-batch org-lparse-and-open) "org-lparse" "org/org-lparse.el"
-;;;;;;  (20417 65331 139825 0))
+;;;;;;  (20585 28088 480237 0))
 ;;; Generated autoloads from org/org-lparse.el
 
 (autoload 'org-lparse-and-open "org-lparse" "\
@@ -21189,8 +21225,8 @@ in a window.  A non-interactive call will only return the buffer.
 ;;;***
 
 ;;;### (autoloads (org-mobile-create-sumo-agenda org-mobile-pull
-;;;;;;  org-mobile-push) "org-mobile" "org/org-mobile.el" (20355
-;;;;;;  10021 546955 0))
+;;;;;;  org-mobile-push) "org-mobile" "org/org-mobile.el" (20585
+;;;;;;  28088 480237 0))
 ;;; Generated autoloads from org/org-mobile.el
 
 (autoload 'org-mobile-push "org-mobile" "\
@@ -21216,8 +21252,10 @@ Create a file that contains all custom agenda views.
 
 ;;;### (autoloads (org-export-as-odf-and-open org-export-as-odf org-export-odt-convert
 ;;;;;;  org-export-as-odt org-export-as-odt-batch org-export-as-odt-and-open)
-;;;;;;  "org-odt" "org/org-odt.el" (20417 65331 139825 0))
+;;;;;;  "org-odt" "org/org-odt.el" (20585 28088 480237 0))
 ;;; Generated autoloads from org/org-odt.el
+
+(put 'org-export-odt-preferred-output-format 'safe-local-variable 'stringp)
 
 (autoload 'org-export-as-odt-and-open "org-odt" "\
 Export the outline as ODT and immediately open it with a browser.
@@ -21286,7 +21324,7 @@ formula file.
 ;;;***
 
 ;;;### (autoloads (org-plot/gnuplot) "org-plot" "org/org-plot.el"
-;;;;;;  (20355 10021 546955 0))
+;;;;;;  (20585 28088 480237 0))
 ;;; Generated autoloads from org/org-plot.el
 
 (autoload 'org-plot/gnuplot "org-plot" "\
@@ -21300,7 +21338,7 @@ line directly before or after the table.
 
 ;;;### (autoloads (org-publish-current-project org-publish-current-file
 ;;;;;;  org-publish-all org-publish) "org-publish" "org/org-publish.el"
-;;;;;;  (20355 10021 546955 0))
+;;;;;;  (20585 28088 480237 0))
 ;;; Generated autoloads from org/org-publish.el
 
 (defalias 'org-publish-project 'org-publish)
@@ -21334,7 +21372,7 @@ the project.
 
 ;;;### (autoloads (org-remember-handler org-remember org-remember-apply-template
 ;;;;;;  org-remember-annotation org-remember-insinuate) "org-remember"
-;;;;;;  "org/org-remember.el" (20420 41510 996439 0))
+;;;;;;  "org/org-remember.el" (20585 28088 480237 0))
 ;;; Generated autoloads from org/org-remember.el
 
 (autoload 'org-remember-insinuate "org-remember" "\
@@ -21409,9 +21447,20 @@ See also the variable `org-reverse-note-order'.
 
 ;;;***
 
-;;;### (autoloads (org-table-to-lisp orgtbl-mode turn-on-orgtbl)
-;;;;;;  "org-table" "org/org-table.el" (20417 65331 139825 0))
+;;;### (autoloads (org-table-to-lisp orgtbl-mode turn-on-orgtbl org-table-iterate-buffer-tables
+;;;;;;  org-table-recalculate-buffer-tables) "org-table" "org/org-table.el"
+;;;;;;  (20585 28088 480237 0))
 ;;; Generated autoloads from org/org-table.el
+
+(autoload 'org-table-recalculate-buffer-tables "org-table" "\
+Recalculate all tables in the current buffer.
+
+\(fn)" t nil)
+
+(autoload 'org-table-iterate-buffer-tables "org-table" "\
+Iterate all tables in the buffer, to converge inter-table dependencies.
+
+\(fn)" t nil)
 
 (autoload 'turn-on-orgtbl "org-table" "\
 Unconditionally turn on `orgtbl-mode'.
@@ -21434,7 +21483,7 @@ The table is taken from the parameter TXT, or from the buffer at point.
 ;;;***
 
 ;;;### (autoloads (org-export-as-taskjuggler-and-open org-export-as-taskjuggler)
-;;;;;;  "org-taskjuggler" "org/org-taskjuggler.el" (20355 10021 546955
+;;;;;;  "org-taskjuggler" "org/org-taskjuggler.el" (20585 28088 480237
 ;;;;;;  0))
 ;;; Generated autoloads from org/org-taskjuggler.el
 
@@ -21442,12 +21491,12 @@ The table is taken from the parameter TXT, or from the buffer at point.
 Export parts of the current buffer as a TaskJuggler file.
 The exporter looks for a tree with tag, property or todo that
 matches `org-export-taskjuggler-project-tag' and takes this as
-the tasks for this project. The first node of this tree defines
+the tasks for this project.  The first node of this tree defines
 the project properties such as project name and project period.
 If there is a tree with tag, property or todo that matches
 `org-export-taskjuggler-resource-tag' this three is taken as
-resources for the project. If no resources are specified, a
-default resource is created and allocated to the project. Also
+resources for the project.  If no resources are specified, a
+default resource is created and allocated to the project.  Also
 the taskjuggler project will be created with default reports as
 defined in `org-export-taskjuggler-default-reports'.
 
@@ -21462,8 +21511,8 @@ with the TaskJuggler GUI.
 ;;;***
 
 ;;;### (autoloads (org-timer-set-timer org-timer-item org-timer-change-times-in-region
-;;;;;;  org-timer org-timer-start) "org-timer" "org/org-timer.el"
-;;;;;;  (20355 10021 546955 0))
+;;;;;;  org-timer org-timer-stop org-timer-pause-or-continue org-timer-start)
+;;;;;;  "org-timer" "org/org-timer.el" (20585 28088 480237 0))
 ;;; Generated autoloads from org/org-timer.el
 
 (autoload 'org-timer-start "org-timer" "\
@@ -21478,6 +21527,17 @@ the amount, with the default to make the first timer string in
 the region 0:00:00.
 
 \(fn &optional OFFSET)" t nil)
+
+(autoload 'org-timer-pause-or-continue "org-timer" "\
+Pause or continue the relative timer.
+With prefix arg STOP, stop it entirely.
+
+\(fn &optional STOP)" t nil)
+
+(autoload 'org-timer-stop "org-timer" "\
+Stop the relative timer.
+
+\(fn)" t nil)
 
 (autoload 'org-timer "org-timer" "\
 Insert a H:MM:SS string from the timer into the buffer.
@@ -21523,8 +21583,29 @@ replace any running timer.
 
 ;;;***
 
+;;;### (autoloads (org-git-version org-release) "org-version" "org/org-version.el"
+;;;;;;  (20585 28088 480237 0))
+;;; Generated autoloads from org/org-version.el
+
+(autoload 'org-release "org-version" "\
+The release version of org-mode.
+  Inserted by installing org-mode or when a release is made.
+
+\(fn)" nil nil)
+
+(autoload 'org-git-version "org-version" "\
+The Git version of org-mode.
+  Inserted by installing org-mode or when a release is made.
+
+\(fn)" nil nil)
+
+(defconst org-odt-data-dir "/usr/share/emacs/etc/org" "\
+The location of ODT styles.")
+
+;;;***
+
 ;;;### (autoloads (org-export-as-xoxo) "org-xoxo" "org/org-xoxo.el"
-;;;;;;  (20355 10021 546955 0))
+;;;;;;  (20585 28088 480237 0))
 ;;; Generated autoloads from org/org-xoxo.el
 
 (autoload 'org-export-as-xoxo "org-xoxo" "\
@@ -21600,7 +21681,7 @@ See the command `outline-mode' for more information on this mode.
 ;;;### (autoloads (list-packages describe-package package-initialize
 ;;;;;;  package-refresh-contents package-install-file package-install-from-buffer
 ;;;;;;  package-install package-enable-at-startup) "package" "emacs-lisp/package.el"
-;;;;;;  (20440 26788 208175 0))
+;;;;;;  (20576 42138 697312 0))
 ;;; Generated autoloads from emacs-lisp/package.el
 
 (defvar package-enable-at-startup t "\
@@ -21765,8 +21846,7 @@ no args, if that value is non-nil.
 ;;;***
 
 ;;;### (autoloads (password-in-cache-p password-cache-expiry password-cache)
-;;;;;;  "password-cache" "password-cache.el" (20355 10021 546955
-;;;;;;  0))
+;;;;;;  "password-cache" "password-cache.el" (20577 33959 40183 0))
 ;;; Generated autoloads from password-cache.el
 
 (defvar password-cache t "\
@@ -21788,7 +21868,7 @@ Check if KEY is in the cache.
 ;;;***
 
 ;;;### (autoloads (pcase-let pcase-let* pcase) "pcase" "emacs-lisp/pcase.el"
-;;;;;;  (20497 6436 957082 0))
+;;;;;;  (20582 12914 894781 0))
 ;;; Generated autoloads from emacs-lisp/pcase.el
 
 (autoload 'pcase "pcase" "\
@@ -21861,7 +21941,7 @@ Completion rules for the `cvs' command.
 ;;;***
 
 ;;;### (autoloads (pcomplete/tar pcomplete/make pcomplete/bzip2 pcomplete/gzip)
-;;;;;;  "pcmpl-gnu" "pcmpl-gnu.el" (20355 10021 546955 0))
+;;;;;;  "pcmpl-gnu" "pcmpl-gnu.el" (20572 16038 402143 0))
 ;;; Generated autoloads from pcmpl-gnu.el
 
 (autoload 'pcomplete/gzip "pcmpl-gnu" "\
@@ -21980,8 +22060,8 @@ Includes files as well as host names followed by a colon.
 
 ;;;### (autoloads (pcomplete-shell-setup pcomplete-comint-setup pcomplete-list
 ;;;;;;  pcomplete-help pcomplete-expand pcomplete-continue pcomplete-expand-and-complete
-;;;;;;  pcomplete-reverse pcomplete) "pcomplete" "pcomplete.el" (20523
-;;;;;;  62082 997685 0))
+;;;;;;  pcomplete-reverse pcomplete) "pcomplete" "pcomplete.el" (20582
+;;;;;;  12914 894781 0))
 ;;; Generated autoloads from pcomplete.el
 
 (autoload 'pcomplete "pcomplete" "\
@@ -22040,7 +22120,7 @@ Setup `shell-mode' to use pcomplete.
 
 ;;;### (autoloads (cvs-dired-use-hook cvs-dired-action cvs-status
 ;;;;;;  cvs-update cvs-examine cvs-quickdir cvs-checkout) "pcvs"
-;;;;;;  "vc/pcvs.el" (20476 31768 298871 0))
+;;;;;;  "vc/pcvs.el" (20584 7212 455152 0))
 ;;; Generated autoloads from vc/pcvs.el
 
 (autoload 'cvs-checkout "pcvs" "\
@@ -22115,8 +22195,8 @@ The exact behavior is determined also by `cvs-dired-use-hook'." (when (stringp d
 
 ;;;***
 
-;;;### (autoloads nil "pcvs-defs" "vc/pcvs-defs.el" (20476 31768
-;;;;;;  298871 0))
+;;;### (autoloads nil "pcvs-defs" "vc/pcvs-defs.el" (20576 42138
+;;;;;;  697312 0))
 ;;; Generated autoloads from vc/pcvs-defs.el
 
 (defvar cvs-global-menu (let ((m (make-sparse-keymap "PCL-CVS"))) (define-key m [status] `(menu-item ,(purecopy "Directory Status") cvs-status :help ,(purecopy "A more verbose status of a workarea"))) (define-key m [checkout] `(menu-item ,(purecopy "Checkout Module") cvs-checkout :help ,(purecopy "Check out a module from the repository"))) (define-key m [update] `(menu-item ,(purecopy "Update Directory") cvs-update :help ,(purecopy "Fetch updates from the repository"))) (define-key m [examine] `(menu-item ,(purecopy "Examine Directory") cvs-examine :help ,(purecopy "Examine the current state of a workarea"))) (fset 'cvs-global-menu m)) "\
@@ -22125,7 +22205,7 @@ Global menu used by PCL-CVS.")
 ;;;***
 
 ;;;### (autoloads (perl-mode) "perl-mode" "progmodes/perl-mode.el"
-;;;;;;  (20523 62082 997685 0))
+;;;;;;  (20566 63671 243798 0))
 ;;; Generated autoloads from progmodes/perl-mode.el
 (put 'perl-indent-level 'safe-local-variable 'integerp)
 (put 'perl-continued-statement-offset 'safe-local-variable 'integerp)
@@ -22187,7 +22267,7 @@ Turning on Perl mode runs the normal hook `perl-mode-hook'.
 ;;;***
 
 ;;;### (autoloads (picture-mode) "picture" "textmodes/picture.el"
-;;;;;;  (20373 11301 906925 0))
+;;;;;;  (20551 9899 283417 0))
 ;;; Generated autoloads from textmodes/picture.el
 
 (autoload 'picture-mode "picture" "\
@@ -22394,7 +22474,7 @@ Ignores leading comment characters.
 ;;;;;;  pr-ps-buffer-print pr-ps-buffer-using-ghostscript pr-ps-buffer-preview
 ;;;;;;  pr-ps-directory-ps-print pr-ps-directory-print pr-ps-directory-using-ghostscript
 ;;;;;;  pr-ps-directory-preview pr-interface) "printing" "printing.el"
-;;;;;;  (20501 3499 284800 0))
+;;;;;;  (20566 63671 243798 0))
 ;;; Generated autoloads from printing.el
 
 (autoload 'pr-interface "printing" "\
@@ -22981,7 +23061,7 @@ are both set to t.
 
 ;;;***
 
-;;;### (autoloads (proced) "proced" "proced.el" (20511 39332 974340
+;;;### (autoloads (proced) "proced" "proced.el" (20576 13095 881042
 ;;;;;;  0))
 ;;; Generated autoloads from proced.el
 
@@ -23000,8 +23080,38 @@ Proced buffers.
 
 ;;;***
 
+;;;### (autoloads (profiler-find-profile-other-frame profiler-find-profile-other-window
+;;;;;;  profiler-find-profile profiler-start) "profiler" "profiler.el"
+;;;;;;  (20585 28088 480237 0))
+;;; Generated autoloads from profiler.el
+
+(autoload 'profiler-start "profiler" "\
+Start/restart profilers.
+MODE can be one of `cpu', `mem', or `cpu+mem'.
+If MODE is `cpu' or `cpu+mem', time-based profiler will be started.
+Also, if MODE is `mem' or `cpu+mem', then memory profiler will be started.
+
+\(fn MODE)" t nil)
+
+(autoload 'profiler-find-profile "profiler" "\
+Open profile FILENAME.
+
+\(fn FILENAME)" t nil)
+
+(autoload 'profiler-find-profile-other-window "profiler" "\
+Open profile FILENAME.
+
+\(fn FILENAME)" t nil)
+
+(autoload 'profiler-find-profile-other-frame "profiler" "\
+Open profile FILENAME.
+
+\(fn FILENAME)" t nil)
+
+;;;***
+
 ;;;### (autoloads (run-prolog mercury-mode prolog-mode) "prolog"
-;;;;;;  "progmodes/prolog.el" (20397 45851 446679 0))
+;;;;;;  "progmodes/prolog.el" (20576 42138 697312 0))
 ;;; Generated autoloads from progmodes/prolog.el
 
 (autoload 'prolog-mode "prolog" "\
@@ -23048,8 +23158,8 @@ The default value is '(\"/usr/local/share/emacs/fonts/bdf\").")
 
 ;;;***
 
-;;;### (autoloads (ps-mode) "ps-mode" "progmodes/ps-mode.el" (20355
-;;;;;;  10021 546955 0))
+;;;### (autoloads (ps-mode) "ps-mode" "progmodes/ps-mode.el" (20576
+;;;;;;  42138 697312 0))
 ;;; Generated autoloads from progmodes/ps-mode.el
 
 (autoload 'ps-mode "ps-mode" "\
@@ -23100,8 +23210,8 @@ Typing \\<ps-run-mode-map>\\[ps-run-goto-error] when the cursor is at the number
 ;;;;;;  ps-spool-region ps-spool-buffer-with-faces ps-spool-buffer
 ;;;;;;  ps-print-region-with-faces ps-print-region ps-print-buffer-with-faces
 ;;;;;;  ps-print-buffer ps-print-customize ps-print-color-p ps-paper-type
-;;;;;;  ps-page-dimensions-database) "ps-print" "ps-print.el" (20355
-;;;;;;  10021 546955 0))
+;;;;;;  ps-page-dimensions-database) "ps-print" "ps-print.el" (20566
+;;;;;;  63671 243798 0))
 ;;; Generated autoloads from ps-print.el
 
 (defvar ps-page-dimensions-database (purecopy (list (list 'a4 (/ (* 72 21.0) 2.54) (/ (* 72 29.7) 2.54) "A4") (list 'a3 (/ (* 72 29.7) 2.54) (/ (* 72 42.0) 2.54) "A3") (list 'letter (* 72 8.5) (* 72 11.0) "Letter") (list 'legal (* 72 8.5) (* 72 14.0) "Legal") (list 'letter-small (* 72 7.68) (* 72 10.16) "LetterSmall") (list 'tabloid (* 72 11.0) (* 72 17.0) "Tabloid") (list 'ledger (* 72 17.0) (* 72 11.0) "Ledger") (list 'statement (* 72 5.5) (* 72 8.5) "Statement") (list 'executive (* 72 7.5) (* 72 10.0) "Executive") (list 'a4small (* 72 7.47) (* 72 10.85) "A4Small") (list 'b4 (* 72 10.125) (* 72 14.33) "B4") (list 'b5 (* 72 7.16) (* 72 10.125) "B5") '(addresslarge 236.0 99.0 "AddressLarge") '(addresssmall 236.0 68.0 "AddressSmall") '(cuthanging13 90.0 222.0 "CutHanging13") '(cuthanging15 90.0 114.0 "CutHanging15") '(diskette 181.0 136.0 "Diskette") '(eurofilefolder 139.0 112.0 "EuropeanFilefolder") '(eurofoldernarrow 526.0 107.0 "EuroFolderNarrow") '(eurofolderwide 526.0 136.0 "EuroFolderWide") '(euronamebadge 189.0 108.0 "EuroNameBadge") '(euronamebadgelarge 223.0 136.0 "EuroNameBadgeLarge") '(filefolder 230.0 37.0 "FileFolder") '(jewelry 76.0 136.0 "Jewelry") '(mediabadge 180.0 136.0 "MediaBadge") '(multipurpose 126.0 68.0 "MultiPurpose") '(retaillabel 90.0 104.0 "RetailLabel") '(shipping 271.0 136.0 "Shipping") '(slide35mm 26.0 104.0 "Slide35mm") '(spine8mm 187.0 26.0 "Spine8mm") '(topcoated 425.19685 136.0 "TopCoatedPaper") '(topcoatedpaper 396.0 136.0 "TopcoatedPaper150") '(vhsface 205.0 127.0 "VHSFace") '(vhsspine 400.0 50.0 "VHSSpine") '(zipdisk 156.0 136.0 "ZipDisk"))) "\
@@ -23298,7 +23408,7 @@ If EXTENSION is any other symbol, it is ignored.
 ;;;***
 
 ;;;### (autoloads (python-mode run-python) "python" "progmodes/python.el"
-;;;;;;  (20523 62082 997685 0))
+;;;;;;  (20585 28088 480237 0))
 ;;; Generated autoloads from progmodes/python.el
 
 (add-to-list 'auto-mode-alist (cons (purecopy "\\.py\\'") 'python-mode))
@@ -23334,7 +23444,7 @@ if that value is non-nil.
 ;;;***
 
 ;;;### (autoloads (quoted-printable-decode-region) "qp" "gnus/qp.el"
-;;;;;;  (20544 36659 880486 0))
+;;;;;;  (20557 48712 315579 0))
 ;;; Generated autoloads from gnus/qp.el
 
 (autoload 'quoted-printable-decode-region "qp" "\
@@ -23588,8 +23698,8 @@ of each directory.
 
 ;;;### (autoloads (quickurl-list quickurl-list-mode quickurl-edit-urls
 ;;;;;;  quickurl-browse-url-ask quickurl-browse-url quickurl-add-url
-;;;;;;  quickurl-ask quickurl) "quickurl" "net/quickurl.el" (20478
-;;;;;;  3673 653810 0))
+;;;;;;  quickurl-ask quickurl) "quickurl" "net/quickurl.el" (20566
+;;;;;;  63671 243798 0))
 ;;; Generated autoloads from net/quickurl.el
 
 (defconst quickurl-reread-hook-postfix "\n;; Local Variables:\n;; eval: (progn (require 'quickurl) (add-hook 'local-write-file-hooks (lambda () (quickurl-read) nil)))\n;; End:\n" "\
@@ -23601,7 +23711,7 @@ To make use of this do something like:
 
   (setq quickurl-postfix quickurl-reread-hook-postfix)
 
-in your ~/.emacs (after loading/requiring quickurl).")
+in your init file (after loading/requiring quickurl).")
 
 (autoload 'quickurl "quickurl" "\
 Insert a URL based on LOOKUP.
@@ -23917,8 +24027,8 @@ For true \"word wrap\" behavior, use `visual-line-mode' instead.
 ;;;***
 
 ;;;### (autoloads (reftex-reset-scanning-information reftex-mode
-;;;;;;  turn-on-reftex) "reftex" "textmodes/reftex.el" (20507 42276
-;;;;;;  222255 0))
+;;;;;;  turn-on-reftex) "reftex" "textmodes/reftex.el" (20585 28088
+;;;;;;  480237 0))
 ;;; Generated autoloads from textmodes/reftex.el
 
 (autoload 'turn-on-reftex "reftex" "\
@@ -23927,13 +24037,7 @@ Turn on RefTeX mode.
 \(fn)" nil nil)
 
 (autoload 'reftex-mode "reftex" "\
-Toggle RefTeX mode.
-With a prefix argument ARG, enable RefTeX mode if ARG is
-positive, and disable it otherwise.  If called from Lisp, enable
-the mode if ARG is omitted or nil.
-
-RefTeX mode is a buffer-local minor mode with distinct support
-for \\label, \\ref and \\cite in LaTeX.
+Minor mode with distinct support for \\label, \\ref and \\cite in LaTeX.
 
 \\<reftex-mode-map>A Table of Contents of the entire (multifile) document with browsing
 capabilities is available with `\\[reftex-toc]'.
@@ -23974,7 +24078,7 @@ This enforces rescanning the buffer on next use.
 ;;;***
 
 ;;;### (autoloads (reftex-citation) "reftex-cite" "textmodes/reftex-cite.el"
-;;;;;;  (20355 10021 546955 0))
+;;;;;;  (20585 28088 480237 0))
 ;;; Generated autoloads from textmodes/reftex-cite.el
 
 (autoload 'reftex-citation "reftex-cite" "\
@@ -24004,7 +24108,7 @@ While entering the regexp, completion on knows citation keys is possible.
 ;;;***
 
 ;;;### (autoloads (reftex-isearch-minor-mode) "reftex-global" "textmodes/reftex-global.el"
-;;;;;;  (20427 14766 970343 0))
+;;;;;;  (20585 28088 480237 0))
 ;;; Generated autoloads from textmodes/reftex-global.el
 
 (autoload 'reftex-isearch-minor-mode "reftex-global" "\
@@ -24021,7 +24125,7 @@ With no argument, this command toggles
 ;;;***
 
 ;;;### (autoloads (reftex-index-phrases-mode) "reftex-index" "textmodes/reftex-index.el"
-;;;;;;  (20399 35365 4050 0))
+;;;;;;  (20585 28088 480237 0))
 ;;; Generated autoloads from textmodes/reftex-index.el
 
 (autoload 'reftex-index-phrases-mode "reftex-index" "\
@@ -24054,7 +24158,7 @@ Here are all local bindings.
 ;;;***
 
 ;;;### (autoloads (reftex-all-document-files) "reftex-parse" "textmodes/reftex-parse.el"
-;;;;;;  (20355 10021 546955 0))
+;;;;;;  (20585 28088 480237 0))
 ;;; Generated autoloads from textmodes/reftex-parse.el
 
 (autoload 'reftex-all-document-files "reftex-parse" "\
@@ -24066,8 +24170,8 @@ of master file.
 
 ;;;***
 
-;;;### (autoloads nil "reftex-vars" "textmodes/reftex-vars.el" (20507
-;;;;;;  42276 222255 0))
+;;;### (autoloads nil "reftex-vars" "textmodes/reftex-vars.el" (20585
+;;;;;;  28088 480237 0))
 ;;; Generated autoloads from textmodes/reftex-vars.el
 (put 'reftex-vref-is-default 'safe-local-variable (lambda (x) (or (stringp x) (symbolp x))))
 (put 'reftex-fref-is-default 'safe-local-variable (lambda (x) (or (stringp x) (symbolp x))))
@@ -24139,15 +24243,15 @@ Extract diary entries from the region.
 
 ;;;***
 
-;;;### (autoloads (repeat) "repeat" "repeat.el" (20388 65061 302484
+;;;### (autoloads (repeat) "repeat" "repeat.el" (20574 57775 217760
 ;;;;;;  0))
 ;;; Generated autoloads from repeat.el
 
 (autoload 'repeat "repeat" "\
 Repeat most recently executed command.
-With prefix arg, apply new prefix arg to that command; otherwise,
-use the prefix arg that was used before (if any).
-This command is like the `.' command in the vi editor.
+If REPEAT-ARG is non-nil (interactively, with a prefix argument),
+supply a prefix argument to that command.  Otherwise, give the
+command the same prefix argument it was given before, if any.
 
 If this command is invoked by a multi-character key sequence, it
 can then be repeated by repeating the final character of that
@@ -24323,8 +24427,8 @@ variable.
 ;;;;;;  rmail-secondary-file-directory rmail-primary-inbox-list rmail-highlighted-headers
 ;;;;;;  rmail-retry-ignored-headers rmail-displayed-headers rmail-ignored-headers
 ;;;;;;  rmail-user-mail-address-regexp rmail-movemail-variant-p rmail-spool-directory
-;;;;;;  rmail-file-name) "rmail" "mail/rmail.el" (20526 43809 637014
-;;;;;;  858000))
+;;;;;;  rmail-file-name) "rmail" "mail/rmail.el" (20568 19013 9762
+;;;;;;  342000))
 ;;; Generated autoloads from mail/rmail.el
 
 (defvar rmail-file-name (purecopy "~/RMAIL") "\
@@ -24744,7 +24848,7 @@ Toggle the use of ROT13 encoding for the current window.
 ;;;***
 
 ;;;### (autoloads (rst-minor-mode rst-mode) "rst" "textmodes/rst.el"
-;;;;;;  (20523 62082 997685 0))
+;;;;;;  (20576 13095 881042 0))
 ;;; Generated autoloads from textmodes/rst.el
  (add-to-list 'auto-mode-alist (purecopy '("\\.re?st\\'" . rst-mode)))
 
@@ -24775,7 +24879,7 @@ for modes derived from Text mode, like Mail mode.
 ;;;***
 
 ;;;### (autoloads (ruby-mode) "ruby-mode" "progmodes/ruby-mode.el"
-;;;;;;  (20522 38650 757441 0))
+;;;;;;  (20576 42138 697312 0))
 ;;; Generated autoloads from progmodes/ruby-mode.el
 
 (autoload 'ruby-mode "ruby-mode" "\
@@ -25126,8 +25230,8 @@ enclosed in `(and ...)'.
 
 ;;;***
 
-;;;### (autoloads (savehist-mode) "savehist" "savehist.el" (20523
-;;;;;;  62082 997685 0))
+;;;### (autoloads (savehist-mode) "savehist" "savehist.el" (20577
+;;;;;;  33959 40183 0))
 ;;; Generated autoloads from savehist.el
 
 (defvar savehist-mode nil "\
@@ -25320,7 +25424,7 @@ Semantic mode.
 ;;;;;;  mail-personal-alias-file mail-default-reply-to mail-archive-file-name
 ;;;;;;  mail-header-separator send-mail-function mail-interactive
 ;;;;;;  mail-self-blind mail-specify-envelope-from mail-from-style)
-;;;;;;  "sendmail" "mail/sendmail.el" (20501 3499 284800 0))
+;;;;;;  "sendmail" "mail/sendmail.el" (20577 33959 40183 0))
 ;;; Generated autoloads from mail/sendmail.el
 
 (defvar mail-from-style 'default "\
@@ -25602,8 +25706,8 @@ Like `mail' command, but display mail buffer in another frame.
 ;;;***
 
 ;;;### (autoloads (server-save-buffers-kill-terminal server-mode
-;;;;;;  server-force-delete server-start) "server" "server.el" (20545
-;;;;;;  57511 257469 0))
+;;;;;;  server-force-delete server-start) "server" "server.el" (20584
+;;;;;;  7212 455152 0))
 ;;; Generated autoloads from server.el
 
 (put 'server-host 'risky-local-variable t)
@@ -25670,7 +25774,7 @@ only these files will be asked to be saved.
 
 ;;;***
 
-;;;### (autoloads (ses-mode) "ses" "ses.el" (20493 9382 687578 0))
+;;;### (autoloads (ses-mode) "ses" "ses.el" (20553 51627 169867 0))
 ;;; Generated autoloads from ses.el
 
 (autoload 'ses-mode "ses" "\
@@ -25689,7 +25793,7 @@ These are active only in the minibuffer, when entering or editing a formula:
 ;;;***
 
 ;;;### (autoloads (html-mode sgml-mode) "sgml-mode" "textmodes/sgml-mode.el"
-;;;;;;  (20478 3673 653810 0))
+;;;;;;  (20580 10161 446444 0))
 ;;; Generated autoloads from textmodes/sgml-mode.el
 
 (autoload 'sgml-mode "sgml-mode" "\
@@ -25703,7 +25807,7 @@ the next N words.  In Transient Mark mode, when the mark is active,
 N defaults to -1, which means to wrap it around the current region.
 
 If you like upcased tags, put (setq sgml-transformation-function 'upcase)
-in your `.emacs' file.
+in your init file.
 
 Use \\[sgml-validate] to validate your document with an SGML parser.
 
@@ -25755,7 +25859,7 @@ To work around that, do:
 ;;;***
 
 ;;;### (autoloads (sh-mode) "sh-script" "progmodes/sh-script.el"
-;;;;;;  (20541 6907 775259 0))
+;;;;;;  (20577 33959 40183 0))
 ;;; Generated autoloads from progmodes/sh-script.el
 (put 'sh-shell 'safe-local-variable 'symbolp)
 
@@ -25819,7 +25923,7 @@ with your script for an edit-interpret-debug cycle.
 ;;;***
 
 ;;;### (autoloads (list-load-path-shadows) "shadow" "emacs-lisp/shadow.el"
-;;;;;;  (20355 10021 546955 0))
+;;;;;;  (20572 16038 402143 0))
 ;;; Generated autoloads from emacs-lisp/shadow.el
 
 (autoload 'list-load-path-shadows "shadow" "\
@@ -25909,7 +26013,7 @@ Set up file shadowing.
 ;;;***
 
 ;;;### (autoloads (shell shell-dumb-shell-regexp) "shell" "shell.el"
-;;;;;;  (20478 3673 653810 0))
+;;;;;;  (20566 63671 243798 0))
 ;;; Generated autoloads from shell.el
 
 (defvar shell-dumb-shell-regexp (purecopy "cmd\\(proxy\\)?\\.exe") "\
@@ -26176,7 +26280,7 @@ symmetrical ones, and the same character twice for the others.
 ;;;***
 
 ;;;### (autoloads (smerge-start-session smerge-mode smerge-ediff)
-;;;;;;  "smerge-mode" "vc/smerge-mode.el" (20523 62082 997685 0))
+;;;;;;  "smerge-mode" "vc/smerge-mode.el" (20585 28088 480237 0))
 ;;; Generated autoloads from vc/smerge-mode.el
 
 (autoload 'smerge-ediff "smerge-mode" "\
@@ -26222,7 +26326,7 @@ interactively.  If there's no argument, do it at the current buffer.
 ;;;***
 
 ;;;### (autoloads (smtpmail-send-queued-mail smtpmail-send-it) "smtpmail"
-;;;;;;  "mail/smtpmail.el" (20402 11562 85788 0))
+;;;;;;  "mail/smtpmail.el" (20551 9899 283417 0))
 ;;; Generated autoloads from mail/smtpmail.el
 
 (autoload 'smtpmail-send-it "smtpmail" "\
@@ -26262,7 +26366,7 @@ Snake mode keybindings:
 ;;;***
 
 ;;;### (autoloads (snmpv2-mode snmp-mode) "snmp-mode" "net/snmp-mode.el"
-;;;;;;  (20478 3673 653810 0))
+;;;;;;  (20577 33959 40183 0))
 ;;; Generated autoloads from net/snmp-mode.el
 
 (autoload 'snmp-mode "snmp-mode" "\
@@ -26291,8 +26395,8 @@ then `snmpv2-mode-hook'.
 
 ;;;***
 
-;;;### (autoloads (sunrise-sunset) "solar" "calendar/solar.el" (20355
-;;;;;;  10021 546955 0))
+;;;### (autoloads (sunrise-sunset) "solar" "calendar/solar.el" (20566
+;;;;;;  63671 243798 0))
 ;;; Generated autoloads from calendar/solar.el
 
 (autoload 'sunrise-sunset "solar" "\
@@ -26301,7 +26405,7 @@ If called with an optional prefix argument ARG, prompt for date.
 If called with an optional double prefix argument, prompt for
 longitude, latitude, time zone, and date, and always use standard time.
 
-This function is suitable for execution in a .emacs file.
+This function is suitable for execution in an init file.
 
 \(fn &optional ARG)" t nil)
 
@@ -26595,7 +26699,7 @@ Spam reports will be queued with the method used when
 ;;;***
 
 ;;;### (autoloads (speedbar-get-focus speedbar-frame-mode) "speedbar"
-;;;;;;  "speedbar.el" (20497 6436 957082 0))
+;;;;;;  "speedbar.el" (20566 63671 243798 0))
 ;;; Generated autoloads from speedbar.el
 
 (defalias 'speedbar 'speedbar-frame-mode)
@@ -26639,7 +26743,7 @@ Return a vector containing the lines from `spook-phrases-file'.
 ;;;;;;  sql-ms sql-ingres sql-solid sql-mysql sql-sqlite sql-informix
 ;;;;;;  sql-sybase sql-oracle sql-product-interactive sql-connect
 ;;;;;;  sql-mode sql-help sql-add-product-keywords) "sql" "progmodes/sql.el"
-;;;;;;  (20480 38535 248706 0))
+;;;;;;  (20566 63671 243798 0))
 ;;; Generated autoloads from progmodes/sql.el
 
 (autoload 'sql-add-product-keywords "sql" "\
@@ -26719,8 +26823,8 @@ For information on how to create multiple SQLi buffers, see
 `sql-interactive-mode'.
 
 Note that SQL doesn't have an escape character unless you specify
-one.  If you specify backslash as escape character in SQL,
-you must tell Emacs.  Here's how to do that in your `~/.emacs' file:
+one.  If you specify backslash as escape character in SQL, you
+must tell Emacs.  Here's how to do that in your init file:
 
 \(add-hook 'sql-mode-hook
           (lambda ()
@@ -27175,8 +27279,8 @@ GnuTLS requires a port number.
 ;;;;;;  strokes-mode strokes-list-strokes strokes-load-user-strokes
 ;;;;;;  strokes-help strokes-describe-stroke strokes-do-complex-stroke
 ;;;;;;  strokes-do-stroke strokes-read-complex-stroke strokes-read-stroke
-;;;;;;  strokes-global-set-stroke) "strokes" "strokes.el" (20523
-;;;;;;  62082 997685 0))
+;;;;;;  strokes-global-set-stroke) "strokes" "strokes.el" (20566
+;;;;;;  63671 243798 0))
 ;;; Generated autoloads from strokes.el
 
 (autoload 'strokes-global-set-stroke "strokes" "\
@@ -27367,7 +27471,7 @@ See `subword-mode' for more information on Subword mode.
 ;;;***
 
 ;;;### (autoloads (sc-cite-original) "supercite" "mail/supercite.el"
-;;;;;;  (20355 10021 546955 0))
+;;;;;;  (20576 42138 697312 0))
 ;;; Generated autoloads from mail/supercite.el
 
 (autoload 'sc-cite-original "supercite" "\
@@ -27464,7 +27568,7 @@ The variable `tab-width' controls the spacing of tab stops.
 ;;;;;;  table-recognize table-insert-row-column table-insert-column
 ;;;;;;  table-insert-row table-insert table-point-left-cell-hook
 ;;;;;;  table-point-entered-cell-hook table-load-hook table-cell-map-hook)
-;;;;;;  "table" "textmodes/table.el" (20434 17809 692608 0))
+;;;;;;  "table" "textmodes/table.el" (20566 63671 243798 0))
 ;;; Generated autoloads from textmodes/table.el
 
 (defvar table-cell-map-hook nil "\
@@ -28068,8 +28172,8 @@ Connect to the Emacs talk group from the current X display or tty frame.
 
 ;;;***
 
-;;;### (autoloads (tar-mode) "tar-mode" "tar-mode.el" (20522 9637
-;;;;;;  465791 0))
+;;;### (autoloads (tar-mode) "tar-mode" "tar-mode.el" (20585 28088
+;;;;;;  480237 0))
 ;;; Generated autoloads from tar-mode.el
 
 (autoload 'tar-mode "tar-mode" "\
@@ -28093,7 +28197,7 @@ See also: variables `tar-update-datestamp' and `tar-anal-blocksize'.
 ;;;***
 
 ;;;### (autoloads (tcl-help-on-word inferior-tcl tcl-mode) "tcl"
-;;;;;;  "progmodes/tcl.el" (20355 10021 546955 0))
+;;;;;;  "progmodes/tcl.el" (20580 10161 446444 0))
 ;;; Generated autoloads from progmodes/tcl.el
 
 (autoload 'tcl-mode "tcl" "\
@@ -28168,7 +28272,7 @@ Normally input is edited in Emacs and sent a line at a time.
 ;;;***
 
 ;;;### (autoloads (serial-term ansi-term term make-term) "term" "term.el"
-;;;;;;  (20478 3673 653810 0))
+;;;;;;  (20580 10161 446444 0))
 ;;; Generated autoloads from term.el
 
 (autoload 'make-term "term" "\
@@ -28248,7 +28352,7 @@ subprocess started.
 ;;;***
 
 ;;;### (autoloads (testcover-this-defun) "testcover" "emacs-lisp/testcover.el"
-;;;;;;  (20355 10021 546955 0))
+;;;;;;  (20580 10161 446444 0))
 ;;; Generated autoloads from emacs-lisp/testcover.el
 
 (autoload 'testcover-this-defun "testcover" "\
@@ -28290,7 +28394,7 @@ tetris-mode keybindings:
 ;;;;;;  tex-start-commands tex-start-options slitex-run-command latex-run-command
 ;;;;;;  tex-run-command tex-offer-save tex-main-file tex-first-line-header-regexp
 ;;;;;;  tex-directory tex-shell-file-name) "tex-mode" "textmodes/tex-mode.el"
-;;;;;;  (20523 62082 997685 0))
+;;;;;;  (20584 7212 455152 0))
 ;;; Generated autoloads from textmodes/tex-mode.el
 
 (defvar tex-shell-file-name nil "\
@@ -28948,7 +29052,7 @@ This function performs no refilling of the changed text.
 
 ;;;### (autoloads (emacs-init-time emacs-uptime display-time-world
 ;;;;;;  display-time-mode display-time display-time-day-and-date)
-;;;;;;  "time" "time.el" (20387 44199 24128 0))
+;;;;;;  "time" "time.el" (20561 45732 920134 0))
 ;;; Generated autoloads from time.el
 
 (defvar display-time-day-and-date nil "\
@@ -29128,7 +29232,7 @@ This function does not work for SECONDS greater than `most-positive-fixnum'.
 ;;;***
 
 ;;;### (autoloads (time-stamp-toggle-active time-stamp) "time-stamp"
-;;;;;;  "time-stamp.el" (20355 10021 546955 0))
+;;;;;;  "time-stamp.el" (20566 63671 243798 0))
 ;;; Generated autoloads from time-stamp.el
 (put 'time-stamp-format 'safe-local-variable 'stringp)
 (put 'time-stamp-time-zone 'safe-local-variable 'string-or-null-p)
@@ -29142,7 +29246,7 @@ This function does not work for SECONDS greater than `most-positive-fixnum'.
 (autoload 'time-stamp "time-stamp" "\
 Update the time stamp string(s) in the buffer.
 A template in a file can be automatically updated with a new time stamp
-every time you save the file.  Add this line to your .emacs file:
+every time you save the file.  Add this line to your init file:
     (add-hook 'before-save-hook 'time-stamp)
 or customize `before-save-hook' through Custom.
 Normally the template must appear in the first 8 lines of a file and
@@ -29172,7 +29276,7 @@ With ARG, turn time stamping on if and only if arg is positive.
 ;;;;;;  timeclock-workday-remaining-string timeclock-reread-log timeclock-query-out
 ;;;;;;  timeclock-change timeclock-status-string timeclock-out timeclock-in
 ;;;;;;  timeclock-mode-line-display) "timeclock" "calendar/timeclock.el"
-;;;;;;  (20523 62082 997685 0))
+;;;;;;  (20566 63671 243798 0))
 ;;; Generated autoloads from calendar/timeclock.el
 
 (autoload 'timeclock-mode-line-display "timeclock" "\
@@ -29466,7 +29570,7 @@ holds a keymap.
 ;;;***
 
 ;;;### (autoloads (tpu-edt-on tpu-edt-mode) "tpu-edt" "emulation/tpu-edt.el"
-;;;;;;  (20399 35365 4050 0))
+;;;;;;  (20566 63671 243798 0))
 ;;; Generated autoloads from emulation/tpu-edt.el
 
 (defvar tpu-edt-mode nil "\
@@ -29496,7 +29600,7 @@ Turn on TPU/edt emulation.
 ;;;***
 
 ;;;### (autoloads (tpu-mapper) "tpu-mapper" "emulation/tpu-mapper.el"
-;;;;;;  (20355 10021 546955 0))
+;;;;;;  (20566 63671 243798 0))
 ;;; Generated autoloads from emulation/tpu-mapper.el
 
 (autoload 'tpu-mapper "tpu-mapper" "\
@@ -29512,7 +29616,7 @@ Finally, you will be prompted for the name of the file to store the key
 definitions.  If you chose the default, TPU-edt will find it and load it
 automatically.  If you specify a different file name, you will need to
 set the variable ``tpu-xkeys-file'' before starting TPU-edt.  Here's how
-you might go about doing that in your .emacs file.
+you might go about doing that in your init file.
 
   (setq tpu-xkeys-file (expand-file-name \"~/.my-emacs-x-keys\"))
   (tpu-edt)
@@ -29582,7 +29686,7 @@ BUFFER defaults to `trace-buffer'.
 ;;;### (autoloads (tramp-unload-tramp tramp-completion-handle-file-name-completion
 ;;;;;;  tramp-completion-handle-file-name-all-completions tramp-unload-file-name-handlers
 ;;;;;;  tramp-file-name-handler tramp-syntax tramp-mode) "tramp"
-;;;;;;  "net/tramp.el" (20530 32114 546307 0))
+;;;;;;  "net/tramp.el" (20561 18280 338092 0))
 ;;; Generated autoloads from net/tramp.el
 
 (defvar tramp-mode t "\
@@ -29725,8 +29829,8 @@ Discard Tramp from loading remote files.
 
 ;;;***
 
-;;;### (autoloads (help-with-tutorial) "tutorial" "tutorial.el" (20518
-;;;;;;  12580 46478 0))
+;;;### (autoloads (help-with-tutorial) "tutorial" "tutorial.el" (20584
+;;;;;;  7212 455152 0))
 ;;; Generated autoloads from tutorial.el
 
 (autoload 'help-with-tutorial "tutorial" "\
@@ -29762,7 +29866,7 @@ resumed later.
 ;;;***
 
 ;;;### (autoloads (2C-split 2C-associate-buffer 2C-two-columns) "two-column"
-;;;;;;  "textmodes/two-column.el" (20364 31990 752722 691000))
+;;;;;;  "textmodes/two-column.el" (20566 63671 243798 0))
 ;;; Generated autoloads from textmodes/two-column.el
  (autoload '2C-command "two-column" () t 'keymap)
  (global-set-key "\C-x6" '2C-command)
@@ -29810,70 +29914,18 @@ First column's text    sSs  Second column's text
 ;;;***
 
 ;;;### (autoloads (type-break-guesstimate-keystroke-threshold type-break-statistics
-;;;;;;  type-break type-break-mode type-break-keystroke-threshold
-;;;;;;  type-break-good-break-interval type-break-good-rest-interval
-;;;;;;  type-break-interval type-break-mode) "type-break" "type-break.el"
-;;;;;;  (20545 57511 257469 0))
+;;;;;;  type-break type-break-mode) "type-break" "type-break.el"
+;;;;;;  (20582 12914 894781 0))
 ;;; Generated autoloads from type-break.el
 
 (defvar type-break-mode nil "\
-Toggle typing break mode.
-See the docstring for the `type-break-mode' command for more information.
+Non-nil if Type-Break mode is enabled.
+See the command `type-break-mode' for a description of this minor mode.
 Setting this variable directly does not take effect;
-use either \\[customize] or the function `type-break-mode'.")
+either customize it (see the info node `Easy Customization')
+or call the function `type-break-mode'.")
 
 (custom-autoload 'type-break-mode "type-break" nil)
-
-(defvar type-break-interval (* 60 60) "\
-Number of seconds between scheduled typing breaks.")
-
-(custom-autoload 'type-break-interval "type-break" t)
-
-(defvar type-break-good-rest-interval (/ type-break-interval 6) "\
-Number of seconds of idle time considered to be an adequate typing rest.
-
-When this variable is non-nil, Emacs checks the idle time between
-keystrokes.  If this idle time is long enough to be considered a \"good\"
-rest from typing, then the next typing break is simply rescheduled for later.
-
-If a break is interrupted before this much time elapses, the user will be
-asked whether or not really to interrupt the break.")
-
-(custom-autoload 'type-break-good-rest-interval "type-break" t)
-
-(defvar type-break-good-break-interval nil "\
-Number of seconds considered to be an adequate explicit typing rest.
-
-When this variable is non-nil, its value is considered to be a \"good\"
-length (in seconds) for a break initiated by the command `type-break',
-overriding `type-break-good-rest-interval'.  This provides querying of
-break interruptions when `type-break-good-rest-interval' is nil.")
-
-(custom-autoload 'type-break-good-break-interval "type-break" t)
-
-(defvar type-break-keystroke-threshold (let* ((wpm 35) (avg-word-length 5) (upper (* wpm avg-word-length (/ type-break-interval 60))) (lower (/ upper 5))) (cons lower upper)) "\
-Upper and lower bound on number of keystrokes for considering typing break.
-This structure is a pair of numbers (MIN . MAX).
-
-The first number is the minimum number of keystrokes that must have been
-entered since the last typing break before considering another one, even if
-the scheduled time has elapsed; the break is simply rescheduled until later
-if the minimum threshold hasn't been reached.  If this first value is nil,
-then there is no minimum threshold; as soon as the scheduled time has
-elapsed, the user will always be queried.
-
-The second number is the maximum number of keystrokes that can be entered
-before a typing break is requested immediately, pre-empting the originally
-scheduled break.  If this second value is nil, then no pre-emptive breaks
-will occur; only scheduled ones will.
-
-Keys with bucky bits (shift, control, meta, etc) are counted as only one
-keystroke even though they really require multiple keys to generate them.
-
-The command `type-break-guesstimate-keystroke-threshold' can be used to
-guess a reasonably good pair of values for this variable.")
-
-(custom-autoload 'type-break-keystroke-threshold "type-break" t)
 
 (autoload 'type-break-mode "type-break" "\
 Enable or disable typing-break mode.
@@ -29949,7 +30001,7 @@ across Emacs sessions.  This provides recovery of the break status between
 sessions and after a crash.  Manual changes to the file may result in
 problems.
 
-\(fn &optional PREFIX)" t nil)
+\(fn &optional ARG)" t nil)
 
 (autoload 'type-break "type-break" "\
 Take a typing break.
@@ -29995,8 +30047,8 @@ FRAC should be the inverse of the fractional value; for example, a value of
 
 ;;;***
 
-;;;### (autoloads (uce-reply-to-uce) "uce" "mail/uce.el" (20355 10021
-;;;;;;  546955 0))
+;;;### (autoloads (uce-reply-to-uce) "uce" "mail/uce.el" (20566 63671
+;;;;;;  243798 0))
 ;;; Generated autoloads from mail/uce.el
 
 (autoload 'uce-reply-to-uce "uce" "\
@@ -30323,7 +30375,7 @@ Might do a non-blocking connection; use `process-status' to check.
 
 ;;;### (autoloads (url-insert-file-contents url-file-local-copy url-copy-file
 ;;;;;;  url-file-handler url-handler-mode) "url-handlers" "url/url-handlers.el"
-;;;;;;  (20440 54677 388705 0))
+;;;;;;  (20584 7212 455152 0))
 ;;; Generated autoloads from url/url-handlers.el
 
 (defvar url-handler-mode nil "\
@@ -30581,7 +30633,7 @@ Fetch a data URL (RFC 2397).
 ;;;***
 
 ;;;### (autoloads (url-generic-parse-url url-recreate-url) "url-parse"
-;;;;;;  "url/url-parse.el" (20523 62082 997685 0))
+;;;;;;  "url/url-parse.el" (20577 33959 40183 0))
 ;;; Generated autoloads from url/url-parse.el
 
 (autoload 'url-recreate-url "url-parse" "\
@@ -30664,8 +30716,8 @@ The variable `url-queue-timeout' sets a timeout.
 ;;;;;;  url-percentage url-display-percentage url-pretty-length url-strip-leading-spaces
 ;;;;;;  url-eat-trailing-space url-get-normalized-date url-lazy-message
 ;;;;;;  url-normalize-url url-insert-entities-in-string url-parse-args
-;;;;;;  url-debug url-debug) "url-util" "url/url-util.el" (20520
-;;;;;;  54308 826101 0))
+;;;;;;  url-debug url-debug) "url-util" "url/url-util.el" (20584
+;;;;;;  7212 455152 0))
 ;;; Generated autoloads from url/url-util.el
 
 (defvar url-debug nil "\
@@ -30691,8 +30743,8 @@ If a list, it is a list of the types of messages to be logged.")
 (autoload 'url-insert-entities-in-string "url-util" "\
 Convert HTML markup-start characters to entity references in STRING.
 Also replaces the \" character, so that the result may be safely used as
-  an attribute value in a tag.  Returns a new string with the result of the
-  conversion.  Replaces these characters as follows:
+an attribute value in a tag.  Returns a new string with the result of the
+conversion.  Replaces these characters as follows:
     &  ==>  &amp;
     <  ==>  &lt;
     >  ==>  &gt;
@@ -30767,7 +30819,19 @@ Given a QUERY in the form:
   (key2 val2)
   (key3 val1 val2)
   (key4)
-  (key5 
+  (key5 \"\"))
+
+\(This is the same format as produced by `url-parse-query-string')
+
+This will return a string
+\"key1=val1&key2=val2&key3=val1&key3=val2&key4&key5\". Keys may
+be strings or symbols; if they are symbols, the symbol name will
+be used.
+
+When SEMICOLONS is given, the separator will be \";\".
+
+When KEEP-EMPTY is given, empty values will show as \"key=\"
+instead of just \"key\" as in the example above.
 
 \(fn QUERY &optional SEMICOLONS KEEP-EMPTY)" nil nil)
 
@@ -30827,7 +30891,7 @@ This uses `url-current-object', set locally to the buffer.
 ;;;***
 
 ;;;### (autoloads (ask-user-about-supersession-threat ask-user-about-lock)
-;;;;;;  "userlock" "userlock.el" (20490 33188 850375 0))
+;;;;;;  "userlock" "userlock.el" (20555 6946 859539 0))
 ;;; Generated autoloads from userlock.el
 
 (autoload 'ask-user-about-lock "userlock" "\
@@ -30925,8 +30989,8 @@ If FILE-NAME is non-nil, save the result to FILE-NAME.
 ;;;;;;  vc-print-log vc-retrieve-tag vc-create-tag vc-merge vc-insert-headers
 ;;;;;;  vc-revision-other-window vc-root-diff vc-ediff vc-version-ediff
 ;;;;;;  vc-diff vc-version-diff vc-register vc-next-action vc-before-checkin-hook
-;;;;;;  vc-checkin-hook vc-checkout-hook) "vc" "vc/vc.el" (20542
-;;;;;;  46798 773957 0))
+;;;;;;  vc-checkin-hook vc-checkout-hook) "vc" "vc/vc.el" (20580
+;;;;;;  10161 446444 0))
 ;;; Generated autoloads from vc/vc.el
 
 (defvar vc-checkout-hook nil "\
@@ -31252,7 +31316,7 @@ mode-specific menu.  `vc-annotate-color-map' and
 
 ;;;***
 
-;;;### (autoloads nil "vc-bzr" "vc/vc-bzr.el" (20489 12324 656827
+;;;### (autoloads nil "vc-bzr" "vc/vc-bzr.el" (20584 7212 455152
 ;;;;;;  0))
 ;;; Generated autoloads from vc/vc-bzr.el
 
@@ -31330,7 +31394,7 @@ case, and the process object in the asynchronous case.
 
 ;;;***
 
-;;;### (autoloads nil "vc-git" "vc/vc-git.el" (20495 51111 757560
+;;;### (autoloads nil "vc-git" "vc/vc-git.el" (20566 63671 243798
 ;;;;;;  0))
 ;;; Generated autoloads from vc/vc-git.el
  (defun vc-git-registered (file)
@@ -31370,7 +31434,7 @@ Name of the monotone directory's format file.")
 ;;;***
 
 ;;;### (autoloads (vc-rcs-master-templates) "vc-rcs" "vc/vc-rcs.el"
-;;;;;;  (20478 3673 653810 0))
+;;;;;;  (20584 7212 455152 0))
 ;;; Generated autoloads from vc/vc-rcs.el
 
 (defvar vc-rcs-master-templates (purecopy '("%sRCS/%s,v" "%s%s,v" "%sRCS/%s")) "\
@@ -31384,7 +31448,7 @@ For a description of possible values, see `vc-check-master-templates'.")
 ;;;***
 
 ;;;### (autoloads (vc-sccs-master-templates) "vc-sccs" "vc/vc-sccs.el"
-;;;;;;  (20430 41939 815258 390000))
+;;;;;;  (20584 7212 455152 0))
 ;;; Generated autoloads from vc/vc-sccs.el
 
 (defvar vc-sccs-master-templates (purecopy '("%sSCCS/s.%s" "%ss.%s" vc-sccs-search-project-dir)) "\
@@ -31392,7 +31456,8 @@ Where to look for SCCS master files.
 For a description of possible values, see `vc-check-master-templates'.")
 
 (custom-autoload 'vc-sccs-master-templates "vc-sccs" t)
- (defun vc-sccs-registered(f) (vc-default-registered 'SCCS f))
+
+(defun vc-sccs-registered (f) (vc-default-registered 'SCCS f))
 
 (defun vc-sccs-search-project-dir (dirname basename) "\
 Return the name of a master file in the SCCS project directory.
@@ -31416,7 +31481,7 @@ find any project directory." (let ((project-dir (getenv "PROJECTDIR")) dirs dir)
 ;;;***
 
 ;;;### (autoloads (vera-mode) "vera-mode" "progmodes/vera-mode.el"
-;;;;;;  (20434 17809 692608 0))
+;;;;;;  (20577 33959 40183 0))
 ;;; Generated autoloads from progmodes/vera-mode.el
  (add-to-list 'auto-mode-alist (cons (purecopy "\\.vr[hi]?\\'")  'vera-mode))
 
@@ -31474,7 +31539,7 @@ Key bindings:
 ;;;***
 
 ;;;### (autoloads (verilog-mode) "verilog-mode" "progmodes/verilog-mode.el"
-;;;;;;  (20420 41510 996439 0))
+;;;;;;  (20581 31014 234484 0))
 ;;; Generated autoloads from progmodes/verilog-mode.el
 
 (autoload 'verilog-mode "verilog-mode" "\
@@ -31613,7 +31678,7 @@ Key bindings specific to `verilog-mode-map' are:
 ;;;***
 
 ;;;### (autoloads (vhdl-mode) "vhdl-mode" "progmodes/vhdl-mode.el"
-;;;;;;  (20495 51111 757560 0))
+;;;;;;  (20584 7212 455152 0))
 ;;; Generated autoloads from progmodes/vhdl-mode.el
 
 (autoload 'vhdl-mode "vhdl-mode" "\
@@ -32167,7 +32232,7 @@ Key bindings:
 
 ;;;***
 
-;;;### (autoloads (vi-mode) "vi" "emulation/vi.el" (20355 10021 546955
+;;;### (autoloads (vi-mode) "vi" "emulation/vi.el" (20566 63671 243798
 ;;;;;;  0))
 ;;; Generated autoloads from emulation/vi.el
 
@@ -32271,7 +32336,7 @@ Convert Vietnamese characters of the current buffer to `VIQR' mnemonics.
 ;;;;;;  view-mode view-buffer-other-frame view-buffer-other-window
 ;;;;;;  view-buffer view-file-other-frame view-file-other-window
 ;;;;;;  view-file kill-buffer-if-not-modified view-remove-frame-by-deleting)
-;;;;;;  "view" "view.el" (20355 10021 546955 0))
+;;;;;;  "view" "view.el" (20577 33959 40183 0))
 ;;; Generated autoloads from view.el
 
 (defvar view-remove-frame-by-deleting t "\
@@ -32501,6 +32566,8 @@ entry for the selected window, purge that entry from
 
 \(fn BUFFER &optional ITEM)" nil nil)
 
+(make-obsolete 'view-return-to-alist-update '"this function has no effect." "24.1")
+
 (autoload 'view-mode-enter "view" "\
 Enter View mode and set up exit from view mode depending on optional arguments.
 Optional argument QUIT-RESTORE if non-nil must specify a valid
@@ -32542,7 +32609,7 @@ Turn on VIP emulation of VI.
 ;;;***
 
 ;;;### (autoloads (viper-mode toggle-viper-mode) "viper" "emulation/viper.el"
-;;;;;;  (20501 3499 284800 0))
+;;;;;;  (20566 63671 243798 0))
 ;;; Generated autoloads from emulation/viper.el
 
 (autoload 'toggle-viper-mode "viper" "\
@@ -32666,8 +32733,8 @@ See `wdired-mode'.
 
 ;;;***
 
-;;;### (autoloads (webjump) "webjump" "net/webjump.el" (20355 10021
-;;;;;;  546955 0))
+;;;### (autoloads (webjump) "webjump" "net/webjump.el" (20566 63671
+;;;;;;  243798 0))
 ;;; Generated autoloads from net/webjump.el
 
 (autoload 'webjump "webjump" "\
@@ -32683,16 +32750,13 @@ Please submit bug reports and other feedback to the author, Neil W. Van Dyke
 
 ;;;***
 
-;;;### (autoloads (which-function-mode which-func-mode) "which-func"
-;;;;;;  "progmodes/which-func.el" (20523 62082 997685 0))
+;;;### (autoloads (which-function-mode) "which-func" "progmodes/which-func.el"
+;;;;;;  (20577 33959 40183 0))
 ;;; Generated autoloads from progmodes/which-func.el
  (put 'which-func-format 'risky-local-variable t)
  (put 'which-func-current 'risky-local-variable t)
 
-(autoload 'which-func-mode "which-func" "\
-
-
-\(fn &optional ARG)" nil nil)
+(define-obsolete-function-alias 'which-func-mode 'which-function-mode "24.1")
 
 (defvar which-function-mode nil "\
 Non-nil if Which-Function mode is enabled.
@@ -33194,8 +33258,8 @@ Setup current buffer so editing string widgets works.
 ;;;***
 
 ;;;### (autoloads (windmove-default-keybindings windmove-down windmove-right
-;;;;;;  windmove-up windmove-left) "windmove" "windmove.el" (20495
-;;;;;;  51111 757560 0))
+;;;;;;  windmove-up windmove-left) "windmove" "windmove.el" (20566
+;;;;;;  63671 243798 0))
 ;;; Generated autoloads from windmove.el
 
 (autoload 'windmove-left "windmove" "\
@@ -33247,20 +33311,25 @@ Default MODIFIER is 'shift.
 
 ;;;***
 
-;;;### (autoloads (winner-mode winner-mode) "winner" "winner.el"
-;;;;;;  (20478 3673 653810 0))
+;;;### (autoloads (winner-mode) "winner" "winner.el" (20584 7212
+;;;;;;  455152 0))
 ;;; Generated autoloads from winner.el
 
 (defvar winner-mode nil "\
-Toggle Winner mode.
+Non-nil if Winner mode is enabled.
+See the command `winner-mode' for a description of this minor mode.
 Setting this variable directly does not take effect;
-use either \\[customize] or the function `winner-mode'.")
+either customize it (see the info node `Easy Customization')
+or call the function `winner-mode'.")
 
 (custom-autoload 'winner-mode "winner" nil)
 
 (autoload 'winner-mode "winner" "\
-Toggle Winner mode.
-With arg, turn Winner mode on if and only if arg is positive.
+Toggle Winner mode on or off.
+With a prefix argument ARG, enable Winner mode if ARG is
+positive, and disable it otherwise.  If called from Lisp, enable
+the mode if ARG is omitted or nil, and toggle it if ARG is `toggle'.
+\\{winner-mode-map}
 
 \(fn &optional ARG)" t nil)
 
@@ -33729,25 +33798,26 @@ Zone out, completely.
 ;;;;;;  "gnus/nntp.el" "gnus/nnvirtual.el" "gnus/nnweb.el" "gnus/registry.el"
 ;;;;;;  "gnus/rfc1843.el" "gnus/rfc2045.el" "gnus/rfc2047.el" "gnus/rfc2104.el"
 ;;;;;;  "gnus/rfc2231.el" "gnus/rtree.el" "gnus/shr-color.el" "gnus/sieve-manage.el"
-;;;;;;  "gnus/smime.el" "gnus/spam-stat.el" "gnus/spam-wash.el" "hex-util.el"
-;;;;;;  "hfy-cmap.el" "ibuf-ext.el" "international/cp51932.el" "international/eucjp-ms.el"
-;;;;;;  "international/fontset.el" "international/iso-ascii.el" "international/ja-dic-cnv.el"
-;;;;;;  "international/ja-dic-utl.el" "international/ogonek.el" "international/uni-bidi.el"
-;;;;;;  "international/uni-category.el" "international/uni-combining.el"
-;;;;;;  "international/uni-comment.el" "international/uni-decimal.el"
-;;;;;;  "international/uni-decomposition.el" "international/uni-digit.el"
-;;;;;;  "international/uni-lowercase.el" "international/uni-mirrored.el"
-;;;;;;  "international/uni-name.el" "international/uni-numeric.el"
-;;;;;;  "international/uni-old-name.el" "international/uni-titlecase.el"
-;;;;;;  "international/uni-uppercase.el" "json.el" "kermit.el" "language/hanja-util.el"
-;;;;;;  "language/thai-word.el" "ldefs-boot.el" "loadup.el" "mail/blessmail.el"
-;;;;;;  "mail/mailheader.el" "mail/mspools.el" "mail/rfc2368.el"
-;;;;;;  "mail/rfc822.el" "mail/rmail-spam-filter.el" "mail/rmailedit.el"
-;;;;;;  "mail/rmailkwd.el" "mail/rmailmm.el" "mail/rmailmsc.el" "mail/rmailsort.el"
-;;;;;;  "mail/rmailsum.el" "mail/undigest.el" "md4.el" "mh-e/mh-acros.el"
-;;;;;;  "mh-e/mh-alias.el" "mh-e/mh-buffers.el" "mh-e/mh-compat.el"
-;;;;;;  "mh-e/mh-funcs.el" "mh-e/mh-gnus.el" "mh-e/mh-identity.el"
-;;;;;;  "mh-e/mh-inc.el" "mh-e/mh-junk.el" "mh-e/mh-letter.el" "mh-e/mh-limit.el"
+;;;;;;  "gnus/smime.el" "gnus/spam-stat.el" "gnus/spam-wash.el" "help-macro.el"
+;;;;;;  "hex-util.el" "hfy-cmap.el" "ibuf-ext.el" "international/cp51932.el"
+;;;;;;  "international/eucjp-ms.el" "international/fontset.el" "international/iso-ascii.el"
+;;;;;;  "international/ja-dic-cnv.el" "international/ja-dic-utl.el"
+;;;;;;  "international/ogonek.el" "international/uni-bidi.el" "international/uni-category.el"
+;;;;;;  "international/uni-combining.el" "international/uni-comment.el"
+;;;;;;  "international/uni-decimal.el" "international/uni-decomposition.el"
+;;;;;;  "international/uni-digit.el" "international/uni-lowercase.el"
+;;;;;;  "international/uni-mirrored.el" "international/uni-name.el"
+;;;;;;  "international/uni-numeric.el" "international/uni-old-name.el"
+;;;;;;  "international/uni-titlecase.el" "international/uni-uppercase.el"
+;;;;;;  "json.el" "kermit.el" "language/hanja-util.el" "language/thai-word.el"
+;;;;;;  "ldefs-boot.el" "loadup.el" "mail/blessmail.el" "mail/mailheader.el"
+;;;;;;  "mail/mspools.el" "mail/rfc2368.el" "mail/rfc822.el" "mail/rmail-spam-filter.el"
+;;;;;;  "mail/rmailedit.el" "mail/rmailkwd.el" "mail/rmailmm.el"
+;;;;;;  "mail/rmailmsc.el" "mail/rmailsort.el" "mail/rmailsum.el"
+;;;;;;  "mail/undigest.el" "md4.el" "mh-e/mh-acros.el" "mh-e/mh-alias.el"
+;;;;;;  "mh-e/mh-buffers.el" "mh-e/mh-compat.el" "mh-e/mh-funcs.el"
+;;;;;;  "mh-e/mh-gnus.el" "mh-e/mh-identity.el" "mh-e/mh-inc.el"
+;;;;;;  "mh-e/mh-junk.el" "mh-e/mh-letter.el" "mh-e/mh-limit.el"
 ;;;;;;  "mh-e/mh-loaddefs.el" "mh-e/mh-mime.el" "mh-e/mh-print.el"
 ;;;;;;  "mh-e/mh-scan.el" "mh-e/mh-search.el" "mh-e/mh-seq.el" "mh-e/mh-show.el"
 ;;;;;;  "mh-e/mh-speed.el" "mh-e/mh-thread.el" "mh-e/mh-tool-bar.el"
@@ -33770,47 +33840,47 @@ Zone out, completely.
 ;;;;;;  "org/ob-awk.el" "org/ob-calc.el" "org/ob-clojure.el" "org/ob-comint.el"
 ;;;;;;  "org/ob-css.el" "org/ob-ditaa.el" "org/ob-dot.el" "org/ob-emacs-lisp.el"
 ;;;;;;  "org/ob-eval.el" "org/ob-exp.el" "org/ob-fortran.el" "org/ob-gnuplot.el"
-;;;;;;  "org/ob-haskell.el" "org/ob-java.el" "org/ob-js.el" "org/ob-latex.el"
-;;;;;;  "org/ob-ledger.el" "org/ob-lilypond.el" "org/ob-lisp.el"
-;;;;;;  "org/ob-matlab.el" "org/ob-maxima.el" "org/ob-mscgen.el"
+;;;;;;  "org/ob-haskell.el" "org/ob-io.el" "org/ob-java.el" "org/ob-js.el"
+;;;;;;  "org/ob-latex.el" "org/ob-ledger.el" "org/ob-lilypond.el"
+;;;;;;  "org/ob-lisp.el" "org/ob-matlab.el" "org/ob-maxima.el" "org/ob-mscgen.el"
 ;;;;;;  "org/ob-ocaml.el" "org/ob-octave.el" "org/ob-org.el" "org/ob-perl.el"
 ;;;;;;  "org/ob-picolisp.el" "org/ob-plantuml.el" "org/ob-python.el"
-;;;;;;  "org/ob-ref.el" "org/ob-ruby.el" "org/ob-sass.el" "org/ob-scheme.el"
-;;;;;;  "org/ob-screen.el" "org/ob-sh.el" "org/ob-shen.el" "org/ob-sql.el"
-;;;;;;  "org/ob-sqlite.el" "org/ob-table.el" "org/org-beamer.el"
-;;;;;;  "org/org-bibtex.el" "org/org-colview.el" "org/org-compat.el"
-;;;;;;  "org/org-crypt.el" "org/org-ctags.el" "org/org-docview.el"
-;;;;;;  "org/org-entities.el" "org/org-eshell.el" "org/org-exp-blocks.el"
-;;;;;;  "org/org-faces.el" "org/org-gnus.el" "org/org-habit.el" "org/org-info.el"
-;;;;;;  "org/org-inlinetask.el" "org/org-install.el" "org/org-jsinfo.el"
-;;;;;;  "org/org-list.el" "org/org-mac-message.el" "org/org-macs.el"
-;;;;;;  "org/org-mew.el" "org/org-mhe.el" "org/org-mks.el" "org/org-mouse.el"
-;;;;;;  "org/org-pcomplete.el" "org/org-protocol.el" "org/org-rmail.el"
-;;;;;;  "org/org-special-blocks.el" "org/org-src.el" "org/org-vm.el"
-;;;;;;  "org/org-w3m.el" "org/org-wl.el" "play/gamegrid.el" "play/gametree.el"
-;;;;;;  "play/meese.el" "progmodes/ada-prj.el" "progmodes/cc-align.el"
-;;;;;;  "progmodes/cc-awk.el" "progmodes/cc-bytecomp.el" "progmodes/cc-cmds.el"
-;;;;;;  "progmodes/cc-defs.el" "progmodes/cc-fonts.el" "progmodes/cc-langs.el"
-;;;;;;  "progmodes/cc-menus.el" "progmodes/ebnf-abn.el" "progmodes/ebnf-bnf.el"
-;;;;;;  "progmodes/ebnf-dtd.el" "progmodes/ebnf-ebx.el" "progmodes/ebnf-iso.el"
-;;;;;;  "progmodes/ebnf-otz.el" "progmodes/ebnf-yac.el" "progmodes/idlw-complete-structtag.el"
-;;;;;;  "progmodes/idlw-help.el" "progmodes/idlw-toolbar.el" "progmodes/mantemp.el"
-;;;;;;  "progmodes/xscheme.el" "ps-def.el" "ps-mule.el" "ps-samp.el"
-;;;;;;  "saveplace.el" "sb-image.el" "scroll-bar.el" "select.el"
-;;;;;;  "soundex.el" "subdirs.el" "tempo.el" "textmodes/bib-mode.el"
-;;;;;;  "textmodes/makeinfo.el" "textmodes/page-ext.el" "textmodes/refbib.el"
-;;;;;;  "textmodes/refer.el" "textmodes/reftex-auc.el" "textmodes/reftex-dcr.el"
-;;;;;;  "textmodes/reftex-ref.el" "textmodes/reftex-sel.el" "textmodes/reftex-toc.el"
-;;;;;;  "textmodes/texnfo-upd.el" "timezone.el" "tooltip.el" "tree-widget.el"
-;;;;;;  "uniquify.el" "url/url-about.el" "url/url-cookie.el" "url/url-dired.el"
-;;;;;;  "url/url-domsuf.el" "url/url-expand.el" "url/url-ftp.el"
-;;;;;;  "url/url-future.el" "url/url-history.el" "url/url-imap.el"
-;;;;;;  "url/url-methods.el" "url/url-nfs.el" "url/url-proxy.el"
-;;;;;;  "url/url-vars.el" "vc/ediff-diff.el" "vc/ediff-init.el" "vc/ediff-merg.el"
-;;;;;;  "vc/ediff-ptch.el" "vc/ediff-vers.el" "vc/ediff-wind.el"
-;;;;;;  "vc/pcvs-info.el" "vc/pcvs-parse.el" "vc/pcvs-util.el" "vc/vc-dav.el"
-;;;;;;  "vcursor.el" "vt-control.el" "vt100-led.el" "w32-fns.el"
-;;;;;;  "w32-vars.el" "x-dnd.el") (20545 57718 475744 538000))
+;;;;;;  "org/ob-ref.el" "org/ob-ruby.el" "org/ob-sass.el" "org/ob-scala.el"
+;;;;;;  "org/ob-scheme.el" "org/ob-screen.el" "org/ob-sh.el" "org/ob-shen.el"
+;;;;;;  "org/ob-sql.el" "org/ob-sqlite.el" "org/ob-table.el" "org/org-beamer.el"
+;;;;;;  "org/org-bibtex.el" "org/org-colview.el" "org/org-crypt.el"
+;;;;;;  "org/org-ctags.el" "org/org-docview.el" "org/org-entities.el"
+;;;;;;  "org/org-eshell.el" "org/org-exp-blocks.el" "org/org-faces.el"
+;;;;;;  "org/org-gnus.el" "org/org-habit.el" "org/org-info.el" "org/org-inlinetask.el"
+;;;;;;  "org/org-install.el" "org/org-jsinfo.el" "org/org-list.el"
+;;;;;;  "org/org-mac-message.el" "org/org-macs.el" "org/org-mew.el"
+;;;;;;  "org/org-mhe.el" "org/org-mks.el" "org/org-mouse.el" "org/org-pcomplete.el"
+;;;;;;  "org/org-protocol.el" "org/org-rmail.el" "org/org-special-blocks.el"
+;;;;;;  "org/org-src.el" "org/org-vm.el" "org/org-w3m.el" "org/org-wl.el"
+;;;;;;  "play/gamegrid.el" "play/gametree.el" "play/meese.el" "progmodes/ada-prj.el"
+;;;;;;  "progmodes/cc-align.el" "progmodes/cc-awk.el" "progmodes/cc-bytecomp.el"
+;;;;;;  "progmodes/cc-cmds.el" "progmodes/cc-defs.el" "progmodes/cc-fonts.el"
+;;;;;;  "progmodes/cc-langs.el" "progmodes/cc-menus.el" "progmodes/ebnf-abn.el"
+;;;;;;  "progmodes/ebnf-bnf.el" "progmodes/ebnf-dtd.el" "progmodes/ebnf-ebx.el"
+;;;;;;  "progmodes/ebnf-iso.el" "progmodes/ebnf-otz.el" "progmodes/ebnf-yac.el"
+;;;;;;  "progmodes/idlw-complete-structtag.el" "progmodes/idlw-help.el"
+;;;;;;  "progmodes/idlw-toolbar.el" "progmodes/mantemp.el" "progmodes/xscheme.el"
+;;;;;;  "ps-def.el" "ps-mule.el" "ps-samp.el" "saveplace.el" "sb-image.el"
+;;;;;;  "scroll-bar.el" "select.el" "soundex.el" "subdirs.el" "tempo.el"
+;;;;;;  "textmodes/bib-mode.el" "textmodes/makeinfo.el" "textmodes/page-ext.el"
+;;;;;;  "textmodes/refbib.el" "textmodes/refer.el" "textmodes/reftex-auc.el"
+;;;;;;  "textmodes/reftex-dcr.el" "textmodes/reftex-ref.el" "textmodes/reftex-sel.el"
+;;;;;;  "textmodes/reftex-toc.el" "textmodes/texnfo-upd.el" "timezone.el"
+;;;;;;  "tooltip.el" "tree-widget.el" "uniquify.el" "url/url-about.el"
+;;;;;;  "url/url-cookie.el" "url/url-dired.el" "url/url-domsuf.el"
+;;;;;;  "url/url-expand.el" "url/url-ftp.el" "url/url-future.el"
+;;;;;;  "url/url-history.el" "url/url-imap.el" "url/url-methods.el"
+;;;;;;  "url/url-nfs.el" "url/url-proxy.el" "url/url-vars.el" "vc/ediff-diff.el"
+;;;;;;  "vc/ediff-init.el" "vc/ediff-merg.el" "vc/ediff-ptch.el"
+;;;;;;  "vc/ediff-vers.el" "vc/ediff-wind.el" "vc/pcvs-info.el" "vc/pcvs-parse.el"
+;;;;;;  "vc/pcvs-util.el" "vc/vc-dav.el" "vcursor.el" "vt-control.el"
+;;;;;;  "vt100-led.el" "w32-fns.el" "w32-vars.el" "x-dnd.el") (20585
+;;;;;;  28294 985050 730000))
 
 ;;;***
 
