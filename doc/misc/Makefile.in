@@ -526,12 +526,12 @@ rcirc.pdf: ${srcdir}/rcirc.texi
 	$(ENVADD) $(TEXI2PDF) ${srcdir}/rcirc.texi
 
 reftex : $(buildinfodir)/reftex$(INFO_EXT)
-$(buildinfodir)/reftex$(INFO_EXT): ${srcdir}/reftex.texi
+$(buildinfodir)/reftex$(INFO_EXT): ${srcdir}/reftex.texi $(emacsdir)/emacsver.texi
 	$(mkinfodir)
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ ${srcdir}/reftex.texi
-reftex.dvi: ${srcdir}/reftex.texi
+reftex.dvi: ${srcdir}/reftex.texi $(emacsdir)/emacsver.texi
 	$(ENVADD) $(TEXI2DVI) ${srcdir}/reftex.texi
-reftex.pdf: ${srcdir}/reftex.texi
+reftex.pdf: ${srcdir}/reftex.texi $(emacsdir)/emacsver.texi
 	$(ENVADD) $(TEXI2PDF) ${srcdir}/reftex.texi
 
 remember : $(buildinfodir)/remember$(INFO_EXT)

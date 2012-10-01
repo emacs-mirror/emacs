@@ -1,3 +1,10 @@
+2012-10-01  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in ($(buildinfodir)/reftex$(INFO_EXT)), reftex.dvi)
+	(reftex.pdf): Add dependency on emacsver.texi.
+	* reftex.texi: Don't include directory part for emacsver.texi;
+	the Makefile's -I handles it.
+
 2012-09-30  Ralf Angeli  <angeli@caeruleus.net>
 
 	Merge from standalone RefTeX repository.

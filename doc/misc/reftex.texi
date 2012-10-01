@@ -27,7 +27,7 @@ Con@TeX{}t
 \gdef\ConTeXt{Con\TeX t}
 @end tex
 
-@include ../emacs/emacsver.texi
+@include emacsver.texi
 
 @set VERSION @value{EMACSVER}
 @set AUCTEXSITE @uref{http://www.gnu.org/software/auctex/,@AUCTeX{} web site}
