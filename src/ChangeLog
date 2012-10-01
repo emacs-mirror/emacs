@@ -1,5 +1,9 @@
 2012-10-01  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* bidi.c: Tune.
+	(bidi_copy_it): Do the whole copy with a single memcpy.
+	(bidi_char_at_pos): Merge the two STRING_CHAR calls into one.
+
 	Revert the FOLLOW-SYMLINKS change for file-attributes.
 	Doing it right would require several changes to Tramp, and there's
 	not enough time to get that tested before the freeze today.

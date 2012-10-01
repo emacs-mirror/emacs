@@ -298,15 +298,11 @@ bidi_remember_char (struct bidi_saved_info *saved_info,
 static inline void
 bidi_copy_it (struct bidi_it *to, struct bidi_it *from)
 {
-  int i;
-
-  /* Copy everything except the level stack and beyond.  */
-  memcpy (to, from, offsetof (struct bidi_it, level_stack[0]));
-
-  /* Copy the active part of the level stack.  */
-  to->level_stack[0] = from->level_stack[0]; /* level zero is always in use */
-  for (i = 1; i <= from->stack_idx; i++)
-    to->level_stack[i] = from->level_stack[i];
+  /* Copy everything from the start through the active part of
+     the level stack.  */
+  memcpy (to, from,
+	  (offsetof (struct bidi_it, level_stack[1])
+	   + from->stack_idx * sizeof from->level_stack[0]));
 }
 
 
@@ -896,7 +892,7 @@ bidi_count_bytes (const unsigned char *s, const ptrdiff_t beg,
   return p - start;
 }
 
-/* Fetch and returns the character at byte position BYTEPOS.  If S is
+/* Fetch and return the character at byte position BYTEPOS.  If S is
    non-NULL, fetch the character from string S; otherwise fetch the
    character from the current buffer.  UNIBYTE means S is a
    unibyte string.  */
@@ -905,13 +901,13 @@ bidi_char_at_pos (ptrdiff_t bytepos, const unsigned char *s, bool unibyte)
 {
   if (s)
     {
+      s += bytepos;
       if (unibyte)
-	return s[bytepos];
-      else
-	return STRING_CHAR (s + bytepos);
+	return *s;
     }
   else
-    return FETCH_MULTIBYTE_CHAR (bytepos);
+    s = BYTE_POS_ADDR (bytepos);
+  return STRING_CHAR (s);
 }
 
 /* Fetch and return the character at BYTEPOS/CHARPOS.  If that
