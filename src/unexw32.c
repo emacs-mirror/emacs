@@ -314,19 +314,19 @@ relocate_offset (DWORD_PTR offset,
 }
 
 #define OFFSET_TO_RVA(offset, section) \
-	  (section->VirtualAddress + ((DWORD_PTR)(offset) - section->PointerToRawData))
+  ((section)->VirtualAddress + ((DWORD_PTR)(offset) - (section)->PointerToRawData))
 
 #define RVA_TO_OFFSET(rva, section) \
-	  (section->PointerToRawData + ((DWORD_PTR)(rva) - section->VirtualAddress))
+  ((section)->PointerToRawData + ((DWORD_PTR)(rva) - (section)->VirtualAddress))
 
 #define RVA_TO_SECTION_OFFSET(rva, section) \
-	  ((DWORD_PTR)(rva) - section->VirtualAddress)
+  ((DWORD_PTR)(rva) - (section)->VirtualAddress)
 
 /* Convert address in executing image to RVA.  */
 #define PTR_TO_RVA(ptr) ((DWORD_PTR)(ptr) - (DWORD_PTR) GetModuleHandle (NULL))
 
 #define RVA_TO_PTR(var,section,filedata) \
-	  ((DWORD_PTR)(RVA_TO_OFFSET (var,section) + (filedata).file_base))
+	  ((unsigned char *)(RVA_TO_OFFSET (var,section) + (filedata).file_base))
 
 #define PTR_TO_OFFSET(ptr, pfile_data) \
           ((unsigned char *)(ptr) - (pfile_data)->file_base)

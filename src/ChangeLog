@@ -1,5 +1,14 @@
 2012-10-01  Eli Zaretskii  <eliz@gnu.org>
 
+	* unexw32.c (OFFSET_TO_RVA, RVA_TO_OFFSET)
+	(RVA_TO_SECTION_OFFSET): Encode all macro arguments in parentheses.
+	(RVA_TO_PTR): Cast the result of RVA_TO_OFFSET to 'unsigned char *',
+	as the previous version used 'void *'.
+
+	* ralloc.c (ROUNDUP): Fix last change.
+	(MEM_ROUNDUP): Don't cast MEM_ALIGN, it is already of type
+	'size_t'.
+
 	* w32proc.c <disable_itimers>: New static flag.
 	(init_timers): Initialize it to zero, after creating the critical
 	sections used by the timer threads.

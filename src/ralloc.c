@@ -92,11 +92,11 @@ static int extra_bytes;
    by changing the definition of PAGE.  */
 #define PAGE (getpagesize ())
 #define ROUNDUP(size) (((size_t) (size) + page_size - 1) \
-		       & ~((size_t)page_size - 1))
+		       & ~((size_t)(page_size - 1)))
 
 #define MEM_ALIGN sizeof (double)
 #define MEM_ROUNDUP(addr) (((size_t)(addr) + MEM_ALIGN - 1) \
-			   & ~((size_t)MEM_ALIGN - 1))
+			   & ~(MEM_ALIGN - 1))
 
 /* The hook `malloc' uses for the function which gets more space
    from the system.  */
