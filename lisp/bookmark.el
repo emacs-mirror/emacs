@@ -106,7 +106,7 @@ just use the value of `version-control'."
   :type '(choice (const :tag "If existing" nil)
                  (const :tag "Never" never)
                  (const :tag "Use the value of `version-control'" nospecial)
-		 (const :tag "Always" t))
+                 (const :tag "Always" t))
   :group 'bookmark)
 
 
