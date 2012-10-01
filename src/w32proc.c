@@ -333,11 +333,11 @@ timer_loop (LPVOID arg)
 	  Sleep (sleep_time * 1000 / CLOCKS_PER_SEC);
 	  /* Always sleep past the expiration time, to make sure we
 	     never call the handler _before_ the expiration time,
-	     always slightly after it.  Sleep(0) relinquishes the rest
-	     of the scheduled slot, so that we let other threads
-	     work.  */
+	     always slightly after it.  Sleep(5) makes sure we don't
+	     hog the CPU by calling 'clock' with high frequency, and
+	     also let other threads work.  */
 	  while (clock () < expire)
-	    Sleep (0);
+	    Sleep (5);
 	}
 
       if (itimer->expire == 0)
