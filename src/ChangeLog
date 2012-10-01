@@ -1,5 +1,9 @@
 2012-10-01  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* xdisp.c (syms_of_xdisp): Default message-log-max to 1000, not 100.
+	Suggested by Juri Linkov in
+	<http://lists.gnu.org/archive/html/emacs-devel/2012-09/msg00821.html>.
+
 	Prefer plain 'static' to 'static inline' (Bug#12541).
 	With static functions, modern compilers inline pretty well by
 	themselves; advice from programmers often hurts as much as it helps.
