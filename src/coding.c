@@ -6822,7 +6822,7 @@ produce_chars (struct coding_system *coding, Lisp_Object translation_table,
      [ -LENGTH ANNOTATION_MASK NCHARS NBYTES METHOD [ COMPONENTS... ] ]
  */
 
-static inline void
+static void
 produce_composition (struct coding_system *coding, int *charbuf, ptrdiff_t pos)
 {
   int len;
@@ -6866,7 +6866,7 @@ produce_composition (struct coding_system *coding, int *charbuf, ptrdiff_t pos)
      [ -LENGTH ANNOTATION_MASK NCHARS CHARSET-ID ]
  */
 
-static inline void
+static void
 produce_charset (struct coding_system *coding, int *charbuf, ptrdiff_t pos)
 {
   ptrdiff_t from = pos - charbuf[2];
@@ -7101,7 +7101,7 @@ decode_coding (struct coding_system *coding)
    position of a composition after POS (if any) or to LIMIT, and
    return BUF.  */
 
-static inline int *
+static int *
 handle_composition_annotation (ptrdiff_t pos, ptrdiff_t limit,
 			       struct coding_system *coding, int *buf,
 			       ptrdiff_t *stop)
@@ -7184,7 +7184,7 @@ handle_composition_annotation (ptrdiff_t pos, ptrdiff_t limit,
    If the property value is nil, set *STOP to the position where the
    property value is non-nil (limiting by LIMIT), and return BUF.  */
 
-static inline int *
+static int *
 handle_charset_annotation (ptrdiff_t pos, ptrdiff_t limit,
 			   struct coding_system *coding, int *buf,
 			   ptrdiff_t *stop)
@@ -8429,7 +8429,7 @@ highest priority.  */)
 }
 
 
-static inline bool
+static bool
 char_encodable_p (int c, Lisp_Object attrs)
 {
   Lisp_Object tail;

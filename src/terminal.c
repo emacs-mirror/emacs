@@ -42,7 +42,7 @@ struct terminal *initial_terminal;
 static void delete_initial_terminal (struct terminal *);
 
 /* This setter is used only in this file, so it can be private.  */
-static inline void
+static void
 tset_param_alist (struct terminal *t, Lisp_Object val)
 {
   t->param_alist = val;

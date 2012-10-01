@@ -133,102 +133,102 @@ static EMACS_INT window_scroll_preserve_hpos;
 static EMACS_INT window_scroll_preserve_vpos;
 
 /* These setters are used only in this file, so they can be private.  */
-static inline void
+static void
 wset_combination_limit (struct window *w, Lisp_Object val)
 {
   w->combination_limit = val;
 }
-static inline void
+static void
 wset_dedicated (struct window *w, Lisp_Object val)
 {
   w->dedicated = val;
 }
-static inline void
+static void
 wset_display_table (struct window *w, Lisp_Object val)
 {
   w->display_table = val;
 }
-static inline void
+static void
 wset_hchild (struct window *w, Lisp_Object val)
 {
   w->hchild = val;
 }
-static inline void
+static void
 wset_left_fringe_width (struct window *w, Lisp_Object val)
 {
   w->left_fringe_width = val;
 }
-static inline void
+static void
 wset_left_margin_cols (struct window *w, Lisp_Object val)
 {
   w->left_margin_cols = val;
 }
-static inline void
+static void
 wset_new_normal (struct window *w, Lisp_Object val)
 {
   w->new_normal = val;
 }
-static inline void
+static void
 wset_new_total (struct window *w, Lisp_Object val)
 {
   w->new_total = val;
 }
-static inline void
+static void
 wset_normal_cols (struct window *w, Lisp_Object val)
 {
   w->normal_cols = val;
 }
-static inline void
+static void
 wset_normal_lines (struct window *w, Lisp_Object val)
 {
   w->normal_lines = val;
 }
-static inline void
+static void
 wset_parent (struct window *w, Lisp_Object val)
 {
   w->parent = val;
 }
-static inline void
+static void
 wset_pointm (struct window *w, Lisp_Object val)
 {
   w->pointm = val;
 }
-static inline void
+static void
 wset_right_fringe_width (struct window *w, Lisp_Object val)
 {
   w->right_fringe_width = val;
 }
-static inline void
+static void
 wset_right_margin_cols (struct window *w, Lisp_Object val)
 {
   w->right_margin_cols = val;
 }
-static inline void
+static void
 wset_scroll_bar_width (struct window *w, Lisp_Object val)
 {
   w->scroll_bar_width = val;
 }
-static inline void
+static void
 wset_start (struct window *w, Lisp_Object val)
 {
   w->start = val;
 }
-static inline void
+static void
 wset_temslot (struct window *w, Lisp_Object val)
 {
   w->temslot = val;
 }
-static inline void
+static void
 wset_vchild (struct window *w, Lisp_Object val)
 {
   w->vchild = val;
 }
-static inline void
+static void
 wset_vertical_scroll_bar_type (struct window *w, Lisp_Object val)
 {
   w->vertical_scroll_bar_type = val;
 }
-static inline void
+static void
 wset_window_parameters (struct window *w, Lisp_Object val)
 {
   w->window_parameters = val;

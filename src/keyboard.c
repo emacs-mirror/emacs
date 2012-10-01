@@ -448,47 +448,47 @@ static char *find_user_signal_name (int);
 static void store_user_signal_events (void);
 
 /* These setters are used only in this file, so they can be private.  */
-static inline void
+static void
 kset_echo_string (struct kboard *kb, Lisp_Object val)
 {
   kb->INTERNAL_FIELD (echo_string) = val;
 }
-static inline void
+static void
 kset_kbd_queue (struct kboard *kb, Lisp_Object val)
 {
   kb->INTERNAL_FIELD (kbd_queue) = val;
 }
-static inline void
+static void
 kset_keyboard_translate_table (struct kboard *kb, Lisp_Object val)
 {
   kb->INTERNAL_FIELD (Vkeyboard_translate_table) = val;
 }
-static inline void
+static void
 kset_last_prefix_arg (struct kboard *kb, Lisp_Object val)
 {
   kb->INTERNAL_FIELD (Vlast_prefix_arg) = val;
 }
-static inline void
+static void
 kset_last_repeatable_command (struct kboard *kb, Lisp_Object val)
 {
   kb->INTERNAL_FIELD (Vlast_repeatable_command) = val;
 }
-static inline void
+static void
 kset_local_function_key_map (struct kboard *kb, Lisp_Object val)
 {
   kb->INTERNAL_FIELD (Vlocal_function_key_map) = val;
 }
-static inline void
+static void
 kset_overriding_terminal_local_map (struct kboard *kb, Lisp_Object val)
 {
   kb->INTERNAL_FIELD (Voverriding_terminal_local_map) = val;
 }
-static inline void
+static void
 kset_real_last_command (struct kboard *kb, Lisp_Object val)
 {
   kb->INTERNAL_FIELD (Vreal_last_command) = val;
 }
-static inline void
+static void
 kset_system_key_syms (struct kboard *kb, Lisp_Object val)
 {
   kb->INTERNAL_FIELD (system_key_syms) = val;
@@ -3749,7 +3749,7 @@ kbd_buffer_events_waiting (int discard)
 
 /* Clear input event EVENT.  */
 
-static inline void
+static void
 clear_event (struct input_event *event)
 {
   event->kind = NO_EVENT;
@@ -8054,7 +8054,7 @@ process_tool_bar_item (Lisp_Object key, Lisp_Object def, Lisp_Object data, void 
 
 /* Access slot with index IDX of vector tool_bar_item_properties.  */
 #define PROP(IDX) AREF (tool_bar_item_properties, (IDX))
-static inline void
+static void
 set_prop (ptrdiff_t idx, Lisp_Object val)
 {
   ASET (tool_bar_item_properties, idx, val);

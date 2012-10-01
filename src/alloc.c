@@ -355,7 +355,7 @@ static void mem_rotate_left (struct mem_node *);
 static void mem_rotate_right (struct mem_node *);
 static void mem_delete (struct mem_node *);
 static void mem_delete_fixup (struct mem_node *);
-static inline struct mem_node *mem_find (void *);
+static struct mem_node *mem_find (void *);
 #endif
 
 
@@ -3550,7 +3550,7 @@ mem_init (void)
 /* Value is a pointer to the mem_node containing START.  Value is
    MEM_NIL if there is no node in the tree containing START.  */
 
-static inline struct mem_node *
+static struct mem_node *
 mem_find (void *start)
 {
   struct mem_node *p;
@@ -3926,7 +3926,7 @@ mem_delete_fixup (struct mem_node *x)
 /* Value is non-zero if P is a pointer to a live Lisp string on
    the heap.  M is a pointer to the mem_block for P.  */
 
-static inline bool
+static bool
 live_string_p (struct mem_node *m, void *p)
 {
   if (m->type == MEM_TYPE_STRING)
@@ -3949,7 +3949,7 @@ live_string_p (struct mem_node *m, void *p)
 /* Value is non-zero if P is a pointer to a live Lisp cons on
    the heap.  M is a pointer to the mem_block for P.  */
 
-static inline bool
+static bool
 live_cons_p (struct mem_node *m, void *p)
 {
   if (m->type == MEM_TYPE_CONS)
@@ -3975,7 +3975,7 @@ live_cons_p (struct mem_node *m, void *p)
 /* Value is non-zero if P is a pointer to a live Lisp symbol on
    the heap.  M is a pointer to the mem_block for P.  */
 
-static inline bool
+static bool
 live_symbol_p (struct mem_node *m, void *p)
 {
   if (m->type == MEM_TYPE_SYMBOL)
@@ -4001,7 +4001,7 @@ live_symbol_p (struct mem_node *m, void *p)
 /* Value is non-zero if P is a pointer to a live Lisp float on
    the heap.  M is a pointer to the mem_block for P.  */
 
-static inline bool
+static bool
 live_float_p (struct mem_node *m, void *p)
 {
   if (m->type == MEM_TYPE_FLOAT)
@@ -4025,7 +4025,7 @@ live_float_p (struct mem_node *m, void *p)
 /* Value is non-zero if P is a pointer to a live Lisp Misc on
    the heap.  M is a pointer to the mem_block for P.  */
 
-static inline bool
+static bool
 live_misc_p (struct mem_node *m, void *p)
 {
   if (m->type == MEM_TYPE_MISC)
@@ -4051,7 +4051,7 @@ live_misc_p (struct mem_node *m, void *p)
 /* Value is non-zero if P is a pointer to a live vector-like object.
    M is a pointer to the mem_block for P.  */
 
-static inline bool
+static bool
 live_vector_p (struct mem_node *m, void *p)
 {
   if (m->type == MEM_TYPE_VECTOR_BLOCK)
@@ -4087,7 +4087,7 @@ live_vector_p (struct mem_node *m, void *p)
 /* Value is non-zero if P is a pointer to a live buffer.  M is a
    pointer to the mem_block for P.  */
 
-static inline bool
+static bool
 live_buffer_p (struct mem_node *m, void *p)
 {
   /* P must point to the start of the block, and the buffer
@@ -4153,7 +4153,7 @@ DEFUN ("gc-status", Fgc_status, Sgc_status, 0, 0, "",
 
 /* Mark OBJ if we can prove it's a Lisp_Object.  */
 
-static inline void
+static void
 mark_maybe_object (Lisp_Object obj)
 {
   void *po;
@@ -4222,7 +4222,7 @@ mark_maybe_object (Lisp_Object obj)
 /* If P points to Lisp data, mark that as live if it isn't already
    marked.  */
 
-static inline void
+static void
 mark_maybe_pointer (void *p)
 {
   struct mem_node *m;
@@ -5052,7 +5052,7 @@ inhibit_garbage_collection (void)
 /* Used to avoid possible overflows when
    converting from C to Lisp integers.  */
 
-static inline Lisp_Object
+static Lisp_Object
 bounded_number (EMACS_INT number)
 {
   return make_number (min (MOST_POSITIVE_FIXNUM, number));

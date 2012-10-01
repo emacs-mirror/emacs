@@ -2171,7 +2171,7 @@ ns_shift_glyphs_for_insert (struct frame *f,
    ========================================================================== */
 
 
-static inline void
+static void
 ns_compute_glyph_string_overhangs (struct glyph_string *s)
 /* --------------------------------------------------------------------------
      External (RIF); compute left/right overhang of whole string and set in s

@@ -120,12 +120,12 @@ static void x_report_frame_params (struct frame *, Lisp_Object *);
 #endif
 
 /* These setters are used only in this file, so they can be private.  */
-static inline void
+static void
 fset_buffer_predicate (struct frame *f, Lisp_Object val)
 {
   f->buffer_predicate = val;
 }
-static inline void
+static void
 fset_minibuffer_window (struct frame *f, Lisp_Object val)
 {
   f->minibuffer_window = val;

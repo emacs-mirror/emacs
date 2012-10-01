@@ -367,22 +367,22 @@ static Lisp_Object Qmargin, Qpointer;
 static Lisp_Object Qline_height;
 
 /* These setters are used only in this file, so they can be private.  */
-static inline void
+static void
 wset_base_line_number (struct window *w, Lisp_Object val)
 {
   w->base_line_number = val;
 }
-static inline void
+static void
 wset_base_line_pos (struct window *w, Lisp_Object val)
 {
   w->base_line_pos = val;
 }
-static inline void
+static void
 wset_column_number_displayed (struct window *w, Lisp_Object val)
 {
   w->column_number_displayed = val;
 }
-static inline void
+static void
 wset_region_showing (struct window *w, Lisp_Object val)
 {
   w->region_showing = val;
@@ -1191,7 +1191,7 @@ window_box (struct window *w, int area, int *box_x, int *box_y,
    *BOTTOM_RIGHT_Y the coordinates of the bottom-right corner of the
    box.  */
 
-static inline void
+static void
 window_box_edges (struct window *w, int area, int *top_left_x, int *top_left_y,
 		   int *bottom_right_x, int *bottom_right_y)
 {
@@ -1278,7 +1278,7 @@ string_from_display_spec (Lisp_Object spec)
 /* Limit insanely large values of W->hscroll on frame F to the largest
    value that will still prevent first_visible_x and last_visible_x of
    'struct it' from overflowing an int.  */
-static inline int
+static int
 window_hscroll_limited (struct window *w, struct frame *f)
 {
   ptrdiff_t window_hscroll = w->hscroll;
@@ -1625,7 +1625,7 @@ pos_visible_p (struct window *w, ptrdiff_t charpos, int *x, int *y,
    returns an invalid character.  If we find one, we return a `?', but
    with the length of the invalid character.  */
 
-static inline int
+static int
 string_char_and_length (const unsigned char *str, int *len)
 {
   int c;
@@ -1673,7 +1673,7 @@ string_pos_nchars_ahead (struct text_pos pos, Lisp_Object string, ptrdiff_t ncha
 /* Value is the text position, i.e. character and byte position,
    for character position CHARPOS in STRING.  */
 
-static inline struct text_pos
+static struct text_pos
 string_pos (ptrdiff_t charpos, Lisp_Object string)
 {
   struct text_pos pos;
@@ -12577,7 +12577,7 @@ debug_method_add (struct window *w, char const *fmt, ...)
    buffer position, END is given as a distance from Z.  Used in
    redisplay_internal for display optimization.  */
 
-static inline int
+static int
 text_outside_line_unchanged_p (struct window *w,
 			       ptrdiff_t start, ptrdiff_t end)
 {
@@ -12838,7 +12838,7 @@ check_point_in_composition (struct buffer *prev_buf, ptrdiff_t prev_pt,
 /* Reconsider the setting of B->clip_changed which is displayed
    in window W.  */
 
-static inline void
+static void
 reconsider_clip_changes (struct window *w, struct buffer *b)
 {
   if (b->clip_changed
@@ -14538,7 +14538,7 @@ set_cursor_from_row (struct window *w, struct glyph_row *row,
 
    We assume that the window's buffer is really current.  */
 
-static inline struct text_pos
+static struct text_pos
 run_window_scroll_functions (Lisp_Object window, struct text_pos startp)
 {
   struct window *w = XWINDOW (window);
@@ -22491,7 +22491,7 @@ init_glyph_string (struct glyph_string *s,
 /* Append the list of glyph strings with head H and tail T to the list
    with head *HEAD and tail *TAIL.  Set *HEAD and *TAIL to the result.  */
 
-static inline void
+static void
 append_glyph_string_lists (struct glyph_string **head, struct glyph_string **tail,
 			   struct glyph_string *h, struct glyph_string *t)
 {
@@ -22511,7 +22511,7 @@ append_glyph_string_lists (struct glyph_string **head, struct glyph_string **tai
    list with head *HEAD and tail *TAIL.  Set *HEAD and *TAIL to the
    result.  */
 
-static inline void
+static void
 prepend_glyph_string_lists (struct glyph_string **head, struct glyph_string **tail,
 			    struct glyph_string *h, struct glyph_string *t)
 {
@@ -22530,7 +22530,7 @@ prepend_glyph_string_lists (struct glyph_string **head, struct glyph_string **ta
 /* Append glyph string S to the list with head *HEAD and tail *TAIL.
    Set *HEAD and *TAIL to the resulting list.  */
 
-static inline void
+static void
 append_glyph_string (struct glyph_string **head, struct glyph_string **tail,
 		     struct glyph_string *s)
 {
@@ -22545,7 +22545,7 @@ append_glyph_string (struct glyph_string **head, struct glyph_string **tail,
    Value is a pointer to a realized face that is ready for display if
    DISPLAY_P is non-zero.  */
 
-static inline struct face *
+static struct face *
 get_char_face_and_encoding (struct frame *f, int c, int face_id,
 			    XChar2b *char2b, int display_p)
 {
@@ -22578,7 +22578,7 @@ get_char_face_and_encoding (struct frame *f, int c, int face_id,
    The encoding of GLYPH->u.ch is returned in *CHAR2B.  Value is
    a pointer to a realized face that is ready for display.  */
 
-static inline struct face *
+static struct face *
 get_glyph_face_and_encoding (struct frame *f, struct glyph *glyph,
 			     XChar2b *char2b, int *two_byte_p)
 {
@@ -22615,7 +22615,7 @@ get_glyph_face_and_encoding (struct frame *f, struct glyph *glyph,
 /* Get glyph code of character C in FONT in the two-byte form CHAR2B.
    Return 1 if FONT has a glyph for C, otherwise return 0.  */
 
-static inline int
+static int
 get_char_glyph_code (int c, struct font *font, XChar2b *char2b)
 {
   unsigned code;
@@ -23089,7 +23089,7 @@ right_overwriting (struct glyph_string *s)
    first glyph following S.  LAST_X is the right-most x-position + 1
    in the drawing area.  */
 
-static inline void
+static void
 set_glyph_string_background_width (struct glyph_string *s, int start, int last_x)
 {
   /* If the face of this glyph string has to be drawn to the end of
@@ -23650,7 +23650,7 @@ draw_glyphs (struct window *w, int x, struct glyph_row *row,
 /* Store one glyph for IT->char_to_display in IT->glyph_row.
    Called from x_produce_glyphs when IT->glyph_row is non-null.  */
 
-static inline void
+static void
 append_glyph (struct it *it)
 {
   struct glyph *glyph;
@@ -23724,7 +23724,7 @@ append_glyph (struct it *it)
    IT->glyph_row.  Called from x_produce_glyphs when IT->glyph_row is
    non-null.  */
 
-static inline void
+static void
 append_composite_glyph (struct it *it)
 {
   struct glyph *glyph;
@@ -23793,7 +23793,7 @@ append_composite_glyph (struct it *it)
 /* Change IT->ascent and IT->height according to the setting of
    IT->voffset.  */
 
-static inline void
+static void
 take_vertical_position_into_account (struct it *it)
 {
   if (it->voffset)

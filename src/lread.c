@@ -2283,7 +2283,7 @@ read_escape (Lisp_Object readcharfun, int stringp)
 /* Return the digit that CHARACTER stands for in the given BASE.
    Return -1 if CHARACTER is out of range for BASE,
    and -2 if CHARACTER is not valid for any supported BASE.  */
-static inline int
+static int
 digit_to_number (int character, int base)
 {
   int digit;

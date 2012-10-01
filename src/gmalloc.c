@@ -464,7 +464,7 @@ get_contiguous_space (ptrdiff_t size, void *position)
 /* This is called when `_heapinfo' and `heapsize' have just
    been set to describe a new info table.  Set up the table
    to describe itself and account for it in the statistics.  */
-static inline void
+static void
 register_heapinfo (void)
 {
   size_t block, blocks;
