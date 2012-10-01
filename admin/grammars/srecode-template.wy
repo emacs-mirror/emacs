@@ -28,6 +28,9 @@
 ;; Semantic Recoder templates are based on Google Templates
 ;; and are at the bottom of the Semantic Recoder API.
 
+%package srecode-template-wy
+%provide srecode/srt-wy
+
 %languagemode  srecode-mode
 
 %start template_file
@@ -46,6 +49,15 @@
 %put     TEMPLATE  summary "template <name>\\n <template definition>"
 %keyword SECTIONDICTIONARY "sectiondictionary"
 %put     SECTIONDICTIONARY summary "sectiondictionary <name>\\n <dictionary entries>"
+
+%keyword SECTION  "section"
+%put     SECTION  summary
+         "section <name>\\n <dictionary entries>\\n end"
+
+%keyword END      "end"
+%put     END      summary
+         "section ... end"
+
 %keyword PROMPT "prompt"
 %keyword DEFAULT "default"
 %keyword DEFAULTMACRO "defaultmacro"
@@ -62,7 +74,7 @@
 %token <separator> TEMPLATE_BLOCK "^----"
 
 ;;; Bland default types
-%type <property> ":\\(\\w\\|\\s_\\)*"
+%type <property> syntax ":\\(\\w\\|\\s_\\)*"
 %token <property> property
 
 %type  <symbol>
@@ -134,7 +146,7 @@ insertable-string
 template
   : TEMPLATE templatename opt-dynamic-arguments newline
     opt-string
-    opt-section-dictionaries
+    section-dictionary-list
     TEMPLATE_BLOCK newline
     opt-bind
     (FUNCTION-TAG $2 nil $3 :documentation $5 :code $7
@@ -165,29 +177,52 @@ opt-string
   | ()
   ;
 
-opt-section-dictionaries
-  : () ;; EMPTY
-  | section-dictionary-list
-  ;
-
 section-dictionary-list
-  : one-section-dictionary
-    (list $1)
-  | section-dictionary-list one-section-dictionary
+  : ;; empty
+    ()
+  | section-dictionary-list flat-section-dictionary
+    (append $1 (list $2))
+  | section-dictionary-list section-dictionary
     (append $1 (list $2))
   ;
 
-one-section-dictionary
+flat-section-dictionary
   : SECTIONDICTIONARY string newline
-    variable-list
+    flat-dictionary-entry-list
     (cons (read $2) $4)
   ;
 
-variable-list
+flat-dictionary-entry-list
+  : ;; empty
+    ()
+  | flat-dictionary-entry-list flat-dictionary-entry
+    (append $1 $2)
+  ;
+
+flat-dictionary-entry
   : variable
     (EXPANDTAG $1)
-  | variable-list variable
-    (append $1 (EXPANDTAG $2))
+  ;
+
+section-dictionary
+  : SECTION string newline
+    dictionary-entry-list
+    END newline
+    (cons (read $2) $4)
+  ;
+
+dictionary-entry-list
+  : ;; emtpy
+    ()
+  | dictionary-entry-list dictionary-entry
+    (append $1 $2)
+  ;
+
+dictionary-entry
+  : variable
+    (EXPANDTAG $1)
+  | section-dictionary
+    (list $1)
   ;
 
 opt-bind
@@ -232,4 +267,4 @@ It ignores whitespace, newlines and comments."
   semantic-lex-default-action
   )
 
-;;; wisent-dot.wy ends here
+;;; srecode-template.wy ends here

@@ -40,10 +40,17 @@
 ;;; Code:
 
 ;;;###autoload
-(defun semanticdb-enable-gnu-global-databases (mode)
+(defun semanticdb-enable-gnu-global-databases (mode &optional noerror)
   "Enable the use of the GNU Global SemanticDB back end for all files of MODE.
 This will add an instance of a GNU Global database to each buffer
-in a GNU Global supported hierarchy."
+in a GNU Global supported hierarchy.
+
+Two sanity checks are performed to assure (a) that GNU global program exists
+and (b) that the GNU global program version is compatibility with the database
+version.  If optional NOERROR is nil, then an error may be signalled on version
+mismatch.  If NOERROR is not nil, then no error will be signlled.  Instead
+return value will indicate success or failure with non-nil or nil respective
+values."
   (interactive
    (list (completing-read
           "Enable in Mode: " obarray
@@ -51,17 +58,18 @@ in a GNU Global supported hierarchy."
           t (symbol-name major-mode))))
 
   ;; First, make sure the version is ok.
-  (cedet-gnu-global-version-check)
+  (if (not (cedet-gnu-global-version-check noerror))
+      nil
+    ;; Make sure mode is a symbol.
+    (when (stringp mode)
+      (setq mode (intern mode)))
 
-  ;; Make sure mode is a symbol.
-  (when (stringp mode)
-    (setq mode (intern mode)))
-
-  (let ((ih (mode-local-value mode 'semantic-init-mode-hook)))
-    (eval `(setq-mode-local
-	    ,mode semantic-init-mode-hook
-	    (cons 'semanticdb-enable-gnu-global-hook ih))))
-
+    (let ((ih (mode-local-value mode 'semantic-init-mode-hook)))
+      (eval `(setq-mode-local
+              ,mode semantic-init-mode-hook
+              (cons 'semanticdb-enable-gnu-global-hook ih))))
+    t
+    )
   )
 
 (defun semanticdb-enable-gnu-global-hook ()
@@ -72,6 +80,8 @@ MODE is the major mode to support."
 (defclass semanticdb-project-database-global
   ;; @todo - convert to one DB per directory.
   (semanticdb-project-database eieio-instance-tracker)
+
+  ;; @todo - use instance tracker symbol.
   ()
   "Database representing a GNU Global tags file.")
 
@@ -101,6 +111,11 @@ if optional DONT-ERR-IF-NOT-AVAILABLE is non-nil; else throw an error."
   ((major-mode :initform nil)
    )
   "A table for returning search results from GNU Global.")
+
+(defmethod object-print ((obj semanticdb-table-global) &rest strings)
+  "Pretty printer extension for `semanticdb-table-global'.
+Adds the number of tags in this file to the object print name."
+  (apply 'call-next-method obj (cons " (proxy)" strings)))
 
 (defmethod semanticdb-equivalent-mode ((table semanticdb-table-global) &optional buffer)
   "Return t, pretend that this table's mode is equivalent to BUFFER.

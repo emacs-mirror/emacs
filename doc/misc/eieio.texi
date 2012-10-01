@@ -63,7 +63,7 @@ Emacs.
 * Making New Objects::    How to construct new objects.
 * Accessing Slots::       How to access a slot.
 * Writing Methods::       How to write a method.
-@c * Method Invocation::     How methods are invoked.
+* Method Invocation::     How methods are invoked.
 * Predicates::            Class-p, Object-p, etc-p.
 * Association Lists::     List of objects as association lists.
 * Customizing::           Customizing objects.
@@ -71,8 +71,9 @@ Emacs.
 * Base Classes::          Additional classes you can inherit from.
 * Browsing::              Browsing your class lists.
 * Class Values::          Displaying information about a class or object.
+* Documentation::         Automatically creating texinfo documentation.
 * Default Superclass::    The root superclasses.
-* Signals::               When you make errors
+* Signals::               When you make errors.
 * Naming Conventions::    Name your objects in an Emacs friendly way.
 * CLOS compatibility::    What are the differences?
 * Wish List::             Things about EIEIO that could be improved.
@@ -269,6 +270,10 @@ If two parents share the same slot name, the parent which appears in
 the @var{superclass-list} first sets the tags for that slot.  If the
 new class has a slot with the same name as the parent, the new slot
 overrides the parent's slot.
+
+When overriding a slot, some slot attributes cannot be overridden
+because they break basic OO rules.  You cannot override @code{:type}
+or @code{:protection}.
 @end defmac
 
 @noindent
@@ -294,7 +299,7 @@ This option is here to support programs written with older versions of
 @end defvar
 
 @menu
-* Inheritance::         How to specify parents classes
+* Inheritance::         How to specify parents classes.
 * Slot Options::        How to specify features of a slot.
 * Class Options::       How to specify features for this class.
 @end menu
@@ -435,35 +440,6 @@ A symbol that is a function like this:
 :initform +
 @end example
 will set the initial value as that symbol.
-A function that is a lambda expression, like this:
-@example
-:initform (lambda () some-variablename)
-@end example
-
-will be evaluated at instantiation time to the value of
-@code{some-variablename}.
-@c This feature was more annoying than useful.  Use the
-@c `initialize-instance' function to do this.
-@c
-@c On the other hand, if you need code to be
-@c executed at instantiation time as the initform, code like this:
-@c @example
-@c :initform (lambda () (+ 1 some-global-var))
-@c @end example
-@c will be identified as a function call, and be executed in place.
-
-@cindex lambda-default
-
-
-Lastly, using the function @code{lambda-default} instead of
-@code{lambda} will let you specify a lambda expression to use as the
-value, without evaluation, thus:
-@example
-:initform (lambda-default () some-variablename)
-@end example
-@c @@TODO - This will be deleted after fair warning.
-will not be evaluated at instantiation time, and the value in this
-slot will instead be @code{(lambda () some-variablename)}.
 
 After a class has been created with @code{defclass}, you can change
 that default value with @code{oset-default}.  @ref{Accessing Slots}.
@@ -481,9 +457,6 @@ Here are some examples:
  An object of your class type.
  @item (or null symbol)
  A symbol, or nil.
- @item function
- A function symbol, or a @code{lambda-default} expression.
-
  @end table
 
 @item :allocation
@@ -621,9 +594,12 @@ Search for methods in the class hierarchy in breadth first order.
 This is the default.
 @item :depth-first
 Search for methods in the class hierarchy in a depth first order.
+@item :c3
+Searches for methods in in a learnarized way that most closely matches
+what CLOS does when a monotonic class structure is defined.
 @end table
 
-@c @xref{Method Invocation}, for more on method invocation order.
+@xref{Method Invocation}, for more on method invocation order.
 
 @item :metaclass
 Unsupported CLOS option.  Enables the use of a different base class other
@@ -1008,10 +984,39 @@ method.
 
 @c TODO - Write some more about static methods here
 
-@c @node Method Invocation
-@c @chapter Method Invocation
+@node Method Invocation
+@chapter Method Invocation
 
-@c TODO - writeme
+When classes are defined, you can specify the
+@code{:method-invocation-order}.  This is a feature specific to EIEIO.
+
+This controls the order in which method resolution occurs for
+@code{:primary} methods in cases of multiple inheritance.  The order
+affects which method is called first in a tree, and if
+@code{call-next-method} is used, it controls the order in which the
+stack of methods are run.
+
+The original EIEIO order turned out to be broken for multiple
+inheritance, but some programs depended on it.  As such this option
+was added when the default invocation order was fixed to something
+that made more sense in that case.
+
+Valid values are:
+
+@table @code
+@item :breadth-first
+Search for methods in the class hierarchy in breadth first order.
+This is the default.
+@item :depth-first
+Search for methods in the class hierarchy in a depth first order.
+@item :c3
+Searches for methods in in a learnarized way that most closely matches
+what CLOS does when CLOS when a monotonic class structure is defined.
+
+This is derived from the Dylan language documents by
+Kim Barrett et al.: A Monotonic Superclass Linearization for Dylan
+Retrieved from: http://192.220.96.201/dylan/linearization-oopsla96.html
+@end table
 
 @node Predicates
 @comment  node-name,  next,  previous,  up
@@ -1399,9 +1404,12 @@ a header line comment from the class allocated slot if one is not
 provided.
 @end defmethod
 
-@defun eieio-persistent-read filename
-Read @var{filename} which contains an @code{eieio-persistent} object
-previously written with @code{eieio-persistent-save}.
+@defun eieio-persistent-read filename &optional class allow-subclass
+Read a persistent object from @var{filename}, and return it.
+Signal an error if the object in @var{FILENAME} is not a constructor
+for @var{CLASS}.  Optional @var{allow-subclass} says that it is ok for
+@code{eieio-peristent-read} to load in subclasses of class instead of
+being pendantic."
 @end defun
 
 @node eieio-named
@@ -1544,8 +1552,51 @@ a class.  In a program, pass it a string with the name of a class, a
 class symbol, or an object.  The resulting buffer will display all slot
 names.
 
-Additionally, all methods defined to have functionality on this class
-are displayed.
+Additionally, all methods defined to have functionality on this class is
+displayed.
+
+@node Documentation
+@comment  node-name,  next,  previous,  up
+@chapter Documentation
+
+It is possible to automatically create documentation for your classes in
+texinfo format by using the tools in the file @file{eieio-doc.el}
+
+@deffn Command eieiodoc-class class indexstring &optional skiplist
+
+This will start at the current point, and created an indented menu of
+all the child classes of, and including @var{class}, but skipping any
+classes that might be in @var{skiplist} It will then create nodes for
+all these classes, subsection headings, and indexes.
+
+Each class will be indexed using the texinfo labeled index
+@var{indexstring} which is a two letter description.
+@xref{(texinfo) New Indices}.
+
+To use this command, the texinfo macro
+
+@example
+@@defindex @@var @{ indexstring @}
+@end example
+
+@noindent
+where @var{indexstring} is replaced with the two letter code.
+
+Next, an inheritance tree will be created listing all parents of that
+section's class.
+
+Then,all the slots will be expanded in tables, and described
+using the documentation strings from the code.  Default values will also
+be displayed.  Only those slots with @code{:initarg} specified will be
+expanded, others will be hidden.  If a slot is inherited from a parent,
+that slot will also be skipped unless the default value is different.
+If there is a change, then the documentation part of the slot will be
+replace with an @@xref back to the parent.
+
+This command can only display documentation for classes whose
+definitions have been loaded in this Emacs session.
+
+@end deffn
 
 @node Default Superclass
 @comment  node-name,  next,  previous,  up

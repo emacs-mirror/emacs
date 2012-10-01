@@ -497,7 +497,7 @@ and what valid VAL values are."
   ;;  (symbol "name" 569 . 573)
   ;;  (semantic-list "(int in)" 574 . 582))
   ;;
-  ;; In the second case, a macro with an argument list as the a rgs as the
+  ;; In the second case, a macro with an argument list as the args as the
   ;; first entry.
   ;;
   ;; CASE 3: Symbol text merge
@@ -577,13 +577,7 @@ and what valid VAL values are."
 	(cond
 	 ;; CASE 3: Merge symbols together.
 	 ((eq (semantic-lex-token-class v) 'spp-symbol-merge)
-	  ;; We need to merge the tokens in the 'text segment together,
-	  ;; and produce a single symbol from it.
-	  (let ((newsym
-		 (mapconcat (lambda (tok)
-			      (semantic-lex-spp-one-token-to-txt tok))
-			    txt
-			    "")))
+	  (let ((newsym (semantic-lex-spp-symbol-merge txt)))
 	    (semantic-lex-push-token
 	     (semantic-lex-token 'symbol beg end newsym))
 	    ))
@@ -636,6 +630,27 @@ and what valid VAL values are."
     (dolist (A arglist)
       (semantic-lex-spp-symbol-pop A))
     ))
+
+(defun semantic-lex-spp-symbol-merge (txt)
+  "Merge the tokens listed in TXT.
+TXT might contain further 'spp-symbol-merge, which will
+be merged recursively."
+  ;; We need to merge the tokens in the 'text segment together,
+  ;; and produce a single symbol from it.
+  (mapconcat (lambda (tok)
+	       (cond
+		((eq (car tok) 'symbol)
+		 (semantic-lex-spp-one-token-to-txt tok))
+		((eq (car tok) 'spp-symbol-merge)
+		 ;; Call recursively for multiple merges, like
+		 ;; #define FOO(a) foo##a##bar
+		 (semantic-lex-spp-symbol-merge (cadr tok)))
+		(t
+		 (message "Invalid merge macro ecountered; \
+will return empty string instead.")
+		 "")))
+	     txt
+	     ""))
 
 ;;; Macro Merging
 ;;
@@ -869,7 +884,14 @@ Parsing starts inside the parens, and ends at the end of TOKEN."
 	(forward-char 1)
 	(setq fresh-toks (semantic-lex-spp-stream-for-macro (1- end)))
 	(dolist (tok fresh-toks)
-	  (when (memq (semantic-lex-token-class tok) '(symbol semantic-list))
+	  ;; march 2011: This is too restrictive!  For example "void"
+	  ;; can't get through.  What elements was I trying to expunge
+	  ;; to put this in here in the first place?  If I comment it
+	  ;; out, does anything new break?
+	  ;(when (memq (semantic-lex-token-class tok) '(symbol semantic-list))
+	  ;; It appears the commas need to be dumped.  perhaps this is better,
+	  ;; but will it cause more problems later?
+	  (unless (eq (semantic-lex-token-class tok) 'punctuation)
 	    (setq toks (cons tok toks))))
 
 	(nreverse toks)))))
@@ -890,6 +912,7 @@ and variable state from the current buffer."
 	 (fresh-toks nil)
 	 (toks nil)
 	 (origbuff (current-buffer))
+	 (analyzer semantic-lex-analyzer)
 	 (important-vars '(semantic-lex-spp-macro-symbol-obarray
 			   semantic-lex-spp-project-macro-symbol-obarray
 			   semantic-lex-spp-dynamic-macro-symbol-obarray
@@ -912,6 +935,11 @@ and variable state from the current buffer."
 
 	    ;; Hack in mode-local
 	    (activate-mode-local-bindings)
+
+	    ;; Call the major mode's setup function
+	    (let ((entry (assq major-mode semantic-new-buffer-setup-functions)))
+	      (when entry
+		(funcall (cdr entry))))
 
 	    ;; CHEATER!  The following 3 lines are from
 	    ;; `semantic-new-buffer-fcn', but we don't want to turn

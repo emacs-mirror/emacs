@@ -134,8 +134,11 @@ If optional LEFT is non-nil insert spaces on left."
 ;;;; ------------------------
 
 (defconst wisent-BITS-PER-WORD
-  (let ((i 1))
-    (while (not (zerop (lsh 1 i)))
+  (let ((i 1)
+	(do-shift (if (boundp 'most-positive-fixnum)
+		      (lambda (i) (lsh most-positive-fixnum (- i)))
+		    (lambda (i) (lsh 1 i)))))
+    (while (not (zerop (funcall do-shift i)))
       (setq i (1+ i)))
     i))
 
@@ -3538,5 +3541,13 @@ See also `wisent-compile-grammar' for more details on AUTOMATON."
         ,obn))))
 
 (provide 'semantic/wisent/comp)
+
+;; Disable messages with regards to lexical scoping, since this will
+;; produce a bunch of 'lacks a prefix' warnings with the
+;; `wisent-defcontext' trickery above.
+
+;; Local variables:
+;; byte-compile-warnings: (not lexical)
+;; End:
 
 ;;; semantic/wisent/comp.el ends here

@@ -1,4 +1,4 @@
-;;; semantic-scm-by.el --- Generated parser support file
+;;; semantic/bovine/scm-by.el --- Generated parser support file
 
 ;; Copyright (C) 2001, 2003, 2009-2012 Free Software Foundation, Inc.
 
@@ -19,12 +19,11 @@
 
 ;;; Commentary:
 ;;
-;; This file was generated from etc/grammars/scm.by.
+;; This file was generated from admin/grammars/scm.by.
 
 ;;; Code:
 
 (require 'semantic/lex)
-
 (eval-when-compile (require 'semantic/bovine))
 
 ;;; Prologue
@@ -184,6 +183,13 @@
 	semantic-debug-parser-class 'semantic-bovine-debug-parser
 	semantic-flex-keywords-obarray semantic-scm-by--keyword-table
 	))
+
+
+;;; Analyzers
+;;
+
+;;; Epilogue
+;;
 
 (provide 'semantic/bovine/scm-by)
 

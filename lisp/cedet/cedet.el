@@ -35,19 +35,22 @@
 
 (declare-function inversion-find-version "inversion")
 
-(defconst cedet-version "1.0"
+(defconst cedet-version "1.1"
   "Current version of CEDET.")
 
 (defconst cedet-packages
   `(
-    ;;PACKAGE   MIN-VERSION
-    (cedet         ,cedet-version)
-    (eieio         "1.3")
-    (semantic      "2.0")
-    (srecode       "1.0")
-    (ede           "1.0")
-    (speedbar      "1.0"))
-  "Table of CEDET packages installed.")
+    ;;PACKAGE   MIN-VERSION      INSTALLDIR  DOCDIR
+    (cedet         ,cedet-version "common"   "common" 	        )
+    (eieio         "1.4"           nil       "eieio"       )
+    (semantic      "2.1"           nil       "semantic/doc")
+    (srecode       "1.1"           nil       "srecode"     )
+    (ede           "1.1"           nil       "ede"         )
+    (speedbar      "1.0.4"         nil       "speedbar"    )
+    (cogre         "1.1"           nil       "cogre"       )
+    (cedet-contrib "1.1"           "contrib" nil           )
+    )
+  "Table of CEDET packages to install.")
 
 (defvar cedet-menu-map ;(make-sparse-keymap "CEDET menu")
   (let ((map (make-sparse-keymap "CEDET menu")))

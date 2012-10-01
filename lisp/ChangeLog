@@ -1,3 +1,45 @@
+2012-10-01  David Engster  <deng@randomsample.de>
+
+	* emacs-lisp/eieio-opt.el (eieio-describe-class): Add filename
+	from symbol property and change message to be more consistent with
+	Emacs proper.
+	(eieio-describe-generic): Add filename for each implementation.
+	Fix indices for generic and normal methods.
+	(eieio-method-def, eieio-class-def): New buttons.
+	(eieio-help-find-method-definition)
+	(eieio-help-find-class-definition): New functions.
+	(eieio-help-mode-augmentation-maybee): Add buttons to filenames of
+	class, constructor and method definitions.
+
+	* emacs-lisp/eieio.el (eieiomt-add, eieio-defclass): Save file
+	information in symbol property.
+	(scoped-class): Remove.
+	(eieio-slot-name-index, call-next-method): Check if it is bound.
+
+2012-10-01  Leo P. White  <lpw25@cam.ac.uk>
+
+	* emacs-lisp/eieio-custom.el (eieio-custom-mode-map): New option.
+	(eieio-custom-mode): New major mode.
+	(eieio-customize-object): Use it.
+
+2012-10-01  Eric Ludlam  <zappo@gnu.org>
+
+	* emacs-lisp/eieio-base.el (eieio-persistent-read): New input args
+	specifying the expected class, and whether subclassing is allowed.
+	(eieio-persistent-convert-list-to-object):
+        (eieio-persistent-validate/fix-slot-value)
+        (eieio-persistent-slot-type-is-class-p): New functions.
+        (eieio-named::slot-missing): Doc fix.
+
+	* emacs-lisp/eieio-datadebug.el (data-debug/eieio-insert-slots):
+	Stop using unused publd variable.
+
+	* emacs-lisp/eieio-speedbar.el (eieio-speedbar-handle-click):
+	(eieio-speedbar-description, eieio-speedbar-derive-line-path)
+	(eieio-speedbar-object-buttonname, eieio-speedbar-make-tag-line)
+	(eieio-speedbar-handle-click): Do not specify a class for the
+	method.  Fixes method invocation order problems with EDE.
+
 2012-10-01  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/bytecomp.el (byte-compiler-abbreviate-file): New function.

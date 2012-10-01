@@ -175,6 +175,69 @@ Used by the decoration style: `semantic-decoration-on-unknown-includes'."
      :help "Add an include path for this session." ])
    ))
 
+;;; Includes with no file, but a table
+;;
+(defface semantic-decoration-on-fileless-includes
+  '((((class color) (background dark))
+     (:background "#009000"))
+    (((class color) (background light))
+     (:background "#f0fdf0")))
+  "*Face used to show includes that have no file, but do have a DB table.
+Used by the decoration style: `semantic-decoration-on-fileless-includes'."
+  :group 'semantic-faces)
+
+(defvar semantic-decoration-on-fileless-include-map
+  (let ((km (make-sparse-keymap)))
+    ;(define-key km [ mouse-2 ] 'semantic-decoration-fileless-include-describe)
+    (define-key km semantic-decoratiton-mouse-3 'semantic-decoration-fileless-include-menu)
+    km)
+  "Keymap used on unparsed includes.")
+
+(defvar semantic-decoration-on-fileless-include-menu nil
+  "Menu used for unparsed include headers.")
+
+(easy-menu-define
+  semantic-decoration-on-fileless-include-menu
+  semantic-decoration-on-fileless-include-map
+  "Fileless Include Menu"
+  (list
+   "Fileless Include"
+   (semantic-menu-item
+    ["What Is This?" semantic-decoration-fileless-include-describe
+     :active t
+     :help "Describe why this include has been marked this way." ])
+   (semantic-menu-item
+    ["List all unknown includes" semanticdb-find-adebug-lost-includes
+     :active t
+     :help "Show a list of all includes semantic cannot find for this file." ])
+   "---"
+   (semantic-menu-item
+    ["Summarize includes current buffer" semantic-decoration-all-include-summary
+     :active t
+     :help "Show a summary for the current buffer containing this include." ])
+   (semantic-menu-item
+    ["List found includes (load unparsed)" semanticdb-find-test-translate-path
+     :active t
+     :help "List all includes found for this file, and parse unparsed files." ])
+   (semantic-menu-item
+    ["List found includes (no loading)" semanticdb-find-test-translate-path-no-loading
+     :active t
+     :help "List all includes found for this file, do not parse unparsed files." ])
+   "---"
+   (semantic-menu-item
+    ["Customize System Include Path" semantic-customize-system-include-path
+     :active (get 'semantic-dependency-system-include-path major-mode)
+     :help "Run customize for the system include path for this major mode." ])
+   (semantic-menu-item
+    ["Add a System Include Path" semantic-add-system-include
+     :active t
+     :help "Add an include path for this session." ])
+   (semantic-menu-item
+    ["Remove a System Include Path" semantic-remove-system-include
+     :active t
+     :help "Add an include path for this session." ])
+   ))
+
 ;;; Includes that need to be parsed.
 ;;
 (defface semantic-decoration-on-unparsed-includes
@@ -272,16 +335,21 @@ This mode provides a nice context menu on the include statements."
 (defun semantic-decoration-on-includes-highlight-default (tag)
   "Highlight the include TAG to show that semantic can't find it."
   (let* ((file (semantic-dependency-tag-file tag))
-	 (table (when file
-		  (semanticdb-file-table-object file t)))
+	 (table (semanticdb-find-table-for-include tag (current-buffer)))
 	 (face nil)
 	 (map nil)
 	 )
     (cond
-     ((not file)
+     ((and (not file) (not table))
       ;; Cannot find this header.
       (setq face 'semantic-decoration-on-unknown-includes
 	    map semantic-decoration-on-unknown-include-map)
+      )
+     ((and (not file) table)
+      ;; There is no file, but the language supports a table for this
+      ;; include.  Import perhaps?  System include with no file?
+      (setq face 'semantic-decoration-on-fileless-includes
+	    map semantic-decoration-on-fileless-include-map)
       )
      ((and table (number-or-marker-p (oref table pointmax)))
       ;; A found and parsed file.
@@ -319,7 +387,7 @@ This mode provides a nice context menu on the include statements."
 ;;; Regular Include Functions
 ;;
 (defun semantic-decoration-include-describe ()
-  "Describe what unparsed includes are in the current buffer.
+  "Describe the current include tag.
 Argument EVENT is the mouse clicked event."
   (interactive)
   (let* ((tag (or (semantic-current-tag)
@@ -421,7 +489,7 @@ Argument EVENT describes the event that caused this function to be called."
 ;;; Unknown Include functions
 ;;
 (defun semantic-decoration-unknown-include-describe ()
-  "Describe what unknown includes are in the current buffer.
+  "Describe the current unknown include.
 Argument EVENT is the mouse clicked event."
   (interactive)
   (let ((tag (semantic-current-tag))
@@ -484,7 +552,7 @@ See the Semantic manual node on SemanticDB for more about search paths.")
       )))
 
 (defun semantic-decoration-unknown-include-menu (event)
-  "Popup a menu that can help a user understand unparsed includes.
+  "Popup a menu that can help a user understand unknown includes.
 Argument EVENT describes the event that caused this function to be called."
   (interactive "e")
   (let* ((startwin (selected-window))
@@ -497,6 +565,49 @@ Argument EVENT describes the event that caused this function to be called."
       (mouse-set-point event)
       (sit-for 0)
       (semantic-popup-menu semantic-decoration-on-unknown-include-menu)
+      )
+    (select-window startwin)))
+
+
+;;; Fileless Include functions
+;;
+(defun semantic-decoration-fileless-include-describe ()
+  "Describe the current fileless include.
+Argument EVENT is the mouse clicked event."
+  (interactive)
+  (let* ((tag (semantic-current-tag))
+	 (table (semanticdb-find-table-for-include tag (current-buffer)))
+	 (mm major-mode))
+    (with-output-to-temp-buffer (help-buffer) ; "*Help*"
+      (help-setup-xref (list #'semantic-decoration-fileless-include-describe)
+		       (called-interactively-p 'interactive))
+      (princ "Include Tag: ")
+      (princ (semantic-format-tag-name tag nil t))
+      (princ "\n\n")
+      (princ "This header tag has been marked \"Fileless\".
+This means that Semantic cannot find a file associated with this tag
+on disk, but a database table of tags has been associated with it.
+
+This means that the include will still be used to find tags for
+searches, but you connot visit this include.\n\n")
+      (princ "This Header is now represented by the following database table:\n\n  ")
+      (princ (object-print table))
+      )))
+
+(defun semantic-decoration-fileless-include-menu (event)
+  "Popup a menu that can help a user understand fileless includes.
+Argument EVENT describes the event that caused this function to be called."
+  (interactive "e")
+  (let* ((startwin (selected-window))
+	 ;; This line has an issue in XEmacs.
+	 (win (semantic-event-window event))
+	 )
+    (select-window win t)
+    (save-excursion
+      ;(goto-char (window-start win))
+      (mouse-set-point event)
+      (sit-for 0)
+      (semantic-popup-menu semantic-decoration-on-fileless-include-menu)
       )
     (select-window startwin)))
 
@@ -667,6 +778,9 @@ Argument EVENT describes the event that caused this function to be called."
 	  (dolist (tag unk)
 	    (princ "  ")
 	    (princ (semantic-tag-name tag))
+	    (when (not (eq (semantic-tag-name tag) (semantic-tag-include-filename tag)))
+	      (princ " -> ")
+	      (princ (semantic-tag-include-filename tag)))
 	    (princ "\n"))
 	  ))
 

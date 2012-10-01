@@ -1,5 +1,4 @@
 ;;; c.by -- LL grammar for C/C++ language specification
-
 ;; Copyright (C) 1999-2012 Free Software Foundation, Inc.
 ;;
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
@@ -39,6 +38,13 @@
 ;; >  * Can't parse signature element: "RmcBucStatus* rftBucStatus"
 
 %package semantic-c-by
+%provide semantic/bovine/c-by
+
+%{
+(declare-function semantic-c-reconstitute-token "semantic/bovine/c")
+(declare-function semantic-c-reconstitute-template "semantic/bovine/c")
+(declare-function semantic-expand-c-tag "semantic/bovine/c")
+}
 
 %languagemode  c-mode c++-mode
 %start         declaration
@@ -98,6 +104,8 @@
 %put VIRTUAL summary "Method Modifier: virtual <type> <name>(...) ..."
 %token MUTABLE "mutable"
 %put MUTABLE summary "Member Declaration Modifier: mutable <type> <name> ..."
+%token EXPLICIT "explicit"
+%put EXPLICIT summary "Forbids implicit type conversion: explicit <constructor>"
 
 %token STRUCT "struct"
 %put STRUCT summary "Structure Type Declaration: struct [name] { ... };"
@@ -370,6 +378,9 @@ namespacesubparts
  ;; PUBLIC or PRIVATE bits.  Ignore them for now.
   | template
   | using
+ ;; Includes inside namespaces
+  | spp-include
+    (TAG $1 'include :inside-ns t)
   | ;;EMPTY
   ;
 
@@ -1098,6 +1109,8 @@ functionname
 function-pointer
   : LPAREN STAR symbol RPAREN
     ( (concat "*" $3) )
+  | LPAREN symbol RPAREN
+    ( $2 )
   ;
 
 fun-or-proto-end

@@ -29,6 +29,9 @@
 (require 'semantic/db)
 (require 'cedet-files)
 
+(eval-when-compile
+  (require 'data-debug))
+
 (defvar semanticdb-file-version semantic-version
   "Version of semanticdb we are writing files to disk with.")
 (defvar semanticdb-file-incompatible-version "1.4"
@@ -140,7 +143,7 @@ If DIRECTORY doesn't exist, create a new one."
 			  directory))
 			"/")
 		:file fn :tables nil
-		:semantic-tag-version semantic-version
+		:semantic-tag-version semantic-tag-version
 		:semanticdb-version semanticdb-file-version)))
     ;; Set this up here.   We can't put it in the constructor because it
     ;; would be saved, and we want DB files to be portable.
@@ -154,7 +157,7 @@ If DIRECTORY doesn't exist, create a new one."
 (defun semanticdb-load-database (filename)
   "Load the database FILENAME."
   (condition-case foo
-      (let* ((r (eieio-persistent-read filename))
+      (let* ((r (eieio-persistent-read filename semanticdb-project-database-file))
 	     (c (semanticdb-get-database-tables r))
 	     (tv (oref r semantic-tag-version))
 	     (fv (oref r semanticdb-version))

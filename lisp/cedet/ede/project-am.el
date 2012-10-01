@@ -205,7 +205,7 @@ OT is the object target.  DIR is the directory to start in."
 							 (oref amf targets))
 				      nil t))))
 	 ;; The input target might be new.  See if we can find it.
-	 (amf (ede-load-project-file (oref ot path)))
+	 (amf (ede-target-parent ot))
 	 (ot (object-assoc target 'name (oref amf targets)))
 	 (ofn (file-name-nondirectory (buffer-file-name))))
     (if (not ot)

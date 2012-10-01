@@ -33,41 +33,139 @@
 (load "semantic/loaddefs" nil 'nomessage)
 
 ;;; Compatibility
+;;
+(eval-and-compile
+  (if (featurep 'xemacs)
+      (progn
+	(defalias 'semantic-buffer-local-value 'symbol-value-in-buffer)
+	(defalias 'semantic-overlay-live-p
+	  (lambda (o)
+	    (and (extent-live-p o)
+		 (not (extent-detached-p o))
+		 (bufferp (extent-buffer o)))))
+	(defalias 'semantic-make-overlay
+	  (lambda (beg end &optional buffer &rest rest)
+	    "Xemacs `make-extent', supporting the front/rear advance options."
+	    (let ((ol (make-extent beg end buffer)))
+	      (when rest
+		(set-extent-property ol 'start-open (car rest))
+		(setq rest (cdr rest)))
+	      (when rest
+		(set-extent-property ol 'end-open (car rest)))
+	      ol)))
+	(defalias 'semantic-overlay-put             'set-extent-property)
+	(defalias 'semantic-overlay-get             'extent-property)
+	(defalias 'semantic-overlay-properties      'extent-properties)
+	(defalias 'semantic-overlay-move            'set-extent-endpoints)
+	(defalias 'semantic-overlay-delete          'delete-extent)
+	(defalias 'semantic-overlays-at
+	  (lambda (pos)
+	    (condition-case nil
+		(extent-list nil pos pos)
+	      (error nil))
+	    ))
+	(defalias 'semantic-overlays-in
+	  (lambda (beg end) (extent-list nil beg end)))
+	(defalias 'semantic-overlay-buffer          'extent-buffer)
+	(defalias 'semantic-overlay-start           'extent-start-position)
+	(defalias 'semantic-overlay-end             'extent-end-position)
+	(defalias 'semantic-overlay-size            'extent-length)
+	(defalias 'semantic-overlay-next-change     'next-extent-change)
+	(defalias 'semantic-overlay-previous-change 'previous-extent-change)
+	(defalias 'semantic-overlay-lists
+	  (lambda () (list (extent-list))))
+	(defalias 'semantic-overlay-p               'extentp)
+	(defalias 'semantic-event-window        'event-window)
+	(defun semantic-read-event ()
+	  (let ((event (next-command-event)))
+	    (if (key-press-event-p event)
+		(let ((c (event-to-character event)))
+		  (if (char-equal c (quit-char))
+		      (keyboard-quit)
+		    c)))
+	    event))
+	(defun semantic-popup-menu (menu)
+	  "Blockinig version of `popup-menu'"
+	  (popup-menu menu)
+	  ;; Wait...
+	  (while (popup-up-p) (dispatch-event (next-event))))
+	)
+    ;; Emacs Bindings
+    (defalias 'semantic-overlay-live-p          'overlay-buffer)
+    (defalias 'semantic-make-overlay            'make-overlay)
+    (defalias 'semantic-overlay-put             'overlay-put)
+    (defalias 'semantic-overlay-get             'overlay-get)
+    (defalias 'semantic-overlay-properties      'overlay-properties)
+    (defalias 'semantic-overlay-move            'move-overlay)
+    (defalias 'semantic-overlay-delete          'delete-overlay)
+    (defalias 'semantic-overlays-at             'overlays-at)
+    (defalias 'semantic-overlays-in             'overlays-in)
+    (defalias 'semantic-overlay-buffer          'overlay-buffer)
+    (defalias 'semantic-overlay-start           'overlay-start)
+    (defalias 'semantic-overlay-end             'overlay-end)
+    (defalias 'semantic-overlay-next-change     'next-overlay-change)
+    (defalias 'semantic-overlay-previous-change 'previous-overlay-change)
+    (defalias 'semantic-overlay-lists           'overlay-lists)
+    (defalias 'semantic-overlay-p               'overlayp)
+    (defalias 'semantic-read-event              'read-event)
+    (defalias 'semantic-popup-menu              'popup-menu)
+    (defun semantic-event-window (event)
+      "Extract the window from EVENT."
+      (car (car (cdr event))))
 
-(defalias 'semantic-buffer-local-value      'buffer-local-value)
-(defalias 'semantic-overlay-live-p          'overlay-buffer)
-(defalias 'semantic-make-overlay            'make-overlay)
-(defalias 'semantic-overlay-put             'overlay-put)
-(defalias 'semantic-overlay-get             'overlay-get)
-(defalias 'semantic-overlay-properties      'overlay-properties)
-(defalias 'semantic-overlay-move            'move-overlay)
-(defalias 'semantic-overlay-delete          'delete-overlay)
-(defalias 'semantic-overlays-at             'overlays-at)
-(defalias 'semantic-overlays-in             'overlays-in)
-(defalias 'semantic-overlay-buffer          'overlay-buffer)
-(defalias 'semantic-overlay-start           'overlay-start)
-(defalias 'semantic-overlay-end             'overlay-end)
-(defalias 'semantic-overlay-size            'overlay-size)
-(defalias 'semantic-overlay-next-change     'next-overlay-change)
-(defalias 'semantic-overlay-previous-change 'previous-overlay-change)
-(defalias 'semantic-overlay-lists           'overlay-lists)
-(defalias 'semantic-overlay-p               'overlayp)
-(defalias 'semantic-read-event              'read-event)
-(defalias 'semantic-popup-menu              'popup-menu)
-(defalias 'semantic-make-local-hook         'identity)
-(defalias 'semantic-mode-line-update        'force-mode-line-update)
-(defalias 'semantic-run-mode-hooks          'run-mode-hooks)
-(defalias 'semantic-compile-warn            'byte-compile-warn)
-(defalias 'semantic-menu-item               'identity)
+    (if (> emacs-major-version 21)
+	(defalias 'semantic-buffer-local-value 'buffer-local-value)
 
-(defun semantic-event-window (event)
-  "Extract the window from EVENT."
-  (car (car (cdr event))))
+      (defun semantic-buffer-local-value (sym &optional buf)
+	"Get the value of SYM from buffer local variable in BUF."
+	(cdr (assoc sym (buffer-local-variables buf)))))
+    )
+
+
+  (if (and (not (featurep 'xemacs))
+	   (>= emacs-major-version 21))
+      (defalias 'semantic-make-local-hook 'identity)
+    (defalias 'semantic-make-local-hook 'make-local-hook)
+    )
+
+  (if (featurep 'xemacs)
+      (defalias 'semantic-mode-line-update 'redraw-modeline)
+    (defalias 'semantic-mode-line-update 'force-mode-line-update))
+
+  ;; Since Emacs 22 major mode functions should use `run-mode-hooks' to
+  ;; run major mode hooks.
+  (defalias 'semantic-run-mode-hooks
+    (if (fboundp 'run-mode-hooks)
+	'run-mode-hooks
+      'run-hooks))
+
+  ;; Fancy compat useage now handled in cedet-compat
+  (defalias 'semantic-subst-char-in-string 'subst-char-in-string)
+  )
 
 (defun semantic-delete-overlay-maybe (overlay)
   "Delete OVERLAY if it is a semantic token overlay."
   (if (semantic-overlay-get overlay 'semantic)
       (semantic-overlay-delete overlay)))
+
+;;; Menu Item compatibility
+;;
+(defun semantic-menu-item (item)
+  "Build an XEmacs compatible menu item from vector ITEM.
+That is remove the unsupported :help stuff."
+  (if (featurep 'xemacs)
+      (let ((n (length item))
+            (i 0)
+            slot l)
+        (while (< i n)
+          (setq slot (aref item i))
+          (if (and (keywordp slot)
+                   (eq slot :help))
+              (setq i (1+ i))
+            (setq l (cons slot l)))
+          (setq i (1+ i)))
+        (apply #'vector (nreverse l)))
+    item))
 
 ;;; Positional Data Cache
 ;;
@@ -138,6 +236,23 @@ Remove self from `post-command-hook' if it is empty."
       (when ans
         (semantic-overlay-get ans 'cached-value)))))
 
+(defun semantic-test-data-cache ()
+  "Test the data cache."
+  (interactive)
+  (let ((data '(a b c)))
+    (save-current-buffer
+      (set-buffer (get-buffer-create " *semantic-test-data-cache*"))
+      (save-excursion
+	(erase-buffer)
+	(insert "The Moose is Loose")
+	(goto-char (point-min))
+	(semantic-cache-data-to-buffer (current-buffer) (point) (+ (point) 5)
+				       data 'moose 'exit-cache-zone)
+	(if (equal (semantic-get-cache-data 'moose) data)
+	    (message "Successfully retrieved cached data.")
+	  (error "Failed to retrieve cached data"))
+	))))
+
 ;;; Obsoleting various functions & variables
 ;;
 (defun semantic-overload-symbol-from-function (name)
@@ -161,7 +276,7 @@ will throw a warning when it encounters this symbol."
 	     (not (string-match "cedet" byte-compile-current-file))
 	     )
     (make-obsolete-overload oldfnalias newfn when)
-    (semantic-compile-warn
+    (byte-compile-warn
      "%s: `%s' obsoletes overload `%s'"
      byte-compile-current-file
      newfn
@@ -179,7 +294,7 @@ will throw a warning when it encounters this symbol."
      ;; Only throw this warning when byte compiling things.
      (when (and (boundp 'byte-compile-current-file)
                 byte-compile-current-file)
-       (semantic-compile-warn
+       (byte-compile-warn
         "variable `%s' obsoletes, but isn't alias of `%s'"
         newvar oldvaralias)
      ))))
@@ -276,6 +391,17 @@ calling this one."
   "Call `find-file-noselect' with various features turned off.
 Use this when referencing a file that will be soon deleted.
 FILE, NOWARN, RAWFILE, and WILDCARDS are passed into `find-file-noselect'"
+  ;; Hack -
+  ;; Check if we are in set-auto-mode, and if so, warn about this.
+  (when (or  (and (featurep 'emacs) (boundp 'keep-mode-if-same))
+	     (and (featurep 'xemacs) (boundp 'just-from-file-name)))
+    (let ((filename (or (and (boundp 'filename) filename)
+			"(unknown)")))
+      (message "WARNING: semantic-find-file-noselect called for \
+%s while in set-auto-mode for %s.  You should call the responsible function \
+into `mode-local-init-hook'." file filename)
+      (sit-for 1)))
+
   (let* ((recentf-exclude '( (lambda (f) t) ))
 	 ;; This is a brave statement.  Don't waste time loading in
 	 ;; lots of modes.  Especially decoration mode can waste a lot
@@ -285,8 +411,11 @@ FILE, NOWARN, RAWFILE, and WILDCARDS are passed into `find-file-noselect'"
 	 (ede-auto-add-method 'never)
 	 ;; Ask font-lock to not colorize these buffers, nor to
 	 ;; whine about it either.
-	 (font-lock-maximum-size 0)
+	 (global-font-lock-mode nil)
 	 (font-lock-verbose nil)
+	 ;; This forces flymake to ignore this buffer on find-file, and
+	 ;; prevents flymake processes from being started.
+	 (flymake-start-syntax-check-on-find-file nil)
 	 ;; Disable revision control
 	 (vc-handled-backends nil)
 	 ;; Don't prompt to insert a template if we visit an empty file

@@ -70,13 +70,17 @@
      (3 font-lock-builtin-face ))
     ("^\\(sectiondictionary\\)\\s-+\""
      (1 font-lock-keyword-face))
+    ("^\\s\s*\\(section\\)\\s-+\""
+     (1 font-lock-keyword-face))
+    ("^\\s\s*\\(end\\)"
+     (1 font-lock-keyword-face))
     ("^\\(bind\\)\\s-+\""
      (1 font-lock-keyword-face))
     ;; Variable type setting
-    ("^\\(set\\)\\s-+\\(\\w+\\)\\s-+"
+    ("^\\s\s*\\(set\\)\\s-+\\(\\w+\\)\\s-+"
      (1 font-lock-keyword-face)
      (2 font-lock-variable-name-face))
-    ("^\\(show\\)\\s-+\\(\\w+\\)\\s-*$"
+    ("^\\s\s*\\(show\\)\\s-+\\(\\w+\\)\\s-*$"
      (1 font-lock-keyword-face)
      (2 font-lock-variable-name-face))
     ("\\<\\(macro\\)\\s-+\""

@@ -197,7 +197,7 @@ template variable-option :el :el-custom :indent :blank
 ----
 (defcustom $?NAME$ $^$
   "*$DOC$"
-  :group $GROUP$
+  :group '$GROUP$
   :type $?CUSTOMTYPE$)
 ----
 bind "o"

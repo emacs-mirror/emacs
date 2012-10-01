@@ -51,6 +51,7 @@
 (declare-function semantic-analyze-split-name "semantic/analyze/fcn")
 (declare-function semantic-fetch-tags "semantic")
 (declare-function semantic-clear-toplevel-cache "semantic")
+(declare-function semantic-tag-similar-p "semantic/tag-ls")
 
 (defconst semantic-tag-version "2.0"
   "Version string of semantic tags made with this code.")
@@ -362,45 +363,6 @@ of different cons cells."
 		(equal (semantic-tag-bounds tag1)
 		       (semantic-tag-bounds tag2))))))
 
-(defun semantic-tag-similar-p (tag1 tag2 &rest ignorable-attributes)
-  "Test to see if TAG1 and TAG2 are similar.
-Two tags are similar if their name, datatype, and various attributes
-are the same.
-
-Similar tags that have sub-tags such as arg lists or type members,
-are similar w/out checking the sub-list of tags.
-Optional argument IGNORABLE-ATTRIBUTES are attributes to ignore while comparing similarity."
-  (let* ((A1 (and (equal (semantic-tag-name tag1) (semantic-tag-name tag2))
-		  (semantic-tag-of-class-p tag1 (semantic-tag-class tag2))
-		  (semantic-tag-of-type-p tag1 (semantic-tag-type tag2))))
-	 (attr1 (semantic-tag-attributes tag1))
-	 (A2 (= (length attr1) (length (semantic-tag-attributes tag2))))
-	 (A3 t)
-	 )
-    (when (and (not A2) ignorable-attributes)
-      (setq A2 t))
-    (while (and A2 attr1 A3)
-      (let ((a (car attr1))
-	    (v (car (cdr attr1))))
-
-	(cond ((or (eq a :type) ;; already tested above.
-		   (memq a ignorable-attributes)) ;; Ignore them...
-	       nil)
-
-	      ;; Don't test sublists of tags
-	      ((and (listp v) (semantic-tag-p (car v)))
-	       nil)
-
-	      ;; The attributes are not the same?
-	      ((not (equal v (semantic-tag-get-attribute tag2 a)))
-	       (setq A3 nil))
-	      (t
-	       nil))
-	)
-      (setq attr1 (cdr (cdr attr1))))
-
-    (and A1 A2 A3)
-    ))
 
 (defun semantic-tag-similar-with-subtags-p (tag1 tag2 &rest ignorable-attributes)
   "Test to see if TAG1 and TAG2 are similar.
@@ -408,28 +370,8 @@ Uses `semantic-tag-similar-p' but also recurses through sub-tags, such
 as argument lists and type members.
 Optional argument IGNORABLE-ATTRIBUTES is passed down to
 `semantic-tag-similar-p'."
-  (let ((C1 (semantic-tag-components tag1))
-	(C2 (semantic-tag-components tag2))
-	)
-    (if (or (/= (length C1) (length C2))
-	    (not (semantic-tag-similar-p tag1 tag2 ignorable-attributes))
-	    )
-	;; Basic test fails.
-	nil
-      ;; Else, check component lists.
-      (catch 'component-dissimilar
-	(while C1
-
-	  (if (not (semantic-tag-similar-with-subtags-p
-		    (car C1) (car C2) ignorable-attributes))
-	      (throw 'component-dissimilar nil))
-
-	  (setq C1 (cdr C1))
-	  (setq C2 (cdr C2))
-	  )
-	;; If we made it this far, we are ok.
-	t) )))
-
+  ;; DEPRECATE THIS.
+  (semantic-tag-similar-p tag1 tag2 ignorable-attributes))
 
 (defun semantic-tag-of-type-p (tag type)
   "Compare TAG's type against TYPE.  Non nil if equivalent.
@@ -611,6 +553,51 @@ You can identify a faux tag with `semantic-tag-faux-p'"
 (defsubst semantic-tag-set-name (tag name)
   "Set TAG name to NAME."
   (setcar tag name))
+
+;;; TAG Proxys
+;;
+;; A new kind of tag is a TAG PROXY.  These are tags that have some
+;; minimal number of features set, such as name and class, but have a
+;; marker in them that indicates how to complete them.
+;;
+;; To make the tags easier to view, the proxy is stored as custom
+;; symbol that is not in the global obarray, but has properties set on
+;; it.  This prevents saving of massive amounts of proxy data.
+(defun semantic-create-tag-proxy (function data)
+  "Create a tag proxy symbol.
+FUNCTION will be used to resolve the proxy.  It should take 3
+two arguments, DATA and TAG.  TAG is a proxy tag that needs
+to be resolved, and DATA is the DATA passed into this function.
+DATA is data to help resolve the proxy.  DATA can be an EIEIO object,
+such that FUNCTION is a method.
+FUNCTION should return a list of tags, preferrably one tag."
+  (let ((sym (make-symbol ":tag-proxy")))
+    (put sym 'proxy-function function)
+    (put sym 'proxy-data data)
+    sym))
+
+(defun semantic-tag-set-proxy (tag proxy &optional filename)
+  "Set TAG to be a proxy.  The proxy can be resolved with PROXY.
+This function will also make TAG be a faux tag with
+`semantic-tag-set-faux', and possibly set the tag's
+:filename with FILENAME.
+To create a proxy, see `semantic-create-tag-proxy'."
+  (semantic-tag-set-faux tag)
+  (semantic--tag-put-property tag :proxy proxy)
+  (when filename
+    (semantic--tag-put-property tag :filename filename)))
+
+(defun semantic-tag-resolve-proxy (tag)
+  "Resolve the proxy in TAG.
+The return value is whatever format the proxy was setup as.
+It should be a list of complete tags.
+If TAG has no proxy, then just return tag."
+  (let* ((proxy (semantic--tag-get-property tag :proxy))
+	 (function (get proxy 'proxy-function))
+	 (data (get proxy 'proxy-data)))
+    (if proxy
+	(funcall function data tag)
+      tag)))
 
 ;;; Copying and cloning tags.
 ;;
@@ -1350,6 +1337,7 @@ of parent classes.  The `cdr' of the list is the list of
 interfaces, or abstract classes which are parents of TAG."
   (cons (semantic-tag-get-attribute tag :superclasses)
         (semantic-tag-type-interfaces tag)))
+
 (make-obsolete 'semantic-token-type-parent
 	       "\
 use `semantic-tag-type-superclass' \

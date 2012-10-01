@@ -27,6 +27,7 @@
 (require 'make-mode)
 
 (require 'semantic)
+(require 'semantic/bovine)
 (require 'semantic/bovine/make-by)
 (require 'semantic/analyze)
 (require 'semantic/dep)

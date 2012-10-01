@@ -2,9 +2,6 @@
 
 ;; Copyright (C) 2002-2004, 2009-2012  Free Software Foundation, Inc.
 
-;; Author: David Ponce <david@dponce.com>
-;; Keywords: syntax
-
 ;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software: you can redistribute it and/or modify
@@ -27,6 +24,10 @@
 ;;; Code:
 
 (require 'semantic/lex)
+(eval-when-compile (require 'semantic/bovine))
+
+;;; Prologue
+;;
 (defvar semantic-grammar-lex-c-char-re)
 
 ;; Current parsed nonterminal name.
@@ -45,6 +46,7 @@
      ("%left" . LEFT)
      ("%nonassoc" . NONASSOC)
      ("%package" . PACKAGE)
+     ("%provide" . PROVIDE)
      ("%prec" . PREC)
      ("%put" . PUT)
      ("%quotemode" . QUOTEMODE)
@@ -109,7 +111,7 @@
     (eval-when-compile
       (require 'semantic/wisent/comp))
     (wisent-compile-grammar
-     '((DEFAULT-PREC NO-DEFAULT-PREC KEYWORD LANGUAGEMODE LEFT NONASSOC PACKAGE PREC PUT QUOTEMODE RIGHT SCOPESTART START TOKEN TYPE USE-MACROS STRING SYMBOL PERCENT_PERCENT CHARACTER PREFIXED_LIST SEXP PROLOGUE EPILOGUE PAREN_BLOCK BRACE_BLOCK LPAREN RPAREN LBRACE RBRACE COLON SEMI OR LT GT)
+     '((DEFAULT-PREC NO-DEFAULT-PREC KEYWORD LANGUAGEMODE LEFT NONASSOC PACKAGE PROVIDE PREC PUT QUOTEMODE RIGHT SCOPESTART START TOKEN TYPE USE-MACROS STRING SYMBOL PERCENT_PERCENT CHARACTER PREFIXED_LIST SEXP PROLOGUE EPILOGUE PAREN_BLOCK BRACE_BLOCK LPAREN RPAREN LBRACE RBRACE COLON SEMI OR LT GT)
        nil
        (grammar
 	((prologue))
@@ -133,6 +135,7 @@
 	((no_default_prec_decl))
 	((languagemode_decl))
 	((package_decl))
+	((provide_decl))
 	((precedence_decl))
 	((put_decl))
 	((quotemode_decl))
@@ -161,6 +164,10 @@
 	((PACKAGE SYMBOL)
 	 `(wisent-raw-tag
 	   (semantic-tag-new-package ',$2 nil))))
+       (provide_decl
+	((PROVIDE SYMBOL)
+	 `(wisent-raw-tag
+	   (semantic-tag ',$2 'provide))))
        (precedence_decl
 	((associativity token_type_opt items)
 	 `(wisent-raw-tag
@@ -411,31 +418,17 @@
    '((parse-stream . wisent-parse-stream)))
   (setq semantic-parser-name "LALR"
 	semantic--parse-table semantic-grammar-wy--parse-table
-	semantic-debug-parser-source "semantic-grammar.wy"
+	semantic-debug-parser-source "grammar.wy"
 	semantic-flex-keywords-obarray semantic-grammar-wy--keyword-table
 	semantic-lex-types-obarray semantic-grammar-wy--token-table)
   ;; Collect unmatched syntax lexical tokens
   (semantic-make-local-hook 'wisent-discarding-token-functions)
   (add-hook 'wisent-discarding-token-functions
-            'wisent-collect-unmatched-syntax nil t))
+	    'wisent-collect-unmatched-syntax nil t))
 
 
 ;;; Analyzers
-
-(define-lex-sexp-type-analyzer semantic-grammar-wy--<sexp>-sexp-analyzer
-  "sexp analyzer for <sexp> tokens."
-  "\\="
-  'SEXP)
-
-(define-lex-sexp-type-analyzer semantic-grammar-wy--<qlist>-sexp-analyzer
-  "sexp analyzer for <qlist> tokens."
-  "\\s'\\s-*("
-  'PREFIXED_LIST)
-
-(define-lex-keyword-type-analyzer semantic-grammar-wy--<keyword>-keyword-analyzer
-  "keyword analyzer for <keyword> tokens."
-  "\\(\\sw\\|\\s_\\)+")
-
+;;
 (define-lex-block-type-analyzer semantic-grammar-wy--<block>-block-analyzer
   "block analyzer for <block> tokens."
   "\\s(\\|\\s)"
@@ -451,16 +444,21 @@
   nil
   'CHARACTER)
 
-(define-lex-sexp-type-analyzer semantic-grammar-wy--<string>-sexp-analyzer
-  "sexp analyzer for <string> tokens."
-  "\\s\""
-  'STRING)
-
 (define-lex-regex-type-analyzer semantic-grammar-wy--<symbol>-regexp-analyzer
   "regexp analyzer for <symbol> tokens."
   ":?\\(\\sw\\|\\s_\\)+"
   '((PERCENT_PERCENT . "\\`%%\\'"))
   'SYMBOL)
+
+(define-lex-sexp-type-analyzer semantic-grammar-wy--<qlist>-sexp-analyzer
+  "sexp analyzer for <qlist> tokens."
+  "\\s'\\s-*("
+  'PREFIXED_LIST)
+
+(define-lex-sexp-type-analyzer semantic-grammar-wy--<string>-sexp-analyzer
+  "sexp analyzer for <string> tokens."
+  "\\s\""
+  'STRING)
 
 (define-lex-string-type-analyzer semantic-grammar-wy--<punctuation>-string-analyzer
   "string analyzer for <punctuation> tokens."
@@ -471,6 +469,22 @@
     (SEMI . ";")
     (COLON . ":"))
   'punctuation)
+
+(define-lex-keyword-type-analyzer semantic-grammar-wy--<keyword>-keyword-analyzer
+  "keyword analyzer for <keyword> tokens."
+  "\\(\\sw\\|\\s_\\)+")
+
+(define-lex-sexp-type-analyzer semantic-grammar-wy--<sexp>-sexp-analyzer
+  "sexp analyzer for <sexp> tokens."
+  "\\="
+  'SEXP)
+
+
+;;; Epilogue
+;;
+
+
+
 
 (provide 'semantic/grammar-wy)
 

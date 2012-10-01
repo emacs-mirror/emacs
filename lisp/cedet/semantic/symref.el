@@ -185,7 +185,7 @@ to perform the search.  This was added for use by a test harness."
 
 ;;;###autoload
 (defun semantic-symref-find-tags-by-name (name &optional scope)
-  "Find a list of references to NAME in the current project.
+  "Find a list of tags by NAME in the current project.
 Optional SCOPE specifies which file set to search.  Defaults to 'project.
 Refers to `semantic-symref-tool', to determine the reference tool to use
 for the current buffer.
@@ -389,9 +389,11 @@ already."
 	      (forward-line (1- line))
 
 	      ;; Search forward for the matching text
-	      (re-search-forward (regexp-quote txt)
-				 (point-at-eol)
-				 t)
+	      (when (re-search-forward (regexp-quote txt)
+				       (point-at-eol)
+				       t)
+		(goto-char (match-beginning 0))
+		)
 
 	      (setq tag (semantic-current-tag))
 

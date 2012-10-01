@@ -1,3 +1,15 @@
+2012-10-01  Eric Ludlam  <zappo@gnu.org>
+
+	* srecode/cc.srt, srecode/ede-autoconf.srt: New files.
+
+	* srecode/cpp.srt: Move parts to c.srt.
+
+	* srecode/ede-make.srt: Extra templates for Arduino Makefiles.
+
+2012-10-01  Ralf Mattes  <rm@mh-freiburg.de>  (tiny change)
+
+	* srecode/el.srt (variable-option): Add missing quote.
+
 2012-10-01  Chong Yidong  <cyd@gnu.org>
 
 	* images/icons/hicolor/32x32/apps/emacs22.png:

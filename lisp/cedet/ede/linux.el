@@ -33,11 +33,29 @@
 ;; * Add website
 
 (require 'ede)
+(require 'ede/make)
+
 (declare-function semanticdb-file-table-object "semantic/db")
 (declare-function semanticdb-needs-refresh-p "semantic/db")
 (declare-function semanticdb-refresh-table "semantic/db")
 
 ;;; Code:
+(defgroup project-linux nil
+  "File and tag browser frame."
+  :group 'tools
+  :group 'ede
+  )
+
+(defcustom project-linux-compile-target-command (concat ede-make-command " -k -C %s SUBDIRS=%s")
+  "*Default command used to compile a target."
+  :group 'project-linux
+  :type 'string)
+
+(defcustom project-linux-compile-project-command (concat ede-make-command " -k -C %s")
+  "*Default command used to compile a project."
+  :group 'project-linux
+  :type 'string)
+
 (defvar ede-linux-project-list nil
   "List of projects created by option `ede-linux-project'.")
 
@@ -95,6 +113,7 @@ DIR is the directory to search from."
   "Project Type for the Linux source code."
   :method-invocation-order :depth-first)
 
+;;;###autoload
 (defun ede-linux-load (dir &optional rootproj)
   "Return an Linux Project object if there is a match.
 Return nil if there isn't one.
@@ -102,27 +121,29 @@ Argument DIR is the directory it is created for.
 ROOTPROJ is nil, since there is only one project."
   (or (ede-linux-file-existing dir)
       ;; Doesn't already exist, so let's make one.
-      (ede-linux-project "Linux"
-			 :name "Linux"
-			 :version (ede-linux-version dir)
-			 :directory (file-name-as-directory dir)
-			 :file (expand-file-name "scripts/ver_linux"
-						 dir))
-      (ede-add-project-to-global-list this)
-      )
-  )
+      (let ((proj (ede-linux-project
+		   "Linux"
+		   :name "Linux"
+		   :version (ede-linux-version dir)
+		   :directory (file-name-as-directory dir)
+		   :file (expand-file-name "scripts/ver_linux"
+					   dir))))
+	(ede-add-project-to-global-list proj))
+      ))
 
 ;;;###autoload
-(add-to-list 'ede-project-class-files
-	     (ede-project-autoload "linux"
-	      :name "LINUX ROOT"
-	      :file 'ede/linux
-	      :proj-file "scripts/ver_linux"
-	      :proj-root 'ede-linux-project-root
-	      :load-type 'ede-linux-load
-	      :class-sym 'ede-linux-project
-	      :new-p nil)
-	     t)
+(ede-add-project-autoload
+ (ede-project-autoload "linux"
+		       :name "LINUX ROOT"
+		       :file 'ede/linux
+		       :proj-file "scripts/ver_linux"
+		       :proj-root-dirmatch "linux[^/]*"
+		       :proj-root 'ede-linux-project-root
+		       :load-type 'ede-linux-load
+		       :class-sym 'ede-linux-project
+		       :new-p nil
+		       :safe-p t)
+ 'unique)
 
 (defclass ede-linux-target-c (ede-target)
   ()
@@ -237,6 +258,42 @@ Knows about how the Linux source tree is organized."
 	     (t nil)))
 	 )
     (or F (call-next-method))))
+
+(defmethod project-compile-project ((proj ede-linux-project)
+				    &optional command)
+  "Compile the entire current project.
+Argument COMMAND is the command to use when compiling."
+  (let* ((dir (ede-project-root-directory proj)))
+
+    (require 'compile)
+    (if (not project-linux-compile-project-command)
+	(setq project-linux-compile-project-command compile-command))
+    (if (not command)
+	(setq command
+	      (format
+	       project-linux-compile-project-command
+	       dir)))
+
+    (compile command)))
+
+(defmethod project-compile-target ((obj ede-linux-target-c) &optional command)
+  "Compile the current target.
+Argument COMMAND is the command to use for compiling the target."
+  (let* ((proj (ede-target-parent obj))
+	 (root (ede-project-root proj))
+	 (dir (ede-project-root-directory root))
+	 (subdir (oref obj path)))
+
+    (require 'compile)
+    (if (not project-linux-compile-project-command)
+	(setq project-linux-compile-project-command compile-command))
+    (if (not command)
+	(setq command
+	      (format
+	       project-linux-compile-target-command
+	       dir subdir)))
+
+    (compile command)))
 
 (provide 'ede/linux)
 

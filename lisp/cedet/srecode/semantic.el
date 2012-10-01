@@ -351,6 +351,12 @@ as `function' will leave point where code might be inserted."
 	   (setq temp (srecode-semantic-find-template
 		       "variable-const" prototype ctxt))
 	   )
+
+	  ((and (semantic-tag-of-class-p tag 'include)
+		(semantic-tag-get-attribute tag :system-flag))
+	   (setq temp (srecode-semantic-find-template
+		       "system-include" prototype ctxt))
+	   )
 	  )
 
     (when (not temp)

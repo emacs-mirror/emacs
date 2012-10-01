@@ -109,14 +109,6 @@ NAME, ALIASCLASS, DEFINITION and ATTRIBUTES."
 ;; Cache of macro definitions currently in use.
 (defvar bovine--grammar-macros nil)
 
-;; Detect if we have an Emacs with newstyle unquotes allowed outside
-;; of backquote.
-;; This should probably be changed to a test to (= emacs-major-version 24)
-;; when it is released, but at the moment it might be possible that people
-;; are using an older snapshot.
-(defvar bovine--grammar-newstyle-unquote
-  (equal '(\, test) (read ",test")))
-
 (defun bovine-grammar-expand-form (form quotemode &optional inplace)
   "Expand FORM into a new one suitable to the bovine parser.
 FORM is a list in which we are substituting.
@@ -152,7 +144,7 @@ expanded from elsewhere."
               form  (cdr form))
 	;; Hack for dealing with new reading of unquotes outside of
 	;; backquote (introduced in rev. 102591 in emacs-bzr).
-	(when (and bovine--grammar-newstyle-unquote
+	(when (and (>= emacs-major-version 24)
 		   (listp first)
 		   (or (equal (car first) '\,)
 		       (equal (car first) '\,@)))
@@ -456,6 +448,7 @@ Menu items are appended to the common grammar menu.")
 
 (defun bovine-make-parsers ()
   "Generate Emacs' built-in Bovine-based parser files."
+  (interactive)
   (semantic-mode 1)
   ;; Loop through each .by file in current directory, and run
   ;; `semantic-grammar-batch-build-one-package' to build the grammar.
@@ -465,13 +458,14 @@ Menu items are appended to the common grammar menu.")
                (with-current-buffer (find-file-noselect f)
                  (semantic-grammar-create-package))
              (error (message "%s" (error-message-string err)) nil)))
-	  lang)
+	  lang filename)
       (when (and packagename
-		 (string-match "^semantic-\\(.*\\)-by\\.el\\'" packagename))
+		 (string-match "^.*/\\(.*\\)-by\\.el\\'" packagename))
 	(setq lang (match-string 1 packagename))
+	(setq filename (concat lang "-by.el"))
 	(with-temp-buffer
-	  (insert-file-contents packagename)
-	  (setq buffer-file-name (expand-file-name packagename))
+	  (insert-file-contents filename)
+	  (setq buffer-file-name (expand-file-name filename))
 	  ;; Fix copyright header:
 	  (goto-char (point-min))
 	  (re-search-forward "^;; Author:")
@@ -500,20 +494,14 @@ Menu items are appended to the common grammar menu.")
 		  lang ".by.
 
 ;;; Code:
-
-\(require 'semantic/lex)
-\(eval-when-compile (require 'semantic/bovine))\n")
+")
 	  (goto-char (point-min))
 	  (delete-region (point-min) (line-end-position))
-	  (insert ";;; semantic/bovine/" lang
-		  "-by.el --- Generated parser support file")
+	  (insert ";;; " packagename
+		  " --- Generated parser support file")
 	  (delete-trailing-whitespace)
-	  ;; Fix footer:
-	  (goto-char (point-max))
-	  (re-search-backward ".\n;;; Analyzers")
-	  (delete-region (point) (point-max))
-	  (insert "(provide 'semantic/bovine/" lang "-by)\n\n")
-	  (insert ";;; semantic/bovine/" lang "-by.el ends here\n")
+	  (re-search-forward ";;; \\(.*\\) ends here")
+	  (replace-match packagename nil nil nil 1)
 	  (save-buffer))))))
 
 ;;; bovine-grammar.el ends here

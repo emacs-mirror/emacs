@@ -483,6 +483,11 @@ found tag to be loaded."
 	    (setq ans nil)))
 	)
 
+      ;; The typecache holds all the known types and elements.  Some databases
+      ;; may provide tags that are simplified by name, and are proxies.  These
+      ;; proxies must be resolved in order to extract type members.
+      (setq ans (semantic-tag-resolve-proxy ans))
+
       (push ans calculated-scope)
 
       ;; Track most recent file.
@@ -577,7 +582,11 @@ If there isn't one, create it.
   (interactive)
   (let* ((path (semanticdb-find-translate-path nil nil)))
     (dolist (P path)
-      (oset P pointmax nil)
+      (condition-case nil
+	  (oset P pointmax nil)
+	;; Pointmax may not exist for all tables disovered in the
+	;; path.
+	(error nil))
       (semantic-reset (semanticdb-get-typecache P)))))
 
 (defun semanticdb-typecache-dump ()
