@@ -99,12 +99,14 @@ To specify the file in which to save them, modify the variable
 
 (defcustom bookmark-version-control 'nospecial
   "Whether or not to make numbered backups of the bookmark file.
-It can have four values: t, nil, `never', and `nospecial'.
+It can have four values: t, nil, `never', or `nospecial'.
 The first three have the same meaning that they do for the
-variable `version-control', and the final value `nospecial' means just
-use the value of `version-control'."
-  :type '(choice (const nil) (const never) (const nospecial)
-		 (other t))
+variable `version-control'; the value `nospecial' (the default) means
+just use the value of `version-control'."
+  :type '(choice (const :tag "If existing" nil)
+                 (const :tag "Never" never)
+                 (const :tag "Use the value of `version-control'" nospecial)
+		 (const :tag "Always" t))
   :group 'bookmark)
 
 

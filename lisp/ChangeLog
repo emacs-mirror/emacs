@@ -1,3 +1,8 @@
+2012-10-01  Karl Fogel  <kfogel@red-bean.com>
+
+	* bookmark.el (bookmark-version-control): Give tags in the
+	:type choices (Bug#12309), and improve doc string.
+
 2012-10-01  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Revert the FOLLOW-SYMLINKS change for file-attributes.
