@@ -33,7 +33,7 @@
 
 (defconst profiler-version "24.3")
 
-(defcustom profiler-sampling-interval 10
+(defcustom profiler-sampling-interval 1
   "Default sampling interval in millisecond."
   :type 'integer
   :group 'profiler)
