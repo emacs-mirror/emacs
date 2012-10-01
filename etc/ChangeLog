@@ -1,3 +1,11 @@
+2012-10-01  Chong Yidong  <cyd@gnu.org>
+
+	* images/icons/hicolor/32x32/apps/emacs22.png:
+	* images/icons/hicolor/16x16/apps/emacs22.png:
+	* images/icons/hicolor/48x48/apps/emacs22.png:
+	* images/icons/hicolor/24x24/apps/emacs22.png: Remove old icons
+	(Bug#12536).
+
 2012-10-01  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Revert the FOLLOW-SYMLINKS change for file-attributes.
