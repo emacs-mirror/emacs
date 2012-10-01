@@ -669,15 +669,19 @@ setitimer(int which, struct itimerval *value, struct itimerval *ovalue)
 int
 alarm (int seconds)
 {
-  struct itimerval new_values;
+#ifdef HAVE_SETITIMER
+  struct itimerval new_values, old_values;
 
   new_values.it_value.tv_sec = seconds;
   new_values.it_value.tv_usec = 0;
   new_values.it_interval.tv_sec = new_values.it_interval.tv_usec = 0;
 
-  setitimer (ITIMER_REAL, &new_values, NULL);
-
+  if (setitimer (ITIMER_REAL, &new_values, &old_values) < 0)
+    return 0;
+  return old_values.it_value.tv_sec;
+#else
   return seconds;
+#endif
 }
 
 /* Defined in <process.h> which conflicts with the local copy */

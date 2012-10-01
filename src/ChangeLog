@@ -7,6 +7,10 @@
 	(getitimer, setitimer): If disable_itimers is non-zero, return an
 	error indication without doing anything.  Reported by Fabrice
 	Popineau <fabrice.popineau@supelec.fr> as part of bug#12544.
+	(alarm) [HAVE_SETITIMER]: Be more conformant to the expected
+	return results.
+	[!HAVE_SETITIMER]: Behave as the previous version that didn't
+	support timers.
 
 	* emacs.c (shut_down_emacs) [WINDOWSNT]: Move the call to
 	term_ntproc after all the other bookkeeping, to get timers working
