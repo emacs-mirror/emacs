@@ -659,7 +659,9 @@ write_globals (void)
 	     special hacks.  */
 	  if (strcmp (globals[i].name, "Fthrow") == 0
 	      || strcmp (globals[i].name, "Ftop_level") == 0
-	      || strcmp (globals[i].name, "Fkill_emacs") == 0)
+	      || strcmp (globals[i].name, "Fkill_emacs") == 0
+	      || strcmp (globals[i].name, "Fexit_recursive_edit") == 0
+	      || strcmp (globals[i].name, "Fabort_recursive_edit") == 0)
 	    fprintf (outfile, "_Noreturn ");
 	  fprintf (outfile, "EXFUN (%s, ", globals[i].name);
 	  if (globals[i].value == -1)
