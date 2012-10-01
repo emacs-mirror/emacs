@@ -1,3 +1,17 @@
+2012-10-01  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32proc.c <disable_itimers>: New static flag.
+	(init_timers): Initialize it to zero, after creating the critical
+	sections used by the timer threads.
+	(term_timers): Set to 1 before deleting the critical sections.
+	(getitimer, setitimer): If disable_itimers is non-zero, return an
+	error indication without doing anything.  Reported by Fabrice
+	Popineau <fabrice.popineau@supelec.fr> as part of bug#12544.
+
+	* emacs.c (shut_down_emacs) [WINDOWSNT]: Move the call to
+	term_ntproc after all the other bookkeeping, to get timers working
+	as long as possible.
+
 2012-10-01  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* xdisp.c (syms_of_xdisp): Default message-log-max to 1000, not 100.

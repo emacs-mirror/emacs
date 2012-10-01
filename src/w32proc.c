@@ -272,6 +272,9 @@ struct itimer_data {
 static clock_t ticks_now;
 static struct itimer_data real_itimer, prof_itimer;
 static clock_t clocks_min;
+/* If non-zero, itimers are disabled.  Used during shutdown, when we
+   delete the critical sections used by the timer threads.  */
+static int disable_itimers;
 
 static CRITICAL_SECTION crit_real, crit_prof;
 
@@ -448,6 +451,10 @@ term_timers (void)
   if (prof_itimer.timer_thread)
     stop_timer_thread (ITIMER_PROF);
 
+  /* We are going to delete the critical sections, so timers cannot
+     work after this.  */
+  disable_itimers = 1;
+
   DeleteCriticalSection (&crit_real);
   DeleteCriticalSection (&crit_prof);
   DeleteCriticalSection (&crit_sig);
@@ -465,6 +472,8 @@ init_timers (void)
   InitializeCriticalSection (&crit_real);
   InitializeCriticalSection (&crit_prof);
   InitializeCriticalSection (&crit_sig);
+
+  disable_itimers = 0;
 }
 
 static int
@@ -525,6 +534,9 @@ getitimer (int which, struct itimerval *value)
   __int64 usecs;
   CRITICAL_SECTION *crit;
 
+  if (disable_itimers)
+    return -1;
+
   ticks_now = clock ();
 
   if (!value)
@@ -568,6 +580,9 @@ setitimer(int which, struct itimerval *value, struct itimerval *ovalue)
   clock_t expire, reload, expire_old, reload_old;
   __int64 usecs;
   CRITICAL_SECTION *crit;
+
+  if (disable_itimers)
+    return -1;
 
   /* Posix systems expect timer values smaller than the resolution of
      the system clock be rounded up to the clock resolution.  First

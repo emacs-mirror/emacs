@@ -1912,10 +1912,6 @@ shut_down_emacs (int sig, Lisp_Object stuff)
   unrequest_sigio ();
   ignore_sigio ();
 
-#ifdef WINDOWSNT
-  term_ntproc (0);
-#endif
-
   /* Do this only if terminating normally, we want glyph matrices
      etc. in a core dump.  */
   if (sig == 0 || sig == SIGTERM)
@@ -1934,6 +1930,10 @@ shut_down_emacs (int sig, Lisp_Object stuff)
 
 #ifdef HAVE_LIBXML2
   xml_cleanup_parser ();
+#endif
+
+#ifdef WINDOWSNT
+  term_ntproc (0);
 #endif
 }
 
