@@ -31,16 +31,16 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include "lisp.h"
 
-#ifdef HAVE_WINDOW_SYSTEM
-#include TERM_HEADER
-#endif /* HAVE_WINDOW_SYSTEM */
-
 #ifdef WINDOWSNT
 #include <fcntl.h>
 #include <windows.h> /* just for w32.h */
 #include "w32.h"
 #include "w32heap.h" /* for prototype of sbrk */
 #endif
+
+#ifdef HAVE_WINDOW_SYSTEM
+#include TERM_HEADER
+#endif /* HAVE_WINDOW_SYSTEM */
 
 #ifdef NS_IMPL_GNUSTEP
 /* At least under Debian, GSConfig is in a subdirectory.  --Stef  */

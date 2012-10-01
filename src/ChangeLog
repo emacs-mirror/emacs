@@ -1,3 +1,9 @@
+2012-10-01  Fabrice Popineau  <fabrice.popineau@gmail.com>
+
+	* emacs.c: Move the inclusion of TERM_HEADER after including
+	windows.h on WINDOWSNT.  This avoids compilation problems with
+	MSVC.
+
 2012-10-01  Eli Zaretskii  <eliz@gnu.org>
 
 	* unexw32.c (OFFSET_TO_RVA, RVA_TO_OFFSET)
