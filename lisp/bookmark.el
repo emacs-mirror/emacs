@@ -1359,7 +1359,12 @@ for a file, defaulting to the file defined by variable
     (goto-char (point-min))
     (delete-region (point-min) (point-max))
     (let ((print-length nil)
-          (print-level nil))
+          (print-level nil)
+          ;; See bug #12503 for why we bind `print-circle'.  Users
+          ;; can define their own bookmark types, which can result in
+          ;; arbitrary Lisp objects being stored in bookmark records,
+          ;; and some users create objects containing circularities.
+          (print-circle t))
       (bookmark-insert-file-format-version-stamp)
       (insert "(")
       ;; Rather than a single call to `pp' we make one per bookmark.

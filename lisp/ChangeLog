@@ -2,6 +2,8 @@
 
 	* bookmark.el (bookmark-version-control): Give tags in the
 	:type choices (Bug#12309), and improve doc string.
+	(bookmark-write-file): Bind `print-circle' to `t' to allow
+	circular custom bookmark types.  (Bug#12503)
 
 2012-10-01  Paul Eggert  <eggert@cs.ucla.edu>
 
