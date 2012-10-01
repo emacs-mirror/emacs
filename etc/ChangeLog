@@ -11,6 +11,11 @@
 	Revert the FOLLOW-SYMLINKS change for file-attributes.
 	* NEWS: Undo last change.
 
+2012-09-30  Jambunathan K  <kjambunathan@gmail.com>
+
+	* org/OrgOdtContentTemplate.xml:
+	* org/OrgOdtStyles.xml: Add Listing-related entries.
+
 2012-09-30  Paul Eggert  <eggert@cs.ucla.edu>
 
 	file-attributes has a new optional arg FOLLOW-SYMLINKS.
