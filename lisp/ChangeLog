@@ -1,3 +1,12 @@
+2012-10-01  Fabián Ezequiel Gallina  <fgallina@cuca>
+
+	Shell output catching a la gud-gdb.
+	* progmodes/python.el (python-shell-fetch-lines-in-progress)
+	(python-shell-fetch-lines-string, python-shell-fetched-lines): New
+	Vars.
+	(python-shell-fetch-lines-filter): New function.
+	(python-shell-send-string-no-output): Use them.
+
 2012-09-30  Tomohiro Matsuyama  <tomo@cx4a.org>
 
 	* profiler.el (profiler-sampling-interval): Rename from

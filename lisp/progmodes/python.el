@@ -1867,31 +1867,45 @@ When MSG is non-nil messages the first line of STRING."
                 (string-match "\n[ \t].*\n?$" string))
         (comint-send-string process "\n")))))
 
+;; Shell output catching stolen from gud-gdb
+(defvar python-shell-fetch-lines-in-progress nil)
+(defvar python-shell-fetch-lines-string nil)
+(defvar python-shell-fetched-lines nil)
+
+(defun python-shell-fetch-lines-filter (string)
+  "Filter used to read the list of lines output by a command.
+STRING is the output to filter."
+  (setq string (concat python-shell-fetch-lines-string string))
+  (while (string-match "\n" string)
+    (push (substring string 0 (match-beginning 0))
+          python-shell-fetched-lines)
+    (setq string (substring string (match-end 0))))
+  (if (equal (string-match comint-prompt-regexp string) 0)
+      (progn
+        (setq python-shell-fetch-lines-in-progress nil)
+        string)
+    (progn
+      (setq python-shell-fetch-lines-string string)
+      "")))
+
 (defun python-shell-send-string-no-output (string &optional process msg)
   "Send STRING to PROCESS and inhibit output.
 When MSG is non-nil messages the first line of STRING.  Return
 the output."
-  (let* ((output-buffer "")
-         (process (or process (python-shell-get-or-create-process)))
-         (comint-preoutput-filter-functions
-          (append comint-preoutput-filter-functions
-                  '(ansi-color-filter-apply
-                    (lambda (string)
-                      (setq output-buffer (concat output-buffer string))
-                      ""))))
-         (inhibit-quit t))
+  (let ((process (or process (python-shell-get-or-create-process)))
+        (comint-preoutput-filter-functions
+         '(python-shell-fetch-lines-filter))
+        (python-shell-fetch-lines-in-progress t)
+        (inhibit-quit t))
     (or
      (with-local-quit
        (python-shell-send-string string process msg)
-       (accept-process-output process)
-       (replace-regexp-in-string
-        (if (> (length python-shell-prompt-output-regexp) 0)
-            (format "\n*%s$\\|^%s\\|\n$"
-                    python-shell-prompt-regexp
-                    (or python-shell-prompt-output-regexp ""))
-          (format "\n*$\\|^%s\\|\n$"
-                  python-shell-prompt-regexp))
-        "" output-buffer))
+       (while python-shell-fetch-lines-in-progress
+         (accept-process-output process))
+       (prog1
+           (mapconcat #'identity
+                      (reverse python-shell-fetched-lines) "\n")
+         (setq python-shell-fetched-lines nil)))
      (with-current-buffer (process-buffer process)
        (comint-interrupt-subjob)))))
 
