@@ -105,8 +105,8 @@ variable `version-control'; the value `nospecial' (the default) means
 just use the value of `version-control'."
   :type '(choice (const :tag "If existing" nil)
                  (const :tag "Never" never)
-                 (const :tag "Use the value of `version-control'" nospecial)
-                 (const :tag "Always" t))
+                 (const :tag "Use value of option `version-control'" nospecial)
+                 (other :tag "Always" t))
   :group 'bookmark)
 
 
