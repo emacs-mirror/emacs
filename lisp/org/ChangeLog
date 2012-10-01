@@ -21,12 +21,6 @@
 	`ess-ask-for-ess-directory´ and `ess-local-process-name´.  Remove
 	second declaration for `ess-local-process-name´.
 
-	* org-id.el: Do not use (random t), we just want a new random
-	number, not a re-seeding of the PRNG for which (random t) doesn't
-	provide enough entropy anyway.  Even if (random) would always
-	produce the same sequence, the other components going into the MD5
-	hash ensure that the result will be unique.
-
 	* org-gnus.el: Add a missing require for gnus-util.
 
 	* org-compat.el: Rename utils to make throughout.
