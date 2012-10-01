@@ -1,3 +1,10 @@
+2012-10-01  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* frame.c (x_report_frame_params): Port better to wider ints.
+	Do not assume that EMACS_UINT is the same width as uprintmax_t,
+	or that pointers can be printed in 15 decimal digits.
+	Avoid GCC warnings if EMACS_UINT is wider than a pointer.
+
 2012-09-30  Fabrice Popineau  <fabrice.popineau@supelec.fr>
 
 	Support x64 build on MS-Windows.
