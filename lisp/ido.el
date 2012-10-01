@@ -1720,7 +1720,7 @@ This function also adds a hook to the minibuffer."
 	 (ido-final-slash dir)
 	 (not (ido-is-unc-host dir))
 	 (file-directory-p dir)
-	 (> (nth 7 (file-attributes dir)) ido-max-directory-size))))
+	 (> (nth 7 (file-attributes (file-truename dir))) ido-max-directory-size))))
 
 (defun ido-set-current-directory (dir &optional subdir no-merge)
   ;; Set ido's current directory to DIR or DIR/SUBDIR

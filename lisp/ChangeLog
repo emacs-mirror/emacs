@@ -1,3 +1,8 @@
+2012-10-01  Juanma Barranquero  <lekktu@gmail.com>
+
+	* ido.el (ido-directory-too-big-p): Pass dir through file-truename
+	to get the correct size across symlinks.
+
 2012-09-30  Juanma Barranquero  <lekktu@gmail.com>
 
 	* ido.el (ido-buffer-disable-smart-matches): Fix typo in docstring.
