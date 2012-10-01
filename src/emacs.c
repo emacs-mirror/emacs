@@ -1886,7 +1886,7 @@ shut_down_emacs (int sig, Lisp_Object stuff)
 	    static char const format[] = "Fatal error %d: ";
 	    char buf[sizeof format - 2 + INT_STRLEN_BOUND (int)];
 	    int buflen = sprintf (buf, format, sig);
-	    char const *sig_desc = strsignal (sig);
+	    char const *sig_desc = safe_strsignal (sig);
 	    ignore_value (write (STDERR_FILENO, buf, buflen));
 	    ignore_value (write (STDERR_FILENO, sig_desc, strlen (sig_desc)));
 	  }

@@ -570,7 +570,7 @@ status_message (struct Lisp_Process *p)
 
   if (EQ (symbol, Qsignal) || EQ (symbol, Qstop))
     {
-      char *signame;
+      char const *signame;
       synchronize_system_messages_locale ();
       signame = strsignal (code);
       if (signame == 0)
