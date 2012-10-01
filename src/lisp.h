@@ -3474,7 +3474,7 @@ extern void syms_of_ccl (void);
 extern void syms_of_dired (void);
 extern Lisp_Object directory_files_internal (Lisp_Object, Lisp_Object,
                                              Lisp_Object, Lisp_Object,
-                                             bool, Lisp_Object, Lisp_Object);
+                                             bool, Lisp_Object);
 
 /* Defined in term.c.  */
 extern int *char_ins_del_vector;

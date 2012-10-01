@@ -1,5 +1,11 @@
 2012-10-01  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Revert the FOLLOW-SYMLINKS change for file-attributes.
+	Doing it right would require several changes to Tramp, and there's
+	not enough time to get that tested before the freeze today.
+	* dired.c (directory_files_internal, Ffile_attributes):
+	Undo last change.
+
 	* frame.c (x_report_frame_params): Port better to wider ints.
 	Do not assume that EMACS_UINT is the same width as uprintmax_t,
 	or that pointers can be printed in 15 decimal digits.

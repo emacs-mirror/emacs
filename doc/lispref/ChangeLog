@@ -1,3 +1,8 @@
+2012-10-01  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Revert the FOLLOW-SYMLINKS change for file-attributes.
+	* files.texi (File Attributes, Magic File Names): Undo last change.
+
 2012-09-30  Paul Eggert  <eggert@cs.ucla.edu>
 
 	file-attributes has a new optional arg FOLLOW-SYMLINKS.

@@ -807,11 +807,6 @@ The PSECS slot is new, and uses picosecond resolution.  It can be
 accessed via the new timer--psecs accessor.
 
 +++
-** file-attributes has a new optional argument FOLLOW-SYMLINKS
-that says whether to follow symbolic links.  The default, as before,
-is to not follow symlinks.
-
-+++
 ** Floating point functions now always return special values like NaN,
 instead of signaling errors, if given invalid args, e.g. (log -1.0).
 Previously, they returned NaNs on some platforms but signaled errors

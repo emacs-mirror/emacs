@@ -110,13 +110,12 @@ directory_files_internal_unwind (Lisp_Object dh)
 /* Function shared by Fdirectory_files and Fdirectory_files_and_attributes.
    If not ATTRS, return a list of directory filenames;
    if ATTRS, return a list of directory filenames and their attributes.
-   In the latter case, ID_FORMAT and FOLLOW_SYMLINKS are passed to
-   Ffile_attributes.  */
+   In the latter case, ID_FORMAT is passed to Ffile_attributes.  */
 
 Lisp_Object
 directory_files_internal (Lisp_Object directory, Lisp_Object full,
 			  Lisp_Object match, Lisp_Object nosort, bool attrs,
-			  Lisp_Object id_format, Lisp_Object follow_symlinks)
+			  Lisp_Object id_format)
 {
   DIR *d;
   ptrdiff_t directory_nbytes;
@@ -298,8 +297,7 @@ directory_files_internal (Lisp_Object directory, Lisp_Object full,
 
 		  /* Both Fexpand_file_name and Ffile_attributes can GC.  */
 		  decoded_fullname = Fexpand_file_name (name, directory);
-		  fileattrs = Ffile_attributes (decoded_fullname, id_format,
-						follow_symlinks);
+		  fileattrs = Ffile_attributes (decoded_fullname, id_format);
 
 		  list = Fcons (Fcons (finalname, fileattrs), list);
 		  UNGCPRO;
@@ -352,8 +350,7 @@ If NOSORT is non-nil, the list is not sorted--its order is unpredictable.
     return call5 (handler, Qdirectory_files, directory,
                   full, match, nosort);
 
-  return directory_files_internal (directory, full, match, nosort, 0,
-				   Qnil, Qnil);
+  return directory_files_internal (directory, full, match, nosort, 0, Qnil);
 }
 
 DEFUN ("directory-files-and-attributes", Fdirectory_files_and_attributes,
@@ -381,8 +378,7 @@ which see.  */)
     return call6 (handler, Qdirectory_files_and_attributes,
                   directory, full, match, nosort, id_format);
 
-  return directory_files_internal (directory, full, match, nosort, 1,
-				   id_format, Qnil);
+  return directory_files_internal (directory, full, match, nosort, 1, id_format);
 }
 
 
@@ -879,7 +875,7 @@ stat_gname (struct stat *st)
 #endif
 }
 
-DEFUN ("file-attributes", Ffile_attributes, Sfile_attributes, 1, 3, 0,
+DEFUN ("file-attributes", Ffile_attributes, Sfile_attributes, 1, 2, 0,
        doc: /* Return a list of attributes of file FILENAME.
 Value is nil if specified file cannot be opened.
 
@@ -887,9 +883,6 @@ ID-FORMAT specifies the preferred format of attributes uid and gid (see
 below) - valid values are 'string and 'integer.  The latter is the
 default, but we plan to change that, so you should specify a non-nil value
 for ID-FORMAT if you use the returned uid or gid.
-
-Optional argument FOLLOW-SYMLINKS says whether to follow symbolic
-links.  If t, they are followed; if nil, they are not.
 
 Elements of the attribute list are:
  0. t for directory, string (name linked to) for symbolic link, or nil.
@@ -924,7 +917,7 @@ which see.
 
 On some FAT-based filesystems, only the date of last access is recorded,
 so last access time will always be midnight of that day.  */)
-  (Lisp_Object filename, Lisp_Object id_format, Lisp_Object follow_symlinks)
+  (Lisp_Object filename, Lisp_Object id_format)
 {
   Lisp_Object values[12];
   Lisp_Object encoded;
@@ -960,10 +953,7 @@ so last access time will always be midnight of that day.  */)
   encoded = ENCODE_FILE (filename);
   UNGCPRO;
 
-  if ((!NILP (follow_symlinks)
-       ? stat (SSDATA (encoded), &s)
-       : lstat (SSDATA (encoded), &s))
-      != 0)
+  if (lstat (SSDATA (encoded), &s) < 0)
     return Qnil;
 
   values[0] = (S_ISLNK (s.st_mode) ? Ffile_symlink_p (filename)

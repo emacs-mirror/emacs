@@ -1,5 +1,9 @@
 2012-10-01  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Revert the FOLLOW-SYMLINKS change for file-attributes.
+	* files.el (remote-file-name-inhibit-cache, after-find-file):
+	* time.el (display-time-file-nonempty-p): Undo last change.
+
 	* profiler.el (profiler-sampling-interval): Change default back to 1.
 	See Stefan Monnier in
 	<http://lists.gnu.org/archive/html/emacs-devel/2012-09/msg00863.html>.
