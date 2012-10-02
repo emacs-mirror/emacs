@@ -823,7 +823,8 @@ This can significantly speed up execution of non-byte-compiled code,
 but can also bump into harmless and previously unnoticed cyclic
 dependencies.  These should not be fatal: they will simply cause the
 macro-calls to be left for later expansion (as before), but will also
-result in a warning describing the cycle.
+result in a warning ("Eager macro-expansion skipped due to cycle")
+describing the cycle.
 
 ** Misc new functions:
 
