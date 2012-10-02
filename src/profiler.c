@@ -238,6 +238,7 @@ handle_profiler_signal (int signal)
     cpu_gc_count = saturated_add (cpu_gc_count, 1);
   else
     {
+      Lisp_Object oquit;
       EMACS_INT count = 1;
 #ifdef HAVE_TIMER_SETTIME
       if (profiler_timer_ok)
@@ -247,8 +248,16 @@ handle_profiler_signal (int signal)
 	  count += overruns;
 	}
 #endif
+      /* record_backtrace uses hash functions that call Fequal, which
+	 uses QUIT, which can call malloc, which can cause disaster in
+	 a signal handler.  So inhibit QUIT.  */
+      oquit = Vinhibit_quit;
+      Vinhibit_quit = Qt;
+
       eassert (HASH_TABLE_P (cpu_log));
       record_backtrace (XHASH_TABLE (cpu_log), count);
+
+      Vinhibit_quit = oquit;
     }
 }
 

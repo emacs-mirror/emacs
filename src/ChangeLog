@@ -1,3 +1,8 @@
+2012-10-02  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* profiler.c (handle_profiler_signal): Fix a malloc race
+	that caused Emacs to hang on Fedora 17 when profiling Lisp.
+
 2012-10-02  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsterm.m (windowDidEnterFullScreen): Remove fprintf.
