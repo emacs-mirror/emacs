@@ -1,5 +1,17 @@
 2012-10-02  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Prefer plain 'static' to 'static inline' (Bug#12541).
+	* bidi.c (bidi_get_type, bidi_check_type, bidi_get_category)
+	(bidi_set_sor_type, bidi_push_embedding_level)
+	(bidi_pop_embedding_level, bidi_remember_char, bidi_copy_it)
+	(bidi_cache_reset, bidi_cache_shrink, bidi_cache_fetch_state)
+	(bidi_cache_search, bidi_cache_ensure_space)
+	(bidi_cache_iterator_state, bidi_cache_find)
+	(bidi_peek_at_next_level, bidi_set_paragraph_end)
+	(bidi_count_bytes, bidi_char_at_pos, bidi_fetch_char)
+	(bidi_explicit_dir_char, bidi_resolve_neutral_1):
+	Now 'static', not 'static inline'.
+
 	Count overruns when profiling; change units to ns.
 	* profiler.c (handle_profiler_signal): Count sampling intervals, not ms.
 	Give extra weight to samples after overruns, to attempt to count
