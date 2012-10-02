@@ -1132,7 +1132,7 @@ get_result:
       else if (WIFSIGNALED (retval))
 	{
 	  int code = WTERMSIG (retval);
-	  char *signame;
+	  const char *signame;
 
 	  synchronize_system_messages_locale ();
 	  signame = strsignal (code);

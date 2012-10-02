@@ -1,3 +1,8 @@
+2012-10-02  Eli Zaretskii  <eliz@gnu.org>
+
+	* preprep.c (RVA_TO_PTR): Cast the result to 'void *', to avoid
+	compiler warnings when using the value.
+
 2012-10-01  Eli Zaretskii  <eliz@gnu.org>
 
 	* preprep.c (RVA_TO_PTR): Use 'unsigned char *' instead of

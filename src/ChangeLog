@@ -1,3 +1,8 @@
+2012-10-02  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32proc.c (sys_wait): Declare 'signame' 'const char *', to be
+	consistent with the change in return value of 'safe_strsignal'.
+
 2012-10-02  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Prefer plain 'static' to 'static inline' (Bug#12541).
