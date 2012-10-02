@@ -485,6 +485,7 @@ $(BLD)/alloc.$(O) : \
 	$(SRC)/blockinput.h \
 	$(SRC)/puresize.h \
 	$(SRC)/w32.h \
+	$(SRC)/w32heap.h \
 	$(NT_INC)/unistd.h \
 	$(GNU_LIB)/verify.h \
 	$(BUFFER_H) \
@@ -955,6 +956,7 @@ $(BLD)/fringe.$(O) : \
 
 $(BLD)/gmalloc.$(O) : \
 	$(SRC)/gmalloc.c \
+	$(SRC)/w32heap.h \
 	$(NT_INC)/stdint.h \
 	$(NT_INC)/unistd.h \
 	$(CONFIG_H)

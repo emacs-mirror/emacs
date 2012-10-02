@@ -1,3 +1,8 @@
+2012-10-02  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in ($(BLD)/alloc.$(O), $(BLD)/gmalloc.$(O)):
+	Update dependencies.
+
 2012-10-01  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix a malloc race condition involving strsignal.
