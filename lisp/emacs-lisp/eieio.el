@@ -4,6 +4,7 @@
 ;; Copyright (C) 1995-1996, 1998-2012  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
+;; Version: 1.3
 ;; Keywords: OO, lisp
 
 ;; This file is part of GNU Emacs.

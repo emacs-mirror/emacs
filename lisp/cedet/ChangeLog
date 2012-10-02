@@ -1,3 +1,7 @@
+2012-10-02  Chong Yidong  <cyd@gnu.org>
+
+	* srecode.el, ede.el: Restore Version header.
+
 2012-10-01  Chong Yidong  <cyd@gnu.org>
 
 	* semantic/bovine/c-by.el: Regenerate.
