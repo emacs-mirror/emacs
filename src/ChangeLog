@@ -1,3 +1,7 @@
+2012-10-02  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.m (windowDidEnterFullScreen): Remove fprintf.
+
 2012-10-02  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32proc.c (sys_wait): Declare 'signame' 'const char *', to be

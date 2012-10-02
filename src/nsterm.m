@@ -5871,7 +5871,6 @@ not_in_argv (NSString *arg)
 {
   [self setFSValue: FULLSCREEN_BOTH];
 #ifndef NEW_STYLE_FS
-  fprintf(stderr, "%s %d\n", __func__, FRAME_PIXEL_WIDTH (emacsframe));
   [self windowDidBecomeKey:notification];
 #endif
 }
