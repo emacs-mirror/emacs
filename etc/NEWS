@@ -686,7 +686,7 @@ are deprecated and will be removed eventually.
 **** inactivate-current-input-method-function ->
      deactivate-current-input-method-function
 
-** Some obsolete functions and variables were removed:
+** Some obsolete functions, variables, and faces were removed:
 
 *** `facemenu-unlisted-faces'
 *** `rmail-decode-mime-charset'
@@ -705,6 +705,7 @@ are deprecated and will be removed eventually.
 *** `vc-ignore-vc-files' (use `vc-handled-backends' instead)
 *** `vc-master-templates' (use `vc-handled-backends' instead)
 *** `vc-checkout-carefully'
+*** `modeline'
 
 
 * Lisp changes in Emacs 24.3

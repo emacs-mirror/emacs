@@ -1,5 +1,7 @@
 2012-10-02  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* faces.el (modeline): Remove obsolete face name.
+
 	* vc/add-log.el (add-log-buffer-file-name-function): Demote to defvar
 	and give a non-nil default value.
 	(add-change-log-entry): Simplify accordingly.
