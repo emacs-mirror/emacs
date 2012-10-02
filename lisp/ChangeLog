@@ -1,3 +1,17 @@
+2012-10-01  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* vc/vc-git.el (vc-git-log-edit-toggle-signoff): New function.
+	(vc-git-log-edit-toggle-amend): New function.
+	(vc-git-log-edit-toggle-signoff): New function.
+	(vc-git-log-edit-mode): New major mode.
+	(vc-git-log-edit-mode-map): Keymap for it.
+	(vc-git-checkin): Handle "Amend" and "Sign-Off" headers.
+
+	* vc/log-edit.el (log-edit-font-lock-keywords): Allow hyphens in
+	header names.
+	(log-edit-toggle-header): New function.
+	(log-edit-extract-headers): Accept function values in HEADERS alist.
+
 2012-10-01  David Engster  <deng@randomsample.de>
 
 	* emacs-lisp/eieio-opt.el (eieio-describe-class): Add filename
