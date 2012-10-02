@@ -632,7 +632,7 @@ affects all frames on the same terminal device.  */)
     Lisp_Object terminal;
 
     terminal = Fassq (Qterminal, parms);
-    if (!NILP (terminal))
+    if (CONSP (terminal))
       {
         terminal = XCDR (terminal);
         t = get_terminal (terminal, 1);

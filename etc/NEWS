@@ -619,6 +619,8 @@ inefficiency, and not namespace-clean.
 
 * Incompatible Lisp Changes in Emacs 24.3
 
+** set-buffer-multibyte now signals an error in narrowed buffers.
+
 +++
 ** (random) by default now returns a different random sequence in
 every Emacs run.  Use (random S), where S is a string, to set the

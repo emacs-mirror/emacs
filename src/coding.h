@@ -646,10 +646,8 @@ struct coding_system
    for file names, if any.  */
 #define ENCODE_FILE(name)						   \
   (! NILP (Vfile_name_coding_system)					   \
-   && !EQ (Vfile_name_coding_system, make_number (0))			   \
    ? code_convert_string_norecord (name, Vfile_name_coding_system, 1)	   \
    : (! NILP (Vdefault_file_name_coding_system)				   \
-      && !EQ (Vdefault_file_name_coding_system, make_number (0))	   \
       ? code_convert_string_norecord (name, Vdefault_file_name_coding_system, 1) \
       : name))
 
@@ -658,10 +656,8 @@ struct coding_system
    for file names, if any.  */
 #define DECODE_FILE(name)						   \
   (! NILP (Vfile_name_coding_system)					   \
-   && !EQ (Vfile_name_coding_system, make_number (0))			   \
    ? code_convert_string_norecord (name, Vfile_name_coding_system, 0)	   \
    : (! NILP (Vdefault_file_name_coding_system)				   \
-      && !EQ (Vdefault_file_name_coding_system, make_number (0))	   \
       ? code_convert_string_norecord (name, Vdefault_file_name_coding_system, 0) \
       : name))
 
@@ -670,7 +666,6 @@ struct coding_system
    for system functions, if any.  */
 #define ENCODE_SYSTEM(str)						   \
   (! NILP (Vlocale_coding_system)					   \
-   && !EQ (Vlocale_coding_system, make_number (0))			   \
    ? code_convert_string_norecord (str, Vlocale_coding_system, 1)	   \
    : str)
 
@@ -678,7 +673,6 @@ struct coding_system
    for system functions, if any.  */
 #define DECODE_SYSTEM(str)						   \
   (! NILP (Vlocale_coding_system)					   \
-   && !EQ (Vlocale_coding_system, make_number (0))			   \
    ? code_convert_string_norecord (str, Vlocale_coding_system, 0)	   \
    : str)
 

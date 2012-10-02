@@ -1,3 +1,13 @@
+2012-10-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* frame.c (Fmake_terminal_frame): Prefer safer CONSP over !NILP.
+
+	* coding.h (ENCODE_FILE, DECODE_FILE, DECODE_SYSTEM): Remove special
+	case for the special 0 coding-system.
+
+	* buffer.c (Fset_buffer_multibyte): Signal an error instead of widening.
+	(Fmake_overlay): Remove redundant tests.
+
 2012-10-02  Juanma Barranquero  <lekktu@gmail.com>
 
 	* makefile.w32-in ($(BLD)/alloc.$(O), $(BLD)/gmalloc.$(O)):

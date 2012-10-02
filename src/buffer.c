@@ -2464,7 +2464,7 @@ current buffer is cleared.  */)
     begv = BEGV, zv = ZV;
 
   if (narrowed)
-    Fwiden ();
+    error ("Changing multibyteness in a narrowed buffer");
 
   if (NILP (flag))
     {
@@ -3847,17 +3847,16 @@ for the rear of the overlay advance when text is inserted there
   end = OVERLAY_END (overlay);
   if (OVERLAY_POSITION (end) < b->overlay_center)
     {
-      if (b->overlays_after)
-	XOVERLAY (overlay)->next = b->overlays_after;
+      eassert (b->overlays_after);
+      XOVERLAY (overlay)->next = b->overlays_after;
       set_buffer_overlays_after (b, XOVERLAY (overlay));
     }
   else
     {
-      if (b->overlays_before)
-	XOVERLAY (overlay)->next = b->overlays_before;
+      eassert (b->overlays_before);
+      XOVERLAY (overlay)->next = b->overlays_before;
       set_buffer_overlays_before (b, XOVERLAY (overlay));
     }
-
   /* This puts it in the right list, and in the right order.  */
   recenter_overlay_lists (b, b->overlay_center);
 
@@ -4141,7 +4140,7 @@ DEFUN ("overlays-at", Foverlays_at, Soverlays_at, 1, 1, 0,
   /* Put all the overlays we want in a vector in overlay_vec.
      Store the length in len.  */
   noverlays = overlays_at (XINT (pos), 1, &overlay_vec, &len,
-			   0, 0, 0);
+			   NULL, NULL, 0);
 
   /* Make a list of them all.  */
   result = Flist (noverlays, overlay_vec);
