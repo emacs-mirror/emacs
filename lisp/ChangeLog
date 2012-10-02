@@ -1,4 +1,4 @@
-2012-10-02  Sergio Durigan Junior  <sergiodj@riseup.net>
+2012-10-02  Sergio Durigan Junior  <sergiodj@riseup.net>  (tiny change)
 
 	* net/eudcb-bbdb.el (eudc-bbdb-format-record-as-result): Fix
 	querying BBDB for entries without a last name (Bug#11580).
