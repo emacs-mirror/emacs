@@ -1,5 +1,9 @@
 2012-10-02  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* vc/diff-mode.el (diff--auto-refine-data): New var.
+	(diff-hunk): Use it to delay refinement.
+	(diff-mode): Remove overlays when we turn off font-lock.
+
 	* textmodes/table.el: Use lexical-binding, dolist, define-minor-mode.
 	(table-initialize-table-fixed-width-mode)
 	(table-set-table-fixed-width-mode): Remove functions.
