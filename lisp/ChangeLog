@@ -1,3 +1,9 @@
+2012-10-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc/add-log.el (add-log-buffer-file-name-function): Demote to defvar
+	and give a non-nil default value.
+	(add-change-log-entry): Simplify accordingly.
+
 2012-10-01  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* vc/vc-git.el (vc-git-log-edit-toggle-signoff): New function.
