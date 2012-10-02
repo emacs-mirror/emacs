@@ -1,3 +1,8 @@
+2012-10-02  Sergio Durigan Junior  <sergiodj@riseup.net>
+
+	* net/eudcb-bbdb.el (eudc-bbdb-format-record-as-result): Fix
+	querying BBDB for entries without a last name (Bug#11580).
+
 2012-10-02  Chong Yidong  <cyd@gnu.org>
 
 	* emacs-lisp/eieio.el: Restore Version header.
