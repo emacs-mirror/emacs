@@ -7,6 +7,7 @@
 
 	* buffer.c (Fset_buffer_multibyte): Signal an error instead of widening.
 	(Fmake_overlay): Remove redundant tests.
+	(fix_start_end_in_overlays): Remove redundant recentering.
 
 2012-10-02  Juanma Barranquero  <lekktu@gmail.com>
 

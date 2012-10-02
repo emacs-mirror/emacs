@@ -3689,7 +3689,6 @@ fix_start_end_in_overlays (register ptrdiff_t start, register ptrdiff_t end)
       beforep->next = current_buffer->overlays_before;
       set_buffer_overlays_before (current_buffer, before_list);
     }
-  recenter_overlay_lists (current_buffer, current_buffer->overlay_center);
 
   if (afterp)
     {
@@ -3847,13 +3846,13 @@ for the rear of the overlay advance when text is inserted there
   end = OVERLAY_END (overlay);
   if (OVERLAY_POSITION (end) < b->overlay_center)
     {
-      eassert (b->overlays_after);
+      eassert (b->overlays_after || (XOVERLAY (overlay)->next == NULL));
       XOVERLAY (overlay)->next = b->overlays_after;
       set_buffer_overlays_after (b, XOVERLAY (overlay));
     }
   else
     {
-      eassert (b->overlays_before);
+      eassert (b->overlays_before || (XOVERLAY (overlay)->next == NULL));
       XOVERLAY (overlay)->next = b->overlays_before;
       set_buffer_overlays_before (b, XOVERLAY (overlay));
     }
