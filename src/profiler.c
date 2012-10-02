@@ -128,8 +128,8 @@ static void evict_lower_half (log_t *log)
 }
 
 /* Record the current backtrace in LOG.  COUNT is the weight of this
-   current backtrace: milliseconds for CPU counts, and the allocation
-   size for memory logs.  */
+   current backtrace: interrupt counts for CPU, and the allocation
+   size for memory.  */
 
 static void
 record_backtrace (log_t *log, EMACS_INT count)
@@ -220,7 +220,7 @@ static Lisp_Object cpu_log;
 /* Separate counter for the time spent in the GC.  */
 static EMACS_INT cpu_gc_count;
 
-/* The current sampling interval in milliseconds.  */
+/* The current sampling interval in nanoseconds.  */
 static EMACS_INT current_sampling_interval;
 
 /* Signal handler for sampling profiler.  */
@@ -235,11 +235,20 @@ handle_profiler_signal (int signal)
        not expect the ARRAY_MARK_FLAG to be set.  We could try and
        harden the hash-table code, but it doesn't seem worth the
        effort.  */
-    cpu_gc_count = saturated_add (cpu_gc_count, current_sampling_interval);
+    cpu_gc_count = saturated_add (cpu_gc_count, 1);
   else
     {
+      EMACS_INT count = 1;
+#ifdef HAVE_TIMER_SETTIME
+      if (profiler_timer_ok)
+	{
+	  int overruns = timer_getoverrun (profiler_timer);
+	  eassert (0 <= overruns);
+	  count += overruns;
+	}
+#endif
       eassert (HASH_TABLE_P (cpu_log));
-      record_backtrace (XHASH_TABLE (cpu_log), current_sampling_interval);
+      record_backtrace (XHASH_TABLE (cpu_log), count);
     }
 }
 
@@ -255,16 +264,18 @@ setup_cpu_timer (Lisp_Object sampling_interval)
   struct sigaction action;
   struct itimerval timer;
   struct timespec interval;
+  int billion = 1000000000;
 
   if (! RANGED_INTEGERP (1, sampling_interval,
-			 (TYPE_MAXIMUM (time_t) < EMACS_INT_MAX / 1000
-			  ? (EMACS_INT) TYPE_MAXIMUM (time_t) * 1000 + 999
+			 (TYPE_MAXIMUM (time_t) < EMACS_INT_MAX / billion
+			  ? ((EMACS_INT) TYPE_MAXIMUM (time_t) * billion
+			     + (billion - 1))
 			  : EMACS_INT_MAX)))
     return NOT_RUNNING;
 
   current_sampling_interval = XINT (sampling_interval);
-  interval = make_emacs_time (current_sampling_interval / 1000,
-			      current_sampling_interval % 1000 * 1000000);
+  interval = make_emacs_time (current_sampling_interval / billion,
+			      current_sampling_interval % billion);
   emacs_sigaction_init (&action, deliver_profiler_signal);
   sigaction (SIGPROF, &action, 0);
 
@@ -315,7 +326,7 @@ setup_cpu_timer (Lisp_Object sampling_interval)
 DEFUN ("profiler-cpu-start", Fprofiler_cpu_start, Sprofiler_cpu_start,
        1, 1, 0,
        doc: /* Start or restart the cpu profiler.
-It takes call-stack samples each SAMPLING-INTERVAL milliseconds.
+It takes call-stack samples each SAMPLING-INTERVAL nanoseconds, approximately.
 See also `profiler-log-size' and `profiler-max-stack-depth'.  */)
   (Lisp_Object sampling_interval)
 {

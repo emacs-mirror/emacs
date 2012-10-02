@@ -1,3 +1,14 @@
+2012-10-02  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Count overruns when profiling; change units to ns.
+	* profiler.c (handle_profiler_signal): Count sampling intervals, not ms.
+	Give extra weight to samples after overruns, to attempt to count
+	the time more accurately.
+	(setup_cpu_timer): Change sampling interval units from ms to ns, since
+	the underlying primitives nominally do ns.
+	(Fprofiler_cpu_start): Document the change.  Mention that
+	the sampling intervals are only approximate.
+
 2012-10-02  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* frame.c (Fmake_terminal_frame): Prefer safer CONSP over !NILP.

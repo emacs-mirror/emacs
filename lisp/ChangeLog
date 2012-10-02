@@ -1,3 +1,15 @@
+2012-10-02  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Change sampling interval units from ms to ns.
+	* profiler.el (profiler-sampling-interval): Change units
+	from ms to ns, multiplying the default by 1000000 so that
+	it remains 1 ms.
+	(profiler-report-cpu-line-format): Give enough room for
+	the maximum counters on 64-bit hosts.
+	(profiler-report-render-calltree-1): Call them "CPU samples",
+	not "Time (ms)", since they are not milliseconds now (and
+	never really were).
+
 2012-10-02  Sergio Durigan Junior  <sergiodj@riseup.net>  (tiny change)
 
 	* net/eudcb-bbdb.el (eudc-bbdb-format-record-as-result): Fix

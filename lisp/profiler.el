@@ -33,8 +33,8 @@
 
 (defconst profiler-version "24.3")
 
-(defcustom profiler-sampling-interval 1
-  "Default sampling interval in millisecond."
+(defcustom profiler-sampling-interval 1000000
+  "Default sampling interval in nanoseconds."
   :type 'integer
   :group 'profiler)
 
@@ -323,8 +323,8 @@ function name of a function itself."
   :group 'profiler)
 
 (defvar profiler-report-cpu-line-format
-  '((60 left)
-    (14 right ((9 right)
+  '((50 left)
+    (24 right ((19 right)
 	       (5 right)))))
 
 (defvar profiler-report-memory-line-format
@@ -551,7 +551,7 @@ otherwise collapse."
 	    (cpu
 	     (profiler-report-header-line-format
 	      profiler-report-cpu-line-format
-	      "Function" (list "Time (ms)" "%")))
+	      "Function" (list "CPU samples" "%")))
 	    (memory
 	     (profiler-report-header-line-format
 	      profiler-report-memory-line-format
