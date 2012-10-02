@@ -1186,11 +1186,8 @@ point is on a directory entry, mark all files in that directory tree
 (@code{vc-dir-mark-all-files}).  With a prefix argument, mark all
 listed files and directories.
 
-@kindex q @r{(VC Directory)}
-@findex quit-window
 @item q
-Bury the VC Directory buffer, and delete its window if the window was
-created just for that buffer.
+Quit the VC Directory buffer, and bury it (@code{quit-window}).
 
 @item u
 Unmark the file or directory on the current line.  If the region is
@@ -1205,9 +1202,6 @@ files and directories.
 @item x
 Hide files with @samp{up-to-date} status
 (@code{vc-dir-hide-up-to-date}).
-
-@item q
-Quit the VC Directory buffer, and bury it (@code{quit-window}).
 @end table
 
 @findex vc-dir-mark
