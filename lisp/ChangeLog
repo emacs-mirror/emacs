@@ -1,5 +1,16 @@
 2012-10-02  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* textmodes/table.el: Use lexical-binding, dolist, define-minor-mode.
+	(table-initialize-table-fixed-width-mode)
+	(table-set-table-fixed-width-mode): Remove functions.
+	(table-command-list): Move initialization into declaration.
+	(table--tweak-menu-for-xemacs): Move defun outside mapcar.
+	(table-with-cache-buffer): Use `declare'.
+	(table-span-cell): Simplify via CSE.
+	(table-fixed-width-mode): Use define-minor-mode.
+	(table-call-interactively, table-funcall, table-apply): Remove.
+	(table-function): New function, to replace them.
+
 	* bookmark.el (bookmark-search-pattern): Remove var.
 	(bookmark-read-search-input): Remove function.
 	(bookmark-bmenu-search): Reimplement using a minibuffer.
