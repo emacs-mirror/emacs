@@ -1,5 +1,9 @@
 2012-10-02  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* bookmark.el (bookmark-search-pattern): Remove var.
+	(bookmark-read-search-input): Remove function.
+	(bookmark-bmenu-search): Reimplement using a minibuffer.
+
 	* faces.el (modeline): Remove obsolete face name.
 
 	* vc/add-log.el (add-log-buffer-file-name-function): Demote to defvar
