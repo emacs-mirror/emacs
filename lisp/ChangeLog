@@ -1,5 +1,8 @@
 2012-10-03  Martin Rudalics  <rudalics@gmx.at>
 
+	* menu-bar.el (kill-this-buffer): Don't do anything when
+	`menu-frame' is not alive or visible (Bug#8184).
+
 	* emacs-lisp/debug.el (debug): When quitting the debugger window
 	restore current buffer (Bug#12502).
 
