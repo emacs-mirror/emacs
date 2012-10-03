@@ -1,3 +1,7 @@
+2012-10-03  Douglas Lewan  <d_lewan2000@yahoo.com>  (tiny change)
+
+	* tutorials/TUTORIAL.pt_BR: Fix typo.  (Bug#12557)
+
 2012-08-24  Chong Yidong  <cyd@gnu.org>
 
 	* Version 24.2 released.
