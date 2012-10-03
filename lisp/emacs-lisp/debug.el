@@ -273,7 +273,9 @@ first will be printed into the backtrace buffer."
 	    (setq debugger-previous-window-height
 		  (window-total-size debugger-window))
 	    ;; Unshow debugger-buffer.
-	    (quit-restore-window debugger-window debugger-bury-or-kill))
+	    (quit-restore-window debugger-window debugger-bury-or-kill)
+	    ;; Restore current buffer (Bug#12502).
+	    (set-buffer debugger-old-buffer))
           ;; Restore previous state of debugger-buffer in case we were
           ;; in a recursive invocation of the debugger, otherwise just
           ;; erase the buffer and put it into fundamental mode.
