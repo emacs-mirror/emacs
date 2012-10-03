@@ -499,16 +499,15 @@ The type returned can be `comment', `string' or `paren'."
 (defconst python-syntax-propertize-function
   (syntax-propertize-rules
    ((rx
-     (or (and
-          ;; Match even number of backslashes.
-          (or (not (any ?\\ ?\' ?\")) point) (* ?\\ ?\\)
-          ;; Match single or triple quotes of any kind.
-          (group (or  "\"" "\"\"\"" "'" "'''")))
-         (and
-          ;; Match odd number of backslashes.
-          (or (not (any ?\\)) point) ?\\ (* ?\\ ?\\)
-          ;; Followed by even number of equal quotes.
-          (group (or  "\"\"" "\"\"\"\"" "''" "''''")))))
+     (and
+      ;; Match even number of backslashes.
+      (or (not (any ?\\ ?\' ?\")) point
+          ;; Quotes might be preceeded by a escaped quote.
+          (and (or (not (any ?\\)) point) ?\\
+               (* ?\\ ?\\) (any ?\' ?\")))
+      (* ?\\ ?\\)
+      ;; Match single or triple quotes of any kind.
+      (group (or  "\"" "\"\"\"" "'" "'''"))))
     (0 (ignore (python-syntax-stringify))))))
 
 (defsubst python-syntax-count-quotes (quote-char &optional point limit)
@@ -525,12 +524,7 @@ is used to limit the scan."
 
 (defun python-syntax-stringify ()
   "Put `syntax-table' property correctly on single/triple quotes."
-  (let* ((num-quotes
-          (let ((n (length (or (match-string-no-properties 1)
-                               (match-string-no-properties 2)))))
-            ;; This corrects the quote count when matching odd number
-            ;; of backslashes followed by even number of quotes.
-            (or (and (= 1 (logand n 1)) n) (1- n))))
+  (let* ((num-quotes (length (match-string-no-properties 1)))
          (ppss (prog2
                    (backward-char num-quotes)
                    (syntax-ppss)

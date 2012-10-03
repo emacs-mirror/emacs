@@ -1,3 +1,12 @@
+2012-10-03  Fabián Ezequiel Gallina  <fgallina@cuca>
+
+	Fix cornercase for string syntax.
+	* progmodes/python.el (python-syntax-propertize-function):
+	Simplify and enhance the regexp for unescaped quotes.  Now it also
+	matches quotes in weird situations like the single quote in
+	"something\"'".
+	(python-syntax-stringify): Simplify num-quotes detecting code.
+
 2012-10-03  Glenn Morris  <rgm@gnu.org>
 
 	* help-macro.el (three-step-help):
