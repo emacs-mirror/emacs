@@ -1,5 +1,16 @@
 2012-10-04  Juri Linkov  <juri@jurta.org>
 
+	* replace.el (query-replace-interactive): Declare obsolete.
+	(query-replace-read-from): Add the last incremental search string
+	to the list of default values accessible via M-n.
+	(map-query-replace-regexp): Use `read-regexp'.
+	(query-replace, query-replace-regexp, query-replace-regexp-eval)
+	(map-query-replace-regexp, replace-string, replace-regexp):
+	Fix docstrings to replace mentions of `query-replace-interactive'
+	with alternatives.  (Bug#12526)
+
+2012-10-04  Juri Linkov  <juri@jurta.org>
+
 	* dired.el (dired-shrink-to-fit): Declare obsolete.  (Bug#1806)
 	(dired-pop-to-buffer): Declare obsolete.
 	(dired-mark-pop-up): Doc fix.
