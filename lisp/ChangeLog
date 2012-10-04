@@ -1,3 +1,9 @@
+2012-10-04  Juri Linkov  <juri@jurta.org>
+
+	* dired.el (dired-shrink-to-fit): Declare obsolete.  (Bug#1806)
+	(dired-pop-to-buffer): Declare obsolete.
+	(dired-mark-pop-up): Doc fix.
+
 2012-10-04  Fabián Ezequiel Gallina  <fgallina@cuca>
 
 	Allow user to set docstring style for fill-paragraph.
@@ -347,7 +353,7 @@
 2012-09-30  Juri Linkov  <juri@jurta.org>
 
 	* arc-mode.el (archive-summarize): Let-bind `buffer-file-truename'
-	to nil around the call to `add-text-properties' to prevent
+	to nil around the call to `insert' to prevent
 	directory time modification by lock_file.  (Bug#2295)
 	* tar-mode.el (tar-summarize-buffer): Idem.
 

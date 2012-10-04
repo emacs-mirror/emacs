@@ -792,6 +792,7 @@ in Emacs 24.1:
 **** `special-display-buffer-names'
 **** `special-display-function'
 **** `display-buffer-function'
+**** `dired-shrink-to-fit'
 
 ** Time
 ---
@@ -856,6 +857,7 @@ See the "Face Attributes" section of the Elisp manual.
 *** `buffer-has-markers-at'
 *** `macro-declaration-function' (use `macro-declarations-alist').
 *** `window-system-version'
+*** `dired-pop-to-buffer' (use `dired-mark-pop-up')
 
 
 * Changes in Emacs 24.3 on non-free operating systems
