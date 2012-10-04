@@ -1,3 +1,9 @@
+2012-10-04  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* profiler.c (handle_profiler_signal): Inhibit pending signals too,
+	to avoid similar races.
+	* keyboard.c (pending_signals): Now bool, not int.
+
 2012-10-02  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* profiler.c (handle_profiler_signal): Fix a malloc race

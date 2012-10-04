@@ -76,9 +76,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Positive if interrupt input is blocked right now.  */
 volatile int interrupt_input_blocked;
 
-/* Nonzero means an input interrupt or alarm signal has arrived.
+/* True means an input interrupt or alarm signal has arrived.
    The QUIT macro checks this.  */
-volatile int pending_signals;
+volatile bool pending_signals;
 
 #define KBD_BUFFER_SIZE 4096
 

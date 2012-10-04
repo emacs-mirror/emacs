@@ -239,6 +239,7 @@ handle_profiler_signal (int signal)
   else
     {
       Lisp_Object oquit;
+      bool saved_pending_signals;
       EMACS_INT count = 1;
 #ifdef HAVE_ITIMERSPEC
       if (profiler_timer_ok)
@@ -252,12 +253,15 @@ handle_profiler_signal (int signal)
 	 uses QUIT, which can call malloc, which can cause disaster in
 	 a signal handler.  So inhibit QUIT.  */
       oquit = Vinhibit_quit;
+      saved_pending_signals = pending_signals;
       Vinhibit_quit = Qt;
+      pending_signals = 0;
 
       eassert (HASH_TABLE_P (cpu_log));
       record_backtrace (XHASH_TABLE (cpu_log), count);
 
       Vinhibit_quit = oquit;
+      pending_signals = saved_pending_signals;
     }
 }
 

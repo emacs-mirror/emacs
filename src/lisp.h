@@ -2131,7 +2131,7 @@ extern char *stack_bottom;
    a request to exit Emacs when it is safe to do.  */
 
 extern void process_pending_signals (void);
-extern int volatile pending_signals;
+extern bool volatile pending_signals;
 
 extern void process_quit_flag (void);
 #define QUIT						\
