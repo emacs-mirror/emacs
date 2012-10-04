@@ -1,3 +1,8 @@
+2012-10-04  Martin Rudalics  <rudalics@gmx.at>
+
+	* emacs-lisp/edebug.el (edebug-pop-to-buffer): Select window
+	after setting its buffer (Bug#10805).
+
 2012-10-03  Fabián Ezequiel Gallina  <fgallina@cuca>
 
 	Fix cornercase for string syntax.
