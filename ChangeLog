@@ -9,17 +9,6 @@
 	* m4/stdlib_h.m4, m4/sys_stat_h.m4: Update from gnulib.
 	* lib/gnulib.mk, m4/gnulib-comp.m4: Regenerate.
 
-	Port timers to OpenBSD, plus check for timer failures.
-	OpenBSD problem reported by Han Boetes.
-	* profiler.c (setup_cpu_timer): Check for failure of timer_settime
-	and/or setitimer.
-	(Fprofiler_cpu_stop): Don't assume HAVE_SETITIMER.
-	* syssignal.h (HAVE_ITIMERSPEC): New macro.  This is for platforms
-	like OpenBSD, which has timer_settime but does not declare it.
-	OpenBSD does not define SIGEV_SIGNAL, so use that when deciding
-	whether to use itimerspec-related primitives.  All uses of
-	HAVE_TIMER_SETTIME replaced with HAVE_ITIMERSPEC.
-
 2012-09-30  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Merge from gnulib, incorporating:
