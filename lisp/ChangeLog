@@ -1,3 +1,7 @@
+2012-10-04  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/timer.el (with-timeout): Add missing progn.  (Bug#12577)
+
 2012-10-01  Juanma Barranquero  <lekktu@gmail.com>
 
 	* ido.el (ido-directory-too-big-p): Pass dir through file-truename
