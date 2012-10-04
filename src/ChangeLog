@@ -1,3 +1,7 @@
+2012-10-04  Ikumi Keita  <ikumi@ikumi.que.jp>  (tiny change)
+
+	* minibuf.c (Fcompleting_read): Doc fix.  (Bug#12555)
+
 2012-09-24  Glenn Morris  <rgm@gnu.org>
 
 	* eval.c (Frun_hook_with_args, Frun_hook_with_args_until_success)
