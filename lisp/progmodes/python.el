@@ -2267,32 +2267,82 @@ inferior python process is updated properly."
 This is the function used by `python-fill-paragraph-function' to
 fill comments."
   :type 'symbol
-  :group 'python
-  :safe 'symbolp)
+  :group 'python)
 
 (defcustom python-fill-string-function 'python-fill-string
   "Function to fill strings.
 This is the function used by `python-fill-paragraph-function' to
 fill strings."
   :type 'symbol
-  :group 'python
-  :safe 'symbolp)
+  :group 'python)
 
 (defcustom python-fill-decorator-function 'python-fill-decorator
   "Function to fill decorators.
 This is the function used by `python-fill-paragraph-function' to
 fill decorators."
   :type 'symbol
-  :group 'python
-  :safe 'symbolp)
+  :group 'python)
 
 (defcustom python-fill-paren-function 'python-fill-paren
   "Function to fill parens.
 This is the function used by `python-fill-paragraph-function' to
 fill parens."
   :type 'symbol
+  :group 'python)
+
+(defcustom python-fill-string-style 'pep-257
+  "Style used to fill docstrings.
+This affects `python-fill-string' behavior with regards to
+triple quotes positioning.
+
+Possible values are DJANGO, PEP-257, PEP-257-NN, SYMMETRIC and
+NIL.  A value of NIL won't care about quotes position, will do
+what `fill-paragraph' does, any other value may result in one of
+the following docstring styles:
+
+DJANGO:
+
+    \"\"\"
+    Process foo, return bar.
+    \"\"\"
+
+    \"\"\"
+    Process foo, return bar.
+
+    If processing fails throw ProcessingError.
+    \"\"\"
+
+PEP-257:
+
+    \"\"\"Process foo, return bar.\"\"\"
+
+    \"\"\"Process foo, return bar.
+
+    If processing fails throw ProcessingError.
+
+    \"\"\"
+
+PEP-257-NN:
+
+    \"\"\"Process foo, return bar.\"\"\"
+
+    \"\"\"Process foo, return bar.
+
+    If processing fails throw ProcessingError.
+    \"\"\"
+
+SYMMETRIC:
+
+    \"\"\"Process foo, return bar.\"\"\"
+
+    \"\"\"
+    Process foo, return bar.
+
+    If processing fails throw ProcessingError.
+    \"\"\""
+  :type 'symbol
   :group 'python
-  :safe 'symbolp)
+  :safe (lambda (val) (memq val '(django pep-257 pep-257-nn symmetric nil))))
 
 (defun python-fill-paragraph-function (&optional justify)
   "`fill-paragraph-function' handling multi-line strings and possibly comments.
@@ -2302,18 +2352,19 @@ the string's indentation.
 Optional argument JUSTIFY defines if the paragraph should be justified."
   (interactive "P")
   (save-excursion
-    (back-to-indentation)
     (cond
      ;; Comments
-     ((funcall python-fill-comment-function justify))
+     ((python-syntax-context 'comment)
+      (funcall python-fill-comment-function justify))
      ;; Strings/Docstrings
-     ((save-excursion (skip-chars-forward "\"'uUrR")
-                      (python-syntax-context 'string))
+     ((save-excursion (or (python-syntax-context 'string)
+                          (equal (string-to-syntax "|")
+                                 (syntax-after (point)))))
       (funcall python-fill-string-function justify))
      ;; Decorators
      ((equal (char-after (save-excursion
                            (back-to-indentation)
-                           (point-marker))) ?@)
+                           (point))) ?@)
       (funcall python-fill-decorator-function justify))
      ;; Parens
      ((or (python-syntax-context 'paren)
@@ -2332,43 +2383,72 @@ JUSTIFY should be used (if applicable) as in `fill-paragraph'."
 (defun python-fill-string (&optional justify)
   "String fill function for `python-fill-paragraph-function'.
 JUSTIFY should be used (if applicable) as in `fill-paragraph'."
-  (let ((marker (point-marker))
-        (string-start-marker
-         (progn
-           (skip-chars-forward "\"'uUrR")
-           (goto-char (python-syntax-context 'string))
-           (skip-chars-forward "\"'uUrR")
-           (point-marker)))
-        (reg-start (line-beginning-position))
-        (string-end-marker
-         (progn
-           (while (python-syntax-context 'string)
-             (goto-char (1+ (point-marker))))
-           (skip-chars-backward "\"'")
-           (point-marker)))
-        (reg-end (line-end-position))
-        (fill-paragraph-function))
+  (let* ((marker (point-marker))
+         (str-start-pos
+          (let ((m (make-marker)))
+            (setf (marker-position m)
+                  (or (python-syntax-context 'string)
+                      (and (equal (string-to-syntax "|")
+                                  (syntax-after (point)))
+                           (point)))) m))
+         (num-quotes (python-syntax-count-quotes
+                      (char-after str-start-pos) str-start-pos))
+         (str-end-pos
+          (save-excursion
+            (goto-char (+ str-start-pos num-quotes))
+            (or (re-search-forward (rx (syntax string-delimiter)) nil t)
+                (goto-char (point-max)))
+            (point-marker)))
+         (multi-line-p
+          ;; Docstring styles may vary for oneliners and multi-liners.
+          (> (count-matches "\n" str-start-pos str-end-pos) 0))
+         (delimiters-style
+          (case python-fill-string-style
+            ;; delimiters-style is a cons cell with the form
+            ;; (START-NEWLINES .  END-NEWLINES). When any of the sexps
+            ;; is NIL means to not add any newlines for start or end
+            ;; of docstring.  See `python-fill-string-style' for a
+            ;; graphic idea of each style.
+            (pep-257 (and multi-line-p (cons nil 2)))
+            (pep-257-nn (and multi-line-p (cons nil 1)))
+            (django (cons 1 1))
+            (symmetric (and multi-line-p (cons 1 1)))))
+         (docstring-p (save-excursion
+                        ;; Consider docstrings those strings which
+                        ;; start on a line by themselves.
+                        (goto-char str-start-pos)
+                        (skip-chars-backward (rx whitespace))
+                        (= (point) (line-beginning-position))))
+         (fill-paragraph-function))
     (save-restriction
-      (narrow-to-region reg-start reg-end)
-      (save-excursion
-        (goto-char string-start-marker)
-        (delete-region (point-marker) (progn
-                                        (skip-syntax-forward "> ")
-                                        (point-marker)))
-        (goto-char string-end-marker)
-        (delete-region (point-marker) (progn
-                                        (skip-syntax-backward "> ")
-                                        (point-marker)))
-        (save-excursion
-          (goto-char marker)
-          (fill-paragraph justify))
-        ;; If there is a newline in the docstring lets put triple
-        ;; quote in it's own line to follow pep 8
-        (when (save-excursion
-                (re-search-backward "\n" string-start-marker t))
-          (newline)
-          (newline-and-indent))
-        (fill-paragraph justify)))) t)
+      (narrow-to-region str-start-pos str-end-pos)
+      (fill-paragraph justify))
+    (save-excursion
+      (when (and docstring-p python-fill-string-style)
+        ;; Add the number of newlines indicated by the selected style
+        ;; at the start of the docstring.
+        (goto-char (+ str-start-pos num-quotes))
+        (delete-region (point) (progn
+                                 (skip-syntax-forward "> ")
+                                 (point)))
+        (and (car delimiters-style)
+             (or (newline (car delimiters-style)) t)
+             ;; Indent only if a newline is added.
+             (indent-according-to-mode))
+        ;; Add the number of newlines indicated by the selected style
+        ;; at the end of the docstring.
+        (goto-char (if (not (= str-end-pos (point-max)))
+                       (- str-end-pos num-quotes)
+                     str-end-pos))
+        (delete-region (point) (progn
+                                 (skip-syntax-backward "> ")
+                                 (point)))
+        (and (cdr delimiters-style)
+             ;; Add newlines only if string ends.
+             (not (= str-end-pos (point-max)))
+             (or (newline (cdr delimiters-style)) t)
+             ;; Again indent only if a newline is added.
+             (indent-according-to-mode))))) t)
 
 (defun python-fill-decorator (&optional justify)
   "Decorator fill function for `python-fill-paragraph-function'.

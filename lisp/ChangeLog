@@ -1,3 +1,14 @@
+2012-10-04  Fabián Ezequiel Gallina  <fgallina@cuca>
+
+	Allow user to set docstring style for fill-paragraph.
+	* progmodes/python.el
+	(python-fill-comment-function, python-fill-string-function)
+	(python-fill-decorator-function, python-fill-paren-function):
+	Remove :safe for defcustoms.
+	(python-fill-string-style): New defcustom
+	(python-fill-paragraph-function): Enhanced context detection.
+	(python-fill-string): Honor python-fill-string-style settings.
+
 2012-10-04  Martin Rudalics  <rudalics@gmx.at>
 
 	* emacs-lisp/edebug.el (edebug-pop-to-buffer): Select window
