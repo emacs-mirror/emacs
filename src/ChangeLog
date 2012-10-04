@@ -1,3 +1,8 @@
+2012-10-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32.c (utime): Test for INVALID_HANDLE_VALUE, not for NULL, to
+	see whether CreateFile failed.
+
 2012-10-04  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* profiler.c (handle_profiler_signal): Inhibit pending signals too,

@@ -3954,7 +3954,7 @@ utime (const char *name, struct utimbuf *times)
   /* Need write access to set times.  */
   fh = CreateFile (name, GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE,
 		   0, OPEN_EXISTING, 0, NULL);
-  if (fh)
+  if (fh != INVALID_HANDLE_VALUE)
     {
       convert_from_time_t (times->actime, &atime);
       convert_from_time_t (times->modtime, &mtime);
