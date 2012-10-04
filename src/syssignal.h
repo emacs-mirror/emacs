@@ -29,8 +29,12 @@ extern void init_signals (bool);
 #define FORWARD_SIGNAL_TO_MAIN_THREAD
 #endif
 
-#if (defined SIGPROF && (defined HAVE_TIMER_SETTIME || defined HAVE_SETITIMER) \
-     && !defined PROFILING)
+#if defined HAVE_TIMER_SETTIME && defined SIGEV_SIGNAL
+# define HAVE_ITIMERSPEC
+#endif
+
+#if (defined SIGPROF && !defined PROFILING \
+     && (defined HAVE_SETITIMER || defined HAVE_ITIMERSPEC))
 # define PROFILER_CPU_SUPPORT
 #endif
 

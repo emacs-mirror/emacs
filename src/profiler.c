@@ -204,7 +204,7 @@ record_backtrace (log_t *log, EMACS_INT count)
 
 /* The profiler timer and whether it was properly initialized, if
    POSIX timers are available.  */
-#ifdef HAVE_TIMER_SETTIME
+#ifdef HAVE_ITIMERSPEC
 static timer_t profiler_timer;
 static bool profiler_timer_ok;
 #endif
@@ -240,7 +240,7 @@ handle_profiler_signal (int signal)
     {
       Lisp_Object oquit;
       EMACS_INT count = 1;
-#ifdef HAVE_TIMER_SETTIME
+#ifdef HAVE_ITIMERSPEC
       if (profiler_timer_ok)
 	{
 	  int overruns = timer_getoverrun (profiler_timer);
@@ -288,7 +288,7 @@ setup_cpu_timer (Lisp_Object sampling_interval)
   emacs_sigaction_init (&action, deliver_profiler_signal);
   sigaction (SIGPROF, &action, 0);
 
-#ifdef HAVE_TIMER_SETTIME
+#ifdef HAVE_ITIMERSPEC
   if (! profiler_timer_ok)
     {
       /* System clocks to try, in decreasing order of desirability.  */
@@ -322,14 +322,18 @@ setup_cpu_timer (Lisp_Object sampling_interval)
     {
       struct itimerspec ispec;
       ispec.it_value = ispec.it_interval = interval;
-      timer_settime (profiler_timer, 0, &ispec, 0);
-      return TIMER_SETTIME_RUNNING;
+      if (timer_settime (profiler_timer, 0, &ispec, 0) == 0)
+	return TIMER_SETTIME_RUNNING;
     }
 #endif
 
+#ifdef HAVE_SETITIMER
   timer.it_value = timer.it_interval = make_timeval (interval);
-  setitimer (ITIMER_PROF, &timer, 0);
-  return SETITIMER_RUNNING;
+  if (setitimer (ITIMER_PROF, &timer, 0) == 0)
+    return SETITIMER_RUNNING;
+#endif
+
+  return NOT_RUNNING;
 }
 
 DEFUN ("profiler-cpu-start", Fprofiler_cpu_start, Sprofiler_cpu_start,
@@ -367,7 +371,7 @@ Return non-nil if the profiler was running.  */)
     case NOT_RUNNING:
       return Qnil;
 
-#ifdef HAVE_TIMER_SETTIME
+#ifdef HAVE_ITIMERSPEC
     case TIMER_SETTIME_RUNNING:
       {
 	struct itimerspec disable;
@@ -377,6 +381,7 @@ Return non-nil if the profiler was running.  */)
       break;
 #endif
 
+#ifdef HAVE_SETITIMER
     case SETITIMER_RUNNING:
       {
 	struct itimerval disable;
@@ -384,6 +389,7 @@ Return non-nil if the profiler was running.  */)
 	setitimer (ITIMER_PROF, &disable, 0);
       }
       break;
+#endif
     }
 
   signal (SIGPROF, SIG_IGN);
