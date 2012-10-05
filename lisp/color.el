@@ -50,17 +50,17 @@ string (e.g. \"#ff12ec\").
 Normally the return value is a list of three floating-point
 numbers, (RED GREEN BLUE), each between 0.0 and 1.0 inclusive.
 
-Optional arg FRAME specifies the frame where the color is to be
+Optional argument FRAME specifies the frame where the color is to be
 displayed.  If FRAME is omitted or nil, use the selected frame.
 If FRAME cannot display COLOR, return nil."
   ;; `colors-values' maximum value is either 65535 or 65280 depending on the
-  ;; display system. So we use a white conversion to get the max value.
+  ;; display system.  So we use a white conversion to get the max value.
   (let ((valmax (float (car (color-values "#ffffff")))))
     (mapcar (lambda (x) (/ x valmax)) (color-values color frame))))
 
 (defun color-rgb-to-hex  (red green blue)
   "Return hexadecimal notation for the color RED GREEN BLUE.
-RED GREEN BLUE must be numbers between 0.0 and 1.0 inclusive."
+RED, GREEN, and BLUE should be numbers between 0.0 and 1.0, inclusive."
   (format "#%02x%02x%02x"
           (* red 255) (* green 255) (* blue 255)))
 
@@ -76,7 +76,7 @@ a string specifying a color's RGB components (e.g. \"#ff12ec\")."
 (defun color-gradient (start stop step-number)
   "Return a list with STEP-NUMBER colors from START to STOP.
 The color list builds a color gradient starting at color START to
-color STOP. It does not include the START and STOP color in the
+color STOP.  It does not include the START and STOP color in the
 resulting list."
   (let* ((r (nth 0 start))
 	 (g (nth 1 start))
@@ -93,8 +93,8 @@ resulting list."
     (nreverse result)))
 
 (defun color-hue-to-rgb (v1 v2 h)
-  "Compute hue from V1 and V2 H. Internally used by
-`color-hsl-to-rgb'."
+  "Compute hue from V1 and V2 H.
+Used internally by `color-hsl-to-rgb'."
   (cond
    ((< h (/ 1.0 6))   (+ v1 (* (- v2 v1) h 6.0)))
    ((< h 0.5)         v2)
@@ -102,13 +102,10 @@ resulting list."
    (t                 v1)))
 
 (defun color-hsl-to-rgb (H S L)
-    "Convert H S L (HUE, SATURATION, LUMINANCE) , where HUE is in
-radians and both SATURATION and LUMINANCE are between 0.0 and
-1.0, inclusive to their RGB representation.
-
-Return a list (RED, GREEN, BLUE) which each be numbers between
-0.0 and 1.0, inclusive."
-
+  "Convert hue, saturation and luminance to their RGB representation.
+H, S, and L should each be numbers between 0.0 and 1.0, inclusive.
+Return a list (RED GREEN BLUE), where each element is between 0.0 and 1.0,
+inclusive."
   (if (= S 0.0)
       (list L L L)
     (let* ((m2 (if (<= L 0.5)
@@ -125,9 +122,9 @@ Return a list (RED, GREEN, BLUE) which each be numbers between
   (apply 'color-rgb-to-hex (color-complement color)))
 
 (defun color-rgb-to-hsv (red green blue)
-  "Convert RED, GREEN, and BLUE color components to HSV.
+  "Convert RGB color components to HSV.
 RED, GREEN, and BLUE should each be numbers between 0.0 and 1.0,
-inclusive.  Return a list (HUE, SATURATION, VALUE), where HUE is
+inclusive.  Return a list (HUE SATURATION VALUE), where HUE is
 in radians and both SATURATION and VALUE are between 0.0 and 1.0,
 inclusive."
   (let* ((r (float red))
@@ -155,13 +152,10 @@ inclusive."
        (/ max 255.0)))))
 
 (defun color-rgb-to-hsl (red green blue)
-  "Convert RED GREEN BLUE colors to their HSL representation.
+  "Convert RGB colors to their HSL representation.
 RED, GREEN, and BLUE should each be numbers between 0.0 and 1.0,
-inclusive.
-
-Return a list (HUE, SATURATION, LUMINANCE), where HUE is in radians
-and both SATURATION and LUMINANCE are between 0.0 and 1.0,
-inclusive."
+inclusive.  Return a list (HUE SATURATION LUMINANCE), where
+each element is between 0.0 and 1.0, inclusive."
   (let* ((r red)
          (g green)
          (b blue)
@@ -187,7 +181,7 @@ inclusive."
 
 (defun color-srgb-to-xyz (red green blue)
   "Convert RED GREEN BLUE colors from the sRGB color space to CIE XYZ.
-RED, BLUE and GREEN must be between 0 and 1, inclusive."
+RED, GREEN and BLUE should be between 0.0 and 1.0, inclusive."
   (let ((r (if (<= red 0.04045)
                (/ red 12.95)
              (expt (/ (+ red 0.055) 1.055) 2.4)))
@@ -225,7 +219,7 @@ RED, BLUE and GREEN must be between 0 and 1, inclusive."
 (defun color-xyz-to-lab (X Y Z &optional white-point)
   "Convert CIE XYZ to CIE L*a*b*.
 WHITE-POINT specifies the (X Y Z) white point for the
-conversion. If omitted or nil, use `color-d65-xyz'."
+conversion.  If omitted or nil, use `color-d65-xyz'."
   (destructuring-bind (Xr Yr Zr) (or white-point color-d65-xyz)
       (let* ((xr (/ X Xr))
              (yr (/ Y Yr))
@@ -247,7 +241,7 @@ conversion. If omitted or nil, use `color-d65-xyz'."
 (defun color-lab-to-xyz (L a b &optional white-point)
   "Convert CIE L*a*b* to CIE XYZ.
 WHITE-POINT specifies the (X Y Z) white point for the
-conversion. If omitted or nil, use `color-d65-xyz'."
+conversion.  If omitted or nil, use `color-d65-xyz'."
   (destructuring-bind (Xr Yr Zr) (or white-point color-d65-xyz)
       (let* ((fy (/ (+ L 16) 116.0))
              (fz (- fy (/ b 200.0)))
@@ -344,17 +338,14 @@ returned by `color-srgb-to-lab' or `color-xyz-to-lab'."
   (min 1.0 (max 0.0 value)))
 
 (defun color-saturate-hsl (H S L percent)
-  "Return a color PERCENT more saturated than the one defined in
-H S L color-space.
-
-Return a list (HUE, SATURATION, LUMINANCE), where HUE is in radians
-and both SATURATION and LUMINANCE are between 0.0 and 1.0,
-inclusive."
+  "Make a color more saturated by a specified amount.
+Given a color defined in terms of hue, saturation, and luminance
+\(arguments H, S, and L), return a color that is PERCENT more
+saturated.  Returns a list (HUE SATURATION LUMINANCE)."
   (list H (color-clamp (+ S (/ percent 100.0))) L))
 
 (defun color-saturate-name (name percent)
-  "Short hand to saturate COLOR by PERCENT.
-
+  "Make a color with a specified NAME more saturated by PERCENT.
 See `color-saturate-hsl'."
   (apply 'color-rgb-to-hex
 	 (apply 'color-hsl-to-rgb
@@ -365,32 +356,26 @@ See `color-saturate-hsl'."
 			(list percent))))))
 
 (defun color-desaturate-hsl (H S L percent)
-  "Return a color PERCENT less saturated than the one defined in
-H S L color-space.
-
-Return a list (HUE, SATURATION, LUMINANCE), where HUE is in radians
-and both SATURATION and LUMINANCE are between 0.0 and 1.0,
-inclusive."
+  "Make a color less saturated by a specified amount.
+Given a color defined in terms of hue, saturation, and luminance
+\(arguments H, S, and L), return a color that is PERCENT less
+saturated.  Returns a list (HUE SATURATION LUMINANCE)."
   (color-saturate-hsl H S L (- percent)))
 
 (defun color-desaturate-name (name percent)
-  "Short hand to desaturate COLOR by PERCENT.
-
+  "Make a color with a specified NAME less saturated by PERCENT.
 See `color-desaturate-hsl'."
   (color-saturate-name name (- percent)))
 
 (defun color-lighten-hsl (H S L percent)
-  "Return a color PERCENT lighter than the one defined in
-H S L color-space.
-
-Return a list (HUE, SATURATION, LUMINANCE), where HUE is in radians
-and both SATURATION and LUMINANCE are between 0.0 and 1.0,
-inclusive."
+  "Make a color lighter by a specified amount.
+Given a color defined in terms of hue, saturation, and luminance
+\(arguments H, S, and L), return a color that is PERCENT lighter.
+Returns a list (HUE SATURATION LUMINANCE)."
   (list H S (color-clamp (+ L (/ percent 100.0)))))
 
 (defun color-lighten-name (name percent)
-  "Short hand to saturate COLOR by PERCENT.
-
+  "Make a color with a specified NAME lighter by PERCENT.
 See `color-lighten-hsl'."
   (apply 'color-rgb-to-hex
 	 (apply 'color-hsl-to-rgb
@@ -401,17 +386,14 @@ See `color-lighten-hsl'."
 			(list percent))))))
 
 (defun color-darken-hsl (H S L percent)
-  "Return a color PERCENT darker than the one defined in
-H S L color-space.
-
-Return a list (HUE, SATURATION, LUMINANCE), where HUE is in radians
-and both SATURATION and LUMINANCE are between 0.0 and 1.0,
-inclusive."
+    "Make a color darker by a specified amount.
+Given a color defined in terms of hue, saturation, and luminance
+\(arguments H, S, and L), return a color that is PERCENT darker.
+Returns a list (HUE SATURATION LUMINANCE)."
   (color-lighten-hsl H S L (- percent)))
 
 (defun color-darken-name (name percent)
-  "Short hand to saturate COLOR by PERCENT.
-
+  "Make a color with a specified NAME darker by PERCENT.
 See `color-darken-hsl'."
   (color-lighten-name name (- percent)))
 
