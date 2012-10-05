@@ -1,3 +1,7 @@
+2012-10-05  Bruno Félix Rezende Ribeiro  <oitofelix@gmail.com>  (tiny change)
+
+	* functions.texi (Function Safety): Copyedit.  (Bug#12562)
+
 2012-10-01  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Revert the FOLLOW-SYMLINKS change for file-attributes.

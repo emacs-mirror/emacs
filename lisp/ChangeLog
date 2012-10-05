@@ -1,3 +1,22 @@
+2012-10-05  Glenn Morris  <rgm@gnu.org>
+
+	* net/newst-treeview.el (newsticker-group-move-feed): Doc fix.
+
+	* color.el (color-name-to-rgb, color-rgb-to-hex)
+	(color-hue-to-rgb, color-hsl-to-rgb, color-rgb-to-hsv)
+	(color-rgb-to-hsl, color-srgb-to-xyz, color-saturate-hsl)
+	(color-desaturate-hsl, color-desaturate-name, color-lighten-hsl)
+	(color-lighten-name, color-darken-hsl, color-darken-name): Doc fixes.
+
+	* emacs-lisp/timer.el (with-timeout): Add missing progn.  (Bug#12577)
+
+2012-10-05  Juanma Barranquero  <lekktu@gmail.com>
+
+	* ido.el (ido-directory-too-big-p): Pass dir through file-truename
+	to get the correct size across symlinks.
+
+	* ido.el (ido-buffer-disable-smart-matches): Fix typo in docstring.
+
 2012-10-04  Juri Linkov  <juri@jurta.org>
 
 	* replace.el (query-replace-interactive): Declare obsolete.

@@ -1,3 +1,7 @@
+2012-10-05  Ikumi Keita  <ikumi@ikumi.que.jp>  (tiny change)
+
+	* minibuf.c (Fcompleting_read): Doc fix.  (Bug#12555)
+
 2012-10-04  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32.c (utime): Test for INVALID_HANDLE_VALUE, not for NULL, to

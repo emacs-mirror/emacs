@@ -450,7 +450,7 @@ be detected.
                      (with-timeout-timers
                          (cons -with-timeout-timer- with-timeout-timers)))
                 (unwind-protect
-                    ,@body
+                    (progn ,@body)
                   (cancel-timer -with-timeout-timer-))))))
        ;; It is tempting to avoid the `if' altogether and instead run
        ;; timeout-forms in the timer, just before throwing `timeout'.

@@ -1,3 +1,7 @@
+2012-10-05  Douglas Lewan  <d_lewan2000@yahoo.com>  (tiny change)
+
+	* tutorials/TUTORIAL.pt_BR: Fix typo.  (Bug#12557)
+
 2012-10-01  Eric Ludlam  <zappo@gnu.org>
 
 	* srecode/cc.srt, srecode/ede-autoconf.srt: New files.
