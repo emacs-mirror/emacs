@@ -1,3 +1,11 @@
+2012-10-05  Fabián Ezequiel Gallina  <fgallina@cuca>
+
+	Enhancements to docstring formatting when filling paragraphs.
+	* progmodes/python.el (python-fill-docstring-style): Rename from
+	python-fill-string-style.  Added new style.
+	(python-fill-string): Use new style.  Better checks for
+	docstrings.
+
 2012-10-05  Glenn Morris  <rgm@gnu.org>
 
 	* net/newst-treeview.el (newsticker-group-move-feed): Doc fix.

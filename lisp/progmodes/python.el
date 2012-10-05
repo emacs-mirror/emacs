@@ -2290,15 +2290,15 @@ fill parens."
   :type 'symbol
   :group 'python)
 
-(defcustom python-fill-string-style 'pep-257
+(defcustom python-fill-docstring-style 'pep-257
   "Style used to fill docstrings.
 This affects `python-fill-string' behavior with regards to
 triple quotes positioning.
 
-Possible values are DJANGO, PEP-257, PEP-257-NN, SYMMETRIC and
-NIL.  A value of NIL won't care about quotes position, will do
-what `fill-paragraph' does, any other value may result in one of
-the following docstring styles:
+Possible values are DJANGO, ONETWO, PEP-257, PEP-257-NN,
+SYMMETRIC, and NIL.  A value of NIL won't care about quotes
+position and will treat docstrings a normal string, any other
+value may result in one of the following docstring styles:
 
 DJANGO:
 
@@ -2310,6 +2310,17 @@ DJANGO:
     Process foo, return bar.
 
     If processing fails throw ProcessingError.
+    \"\"\"
+
+ONETWO:
+
+    \"\"\"Process foo, return bar.\"\"\"
+
+    \"\"\"
+    Process foo, return bar.
+
+    If processing fails throw ProcessingError.
+
     \"\"\"
 
 PEP-257:
@@ -2340,9 +2351,16 @@ SYMMETRIC:
 
     If processing fails throw ProcessingError.
     \"\"\""
-  :type 'symbol
+  :type '(choice
+          (const :tag "Don't format docstrings" nil)
+          (const :tag "Django's coding standards style." django)
+          (const :tag "One newline and start and Two at end style." onetwo)
+          (const :tag "PEP-257 with 2 newlines at end of string." pep-257)
+          (const :tag "PEP-257 with 1 newline at end of string." pep-257-nn)
+          (const :tag "Symmetric style." symmetric))
   :group 'python
-  :safe (lambda (val) (memq val '(django pep-257 pep-257-nn symmetric nil))))
+  :safe (lambda (val)
+          (memq val '(django onetwo pep-257 pep-257-nn symmetric nil))))
 
 (defun python-fill-paragraph-function (&optional justify)
   "`fill-paragraph-function' handling multi-line strings and possibly comments.
@@ -2403,28 +2421,28 @@ JUSTIFY should be used (if applicable) as in `fill-paragraph'."
           ;; Docstring styles may vary for oneliners and multi-liners.
           (> (count-matches "\n" str-start-pos str-end-pos) 0))
          (delimiters-style
-          (case python-fill-string-style
+          (case python-fill-docstring-style
             ;; delimiters-style is a cons cell with the form
             ;; (START-NEWLINES .  END-NEWLINES). When any of the sexps
             ;; is NIL means to not add any newlines for start or end
-            ;; of docstring.  See `python-fill-string-style' for a
+            ;; of docstring.  See `python-fill-docstring-style' for a
             ;; graphic idea of each style.
+            (django (cons 1 1))
+            (onetwo (and multi-line-p (cons 1 2)))
             (pep-257 (and multi-line-p (cons nil 2)))
             (pep-257-nn (and multi-line-p (cons nil 1)))
-            (django (cons 1 1))
             (symmetric (and multi-line-p (cons 1 1)))))
          (docstring-p (save-excursion
                         ;; Consider docstrings those strings which
                         ;; start on a line by themselves.
-                        (goto-char str-start-pos)
-                        (skip-chars-backward (rx whitespace))
-                        (= (point) (line-beginning-position))))
+                        (python-nav-beginning-of-statement)
+                        (and (= (point) str-start-pos))))
          (fill-paragraph-function))
     (save-restriction
       (narrow-to-region str-start-pos str-end-pos)
       (fill-paragraph justify))
     (save-excursion
-      (when (and docstring-p python-fill-string-style)
+      (when (and docstring-p python-fill-docstring-style)
         ;; Add the number of newlines indicated by the selected style
         ;; at the start of the docstring.
         (goto-char (+ str-start-pos num-quotes))
