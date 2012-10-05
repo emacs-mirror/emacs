@@ -22,7 +22,7 @@
 
 ;;; Commentary:
 
-;; Defines most of Emacs'ss file- and directory-handling functions,
+;; Defines most of Emacs's file- and directory-handling functions,
 ;; including basic file visiting, backup generation, link handling,
 ;; ITS-id version control, load- and write-hook handling, and the like.
 
