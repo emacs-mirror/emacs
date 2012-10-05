@@ -1,3 +1,8 @@
+2012-10-05  Glenn Morris  <rgm@gnu.org>
+
+	* newsticker.texi (Overview, Requirements, Usage, Configuration):
+	Copyedits.
+
 2012-08-24  Chong Yidong  <cyd@gnu.org>
 
 	* Version 24.2 released.
