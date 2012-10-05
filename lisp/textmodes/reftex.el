@@ -2466,7 +2466,7 @@ information about your RefTeX version and configuration."
      "Remember to cover the basics, that is, what you expected to happen and
 what in fact did happen.
 
-Check if the bug is reproducable with an up-to-date version of
+Check if the bug is reproducible with an up-to-date version of
 RefTeX available from http://www.gnu.org/software/auctex/.
 
 If the bug is triggered by a specific \(La\)TeX file, you should try

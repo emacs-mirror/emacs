@@ -228,8 +228,8 @@ a file.  Optional argument NAME specifies a default file name."
   "Read a persistent object from FILENAME, and return it.
 Signal an error if the object in FILENAME is not a constructor
 for CLASS.  Optional ALLOW-SUBCLASS says that it is ok for
-`eieio-peristent-read' to load in subclasses of class instead of
-being pendantic."
+`eieio-persistent-read' to load in subclasses of class instead of
+being pedantic."
   (unless class
     (message "Unsafe call to `eieio-persistent-read'."))
   (when (and class (not (class-p class)))
@@ -301,7 +301,7 @@ identified, and needing more object creation."
   "Validate that in CLASS, the SLOT with PROPOSED-VALUE is good, then fix.
 A limited number of functions, such as quote, list, and valid object
 constructor functions are considered valid.
-Secondarilly, any text properties will be stripped from strings."
+Second, any text properties will be stripped from strings."
   (cond ((consp proposed-value)
 	 ;; Lists with something in them need special treatment.
 	 (let ((slot-idx (eieio-slot-name-index class nil slot))

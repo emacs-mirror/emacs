@@ -390,7 +390,7 @@ Pulls out the symbol list, and call `semantic-c-convert-spp-value-to-hideif-valu
       ;; can then interpret.
       (let ((stream (semantic-lex-spp-symbol-stream spp-symbol)))
 	(cond
-	 ;; Empyt string means defined, so t.
+	 ;; Empty string means defined, so t.
 	 ((null stream) t)
 	 ;; A list means a parsed macro stream.
 	 ((listp stream)
@@ -515,7 +515,7 @@ code to parse."
 	  ;; should be skipped.
 	  (semantic-c-skip-conditional-section)
 	  (setq semantic-lex-end-point (point))
-	  
+
 	  ;; @TODO -somewhere around here, we also need to skip
 	  ;; other sections of the conditional.
 

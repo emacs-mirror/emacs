@@ -1555,7 +1555,7 @@ number of completions initially.  Pressing TAB will show the
 extended set.
 
 Quiet: Only show completions when we have narrowed all
-posibilities down to a maximum of
+possibilities down to a maximum of
 `semantic-displayor-tooltip-initial-max-tags' tags.  Pressing TAB
 multiple times will also show completions.
 
@@ -2239,4 +2239,3 @@ will perform the completion."
 ;; End:
 
 ;;; semantic/complete.el ends here
-

@@ -101,7 +101,7 @@ tag that contains point, and return that."
        (semantic-tag-start tag)
        (semantic-tag-end tag))
       (when (called-interactively-p 'interactive)
-	(message "Found %d occurances of %s in %.2f seconds"
+	(message "Found %d occurrences of %s in %.2f seconds"
 		 Lcount (semantic-tag-name target)
 		 (semantic-elapsed-time start (current-time))))
       Lcount)))

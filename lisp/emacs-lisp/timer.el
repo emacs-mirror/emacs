@@ -204,7 +204,7 @@ timers).  If nil, allocate a new cell."
   "Insert TIMER into `timer-idle-list'.
 This arranges to activate TIMER whenever Emacs is next idle.
 If optional argument DONT-WAIT is non-nil, set TIMER to activate
-immediately \(see beloe\), or at the right time, if Emacs is
+immediately \(see below\), or at the right time, if Emacs is
 already idle.
 
 REUSE-CELL, if non-nil, is a cons cell to reuse when inserting

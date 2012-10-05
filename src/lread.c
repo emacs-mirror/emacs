@@ -1700,7 +1700,7 @@ readevalloop (Lisp_Object readcharfun,
   if (NILP (Ffboundp (macroexpand))
       /* Don't macroexpand in .elc files, since it should have been done
 	 already.  We actually don't know whether we're in a .elc file or not,
-	 so we use circumstancial evidence: .el files normally go through
+	 so we use circumstantial evidence: .el files normally go through
 	 Vload_source_file_function -> load-with-code-conversion
 	 -> eval-buffer.  */
       || EQ (readcharfun, Qget_file_char)

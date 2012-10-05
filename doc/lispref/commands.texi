@@ -1952,7 +1952,7 @@ position such events have.
 
 @defun posnp object
 This function returns non-@code{nil} if @var{object} is a mouse
-oposition list, in either of the formats documented in @ref{Click
+position list, in either of the formats documented in @ref{Click
 Events}); and @code{nil} otherwise.
 @end defun
 

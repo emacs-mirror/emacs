@@ -66,7 +66,7 @@ have values, they must still match."
 
 (define-overloadable-function semantic--tag-similar-types-p (tag1 tag2)
   "Compare the types of TAG1 and TAG2.
-This functions can be overriden, for example to compare a fully
+This function can be overridden, for example to compare a fully
 qualified with an unqualified type."
   (cond
    ((and (null (semantic-tag-type tag1))
@@ -80,7 +80,7 @@ qualified with an unqualified type."
 
 (defun semantic--tag-similar-types-p-default (tag1 tag2)
   "Compare the types of TAG1 and TAG2.
-This functions can be overriden, for example to compare a fully
+This function can be overridden, for example to compare a fully
 qualified with an unqualified type."
   (semantic-tag-of-type-p tag1 (semantic-tag-type tag2)))
 
@@ -97,7 +97,7 @@ Modes that override this function can call `semantic--tag-attribute-similar-p-de
 to do the default equality tests if ATTR is not special for that mode.")
 
 (defun semantic--tag-attribute-similar-p-default (attr value1 value2 ignorable-attributes)
-  "For ATTR, VALUE1, VALUE2 and IGNORABLE-ATTRIBUTES, test for similarness."
+  "For ATTR, VALUE1, VALUE2 and IGNORABLE-ATTRIBUTES, test for similarity."
   (cond
    ;; Tag sublists require special testing.
    ((and (listp value1) (semantic-tag-p (car value1))
@@ -131,7 +131,7 @@ Similar tags that have sub-tags such as arg lists or type members,
 are similar w/out checking the sub-list of tags.
 Optional argument IGNORABLE-ATTRIBUTES are attributes to ignore while comparing similarity.
 By default, `semantic-tag-similar-ignorable-attributes' is referenced for
-attributes, and IGNOREABLE-ATTRIBUTES will augment this list.
+attributes, and IGNORABLE-ATTRIBUTES will augment this list.
 
 Note that even though :name is not an attribute, it can be used to
 to indicate lax comparison of names via `semantic--tag-similar-names-p'")
@@ -207,7 +207,7 @@ Return the name of the first tag of class `package' in STREAM."
 
 (define-overloadable-function semantic-tag-full-name (tag &optional stream-or-buffer)
   "Return the fully qualified name of TAG in the package hierarchy.
-STREAM-OR-BUFFER can be anything convertable by `semantic-something-to-stream',
+STREAM-OR-BUFFER can be anything convertible by `semantic-something-to-stream',
 but must be a toplevel semantic tag stream that contains TAG.
 A Package Hierarchy is defined in UML by the way classes and methods
 are organized on disk.  Some languages use this concept such that a

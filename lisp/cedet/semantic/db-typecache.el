@@ -584,7 +584,7 @@ If there isn't one, create it.
     (dolist (P path)
       (condition-case nil
 	  (oset P pointmax nil)
-	;; Pointmax may not exist for all tables disovered in the
+	;; Pointmax may not exist for all tables discovered in the
 	;; path.
 	(error nil))
       (semantic-reset (semanticdb-get-typecache P)))))

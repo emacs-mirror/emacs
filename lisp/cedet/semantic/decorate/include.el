@@ -589,7 +589,7 @@ This means that Semantic cannot find a file associated with this tag
 on disk, but a database table of tags has been associated with it.
 
 This means that the include will still be used to find tags for
-searches, but you connot visit this include.\n\n")
+searches, but you cannot visit this include.\n\n")
       (princ "This Header is now represented by the following database table:\n\n  ")
       (princ (object-print table))
       )))

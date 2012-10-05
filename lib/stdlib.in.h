@@ -458,7 +458,7 @@ _GL_WARN_ON_USE (posix_openpt, "posix_openpt is not portable - "
 /* Return the pathname of the pseudo-terminal slave associated with
    the master FD is open on, or NULL on errors.  */
 # if @REPLACE_PTSNAME@
-#  if !(defined __cplusplus && defined GNULIB_NAMESPCE)
+#  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
 #   undef ptsname
 #   define ptsname rpl_ptsname
 #  endif

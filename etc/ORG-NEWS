@@ -65,12 +65,12 @@ See http://orgmode.org/elpa/
 
 *** Org Element
 
-    =org-element.el= is a toolbox for parsing and analysing "elements"
+    =org-element.el= is a toolbox for parsing and analyzing "elements"
     in an Org-mode buffer.  This has been written by Nicolas Goaziou
     and has been tested for quite some time.  It is now part of Org's
     core and many core functions rely on this package.
 
-    Two functions might be particularily handy for users:
+    Two functions might be particularly handy for users:
     =org-element-at-point= and =org-element-context=.
 
     See the docstrings for more details.
@@ -539,7 +539,7 @@ supported.
 **** =:results org= now put results in a =#+BEGIN_SRC org= block
 
 =:results org= used to put results in a =#+BEGIN_ORG= block but it now puts
-results in a =#+BEGIN_SRC org= block, wich comma-escaped lines.
+results in a =#+BEGIN_SRC org= block, with comma-escaped lines.
 
 =#+BEGIN_ORG= blocks are obsolete.
 
@@ -552,7 +552,7 @@ It used to exports the results of the code.
 **** New menu entry for [[doc::org-refile][org-refile]]
 **** Allow capturing to encrypted entries
 
-If you capture to an encrypted entry, it will be decrpyted before
+If you capture to an encrypted entry, it will be decrypted before
 inserting the template then re-encrypted after finalizing the capture.
 
 **** Inactive timestamps are now handled in tables
@@ -932,7 +932,7 @@ that Calc formulas can operate on them.
 
 **** org-gnus.el now allows link creation from messages
 
-     You can now create links from messages.  This is particularily
+     You can now create links from messages.  This is particularly
      useful when the user wants to stored messages that he sends, for
      later check.  Thanks to Ulf Stegemann for the patch.
 
@@ -1115,7 +1115,7 @@ that Calc formulas can operate on them.
 
 *** Completion
 
-**** In-buffer completion is now done using John Wiegleys pcomplete.el
+**** In-buffer completion is now done using John Wiegley's pcomplete.el
 
      Thanks to John Wiegley for much of this code.
 

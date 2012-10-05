@@ -595,7 +595,7 @@ This is the default.
 @item :depth-first
 Search for methods in the class hierarchy in a depth first order.
 @item :c3
-Searches for methods in in a learnarized way that most closely matches
+Searches for methods in in a linearized way that most closely matches
 what CLOS does when a monotonic class structure is defined.
 @end table
 
@@ -1010,7 +1010,7 @@ This is the default.
 @item :depth-first
 Search for methods in the class hierarchy in a depth first order.
 @item :c3
-Searches for methods in in a learnarized way that most closely matches
+Searches for methods in in a linearized way that most closely matches
 what CLOS does when CLOS when a monotonic class structure is defined.
 
 This is derived from the Dylan language documents by
@@ -1408,8 +1408,8 @@ provided.
 Read a persistent object from @var{filename}, and return it.
 Signal an error if the object in @var{FILENAME} is not a constructor
 for @var{CLASS}.  Optional @var{allow-subclass} says that it is ok for
-@code{eieio-peristent-read} to load in subclasses of class instead of
-being pendantic."
+@code{eieio-persistent-read} to load in subclasses of class instead of
+being pedantic.
 @end defun
 
 @node eieio-named
@@ -1564,9 +1564,9 @@ texinfo format by using the tools in the file @file{eieio-doc.el}
 
 @deffn Command eieiodoc-class class indexstring &optional skiplist
 
-This will start at the current point, and created an indented menu of
+This will start at the current point, and create an indented menu of
 all the child classes of, and including @var{class}, but skipping any
-classes that might be in @var{skiplist} It will then create nodes for
+classes that might be in @var{skiplist}.  It will then create nodes for
 all these classes, subsection headings, and indexes.
 
 Each class will be indexed using the texinfo labeled index
@@ -1585,7 +1585,7 @@ where @var{indexstring} is replaced with the two letter code.
 Next, an inheritance tree will be created listing all parents of that
 section's class.
 
-Then,all the slots will be expanded in tables, and described
+Then, all the slots will be expanded in tables, and described
 using the documentation strings from the code.  Default values will also
 be displayed.  Only those slots with @code{:initarg} specified will be
 expanded, others will be hidden.  If a slot is inherited from a parent,

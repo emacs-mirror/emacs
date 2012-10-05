@@ -302,7 +302,7 @@ that file to your target.
 . a myprogram RET
 @end example
 
-Note that these promps often have completion, so you can just press
+Note that these prompts often have completion, so you can just press
 @kbd{TAB} to complete the name @file{myprogram}.
 
 If you had many files to add to the same target, you could mark them
@@ -785,7 +785,7 @@ also supports several debugging tools via @file{android.el}.
 An arduino project of type @samp{ede-arduino-project} will read your
 @file{~/.arduino/preferences.txt} file, and identify your sketches.
 You will still need the Arduino IDE to set up your preferences and
-locate your arduino.  After quiting the IDE, Emacs will be able to
+locate your arduino.  After quitting the IDE, Emacs will be able to
 find your sketches, compile them, and upload them to your arduino.
 
 If you have the @file{arduino} command on your path, @ede{} will be
@@ -1169,14 +1169,14 @@ Some example project types are:
 
 @table @code
 @item project-am
-Autmake project which reads existing Automake files.
+Automake project which reads existing Automake files.
 @item ede-proj-project
 This project type will create @file{Makefiles},
 or @file{Makefile.am} files to compile your project.
 @item ede-linux
 This project type will detect linux source trees.
 @item ede-emacs
-This proejct will detect an Emacs source tree.
+This project will detect an Emacs source tree.
 @end table
 
 There are several other project types as well.
@@ -1291,7 +1291,7 @@ it finds the top of the project.  It does this by calling
 @code{ede-toplevel-project}.  If this hasn't already been discovered,
 the directories as scanned upward one at a time until a directory with
 no project is found.  The last found project becomes the project
-root.  If the ofund instance of @code{ede-project-autoload} has a
+root.  If the found instance of @code{ede-project-autoload} has a
 valid @code{proj-root} slot value, then that function is called instead
 of scanning the project by hand.  Some project types have a short-cut
 for determining the root of a project, so this comes in handy.
@@ -3331,7 +3331,7 @@ Bonus: Return a cons cell: (COMPILED . UPTODATE).
 @end deffn
 
 @deffn Method ede-proj-flush-autoconf :AFTER this
-Flush the configure file (current buffer) to accomodate @var{THIS}.
+Flush the configure file (current buffer) to accommodate @var{THIS}.
 @end deffn
 
 @deffn Method ede-buffer-mine :AFTER this buffer
@@ -3920,7 +3920,7 @@ Return the default macro to 'edit' for this object type.
 @end deffn
 
 @deffn Method project-compile-target-command :AFTER this
-Default target t- use when compling a texinfo file.
+Default target to use when compiling a texinfo file.
 @end deffn
 
 @deffn Method ede-documentation :AFTER this

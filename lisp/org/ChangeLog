@@ -2079,13 +2079,7 @@
 
 	* org-agenda.el (org-agenda-list): Ensures that the list returned
 	by `org-agenda-add-time-grid-maybe' is appended to ̀rtnall' before
-	checking if the latter is emtpy.
-
-2012-09-30  Christophe Junke  <junke.christophe@gmail.com>  (tiny change)
-
-	* org-agenda.el (org-agenda-list): Ensure that the list returned
-	by `org-agenda-add-time-grid-maybe' is appended to `rtnall' before
-	checking if the latter is emtpy.
+	checking if the latter is empty.
 
 2012-09-30  Christophe Rhodes  <csr21@cantab.net>  (tiny change)
 
@@ -2691,7 +2685,7 @@
 	* org-element.el (org-element-paragraph-parser): Fix parsing of
 	paragraph at the beginning of an item.
 
-	* org.el (org-mode): Set back comment-start-skip so comment-dwin
+	* org.el (org-mode): Set back comment-start-skip so comment-dwim
 	can tell a keyword from a comment.
 
 	* org.el (org-set-autofill-regexps): Install new comment line
@@ -2959,7 +2953,7 @@
 
 	* org-capture.el (org-capture-fill-template): Expand %<num> escape
 	sequences into text entered for <num>'th %^{PROMPT} escape.
-	
+
 	* org-capture.el (org-capture-fill-template): Fixed regexp for
 	%<n> expandos to match any positive integer.
 	(org-capture-templates): Updated docstring accordingly.

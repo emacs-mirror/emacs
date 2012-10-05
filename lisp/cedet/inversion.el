@@ -348,7 +348,7 @@ Optional argument RESERVED is saved for later use."
 
 ;;;###autoload
 (defun inversion-require-emacs (emacs-ver xemacs-ver sxemacs-ver)
-  "Declare that you need either EMACS-VER, XEMACS-VER or SXEMACE-ver.
+  "Declare that you need either EMACS-VER, XEMACS-VER or SXEMACS-ver.
 Only checks one based on which kind of Emacs is being run."
   (let ((err (inversion-test 'emacs
 			     (cond ((featurep 'sxemacs)

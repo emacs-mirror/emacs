@@ -1358,13 +1358,13 @@ Return the first non-nil value returned by PROC."
 (defmethod ede-system-include-path ((this ede-project))
   "Get the system include path used by project THIS."
   nil)
-  
+
 (defmethod ede-system-include-path ((this ede-target))
   "Get the system include path used by project THIS."
   nil)
 
 (defmethod ede-source-paths ((this ede-project) mode)
-  "Get the base to all source trees in the current projet for MODE.
+  "Get the base to all source trees in the current project for MODE.
 For example, <root>/src for sources of c/c++, Java, etc,
 and <root>/doc for doc sources."
   nil)

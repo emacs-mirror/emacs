@@ -3170,7 +3170,7 @@ in which case `save-window-excursion' cannot help."
 	  (set-window-hscroll window 0)
 	  ;; Don't try this with NOFORCE non-nil!
 	  (set-window-start window (point-min) t)
-	  ;; This hould not be necessary.
+	  ;; This should not be necessary.
 	  (set-window-point window (point-min))
 	  ;; Run `temp-buffer-show-hook', with the chosen window selected.
 	  (with-selected-window window

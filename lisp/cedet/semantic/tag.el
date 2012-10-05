@@ -554,7 +554,7 @@ You can identify a faux tag with `semantic-tag-faux-p'"
   "Set TAG name to NAME."
   (setcar tag name))
 
-;;; TAG Proxys
+;;; TAG Proxies
 ;;
 ;; A new kind of tag is a TAG PROXY.  These are tags that have some
 ;; minimal number of features set, such as name and class, but have a
@@ -570,7 +570,7 @@ two arguments, DATA and TAG.  TAG is a proxy tag that needs
 to be resolved, and DATA is the DATA passed into this function.
 DATA is data to help resolve the proxy.  DATA can be an EIEIO object,
 such that FUNCTION is a method.
-FUNCTION should return a list of tags, preferrably one tag."
+FUNCTION should return a list of tags, preferably one tag."
   (let ((sym (make-symbol ":tag-proxy")))
     (put sym 'proxy-function function)
     (put sym 'proxy-data data)

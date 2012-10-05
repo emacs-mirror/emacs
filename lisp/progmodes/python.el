@@ -502,7 +502,7 @@ The type returned can be `comment', `string' or `paren'."
      (and
       ;; Match even number of backslashes.
       (or (not (any ?\\ ?\' ?\")) point
-          ;; Quotes might be preceeded by a escaped quote.
+          ;; Quotes might be preceded by a escaped quote.
           (and (or (not (any ?\\)) point) ?\\
                (* ?\\ ?\\) (any ?\' ?\")))
       (* ?\\ ?\\)

@@ -3924,7 +3924,7 @@ Return Org syntax as a string."
 			 (and (eq type 'paragraph)
 			      (equal data (car (org-element-contents parent)))
 			      (memq (org-element-type parent)
-				    '(footnote-definiton item))))))
+				    '(footnote-definition item))))))
 		     "")))
 	      (funcall (intern (format "org-element-%s-interpreter" type))
 		       data

@@ -165,7 +165,7 @@ items such as CHECK_HEADERS."
     (setq param (substring param (match-end 0))))
   (when (string-match "\\s-*\\]?\\s-*\\'" param)
     (setq param (substring param 0  (match-beginning 0))))
-  ;; Look for occurances of backslash newline
+  ;; Look for occurrences of backslash newline
   (while (string-match "\\s-*\\\\\\s-*\n\\s-*" param)
     (setq param (replace-match " " t t param)))
   param)

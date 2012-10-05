@@ -823,7 +823,7 @@ because you will take care of it on the day when scheduled."
   :group 'org-agenda-daily/weekly
   :version "24.1"
   :type '(choice
-	  (const :tag "Alwas show prewarning" nil)
+	  (const :tag "Always show prewarning" nil)
 	  (const :tag "Remove prewarning if entry is scheduled" t)
 	  (integer :tag "Restart prewarning N days before deadline")))
 
@@ -2837,7 +2837,7 @@ L   Timeline for current buffer         #   List stuck projects (!=configure)
     (widen)
     (let ((inhibit-read-only t))
       (add-text-properties (point-min) (point-max)
-			   `(org-serie t org-serie-redo-cmd ,redo)))
+			   `(org-series t org-series-redo-cmd ,redo)))
     (setq org-agenda-redo-command redo)
     (goto-char (point-min)))
   (org-agenda-fit-window-to-buffer)
@@ -4019,7 +4019,7 @@ given in `org-agenda-start-on-weekday'."
 			   `(org-agenda-type agenda
 					     org-last-args (,arg ,start-day ,span)
 					     org-redo-cmd ,org-agenda-redo-command
-					     org-serie-cmd ,org-cmd))
+					     org-series-cmd ,org-cmd))
       (if (eq org-agenda-show-log-scoped 'clockcheck)
 	  (org-agenda-show-clocking-issues))
       (org-agenda-finalize)
@@ -4324,7 +4324,7 @@ in `org-agenda-text-search-extra-files'."
 			   `(org-agenda-type search
 					     org-last-args (,todo-only ,string ,edit-at)
 					     org-redo-cmd ,org-agenda-redo-command
-					     org-serie-cmd ,org-cmd))
+					     org-series-cmd ,org-cmd))
       (org-agenda-finalize)
       (setq buffer-read-only t))))
 
@@ -4414,7 +4414,7 @@ for a keyword.  A numeric prefix directly selects the Nth keyword in
 			   `(org-agenda-type todo
 					     org-last-args ,arg
 					     org-redo-cmd ,org-agenda-redo-command
-					     org-serie-cmd ,org-cmd))
+					     org-series-cmd ,org-cmd))
       (org-agenda-finalize)
       (setq buffer-read-only t))))
 
@@ -4499,7 +4499,7 @@ The prefix arg TODO-ONLY limits the search to TODO entries."
 			   `(org-agenda-type tags
 					     org-last-args (,todo-only ,match)
 					     org-redo-cmd ,org-agenda-redo-command
-					     org-serie-cmd ,org-cmd))
+					     org-series-cmd ,org-cmd))
       (org-agenda-finalize)
       (setq buffer-read-only t))))
 
@@ -6583,7 +6583,7 @@ Org-mode buffers visited directly by the user will not be touched."
   (org-agenda-Quit))
 
 (defun org-agenda-kill-all-agenda-buffers ()
-  "Kill all buffers in `org-agena-mode'.
+  "Kill all buffers in `org-agenda-mode'.
 This is used when toggling sticky agendas.  You can also explicitly invoke it
 with `C-c a C-k'."
   (interactive)
@@ -6623,20 +6623,20 @@ in the agenda."
 	 (lprops (get 'org-agenda-redo-command 'org-lprops))
 	 (redo-cmd (get-text-property p 'org-redo-cmd))
 	 (last-args (get-text-property p 'org-last-args))
-	 (org-agenda-overriding-cmd (get-text-property p 'org-serie-cmd))
+	 (org-agenda-overriding-cmd (get-text-property p 'org-series-cmd))
 	 (org-agenda-overriding-cmd-arguments
 	  (unless (eq all t)
 	    (cond ((listp last-args)
 		   (cons (or cpa (car last-args)) (cdr last-args)))
 		  ((stringp last-args)
 		   last-args))))
-	 (serie-redo-cmd (get-text-property p 'org-serie-redo-cmd)))
+	 (series-redo-cmd (get-text-property p 'org-series-redo-cmd)))
     (put 'org-agenda-tag-filter :preset-filter nil)
     (put 'org-agenda-category-filter :preset-filter nil)
     (and cols (org-columns-quit))
     (message "Rebuilding agenda buffer...")
-    (if serie-redo-cmd
-	(eval serie-redo-cmd)
+    (if series-redo-cmd
+	(eval series-redo-cmd)
       (org-let lprops '(eval redo-cmd)))
     (setq org-agenda-undo-list nil
 	  org-agenda-pending-undo-list nil)
@@ -7035,7 +7035,7 @@ Negative selection means regexp must not match for selection of an entry."
    (or (and cnt (text-property-any (point-min) (point-max) 'org-day-cnt cnt))
        (text-property-any (point-min) (point-max) 'org-today t)
        (text-property-any (point-min) (point-max) 'org-agenda-type 'agenda)
-       (and (get-text-property (min (1- (point-max)) (point)) 'org-serie)
+       (and (get-text-property (min (1- (point-max)) (point)) 'org-series)
 	    (org-agenda-goto-block-beginning))
        (point-min))))
 
@@ -7090,7 +7090,7 @@ With prefix ARG, go forward that many times the current span."
 	   ;; `cmd' may have been set by `org-agenda-run-series' which
 	   ;; uses `org-agenda-overriding-cmd' to decide whether
 	   ;; overriding is allowed for `cmd'
-	   (get-text-property (min (1- (point-max)) (point)) 'org-serie-cmd))
+	   (get-text-property (min (1- (point-max)) (point)) 'org-series-cmd))
 	  (org-agenda-overriding-arguments
 	   (list (car args) sd span)))
       (org-agenda-redo)
@@ -7183,7 +7183,7 @@ SPAN may be `day', `week', `month', `year'."
 		   org-starting-day))
 	   (sd (org-agenda-compute-starting-span sd span n))
 	   (org-agenda-overriding-cmd
-	    (get-text-property (min (1- (point-max)) (point)) 'org-serie-cmd))
+	    (get-text-property (min (1- (point-max)) (point)) 'org-series-cmd))
 	   (org-agenda-overriding-arguments
 	    (list (car args) sd span)))
       (org-agenda-redo)

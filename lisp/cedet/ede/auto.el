@@ -68,7 +68,7 @@ into memory.")
 
      ;; Add new types of dirmatches here.
 
-     ;; Error for wierd stuff
+     ;; Error for weird stuff
      (t (error "Unknown dirmatch type.")))))
 
 
@@ -285,7 +285,7 @@ the current buffer."
 	    ;; If this file DOES NOT match dirmatch, we set the callfcn
 	    ;; to nil, meaning don't load the ede support file for this
 	    ;; type of project.  If it does match, we will load the file
-	    ;; and use a more accurate programatic match from there.
+	    ;; and use a more accurate programmatic match from there.
 	    (unless (ede-project-dirmatch-p file dirmatch)
 	      (setq callfcn nil))))
 	;; Call into the project support file for a match.

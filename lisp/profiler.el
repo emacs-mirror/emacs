@@ -495,7 +495,7 @@ return it."
 	    t))))))
 
 (defun profiler-report-collapse-entry ()
-  "Collpase entry at point."
+  "Collapse entry at point."
   (interactive)
   (save-excursion
     (beginning-of-line)

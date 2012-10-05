@@ -85,7 +85,7 @@
 		    c)))
 	    event))
 	(defun semantic-popup-menu (menu)
-	  "Blockinig version of `popup-menu'"
+	  "Blocking version of `popup-menu'"
 	  (popup-menu menu)
 	  ;; Wait...
 	  (while (popup-up-p) (dispatch-event (next-event))))
@@ -139,7 +139,7 @@
 	'run-mode-hooks
       'run-hooks))
 
-  ;; Fancy compat useage now handled in cedet-compat
+  ;; Fancy compat usage now handled in cedet-compat
   (defalias 'semantic-subst-char-in-string 'subst-char-in-string)
   )
 

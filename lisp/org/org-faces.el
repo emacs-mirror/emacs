@@ -293,7 +293,7 @@ column view defines special faces for each outline level.  See the file
       (((class color) (min-colors 8)  (background dark))  (:foreground "red"  :inverse-video t))
       (t (:inverse-video t))))
   "Face for highlighting the calendar day when using `org-read-date'.
-Using a bold face here might cause discrepencies while displaying the
+Using a bold face here might cause discrepancies while displaying the
 calendar."
   :group 'org-faces)
 

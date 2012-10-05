@@ -64,7 +64,7 @@ and `org-remember-default-headline'.  To force prompting anyway, use
 \\[universal-argument] \\[org-remember-finalize] to file the note.
 
 When this variable is nil, \\[org-remember-finalize] gives you the prompts, and
-\\[universal-argument] \\[org-remember-finalize] triggers the fasttrack."
+\\[universal-argument] \\[org-remember-finalize] triggers the fast track."
   :group 'org-remember
   :type 'boolean)
 

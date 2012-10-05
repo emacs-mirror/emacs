@@ -496,7 +496,7 @@ as first char even if `ido-enable-prefix' is nil."
 ;; See http://debbugs.gnu.org/2042 for more info.
 (defcustom ido-buffer-disable-smart-matches t
   "Non-nil means not to re-order matches for buffer switching.
-By default, ido aranges matches in the following order:
+By default, ido arranges matches in the following order:
 
   full-matches > suffix matches > prefix matches > remaining matches
 

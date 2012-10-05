@@ -947,7 +947,7 @@ description on Worg}.
 Installing Info files is system dependent, because of differences in the
 @file{install-info} program.  The Info documentation is installed together
 with the rest of Org mode.  If you don't install Org mode, it is possible to
-install the Info documentation seperately (you need to have
+install the Info documentation separately (you need to have
 install-info@footnote{The output from install-info (if any) is system
 dependent.  In particular Debian and its derivatives use two different
 versions of install-info and you may see the message:
@@ -2671,13 +2671,13 @@ durations computations @ref{Durations and time values}.
 @cindex Lisp forms, as table formulas
 
 It is also possible to write a formula in Emacs Lisp.  This can be useful
-for string manipulation and control structures, if Calc's functionality is 
-not enough.  
+for string manipulation and control structures, if Calc's functionality is
+not enough.
 
 If a formula starts with a single-quote followed by an opening parenthesis,
 then it is evaluated as a Lisp form.  The evaluation should return either a
 string or a number.  Just as with @file{calc} formulas, you can specify modes
-and a printf format after a semicolon.  
+and a printf format after a semicolon.
 
 With Emacs Lisp forms, you need to be conscious about the way field
 references are interpolated into the form.  By default, a reference will be
@@ -6114,7 +6114,7 @@ is only necessary if you edit the timestamps directly.  If you change
 them with @kbd{S-@key{cursor}} keys, the update is automatic.
 @orgcmd{C-S-@key{up/down},org-clock-timestamps-up/down}
 On @code{CLOCK} log lines, increase/decrease both timestamps so that the
-clock duration keeps the same. 
+clock duration keeps the same.
 @orgcmd{S-M-@key{up/down},org-timestamp-up/down}
 On @code{CLOCK} log lines, increase/decrease the timestamp at point and
 the one of the previous (or the next clock) timestamp by the same duration.
@@ -16556,7 +16556,7 @@ rely on outline paths, in the hope that these will be unique enough.}.
 Finally, Org writes the file @file{index.org}, containing links to all other
 files.  @i{MobileOrg} first reads this file from the server, and then
 downloads all agendas and Org files listed in it.  To speed up the download,
-MobileOrg will only read files whose checksums@footnote{Checksums are stored 
+MobileOrg will only read files whose checksums@footnote{Checksums are stored
 automatically in the file @file{checksums.dat}} have changed.
 
 @node Pulling from MobileOrg,  , Pushing to MobileOrg, MobileOrg
@@ -16704,7 +16704,7 @@ on @file{org-element.el} and @file{org-export.el} has been outstanding, and
 opened the doors for many new ideas and features.
 
 @item Jambunathan K
-Jambunathan contributed the ODT exporter, definitly a killer feature of
+Jambunathan contributed the ODT exporter, definitely a killer feature of
 Org mode.  He also contributed the new HTML exporter, which is another core
 feature of Org.  Here too, I knew I could rely on him to fix bugs in these
 areas and to patiently explain the users what was the problems and solutions.
@@ -16712,7 +16712,7 @@ areas and to patiently explain the users what was the problems and solutions.
 @item Achim Gratz
 Achim rewrote the building process of Org, turning some @emph{ad hoc} tools
 into a flexible and conceptually clean process.  He patiently coped with the
-many hicups that such a change can create for users.
+many hiccups that such a change can create for users.
 
 @item Nick Dokos
 The Org mode mailing list would not be such a nice place without Nick, who

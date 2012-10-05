@@ -646,7 +646,7 @@ be merged recursively."
 		 ;; #define FOO(a) foo##a##bar
 		 (semantic-lex-spp-symbol-merge (cadr tok)))
 		(t
-		 (message "Invalid merge macro ecountered; \
+		 (message "Invalid merge macro encountered; \
 will return empty string instead.")
 		 "")))
 	     txt
