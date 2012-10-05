@@ -3953,6 +3953,9 @@ utime (const char *name, struct utimbuf *times)
 
   /* Need write access to set times.  */
   fh = CreateFile (name, FILE_WRITE_ATTRIBUTES,
+		   /* If NAME specifies a directory, FILE_SHARE_DELETE
+		      allows other processes to delete files inside it,
+		      while we have the directory open.  */
 		   FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
 		   0, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, NULL);
   if (fh != INVALID_HANDLE_VALUE)
