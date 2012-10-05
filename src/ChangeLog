@@ -1,3 +1,13 @@
+2012-10-05  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32.c (utime): Open the file with FILE_FLAG_BACKUP_SEMANTICS, so
+	that time stamps of directories could also be changed.  Don't
+	request the too broad GENERIC_WRITE, only the more restrictive
+	FILE_WRITE_ATTRIBUTES access rights.
+
+	* fileio.c (Fset_file_times): Special-case ignoring errors for
+	directories only on MSDOS, not on MS-Windows.
+
 2012-10-05  Ikumi Keita  <ikumi@ikumi.que.jp>  (tiny change)
 
 	* minibuf.c (Fcompleting_read): Doc fix.  (Bug#12555)

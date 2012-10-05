@@ -3034,7 +3034,7 @@ Use the current time if TIMESTAMP is nil.  TIMESTAMP is in the format of
   {
     if (set_file_times (-1, SSDATA (encoded_absname), t, t))
       {
-#ifdef DOS_NT
+#ifdef MSDOS
         struct stat st;
 
         /* Setting times on a directory always fails.  */
