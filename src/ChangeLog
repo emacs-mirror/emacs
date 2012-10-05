@@ -1,5 +1,7 @@
 2012-10-05  Eli Zaretskii  <eliz@gnu.org>
 
+	* w32proc.c (stop_timer_thread): Fix declaration of 'err'.
+
 	* w32.c (utime): Open the file with FILE_FLAG_BACKUP_SEMANTICS, so
 	that time stamps of directories could also be changed.  Don't
 	request the too broad GENERIC_WRITE, only the more restrictive

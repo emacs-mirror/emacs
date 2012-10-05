@@ -404,8 +404,8 @@ stop_timer_thread (int which)
   struct itimer_data *itimer =
     (which == ITIMER_REAL) ? &real_itimer : &prof_itimer;
   int i;
-  DWORD exit_code = 255;
-  BOOL status, err;
+  DWORD err, exit_code = 255;
+  BOOL status;
 
   /* Signal the thread that it should terminate.  */
   itimer->terminate = 1;
