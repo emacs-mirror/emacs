@@ -102,6 +102,7 @@
 
 (defgroup erc-lurker nil
   "Hide specified message types sent by lurkers"
+  :version "24.3"
   :group 'erc-ignore)
 
 (defgroup erc-query nil

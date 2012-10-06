@@ -483,6 +483,7 @@ with other user Makefiles."
   :type '(list (string :tag "Compile entire design")
 	       (string :tag "Clean entire design  ")
 	       (string :tag "Create design library"))
+  :version "24.3"
   :group 'vhdl-compile)
 
 (defcustom vhdl-makefile-generation-hook nil
@@ -772,6 +773,7 @@ index, the record field or array index is included with the record name in
 the sensitivity list (e.g. \"in1(0)\", \"in2.f0\").
 Otherwise, only the record name is included (e.g. \"in1\", \"in2\")."
   :type 'boolean
+  :version "24.3"
   :group 'vhdl-style)
 
 (defgroup vhdl-naming nil
@@ -1849,6 +1851,7 @@ Otherwise, comment lines are indented like the preceding code line.
 Indenting comment lines like the following code line gives nicer indentation
 when comments precede the code that they refer to."
   :type 'boolean
+  :version "24.3"
   :group 'vhdl-misc)
 
 (defcustom vhdl-word-completion-case-sensitive nil

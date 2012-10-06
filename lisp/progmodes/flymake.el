@@ -768,6 +768,7 @@ line number outside the file being compiled."
 The value may also be a list of two elements where the second
 element specifies the face for the bitmap."
   :group 'flymake
+  :version "24.3"
   :type 'symbol)
 
 (defcustom flymake-warning-bitmap 'question-mark
@@ -775,6 +776,7 @@ element specifies the face for the bitmap."
 The value may also be a list of two elements where the second
 element specifies the face for the bitmap."
   :group 'flymake
+  :version "24.3"
   :type 'symbol)
 
 (defcustom flymake-fringe-indicator-position 'left-fringe
@@ -782,6 +784,7 @@ element specifies the face for the bitmap."
 The value can be nil, left-fringe or right-fringe.
 Fringe indicators are disabled if nil."
   :group 'flymake
+  :version "24.3"
   :type '(choice (const left-fringe)
 		 (const right-fringe)
 		 (const :tag "No fringe indicators" nil)))

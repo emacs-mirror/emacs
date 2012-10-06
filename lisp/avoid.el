@@ -128,6 +128,7 @@ SIDE-POS: Distance from right or left edge of frame or window.
 TOP-OR-BOTTOM: banish the mouse to top or bottom of frame or window.
 TOP-OR-BOTTOM-POS: Distance from top or bottom edge of frame or window."
   :group   'avoid
+  :version "24.3"
   :type    '(alist :key-type symbol :value-type symbol)
   :options '(frame-or-window side (side-pos integer)
              top-or-bottom (top-or-bottom-pos integer)))

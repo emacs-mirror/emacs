@@ -1,5 +1,28 @@
 2012-10-06  Glenn Morris  <rgm@gnu.org>
 
+	* profiler.el (profiler): Add missing group :version tag.
+	* avoid.el (mouse-avoidance-banish-position):
+	* proced.el (proced-renice-command):
+	* calc/calc.el (calc-ensure-consistent-units):
+	* calendar/icalendar.el (icalendar-import-format-uid):
+	* net/tramp.el (tramp-save-ad-hoc-proxies):
+	* progmodes/bug-reference.el (bug-reference-bug-regexp):
+	* progmodes/flymake.el (flymake-error-bitmap)
+	(flymake-warning-bitmap, flymake-fringe-indicator-position):
+	* progmodes/sh-script.el (sh-indent-after-continuation):
+	* progmodes/verilog-mode.el (verilog-auto-template-warn-unused)
+	(verilog-before-save-font-hook, verilog-after-save-font-hook):
+	* progmodes/vhdl-mode.el (vhdl-makefile-default-targets)
+	(vhdl-array-index-record-field-in-sensitivity-list)
+	(vhdl-indent-comment-like-next-code-line):
+	* textmodes/reftex-vars.el (reftex-ref-style-alist)
+	(reftex-ref-macro-prompt, reftex-ref-style-default-list)
+	(reftex-cite-key-separator, reftex-create-bibtex-header)
+	(reftex-create-bibtex-footer):
+	* textmodes/rst.el (rst-new-adornment-down, rst-indent-field)
+	(rst-indent-literal-normal, rst-indent-literal-minimized)
+	(rst-indent-comment): Add missing custom :version tags.
+
 	* calendar/timeclock.el (timeclock-modeline-display):
 	Add missing obsolete alias for renamed user option.
 

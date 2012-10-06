@@ -1545,6 +1545,7 @@ b. a negative numerical argument, which generally inverts the
   :type '(choice
 	  (const :tag "Same level as previous one" nil)
 	  (const :tag "One level down relative to the previous one" t))
+  :version "24.3"
   :package-version '(rst . "1.1.0"))
 (rst-testcover-defcustom)
 
@@ -2845,24 +2846,28 @@ here."
 (defcustom rst-indent-field 3
   "Indentation for first line after a field or 0 to always indent for content."
   :group 'rst-indent
+  :version "24.3"
   :type '(integer))
 (rst-testcover-defcustom)
 
 (defcustom rst-indent-literal-normal 3
   "Default indentation for literal block after a markup on an own line."
   :group 'rst-indent
+  :version "24.3"
   :type '(integer))
 (rst-testcover-defcustom)
 
 (defcustom rst-indent-literal-minimized 2
   "Default indentation for literal block after a minimized markup."
   :group 'rst-indent
+  :version "24.3"
   :type '(integer))
 (rst-testcover-defcustom)
 
 (defcustom rst-indent-comment 3
   "Default indentation for first line of a comment."
   :group 'rst-indent
+  :version "24.3"
   :type '(integer))
 (rst-testcover-defcustom)
 
