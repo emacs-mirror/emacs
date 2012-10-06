@@ -1,3 +1,8 @@
+2012-10-06  Jambunathan K  <kjambunathan@gmail.com>
+
+	* register.el (append-to-register, prepend-to-register):
+	Deactivate mark, as does `copy-to-register' (bug#12389).
+
 2012-10-06  Chong Yidong  <cyd@gnu.org>
 
 	* files.el (auto-mode-alist): Add .by and .wy (Semantic grammars).
@@ -68,7 +73,7 @@
 	(python-fill-decorator-function, python-fill-paren-function):
 	Remove :safe for defcustoms.
 	(python-fill-string-style): New defcustom
-	(python-fill-paragraph-function): Enhanced context detection.
+	(python-fill-paragraph-function): Enhance context detection.
 	(python-fill-string): Honor python-fill-string-style settings.
 
 2012-10-04  Martin Rudalics  <rudalics@gmx.at>
@@ -100,8 +105,8 @@
 
 2012-10-02  Chong Yidong  <cyd@gnu.org>
 
-	* progmodes/hideif.el (hif-lookup, hif-defined): Handle
-	semantic-c-takeover-hideif.
+	* progmodes/hideif.el (hif-lookup, hif-defined):
+	Handle semantic-c-takeover-hideif.
 
 2012-10-02  Paul Eggert  <eggert@cs.ucla.edu>
 
@@ -117,8 +122,8 @@
 
 2012-10-02  Sergio Durigan Junior  <sergiodj@riseup.net>  (tiny change)
 
-	* net/eudcb-bbdb.el (eudc-bbdb-format-record-as-result): Fix
-	querying BBDB for entries without a last name (Bug#11580).
+	* net/eudcb-bbdb.el (eudc-bbdb-format-record-as-result):
+	Fix querying BBDB for entries without a last name (Bug#11580).
 
 2012-10-02  Chong Yidong  <cyd@gnu.org>
 
