@@ -1,4 +1,4 @@
-2012-10-06  Kenichi Handa  <handa@gnu.org>
+2012-10-06  Ikumi Keita  <ikumi@ikumi.que.jp>  (tiny change)
 
 	* international/characters.el: Fix simple mistake ((car chars) ->
 	elt), delete duplicated code.
