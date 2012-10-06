@@ -1,3 +1,7 @@
+2012-10-06  Chong Yidong  <cyd@gnu.org>
+
+	* files.el (auto-mode-alist): Add .by and .wy (Semantic grammars).
+
 2012-10-06  Ikumi Keita  <ikumi@ikumi.que.jp>  (tiny change)
 
 	* international/characters.el: Fix simple mistake ((car chars) ->

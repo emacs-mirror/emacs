@@ -1,4 +1,4 @@
-;;; bovine-grammar.el --- Bovine's input grammar mode
+;;; semantic/bovine/grammar.el --- Bovine's input grammar mode
 ;;
 ;; Copyright (C) 2002-2012 Free Software Foundation, Inc.
 ;;
@@ -413,18 +413,17 @@ manual."
        ""))))
 
 (defvar bovine-grammar-menu
-  '("BY Grammar"
-    )
+  '("BY Grammar")
   "BY mode specific grammar menu.
 Menu items are appended to the common grammar menu.")
 
+;;;###autoload
 (define-derived-mode bovine-grammar-mode semantic-grammar-mode "BY"
   "Major mode for editing Bovine grammars."
   (semantic-grammar-setup-menu bovine-grammar-menu)
   (semantic-install-function-overrides
    '((grammar-parsetable-builder . bovine-grammar-parsetable-builder)
-     (grammar-setupcode-builder  . bovine-grammar-setupcode-builder)
-     )))
+     (grammar-setupcode-builder  . bovine-grammar-setupcode-builder))))
 
 (add-to-list 'auto-mode-alist '("\\.by\\'" . bovine-grammar-mode))
 
@@ -443,8 +442,6 @@ Menu items are appended to the common grammar menu.")
     (ALIAS-TAG      . bovine-grammar-ALIAS-TAG)
     )
   "Semantic grammar macros used in bovine grammars.")
-
-(provide 'semantic/bovine/grammar)
 
 (defun bovine-make-parsers ()
   "Generate Emacs' built-in Bovine-based parser files."
@@ -504,4 +501,6 @@ Menu items are appended to the common grammar menu.")
 	  (replace-match packagename nil nil nil 1)
 	  (save-buffer))))))
 
-;;; bovine-grammar.el ends here
+(provide 'semantic/bovine/grammar)
+
+;;; semantic/bovine/grammar.el ends here

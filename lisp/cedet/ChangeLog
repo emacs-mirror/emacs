@@ -1,3 +1,9 @@
+2012-10-06  Chong Yidong  <cyd@gnu.org>
+
+	* semantic/bovine/grammar.el:
+	* semantic/wisent/grammar.el: Move from admin/grammars.  Add
+	autoloads for bovine-grammar-mode and wisent-grammar-mode.
+
 2012-10-02  Chong Yidong  <cyd@gnu.org>
 
 	* srecode.el, ede.el: Restore Version header.
