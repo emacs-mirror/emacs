@@ -37,6 +37,7 @@
 ;; cal-tex-cursor-month
 ;; cal-tex-cursor-week
 ;; cal-tex-cursor-week2
+;; cal-tex-cursor-week2-summary
 ;; cal-tex-cursor-week-iso
 ;; cal-tex-cursor-week-monday
 ;; cal-tex-cursor-filofax-2week
@@ -82,8 +83,6 @@ Setting this to nil may speed up calendar generation."
 
 (defcustom cal-tex-diary nil
   "Non-nil means diary entries are printed in LaTeX calendars that support it.
-At present, this only affects the monthly, filofax, and iso-week
-calendars (i.e. not the yearly, plain weekly, or daily calendars).
 Setting this to nil may speed up calendar generation."
   :type 'boolean
   :group 'calendar-tex)
@@ -717,11 +716,15 @@ this is only an upper bound."
 ;; TODO respect cal-tex-daily-start,end (see cal-tex-week-hours).
 ;;;###cal-autoload
 (defun cal-tex-cursor-week (&optional n event)
-  "Make a LaTeX calendar buffer for a two-page one-week calendar.
-It applies to the week that point is in.  The optional prefix
-argument N specifies number of weeks (default 1).  The calendar
-shows holidays if `cal-tex-holidays' is non-nil (note that diary
-entries are not shown).  The calendar shows the hours 8-12am, 1-5pm."
+  "Make a one page LaTeX calendar for one week, showing hours of the day.
+There are two columns; with 8-12am in the first and 1-5pm in the second.
+It shows holidays if `cal-tex-holidays' is non-nil.
+It does not show diary entries.
+
+The optional prefix argument N specifies a number of weeks (default 1).
+
+By default, the calendar is for the week at point; the optional
+argument EVENT specifies a different buffer position."
   (interactive (list (prefix-numeric-value current-prefix-arg)
                      last-nonmenu-event))
   (or n (setq n 1))
@@ -768,12 +771,15 @@ entries are not shown).  The calendar shows the hours 8-12am, 1-5pm."
 ;; TODO respect cal-tex-daily-start,end (see cal-tex-week-hours).
 ;;;###cal-autoload
 (defun cal-tex-cursor-week2 (&optional n event)
-  "Make a LaTeX calendar buffer for a two-page one-week calendar.
-It applies to the week that point is in.  Optional prefix
-argument N specifies number of weeks (default 1).  The calendar
-shows holidays if `cal-tex-holidays' is non-nil (note that diary
-entries are not shown).  The calendar shows the hours 8-12am, 1-5pm.
-Optional EVENT indicates a buffer position to use instead of point."
+  "Make a two page LaTeX calendar for one week, showing hours of the day.
+There are two columns; with 8-12am in the first and 1-5pm in the second.
+It shows holidays if `cal-tex-holidays' is non-nil.
+It does not show diary entries.
+
+The optional prefix argument N specifies a number of weeks (default 1).
+
+By default, the calendar is for the week at point; the optional
+argument EVENT specifies a different buffer position."
   (interactive (list (prefix-numeric-value current-prefix-arg)
                      last-nonmenu-event))
   (or n (setq n 1))
@@ -848,12 +854,15 @@ Optional EVENT indicates a buffer position to use instead of point."
 
 ;;;###cal-autoload
 (defun cal-tex-cursor-week-iso (&optional n event)
-  "Make a LaTeX calendar buffer for a one page ISO-style weekly calendar.
-Optional prefix argument N specifies number of weeks (default 1).
-The calendar shows holiday and diary entries if
-`cal-tex-holidays' and `cal-tex-diary', respectively, are non-nil.
-It does not show hours of the day.  Optional EVENT indicates a buffer
-position to use instead of point."
+  "Make a one page LaTeX calendar for one week, in the ISO-style.
+It does not show hours of the day.
+It shows holidays if `cal-tex-holidays' is non-nil.
+It shows diary entries if `cal-tex-diary' is non-nil.
+
+The optional prefix argument N specifies a number of weeks (default 1).
+
+By default, the calendar is for the week at point; the optional
+argument EVENT specifies a different buffer position."
   (interactive (list (prefix-numeric-value current-prefix-arg)
                      last-nonmenu-event))
   (or n (setq n 1))
@@ -976,13 +985,16 @@ shown are hard-coded to 8-12, 13-17."
 ;; TODO respect cal-tex-daily-start,end (see cal-tex-weekly4-box).
 ;;;###cal-autoload
 (defun cal-tex-cursor-week-monday (&optional n event)
-  "Make a LaTeX calendar buffer for a two-page one-week calendar.
-It applies to the week that point is in, and starts on Monday.
-Optional prefix argument N specifies number of weeks (default 1).
-The calendar shows holidays if `cal-tex-holidays' is
-non-nil (note that diary entries are not shown).   The calendar shows
-the hours 8-12am, 1-5pm.  Optional EVENT indicates a buffer position
-to use instead of point."
+  "Make a one page LaTeX calendar for one week, showing hours of the day.
+There are two columns; with M-W in the first and T-S in the second.
+It shows the hours 8-12am and 1-5pm.
+It shows holidays if `cal-tex-holidays' is non-nil.
+It does not show diary entries.
+
+The optional prefix argument N specifies a number of weeks (default 1).
+
+By default, the calendar is for the week at point; the optional
+argument EVENT specifies a different buffer position."
   (interactive (list (prefix-numeric-value current-prefix-arg)
                      last-nonmenu-event))
   (or n (setq n 1))
@@ -1203,13 +1215,16 @@ shown are hard-coded to 8-12, 13-17."
     (run-hooks 'cal-tex-hook)))
 
 ;;;###cal-autoload
-(defun cal-tex-cursor-week-at-a-glance (&optional n event)
-  "One-week-at-a-glance full page calendar for week indicated by cursor.
-Optional prefix argument N specifies number of weeks (default 1),
-starting on Mondays.  The calendar shows holiday and diary entries
-if `cal-tex-holidays' and `cal-tex-diary', respectively, are non-nil.
-It does not show hours of the day.  Optional EVENT indicates a buffer
-position to use instead of point."
+(defun cal-tex-cursor-week2-summary (&optional n event)
+  "Make a two page LaTeX calendar for one week, with optional diary entries.
+It does not show hours of the day.
+It shows holidays if `cal-tex-holidays' is non-nil.
+It shows diary entries if `cal-tex-diary' is non-nil.
+
+The optional prefix argument N specifies a number of weeks (default 1).
+
+By default, the calendar is for the week at point; the optional
+argument EVENT specifies a different buffer position."
   (interactive (list (prefix-numeric-value current-prefix-arg)
                      last-nonmenu-event))
   (cal-tex-weekly-common n event))

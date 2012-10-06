@@ -1,3 +1,17 @@
+2012-10-06  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/cal-tex.el (cal-tex-diary, cal-tex-cursor-week)
+	(cal-tex-cursor-week2, cal-tex-cursor-week-iso)
+	(cal-tex-cursor-week-monday): Doc fixes.
+	(cal-tex-cursor-week2-summary): Doc fix.
+	Rename from cal-tex-cursor-week-at-a-glance.
+
+	* calendar/cal-menu.el (cal-menu-context-mouse-menu):
+	Tweak week descriptions.  Add cal-tex-cursor-week2-summary.
+
+	* calendar/calendar.el (calendar-mode-map):
+	Add cal-tex-cursor-week2-summary.
+
 2012-10-06  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/cl-macs.el (cl-defstruct): Improve docstring.

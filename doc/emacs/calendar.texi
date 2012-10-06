@@ -396,17 +396,20 @@ Generate a sideways-printing one-month calendar
 Generate a one-day calendar
 (@code{cal-tex-cursor-day}).
 @item t w 1
-Generate a one-page calendar for one week
+Generate a one-page calendar for one week, with hours
 (@code{cal-tex-cursor-week}).
 @item t w 2
-Generate a two-page calendar for one week
+Generate a two-page calendar for one week, with hours
 (@code{cal-tex-cursor-week2}).
 @item t w 3
-Generate an ISO-style calendar for one week
+Generate an ISO-style calendar for one week, without hours
 (@code{cal-tex-cursor-week-iso}).
 @item t w 4
-Generate a calendar for one Monday-starting week
+Generate a calendar for one Monday-starting week, with hours
 (@code{cal-tex-cursor-week-monday}).
+@item t w W
+Generate a two-page calendar for one week, without hours
+(@code{cal-tex-cursor-week2-summary}).
 @item t f w
 Generate a Filofax-style two-weeks-at-a-glance calendar
 (@code{cal-tex-cursor-filofax-2week}).
