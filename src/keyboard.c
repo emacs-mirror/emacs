@@ -2283,11 +2283,10 @@ read_char (int commandflag, ptrdiff_t nmaps, Lisp_Object *maps,
 	   Lisp_Object prev_event,
 	   int *used_mouse_menu, EMACS_TIME *end_time)
 {
-  volatile Lisp_Object c;
+  Lisp_Object c;
   ptrdiff_t jmpcount;
   sys_jmp_buf local_getcjmp;
   sys_jmp_buf save_jump;
-  volatile int key_already_recorded = 0;
   Lisp_Object tem, save;
   volatile Lisp_Object previous_echo_area_message;
   volatile Lisp_Object also_record;
@@ -2519,10 +2518,7 @@ read_char (int commandflag, ptrdiff_t nmaps, Lisp_Object *maps,
         return c;               /* wrong_kboard_jmpbuf */
 
       if (! NILP (c))
-	{
-	  key_already_recorded = 1;
-	  goto non_reread_1;
-	}
+	goto exit;
     }
 
   /* Make a longjmp point for quits to use, but don't alter getcjmp just yet.
@@ -2850,12 +2846,10 @@ read_char (int commandflag, ptrdiff_t nmaps, Lisp_Object *maps,
       goto wrong_kboard;
     }
 
- non_reread_1:
-
   /* Buffer switch events are only for internal wakeups
      so don't show them to the user.
      Also, don't record a key if we already did.  */
-  if (BUFFERP (c) || key_already_recorded)
+  if (BUFFERP (c))
     goto exit;
 
   /* Process special events within read_char

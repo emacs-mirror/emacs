@@ -1,3 +1,7 @@
+2012-10-06  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* keyboard.c (read_char): Remove unnecessary 'volatile's and label.
+
 2012-10-05  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32proc.c (stop_timer_thread): Fix declaration of 'err'.
