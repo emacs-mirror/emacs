@@ -1,5 +1,8 @@
 2012-10-06  Glenn Morris  <rgm@gnu.org>
 
+	* calendar/timeclock.el (timeclock-modeline-display):
+	Add missing obsolete alias for renamed user option.
+
 	* strokes.el (strokes-modeline-string):
 	* emulation/crisp.el (crisp-mode-modeline-string):
 	* eshell/esh-mode.el (eshell-status-in-modeline):
