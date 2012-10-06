@@ -1,3 +1,8 @@
+2012-10-06  Julian Scheid  <julians37@gmail.com>  (tiny change)
+
+	* color.el (color-hsl-to-rgb): Fix incorrect results for
+	small and large hue values.  (Bug#12559)
+
 2012-10-05  Fabián Ezequiel Gallina  <fgallina@cuca>
 
 	Enhancements to docstring formatting when filling paragraphs.

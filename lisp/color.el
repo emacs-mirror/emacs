@@ -113,9 +113,9 @@ inclusive."
 		 (- (+ L S) (* L S))))
 	   (m1 (- (* 2.0 L) m2)))
       (list
-       (color-hue-to-rgb m1 m2 (+ H (/ 1.0 3)))
+       (color-hue-to-rgb m1 m2 (mod (+ H (/ 1.0 3)) 1))
        (color-hue-to-rgb m1 m2 H)
-       (color-hue-to-rgb m1 m2 (- H (/ 1.0 3)))))))
+       (color-hue-to-rgb m1 m2 (mod (- H (/ 1.0 3)) 1))))))
 
 (defun color-complement-hex (color)
   "Return the color that is the complement of COLOR, in hexadecimal format."
