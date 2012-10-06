@@ -37,7 +37,8 @@ CFLAGS=@CFLAGS@
 CPPFLAGS=@CPPFLAGS@
 RANLIB=@RANLIB@
 
-AR = ar cq
+AR = @AR@
+ARFLAGS = @ARFLAGS@
 
 LUCID_OBJS = lwlib-Xlw.o xlwmenu.o lwlib-Xaw.o
 MOTIF_OBJS = lwlib-Xm.o
@@ -65,7 +66,7 @@ all:: liblw.a
 
 liblw.a: $(OBJS)
 	rm -f $@
-	$(AR) $@ $(OBJS)
+	$(AR) $(ARFLAGS) $@ $(OBJS)
 	$(RANLIB) $@
 
 ## Generated files in ../src, non-generated in $(srcdir)/../src.

@@ -57,8 +57,8 @@ CFLAGS=@CFLAGS@
 TAGS = etags
 RM = rm -f
 RANLIB = @RANLIB@
-# Solaris 2.1 ar doesn't accept the 'l' option.
-AR = ar cq
+AR = @AR@
+ARFLAGS = @ARFLAGS@
 
 OBJS =  Activate.o \
 	AddPane.o \
@@ -98,7 +98,7 @@ ALL_CFLAGS=$(C_SWITCH_SYSTEM) $(C_SWITCH_MACHINE) \
 
 libXMenu11.a: $(OBJS) $(EXTRA)
 	$(RM) $@
-	$(AR) $@ $(OBJS) $(EXTRA)
+	$(AR) $(ARFLAGS) $@ $(OBJS) $(EXTRA)
 	$(RANLIB) $@
 
 Activate.o: Activate.c XMenuInt.h XMenu.h X10.h
