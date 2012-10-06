@@ -1768,7 +1768,8 @@ Does not preserve point."
 (defcustom sh-indent-after-continuation t
   "If non-nil, try to make sure text is indented after a line continuation."
   :version "24.3"
-  :type 'boolean)
+  :type 'boolean
+  :group 'sh-indentation)
 
 (defun sh-smie--continuation-start-indent ()
   "Return the initial indentation of a continued line.

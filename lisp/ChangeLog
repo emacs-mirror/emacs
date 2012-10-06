@@ -1,5 +1,8 @@
 2012-10-06  Glenn Morris  <rgm@gnu.org>
 
+	* progmodes/sh-script.el (sh-indent-after-continuation):
+	Add explicit :group.
+
 	* textmodes/rst.el (rst-preferred-decorations)
 	(rst-shift-basic-offset): Clarify obsolescence versions.
 
