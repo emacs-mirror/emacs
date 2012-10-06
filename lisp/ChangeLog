@@ -1592,7 +1592,7 @@
 2012-09-08  Jambunathan K  <kjambunathan@gmail.com>
 
 	* register.el (register): New group.
-	(register-separator): New user option.
+	(separator-register): New user option.
 	(increment-register): Route it to `append-to-register', if
 	register contains text.  Implication is that `C-x r +' can now be
 	used for appending to a text register (bug#12217).
