@@ -48,8 +48,7 @@ and modified without restriction.
 @contents
 
 @ifnottex
-@node Top, Introduction, (dir), (dir)
-@comment  node-name,  next,  previous,  up
+@node Top
 @top ERC
 
 @insertcopying
@@ -95,8 +94,7 @@ Advanced Usage
 @end detailmenu
 @end menu
 
-@node Introduction, Obtaining ERC, Top, Top
-@comment  node-name,  next,  previous,  up
+@node Introduction
 @chapter Introduction
 
 ERC is a powerful, modular, and extensible IRC client for Emacs.
@@ -119,8 +117,7 @@ It comes with the following capabilities enabled by default.
 
 @end itemize
 
-@node Obtaining ERC, Installation, Introduction, Top
-@comment  node-name,  next,  previous,  up
+@node Obtaining ERC
 @chapter Obtaining ERC
 
 @menu
@@ -140,8 +137,7 @@ locations, or from your local GNU mirror.
 The rest of this chapter may be skipped if you are using the version of
 ERC that comes with Emacs.
 
-@node Releases, Development, Obtaining ERC, Obtaining ERC
-@comment  node-name,  next,  previous,  up
+@node Releases
 @section Releases
 
 Choose to install a release if you want to minimize risk.
@@ -159,8 +155,7 @@ available in the official Debian repository.
 Alternatively, you can download the latest release from
 @uref{http://ftp.gnu.org/gnu/erc}, or your local GNU mirror.
 
-@node Development,  , Releases, Obtaining ERC
-@comment  node-name,  next,  previous,  up
+@node Development
 @section Development
 @cindex development
 
@@ -263,8 +258,7 @@ development, please consult
 @uref{http://emacswiki.org/cgi-bin/wiki/ErcDevelopment}.
 
 
-@node Installation, Getting Started, Obtaining ERC, Top
-@comment  node-name,  next,  previous,  up
+@node Installation
 @chapter Installation
 
 ERC may be compiled and installed on your machine.
@@ -315,8 +309,7 @@ Run @code{make install} as the root user if you have chosen installation
 locations that require this.
 
 
-@node Getting Started, Keystroke Summary, Installation, Top
-@comment  node-name,  next,  previous,  up
+@node Getting Started
 @chapter Getting Started
 @cindex settings
 
@@ -344,8 +337,7 @@ you want, do @kbd{M-x customize-variable RET erc-modules RET}.
 * Special Features::            Differences from standalone IRC clients
 @end menu
 
-@node Sample Session, Special Features, Getting Started, Getting Started
-@comment  node-name,  next,  previous,  up
+@node Sample Session
 @section Sample Session
 
 This is an example ERC session which shows how to connect to the #emacs
@@ -403,8 +395,7 @@ talk with them.
 
 @end itemize
 
-@node Special Features, , Sample Session, Getting Started
-@comment  node-name,  next,  previous,  up
+@node Special Features
 @section Special Features
 
 ERC has some features that distinguish it from some IRC clients.
@@ -478,8 +469,7 @@ ERC  buffer and run the @code{/RECONNECT} command.
 @end itemize
 
 
-@node Keystroke Summary, Modules, Getting Started, Top
-@comment  node-name,  next,  previous,  up
+@node Keystroke Summary
 @chapter Keys Used in ERC
 @cindex keystrokes
 
@@ -562,8 +552,7 @@ Kill current input line using `erc-bol' followed by `kill-line'.
 @end table
 
 
-@node Modules, Advanced Usage, Keystroke Summary, Top
-@comment  node-name,  next,  previous,  up
+@node Modules
 @chapter Modules
 @cindex modules
 
@@ -701,8 +690,7 @@ Translate morse code in messages
 @c PRE5_4: Document every option of every module in its own subnode
 
 
-@node Advanced Usage, Getting Help and Reporting Bugs, Modules, Top
-@comment  node-name,  next,  previous,  up
+@node Advanced Usage
 @chapter Advanced Usage
 @cindex advanced topics
 
@@ -712,8 +700,7 @@ Translate morse code in messages
 * Options::                     Options that are available for ERC.
 @end menu
 
-@node Connecting, Sample Configuration, Advanced Usage, Advanced Usage
-@comment  node-name,  next,  previous,  up
+@node Connecting
 @section Connecting to an IRC Server
 @cindex connecting
 
@@ -846,8 +833,7 @@ User full name.
 This can be either a string or a function to call.
 @end defopt
 
-@node Sample Configuration, Options, Connecting, Advanced Usage
-@comment  node-name,  next,  previous,  up
+@node Sample Configuration
 @section Sample Configuration
 @cindex configuration, sample
 
@@ -926,8 +912,7 @@ stuff, to the current ERC buffer."
 ;; (setq erc-kill-server-buffer-on-quit t)
 @end lisp
 
-@node Options, , Sample Configuration, Advanced Usage
-@comment  node-name,  next,  previous,  up
+@node Options
 @section Options
 @cindex options
 
@@ -939,8 +924,7 @@ check out the available options for ERC is to do
 @kbd{M-x customize-group erc RET}.
 
 
-@node Getting Help and Reporting Bugs, History, Advanced Usage, Top
-@comment  node-name,  next,  previous,  up
+@node Getting Help and Reporting Bugs
 @chapter Getting Help and Reporting Bugs
 @cindex help, getting
 @cindex bugs, reporting
@@ -980,8 +964,7 @@ questions.
 @end itemize
 
 
-@node History, Copying, Getting Help and Reporting Bugs, Top
-@comment  node-name,  next,  previous,  up
+@node History
 @chapter History
 @cindex history, of ERC
 
@@ -1046,16 +1029,15 @@ We switched to using git for our version control system.
 
 @end itemize
 
-@node Copying, GNU Free Documentation License, History, Top
-@comment  node-name,  next,  previous,  up
+@node Copying
+@appendix GNU GENERAL PUBLIC LICENSE
 @include gpl.texi
 
-@node GNU Free Documentation License, Concept Index, Copying, Top
-@comment  node-name,  next,  previous,  up
+@node GNU Free Documentation License
+@appendix GNU Free Documentation License
 @include doclicense.texi
 
-@node Concept Index,  , GNU Free Documentation License, Top
-@comment  node-name,  next,  previous,  up
+@node Concept Index
 @unnumbered Index
 
 @printindex cp

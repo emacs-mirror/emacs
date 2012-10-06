@@ -1,3 +1,7 @@
+2012-10-06  Glenn Morris  <rgm@gnu.org>
+
+	* erc.texi: Remove hand-written node pointers.
+
 2012-10-05  Glenn Morris  <rgm@gnu.org>
 
 	* newsticker.texi (Overview, Requirements, Usage, Configuration):
