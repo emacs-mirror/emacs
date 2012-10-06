@@ -787,7 +787,8 @@ is visible (and the real data of the buffer is hidden).
 Optional argument SHUT-UP, if non-nil, means don't print messages
 when parsing the archive."
   (widen)
-  (let ((inhibit-read-only t))
+  (let ((buffer-file-truename nil) ; avoid changing dir mtime by lock_file
+	(inhibit-read-only t))
     (setq archive-proper-file-start (copy-marker (point-min) t))
     (set (make-local-variable 'change-major-mode-hook) 'archive-desummarize)
     (or shut-up

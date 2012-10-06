@@ -1,3 +1,7 @@
+2012-10-06  Ulrich Müller  <ulm@gentoo.org>
+
+	* Makefile.in (AR, ARFLAGS): Get values from configure.
+
 2012-08-16  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Use ASCII tests for character types.

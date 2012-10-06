@@ -1,3 +1,10 @@
+2012-10-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* url-http.el (url-http-user-agent-string): Leak less info.
+	(url-http, url-http-file-exists-p, url-http-file-readable-p)
+	(url-http-file-attributes, url-http-options, url-https-default-port)
+	(url-https-asynchronous-p): Don't autoload.
+
 2012-09-30  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* url-handlers.el (url-file-handler): Don't assume any url-FOO function

@@ -163,7 +163,7 @@ and querying them will cause the actual project to get loaded.")
 	    :documentation "Sub projects controlled by this project.
 For Automake based projects, each directory is treated as a project.")
    (targets :initarg :targets
-	    :type list
+	    :type ede-target-list
 	    :custom (repeat (object :objectcreatefcn ede-new-target-custom))
 	    :label "Local Targets"
 	    :group (targets)
@@ -287,10 +287,7 @@ All specific project types must derive from this project."
   "For the project in which OBJ resides, execute FORMS."
   `(save-window-excursion
      (let* ((pf (if (obj-of-class-p ,obj ede-target)
-		    ;; @todo -I think I can change
-		    ;; this to not need ede-load-project-file
-		    ;; but I'm not sure how to test well.
-		    (ede-load-project-file (oref ,obj path))
+		    (ede-target-parent ,obj)
 		  ,obj))
 	    (dbka (get-file-buffer (oref pf file))))
        (if (not dbka) (find-file (oref pf file))

@@ -119,13 +119,13 @@ static Lisp_Object apply_lambda (Lisp_Object fun, Lisp_Object args);
 
 /* Functions to set Lisp_Object slots of struct specbinding.  */
 
-static inline void
+static void
 set_specpdl_symbol (Lisp_Object symbol)
 {
   specpdl_ptr->symbol = symbol;
 }
 
-static inline void
+static void
 set_specpdl_old_value (Lisp_Object oldval)
 {
   specpdl_ptr->old_value = oldval;

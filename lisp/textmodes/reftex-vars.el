@@ -4,8 +4,6 @@
 
 ;; Author: Carsten Dominik <dominik@science.uva.nl>
 ;; Maintainer: auctex-devel@gnu.org
-;; Version: 4.31
-;; Package: reftex
 
 ;; This file is part of GNU Emacs.
 
@@ -207,6 +205,11 @@ distribution.  Mixed-case symbols are convenience aliases.")
       (?p    . "(%2a %y\\nocite{%l})")))
     (locally     "Full info in parenthesis"
      "(%2a %y, %j %v, %P, %e: %b, %u, %s %<)")
+    (context
+     "ConTeXt bib module"
+     ((?\C-m . "\\cite[%l]")
+      (?s    . "\\cite[][%l]")
+      (?n    . "\\nocite[%l]")))
     )
   "Builtin versions of the citation format.
 The following conventions are valid for all alist entries:
@@ -239,7 +242,7 @@ distribution.  Mixed-case symbols are convenience aliases.")
   "LaTeX label and citation support."
   :tag "RefTeX"
   :link '(url-link :tag "Home Page"
-                   "http://staff.science.uva.nl/~dominik/Tools/reftex/")
+                   "http://www.gnu.org/software/auctex/reftex.html")
   :link '(emacs-commentary-link :tag "Commentary in reftex.el" "reftex.el")
   :link '(custom-manual "(reftex)Top")
   :prefix "reftex-"
@@ -261,8 +264,8 @@ by whitespace."
 
 (defcustom reftex-max-section-depth 12
   "Maximum depth of section levels in document structure.
-Standard LaTeX needs default is 7, but there are packages for which this
-needs to be larger."
+The default in standard LaTeX is 7, but there are packages for
+which this needs to be larger."
   :group 'reftex-table-of-contents-browser
   :type 'integer)
 
@@ -329,7 +332,7 @@ recentering will work for any TOC window created during the session.
 
 Value 'frame (the default) means, turn automatic recentering on only while the
 dedicated TOC frame does exist, and do the recentering only in that frame.  So
-when creating that frame (with \"d\" key in an ordinary TOC window), the
+when creating that frame (with `d' key in an ordinary TOC window), the
 automatic recentering is turned on.  When the frame gets destroyed, automatic
 recentering is turned off again.
 
@@ -383,8 +386,8 @@ This flag can be toggled from within the *toc* buffer with the `i' key."
 
 (defcustom reftex-toc-confirm-promotion 2
   "Non-nil means, promotion/demotion commands first prompt for confirmation.
-When nil, the command is executed immediately.  When this is an integer
-N, ask for confirmation only if N or more section commands are going to be
+If nil, the command is executed immediately.  If this is an integer N,
+ask for confirmation only if N or more section commands are going to be
 changed."
   :group 'reftex-table-of-contents-browser
   :type '(choice
@@ -408,7 +411,7 @@ This flag can be toggled from within the *toc* buffer with the `f' key."
 
 (defcustom reftex-revisit-to-follow nil
   "Non-nil means, follow-mode will revisit files if necessary.
-When nil, follow-mode will be suspended for stuff in unvisited files."
+If nil, follow-mode will be suspended for stuff in unvisited files."
   :group 'reftex-table-of-contents-browser
   :group 'reftex-referencing-labels
   :type 'boolean)
@@ -452,8 +455,8 @@ of options."
 (defcustom reftex-label-alist nil
   "Alist with information on environments for \\label-\\ref use.
 
-This docstring is easier to understand after reading the configuration
-examples in `reftex.el'.  Looking at the builtin defaults in the constant
+This doc string is easier to understand after reading the configuration
+examples in the manual.  Looking at the builtin defaults in the constant
 `reftex-label-alist-builtin' may also be instructive.
 
 Set this variable to define additions and changes to the default.  The only
@@ -481,12 +484,11 @@ ENV-OR-MACRO
     Special names: `section' for section labels, `any' to define a group
     which contains all labels.
 
-    This may also be a function to do local parsing and identify point
-    to be in a non-standard label environment.  The function must take
-    an argument BOUND and limit backward searches to this value.  It
-    should return either nil or a cons cell (FUNCTION . POSITION) with
-    the function symbol and the position where the special environment
-    starts.  See the Info documentation for an example.
+    This may also be a function to do local parsing and identify point to
+    be in a non-standard label environment.  The function must take an
+    argument BOUND and limit backward searches to this value.  It should
+    return either nil or the position where the special environment starts.
+    See the Info documentation for an example.
 
     Finally this may also be nil if the entry is only meant to change
     some settings associated with the type indicator character (see below).
@@ -500,7 +502,7 @@ TYPE-KEY
     `equation' and `eqnarray').
     If the type indicator is nil and the macro has a label argument {*},
     the macro defines neutral labels just like \\label.  In this case
-    the reminder of this entry is ignored.
+    the remainder of this entry is ignored.
 
 LABEL-PREFIX
     Label prefix string, like \"tab:\".
@@ -516,8 +518,8 @@ LABEL-PREFIX
     Example: In a file `intro.tex', \"eq:%f:\" will become \"eq:intro:\").
 
 REFERENCE-FORMAT
-    Format string for reference insert in buffer.  `%s' will be replaced by
-    the label.
+    Format string for reference insertion in buffer.  `%s' will be replaced
+    by the label.
     When the format starts with `~', the `~' will only be inserted if
     there is not already a whitespace before point.
 
@@ -533,7 +535,7 @@ CONTEXT-METHOD
     - If an integer, use the nth argument of the macro.  As a special case,
       1000 means to get text after the last macro argument.
     - If a string, use as regexp to search *backward* from the label.  Context
-      is then the text following the end of the match.  E.g. putting this to
+      is then the text following the end of the match.  E.g. setting this to
       \"\\\\\\\\caption[[{]\" will use the caption in a figure or table
       environment.
       \"\\\\\\\\begin{eqnarray}\\\\|\\\\\\\\\\\\\\\\\" works for eqnarrays.
@@ -755,8 +757,7 @@ And here is the setup for RefTeX:
 
 3. Tell RefTeX to use this function
 
-   (setq reftex-special-environment-functions '(my-detect-linguex-list))
-"
+   (setq reftex-special-environment-functions '(my-detect-linguex-list))"
   :group 'reftex-defining-label-environments
   :type 'hook)
 
@@ -820,11 +821,13 @@ RefTeX's default function uses the variable `reftex-derive-label-parameters'."
   :type 'symbol)
 
 (defcustom reftex-translate-to-ascii-function 'reftex-latin1-to-ascii
-  "Filter function which will process a context string before it is used
-to derive a label from it.  The intended application is to convert ISO or
-Mule characters into something valid in labels.  The default function
-removes the accents from Latin-1 characters.  X-Symbol (>=2.6) sets this
-variable to the much more general `x-symbol-translate-to-ascii'."
+  "Filter function to convert a string to ASCII.
+The function is used to process a context string before it is
+used to derive a label from it.  The intended application is to
+convert ISO or Mule characters into something valid in labels.
+The default function removes the accents from Latin-1 characters.
+X-Symbol (>=2.6) sets this variable to the much more general
+`x-symbol-translate-to-ascii'."
   :group 'reftex-making-and-inserting-labels
   :type 'symbol)
 
@@ -947,27 +950,78 @@ This is used to string together whole reference sets, like
   :group 'reftex-referencing-labels
   :type '(repeat (cons (character) (string))))
 
+(defcustom reftex-ref-style-alist
+  '(("Default" t
+     (("\\ref" ?\C-m) ("\\pageref" ?p)))
+    ("Varioref" "varioref"
+     (("\\vref" ?v) ("\\vpageref" ?g) ("\\Vref" ?V) ("\\Ref" ?R)))
+    ("Fancyref" "fancyref"
+     (("\\fref" ?f) ("\\Fref" ?F)))
+    ("Hyperref" "hyperref"
+     (("\\autoref" ?a) ("\\autopageref" ?u))))
+  "Alist of reference styles.
+Each element is a list of the style name, the name of the LaTeX
+package associated with the style or t for any package, and an
+alist of macros where the first entry of each item is the
+reference macro and the second a key for selecting the macro when
+the macro type is being prompted for.  (See also
+`reftex-ref-macro-prompt'.)  The keys, represented as characters,
+have to be unique."
+  :group 'reftex-referencing-labels
+  :type '(alist :key-type (string :tag "Style name")
+		:value-type (group (choice :tag "Package"
+					   (const :tag "Any package" t)
+					   (string :tag "Name"))
+				   (repeat :tag "Macros"
+					   (group (string :tag "Macro")
+						  (character :tag "Key"))))))
+
+(defcustom reftex-ref-macro-prompt t
+  "If non-nil, `reftex-reference' prompts for the reference macro."
+  :group 'reftex-referencing-labels
+  :type 'boolean)
+
 (defcustom reftex-vref-is-default nil
-  "Non-nil means, the varioref macro \\vref is used as default.
-In the selection buffer, the `v' key toggles the reference macro between
-`\\ref' and `\\vref'.  The value of this variable determines the default
-which is active when entering the selection process.
-Instead of nil or t, this may also be a string of type letters indicating
-the label types for which it should be true."
+  "Non-nil means, the varioref reference style is used as default.
+The value of this variable determines the default which is active
+when entering the selection process.  Instead of nil or t, this
+may also be a string of type letters indicating the label types
+for which it should be true.
+
+This variable is obsolete, use `reftex-ref-style-default-list'
+instead."
   :group  'reftex-referencing-labels
   :type `(choice :tag "\\vref is default macro" ,@reftex-tmp))
 ;;;###autoload(put 'reftex-vref-is-default 'safe-local-variable (lambda (x) (or (stringp x) (symbolp x))))
 
 (defcustom reftex-fref-is-default nil
-  "Non-nil means, the fancyref macro \\fref is used as default.
-In the selection buffer, the `V' key toggles the reference macro between
-`\\ref', `\\fref' and `\\Fref'.  The value of this variable determines
-the default which is active when entering the selection process.
-Instead of nil or t, this may also be a string of type letters indicating
-the label types for which it should be true."
+  "Non-nil means, the fancyref reference style is used as default.
+The value of this variable determines the default which is active
+when entering the selection process.  Instead of nil or t, this
+may also be a string of type letters indicating the label types
+for which it should be true.
+
+This variable is obsolete, use `reftex-ref-style-default-list'
+instead."
   :group  'reftex-referencing-labels
   :type `(choice :tag "\\fref is default macro" ,@reftex-tmp))
 ;;;###autoload(put 'reftex-fref-is-default 'safe-local-variable (lambda (x) (or (stringp x) (symbolp x))))
+
+(defcustom reftex-ref-style-default-list '("Default")
+  "List of reference styles to be activated by default.
+The order is significant and controls the order in which macros
+can be cycled in the buffer for selecting a label.  The entries
+in the list have to match the respective reference style names
+used in the variable `reftex-ref-style-alist'."
+  :group 'reftex-referencing-labels
+  :type `(set ,@(mapcar (lambda (x) (list 'const (car x)))
+			reftex-ref-style-alist)))
+
+;; Compatibility with obsolete variables.
+(when reftex-vref-is-default
+  (add-to-list 'reftex-ref-style-default-list "Varioref"))
+(when reftex-fref-is-default
+  (add-to-list 'reftex-ref-style-default-list "Fancyref"))
 
 (defcustom reftex-level-indent 2
   "Number of spaces to be used for indentation per section level."
@@ -987,19 +1041,22 @@ a label type.  If you set this variable to nil, RefTeX will always prompt."
 
 (defcustom reftex-format-ref-function nil
   "Function which produces the string to insert as a reference.
-Normally should be nil, because the format to insert a reference can
-already be specified in `reftex-label-alist'.
-This hook also is used by the special commands to insert `\\vref' and `\\fref'
-references, so even if you set this, your setting will be ignored by
-the special commands.
-The function will be called with two arguments, the LABEL and the DEFAULT
-FORMAT, which normally is `~\\ref{%s}'.  The function should return the
-string to insert into the buffer."
+Normally should be nil, because the format to insert a reference
+can already be specified in `reftex-label-alist'.
+
+This hook also is used by the special commands to insert
+e.g. `\\vref' and `\\fref' references, so even if you set this,
+your setting will be ignored by the special commands.
+
+The function will be called with three arguments, the LABEL, the
+DEFAULT FORMAT, which normally is `~\\ref{%s}' and the REFERENCE
+STYLE.  The function should return the string to insert into the
+buffer."
   :group 'reftex-referencing-labels
-  :type 'function)
+  :type '(choice (const nil) function))
 
 (defcustom reftex-select-label-mode-hook nil
-  "Mode hook for reftex-select-label-mode."
+  "Mode hook for `reftex-select-label-mode'."
   :group 'reftex-referencing-labels
   :type 'hook)
 
@@ -1009,7 +1066,8 @@ string to insert into the buffer."
   "Support for referencing bibliographic data with BibTeX."
   :group 'reftex)
 
-(defcustom reftex-bibliography-commands '("bibliography" "nobibliography")
+(defcustom reftex-bibliography-commands
+  '("bibliography" "nobibliography" "setupbibtex\\[.*?database=")
   "LaTeX commands which specify the BibTeX databases to use with the document."
   :group 'reftex-citation-support
   :type '(repeat string))
@@ -1114,7 +1172,7 @@ E.g.: (setq reftex-cite-format 'natbib)"
 
 (defcustom reftex-cite-prompt-optional-args 'maybe
   "Non-nil means, prompt for empty optional arguments in cite macros.
-When an entry in `reftex-cite-format' ist given with square brackets to
+When an entry in `reftex-cite-format' is given with square brackets to
 indicate optional arguments (for example \\cite[][]{%l}), RefTeX can
 prompt for values.  Possible values are:
 
@@ -1189,12 +1247,27 @@ The function will be called with two arguments, the CITATION KEY and the
 DEFAULT FORMAT, which is taken from `reftex-cite-format'.  The function
 should return the string to insert into the buffer."
   :group 'reftex-citation-support
-  :type 'function)
+  :type '(choice (const nil) function))
 
 (defcustom reftex-select-bib-mode-hook nil
   "Mode hook for reftex-select-bib-mode."
   :group 'reftex-citation-support
   :type 'hook)
+
+(defcustom reftex-cite-key-separator ","
+  "String to be used for separating several keys in a \\cite macro."
+  :group 'reftex-citation-support
+  :type 'string)
+
+(defcustom reftex-create-bibtex-header nil
+  "Header to insert in BibTeX files generated by RefTeX."
+  :group 'reftex-citation-support
+  :type 'string)
+
+(defcustom reftex-create-bibtex-footer nil
+  "Footer to insert in BibTeX files generated by RefTeX."
+  :group 'reftex-citation-support
+  :type 'string)
 
 ;; Index Support Configuration
 
@@ -1223,7 +1296,9 @@ These correspond to the makeindex keywords LEVEL ENCAP ACTUAL QUOTE ESCAPE."
           (string :tag "ESCAPE char     ")))
 
 (defcustom reftex-index-macros nil
-  "Macros which define index entries.  The structure is
+  "Macros which define index entries.
+
+The structure is
 
 \(MACRO INDEX-TAG KEY PREFIX EXCLUDE REPEAT)
 
@@ -1456,7 +1531,7 @@ This flag can be toggled from within the *Index* buffer with the `f' key."
 This is used when `reftex-view-crossref' is called with point in an
 argument of a macro.  Note that crossref viewing for citations,
 references (both ways) and index entries is hard-coded.  This variable
-is only to configure additional structures for which crossreference
+is only to configure additional structures for which cross-reference
 viewing can be useful.  Each entry has the structure
 
 \(MACRO-RE SEARCH-RE HIGHLIGHT).
@@ -1499,15 +1574,17 @@ entries and for BibTeX database files with live associated buffers."
   :type 'boolean)
 
 (defcustom reftex-cache-cite-echo t
-  "Non-nil means, the information displayed in the echo area for cite macros
-is cached and even saved along with the parsing information.  The cache
-survives document scans.  In order to clear it, use M-x reftex-reset-mode."
+  "Non-nil means, echoed information for cite macros is cached.
+The information displayed in the echo area for cite macros is
+cached and even saved along with the parsing information.  The
+cache survives document scans.  In order to clear it, use M-x
+reftex-reset-mode <RET>."
   :group 'reftex-viewing-cross-references
   :type 'boolean)
 
 (defcustom reftex-display-copied-context-hook nil
-  "Normal Hook which is run before context is displayed anywhere.  Designed
-for X-Symbol, but may have other uses as well."
+  "Normal hook which is run before context is displayed anywhere.
+Designed for X-Symbol, but may have other uses as well."
   :group 'reftex-viewing-cross-references
   :group 'reftex-referencing-labels
   :type 'hook)
@@ -1690,7 +1767,7 @@ The file MASTER.rel in the same directory as MASTER.tex is used to save the
 information.  When this variable is t,
 - accessing the parsing information for the first time in an editing session
   will read that file (if available) instead of parsing the document.
-- exiting Emacs or killing a buffer in reftex-mode will cause a new version
+- exiting Emacs or killing a buffer in `reftex-mode' will cause a new version
   of the file to be written."
   :group 'reftex-optimizations-for-large-documents
   :type 'boolean)
@@ -1855,22 +1932,13 @@ symbol indicating in what context the hook is called."
 
 (defcustom reftex-extra-bindings nil
   "Non-nil means, make additional key bindings on startup.
-These extra bindings are located in the
-`reftex-extra-bindings-map' map, bound to
-`reftex-extra-bindings-prefix'."
-  :group 'reftex-miscellaneous-configurations
-  :type 'boolean)
-
-;; below, default is C-c C-y because it is free in LaTeX mode.
-(defcustom reftex-extra-bindings-prefix "\C-c\C-y"
-  "When `reftex-extra-bindings' is set to non-nil, use extra
-bindings with this prefix bound to `reftex-extra-bindings-map'."
+These extra bindings are located in the users `C-c letter' map."
   :group 'reftex-miscellaneous-configurations
   :type 'boolean)
 
 (defcustom reftex-plug-into-AUCTeX nil
   "Plug-in flags for AUCTeX interface.
-This variable is a list of 4 boolean flags.  When a flag is non-nil,
+This variable is a list of 5 boolean flags.  When a flag is non-nil,
 RefTeX will
 
   - supply labels in new sections and environments  (flag 1)
@@ -1900,8 +1968,7 @@ may require a restart of Emacs in order to become effective."
            (boolean :tag "supply argument for macros like `\\label'     ")
            (boolean :tag "supply argument for macros like `\\ref'       ")
            (boolean :tag "supply argument for macros like `\\cite'      ")
-           (boolean :tag "supply argument for macros like `\\index'     ")
-           )))
+           (boolean :tag "supply argument for macros like `\\index'     "))))
 
 (defcustom reftex-allow-detached-macro-args nil
   "Non-nil means, allow arguments of macros to be detached by whitespace.

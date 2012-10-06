@@ -96,7 +96,7 @@ static Lisp_Object Qparagraph_start, Qparagraph_separate;
 
 /* Return the bidi type of a character CH, subject to the current
    directional OVERRIDE.  */
-static inline bidi_type_t
+static bidi_type_t
 bidi_get_type (int ch, bidi_dir_t override)
 {
   bidi_type_t default_type;
@@ -145,14 +145,14 @@ bidi_get_type (int ch, bidi_dir_t override)
     }
 }
 
-static inline void
+static void
 bidi_check_type (bidi_type_t type)
 {
   eassert (UNKNOWN_BT <= type && type <= NEUTRAL_ON);
 }
 
 /* Given a bidi TYPE of a character, return its category.  */
-static inline bidi_category_t
+static bidi_category_t
 bidi_get_category (bidi_type_t type)
 {
   switch (type)
@@ -226,7 +226,7 @@ bidi_mirror_char (int c)
    embedding levels on either side of the run boundary.  Also, update
    the saved info about previously seen characters, since that info is
    generally valid for a single level run.  */
-static inline void
+static void
 bidi_set_sor_type (struct bidi_it *bidi_it, int level_before, int level_after)
 {
   int higher_level = (level_before > level_after ? level_before : level_after);
@@ -257,7 +257,7 @@ bidi_set_sor_type (struct bidi_it *bidi_it, int level_before, int level_after)
 
 /* Push the current embedding level and override status; reset the
    current level to LEVEL and the current override status to OVERRIDE.  */
-static inline void
+static void
 bidi_push_embedding_level (struct bidi_it *bidi_it,
 			   int level, bidi_dir_t override)
 {
@@ -269,7 +269,7 @@ bidi_push_embedding_level (struct bidi_it *bidi_it,
 
 /* Pop the embedding level and directional override status from the
    stack, and return the new level.  */
-static inline int
+static int
 bidi_pop_embedding_level (struct bidi_it *bidi_it)
 {
   /* UAX#9 says to ignore invalid PDFs.  */
@@ -279,7 +279,7 @@ bidi_pop_embedding_level (struct bidi_it *bidi_it)
 }
 
 /* Record in SAVED_INFO the information about the current character.  */
-static inline void
+static void
 bidi_remember_char (struct bidi_saved_info *saved_info,
 		    struct bidi_it *bidi_it)
 {
@@ -295,18 +295,14 @@ bidi_remember_char (struct bidi_saved_info *saved_info,
 
 /* Copy the bidi iterator from FROM to TO.  To save cycles, this only
    copies the part of the level stack that is actually in use.  */
-static inline void
+static void
 bidi_copy_it (struct bidi_it *to, struct bidi_it *from)
 {
-  int i;
-
-  /* Copy everything except the level stack and beyond.  */
-  memcpy (to, from, offsetof (struct bidi_it, level_stack[0]));
-
-  /* Copy the active part of the level stack.  */
-  to->level_stack[0] = from->level_stack[0]; /* level zero is always in use */
-  for (i = 1; i <= from->stack_idx; i++)
-    to->level_stack[i] = from->level_stack[i];
+  /* Copy everything from the start through the active part of
+     the level stack.  */
+  memcpy (to, from,
+	  (offsetof (struct bidi_it, level_stack[1])
+	   + from->stack_idx * sizeof from->level_stack[0]));
 }
 
 
@@ -344,7 +340,7 @@ enum
    intact.  This is called when the cached information is no more
    useful for the current iteration, e.g. when we were reseated to a
    new position on the same object.  */
-static inline void
+static void
 bidi_cache_reset (void)
 {
   bidi_cache_idx = bidi_cache_start;
@@ -355,7 +351,7 @@ bidi_cache_reset (void)
    iterator for reordering a buffer or a string that does not come
    from display properties, because that means all the previously
    cached info is of no further use.  */
-static inline void
+static void
 bidi_cache_shrink (void)
 {
   if (bidi_cache_size > BIDI_CACHE_CHUNK)
@@ -366,7 +362,7 @@ bidi_cache_shrink (void)
   bidi_cache_reset ();
 }
 
-static inline void
+static void
 bidi_cache_fetch_state (ptrdiff_t idx, struct bidi_it *bidi_it)
 {
   int current_scan_dir = bidi_it->scan_dir;
@@ -383,7 +379,7 @@ bidi_cache_fetch_state (ptrdiff_t idx, struct bidi_it *bidi_it)
    level less or equal to LEVEL.  if LEVEL is -1, disregard the
    resolved levels in cached states.  DIR, if non-zero, means search
    in that direction from the last cache hit.  */
-static inline ptrdiff_t
+static ptrdiff_t
 bidi_cache_search (ptrdiff_t charpos, int level, int dir)
 {
   ptrdiff_t i, i_start;
@@ -488,7 +484,7 @@ bidi_cache_find_level_change (int level, int dir, bool before)
   return -1;
 }
 
-static inline void
+static void
 bidi_cache_ensure_space (ptrdiff_t idx)
 {
   /* Enlarge the cache as needed.  */
@@ -510,7 +506,7 @@ bidi_cache_ensure_space (ptrdiff_t idx)
     }
 }
 
-static inline void
+static void
 bidi_cache_iterator_state (struct bidi_it *bidi_it, bool resolved)
 {
   ptrdiff_t idx;
@@ -567,7 +563,7 @@ bidi_cache_iterator_state (struct bidi_it *bidi_it, bool resolved)
     bidi_cache_idx = idx + 1;
 }
 
-static inline bidi_type_t
+static bidi_type_t
 bidi_cache_find (ptrdiff_t charpos, int level, struct bidi_it *bidi_it)
 {
   ptrdiff_t i = bidi_cache_search (charpos, level, bidi_it->scan_dir);
@@ -587,7 +583,7 @@ bidi_cache_find (ptrdiff_t charpos, int level, struct bidi_it *bidi_it)
   return UNKNOWN_BT;
 }
 
-static inline int
+static int
 bidi_peek_at_next_level (struct bidi_it *bidi_it)
 {
   if (bidi_cache_idx == bidi_cache_start || bidi_cache_last_idx == -1)
@@ -790,7 +786,7 @@ bidi_initialize (void)
 
 /* Do whatever UAX#9 clause X8 says should be done at paragraph's
    end.  */
-static inline void
+static void
 bidi_set_paragraph_end (struct bidi_it *bidi_it)
 {
   bidi_it->invalid_levels = 0;
@@ -872,7 +868,7 @@ bidi_line_init (struct bidi_it *bidi_it)
 /* Count bytes in string S between BEG/BEGBYTE and END.  BEG and END
    are zero-based character positions in S, BEGBYTE is byte position
    corresponding to BEG.  UNIBYTE means S is a unibyte string.  */
-static inline ptrdiff_t
+static ptrdiff_t
 bidi_count_bytes (const unsigned char *s, const ptrdiff_t beg,
 		  const ptrdiff_t begbyte, const ptrdiff_t end, bool unibyte)
 {
@@ -896,22 +892,22 @@ bidi_count_bytes (const unsigned char *s, const ptrdiff_t beg,
   return p - start;
 }
 
-/* Fetch and returns the character at byte position BYTEPOS.  If S is
+/* Fetch and return the character at byte position BYTEPOS.  If S is
    non-NULL, fetch the character from string S; otherwise fetch the
    character from the current buffer.  UNIBYTE means S is a
    unibyte string.  */
-static inline int
+static int
 bidi_char_at_pos (ptrdiff_t bytepos, const unsigned char *s, bool unibyte)
 {
   if (s)
     {
+      s += bytepos;
       if (unibyte)
-	return s[bytepos];
-      else
-	return STRING_CHAR (s + bytepos);
+	return *s;
     }
   else
-    return FETCH_MULTIBYTE_CHAR (bytepos);
+    s = BYTE_POS_ADDR (bytepos);
+  return STRING_CHAR (s);
 }
 
 /* Fetch and return the character at BYTEPOS/CHARPOS.  If that
@@ -928,7 +924,7 @@ bidi_char_at_pos (ptrdiff_t bytepos, const unsigned char *s, bool unibyte)
    u+2029 to handle it as a paragraph separator.  STRING->s is the C
    string to iterate, or NULL if iterating over a buffer or a Lisp
    string; in the latter case, STRING->lstring is the Lisp string.  */
-static inline int
+static int
 bidi_fetch_char (ptrdiff_t bytepos, ptrdiff_t charpos, ptrdiff_t *disp_pos,
 		 int *disp_prop, struct bidi_string_data *string,
 		 bool frame_window_p, ptrdiff_t *ch_len, ptrdiff_t *nchars)
@@ -1318,7 +1314,7 @@ bidi_paragraph_init (bidi_dir_t dir, struct bidi_it *bidi_it, bool no_default_p)
   The rest of this file constitutes the core of the UBA implementation.
  ***********************************************************************/
 
-static inline bool
+static bool
 bidi_explicit_dir_char (int ch)
 {
   bidi_type_t ch_type;
@@ -1841,7 +1837,7 @@ bidi_resolve_weak (struct bidi_it *bidi_it)
 
 /* Resolve the type of a neutral character according to the type of
    surrounding strong text and the current embedding level.  */
-static inline bidi_type_t
+static bidi_type_t
 bidi_resolve_neutral_1 (bidi_type_t prev_type, bidi_type_t next_type, int lev)
 {
   /* N1: European and Arabic numbers are treated as though they were R.  */

@@ -128,8 +128,8 @@ static void evict_lower_half (log_t *log)
 }
 
 /* Record the current backtrace in LOG.  COUNT is the weight of this
-   current backtrace: milliseconds for CPU counts, and the allocation
-   size for memory logs.  */
+   current backtrace: interrupt counts for CPU, and the allocation
+   size for memory.  */
 
 static void
 record_backtrace (log_t *log, EMACS_INT count)
@@ -198,15 +198,13 @@ record_backtrace (log_t *log, EMACS_INT count)
   }
 }
 
-/* Sample profiler.  */
-
-/* FIXME: Add support for the CPU profiler in W32.  */
+/* Sampling profiler.  */
 
 #ifdef PROFILER_CPU_SUPPORT
 
 /* The profiler timer and whether it was properly initialized, if
    POSIX timers are available.  */
-#ifdef HAVE_TIMER_SETTIME
+#ifdef HAVE_ITIMERSPEC
 static timer_t profiler_timer;
 static bool profiler_timer_ok;
 #endif
@@ -222,10 +220,10 @@ static Lisp_Object cpu_log;
 /* Separate counter for the time spent in the GC.  */
 static EMACS_INT cpu_gc_count;
 
-/* The current sample interval in milliseconds.  */
-static EMACS_INT current_sample_interval;
+/* The current sampling interval in nanoseconds.  */
+static EMACS_INT current_sampling_interval;
 
-/* Signal handler for sample profiler.  */
+/* Signal handler for sampling profiler.  */
 
 static void
 handle_profiler_signal (int signal)
@@ -237,11 +235,33 @@ handle_profiler_signal (int signal)
        not expect the ARRAY_MARK_FLAG to be set.  We could try and
        harden the hash-table code, but it doesn't seem worth the
        effort.  */
-    cpu_gc_count = saturated_add (cpu_gc_count, current_sample_interval);
+    cpu_gc_count = saturated_add (cpu_gc_count, 1);
   else
     {
+      Lisp_Object oquit;
+      bool saved_pending_signals;
+      EMACS_INT count = 1;
+#ifdef HAVE_ITIMERSPEC
+      if (profiler_timer_ok)
+	{
+	  int overruns = timer_getoverrun (profiler_timer);
+	  eassert (0 <= overruns);
+	  count += overruns;
+	}
+#endif
+      /* record_backtrace uses hash functions that call Fequal, which
+	 uses QUIT, which can call malloc, which can cause disaster in
+	 a signal handler.  So inhibit QUIT.  */
+      oquit = Vinhibit_quit;
+      saved_pending_signals = pending_signals;
+      Vinhibit_quit = Qt;
+      pending_signals = 0;
+
       eassert (HASH_TABLE_P (cpu_log));
-      record_backtrace (XHASH_TABLE (cpu_log), current_sample_interval);
+      record_backtrace (XHASH_TABLE (cpu_log), count);
+
+      Vinhibit_quit = oquit;
+      pending_signals = saved_pending_signals;
     }
 }
 
@@ -252,25 +272,27 @@ deliver_profiler_signal (int signal)
 }
 
 static enum profiler_cpu_running
-setup_cpu_timer (Lisp_Object sample_interval)
+setup_cpu_timer (Lisp_Object sampling_interval)
 {
   struct sigaction action;
   struct itimerval timer;
   struct timespec interval;
+  int billion = 1000000000;
 
-  if (! RANGED_INTEGERP (1, sample_interval,
-			 (TYPE_MAXIMUM (time_t) < EMACS_INT_MAX / 1000
-			  ? (EMACS_INT) TYPE_MAXIMUM (time_t) * 1000 + 999
+  if (! RANGED_INTEGERP (1, sampling_interval,
+			 (TYPE_MAXIMUM (time_t) < EMACS_INT_MAX / billion
+			  ? ((EMACS_INT) TYPE_MAXIMUM (time_t) * billion
+			     + (billion - 1))
 			  : EMACS_INT_MAX)))
     return NOT_RUNNING;
 
-  current_sample_interval = XINT (sample_interval);
-  interval = make_emacs_time (current_sample_interval / 1000,
-			      current_sample_interval % 1000 * 1000000);
+  current_sampling_interval = XINT (sampling_interval);
+  interval = make_emacs_time (current_sampling_interval / billion,
+			      current_sampling_interval % billion);
   emacs_sigaction_init (&action, deliver_profiler_signal);
   sigaction (SIGPROF, &action, 0);
 
-#ifdef HAVE_TIMER_SETTIME
+#ifdef HAVE_ITIMERSPEC
   if (! profiler_timer_ok)
     {
       /* System clocks to try, in decreasing order of desirability.  */
@@ -304,25 +326,29 @@ setup_cpu_timer (Lisp_Object sample_interval)
     {
       struct itimerspec ispec;
       ispec.it_value = ispec.it_interval = interval;
-      timer_settime (profiler_timer, 0, &ispec, 0);
-      return TIMER_SETTIME_RUNNING;
+      if (timer_settime (profiler_timer, 0, &ispec, 0) == 0)
+	return TIMER_SETTIME_RUNNING;
     }
 #endif
 
+#ifdef HAVE_SETITIMER
   timer.it_value = timer.it_interval = make_timeval (interval);
-  setitimer (ITIMER_PROF, &timer, 0);
-  return SETITIMER_RUNNING;
+  if (setitimer (ITIMER_PROF, &timer, 0) == 0)
+    return SETITIMER_RUNNING;
+#endif
+
+  return NOT_RUNNING;
 }
 
 DEFUN ("profiler-cpu-start", Fprofiler_cpu_start, Sprofiler_cpu_start,
        1, 1, 0,
        doc: /* Start or restart the cpu profiler.
-It takes call-stack samples each SAMPLE-INTERVAL milliseconds.
+It takes call-stack samples each SAMPLING-INTERVAL nanoseconds, approximately.
 See also `profiler-log-size' and `profiler-max-stack-depth'.  */)
-  (Lisp_Object sample_interval)
+  (Lisp_Object sampling_interval)
 {
   if (profiler_cpu_running)
-    error ("Sample profiler is already running");
+    error ("CPU profiler is already running");
 
   if (NILP (cpu_log))
     {
@@ -331,9 +357,9 @@ See also `profiler-log-size' and `profiler-max-stack-depth'.  */)
 			  profiler_max_stack_depth);
     }
 
-  profiler_cpu_running = setup_cpu_timer (sample_interval);
+  profiler_cpu_running = setup_cpu_timer (sampling_interval);
   if (! profiler_cpu_running)
-    error ("Invalid sample interval");
+    error ("Invalid sampling interval");
 
   return Qt;
 }
@@ -349,7 +375,7 @@ Return non-nil if the profiler was running.  */)
     case NOT_RUNNING:
       return Qnil;
 
-#ifdef HAVE_TIMER_SETTIME
+#ifdef HAVE_ITIMERSPEC
     case TIMER_SETTIME_RUNNING:
       {
 	struct itimerspec disable;
@@ -359,6 +385,7 @@ Return non-nil if the profiler was running.  */)
       break;
 #endif
 
+#ifdef HAVE_SETITIMER
     case SETITIMER_RUNNING:
       {
 	struct itimerval disable;
@@ -366,6 +393,7 @@ Return non-nil if the profiler was running.  */)
 	setitimer (ITIMER_PROF, &disable, 0);
       }
       break;
+#endif
     }
 
   signal (SIGPROF, SIG_IGN);

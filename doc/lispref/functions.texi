@@ -1397,7 +1397,7 @@ opposed to an unspecified one).
 @cindex function safety
 @cindex safety of functions
 
-Some major modes such as SES call functions that are stored in user
+Some major modes, such as SES, call functions that are stored in user
 files.  (@inforef{Top, ,ses}, for more information on SES.)  User
 files sometimes have poor pedigrees---you can get a spreadsheet from
 someone you've just met, or you can get one through email from someone

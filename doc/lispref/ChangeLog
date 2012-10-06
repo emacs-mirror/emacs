@@ -1,3 +1,23 @@
+2012-10-05  Chong Yidong  <cyd@gnu.org>
+
+	* minibuf.texi (Basic Completion): Clarify list form of completion
+	table (Bug#12564).
+
+2012-10-05  Bruno Félix Rezende Ribeiro  <oitofelix@gmail.com>  (tiny change)
+
+	* functions.texi (Function Safety): Copyedit.  (Bug#12562)
+
+2012-10-01  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Revert the FOLLOW-SYMLINKS change for file-attributes.
+	* files.texi (File Attributes, Magic File Names): Undo last change.
+
+2012-09-30  Paul Eggert  <eggert@cs.ucla.edu>
+
+	file-attributes has a new optional arg FOLLOW-SYMLINKS.
+	* files.texi (File Attributes): Describe it.
+	(Magic File Names): Use it.
+
 2012-09-30  Chong Yidong  <cyd@gnu.org>
 
 	* commands.texi (Click Events): Define "mouse position list".

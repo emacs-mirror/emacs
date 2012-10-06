@@ -69,6 +69,11 @@
 
 (require 'backquote)
 
+;; This needs to be autoloaded because it is used in the
+;; make-help-screen macro.  Using (bound-and-true-p three-step-help)
+;; is not an acceptable alternative, because nothing loads help-macro
+;; in a normal session, so any user customization would never be applied.
+;;;###autoload
 (defcustom three-step-help nil
   "Non-nil means give more info about Help command in three steps.
 The three steps are simple prompt, prompt with all options, and

@@ -148,7 +148,7 @@ The message is @samp{No catch for tag}.  @xref{Catch and Throw}.
 @ignore
 @c Not actually used for anything?  Probably definition should be removed.
 @item protected-field
-The message is @samp{Attempt to modify a protected fiel.
+The message is @samp{Attempt to modify a protected file}.
 @end ignore
 
 @item scan-error
@@ -205,7 +205,7 @@ of @code{domain-error}.
 The message is @code{Arithmetic range error}.
 
 @item singularity-error
-The mssage is @samp{Arithmetic singularity error}.  This is a
+The message is @samp{Arithmetic singularity error}.  This is a
 subcategory of @code{domain-error}.
 
 @item underflow-error

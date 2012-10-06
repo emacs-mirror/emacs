@@ -5148,7 +5148,7 @@ This sets up the appropriate Verilog mode environment, removes
 whitespace with \\[verilog-delete-trailing-whitespace] on all
 command-line files, and saves the buffers."
   (unless noninteractive
-    (error "Use verilog-batch-delete-trailing-whitepace only with --batch"))  ;; Otherwise we'd mess up buffer modes
+    (error "Use verilog-batch-delete-trailing-whitespace only with --batch"))  ;; Otherwise we'd mess up buffer modes
   (verilog-batch-execute-func `verilog-delete-trailing-whitespace))
 
 (defun verilog-batch-diff-auto ()
@@ -12161,7 +12161,7 @@ Limitations:
   Interface names must be resolvable to filenames.  See `verilog-auto-inst'.
 
 As with other autos, any inputs/outputs declared in the module
-will suppress the AUTO from redeclarating an inputs/outputs by
+will suppress the AUTO from redeclaring an input/output by
 the same name.
 
 An example:

@@ -99,13 +99,69 @@ means to use the maximum value consistent with other options."
 	   (lambda (x)
 	     (list 'cons (list 'const (car x))
 		   '(choice
-			    (symbol :tag "Publishing/Export property")
-			    (string :tag "Value"))))
+		     (symbol :tag "Publishing/Export property")
+		     (string :tag "Value"))))
 	   org-infojs-opts-table)))
 
 (defcustom org-infojs-template
-  "<script type=\"text/javascript\" src=\"%SCRIPT_PATH\"></script>
-<script type=\"text/javascript\" >
+  "<script type=\"text/javascript\" src=\"%SCRIPT_PATH\">
+/**
+ *
+ * @source: %SCRIPT_PATH
+ *
+ * @licstart  The following is the entire license notice for the
+ *  JavaScript code in %SCRIPT_PATH.
+ *
+ * Copyright (C) 2012  Sebastian Rose
+ *
+ *
+ * The JavaScript code in this tag is free software: you can
+ * redistribute it and/or modify it under the terms of the GNU
+ * General Public License (GNU GPL) as published by the Free Software
+ * Foundation, either version 3 of the License, or (at your option)
+ * any later version.  The code is distributed WITHOUT ANY WARRANTY;
+ * without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE.  See the GNU GPL for more details.
+ *
+ * As additional permission under GNU GPL version 3 section 7, you
+ * may distribute non-source (e.g., minimized or compacted) forms of
+ * that code without the copy of the GNU GPL normally required by
+ * section 4, provided you include this license notice and a URL
+ * through which recipients can access the Corresponding Source.
+ *
+ * @licend  The above is the entire license notice
+ * for the JavaScript code in %SCRIPT_PATH.
+ *
+ */
+</script>
+
+<script type=\"text/javascript\">
+
+/*
+@licstart  The following is the entire license notice for the
+JavaScript code in this tag.
+
+Copyright (C) 2012  Free Software Foundation, Inc.
+
+The JavaScript code in this tag is free software: you can
+redistribute it and/or modify it under the terms of the GNU
+General Public License (GNU GPL) as published by the Free Software
+Foundation, either version 3 of the License, or (at your option)
+any later version.  The code is distributed WITHOUT ANY WARRANTY;
+without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE.  See the GNU GPL for more details.
+
+As additional permission under GNU GPL version 3 section 7, you
+may distribute non-source (e.g., minimized or compacted) forms of
+that code without the copy of the GNU GPL normally required by
+section 4, provided you include this license notice and a URL
+through which recipients can access the Corresponding Source.
+
+
+@licend  The above is the entire license notice
+for the JavaScript code in this tag.
+*/
+
 <!--/*--><![CDATA[/*><!--*/
 %MANAGER_OPTIONS
 org_html_manager.setup();  // activate after the parameters are set
@@ -127,67 +183,67 @@ Option settings will replace the %MANAGER-OPTIONS cookie."
       exp-plist
     ;; We do want to use the script, set it up
     (let ((template org-infojs-template)
-	(ptoc (plist-get exp-plist :table-of-contents))
-	(hlevels (plist-get exp-plist :headline-levels))
-	tdepth sdepth s v e opt var val table default)
-    (setq sdepth hlevels
-	  tdepth hlevels)
-    (if (integerp ptoc) (setq tdepth (min ptoc tdepth)))
-    (setq v (plist-get exp-plist :infojs-opt)
-	  table org-infojs-opts-table)
-    (while (setq e (pop table))
-      (setq opt (car e) var (nth 1 e)
-	    default (cdr (assoc opt org-infojs-options)))
-      (and (symbolp default) (not (memq default '(t nil)))
-	   (setq default (plist-get exp-plist default)))
-      (if (and v (string-match (format " %s:\\(\\S-+\\)" opt) v))
-	  (setq val (match-string 1 v))
-	(setq val default))
-      (cond
-       ((eq opt 'path)
-	(and (string-match "%SCRIPT_PATH" template)
-	     (setq template (replace-match val t t template))))
-       ((eq opt 'sdepth)
-	(if (integerp (read val))
-	    (setq sdepth (min (read val) hlevels))))
-       ((eq opt 'tdepth)
-	(if (integerp (read val))
-	    (setq tdepth (min (read val) hlevels))))
-       (t
-	(setq val
-	      (cond
-	       ((or (eq val t) (equal val "t")) "1")
-	       ((or (eq val nil) (equal val "nil")) "0")
-	       ((stringp val) val)
-	       (t (format "%s" val))))
-	(push (cons var val) s))))
+	  (ptoc (plist-get exp-plist :table-of-contents))
+	  (hlevels (plist-get exp-plist :headline-levels))
+	  tdepth sdepth s v e opt var val table default)
+      (setq sdepth hlevels
+	    tdepth hlevels)
+      (if (integerp ptoc) (setq tdepth (min ptoc tdepth)))
+      (setq v (plist-get exp-plist :infojs-opt)
+	    table org-infojs-opts-table)
+      (while (setq e (pop table))
+	(setq opt (car e) var (nth 1 e)
+	      default (cdr (assoc opt org-infojs-options)))
+	(and (symbolp default) (not (memq default '(t nil)))
+	     (setq default (plist-get exp-plist default)))
+	(if (and v (string-match (format " %s:\\(\\S-+\\)" opt) v))
+	    (setq val (match-string 1 v))
+	  (setq val default))
+	(cond
+	 ((eq opt 'path)
+	  (setq template
+		(replace-regexp-in-string "%SCRIPT_PATH" val template t t)))
+	 ((eq opt 'sdepth)
+	  (if (integerp (read val))
+	      (setq sdepth (min (read val) hlevels))))
+	 ((eq opt 'tdepth)
+	  (if (integerp (read val))
+	      (setq tdepth (min (read val) hlevels))))
+	 (t
+	  (setq val
+		(cond
+		 ((or (eq val t) (equal val "t")) "1")
+		 ((or (eq val nil) (equal val "nil")) "0")
+		 ((stringp val) val)
+		 (t (format "%s" val))))
+	  (push (cons var val) s))))
 
-    ;; Now we set the depth of the *generated* TOC to SDEPTH, because the
-    ;; toc will actually determine the splitting.  How much of the toc will
-    ;; actually be displayed is governed by the TDEPTH option.
-    (setq exp-plist (plist-put exp-plist :table-of-contents sdepth))
+      ;; Now we set the depth of the *generated* TOC to SDEPTH, because the
+      ;; toc will actually determine the splitting.  How much of the toc will
+      ;; actually be displayed is governed by the TDEPTH option.
+      (setq exp-plist (plist-put exp-plist :table-of-contents sdepth))
 
-    ;; The table of contents should not show more sections then we generate
-    (setq tdepth (min tdepth sdepth))
-    (push (cons "TOC_DEPTH" tdepth) s)
+      ;; The table of contents should not show more sections then we generate
+      (setq tdepth (min tdepth sdepth))
+      (push (cons "TOC_DEPTH" tdepth) s)
 
-    (setq s (mapconcat
-	     (lambda (x) (format "org_html_manager.set(\"%s\", \"%s\");"
-				 (car x) (cdr x)))
-	     s "\n"))
-    (when (and s (> (length s) 0))
-      (and (string-match "%MANAGER_OPTIONS" template)
-	   (setq s (replace-match s t t template))
-	   (setq exp-plist
-		 (plist-put
-		  exp-plist :style-extra
-		  (concat (or (plist-get exp-plist :style-extra) "") "\n" s)))))
-    ;; This script absolutely needs the table of contents, to we change that
-    ;; setting
-    (if (not (plist-get exp-plist :table-of-contents))
-	(setq exp-plist (plist-put exp-plist :table-of-contents t)))
-    ;; Return the modified property list
-    exp-plist)))
+      (setq s (mapconcat
+	       (lambda (x) (format "org_html_manager.set(\"%s\", \"%s\");"
+				   (car x) (cdr x)))
+	       s "\n"))
+      (when (and s (> (length s) 0))
+	(and (string-match "%MANAGER_OPTIONS" template)
+	     (setq s (replace-match s t t template))
+	     (setq exp-plist
+		   (plist-put
+		    exp-plist :style-extra
+		    (concat (or (plist-get exp-plist :style-extra) "") "\n" s)))))
+      ;; This script absolutely needs the table of contents, to we change that
+      ;; setting
+      (if (not (plist-get exp-plist :table-of-contents))
+	  (setq exp-plist (plist-put exp-plist :table-of-contents t)))
+      ;; Return the modified property list
+      exp-plist)))
 
 (defun org-infojs-options-inbuffer-template ()
   (format "#+INFOJS_OPT: view:%s toc:%s ltoc:%s mouse:%s buttons:%s path:%s"

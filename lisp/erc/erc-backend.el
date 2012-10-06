@@ -4,6 +4,7 @@
 
 ;; Filename: erc-backend.el
 ;; Author: Lawrence Mitchell <wence@gmx.li>
+;; Maintainer: FSF
 ;; Created: 2004-05-7
 ;; Keywords: IRC chat client internet
 

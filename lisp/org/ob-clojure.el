@@ -45,7 +45,7 @@
 (add-to-list 'org-babel-tangle-lang-exts '("clojure" . "clj"))
 
 (defvar org-babel-default-header-args:clojure '())
-(defvar org-babel-header-arg-names:clojure '(package))
+(defvar org-babel-header-args:clojure '((package . :any)))
 
 (defun org-babel-expand-body:clojure (body params)
   "Expand BODY according to PARAMS, return the expanded body."

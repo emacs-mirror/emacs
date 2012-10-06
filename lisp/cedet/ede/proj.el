@@ -53,6 +53,39 @@
 (autoload 'ede-proj-target-makefile-info "ede/proj-info"
   "Target class for info files." nil nil)
 
+(eieio-defclass-autoload 'ede-proj-target-aux '(ede-proj-target)
+  "ede/proj-aux"
+  "Target class for a group of lisp files.")
+(eieio-defclass-autoload 'ede-proj-target-elisp '(ede-proj-target-makefile)
+  "ede/proj-elisp"
+  "Target class for a group of lisp files.")
+(eieio-defclass-autoload 'ede-proj-target-elisp-autoloads '(ede-proj-target-elisp)
+  "ede/proj-elisp"
+  "Target class for generating autoload files.")
+(eieio-defclass-autoload 'ede-proj-target-scheme '(ede-proj-target)
+  "ede/proj-scheme"
+  "Target class for a group of lisp files.")
+(eieio-defclass-autoload 'ede-proj-target-makefile-miscelaneous '(ede-proj-target-makefile)
+  "ede/proj-misc"
+  "Target class for a group of miscellaneous w/ a special makefile.")
+(eieio-defclass-autoload 'ede-proj-target-makefile-program '(ede-proj-target-makefile-objectcode)
+  "ede/proj-prog"
+  "Target class for building a program.")
+(eieio-defclass-autoload 'ede-proj-target-makefile-archive '(ede-proj-target-makefile-objectcode)
+  "ede/proj-archive"
+  "Target class for building an archive of object code.")
+(eieio-defclass-autoload 'ede-proj-target-makefile-shared-object '(ede-proj-target-makefile-program)
+  "ede/proj-shared"
+  "Target class for building a shared object.")
+(eieio-defclass-autoload 'ede-proj-target-makefile-info '(ede-proj-target-makefile)
+  "ede/proj-info"
+  "Target class for info files.")
+
+;; Not in ede/ , but part of semantic.
+(eieio-defclass-autoload 'semantic-ede-proj-target-grammar '(ede-proj-target-elisp)
+  "semantic/ede-grammar"
+  "Target classfor Semantic grammar files.")
+
 ;;; Class Definitions:
 (defclass ede-proj-target (ede-target)
   ((auxsource :initarg :auxsource
@@ -181,8 +214,10 @@ This enables the creation of your target type."
       (setq ede-proj-target-alist
 	    (cons (cons name class) ede-proj-target-alist)))))
 
-(defclass ede-proj-project (ede-project)
-  ((makefile-type :initarg :makefile-type
+(defclass ede-proj-project (eieio-persistent ede-project)
+  ((extension :initform ".ede")
+   (file-header-line :initform ";; EDE Project Files are auto generated: Do Not Edit")
+   (makefile-type :initarg :makefile-type
 		  :initform Makefile
 		  :type symbol
 		  :custom (choice (const Makefile)
@@ -259,23 +294,16 @@ If optional ROOTPROJ is provided then ROOTPROJ is the root project
 for the tree being read in.  If ROOTPROJ is nil, then assume that
 the PROJECT being read in is the root project."
   (save-excursion
-    (let ((ret nil)
+    (let ((ret (eieio-persistent-read (concat project "Project.ede")
+				      ede-proj-project))
 	  (subdirs (directory-files project nil "[^.].*" nil)))
-      (set-buffer (get-buffer-create " *tmp proj read*"))
-      (unwind-protect
-	  (progn
-	    (insert-file-contents (concat project "Project.ede")
-				  nil nil nil t)
-	    (goto-char (point-min))
-	    (setq ret (read (current-buffer)))
-	    (if (not (eq (car ret) 'ede-proj-project))
-		(error "Corrupt project file"))
-	    (setq ret (eval ret))
-	    (oset ret file (concat project "Project.ede"))
-	    (oset ret directory project)
-	    (oset ret rootproject rootproj)
-	    )
-	(kill-buffer " *tmp proj read*"))
+      (if (not (object-of-class-p ret 'ede-proj-project))
+	  (error "Corrupt project file"))
+      (oset ret directory project)
+      (oset ret rootproject rootproj)
+
+      ;; Load the project file of each subdirectory containing a
+      ;; loadable Project.ede.
       (while subdirs
 	(let ((sd (file-name-as-directory
 		   (expand-file-name (car subdirs) project))))
@@ -291,22 +319,13 @@ the PROJECT being read in is the root project."
   "Write out object PROJECT into its file."
   (save-excursion
     (if (not project) (setq project (ede-current-project)))
-    (let ((b (set-buffer (get-buffer-create " *tmp proj write*")))
-	  (cfn (oref project file))
-	  (cdir (oref project directory)))
+    (let ((cdir (oref project directory)))
       (unwind-protect
-	  (save-excursion
-	    (erase-buffer)
-	    (let ((standard-output (current-buffer)))
-	      (oset project file (file-name-nondirectory cfn))
-	      (slot-makeunbound project :directory)
-	      (object-write project ";; EDE project file."))
-	    (write-file cfn nil)
-	    )
-	;; Restore the :file on exit.
-	(oset project file cfn)
-	(oset project directory cdir)
-	(kill-buffer b)))))
+	  (progn
+	    (slot-makeunbound project :directory)
+	    (eieio-persistent-save project))
+	;; Restore the directory slot
+ 	(oset project directory cdir))) ))
 
 (defmethod ede-commit-local-variables ((proj ede-proj-project))
   "Commit change to local variables in PROJ."
@@ -670,6 +689,8 @@ Optional argument FORCE will force items to be regenerated."
   (let ((root (or (ede-project-root this) this))
 	)
     (setq ede-projects (delq root ede-projects))
+    ;; NOTE : parent function double-checks that this dir was
+    ;; already in memory once.
     (ede-load-project-file (ede-project-root-directory root))
     ))
 

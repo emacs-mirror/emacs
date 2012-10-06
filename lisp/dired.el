@@ -248,6 +248,10 @@ This is what the do-commands look for, and what the mark-commands store.")
 ;; I see no reason ever to make this nil -- rms.
 ;;  (> baud-rate search-slow-speed)
   "Non-nil means Dired shrinks the display buffer to fit the marked files.")
+(make-obsolete-variable 'dired-shrink-to-fit
+			"use the Customization interface to add a new rule
+to `display-buffer-alist' where condition regexp is \"^ \\*Marked Files\\*$\",
+action argument symbol is `window-height' and its value is nil." "24.3")
 
 (defvar dired-file-version-alist)
 
@@ -1877,7 +1881,6 @@ for more info):
 
   `dired-listing-switches'
   `dired-trivial-filenames'
-  `dired-shrink-to-fit'
   `dired-marker-char'
   `dired-del-marker'
   `dired-keep-marker-rename'
@@ -2940,6 +2943,7 @@ or \"* [3 files]\"."
 
 (defun dired-pop-to-buffer (buf)
   "Pop up buffer BUF in a way suitable for Dired."
+  (declare (obsolete dired-mark-pop-up "24.3"))
   (let ((split-window-preferred-function
 	 (lambda (window)
 	   (or (and (let ((split-height-threshold 0))
@@ -2980,6 +2984,11 @@ Displays the file names in a window showing a buffer named
 BUFFER-OR-NAME; the default name being \" *Marked Files*\".  The
 window is not shown if there is just one file, `dired-no-confirm'
 is t, or OP-SYMBOL is a member of the list in `dired-no-confirm'.
+
+By default, Dired shrinks the display buffer to fit the marked files.
+To disable this, use the Customization interface to add a new rule
+to `display-buffer-alist' where condition regexp is \"^ \\*Marked Files\\*$\",
+action argument symbol is `window-height' and its value is nil.
 
 FILES is the list of marked files.  It can also be (t FILENAME)
 in the case of one marked file, to distinguish that from using

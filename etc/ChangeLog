@@ -1,3 +1,46 @@
+2012-10-05  Douglas Lewan  <d_lewan2000@yahoo.com>  (tiny change)
+
+	* tutorials/TUTORIAL.pt_BR: Fix typo.  (Bug#12557)
+
+2012-10-01  Eric Ludlam  <zappo@gnu.org>
+
+	* srecode/cc.srt, srecode/ede-autoconf.srt: New files.
+
+	* srecode/cpp.srt: Move parts to c.srt.
+
+	* srecode/ede-make.srt: Extra templates for Arduino Makefiles.
+
+2012-10-01  Ralf Mattes  <rm@mh-freiburg.de>  (tiny change)
+
+	* srecode/el.srt (variable-option): Add missing quote.
+
+2012-10-01  Chong Yidong  <cyd@gnu.org>
+
+	* images/icons/hicolor/32x32/apps/emacs22.png:
+	* images/icons/hicolor/16x16/apps/emacs22.png:
+	* images/icons/hicolor/48x48/apps/emacs22.png:
+	* images/icons/hicolor/24x24/apps/emacs22.png: Remove old icons
+	(Bug#12536).
+
+2012-10-01  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Revert the FOLLOW-SYMLINKS change for file-attributes.
+	* NEWS: Undo last change.
+
+2012-09-30  Bastien Guerry  <bzg@gnu.org>
+
+	* refcards/orgcard.tex: Update version number.
+
+2012-09-30  Jambunathan K  <kjambunathan@gmail.com>
+
+	* org/OrgOdtContentTemplate.xml:
+	* org/OrgOdtStyles.xml: Add Listing-related entries.
+
+2012-09-30  Paul Eggert  <eggert@cs.ucla.edu>
+
+	file-attributes has a new optional arg FOLLOW-SYMLINKS.
+	* NEWS: Document the change.
+
 2012-09-30  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* NEWS: The NS port supports fullscreen.

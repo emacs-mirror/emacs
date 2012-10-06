@@ -52,8 +52,8 @@ called by `org-babel-execute-src-block'."
 	(out-file (org-babel-temp-file "ledger-output-")))
     (with-temp-file in-file (insert body))
     (message "%s" (concat "ledger"
-		     " -f " (org-babel-process-file-name in-file)
-		     " " cmdline))
+			  " -f " (org-babel-process-file-name in-file)
+			  " " cmdline))
     (with-output-to-string
       (shell-command (concat "ledger"
 			     " -f " (org-babel-process-file-name in-file)

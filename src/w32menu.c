@@ -1483,8 +1483,8 @@ add_menu_item (HMENU menu, widget_value *wv, HMENU item)
 
       utf8to16 (out_string, utf8_len, utf16_string);
       return_value = unicode_append_menu (menu, fuFlags,
-					  item != NULL ? (UINT) item
-					    : (UINT) wv->call_data,
+					  item != NULL ? (UINT_PTR) item
+					    : (UINT_PTR) wv->call_data,
 					  utf16_string);
       if (!return_value)
 	{
@@ -1496,7 +1496,7 @@ add_menu_item (HMENU menu, widget_value *wv, HMENU item)
 	     of minor importance compared with menus not working at all.  */
 	  return_value =
 	    AppendMenu (menu, fuFlags,
-			item != NULL ? (UINT) item: (UINT) wv->call_data,
+			item != NULL ? (UINT_PTR) item: (UINT_PTR) wv->call_data,
 			out_string);
 	  /* Don't use Unicode menus in future, unless this is Windows
 	     NT or later, where a failure of AppendMenuW does NOT mean
@@ -1513,7 +1513,7 @@ add_menu_item (HMENU menu, widget_value *wv, HMENU item)
       return_value =
 	AppendMenu (menu,
 		    fuFlags,
-		    item != NULL ? (UINT) item : (UINT) wv->call_data,
+		    item != NULL ? (UINT_PTR) item : (UINT_PTR) wv->call_data,
 		    out_string );
     }
 
@@ -1550,7 +1550,7 @@ add_menu_item (HMENU menu, widget_value *wv, HMENU item)
 	    }
 
 	  set_menu_item_info (menu,
-			      item != NULL ? (UINT) item : (UINT) wv->call_data,
+			      item != NULL ? (UINT_PTR) item : (UINT_PTR) wv->call_data,
 			      FALSE, &info);
 	}
     }

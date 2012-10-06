@@ -34,7 +34,6 @@
 
 (require 'org-macs)
 
-(declare-function find-library-name "find-func"  (library))
 (declare-function w32-focus-frame "term/w32-win" (frame))
 
 ;; The following constant is for backward compatibility.  We do not use
@@ -111,6 +110,7 @@ any other entries, and any resulting duplicates will be removed entirely."
 	    t))
       t)))
 
+
 ;;;; Emacs/XEmacs compatibility
 
 ;; Keys
@@ -326,20 +326,8 @@ Works on both Emacs and XEmacs."
 	string)
     (apply 'propertize string properties)))
 
-(defun org-substring-no-properties (string &optional from to)
-  (if (featurep 'xemacs)
-      (org-no-properties (substring string (or from 0) to))
-    (substring-no-properties string from to)))
-
-(defun org-find-library-name (library)
-  (if (fboundp 'find-library-name)
-      (file-name-directory (find-library-name library))
-    ; XEmacs does not have `find-library-name'
-    (flet ((find-library-name-helper (filename ignored-codesys)
-				     filename)
-	   (find-library-name (library)
-	    (find-library library nil 'find-library-name-helper)))
-      (file-name-directory (find-library-name library)))))
+(defmacro org-find-library-dir (library)
+  `(file-name-directory (locate-library ,library)))
 
 (defun org-count-lines (s)
   "How many lines in string S?"
@@ -396,7 +384,7 @@ TIME defaults to the current time."
     (save-match-data
       (apply 'looking-at args))))
 
-; XEmacs does not have `looking-back'.
+					; XEmacs does not have `looking-back'.
 (if (fboundp 'looking-back)
     (defalias 'org-looking-back 'looking-back)
   (defun org-looking-back (regexp &optional limit greedy)
@@ -436,7 +424,7 @@ With two arguments, return floor and remainder of their quotient."
   (let ((q (floor x y)))
     (list q (- x (if y (* y q) q)))))
 
-;; `pop-to-buffer-same-window' has been introduced with Emacs 24.1.
+;; `pop-to-buffer-same-window' has been introduced in Emacs 24.1.
 (defun org-pop-to-buffer-same-window
   (&optional buffer-or-name norecord label)
   "Pop to buffer specified by BUFFER-OR-NAME in the selected window."
@@ -444,6 +432,33 @@ With two arguments, return floor and remainder of their quotient."
       (funcall
        'pop-to-buffer-same-window buffer-or-name norecord)
     (funcall 'switch-to-buffer buffer-or-name norecord)))
+
+;; `condition-case-unless-debug' has been introduced in Emacs 24.1
+;; `condition-case-no-debug' has been introduced in Emacs 23.1
+(defalias 'org-condition-case-unless-debug
+  (or (and (fboundp 'condition-case-unless-debug)
+	   'condition-case-unless-debug)
+      (and (fboundp 'condition-case-no-debug)
+	   'condition-case-no-debug)
+      'condition-case))
+
+;;;###autoload
+(defmacro org-check-version ()
+  "Try very hard to provide sensible version strings."
+  (let* ((org-dir        (org-find-library-dir "org"))
+	 (org-version.el (concat org-dir "org-version.el"))
+	 (org-fixup.el   (concat org-dir "../mk/org-fixup.el")))
+    (if (require 'org-version org-version.el 'noerror)
+	'(progn
+	   (autoload 'org-release     "org-version.el")
+	   (autoload 'org-git-version "org-version.el"))
+      (if (require 'org-fixup org-fixup.el 'noerror)
+	  '(org-fixup)
+	;; provide fallback definitions and complain
+	(warn "Could not define org version correctly.  Check installation!")
+	'(progn
+	   (defun org-release () "N/A")
+	   (defun org-git-version () "N/A !!check installation!!"))))))
 
 (provide 'org-compat)
 

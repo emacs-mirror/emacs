@@ -4,8 +4,6 @@
 
 ;; Author: Carsten Dominik <dominik@science.uva.nl>
 ;; Maintainer: auctex-devel@gnu.org
-;; Version: 4.31
-;; Package: reftex
 
 ;; This file is part of GNU Emacs.
 
@@ -372,14 +370,14 @@ SPC=view TAB=goto RET=goto+hide [q]uit [r]escan [l]abels [f]ollow [x]r [?]Help
            (error t)))))
 
 (defun reftex-re-enlarge ()
-  ;; Enlarge window to a remembered size.
-  (if reftex-toc-split-windows-horizontally
-      (enlarge-window-horizontally
-       (max 0 (- (or reftex-last-window-width (window-width))
-                 (window-width))))
-    (enlarge-window
-     (max 0 (- (or reftex-last-window-height (window-height))
-               (window-height))))))
+  "Enlarge window to a remembered size."
+  (let ((count (if reftex-toc-split-windows-horizontally
+		   (- (or reftex-last-window-width (window-width))
+		      (window-width))
+		 (- (or reftex-last-window-height (window-height))
+		    (window-height)))))
+    (when (> count 0)
+      (enlarge-window count reftex-toc-split-windows-horizontally))))
 
 (defun reftex-toc-dframe-p (&optional frame error)
   ;; Check if FRAME is the dedicated TOC frame.

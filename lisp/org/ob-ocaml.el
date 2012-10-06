@@ -72,7 +72,7 @@
 					 (progn (setq out nil) line)
 				       (when (string-match re line)
 					 (progn (setq out t) nil))))
-				 (mapcar #'org-babel-trim (reverse raw))))))))
+				   (mapcar #'org-babel-trim (reverse raw))))))))
     (org-babel-reassemble-table
      (org-babel-ocaml-parse-output (org-babel-trim clean))
      (org-babel-pick-name
@@ -93,7 +93,7 @@
                            (get-buffer tuareg-interactive-buffer-name))))
 
 (defun org-babel-variable-assignments:ocaml (params)
-  "Return list of ocaml statements assigning the block's variables"
+  "Return list of ocaml statements assigning the block's variables."
   (mapcar
    (lambda (pair) (format "let %s = %s;;" (car pair)
 			  (org-babel-ocaml-elisp-to-ocaml (cdr pair))))
@@ -131,11 +131,11 @@ Emacs-lisp table, otherwise return the results as a string."
   "Convert RESULTS into an elisp table or string.
 If the results look like a table, then convert them into an
 Emacs-lisp table, otherwise return the results as a string."
-    (org-babel-script-escape
-     (replace-regexp-in-string
-      "\\[|" "[" (replace-regexp-in-string
-		  "|\\]" "]" (replace-regexp-in-string
-			      "; " "," results)))))
+  (org-babel-script-escape
+   (replace-regexp-in-string
+    "\\[|" "[" (replace-regexp-in-string
+		"|\\]" "]" (replace-regexp-in-string
+			    "; " "," results)))))
 
 (provide 'ob-ocaml)
 

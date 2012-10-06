@@ -23,7 +23,7 @@
 
 ;;; Commentary:
 
-;; Org-Babel support for interactive terminals. Mostly shell scripts.
+;; Org-Babel support for interactive terminals.  Mostly shell scripts.
 ;; Heavily inspired by 'eev' from Eduardo Ochs
 ;;
 ;; Adding :cmd and :terminal as header arguments
@@ -64,8 +64,8 @@ In case you want to use a different screen than one selected by your $PATH")
          (process-name (concat "org-babel: terminal (" session ")")))
     (apply 'start-process process-name "*Messages*"
            terminal `("-T" ,(concat "org-babel: " session) "-e" ,org-babel-screen-location
-                           "-c" "/dev/null" "-mS" ,(concat "org-babel-session-" session)
-                           ,cmd))
+		      "-c" "/dev/null" "-mS" ,(concat "org-babel-session-" session)
+		      ,cmd))
     ;; XXX: Is there a better way than the following?
     (while (not (org-babel-screen-session-socketname session))
       ;; wait until screen session is available before returning
@@ -81,8 +81,8 @@ In case you want to use a different screen than one selected by your $PATH")
         (apply 'start-process (concat "org-babel: screen (" session ")") "*Messages*"
                org-babel-screen-location
                `("-S" ,socket "-X" "eval" "msgwait 0"
-                      ,(concat "readreg z " tmpfile)
-                      "paste z"))))))
+		 ,(concat "readreg z " tmpfile)
+		 "paste z"))))))
 
 (defun org-babel-screen-session-socketname (session)
   "Check if SESSION exists by parsing output of \"screen -ls\"."
@@ -137,7 +137,7 @@ The terminal should shortly flicker."
     (message (concat "org-babel-screen: Setup "
                      (if (string-match random-string tmp-string)
                          "WORKS."
-                         "DOESN'T work.")))))
+		       "DOESN'T work.")))))
 
 (provide 'ob-screen)
 

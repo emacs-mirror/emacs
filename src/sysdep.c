@@ -54,6 +54,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifdef WINDOWSNT
 #define read sys_read
 #define write sys_write
+#ifndef STDERR_FILENO
+#define STDERR_FILENO fileno(GetStdHandle(STD_ERROR_HANDLE))
+#endif
 #include <windows.h>
 #endif /* not WINDOWSNT */
 
@@ -1540,12 +1543,10 @@ deliver_thread_signal (int sig, signal_handler_t handler)
   errno = old_errno;
 }
 
-#if !defined HAVE_STRSIGNAL && !HAVE_DECL_SYS_SIGLIST
-static char *my_sys_siglist[NSIG];
-# ifdef sys_siglist
-#  undef sys_siglist
-# endif
+#if !HAVE_DECL_SYS_SIGLIST
+# undef sys_siglist
 # define sys_siglist my_sys_siglist
+static char const *sys_siglist[NSIG];
 #endif
 
 /* Handle bus errors, invalid instruction, etc.  */
@@ -1608,7 +1609,7 @@ init_signals (bool dumping)
   main_thread = pthread_self ();
 #endif
 
-#if !defined HAVE_STRSIGNAL && !HAVE_DECL_SYS_SIGLIST
+#if !HAVE_DECL_SYS_SIGLIST
   if (! initialized)
     {
       sys_siglist[SIGABRT] = "Aborted";
@@ -1756,7 +1757,7 @@ init_signals (bool dumping)
       sys_siglist[SIGXFSZ] = "File size limit exceeded";
 # endif
     }
-#endif /* !defined HAVE_STRSIGNAL && !defined HAVE_DECL_SYS_SIGLIST */
+#endif /* !HAVE_DECL_SYS_SIGLIST */
 
   /* Don't alter signal handlers if dumping.  On some machines,
      changing signal handlers sets static data that would make signals
@@ -2277,21 +2278,20 @@ set_file_times (int fd, const char *filename,
   return fdutimens (fd, filename, timespec);
 }
 
-#ifndef HAVE_STRSIGNAL
-char *
-strsignal (int code)
+/* Like strsignal, except async-signal-safe, and this function typically
+   returns a string in the C locale rather than the current locale.  */
+char const *
+safe_strsignal (int code)
 {
-  char *signame = 0;
+  char const *signame = 0;
 
   if (0 <= code && code < NSIG)
-    {
-      /* Cast to suppress warning if the table has const char *.  */
-      signame = (char *) sys_siglist[code];
-    }
+    signame = sys_siglist[code];
+  if (! signame)
+    signame = "Unknown signal";
 
   return signame;
 }
-#endif /* HAVE_STRSIGNAL */
 
 #ifndef DOS_NT
 /* For make-serial-process  */

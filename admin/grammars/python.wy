@@ -88,6 +88,12 @@
 ;; --------
 
 %package wisent-python-wy
+%provide semantic/wisent/python-wy
+
+%{
+(declare-function wisent-python-reconstitute-function-tag "semantic/wisent/python")
+(declare-function wisent-python-reconstitute-class-tag "semantic/wisent/python")
+}
 
 %languagemode python-mode
 
@@ -173,6 +179,7 @@
 %token <punctuation> COMMA 	","
 %token <punctuation> ASSIGN 	"="
 %token <punctuation> BACKQUOTE	"`"
+%token <punctuation> AT         "@"
 
 
 ;; -----------------
@@ -306,6 +313,10 @@
 %keyword WHILE	     "while"
 %put     WHILE summary
 "Start a 'while' loop"
+
+%keyword WITH        "with"
+%put     WITH summary
+"Start statement with an associated context object"
 
 %keyword YIELD	     "yield"
 %put     YIELD summary
@@ -545,8 +556,10 @@ import_stmt
 
 ;; dotted_as_name (',' dotted_as_name)*
 dotted_as_name_list
-  : dotted_as_name
-  | dotted_as_name_list COMMA dotted_as_name
+  : dotted_as_name_list COMMA dotted_as_name
+    (cons $3 $1)
+  | dotted_as_name
+    (list $1)
   ;
 
 ;; ('*' | import_as_name (',' import_as_name)*)
@@ -649,6 +662,7 @@ compound_stmt
   | while_stmt
   | for_stmt
   | try_stmt
+  | with_stmt
   | funcdef
   | class_declaration
   ;
@@ -756,13 +770,46 @@ zero_one_or_two_test
   ;
 
 ;;;============================================================================
+;;@@ with_stmt
+;;;============================================================================
+
+;; with_stmt: 'with' test [ with_var ] ':' suite
+with_stmt
+  : WITH test COLON suite
+    (CODE-TAG $1 nil)
+  | WITH test with_var COLON suite
+    (CODE-TAG $1 nil) ;; TODO capture variable
+  ;
+
+with_var
+  : AS expr
+    () ;; TODO capture
+  ;
+
+;;;============================================================================
 ;;;@@ funcdef
 ;;;============================================================================
 
-;; funcdef: 'def' NAME parameters ':' suite
+decorator
+  : AT dotted_name varargslist_opt NEWLINE
+    (FUNCTION-TAG $2 "decorator" $3)
+  ;
+
+decorators
+  : decorator
+    (list $1)
+  | decorator decorators
+    (cons $1 $2)
+  ;
+
+;; funcdef: [decorators] 'def' NAME parameters ':' suite
 funcdef
   : DEF NAME function_parameter_list COLON suite
-    (FUNCTION-TAG $2 nil $3)
+    (wisent-python-reconstitute-function-tag
+     (FUNCTION-TAG $2 nil $3) $5)
+  | decorators DEF NAME function_parameter_list COLON suite
+    (wisent-python-reconstitute-function-tag
+     (FUNCTION-TAG $3 nil $4 :decorators $1) $6)
   ;
 
 function_parameter_list
@@ -798,10 +845,11 @@ function_parameter
 ;; classdef: 'class' NAME ['(' testlist ')'] ':' suite
 class_declaration
   : CLASS NAME paren_class_list_opt COLON suite
-    (TYPE-TAG $2 $1             ;; Name "class"
-              $5                ;; Members
-              (cons $3 nil)     ;; (SUPERCLASSES . INTERFACES)
-              )
+    (wisent-python-reconstitute-class-tag
+     (TYPE-TAG $2 $1             ;; Name "class"
+               $5                ;; Members
+               (cons $3 nil)     ;; (SUPERCLASSES . INTERFACES)
+               ))
   ;
 
 ;; ['(' testlist ')']

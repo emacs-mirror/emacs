@@ -1065,7 +1065,7 @@ present.
   Type @kbd{M-x delete-trailing-whitespace} to delete all trailing
 whitespace.  This command deletes all extra spaces at the end of each
 line in the buffer, and all empty lines at the end of the buffer; to
-ignore the latter, change the varaible @code{delete-trailing-lines} to
+ignore the latter, change the variable @code{delete-trailing-lines} to
 @code{nil}.  If the region is active, the command instead deletes
 extra spaces at the end of each line in the region.
 

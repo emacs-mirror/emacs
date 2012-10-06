@@ -49,6 +49,7 @@
 (require 'semantic/tag)
 
 (declare-function semantic-tag-protected-p "semantic/tag-ls")
+(declare-function semantic-tag-package-protected-p "semantic/tag-ls")
 
 ;;; Overlay Search Routines
 ;;
@@ -362,12 +363,19 @@ See `semantic-tag-protected-p' for details on which tags are returned."
 	table
       (require 'semantic/tag-ls)
       (semantic--find-tags-by-macro
-       (not (semantic-tag-protected-p (car tags) scopeprotection parent))
+       (not (and (semantic-tag-protected-p (car tags) scopeprotection parent)
+		 (semantic-tag-package-protected-p (car tags) parent)))
        table)))
 
-(defsubst semantic-find-tags-included (&optional table)
+;;;###autoload
+(define-overloadable-function semantic-find-tags-included (&optional table)
   "Find all tags in TABLE that are of the 'include class.
-TABLE is a tag table.  See `semantic-something-to-tag-table'."
+TABLE is a tag table.  See `semantic-something-to-tag-table'.")
+
+(defun semantic-find-tags-included-default (&optional table)
+  "Find all tags in TABLE that are of the 'include class.
+TABLE is a tag table.  See `semantic-something-to-tag-table'.
+By default, just call `semantic-find-tags-by-class'."
   (semantic-find-tags-by-class 'include table))
 
 ;;; Deep Searches

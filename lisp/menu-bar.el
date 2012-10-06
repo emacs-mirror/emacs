@@ -1812,9 +1812,14 @@ for the definition of the menu frame."
 When called in the minibuffer, get out of the minibuffer
 using `abort-recursive-edit'."
   (interactive)
-  (if (menu-bar-non-minibuffer-window-p)
-      (kill-buffer (current-buffer))
-    (abort-recursive-edit)))
+  (cond
+   ;; Don't do anything when `menu-frame' is not alive or visible
+   ;; (Bug#8184).
+   ((not (menu-bar-menu-frame-live-and-visible-p)))
+   ((menu-bar-non-minibuffer-window-p)
+    (kill-buffer (current-buffer)))
+   (t
+    (abort-recursive-edit))))
 
 (defun kill-this-buffer-enabled-p ()
   "Return non-nil if the `kill-this-buffer' menu item should be enabled."

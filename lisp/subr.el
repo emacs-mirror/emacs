@@ -2182,8 +2182,16 @@ by doing (clear-string STRING)."
             (set (make-local-variable 'post-self-insert-hook) nil)
             (add-hook 'after-change-functions hide-chars-fun nil 'local))
         (unwind-protect
-            (let ((enable-recursive-minibuffers t))
-              (read-string prompt nil t default)) ; t = "no history"
+            (let ((enable-recursive-minibuffers t)
+		  (map minibuffer-local-map)
+		  result)
+	      (define-key map "\C-u"	; bug#12570
+		(lambda () (interactive) (delete-minibuffer-contents)))
+	      (setq result
+		    ;; t = no history.
+		    (read-from-minibuffer prompt nil map nil t default))
+	      (if (and (equal "" result) default) default
+		result))
           (when (buffer-live-p minibuf)
             (with-current-buffer minibuf
               ;; Not sure why but it seems that there might be cases where the
@@ -3170,7 +3178,7 @@ in which case `save-window-excursion' cannot help."
 	  (set-window-hscroll window 0)
 	  ;; Don't try this with NOFORCE non-nil!
 	  (set-window-start window (point-min) t)
-	  ;; This hould not be necessary.
+	  ;; This should not be necessary.
 	  (set-window-point window (point-min))
 	  ;; Run `temp-buffer-show-hook', with the chosen window selected.
 	  (with-selected-window window

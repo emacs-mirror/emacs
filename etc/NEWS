@@ -160,6 +160,8 @@ On encountering a fatal error, Emacs now outputs a textual description
 of the fatal signal, and a short backtrace on platforms like glibc
 that support backtraces.
 
+** `message-log-max' now defaults to 1000, not 100.
+
 ---
 ** If your Emacs was built from a bzr checkout, the new variable
 `emacs-bzr-version' contains information about the bzr revision used.
@@ -617,6 +619,8 @@ inefficiency, and not namespace-clean.
 
 * Incompatible Lisp Changes in Emacs 24.3
 
+** set-buffer-multibyte now signals an error in narrowed buffers.
+
 +++
 ** (random) by default now returns a different random sequence in
 every Emacs run.  Use (random S), where S is a string, to set the
@@ -682,7 +686,7 @@ are deprecated and will be removed eventually.
 **** inactivate-current-input-method-function ->
      deactivate-current-input-method-function
 
-** Some obsolete functions and variables were removed:
+** Some obsolete functions, variables, and faces were removed:
 
 *** `facemenu-unlisted-faces'
 *** `rmail-decode-mime-charset'
@@ -701,6 +705,7 @@ are deprecated and will be removed eventually.
 *** `vc-ignore-vc-files' (use `vc-handled-backends' instead)
 *** `vc-master-templates' (use `vc-handled-backends' instead)
 *** `vc-checkout-carefully'
+*** `modeline'
 
 
 * Lisp changes in Emacs 24.3
@@ -787,6 +792,7 @@ in Emacs 24.1:
 **** `special-display-buffer-names'
 **** `special-display-function'
 **** `display-buffer-function'
+**** `dired-shrink-to-fit'
 
 ** Time
 ---
@@ -818,7 +824,8 @@ This can significantly speed up execution of non-byte-compiled code,
 but can also bump into harmless and previously unnoticed cyclic
 dependencies.  These should not be fatal: they will simply cause the
 macro-calls to be left for later expansion (as before), but will also
-result in a warning describing the cycle.
+result in a warning ("Eager macro-expansion skipped due to cycle")
+describing the cycle.
 
 ** Misc new functions:
 
@@ -850,6 +857,8 @@ See the "Face Attributes" section of the Elisp manual.
 *** `buffer-has-markers-at'
 *** `macro-declaration-function' (use `macro-declarations-alist').
 *** `window-system-version'
+*** `dired-pop-to-buffer' (use `dired-mark-pop-up')
+*** `query-replace-interactive'
 
 
 * Changes in Emacs 24.3 on non-free operating systems

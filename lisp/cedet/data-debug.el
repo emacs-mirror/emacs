@@ -821,20 +821,30 @@ FCN is a function that will display stuff in the data debug buffer."
 PREBUTTONTEXT is some text to insert between prefix and the thing
 that is not included in the indentation calculation of any children.
 If PARENT is non-nil, it is somehow related as a parent to thing."
-  (when (catch 'done
-	  (dolist (test data-debug-thing-alist)
-	    (when (funcall (car test) thing)
-	      (condition-case nil
-		  (funcall (cdr test) thing prefix prebuttontext parent)
-		(error
-		 (funcall (cdr test) thing prefix prebuttontext)))
-	      (throw 'done nil))
-	    )
-	  nil)
-    (data-debug-insert-simple-thing (format "%S" thing)
-				    prefix
-				    prebuttontext
-				    'bold)))
+  (let ((inhibit-read-only t))
+    (when (catch 'done
+	    (dolist (test data-debug-thing-alist)
+	      (when (funcall (car test) thing)
+		(condition-case nil
+		    (progn
+		      (funcall (cdr test) thing prefix prebuttontext parent)
+		      (throw 'done nil))
+		  (error
+		   (condition-case nil
+		       (progn
+			 (funcall (cdr test) thing prefix prebuttontext)
+			 (throw 'done nil))
+		     (error nil))))
+		;; Only throw the 'done if no error was caught.
+		;; If an error was caught, skip this predicate as being
+		;; unsuccessful, and move on.
+		))
+	    nil)
+      (data-debug-insert-simple-thing (format "%S" thing)
+				      prefix
+				      prebuttontext
+				      'bold)))
+  (set-buffer-modified-p nil))
 
 ;;; MAJOR MODE
 ;;
@@ -861,6 +871,7 @@ If PARENT is non-nil, it is somehow related as a parent to thing."
 
 (defvar data-debug-map
   (let ((km (make-sparse-keymap)))
+    (suppress-keymap km)
     (define-key km [mouse-2] 'data-debug-expand-or-contract-mouse)
     (define-key km " " 'data-debug-expand-or-contract)
     (define-key km "\C-m" 'data-debug-expand-or-contract)
@@ -885,7 +896,8 @@ If PARENT is non-nil, it is somehow related as a parent to thing."
   (setq major-mode 'data-debug-mode
         mode-name "DATA-DEBUG"
 	comment-start ";;"
-	comment-end "")
+	comment-end ""
+	buffer-read-only t)
   (set (make-local-variable 'comment-start-skip)
        "\\(\\(^\\|[^\\\\\n]\\)\\(\\\\\\\\\\)*\\);+ *")
   (set-syntax-table data-debug-mode-syntax-table)
@@ -902,6 +914,7 @@ If PARENT is non-nil, it is somehow related as a parent to thing."
   (let ((b (get-buffer-create name)))
     (pop-to-buffer b)
     (set-buffer b)
+    (setq buffer-read-only nil) ; disable read-only
     (erase-buffer)
     (data-debug-mode)
     b))
@@ -964,7 +977,8 @@ Do nothing if already expanded."
   (when (or (not (data-debug-line-expandable-p))
 	    (not (data-debug-current-line-expanded-p)))
     ;; If the next line is the same or less indentation, expand.
-    (let ((fcn (get-text-property (point) 'ddebug-function)))
+    (let ((fcn (get-text-property (point) 'ddebug-function))
+	  (inhibit-read-only t))
       (when fcn
 	(funcall fcn (point))
 	(beginning-of-line)
@@ -977,6 +991,7 @@ Do nothing if already contracted."
 	     ;; Don't contract if the current line is not expandable.
 	     (get-text-property (point) 'ddebug-function))
     (let ((ti (current-indentation))
+	  (inhibit-read-only t)
 	  )
       ;; If next indentation is larger, collapse.
       (end-of-line)
@@ -995,7 +1010,8 @@ Do nothing if already contracted."
 	  (error (setq end (point-max))))
 	(delete-region start end)
 	(forward-char -1)
-	(beginning-of-line)))))
+	(beginning-of-line))))
+  (set-buffer-modified-p nil))
 
 (defun data-debug-expand-or-contract ()
   "Expand or contract anything at the current point."
@@ -1079,8 +1095,5 @@ If the result is a list or vector, then use the data debugger to display it."
 	(if str (princ str t))))))
 
 (provide 'data-debug)
-
-(if (featurep 'eieio)
-    (require 'eieio-datadebug))
 
 ;;; data-debug.el ends here

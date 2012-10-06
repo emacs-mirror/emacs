@@ -3,6 +3,7 @@
 ;; Copyright (C) 2001-2002, 2004-2012  Free Software Foundation, Inc.
 
 ;; Author: Mario Lang <mlang@delysid.org>
+;; Maintainer: FSF
 ;; Keywords: comm, processes, menu
 
 ;; This file is part of GNU Emacs.

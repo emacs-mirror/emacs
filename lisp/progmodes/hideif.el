@@ -329,16 +329,23 @@ that form should be displayed.")
   "Prepend (var value) pair to hide-ifdef-env."
   (setq hide-ifdef-env (cons (cons var value) hide-ifdef-env)))
 
+(declare-function semantic-c-hideif-lookup  "semantic/bovine/c" (var))
+(declare-function semantic-c-hideif-defined "semantic/bovine/c" (var))
 
 (defun hif-lookup (var)
-  ;; (message "hif-lookup %s" var)
-  (let ((val (assoc var hide-ifdef-env)))
-    (if val
-	(cdr val)
-      hif-undefined-symbol)))
+  (or (when (bound-and-true-p semantic-c-takeover-hideif)
+	(semantic-c-hideif-lookup var))
+      (let ((val (assoc var hide-ifdef-env)))
+	(if val
+	    (cdr val)
+	  hif-undefined-symbol))))
 
 (defun hif-defined (var)
-   (if (assoc var hide-ifdef-env) 1 0))
+  (cond
+   ((bound-and-true-p semantic-c-takeover-hideif)
+    (semantic-c-hideif-defined var))
+   ((assoc var hide-ifdef-env) 1)
+   (t 0)))
 
 ;;===%%SF%% evaluation (End)  ===
 

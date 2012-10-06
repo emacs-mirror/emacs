@@ -1784,7 +1784,7 @@ supported but discouraged.  It will be removed in a future version of Emacs."
              process-alist))))
 
   (unless (and signal process-alist)
-    ;; Discouraged usge (supported for backward compatibility):
+    ;; Discouraged usage (supported for backward compatibility):
     ;; The new calling sequence separates more cleanly between the parts
     ;; of the code required for interactive and noninteractive calls so that
     ;; the command can be used more flexibly in noninteractive ways, too.

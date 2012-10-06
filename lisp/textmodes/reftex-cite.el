@@ -4,8 +4,6 @@
 
 ;; Author: Carsten Dominik <dominik@science.uva.nl>
 ;; Maintainer: auctex-devel@gnu.org
-;; Version: 4.31
-;; Package: reftex
 
 ;; This file is part of GNU Emacs.
 
@@ -129,9 +127,10 @@
 
   (let* ((re
           (if item
-              (concat "\\\\bibitem\\(\\[[^]]*\\]\\)?{" (regexp-quote key) "}")
-            (concat "@[a-zA-Z]+[ \t\n\r]*[{(][ \t\n\r]*" (regexp-quote key)
-                    "[, \t\r\n}]")))
+              (concat "\\\\bibitem[ \t]*\\(\\[[^]]*\\]\\)?[ \t]*{"
+		      (regexp-quote key) "}")
+            (concat "@\\(?:\\w\\|\\s_\\)+[ \t\n\r]*[{(][ \t\n\r]*"
+		    (regexp-quote key) "[, \t\r\n}]")))
          (buffer-conf (current-buffer))
          file buf pos oldpos)
 
@@ -229,7 +228,13 @@
                            buffer (not reftex-keep-temporary-buffers))))
           (if (not buffer1)
               (message "No such BibTeX file %s (ignored)" buffer)
-            (message "Scanning bibliography database %s" buffer1))
+            (message "Scanning bibliography database %s" buffer1)
+	    (unless (verify-visited-file-modtime buffer1)
+		 (when (y-or-n-p
+			(format "File %s changed on disk.  Reread from disk? "
+				(file-name-nondirectory
+				 (buffer-file-name buffer1))))
+		   (with-current-buffer buffer1 (revert-buffer t t)))))
 
           (set-buffer buffer1)
           (reftex-with-special-syntax-for-bib
@@ -238,8 +243,8 @@
              (while (re-search-forward first-re nil t)
                (catch 'search-again
                  (setq key-point (point))
-                 (unless (re-search-backward
-                          "\\(\\`\\|[\n\r]\\)[ \t]*@\\([a-zA-Z]+\\)[ \t\n\r]*[{(]" nil t)
+                 (unless (re-search-backward "\\(\\`\\|[\n\r]\\)[ \t]*\
+@\\(\\(?:\\w\\|\\s_\\)+\\)[ \t\n\r]*[{(]" nil t)
                    (throw 'search-again nil))
                  (setq start-point (point))
                  (goto-char (match-end 0))
@@ -451,7 +456,8 @@
       (setq names (replace-match " " nil t names)))
     (split-string names "\n")))
 
-(defun reftex-parse-bibtex-entry (entry &optional from to)
+(defun reftex-parse-bibtex-entry (entry &optional from to raw)
+  ; if RAW is non-nil, keep double quotes/curly braces delimiting fields
   (let (alist key start field)
     (save-excursion
       (save-restriction
@@ -463,41 +469,56 @@
               (erase-buffer)
               (insert entry))
           (widen)
-          (narrow-to-region from to))
+          (if (and from to) (narrow-to-region from to)))
         (goto-char (point-min))
 
-        (if (re-search-forward
-             "@\\(\\w+\\)[ \t\n\r]*[{(][ \t\n\r]*\\([^ \t\n\r,]+\\)" nil t)
+        (if (re-search-forward "@\\(\\(?:\\w\\|\\s_\\)+\\)[ \t\n\r]*\
+\[{(][ \t\n\r]*\\([^ \t\n\r,]+\\)" nil t)
             (setq alist
                   (list
                    (cons "&type" (downcase (reftex-match-string 1)))
                    (cons "&key"  (reftex-match-string 2)))))
-        (while (re-search-forward "\\(\\w+\\)[ \t\n\r]*=[ \t\n\r]*" nil t)
+        (while (re-search-forward "\\(\\(?:\\w\\|-\\)+\\)[ \t\n\r]*=[ \t\n\r]*"
+				  nil t)
           (setq key (downcase (reftex-match-string 1)))
           (cond
            ((= (following-char) ?{)
-            (forward-char 1)
-            (setq start (point))
-            (condition-case nil
-                (up-list 1)
-              (error nil)))
+            (cond
+             (raw
+              (setq start (point))
+              (forward-char 1))
+             (t
+              (forward-char 1)
+              (setq start (point))
+              (condition-case nil
+                  (up-list 1)
+                (error nil)))))
            ((= (following-char) ?\")
-            (forward-char 1)
-            (setq start (point))
+            (cond
+             (raw
+              (setq start (point))
+              (forward-char 1))
+             (t
+              (forward-char 1)
+              (setq start (point))))
             (while (and (search-forward "\"" nil t)
                         (= ?\\ (char-after (- (point) 2))))))
            (t
             (setq start (point))
             (re-search-forward "[ \t]*[\n\r,}]" nil 1)))
-          (setq field (buffer-substring-no-properties start (1- (point))))
+          ;; extract field value, ignore trailing comma if in RAW mode
+          (let ((stop (if (and raw (not (= (char-after (1- (point))) ?,)))
+                        (point)
+                        (1- (point))) ))
+            (setq field (buffer-substring-no-properties start stop)))
           ;; remove extra whitespace
           (while (string-match "[\n\t\r]\\|[ \t][ \t]+" field)
             (setq field (replace-match " " nil t field)))
           ;; remove leading garbage
-          (if (string-match "^[ \t{]+" field)
+          (if (string-match (if raw "^[ \t]+" "^[ \t{]+") field)
               (setq field (replace-match "" nil t field)))
           ;; remove trailing garbage
-          (if (string-match "[ \t}]+$" field)
+          (if (string-match (if raw "[ \t]+$" "[ \t}]+$") field)
               (setq field (replace-match "" nil t field)))
           (push (cons key field) alist))))
     alist))
@@ -638,15 +659,13 @@ While entering the regexp, completion on knows citation keys is possible.
          (insert-entries selected-entries)
          entry string cite-view)
 
-    (when (stringp selected-entries)
-      (error selected-entries))
     (unless selected-entries (error "Quit"))
 
     (if (stringp selected-entries)
         ;; Nonexistent entry
-        (setq selected-entries nil
-              insert-entries (list (list selected-entries
-                                         (cons "&key" selected-entries))))
+        (setq insert-entries (list (list selected-entries
+                                         (cons "&key" selected-entries)))
+	      selected-entries nil)
       ;; It makes sense to compute the cite-view strings.
       (setq cite-view t))
 
@@ -654,7 +673,8 @@ While entering the regexp, completion on knows citation keys is possible.
       ;; All keys go into a single command - we need to trick a little
       ;; FIXME: Unfortunately, this means that commenting does not work right.
       (pop selected-entries)
-      (let ((concat-keys (mapconcat 'car selected-entries ",")))
+      (let ((concat-keys (mapconcat 'car selected-entries
+				    reftex-cite-key-separator)))
         (setq insert-entries
               (list (list concat-keys (cons "&key" concat-keys))))))
 
@@ -675,8 +695,9 @@ While entering the regexp, completion on knows citation keys is possible.
                        (equal arg '(4))))
           (let ((start 0) (nth 0) value)
             (while (setq start (string-match "\\[\\]" string start))
-              (setq value (read-string (format "Optional argument %d: "
-                                               (setq nth (1+ nth)))))
+              (setq value (save-match-data
+			    (read-string (format "Optional argument %d: "
+						 (setq nth (1+ nth))))))
               (setq string (replace-match (concat "[" value "]") t t string))
               (setq start (1+ start)))))
         ;; Should we cleanup empty optional arguments?
@@ -725,7 +746,7 @@ While entering the regexp, completion on knows citation keys is possible.
         (forward-char 1)))
 
     ;; Return the citation key
-    (car (car selected-entries))))
+    (mapcar 'car selected-entries)))
 
 (defun reftex-figure-out-cite-format (arg &optional no-insert format-key)
   ;; Check if there is already a cite command at point and change cite format
@@ -744,9 +765,13 @@ While entering the regexp, completion on knows citation keys is possible.
       (if (or (not arg) (not (listp arg)))
           (setq format
                 (concat
-                 (if (member (preceding-char) '(?\{ ?,)) "" ",")
+                 (if (member (preceding-char) '(?\{ ?,))
+		     ""
+		   reftex-cite-key-separator)
                  "%l"
-                 (if (member (following-char) '(?\} ?,)) "" ",")))
+                 (if (member (following-char) '(?\} ?,))
+		     ""
+		   reftex-cite-key-separator)))
         (setq format "%l")))
      (t
       ;; Figure out the correct format
@@ -1114,7 +1139,7 @@ While entering the regexp, completion on knows citation keys is possible.
           (save-restriction
             (widen)
             (goto-char (point-min))
-            (while (re-search-forward "^[^%\n\r]*\\\\\\(bibentry\\|[a-zA-Z]*cite[a-zA-Z]*\\)\\(\\[[^\\]]*\\]\\)?{\\([^}]+\\)}" nil t)
+            (while (re-search-forward "\\(?:^\\|\\=\\)[^%\n\r]*?\\\\\\(bibentry\\|[a-zA-Z]*cite[a-zA-Z]*\\)\\(\\[[^\\]]*\\]\\)?{\\([^}]+\\)}" nil t)
               (setq kk (match-string-no-properties 3))
               (while (string-match "%.*\n?" kk)
                 (setq kk (replace-match "" t t kk)))
@@ -1125,18 +1150,35 @@ While entering the regexp, completion on knows citation keys is possible.
     (reftex-kill-temporary-buffers)
     keys))
 
+(defun reftex-get-string-refs (alist)
+  "Return a list of BibTeX @string references that appear as values in ALIST."
+  (reftex-remove-if (lambda (x) (string-match "^\\([\"{]\\|[0-9]+$\\)" x))
+		    ;; get list of values, discard keys
+		    (mapcar 'cdr
+			    ;; remove &key and &type entries
+			    (reftex-remove-if (lambda (pair)
+						(string-match "^&" (car pair)))
+					      alist))))
+
 (defun reftex-create-bibtex-file (bibfile)
   "Create a new BibTeX database file with all entries referenced in document.
-The command prompts for a filename and writes the collected entries to
-that file.  Only entries referenced in the current document with
-any \\cite-like macros are used.
-The sequence in the new file is the same as it was in the old database."
+The command prompts for a filename and writes the collected
+entries to that file.  Only entries referenced in the current
+document with any \\cite-like macros are used.  The sequence in
+the new file is the same as it was in the old database.
+
+Entries referenced from other entries must appear after all
+referencing entries.
+
+You can define strings to be used as header or footer for the
+created files in the variables `reftex-create-bibtex-header' or
+`reftex-create-bibtex-footer' respectively."
   (interactive "FNew BibTeX file: ")
   (let ((keys (reftex-all-used-citation-keys))
         (files (reftex-get-bibfile-list))
-        file key entries beg end entry)
+        file key entries beg end entry string-keys string-entries)
     (save-current-buffer
-      (while (setq file (pop files))
+      (dolist (file files)
         (set-buffer (reftex-get-file-buffer-force file 'mark))
         (reftex-with-special-syntax-for-bib
          (save-excursion
@@ -1156,14 +1198,54 @@ The sequence in the new file is the same as it was in the old database."
                (when (member key keys)
                  (setq entry (buffer-substring beg end)
                        entries (cons entry entries)
-                       keys (delete key keys)))))))))
+                       keys (delete key keys))
+
+                 ;; check for crossref entries
+                 (let* ((attr-list (reftex-parse-bibtex-entry nil beg end))
+                        (xref-key (cdr (assoc "crossref" attr-list))))
+                   (if xref-key (pushnew xref-key keys)))
+                 ;; check for string references
+                 (let* ((raw-fields (reftex-parse-bibtex-entry nil beg end t))
+                        (string-fields (reftex-get-string-refs raw-fields)))
+                   (dolist (skey string-fields)
+                     (unless (member skey string-keys)
+                       (push skey string-keys)))))))))))
+    ;; second pass: grab @string references
+    (if string-keys
+        (save-current-buffer
+          (dolist (file files)
+            (set-buffer (reftex-get-file-buffer-force file 'mark))
+            (reftex-with-special-syntax-for-bib
+             (save-excursion
+               (save-restriction
+                 (widen)
+                 (goto-char (point-min))
+                 (while (re-search-forward
+                         "^[ \t]*@[Ss][Tt][Rr][Ii][Nn][Gg][ \t]*{[ \t]*\\([^ \t\r\n]+\\)"
+                         nil t)
+                   (setq key (match-string 1)
+                         beg (match-beginning 0)
+                         end (progn
+                               (goto-char (match-beginning 1))
+                               (condition-case nil
+                                   (up-list 1)
+                                 (error (goto-char (match-end 0))))
+                               (point)))
+                   (when (member key string-keys)
+                     (setq entry (buffer-substring beg end)
+                           string-entries (cons entry string-entries)
+                           string-keys (delete key string-keys))))))))))
     (find-file-other-window bibfile)
     (if (> (buffer-size) 0)
         (unless (yes-or-no-p
                  (format "Overwrite non-empty file %s? " bibfile))
           (error "Abort")))
     (erase-buffer)
+    (if reftex-create-bibtex-header (insert reftex-create-bibtex-header "\n\n"))
+    (insert (mapconcat 'identity (reverse string-entries) "\n\n"))
+    (if string-entries (insert "\n\n\n"))
     (insert (mapconcat 'identity (reverse entries) "\n\n"))
+    (if reftex-create-bibtex-footer (insert "\n\n" reftex-create-bibtex-footer))
     (goto-char (point-min))
     (save-buffer)
     (message "%d entries extracted and copied to new database"

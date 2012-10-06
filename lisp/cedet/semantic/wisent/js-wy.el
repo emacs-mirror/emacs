@@ -60,6 +60,7 @@
 ;;; Code:
 
 (require 'semantic/lex)
+(eval-when-compile (require 'semantic/bovine))
 
 ;;; Prologue
 ;;
@@ -416,6 +417,29 @@
 
 
 ;;; Analyzers
+;;
+(define-lex-block-type-analyzer wisent-javascript-jv-wy--<block>-block-analyzer
+  "block analyzer for <block> tokens."
+  "\\s(\\|\\s)"
+  '((("(" OPEN_PARENTHESIS PAREN_BLOCK)
+     ("{" START_BLOCK BRACE_BLOCK)
+     ("[" OPEN_SQ_BRACKETS BRACK_BLOCK))
+    (")" CLOSE_PARENTHESIS)
+    ("}" END_BLOCK)
+    ("]" CLOSE_SQ_BRACKETS))
+  )
+
+(define-lex-regex-type-analyzer wisent-javascript-jv-wy--<symbol>-regexp-analyzer
+  "regexp analyzer for <symbol> tokens."
+  "\\(\\sw\\|\\s_\\)+"
+  nil
+  'VARIABLE)
+
+(define-lex-regex-type-analyzer wisent-javascript-jv-wy--<number>-regexp-analyzer
+  "regexp analyzer for <number> tokens."
+  semantic-lex-number-expression
+  nil
+  'NUMBER)
 
 (define-lex-string-type-analyzer wisent-javascript-jv-wy--<punctuation>-string-analyzer
   "string analyzer for <punctuation> tokens."
@@ -461,29 +485,6 @@
     (BITWISE_AND . "&")
     (ASSIGN_SYMBOL . "="))
   'punctuation)
-
-(define-lex-block-type-analyzer wisent-javascript-jv-wy--<block>-block-analyzer
-  "block analyzer for <block> tokens."
-  "\\s(\\|\\s)"
-  '((("(" OPEN_PARENTHESIS PAREN_BLOCK)
-     ("{" START_BLOCK BRACE_BLOCK)
-     ("[" OPEN_SQ_BRACKETS BRACK_BLOCK))
-    (")" CLOSE_PARENTHESIS)
-    ("}" END_BLOCK)
-    ("]" CLOSE_SQ_BRACKETS))
-  )
-
-(define-lex-regex-type-analyzer wisent-javascript-jv-wy--<symbol>-regexp-analyzer
-  "regexp analyzer for <symbol> tokens."
-  "\\(\\sw\\|\\s_\\)+"
-  nil
-  'VARIABLE)
-
-(define-lex-regex-type-analyzer wisent-javascript-jv-wy--<number>-regexp-analyzer
-  "regexp analyzer for <number> tokens."
-  semantic-lex-number-expression
-  nil
-  'NUMBER)
 
 (define-lex-sexp-type-analyzer wisent-javascript-jv-wy--<string>-sexp-analyzer
   "sexp analyzer for <string> tokens."

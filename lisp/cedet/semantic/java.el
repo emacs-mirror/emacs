@@ -121,6 +121,7 @@ corresponding compound declaration."
       (setq clone (semantic-tag-clone tag (car dim))
             xpand (cons clone xpand))
       (semantic-tag-put-attribute clone :dereference (cdr dim)))
+
      ((eq class 'variable)
       (or (consp elts) (setq elts (list (list elts))))
       (setq dim  (semantic-java-dim (semantic-tag-get-attribute tag :type))
@@ -139,7 +140,20 @@ corresponding compound declaration."
         (semantic-tag-put-attribute clone :type type)
         (semantic-tag-put-attribute clone :dereference (+ dim0 (cdr dim)))
         (semantic-tag-set-bounds clone start end)))
-     )
+
+     ((and (eq class 'type) (string-match "\\." (semantic-tag-name tag)))
+      ;; javap outputs files where the package name is stuck onto the class or interface
+      ;; name.  To make this more regular, we extract the package name into a package statement,
+      ;; then make the class name regular.
+      (let* ((name (semantic-tag-name tag))
+	     (rsplit (nreverse (split-string name "\\." t)))
+	     (newclassname (car rsplit))
+	     (newpkg (mapconcat 'identity (reverse (cdr rsplit)) ".")))
+	(semantic-tag-set-name tag newclassname)
+	(setq xpand
+	      (list tag
+		    (semantic-tag-new-package newpkg nil))))
+      ))
     xpand))
 
 ;;; Environment
@@ -158,6 +172,15 @@ corresponding compound declaration."
   (mapcar 'semantic-tag-name
           (semantic-find-tags-by-class
            'type (semantic-find-tag-by-overlay point))))
+
+;; Tag Protection
+;;
+(define-mode-local-override semantic-tag-protection
+  java-mode (tag &optional parent)
+  "Return the protection of TAG in PARENT.
+Override function for `semantic-tag-protection'."
+  (let ((prot (semantic-tag-protection-default tag parent)))
+    (or prot 'package)))
 
 ;; Prototype handler
 ;;
@@ -241,7 +264,6 @@ Optional argument COLOR indicates that color should be mixed in."
   "Return a suitable path for (some) Java imports."
   (let ((name (semantic-tag-name tag)))
     (concat (mapconcat 'identity (split-string name "\\.") "/") ".java")))
-
 
 ;; Documentation handler
 ;;

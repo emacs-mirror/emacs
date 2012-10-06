@@ -664,25 +664,22 @@ This function returns the longest common substring of all possible
 completions of @var{string} in @var{collection}.
 
 @cindex completion table
-The @var{collection} argument is called the @dfn{completion table}.
-Its value must be a list of strings, an alist whose keys are strings
-or symbols, an obarray, a hash table, or a completion function.
+@var{collection} is called the @dfn{completion table}.  Its value must
+be a list of strings or cons cells, an obarray, a hash table, or a
+completion function.
 
-Completion compares @var{string} against each of the permissible
-completions specified by @var{collection}.  If no permissible
-completions match, @code{try-completion} returns @code{nil}.  If there
-is just one matching completion, and the match is exact, it returns
+@code{try-completion} compares @var{string} against each of the
+permissible completions specified by the completion table.  If no
+permissible completions match, it returns @code{nil}.  If there is
+just one matching completion, and the match is exact, it returns
 @code{t}.  Otherwise, it returns the longest initial sequence common
 to all possible matching completions.
 
-If @var{collection} is an alist (@pxref{Association Lists}), the
-permissible completions are the elements of the alist that are either
-strings, or conses whose @sc{car} is a string or symbol.
-Symbols are converted to strings using @code{symbol-name}.  Other
-elements of the alist are ignored.  (Remember that in Emacs Lisp, the
-elements of alists do not @emph{have} to be conses.)  In particular, a
-list of strings is allowed, even though we usually do not
-think of such lists as alists.
+If @var{collection} is an list, the permissible completions are
+specified by the elements of the list, each of which should be either
+a string, or a cons cell whose @sc{car} is either a string or a symbol
+(a symbol is converted to a string using @code{symbol-name}).  If the
+list contains elements of any other type, those are ignored.
 
 @cindex obarray in completion
 If @var{collection} is an obarray (@pxref{Creating Symbols}), the names

@@ -701,7 +701,7 @@ SIDE.  Return the new window, nil if its creation window failed."
       (set-window-parameter new 'delete-window 'delete-side-window)
       ;; Auto-adjust height/width of new window unless a size has been
       ;; explicitly requested.
-      (unless (if left-or-right 
+      (unless (if left-or-right
 		  (cdr (assq 'window-width alist))
 		(cdr (assq 'window-height alist)))
 	(setq alist
@@ -5615,7 +5615,7 @@ the selected one."
 	      buffer window 'reuse alist display-buffer-mark-dedicated)))))
 
 (defun display-buffer-at-bottom (buffer alist)
-  "Try displaying BUFFER in a window at the botom of the selected frame.
+  "Try displaying BUFFER in a window at the bottom of the selected frame.
 This either splits the window at the bottom of the frame or the
 frame's root window, or reuses an existing window at the bottom
 of the selected frame."

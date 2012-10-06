@@ -3337,14 +3337,6 @@ Lisp_Object Qeq, Qeql, Qequal;
 Lisp_Object QCtest, QCsize, QCrehash_size, QCrehash_threshold, QCweakness;
 static Lisp_Object Qhash_table_test, Qkey_or_value, Qkey_and_value;
 
-/* Function prototypes.  */
-
-static struct Lisp_Hash_Table *check_hash_table (Lisp_Object);
-static ptrdiff_t get_key_arg (Lisp_Object, ptrdiff_t, Lisp_Object *, char *);
-static void maybe_resize_hash_table (struct Lisp_Hash_Table *);
-static bool sweep_weak_table (struct Lisp_Hash_Table *, bool);
-
-
 
 /***********************************************************************
 			       Utilities
@@ -3695,7 +3687,7 @@ copy_hash_table (struct Lisp_Hash_Table *h1)
 /* Resize hash table H if it's too full.  If H cannot be resized
    because it's already too large, throw an error.  */
 
-static inline void
+static void
 maybe_resize_hash_table (struct Lisp_Hash_Table *h)
 {
   if (NILP (h->next_free))

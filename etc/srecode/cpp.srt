@@ -25,81 +25,7 @@ set comment_start  "/**"
 set comment_end    " */"
 set comment_prefix " *"
 
-;; OVERRIDE THIS in your user or project template file to whatever
-;; you use for your project.
-set HEADEREXT ".h"
-
-context file
-
-template empty :time :user :file :cpp
-----
-{{>:filecomment}}
-
-{{#NOTHEADER}}
-
-{{^}}
-{{/NOTHEADER}}
-{{#HEADER}}
-{{>:header_guard}}
-{{/HEADER}}
-----
-
-template header_guard :file :blank
-----
-#ifndef {{FILENAME_SYMBOL}}
-#define {{FILENAME_SYMBOL}} 1
-
-{{^}}
-
-#endif // {{FILENAME_SYMBOL}}
-----
-
-context misc
-
-template arglist
-"Insert an argument list for a function.
-@todo - Support smart CR in a buffer for not too long lines."
-----
-({{#ARGS}}{{TYPE}} {{NAME}}{{#NOTLAST}},{{/NOTLAST}}{{/ARGS}})
-----
-
 context declaration
-
-prompt TYPE "Return Type: "
-
-template function :indent :blank
-"Insert a function declaration."
-----
-{{?TYPE}} {{?NAME}}{{>:misc:arglist}}
-{{#INITIALIZERS}}{{>B:initializers}}{{/INITIALIZERS}}
-{
-{{^}}
-}
-----
-bind "f"
-
-template function-prototype :indent :blank
-"Insert a function declaration."
-----
-{{?TYPE}} {{?NAME}}{{>:misc:arglist}};
-----
-
-
-prompt TYPE "Data Type: "
-
-template variable :indent :blank
-"Insert a variable declaration."
-----
-{{?TYPE}} {{?NAME}}{{#HAVEDEFAULT}} = {{DEFAULT}}{{/HAVEDEFAULT}};
-----
-bind "v"
-
-template variable-prototype :indent :blank
-"Insert a variable declaration."
-----
-{{?TYPE}} {{?NAME}};
-----
-bind "v"
 
 template class :indent :blank
 "Insert a C++ class.  For use by user insertion.
@@ -146,18 +72,6 @@ template method :indent :blank
 }
 ----
 
-template include :blank
-"An include statement."
-----
-#include "{{?NAME}}"
-----
-bind "i"
-
-template label :blank :indent
-----
-  {{?NAME}}:
-----
-
 context classdecl
 
 template constructor-tag :indent :blank
@@ -196,15 +110,6 @@ Override this with your own preference to avoid using doxygen."
 {{>A:classdecl:doxygen-function-group-end}}
 ----
 
-context declaration
-
-template comment-function :indent :blank
-"Used to put a nice comment in front of a function.
-Override this with your own preference to avoid using doxygen"
-----
-{{>A:declaration:doxygen-function}}
-----
-
 ;;; DOXYGEN FEATURES
 ;; 
 ;;
@@ -228,33 +133,5 @@ template doxygen-function-group-end :indent :blank
  */
 
 ----
-
-context declaration
-
-template doxygen-function :indent :blank
-----
-/**
- * @name {{NAME}} - {{DOC}}{{^}}{{#ARGS}}
- * @param {{NAME}} - {{DOC}}{{/ARGS}}
- * @return {{TYPE}}
- */
-----
-
-template doxygen-variable-same-line
-----
-/**< {{DOC}}{{^}} */
-----
-
-template doxygen-section-comment :blank :indent
-"Insert a comment that separates sections of an Emacs Lisp file."
-----
-
-/** {{?TITLE}}
- *
- * {{^}}
- */
-
-----
-
 
 ;; end

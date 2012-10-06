@@ -1,3 +1,387 @@
+2012-10-06  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* keyboard.c (read_char): Remove unnecessary 'volatile's and label.
+
+2012-10-05  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32proc.c (stop_timer_thread): Fix declaration of 'err'.
+
+	* w32.c (utime): Open the file with FILE_FLAG_BACKUP_SEMANTICS, so
+	that time stamps of directories could also be changed.  Don't
+	request the too broad GENERIC_WRITE, only the more restrictive
+	FILE_WRITE_ATTRIBUTES access rights.
+
+	* fileio.c (Fset_file_times): Special-case ignoring errors for
+	directories only on MSDOS, not on MS-Windows.
+
+2012-10-05  Ikumi Keita  <ikumi@ikumi.que.jp>  (tiny change)
+
+	* minibuf.c (Fcompleting_read): Doc fix.  (Bug#12555)
+
+2012-10-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32.c (utime): Test for INVALID_HANDLE_VALUE, not for NULL, to
+	see whether CreateFile failed.
+
+2012-10-04  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* profiler.c (handle_profiler_signal): Inhibit pending signals too,
+	to avoid similar races.
+	* keyboard.c (pending_signals): Now bool, not int.
+
+	Port timers to OpenBSD, plus check for timer failures.
+	OpenBSD problem reported by Han Boetes.
+	* profiler.c (setup_cpu_timer): Check for failure of timer_settime
+	and/or setitimer.
+	(Fprofiler_cpu_stop): Don't assume HAVE_SETITIMER.
+	* syssignal.h (HAVE_ITIMERSPEC): New macro.  This is for platforms
+	like OpenBSD, which has timer_settime but does not declare it.
+	OpenBSD does not define SIGEV_SIGNAL, so use that when deciding
+	whether to use itimerspec-related primitives.  All uses of
+	HAVE_TIMER_SETTIME replaced with HAVE_ITIMERSPEC.
+
+2012-10-02  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* profiler.c (handle_profiler_signal): Fix a malloc race
+	that caused Emacs to hang on Fedora 17 when profiling Lisp.
+
+2012-10-02  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.m (windowDidEnterFullScreen): Remove fprintf.
+
+2012-10-02  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32proc.c (sys_wait): Declare 'signame' 'const char *', to be
+	consistent with the change in return value of 'safe_strsignal'.
+
+2012-10-02  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Prefer plain 'static' to 'static inline' (Bug#12541).
+	* bidi.c (bidi_get_type, bidi_check_type, bidi_get_category)
+	(bidi_set_sor_type, bidi_push_embedding_level)
+	(bidi_pop_embedding_level, bidi_remember_char, bidi_copy_it)
+	(bidi_cache_reset, bidi_cache_shrink, bidi_cache_fetch_state)
+	(bidi_cache_search, bidi_cache_ensure_space)
+	(bidi_cache_iterator_state, bidi_cache_find)
+	(bidi_peek_at_next_level, bidi_set_paragraph_end)
+	(bidi_count_bytes, bidi_char_at_pos, bidi_fetch_char)
+	(bidi_explicit_dir_char, bidi_resolve_neutral_1):
+	Now 'static', not 'static inline'.
+
+	Count overruns when profiling; change units to ns.
+	* profiler.c (handle_profiler_signal): Count sampling intervals, not ms.
+	Give extra weight to samples after overruns, to attempt to count
+	the time more accurately.
+	(setup_cpu_timer): Change sampling interval units from ms to ns, since
+	the underlying primitives nominally do ns.
+	(Fprofiler_cpu_start): Document the change.  Mention that
+	the sampling intervals are only approximate.
+
+2012-10-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* frame.c (Fmake_terminal_frame): Prefer safer CONSP over !NILP.
+
+	* coding.h (ENCODE_FILE, DECODE_FILE, DECODE_SYSTEM): Remove special
+	case for the special 0 coding-system.
+
+	* buffer.c (Fset_buffer_multibyte): Signal an error instead of widening.
+	(Fmake_overlay): Remove redundant tests.
+	(fix_start_end_in_overlays): Remove redundant recentering.
+
+2012-10-02  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in ($(BLD)/alloc.$(O), $(BLD)/gmalloc.$(O)):
+	Update dependencies.
+
+2012-10-01  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix a malloc race condition involving strsignal.
+	A signal can arrive in the middle of a malloc, and Emacs's signal
+	handler can invoke strsignal, which can invoke malloc, which is
+	not portable.  This race condition bug makes Emacs hang on GNU/Linux.
+	Fix it by altering the signal handler so that it does not invoke
+	strsignal.
+	* emacs.c (shut_down_emacs): Use safe_strsignal, not strsignal.
+	* process.c (status_message): Use const pointer, in case strsignal
+	is #defined to safe_strsignal.
+	* sysdep.c (sys_siglist, init_signals): Always define and
+	initialize a substitute sys_siglist if the system does not define
+	one, even if HAVE_STRSIGNAL.
+	(safe_strsignal): Rename from strsignal.  Always define,
+	using sys_siglist.  Return a const pointer.
+	* syssignal.h (safe_strsignal): New decl.
+	(strsignal) [!HAVE_STRSIGNAL]: Define in terms of safe_strsignal.
+
+2012-10-01  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32proc.c (timer_loop): Fix code that waits for timer
+	expiration, to avoid high CPU usage.
+
+2012-10-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* fns.c (check_hash_table, get_key_arg, maybe_resize_hash_table)
+	(sweep_weak_table): Remove redundant prototypes.
+
+2012-10-01  Fabrice Popineau  <fabrice.popineau@gmail.com>
+
+	* emacs.c: Move the inclusion of TERM_HEADER after including
+	windows.h on WINDOWSNT.  This avoids compilation problems with
+	MSVC.
+
+2012-10-01  Eli Zaretskii  <eliz@gnu.org>
+
+	* unexw32.c (OFFSET_TO_RVA, RVA_TO_OFFSET)
+	(RVA_TO_SECTION_OFFSET): Encode all macro arguments in parentheses.
+	(RVA_TO_PTR): Cast the result of RVA_TO_OFFSET to 'unsigned char *',
+	as the previous version used 'void *'.
+
+	* ralloc.c (ROUNDUP): Fix last change.
+	(MEM_ROUNDUP): Don't cast MEM_ALIGN, it is already of type
+	'size_t'.
+
+	* w32proc.c <disable_itimers>: New static flag.
+	(init_timers): Initialize it to zero, after creating the critical
+	sections used by the timer threads.
+	(term_timers): Set to 1 before deleting the critical sections.
+	(getitimer, setitimer): If disable_itimers is non-zero, return an
+	error indication without doing anything.  Reported by Fabrice
+	Popineau <fabrice.popineau@supelec.fr> as part of bug#12544.
+	(alarm) [HAVE_SETITIMER]: Be more conformant to the expected
+	return results.
+	[!HAVE_SETITIMER]: Behave as the previous version that didn't
+	support timers.
+
+	* emacs.c (shut_down_emacs) [WINDOWSNT]: Move the call to
+	term_ntproc after all the other bookkeeping, to get timers working
+	as long as possible.
+
+2012-10-01  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* xdisp.c (syms_of_xdisp): Default message-log-max to 1000, not 100.
+	Suggested by Juri Linkov in
+	<http://lists.gnu.org/archive/html/emacs-devel/2012-09/msg00821.html>.
+
+	Prefer plain 'static' to 'static inline' (Bug#12541).
+	With static functions, modern compilers inline pretty well by
+	themselves; advice from programmers often hurts as much as it helps.
+	On my host (x86-64, Fedora 17, GCC 4.7.2, default 'configure'),
+	this change shrinks the text size of the Emacs executable by 1.1%
+	without affecting CPU significantly in my benchmark.
+	* alloc.c (mem_find, live_string_p, live_cons_p, live_symbol_p)
+	(live_float_p, live_misc_p, live_vector_p, live_buffer_p)
+	(mark_maybe_object, mark_maybe_pointer, bounded_number):
+	* buffer.c (bset_abbrev_mode, bset_abbrev_table)
+	(bset_auto_fill_function, bset_auto_save_file_format)
+	(bset_auto_save_file_name, bset_backed_up, bset_begv_marker)
+	(bset_bidi_display_reordering, bset_buffer_file_coding_system)
+	(bset_cache_long_line_scans, bset_case_fold_search)
+	(bset_ctl_arrow, bset_cursor_in_non_selected_windows)
+	(bset_cursor_type, bset_display_table, bset_extra_line_spacing)
+	(bset_file_format, bset_file_truename, bset_fringe_cursor_alist)
+	(bset_fringe_indicator_alist, bset_fringes_outside_margins)
+	(bset_header_line_format, bset_indicate_buffer_boundaries)
+	(bset_indicate_empty_lines, bset_invisibility_spec)
+	(bset_left_fringe_width, bset_major_mode, bset_mark)
+	(bset_minor_modes, bset_mode_line_format, bset_mode_name)
+	(bset_name, bset_overwrite_mode, bset_pt_marker)
+	(bset_right_fringe_width, bset_save_length)
+	(bset_scroll_bar_width, bset_scroll_down_aggressively)
+	(bset_scroll_up_aggressively, bset_selective_display)
+	(bset_selective_display_ellipses, bset_vertical_scroll_bar_type)
+	(bset_word_wrap, bset_zv_marker, set_buffer_overlays_before)
+	(set_buffer_overlays_after):
+	* category.c (bset_category_table):
+	* charset.c (read_hex):
+	* coding.c (produce_composition, produce_charset)
+	(handle_composition_annotation, handle_charset_annotation)
+	(char_encodable_p):
+	* dispnew.c (swap_glyph_pointers, copy_row_except_pointers)
+	(assign_row, set_frame_matrix_frame, make_current)
+	(add_row_entry):
+	* eval.c (set_specpdl_symbol, set_specpdl_old_value):
+	* fns.c (maybe_resize_hash_table):
+	* frame.c (fset_buffer_predicate, fset_minibuffer_window):
+	* gmalloc.c (register_heapinfo):
+	* image.c (lookup_image_type):
+	* intervals.c (set_interval_object, set_interval_left)
+	(set_interval_right, copy_interval_parent, rotate_right)
+	(rotate_left, balance_possible_root_interval):
+	* keyboard.c (kset_echo_string, kset_kbd_queue)
+	(kset_keyboard_translate_table, kset_last_prefix_arg)
+	(kset_last_repeatable_command, kset_local_function_key_map)
+	(kset_overriding_terminal_local_map, kset_real_last_command)
+	(kset_system_key_syms, clear_event, set_prop):
+	* lread.c (digit_to_number):
+	* marker.c (attach_marker, live_buffer, set_marker_internal):
+	* nsterm.m (ns_compute_glyph_string_overhangs):
+	* process.c (pset_buffer, pset_command)
+	(pset_decode_coding_system, pset_decoding_buf)
+	(pset_encode_coding_system, pset_encoding_buf, pset_filter)
+	(pset_log, pset_mark, pset_name, pset_plist, pset_sentinel)
+	(pset_status, pset_tty_name, pset_type, pset_write_queue):
+	* syntax.c (bset_syntax_table, dec_bytepos):
+	* terminal.c (tset_param_alist):
+	* textprop.c (interval_has_some_properties)
+	(interval_has_some_properties_list):
+	* window.c (wset_combination_limit, wset_dedicated)
+	(wset_display_table, wset_hchild, wset_left_fringe_width)
+	(wset_left_margin_cols, wset_new_normal, wset_new_total)
+	(wset_normal_cols, wset_normal_lines, wset_parent, wset_pointm)
+	(wset_right_fringe_width, wset_right_margin_cols)
+	(wset_scroll_bar_width, wset_start, wset_temslot, wset_vchild)
+	(wset_vertical_scroll_bar_type, wset_window_parameters):
+	* xdisp.c (wset_base_line_number, wset_base_line_pos)
+	(wset_column_number_displayed, wset_region_showing)
+	(window_box_edges, run_window_scroll_functions)
+	(append_glyph_string_lists, prepend_glyph_string_lists)
+	(append_glyph_string, set_glyph_string_background_width)
+	(append_glyph, append_composite_glyph)
+	(take_vertical_position_into_account):
+	* xfaces.c (x_create_gc, x_free_gc, merge_face_vectors)
+	(face_attr_equal_p, lface_equal_p, hash_string_case_insensitive)
+	(lface_hash, lface_same_font_attributes_p, lookup_face):
+	* xml.c (libxml2_loaded_p):
+	* xterm.c (x_set_mode_line_face_gc, x_set_glyph_string_gc)
+	(x_set_glyph_string_clipping, x_clear_glyph_string_rect):
+	Now 'static', not 'static inline'.
+
+	* bidi.c: Tune.
+	(bidi_copy_it): Do the whole copy with a single memcpy.
+	(bidi_char_at_pos): Merge the two STRING_CHAR calls into one.
+
+	Revert the FOLLOW-SYMLINKS change for file-attributes.
+	Doing it right would require several changes to Tramp, and there's
+	not enough time to get that tested before the freeze today.
+	* dired.c (directory_files_internal, Ffile_attributes):
+	Undo last change.
+
+	* frame.c (x_report_frame_params): Port better to wider ints.
+	Do not assume that EMACS_UINT is the same width as uprintmax_t,
+	or that pointers can be printed in 15 decimal digits.
+	Avoid GCC warnings if EMACS_UINT is wider than a pointer.
+
+2012-09-30  Fabrice Popineau  <fabrice.popineau@supelec.fr>
+
+	Support x64 build on MS-Windows.
+	* w32term.h (SCROLL_BAR_PACK, SCROLL_BAR_UNPACK): Define for x64.
+	(SET_SCROLL_BAR_W32_WINDOW): Cast ID to intptr_t, for
+	compatibility with x64.
+	(x_get_focus_frame): Add prototype.
+
+	* w32term.c (w32_draw_underwave): Don't use GCC extensions for
+	defining an XRectangle structure.
+
+	* w32proc.c (RVA_TO_PTR, w32_executable_type): Fix pointer
+	arithmetics for compatibility with x64.
+
+	* w32menu.c (add_menu_item): Use UINT_PTR instead of UINT, for
+	compatibility with x64.
+
+	* w32heap.h: Adjust prototypes and declarations.
+
+	* w32heap.c (RVA_TO_PTR, allocate_heap, sbrk, init_heap)
+	(round_heap): Use DWORD_PTR, ptrdiff_t and size_t instead of
+	DWORD, long, and unsigned long, for compatibility with x64.
+	(allocate_heap) [_WIN64]: Reserve 32GB of memory.
+	(sbrk): Argument is now of type ptrdiff_t.
+
+	* w32fns.c (HMONITOR): Condition declaration on _WIN32_WINNT being
+	less than 0x0500.
+	(w32_msg_pump): Use WPARAM type for 'result'.
+
+	* w32.c (init_environment, get_emacs_configuration): Support AMD64
+	architecture.
+	(init_ntproc): Cast arguments of _open_osfhandle to intptr_t, for
+	compatibility with x64.
+
+	* vm-limit.c (lim_data): Now size_t.
+	(check_memory_limits): Adjust prototypes of real_morecore and
+	__morecore to receive argument of type ptrdiff_t.  Use size_t for
+	five_percent and data_size.
+
+	* unexw32.c: Use DWORD_PTR instead of DWORD for file-scope
+	variables, for compatibility with x64.
+	(rva_to_section, offset_to_section, relocate_offset)
+	(OFFSET_TO_RVA, RVA_TO_OFFSET, RVA_TO_SECTION_OFFSET)
+	(PTR_TO_RVA, RVA_TO_PTR, OFFSET_TO_PTR, get_section_info)
+	(copy_executable_and_dump_data): Use DWORD_PTR instead of DWORD
+	for compatibility with x64.
+
+	* sysdep.c (STDERR_FILENO): Define if not already defined.
+
+	* ralloc.c (real_morecore): Argument type is now ptrdiff_t.
+	(__morecore): Argument type is now ptrdiff_t.
+	(ROUNDUP, MEM_ROUNDUP): Use size_t instead of 'unsigned long'.
+	(relinquish): Use ptrdiff_t type for 'excess'.
+	(r_alloc_sbrk): Argument type is now ptrdiff_t.
+
+	* makefile.w32-in (HEAPSIZE): Get value from EMACS_HEAPSIZE.
+	(bootstrap-temacs-CMD, bootstrap-temacs-SH): Use $(EMACS_PURESIZE)
+	instead of a literal number.
+
+	* gmalloc.c [WINDOWSNT]: Include w32heap.h.
+	(min): Define only if not already defined.
+
+	* frame.c (x_report_frame_params): Use EMACS_UINT for the return
+	value of FRAME_X_WINDOW, to fit a 64-bit pointer on 64-bit Windows
+	hosts.
+
+	* image.c (x_bitmap_pixmap): Return ptrdiff_t, not int, since
+	'bitmaps' is a pointer.
+
+	* dispextern.h (x_bitmap_pixmap): Adjust prototype.
+
+	* alloc.c (gdb_make_enums_visible): Now conditional on __GNUC__.
+
+2012-09-30  Paul Eggert  <eggert@cs.ucla.edu>
+
+	file-attributes has a new optional arg FOLLOW-SYMLINKS.
+	* dired.c (directory_files_internal, Ffile_attributes):
+	New arg follow_symlinks.  All uses changed.
+
+2012-09-30  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* .gdbinit (xbacktrace): Adjust to recent "struct backtrace" change.
+
+2012-09-30  Eli Zaretskii  <eliz@gnu.org>
+
+	Support atimers and CPU profiler via profile.c on MS-Windows.
+	* w32proc.c (sig_mask, crit_sig): New static variables.
+	(sys_signal): Support SIGALRM and SIGPROF.
+	(sigemptyset, sigaddset, sigfillset, sigprocmask)
+	(pthread_sigmask, setpgrp): Move here from w32.c.  sigaddset,
+	sigfillset, and sigprocmask are no longer no-ops.
+	(sigismember): New function.
+	(struct itimer_data): New definition.
+	(ticks_now, real_itimer, prof_itimer, clocks_min, crit_real)
+	(crit_prof): New static variables.
+	(MAX_SINGLE_SLEEP): New definition.
+	(timer_loop, stop_timer_thread, term_timers, init_timers)
+	(start_timer_thread, getitimer, setitimer): New functions.
+	(alarm): No longer a no-op, calls setitimer.
+
+	* w32.c (term_ntproc): Call term_timers.
+	(init_ntproc): Make sure all signals are unblocked at startup, to
+	erase any traces of dumping.  Call init_timers.
+
+	* w32fns.c (hourglass_timer, HOURGLASS_ID): Remove.
+	Windows-specific code to display the hourglass mouse pointer is no
+	longer used.
+	(w32_wnd_proc): Remove code that handled the WM_TIMER message due
+	to hourglass timer expiration.
+	(start_hourglass, cancel_hourglass, DEFAULT_HOURGLASS_DELAY):
+	Remove, no longer used.
+	(w32_note_current_window, show_hourglass, hide_hourglass):
+	New functions, in support of hourglass cursor display similar to other
+	window systems.
+	(syms_of_w32fns): Don't initialize hourglass_timer.
+
+	* xdisp.c (start_hourglass, cancel_hourglass): Now used on
+	WINDOWSNT as well.
+	(start_hourglass) [WINDOWSNT]: Call w32_note_current_window.
+
+	* w32.h (init_timers, term_timers): Add prototypes.
+
 2012-09-30  Kenichi Handa  <handa@gnu.org>
 
 	* coding.c (decode_coding_ccl, encode_coding_ccl): Pay attention

@@ -241,7 +241,7 @@ interval_has_all_properties (Lisp_Object plist, INTERVAL i)
 /* Return nonzero if the plist of interval I has any of the
    properties of PLIST, regardless of their values.  */
 
-static inline int
+static int
 interval_has_some_properties (Lisp_Object plist, INTERVAL i)
 {
   register Lisp_Object tail1, tail2, sym;
@@ -263,7 +263,7 @@ interval_has_some_properties (Lisp_Object plist, INTERVAL i)
 /* Return nonzero if the plist of interval I has any of the
    property names in LIST, regardless of their values.  */
 
-static inline int
+static int
 interval_has_some_properties_list (Lisp_Object list, INTERVAL i)
 {
   register Lisp_Object tail1, tail2, sym;

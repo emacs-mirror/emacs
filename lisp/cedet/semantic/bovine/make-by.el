@@ -19,13 +19,12 @@
 
 ;;; Commentary:
 ;;
-;; This file was generated from etc/grammars/make.by.
+;; This file was generated from admin/grammars/make.by.
 
 ;;; Code:
 
 (require 'semantic/lex)
 (eval-when-compile (require 'semantic/bovine))
-
 
 ;;; Prologue
 ;;
@@ -379,6 +378,13 @@
 	semantic-debug-parser-class 'semantic-bovine-debug-parser
 	semantic-flex-keywords-obarray semantic-make-by--keyword-table
 	))
+
+
+;;; Analyzers
+;;
+
+;;; Epilogue
+;;
 
 (provide 'semantic/bovine/make-by)
 

@@ -41,6 +41,7 @@
 (declare-function org-table-clean-before-export "org-exp"
 		  (lines &optional maybe-quoted))
 (declare-function org-format-org-table-html "org-html" (lines &optional splice))
+(declare-function aa2u "ext:ascii-art-to-unicode" ())
 (defvar orgtbl-mode) ; defined below
 (defvar orgtbl-mode-menu) ; defined when orgtbl mode get initialized
 (defvar org-export-html-table-tag) ; defined in org-exp.el
@@ -85,7 +86,13 @@ this variable requires a restart of Emacs to become effective."
 <!--
 #+ORGTBL: SEND %n orgtbl-to-html :splice nil :skip 0
 | | |
--->\n"))
+-->\n")
+    (org-mode "#+ BEGIN RECEIVE ORGTBL %n
+#+ END RECEIVE ORGTBL %n
+
+#+ORGTBL: SEND %n orgtbl-to-orgtbl :splice nil :skip 0
+| | |
+"))
   "Templates for radio tables in different major modes.
 All occurrences of %n in a template will be replaced with the name of the
 table, obtained by prompting the user."
@@ -102,7 +109,7 @@ table, obtained by prompting the user."
 (defcustom org-table-default-size "5x2"
   "The default size for newly created tables, Columns x Rows."
   :group 'org-table-settings
-   :type 'string)
+  :type 'string)
 
 (defcustom org-table-number-regexp
   "^\\([<>]?[-+^.0-9]*[0-9][-+^.0-9eEdDx()%:]*\\|\\(0[xX]\\)[0-9a-fA-F]+\\|nan\\)$"
@@ -131,6 +138,8 @@ Other options offered by the customize interface are more restrictive."
 		 "^[-+]?[0-9.]+\\([eEdD][-+0-9]+\\)?$")
 	  (const :tag "Very General Number-Like, including hex"
 		 "^\\([<>]?[-+^.0-9]*[0-9][-+^.0-9eEdDx()%]*\\|\\(0[xX]\\)[0-9a-fA-F]+\\|nan\\)$")
+	  (const :tag "Very General Number-Like, including hex, allows comma as decimal mark"
+		 "^\\([<>]?[-+^.,0-9]*[0-9][-+^.0-9eEdDx()%]*\\|\\(0[xX]\\)[0-9a-fA-F]+\\|nan\\)$")
 	  (string :tag "Regexp:")))
 
 (defcustom org-table-number-fraction 0.5
@@ -217,13 +226,13 @@ t       accept as input and present for editing"
 
 (defcustom org-calc-default-modes
   '(calc-internal-prec 12
-    calc-float-format  (float 8)
-    calc-angle-mode    deg
-    calc-prefer-frac   nil
-    calc-symbolic-mode nil
-    calc-date-format (YYYY "-" MM "-" DD " " Www (" " hh ":" mm))
-    calc-display-working-message t
-    )
+		       calc-float-format  (float 8)
+		       calc-angle-mode    deg
+		       calc-prefer-frac   nil
+		       calc-symbolic-mode nil
+		       calc-date-format (YYYY "-" MM "-" DD " " Www (" " hh ":" mm))
+		       calc-display-working-message t
+		       )
   "List with Calc mode settings for use in `calc-eval' for table formulas.
 The list must contain alternating symbols (Calc modes variables and values).
 Don't remove any of the default settings, just change the values.  Org-mode
@@ -368,8 +377,8 @@ available parameters."
   "Vector of hline line numbers in the current table.")
 
 (defconst org-table-range-regexp
-   "@\\([-+]?I*[-+]?[0-9]*\\)?\\(\\$[-+]?[0-9]+\\)?\\(\\.\\.@?\\([-+]?I*[-+]?[0-9]*\\)?\\(\\$[-+]?[0-9]+\\)?\\)?"
-   ;;   1                        2                    3          4                        5
+  "@\\([-+]?I*[-+]?[0-9]*\\)?\\(\\$[-+]?[0-9]+\\)?\\(\\.\\.@?\\([-+]?I*[-+]?[0-9]*\\)?\\(\\$[-+]?[0-9]+\\)?\\)?"
+  ;;   1                        2                    3          4                        5
   "Regular expression for matching ranges in formulas.")
 
 (defconst org-table-range-regexp2
@@ -551,15 +560,18 @@ are found, lines will be split on whitespace into fields."
 (defvar org-table-last-column-widths)
 (defun org-table-export (&optional file format)
   "Export table to a file, with configurable format.
-Such a file can be imported into a spreadsheet program like Excel.
-FILE can be the output file name.  If not given, it will be taken from
-a TABLE_EXPORT_FILE property in the current entry or higher up in the
-hierarchy, or the user will be prompted for a file name.
-FORMAT can be an export format, of the same kind as it used when
-`orgtbl-mode' sends a table in a different format.  The default format can
-be found in the variable `org-table-export-default-format', but the function
-first checks if there is an export format specified in a TABLE_EXPORT_FORMAT
-property, locally or anywhere up in the hierarchy."
+Such a file can be imported into usual spreadsheet programs.
+
+FILE can be the output file name.  If not given, it will be taken
+from a TABLE_EXPORT_FILE property in the current entry or higher
+up in the hierarchy, or the user will be prompted for a file
+name.  FORMAT can be an export format, of the same kind as it
+used when `orgtbl-mode' sends a table in a different format.
+
+The command suggests a format depending on TABLE_EXPORT_FORMAT,
+whether it is set locally or up in the hierarchy, then on the
+extension of the given file name, and finally on the variable
+`org-table-export-default-format'."
   (interactive)
   (unless (org-at-table-p)
     (error "No table at point"))
@@ -569,9 +581,13 @@ property, locally or anywhere up in the hierarchy."
 	 (end (org-table-end))
 	 (txt (buffer-substring-no-properties beg end))
 	 (file (or file (org-entry-get beg "TABLE_EXPORT_FILE" t)))
+	 (formats '("orgtbl-to-tsv" "orgtbl-to-csv"
+		    "orgtbl-to-latex" "orgtbl-to-html"
+		    "orgtbl-to-generic" "orgtbl-to-texinfo"
+		    "orgtbl-to-orgtbl"))
 	 (format (or format
 		     (org-entry-get beg "TABLE_EXPORT_FORMAT" t)))
-	 buf deffmt-readable)
+	 buf deffmt-readable fileext)
     (unless file
       (setq file (read-file-name "Export table to: "))
       (unless (or (not (file-exists-p file))
@@ -583,19 +599,16 @@ property, locally or anywhere up in the hierarchy."
 	     (equal (file-truename file)
 		    (file-truename (buffer-file-name))))
 	(error "Please specify a file name that is different from current"))
+    (setq fileext (concat (file-name-extension file) "$"))
     (unless format
-      (setq deffmt-readable org-table-export-default-format)
+      (setq deffmt-readable
+	    (or (car (delq nil (mapcar (lambda(f) (if (string-match fileext f) f)) formats)))
+		org-table-export-default-format))
       (while (string-match "\t" deffmt-readable)
 	(setq deffmt-readable (replace-match "\\t" t t deffmt-readable)))
       (while (string-match "\n" deffmt-readable)
 	(setq deffmt-readable (replace-match "\\n" t t deffmt-readable)))
-      (setq format (org-completing-read
-		    "Format: "
-		    '("orgtbl-to-tsv" "orgtbl-to-csv"
-		      "orgtbl-to-latex" "orgtbl-to-html"
-		      "orgtbl-to-generic" "orgtbl-to-texinfo"
-		      "orgtbl-to-orgtbl") nil nil
-		      deffmt-readable)))
+      (setq format (org-completing-read "Format: " formats nil nil deffmt-readable)))
     (if (string-match "\\([^ \t\r\n]+\\)\\( +.*\\)?" format)
 	(let* ((transform (intern (match-string 1 format)))
 	       (params (if (match-end 2)
@@ -695,7 +708,7 @@ When nil, simply write \"#ERROR\" in corrupted fields.")
 		    (re-search-forward org-emph-re end t)))
     (goto-char beg)
     (setq raise (and org-use-sub-superscripts
-		    (re-search-forward org-match-substring-regexp end t)))
+		     (re-search-forward org-match-substring-regexp end t)))
     (goto-char beg)
     (setq dates (and org-display-custom-times
 		     (re-search-forward org-ts-regexp-both end t)))
@@ -732,7 +745,7 @@ When nil, simply write \"#ERROR\" in corrupted fields.")
     ;; Get the data fields by splitting the lines.
     (setq fields (mapcar
 		  (lambda (l)
-		      (org-split-string l " *| *"))
+		    (org-split-string l " *| *"))
 		  (delq nil (copy-sequence lines))))
     ;; How many fields in the longest line?
     (condition-case nil
@@ -764,7 +777,7 @@ When nil, simply write \"#ERROR\" in corrupted fields.")
 			   (> (org-string-width xx) fmax))
 		  (org-add-props xx nil
 		    'help-echo
-		    (concat "Clipped table field, use C-c ` to edit. Full value is:\n" (org-no-properties (copy-sequence xx))))
+		    (concat "Clipped table field, use C-c ` to edit.  Full value is:\n" (org-no-properties (copy-sequence xx))))
 		  (setq f1 (min fmax (or (string-match org-bracket-link-regexp xx) fmax)))
 		  (unless (> f1 1)
 		    (error "Cannot narrow field starting with wide link \"%s\""
@@ -833,7 +846,7 @@ When nil, simply write \"#ERROR\" in corrupted fields.")
     (delete-region (point) end)
     (move-marker end nil)
     (move-marker org-table-aligned-end-marker (point))
-    (when (and orgtbl-mode (not (eq major-mode 'org-mode)))
+    (when (and orgtbl-mode (not (derived-mode-p 'org-mode)))
       (goto-char org-table-aligned-begin-marker)
       (while (org-hide-wide-columns org-table-aligned-end-marker)))
     ;; Try to move to the old location
@@ -1319,8 +1332,8 @@ first dline below it is used.  When ABOVE is non-nil, the one above is used."
 	(while (< i ll)
 	  (if (>= (aref org-table-dlines i) line)
 	      (throw 'exit i))
-	(setq i (1+ i)))))
-      nil))
+	  (setq i (1+ i)))))
+    nil))
 
 (defun org-table-delete-column ()
   "Delete a column from the table."
@@ -1627,8 +1640,8 @@ with `org-table-paste-rectangle'."
 		(if (org-region-active-p) (region-end) (point))
 		current-prefix-arg))
   (let* (l01 c01 l02 c02 l1 c1 l2 c2 ic1 ic2
-	 region cols
-	 (rpl (if cut "  " nil)))
+	     region cols
+	     (rpl (if cut "  " nil)))
     (goto-char beg)
     (org-table-check-inside-data-field)
     (setq l01 (org-current-line)
@@ -2088,22 +2101,23 @@ When NAMED is non-nil, look for a named equation."
 (defun org-table-store-formulas (alist)
   "Store the list of formulas below the current table."
   (setq alist (sort alist 'org-table-formula-less-p))
-  (save-excursion
-    (goto-char (org-table-end))
-    (if (looking-at "\\([ \t]*\n\\)*[ \t]*#\\+TBLFM:\\(.*\n?\\)")
-	(progn
-	  ;; don't overwrite TBLFM, we might use text properties to store stuff
-	  (goto-char (match-beginning 2))
-	  (delete-region (match-beginning 2) (match-end 0)))
-      (org-indent-line-function)
-      (insert "#+TBLFM:"))
-    (insert " "
-	    (mapconcat (lambda (x)
-			 (concat
-			  (if (equal (string-to-char (car x)) ?@) "" "$")
-			  (car x) "=" (cdr x)))
-		       alist "::")
-	    "\n")))
+  (let ((case-fold-search t))
+    (save-excursion
+      (goto-char (org-table-end))
+      (if (looking-at "\\([ \t]*\n\\)*[ \t]*\\(#\\+tblfm:\\)\\(.*\n?\\)")
+	  (progn
+	    ;; don't overwrite TBLFM, we might use text properties to store stuff
+	    (goto-char (match-beginning 3))
+	    (delete-region (match-beginning 3) (match-end 0)))
+	(org-indent-line)
+	(insert (or (match-string 2) "#+TBLFM:")))
+      (insert " "
+	      (mapconcat (lambda (x)
+			   (concat
+			    (if (equal (string-to-char (car x)) ?@) "" "$")
+			    (car x) "=" (cdr x)))
+			 alist "::")
+	      "\n"))))
 
 (defsubst org-table-formula-make-cmp-string (a)
   (when (string-match "\\`$[<>]" a)
@@ -2133,10 +2147,10 @@ When NAMED is non-nil, look for a named equation."
 (defun org-table-get-stored-formulas (&optional noerror)
   "Return an alist with the stored formulas directly after current table."
   (interactive)
-  (let (scol eq eq-alist strings string seen)
+  (let ((case-fold-search t) scol eq eq-alist strings string seen)
     (save-excursion
       (goto-char (org-table-end))
-      (when (looking-at "\\([ \t]*\n\\)*[ \t]*#\\+TBLFM: *\\(.*\\)")
+      (when (looking-at "\\([ \t]*\n\\)*[ \t]*#\\+tblfm: *\\(.*\\)")
 	(setq strings (org-split-string (org-match-string-no-properties 2)
 					" *:: *"))
 	(while (setq string (pop strings))
@@ -2164,8 +2178,9 @@ KEY is \"@\" or \"$\".  REPLACE is an alist of numbers to replace.
 For all numbers larger than LIMIT, shift them by DELTA."
   (save-excursion
     (goto-char (org-table-end))
-    (when (looking-at "[ \t]*#\\+TBLFM:")
-      (let ((re (concat key "\\([0-9]+\\)"))
+    (when (let ((case-fold-search t)) (looking-at "[ \t]*#\\+tblfm:"))
+      (let ((msg "The formulas in #+TBLFM have been updated")
+	    (re (concat key "\\([0-9]+\\)"))
 	    (re2
 	     (when remove
 	       (if (or (equal key "$") (equal key "$LR"))
@@ -2177,7 +2192,7 @@ For all numbers larger than LIMIT, shift them by DELTA."
 	  (while (re-search-forward re2 (point-at-eol) t)
 	    (unless (save-match-data (org-in-regexp "remote([^)]+?)"))
 	      (if (equal (char-before (match-beginning 0)) ?.)
-		  (error "Change makes TBLFM term %s invalid.  Use undo to recover."
+		  (error "Change makes TBLFM term %s invalid, use undo to recover"
 			 (match-string 0))
 		(replace-match "")))))
 	(while (re-search-forward re (point-at-eol) t)
@@ -2185,10 +2200,11 @@ For all numbers larger than LIMIT, shift them by DELTA."
 	    (setq s (match-string 1) n (string-to-number s))
 	    (cond
 	     ((setq a (assoc s replace))
-	      (replace-match (concat key (cdr a)) t t))
+	      (replace-match (concat key (cdr a)) t t)
+	      (message msg))
 	     ((and limit (> n limit))
-	      (replace-match (concat key (int-to-string (+ n delta)))
-			     t t)))))))))
+	      (replace-match (concat key (int-to-string (+ n delta))) t t)
+	      (message msg)))))))))
 
 (defun org-table-get-specials ()
   "Get the column names and local parameters for this table."
@@ -2234,8 +2250,8 @@ For all numbers larger than LIMIT, shift them by DELTA."
 	  (setq v (pop fields1) col (1+ col))
 	  (when (and (stringp field) (stringp v)
 		     (string-match "^[a-zA-Z][_a-zA-Z0-9]*$" field))
-	      (push (cons field v) org-table-local-parameters)
-	      (push (list field line col) org-table-named-field-locations))))
+	    (push (cons field v) org-table-local-parameters)
+	    (push (list field line col) org-table-named-field-locations))))
       ;; Analyse the line types
       (goto-char beg)
       (setq org-table-current-begin-line (org-current-line)
@@ -2275,7 +2291,7 @@ If yes, store the formula and apply it."
   (when org-table-formula-evaluate-inline
     (let* ((field (org-trim (or (org-table-get-field) "")))
 	   named eq)
-      (when (string-match "^:?=\\(.*\\)" field)
+      (when (string-match "^:?=\\(.*[^=]\\)$" field)
 	(setq named (equal (string-to-char field) ?:)
 	      eq (match-string 1 field))
 	(if (or (fboundp 'calc-eval)
@@ -2292,8 +2308,8 @@ Will be filled automatically during use.")
   '((" " . "Unmarked: no special line, no automatic recalculation")
     ("#" . "Automatically recalculate this line upon TAB, RET, and C-c C-c in the line")
     ("*" . "Recalculate only when entire table is recalculated with `C-u C-c *'")
-    ("!" . "Column name definition line. Reference in formula as $name.")
-    ("$" . "Parameter definition line name=value. Reference in formula as $name.")
+    ("!" . "Column name definition line.  Reference in formula as $name.")
+    ("$" . "Parameter definition line name=value.  Reference in formula as $name.")
     ("_" . "Names for values in row below this one.")
     ("^" . "Names for values in row above this one.")))
 
@@ -2489,8 +2505,7 @@ not overwrite the stored one."
       (setq orig (or (get-text-property 1 :orig-formula formula) "?"))
       (while (> ndown 0)
 	(setq fields (org-split-string
-		      (org-no-properties
-		       (buffer-substring (point-at-bol) (point-at-eol)))
+		      (buffer-substring-no-properties (point-at-bol) (point-at-eol))
 		      " *| *"))
 	;; replace fields with duration values if relevant
 	(if duration
@@ -2589,10 +2604,17 @@ not overwrite the stored one."
 				   duration-output-format) ev))
 	  (or (fboundp 'calc-eval)
 	      (error "Calc does not seem to be installed, and is needed to evaluate the formula"))
-	  (setq ev (calc-eval (cons form org-tbl-calc-modes) (if numbers 'num))
+	  ;; "Inactivate" time-stamps so that Calc can handle them
+	  (setq form (replace-regexp-in-string org-ts-regexp3 "<\\1>" form))
+	  (setq ev (if (and duration (string-match "^[0-9]+:[0-9]+\\(?::[0-9]+\\)?$" form))
+		       form
+		     (calc-eval (cons form org-tbl-calc-modes) (if numbers 'num)))
 		ev (if duration (org-table-time-seconds-to-string
-				 (string-to-number ev)
-				 duration-output-format) ev)))
+				 (if (string-match "^[0-9]+:[0-9]+\\(?::[0-9]+\\)?$" ev)
+				     (string-to-number (org-table-time-string-to-seconds ev))
+				   (string-to-number ev))
+				 duration-output-format)
+		     ev)))
 
 	(when org-table-formula-debug
 	  (with-output-to-temp-buffer "*Substitution History*"
@@ -2666,7 +2688,7 @@ in the buffer and column1 and column2 are table column numbers."
       (if (equal r2 "") (setq r2 nil))
       (if r1 (setq r1 (org-table-get-descriptor-line r1)))
       (if r2 (setq r2 (org-table-get-descriptor-line r2)))
-;      (setq r2 (or r2 r1) c2 (or c2 c1))
+					;      (setq r2 (or r2 r1) c2 (or c2 c1))
       (if (not r1) (setq r1 thisline))
       (if (not r2) (setq r2 thisline))
       (if (or (not c1) (= 0 c1)) (setq c1 col))
@@ -2881,7 +2903,7 @@ known that the table will be realigned a little later anyway."
 	(if a (setq name1 (format "@%d$%d" (org-table-line-to-dline (nth 1 a))
 				  (nth 2 a))))
 	(when (member name1 seen-fields)
-	      (error "Several field/range formulas try to set %s" name1))
+	  (error "Several field/range formulas try to set %s" name1))
 	(push name1 seen-fields)
 
 	(and (not a)
@@ -2961,6 +2983,7 @@ with the prefix ARG."
 	  (throw 'exit t)))
       (error "No convergence after %d iterations" i))))
 
+;;;###autoload
 (defun org-table-recalculate-buffer-tables ()
   "Recalculate all tables in the current buffer."
   (interactive)
@@ -2969,27 +2992,28 @@ with the prefix ARG."
       (widen)
       (org-table-map-tables (lambda () (org-table-recalculate t)) t))))
 
+;;;###autoload
 (defun org-table-iterate-buffer-tables ()
   "Iterate all tables in the buffer, to converge inter-table dependencies."
- (interactive)
- (let* ((imax 10)
-        (checksum (md5 (buffer-string)))
+  (interactive)
+  (let* ((imax 10)
+	 (checksum (md5 (buffer-string)))
 
-        c1
-        (i imax))
-   (save-excursion
-     (save-restriction
-       (widen)
-       (catch 'exit
-	 (while (> i 0)
-	   (setq i (1- i))
-	   (org-table-map-tables (lambda () (org-table-recalculate t)) t)
-	   (if (equal checksum (setq c1 (md5 (buffer-string))))
-	       (progn
-		 (message "Convergence after %d iterations" (- imax i))
-		 (throw 'exit t))
-	     (setq checksum c1)))
-	 (error "No convergence after %d iterations" imax))))))
+	 c1
+	 (i imax))
+    (save-excursion
+      (save-restriction
+	(widen)
+	(catch 'exit
+	  (while (> i 0)
+	    (setq i (1- i))
+	    (org-table-map-tables (lambda () (org-table-recalculate t)) t)
+	    (if (equal checksum (setq c1 (md5 (buffer-string))))
+		(progn
+		  (message "Convergence after %d iterations" (- imax i))
+		  (throw 'exit t))
+	      (setq checksum c1)))
+	  (error "No convergence after %d iterations" imax))))))
 
 (defun org-table-expand-lhs-ranges (equations)
   "Expand list of formulas.
@@ -2999,7 +3023,7 @@ them to individual field equations for each field."
     (while (setq e (pop equations))
       (setq lhs (car e) rhs (cdr e))
       (cond
-       ((string-match "^@-?[-+I0-9]+\\$-?[0-9]+$" lhs)
+       ((string-match "^@-?[-+0-9]+\\$-?[0-9]+$" lhs)
 	;; This just refers to one fixed field
 	(push e res))
        ((string-match "^[a-zA-Z][_a-zA-Z0-9]*$" lhs)
@@ -3143,7 +3167,7 @@ Parameters get priority."
 (defun org-table-edit-formulas ()
   "Edit the formulas of the current table in a separate buffer."
   (interactive)
-  (when (save-excursion (beginning-of-line 1) (looking-at "[ \t]*#\\+TBLFM"))
+  (when (save-excursion (beginning-of-line 1) (let ((case-fold-search t)) (looking-at "[ \t]*#\\+TBLFM")))
     (beginning-of-line 0))
   (unless (org-at-table-p) (error "Not at a table"))
   (org-table-get-specials)
@@ -3217,7 +3241,7 @@ Parameters get priority."
 Works for single references, but also for entire formulas and even the
 full TBLFM line."
   (let ((start 0))
-    (while (string-match "\\<\\([a-zA-Z]+\\)\\([0-9]+\\>\\|&\\)\\|\\(;[^\r\n:]+\\|\\<remote([^)]*)\\)" s start)
+    (while (string-match "\\<\\([a-zA-Z]+\\)\\([0-9]+\\>\\|&\\)\\|\\(;[^\r\n:]+\\|\\<remote([^,)]*)\\)" s start)
       (cond
        ((match-end 3)
 	;; format match, just advance
@@ -3268,8 +3292,8 @@ For example:  AB -> 28."
   (let ((n 0))
     (setq s (upcase s))
     (while (> (length s) 0)
-	  (setq n (+ (* n 26) (string-to-char s) (- ?A) 1)
-		s (substring s 1)))
+      (setq n (+ (* n 26) (string-to-char s) (- ?A) 1)
+	    s (substring s 1)))
     n))
 
 (defun org-number-to-letters (n)
@@ -3285,26 +3309,28 @@ For example:  28 -> AB."
   "Convert a time string into numerical duration in seconds.
 S can be a string matching either -?HH:MM:SS or -?HH:MM.
 If S is a string representing a number, keep this number."
-  (let (hour minus min sec res)
-    (cond
-     ((and (string-match "\\(-?\\)\\([0-9]+\\):\\([0-9]+\\):\\([0-9]+\\)" s))
-      (setq minus (< 0 (length (match-string 1 s)))
-	    hour (string-to-number (match-string 2 s))
-	    min (string-to-number (match-string 3 s))
-	    sec (string-to-number (match-string 4 s)))
-      (if minus
-	  (setq res (- (+ (* hour 3600) (* min 60) sec)))
-	(setq res (+ (* hour 3600) (* min 60) sec))))
-     ((and (not (string-match org-ts-regexp-both s))
-	   (string-match "\\(-?\\)\\([0-9]+\\):\\([0-9]+\\)" s))
-      (setq minus (< 0 (length (match-string 1 s)))
-	    hour (string-to-number (match-string 2 s))
-	    min (string-to-number (match-string 3 s)))
-      (if minus
-	  (setq res (- (+ (* hour 3600) (* min 60))))
-	(setq res (+ (* hour 3600) (* min 60)))))
-     (t (setq res (string-to-number s))))
-    (number-to-string res)))
+  (if (equal s "")
+      s
+    (let (hour minus min sec res)
+      (cond
+       ((and (string-match "\\(-?\\)\\([0-9]+\\):\\([0-9]+\\):\\([0-9]+\\)" s))
+	(setq minus (< 0 (length (match-string 1 s)))
+	      hour (string-to-number (match-string 2 s))
+	      min (string-to-number (match-string 3 s))
+	      sec (string-to-number (match-string 4 s)))
+	(if minus
+	    (setq res (- (+ (* hour 3600) (* min 60) sec)))
+	  (setq res (+ (* hour 3600) (* min 60) sec))))
+       ((and (not (string-match org-ts-regexp-both s))
+	     (string-match "\\(-?\\)\\([0-9]+\\):\\([0-9]+\\)" s))
+	(setq minus (< 0 (length (match-string 1 s)))
+	      hour (string-to-number (match-string 2 s))
+	      min (string-to-number (match-string 3 s)))
+	(if minus
+	    (setq res (- (+ (* hour 3600) (* min 60))))
+	  (setq res (+ (* hour 3600) (* min 60)))))
+       (t (setq res (string-to-number s))))
+      (number-to-string res))))
 
 (defun org-table-time-seconds-to-string (secs &optional output-format)
   "Convert a number of seconds to a time string.
@@ -3570,7 +3596,7 @@ With prefix ARG, apply the new formulas to the table."
 	  (if (get-buffer-window (marker-buffer pos))
 	      (select-window (get-buffer-window (marker-buffer pos)))
 	    (org-switch-to-buffer-other-window (get-buffer-window
-					    (marker-buffer pos)))))
+						(marker-buffer pos)))))
       (goto-char pos)
       (org-table-force-dataline)
       (when dest
@@ -3779,7 +3805,7 @@ Use COMMAND to do the motion, repeat if necessary to end up in a data line."
   "Toggle the display of Row/Column numbers in tables."
   (interactive)
   (setq org-table-overlay-coordinates (not org-table-overlay-coordinates))
-  (message "Row/Column number display turned %s"
+  (message "Tables Row/Column numbers display turned %s"
 	   (if org-table-overlay-coordinates "on" "off"))
   (if (and (org-at-table-p) org-table-overlay-coordinates)
       (org-table-align))
@@ -3835,7 +3861,7 @@ Use COMMAND to do the motion, repeat if necessary to end up in a data line."
   "Local variable used by `orgtbl-mode'.")
 
 (defconst orgtbl-line-start-regexp
-  "[ \t]*\\(|\\|#\\+\\(TBLFM\\|ORGTBL\\|TBLNAME\\):\\)"
+  "[ \t]*\\(|\\|#\\+\\(tblfm\\|orgtbl\\|tblname\\):\\)"
   "Matches a line belonging to an orgtbl.")
 
 (defconst orgtbl-extra-font-lock-keywords
@@ -3853,7 +3879,7 @@ Use COMMAND to do the motion, repeat if necessary to end up in a data line."
   :lighter " OrgTbl" :keymap orgtbl-mode-map
   (org-load-modules-maybe)
   (cond
-   ((eq major-mode 'org-mode)
+   ((derived-mode-p 'org-mode)
     ;; Exit without error, in case some hook functions calls this
     ;; by accident in org-mode.
     (message "Orgtbl-mode is not useful in org-mode, command ignored"))
@@ -3975,37 +4001,37 @@ to execute outside of tables."
 
     ;; Special treatment needed for TAB and RET
     (org-defkey orgtbl-mode-map [(return)]
-      (orgtbl-make-binding 'orgtbl-ret 100 [(return)] "\C-m"))
+		(orgtbl-make-binding 'orgtbl-ret 100 [(return)] "\C-m"))
     (org-defkey orgtbl-mode-map "\C-m"
-      (orgtbl-make-binding 'orgtbl-ret 101 "\C-m" [(return)]))
+		(orgtbl-make-binding 'orgtbl-ret 101 "\C-m" [(return)]))
 
     (org-defkey orgtbl-mode-map [(tab)]
-      (orgtbl-make-binding 'orgtbl-tab 102 [(tab)] "\C-i"))
+		(orgtbl-make-binding 'orgtbl-tab 102 [(tab)] "\C-i"))
     (org-defkey orgtbl-mode-map "\C-i"
-      (orgtbl-make-binding 'orgtbl-tab 103 "\C-i" [(tab)]))
+		(orgtbl-make-binding 'orgtbl-tab 103 "\C-i" [(tab)]))
 
     (org-defkey orgtbl-mode-map [(shift tab)]
-      (orgtbl-make-binding 'org-table-previous-field 104
-			   [(shift tab)] [(tab)] "\C-i"))
+		(orgtbl-make-binding 'org-table-previous-field 104
+				     [(shift tab)] [(tab)] "\C-i"))
 
 
     (unless (featurep 'xemacs)
       (org-defkey orgtbl-mode-map [S-iso-lefttab]
-         (orgtbl-make-binding 'org-table-previous-field 107
-			      [S-iso-lefttab] [backtab] [(shift tab)]
-			      [(tab)] "\C-i")))
+		  (orgtbl-make-binding 'org-table-previous-field 107
+				       [S-iso-lefttab] [backtab] [(shift tab)]
+				       [(tab)] "\C-i")))
 
     (org-defkey orgtbl-mode-map [backtab]
-      (orgtbl-make-binding 'org-table-previous-field 108
-			   [backtab] [S-iso-lefttab] [(shift tab)]
-			   [(tab)] "\C-i"))
+		(orgtbl-make-binding 'org-table-previous-field 108
+				     [backtab] [S-iso-lefttab] [(shift tab)]
+				     [(tab)] "\C-i"))
 
     (org-defkey orgtbl-mode-map "\M-\C-m"
-      (orgtbl-make-binding 'org-table-wrap-region 105
-			   "\M-\C-m" [(meta return)]))
+		(orgtbl-make-binding 'org-table-wrap-region 105
+				     "\M-\C-m" [(meta return)]))
     (org-defkey orgtbl-mode-map [(meta return)]
-      (orgtbl-make-binding 'org-table-wrap-region 106
-			   [(meta return)] "\M-\C-m"))
+		(orgtbl-make-binding 'org-table-wrap-region 106
+				     [(meta return)] "\M-\C-m"))
 
     (org-defkey orgtbl-mode-map "\C-c\C-c" 'orgtbl-ctrl-c-ctrl-c)
     (org-defkey orgtbl-mode-map "\C-c|" 'orgtbl-create-or-convert-from-region)
@@ -4083,13 +4109,13 @@ to execute outside of tables."
 If it is a table to be sent away to a receiver, do it.
 With prefix arg, also recompute table."
   (interactive "P")
-  (let ((pos (point)) action consts-str consts cst const-str)
+  (let ((case-fold-search t) (pos (point)) action consts-str consts cst const-str)
     (save-excursion
       (beginning-of-line 1)
       (setq action (cond
 		    ((looking-at "[ \t]*#\\+ORGTBL:.*\n[ \t]*|") (match-end 0))
 		    ((looking-at "[ \t]*|") pos)
-		    ((looking-at "[ \t]*#\\+TBLFM:") 'recalc))))
+		    ((looking-at "[ \t]*#\\+tblfm:") 'recalc))))
     (cond
      ((integerp action)
       (goto-char action)
@@ -4178,7 +4204,7 @@ overwritten, and the table is not marked as requiring realignment."
 			      (setq a (assoc last-input-event function-key-map))
 			      (cdr a))
 			 (vector last-input-event)))
-	   'self-insert-command)))
+		    'self-insert-command)))
       (call-interactively cmd)
       (if (and org-self-insert-cluster-for-undo
 	       (eq cmd 'self-insert-command))
@@ -4298,11 +4324,15 @@ this table."
 	       (params (plist-get dest :params))
 	       (skip (plist-get params :skip))
 	       (skipcols (plist-get params :skipcols))
+	       (no-escape (plist-get params :no-escape))
 	       beg
 	       (lines (org-table-clean-before-export
 		       (nthcdr (or skip 0)
 			       (org-split-string txt "[ \t]*\n[ \t]*"))))
 	       (i0 (if org-table-clean-did-remove-column 2 1))
+	       (lines (if no-escape lines
+			(mapcar (lambda(l) (replace-regexp-in-string
+					    "\\([&%#_^]\\)" "\\\\\\1{}" l)) lines)))
 	       (table (mapcar
 		       (lambda (x)
 			 (if (string-match org-table-hline-regexp x)
@@ -4324,7 +4354,7 @@ this table."
 	  (orgtbl-send-replace-tbl name txt))
 	(setq ntbl (1+ ntbl)))
       (message "Table converted and installed at %d receiver location%s"
-			   ntbl (if (> ntbl 1) "s" ""))
+	       ntbl (if (> ntbl 1) "s" ""))
       (if (> ntbl 0)
 	  ntbl
 	nil))))
@@ -4344,12 +4374,13 @@ First element has index 0, or I0 if given."
 (defun orgtbl-toggle-comment ()
   "Comment or uncomment the orgtbl at point."
   (interactive)
-  (let* ((re1 (concat "^" (regexp-quote comment-start) orgtbl-line-start-regexp))
+  (let* ((case-fold-search t)
+	 (re1 (concat "^" (regexp-quote comment-start) orgtbl-line-start-regexp))
 	 (re2 (concat "^" orgtbl-line-start-regexp))
 	 (commented (save-excursion (beginning-of-line 1)
-			     (cond ((looking-at re1) t)
-				   ((looking-at re2) nil)
-				   (t (error "Not at an org table")))))
+				    (cond ((looking-at re1) t)
+					  ((looking-at re2) nil)
+					  (t (error "Not at an org table")))))
 	 (re (if commented re1 re2))
 	 beg end)
     (save-excursion
@@ -4458,7 +4489,7 @@ PARAMS is a property list of parameters that can influence the conversion.
 For the generic converter, some parameters are obligatory: you need to
 specify either :lfmt, or all of (:lstart :lend :sep).
 
-Valid parameters are
+Valid parameters are:
 
 :splice     When set to t, return only table body lines, don't wrap
             them into :tstart and :tend.  Default is nil.  When :splice
@@ -4471,9 +4502,9 @@ Valid parameters are
 :sep        Separator between two fields
 :remove-nil-lines Do not include lines that evaluate to nil.
 
-
 Each in the following group may be either a string or a function
 of no arguments returning a string:
+
 :tstart     String to start the table.  Ignored when :splice is t.
 :tend       String to end the table.  Ignored when :splice is t.
 :lstart     String to start a new table line.
@@ -4484,6 +4515,7 @@ of no arguments returning a string:
 Each in the following group may be a string, a function of one
 argument (the field or line) returning a string, or a plist
 mapping columns to either of the above:
+
 :lfmt       Format for entire line, with enough %s to capture all fields.
             If this is present, :lstart, :lend, and :sep are ignored.
 :llfmt      Format for the entire last line, defaults to :lfmt.
@@ -4491,14 +4523,14 @@ mapping columns to either of the above:
             %s for the original field value.  For example, to wrap
             everything in dollars, you could use :fmt \"$%s$\".
             This may also be a property list with column numbers and
-            formats. For example :fmt (2 \"$%s$\" 4 \"%s%%\")
-
+            formats.  For example :fmt (2 \"$%s$\" 4 \"%s%%\")
 :hlstart :hllstart :hlend :hllend :hlsep :hlfmt :hllfmt :hfmt
             Same as above, specific for the header lines in the table.
             All lines before the first hline are treated as header.
             If any of these is not present, the data line value is used.
 
 This may be either a string or a function of two arguments:
+
 :efmt       Use this format to print numbers with exponentials.
             The format should have %s twice for inserting mantissa
             and exponent, for example \"%s\\\\times10^{%s}\".  This
@@ -4507,10 +4539,9 @@ This may be either a string or a function of two arguments:
 
 In addition to this, the parameters :skip and :skipcols are always handled
 directly by `orgtbl-send-table'.  See manual."
-  (interactive)
-
   (let* ((splicep (plist-get params :splice))
 	 (hline (plist-get params :hline))
+	 (skipheadrule (plist-get params :skipheadrule))
 	 (remove-nil-linesp (plist-get params :remove-nil-lines))
 	 (remove-newlines (plist-get params :remove-newlines))
 	 (*orgtbl-hline* hline)
@@ -4556,7 +4587,7 @@ directly by `orgtbl-send-table'.  See manual."
 		 (*orgtbl-sep* (or (plist-get params :hlsep) *orgtbl-sep*))
 		 (*orgtbl-fmt* (or (plist-get params :hfmt) *orgtbl-fmt*)))
 	    (orgtbl-format-section 'hline))
-	  (if hline (push hline *orgtbl-rtn*))
+	  (if (and hline (not skipheadrule)) (push hline *orgtbl-rtn*))
 	  (pop *orgtbl-table*)))
 
     ;; Now format the main section.
@@ -4706,7 +4737,37 @@ provide ORGTBL directives for the generated table."
 	   :lstart "| "
 	   :lend " |"))
 	 (params (org-combine-plists params2 params)))
-    (orgtbl-to-generic table params)))
+    (with-temp-buffer
+      (insert (orgtbl-to-generic table params))
+      (goto-char (point-min))
+      (while (re-search-forward org-table-hline-regexp nil t)
+	(org-table-align))
+      (buffer-substring 1 (buffer-size)))))
+
+(defun orgtbl-to-table.el (table params)
+  "Convert the orgtbl-mode TABLE into a table.el table."
+  (with-temp-buffer
+    (insert (orgtbl-to-orgtbl table params))
+    (org-table-align)
+    (replace-regexp-in-string
+     "-|" "-+"
+     (replace-regexp-in-string "|-" "+-" (buffer-substring 1 (buffer-size))))))
+
+(defun orgtbl-to-unicode (table params)
+  "Convert the orgtbl-mode TABLE into a table with unicode characters.
+You need the ascii-art-to-unicode.el package for this.  You can download
+it here: http://gnuvola.org/software/j/aa2u/ascii-art-to-unicode.el."
+  (with-temp-buffer
+    (insert (orgtbl-to-table.el table params))
+    (goto-char (point-min))
+    (if (or (featurep 'ascii-art-to-unicode)
+	    (require 'ascii-art-to-unicode nil t))
+	(aa2u)
+      (unless (delq nil (mapcar (lambda (l) (string-match "aa2u" (car l))) org-stored-links))
+	(push '("http://gnuvola.org/software/j/aa2u/ascii-art-to-unicode.el"
+		"Link to ascii-art-to-unicode.el") org-stored-links))
+      (error "Please download ascii-art-to-unicode.el (use C-c C-l to insert the link to it)"))
+    (buffer-string)))
 
 (defun org-table-get-remote-range (name-or-id form)
   "Get a field value or a list of values in a range from table at ID.
@@ -4722,7 +4783,7 @@ FORM is a field or range descriptor like \"@2$3\" or \"B3\" or
 The return value is either a single string for a single field, or a
 list of the fields in the rectangle ."
   (save-match-data
-    (let ((id-loc nil)
+    (let ((case-fold-search t) (id-loc nil)
 	  ;; Protect a bunch of variables from being overwritten
 	  ;; by the context of the remote table
 	  org-table-column-names org-table-column-name-regexp
@@ -4741,7 +4802,7 @@ list of the fields in the rectangle ."
 	  (save-excursion
 	    (goto-char (point-min))
 	    (if (re-search-forward
-		 (concat "^[ \t]*#\\+TBLNAME:[ \t]*" (regexp-quote name-or-id) "[ \t]*$")
+		 (concat "^[ \t]*#\\+tblname:[ \t]*" (regexp-quote name-or-id) "[ \t]*$")
 		 nil t)
 		(setq buffer (current-buffer) loc (match-beginning 0))
 	      (setq id-loc (org-id-find name-or-id 'marker))

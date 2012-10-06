@@ -41,7 +41,7 @@ static void (*warn_function) (const char *);
 static POINTER data_space_start;
 
 /* Number of bytes of writable memory we can expect to be able to get.  */
-static unsigned long lim_data;
+static size_t lim_data;
 
 
 #if defined (HAVE_GETRLIMIT) && defined (RLIMIT_AS)
@@ -88,7 +88,7 @@ get_lim_data (void)
 static void
 get_lim_data (void)
 {
-  extern unsigned long reserved_heap_size;
+  extern size_t reserved_heap_size;
   lim_data = reserved_heap_size;
 }
 
@@ -166,13 +166,13 @@ static void
 check_memory_limits (void)
 {
 #ifdef REL_ALLOC
-  extern POINTER (*real_morecore) (long);
+  extern POINTER (*real_morecore) (ptrdiff_t);
 #endif
-  extern POINTER (*__morecore) (long);
+  extern POINTER (*__morecore) (ptrdiff_t);
 
   register POINTER cp;
-  unsigned long five_percent;
-  unsigned long data_size;
+  size_t five_percent;
+  size_t data_size;
   enum warnlevel new_warnlevel;
 
   if (lim_data == 0)

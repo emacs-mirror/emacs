@@ -1,3 +1,7 @@
+2012-10-06  Ulrich Müller  <ulm@gentoo.org>
+
+	* Makefile.in (AR, ARFLAGS): Get values from configure.
+
 2012-06-26  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* Makefile.in (ALL_CFLAGS): Add -I../lib -I${srcdir}/../lib.

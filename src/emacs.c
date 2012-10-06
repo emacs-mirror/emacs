@@ -31,16 +31,16 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include "lisp.h"
 
-#ifdef HAVE_WINDOW_SYSTEM
-#include TERM_HEADER
-#endif /* HAVE_WINDOW_SYSTEM */
-
 #ifdef WINDOWSNT
 #include <fcntl.h>
 #include <windows.h> /* just for w32.h */
 #include "w32.h"
 #include "w32heap.h" /* for prototype of sbrk */
 #endif
+
+#ifdef HAVE_WINDOW_SYSTEM
+#include TERM_HEADER
+#endif /* HAVE_WINDOW_SYSTEM */
 
 #ifdef NS_IMPL_GNUSTEP
 /* At least under Debian, GSConfig is in a subdirectory.  --Stef  */
@@ -1886,7 +1886,7 @@ shut_down_emacs (int sig, Lisp_Object stuff)
 	    static char const format[] = "Fatal error %d: ";
 	    char buf[sizeof format - 2 + INT_STRLEN_BOUND (int)];
 	    int buflen = sprintf (buf, format, sig);
-	    char const *sig_desc = strsignal (sig);
+	    char const *sig_desc = safe_strsignal (sig);
 	    ignore_value (write (STDERR_FILENO, buf, buflen));
 	    ignore_value (write (STDERR_FILENO, sig_desc, strlen (sig_desc)));
 	  }
@@ -1912,10 +1912,6 @@ shut_down_emacs (int sig, Lisp_Object stuff)
   unrequest_sigio ();
   ignore_sigio ();
 
-#ifdef WINDOWSNT
-  term_ntproc (0);
-#endif
-
   /* Do this only if terminating normally, we want glyph matrices
      etc. in a core dump.  */
   if (sig == 0 || sig == SIGTERM)
@@ -1934,6 +1930,10 @@ shut_down_emacs (int sig, Lisp_Object stuff)
 
 #ifdef HAVE_LIBXML2
   xml_cleanup_parser ();
+#endif
+
+#ifdef WINDOWSNT
+  term_ntproc (0);
 #endif
 }
 

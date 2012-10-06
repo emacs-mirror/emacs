@@ -73,7 +73,7 @@ libxml2_loaded_p (void)
 #define fn_xmlCleanupParser     xmlCleanupParser
 #define fn_xmlCheckVersion      xmlCheckVersion
 
-static inline int
+static int
 libxml2_loaded_p (void)
 {
   return 1;

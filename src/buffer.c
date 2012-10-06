@@ -150,222 +150,222 @@ static void modify_overlay (struct buffer *, ptrdiff_t, ptrdiff_t);
 static Lisp_Object buffer_lisp_local_variables (struct buffer *, bool);
 
 /* These setters are used only in this file, so they can be private.  */
-static inline void
+static void
 bset_abbrev_mode (struct buffer *b, Lisp_Object val)
 {
   b->INTERNAL_FIELD (abbrev_mode) = val;
 }
-static inline void
+static void
 bset_abbrev_table (struct buffer *b, Lisp_Object val)
 {
   b->INTERNAL_FIELD (abbrev_table) = val;
 }
-static inline void
+static void
 bset_auto_fill_function (struct buffer *b, Lisp_Object val)
 {
   b->INTERNAL_FIELD (auto_fill_function) = val;
 }
-static inline void
+static void
 bset_auto_save_file_format (struct buffer *b, Lisp_Object val)
 {
   b->INTERNAL_FIELD (auto_save_file_format) = val;
 }
-static inline void
+static void
 bset_auto_save_file_name (struct buffer *b, Lisp_Object val)
 {
   b->INTERNAL_FIELD (auto_save_file_name) = val;
 }
-static inline void
+static void
 bset_backed_up (struct buffer *b, Lisp_Object val)
 {
   b->INTERNAL_FIELD (backed_up) = val;
 }
-static inline void
+static void
 bset_begv_marker (struct buffer *b, Lisp_Object val)
 {
   b->INTERNAL_FIELD (begv_marker) = val;
 }
-static inline void
+static void
 bset_bidi_display_reordering (struct buffer *b, Lisp_Object val)
 {
   b->INTERNAL_FIELD (bidi_display_reordering) = val;
 }
-static inline void
+static void
 bset_buffer_file_coding_system (struct buffer *b, Lisp_Object val)
 {
   b->INTERNAL_FIELD (buffer_file_coding_system) = val;
 }
-static inline void
+static void
 bset_cache_long_line_scans (struct buffer *b, Lisp_Object val)
 {
   b->INTERNAL_FIELD (cache_long_line_scans) = val;
 }
-static inline void
+static void
 bset_case_fold_search (struct buffer *b, Lisp_Object val)
 {
   b->INTERNAL_FIELD (case_fold_search) = val;
 }
-static inline void
+static void
 bset_ctl_arrow (struct buffer *b, Lisp_Object val)
 {
   b->INTERNAL_FIELD (ctl_arrow) = val;
 }
-static inline void
+static void
 bset_cursor_in_non_selected_windows (struct buffer *b, Lisp_Object val)
 {
   b->INTERNAL_FIELD (cursor_in_non_selected_windows) = val;
 }
-static inline void
+static void
 bset_cursor_type (struct buffer *b, Lisp_Object val)
 {
   b->INTERNAL_FIELD (cursor_type) = val;
 }
-static inline void
+static void
 bset_display_table (struct buffer *b, Lisp_Object val)
 {
   b->INTERNAL_FIELD (display_table) = val;
 }
-static inline void
+static void
 bset_extra_line_spacing (struct buffer *b, Lisp_Object val)
 {
   b->INTERNAL_FIELD (extra_line_spacing) = val;
 }
-static inline void
+static void
 bset_file_format (struct buffer *b, Lisp_Object val)
 {
   b->INTERNAL_FIELD (file_format) = val;
 }
-static inline void
+static void
 bset_file_truename (struct buffer *b, Lisp_Object val)
 {
   b->INTERNAL_FIELD (file_truename) = val;
 }
-static inline void
+static void
 bset_fringe_cursor_alist (struct buffer *b, Lisp_Object val)
 {
   b->INTERNAL_FIELD (fringe_cursor_alist) = val;
 }
-static inline void
+static void
 bset_fringe_indicator_alist (struct buffer *b, Lisp_Object val)
 {
   b->INTERNAL_FIELD (fringe_indicator_alist) = val;
 }
-static inline void
+static void
 bset_fringes_outside_margins (struct buffer *b, Lisp_Object val)
 {
   b->INTERNAL_FIELD (fringes_outside_margins) = val;
 }
-static inline void
+static void
 bset_header_line_format (struct buffer *b, Lisp_Object val)
 {
   b->INTERNAL_FIELD (header_line_format) = val;
 }
-static inline void
+static void
 bset_indicate_buffer_boundaries (struct buffer *b, Lisp_Object val)
 {
   b->INTERNAL_FIELD (indicate_buffer_boundaries) = val;
 }
-static inline void
+static void
 bset_indicate_empty_lines (struct buffer *b, Lisp_Object val)
 {
   b->INTERNAL_FIELD (indicate_empty_lines) = val;
 }
-static inline void
+static void
 bset_invisibility_spec (struct buffer *b, Lisp_Object val)
 {
   b->INTERNAL_FIELD (invisibility_spec) = val;
 }
-static inline void
+static void
 bset_left_fringe_width (struct buffer *b, Lisp_Object val)
 {
   b->INTERNAL_FIELD (left_fringe_width) = val;
 }
-static inline void
+static void
 bset_major_mode (struct buffer *b, Lisp_Object val)
 {
   b->INTERNAL_FIELD (major_mode) = val;
 }
-static inline void
+static void
 bset_mark (struct buffer *b, Lisp_Object val)
 {
   b->INTERNAL_FIELD (mark) = val;
 }
-static inline void
+static void
 bset_minor_modes (struct buffer *b, Lisp_Object val)
 {
   b->INTERNAL_FIELD (minor_modes) = val;
 }
-static inline void
+static void
 bset_mode_line_format (struct buffer *b, Lisp_Object val)
 {
   b->INTERNAL_FIELD (mode_line_format) = val;
 }
-static inline void
+static void
 bset_mode_name (struct buffer *b, Lisp_Object val)
 {
   b->INTERNAL_FIELD (mode_name) = val;
 }
-static inline void
+static void
 bset_name (struct buffer *b, Lisp_Object val)
 {
   b->INTERNAL_FIELD (name) = val;
 }
-static inline void
+static void
 bset_overwrite_mode (struct buffer *b, Lisp_Object val)
 {
   b->INTERNAL_FIELD (overwrite_mode) = val;
 }
-static inline void
+static void
 bset_pt_marker (struct buffer *b, Lisp_Object val)
 {
   b->INTERNAL_FIELD (pt_marker) = val;
 }
-static inline void
+static void
 bset_right_fringe_width (struct buffer *b, Lisp_Object val)
 {
   b->INTERNAL_FIELD (right_fringe_width) = val;
 }
-static inline void
+static void
 bset_save_length (struct buffer *b, Lisp_Object val)
 {
   b->INTERNAL_FIELD (save_length) = val;
 }
-static inline void
+static void
 bset_scroll_bar_width (struct buffer *b, Lisp_Object val)
 {
   b->INTERNAL_FIELD (scroll_bar_width) = val;
 }
-static inline void
+static void
 bset_scroll_down_aggressively (struct buffer *b, Lisp_Object val)
 {
   b->INTERNAL_FIELD (scroll_down_aggressively) = val;
 }
-static inline void
+static void
 bset_scroll_up_aggressively (struct buffer *b, Lisp_Object val)
 {
   b->INTERNAL_FIELD (scroll_up_aggressively) = val;
 }
-static inline void
+static void
 bset_selective_display (struct buffer *b, Lisp_Object val)
 {
   b->INTERNAL_FIELD (selective_display) = val;
 }
-static inline void
+static void
 bset_selective_display_ellipses (struct buffer *b, Lisp_Object val)
 {
   b->INTERNAL_FIELD (selective_display_ellipses) = val;
 }
-static inline void
+static void
 bset_vertical_scroll_bar_type (struct buffer *b, Lisp_Object val)
 {
   b->INTERNAL_FIELD (vertical_scroll_bar_type) = val;
 }
-static inline void
+static void
 bset_word_wrap (struct buffer *b, Lisp_Object val)
 {
   b->INTERNAL_FIELD (word_wrap) = val;
 }
-static inline void
+static void
 bset_zv_marker (struct buffer *b, Lisp_Object val)
 {
   b->INTERNAL_FIELD (zv_marker) = val;
@@ -651,13 +651,13 @@ copy_overlays (struct buffer *b, struct Lisp_Overlay *list)
 
 /* Set an appropriate overlay of B.  */
 
-static inline void
+static void
 set_buffer_overlays_before (struct buffer *b, struct Lisp_Overlay *o)
 {
   b->overlays_before = o;
 }
 
-static inline void
+static void
 set_buffer_overlays_after (struct buffer *b, struct Lisp_Overlay *o)
 {
   b->overlays_after = o;
@@ -2464,7 +2464,7 @@ current buffer is cleared.  */)
     begv = BEGV, zv = ZV;
 
   if (narrowed)
-    Fwiden ();
+    error ("Changing multibyteness in a narrowed buffer");
 
   if (NILP (flag))
     {
@@ -3689,7 +3689,6 @@ fix_start_end_in_overlays (register ptrdiff_t start, register ptrdiff_t end)
       beforep->next = current_buffer->overlays_before;
       set_buffer_overlays_before (current_buffer, before_list);
     }
-  recenter_overlay_lists (current_buffer, current_buffer->overlay_center);
 
   if (afterp)
     {
@@ -3847,17 +3846,16 @@ for the rear of the overlay advance when text is inserted there
   end = OVERLAY_END (overlay);
   if (OVERLAY_POSITION (end) < b->overlay_center)
     {
-      if (b->overlays_after)
-	XOVERLAY (overlay)->next = b->overlays_after;
+      eassert (b->overlays_after || (XOVERLAY (overlay)->next == NULL));
+      XOVERLAY (overlay)->next = b->overlays_after;
       set_buffer_overlays_after (b, XOVERLAY (overlay));
     }
   else
     {
-      if (b->overlays_before)
-	XOVERLAY (overlay)->next = b->overlays_before;
+      eassert (b->overlays_before || (XOVERLAY (overlay)->next == NULL));
+      XOVERLAY (overlay)->next = b->overlays_before;
       set_buffer_overlays_before (b, XOVERLAY (overlay));
     }
-
   /* This puts it in the right list, and in the right order.  */
   recenter_overlay_lists (b, b->overlay_center);
 
@@ -4141,7 +4139,7 @@ DEFUN ("overlays-at", Foverlays_at, Soverlays_at, 1, 1, 0,
   /* Put all the overlays we want in a vector in overlay_vec.
      Store the length in len.  */
   noverlays = overlays_at (XINT (pos), 1, &overlay_vec, &len,
-			   0, 0, 0);
+			   NULL, NULL, 0);
 
   /* Make a list of them all.  */
   result = Flist (noverlays, overlay_vec);

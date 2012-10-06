@@ -151,7 +151,7 @@ static void scan_sexps_forward (struct lisp_parse_state *,
 static int in_classes (int, Lisp_Object);
 
 /* This setter is used only in this file, so it can be private.  */
-static inline void
+static void
 bset_syntax_table (struct buffer *b, Lisp_Object val)
 {
   b->INTERNAL_FIELD (syntax_table) = val;
@@ -372,7 +372,7 @@ char_quoted (ptrdiff_t charpos, ptrdiff_t bytepos)
 /* Return the bytepos one character before BYTEPOS.
    We assume that BYTEPOS is not at the start of the buffer.  */
 
-static inline ptrdiff_t
+static ptrdiff_t
 dec_bytepos (ptrdiff_t bytepos)
 {
   if (NILP (BVAR (current_buffer, enable_multibyte_characters)))

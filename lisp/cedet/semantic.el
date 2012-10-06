@@ -38,7 +38,7 @@
 (require 'semantic/tag)
 (require 'semantic/lex)
 
-(defvar semantic-version "2.0"
+(defvar semantic-version "2.1beta"
   "Current version of Semantic.")
 
 (declare-function inversion-test "inversion")
@@ -273,7 +273,9 @@ setup to use Semantic."
     (js-mode . wisent-javascript-setup-parser)
     (python-mode . wisent-python-default-setup)
     (scheme-mode . semantic-default-scheme-setup)
+    (f90-mode . semantic-default-f90-setup)
     (srecode-template-mode . srecode-template-setup-parser)
+    (texinfo-mode . semantic-default-texi-setup)
     (makefile-automake-mode . semantic-default-make-setup)
     (makefile-gmake-mode . semantic-default-make-setup)
     (makefile-makepp-mode . semantic-default-make-setup)
@@ -623,16 +625,18 @@ was marked unparseable, then do nothing, and return the cache."
 
 ;;;; Parse the whole system.
      ((semantic-parse-tree-needs-rebuild-p)
-      ;; Use Emacs's built-in progress-reporter
-      (let ((semantic--progress-reporter
-	     (and (>= (point-max) semantic-minimum-working-buffer-size)
-		  (eq semantic-working-type 'percent)
-		  (make-progress-reporter
-		   (semantic-parser-working-message (buffer-name))
-		   0 100))))
-	(setq res (semantic-parse-region (point-min) (point-max)))
-	(if semantic--progress-reporter
-	    (progress-reporter-done semantic--progress-reporter)))
+      ;; Use Emacs's built-in progress-reporter (only interactive).
+      (if noninteractive
+	  (setq res (semantic-parse-region (point-min) (point-max)))
+	(let ((semantic--progress-reporter
+	       (and (>= (point-max) semantic-minimum-working-buffer-size)
+		    (eq semantic-working-type 'percent)
+		    (make-progress-reporter
+		     (semantic-parser-working-message (buffer-name))
+		     0 100))))
+	  (setq res (semantic-parse-region (point-min) (point-max)))
+	  (if semantic--progress-reporter
+	      (progress-reporter-done semantic--progress-reporter))))
 
       ;; Clear the caches when we see there were no errors.
       ;; But preserve the unmatched syntax cache and warnings!
@@ -986,6 +990,12 @@ Throw away all the old tags, and recreate the tag database."
 		:help "Highlight the tag at point"
 		:visible semantic-mode
 		:button (:toggle . global-semantic-highlight-func-mode)))
+  (define-key cedet-menu-map [global-semantic-stickyfunc-mode]
+    '(menu-item "Stick Top Tag to Headerline" global-semantic-stickyfunc-mode
+		:help "Stick the tag scrolled off the top of the buffer into the header line"
+		:visible semantic-mode
+		:button (:toggle . (bound-and-true-p
+				    global-semantic-stickyfunc-mode))))
   (define-key cedet-menu-map [global-semantic-decoration-mode]
     '(menu-item "Decorate Tags" global-semantic-decoration-mode
 		:help "Decorate tags based on tag attributes"
@@ -1031,7 +1041,12 @@ Prevent this load system from loading files in twice.")
     global-semantic-idle-scheduler-mode
     global-semanticdb-minor-mode
     global-semantic-idle-summary-mode
-    global-semantic-mru-bookmark-mode)
+    global-semantic-mru-bookmark-mode
+    global-cedet-m3-minor-mode
+    global-semantic-idle-local-symbol-highlight-mode
+    global-semantic-highlight-edits-mode
+    global-semantic-show-unmatched-syntax-mode
+    global-semantic-show-parser-state-mode)
   "List of auxiliary minor modes in the Semantic package.")
 
 ;;;###autoload
@@ -1048,7 +1063,17 @@ The possible elements of this list include the following:
  `global-semantic-highlight-func-mode' - Highlight the current tag.
  `global-semantic-stickyfunc-mode'     - Show current fun in header line.
  `global-semantic-mru-bookmark-mode'   - Provide `switch-to-buffer'-like
-                                         keybinding for tag names."
+                                         keybinding for tag names.
+ `global-cedet-m3-minor-mode'          - A mouse 3 context menu.
+ `global-semantic-idle-local-symbol-highlight-mode' - Highlight references
+                                         of the symbol under point.
+The following modes are more targeted at people who want to see
+ some internal information of the semantic parser in action:
+ `global-semantic-highlight-edits-mode' - Visualize incremental parser by
+                                         highlighting not-yet parsed changes.
+ `global-semantic-show-unmatched-syntax-mode' - Highlight unmatched lexical
+                                         syntax tokens.
+ `global-semantic-show-parser-state-mode' - Display the parser cache state."
   :group 'semantic
   :type `(set ,@(mapcar (lambda (c) (list 'const c))
 			semantic-submode-list)))
@@ -1095,16 +1120,27 @@ Semantic mode.
 	(dolist (b (buffer-list))
 	  (with-current-buffer b
 	    (semantic-new-buffer-fcn))))
-    ;; Disable all Semantic features.
+    ;; Disable Semantic features.  Removing everything Semantic has
+    ;; introduced in the buffer is pretty much futile, but we have to
+    ;; clean the hooks and delete Semantic-related overlays, so that
+    ;; Semantic can be re-activated cleanly.
     (remove-hook 'mode-local-init-hook 'semantic-new-buffer-fcn)
     (remove-hook 'completion-at-point-functions
 		 'semantic-completion-at-point-function)
+    (remove-hook 'after-change-functions
+		 'semantic-change-function)
     (define-key cedet-menu-map [cedet-menu-separator] nil)
     (define-key cedet-menu-map [semantic-options-separator] nil)
     ;; FIXME: handle semanticdb-load-ebrowse-caches
     (dolist (mode semantic-submode-list)
       (if (and (boundp mode) (eval mode))
-	  (funcall mode -1)))))
+	  (funcall mode -1)))
+    ;; Unlink buffer and clear cache
+    (semantic--tag-unlink-cache-from-buffer)
+    (setq semantic--buffer-cache nil)
+    ;; Make sure we run the setup function if Semantic gets
+    ;; re-activated.
+    (setq semantic-new-buffer-fcn-was-run nil)))
 
 (defun semantic-completion-at-point-function ()
   'semantic-ia-complete-symbol)
@@ -1140,6 +1176,11 @@ With prefix argument ARG, turn on if positive, otherwise off.  The
 minor mode can be turned on only if semantic feature is available and
 the current buffer was set up for parsing.  Return non-nil if the
 minor mode is enabled." t nil)
+
+(autoload 'global-semantic-idle-local-symbol-highlight-mode "semantic/idle"
+  "Highlight the tag and symbol references of the symbol under point.
+Call `semantic-analyze-current-context' to find the reference tag.
+Call `semantic-symref-hits-in-region' to identify local references." t nil)
 
 (autoload 'srecode-template-setup-parser "srecode/srecode-template"
   "Set up buffer for parsing SRecode template files." t nil)

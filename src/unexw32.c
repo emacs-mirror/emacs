@@ -67,18 +67,18 @@ void dump_bss_and_heap (file_data *p_infile, file_data *p_outfile);
 /* Cached info about the .data section in the executable.  */
 PIMAGE_SECTION_HEADER data_section;
 PCHAR  data_start = 0;
-DWORD  data_size = 0;
+DWORD_PTR  data_size = 0;
 
 /* Cached info about the .bss section in the executable.  */
 PIMAGE_SECTION_HEADER bss_section;
 PCHAR  bss_start = 0;
-DWORD  bss_size = 0;
-DWORD  extra_bss_size = 0;
+DWORD_PTR  bss_size = 0;
+DWORD_PTR  extra_bss_size = 0;
 /* bss data that is static might be discontiguous from non-static.  */
 PIMAGE_SECTION_HEADER bss_section_static;
 PCHAR  bss_start_static = 0;
-DWORD  bss_size_static = 0;
-DWORD  extra_bss_size_static = 0;
+DWORD_PTR  bss_size_static = 0;
+DWORD_PTR  extra_bss_size_static = 0;
 
 PIMAGE_SECTION_HEADER heap_section;
 
@@ -231,7 +231,7 @@ find_section (char * name, IMAGE_NT_HEADERS * nt_header)
 /* Return pointer to section header for section containing the given
    relative virtual address. */
 IMAGE_SECTION_HEADER *
-rva_to_section (DWORD rva, IMAGE_NT_HEADERS * nt_header)
+rva_to_section (DWORD_PTR rva, IMAGE_NT_HEADERS * nt_header)
 {
   PIMAGE_SECTION_HEADER section;
   int i;
@@ -246,7 +246,7 @@ rva_to_section (DWORD rva, IMAGE_NT_HEADERS * nt_header)
 	 some very old exes (eg. gzip dated Dec 1993).  Since
 	 w32_executable_type relies on this function to work reliably,
 	 we need to cope with this.  */
-      DWORD real_size = max (section->SizeOfRawData,
+      DWORD_PTR real_size = max (section->SizeOfRawData,
 			     section->Misc.VirtualSize);
       if (rva >= section->VirtualAddress
 	  && rva < section->VirtualAddress + real_size)
@@ -259,7 +259,7 @@ rva_to_section (DWORD rva, IMAGE_NT_HEADERS * nt_header)
 /* Return pointer to section header for section containing the given
    offset in its raw data area. */
 IMAGE_SECTION_HEADER *
-offset_to_section (DWORD offset, IMAGE_NT_HEADERS * nt_header)
+offset_to_section (DWORD_PTR offset, IMAGE_NT_HEADERS * nt_header)
 {
   PIMAGE_SECTION_HEADER section;
   int i;
@@ -279,8 +279,8 @@ offset_to_section (DWORD offset, IMAGE_NT_HEADERS * nt_header)
 /* Return offset to an object in dst, given offset in src.  We assume
    there is at least one section in both src and dst images, and that
    the some sections may have been added to dst (after sections in src).  */
-DWORD
-relocate_offset (DWORD offset,
+DWORD_PTR
+relocate_offset (DWORD_PTR offset,
 		 IMAGE_NT_HEADERS * src_nt_header,
 		 IMAGE_NT_HEADERS * dst_nt_header)
 {
@@ -314,25 +314,25 @@ relocate_offset (DWORD offset,
 }
 
 #define OFFSET_TO_RVA(offset, section) \
-	  (section->VirtualAddress + ((DWORD)(offset) - section->PointerToRawData))
+  ((section)->VirtualAddress + ((DWORD_PTR)(offset) - (section)->PointerToRawData))
 
 #define RVA_TO_OFFSET(rva, section) \
-	  (section->PointerToRawData + ((DWORD)(rva) - section->VirtualAddress))
+  ((section)->PointerToRawData + ((DWORD_PTR)(rva) - (section)->VirtualAddress))
 
 #define RVA_TO_SECTION_OFFSET(rva, section) \
-	  ((DWORD)(rva) - section->VirtualAddress)
+  ((DWORD_PTR)(rva) - (section)->VirtualAddress)
 
 /* Convert address in executing image to RVA.  */
-#define PTR_TO_RVA(ptr) ((DWORD)(ptr) - (DWORD) GetModuleHandle (NULL))
+#define PTR_TO_RVA(ptr) ((DWORD_PTR)(ptr) - (DWORD_PTR) GetModuleHandle (NULL))
 
 #define RVA_TO_PTR(var,section,filedata) \
-	  ((void *)(RVA_TO_OFFSET (var,section) + (filedata).file_base))
+	  ((unsigned char *)(RVA_TO_OFFSET (var,section) + (filedata).file_base))
 
 #define PTR_TO_OFFSET(ptr, pfile_data) \
           ((unsigned char *)(ptr) - (pfile_data)->file_base)
 
 #define OFFSET_TO_PTR(offset, pfile_data) \
-          ((pfile_data)->file_base + (DWORD)(offset))
+          ((pfile_data)->file_base + (DWORD_PTR)(offset))
 
 
 /* Flip through the executable and cache the info necessary for dumping.  */
@@ -349,7 +349,7 @@ get_section_info (file_data *p_infile)
       printf ("Unknown EXE header in %s...bailing.\n", p_infile->name);
       exit (1);
     }
-  nt_header = (PIMAGE_NT_HEADERS) (((unsigned long) dos_header) +
+  nt_header = (PIMAGE_NT_HEADERS) (((DWORD_PTR) dos_header) +
 				   dos_header->e_lfanew);
   if (nt_header == NULL)
     {
@@ -488,7 +488,7 @@ copy_executable_and_dump_data (file_data *p_infile,
   PIMAGE_NT_HEADERS dst_nt_header;
   PIMAGE_SECTION_HEADER section;
   PIMAGE_SECTION_HEADER dst_section;
-  DWORD offset;
+  DWORD_PTR offset;
   int i;
   int be_verbose = GetEnvironmentVariable ("DEBUG_DUMP", NULL, 0) > 0;
 
@@ -541,17 +541,17 @@ copy_executable_and_dump_data (file_data *p_infile,
      Note that dst is updated implicitly by each COPY_CHUNK.  */
 
   dos_header = (PIMAGE_DOS_HEADER) p_infile->file_base;
-  nt_header = (PIMAGE_NT_HEADERS) (((unsigned long) dos_header) +
+  nt_header = (PIMAGE_NT_HEADERS) (((DWORD_PTR) dos_header) +
 				   dos_header->e_lfanew);
   section = IMAGE_FIRST_SECTION (nt_header);
 
   dst = (unsigned char *) p_outfile->file_base;
 
   COPY_CHUNK ("Copying DOS header...", dos_header,
-	      (DWORD) nt_header - (DWORD) dos_header, be_verbose);
+	      (DWORD_PTR) nt_header - (DWORD_PTR) dos_header, be_verbose);
   dst_nt_header = (PIMAGE_NT_HEADERS) dst;
   COPY_CHUNK ("Copying NT header...", nt_header,
-	      (DWORD) section - (DWORD) nt_header, be_verbose);
+	      (DWORD_PTR) section - (DWORD_PTR) nt_header, be_verbose);
   dst_section = (PIMAGE_SECTION_HEADER) dst;
   COPY_CHUNK ("Copying section table...", section,
 	      nt_header->FileHeader.NumberOfSections * sizeof (*section),
@@ -627,8 +627,8 @@ copy_executable_and_dump_data (file_data *p_infile,
 	}
       if (section == heap_section)
 	{
-	  DWORD heap_start = (DWORD) get_heap_start ();
-	  DWORD heap_size = get_committed_heap_size ();
+	  DWORD_PTR heap_start = (DWORD_PTR) get_heap_start ();
+	  DWORD_PTR heap_size = get_committed_heap_size ();
 
 	  /* Dump the used portion of the predump heap, adjusting the
              section's size to the appropriate size.  */

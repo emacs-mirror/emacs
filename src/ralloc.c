@@ -72,7 +72,7 @@ static void r_alloc_init (void);
 /* Declarations for working with the malloc, ralloc, and system breaks.  */
 
 /* Function to set the real break value.  */
-POINTER (*real_morecore) (long int);
+POINTER (*real_morecore) (ptrdiff_t);
 
 /* The break value, as seen by malloc.  */
 static POINTER virtual_break_value;
@@ -91,18 +91,18 @@ static int extra_bytes;
 /* Macros for rounding.  Note that rounding to any value is possible
    by changing the definition of PAGE.  */
 #define PAGE (getpagesize ())
-#define ROUNDUP(size) (((unsigned long int) (size) + page_size - 1) \
-		       & ~(page_size - 1))
+#define ROUNDUP(size) (((size_t) (size) + page_size - 1) \
+		       & ~((size_t)(page_size - 1)))
 
 #define MEM_ALIGN sizeof (double)
-#define MEM_ROUNDUP(addr) (((unsigned long int)(addr) + MEM_ALIGN - 1) \
-				   & ~(MEM_ALIGN - 1))
+#define MEM_ROUNDUP(addr) (((size_t)(addr) + MEM_ALIGN - 1) \
+			   & ~(MEM_ALIGN - 1))
 
 /* The hook `malloc' uses for the function which gets more space
    from the system.  */
 
 #ifndef SYSTEM_MALLOC
-extern POINTER (*__morecore) (long int);
+extern POINTER (*__morecore) (ptrdiff_t);
 #endif
 
 
@@ -308,7 +308,7 @@ static void
 relinquish (void)
 {
   register heap_ptr h;
-  long excess = 0;
+  ptrdiff_t excess = 0;
 
   /* Add the amount of space beyond break_value
      in all heaps which have extend beyond break_value at all.  */
@@ -752,7 +752,7 @@ free_bloc (bloc_ptr bloc)
    GNU malloc package.  */
 
 static POINTER
-r_alloc_sbrk (long int size)
+r_alloc_sbrk (ptrdiff_t size)
 {
   register bloc_ptr b;
   POINTER address;

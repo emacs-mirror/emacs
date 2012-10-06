@@ -53,6 +53,7 @@
 (declare-function data-debug-new-buffer "data-debug")
 (declare-function data-debug-insert-object-slots "eieio-datadebug")
 (declare-function semantic-momentary-highlight-tag "semantic/decorate")
+(declare-function semantic-tag-similar-p "semantic/tag-ls")
 
 ;;; TRACKING CORE
 ;;

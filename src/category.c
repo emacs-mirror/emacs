@@ -40,7 +40,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "keymap.h"
 
 /* This setter is used only in this file, so it can be private.  */
-static inline void
+static void
 bset_category_table (struct buffer *b, Lisp_Object val)
 {
   b->INTERNAL_FIELD (category_table) = val;

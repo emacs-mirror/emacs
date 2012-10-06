@@ -72,8 +72,13 @@
 
 (eval-when-compile
   (require 'cl))
-(require 'org)
 (require 'find-func)
+(require 'org-compat)
+
+(declare-function org-split-string "org" (string &optional separators))
+(declare-function org-remove-indentation "org" (code &optional n))
+
+(defvar org-protecting-blocks nil) ; From org.el
 
 (defun org-export-blocks-set (var value)
   "Set the value of `org-export-blocks' and install fontification."
@@ -142,7 +147,6 @@ export function should accept three arguments."
 (defun org-export-blocks-html-quote (body &optional open close)
   "Protect BODY from org html export.
 The optional OPEN and CLOSE tags will be inserted around BODY."
-
   (concat
    "\n#+BEGIN_HTML\n"
    (or open "")
@@ -160,6 +164,7 @@ The optional OPEN and CLOSE tags will be inserted around BODY."
    (or close "")
    "#+END_LaTeX\n"))
 
+(defvar org-src-preserve-indentation)     ; From org-src.el
 (defun org-export-blocks-preprocess ()
   "Export all blocks according to the `org-export-blocks' block export alist.
 Does not export block types specified in specified in BLOCKS
@@ -167,65 +172,70 @@ which defaults to the value of `org-export-blocks-witheld'."
   (interactive)
   (save-window-excursion
     (let ((case-fold-search t)
-	  (types '())
-	  matched indentation type func
+	  (interblock (lambda (start end)
+			(mapcar (lambda (pair) (funcall (second pair) start end))
+				org-export-interblocks)))
+	  matched indentation type types func
 	  start end body headers preserve-indent progress-marker)
-      (flet ((interblock (start end)
-			 (mapcar (lambda (pair) (funcall (second pair) start end))
-				 org-export-interblocks)))
-	(goto-char (point-min))
-	(setq start (point))
-	(let ((beg-re "^\\([ \t]*\\)#\\+begin_\\(\\S-+\\)[ \t]*\\(.*\\)?[\r\n]"))
-	  (while (re-search-forward beg-re nil t)
-	    (let* ((match-start (copy-marker (match-beginning 0)))
-		   (body-start (copy-marker (match-end 0)))
-		   (indentation (length (match-string 1)))
-		   (inner-re (format "^[ \t]*#\\+\\(begin\\|end\\)_%s"
-				     (regexp-quote (downcase (match-string 2)))))
-		   (type (intern (downcase (match-string 2))))
-		   (headers (save-match-data
-			      (org-split-string (match-string 3) "[ \t]+")))
-		   (balanced 1)
-		   (preserve-indent (or org-src-preserve-indentation
-					(member "-i" headers)))
-		   match-end)
-	      (while (and (not (zerop balanced))
-			  (re-search-forward inner-re nil t))
-		(if (string= (downcase (match-string 1)) "end")
-		    (decf balanced)
-		  (incf balanced)))
-	      (when (not (zerop balanced))
-		(error "unbalanced begin/end_%s blocks with %S"
-		       type (buffer-substring match-start (point))))
-	      (setq match-end (copy-marker (match-end 0)))
-	      (unless preserve-indent
-		(setq body (save-match-data (org-remove-indentation
-					     (buffer-substring
-					      body-start (match-beginning 0))))))
-	      (unless (memq type types) (setq types (cons type types)))
-	      (save-match-data (interblock start match-start))
-	      (when (setq func (cadr (assoc type org-export-blocks)))
-		(let ((replacement (save-match-data
-				     (if (memq type org-export-blocks-witheld) ""
-				       (apply func body headers)))))
-		  (when replacement
-		    (delete-region match-start match-end)
-		    (goto-char match-start) (insert replacement)
-		    (if preserve-indent
-			;; indent only the code block markers
-			(save-excursion
-			  (indent-line-to indentation) ; indent end_block
-			  (goto-char match-start)
-			  (indent-line-to indentation))	; indent begin_block
-		      ;; indent everything
-		      (indent-code-rigidly match-start (point) indentation)))))
-	      ;; cleanup markers
-	      (set-marker match-start nil)
-	      (set-marker body-start nil)
-	      (set-marker match-end nil))
-	    (setq start (point))))
-	(interblock start (point-max))
-	(run-hooks 'org-export-blocks-postblock-hook)))))
+      (goto-char (point-min))
+      (setq start (point))
+      (let ((beg-re "^\\([ \t]*\\)#\\+begin_\\(\\S-+\\)[ \t]*\\(.*\\)?[\r\n]"))
+	(while (re-search-forward beg-re nil t)
+	  (let* ((match-start (copy-marker (match-beginning 0)))
+		 (body-start (copy-marker (match-end 0)))
+		 (indentation (length (match-string 1)))
+		 (inner-re (format "^[ \t]*#\\+\\(begin\\|end\\)_%s"
+				   (regexp-quote (downcase (match-string 2)))))
+		 (type (intern (downcase (match-string 2))))
+		 (headers (save-match-data
+			    (org-split-string (match-string 3) "[ \t]+")))
+		 (balanced 1)
+		 (preserve-indent (or org-src-preserve-indentation
+				      (member "-i" headers)))
+		 match-end)
+	    (while (and (not (zerop balanced))
+			(re-search-forward inner-re nil t))
+	      (if (string= (downcase (match-string 1)) "end")
+		  (decf balanced)
+		(incf balanced)))
+	    (when (not (zerop balanced))
+	      (error "Unbalanced begin/end_%s blocks with %S"
+		     type (buffer-substring match-start (point))))
+	    (setq match-end (copy-marker (match-end 0)))
+	    (unless preserve-indent
+	      (setq body (save-match-data (org-remove-indentation
+					   (buffer-substring
+					    body-start (match-beginning 0))))))
+	    (unless (memq type types) (setq types (cons type types)))
+	    (save-match-data (funcall interblock start match-start))
+	    (when (setq func (cadr (assoc type org-export-blocks)))
+	      (let ((replacement (save-match-data
+				   (if (memq type org-export-blocks-witheld) ""
+				     (apply func body headers)))))
+		;; ;; un-comment this code after the org-element merge
+		;; (save-match-data
+		;;   (when (and replacement (string= replacement ""))
+		;;     (delete-region
+		;;      (car (org-element-collect-affiliated-keyword))
+		;;      match-start)))
+		(when replacement
+		  (delete-region match-start match-end)
+		  (goto-char match-start) (insert replacement)
+		  (if preserve-indent
+		      ;; indent only the code block markers
+		      (save-excursion
+			(indent-line-to indentation) ; indent end_block
+			(goto-char match-start)
+			(indent-line-to indentation))	; indent begin_block
+		    ;; indent everything
+		    (indent-code-rigidly match-start (point) indentation)))))
+	    ;; cleanup markers
+	    (set-marker match-start nil)
+	    (set-marker body-start nil)
+	    (set-marker match-end nil))
+	  (setq start (point))))
+      (funcall interblock start (point-max))
+      (run-hooks 'org-export-blocks-postblock-hook))))
 
 ;;================================================================================
 ;; type specific functions
@@ -233,14 +243,14 @@ which defaults to the value of `org-export-blocks-witheld'."
 ;;--------------------------------------------------------------------------------
 ;; ditaa: create images from ASCII art using the ditaa utility
 (defcustom org-ditaa-jar-path (expand-file-name
-			    "ditaa.jar"
-			    (file-name-as-directory
-			     (expand-file-name
-			      "scripts"
-			      (file-name-as-directory
-			       (expand-file-name
-				"../contrib"
-				(file-name-directory (find-library-name "org")))))))
+			       "ditaa.jar"
+			       (file-name-as-directory
+				(expand-file-name
+				 "scripts"
+				 (file-name-as-directory
+				  (expand-file-name
+				   "../contrib"
+				   (file-name-directory (org-find-library-dir "org")))))))
   "Path to the ditaa jar executable."
   :group 'org-babel
   :type 'string)
@@ -273,29 +283,29 @@ passed to the ditaa utility as command line arguments."
 			    (org-split-string body "\n")
 			    "\n")))
     (prog1
-    (cond
-     ((member org-export-current-backend '(html latex docbook))
-      (unless (file-exists-p out-file)
-        (mapc ;; remove old hashed versions of this file
-         (lambda (file)
-           (when (and (string-match (concat (regexp-quote (car out-file-parts))
-                                            "_\\([[:alnum:]]+\\)\\."
-                                            (regexp-quote (cdr out-file-parts)))
-                                    file)
-                      (= (length (match-string 1 out-file)) 40))
-             (delete-file (expand-file-name file
-                                            (file-name-directory out-file)))))
-         (directory-files (or (file-name-directory out-file)
-                              default-directory)))
-        (with-temp-file data-file (insert body))
-        (message (concat "java -jar " org-ditaa-jar-path " " args " " data-file " " out-file))
-        (shell-command (concat "java -jar " org-ditaa-jar-path " " args " " data-file " " out-file)))
-      (format "\n[[file:%s]]\n" out-file))
-     (t (concat
-	 "\n#+BEGIN_EXAMPLE\n"
-	 body (if (string-match "\n$" body) "" "\n")
-	 "#+END_EXAMPLE\n")))
-    (message "begin_ditaa blocks are DEPRECATED, use begin_src blocks"))))
+	(cond
+	 ((member org-export-current-backend '(html latex docbook))
+	  (unless (file-exists-p out-file)
+	    (mapc ;; remove old hashed versions of this file
+	     (lambda (file)
+	       (when (and (string-match (concat (regexp-quote (car out-file-parts))
+						"_\\([[:alnum:]]+\\)\\."
+						(regexp-quote (cdr out-file-parts)))
+					file)
+			  (= (length (match-string 1 out-file)) 40))
+		 (delete-file (expand-file-name file
+						(file-name-directory out-file)))))
+	     (directory-files (or (file-name-directory out-file)
+				  default-directory)))
+	    (with-temp-file data-file (insert body))
+	    (message (concat "java -jar " org-ditaa-jar-path " " args " " data-file " " out-file))
+	    (shell-command (concat "java -jar " org-ditaa-jar-path " " args " " data-file " " out-file)))
+	  (format "\n[[file:%s]]\n" out-file))
+	 (t (concat
+	     "\n#+BEGIN_EXAMPLE\n"
+	     body (if (string-match "\n$" body) "" "\n")
+	     "#+END_EXAMPLE\n")))
+      (message "begin_ditaa blocks are DEPRECATED, use begin_src blocks"))))
 
 ;;--------------------------------------------------------------------------------
 ;; dot: create graphs using the dot graphing language
@@ -332,29 +342,29 @@ digraph data_relationships {
 			   (cons raw-out-file "png")))
 	 (out-file (concat (car out-file-parts) "_" hash "." (cdr out-file-parts))))
     (prog1
-    (cond
-     ((member org-export-current-backend '(html latex docbook))
-      (unless (file-exists-p out-file)
-	(mapc ;; remove old hashed versions of this file
-	 (lambda (file)
-	   (when (and (string-match (concat (regexp-quote (car out-file-parts))
-					    "_\\([[:alnum:]]+\\)\\."
-					    (regexp-quote (cdr out-file-parts)))
-				    file)
-		      (= (length (match-string 1 out-file)) 40))
-	     (delete-file (expand-file-name file
-					    (file-name-directory out-file)))))
-	 (directory-files (or (file-name-directory out-file)
-			      default-directory)))
-	(with-temp-file data-file (insert body))
-	(message (concat "dot " data-file " " args " -o " out-file))
-	(shell-command (concat "dot " data-file " " args " -o " out-file)))
-      (format "\n[[file:%s]]\n" out-file))
-     (t (concat
-	 "\n#+BEGIN_EXAMPLE\n"
-	 body (if (string-match "\n$" body) "" "\n")
-	 "#+END_EXAMPLE\n")))
-    (message "begin_dot blocks are DEPRECATED, use begin_src blocks"))))
+	(cond
+	 ((member org-export-current-backend '(html latex docbook))
+	  (unless (file-exists-p out-file)
+	    (mapc ;; remove old hashed versions of this file
+	     (lambda (file)
+	       (when (and (string-match (concat (regexp-quote (car out-file-parts))
+						"_\\([[:alnum:]]+\\)\\."
+						(regexp-quote (cdr out-file-parts)))
+					file)
+			  (= (length (match-string 1 out-file)) 40))
+		 (delete-file (expand-file-name file
+						(file-name-directory out-file)))))
+	     (directory-files (or (file-name-directory out-file)
+				  default-directory)))
+	    (with-temp-file data-file (insert body))
+	    (message (concat "dot " data-file " " args " -o " out-file))
+	    (shell-command (concat "dot " data-file " " args " -o " out-file)))
+	  (format "\n[[file:%s]]\n" out-file))
+	 (t (concat
+	     "\n#+BEGIN_EXAMPLE\n"
+	     body (if (string-match "\n$" body) "" "\n")
+	     "#+END_EXAMPLE\n")))
+      (message "begin_dot blocks are DEPRECATED, use begin_src blocks"))))
 
 ;;--------------------------------------------------------------------------------
 ;; comment: export comments in author-specific css-stylable divs

@@ -1,3 +1,14 @@
+2012-10-04  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Merge from gnulib, incorporating:
+	2012-10-02 pselect: reject invalid file descriptors
+	2012-10-02 ptsname: reject invalid file descriptors
+	2012-10-02 manywarnings: cater to more gcc infelicities
+	2012-09-30 sockets, sys_stat: restore AC_C_INLINE
+	* lib/pselect.c, lib/stdlib.in.h, m4/manywarnings.m4, m4/pselect.m4:
+	* m4/stdlib_h.m4, m4/sys_stat_h.m4: Update from gnulib.
+	* lib/gnulib.mk, m4/gnulib-comp.m4: Regenerate.
+
 2012-09-30  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Merge from gnulib, incorporating:

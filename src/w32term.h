@@ -201,6 +201,8 @@ extern struct w32_display_info *w32_term_init (Lisp_Object,
 extern int x_display_pixel_height (struct w32_display_info *);
 extern int x_display_pixel_width (struct w32_display_info *);
 
+extern Lisp_Object x_get_focus_frame (struct frame *);
+
 
 #define PIX_TYPE COLORREF
 
@@ -431,7 +433,15 @@ struct scroll_bar {
 /* Turning a lisp vector value into a pointer to a struct scroll_bar.  */
 #define XSCROLL_BAR(vec) ((struct scroll_bar *) XVECTOR (vec))
 
+#ifdef _WIN64
+/* Building a 64-bit C integer from two 32-bit lisp integers.  */
+#define SCROLL_BAR_PACK(low, high) (XINT (high) << 32 | XINT (low))
 
+/* Setting two lisp integers to the low and high words of a 64-bit C int.  */
+#define SCROLL_BAR_UNPACK(low, high, int64) \
+  (XSETINT ((low),   ((DWORDLONG)(int64))        & 0xffffffff), \
+   XSETINT ((high), ((DWORDLONG)(int64) >> 32) & 0xffffffff))
+#else  /* not _WIN64 */
 /* Building a 32-bit C integer from two 16-bit lisp integers.  */
 #define SCROLL_BAR_PACK(low, high) (XINT (high) << 16 | XINT (low))
 
@@ -439,7 +449,7 @@ struct scroll_bar {
 #define SCROLL_BAR_UNPACK(low, high, int32) \
   (XSETINT ((low),   (int32)        & 0xffff), \
    XSETINT ((high), ((int32) >> 16) & 0xffff))
-
+#endif	/* not _WIN64 */
 
 /* Extract the window id of the scroll bar from a struct scroll_bar.  */
 #define SCROLL_BAR_W32_WINDOW(ptr) \
@@ -447,7 +457,7 @@ struct scroll_bar {
 
 /* Store a window id in a struct scroll_bar.  */
 #define SET_SCROLL_BAR_W32_WINDOW(ptr, id) \
-  (SCROLL_BAR_UNPACK ((ptr)->w32_window_low, (ptr)->w32_window_high, (int) id))
+  (SCROLL_BAR_UNPACK ((ptr)->w32_window_low, (ptr)->w32_window_high, (intptr_t) id))
 
 /* Extract the X widget of the scroll bar from a struct scroll_bar.  */
 #define SCROLL_BAR_X_WIDGET(ptr) \

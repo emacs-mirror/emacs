@@ -99,12 +99,14 @@ To specify the file in which to save them, modify the variable
 
 (defcustom bookmark-version-control 'nospecial
   "Whether or not to make numbered backups of the bookmark file.
-It can have four values: t, nil, `never', and `nospecial'.
+It can have four values: t, nil, `never', or `nospecial'.
 The first three have the same meaning that they do for the
-variable `version-control', and the final value `nospecial' means just
-use the value of `version-control'."
-  :type '(choice (const nil) (const never) (const nospecial)
-		 (other t))
+variable `version-control'; the value `nospecial' (the default) means
+just use the value of `version-control'."
+  :type '(choice (const :tag "If existing" nil)
+                 (const :tag "Never" never)
+                 (const :tag "Use value of option `version-control'" nospecial)
+                 (other :tag "Always" t))
   :group 'bookmark)
 
 
@@ -1357,7 +1359,12 @@ for a file, defaulting to the file defined by variable
     (goto-char (point-min))
     (delete-region (point-min) (point-max))
     (let ((print-length nil)
-          (print-level nil))
+          (print-level nil)
+          ;; See bug #12503 for why we bind `print-circle'.  Users
+          ;; can define their own bookmark types, which can result in
+          ;; arbitrary Lisp objects being stored in bookmark records,
+          ;; and some users create objects containing circularities.
+          (print-circle t))
       (bookmark-insert-file-format-version-stamp)
       (insert "(")
       ;; Rather than a single call to `pp' we make one per bookmark.
@@ -2003,32 +2010,6 @@ To carry out the deletions that you've marked, use \\<bookmark-bmenu-mode-map>\\
 
 ;;; Bookmark-bmenu search
 
-;; Store keyboard input for incremental search.
-(defvar bookmark-search-pattern)
-
-(defun bookmark-read-search-input ()
-  "Read each keyboard input and add it to `bookmark-search-pattern'."
-  (let ((prompt       (propertize "Pattern: " 'face 'minibuffer-prompt))
-        ;; (inhibit-quit t) ; inhibit-quit is evil.  Use it with extreme care!
-        (tmp-list     ()))
-    (while
-        (let ((char (read-key (concat prompt bookmark-search-pattern))))
-          (pcase char
-            ((or ?\e ?\r) nil) ; RET or ESC break the search loop.
-            (?\C-g (setq bookmark-quit-flag t) nil)
-            (?\d (pop tmp-list) t) ; Delete last char of pattern with DEL
-            (_
-             (if (characterp char)
-                 (push char tmp-list)
-               (setq unread-command-events
-                     (nconc (mapcar 'identity
-                                    (this-single-command-raw-keys))
-                            unread-command-events))
-               nil))))
-      (setq bookmark-search-pattern
-            (apply 'string (reverse tmp-list))))))
-
-
 (defun bookmark-bmenu-filter-alist-by-regexp (regexp)
   "Filter `bookmark-alist' with bookmarks matching REGEXP and rebuild list."
   (let ((bookmark-alist
@@ -2043,19 +2024,23 @@ To carry out the deletions that you've marked, use \\<bookmark-bmenu-mode-map>\\
   "Incremental search of bookmarks, hiding the non-matches as we go."
   (interactive)
   (let ((bmk (bookmark-bmenu-bookmark))
-        (bookmark-search-pattern "")
-        (timer (run-with-idle-timer
-                bookmark-search-delay 'repeat
-                #'(lambda ()
-                    (bookmark-bmenu-filter-alist-by-regexp
-                     bookmark-search-pattern)))))
+        (timer nil))
     (unwind-protect
-        (bookmark-read-search-input)
-      (cancel-timer timer)
-      (message nil)
-      (when bookmark-quit-flag        ; C-g hit restore menu list.
-        (bookmark-bmenu-list) (bookmark-bmenu-goto-bookmark bmk))
-      (setq bookmark-quit-flag nil))))
+        (minibuffer-with-setup-hook
+            (lambda ()
+              (setq timer (run-with-idle-timer
+                           bookmark-search-delay 'repeat
+                           #'(lambda (buf)
+                               (with-current-buffer buf
+                                 (bookmark-bmenu-filter-alist-by-regexp
+                                  (minibuffer-contents))))
+                           (current-buffer))))
+          (read-string "Pattern: ")
+          (when timer (cancel-timer timer) (setq timer nil)))
+      (when timer ;; Signalled an error or a `quit'.
+        (cancel-timer timer)
+        (bookmark-bmenu-list)
+        (bookmark-bmenu-goto-bookmark bmk)))))
 
 (defun bookmark-bmenu-goto-bookmark (name)
   "Move point to bookmark with name NAME."

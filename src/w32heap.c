@@ -26,7 +26,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "w32heap.h"
 #include "lisp.h"  /* for VALMASK */
 
-#define RVA_TO_PTR(rva) ((unsigned char *)((DWORD)(rva) + (DWORD)GetModuleHandle (NULL)))
+#define RVA_TO_PTR(rva) ((unsigned char *)((DWORD_PTR)(rva) + (DWORD_PTR)GetModuleHandle (NULL)))
 
 /* This gives us the page size and the size of the allocation unit on NT.  */
 SYSTEM_INFO sysinfo_cache;
@@ -34,7 +34,7 @@ SYSTEM_INFO sysinfo_cache;
 /* This gives us version, build, and platform identification.  */
 OSVERSIONINFO osinfo_cache;
 
-unsigned long syspage_mask = 0;
+size_t syspage_mask = 0;
 
 /* The major and minor versions of NT.  */
 int w32_major_version;
@@ -97,7 +97,7 @@ PIMAGE_SECTION_HEADER preload_heap_section;
 unsigned char *data_region_base = NULL;
 unsigned char *data_region_end = NULL;
 unsigned char *real_data_region_end = NULL;
-unsigned long  reserved_heap_size = 0;
+size_t  reserved_heap_size = 0;
 
 /* The start of the data segment.  */
 unsigned char *
@@ -121,16 +121,20 @@ allocate_heap (void)
      the preload heap section up to the usable address limit.  Since GNU
      malloc can handle gaps in the memory it gets from sbrk, we can
      simply set the sbrk pointer to the base of the new heap region.  */
-  unsigned long base =
+  DWORD_PTR base =
     ROUND_UP ((RVA_TO_PTR (preload_heap_section->VirtualAddress)
 	       + preload_heap_section->Misc.VirtualSize),
 	      get_allocation_unit ());
-  unsigned long end  = 1 << VALBITS; /* 256MB */
+  DWORD_PTR end  = ((unsigned __int64)1) << VALBITS; /* 256MB */
   void *ptr = NULL;
 
   while (!ptr && (base < end))
     {
+#ifdef _WIN64
+      reserved_heap_size = min(end - base, 0x4000000000i64); /* Limit to 256Gb */
+#else
       reserved_heap_size = end - base;
+#endif
       ptr = VirtualAlloc ((void *) base,
 			  get_reserved_heap_size (),
 			  MEM_RESERVE,
@@ -144,7 +148,11 @@ allocate_heap (void)
 static char *
 allocate_heap (void)
 {
-  unsigned long size = 0x80000000; /* start by asking for 2GB */
+#ifdef _WIN64
+  size_t size = 0x4000000000i64; /* start by asking for 32GB */
+#else
+  size_t size = 0x80000000; /* start by asking for 2GB */
+#endif
   void *ptr = NULL;
 
   while (!ptr && size > 0x00100000)
@@ -166,17 +174,17 @@ allocate_heap (void)
    be the address of the _start_ (not end) of the new block in case of
    success, and zero (not -1) in case of failure.  */
 void *
-sbrk (unsigned long increment)
+sbrk (ptrdiff_t increment)
 {
   void *result;
-  long size = (long) increment;
+  ptrdiff_t size = increment;
 
   result = data_region_end;
 
   /* If size is negative, shrink the heap by decommitting pages.  */
   if (size < 0)
     {
-      int new_size;
+      ptrdiff_t new_size;
       unsigned char *new_data_region_end;
 
       size = -size;
@@ -189,7 +197,7 @@ sbrk (unsigned long increment)
 	 partial deallocation [cga].  */
       new_data_region_end = (data_region_end - size);
       new_data_region_end = (unsigned char *)
-	((long) (new_data_region_end + syspage_mask) & ~syspage_mask);
+	((DWORD_PTR) (new_data_region_end + syspage_mask) & ~syspage_mask);
       new_size = real_data_region_end - new_data_region_end;
       real_data_region_end = new_data_region_end;
       if (new_size > 0)
@@ -220,7 +228,7 @@ sbrk (unsigned long increment)
       /* We really only commit full pages, so record where
 	 the real end of committed memory is [cga].  */
       real_data_region_end = (unsigned char *)
-	  ((long) (data_region_end + syspage_mask) & ~syspage_mask);
+	  ((DWORD_PTR) (data_region_end + syspage_mask) & ~syspage_mask);
     }
 
   return result;
@@ -245,7 +253,7 @@ init_heap (void)
   PIMAGE_NT_HEADERS nt_header;
 
   dos_header = (PIMAGE_DOS_HEADER) RVA_TO_PTR (0);
-  nt_header = (PIMAGE_NT_HEADERS) (((unsigned long) dos_header) +
+  nt_header = (PIMAGE_NT_HEADERS) (((DWORD_PTR) dos_header) +
 				   dos_header->e_lfanew);
   preload_heap_section = find_section ("EMHEAP", nt_header);
 
@@ -261,7 +269,7 @@ init_heap (void)
 #if !USE_LSB_TAG
       /* Ensure that the addresses don't use the upper tag bits since
 	 the Lisp type goes there.  */
-      if (((unsigned long) data_region_base & ~VALMASK) != 0)
+      if (((DWORD_PTR) data_region_base & ~VALMASK) != 0)
 	{
 	  printf ("Error: The heap was allocated in upper memory.\n");
 	  exit (1);
@@ -284,13 +292,13 @@ init_heap (void)
 
 /* Round the heap up to the given alignment.  */
 void
-round_heap (unsigned long align)
+round_heap (size_t align)
 {
-  unsigned long needs_to_be;
-  unsigned long need_to_alloc;
+  DWORD_PTR needs_to_be;
+  DWORD_PTR need_to_alloc;
 
-  needs_to_be = (unsigned long) ROUND_UP (get_heap_end (), align);
-  need_to_alloc = needs_to_be - (unsigned long) get_heap_end ();
+  needs_to_be = (DWORD_PTR) ROUND_UP (get_heap_end (), align);
+  need_to_alloc = needs_to_be - (DWORD_PTR) get_heap_end ();
 
   if (need_to_alloc)
     sbrk (need_to_alloc);

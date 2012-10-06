@@ -575,6 +575,7 @@ fi
 AC_DEFUN([gl_THREADLIB])
 
 # Initialize gnulib right after choosing the compiler.
+dnl Amongst other things, this sets AR and ARFLAGS.
 gl_EARLY
 
 # It's helpful to have C macros available to GDB, so prefer -g3 to -g

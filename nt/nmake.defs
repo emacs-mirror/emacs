@@ -87,7 +87,11 @@ ARCH		= alpha
 !    if "$(PROCESSOR_ARCHITECTURE)" == "PPC"
 ARCH		= ppc
 !    else
-!     error Unknown architecture type "$(PROCESSOR_ARCHITECTURE)"
+!     if "$(PROCESSOR_ARCHITECTURE)" == "AMD64"
+ARCH		= AMD64
+!     else
+!      error Unknown architecture type "$(PROCESSOR_ARCHITECTURE)"
+!     endif
 !    endif
 !   endif
 !  endif
@@ -106,7 +110,7 @@ CC		= cl
 CC_OUT		= -Fo
 LINK		= link
 LINK_OUT	= -out:
-RC		= rc
+RC		= rc $(ARCH_RCFLAGS)
 RC_OUT		= -Fo
 RC_INCLUDE	= -i
 
@@ -147,21 +151,21 @@ DEBUG_CFLAGS	=
 
 MWINDOWS        = -subsystem:windows -entry:mainCRTStartup
 
-CFLAGS          = -I. $(ARCH_CFLAGS) \
+CFLAGS          = -I. $(ARCH_CFLAGS) -D_CRT_SECURE_NO_WARNINGS \
 		  $(DEBUG_CFLAGS) $(USER_CFLAGS) $(LOCAL_FLAGS)
-ESC_CFLAGS      = -I. $(ARCH_CFLAGS) \
+ESC_CFLAGS      = -I. $(ARCH_CFLAGS) -D_CRT_SECURE_NO_WARNINGS \
 		  $(DEBUG_CFLAGS) $(ESC_USER_CFLAGS) $(LOCAL_FLAGS)
 
 #SYS_LDFLAGS	= -nologo -release -incremental:no -version:3.10 -swaprun:cd -swaprun:net setargv.obj
-!ifdef NOOPT
-SYS_LDFLAGS	= -nologo -manifest -dynamicbase:no -debug -incremental:no -version:3.10 -swaprun:cd -swaprun:net setargv.obj
-!else
-SYS_LDFLAGS	= -nologo -manifest -dynamicbase:no -release -incremental:no -version:3.10 -swaprun:cd -swaprun:net setargv.obj
-!endif
+SYS_LDFLAGS	= -nologo -manifest -dynamicbase:no -incremental:no -version:3.10 -swaprun:cd -swaprun:net setargv.obj
 
 # see comments in allocate_heap in w32heap.c before changing any of the
 # -stack, -heap, or -base settings.
-TEMACS_EXTRA_LINK = -stack:0x00800000 -heap:0x00100000 -base:0x01000000 -pdb:$(BLD)\temacs.pdb -machine:$(ARCH) $(SUBSYSTEM_CONSOLE) -entry:_start -map:$(BLD)\temacs.map $(EXTRA_LINK)
+!if "$(ARCH)" == "i386"
+TEMACS_EXTRA_LINK = -stack:0x00800000 -heap:0x00100000 -base:0x01000000 -pdb:$(BLD)\temacs.pdb -machine:x86 $(SUBSYSTEM_CONSOLE) -entry:_start -map:$(BLD)\temacs.map $(EXTRA_LINK)
+!elseif "$(ARCH)" == "AMD64"
+TEMACS_EXTRA_LINK = -stack:0x00800000 -heap:0x00100000 -base:0x400000000 -pdb:$(BLD)\temacs.pdb -machine:x64 $(SUBSYSTEM_CONSOLE) -entry:_start -map:$(BLD)\temacs.map $(EXTRA_LINK)
+!endif
 
 !ifdef NOOPT
 OBJDIR          = obj
@@ -212,11 +216,17 @@ ARCH_CFLAGS     = -nologo -D_X86_=1 -c -Zl -Zp8 -W2 -Od -Gd $(DEBUG_FLAG)
 ARCH_CFLAGS     = -nologo -D_X86_=1 -c -Zl -Zp8 -W2 -Oi -Ot -Oy- -Ob2 -GF -Gy -Gd $(DEBUG_FLAG)
 !endif
 ARCH_LDFLAGS	= $(SYS_LDFLAGS)
+EMACS_HEAPSIZE	= 27
+EMACS_PURESIZE	= 5000000
+EMACS_MANIFEST	= emacs-x86.manifest
 
 !else
 !if "$(ARCH)" == "mips"
 ARCH_CFLAGS     = -D_MIPS_=1 -c -W2 -Zi -Od -Gt0
 ARCH_LDFLAGS	= $(SYS_LDFLAGS)
+EMACS_HEAPSIZE	= 27
+EMACS_PURESIZE	= 5000000
+EMACS_MANIFEST	= emacs-mips.manifest
 
 !else
 !if "$(ARCH)" == "alpha"
@@ -226,15 +236,34 @@ ARCH_CFLAGS     = -D_ALPHA_=1 -c -Ze -Zi -W2 -Od -D__stdcall= -D__cdecl=
 ARCH_CFLAGS     = -D_ALPHA_=1 -c -Ze -Zi -W2 -O1 -D__stdcall= -D__cdecl=
 !endif
 ARCH_LDFLAGS	= $(SYS_LDFLAGS)
+EMACS_HEAPSIZE	= 27
+EMACS_PURESIZE	= 5000000
+EMACS_MANIFEST	= emacs-alpha.manifest
 
 !else
 !if "$(ARCH)" == "ppc"
 # These flags are a guess...if they don't work, please send me mail.
-ARCH_CFLAGS	= -D_PPC_=1 -c -Ze -Zi -W2 -Od
 ARCH_LDFLAGS	= $(SYS_LDFLAGS)
+EMACS_HEAPSIZE	= 27
+EMACS_PURESIZE	= 5000000
+EMACS_MANIFEST	= emacs-ppc.manifest
+
+!else
+!if "$(ARCH)" == "AMD64"
+!ifdef NOOPT
+ARCH_CFLAGS     = -nologo -D_AMD64_=1 -DWIN64 -D_WIN64 -DWIN32 -D_WIN32 -c -Zl -Zp8 -W2 -Od -Gd -Wp64 $(DEBUG_FLAG)
+!else
+ARCH_CFLAGS     = -nologo -D_AMD64_=1 -DWIN64 -D_WIN64 -DWIN32 -D_WIN32 -c -Zl -Zp8 -W2 -O2x -GF -Gy -Gd $(DEBUG_FLAG)
+!endif
+ARCH_LDFLAGS	= $(SYS_LDFLAGS) -machine:x64
+ARCH_RCFLAGS	= -DWIN64
+EMACS_HEAPSIZE	= 42
+EMACS_PURESIZE	= 10000000
+EMACS_MANIFEST	= emacs-x64.manifest
 
 !else
 !ERROR Unknown architecture type "$(ARCH)".
+!endif
 !endif
 !endif
 !endif
@@ -262,4 +291,3 @@ EXTRA_LINK      = -profile
 .c{$(BLD)}.obj::
 		$(CC) $(CFLAGS) -Fo$(BLD)\ $<
 !ENDIF
-

@@ -41,6 +41,7 @@
 (declare-function org-at-table.el-p "org" ())
 (declare-function org-get-indentation "org" (&optional line))
 (declare-function org-switch-to-buffer-other-window "org" (&rest args))
+(declare-function org-strip-protective-commas "org" (beg end))
 (declare-function org-pop-to-buffer-same-window
 		  "org-compat" (&optional buffer-or-name norecord label))
 (declare-function org-strip-protective-commas "org" (beg end))
@@ -112,8 +113,7 @@ editing it with \\[org-edit-src-code].  Has no effect if
   :type 'integer)
 
 (defvar org-src-strip-leading-and-trailing-blank-lines nil
-  "If non-nil, blank lines are removed when exiting the code edit
-buffer.")
+  "If non-nil, blank lines are removed when exiting the code edit buffer.")
 
 (defcustom org-edit-src-persistent-message t
   "Non-nil means show persistent exit help message while editing src examples.
@@ -130,7 +130,7 @@ current-window    Show edit buffer in the current window, keeping all other
                   windows.
 other-window      Use `switch-to-buffer-other-window' to display edit buffer.
 reorganize-frame  Show only two windows on the current frame, the current
-                  window and the edit buffer. When exiting the edit buffer,
+                  window and the edit buffer.  When exiting the edit buffer,
                   return to one window.
 other-frame       Use `switch-to-buffer-other-frame' to display edit buffer.
                   Also, when exiting the edit buffer, kill that frame."
@@ -174,6 +174,7 @@ For example, there is no ocaml-mode in Emacs, but the mode to use is
 
 (defvar org-src-mode-map (make-sparse-keymap))
 (define-key org-src-mode-map "\C-c'" 'org-edit-src-exit)
+(define-key org-src-mode-map "\C-x\C-s" 'org-edit-src-save)
 
 (defvar org-edit-src-force-single-line nil)
 (defvar org-edit-src-from-org-mode nil)
@@ -187,9 +188,9 @@ For example, there is no ocaml-mode in Emacs, but the mode to use is
 
 (defvar org-src-ask-before-returning-to-edit-buffer t
   "If nil, when org-edit-src code is used on a block that already
-  has an active edit buffer, it will switch to that edit buffer
-  immediately; otherwise it will ask whether you want to return
-  to the existing edit buffer.")
+has an active edit buffer, it will switch to that edit buffer
+immediately; otherwise it will ask whether you want to return to
+the existing edit buffer.")
 
 (defvar org-src-babel-info nil)
 
@@ -202,13 +203,13 @@ There is a mode hook, and keybindings for `org-edit-src-exit' and
 `org-edit-src-save'")
 
 (defun org-edit-src-code (&optional context code edit-buffer-name)
-  "Edit the source code example at point.
+  "Edit the source CODE example at point.
 The example is copied to a separate buffer, and that buffer is
 switched to the correct language mode.  When done, exit with
 \\[org-edit-src-exit].  This will remove the original code in the
-Org buffer, and replace it with the edited version. Optional
+Org buffer, and replace it with the edited version.  An optional
 argument CONTEXT is used by \\[org-edit-src-save] when calling
-this function. See \\[org-src-window-setup] to configure the
+this function.  See `org-src-window-setup' to configure the
 display of windows containing the Org buffer and the code
 buffer."
   (interactive)
@@ -271,8 +272,9 @@ buffer."
 	(setq line (org-current-line)
 	      col (current-column)))
       (if (and (setq buffer (org-edit-src-find-buffer beg end))
-	       (if org-src-ask-before-returning-to-edit-buffer
-		   (y-or-n-p "Return to existing edit buffer? [n] will revert changes: ") t))
+	       (or (eq context 'save)
+		   (if org-src-ask-before-returning-to-edit-buffer
+		       (y-or-n-p "Return to existing edit buffer ([n] will revert changes)? ") t)))
 	  (org-src-switch-to-buffer buffer 'return)
 	(when buffer
 	  (with-current-buffer buffer
@@ -309,7 +311,7 @@ buffer."
 	     (error "Language mode `%s' fails with: %S" lang-f (nth 1 e)))))
 	(dolist (pair transmitted-variables)
 	  (org-set-local (car pair) (cadr pair)))
-	(if (eq major-mode 'org-mode)
+	(if (derived-mode-p 'org-mode)
 	    (progn
 	      (goto-char (point-min))
 	      (while (re-search-forward "^," nil t)
@@ -328,6 +330,7 @@ buffer."
 	 (if org-src-preserve-indentation col (max 0 (- col total-nindent))))
 	(org-src-mode)
 	(set-buffer-modified-p nil)
+	(setq buffer-file-name nil)
 	(and org-edit-src-persistent-message
 	     (org-set-local 'header-line-format msg))
 	(let ((edit-prep-func (intern (concat "org-babel-edit-prep:" lang))))
@@ -336,6 +339,7 @@ buffer."
       t)))
 
 (defun org-edit-src-continue (e)
+  "Continue editing source blocks." ;; Fixme: be more accurate
   (interactive "e")
   (mouse-set-point e)
   (let ((buf (get-char-property (point) 'edit-buffer)))
@@ -412,7 +416,7 @@ the fragment in the Org-mode buffer."
 	(case-fold-search t)
 	(msg (substitute-command-keys
 	      "Edit, then exit with C-c ' (C-c and single quote)"))
-	(org-mode-p (eq major-mode 'org-mode))
+	(org-mode-p (derived-mode-p 'org-mode))
 	(beg (make-marker))
 	(end (make-marker))
 	(preserve-indentation org-src-preserve-indentation)
@@ -436,7 +440,7 @@ the fragment in the Org-mode buffer."
 	    code (buffer-substring-no-properties beg end)
 	    begline (save-excursion (goto-char beg) (org-current-line)))
       (if (and (setq buffer (org-edit-src-find-buffer beg end))
-	       (y-or-n-p "Return to existing edit buffer? [n] will revert changes: "))
+	       (y-or-n-p "Return to existing edit buffer ([n] will revert changes)? "))
 	  (org-pop-to-buffer-same-window buffer)
 	(when buffer
 	  (with-current-buffer buffer
@@ -452,10 +456,10 @@ the fragment in the Org-mode buffer."
 	(overlay-put ovl 'help-echo "Click with mouse-1 to switch to buffer editing this segment")
 	(overlay-put ovl 'face 'secondary-selection)
 	(overlay-put ovl
-			 'keymap
-			 (let ((map (make-sparse-keymap)))
-			   (define-key map [mouse-1] 'org-edit-src-continue)
-			   map))
+		     'keymap
+		     (let ((map (make-sparse-keymap)))
+		       (define-key map [mouse-1] 'org-edit-src-continue)
+		       map))
 	(overlay-put ovl :read-only "Leave me alone")
 	(org-pop-to-buffer-same-window buffer)
 	(insert code)
@@ -586,6 +590,21 @@ the language, a switch telling if the content should be in a single line."
     (goto-char pos)
     (org-get-indentation)))
 
+(defun org-add-protective-commas (beg end &optional line)
+  "Add protective commas in region.
+Return the delta in size of the region."
+  (interactive "r")
+  (let ((org-re "^\\(.\\)")
+	(other-re "^\\([*]\\|[ \t]*#\\+\\)")
+	(delta 0))
+    (save-excursion
+      (goto-char beg)
+      (while (re-search-forward (if (derived-mode-p 'org-mode) org-re other-re)
+				end t)
+	(if (and line (eq (org-current-line) line)) (setq delta (1+ delta)))
+	(replace-match ",\\1")))
+    delta))
+
 (defun org-edit-src-exit (&optional context)
   "Exit special edit and protect problematic lines."
   (interactive)
@@ -595,6 +614,7 @@ the language, a switch telling if the content should be in a single line."
   (let* ((beg org-edit-src-beg-marker)
 	 (end org-edit-src-end-marker)
 	 (ovl org-edit-src-overlay)
+	 (bufstr (buffer-string))
 	 (buffer (current-buffer))
 	 (single (org-bound-and-true-p org-edit-src-force-single-line))
 	 (macro (eq single 'macro-definition))
@@ -629,11 +649,8 @@ the language, a switch telling if the content should be in a single line."
 	(goto-char (point-min))
 	(if (looking-at "\\s-*") (replace-match " ")))
       (when (org-bound-and-true-p org-edit-src-from-org-mode)
-	(goto-char (point-min))
-	(while (re-search-forward
-		(if (eq major-mode 'org-mode) "^\\(.\\)" "^\\([*]\\|[ \t]*#\\+\\)") nil t)
-	  (if (eq (org-current-line) line) (setq delta (1+ delta)))
-	  (replace-match ",\\1")))
+	(setq delta (+ delta (org-add-protective-commas
+			      (point-min) (point-max) line))))
       (when (org-bound-and-true-p org-edit-src-picture)
 	(setq preserve-indentation nil)
 	(untabify (point-min) (point-max))
@@ -648,13 +665,18 @@ the language, a switch telling if the content should be in a single line."
       (if (org-bound-and-true-p org-edit-src-picture)
 	  (setq total-nindent (+ total-nindent 2)))
       (setq code (buffer-string))
+      (when (eq context 'save)
+	(erase-buffer)
+	(insert bufstr))
       (set-buffer-modified-p nil))
     (org-src-switch-to-buffer (marker-buffer beg) (or context 'exit))
-    (kill-buffer buffer)
+    (if (eq context 'save) (save-buffer)
+      (kill-buffer buffer))
     (goto-char beg)
     (when allow-write-back-p
-      (delete-region beg end)
+      (delete-region beg (1- end))
       (insert code)
+      (delete-char 1)
       (goto-char beg)
       (if single (just-one-space)))
     (if (memq t (mapcar (lambda (overlay)
@@ -666,28 +688,41 @@ the language, a switch telling if the content should be in a single line."
       ;; Block is visible, put point where it was in the code buffer
       (org-goto-line (1- (+ (org-current-line) line)))
       (org-move-to-column (if preserve-indentation col (+ col total-nindent delta))))
-    (move-marker beg nil)
-    (move-marker end nil))
+    (unless (eq context 'save)
+      (move-marker beg nil)
+      (move-marker end nil)))
   (unless (eq context 'save)
     (when org-edit-src-saved-temp-window-config
       (set-window-configuration org-edit-src-saved-temp-window-config)
       (setq org-edit-src-saved-temp-window-config nil))))
 
+(defmacro org-src-in-org-buffer (&rest body)
+  `(let ((p (point)) (m (mark)) (ul buffer-undo-list) msg)
+     (save-window-excursion
+       (org-edit-src-exit 'save)
+       ,@body
+       (setq msg (current-message))
+       (if (eq org-src-window-setup 'other-frame)
+	   (let ((org-src-window-setup 'current-window))
+	     (org-edit-src-code 'save))
+	 (org-edit-src-code 'save)))
+     (setq buffer-undo-list ul)
+     (push-mark m 'nomessage)
+     (goto-char (min p (point-max)))
+     (message (or msg ""))))
+(def-edebug-spec org-src-in-org-buffer (body))
+
 (defun org-edit-src-save ()
   "Save parent buffer with current state source-code buffer."
   (interactive)
-  (let ((p (point)) (m (mark)) msg)
-    (save-window-excursion
-      (org-edit-src-exit 'save)
-      (save-buffer)
-      (setq msg (current-message))
-      (if (eq org-src-window-setup 'other-frame)
-	  (let ((org-src-window-setup 'current-window))
-	    (org-edit-src-code 'save))
-	(org-edit-src-code 'save)))
-    (push-mark m 'nomessage)
-    (goto-char (min p (point-max)))
-    (message (or msg ""))))
+  (org-src-in-org-buffer (save-buffer)))
+
+(declare-function org-babel-tangle "ob-tangle" (&optional only-this-block target-file lang))
+
+(defun org-src-tangle (arg)
+  "Tangle the parent buffer."
+  (interactive)
+  (org-src-in-org-buffer (org-babel-tangle arg)))
 
 (defun org-src-mode-configure-edit-buffer ()
   (when (org-bound-and-true-p org-edit-src-from-org-mode)
@@ -739,7 +774,7 @@ remotely with point temporarily at the start of the code block in
 the Org buffer.
 
 This command is not bound to a key by default, to avoid conflicts
-with language major mode bindings. To bind it to C-c @ in all
+with language major mode bindings.  To bind it to C-c @ in all
 language major modes, you could use
 
   (add-hook 'org-src-mode-hook
@@ -777,7 +812,7 @@ mode."
 (defun org-src-font-lock-fontify-block (lang start end)
   "Fontify code block.
 This function is called by emacs automatic fontification, as long
-as `org-src-fontify-natively' is non-nil. For manual
+as `org-src-fontify-natively' is non-nil.  For manual
 fontification of code blocks see `org-src-fontify-block' and
 `org-src-fontify-buffer'"
   (let ((lang-mode (org-src-get-lang-mode lang)))
@@ -790,13 +825,13 @@ fontification of code blocks see `org-src-fontify-block' and
 	      (get-buffer-create
 	       (concat " org-src-fontification:" (symbol-name lang-mode)))
 	    (delete-region (point-min) (point-max))
-	    (insert (concat string " ")) ;; so there's a final property change
+	    (insert string " ") ;; so there's a final property change
 	    (unless (eq major-mode lang-mode) (funcall lang-mode))
 	    (font-lock-fontify-buffer)
 	    (setq pos (point-min))
 	    (while (setq next (next-single-property-change pos 'face))
 	      (put-text-property
-	       (+ start (1- pos)) (+ start next) 'face
+	       (+ start (1- pos)) (1- (+ start next)) 'face
 	       (get-text-property pos 'face) org-buffer)
 	      (setq pos next)))
 	  (add-text-properties
@@ -813,7 +848,7 @@ fontification of code blocks see `org-src-fontify-block' and
       (font-lock-fontify-region (nth 0 info) (nth 1 info)))))
 
 (defun org-src-fontify-buffer ()
-  "Fontify all code blocks in the current buffer"
+  "Fontify all code blocks in the current buffer."
   (interactive)
   (org-babel-map-src-blocks nil
     (org-src-fontify-block)))

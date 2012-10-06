@@ -76,9 +76,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Positive if interrupt input is blocked right now.  */
 volatile int interrupt_input_blocked;
 
-/* Nonzero means an input interrupt or alarm signal has arrived.
+/* True means an input interrupt or alarm signal has arrived.
    The QUIT macro checks this.  */
-volatile int pending_signals;
+volatile bool pending_signals;
 
 #define KBD_BUFFER_SIZE 4096
 
@@ -448,47 +448,47 @@ static char *find_user_signal_name (int);
 static void store_user_signal_events (void);
 
 /* These setters are used only in this file, so they can be private.  */
-static inline void
+static void
 kset_echo_string (struct kboard *kb, Lisp_Object val)
 {
   kb->INTERNAL_FIELD (echo_string) = val;
 }
-static inline void
+static void
 kset_kbd_queue (struct kboard *kb, Lisp_Object val)
 {
   kb->INTERNAL_FIELD (kbd_queue) = val;
 }
-static inline void
+static void
 kset_keyboard_translate_table (struct kboard *kb, Lisp_Object val)
 {
   kb->INTERNAL_FIELD (Vkeyboard_translate_table) = val;
 }
-static inline void
+static void
 kset_last_prefix_arg (struct kboard *kb, Lisp_Object val)
 {
   kb->INTERNAL_FIELD (Vlast_prefix_arg) = val;
 }
-static inline void
+static void
 kset_last_repeatable_command (struct kboard *kb, Lisp_Object val)
 {
   kb->INTERNAL_FIELD (Vlast_repeatable_command) = val;
 }
-static inline void
+static void
 kset_local_function_key_map (struct kboard *kb, Lisp_Object val)
 {
   kb->INTERNAL_FIELD (Vlocal_function_key_map) = val;
 }
-static inline void
+static void
 kset_overriding_terminal_local_map (struct kboard *kb, Lisp_Object val)
 {
   kb->INTERNAL_FIELD (Voverriding_terminal_local_map) = val;
 }
-static inline void
+static void
 kset_real_last_command (struct kboard *kb, Lisp_Object val)
 {
   kb->INTERNAL_FIELD (Vreal_last_command) = val;
 }
-static inline void
+static void
 kset_system_key_syms (struct kboard *kb, Lisp_Object val)
 {
   kb->INTERNAL_FIELD (system_key_syms) = val;
@@ -2283,11 +2283,10 @@ read_char (int commandflag, ptrdiff_t nmaps, Lisp_Object *maps,
 	   Lisp_Object prev_event,
 	   int *used_mouse_menu, EMACS_TIME *end_time)
 {
-  volatile Lisp_Object c;
+  Lisp_Object c;
   ptrdiff_t jmpcount;
   sys_jmp_buf local_getcjmp;
   sys_jmp_buf save_jump;
-  volatile int key_already_recorded = 0;
   Lisp_Object tem, save;
   volatile Lisp_Object previous_echo_area_message;
   volatile Lisp_Object also_record;
@@ -2519,10 +2518,7 @@ read_char (int commandflag, ptrdiff_t nmaps, Lisp_Object *maps,
         return c;               /* wrong_kboard_jmpbuf */
 
       if (! NILP (c))
-	{
-	  key_already_recorded = 1;
-	  goto non_reread_1;
-	}
+	goto exit;
     }
 
   /* Make a longjmp point for quits to use, but don't alter getcjmp just yet.
@@ -2850,12 +2846,10 @@ read_char (int commandflag, ptrdiff_t nmaps, Lisp_Object *maps,
       goto wrong_kboard;
     }
 
- non_reread_1:
-
   /* Buffer switch events are only for internal wakeups
      so don't show them to the user.
      Also, don't record a key if we already did.  */
-  if (BUFFERP (c) || key_already_recorded)
+  if (BUFFERP (c))
     goto exit;
 
   /* Process special events within read_char
@@ -3749,7 +3743,7 @@ kbd_buffer_events_waiting (int discard)
 
 /* Clear input event EVENT.  */
 
-static inline void
+static void
 clear_event (struct input_event *event)
 {
   event->kind = NO_EVENT;
@@ -8054,7 +8048,7 @@ process_tool_bar_item (Lisp_Object key, Lisp_Object def, Lisp_Object data, void 
 
 /* Access slot with index IDX of vector tool_bar_item_properties.  */
 #define PROP(IDX) AREF (tool_bar_item_properties, (IDX))
-static inline void
+static void
 set_prop (ptrdiff_t idx, Lisp_Object val)
 {
   ASET (tool_bar_item_properties, idx, val);

@@ -195,6 +195,32 @@ Buffer based features related to change hooks is handled one level up."
     ;; area.  Return value is not important.
     ))
 
+(defun srecode-insert-show-error-report (dictionary format &rest args)
+  "Display an error report based on DICTIONARY, FORMAT and ARGS.
+This is intended to diagnose problems with failed template
+insertions."
+  (with-current-buffer (data-debug-new-buffer "*SRECODE INSERTION ERROR*")
+    (erase-buffer)
+    ;; Insert the stack of templates that are currently being
+    ;; inserted.
+    (insert (propertize "Template Stack" 'face '(:weight bold))
+	    (propertize " (most recent at bottom)" 'face '(:slant italic))
+	    ":\n")
+    (data-debug-insert-stuff-list
+     (reverse (oref srecode-template active)) "> ")
+    ;; Show the current dictionary.
+    (insert (propertize "Dictionary" 'face '(:weight bold)) "\n")
+    (data-debug-insert-thing dictionary "" "> ")
+    ;; Show the error message.
+    (insert (propertize "Error" 'face '(:weight bold)) "\n")
+    (insert (apply #'format format args))
+    (pop-to-buffer (current-buffer))))
+
+(defun srecode-insert-report-error (dictionary format &rest args)
+  ;; TODO only display something when inside an interactive call?
+  (srecode-insert-show-error-report dictionary format args)
+  (apply #'error format args))
+
 ;;; TEMPLATE ARGUMENTS
 ;;
 ;; Some templates have arguments.  Each argument is associated with
@@ -435,8 +461,10 @@ If SECONDNAME is nil, return VALUE."
 	    (let ((srecode-inserter-variable-current-dictionary dictionary))
 	      (funcall fcnpart value))
 	  ;; Else, warn.
-	  (error "Variable insertion second arg %s is not a function"
-		 secondname)))
+	  (srecode-insert-report-error
+	   dictionary
+	   "Variable inserter %s: second argument `%s' is not a function"
+	   (object-print sti) secondname)))
     value))
 
 (defmethod srecode-insert-method ((sti srecode-template-inserter-variable)
@@ -467,19 +495,20 @@ If SECONDNAME is nil, return VALUE."
 	;; If the value returned is nil, then it may be a special
 	;; field inserter that requires us to set do-princ to nil.
 	(when (not val)
-	  (setq do-princ nil)
-	  )
-	)
+	  (setq do-princ nil)))
+
        ;; Dictionaries... not allowed in this style
        ((srecode-dictionary-child-p val)
-	(error "Macro %s cannot insert a dictionary - use section macros instead"
-	       name))
+	(srecode-insert-report-error
+	 dictionary
+	 "Macro %s cannot insert a dictionary - use section macros instead"
+	 name))
+
        ;; Other stuff... convert
        (t
-	(error "Macro %s cannot insert arbitrary data" name)
-	;;(if (and val (not (stringp val)))
-	;;    (setq val (format "%S" val))))
-	))
+	(srecode-insert-report-error
+	 dictionary
+	 "Macro %s cannot insert arbitrary data" name)))
     ;; Output the dumb thing unless the type of thing specifically
     ;; did the inserting for us.
     (when do-princ
@@ -559,19 +588,25 @@ Loop over the prompts to see if we have a match."
   "Derive the default value for an askable inserter STI.
 DICTIONARY is used to derive some values."
   (let ((defaultfcn (oref sti :defaultfcn)))
-    (cond ((stringp defaultfcn)
-	   defaultfcn)
-	  ((functionp defaultfcn)
-	   (funcall defaultfcn))
-	  ((and (listp defaultfcn)
-		(eq (car defaultfcn) 'macro))
-	   (srecode-dictionary-lookup-name
-	    dictionary (cdr defaultfcn)))
-	  ((null defaultfcn)
-	   "")
-	  (t
-	   (error "Unknown default for prompt: %S"
-		  defaultfcn)))))
+    (cond
+     ((stringp defaultfcn)
+      defaultfcn)
+
+     ((functionp defaultfcn)
+      (funcall defaultfcn))
+
+     ((and (listp defaultfcn)
+	   (eq (car defaultfcn) 'macro))
+      (srecode-dictionary-lookup-name
+       dictionary (cdr defaultfcn)))
+
+     ((null defaultfcn)
+      "")
+
+     (t
+      (srecode-insert-report-error
+       dictionary
+       "Unknown default for prompt: %S" defaultfcn)))))
 
 (defmethod srecode-insert-method-ask ((sti srecode-template-inserter-ask)
 				      dictionary)
@@ -647,26 +682,33 @@ spaces to the right.")
   "For VALUE handle WIDTH behaviors for this variable inserter.
 Return the result as a string.
 By default, treat as a function name."
-  (if width
-      ;; Trim or pad to new length
-      (let* ((split (split-string width ":"))
-	     (width (string-to-number (nth 0 split)))
-	     (second (nth 1 split))
-	     (pad (cond ((or (null second) (string= "right" second))
-			 'right)
-			((string= "left" second)
-			 'left)
-			(t
-			 (error "Unknown pad type %s" second)))))
-	(if (>= (length value) width)
-	    ;; Simple case - too long.
-	    (substring value 0 width)
-	  ;; We need to pad on one side or the other.
-	  (let ((padchars (make-string (- width (length value)) ? )))
-	    (if (eq pad 'left)
-		(concat padchars value)
-	      (concat value padchars)))))
-    (error "Width not specified for variable/width inserter")))
+  ;; Cannot work without width.
+  (unless width
+    (srecode-insert-report-error
+     dictionary
+     "Width not specified for variable/width inserter"))
+
+  ;; Trim or pad to new length
+  (let* ((split  (split-string width ":"))
+	 (width  (string-to-number (nth 0 split)))
+	 (second (nth 1 split))
+	 (pad    (cond
+		  ((or (null second) (string= "right" second))
+		   'right)
+		  ((string= "left" second)
+		   'left)
+		  (t
+		   (srecode-insert-report-error
+		    dictionary
+		    "Unknown pad type %s" second)))))
+    (if (>= (length value) width)
+	;; Simple case - too long.
+	(substring value 0 width)
+      ;; We need to pad on one side or the other.
+      (let ((padchars (make-string (- width (length value)) ? )))
+	(if (eq pad 'left)
+	    (concat padchars value)
+	  (concat value padchars))))))
 
 (defmethod srecode-inserter-prin-example :STATIC ((ins srecode-template-inserter-width)
 						  escape-start escape-end)
@@ -758,13 +800,15 @@ Arguments ESCAPE-START and ESCAPE-END are the current escape sequences in use."
 (defmethod srecode-insert-subtemplate ((sti srecode-template-inserter-subtemplate)
 				       dict slot)
   "Insert a subtemplate for the inserter STI with dictionary DICT."
-  ;; make sure that only dictionaries are used.
-  (when (not (srecode-dictionary-child-p dict))
-    (error "Only section dictionaries allowed for %s"
-	   (object-name-string sti)))
+  ;; Make sure that only dictionaries are used.
+  (unless (srecode-dictionary-child-p dict)
+    (srecode-insert-report-error
+     dict
+     "Only section dictionaries allowed for `%s'"
+     (object-name-string sti)))
+
   ;; Output the code from the sub-template.
-  (srecode-insert-method (slot-value sti slot) dict)
-  )
+  (srecode-insert-method (slot-value sti slot) dict))
 
 (defmethod srecode-insert-method-helper ((sti srecode-template-inserter-subtemplate)
 					 dictionary slot)
@@ -774,14 +818,18 @@ The template to insert is stored in SLOT."
   (let ((dicts (srecode-dictionary-lookup-name
 		dictionary (oref sti :object-name))))
     (when (not (listp dicts))
-      (error "Cannot insert section %S from non-section variable."
-	     (oref sti :object-name)))
+      (srecode-insert-report-error
+       dictionary
+       "Cannot insert section %S from non-section variable."
+       (oref sti :object-name)))
     ;; If there is no section dictionary, then don't output anything
     ;; from this section.
     (while dicts
       (when (not (srecode-dictionary-p (car dicts)))
-	(error "Cannot insert section %S from non-section variable."
-	       (oref sti :object-name)))
+	(srecode-insert-report-error
+	 dictionary
+	 "Cannot insert section %S from non-section variable."
+	 (oref sti :object-name)))
       (srecode-insert-subtemplate sti (car dicts) slot)
       (setq dicts (cdr dicts)))))
 
@@ -876,11 +924,13 @@ Arguments ESCAPE-START and ESCAPE-END are the current escape sequences in use."
   "For the template inserter STI, lookup the template to include.
 Finds the template with this macro function part and stores it in
 this template instance."
-  (let* ((templatenamepart (oref sti :secondname))
-	 )
-    ;; If there was no template name, throw an error
-    (if (not templatenamepart)
-	(error "Include macro %s needs a template name" (oref sti :object-name)))
+  (let ((templatenamepart (oref sti :secondname)))
+    ;; If there was no template name, throw an error.
+    (unless templatenamepart
+      (srecode-insert-report-error
+       dictionary
+       "Include macro `%s' needs a template name"
+       (oref sti :object-name)))
 
     ;; NOTE: We used to cache the template and not look it up a second time,
     ;; but changes in the template tables can change which template is
@@ -920,11 +970,12 @@ this template instance."
       ;; Store the found template into this object for later use.
       (oset sti :includedtemplate tmpl))
 
-    (if (not (oref sti includedtemplate))
-	;; @todo - Call into a debugger to help find the template in question.
-	(error "No template \"%s\" found for include macro `%s'"
-	       templatenamepart (oref sti :object-name)))
-    ))
+    (unless (oref sti includedtemplate)
+      ;; @todo - Call into a debugger to help find the template in question.
+      (srecode-insert-report-error
+       dictionary
+       "No template \"%s\" found for include macro `%s'"
+       templatenamepart (oref sti :object-name)))))
 
 (defmethod srecode-insert-method ((sti srecode-template-inserter-include)
 				  dictionary)

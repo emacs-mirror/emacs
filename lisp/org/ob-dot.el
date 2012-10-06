@@ -64,7 +64,8 @@
   "Execute a block of Dot code with org-babel.
 This function is called by `org-babel-execute-src-block'."
   (let* ((result-params (cdr (assoc :result-params params)))
-	 (out-file (cdr (assoc :file params)))
+	 (out-file (cdr (or (assoc :file params)
+			    (error "You need to specify a :file parameter"))))
 	 (cmdline (or (cdr (assoc :cmdline params))
 		      (format "-T%s" (file-name-extension out-file))))
 	 (cmd (or (cdr (assoc :cmd params)) "dot"))

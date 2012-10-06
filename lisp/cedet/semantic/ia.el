@@ -37,9 +37,10 @@
 (require 'semantic/analyze)
 (require 'semantic/format)
 (require 'pulse)
+(require 'semantic/senator)
+(require 'semantic/analyze/refs)
 (eval-when-compile
   (require 'semantic/analyze)
-  (require 'semantic/analyze/refs)
   (require 'semantic/find))
 
 (declare-function imenu--mouse-menu "imenu")
@@ -143,10 +144,49 @@ Completion options are calculated with `semantic-analyze-possible-completions'."
 	       (mapcar semantic-ia-completion-format-tag-function syms)))))))))
 
 (defcustom semantic-ia-completion-menu-format-tag-function
-  'semantic-uml-concise-prototype-nonterminal
+  'semantic-format-tag-uml-concise-prototype
   "*Function used to convert a tag to a string during completion."
   :group 'semantic
   :type semantic-format-tag-custom-list)
+
+;;;###autoload
+(defun semantic-ia-complete-symbol-menu (point)
+  "Complete the current symbol via a menu based at POINT.
+Completion options are calculated with `semantic-analyze-possible-completions'."
+  (interactive "d")
+  (require 'imenu)
+  (let* ((a (semantic-analyze-current-context point))
+	 (syms (semantic-analyze-possible-completions a))
+	 )
+    ;; Complete this symbol.
+    (if (not syms)
+	(progn
+	  (message "No smart completions found.  Trying Senator.")
+	  (when (semantic-analyze-context-p a)
+	    ;; This is a quick way of getting a nice completion list
+	    ;; in the menu if the regular context mechanism fails.
+	    (senator-completion-menu-popup)))
+
+      (let* ((menu
+	      (mapcar
+	       (lambda (tag)
+		 (cons
+		  (funcall semantic-ia-completion-menu-format-tag-function tag)
+		  (vector tag)))
+	       syms))
+	     (ans
+	      (imenu--mouse-menu
+	       ;; XEmacs needs that the menu has at least 2 items.  So,
+	       ;; include a nil item that will be ignored by imenu.
+	       (cons nil menu)
+	       (senator-completion-menu-point-as-event)
+	       "Completions")))
+	(when ans
+	  (if (not (semantic-tag-p ans))
+	      (setq ans (aref (cdr ans) 0)))
+	  (delete-region (car (oref a bounds)) (cdr (oref a bounds)))
+	  (semantic-ia-insert-tag ans))
+	))))
 
 ;;; Completions Tip
 ;;

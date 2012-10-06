@@ -335,82 +335,82 @@ static struct sockaddr_and_len {
 static int pty_max_bytes;
 
 /* These setters are used only in this file, so they can be private.  */
-static inline void
+static void
 pset_buffer (struct Lisp_Process *p, Lisp_Object val)
 {
   p->buffer = val;
 }
-static inline void
+static void
 pset_command (struct Lisp_Process *p, Lisp_Object val)
 {
   p->command = val;
 }
-static inline void
+static void
 pset_decode_coding_system (struct Lisp_Process *p, Lisp_Object val)
 {
   p->decode_coding_system = val;
 }
-static inline void
+static void
 pset_decoding_buf (struct Lisp_Process *p, Lisp_Object val)
 {
   p->decoding_buf = val;
 }
-static inline void
+static void
 pset_encode_coding_system (struct Lisp_Process *p, Lisp_Object val)
 {
   p->encode_coding_system = val;
 }
-static inline void
+static void
 pset_encoding_buf (struct Lisp_Process *p, Lisp_Object val)
 {
   p->encoding_buf = val;
 }
-static inline void
+static void
 pset_filter (struct Lisp_Process *p, Lisp_Object val)
 {
   p->filter = val;
 }
-static inline void
+static void
 pset_log (struct Lisp_Process *p, Lisp_Object val)
 {
   p->log = val;
 }
-static inline void
+static void
 pset_mark (struct Lisp_Process *p, Lisp_Object val)
 {
   p->mark = val;
 }
-static inline void
+static void
 pset_name (struct Lisp_Process *p, Lisp_Object val)
 {
   p->name = val;
 }
-static inline void
+static void
 pset_plist (struct Lisp_Process *p, Lisp_Object val)
 {
   p->plist = val;
 }
-static inline void
+static void
 pset_sentinel (struct Lisp_Process *p, Lisp_Object val)
 {
   p->sentinel = val;
 }
-static inline void
+static void
 pset_status (struct Lisp_Process *p, Lisp_Object val)
 {
   p->status = val;
 }
-static inline void
+static void
 pset_tty_name (struct Lisp_Process *p, Lisp_Object val)
 {
   p->tty_name = val;
 }
-static inline void
+static void
 pset_type (struct Lisp_Process *p, Lisp_Object val)
 {
   p->type = val;
 }
-static inline void
+static void
 pset_write_queue (struct Lisp_Process *p, Lisp_Object val)
 {
   p->write_queue = val;
@@ -570,7 +570,7 @@ status_message (struct Lisp_Process *p)
 
   if (EQ (symbol, Qsignal) || EQ (symbol, Qstop))
     {
-      char *signame;
+      char const *signame;
       synchronize_system_messages_locale ();
       signame = strsignal (code);
       if (signame == 0)

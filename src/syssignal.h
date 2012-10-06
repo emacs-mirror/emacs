@@ -29,8 +29,12 @@ extern void init_signals (bool);
 #define FORWARD_SIGNAL_TO_MAIN_THREAD
 #endif
 
-#if (defined SIGPROF && (defined HAVE_TIMER_SETTIME || defined HAVE_SETITIMER) \
-     && !defined PROFILING)
+#if defined HAVE_TIMER_SETTIME && defined SIGEV_SIGNAL
+# define HAVE_ITIMERSPEC
+#endif
+
+#if (defined SIGPROF && !defined PROFILING \
+     && (defined HAVE_SETITIMER || defined HAVE_ITIMERSPEC))
 # define PROFILER_CPU_SUPPORT
 #endif
 
@@ -39,6 +43,7 @@ extern sigset_t empty_mask;
 typedef void (*signal_handler_t) (int);
 
 extern void emacs_sigaction_init (struct sigaction *, signal_handler_t);
+char const *safe_strsignal (int);
 
 #if NSIG < NSIG_MINIMUM
 # undef NSIG
@@ -70,8 +75,7 @@ extern void emacs_sigaction_init (struct sigaction *, signal_handler_t);
 #endif /* ! defined (SIGCLD) */
 
 #ifndef HAVE_STRSIGNAL
-/* strsignal is in sysdep.c */
-char *strsignal (int);
+# define strsignal(sig) safe_strsignal (sig)
 #endif
 
 void deliver_process_signal (int, signal_handler_t);

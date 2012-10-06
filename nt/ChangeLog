@@ -1,3 +1,64 @@
+2012-10-02  Eli Zaretskii  <eliz@gnu.org>
+
+	* preprep.c (RVA_TO_PTR): Cast the result to 'void *', to avoid
+	compiler warnings when using the value.
+
+2012-10-01  Eli Zaretskii  <eliz@gnu.org>
+
+	* preprep.c (RVA_TO_PTR): Use 'unsigned char *' instead of
+	'void *', for pointer arithmetics.
+	(OFFSET_TO_RVA, RVA_TO_OFFSET, RVA_TO_SECTION_OFFSET): Enclose all
+	macro arguments in parentheses.
+
+2012-09-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in ($(TRES)): Use $(EMACS_MANIFEST).
+
+2012-09-30  Fabrice Popineau  <fabrice.popineau@supelec.fr>
+
+	* inc/sys/socket.h: Don't map Winsock error codes to standard ones
+	that are already defined.
+
+	* inc/ms-w32.h (EMACS_INT, EMACS_UINT, EMACS_INT_MAX, PRIuMAX)
+	(pI, _INTPTR) [_MSC_VER]: Fix definitions for MSVC.
+	[_MSC_VER]: Add pragmas to suppress some MSVC warnings.
+
+	* preprep.c (pfnCheckSumMappedFile, rva_to_section)
+	(offset_to_section, relocate_offset, OFFSET_TO_RVA)
+	(RVA_TO_OFFSET, RVA_TO_SECTION_OFFSET, PTR_TO_RVA)
+	(OFFSET_TO_PTR, ROUND_UP, ROUND_DOWN)
+	(copy_executable_and_move_sections, ADJUST_IMPORT_RVA, main): Use
+	DWORD_PTR instead of DWORD for compatibility with x64.
+
+	* nmake.defs: Support AMD64.
+	(EMACS_HEAPSIZE, EMACS_PURESIZE, EMACS_MANIFEST): New macros.
+
+	* gmake.defs: (EMACS_HEAPSIZE, EMACS_PURESIZE, EMACS_MANIFEST):
+	New macros.
+
+	* addsection.c (pfnCheckSumMappedFile, rva_to_section)
+	(offset_to_section, relocate_offset, OFFSET_TO_RVA)
+	(RVA_TO_OFFSET, RVA_TO_SECTION_OFFSET, PTR_TO_RVA)
+	(OFFSET_TO_PTR, ROUND_UP, ROUND_DOWN)
+	(copy_executable_and_add_section, main): Use DWORD_PTR instead of
+	DWORD, for compatibility with x64.
+
+	* emacs-x64.manifest: New file.
+
+	* emacs-x86.manifest: Renamed from emacs.manifest.
+
+2012-09-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/sys/time.h (ITIMER_REAL, ITIMER_PROF): Define.
+	(struct itimerval): Define.
+	(getitimer, setitimer): Add prototypes.
+
+	* inc/ms-w32.h <sigset_t> [_MSVC_VER]: Make the typedef consistent
+	with MinGW.
+	(SA_RESTART, SIGPROF): Define.
+
+	* config.nt (HAVE_SETITIMER): Define to 1.
+
 2012-09-30  Juanma Barranquero  <lekktu@gmail.com>
 
 	* config.nt: Sync with autogen/config.in.

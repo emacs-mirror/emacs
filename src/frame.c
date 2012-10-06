@@ -120,12 +120,12 @@ static void x_report_frame_params (struct frame *, Lisp_Object *);
 #endif
 
 /* These setters are used only in this file, so they can be private.  */
-static inline void
+static void
 fset_buffer_predicate (struct frame *f, Lisp_Object val)
 {
   f->buffer_predicate = val;
 }
-static inline void
+static void
 fset_minibuffer_window (struct frame *f, Lisp_Object val)
 {
   f->minibuffer_window = val;
@@ -632,7 +632,7 @@ affects all frames on the same terminal device.  */)
     Lisp_Object terminal;
 
     terminal = Fassq (Qterminal, parms);
-    if (!NILP (terminal))
+    if (CONSP (terminal))
       {
         terminal = XCDR (terminal);
         t = get_terminal (terminal, 1);
@@ -3028,9 +3028,9 @@ x_set_frame_parameters (FRAME_PTR f, Lisp_Object alist)
 void
 x_report_frame_params (struct frame *f, Lisp_Object *alistptr)
 {
-  char buf[16];
   Lisp_Object tem;
-  unsigned long w;
+  uprintmax_t w;
+  char buf[INT_BUFSIZE_BOUND (w)];
 
   /* Represent negative positions (off the top or left screen edge)
      in a way that Fmodify_frame_parameters will understand correctly.  */
@@ -3067,17 +3067,17 @@ x_report_frame_params (struct frame *f, Lisp_Object *alistptr)
      MS-Windows it returns a value whose type is HANDLE, which is
      actually a pointer.  Explicit casting avoids compiler
      warnings.  */
-  w = (unsigned long) FRAME_X_WINDOW (f);
+  w = (uintptr_t) FRAME_X_WINDOW (f);
   store_in_alist (alistptr, Qwindow_id,
-		  make_formatted_string (buf, "%lu", w));
+		  make_formatted_string (buf, "%"pMu, w));
 #ifdef HAVE_X_WINDOWS
 #ifdef USE_X_TOOLKIT
   /* Tooltip frame may not have this widget.  */
   if (FRAME_X_OUTPUT (f)->widget)
 #endif
-    w = (unsigned long) FRAME_OUTER_WINDOW (f);
+    w = (uintptr_t) FRAME_OUTER_WINDOW (f);
   store_in_alist (alistptr, Qouter_window_id,
-		  make_formatted_string (buf, "%lu", w));
+		  make_formatted_string (buf, "%"pMu, w));
 #endif
   store_in_alist (alistptr, Qicon_name, f->icon_name);
   FRAME_SAMPLE_VISIBILITY (f);

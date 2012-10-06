@@ -132,7 +132,7 @@ This function is called by `org-babel-execute-src-block'."
 	      (when (file-exists-p transient-pdf-file)
 		(delete-file transient-pdf-file))))))
          ((string-match "\\.\\([^\\.]+\\)$" out-file)
-          (error "can not create %s files, please specify a .png or .pdf file or try the :imagemagick header argument"
+          (error "Can not create %s files, please specify a .png or .pdf file or try the :imagemagick header argument"
 		 (match-string 1 out-file))))
         nil) ;; signal that output has already been written to file
     body))

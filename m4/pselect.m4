@@ -1,4 +1,4 @@
-# pselect.m4
+# pselect.m4 serial 2
 dnl Copyright (C) 2011-2012 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -23,6 +23,44 @@ AC_DEFUN([gl_FUNC_PSELECT],
                 return !p;]])],
          [gl_cv_sig_pselect=yes],
          [gl_cv_sig_pselect=no])])
+
+    dnl On FreeBSD 8.2, pselect() doesn't always reject bad fds.
+    AC_CACHE_CHECK([whether pselect detects invalid fds],
+      [gl_cv_func_pselect_detects_ebadf],
+      [
+        AC_RUN_IFELSE([AC_LANG_PROGRAM([[
+#include <sys/types.h>
+#include <sys/time.h>
+#if HAVE_SYS_SELECT_H
+# include <sys/select.h>
+#endif
+#include <unistd.h>
+#include <errno.h>
+]],[[
+  fd_set set;
+  dup2(0, 16);
+  FD_ZERO(&set);
+  FD_SET(16, &set);
+  close(16);
+  struct timespec timeout;
+  timeout.tv_sec = 0;
+  timeout.tv_nsec = 5000;
+  return pselect (17, &set, NULL, NULL, &timeout, NULL) != -1 || errno != EBADF;
+]])], [gl_cv_func_pselect_detects_ebadf=yes],
+      [gl_cv_func_pselect_detects_ebadf=no],
+          [
+           case "$host_os" in
+                    # Guess yes on glibc systems.
+            *-gnu*) gl_cv_func_pselect_detects_ebadf="guessing yes" ;;
+                    # If we don't know, assume the worst.
+            *)      gl_cv_func_pselect_detects_ebadf="guessing no" ;;
+           esac
+          ])
+      ])
+    case $gl_cv_func_pselect_detects_ebadf in
+      *yes) ;;
+      *) REPLACE_PSELECT=1 ;;
+    esac
   fi
 
   if test $ac_cv_func_pselect = no || test $gl_cv_sig_pselect = no; then

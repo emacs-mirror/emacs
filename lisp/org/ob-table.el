@@ -99,7 +99,7 @@ as shown in the example below.
 				      (prog1 nil (setq quote t))
 				    (prog1 (if quote
 					       (format "\"%s\"" el)
-					     (org-babel-clean-text-properties el))
+					     (org-no-properties el))
 				      (setq quote nil))))
 				(cdr var)))))
 	     variables)))

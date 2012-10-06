@@ -32,7 +32,7 @@
 (declare-function org-export-string "org-exp" (string fmt &optional dir))
 
 (defvar org-babel-default-header-args:org
-  '((:results . "raw silent") (:exports . "results"))
+  '((:results . "raw silent") (:exports . "code"))
   "Default arguments for evaluating a org source block.")
 
 (defvar org-babel-org-default-header
