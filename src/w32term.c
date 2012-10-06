@@ -235,6 +235,8 @@ static void x_check_font (struct frame *, struct font *);
 #endif
 
 static Lisp_Object Qvendor_specific_keysyms;
+static Lisp_Object Qadded, Qremoved, Qmodified;
+static Lisp_Object Qrenamed_from, Qrenamed_to;
 
 
 /***********************************************************************
@@ -3202,6 +3204,119 @@ construct_drag_n_drop (struct input_event *result, W32Msg *msg, struct frame *f)
   return Qnil;
 }
 
+static Lisp_Object
+lispy_file_action (DWORD action)
+{
+  static char unknown_fmt[] = "unknown-action(%d)";
+  Lisp_Object retval;
+
+  switch (action)
+    {
+    case FILE_ACTION_ADDED:
+      retval = Qadded;
+      break;
+    case FILE_ACTION_REMOVED:
+      retval = Qremoved;
+      break;
+    case FILE_ACTION_MODIFIED:
+      retval = Qmodified;
+      break;
+    case FILE_ACTION_RENAMED_OLD_NAME:
+      retval = Qrenamed_from;
+      break;
+    case FILE_ACTION_RENAMED_NEW_NAME:
+      retval = Qrenamed_to;
+      break;
+    default:
+      {
+	char buf[sizeof(unknown_fmt) - 1 + INT_STRLEN_BOUND (DWORD)];
+
+	sprintf (buf, unknown_fmt, action);
+	retval = intern (buf);
+      }
+      break;
+    }
+
+  return retval;
+}
+
+/* Put file notifications into the Emacs input event queue.  This
+   function runs when the WM_EMACS_FILENOTIFY message arrives from a
+   watcher thread.  */
+static void
+queue_notifications (struct input_event *event, W32Msg *msg, struct frame *f,
+		     int *evcount)
+{
+  BYTE *p = file_notifications;
+  FILE_NOTIFY_INFORMATION *fni = (PFILE_NOTIFY_INFORMATION)p;
+  const DWORD min_size
+    = offsetof (FILE_NOTIFY_INFORMATION, FileName) + sizeof(wchar_t);
+  Lisp_Object frame;
+
+  /* We cannot process notification before Emacs is fully initialized,
+     since we need the UTF-16LE coding-system to be set up.  */
+  if (!initialized)
+    {
+      notification_buffer_in_use = 0;
+      return;
+    }
+
+  XSETFRAME (frame, f);
+
+  enter_crit ();
+  if (notification_buffer_in_use)
+    {
+      DWORD info_size = notifications_size;
+
+      /* notifications_size could be zero when the buffer of
+	 notifications overflowed on the OS level, or when the
+	 directory being watched was itself deleted.  Do nothing in
+	 that case.  */
+      if (info_size)
+	{
+	  while (info_size >= min_size)
+	    {
+	      Lisp_Object utf_16_fn
+		= make_unibyte_string ((char *)fni->FileName,
+				       fni->FileNameLength);
+	      /* Note: mule-conf is preloaded, so utf-16le must
+		 already be defined at this point.  */
+	      Lisp_Object fname
+		= code_convert_string_norecord (utf_16_fn,
+						intern ("utf-16le"), 0);
+	      Lisp_Object action = lispy_file_action (fni->Action);
+	      Lisp_Object obj;
+
+	      obj = get_watch_object (make_number (notifications_desc));
+	      if (!NILP (obj) && CONSP (obj))
+		{
+		  event->kind = FILE_NOTIFY_EVENT;
+		  event->code = (ptrdiff_t)notifications_desc;
+		  event->timestamp = msg->msg.time;
+		  event->modifiers = 0;
+		  event->frame_or_window = XCDR (obj);
+		  event->arg = Fcons (action, fname);
+		  kbd_buffer_store_event (event);
+		  (*evcount)++;
+		}
+
+	      if (!fni->NextEntryOffset)
+		break;
+	      p += fni->NextEntryOffset;
+	      fni = (PFILE_NOTIFY_INFORMATION)p;
+	      info_size -= fni->NextEntryOffset;
+	    }
+	}
+      notification_buffer_in_use = 0;
+    }
+  else
+    DebPrint (("We were promised notifications, but in-use flag is zero!\n"));
+  leave_crit ();
+
+  /* We've stuffed all the events ourselves, so w32_read_socket shouldn't.  */
+  event->kind = NO_EVENT;
+}
+
 
 /* Function to report a mouse movement to the mainstream Emacs code.
    The input handler calls this.
@@ -4827,6 +4942,12 @@ w32_read_socket (struct terminal *terminal,
 	    }
 
 	  check_visibility = 1;
+	  break;
+
+	case WM_EMACS_FILENOTIFY:
+	  f = x_window_to_frame (dpyinfo, msg.msg.hwnd);
+	  if (f)
+	    queue_notifications (&inev, &msg, f, &count);
 	  break;
 
 	default:
@@ -6493,6 +6614,12 @@ syms_of_w32term (void)
   last_mouse_scroll_bar = Qnil;
 
   DEFSYM (Qvendor_specific_keysyms, "vendor-specific-keysyms");
+
+  DEFSYM (Qadded, "added");
+  DEFSYM (Qremoved, "removed");
+  DEFSYM (Qmodified, "modified");
+  DEFSYM (Qrenamed_from, "renamed-from");
+  DEFSYM (Qrenamed_to, "renamed-to");
 
   DEFVAR_INT ("w32-num-mouse-buttons",
 	      w32_num_mouse_buttons,

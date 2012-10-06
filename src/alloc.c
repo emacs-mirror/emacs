@@ -376,7 +376,7 @@ struct gcpro *gcprolist;
 /* Addresses of staticpro'd variables.  Initialize it to a nonzero
    value; otherwise some compilers put it into BSS.  */
 
-#define NSTATICS 0x650
+#define NSTATICS 0x660
 static Lisp_Object *staticvec[NSTATICS] = {&Vpurify_flag};
 
 /* Index of next unused slot in staticvec.  */

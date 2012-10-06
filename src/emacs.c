@@ -1417,6 +1417,7 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
 
 #ifdef WINDOWSNT
       syms_of_ntterm ();
+      syms_of_w32notify ();
 #endif /* WINDOWSNT */
 
       syms_of_profiler ();

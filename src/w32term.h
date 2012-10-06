@@ -584,7 +584,8 @@ do { \
 #define WM_EMACS_SETCURSOR             (WM_EMACS_START + 19)
 #define WM_EMACS_PAINT                 (WM_EMACS_START + 20)
 #define WM_EMACS_BRINGTOTOP            (WM_EMACS_START + 21)
-#define WM_EMACS_END                   (WM_EMACS_START + 22)
+#define WM_EMACS_FILENOTIFY            (WM_EMACS_START + 22)
+#define WM_EMACS_END                   (WM_EMACS_START + 23)
 
 #define WND_FONTWIDTH_INDEX    (0)
 #define WND_LINEHEIGHT_INDEX   (4)
@@ -642,6 +643,11 @@ extern BOOL parse_button (int, int, int *, int *);
 
 extern void w32_sys_ring_bell (struct frame *f);
 extern void x_delete_display (struct w32_display_info *dpyinfo);
+extern int notification_buffer_in_use;
+extern BYTE file_notifications[16384];
+extern DWORD notifications_size;
+extern HANDLE notifications_desc;
+extern Lisp_Object get_watch_object (Lisp_Object);
 
 /* Keypad command key support.  W32 doesn't have virtual keys defined
    for the function keys on the keypad (they are mapped to the standard

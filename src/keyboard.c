@@ -314,7 +314,7 @@ static Lisp_Object Qmouse_fixup_help_message;
 static Lisp_Object Qfunction_key;
 Lisp_Object Qmouse_click;
 #if defined (WINDOWSNT)
-Lisp_Object Qlanguage_change;
+Lisp_Object Qlanguage_change, Qfile_notify;
 #endif
 static Lisp_Object Qdrag_n_drop;
 static Lisp_Object Qsave_session;
@@ -3955,6 +3955,16 @@ kbd_buffer_get_event (KBOARD **kbp,
 		       list3 (event->frame_or_window,
 			      make_number (event->code),
 			      make_number (event->modifiers)));
+	  kbd_fetch_ptr = event + 1;
+	}
+      else if (event->kind == FILE_NOTIFY_EVENT)
+	{
+	  /* Make an event (file-notify (DESCRIPTOR ACTION FILE) CALLBACK).  */
+	  obj = Fcons (Qfile_notify,
+		       list2 (list3 (event->code,
+				     XCAR (event->arg),
+				     CAR_SAFE (XCDR (event->arg))),
+			      event->frame_or_window));
 	  kbd_fetch_ptr = event + 1;
 	}
 #endif
@@ -11396,6 +11406,7 @@ syms_of_keyboard (void)
 
 #if defined (WINDOWSNT)
   DEFSYM (Qlanguage_change, "language-change");
+  DEFSYM (Qfile_notify, "file-notify");
 #endif
 
 #ifdef HAVE_DBUS
@@ -12167,6 +12178,8 @@ keys_of_keyboard (void)
 #if defined (WINDOWSNT)
   initial_define_lispy_key (Vspecial_event_map, "language-change",
 			    "ignore");
+  initial_define_lispy_key (Vspecial_event_map, "file-notify",
+			    "w32notify-handlde-event");
 #endif
 }
 

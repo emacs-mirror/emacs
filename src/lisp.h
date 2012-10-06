@@ -3497,6 +3497,11 @@ extern void syms_of_fontset (void);
 extern Lisp_Object Qfont_param;
 #endif
 
+#ifdef WINDOWSNT
+/* Defined on w32notify.c.  */
+extern void syms_of_w32notify (void);
+#endif
+
 /* Defined in xfaces.c.  */
 extern Lisp_Object Qdefault, Qtool_bar, Qfringe;
 extern Lisp_Object Qheader_line, Qscroll_bar, Qcursor;

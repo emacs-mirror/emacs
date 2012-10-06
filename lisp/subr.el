@@ -1167,6 +1167,17 @@ The return value has the form (WIDTH . HEIGHT).  POSITION should
 be a list of the form returned by `event-start' and `event-end'."
   (nth 9 position))
 
+(defun w32notify-handle-event (event)
+  "Handle file system monitoring event.
+If EVENT is a file-notification event, then its callback is called.
+Otherwise, a `filewatch-error' is signaled."
+  (interactive "e")
+
+  (if (and (eq (car event) 'file-notify)
+	   (= (length event) 3))
+      (funcall (nth 2 event) (nth 1 event))
+    (signal 'filewatch-error (cons "Not a valid file-notify event" event))))
+
 
 ;;;; Obsolescent names for functions.
 

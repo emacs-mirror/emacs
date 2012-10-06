@@ -201,6 +201,7 @@ enum event_kind
      On X, the window manager seems to grab the keys it wants
      first, so this is not a problem there.  */
   , MULTIMEDIA_KEY_EVENT
+  , FILE_NOTIFY_EVENT
 #endif
 
 #ifdef HAVE_NS
