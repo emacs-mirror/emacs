@@ -1,3 +1,7 @@
+2012-10-06  Chong Yidong  <cyd@gnu.org>
+
+	* mini.texi (Passwords): Fix typo.
+
 2012-10-02  Glenn Morris  <rgm@gnu.org>
 
 	* maintaining.texi (VC Directory Commands):
