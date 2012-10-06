@@ -1637,7 +1637,7 @@
 	register contains text.  Implication is that `C-x r +' can now be
 	used for appending to a text register (bug#12217).
 	(append-to-register, prepend-to-register): Add separator based on
-	`register-separator.
+	`separator-register'.
 
 2012-09-08  Alan Mackenzie  <acm@muc.de>
 
