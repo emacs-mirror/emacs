@@ -632,6 +632,7 @@ That is what completion commands operate on."
 (defun delete-minibuffer-contents ()
   "Delete all user input in a minibuffer.
 If the current buffer is not a minibuffer, erase its entire contents."
+  (interactive)
   ;; We used to do `delete-field' here, but when file name shadowing
   ;; is on, the field doesn't cover the entire minibuffer contents.
   (delete-region (minibuffer-prompt-end) (point-max)))

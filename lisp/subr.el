@@ -2143,6 +2143,13 @@ any other non-digit terminates the character code and is then used as input."))
       (setq first nil))
     code))
 
+(defconst read-passwd-map
+  (let ((map (make-sparse-keymap)))
+    (set-keymap-parent map minibuffer-local-map)
+    (define-key map "\C-u" #'delete-minibuffer-contents) ;bug#12570
+    map)
+  "Keymap used while reading passwords.")
+
 (defun read-passwd (prompt &optional confirm default)
   "Read a password, prompting with PROMPT, and return it.
 If optional CONFIRM is non-nil, read the password twice to make sure.
@@ -2180,19 +2187,11 @@ by doing (clear-string STRING)."
             (setq minibuf (current-buffer))
             ;; Turn off electricity.
             (set (make-local-variable 'post-self-insert-hook) nil)
+            (use-local-map read-passwd-map)
             (add-hook 'after-change-functions hide-chars-fun nil 'local))
         (unwind-protect
-            (let ((enable-recursive-minibuffers t)
-		  (map (make-sparse-keymap))
-		  result)
-	      (set-keymap-parent map minibuffer-local-map)
-	      (define-key map "\C-u"	; bug#12570
-		(lambda () (interactive) (delete-minibuffer-contents)))
-	      (setq result
-		    ;; t = no history.
-		    (read-from-minibuffer prompt nil map nil t default))
-	      (if (and (equal "" result) default) default
-		result))
+            (let ((enable-recursive-minibuffers t))
+              (read-string prompt nil t default)) ; t = "no history"
           (when (buffer-live-p minibuf)
             (with-current-buffer minibuf
               ;; Not sure why but it seems that there might be cases where the
