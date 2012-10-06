@@ -2183,8 +2183,9 @@ by doing (clear-string STRING)."
             (add-hook 'after-change-functions hide-chars-fun nil 'local))
         (unwind-protect
             (let ((enable-recursive-minibuffers t)
-		  (map minibuffer-local-map)
+		  (map (make-sparse-keymap))
 		  result)
+	      (set-keymap-parent map minibuffer-local-map)
 	      (define-key map "\C-u"	; bug#12570
 		(lambda () (interactive) (delete-minibuffer-contents)))
 	      (setq result
