@@ -1,5 +1,8 @@
 2012-10-06  Glenn Morris  <rgm@gnu.org>
 
+	* textmodes/reftex-vars.el (reftex-create-bibtex-header)
+	(reftex-create-bibtex-footer): Fix custom types.
+
 	* progmodes/sh-script.el (sh-indent-after-continuation):
 	Add explicit :group.
 
