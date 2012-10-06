@@ -1,7 +1,8 @@
 2012-10-06  Glenn Morris  <rgm@gnu.org>
 
 	* ehelp.el (electric-help-mode): Use help-mode rather than
-	non-existent mode `help'.  (Bug#10917)
+	non-existent mode `help'.
+	(electric-help-map): Use button-buffer-map.  (Bug#10917)
 
 	* textmodes/reftex-vars.el (reftex-create-bibtex-header)
 	(reftex-create-bibtex-footer): Fix custom types.
