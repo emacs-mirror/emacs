@@ -3,6 +3,7 @@
 ;; Copyright (C) 2003-2012 Free Software Foundation, Inc.
 
 ;; Author: Lawrence Mitchell <wence@gmx.li>
+;; Maintainer: FSF
 ;; Keywords: IRC, chat, client, Internet, logging
 
 ;; Created 2003-04-26

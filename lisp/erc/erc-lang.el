@@ -3,7 +3,7 @@
 ;; Copyright (C) 2002, 2004, 2006-2012  Free Software Foundation, Inc.
 
 ;; Author: Alex Schroeder <alex@gnu.org>
-;; Maintainer: Alex Schroeder <alex@gnu.org>
+;; Maintainer: FSF
 ;; Version: 1.0.0
 ;; URL: http://www.emacswiki.org/cgi-bin/wiki.pl?ErcLang
 ;; Keywords: comm languages processes

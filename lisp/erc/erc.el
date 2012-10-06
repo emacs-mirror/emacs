@@ -9,7 +9,7 @@
 ;;               Andreas Fuchs (afs@void.at)
 ;;               Gergely Nagy (algernon@midgard.debian.net)
 ;;               David Edmondson (dme@dme.org)
-;; Maintainer: Michael Olson (mwolson@gnu.org)
+;; Maintainer: FSF
 ;; Keywords: IRC, chat, client, Internet
 ;; Version: 5.3
 
