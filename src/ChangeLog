@@ -1,3 +1,24 @@
+2012-10-06  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsfns.m (Fx_create_frame): Call x_default_parameter with
+	fullscreen/Fullscreen.
+
+	* nsterm.h (EmacsView): Rename tbar_height to tibar_height.
+	tobar_height is new.
+
+	* nsterm.m (x_make_frame_visible): Check for fullscreen.
+	(ns_fullscreen_hook): Activate old style fullscreen with a timer.
+	(ns_term_init): Set activateIgnoringOtherApps if old style fullscreen.
+	(windowDidResize:): Check for correct window if old style fullscreen.
+	Capitalize word in comment.  Remove incorrect comment.
+	(initFrameFromEmacs:): tbar_height renamed tibar_height.
+	(windowDidEnterFullScreen:): Toggle toolbar for fullscreen to fix
+	error in drawing background.
+	(toggleFullScreen:): Remove comment. Rearrange calls.
+	Set toolbar values to zero, save old height in tobar_height.
+	Restore tool bar height when leaving fullscreen.
+	(canBecomeMainWindow): New function.
+
 2012-10-06  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* keyboard.c (read_char): Remove unnecessary 'volatile's and label.

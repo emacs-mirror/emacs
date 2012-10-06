@@ -1346,6 +1346,8 @@ This function is an internal primitive--use `make-frame' instead.  */)
                        RES_TYPE_NUMBER);
   x_default_parameter (f, parms, Qalpha, Qnil,
                        "alpha", "Alpha", RES_TYPE_NUMBER);
+  x_default_parameter (f, parms, Qfullscreen, Qnil,
+                       "fullscreen", "Fullscreen", RES_TYPE_SYMBOL);
 
   width = FRAME_COLS (f);
   height = FRAME_LINES (f);

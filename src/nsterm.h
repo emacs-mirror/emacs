@@ -86,7 +86,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    BOOL windowClosing;
    NSString *workingText;
    BOOL processingCompose;
-   int fs_state, fs_before_fs, next_maximized, tbar_height, bwidth;
+   int fs_state, fs_before_fs, next_maximized;
+   int tibar_height, tobar_height, bwidth;
    int maximized_width, maximized_height;
    NSWindow *nonfs_window;
 @public
