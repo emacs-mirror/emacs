@@ -193,13 +193,13 @@ This is used by `eshell-watch-for-password-prompt'."
   :type '(choice (const nil) function)
   :group 'eshell-mode)
 
+(define-obsolete-variable-alias 'eshell-status-in-modeline
+  'eshell-status-in-mode-line "24.3")
+
 (defcustom eshell-status-in-mode-line t
   "If non-nil, let the user know a command is running in the mode line."
   :type 'boolean
   :group 'eshell-mode)
-
-(define-obsolete-variable-alias 'eshell-status-in-modeline
-  'eshell-status-in-mode-line "24.3")
 
 (defvar eshell-first-time-p t
   "A variable which is non-nil the first time Eshell is loaded.")
