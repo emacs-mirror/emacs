@@ -1,3 +1,7 @@
+2012-10-06  Glenn Morris  <rgm@gnu.org>
+
+	* subr.el (read-passwd): Allow C-u to erase entry.  (Bug#12570)
+
 2012-10-06  Julian Scheid  <julians37@gmail.com>  (tiny change)
 
 	* color.el (color-hsl-to-rgb): Fix incorrect results for
