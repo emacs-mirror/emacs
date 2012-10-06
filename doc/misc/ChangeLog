@@ -1,5 +1,15 @@
 2012-10-06  Glenn Morris  <rgm@gnu.org>
 
+	* erc.texi: Include emacsver.texi, and use EMACSVER rather than
+	ERC version.
+	(Introduction): ERC is distributed with Emacs.
+	(Obtaining ERC, Installation): Remove chapters, no longer relevant.
+	(Getting Started): Simplify.
+	(Getting Help and Reporting Bugs): Refer to general Emacs lists.
+	(History): Mention ERC maintained as part of Emacs now.
+	* Makefile.in ($(buildinfodir)/erc$(INFO_EXT), erc.dvi, erc.pdf):
+	Add dependency on emacsver.texi.
+
 	* erc.texi: Remove hand-written node pointers.
 
 2012-10-05  Glenn Morris  <rgm@gnu.org>

@@ -336,12 +336,12 @@ epa.pdf: ${srcdir}/epa.texi
 	$(ENVADD) $(TEXI2PDF) ${srcdir}/epa.texi
 
 erc : $(buildinfodir)/erc$(INFO_EXT)
-$(buildinfodir)/erc$(INFO_EXT): ${srcdir}/erc.texi
+$(buildinfodir)/erc$(INFO_EXT): ${srcdir}/erc.texi $(emacsdir)/emacsver.texi
 	$(mkinfodir)
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ ${srcdir}/erc.texi
-erc.dvi: ${srcdir}/erc.texi
+erc.dvi: ${srcdir}/erc.texi $(emacsdir)/emacsver.texi
 	$(ENVADD) $(TEXI2DVI) ${srcdir}/erc.texi
-erc.pdf: ${srcdir}/erc.texi
+erc.pdf: ${srcdir}/erc.texi $(emacsdir)/emacsver.texi
 	$(ENVADD) $(TEXI2PDF) ${srcdir}/erc.texi
 
 ert : $(buildinfodir)/ert$(INFO_EXT)
