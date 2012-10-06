@@ -967,7 +967,7 @@ for modes derived from Text mode, like Mail mode."
   :version "21.1")
 
 (define-obsolete-variable-alias
-  'rst-preferred-decorations 'rst-preferred-adornments "1.0.0")
+  'rst-preferred-decorations 'rst-preferred-adornments "rst 1.0.0")
 (defcustom rst-preferred-adornments '((?= over-and-under 1)
 				      (?= simple 0)
 				      (?- simple 0)
@@ -2836,7 +2836,7 @@ here."
   :package-version '(rst . "1.1.0"))
 
 (define-obsolete-variable-alias
-  'rst-shift-basic-offset 'rst-indent-width "1.0.0")
+  'rst-shift-basic-offset 'rst-indent-width "rst 1.0.0")
 (defcustom rst-indent-width 2
   "Indentation when there is no more indentation point given."
   :group 'rst-indent

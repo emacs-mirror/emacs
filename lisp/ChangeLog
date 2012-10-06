@@ -1,5 +1,8 @@
 2012-10-06  Glenn Morris  <rgm@gnu.org>
 
+	* textmodes/rst.el (rst-preferred-decorations)
+	(rst-shift-basic-offset): Clarify obsolescence versions.
+
 	* profiler.el (profiler): Add missing group :version tag.
 	* avoid.el (mouse-avoidance-banish-position):
 	* proced.el (proced-renice-command):
