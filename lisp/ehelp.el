@@ -102,7 +102,7 @@
   (setq buffer-read-only t)
   (setq electric-help-orig-major-mode major-mode)
   (setq mode-name "Help")
-  (setq major-mode 'help)
+  (setq major-mode 'help-mode)
   (setq mode-line-buffer-identification '(" Help:  %b"))
   (use-local-map electric-help-map)
   (add-hook 'mouse-leave-buffer-hook 'electric-help-retain)
