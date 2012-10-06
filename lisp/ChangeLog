@@ -1,5 +1,7 @@
 2012-10-06  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/cl-macs.el (cl-defstruct): Improve docstring.
+
 	* subr.el (read-passwd-map): New var.
 	(read-passwd): Use `read-string' again.
 	* minibuffer.el (delete-minibuffer-contents): Make it interactive.

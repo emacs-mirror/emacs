@@ -2154,8 +2154,9 @@ copier, a `NAME-p' predicate, and slot accessors named `NAME-SLOT'.
 You can use the accessors to set the corresponding slots, via `setf'.
 
 NAME may instead take the form (NAME OPTIONS...), where each
-OPTION is either a single keyword or (KEYWORD VALUE).
-See Info node `(cl)Structures' for a list of valid keywords.
+OPTION is either a single keyword or (KEYWORD VALUE) where
+KEYWORD can be one of :conc-name, :constructor, :copier, :predicate,
+:type, :named, :initial-offset, :print-function, or :include.
 
 Each SLOT may instead take the form (SLOT SLOT-OPTS...), where
 SLOT-OPTS are keyword-value pairs for that slot.  Currently, only
