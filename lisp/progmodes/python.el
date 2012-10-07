@@ -676,12 +676,12 @@ START is the buffer position where the sexp starts."
            (goto-char (line-beginning-position))
            (bobp))
          'no-indent)
-        ;; Inside a paren
-        ((setq start (python-syntax-context 'paren ppss))
-         'inside-paren)
         ;; Inside string
         ((setq start (python-syntax-context 'string ppss))
          'inside-string)
+        ;; Inside a paren
+        ((setq start (python-syntax-context 'paren ppss))
+         'inside-paren)
         ;; After backslash
         ((setq start (when (not (or (python-syntax-context 'string ppss)
                                     (python-syntax-context 'comment ppss)))
@@ -710,7 +710,7 @@ START is the buffer position where the sexp starts."
         ;; After normal line
         ((setq start (save-excursion
                        (back-to-indentation)
-                       (python-util-forward-comment -1)
+                       (skip-chars-backward (rx (or whitespace ?\n)))
                        (python-nav-beginning-of-statement)
                        (point-marker)))
          'after-line)
@@ -973,7 +973,16 @@ Called from a program, START and END specify the region to indent."
               (back-to-indentation)
               (setq word (current-word))
               (forward-line 1)
-              (when word
+              (when (and word
+                         ;; Don't mess with strings, unless it's the
+                         ;; enclosing set of quotes.
+                         (or (not (python-syntax-context 'string))
+                             (eq
+                              (syntax-after
+                               (+ (1- (point))
+                                  (current-indentation)
+                                  (python-syntax-count-quotes (char-after) (point))))
+                              (string-to-syntax "|"))))
                 (beginning-of-line)
                 (delete-horizontal-space)
                 (indent-to (python-indent-calculate-indentation)))))
