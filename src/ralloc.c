@@ -327,10 +327,11 @@ relinquish (void)
 
       if ((char *)last_heap->end - (char *)last_heap->bloc_start <= excess)
 	{
-	  /* This heap should have no blocs in it.  */
+	  /* This heap should have no blocs in it.  If it does, we
+	     cannot return it to the system.  */
 	  if (last_heap->first_bloc != NIL_BLOC
 	      || last_heap->last_bloc != NIL_BLOC)
-	    emacs_abort ();
+	    return;
 
 	  /* Return the last heap, with its header, to the system.  */
 	  excess = (char *)last_heap->end - (char *)last_heap->start;

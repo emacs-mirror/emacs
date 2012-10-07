@@ -1,3 +1,9 @@
+2012-10-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* ralloc.c (relinquish): If a heap is ready to be relinquished,
+	but it still has blocs in it, don't return it to the system,
+	instead of aborting.  (Bug#12402)
+
 2012-10-07  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsterm.m (ns_dumpglyphs_image): Only draw slice of image (Bug#12506).
