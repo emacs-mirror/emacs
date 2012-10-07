@@ -1652,6 +1652,8 @@ uniqueness for different types of configurations."
 OUTPUT is a string with the contents of the buffer."
   (ansi-color-filter-apply output))
 
+(defvar python-shell--parent-buffer nil)
+
 (define-derived-mode inferior-python-mode comint-mode "Inferior Python"
   "Major mode for Python inferior process.
 Runs a Python interpreter as a subprocess of Emacs, with Python
@@ -1674,6 +1676,12 @@ initialization of the interpreter via `python-shell-setup-codes'
 variable.
 
 \(Type \\[describe-mode] in the process buffer for a list of commands.)"
+  (and python-shell--parent-buffer
+       (python-util-clone-local-variables python-shell--parent-buffer))
+  (setq comint-prompt-regexp (format "^\\(?:%s\\|%s\\|%s\\)"
+                                     python-shell-prompt-regexp
+                                     python-shell-prompt-block-regexp
+                                     python-shell-prompt-pdb-regexp))
   (set-syntax-table python-mode-syntax-table)
   (setq mode-line-process '(":%s"))
   (make-local-variable 'comint-output-filter-functions)
@@ -1721,15 +1729,10 @@ killed."
         (let* ((cmdlist (split-string-and-unquote cmd))
                (buffer (apply #'make-comint-in-buffer proc-name proc-buffer-name
                               (car cmdlist) nil (cdr cmdlist)))
-               (current-buffer (current-buffer))
+               (python-shell--parent-buffer (current-buffer))
                (process (get-buffer-process buffer)))
           (with-current-buffer buffer
-            (inferior-python-mode)
-            (python-util-clone-local-variables current-buffer)
-            (setq comint-prompt-regexp (format "^\\(?:%s\\|%s\\|%s\\)"
-                                               python-shell-prompt-regexp
-                                               python-shell-prompt-block-regexp
-                                               python-shell-prompt-pdb-regexp)))
+            (inferior-python-mode))
           (accept-process-output process)
           (and pop (pop-to-buffer buffer t))
           (and internal (set-process-query-on-exit-flag process nil))))
