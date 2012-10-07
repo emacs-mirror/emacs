@@ -1316,7 +1316,7 @@ add things to `%s' instead."
          (when (equal (erc-default-target) nick)
            (setq erc-default-recipients
                  (cons nn (cdr erc-default-recipients)))
-           (rename-buffer nn)
+           (rename-buffer nn t)         ; bug#12002
            (erc-update-mode-line)
            (add-to-list 'bufs (current-buffer)))))
       (erc-update-user-nick nick nn host nil nil login)

@@ -1,3 +1,7 @@
+2012-10-07  Glenn Morris  <rgm@gnu.org>
+
+	* erc-backend.el (NICK): Handle pre-existing buffers.  (Bug#12002)
+
 2012-10-06  Glenn Morris  <rgm@gnu.org>
 
 	* erc.el (erc-lurker):
