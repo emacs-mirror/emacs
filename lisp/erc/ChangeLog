@@ -1,3 +1,8 @@
+2012-10-07  Deniz Dogan  <deniz@dogan.se>
+
+	* erc-log.el (erc-generate-log-file-name-function):
+	Clarify tags for various choices.  (Bug#11186)
+
 2012-10-07  Glenn Morris  <rgm@gnu.org>
 
 	* erc-button.el (erc-button-alist): Remove "finger".  (Bug#4443)
