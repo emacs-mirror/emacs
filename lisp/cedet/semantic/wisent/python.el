@@ -478,6 +478,22 @@ To be implemented for Python!  For now just return nil."
   (let ((name (semantic-tag-name tag)))
     (concat (mapconcat 'identity (split-string name "\\.") "/") ".py")))
 
+;; Override ctxt-current-function/assignment defaults, since they do
+;; not work properly with Python code, even leading to endless loops
+;; (see bug #xxxxx).
+(define-mode-local-override semantic-ctxt-current-function python-mode (&optional point)
+  "Return the current function call the cursor is in at POINT.
+The function returned is the one accepting the arguments that
+the cursor is currently in.  It will not return function symbol if the
+cursor is on the text representing that function."
+  nil)
+
+(define-mode-local-override semantic-ctxt-current-assignment python-mode (&optional point)
+  "Return the current assignment near the cursor at POINT.
+Return a list as per `semantic-ctxt-current-symbol'.
+Return nil if there is nothing relevant."
+  nil)
+
 ;;; Enable Semantic in `python-mode'.
 ;;
 
