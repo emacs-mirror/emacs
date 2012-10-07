@@ -2246,6 +2246,27 @@ unregister_hot_keys (HWND hwnd)
     }
 }
 
+/* Here's an overview of how Emacs input works on MS-Windows.
+
+   System messages are read and processed by w32_msg_pump below.  This
+   function runs in a separate thread.  It handles a small number of
+   custom WM_EMACS_* messages (posted by the main thread, look for
+   PostMessage calls), and dispatches the rest to w32_wnd_proc, which
+   is the main window procedure for the entire Emacs application.
+
+   w32_wnd_proc also runs in the same separate input thread.  It
+   handles some messages, mostly those that need GDI calls, by itself.
+   For the others, it calls my_post_msg, which inserts the messages
+   into the input queue serviced by w32_read_socket.
+
+   w32_read_socket runs in the main (a.k.a. "Lisp") thread, and is
+   called synchronously from keyboard.c when it is known or suspected
+   that some input is available.  w32_read_socket either handles
+   messages immediately, or converts them messages into Emacs input
+   events and stuffs them into kbd_buffer, where kbd_buffer_get_event
+   can get at them and process them when read_char and its callers
+   require input.  */
+
 /* Main message dispatch loop. */
 
 static void

@@ -4138,6 +4138,9 @@ static char dbcs_lead = 0;
    This routine is called by the SIGIO handler.
    We return as soon as there are no more events to be read.
 
+   For an overview of how Emacs input works on MS-Windows, see the
+   commentary before w32_msg_pump in w32fns.c.
+
    We return the number of characters stored into the buffer,
    thus pretending to be `read'.
 
