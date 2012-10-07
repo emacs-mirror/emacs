@@ -1,9 +1,10 @@
 2012-10-07  Jan Djärv  <jan.h.d@swipnet.se>
 
+	* nsterm.m (ns_dumpglyphs_image): Only draw slize of image (Bug#12506).
+
 	* nsterm.m (ns_update_auto_hide_menu_bar): Remove defintion of
 	MAC_OS_X_VERSION_10_6.
 	(syms_of_nsterm): Remove comment about Panther and above for ns-antialias-text.
-
 	* nsterm.h (MAC_OS_X_VERSION_10_3, onTiger): Remove.
 	(EmacsApp): Remove check for >= MAC_OS_X_VERSION_10_4.
 	(struct nsfont_info): Remove check for >= MAC_OS_X_VERSION_10_3.
