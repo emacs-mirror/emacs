@@ -1,3 +1,20 @@
+2012-10-08  Stephen Berman  <stephen.berman@gmx.net>
+
+	* calendar/todos.el: Fixes to todos-move-item and some of its
+	subroutines.
+	(todos-move-item): When there are marked items, point need not be
+	on an item; remove obsolete use of todos-add-category, since this
+	is now already done in todos-read-category; fix typo.
+	(todos-diary-item-p): Exclude empty lines.
+	(todos-read-category): Restore point and narrowing after adding
+	new category, to avoid moving to beginning of file when moving
+	marked items to a new category.
+	(todos-set-item-priority): Prompt for priority only when the
+	category has at least one todo item; only use non-nil priority to
+	calculate insertion location.
+	(todos-read-category): Don't reset todos-categories when a new
+	category is added due to todos-move-item or todos-jump-to-item.
+
 2012-09-24  Stephen Berman  <stephen.berman@gmx.net>
 
 	* calendar/todos.el (todos-copy-item): New command.

@@ -1442,8 +1442,9 @@ it.")
 (defun todos-diary-item-p ()
   "Return non-nil if item at point has diary entry format."
   (save-excursion
-    (todos-item-start)
-    (not (looking-at (regexp-quote todos-nondiary-start)))))
+    (when (todos-item-string)		; Exclude empty lines.
+      (todos-item-start)
+      (not (looking-at (regexp-quote todos-nondiary-start))))))
 
 (defun todos-done-item-p ()
   "Return non-nil if item at point is a done item."
@@ -1573,7 +1574,15 @@ ask whether to add the category."
 	(unless added
 	  (if (y-or-n-p (format (concat "There is no category \"%s\" in "
 					"this file; add it? ") cat))
-	      (todos-add-category cat)
+	      ;; Restore point and narrowing after adding new
+	      ;; category, to avoid moving to beginning of file when
+	      ;; moving marked items to a new category (todos-move-item).
+	      (save-excursion
+		(save-restriction
+		  (todos-add-category cat)
+		  ;; We've changed todos-categories, so we must not
+		  ;; reset it below.
+		  (setq added t)))
 	    (keyboard-quit))))
       ;; Restore the original value of todos-categories unless a new category
       ;; was added (since todos-add-category changes todos-categories).
@@ -4669,12 +4678,14 @@ meaning to raise or lower the item's priority by one."
       (unless (or arg (called-interactively-p t))
 	(todos-category-number cat)
 	(todos-category-select))
-      (while (not priority)
-	(setq candidate (read-number prompt))
-	(setq prompt (when (or (< candidate 1) (> candidate maxnum))
-		       (format "Priority must be an integer between 1 and %d.\n"
-			       maxnum)))
-	(unless prompt (setq priority candidate)))
+      ;; Prompt for priority only when the category has at least one todo item.
+      (when (> maxnum 1)
+	(while (not priority)
+	  (setq candidate (read-number prompt))
+	  (setq prompt (when (or (< candidate 1) (> candidate maxnum))
+			 (format "Priority must be an integer between 1 and %d.\n"
+				 maxnum)))
+	  (unless prompt (setq priority candidate))))
       ;; In Top Priorities buffer, an item's priority can be changed
       ;; wrt items in another category, but not wrt items in the same
       ;; category.
@@ -4704,7 +4715,9 @@ meaning to raise or lower the item's priority by one."
       (when (or arg (called-interactively-p))
 	(todos-remove-item))
       (goto-char (point-min))
-      (unless (= priority 1) (todos-forward-item (1- priority)))
+      (when priority
+	(unless (= priority 1)
+	  (todos-forward-item (1- priority))))
       (todos-insert-with-overlays item)
       ;; If item was marked, restore the mark.
       (and marked (overlay-put (make-overlay (point) (point))
@@ -4733,103 +4746,102 @@ If the chosen category is not one of the existing categories,
 then it is created and the item(s) become(s) the first
 entry/entries in that category."
   (interactive)
-  (unless (or (todos-done-item-p)
-	      ;; Point is between todo and done items.
-	      (looking-at "^$"))
-    (let* ((buffer-read-only)
-	   (file1 todos-current-todos-file)
-	   (cat1 (todos-current-category))
-	   (marked (assoc cat1 todos-categories-with-marks))
-	   (num todos-category-number)
-	   (item (todos-item-string))
-	   (diary-item (todos-diary-item-p))
-	   (omark (save-excursion (todos-item-start) (point-marker)))
-	   (file2 (if file
-		      (todos-read-file-name "Choose a Todos file: " nil t)
-		    file1))
-	   (count 0)
-	   (count-diary 0)
-	   ov cat2 nmark)
-      (set-buffer (find-file-noselect file2))
-      (unwind-protect
-	  (progn
-	    (unless marked
-	      (setq ov (make-overlay (save-excursion (todos-item-start))
-				     (save-excursion (todos-item-end))))
-	      (overlay-put ov 'face 'todos-search))
-	    (setq cat2 (let* ((pl (if (and marked (> (cdr marked) 1)) "s" ""))
-			      (name (todos-read-category
-				     (concat "Move item" pl " to category: ")))
-			      (prompt (concat "Choose a different category than "
-					      "the current one\n(type `"
-					      (key-description
-					       (car (where-is-internal
-						     'todos-set-item-priority)))
-					      "' to reprioritize item "
-					      "within the same category): ")))
-			 (while (equal name cat1)
-			   (setq name (todos-read-category prompt)))
-			 name)))
-	(if ov (delete-overlay ov)))
-      (set-buffer (find-buffer-visiting file1))
-      (if marked
-	  (progn
-	    (setq item nil)
-	    (goto-char (point-min))
-	    (while (not (eobp))
-	      (when (todos-marked-item-p)
-		(setq item (concat item (todos-item-string) "\n"))
-		(setq count (1+ count))
-		(when (todos-diary-item-p)
-		  (setq count-diary (1+ count-diary))))
-	      (todos-forward-item))
-	    ;; Chop off last newline.
-	    (setq item (substring item 0 -1)))
-	(setq count 1)
-	(when (todos-diary-item-p) (setq count-diary 1)))
-      (set-window-buffer (selected-window)
-			 (set-buffer (find-file-noselect file2)))
-      (unless (assoc cat2 todos-categories) (todos-add-category cat2))
-      (todos-set-item-priority item cat2 t)
-      (setq nmark (point-marker))
-      (todos-update-count 'todo count)
-      (todos-update-count 'diary count-diary)
-      (todos-update-categories-sexp)
-      (with-current-buffer (find-buffer-visiting file1)
-	(save-excursion
-	  (save-restriction
-	    (widen)
-	    (goto-char omark)
-	    (if marked
-		(let (beg end)
-		  (setq item nil)
-		  (re-search-backward
-		   (concat "^" (regexp-quote todos-category-beg)) nil t)
-		  (forward-line)
-		  (setq beg (point))
-		  (re-search-forward
-		   (concat "^" (regexp-quote todos-category-done)) nil t)
-		  (setq end (match-beginning 0))
-		  (goto-char beg)
-		  (while (< (point) end)
-		    (if (todos-marked-item-p)
-			(todos-remove-item)
-		      (todos-forward-item)))
-		  ;; FIXME: does this work?
-		  (remove-overlays (point-min) (point-max)
-				   'before-string todos-item-mark)
-		  (setq todos-categories-with-marks
-			(assq-delete-all cat todos-categories-with-marks)))
-	      (if ov (delete-overlay ov))
-	      (todos-remove-item))))
-	(todos-update-count 'todo (- count) cat1)
-	(todos-update-count 'diary (- count-diary) cat1)
-	(todos-update-categories-sexp))
-      (set-window-buffer (selected-window)
-			 (set-buffer (find-file-noselect file2)))
-      (setq todos-category-number (todos-category-number cat2))
-      (todos-category-select)
-      (goto-char nmark))))
+  (let* ((cat1 (todos-current-category))
+	 (marked (assoc cat1 todos-categories-with-marks)))
+    (unless (or (todos-done-item-p)
+		;; Point is between todo and done items.
+		(and (looking-at "^$") (not marked)))
+      (let* ((buffer-read-only)
+	     (file1 todos-current-todos-file)
+	     (num todos-category-number)
+	     (item (todos-item-string))
+	     (diary-item (todos-diary-item-p))
+	     (omark (save-excursion (todos-item-start) (point-marker)))
+	     (file2 (if file
+			(todos-read-file-name "Choose a Todos file: " nil t)
+		      file1))
+	     (count 0)
+	     (count-diary 0)
+	     ov cat2 nmark)
+	(set-buffer (find-file-noselect file2))
+	(unwind-protect
+	    (progn
+	      (unless marked
+		(setq ov (make-overlay (save-excursion (todos-item-start))
+				       (save-excursion (todos-item-end))))
+		(overlay-put ov 'face 'todos-search))
+	      (setq cat2 (let* ((pl (if (and marked (> (cdr marked) 1)) "s" ""))
+				(name (todos-read-category
+				       (concat "Move item" pl " to category: ")))
+				(prompt (concat "Choose a different category than "
+						"the current one\n(type `"
+						(key-description
+						 (car (where-is-internal
+						       'todos-set-item-priority)))
+						"' to reprioritize item "
+						"within the same category): ")))
+			   (while (equal name cat1)
+			     (setq name (todos-read-category prompt)))
+			   name)))
+	  (if ov (delete-overlay ov)))
+	(set-buffer (find-buffer-visiting file1))
+	(if marked
+	    (progn
+	      (setq item nil)
+	      (goto-char (point-min))
+	      (while (not (eobp))
+		(when (todos-marked-item-p)
+		  (setq item (concat item (todos-item-string) "\n"))
+		  (setq count (1+ count))
+		  (when (todos-diary-item-p)
+		    (setq count-diary (1+ count-diary))))
+		(todos-forward-item))
+	      ;; Chop off last newline.
+	      (setq item (substring item 0 -1)))
+	  (setq count 1)
+	  (when (todos-diary-item-p) (setq count-diary 1)))
+	(set-window-buffer (selected-window)
+			   (set-buffer (find-file-noselect file2)))
+	(todos-set-item-priority item cat2 t)
+	(setq nmark (point-marker))
+	(todos-update-count 'todo count)
+	(todos-update-count 'diary count-diary)
+	(todos-update-categories-sexp)
+	(with-current-buffer (find-buffer-visiting file1)
+	  (save-excursion
+	    (save-restriction
+	      (widen)
+	      (goto-char omark)
+	      (if marked
+		  (let (beg end)
+		    (setq item nil)
+		    (re-search-backward
+		     (concat "^" (regexp-quote todos-category-beg)) nil t)
+		    (forward-line)
+		    (setq beg (point))
+		    (re-search-forward
+		     (concat "^" (regexp-quote todos-category-done)) nil t)
+		    (setq end (match-beginning 0))
+		    (goto-char beg)
+		    (while (< (point) end)
+		      (if (todos-marked-item-p)
+			  (todos-remove-item)
+			(todos-forward-item)))
+		    ;; FIXME: does this work?
+		    (remove-overlays (point-min) (point-max)
+				     'before-string todos-item-mark)
+		    (setq todos-categories-with-marks
+			  (assq-delete-all cat1 todos-categories-with-marks)))
+		(if ov (delete-overlay ov))
+		(todos-remove-item))))
+	  (todos-update-count 'todo (- count) cat1)
+	  (todos-update-count 'diary (- count-diary) cat1)
+	  (todos-update-categories-sexp))
+	(set-window-buffer (selected-window)
+			   (set-buffer (find-file-noselect file2)))
+	(setq todos-category-number (todos-category-number cat2))
+	(todos-category-select)
+	(goto-char nmark)))))
 
 (defun todos-move-item-to-file ()
   "Move the current todo item to a category in another Todos file."
@@ -4861,6 +4873,7 @@ relocated to the category's (by default hidden) done section."
   (let* ((cat (todos-current-category))
 	 (marked (assoc cat todos-categories-with-marks)))
     (unless (or (todos-done-item-p) 
+		;; Point is between todo and done items.
 		(and (looking-at "^$") (not marked)))
       (let* ((date-string (calendar-date-string (calendar-current-date) t t))
 	     (time-string (if todos-always-add-time-string
