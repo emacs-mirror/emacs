@@ -1,3 +1,18 @@
+2012-10-06  Glenn Morris  <rgm@gnu.org>
+
+	* semantic/complete.el (semantic-displayor-tooltip-max-tags): Doc fix.
+
+	* semantic/complete.el (semantic-displayor-tooltip-mode)
+	(semantic-displayor-tooltip-initial-max-tags)
+	(semantic-displayor-tooltip-max-tags): Add missing custom :version tags.
+	* ede/linux.el (project-linux): Add missing group :version tag.
+
+2012-10-06  Chong Yidong  <cyd@gnu.org>
+
+	* semantic/bovine/grammar.el:
+	* semantic/wisent/grammar.el: Move from admin/grammars.  Add
+	autoloads for bovine-grammar-mode and wisent-grammar-mode.
+
 2012-10-02  Chong Yidong  <cyd@gnu.org>
 
 	* srecode.el, ede.el: Restore Version header.

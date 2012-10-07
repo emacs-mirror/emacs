@@ -43,7 +43,7 @@ extern sigset_t empty_mask;
 typedef void (*signal_handler_t) (int);
 
 extern void emacs_sigaction_init (struct sigaction *, signal_handler_t);
-char const *safe_strsignal (int);
+char const *safe_strsignal (int) ATTRIBUTE_CONST;
 
 #if NSIG < NSIG_MINIMUM
 # undef NSIG

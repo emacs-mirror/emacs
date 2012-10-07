@@ -26,9 +26,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifdef HAVE_NS
 
 #ifdef NS_IMPL_COCOA
-#ifndef MAC_OS_X_VERSION_10_3
-#define MAC_OS_X_VERSION_10_3 1030
-#endif
 #ifndef MAC_OS_X_VERSION_10_4
 #define MAC_OS_X_VERSION_10_4 1040
 #endif
@@ -86,7 +83,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    BOOL windowClosing;
    NSString *workingText;
    BOOL processingCompose;
-   int fs_state, fs_before_fs, next_maximized, tbar_height, bwidth;
+   int fs_state, fs_before_fs, next_maximized;
+   int tibar_height, tobar_height, bwidth;
    int maximized_width, maximized_height;
    NSWindow *nonfs_window;
 @public
@@ -285,7 +283,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
   int refCount;
   NSBitmapImageRep *bmRep; /* used for accessing pixel data */
   unsigned char *pixmapData[5]; /* shortcut to access pixel data */
-  BOOL onTiger;
   NSColor *stippleMask;
 }
 + allocInitFromFile: (Lisp_Object)file;
@@ -354,7 +351,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* ==========================================================================
 
-   Rendering on Panther and above
+   Rendering
 
    ========================================================================== */
 
@@ -379,7 +376,7 @@ extern NSString *ns_app_name;
 extern EmacsMenu *mainMenu, *svcsMenu, *dockMenu;
 
 /* Apple removed the declaration, but kept the implementation */
-#if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_4
+#if defined (NS_IMPL_COCOA)
 @interface NSApplication (EmacsApp)
 - (void)setAppleMenu: (NSMenu *)menu;
 @end
@@ -482,10 +479,9 @@ struct nsfont_info
   float size;
 #ifdef __OBJC__
   NSFont *nsfont;
-  /* cgfont and synthItal are used only on OS X 10.3+ */
-#if defined (NS_IMPL_COCOA) && (MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_3)
+#if defined (NS_IMPL_COCOA)
   CGFontRef cgfont;
-#else /* GNUstep or OS X < 10.3 */
+#else /* GNUstep */
   void *cgfont;
 #endif
 #else /* ! OBJC */

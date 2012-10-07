@@ -68,6 +68,7 @@ the external command (usually \"kill\")."
 (defcustom proced-renice-command "renice"
   "Name of renice command."
   :group 'proced
+  :version "24.3"
   :type '(string :tag "command"))
 
 (defcustom proced-signal-list

@@ -444,8 +444,8 @@ updated as you type."
 ;;;###autoload
 (defun hi-lock-face-phrase-buffer (regexp &optional face)
   "Set face of each match of phrase REGEXP to FACE.
-Whitespace in REGEXP converted to arbitrary whitespace and initial
-lower-case letters made case insensitive.
+If called interactively, replaces whitespace in REGEXP with
+arbitrary whitespace and makes initial lower-case letters case-insensitive.
 
 If Font Lock mode is enabled in the buffer, it is used to
 highlight REGEXP.  If Font Lock mode is disabled, overlays are
@@ -544,9 +544,15 @@ be found in variable `hi-lock-interactive-patterns'."
 Blanks in PHRASE replaced by regexp that matches arbitrary whitespace
 and initial lower-case letters made case insensitive."
   (let ((mod-phrase nil))
+    ;; FIXME fragile; better to just bind case-fold-search?  (Bug#7161)
     (setq mod-phrase
           (replace-regexp-in-string
-           "\\<[a-z]" (lambda (m) (format "[%s%s]" (upcase m) m)) phrase))
+           "\\(^\\|\\s-\\)\\([a-z]\\)"
+           (lambda (m) (format "%s[%s%s]"
+                               (match-string 1 m)
+                               (upcase (match-string 2 m))
+                               (match-string 2 m))) phrase))
+    ;; FIXME fragile; better to use search-spaces-regexp?
     (setq mod-phrase
           (replace-regexp-in-string
            "\\s-+" "[ \t\n]+" mod-phrase nil t))))

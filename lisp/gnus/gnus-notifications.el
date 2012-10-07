@@ -42,6 +42,7 @@
 
 (defgroup gnus-notifications nil
   "Send notifications on new message in Gnus."
+  :version "24.3"
   :group 'gnus)
 
 (defcustom gnus-notifications-use-google-contacts t

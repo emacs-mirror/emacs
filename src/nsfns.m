@@ -93,8 +93,6 @@ EmacsTooltip *ns_tooltip;
 /* Need forward declaration here to preserve organizational integrity of file */
 Lisp_Object Fx_open_connection (Lisp_Object, Lisp_Object, Lisp_Object);
 
-extern BOOL ns_in_resize;
-
 /* Static variables to handle applescript execution.  */
 static Lisp_Object as_script, *as_result;
 static int as_status;
@@ -433,9 +431,6 @@ x_set_icon_name (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
   NSView *view = FRAME_NS_VIEW (f);
   NSTRACE (x_set_icon_name);
 
-  if (ns_in_resize)
-    return;
-
   /* see if it's changed */
   if (STRINGP (arg))
     {
@@ -510,9 +505,6 @@ static void
 ns_set_name (struct frame *f, Lisp_Object name, int explicit)
 {
   NSTRACE (ns_set_name);
-
-  if (ns_in_resize)
-    return;
 
   /* Make sure that requests from lisp code override requests from
      Emacs redisplay code.  */
@@ -612,7 +604,7 @@ ns_set_name_as_filename (struct frame *f)
   NSString *str;
   NSTRACE (ns_set_name_as_filename);
 
-  if (f->explicit_name || ! NILP (f->title) || ns_in_resize)
+  if (f->explicit_name || ! NILP (f->title))
     return;
 
   block_input ();
@@ -1346,6 +1338,8 @@ This function is an internal primitive--use `make-frame' instead.  */)
                        RES_TYPE_NUMBER);
   x_default_parameter (f, parms, Qalpha, Qnil,
                        "alpha", "Alpha", RES_TYPE_NUMBER);
+  x_default_parameter (f, parms, Qfullscreen, Qnil,
+                       "fullscreen", "Fullscreen", RES_TYPE_SYMBOL);
 
   width = FRAME_COLS (f);
   height = FRAME_LINES (f);
@@ -1955,32 +1949,29 @@ DEFUN ("ns-list-services", Fns_list_services, Sns_list_services, 0, 0, 0,
 
   check_ns ();
   svcs = [[NSMenu alloc] initWithTitle: @"Services"];
-  [NSApp setServicesMenu: svcs];  /* this and next rebuild on <10.4 */
+  [NSApp setServicesMenu: svcs];
   [NSApp registerServicesMenuSendTypes: ns_send_types
                            returnTypes: ns_return_types];
 
 /* On Tiger, services menu updating was made lazier (waits for user to
    actually click on the menu), so we have to force things along: */
 #ifdef NS_IMPL_COCOA
-  if (NSAppKitVersionNumber >= 744.0)
+  delegate = [svcs delegate];
+  if (delegate != nil)
     {
-      delegate = [svcs delegate];
-      if (delegate != nil)
+      if ([delegate respondsToSelector: @selector (menuNeedsUpdate:)])
+        [delegate menuNeedsUpdate: svcs];
+      if ([delegate respondsToSelector:
+                       @selector (menu:updateItem:atIndex:shouldCancel:)])
         {
-          if ([delegate respondsToSelector: @selector (menuNeedsUpdate:)])
-              [delegate menuNeedsUpdate: svcs];
-          if ([delegate respondsToSelector:
-                            @selector (menu:updateItem:atIndex:shouldCancel:)])
-            {
-              int i, len = [delegate numberOfItemsInMenu: svcs];
-              for (i =0; i<len; i++)
-                  [svcs addItemWithTitle: @"" action: NULL keyEquivalent: @""];
-              for (i =0; i<len; i++)
-                  if (![delegate menu: svcs
-                           updateItem: (NSMenuItem *)[svcs itemAtIndex: i]
-                              atIndex: i shouldCancel: NO])
-                    break;
-            }
+          int i, len = [delegate numberOfItemsInMenu: svcs];
+          for (i =0; i<len; i++)
+            [svcs addItemWithTitle: @"" action: NULL keyEquivalent: @""];
+          for (i =0; i<len; i++)
+            if (![delegate menu: svcs
+                     updateItem: (NSMenuItem *)[svcs itemAtIndex: i]
+                        atIndex: i shouldCancel: NO])
+              break;
         }
     }
 #endif
@@ -2081,7 +2072,7 @@ ns_do_applescript (Lisp_Object script, Lisp_Object *result)
 	  *result = Qt;
 	  // script returned an AppleScript result
 	  if ((typeUnicodeText == [returnDescriptor descriptorType]) ||
-#if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_4
+#if defined (NS_IMPL_COCOA)
 	      (typeUTF16ExternalRepresentation
 	       == [returnDescriptor descriptorType]) ||
 #endif

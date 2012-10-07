@@ -1,4 +1,4 @@
-;;; wisent-grammar.el --- Wisent's input grammar mode
+;;; semantic/wisent/grammar.el --- Wisent's input grammar mode
 
 ;; Copyright (C) 2002-2012 Free Software Foundation, Inc.
 ;;
@@ -323,15 +323,13 @@ Return the expanded expression."
   "WY mode specific grammar menu.
 Menu items are appended to the common grammar menu.")
 
+;;;###autoload
 (define-derived-mode wisent-grammar-mode semantic-grammar-mode "WY"
   "Major mode for editing Wisent grammars."
   (semantic-grammar-setup-menu wisent-grammar-menu)
   (semantic-install-function-overrides
    '((grammar-parsetable-builder . wisent-grammar-parsetable-builder)
-     (grammar-setupcode-builder  . wisent-grammar-setupcode-builder)
-     )))
-
-(add-to-list 'auto-mode-alist '("\\.wy\\'" . wisent-grammar-mode))
+     (grammar-setupcode-builder  . wisent-grammar-setupcode-builder))))
 
 (defvar-mode-local wisent-grammar-mode semantic-grammar-macros
   '(
@@ -498,7 +496,7 @@ Menu items are appended to the common grammar menu.")
 	    (insert-file-contents filename)
 	    ;; Fix copyright header:
 	    (goto-char (point-min))
-	    (when additional-copyright  
+	    (when additional-copyright
 	      (re-search-forward "Copyright (C).*$")
 	      (insert "\n;; " additional-copyright))
 	    (re-search-forward "^;; Author:")
@@ -523,4 +521,6 @@ Menu items are appended to the common grammar menu.")
 	    (delete-trailing-whitespace)
 	    (write-region nil nil (expand-file-name filename))))))))
 
-;;; wisent-grammar.el ends here
+(provide 'semantic/wisent/grammar)
+
+;;; semantic/wisent/grammar.el ends here

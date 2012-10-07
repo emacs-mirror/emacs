@@ -186,6 +186,7 @@ the URL."
 This applies only if the UID is not empty! `%s' is replaced by
 the UID."
   :type 'string
+  :version "24.3"
   :group 'icalendar)
 
 (defcustom icalendar-import-format-status

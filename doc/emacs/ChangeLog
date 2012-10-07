@@ -1,3 +1,12 @@
+2012-10-06  Glenn Morris  <rgm@gnu.org>
+
+	* calendar.texi (Writing Calendar Files): Tweak week descriptions.
+	Mention cal-tex-cursor-week2-summary.
+
+2012-10-06  Chong Yidong  <cyd@gnu.org>
+
+	* mini.texi (Passwords): Fix typo.
+
 2012-10-02  Glenn Morris  <rgm@gnu.org>
 
 	* maintaining.texi (VC Directory Commands):

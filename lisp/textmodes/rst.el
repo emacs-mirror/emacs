@@ -218,7 +218,7 @@ and before TAIL-RE and DELIM-RE in VAR or DEFAULT for no match."
 ;; Use CVSHeader to really get information from CVS and not other version
 ;; control systems.
 (defconst rst-cvs-header
-  "$CVSHeader: sm/rst_el/rst.el,v 1.327.2.2 2012-09-23 14:44:25 stefan Exp $")
+  "$CVSHeader: sm/rst_el/rst.el,v 1.327.2.5 2012-10-07 12:44:34 stefan Exp $")
 (defconst rst-cvs-rev
   (rst-extract-version "\\$" "CVSHeader: \\S + " "[0-9]+\\(?:\\.[0-9]+\\)+"
 		       " .*" rst-cvs-header "0.0")
@@ -247,7 +247,7 @@ SVN revision is the upstream (docutils) revision.")
   "Official version of the package.")
 (defconst rst-official-cvs-rev
   (rst-extract-version "[%$]" "Revision: " "[0-9]+\\(?:\\.[0-9]+\\)+" " "
-		       "$Revision: 1.327.2.2 $")
+		       "$Revision: 1.327.2.5 $")
   "CVS revision of this file in the official version.")
 
 (defconst rst-version
@@ -967,7 +967,7 @@ for modes derived from Text mode, like Mail mode."
   :version "21.1")
 
 (define-obsolete-variable-alias
-  'rst-preferred-decorations 'rst-preferred-adornments "1.0.0")
+  'rst-preferred-decorations 'rst-preferred-adornments "rst 1.0.0")
 (defcustom rst-preferred-adornments '((?= over-and-under 1)
 				      (?= simple 0)
 				      (?- simple 0)
@@ -2835,7 +2835,7 @@ here."
   :package-version '(rst . "1.1.0"))
 
 (define-obsolete-variable-alias
-  'rst-shift-basic-offset 'rst-indent-width "1.0.0")
+  'rst-shift-basic-offset 'rst-indent-width "rst 1.0.0")
 (defcustom rst-indent-width 2
   "Indentation when there is no more indentation point given."
   :group 'rst-indent
@@ -2845,24 +2845,28 @@ here."
 (defcustom rst-indent-field 3
   "Indentation for first line after a field or 0 to always indent for content."
   :group 'rst-indent
+  :package-version '(rst . "1.1.0")
   :type '(integer))
 (rst-testcover-defcustom)
 
 (defcustom rst-indent-literal-normal 3
   "Default indentation for literal block after a markup on an own line."
   :group 'rst-indent
+  :package-version '(rst . "1.1.0")
   :type '(integer))
 (rst-testcover-defcustom)
 
 (defcustom rst-indent-literal-minimized 2
   "Default indentation for literal block after a minimized markup."
   :group 'rst-indent
+  :package-version '(rst . "1.1.0")
   :type '(integer))
 (rst-testcover-defcustom)
 
 (defcustom rst-indent-comment 3
   "Default indentation for first line of a comment."
   :group 'rst-indent
+  :package-version '(rst . "1.1.0")
   :type '(integer))
 (rst-testcover-defcustom)
 

@@ -29,6 +29,7 @@
 (defgroup profiler nil
   "Emacs profiler."
   :group 'lisp
+  :version "24.3"
   :prefix "profiler-")
 
 (defconst profiler-version "24.3")

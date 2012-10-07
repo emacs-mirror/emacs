@@ -183,7 +183,6 @@ static int ns_window_num = 0;
 static NSRect uRect;
 #endif
 static BOOL gsaved = NO;
-BOOL ns_in_resize = NO;
 static BOOL ns_fake_keydown = NO;
 int ns_tmp_flags; /* FIXME */
 struct nsfont_info *ns_tmp_font; /* FIXME */
@@ -493,17 +492,6 @@ ns_release_autorelease_pool (void *pool)
 
    ========================================================================== */
 
-static NSRect
-ns_resize_handle_rect (NSWindow *window)
-{
-  NSRect r = [window frame];
-  r.origin.x = r.size.width - RESIZE_HANDLE_SIZE;
-  r.origin.y = 0;
-  r.size.width = r.size.height = RESIZE_HANDLE_SIZE;
-  return r;
-}
-
-
 //
 // Window constraining
 // -------------------
@@ -581,9 +569,6 @@ ns_menu_bar_should_be_hidden (void)
 static void
 ns_update_auto_hide_menu_bar (void)
 {
-#ifndef MAC_OS_X_VERSION_10_6
-#define MAC_OS_X_VERSION_10_6 1060
-#endif
 #ifdef NS_IMPL_COCOA
 #if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_6
   block_input ();
@@ -1068,8 +1053,23 @@ x_make_frame_visible (struct frame *f)
      if this ends up the case again, comment this out again. */
   if (!FRAME_VISIBLE_P (f))
     {
+      EmacsView *view = (EmacsView *)FRAME_NS_VIEW (f);
       f->async_visible = 1;
       ns_raise_frame (f);
+
+#ifdef NEW_STYLE_FS
+      /* Making a new frame from a fullscreen frame will make the new frame
+         fullscreen also.  So skip handleFS as this will print an error.  */
+      if (f->want_fullscreen == FULLSCREEN_BOTH
+          && ([[view window] styleMask] & NSFullScreenWindowMask) != 0)
+        return;
+#endif
+      if (f->want_fullscreen != FULLSCREEN_NONE)
+        {
+          block_input ();
+          [view handleFS];
+          unblock_input ();
+        }
     }
 }
 
@@ -1317,6 +1317,18 @@ ns_fullscreen_hook (FRAME_PTR f)
   EmacsView *view = (EmacsView *)FRAME_NS_VIEW (f);
   
   if (! f->async_visible) return;
+#ifndef NEW_STYLE_FS
+  if (f->want_fullscreen == FULLSCREEN_BOTH)
+    {
+      /* Old style fs don't initiate correctly if created from
+         init/default-frame alist, so use a timer (not nice...).
+      */
+      [NSTimer scheduledTimerWithTimeInterval: 0.5 target: view
+                                     selector: @selector (handleFS)
+                                     userInfo: nil repeats: NO];
+      return;
+    }
+#endif
 
   block_input ();
   [view handleFS];
@@ -1956,8 +1968,6 @@ ns_clear_frame (struct frame *f)
   NSRect r;
 
   NSTRACE (ns_clear_frame);
-  if (ns_in_resize)
-    return;
 
  /* comes on initial frame because we have
     after-make-frame-functions = select-frame */
@@ -1976,10 +1986,6 @@ ns_clear_frame (struct frame *f)
   [ns_lookup_indexed_color (NS_FACE_BACKGROUND (FRAME_DEFAULT_FACE (f)), f) set];
   NSRectFill (r);
   ns_unfocus (f);
-
-#ifdef NS_IMPL_COCOA
-  [[view window] display];  /* redraw resize handle */
-#endif
 
   /* as of 2006/11 or so this is now needed */
   ns_redraw_scroll_bars (f);
@@ -2006,34 +2012,7 @@ ns_clear_frame_area (struct frame *f, int x, int y, int width, int height)
   ns_focus (f, &r, 1);
   [ns_lookup_indexed_color (NS_FACE_BACKGROUND (face), f) set];
 
-#ifdef NS_IMPL_COCOA
-  {
-    /* clip out the resize handle */
-    NSWindow *window = [FRAME_NS_VIEW (f) window];
-    NSRect ir
-      = [view convertRect: ns_resize_handle_rect (window) fromView: nil];
-
-    ir = NSIntersectionRect (r, ir);
-    if (NSIsEmptyRect (ir))
-      {
-#endif
-
   NSRectFill (r);
-
-#ifdef NS_IMPL_COCOA
-      }
-    else
-      {
-        NSRect r1 = r, r2 = r; /* upper and lower non-intersecting */
-        r1.size.height -= ir.size.height;
-        r2.origin.y += r1.size.height;
-        r2.size.width -= ir.size.width;
-        r2.size.height = ir.size.height;
-        NSRectFill (r1);
-        NSRectFill (r2);
-      }
-  }
-#endif
 
   ns_unfocus (f);
   return;
@@ -2996,8 +2975,10 @@ ns_dumpglyphs_image (struct glyph_string *s, NSRect r)
     {
 #if !defined (NS_IMPL_COCOA) || MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_6
       NSRect dr = NSMakeRect (x, y, s->slice.width, s->slice.height);
+      NSRect ir = NSMakeRect (s->slice.x, s->slice.y,
+                              s->slice.width, s->slice.height);
       [img drawInRect: dr
-             fromRect: NSZeroRect
+             fromRect: ir
              operation: NSCompositeSourceOver
               fraction: 1.0
            respectFlipped: YES
@@ -4210,6 +4191,11 @@ ns_term_init (Lisp_Object display_name)
                             NSColorPboardType,
                             NSFontPboardType, nil] retain];
 
+#ifndef NEW_STYLE_FS
+  /* If fullscreen is in init/default-frame-alist, focus isn't set
+     right for fullscreen windows, so set this.  */
+  [NSApp activateIgnoringOtherApps:YES];
+#endif
 
   [NSApp run];
   ns_do_open_file = YES;
@@ -4281,34 +4267,6 @@ ns_term_shutdown (int sig)
       fprintf (stderr, "Dropping external cursor update event.\n");
       return;
     }
-
-#ifdef NS_IMPL_COCOA
-  /* pass mouse down in resize handle and subsequent drags directly to
-     EmacsWindow so we can generate continuous redisplays */
-  if (ns_in_resize)
-    {
-      if (type == NSLeftMouseDragged)
-        {
-          [window mouseDragged: theEvent];
-          return;
-        }
-      else if (type == NSLeftMouseUp)
-        {
-          [window mouseUp: theEvent];
-          return;
-        }
-    }
-  else if (type == NSLeftMouseDown)
-    {
-      NSRect r = ns_resize_handle_rect (window);
-      if (NSPointInRect ([theEvent locationInWindow], r))
-        {
-          ns_in_resize = YES;
-          [window mouseDown: theEvent];
-          return;
-        }
-    }
-#endif
 
   if (type == NSApplicationDefined)
     {
@@ -5505,10 +5463,17 @@ not_in_argv (NSString *arg)
 
 - (void)windowDidResize: (NSNotification *)notification
 {
+
+#if !defined (NEW_STYLE_FS) && ! defined (NS_IMPL_GNUSTEP)
+  NSWindow *theWindow = [notification object];
+  /* We can get notification on the non-FS window when in fullscreen mode.  */
+  if ([self window] != theWindow) return;
+#endif
+
 #ifdef NS_IMPL_GNUSTEP
   NSWindow *theWindow = [notification object];
 
-   /* in GNUstep, at least currently, it's possible to get a didResize
+   /* In GNUstep, at least currently, it's possible to get a didResize
       without getting a willResize.. therefore we need to act as if we got
       the willResize now */
   NSSize sz = [theWindow frame].size;
@@ -5526,20 +5491,10 @@ not_in_argv (NSString *arg)
     }
 #endif /* NS_IMPL_COCOA */
 
-  /* Avoid loop under GNUstep due to call at beginning of this function.
-     (x_set_window_size causes a resize which causes
-     a "windowDidResize" which calls x_set_window_size).  */
-#ifndef NS_IMPL_GNUSTEP
   if (cols > 0 && rows > 0)
     {
-      if (ns_in_resize)
-        x_set_window_size (emacsframe, 0, cols, rows);
-      else
-        {
-          [self updateFrameSize: YES];
-        }
+      [self updateFrameSize: YES];
     }
-#endif
 
   ns_send_appdefined (-1);
 }
@@ -5661,7 +5616,7 @@ not_in_argv (NSString *arg)
 
   wr = [win frame];
   bwidth = f->border_width = wr.size.width - r.size.width;
-  tbar_height = FRAME_NS_TITLEBAR_HEIGHT (f) = wr.size.height - r.size.height;
+  tibar_height = FRAME_NS_TITLEBAR_HEIGHT (f) = wr.size.height - r.size.height;
 
   [win setAcceptsMouseMovedEvents: YES];
   [win setDelegate: self];
@@ -5870,8 +5825,16 @@ not_in_argv (NSString *arg)
 - (void)windowDidEnterFullScreen:(NSNotification *)notification
 {
   [self setFSValue: FULLSCREEN_BOTH];
-#ifndef NEW_STYLE_FS
+#ifdef NEW_STYLE_FS
+  // Fix bad background.
+  if ([toolbar isVisible])
+    {
+      [toolbar setVisible:NO];
+      [toolbar setVisible:YES];
+    }
+#else
   [self windowDidBecomeKey:notification];
+  [nonfs_window orderOut:self];
 #endif
 }
 
@@ -5891,11 +5854,6 @@ not_in_argv (NSString *arg)
 
 - (void)toggleFullScreen: (id)sender
 {
-  /* Bugs remain:
-     1) Having fullscreen in initial/default frame alist.
-     2) Fullscreen in default frame alist only applied to first frame.
-  */
-
 #ifdef NEW_STYLE_FS
   [[self window] toggleFullScreen:sender];
 #else
@@ -5904,7 +5862,7 @@ not_in_argv (NSString *arg)
                          isEqual:[[NSScreen screens] objectAtIndex:0]];
   struct frame *f = emacsframe;
   NSSize sz;
-  NSRect r;
+  NSRect r, wr = [w frame];
   NSColor *col = ns_lookup_indexed_color (NS_FACE_BACKGROUND
                                           (FRAME_DEFAULT_FACE (f)),
                                           f);
@@ -5930,7 +5888,7 @@ not_in_argv (NSString *arg)
         }
 
       fw = [[EmacsFSWindow alloc]
-                       initWithContentRect:[w contentRectForFrameRect:[w frame]]
+                       initWithContentRect:[w contentRectForFrameRect:wr]
                                  styleMask:NSBorderlessWindowMask
                                    backing:NSBackingStoreBuffered
                                      defer:YES
@@ -5938,9 +5896,7 @@ not_in_argv (NSString *arg)
 
       [fw setContentView:[w contentView]];
       [fw setTitle:[w title]];
-      [fw makeKeyAndOrderFront:NSApp];
       [fw setDelegate:self];
-      [fw makeFirstResponder:self];
       [fw setAcceptsMouseMovedEvents: YES];
       [fw useOptimizedDrawing: YES];
       [fw setResizeIncrements: sz];
@@ -5950,18 +5906,26 @@ not_in_argv (NSString *arg)
 
       f->border_width = 0;
       FRAME_NS_TITLEBAR_HEIGHT (f) = 0;
+      tobar_height = FRAME_TOOLBAR_HEIGHT (f);
+      FRAME_TOOLBAR_HEIGHT (f) = 0;
+      FRAME_EXTERNAL_TOOL_BAR (f) = 0;
 
       nonfs_window = w;
+
       [self windowWillEnterFullScreen:nil];
+      [fw makeKeyAndOrderFront:NSApp];
+      [fw makeFirstResponder:self];
       [w orderOut:self];
       r = [fw frameRectForContentRect:[[fw screen] frame]];
       [fw setFrame: r display:YES animate:YES];
       [self windowDidEnterFullScreen:nil];
+      [fw display];
     }
   else
     {
       fw = w;
       w = nonfs_window;
+      nonfs_window = nil;
 
       if (onFirstScreen)
         {
@@ -5980,7 +5944,10 @@ not_in_argv (NSString *arg)
         [w setOpaque: NO];
       
       f->border_width = bwidth;
-      FRAME_NS_TITLEBAR_HEIGHT (f) = tbar_height;
+      FRAME_NS_TITLEBAR_HEIGHT (f) = tibar_height;
+      FRAME_TOOLBAR_HEIGHT (f) = tobar_height;
+      if (tobar_height)
+        FRAME_EXTERNAL_TOOL_BAR (f) = 1;
 
       [self windowWillExitFullScreen:nil];
       [fw setFrame: [w frame] display:YES animate:YES];
@@ -6152,7 +6119,7 @@ not_in_argv (NSString *arg)
 
   NSTRACE (drawRect);
 
-  if (!emacsframe || !emacsframe->output_data.ns || ns_in_resize)
+  if (!emacsframe || !emacsframe->output_data.ns)
     return;
 
   ns_clear_frame_area (emacsframe, x, y, width, height);
@@ -6489,66 +6456,17 @@ not_in_argv (NSString *arg)
   return [super constrainFrameRect:frameRect toScreen:screen];
 }
 
-
-/* called only on resize clicks by special case in EmacsApp-sendEvent */
-- (void)mouseDown: (NSEvent *)theEvent
-{
-  if (ns_in_resize)
-    {
-      NSSize size = [[theEvent window] frame].size;
-      grabOffset = [theEvent locationInWindow];
-      grabOffset.x = size.width - grabOffset.x;
-    }
-  else
-    [super mouseDown: theEvent];
-}
-
-
-/* stop resizing */
-- (void)mouseUp: (NSEvent *)theEvent
-{
-  if (ns_in_resize)
-    {
-      struct frame *f = ((EmacsView *)[self delegate])->emacsframe;
-      ns_in_resize = NO;
-      ns_set_name_as_filename (f);
-      [self display];
-      ns_send_appdefined (-1);
-    }
-  else
-    [super mouseUp: theEvent];
-}
-
-
-/* send resize events */
-- (void)mouseDragged: (NSEvent *)theEvent
-{
-  if (ns_in_resize)
-    {
-      NSPoint p = [theEvent locationInWindow];
-      NSSize size, vettedSize, origSize = [self frame].size;
-
-      size.width = p.x + grabOffset.x;
-      size.height = origSize.height - p.y + grabOffset.y;
-
-      if (size.width == origSize.width && size.height == origSize.height)
-        return;
-
-      vettedSize = [[self delegate] windowWillResize: self toSize: size];
-      [[NSNotificationCenter defaultCenter]
-            postNotificationName: NSWindowDidResizeNotification
-                          object: self];
-    }
-  else
-    [super mouseDragged: theEvent];
-}
-
 @end /* EmacsWindow */
 
 
 @implementation EmacsFSWindow
 
 - (BOOL)canBecomeKeyWindow
+{
+  return YES;
+}
+
+- (BOOL)canBecomeMainWindow
 {
   return YES;
 }
@@ -7168,7 +7086,7 @@ allowing it to be used at a lower level for accented character entry.");
   ns_function_modifier = Qnone;
 
   DEFVAR_LISP ("ns-antialias-text", ns_antialias_text,
-               "Non-nil (the default) means to render text antialiased. Only has an effect on OS X Panther and above.");
+               "Non-nil (the default) means to render text antialiased.");
   ns_antialias_text = Qt;
 
   DEFVAR_LISP ("ns-confirm-quit", ns_confirm_quit,

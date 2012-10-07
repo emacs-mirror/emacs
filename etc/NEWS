@@ -191,6 +191,8 @@ The PCL-CVS commands are still available via the keyboard.
 
 ** NextStep/OSX port changes.
 ---
+*** OSX 10.4 or newer is required to build Emacs.
+---
 *** Fullscreen and frame parameter fullscreen is supported.
 ---
 *** A file dialog is used when open/saved is done from the menu/toolbar.
@@ -280,6 +282,9 @@ Use `Buffer-menu-name-width' and `Buffer-menu-size-width' instead.
 
 *** You can customize the header text that appears above each calendar month.
 See the variable `calendar-month-header'.
+
++++
+*** New LaTeX calendar style, produced by `cal-tex-cursor-week2-summary'.
 
 *** The calendars produced by cal-html include holidays.
 Customize cal-html-holidays to change this.

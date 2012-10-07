@@ -832,7 +832,7 @@ The other arguments are the same as `rmail-mime-multipart-handler'."
   (let ((boundary (cdr (assq 'boundary content-type)))
 	(subtype (cadr (split-string (car content-type) "/")))
 	(index 0)
-	beg end next entities truncated)
+	beg end next entities truncated last)
     (unless boundary
       (rmail-mm-get-boundary-error-message
        "No boundary defined" content-type content-disposition
@@ -867,7 +867,13 @@ The other arguments are the same as `rmail-mime-multipart-handler'."
 	       ;; Handle the rest of the truncated message
 	       ;; (if it isn't empty) by pretending that the boundary
 	       ;; appears at the end of the message.
-	       (and (save-excursion
+	       ;; We use `last' to distinguish this from the more
+	       ;; likely situation of there being an epilogue
+	       ;; after the last boundary, which should be ignored.
+	       ;; See rmailmm-test-multipart-handler for an example,
+	       ;; and also bug#10101.
+	       (and (not last)
+		    (save-excursion
 		      (skip-chars-forward "\n")
 		      (> (point-max) (point)))
 		    (setq truncated t end (point-max))))
@@ -875,7 +881,8 @@ The other arguments are the same as `rmail-mime-multipart-handler'."
       ;; epilogue, else hide the boundary only.  Use a marker for
       ;; `next' because `rmail-mime-show' may change the buffer.
       (cond ((looking-at "--[ \t]*$")
-	     (setq next (point-max-marker)))
+	     (setq next (point-max-marker)
+		   last t))
 	    ((looking-at "[ \t]*\n")
 	     (setq next (copy-marker (match-end 0) t)))
 	    (truncated

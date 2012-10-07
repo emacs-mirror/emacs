@@ -403,6 +403,7 @@ interpreted as a regular expression which always matches."
 (defcustom tramp-save-ad-hoc-proxies nil
   "Whether to save ad-hoc proxies persistently."
   :group 'tramp
+  :version "24.3"
   :type 'boolean)
 
 (defcustom tramp-restricted-shell-hosts-alist

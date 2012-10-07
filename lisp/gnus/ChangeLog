@@ -1,3 +1,12 @@
+2012-10-06  Glenn Morris  <rgm@gnu.org>
+
+	* gnus-notifications.el (gnus-notifications):
+	Add missing group :version tag.
+	* gnus-msg.el (gnus-gcc-pre-body-encode-hook)
+	(gnus-gcc-post-body-encode-hook):
+	* gnus-sync.el (gnus-sync-lesync-name)
+	(gnus-sync-lesync-install-topics): Add missing custom :version tags.
+
 2012-09-25  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-art.el (gnus-article-browse-delete-temp-files): Never ask again

@@ -319,6 +319,7 @@ The current buffer (when the hook is run) contains the message
 including the message header.  Changes made to the message will
 only affect the Gcc copy, but not the original message."
   :group 'gnus-message
+  :version "24.3"
   :type 'hook)
 
 (defcustom gnus-gcc-post-body-encode-hook nil
@@ -327,6 +328,7 @@ The current buffer (when the hook is run) contains the message
 including the message header.  Changes made to the message will
 only affect the Gcc copy, but not the original message."
   :group 'gnus-message
+  :version "24.3"
   :type 'hook)
 
 (autoload 'gnus-message-citation-mode "gnus-cite" nil t)
