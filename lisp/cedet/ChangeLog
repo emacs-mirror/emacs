@@ -1,3 +1,20 @@
+2012-10-07  David Engster  <deng@randomsample.de>
+
+	* semantic/wisent/python.el (semantic-ctxt-current-function)
+	(semantic-ctxt-current-assignment): New overrides, simply
+	returning nil.  The defaults do not work correctly and can send
+	the parser in an inifinite loop (bug#12458).
+
+2012-10-07  David Engster  <deng@randomsample.de>
+
+	* semantic/ede-grammar.el (project-compile-target): Fix grammar
+	compilation after introduction of %provide statement.
+
+2012-10-07  David Engster  <deng@randomsample.de>
+
+	* semantic.el (semantic-new-buffer-setup-functions): Remove setup
+	function for `f90-mode', since the parser only exists upstream.
+
 2012-10-06  Glenn Morris  <rgm@gnu.org>
 
 	* semantic/complete.el (semantic-displayor-tooltip-max-tags): Doc fix.
