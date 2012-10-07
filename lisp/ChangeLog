@@ -1,3 +1,9 @@
+2012-10-07  Stefan Merten  <smerten@oekonux.de>
+
+	* textmodes/rst.el (rst-new-adornment-down, rst-indent-field)
+	(rst-indent-literal-normal, rst-indent-literal-minimized)
+	(rst-indent-comment): Correct :version tag.
+
 2012-10-07  Glenn Morris  <rgm@gnu.org>
 
 	* mail/rmailmm.el (rmail-mime-process-multipart):
