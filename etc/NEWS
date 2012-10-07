@@ -191,6 +191,8 @@ The PCL-CVS commands are still available via the keyboard.
 
 ** NextStep/OSX port changes.
 ---
+*** OSX 10.4 or newer is required to build Emacs.
+---
 *** Fullscreen and frame parameter fullscreen is supported.
 ---
 *** A file dialog is used when open/saved is done from the menu/toolbar.

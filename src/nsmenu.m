@@ -722,11 +722,6 @@ extern NSString *NSMenuDidBeginTrackingNotification;
 #ifdef NS_IMPL_GNUSTEP
   if ([[self window] isVisible])
     [self sizeToFit];
-#else
-#if MAC_OS_X_VERSION_MAX_ALLOWED < MAC_OS_X_VERSION_10_2
-  if ([self supermenu] == nil)
-    [self sizeToFit];
-#endif
 #endif
 }
 

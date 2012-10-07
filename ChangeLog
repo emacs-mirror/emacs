@@ -1,3 +1,7 @@
+2012-10-07  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* configure.ac: Check that OSX is 10.4 or newer.
+
 2012-10-07  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Improve sys_siglist detection.

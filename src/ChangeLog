@@ -1,5 +1,23 @@
 2012-10-07  Jan Djärv  <jan.h.d@swipnet.se>
 
+	* nsterm.m (ns_update_auto_hide_menu_bar): Remove defintion of
+	MAC_OS_X_VERSION_10_6.
+	(syms_of_nsterm): Remove comment about Panther and above for ns-antialias-text.
+
+	* nsterm.h (MAC_OS_X_VERSION_10_3, onTiger): Remove.
+	(EmacsApp): Remove check for >= MAC_OS_X_VERSION_10_4.
+	(struct nsfont_info): Remove check for >= MAC_OS_X_VERSION_10_3.
+
+	* nsselect.m (ns_string_from_pasteboard): Remove check for >=
+	MAC_OS_X_VERSION_10_4.
+
+	* nsmenu.m (fillWithWidgetValue:): Remove code for < MAC_OS_X_VERSION_10_2.
+
+	* nsimage.m (setPixmapData, getPixelAtX, setAlphaAtX): Remove onTiger.
+
+	* nsfns.m (Fns_list_services): Remove comment and check for OSX < 10.4.
+	(ns_do_applescript): Remove check for >= MAC_OS_X_VERSION_10_4.
+
 	* nsterm.m (ns_in_resize): Remove (Bug#12479).
 	(ns_resize_handle_rect, mouseDown, mouseUp, mouseDragged): Remove.
 	(ns_clear_frame, sendEvent, windowDidResize, drawRect:): Remove ns_in_resize
