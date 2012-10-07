@@ -203,6 +203,7 @@ watch_completion (DWORD status, DWORD bytes_ret, OVERLAPPED *io_info)
       dirwatch->io_info = NULL;
       xfree (dirwatch->watchee);
       dirwatch->watchee = NULL;
+      dirwatch->dir = NULL;
       dirwatch->terminate = 1;
     }
   else
@@ -285,6 +286,7 @@ start_watching (const char *file, HANDLE hdir, BOOL subdirs, DWORD flags)
       dirwatch.io_info = NULL;
       xfree (dirwatch.watchee);
       dirwatch.watchee = NULL;
+      dirwatch.dir = NULL;
       return -1;
     }
   return 0;
@@ -470,6 +472,9 @@ FILE is the name of the file whose event is being reported.  */)
       report_file_error ("Watching filesystem events is not supported",
 			 Qnil);
     }
+
+  if (dirwatch.dir)
+    error ("File watch already active");
 
   /* We needa full absolute file name of FILE, and we need to remove
      any trailing slashes from it, so that GetFullPathName below gets
