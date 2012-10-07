@@ -1,3 +1,8 @@
+2012-10-07  Kenichi Handa  <handa@gnu.org>
+
+	* international/mule-conf.el (compound-text-with-extensions): Add
+	:mime-charset property as x-ctext.
+
 2012-10-07  Stefan Merten  <smerten@oekonux.de>
 
 	* textmodes/rst.el (rst-new-adornment-down, rst-indent-field)
