@@ -1,7 +1,12 @@
+2012-10-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/autoload.el (make-autoload): Add `cl-defmacro' to the
+	forms that define macros (bug#12593).
+
 2012-10-07  Kenichi Handa  <handa@gnu.org>
 
-	* international/mule-conf.el (compound-text-with-extensions): Add
-	:mime-charset property as x-ctext.
+	* international/mule-conf.el (compound-text-with-extensions):
+	Add :mime-charset property as x-ctext.
 
 2012-10-07  Stefan Merten  <smerten@oekonux.de>
 

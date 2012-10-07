@@ -153,7 +153,7 @@ expression, in which case we want to handle forms differently."
 		   easy-mmode-define-minor-mode define-minor-mode
 		   cl-defun defun* cl-defmacro defmacro*
                    define-overloadable-function))
-      (let* ((macrop (memq car '(defmacro defmacro*)))
+      (let* ((macrop (memq car '(defmacro cl-defmacro defmacro*)))
 	     (name (nth 1 form))
 	     (args (pcase car
                      ((or `defun `defmacro

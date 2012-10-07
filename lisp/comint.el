@@ -2783,11 +2783,8 @@ the load or compile."
     (if (and buff
 	     (buffer-modified-p buff)
 	     (y-or-n-p (format "Save buffer %s first? " (buffer-name buff))))
-	;; save BUFF.
-	(let ((old-buffer (current-buffer)))
-	  (set-buffer buff)
-	  (save-buffer)
-	  (set-buffer old-buffer)))))
+        (with-current-buffer buff
+	  (save-buffer)))))
 
 (defun comint-extract-string ()
   "Return string around point, or nil."
