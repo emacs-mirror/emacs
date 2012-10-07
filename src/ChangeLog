@@ -1,3 +1,13 @@
+2012-10-07  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Improve sys_siglist detection.
+	* sysdep.c (sys_siglist, init_signals): Use _sys_siglist if it's
+	defined as a macro, as is done in Solaris.
+	(sys_siglist_entries): New macro.
+	(save_strsignal): Use it.
+	* syssignal.h (safe_strsignal): Now ATTRIBUTE_CONST, to pacify
+	GCC 4.7.2 on Fedora 17 with the fixed sys_siglist detection.
+
 2012-10-06  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsfns.m (Fx_create_frame): Call x_default_parameter with

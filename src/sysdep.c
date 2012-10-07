@@ -1545,8 +1545,18 @@ deliver_thread_signal (int sig, signal_handler_t handler)
 
 #if !HAVE_DECL_SYS_SIGLIST
 # undef sys_siglist
-# define sys_siglist my_sys_siglist
+# ifdef _sys_siglist
+#  define sys_siglist _sys_siglist
+# else
+#  define sys_siglist my_sys_siglist
 static char const *sys_siglist[NSIG];
+# endif
+#endif
+
+#ifdef _sys_nsig
+# define sys_siglist_entries _sys_nsig
+#else
+# define sys_siglist_entries NSIG
 #endif
 
 /* Handle bus errors, invalid instruction, etc.  */
@@ -1609,7 +1619,7 @@ init_signals (bool dumping)
   main_thread = pthread_self ();
 #endif
 
-#if !HAVE_DECL_SYS_SIGLIST
+#if !HAVE_DECL_SYS_SIGLIST && !defined _sys_siglist
   if (! initialized)
     {
       sys_siglist[SIGABRT] = "Aborted";
@@ -1757,7 +1767,7 @@ init_signals (bool dumping)
       sys_siglist[SIGXFSZ] = "File size limit exceeded";
 # endif
     }
-#endif /* !HAVE_DECL_SYS_SIGLIST */
+#endif /* !HAVE_DECL_SYS_SIGLIST && !_sys_siglist */
 
   /* Don't alter signal handlers if dumping.  On some machines,
      changing signal handlers sets static data that would make signals
@@ -2285,7 +2295,7 @@ safe_strsignal (int code)
 {
   char const *signame = 0;
 
-  if (0 <= code && code < NSIG)
+  if (0 <= code && code < sys_siglist_entries)
     signame = sys_siglist[code];
   if (! signame)
     signame = "Unknown signal";

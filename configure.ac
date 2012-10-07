@@ -1284,10 +1284,12 @@ dnl On Solaris 8 there's a compilation warning for term.h because
 dnl it doesn't define `bool'.
 AC_CHECK_HEADERS(term.h, , , -)
 AC_HEADER_TIME
-AC_CHECK_DECLS([sys_siglist])
+AC_CHECK_DECLS([sys_siglist], [], [], [[#include <signal.h>
+			              ]])
 if test $ac_cv_have_decl_sys_siglist != yes; then
   # For Tru64, at least:
-  AC_CHECK_DECLS([__sys_siglist])
+  AC_CHECK_DECLS([__sys_siglist], [], [], [[#include <signal.h>
+			                  ]])
   if test $ac_cv_have_decl___sys_siglist = yes; then
     AC_DEFINE(sys_siglist, __sys_siglist,
               [Define to any substitute for sys_siglist.])

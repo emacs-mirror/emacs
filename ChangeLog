@@ -1,3 +1,9 @@
+2012-10-07  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Improve sys_siglist detection.
+	* configure.ac (sys_siglist): Look for its decl in <signal.h>.
+	Otherwise, it's not found in either Fedora 17 or Solaris 11.
+
 2012-10-04  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Merge from gnulib, incorporating:
