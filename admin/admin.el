@@ -442,8 +442,8 @@ If optional OLD is non-nil, also include defvars."
 				     ))
 		 "{}" "+"))
 
-; FIXME Calculate default based on running emacs-version.
-(defvar cusver-new-version nil
+(defvar cusver-new-version (format "%s.%s" emacs-major-version
+				   (1+ emacs-minor-version))
   "Version number that new defcustoms should have.")
 
 ;; TODO do something about renamed variables with aliases to the old name?
@@ -515,7 +515,11 @@ just converting a defvar to a defcustom does not require a :version bump.
 
 Note that a :version tag should also be added if the value of a defcustom
 changes (in a non-trivial way).  This function does not check for that."
-  (interactive "DNew Lisp directory: \nDOld Lisp directory: \nsNew version number: ")
+  (interactive (list (read-directory-name "New Lisp directory: ")
+		     (read-directory-name "Old Lisp directory: ")
+		     (number-to-string
+		      (read-number "New version number: "
+				   (string-to-number cusver-new-version)))))
   (or (file-directory-p (setq newdir (expand-file-name newdir)))
       (error "Directory `%s' not found" newdir))
   (or (file-directory-p (setq olddir (expand-file-name olddir)))
