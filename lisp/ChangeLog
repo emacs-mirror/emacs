@@ -1,3 +1,7 @@
+2012-10-07  Glenn Morris  <rgm@gnu.org>
+
+	* hi-lock.el (hi-lock-face-phrase-buffer): Doc fix.
+
 2012-10-06  Glenn Morris  <rgm@gnu.org>
 
 	* ehelp.el (electric-help-mode): Use help-mode rather than
