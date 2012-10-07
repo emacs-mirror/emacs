@@ -727,7 +727,7 @@ completion, and you cannot change windows or perform any other action
 with Emacs until you have submitted the password.
 
   While you are typing the password, you may press @key{DEL} to delete
-backwards, removing the last character entered.  @key{C-u} deletes
+backwards, removing the last character entered.  @kbd{C-u} deletes
 everything you have typed so far.  @kbd{C-g} quits the password prompt
 (@pxref{Quitting}).  @kbd{C-y} inserts the current kill into the
 password (@pxref{Killing}).  You may type either @key{RET} or

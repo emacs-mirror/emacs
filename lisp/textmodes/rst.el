@@ -967,7 +967,7 @@ for modes derived from Text mode, like Mail mode."
   :version "21.1")
 
 (define-obsolete-variable-alias
-  'rst-preferred-decorations 'rst-preferred-adornments "1.0.0")
+  'rst-preferred-decorations 'rst-preferred-adornments "rst 1.0.0")
 (defcustom rst-preferred-adornments '((?= over-and-under 1)
 				      (?= simple 0)
 				      (?- simple 0)
@@ -1545,6 +1545,7 @@ b. a negative numerical argument, which generally inverts the
   :type '(choice
 	  (const :tag "Same level as previous one" nil)
 	  (const :tag "One level down relative to the previous one" t))
+  :version "24.3"
   :package-version '(rst . "1.1.0"))
 (rst-testcover-defcustom)
 
@@ -2835,7 +2836,7 @@ here."
   :package-version '(rst . "1.1.0"))
 
 (define-obsolete-variable-alias
-  'rst-shift-basic-offset 'rst-indent-width "1.0.0")
+  'rst-shift-basic-offset 'rst-indent-width "rst 1.0.0")
 (defcustom rst-indent-width 2
   "Indentation when there is no more indentation point given."
   :group 'rst-indent
@@ -2845,24 +2846,28 @@ here."
 (defcustom rst-indent-field 3
   "Indentation for first line after a field or 0 to always indent for content."
   :group 'rst-indent
+  :version "24.3"
   :type '(integer))
 (rst-testcover-defcustom)
 
 (defcustom rst-indent-literal-normal 3
   "Default indentation for literal block after a markup on an own line."
   :group 'rst-indent
+  :version "24.3"
   :type '(integer))
 (rst-testcover-defcustom)
 
 (defcustom rst-indent-literal-minimized 2
   "Default indentation for literal block after a minimized markup."
   :group 'rst-indent
+  :version "24.3"
   :type '(integer))
 (rst-testcover-defcustom)
 
 (defcustom rst-indent-comment 3
   "Default indentation for first line of a comment."
   :group 'rst-indent
+  :version "24.3"
   :type '(integer))
 (rst-testcover-defcustom)
 

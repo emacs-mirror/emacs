@@ -1,3 +1,7 @@
+2012-10-07  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* NEWS (NextStep/OSX port changes): OSX 10.4 or newer is required.
+
 2012-10-05  Douglas Lewan  <d_lewan2000@yahoo.com>  (tiny change)
 
 	* tutorials/TUTORIAL.pt_BR: Fix typo.  (Bug#12557)

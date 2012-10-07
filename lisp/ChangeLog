@@ -1,3 +1,111 @@
+2012-10-07  Glenn Morris  <rgm@gnu.org>
+
+	* mail/rmailmm.el (rmail-mime-process-multipart):
+	Do not confuse a multipart message with an epilogue
+	with a "truncated" one; fixes 2011-06-27 change.  (Bug#10101)
+
+2012-10-07  Fabián Ezequiel Gallina  <fgallina@cuca>
+
+	Fix shell output retrieval and comint-prompt-regexp init.
+	* progmodes/python.el (inferior-python-mode):
+	(python-shell-make-comint): Fix initialization of
+	comint-prompt-regexp from copied file local variables.
+	(python-shell-fetched-lines): Remove var.
+	(python-shell-output-filter-in-progress): Rename from
+	python-shell-fetch-lines-in-progress.
+	(python-shell-output-filter-buffer): Rename from
+	python-shell-fetch-lines-string.
+	(python-shell-fetch-lines-filter): Delete function.
+	(python-shell-output-filter): New function.
+	(python-shell-send-string-no-output): Use them.
+
+2012-10-07  Glenn Morris  <rgm@gnu.org>
+
+	* hi-lock.el (hi-lock-process-phrase):
+	Try to make it less fragile.  (Bug#7161)
+
+	* hi-lock.el (hi-lock-face-phrase-buffer): Doc fix.
+
+2012-10-06  Glenn Morris  <rgm@gnu.org>
+
+	* ehelp.el (electric-help-mode): Use help-mode rather than
+	non-existent mode `help'.
+	(electric-help-map): Use button-buffer-map.  (Bug#10917)
+
+	* textmodes/reftex-vars.el (reftex-create-bibtex-header)
+	(reftex-create-bibtex-footer): Fix custom types.
+
+	* progmodes/sh-script.el (sh-indent-after-continuation):
+	Add explicit :group.
+
+	* textmodes/rst.el (rst-preferred-decorations)
+	(rst-shift-basic-offset): Clarify obsolescence versions.
+
+	* profiler.el (profiler): Add missing group :version tag.
+	* avoid.el (mouse-avoidance-banish-position):
+	* proced.el (proced-renice-command):
+	* calc/calc.el (calc-ensure-consistent-units):
+	* calendar/icalendar.el (icalendar-import-format-uid):
+	* net/tramp.el (tramp-save-ad-hoc-proxies):
+	* progmodes/bug-reference.el (bug-reference-bug-regexp):
+	* progmodes/flymake.el (flymake-error-bitmap)
+	(flymake-warning-bitmap, flymake-fringe-indicator-position):
+	* progmodes/sh-script.el (sh-indent-after-continuation):
+	* progmodes/verilog-mode.el (verilog-auto-template-warn-unused)
+	(verilog-before-save-font-hook, verilog-after-save-font-hook):
+	* progmodes/vhdl-mode.el (vhdl-makefile-default-targets)
+	(vhdl-array-index-record-field-in-sensitivity-list)
+	(vhdl-indent-comment-like-next-code-line):
+	* textmodes/reftex-vars.el (reftex-ref-style-alist)
+	(reftex-ref-macro-prompt, reftex-ref-style-default-list)
+	(reftex-cite-key-separator, reftex-create-bibtex-header)
+	(reftex-create-bibtex-footer):
+	* textmodes/rst.el (rst-new-adornment-down, rst-indent-field)
+	(rst-indent-literal-normal, rst-indent-literal-minimized)
+	(rst-indent-comment): Add missing custom :version tags.
+
+	* calendar/timeclock.el (timeclock-modeline-display):
+	Add missing obsolete alias for renamed user option.
+
+	* strokes.el (strokes-modeline-string):
+	* emulation/crisp.el (crisp-mode-modeline-string):
+	* eshell/esh-mode.el (eshell-status-in-modeline):
+	Aliases to defcustoms must come before the defcustom.
+
+	* calendar/cal-tex.el (cal-tex-diary, cal-tex-cursor-week)
+	(cal-tex-cursor-week2, cal-tex-cursor-week-iso)
+	(cal-tex-cursor-week-monday): Doc fixes.
+	(cal-tex-cursor-week2-summary): Doc fix.
+	Rename from cal-tex-cursor-week-at-a-glance.
+
+	* calendar/cal-menu.el (cal-menu-context-mouse-menu):
+	Tweak week descriptions.  Add cal-tex-cursor-week2-summary.
+
+	* calendar/calendar.el (calendar-mode-map):
+	Add cal-tex-cursor-week2-summary.
+
+2012-10-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/cl-macs.el (cl-defstruct): Improve docstring.
+
+	* subr.el (read-passwd-map): New var.
+	(read-passwd): Use `read-string' again.
+	* minibuffer.el (delete-minibuffer-contents): Make it interactive.
+
+2012-10-06  Jambunathan K  <kjambunathan@gmail.com>
+
+	* register.el (append-to-register, prepend-to-register):
+	Deactivate mark, as does `copy-to-register' (bug#12389).
+
+2012-10-06  Chong Yidong  <cyd@gnu.org>
+
+	* files.el (auto-mode-alist): Add .by and .wy (Semantic grammars).
+
+2012-10-06  Ikumi Keita  <ikumi@ikumi.que.jp>  (tiny change)
+
+	* international/characters.el: Fix simple mistake ((car chars) ->
+	elt), delete duplicated code.
+
 2012-10-06  Glenn Morris  <rgm@gnu.org>
 
 	* subr.el (read-passwd): Allow C-u to erase entry.  (Bug#12570)
@@ -59,7 +167,7 @@
 	(python-fill-decorator-function, python-fill-paren-function):
 	Remove :safe for defcustoms.
 	(python-fill-string-style): New defcustom
-	(python-fill-paragraph-function): Enhanced context detection.
+	(python-fill-paragraph-function): Enhance context detection.
 	(python-fill-string): Honor python-fill-string-style settings.
 
 2012-10-04  Martin Rudalics  <rudalics@gmx.at>
@@ -91,8 +199,8 @@
 
 2012-10-02  Chong Yidong  <cyd@gnu.org>
 
-	* progmodes/hideif.el (hif-lookup, hif-defined): Handle
-	semantic-c-takeover-hideif.
+	* progmodes/hideif.el (hif-lookup, hif-defined):
+	Handle semantic-c-takeover-hideif.
 
 2012-10-02  Paul Eggert  <eggert@cs.ucla.edu>
 
@@ -108,8 +216,8 @@
 
 2012-10-02  Sergio Durigan Junior  <sergiodj@riseup.net>  (tiny change)
 
-	* net/eudcb-bbdb.el (eudc-bbdb-format-record-as-result): Fix
-	querying BBDB for entries without a last name (Bug#11580).
+	* net/eudcb-bbdb.el (eudc-bbdb-format-record-as-result):
+	Fix querying BBDB for entries without a last name (Bug#11580).
 
 2012-10-02  Chong Yidong  <cyd@gnu.org>
 
@@ -1556,12 +1664,12 @@
 2012-09-08  Jambunathan K  <kjambunathan@gmail.com>
 
 	* register.el (register): New group.
-	(register-separator): New user option.
+	(separator-register): New user option.
 	(increment-register): Route it to `append-to-register', if
 	register contains text.  Implication is that `C-x r +' can now be
 	used for appending to a text register (bug#12217).
 	(append-to-register, prepend-to-register): Add separator based on
-	`register-separator.
+	`separator-register'.
 
 2012-09-08  Alan Mackenzie  <acm@muc.de>
 

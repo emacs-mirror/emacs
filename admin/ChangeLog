@@ -1,3 +1,19 @@
+2012-10-07  Glenn Morris  <rgm@gnu.org>
+
+	* admin.el (cusver-new-version): Set default.
+	(cusver-check): Improve interactive argument reading.
+
+2012-10-06  Glenn Morris  <rgm@gnu.org>
+
+	* admin.el (cusver-new-version): New variable.
+	(cusver-scan): Check if containing group has a :version.
+	(cusver-check): Add VERSION argument.
+
+2012-10-01  David Engster  <deng@randomsample.de>
+
+	* grammars/bovine-grammar.el:
+	* grammars/wisent-grammar.el: Move to lisp directory.
+
 2012-10-01  David Engster  <deng@randomsample.de>
 
 	* grammars/bovine-grammar.el (bovine--grammar-newstyle-unquote):

@@ -382,6 +382,7 @@ START and END are buffer positions indicating what to append."
      register (cond ((not reg) text)
                     ((stringp reg) (concat reg separator text))
                     (t (error "Register does not contain text")))))
+  (setq deactivate-mark t)
   (cond (delete-flag
 	 (delete-region start end))
 	((called-interactively-p 'interactive)
@@ -400,6 +401,7 @@ START and END are buffer positions indicating what to prepend."
      register (cond ((not reg) text)
                     ((stringp reg) (concat text separator reg))
                     (t (error "Register does not contain text")))))
+  (setq deactivate-mark t)
   (cond (delete-flag
 	 (delete-region start end))
 	((called-interactively-p 'interactive)

@@ -260,7 +260,7 @@ Remove from SYMBOL's plist the property PROPNAME and its value.
 ;;;;;;  cl-typecase cl-ecase cl-case cl-load-time-value cl-eval-when
 ;;;;;;  cl-destructuring-bind cl-function cl-defmacro cl-defun cl-gentemp
 ;;;;;;  cl-gensym cl--compiler-macro-cXXr cl--compiler-macro-list*)
-;;;;;;  "cl-macs" "cl-macs.el" "da92f58f688ff6fb4d0098eb0f3acf0b")
+;;;;;;  "cl-macs" "cl-macs.el" "6951d080daefb5194b1d21fe9b2deae4")
 ;;; Generated autoloads from cl-macs.el
 
 (autoload 'cl--compiler-macro-list* "cl-macs" "\
@@ -657,8 +657,9 @@ copier, a `NAME-p' predicate, and slot accessors named `NAME-SLOT'.
 You can use the accessors to set the corresponding slots, via `setf'.
 
 NAME may instead take the form (NAME OPTIONS...), where each
-OPTION is either a single keyword or (KEYWORD VALUE).
-See Info node `(cl)Structures' for a list of valid keywords.
+OPTION is either a single keyword or (KEYWORD VALUE) where
+KEYWORD can be one of :conc-name, :constructor, :copier, :predicate,
+:type, :named, :initial-offset, :print-function, or :include.
 
 Each SLOT may instead take the form (SLOT SLOT-OPTS...), where
 SLOT-OPTS are keyword-value pairs for that slot.  Currently, only

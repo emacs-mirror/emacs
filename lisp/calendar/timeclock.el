@@ -321,6 +321,9 @@ display (non-nil means on)."
     (force-mode-line-update)
     (setq timeclock-mode-line-display on-p)))
 
+(define-obsolete-variable-alias 'timeclock-modeline-display
+  'timeclock-mode-line-display "24.3")
+
 ;; This has to be here so that the function definition of
 ;; `timeclock-mode-line-display' is known to the "set" function.
 (defcustom timeclock-mode-line-display nil

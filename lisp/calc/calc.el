@@ -423,6 +423,7 @@ in normal mode."
   "If non-nil, make sure new units are consistent with current units
 when converting units."
   :group 'calc
+  :version "24.3"
   :type 'boolean)
 
 (defcustom calc-undo-length

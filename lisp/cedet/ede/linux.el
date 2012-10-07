@@ -44,7 +44,7 @@
   "File and tag browser frame."
   :group 'tools
   :group 'ede
-  )
+  :version "24.3")
 
 (defcustom project-linux-compile-target-command (concat ede-make-command " -k -C %s SUBDIRS=%s")
   "*Default command used to compile a target."

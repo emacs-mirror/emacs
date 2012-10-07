@@ -1683,8 +1683,9 @@ line."
     (define-key map "td" 'cal-tex-cursor-day)
     (define-key map "tw1" 'cal-tex-cursor-week)
     (define-key map "tw2" 'cal-tex-cursor-week2)
-    (define-key map "tw3" 'cal-tex-cursor-week-iso)
-    (define-key map "tw4" 'cal-tex-cursor-week-monday)
+    (define-key map "tw3" 'cal-tex-cursor-week-iso) ; FIXME twi ?
+    (define-key map "tw4" 'cal-tex-cursor-week-monday) ; twm ?
+    (define-key map "twW" 'cal-tex-cursor-week2-summary)
     (define-key map "tfd" 'cal-tex-cursor-filofax-daily)
     (define-key map "tfw" 'cal-tex-cursor-filofax-2week)
     (define-key map "tfW" 'cal-tex-cursor-filofax-week)

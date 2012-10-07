@@ -1284,10 +1284,12 @@ dnl On Solaris 8 there's a compilation warning for term.h because
 dnl it doesn't define `bool'.
 AC_CHECK_HEADERS(term.h, , , -)
 AC_HEADER_TIME
-AC_CHECK_DECLS([sys_siglist])
+AC_CHECK_DECLS([sys_siglist], [], [], [[#include <signal.h>
+			              ]])
 if test $ac_cv_have_decl_sys_siglist != yes; then
   # For Tru64, at least:
-  AC_CHECK_DECLS([__sys_siglist])
+  AC_CHECK_DECLS([__sys_siglist], [], [], [[#include <signal.h>
+			                  ]])
   if test $ac_cv_have_decl___sys_siglist = yes; then
     AC_DEFINE(sys_siglist, __sys_siglist,
               [Define to any substitute for sys_siglist.])
@@ -1508,10 +1510,26 @@ fail;
   AC_CHECK_HEADER([AppKit/AppKit.h], [HAVE_NS=yes],
   		  [AC_MSG_ERROR([`--with-ns' was specified, but the include
   files are missing or cannot be compiled.])])
+
+  AC_COMPILE_IFELSE([AC_LANG_PROGRAM([#include <AppKit/AppKit.h>],
+                                     [
+#ifdef MAC_OS_X_VERSION_MAX_ALLOWED
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= 1040
+ ; /* OK */
+#else
+#error "OSX 10.4 or newer required"
+#endif
+#endif
+		    ])],
+		    ns_osx_have_104=yes,
+		    ns_osx_have_104=no)
   AC_COMPILE_IFELSE([AC_LANG_PROGRAM([#include <Foundation/NSObjCRuntime.h>],
                                      [NSInteger i;])],
 		    ns_have_nsinteger=yes,
 		    ns_have_nsinteger=no)
+  if test $ns_osx_have_104 = no; then
+     AC_MSG_ERROR([`OSX 10.4 or newer is required']);
+  fi
   if test $ns_have_nsinteger = yes; then
     AC_DEFINE(NS_HAVE_NSINTEGER, 1, [Define to 1 if `NSInteger' is defined.])
   fi

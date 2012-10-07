@@ -74,6 +74,7 @@ so that it is considered safe, see `enable-local-variables'.")
 The second subexpression should match the bug reference (usually a number)."
   :type 'string
   :safe 'stringp
+  :version "24.3"			; previously defconst
   :group 'bug-reference)
 
 (defun bug-reference-set-overlay-properties ()

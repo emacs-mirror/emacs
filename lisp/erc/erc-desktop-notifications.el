@@ -35,6 +35,7 @@
 
 (defgroup erc-notifications nil
   "Send notifications on PRIVMSG or mentions."
+  :version "24.3"
   :group 'erc)
 
 (defvar erc-notifications-last-notification nil
