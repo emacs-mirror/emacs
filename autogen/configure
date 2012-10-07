@@ -8814,7 +8814,9 @@ $as_echo "#define TIME_WITH_SYS_TIME 1" >>confdefs.h
 
 fi
 
-ac_fn_c_check_decl "$LINENO" "sys_siglist" "ac_cv_have_decl_sys_siglist" "$ac_includes_default"
+ac_fn_c_check_decl "$LINENO" "sys_siglist" "ac_cv_have_decl_sys_siglist" "#include <signal.h>
+
+"
 if test "x$ac_cv_have_decl_sys_siglist" = x""yes; then :
   ac_have_decl=1
 else
@@ -8827,7 +8829,9 @@ _ACEOF
 
 if test $ac_cv_have_decl_sys_siglist != yes; then
   # For Tru64, at least:
-  ac_fn_c_check_decl "$LINENO" "__sys_siglist" "ac_cv_have_decl___sys_siglist" "$ac_includes_default"
+  ac_fn_c_check_decl "$LINENO" "__sys_siglist" "ac_cv_have_decl___sys_siglist" "#include <signal.h>
+
+"
 if test "x$ac_cv_have_decl___sys_siglist" = x""yes; then :
   ac_have_decl=1
 else
@@ -9510,6 +9514,32 @@ else
 fi
 
 
+
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <AppKit/AppKit.h>
+int
+main ()
+{
+
+#ifdef MAC_OS_X_VERSION_MAX_ALLOWED
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= 1040
+ ; /* OK */
+#else
+#error "OSX 10.4 or newer required"
+#endif
+#endif
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+  ns_osx_have_104=yes
+else
+  ns_osx_have_104=no
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 #include <Foundation/NSObjCRuntime.h>
@@ -9527,6 +9557,9 @@ else
   ns_have_nsinteger=no
 fi
 rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+  if test $ns_osx_have_104 = no; then
+     as_fn_error "\`OSX 10.4 or newer is required'" "$LINENO" 5;
+  fi
   if test $ns_have_nsinteger = yes; then
 
 $as_echo "#define NS_HAVE_NSINTEGER 1" >>confdefs.h
