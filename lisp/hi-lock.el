@@ -547,7 +547,11 @@ and initial lower-case letters made case insensitive."
     ;; FIXME fragile; better to just bind case-fold-search?  (Bug#7161)
     (setq mod-phrase
           (replace-regexp-in-string
-           "\\<[a-z]" (lambda (m) (format "[%s%s]" (upcase m) m)) phrase))
+           "\\(^\\|\\s-\\)\\([a-z]\\)"
+           (lambda (m) (format "%s[%s%s]"
+                               (match-string 1 m)
+                               (upcase (match-string 2 m))
+                               (match-string 2 m))) phrase))
     ;; FIXME fragile; better to use search-spaces-regexp?
     (setq mod-phrase
           (replace-regexp-in-string

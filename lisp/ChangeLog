@@ -1,5 +1,8 @@
 2012-10-07  Glenn Morris  <rgm@gnu.org>
 
+	* hi-lock.el (hi-lock-process-phrase):
+	Try to make it less fragile.  (Bug#7161)
+
 	* hi-lock.el (hi-lock-face-phrase-buffer): Doc fix.
 
 2012-10-06  Glenn Morris  <rgm@gnu.org>
