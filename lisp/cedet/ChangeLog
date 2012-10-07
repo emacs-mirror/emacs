@@ -1,3 +1,8 @@
+2012-10-07  David Engster  <deng@randomsample.de>
+
+	* semantic.el (semantic-new-buffer-setup-functions): Remove setup
+	function for `f90-mode', since the parser only exists upstream.
+
 2012-10-06  Glenn Morris  <rgm@gnu.org>
 
 	* semantic/complete.el (semantic-displayor-tooltip-max-tags): Doc fix.
