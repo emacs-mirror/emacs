@@ -1,3 +1,8 @@
+2012-10-07  Kenichi Handa  <handa@gnu.org>
+
+	* international/mule-conf.el (compound-text-with-extensions): Add
+	:mime-charset property as x-ctext.
+
 2012-10-06  Ikumi Keita  <ikumi@ikumi.que.jp>  (tiny change)
 
 	* international/characters.el: Fix simple mistake ((car chars) ->
