@@ -1,3 +1,9 @@
+2012-10-07  Glenn Morris  <rgm@gnu.org>
+
+	* mail/rmailmm.el (rmail-mime-process-multipart):
+	Do not confuse a multipart message with an epilogue
+	with a "truncated" one; fixes 2011-06-27 change.  (Bug#10101)
+
 2012-10-07  Fabián Ezequiel Gallina  <fgallina@cuca>
 
 	Fix shell output retrieval and comint-prompt-regexp init.
