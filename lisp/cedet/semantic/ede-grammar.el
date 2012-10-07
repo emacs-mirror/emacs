@@ -143,12 +143,10 @@ Lays claim to all -by.el, and -wy.el files."
 	 (utd 0))
     (mapc (lambda (src)
 	    (with-current-buffer (find-file-noselect src)
-	      (save-excursion
-		(semantic-grammar-create-package))
-	      ;; After compile, the current buffer is the compiled grammar.
-	      ;; Save and compile it.
-	      (save-buffer)
-	      (let* ((src (buffer-file-name))
+	      (let* ((package (semantic-grammar-create-package))
+		     (fname (progn (string-match ".*/\\(.+\\.el\\)" package)
+				   (match-string 1 package)))
+		     (src (with-current-buffer fname (buffer-file-name)))
 		     (csrc (concat (file-name-sans-extension src) ".elc")))
 		(if (< emacs-major-version 24)
 		    ;; Does not have `byte-recompile-file'

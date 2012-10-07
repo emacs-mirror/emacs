@@ -1,5 +1,10 @@
 2012-10-07  David Engster  <deng@randomsample.de>
 
+	* semantic/ede-grammar.el (project-compile-target): Fix grammar
+	compilation after introduction of %provide statement.
+
+2012-10-07  David Engster  <deng@randomsample.de>
+
 	* semantic.el (semantic-new-buffer-setup-functions): Remove setup
 	function for `f90-mode', since the parser only exists upstream.
 
