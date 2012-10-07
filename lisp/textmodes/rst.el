@@ -218,7 +218,7 @@ and before TAIL-RE and DELIM-RE in VAR or DEFAULT for no match."
 ;; Use CVSHeader to really get information from CVS and not other version
 ;; control systems.
 (defconst rst-cvs-header
-  "$CVSHeader: sm/rst_el/rst.el,v 1.327.2.5 2012-10-07 12:44:34 stefan Exp $")
+  "$CVSHeader: sm/rst_el/rst.el,v 1.327.2.6 2012-10-07 13:05:50 stefan Exp $")
 (defconst rst-cvs-rev
   (rst-extract-version "\\$" "CVSHeader: \\S + " "[0-9]+\\(?:\\.[0-9]+\\)+"
 		       " .*" rst-cvs-header "0.0")
@@ -247,7 +247,7 @@ SVN revision is the upstream (docutils) revision.")
   "Official version of the package.")
 (defconst rst-official-cvs-rev
   (rst-extract-version "[%$]" "Revision: " "[0-9]+\\(?:\\.[0-9]+\\)+" " "
-		       "$Revision: 1.327.2.5 $")
+		       "%Revision: 1.327 %")
   "CVS revision of this file in the official version.")
 
 (defconst rst-version

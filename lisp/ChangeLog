@@ -8,6 +8,7 @@
 	* textmodes/rst.el (rst-new-adornment-down, rst-indent-field)
 	(rst-indent-literal-normal, rst-indent-literal-minimized)
 	(rst-indent-comment): Correct :version tag.
+	(rst-official-cvs-rev): Correct version string.
 
 2012-10-07  Glenn Morris  <rgm@gnu.org>
 
