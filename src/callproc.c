@@ -51,6 +51,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "process.h"
 #include "syssignal.h"
 #include "systty.h"
+#include "syswait.h"
 #include "blockinput.h"
 #include "frame.h"
 #include "termhooks.h"
@@ -582,7 +583,7 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 		       0, current_dir);
 #else  /* not WINDOWSNT */
 
-    BLOCK_INPUT;
+    block_input ();
 
     /* vfork, and prevent local vars from being clobbered by the vfork.  */
     {
@@ -626,15 +627,14 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 	setpgrp (pid, pid);
 #endif /* USG */
 
-	/* GConf causes us to ignore SIGPIPE, make sure it is restored
-	   in the child.  */
+	/* Emacs ignores SIGPIPE, but the child should not.  */
 	signal (SIGPIPE, SIG_DFL);
 
 	child_setup (filefd, fd1, fd_error, (char **) new_argv,
 		     0, current_dir);
       }
 
-    UNBLOCK_INPUT;
+    unblock_input ();
 
 #endif /* not WINDOWSNT */
 
@@ -976,9 +976,9 @@ usage: (call-process-region START END PROGRAM &optional DELETE BUFFER DISPLAY &r
     {
       int fd;
 
-      BLOCK_INPUT;
+      block_input ();
       fd = mkstemp (tempfile);
-      UNBLOCK_INPUT;
+      unblock_input ();
       if (fd == -1)
 	report_file_error ("Failed to open temporary file",
 			   Fcons (build_string (tempfile), Qnil));

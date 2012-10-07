@@ -346,7 +346,7 @@ Optional DATA-P non-nil means SOURCE is a string containing image data."
   "Return non-nil if image type TYPE is available.
 Image types are symbols like `xbm' or `jpeg'."
   (and (fboundp 'init-image-library)
-       (init-image-library type dynamic-library-alist)))
+       (init-image-library type)))
 
 
 ;;;###autoload

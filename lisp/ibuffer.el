@@ -1283,7 +1283,7 @@ With optional ARG, make read-only only if ARG is not negative."
   (:opstring "toggled read only status in"
    :interactive "P"
    :modifier-p t)
-  (call-interactively 'toggle-read-only))
+  (read-only-mode 'toggle))
 
 (define-ibuffer-op ibuffer-do-delete ()
   "Kill marked buffers as with `kill-this-buffer'."
@@ -2641,7 +2641,7 @@ will be inserted before the group at point."
 ;;;;;;  ibuffer-backward-filter-group ibuffer-forward-filter-group
 ;;;;;;  ibuffer-toggle-filter-group ibuffer-mouse-toggle-filter-group
 ;;;;;;  ibuffer-interactive-filter-by-mode ibuffer-mouse-filter-by-mode
-;;;;;;  ibuffer-auto-mode) "ibuf-ext" "ibuf-ext.el" "c255d1ebe80ccabd8385f40bdd0b5451")
+;;;;;;  ibuffer-auto-mode) "ibuf-ext" "ibuf-ext.el" "f03bae226325c7320d41ddb78896665a")
 ;;; Generated autoloads from ibuf-ext.el
 
 (autoload 'ibuffer-auto-mode "ibuf-ext" "\

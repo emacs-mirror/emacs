@@ -100,7 +100,7 @@ MessageBoxW_Proc unicode_message_box = NULL;
 
 Lisp_Object Qdebug_on_next_call;
 
-void set_frame_menubar (FRAME_PTR, int, int);
+void set_frame_menubar (FRAME_PTR, bool, bool);
 
 #ifdef HAVE_DIALOGS
 static Lisp_Object w32_dialog_show (FRAME_PTR, int, Lisp_Object, char**);
@@ -237,9 +237,9 @@ otherwise it is "Question". */)
     list_of_panes (Fcons (contents, Qnil));
 
     /* Display them in a dialog box.  */
-    BLOCK_INPUT;
+    block_input ();
     selection = w32_dialog_show (f, 0, title, header, &error_name);
-    UNBLOCK_INPUT;
+    unblock_input ();
 
     discard_menu_items ();
     FRAME_X_DISPLAY_INFO (f)->grabbed = 0;
@@ -372,7 +372,7 @@ menubar_selection_callback (FRAME_PTR f, void * client_data)
    it is set the first time this is called, from initialize_frame_menubar.  */
 
 void
-set_frame_menubar (FRAME_PTR f, int first_time, int deep_p)
+set_frame_menubar (FRAME_PTR f, bool first_time, bool deep_p)
 {
   HMENU menubar_widget = f->output_data.w32->menubar_widget;
   Lisp_Object items;
@@ -587,7 +587,7 @@ set_frame_menubar (FRAME_PTR f, int first_time, int deep_p)
 
   /* Create or update the menu bar widget.  */
 
-  BLOCK_INPUT;
+  block_input ();
 
   if (menubar_widget)
     {
@@ -617,7 +617,7 @@ set_frame_menubar (FRAME_PTR f, int first_time, int deep_p)
       x_set_window_size (f, 0, FRAME_COLS (f), FRAME_LINES (f));
   }
 
-  UNBLOCK_INPUT;
+  unblock_input ();
 }
 
 /* Called from Fx_create_frame to create the initial menubar of a frame
@@ -640,7 +640,7 @@ initialize_frame_menubar (FRAME_PTR f)
 void
 free_frame_menubar (FRAME_PTR f)
 {
-  BLOCK_INPUT;
+  block_input ();
 
   {
     HMENU old = GetMenu (FRAME_W32_WINDOW (f));
@@ -649,7 +649,7 @@ free_frame_menubar (FRAME_PTR f)
     DestroyMenu (old);
   }
 
-  UNBLOCK_INPUT;
+  unblock_input ();
 }
 
 
@@ -1503,8 +1503,8 @@ add_menu_item (HMENU menu, widget_value *wv, HMENU item)
 
       utf8to16 (out_string, utf8_len, utf16_string);
       return_value = unicode_append_menu (menu, fuFlags,
-					  item != NULL ? (UINT) item
-					    : (UINT) wv->call_data,
+					  item != NULL ? (UINT_PTR) item
+					    : (UINT_PTR) wv->call_data,
 					  utf16_string);
 
 #ifndef NTGUI_UNICODE /* Fallback does not apply when always UNICODE */
@@ -1518,7 +1518,7 @@ add_menu_item (HMENU menu, widget_value *wv, HMENU item)
 	     of minor importance compared with menus not working at all.  */
 	  return_value =
 	    AppendMenu (menu, fuFlags,
-			item != NULL ? (UINT) item: (UINT) wv->call_data,
+			item != NULL ? (UINT_PTR) item: (UINT_PTR) wv->call_data,
 			out_string);
 	  /* Don't use Unicode menus in future, unless this is Windows
 	     NT or later, where a failure of AppendMenuW does NOT mean
@@ -1536,7 +1536,7 @@ add_menu_item (HMENU menu, widget_value *wv, HMENU item)
       return_value =
 	AppendMenu (menu,
 		    fuFlags,
-		    item != NULL ? (UINT) item : (UINT) wv->call_data,
+		    item != NULL ? (UINT_PTR) item : (UINT_PTR) wv->call_data,
 		    out_string );
     }
 
@@ -1573,7 +1573,7 @@ add_menu_item (HMENU menu, widget_value *wv, HMENU item)
 	    }
 
 	  set_menu_item_info (menu,
-			      item != NULL ? (UINT) item : (UINT) wv->call_data,
+			      item != NULL ? (UINT_PTR) item : (UINT_PTR) wv->call_data,
 			      FALSE, &info);
 	}
     }

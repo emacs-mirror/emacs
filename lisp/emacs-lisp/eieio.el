@@ -94,21 +94,6 @@ default setting for optimization purposes.")
 (defvar eieio-optimize-primary-methods-flag t
   "Non-nil means to optimize the method dispatch on primary methods.")
 
-;; State Variables
-;; FIXME: These two constants below should have an `eieio-' prefix added!!
-(defvar this nil
-  "Inside a method, this variable is the object in question.
-DO NOT SET THIS YOURSELF unless you are trying to simulate friendly slots.
-
-Note: Embedded methods are no longer supported.  The variable THIS is
-still set for CLOS methods for the sake of routines like
-`call-next-method'.")
-
-(defvar scoped-class nil
-  "This is set to a class when a method is running.
-This is so we know we are allowed to check private parts or how to
-execute a `call-next-method'.  DO NOT SET THIS YOURSELF!")
-
 (defvar eieio-initializing-object  nil
   "Set to non-nil while initializing an object.")
 
@@ -410,6 +395,7 @@ It creates an autoload function for CNAME's constructor."
 	(autoload cname filename doc nil nil)
 	(autoload (intern (concat (symbol-name cname) "-p")) filename "" nil nil)
 	(autoload (intern (concat (symbol-name cname) "-child-p")) filename "" nil nil)
+	(autoload (intern (concat (symbol-name cname) "-list-p")) filename "" nil nil)
 
 	))))
 
@@ -538,6 +524,23 @@ See `defclass' for more information."
 		  cname)
 	       (and (eieio-object-p obj)
 		    (object-of-class-p obj ,cname))))
+
+    ;; Create a handy list of the class test too
+    (let ((csym (intern (concat (symbol-name cname) "-list-p"))))
+      (fset csym
+	    `(lambda (obj)
+	       ,(format
+		  "Test OBJ to see if it a list of objects which are a child of type %s"
+		  cname)
+	       (when (listp obj)
+		 (let ((ans t)) ;; nil is valid
+		   ;; Loop over all the elements of the input list, test
+		   ;; each to make sure it is a child of the desired object class.
+		   (while (and obj ans)
+		     (setq ans (and (eieio-object-p (car obj))
+				    (object-of-class-p (car obj) ,cname)))
+		     (setq obj (cdr obj)))
+		   ans)))))
 
       ;; When using typep, (typep OBJ 'myclass) returns t for objects which
       ;; are subclasses of myclass.  For our predicates, however, it is
@@ -780,6 +783,16 @@ See `defclass' for more information."
     ;; Use stored value since it is calculated in a non-trivial way
     (put cname 'variable-documentation
 	 (class-option-assoc options :documentation))
+
+    ;; Save the file location where this class is defined.
+    (let ((fname (if load-in-progress
+		     load-file-name
+		   buffer-file-name))
+	  loc)
+      (when fname
+	(when (string-match "\\.elc$" fname)
+	  (setq fname (substring fname 0 (1- (length fname)))))
+	(put cname 'class-location fname)))
 
     ;; We have a list of custom groups.  Store them into the options.
     (let ((g (class-option-assoc options :custom-groups)))
@@ -1254,8 +1267,10 @@ IMPL is the symbol holding the method implementation."
 		  (eieio-generic-call-methodname ',method)
 		  (eieio-generic-call-arglst local-args)
 		  )
-	      (apply #',impl local-args)
-              ;;(,impl local-args)
+	      ,(if (< emacs-major-version 24)
+		  `(apply ,(list 'quote impl) local-args)
+		`(apply #',impl local-args))
+	      ;(,impl local-args)
 	      )))))))
 
 (defsubst eieio-defgeneric-reset-generic-form-primary-only-one (method)
@@ -2008,13 +2023,13 @@ reverse-lookup that name, and recurse with the associated slot value."
 	 ((not (get fsym 'protection))
 	  (+ 3 fsi))
 	 ((and (eq (get fsym 'protection) 'protected)
-	       scoped-class
+	       (bound-and-true-p scoped-class)
 	       (or (child-of-class-p class scoped-class)
 		   (and (eieio-object-p obj)
 			(child-of-class-p class (object-class obj)))))
 	  (+ 3 fsi))
 	 ((and (eq (get fsym 'protection) 'private)
-	       (or (and scoped-class
+	       (or (and (bound-and-true-p scoped-class)
 			(eieio-slot-originating-class-p scoped-class slot))
 		   eieio-initializing-object))
 	  (+ 3 fsi))
@@ -2319,7 +2334,7 @@ If REPLACEMENT-ARGS is non-nil, then use them instead of
 arguments passed in at the top level.
 
 Use `next-method-p' to find out if there is a next method to call."
-  (if (not scoped-class)
+  (if (not (bound-and-true-p scoped-class))
       (error "`call-next-method' not called within a class specific method"))
   (if (and (/= eieio-generic-call-key method-primary)
 	   (/= eieio-generic-call-key method-static))
@@ -2403,6 +2418,18 @@ CLASS is the class this method is associated with."
     (if (< key method-num-lists)
 	(let ((nsym (intern (symbol-name class) (aref emto key))))
 	  (fset nsym method)))
+    ;; Save the defmethod file location in a symbol property.
+    (let ((fname (if load-in-progress
+		     load-file-name
+		   buffer-file-name))
+	  loc)
+      (when fname
+	(when (string-match "\\.elc$" fname)
+	  (setq fname (substring fname 0 (1- (length fname)))))
+	(setq loc (get method-name 'method-locations))
+	(add-to-list 'loc
+		     (list class fname))
+	(put method-name 'method-locations loc)))
     ;; Now optimize the entire obarray
     (if (< key method-num-lists)
 	(let ((eieiomt-optimizing-obarray (aref emto key)))
@@ -2807,9 +2834,9 @@ this object."
     (princ (make-string (* eieio-print-depth 2) ? ))
     (princ "(")
     (princ (symbol-name (class-constructor (object-class this))))
-    (princ " \"")
-    (princ (object-name-string this))
-    (princ "\"\n")
+    (princ " ")
+    (prin1 (object-name-string this))
+    (princ "\n")
     ;; Loop over all the public slots
     (let ((publa (aref cv class-public-a))
 	  (publd (aref cv class-public-d))
@@ -2876,7 +2903,6 @@ of `eq'."
 
 )
 
-
 ;;; Obsolete backward compatibility functions.
 ;; Needed to run byte-code compiled with the EIEIO of Emacs-23.
 

@@ -677,13 +677,13 @@ EmacsFrameDestroy (Widget widget)
   if (! s) emacs_abort ();
   if (! s->output_data.x) emacs_abort ();
 
-  BLOCK_INPUT;
+  block_input ();
   x_free_gcs (s);
   if (s->output_data.x->white_relief.gc)
     XFreeGC (XtDisplay (widget), s->output_data.x->white_relief.gc);
   if (s->output_data.x->black_relief.gc)
     XFreeGC (XtDisplay (widget), s->output_data.x->black_relief.gc);
-  UNBLOCK_INPUT;
+  unblock_input ();
 }
 
 static void

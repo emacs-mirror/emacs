@@ -2783,11 +2783,8 @@ the load or compile."
     (if (and buff
 	     (buffer-modified-p buff)
 	     (y-or-n-p (format "Save buffer %s first? " (buffer-name buff))))
-	;; save BUFF.
-	(let ((old-buffer (current-buffer)))
-	  (set-buffer buff)
-	  (save-buffer)
-	  (set-buffer old-buffer)))))
+        (with-current-buffer buff
+	  (save-buffer)))))
 
 (defun comint-extract-string ()
   "Return string around point, or nil."
@@ -3069,11 +3066,11 @@ Magic characters are those in `comint-file-name-quote-list'."
 
 (defun comint-unquote-filename (filename)
   "Return FILENAME with quoted characters unquoted."
+  (declare (obsolete nil "24.3"))
   (if (null comint-file-name-quote-list)
       filename
     (save-match-data
       (replace-regexp-in-string "\\\\\\(.\\)" "\\1" filename t))))
-(make-obsolete 'comint-unquote-filename nil "24.3")
 
 (defun comint--requote-argument (upos qstr)
   ;; See `completion-table-with-quoting'.
@@ -3161,8 +3158,8 @@ See `completion-table-with-quoting' and `comint-unquote-function'.")
           (complete-with-action action table string pred))))
      (unless (zerop (length filesuffix))
        (list :exit-function
-             (lambda (_s finished)
-               (when (memq finished '(sole finished))
+             (lambda (_s status)
+               (when (eq status 'finished)
                  (if (looking-at (regexp-quote filesuffix))
                      (goto-char (match-end 0))
                    (insert filesuffix)))))))))
@@ -3170,10 +3167,9 @@ See `completion-table-with-quoting' and `comint-unquote-function'.")
 (defun comint-dynamic-complete-as-filename ()
   "Dynamically complete at point as a filename.
 See `comint-dynamic-complete-filename'.  Returns t if successful."
+  (declare (obsolete comint-filename-completion "24.1"))
   (let ((data (comint--complete-file-name-data)))
     (completion-in-region (nth 0 data) (nth 1 data) (nth 2 data))))
-(make-obsolete 'comint-dynamic-complete-as-filename
-               'comint-filename-completion "24.1")
 
 (defun comint-replace-by-expanded-filename ()
   "Dynamically expand and complete the filename at point.
@@ -3204,6 +3200,7 @@ Return `partial' if completed as far as possible.
 Return `listed' if a completion listing was shown.
 
 See also `comint-dynamic-complete-filename'."
+  (declare (obsolete completion-in-region "24.1"))
   (let* ((completion-ignore-case (memq system-type '(ms-dos windows-nt cygwin)))
 	 (minibuffer-p (window-minibuffer-p (selected-window)))
 	 (suffix (cond ((not comint-completion-addsuffix) "")
@@ -3246,8 +3243,6 @@ See also `comint-dynamic-complete-filename'."
 		    (unless minibuffer-p
 		      (message "Partially completed"))
 		    'partial)))))))
-(make-obsolete 'comint-dynamic-simple-complete 'completion-in-region "24.1")
-
 
 (defun comint-dynamic-list-filename-completions ()
   "Display a list of possible completions for the filename at point."

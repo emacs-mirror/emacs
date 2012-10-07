@@ -60,8 +60,6 @@
 ;; - rework the displaying of error messages.
 ;; - allow to flush messages only
 ;; - allow to protect files like ChangeLog from flushing
-;; - automatically cvs-mode-insert files from find-file-hook
-;;   (and don't flush them as long as they are visited)
 ;; - query the user for cvs-get-marked (for some cmds or if nothing's selected)
 ;; - don't return the first (resp last) FI if the cursor is before
 ;;   (resp after) it.
@@ -877,7 +875,10 @@ RM-MSGS if non-nil means remove messages."
 		     ;; remove entries
 		     (`DEAD nil)
 		     ;; handled also?
-		     (`UP-TO-DATE (not rm-handled))
+		     (`UP-TO-DATE
+                      (if (find-buffer-visiting (cvs-fileinfo->full-name fi))
+                          t
+                        (not rm-handled)))
 		     ;; keep the rest
 		     (_ (not (run-hook-with-args-until-success
 			      'cvs-cleanup-functions fi))))))
@@ -1617,7 +1618,8 @@ With prefix argument, prompt for cvs flags."
 (defun-cvs-mode (cvs-mode-diff . DOUBLE) (flags)
   "Diff the selected files against the repository.
 This command compares the files in your working area against the
-revision which they are based upon."
+revision which they are based upon.
+See also `cvs-diff-ignore-marks'."
   (interactive
    (list (cvs-add-branch-prefix
 	  (cvs-add-secondary-branch-prefix
@@ -2435,6 +2437,21 @@ The exact behavior is determined also by `cvs-dired-use-hook'."
 
 (add-hook 'after-save-hook 'cvs-mark-buffer-changed)
 
+(defun cvs-insert-visited-file ()
+  (let* ((file (expand-file-name buffer-file-name))
+	 (version (and (fboundp 'vc-backend)
+		       (eq (vc-backend file) 'CVS)
+		       (vc-working-revision file))))
+    (when version
+      (save-current-buffer
+	(dolist (cvs-buf (buffer-list))
+	  (set-buffer cvs-buf)
+	  ;; look for a corresponding pcl-cvs buffer
+	  (when (and (eq major-mode 'cvs-mode)
+		     (string-prefix-p default-directory file))
+            (cvs-insert-file file)))))))
+
+(add-hook 'find-file-hook 'cvs-insert-visited-file 'append)
 
 (provide 'pcvs)
 

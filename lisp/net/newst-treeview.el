@@ -128,7 +128,7 @@ Example: (\"Topmost group\" \"feed1\" (\"subgroup1\" \"feed 2\")
   "Name of the newsticker groups settings file."
   :type 'string
   :group 'newsticker-treeview)
-(make-obsolete 'newsticker-groups-filename 'newsticker-dir "23.1")
+(make-obsolete-variable 'newsticker-groups-filename 'newsticker-dir "23.1")
 
 ;; ======================================================================
 ;;; internal variables
@@ -1722,7 +1722,7 @@ return a nested list."
 
 (defun newsticker-group-move-feed (name group-name &optional no-update)
   "Move feed NAME to group GROUP-NAME.
-Update teeview afterwards unless NO-UPDATE is non-nil."
+Update treeview afterwards unless NO-UPDATE is non-nil."
   (interactive
    (let ((completion-ignore-case t))
      (list (completing-read "Feed Name: "

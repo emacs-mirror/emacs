@@ -193,9 +193,9 @@ this function is always whether the value of `this-command' would've been
 ;;;###autoload
 (defun repeat (repeat-arg)
   "Repeat most recently executed command.
-With prefix arg, apply new prefix arg to that command; otherwise,
-use the prefix arg that was used before (if any).
-This command is like the `.' command in the vi editor.
+If REPEAT-ARG is non-nil (interactively, with a prefix argument),
+supply a prefix argument to that command.  Otherwise, give the
+command the same prefix argument it was given before, if any.
 
 If this command is invoked by a multi-character key sequence, it
 can then be repeated by repeating the final character of that

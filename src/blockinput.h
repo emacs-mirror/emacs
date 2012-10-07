@@ -19,103 +19,57 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifndef EMACS_BLOCKINPUT_H
 #define EMACS_BLOCKINPUT_H
 
-#include "atimer.h"
+INLINE_HEADER_BEGIN
+#ifndef BLOCKINPUT_INLINE
+# define BLOCKINPUT_INLINE INLINE
+#endif
 
-/* When Emacs is using signal-driven input, the processing of those
-   input signals can get pretty hairy.  For example, when Emacs is
-   running under X windows, handling an input signal can entail
-   retrieving events from the X event queue, or making other X calls.
-
-   If an input signal occurs while Emacs is in the midst of some
-   non-reentrant code, and the signal processing invokes that same
-   code, we lose.  For example, malloc and the Xlib functions aren't
-   usually re-entrant, and both are used by the X input signal handler
-   - if we try to process an input signal in the midst of executing
-   any of these functions, we'll lose.
+/* Emacs should avoid doing anything hairy in a signal handler, because
+   so many system functions are non-reentrant.  For example, malloc
+   and the Xlib functions aren't usually re-entrant, so if they were
+   used by the SIGIO handler, we'd lose.
 
    To avoid this, we make the following requirements:
 
-   * Everyone must evaluate BLOCK_INPUT before entering these functions,
-   and then call UNBLOCK_INPUT after performing them.  Calls
-   BLOCK_INPUT and UNBLOCK_INPUT may be nested.
+   * Everyone must evaluate BLOCK_INPUT before performing actions that
+   might conflict with a signal handler, and then call UNBLOCK_INPUT
+   after performing them.  Calls BLOCK_INPUT and UNBLOCK_INPUT may be
+   nested.
 
    * Any complicated interrupt handling code should test
-   interrupt_input_blocked, and put off its work until later.
+   INPUT_BLOCKED_P, and put off its work until later.
 
    * If the interrupt handling code wishes, it may set
-   interrupt_input_pending to a non-zero value.  If that flag is set
-   when input becomes unblocked, UNBLOCK_INPUT will send a new SIGIO.  */
+   pending_signals to a non-zero value.  If that flag is set
+   when input becomes unblocked, UNBLOCK_INPUT will then read
+   input and process timers.
+
+   Historically, Emacs signal handlers did much more than they do now,
+   and this caused many BLOCK_INPUT calls to be sprinkled around the code.
+   FIXME: Remove calls that aren't needed now.  */
 
 extern volatile int interrupt_input_blocked;
 
-/* Nonzero means an input interrupt has arrived
-   during the current critical section.  */
-extern int interrupt_input_pending;
-
-
-/* Non-zero means asynchronous timers should be run when input is
-   unblocked.  */
-
-extern int pending_atimers;
-
-
 /* Begin critical section. */
-#define BLOCK_INPUT (interrupt_input_blocked++)
 
-/* End critical section.
+BLOCKINPUT_INLINE void
+block_input (void)
+{
+  interrupt_input_blocked++;
+}
 
-   If doing signal-driven input, and a signal came in when input was
-   blocked, reinvoke the signal handler now to deal with it.
-
-   Always test interrupt_input_pending; that's not too expensive, and
-   it'll never get set if we don't need to resignal.  This is simpler
-   than dealing here with every configuration option that might affect
-   whether interrupt_input_pending can be nonzero.  */
-
-#define UNBLOCK_INPUT 				\
-  do						\
-    {						\
-      --interrupt_input_blocked;		\
-      if (interrupt_input_blocked == 0)		\
-	{					\
-	  if (interrupt_input_pending)		\
-	    reinvoke_input_signal ();		\
-	  if (pending_atimers)			\
-	    do_pending_atimers ();		\
-	}					\
-      else if (interrupt_input_blocked < 0)	\
-	emacs_abort ();				\
-    }						\
-  while (0)
-
-/* Undo any number of BLOCK_INPUT calls,
-   and also reinvoke any pending signal.  */
-
-#define TOTALLY_UNBLOCK_INPUT			\
-  do if (interrupt_input_blocked != 0)		\
-    {						\
-      interrupt_input_blocked = 1;		\
-      UNBLOCK_INPUT;				\
-    }						\
-  while (0)
-
-/* Undo any number of BLOCK_INPUT calls down to level LEVEL,
-   and also (if the level is now 0) reinvoke any pending signal.  */
-
-#define UNBLOCK_INPUT_TO(LEVEL)				\
-  do							\
-    {							\
-      interrupt_input_blocked = (LEVEL) + 1;		\
-      UNBLOCK_INPUT;					\
-    }							\
-  while (0)
-
-#define UNBLOCK_INPUT_RESIGNAL UNBLOCK_INPUT
+extern void unblock_input (void);
+extern void totally_unblock_input (void);
+extern void unblock_input_to (int);
 
 /* In critical section ? */
-#define INPUT_BLOCKED_P (interrupt_input_blocked > 0)
 
-/* Defined in keyboard.c */
-extern void reinvoke_input_signal (void);
+BLOCKINPUT_INLINE bool
+input_blocked_p (void)
+{
+  return 0 < interrupt_input_blocked;
+}
+
+INLINE_HEADER_END
 
 #endif /* EMACS_BLOCKINPUT_H */

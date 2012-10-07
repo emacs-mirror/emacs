@@ -5532,7 +5532,7 @@
 	(update_frame_tool_bar): Remove old_req, new_req.  Do not get tool bar
 	height, call xg_update_tool_bar_sizes instead.
 	(free_frame_tool_bar): Remove from hbox or vbox depending on
-	toolbar_in_hbox,  Set all FRAME_TOOLBAR_*_(WIDTH|HEIGHT) to zero.
+	toolbar_in_hbox.  Set all FRAME_TOOLBAR_*_(WIDTH|HEIGHT) to zero.
 	(xg_change_toolbar_position): New function.
 
 	* frame.h (struct frame): Add tool_bar_position.

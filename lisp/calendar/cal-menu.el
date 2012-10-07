@@ -237,10 +237,11 @@ is non-nil."
     ;; These did not work if called without calendar window selected.
     ("Prepare LaTeX buffer"
      ["Daily (1 page)" cal-tex-cursor-day]
-     ["Weekly (1 page)" cal-tex-cursor-week]
-     ["Weekly (2 pages)" cal-tex-cursor-week2]
-     ["Weekly (other style; 1 page)" cal-tex-cursor-week-iso]
-     ["Weekly (yet another style; 1 page)" cal-tex-cursor-week-monday]
+     ["Weekly (1 page, with hours)" cal-tex-cursor-week]
+     ["Weekly (2 pages, with hours)" cal-tex-cursor-week2]
+     ["Weekly (1 page, no hours)" cal-tex-cursor-week-iso]
+     ["Weekly (1 page, with hours, different style)" cal-tex-cursor-week-monday]
+     ["Weekly (2 pages, no hours)" cal-tex-cursor-week2-summary]
      ["Monthly" cal-tex-cursor-month]
      ["Monthly (landscape)" cal-tex-cursor-month-landscape]
      ["Yearly" cal-tex-cursor-year]

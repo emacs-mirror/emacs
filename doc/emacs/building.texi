@@ -1393,12 +1393,20 @@ putting a line like this in your init file (@pxref{Init File}):
 @end example
 
 @cindex autoload
-  Some commands are @dfn{autoloaded}: when you run them, Emacs
+  Some commands are @dfn{autoloaded}; when you run them, Emacs
 automatically loads the associated library first.  For instance, the
 @kbd{M-x compile} command (@pxref{Compilation}) is autoloaded; if you
 call it, Emacs automatically loads the @code{compile} library first.
 In contrast, the command @kbd{M-x recompile} is not autoloaded, so it
 is unavailable until you load the @code{compile} library.
+
+@vindex help-enable-auto-load
+  Automatic loading can also occur when you look up the documentation
+of an autoloaded command (@pxref{Name Help}), if the documentation
+refers to other functions and variables in its library (loading the
+library lets Emacs properly set up the hyperlinks in the @file{*Help*}
+buffer).  To disable this feature, change the variable
+@code{help-enable-auto-load} to @code{nil}.
 
 @vindex load-dangerous-libraries
 @cindex Lisp files byte-compiled by XEmacs

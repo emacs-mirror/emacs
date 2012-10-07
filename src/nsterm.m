@@ -72,6 +72,11 @@ int term_trace_num = 0;
 #define NSTRACE(x)
 #endif
 
+#if defined (NS_IMPL_COCOA) && \
+  MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_7
+#define NEW_STYLE_FS
+#endif
+
 extern NSString *NSMenuDidBeginTrackingNotification;
 
 /* ==========================================================================
@@ -178,7 +183,6 @@ static int ns_window_num = 0;
 static NSRect uRect;
 #endif
 static BOOL gsaved = NO;
-BOOL ns_in_resize = NO;
 static BOOL ns_fake_keydown = NO;
 int ns_tmp_flags; /* FIXME */
 struct nsfont_info *ns_tmp_font; /* FIXME */
@@ -488,17 +492,6 @@ ns_release_autorelease_pool (void *pool)
 
    ========================================================================== */
 
-static NSRect
-ns_resize_handle_rect (NSWindow *window)
-{
-  NSRect r = [window frame];
-  r.origin.x = r.size.width - RESIZE_HANDLE_SIZE;
-  r.origin.y = 0;
-  r.size.width = r.size.height = RESIZE_HANDLE_SIZE;
-  return r;
-}
-
-
 //
 // Window constraining
 // -------------------
@@ -576,12 +569,9 @@ ns_menu_bar_should_be_hidden (void)
 static void
 ns_update_auto_hide_menu_bar (void)
 {
-#ifndef MAC_OS_X_VERSION_10_6
-#define MAC_OS_X_VERSION_10_6 1060
-#endif
 #ifdef NS_IMPL_COCOA
 #if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_6
-  BLOCK_INPUT;
+  block_input ();
 
   NSTRACE (ns_update_auto_hide_menu_bar);
 
@@ -612,7 +602,7 @@ ns_update_auto_hide_menu_bar (void)
         }
     }
 
-  UNBLOCK_INPUT;
+  unblock_input ();
 #endif
 #endif
 }
@@ -662,7 +652,7 @@ ns_update_window_begin (struct window *w)
   updated_window = w;
   set_output_cursor (&w->cursor);
 
-  BLOCK_INPUT;
+  block_input ();
 
   if (f == hlinfo->mouse_face_mouse_frame)
     {
@@ -677,7 +667,7 @@ ns_update_window_begin (struct window *w)
       /* (further code for mouse faces ifdef'd out in other terms elided) */
     }
 
-  UNBLOCK_INPUT;
+  unblock_input ();
 }
 
 
@@ -694,7 +684,7 @@ ns_update_window_end (struct window *w, int cursor_on_p,
   /* note: this fn is nearly identical in all terms */
   if (!w->pseudo_window_p)
     {
-      BLOCK_INPUT;
+      block_input ();
 
       if (cursor_on_p)
 	display_and_set_cursor (w, 1,
@@ -704,7 +694,7 @@ ns_update_window_end (struct window *w, int cursor_on_p,
       if (draw_window_fringes (w, 1))
 	x_draw_vertical_border (w);
 
-      UNBLOCK_INPUT;
+      unblock_input ();
     }
 
   /* If a row with mouse-face was overwritten, arrange for
@@ -733,7 +723,7 @@ ns_update_end (struct frame *f)
 /*   if (f == MOUSE_HL_INFO (f)->mouse_face_mouse_frame) */
     MOUSE_HL_INFO (f)->mouse_face_defer = 0;
 
-  BLOCK_INPUT;
+    block_input ();
 
 #ifdef NS_IMPL_GNUSTEP
   /* trigger flush only in the rectangle we tracked as being drawn */
@@ -745,7 +735,7 @@ ns_update_end (struct frame *f)
   [view unlockFocus];
   [[view window] flushWindow];
 
-  UNBLOCK_INPUT;
+  unblock_input ();
   ns_updating_frame = NULL;
   NSTRACE (ns_update_end);
 }
@@ -902,7 +892,7 @@ ns_ring_bell (struct frame *f)
       struct frame *frame = SELECTED_FRAME ();
       NSView *view;
 
-      BLOCK_INPUT;
+      block_input ();
       pool = [[NSAutoreleasePool alloc] init];
 
       view = FRAME_NS_VIEW (frame);
@@ -929,7 +919,7 @@ ns_ring_bell (struct frame *f)
           ns_unfocus (frame);
         }
       [pool release];
-      UNBLOCK_INPUT;
+      unblock_input ();
     }
   else
     {
@@ -970,13 +960,13 @@ ns_raise_frame (struct frame *f)
 {
   NSView *view = FRAME_NS_VIEW (f);
   check_ns ();
-  BLOCK_INPUT;
+  block_input ();
   FRAME_SAMPLE_VISIBILITY (f);
   if (FRAME_VISIBLE_P (f))
     {
       [[view window] makeKeyAndOrderFront: NSApp];
     }
-  UNBLOCK_INPUT;
+  unblock_input ();
 }
 
 
@@ -988,9 +978,9 @@ ns_lower_frame (struct frame *f)
 {
   NSView *view = FRAME_NS_VIEW (f);
   check_ns ();
-  BLOCK_INPUT;
+  block_input ();
   [[view window] orderBack: NSApp];
-  UNBLOCK_INPUT;
+  unblock_input ();
 }
 
 
@@ -1063,8 +1053,23 @@ x_make_frame_visible (struct frame *f)
      if this ends up the case again, comment this out again. */
   if (!FRAME_VISIBLE_P (f))
     {
+      EmacsView *view = (EmacsView *)FRAME_NS_VIEW (f);
       f->async_visible = 1;
       ns_raise_frame (f);
+
+#ifdef NEW_STYLE_FS
+      /* Making a new frame from a fullscreen frame will make the new frame
+         fullscreen also.  So skip handleFS as this will print an error.  */
+      if (f->want_fullscreen == FULLSCREEN_BOTH
+          && ([[view window] styleMask] & NSFullScreenWindowMask) != 0)
+        return;
+#endif
+      if (f->want_fullscreen != FULLSCREEN_NONE)
+        {
+          block_input ();
+          [view handleFS];
+          unblock_input ();
+        }
     }
 }
 
@@ -1126,7 +1131,7 @@ x_free_frame_resources (struct frame *f)
 
   [(EmacsView *)view setWindowClosing: YES]; /* may not have been informed */
 
-  BLOCK_INPUT;
+  block_input ();
 
   free_frame_menubar (f);
 
@@ -1154,7 +1159,7 @@ x_free_frame_resources (struct frame *f)
 
   xfree (f->output_data.ns);
 
-  UNBLOCK_INPUT;
+  unblock_input ();
 }
 
 void
@@ -1183,7 +1188,7 @@ x_set_offset (struct frame *f, int xoff, int yoff, int change_grav)
 
   NSTRACE (x_set_offset);
 
-  BLOCK_INPUT;
+  block_input ();
 
   f->left_pos = xoff;
   f->top_pos = yoff;
@@ -1215,7 +1220,7 @@ x_set_offset (struct frame *f, int xoff, int yoff, int change_grav)
       f->size_hint_flags &= ~(XNegative|YNegative);
     }
 
-  UNBLOCK_INPUT;
+  unblock_input ();
 }
 
 
@@ -1240,7 +1245,7 @@ x_set_window_size (struct frame *f, int change_grav, int cols, int rows)
 
 /*fprintf (stderr, "\tsetWindowSize: %d x %d, font size %d x %d\n", cols, rows, FRAME_COLUMN_WIDTH (f), FRAME_LINE_HEIGHT (f)); */
 
-  BLOCK_INPUT;
+  block_input ();
 
   check_frame_size (f, &rows, &cols);
 
@@ -1302,10 +1307,33 @@ x_set_window_size (struct frame *f, int change_grav, int cols, int rows)
   mark_window_cursors_off (XWINDOW (f->root_window));
   cancel_mouse_face (f);
 
-  UNBLOCK_INPUT;
+  unblock_input ();
 }
 
 
+static void
+ns_fullscreen_hook (FRAME_PTR f)
+{
+  EmacsView *view = (EmacsView *)FRAME_NS_VIEW (f);
+  
+  if (! f->async_visible) return;
+#ifndef NEW_STYLE_FS
+  if (f->want_fullscreen == FULLSCREEN_BOTH)
+    {
+      /* Old style fs don't initiate correctly if created from
+         init/default-frame alist, so use a timer (not nice...).
+      */
+      [NSTimer scheduledTimerWithTimeInterval: 0.5 target: view
+                                     selector: @selector (handleFS)
+                                     userInfo: nil repeats: NO];
+      return;
+    }
+#endif
+
+  block_input ();
+  [view handleFS];
+  unblock_input ();
+}
 
 /* ==========================================================================
 
@@ -1414,7 +1442,7 @@ ns_get_color (const char *name, NSColor **col)
   NSString *nsname = [NSString stringWithUTF8String: name];
 
 /*fprintf (stderr, "ns_get_color: '%s'\n", name); */
-  BLOCK_INPUT;
+  block_input ();
 
   if ([nsname isEqualToString: @"ns_selection_color"])
     {
@@ -1461,7 +1489,7 @@ ns_get_color (const char *name, NSColor **col)
   if (r >= 0.0)
     {
       *col = [NSColor colorWithCalibratedRed: r green: g blue: b alpha: 1.0];
-      UNBLOCK_INPUT;
+      unblock_input ();
       return 0;
     }
 
@@ -1493,7 +1521,7 @@ ns_get_color (const char *name, NSColor **col)
 
   if (new)
     *col = [new colorUsingColorSpaceName: NSCalibratedRGBColorSpace];
-  UNBLOCK_INPUT;
+  unblock_input ();
   return new ? 0 : 1;
 }
 
@@ -1524,12 +1552,12 @@ ns_color_to_lisp (NSColor *col)
   const char *str;
   NSTRACE (ns_color_to_lisp);
 
-  BLOCK_INPUT;
+  block_input ();
   if ([[col colorSpaceName] isEqualToString: NSNamedColorSpace])
 
       if ((str =[[col colorNameComponent] UTF8String]))
         {
-          UNBLOCK_INPUT;
+          unblock_input ();
           return build_string ((char *)str);
         }
 
@@ -1541,14 +1569,14 @@ ns_color_to_lisp (NSColor *col)
             getWhite: &gray alpha: &alpha];
       snprintf (buf, sizeof (buf), "#%2.2lx%2.2lx%2.2lx",
 		lrint (gray * 0xff), lrint (gray * 0xff), lrint (gray * 0xff));
-      UNBLOCK_INPUT;
+      unblock_input ();
       return build_string (buf);
     }
 
   snprintf (buf, sizeof (buf), "#%2.2lx%2.2lx%2.2lx",
             lrint (red*0xff), lrint (green*0xff), lrint (blue*0xff));
 
-  UNBLOCK_INPUT;
+  unblock_input ();
   return build_string (buf);
 }
 
@@ -1575,33 +1603,33 @@ ns_query_color(void *col, XColor *color_def, int setPixel)
 }
 
 
-int
+bool
 ns_defined_color (struct frame *f,
                   const char *name,
                   XColor *color_def,
-                  int alloc,
-                  char makeIndex)
+                  bool alloc,
+                  bool makeIndex)
 /* --------------------------------------------------------------------------
-         Return 1 if named color found, and set color_def rgb accordingly.
+         Return true if named color found, and set color_def rgb accordingly.
          If makeIndex and alloc are nonzero put the color in the color_table,
          and set color_def pixel to the resulting index.
          If makeIndex is zero, set color_def pixel to ARGB.
-         Return 0 if not found
+         Return false if not found
    -------------------------------------------------------------------------- */
 {
   NSColor *col;
   NSTRACE (ns_defined_color);
 
-  BLOCK_INPUT;
+  block_input ();
   if (ns_get_color (name, &col) != 0) /* Color not found  */
     {
-      UNBLOCK_INPUT;
+      unblock_input ();
       return 0;
     }
   if (makeIndex && alloc)
     color_def->pixel = ns_index_color (col, f);
   ns_query_color (col, color_def, !makeIndex);
-  UNBLOCK_INPUT;
+  unblock_input ();
   return 1;
 }
 
@@ -1767,7 +1795,7 @@ ns_mouse_position (struct frame **fp, int insist, Lisp_Object *bar_window,
 
   dpyinfo = FRAME_NS_DISPLAY_INFO (*fp);
 
-  BLOCK_INPUT;
+  block_input ();
 
   if (last_mouse_scroll_bar != nil && insist == 0)
     {
@@ -1812,7 +1840,7 @@ ns_mouse_position (struct frame **fp, int insist, Lisp_Object *bar_window,
         }
     }
 
-  UNBLOCK_INPUT;
+  unblock_input ();
 }
 
 
@@ -1832,7 +1860,7 @@ ns_frame_up_to_date (struct frame *f)
       if ((hlinfo->mouse_face_deferred_gc || f ==hlinfo->mouse_face_mouse_frame)
       /*&& hlinfo->mouse_face_mouse_frame*/)
         {
-          BLOCK_INPUT;
+          block_input ();
 	  ns_update_begin(f);
           if (hlinfo->mouse_face_mouse_frame)
             note_mouse_highlight (hlinfo->mouse_face_mouse_frame,
@@ -1840,7 +1868,7 @@ ns_frame_up_to_date (struct frame *f)
                                   hlinfo->mouse_face_mouse_y);
           hlinfo->mouse_face_deferred_gc = 0;
 	  ns_update_end(f);
-          UNBLOCK_INPUT;
+          unblock_input ();
         }
     }
 }
@@ -1940,8 +1968,6 @@ ns_clear_frame (struct frame *f)
   NSRect r;
 
   NSTRACE (ns_clear_frame);
-  if (ns_in_resize)
-    return;
 
  /* comes on initial frame because we have
     after-make-frame-functions = select-frame */
@@ -1955,19 +1981,15 @@ ns_clear_frame (struct frame *f)
 
   r = [view bounds];
 
-  BLOCK_INPUT;
+  block_input ();
   ns_focus (f, &r, 1);
   [ns_lookup_indexed_color (NS_FACE_BACKGROUND (FRAME_DEFAULT_FACE (f)), f) set];
   NSRectFill (r);
   ns_unfocus (f);
 
-#ifdef NS_IMPL_COCOA
-  [[view window] display];  /* redraw resize handle */
-#endif
-
   /* as of 2006/11 or so this is now needed */
   ns_redraw_scroll_bars (f);
-  UNBLOCK_INPUT;
+  unblock_input ();
 }
 
 
@@ -1990,34 +2012,7 @@ ns_clear_frame_area (struct frame *f, int x, int y, int width, int height)
   ns_focus (f, &r, 1);
   [ns_lookup_indexed_color (NS_FACE_BACKGROUND (face), f) set];
 
-#ifdef NS_IMPL_COCOA
-  {
-    /* clip out the resize handle */
-    NSWindow *window = [FRAME_NS_VIEW (f) window];
-    NSRect ir
-      = [view convertRect: ns_resize_handle_rect (window) fromView: nil];
-
-    ir = NSIntersectionRect (r, ir);
-    if (NSIsEmptyRect (ir))
-      {
-#endif
-
   NSRectFill (r);
-
-#ifdef NS_IMPL_COCOA
-      }
-    else
-      {
-        NSRect r1 = r, r2 = r; /* upper and lower non-intersecting */
-        r1.size.height -= ir.size.height;
-        r2.origin.y += r1.size.height;
-        r2.size.width -= ir.size.width;
-        r2.size.height = ir.size.height;
-        NSRectFill (r1);
-        NSRectFill (r2);
-      }
-  }
-#endif
 
   ns_unfocus (f);
   return;
@@ -2068,7 +2063,7 @@ ns_scroll_run (struct window *w, struct run *run)
   if (height == 0)
       return;
 
-  BLOCK_INPUT;
+  block_input ();
 
   updated_window = w;
   x_clear_cursor (w);
@@ -2083,7 +2078,7 @@ ns_scroll_run (struct window *w, struct run *run)
     ns_unfocus (f);
   }
 
-  UNBLOCK_INPUT;
+  unblock_input ();
 }
 
 
@@ -2117,12 +2112,12 @@ ns_after_update_window_line (struct glyph_row *desired_row)
     {
       int y = WINDOW_TO_FRAME_PIXEL_Y (w, max (0, desired_row->y));
 
-      BLOCK_INPUT;
+      block_input ();
       ns_clear_frame_area (f, 0, y, width, height);
       ns_clear_frame_area (f,
                            FRAME_PIXEL_WIDTH (f) - width,
                            y, width, height);
-      UNBLOCK_INPUT;
+      unblock_input ();
     }
 }
 
@@ -2155,7 +2150,7 @@ ns_shift_glyphs_for_insert (struct frame *f,
    ========================================================================== */
 
 
-static inline void
+static void
 ns_compute_glyph_string_overhangs (struct glyph_string *s)
 /* --------------------------------------------------------------------------
      External (RIF); compute left/right overhang of whole string and set in s
@@ -2489,12 +2484,12 @@ show_hourglass (struct atimer *timer)
   if (hourglass_shown_p)
     return;
 
-  BLOCK_INPUT;
+  block_input ();
 
   /* TODO: add NSProgressIndicator to selected frame (see macfns.c) */
 
   hourglass_shown_p = 1;
-  UNBLOCK_INPUT;
+  unblock_input ();
 }
 
 
@@ -2504,12 +2499,12 @@ hide_hourglass (void)
   if (!hourglass_shown_p)
     return;
 
-  BLOCK_INPUT;
+  block_input ();
 
   /* TODO: remove NSProgressIndicator from all frames */
 
   hourglass_shown_p = 0;
-  UNBLOCK_INPUT;
+  unblock_input ();
 }
 
 
@@ -2979,8 +2974,11 @@ ns_dumpglyphs_image (struct glyph_string *s, NSRect r)
   if (img != nil)
     {
 #if !defined (NS_IMPL_COCOA) || MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_6
-      [img drawInRect: br
-             fromRect: NSZeroRect
+      NSRect dr = NSMakeRect (x, y, s->slice.width, s->slice.height);
+      NSRect ir = NSMakeRect (s->slice.x, s->slice.y,
+                              s->slice.width, s->slice.height);
+      [img drawInRect: dr
+             fromRect: ir
              operation: NSCompositeSourceOver
               fraction: 1.0
            respectFlipped: YES
@@ -3336,8 +3334,7 @@ ns_send_appdefined (int value)
 }
 
 static int
-ns_read_socket (struct terminal *terminal, int expected,
-                struct input_event *hold_quit)
+ns_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 /* --------------------------------------------------------------------------
      External (hook): Post an event to ourself and keep reading events until
      we read it back again.  In effect process all events which were waiting.
@@ -3352,17 +3349,7 @@ ns_read_socket (struct terminal *terminal, int expected,
   if ([NSApp modalWindow] != nil)
     return -1;
 
-  if (interrupt_input_blocked)
-    {
-      interrupt_input_pending = 1;
-      pending_signals = 1;
-      return -1;
-    }
-
-  interrupt_input_pending = 0;
-  pending_signals = pending_atimers;
-
-  BLOCK_INPUT;
+  block_input ();
   n_emacs_events_pending = 0;
   EVENT_INIT (ev);
   emacs_event = &ev;
@@ -3407,7 +3394,7 @@ ns_read_socket (struct terminal *terminal, int expected,
   nevents = n_emacs_events_pending;
   n_emacs_events_pending = 0;
   emacs_event = q_event_ptr = NULL;
-  UNBLOCK_INPUT;
+  unblock_input ();
 
   return nevents;
 }
@@ -3487,7 +3474,7 @@ ns_select (int nfds, fd_set *readfds, fd_set *writefds,
     }
 
   EVENT_INIT (event);
-  BLOCK_INPUT;
+  block_input ();
   emacs_event = &event;
   if (++apploopnr != 1)
     {
@@ -3501,7 +3488,7 @@ ns_select (int nfds, fd_set *readfds, fd_set *writefds,
       c = 's';
       write (selfds[1], &c, 1);
     }
-  UNBLOCK_INPUT;
+  unblock_input ();
 
   ev = last_appdefined_event;
 
@@ -3613,7 +3600,7 @@ ns_set_vertical_scroll_bar (struct window *window,
 			     || WINDOW_RIGHT_MARGIN_COLS (window) == 0));
 
   XSETWINDOW (win, window);
-  BLOCK_INPUT;
+  block_input ();
 
   /* we want at least 5 lines to display a scrollbar */
   if (WINDOW_TOTAL_LINES (window) < 5)
@@ -3625,7 +3612,7 @@ ns_set_vertical_scroll_bar (struct window *window,
           wset_vertical_scroll_bar (window, Qnil);
         }
       ns_clear_frame_area (f, sb_left, top, width, height);
-      UNBLOCK_INPUT;
+      unblock_input ();
       return;
     }
 
@@ -3657,7 +3644,7 @@ ns_set_vertical_scroll_bar (struct window *window,
     }
 
   [bar setPosition: position portion: portion whole: whole];
-  UNBLOCK_INPUT;
+  unblock_input ();
 }
 
 
@@ -3901,11 +3888,11 @@ ns_delete_terminal (struct terminal *terminal)
   if (!terminal->name)
     return;
 
-  BLOCK_INPUT;
+  block_input ();
 
   x_destroy_all_bitmaps (dpyinfo);
   ns_delete_display (dpyinfo);
-  UNBLOCK_INPUT;
+  unblock_input ();
 }
 
 
@@ -3942,7 +3929,7 @@ ns_create_terminal (struct ns_display_info *dpyinfo)
   terminal->frame_rehighlight_hook = ns_frame_rehighlight;
   terminal->frame_raise_lower_hook = ns_frame_raise_lower;
 
-  terminal->fullscreen_hook = 0; /* see XTfullscreen_hook */
+  terminal->fullscreen_hook = ns_fullscreen_hook;
 
   terminal->set_vertical_scroll_bar_hook = ns_set_vertical_scroll_bar;
   terminal->condemn_scroll_bars_hook = ns_condemn_scroll_bars;
@@ -3983,7 +3970,7 @@ ns_term_init (Lisp_Object display_name)
 
   /* count object allocs (About, click icon); on OS X use ObjectAlloc tool */
   /*GSDebugAllocationActive (YES); */
-  BLOCK_INPUT;
+  block_input ();
 
   baud_rate = 38400;
   Fset_input_interrupt_mode (Qnil);
@@ -4052,7 +4039,7 @@ ns_term_init (Lisp_Object display_name)
 
   terminal->name = xstrdup (SSDATA (display_name));
 
-  UNBLOCK_INPUT;
+  unblock_input ();
 
   if (!inhibit_x_resources)
     {
@@ -4204,7 +4191,12 @@ ns_term_init (Lisp_Object display_name)
                             NSColorPboardType,
                             NSFontPboardType, nil] retain];
 
-  
+#ifndef NEW_STYLE_FS
+  /* If fullscreen is in init/default-frame-alist, focus isn't set
+     right for fullscreen windows, so set this.  */
+  [NSApp activateIgnoringOtherApps:YES];
+#endif
+
   [NSApp run];
   ns_do_open_file = YES;
   return dpyinfo;
@@ -4275,34 +4267,6 @@ ns_term_shutdown (int sig)
       fprintf (stderr, "Dropping external cursor update event.\n");
       return;
     }
-
-#ifdef NS_IMPL_COCOA
-  /* pass mouse down in resize handle and subsequent drags directly to
-     EmacsWindow so we can generate continuous redisplays */
-  if (ns_in_resize)
-    {
-      if (type == NSLeftMouseDragged)
-        {
-          [window mouseDragged: theEvent];
-          return;
-        }
-      else if (type == NSLeftMouseUp)
-        {
-          [window mouseUp: theEvent];
-          return;
-        }
-    }
-  else if (type == NSLeftMouseDown)
-    {
-      NSRect r = ns_resize_handle_rect (window);
-      if (NSPointInRect ([theEvent locationInWindow], r))
-        {
-          ns_in_resize = YES;
-          [window mouseDown: theEvent];
-          return;
-        }
-    }
-#endif
 
   if (type == NSApplicationDefined)
     {
@@ -4697,6 +4661,8 @@ not_in_argv (NSString *arg)
 {
   NSTRACE (EmacsView_dealloc);
   [toolbar release];
+  if (fs_state == FULLSCREEN_BOTH)
+    [nonfs_window release];
   [super dealloc];
 }
 
@@ -5415,6 +5381,7 @@ not_in_argv (NSString *arg)
       SET_FRAME_GARBAGED (emacsframe);
       cancel_mouse_face (emacsframe);
       [view setFrame: NSMakeRect (0, 0, neww, newh)];
+      [self windowDidMove:nil];   // Update top/left.
     }
 }
 
@@ -5423,6 +5390,19 @@ not_in_argv (NSString *arg)
 {
   NSTRACE (windowWillResize);
 /*fprintf (stderr,"Window will resize: %.0f x %.0f\n",frameSize.width,frameSize.height); */
+
+  if (fs_state == FULLSCREEN_MAXIMIZED
+      && (maximized_width != (int)frameSize.width
+          || maximized_height != (int)frameSize.height))
+    [self setFSValue: FULLSCREEN_NONE];
+  else if (fs_state == FULLSCREEN_WIDTH
+           && maximized_width != (int)frameSize.width)
+    [self setFSValue: FULLSCREEN_NONE];
+  else if (fs_state == FULLSCREEN_HEIGHT
+           && maximized_height != (int)frameSize.height)
+    [self setFSValue: FULLSCREEN_NONE];
+  if (fs_state == FULLSCREEN_NONE)
+    maximized_width = maximized_height = -1;
 
   cols = FRAME_PIXEL_WIDTH_TO_TEXT_COLS (emacsframe,
 #ifdef NS_IMPL_GNUSTEP
@@ -5483,10 +5463,17 @@ not_in_argv (NSString *arg)
 
 - (void)windowDidResize: (NSNotification *)notification
 {
+
+#if !defined (NEW_STYLE_FS) && ! defined (NS_IMPL_GNUSTEP)
+  NSWindow *theWindow = [notification object];
+  /* We can get notification on the non-FS window when in fullscreen mode.  */
+  if ([self window] != theWindow) return;
+#endif
+
 #ifdef NS_IMPL_GNUSTEP
   NSWindow *theWindow = [notification object];
 
-   /* in GNUstep, at least currently, it's possible to get a didResize
+   /* In GNUstep, at least currently, it's possible to get a didResize
       without getting a willResize.. therefore we need to act as if we got
       the willResize now */
   NSSize sz = [theWindow frame].size;
@@ -5504,20 +5491,10 @@ not_in_argv (NSString *arg)
     }
 #endif /* NS_IMPL_COCOA */
 
-  /* Avoid loop under GNUstep due to call at beginning of this function.
-     (x_set_window_size causes a resize which causes
-     a "windowDidResize" which calls x_set_window_size).  */
-#ifndef NS_IMPL_GNUSTEP
   if (cols > 0 && rows > 0)
     {
-      if (ns_in_resize)
-        x_set_window_size (emacsframe, 0, cols, rows);
-      else
-        {
-          [self updateFrameSize: YES];
-        }
+      [self updateFrameSize: YES];
     }
-#endif
 
   ns_send_appdefined (-1);
 }
@@ -5605,6 +5582,10 @@ not_in_argv (NSString *arg)
   windowClosing = NO;
   processingCompose = NO;
   scrollbarsNeedingUpdate = 0;
+  fs_state = FULLSCREEN_NONE;
+  fs_before_fs = next_maximized = -1;
+  maximized_width = maximized_height = -1;
+  nonfs_window = nil;
 
 /*fprintf (stderr,"init with %d, %d\n",f->text_cols, f->text_lines); */
 
@@ -5629,9 +5610,13 @@ not_in_argv (NSString *arg)
                         backing: NSBackingStoreBuffered
                           defer: YES];
 
+#ifdef NEW_STYLE_FS
+    [win setCollectionBehavior:NSWindowCollectionBehaviorFullScreenPrimary];
+#endif
+
   wr = [win frame];
-  f->border_width = wr.size.width - r.size.width;
-  FRAME_NS_TITLEBAR_HEIGHT (f) = wr.size.height - r.size.height;
+  bwidth = f->border_width = wr.size.width - r.size.width;
+  tibar_height = FRAME_NS_TITLEBAR_HEIGHT (f) = wr.size.height - r.size.height;
 
   [win setAcceptsMouseMovedEvents: YES];
   [win setDelegate: self];
@@ -5737,27 +5722,50 @@ not_in_argv (NSString *arg)
 
   NSTRACE (windowWillUseStandardFrame);
 
-  if (abs (defaultFrame.size.height - result.size.height)
-      > FRAME_LINE_HEIGHT (emacsframe))
+  if (fs_before_fs != -1) /* Entering fullscreen */
+      {
+        result = defaultFrame;
+      }
+  else if (next_maximized == FULLSCREEN_HEIGHT
+      || (next_maximized == -1
+          && abs (defaultFrame.size.height - result.size.height)
+          > FRAME_LINE_HEIGHT (emacsframe)))
     {
       /* first click */
       ns_userRect = result;
-      result.size.height = defaultFrame.size.height;
+      maximized_height = result.size.height = defaultFrame.size.height;
+      maximized_width = -1;
       result.origin.y = defaultFrame.origin.y;
+      [self setFSValue: FULLSCREEN_HEIGHT];
+    }
+  else if (next_maximized == FULLSCREEN_WIDTH)
+    {
+      ns_userRect = result;
+      maximized_width = result.size.width = defaultFrame.size.width;
+      maximized_height = -1;
+      result.origin.x = defaultFrame.origin.x;
+      [self setFSValue: FULLSCREEN_WIDTH];
+    }
+  else if (next_maximized == FULLSCREEN_MAXIMIZED
+           || (next_maximized == -1
+               && abs (defaultFrame.size.width - result.size.width)
+               > FRAME_COLUMN_WIDTH (emacsframe)))
+    {
+      result = defaultFrame;  /* second click */
+      maximized_width = result.size.width;
+      maximized_height = result.size.height;
+      [self setFSValue: FULLSCREEN_MAXIMIZED];
     }
   else
     {
-      if (abs (defaultFrame.size.width - result.size.width)
-          > FRAME_COLUMN_WIDTH (emacsframe))
-        result = defaultFrame;  /* second click */
-      else
-        {
-          /* restore */
-          result = ns_userRect.size.height ? ns_userRect : result;
-          ns_userRect = NSMakeRect (0, 0, 0, 0);
-        }
+      /* restore */
+      result = ns_userRect.size.height ? ns_userRect : result;
+      ns_userRect = NSMakeRect (0, 0, 0, 0);
+      [self setFSValue: FULLSCREEN_NONE];
+      maximized_width = maximized_width = -1;
     }
 
+  if (fs_before_fs == -1) next_maximized = -1;
   [self windowWillResize: sender toSize: result.size];
   return result;
 }
@@ -5809,6 +5817,211 @@ not_in_argv (NSString *arg)
     }
 }
 
+- (void)windowWillEnterFullScreen:(NSNotification *)notification
+{
+  fs_before_fs = fs_state;
+}
+
+- (void)windowDidEnterFullScreen:(NSNotification *)notification
+{
+  [self setFSValue: FULLSCREEN_BOTH];
+#ifdef NEW_STYLE_FS
+  // Fix bad background.
+  if ([toolbar isVisible])
+    {
+      [toolbar setVisible:NO];
+      [toolbar setVisible:YES];
+    }
+#else
+  [self windowDidBecomeKey:notification];
+  [nonfs_window orderOut:self];
+#endif
+}
+
+- (void)windowWillExitFullScreen:(NSNotification *)notification
+{
+  if (next_maximized != -1)
+    fs_before_fs = next_maximized;
+}
+
+- (void)windowDidExitFullScreen:(NSNotification *)notification
+{
+  [self setFSValue: fs_before_fs];
+  fs_before_fs = -1;
+  if (next_maximized != -1)
+    [[self window] performZoom:self];
+}
+
+- (void)toggleFullScreen: (id)sender
+{
+#ifdef NEW_STYLE_FS
+  [[self window] toggleFullScreen:sender];
+#else
+  NSWindow *w = [self window], *fw;
+  BOOL onFirstScreen = [[w screen]
+                         isEqual:[[NSScreen screens] objectAtIndex:0]];
+  struct frame *f = emacsframe;
+  NSSize sz;
+  NSRect r, wr = [w frame];
+  NSColor *col = ns_lookup_indexed_color (NS_FACE_BACKGROUND
+                                          (FRAME_DEFAULT_FACE (f)),
+                                          f);
+
+  sz.width = FRAME_COLUMN_WIDTH (f);
+  sz.height = FRAME_LINE_HEIGHT (f);
+
+  if (fs_state != FULLSCREEN_BOTH)
+    {
+      /* Hide dock and menubar if we are on the primary screen.  */
+      if (onFirstScreen)
+        {
+#if defined (NS_IMPL_COCOA) && \
+  MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_6
+          NSApplicationPresentationOptions options
+            = NSApplicationPresentationAutoHideDock
+            | NSApplicationPresentationAutoHideMenuBar;
+
+          [NSApp setPresentationOptions: options];
+#else
+          [NSMenu setMenuBarVisible:NO];
+#endif
+        }
+
+      fw = [[EmacsFSWindow alloc]
+                       initWithContentRect:[w contentRectForFrameRect:wr]
+                                 styleMask:NSBorderlessWindowMask
+                                   backing:NSBackingStoreBuffered
+                                     defer:YES
+                                    screen:[w screen]];
+
+      [fw setContentView:[w contentView]];
+      [fw setTitle:[w title]];
+      [fw setDelegate:self];
+      [fw setAcceptsMouseMovedEvents: YES];
+      [fw useOptimizedDrawing: YES];
+      [fw setResizeIncrements: sz];
+      [fw setBackgroundColor: col];
+      if ([col alphaComponent] != 1.0)
+        [fw setOpaque: NO];
+
+      f->border_width = 0;
+      FRAME_NS_TITLEBAR_HEIGHT (f) = 0;
+      tobar_height = FRAME_TOOLBAR_HEIGHT (f);
+      FRAME_TOOLBAR_HEIGHT (f) = 0;
+      FRAME_EXTERNAL_TOOL_BAR (f) = 0;
+
+      nonfs_window = w;
+
+      [self windowWillEnterFullScreen:nil];
+      [fw makeKeyAndOrderFront:NSApp];
+      [fw makeFirstResponder:self];
+      [w orderOut:self];
+      r = [fw frameRectForContentRect:[[fw screen] frame]];
+      [fw setFrame: r display:YES animate:YES];
+      [self windowDidEnterFullScreen:nil];
+      [fw display];
+    }
+  else
+    {
+      fw = w;
+      w = nonfs_window;
+      nonfs_window = nil;
+
+      if (onFirstScreen)
+        {
+#if defined (NS_IMPL_COCOA) && \
+  MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_6
+          [NSApp setPresentationOptions: NSApplicationPresentationDefault];
+#else
+          [NSMenu setMenuBarVisible:YES];
+#endif
+        }
+
+      [w setContentView:[fw contentView]];
+      [w setResizeIncrements: sz];
+      [w setBackgroundColor: col];
+      if ([col alphaComponent] != 1.0)
+        [w setOpaque: NO];
+      
+      f->border_width = bwidth;
+      FRAME_NS_TITLEBAR_HEIGHT (f) = tibar_height;
+      FRAME_TOOLBAR_HEIGHT (f) = tobar_height;
+      if (tobar_height)
+        FRAME_EXTERNAL_TOOL_BAR (f) = 1;
+
+      [self windowWillExitFullScreen:nil];
+      [fw setFrame: [w frame] display:YES animate:YES];
+      [fw close];
+      [w makeKeyAndOrderFront:NSApp];
+      [self windowDidExitFullScreen:nil];
+    }
+#endif
+}
+
+- (void)handleFS
+{
+  if (fs_state != emacsframe->want_fullscreen)
+    {
+      if (fs_state == FULLSCREEN_BOTH)
+        {
+          [self toggleFullScreen:self];
+        }
+
+      switch (emacsframe->want_fullscreen)
+        {
+        case FULLSCREEN_BOTH:
+          [self toggleFullScreen:self];
+          break;
+        case FULLSCREEN_WIDTH:
+          next_maximized = FULLSCREEN_WIDTH;
+          if (fs_state != FULLSCREEN_BOTH)
+            [[self window] performZoom:self];
+          break;
+        case FULLSCREEN_HEIGHT:
+          next_maximized = FULLSCREEN_HEIGHT;
+          if (fs_state != FULLSCREEN_BOTH)
+            [[self window] performZoom:self];
+          break;
+        case FULLSCREEN_MAXIMIZED:
+          next_maximized = FULLSCREEN_MAXIMIZED;
+          if (fs_state != FULLSCREEN_BOTH)
+            [[self window] performZoom:self];
+          break;
+        case FULLSCREEN_NONE:
+          if (fs_state != FULLSCREEN_BOTH)
+            {
+              next_maximized = FULLSCREEN_NONE;
+              [[self window] performZoom:self];
+            }
+          break;
+        }
+  
+      emacsframe->want_fullscreen = FULLSCREEN_NONE;
+    }
+
+}
+
+- (void) setFSValue: (int)value
+{
+  Lisp_Object lval = Qnil;
+  switch (value)
+    {
+    case FULLSCREEN_BOTH:
+      lval = Qfullboth;
+      break;
+    case FULLSCREEN_WIDTH:
+      lval = Qfullwidth;
+      break;
+    case FULLSCREEN_HEIGHT:
+      lval = Qfullheight;
+      break;
+    case FULLSCREEN_MAXIMIZED:
+      lval = Qmaximized;
+      break;
+    }
+  store_frame_param (emacsframe, Qfullscreen, lval);
+  fs_state = value;
+}
 
 - (void)mouseEntered: (NSEvent *)theEvent
 {
@@ -5906,7 +6119,7 @@ not_in_argv (NSString *arg)
 
   NSTRACE (drawRect);
 
-  if (!emacsframe || !emacsframe->output_data.ns || ns_in_resize)
+  if (!emacsframe || !emacsframe->output_data.ns)
     return;
 
   ns_clear_frame_area (emacsframe, x, y, width, height);
@@ -6243,62 +6456,22 @@ not_in_argv (NSString *arg)
   return [super constrainFrameRect:frameRect toScreen:screen];
 }
 
-
-/* called only on resize clicks by special case in EmacsApp-sendEvent */
-- (void)mouseDown: (NSEvent *)theEvent
-{
-  if (ns_in_resize)
-    {
-      NSSize size = [[theEvent window] frame].size;
-      grabOffset = [theEvent locationInWindow];
-      grabOffset.x = size.width - grabOffset.x;
-    }
-  else
-    [super mouseDown: theEvent];
-}
-
-
-/* stop resizing */
-- (void)mouseUp: (NSEvent *)theEvent
-{
-  if (ns_in_resize)
-    {
-      struct frame *f = ((EmacsView *)[self delegate])->emacsframe;
-      ns_in_resize = NO;
-      ns_set_name_as_filename (f);
-      [self display];
-      ns_send_appdefined (-1);
-    }
-  else
-    [super mouseUp: theEvent];
-}
-
-
-/* send resize events */
-- (void)mouseDragged: (NSEvent *)theEvent
-{
-  if (ns_in_resize)
-    {
-      NSPoint p = [theEvent locationInWindow];
-      NSSize size, vettedSize, origSize = [self frame].size;
-
-      size.width = p.x + grabOffset.x;
-      size.height = origSize.height - p.y + grabOffset.y;
-
-      if (size.width == origSize.width && size.height == origSize.height)
-        return;
-
-      vettedSize = [[self delegate] windowWillResize: self toSize: size];
-      [[NSNotificationCenter defaultCenter]
-            postNotificationName: NSWindowDidResizeNotification
-                          object: self];
-    }
-  else
-    [super mouseDragged: theEvent];
-}
-
 @end /* EmacsWindow */
 
+
+@implementation EmacsFSWindow
+
+- (BOOL)canBecomeKeyWindow
+{
+  return YES;
+}
+
+- (BOOL)canBecomeMainWindow
+{
+  return YES;
+}
+
+@end
 
 /* ==========================================================================
 
@@ -6370,13 +6543,13 @@ not_in_argv (NSString *arg)
 - (void)setFrame: (NSRect)newRect
 {
   NSTRACE (EmacsScroller_setFrame);
-/*  BLOCK_INPUT; */
+/*  block_input (); */
   pixel_height = NSHeight (newRect);
   if (pixel_height == 0) pixel_height = 1;
   min_portion = 20 / pixel_height;
   [super setFrame: newRect];
   [self display];
-/*  UNBLOCK_INPUT; */
+/*  unblock_input (); */
 }
 
 
@@ -6411,14 +6584,14 @@ not_in_argv (NSString *arg)
   if (condemned)
     {
       EmacsView *view;
-      BLOCK_INPUT;
+      block_input ();
       /* ensure other scrollbar updates after deletion */
       view = (EmacsView *)FRAME_NS_VIEW (frame);
       if (view != nil)
         view->scrollbarsNeedingUpdate++;
       [self removeFromSuperview];
       [self release];
-      UNBLOCK_INPUT;
+      unblock_input ();
     }
   return self;
 }
@@ -6913,7 +7086,7 @@ allowing it to be used at a lower level for accented character entry.");
   ns_function_modifier = Qnone;
 
   DEFVAR_LISP ("ns-antialias-text", ns_antialias_text,
-               "Non-nil (the default) means to render text antialiased. Only has an effect on OS X Panther and above.");
+               "Non-nil (the default) means to render text antialiased.");
   ns_antialias_text = Qt;
 
   DEFVAR_LISP ("ns-confirm-quit", ns_confirm_quit,

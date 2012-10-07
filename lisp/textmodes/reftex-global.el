@@ -4,8 +4,6 @@
 
 ;; Author: Carsten Dominik <dominik@science.uva.nl>
 ;; Maintainer: auctex-devel@gnu.org
-;; Version: 4.31
-;; Package: reftex
 
 ;; This file is part of GNU Emacs.
 
@@ -407,7 +405,7 @@ Also checks if buffers visiting the files are in read-only mode."
     (when flist
       (if wrapp
 	  (unless isearch-forward
-	      (setq flist (last flist)))
+	    (setq flist (last flist)))
 	(unless isearch-forward
 	  (setq flist (reverse flist)))
 	(while (not (string= (car flist) cb))
@@ -437,7 +435,8 @@ With no argument, this command toggles
 	      (with-current-buffer crt-buf
 		(when reftex-mode
 		  (if (boundp 'multi-isearch-next-buffer-function)
-		      (set (make-local-variable 'multi-isearch-next-buffer-function)
+		      (set (make-local-variable
+			    'multi-isearch-next-buffer-function)
 			   'reftex-isearch-switch-to-next-file)
 		    (set (make-local-variable 'isearch-wrap-function)
 			 'reftex-isearch-wrap-function)

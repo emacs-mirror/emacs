@@ -738,17 +738,18 @@ Field boundaries are not noticed if `inhibit-field-text-motion' is non-nil.  */)
 DEFUN ("line-beginning-position",
        Fline_beginning_position, Sline_beginning_position, 0, 1, 0,
        doc: /* Return the character position of the first character on the current line.
-With argument N not nil or 1, move forward N - 1 lines first.
-If scan reaches end of buffer, return that position.
+With optional argument N, scan forward N - 1 lines first.
+If the scan reaches the end of the buffer, return that position.
 
-The returned position is of the first character in the logical order,
-i.e. the one that has the smallest character position.
+This function ignores text display directionality; it returns the
+position of the first character in logical order, i.e. the smallest
+character position on the line.
 
 This function constrains the returned position to the current field
-unless that would be on a different line than the original,
+unless that position would be on a different line than the original,
 unconstrained result.  If N is nil or 1, and a front-sticky field
 starts at point, the scan stops as soon as it starts.  To ignore field
-boundaries bind `inhibit-field-text-motion' to t.
+boundaries, bind `inhibit-field-text-motion' to t.
 
 This function does not move point.  */)
   (Lisp_Object n)
@@ -782,8 +783,9 @@ DEFUN ("line-end-position", Fline_end_position, Sline_end_position, 0, 1, 0,
 With argument N not nil or 1, move forward N - 1 lines first.
 If scan reaches end of buffer, return that position.
 
-The returned position is of the last character in the logical order,
-i.e. the character whose buffer position is the largest one.
+This function ignores text display directionality; it returns the
+position of the last character in logical order, i.e. the largest
+character position on the line.
 
 This function constrains the returned position to the current field
 unless that would be on a different line than the original,
@@ -1217,9 +1219,9 @@ of the user with that uid, or nil if there is no such user.  */)
     return Vuser_login_name;
 
   CONS_TO_INTEGER (uid, uid_t, id);
-  BLOCK_INPUT;
+  block_input ();
   pw = getpwuid (id);
-  UNBLOCK_INPUT;
+  unblock_input ();
   return (pw ? build_string (pw->pw_name) : Qnil);
 }
 
@@ -1277,15 +1279,15 @@ name, or nil if there is no such user.  */)
     {
       uid_t u;
       CONS_TO_INTEGER (uid, uid_t, u);
-      BLOCK_INPUT;
+      block_input ();
       pw = getpwuid (u);
-      UNBLOCK_INPUT;
+      unblock_input ();
     }
   else if (STRINGP (uid))
     {
-      BLOCK_INPUT;
+      block_input ();
       pw = getpwnam (SSDATA (uid));
-      UNBLOCK_INPUT;
+      unblock_input ();
     }
   else
     error ("Invalid UID specification");
@@ -1761,14 +1763,14 @@ format_time_string (char const *format, ptrdiff_t formatlen,
   while (1)
     {
       time_t *taddr = emacs_secs_addr (&t);
-      BLOCK_INPUT;
+      block_input ();
 
       synchronize_system_time_locale ();
 
       tm = ut ? gmtime (taddr) : localtime (taddr);
       if (! tm)
 	{
-	  UNBLOCK_INPUT;
+	  unblock_input ();
 	  time_overflow ();
 	}
       *tmp = *tm;
@@ -1780,14 +1782,14 @@ format_time_string (char const *format, ptrdiff_t formatlen,
 
       /* Buffer was too small, so make it bigger and try again.  */
       len = emacs_nmemftime (NULL, SIZE_MAX, format, formatlen, tm, ut, ns);
-      UNBLOCK_INPUT;
+      unblock_input ();
       if (STRING_BYTES_BOUND <= len)
 	string_overflow ();
       size = len + 1;
       buf = SAFE_ALLOCA (size);
     }
 
-  UNBLOCK_INPUT;
+  unblock_input ();
   bufstring = make_unibyte_string (buf, len);
   SAFE_FREE ();
   return code_convert_string_norecord (bufstring, Vlocale_coding_system, 0);
@@ -1815,11 +1817,11 @@ DOW and ZONE.)  */)
   struct tm *decoded_time;
   Lisp_Object list_args[9];
 
-  BLOCK_INPUT;
+  block_input ();
   decoded_time = localtime (&time_spec);
   if (decoded_time)
     save_tm = *decoded_time;
-  UNBLOCK_INPUT;
+  unblock_input ();
   if (! (decoded_time
 	 && MOST_NEGATIVE_FIXNUM - TM_YEAR_BASE <= save_tm.tm_year
 	 && save_tm.tm_year <= MOST_POSITIVE_FIXNUM - TM_YEAR_BASE))
@@ -1835,13 +1837,13 @@ DOW and ZONE.)  */)
   XSETFASTINT (list_args[6], save_tm.tm_wday);
   list_args[7] = save_tm.tm_isdst ? Qt : Qnil;
 
-  BLOCK_INPUT;
+  block_input ();
   decoded_time = gmtime (&time_spec);
   if (decoded_time == 0)
     list_args[8] = Qnil;
   else
     XSETINT (list_args[8], tm_diff (&save_tm, decoded_time));
-  UNBLOCK_INPUT;
+  unblock_input ();
   return Flist (9, list_args);
 }
 
@@ -1899,9 +1901,9 @@ usage: (encode-time SECOND MINUTE HOUR DAY MONTH YEAR &optional ZONE)  */)
     zone = XCAR (zone);
   if (NILP (zone))
     {
-      BLOCK_INPUT;
+      block_input ();
       value = mktime (&tm);
-      UNBLOCK_INPUT;
+      unblock_input ();
     }
   else
     {
@@ -1926,7 +1928,7 @@ usage: (encode-time SECOND MINUTE HOUR DAY MONTH YEAR &optional ZONE)  */)
       else
 	error ("Invalid time zone specification");
 
-      BLOCK_INPUT;
+      block_input ();
 
       /* Set TZ before calling mktime; merely adjusting mktime's returned
 	 value doesn't suffice, since that would mishandle leap seconds.  */
@@ -1940,7 +1942,7 @@ usage: (encode-time SECOND MINUTE HOUR DAY MONTH YEAR &optional ZONE)  */)
 #ifdef LOCALTIME_CACHE
       tzset ();
 #endif
-      UNBLOCK_INPUT;
+      unblock_input ();
 
       xfree (newenv);
     }
@@ -1976,7 +1978,7 @@ but this is considered obsolete.  */)
      newline, and without the 4-digit year limit.  Don't use asctime
      or ctime, as they might dump core if the year is outside the
      range -999 .. 9999.  */
-  BLOCK_INPUT;
+  block_input ();
   tm = localtime (&value);
   if (tm)
     {
@@ -1992,7 +1994,7 @@ but this is considered obsolete.  */)
 		     tm->tm_hour, tm->tm_min, tm->tm_sec,
 		     tm->tm_year + year_base);
     }
-  UNBLOCK_INPUT;
+  unblock_input ();
   if (! tm)
     time_overflow ();
 
@@ -2048,11 +2050,11 @@ the data it can't find.  */)
   zone_offset = Qnil;
   value = make_emacs_time (lisp_seconds_argument (specified_time), 0);
   zone_name = format_time_string ("%Z", sizeof "%Z" - 1, value, 0, &localtm);
-  BLOCK_INPUT;
+  block_input ();
   t = gmtime (emacs_secs_addr (&value));
   if (t)
     offset = tm_diff (&localtm, t);
-  UNBLOCK_INPUT;
+  unblock_input ();
 
   if (t)
     {
@@ -2099,7 +2101,7 @@ only the former.  */)
   if (! (NILP (tz) || EQ (tz, Qt)))
     CHECK_STRING (tz);
 
-  BLOCK_INPUT;
+  block_input ();
 
   /* When called for the first time, save the original TZ.  */
   old_environbuf = environbuf;
@@ -2116,7 +2118,7 @@ only the former.  */)
   set_time_zone_rule (tzstring);
   environbuf = environ;
 
-  UNBLOCK_INPUT;
+  unblock_input ();
 
   xfree (old_environbuf);
   return Qnil;

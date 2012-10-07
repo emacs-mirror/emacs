@@ -452,7 +452,7 @@ definitions, or lack thereof).
 
 \(fn ((FUNC ARGLIST BODY...) ...) FORM...)"
   (declare (indent 1) (debug cl-flet)
-           (obsolete "Use either `cl-flet' or `cl-letf'."  "24.3"))
+           (obsolete "use either `cl-flet' or `cl-letf'."  "24.3"))
   `(letf ,(mapcar
            (lambda (x)
              (if (or (and (fboundp (car x))

@@ -422,7 +422,17 @@ since it could result in memory overflow and make Emacs crash."
 		       (const :tag "Only on ttys" :value tty)
 		       (other :tag "Always" t)) "23.1")
 	     (window-combination-resize windows boolean "24.1")
-	     (window-combination-limit windows boolean "24.1")
+	     (window-combination-limit
+	      windows (choice
+		       (const :tag "Never (nil)" :value nil)
+		       (const :tag "For Temp Buffer Resize mode (temp-buffer-resize)"
+			      :value temp-buffer-resize)
+		       (const :tag "For temporary buffers (temp-buffer)"
+			      :value temp-buffer)
+		       (const :tag "For buffer display (display-buffer)"
+			      :value display-buffer)
+		       (other :tag "Always (t)" :value t))
+	      "24.3")
 	     ;; xdisp.c
 	     (show-trailing-whitespace whitespace-faces boolean nil
 				       :safe booleanp)
@@ -433,7 +443,6 @@ since it could result in memory overflow and make Emacs crash."
 	     (hscroll-step windows number "22.1")
 	     (truncate-partial-width-windows display boolean "23.1")
 	     (make-cursor-line-fully-visible windows boolean)
-	     (mode-line-inverse-video mode-line boolean)
 	     (mode-line-in-non-selected-windows mode-line boolean "22.1")
 	     (line-number-display-limit display
 					(choice integer

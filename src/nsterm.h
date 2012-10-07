@@ -26,9 +26,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifdef HAVE_NS
 
 #ifdef NS_IMPL_COCOA
-#ifndef MAC_OS_X_VERSION_10_3
-#define MAC_OS_X_VERSION_10_3 1030
-#endif
 #ifndef MAC_OS_X_VERSION_10_4
 #define MAC_OS_X_VERSION_10_4 1040
 #endif
@@ -37,6 +34,12 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 #ifndef MAC_OS_X_VERSION_10_6
 #define MAC_OS_X_VERSION_10_6 1060
+#endif
+#ifndef MAC_OS_X_VERSION_10_7
+#define MAC_OS_X_VERSION_10_7 1070
+#endif
+#ifndef MAC_OS_X_VERSION_10_8
+#define MAC_OS_X_VERSION_10_8 1080
 #endif
 #endif /* NS_IMPL_COCOA */
 
@@ -80,6 +83,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    BOOL windowClosing;
    NSString *workingText;
    BOOL processingCompose;
+   int fs_state, fs_before_fs, next_maximized;
+   int tibar_height, tobar_height, bwidth;
+   int maximized_width, maximized_height;
+   NSWindow *nonfs_window;
 @public
    struct frame *emacsframe;
    int rows, cols;
@@ -104,6 +111,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 - (EmacsToolbar *) toolbar;
 - (void) deleteWorkingText;
 - (void) updateFrameSize: (BOOL) delay;
+- (void) handleFS;
+- (void) setFSValue: (int)value;
+- (void) toggleFullScreen: (id) sender;
 
 #ifdef NS_IMPL_GNUSTEP
 /* Not declared, but useful. */
@@ -119,6 +129,12 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 }
 @end
 
+
+/* Fullscreen version of the above.  */
+@interface EmacsFSWindow : EmacsWindow
+{
+}
+@end
 
 /* ==========================================================================
 
@@ -267,7 +283,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
   int refCount;
   NSBitmapImageRep *bmRep; /* used for accessing pixel data */
   unsigned char *pixmapData[5]; /* shortcut to access pixel data */
-  BOOL onTiger;
   NSColor *stippleMask;
 }
 + allocInitFromFile: (Lisp_Object)file;
@@ -336,7 +351,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* ==========================================================================
 
-   Rendering on Panther and above
+   Rendering
 
    ========================================================================== */
 
@@ -361,7 +376,7 @@ extern NSString *ns_app_name;
 extern EmacsMenu *mainMenu, *svcsMenu, *dockMenu;
 
 /* Apple removed the declaration, but kept the implementation */
-#if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_4
+#if defined (NS_IMPL_COCOA)
 @interface NSApplication (EmacsApp)
 - (void)setAppleMenu: (NSMenu *)menu;
 @end
@@ -464,10 +479,9 @@ struct nsfont_info
   float size;
 #ifdef __OBJC__
   NSFont *nsfont;
-  /* cgfont and synthItal are used only on OS X 10.3+ */
-#if defined (NS_IMPL_COCOA) && (MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_3)
+#if defined (NS_IMPL_COCOA)
   CGFontRef cgfont;
-#else /* GNUstep or OS X < 10.3 */
+#else /* GNUstep */
   void *cgfont;
 #endif
 #else /* ! OBJC */
@@ -749,11 +763,11 @@ extern Lisp_Object ns_cursor_type_to_lisp (int arg);
 extern void ns_set_name_as_filename (struct frame *f);
 extern void ns_set_doc_edited (struct frame *f, Lisp_Object arg);
 
-extern int
+extern bool
 ns_defined_color (struct frame *f,
                   const char *name,
-                  XColor *color_def, int alloc,
-                  char makeIndex);
+                  XColor *color_def, bool alloc,
+                  bool makeIndex);
 extern void
 ns_query_color (void *col, XColor *color_def, int setPixel);
 
@@ -799,8 +813,8 @@ struct image;
 extern void *ns_image_from_XBM (unsigned char *bits, int width, int height);
 extern void *ns_image_for_XPM (int width, int height, int depth);
 extern void *ns_image_from_file (Lisp_Object file);
-extern int ns_load_image (struct frame *f, struct image *img,
-                          Lisp_Object spec_file, Lisp_Object spec_data);
+extern bool ns_load_image (struct frame *f, struct image *img,
+			   Lisp_Object spec_file, Lisp_Object spec_data);
 extern int ns_image_width (void *img);
 extern int ns_image_height (void *img);
 extern unsigned long ns_get_pixel (void *img, int x, int y);

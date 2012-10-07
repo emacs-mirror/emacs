@@ -1,4 +1,85 @@
+2012-10-07  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* configure.ac: Check that OSX is 10.4 or newer.
+
+2012-10-07  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Improve sys_siglist detection.
+	* configure.ac (sys_siglist): Look for its decl in <signal.h>.
+	Otherwise, it's not found in either Fedora 17 or Solaris 11.
+
+2012-10-04  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Merge from gnulib, incorporating:
+	2012-10-02 pselect: reject invalid file descriptors
+	2012-10-02 ptsname: reject invalid file descriptors
+	2012-10-02 manywarnings: cater to more gcc infelicities
+	2012-09-30 sockets, sys_stat: restore AC_C_INLINE
+	* lib/pselect.c, lib/stdlib.in.h, m4/manywarnings.m4, m4/pselect.m4:
+	* m4/stdlib_h.m4, m4/sys_stat_h.m4: Update from gnulib.
+	* lib/gnulib.mk, m4/gnulib-comp.m4: Regenerate.
+
+2012-09-30  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Merge from gnulib, incorporating:
+	2012-09-28 extern-inline: provide a -Wundef safe config.h
+
+2012-09-27  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Check more robustly for timer_settime.
+	This should fix an OS X build problem reported by Ivan Andrus in
+	<http://lists.gnu.org/archive/html/emacs-devel/2012-09/msg00671.html>.
+	* configure.ac (gl_THREADLIB): Define to empty, since Emacs
+	does threads its own way.
+	* lib/gnulib.mk, m4/gnulib-comp.m4: Regenerate.
+
+2012-09-23  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* Makefile.in (bootstrap): Set MAKEFILE_NAME when building Makefile,
+	to avoid problems with recursion when using GNU make.
+
+2012-09-22  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* Makefile.in (bootstrap): Simplify build procedure.
+	Suggested by Wolfgang Jenker in
+	<http://lists.gnu.org/archive/html/emacs-devel/2012-09/msg00456.html>.
+
+	Merge from gnulib, incorporating:
+	2012-09-22 sockets, sys_stat: remove AC_C_INLINE in MSVC-only cases
+
+2012-09-19  Tassilo Horn  <tsdh@gnu.org>
+
+	* doc/emacs/misc.texi (DocView Slicing): Document new slice from
+	BoundingBox feature.
+
+2012-09-18  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* configure.ac (HAVE_GTK): Mention if we use GTK2 or GTK3.
+
+2012-09-17  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* Makefile.in (bootstrap): Revert last change.  Run config.status
+	after config.status --recheck, run configure from $(srcdir).
+	(config.status): Run configure from $(srcdir).
+
 2012-09-17  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* Makefile.in: Fix build error on FreeBSD.
+	($(MAKEFILE_NAME)): Pass MAKE='$(MAKE)' to config.status's env.
+	Suggested by Wolfgang Jenker in
+	<http://lists.gnu.org/archive/html/emacs-devel/2012-09/msg00430.html>.
+	(MAKE_CONFIG_STATUS): Remove.  Remaining use expanded.
+	This undoes part of the 2012-09-10 patch.
+	(bootstrap): Run ./configure, rather than trying to run config.status
+	if it exists.  That builds src/epaths.h more reliably.
+	Run autogen/copy_autogen if autogen.sh fails,
+	to create 'configure'; problem reported by Andreas Schwab in
+	<http://lists.gnu.org/archive/html/emacs-devel/2012-09/msg00438.html>.
+	* autogen.sh: Exit with status 1 when failing due to missing tools,
+	reverting the 2012-09-10 change to this file.
+	* autogen/copy_autogen: Fail if one of the subsidiary actions fail.
+	Use 'cp -f' for the build-aux files, since the destinations are
+	typically read-only.
 
 	Remove no-longer-needed Solaris 2.4 vfork bug workaround.
 	* configure.ac (ac_cv_func_vfork_works): Default to 'no' on

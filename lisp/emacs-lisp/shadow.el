@@ -158,8 +158,14 @@ See the documentation for `list-load-path-shadows' for further information."
 		      (eq 0 (call-process "cmp" nil nil nil "-s" f1 f2))))))))
 
 (defvar load-path-shadows-font-lock-keywords
+  ;; The idea is that shadows of files supplied with Emacs are more
+  ;; serious than various versions of external packages shadowing each
+  ;; other.
   `((,(format "hides \\(%s.*\\)"
-	      (file-name-directory (locate-library "simple.el")))
+	      (file-name-directory
+	       (or (locate-library "simple")
+		   (file-name-as-directory
+		    (expand-file-name "../lisp" data-directory)))))
      . (1 font-lock-warning-face)))
   "Keywords to highlight in `load-path-shadows-mode'.")
 

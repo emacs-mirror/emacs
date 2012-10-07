@@ -1,3 +1,48 @@
+2012-10-07  Glenn Morris  <rgm@gnu.org>
+
+	* admin.el (cusver-new-version): Set default.
+	(cusver-check): Improve interactive argument reading.
+
+2012-10-06  Glenn Morris  <rgm@gnu.org>
+
+	* admin.el (cusver-new-version): New variable.
+	(cusver-scan): Check if containing group has a :version.
+	(cusver-check): Add VERSION argument.
+
+2012-10-01  David Engster  <deng@randomsample.de>
+
+	* grammars/bovine-grammar.el:
+	* grammars/wisent-grammar.el: Move to lisp directory.
+
+2012-10-01  David Engster  <deng@randomsample.de>
+
+	* grammars/bovine-grammar.el (bovine--grammar-newstyle-unquote):
+	Remove.
+        (bovine-grammar-expand-form): Test for emacs-major-version.
+
+	* grammars/c.by: Add EXPLICIT to keyword tokens.
+
+        * grammars/f90.by: Add %provide token.
+
+        * grammar/grammar.wy (semantic-grammar-lexer): Remove, since it
+	was copied to grammar.el.  New %provide token to generate prefix
+	which conforms with Emacs conventions.  Remove lexer definition,
+	which is now in grammar.el.
+
+2012-09-27  Glenn Morris  <rgm@gnu.org>
+
+	* admin.el (set-version): Set msdos.c's Vwindow_system_version.
+
+2012-09-27  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Check more robustly for timer_settime.
+	* merge-gnulib (GNULIB_MODULES): Add timer-time.
+
+2012-09-26  Juanma Barranquero  <lekktu@gmail.com>
+
+	* unidata/BidiMirroring.txt:
+	* unidata/UnicodeData.txt: Update to Unicode 6.2.
+
 2012-09-17  Glenn Morris  <rgm@gnu.org>
 
 	* admin.el (add-log-time-format): Declare.

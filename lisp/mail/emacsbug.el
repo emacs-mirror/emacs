@@ -248,6 +248,13 @@ usually do not have translators for other languages.\n\n")))
                     "', version "
 		    (mapconcat 'number-to-string (x-server-version) ".") "\n")
 	  (error t)))
+    (let ((lsb (with-temp-buffer
+		 (if (eq 0 (ignore-errors
+			     (call-process "lsb_release" nil '(t nil)
+					   nil "-d")))
+		     (buffer-string)))))
+      (if (stringp lsb)
+	  (insert "System " lsb "\n")))
     (when (and system-configuration-options
 	       (not (equal system-configuration-options "")))
       (insert "Configured using:\n `configure "
@@ -308,9 +315,14 @@ usually do not have translators for other languages.\n\n")))
       (insert "\n"))
     (insert "\n")
     (insert "Load-path shadows:\n")
-    (message "Checking for load-path shadows...")
-    (let ((shadows (list-load-path-shadows t)))
-      (message "Checking for load-path shadows...done")
+    (let* ((msg "Checking for load-path shadows...")
+	   (result "done")
+	   (shadows (progn (message "%s" msg)
+			   (condition-case nil (list-load-path-shadows t)
+			     (error
+			      (setq result "error")
+			      "Error during checking")))))
+      (message "%s%s" msg result)
       (insert (if (zerop (length shadows))
                   "None found.\n"
                 shadows)))

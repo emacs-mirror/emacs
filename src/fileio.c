@@ -1025,9 +1025,9 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
 	  memcpy (o, nm, p - nm);
 	  o [p - nm] = 0;
 
-	  BLOCK_INPUT;
+	  block_input ();
 	  pw = (struct passwd *) getpwnam (o + 1);
-	  UNBLOCK_INPUT;
+	  unblock_input ();
 	  if (pw)
 	    {
 	      newdir = pw->pw_dir;
@@ -1413,9 +1413,9 @@ See also the function `substitute-in-file-name'.")
 	o[len] = 0;
 
 	/* Look up the user name.  */
-	BLOCK_INPUT;
+	block_input ();
 	pw = (struct passwd *) getpwnam (o + 1);
-	UNBLOCK_INPUT;
+	unblock_input ();
 	if (!pw)
 	  error ("\"%s\" isn't a registered user", o + 1);
 
@@ -1531,9 +1531,9 @@ search_embedded_absfilename (char *nm, char *endp)
 	      /* If we have ~user and `user' exists, discard
 		 everything up to ~.  But if `user' does not exist, leave
 		 ~user alone, it might be a literal file name.  */
-	      BLOCK_INPUT;
+	      block_input ();
 	      pw = getpwnam (o + 1);
-	      UNBLOCK_INPUT;
+	      unblock_input ();
 	      if (pw)
 		return p;
 	    }
@@ -2833,9 +2833,8 @@ or if SELinux is disabled, or if Emacs lacks SELinux support.  */)
 	  if (context_range_get (context))
 	    values[3] = build_string (context_range_get (context));
 	  context_free (context);
+	  freecon (con);
 	}
-      if (con)
-	freecon (con);
     }
 #endif
 
@@ -2914,12 +2913,10 @@ compiled with SELinux support.  */)
 	    report_file_error ("Doing lsetfilecon", Fcons (absname, Qnil));
 
 	  context_free (parsed_con);
+	  freecon (con);
 	}
       else
 	report_file_error ("Doing lgetfilecon", Fcons (absname, Qnil));
-
-      if (con)
-	freecon (con);
     }
 #endif
 
@@ -3002,10 +2999,10 @@ The value is an integer.  */)
   mode_t realmask;
   Lisp_Object value;
 
-  BLOCK_INPUT;
+  block_input ();
   realmask = umask (0);
   umask (realmask);
-  UNBLOCK_INPUT;
+  unblock_input ();
 
   XSETINT (value, (~ realmask) & 0777);
   return value;
@@ -3037,7 +3034,7 @@ Use the current time if TIMESTAMP is nil.  TIMESTAMP is in the format of
   {
     if (set_file_times (-1, SSDATA (encoded_absname), t, t))
       {
-#ifdef DOS_NT
+#ifdef MSDOS
         struct stat st;
 
         /* Setting times on a directory always fails.  */
@@ -5238,9 +5235,9 @@ do_auto_save_unwind (Lisp_Object arg)  /* used as unwind-protect function */
   auto_saving = 0;
   if (stream != NULL)
     {
-      BLOCK_INPUT;
+      block_input ();
       fclose (stream);
-      UNBLOCK_INPUT;
+      unblock_input ();
     }
   return Qnil;
 }
@@ -5371,7 +5368,7 @@ A non-nil CURRENT-ONLY argument means save only current buffer.  */)
 	if (STRINGP (BVAR (b, auto_save_file_name))
 	    && stream != NULL && do_handled_files == 0)
 	  {
-	    BLOCK_INPUT;
+	    block_input ();
 	    if (!NILP (BVAR (b, filename)))
 	      {
 		fwrite (SDATA (BVAR (b, filename)), 1,
@@ -5381,7 +5378,7 @@ A non-nil CURRENT-ONLY argument means save only current buffer.  */)
 	    fwrite (SDATA (BVAR (b, auto_save_file_name)), 1,
 		    SBYTES (BVAR (b, auto_save_file_name)), stream);
 	    putc ('\n', stream);
-	    UNBLOCK_INPUT;
+	    unblock_input ();
 	  }
 
 	if (!NILP (current_only)
@@ -5523,7 +5520,8 @@ The return value is only relevant for a call to `read-file-name' that happens
 before any other event (mouse or keypress) is handled.  */)
   (void)
 {
-#if defined (USE_MOTIF) || defined (HAVE_NTGUI) || defined (USE_GTK)
+#if defined (USE_MOTIF) || defined (HAVE_NTGUI) || defined (USE_GTK) \
+  || defined (HAVE_NS)
   if ((NILP (last_nonmenu_event) || CONSP (last_nonmenu_event))
       && use_dialog_box
       && use_file_dialog

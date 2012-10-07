@@ -104,13 +104,7 @@ If 'changed, only request confirmation if the list of files has
   :group 'log-edit
   :type 'boolean)
 
-(defvar cvs-commit-buffer-require-final-newline t)
-(make-obsolete-variable 'cvs-commit-buffer-require-final-newline
-                        'log-edit-require-final-newline
-			"21.1")
-
-(defcustom log-edit-require-final-newline
-  cvs-commit-buffer-require-final-newline
+(defcustom log-edit-require-final-newline t
   "Enforce a newline at the end of commit log messages.
 Enforce it silently if t, query if non-nil and don't do anything if nil."
   :group 'log-edit
@@ -154,12 +148,7 @@ can be obtained from `log-edit-files'."
   :group 'log-edit
   :version "24.1")
 
-(defvar cvs-changelog-full-paragraphs t)
-(make-obsolete-variable 'cvs-changelog-full-paragraphs
-                        'log-edit-changelog-full-paragraphs
-			"21.1")
-
-(defvar log-edit-changelog-full-paragraphs cvs-changelog-full-paragraphs
+(defvar log-edit-changelog-full-paragraphs t
   "If non-nil, include full ChangeLog paragraphs in the log.
 This may be set in the ``local variables'' section of a ChangeLog, to
 indicate the policy for that ChangeLog.
@@ -352,16 +341,19 @@ automatically."
 (defvar log-edit-font-lock-keywords
   ;; Copied/inspired by message-font-lock-keywords.
   `((log-edit-match-to-eoh
-     (,(concat "^\\(\\([[:alpha:]]+\\):\\)" log-edit-header-contents-regexp)
+     (,(concat "^\\(\\([[:alpha:]-]+\\):\\)" log-edit-header-contents-regexp)
       (progn (goto-char (match-beginning 0)) (match-end 0)) nil
-      (1 (if (assoc (match-string 2) log-edit-headers-alist)
+      (1 (if (assoc-string (match-string 2) log-edit-headers-alist t)
              'log-edit-header
            'log-edit-unknown-header)
          nil lax)
       ;; From `log-edit-header-contents-regexp':
-      (3 (or (cdr (assoc (match-string 2) log-edit-headers-alist))
+      (3 (or (cdr (assoc-string (match-string 2) log-edit-headers-alist t))
              'log-edit-header)
-         nil lax)))))
+         nil lax))
+     ("^\n"
+      (progn (goto-char (match-end 0)) (1+ (match-end 0))) nil
+      (0 '(:height 0.1 :inverse-video t))))))
 
 (defvar log-edit-font-lock-gnu-style nil
   "If non-nil, highlight common failures to follow the GNU coding standards.")
@@ -585,7 +577,7 @@ If you want to abort the commit, simply delete the buffer."
   (or (= (point-min) (point-max))
       (save-excursion
         (goto-char (point-min))
-        (while (and (looking-at "^\\([a-zA-Z]+: \\)?$")
+        (while (and (looking-at "^\\([a-zA-Z]+: ?\\)?$")
                     (zerop (forward-line 1))))
         (eobp))))
 
@@ -818,7 +810,7 @@ where LOGBUFFER is the name of the ChangeLog buffer, and each
                  change-log-default-name)
              ;; `find-change-log' uses `change-log-default-name' if set
              ;; and sets it before exiting, so we need to work around
-             ;; that memoizing which is undesired here
+             ;; that memoizing which is undesired here.
              (setq change-log-default-name nil)
              (find-change-log)))))
     (with-current-buffer (find-file-noselect changelog-file-name)
@@ -908,14 +900,44 @@ Rename relative filenames in the ChangeLog entry as FILES."
       (insert "\n"))
     log-edit-author))
 
+(defun log-edit-toggle-header (header value)
+  "Toggle a boolean-type header in the current buffer.
+If the value of HEADER is VALUE, clear it.  Otherwise, add the
+header if it's not present and set it to VALUE.  Then make sure
+there is an empty line after the headers.  Return t if toggled
+on, otherwise nil."
+  (let ((val t)
+        (line (concat header ": " value "\n")))
+    (save-excursion
+      (save-restriction
+        (rfc822-goto-eoh)
+        (narrow-to-region (point-min) (point))
+        (goto-char (point-min))
+        (if (re-search-forward (concat "^" header ":"
+                                       log-edit-header-contents-regexp)
+                               nil t)
+            (if (setq val (not (string= (match-string 1) value)))
+                (replace-match line t t)
+              (replace-match "" t t nil 1))
+          (insert line)))
+      (rfc822-goto-eoh)
+      (delete-horizontal-space)
+      (unless (looking-at "\n")
+        (insert "\n")))
+    val))
+
 (defun log-edit-extract-headers (headers comment)
   "Extract headers from COMMENT to form command line arguments.
-HEADERS should be an alist with elements of the form (HEADER . CMDARG)
-associating header names to the corresponding cmdline option name and the
-result is then a list of the form (MSG CMDARG1 HDRTEXT1 CMDARG2 HDRTEXT2...).
-where MSG is the remaining text from STRING.
-If \"Summary\" is not in HEADERS, then the \"Summary\" header is extracted
-anyway and put back as the first line of MSG."
+HEADERS should be an alist with elements (HEADER . CMDARG)
+or (HEADER . FUNCTION) associating headers to command line
+options and the result is then a list of the form (MSG ARGUMENTS...)
+where MSG is the remaining text from COMMENT.
+FUNCTION should be a function of one argument that takes the
+header value and returns the list of strings to be appended to
+ARGUMENTS.  CMDARG will be added to ARGUMENTS followed by the
+header value.  If \"Summary\" is not in HEADERS, then the
+\"Summary\" header is extracted anyway and put back as the first
+line of MSG."
   (with-temp-buffer
     (insert comment)
     (rfc822-goto-eoh)
@@ -931,8 +953,10 @@ anyway and put back as the first line of MSG."
                                   nil t)
           (if (eq t (cdr header))
               (setq summary (match-string 1))
-            (push (match-string 1) res)
-            (push (or (cdr header) (car header)) res))
+            (if (functionp (cdr header))
+                (setq res (nconc res (funcall (cdr header) (match-string 1))))
+              (push (match-string 1) res)
+              (push (or (cdr header) (car header)) res)))
           (replace-match "" t t)))
       ;; Remove header separator if the header is empty.
       (widen)

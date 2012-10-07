@@ -146,14 +146,13 @@ TIME must be in the internal format returned by, e.g., `current-time'.
 The microsecond count from TIME is ignored, and USECS is used instead.
 If optional fourth argument DELTA is a positive number, make the timer
 fire repeatedly that many seconds apart."
+  (declare (obsolete "use `timer-set-time' and `timer-inc-time' instead."
+		     "22.1"))
   (setf (timer--time timer) time)
   (setf (timer--usecs timer) usecs)
   (setf (timer--psecs timer) 0)
   (setf (timer--repeat-delay timer) (and (numberp delta) (> delta 0) delta))
   timer)
-(make-obsolete 'timer-set-time-with-usecs
-               "use `timer-set-time' and `timer-inc-time' instead."
-               "22.1")
 
 (defun timer-set-function (timer function &optional args)
   "Make TIMER call FUNCTION with optional ARGS when triggering."
@@ -205,12 +204,19 @@ timers).  If nil, allocate a new cell."
   "Insert TIMER into `timer-idle-list'.
 This arranges to activate TIMER whenever Emacs is next idle.
 If optional argument DONT-WAIT is non-nil, set TIMER to activate
-immediately, or at the right time, if Emacs is already idle.
+immediately \(see below\), or at the right time, if Emacs is
+already idle.
 
 REUSE-CELL, if non-nil, is a cons cell to reuse when inserting
 TIMER into `timer-idle-list' (usually a cell removed from that
 list by `cancel-timer-internal'; using this reduces consing for
-repeat timers).  If nil, allocate a new cell."
+repeat timers).  If nil, allocate a new cell.
+
+Using non-nil DONT-WAIT is not recommended when activating an
+idle timer from an idle timer handler, if the timer being
+activated has an idleness time that is smaller or equal to
+the time of the current timer.  That's because the activated
+timer will fire right away."
   (timer--activate timer (not dont-wait) reuse-cell 'idle))
 
 (defalias 'disable-timeout 'cancel-timer)
@@ -403,7 +409,9 @@ The action is to call FUNCTION with arguments ARGS.
 SECS may be an integer, a floating point number, or the internal
 time format returned by, e.g., `current-idle-time'.
 If Emacs is currently idle, and has been idle for N seconds (N < SECS),
-then it will call FUNCTION in SECS - N seconds from now.
+then it will call FUNCTION in SECS - N seconds from now.  Using
+SECS <= N is not recommended if this function is invoked from an idle
+timer, because FUNCTION will then be called immediately.
 
 If REPEAT is non-nil, do the action each time Emacs has been idle for
 exactly SECS seconds (that is, only once for each time Emacs becomes idle).
@@ -442,7 +450,7 @@ be detected.
                      (with-timeout-timers
                          (cons -with-timeout-timer- with-timeout-timers)))
                 (unwind-protect
-                    ,@body
+                    (progn ,@body)
                   (cancel-timer -with-timeout-timer-))))))
        ;; It is tempting to avoid the `if' altogether and instead run
        ;; timeout-forms in the timer, just before throwing `timeout'.

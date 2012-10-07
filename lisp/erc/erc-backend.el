@@ -4,6 +4,7 @@
 
 ;; Filename: erc-backend.el
 ;; Author: Lawrence Mitchell <wence@gmx.li>
+;; Maintainer: FSF
 ;; Created: 2004-05-7
 ;; Keywords: IRC chat client internet
 
@@ -1315,7 +1316,7 @@ add things to `%s' instead."
          (when (equal (erc-default-target) nick)
            (setq erc-default-recipients
                  (cons nn (cdr erc-default-recipients)))
-           (rename-buffer nn)
+           (rename-buffer nn t)         ; bug#12002
            (erc-update-mode-line)
            (add-to-list 'bufs (current-buffer)))))
       (erc-update-user-nick nick nn host nil nil login)

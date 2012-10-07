@@ -297,7 +297,7 @@ if that file is NEW, otherwise assume the mode has not changed."
     (when (not srecode-current-map)
       (condition-case nil
 	  (setq srecode-current-map
-		(eieio-persistent-read srecode-map-save-file))
+		(eieio-persistent-read srecode-map-save-file srecode-map))
 	(error
 	 ;; There was an error loading the old map.  Create a new one.
 	 (setq srecode-current-map

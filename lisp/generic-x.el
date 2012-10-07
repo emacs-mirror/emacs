@@ -1531,15 +1531,15 @@ like an INI file.  You can add this hook to `find-file-hook'."
      '("#[ \t]*include[ \t]+\\(<[^>\"\n]+>\\)"
        1 font-lock-string-face)
      '("#[ \t]*\\(\\sw+\\)\\>[ \t]*\\(\\sw+\\)?"
-       (1 font-lock-reference-face)
+       (1 font-lock-constant-face)
        (2 font-lock-variable-name-face nil t))
      ;; indirect string constants
      '("\\(@[A-Za-z][A-Za-z0-9_]+\\)" 1 font-lock-builtin-face)
      ;; gotos
-     '("[ \t]*\\(\\sw+:\\)"           1 font-lock-reference-face)
+     '("[ \t]*\\(\\sw+:\\)"           1 font-lock-constant-face)
      '("\\<\\(goto\\)\\>[ \t]*\\(\\sw+\\)?"
        (1 font-lock-keyword-face)
-       (2 font-lock-reference-face nil t))
+       (2 font-lock-constant-face nil t))
      ;; system variables
      (generic-make-keywords-list
       installshield-system-variables-list

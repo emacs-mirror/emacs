@@ -1876,7 +1876,7 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 	  /* Actually this is Bstack_ref with offset 0, but we use Bdup
 	     for that instead.  */
 	  /* CASE (Bstack_ref): */
-	  emacs_abort ();
+	  error ("Invalid byte opcode");
 
 	  /* Handy byte-codes for lexical binding.  */
 	CASE (Bstack_ref1):

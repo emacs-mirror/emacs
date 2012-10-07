@@ -2138,7 +2138,8 @@ struct it
   const unsigned char *s;
 
   /* Number of characters in the string (s, or it->string) we iterate
-     over.  */
+     over.  Used only in display_string and its subroutines; never
+     used for overlay strings and strings from display properties.  */
   ptrdiff_t string_nchars;
 
   /* Start and end of a visible region; -1 if the region is not
@@ -2756,15 +2757,19 @@ struct image_type
   Lisp_Object *type;
 
   /* Check that SPEC is a valid image specification for the given
-     image type.  Value is non-zero if SPEC is valid.  */
-  int (* valid_p) (Lisp_Object spec);
+     image type.  Value is true if SPEC is valid.  */
+  bool (* valid_p) (Lisp_Object spec);
 
   /* Load IMG which is used on frame F from information contained in
-     IMG->spec.  Value is non-zero if successful.  */
-  int (* load) (struct frame *f, struct image *img);
+     IMG->spec.  Value is true if successful.  */
+  bool (* load) (struct frame *f, struct image *img);
 
   /* Free resources of image IMG which is used on frame F.  */
   void (* free) (struct frame *f, struct image *img);
+
+  /* Initialization function (used for dynamic loading of image
+     libraries on Windows), or NULL if none.  */
+  bool (* init) (void);
 
   /* Next in list of all supported image types.  */
   struct image_type *next;
@@ -3152,7 +3157,7 @@ extern unsigned row_hash (struct glyph_row *);
 
 extern int x_bitmap_height (struct frame *, ptrdiff_t);
 extern int x_bitmap_width (struct frame *, ptrdiff_t);
-extern int x_bitmap_pixmap (struct frame *, ptrdiff_t);
+extern ptrdiff_t x_bitmap_pixmap (struct frame *, ptrdiff_t);
 extern void x_reference_bitmap (struct frame *, ptrdiff_t);
 extern ptrdiff_t x_create_bitmap_from_data (struct frame *, char *,
 					    unsigned int, unsigned int);
@@ -3164,7 +3169,7 @@ extern ptrdiff_t x_create_bitmap_from_xpm_data (struct frame *, const char **);
 extern void x_destroy_bitmap (struct frame *, ptrdiff_t);
 #endif
 extern void x_destroy_all_bitmaps (Display_Info *);
-extern int x_create_bitmap_mask (struct frame *, ptrdiff_t);
+extern void x_create_bitmap_mask (struct frame *, ptrdiff_t);
 extern Lisp_Object x_find_image_file (Lisp_Object);
 
 void x_kill_gs_process (Pixmap, struct frame *);
@@ -3172,7 +3177,7 @@ struct image_cache *make_image_cache (void);
 void free_image_cache (struct frame *);
 void clear_image_caches (Lisp_Object);
 void mark_image_cache (struct image_cache *);
-int valid_image_p (Lisp_Object);
+bool valid_image_p (Lisp_Object);
 void prepare_image_for_display (struct frame *, struct image *);
 ptrdiff_t lookup_image (struct frame *, Lisp_Object);
 

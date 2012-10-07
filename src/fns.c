@@ -61,8 +61,9 @@ DEFUN ("identity", Fidentity, Sidentity, 1, 1, 0,
 
 DEFUN ("random", Frandom, Srandom, 0, 1, 0,
        doc: /* Return a pseudo-random number.
-All integers representable in Lisp are equally likely.
-  On most systems, this is 29 bits' worth.
+All integers representable in Lisp, i.e. between `most-negative-fixnum'
+and `most-positive-fixnum', inclusive, are equally likely.
+
 With positive integer LIMIT, return random number in interval [0,LIMIT).
 With argument t, set the random number seed from the current time and pid.
 Other values of LIMIT are ignored.  */)
@@ -1838,13 +1839,6 @@ properties on the list.  This function never signals an error.  */)
       halftail = XCDR (halftail);
       if (EQ (tail, halftail))
 	break;
-
-#if 0 /* Unsafe version.  */
-      /* This function can be called asynchronously
-	 (setup_coding_system).  Don't QUIT in that case.  */
-      if (!interrupt_input_blocked)
-	QUIT;
-#endif
     }
 
   return Qnil;
@@ -3343,14 +3337,6 @@ Lisp_Object Qeq, Qeql, Qequal;
 Lisp_Object QCtest, QCsize, QCrehash_size, QCrehash_threshold, QCweakness;
 static Lisp_Object Qhash_table_test, Qkey_or_value, Qkey_and_value;
 
-/* Function prototypes.  */
-
-static struct Lisp_Hash_Table *check_hash_table (Lisp_Object);
-static ptrdiff_t get_key_arg (Lisp_Object, ptrdiff_t, Lisp_Object *, char *);
-static void maybe_resize_hash_table (struct Lisp_Hash_Table *);
-static bool sweep_weak_table (struct Lisp_Hash_Table *, bool);
-
-
 
 /***********************************************************************
 			       Utilities
@@ -3701,7 +3687,7 @@ copy_hash_table (struct Lisp_Hash_Table *h1)
 /* Resize hash table H if it's too full.  If H cannot be resized
    because it's already too large, throw an error.  */
 
-static inline void
+static void
 maybe_resize_hash_table (struct Lisp_Hash_Table *h)
 {
   if (NILP (h->next_free))

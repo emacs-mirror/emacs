@@ -5492,7 +5492,7 @@
 
 2003-02-14  Dave Love  <fx@gnu.org>
 
-	* international/code-pages.el: Undo `Trailing whitepace deleted.'
+	* international/code-pages.el: Undo `Trailing whitespace deleted.'
 	damage.
 	(cp1125, mik): Nullify mime-charset.
 

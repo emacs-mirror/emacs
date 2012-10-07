@@ -2999,12 +2999,11 @@ can be the following:
 A face name (a symbol or string).
 
 @item
-A property list of face attributes.  This has the
-form (@var{keyword} @var{value} @dots{}), where each @var{keyword} is a
-face attribute name and @var{value} is a meaningful value for that
-attribute.  With this feature, you do not need to create a face each
-time you want to specify a particular attribute for certain text.
-@xref{Face Attributes}.
+A property list of face attributes.  This has the form (@var{keyword}
+@var{value} @dots{}), where each @var{keyword} is a face attribute
+name and @var{value} is a meaningful value for that attribute.  With
+this feature, you do not need to create a face each time you want to
+specify a particular attribute for certain text.
 
 @item
 A list of faces.  This specifies a face which is an aggregate of the

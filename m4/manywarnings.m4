@@ -1,4 +1,4 @@
-# manywarnings.m4 serial 4
+# manywarnings.m4 serial 5
 dnl Copyright (C) 2008-2012 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -35,14 +35,12 @@ AC_DEFUN([gl_MANYWARN_COMPLEMENT],
 # make sure your gcc understands it.
 AC_DEFUN([gl_MANYWARN_ALL_GCC],
 [
-  dnl First, check if -Wno-missing-field-initializers is needed.
-  dnl -Wmissing-field-initializers is implied by -W, but that issues
-  dnl warnings with GCC version before 4.7, for the common idiom
-  dnl of initializing types on the stack to zero, using { 0, }
+  dnl First, check for some issues that only occur when combining multiple
+  dnl gcc warning categories.
   AC_REQUIRE([AC_PROG_CC])
   if test -n "$GCC"; then
 
-    dnl First, check -W -Werror -Wno-missing-field-initializers is supported
+    dnl Check if -W -Werror -Wno-missing-field-initializers is supported
     dnl with the current $CC $CFLAGS $CPPFLAGS.
     AC_MSG_CHECKING([whether -Wno-missing-field-initializers is supported])
     AC_CACHE_VAL([gl_cv_cc_nomfi_supported], [
@@ -77,8 +75,24 @@ AC_DEFUN([gl_MANYWARN_ALL_GCC],
       ])
       AC_MSG_RESULT([$gl_cv_cc_nomfi_needed])
     fi
+
+    dnl Next, check if -Werror -Wuninitialized is useful with the
+    dnl user's choice of $CFLAGS; some versions of gcc warn that it
+    dnl has no effect if -O is not also used
+    AC_MSG_CHECKING([whether -Wuninitialized is supported])
+    AC_CACHE_VAL([gl_cv_cc_uninitialized_supported], [
+      gl_save_CFLAGS="$CFLAGS"
+      CFLAGS="$CFLAGS -Werror -Wuninitialized"
+      AC_COMPILE_IFELSE(
+        [AC_LANG_PROGRAM([[]], [[]])],
+        [gl_cv_cc_uninitialized_supported=yes],
+        [gl_cv_cc_uninitialized_supported=no])
+      CFLAGS="$gl_save_CFLAGS"])
+    AC_MSG_RESULT([$gl_cv_cc_uninitialized_supported])
+
   fi
 
+  # List all gcc warning categories.
   gl_manywarn_set=
   for gl_manywarn_item in \
     -W \
@@ -197,9 +211,13 @@ AC_DEFUN([gl_MANYWARN_ALL_GCC],
     gl_manywarn_set="$gl_manywarn_set $gl_manywarn_item"
   done
 
-  # Disable the missing-field-initializers warning if needed
+  # Disable specific options as needed.
   if test "$gl_cv_cc_nomfi_needed" = yes; then
     gl_manywarn_set="$gl_manywarn_set -Wno-missing-field-initializers"
+  fi
+
+  if test "$gl_cv_cc_uninitialized_supported" = no; then
+    gl_manywarn_set="$gl_manywarn_set -Wno-uninitialized"
   fi
 
   $1=$gl_manywarn_set

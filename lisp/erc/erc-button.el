@@ -3,6 +3,7 @@
 ;; Copyright (C) 1996-2004, 2006-2012 Free Software Foundation, Inc.
 
 ;; Author: Mario Lang <mlang@delysid.org>
+;; Maintainer: FSF
 ;; Keywords: irc, button, url, regexp
 ;; URL: http://www.emacswiki.org/cgi-bin/wiki.pl?ErcButton
 
@@ -134,7 +135,7 @@ longer than `erc-fill-column'."
   '(('nicknames 0 erc-button-buttonize-nicks erc-nick-popup 0)
     (erc-button-url-regexp 0 t browse-url 0)
     ("<URL: *\\([^<> ]+\\) *>" 0 t browse-url 1)
-    ("(\\(\\([^~\n \t@][^\n \t@]*\\)@\\([a-zA-Z0-9.:-]+\\)\\)" 1 t finger 2 3)
+;;; ("(\\(\\([^~\n \t@][^\n \t@]*\\)@\\([a-zA-Z0-9.:-]+\\)\\)" 1 t finger 2 3)
     ;; emacs internal
     ("[`]\\([a-zA-Z][-a-zA-Z_0-9]+\\)[']" 1 t erc-button-describe-symbol 1)
     ;; pseudo links
@@ -182,6 +183,7 @@ PAR is a number of a regexp grouping whose text will be passed to
   'nicknames, these are ignored, and CALLBACK will be called with
   the nickname matched as the argument."
   :group 'erc-button
+  :version "24.3"                       ; remove finger (bug#4443)
   :type '(repeat
           (list :tag "Button"
                 (choice :tag "Matches"

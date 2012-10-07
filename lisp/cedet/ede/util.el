@@ -87,7 +87,7 @@ their sources to VERSION."
 If BUFFER isn't specified, use the current buffer."
   (save-excursion
     (if buffer (set-buffer buffer))
-    (toggle-read-only -1)))
+    (setq buffer-read-only nil)))
 
 (provide 'ede/util)
 

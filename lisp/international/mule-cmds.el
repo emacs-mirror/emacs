@@ -2058,9 +2058,9 @@ See `set-language-info-alist' for use in programs."
 
 (defun princ-list (&rest args)
   "Print all arguments with `princ', then print \"\\n\"."
+  (declare (obsolete "use mapc and princ instead." "23.3"))
   (mapc #'princ args)
   (princ "\n"))
-(make-obsolete 'princ-list "use mapc and princ instead" "23.3")
 
 (put 'describe-specified-language-support 'apropos-inhibit t)
 

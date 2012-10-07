@@ -403,7 +403,8 @@ unconditionally initializes the variable, whereas @code{defvar}
 initializes it only if it is originally void.
 
   To define a customizable variable, you should use @code{defcustom}
-(which calls @code{defvar} as a subroutine).  @xref{Customization}.
+(which calls @code{defvar} as a subroutine).  @xref{Variable
+Definitions}.
 
 @defspec defvar symbol [value [doc-string]]
 This special form defines @var{symbol} as a variable.  Note that

@@ -101,7 +101,12 @@
 
 (defcustom server-host nil
   "The name or IP address to use as host address of the server process.
-If set, the server accepts remote connections; otherwise it is local."
+If set, the server accepts remote connections; otherwise it is local.
+
+DO NOT give this a non-nil value unless you know what you are
+doing!  On unsecured networks, accepting remote connections is
+very dangerous, because server-client communication (including
+session authentication) is not encrypted."
   :group 'server
   :type '(choice
           (string :tag "Name or IP address")
@@ -140,12 +145,12 @@ directory residing in a NTFS partition instead."
 
 (defcustom server-auth-key nil
   "Server authentication key.
+This is only used if `server-use-tcp' is non-nil.
 
 Normally, the authentication key is randomly generated when the
-server starts, which guarantees some level of security.  It is
-recommended to leave it that way.  Using a long-lived shared key
-will decrease security (especially since the key is transmitted as
-plain text).
+server starts.  It is recommended to leave it that way.  Using a
+long-lived shared key will decrease security (especially since
+the key is transmitted as plain-text).
 
 In some situations however, it can be difficult to share randomly
 generated passwords with remote hosts (eg. no shared directory),
@@ -153,11 +158,13 @@ so you can set the key with this variable and then copy the
 server file to the remote host (with possible changes to IP
 address and/or port if that applies).
 
-The key must consist of 64 ASCII printable characters except for
-space (this means characters from ! to ~; or from code 33 to 126).
+Note that the usual security risks of using the server over
+remote TCP, arising from the fact that client-server
+communications are unencrypted, still apply.
 
-You can use \\[server-generate-key] to get a random authentication
-key."
+The key must consist of 64 ASCII printable characters except for
+space (this means characters from ! to ~; or from code 33 to
+126).  You can use \\[server-generate-key] to get a random key."
   :group 'server
   :type '(choice
 	  (const :tag "Random" nil)

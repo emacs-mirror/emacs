@@ -7,10 +7,12 @@
 
 @c Moved here from the Emacs Lisp Reference Manual, 2005-03-26.
 @node Advanced Calendar/Diary Usage
-@section Customizing the Calendar and Diary
+@section More advanced features of the Calendar and Diary
 
-  There are many ways in which you can customize the calendar and
-diary to suit your personal tastes.
+  This section describes some of the more advanced/specialized
+features of the calendar and diary.  It starts with some of the
+many ways in which you can customize the calendar and diary to suit
+your personal tastes.
 
 @menu
 * Calendar Customizing::   Calendar layout and hooks.

@@ -1,4 +1,4 @@
-;;; wisent-grammar.el --- Wisent's input grammar mode
+;;; semantic/wisent/grammar.el --- Wisent's input grammar mode
 
 ;; Copyright (C) 2002-2012 Free Software Foundation, Inc.
 ;;
@@ -209,15 +209,15 @@ See also the function `wisent-skip-token'."
   "Return the list of terminal symbols.
 Keep order of declaration in the WY file without duplicates."
   (let (terms)
-    (mapcar
+    (mapc
      #'(lambda (tag)
-         (mapcar #'(lambda (name)
-                     (add-to-list 'terms (intern name)))
-                 (cons (semantic-tag-name tag)
-                       (semantic-tag-get-attribute tag :rest))))
+	 (mapcar #'(lambda (name)
+		     (add-to-list 'terms (intern name)))
+		 (cons (semantic-tag-name tag)
+		       (semantic-tag-get-attribute tag :rest))))
      (semantic--find-tags-by-function
       #'(lambda (tag)
-          (memq (semantic-tag-class tag) '(token keyword)))
+	  (memq (semantic-tag-class tag) '(token keyword)))
       (current-buffer)))
     (nreverse terms)))
 
@@ -323,15 +323,13 @@ Return the expanded expression."
   "WY mode specific grammar menu.
 Menu items are appended to the common grammar menu.")
 
+;;;###autoload
 (define-derived-mode wisent-grammar-mode semantic-grammar-mode "WY"
   "Major mode for editing Wisent grammars."
   (semantic-grammar-setup-menu wisent-grammar-menu)
   (semantic-install-function-overrides
    '((grammar-parsetable-builder . wisent-grammar-parsetable-builder)
-     (grammar-setupcode-builder  . wisent-grammar-setupcode-builder)
-     )))
-
-(add-to-list 'auto-mode-alist '("\\.wy\\'" . wisent-grammar-mode))
+     (grammar-setupcode-builder  . wisent-grammar-setupcode-builder))))
 
 (defvar-mode-local wisent-grammar-mode semantic-grammar-macros
   '(
@@ -464,23 +462,20 @@ Menu items are appended to the common grammar menu.")
 ;; DAMAGE.")
 
 (defvar wisent-make-parsers--parser-file-name
-  `(("semantic-grammar-wy.el"
-     "semantic/grammar-wy")
-    ("srecode-template-wy.el"
-     "srecode/srt-wy")
-    ("wisent-javascript-jv-wy.el"
-     "semantic/wisent/js-wy"
+  `(("semantic/grammar-wy.el")
+    ("srecode/srt-wy.el")
+    ("semantic/wisent/js-wy.el"
      "Copyright (C) 1998-2011 Ecma International."
      ,wisent-make-parsers--ecmascript-license)
-    ("wisent-java-tags-wy.el"
-     "semantic/wisent/javat-wy")
-    ("wisent-python-wy.el"
-     "semantic/wisent/python-wy"
-     "Copyright (c) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010 Python Software Foundation; All Rights Reserved."
+    ("semantic/wisent/javat-wy.el")
+    ("semantic/wisent/python-wy.el"
+     "Copyright (c) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
+\;; 2009, 2010 Python Software Foundation; All Rights Reserved"
      ,wisent-make-parsers--python-license)))
 
 (defun wisent-make-parsers ()
   "Generate Emacs' built-in Wisent-based parser files."
+  (interactive)
   (semantic-mode 1)
   ;; Loop through each .wy file in current directory, and run
   ;; `semantic-grammar-batch-build-one-package' to build the grammar.
@@ -492,13 +487,13 @@ Menu items are appended to the common grammar menu.")
              (error (message "%s" (error-message-string err)) nil)))
 	  output-data)
       (when (setq output-data (assoc packagename wisent-make-parsers--parser-file-name))
-	(let ((require-name         (nth 1 output-data))
-	      (additional-copyright (nth 2 output-data))
-	      (additional-license   (nth 3 output-data))
+	(let ((additional-copyright (nth 1 output-data))
+	      (additional-license   (nth 2 output-data))
+	      (filename (progn (string-match ".*/\\(.*\\)" packagename) (match-string 1 packagename)))
 	      copyright-end)
 	  ;; Touch up the generated parsers for Emacs integration.
 	  (with-temp-buffer
-	    (insert-file-contents packagename)
+	    (insert-file-contents filename)
 	    ;; Fix copyright header:
 	    (goto-char (point-min))
 	    (when additional-copyright
@@ -516,22 +511,16 @@ Menu items are appended to the common grammar menu.")
 			f ".")
 	    (when additional-license
 	      (insert "\n" additional-license))
-	    (insert "\n\n;;; Code:\n
-\(require 'semantic/lex)\n")
+	    (insert "\n\n;;; Code:\n")
 	    (goto-char (point-min))
 	    (delete-region (point-min) (line-end-position))
-	    (insert ";;; " require-name
-		    ".el --- Generated parser support file")
+	    (insert ";;; " packagename
+		    " --- Generated parser support file")
+	    (re-search-forward ";;; \\(.*\\) ends here")
+	    (replace-match packagename nil nil nil 1)
 	    (delete-trailing-whitespace)
-	    (re-search-forward ";;\n(require 'semantic/lex)\n")
-	    (delete-region (match-beginning 0) (match-end 0))
-	    ;; Fix footer:
-	    (goto-char (point-max))
-	    (re-search-backward "^(provide")
-	    (delete-region (match-beginning 0) (point-max))
-	    (goto-char (point-max))
-	    (insert "(provide '" require-name ")\n\n")
-	    (insert ";;; " require-name ".el ends here\n")
-	    (write-region nil nil (expand-file-name packagename))))))))
+	    (write-region nil nil (expand-file-name filename))))))))
 
-;;; wisent-grammar.el ends here
+(provide 'semantic/wisent/grammar)
+
+;;; semantic/wisent/grammar.el ends here

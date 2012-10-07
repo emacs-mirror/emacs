@@ -1,7 +1,39 @@
+2012-10-07  Deniz Dogan  <deniz@dogan.se>
+
+	* erc-log.el (erc-generate-log-file-name-function):
+	Clarify tags for various choices.  (Bug#11186)
+
+2012-10-07  Glenn Morris  <rgm@gnu.org>
+
+	* erc-button.el (erc-button-alist): Remove "finger".  (Bug#4443)
+
+2012-10-07  Antoine Levitt  <antoine.levitt@gmail.com>
+
+	* erc-stamp.el (erc-format-timestamp): Don't apply intangible
+	property to invisible stamps.  (Bug#11706)
+
+2012-10-07  Glenn Morris  <rgm@gnu.org>
+
+	* erc-backend.el (NICK): Handle pre-existing buffers.  (Bug#12002)
+
+2012-10-06  Glenn Morris  <rgm@gnu.org>
+
+	* erc.el (erc-lurker):
+	* erc-desktop-notifications.el (erc-notifications):
+	Add missing group :version tags.
+
+2012-10-04  Julien Danjou  <julien@danjou.info>
+
+	* erc-desktop-notifications.el: Rename from erc-notifications to
+	avoid clash with 8+3 filename format and erc-notify.el.
+
+2012-09-25  Chong Yidong  <cyd@gnu.org>
+
+	* erc.el (erc-send-command): Use define-obsolete-function-alias.
+
 2012-09-17  Chong Yidong  <cyd@gnu.org>
 
-	* erc-page.el (erc-page-function): 
-
+	* erc-page.el (erc-page-function):
 	* erc-stamp.el (erc-stamp): Doc fix.
 
 2012-08-21  Josh Feinstein <jlf@foxtail.org>
@@ -94,7 +126,7 @@
 	(erc-autojoin-after-ident): Ditto.
 	(erc-autojoin-channels-alist): Mention auth-source.
 
-2012-04-10  Deniz Dogan  <deniz@dogan.se>  (tiny change)
+2012-04-10  Deniz Dogan  <deniz@dogan.se>
 
 	* erc.el (erc-display-prompt): Adds the field text property to the
 	ERC prompt.  This allows users to use `kill-whole-line' to kill

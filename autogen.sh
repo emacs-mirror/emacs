@@ -201,7 +201,7 @@ This is not recommended - see the comments in \`copy_autogen'.
 Please report any problems with this script to bug-gnu-emacs@gnu.org .
 EOF
 
-    exit 101 # Exit status 101 means tools were missing.
+    exit 1
 fi
 
 echo "Your system has the required tools, running autoreconf..."

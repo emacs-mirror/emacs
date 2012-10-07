@@ -175,9 +175,9 @@ This is used during Tempo template completion."
 (defvar snmp-font-lock-keywords-3
   (append
    '(("\\([^\n]+\\)[ \t]+::=[ \t]+\\(SEQUENCE\\)[ \t]+{"
-      (1 font-lock-reference-face) (2 font-lock-keyword-face))
+      (1 font-lock-constant-face) (2 font-lock-keyword-face))
      ("::=[ \t]*{[ \t]*\\([a-z0-9].*[ \t]+\\)?\\([0-9]+\\)[ \t]*}"
-      (1 font-lock-reference-face nil t) (2 font-lock-variable-name-face)))
+      (1 font-lock-constant-face nil t) (2 font-lock-variable-name-face)))
    snmp-font-lock-keywords-2)
   "Gaudy SNMP MIB mode expression highlighting.")
 

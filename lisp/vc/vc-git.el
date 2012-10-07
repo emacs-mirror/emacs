@@ -608,16 +608,52 @@ The car of the list is the current branch."
 (defun vc-git-unregister (file)
   (vc-git-command nil 0 file "rm" "-f" "--cached" "--"))
 
+(declare-function log-edit-mode "log-edit" ())
+(declare-function log-edit-toggle-header "log-edit" (header value))
 (declare-function log-edit-extract-headers "log-edit" (headers string))
+
+(defun vc-git-log-edit-toggle-signoff ()
+  "Toggle whether to add the \"Signed-off-by\" line at the end of
+the commit message."
+  (interactive)
+  (log-edit-toggle-header "Sign-Off" "yes"))
+
+(defun vc-git-log-edit-toggle-amend ()
+  "Toggle whether this will amend the previous commit.
+If toggling on, also insert its message into the buffer."
+  (interactive)
+  (when (log-edit-toggle-header "Amend" "yes")
+    (goto-char (point-max))
+    (unless (bolp) (insert "\n"))
+    (insert (with-output-to-string
+              (vc-git-command
+               standard-output 1 nil
+               "log" "--max-count=1" "--pretty=format:%B" "HEAD")))))
+
+(defvar vc-git-log-edit-mode-map
+  (let ((map (make-sparse-keymap "Git-Log-Edit")))
+    (define-key map "\C-c\C-s" 'vc-git-log-edit-toggle-signoff)
+    (define-key map "\C-c\C-e" 'vc-git-log-edit-toggle-amend)
+    map))
+
+(define-derived-mode vc-git-log-edit-mode log-edit-mode "Log-Edit/git"
+  "Major mode for editing Git log messages.
+It is based on `log-edit-mode', and has Git-specific extensions.")
 
 (defun vc-git-checkin (files _rev comment)
   (let ((coding-system-for-write vc-git-commits-coding-system))
-    (apply 'vc-git-command nil 0 files
-	   (nconc (list "commit" "-m")
-                  (log-edit-extract-headers '(("Author" . "--author")
-					      ("Date" . "--date"))
-                                            comment)
-                  (list "--only" "--")))))
+    (cl-flet ((boolean-arg-fn
+               (argument)
+               (lambda (value) (when (equal value "yes") (list argument)))))
+      (apply 'vc-git-command nil 0 files
+             (nconc (list "commit" "-m")
+                    (log-edit-extract-headers
+                     `(("Author" . "--author")
+                       ("Date" . "--date")
+                       ("Amend" . ,(boolean-arg-fn "--amend"))
+                       ("Sign-Off" . ,(boolean-arg-fn "--signoff")))
+                     comment)
+                    (list "--only" "--"))))))
 
 (defun vc-git-find-revision (file rev buffer)
   (let* (process-file-side-effects

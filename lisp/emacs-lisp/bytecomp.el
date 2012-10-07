@@ -846,7 +846,7 @@ CONST2 may be evaluated multiple times."
 (defun byte-compile-cl-file-p (file)
   "Return non-nil if FILE is one of the CL files."
   (and (stringp file)
-       (string-match "^cl\\>" (file-name-nondirectory file))))
+       (string-match "^cl\\.el" (file-name-nondirectory file))))
 
 (defun byte-compile-eval (form)
   "Eval FORM and mark the functions defined therein.
@@ -1005,13 +1005,20 @@ Each function's symbol gets added to `byte-compile-noruntime-functions'."
 (defvar byte-compile-root-dir nil
   "Directory relative to which file names in error messages are written.")
 
+;; FIXME: We should maybe extend abbreviate-file-name with an optional DIR
+;; argument to try and use a relative file-name.
+(defun byte-compile-abbreviate-file (file &optional dir)
+  (let ((f1 (abbreviate-file-name file))
+        (f2 (file-relative-name file dir)))
+    (if (< (length f2) (length f1)) f2 f1)))
+
 ;; This is used as warning-prefix for the compiler.
 ;; It is always called with the warnings buffer current.
 (defun byte-compile-warning-prefix (level entry)
   (let* ((inhibit-read-only t)
 	 (dir (or byte-compile-root-dir default-directory))
 	 (file (cond ((stringp byte-compile-current-file)
-		      (format "%s:" (file-relative-name
+		      (format "%s:" (byte-compile-abbreviate-file
                                      byte-compile-current-file dir)))
 		     ((bufferp byte-compile-current-file)
 		      (format "Buffer %s:"
@@ -1019,7 +1026,8 @@ Each function's symbol gets added to `byte-compile-noruntime-functions'."
 		     ;; We might be simply loading a file that
 		     ;; contains explicit calls to byte-compile functions.
 		     ((stringp load-file-name)
-		      (format "%s:" (file-relative-name load-file-name dir)))
+		      (format "%s:" (byte-compile-abbreviate-file
+                                     load-file-name dir)))
 		     (t "")))
 	 (pos (if (and byte-compile-current-file
 		       (integerp byte-compile-read-position))
@@ -1115,18 +1123,12 @@ Each function's symbol gets added to `byte-compile-noruntime-functions'."
   "Warn that SYMBOL (a variable or function) is obsolete."
   (when (byte-compile-warning-enabled-p 'obsolete)
     (let* ((funcp (get symbol 'byte-obsolete-info))
-	   (obsolete (or funcp (get symbol 'byte-obsolete-variable)))
-	   (instead (car obsolete))
-	   (asof (nth 2 obsolete)))
+           (msg (macroexp--obsolete-warning
+                 symbol
+                 (or funcp (get symbol 'byte-obsolete-variable))
+                 (if funcp "function" "variable"))))
       (unless (and funcp (memq symbol byte-compile-not-obsolete-funcs))
-	(byte-compile-warn "`%s' is an obsolete %s%s%s" symbol
-			   (if funcp "function" "variable")
-			   (if asof (concat " (as of " asof ")") "")
-			   (cond ((stringp instead)
-				  (concat "; " instead))
-				 (instead
-				  (format "; use `%s' instead." instead))
-				 (t ".")))))))
+	(byte-compile-warn "%s" msg)))))
 
 (defun byte-compile-report-error (error-info)
   "Report Lisp error in compilation.  ERROR-INFO is the error data."
@@ -1752,11 +1754,11 @@ The value is non-nil if there were no errors, nil if errors."
     (if (with-current-buffer input-buffer no-byte-compile)
 	(progn
 	  ;; (message "%s not compiled because of `no-byte-compile: %s'"
-	  ;; 	   (file-relative-name filename)
+	  ;; 	   (byte-compile-abbreviate-file filename)
 	  ;; 	   (with-current-buffer input-buffer no-byte-compile))
 	  (when (file-exists-p target-file)
 	    (message "%s deleted because of `no-byte-compile: %s'"
-		     (file-relative-name target-file)
+		     (byte-compile-abbreviate-file target-file)
 		     (buffer-local-value 'no-byte-compile input-buffer))
 	    (condition-case nil (delete-file target-file) (error nil)))
 	  ;; We successfully didn't compile this file.

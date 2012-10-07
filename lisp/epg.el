@@ -1779,6 +1779,7 @@ This function is for internal use only."
     (epg-context-set-result-for context 'import-status nil)))
 
 (defun epg-passphrase-callback-function (context key-id _handback)
+  (declare (obsolete epa-passphrase-callback-function "23.1"))
   (if (eq key-id 'SYM)
       (read-passwd "Passphrase for symmetric encryption: "
 		   (eq (epg-context-operation context) 'encrypt))
@@ -1789,9 +1790,6 @@ This function is for internal use only."
 	 (if entry
 	     (format "Passphrase for %s %s: " key-id (cdr entry))
 	   (format "Passphrase for %s: " key-id)))))))
-
-(make-obsolete 'epg-passphrase-callback-function
-	       'epa-passphrase-callback-function "23.1")
 
 (defun epg--list-keys-1 (context name mode)
   (let ((args (append (if epg-gpg-home-directory
@@ -2562,6 +2560,7 @@ If you use this function, you will need to wait for the completion of
 `epg-reset' to clear a temporary output file.
 If you are unsure, use synchronous version of this function
 `epg-sign-keys' instead."
+  (declare (obsolete nil "23.1"))
   (epg-context-set-operation context 'sign-keys)
   (epg-context-set-result context nil)
   (epg--start context (cons (if local
@@ -2572,10 +2571,10 @@ If you are unsure, use synchronous version of this function
 			      (epg-sub-key-id
 			       (car (epg-key-sub-key-list key))))
 			    keys))))
-(make-obsolete 'epg-start-sign-keys "do not use." "23.1")
 
 (defun epg-sign-keys (context keys &optional local)
   "Sign KEYS from the key ring."
+  (declare (obsolete nil "23.1"))
   (unwind-protect
       (progn
 	(epg-start-sign-keys context keys local)
@@ -2586,7 +2585,6 @@ If you are unsure, use synchronous version of this function
 		      (list "Sign keys failed"
 			    (epg-errors-to-string errors))))))
     (epg-reset context)))
-(make-obsolete 'epg-sign-keys "do not use." "23.1")
 
 (defun epg-start-generate-key (context parameters)
   "Initiate a key generation.

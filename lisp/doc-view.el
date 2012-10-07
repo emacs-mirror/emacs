@@ -3,8 +3,8 @@
 
 ;; Copyright (C) 2007-2012 Free Software Foundation, Inc.
 ;;
-;; Author: Tassilo Horn <tassilo@member.fsf.org>
-;; Maintainer: Tassilo Horn <tassilo@member.fsf.org>
+;; Author: Tassilo Horn <tsdh@gnu.org>
+;; Maintainer: Tassilo Horn <tsdh@gnu.org>
 ;; Keywords: files, pdf, ps, dvi
 
 ;; This file is part of GNU Emacs.
@@ -57,16 +57,21 @@
 ;; pages won't be displayed before conversion of the document finished
 ;; completely.
 ;;
-;; DocView lets you select a slice of the displayed pages.  This slice will be
-;; remembered and applied to all pages of the current document.  This enables
-;; you to cut away the margins of a document to save some space.  To select a
-;; slice you can use `doc-view-set-slice' (bound to `s s') which will query you
-;; for the coordinates of the slice's top-left corner and its width and height.
-;; A much more convenient way to do the same is offered by the command
-;; `doc-view-set-slice-using-mouse' (bound to `s m').  After invocation you
-;; only have to press mouse-1 at the top-left corner and drag it to the
-;; bottom-right corner of the desired slice.  To reset the slice use
-;; `doc-view-reset-slice' (bound to `s r').
+;; DocView lets you select a slice of the displayed pages.  This slice
+;; will be remembered and applied to all pages of the current
+;; document.  This enables you to cut away the margins of a document
+;; to save some space.  To select a slice you can use
+;; `doc-view-set-slice' (bound to `s s') which will query you for the
+;; coordinates of the slice's top-left corner and its width and
+;; height.  A much more convenient way to do the same is offered by
+;; the command `doc-view-set-slice-using-mouse' (bound to `s m').
+;; After invocation you only have to press mouse-1 at the top-left
+;; corner and drag it to the bottom-right corner of the desired slice.
+;; Even more accurate and convenient is to use
+;; `doc-view-set-slice-from-bounding-box' (bound to `s b') which uses
+;; the BoundingBox information of the current page to set an optimal
+;; slice.  To reset the slice use `doc-view-reset-slice' (bound to `s
+;; r').
 ;;
 ;; You can also search within the document.  The command `doc-view-search'
 ;; (bound to `C-s') queries for a search regexp and initializes a list of all
@@ -103,7 +108,6 @@
 ;; - share more code with image-mode.
 ;; - better menu.
 ;; - Bind slicing to a drag event.
-;; - doc-view-fit-doc-to-window and doc-view-fit-window-to-doc?
 ;; - zoom the region around the cursor (like xdvi).
 ;; - get rid of the silly arrow in the fringe.
 ;; - improve anti-aliasing (pdf-utils gets it better).
@@ -251,20 +255,23 @@ of the page moves to the previous page."
 ;;;; Internal Variables
 
 (defun doc-view-new-window-function (winprops)
+  ;; (message "New window %s for buf %s" (car winprops) (current-buffer))
+  (cl-assert (or (eq t (car winprops))
+                 (eq (window-buffer (car winprops)) (current-buffer))))
   (let ((ol (image-mode-window-get 'overlay winprops)))
-    (when (and ol (not (overlay-buffer ol)))
-      ;; I've seen `ol' be a dead overlay.  I do not yet know how this
-      ;; happened, so maybe the bug is elsewhere, but in the mean time,
-      ;; this seems like a safe approach.
-      (setq ol nil))
     (if ol
         (progn
-          (cl-assert (eq (overlay-buffer ol) (current-buffer)))
-          (setq ol (copy-overlay ol)))
-      (cl-assert (not (get-char-property (point-min) 'display)))
+          (setq ol (copy-overlay ol))
+          ;; `ol' might actually be dead.
+          (move-overlay ol (point-min) (point-max)))
       (setq ol (make-overlay (point-min) (point-max) nil t))
       (overlay-put ol 'doc-view t))
     (overlay-put ol 'window (car winprops))
+    (unless (windowp (car winprops))
+      ;; It's a pseudo entry.  Let's make sure it's not displayed (the
+      ;; `window' property is only effective if its value is a window).
+      (cl-assert (eq t (car winprops)))
+      (delete-overlay ol))
     (image-mode-window-put 'overlay ol winprops)))
 
 (defvar doc-view-current-files nil
@@ -340,6 +347,7 @@ Can be `dvi', `pdf', or `ps'.")
     ;; Slicing the image
     (define-key map (kbd "s s")       'doc-view-set-slice)
     (define-key map (kbd "s m")       'doc-view-set-slice-using-mouse)
+    (define-key map (kbd "s b")       'doc-view-set-slice-from-bounding-box)
     (define-key map (kbd "s r")       'doc-view-reset-slice)
     ;; Searching
     (define-key map (kbd "C-s")       'doc-view-search)
@@ -381,6 +389,7 @@ Can be `dvi', `pdf', or `ps'.")
      )
     "---"
     ["Set Slice"		doc-view-set-slice-using-mouse]
+    ["Set Slice (BoundingBox)"  doc-view-set-slice-from-bounding-box]
     ["Set Slice (manual)"	doc-view-set-slice]
     ["Reset Slice"		doc-view-reset-slice]
     "---"
@@ -554,7 +563,8 @@ at the top edge of the page moves to the previous page."
   "Kill the current converter process(es)."
   (interactive)
   (while (consp doc-view-current-converter-processes)
-    (ignore-errors ;; Maybe it's dead already?
+    (ignore-errors ;; Some entries might not be processes, and maybe
+		   ;; some are dead already?
       (kill-process (pop doc-view-current-converter-processes))))
   (when doc-view-current-timer
     (cancel-timer doc-view-current-timer)
@@ -657,19 +667,21 @@ OpenDocument format)."
 (defvar doc-view-shrink-factor 1.125)
 
 (defun doc-view-enlarge (factor)
-  "Enlarge the document."
+  "Enlarge the document by FACTOR."
   (interactive (list doc-view-shrink-factor))
   (if (eq (plist-get (cdr (doc-view-current-image)) :type)
 	  'imagemagick)
-      ;; ImageMagick supports on-the-fly-rescaling
-      (progn
-	(set (make-local-variable 'doc-view-image-width)
-	     (ceiling (* factor doc-view-image-width)))
-	(doc-view-insert-image (plist-get (cdr (doc-view-current-image)) :file)
-			       :width doc-view-image-width))
-    (set (make-local-variable 'doc-view-resolution)
-	 (ceiling (* factor doc-view-resolution)))
-    (doc-view-reconvert-doc)))
+      ;; ImageMagick supports on-the-fly-rescaling.
+      (let ((new (ceiling (* factor doc-view-image-width))))
+        (unless (equal new doc-view-image-width)
+          (set (make-local-variable 'doc-view-image-width) new)
+          (doc-view-insert-image
+           (plist-get (cdr (doc-view-current-image)) :file)
+           :width doc-view-image-width)))
+    (let ((new (ceiling (* factor doc-view-resolution))))
+      (unless (equal new doc-view-resolution)
+        (set (make-local-variable 'doc-view-resolution) new)
+        (doc-view-reconvert-doc)))))
 
 (defun doc-view-shrink (factor)
   "Shrink the document."
@@ -737,12 +749,14 @@ min {(window-width / image-width), (window-height / image-height)} times."
               (img-height (cdr (image-display-size
                                 (image-get-display-property) t))))
           (doc-view-enlarge (min (/ (float win-width) (float img-width))
-                                 (/ (float (- win-height 1)) (float img-height)))))
+                                 (/ (float (- win-height 1))
+                                    (float img-height)))))
       ;; If slice is set
       (let* ((slice-width (nth 2 slice))
              (slice-height (nth 3 slice))
              (scale-factor (min (/ (float win-width) (float slice-width))
-                                (/ (float (- win-height 1)) (float slice-height))))
+                                (/ (float (- win-height 1))
+                                   (float slice-height))))
              (new-slice (mapcar (lambda (x) (ceiling (* scale-factor x))) slice)))
         (doc-view-enlarge scale-factor)
         (setf (doc-view-current-slice) new-slice)
@@ -756,6 +770,7 @@ Should be invoked when the cached images aren't up-to-date."
   ;; Clear the old cached files
   (when (file-exists-p (doc-view-current-cache-dir))
     (delete-directory (doc-view-current-cache-dir) 'recursive))
+  (kill-local-variable 'doc-view-last-page-number)
   (doc-view-initiate-display))
 
 (defun doc-view-sentinel (proc event)
@@ -889,6 +904,11 @@ Start by converting PAGES, and then the rest."
                           (list "-raw" pdf txt)
                           callback))
 
+(defun doc-view-current-cache-doc-pdf ()
+  "Return the name of the doc.pdf in the current cache dir.
+  This file exists only if the current document isn't a PDF or PS file already."
+  (expand-file-name "doc.pdf" (doc-view-current-cache-dir)))
+
 (defun doc-view-doc->txt (txt callback)
   "Convert the current document to text and call CALLBACK when done."
   (make-directory (doc-view-current-cache-dir) t)
@@ -899,22 +919,17 @@ Start by converting PAGES, and then the rest."
     (`ps
      ;; Doc is a PS, so convert it to PDF (which will be converted to
      ;; TXT thereafter).
-     (let ((pdf (expand-file-name "doc.pdf"
-				  (doc-view-current-cache-dir))))
+     (let ((pdf (doc-view-current-cache-doc-pdf)))
        (doc-view-ps->pdf doc-view-buffer-file-name pdf
                          (lambda () (doc-view-pdf->txt pdf txt callback)))))
     (`dvi
      ;; Doc is a DVI.  This means that a doc.pdf already exists in its
      ;; cache subdirectory.
-     (doc-view-pdf->txt (expand-file-name "doc.pdf"
-                                          (doc-view-current-cache-dir))
-                        txt callback))
+     (doc-view-pdf->txt (doc-view-current-cache-doc-pdf) txt callback))
     (`odf
      ;; Doc is some ODF (or MS Office) doc.  This means that a doc.pdf
      ;; already exists in its cache subdirectory.
-     (doc-view-pdf->txt (expand-file-name "doc.pdf"
-                                          (doc-view-current-cache-dir))
-                        txt callback))
+     (doc-view-pdf->txt (doc-view-current-cache-doc-pdf) txt callback))
     (_ (error "DocView doesn't know what to do"))))
 
 (defun doc-view-ps->pdf (ps pdf callback)
@@ -954,13 +969,13 @@ Those files are saved in the directory given by the function
       (`dvi
        ;; DVI files have to be converted to PDF before Ghostscript can process
        ;; it.
-       (let ((pdf (expand-file-name "doc.pdf" doc-view-current-cache-dir)))
+       (let ((pdf (doc-view-current-cache-doc-pdf)))
          (doc-view-dvi->pdf doc-view-buffer-file-name pdf
                             (lambda () (doc-view-pdf/ps->png pdf png-file)))))
       (`odf
        ;; ODF files have to be converted to PDF before Ghostscript can
        ;; process it.
-       (let ((pdf (expand-file-name "doc.pdf" doc-view-current-cache-dir))
+       (let ((pdf (doc-view-current-cache-doc-pdf))
              (opdf (expand-file-name (concat (file-name-base doc-view-buffer-file-name)
                                              ".pdf")
                                      doc-view-current-cache-dir))
@@ -991,8 +1006,9 @@ You can use this function to tell doc-view not to display the
 margins of the document.  It prompts for the top-left corner (X
 and Y) of the slice to display and its WIDTH and HEIGHT.
 
-See `doc-view-set-slice-using-mouse' for a more convenient way to
-do that.  To reset the slice use `doc-view-reset-slice'."
+See `doc-view-set-slice-using-mouse' and
+`doc-view-set-slice-from-bounding-box' for more convenient ways
+to do that.  To reset the slice use `doc-view-reset-slice'."
   (interactive
    (let* ((size (image-size (doc-view-current-image) t))
 	  (a (read-number (format "Top-left X (0..%d): " (car size))))
@@ -1022,6 +1038,82 @@ dragging it to its bottom-right corner.  See also
 	  (setq h (- (cdr (posn-object-x-y (event-end e))) y))
 	  (setq done t))))
     (doc-view-set-slice x y w h)))
+
+(defun doc-view-get-bounding-box ()
+  "Get the BoundingBox information of the current page."
+  (let* ((page (doc-view-current-page))
+	 (doc (let ((cache-doc (doc-view-current-cache-doc-pdf)))
+		(if (file-exists-p cache-doc)
+		    cache-doc
+		  doc-view-buffer-file-name)))
+	 (o (shell-command-to-string
+	     (concat doc-view-ghostscript-program
+		     " -dSAFER -dBATCH -dNOPAUSE -q -sDEVICE=bbox "
+		     (format "-dFirstPage=%s -dLastPage=%s %s"
+			     page page doc)))))
+    (save-match-data
+      (when (string-match (concat "%%BoundingBox: "
+				  "\\([[:digit:]]+\\) \\([[:digit:]]+\\) "
+				  "\\([[:digit:]]+\\) \\([[:digit:]]+\\)") o)
+	(mapcar #'string-to-number
+		(list (match-string 1 o)
+		      (match-string 2 o)
+		      (match-string 3 o)
+		      (match-string 4 o)))))))
+
+(defvar doc-view-paper-sizes
+  '((a4 595 842)
+    (a4-landscape 842 595)
+    (letter 612 792)
+    (letter-landscape 792 612)
+    (legal 612 1008)
+    (legal-landscape 1008 612)
+    (a3 842 1191)
+    (a3-landscape 1191 842)
+    (tabloid 792 1224)
+    (ledger 1224 792))
+  "An alist from paper size names to dimensions.")
+
+(defun doc-view-guess-paper-size (iw ih)
+  "Guess the paper size according to the aspect ratio."
+  (cl-labels ((div (x y)
+		   (round (/ (* 100.0 x) y))))
+    (let ((ar (div iw ih))
+	  (al (mapcar (lambda (l)
+			(list (div (nth 1 l) (nth 2 l)) (car l)))
+		      doc-view-paper-sizes)))
+      (cadr (assoc ar al)))))
+
+(defun doc-view-scale-bounding-box (ps iw ih bb)
+  (list (/ (* (nth 0 bb) iw) (nth 1 (assoc ps doc-view-paper-sizes)))
+	(/ (* (nth 1 bb) ih) (nth 2 (assoc ps doc-view-paper-sizes)))
+	(/ (* (nth 2 bb) iw) (nth 1 (assoc ps doc-view-paper-sizes)))
+	(/ (* (nth 3 bb) ih) (nth 2 (assoc ps doc-view-paper-sizes)))))
+
+(defun doc-view-set-slice-from-bounding-box (&optional force-paper-size)
+  "Set the slice from the document's BoundingBox information.
+The result is that the margins are almost completely cropped,
+much more accurate than could be done manually using
+`doc-view-set-slice-using-mouse'."
+  (interactive "P")
+  (let ((bb (doc-view-get-bounding-box)))
+    (if (not bb)
+	(message "BoundingBox couldn't be determined")
+      (let* ((is (image-size (doc-view-current-image) t))
+	     (iw (car is))
+	     (ih (cdr is))
+	     (ps (or (and (null force-paper-size) (doc-view-guess-paper-size iw ih))
+		     (intern (completing-read "Paper size: "
+					      (mapcar #'car doc-view-paper-sizes)
+					      nil t))))
+	     (bb (doc-view-scale-bounding-box ps iw ih bb))
+	     (x1 (nth 0 bb))
+	     (y1 (nth 1 bb))
+	     (x2 (nth 2 bb))
+	     (y2 (nth 3 bb)))
+	;; We keep a 2 pixel margin.
+	(doc-view-set-slice (- x1 2) (- ih y2 2)
+			    (+ (- x2 x1) 4) (+ (- y2 y1) 4))))))
 
 (defun doc-view-reset-slice ()
   "Reset the current slice.
@@ -1095,16 +1187,18 @@ have the page we want to view."
                                    "page-[0-9]+\\.png" t)
                   'doc-view-sort))
       (dolist (win (or (get-buffer-window-list buffer nil t)
-		       (list (selected-window))))
+		       (list t)))
 	(let* ((page (doc-view-current-page win))
 	       (pagefile (expand-file-name (format "page-%d.png" page)
 					   (doc-view-current-cache-dir))))
 	  (when (or force
 		    (and (not (member pagefile prev-pages))
 			 (member pagefile doc-view-current-files)))
-	    (with-selected-window win
-				  (cl-assert (eq (current-buffer) buffer))
-				  (doc-view-goto-page page))))))))
+	    (if (windowp win)
+		(with-selected-window win
+		  (cl-assert (eq (current-buffer) buffer) t)
+		  (doc-view-goto-page page))
+	      (doc-view-goto-page page))))))))
 
 (defun doc-view-buffer-message ()
   ;; Only show this message initially, not when refreshing the buffer (in which
@@ -1147,6 +1241,10 @@ For now these keys are useful:
 	(doc-view-doc->txt txt 'doc-view-open-text)))))
 
 ;;;;; Toggle between editing and viewing
+
+(defvar-local doc-view-saved-settings nil
+  "Doc-view settings saved while in some other mode.")
+(put 'doc-view-saved-settings 'permanent-local t)
 
 (defun doc-view-toggle-display ()
   "Toggle between editing a document as text or viewing it."
@@ -1400,13 +1498,16 @@ toggle between displaying the document or editing it as text.
       ;; returns nil for tar members.
       (doc-view-fallback-mode)
 
-    (let* ((prev-major-mode (if (eq major-mode 'doc-view-mode)
+    (let* ((prev-major-mode (if (derived-mode-p 'doc-view-mode)
 				doc-view-previous-major-mode
-			      (when (not (memq major-mode
-					       '(doc-view-mode fundamental-mode)))
+			      (unless (eq major-mode 'fundamental-mode)
 				major-mode))))
       (kill-all-local-variables)
-      (set (make-local-variable 'doc-view-previous-major-mode) prev-major-mode))
+      (set (make-local-variable 'doc-view-previous-major-mode)
+           prev-major-mode))
+
+    (dolist (var doc-view-saved-settings)
+      (set (make-local-variable (car var)) (cdr var)))
 
     ;; Figure out the document type.
     (unless doc-view-doc-type
@@ -1480,13 +1581,20 @@ toggle between displaying the document or editing it as text.
 
 (defun doc-view-fallback-mode ()
   "Fallback to the previous or next best major mode."
-  (if doc-view-previous-major-mode
-      (funcall doc-view-previous-major-mode)
-    (let ((auto-mode-alist (rassq-delete-all
-			    'doc-view-mode-maybe
-			    (rassq-delete-all 'doc-view-mode
-					      (copy-alist auto-mode-alist)))))
-      (normal-mode))))
+  (let ((vars (if (derived-mode-p 'doc-view-mode)
+                  (mapcar (lambda (var) (cons var (symbol-value var)))
+                          '(doc-view-resolution
+                            image-mode-winprops-alist)))))
+    (if doc-view-previous-major-mode
+        (funcall doc-view-previous-major-mode)
+      (let ((auto-mode-alist
+             (rassq-delete-all
+              'doc-view-mode-maybe
+              (rassq-delete-all 'doc-view-mode
+                                (copy-alist auto-mode-alist)))))
+        (normal-mode)))
+    (when vars
+      (setq-local doc-view-saved-settings vars))))
 
 ;;;###autoload
 (defun doc-view-mode-maybe ()

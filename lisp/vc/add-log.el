@@ -136,12 +136,10 @@ this variable."
   :type 'boolean
   :group 'change-log)
 
-(defcustom add-log-buffer-file-name-function nil
+(defvar add-log-buffer-file-name-function 'buffer-file-name
   "If non-nil, function to call to identify the full filename of a buffer.
-This function is called with no argument.  If this is nil, the default is to
-use `buffer-file-name'."
-  :type '(choice (const nil) function)
-  :group 'change-log)
+This function is called with no argument.  The default is to
+use `buffer-file-name'.")
 
 (defcustom add-log-file-name-function nil
   "If non-nil, function to call to identify the filename for a ChangeLog entry.
@@ -806,9 +804,7 @@ non-nil, otherwise in local time."
   (let* ((defun (add-log-current-defun))
 	 (version (and change-log-version-info-enabled
 		       (change-log-version-number-search)))
-	 (buf-file-name (if add-log-buffer-file-name-function
-			    (funcall add-log-buffer-file-name-function)
-			  buffer-file-name))
+	 (buf-file-name (funcall add-log-buffer-file-name-function))
 	 (buffer-file (if buf-file-name (expand-file-name buf-file-name)))
 	 (file-name (expand-file-name (find-change-log file-name buffer-file)))
 	 ;; Set ITEM to the file name to use in the new item.

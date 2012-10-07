@@ -689,7 +689,6 @@ PROPLIST is a list of the sort returned by `symbol-plist'.
 
 ;; Local variables:
 ;; byte-compile-dynamic: t
-;; byte-compile-warnings: (not cl-functions)
 ;; generated-autoload-file: "cl-loaddefs.el"
 ;; End:
 

@@ -3,6 +3,7 @@
 ;; Copyright (C) 2002-2004, 2006-2012  Free Software Foundation, Inc.
 
 ;; Author: Mario Lang <mlang@delysid.org>
+;; Maintainer: FSF
 ;; Keywords: comm, processes, timestamp
 ;; URL: http://www.emacswiki.org/cgi-bin/wiki.pl?ErcStamp
 
@@ -352,8 +353,9 @@ Return the empty string if FORMAT is nil."
 			       'isearch-open-invisible 'timestamp ts)
 	;; N.B. Later use categories instead of this harmless, but
 	;; inelegant, hack. -- BPT
-	(when erc-timestamp-intangible
-	  (erc-put-text-property 0 (length ts) 'intangible t ts))
+	(and erc-timestamp-intangible
+	     (not erc-hide-timestamps)	; bug#11706
+	     (erc-put-text-property 0 (length ts) 'intangible t ts))
 	ts)
     ""))
 

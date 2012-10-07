@@ -213,9 +213,9 @@ If nil, use `temporary-file-directory'."
 ;;  - 8bit characters (warning face)
 ;; Multiline strings are not supported. Strings with nested brackets are.
 (defconst ps-mode-font-lock-keywords-1
-  '(("\\`%!PS.*" . font-lock-reference-face)
+  '(("\\`%!PS.*" . font-lock-constant-face)
     ("^%%BoundingBox:[ \t]+-?[0-9]+[ \t]+-?[0-9]+[ \t]+-?[0-9]+[ \t]+-?[0-9]+[ \t]*$"
-     . font-lock-reference-face)
+     . font-lock-constant-face)
     (ps-mode-match-string-or-comment
      (1 font-lock-comment-face nil t)
      (2 font-lock-string-face nil t))

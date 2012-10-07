@@ -655,15 +655,6 @@ or a character code.  Return VALUE.  */)
   return value;
 }
 
-DEFUN ("set-char-table-default", Fset_char_table_default,
-       Sset_char_table_default, 3, 3, 0,
-       doc: /*
-This function is obsolete and has no effect.  */)
-  (Lisp_Object char_table, Lisp_Object ch, Lisp_Object value)
-{
-  return Qnil;
-}
-
 /* Look up the element in TABLE at index CH, and return it as an
    integer.  If the element is not a character, return CH itself.  */
 
@@ -1415,7 +1406,6 @@ syms_of_chartab (void)
   defsubr (&Sset_char_table_extra_slot);
   defsubr (&Schar_table_range);
   defsubr (&Sset_char_table_range);
-  defsubr (&Sset_char_table_default);
   defsubr (&Soptimize_char_table);
   defsubr (&Smap_char_table);
   defsubr (&Sunicode_property_table_internal);

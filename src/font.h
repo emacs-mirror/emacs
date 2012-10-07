@@ -23,6 +23,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define EMACS_FONT_H
 
 #include "ccl.h"
+#include "frame.h"
 
 /* We have three types of Lisp objects related to font.
 

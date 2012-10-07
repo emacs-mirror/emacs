@@ -355,22 +355,24 @@ blessmail: Makefile src FRC
 # config.status overrides MAKEFILE_NAME with a bogus name when creating
 # src/epaths.h, so that 'make epaths-force' does not recursively invoke
 # config.status and overwrite config.status while executing it (Bug#11214).
+#
+# 'make bootstrap' overrides MAKEFILE_NAME to a nonexistent file but
+# then attempts to build that file.  This forces 'Makefile', 'lib/Makefile',
+# etc. to be built without running into similar recursion problems.
 MAKEFILE_NAME = Makefile
 $(MAKEFILE_NAME): config.status $(srcdir)/src/config.in \
           $(srcdir)/Makefile.in $(SUBDIR_MAKEFILES_IN)
-	./config.status
+	MAKE='$(MAKE)' ./config.status
 
 # Don't erase these files if make is interrupted while refreshing them.
 .PRECIOUS: Makefile config.status
 
-MAKE_CONFIG_STATUS = \
+config.status: ${srcdir}/configure ${srcdir}/lisp/version.el
 	if [ -x ./config.status ]; then	\
 	    ./config.status --recheck;	\
 	else				\
-	    ./configure $(CONFIGURE_FLAGS); \
+	    $(srcdir)/configure $(CONFIGURE_FLAGS); \
 	fi
-config.status: ${srcdir}/configure ${srcdir}/lisp/version.el
-	$(MAKE_CONFIG_STATUS)
 
 AUTOCONF_INPUTS = $(srcdir)/configure.ac $(srcdir)/aclocal.m4
 
@@ -891,13 +893,13 @@ dvi:
 .PHONY: bootstrap
 
 # Bootstrapping does the following:
-#  * Remove files to start from a clean slate.
-#  * Run autogen.sh, but don't worry about exit status 101 (missing tools).
-#  * Build Makefile, to build the build procedure itself.
+#  * Remove files to start from a bootstrap-clean slate.
+#  * Run autogen.sh, falling back on copy_autogen if autogen.sh fails.
+#  * Rebuild Makefile, to update the build procedure itself.
 #  * Do the actual build.
 bootstrap: bootstrap-clean FRC
-	cd $(srcdir) && { ./autogen.sh || test $$? -eq 101; }
-	$(MAKE_CONFIG_STATUS)
+	cd $(srcdir) && { ./autogen.sh || autogen/copy_autogen; }
+	$(MAKE) $(MFLAGS) MAKEFILE_NAME=force-Makefile force-Makefile
 	$(MAKE) $(MFLAGS) info all
 
 .PHONY: check-declare

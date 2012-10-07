@@ -565,11 +565,24 @@ next hunk if TRY-HARDER is non-nil; otherwise signal an error."
       (goto-char (match-beginning 1))
     (beginning-of-line)))
 
+(defvar diff--auto-refine-data nil)
+
 ;; Define diff-{hunk,file}-{prev,next}
 (easy-mmode-define-navigation
  diff-hunk diff-hunk-header-re "hunk" diff-end-of-hunk diff-restrict-view
- (if diff-auto-refine-mode
-     (condition-case-unless-debug nil (diff-refine-hunk) (error nil))))
+ (when diff-auto-refine-mode
+   (setq diff--auto-refine-data (cons (current-buffer) (point-marker)))
+   (run-at-time 0.0 nil
+                (lambda ()
+                  (when diff--auto-refine-data
+                    (let ((buffer (car diff--auto-refine-data))
+                          (point (cdr diff--auto-refine-data)))
+                      (setq diff--auto-refine-data nil)
+                      (with-local-quit
+                        (when (buffer-live-p buffer)
+                          (with-current-buffer buffer
+                            (goto-char point)
+                            (diff-refine-hunk))))))))))
 
 (easy-mmode-define-navigation
  diff-file diff-file-header-re "file" diff-end-of-file)
@@ -1317,6 +1330,9 @@ a diff with \\[diff-reverse-direction].
    \\{diff-mode-map}"
 
   (set (make-local-variable 'font-lock-defaults) diff-font-lock-defaults)
+  (add-hook 'font-lock-mode-hook
+            (lambda () (remove-overlays nil nil 'diff-mode 'fine))
+            nil 'local)
   (set (make-local-variable 'outline-regexp) diff-outline-regexp)
   (set (make-local-variable 'imenu-generic-expression)
        diff-imenu-generic-expression)
@@ -1390,6 +1406,8 @@ modified lines of the diff."
   (set (make-local-variable 'whitespace-style) '(face trailing))
   (let ((style (save-excursion
 		 (goto-char (point-min))
+                 ;; FIXME: For buffers filled from async processes, this search
+                 ;; will simply fail because the buffer is still empty :-(
 		 (when (re-search-forward diff-hunk-header-re nil t)
 		   (goto-char (match-beginning 0))
 		   (diff-hunk-style)))))
@@ -1899,7 +1917,7 @@ For use in `add-log-current-defun-function'."
   '((default
      :inherit diff-refine-change)
     (((class color) (min-colors 88) (background light))
-     :background "#ffaaaa")
+     :background "#ffbbbb")
     (((class color) (min-colors 88) (background dark))
      :background "#aa2222"))
   "Face used for removed characters shown by `diff-refine-hunk'."

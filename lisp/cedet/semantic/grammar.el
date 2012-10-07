@@ -30,10 +30,12 @@
 ;;; Code:
 
 (require 'semantic)
+(require 'semantic/wisent)
 (require 'semantic/ctxt)
 (require 'semantic/format)
 (require 'semantic/grammar-wy)
 (require 'semantic/idle)
+
 (declare-function semantic-momentary-highlight-tag "semantic/decorate")
 (declare-function semantic-analyze-context "semantic/analyze")
 (declare-function semantic-analyze-tags-of-class-list
@@ -42,7 +44,8 @@
 (eval-when-compile
   (require 'eldoc)
   (require 'semantic/edit)
-  (require 'semantic/find))
+  (require 'semantic/find)
+  (require 'semantic/db))
 
 
 ;;;;
@@ -488,33 +491,27 @@ Also load the specified macro libraries."
 ;;;;
 (defvar semantic--grammar-input-buffer  nil)
 (defvar semantic--grammar-output-buffer nil)
+(defvar semantic--grammar-package nil)
+(defvar semantic--grammar-provide nil)
 
 (defsubst semantic-grammar-keywordtable ()
   "Return the variable name of the keyword table."
-  (concat (file-name-sans-extension
-           (semantic-grammar-buffer-file
-            semantic--grammar-output-buffer))
+  (concat semantic--grammar-package
           "--keyword-table"))
 
 (defsubst semantic-grammar-tokentable ()
   "Return the variable name of the token table."
-  (concat (file-name-sans-extension
-           (semantic-grammar-buffer-file
-            semantic--grammar-output-buffer))
+  (concat semantic--grammar-package
           "--token-table"))
 
 (defsubst semantic-grammar-parsetable ()
   "Return the variable name of the parse table."
-  (concat (file-name-sans-extension
-           (semantic-grammar-buffer-file
-            semantic--grammar-output-buffer))
+  (concat semantic--grammar-package
           "--parse-table"))
 
 (defsubst semantic-grammar-setupfunction ()
   "Return the name of the parser setup function."
-  (concat (file-name-sans-extension
-           (semantic-grammar-buffer-file
-            semantic--grammar-output-buffer))
+  (concat semantic--grammar-package
           "--install-parser"))
 
 (defmacro semantic-grammar-as-string (object)
@@ -592,6 +589,9 @@ Typically a DEFINE expression should look like this:
 ;;
 
 ;;; Code:
+
+(require 'semantic/lex)
+(eval-when-compile (require 'semantic/bovine))
 ")
   "Generated header template.
 The symbols in the template are local variables in
@@ -642,7 +642,8 @@ The symbols in the list are local variables in
   "Return text of a generated standard footer."
   (let* ((file (semantic-grammar-buffer-file
                 semantic--grammar-output-buffer))
-         (libr (file-name-sans-extension file))
+         (libr (or semantic--grammar-provide
+		   semantic--grammar-package))
 	 (out ""))
     (dolist (S semantic-grammar-footer-template)
       (cond ((stringp S)
@@ -748,9 +749,7 @@ Block definitions are read from the current table of lexical types."
     ;; explicitly declared in a %type statement, and if at least the
     ;; syntax property has been provided.
     (when (and declared syntax)
-      (setq prefix (file-name-sans-extension
-                    (semantic-grammar-buffer-file
-                     semantic--grammar-output-buffer))
+      (setq prefix semantic--grammar-package
             mtype (or (get type 'matchdatatype) 'regexp)
             name (intern (format "%s--<%s>-%s-analyzer" prefix type mtype))
             doc (format "%s analyzer for <%s> tokens." mtype type))
@@ -801,7 +800,6 @@ Block definitions are read from the current table of lexical types."
     (with-current-buffer semantic--grammar-input-buffer
       (setq tokens (semantic-grammar-tokens)
             props  (semantic-grammar-token-properties tokens)))
-    (insert "(require 'semantic/lex)\n\n")
     (let ((semantic-lex-types-obarray
            (semantic-lex-make-type-table tokens props))
           semantic-grammar--lex-block-specs)
@@ -833,10 +831,14 @@ Lisp code."
          ;; Values of the following local variables are obtained from
          ;; the grammar parsed tree in current buffer, that is before
          ;; switching to the output file.
-         (package  (semantic-grammar-package))
-         (output   (concat package ".el"))
+         (semantic--grammar-package (semantic-grammar-package))
+	 (semantic--grammar-provide (semantic-grammar-first-tag-name 'provide))
+         (output   (concat (or semantic--grammar-provide
+			       semantic--grammar-package) ".el"))
          (semantic--grammar-input-buffer  (current-buffer))
-         (semantic--grammar-output-buffer (find-file-noselect output))
+         (semantic--grammar-output-buffer
+	  (find-file-noselect
+	   (file-name-nondirectory output)))
          (header   (semantic-grammar-header))
          (prologue (semantic-grammar-prologue))
          (epilogue (semantic-grammar-epilogue))
@@ -847,7 +849,7 @@ Lisp code."
              (file-newer-than-file-p
               (buffer-file-name semantic--grammar-output-buffer)
               (buffer-file-name semantic--grammar-input-buffer)))
-        (message "Package `%s' is up to date." package)
+        (message "Package `%s' is up to date." semantic--grammar-package)
       ;; Create the package
       (set-buffer semantic--grammar-output-buffer)
       ;; Use Unix EOLs, so that the file is portable to all platforms.
@@ -965,7 +967,11 @@ Return non-nil if there were no errors, nil if errors."
     (let ((packagename
            (condition-case err
                (with-current-buffer (find-file-noselect file)
-                 (semantic-grammar-create-package))
+		 (let ((semantic-new-buffer-setup-functions nil)
+		       (vc-handled-backends nil))
+		   (setq semanticdb-new-database-class 'semanticdb-project-database)
+		   (semantic-mode 1)
+		   (semantic-grammar-create-package)))
              (error
               (message "%s" (error-message-string err))
               nil))))
@@ -1000,7 +1006,6 @@ See also the variable `semantic-grammar-file-regexp'."
         ;; Remove vc from find-file-hook.  It causes bad stuff to
         ;; happen in Emacs 20.
         (find-file-hook (delete 'vc-find-file-hook find-file-hook)))
-    (message "Compiling Grammars from: %s" (locate-library "semantic-grammar"))
     (dolist (arg command-line-args-left)
       (unless (and arg (file-exists-p arg))
         (error "Argument %s is not a valid file name" arg))

@@ -516,6 +516,7 @@ Functions
 * Obsolete Functions::      Declaring functions obsolete.
 * Inline Functions::        Defining functions that the compiler
                               will expand inline.
+* Declare Form::          Adding additional information about a function.
 * Declaring Functions::     Telling the compiler that a function is defined.
 * Function Safety::         Determining whether a function is safe to call.
 * Related Topics::          Cross-references to specific Lisp primitives
@@ -1366,8 +1367,8 @@ Overlays
 
 Faces
 
-* Defining Faces::          How to define a face.
 * Face Attributes::         What is in a face?
+* Defining Faces::          How to define a face.
 * Attribute Functions::     Functions to examine and set face attributes.
 * Displaying Faces::        How Emacs combines the faces specified for
                               a character.

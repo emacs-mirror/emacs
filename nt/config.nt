@@ -63,9 +63,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define on FreeBSD to work around an issue when reading from a PTY. */
 #undef BROKEN_PTY_READ_AFTER_EAGAIN
 
-/* Define if SA_RESTART should only be used in batch mode. */
-#undef BROKEN_SA_RESTART
-
 /* Define if the system is compatible with BSD 4.2. */
 #undef BSD4_2
 
@@ -777,7 +774,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define HAVE_SENDTO 1
 
 /* Define to 1 if you have the `setitimer' function. */
-#undef HAVE_SETITIMER
+#define HAVE_SETITIMER 1
 
 /* Define to 1 if you have the `setlocale' function. */
 #define HAVE_SETLOCALE 1
@@ -970,6 +967,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 if you have the tiff library (-ltiff). */
 #undef HAVE_TIFF
+
+/* Define to 1 if you have the `timer_settime' function. */
+#undef HAVE_TIMER_SETTIME
 
 /* Define if struct tm has the tm_gmtoff member. */
 #undef HAVE_TM_GMTOFF
@@ -1308,9 +1308,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 on System V Release 4. */
 #undef SVR4
 
-/* Process async input synchronously. */
-#undef SYNC_INPUT
-
 /* Define to use system malloc. */
 #undef SYSTEM_MALLOC
 
@@ -1534,7 +1531,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
      <http://gcc.gnu.org/bugzilla/show_bug.cgi?id=54113>.
    _GL_INLINE_HEADER_END contains useful stuff to put
      in the same include file, after uses of _GL_INLINE.  */
-#if __GNUC__ ? __GNUC_STDC_INLINE__ : 199901L <= __STDC_VERSION__
+#if (__GNUC__ \
+     ? defined __GNUC_STDC_INLINE__ && __GNUC_STDC_INLINE__ \
+     : 199901L <= __STDC_VERSION__)
 # define _GL_INLINE inline
 # define _GL_EXTERN_INLINE extern inline
 #elif 2 < __GNUC__ + (7 <= __GNUC_MINOR__)
@@ -1551,7 +1550,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 
 #if 4 < __GNUC__ + (6 <= __GNUC_MINOR__)
-# if __GNUC_STDC_INLINE__
+# if defined __GNUC_STDC_INLINE__ && __GNUC_STDC_INLINE__
 #  define _GL_INLINE_HEADER_CONST_PRAGMA
 # else
 #  define _GL_INLINE_HEADER_CONST_PRAGMA \

@@ -27,7 +27,7 @@ struct position
   };
 
 struct position *compute_motion (ptrdiff_t from, EMACS_INT fromvpos,
-                                 EMACS_INT fromhpos, int did_motion,
+                                 EMACS_INT fromhpos, bool did_motion,
                                  ptrdiff_t to, EMACS_INT tovpos,
                                  EMACS_INT tohpos,
                                  EMACS_INT width, ptrdiff_t hscroll,
@@ -45,8 +45,8 @@ extern ptrdiff_t last_known_column_point;
 /* Return true if the display table DISPTAB specifies the same widths
    for characters as WIDTHTAB.  We use this to decide when to
    invalidate the buffer's column_cache.  */
-int disptab_matches_widthtab (struct Lisp_Char_Table *disptab,
-                              struct Lisp_Vector *widthtab);
+bool disptab_matches_widthtab (struct Lisp_Char_Table *disptab,
+			       struct Lisp_Vector *widthtab);
 
 /* Recompute BUF's width table, using the display table DISPTAB.  */
 void recompute_width_table (struct buffer *buf,

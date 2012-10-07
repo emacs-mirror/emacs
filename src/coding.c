@@ -920,65 +920,18 @@ record_conversion_result (struct coding_system *coding,
 
 
 /* Store multibyte form of the character C in P, and advance P to the
-   end of the multibyte form.  This is like CHAR_STRING_ADVANCE but it
-   never calls MAYBE_UNIFY_CHAR.  */
+   end of the multibyte form.  This used to be like CHAR_STRING_ADVANCE
+   without ever calling MAYBE_UNIFY_CHAR, but nowadays we don't call
+   MAYBE_UNIFY_CHAR in CHAR_STRING_ADVANCE.  */
 
-#define CHAR_STRING_ADVANCE_NO_UNIFY(c, p)	\
-  do {						\
-    if ((c) <= MAX_1_BYTE_CHAR)			\
-      *(p)++ = (c);				\
-    else if ((c) <= MAX_2_BYTE_CHAR)		\
-      *(p)++ = (0xC0 | ((c) >> 6)),		\
-	*(p)++ = (0x80 | ((c) & 0x3F));		\
-    else if ((c) <= MAX_3_BYTE_CHAR)		\
-      *(p)++ = (0xE0 | ((c) >> 12)),		\
-	*(p)++ = (0x80 | (((c) >> 6) & 0x3F)),	\
-	*(p)++ = (0x80 | ((c) & 0x3F));		\
-    else if ((c) <= MAX_4_BYTE_CHAR)		\
-      *(p)++ = (0xF0 | (c >> 18)),		\
-	*(p)++ = (0x80 | ((c >> 12) & 0x3F)),	\
-	*(p)++ = (0x80 | ((c >> 6) & 0x3F)),	\
-	*(p)++ = (0x80 | (c & 0x3F));		\
-    else if ((c) <= MAX_5_BYTE_CHAR)		\
-      *(p)++ = 0xF8,				\
-	*(p)++ = (0x80 | ((c >> 18) & 0x0F)),	\
-	*(p)++ = (0x80 | ((c >> 12) & 0x3F)),	\
-	*(p)++ = (0x80 | ((c >> 6) & 0x3F)),	\
-	*(p)++ = (0x80 | (c & 0x3F));		\
-    else					\
-      (p) += BYTE8_STRING ((c) - 0x3FFF80, p);	\
-  } while (0)
-
+#define CHAR_STRING_ADVANCE_NO_UNIFY(c, p)  CHAR_STRING_ADVANCE(c, p)
 
 /* Return the character code of character whose multibyte form is at
-   P, and advance P to the end of the multibyte form.  This is like
-   STRING_CHAR_ADVANCE, but it never calls MAYBE_UNIFY_CHAR.  */
+   P, and advance P to the end of the multibyte form.  This used to be
+   like STRING_CHAR_ADVANCE without ever calling MAYBE_UNIFY_CHAR, but
+   nowadays STRING_CHAR_ADVANCE doesn't call MAYBE_UNIFY_CHAR.  */
 
-#define STRING_CHAR_ADVANCE_NO_UNIFY(p)				\
-  (!((p)[0] & 0x80)						\
-   ? *(p)++							\
-   : ! ((p)[0] & 0x20)						\
-   ? ((p) += 2,							\
-      ((((p)[-2] & 0x1F) << 6)					\
-       | ((p)[-1] & 0x3F)					\
-       | ((unsigned char) ((p)[-2]) < 0xC2 ? 0x3FFF80 : 0)))	\
-   : ! ((p)[0] & 0x10)						\
-   ? ((p) += 3,							\
-      ((((p)[-3] & 0x0F) << 12)					\
-       | (((p)[-2] & 0x3F) << 6)				\
-       | ((p)[-1] & 0x3F)))					\
-   : ! ((p)[0] & 0x08)						\
-   ? ((p) += 4,							\
-      ((((p)[-4] & 0xF) << 18)					\
-       | (((p)[-3] & 0x3F) << 12)				\
-       | (((p)[-2] & 0x3F) << 6)				\
-       | ((p)[-1] & 0x3F)))					\
-   : ((p) += 5,							\
-      ((((p)[-4] & 0x3F) << 18)					\
-       | (((p)[-3] & 0x3F) << 12)				\
-       | (((p)[-2] & 0x3F) << 6)				\
-       | ((p)[-1] & 0x3F))))
-
+#define STRING_CHAR_ADVANCE_NO_UNIFY(p) STRING_CHAR_ADVANCE(p)
 
 /* Set coding->source from coding->src_object.  */
 
@@ -5106,6 +5059,7 @@ decode_coding_ccl (struct coding_system *coding)
   while (1)
     {
       const unsigned char *p = src;
+      ptrdiff_t offset;
       int i = 0;
 
       if (multibytep)
@@ -5123,8 +5077,17 @@ decode_coding_ccl (struct coding_system *coding)
 
       if (p == src_end && coding->mode & CODING_MODE_LAST_BLOCK)
 	ccl->last_block = 1;
+      /* As ccl_driver calls DECODE_CHAR, buffer may be relocated.  */
+      charset_map_loaded = 0;
       ccl_driver (ccl, source_charbuf, charbuf, i, charbuf_end - charbuf,
 		  charset_list);
+      if (charset_map_loaded
+	  && (offset = coding_change_source (coding)))
+	{
+	  p += offset;
+	  src += offset;
+	  src_end += offset;
+	}
       charbuf += ccl->produced;
       if (multibytep)
 	src += source_byteidx[ccl->consumed];
@@ -5177,8 +5140,15 @@ encode_coding_ccl (struct coding_system *coding)
 
   do
     {
+      ptrdiff_t offset;
+
+      /* As ccl_driver calls DECODE_CHAR, buffer may be relocated.  */
+      charset_map_loaded = 0;
       ccl_driver (ccl, charbuf, destination_charbuf,
 		  charbuf_end - charbuf, 1024, charset_list);
+      if (charset_map_loaded
+	  && (offset = coding_change_destination (coding)))
+	dst += offset;
       if (multibytep)
 	{
 	  ASSURE_DESTINATION (ccl->produced * 2);
@@ -6852,7 +6822,7 @@ produce_chars (struct coding_system *coding, Lisp_Object translation_table,
      [ -LENGTH ANNOTATION_MASK NCHARS NBYTES METHOD [ COMPONENTS... ] ]
  */
 
-static inline void
+static void
 produce_composition (struct coding_system *coding, int *charbuf, ptrdiff_t pos)
 {
   int len;
@@ -6896,7 +6866,7 @@ produce_composition (struct coding_system *coding, int *charbuf, ptrdiff_t pos)
      [ -LENGTH ANNOTATION_MASK NCHARS CHARSET-ID ]
  */
 
-static inline void
+static void
 produce_charset (struct coding_system *coding, int *charbuf, ptrdiff_t pos)
 {
   ptrdiff_t from = pos - charbuf[2];
@@ -7131,7 +7101,7 @@ decode_coding (struct coding_system *coding)
    position of a composition after POS (if any) or to LIMIT, and
    return BUF.  */
 
-static inline int *
+static int *
 handle_composition_annotation (ptrdiff_t pos, ptrdiff_t limit,
 			       struct coding_system *coding, int *buf,
 			       ptrdiff_t *stop)
@@ -7214,7 +7184,7 @@ handle_composition_annotation (ptrdiff_t pos, ptrdiff_t limit,
    If the property value is nil, set *STOP to the position where the
    property value is non-nil (limiting by LIMIT), and return BUF.  */
 
-static inline int *
+static int *
 handle_charset_annotation (ptrdiff_t pos, ptrdiff_t limit,
 			   struct coding_system *coding, int *buf,
 			   ptrdiff_t *stop)
@@ -8459,7 +8429,7 @@ highest priority.  */)
 }
 
 
-static inline bool
+static bool
 char_encodable_p (int c, Lisp_Object attrs)
 {
   Lisp_Object tail;

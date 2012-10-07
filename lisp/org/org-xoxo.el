@@ -49,7 +49,7 @@ The XOXO buffer is named *xoxo-<source buffer name>*"
   (with-current-buffer (get-buffer buffer)
     (let* ((pos (point))
 	   (opt-plist (org-combine-plists (org-default-export-plist)
-					(org-infile-export-plist)))
+					  (org-infile-export-plist)))
 	   (filename (concat (file-name-as-directory
 			      (org-export-directory :xoxo opt-plist))
 			     (file-name-sans-extension

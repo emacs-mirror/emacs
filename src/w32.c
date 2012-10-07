@@ -1511,52 +1511,6 @@ is_unc_volume (const char *filename)
   return 1;
 }
 
-/* Routines that are no-ops on NT but are defined to get Emacs to compile.  */
-int
-sigemptyset (sigset_t *set)
-{
-  *set = 0;
-  return 0;
-}
-
-int
-sigaddset (sigset_t *set, int signo)
-{
-  return 0;
-}
-
-int
-sigfillset (sigset_t *set)
-{
-  return 0;
-}
-
-int
-sigprocmask (int how, const sigset_t *set, sigset_t *oset)
-{
-  return 0;
-}
-
-int
-pthread_sigmask (int how, const sigset_t *set, sigset_t *oset)
-{
-  if (sigprocmask (how, set, oset) == -1)
-    return EINVAL;
-  return 0;
-}
-
-int
-setpgrp (int pid, int gid)
-{
-  return 0;
-}
-
-int
-alarm (int seconds)
-{
-  return 0;
-}
-
 #define REG_ROOT "SOFTWARE\\GNU\\Emacs"
 
 LPBYTE
@@ -1767,7 +1721,8 @@ init_environment (char ** argv)
       /* FIXME: should use substring of get_emacs_configuration ().
 	 But I don't think the Windows build supports alpha, mips etc
          anymore, so have taken the easy option for now.  */
-      else if (p && xstrcasecmp (p, "\\i386") == 0)
+      else if (p && (xstrcasecmp (p, "\\i386") == 0
+                     || xstrcasecmp (p, "\\AMD64") == 0))
 	{
 	  *p = 0;
 	  p = strrchr (modname, '\\');
@@ -1915,7 +1870,16 @@ get_emacs_configuration (void)
     case PROCESSOR_INTEL_386:
     case PROCESSOR_INTEL_486:
     case PROCESSOR_INTEL_PENTIUM:
+#ifdef _WIN64
+      arch = "amd64";
+#else
       arch = "i386";
+#endif
+      break;
+#endif
+#ifdef PROCESSOR_AMD_X8664
+    case PROCESSOR_AMD_X8664:
+      arch = "amd64";
       break;
 #endif
 
@@ -3971,9 +3935,13 @@ utime (const char *name, struct utimbuf *times)
     }
 
   /* Need write access to set times.  */
-  fh = CreateFile (name, GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE,
-		   0, OPEN_EXISTING, 0, NULL);
-  if (fh)
+  fh = CreateFile (name, FILE_WRITE_ATTRIBUTES,
+		   /* If NAME specifies a directory, FILE_SHARE_DELETE
+		      allows other processes to delete files inside it,
+		      while we have the directory open.  */
+		   FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+		   0, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, NULL);
+  if (fh != INVALID_HANDLE_VALUE)
     {
       convert_from_time_t (times->actime, &atime);
       convert_from_time_t (times->modtime, &mtime);
@@ -6504,33 +6472,27 @@ sys_localtime (const time_t *t)
 
 
 
-/* Delayed loading of libraries.  */
+/* Try loading LIBRARY_ID from the file(s) specified in
+   Vdynamic_library_alist.  If the library is loaded successfully,
+   return the handle of the DLL, and record the filename in the
+   property :loaded-from of LIBRARY_ID.  If the library could not be
+   found, or when it was already loaded (because the handle is not
+   recorded anywhere, and so is lost after use), return NULL.
 
-Lisp_Object Vlibrary_cache;
-
-/* The argument LIBRARIES is an alist that associates a symbol
-   LIBRARY_ID, identifying an external DLL library known to Emacs, to
-   a list of filenames under which the library is usually found.  In
-   most cases, the argument passed as LIBRARIES is the variable
-   `dynamic-library-alist', which is initialized to a list of common
-   library names.  If the function loads the library successfully, it
-   returns the handle of the DLL, and records the filename in the
-   property :loaded-from of LIBRARY_ID; it returns NULL if the library
-   could not be found, or when it was already loaded (because the
-   handle is not recorded anywhere, and so is lost after use).  It
-   would be trivial to save the handle too in :loaded-from, but
-   currently there's no use case for it.  */
+   We could also save the handle in :loaded-from, but currently
+   there's no use case for it.  */
 HMODULE
-w32_delayed_load (Lisp_Object libraries, Lisp_Object library_id)
+w32_delayed_load (Lisp_Object library_id)
 {
   HMODULE library_dll = NULL;
 
   CHECK_SYMBOL (library_id);
 
-  if (CONSP (libraries) && NILP (Fassq (library_id, Vlibrary_cache)))
+  if (CONSP (Vdynamic_library_alist)
+      && NILP (Fassq (library_id, Vlibrary_cache)))
     {
       Lisp_Object found = Qnil;
-      Lisp_Object dlls = Fassq (library_id, libraries);
+      Lisp_Object dlls = Fassq (library_id, Vdynamic_library_alist);
 
       if (CONSP (dlls))
         for (dlls = XCDR (dlls); CONSP (dlls); dlls = XCDR (dlls))
@@ -6609,8 +6571,12 @@ check_windows_init_file (void)
 }
 
 void
-term_ntproc (void)
+term_ntproc (int ignored)
 {
+  (void)ignored;
+
+  term_timers ();
+
   /* shutdown the socket interface if necessary */
   term_winsock ();
 
@@ -6618,8 +6584,10 @@ term_ntproc (void)
 }
 
 void
-init_ntproc (void)
+init_ntproc (int dumping)
 {
+  sigset_t initial_mask = 0;
+
   /* Initialize the socket interface now if available and requested by
      the user by defining PRELOAD_WINSOCK; otherwise loading will be
      delayed until open-network-stream is called (w32-has-winsock can
@@ -6675,19 +6643,19 @@ init_ntproc (void)
     fclose (stderr);
 
     if (stdin_save != INVALID_HANDLE_VALUE)
-      _open_osfhandle ((long) stdin_save, O_TEXT);
+      _open_osfhandle ((intptr_t) stdin_save, O_TEXT);
     else
       _open ("nul", O_TEXT | O_NOINHERIT | O_RDONLY);
     _fdopen (0, "r");
 
     if (stdout_save != INVALID_HANDLE_VALUE)
-      _open_osfhandle ((long) stdout_save, O_TEXT);
+      _open_osfhandle ((intptr_t) stdout_save, O_TEXT);
     else
       _open ("nul", O_TEXT | O_NOINHERIT | O_WRONLY);
     _fdopen (1, "w");
 
     if (stderr_save != INVALID_HANDLE_VALUE)
-      _open_osfhandle ((long) stderr_save, O_TEXT);
+      _open_osfhandle ((intptr_t) stderr_save, O_TEXT);
     else
       _open ("nul", O_TEXT | O_NOINHERIT | O_WRONLY);
     _fdopen (2, "w");
@@ -6695,7 +6663,13 @@ init_ntproc (void)
 
   /* unfortunately, atexit depends on implementation of malloc */
   /* atexit (term_ntproc); */
-  signal (SIGABRT, term_ntproc);
+  if (!dumping)
+    {
+      /* Make sure we start with all signals unblocked.  */
+      sigprocmask (SIG_SETMASK, &initial_mask, NULL);
+      signal (SIGABRT, term_ntproc);
+    }
+  init_timers ();
 
   /* determine which drives are fixed, for GetCachedVolumeInformation */
   {
@@ -6752,9 +6726,6 @@ globals_of_w32 (void)
 
   DEFSYM (QCloaded_from, ":loaded-from");
 
-  Vlibrary_cache = Qnil;
-  staticpro (&Vlibrary_cache);
-
   g_b_init_is_windows_9x = 0;
   g_b_init_open_process_token = 0;
   g_b_init_get_token_information = 0;
@@ -6805,7 +6776,7 @@ serial_open (char *port)
 		    OPEN_EXISTING, FILE_FLAG_OVERLAPPED, 0);
   if (hnd == INVALID_HANDLE_VALUE)
     error ("Could not open %s", port);
-  fd = (int) _open_osfhandle ((int) hnd, 0);
+  fd = (int) _open_osfhandle ((intptr_t) hnd, 0);
   if (fd == -1)
     error ("Could not open %s", port);
 

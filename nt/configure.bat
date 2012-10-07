@@ -627,7 +627,10 @@ rm -f junk.c junk.obj
 if (%gifsupport%) == (N) goto gifDone
 
 echo Checking for libgif...
-echo #include "gif_lib.h" >junk.c
+rem giflib-5.0.0 needs size_t defined before gif_lib.h is included
+rem redirection characters need to be protected from the shell
+echo #include ^<stddef.h^> >junk.c
+echo #include "gif_lib.h" >>junk.c
 echo main (){} >>junk.c
 rem   -o option is ignored with cl, but allows result to be consistent.
 echo %COMPILER% %usercflags% %mingwflag% -c junk.c -o junk.obj >>config.log

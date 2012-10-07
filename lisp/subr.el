@@ -271,16 +271,23 @@ the return value (nil if RESULT is omitted).
          ,@(cdr (cdr spec))))))
 
 (defmacro declare (&rest _specs)
-  "Do not evaluate any arguments and return nil.
-Treated as a declaration when used at the right place in a
-`defmacro' form.  \(See Info anchor `(elisp)Definition of declare'.)"
+  "Do not evaluate any arguments, and return nil.
+If a `declare' form appears as the first form in the body of a
+`defun' or `defmacro' form, SPECS specifies various additional
+information about the function or macro; these go into effect
+during the evaluation of the `defun' or `defmacro' form.
+
+The possible values of SPECS are specified by
+`defun-declarations-alist' and `macro-declarations-alist'."
   ;; FIXME: edebug spec should pay attention to defun-declarations-alist.
   nil)
 ))
 
 (defmacro ignore-errors (&rest body)
   "Execute BODY; if an error occurs, return nil.
-Otherwise, return result of last form in BODY."
+Otherwise, return result of last form in BODY.
+See also `with-demoted-errors' that does something similar
+without silencing all errors."
   (declare (debug t) (indent 0))
   `(condition-case nil (progn ,@body) (error nil)))
 
@@ -459,18 +466,18 @@ If TEST is omitted or nil, `equal' is used."
       (setq tail (cdr tail)))
     value))
 
-(make-obsolete 'assoc-ignore-case 'assoc-string "22.1")
 (defun assoc-ignore-case (key alist)
   "Like `assoc', but ignores differences in case and text representation.
 KEY must be a string.  Upper-case and lower-case letters are treated as equal.
 Unibyte strings are converted to multibyte for comparison."
+  (declare (obsolete assoc-string "22.1"))
   (assoc-string key alist t))
 
-(make-obsolete 'assoc-ignore-representation 'assoc-string "22.1")
 (defun assoc-ignore-representation (key alist)
   "Like `assoc', but ignores differences in text representation.
 KEY must be a string.
 Unibyte strings are converted to multibyte for comparison."
+  (declare (obsolete assoc-string "22.1"))
   (assoc-string key alist nil))
 
 (defun member-ignore-case (elt list)
@@ -1177,12 +1184,13 @@ be a list of the form returned by `event-start' and `event-end'."
   "Mocklisp-compatibility insert function.
 Like the function `insert' except that any argument that is a number
 is converted into a string by expressing it in decimal."
+  (declare (obsolete insert "22.1"))
   (dolist (el args)
     (insert (if (integerp el) (number-to-string el) el))))
-(make-obsolete 'insert-string 'insert "22.1")
 
-(defun makehash (&optional test) (make-hash-table :test (or test 'eql)))
-(make-obsolete 'makehash 'make-hash-table "22.1")
+(defun makehash (&optional test)
+  (declare (obsolete make-hash-table "22.1"))
+  (make-hash-table :test (or test 'eql)))
 
 ;; These are used by VM and some old programs
 (defalias 'focus-frame 'ignore "")
@@ -1247,11 +1255,6 @@ is converted into a string by expressing it in decimal."
 
 (make-obsolete 'process-filter-multibyte-p nil "23.1")
 (make-obsolete 'set-process-filter-multibyte nil "23.1")
-
-(make-obsolete-variable
- 'mode-line-inverse-video
- "use the appropriate faces instead."
- "21.1")
 
 ;; Lisp manual only updated in 22.1.
 (define-obsolete-variable-alias 'executing-macro 'executing-kbd-macro
@@ -1909,8 +1912,8 @@ This function is called directly from the C code."
   "Read the following input sexp, and run it whenever FILE is loaded.
 This makes or adds to an entry on `after-load-alist'.
 FILE should be the name of a library, with no directory name."
+  (declare (obsolete eval-after-load "23.2"))
   (eval-after-load file (read)))
-(make-obsolete 'eval-next-after-load `eval-after-load "23.2")
 
 (defun display-delayed-warnings ()
   "Display delayed warnings from `delayed-warnings-list'.
@@ -2140,6 +2143,15 @@ any other non-digit terminates the character code and is then used as input."))
       (setq first nil))
     code))
 
+(defvar read-passwd-map
+  ;; BEWARE: `defconst' would purecopy it, breaking the sharing with
+  ;; minibuffer-local-map along the way!
+  (let ((map (make-sparse-keymap)))
+    (set-keymap-parent map minibuffer-local-map)
+    (define-key map "\C-u" #'delete-minibuffer-contents) ;bug#12570
+    map)
+  "Keymap used while reading passwords.")
+
 (defun read-passwd (prompt &optional confirm default)
   "Read a password, prompting with PROMPT, and return it.
 If optional CONFIRM is non-nil, read the password twice to make sure.
@@ -2176,7 +2188,10 @@ by doing (clear-string STRING)."
           (lambda ()
             (setq minibuf (current-buffer))
             ;; Turn off electricity.
-            (set (make-local-variable 'post-self-insert-hook) nil)
+            (setq-local post-self-insert-hook nil)
+            (setq-local buffer-undo-list t)
+            (setq-local select-active-regions nil)
+            (use-local-map read-passwd-map)
             (add-hook 'after-change-functions hide-chars-fun nil 'local))
         (unwind-protect
             (let ((enable-recursive-minibuffers t))
@@ -3136,6 +3151,45 @@ in which case `save-window-excursion' cannot help."
        (unwind-protect (progn ,@body)
          (set-window-configuration ,c)))))
 
+(defun temp-output-buffer-show (buffer)
+  "Internal function for `with-output-to-temp-buffer'."
+  (with-current-buffer buffer
+    (set-buffer-modified-p nil)
+    (goto-char (point-min)))
+
+  (if temp-buffer-show-function
+      (funcall temp-buffer-show-function buffer)
+    (with-current-buffer buffer
+      (let* ((window
+	      (let ((window-combination-limit
+		   ;; When `window-combination-limit' equals
+		   ;; `temp-buffer' or `temp-buffer-resize' and
+		   ;; `temp-buffer-resize-mode' is enabled in this
+		   ;; buffer bind it to t so resizing steals space
+		   ;; preferably from the window that was split.
+		   (if (or (eq window-combination-limit 'temp-buffer)
+			   (and (eq window-combination-limit
+				    'temp-buffer-resize)
+				temp-buffer-resize-mode))
+		       t
+		     window-combination-limit)))
+		(display-buffer buffer)))
+	     (frame (and window (window-frame window))))
+	(when window
+	  (unless (eq frame (selected-frame))
+	    (make-frame-visible frame))
+	  (setq minibuffer-scroll-window window)
+	  (set-window-hscroll window 0)
+	  ;; Don't try this with NOFORCE non-nil!
+	  (set-window-start window (point-min) t)
+	  ;; This should not be necessary.
+	  (set-window-point window (point-min))
+	  ;; Run `temp-buffer-show-hook', with the chosen window selected.
+	  (with-selected-window window
+	    (run-hooks 'temp-buffer-show-hook))))))
+  ;; Return nil.
+  nil)
+
 (defmacro with-output-to-temp-buffer (bufname &rest body)
   "Bind `standard-output' to buffer BUFNAME, eval BODY, then show that buffer.
 
@@ -3181,7 +3235,7 @@ if it uses `temp-buffer-show-function'."
                    (run-hooks 'temp-buffer-setup-hook)))))
             (standard-output ,buf))
        (prog1 (progn ,@body)
-         (internal-temp-output-buffer-show ,buf)))))
+         (temp-output-buffer-show ,buf)))))
 
 (defmacro with-temp-file (file &rest body)
   "Create a new buffer, evaluate BODY there, and write the buffer to FILE.

@@ -401,7 +401,7 @@ w32_console_mouse_position (FRAME_PTR *f,
 			    Lisp_Object *y,
 			    Time *time)
 {
-  BLOCK_INPUT;
+  block_input ();
 
   insist = insist;
 
@@ -414,7 +414,7 @@ w32_console_mouse_position (FRAME_PTR *f,
   XSETINT (*y, movement_pos.Y);
   *time = movement_time;
 
-  UNBLOCK_INPUT;
+  unblock_input ();
 }
 
 /* Remember mouse motion and notify emacs.  */
@@ -578,20 +578,12 @@ maybe_generate_resize_event (void)
 
 int
 w32_console_read_socket (struct terminal *terminal,
-                         int expected,
                          struct input_event *hold_quit)
 {
-  int nev, ret = 0, add;
+  int nev, add;
   int isdead;
 
-  if (interrupt_input_blocked)
-    {
-      interrupt_input_pending = 1;
-      return -1;
-    }
-
-  interrupt_input_pending = 0;
-  BLOCK_INPUT;
+  block_input ();
 
   for (;;)
     {
@@ -601,8 +593,7 @@ w32_console_read_socket (struct terminal *terminal,
 	  /* If nev == -1, there was some kind of error
 	     If nev == 0 then waitp must be zero and no events were available
 	     so return.  */
-	  UNBLOCK_INPUT;
-	  return nev;
+	  break;
         }
 
       while (nev > 0)
@@ -646,9 +637,6 @@ w32_console_read_socket (struct terminal *terminal,
 	  queue_ptr++;
 	  nev--;
         }
-
-      if (ret > 0 || expected == 0)
-	break;
     }
 
   /* We don't get told about changes in the window size (only the buffer
@@ -657,6 +645,6 @@ w32_console_read_socket (struct terminal *terminal,
   if (!w32_use_full_screen_buffer)
     maybe_generate_resize_event ();
 
-  UNBLOCK_INPUT;
-  return ret;
+  unblock_input ();
+  return nev;
 }

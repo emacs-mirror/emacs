@@ -34,14 +34,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "font.h"
 #include "keymap.h"
 
-#include <float.h>
-#if (FLT_RADIX == 2 && FLT_MANT_DIG == 24 \
-     && FLT_MIN_EXP == -125 && FLT_MAX_EXP == 128)
-#define IEEE_FLOATING_POINT 1
-#else
-#define IEEE_FLOATING_POINT 0
-#endif
-
 Lisp_Object Qnil, Qt, Qquote, Qlambda, Qunbound;
 static Lisp_Object Qsubr;
 Lisp_Object Qerror_conditions, Qerror_message, Qtop_level;
@@ -3178,33 +3170,4 @@ syms_of_data (void)
 	       doc: /* The smallest value that is representable in a Lisp integer.  */);
   Vmost_negative_fixnum = make_number (MOST_NEGATIVE_FIXNUM);
   XSYMBOL (intern_c_string ("most-negative-fixnum"))->constant = 1;
-}
-
-static _Noreturn void
-handle_arith_signal (int sig)
-{
-  pthread_sigmask (SIG_SETMASK, &empty_mask, 0);
-  xsignal0 (Qarith_error);
-}
-
-static void
-deliver_arith_signal (int sig)
-{
-  handle_on_main_thread (sig, handle_arith_signal);
-}
-
-void
-init_data (void)
-{
-  struct sigaction action;
-  /* Don't do this if just dumping out.
-     We don't want to call `signal' in this case
-     so that we don't have trouble with dumping
-     signal-delivering routines in an inconsistent state.  */
-#ifndef CANNOT_DUMP
-  if (!initialized)
-    return;
-#endif /* CANNOT_DUMP */
-  emacs_sigaction_init (&action, deliver_arith_signal);
-  sigaction (SIGFPE, &action, 0);
 }

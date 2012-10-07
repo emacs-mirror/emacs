@@ -572,7 +572,11 @@ else
   test "x$NON_GCC_TEST_OPTIONS" != x && CC="$CC $NON_GCC_TEST_OPTIONS"
 fi
 
+# Avoid gnulib's threadlib module, as we do threads our own way.
+AC_DEFUN([gl_THREADLIB])
+
 # Initialize gnulib right after choosing the compiler.
+dnl Amongst other things, this sets AR and ARFLAGS.
 gl_EARLY
 
 # It's helpful to have C macros available to GDB, so prefer -g3 to -g
@@ -1281,10 +1285,12 @@ dnl On Solaris 8 there's a compilation warning for term.h because
 dnl it doesn't define `bool'.
 AC_CHECK_HEADERS(term.h, , , -)
 AC_HEADER_TIME
-AC_CHECK_DECLS([sys_siglist])
+AC_CHECK_DECLS([sys_siglist], [], [], [[#include <signal.h>
+			              ]])
 if test $ac_cv_have_decl_sys_siglist != yes; then
   # For Tru64, at least:
-  AC_CHECK_DECLS([__sys_siglist])
+  AC_CHECK_DECLS([__sys_siglist], [], [], [[#include <signal.h>
+			                  ]])
   if test $ac_cv_have_decl___sys_siglist = yes; then
     AC_DEFINE(sys_siglist, __sys_siglist,
               [Define to any substitute for sys_siglist.])
@@ -1505,10 +1511,26 @@ fail;
   AC_CHECK_HEADER([AppKit/AppKit.h], [HAVE_NS=yes],
   		  [AC_MSG_ERROR([`--with-ns' was specified, but the include
   files are missing or cannot be compiled.])])
+
+  AC_COMPILE_IFELSE([AC_LANG_PROGRAM([#include <AppKit/AppKit.h>],
+                                     [
+#ifdef MAC_OS_X_VERSION_MAX_ALLOWED
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= 1040
+ ; /* OK */
+#else
+#error "OSX 10.4 or newer required"
+#endif
+#endif
+		    ])],
+		    ns_osx_have_104=yes,
+		    ns_osx_have_104=no)
   AC_COMPILE_IFELSE([AC_LANG_PROGRAM([#include <Foundation/NSObjCRuntime.h>],
                                      [NSInteger i;])],
 		    ns_have_nsinteger=yes,
 		    ns_have_nsinteger=no)
+  if test $ns_osx_have_104 = no; then
+     AC_MSG_ERROR([`OSX 10.4 or newer is required']);
+  fi
   if test $ns_have_nsinteger = yes; then
     AC_DEFINE(NS_HAVE_NSINTEGER, 1, [Define to 1 if `NSInteger' is defined.])
   fi
@@ -1943,6 +1965,7 @@ if test "${with_gtk3}" = "yes" || test "${with_gtk}" = "yes" || test "$USE_X_TOO
      AC_DEFINE(HAVE_GTK3, 1, [Define to 1 if using GTK 3 or later.])
      GTK_OBJ=emacsgtkfixed.o
      term_header=gtkutil.h
+     USE_GTK_TOOLKIT="GTK3"
   else
      check_gtk2=yes
      gtk3_pkg_errors="$GTK_PKG_ERRORS "
@@ -1961,6 +1984,7 @@ if test "${with_gtk2}" = "yes" || test "$check_gtk2" = "yes"; then
   then
     AC_MSG_ERROR($gtk3_pkg_errors$GTK_PKG_ERRORS)
   fi
+  test "$pkg_check_gtk" = "yes" && USE_GTK_TOOLKIT="GTK2"
 fi
 
 if test x"$pkg_check_gtk" = xyes; then
@@ -4468,7 +4492,7 @@ End:
 #### It makes printing result more understandable as using GTK sets
 #### toolkit_scroll_bars to yes by default.
 if test "${HAVE_GTK}" = "yes"; then
-  USE_X_TOOLKIT=GTK
+  USE_X_TOOLKIT="$USE_GTK_TOOLKIT"
 fi
 
 echo "

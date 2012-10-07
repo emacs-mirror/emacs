@@ -1112,8 +1112,9 @@ See `add-log-current-defun-function'."
     (goto-char end)
     (when (eq (char-before) ?\})
       (delete-char -1)
-      (skip-chars-backward " \t")
-      (when (not (bolp))
+      (when (save-excursion
+              (skip-chars-backward " \t")
+              (not (bolp)))
         (insert "\n"))
       (insert "end")
       (setq end-marker (point-marker))
@@ -1137,16 +1138,35 @@ See `add-log-current-defun-function'."
       t)))
 
 (defun ruby-do-end-to-brace (orig end)
-  (goto-char (- end 3))
-  (when (looking-at ruby-block-end-re)
-    (delete-char 3)
-    (insert "}")
-    (goto-char orig)
-    (delete-char 2)
-    (insert "{")
-    (if (looking-at "\\s +|")
-        (delete-char (- (match-end 0) (match-beginning 0) 1)))
-    t))
+  (let (beg-marker end-marker beg-pos end-pos)
+    (goto-char (- end 3))
+    (when (looking-at ruby-block-end-re)
+      (delete-char 3)
+      (setq end-marker (point-marker))
+      (insert "}")
+      (goto-char orig)
+      (delete-char 2)
+      (insert "{")
+      (setq beg-marker (point-marker))
+      (when (looking-at "\\s +|")
+        (delete-char (- (match-end 0) (match-beginning 0) 1))
+        (forward-char)
+        (re-search-forward "|" (line-end-position) t))
+      (save-excursion
+        (skip-chars-forward " \t\n\r")
+        (setq beg-pos (point))
+        (goto-char end-marker)
+        (skip-chars-backward " \t\n\r")
+        (setq end-pos (point)))
+      (when (or
+             (< end-pos beg-pos)
+             (and (= (line-number-at-pos beg-pos) (line-number-at-pos end-pos))
+                  (< (+ (current-column) (- end-pos beg-pos) 2) fill-column)))
+        (just-one-space -1)
+        (goto-char end-marker)
+        (just-one-space -1))
+      (goto-char beg-marker)
+      t)))
 
 (defun ruby-toggle-block ()
   "Toggle block type from do-end to braces or back.
@@ -1547,7 +1567,7 @@ See `font-lock-syntax-table'.")
      2 font-lock-variable-name-face)
    ;; symbols
    '("\\(^\\|[^:]\\)\\(:\\([-+~]@?\\|[/%&|^`]\\|\\*\\*?\\|<\\(<\\|=>?\\)?\\|>[>=]?\\|===?\\|=~\\|![~=]?\\|\\[\\]=?\\|@?\\(\\w\\|_\\)+\\([!?=]\\|\\b_*\\)\\|#{[^}\n\\\\]*\\(\\\\.[^}\n\\\\]*\\)*}\\)\\)"
-     2 font-lock-reference-face)
+     2 font-lock-constant-face)
    ;; variables
    '("\\(\\$\\([^a-zA-Z0-9 \n]\\|[0-9]\\)\\)\\W"
      1 font-lock-variable-name-face)
@@ -1556,7 +1576,7 @@ See `font-lock-syntax-table'.")
    ;; constants
    '("\\(^\\|[^_]\\)\\b\\([A-Z]+\\(\\w\\|_\\)*\\)"
      2 font-lock-type-face)
-   '("\\(^\\s *\\|[\[\{\(,]\\s *\\|\\sw\\s +\\)\\(\\(\\sw\\|_\\)+\\):[^:]" 2 font-lock-reference-face)
+   '("\\(^\\s *\\|[\[\{\(,]\\s *\\|\\sw\\s +\\)\\(\\(\\sw\\|_\\)+\\):[^:]" 2 font-lock-constant-face)
    ;; expression expansion
    '(ruby-match-expression-expansion
      0 font-lock-variable-name-face t)

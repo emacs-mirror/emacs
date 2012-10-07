@@ -74,6 +74,7 @@ extern void *sbrk ();
 #endif
 #ifdef WINDOWSNT
 #include "w32.h"
+#include "w32heap.h"	/* for sbrk */
 #endif
 
 #ifdef DOUG_LEA_MALLOC
@@ -205,6 +206,7 @@ static Lisp_Object Qintervals;
 static Lisp_Object Qbuffers;
 static Lisp_Object Qstring_bytes, Qvector_slots, Qheap;
 static Lisp_Object Qgc_cons_threshold;
+Lisp_Object Qautomatic_gc;
 Lisp_Object Qchar_table_extra_slots;
 
 /* Hook run after GC has finished.  */
@@ -353,7 +355,7 @@ static void mem_rotate_left (struct mem_node *);
 static void mem_rotate_right (struct mem_node *);
 static void mem_delete (struct mem_node *);
 static void mem_delete_fixup (struct mem_node *);
-static inline struct mem_node *mem_find (void *);
+static struct mem_node *mem_find (void *);
 #endif
 
 
@@ -633,13 +635,13 @@ static void
 malloc_block_input (void)
 {
   if (block_input_in_memory_allocators)
-    BLOCK_INPUT;
+    block_input ();
 }
 static void
 malloc_unblock_input (void)
 {
   if (block_input_in_memory_allocators)
-    UNBLOCK_INPUT;
+    unblock_input ();
 }
 # define MALLOC_BLOCK_INPUT malloc_block_input ()
 # define MALLOC_UNBLOCK_INPUT malloc_unblock_input ()
@@ -647,6 +649,13 @@ malloc_unblock_input (void)
 # define MALLOC_BLOCK_INPUT ((void) 0)
 # define MALLOC_UNBLOCK_INPUT ((void) 0)
 #endif
+
+#define MALLOC_PROBE(size)			\
+  do {						\
+    if (profiler_memory_running)		\
+      malloc_probe (size);			\
+  } while (0)
+
 
 /* Like malloc but check for no memory and block interrupt input..  */
 
@@ -661,6 +670,7 @@ xmalloc (size_t size)
 
   if (!val && size)
     memory_full (size);
+  MALLOC_PROBE (size);
   return val;
 }
 
@@ -678,6 +688,7 @@ xzalloc (size_t size)
   if (!val && size)
     memory_full (size);
   memset (val, 0, size);
+  MALLOC_PROBE (size);
   return val;
 }
 
@@ -699,6 +710,7 @@ xrealloc (void *block, size_t size)
 
   if (!val && size)
     memory_full (size);
+  MALLOC_PROBE (size);
   return val;
 }
 
@@ -888,6 +900,7 @@ lisp_malloc (size_t nbytes, enum mem_type type)
   MALLOC_UNBLOCK_INPUT;
   if (!val && nbytes)
     memory_full (nbytes);
+  MALLOC_PROBE (nbytes);
   return val;
 }
 
@@ -1092,6 +1105,8 @@ lisp_align_malloc (size_t nbytes, enum mem_type type)
 #endif
 
   MALLOC_UNBLOCK_INPUT;
+
+  MALLOC_PROBE (nbytes);
 
   eassert (0 == ((uintptr_t) val) % BLOCK_ALIGN);
   return val;
@@ -3535,7 +3550,7 @@ mem_init (void)
 /* Value is a pointer to the mem_node containing START.  Value is
    MEM_NIL if there is no node in the tree containing START.  */
 
-static inline struct mem_node *
+static struct mem_node *
 mem_find (void *start)
 {
   struct mem_node *p;
@@ -3911,7 +3926,7 @@ mem_delete_fixup (struct mem_node *x)
 /* Value is non-zero if P is a pointer to a live Lisp string on
    the heap.  M is a pointer to the mem_block for P.  */
 
-static inline bool
+static bool
 live_string_p (struct mem_node *m, void *p)
 {
   if (m->type == MEM_TYPE_STRING)
@@ -3934,7 +3949,7 @@ live_string_p (struct mem_node *m, void *p)
 /* Value is non-zero if P is a pointer to a live Lisp cons on
    the heap.  M is a pointer to the mem_block for P.  */
 
-static inline bool
+static bool
 live_cons_p (struct mem_node *m, void *p)
 {
   if (m->type == MEM_TYPE_CONS)
@@ -3960,7 +3975,7 @@ live_cons_p (struct mem_node *m, void *p)
 /* Value is non-zero if P is a pointer to a live Lisp symbol on
    the heap.  M is a pointer to the mem_block for P.  */
 
-static inline bool
+static bool
 live_symbol_p (struct mem_node *m, void *p)
 {
   if (m->type == MEM_TYPE_SYMBOL)
@@ -3986,7 +4001,7 @@ live_symbol_p (struct mem_node *m, void *p)
 /* Value is non-zero if P is a pointer to a live Lisp float on
    the heap.  M is a pointer to the mem_block for P.  */
 
-static inline bool
+static bool
 live_float_p (struct mem_node *m, void *p)
 {
   if (m->type == MEM_TYPE_FLOAT)
@@ -4010,7 +4025,7 @@ live_float_p (struct mem_node *m, void *p)
 /* Value is non-zero if P is a pointer to a live Lisp Misc on
    the heap.  M is a pointer to the mem_block for P.  */
 
-static inline bool
+static bool
 live_misc_p (struct mem_node *m, void *p)
 {
   if (m->type == MEM_TYPE_MISC)
@@ -4036,7 +4051,7 @@ live_misc_p (struct mem_node *m, void *p)
 /* Value is non-zero if P is a pointer to a live vector-like object.
    M is a pointer to the mem_block for P.  */
 
-static inline bool
+static bool
 live_vector_p (struct mem_node *m, void *p)
 {
   if (m->type == MEM_TYPE_VECTOR_BLOCK)
@@ -4072,7 +4087,7 @@ live_vector_p (struct mem_node *m, void *p)
 /* Value is non-zero if P is a pointer to a live buffer.  M is a
    pointer to the mem_block for P.  */
 
-static inline bool
+static bool
 live_buffer_p (struct mem_node *m, void *p)
 {
   /* P must point to the start of the block, and the buffer
@@ -4138,7 +4153,7 @@ DEFUN ("gc-status", Fgc_status, Sgc_status, 0, 0, "",
 
 /* Mark OBJ if we can prove it's a Lisp_Object.  */
 
-static inline void
+static void
 mark_maybe_object (Lisp_Object obj)
 {
   void *po;
@@ -4207,7 +4222,7 @@ mark_maybe_object (Lisp_Object obj)
 /* If P points to Lisp data, mark that as live if it isn't already
    marked.  */
 
-static inline void
+static void
 mark_maybe_pointer (void *p)
 {
   struct mem_node *m;
@@ -5037,10 +5052,27 @@ inhibit_garbage_collection (void)
 /* Used to avoid possible overflows when
    converting from C to Lisp integers.  */
 
-static inline Lisp_Object
+static Lisp_Object
 bounded_number (EMACS_INT number)
 {
   return make_number (min (MOST_POSITIVE_FIXNUM, number));
+}
+
+/* Calculate total bytes of live objects.  */
+
+static size_t
+total_bytes_of_live_objects (void)
+{
+  size_t tot = 0;
+  tot += total_conses  * sizeof (struct Lisp_Cons);
+  tot += total_symbols * sizeof (struct Lisp_Symbol);
+  tot += total_markers * sizeof (union Lisp_Misc);
+  tot += total_string_bytes;
+  tot += total_vector_slots * word_size;
+  tot += total_floats  * sizeof (struct Lisp_Float);
+  tot += total_intervals * sizeof (struct interval);
+  tot += total_strings * sizeof (struct Lisp_String);
+  return tot;
 }
 
 DEFUN ("garbage-collect", Fgarbage_collect, Sgarbage_collect, 0, 0, "",
@@ -5068,6 +5100,8 @@ See Info node `(elisp)Garbage Collection'.  */)
   ptrdiff_t count = SPECPDL_INDEX ();
   EMACS_TIME start;
   Lisp_Object retval = Qnil;
+  size_t tot_before = 0;
+  struct backtrace backtrace;
 
   if (abort_on_gc)
     emacs_abort ();
@@ -5077,12 +5111,23 @@ See Info node `(elisp)Garbage Collection'.  */)
   if (pure_bytes_used_before_overflow)
     return Qnil;
 
+  /* Record this function, so it appears on the profiler's backtraces.  */
+  backtrace.next = backtrace_list;
+  backtrace.function = Qautomatic_gc;
+  backtrace.args = &Qnil;
+  backtrace.nargs = 0;
+  backtrace.debug_on_exit = 0;
+  backtrace_list = &backtrace;
+
   check_cons_list ();
 
   /* Don't keep undo information around forever.
      Do this early on, so it is no problem if the user quits.  */
   FOR_EACH_BUFFER (nextb)
     compact_buffer (nextb);
+
+  if (profiler_memory_running)
+    tot_before = total_bytes_of_live_objects ();
 
   start = current_emacs_time ();
 
@@ -5125,7 +5170,7 @@ See Info node `(elisp)Garbage Collection'.  */)
   if (garbage_collection_messages)
     message1_nolog ("Garbage collecting...");
 
-  BLOCK_INPUT;
+  block_input ();
 
   shrink_regexp_cache ();
 
@@ -5242,7 +5287,7 @@ See Info node `(elisp)Garbage Collection'.  */)
   dump_zombies ();
 #endif
 
-  UNBLOCK_INPUT;
+  unblock_input ();
 
   check_cons_list ();
 
@@ -5255,16 +5300,7 @@ See Info node `(elisp)Garbage Collection'.  */)
   gc_relative_threshold = 0;
   if (FLOATP (Vgc_cons_percentage))
     { /* Set gc_cons_combined_threshold.  */
-      double tot = 0;
-
-      tot += total_conses  * sizeof (struct Lisp_Cons);
-      tot += total_symbols * sizeof (struct Lisp_Symbol);
-      tot += total_markers * sizeof (union Lisp_Misc);
-      tot += total_string_bytes;
-      tot += total_vector_slots * word_size;
-      tot += total_floats  * sizeof (struct Lisp_Float);
-      tot += total_intervals * sizeof (struct interval);
-      tot += total_strings * sizeof (struct Lisp_String);
+      double tot = total_bytes_of_live_objects ();
 
       tot *= XFLOAT_DATA (Vgc_cons_percentage);
       if (0 < tot)
@@ -5367,6 +5403,17 @@ See Info node `(elisp)Garbage Collection'.  */)
 
   gcs_done++;
 
+  /* Collect profiling data.  */
+  if (profiler_memory_running)
+    {
+      size_t swept = 0;
+      size_t tot_after = total_bytes_of_live_objects ();
+      if (tot_before > tot_after)
+	swept = tot_before - tot_after;
+      malloc_probe (swept);
+    }
+
+  backtrace_list = backtrace.next;
   return retval;
 }
 
@@ -5521,7 +5568,7 @@ mark_buffer (struct buffer *buffer)
 }
 
 /* Remove killed buffers or items whose car is a killed buffer from
-   LIST, and mark other items. Return changed LIST, which is marked.  */
+   LIST, and mark other items.  Return changed LIST, which is marked.  */
 
 static Lisp_Object
 mark_discard_killed_buffers (Lisp_Object list)
@@ -5543,6 +5590,7 @@ mark_discard_killed_buffers (Lisp_Object list)
 	  prev = &XCDR_AS_LVALUE (tail);
 	}
     }
+  mark_object (tail);
   return list;
 }
 
@@ -5691,18 +5739,8 @@ mark_object (Lisp_Object arg)
 	      struct window *w = (struct window *) ptr;
 	      bool leaf = NILP (w->hchild) && NILP (w->vchild);
 
-	      /* For live windows, Lisp code filters out killed buffers
-		 from both buffer lists.  For dead windows, we do it here
-		 in attempt to help GC to reclaim killed buffers faster.  */
-	      if (leaf && NILP (w->buffer))
-		{
-		  wset_prev_buffers
-		    (w, mark_discard_killed_buffers (w->prev_buffers));
-		  wset_next_buffers
-		    (w, mark_discard_killed_buffers (w->next_buffers));
-		}
-
 	      mark_vectorlike (ptr);
+
 	      /* Mark glyphs for leaf windows.  Marking window
 		 matrices is sufficient because frame matrices
 		 use the same glyph memory.  */
@@ -5711,6 +5749,15 @@ mark_object (Lisp_Object arg)
 		  mark_glyph_matrix (w->current_matrix);
 		  mark_glyph_matrix (w->desired_matrix);
 		}
+
+	      /* Filter out killed buffers from both buffer lists
+		 in attempt to help GC to reclaim killed buffers faster.
+		 We can do it elsewhere for live windows, but this is the
+		 best place to do it for dead windows.  */
+	      wset_prev_buffers
+		(w, mark_discard_killed_buffers (w->prev_buffers));
+	      wset_next_buffers
+		(w, mark_discard_killed_buffers (w->next_buffers));
 	    }
 	    break;
 
@@ -6395,7 +6442,7 @@ die (const char *msg, const char *file, int line)
 {
   fprintf (stderr, "\r\n%s:%d: Emacs fatal error: %s\r\n",
 	   file, line, msg);
-  fatal_error_backtrace (SIGABRT, INT_MAX);
+  terminate_due_to_signal (SIGABRT, INT_MAX);
 }
 #endif
 
@@ -6527,6 +6574,7 @@ do hash-consing of the objects allocated to pure space.  */);
   DEFSYM (Qstring_bytes, "string-bytes");
   DEFSYM (Qvector_slots, "vector-slots");
   DEFSYM (Qheap, "heap");
+  DEFSYM (Qautomatic_gc, "Automatic GC");
 
   DEFSYM (Qgc_cons_threshold, "gc-cons-threshold");
   DEFSYM (Qchar_table_extra_slots, "char-table-extra-slots");
@@ -6560,7 +6608,8 @@ The time is in seconds as a floating point value.  */);
 /* When compiled with GCC, GDB might say "No enum type named
    pvec_type" if we don't have at least one symbol with that type, and
    then xbacktrace could fail.  Similarly for the other enums and
-   their values.  */
+   their values.  Some non-GCC compilers don't like these constructs.  */
+#ifdef __GNUC__
 union
 {
   enum CHARTAB_SIZE_BITS CHARTAB_SIZE_BITS;
@@ -6580,3 +6629,4 @@ union
   enum lsb_bits lsb_bits;
 #endif
 } const EXTERNALLY_VISIBLE gdb_make_enums_visible = {0};
+#endif	/* __GNUC__ */

@@ -1229,7 +1229,7 @@ IT_update_begin (struct frame *f)
   if (display_info->termscript)
     fprintf (display_info->termscript, "\n\n<UPDATE_BEGIN");
 
-  BLOCK_INPUT;
+  block_input ();
 
   if (f && f == mouse_face_frame)
     {
@@ -1279,7 +1279,7 @@ IT_update_begin (struct frame *f)
       hlinfo->mouse_face_mouse_frame = NULL;
     }
 
-  UNBLOCK_INPUT;
+  unblock_input ();
 }
 
 static void
@@ -1302,13 +1302,13 @@ IT_frame_up_to_date (struct frame *f)
   if (hlinfo->mouse_face_deferred_gc
       || (f && f == hlinfo->mouse_face_mouse_frame))
     {
-      BLOCK_INPUT;
+      block_input ();
       if (hlinfo->mouse_face_mouse_frame)
 	note_mouse_highlight (hlinfo->mouse_face_mouse_frame,
 			      hlinfo->mouse_face_mouse_x,
 			      hlinfo->mouse_face_mouse_y);
       hlinfo->mouse_face_deferred_gc = 0;
-      UNBLOCK_INPUT;
+      unblock_input ();
     }
 
   /* Set the cursor type to whatever they wanted.  In a minibuffer

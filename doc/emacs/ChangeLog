@@ -1,3 +1,68 @@
+2012-10-06  Glenn Morris  <rgm@gnu.org>
+
+	* calendar.texi (Writing Calendar Files): Tweak week descriptions.
+	Mention cal-tex-cursor-week2-summary.
+
+2012-10-06  Chong Yidong  <cyd@gnu.org>
+
+	* mini.texi (Passwords): Fix typo.
+
+2012-10-02  Glenn Morris  <rgm@gnu.org>
+
+	* maintaining.texi (VC Directory Commands):
+	Remove duplicate `q' entry.  (Bug#12553)
+
+2012-09-30  Chong Yidong  <cyd@gnu.org>
+
+	* killing.texi (Rectangles): Document copy-rectangle-as-kill.
+
+	* search.texi (Special Isearch): Document the lax space search
+	feature and M-s SPC.
+	(Regexp Search): Move main search-whitespace-regexp description to
+	Special Isearch.
+	(Replace): Document replace-lax-whitespace.
+
+	* basic.texi (Position Info): Document C-u M-=.
+	(Moving Point): Document move-to-column.
+
+	* display.texi (Useless Whitespace): Add delete-trailing-lines.
+
+	* misc.texi (emacsclient Options): Document the effect of
+	initial-buffer-choice on client frames.  Document server-auth-dir.
+	Do not document server-host, which is bad security practice.
+
+	* building.texi (Lisp Libraries): Docstring lookups can trigger
+	autoloading.  Document help-enable-auto-load.
+
+	* mini.texi (Yes or No Prompts): New node.
+
+	* ack.texi (Acknowledgments): Remove obsolete packages.
+
+2012-09-27  Glenn Morris  <rgm@gnu.org>
+
+	* cal-xtra.texi (Advanced Calendar/Diary Usage):
+	Rename the section to be more general.
+	* emacs.texi: Update menu.
+
+2012-09-23  Chong Yidong  <cyd@gnu.org>
+
+	* buffers.texi (Misc Buffer): Replace toggle-read-only with
+	read-only-mode.
+
+	* files.texi (Visiting): Likewise.
+
+2012-09-22  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* trouble.texi (Crashing): Document ulimit -c.
+
+2012-09-21  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* trouble.texi (Crashing): Document addr2line.
+
+2012-09-19  Chong Yidong  <cyd@gnu.org>
+
+	* killing.texi (Yanking): Minor clarification (Bug#12469).
+
 2012-09-17  Chong Yidong  <cyd@gnu.org>
 
 	* building.texi (GDB User Interface Layout): Remove reference to

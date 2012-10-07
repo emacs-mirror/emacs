@@ -451,6 +451,7 @@ that start with that symbol."
 (defvar semantic-imenu-bucketize-file)
 (defvar semantic-imenu-bucketize-type-members)
 
+;;;###autoload
 (defun semantic-default-texi-setup ()
   "Set up a buffer for parsing of Texinfo files."
   ;; This will use our parser.
@@ -686,5 +687,10 @@ If TAG is nil, it is derived from the deffn under POINT."
       )))
 
 (provide 'semantic/texi)
+
+;; Local variables:
+;; generated-autoload-file: "loaddefs.el"
+;; generated-autoload-load-name: "semantic/texi"
+;; End:
 
 ;;; semantic/texi.el ends here

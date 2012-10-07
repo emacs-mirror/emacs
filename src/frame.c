@@ -120,12 +120,12 @@ static void x_report_frame_params (struct frame *, Lisp_Object *);
 #endif
 
 /* These setters are used only in this file, so they can be private.  */
-static inline void
+static void
 fset_buffer_predicate (struct frame *f, Lisp_Object val)
 {
   f->buffer_predicate = val;
 }
-static inline void
+static void
 fset_minibuffer_window (struct frame *f, Lisp_Object val)
 {
   f->minibuffer_window = val;
@@ -632,7 +632,7 @@ affects all frames on the same terminal device.  */)
     Lisp_Object terminal;
 
     terminal = Fassq (Qterminal, parms);
-    if (!NILP (terminal))
+    if (CONSP (terminal))
       {
         terminal = XCDR (terminal);
         t = get_terminal (terminal, 1);
@@ -3028,9 +3028,9 @@ x_set_frame_parameters (FRAME_PTR f, Lisp_Object alist)
 void
 x_report_frame_params (struct frame *f, Lisp_Object *alistptr)
 {
-  char buf[16];
   Lisp_Object tem;
-  unsigned long w;
+  uprintmax_t w;
+  char buf[INT_BUFSIZE_BOUND (w)];
 
   /* Represent negative positions (off the top or left screen edge)
      in a way that Fmodify_frame_parameters will understand correctly.  */
@@ -3067,17 +3067,17 @@ x_report_frame_params (struct frame *f, Lisp_Object *alistptr)
      MS-Windows it returns a value whose type is HANDLE, which is
      actually a pointer.  Explicit casting avoids compiler
      warnings.  */
-  w = (unsigned long) FRAME_X_WINDOW (f);
+  w = (uintptr_t) FRAME_X_WINDOW (f);
   store_in_alist (alistptr, Qwindow_id,
-		  make_formatted_string (buf, "%lu", w));
+		  make_formatted_string (buf, "%"pMu, w));
 #ifdef HAVE_X_WINDOWS
 #ifdef USE_X_TOOLKIT
   /* Tooltip frame may not have this widget.  */
   if (FRAME_X_OUTPUT (f)->widget)
 #endif
-    w = (unsigned long) FRAME_OUTER_WINDOW (f);
+    w = (uintptr_t) FRAME_OUTER_WINDOW (f);
   store_in_alist (alistptr, Qouter_window_id,
-		  make_formatted_string (buf, "%lu", w));
+		  make_formatted_string (buf, "%"pMu, w));
 #endif
   store_in_alist (alistptr, Qicon_name, f->icon_name);
   FRAME_SAMPLE_VISIBILITY (f);
@@ -3533,9 +3533,9 @@ x_set_alpha (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
     f->alpha[i] = newval[i];
 
 #if defined (HAVE_X_WINDOWS) || defined (HAVE_NTGUI) || defined (NS_IMPL_COCOA)
-  BLOCK_INPUT;
+  block_input ();
   x_set_frame_alpha (f);
-  UNBLOCK_INPUT;
+  unblock_input ();
 #endif
 
   return;
@@ -3897,6 +3897,95 @@ x_default_parameter (struct frame *f, Lisp_Object alist, Lisp_Object prop,
 }
 
 
+#if !defined (HAVE_X_WINDOWS) && defined (NoValue)
+
+/*
+ *    XParseGeometry parses strings of the form
+ *   "=<width>x<height>{+-}<xoffset>{+-}<yoffset>", where
+ *   width, height, xoffset, and yoffset are unsigned integers.
+ *   Example:  "=80x24+300-49"
+ *   The equal sign is optional.
+ *   It returns a bitmask that indicates which of the four values
+ *   were actually found in the string.  For each value found,
+ *   the corresponding argument is updated;  for each value
+ *   not found, the corresponding argument is left unchanged.
+ */
+
+static int
+XParseGeometry (char *string,
+		int *x, int *y,
+		unsigned int *width, unsigned int *height)
+{
+  int mask = NoValue;
+  char *strind;
+  unsigned long int tempWidth, tempHeight;
+  long int tempX, tempY;
+  char *nextCharacter;
+
+  if (string == NULL || *string == '\0')
+    return mask;
+  if (*string == '=')
+    string++;  /* ignore possible '=' at beg of geometry spec */
+
+  strind = string;
+  if (*strind != '+' && *strind != '-' && *strind != 'x')
+    {
+      tempWidth = strtoul (strind, &nextCharacter, 10);
+      if (strind == nextCharacter)
+	return 0;
+      strind = nextCharacter;
+      mask |= WidthValue;
+    }
+
+  if (*strind == 'x' || *strind == 'X')
+    {
+      strind++;
+      tempHeight = strtoul (strind, &nextCharacter, 10);
+      if (strind == nextCharacter)
+	return 0;
+      strind = nextCharacter;
+      mask |= HeightValue;
+    }
+
+  if (*strind == '+' || *strind == '-')
+    {
+      if (*strind == '-')
+	mask |= XNegative;
+      tempX = strtol (strind, &nextCharacter, 10);
+      if (strind == nextCharacter)
+	return 0;
+      strind = nextCharacter;
+      mask |= XValue;
+      if (*strind == '+' || *strind == '-')
+	{
+	  if (*strind == '-')
+	    mask |= YNegative;
+	  tempY = strtol (strind, &nextCharacter, 10);
+	  if (strind == nextCharacter)
+	    return 0;
+	  strind = nextCharacter;
+	  mask |= YValue;
+	}
+    }
+
+  /* If strind isn't at the end of the string then it's an invalid
+     geometry specification. */
+
+  if (*strind != '\0')
+    return 0;
+
+  if (mask & XValue)
+    *x = clip_to_bounds (INT_MIN, tempX, INT_MAX);
+  if (mask & YValue)
+    *y = clip_to_bounds (INT_MIN, tempY, INT_MAX);
+  if (mask & WidthValue)
+    *width = min (tempWidth, UINT_MAX);
+  if (mask & HeightValue)
+    *height = min (tempHeight, UINT_MAX);
+  return mask;
+}
+
+#endif /* !defined (HAVE_X_WINDOWS) && defined (NoValue) */
 
 
 /* NS used to define x-parse-geometry in ns-win.el, but that confused
@@ -3917,15 +4006,16 @@ or a list (- N) meaning -N pixels relative to bottom/right corner.
 On Nextstep, this just calls `ns-parse-geometry'.  */)
   (Lisp_Object string)
 {
-#ifdef HAVE_NS
-  return call1 (Qns_parse_geometry, string);
-#else
   int geometry, x, y;
   unsigned int width, height;
   Lisp_Object result;
 
   CHECK_STRING (string);
 
+#ifdef HAVE_NS
+  if (strchr (SSDATA (string), ' ') != NULL)
+    return call1 (Qns_parse_geometry, string);
+#endif
   geometry = XParseGeometry (SSDATA (string),
 			     &x, &y, &width, &height);
   result = Qnil;
@@ -3961,7 +4051,6 @@ On Nextstep, this just calls `ns-parse-geometry'.  */)
     result = Fcons (Fcons (Qheight, make_number (height)), result);
 
   return result;
-#endif /* HAVE_NS */
 }
 
 

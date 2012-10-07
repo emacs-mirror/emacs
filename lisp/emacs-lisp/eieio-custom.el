@@ -332,6 +332,16 @@ Argument OBJ is the object that has been customized."
 Optional argument GROUP is the sub-group of slots to display."
   (eieio-customize-object obj group))
 
+(defvar eieio-custom-mode-map
+  (let ((map (make-sparse-keymap)))
+    (set-keymap-parent map widget-keymap)
+    map)
+  "Keymap for EIEIO Custom mode")
+
+(define-derived-mode eieio-custom-mode fundamental-mode "EIEIO Custom"
+  "Major mode for customizing EIEIO objects.
+\\{eieio-custom-mode-map}")
+
 (defmethod eieio-customize-object ((obj eieio-default-superclass)
 				   &optional group)
   "Customize OBJ in a specialized custom buffer.
@@ -347,6 +357,7 @@ These groups are specified with the `:group' slot flag."
 			       (symbol-name g) "*")))
     (setq buffer-read-only nil)
     (kill-all-local-variables)
+    (eieio-custom-mode)
     (erase-buffer)
     (let ((all (overlay-lists)))
       ;; Delete all the overlays.
@@ -363,7 +374,6 @@ These groups are specified with the `:group' slot flag."
     (widget-insert "\n")
     (eieio-custom-object-apply-reset obj)
     ;; Now initialize the buffer
-    (use-local-map widget-keymap)
     (widget-setup)
     ;;(widget-minor-mode)
     (goto-char (point-min))
@@ -460,9 +470,5 @@ Return the symbol for the group, or nil"
 	    g)))))
 
 (provide 'eieio-custom)
-
-;; Local variables:
-;; generated-autoload-file: "eieio.el"
-;; End:
 
 ;;; eieio-custom.el ends here

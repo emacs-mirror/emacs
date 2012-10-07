@@ -4,8 +4,6 @@
 
 ;; Author: Carsten Dominik <dominik@science.uva.nl>
 ;; Maintainer: auctex-devel@gnu.org
-;; Version: 4.31
-;; Package: reftex
 
 ;; This file is part of GNU Emacs.
 
@@ -27,10 +25,10 @@
 ;;; Code:
 
 (eval-when-compile (require 'cl))
-(provide 'reftex-dcr)
-(provide 'reftex-vcr)
+
+(declare-function bibtex-beginning-of-entry "bibtex" ())
+
 (require 'reftex)
-;;;
 
 (defun reftex-view-crossref (&optional arg auto-how fail-quietly)
   "View cross reference of macro at point.  Point must be on the KEY
@@ -229,6 +227,7 @@ If it is a \\cite, show the BibTeX database entry.
 If there is no such macro at point, search forward to find one.
 With argument, actually select the window showing the cross reference."
   (interactive "e")
+  ;; Make sure the referencing macro stays visible in the original window.
   (mouse-set-point ev)
   (reftex-view-crossref current-prefix-arg))
 
@@ -348,14 +347,13 @@ will display info in the echo area."
     (message "Automatic display of crossref information was turned on")))
 
 (defun reftex-start-itimer-once ()
-   (and (featurep 'xemacs) reftex-mode
+   (and (featurep 'xemacs)
+	reftex-mode
         (not (itimer-live-p reftex-auto-view-crossref-timer))
         (setq reftex-auto-view-crossref-timer
               (start-itimer "RefTeX Idle Timer"
                             'reftex-view-crossref-when-idle
                             reftex-idle-time nil t))))
-
-(declare-function bibtex-beginning-of-entry "bibtex" ())
 
 (defun reftex-view-crossref-from-bibtex (&optional arg)
   "View location in a LaTeX document which cites the BibTeX entry at point.
@@ -480,5 +478,7 @@ Calling this function several times find successive citation locations."
         t
       (move-marker reftex-global-search-marker nil)
       (error "All files processed"))))
+
+(provide 'reftex-dcr)
 
 ;;; reftex-dcr.el ends here

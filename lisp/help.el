@@ -981,15 +981,6 @@ function is called, the window to be resized is selected."
   :group 'help
   :version "24.2")
 
-(defcustom temp-buffer-resize-frames nil
-  "Non-nil means `temp-buffer-resize-mode' can resize frames.
-A frame can be resized if and only if its root window is a live
-window.  The height of the root window is subject to the values of
-`temp-buffer-max-height' and `window-min-height'."
-  :type 'boolean
-  :version "24.2"
-  :group 'help)
-
 (define-minor-mode temp-buffer-resize-mode
   "Toggle auto-resizing temporary buffer windows (Temp Buffer Resize Mode).
 With a prefix argument ARG, enable Temp Buffer Resize mode if ARG
@@ -1000,6 +991,11 @@ When Temp Buffer Resize mode is enabled, the windows in which we
 show a temporary buffer are automatically resized in height to
 fit the buffer's contents, but never more than
 `temp-buffer-max-height' nor less than `window-min-height'.
+
+A window is resized only if it has been specially created for the
+buffer.  Windows that have shown another buffer before are not
+resized.  A frame is resized only if `fit-frame-to-buffer' is
+non-nil.
 
 This mode is used by `help', `apropos' and `completion' buffers,
 and some others."
@@ -1019,25 +1015,26 @@ smaller than `window-min-height'.  Do nothing if WINDOW is not
 vertically combined or some of its contents are scrolled out of
 view."
   (setq window (window-normalize-window window t))
-  (let ((height (if (functionp temp-buffer-max-height)
-		    (with-selected-window window
-		      (funcall temp-buffer-max-height (window-buffer)))
-		  temp-buffer-max-height)))
-    (cond
-     ((and (pos-visible-in-window-p (point-min) window)
-	   (window-combined-p window))
-      (fit-window-to-buffer window height))
-     ((and temp-buffer-resize-frames
-	   (eq window (frame-root-window window))
-	   (memq (car (window-parameter window 'quit-restore))
-		 ;; If 'same is too strong, we might additionally check
-		 ;; whether the second element is 'frame.
-		 '(same frame)))
-      (let ((frame (window-frame window)))
-	(fit-frame-to-buffer
-	 frame (+ (frame-height frame)
-		  (- (window-total-size window))
-		  height)))))))
+  (let ((buffer-name (buffer-name (window-buffer window))))
+    (let ((height (if (functionp temp-buffer-max-height)
+		      (with-selected-window window
+			(funcall temp-buffer-max-height (window-buffer)))
+		    temp-buffer-max-height))
+	  (quit-cadr (cadr (window-parameter window 'quit-restore))))
+      (cond
+       ;; Don't resize WINDOW if it showed another buffer before.
+       ((and (eq quit-cadr 'window)
+	     (pos-visible-in-window-p (point-min) window)
+	     (window-combined-p window))
+	(fit-window-to-buffer window height))
+       ((and fit-frame-to-buffer
+	     (eq quit-cadr 'frame)
+	     (eq window (frame-root-window window)))
+	(let ((frame (window-frame window)))
+	  (fit-frame-to-buffer
+	   frame (+ (frame-height frame)
+		    (- (window-total-size window))
+		    height))))))))
 
 ;;; Help windows.
 (defcustom help-window-select 'other

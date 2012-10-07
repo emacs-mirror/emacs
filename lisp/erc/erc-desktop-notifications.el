@@ -1,4 +1,4 @@
-;; erc-notifications.el -- Send notification on PRIVMSG or mentions
+;; erc-desktop-notifications.el -- Send notification on PRIVMSG or mentions
 
 ;; Copyright (C) 2012 Free Software Foundation, Inc.
 
@@ -35,6 +35,7 @@
 
 (defgroup erc-notifications nil
   "Send notifications on PRIVMSG or mentions."
+  :version "24.3"
   :group 'erc)
 
 (defvar erc-notifications-last-notification nil
@@ -75,7 +76,7 @@ This will replace the last notification sent with this function."
                     (member nick erc-track-exclude)))
         (erc-notifications-notify nick msg)))))
 
-;;;###autoload(autoload 'erc-notifications-mode "erc-notifications" "" t)
+;;;###autoload(autoload 'erc-notifications-mode "erc-desktop-notifications" "" t)
 (define-erc-module notifications nil
   "Send notifications on private message reception and mentions."
   ;; Enable
@@ -85,6 +86,6 @@ This will replace the last notification sent with this function."
   ((remove-hook 'erc-server-PRIVMSG-functions 'erc-notifications-PRIVMSG)
    (remove-hook 'erc-text-matched-hook 'erc-notifications-notify-on-match)))
 
-(provide 'erc-notifications)
+(provide 'erc-desktop-notifications)
 
-;;; erc-notifications.el ends here
+;;; erc-desktop-notifications.el ends here

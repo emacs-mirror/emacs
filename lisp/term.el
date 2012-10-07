@@ -994,7 +994,10 @@ is buffer-local."
   (setq term-ansi-current-reverse nil)
   (setq term-ansi-current-color 0)
   (setq term-ansi-current-invisible nil)
-  (setq term-ansi-face-already-done t)
+  ;; Stefan thought this should be t, but could not remember why.
+  ;; Setting it to t seems to cause bug#11785.  Setting it to nil
+  ;; again to see if there are other consequences...
+  (setq term-ansi-face-already-done nil)
   (setq term-ansi-current-bg-color 0))
 
 (define-derived-mode term-mode fundamental-mode "Term"
@@ -4048,6 +4051,7 @@ Returns `partial' if completed as far as possible with the completion matches.
 Returns `listed' if a completion listing was shown.
 
 See also `term-dynamic-complete-filename'."
+  (declare (obsolete completion-in-region "23.2"))
   (let* ((completion-ignore-case nil)
 	 (candidates (mapcar (function (lambda (x) (list x))) candidates))
 	 (completions (all-completions stub candidates)))
@@ -4081,8 +4085,6 @@ See also `term-dynamic-complete-filename'."
  		   (t
 		    (message "Partially completed")
 		    'partial)))))))
-(make-obsolete 'term-dynamic-simple-complete 'completion-in-region "23.2")
-
 
 (defun term-dynamic-list-filename-completions ()
   "List in help buffer possible completions of the filename at point."

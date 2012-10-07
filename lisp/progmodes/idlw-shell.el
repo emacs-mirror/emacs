@@ -2170,7 +2170,7 @@ args of an executive .run, .rnew or .compile."
   ;; CWD might have changed, resync, to set default directory
   (idlwave-shell-resync-dirs)
   (let ((comint-file-name-chars idlwave-shell-file-name-chars))
-    (comint-filename-completion)))
+    (comint-dynamic-complete-filename)))
 
 (defun idlwave-shell-executive-command ()
   "Return the name of the current executive command, if any."

@@ -631,6 +631,7 @@ WINDOWS_64_BIT_OFF_T
 HAVE_UNISTD_H
 NEXT_AS_FIRST_DIRECTIVE_UNISTD_H
 NEXT_UNISTD_H
+LIB_TIMER_TIME
 PTHREAD_H_DEFINES_STRUCT_TIMESPEC
 SYS_TIME_H_DEFINES_STRUCT_TIMESPEC
 TIME_H_DEFINES_STRUCT_TIMESPEC
@@ -908,6 +909,7 @@ REPLACE_REALLOC
 REPLACE_RANDOM_R
 REPLACE_PUTENV
 REPLACE_PTSNAME_R
+REPLACE_PTSNAME
 REPLACE_MKSTEMP
 REPLACE_MBTOWC
 REPLACE_MALLOC
@@ -5723,6 +5725,9 @@ else
   test "x$NON_GCC_TEST_OPTIONS" != x && CC="$CC $NON_GCC_TEST_OPTIONS"
 fi
 
+# Avoid gnulib's threadlib module, as we do threads our own way.
+
+
 # Initialize gnulib right after choosing the compiler.
 
 ac_ext=c
@@ -7006,6 +7011,7 @@ esac
   # Code from module sys_time:
   # Code from module time:
   # Code from module time_r:
+  # Code from module timer-time:
   # Code from module timespec:
   # Code from module timespec-add:
   # Code from module timespec-sub:
@@ -7290,8 +7296,41 @@ fi
       { $as_echo "$as_me:${as_lineno-$LINENO}: result: $gl_cv_cc_nomfi_needed" >&5
 $as_echo "$gl_cv_cc_nomfi_needed" >&6; }
     fi
+
+                { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether -Wuninitialized is supported" >&5
+$as_echo_n "checking whether -Wuninitialized is supported... " >&6; }
+    if test "${gl_cv_cc_uninitialized_supported+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+
+      gl_save_CFLAGS="$CFLAGS"
+      CFLAGS="$CFLAGS -Werror -Wuninitialized"
+      cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+int
+main ()
+{
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+  gl_cv_cc_uninitialized_supported=yes
+else
+  gl_cv_cc_uninitialized_supported=no
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+      CFLAGS="$gl_save_CFLAGS"
+fi
+
+    { $as_echo "$as_me:${as_lineno-$LINENO}: result: $gl_cv_cc_uninitialized_supported" >&5
+$as_echo "$gl_cv_cc_uninitialized_supported" >&6; }
+
   fi
 
+  # List all gcc warning categories.
   gl_manywarn_set=
   for gl_manywarn_item in \
     -W \
@@ -7410,9 +7449,13 @@ $as_echo "$gl_cv_cc_nomfi_needed" >&6; }
     gl_manywarn_set="$gl_manywarn_set $gl_manywarn_item"
   done
 
-  # Disable the missing-field-initializers warning if needed
+  # Disable specific options as needed.
   if test "$gl_cv_cc_nomfi_needed" = yes; then
     gl_manywarn_set="$gl_manywarn_set -Wno-missing-field-initializers"
+  fi
+
+  if test "$gl_cv_cc_uninitialized_supported" = no; then
+    gl_manywarn_set="$gl_manywarn_set -Wno-uninitialized"
   fi
 
   ws=$gl_manywarn_set
@@ -8771,7 +8814,9 @@ $as_echo "#define TIME_WITH_SYS_TIME 1" >>confdefs.h
 
 fi
 
-ac_fn_c_check_decl "$LINENO" "sys_siglist" "ac_cv_have_decl_sys_siglist" "$ac_includes_default"
+ac_fn_c_check_decl "$LINENO" "sys_siglist" "ac_cv_have_decl_sys_siglist" "#include <signal.h>
+
+"
 if test "x$ac_cv_have_decl_sys_siglist" = x""yes; then :
   ac_have_decl=1
 else
@@ -8784,7 +8829,9 @@ _ACEOF
 
 if test $ac_cv_have_decl_sys_siglist != yes; then
   # For Tru64, at least:
-  ac_fn_c_check_decl "$LINENO" "__sys_siglist" "ac_cv_have_decl___sys_siglist" "$ac_includes_default"
+  ac_fn_c_check_decl "$LINENO" "__sys_siglist" "ac_cv_have_decl___sys_siglist" "#include <signal.h>
+
+"
 if test "x$ac_cv_have_decl___sys_siglist" = x""yes; then :
   ac_have_decl=1
 else
@@ -9467,6 +9514,32 @@ else
 fi
 
 
+
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <AppKit/AppKit.h>
+int
+main ()
+{
+
+#ifdef MAC_OS_X_VERSION_MAX_ALLOWED
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= 1040
+ ; /* OK */
+#else
+#error "OSX 10.4 or newer required"
+#endif
+#endif
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+  ns_osx_have_104=yes
+else
+  ns_osx_have_104=no
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 #include <Foundation/NSObjCRuntime.h>
@@ -9484,6 +9557,9 @@ else
   ns_have_nsinteger=no
 fi
 rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+  if test $ns_osx_have_104 = no; then
+     as_fn_error "\`OSX 10.4 or newer is required'" "$LINENO" 5;
+  fi
   if test $ns_have_nsinteger = yes; then
 
 $as_echo "#define NS_HAVE_NSINTEGER 1" >>confdefs.h
@@ -10567,6 +10643,7 @@ $as_echo "#define HAVE_GTK3 1" >>confdefs.h
 
      GTK_OBJ=emacsgtkfixed.o
      term_header=gtkutil.h
+     USE_GTK_TOOLKIT="GTK3"
   else
      check_gtk2=yes
      gtk3_pkg_errors="$GTK_PKG_ERRORS "
@@ -10634,6 +10711,7 @@ $as_echo "no" >&6; }
   then
     as_fn_error "$gtk3_pkg_errors$GTK_PKG_ERRORS" "$LINENO" 5
   fi
+  test "$pkg_check_gtk" = "yes" && USE_GTK_TOOLKIT="GTK2"
 fi
 
 if test x"$pkg_check_gtk" = xyes; then
@@ -16835,6 +16913,7 @@ _ACEOF
   REPLACE_MALLOC=0;
   REPLACE_MBTOWC=0;
   REPLACE_MKSTEMP=0;
+  REPLACE_PTSNAME=0;
   REPLACE_PTSNAME_R=0;
   REPLACE_PUTENV=0;
   REPLACE_RANDOM_R=0;
@@ -19221,6 +19300,7 @@ done
   HAVE_SIGHANDLER_T=1;
   REPLACE_PTHREAD_SIGMASK=0;
   REPLACE_RAISE=0;
+
 
 
 
@@ -21617,6 +21697,69 @@ rm -f core conftest.err conftest.$ac_objext \
 fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $gl_cv_sig_pselect" >&5
 $as_echo "$gl_cv_sig_pselect" >&6; }
+
+        { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether pselect detects invalid fds" >&5
+$as_echo_n "checking whether pselect detects invalid fds... " >&6; }
+if test "${gl_cv_func_pselect_detects_ebadf+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+
+        if test "$cross_compiling" = yes; then :
+
+           case "$host_os" in
+                    # Guess yes on glibc systems.
+            *-gnu*) gl_cv_func_pselect_detects_ebadf="guessing yes" ;;
+                    # If we don't know, assume the worst.
+            *)      gl_cv_func_pselect_detects_ebadf="guessing no" ;;
+           esac
+
+else
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+#include <sys/types.h>
+#include <sys/time.h>
+#if HAVE_SYS_SELECT_H
+# include <sys/select.h>
+#endif
+#include <unistd.h>
+#include <errno.h>
+
+int
+main ()
+{
+
+  fd_set set;
+  dup2(0, 16);
+  FD_ZERO(&set);
+  FD_SET(16, &set);
+  close(16);
+  struct timespec timeout;
+  timeout.tv_sec = 0;
+  timeout.tv_nsec = 5000;
+  return pselect (17, &set, NULL, NULL, &timeout, NULL) != -1 || errno != EBADF;
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_run "$LINENO"; then :
+  gl_cv_func_pselect_detects_ebadf=yes
+else
+  gl_cv_func_pselect_detects_ebadf=no
+fi
+rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
+  conftest.$ac_objext conftest.beam conftest.$ac_ext
+fi
+
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $gl_cv_func_pselect_detects_ebadf" >&5
+$as_echo "$gl_cv_func_pselect_detects_ebadf" >&6; }
+    case $gl_cv_func_pselect_detects_ebadf in
+      *yes) ;;
+      *) REPLACE_PSELECT=1 ;;
+    esac
   fi
 
   if test $ac_cv_func_pselect = no || test $gl_cv_sig_pselect = no; then
@@ -21653,11 +21796,61 @@ $as_echo "$gl_cv_sig_pselect" >&6; }
   LIB_PTHREAD_SIGMASK=
 
 
-                    if test $ac_cv_func_pthread_sigmask = yes; then
-                  :
+
+
+    if test "$gl_threads_api" = posix; then
+      if test $ac_cv_func_pthread_sigmask = yes; then
+                :
+      else
+        if test -n "$LIBMULTITHREAD"; then
+          { $as_echo "$as_me:${as_lineno-$LINENO}: checking for pthread_sigmask in $LIBMULTITHREAD" >&5
+$as_echo_n "checking for pthread_sigmask in $LIBMULTITHREAD... " >&6; }
+if test "${gl_cv_func_pthread_sigmask_in_LIBMULTITHREAD+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  gl_save_LIBS="$LIBS"
+             LIBS="$LIBS $LIBMULTITHREAD"
+             cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <pthread.h>
+                    #include <signal.h>
+
+int
+main ()
+{
+return pthread_sigmask (0, (sigset_t *) 0, (sigset_t *) 0);
+  ;
+  return 0;
+}
+
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  gl_cv_func_pthread_sigmask_in_LIBMULTITHREAD=yes
+else
+  gl_cv_func_pthread_sigmask_in_LIBMULTITHREAD=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+             LIBS="$gl_save_LIBS"
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $gl_cv_func_pthread_sigmask_in_LIBMULTITHREAD" >&5
+$as_echo "$gl_cv_func_pthread_sigmask_in_LIBMULTITHREAD" >&6; }
+          if test $gl_cv_func_pthread_sigmask_in_LIBMULTITHREAD = yes; then
+                        LIB_PTHREAD_SIGMASK="$LIBMULTITHREAD"
+          else
+                        HAVE_PTHREAD_SIGMASK=0
+          fi
+        else
+                    HAVE_PTHREAD_SIGMASK=0
+        fi
+      fi
     else
-            HAVE_PTHREAD_SIGMASK=0
-                        REPLACE_PTHREAD_SIGMASK=1
+                                          if test $ac_cv_func_pthread_sigmask = yes; then
+        REPLACE_PTHREAD_SIGMASK=1
+      else
+        HAVE_PTHREAD_SIGMASK=0
+      fi
     fi
 
 
@@ -23576,6 +23769,102 @@ $as_echo "$gl_cv_time_r_posix" >&6; }
 
 
 
+
+
+
+
+
+  LIB_TIMER_TIME=
+
+  gl_saved_libs=$LIBS
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing timer_settime" >&5
+$as_echo_n "checking for library containing timer_settime... " >&6; }
+if test "${ac_cv_search_timer_settime+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_func_search_save_LIBS=$LIBS
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char timer_settime ();
+int
+main ()
+{
+return timer_settime ();
+  ;
+  return 0;
+}
+_ACEOF
+for ac_lib in '' rt posix4; do
+  if test -z "$ac_lib"; then
+    ac_res="none required"
+  else
+    ac_res=-l$ac_lib
+    LIBS="-l$ac_lib  $ac_func_search_save_LIBS"
+  fi
+  if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_search_timer_settime=$ac_res
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext
+  if test "${ac_cv_search_timer_settime+set}" = set; then :
+  break
+fi
+done
+if test "${ac_cv_search_timer_settime+set}" = set; then :
+
+else
+  ac_cv_search_timer_settime=no
+fi
+rm conftest.$ac_ext
+LIBS=$ac_func_search_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_search_timer_settime" >&5
+$as_echo "$ac_cv_search_timer_settime" >&6; }
+ac_res=$ac_cv_search_timer_settime
+if test "$ac_res" != no; then :
+  test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
+  test "$ac_cv_search_timer_settime" = "none required" ||
+                    LIB_TIMER_TIME=$ac_cv_search_timer_settime
+fi
+
+                    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+#include <features.h>
+#ifdef __GNU_LIBRARY__
+ #if ((__GLIBC__ == 2 && __GLIBC_MINOR__ >= 2) || (__GLIBC__ > 2)) \
+     && !defined __UCLIBC__
+  Thread emulation available
+ #endif
+#endif
+
+_ACEOF
+if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
+  $EGREP "Thread" >/dev/null 2>&1; then :
+  LIB_TIMER_TIME="$LIB_TIMER_TIME $LIBMULTITHREAD"
+fi
+rm -f conftest*
+
+    for ac_func in timer_settime
+do :
+  ac_fn_c_check_func "$LINENO" "timer_settime" "ac_cv_func_timer_settime"
+if test "x$ac_cv_func_timer_settime" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_TIMER_SETTIME 1
+_ACEOF
+
+fi
+done
+
+  LIBS=$gl_saved_libs
+
   :
 
 
@@ -24293,7 +24582,7 @@ fi
 #### It makes printing result more understandable as using GTK sets
 #### toolkit_scroll_bars to yes by default.
 if test "${HAVE_GTK}" = "yes"; then
-  USE_X_TOOLKIT=GTK
+  USE_X_TOOLKIT="$USE_GTK_TOOLKIT"
 fi
 
 echo "

@@ -740,31 +740,25 @@ properties have no effect.  If @code{inhibit-read-only} is a list, then
 of the list (comparison is done with @code{eq}).
 @end defvar
 
-@deffn Command toggle-read-only &optional arg message
-This command toggles whether the current buffer is read-only, by
-setting the variable @code{buffer-read-only}.  If @var{arg} is
-non-@code{nil}, it should be a raw prefix argument; the command then
-makes the buffer read-only if the numeric value of that prefix
-argument is positive, and makes the buffer writable otherwise.
-@xref{Prefix Command Arguments}.
+@deffn Command read-only-mode &optional arg
+This is the mode command for Read Only minor mode, a buffer-local
+minor mode.  When the mode is enabled, @code{buffer-read-only} is
+non-@code{nil} in the buffer; when disabled, @code{buffer-read-only}
+is @code{nil} in the buffer.  The calling convention is the same as
+for other minor mode commands (@pxref{Minor Mode Conventions}).
 
-If called interactively, or if called from Lisp with @var{message} is
-non-@code{nil}, the command prints a message reporting the buffer's
-new read-only status.
+This minor mode mainly serves as a wrapper for
+@code{buffer-read-only}; unlike most minor modes, there is no separate
+@code{read-only-mode} variable.  Even when Read Only mode is disabled,
+characters with non-@code{nil} @code{read-only} text properties remain
+read-only.  To temporarily ignore all read-only states, bind
+@code{inhibit-read-only}, as described above.
 
-When making the buffer read-only, this command also enables View mode
+When enabling Read Only mode, this mode command also enables View mode
 if the option @code{view-read-only} is non-@code{nil}.  @xref{Misc
 Buffer,,Miscellaneous Buffer Operations, emacs, The GNU Emacs Manual}.
-When making the buffer writable, it disables View mode if View mode
-was enabled.
-
-Lisp programs should only call @code{toggle-read-only} if they really
-intend to do the same thing as the user command, including possibly
-enabling or disabling View mode.  Note also that this command works by
-setting @code{buffer-read-only}, so even if you make the buffer
-writable, characters with non-@code{nil} @code{read-only} text
-properties will remain read-only.  To temporarily ignore all read-only
-states, bind @code{inhibit-read-only}, as described above.
+When disabling Read Only mode, it disables View mode if View mode was
+enabled.
 @end deffn
 
 @defun barf-if-buffer-read-only

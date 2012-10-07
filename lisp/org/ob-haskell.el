@@ -125,12 +125,12 @@ then create one.  Return the initialized session."
       (current-buffer))))
 
 (defun org-babel-variable-assignments:haskell (params)
-  "Return list of haskell statements assigning the block's variables"
+  "Return list of haskell statements assigning the block's variables."
   (mapcar (lambda (pair)
 	    (format "let %s = %s"
 		    (car pair)
 		    (org-babel-haskell-var-to-haskell (cdr pair))))
-   (mapcar #'cdr (org-babel-get-header params :var))))
+	  (mapcar #'cdr (org-babel-get-header params :var))))
 
 (defun org-babel-haskell-table-or-string (results)
   "Convert RESULTS to an Emacs-lisp table or string.

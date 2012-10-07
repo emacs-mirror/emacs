@@ -1477,7 +1477,7 @@ current_minor_maps (Lisp_Object **modeptr, Lisp_Object **mapptr)
 
 		/* Use malloc here.  See the comment above this function.
 		   Avoid realloc here; it causes spurious traps on GNU/Linux [KFS] */
-		BLOCK_INPUT;
+		block_input ();
 		newmodes = malloc (allocsize);
 		if (newmodes)
 		  {
@@ -1501,7 +1501,7 @@ current_minor_maps (Lisp_Object **modeptr, Lisp_Object **mapptr)
 		      }
 		    cmm_maps = newmaps;
 		  }
-		UNBLOCK_INPUT;
+		unblock_input ();
 
 		if (newmodes == NULL || newmaps == NULL)
 		  break;

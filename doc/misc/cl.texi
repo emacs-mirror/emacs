@@ -2087,7 +2087,7 @@ of a list.  @var{list} should evaluate to a list; the body @var{forms}
 are executed with @var{var} bound to each element of the list in
 turn.  Finally, the @var{result} form (or @code{nil}) is evaluated
 with @var{var} bound to @code{nil} to produce the result returned by
-the loop.  Unlike with Emacs'ss built in @code{dolist}, the loop is
+the loop.  Unlike with Emacs's built in @code{dolist}, the loop is
 surrounded by an implicit @code{nil} block.
 @end defspec
 
@@ -2097,7 +2097,7 @@ of times.  The body is executed with @var{var} bound to the integers
 from zero (inclusive) to @var{count} (exclusive), in turn.  Then
 the @code{result} form is evaluated with @var{var} bound to the total
 number of iterations that were done (i.e., @code{(max 0 @var{count})})
-to get the return value for the loop form.  Unlike with Emacs'ss built in
+to get the return value for the loop form.  Unlike with Emacs's built in
 @code{dolist}, the loop is surrounded by an implicit @code{nil} block.
 @end defspec
 

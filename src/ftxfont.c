@@ -98,7 +98,7 @@ ftxfont_get_gcs (FRAME_PTR f, long unsigned int foreground, long unsigned int ba
   new->colors[0].pixel = background;
   new->colors[1].pixel = foreground;
 
-  BLOCK_INPUT;
+  block_input ();
   XQueryColors (FRAME_X_DISPLAY (f), FRAME_X_COLORMAP (f), new->colors, 2);
   for (i = 1; i < 7; i++)
     {
@@ -115,14 +115,14 @@ ftxfont_get_gcs (FRAME_PTR f, long unsigned int foreground, long unsigned int ba
       new->gcs[i - 1] = XCreateGC (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 				   GCForeground, &xgcv);
     }
-  UNBLOCK_INPUT;
+  unblock_input ();
 
   if (i < 7)
     {
-      BLOCK_INPUT;
+      block_input ();
       for (i--; i >= 0; i--)
 	XFreeGC (FRAME_X_DISPLAY (f), new->gcs[i]);
-      UNBLOCK_INPUT;
+      unblock_input ();
       if (prev)
 	prev->next = new->next;
       else if (data)
@@ -282,7 +282,7 @@ ftxfont_draw (struct glyph_string *s, int from, int to, int x, int y,
 
   n[0] = n[1] = n[2] = n[3] = n[4] = n[5] = n[6] = 0;
 
-  BLOCK_INPUT;
+  block_input ();
   if (with_background)
     ftxfont_draw_background (f, font, s->gc, x, y, s->width);
   code = alloca (sizeof (unsigned) * len);
@@ -332,7 +332,7 @@ ftxfont_draw (struct glyph_string *s, int from, int to, int x, int y,
 	}
     }
 
-  UNBLOCK_INPUT;
+  unblock_input ();
 
   return len;
 }
@@ -342,7 +342,7 @@ ftxfont_end_for_frame (FRAME_PTR f)
 {
   struct ftxfont_frame_data *data = font_get_frame_data (f, &ftxfont_driver);
 
-  BLOCK_INPUT;
+  block_input ();
   while (data)
     {
       struct ftxfont_frame_data *next = data->next;
@@ -353,7 +353,7 @@ ftxfont_end_for_frame (FRAME_PTR f)
       free (data);
       data = next;
     }
-  UNBLOCK_INPUT;
+  unblock_input ();
   font_put_frame_data (f, &ftxfont_driver, NULL);
   return 0;
 }

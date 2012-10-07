@@ -1703,7 +1703,7 @@ If INITIAL-INPUT is non-nil, insert it in the minibuffer initially,
   functions, which use one-indexing for POSITION.)  This feature is
   deprecated--it is best to pass nil for INITIAL-INPUT and supply the
   default value DEF instead.  The user can yank the default value into
-  the minibuffer easily using \\[next-history-element].
+  the minibuffer easily using \\<minibuffer-local-map>\\[next-history-element].
 
 HIST, if non-nil, specifies a history list and optionally the initial
   position in the list.  It can be a symbol, which is the history list
@@ -1862,11 +1862,11 @@ static Lisp_Object Qmetadata;
 
 DEFUN ("internal-complete-buffer", Finternal_complete_buffer, Sinternal_complete_buffer, 3, 3, 0,
        doc: /* Perform completion on buffer names.
-If the argument FLAG is nil, invoke `try-completion', if it's t, invoke
-`all-completions', otherwise invoke `test-completion'.
+STRING and PREDICATE have the same meanings as in `try-completion',
+`all-completions', and `test-completion'.
 
-The arguments STRING and PREDICATE are as in `try-completion',
-`all-completions', and `test-completion'.  */)
+If FLAG is nil, invoke `try-completion'; if it is t, invoke
+`all-completions'; otherwise invoke `test-completion'.  */)
   (Lisp_Object string, Lisp_Object predicate, Lisp_Object flag)
 {
   if (NILP (flag))

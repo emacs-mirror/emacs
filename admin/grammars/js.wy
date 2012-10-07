@@ -58,6 +58,7 @@
 ;; DAMAGE.
 
 %package wisent-javascript-jv-wy
+%provide semantic/wisent/js-wy
 ;; JAVE I prefere ecmascript-mode
 %languagemode ecmascript-mode javascript-mode
 

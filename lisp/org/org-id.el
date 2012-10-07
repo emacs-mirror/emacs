@@ -83,6 +83,47 @@
   :tag "Org ID"
   :group 'org)
 
+(define-obsolete-variable-alias
+  'org-link-to-org-use-id 'org-id-link-to-org-use-id "24.3")
+(defcustom org-id-link-to-org-use-id nil
+  "Non-nil means storing a link to an Org file will use entry IDs.
+
+The variable can have the following values:
+
+t     Create an ID if needed to make a link to the current entry.
+
+create-if-interactive
+      If `org-store-link' is called directly (interactively, as a user
+      command), do create an ID to support the link.  But when doing the
+      job for capture, only use the ID if it already exists.  The
+      purpose of this setting is to avoid proliferation of unwanted
+      IDs, just because you happen to be in an Org file when you
+      call `org-capture' that automatically and preemptively creates a
+      link.  If you do want to get an ID link in a capture template to
+      an entry not having an ID, create it first by explicitly creating
+      a link to it, using `C-c C-l' first.
+
+create-if-interactive-and-no-custom-id
+      Like create-if-interactive, but do not create an ID if there is
+      a CUSTOM_ID property defined in the entry.
+
+use-existing
+      Use existing ID, do not create one.
+
+nil   Never use an ID to make a link, instead link using a text search for
+      the headline text."
+  :group 'org-link-store
+  :group 'org-id
+  :version "24.3"
+  :type '(choice
+	  (const :tag "Create ID to make link" t)
+	  (const :tag "Create if storing link interactively"
+		 create-if-interactive)
+	  (const :tag "Create if storing link interactively and no CUSTOM_ID is present"
+		 create-if-interactive-and-no-custom-id)
+	  (const :tag "Only use existing" use-existing)
+	  (const :tag "Do not use ID to create link" nil)))
+
 (defcustom org-id-uuid-program "uuidgen"
   "The uuidgen program."
   :group 'org-id
@@ -216,8 +257,7 @@ In any case, the ID of the entry is returned."
 	(setq id (org-id-new prefix))
 	(org-entry-put pom "ID" id)
 	(org-id-add-location id (buffer-file-name (buffer-base-buffer)))
-	id)
-       (t nil)))))
+	id)))))
 
 ;;;###autoload
 (defun org-id-get-with-outline-path-completion (&optional targets)
@@ -273,7 +313,7 @@ With optional argument MARKERP, return the position as a new marker."
     (when file
       (setq where (org-id-find-id-in-file id file markerp)))
     (unless where
-      (org-id-update-id-locations)
+      (org-id-update-id-locations nil t)
       (setq file (org-id-find-id-file id))
       (when file
 	(setq where (org-id-find-id-in-file id file markerp))))
@@ -403,7 +443,7 @@ and time is the usual three-integer representation of time."
 
 ;; Storing ID locations (files)
 
-(defun org-id-update-id-locations (&optional files)
+(defun org-id-update-id-locations (&optional files silent)
   "Scan relevant files for IDs.
 Store the relation between files and corresponding IDs.
 This will scan all agenda files, all associated archives, and all
@@ -427,11 +467,11 @@ When CHECK is given, prepare detailed information about duplicate IDs."
 		 (if (symbolp org-id-extra-files)
 		     (symbol-value org-id-extra-files)
 		   org-id-extra-files)
-	      ;; Files associated with live org-mode buffers
+		 ;; Files associated with live org-mode buffers
 		 (delq nil
 		       (mapcar (lambda (b)
 				 (with-current-buffer b
-				   (and (eq major-mode 'org-mode) (buffer-file-name))))
+				   (and (derived-mode-p 'org-mode) (buffer-file-name))))
 			       (buffer-list)))
 		 ;; All files known to have IDs
 		 org-id-files)))
@@ -441,8 +481,9 @@ When CHECK is given, prepare detailed information about duplicate IDs."
 	(setq files (delq 'agenda-archives (copy-sequence files))))
       (setq nfiles (length files))
       (while (setq file (pop files))
-	(message "Finding ID locations (%d/%d files): %s"
-		 (- nfiles (length files)) nfiles file)
+	(unless silent
+	  (message "Finding ID locations (%d/%d files): %s"
+		   (- nfiles (length files)) nfiles file))
 	(setq tfile (file-truename file))
 	(when (and (file-exists-p file) (not (member tfile seen)))
 	  (push tfile seen)
@@ -505,7 +546,7 @@ When CHECK is given, prepare detailed information about duplicate IDs."
 	    (goto-char (point-min))
 	    (setq org-id-locations (read (current-buffer))))
 	(error
-	 (message "Could not read org-id-values from %s. Setting it to nil."
+	 (message "Could not read org-id-values from %s.  Setting it to nil."
 		  org-id-locations-file))))
     (setq org-id-files (mapcar 'car org-id-locations))
     (setq org-id-locations (org-id-alist-to-hash org-id-locations))))
@@ -600,8 +641,8 @@ optional argument MARKERP, return the position as a new marker."
 (defun org-id-store-link ()
   "Store a link to the current entry, using its ID."
   (interactive)
-  (when (and (buffer-file-name (buffer-base-buffer)) (eq major-mode 'org-mode))
-    (let* ((link (org-make-link "id:" (org-id-get-create)))
+  (when (and (buffer-file-name (buffer-base-buffer)) (derived-mode-p 'org-mode))
+    (let* ((link (concat "id:" (org-id-get-create)))
 	   (case-fold-search nil)
 	   (desc (save-excursion
 		   (org-back-to-heading t)

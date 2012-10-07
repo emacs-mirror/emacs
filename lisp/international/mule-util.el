@@ -34,39 +34,6 @@
 ;;; characters.
 
 ;;;###autoload
-(defun string-to-sequence (string type)
-  "Convert STRING to a sequence of TYPE which contains characters in STRING.
-TYPE should be `list' or `vector'."
-;;;  (let ((len (length string))
-;;;	   (i 0)
-;;;	   val)
-    (cond ((eq type 'list)
-	   ;; Applicable post-Emacs 20.2 and asymptotically ~10 times
-	   ;; faster than the code below:
-	   (append string nil))
-;;; 	   (setq val (make-list len 0))
-;;; 	   (let ((l val))
-;;; 	     (while (< i len)
-;;; 	       (setcar l (aref string i))
-;;; 	       (setq l (cdr l) i (1+ i))))))
-	  ((eq type 'vector)
-	   ;; As above.
-	   (vconcat string))
-;;; 	   (setq val (make-vector len 0))
-;;; 	   (while (< i len)
-;;; 	     (aset val i (aref string i))
-;;; 	     (setq i (1+ i))))
-	  (t
-	   (error "Invalid type: %s" type)))
-;;;    val)
-)
-
-;;;###autoload
-(make-obsolete 'string-to-sequence
-	       "use `string-to-list' or `string-to-vector'."
-	       "22.1")
-
-;;;###autoload
 (defsubst string-to-list (string)
   "Return a list of characters in STRING."
   (append string nil))
@@ -330,10 +297,9 @@ operations such as `find-coding-systems-region'."
   "Detect a coding system of the text between FROM and TO with PRIORITY-LIST.
 PRIORITY-LIST is an alist of coding categories vs the corresponding
 coding systems ordered by priority."
+  (declare (obsolete with-coding-priority "23.1"))
   `(with-coding-priority (mapcar #'cdr ,priority-list)
      (detect-coding-region ,from ,to)))
-(make-obsolete 'detect-coding-with-priority
-	       "use `with-coding-priority' and `detect-coding-region'." "23.1")
 
 ;;;###autoload
 (defun detect-coding-with-language-environment (from to lang-env)

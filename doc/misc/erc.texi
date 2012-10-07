@@ -3,13 +3,13 @@
 @setfilename ../../info/erc
 @settitle ERC Manual
 @syncodeindex fn cp
+@include emacsver.texi
 @c %**end of header
 
 @copying
-This manual is for ERC version 5.3.
+This manual is for ERC as distributed with Emacs @value{EMACSVER}.
 
-Copyright @copyright{} 2005-2012
-Free Software Foundation, Inc.
+Copyright @copyright{} 2005-2012 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -48,8 +48,7 @@ and modified without restriction.
 @contents
 
 @ifnottex
-@node Top, Introduction, (dir), (dir)
-@comment  node-name,  next,  previous,  up
+@node Top
 @top ERC
 
 @insertcopying
@@ -57,9 +56,6 @@ and modified without restriction.
 
 @menu
 * Introduction::                What is ERC?
-* Obtaining ERC::               How to get ERC releases and development
-                                  versions.
-* Installation::                Compiling and installing ERC.
 * Getting Started::             Quick Start guide to using ERC.
 * Keystroke Summary::           Keystrokes used in ERC buffers.
 * Modules::                     Available modules for ERC.
@@ -76,11 +72,6 @@ and modified without restriction.
 @detailmenu
  --- The Detailed Node Listing ---
 
-Obtaining ERC
-
-* Releases::                    Released versions of ERC.
-* Development::                 Latest unreleased development changes.
-
 Getting Started
 
 * Sample Session::              Example of connecting to the #emacs channel
@@ -95,11 +86,11 @@ Advanced Usage
 @end detailmenu
 @end menu
 
-@node Introduction, Obtaining ERC, Top, Top
-@comment  node-name,  next,  previous,  up
+@node Introduction
 @chapter Introduction
 
 ERC is a powerful, modular, and extensible IRC client for Emacs.
+It is distributed with Emacs since version 22.1.
 
 It comes with the following capabilities enabled by default.
 
@@ -119,217 +110,13 @@ It comes with the following capabilities enabled by default.
 
 @end itemize
 
-@node Obtaining ERC, Installation, Introduction, Top
-@comment  node-name,  next,  previous,  up
-@chapter Obtaining ERC
 
-@menu
-* Releases::                    Released versions of ERC.
-* Development::                 Latest unreleased development changes.
-@end menu
-
-Note that some ERC files are not included with Emacs due to copyright or
-dependency issues.  If desired, they may be found at the following
-locations, or from your local GNU mirror.
-
-@itemize @bullet
-@item @uref{http://ftp.gnu.org/gnu/erc/erc-5.3-extras.tar.gz}
-@item @uref{http://ftp.gnu.org/gnu/erc/erc-5.3-extras.zip}
-@end itemize
-
-The rest of this chapter may be skipped if you are using the version of
-ERC that comes with Emacs.
-
-@node Releases, Development, Obtaining ERC, Obtaining ERC
-@comment  node-name,  next,  previous,  up
-@section Releases
-
-Choose to install a release if you want to minimize risk.
-
-Errors are corrected in development first.  User-visible changes will be
-announced on the @email{erc-discuss@@gnu.org} mailing list.
-@pxref{Getting Help and Reporting Bugs}.
-
-@cindex releases, Debian package
-@cindex Debian package for ERC
-Debian users can get ERC via apt-get.  The @file{erc} package is
-available in the official Debian repository.
-
-@cindex releases, from source
-Alternatively, you can download the latest release from
-@uref{http://ftp.gnu.org/gnu/erc}, or your local GNU mirror.
-
-@node Development,  , Releases, Obtaining ERC
-@comment  node-name,  next,  previous,  up
-@section Development
-@cindex development
-
-Choose the development version if you want to live on the bleeding edge
-of ERC development or try out new features before release.
-
-@cindex git version control system, using
-The git version control system allows you to keep up-to-date with the
-latest changes to the development version of ERC.  It also allows you
-to contribute changes (via commits, if you are have developer access to
-the repository, or via patches, otherwise).  If you would like to
-contribute to ERC development, it is highly recommended that you use
-git.
-
-If you are new to git, you might find this tutorial helpful:
-@uref{http://www.kernel.org/pub/software/scm/git/docs/gittutorial.html}.
-
-Downloading ERC with git and staying up-to-date involves the following
-steps.
-
-@enumerate
-@item Install git.
-
-@itemize @bullet
-@item Debian and Ubuntu: @kbd{apt-get install git-core}.
-@item Windows: @uref{http://git.or.cz/gitwiki/WindowsInstall}.
-@item Other operating systems: download, compile, and install the source
-from @uref{http://www.kernel.org/pub/software/scm/git/}, or find a git
-package for your operating system.
-@end itemize
-
-@item Download the ERC development branch.
-
-If you have developer access to ERC, do:
-
-@example
-git clone ssh://loginname@@git.sv.gnu.org/srv/git/erc.git
-@end example
-
-otherwise, do:
-
-@example
-git clone git://git.sv.gnu.org/erc.git
-@end example
-
-If you are behind a restrictive firewall, and do not have developer
-access, then do the following instead:
-
-@example
-git clone http://git.sv.gnu.org/r/erc.git
-@end example
-
-@item List upstream changes that are missing from your local copy.
-Do this whenever you want to see whether new changes have been committed
-to ERC.  If you wish, you may skip this step and proceed directly to
-the ``update'' step.
-
-@example
-# Change to the source directory you are interested in.
-cd erc
-
-# Fetch new changes from the repository, but don't apply them yet
-git fetch origin
-
-# Display log messages for the new changes
-git log HEAD..origin
-@end example
-
-``origin'' is git's name for the location where you originally got ERC
-from.  You can change this location at any time by editing the
-@file{.git/config} file in the directory where the ERC source was
-placed.
-
-@cindex updating ERC with git
-@item Update to the latest version by pulling in any missing changes.
-
-@example
-cd erc
-git pull origin
-@end example
-
-git will show how many files changed, and will provide a visual display
-for how many lines were changed in each file.
-
-@end enumerate
-
-There are other ways to interact with the ERC repository.
-
-@itemize
-@item Browse git repo: @uref{http://git.sv.gnu.org/gitweb/?p=erc.git}
-@item Latest development snapshot: @uref{http://mwolson.org/static/dist/erc-latest.tar.gz}
-@item Latest development snapshot (zip file): @uref{http://mwolson.org/static/dist/erc-latest.zip}
-@end itemize
-
-The latest development snapshot can lag behind the git repo by as much
-as 20 minutes, but never more than that.
-
-For further information on committing changes to ERC and performing
-development, please consult
-@uref{http://emacswiki.org/cgi-bin/wiki/ErcDevelopment}.
-
-
-@node Installation, Getting Started, Obtaining ERC, Top
-@comment  node-name,  next,  previous,  up
-@chapter Installation
-
-ERC may be compiled and installed on your machine.
-
-This section may be skipped if you are using the version of ERC that
-comes with Emacs.
-
-@subsubheading Compilation
-
-This is an optional step, since Emacs Lisp source code does not
-necessarily have to be byte-compiled.  It will yield a speed increase,
-though.
-
-A working copy of Emacs or XEmacs is needed in order to compile ERC.  By
-default, the program that is installed with the name @command{emacs}
-will be used.
-
-If you want to use the @command{xemacs} binary to perform the
-compilation, you would need to edit @file{Makefile} in the top-level
-directory as follows.  You can put either a full path to an Emacs or
-XEmacs binary or just the command name, as long as it is in the
-@env{PATH}.
-
-@example
-EMACS    = xemacs
-SITEFLAG = -no-site-file
-@end example
-
-Running @code{make} should compile the ERC source files in the
-@file{lisp} directory.
-
-@subsubheading Installation
-
-ERC may be installed into your file hierarchy by doing the following.
-
-Edit the @file{Makefile} file so that @env{ELISPDIR} points to where you
-want the source and compiled ERC files to be installed and
-@env{INFODIR} indicates where to put the ERC manual.  Of course, you
-will want to edit @env{EMACS} and @env{SITEFLAG} as shown in the
-Compilation section if you are using XEmacs.
-
-If you are installing ERC on a Debian system, you might want to change
-the value of @env{INSTALLINFO} as specified in @file{Makefile}.
-
-Run @code{make} as a normal user.
-
-Run @code{make install} as the root user if you have chosen installation
-locations that require this.
-
-
-@node Getting Started, Keystroke Summary, Installation, Top
-@comment  node-name,  next,  previous,  up
+@node Getting Started
 @chapter Getting Started
 @cindex settings
 
-To use ERC, add the directory containing its files to your
-@code{load-path} variable, in your @file{.emacs} file.  Then, load ERC
-itself.  An example follows.
-
-@lisp
-(require 'erc)
-@end lisp
-
-Once ERC is loaded, the command @kbd{M-x erc} will start ERC and
-prompt for the server to connect to.
+The command @kbd{M-x erc} will start ERC and prompt for the server to
+connect to.
 
 If you want to place ERC settings in their own file, you can place them
 in @file{~/.emacs.d/.ercrc.el}, creating it if necessary.
@@ -344,8 +131,7 @@ you want, do @kbd{M-x customize-variable RET erc-modules RET}.
 * Special Features::            Differences from standalone IRC clients
 @end menu
 
-@node Sample Session, Special Features, Getting Started, Getting Started
-@comment  node-name,  next,  previous,  up
+@node Sample Session
 @section Sample Session
 
 This is an example ERC session which shows how to connect to the #emacs
@@ -403,8 +189,7 @@ talk with them.
 
 @end itemize
 
-@node Special Features, , Sample Session, Getting Started
-@comment  node-name,  next,  previous,  up
+@node Special Features
 @section Special Features
 
 ERC has some features that distinguish it from some IRC clients.
@@ -478,8 +263,7 @@ ERC  buffer and run the @code{/RECONNECT} command.
 @end itemize
 
 
-@node Keystroke Summary, Modules, Getting Started, Top
-@comment  node-name,  next,  previous,  up
+@node Keystroke Summary
 @chapter Keys Used in ERC
 @cindex keystrokes
 
@@ -562,8 +346,7 @@ Kill current input line using `erc-bol' followed by `kill-line'.
 @end table
 
 
-@node Modules, Advanced Usage, Keystroke Summary, Top
-@comment  node-name,  next,  previous,  up
+@node Modules
 @chapter Modules
 @cindex modules
 
@@ -701,8 +484,7 @@ Translate morse code in messages
 @c PRE5_4: Document every option of every module in its own subnode
 
 
-@node Advanced Usage, Getting Help and Reporting Bugs, Modules, Top
-@comment  node-name,  next,  previous,  up
+@node Advanced Usage
 @chapter Advanced Usage
 @cindex advanced topics
 
@@ -712,8 +494,7 @@ Translate morse code in messages
 * Options::                     Options that are available for ERC.
 @end menu
 
-@node Connecting, Sample Configuration, Advanced Usage, Advanced Usage
-@comment  node-name,  next,  previous,  up
+@node Connecting
 @section Connecting to an IRC Server
 @cindex connecting
 
@@ -846,8 +627,7 @@ User full name.
 This can be either a string or a function to call.
 @end defopt
 
-@node Sample Configuration, Options, Connecting, Advanced Usage
-@comment  node-name,  next,  previous,  up
+@node Sample Configuration
 @section Sample Configuration
 @cindex configuration, sample
 
@@ -926,8 +706,7 @@ stuff, to the current ERC buffer."
 ;; (setq erc-kill-server-buffer-on-quit t)
 @end lisp
 
-@node Options, , Sample Configuration, Advanced Usage
-@comment  node-name,  next,  previous,  up
+@node Options
 @section Options
 @cindex options
 
@@ -939,8 +718,7 @@ check out the available options for ERC is to do
 @kbd{M-x customize-group erc RET}.
 
 
-@node Getting Help and Reporting Bugs, History, Advanced Usage, Top
-@comment  node-name,  next,  previous,  up
+@node Getting Help and Reporting Bugs
 @chapter Getting Help and Reporting Bugs
 @cindex help, getting
 @cindex bugs, reporting
@@ -952,36 +730,24 @@ or if you have bugs to report, there are several places you can go.
 
 @item
 @uref{http://www.emacswiki.org/cgi-bin/wiki/ERC} is the
-emacswiki.org page for ERC.  Anyone may add tips, hints, or bug
-descriptions to it.
+emacswiki.org page for ERC.  Anyone may add tips, hints, etc. to it.
 
 @item
-There are several mailing lists for ERC.  To subscribe, visit
-@uref{http://savannah.gnu.org/mail/?group=erc}.
-
-The mailing lists are also available on Gmane.
-(@url{http://gmane.org/}).  Gmane provides additional methods for
-accessing the mailing lists, adding content to them, and searching them.
-
-@enumerate
-@item gmane.emacs.erc.announce: Announcements
-
-@item gmane.emacs.erc.discuss: General discussion
-
-@item gmane.emacs.erc.cvs: Log messages for changes to the ERC source code
-
-@end enumerate
+You can ask questions about using ERC on the Emacs mailing list,
+@uref{http://lists.gnu.org/mailman/listinfo/help-gnu-emacs}.
 
 @item
 You can visit the IRC Freenode channel @samp{#emacs}. Many of the
 contributors are frequently around and willing to answer your
 questions.
 
+@item
+To report a bug in ERC, use @kbd{M-x report-emacs-bug}.
+
 @end itemize
 
 
-@node History, Copying, Getting Help and Reporting Bugs, Top
-@comment  node-name,  next,  previous,  up
+@node History
 @chapter History
 @cindex history, of ERC
 
@@ -1044,18 +810,22 @@ our revision control system.  Our mailing list address changed as well.
 
 We switched to using git for our version control system.
 
+@item 2009+
+
+Since about 2009, ERC is no longer developed as a separate project, but
+is maintained as part of Emacs.
+
 @end itemize
 
-@node Copying, GNU Free Documentation License, History, Top
-@comment  node-name,  next,  previous,  up
+@node Copying
+@appendix GNU GENERAL PUBLIC LICENSE
 @include gpl.texi
 
-@node GNU Free Documentation License, Concept Index, Copying, Top
-@comment  node-name,  next,  previous,  up
+@node GNU Free Documentation License
+@appendix GNU Free Documentation License
 @include doclicense.texi
 
-@node Concept Index,  , GNU Free Documentation License, Top
-@comment  node-name,  next,  previous,  up
+@node Concept Index
 @unnumbered Index
 
 @printindex cp

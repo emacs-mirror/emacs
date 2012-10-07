@@ -63,19 +63,8 @@
   "Restoring window configurations."
   :group 'windows)
 
-;;;###autoload
-(defcustom winner-mode nil
-  "Toggle Winner mode.
-Setting this variable directly does not take effect;
-use either \\[customize] or the function `winner-mode'."
-  :set #'(lambda (symbol value) (funcall symbol (or value 0)))
-  :initialize 'custom-initialize-default
-  :type    'boolean
-  :group   'winner
-  :require 'winner)
-
 (defcustom winner-dont-bind-my-keys nil
-  "If non-nil: Do not use `winner-mode-map' in Winner mode."
+  "Non-nil means do not bind keys in Winner mode."
   :type  'boolean
   :group 'winner)
 
@@ -85,13 +74,11 @@ use either \\[customize] or the function `winner-mode'."
   :group 'winner)
 
 (defcustom winner-boring-buffers '("*Completions*")
-  "`winner-undo' will not restore windows displaying any of these buffers.
+  "List of buffer names whose windows `winner-undo' will not restore.
 You may want to include buffer names such as *Help*, *Apropos*,
 *Buffer List*, *info* and *Compile-Log*."
   :type '(repeat string)
   :group 'winner)
-
-
 
 
 
@@ -337,19 +324,23 @@ You may want to include buffer names such as *Help*, *Apropos*,
 ;;;; Winner mode  (a minor mode)
 
 (defcustom winner-mode-hook nil
-  "Functions to run whenever Winner mode is turned on."
+  "Functions to run whenever Winner mode is turned on or off."
   :type 'hook
   :group 'winner)
 
-(defcustom winner-mode-leave-hook nil
+(define-obsolete-variable-alias 'winner-mode-leave-hook
+  'winner-mode-off-hook "24.3")
+
+(defcustom winner-mode-off-hook nil
   "Functions to run whenever Winner mode is turned off."
   :type 'hook
   :group 'winner)
 
 (defvar winner-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map [(control c) left] 'winner-undo)
-    (define-key map [(control c) right] 'winner-redo)
+    (unless winner-dont-bind-my-keys
+      (define-key map [(control c) left] 'winner-undo)
+      (define-key map [(control c) right] 'winner-redo))
     map)
   "Keymap for Winner mode.")
 
@@ -364,37 +355,21 @@ You may want to include buffer names such as *Help*, *Apropos*,
 
 
 ;;;###autoload
-(defun winner-mode (&optional arg)
-  "Toggle Winner mode.
-With arg, turn Winner mode on if and only if arg is positive."
-  (interactive "P")
-  (let ((on-p (if arg (> (prefix-numeric-value arg) 0)
-		(not winner-mode))))
-    (cond
-     ;; Turn mode on
-     (on-p
-      (setq winner-mode t)
-      (cond
-       ((winner-hook-installed-p)
-	(add-hook 'window-configuration-change-hook 'winner-change-fun)
-      (add-hook 'post-command-hook 'winner-save-old-configurations))
-       (t (add-hook 'post-command-hook 'winner-save-conditionally)))
-      (add-hook 'minibuffer-setup-hook 'winner-save-unconditionally)
-      (setq winner-modified-list (frame-list))
-      (winner-save-old-configurations)
-      (run-hooks 'winner-mode-hook)
-      (when (called-interactively-p 'interactive)
-	(message "Winner mode enabled")))
-     ;; Turn mode off
-     (winner-mode
-      (setq winner-mode nil)
-      (remove-hook 'window-configuration-change-hook 'winner-change-fun)
-      (remove-hook 'post-command-hook 'winner-save-old-configurations)
-      (remove-hook 'post-command-hook 'winner-save-conditionally)
-      (remove-hook 'minibuffer-setup-hook 'winner-save-unconditionally)
-      (run-hooks 'winner-mode-leave-hook)
-      (when (called-interactively-p 'interactive)
-	(message "Winner mode disabled"))))))
+(define-minor-mode winner-mode nil :global t ; let d-m-m make the doc
+  (if winner-mode
+      (progn
+        (if (winner-hook-installed-p)
+            (progn
+              (add-hook 'window-configuration-change-hook 'winner-change-fun)
+              (add-hook 'post-command-hook 'winner-save-old-configurations))
+          (add-hook 'post-command-hook 'winner-save-conditionally))
+        (add-hook 'minibuffer-setup-hook 'winner-save-unconditionally)
+        (setq winner-modified-list (frame-list))
+        (winner-save-old-configurations))
+    (remove-hook 'window-configuration-change-hook 'winner-change-fun)
+    (remove-hook 'post-command-hook 'winner-save-old-configurations)
+    (remove-hook 'post-command-hook 'winner-save-conditionally)
+    (remove-hook 'minibuffer-setup-hook 'winner-save-unconditionally)))
 
 ;; Inspired by undo (simple.el)
 
@@ -460,13 +435,6 @@ In other words, \"undo\" changes in window configuration."
     (unless (eq (selected-window) (minibuffer-window))
       (message "Winner undid undo")))
    (t (error "Previous command was not a `winner-undo'"))))
-
-;;; To be evaluated when the package is loaded:
-
-(unless (or (assq 'winner-mode minor-mode-map-alist)
-	    winner-dont-bind-my-keys)
-  (push (cons 'winner-mode winner-mode-map)
-	minor-mode-map-alist))
 
 (provide 'winner)
 ;;; winner.el ends here

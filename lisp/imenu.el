@@ -326,6 +326,7 @@ PREVPOS is the variable in which we store the last position displayed."
 (defun imenu-example--name-and-position ()
   "Return the current/previous sexp and its (beginning) location.
 Don't move point."
+  (declare (obsolete "use your own function instead." "23.2"))
   (save-excursion
     (forward-sexp -1)
     ;; [ydi] modified for imenu-use-markers
@@ -333,8 +334,6 @@ Don't move point."
 	  (end (progn (forward-sexp) (point))))
       (cons (buffer-substring beg end)
 	    beg))))
-(make-obsolete 'imenu-example--name-and-position
-	       "use your own function instead." "23.2")
 
 ;;;
 ;;; Lisp
@@ -343,6 +342,7 @@ Don't move point."
 (defun imenu-example--lisp-extract-index-name ()
   ;; Example of a candidate for `imenu-extract-index-name-function'.
   ;; This will generate a flat index of definitions in a lisp file.
+  (declare (obsolete nil "23.2"))
   (save-match-data
     (and (looking-at "(def")
 	 (condition-case nil
@@ -353,11 +353,11 @@ Don't move point."
 		     (end (progn (forward-sexp -1) (point))))
 		 (buffer-substring beg end)))
 	   (error nil)))))
-(make-obsolete 'imenu-example--lisp-extract-index-name "your own" "23.2")
 
 (defun imenu-example--create-lisp-index ()
   ;; Example of a candidate for `imenu-create-index-function'.
   ;; It will generate a nested index of definitions.
+  (declare (obsolete nil "23.2"))
   (let ((index-alist '())
 	(index-var-alist '())
 	(index-type-alist '())
@@ -401,7 +401,6 @@ Don't move point."
 	 (push (cons "Syntax-unknown" index-unknown-alist)
 	       index-alist))
     index-alist))
-(make-obsolete 'imenu-example--create-lisp-index "your own" "23.2")
 
 ;; Regular expression to find C functions
 (defvar imenu-example--function-name-regexp-c
@@ -414,6 +413,7 @@ Don't move point."
    ))
 
 (defun imenu-example--create-c-index (&optional regexp)
+  (declare (obsolete nil "23.2"))
   (let ((index-alist '())
 	char)
     (goto-char (point-min))
@@ -430,7 +430,6 @@ Don't move point."
 	(if (not (eq char ?\;))
 	    (push (imenu-example--name-and-position) index-alist))))
     (nreverse index-alist)))
-(make-obsolete 'imenu-example--create-c-index "your own" "23.2")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;

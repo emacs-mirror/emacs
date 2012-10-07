@@ -872,7 +872,7 @@ draw_fringe_bitmap (struct window *w, struct glyph_row *row, int left_p)
 void
 draw_row_fringe_bitmaps (struct window *w, struct glyph_row *row)
 {
-  eassert (interrupt_input_blocked);
+  eassert (input_blocked_p ());
 
   /* If row is completely invisible, because of vscrolling, we
      don't have to draw anything.  */

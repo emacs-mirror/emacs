@@ -4,8 +4,6 @@
 
 ;; Author: Carsten Dominik <dominik@science.uva.nl>
 ;; Maintainer: auctex-devel@gnu.org
-;; Version: 4.31
-;; Package: reftex
 
 ;; This file is part of GNU Emacs.
 
@@ -27,21 +25,21 @@
 ;;; Code:
 
 (eval-when-compile (require 'cl))
-(provide 'reftex-auc)
-(require 'reftex)
-;;;
 
-(declare-function TeX-argument-insert "ext:tex" (name optional &optional prefix))
-(declare-function TeX-argument-prompt "ext:tex" (optional prompt default &optional complete))
-(declare-function multi-prompt "ext:multi-prompt" 
-		  (separator
-		   unique prompt table
-		   &optional mp-predicate require-match initial history))
-(declare-function LaTeX-add-index-entries "ext:tex" (&rest entries) t)
+(require 'reftex)
+
+(declare-function TeX-argument-prompt "ext:tex"
+		  (optional prompt default &optional complete))
+(declare-function TeX-argument-insert "ext:tex"
+		  (name optional &optional prefix))
 (declare-function LaTeX-add-labels "ext:tex" (&rest entries) t)
+(declare-function LaTeX-add-index-entries "ext:tex" (&rest entries) t)
 (declare-function LaTeX-bibitem-list "ext:tex" () t)
 (declare-function LaTeX-index-entry-list "ext:tex" () t)
 (declare-function LaTeX-label-list "ext:tex" () t)
+(declare-function multi-prompt "ext:multi-prompt"
+		  (separator unique prompt table &optional
+			     mp-predicate require-match initial history))
 
 (defun reftex-plug-flag (which)
   ;; Tell if a certain flag is set in reftex-plug-into-AUCTeX
@@ -76,14 +74,15 @@ What is being used depends upon `reftex-plug-into-AUCTeX'."
   (let (items)
     (cond
      ((and (not definition) (reftex-plug-flag 3))
-      (setq items (list (or (reftex-citation t) ""))))
+      (setq items (or (reftex-citation t) (list ""))))
      (t
       (setq prompt (concat (if optional "(Optional) " "")
 			   (if prompt prompt "Add key")
 			   " (default none): "))
       (setq items (multi-prompt "," t prompt (LaTeX-bibitem-list)))))
     (apply 'LaTeX-add-bibitems items)
-    (TeX-argument-insert (mapconcat 'identity items ",") optional)))
+    (TeX-argument-insert (mapconcat 'identity items reftex-cite-key-separator)
+			 optional)))
 
 
 (defun reftex-arg-index-tag (optional &optional prompt &rest args)
@@ -222,5 +221,7 @@ of ENTRY-LIST is a list of cons cells (\"MACRONAME\" . LEVEL).  See
 
 (defun reftex-notice-new-section ()
   (reftex-notice-new 1 'force))
+
+(provide 'reftex-auc)
 
 ;;; reftex-auc.el ends here

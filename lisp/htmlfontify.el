@@ -1052,8 +1052,6 @@ haven't encountered them yet.  Returns a `hfy-style-assoc'."
     (hfy-face-attr-for-class fn hfy-display-class))
    ((and (symbolp fn)
          (facep (symbol-value fn)))
-    ;; Obsolete faces like `font-lock-reference-face' are defined as
-    ;; aliases for another face.
     (hfy-face-attr-for-class (symbol-value fn) hfy-display-class))
    (t nil)))
 

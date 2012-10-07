@@ -18,8 +18,9 @@ You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <signal.h>
+#include <stdbool.h>
 
-extern void init_signals (void);
+extern void init_signals (bool);
 
 #ifdef HAVE_PTHREAD
 #include <pthread.h>
@@ -28,15 +29,29 @@ extern void init_signals (void);
 #define FORWARD_SIGNAL_TO_MAIN_THREAD
 #endif
 
+#if defined HAVE_TIMER_SETTIME && defined SIGEV_SIGNAL
+# define HAVE_ITIMERSPEC
+#endif
+
+#if (defined SIGPROF && !defined PROFILING \
+     && (defined HAVE_SETITIMER || defined HAVE_ITIMERSPEC))
+# define PROFILER_CPU_SUPPORT
+#endif
+
 extern sigset_t empty_mask;
 
 typedef void (*signal_handler_t) (int);
 
 extern void emacs_sigaction_init (struct sigaction *, signal_handler_t);
+char const *safe_strsignal (int) ATTRIBUTE_CONST;
 
 #if NSIG < NSIG_MINIMUM
 # undef NSIG
 # define NSIG NSIG_MINIMUM
+#endif
+
+#ifndef emacs_raise
+# define emacs_raise(sig) raise (sig)
 #endif
 
 /* On bsd, [man says] kill does not accept a negative number to kill a pgrp.
@@ -60,8 +75,7 @@ extern void emacs_sigaction_init (struct sigaction *, signal_handler_t);
 #endif /* ! defined (SIGCLD) */
 
 #ifndef HAVE_STRSIGNAL
-/* strsignal is in sysdep.c */
-char *strsignal (int);
+# define strsignal(sig) safe_strsignal (sig)
 #endif
 
-void handle_on_main_thread (int, signal_handler_t);
+void deliver_process_signal (int, signal_handler_t);

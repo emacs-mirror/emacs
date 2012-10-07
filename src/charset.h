@@ -538,7 +538,6 @@ extern int charset_unibyte;
 extern struct charset *char_charset (int, Lisp_Object, unsigned *);
 extern Lisp_Object charset_attributes (int);
 
-extern int maybe_unify_char (int, Lisp_Object);
 extern int decode_char (struct charset *, unsigned);
 extern unsigned encode_char (struct charset *, int);
 extern int string_xstring_p (Lisp_Object);

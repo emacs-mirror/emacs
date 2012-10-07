@@ -43,7 +43,10 @@
 If the value is nil and `inhibit-startup-screen' is nil, show the
 startup screen.  If the value is a string, visit the specified file
 or directory using `find-file'.  If t, open the `*scratch*'
-buffer."
+buffer.
+
+A string value also causes emacsclient to open the specified file
+or directory when no target file is specified."
   :type '(choice
 	  (const     :tag "Startup screen" nil)
 	  (directory :tag "Directory" :value "~/")
@@ -216,8 +219,8 @@ and VALUE is the value which is given to that frame parameter
     ("-fn" 1 x-handle-switch font)
     ("-font" 1 x-handle-switch font)
     ("-ib" 1 x-handle-numeric-switch internal-border-width)
-    ;;("-g" .               x-handle-geometry)
-    ;;("-geometry" .        x-handle-geometry)
+    ("-g" 1 x-handle-geometry)
+    ("-geometry" 1 x-handle-geometry)
     ("-fg" 1 x-handle-switch foreground-color)
     ("-foreground" 1 x-handle-switch foreground-color)
     ("-bg" 1 x-handle-switch background-color)

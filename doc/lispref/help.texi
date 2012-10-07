@@ -58,11 +58,17 @@ use @kbd{C-h f} (@code{describe-function}) or @kbd{C-h v}
 are many other conventions for documentation strings; see
 @ref{Documentation Tips}.
 
-  Documentation strings can contain several special substrings, which
-stand for key bindings to be looked up in the current keymaps when the
-documentation is displayed.  This allows documentation strings to refer
-to the keys for related commands and be accurate even when a user
-rearranges the key bindings.  (@xref{Keys in Documentation}.)
+  Documentation strings can contain several special text sequences,
+referring to key bindings which are looked up in the current keymaps
+when the user views the documentation.  This allows the help commands
+to display the correct keys even if a user rearranges the default key
+bindings.  @xref{Keys in Documentation}.
+
+  In the documentation string of an autoloaded command
+(@pxref{Autoload}), these special text sequences have an additional
+special effect: they cause @kbd{C-h f} (@code{describe-function}) on
+the command to trigger autoloading.  (This is needed for correctly
+setting up the hyperlinks in the @file{*Help*} buffer).
 
 @vindex emacs-lisp-docstring-fill-column
   Emacs Lisp mode fills documentation strings to the width

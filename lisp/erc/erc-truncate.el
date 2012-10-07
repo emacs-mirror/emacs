@@ -3,6 +3,7 @@
 ;; Copyright (C) 2003-2004, 2006-2012 Free Software Foundation, Inc.
 
 ;; Author: Andreas Fuchs <asf@void.at>
+;; Maintainer: FSF
 ;; Keywords: IRC, chat, client, Internet, logging
 
 ;; This file is part of GNU Emacs.

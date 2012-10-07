@@ -156,7 +156,7 @@ compile_pattern_1 (struct regexp_cache *cp, Lisp_Object pattern, Lisp_Object tra
   re_set_whitespace_regexp (NULL);
 
   re_set_syntax (old);
-  /* UNBLOCK_INPUT;  */
+  /* unblock_input ();  */
   if (val)
     xsignal1 (Qinvalid_regexp, build_string (val));
 
@@ -674,7 +674,7 @@ scan_buffer (register int target, ptrdiff_t start, ptrdiff_t end,
            obstacle --- the last character the dumb search loop should
            examine.  */
 	ptrdiff_t ceiling_byte = CHAR_TO_BYTE (end) - 1;
-	ptrdiff_t start_byte = CHAR_TO_BYTE (start);
+	ptrdiff_t start_byte;
 	ptrdiff_t tem;
 
         /* If we're looking for a newline, consult the newline cache
@@ -684,9 +684,11 @@ scan_buffer (register int target, ptrdiff_t start, ptrdiff_t end,
             ptrdiff_t next_change;
             immediate_quit = 0;
             while (region_cache_forward
-                   (current_buffer, newline_cache, start_byte, &next_change))
-              start_byte = next_change;
+                   (current_buffer, newline_cache, start, &next_change))
+              start = next_change;
             immediate_quit = allow_quit;
+
+	    start_byte = CHAR_TO_BYTE (start);
 
             /* START should never be after END.  */
             if (start_byte > ceiling_byte)
@@ -694,8 +696,10 @@ scan_buffer (register int target, ptrdiff_t start, ptrdiff_t end,
 
             /* Now the text after start is an unknown region, and
                next_change is the position of the next known region. */
-            ceiling_byte = min (next_change - 1, ceiling_byte);
+            ceiling_byte = min (CHAR_TO_BYTE (next_change) - 1, ceiling_byte);
           }
+	else
+	  start_byte = CHAR_TO_BYTE (start);
 
         /* The dumb loop can only scan text stored in contiguous
            bytes. BUFFER_CEILING_OF returns the last character
@@ -747,7 +751,7 @@ scan_buffer (register int target, ptrdiff_t start, ptrdiff_t end,
       {
         /* The last character to check before the next obstacle.  */
 	ptrdiff_t ceiling_byte = CHAR_TO_BYTE (end);
-	ptrdiff_t start_byte = CHAR_TO_BYTE (start);
+	ptrdiff_t start_byte;
 	ptrdiff_t tem;
 
         /* Consult the newline cache, if appropriate.  */
@@ -756,9 +760,11 @@ scan_buffer (register int target, ptrdiff_t start, ptrdiff_t end,
             ptrdiff_t next_change;
             immediate_quit = 0;
             while (region_cache_backward
-                   (current_buffer, newline_cache, start_byte, &next_change))
-              start_byte = next_change;
+                   (current_buffer, newline_cache, start, &next_change))
+              start = next_change;
             immediate_quit = allow_quit;
+
+	    start_byte = CHAR_TO_BYTE (start);
 
             /* Start should never be at or before end.  */
             if (start_byte <= ceiling_byte)
@@ -766,8 +772,10 @@ scan_buffer (register int target, ptrdiff_t start, ptrdiff_t end,
 
             /* Now the text before start is an unknown region, and
                next_change is the position of the next known region. */
-            ceiling_byte = max (next_change, ceiling_byte);
+            ceiling_byte = max (CHAR_TO_BYTE (next_change), ceiling_byte);
           }
+	else
+	  start_byte = CHAR_TO_BYTE (start);
 
         /* Stop scanning before the gap.  */
 	tem = BUFFER_FLOOR_OF (start_byte - 1);
@@ -2212,15 +2220,14 @@ DEFUN ("replace-match", Freplace_match, Sreplace_match, 1, 5, 0,
        doc: /* Replace text matched by last search with NEWTEXT.
 Leave point at the end of the replacement text.
 
-If second arg FIXEDCASE is non-nil, do not alter case of replacement text.
-Otherwise maybe capitalize the whole text, or maybe just word initials,
-based on the replaced text.
-If the replaced text has only capital letters
-and has at least one multiletter word, convert NEWTEXT to all caps.
-Otherwise if all words are capitalized in the replaced text,
-capitalize each word in NEWTEXT.
+If optional second arg FIXEDCASE is non-nil, do not alter the case of
+the replacement text.  Otherwise, maybe capitalize the whole text, or
+maybe just word initials, based on the replaced text.  If the replaced
+text has only capital letters and has at least one multiletter word,
+convert NEWTEXT to all caps.  Otherwise if all words are capitalized
+in the replaced text, capitalize each word in NEWTEXT.
 
-If third arg LITERAL is non-nil, insert NEWTEXT literally.
+If optional third arg LITERAL is non-nil, insert NEWTEXT literally.
 Otherwise treat `\\' as special:
   `\\&' in NEWTEXT means substitute original matched text.
   `\\N' means substitute what matched the Nth `\\(...\\)'.
@@ -2231,13 +2238,11 @@ Otherwise treat `\\' as special:
   Any other character following `\\' signals an error.
 Case conversion does not apply to these substitutions.
 
-FIXEDCASE and LITERAL are optional arguments.
-
-The optional fourth argument STRING can be a string to modify.
-This is meaningful when the previous match was done against STRING,
-using `string-match'.  When used this way, `replace-match'
-creates and returns a new string made by copying STRING and replacing
-the part of STRING that was matched.
+If optional fourth argument STRING is non-nil, it should be a string
+to act on; this should be the string on which the previous match was
+done via `string-match'.  In this case, `replace-match' creates and
+returns a new string, made by copying STRING and replacing the part of
+STRING that was matched (the original STRING itself is not altered).
 
 The optional fifth argument SUBEXP specifies a subexpression;
 it says to replace just that subexpression with NEWTEXT,

@@ -36,9 +36,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 PIMAGE_NT_HEADERS
 (__stdcall * pfnCheckSumMappedFile) (LPVOID BaseAddress,
-				     DWORD FileLength,
-				     LPDWORD HeaderSum,
-				     LPDWORD CheckSum);
+				     DWORD_PTR FileLength,
+				     PDWORD_PTR HeaderSum,
+				     PDWORD_PTR CheckSum);
 
 #undef min
 #undef max
@@ -196,7 +196,7 @@ find_section (const char *name, IMAGE_NT_HEADERS *nt_header)
 /* Return pointer to section header for section containing the given
    relative virtual address. */
 IMAGE_SECTION_HEADER *
-rva_to_section (DWORD rva, IMAGE_NT_HEADERS * nt_header)
+rva_to_section (DWORD_PTR rva, IMAGE_NT_HEADERS * nt_header)
 {
   PIMAGE_SECTION_HEADER section;
   int i;
@@ -211,7 +211,7 @@ rva_to_section (DWORD rva, IMAGE_NT_HEADERS * nt_header)
 	 some very old exes (eg. gzip dated Dec 1993).  Since
 	 w32_executable_type relies on this function to work reliably,
 	 we need to cope with this.  */
-      DWORD real_size = max (section->SizeOfRawData,
+      DWORD_PTR real_size = max (section->SizeOfRawData,
 			     section->Misc.VirtualSize);
       if (rva >= section->VirtualAddress
 	  && rva < section->VirtualAddress + real_size)
@@ -224,7 +224,7 @@ rva_to_section (DWORD rva, IMAGE_NT_HEADERS * nt_header)
 /* Return pointer to section header for section containing the given
    offset in its raw data area. */
 IMAGE_SECTION_HEADER *
-offset_to_section (DWORD offset, IMAGE_NT_HEADERS * nt_header)
+offset_to_section (DWORD_PTR offset, IMAGE_NT_HEADERS * nt_header)
 {
   PIMAGE_SECTION_HEADER section;
   int i;
@@ -244,8 +244,8 @@ offset_to_section (DWORD offset, IMAGE_NT_HEADERS * nt_header)
 /* Return offset to an object in dst, given offset in src.  We assume
    there is at least one section in both src and dst images, and that
    the some sections may have been added to dst (after sections in src).  */
-static DWORD
-relocate_offset (DWORD offset,
+static DWORD_PTR
+relocate_offset (DWORD_PTR offset,
 		 IMAGE_NT_HEADERS * src_nt_header,
 		 IMAGE_NT_HEADERS * dst_nt_header)
 {
@@ -279,28 +279,29 @@ relocate_offset (DWORD offset,
 }
 
 #define OFFSET_TO_RVA(offset, section) \
-	  (section->VirtualAddress + ((DWORD)(offset) - section->PointerToRawData))
+  ((section)->VirtualAddress + ((DWORD_PTR)(offset) - (section)->PointerToRawData))
 
 #define RVA_TO_OFFSET(rva, section) \
-	  (section->PointerToRawData + ((DWORD)(rva) - section->VirtualAddress))
+  ((section)->PointerToRawData + ((DWORD_PTR)(rva) - (section)->VirtualAddress))
 
 #define RVA_TO_SECTION_OFFSET(rva, section) \
-	  ((DWORD)(rva) - section->VirtualAddress)
+  ((DWORD_PTR)(rva) - (section)->VirtualAddress)
 
 #define RVA_TO_PTR(var,section,filedata) \
-	  ((void *)(RVA_TO_OFFSET(var,section) + (filedata)->file_base))
+  ((void *)((unsigned char *)(RVA_TO_OFFSET(var,section) + (filedata)->file_base)))
 
 /* Convert address in executing image to RVA.  */
-#define PTR_TO_RVA(ptr) ((DWORD)(ptr) - (DWORD) GetModuleHandle (NULL))
+#define PTR_TO_RVA(ptr) ((DWORD_PTR)(ptr) - (DWORD_PTR) GetModuleHandle (NULL))
 
 #define PTR_TO_OFFSET(ptr, pfile_data) \
           ((unsigned const char *)(ptr) - (pfile_data)->file_base)
 
 #define OFFSET_TO_PTR(offset, pfile_data) \
-          ((pfile_data)->file_base + (DWORD)(offset))
+          ((pfile_data)->file_base + (DWORD_PTR)(offset))
 
-#define ROUND_UP(p, align)   (((DWORD)(p) + (align)-1) & ~((align)-1))
-#define ROUND_DOWN(p, align) ((DWORD)(p) & ~((align)-1))
+#define ROUND_UP(p, align) \
+	  (((DWORD_PTR)(p) + (align)-1) & ~((DWORD_PTR)(align)-1))
+#define ROUND_DOWN(p, align) ((DWORD_PTR)(p) & ~((DWORD_PTR)(align)-1))
 
 
 /* The MSVC prep program generates a ._xe file from .exe, where relevant
@@ -353,9 +354,9 @@ copy_executable_and_move_sections (file_data *p_infile,
   PIMAGE_SECTION_HEADER reloc_section;
   PIMAGE_DATA_DIRECTORY import_dir;
   PIMAGE_DATA_DIRECTORY reloc_dir;
-  DWORD import_delta_rva;
-  DWORD reloc_delta_rva;
-  DWORD offset;
+  DWORD_PTR import_delta_rva;
+  DWORD_PTR reloc_delta_rva;
+  DWORD_PTR offset;
   int i;
 
 #define COPY_CHUNK(message, src, size)						\
@@ -388,7 +389,7 @@ copy_executable_and_move_sections (file_data *p_infile,
      Note that dst is updated implicitly by each COPY_CHUNK.  */
 
   dos_header = (PIMAGE_DOS_HEADER) p_infile->file_base;
-  nt_header = (PIMAGE_NT_HEADERS) (((unsigned long) dos_header) +
+  nt_header = (PIMAGE_NT_HEADERS) (((unsigned char *) dos_header) +
 				   dos_header->e_lfanew);
   section = IMAGE_FIRST_SECTION (nt_header);
 
@@ -406,10 +407,10 @@ copy_executable_and_move_sections (file_data *p_infile,
   dst = (unsigned char *) p_outfile->file_base;
 
   COPY_CHUNK ("Copying DOS header...", dos_header,
-	      (DWORD) nt_header - (DWORD) dos_header);
+	      (DWORD_PTR) nt_header - (DWORD_PTR) dos_header);
   dst_nt_header = (PIMAGE_NT_HEADERS) dst;
   COPY_CHUNK ("Copying NT header...", nt_header,
-	      (DWORD) section - (DWORD) nt_header);
+	      (DWORD_PTR) section - (DWORD_PTR) nt_header);
   dst_section = (PIMAGE_SECTION_HEADER) dst;
   COPY_CHUNK ("Copying section table...", section,
 	      nt_header->FileHeader.NumberOfSections * sizeof (*section));
@@ -537,7 +538,7 @@ copy_executable_and_move_sections (file_data *p_infile,
 #define ADJUST_IMPORT_RVA(var)			\
   do {						\
     if ((var) != 0)				\
-      *((DWORD *)&(var)) += import_delta_rva;	\
+      *((DWORD_PTR *)&(var)) += import_delta_rva;	\
   } while (0)
 
   dst_nt_header->OptionalHeader.SizeOfInitializedData = 0;
@@ -627,10 +628,10 @@ copy_executable_and_move_sections (file_data *p_infile,
 
   {
     IMAGE_BASE_RELOCATION *relocs, *block, *start_block, *end_block;
-    DWORD import_start = import_section->VirtualAddress + dst_nt_header->OptionalHeader.ImageBase;
-    DWORD import_end = import_start + import_section->Misc.VirtualSize;
-    DWORD len_import_relocs;
-    DWORD len_remaining_relocs;
+    DWORD_PTR import_start = import_section->VirtualAddress + dst_nt_header->OptionalHeader.ImageBase;
+    DWORD_PTR import_end = import_start + import_section->Misc.VirtualSize;
+    DWORD_PTR len_import_relocs;
+    DWORD_PTR len_remaining_relocs;
     int seen_high = 0;
     WORD * high_word;
     void * holder;
@@ -643,8 +644,8 @@ copy_executable_and_move_sections (file_data *p_infile,
        any; the profiler needs to be able to patch RVAs in the import
        section itself.  */
     for (block = relocs, start_block = 0;
-	 (DWORD) block - (DWORD) relocs < reloc_dir->Size;
-	 block = (void *)((DWORD) block + block->SizeOfBlock))
+	 (DWORD_PTR) block - (DWORD_PTR) relocs < reloc_dir->Size;
+	 block = (void *)((DWORD_PTR) block + block->SizeOfBlock))
       {
 	if (block->VirtualAddress >= import_section->VirtualAddress + import_section->Misc.VirtualSize)
 	  {
@@ -660,8 +661,8 @@ copy_executable_and_move_sections (file_data *p_infile,
       }
     if (start_block)
       {
-	len_import_relocs = (DWORD) end_block - (DWORD) start_block;
-	len_remaining_relocs = (DWORD) relocs + reloc_dir->Size - (DWORD) end_block;
+	len_import_relocs = (DWORD_PTR) end_block - (DWORD_PTR) start_block;
+	len_remaining_relocs = (DWORD_PTR) relocs + reloc_dir->Size - (DWORD_PTR) end_block;
 	holder = malloc (len_import_relocs);
 	if (holder == 0)
 	  abort ();
@@ -675,14 +676,14 @@ copy_executable_and_move_sections (file_data *p_infile,
        to the old import section location, and patching them to
        reference the new location.  */
     for (block = relocs;
-	 (DWORD) block - (DWORD) relocs < reloc_dir->Size;
-	 block = (void *)((DWORD) block + block->SizeOfBlock))
+	 (DWORD_PTR) block - (DWORD_PTR) relocs < reloc_dir->Size;
+	 block = (void *)((DWORD_PTR) block + block->SizeOfBlock))
       {
-	DWORD page_rva = block->VirtualAddress;
-	DWORD page_offset;
+	DWORD_PTR page_rva = block->VirtualAddress;
+	DWORD_PTR page_offset;
 	union {
 	  WORD word;
-	  DWORD dword;
+	  DWORD_PTR dword;
 	} * ploc;
 	WORD *fixup;
 
@@ -692,7 +693,7 @@ copy_executable_and_move_sections (file_data *p_infile,
 	  continue;
 
 	for (fixup = (WORD *) &block[1];
-	     (DWORD) fixup - (DWORD) block < block->SizeOfBlock;
+	     (DWORD_PTR) fixup - (DWORD_PTR) block < block->SizeOfBlock;
 	     fixup++)
 	  {
 	    page_offset = (*fixup) & 0xfff;
@@ -794,8 +795,8 @@ main (int argc, char **argv)
   /* Patch up header fields; profiler is picky about this. */
   {
     HANDLE hImagehelp = LoadLibrary ("imagehlp.dll");
-    DWORD  headersum;
-    DWORD  checksum;
+    DWORD_PTR  headersum;
+    DWORD_PTR  checksum;
 
     dos_header = (PIMAGE_DOS_HEADER) out_file.file_base;
     nt_header = (PIMAGE_NT_HEADERS) ((char *) dos_header + dos_header->e_lfanew);

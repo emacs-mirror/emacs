@@ -134,11 +134,13 @@ and `gnus-topic-alist'.  Also see `gnus-variable-list'."
 (defcustom gnus-sync-lesync-name (system-name)
   "The LeSync name for this machine."
   :group 'gnus-sync
+  :version "24.3"
   :type 'string)
 
-(defcustom  gnus-sync-lesync-install-topics 'ask
+(defcustom gnus-sync-lesync-install-topics 'ask
   "Should LeSync install the recorded topics?"
   :group 'gnus-sync
+  :version "24.3"
   :type '(choice (const :tag "Never Install" nil)
                  (const :tag "Always Install" t)
                  (const :tag "Ask Me Once" ask)))

@@ -132,7 +132,7 @@ Used in `smerge-diff-base-mine' and related functions."
   '((default
      :inherit smerge-refined-change)
     (((class color) (min-colors 88) (background light))
-     :background "#ffaaaa")
+     :background "#ffbbbb")
     (((class color) (min-colors 88) (background dark))
      :background "#aa2222")
     (t :inverse-video t))

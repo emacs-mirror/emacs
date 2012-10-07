@@ -74,6 +74,9 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
   :version "24.1"     ; no longer consult the obsolete vc-header-alist
   :group 'vc-sccs)
 
+;; This needs to be autoloaded because vc-sccs-registered uses it (via
+;; vc-default-registered), and vc-hooks needs to be able to check
+;; for a registered backend without loading every backend.
 ;;;###autoload
 (defcustom vc-sccs-master-templates
   (purecopy '("%sSCCS/s.%s" "%ss.%s" vc-sccs-search-project-dir))
@@ -106,11 +109,10 @@ For a description of possible values, see `vc-check-master-templates'."
 
 ;; The autoload cookie below places vc-sccs-registered directly into
 ;; loaddefs.el, so that vc-sccs.el does not need to be loaded for
-;; every file that is visited.  The definition is repeated below
-;; so that Help and etags can find it.
-
-;;;###autoload (defun vc-sccs-registered(f) (vc-default-registered 'SCCS f))
-(defun vc-sccs-registered (f) (vc-default-registered 'SCCS f))
+;; every file that is visited.
+;;;###autoload
+(progn
+(defun vc-sccs-registered (f) (vc-default-registered 'SCCS f)))
 
 (defun vc-sccs-state (file)
   "SCCS-specific function to compute the version control state."

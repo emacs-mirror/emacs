@@ -275,15 +275,13 @@ Prepend remote identification of `default-directory', if any."
 
 (defmacro eshell-for (for-var for-list &rest forms)
   "Iterate through a list."
+  (declare (obsolete dolist "24.1"))
   (declare (indent 2))
   `(let ((list-iter ,for-list))
      (while list-iter
        (let ((,for-var (car list-iter)))
 	 ,@forms)
        (setq list-iter (cdr list-iter)))))
-
-
-(make-obsolete 'eshell-for 'dolist "24.1")
 
 (defun eshell-flatten-list (args)
   "Flatten any lists within ARGS, so that there are no sublists."

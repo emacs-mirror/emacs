@@ -3,6 +3,7 @@
 ;; Copyright (C) 2008-2012 Free Software Foundation, Inc.
 
 ;; Author: Tom Tromey <tromey@redhat.com>
+;; Maintainer: FSF
 ;; Version: 0.1
 ;; Keywords: comm
 

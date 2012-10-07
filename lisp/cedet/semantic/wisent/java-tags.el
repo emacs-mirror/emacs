@@ -59,6 +59,7 @@ Parse the current context for `field_declaration' nonterminals to
 collect tags, such as local variables or prototypes.
 This function override `get-local-variables'."
   (let ((vars nil)
+	(ct (semantic-current-tag))
         ;; We want nothing to do with funny syntaxing while doing this.
         (semantic-unmatched-syntax-hook nil))
     (while (not (semantic-up-context (point) 'function))
@@ -71,7 +72,30 @@ This function override `get-local-variables'."
                        'field_declaration
                        0 t)
                       vars))))
+    ;; Add 'this' if in a fcn
+    (when (semantic-tag-of-class-p ct 'function)
+      ;; Append a new tag THIS into our space.
+      (setq vars (cons (semantic-tag-new-variable 
+			"this" (semantic-tag-name (semantic-current-tag-parent))
+			nil)
+		       vars)))
     vars))
+
+;;;
+;;; Analyzer and type cache support
+;;;
+(define-mode-local-override semantic-analyze-split-name java-mode (name)
+  "Split up tag names on colon . boundaries."
+  (let ((ans (split-string name "\\.")))
+    (if (= (length ans) 1)
+	name
+      (delete "" ans))))
+
+(define-mode-local-override semantic-analyze-unsplit-name java-mode (namelist)
+  "Assemble the list of names NAMELIST into a namespace name."
+  (mapconcat 'identity namelist "."))
+
+
 
 ;;;;
 ;;;; Semantic integration of the Java LALR parser
@@ -109,6 +133,10 @@ Use the alternate LALR(1) parser."
              (package  . "Package")))
    ;; navigation inside 'type children
    senator-step-at-tag-classes '(function variable)
+   ;; Remove 'recursive from the default semanticdb find throttle
+   ;; since java imports never recurse.
+   semanticdb-find-default-throttle
+   (remq 'recursive (default-value 'semanticdb-find-default-throttle))
    )
   ;; Setup javadoc stuff
   (semantic-java-doc-setup))

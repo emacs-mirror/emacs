@@ -9,7 +9,7 @@
 ;;               Andreas Fuchs (afs@void.at)
 ;;               Gergely Nagy (algernon@midgard.debian.net)
 ;;               David Edmondson (dme@dme.org)
-;; Maintainer: Michael Olson (mwolson@gnu.org)
+;; Maintainer: FSF
 ;; Keywords: IRC, chat, client, Internet
 ;; Version: 5.3
 
@@ -102,6 +102,7 @@
 
 (defgroup erc-lurker nil
   "Hide specified message types sent by lurkers"
+  :version "24.3"
   :group 'erc-ignore)
 
 (defgroup erc-query nil
@@ -139,8 +140,8 @@
   (message (concat "ERC: The function `defvaralias' is not bound.  See the "
 		   "NEWS file for variable name changes since ERC 5.0.4.")))
 
-(defalias 'erc-send-command 'erc-server-send)
-(erc-make-obsolete 'erc-send-command 'erc-server-send "ERC 5.1")
+(define-obsolete-function-alias 'erc-send-command
+  'erc-server-send "ERC 5.1")
 
 ;; tunable connection and authentication parameters
 

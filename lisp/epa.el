@@ -585,8 +585,8 @@ If SECRET is non-nil, list secret keys instead of public keys."
     (message "%s" info)))
 
 (defun epa-display-verify-result (verify-result)
+  (declare (obsolete epa-display-info "23.1"))
   (epa-display-info (epg-verify-result-to-string verify-result)))
-(make-obsolete 'epa-display-verify-result 'epa-display-info "23.1")
 
 (defun epa-passphrase-callback-function (context key-id handback)
   (if (eq key-id 'SYM)

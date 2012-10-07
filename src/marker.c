@@ -427,7 +427,7 @@ Returns nil if MARKER points nowhere.  */)
 
 /* Change M so it points to B at CHARPOS and BYTEPOS.  */
 
-static inline void
+static void
 attach_marker (struct Lisp_Marker *m, struct buffer *b,
 	       ptrdiff_t charpos, ptrdiff_t bytepos)
 {
@@ -454,7 +454,7 @@ attach_marker (struct Lisp_Marker *m, struct buffer *b,
    whether BUFFER is a buffer object and return buffer pointer
    corresponding to BUFFER if BUFFER is live, or NULL otherwise.  */
 
-static inline struct buffer *
+static struct buffer *
 live_buffer (Lisp_Object buffer)
 {
   struct buffer *b;
@@ -477,7 +477,7 @@ live_buffer (Lisp_Object buffer)
 /* Internal function to set MARKER in BUFFER at POSITION.  Non-zero
    RESTRICTED means limit the POSITION by the visible part of BUFFER.  */
 
-static inline Lisp_Object
+static Lisp_Object
 set_marker_internal (Lisp_Object marker, Lisp_Object position,
 		     Lisp_Object buffer, int restricted)
 {

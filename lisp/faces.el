@@ -1867,6 +1867,7 @@ Return nil if it has no specified face."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (declare-function x-parse-geometry "frame.c" (string))
+(defvar x-display-name)
 
 (defun x-handle-named-frame-geometry (parameters)
   "Add geometry parameters for a named frame to parameter list PARAMETERS.
@@ -2271,8 +2272,6 @@ terminal type to a different value."
   :version "21.1"
   :group 'mode-line-faces
   :group 'basic-faces)
-;; No need to define aliases of this form for new faces.
-(define-obsolete-face-alias 'modeline 'mode-line "21.1")
 
 (defface mode-line-inactive
   '((default

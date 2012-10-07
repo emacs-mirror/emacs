@@ -601,13 +601,13 @@ x_free_dpy_colors (Display *dpy, Screen *screen, Colormap cmap,
 /* Create and return a GC for use on frame F.  GC values and mask
    are given by XGCV and MASK.  */
 
-static inline GC
+static GC
 x_create_gc (struct frame *f, long unsigned int mask, XGCValues *xgcv)
 {
   GC gc;
-  BLOCK_INPUT;
+  block_input ();
   gc = XCreateGC (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), mask, xgcv);
-  UNBLOCK_INPUT;
+  unblock_input ();
   IF_DEBUG (++ngcs);
   return gc;
 }
@@ -615,10 +615,10 @@ x_create_gc (struct frame *f, long unsigned int mask, XGCValues *xgcv)
 
 /* Free GC which was used on frame F.  */
 
-static inline void
+static void
 x_free_gc (struct frame *f, GC gc)
 {
-  eassert (interrupt_input_blocked);
+  eassert (input_blocked_p ());
   IF_DEBUG (eassert (--ngcs >= 0));
   XFreeGC (FRAME_X_DISPLAY (f), gc);
 }
@@ -628,13 +628,13 @@ x_free_gc (struct frame *f, GC gc)
 #ifdef HAVE_NTGUI
 /* W32 emulation of GCs */
 
-static inline GC
+static GC
 x_create_gc (struct frame *f, unsigned long mask, XGCValues *xgcv)
 {
   GC gc;
-  BLOCK_INPUT;
+  block_input ();
   gc = XCreateGC (NULL, FRAME_W32_WINDOW (f), mask, xgcv);
-  UNBLOCK_INPUT;
+  unblock_input ();
   IF_DEBUG (++ngcs);
   return gc;
 }
@@ -642,7 +642,7 @@ x_create_gc (struct frame *f, unsigned long mask, XGCValues *xgcv)
 
 /* Free GC which was used on frame F.  */
 
-static inline void
+static void
 x_free_gc (struct frame *f, GC gc)
 {
   IF_DEBUG (eassert (--ngcs >= 0));
@@ -654,7 +654,7 @@ x_free_gc (struct frame *f, GC gc)
 #ifdef HAVE_NS
 /* NS emulation of GCs */
 
-static inline GC
+static GC
 x_create_gc (struct frame *f,
 	     unsigned long mask,
 	     XGCValues *xgcv)
@@ -664,7 +664,7 @@ x_create_gc (struct frame *f,
   return gc;
 }
 
-static inline void
+static void
 x_free_gc (struct frame *f, GC gc)
 {
   xfree (gc);
@@ -677,7 +677,7 @@ x_free_gc (struct frame *f, GC gc)
    CHECK_LIVE_FRAME.  This is here because it's a frequent pattern in
    Lisp function definitions.  */
 
-static inline struct frame *
+static struct frame *
 frame_or_selected_frame (Lisp_Object frame, int nparam)
 {
   if (NILP (frame))
@@ -907,7 +907,7 @@ load_pixmap (FRAME_PTR f, Lisp_Object name, unsigned int *w_ptr,
 
   CHECK_TYPE (!NILP (Fbitmap_spec_p (name)), Qbitmap_spec_p, name);
 
-  BLOCK_INPUT;
+  block_input ();
   if (CONSP (name))
     {
       /* Decode a bitmap spec into a bitmap.  */
@@ -927,7 +927,7 @@ load_pixmap (FRAME_PTR f, Lisp_Object name, unsigned int *w_ptr,
       /* It must be a string -- a file name.  */
       bitmap_id = x_create_bitmap_from_file (f, name);
     }
-  UNBLOCK_INPUT;
+  unblock_input ();
 
   if (bitmap_id < 0)
     {
@@ -991,7 +991,7 @@ parse_rgb_list (Lisp_Object rgb_list, XColor *color)
    non-zero, then the `standard' definition of the same color is
    returned in it.  */
 
-static int
+static bool
 tty_lookup_color (struct frame *f, Lisp_Object color, XColor *tty_color,
 		  XColor *std_color)
 {
@@ -1052,11 +1052,11 @@ tty_lookup_color (struct frame *f, Lisp_Object color, XColor *tty_color,
 
 /* A version of defined_color for non-X frames.  */
 
-static int
+static bool
 tty_defined_color (struct frame *f, const char *color_name,
-		   XColor *color_def, int alloc)
+		   XColor *color_def, bool alloc)
 {
-  int status = 1;
+  bool status = 1;
 
   /* Defaults.  */
   color_def->pixel = FACE_TTY_DEFAULT_COLOR;
@@ -1084,13 +1084,13 @@ tty_defined_color (struct frame *f, const char *color_name,
 
 /* Decide if color named COLOR_NAME is valid for the display
    associated with the frame F; if so, return the rgb values in
-   COLOR_DEF.  If ALLOC is nonzero, allocate a new colormap cell.
+   COLOR_DEF.  If ALLOC, allocate a new colormap cell.
 
    This does the right thing for any type of frame.  */
 
-static int
+static bool
 defined_color (struct frame *f, const char *color_name, XColor *color_def,
-	       int alloc)
+	       bool alloc)
 {
   if (!FRAME_WINDOW_P (f))
     return tty_defined_color (f, color_name, color_def, alloc);
@@ -1364,9 +1364,9 @@ unload_color (struct frame *f, long unsigned int pixel)
 #ifdef HAVE_X_WINDOWS
   if (pixel != -1)
     {
-      BLOCK_INPUT;
+      block_input ();
       x_free_colors (f, &pixel, 1);
-      UNBLOCK_INPUT;
+      unblock_input ();
     }
 #endif
 }
@@ -1382,7 +1382,7 @@ free_face_colors (struct frame *f, struct face *face)
   if (face->colors_copied_bitwise_p)
     return;
 
-  BLOCK_INPUT;
+  block_input ();
 
   if (!face->foreground_defaulted_p)
     {
@@ -1424,7 +1424,7 @@ free_face_colors (struct frame *f, struct face *face)
       IF_DEBUG (--ncolors_allocated);
     }
 
-  UNBLOCK_INPUT;
+  unblock_input ();
 #endif /* HAVE_X_WINDOWS */
 }
 
@@ -1920,7 +1920,7 @@ struct named_merge_point
    FACE_NAME and NAMED_MERGE_POINT_KIND, as the head of the linked list
    pointed to by NAMED_MERGE_POINTS, and return 1.  */
 
-static inline int
+static int
 push_named_merge_point (struct named_merge_point *new_named_merge_point,
 			Lisp_Object face_name,
 			enum named_merge_point_kind named_merge_point_kind,
@@ -2004,7 +2004,7 @@ resolve_face_name (Lisp_Object face_name, int signal_p)
    face text properties; Ediff uses that).  If SIGNAL_P is non-zero,
    signal an error if FACE_NAME is not a valid face name.  If SIGNAL_P
    is zero, value is nil if FACE_NAME is not a valid face name.  */
-static inline Lisp_Object
+static Lisp_Object
 lface_from_face_name_no_resolve (struct frame *f, Lisp_Object face_name,
 				 int signal_p)
 {
@@ -2033,7 +2033,7 @@ lface_from_face_name_no_resolve (struct frame *f, Lisp_Object face_name,
    non-zero, signal an error if FACE_NAME is not a valid face name.
    If SIGNAL_P is zero, value is nil if FACE_NAME is not a valid face
    name.  */
-static inline Lisp_Object
+static Lisp_Object
 lface_from_face_name (struct frame *f, Lisp_Object face_name, int signal_p)
 {
   face_name = resolve_face_name (face_name, signal_p);
@@ -2047,7 +2047,7 @@ lface_from_face_name (struct frame *f, Lisp_Object face_name, int signal_p)
    is non-zero, signal an error if FACE_NAME does not name a face.
    Otherwise, value is zero if FACE_NAME is not a face.  */
 
-static inline int
+static int
 get_lface_attributes_no_remap (struct frame *f, Lisp_Object face_name,
 			       Lisp_Object *attrs, int signal_p)
 {
@@ -2069,7 +2069,7 @@ get_lface_attributes_no_remap (struct frame *f, Lisp_Object face_name,
    non-zero, signal an error if FACE_NAME does not name a face.
    Otherwise, value is zero if FACE_NAME is not a face.  */
 
-static inline int
+static int
 get_lface_attributes (struct frame *f, Lisp_Object face_name,
 		      Lisp_Object *attrs, int signal_p,
 		      struct named_merge_point *named_merge_points)
@@ -2234,7 +2234,7 @@ merge_face_heights (Lisp_Object from, Lisp_Object to, Lisp_Object invalid)
    loops in face inheritance/remapping; it should be 0 when called from
    other places.  */
 
-static inline void
+static void
 merge_face_vectors (struct frame *f, Lisp_Object *from, Lisp_Object *to,
 		    struct named_merge_point *named_merge_points)
 {
@@ -3438,10 +3438,10 @@ DEFUN ("internal-face-x-get-resource", Finternal_face_x_get_resource,
   CHECK_STRING (resource);
   CHECK_STRING (class);
   CHECK_LIVE_FRAME (frame);
-  BLOCK_INPUT;
+  block_input ();
   value = display_x_get_resource (FRAME_X_DISPLAY_INFO (XFRAME (frame)),
 				  resource, class, Qnil, Qnil);
-  UNBLOCK_INPUT;
+  unblock_input ();
   return value;
 }
 
@@ -3906,7 +3906,7 @@ return the font name used for CHARACTER.  */)
    all attributes are `equal'.  Tries to be fast because this function
    is called quite often.  */
 
-static inline int
+static int
 face_attr_equal_p (Lisp_Object v1, Lisp_Object v2)
 {
   /* Type can differ, e.g. when one attribute is unspecified, i.e. nil,
@@ -3939,7 +3939,7 @@ face_attr_equal_p (Lisp_Object v1, Lisp_Object v2)
    all attributes are `equal'.  Tries to be fast because this function
    is called quite often.  */
 
-static inline int
+static int
 lface_equal_p (Lisp_Object *v1, Lisp_Object *v2)
 {
   int i, equal_p = 1;
@@ -4024,7 +4024,7 @@ For internal use only.  */)
 /* Return a hash code for Lisp string STRING with case ignored.  Used
    below in computing a hash value for a Lisp face.  */
 
-static inline unsigned
+static unsigned
 hash_string_case_insensitive (Lisp_Object string)
 {
   const unsigned char *s;
@@ -4038,7 +4038,7 @@ hash_string_case_insensitive (Lisp_Object string)
 
 /* Return a hash code for face attribute vector V.  */
 
-static inline unsigned
+static unsigned
 lface_hash (Lisp_Object *v)
 {
   return (hash_string_case_insensitive (v[LFACE_FAMILY_INDEX])
@@ -4057,7 +4057,7 @@ lface_hash (Lisp_Object *v)
    family, point size, weight, width, slant, and font.  Both
    LFACE1 and LFACE2 must be fully-specified.  */
 
-static inline int
+static int
 lface_same_font_attributes_p (Lisp_Object *lface1, Lisp_Object *lface2)
 {
   eassert (lface_fully_specified_p (lface1)
@@ -4114,12 +4114,12 @@ free_realized_face (struct frame *f, struct face *face)
 	    free_face_fontset (f, face);
 	  if (face->gc)
 	    {
-	      BLOCK_INPUT;
+	      block_input ();
 	      if (face->font)
 		font_done_for_face (f, face);
 	      x_free_gc (f, face->gc);
 	      face->gc = 0;
-	      UNBLOCK_INPUT;
+	      unblock_input ();
 	    }
 
 	  free_face_colors (f, face);
@@ -4153,7 +4153,7 @@ prepare_face_for_display (struct frame *f, struct face *face)
       xgcv.graphics_exposures = False;
 #endif
 
-      BLOCK_INPUT;
+      block_input ();
 #ifdef HAVE_X_WINDOWS
       if (face->stipple)
 	{
@@ -4165,7 +4165,7 @@ prepare_face_for_display (struct frame *f, struct face *face)
       face->gc = x_create_gc (f, mask, &xgcv);
       if (face->font)
 	font_prepare_for_face (f, face);
-      UNBLOCK_INPUT;
+      unblock_input ();
     }
 #endif /* HAVE_WINDOW_SYSTEM */
 }
@@ -4263,12 +4263,12 @@ clear_face_gcs (struct face_cache *c)
 	  struct face *face = c->faces_by_id[i];
 	  if (face && face->gc)
 	    {
-	      BLOCK_INPUT;
+	      block_input ();
 	      if (face->font)
 		font_done_for_face (c->f, face);
 	      x_free_gc (c->f, face->gc);
 	      face->gc = 0;
-	      UNBLOCK_INPUT;
+	      unblock_input ();
 	    }
 	}
 #endif /* HAVE_WINDOW_SYSTEM */
@@ -4292,7 +4292,7 @@ free_realized_faces (struct face_cache *c)
       /* We must block input here because we can't process X events
 	 safely while only some faces are freed, or when the frame's
 	 current matrix still references freed faces.  */
-      BLOCK_INPUT;
+      block_input ();
 
       for (i = 0; i < c->used; ++i)
 	{
@@ -4314,7 +4314,7 @@ free_realized_faces (struct face_cache *c)
 	  ++windows_or_buffers_changed;
 	}
 
-      UNBLOCK_INPUT;
+      unblock_input ();
     }
 }
 
@@ -4453,7 +4453,7 @@ uncache_face (struct face_cache *c, struct face *face)
    Value is the ID of the face found.  If no suitable face is found,
    realize a new one.  */
 
-static inline int
+static int
 lookup_face (struct frame *f, Lisp_Object *attr)
 {
   struct face_cache *cache = FRAME_FACE_CACHE (f);
@@ -5275,7 +5275,7 @@ realize_basic_faces (struct frame *f)
 
   /* Block input here so that we won't be surprised by an X expose
      event, for instance, without having the faces set up.  */
-  BLOCK_INPUT;
+  block_input ();
   specbind (Qscalable_fonts_allowed, Qt);
 
   if (realize_default_face (f))
@@ -5306,7 +5306,7 @@ realize_basic_faces (struct frame *f)
     }
 
   unbind_to (count, Qnil);
-  UNBLOCK_INPUT;
+  unblock_input ();
   return success_p;
 }
 
@@ -6352,7 +6352,7 @@ where R,G,B are numbers between 0 and 255 and name is an arbitrary string.  */)
       int red, green, blue;
       int num;
 
-      BLOCK_INPUT;
+      block_input ();
 
       while (fgets (buf, sizeof (buf), fp) != NULL) {
 	if (sscanf (buf, "%u %u %u %n", &red, &green, &blue, &num) == 3)
@@ -6372,7 +6372,7 @@ where R,G,B are numbers between 0 and 255 and name is an arbitrary string.  */)
       }
       fclose (fp);
 
-      UNBLOCK_INPUT;
+      unblock_input ();
     }
 
   return cmap;

@@ -765,14 +765,13 @@ Run the Viper tutorial? "))
 		       (funcall 'viper-tutorial 0))
 	      (message "Tutorial aborted by user"))
 	  (message prompt1)))
-    (let* ((lang (if arg
-                     (let ((minibuffer-setup-hook minibuffer-setup-hook))
-                       (add-hook 'minibuffer-setup-hook
-                                 'minibuffer-completion-help)
-                       (read-language-name 'tutorial "Language: " "English"))
-                   (if (get-language-info current-language-environment 'tutorial)
-                       current-language-environment
-                     "English")))
+    (let* ((lang (cond
+                  (arg
+                   (minibuffer-with-setup-hook #'minibuffer-completion-help
+                     (read-language-name 'tutorial "Language: " "English")))
+                  ((get-language-info current-language-environment 'tutorial)
+                   current-language-environment)
+                  (t "English")))
            (filename (get-language-info lang 'tutorial))
            (tut-buf-name filename)
            (old-tut-buf (get-buffer tut-buf-name))

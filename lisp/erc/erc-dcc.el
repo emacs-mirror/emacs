@@ -6,7 +6,7 @@
 ;; Author: Ben A. Mesander <ben@gnu.ai.mit.edu>
 ;;         Noah Friedman <friedman@prep.ai.mit.edu>
 ;;         Per Persson <pp@sno.pp.se>
-;; Maintainer: mlang@delysid.org
+;; Maintainer: FSF
 ;; Keywords: comm, processes
 ;; Created: 1994-01-23
 

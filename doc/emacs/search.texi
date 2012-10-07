@@ -17,7 +17,6 @@ thing, but search for patterns instead of fixed strings.
 (@pxref{Operating on Files}), or ask the @code{grep} program to do it
 (@pxref{Grep Searching}).
 
-
 @menu
 * Incremental Search::        Search happens as you type the string.
 * Nonincremental Search::     Specify entire string and then search.
@@ -217,6 +216,24 @@ search.
 
   Some of the characters you type during incremental search have
 special effects.
+
+@cindex lax space matching
+@kindex M-s SPC @r{(Incremental search)}
+@kindex SPC @r{(Incremental search)}
+@findex isearch-toggle-lax-whitespace
+@vindex search-whitespace-regexp
+  By default, incremental search performs @dfn{lax space matching}:
+each space, or sequence of spaces, matches any sequence of one or more
+spaces in the text.  Hence, @samp{foo bar} matches @samp{foo bar},
+@samp{foo  bar}, @samp{foo   bar}, and so on (but not @samp{foobar}).
+More precisely, Emacs matches each sequence of space characters in the
+search string to a regular expression specified by the variable
+@code{search-whitespace-regexp}.  For example, set it to
+@samp{"[[:space:]\n]+"} to make spaces match sequences of newlines as
+well as spaces.  To toggle lax space matching, type @kbd{M-s SPC}
+(@code{isearch-toggle-lax-whitespace}).  To disable this feature
+entirely, change @code{search-whitespace-regexp} to @code{nil}; then
+each space in the search string matches exactly one space
 
   If the search string you entered contains only lower-case letters,
 the search is case-insensitive; as long as an upper-case letter exists
@@ -492,12 +509,12 @@ Incremental regexp and non-regexp searches have independent defaults.
 They also have separate search rings, which you can access with
 @kbd{M-p} and @kbd{M-n}.
 
-@vindex search-whitespace-regexp
-  If you type @key{SPC} in incremental regexp search, it matches any
-sequence of whitespace characters, including newlines.  If you want to
-match just a space, type @kbd{C-q @key{SPC}}.  You can control what a
-bare space matches by setting the variable
-@code{search-whitespace-regexp} to the desired regexp.
+  Just as in ordinary incremental search, any @key{SPC} typed in
+incremental regexp search matches any sequence of one or more
+whitespace characters.  The variable @code{search-whitespace-regexp}
+specifies the regexp for the lax space matching, and @kbd{M-s SPC}
+(@code{isearch-toggle-lax-whitespace}) toggles the feature.
+@xref{Special Isearch}.
 
   In some cases, adding characters to the regexp in an incremental
 regexp search can make the cursor move back and start again.  For
@@ -973,6 +990,13 @@ instead (@pxref{Mark}).  The basic replace commands replace one
 @dfn{search string} (or regexp) with one @dfn{replacement string}.  It
 is possible to perform several replacements in parallel, using the
 command @code{expand-region-abbrevs} (@pxref{Expanding Abbrevs}).
+
+@vindex replace-lax-whitespace
+  Unlike incremental search, the replacement commands do not use lax
+space matching (@pxref{Special Isearch}) by default.  To enable lax
+space matching for replacement, change the variable
+@code{replace-lax-whitespace} to @code{t}.  (This only affects how
+Emacs finds the text to replace, not the replacement text.)
 
 @menu
 * Unconditional Replace::   Replacing all matches for a string.

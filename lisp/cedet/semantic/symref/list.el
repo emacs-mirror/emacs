@@ -120,6 +120,7 @@ Display the references in`semantic-symref-results-mode'."
 
 (defvar semantic-symref-results-mode-map
   (let ((km (make-sparse-keymap)))
+    (suppress-keymap km)
     (define-key km "\C-i" 'forward-button)
     (define-key km "\M-C-i" 'backward-button)
     (define-key km " " 'push-button)

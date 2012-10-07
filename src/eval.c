@@ -31,17 +31,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "xterm.h"
 #endif
 
-struct backtrace
-{
-  struct backtrace *next;
-  Lisp_Object *function;
-  Lisp_Object *args;	/* Points to vector of args.  */
-  ptrdiff_t nargs;	/* Length of vector.  */
-  /* Nonzero means call value of debugger when done with this operation.  */
-  unsigned int debug_on_exit : 1;
-};
-
-static struct backtrace *backtrace_list;
+struct backtrace *backtrace_list;
 
 #if !BYTE_MARK_STACK
 static
@@ -129,13 +119,13 @@ static Lisp_Object apply_lambda (Lisp_Object fun, Lisp_Object args);
 
 /* Functions to set Lisp_Object slots of struct specbinding.  */
 
-static inline void
+static void
 set_specpdl_symbol (Lisp_Object symbol)
 {
   specpdl_ptr->symbol = symbol;
 }
 
-static inline void
+static void
 set_specpdl_old_value (Lisp_Object oldval)
 {
   specpdl_ptr->old_value = oldval;
@@ -562,7 +552,7 @@ interactive_p (void)
 
   /* If this isn't a byte-compiled function, there may be a frame at
      the top for Finteractive_p.  If so, skip it.  */
-  fun = Findirect_function (*btp->function, Qnil);
+  fun = Findirect_function (btp->function, Qnil);
   if (SUBRP (fun) && (XSUBR (fun) == &Sinteractive_p
 		      || XSUBR (fun) == &Scalled_interactively_p))
     btp = btp->next;
@@ -575,7 +565,7 @@ interactive_p (void)
      If this isn't a byte-compiled function, then we may now be
      looking at several frames for special forms.  Skip past them.  */
   while (btp
-	 && (EQ (*btp->function, Qbytecode)
+	 && (EQ (btp->function, Qbytecode)
 	     || btp->nargs == UNEVALLED))
     btp = btp->next;
 
@@ -583,13 +573,13 @@ interactive_p (void)
      a special form, ignoring frames for Finteractive_p and/or
      Fbytecode at the top.  If this frame is for a built-in function
      (such as load or eval-region) return false.  */
-  fun = Findirect_function (*btp->function, Qnil);
+  fun = Findirect_function (btp->function, Qnil);
   if (SUBRP (fun))
     return 0;
 
   /* `btp' points to the frame of a Lisp function that called interactive-p.
      Return t if that function was called interactively.  */
-  if (btp && btp->next && EQ (*btp->next->function, Qcall_interactively))
+  if (btp && btp->next && EQ (btp->next->function, Qcall_interactively))
     return 1;
   return 0;
 }
@@ -1076,7 +1066,7 @@ internal_catch (Lisp_Object tag, Lisp_Object (*func) (Lisp_Object), Lisp_Object 
 /* Unwind the specbind, catch, and handler stacks back to CATCH, and
    jump to that CATCH, returning VALUE as the value of that catch.
 
-   This is the guts Fthrow and Fsignal; they differ only in the way
+   This is the guts of Fthrow and Fsignal; they differ only in the way
    they choose the catch tag to throw to.  A catch tag for a
    condition-case form has a TAG of Qnil.
 
@@ -1085,7 +1075,7 @@ internal_catch (Lisp_Object tag, Lisp_Object (*func) (Lisp_Object), Lisp_Object 
    the handler stack as we go, so that the proper handlers are in
    effect for each unwind-protect clause we run.  At the end, restore
    some static info saved in CATCH, and longjmp to the location
-   specified in the
+   specified there.
 
    This is used for correct unwinding in Fthrow and Fsignal.  */
 
@@ -1099,7 +1089,7 @@ unwind_to_catch (struct catchtag *catch, Lisp_Object value)
 
   /* Restore certain special C variables.  */
   set_poll_suppress_count (catch->poll_suppress_count);
-  UNBLOCK_INPUT_TO (catch->interrupt_input_blocked);
+  unblock_input_to (catch->interrupt_input_blocked);
   immediate_quit = 0;
 
   do
@@ -1113,16 +1103,6 @@ unwind_to_catch (struct catchtag *catch, Lisp_Object value)
       catchlist = catchlist->next;
     }
   while (! last_time);
-
-#if HAVE_X_WINDOWS
-  /* If x_catch_errors was done, turn it off now.
-     (First we give unbind_to a chance to do that.)  */
-#if 0 /* This would disable x_catch_errors after x_connection_closed.
-	 The catch must remain in effect during that delicate
-	 state. --lorentey  */
-  x_fully_uncatch_errors ();
-#endif
-#endif
 
   byte_stack_list = catch->byte_stack;
   gcprolist = catch->gcpro;
@@ -1516,10 +1496,10 @@ See also the function `condition-case'.  */)
   if (backtrace_list && !NILP (error_symbol))
     {
       bp = backtrace_list->next;
-      if (bp && bp->function && EQ (*bp->function, Qerror))
+      if (bp && EQ (bp->function, Qerror))
 	bp = bp->next;
-      if (bp && bp->function)
-	Vsignaling_function = *bp->function;
+      if (bp)
+	Vsignaling_function = bp->function;
     }
 
   for (h = handlerlist; h; h = h->next)
@@ -1530,7 +1510,7 @@ See also the function `condition-case'.  */)
     }
 
   if (/* Don't run the debugger for a memory-full error.
-	 (There is no room in memory to do that!) */
+	 (There is no room in memory to do that!)  */
       !NILP (error_symbol)
       && (!NILP (Vdebug_on_signal)
 	  /* If no handler is present now, try to run the debugger.  */
@@ -1713,7 +1693,7 @@ maybe_call_debugger (Lisp_Object conditions, Lisp_Object sig, Lisp_Object data)
   if (
       /* Don't try to run the debugger with interrupts blocked.
 	 The editing loop would return anyway.  */
-      ! INPUT_BLOCKED_P
+      ! input_blocked_p ()
       && NILP (Vinhibit_debugger)
       /* Does user want to enter debugger for this kind of error?  */
       && (EQ (sig, Qquit)
@@ -2065,11 +2045,11 @@ eval_sub (Lisp_Object form)
   original_args = XCDR (form);
 
   backtrace.next = backtrace_list;
-  backtrace_list = &backtrace;
-  backtrace.function = &original_fun; /* This also protects them from gc.  */
+  backtrace.function = original_fun; /* This also protects them from gc.  */
   backtrace.args = &original_args;
   backtrace.nargs = UNEVALLED;
   backtrace.debug_on_exit = 0;
+  backtrace_list = &backtrace;
 
   if (debug_on_next_call)
     do_debug_on_call (Qt);
@@ -2371,14 +2351,10 @@ usage: (run-hooks &rest HOOKS)  */)
 DEFUN ("run-hook-with-args", Frun_hook_with_args,
        Srun_hook_with_args, 1, MANY, 0,
        doc: /* Run HOOK with the specified arguments ARGS.
-HOOK should be a symbol, a hook variable.  If HOOK has a non-nil
-value, that value may be a function or a list of functions to be
-called to run the hook.  If the value is a function, it is called with
-the given arguments and its return value is returned.  If it is a list
-of functions, those functions are called, in order,
-with the given arguments ARGS.
-It is best not to depend on the value returned by `run-hook-with-args',
-as that may change.
+HOOK should be a symbol, a hook variable.  The value of HOOK
+may be nil, a function, or a list of functions.  Call each
+function in order with arguments ARGS.  The final return value
+is unspecified.
 
 Do not use `make-local-variable' to make a hook variable buffer-local.
 Instead, use `add-hook' and specify t for the LOCAL argument.
@@ -2388,17 +2364,18 @@ usage: (run-hook-with-args HOOK &rest ARGS)  */)
   return run_hook_with_args (nargs, args, funcall_nil);
 }
 
+/* NB this one still documents a specific non-nil return value.
+   (As did run-hook-with-args and run-hook-with-args-until-failure
+   until they were changed in 24.1.)  */
 DEFUN ("run-hook-with-args-until-success", Frun_hook_with_args_until_success,
        Srun_hook_with_args_until_success, 1, MANY, 0,
        doc: /* Run HOOK with the specified arguments ARGS.
-HOOK should be a symbol, a hook variable.  If HOOK has a non-nil
-value, that value may be a function or a list of functions to be
-called to run the hook.  If the value is a function, it is called with
-the given arguments and its return value is returned.
-If it is a list of functions, those functions are called, in order,
-with the given arguments ARGS, until one of them
-returns a non-nil value.  Then we return that value.
-However, if they all return nil, we return nil.
+HOOK should be a symbol, a hook variable.  The value of HOOK
+may be nil, a function, or a list of functions.  Call each
+function in order with arguments ARGS, stopping at the first
+one that returns non-nil, and return that value.  Otherwise (if
+all functions return nil, or if there are no functions to call),
+return nil.
 
 Do not use `make-local-variable' to make a hook variable buffer-local.
 Instead, use `add-hook' and specify t for the LOCAL argument.
@@ -2417,13 +2394,12 @@ funcall_not (ptrdiff_t nargs, Lisp_Object *args)
 DEFUN ("run-hook-with-args-until-failure", Frun_hook_with_args_until_failure,
        Srun_hook_with_args_until_failure, 1, MANY, 0,
        doc: /* Run HOOK with the specified arguments ARGS.
-HOOK should be a symbol, a hook variable.  If HOOK has a non-nil
-value, that value may be a function or a list of functions to be
-called to run the hook.  If the value is a function, it is called with
-the given arguments and its return value is returned.
-If it is a list of functions, those functions are called, in order,
-with the given arguments ARGS, until one of them returns nil.
-Then we return nil.  However, if they all return non-nil, we return non-nil.
+HOOK should be a symbol, a hook variable.  The value of HOOK
+may be nil, a function, or a list of functions.  Call each
+function in order with arguments ARGS, stopping at the first
+one that returns nil, and return nil.  Otherwise (if all functions
+return non-nil, or if there are no functions to call), return non-nil
+\(do not rely on the precise return value in this case).
 
 Do not use `make-local-variable' to make a hook variable buffer-local.
 Instead, use `add-hook' and specify t for the LOCAL argument.
@@ -2737,11 +2713,11 @@ usage: (funcall FUNCTION &rest ARGUMENTS)  */)
     }
 
   backtrace.next = backtrace_list;
-  backtrace_list = &backtrace;
-  backtrace.function = &args[0];
+  backtrace.function = args[0];
   backtrace.args = &args[1];	/* This also GCPROs them.  */
   backtrace.nargs = nargs - 1;
   backtrace.debug_on_exit = 0;
+  backtrace_list = &backtrace;
 
   /* Call GC after setting up the backtrace, so the latter GCPROs the args.  */
   maybe_gc ();
@@ -3313,12 +3289,12 @@ Output stream used is value of `standard-output'.  */)
       write_string (backlist->debug_on_exit ? "* " : "  ", 2);
       if (backlist->nargs == UNEVALLED)
 	{
-	  Fprin1 (Fcons (*backlist->function, *backlist->args), Qnil);
+	  Fprin1 (Fcons (backlist->function, *backlist->args), Qnil);
 	  write_string ("\n", -1);
 	}
       else
 	{
-	  tem = *backlist->function;
+	  tem = backlist->function;
 	  Fprin1 (tem, Qnil);	/* This can QUIT.  */
 	  write_string ("(", -1);
 	  if (backlist->nargs == MANY)
@@ -3376,7 +3352,7 @@ If NFRAMES is more than the number of frames, the value is nil.  */)
   if (!backlist)
     return Qnil;
   if (backlist->nargs == UNEVALLED)
-    return Fcons (Qnil, Fcons (*backlist->function, *backlist->args));
+    return Fcons (Qnil, Fcons (backlist->function, *backlist->args));
   else
     {
       if (backlist->nargs == MANY) /* FIXME: Can this happen?  */
@@ -3384,7 +3360,7 @@ If NFRAMES is more than the number of frames, the value is nil.  */)
       else
 	tem = Flist (backlist->nargs, backlist->args);
 
-      return Fcons (Qt, Fcons (*backlist->function, tem));
+      return Fcons (Qt, Fcons (backlist->function, tem));
     }
 }
 

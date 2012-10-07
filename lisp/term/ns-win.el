@@ -448,9 +448,20 @@ Lines are highlighted according to `ns-input-line'."
 ;; nsterm.m
 
 (declare-function ns-read-file-name "nsfns.m"
-		  (prompt &optional dir isLoad init))
+		  (prompt &optional dir mustmatch init dir_only_p))
 
 ;;;; File handling.
+
+(defun x-file-dialog (prompt dir default_filename mustmatch only_dir_p)
+"Read file name, prompting with PROMPT in directory DIR.
+Use a file selection dialog.  Select DEFAULT-FILENAME in the dialog's file
+selection box, if specified.  If MUSTMATCH is non-nil, the returned file
+or directory must exist.
+
+This function is only defined on NS, MS Windows, and X Windows with the
+Motif or Gtk toolkits.  With the Motif toolkit, ONLY-DIR-P is ignored.
+Otherwise, if ONLY-DIR-P is non-nil, the user can only select directories."
+  (ns-read-file-name prompt dir mustmatch default_filename only_dir_p))
 
 (defun ns-open-file-using-panel ()
   "Pop up open-file panel, and load the result in a buffer."
@@ -622,8 +633,9 @@ This function has been overloaded in Nextstep.")
 `ns-input-fontsize' of new font."
   (interactive)
   (modify-frame-parameters (selected-frame)
-                           (list (cons 'font ns-input-font)
-                                 (cons 'fontsize ns-input-fontsize)))
+                           (list (cons 'fontsize ns-input-fontsize)))
+  (modify-frame-parameters (selected-frame)
+                           (list (cons 'font ns-input-font)))
   (set-frame-font ns-input-font))
 
 

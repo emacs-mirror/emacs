@@ -311,13 +311,13 @@ representation will be parsed correctly."
   (setq char (json-encode-char0 char 'ucs))
   (let ((control-char (car (rassoc char json-special-chars))))
     (cond
-     ;; Special JSON character (\n, \r, etc.)
+     ;; Special JSON character (\n, \r, etc.).
      (control-char
       (format "\\%c" control-char))
-     ;; ASCIIish printable character
-     ((and (> char 31) (< char 161))
+     ;; ASCIIish printable character.
+     ((and (> char 31) (< char 127))
       (format "%c" char))
-     ;; Fallback: UCS code point in \uNNNN form
+     ;; Fallback: UCS code point in \uNNNN form.
      (t
       (format "\\u%04x" char)))))
 
