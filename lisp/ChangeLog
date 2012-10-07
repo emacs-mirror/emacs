@@ -1,5 +1,13 @@
 2012-10-07  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* window.el (internal--before-save-selected-window)
+	(internal--after-save-selected-window): New functions extracted from
+	save-selected-window.  Make sure we return the `alist' we construct.
+	(save-selected-window): Use them.
+
+	* textmodes/tex-mode.el (tex-recenter-output-buffer):
+	Use with-selected-window.
+
 	* emacs-lisp/autoload.el (make-autoload): Add `cl-defmacro' to the
 	forms that define macros (bug#12593).
 
