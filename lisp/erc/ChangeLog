@@ -1,3 +1,8 @@
+2012-10-07  Antoine Levitt  <antoine.levitt@gmail.com>
+
+	* erc-stamp.el (erc-format-timestamp): Don't apply intangible
+	property to invisible stamps.  (Bug#11706)
+
 2012-10-07  Glenn Morris  <rgm@gnu.org>
 
 	* erc-backend.el (NICK): Handle pre-existing buffers.  (Bug#12002)

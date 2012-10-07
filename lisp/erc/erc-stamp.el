@@ -353,8 +353,9 @@ Return the empty string if FORMAT is nil."
 			       'isearch-open-invisible 'timestamp ts)
 	;; N.B. Later use categories instead of this harmless, but
 	;; inelegant, hack. -- BPT
-	(when erc-timestamp-intangible
-	  (erc-put-text-property 0 (length ts) 'intangible t ts))
+	(and erc-timestamp-intangible
+	     (not erc-hide-timestamps)	; bug#11706
+	     (erc-put-text-property 0 (length ts) 'intangible t ts))
 	ts)
     ""))
 
