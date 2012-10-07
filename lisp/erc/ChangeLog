@@ -126,7 +126,7 @@
 	(erc-autojoin-after-ident): Ditto.
 	(erc-autojoin-channels-alist): Mention auth-source.
 
-2012-04-10  Deniz Dogan  <deniz@dogan.se>  (tiny change)
+2012-04-10  Deniz Dogan  <deniz@dogan.se>
 
 	* erc.el (erc-display-prompt): Adds the field text property to the
 	ERC prompt.  This allows users to use `kill-whole-line' to kill

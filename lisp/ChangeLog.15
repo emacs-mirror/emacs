@@ -10962,7 +10962,7 @@
 
 	* Version 23.2 released.
 
-2010-05-07  Deniz Dogan  <deniz.a.m.dogan@gmail.com>  (tiny change)
+2010-05-07  Deniz Dogan  <deniz.a.m.dogan@gmail.com>
             Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	Highlight vendor specific properties.
@@ -15541,7 +15541,7 @@
 	* window.el (move-to-window-line-last-op): Remove.
 	(move-to-window-line-top-bottom): Reuse recenter-last-op instead.
 
-2009-11-23  Deniz Dogan  <deniz.a.m.dogan@gmail.com>  (tiny change)
+2009-11-23  Deniz Dogan  <deniz.a.m.dogan@gmail.com>
 
 	Make M-r mirror the new cycling behavior of C-l.
 	* window.el (move-to-window-line-last-op): New var.
