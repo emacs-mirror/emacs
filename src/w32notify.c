@@ -1,0 +1,588 @@
+/* Filesystem notifications support for GNU Emacs on the Microsoft Windows API.
+   Copyright (C) 2012  Free Software Foundation, Inc.
+
+This file is part of GNU Emacs.
+
+GNU Emacs is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+GNU Emacs is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+
+#include <stddef.h>
+#include <errno.h>
+
+/* must include CRT headers *before* config.h */
+#include <config.h>
+
+#include <windows.h>
+
+#include "lisp.h"
+#include "w32term.h"	/* for enter_crit/leave_crit and WM_EMACS_FILENOTIFY */
+#include "w32heap.h"	/* for OS version data */
+#include "w32.h"	/* for w32_strerror */
+#include "coding.h"
+#include "keyboard.h"
+#include "frame.h"	/* needed by termhooks.h */
+#include "termhooks.h"	/* for FILE_NOTIFY_EVENT */
+
+struct notification {
+  BYTE *buf;		/* buffer for ReadDirectoryChangesW */
+  OVERLAPPED *io_info;	/* the OVERLAPPED structure for async I/O */
+  BOOL subtree;		/* whether to watch subdirectories */
+  DWORD filter;		/* bit mask for events to watch */
+  char *watchee;	/* the file we are interested in */
+  HANDLE dir;		/* handle to the watched directory */
+  HANDLE thr;		/* handle to the thread that watches */
+  int terminate;	/* if non-zero, request for the thread to terminate */
+};
+
+/* FIXME: this needs to be changed to support more that one request at
+   a time.  */
+static struct notification dirwatch;
+
+/* Used for communicating notifications to the main thread.  */
+int notification_buffer_in_use;
+BYTE file_notifications[16384];
+DWORD notifications_size;
+HANDLE notifications_desc;
+
+static Lisp_Object Qfile_name, Qdirectory_name, Qattributes, Qsize;
+static Lisp_Object Qlast_write_time, Qlast_access_time, Qcreation_time;
+static Lisp_Object Qsecurity_desc, Qsubtree, watch_list;
+
+#if 0
+/* FIXME: Debugging code, should be removed eventually.  */
+const wchar_t *
+format_file_action (DWORD action)
+{
+  static const wchar_t *action_str[] =
+    { L"???", L"Added", L"Removed", L"Modified", L"Renamed from", L"Renamed to" };
+
+  if (action >= sizeof(action_str)/sizeof(action_str[0]))
+    action = 0;
+  return action_str[action];
+}
+
+void
+parse_notifications (BYTE *info, DWORD info_size)
+{
+  BYTE *p = info;
+  FILE_NOTIFY_INFORMATION *fni = (PFILE_NOTIFY_INFORMATION)p;
+  const DWORD min_size
+    = offsetof (FILE_NOTIFY_INFORMATION, FileName) + sizeof(wchar_t);
+
+  if (!info_size)
+    {
+      printf ("No info in notifications!\n");
+      return;
+    }
+
+  while (info_size >= min_size)
+    {
+      wchar_t *fn = alloca (fni->FileNameLength + sizeof(wchar_t));
+      const wchar_t *action_str;
+
+      memcpy (fn, fni->FileName, fni->FileNameLength);
+      fn[fni->FileNameLength/sizeof(wchar_t)] = 0;
+      action_str = format_file_action (fni->Action);
+      wprintf (L"%s: %s\n", action_str, fn);
+      if (!fni->NextEntryOffset)
+	break;
+      p += fni->NextEntryOffset;
+      fni = (PFILE_NOTIFY_INFORMATION)p;
+      info_size -= fni->NextEntryOffset;
+    }
+}
+#endif	/* debugging code */
+
+/* Signal to the main thread that we have file notifications for it to
+   process.  */
+static void
+send_notifications (BYTE *info, DWORD info_size, HANDLE hdir, int *terminate)
+{
+  int done = 0;
+  FRAME_PTR f = SELECTED_FRAME ();
+
+  /* Too bad, but PostMessage will not work in non-GUI sessions.
+     FIXME.  */
+  if (!FRAME_W32_P (f))
+    return;
+
+  /* A single buffer is used to communicate all notifications to the
+     main thread.  Since both the main thread and several watcher
+     threads could be active at the same time, we use a critical area
+     and an "in-use" flag to synchronize them.  A watcher thread can
+     only put its notifications in the buffer if it acquires the
+     critical area and finds the "in-use" flag reset.  The main thread
+     resets the flag after it is done processing notifications.
+
+     FIXME: is there a better way of dealing with this?  */
+  while (!done && !*terminate)
+    {
+      enter_crit ();
+      if (!notification_buffer_in_use)
+	{
+	  if (info_size)
+	    memcpy (file_notifications, info, info_size);
+	  notifications_size = info_size;
+	  notifications_desc = hdir;
+	  /* If PostMessage fails, the message queue is full.  If that
+	     happens, the last thing they will worry about is file
+	     notifications.  So we effectively discard the
+	     notification in that case.  */
+	  if (PostMessage (FRAME_W32_WINDOW (f), WM_EMACS_FILENOTIFY, 0, 0))
+	    notification_buffer_in_use = 1;
+	  done = 1;
+	  DebPrint (("Announced notifications of %lu bytes\n", info_size));
+	}
+      leave_crit ();
+      if (!done)
+	Sleep (5);
+    }
+}
+
+/* An APC routine to cancel outstanding directory watch.  Invoked by
+   the main thread via QueueUserAPC.  This is needed because only the
+   thread that issued the ReadDirectoryChangesW call can call CancelIo
+   to cancel that.  (CancelIoEx is only available since Vista, so we
+   cannot use it on XP.)  */
+VOID CALLBACK
+watch_end (ULONG_PTR arg)
+{
+  HANDLE hdir = (HANDLE)arg;
+
+  if (hdir && hdir != INVALID_HANDLE_VALUE)
+    {
+      CancelIo (hdir);
+      CloseHandle (hdir);
+    }
+}
+
+/* A completion routine (a.k.a. APC function) for handling events read
+   by ReadDirectoryChangesW.  Called by the OS when the thread which
+   issued the asynchronous ReadDirectoryChangesW call is in the
+   "alertable state", i.e. waiting inside SleepEx call.  */
+VOID CALLBACK
+watch_completion (DWORD status, DWORD bytes_ret, OVERLAPPED *io_info)
+{
+  struct notification *dirwatch;
+
+  /* Who knows what happened?  Perhaps the OVERLAPPED structure was
+     freed by someone already?  In any case, we cannot do anything
+     with this request, so just punt and skip it.  FIXME: should we
+     raise the 'terminate' flag in this case?  */
+  if (!io_info)
+    return;
+
+  /* We have a pointer to our dirwatch structure conveniently stashed
+     away in the hEvent member of the OVERLAPPED struct.  According to
+     MSDN documentation of ReadDirectoryChangesW: "The hEvent member
+     of the OVERLAPPED structure is not used by the system, so you can
+     use it yourself."  */
+  dirwatch = (struct notification *)io_info->hEvent;
+  if (status == ERROR_OPERATION_ABORTED)
+    {
+      /* We've been called because the main thread told us to issue
+	 CancelIo on the directory we watch, and watch_end did so.
+	 The directory handle is already closed.  We should clean up
+	 and exit, signalling to the thread worker routine not to
+	 issue another call to ReadDirectoryChangesW.  */
+      xfree (dirwatch->buf);
+      dirwatch->buf = NULL;
+      xfree (dirwatch->io_info);
+      dirwatch->io_info = NULL;
+      xfree (dirwatch->watchee);
+      dirwatch->watchee = NULL;
+      dirwatch->terminate = 1;
+    }
+  else
+    {
+#if 0	/* debugging code */
+      parse_notifications (dirwatch->buf, bytes_ret);
+#endif
+      /* Tell the main thread we have notifications for it.  */
+      send_notifications (dirwatch->buf, bytes_ret, dirwatch->dir,
+			  &dirwatch->terminate);
+    }
+}
+
+/* Worker routine for the watch thread.  */
+static DWORD WINAPI
+watch_worker (LPVOID arg)
+{
+  struct notification *dirwatch = (struct notification *)arg;
+
+  do {
+    BOOL status;
+    DWORD sleep_result;
+    DWORD bytes_ret = 0;
+
+    if (dirwatch->dir)
+      {
+	status = ReadDirectoryChangesW (dirwatch->dir, dirwatch->buf, 16384,
+					dirwatch->subtree, dirwatch->filter,
+					&bytes_ret,
+					dirwatch->io_info, watch_completion);
+	if (!status)
+	  {
+	    DebPrint (("watch_worker(1): %lu\n", GetLastError ()));
+	    xfree (dirwatch->buf);
+	    dirwatch->buf = NULL;
+	    xfree (dirwatch->io_info);
+	    dirwatch->io_info = NULL;
+	    CloseHandle (dirwatch->dir);
+	    dirwatch->dir = NULL;
+	    xfree (dirwatch->watchee);
+	    dirwatch->watchee = NULL;
+	    return 1;
+	  }
+      }
+    /* Sleep indefinitely until awoken by the I/O completion, which
+       could be either a change notification or a cancellation of the
+       watch.  */
+    sleep_result = SleepEx (INFINITE, TRUE);
+    if (dirwatch->terminate)
+      DebPrint (("watch_worker: exiting by request\n"));
+  } while (!dirwatch->terminate);
+
+  DebPrint (("watch_worker(2): %lu\n", GetLastError ()));
+  return 0;
+}
+
+/* Launch a thread to watch changes to FILE in a directory open on
+   handle HDIR.  */
+static int
+start_watching (const char *file, HANDLE hdir, BOOL subdirs, DWORD flags)
+{
+  dirwatch.buf = xmalloc (16384);
+  dirwatch.io_info = xzalloc (sizeof(OVERLAPPED));
+  /* Stash a pointer to dirwatch structure for use by the completion
+     routine.  According to MSDN documentation of ReadDirectoryChangesW:
+     "The hEvent member of the OVERLAPPED structure is not used by the
+     system, so you can use it yourself." */
+  dirwatch.io_info->hEvent = &dirwatch;
+  dirwatch.subtree = subdirs;
+  dirwatch.filter = flags;
+  dirwatch.watchee = xstrdup (file);
+  dirwatch.terminate = 0;
+  dirwatch.dir = hdir;
+
+  /* See w32proc.c where it calls CreateThread for the story behind
+     the 2nd and 5th argument in the call to CreateThread.  */
+  dirwatch.thr = CreateThread (NULL, 64 * 1024, watch_worker,
+			       (void *)&dirwatch, 0x00010000, NULL);
+
+  if (!dirwatch.thr)
+    {
+      dirwatch.terminate = 1;
+      xfree (dirwatch.buf);
+      dirwatch.buf = NULL;
+      xfree (dirwatch.io_info);
+      dirwatch.io_info = NULL;
+      xfree (dirwatch.watchee);
+      dirwatch.watchee = NULL;
+      return -1;
+    }
+  return 0;
+}
+
+/* Called from the main thread to start watching FILE in PARENT_DIR,
+   subject to FLAGS.  If SUBDIRS is TRUE, watch the subdirectories of
+   PARENT_DIR as well.  Value is the handle on which the directory is
+   open.  */
+static HANDLE *
+add_watch (const char *parent_dir, const char *file, BOOL subdirs, DWORD flags)
+{
+  HANDLE hdir;
+
+  if (!file || !*file)
+    return NULL;
+
+  hdir = CreateFile (parent_dir,
+		     FILE_LIST_DIRECTORY,
+		     /* FILE_SHARE_DELETE doesn't preclude other
+			processes from deleting files inside
+			parent_dir.  */
+		     FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+		     NULL, OPEN_EXISTING,
+		     FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OVERLAPPED,
+		     NULL);
+  if (hdir == INVALID_HANDLE_VALUE)
+    return NULL;
+
+  if (start_watching (file, hdir, subdirs, flags) == 0)
+    return hdir;
+
+  CloseHandle (hdir);
+  return NULL;
+}
+
+/* Stop watching a directory specified by its handle HDIR.  */
+static int
+remove_watch (HANDLE hdir)
+{
+  if (hdir == dirwatch.dir)
+    {
+      int i;
+      BOOL status;
+      DWORD exit_code, err;
+
+      /* Only the thread that issued the outstanding I/O call can call
+	 CancelIo on it.  (CancelIoEx is available only since Vista.)
+	 So we need to queue an APC for the worker thread telling it
+	 to terminate.  */
+      if (!QueueUserAPC (watch_end, dirwatch.thr, (ULONG_PTR)dirwatch.dir))
+	DebPrint (("QueueUserAPC failed (%lu)!\n", GetLastError ()));
+      /* We also set the terminate flag, for when the thread is
+	 waiting on the critical section that never gets acquired.
+	 FIXME: is there a cleaner method?  Using SleepEx there is a
+	 no-no, as that will lead to recursive APC invocations and
+	 stack overflow.  */
+      dirwatch.terminate = 1;
+      /* Wait for the thread to exit.  FIXME: is there a better method
+	 that is not overly complex?  */
+      for (i = 0; i < 50; i++)
+	{
+	  if (!((status = GetExitCodeThread (dirwatch.thr, &exit_code))
+		&& exit_code == STILL_ACTIVE))
+	    break;
+	  Sleep (10);
+	}
+      if ((status == FALSE && (err = GetLastError ()) == ERROR_INVALID_HANDLE)
+	  || exit_code == STILL_ACTIVE)
+	{
+	  if (!(status == FALSE && err == ERROR_INVALID_HANDLE))
+	    TerminateThread (dirwatch.thr, 0);
+	}
+
+      /* Clean up.  */
+      if (dirwatch.thr)
+	{
+	  CloseHandle (dirwatch.thr);
+	  dirwatch.thr = NULL;
+	}
+      return 0;
+    }
+  else if (!dirwatch.dir)
+    {
+      DebPrint (("Directory handle already closed!\n"));
+      return 0;
+    }
+  else
+    {
+      DebPrint (("Unknown directory handle!\n"));
+      return -1;
+    }
+}
+
+static DWORD
+filter_list_to_flags (Lisp_Object filter_list)
+{
+  DWORD flags = 0;
+
+  if (NILP (filter_list))
+    return flags;
+
+  if (!NILP (Fmember (Qfile_name, filter_list)))
+    flags |= FILE_NOTIFY_CHANGE_FILE_NAME;
+  if (!NILP (Fmember (Qdirectory_name, filter_list)))
+    flags |= FILE_NOTIFY_CHANGE_DIR_NAME;
+  if (!NILP (Fmember (Qattributes, filter_list)))
+    flags |= FILE_NOTIFY_CHANGE_ATTRIBUTES;
+  if (!NILP (Fmember (Qsize, filter_list)))
+    flags |= FILE_NOTIFY_CHANGE_SIZE;
+  if (!NILP (Fmember (Qlast_write_time, filter_list)))
+    flags |= FILE_NOTIFY_CHANGE_LAST_WRITE;
+  if (!NILP (Fmember (Qlast_access_time, filter_list)))
+    flags |= FILE_NOTIFY_CHANGE_LAST_ACCESS;
+  if (!NILP (Fmember (Qcreation_time, filter_list)))
+    flags |= FILE_NOTIFY_CHANGE_CREATION;
+  if (!NILP (Fmember (Qsecurity_desc, filter_list)))
+    flags |= FILE_NOTIFY_CHANGE_SECURITY;
+
+  return flags;
+}
+
+DEFUN ("w32notify-add-watch", Fw32notify_add_watch,
+       Sw32notify_add_watch, 3, 3, 0,
+       doc: /* Add a watch for filesystem events pertaining to FILE.
+
+This arranges for filesystem events pertaining to FILE to be reported
+to Emacs.  Use `w32notify-rm-watch' to cancel the watch.
+
+Value is a descriptor for the added watch, or nil if the file
+cannot be watched.
+
+FILTER is a list of conditions for reporting an event.  It can include
+the following symbols:
+
+  'file-name'          -- report file creation, deletion, or renaming
+  'directory-name'     -- report directory creation, deletion, or renaming
+  'attributes'         -- report changes in attributes
+  'size'               -- report changes in file-size
+  'last-write-time'    -- report changes in last-write time
+  'last-access-time'   -- report changes in last-access time
+  'creation-time'      -- report changes in creation time
+  'security-desc'      -- report changes in security descriptor
+
+If FILE is a directory, and FILTER includes 'subtree', then all the
+subdirectories will also be watched and changes in them reported.
+
+When any event happens that satisfies the conditions specified by
+FILTER, Emacs will call the CALLBACK function passing it a single
+argument EVENT, which is of the form
+
+  (DESCRIPTOR ACTION FILE)
+
+DESCRIPTOR is the same object as the one returned by this function.
+ACTION is the description of the event.  It could be any one of the
+following:
+
+  'added'        -- FILE was added
+  'removed'      -- FILE was deleted
+  'modified'     -- FILE's contents or its attributes were modified
+  'renamed-from' -- a file was renamed whose old name was FILE
+  'renamed-to'   -- a file was renamed and its new name is FILE
+
+FILE is the name of the file whose event is being reported.  */)
+  (Lisp_Object file, Lisp_Object filter, Lisp_Object callback)
+{
+  Lisp_Object encoded_file, watch_object, watch_descriptor;
+  char parent_dir[MAX_PATH], *basename;
+  size_t fn_len;
+  HANDLE hdir;
+  DWORD flags;
+  BOOL subdirs = FALSE;
+  Lisp_Object lisp_errstr;
+  char *errstr;
+
+  CHECK_LIST (filter);
+
+  /* The underlying features are available only since XP.  */
+  if (os_subtype == OS_9X
+      || (w32_major_version == 5 && w32_major_version < 1))
+    {
+      errno = ENOSYS;
+      report_file_error ("Watching filesystem events is not supported",
+			 Qnil);
+    }
+
+  /* We needa full absolute file name of FILE, and we need to remove
+     any trailing slashes from it, so that GetFullPathName below gets
+     the basename part correctly.  */
+  file = Fdirectory_file_name (Fexpand_file_name (file, Qnil));
+  encoded_file = ENCODE_FILE (file);
+
+  fn_len = GetFullPathName (SDATA (encoded_file), MAX_PATH, parent_dir,
+			    &basename);
+  if (!fn_len)
+    {
+      errstr = w32_strerror (0);
+      errno = EINVAL;
+      if (!NILP (Vlocale_coding_system))
+	lisp_errstr
+	  = code_convert_string_norecord (build_unibyte_string (errstr),
+					  Vlocale_coding_system, 0);
+      else
+	lisp_errstr = build_string (errstr);
+      report_file_error ("GetFullPathName failed",
+			 Fcons (lisp_errstr, Fcons (file, Qnil)));
+    }
+  /* We need the parent directory without the slash that follows it.
+     If BASENAME is NULL, the argument was the root directory on its
+     drive.  */
+  if (basename)
+    basename[-1] = '\0';
+  else
+    subdirs = TRUE;
+
+  if (!NILP (Fmember (Qsubtree, filter)))
+    subdirs = TRUE;
+
+  flags = filter_list_to_flags (filter);
+
+  hdir = add_watch (parent_dir, basename, subdirs, flags);
+  if (!hdir)
+    {
+      DWORD err = GetLastError ();
+
+      errno = EINVAL;
+      if (err)
+	{
+	  errstr = w32_strerror (err);
+	  if (!NILP (Vlocale_coding_system))
+	    lisp_errstr
+	      = code_convert_string_norecord (build_unibyte_string (errstr),
+					      Vlocale_coding_system, 0);
+	  else
+	    lisp_errstr = build_string (errstr);
+	  report_file_error ("Cannot watch file",
+			     Fcons (lisp_errstr, Fcons (file, Qnil)));
+	}
+      else
+	report_file_error ("Cannot watch file", Fcons (file, Qnil));
+    }
+  /* Store watch object in watch list. */
+  watch_descriptor = make_number (hdir);
+  watch_object = Fcons (watch_descriptor, callback);
+  watch_list = Fcons (watch_object, watch_list);
+
+  return watch_descriptor;
+}
+
+DEFUN ("w32notify-rm-watch", Fw32notify_rm_watch,
+       Sw32notify_rm_watch, 1, 1, 0,
+       doc: /* Remove an existing watch specified by its WATCH-DESCRIPTOR.
+
+WATCH-DESCRIPTOR should be an object returned by `w32notify-add-watch'.  */)
+     (Lisp_Object watch_descriptor)
+{
+  Lisp_Object watch_object;
+  HANDLE hdir = (HANDLE)XINT (watch_descriptor);
+
+  if (remove_watch (hdir) == -1)
+    report_file_error ("Could not remove watch", Fcons (watch_descriptor,
+							Qnil));
+
+  /* Remove watch descriptor from watch list. */
+  watch_object = Fassoc (watch_descriptor, watch_list);
+  if (!NILP (watch_object))
+    watch_list = Fdelete (watch_object, watch_list);
+
+  return Qnil;
+}
+
+Lisp_Object
+get_watch_object (Lisp_Object desc)
+{
+  return Fassoc (desc, watch_list);
+}
+
+void
+syms_of_w32notify (void)
+{
+  DEFSYM (Qfile_name, "file-name");
+  DEFSYM (Qdirectory_name, "directory-name");
+  DEFSYM (Qattributes, "attributes");
+  DEFSYM (Qsize, "size");
+  DEFSYM (Qlast_write_time, "last-write-time");
+  DEFSYM (Qlast_access_time, "last-access-time");
+  DEFSYM (Qcreation_time, "creation-time");
+  DEFSYM (Qsecurity_desc, "security-desc");
+  DEFSYM (Qsubtree, "subtree");
+
+  defsubr (&Sw32notify_add_watch);
+  defsubr (&Sw32notify_rm_watch);
+
+  staticpro (&watch_list);
+
+  Fprovide (intern_c_string ("w32notify"), Qnil);
+}
