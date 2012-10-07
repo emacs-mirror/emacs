@@ -2262,10 +2262,10 @@ unregister_hot_keys (HWND hwnd)
    w32_read_socket runs in the main (a.k.a. "Lisp") thread, and is
    called synchronously from keyboard.c when it is known or suspected
    that some input is available.  w32_read_socket either handles
-   messages immediately, or converts them messages into Emacs input
-   events and stuffs them into kbd_buffer, where kbd_buffer_get_event
-   can get at them and process them when read_char and its callers
-   require input.  */
+   messages immediately, or converts them into Emacs input events and
+   stuffs them into kbd_buffer, where kbd_buffer_get_event can get at
+   them and process them when read_char and its callers require
+   input.  */
 
 /* Main message dispatch loop. */
 
