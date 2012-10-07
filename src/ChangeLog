@@ -1,3 +1,15 @@
+2012-10-07  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.m (ns_in_resize): Remove (Bug#12479).
+	(ns_resize_handle_rect, mouseDown, mouseUp, mouseDragged): Remove.
+	(ns_clear_frame, sendEvent, windowDidResize, drawRect:): Remove ns_in_resize
+	check.
+	(ns_clear_frame_area): Remove resize handle code.
+
+	* nsfns.m (ns_in_resize): Remove.
+	(x_set_icon_name, ns_set_name, ns_set_name_as_filename):  Remove ns_in_resize
+	check.
+
 2012-10-07  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Improve sys_siglist detection.

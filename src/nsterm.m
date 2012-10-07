@@ -183,7 +183,6 @@ static int ns_window_num = 0;
 static NSRect uRect;
 #endif
 static BOOL gsaved = NO;
-BOOL ns_in_resize = NO;
 static BOOL ns_fake_keydown = NO;
 int ns_tmp_flags; /* FIXME */
 struct nsfont_info *ns_tmp_font; /* FIXME */
@@ -492,17 +491,6 @@ ns_release_autorelease_pool (void *pool)
     Focus (clipping) and screen update
 
    ========================================================================== */
-
-static NSRect
-ns_resize_handle_rect (NSWindow *window)
-{
-  NSRect r = [window frame];
-  r.origin.x = r.size.width - RESIZE_HANDLE_SIZE;
-  r.origin.y = 0;
-  r.size.width = r.size.height = RESIZE_HANDLE_SIZE;
-  return r;
-}
-
 
 //
 // Window constraining
@@ -1983,8 +1971,6 @@ ns_clear_frame (struct frame *f)
   NSRect r;
 
   NSTRACE (ns_clear_frame);
-  if (ns_in_resize)
-    return;
 
  /* comes on initial frame because we have
     after-make-frame-functions = select-frame */
@@ -2003,10 +1989,6 @@ ns_clear_frame (struct frame *f)
   [ns_lookup_indexed_color (NS_FACE_BACKGROUND (FRAME_DEFAULT_FACE (f)), f) set];
   NSRectFill (r);
   ns_unfocus (f);
-
-#ifdef NS_IMPL_COCOA
-  [[view window] display];  /* redraw resize handle */
-#endif
 
   /* as of 2006/11 or so this is now needed */
   ns_redraw_scroll_bars (f);
@@ -2033,34 +2015,7 @@ ns_clear_frame_area (struct frame *f, int x, int y, int width, int height)
   ns_focus (f, &r, 1);
   [ns_lookup_indexed_color (NS_FACE_BACKGROUND (face), f) set];
 
-#ifdef NS_IMPL_COCOA
-  {
-    /* clip out the resize handle */
-    NSWindow *window = [FRAME_NS_VIEW (f) window];
-    NSRect ir
-      = [view convertRect: ns_resize_handle_rect (window) fromView: nil];
-
-    ir = NSIntersectionRect (r, ir);
-    if (NSIsEmptyRect (ir))
-      {
-#endif
-
   NSRectFill (r);
-
-#ifdef NS_IMPL_COCOA
-      }
-    else
-      {
-        NSRect r1 = r, r2 = r; /* upper and lower non-intersecting */
-        r1.size.height -= ir.size.height;
-        r2.origin.y += r1.size.height;
-        r2.size.width -= ir.size.width;
-        r2.size.height = ir.size.height;
-        NSRectFill (r1);
-        NSRectFill (r2);
-      }
-  }
-#endif
 
   ns_unfocus (f);
   return;
@@ -4314,34 +4269,6 @@ ns_term_shutdown (int sig)
       return;
     }
 
-#ifdef NS_IMPL_COCOA
-  /* pass mouse down in resize handle and subsequent drags directly to
-     EmacsWindow so we can generate continuous redisplays */
-  if (ns_in_resize)
-    {
-      if (type == NSLeftMouseDragged)
-        {
-          [window mouseDragged: theEvent];
-          return;
-        }
-      else if (type == NSLeftMouseUp)
-        {
-          [window mouseUp: theEvent];
-          return;
-        }
-    }
-  else if (type == NSLeftMouseDown)
-    {
-      NSRect r = ns_resize_handle_rect (window);
-      if (NSPointInRect ([theEvent locationInWindow], r))
-        {
-          ns_in_resize = YES;
-          [window mouseDown: theEvent];
-          return;
-        }
-    }
-#endif
-
   if (type == NSApplicationDefined)
     {
       /* Events posted by ns_send_appdefined interrupt the run loop here.
@@ -5567,12 +5494,7 @@ not_in_argv (NSString *arg)
 
   if (cols > 0 && rows > 0)
     {
-      if (ns_in_resize)
-        x_set_window_size (emacsframe, 0, cols, rows);
-      else
-        {
-          [self updateFrameSize: YES];
-        }
+      [self updateFrameSize: YES];
     }
 
   ns_send_appdefined (-1);
@@ -6198,7 +6120,7 @@ not_in_argv (NSString *arg)
 
   NSTRACE (drawRect);
 
-  if (!emacsframe || !emacsframe->output_data.ns || ns_in_resize)
+  if (!emacsframe || !emacsframe->output_data.ns)
     return;
 
   ns_clear_frame_area (emacsframe, x, y, width, height);
@@ -6533,60 +6455,6 @@ not_in_argv (NSString *arg)
 
   f->output_data.ns->dont_constrain = 1;
   return [super constrainFrameRect:frameRect toScreen:screen];
-}
-
-
-/* called only on resize clicks by special case in EmacsApp-sendEvent */
-- (void)mouseDown: (NSEvent *)theEvent
-{
-  if (ns_in_resize)
-    {
-      NSSize size = [[theEvent window] frame].size;
-      grabOffset = [theEvent locationInWindow];
-      grabOffset.x = size.width - grabOffset.x;
-    }
-  else
-    [super mouseDown: theEvent];
-}
-
-
-/* stop resizing */
-- (void)mouseUp: (NSEvent *)theEvent
-{
-  if (ns_in_resize)
-    {
-      struct frame *f = ((EmacsView *)[self delegate])->emacsframe;
-      ns_in_resize = NO;
-      ns_set_name_as_filename (f);
-      [self display];
-      ns_send_appdefined (-1);
-    }
-  else
-    [super mouseUp: theEvent];
-}
-
-
-/* send resize events */
-- (void)mouseDragged: (NSEvent *)theEvent
-{
-  if (ns_in_resize)
-    {
-      NSPoint p = [theEvent locationInWindow];
-      NSSize size, vettedSize, origSize = [self frame].size;
-
-      size.width = p.x + grabOffset.x;
-      size.height = origSize.height - p.y + grabOffset.y;
-
-      if (size.width == origSize.width && size.height == origSize.height)
-        return;
-
-      vettedSize = [[self delegate] windowWillResize: self toSize: size];
-      [[NSNotificationCenter defaultCenter]
-            postNotificationName: NSWindowDidResizeNotification
-                          object: self];
-    }
-  else
-    [super mouseDragged: theEvent];
 }
 
 @end /* EmacsWindow */

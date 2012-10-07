@@ -93,8 +93,6 @@ EmacsTooltip *ns_tooltip;
 /* Need forward declaration here to preserve organizational integrity of file */
 Lisp_Object Fx_open_connection (Lisp_Object, Lisp_Object, Lisp_Object);
 
-extern BOOL ns_in_resize;
-
 /* Static variables to handle applescript execution.  */
 static Lisp_Object as_script, *as_result;
 static int as_status;
@@ -433,9 +431,6 @@ x_set_icon_name (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
   NSView *view = FRAME_NS_VIEW (f);
   NSTRACE (x_set_icon_name);
 
-  if (ns_in_resize)
-    return;
-
   /* see if it's changed */
   if (STRINGP (arg))
     {
@@ -510,9 +505,6 @@ static void
 ns_set_name (struct frame *f, Lisp_Object name, int explicit)
 {
   NSTRACE (ns_set_name);
-
-  if (ns_in_resize)
-    return;
 
   /* Make sure that requests from lisp code override requests from
      Emacs redisplay code.  */
@@ -612,7 +604,7 @@ ns_set_name_as_filename (struct frame *f)
   NSString *str;
   NSTRACE (ns_set_name_as_filename);
 
-  if (f->explicit_name || ! NILP (f->title) || ns_in_resize)
+  if (f->explicit_name || ! NILP (f->title))
     return;
 
   block_input ();
