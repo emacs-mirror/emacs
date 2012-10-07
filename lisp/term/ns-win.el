@@ -448,7 +448,7 @@ Lines are highlighted according to `ns-input-line'."
 ;; nsterm.m
 
 (declare-function ns-read-file-name "nsfns.m"
-		  (prompt &optional dir isLoad init))
+		  (prompt &optional dir mustmatch init dir_only_p))
 
 ;;;; File handling.
 
@@ -633,8 +633,9 @@ This function has been overloaded in Nextstep.")
 `ns-input-fontsize' of new font."
   (interactive)
   (modify-frame-parameters (selected-frame)
-                           (list (cons 'font ns-input-font)
-                                 (cons 'fontsize ns-input-fontsize)))
+                           (list (cons 'fontsize ns-input-fontsize)))
+  (modify-frame-parameters (selected-frame)
+                           (list (cons 'font ns-input-font)))
   (set-frame-font ns-input-font))
 
 
