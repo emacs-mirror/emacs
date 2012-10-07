@@ -114,12 +114,12 @@ If you want to write logs into different directories, make a
 custom function which returns the directory part and set
 `erc-log-channels-directory' to its name."
   :group 'erc-log
-  :type '(choice (const :tag "#channel!nick <at> server:port.txt"
+  :type '(choice (const :tag "#channel!nick@server:port.txt"
 			erc-generate-log-file-name-long)
-		 (const :tag "#channel!nick <at> network.txt"
+		 (const :tag "#channel!nick@network.txt"
 			erc-generate-log-file-name-network)
 		 (const :tag "#channel.txt" erc-generate-log-file-name-short)
-		 (const :tag "#channel <at> date.txt"
+		 (const :tag "#channel@date.txt"
 			erc-generate-log-file-name-with-date)
 		 (function :tag "Other function")))
 
