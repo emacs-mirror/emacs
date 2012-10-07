@@ -1,3 +1,7 @@
+2012-10-07  Glenn Morris  <rgm@gnu.org>
+
+	* erc-button.el (erc-button-alist): Remove "finger".  (Bug#4443)
+
 2012-10-07  Antoine Levitt  <antoine.levitt@gmail.com>
 
 	* erc-stamp.el (erc-format-timestamp): Don't apply intangible
