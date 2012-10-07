@@ -61,8 +61,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    watch_completion function is called one last time with the
    ERROR_OPERATION_ABORTED status, which causes it to clean up and set
    a flag telling watch_worker to exit without issuing another
-   ReadDirectoryChangesW call.  The main thread waits for the worker
-   thread to exit, and if it doesn't, terminate it forcibly.  */
+   ReadDirectoryChangesW call.  The main thread waits for some time
+   for the worker thread to exit, and if it doesn't, terminates it
+   forcibly.  */
 
 #include <stddef.h>
 #include <errno.h>
