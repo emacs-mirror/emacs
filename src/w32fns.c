@@ -2259,8 +2259,6 @@ w32_msg_pump (deferred_msg * msg_buf)
 
   while ((w32_unicode_gui ? GetMessageW : GetMessageA) (&msg, NULL, 0, 0))
     {
-      if (msg.message == WM_EMACS_FILENOTIFY)
-	DebPrint (("w32_msg_pump: File notification, hwnd = 0x%p\n", msg.hwnd));
       if (msg.hwnd == NULL)
 	{
 	  switch (msg.message)
@@ -3810,7 +3808,6 @@ w32_wnd_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	return retval;
       }
     case WM_EMACS_FILENOTIFY:
-      DebPrint (("w32_wnd_proc: File notification arrived, posting\n"));
       my_post_msg (&wmsg, hwnd, msg, wParam, lParam);
       return 1;
 

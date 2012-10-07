@@ -1,3 +1,7 @@
+2012-10-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (obj): Add w32notify.o.
+
 2012-10-01  Fabrice Popineau  <fabrice.popineau@gmail.com>
 
 	* make-docfile.c (write_globals): Special-case

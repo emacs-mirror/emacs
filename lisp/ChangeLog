@@ -1,3 +1,7 @@
+2012-10-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* subr.el (w32notify-handle-event): New function.
+
 2012-10-07  Glenn Morris  <rgm@gnu.org>
 
 	* mail/rmailmm.el (rmail-mime-process-multipart):

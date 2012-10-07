@@ -16,6 +16,54 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
+/* Design overview:
+
+   For each watch request, we launch a separate worker thread.  The
+   worker thread runs the watch_worker function, which issues an
+   asynchronous call to ReadDirectoryChangesW, and then waits for that
+   call to complete in SleepEx.  Waiting in SleepEx puts the thread in
+   an alertable state, so it wakes up when either (a) the call to
+   ReadDirectoryChangesW completes, or (b) the main thread instructs
+   the worker thread to terminate by sending it an APC, see below.
+
+   When the ReadDirectoryChangesW call completes, its completion
+   routine watch_completion is automatically called.  watch_completion
+   stashes the received file events in a buffer used to communicate
+   them to the main thread (using a critical section, so that several
+   threads could use the same buffer), posts a special message,
+   WM_EMACS_FILENOTIFY, to the Emacs's message queue, and returns.
+   That causes the SleepEx function call inside watch_worker to
+   return, and watch_worker then issues another call to
+   ReadDirectoryChangesW.  (Except when it does not, see below.)
+
+   The WM_EMACS_FILENOTIFY message, posted to the message queue gets
+   dispatched to the main Emacs window procedure, which queues it for
+   processing by w32_read_socket.  When w32_read_socket sees this
+   message, it accesses the buffer with file notifications (using a
+   critical section), extracts the information, converts it to a
+   series of FILE_NOTIFY_EVENT events, and stuffs them into the input
+   event queue to be processed by keyboard.c input machinery
+   (read_char via a call to kbd_buffer_get_event).  When the
+   FILE_NOTIFY_EVENT event is processed by kbd_buffer_get_event, it is
+   converted to a Lispy event that can be bound to a command.  The
+   default binding is w32notify-handle-event, defined on subr.el.
+
+   After w32_read_socket is done processing the notifications, it
+   resets a flag signaling to all watch worker threads that the
+   notifications buffer is available for more input.
+
+   When the watch is removed by a call to w32notify-rm-watch, the main
+   thread requests that the worker thread terminates by queuing an APC
+   for the worker thread.  The APC specifies the watch_end function to
+   be called.  watch_end calls CancelIo on the outstanding
+   ReadDirectoryChangesW call and closes the handle on which the
+   watched directory was open.  When watch_end returns, the
+   watch_completion function is called one last time with the
+   ERROR_OPERATION_ABORTED status, which causes it to clean up and set
+   a flag telling watch_worker to exit without issuing another
+   ReadDirectoryChangesW call.  The main thread waits for the worker
+   thread to exit, and if it doesn't, terminate it forcibly.  */
+
 #include <stddef.h>
 #include <errno.h>
 
@@ -58,51 +106,6 @@ static Lisp_Object Qfile_name, Qdirectory_name, Qattributes, Qsize;
 static Lisp_Object Qlast_write_time, Qlast_access_time, Qcreation_time;
 static Lisp_Object Qsecurity_desc, Qsubtree, watch_list;
 
-#if 0
-/* FIXME: Debugging code, should be removed eventually.  */
-const wchar_t *
-format_file_action (DWORD action)
-{
-  static const wchar_t *action_str[] =
-    { L"???", L"Added", L"Removed", L"Modified", L"Renamed from", L"Renamed to" };
-
-  if (action >= sizeof(action_str)/sizeof(action_str[0]))
-    action = 0;
-  return action_str[action];
-}
-
-void
-parse_notifications (BYTE *info, DWORD info_size)
-{
-  BYTE *p = info;
-  FILE_NOTIFY_INFORMATION *fni = (PFILE_NOTIFY_INFORMATION)p;
-  const DWORD min_size
-    = offsetof (FILE_NOTIFY_INFORMATION, FileName) + sizeof(wchar_t);
-
-  if (!info_size)
-    {
-      printf ("No info in notifications!\n");
-      return;
-    }
-
-  while (info_size >= min_size)
-    {
-      wchar_t *fn = alloca (fni->FileNameLength + sizeof(wchar_t));
-      const wchar_t *action_str;
-
-      memcpy (fn, fni->FileName, fni->FileNameLength);
-      fn[fni->FileNameLength/sizeof(wchar_t)] = 0;
-      action_str = format_file_action (fni->Action);
-      wprintf (L"%s: %s\n", action_str, fn);
-      if (!fni->NextEntryOffset)
-	break;
-      p += fni->NextEntryOffset;
-      fni = (PFILE_NOTIFY_INFORMATION)p;
-      info_size -= fni->NextEntryOffset;
-    }
-}
-#endif	/* debugging code */
-
 /* Signal to the main thread that we have file notifications for it to
    process.  */
 static void
@@ -141,7 +144,6 @@ send_notifications (BYTE *info, DWORD info_size, HANDLE hdir, int *terminate)
 	  if (PostMessage (FRAME_W32_WINDOW (f), WM_EMACS_FILENOTIFY, 0, 0))
 	    notification_buffer_in_use = 1;
 	  done = 1;
-	  DebPrint (("Announced notifications of %lu bytes\n", info_size));
 	}
       leave_crit ();
       if (!done)
@@ -205,9 +207,6 @@ watch_completion (DWORD status, DWORD bytes_ret, OVERLAPPED *io_info)
     }
   else
     {
-#if 0	/* debugging code */
-      parse_notifications (dirwatch->buf, bytes_ret);
-#endif
       /* Tell the main thread we have notifications for it.  */
       send_notifications (dirwatch->buf, bytes_ret, dirwatch->dir,
 			  &dirwatch->terminate);
@@ -233,7 +232,7 @@ watch_worker (LPVOID arg)
 					dirwatch->io_info, watch_completion);
 	if (!status)
 	  {
-	    DebPrint (("watch_worker(1): %lu\n", GetLastError ()));
+	    DebPrint (("watch_worker, abnormal exit: %lu\n", GetLastError ()));
 	    xfree (dirwatch->buf);
 	    dirwatch->buf = NULL;
 	    xfree (dirwatch->io_info);
@@ -249,11 +248,8 @@ watch_worker (LPVOID arg)
        could be either a change notification or a cancellation of the
        watch.  */
     sleep_result = SleepEx (INFINITE, TRUE);
-    if (dirwatch->terminate)
-      DebPrint (("watch_worker: exiting by request\n"));
   } while (!dirwatch->terminate);
 
-  DebPrint (("watch_worker(2): %lu\n", GetLastError ()));
   return 0;
 }
 

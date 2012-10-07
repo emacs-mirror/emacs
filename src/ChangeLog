@@ -1,3 +1,37 @@
+2012-10-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32term.h (WM_EMACS_FILENOTIFY): New custom message.
+	(WM_EMACS_END): Bump value by 1.
+
+	* w32term.c (lispy_file_action, queue_notifications): New functions.
+	(syms_of_w32term) <Qadded, Qremoved, Qmodified, Qrenamed_from>
+	<Qrenamed_to>: New symbols.
+
+	* w32notify.c: New file, implement file event notifications for
+	MS-Windows.
+
+	* w32fns.c (w32_wnd_proc): Handle the WM_EMACS_FILENOTIFY message
+	by posting it to the w32_read_socket queue.
+
+	* termhooks.h (enum event_kind) [WINDOWSNT]: New event kind
+	FILE_NOTIFY_EVENT.
+
+	* makefile.w32-in (OBJ2): Add $(BLD)/w32notify.$(O).
+	(GLOBAL_SOURCES): Add w32notify.c
+	($(BLD)/w32notify.$(O)): New set of dependencies.
+
+	* lisp.h (syms_of_w32notify) [WINDOWSNT]: Add prototype.
+
+	* keyboard.c (kbd_buffer_get_event) [WINDOWSNT]: Handle
+	FILE_NOTIFY_EVENT.
+	(syms_of_keyboard) [WINDOWSNT] <Qfile_notify>: New symbol.
+	(keys_of_keyboard) [WINDOWSNT]: Bind file-notify to
+	w32notify-handle-event by default.
+
+	* emacs.c (main) [WINDOWSNT]: Call syms_of_w32notify.
+
+	* alloc.c (NSTATICS): Enlarge to 0x660.
+
 2012-10-07  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsterm.m (ns_dumpglyphs_image): Only draw slize of image (Bug#12506).
