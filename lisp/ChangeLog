@@ -1,3 +1,18 @@
+2012-10-07  Fabián Ezequiel Gallina  <fgallina@cuca>
+
+	Fix shell output retrieval and comint-prompt-regexp init.
+	* progmodes/python.el (inferior-python-mode):
+	(python-shell-make-comint): Fix initialization of
+	comint-prompt-regexp from copied file local variables.
+	(python-shell-fetched-lines): Remove var.
+	(python-shell-output-filter-in-progress): Rename from
+	python-shell-fetch-lines-in-progress.
+	(python-shell-output-filter-buffer): Rename from
+	python-shell-fetch-lines-string.
+	(python-shell-fetch-lines-filter): Delete function.
+	(python-shell-output-filter): New function.
+	(python-shell-send-string-no-output): Use them.
+
 2012-10-07  Glenn Morris  <rgm@gnu.org>
 
 	* hi-lock.el (hi-lock-process-phrase):

@@ -1667,10 +1667,6 @@ variable.
 \(Type \\[describe-mode] in the process buffer for a list of commands.)"
   (set-syntax-table python-mode-syntax-table)
   (setq mode-line-process '(":%s"))
-  (setq comint-prompt-regexp (format "^\\(?:%s\\|%s\\|%s\\)"
-                                     python-shell-prompt-regexp
-                                     python-shell-prompt-block-regexp
-                                     python-shell-prompt-pdb-regexp))
   (make-local-variable 'comint-output-filter-functions)
   (add-hook 'comint-output-filter-functions
             'python-comint-output-filter-function)
@@ -1720,7 +1716,11 @@ killed."
                (process (get-buffer-process buffer)))
           (with-current-buffer buffer
             (inferior-python-mode)
-            (python-util-clone-local-variables current-buffer))
+            (python-util-clone-local-variables current-buffer)
+            (setq comint-prompt-regexp (format "^\\(?:%s\\|%s\\|%s\\)"
+                                               python-shell-prompt-regexp
+                                               python-shell-prompt-block-regexp
+                                               python-shell-prompt-pdb-regexp)))
           (accept-process-output process)
           (and pop (pop-to-buffer buffer t))
           (and internal (set-process-query-on-exit-flag process nil))))
@@ -1861,26 +1861,39 @@ When MSG is non-nil messages the first line of STRING."
                 (string-match "\n[ \t].*\n?$" string))
         (comint-send-string process "\n")))))
 
-;; Shell output catching stolen from gud-gdb
-(defvar python-shell-fetch-lines-in-progress nil)
-(defvar python-shell-fetch-lines-string nil)
-(defvar python-shell-fetched-lines nil)
+(defvar python-shell-output-filter-in-progress nil)
+(defvar python-shell-output-filter-buffer nil)
 
-(defun python-shell-fetch-lines-filter (string)
-  "Filter used to read the list of lines output by a command.
-STRING is the output to filter."
-  (setq string (concat python-shell-fetch-lines-string string))
-  (while (string-match "\n" string)
-    (push (substring string 0 (match-beginning 0))
-          python-shell-fetched-lines)
-    (setq string (substring string (match-end 0))))
-  (if (equal (string-match comint-prompt-regexp string) 0)
-      (progn
-        (setq python-shell-fetch-lines-in-progress nil)
-        string)
-    (progn
-      (setq python-shell-fetch-lines-string string)
-      "")))
+(defun python-shell-output-filter (string)
+  "Filter used in `python-shell-send-string-no-output' to grab output.
+STRING is the output received to this point from the process.
+This filter saves received output from the process in
+`python-shell-output-filter-buffer' and stops receiving it after
+detecting a prompt at the end of the buffer."
+  (setq
+   string (ansi-color-filter-apply string)
+   python-shell-output-filter-buffer
+   (concat python-shell-output-filter-buffer string))
+  (when (string-match
+         (format "\n\\(?:%s\\|%s\\|%s\\)$"
+                 python-shell-prompt-regexp
+                 python-shell-prompt-block-regexp
+                 python-shell-prompt-pdb-regexp)
+         python-shell-output-filter-buffer)
+    ;; Output ends when `python-shell-output-filter-buffer' contains
+    ;; the prompt attached at the end of it.
+    (setq python-shell-output-filter-in-progress nil
+          python-shell-output-filter-buffer
+          (substring python-shell-output-filter-buffer
+                     0 (match-beginning 0)))
+    (when (and (> (length python-shell-prompt-output-regexp) 0)
+               (string-match (concat "^" python-shell-prompt-output-regexp)
+                             python-shell-output-filter-buffer))
+      ;; Some shells, like iPython might append a prompt before the
+      ;; output, clean that.
+      (setq python-shell-output-filter-buffer
+            (substring python-shell-output-filter-buffer (match-end 0)))))
+  "")
 
 (defun python-shell-send-string-no-output (string &optional process msg)
   "Send STRING to PROCESS and inhibit output.
@@ -1888,18 +1901,20 @@ When MSG is non-nil messages the first line of STRING.  Return
 the output."
   (let ((process (or process (python-shell-get-or-create-process)))
         (comint-preoutput-filter-functions
-         '(python-shell-fetch-lines-filter))
-        (python-shell-fetch-lines-in-progress t)
+         '(python-shell-output-filter))
+        (python-shell-output-filter-in-progress t)
         (inhibit-quit t))
     (or
      (with-local-quit
        (python-shell-send-string string process msg)
-       (while python-shell-fetch-lines-in-progress
+       (while python-shell-output-filter-in-progress
+         ;; `python-shell-output-filter' takes care of setting
+         ;; `python-shell-output-filter-in-progress' to NIL after it
+         ;; detects end of output.
          (accept-process-output process))
        (prog1
-           (mapconcat #'identity
-                      (reverse python-shell-fetched-lines) "\n")
-         (setq python-shell-fetched-lines nil)))
+           python-shell-output-filter-buffer
+         (setq python-shell-output-filter-buffer nil)))
      (with-current-buffer (process-buffer process)
        (comint-interrupt-subjob)))))
 
