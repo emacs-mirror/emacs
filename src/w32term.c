@@ -4945,6 +4945,7 @@ w32_read_socket (struct terminal *terminal,
 	  break;
 
 	case WM_EMACS_FILENOTIFY:
+	  DebPrint (("w32_read_socket: File notification arrived\n"));
 	  f = x_window_to_frame (dpyinfo, msg.msg.hwnd);
 	  if (f)
 	    queue_notifications (&inev, &msg, f, &count);

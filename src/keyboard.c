@@ -3961,9 +3961,9 @@ kbd_buffer_get_event (KBOARD **kbp,
 	{
 	  /* Make an event (file-notify (DESCRIPTOR ACTION FILE) CALLBACK).  */
 	  obj = Fcons (Qfile_notify,
-		       list2 (list3 (event->code,
+		       list2 (list3 (make_number (event->code),
 				     XCAR (event->arg),
-				     CAR_SAFE (XCDR (event->arg))),
+				     XCDR (event->arg)),
 			      event->frame_or_window));
 	  kbd_fetch_ptr = event + 1;
 	}
@@ -12179,7 +12179,7 @@ keys_of_keyboard (void)
   initial_define_lispy_key (Vspecial_event_map, "language-change",
 			    "ignore");
   initial_define_lispy_key (Vspecial_event_map, "file-notify",
-			    "w32notify-handlde-event");
+			    "w32notify-handle-event");
 #endif
 }
 
