@@ -6061,20 +6061,25 @@ jpeg_image_p (Lisp_Object object)
 #define __WIN32__ 1
 #endif
 
-#if 0	/* FIXME */
-/* Work around conflict between jpeg boolean and rpcndr.h
-   under Windows. */
+/* rpcndr.h (via windows.h) and jpeglib.h both define boolean types.
+   Some versions of jpeglib try to detect whether rpcndr.h is loaded,
+   using the Windows boolean type instead of the jpeglib boolean type
+   if so.  Cygwin jpeglib, however, doesn't try to detect whether its
+   headers are included along with windows.h, so under Cygwin, jpeglib
+   attempts to define a conflicting boolean type.  Worse, forcing
+   Cygwin jpeglib headers to use the Windows boolean type doesn't work
+   because it created an ABI incompatibility between the
+   already-compiled jpeg library and the header interface definition.
+
+   The best we can do is to define jpeglib's boolean type to a
+   different name.  This name, jpeg_boolean, remains in effect through
+   the rest of image.c.
+*/
+#if defined (CYGWIN) && defined (HAVE_NTGUI)
 #define boolean jpeg_boolean
 #endif
 #include <jpeglib.h>
 #include <jerror.h>
-
-/* Don't undefine boolean --- use the JPEG boolean
-   through the rest of the file. */
-
-#ifdef HAVE_STLIB_H_1
-#define HAVE_STDLIB_H 1
-#endif
 
 #ifdef WINDOWSNT
 

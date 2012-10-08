@@ -1,3 +1,8 @@
+2012-10-08  Daniel Colascione  <dancol@dancol.org>
+
+	* image.c: Permanent fix for JPEG compilation issue --- limit
+	jpeglib `boolean' redefinition to Cygwin builds.
+
 2012-10-08  Eli Zaretskii  <eliz@gnu.org>
 
 	* image.c (CHECK_LIB_AVAILABLE): Remove, no longer used.
