@@ -697,7 +697,7 @@ DEFUN ("w32-default-color-map", Fw32_default_color_map, Sw32_default_color_map,
 }
 
 static Lisp_Object
-w32_color_map_lookup (char *colorname)
+w32_color_map_lookup (const char *colorname)
 {
   Lisp_Object tail, ret = Qnil;
 
@@ -776,7 +776,7 @@ add_system_logical_colors_to_map (Lisp_Object *system_colors)
 
 
 static Lisp_Object
-x_to_w32_color (char * colorname)
+x_to_w32_color (const char * colorname)
 {
   register Lisp_Object ret = Qnil;
 
@@ -785,11 +785,10 @@ x_to_w32_color (char * colorname)
   if (colorname[0] == '#')
     {
       /* Could be an old-style RGB Device specification.  */
-      char *color;
-      int size;
-      color = colorname + 1;
+      int size = strlen (colorname + 1);
+      char *color = alloca (size + 1);
 
-      size = strlen (color);
+      strcpy (color, colorname + 1);
       if (size == 3 || size == 6 || size == 9 || size == 12)
 	{
 	  UINT colorval;
@@ -843,7 +842,7 @@ x_to_w32_color (char * colorname)
     }
   else if (strnicmp (colorname, "rgb:", 4) == 0)
     {
-      char *color;
+      const char *color;
       UINT colorval;
       int i, pos;
       pos = 0;
@@ -899,7 +898,7 @@ x_to_w32_color (char * colorname)
   else if (strnicmp (colorname, "rgbi:", 5) == 0)
     {
       /* This is an RGB Intensity specification.  */
-      char *color;
+      const char *color;
       UINT colorval;
       int i, pos;
       pos = 0;
