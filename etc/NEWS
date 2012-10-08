@@ -286,8 +286,9 @@ See the variable `calendar-month-header'.
 +++
 *** New LaTeX calendar style, produced by `cal-tex-cursor-week2-summary'.
 
++++
 *** The calendars produced by cal-html include holidays.
-Customize cal-html-holidays to change this.
+Customize `cal-html-holidays' to change this.
 
 ** CL
 
