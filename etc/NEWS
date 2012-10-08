@@ -72,6 +72,10 @@ If you don't pass --with-x-toolkit to configure or if you pass
 with Gtk+ version 3, and if that fails, try Gtk+ version 2.
 You can explicitly require a specific version by passing
 --with-x-toolkit=gtk2 or --with-x-toolkit=gtk3 to configure.
+--
+** The native Windows user interface is available for Cygwin.  Passing
+--with-w32 will configure a Cygwin emacs to use the Windows user
+interface instead of the default, X11.
 
 
 * Startup Changes in Emacs 24.3
@@ -876,6 +880,11 @@ is detected.
 ** When invoked with the -nw switch to run on the Windows text-mode terminal,
 Emacs now supports mouse highlight, help-echo (in the echo area), and
 mouse-autoselect-window.
+
+** Two new functions are available in Cygwin builds of Emacs: 
+cygwin-convert-path-from-windows and cygwin-convert-path-to-windows.
+These functions allows lisp code to access the Cygwin path mapping
+machinery to convert between Cygwin and Windows-native paths.
 
 ** On MS-Windows Vista and later Emacs now supports symbolic links.
 
