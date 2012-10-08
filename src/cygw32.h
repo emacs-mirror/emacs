@@ -38,13 +38,12 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Access the wide-character string stored in a Lisp string object.  */
 #define WCSDATA(x) ((wchar_t *) SDATA (x))
 
-/* Convert the Emacs string in STR to UTF-16LE and store a new string
-   containing the encoded version of STR into *BUF.  BUF may safely
-   point to STR on entry.  */
+/* Convert the multi-byte string in STR to UTF-16LE encoded unibyte
+   string, and store it in *BUF.  BUF may safely point to STR on entry.  */
 extern wchar_t *to_unicode (Lisp_Object str, Lisp_Object *buf);
 
-/* Convert STR, a UTF-16LE encoded string embedded in an Emacs string
-   object, to a normal Emacs string and return it.  */
+/* Convert STR, a UTF-16LE encoded string embedded in a unibyte string
+   object, to a multi-byte Emacs string, and return it.  */
 extern Lisp_Object from_unicode (Lisp_Object str);
 
 /* *** Path conversion. *** */
