@@ -1,8 +1,8 @@
 2012-10-08  Daniel Colascione  <dancol@dancol.org>
 
 	* xdisp.c (start_hourglass): Call w32_note_current_window when
-	HAVE_NTGUI but not WINDOWSNT, resolving a problem that caused
-	Emacs to display the hourglass cursor forever.
+	HAVE_NTGUI, not just WINDOWSNT, resolving a problem in the cygw32
+	build that caused Emacs to display the hourglass cursor forever.
 
 2012-10-08  Jan Djärv  <jan.h.d@swipnet.se>
 	* nsfont.m (Vfonts_in_cache): New variable.
@@ -12,7 +12,7 @@
 
 2012-10-08  Daniel Colascione  <dancol@dancol.org>
 	* w32fns.c (Fx_display_color_cells): Instead of using NCOLORS,
-	which is broke under remote desktop, calculating the number of
+	which is broken under remote desktop, calculate the number of
 	colors available for a display based on the display's number of
 	planes and number of bits per pixel per plane.  (bug#10397).
 
