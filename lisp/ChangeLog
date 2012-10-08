@@ -1,3 +1,8 @@
+2012-10-08  Martin Rudalics  <rudalics@gmx.at>
+
+	* emacs-lisp/edebug.el (edebug-pop-to-buffer): Don't try to split
+	the minibuffer window (Bug#10851).
+
 2012-10-08  Fabián Ezequiel Gallina  <fgallina@cuca>
 
 	Enhancements on forward-sexp movement.
