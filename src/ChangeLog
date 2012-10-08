@@ -1,3 +1,8 @@
+2012-10-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* emacs.c (DAEMON_MUST_EXEC) [HAVE_NTGUI]: Define this only on
+	Cygwin.
+
 2012-10-08  Daniel Colascione  <dancol@dancol.org>
 
 	* xfaces.c, xdisp.c, window.c, w32xfns.c, w32term.h, w32term.c,
