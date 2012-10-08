@@ -887,10 +887,10 @@ is detected.
 Emacs now supports mouse highlight, help-echo (in the echo area), and
 mouse-autoselect-window.
 
-** Two new functions are available in Cygwin builds of Emacs: 
+** Two new functions are available in Cygwin builds of Emacs:
 cygwin-convert-path-from-windows and cygwin-convert-path-to-windows.
-These functions allows lisp code to access the Cygwin path mapping
-machinery to convert between Cygwin and Windows-native paths.
+These functions allow Lisp code to access the Cygwin file-name mapping
+machinery to convert between Cygwin and Windows-native file names.
 
 ** On MS-Windows Vista and later Emacs now supports symbolic links.
 
