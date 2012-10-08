@@ -1,5 +1,7 @@
 2012-10-08  Eli Zaretskii  <eliz@gnu.org>
 
+	* image.c (CHECK_LIB_AVAILABLE): Remove, no longer used.
+
 	* emacs.c (DAEMON_MUST_EXEC) [HAVE_NTGUI]: Define this only on
 	Cygwin.
 
