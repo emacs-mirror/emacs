@@ -35,8 +35,6 @@ SYSTEM_INFO sysinfo_cache;
 extern unsigned long syspage_mask;
 OSVERSIONINFO osinfo_cache;
 
-size_t syspage_mask = 0;
-
 /* The major and minor versions of NT.  */
 int w32_major_version;
 int w32_minor_version;
