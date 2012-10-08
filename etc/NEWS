@@ -708,7 +708,7 @@ are deprecated and will be removed eventually.
 *** `compile-internal'
 *** `mode-line-inverse-video'
 *** `cvs-commit-buffer-require-final-newline'
-(use `'log-edit-require-final-newline'instead)
+(use `log-edit-require-final-newline' instead)
 *** `cvs-changelog-full-paragraphs'
 (use `log-edit-changelog-full-paragraphs' instead)
 *** `cvs-diff-ignore-marks', `cvs-diff-buffer-name'
@@ -837,7 +837,7 @@ macro-calls to be left for later expansion (as before), but will also
 result in a warning ("Eager macro-expansion skipped due to cycle")
 describing the cycle.
 
-** Misc new functions:
+** Miscellaneous new functions:
 
 *** `autoloadp'
 *** `autoload-do-load'.
