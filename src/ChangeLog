@@ -2,6 +2,9 @@
 
 	* makefile.w32-in (LOCAL_FLAGS): Don't define HAVE_NTGUI, it's now
 	in nt/config.nt.
+	(FONT_H): Define after FRAME_H.
+	($(BLD)/emacs.$(O), $(BLD)/process.$(O), $(BLD)/w32heap.$(O)):
+	Update dependencies.
 
 	* w32term.c: Remove leftover declaration of keyboard_codepage.
 
