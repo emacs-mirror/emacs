@@ -1,5 +1,8 @@
 2012-10-08  Juanma Barranquero  <lekktu@gmail.com>
 
+	* makefile.w32-in (LOCAL_FLAGS): Don't define HAVE_NTGUI, it's now
+	in nt/config.nt.
+
 	* w32term.c: Remove leftover declaration of keyboard_codepage.
 
 2012-10-08  Eli Zaretskii  <eliz@gnu.org>

@@ -27,7 +27,7 @@ EMACSLOADPATH=$(CURDIR)/../lisp
 # Size in MBs of the static heap in temacs.exe.
 HEAPSIZE = $(EMACS_HEAPSIZE)
 
-LOCAL_FLAGS     = -Demacs=1 -I../lib -I../nt/inc -DHAVE_NTGUI=1 $(EMACS_EXTRA_C_FLAGS)
+LOCAL_FLAGS     = -Demacs=1 -I../lib -I../nt/inc $(EMACS_EXTRA_C_FLAGS)
 
 SRC             = .
 EMACS           = $(BLD)/emacs.exe
