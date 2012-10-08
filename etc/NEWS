@@ -23,18 +23,36 @@ so we will look at it and add it to the manual.
 
 * Installation Changes in Emacs 24.3
 
+---
+** The default toolkit has been changed to Gtk+ version 3.
+If you don't pass --with-x-toolkit to configure or if you pass
+--with-x-toolkit=gtk or --with-x-toolkit=yes, configure will try to build
+with Gtk+ version 3, and if that fails, try Gtk+ version 2.
+You can explicitly require a specific version by passing
+--with-x-toolkit=gtk2 or --with-x-toolkit=gtk3 to configure.
+
+---
 ** New configure option '--without-all' to disable additional features.
 This disables most of the features that are normally enabled by default.
 
+---
 ** New configure option '--enable-link-time-optimization' to utilize
 an appropriate feature provided by GCC since version 4.5.0.
 
+---
 ** New configure option '--enable-gcc-warnings', intended for developers.
 If building with GCC, this enables compile-time checks that warn about
 possibly-questionable C code.  On a recent GNU system there should be
 no warnings; on older and on non-GNU systems the generated warnings
 may be useful.
 
+---
+** The configuration option '--enable-use-lisp-union-type' has been
+renamed to '--enable-check-lisp-object-type', as the resulting
+Lisp_Object type no longer uses a union to implement the compile time
+check that this option enables.
+
+---
 ** The configure option '--disable-maintainer-mode' has been removed,
 as it was confusingly-named and rarely useful.
 
@@ -59,19 +77,6 @@ directories to the search path.  You must add them yourself if you want them.
 ** The standalone scripts rcs-checkin and vcdiff have been removed
 (from the bin and libexec directories, respectively).  The former is
 no longer relevant, the latter is replaced by lisp (in vc-sccs.el).
-
-** The configuration option '--enable-use-lisp-union-type' has been
-renamed to '--enable-check-lisp-object-type', as the resulting
-Lisp_Object type no longer uses a union to implement the compile time
-check that this option enables.
-
----
-** The default toolkit has been changed to Gtk+ version 3.
-If you don't pass --with-x-toolkit to configure or if you pass
---with-x-toolkit=gtk or --with-x-toolkit=yes, configure will try to build
-with Gtk+ version 3, and if that fails, try Gtk+ version 2.
-You can explicitly require a specific version by passing
---with-x-toolkit=gtk2 or --with-x-toolkit=gtk3 to configure.
 
 
 * Startup Changes in Emacs 24.3
