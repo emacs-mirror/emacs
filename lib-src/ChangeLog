@@ -1,3 +1,7 @@
+2012-10-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (obj): Add cygw32.o.
+
 2012-10-08  Daniel Colascione  <dancol@dancol.org>
 
 	* emacsclient.c: Include windows.h when HAVE_NTGUI.

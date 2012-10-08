@@ -1,5 +1,10 @@
 2012-10-08  Eli Zaretskii  <eliz@gnu.org>
 
+	* makefile.w32-in (FONT_H): Add $(FRAME_H).
+	(W32TERM_H): Add $(ATIMER_H) and $(FRAME_H).
+	($(BLD)/emacs.$(O), $(BLD)/w32console.$(O)): Update dependencies.
+	(GLOBAL_SOURCES): Add cygw32.c.
+
 	* w32fns.c (w32_color_map_lookup, x_to_w32_color): Argument is now
 	'const char *'.
 	(x_to_w32_color): Don't modify the argument, modify a copy instead.
