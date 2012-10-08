@@ -1,3 +1,141 @@
+2012-10-08  Daniel Colascione  <dancol@dancol.org>
+
+	* xfaces.c, xdisp.c, window.c, w32xfns.c, w32term.h, w32term.c,
+	w32select.h w32select.c, w32proc.c, w32menu.c, w32inevt.c,
+	w32help.c, w32font.c, w32font.c, w32fns.c, w32console.c, w32.h,
+	w32.c, unexw32.c, termhooks.h, process.c, menu.c, keyboard.h,
+	keyboard.c, image.c, frame.h, frame.c, fontset.c, font.h, font.c,
+	emacs.c, dispextern.h, cygw32.h, cygw32.c, conf_post.h,
+	Makefile.in: use HAVE_NTGUI for W32 GUI and WINDOWSNT for the
+	operating system.  defined(HAVE_NTGUI) && !defined(WINDOWSNT) is
+	now a supported configuration.
+
+	* Makefile.in: consolidate image variables into LIBIMAGE; add
+	W32_OBJ and W32_LIBS. Compile new files.
+
+	* conf_post.h:
+	(_DebPrint) declare tracing facility for W32 debugging.  We need
+	to unify tracing later.
+
+	(NTGUI_UNICODE) Define when compiling for Cygwin to allow the
+	unconditional use of W32 Unicode functions.  Cygwin runs only on
+	100% Unicode operating systems.
+
+	* cygw32.c: New file.  Define Cygwin-specific facilities.
+	(Fcygwin_convert_path_to_windows)
+	(Fcygwin_convert_path_from_windows): New user functions for
+	accessing Cygwin path-munging routines.
+
+	* cygw32.h: New file.
+	(WCSDATA, to_unicode, from_unicode): Define facilities for storing
+	UTF-16LE strings temporarily inside non-Lisp-visible string
+	objects.
+
+	(w32_strerror): Just what it says on the tin.
+
+	* emacs.c: Make the NS fork-then-exec code for daemon-launching
+	also run for Cygwin; both systems have the same problem with using
+	GUI facilities in a forked child.  Also call syms_of_cygw32,
+	syms_of_w32select in correct places.
+
+	(DAEMON_MUST_EXEC): new macro defined to signal that a platform
+	needs fork-then-exec for daemon launching.
+
+	* font.h: Include frame.h.
+
+	* image.c: Use the image library cache machinery only when we're
+	compiling for native WINDOWSNT; Cygwin can use shared libraries
+	like any other Unixlike system.
+
+	* keyboard.c: Clarify a comment regarding the input loop.
+
+	* menu.c: When NTGUI_UNICODE is defined, use Unicode menu
+	functions directly instead of trying to detect at runtime that our
+	host operating system supports them.  We make this change for two
+	reasons: Cygwin lacks support for the multibyte character
+	conversion functions used by the legacy menu code, and Cygwin
+	never needs to rely on non-Unicode APIs.
+
+	* unexw32.c (hinst): Declare extern.
+
+	* w32.c: Change header order;
+	(w32_strerror): Move to w32fns.c because we need it for
+	non-WINDOWSNT builds.
+
+	* w32.h: Add #error macro to make sure we don't include w32.h for
+	Cygwin builds.  Remove w32select declarations.
+
+	* w32console.c (w32_sys_ring_bell, Fset_message_beep): Move to
+	w32fns.c. w32console.c is WINDOWSNT-only.
+
+	* w32fns.c: Include cygw32.h or w32.h depending on CYGWIN; more
+	NTGUI_UNICODE tweaks.  (See above.) Change _snprintf to the more
+	POSIXy alternative.
+	(faked_key, sysinfo_cache, osinfo_cahce, syspage_mask)
+	(w32_major_version, w32_minor_version, w32_build_number)
+	(os_subtype, sound_type): Define here
+	(w32_defined_color): Make color parameter const for consistency
+	with other _defined_color functions.
+	(w32_createwindow): Unconditionally call w32_init_class instead of
+	doing so only when hprevinst is non-NULL.  Plumbing hprevinst
+	through the code is complex and unnecessary because class
+	registration is practically free.
+	(w32_name_of_message): New EMACSDEBUG-only function.
+	(Fset_message_beep): Move here
+	(Fx_open_connection): Require that the display name for Windows be
+	"w32" for consistency, emacsclient disambiguation, and maybe, one
+	day, multi-window-system support.
+	(file_dialog_callback): NTGUI_UNICODE changes; encode and decode
+	Cygwin files for W32 GUI facilities, since these clearly don't
+	expect Cygwin names.
+	(_DebPrint): Define.
+	(w32_strerror, w32_console_toggle_lock_key, w32_kbd_mods_to_emacs)
+	(w32_kbd_patch_key, w32_sys_ring_bell): Move here.
+	(Ssystem_move_file_to_trash): Define only for native WINDOWSNT.
+	(w32_last_error): Remove.
+
+	* w32font.c: Define _strlwr to strlwr for non-WINDOWSNT builds.
+
+	* w32heap.c (syspage_mask): Declare here.
+	(cache_system_info): Remove.
+
+	* w32inevt.c (faked_key): Define globally, not statically.
+	(w32_kbd_mods_to_emacs, w32_kbd_patch_key, faked_key)
+	(w32_console_toggle_lock_key): Move to w32fns.c.
+
+	* w32menu.c: Include setjmp.h.  NTGUI_UNICODE changes throughout.
+
+	* w32proc.c (_DebPrint): Move to w32fns.c.
+	* w32select.c: Include string.h, stdio.h for Cygwin.
+	* w32select.h: New File.
+
+	* w32term.c: Include io.h for non-CYGWIN builds; needed for
+	get_osfhandle.
+	(w32_message_fd): New variable.  Under Cygwin, holds the file
+	descriptor the system used to tell us about pending thread
+	messages.
+
+	(w32_init_term): Remove incorrect calls to fcntl and init_sigio
+	that prevented compilation under non-WINDOWSNT systems.
+
+	(w32_initialize): Open /dev/windows and assign it to
+	w32_message_fd.  Provide w32 feature.
+
+	* w32term.h: Include frame.h, atimer.h.  Declare various frame functions.
+	(WM_EMACS_INPUT_READY): add.
+	(prepend_msg, w32_message_fd): Declare globally.
+
+	* w32xfns.c:
+	(keyboard_handle): Use only when WINDOWSNT.
+	(notify_msg_ready): New function.  Posts a message to the main
+	thread's message queue under CYGWIN, which wakes up the main
+	thread from select(2) by making the /dev/windows file descriptor
+	ready.  Under WINDOWSNT, it sets an event the same way the old
+	code did.
+
+	(post, prepend_msg): Actually call notify_msg_ready instead of
+	setting the input event directly.
+
 2012-10-07  Eli Zaretskii  <eliz@gnu.org>
 
 	* ralloc.c (relinquish): If a heap is ready to be relinquished,

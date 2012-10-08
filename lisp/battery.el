@@ -60,7 +60,7 @@
 			 (> (buffer-size) 0)))
 		(error nil)))
 	 'battery-pmset)
-	((eq system-type 'windows-nt)
+	((fboundp 'w32-battery-status)
 	 'w32-battery-status))
   "Function for getting battery status information.
 The function has to return an alist of conversion definitions.

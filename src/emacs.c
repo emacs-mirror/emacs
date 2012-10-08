@@ -33,9 +33,20 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #ifdef WINDOWSNT
 #include <fcntl.h>
-#include <windows.h> /* just for w32.h */
 #include "w32.h"
-#include "w32heap.h" /* for prototype of sbrk */
+#endif
+
+#if defined (WINDOWSNT)
+#include "w32heap.h"
+#endif
+
+#if defined (WINDOWSNT) || defined (HAVE_NTGUI)
+#include "w32select.h"
+#include "w32font.h"
+#endif
+
+#if defined (HAVE_NTGUI) && defined (CYGWIN)
+#include "cygw32.h"
 #endif
 
 #ifdef HAVE_WINDOW_SYSTEM
@@ -154,6 +165,22 @@ static void *my_heap_start;
 #ifdef GNU_LINUX
 /* The gap between BSS end and heap start as far as we can tell.  */
 static uprintmax_t heap_bss_diff;
+#endif
+
+/* To run as a daemon under Cocoa or Windows, we must do a fork+exec,
+   not a simple fork.
+
+   On Cocoa, CoreFoundation lib fails in forked process:
+   http://developer.apple.com/ReleaseNotes/
+   CoreFoundation/CoreFoundation.html)
+
+   On Windows, a Cygwin fork child cannot access the USER subsystem.
+
+   We mark being in the exec'd process by a daemon name argument of
+   form "--daemon=\nFD0,FD1\nNAME" where FD are the pipe file descriptors,
+   NAME is the original daemon name, if any. */
+#if defined (NS_IMPL_COCOA) || defined (HAVE_NTGUI)
+# define DAEMON_MUST_EXEC
 #endif
 
 /* True means running Emacs without interactive terminal.  */
@@ -669,9 +696,9 @@ main (int argc, char **argv)
   bool no_loadup = 0;
   char *junk = 0;
   char *dname_arg = 0;
-#ifdef NS_IMPL_COCOA
+#ifdef DAEMON_MUST_EXEC
   char dname_arg2[80];
-#endif
+#endif /* DAEMON_MUST_EXEC */
   char *ch_to_dir;
 
 #if GC_MARK_STACK
@@ -964,25 +991,19 @@ main (int argc, char **argv)
 	  exit (1);
 	}
 
-#ifndef NS_IMPL_COCOA
+#ifndef DAEMON_MUST_EXEC
 #ifdef USE_GTK
       fprintf (stderr, "\nWarning: due to a long standing Gtk+ bug\nhttp://bugzilla.gnome.org/show_bug.cgi?id=85715\n\
 Emacs might crash when run in daemon mode and the X11 connection is unexpectedly lost.\n\
 Using an Emacs configured with --with-x-toolkit=lucid does not have this problem.\n");
-#endif
+#endif /* USE_GTK */
       f = fork ();
-#else /* NS_IMPL_COCOA */
-      /* Under Cocoa we must do fork+exec as CoreFoundation lib fails in
-         forked process: http://developer.apple.com/ReleaseNotes/
-                                  CoreFoundation/CoreFoundation.html)
-         We mark being in the exec'd process by a daemon name argument of
-         form "--daemon=\nFD0,FD1\nNAME" where FD are the pipe file descriptors,
-         NAME is the original daemon name, if any. */
+#else /* DAEMON_MUST_EXEC */
       if (!dname_arg || !strchr (dname_arg, '\n'))
 	  f = fork ();  /* in orig */
       else
 	  f = 0;  /* in exec'd */
-#endif /* NS_IMPL_COCOA */
+#endif /* !DAEMON_MUST_EXEC */
       if (f > 0)
 	{
 	  int retval;
@@ -1018,7 +1039,7 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
 	  exit (1);
 	}
 
-#ifdef NS_IMPL_COCOA
+#ifdef DAEMON_MUST_EXEC
       {
         /* In orig process, forked as child, OR in exec'd. */
         if (!dname_arg || !strchr (dname_arg, '\n'))
@@ -1054,7 +1075,7 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
                 dname_arg2);
         dname_arg = *dname_arg2 ? dname_arg2 : NULL;
       }
-#endif /* NS_IMPL_COCOA */
+#endif /* DAEMON_MUST_EXEC */
 
       if (dname_arg)
        	daemon_name = xstrdup (dname_arg);
@@ -1357,6 +1378,9 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
 #ifdef WINDOWSNT
       syms_of_ntproc ();
 #endif /* WINDOWSNT */
+#if defined (CYGWIN) && defined (HAVE_NTGUI)
+      syms_of_cygw32 ();
+#endif /* defined(CYGWIN) && defined (HAVE_NTGUI) */
       syms_of_window ();
       syms_of_xdisp ();
       syms_of_font ();
@@ -1387,10 +1411,13 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
 #ifdef HAVE_NTGUI
       syms_of_w32term ();
       syms_of_w32fns ();
-      syms_of_w32select ();
       syms_of_w32menu ();
       syms_of_fontset ();
 #endif /* HAVE_NTGUI */
+
+#ifdef HAVE_W32SELECT
+      syms_of_w32select ();
+#endif /* HAVE_W32SELECT */
 
 #ifdef MSDOS
       syms_of_xmenu ();
@@ -1436,8 +1463,11 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
       globals_of_w32font ();
       globals_of_w32fns ();
       globals_of_w32menu ();
-      globals_of_w32select ();
 #endif  /* HAVE_NTGUI */
+
+#ifdef HAVE_W32SELECT
+      globals_of_w32select ();
+#endif /* HAVE_W32SELECT */
     }
 
   init_charset ();

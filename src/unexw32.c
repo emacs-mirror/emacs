@@ -83,7 +83,7 @@ DWORD_PTR  extra_bss_size_static = 0;
 PIMAGE_SECTION_HEADER heap_section;
 
 #ifdef HAVE_NTGUI
-HINSTANCE hinst = NULL;
+extern HINSTANCE hinst;
 HINSTANCE hprevinst = NULL;
 LPSTR lpCmdLine = "";
 int nCmdShow = 0;

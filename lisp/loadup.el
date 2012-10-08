@@ -237,15 +237,18 @@
       (load "term/common-win")
       (load "term/x-win")))
 
-(if (eq system-type 'windows-nt)
+(if (or (eq system-type 'windows-nt)
+        (featurep 'w32))
     (progn
-      (load "w32-vars")
       (load "term/common-win")
+      (load "w32-vars")
       (load "term/w32-win")
-      (load "ls-lisp")
       (load "disp-table")
-      (load "dos-w32")
-      (load "w32-fns")))
+      (load "w32-common-fns")
+      (when (eq system-type 'windows-nt)
+        (load "w32-fns")
+        (load "ls-lisp")
+        (load "dos-w32"))))
 (if (eq system-type 'ms-dos)
     (progn
       (load "dos-w32")

@@ -23,6 +23,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define EMACS_FONT_H
 
 #include "ccl.h"
+#include "frame.h"
 
 /* We have three types of Lisp objects related to font.
 
@@ -818,11 +819,11 @@ extern struct font_driver ftxfont_driver;
 extern void syms_of_bdffont (void);
 #endif	/* HAVE_BDFFONT */
 #endif	/* HAVE_X_WINDOWS */
-#ifdef WINDOWSNT
+#ifdef HAVE_NTGUI
 extern struct font_driver w32font_driver;
 extern struct font_driver uniscribe_font_driver;
 extern void syms_of_w32font (void);
-#endif	/* WINDOWSNT */
+#endif	/* HAVE_NTGUI */
 #ifdef HAVE_NS
 extern Lisp_Object Qfontsize;
 extern struct font_driver nsfont_driver;
