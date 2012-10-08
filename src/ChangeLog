@@ -4,6 +4,13 @@
 	(W32TERM_H): Add $(ATIMER_H) and $(FRAME_H).
 	($(BLD)/emacs.$(O), $(BLD)/w32console.$(O)): Update dependencies.
 	(GLOBAL_SOURCES): Add cygw32.c.
+	($(BLD)/unexw32.$(O)): 
+	($(BLD)/w32.$(O)): 
+	($(BLD)/w32console.$(O)): 
+	($(BLD)/w32fns.$(O)): 
+	($(BLD)/w32heap.$(O)): 
+	($(BLD)/w32menu.$(O)): 
+	($(BLD)/w32proc.$(O)): Add w32common.h.
 
 	* w32fns.c (w32_color_map_lookup, x_to_w32_color): Argument is now
 	'const char *'.
