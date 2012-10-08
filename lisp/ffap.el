@@ -482,18 +482,12 @@ Returned values:
 
 (defun ffap-replace-file-component (fullname name)
   "In remote FULLNAME, replace path with NAME.  May return nil."
-  ;; Use ange-ftp or efs if loaded, but do not load them otherwise.
-  (let (found)
-    (mapc
-     (function (lambda (sym) (and (fboundp sym) (setq found sym))))
-     '(
-       efs-replace-path-component
-       ange-ftp-replace-path-component
-       ange-ftp-replace-name-component
-       ))
-    (and found
-	 (fset 'ffap-replace-file-component found)
-	 (funcall found fullname name))))
+  ;; Use efs if loaded, but do not load it otherwise.
+  (if (fboundp 'efs-replace-path-component)
+      (funcall efs-replace-path-component fullname name)
+    (and (stringp fullname)
+	 (stringp name)
+	 (concat (file-remote-p fullname) name))))
 ;; (ffap-replace-file-component "/who@foo.com:/whatever" "/new")
 
 (defun ffap-file-suffix (file)

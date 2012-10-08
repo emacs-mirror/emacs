@@ -1,3 +1,8 @@
+2012-10-08  Michael Albinus  <michael.albinus@gmx.de>
+
+	* ffap.el (ffap-replace-file-component): Support Tramp file name
+	syntax, not only ange-ftp's one.
+
 2012-10-08  Glenn Morris  <rgm@gnu.org>
 
 	* cus-start.el (message-log-max): Set :version.
