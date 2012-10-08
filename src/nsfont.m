@@ -53,6 +53,9 @@ extern float ns_antialias_threshold;
 extern int ns_tmp_flags;
 extern struct nsfont_info *ns_tmp_font;
 
+static Lisp_Object Vfonts_in_cache;
+
+
 /* font glyph and metrics caching functions, implemented at end */
 static void ns_uni_to_glyphs (struct nsfont_info *font_info,
                               unsigned char block);
@@ -799,8 +802,7 @@ nsfont_open (FRAME_PTR f, Lisp_Object font_entity, int pixel_size)
     {
       if (NSFONT_TRACE)
         fprintf(stderr, "*** nsfont_open CACHE HIT!\n");
-      /* FIXME: Cast from (unsigned long) to Lisp_Object. */
-      XHASH (font_object) = [cached unsignedLongValue];
+      XHASH (font_object) = [cached unsignedLongLongValue];
       return font_object;
     }
   else
@@ -808,9 +810,13 @@ nsfont_open (FRAME_PTR f, Lisp_Object font_entity, int pixel_size)
       font_object = font_make_object (VECSIZE (struct nsfont_info),
                                       font_entity, pixel_size);
       if (!synthItal)
-        [fontCache setObject: [NSNumber numberWithUnsignedLong:
-					  (unsigned long) XHASH (font_object)]
-		      forKey: nsfont];
+        {
+          [fontCache setObject: [NSNumber
+                                  numberWithUnsignedLongLong:
+                                    (unsigned long long) XHASH (font_object)]
+                        forKey: nsfont];
+          Vfonts_in_cache = Fcons (font_object, Vfonts_in_cache);
+        }
     }
 
   font_info = (struct nsfont_info *) XFONT_OBJECT (font_object);
@@ -1529,4 +1535,7 @@ syms_of_nsfont (void)
                doc: /* Internal use: maps font registry to Unicode script. */);
 
   ascii_printable = NULL;
+
+  Vfonts_in_cache = Qnil;
+  staticpro (&Vfonts_in_cache);
 }

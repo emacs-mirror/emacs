@@ -1,3 +1,10 @@
+2012-10-08  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsfont.m (Vfonts_in_cache): New variable.
+	(nsfont_open): Use unsignedLongLongValue for cache in case wide ints
+	are used.  Add cached fonts to Vfonts_in_cache.
+	(syms_of_nsfont): Initialize and staticpro Vfonts_in_cache.
+
 2012-10-08  Juanma Barranquero  <lekktu@gmail.com>
 
 	* makefile.w32-in (LOCAL_FLAGS): Don't define HAVE_NTGUI, it's now
