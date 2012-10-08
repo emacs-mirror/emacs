@@ -6128,8 +6128,8 @@ Otherwise, if ONLY-DIR-P is non-nil, the user can only select directories.  */)
 
     /* Note: under NTGUI_UNICODE, we do _NOT_ use ENCODE_FILE: the
        system file encoding expected by the platform APIs (e.g. Cygwin's
-       POSIX implementation) may not the same as the encoding expected
-       by the Windows API!  */
+       POSIX implementation) may not be the same as the encoding expected
+       by the Windows "ANSI" APIs!  */
 
     CHECK_STRING (prompt);
     CHECK_STRING (dir);
@@ -6215,6 +6215,7 @@ Otherwise, if ONLY-DIR-P is non-nil, the user can only select directories.  */)
 
     {
       int count = SPECPDL_INDEX ();
+      /* Prevent redisplay.  */
       specbind (Qinhibit_redisplay, Qt);
       block_input ();
       file_details->lpfnHook = file_dialog_callback;
