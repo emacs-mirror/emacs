@@ -1,9 +1,14 @@
 2012-10-08  Jan Djärv  <jan.h.d@swipnet.se>
-
 	* nsfont.m (Vfonts_in_cache): New variable.
 	(nsfont_open): Use unsignedLongLongValue for cache in case wide ints
 	are used.  Add cached fonts to Vfonts_in_cache.
 	(syms_of_nsfont): Initialize and staticpro Vfonts_in_cache.
+
+2012-10-08  Daniel Colascione  <dancol@dancol.org>
+	* w32fns.c (Fx_display_color_cells): Instead of using NCOLORS,
+	which is broke under remote desktop, calculating the number of
+	colors available for a display based on the display's number of
+	planes and number of bits per pixel per plane.  (bug#10397).
 
 2012-10-08  Juanma Barranquero  <lekktu@gmail.com>
 
