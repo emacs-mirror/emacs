@@ -1,3 +1,9 @@
+2012-10-08  Daniel Colascione  <dancol@dancol.org>
+
+	* xdisp.c (start_hourglass): Call w32_note_current_window when
+	HAVE_NTGUI but not WINDOWSNT, resolving a problem that caused
+	Emacs to display the hourglass cursor forever.
+
 2012-10-08  Jan Djärv  <jan.h.d@swipnet.se>
 	* nsfont.m (Vfonts_in_cache): New variable.
 	(nsfont_open): Use unsignedLongLongValue for cache in case wide ints
