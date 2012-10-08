@@ -1,3 +1,8 @@
+2012-10-08  Juanma Barranquero  <lekktu@gmail.com>
+
+	* generic-x.el (javascript-generic-mode, javascript-generic-mode-hook):
+	Make obsolete aliases of js-mode and js-mode-hook (from js.el).
+
 2012-10-08  Michael Albinus  <michael.albinus@gmx.de>
 
 	* ffap.el (ffap-replace-file-component): Support Tramp file name
