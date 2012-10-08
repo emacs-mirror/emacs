@@ -1,5 +1,11 @@
 2012-10-08  Fabián Ezequiel Gallina  <fgallina@cuca>
 
+	* progmodes/python.el (python-fill-paragraph): Rename from
+	python-fill-paragraph-function.  Fixed fill-paragraph for
+	decorators (Bug#12605).
+
+2012-10-08  Fabián Ezequiel Gallina  <fgallina@cuca>
+
 	* progmodes/python.el (python-shell-output-filter): Handle extra
 	carriage return in OSX (Bug#12409).
 

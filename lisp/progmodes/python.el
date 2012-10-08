@@ -2272,28 +2272,28 @@ inferior python process is updated properly."
 
 (defcustom python-fill-comment-function 'python-fill-comment
   "Function to fill comments.
-This is the function used by `python-fill-paragraph-function' to
+This is the function used by `python-fill-paragraph' to
 fill comments."
   :type 'symbol
   :group 'python)
 
 (defcustom python-fill-string-function 'python-fill-string
   "Function to fill strings.
-This is the function used by `python-fill-paragraph-function' to
+This is the function used by `python-fill-paragraph' to
 fill strings."
   :type 'symbol
   :group 'python)
 
 (defcustom python-fill-decorator-function 'python-fill-decorator
   "Function to fill decorators.
-This is the function used by `python-fill-paragraph-function' to
+This is the function used by `python-fill-paragraph' to
 fill decorators."
   :type 'symbol
   :group 'python)
 
 (defcustom python-fill-paren-function 'python-fill-paren
   "Function to fill parens.
-This is the function used by `python-fill-paragraph-function' to
+This is the function used by `python-fill-paragraph' to
 fill parens."
   :type 'symbol
   :group 'python)
@@ -2370,7 +2370,7 @@ SYMMETRIC:
   :safe (lambda (val)
           (memq val '(django onetwo pep-257 pep-257-nn symmetric nil))))
 
-(defun python-fill-paragraph-function (&optional justify)
+(defun python-fill-paragraph (&optional justify)
   "`fill-paragraph-function' handling multi-line strings and possibly comments.
 If any of the current line is in or at the end of a multi-line string,
 fill the string or the paragraph of it that point is in, preserving
@@ -2389,8 +2389,7 @@ Optional argument JUSTIFY defines if the paragraph should be justified."
       (funcall python-fill-string-function justify))
      ;; Decorators
      ((equal (char-after (save-excursion
-                           (back-to-indentation)
-                           (point))) ?@)
+                           (python-nav-beginning-of-statement))) ?@)
       (funcall python-fill-decorator-function justify))
      ;; Parens
      ((or (python-syntax-context 'paren)
@@ -2402,12 +2401,12 @@ Optional argument JUSTIFY defines if the paragraph should be justified."
      (t t))))
 
 (defun python-fill-comment (&optional justify)
-  "Comment fill function for `python-fill-paragraph-function'.
+  "Comment fill function for `python-fill-paragraph'.
 JUSTIFY should be used (if applicable) as in `fill-paragraph'."
   (fill-comment-paragraph justify))
 
 (defun python-fill-string (&optional justify)
-  "String fill function for `python-fill-paragraph-function'.
+  "String fill function for `python-fill-paragraph'.
 JUSTIFY should be used (if applicable) as in `fill-paragraph'."
   (let* ((marker (point-marker))
          (str-start-pos
@@ -2477,12 +2476,12 @@ JUSTIFY should be used (if applicable) as in `fill-paragraph'."
              (indent-according-to-mode))))) t)
 
 (defun python-fill-decorator (&optional justify)
-  "Decorator fill function for `python-fill-paragraph-function'.
+  "Decorator fill function for `python-fill-paragraph'.
 JUSTIFY should be used (if applicable) as in `fill-paragraph'."
   t)
 
 (defun python-fill-paren (&optional justify)
-  "Paren fill function for `python-fill-paragraph-function'.
+  "Paren fill function for `python-fill-paragraph'.
 JUSTIFY should be used (if applicable) as in `fill-paragraph'."
   (save-restriction
     (narrow-to-region (progn
@@ -3133,7 +3132,7 @@ if that value is non-nil."
 
   (set (make-local-variable 'paragraph-start) "\\s-*$")
   (set (make-local-variable 'fill-paragraph-function)
-       'python-fill-paragraph-function)
+       'python-fill-paragraph)
 
   (set (make-local-variable 'beginning-of-defun-function)
        #'python-beginning-of-defun-function)
