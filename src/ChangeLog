@@ -1,3 +1,7 @@
+2012-10-08  Juanma Barranquero  <lekktu@gmail.com>
+
+	* w32term.c: Remove leftover declaration of keyboard_codepage.
+
 2012-10-08  Eli Zaretskii  <eliz@gnu.org>
 
 	* makefile.w32-in (FONT_H): Add $(FRAME_H).
