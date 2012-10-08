@@ -1,3 +1,13 @@
+2012-10-08  Fabián Ezequiel Gallina  <fgallina@cuca>
+
+	Fix shell handling of unbalanced quotes and parens in output.
+	* progmodes/python.el (python-rx-constituents): Added
+	string-delimiter.
+	(python-syntax-propertize-function): Use it.
+	(python-shell-output-syntax-table): New var.
+	(inferior-python-mode): Prevent unbalanced parens/quotes from
+	previous output mess with current input context.
+
 2012-10-08  Juanma Barranquero  <lekktu@gmail.com>
 
 	* generic-x.el (javascript-generic-mode, javascript-generic-mode-hook):

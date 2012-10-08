@@ -337,19 +337,28 @@
                                        "==" ">=" "is" "not")))
       ;; FIXME: Use regexp-opt.
       (assignment-operator  . ,(rx (or "=" "+=" "-=" "*=" "/=" "//=" "%=" "**="
-                                       ">>=" "<<=" "&=" "^=" "|="))))
-    "Additional Python specific sexps for `python-rx'"))
+                                       ">>=" "<<=" "&=" "^=" "|=")))
+      (string-delimiter . ,(rx (and
+                                ;; Match even number of backslashes.
+                                (or (not (any ?\\ ?\' ?\")) point
+                                    ;; Quotes might be preceded by a escaped quote.
+                                    (and (or (not (any ?\\)) point) ?\\
+                                         (* ?\\ ?\\) (any ?\' ?\")))
+                                (* ?\\ ?\\)
+                                ;; Match single or triple quotes of any kind.
+                                (group (or  "\"" "\"\"\"" "'" "'''"))))))
+    "Additional Python specific sexps for `python-rx'")
 
-(defmacro python-rx (&rest regexps)
-  "Python mode specialized rx macro.
+  (defmacro python-rx (&rest regexps)
+    "Python mode specialized rx macro.
 This variant of `rx' supports common python named REGEXPS."
-  (let ((rx-constituents (append python-rx-constituents rx-constituents)))
-    (cond ((null regexps)
-           (error "No regexp"))
-          ((cdr regexps)
-           (rx-to-string `(and ,@regexps) t))
-          (t
-           (rx-to-string (car regexps) t)))))
+    (let ((rx-constituents (append python-rx-constituents rx-constituents)))
+      (cond ((null regexps)
+             (error "No regexp"))
+            ((cdr regexps)
+             (rx-to-string `(and ,@regexps) t))
+            (t
+             (rx-to-string (car regexps) t))))))
 
 
 ;;; Font-lock and syntax
@@ -498,16 +507,7 @@ The type returned can be `comment', `string' or `paren'."
 
 (defconst python-syntax-propertize-function
   (syntax-propertize-rules
-   ((rx
-     (and
-      ;; Match even number of backslashes.
-      (or (not (any ?\\ ?\' ?\")) point
-          ;; Quotes might be preceded by a escaped quote.
-          (and (or (not (any ?\\)) point) ?\\
-               (* ?\\ ?\\) (any ?\' ?\")))
-      (* ?\\ ?\\)
-      ;; Match single or triple quotes of any kind.
-      (group (or  "\"" "\"\"\"" "'" "'''"))))
+   ((python-rx string-delimiter)
     (0 (ignore (python-syntax-stringify))))))
 
 (defsubst python-syntax-count-quotes (quote-char &optional point limit)
@@ -1609,6 +1609,20 @@ OUTPUT is a string with the contents of the buffer."
 
 (defvar python-shell--parent-buffer nil)
 
+(defvar python-shell-output-syntax-table
+  (let ((table (make-syntax-table python-dotty-syntax-table)))
+    (modify-syntax-entry ?\' "." table)
+    (modify-syntax-entry ?\" "." table)
+    (modify-syntax-entry ?\( "." table)
+    (modify-syntax-entry ?\[ "." table)
+    (modify-syntax-entry ?\{ "." table)
+    (modify-syntax-entry ?\) "." table)
+    (modify-syntax-entry ?\] "." table)
+    (modify-syntax-entry ?\} "." table)
+    table)
+  "Syntax table for shell output.
+It makes parens and quotes be treated as punctuation chars.")
+
 (define-derived-mode inferior-python-mode comint-mode "Inferior Python"
   "Major mode for Python inferior process.
 Runs a Python interpreter as a subprocess of Emacs, with Python
@@ -1637,7 +1651,6 @@ variable.
                                      python-shell-prompt-regexp
                                      python-shell-prompt-block-regexp
                                      python-shell-prompt-pdb-regexp))
-  (set-syntax-table python-mode-syntax-table)
   (setq mode-line-process '(":%s"))
   (make-local-variable 'comint-output-filter-functions)
   (add-hook 'comint-output-filter-functions
@@ -1658,10 +1671,21 @@ variable.
   (make-local-variable 'python-pdbtrack-tracked-buffer)
   (make-local-variable 'python-shell-internal-last-output)
   (when python-shell-enable-font-lock
+    (set-syntax-table python-mode-syntax-table)
     (set (make-local-variable 'font-lock-defaults)
          '(python-font-lock-keywords nil nil nil nil))
     (set (make-local-variable 'syntax-propertize-function)
-         python-syntax-propertize-function))
+         (syntax-propertize-rules
+          (comint-prompt-regexp
+           (0 (ignore
+               (put-text-property
+                comint-last-input-start end 'syntax-table
+                python-shell-output-syntax-table)
+               (font-lock-unfontify-region comint-last-input-start end))))
+          ((python-rx string-delimiter)
+           (0 (ignore
+               (and (not (eq (get-text-property start 'field) 'output))
+                    (python-syntax-stringify))))))))
   (compilation-shell-minor-mode 1))
 
 (defun python-shell-make-comint (cmd proc-name &optional pop internal)
