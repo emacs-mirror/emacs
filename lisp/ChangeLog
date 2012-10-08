@@ -1,3 +1,8 @@
+2012-10-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* comint.el (comint-preinput-scroll-to-bottom): Preserve the
+	frame-selected-windows.
+
 2012-10-07  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* subr.el (read-passwd-map): Don't use `defconst' (bug#12597).
