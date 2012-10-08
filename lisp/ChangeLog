@@ -1,3 +1,19 @@
+2012-10-08  Fabián Ezequiel Gallina  <fgallina@cuca>
+
+	Enhancements on forward-sexp movement.
+	* progmodes/python.el (python-nav-beginning-of-statement)
+	(python-nav-end-of-statement): Return point-marker.
+	(python-nav-forward-sexp): lisp-like forward-sexp behavior.
+	(python-info-current-symbol)
+	(python-info-statement-starts-block-p): Rename from
+	python-info-beginning-of-block-p.
+	(python-info-statement-ends-block-p): Rename from
+	python-info-end-of-block-p.
+	(python-info-beginning-of-statement-p)
+	(python-info-end-of-statement-p)
+	(python-info-beginning-of-block-p, python-info-end-of-block-p):
+	New functions.
+
 2012-10-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* comint.el (comint-preinput-scroll-to-bottom): Preserve the
