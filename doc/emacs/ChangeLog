@@ -1,5 +1,7 @@
 2012-10-08  Glenn Morris  <rgm@gnu.org>
 
+	* cal-xtra.texi (Calendar Customizing): Mention calendar-month-header.
+
 	* calendar.texi (Writing Calendar Files): Mention cal-html-holidays.
 
 2012-10-06  Glenn Morris  <rgm@gnu.org>

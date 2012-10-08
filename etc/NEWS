@@ -280,6 +280,7 @@ Use `Buffer-menu-name-width' and `Buffer-menu-size-width' instead.
 
 ** Calendar
 
++++
 *** You can customize the header text that appears above each calendar month.
 See the variable `calendar-month-header'.
 
