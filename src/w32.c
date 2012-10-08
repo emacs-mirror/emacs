@@ -173,6 +173,7 @@ typedef struct _REPARSE_DATA_BUFFER {
 
 #include "w32.h"
 #include "ndir.h"
+#include "w32common.h"
 #include "w32heap.h"
 #include "systime.h"
 #include "dispextern.h"		/* for xstrcasecmp */

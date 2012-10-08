@@ -23,25 +23,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <config.h>
 #include <stdio.h>
 
+#include "w32common.h"
 #include "w32heap.h"
 #include "lisp.h"  /* for VALMASK */
 
 #define RVA_TO_PTR(rva) ((unsigned char *)((DWORD_PTR)(rva) + (DWORD_PTR)GetModuleHandle (NULL)))
-
-/* This gives us the page size and the size of the allocation unit on NT.  */
-SYSTEM_INFO sysinfo_cache;
-
-/* This gives us version, build, and platform identification.  */
-extern unsigned long syspage_mask;
-OSVERSIONINFO osinfo_cache;
-
-/* The major and minor versions of NT.  */
-int w32_major_version;
-int w32_minor_version;
-int w32_build_number;
-
-/* Distinguish between Windows NT and Windows 95.  */
-int os_subtype;
 
 /* Emulate getpagesize.  */
 int

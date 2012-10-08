@@ -1415,9 +1415,9 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
       syms_of_fontset ();
 #endif /* HAVE_NTGUI */
 
-#ifdef HAVE_W32SELECT
+#if defined (WINDOWSNT) || defined (HAVE_NTGUI)
       syms_of_w32select ();
-#endif /* HAVE_W32SELECT */
+#endif /* WINDOWSNT || HAVE_NTGUI */
 
 #ifdef MSDOS
       syms_of_xmenu ();
@@ -1466,9 +1466,10 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
       globals_of_w32menu ();
 #endif  /* HAVE_NTGUI */
 
-#ifdef HAVE_W32SELECT
+#if defined (WINDOWSNT) || defined (HAVE_NTGUI)
       globals_of_w32select ();
-#endif /* HAVE_W32SELECT */
+#endif /* WINDOWSNT || HAVE_NTGUI */
+
     }
 
   init_charset ();

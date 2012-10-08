@@ -46,11 +46,6 @@ extern wchar_t *to_unicode (Lisp_Object str, Lisp_Object *buf);
    object, to a multi-byte Emacs string, and return it.  */
 extern Lisp_Object from_unicode (Lisp_Object str);
 
-/* *** Path conversion. *** */
-
-EXFUN (Fcygwin_convert_path_to_windows, 2);
-EXFUN (Fcygwin_convert_path_from_windows, 2);
-
 /* *** Misc *** */
 extern void syms_of_cygw32 (void);
 extern char * w32_strerror (int error_no);

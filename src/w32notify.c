@@ -75,7 +75,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include "lisp.h"
 #include "w32term.h"	/* for enter_crit/leave_crit and WM_EMACS_FILENOTIFY */
-#include "w32heap.h"	/* for OS version data */
+#include "w32common.h"	/* for OS version data */
 #include "w32.h"	/* for w32_strerror */
 #include "coding.h"
 #include "keyboard.h"

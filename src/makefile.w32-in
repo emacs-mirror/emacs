@@ -1173,6 +1173,7 @@ $(BLD)/w32.$(O) : \
 	$(SRC)/w32.c \
 	$(SRC)/ndir.h \
 	$(SRC)/w32.h \
+	$(SRC)/w32common.h \
 	$(SRC)/w32heap.h \
 	$(NT_INC)/pwd.h \
 	$(NT_INC)/sys/file.h \
@@ -1191,6 +1192,7 @@ $(BLD)/w32.$(O) : \
 $(BLD)/w32heap.$(O) : \
 	$(SRC)/w32heap.c \
 	$(SRC)/w32heap.h \
+	$(SRC)/w32common.h \
 	$(CONFIG_H) \
 	$(LISP_H)
 
@@ -1213,6 +1215,7 @@ $(BLD)/w32proc.$(O) : \
 	$(SRC)/w32proc.c \
 	$(SRC)/syswait.h \
 	$(SRC)/w32.h \
+	$(SRC)/w32common.h \
 	$(SRC)/w32heap.h \
 	$(NT_INC)/nl_types.h \
 	$(NT_INC)/sys/file.h \
@@ -1230,7 +1233,7 @@ $(BLD)/w32console.$(O) : \
 	$(SRC)/w32console.c \
 	$(SRC)/disptab.h \
 	$(SRC)/termchar.h \
-	$(SRC)/w32heap.h \
+	$(SRC)/w32common.h \
 	$(SRC)/w32inevt.h \
 	$(CHARACTER_H) \
 	$(CODING_H) \
@@ -1468,6 +1471,7 @@ $(BLD)/undo.$(O) : \
 $(BLD)/unexw32.$(O) : \
 	$(SRC)/unexw32.c \
 	$(SRC)/unexec.h \
+	$(SRC)/w32common.h \
 	$(SRC)/w32heap.h \
 	$(CONFIG_H)
 
@@ -1554,6 +1558,7 @@ $(BLD)/w32fns.$(O) : \
 	$(SRC)/epaths.h \
 	$(SRC)/fontset.h \
 	$(SRC)/w32.h \
+	$(SRC)/w32common.h \
 	$(SRC)/w32heap.h \
 	$(BUFFER_H) \
 	$(CCL_H) \
@@ -1577,7 +1582,7 @@ $(BLD)/w32menu.$(O) : \
 	$(SRC)/w32menu.c \
 	$(SRC)/blockinput.h \
 	$(SRC)/keymap.h \
-	$(SRC)/w32heap.h \
+	$(SRC)/w32common.h \
 	$(BUFFER_H) \
 	$(CHARACTER_H) \
 	$(CHARSET_H) \
@@ -1627,7 +1632,7 @@ $(BLD)/w32select.$(O) : \
 	$(SRC)/w32select.c \
 	$(SRC)/blockinput.h \
 	$(SRC)/composite.h \
-	$(SRC)/w32heap.h \
+	$(SRC)/w32common.h \
 	$(CHARSET_H) \
 	$(CODING_H) \
 	$(CONFIG_H) \
@@ -1682,7 +1687,7 @@ $(BLD)/w32uniscribe.$(O) : \
 
 $(BLD)/w32notify.$(O) : \
 	$(SRC)/w32notify.c \
-	$(SRC)/w32heap.h \
+	$(SRC)/w32common.h \
 	$(CODING_H) \
 	$(CONFIG_H) \
 	$(FRAME_H) \
