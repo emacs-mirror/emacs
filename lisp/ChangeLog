@@ -1,5 +1,7 @@
 2012-10-08  Glenn Morris  <rgm@gnu.org>
 
+	* cus-start.el (message-log-max): Set :version.
+
 	* calendar/calendar.el (calendar-intermonth-header): Doc fix.
 
 2012-10-08  Martin Rudalics  <rudalics@gmx.at>
