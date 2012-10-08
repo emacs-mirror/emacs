@@ -128,6 +128,8 @@ s/\.h\.in/.h-in/
 /^CANNOT_DUMP *=/s/@CANNOT_DUMP@/no/
 /^DEPFLAGS *=/s/@DEPFLAGS@//
 /^MKDEPDIR *=/s/@MKDEPDIR@//
+/^W32_OBJ *=/s/@W32_OBJ@//
+/^W32_LIBS *=/s/@W32_LIBS@//
 /^version *=/s/@[^@\n]*@//
 /^@SET_MAKE@$/s/@SET_MAKE@//
 /^	[ 	]*\$(libsrc)\/make-docfile.*>.*\/DOC/s!make-docfile!make-docfile -o $(etc)/DOC!

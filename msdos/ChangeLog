@@ -1,3 +1,7 @@
+2012-10-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* sed1v2.inp (W32_LIBS, W32_OBJ): Edit to empty.
+
 2012-10-04  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Merge from gnulib.
