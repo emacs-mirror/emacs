@@ -3240,13 +3240,13 @@ init_xpm_functions (void)
 
 #endif /* WINDOWSNT */
 
-#ifdef HAVE_NTGUI
+#if defined (HAVE_NTGUI) && !defined (WINDOWSNT)
 /* Glue for code below */
 #define fn_XpmReadFileToImage XpmReadFileToImage
 #define fn_XpmCreateImageFromBuffer XpmCreateImageFromBuffer
 #define fn_XImageFree XImageFree
 #define fn_XpmFreeAttributes XpmFreeAttributes
-#endif /* HAVE_NTGUI */
+#endif /* HAVE_NTGUI && !WINDOWSNT */
 
 /* Value is true if COLOR_SYMBOLS is a valid color symbols list
    for XPM images.  Such a list must consist of conses whose car and
@@ -6061,9 +6061,11 @@ jpeg_image_p (Lisp_Object object)
 #define __WIN32__ 1
 #endif
 
+#if 0	/* FIXME */
 /* Work around conflict between jpeg boolean and rpcndr.h
    under Windows. */
 #define boolean jpeg_boolean
+#endif
 #include <jpeglib.h>
 #include <jerror.h>
 
