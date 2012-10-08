@@ -1,3 +1,7 @@
+2012-10-08  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/calendar.el (calendar-intermonth-header): Doc fix.
+
 2012-10-08  Martin Rudalics  <rudalics@gmx.at>
 
 	* emacs-lisp/edebug.el (edebug-pop-to-buffer): Don't try to split

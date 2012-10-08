@@ -511,7 +511,7 @@ Must be at least one less than `calendar-column-width'."
   :version "23.1")
 
 (defcustom calendar-intermonth-header nil
-  "Header text display in the space to the left of each calendar month.
+  "Header text to display in the space to the left of each calendar month.
 See `calendar-intermonth-text'."
   :group 'calendar
   :initialize 'custom-initialize-default
