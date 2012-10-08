@@ -1866,7 +1866,9 @@ detecting a prompt at the end of the buffer."
    python-shell-output-filter-buffer
    (concat python-shell-output-filter-buffer string))
   (when (string-match
-         (format "\n\\(?:%s\\|%s\\|%s\\)$"
+         ;; XXX: It seems on OSX an extra carriage return is attached
+         ;; at the end of output, this handles that too.
+         (format "\r?\n\\(?:%s\\|%s\\|%s\\)$"
                  python-shell-prompt-regexp
                  python-shell-prompt-block-regexp
                  python-shell-prompt-pdb-regexp)

@@ -1,5 +1,10 @@
 2012-10-08  Fabián Ezequiel Gallina  <fgallina@cuca>
 
+	* progmodes/python.el (python-shell-output-filter): Handle extra
+	carriage return in OSX (Bug#12409).
+
+2012-10-08  Fabián Ezequiel Gallina  <fgallina@cuca>
+
 	Fix shell handling of unbalanced quotes and parens in output.
 	* progmodes/python.el (python-rx-constituents): Added
 	string-delimiter.
