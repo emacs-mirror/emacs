@@ -1,3 +1,70 @@
+2012-10-08  Daniel Colascione  <dancol@dancol.org>
+
+	* battery.el (battery-status-function): Check for
+	w32-battery-status itself, not system-time windows-nt.
+
+	* frame.el: Require cl-lib.
+	(display-format-alist): New variable mapping frame types to
+	functions that initialize them.
+	(window-system-for-display): New function: interprets
+	display-format-alist.
+	(make-frame-on-display): Remove existing display-selection logic
+	and just forward to make-frame, which will now DTRT.
+	(make-frame): Restructure to use window-system-for-display to
+	figure out how to create a frame on a given display.
+	(display-mouse-p): Look for frame-type w32, not a particular
+	system-type.
+
+	* loadup.el: Load w32 lisp code when we have the w32 feature.
+
+	* mouse.el (mouse-yank-primarY): Look for frame-type w32, not
+	system-type windows-nt.
+
+	* server.el (server-create-window-system-frame): Look for window
+	type.
+	(server-proces-filter): Only force a window system when windows-nt
+	_and_ w32.  Explain why.
+
+	* simple.el (normal-erase-is-backspace-mode): Add w32 to the list
+	of window systems we configure for the mode.
+
+	* startup.el (command-line): Mark window system is initialized
+	after we've done it.
+
+	* common-win.el (x-select-text): Look for w32, not windows-nt.
+
+	* ns-win.el: Require cl-lib.  Add ourselves to
+	display-format-alist.
+	(ns-initialize-window-system): Assert we're not initialized twice.
+
+	* w32-win.el: Enable lexical binding; require cl-lib; add
+	ourselves to display-format-alist.
+	(w32-handle-dropped-file): Convert incoming dropped files from
+	Windows paths to Cygwin ones before passing them on to the rest of
+	Emacs.
+	(w32-drag-n-drop): New paramter new-frame.  Simplify logic.
+	(w32-initialize-window-system): Assert we're not initialized twice.
+
+	* x-win.el: Require cl-lib; add ourselves to display-format-alist.
+	(x-initialize-window-system): Assert we're not initialized twice.
+
+	* w32-common-fns.el: New File.
+	(w32-version, w32-using-nt, w32-get-clipboard-data)
+	(w32-set-clipboard-data, x-set-selection, x-get-selection)
+	(w32-charset-info-alist, x-last-selected, text)
+	(x-get-selection-value, x-selection-value): Move here.
+
+	* w32-fns.el: Require w32-common-fns.
+	(w32-version, w32-using-nt, w32-get-clipboard-data)
+	(w32-set-clipboard-data, x-set-selection, x-get-selection)
+	(w32-charset-info-alist, x-last-selected, text)
+	(x-get-selection-value, x-selection-value): Move to
+	w32-common-fns.
+
+	* w32-vars.el:
+	(w32-allow-system-shell, w32-system-shells): Define only in
+	non-cygwin case.
+
 2012-10-07  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* subr.el (read-passwd-map): Don't use `defconst' (bug#12597).

@@ -1,3 +1,12 @@
+2012-10-08  Daniel Colascione  <dancol@dancol.org>
+
+	* configure.ac: Add --with-w32 as a window system option.  Limit
+	it to Cygwin for now.  Integrate w32 into the refactored window
+	system configuration and set TERM_HEADER to w32term.h when w32 is
+	configured.
+
+	(CYGWIN_OBJ): Add cygw32.o.
+
 2012-10-07  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* configure.ac: Check that OSX is 10.4 or newer.
