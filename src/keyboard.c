@@ -313,7 +313,7 @@ static Lisp_Object Qmouse_fixup_help_message;
 /* Symbols to denote kinds of events.  */
 static Lisp_Object Qfunction_key;
 Lisp_Object Qmouse_click;
-#if defined (HAVE_NTGUI)
+#ifdef HAVE_NTGUI
 Lisp_Object Qlanguage_change;
 #endif
 static Lisp_Object Qdrag_n_drop;
@@ -3947,7 +3947,7 @@ kbd_buffer_get_event (KBOARD **kbp,
 	    x_activate_menubar (XFRAME (event->frame_or_window));
 	}
 #endif
-#if defined (HAVE_NTGUI)
+#ifdef HAVE_NTGUI
       else if (event->kind == LANGUAGE_CHANGE_EVENT)
 	{
 	  /* Make an event (language-change (FRAME CODEPAGE LANGUAGE-ID)).  */
@@ -11394,7 +11394,7 @@ syms_of_keyboard (void)
   DEFSYM (Qconfig_changed_event, "config-changed-event");
   DEFSYM (Qmenu_enable, "menu-enable");
 
-#if defined (HAVE_NTGUI)
+#ifdef HAVE_NTGUI
   DEFSYM (Qlanguage_change, "language-change");
 #endif
 

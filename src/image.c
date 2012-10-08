@@ -75,11 +75,12 @@ typedef struct x_bitmap_record Bitmap_Record;
 #endif /* HAVE_X_WINDOWS */
 
 #ifdef HAVE_NTGUI
-# ifdef WINDOWSNT
-/* We only need (or want) w32.h when we're _not_
- * compiling for Cygwin */
+
+/* We need (or want) w32.h only when we're _not_ compiling for Cygwin.  */
+#ifdef WINDOWSNT
 # include "w32.h"
-# endif /* WINDOWSNT */
+#endif
+
 /* W32_TODO : Color tables on W32.  */
 #undef COLOR_TABLE_SUPPORT
 
@@ -571,7 +572,7 @@ extern Lisp_Object Vlibrary_cache;
   do { Vlibrary_cache = Fcons (Fcons (type, status), Vlibrary_cache); } while (0)
 #else
 #define CACHE_IMAGE_TYPE(type, status)
-#endif /* WINDOWSNT */
+#endif
 
 #define ADD_IMAGE_TYPE(type) \
   do { Vimage_types = Fcons (type, Vimage_types); } while (0)
@@ -594,7 +595,7 @@ define_image_type (struct image_type *type)
 
   if (type->init)
     {
-#if defined (HAVE_NTGUI) && defined (WINDOWSNT)
+#if defined HAVE_NTGUI && defined WINDOWSNT
       /* If we failed to load the library before, don't try again.  */
       Lisp_Object tested = Fassq (target_type, Vlibrary_cache);
       if (CONSP (tested) && NILP (XCDR (tested)))
@@ -3013,7 +3014,7 @@ static const struct image_keyword xpm_format[XPM_LAST] =
   {":background",	IMAGE_STRING_OR_NIL_VALUE,		0}
 };
 
-#if defined(HAVE_NTGUI) && defined(WINDOWSNT)
+#if defined HAVE_NTGUI && defined WINDOWSNT
 static bool init_xpm_functions (void);
 #else
 #define init_xpm_functions NULL
@@ -3240,7 +3241,7 @@ init_xpm_functions (void)
 
 #endif /* WINDOWSNT */
 
-#if defined (HAVE_NTGUI) && !defined (WINDOWSNT)
+#if defined HAVE_NTGUI && !defined WINDOWSNT
 /* Glue for code below */
 #define fn_XpmReadFileToImage XpmReadFileToImage
 #define fn_XpmCreateImageFromBuffer XpmCreateImageFromBuffer
@@ -5352,7 +5353,7 @@ static const struct image_keyword png_format[PNG_LAST] =
   {":background",	IMAGE_STRING_OR_NIL_VALUE,		0}
 };
 
-#if defined(HAVE_NTGUI) && defined (WINDOWSNT)
+#if defined HAVE_NTGUI && defined WINDOWSNT
 static bool init_png_functions (void);
 #else
 #define init_png_functions NULL
@@ -6011,7 +6012,7 @@ static const struct image_keyword jpeg_format[JPEG_LAST] =
   {":background",	IMAGE_STRING_OR_NIL_VALUE,		0}
 };
 
-#if defined(HAVE_NTGUI) && defined(WINDOWSNT)
+#if defined HAVE_NTGUI && defined WINDOWSNT
 static bool init_jpeg_functions (void);
 #else
 #define init_jpeg_functions NULL
@@ -6075,7 +6076,7 @@ jpeg_image_p (Lisp_Object object)
    different name.  This name, jpeg_boolean, remains in effect through
    the rest of image.c.
 */
-#if defined (CYGWIN) && defined (HAVE_NTGUI)
+#if defined CYGWIN && defined HAVE_NTGUI
 #define boolean jpeg_boolean
 #endif
 #include <jpeglib.h>
@@ -7071,7 +7072,7 @@ static const struct image_keyword gif_format[GIF_LAST] =
   {":background",	IMAGE_STRING_OR_NIL_VALUE,		0}
 };
 
-#if defined(HAVE_NTGUI) && defined(WINDOWSNT)
+#if defined HAVE_NTGUI && defined WINDOWSNT
 static bool init_gif_functions (void);
 #else
 #define init_gif_functions NULL
