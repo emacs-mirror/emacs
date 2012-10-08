@@ -41,6 +41,11 @@ To display text @emph{between} the months, for example week numbers,
 customize the variables @code{calendar-intermonth-header} and
 @code{calendar-intermonth-text} as described in their documentation.
 
+@vindex calendar-month-header
+  The variable @code{calendar-month-header} controls the text that
+appears above each month in the calendar.  By default, it shows the
+month and year.
+
 @vindex calendar-holiday-marker
 @vindex diary-entry-marker
 @vindex calendar-today-marker

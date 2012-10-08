@@ -349,11 +349,12 @@ calendar deletes or iconifies that frame depending on the value of
 
 @cindex calendar and HTML
   The Calendar HTML commands produce files of HTML code that contain
-calendar and diary entries.  Each file applies to one month, and has a
-name of the format @file{@var{yyyy}-@var{mm}.html}, where @var{yyyy} and
-@var{mm} are the four-digit year and two-digit month, respectively.  The
-variable @code{cal-html-directory} specifies the default output
-directory for the HTML files.
+calendar, holiday, and diary entries.  Each file applies to one month,
+and has a name of the format @file{@var{yyyy}-@var{mm}.html}, where
+@var{yyyy} and @var{mm} are the four-digit year and two-digit month,
+respectively.  The variable @code{cal-html-directory} specifies the
+default output directory for the HTML files.  To prevent holidays
+from being shown, customize @code{cal-html-holidays}.
 
 @vindex cal-html-css-default
   Diary entries enclosed by @code{<} and @code{>} are interpreted as

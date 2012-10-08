@@ -43,7 +43,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifdef HAVE_X_WINDOWS
 #include "xterm.h"
 #endif	/* HAVE_X_WINDOWS */
-#ifdef WINDOWSNT
+#ifdef HAVE_NTGUI
 #include "w32term.h"
 #endif
 #ifdef MSDOS

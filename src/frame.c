@@ -2697,7 +2697,7 @@ static const struct frame_parm_table frame_parms[] =
   {"tool-bar-position",		&Qtool_bar_position},
 };
 
-#ifdef WINDOWSNT
+#ifdef HAVE_NTGUI
 
 /* Calculate fullscreen size.  Return in *TOP_POS and *LEFT_POS the
    wanted positions of the WM window (not Emacs window).
@@ -2741,7 +2741,7 @@ x_fullscreen_adjust (struct frame *f, int *width, int *height, int *top_pos, int
   *height = newheight;
 }
 
-#endif /* WINDOWSNT */
+#endif /* HAVE_NTGUI */
 
 #ifdef HAVE_WINDOW_SYSTEM
 

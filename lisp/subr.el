@@ -2154,7 +2154,9 @@ any other non-digit terminates the character code and is then used as input."))
       (setq first nil))
     code))
 
-(defconst read-passwd-map
+(defvar read-passwd-map
+  ;; BEWARE: `defconst' would purecopy it, breaking the sharing with
+  ;; minibuffer-local-map along the way!
   (let ((map (make-sparse-keymap)))
     (set-keymap-parent map minibuffer-local-map)
     (define-key map "\C-u" #'delete-minibuffer-contents) ;bug#12570
@@ -2197,7 +2199,9 @@ by doing (clear-string STRING)."
           (lambda ()
             (setq minibuf (current-buffer))
             ;; Turn off electricity.
-            (set (make-local-variable 'post-self-insert-hook) nil)
+            (setq-local post-self-insert-hook nil)
+            (setq-local buffer-undo-list t)
+            (setq-local select-active-regions nil)
             (use-local-map read-passwd-map)
             (add-hook 'after-change-functions hide-chars-fun nil 'local))
         (unwind-protect

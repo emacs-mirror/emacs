@@ -218,7 +218,7 @@ and before TAIL-RE and DELIM-RE in VAR or DEFAULT for no match."
 ;; Use CVSHeader to really get information from CVS and not other version
 ;; control systems.
 (defconst rst-cvs-header
-  "$CVSHeader: sm/rst_el/rst.el,v 1.327.2.2 2012-09-23 14:44:25 stefan Exp $")
+  "$CVSHeader: sm/rst_el/rst.el,v 1.327.2.6 2012-10-07 13:05:50 stefan Exp $")
 (defconst rst-cvs-rev
   (rst-extract-version "\\$" "CVSHeader: \\S + " "[0-9]+\\(?:\\.[0-9]+\\)+"
 		       " .*" rst-cvs-header "0.0")
@@ -247,7 +247,7 @@ SVN revision is the upstream (docutils) revision.")
   "Official version of the package.")
 (defconst rst-official-cvs-rev
   (rst-extract-version "[%$]" "Revision: " "[0-9]+\\(?:\\.[0-9]+\\)+" " "
-		       "$Revision: 1.327.2.2 $")
+		       "%Revision: 1.327 %")
   "CVS revision of this file in the official version.")
 
 (defconst rst-version
@@ -1545,7 +1545,6 @@ b. a negative numerical argument, which generally inverts the
   :type '(choice
 	  (const :tag "Same level as previous one" nil)
 	  (const :tag "One level down relative to the previous one" t))
-  :version "24.3"
   :package-version '(rst . "1.1.0"))
 (rst-testcover-defcustom)
 
@@ -2846,28 +2845,28 @@ here."
 (defcustom rst-indent-field 3
   "Indentation for first line after a field or 0 to always indent for content."
   :group 'rst-indent
-  :version "24.3"
+  :package-version '(rst . "1.1.0")
   :type '(integer))
 (rst-testcover-defcustom)
 
 (defcustom rst-indent-literal-normal 3
   "Default indentation for literal block after a markup on an own line."
   :group 'rst-indent
-  :version "24.3"
+  :package-version '(rst . "1.1.0")
   :type '(integer))
 (rst-testcover-defcustom)
 
 (defcustom rst-indent-literal-minimized 2
   "Default indentation for literal block after a minimized markup."
   :group 'rst-indent
-  :version "24.3"
+  :package-version '(rst . "1.1.0")
   :type '(integer))
 (rst-testcover-defcustom)
 
 (defcustom rst-indent-comment 3
   "Default indentation for first line of a comment."
   :group 'rst-indent
-  :version "24.3"
+  :package-version '(rst . "1.1.0")
   :type '(integer))
 (rst-testcover-defcustom)
 

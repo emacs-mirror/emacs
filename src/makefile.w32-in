@@ -208,7 +208,7 @@ make-buildobj-SH:
 GLOBAL_SOURCES =   dosfns.c msdos.c \
 	xterm.c xfns.c xmenu.c xselect.c xrdb.c xsmfns.c fringe.c image.c \
 	fontset.c menu.c dbusbind.c \
-	w32.c w32console.c w32fns.c w32heap.c w32inevt.c \
+	w32.c w32console.c w32fns.c w32heap.c w32inevt.c cygw32.c \
 	w32menu.c w32proc.c w32reg.c w32select.c w32term.c w32xfns.c \
 	font.c w32font.c w32uniscribe.c w32notify.c \
 	dispnew.c frame.c scroll.c xdisp.c window.c bidi.c \
@@ -425,6 +425,7 @@ DISPEXTERN_H   = $(SRC)/dispextern.h \
 FILEMODE_H     = $(GNU_LIB)/filemode.h \
 		 $(NT_INC)/sys/stat.h
 FONT_H         = $(SRC)/font.h \
+		 $(FRAME_H) \
 		 $(CCL_H)
 FRAME_H        = $(SRC)/frame.h \
 		 $(DISPEXTERN_H)
@@ -477,6 +478,8 @@ TERMHOOKS_H    = $(SRC)/termhooks.h \
 W32FONT_H      = $(SRC)/w32font.h \
 		 $(FONT_H)
 W32TERM_H      = $(SRC)/w32term.h \
+		 $(ATIMER_H) \
+		 $(FRAME_H) \
 		 $(W32GUI_H)
 WINDOW_H       = $(SRC)/window.h \
 		 $(DISPEXTERN_H)
@@ -797,6 +800,8 @@ $(BLD)/emacs.$(O) : \
 	$(SRC)/unexec.h \
 	$(SRC)/w32.h \
 	$(SRC)/w32heap.h \
+	$(SRC)/w32select.h \
+	$(SRC)/w32font.h \
 	$(NT_INC)/sys/file.h \
 	$(NT_INC)/unistd.h \
 	$(GNU_LIB)/ignore-value.h \
@@ -1234,6 +1239,7 @@ $(BLD)/w32console.$(O) : \
 	$(FRAME_H) \
 	$(LISP_H) \
 	$(TERMHOOKS_H) \
+	$(W32TERM_H) \
 	$(WINDOW_H)
 
 $(BLD)/print.$(O) : \

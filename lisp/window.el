@@ -28,6 +28,35 @@
 
 ;;; Code:
 
+(defun internal--before-save-selected-window ()
+  (cons (selected-window)
+        ;; We save and restore all frames' selected windows, because
+        ;; `select-window' can change the frame-selected-window of
+        ;; whatever frame that window is in.  Each text terminal's
+        ;; top-frame is preserved by putting it last in the list.
+        (apply #'append
+               (mapcar (lambda (terminal)
+                         (let ((frames (frames-on-display-list terminal))
+                               (top-frame (tty-top-frame terminal))
+                               alist)
+                           (if top-frame
+                               (setq frames
+                                     (cons top-frame
+                                           (delq top-frame frames))))
+                           (dolist (f frames)
+                             (push (cons f (frame-selected-window f))
+                                   alist))
+                           alist))
+                       (terminal-list)))))
+
+(defun internal--after-save-selected-window (state)
+  (dolist (elt (cdr state))
+    (and (frame-live-p (car elt))
+         (window-live-p (cdr elt))
+         (set-frame-selected-window (car elt) (cdr elt) 'norecord)))
+  (when (window-live-p (car state))
+    (select-window (car state) 'norecord)))
+
 (defmacro save-selected-window (&rest body)
   "Execute BODY, then select the previously selected window.
 The value returned is the value of the last form in BODY.
@@ -44,34 +73,11 @@ its normal operation could make a different buffer current.  The
 order of recently selected windows and the buffer list ordering
 are not altered by this macro (unless they are altered in BODY)."
   (declare (indent 0) (debug t))
-  `(let ((save-selected-window-window (selected-window))
-	 ;; We save and restore all frames' selected windows, because
-	 ;; `select-window' can change the frame-selected-window of
-	 ;; whatever frame that window is in.  Each text terminal's
-	 ;; top-frame is preserved by putting it last in the list.
-	 (save-selected-window-alist
-	  (apply 'append
-		 (mapcar (lambda (terminal)
-			   (let ((frames (frames-on-display-list terminal))
-				 (top-frame (tty-top-frame terminal))
-				 alist)
-			     (if top-frame
-				 (setq frames
-				       (cons top-frame
-					     (delq top-frame frames))))
-			     (dolist (f frames)
-			       (push (cons f (frame-selected-window f))
-				     alist))))
-			 (terminal-list)))))
+  `(let ((save-selected-window--state (internal--before-save-selected-window)))
      (save-current-buffer
        (unwind-protect
 	   (progn ,@body)
-	 (dolist (elt save-selected-window-alist)
-	   (and (frame-live-p (car elt))
-		(window-live-p (cdr elt))
-		(set-frame-selected-window (car elt) (cdr elt) 'norecord)))
-	 (when (window-live-p save-selected-window-window)
-	   (select-window save-selected-window-window 'norecord))))))
+         (internal--after-save-selected-window save-selected-window--state)))))
 
 (defvar temp-buffer-window-setup-hook nil
   "Normal hook run by `with-temp-buffer-window' before buffer display.

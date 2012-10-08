@@ -327,8 +327,8 @@ terminated by the end of line (i.e. `comment-end' is empty)."
 ;;;###autoload
 (defun comment-normalize-vars (&optional noerror)
   "Check and setup the variables needed by other commenting functions.
-Functions autoloaded from newcomment.el, being entry points, should call
-this function before any other, so the rest of the code can assume that
+Any command calling functions from newcomment.el, being entry points, should
+call this function before any other, so the rest of the code can assume that
 the variables are properly set."
   (unless (and (not comment-start) noerror)
     (unless comment-start

@@ -96,7 +96,7 @@ ALTERNATIVE2 etc."
 ;; This is defined originally in xfaces.c.
 (defcustom face-font-registry-alternatives
   (mapcar (lambda (arg) (mapcar 'purecopy arg))
-  (if (eq system-type 'windows-nt)
+  (if (featurep 'w32)
       '(("iso8859-1" "ms-oemlatin")
 	("gb2312.1980" "gb2312" "gbk" "gb18030")
 	("jisx0208.1990" "jisx0208.1983" "jisx0208.1978")

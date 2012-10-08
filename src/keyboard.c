@@ -313,8 +313,11 @@ static Lisp_Object Qmouse_fixup_help_message;
 /* Symbols to denote kinds of events.  */
 static Lisp_Object Qfunction_key;
 Lisp_Object Qmouse_click;
-#if defined (WINDOWSNT)
-Lisp_Object Qlanguage_change, Qfile_notify;
+#if defined (HAVE_NTGUI)
+Lisp_Object Qlanguage_change;
+#ifdef WINDOWSNT
+Lisp_Object Qfile_notify;
+#endif
 #endif
 static Lisp_Object Qdrag_n_drop;
 static Lisp_Object Qsave_session;
@@ -3766,8 +3769,8 @@ kbd_buffer_get_event (KBOARD **kbp,
 #ifdef subprocesses
   if (kbd_on_hold_p () && kbd_buffer_nr_stored () < KBD_BUFFER_SIZE/4)
     {
-      /* Start reading input again, we have processed enough so we can
-         accept new events again.  */
+      /* Start reading input again because we have processed enough to
+         be able to accept new events again.  */
       unhold_keyboard_input ();
       start_polling ();
     }
@@ -3947,7 +3950,7 @@ kbd_buffer_get_event (KBOARD **kbp,
 	    x_activate_menubar (XFRAME (event->frame_or_window));
 	}
 #endif
-#if defined (WINDOWSNT)
+#if defined (HAVE_NTGUI)
       else if (event->kind == LANGUAGE_CHANGE_EVENT)
 	{
 	  /* Make an event (language-change (FRAME CODEPAGE LANGUAGE-ID)).  */
@@ -5427,7 +5430,7 @@ make_lispy_event (struct input_event *event)
 				  (sizeof (lispy_function_keys)
 				   / sizeof (lispy_function_keys[0])));
 
-#ifdef WINDOWSNT
+#ifdef HAVE_NTGUI
     case MULTIMEDIA_KEY_EVENT:
       if (event->code < (sizeof (lispy_multimedia_keys)
                          / sizeof (lispy_multimedia_keys[0]))
@@ -11404,7 +11407,7 @@ syms_of_keyboard (void)
   DEFSYM (Qconfig_changed_event, "config-changed-event");
   DEFSYM (Qmenu_enable, "menu-enable");
 
-#if defined (WINDOWSNT)
+#if defined (HAVE_NTGUI)
   DEFSYM (Qlanguage_change, "language-change");
   DEFSYM (Qfile_notify, "file-notify");
 #endif

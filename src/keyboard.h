@@ -551,7 +551,7 @@ extern int tty_read_avail_input (struct terminal *, struct input_event *);
 extern EMACS_TIME timer_check (void);
 extern void mark_kboards (void);
 
-#ifdef WINDOWSNT
+#ifdef HAVE_NTGUI
 extern const char *const lispy_function_keys[];
 #endif
 

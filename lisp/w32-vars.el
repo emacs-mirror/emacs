@@ -44,17 +44,19 @@ X does.  See `w32-fixed-font-alist' for the font menu definition."
   "Include proportional fonts in the default font dialog.")
 (make-obsolete-variable 'w32-list-proportional-fonts "no longer used." "23.1")
 
-(defcustom w32-allow-system-shell nil
-  "Disable startup warning when using \"system\" shells."
-  :type 'boolean
-  :group 'w32)
+(unless (eq system-type 'cygwin)
+  (defcustom w32-allow-system-shell nil
+    "Disable startup warning when using \"system\" shells."
+    :type 'boolean
+    :group 'w32))
 
-(defcustom w32-system-shells '("cmd" "cmd.exe" "command" "command.com"
-			       "4nt" "4nt.exe" "4dos" "4dos.exe"
-			       "tcc" "tcc.exe" "ndos" "ndos.exe")
-  "List of strings recognized as Windows system shells."
-  :type '(repeat string)
-  :group 'w32)
+(unless (eq system-type 'cygwin)
+ (defcustom w32-system-shells '("cmd" "cmd.exe" "command" "command.com"
+                                "4nt" "4nt.exe" "4dos" "4dos.exe"
+                                "tcc" "tcc.exe" "ndos" "ndos.exe")
+   "List of strings recognized as Windows system shells."
+   :type '(repeat string)
+   :group 'w32))
 
 ;; Want "menu" custom type for this.
 (defcustom w32-fixed-font-alist
