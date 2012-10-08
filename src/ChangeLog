@@ -1,3 +1,10 @@
+2012-10-08  Daniel Colascione  <dancol@dancol.org>
+
+	* w32fns.c (Fx_display_color_cells): Instead of using NCOLORS,
+	which is broke under remote desktop, calculating the number of
+	colors available for a display based on the display's number of
+	planes and number of bits per pixel per plane.  (bug#10397).
+
 2012-10-08  Juanma Barranquero  <lekktu@gmail.com>
 
 	* makefile.w32-in (LOCAL_FLAGS): Don't define HAVE_NTGUI, it's now
