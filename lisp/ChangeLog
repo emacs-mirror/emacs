@@ -1,3 +1,10 @@
+2012-10-08  Stephen Berman  <Stephen.Berman@rub.de>
+
+	* calendar/todos.el (todos-move-item): If user quits before
+	completing movement, restore display of initial category; If item
+	is moved to end of target category, make sure the items above it
+	are displayed in the window.
+
 2012-10-08  Stephen Berman  <stephen.berman@gmx.net>
 
 	* calendar/todos.el: Fixes to todos-move-item and some of its

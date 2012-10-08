@@ -4762,7 +4762,7 @@ entry/entries in that category."
 		      file1))
 	     (count 0)
 	     (count-diary 0)
-	     ov cat2 nmark)
+	     ov cat2 moved nmark)
 	(set-buffer (find-file-noselect file2))
 	(unwind-protect
 	    (progn
@@ -4802,46 +4802,62 @@ entry/entries in that category."
 	  (when (todos-diary-item-p) (setq count-diary 1)))
 	(set-window-buffer (selected-window)
 			   (set-buffer (find-file-noselect file2)))
-	(todos-set-item-priority item cat2 t)
-	(setq nmark (point-marker))
-	(todos-update-count 'todo count)
-	(todos-update-count 'diary count-diary)
-	(todos-update-categories-sexp)
-	(with-current-buffer (find-buffer-visiting file1)
-	  (save-excursion
-	    (save-restriction
-	      (widen)
-	      (goto-char omark)
-	      (if marked
-		  (let (beg end)
-		    (setq item nil)
-		    (re-search-backward
-		     (concat "^" (regexp-quote todos-category-beg)) nil t)
-		    (forward-line)
-		    (setq beg (point))
-		    (re-search-forward
-		     (concat "^" (regexp-quote todos-category-done)) nil t)
-		    (setq end (match-beginning 0))
-		    (goto-char beg)
-		    (while (< (point) end)
-		      (if (todos-marked-item-p)
-			  (todos-remove-item)
-			(todos-forward-item)))
-		    ;; FIXME: does this work?
-		    (remove-overlays (point-min) (point-max)
-				     'before-string todos-item-mark)
-		    (setq todos-categories-with-marks
-			  (assq-delete-all cat1 todos-categories-with-marks)))
-		(if ov (delete-overlay ov))
-		(todos-remove-item))))
-	  (todos-update-count 'todo (- count) cat1)
-	  (todos-update-count 'diary (- count-diary) cat1)
-	  (todos-update-categories-sexp))
-	(set-window-buffer (selected-window)
-			   (set-buffer (find-file-noselect file2)))
-	(setq todos-category-number (todos-category-number cat2))
-	(todos-category-select)
-	(goto-char nmark)))))
+	(unwind-protect
+	    (progn
+	      (todos-set-item-priority item cat2 t)
+	      (setq moved t))
+	  (cond
+	   ;; Move succeeded, so remove item from starting category,
+	   ;; update item counts and display the category containing
+	   ;; the moved item.
+	   (moved
+	    (setq nmark (point-marker))
+	    (todos-update-count 'todo count)
+	    (todos-update-count 'diary count-diary)
+	    (todos-update-categories-sexp)
+	    (with-current-buffer (find-buffer-visiting file1)
+	      (save-excursion
+		(save-restriction
+		  (widen)
+		  (goto-char omark)
+		  (if marked
+		      (let (beg end)
+			(setq item nil)
+			(re-search-backward
+			 (concat "^" (regexp-quote todos-category-beg)) nil t)
+			(forward-line)
+			(setq beg (point))
+			(re-search-forward
+			 (concat "^" (regexp-quote todos-category-done)) nil t)
+			(setq end (match-beginning 0))
+			(goto-char beg)
+			(while (< (point) end)
+			  (if (todos-marked-item-p)
+			      (todos-remove-item)
+			    (todos-forward-item)))
+			;; FIXME: does this work?
+			(remove-overlays (point-min) (point-max)
+					 'before-string todos-item-mark)
+			(setq todos-categories-with-marks
+			      (assq-delete-all cat1 todos-categories-with-marks)))
+		    (if ov (delete-overlay ov))
+		    (todos-remove-item))))
+	      (todos-update-count 'todo (- count) cat1)
+	      (todos-update-count 'diary (- count-diary) cat1)
+	      (todos-update-categories-sexp))
+	    (set-window-buffer (selected-window)
+			       (set-buffer (find-file-noselect file2)))
+	    (setq todos-category-number (todos-category-number cat2))
+	    (todos-category-select)
+	    (goto-char nmark)
+	    ;; If item is moved to end of category, make sure the
+	    ;; items above it are displayed in the window.
+	    (recenter))
+	   ;; User quit before moving, so return to starting category.
+	   (t
+	    (todos-category-number cat1)
+	    (todos-category-select)
+	    (goto-char omark))))))))
 
 (defun todos-move-item-to-file ()
   "Move the current todo item to a category in another Todos file."
