@@ -8783,16 +8783,6 @@ DEFUN ("lookup-image", Flookup_image, Slookup_image, 1, 1, 0, "")
 			    Initialization
  ***********************************************************************/
 
-#ifdef WINDOWSNT
-/* Image types that rely on external libraries are loaded dynamically
-   if the library is available.  */
-#define CHECK_LIB_AVAILABLE(image_type, init_lib_fn, libraries) \
-  define_image_type (image_type, init_lib_fn (libraries))
-#else
-#define CHECK_LIB_AVAILABLE(image_type, init_lib_fn, libraries) \
-  define_image_type (image_type, 1)
-#endif /* WINDOWSNT */
-
 DEFUN ("init-image-library", Finit_image_library, Sinit_image_library, 1, 1, 0,
        doc: /* Initialize image library implementing image type TYPE.
 Return non-nil if TYPE is a supported image type.
