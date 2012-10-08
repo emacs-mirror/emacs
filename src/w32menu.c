@@ -56,7 +56,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include "dispextern.h"
 
-#include "w32heap.h"	/* for osinfo_cache */
+#include "w32common.h"	/* for osinfo_cache */
 
 #undef HAVE_DIALOGS /* TODO: Implement native dialogs.  */
 

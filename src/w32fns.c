@@ -45,7 +45,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "systime.h"
 #include "termhooks.h"
 
+#include "w32common.h"
+
+#ifdef WINDOWSNT
 #include "w32heap.h"
+#endif /* WINDOWSNT */
 
 #if CYGWIN
 #include "cygw32.h"
@@ -6111,7 +6115,7 @@ Otherwise, if ONLY-DIR-P is non-nil, the user can only select directories.  */)
   } new_file_details;
 
 #ifdef NTGUI_UNICODE
-  wchar_t filename_buf[MAX_PATH + 1];
+  wchar_t filename_buf[32*1024 + 1]; // NT kernel maximum
   OPENFILENAMEW * file_details = &new_file_details.details;
 #else /* not NTGUI_UNICODE */
   char filename_buf[MAX_PATH + 1];
@@ -6173,11 +6177,12 @@ Otherwise, if ONLY-DIR-P is non-nil, the user can only select directories.  */)
     unixtodos_filename (SDATA (filename));
 #endif /* NTGUI_UNICODE */
 
-    /* Fill in the structure for the call to GetOpenFileName below.  For
-       NTGUI_UNICODE builds (which run only on NT), we just use the
-       actual size of the structure.  For non-NTGUI_UNICODE builds, we
-       tell the OS we're using an old version of the structure if it's not
-       new enough to support the newer version.  */
+    /* Fill in the structure for the call to GetOpenFileName below.
+       For NTGUI_UNICODE builds (which run only on NT), we just use
+       the actual size of the structure.  For non-NTGUI_UNICODE
+       builds, we tell the OS we're using an old version of the
+       structure if the OS isn't new enough to support the newer
+       version.  */
     memset (&new_file_details, 0, sizeof (new_file_details));
 
     if (w32_major_version > 4 && w32_major_version < 95)
@@ -6187,7 +6192,7 @@ Otherwise, if ONLY-DIR-P is non-nil, the user can only select directories.  */)
 
     /* Set up the inout parameter for the selected file name.  */
     if (SBYTES (filename) + 1 > sizeof (filename_buf))
-      error ("filename too long");
+      report_file_error ("filename too long", default_filename);
 
     memcpy (filename_buf, SDATA (filename), SBYTES (filename) + 1);
     file_details->lpstrFile = filename_buf;

@@ -37,7 +37,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "termchar.h"
 #include "dispextern.h"
 #include "w32term.h"
-#include "w32heap.h"	/* for os_subtype */
+#include "w32common.h" /* for os_subtype */
 #include "w32inevt.h"
 
 /* from window.c */

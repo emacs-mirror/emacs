@@ -11,6 +11,59 @@
 
 2012-10-08  Daniel Colascione  <dancol@dancol.org>
 
+	* w32term.h (WM_EMACS_BRINGTOTOP, WM_EMACS_INPUT_READY)
+	(WM_EMACS_END): Change WM_EMACS_BRINGTOTOP from 22 to 21 to close
+	accidental message numbering hole.  Change other messages to
+	match.
+
+	* w32select.h (HAVE_W32SELECT): Remove.
+
+	* w32select.c, w32proc.c, w32menu.c, w32console.c, w32.c: Include
+	w32common.h instead of w32heap.h
+
+	* w32heap.h (ROUND_UP, ROUND_DOWN, get_page_size)
+	(get_allocation_unit, get_processor_type, get_w32_major_version)
+	(get_w32_minor_version, sysinfo_cache, osinfo_cache)
+	(w32_major_version, w32_minor_version, w32_build_number, OS_9X)
+	(OS_NT, os_subtype, cache_system_info): Move declarations to
+	w32common.
+
+	* w32heap.c: Include w32common.h.
+	(sysinfo_cache, syspage_mask, osinfo_cache, w32_major_version)
+	(w32_minor_version, w32_build_number, w32_subtype): Remove
+	duplicate definitions.
+
+	* w32fns.c: Include w32common.h; include w32heap.h only in
+	WINDOWSNT.
+
+	(Fx_file_dialog): Clarify comment on GetOpenFileName structure.
+	Use `report_file_error' instead of `error' in order to better
+	inform users of what went wrong.  Increase NTGUI_UNICODE file
+	dialog box file name length to 32k, the maximum allowed by the NT
+	kernel.
+
+	* w32common.h: New file.
+	(ROUND_UP, ROUND_DOWN, get_page_size)
+	(get_allocation_unit, get_processor_type, get_w32_major_version)
+	(get_w32_minor_version, sysinfo_cache, osinfo_cache)
+	(w32_major_version, w32_minor_version, w32_build_number, OS_9X)
+	(OS_NT, os_subtype, cache_system_info): Move here.
+
+	* unexw32.c, unexcw.c: Include w32common.h.
+
+	* emacs.c (main): Use (defined (WINDOWSNT) || defined
+	HAVE_NTGUI) instead of removed HAVE_W32SELECT to decide whether
+	to call syms_of_w32select.
+
+	* cygw32.h: Remove obsolete EXFUN declarations.
+
+	* cygw32.c (Qutf_16_le): Rename to Qutf_16le.
+
+	* Makefile.in (SOME_MACHINE_OBJECTS): Reverse accidental removal
+	of w32inevt.o from SOME_MACHINE_OBJECTS.
+
+2012-10-08  Daniel Colascione  <dancol@dancol.org>
+
 	* image.c: Permanent fix for JPEG compilation issue --- limit
 	jpeglib `boolean' redefinition to Cygwin builds.
 

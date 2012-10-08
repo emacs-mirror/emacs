@@ -21,8 +21,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define W32SELECT_H
 #include <windows.h>
 
-#define HAVE_W32SELECT 1
-
 extern void syms_of_w32select (void);
 extern void globals_of_w32select (void);
 extern void term_w32select (void);
