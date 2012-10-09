@@ -2084,7 +2084,7 @@ Optional Packages:
   --without-xaw3d         don't use Xaw3d
   --without-xim           don't use X11 XIM
   --with-ns               use NeXTstep (Cocoa or GNUstep) windowing system
-  --with-w32              use native Windows GUI
+  --with-w32              use native MS Windows GUI
   --without-gpm           don't use -lgpm for mouse support on a GNU/Linux
                           console
   --without-dbus          don't compile with D-Bus support

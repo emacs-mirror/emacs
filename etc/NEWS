@@ -431,6 +431,9 @@ The option `follow-intercept-processes' has been removed.
 specifying URL types which should be converted to remote file names at
 the FFAP prompt.  The default is now '("ftp").
 
+** Generic-x
+`javascript-generic-mode' is now an obsolete alias for `js-mode'.
+
 ** Ibuffer
 
 *** New `derived-mode' filter, bound to `/ M'.

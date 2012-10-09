@@ -944,6 +944,8 @@ ELisp variables can be pretty long, so track this one too.")
   "Setup hook function for Emacs Lisp files and Semantic."
   )
 
+(add-hook 'emacs-lisp-mode-hook 'semantic-default-elisp-setup)
+
 ;;; LISP MODE
 ;;
 ;; @TODO: Lisp supports syntaxes that Emacs Lisp does not.

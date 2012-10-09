@@ -391,7 +391,7 @@ size, and full-buffer size."
 	    (shr-indent))
 	  (end-of-line))
 	(insert " ")))
-    (unless (string-match "[ \t\n ]\\'" text)
+    (unless (string-match "[ \t\r\n ]\\'" text)
       (delete-char -1)))))
 
 (defun shr-find-fill-point ()

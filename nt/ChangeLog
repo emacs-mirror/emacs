@@ -1,3 +1,8 @@
+2012-10-08  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt: Sync with autogen/config.in.
+	(HAVE_NTGUI): New macro.
+
 2012-10-02  Eli Zaretskii  <eliz@gnu.org>
 
 	* preprep.c (RVA_TO_PTR): Cast the result to 'void *', to avoid

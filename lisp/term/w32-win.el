@@ -89,7 +89,7 @@
 (make-obsolete 'w32-default-color-map nil "24.1")
 
 (declare-function w32-send-sys-command "w32fns.c")
-(declare-function set-message-beep "w32console.c")
+(declare-function set-message-beep "w32fns.c")
 
 ;; Conditional on new-fontset so bootstrapping works on non-GUI compiles
 (if (fboundp 'new-fontset)

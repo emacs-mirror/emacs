@@ -355,7 +355,7 @@ pass to the OPERATION."
   (let ((t1 (tramp-tramp-file-p dirname))
 	(t2 (tramp-tramp-file-p newname)))
     (with-parsed-tramp-file-name (if t1 dirname newname) nil
-      (tramp-with-progress-reporter
+      (with-tramp-progress-reporter
 	  v 0 (format "Copying %s to %s" dirname newname)
       (cond
        ;; We must use a local temporary directory.
@@ -491,7 +491,7 @@ KEEP-DATE has no effect in case NEWNAME resides on an SMB server.
 PRESERVE-UID-GID and PRESERVE-SELINUX-CONTEXT are completely ignored."
   (setq filename (expand-file-name filename)
 	newname (expand-file-name newname))
-  (tramp-with-progress-reporter
+  (with-tramp-progress-reporter
       (tramp-dissect-file-name (if (file-remote-p filename) filename newname))
       0 (format "Copying %s to %s" filename newname)
 
@@ -642,7 +642,8 @@ PRESERVE-UID-GID and PRESERVE-SELINUX-CONTEXT are completely ignored."
   (unless id-format (setq id-format 'integer))
   (ignore-errors
     (with-parsed-tramp-file-name filename nil
-      (with-file-property v localname (format "file-attributes-%s" id-format)
+      (with-tramp-file-property
+	  v localname (format "file-attributes-%s" id-format)
 	(if (and (tramp-smb-get-share v) (tramp-smb-get-stat-capability v))
 	    (tramp-smb-do-file-attributes-with-stat v id-format)
 	  ;; Reading just the filename entry via "dir localname" is not
@@ -753,7 +754,7 @@ PRESERVE-UID-GID and PRESERVE-SELINUX-CONTEXT are completely ignored."
        v 'file-error
        "Cannot make local copy of non-existing file `%s'" filename))
     (let ((tmpfile (tramp-compat-make-temp-file filename)))
-      (tramp-with-progress-reporter
+      (with-tramp-progress-reporter
 	  v 3 (format "Fetching %s to tmp file %s" filename tmpfile)
 	(unless (tramp-smb-send-command
 		 v (format "get \"%s\" \"%s\""
@@ -771,7 +772,7 @@ PRESERVE-UID-GID and PRESERVE-SELINUX-CONTEXT are completely ignored."
   (all-completions
    filename
    (with-parsed-tramp-file-name directory nil
-     (with-file-property v localname "file-name-all-completions"
+     (with-tramp-file-property v localname "file-name-all-completions"
        (save-match-data
 	 (let ((entries (tramp-smb-get-file-entries directory)))
 	   (mapcar
@@ -1119,7 +1120,7 @@ target of the symlink differ."
       (if (file-remote-p filename) filename newname))
      'file-already-exists newname))
 
-  (tramp-with-progress-reporter
+  (with-tramp-progress-reporter
       (tramp-dissect-file-name (if (file-remote-p filename) filename newname))
       0 (format "Renaming %s to %s" filename newname)
 
@@ -1253,7 +1254,7 @@ errors for shares like \"C$/\", which are common in Microsoft Windows."
 	   (list start end tmpfile append 'no-message lockname confirm)
 	 (list start end tmpfile append 'no-message lockname)))
 
-      (tramp-with-progress-reporter
+      (with-tramp-progress-reporter
 	  v 3 (format "Moving tmp file %s to %s" tmpfile filename)
 	(unwind-protect
 	    (unless (tramp-smb-send-command
@@ -1312,7 +1313,7 @@ Either the shares are listed, or the `dir' command is executed.
 Result is a list of (LOCALNAME MODE SIZE MONTH DAY TIME YEAR)."
   (with-parsed-tramp-file-name (file-name-as-directory directory) nil
     (setq localname (or localname "/"))
-    (with-file-property v localname "file-entries"
+    (with-tramp-file-property v localname "file-entries"
       (with-current-buffer (tramp-get-connection-buffer v)
 	(let* ((share (tramp-smb-get-share v))
 	       (cache (tramp-get-connection-property v "share-cache" nil))
@@ -1497,7 +1498,7 @@ Result is the list (LOCALNAME MODE SIZE MTIME)."
   ;; When we are not logged in yet, we return nil.
   (if (let ((p (tramp-get-connection-process vec)))
 	(and p (processp p) (memq (process-status p) '(run open))))
-      (with-connection-property
+      (with-tramp-connection-property
 	  (tramp-get-connection-process vec) "cifs-capabilities"
 	(save-match-data
 	  (when (tramp-smb-send-command vec "posix")
@@ -1515,7 +1516,7 @@ Result is the list (LOCALNAME MODE SIZE MTIME)."
   ;; When we are not logged in yet, we return nil.
   (if (let ((p (tramp-get-connection-process vec)))
 	(and p (processp p) (memq (process-status p) '(run open))))
-      (with-connection-property
+      (with-tramp-connection-property
 	  (tramp-get-connection-process vec) "stat-capability"
 	(tramp-smb-send-command vec "stat ."))))
 
@@ -1625,7 +1626,7 @@ If ARGUMENT is non-nil, use it as argument for
 	    (setq args (append args (list argument))))
 
 	  ;; OK, let's go.
-	  (tramp-with-progress-reporter
+	  (with-tramp-progress-reporter
 	      vec 3
 	      (format "Opening connection for //%s%s/%s"
 		      (if (not (zerop (length user))) (concat user "@") "")

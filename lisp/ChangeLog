@@ -1,3 +1,85 @@
+2012-10-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* newcomment.el (comment-start-skip, comment-end-skip, comment-end):
+	Don't document nil as a useful value (bug#12583).
+
+2012-10-09  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-debug-message):
+	Remove "tramp-with-progress-reporter" from regexp of ignored functions.
+	(with-tramp-progress-reporter): Rename from
+	`tramp-with-progress-reporter'.
+	(with-tramp-file-property, with-tramp-connection-property):
+	Move from tramp-cache.el, rename from `with-file-property' and
+	`with-connection-property', respectively.
+
+	* net/tramp-cache.el: Remove `with-file-property' and
+	`with-connection-property'.
+
+	* net/tramp.el:
+	* net/tramp-gvfs.el:
+	* net/tramp-sh.el:
+	* net/tramp-smb.el: Adapt callees.
+
+	* net/trampver.el: Update release number.
+
+2012-10-09  Glenn Morris  <rgm@gnu.org>
+
+	* w32-fns.el (set-message-beep):
+	* term/w32-win.el (set-message-beep): Update declarations.
+
+2012-10-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* bindings.el (mode-line-toggle-read-only, mode-line-toggle-modified)
+	(mode-line-widen, mode-line-input-method-map)
+	(mode-line-coding-system-map, mode-line-remote)
+	(mode-line-unbury-buffer, mode-line-bury-buffer)
+	(mode-line-next-buffer, mode-line-previous-buffer):
+	Replace save-selected-window+select-window => with-selected-window.
+
+	* progmodes/cc-bytecomp.el (cc-bytecomp-defmacro): Remove, unused.
+	* progmodes/cc-vars.el (bq-process): Remove, unused.
+
+	* emacs-lisp/cl-macs.el (cl-defstruct): Obey the :read-only property.
+
+2012-10-09  Fabián Ezequiel Gallina  <fgallina@cuca>
+
+	Implemented `backward-up-list'-like navigation.
+	* progmodes/python.el (python-nav-up-list)
+	(python-nav-backward-up-list): New functions.
+	(python-mode-map): Define substitute key for backward-up-list to
+	python-nav-backward-up-list.
+
+2012-10-08  Fabián Ezequiel Gallina  <fgallina@cuca>
+
+	* progmodes/python.el (python-fill-paragraph): Rename from
+	python-fill-paragraph-function.  Fixed fill-paragraph for
+	decorators (Bug#12605).
+
+2012-10-08  Fabián Ezequiel Gallina  <fgallina@cuca>
+
+	* progmodes/python.el (python-shell-output-filter): Handle extra
+	carriage return in OSX (Bug#12409).
+
+2012-10-08  Fabián Ezequiel Gallina  <fgallina@cuca>
+
+	Fix shell handling of unbalanced quotes and parens in output.
+	* progmodes/python.el (python-rx-constituents): Add string-delimiter.
+	(python-syntax-propertize-function): Use it.
+	(python-shell-output-syntax-table): New var.
+	(inferior-python-mode): Prevent unbalanced parens/quotes from
+	previous output mess with current input context.
+
+2012-10-08  Juanma Barranquero  <lekktu@gmail.com>
+
+	* generic-x.el (javascript-generic-mode, javascript-generic-mode-hook):
+	Make obsolete aliases of js-mode and js-mode-hook (from js.el).
+
+2012-10-08  Michael Albinus  <michael.albinus@gmx.de>
+
+	* ffap.el (ffap-replace-file-component): Support Tramp file name
+	syntax, not only ange-ftp's one.
+
 2012-10-08  Glenn Morris  <rgm@gnu.org>
 
 	* cus-start.el (message-log-max): Set :version.

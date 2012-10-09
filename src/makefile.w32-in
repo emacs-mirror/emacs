@@ -27,7 +27,7 @@ EMACSLOADPATH=$(CURDIR)/../lisp
 # Size in MBs of the static heap in temacs.exe.
 HEAPSIZE = $(EMACS_HEAPSIZE)
 
-LOCAL_FLAGS     = -Demacs=1 -I../lib -I../nt/inc -DHAVE_NTGUI=1 $(EMACS_EXTRA_C_FLAGS)
+LOCAL_FLAGS     = -Demacs=1 -I../lib -I../nt/inc $(EMACS_EXTRA_C_FLAGS)
 
 SRC             = .
 EMACS           = $(BLD)/emacs.exe
@@ -424,11 +424,11 @@ DISPEXTERN_H   = $(SRC)/dispextern.h \
 		 $(W32GUI_H)
 FILEMODE_H     = $(GNU_LIB)/filemode.h \
 		 $(NT_INC)/sys/stat.h
-FONT_H         = $(SRC)/font.h \
-		 $(FRAME_H) \
-		 $(CCL_H)
 FRAME_H        = $(SRC)/frame.h \
 		 $(DISPEXTERN_H)
+FONT_H         = $(SRC)/font.h \
+		 $(CCL_H) \
+		 $(FRAME_H)
 FTOASTR_H      = $(GNU_LIB)/ftoastr.h \
 		 $(GNU_LIB)/intprops.h
 GRP_H          = $(NT_INC)/grp.h \
@@ -801,7 +801,6 @@ $(BLD)/emacs.$(O) : \
 	$(SRC)/w32.h \
 	$(SRC)/w32heap.h \
 	$(SRC)/w32select.h \
-	$(SRC)/w32font.h \
 	$(NT_INC)/sys/file.h \
 	$(NT_INC)/unistd.h \
 	$(GNU_LIB)/ignore-value.h \
@@ -817,6 +816,7 @@ $(BLD)/emacs.$(O) : \
 	$(SYSSIGNAL_H) \
 	$(SYSTTY_H) \
 	$(TERMHOOKS_H) \
+	$(W32FONT_H) \
 	$(W32TERM_H) \
 	$(WINDOW_H)
 
@@ -1191,8 +1191,8 @@ $(BLD)/w32.$(O) : \
 
 $(BLD)/w32heap.$(O) : \
 	$(SRC)/w32heap.c \
-	$(SRC)/w32heap.h \
 	$(SRC)/w32common.h \
+	$(SRC)/w32heap.h \
 	$(CONFIG_H) \
 	$(LISP_H)
 

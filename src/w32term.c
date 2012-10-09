@@ -201,9 +201,6 @@ static int input_signal_count;
 int w32_message_fd = -1;
 #endif /* CYGWIN */
 
-/* Keyboard code page - may be changed by language-change events.  */
-static int keyboard_codepage;
-
 static void x_update_window_end (struct window *, int, int);
 static void w32_handle_tool_bar_click (struct frame *,
                                        struct input_event *);

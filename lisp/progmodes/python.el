@@ -235,6 +235,9 @@
     (substitute-key-definition 'forward-sentence
                                'python-nav-forward-block
                                map global-map)
+    (substitute-key-definition 'backward-up-list
+                               'python-nav-backward-up-list
+                               map global-map)
     (define-key map "\C-c\C-j" 'imenu)
     ;; Indent specific
     (define-key map "\177" 'python-indent-dedent-line-backspace)
@@ -337,19 +340,28 @@
                                        "==" ">=" "is" "not")))
       ;; FIXME: Use regexp-opt.
       (assignment-operator  . ,(rx (or "=" "+=" "-=" "*=" "/=" "//=" "%=" "**="
-                                       ">>=" "<<=" "&=" "^=" "|="))))
-    "Additional Python specific sexps for `python-rx'"))
+                                       ">>=" "<<=" "&=" "^=" "|=")))
+      (string-delimiter . ,(rx (and
+                                ;; Match even number of backslashes.
+                                (or (not (any ?\\ ?\' ?\")) point
+                                    ;; Quotes might be preceded by a escaped quote.
+                                    (and (or (not (any ?\\)) point) ?\\
+                                         (* ?\\ ?\\) (any ?\' ?\")))
+                                (* ?\\ ?\\)
+                                ;; Match single or triple quotes of any kind.
+                                (group (or  "\"" "\"\"\"" "'" "'''"))))))
+    "Additional Python specific sexps for `python-rx'")
 
-(defmacro python-rx (&rest regexps)
-  "Python mode specialized rx macro.
+  (defmacro python-rx (&rest regexps)
+    "Python mode specialized rx macro.
 This variant of `rx' supports common python named REGEXPS."
-  (let ((rx-constituents (append python-rx-constituents rx-constituents)))
-    (cond ((null regexps)
-           (error "No regexp"))
-          ((cdr regexps)
-           (rx-to-string `(and ,@regexps) t))
-          (t
-           (rx-to-string (car regexps) t)))))
+    (let ((rx-constituents (append python-rx-constituents rx-constituents)))
+      (cond ((null regexps)
+             (error "No regexp"))
+            ((cdr regexps)
+             (rx-to-string `(and ,@regexps) t))
+            (t
+             (rx-to-string (car regexps) t))))))
 
 
 ;;; Font-lock and syntax
@@ -498,16 +510,7 @@ The type returned can be `comment', `string' or `paren'."
 
 (defconst python-syntax-propertize-function
   (syntax-propertize-rules
-   ((rx
-     (and
-      ;; Match even number of backslashes.
-      (or (not (any ?\\ ?\' ?\")) point
-          ;; Quotes might be preceded by a escaped quote.
-          (and (or (not (any ?\\)) point) ?\\
-               (* ?\\ ?\\) (any ?\' ?\")))
-      (* ?\\ ?\\)
-      ;; Match single or triple quotes of any kind.
-      (group (or  "\"" "\"\"\"" "'" "'''"))))
+   ((python-rx string-delimiter)
     (0 (ignore (python-syntax-stringify))))))
 
 (defsubst python-syntax-count-quotes (quote-char &optional point limit)
@@ -1409,6 +1412,67 @@ move backward N times."
     (python-nav--backward-sexp)
     (setq arg (1+ arg))))
 
+(defun python-nav--up-list (&optional dir)
+  "Internal implementation of `python-nav-up-list'.
+DIR is always 1 or -1 and comes sanitized from
+`python-nav-up-list' calls."
+  (let ((context (python-syntax-context-type))
+        (forward-p (> dir 0)))
+    (cond
+     ((memq context '(string comment)))
+     ((eq context 'paren)
+      (let ((forward-sexp-function))
+        (up-list dir)))
+     ((and forward-p (python-info-end-of-block-p))
+      (let ((parent-end-pos
+             (save-excursion
+               (let ((indentation (and
+                                   (python-nav-beginning-of-block)
+                                   (current-indentation))))
+                 (while (and indentation
+                             (> indentation 0)
+                             (>= (current-indentation) indentation)
+                             (python-nav-backward-block)))
+                 (python-nav-end-of-block)))))
+        (and (> (or parent-end-pos (point)) (point))
+             (goto-char parent-end-pos))))
+     (forward-p (python-nav-end-of-block))
+     ((and (not forward-p)
+           (> (current-indentation) 0)
+           (python-info-beginning-of-block-p))
+      (let ((prev-block-pos
+             (save-excursion
+               (let ((indentation (current-indentation)))
+                 (while (and (python-nav-backward-block)
+                             (> (current-indentation) indentation))))
+               (point))))
+        (and (> (point) prev-block-pos)
+             (goto-char prev-block-pos))))
+     ((not forward-p) (python-nav-beginning-of-block)))))
+
+(defun python-nav-up-list (&optional arg)
+  "Move forward out of one level of parentheses (or blocks).
+With ARG, do this that many times.
+A negative argument means move backward but still to a less deep spot.
+This command assumes point is not in a string or comment."
+  (interactive "^p")
+  (or arg (setq arg 1))
+  (while (> arg 0)
+    (python-nav--up-list 1)
+    (setq arg (1- arg)))
+  (while (< arg 0)
+    (python-nav--up-list -1)
+    (setq arg (1+ arg))))
+
+(defun python-nav-backward-up-list (&optional arg)
+  "Move backward out of one level of parentheses (or blocks).
+With ARG, do this that many times.
+A negative argument means move backward but still to a less deep spot.
+This command assumes point is not in a string or comment."
+  (interactive "^p")
+  (or arg (setq arg 1))
+  (python-nav-up-list (- arg)))
+
 
 ;;; Shell integration
 
@@ -1609,6 +1673,20 @@ OUTPUT is a string with the contents of the buffer."
 
 (defvar python-shell--parent-buffer nil)
 
+(defvar python-shell-output-syntax-table
+  (let ((table (make-syntax-table python-dotty-syntax-table)))
+    (modify-syntax-entry ?\' "." table)
+    (modify-syntax-entry ?\" "." table)
+    (modify-syntax-entry ?\( "." table)
+    (modify-syntax-entry ?\[ "." table)
+    (modify-syntax-entry ?\{ "." table)
+    (modify-syntax-entry ?\) "." table)
+    (modify-syntax-entry ?\] "." table)
+    (modify-syntax-entry ?\} "." table)
+    table)
+  "Syntax table for shell output.
+It makes parens and quotes be treated as punctuation chars.")
+
 (define-derived-mode inferior-python-mode comint-mode "Inferior Python"
   "Major mode for Python inferior process.
 Runs a Python interpreter as a subprocess of Emacs, with Python
@@ -1637,7 +1715,6 @@ variable.
                                      python-shell-prompt-regexp
                                      python-shell-prompt-block-regexp
                                      python-shell-prompt-pdb-regexp))
-  (set-syntax-table python-mode-syntax-table)
   (setq mode-line-process '(":%s"))
   (make-local-variable 'comint-output-filter-functions)
   (add-hook 'comint-output-filter-functions
@@ -1658,10 +1735,21 @@ variable.
   (make-local-variable 'python-pdbtrack-tracked-buffer)
   (make-local-variable 'python-shell-internal-last-output)
   (when python-shell-enable-font-lock
+    (set-syntax-table python-mode-syntax-table)
     (set (make-local-variable 'font-lock-defaults)
          '(python-font-lock-keywords nil nil nil nil))
     (set (make-local-variable 'syntax-propertize-function)
-         python-syntax-propertize-function))
+         (syntax-propertize-rules
+          (comint-prompt-regexp
+           (0 (ignore
+               (put-text-property
+                comint-last-input-start end 'syntax-table
+                python-shell-output-syntax-table)
+               (font-lock-unfontify-region comint-last-input-start end))))
+          ((python-rx string-delimiter)
+           (0 (ignore
+               (and (not (eq (get-text-property start 'field) 'output))
+                    (python-syntax-stringify))))))))
   (compilation-shell-minor-mode 1))
 
 (defun python-shell-make-comint (cmd proc-name &optional pop internal)
@@ -1842,7 +1930,9 @@ detecting a prompt at the end of the buffer."
    python-shell-output-filter-buffer
    (concat python-shell-output-filter-buffer string))
   (when (string-match
-         (format "\n\\(?:%s\\|%s\\|%s\\)$"
+         ;; XXX: It seems on OSX an extra carriage return is attached
+         ;; at the end of output, this handles that too.
+         (format "\r?\n\\(?:%s\\|%s\\|%s\\)$"
                  python-shell-prompt-regexp
                  python-shell-prompt-block-regexp
                  python-shell-prompt-pdb-regexp)
@@ -2246,28 +2336,28 @@ inferior python process is updated properly."
 
 (defcustom python-fill-comment-function 'python-fill-comment
   "Function to fill comments.
-This is the function used by `python-fill-paragraph-function' to
+This is the function used by `python-fill-paragraph' to
 fill comments."
   :type 'symbol
   :group 'python)
 
 (defcustom python-fill-string-function 'python-fill-string
   "Function to fill strings.
-This is the function used by `python-fill-paragraph-function' to
+This is the function used by `python-fill-paragraph' to
 fill strings."
   :type 'symbol
   :group 'python)
 
 (defcustom python-fill-decorator-function 'python-fill-decorator
   "Function to fill decorators.
-This is the function used by `python-fill-paragraph-function' to
+This is the function used by `python-fill-paragraph' to
 fill decorators."
   :type 'symbol
   :group 'python)
 
 (defcustom python-fill-paren-function 'python-fill-paren
   "Function to fill parens.
-This is the function used by `python-fill-paragraph-function' to
+This is the function used by `python-fill-paragraph' to
 fill parens."
   :type 'symbol
   :group 'python)
@@ -2344,7 +2434,7 @@ SYMMETRIC:
   :safe (lambda (val)
           (memq val '(django onetwo pep-257 pep-257-nn symmetric nil))))
 
-(defun python-fill-paragraph-function (&optional justify)
+(defun python-fill-paragraph (&optional justify)
   "`fill-paragraph-function' handling multi-line strings and possibly comments.
 If any of the current line is in or at the end of a multi-line string,
 fill the string or the paragraph of it that point is in, preserving
@@ -2363,8 +2453,7 @@ Optional argument JUSTIFY defines if the paragraph should be justified."
       (funcall python-fill-string-function justify))
      ;; Decorators
      ((equal (char-after (save-excursion
-                           (back-to-indentation)
-                           (point))) ?@)
+                           (python-nav-beginning-of-statement))) ?@)
       (funcall python-fill-decorator-function justify))
      ;; Parens
      ((or (python-syntax-context 'paren)
@@ -2376,12 +2465,12 @@ Optional argument JUSTIFY defines if the paragraph should be justified."
      (t t))))
 
 (defun python-fill-comment (&optional justify)
-  "Comment fill function for `python-fill-paragraph-function'.
+  "Comment fill function for `python-fill-paragraph'.
 JUSTIFY should be used (if applicable) as in `fill-paragraph'."
   (fill-comment-paragraph justify))
 
 (defun python-fill-string (&optional justify)
-  "String fill function for `python-fill-paragraph-function'.
+  "String fill function for `python-fill-paragraph'.
 JUSTIFY should be used (if applicable) as in `fill-paragraph'."
   (let* ((marker (point-marker))
          (str-start-pos
@@ -2451,12 +2540,12 @@ JUSTIFY should be used (if applicable) as in `fill-paragraph'."
              (indent-according-to-mode))))) t)
 
 (defun python-fill-decorator (&optional justify)
-  "Decorator fill function for `python-fill-paragraph-function'.
+  "Decorator fill function for `python-fill-paragraph'.
 JUSTIFY should be used (if applicable) as in `fill-paragraph'."
   t)
 
 (defun python-fill-paren (&optional justify)
-  "Paren fill function for `python-fill-paragraph-function'.
+  "Paren fill function for `python-fill-paragraph'.
 JUSTIFY should be used (if applicable) as in `fill-paragraph'."
   (save-restriction
     (narrow-to-region (progn
@@ -3107,7 +3196,7 @@ if that value is non-nil."
 
   (set (make-local-variable 'paragraph-start) "\\s-*$")
   (set (make-local-variable 'fill-paragraph-function)
-       'python-fill-paragraph-function)
+       'python-fill-paragraph)
 
   (set (make-local-variable 'beginning-of-defun-function)
        #'python-beginning-of-defun-function)

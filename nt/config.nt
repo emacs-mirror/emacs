@@ -701,6 +701,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    Mac OS X. */
 #undef HAVE_NS
 
+/* Define to use native Windows GUI. */
+#define HAVE_NTGUI 1
+
 /* Define to 1 if libotf has OTF_get_variation_glyphs. */
 #undef HAVE_OTF_GET_VARIATION_GLYPHS
 

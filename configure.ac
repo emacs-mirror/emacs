@@ -177,7 +177,7 @@ OPTION_DEFAULT_ON([toolkit-scroll-bars],[don't use Motif or Xaw3d scroll bars])
 OPTION_DEFAULT_ON([xaw3d],[don't use Xaw3d])
 OPTION_DEFAULT_ON([xim],[don't use X11 XIM])
 OPTION_DEFAULT_OFF([ns],[use NeXTstep (Cocoa or GNUstep) windowing system])
-OPTION_DEFAULT_OFF([w32], [use native Windows GUI])
+OPTION_DEFAULT_OFF([w32], [use native MS Windows GUI])
 
 OPTION_DEFAULT_ON([gpm],[don't use -lgpm for mouse support on a GNU/Linux console])
 OPTION_DEFAULT_ON([dbus],[don't compile with D-Bus support])
@@ -1586,7 +1586,7 @@ if test "${with_w32}" != no; then
   AC_CHECK_HEADER([windows.h], [HAVE_W32=yes],
                   [AC_MSG_ERROR([`--with-w32' was specified, but windows.h
                   cannot be found.])])
-  AC_DEFINE(HAVE_NTGUI, 1, [Define to use native Windows GUI.])
+  AC_DEFINE(HAVE_NTGUI, 1, [Define to use native MS Windows GUI.])
   W32_OBJ="w32fns.o w32menu.o w32reg.o w32font.o w32term.o"
   W32_OBJ="$W32_OBJ w32xfns.o w32select.o w32uniscribe.o"
   W32_LIBS="$W32_LIBS -lkernel32 -luser32 -lgdi32 -lole32 -lcomdlg32"

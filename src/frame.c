@@ -1124,7 +1124,7 @@ delete_frame (Lisp_Object frame, Lisp_Object force)
   struct frame *sf = SELECTED_FRAME ();
   struct kboard *kb;
 
-  int minibuffer_selected, tooltip_frame;
+  int minibuffer_selected, is_tooltip_frame;
 
   if (EQ (frame, Qnil))
     {
@@ -1176,13 +1176,13 @@ delete_frame (Lisp_Object frame, Lisp_Object force)
 	}
     }
 
-  tooltip_frame = !NILP (Fframe_parameter (frame, intern ("tooltip")));
+  is_tooltip_frame = !NILP (Fframe_parameter (frame, intern ("tooltip")));
 
   /* Run `delete-frame-functions' unless FORCE is `noelisp' or
      frame is a tooltip.  FORCE is set to `noelisp' when handling
      a disconnect from the terminal, so we don't dare call Lisp
      code.  */
-  if (NILP (Vrun_hooks) || tooltip_frame)
+  if (NILP (Vrun_hooks) || is_tooltip_frame)
     ;
   else if (EQ (force, Qnoelisp))
     pending_funcalls
@@ -1461,7 +1461,7 @@ delete_frame (Lisp_Object frame, Lisp_Object force)
     }
 
   /* Cause frame titles to update--necessary if we now have just one frame.  */
-  if (!tooltip_frame)
+  if (!is_tooltip_frame)
     update_mode_lines = 1;
 
   return Qnil;

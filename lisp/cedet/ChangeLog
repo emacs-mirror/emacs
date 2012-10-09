@@ -1,3 +1,9 @@
+2012-10-08  David Engster  <deng@randomsample.de>>
+
+	* semantic/bovine/el.el: Add `semantic-default-elisp-setup' to
+	`emacs-lisp-mode-hook'.  This was accidentally removed during the
+	CEDET update (rev. 110325).
+
 2012-10-07  David Engster  <deng@randomsample.de>
 
 	* semantic/wisent/python.el (semantic-ctxt-current-function)

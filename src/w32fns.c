@@ -4645,22 +4645,14 @@ If omitted or nil, that stands for the selected frame's display.  */)
   (Lisp_Object display)
 {
   struct w32_display_info *dpyinfo = check_x_display_info (display);
-  HDC hdc;
   int cap;
 
-  hdc = GetDC (dpyinfo->root_window);
-  if (dpyinfo->has_palette)
-    cap = GetDeviceCaps (hdc, SIZEPALETTE);
-  else
-    cap = GetDeviceCaps (hdc, NUMCOLORS);
+  /* Don't use NCOLORS: it returns incorrect results under remote
+   * desktop.  We force 24+ bit depths to 24-bit, both to prevent an
+   * overflow and because probably is more meaningful on Windows
+   * anyway.  */
 
-  /* We force 24+ bit depths to 24-bit, both to prevent an overflow
-     and because probably is more meaningful on Windows anyway */
-  if (cap < 0)
-    cap = 1 << min (dpyinfo->n_planes * dpyinfo->n_cbits, 24);
-
-  ReleaseDC (dpyinfo->root_window, hdc);
-
+  cap = 1 << min (dpyinfo->n_planes * dpyinfo->n_cbits, 24);
   return make_number (cap);
 }
 
@@ -6994,8 +6986,10 @@ w32_strerror (int error_no)
   return buf;
 }
 
-/* For convenience when debugging.  */
-int
+/* For convenience when debugging.  (You cannot call GetLastError
+   directly from GDB: it will crash, because it uses the __stdcall
+   calling convention, not the _cdecl convention assumed by GDB.)  */
+DWORD
 w32_last_error (void)
 {
   return GetLastError ();
