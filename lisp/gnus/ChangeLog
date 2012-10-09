@@ -1,3 +1,7 @@
+2012-10-09  Kazuhiro Ito  <kzhr@d1.dion.ne.jp>  (tiny change)
+
+	* starttls.el (starttls-extra-arguments): Doc fix.
+
 2012-07-10  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* shr.el (shr-expand-url): Handle URL starting with `//'.
