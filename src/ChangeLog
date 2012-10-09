@@ -1,3 +1,8 @@
+2012-10-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* frame.c (delete_frame): Rename local variable 'tooltip_frame' to
+	'is_tooltip_frame', to avoid confusion with its global namesake.
+
 2012-10-08  Daniel Colascione  <dancol@dancol.org>
 
 	* xdisp.c (start_hourglass): Call w32_note_current_window when
