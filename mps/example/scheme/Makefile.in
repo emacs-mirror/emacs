@@ -1,8 +1,0 @@
-# example/scheme/Makefile -- Makefile for the MPS Scheme example
-#
-# $Id$
-
-CFLAGS = @CFLAGS@
-
-scheme: scheme.c
-	$(CC) $(CFLAGS) -o scheme -I ../../code scheme.c ../../code/mps.c
