@@ -38,23 +38,20 @@ corresponding to the mode line clicked."
 (defun mode-line-toggle-read-only (event)
   "Like `toggle-read-only', for the mode-line."
   (interactive "e")
-  (save-selected-window
-    (select-window (posn-window (event-start event)))
+  (with-selected-window (posn-window (event-start event))
     (read-only-mode 'toggle)))
 
 (defun mode-line-toggle-modified (event)
   "Toggle the buffer-modified flag from the mode-line."
   (interactive "e")
-  (save-selected-window
-    (select-window (posn-window (event-start event)))
+  (with-selected-window (posn-window (event-start event))
     (set-buffer-modified-p (not (buffer-modified-p)))
     (force-mode-line-update)))
 
 (defun mode-line-widen (event)
   "Widen a buffer from the mode-line."
   (interactive "e")
-  (save-selected-window
-    (select-window (posn-window (event-start event)))
+  (with-selected-window (posn-window (event-start event))
     (widen)
     (force-mode-line-update)))
 
@@ -63,17 +60,13 @@ corresponding to the mode line clicked."
     (define-key map [mode-line mouse-2]
       (lambda (e)
 	(interactive "e")
-	(save-selected-window
-	  (select-window
-	   (posn-window (event-start e)))
+	(with-selected-window (posn-window (event-start e))
 	  (toggle-input-method)
 	  (force-mode-line-update))))
     (define-key map [mode-line mouse-3]
       (lambda (e)
 	(interactive "e")
-	(save-selected-window
-	  (select-window
-	   (posn-window (event-start e)))
+	(with-selected-window (posn-window (event-start e))
 	  (describe-current-input-method))))
     (purecopy map)))
 
@@ -82,16 +75,14 @@ corresponding to the mode line clicked."
     (define-key map [mode-line mouse-1]
       (lambda (e)
 	(interactive "e")
-	(save-selected-window
-	  (select-window (posn-window (event-start e)))
+	(with-selected-window (posn-window (event-start e))
 	  (when (and enable-multibyte-characters
 		     buffer-file-coding-system)
 	    (describe-coding-system buffer-file-coding-system)))))
     (define-key map [mode-line mouse-3]
       (lambda (e)
 	(interactive "e")
-	(save-selected-window
-	  (select-window (posn-window (event-start e)))
+	(with-selected-window (posn-window (event-start e))
 	  (call-interactively 'set-buffer-file-coding-system))))
     (purecopy map))
   "Local keymap for the coding-system part of the mode line.")
@@ -237,8 +228,7 @@ mnemonics of the following coding systems:
 	 'mouse-face 'mode-line-highlight
 	 'help-echo (purecopy (lambda (window _object _point)
  				(format "%s"
-					(save-selected-window
-					  (select-window window)
+					(with-selected-window window
 					  (concat
 					   (if (file-remote-p default-directory)
 					       "Current directory is remote: "
@@ -474,15 +464,13 @@ By default, this shows the information specified by
 (defun mode-line-unbury-buffer (event) "\
 Call `unbury-buffer' in this window."
   (interactive "e")
-  (save-selected-window
-    (select-window (posn-window (event-start event)))
+  (with-selected-window (posn-window (event-start event))
     (unbury-buffer)))
 
 (defun mode-line-bury-buffer (event) "\
 Like `bury-buffer', but temporarily select EVENT's window."
   (interactive "e")
-  (save-selected-window
-    (select-window (posn-window (event-start event)))
+  (with-selected-window (posn-window (event-start event))
     (bury-buffer)))
 
 (defun mode-line-other-buffer () "\
@@ -493,15 +481,13 @@ Switch to the most recently selected buffer other than the current one."
 (defun mode-line-next-buffer (event)
   "Like `next-buffer', but temporarily select EVENT's window."
   (interactive "e")
-  (save-selected-window
-    (select-window (posn-window (event-start event)))
+  (with-selected-window (posn-window (event-start event))
     (next-buffer)))
 
 (defun mode-line-previous-buffer (event)
   "Like `previous-buffer', but temporarily select EVENT's window."
   (interactive "e")
-  (save-selected-window
-    (select-window (posn-window (event-start event)))
+  (with-selected-window (posn-window (event-start event))
     (previous-buffer)))
 
 (defmacro bound-and-true-p (var)

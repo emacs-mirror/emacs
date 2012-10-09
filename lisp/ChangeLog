@@ -1,5 +1,12 @@
 2012-10-09  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* bindings.el (mode-line-toggle-read-only, mode-line-toggle-modified)
+	(mode-line-widen, mode-line-input-method-map)
+	(mode-line-coding-system-map, mode-line-remote)
+	(mode-line-unbury-buffer, mode-line-bury-buffer)
+	(mode-line-next-buffer, mode-line-previous-buffer):
+	Replace save-selected-window+select-window => with-selected-window.
+
 	* progmodes/cc-bytecomp.el (cc-bytecomp-defmacro): Remove, unused.
 	* progmodes/cc-vars.el (bq-process): Remove, unused.
 
