@@ -1,5 +1,6 @@
 .. _glossary:
 
+========
 Glossary
 ========
 
@@ -34,7 +35,15 @@ Glossary
 
         ??
 
-    arena commit limit
+    arena class
+
+        ??
+
+    automatic pool class
+
+        ??
+
+    black
 
         ??
 
@@ -42,11 +51,27 @@ Glossary
 
         ??
 
+    clamped state
+
+        ??
+
     class structure
 
         ??
 
+    client arena
+
+        ??
+
     client program
+
+        ??
+
+    commit limit
+
+        ??
+
+    committed memory
 
         ??
 
@@ -78,11 +103,27 @@ Glossary
 
         ??
 
-    hardware write barrier
+    fragmentation
+
+        ??
+
+    garbage collection
 
         ??
 
     live
+
+        ??
+
+    manual pool class
+
+        ??
+
+    memory
+
+        ??
+
+    memory leak
 
         ??
 
@@ -98,7 +139,7 @@ Glossary
 
         ??
 
-    pad object
+    padding object
 
         ??
 
@@ -106,7 +147,7 @@ Glossary
 
         ??
 
-    parked
+    parked state
 
         ??
 
@@ -115,6 +156,10 @@ Glossary
         ??
 
     pool
+
+        ??
+
+    pool class
 
         ??
 
@@ -127,6 +172,10 @@ Glossary
         ??
 
     rank
+
+        ??
+
+    read barrier
 
         ??
 
@@ -177,10 +226,30 @@ Glossary
 
         ??
 
+    spare committed memory
+
+        ??
+
     table root
 
         ??
 
+    unclamped state
+
+        ??
+
     virtual memory
+
+        ??
+
+    virtual memory arena
+
+        ??
+
+    white
+
+        ??
+
+    write barrier
 
         ??

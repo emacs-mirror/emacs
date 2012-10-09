@@ -1,5 +1,6 @@
 .. _topic-error:
 
+=============
 Error handing
 =============
 
