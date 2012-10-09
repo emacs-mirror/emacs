@@ -235,6 +235,9 @@
     (substitute-key-definition 'forward-sentence
                                'python-nav-forward-block
                                map global-map)
+    (substitute-key-definition 'backward-up-list
+                               'python-nav-backward-up-list
+                               map global-map)
     (define-key map "\C-c\C-j" 'imenu)
     ;; Indent specific
     (define-key map "\177" 'python-indent-dedent-line-backspace)
@@ -1408,6 +1411,67 @@ move backward N times."
   (while (< arg 0)
     (python-nav--backward-sexp)
     (setq arg (1+ arg))))
+
+(defun python-nav--up-list (&optional dir)
+  "Internal implementation of `python-nav-up-list'.
+DIR is always 1 or -1 and comes sanitized from
+`python-nav-up-list' calls."
+  (let ((context (python-syntax-context-type))
+        (forward-p (> dir 0)))
+    (cond
+     ((memq context '(string comment)))
+     ((eq context 'paren)
+      (let ((forward-sexp-function))
+        (up-list dir)))
+     ((and forward-p (python-info-end-of-block-p))
+      (let ((parent-end-pos
+             (save-excursion
+               (let ((indentation (and
+                                   (python-nav-beginning-of-block)
+                                   (current-indentation))))
+                 (while (and indentation
+                             (> indentation 0)
+                             (>= (current-indentation) indentation)
+                             (python-nav-backward-block)))
+                 (python-nav-end-of-block)))))
+        (and (> (or parent-end-pos (point)) (point))
+             (goto-char parent-end-pos))))
+     (forward-p (python-nav-end-of-block))
+     ((and (not forward-p)
+           (> (current-indentation) 0)
+           (python-info-beginning-of-block-p))
+      (let ((prev-block-pos
+             (save-excursion
+               (let ((indentation (current-indentation)))
+                 (while (and (python-nav-backward-block)
+                             (> (current-indentation) indentation))))
+               (point))))
+        (and (> (point) prev-block-pos)
+             (goto-char prev-block-pos))))
+     ((not forward-p) (python-nav-beginning-of-block)))))
+
+(defun python-nav-up-list (&optional arg)
+  "Move forward out of one level of parentheses (or blocks).
+With ARG, do this that many times.
+A negative argument means move backward but still to a less deep spot.
+This command assumes point is not in a string or comment."
+  (interactive "^p")
+  (or arg (setq arg 1))
+  (while (> arg 0)
+    (python-nav--up-list 1)
+    (setq arg (1- arg)))
+  (while (< arg 0)
+    (python-nav--up-list -1)
+    (setq arg (1+ arg))))
+
+(defun python-nav-backward-up-list (&optional arg)
+  "Move backward out of one level of parentheses (or blocks).
+With ARG, do this that many times.
+A negative argument means move backward but still to a less deep spot.
+This command assumes point is not in a string or comment."
+  (interactive "^p")
+  (or arg (setq arg 1))
+  (python-nav-up-list (- arg)))
 
 
 ;;; Shell integration

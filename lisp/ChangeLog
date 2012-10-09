@@ -1,3 +1,11 @@
+2012-10-09  Fabián Ezequiel Gallina  <fgallina@cuca>
+
+	Implemented `backward-up-list'-like navigation.
+	* progmodes/python.el (python-nav-up-list)
+	(python-nav-backward-up-list): New functions.
+	(python-mode-map): Define substitute key for backward-up-list to
+	python-nav-backward-up-list.
+
 2012-10-08  Fabián Ezequiel Gallina  <fgallina@cuca>
 
 	* progmodes/python.el (python-fill-paragraph): Rename from
