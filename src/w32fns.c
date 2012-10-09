@@ -6983,8 +6983,10 @@ w32_strerror (int error_no)
   return buf;
 }
 
-/* For convenience when debugging.  */
-int
+/* For convenience when debugging.  (You cannot call GetLastError
+   directly from GDB: it will crash, because it uses the __stdcall
+   calling convention, not the _cdecl convention assumed by GDB.)  */
+DWORD
 w32_last_error (void)
 {
   return GetLastError ();

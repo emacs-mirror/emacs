@@ -1,5 +1,9 @@
 2012-10-09  Eli Zaretskii  <eliz@gnu.org>
 
+	* w32fns.c (w32_last_error): Change the return value to DWORD, to
+	match what GetLastError returns.  Explain why the function is
+	needed.
+
 	* frame.c (delete_frame): Rename local variable 'tooltip_frame' to
 	'is_tooltip_frame', to avoid confusion with its global namesake.
 
