@@ -1,5 +1,6 @@
 .. _topic-pattern:
 
+===================
 Allocation patterns
 ===================
 

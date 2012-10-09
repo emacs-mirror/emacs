@@ -1,5 +1,6 @@
 .. _topic-allocation:
 
+==========
 Allocation
 ==========
 
