@@ -4,17 +4,17 @@
 	HAVE_NTGUI, not just WINDOWSNT, resolving a problem in the cygw32
 	build that caused Emacs to display the hourglass cursor forever.
 
-2012-10-08  Jan Djärv  <jan.h.d@swipnet.se>
-	* nsfont.m (Vfonts_in_cache): New variable.
-	(nsfont_open): Use unsignedLongLongValue for cache in case wide ints
-	are used.  Add cached fonts to Vfonts_in_cache.
-	(syms_of_nsfont): Initialize and staticpro Vfonts_in_cache.
-
-2012-10-08  Daniel Colascione  <dancol@dancol.org>
 	* w32fns.c (Fx_display_color_cells): Instead of using NCOLORS,
 	which is broken under remote desktop, calculate the number of
 	colors available for a display based on the display's number of
 	planes and number of bits per pixel per plane.  (bug#10397).
+
+2012-10-08  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsfont.m (Vfonts_in_cache): New variable.
+	(nsfont_open): Use unsignedLongLongValue for cache in case wide ints
+	are used.  Add cached fonts to Vfonts_in_cache.
+	(syms_of_nsfont): Initialize and staticpro Vfonts_in_cache.
 
 2012-10-08  Juanma Barranquero  <lekktu@gmail.com>
 
@@ -32,12 +32,12 @@
 	(W32TERM_H): Add $(ATIMER_H) and $(FRAME_H).
 	($(BLD)/emacs.$(O), $(BLD)/w32console.$(O)): Update dependencies.
 	(GLOBAL_SOURCES): Add cygw32.c.
-	($(BLD)/unexw32.$(O)): 
-	($(BLD)/w32.$(O)): 
-	($(BLD)/w32console.$(O)): 
-	($(BLD)/w32fns.$(O)): 
-	($(BLD)/w32heap.$(O)): 
-	($(BLD)/w32menu.$(O)): 
+	($(BLD)/unexw32.$(O)):
+	($(BLD)/w32.$(O)):
+	($(BLD)/w32console.$(O)):
+	($(BLD)/w32fns.$(O)):
+	($(BLD)/w32heap.$(O)):
+	($(BLD)/w32menu.$(O)):
 	($(BLD)/w32proc.$(O)): Add w32common.h.
 
 	* w32fns.c (w32_color_map_lookup, x_to_w32_color): Argument is now
