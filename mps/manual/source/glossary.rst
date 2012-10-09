@@ -35,6 +35,10 @@ Glossary
 
         ??
 
+    arena
+
+        ??
+
     arena class
 
         ??
@@ -91,6 +95,10 @@ Glossary
 
         ??
 
+    finalization
+
+        ??
+
     format method
 
         ??
@@ -108,6 +116,10 @@ Glossary
         ??
 
     garbage collection
+
+        ??
+
+    garbage collector
 
         ??
 
@@ -184,6 +196,10 @@ Glossary
         A link from one :term:`object` to another, usually in the form
         of a :term:`pointer`.
 
+    remembered set
+
+        ??
+
     reservoir
 
         ??
@@ -193,7 +209,7 @@ Glossary
         A value returned from an MPS function, represented by the type
         :c:type:`mps_res_t`. The result code :c:macro:`MPS_RES_OK`
         indicates success; other values indicate errors. See the topic
-        :ref:`topic-errors`.
+        :ref:`topic-error`.
 
     root
 
@@ -214,6 +230,10 @@ Glossary
 
         ?? See the topic :ref:`topic-scanning`.
 
+    segment
+
+        ??
+
     segregated allocation cache
 
         ??
@@ -226,11 +246,19 @@ Glossary
 
         ??
 
+    spare commit limit
+
+        ??
+
     spare committed memory
 
         ??
 
     table root
+
+        ??
+
+    trace
 
         ??
 
