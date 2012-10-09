@@ -1,3 +1,10 @@
+2012-10-09  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsfont.m (Vfonts_in_cache): Remove, not needed as font.c handles
+	caching.
+	(nsfont_open): Remove setting of Vfonts_in_cache.
+	(syms_of_nsfont): Remove initialization of Vfonts_in_cache
+
 2012-10-09  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32fns.c (w32_last_error): Change the return value to DWORD, to
