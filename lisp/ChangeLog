@@ -1,5 +1,8 @@
 2012-10-09  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* progmodes/cc-bytecomp.el (cc-bytecomp-defmacro): Remove, unused.
+	* progmodes/cc-vars.el (bq-process): Remove, unused.
+
 	* emacs-lisp/cl-macs.el (cl-defstruct): Obey the :read-only property.
 
 2012-10-09  Fabián Ezequiel Gallina  <fgallina@cuca>
