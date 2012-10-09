@@ -1,15 +1,18 @@
+===============
 Topic reference
 ===============
 
 .. toctree::
-   :maxdepth: 2
+    :maxdepth: 2
 
-   allocation
-   error
-   scanning
-   moving
-   root
-   cache
-   platform
-   pattern
-   frame
+    arena
+    allocation
+    error
+    scanning
+    moving
+    root
+    cache
+    platform
+    pattern
+    frame
+    finalization
