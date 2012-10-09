@@ -1,3 +1,7 @@
+2012-10-09  Glenn Morris  <rgm@gnu.org>
+
+	* newcomment.el (comment-normalize-vars): Doc fix (presumably).
+
 2012-10-09  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* bindings.el (mode-line-toggle-read-only, mode-line-toggle-modified)
