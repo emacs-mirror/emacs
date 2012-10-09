@@ -32,7 +32,7 @@
 
 ;;;; Function keys
 
-(declare-function set-message-beep "w32console.c")
+(declare-function set-message-beep "w32fns.c")
 (declare-function w32-get-locale-info "w32proc.c")
 (declare-function w32-get-valid-locale-ids "w32proc.c")
 
