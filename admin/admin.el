@@ -446,8 +446,6 @@ If optional OLD is non-nil, also include defvars."
 				   (1+ emacs-minor-version))
   "Version number that new defcustoms should have.")
 
-;; TODO do something about renamed variables with aliases to the old name?
-;; Scan old cus-start.el to find variables moved from C to lisp?
 (defun cusver-scan (file &optional old)
   "Scan FILE for `defcustom' calls.
 Return a list with elements of the form (VAR . VER),
@@ -486,6 +484,21 @@ If optional argument OLD is non-nil, also scan for defvars."
     (message "%sdone" m)
     alist))
 
+(defun cusver-scan-cus-start (file)
+  "Scan cus-start.el and return an alist with elements (VAR . VER)."
+  (if (file-readable-p file)
+      (with-temp-buffer
+	(insert-file-contents file)
+	(when (search-forward "(let ((all '(" nil t)
+	  (backward-char 1)
+	  (let (var ver alist)
+	    (dolist (elem (ignore-errors (read (current-buffer))))
+	      (when (symbolp (setq var (car-safe elem)))
+		(or (stringp (setq ver (nth 3 elem)))
+		    (setq ver nil))
+		(setq alist (cons (cons var ver) alist))))
+	    alist)))))
+
 (define-button-type 'cusver-xref 'action #'cusver-goto-xref)
 
 (defun cusver-goto-xref (button)
@@ -501,11 +514,9 @@ If optional argument OLD is non-nil, also scan for defvars."
 	(pop-to-buffer (current-buffer))))))
 
 ;; You should probably at least do a grep over the old directory
-;; to check the results of this look sensible.  Eg cus-start if
-;; something moved from C to Lisp.
-;; TODO handle renamed things with aliases to the old names.
-;; What to do about new files?  Does everything in there need a :version,
-;; or eg just the defgroup?
+;; to check the results of this look sensible.
+;; TODO Check cus-start if something moved from C to Lisp.
+;; TODO Handle renamed things with aliases to the old names.
 (defun cusver-check (newdir olddir version)
   "Check that defcustoms have :version tags where needed.
 NEWDIR is the current lisp/ directory, OLDDIR is that from the previous
@@ -537,6 +548,8 @@ changes (in a non-trivial way).  This function does not check for that."
     (message "Reading old defcustoms...")
     (dolist (file oldfiles)
       (setq oldcus (append oldcus (cusver-scan file t))))
+    (setq oldcus (append oldcus (cusver-scan-cus-start
+				 (expand-file-name "cus-start.el" olddir))))
     ;; newcus has elements (FILE (VAR VER) ... ).
     ;; oldcus just (VAR . VER).
     (message "Checking for version tags...")
