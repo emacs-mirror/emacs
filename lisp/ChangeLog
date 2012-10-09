@@ -1,11 +1,16 @@
+2012-10-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* newcomment.el (comment-start-skip, comment-end-skip, comment-end):
+	Don't document nil as a useful value (bug#12583).
+
 2012-10-09  Michael Albinus  <michael.albinus@gmx.de>
 
-	* net/tramp.el (tramp-debug-message): Remove
-	"tramp-with-progress-reporter" from regexp of ignored functions.
+	* net/tramp.el (tramp-debug-message):
+	Remove "tramp-with-progress-reporter" from regexp of ignored functions.
 	(with-tramp-progress-reporter): Rename from
 	`tramp-with-progress-reporter'.
-	(with-tramp-file-property, with-tramp-connection-property): Move
-	from tramp-cache.el, rename from `with-file-property' and
+	(with-tramp-file-property, with-tramp-connection-property):
+	Move from tramp-cache.el, rename from `with-file-property' and
 	`with-connection-property', respectively.
 
 	* net/tramp-cache.el: Remove `with-file-property' and
