@@ -7,3 +7,5 @@ Pool reference
 
    pool-amc
    pool-mvff
+   pool-mvt
+   pool-snc
