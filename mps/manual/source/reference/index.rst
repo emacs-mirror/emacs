@@ -1008,10 +1008,9 @@ Symbols defined in ``mps.h``
 
     .. note::
 
-        Failing to acquire enough memory because the :term:`arena
-        commit limit` would have been exceeded is indicated by
-        returning :c:macro:`MPS_RES_COMMIT_LIMIT`, not
-        ``MPS_RES_MEMORY``.
+        Failing to acquire enough memory because the :term:`commit
+        limit` would have been exceeded is indicated by returning
+        :c:macro:`MPS_RES_COMMIT_LIMIT`, not ``MPS_RES_MEMORY``.
 
     .. note::
 
@@ -1327,7 +1326,7 @@ Symbols defined in ``mpsavm.h``
     memory` interface to allocate memory. The chief consequence of
     this is that the arena can manage many more virtual addresses than
     it needs to commit memory to. This gives it flexibility as to
-    where to place :term:`block <blocks>`, which reduces
+    where to place :term:`blocks <block>`, which reduces
     :term:`fragmentation` and helps make :term:`garbage collection`
     more efficient.
 
