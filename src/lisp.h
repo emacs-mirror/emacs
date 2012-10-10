@@ -345,15 +345,11 @@ static ptrdiff_t const PSEUDOVECTOR_FLAG
       = PSEUDOVECTOR_FLAG;
 
 /* In a pseudovector, the size field actually contains a word with one
-   PSEUDOVECTOR_FLAG bit set, and exactly one of the following bits to
-   indicate the actual type.
-   We use a bitset, even tho only one of the bits can be set at any
-   particular time just so as to be able to use micro-optimizations such as
-   testing membership of a particular subset of pseudovectors in Fequal.
-   It is not crucial, but there are plenty of bits here, so why not do it?  */
+   PSEUDOVECTOR_FLAG bit set, and one of the following values extracted
+   with PVEC_TYPE_MASK to indicate the actual type.  */
 enum pvec_type
 {
-  PVEC_NORMAL_VECTOR = 0,	/* Unused!  */
+  PVEC_NORMAL_VECTOR,
   PVEC_FREE,
   PVEC_PROCESS,
   PVEC_FRAME,

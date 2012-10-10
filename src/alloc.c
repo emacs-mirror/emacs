@@ -5689,7 +5689,7 @@ mark_object (Lisp_Object arg)
 	  pvectype = ((ptr->header.size & PVEC_TYPE_MASK)
 		      >> PSEUDOVECTOR_SIZE_BITS);
 	else
-	  pvectype = 0;
+	  pvectype = PVEC_NORMAL_VECTOR;
 
 	if (pvectype != PVEC_SUBR && pvectype != PVEC_BUFFER)
 	  CHECK_LIVE (live_vector_p);

@@ -1,3 +1,9 @@
+2012-10-10  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* alloc.c (mark_object): Use meaningful PVEC_NORMAL_VECTOR.
+	* lisp.h (enum pvec_type): Adjust comments and omit explicit
+	initializer for PVEC_NORMAL_VECTOR.
+
 2012-10-10  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Clean out old termopts cruft.
