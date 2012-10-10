@@ -115,10 +115,6 @@ send_notifications (BYTE *info, DWORD info_size, HANDLE hdir, int *terminate)
   int done = 0;
   FRAME_PTR f = SELECTED_FRAME ();
 
-  /* Too bad, but PostMessage will not work in non-GUI sessions.
-     FIXME.  */
-  if (!FRAME_W32_P (f))
-    return;
 
   /* A single buffer is used to communicate all notifications to the
      main thread.  Since both the main thread and several watcher
@@ -138,11 +134,14 @@ send_notifications (BYTE *info, DWORD info_size, HANDLE hdir, int *terminate)
 	    memcpy (file_notifications, info, info_size);
 	  notifications_size = info_size;
 	  notifications_desc = hdir;
-	  /* If PostMessage fails, the message queue is full.  If that
-	     happens, the last thing they will worry about is file
-	     notifications.  So we effectively discard the
-	     notification in that case.  */
-	  if (PostMessage (FRAME_W32_WINDOW (f), WM_EMACS_FILENOTIFY, 0, 0))
+	  if (FRAME_TERMCAP_P (f)
+	      || (FRAME_W32_P (f)
+		  /* If PostMessage fails, the message queue is full.
+		     If that happens, the last thing they will worry
+		     about is file notifications.  So we effectively
+		     discard the notification in that case.  */
+		  && PostMessage (FRAME_W32_WINDOW (f),
+				  WM_EMACS_FILENOTIFY, 0, 0)))
 	    notification_buffer_in_use = 1;
 	  done = 1;
 	}

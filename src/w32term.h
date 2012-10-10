@@ -687,6 +687,7 @@ extern BYTE file_notifications[16384];
 extern DWORD notifications_size;
 extern HANDLE notifications_desc;
 extern Lisp_Object get_watch_object (Lisp_Object);
+extern Lisp_Object lispy_file_action (DWORD);
 
 /* Keypad command key support.  W32 doesn't have virtual keys defined
    for the function keys on the keypad (they are mapped to the standard

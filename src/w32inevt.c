@@ -576,6 +576,73 @@ maybe_generate_resize_event (void)
 		     0, 0, 0);
 }
 
+static void
+handle_file_notifications (struct input_event *hold_quit)
+{
+  BYTE *p = file_notifications;
+  FILE_NOTIFY_INFORMATION *fni = (PFILE_NOTIFY_INFORMATION)p;
+  const DWORD min_size
+    = offsetof (FILE_NOTIFY_INFORMATION, FileName) + sizeof(wchar_t);
+  struct input_event inev;
+
+  /* We cannot process notification before Emacs is fully initialized,
+     since we need the UTF-16LE coding-system to be set up.  */
+  if (!initialized)
+    {
+      notification_buffer_in_use = 0;
+      return;
+    }
+
+  enter_crit ();
+  if (notification_buffer_in_use)
+    {
+      DWORD info_size = notifications_size;
+
+      /* notifications_size could be zero when the buffer of
+	 notifications overflowed on the OS level, or when the
+	 directory being watched was itself deleted.  Do nothing in
+	 that case.  */
+      if (info_size)
+	{
+	  EVENT_INIT (inev);
+
+	  while (info_size >= min_size)
+	    {
+	      Lisp_Object utf_16_fn
+		= make_unibyte_string ((char *)fni->FileName,
+				       fni->FileNameLength);
+	      /* Note: mule-conf is preloaded, so utf-16le must
+		 already be defined at this point.  */
+	      Lisp_Object fname
+		= code_convert_string_norecord (utf_16_fn,
+						intern ("utf-16le"), 0);
+	      Lisp_Object action = lispy_file_action (fni->Action);
+	      Lisp_Object obj;
+
+	      obj = get_watch_object (make_number (notifications_desc));
+	      if (!NILP (obj) && CONSP (obj))
+		{
+		  inev.kind = FILE_NOTIFY_EVENT;
+		  inev.code = (ptrdiff_t)notifications_desc;
+		  inev.timestamp = GetTickCount ();
+		  inev.modifiers = 0;
+		  inev.frame_or_window = XCDR (obj);
+		  inev.arg = Fcons (action, fname);
+		  kbd_buffer_store_event_hold (&inev, hold_quit);
+		}
+
+	      if (!fni->NextEntryOffset)
+		break;
+	      p += fni->NextEntryOffset;
+	      fni = (PFILE_NOTIFY_INFORMATION)p;
+	      info_size -= fni->NextEntryOffset;
+	    }
+	}
+      notification_buffer_in_use = 0;
+    }
+  leave_crit ();
+}
+
 int
 w32_console_read_socket (struct terminal *terminal,
                          struct input_event *hold_quit)
@@ -587,6 +654,7 @@ w32_console_read_socket (struct terminal *terminal,
 
   for (;;)
     {
+      handle_file_notifications (hold_quit);
       nev = fill_queue (0);
       if (nev <= 0)
         {

@@ -3218,7 +3218,7 @@ construct_drag_n_drop (struct input_event *result, W32Msg *msg, struct frame *f)
 
 /* File event notifications (see w32notify.c).  */
 
-static Lisp_Object
+Lisp_Object
 lispy_file_action (DWORD action)
 {
   static char unknown_fmt[] = "unknown-action(%d)";
