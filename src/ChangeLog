@@ -1,3 +1,7 @@
+2012-10-10  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* commands.h (immediate_quit): Remove duplicate decl.
+
 2012-10-09  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsfont.m (Vfonts_in_cache): Remove, not needed as font.c handles
