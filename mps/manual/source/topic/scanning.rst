@@ -128,3 +128,60 @@ mps_res_t scan_array(mps_ss_t ss, mps_addr_t object, size_t length)
 }
 </pre>
 
+
+
+
+
+
+<h4>Example</h4>
+
+<pre>
+/* Scanner for a simple Scheme-like language with just two interesting types */
+
+mps_res_t scan_objs(mps_ss_t ss, mps_addr_t base, mps_addr_t limit)
+{
+  mps_res_t res;
+  mps_addr_t obj;
+
+  MPS_SCAN_BEGIN(ss)
+  for(obj = base; obj &lt; limit;) { /* obj maps over the objects to scan */
+    switch(((Object*)obj)-&gt;type) {
+    case ArrayType:
+      {
+        size_t i;
+        Array *array = (Array *)obj;
+
+        for(i = 0; i &lt; array-&gt;length; ++i) { /* fix each element */
+          res = MPS_FIX12(ss, &amp;array-&gt;contents[i]);
+          if(res != MPS_RES_OK) return res;
+        }
+
+        obj = AddrAdd(obj, ArraySize(array)); /* move to next object */
+        break;
+      }
+
+    case StackFrameType:
+      {
+        StackFrame *frame = (StackFrame *)obj;
+        for(i = frame-&gt;size; i &gt; 0; --i) { /* fix each local var */
+          res = MPS_FIX12(ss, &amp;frame-&gt;locals[i]);
+          if(res != MPS_RES_OK) return res;
+        }
+
+        res = MPS_FIX12(ss, &amp;frame-&gt;next);
+        if(res != MPS_RES_OK) return res;
+        obj = AddrAdd(obj, StackFrameSize(frame));
+        break;
+      }
+
+    default: /* other types don't contain references */
+      obj = AddrAdd(obj, DefaultSize(obj));
+      break;
+
+    }
+  }
+  MPS_SCAN_END(ss);
+
+  return res;
+}
+</pre>

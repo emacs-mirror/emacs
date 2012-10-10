@@ -15,9 +15,9 @@ Symbol reference
 ================
 
 
-----------------------------
-Symbols defined in ``mps.h``
-----------------------------
+---------------------
+Declared in ``mps.h``
+---------------------
 
 .. c:type:: mps_addr_t
 
@@ -25,8 +25,8 @@ Symbols defined in ``mps.h``
     also the type of :term:`references <reference>`.
 
     It is used in the MPS interface for any pointer that is under the
-    control of the MPS. In accordance with standard C practice, the
-    value ``NULL`` of type :c:type:`mps_addr_t` will never be used to
+    control of the MPS. In accordance with standard C practice, null
+    pointers of type :c:type:`mps_addr_t` will never be used to
     represent a reference to a block.
 
     .. seealso::
@@ -205,13 +205,13 @@ Symbols defined in ``mps.h``
     pushed since *frame*.
 
     The interpretation of this declaration depends on the :term:`pool`
-    that the allocation point belongs to. Typically, :term:`manual
-    pool classes <manual pool class>` use this declaration to mean
-    that the blocks are dead and their space can be reclaimed
-    immediately, whereas :term:`automatic pool classes <automatic pool
-    class>` use this declaration to mean that the blocks are likely
-    to be mostly dead, and may use this declaration to alter its
-    collection decisions. See the documentation for the pool class.
+    that the allocation point belongs to. Typically, :term:`manual`
+    pool classes use this declaration to mean that the blocks are dead
+    and their space can be reclaimed immediately, whereas
+    :term:`automatic` pool classes use this declaration to mean that
+    the blocks are likely to be mostly dead, and may use this
+    declaration to alter its collection decisions. See the
+    documentation for the pool class.
 
     In general a frame other than the current frame can be popped (all
     frames pushed more recently will be invalidated as well, as
@@ -243,7 +243,7 @@ Symbols defined in ``mps.h``
     is implicit in the action of this function) can consume resources,
     so this function can fail because there are insufficient
     resources, or if the correct protocol is not followed by the
-    client.
+    :term:`client program`.
 
     .. seealso::
 
@@ -467,8 +467,8 @@ Symbols defined in ``mps.h``
     :c:func:`mps_arena_expose`, and by calling
     :c:func:`mps_arena_unsafe_restore_protection` before calling
     :c:func:`mps_arena_release`. Those functions have unsafe aspects
-    and place restrictions on what the client can do (basically no
-    exposed data can be changed).
+    and place restrictions on what the :term:`client program` can do
+    (basically no exposed data can be changed).
 
     .. seealso::
 
@@ -482,12 +482,9 @@ Symbols defined in ``mps.h``
 
     *arena* is the arena whose formatted objects you want to visit.
 
-    *f* is a function that will be called for each formatted object in
-    the arena. It takes five arguments: *object* is the address of the
-    object; *fmt* is the :term:`object format` for that object, *pool*
-    is the :term:`pool` to which the object belongs, and *p* and *s*
-    are the corresponding arguments that were passed to
-    :c:func:`mps_arena_formatted_objects_walk`.
+    *f* is a formatted objects stepper function. It will be called for
+    each formatted object in the arena. See
+    :c:type:`mps_formatted_objects_stepper_t`.
 
     *p* and *s* are arguments that will be passed to *f* each time it
     is called. This is intended to make it easy to pass, for example,
@@ -500,15 +497,15 @@ Symbols defined in ``mps.h``
     (:c:func:`mps_class_lo`), for example, will walk all objects since
     they are validly formatted whether they are black or
     :term:`white`. :term:`Padding objects <padding object>` may be
-    visited at the pool classes discretion, the client should handle
-    this case.
+    visited at the pool classes discretion, the :term:`client program`
+    should handle this case.
 
     The function *f* may not allocate memory or access any
     automatically-managed memory except within *object*.
 
     .. seealso::
 
-        :ref:`topic-arena`.
+        :ref:`topic-arena`, :ref:`topic-format`.
 
 
 .. c:function:: mps_bool_t mps_arena_has_addr(mps_arena_t arena, mps_addr_t addr)
@@ -585,8 +582,8 @@ Symbols defined in ``mps.h``
     *arena* is the arena whose roots you want to visit.
 
     *f* is a function that will be called for each reference to an
-    object in an :term:`automatically managed pool <automatic pool
-    class>` that was found in a registered root beloging to the arena.
+    object in an :term:`automatically <automatic>` managed :term:`pool
+    class` that was found in a registered root beloging to the arena.
     It takes four arguments: *ref* is the address of a reference to an
     object in the arena, *root* is the root in which *ref* was found,
     and *p* and *s* are the corresponding arguments that were passed
@@ -606,12 +603,13 @@ Symbols defined in ``mps.h``
     .. note::
 
         If a root has rank :c:macro:`MPS_RANK_AMBIG` then the
-        reference might not be to the start of an object; the client
-        should handle this case. There is no guarantee that the
-        reference corresponds to the actual location that holds the
-        pointer to the object (since this might be a register, for
-        example), but the actual location will be passed if possible.
-        This may aid analysis of roots via a debugger.
+        reference might not be to the start of an object; the
+        :term:`client program` should handle this case. There is no
+        guarantee that the reference corresponds to the actual
+        location that holds the pointer to the object (since this
+        might be a register, for example), but the actual location
+        will be passed if possible. This may aid analysis of roots via
+        a debugger.
 
 
 .. c:function:: size_t mps_arena_spare_commit_limit(mps_arena_t arena)
@@ -715,8 +713,8 @@ Symbols defined in ``mps.h``
     (memory) are available. If memory is low then only some or
     possibly none of the protection state will be remembered, with a
     corresponding necessity to recompute it later. The MPS provides no
-    mechanism for the client to determine whether the MPS has in fact
-    remembered the protection state.
+    mechanism for the :term:`client program` to determine whether the
+    MPS has in fact remembered the protection state.
 
     The remembered protection state, if any, is discarded after
     calling calling :c:func:`mps_arena_unsafe_restore_protection`, or
@@ -735,7 +733,7 @@ Symbols defined in ``mps.h``
     *mps_arena* is the arena to restore the protection state for.
 
     This function restores the protection state that the MPS has
-    remembered when the client called
+    remembered when the :term:`client program` called
     :c:func:`mps_arena_unsafe_expose_remember_protection`. The purpose
     of remembering and restoring the protection state is to avoid the
     need for the MPS to recompute all the :term:`remembered sets
@@ -743,10 +741,10 @@ Symbols defined in ``mps.h``
     :c:func:`mps_arena_expose` is used, and which causes the next
     garbage collection to be slow.
 
-    The client must not change the exposed data between the call to
-    :c:func:`mps_arena_unsafe_expose_remember_protection` and
-    :c:func:`mps_arena_unsafe_restore_protection`. If the client has
-    changed the exposed data then
+    The client program must not change the exposed data between the
+    call to :c:func:`mps_arena_unsafe_expose_remember_protection` and
+    :c:func:`mps_arena_unsafe_restore_protection`. If the client
+    program has changed the exposed data then
     :c:func:`mps_arena_unsafe_restore_protection` must not be called:
     in this case simply call :c:func:`mps_arena_release`.
 
@@ -802,25 +800,26 @@ Symbols defined in ``mps.h``
     .. note::
 
         This function receives a pointer to a reference. This is to
-        avoid placing the restriction on the client that the C call
-        stack be a root.
+        avoid placing the restriction on the :term:`client program`
+        that the C call stack be a :term:`root`.
 
 
 .. c:function:: mps_res_t mps_fix(mps_ss_t ss, mps_addr_t *ref_io)
 
-    Tell the MPS about a :term:`reference`, and possibly update it. This
-    function must only be called from within a :term:`scan function`.
+    Tell the MPS about a :term:`reference`, and possibly update it.
+    This function must only be called from within a :term:`scan
+    method`.
 
-    *ss* is the :term:`scan state` that was passed to the scan
-    function.
+    *ss* is the :term:`scan state` that was passed to the scan method.
 
     *ref_io* points to the reference.
 
-    Returns :c:macro:`MPS_RES_OK` if successful: in this case the reference
-    may have been updated (see the topic :ref:`topic-moving`), and the
-    scan function must continue to scan the :term:`block`. If it
-    returns any other result, the scan function must return that
-    result as soon as possible, without fixing any further references.
+    Returns :c:macro:`MPS_RES_OK` if successful: in this case the
+    reference may have been updated (see the topic
+    :ref:`topic-moving`), and the scan method must continue to scan
+    the :term:`block`. If it returns any other result, the scan method
+    must return that result as soon as possible, without fixing any
+    further references.
 
     .. deprecated:: 1.110
 
@@ -840,17 +839,17 @@ Symbols defined in ``mps.h``
 .. c:function:: mps_bool_t MPS_FIX1(mps_ss_t ss, mps_addr_t ref)
 
     Tell the MPS about a :term:`reference`. This macro must only be
-    used within a :term:`scan function`, between
+    used within a :term:`scan method`, between
     :c:func:`MPS_SCAN_BEGIN` and :c:func:`MPS_SCAN_END`.
 
-    *ss* is the :term:`scan state` that was passed to the scan function.
+    *ss* is the :term:`scan state` that was passed to the scan method.
 
     *ref* is the reference.
 
     Returns a truth value (:c:type:`mps_bool_t`) indicating whether
     the reference is likely to be interesting to the MPS. If it
-    returns false, the scan function must continue scanning the
-    :term:`block`. If it returns true, the scan function must invoke
+    returns false, the scan method must continue scanning the
+    :term:`block`. If it returns true, the scan method must invoke
     :c:func:`MPS_FIX2`, to fix the reference.
 
     .. seealso::
@@ -859,26 +858,27 @@ Symbols defined in ``mps.h``
 
     .. note::
 
-        In the common case where the scan function does not need to do
-        anything between :c:func:`MPS_FIX1` and :c:func:`MPS_FIX2`, you can
-        use the convenience macro :c:func:`MPS_FIX12`.
+        In the common case where the scan method does not need to do
+        anything between :c:func:`MPS_FIX1` and :c:func:`MPS_FIX2`,
+        you can use the convenience macro :c:func:`MPS_FIX12`.
 
 
 .. c:function:: MPS_FIX12(mps_ss_t ss, mps_addr_t *ref_io)
 
-    Tell the MPS about a :term:`reference`, and possibly update it. This
-    macro must only be used within a :term:`scan function`, between
+    Tell the MPS about a :term:`reference`, and possibly update it.
+    This macro must only be used within a :term:`scan method`, between
     :c:func:`MPS_SCAN_BEGIN` and :c:func:`MPS_SCAN_END`.
 
-    *ss* is the :term:`scan state` that was passed to the scan function.
+    *ss* is the :term:`scan state` that was passed to the scan method.
 
     *ref_io* points to the reference.
 
-    Returns :c:macro:`MPS_RES_OK` if successful: in this case the reference
-    may have been updated (see the topic :ref:`topic-moving`), and the
-    scan function must continue to scan the :term:`block`. If it
-    returns any other result, the scan function must return that
-    result as soon as possible, without fixing any further references.
+    Returns :c:macro:`MPS_RES_OK` if successful: in this case the
+    reference may have been updated (see the topic
+    :ref:`topic-moving`), and the scan method must continue to scan
+    the :term:`block`. If it returns any other result, the scan method
+    must return that result as soon as possible, without fixing any
+    further references.
 
     .. seealso::
 
@@ -894,18 +894,19 @@ Symbols defined in ``mps.h``
 .. c:function:: MPS_FIX2(mps_ss_t ss, mps_addr_t *ref_io)
 
     Tell the MPS about a :term:`reference`, and possibly update it.
-    This macro must only be used within a :term:`scan function`,
+    This macro must only be used within a :term:`scan method`,
     between :c:func:`MPS_SCAN_BEGIN` and :c:func:`MPS_SCAN_END`.
 
-    *ss* is the :term:`scan state` that was passed to the scan function.
+    *ss* is the :term:`scan state` that was passed to the scan method.
 
     *ref_io* points to the reference.
 
-    Returns :c:macro:`MPS_RES_OK` if successful: in this case the reference
-    may have been updated (see the topic :ref:`topic-moving`), and the
-    scan function must continue to scan the :term:`block`. If it
-    returns any other result, the scan function must return that
-    result as soon as possible, without fixing any further references.
+    Returns :c:macro:`MPS_RES_OK` if successful: in this case the
+    reference may have been updated (see the topic
+    :ref:`topic-moving`), and the scan method must continue to scan
+    the :term:`block`. If it returns any other result, the scan method
+    must return that result as soon as possible, without fixing any
+    further references.
 
     .. seealso::
 
@@ -913,20 +914,20 @@ Symbols defined in ``mps.h``
 
     .. note::
 
-        In the common case where the scan function does not need to do
+        In the common case where the scan method does not need to do
         anything between :c:func:`MPS_FIX1` and :c:func:`MPS_FIX2`,
         you can use the convenience macro :c:func:`MPS_FIX12`.
 
 
 .. c:function:: MPS_FIX_CALL(ss, call)
 
-    Call a function from within a :term:`scan function`, between
+    Call a function from within a :term:`scan method`, between
     :c:func:`MPS_SCAN_BEGIN` and :c:func:`MPS_SCAN_END`, passing
     scan state correctly.
 
-    *ss* is the :term:`scan state` that was passed to the scan function.
+    *ss* is the :term:`scan state` that was passed to the scan method.
 
-    *call* is an expression containing a call to a scan function.
+    *call* is an expression containing a call to a scan method.
 
     Returns the result of evaluating the expression *call*.
 
@@ -937,7 +938,7 @@ Symbols defined in ``mps.h``
     must wrap the call with :c:func:`MPS_FIX_CALL` to ensure that the
     scan state is passed correctly.
 
-    In this example, the scan function ``obj_scan`` fixes the object's
+    In this example, the scan method ``obj_scan`` fixes the object's
     ``left`` and ``right`` references, but delegates the scanning of
     references inside the object's ``data`` member to the function
     ``scan_data``. In order to ensure that the scan state is passed
@@ -967,6 +968,328 @@ Symbols defined in ``mps.h``
         :ref:`topic-scanning`.
 
 
+.. c:type:: mps_fmt_A_s
+
+    The type of the structure used to create an :term:`object format`
+    of variant A. ::
+
+        typedef struct mps_fmt_A_s {
+            mps_align_t     align;
+            mps_fmt_scan_t  scan;
+            mps_fmt_skip_t  skip;
+            mps_fmt_copy_t  copy;
+            mps_fmt_fwd_t   fwd;
+            mps_fmt_isfwd_t isfwd;
+            mps_fmt_pad_t   pad;
+        } mps_fmt_A_s;
+
+    Broadly speaking, object formats of variant A are suitable for use
+    in :term:`copying` or :term:`moving` :term:`pools <pool>`.
+
+    *align* is an integer value specifying the alignment of objects
+    allocated with this format. It should be large enough to satisfy
+    the alignment requirements of any field in the objects, and it
+    must not be larger than the arena alignment.
+
+    *scan* is a :term:`scan method` that identifies references
+    within objects belonging to this format. See
+    :c:type:`mps_fmt_scan_t`.
+
+    *skip* is a :term:`skip method` that skips over objects
+    belonging to this format. See :c:type:`mps_fmt_skip_t`.
+
+    *copy* is not used. (In older versions of the MPS it was a
+    :term:`copy method` that copied objects belonging to this
+    format.)
+
+    *fwd* is a :term:`forward method` that stores relocation
+    information for an object belonging to this format that has moved.
+    See :c:type:`mps_fmt_fwd_t`.
+
+    *isfwd* is a :term:`is-forwarded method` that determines if an
+    object belonging to this format has been moved. See
+    :c:type:`mps_fmt_isfwd_t`.
+
+    *pad* is a :term:`padding method` that creates :term:`padding
+    objects <padding object>` belonging to this format. See
+    :c:type:`mps_fmt_pad_t`.
+
+    .. seealso::
+
+        :ref:`topic-format`.
+
+
+
+.. c:type:: mps_fmt_B_s
+
+    The type of the structure used to create an :term:`object format`
+    of variant B. ::
+
+        typedef struct mps_fmt_B_s {
+            mps_align_t     align;
+            mps_fmt_scan_t  scan;
+            mps_fmt_skip_t  skip;
+            mps_fmt_copy_t  copy;
+            mps_fmt_fwd_t   fwd;
+            mps_fmt_isfwd_t isfwd;
+            mps_fmt_pad_t   pad;
+            mps_fmt_class_t mps_class;
+        } mps_fmt_B_s;
+
+    Variant B is the same as variant A except for the addition of the
+    *mps_class* method. See :c:type:`mps_fmt_A_s`.
+
+    Broadly speaking, object formats of variant B are suitable for use
+    in :term:`copying` or :term:`moving` :term:`pools <pool>` (just
+    like variant A); the addition of a :term:`class method` allows
+    more information to be passed to various support tools (such as
+    graphical browsers). See :c:type:`mps_fmt_class_t`.
+
+    .. seealso::
+
+        :ref:`topic-format`.
+
+
+.. c:type:: mps_fmt_auto_header_s
+
+    The type of the structure used to create an :term:`object format`
+    of variant auto_header. ::
+
+        typedef struct mps_fmt_auto_header_s {
+            mps_align_t     align;
+            mps_fmt_scan_t  scan;
+            mps_fmt_skip_t  skip;
+            mps_fmt_fwd_t   fwd;
+            mps_fmt_isfwd_t isfwd;
+            mps_fmt_pad_t   pad;
+            size_t          mps_headerSize;
+        } mps_fmt_auto_header_s;
+
+    Variant auto_header is the same as variant A except for the
+    removal of the unused ``copy`` method, and the addition of the
+    *mps_headerSize* method. See :c:type:`mps_fmt_A_s`.
+
+    Broadly speaking, the object formats of this variant are suitable
+    for use in :term:`automatic` memory management for objects with
+    :term:`headers <header>` (hence the name). More precisely, this
+    variant is intended for formats where the :term:`client program's
+    <client program>` pointers point some distance into the memory
+    :term:`block` containing the object. This typically happens when
+    the objects have a common header used for memory management or
+    class system purposes, but this situation also arises when the low
+    bits of a pointer are used for a tag. The MPS does not care what
+    the reason is, only about the offset of the pointer in relation to
+    the memory block.
+
+    *mps_headerSize* is the size of the header, that is, the offset of
+    a client pointer from the base of the memory block.
+
+    .. seealso::
+
+        :ref:`topic-format`.
+
+    .. note::
+
+        For technical reasons, formatted objects must be longer than
+        the header. In other words, objects consisting of only a
+        header are not supported. However, if the header size is
+        larger than or equal to :term:`alignment`, the :term:`padding
+        method` must still be able to create :term:`padding objects
+        <padding object>` down to the alignment size.
+
+    .. note::
+
+        The auto_header format is only supported by :ref:`pool-amc`
+        and :ref:`pool-amcz`.
+
+
+.. c:type:: mps_addr_t (*mps_fmt_class_t)(mps_addr_t addr)
+
+    The type of the :term:`class method` of an :term:`object format`.
+
+    *addr* is the address of the object whose class is of interest.
+
+    Returns an address that is related to the class or type of the
+    object, for passing on to support tools (such as graphical
+    browsers), or a null pointer if this is not possible.
+
+    It is recommended that a null pointer be returned for
+    :term:`padding objects <padding object>` and :term:`forwarded
+    objects <forwarded object>`.
+
+    The exact meaning of the return value is up to the :term:`client
+    program`, but it would typically bear some relation to a class or
+    type in the client program. The client may have objects that
+    represent classes or types. These may be associated with strings
+    via :c:func:`mps_telemetry_intern` and
+    :c:func:`mps_telemetry_label`.
+
+    .. seealso::
+
+        :ref:`topic-format`.
+
+
+.. c:function:: mps_res_t mps_fmt_create_A(mps_fmt_t *fmt_o, mps_arena_t arena, mps_fmt_A_s *fmt_A)
+
+    Create an :term:`object format` of variant A.
+
+    *fmt_o* points to a location that will hold the address of the new
+    object format.
+
+    *arena* is the arena in which to create the format.
+
+    *fmt_A* points to a description of an object format of variant A.
+
+    Returns :c:macro:`MPS_RES_OK` if successful. The MPS may exhaust
+    some resource in the course of :c:func:`mps_fmt_create_A` and will
+    return an appropriate :term:`result code` if so.
+
+    .. seealso::
+
+        :ref:`topic-format`.
+
+
+.. c:function:: mps_res_t mps_fmt_create_B(mps_fmt_t *fmt_o, mps_arena_t arena, mps_fmt_B_s *fmt_B)
+
+    Create an :term:`object format` of variant B.
+
+    *fmt_o* points to a location that will hold the address of the new
+    object format.
+
+    *arena* is the arena in which to create the format.
+
+    *fmt_B* points to a description of an object format of variant B.
+
+    Returns :c:macro:`MPS_RES_OK` if successful. The MPS may exhaust
+    some resource in the course of :c:func:`mps_fmt_create_B` and will
+    return an appropriate :term:`result code` if so.
+
+    .. seealso::
+
+        :ref:`topic-format`.
+
+
+.. c:function:: mps_res_t mps_fmt_create_auto_header(mps_fmt_t *fmt_o, mps_arena_t arena, mps_fmt_auto_header_s *fmt_ah)
+
+    Create an :term:`object format` of variant auto_header.
+
+    *fmt_o* points to a location that will hold the address of the new
+    object format.
+
+    *arena* is the arena in which to create the format.
+
+    *fmt_ah* points to a description of an object format of variant
+    auto_header.
+
+    Returns :c:macro:`MPS_RES_OK` if successful. The MPS may exhaust
+    some resource in the course of
+    :c:func:`mps_fmt_create_auto_header` and will return an
+    appropriate :term:`result code` if so.
+
+    .. seealso::
+
+        :ref:`topic-format`.
+
+
+.. c:function:: mps_clock_t mps_message_clock(mps_arena_t arena, mps_message_t message)
+
+    Returns the time at which the MPS posted a :term:`message`.
+
+    *arena* is the :term:`arena` which posted the message.
+
+    *message* is a message retrieved by :c:func:`mps_message_get` and
+    not yet discarded.
+
+    If *message* belongs to one of the following supported message,
+    return the time at which the MPS posted the message:
+
+    * :c:type:`mps_message_type_gc`;
+    * :c:type:`mps_message_type_gc_start`.
+
+    For other message types, the value returned is always zero.
+
+    Messages are asynchronous: they are posted by the MPS, wait on a
+    queue, and are later collected by the :term:`client program`. Each
+    message (of the supported message types) records the time that it
+    was posted, and this is what :c:func:`mps_message_clock` returns.
+
+    The time returned is the :c:func:`mps_clock_t` value returned by
+    the library function :c:func:`mps_clock` at the time the message
+    was posted. You can subtract one clock value from another to get
+    the time interval between the posting of two messages.
+
+    .. seealso::
+
+        :ref:`topic-message`.
+
+
+.. c:function:: void mps_message_discard(mps_arena_t arena, mps_message_t message)
+
+    Indicate to the MPS that the :term:`client program` has no further
+    use for a :term:`message` and the MPS can now reclaim any storage
+    associated with the message.
+
+    *arena* is the :term:`arena` which posted the message.
+
+    *message* is the message. After this call, *message* is invalid
+    and should not be passed as an argument to any message functions.
+
+    Messages are essentially :term:`manually <manual>` managed. This
+    function allows the MPS to reclaim storage associated with
+    messages. If the client does not discard messages then the
+    resources used may grow without bound.
+
+    As well as consuming resources, messages may have other effects
+    that require them to be tidied by calling this function. In
+    particular finalization messages refer to a :term:`finalized
+    object`, and prevent the object from being reclaimed (subject to
+    the usual garbage collection liveness analysis). A finalized
+    object cannot be reclaimed until all its finalization messages
+    have been discarded. See :c:func:`mps_message_type_finalization`.
+
+    .. seealso::
+
+        :ref:`topic-finalization`, :ref:`topic-message`.
+
+
+.. c:function:: void mps_message_finalization_ref(mps_addr_t *ref_o, mps_arena_t arena, mps_message_t message)
+
+    Returns the finalization reference for a finalization message.
+
+    *ref_o* points to a location that will hold the finalization
+    reference.
+
+    *arena* is the :term:`arena` which posted the message.
+
+    *message* is a message retrieved by :c:func:`mps_message_get` and
+    not yet discarded. It must be a finalization message: see
+    :c:func:`mps_message_type_finalization`.
+
+    The reference returned by this method is a reference to the object
+    that was originally registered for :term:`finalization` by a call
+    to :c:func:`mps_finalize`.
+
+    .. seealso::
+
+        :ref:`topic-finalization`, :ref:`topic-message`.
+
+    .. note::
+
+        The reference returned is subject to the normal constraints,
+        such as might be imposed by a :term:`moving` collection, if
+        appropriate. For this reason, it is stored into the location
+        pointed to by *ref_o* in order to enable the :term:`client
+        program` to place it directly into scanned memory, without
+        imposing the restriction that the C stack be a :term:`root`.
+
+    .. note::
+
+        The message itself is not affected by invoking this method.
+        Until the client program calls :c:func:`mps_message_discard`
+        to discard the message, it will refer to the object and
+        prevent its reclamation.
+
+
 .. c:macro:: MPS_RES_COMMIT_LIMIT
 
     A :term:`result code` indicating that an operation could not be
@@ -990,6 +1313,211 @@ Symbols defined in ``mps.h``
     .. seealso::
 
         :ref:`topic-error`.
+
+
+.. c:type:: void (*mps_fmt_fwd_t)(mps_addr_t old, mps_addr_t new)
+
+    The type of the :term:`forward method` of an :term:`object format`.
+
+    *old* is the address of an object.
+
+    *new* is the address to where the object has been moved.
+
+    The MPS calls the forward method for an object format when it has
+    relocated an object belonging to that format. The forward method
+    must replace the object at *old* with a :term:`forwarding marker`
+    that points to the address 'new'. The forwarding marker must meet
+    the following requirements:
+
+    1. It must be possible for the MPS to call other methods in the
+       object format (the :term:`scan method`, the :term:`skip method`
+       and so on) with the address of a forwarding marker as the
+       argument.
+
+    2. The forwarding marker must not be bigger than the original
+       object.
+
+    3. It must be possible for the :term:`is-forwarded method` of the
+       object format to distinguish the forwarding marker from
+       ordinary objects, and the is-forwarded method method must
+       return the address *new*. See :c:type:`mps_fmt_isfwd_t`.
+
+    .. seealso::
+
+        :ref:`topic-format`.
+
+    .. note::
+
+        This method is never invoked by the :term:`garbage collector`
+        on an object in a :term:`non-moving` :term:`pool`.
+
+
+.. c:type:: mps_addr_t (*mps_fmt_isfwd_t)(mps_addr_t addr)
+
+    The type of the :term:`is-forwarded method` of an :term:`object
+    format`.
+
+    *addr* is the address of a candidate object.
+
+    If the *addr* is the address of a :term:`forwarded object`, return
+    the address where the object was moved to. This must be the value
+    of the *new* argument supplied to the :term:`forward method` when
+    the object was moved. If not, return a null pointer.
+
+    .. seealso::
+
+        :ref:`topic-format`.
+
+    .. note::
+
+        This method is never invoked by the :term:`garbage collector`
+        on an object in a :term:`non-moving` :term:`pool`.
+
+
+.. c:type:: void (*mps_fmt_pad_t)(mps_addr_t addr, size_t size)
+
+    The type of the :term:`padding method` of an :term:`object
+    format`.
+
+    *addr* is the address at which to create a :term:`padding object`.
+
+    *size* is the :term:`size` of the padding object to be created.
+
+    The MPS calls a padding method when it wants to create a padding
+    object. Typically the MPS creates padding objects to fill in
+    otherwise unused gaps in memory; they allow the MPS to pack
+    objects into fixed-size units (such as operating system
+    :term:`pages <page>`).
+
+    The padding method must create a padding object of the specified
+    size at the specified address. The size can be any aligned (to the
+    format alignment) size. A padding object must be acceptable to
+    other methods in the format (the :term:`scan method`, the
+    :term:`skip method`, and so on).
+
+    .. seealso::
+
+        :ref:`topic-format`.
+
+
+.. c:type:: mps_res_t (*mps_fmt_scan_t)(mps_ss_t ss, mps_addr_t base, mps_addr_t limit)
+
+    The type of the :term:`scan method` of an :term:`object format`.
+
+    *ss* is the :term:`scan state`. It must be passed to
+    :c:func:`MPS_SCAN_BEGIN` and :c:func:`MPS_SCAN_END` to delimit a
+    sequence of fix operations, and to the functions
+    :c:func:`MPS_FIX1` and :c:func:`MPS_FIX2` when fixing a
+    :term:`reference`.
+
+    *base* points to the first :term:`formatted object` in the block
+    of memory to be scanned.
+
+    *limit* points to the location just beyond the end of the block to
+    be scanned. Note that there might not be any object at this
+    location.
+
+    Returns a :term:`result code`. If a fix function returns a value
+    other than :c:macro:`MPS_RES_OK`, the scan method must return that
+    value, and may return without fixing any further references.
+    Generally, itis better if it returns as soon as possible. If the
+    scanning is completed successfully, the function should return
+    :c:macro:`MPS_RES_OK`.
+
+    The scan method for an object format is called when the MPS needs
+    to scan objects in a block area of memory containing objects
+    belonging to that format. The scan method is called with a scan
+    state and the base and limit of the block of objects to scan. It
+    must then indicate references within the objects by calling
+    :c:func:`MPS_FIX1` and :c:func:`MPS_FIX2`.
+
+    .. seealso::
+
+        :ref:`topic-format`, :ref:`topic-scanning`.
+
+
+.. c:type:: mps_addr_t (*mps_fmt_skip_t)(mps_addr_t addr)
+
+    The type of the :term:`skip method` of an :term:`object format`.
+
+    *addr* is the address of the object to be skipped.
+
+    Returns the address of the "next object". In an object format
+    without headers (for example, a format of variant A), this is the
+    address just past the end of this object. In an object format with
+    headers (for example, a format of variant auto_header), it's the
+    address just past where the header of next object would be, if
+    there were one. It is always the case that the difference between
+    *addr* and the return value is the size of the block containing
+    the object.
+
+    A skip method is not allowed to fail.
+
+    .. seealso::
+
+        :ref:`topic-format`, :ref:`topic-scanning`.
+
+
+.. c:type:: mps_fmt_t
+
+    The type of an :term:`object format`.
+
+    .. seealso::
+
+        :ref:`topic-format`.
+
+
+.. c:type:: void (*mps_formatted_objects_stepper_t)(mps_addr_t addr, mps_fmt_t fmt, mps_pool_t pool, void *p, size_t s)
+
+    The type of a :term:`formatted objects <formatted object>` stepper
+    function.
+    
+    A function of this type can be passed to
+    :c:func:`mps_arena_formatted_objects_walk`, in which case it will
+    be called for each formatted object in an :term:`arena`. It
+    receives five arguments:
+    
+    *addr* is the address of the object.
+
+    *fmt* is the :term:`object format` for that object.
+
+    *pool* is the :term:`pool` to which the object belongs.
+
+    *p* and *s* are the corresponding values that were passed to
+    :c:func:`mps_arena_formatted_objects_walk`.
+
+    .. seealso::
+
+        :ref:`topic-arena`, :ref:`topic-format`.
+
+
+.. c:function:: void mps_free(mps_pool_t pool, mps_addr_t addr, size_t size)
+
+    Free a :term:`block` of memory to a :term:`pool`.
+
+    *pool* is the pool the block belongs to.
+
+    *addr* is the address of the block to be freed.
+
+    *size* is the :term:`size` of the block to be freed.
+
+    The freed block of memory becomes available for allocation by the
+    pool, or the pool might decide to make it available to other
+    pools, or it may be returned to the operating system.
+
+    .. seealso::
+
+        :ref:`topic-allocation`.
+
+    .. note::
+
+        :c:func:`mps_free` takes a *size* because it is most efficient
+        to do so. In most programs, the type of an object is known at
+        the point in the code that frees it, hence the size is
+        trivially available. In such programs, storing the size on the
+        MPS side would cost time and memory, and make it hard to get
+        good virtual memory behaviour (as it is, the deallocation code
+        doesn't have to touch the dead object at all).
 
 
 .. c:macro:: MPS_RES_MEMORY
@@ -1071,7 +1599,7 @@ Symbols defined in ``mps.h``
     The :term:`root mode` for :term:`protectable roots <protectable
     root>`. This tells the MPS that it may place a :term:`write
     barrier` on any :term:`page` which any part of the :term:`root`
-    covers. No :term:`format method` or :term:`scan function` (except
+    covers. No :term:`format method` or :term:`scan method` (except
     for the one for this root) may write data in this root. They may
     read it.
 
@@ -1086,9 +1614,9 @@ Symbols defined in ``mps.h``
 
     .. note::
 
-        No page may contain parts of two or more protectable
-        roots. You mustn't specify ``MPS_RM_PROT`` if the client
-        program or anything other than (this instance of) the MPS is
+        No page may contain parts of two or more protectable roots.
+        You mustn't specify ``MPS_RM_PROT`` if the :term:`client
+        program` or anything other than (this instance of) the MPS is
         going to protect or unprotect the relevant pages.
 
 
@@ -1134,10 +1662,10 @@ Symbols defined in ``mps.h``
 
     .. note::
 
-        The client is responsible for synchronizing the access to the
-        cache, but if the cache decides to access the pool, the MPS will
-        properly synchronize with any other threads that might be
-        accessing the same pool.
+        The :term:`client program` is responsible for synchronizing
+        the access to the cache, but if the cache decides to access
+        the pool, the MPS will properly synchronize with any other
+        threads that might be accessing the same pool.
 
     .. note::
 
@@ -1196,10 +1724,10 @@ Symbols defined in ``mps.h``
 
     .. note::
 
-        The client is responsible for synchronizing the access to the
-        cache, but if the cache decides to access the pool, the MPS
-        will properly synchronize with any other threads that might be
-        accessing the same pool.
+        The :term:`client program` is responsible for synchronizing
+        the access to the cache, but if the cache decides to access
+        the pool, the MPS will properly synchronize with any other
+        threads that might be accessing the same pool.
 
     .. note::
 
@@ -1209,12 +1737,12 @@ Symbols defined in ``mps.h``
 
     .. note::
 
-        ``mps_sac_free`` does very little checking: it's optimized for
-        speed. :term:`Double frees <double free>` and other mistakes
-        will only be detected when the cache is flushed (either by
-        calling :c:func:`mps_sac_flush` or automatically), and may not
-        be detected at all, if intervening operations have obscured
-        symptoms.
+        :c:func:`mps_sac_free` does very little checking: it's
+        optimized for speed. :term:`Double frees <double free>` and
+        other mistakes will only be detected when the cache is flushed
+        (either by calling :c:func:`mps_sac_flush` or automatically),
+        and may not be detected at all, if intervening operations have
+        obscured symptoms.
 
 
 .. c:function:: MPS_SAC_FREE_FAST(mps_sac_t sac, mps_addr_t p, size_t size)
@@ -1230,13 +1758,12 @@ Symbols defined in ``mps.h``
 
 .. c:function:: MPS_SCAN_BEGIN(mps_ss_t ss)
 
-    Within a :term:`scan function`, set up local information required
+    Within a :term:`scan method`, set up local information required
     by :c:func:`MPS_FIX1`, :c:func:`MPS_FIX2` and
     :c:func:`MPS_FIX12`. The local information persists until
     :c:func:`MPS_SCAN_END`.
 
-    *ss* is the :term:`scan state` that was passed to the scan
-    function.
+    *ss* is the :term:`scan state` that was passed to the scan method.
 
     .. seealso::
 
@@ -1244,21 +1771,21 @@ Symbols defined in ``mps.h``
 
     .. note::
 
-        Between :c:func:`MPS_SCAN_BEGIN` and :c:func:`MPS_SCAN_END`, the
-        scan state is in a special state, and must not be passed to a
-        function. If you really need to do so, for example because you
-        have an embedded structure shared between two scan methods, you
-        must wrap the call with :c:func:`MPS_FIX_CALL` to ensure that the
-        scan state is passed correctly.
+        Between :c:func:`MPS_SCAN_BEGIN` and :c:func:`MPS_SCAN_END`,
+        the scan state is in a special state, and must not be passed
+        to a function. If you really need to do so, for example
+        because you have an embedded structure shared between two scan
+        methods, you must wrap the call with :c:func:`MPS_FIX_CALL` to
+        ensure that the scan state is passed correctly.
 
 
 .. c:function:: MPS_SCAN_END(mps_ss_t ss)
 
-    Within a :term:`scan function`, terminate a block started by
+    Within a :term:`scan method`, terminate a block started by
     :c:func:`MPS_SCAN_BEGIN`.
 
     *ss* is the :term:`scan state` that was passed to the scan
-    function.
+    method.
 
     .. seealso::
 
@@ -1269,7 +1796,7 @@ Symbols defined in ``mps.h``
         :c:func:`MPS_SCAN_END` ensures that the scan is completed, so
         successful termination of a scan must invoke it. However, in
         case of an error it is allowed to return from the scan
-        function without invoking :c:func:`MPS_SCAN_END`.
+        method without invoking :c:func:`MPS_SCAN_END`.
 
     .. note::
 
@@ -1281,19 +1808,19 @@ Symbols defined in ``mps.h``
         scan state is passed correctly.
 
 
--------------------------------
-Symbols defined in ``mpsacl.h``
--------------------------------
+------------------------
+Declared in ``mpsacl.h``
+------------------------
 
 .. c:function:: mps_arena_class_t mps_arena_class_cl(void)
 
     Return the :term:`arena class` for a :term:`client arena`.
 
-    A client arena gets its managed memory from the client. This
-    memory block is passed when the arena is created.
+    A client arena gets its managed memory from the :term:`client
+    program`. This memory block is passed when the arena is created.
 
     When creating a client arena, :c:func:`mps_arena_create` takes two
-    extra arguments: ::
+    extra arguments::
 
         mps_res_t mps_arena_create(mps_arena_t *arena_o,
                                    mps_arena_class_t mps_arena_class_cl,
@@ -1314,9 +1841,9 @@ Symbols defined in ``mpsacl.h``
         :ref:`topic-arena`.
 
 
--------------------------------
-Symbols defined in ``mpsavm.h``
--------------------------------
+------------------------
+Declared in ``mpsavm.h``
+------------------------
 
 .. c:function:: mps_arena_class_t mps_arena_class_vm(void)
 
@@ -1335,7 +1862,7 @@ Symbols defined in ``mpsavm.h``
     garbage collection.
 
     When creating a virtual memory arena, :c:func:`mps_arena_create`
-    takes one extra argument: ::
+    takes one extra argument::
 
         mps_res_t mps_arena_create(mps_arena_t *arena_o,
                                    mps_arena_class_t arena_class_vm(),
@@ -1374,7 +1901,7 @@ Symbols defined in ``mpsavm.h``
     faster.
 
     When creating an arena of this class, :c:func:`mps_arena_create`
-    takes one extra argument: ::
+    takes one extra argument::
 
         mps_res_t mps_arena_create(mps_arena_t *arena_o,
                                    mps_arena_class_t arena_class_vmnz,
@@ -1390,9 +1917,9 @@ Symbols defined in ``mpsavm.h``
         :ref:`topic-arena`.
 
 
---------------------------------
-Symbols defined in ``mpscamc.h``
---------------------------------
+-------------------------
+Declared in ``mpscamc.h``
+-------------------------
 
 .. c:function:: void mps_amc_apply(mps_pool_t pool, void (*f)(mps_addr_t object, void *p, size_t s), void *p, size_t s)
 
@@ -1441,7 +1968,7 @@ Symbols defined in ``mpscamc.h``
     Copying) :term:`pool`.
 
     When creating an AMC pool, :c:func:`mps_pool_create` takes one
-    extra argument: ::
+    extra argument::
 
         mps_res_t mps_pool_create(mps_pool_t *pool_o, mps_arena_t arena, 
                                   mps_class_t mps_class_amc(),
@@ -1455,9 +1982,9 @@ Symbols defined in ``mpscamc.h``
         :ref:`pool-amc`.
 
 
----------------------------------
-Symbols defined in ``mpscmvff.h``
----------------------------------
+--------------------------
+Declared in ``mpscmvff.h``
+--------------------------
 
 .. c:function:: mps_class_t mps_class_mvff(void)
 
@@ -1465,7 +1992,7 @@ Symbols defined in ``mpscmvff.h``
     First Fit) :term:`pool`.
 
     When creating an MVFF pool, :c:func:`mps_pool_create` takes six
-    extra arguments: ::
+    extra arguments::
 
         mps_res_t mps_pool_create(mps_pool_t *pool_o, mps_arena_t arena, 
                                   mps_class_t mps_class_mvff(),
@@ -1476,29 +2003,29 @@ Symbols defined in ``mpscmvff.h``
                                   mps_bool_t arenaHigh,
                                   mps_bool_t firstFit)
 
-   *extendBy* is the :term:`size` of :term:`segment` to allocate by
-   default.
+    *extendBy* is the :term:`size` of :term:`segment` to allocate by
+    default.
 
-   *avgSize* is the average size of blocks to be allocated.
+    *avgSize* is the average size of blocks to be allocated.
 
-   *alignment* is the :term:`alignment` of addresses for allocation
-   (and freeing) in the pool. If an unaligned size is passed to
-   :c:func:`mps_alloc` or :c:func:`mps_free`, it will be rounded up to
-   the pool's alignment. The minimum alignment supported by pools of
-   this class is ``sizeof(void *)``.
+    *alignment* is the :term:`alignment` of addresses for allocation
+    (and freeing) in the pool. If an unaligned size is passed to
+    :c:func:`mps_alloc` or :c:func:`mps_free`, it will be rounded up
+    to the pool's alignment. The minimum alignment supported by pools
+    of this class is ``sizeof(void *)``.
 
-   *slotHigh*, *arenaHigh*, and *firstFit* are undocumented and may be
-   set to (0, 0, 1) or (1, 1, 1). No other setting of these parameters
-   is currently recommended.
+    *slotHigh*, *arenaHigh*, and *firstFit* are undocumented and may
+    be set to (0, 0, 1) or (1, 1, 1). No other setting of these
+    parameters is currently recommended.
 
     .. seealso::
 
         :ref:`pool-mvff`.
 
 
---------------------------------
-Symbols defined in ``mpscmv2.h``
---------------------------------
+-------------------------
+Declared in ``mpscmv2.h``
+-------------------------
 
 .. c:function:: mps_class_t mps_class_mvt(void)
 
@@ -1506,7 +2033,7 @@ Symbols defined in ``mpscmv2.h``
     Temporal-fit) :term:`pool`.
 
     When creating an MVT pool, :c:func:`mps_pool_create` takes five
-    extra arguments: ::
+    extra arguments::
 
         mps_res_t mps_pool_create(mps_pool_t *pool_o, mps_arena_t arena, 
                                   mps_class_t mps_class_mvt(),
@@ -1547,9 +2074,9 @@ Symbols defined in ``mpscmv2.h``
         :ref:`pool-mvt`
 
 
---------------------------------
-Symbols defined in ``mpscsnc.h``
---------------------------------
+-------------------------
+Declared in ``mpscsnc.h``
+-------------------------
 
 .. c:function:: mps_class_t mps_class_snc(void)
 
@@ -1557,9 +2084,9 @@ Symbols defined in ``mpscsnc.h``
     :term:`pool`.
 
     When creating an SNC pool, :c:func:`mps_pool_create` takes one
-    extra argument: ::
+    extra argument::
 
-        mps_res_t mps_pool_create(mps_pool_t *pool_o, mps_arena_t arena, 
+        mps_res_t mps_pool_create(mps_pool_t *pool_o, mps_arena_t arena,
                                   mps_class_t mps_class_snc(),
                                   mps_fmt_t fmt)
 
@@ -1572,9 +2099,99 @@ Symbols defined in ``mpscsnc.h``
         :ref:`pool-snc`.
 
 
-------------------------------
-Symbols defined in ``mpstd.h``
-------------------------------
+------------------------
+Declared in ``mpslib.h``
+------------------------
+
+.. c:function:: int mps_lib_memcmp(const void *s1, const void *s2, size_t n)
+
+    A :term:`plinth` function similar to the standard C function
+    ``memcmp``.
+
+    *s1* and *s2* point to :term:`blocks <block>` of memory to be
+    compared.
+
+    *n* is the :term:`size` of the blocks, in bytes.
+
+    Returns an integer that is greater than, equal to, or less than
+    zero, accordingly as the block pointed to by *s1* is greater than,
+    equal to, or less than the block pointed to by *s2*.
+
+    This function is intended to have the same semantics as the
+    ``memcmp`` function of the [ANSI C Standard]_ (section 7.11.4.1).
+
+    .. seealso::
+
+        :ref:`topic-plinth`.
+
+
+.. c:function:: void *mps_lib_memcpy(void *dest, const void *source, size_t n)
+
+    A :term:`plinth` function similar to the standard C function
+    ``memcpy``.
+
+    *dest* points to the destination.
+
+    *source* points to the source.
+
+    *n* is the number of bytes to copy from *source* to *dest*.
+
+    Returns *dest*.
+
+    This function is intended to have the same semantics as the
+    ``memcpy`` function of the [ANSI C Standard]_ (section 7.11.2.1).
+
+    The MPS never passes overlapping blocks to
+    :c:func:`mps_lib_memcpy`.
+
+    .. seealso::
+
+        :ref:`topic-plinth`.
+
+.. c:function:: void *mps_lib_memset(void *s, int c, size_t n)
+
+    A :term:`plinth` function similar to the standard C function
+    ``memset``.
+
+    *s* points to the :term:`block` to fill with the byte *c*.
+
+    *c* is the byte to fill with (when converted to ``unsigned char``).
+
+    *n* is the :term:`size` of the block in bytes.
+
+    Returns *s*.
+
+    This function is intended to have the same semantics as the
+    ``memset`` function of the [ANSI C Standard]_ (section 7.11.6.1).
+
+    .. seealso::
+
+        :ref:`topic-plinth`.
+
+
+.. c:function:: unsigned long mps_lib_telemetry_control()
+
+    A :term:`plinth` function to supply a default value for the
+    :term:`telemetry filter` from the environment. See
+    :c:func:`mps_telemetry_control` for more information on the
+    significant of the value.
+
+    Returns the default value of the telemetry filter, as derived from
+    the environment. It is recommended that the environment be
+    consulted for a symbol analogous to
+    :c:macro:`MPS_TELEMETRY_CONTROL`, subject to local restrictions.
+
+    In the absence of environmental data, a default of zero is
+    recommended.
+
+    .. seealso::
+
+        :ref:`topic-plinth`, :ref:`topic-telemetry`.
+
+
+-----------------------
+Declared in ``mpstd.h``
+-----------------------
 
 .. c:type:: MPS_T_WORD
 
@@ -1620,1793 +2237,6 @@ Other symbols
 -------------
 
 
-.. c:type:: mps_fmt_A_s
-
-
-<h4>Summary</h4>
-
-:c:func:`mps_fmt_A_s` is a structure used to create object formats of variant A.
-
-
-<h4>Associated Protocols</h4>
-
-Format.
-
-
-<h4>Type</h4>
-
-<pre>
-typedef struct mps_fmt_A_s {
-  mps_align_t     align;
-  mps_fmt_scan_t  scan;
-  mps_fmt_skip_t  skip;
-  mps_fmt_copy_t  copy;
-  mps_fmt_fwd_t   fwd;
-  mps_fmt_isfwd_t isfwd;
-  mps_fmt_pad_t   pad;
-} mps_fmt_A_s;
-</pre>
-
-
-<h4>Resources</h4>
-
-
-  <code class="filename">mps.h</code>
-
-
-
-<h4>Description</h4>
-
-Objects of this type are intended to be used in the creation of object formats. Object formats describe the layout of client objects.
-
-:c:func:`mps_fmt_A_s` is a structure that represents the particular collection of methods and values that describes an object format of variant A.
-
-Broadly speaking, the object formats of this variant are suitable for use in copying or moving memory managers.
-
-:c:func:`mps_fmt_A_s` has the following methods: <code>scan</code>, <code>skip</code>, <code>copy</code>, <code>fwd</code>, <code>isfwd</code>, <code>pad</code>, and the following value:<code>align</code>.
-
-<code>align</code> is an integer value defines the alignment of objects allocated with this format. It should be large enough to satisfy the alignment requirements of any field in the objects,and it cannot be larger than the arena alignment. For details of the methods, consult the reference pages for the type of each method.
-
-
-<h4>Example</h4>
-
-<pre>
-mps_fmt_t create_format(mps_arena_t arena)
-{
-  mps_fmt my_format;
-  mps_res_t res;
-  mps_fmt_A_s my_format_A = { my_alignment, &amp;my_scan, &amp;my_skip, &amp;my_copy, &amp;my_fwd,
-                              &amp;my_isfwd, &amp;my_pad };
-
-  res = mps_fmt_create_A(&amp;my_format, arena, &amp;my_format_A);
-  assert(res != MPS_RES_OK);
-
-  return my_format;
-}
-</pre>
-
-
-<h4>See Also</h4>
-
-
-
-:c:func:`mps_fmt_create_A`,
-
-:c:func:`mps_fmt_scan_t`,
-
-:c:func:`mps_fmt_skip_t`
-
-:c:func:`mps_fmt_copy_t`,
-
-:c:func:`mps_fmt_fwd_t`,
-
-:c:func:`mps_isfwd_t`,
-
-:c:func:`mps_pad_t`,
-
-:c:func:`mps_align_t`,
-
-:c:func:`mps_fmt_B_s`
-
-
-.. c:type:: mps_fmt_A_t
-
-
-<h4>Summary</h4>
-
-:c:func:`mps_fmt_A_t` is the type pointer to :c:func:`mps_fmt_A_s`.
-
-
-<h4>Associated Protocols</h4>
-
-Format.
-
-
-<h4>Type</h4>
-
-<pre>
-typedef struct mps_fmt_A_s {
-  mps_align_t     align;
-  mps_fmt_scan_t  scan;
-  mps_fmt_skip_t  skip;
-  mps_fmt_copy_t  copy;
-  mps_fmt_fwd_t   fwd;
-  mps_fmt_isfwd_t isfwd;
-  mps_fmt_pad_t   pad;
-} mps_fmt_A_s;
-
-typedef struct mps_fmt_A_s *mps_fmt_A_t;
-</pre>
-
-
-<h4>Description</h4>
-
-:c:func:`mps_fmt_A_t` is the type pointer to :c:func:`mps_fmt_A_s`. A value of this type represents a collection of methods and values that can be used to create a format object of type :c:func:`mps_fmt_t`. This type represents a particular collection of methods and values; other collections are represented by other types.
-
-Objects of type :c:func:`mps_fmt_A_t` are intended to be used in the creation of object formats.Object formats describe the layout of client objects. The function :c:func:`mps_fmt_create_A` takes an :c:func:`mps_fmt_A_t` as one of its arguments and creates an object of type :c:func:`mps_fmt_t` (an object format).
-
-See the documentation of :c:func:`mps_fmt_A_s` for further details.
-
-
-<h4>Example</h4>
-
-
-<h4>See Also</h4>
-
-
-
-:c:func:`mps_fmt_A_s`,
-
-:c:func:`mps_fmt_t`,
-
-:c:func:`mps_fmt_create_A`
-
-
-.. c:type:: mps_fmt_B_s
-
-
-<h4>Summary</h4>
-
-:c:func:`mps_fmt_B_s` is a transparent structure used to create object formats of variantB.
-
-
-<h4>Associated Protocols</h4>
-
-Format.
-
-
-<h4>Type</h4>
-
-<pre>
-typedef struct mps_fmt_B_s {
-  mps_align_t     align;
-  mps_fmt_scan_t  scan;
-  mps_fmt_skip_t  skip;
-  mps_fmt_copy_t  copy;
-  mps_fmt_fwd_t   fwd;
-  mps_fmt_isfwd_t isfwd;
-  mps_fmt_pad_t   pad;
-  mps_fmt_class_t mps_class;
-} mps_fmt_B_s;
-</pre>
-
-
-<h4>Description</h4>
-
-Objects of this type are intended to be used in the creation of object formats. Object formats describe the layout of client objects. :c:func:`mps_fmt_B_s` is a structure that represents the particular collection of methods and values that describes an object format of variant B.
-
-:c:func:`mps_fmt_B_s` is the same as :c:func:`mps_fmt_A_s` except for the addition of the :c:func:`mps_class` method. Broadly speaking, the object formats of variety B are suitable for use in copying or moving memory managers (just like variety A); the addition of the class method allows more information to be passed to various support tools (such as graphical browsers).
-
-:c:func:`mps_fmt_B_s` has the following methods: scan, skip, copy, fwd, isfwd, pad, :c:func:`mps_class`, and the following value: align.
-
-align is an integer value defines the alignment of objects allocated with this format. It should be large enough to satisfy the alignment requirements of any field in the objects, and it cannot be larger than the arena alignment. For details of the methods, consult the reference pages for the type of each method.
-
-
-<h4>Example</h4>
-
-<pre>
-mps_fmt_t create_format(mps_arena_t arena)
-{
-  mps_fmt_B_s my_format_B = { my_alignment, &amp;my_scan, &amp;my_skip, &amp;my_copy,
-                              &amp;my_fwd, &amp;my_isfwd, &amp;my_pad, &amp;my_class };
-  mps_fmt my_format;
-  mps_res_t res;
-
-  res = mps_fmt_create_B(&amp;my_format, arena, &amp;my_format_B);
-  assert(res != MPS_RES_OK);
-
-  return my_format;
-}
-</pre>
-
-
-<h4>See Also</h4>
-
-
-
-:c:func:`mps_fmt_create_B`,
-
-:c:func:`mps_fmt_scan_t`,
-
-:c:func:`mps_fmt_skip_t`,
-
-:c:func:`mps_fmt_copy_t`,
-
-:c:func:`mps_fmt_fwd_t`,
-
-:c:func:`mps_isfwd_t`,
-
-:c:func:`mps_pad_t`,
-
-:c:func:`mps_align_t`,
-
-:c:func:`mps_class_t`,
-
-:c:func:`mps_fmt_A_s`
-
-
-<h4>Notes</h4>
-
-The :c:func:`mps_class` field used to be called "class", but that was problematic for C++, so we changed it.
-
-
-.. c:type:: mps_fmt_B_t
-
-
-<h4>Summary</h4>
-
-:c:func:`mps_fmt_B_t` is a type passed to :c:func:`mps_fmt_create_B`. It represents the collection of methods and values used to create a :c:func:`mps_fmt_t`. You are expected to declare and create structures of this type if you require an object of type :c:func:`mps_fmt_B_t`.
-
-
-<h4>Associated Protocols</h4>
-
-Format
-
-
-<h4>Structure</h4>
-
-<pre>
-typedef struct mps_fmt_B_s {
-  mps_align_t     align;
-  mps_fmt_scan_t  scan;
-  mps_fmt_skip_t  skip;
-  mps_fmt_copy_t  copy;
-  mps_fmt_fwd_t   fwd;
-  mps_fmt_isfwd_t isfwd;
-  mps_fmt_pad_t   pad;
-  mps_fmt_class_t class;
-} mps_fmt_B_s;
-</pre>
-
-
-<h4>Type</h4>
-
-<code>typedef struct mps_fmt_B_s *mps_fmt_B_t;</code>
-
-
-<h4>Description</h4>
-
-:c:func:`mps_fmt_B_t` is the equivalent to :c:func:`mps_fmt_A_t` that should be passed to:c:func:`mps_fmt_create_B`. It is suitable for format variety A collectors that need to use tools that useclass information.
-
-See the documentation for the symbol :c:func:`mps_fmt_B_s` for further details.
-
-
-<h4>Example</h4>
-
-
-<h4>See Also</h4>
-
-
-
-:c:func:`mps_fmt_B_s`,
-
-:c:func:`mps_fmt_t`,
-
-:c:func:`mps_fmt_create_B`,
-
-:c:func:`mps_fmt_A_t`
-
-
-<h4>Notes</h4>
-
-None.
-
-
-.. c:type:: mps_fmt_auto_header_s
-
-
-<h4>Summary</h4>
-
-:c:func:`mps_fmt_auto_header_s` is a structure used to create object formats of variant auto_header.
-
-
-<h4>Associated Protocols</h4>
-
-Format.
-
-
-<h4>Type</h4>
-
-<blockquote>
-<pre>
-typedef struct mps_fmt_auto_header_s {
-  mps_align_t     align;
-  mps_fmt_scan_t  scan;
-  mps_fmt_skip_t  skip;
-  mps_fmt_fwd_t   fwd;
-  mps_fmt_isfwd_t isfwd;
-  mps_fmt_pad_t   pad;
-  size_t          mps_headerSize;
-} mps_fmt_auto_header_s;
-</pre>
-</blockquote>
-
-
-<h4>Resources</h4>
-
-
-  <code class="filename">mps.h</code>
-
-
-
-<h4>Description</h4>
-
-Objects of this type are intended to be used in the creation of object formats. Object formats describe the layout of client objects. :c:func:`mps_fmt_auto_header_s` isa structure that represents the particular collection of methods and values that describes an object format of variant auto_header.
-
-Broadly speaking, the object formats of this variant are suitable for use in automatic memory management for objects with headers (hence the name). More precisely, this variant is intended for formats where the client's pointers point some distance into the memory block containing the object. This typically happens when the objects have a common header used for memory management or class system purposes, but this situation also arises when the low bits of a pointer are used for a tag. The MPS does not care what the reason is, only about the offset of the pointer in relation to the memory block.
-
-:c:func:`mps_fmt_auto_header_s`has the following methods: <code class="source">scan</code>, <code class="source">skip</code>, <code class="source">fwd</code>, <code class="source">isfwd</code>, <code class="source">pad</code>, and the following values: <code class="source">align</code> and :c:func:`mps_headerSize`.
-
-<code class="source">align</code> is an integer value defines the alignment of objects allocated with this format. It should be large enough to satisfy the alignment requirements of any field in the objects, and it cannot be larger than the arena alignment. 
-
-:c:func:`mps_headerSize` is the size of the header, i.e., the offset of a client pointer from the base the memory block. For details of the methods, consult the reference pages for the type of each method.
-
-
-<h4>Example</h4>
-
-<pre>
-mps_fmt_t create_format(mps_arena_t arena)
-{
-  mps_fmt format;
-  mps_res_t res;
-  mps_fmt_auto_header_s format_desc = { my_alignment, &amp;my_scan, &amp;my_skip, &amp;my_fwd,
-                                        &amp;my_isfwd, &amp;my_pad, HEADER_SIZE };
-
-  res = mps_fmt_create_auto_header(&amp;format, arena, &amp;format_desc);
-  assert(res != MPS_RES_OK);
-
-  return format;
-}
-</pre>
-
-
-<h4>See Also</h4>
-
-
-
-:c:func:`mps_fmt_create_auto_header`,
-
-:c:func:`mps_fmt_scan_t`,
-
-:c:func:`mps_fmt_skip_t`,
-
-:c:func:`mps_fmt_fwd_t`,
-
-:c:func:`mps_isfwd_t`,
-
-:c:func:`mps_pad_t`,
-
-:c:func:`mps_align_t`,
-
-:c:func:`mps_fmt_A_s`
-
-
-<h4>Notes</h4>
-
-For technical reasons, client objects must be longer than the header, i.e., objects consisting of only a header are not supported. However, if the header size is larger than or equal to alignment, the pad method must still be able to create padding objects down to alignment size.
-
-At the moment, this format only works with pool classes AMC and AMCZ.
-
-
-.. c:type:: mps_fmt_class_t
-
-
-<h4>Summary</h4>
-
-:c:func:`mps_fmt_class_t` is a function pointer type for the class method of a format.
-
-
-<h4>Associated Protocols</h4>
-
-Format. Telemetry.
-
-
-<h4>Type</h4>
-
-<code>typedef mps_addr_t (*mps_fmt_class_t)(mps_addr_t addr);</code>
-
-
-<h4>Arguments</h4>
-
-addr the address of the object whose class is of interest
-
-
-<h4>Returned Values</h4>
-
-Returns an address that the client associates with the class or type of the object.
-
-
-<h4>Description</h4>
-
-:c:func:`mps_fmt_class_t` is t he type of a format's class method. A class method returns an address that is related to the class of the object, for passing on to various support tools (such as graphical browsers).
-
-A class method is provided by the client as part of a format (see Format Protocol).
-
-The exact meaning of the return value is up to the client, but it would typically bear some relation to class or type in the client program. The client may have objects that represent classes or types. These may be associated with strings via :c:func:`mps_telemetry_intern` and :c:func:`mps_telemetry_label`.
-
-
-<h4>Example</h4>
-
-<pre>
-mps_addr_t my_class_method(mps_addr_t object) {
-  my_object_generic_t generic_object = object;
-  return (mps_addr_t)(generic_object.class);
-}
-</pre>
-
-
-<h4>Error Handling</h4>
-
-A class method is not allowed to fail, but may return NULL.
-
-
-<h4>See Also</h4>
-
-
-
-:c:func:`mps_fmt_t`,
-
-:c:func:`mps_fmt_create_B`
-
-
-<h4>Notes</h4>
-
-It is recommended that NULL be returned for padding objects and forwarded objects.
-
-
-.. c:type:: mps_fmt_copy_t
-
-
-<h4>Summary</h4>
-
-:c:func:`mps_fmt_copy_t` is a function pointer type for the copy method of a format.  [Obsolete.  RHSK 2006-06-06]
-
-
-<h4>Associated Protocols</h4>
-
-Format.
-
-
-<h4>Type</h4>
-
-<code>typedef void (*mps_fmt_copy_t)(mps_addr_t old, mps_addr_t new);</code>
-
-
-<h4>Arguments</h4>
-
-old -- the address of the object
-
-new -- the address to which the object should be copied
-
-
-<h4>Description</h4>
-
-[Note: :c:func:`mps_fmt_copy_t` is obsolete: the MPS does not call this format method.  The MPS simply copies all the bytes to the new location (using the length reported by the skip format method).  RHSK 2006-06-06]
-
-:c:func:`mps_fmt_copy_t` is a function pointer type for the copy method of a format. A copy method copies an object to a new location. It may be called by the MPS as part of copying garbage collection, for example.
-
-A copy method is required in some formats (in particular formats A and B (see :c:func:`mps_fmt_A_t` and :c:func:`mps_fmt_B_t`)). A copy method takes the address of an object and another address, and copies the object to the new address. The new and the old locations are guaranteed not to overlap.
-
-
-<h4>Example</h4>
-
-<pre>
-void my_copy_method(mps_addr_t old, mps_addr_t new)
-{
-  size_t length = (char*)my_skip_method(old) - (char *)old;
-  memcpy(new, old, length);
-}
-</pre>
-
-
-<h4>Error Handling</h4>
-
-A copy method is not allowed to fail.
-
-
-<h4>See Also</h4>
-
-
-
-:c:func:`mps_fmt_t`,
-
-:c:func:`mps_fmt_create_A`,
-
-:c:func:`mps_fmt_A_t`,
-
-:c:func:`mps_fmt_B_t`,
-
-:c:func:`mps_fmt_create_B`
-
-
-<h4>Notes</h4>
-
-Most pools will just ignore Copy methods, and do the copy themselves.
-
-
-<h3>function <code><a id="mps_fmt_create_A" name="mps_fmt_create_A">mps_fmt_create_A</a></code></h3>
-
-
-<h4>Summary</h4>
-
-Function for create a format of variety A.
-
-
-<h4>Associated Protocols</h4>
-
-Format.
-
-
-
-
-<h4>Syntax</h4>
-
-<code>mps_res_t mps_fmt_create_A(mps_fmt_t *fmt_o, mps_arena_t arena, mps_fmt_A_s *fmt_A);</code>
-
-
-<h4>Arguments</h4>
-
-
-  <code>fmt_o</code>
-  - the address of a variable to hold the new format
-
-
-
-  <code>arena</code>
-  - the arena in which to create the format
-
-
-
-  <code>fmt_A</code>
-  - format description of variety A
- 
-
-
-<h4>Returned Values</h4>
-
-Result status. If the return value is :c:macro:`MPS_RES_OK`, the new format is in <code>*fmt_o</code>.
-
-
-<h4>Description</h4>
-
-This function creates a format from a user format specification of variety A.
-
-
-<h4>Example</h4>
-
-<pre>
-mps_fmt_t create_format(mps_arena_t arena)
-{
-  mps_fmt_A_s my_format_A = { my_alignment, &amp;my_scan, &amp;my_skip, &amp;my_copy,&amp;my_fwd,
-    &amp;my_isfwd, &amp;my_pad };
-  mps_fmt my_format;
-  mps_res_t res;
-
-  res = mps_fmt_create_A(&amp;my_format, arena, &amp;my_format_A);
-  if(res != MPS_RES_OK) {
-    fprintf(stderr, "Couldn't create format.\n");
-    exit(1);
-  }
-
-  return my_format;
-}
-</pre>
-
-
-<h4>Error Handling</h4>
-
-The MPS may exhaust some resource in the course of :c:func:`mps_fmt_create_A` and will return an appropriate error code in such circumstances.
-
-
-<h4>See Also</h4>
-
-
-
-:c:func:`mps_fmt_A_s`,
-
-:c:func:`mps_fmt_t`,
-
-:c:func:`mps_fmt_create_B`
-
-
-<h3>function <code><a id="mps_fmt_create_B" name="mps_fmt_create_B">mps_fmt_create_B</a></code></h3>
-
-
-<h4>Summary</h4>
-
-Function for create a format of variety B.
-
-
-<h4>Associated Protocols</h4>
-
-Format.
-
-
-
-
-<h4>Syntax</h4>
-
-<code>mps_res_t mps_fmt_create_B(mps_fmt_t *fmt_o, mps_arena_t arena, mps_fmt_B_s *fmt_B);</code>
-
-
-<h4>Arguments</h4>
-
-<code>arena</code> - the arena in which to create the format
-
-<code>fmt_B</code> - format description of variety B
-
-
-<h4>Returned Values</h4>
-
-Result status. If the return value is :c:macro:`MPS_RES_OK`, the new format is in<code>*fmt_o</code>.
-
-
-
-
-<h4>Description</h4>
-
-This function creates a format from a user format specification of variety B. It is very similar to :c:func:`mps_fmt_create_A`.
-
-
-<h4>Example</h4>
-
-<pre>
-mps_fmt_t create_format(mps_arena_t arena)
-{
-  mps_fmt_B_s my_format_B = { my_alignment, &amp;my_scan, &amp;my_skip, &amp;my_copy,
-                              &amp;my_fwd, &amp;my_isfwd, &amp;my_pad, &amp;my_class };
-  mps_fmt my_format;
-  mps_res_t res;
-
-  res = mps_fmt_create_B(&amp;my_format, arena, &amp;my_format_B);
-  assert(res != MPS_RES_OK);
-
-  return my_format;
-}
-</pre>
-
-
-<h4>Error Handling</h4>
-
-The MPS may exhaust some resource in the course of :c:func:`mps_fmt_create_B` and will return an appropriate error code in such circumstances.
-
-
-<h4>See Also</h4>
-
-
-
-:c:func:`mps_fmt_B_s`,
-
-:c:func:`mps_fmt_t`,
-
-:c:func:`mps_fmt_create_A`
-
-
-.. c:function:: mps_res_t mps_fmt_create_auto_header(mps_fmt_t *fmt_o, mps_arena_t arena, mps_fmt_auto_header_s *fmt_st);
-
-
-<h4>Summary</h4>
-
-Function for create a format of variety auto_header.
-
-
-<h4>Associated Protocols</h4>
-
-Format.
-
-
-<h4>Arguments</h4>
-
-
-  <code>fmt_o</code>
-  - the address of a variable to hold the new format
-
-
-
-  <code>arena</code>
-  - the arena in which to create the format
-
-
-
-  <code>fmt_st</code>
-  - format description of variety auto_header
- 
-
-
-<h4>Returned Values</h4>
-
-Result status. If the return value is :c:macro:`MPS_RES_OK`, the new format is in <code>*fmt_o</code>.
-
-
-<h4>Description</h4>
-
-This function creates a format from a user format specification of variety auto_header.
-
-
-<h4>Example</h4>
-
-<pre>
-mps_fmt_t create_format(mps_arena_t arena)
-{
-  mps_fmt_auto_header_s format_desc = { my_alignment, &amp;my_scan, &amp;my_skip, &amp;my_fwd,
-    &amp;my_isfwd, &amp;my_pad, HEADER_SIZE };
-  mps_fmt format;
-  mps_res_t res;
-
-  res = mps_fmt_create_auto_header(&amp;format, arena, &amp;format_desc);
-  assert(res != MPS_RES_OK);
-
-  return format;
-}
-</pre>
-
-
-<h4>Error Handling</h4>
-
-The MPS may exhaust some resource in the course of :c:func:`mps_fmt_create_auto_header`and will return an appropriate error code in such circumstances.
-
-
-<h4>See Also</h4>
-
-
-
-:c:func:`mps_fmt_auto_header_s`,
-
-:c:func:`mps_fmt_t`,
-
-:c:func:`mps_fmt_create_A`
-
-
-.. c:type:: mps_fmt_fwd_t
-
-
-<h4>Summary</h4>
-
-The type of a format's forward method.
-
-
-<h4>Associated Protocols</h4>
-
-Format.
-
-
-<h4>Type</h4>
-
-<code>typedef void (*mps_fmt_fwd_t)(mps_addr_t old, mps_addr_t new);</code>
-
-
-<h4>Arguments</h4>
-
-old
-
-the address of an object
-
-new
-
-the address where the object has been moved
-
-
-
-<h4>Description</h4>
-
-:c:func:`mps_fmt_fwd_t` is the type of a format's forward method. A forward method is used to store relocation information in a heap. It may be called by the MPS as part of copying garbage collection.
-
-A forward method is provided by the client as part of a format (see Format Protocol ). TheMPS calls a forward method when it has relocated an object. The forward method when called must replace the object at 'old' with a forwarding marker that points to the address 'new'. The forwarding marker must meet the following requirements:
-
-<ul>
-
-  <li>it must be possible for the MPS to call other format methods with the address of a forwarding marker as the argument.</li>
-
-  <li>he forwarding marker must not be bigger than the original object.</li>
-
-  <li>t must be possible to distinguish the forwarding marker from ordinary objects using the isfwd method (see :c:func:`mps_fmt_isfwd_t`), and the isfwd method must return the address'new'.</li>
-
-</ul>
-
-
-<h4>Example</h4>
-
-<pre>
-/* define the function */
-
-void example_fwd(mps_addr_t old, mps_addr_t new)
-{
-  /* ... */
-}
-
-/* also define example_scan, example_skip, etc */
-/* store pointer to function in the format variant struct */
-struct mps_fmt_B_s example_fmt_B = {
-  4, /* align */
-  example_scan,
-  example_skip,
-  example_copy,
-  example_fwd,
-  example_isfwd,
-  example_pad,
-  example_class
-};
-
-/* The (address of the) example_fmt_B object can now be passed to */
-/* mps_fmt_create_B to create a format. */
-</pre>
-
-
-<h4>See Also</h4>
-
-
-
-:c:func:`mps_fmt_A_s`,
-
-:c:func:`mps_fmt_B_s`,
-
-:c:func:`mps_fmt_auto_header_s`,
-
-:c:func:`mps_fmt_isfwd_t`
-
-
-<h4>Notes</h4>
-
-This method is never invoked by the GC on an object in a non-moving pool.
-
-
-.. c:type:: mps_fmt_isfwd_t
-
-
-<h4>Summary</h4>
-
-The type of a format's isfwd ("is forwarded") method.
-
-
-<h4>Associated Protocols</h4>
-
-Format.
-
-
-<h4>Type</h4>
-
-<code>typedef mps_addr_t (*mps_fmt_isfwd_t)(mps_addr_t addr);</code>
-
-
-<h4>Arguments</h4>
-
-addr
-
-the address of a candidate object
-
-
-<h4>Returned Values</h4>
-
-
-  Either a null pointer to indicate the object at
-  <code>addr</code>
-  has not been relocated, orthe new location of the object if there is a forwarding marker at
-  <code>addr</code>
-  indicating thatthe object has been relocated.
-
-
-
-<h4>Description</h4>
-
-The type of a format's isfwd ("is forwarded") method. An isfwd method is used to test whether an object has been relocated using the format's forward method.
-
-An isfwd method is provided by the client as part of a format (see protocol.mps.format(0) ).The MPS calls the isfwd method to determine whether an object in the heap has been relocated or not.Objects in the heap are relocated using the format's forward method (see :c:func:`mps_fmt_fwd_t`). When the isfwd method is called the parameter addr will be the address of either an object or a forwarding marker created with the forward method. If it is an object (so it has not been relocated)the method should return a null pointer; otherwise it is a forward marker indicating the address of the relocated object, the address of the relocated object should be returned (this should be the same as the 'new' parameter that was passed to the forward method that created the forwarding marker).
-
-
-<h4>Example</h4>
-
-&lt;example of how to use the symbol&gt;
-
-
-<h4>See Also</h4>
-
-
-
-:c:func:`mps_fmt_A_s`,
-
-:c:func:`mps_fmt_B_s`,
-
-:c:func:`mps_fmt_auto_header_s`,
-
-:c:func:`mps_fmt_fwd_t`
-
-
-<h4>Notes</h4>
-
-This method is never invoked by the GC on an object in a non-moving pool.
-
-
-.. c:type:: mps_fmt_pad_t
-
-
-<h4>Summary</h4>
-
-The type of a format's pad method.
-
-
-<h4>Associated Protocols</h4>
-
-Format.
-
-
-<h4>Type</h4>
-
-<code>typedef void (*mps_fmt_pad_t)(mps_addr_t addr, size_t size);</code>
-
-
-<h4>Arguments</h4>
-
-addr
-
-The address at which to create a padding object.
-
-size
-
-The size (in bytes) of the padding object to be created.
-
-
-
-<h4>Description</h4>
-
-The type of a format's pad method. A pad method is used to create padding objects.
-
-A pad method is provided by the client as part of a format (see Format Protocol ). The MPS calls a pad method when it wants to create a padding object. Typically the MPS creates padding objects to fill in otherwise unused gaps in memory; they allow the MPS to pack objects in fixed-size units (such as OS pages). The pad method should create a padding object of the specified size at the specified address. The size can be any aligned (to the format alignment) size. A padding object should be acceptable to other methods in the format (scan, skip, isfwd, etc.).
-
-
-<h4>Example</h4>
-
-&lt;example of how to use the symbol&gt;
-
-
-<h4>See Also</h4>
-
-
-
-:c:func:`mps_fmt_A_s`,
-
-:c:func:`mps_fmt_B_s`
-
-
-.. c:type:: mps_fmt_scan_t
-
-
-<h4>Summary</h4>
-
-Type of the scan method of a format.
-
-
-<h4>Associated Protocols</h4>
-
-Format, Scanning.
-
-
-<h4>Syntax</h4>
-
-<code>typedef mps_res_t (*mps_fmt_scan_t)(mps_ss_t ss, mps_addr_t base, mps_addr_t limit)</code>
-
-
-<h4>Arguments</h4>
-
-
-  <code>scan_state</code>
-  a scan state
-
-
-
-  <code>base</code>
-  a client pointer to the first object in the block to be scanned
-
-
-
-  <code>limit</code>
-  a client pointer to the object just beyond the end of the block
-
-
-
-<h4>Returned Values</h4>
-
-A result code.
-
-
-<h4>Description</h4>
-
-This is the type of scanning functions provided by the client in some format variants and :c:func:`mps_root_create_fmt`. When the MPS needs to scan objects in an area of memory that this scanning function has been registered for, it will be called with a scan state and the limits of the block of objects to scan. It must then indicate references within the objects by using:c:func:`mps_fix` or one of the alternatives.
-
-The <code>base</code> and <code>limit</code> arguments are client pointers, as usual. Note that there might not be any object at the location indicated by <code>limit</code>.
-
-
-<h4>Example</h4>
-
-<pre>
-/* Scanner for a simple Scheme-like language with just two interesting types */
-
-mps_res_t scan_objs(mps_ss_t ss, mps_addr_t base, mps_addr_t limit)
-{
-  mps_res_t res;
-  mps_addr_t obj;
-
-  MPS_SCAN_BEGIN(ss)
-  for(obj = base; obj &lt; limit;) { /* obj maps over the objects to scan */
-    switch(((Object*)obj)-&gt;type) {
-    case ArrayType:
-      {
-        size_t i;
-        Array *array = (Array *)obj;
-
-        for(i = 0; i &lt; array-&gt;length; ++i) { /* fix each element */
-          res = MPS_FIX12(ss, &amp;array-&gt;contents[i]);
-          if(res != MPS_RES_OK) return res;
-        }
-
-        obj = AddrAdd(obj, ArraySize(array)); /* move to next object */
-        break;
-      }
-
-    case StackFrameType:
-      {
-        StackFrame *frame = (StackFrame *)obj;
-        for(i = frame-&gt;size; i &gt; 0; --i) { /* fix each local var */
-          res = MPS_FIX12(ss, &amp;frame-&gt;locals[i]);
-          if(res != MPS_RES_OK) return res;
-        }
-
-        res = MPS_FIX12(ss, &amp;frame-&gt;next);
-        if(res != MPS_RES_OK) return res;
-        obj = AddrAdd(obj, StackFrameSize(frame));
-        break;
-      }
-
-    default: /* other types don't contain references */
-      obj = AddrAdd(obj, DefaultSize(obj));
-      break;
-
-    }
-  }
-  MPS_SCAN_END(ss);
-
-  return res;
-}
-</pre>
-
-
-<h4>Error Handling</h4>
-
-If a fixing operation returns a value other than :c:macro:`MPS_RES_OK`, the scanning function must return that value, and may return without scanning further references. Generally, itis better if it returns as soon as possible. If the scanning is completed successfully, the function should return :c:macro:`MPS_RES_OK`.
-
-
-<h4>See Also</h4>
-
-
-
-:c:func:`mps_fmt_A_s`,
-
-:c:func:`mps_fmt_B_s`,
-
-:c:func:`mps_fmt_auto_header_s`,
-
-:c:func:`mps_root_create_fmt`,
-
-:c:func:`mps_fix`,
-
-<code><a href="#MPS_FIX12">MPS_FIX12</a></code>,
-
-<code><a href="#MPS_FIX1">MPS_FIX1</a></code>,
-
-<code><a href="#MPS_FIX2">MPS_FIX2</a></code>,
-
-:c:macro:`MPS_FIX_CALL`,
-
-:c:macro:`MPS_SCAN_BEGIN`,
-
-:c:macro:`MPS_SCAN_END`
-
-
-.. c:type:: mps_fmt_skip_t
-
-
-<h4>Summary</h4>
-
-:c:func:`mps_fmt_skip_t` is a function pointer type for the skip method of a format.
-
-
-<h4>Associated Protocols</h4>
-
-Format.
-
-
-<h4>Type</h4>
-
-<code>typedef mps_addr_t (*mps_fmt_skip_t)(mps_addr_t obj);</code>
-
-
-<h4>Arguments</h4>
-
-
-  <code>obj</code>
-  the client pointer to the object to be skipped
-
-
-
-<h4>Returned Values</h4>
-
-The skip method should return the address of the next object.
-
-
-<h4>Description</h4>
-
-:c:func:`mps_fmt_skip_t` is a function pointer type for the skip method of a format.
-
-These methods are provided by the client as part of a format and invoked by the MPS (seeFormat Protocol). The skip method takes the client pointer to the object. The method should return the client pointer to the next object, whether there is one or not. With no headers, this is the address just past the end of this object; with headers, it's the address just past where the header of next object would be. It is always the case that the difference between the argument and the return value is the size of the block containing the object.
-
-
-<h4>Example</h4>
-
-<pre>
-mps_addr_t my_skip_method(mps_addr_t object)
-{
-  char *p = (char *)object;
-  my_object_t my_object = (my_object_t)object;
-  return((mps_addr_t)(p + my_object-&gt;length));
-}
-</pre>
-
-
-<h4>Error Handling</h4>
-
-A skip method is not allowed to fail.
-
-
-<h4>See Also</h4>
-
-
-
-:c:func:`mps_fmt_A_s`,
-
-:c:func:`mps_fmt_B_s`,
-
-:c:func:`mps_fmt_auto_header_s`
-
-
-.. c:type:: mps_fmt_t
-
-
-<h4>Summary</h4>
-
-:c:func:`mps_fmt_t` is the type of object formats.
-
-
-<h4>Associated Protocols</h4>
-
-Format.
-
-
-<h4>Type</h4>
-
-<code>typedef struct mps_fmt_s *mps_fmt_t;</code>
-
-:c:func:`mps_fmt_s` is an incomplete structure type used only to declare the opaque type :c:func:`mps_fmt_t`.
-
-
-<h4>Description</h4>
-
-:c:func:`mps_fmt_t` is the opaque type of object formats. An object format is a way for the MPS and client programs to communicate regarding the layout of client objects. For more information, seeFormat Protocol.
-
-
-<h4>Example</h4>
-
-<pre>
-#include "mps.h"
-#include "mpscamc.h"
-#include &lt;stdlib.h&gt;
-
-struct mps_fmt_A_s fmt_A_s = {
-  (mps_align_t)4,
-  scan, skip, copy, move, isMoved, pad
-};
-
-void go(mps_space_t space)
-{
-  mps_fmt_t format;
-  mps_res_t res;
-  mps_pool_t pool;
-
-  res = mps_fmt_create_A(&amp;format, space, &amp;mps_fmt_A_s);
-  if(res != MPS_RES_OK)
-    abort();
-
-  res = mps_pool_create(&amp;pool, space, mps_class_amc(), format);
-  if(res != MPS_RES_OK)
-    abort();
-
-  /* do some stuff here */
-
-  mps_pool_destroy(pool);
-  mps_format_destroy(format);
-}
-</pre>
-
-
-<h4>See Also</h4>
-
-
-
-:c:func:`mps_fmt_create_A`,
-
-:c:func:`mps_fmt_create_B`,
-
-:c:func:`mps_fmt_destroy`,
-
-:c:func:`mps_fmt_A_t`
-
-
-.. c:type:: mps_formatted_objects_stepper_t
-
-
-<h4>Summary</h4>
-
-Type of the client supplied heap walker function.
-
-
-<h4>Associated Protocols</h4>
-
-Heap walking.
-
-
-<h4>Type</h4>
-
-<code>typedef void (*mps_formatted_objects_stepper_t)(mps_addr_t, mps_fmt_t, mps_pool_t, void *,size_t )</code>
-
-
-<h4>Arguments</h4>
-
-<code><a href="#mps_formatted_objects_stepper_t">mps_formatted_objects_stepper</a></code> is a type not a function so it doesn't take any arguments; however the function pointed to by an object of this type does.  Such functions take the following argument list:
-
-<code>(mps_addr_t object, mps_fmt_t format, mps_pool_t pool, void *p, size_t s)</code>
-
-<code>object</code> is a pointer to the (client) object.
-
-<code>format</code> is the MPS format of the client object.
-
-<code>pool</code> in the MPS pool in which the client object resides.
-
-<code>p</code> and <code>s</code> are two closure values which are copies of the corresponding values which the client passed into the heap walking function, :c:func:`mps_arena_formatted_objects_walk`.
-
-
-<h4>Returned Values</h4>
-
-The function pointed to by an object of type :c:func:`mps_formatted_objects_stepper_t` returns no arguments.
-
-
-<h4>Description</h4>
-
-This symbol describe the type of pointers passed into the heap walking function :c:func:`mps_arena_formatted_objects_walk`. The heap walker arranges to apply this function to all objects on the heap, see :c:func:`mps_arena_formatted_objects_walk` for details.
-
-
-<h4>Example</h4>
-
-&lt;example of how to use the symbol&gt;
-
-
-<h4>Error Handling</h4>
-
-The function pointed to by an object of type :c:func:`mps_formatted_objects_stepper_t` have no way to return an error code to the caller.
-
-
-<h4>See Also</h4>
-
-
-
-:c:func:`mps_arena_formatted_objects_arena_walk`
-
-
-<h4>Notes</h4>
-
-
-.. c:function:: void mps_free(mps_pool_t pool, mps_addr_t p, size_t size);
-
-
-<h4>Summary</h4>
-
-Frees a block of memory to a pool.
-
-
-<h4>Associated Protocols</h4>
-
-Allocation
-
-
-<h4>Arguments</h4>
-
-<code>pool</code> the pool of the object to be freed
-
-<code>p</code> a pointer to the object to the freed
-
-<code>size</code> the size of the object to the freed in bytes
-
-
-
-<h4>Description</h4>
-
-Frees an object of memory, returning the memory block to the pool it was allocated from.The pool might then decide to make it available to other pools, but the way this happens depends onthe pool class and the current situation.
-
-
-<h4>Example</h4>
-
-
-<h4>See Also</h4>
-
-
-
-:c:func:`mps_alloc`
-
-
-<h4>Notes</h4>
-
-:c:func:`mps_free` takes a size argument, because it is most efficient to do so. In practical programs, the type of an object is usually known at the point in the code that calls the deallocation function, and hence the size is trivially available. In such cases. storing the size on the MPS side would cost time and memory, and make it hard to get good virtual memory behaviour (as it is, the deallocation code doesn't have to touch the dead object at all).
-
-Undoubtedly, one day, we'll get around to writing a pool that stores the size of each object.
-
-
-.. c:function:: int mps_lib_memcmp(const void *s1, const void *s2, size_t n);
-
-
-<h4>Summary</h4>
-
-A plinth function similar to C's "memcmp".
-
-
-<h4>Associated Protocols</h4>
-
-Plinth
-
-
-<h4>Arguments</h4>
-
-s1, s2 pointers to memory blocks to be compared
-
-n length of the blocks, in bytes
-
-
-<h4>Returned Values</h4>
-
-An integer that is greater than, equal to, or less than zero, accordingly as the block pointed to by "s1" is greater than, equal to, or less than the block pointer to by "s2".
-
-
-<h4>Resources</h4>
-
-mpslib.h
-
-
-<h4>Description</h4>
-
-This function is intended to have the same semantics as the "memcmp" function of the ANSI C standard (section 7.11.4.1).
-
-Like other plinth features, it is used by the MPS and provided by the client (possibly using the ANSI plinth, mpsliban.c).
-
-
-<h4>Example</h4>
-
-None, clients don't use it.
-
-
-<h4>Error Handling</h4>
-
-None.
-
-
-<h4>See Also</h4>
-
-
-
-:c:func:`mps_lib_memset`,
-
-:c:func:`mps_lib_memcpy`,
-mpsliban.c
-
-
-<h4>Notes</h4>
-
-None.
-
-
-<h3>function <code><a id="mps_lib_memcpy" name="mps_lib_memcpy">mps_lib_memcpy</a></code></h3>
-
-
-<h4>Summary</h4>
-
-A plinth function similar to C's "memcpy".
-
-
-<h4>Associated Protocols</h4>
-
-Plinth
-
-
-<h4>Syntax</h4>
-
-<code>void *mps_lib_memcpy(void *dest, const void *source, size_t n);</code>
-
-
-<h4>Arguments</h4>
-
-dest destination of copy
-
-source source of copy
-
-n length of the blocks, in bytes
-
-
-<h4>Returned Values</h4>
-
-Returns the value of the dest argument.
-
-
-<h4>Resources</h4>
-
-mpslib.h
-
-
-<h4>Description</h4>
-
-This function is intended to have the same semantics as the "memcpy" function of the ANSI C standard (section 7.11.2.1).
-
-Like other plinth features, it is used by the MPS and provided by the client (possibly using the ANSI plinth, mpsliban.c).
-
-
-<h4>Example</h4>
-
-None, clients don't use it.
-
-
-<h4>Error Handling</h4>
-
-None.
-
-
-<h4>See Also</h4>
-
-
-
-:c:func:`mps_lib_memset`,
-
-:c:func:`mps_lib_memcmp`,
-mpsliban.c
-
-
-<h4>Notes</h4>
-
-None.
-
-
-<h3>function <code><a id="mps_lib_memset" name="mps_lib_memset">mps_lib_memset</a></code></h3>
-
-
-<h4>Summary</h4>
-
-A plinth function similar to C's "memset".
-
-
-<h4>Associated Protocols</h4>
-
-Plinth
-
-
-<h4>Syntax</h4>
-
-<code>void *mps_lib_memset(void *s, int c, size_t n);</code>
-
-
-<h4>Arguments</h4>
-
-s destination of copy
-
-c byte (when converted to an unsigned char) to copy
-
-n length of the block, in bytes
-
-
-<h4>Returned Values</h4>
-
-Returns the value of s.
-
-
-<h4>Resources</h4>
-
-mpslib.h
-
-
-<h4>Description</h4>
-
-This function is intended to have the same semantics as the "memset" function of the ANSI C standard (section 7.11.6.1).
-
-Like other plinth features, it is used by the MPS and provided by the client (possibly using the ANSI plinth, mpsliban.c).
-
-
-<h4>Example</h4>
-
-None, clients don't use it.
-
-
-<h4>Error Handling</h4>
-
-None.
-
-
-<h4>See Also</h4>
-
-
-
-:c:func:`mps_lib_memcpy`,
-
-:c:func:`mps_lib_memcmp`,
-mpsliban.c
-
-
-<h4>Notes</h4>
-
-None.
-
-
-<h3><code><a id="mps_lib_telemetry_control" name="mps_lib_telemetry_control">mps_lib_telemetry_control</a></code></h3>
-
-
-<h4>Summary</h4>
-
-Plinth function to supply a default value for telemetry filters from environment.
-
-
-<h4>Associated Protocols</h4>
-
-Telemetry
-
-
-<h4>Type</h4>
-
-<code>unsigned long mps_lib_telemetry_control();</code>
-
-
-<h4>Arguments</h4>
-
-None.
-
-
-<h4>Initial/Default Values</h4>
-
-In the absence of environmental data, a default of zero is recommended.
-
-
-<h4>Returned Values</h4>
-
-The default value of the telemetry filter, as derived from the environment. It is recommended that the environment be consulted for a symbol analogous to :c:macro:`MPS_TELEMETRY_CONTROL`, subject to local restrictions.
-
-
-<h4>Resources</h4>
-
-Depends on access to the environment.
-
-
-<h4>Description</h4>
-
-See :c:func:`mps_telemetry_control` for more information on the significant of the values.
-
-
-
-
-<h4>Example</h4>
-
-See the supplied ANSI plinth for an example implementation.
-
-
-<h4>See Also</h4>
-
-
-
-:c:func:`mps_telemetry_control`
-
-
-.. c:function:: mps_clock_t mps_message_clock(mps_arena_t arena, mps_message_t message)
-
-
-<h4>Summary</h4>
-
-:c:func:`mps_message_clock` returns the time at which the MPS posted the message (only for certain message types).
-
-
-<h4>Associated Protocols</h4>
-
-Message.
-
-
-<h4>Arguments</h4>
-
-
-  <code>arena</code>
-  -- the arena
-
-
-
-  <code>message</code>
-  -- any message retrieved with :c:func:`mps_message_get` and not yet discarded
-
-
-
-<h4>Returned Values</h4>
-
-For supported message types: the time at which the MPS posted the message.  For other message types: zero.
-
-
-<h4>Description</h4>
-
-Messages are asynchronous: they are posted by the MPS, wait on a queue, and are later collected by the client.  Each message (of supported types) records the time that it was posted, and this is what :c:func:`mps_message_clock` returns.
-
-The time returned is the :c:func:`mps_clock_t` value returned by the library function :c:func:`mps_clock` at the time the message was posted.  You can subtract one clock value from another to get the time interval between the posting of two messages.
-
-Only the following supported message types record the time of posting:
-<ul>
-  <li>:c:func:`mps_message_type_gc`;</li>
-  <li>:c:func:`mps_message_type_gc_start`.</li>
-</ul>
-
-For other message types, the value returned is always zero.
-
-
-<h4>Example</h4>
-
-<pre>
-  mps_message_t message;
-  mps_clock_t posted_at;
-
-  if(mps_message_get(&amp;message, arena, mps_message_type_gc_start())) {
-    posted_at = mps_message_clock(arena, message);
-    printf("Collection started at %ul.\n", (unsigned long)posted_at);
-  }
-</pre>
-
-
-<h4>Error Handling</h4>
-
-Can't fail.
-
-
-<h4>See Also</h4>
-
-
-
-:c:func:`mps_message_type`
-
-
-<h4>Notes</h4>
-
-The example ANSI plinth, mpsliban.c, implements :c:func:`mps_clock` by calling ISO C time.h's clock().  The difference between two of these clock values may be converted to seconds by dividing by ISO C time.h's CLOCKS_PER_SEC conversion factor.
-
-
-.. c:function:: void mps_message_discard(mps_arena_t arena, mps_message_t message)
-
-
-<h4>Summary</h4>
-
-:c:func:`mps_message_discard` is used to indicate that the client is done with the message and the MPS can now reclaim any storage associated with the message.
-
-
-<h4>Associated Protocols</h4>
-
-Message.
-
-
-<h4>Arguments</h4>
-
-
-  <code>arena</code>
-  -- the arena
-
-
-
-  <code>message</code>
-  -- the message
-
-
-
-
-<h4>Description</h4>
-
-:c:func:`mps_message_discard` is used to indicate that the client has no further use for the specified message in the specified arena. After this call, the message is invalid and should not be passed as argument to any message functions.
-
-Messages are essentially manually managed.  This call allows the MPS to reclaim storage associated with messages.  If the client does not discard their messages then the resources used may grow without bound. 
-
-As well as consuming resources, messages may have other visible effects that require them to be tidied by calling this function.  In particular <a href="#mps_message_type_finalization">finalization messages</a> refer to their finalized object, and will prevent the object from being reclaimed (subject to the usual garbage collection liveness analysis).  A finalized object cannot possibly be reclaimed until its corresponding finalization messages have been discarded (all such messages in the case of multiple messages for the same object). 
-
-
-<h4>Example</h4>
-
-[missing]
-
-
-<h4>Error Handling</h4>
-
-Can't fail.
-
-
-<h4>See Also</h4>
-
-
-
-:c:func:`mps_message_get`
-
-
-<h4>Notes</h4>
-
-None.
-
-
-.. c:function:: void mps_message_finalization_ref(mps_addr_t *object_ref, mps_arena_t arena, mps_message_tmessage)
-
-
-<h4>Summary</h4>
-
-:c:func:`mps_message_finalization_ref` returns the "finalization reference" property of the specified message in the specified arena.
-
-
-<h4>Associated Protocols</h4>
-
-Message, finalization.
-
-
-<h4>Arguments</h4>
-
-object_ref -- a pointer to a reference to the object to which the message pertains
-
-arena -- the arena that the message is in
-
-message -- a message of a message type that supports this method
-
-
-
-<h4>Description</h4>
-
-This method returns the "finalization reference" property of the specified message in the specified arena. The message must be of a message type that supports this method; currently, the only such type is that of finalization messages, as returned by :c:func:`mps_message_type_finalization`.
-
-The reference returned by this method is a reference to the object that was originally registered for finalization (by a call to :c:func:`mps_finalize`).
-
-Note that the reference returned is subject to the normal constraints, such as might be imposed by a moving collection, if appropriate. For this reason, it is returned indirectly via "object_ref" to enable the client to place it directly into scanned memory, without imposing the restriction that the C stack be a root.
-
-The message itself is not affected by invoking this method.  Until the client calls :c:func:`mps_message_discard` to discard the message it will refer to the object and prevent its reclamation. 
-
-
-<h4>Example</h4>
-
-
-<h4>Error Handling</h4>
-
-
-<h4>See Also</h4>
-
-
-
-<code>mps_message_*</code>,
-:c:func:`mps_message_type_finalization`,
-:c:func:`mps_finalize`
-
-
 .. c:function:: size_t mps_message_gc_condemned_size(mps_arena_t arena, mps_message_tmessage)
 
 
@@ -3444,7 +2274,7 @@ An approximate size for the set of objects condemned in the collection that gene
 
 <h4>Description</h4>
 
-Currently, the only type of message that supports this property is :c:func:`mps_message_type_gc`, such messages are generated whenever a garbage collection completes. This method returns an approximation to the size of the set of objects that were condemned in that collection.
+Currently, the only type of message that supports this property is :c:type:`mps_message_type_gc`, such messages are generated whenever a garbage collection completes. This method returns an approximation to the size of the set of objects that were condemned in that collection.
 
 
 <h4>Example</h4>
@@ -3499,7 +2329,7 @@ The total size of the condemned objects that survived the collection that genera
 
 <h4>Description</h4>
 
-Currently, the only type of message that supports this property is :c:func:`mps_message_type_gc`, such messages are generated whenever a garbage collection completes. This method returns the size of the set of objects that were condemned in that collection, but survived.
+Currently, the only type of message that supports this property is :c:type:`mps_message_type_gc`, such messages are generated whenever a garbage collection completes. This method returns the size of the set of objects that were condemned in that collection, but survived.
 
 
 <h4>Example</h4>
@@ -3556,7 +2386,7 @@ An approximate size for the set of objects that were in collected pools, but wer
 
 <h4>Description</h4>
 
-Currently, the only type of message that supports this property is :c:func:`mps_message_type_gc`; such messages are generated whenever a garbage collection completes. This method returns an approximation to the size of the set of objects that were in collected pools (so potentially subject to garbage collection), but were not condemned in that collection.
+Currently, the only type of message that supports this property is :c:type:`mps_message_type_gc`; such messages are generated whenever a garbage collection completes. This method returns an approximation to the size of the set of objects that were in collected pools (so potentially subject to garbage collection), but were not condemned in that collection.
 
 
 <h4>Example</h4>
@@ -3610,7 +2440,7 @@ Message, GC.
 
 <h4>Description</h4>
 
-Currently, the only type of message that supports this property is :c:func:`mps_message_type_gc_start`; such messages are generated whenever a garbage collection starts. This method returns a string describing why the collection started. 
+Currently, the only type of message that supports this property is :c:type:`mps_message_type_gc_start`; such messages are generated whenever a garbage collection starts. This method returns a string describing why the collection started. 
 
  The contents of the string must not be modified by the client.  The string and the pointer are only valid as long as the message has not been discarded (with <code>mps_message_discard</code>). 
 
@@ -4047,7 +2877,7 @@ finalization.
 
 <h4>Summary</h4>
 
-:c:func:`mps_message_type_gc` returns the type of garbage collection statistic messages.
+:c:type:`mps_message_type_gc` returns the type of garbage collection statistic messages.
 
 
 <h4>Associated Protocols</h4>
@@ -4079,7 +2909,7 @@ The type of garbage collection statistic messages.
 
 <h4>Description</h4>
 
-:c:func:`mps_message_type_gc` returns the type of garbage collection statistic messages. Garbage collection statistic messages are used by the MPS to give the client information about garbage collections that have occurred. Such information may be useful in analysing the client's memory usage over time.
+:c:type:`mps_message_type_gc` returns the type of garbage collection statistic messages. Garbage collection statistic messages are used by the MPS to give the client information about garbage collections that have occurred. Such information may be useful in analysing the client's memory usage over time.
 
 The access methods specific to a message of this type are:
 
@@ -4131,7 +2961,7 @@ name="mps_message_type_gc_start">mps_message_type_gc_start</a></code></h3>
 <h4>Summary</h4>
 
 
-:c:func:`mps_message_type_gc_start`
+:c:type:`mps_message_type_gc_start`
 returns the type of garbage collection start messages.
 
 
@@ -4165,7 +2995,7 @@ The type of garbage collection start messages.
 <h4>Description</h4>
 
 
-:c:func:`mps_message_type_gc_start`
+:c:type:`mps_message_type_gc_start`
 returns the type of garbage collection start messages.
 The messages contain information about why the collection started. See
 <code>mps_message_gc_start_why</code>.
@@ -4762,7 +3592,7 @@ If the return value is :c:macro:`MPS_RES_OK`, the new root in "*root_o".
 
 <h4>Description</h4>
 
-The client provides a scanning function, that will be called with a scan state and an area of memory, whenever the root needs to be scanned. See :c:func:`mps_fmt_scan_t` for details.
+The client provides a scanning function, that will be called with a scan state and an area of memory, whenever the root needs to be scanned. See :c:type:`mps_fmt_scan_t` for details.
 
 If the rank of the root is not :c:macro:`MPS_RANK_AMBIG`, the contents of the root have to be valid whenever a GC happens, i.e., they have to be references to actual objects or "NULL". If you're using asynchronous GC, this could be right after the root is registered, so the root has to be valid when it is registered. It's OK for a root to have entries which point to memory not managed by the MPS --they will simply be ignored.
 
@@ -4803,7 +3633,7 @@ int main(void)
 
 
 
-:c:func:`mps_fmt_scan_t`,
+:c:type:`mps_fmt_scan_t`,
 
 :c:func:`mps_rm_t`,
 
@@ -5166,7 +3996,7 @@ If a fixing operation returns a value other than :c:macro:`MPS_RES_OK`, the scan
 
 :c:macro:`MPS_FIX_CALL`,
 
-:c:func:`mps_fmt_scan_t`
+:c:type:`mps_fmt_scan_t`
 
 
 .. c:type:: mps_roots_stepper_t
