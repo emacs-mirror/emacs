@@ -1,3 +1,9 @@
+2012-10-10  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (switch-to-buffer-preserve-window-point): New option.
+	(switch-to-buffer): Obey
+	`switch-to-buffer-preserve-window-point' (Bug#4041).
+
 2012-10-09  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* newcomment.el (comment-start-skip, comment-end-skip, comment-end):
