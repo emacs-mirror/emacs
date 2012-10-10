@@ -43,7 +43,7 @@ Glossary
 
         ??
 
-    automatic pool class
+    automatic
 
         ??
 
@@ -56,6 +56,10 @@ Glossary
         ??
 
     clamped state
+
+        ??
+
+    class method
 
         ??
 
@@ -83,6 +87,14 @@ Glossary
 
         ??
 
+    copy method
+
+        ??
+
+    copying
+
+        ??
+
     data object
 
         ??
@@ -99,6 +111,10 @@ Glossary
 
         ??
 
+    finalized object
+
+        ??
+
     format method
 
         ??
@@ -108,6 +124,18 @@ Glossary
         ??
 
     formatted root
+
+        ??
+
+    forward method
+    
+        ??
+
+    forwarded object
+
+        ??
+
+    forwarding marker
 
         ??
 
@@ -123,11 +151,19 @@ Glossary
 
         ??
 
+    header
+
+        ??
+
+    is-forwarded method
+    
+        ??
+
     live
 
         ??
 
-    manual pool class
+    manual
 
         ??
 
@@ -136,6 +172,18 @@ Glossary
         ??
 
     memory leak
+
+        ??
+
+    message
+
+        ??
+
+    moving
+
+        ??
+
+    non-moving
 
         ??
 
@@ -151,6 +199,10 @@ Glossary
 
         ??
 
+    padding method
+
+        ??
+
     padding object
 
         ??
@@ -160,6 +212,10 @@ Glossary
         ??
 
     parked state
+
+        ??
+
+    plinth
 
         ??
 
@@ -219,11 +275,11 @@ Glossary
 
         ??
 
-    scan function
+    scan method
 
         A function that examines a block of memory to find
         :term:`references <reference>` and indicate them to the MPS. A
-        scan function forms part of an :term:`object format`. See
+        scan method forms part of an :term:`object format`. See
         the topic :ref:`topic-scanning`.
 
     scan state
@@ -244,6 +300,10 @@ Glossary
 
     size class
 
+        ??
+
+    skip method
+    
         ??
 
     spare commit limit
