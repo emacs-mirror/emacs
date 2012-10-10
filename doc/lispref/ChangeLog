@@ -1978,7 +1978,7 @@
 	* numbers.texi (Integer Basics): Add indexing for
 	most-positive-fixnum and most-negative-fixnum.  (Bug#9525)
 
-2011-09-14  Dani Moncayo  <dmoncayo@gmail.com>  (tiny change)
+2011-09-14  Dani Moncayo  <dmoncayo@gmail.com>
 
 	* lists.texi (Sets And Lists): Fix typo.  (Bug#9393)
 
@@ -1987,7 +1987,7 @@
 	* processes.texi (Network Servers): Clarify what the process
 	buffer is used for (bug#9233).
 
-2011-08-30  Dani Moncayo  <dmoncayo@gmail.com>  (tiny change)
+2011-08-30  Dani Moncayo  <dmoncayo@gmail.com>
 
 	* lists.texi (Building Lists): Fix typo.
 
