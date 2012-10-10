@@ -129,7 +129,7 @@ ns_update_menubar (struct frame *f, bool deep_p, EmacsMenu *submenu)
   BOOL needsSet = NO;
   const char *submenuTitle = [[submenu title] UTF8String];
   extern int waiting_for_input;
-  int owfi;
+  bool owfi;
   Lisp_Object items;
   widget_value *wv, *first_wv, *prev_wv = 0;
   int i;

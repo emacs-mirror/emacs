@@ -1,5 +1,53 @@
 2012-10-10  Paul Eggert  <eggert@cs.ucla.edu>
 
+	keyboard.c, keymap.c: Use bool for booleans.
+	* dispnew.c (sit_for): Distinguish between 3-way display_option
+	and boolean do_display.
+	* keyboard.c (single_kboard, this_command_key_count_reset)
+	(waiting_for_input, echoing, immediate_quit, input_pending)
+	(interrupt_input, interrupts_deferred, pop_kboard)
+	(temporarily_switch_to_single_kboard, ignore_mouse_drag_p)
+	(command_loop_1, adjust_point_for_property)
+	(safe_run_hooks_error, input_polling_used, read_char):
+	(help_char_p, readable_events, kbd_buffer_events_waiting)
+	(kbd_buffer_get_event, timer_check_2, make_lispy_event)
+	(lucid_event_type_list_p, get_input_pending):
+	(gobble_input, menu_separator_name_p, menu_bar_item)
+	(parse_menu_item, parse_tool_bar_item, read_char_x_menu_prompt)
+	(read_char_minibuf_menu_prompt, access_keymap_keyremap)
+	(keyremap_step, test_undefined, read_key_sequence)
+	(detect_input_pending, detect_input_pending_ignore_squeezables)
+	(detect_input_pending_run_timers, requeued_events_pending_p)
+	(quit_throw_to_read_char, Fset_input_interrupt_mode):
+	* keymap.c (get_keymap, keymap_parent, keymap_memberp)
+	(access_keymap_1, access_keymap, map_keymap, get_keyelt)
+	(Fdefine_key, Flookup_key, struct accessible_keymaps_data)
+	(accessible_keymaps_1, Fkey_description, push_key_description):
+	(shadow_lookup, struct where_is_internal_data)
+	(where_is_internal, Fwhere_is_internal, where_is_internal_1)
+	(Fdescribe_buffer_bindings, describe_map_tree, struct describe_map_elt)
+	(describe_map, describe_vector):
+	* menu.c (single_menu_item):
+	* nsmenu.m (ns_update_menubar):
+	* process.c (wait_reading_process_output):
+	* search.c (scan_buffer, scan_newline):
+	Use bool for boolean.
+	* keyboard.c (timers_run, swallow_events)
+	(detect_input_pending_run_timers):
+	* process.c (wait_reading_process_output):
+	Use unsigned for counter where wraparound-on-overflow is desired,
+	since unsigned is guaranteed to have that behavior and signed is not.
+	(read_char): Use ptrdiff_t for string length.
+	(get_input_pending): Remove first argument, since it was always
+	the same pointer-to-int (now pointer-to-boolean) &input_pending,
+	and behave as if it had that value.  Return new value of
+	input_pending.  All callers changed.
+	* keyboard.h (struct kboard): Use unsigned : 1 for boolean member
+	immediate_echo.  Use ptrdiff_t for echo_after_prompt, since it's
+	a string length.
+	* keymap.c (push_key_description): Omit last arg, which was always 1.
+	All callers changed.
+
 	* regex.c (immediate_quit) [emacs]: Remove duplicate decl.
 
 2012-10-10  Juanma Barranquero  <lekktu@gmail.com>

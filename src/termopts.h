@@ -18,7 +18,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 
 /* Nonzero means use interrupt-driven input.  */
-extern int interrupt_input;
+extern bool interrupt_input;
 
 /* Nonzero while interrupts are temporarily deferred during redisplay.  */
-extern int interrupts_deferred;
+extern bool interrupts_deferred;

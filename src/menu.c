@@ -331,7 +331,7 @@ single_menu_item (Lisp_Object key, Lisp_Object item, Lisp_Object dummy, void *sk
 {
   Lisp_Object map, item_string, enabled;
   struct gcpro gcpro1, gcpro2;
-  int res;
+  bool res;
   struct skp *skp = skp_v;
 
   /* Parse the menu item and leave the result in item_properties.  */
