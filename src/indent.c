@@ -30,7 +30,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "frame.h"
 #include "window.h"
 #include "termchar.h"
-#include "termopts.h"
 #include "disptab.h"
 #include "intervals.h"
 #include "dispextern.h"

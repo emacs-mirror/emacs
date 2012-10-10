@@ -35,7 +35,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "sysselect.h"
 #include "frame.h"
 #include "termhooks.h"
-#include "termopts.h"
 #include "xterm.h"
 #include "process.h"
 #include "keyboard.h"
