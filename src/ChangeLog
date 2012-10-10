@@ -1,3 +1,7 @@
+2012-10-10  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* regex.c (immediate_quit) [emacs]: Remove duplicate decl.
+
 2012-10-10  Juanma Barranquero  <lekktu@gmail.com>
 
 	* makefile.w32-in ($(BLD)/dispnew.$(O), $(BLD)/indent.$(O))
