@@ -735,7 +735,6 @@ $(BLD)/dispnew.$(O) : \
 	$(SRC)/disptab.h \
 	$(SRC)/indent.h \
 	$(SRC)/termchar.h \
-	$(SRC)/termopts.h \
 	$(NT_INC)/unistd.h \
 	$(BUFFER_H) \
 	$(CHARACTER_H) \
@@ -1015,7 +1014,6 @@ $(BLD)/indent.$(O) : \
 	$(SRC)/indent.h \
 	$(SRC)/region-cache.h \
 	$(SRC)/termchar.h \
-	$(SRC)/termopts.h \
 	$(BUFFER_H) \
 	$(CHARACTER_H) \
 	$(CONFIG_H) \
@@ -1412,7 +1410,6 @@ $(BLD)/term.$(O) : \
 	$(SRC)/disptab.h \
 	$(SRC)/keymap.h \
 	$(SRC)/termchar.h \
-	$(SRC)/termopts.h \
 	$(SRC)/tparam.h \
 	$(NT_INC)/sys/file.h \
 	$(NT_INC)/sys/time.h \
