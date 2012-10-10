@@ -1,3 +1,8 @@
+2012-10-10  Kenichi Handa  <handa@gnu.org>
+
+	* select.el (xselect--encode-string): If a coding is specified for
+	selection, and that is compatible with COMPOUND_TEXT, use it.
+
 2012-10-10  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (switch-to-buffer-preserve-window-point): New option.
