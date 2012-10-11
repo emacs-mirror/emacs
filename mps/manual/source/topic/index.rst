@@ -7,6 +7,7 @@ Topic reference
 
     arena
     allocation
+    collection
     error
     format
     scanning
@@ -20,3 +21,5 @@ Topic reference
     platform
     telemetry
     message
+    debugging
+

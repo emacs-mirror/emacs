@@ -35,6 +35,10 @@ Glossary
 
         ??
 
+    ambiguous
+
+        ??
+
     arena
 
         ??
@@ -43,7 +47,19 @@ Glossary
 
         ??
 
+    assert
+
+        ??
+
+    asynchronous
+
+        ??
+
     automatic
+
+        ??
+
+    bitmask
 
         ??
 
@@ -83,6 +99,10 @@ Glossary
 
         ??
 
+    condemned
+
+        ??
+
     constant root
 
         ??
@@ -99,6 +119,10 @@ Glossary
 
         ??
 
+    debugging pool
+
+        ??
+
     dead
 
         ??
@@ -107,11 +131,23 @@ Glossary
 
         ??
 
+    exact
+
+        ??
+
+    fencepost
+
+        ??
+
     finalization
 
         ??
 
     finalized object
+
+        ??
+
+    fix
 
         ??
 
@@ -143,6 +179,10 @@ Glossary
 
         ??
 
+    free list
+
+        ??
+
     garbage collection
 
         ??
@@ -152,6 +192,14 @@ Glossary
         ??
 
     header
+
+        ??
+
+    incremental
+
+        ??
+
+    in/out parameter
 
         ??
 
@@ -179,6 +227,14 @@ Glossary
 
         ??
 
+    message queue
+
+        ??
+
+    message type
+
+        ??
+
     moving
 
         ??
@@ -196,6 +252,10 @@ Glossary
         ?? See the topic :ref:`topic-scanning`.
 
     object pointer
+
+        ??
+
+    out parameter
 
         ??
 
@@ -314,7 +374,35 @@ Glossary
 
         ??
 
+    stepper function
+
+        ??
+
     table root
+
+        ??
+
+    tag
+
+        ??
+
+    tagged value
+
+        ??
+
+    telemetry filter
+
+        ??
+
+    telemetry label
+
+        ??
+
+    telemetry stream
+
+        ??
+
+    thread
 
         ??
 
@@ -331,6 +419,10 @@ Glossary
         ??
 
     virtual memory arena
+
+        ??
+
+    weak
 
         ??
 

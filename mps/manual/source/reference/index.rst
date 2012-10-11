@@ -275,6 +275,10 @@ Declared in ``mps.h``
 
     The type of :term:`arena classes <arena class>`.
 
+    .. seealso::
+
+        :ref:`topic-arena`.
+
 
 .. c:function:: void mps_arena_collect(mps_arena_t arena)
 
@@ -529,11 +533,11 @@ Declared in ``mps.h``
 
     The result from this function is valid only at the instant at
     which the function returned. In some circumstances the result may
-    immediately become invalidated (for example, a garbage collection
-    may occur, the address in question may become free, the arena may
-    choose to unmap the address and return storage to the operating
-    system). For reliable results call this function whilst the arena
-    is in the :term:`parked state`.
+    immediately become invalidated (for example, a :term:`garbage
+    collection` may occur, the address in question may become free,
+    the arena may choose to unmap the address and return storage to
+    the operating system). For reliable results call this function
+    whilst the arena is in the :term:`parked state`.
 
     .. seealso::
 
@@ -571,7 +575,7 @@ Declared in ``mps.h``
 
     .. seealso::
 
-        :ref:`topic-arena`.
+        :ref:`topic-arena`, :ref:`topic-collection`.
 
 
 .. c:function:: void mps_arena_roots_walk(mps_arena_t arena, mps_roots_stepper_t f, void *p, size_t s)
@@ -739,7 +743,7 @@ Declared in ``mps.h``
     need for the MPS to recompute all the :term:`remembered sets
     <remembered set>` by scanning the entire arena, that occurs when
     :c:func:`mps_arena_expose` is used, and which causes the next
-    garbage collection to be slow.
+    :term:`garbage collection` to be slow.
 
     The client program must not change the exposed data between the
     call to :c:func:`mps_arena_unsafe_expose_remember_protection` and
@@ -1191,130 +1195,6 @@ Declared in ``mps.h``
         :ref:`topic-format`.
 
 
-.. c:function:: mps_clock_t mps_message_clock(mps_arena_t arena, mps_message_t message)
-
-    Returns the time at which the MPS posted a :term:`message`.
-
-    *arena* is the :term:`arena` which posted the message.
-
-    *message* is a message retrieved by :c:func:`mps_message_get` and
-    not yet discarded.
-
-    If *message* belongs to one of the following supported message,
-    return the time at which the MPS posted the message:
-
-    * :c:type:`mps_message_type_gc`;
-    * :c:type:`mps_message_type_gc_start`.
-
-    For other message types, the value returned is always zero.
-
-    Messages are asynchronous: they are posted by the MPS, wait on a
-    queue, and are later collected by the :term:`client program`. Each
-    message (of the supported message types) records the time that it
-    was posted, and this is what :c:func:`mps_message_clock` returns.
-
-    The time returned is the :c:func:`mps_clock_t` value returned by
-    the library function :c:func:`mps_clock` at the time the message
-    was posted. You can subtract one clock value from another to get
-    the time interval between the posting of two messages.
-
-    .. seealso::
-
-        :ref:`topic-message`.
-
-
-.. c:function:: void mps_message_discard(mps_arena_t arena, mps_message_t message)
-
-    Indicate to the MPS that the :term:`client program` has no further
-    use for a :term:`message` and the MPS can now reclaim any storage
-    associated with the message.
-
-    *arena* is the :term:`arena` which posted the message.
-
-    *message* is the message. After this call, *message* is invalid
-    and should not be passed as an argument to any message functions.
-
-    Messages are essentially :term:`manually <manual>` managed. This
-    function allows the MPS to reclaim storage associated with
-    messages. If the client does not discard messages then the
-    resources used may grow without bound.
-
-    As well as consuming resources, messages may have other effects
-    that require them to be tidied by calling this function. In
-    particular finalization messages refer to a :term:`finalized
-    object`, and prevent the object from being reclaimed (subject to
-    the usual garbage collection liveness analysis). A finalized
-    object cannot be reclaimed until all its finalization messages
-    have been discarded. See :c:func:`mps_message_type_finalization`.
-
-    .. seealso::
-
-        :ref:`topic-finalization`, :ref:`topic-message`.
-
-
-.. c:function:: void mps_message_finalization_ref(mps_addr_t *ref_o, mps_arena_t arena, mps_message_t message)
-
-    Returns the finalization reference for a finalization message.
-
-    *ref_o* points to a location that will hold the finalization
-    reference.
-
-    *arena* is the :term:`arena` which posted the message.
-
-    *message* is a message retrieved by :c:func:`mps_message_get` and
-    not yet discarded. It must be a finalization message: see
-    :c:func:`mps_message_type_finalization`.
-
-    The reference returned by this method is a reference to the object
-    that was originally registered for :term:`finalization` by a call
-    to :c:func:`mps_finalize`.
-
-    .. seealso::
-
-        :ref:`topic-finalization`, :ref:`topic-message`.
-
-    .. note::
-
-        The reference returned is subject to the normal constraints,
-        such as might be imposed by a :term:`moving` collection, if
-        appropriate. For this reason, it is stored into the location
-        pointed to by *ref_o* in order to enable the :term:`client
-        program` to place it directly into scanned memory, without
-        imposing the restriction that the C stack be a :term:`root`.
-
-    .. note::
-
-        The message itself is not affected by invoking this method.
-        Until the client program calls :c:func:`mps_message_discard`
-        to discard the message, it will refer to the object and
-        prevent its reclamation.
-
-
-.. c:macro:: MPS_RES_COMMIT_LIMIT
-
-    A :term:`result code` indicating that an operation could not be
-    completed as requested without exceeding the :term:`commit limit`.
-
-    You need to deallocate something to make more space, or increase
-    the commit limit by calling :c:func:`mps_arena_commit_limit_set`.
-
-    .. seealso::
-
-        :ref:`topic-error`.
-
-
-.. c:macro:: MPS_RES_LIMIT
-
-    A :term:`result code` indicating that an operation could not be
-    completed as requested because of an internal limitation of the
-    MPS. The precise meaning depends on the function that returned the
-    code. Refer to the documentation of that function for details.
-
-    .. seealso::
-
-        :ref:`topic-error`.
-
-
 .. c:type:: void (*mps_fmt_fwd_t)(mps_addr_t old, mps_addr_t new)
 
     The type of the :term:`forward method` of an :term:`object format`.
@@ -1469,8 +1349,8 @@ Declared in ``mps.h``
 
 .. c:type:: void (*mps_formatted_objects_stepper_t)(mps_addr_t addr, mps_fmt_t fmt, mps_pool_t pool, void *p, size_t s)
 
-    The type of a :term:`formatted objects <formatted object>` stepper
-    function.
+    The type of a :term:`formatted objects <formatted object>`
+    :term:`stepper function`.
     
     A function of this type can be passed to
     :c:func:`mps_arena_formatted_objects_walk`, in which case it will
@@ -1520,6 +1400,648 @@ Declared in ``mps.h``
         doesn't have to touch the dead object at all).
 
 
+.. c:function:: mps_clock_t mps_message_clock(mps_arena_t arena, mps_message_t message)
+
+    Returns the time at which the MPS posted a :term:`message`.
+
+    *arena* is the :term:`arena` which posted the message.
+
+    *message* is a message retrieved by :c:func:`mps_message_get` and
+    not yet discarded.
+
+    If *message* belongs to one of the following supported message,
+    return the time at which the MPS posted the message:
+
+    * :c:type:`mps_message_type_gc`;
+    * :c:type:`mps_message_type_gc_start`.
+
+    For other message types, the value returned is always zero.
+
+    Messages are asynchronous: they are posted by the MPS, wait on a
+    queue, and are later collected by the :term:`client program`. Each
+    message (of the supported message types) records the time that it
+    was posted, and this is what :c:func:`mps_message_clock` returns.
+
+    The time returned is the :c:func:`mps_clock_t` value returned by
+    the library function :c:func:`mps_clock` at the time the message
+    was posted. You can subtract one clock value from another to get
+    the time interval between the posting of two messages.
+
+    .. seealso::
+
+        :ref:`topic-message`.
+
+
+.. c:function:: void mps_message_discard(mps_arena_t arena, mps_message_t message)
+
+    Indicate to the MPS that the :term:`client program` has no further
+    use for a :term:`message` and the MPS can now reclaim any storage
+    associated with the message.
+
+    *arena* is the :term:`arena` which posted the message.
+
+    *message* is the message. After this call, *message* is invalid
+    and should not be passed as an argument to any message functions.
+
+    Messages are essentially :term:`manually <manual>` managed. This
+    function allows the MPS to reclaim storage associated with
+    messages. If the client does not discard messages then the
+    resources used may grow without bound.
+
+    As well as consuming resources, messages may have other effects
+    that require them to be tidied by calling this function. In
+    particular finalization messages refer to a :term:`finalized
+    object`, and prevent the object from being reclaimed (subject to
+    the usual :term:`garbage collection` liveness analysis). A
+    finalized object cannot be reclaimed until all its finalization
+    messages have been discarded. See
+    :c:func:`mps_message_type_finalization`.
+
+    .. seealso::
+
+        :ref:`topic-finalization`, :ref:`topic-message`.
+
+
+.. c:function:: void mps_message_finalization_ref(mps_addr_t *ref_o, mps_arena_t arena, mps_message_t message)
+
+    Returns the finalization reference for a finalization message.
+
+    *ref_o* points to a location that will hold the finalization
+    reference.
+
+    *arena* is the :term:`arena` which posted the message.
+
+    *message* is a message retrieved by :c:func:`mps_message_get` and
+    not yet discarded. It must be a finalization message: see
+    :c:func:`mps_message_type_finalization`.
+
+    The reference returned by this method is a reference to the block
+    that was originally registered for :term:`finalization` by a call
+    to :c:func:`mps_finalize`.
+
+    .. seealso::
+
+        :ref:`topic-finalization`, :ref:`topic-message`.
+
+    .. note::
+
+        The reference returned is subject to the normal constraints,
+        such as might be imposed by a :term:`moving` collection, if
+        appropriate. For this reason, it is stored into the location
+        pointed to by *ref_o* in order to enable the :term:`client
+        program` to place it directly into scanned memory, without
+        imposing the restriction that the C stack be a :term:`root`.
+
+    .. note::
+
+        The message itself is not affected by invoking this method.
+        Until the client program calls :c:func:`mps_message_discard`
+        to discard the message, it will refer to the object and
+        prevent its reclamation.
+
+
+.. c:function:: size_t mps_message_gc_condemned_size(mps_arena_t arena, mps_message_t message)
+
+    Return the "condemned size" property of a :term:`message`.
+
+    *arena* is the arena which posted the message.
+
+    *message* is a message retrieved by :c:func:`mps_message_get` and
+    not yet discarded.  It must be a garbage collection message: see
+    :c:func:`mps_message_type_gc`.
+
+    The "condemned size" property is the approximate :term:`size` of
+    the set of objects :term:`condemned` in the :term:`garbage
+    collection` that generated the message.
+
+    .. seealso::
+
+        :ref:`topic-collection`, :ref:`topic-message`.
+
+
+.. c:function:: size_t mps_message_gc_live_size(mps_arena_t arena, mps_message_t message)
+
+    Return the "live size" property of a :term:`message`.
+
+    *arena* is the arena which posted the message.
+
+    *message* is a message retrieved by :c:func:`mps_message_get` and
+    not yet discarded.  It must be a garbage collection message: see
+    :c:func:`mps_message_type_gc`.
+
+    The "live size" property is the total size of the set of objects
+    that survived the :term:`garbage collection` that generated the
+    message.
+
+    .. seealso::
+
+        :ref:`topic-collection`, :ref:`topic-message`.
+
+
+.. c:function:: size_t mps_message_gc_not_condemned_size(mps_arena_t arena, mps_message_t message)
+
+    Return the "not condemned size" property of a :term:`message`.
+
+    *arena* is the arena which posted the message.
+
+    *message* is a message retrieved by :c:func:`mps_message_get` and
+    not yet discarded.  It must be a garbage collection message: see
+    :c:func:`mps_message_type_gc`.
+
+    The "not condemned size" property is the approximate size of the
+    set of objects that were in collected :term:`pools <pool>`, but
+    were not :term:`condemned` in the :term:`garbage collection` that
+    generated the message.
+
+    .. seealso::
+
+        :ref:`topic-collection`, :ref:`topic-message`.
+
+
+.. c:function:: const char *mps_message_gc_start_why(mps_arena_t arena, mps_message_t message)
+
+    Return a string that describes why the :term:`garbage collection`
+    that posted a :term:`message` started.
+
+    *arena* is the arena which posted the message.
+
+    *message* is a message retrieved by :c:func:`mps_message_get` and
+    not yet discarded.  It must be a garbage collection message: see
+    :c:func:`mps_message_type_gc`.
+
+    Returns a pointer to a string that is describes (in English) why
+    this collection started. The contents of the string must not be
+    modified by the client. The string and the pointer are valid until
+    the message is discarded with :c:func:`mps_message_discard`.
+
+    .. seealso::
+
+        :ref:`topic-collection`, :ref:`topic-message`.
+
+
+.. c:function:: mps_bool_t mps_message_get(mps_message_t *message_o, mps_arena_t arena, mps_message_type_t message_type)
+
+    Get a :term:`message` of a specified type from the :term:`message
+    queue` for an :term:`arena`.
+
+    *message_o* points to a location that will hold the address of the
+    message if the function succeeds.
+
+    *arena* is the arena.
+
+    *message_type* is the type of message to return.
+
+    If there is at least one message of the specified type on the
+    message queue of the specified arena, then this function removes
+    one such message from the queue, stores a pointer to the message
+    in the location pointed to by *message_o*, and returns true.
+    Otherwise it returns false.
+
+    .. seealso::
+
+        :ref:`topic-message`.
+
+
+.. c:function:: mps_bool_t mps_message_poll(mps_arena_t arena)
+
+    Determine whether there are currently any :term:`messages
+    <message>` on a :term:`message queue` for an :term:`arena`.
+
+    *arena* is the arena whose message queue will be polled.
+
+    Returns true if there is at least one message on the message queue
+    for *arena*, or false if the message queue is empty.
+
+    .. seealso::
+
+        :ref:`topic-message`.
+
+    .. note::
+
+        If you are interested in a particular type of message, it is
+        usually simpler to call :c:func:`mps_message_get`.
+
+
+.. c:function:: mps_bool_t mps_message_queue_type(mps_message_type_t *message_type_o, mps_arena_t arena)
+
+    Determine whether there are currently any :term:`messages
+    <message>` on a :term:`message queue` for an :term:`arena`, and
+    return the :term:`message type` of the first message, if any.
+
+    *message_type_o* points to a location that will hold the message
+    type of the first message on the queue, if any.
+
+    *arena* is the arena whose message queue will be polled.
+
+    If there is at least one message on the message queue of *arena*,
+    then this function returns true, and also writes the message type
+    of the first message on the queue into the location pointed to by
+    *message_type_o*. If there are no messages on the message queue,
+    it returns false.
+
+    .. seealso::
+
+        :ref:`topic-message`.
+
+
+.. c:type:: mps_message_t
+
+    The type of a :term:`message`.
+
+    Messages are :term:`manually <manual>` managed. They are created
+    at the instigation of the MPS (but see
+    :c:func:`mps_message_type_enable`), and are deleted by the
+    :term:`client program`.
+
+    An :c:func:`mps_message_t` is a :term:`reference` into MPS managed
+    memory, and can safely be :term:`fixed <fix>`.
+
+    .. seealso::
+
+        :ref:`topic-message`.
+
+
+.. c:function:: mps_message_type_t mps_message_type(mps_arena_t arena, mps_message_t message)
+
+    Return the :term:`message type` of a :term:`message`.
+
+    *arena* is the arena that posted the message.
+
+    *message* is a message retrieved by :c:func:`mps_message_get` and
+    not yet discarded.
+
+    .. seealso::
+
+        :ref:`topic-message`.
+
+
+.. c:function:: void mps_message_type_disable(mps_arena_t arena, mps_message_type_t message_type)
+
+    Restore an :term:`arena` to the default state whereby
+    :term:`messages <message>` of the specified :term:`message type`
+    are not posted, reversing the effect of an earlier call to
+    :c:func:`mps_message_type_enable`.
+
+    *arena* is an arena.
+
+    *message_type* is the message type to be disabled.
+
+    Any existing messages of the specified type are flushed from the
+    :term:`message queue` of *arena*.
+
+    .. seealso::
+
+        :ref:`topic-message`.
+
+    .. note::
+
+        It is permitted to call this function when *message_type* is
+        already disabled, in which case it has no effect.
+
+
+.. c:function:: void mps_message_type_enable(mps_arena_t arena, mps_message_type_t message_type)
+
+    Enable an :term:`arena` to post :term:`messages <message>` of a
+    specified :term:`message type`.
+
+    *arena* is an arena.
+
+    *message_type* is the message type to be disabled.
+
+    This function tells the MPS that *arena* may post messages of
+    *message_type* to its :term:`message queue`. By default, the MPS
+    does not generate any messages of any type.
+
+    A :term:`client program` that enables messages for a message type
+    must access messages using :c:func:`mps_message_get` and discard
+    them using :c:func:`mps_message_discard`, or the message queue may
+    consume unbounded resources.
+
+    The client program may disable the posting of messages by calling
+    :c:func:`mps_message_type_disable`.
+
+    .. seealso::
+
+        :ref:`topic-message`.
+
+    .. note::
+
+        It is permitted to call this function when *message_type* is
+        already enabled, in which case it has no effect.
+
+
+.. c:function:: mps_message_type_t mps_message_type_finalization(void)
+
+    Return the :term:`message type` of finalization messages.
+
+    Finalization messages are used by the MPS to implement
+    :term:`finalization`. When the MPS detects that a block that has
+    been registered for finalization (by calling
+    :c:func:`mps_finalize`) is finalizable, it finalizes it by posting
+    a :term:`message` of this type.
+
+    Note that there might be delays between the block becoming
+    finalizable, the MPS detecting that, and the message being
+    posted.
+
+    In addition to the usual methods applicable to messages,
+    finalization messages support the
+    :c:func:`mps_message_finalization_ref` method which returns a
+    reference to the block that was registered for finalization.
+
+    .. seealso::
+
+        :ref:`topic-finalization`, :ref:`topic-message`.
+
+
+.. c:function:: mps_message_type_t mps_message_type_gc(void)
+
+    Return the :term:`message type` of garbage collection statistic
+    messages.
+
+    Garbage collection statistic messages are used by the MPS to give
+    the :term:`client program` information about a :term:`garbage
+    collection` that has taken place. Such information may be useful in
+    analysing the client program's memory usage over time.
+
+    The access methods specific to a message of this type are:
+
+    * :c:func:`mps_message_gc_live_size` returns the total size of the
+      :term:`condemned` objects that survived the garbage collection
+      that generated the message;
+
+    * :c:func:`mps_message_gc_condemned_size` returns the approximate
+      size of the set of objects that were :term:`condemned` in the
+      garbage collection that generated the message;
+
+    * :c:func:`mps_message_gc_not_condemned_size` returns the
+      approximate size of the set of objects that were in collected
+      :term:`pools <pool>`, but were not condemned in the garbage
+      collection that generated the message.
+
+    .. seealso::
+
+        :ref:`topic-collection`, :ref:`topic-message`.
+
+
+.. c:function:: mps_message_type_t mps_message_type_gc_start(void)
+
+    Return the :term:`message type` of garbage collection start
+    messages.
+
+    Garbage collection start messages contain information about why
+    the :term:`garbage collection` started.
+
+    The access method specific to a :term:`message` of this message
+    type is:
+
+    * :c:func:`mps_message_gc_start_why` returns a string that
+      describes why the garbage collection started.
+
+    .. seealso::
+
+        :ref:`topic-collection`, :ref:`topic-message`.
+
+
+.. c:type:: mps_message_type_t
+
+    The type of :term:`message types <message type>`.
+
+    .. seealso::
+
+        :ref:`topic-message`.
+
+
+.. c:function:: void mps_pool_check_fenceposts(mps_pool_t pool)
+
+    Check all the :term:`fenceposts <fencepost>` in a :term:`pool`.
+
+    *pool* is the pool whose fenceposts are to be checked.
+
+    If a corrupted fencepost is found, the MPS will :term:`assert`. It
+    is only useful to call this on a :term:`debugging pool` that has
+    fenceposts turned on. It does nothing on non-debugging pools.
+
+    .. seealso::
+
+        :ref:`topic-debugging`.
+
+
+.. c:type:: mps_pool_debug_option_s
+
+    The type of the structure used to pass options to
+    :c:func:`mps_pool_create` for debugging :term:`pool classes <pool
+    class>`. ::
+
+        typedef struct mps_pool_debug_option_s {
+            void  *fence_template;
+            size_t fence_size;
+            void  *free_template;
+            size_t free_size;
+        } mps_pool_debug_option_s;
+
+    *fence_template* points to a template for :term:`fenceposts
+    <fencepost>`.
+
+    *fence_size* is the :term:`size` of *fence_template* in bytes, or
+    zero if the debugging pool should not use fenceposts.
+
+    *free_template* points to a template for splatting free space.
+
+    *free_size* is the :term:`size` of *free_template* in bytes, or
+    zero if the debugging pool should not splat free space.
+
+    Both *fence_size* and *free_size* must be a multiple of the
+    :term:`alignment` of the :term:`pool`, and also a multiple of the
+    alignment of the pool's :term:`object format` if it has one.
+
+    The debugging pool will copy the *fence_size* bytes pointed to by
+    *fence_template* in a repeating pattern onto each fencepost during
+    allocation, and it will copy the bytes pointed to by
+    *free_template* in a repeating pattern over free space after the
+    space is reclaimed.
+
+    The MPS may not always use the whole of a template: it may use
+    pieces smaller than the given size, for example to pad out part of
+    a block that was left unused because of alignment requirements.
+
+    Fencepost and free space templates allow the :term:`client
+    program` to specify patterns:
+
+    * that mimic illegal data values;
+  
+    * that cause bus errors if wrongly interpreted as pointers;
+
+    * that cause assertions to fire if wrongly interpreted as data values;
+
+    * that contain an instruction sequence that wold cause the program
+      to signal an error or stop if wrongly interpreted as executable
+      code.
+
+    .. seealso::
+
+        :ref:`topic-debugging`.
+
+
+.. c:function:: mps_rank_t mps_rank_ambig(void)
+
+    Return the :term:`rank` of :term:`ambiguous` references.
+
+    .. seealso::
+
+        :ref:`topic-root`.
+
+
+.. c:function:: mps_rank_t mps_rank_exact(void)
+
+    Return the :term:`rank` of :term:`exact` references.
+
+    .. seealso::
+
+        :ref:`topic-root`.
+
+
+.. c:type:: mps_rank_t
+
+    The type of :term:`ranks <rank>`. It is an alias (via the C
+    ``typedef`` mechanism) for ``unsigned int``, provided for
+    convenience and clarity.
+
+    .. seealso::
+
+        :ref:`topic-root`.
+
+
+.. c:function:: mps_rank_t mps_rank_weak(void)
+
+    Return the :term:`rank` of :term:`weak` references.
+
+    .. seealso::
+
+        :ref:`topic-root`.
+
+
+.. c:type:: mps_res_t (*mps_reg_scan_t)(mps_ss_t ss, mps_thr_t thr, void *p, size_t s)
+
+    The type of a root scanning function for roots created with
+    :c:func:`mps_root_create_reg`.
+
+    *ss* is the :term:`scan state`. It must be passed to
+    :c:func:`MPS_SCAN_BEGIN` and :c:func:`MPS_SCAN_END` to delimit a
+    sequence of fix operations, and to the functions
+    :c:func:`MPS_FIX1` and :c:func:`MPS_FIX2` when fixing a
+    :term:`reference`.
+
+    *thr* is the :term:`thread`.
+
+    *p* and *s* are the corresponding values that were passed to
+    :c:func:`mps_root_create_reg`.
+
+    Returns a :term:`result code`. If a fix function returns a value
+    other than :c:macro:`MPS_RES_OK`, the scan method must return that
+    value, and may return without fixing any further references.
+    Generally, itis better if it returns as soon as possible. If the
+    scanning is completed successfully, the function should return
+    :c:macro:`MPS_RES_OK`.
+
+    A root scan method is called whenever the MPS needs to scan the
+    root. It must then indicate references within the root by calling
+    :c:func:`MPS_FIX1` and :c:func:`MPS_FIX2`.
+
+    .. seealso::
+
+        :ref:`topic-root`, :ref:`topic-scanning`.
+
+    .. note::
+
+        :term:`Client programs <client program>` are not expected to
+        write scanning functions of this type. The built-in MPS
+        function :c:func:`mps_stack_scan_ambig` should be used.
+
+
+.. c:type:: mps_res_t
+
+    The type of :term:`result codes <result code>`. It is an alias
+    (via the C ``typedef`` mechanism) for ``int``, provided for
+    convenience and clarity.
+
+    A result code indicates the success or failure of an operation,
+    along with the reason for failure. As with error numbers in Unix,
+    the meaning of a result code depends on the call that returned it.
+    Refer to the documentation of the function for the exact meaning
+    of each result code.
+
+    The result codes are:
+
+    * :c:macro:`MPS_RES_OK`: operation succeeded.
+
+    * :c:macro:`MPS_RES_FAIL`: operation failed.
+
+    * :c:macro:`MPS_RES_IO`: an input/output error occurred.
+
+    * :c:macro:`MPS_RES_LIMIT`: an internal limitation was exceeded.
+
+    * :c:macro:`MPS_RES_MEMORY`: needed memory could not be obtained.
+
+    * :c:macro:`MPS_RES_RESOURCE`: a needed resource could not be
+      obtained.
+
+    * :c:macro:`MPS_RES_UNIMPL`: operation is not implemented.
+
+    * :c:macro:`MPS_RES_COMMIT_LIMIT`: the arena's :term:`commit
+      limit` would be exceeded.
+
+    * :c:macro:`MPS_RES_PARAM`: an invalid parameter was passed.
+
+
+.. c:macro:: MPS_RES_COMMIT_LIMIT
+
+    A :term:`result code` indicating that an operation could not be
+    completed as requested without exceeding the :term:`commit limit`.
+
+    You need to deallocate something to make more space, or increase
+    the commit limit by calling :c:func:`mps_arena_commit_limit_set`.
+
+    .. seealso::
+
+        :ref:`topic-error`.
+
+
+.. c:macro:: MPS_RES_FAIL
+
+    A :term:`result code` indicating that something went wrong that
+    does not fall under the description of any other result code. The
+    exact meaning depends on the function that returned this result
+    code.
+
+    .. seealso::
+
+        :ref:`topic-error`.
+
+
+.. c:macro:: MPS_RES_IO
+
+    A :term:`result code` indicating that an input/output error
+    occurred. The exact meaning depends on the function that returned
+    this result code.
+
+    .. seealso::
+
+        :ref:`topic-error`.
+
+
+.. c:macro:: MPS_RES_LIMIT
+
+    A :term:`result code` indicating that an operation could not be
+    completed as requested because of an internal limitation of the
+    MPS. The exact meaning depends on the function that returned this
+    result code.
+
+    .. seealso::
+
+        :ref:`topic-error`.
+
+
 .. c:macro:: MPS_RES_MEMORY
 
     A :term:`result code` indicating that an operation could not be
@@ -1547,13 +2069,28 @@ Declared in ``mps.h``
         :c:macro:`MPS_RES_RESOURCE`, not ``MPS_RES_MEMORY``.
 
 
+.. c:macro:: MPS_RES_OK
+
+    A :term:`result code` indicating that an operation succeeded.
+
+    If a function takes an :term:`out parameter` or an :term:`in/out
+    parameter`, this parameter will only be updated if
+    :c:macro:`MPS_RES_OK` is returned. If any other result code is
+    returned, the parameter will be left untouched by the function.
+
+    :c:macro:`MPS_RES_OK` is zero.
+
+    .. seealso::
+
+        :ref:`topic-error`.
+
+
 .. c:macro:: MPS_RES_PARAM
 
     A :term:`result code` indicating that an operation could not be
-    completed as requested because an invalid parameter was specified
-    for the operation. The precise meaning depends on the function
-    that returned this result code. Refer to the documentation of that
-    function for details.
+    completed as requested because an invalid parameter was passed to
+    the operation. The exact meaning depends on the function that
+    returned this result code.
 
     .. seealso::
 
@@ -1563,12 +2100,33 @@ Declared in ``mps.h``
 .. c:macro:: MPS_RES_RESOURCE
 
     A :term:`result code` indicating that an operation could not be
-    completed as requested because the MPS ran out of :term:`virtual
-    memory`. 
+    completed as requested because the MPS could not obtain a needed
+    resource. The resource in question depends on the operation.
 
-    You need to reclaim memory within your process (as for the result
-    code :c:macro:`MPS_RES_MEMORY`), or terminate other processes
-    running on the same machine.
+    Two special cases have their own result codes: when the MPS runs
+    out of committed memory, it returns :c:macro:`MPS_RES_MEMORY`, and
+    when it cannot proceed without exceeding the :term:`commit limit`,
+    it returns :c:macro:`MPS_RES_COMMIT_LIMIT`.
+
+    This result code can be returned when the MPS runs out of
+    :term:`virtual memory`. If this happens, you need to reclaim
+    memory within your process (as for the result code
+    :c:macro:`MPS_RES_MEMORY`), or terminate other processes running
+    on the same machine.
+
+    .. seealso::
+
+        :ref:`topic-error`.
+
+
+.. c:macro:: MPS_RES_UNIMPL
+
+    A :term:`result code` indicating that an operation, or some vital
+    part of it, is not implemented.
+
+    This might be returned by functions that are no longer supported,
+    or by operations that are included for future expansion, but not
+    yet supported.
 
     .. seealso::
 
@@ -1620,6 +2178,228 @@ Declared in ``mps.h``
         going to protect or unprotect the relevant pages.
 
 
+.. c:function:: mps_res_t mps_root_create(mps_root_t *root_o, mps_arena_t arena, mps_rank_t rank, mps_rm_t rm, mps_root_scan_t root_scan, void *p, size_t s)
+
+    Register a :term:`root` that consists of the :term:`references
+    <reference>` fixed by a scanning function.
+
+    *root_o* points to a location that will hold the address of the
+    new root description.
+
+    *arena* is the arena.
+
+    *rank* is the :term:`rank` of references in the root.
+
+    *rm* is the :term:`root mode`.
+
+    *root_scan* is the root scanning function. See
+    :c:type:`mps_root_scan_t`.
+
+    *p* and *s* are arguments that will be passed to *root_scan* each
+    time it is called. This is intended to make it easy to pass, for
+    example, an array and its size as parameters.
+
+    Returns :c:macro:`MPS_RES_OK` if the root was registered
+    successfully, :c:macro:`MPS_RES_MEMORY` if the new root
+    description could not be allocated, or another :term:`result code`
+    if there was another error.
+
+    .. seealso::
+
+        :ref:`topic-root`.
+
+
+.. c:function:: mps_res_t mps_root_create_fmt(mps_root_t *root_o, mps_arena_t arena, mps_rank_t rank, mps_rm_t rm, mps_fmt_scan_t fmt_scan, mps_addr_t base, mps_addr_t limit)
+
+    Register a :term:`root` that consists of the :term:`references
+    <reference>` fixed by a scanning function in a block of
+    :term:`formatted objects <formatted object>`.
+
+    *root_o* points to a location that will hold the address of the
+    new root description.
+
+    *arena* is the arena.
+
+    *rank* is the :term:`rank` of references in the root.
+
+    *rm* is the :term:`root mode`.
+
+    *fmt_scan* is a scanning function. See :c:type:`mps_fmt_scan_t`.
+
+    *base* is the address of the base of the block of formatted
+    objects.
+
+    *limit* is the address just beyond the end of the block of
+    formatted objects.
+
+    Returns :c:macro:`MPS_RES_OK` if the root was registered
+    successfully, :c:macro:`MPS_RES_MEMORY` if the new root
+    description could not be allocated, or another :term:`result code`
+    if there was another error.
+
+    .. seealso::
+
+        :ref:`topic-root`.
+
+    .. note::
+
+        This is like :c:func:`mps_root_create_table`, except you get
+        to supply your own scanning function, and like
+        :c:func:`mps_root_create`, except the scanning function takes
+        a different argument list, and the MPS knows the location of
+        the root.
+
+
+.. c:function:: mps_res_t mps_root_create_reg(mps_root_t *root_o, mps_arena_t arena, mps_rank_t rank, mps_rm_t rm, mps_thr_t thr, mps_reg_scan_t reg_scan, void *p, size_t s)
+
+    Register a :term:`root` that consists of the :term:`references
+    <reference>` fixed in a :term:`thread's <thread>` stack by a
+    scanning function.
+
+    *root_o* points to a location that will hold the address of the
+    new root description.
+
+    *arena* is the arena.
+
+    *rank* is the :term:`rank` of references in the root.
+
+    *rm* is the :term:`root mode`.
+
+    *thr* is the thread.
+
+    *reg_scan* is a scanning function. See :c:type:`mps_reg_scan_t`.
+
+    *p* and *s* are arguments that will be passed to *reg_scan* each
+    time it is called. This is intended to make it easy to pass, for
+    example, an array and its size as parameters.
+
+    Returns :c:macro:`MPS_RES_OK` if the root was registered
+    successfully, :c:macro:`MPS_RES_MEMORY` if the new root
+    description could not be allocated, or another :term:`result code`
+    if there was another error.
+
+    .. seealso::
+
+        :ref:`topic-root`.
+
+    .. note::
+
+        :term:`Client programs <client program>` are not expected to
+        write their own scanning functions to pass to this function.
+        The built-in MPS function :c:func:`mps_stack_scan_ambig`
+        should be used.
+
+
+.. c:function:: mps_res_t mps_root_create_table(mps_root_t *root_o, mps_arena_t arena, mps_rank_t rank, mps_rm_t rm, mps_addr_t *base, size_t size)
+
+    Register a :term:`root` that consists of a vector of
+    :term:`references <reference>`.
+
+    *root_o* points to a location that will hold the address of the
+    new root description.
+
+    *arena* is the arena.
+
+    *rank* is the :term:`rank` of references in the root.
+
+    *rm* is the :term:`root mode`.
+
+    *base* points to a vector of references.
+
+    *size* is the number of references in the vector.
+
+    Returns :c:macro:`MPS_RES_OK` if the root was registered
+    successfully, :c:macro:`MPS_RES_MEMORY` if the new root
+    description could not be allocated, or another :term:`result code`
+    if there was another error.
+
+    .. seealso::
+
+        :ref:`topic-root`.
+
+
+.. c:function:: mps_res_t mps_root_create_table_masked(mps_root_t *root_o, mps_arena_t arena, mps_rank_t rank, mps_rm_t rm, mps_addr_t *base, size_t size, mps_word_t mask)
+
+    Register a :term:`root` that consists of a vector of :term:`tagged
+    values <tagged value>`.
+
+    *root_o* points to a location that will hold the address of the
+    new root description.
+
+    *arena* is the arena.
+
+    *rank* is the :term:`rank` of references in the root.
+
+    *rm* is the :term:`root mode`.
+
+    *base* points to a vector of tagged values.
+
+    *size* is the number of tagged values in the vector.
+
+    *mask* is a :term:`bitmask` whose set bits specify the location of
+    the :term:`tag`. References are assumed to have a tag of zero: any
+    value in the vector with a non-zero tag is ignored.
+
+    Returns :c:macro:`MPS_RES_OK` if the root was registered
+    successfully, :c:macro:`MPS_RES_MEMORY` if the new root
+    description could not be allocated, or another :term:`result code`
+    if there was another error.
+
+    .. seealso::
+
+        :ref:`topic-root`.
+
+
+.. c:type:: typedef mps_res_t (*mps_root_scan_t)(mps_ss_t ss, void *p, size_t s)
+
+    The type of root scanning functions for :c:func:`mps_root_create`.
+
+    *ss* is the :term:`scan state`. It must be passed to
+    :c:func:`MPS_SCAN_BEGIN` and :c:func:`MPS_SCAN_END` to delimit a
+    sequence of fix operations, and to the functions
+    :c:func:`MPS_FIX1` and :c:func:`MPS_FIX2` when fixing a
+    :term:`reference`.
+
+    *p* and *s* are the corresponding values that were passed to
+    :c:func:`mps_root_create`.
+
+    Returns a :term:`result code`. If a fix function returns a value
+    other than :c:macro:`MPS_RES_OK`, the scan method must return that
+    value, and may return without fixing any further references.
+    Generally, itis better if it returns as soon as possible. If the
+    scanning is completed successfully, the function should return
+    :c:macro:`MPS_RES_OK`.
+
+    .. seealso::
+
+        :ref:`topic-root`.
+
+
+.. c:type:: void (*mps_roots_stepper_t)(mps_addr_t *ref, mps_root_t root, void *p, size_t s)
+
+    The type of a :term:`root` :term:`stepper function`.
+
+    A function of this type can be passed to
+    :c:func:`mps_arena_roots_walk`, in which case it will be called
+    for each reference into the :term:`arena` from a root registered
+    with the arena. It receives four arguments:
+
+    *ref* points to a reference in a root. The reference points to
+    something in the arena. If the root is :term:`exact` then the
+    reference points to the start of an allocated block, but if the
+    root is :term:`ambiguous` it might point to somewhere in the
+    middle of an allocated block.
+
+    *root* is the description of the root which contains *ref*.
+
+    *p* and *s* are the corresponding values that were passed to
+    :c:func:`mps_arena_roots_walk`.
+
+    .. seealso::
+
+        :ref:`topic-root`.
+
+
 .. c:function:: mps_res_t mps_sac_alloc(mps_addr_t *p_o, mps_sac_t sac, size_t size, mps_bool_t has_reservoir_permit)
 
     Allocate a :term:`block` using a :term:`segregated allocation
@@ -1665,7 +2445,8 @@ Declared in ``mps.h``
         The :term:`client program` is responsible for synchronizing
         the access to the cache, but if the cache decides to access
         the pool, the MPS will properly synchronize with any other
-        threads that might be accessing the same pool.
+        :term:`threads <thread>` that might be accessing the same
+        pool.
 
     .. note::
 
@@ -1677,13 +2458,14 @@ Declared in ``mps.h``
         cache must also be attached to the same pool.
 
 
-.. c:function:: MPS_SAC_ALLOC_FAST(mps_res_t res_o, mps_addr_t *p_o, mps_sac_t sac, size_t size, mps_bool_t has_reservoir_permit)
+.. c:function:: MPS_SAC_ALLOC_FAST(mps_res_t res_v, mps_addr_t *p_v, mps_sac_t sac, size_t size, mps_bool_t has_reservoir_permit)
 
     A macro alternative to :c:func:`mps_sac_alloc` that is faster than
     the function but does less checking. The macro takes an additional
-    first argument, *res_o*, which must be an lvalue that will store
+    first argument, *res_v*, which must be an lvalue that will store
     the :term:`result code`, and it doesn't evaluate
-    *has_reservoir_permit* unless it decides to access the pool.
+    *has_reservoir_permit* unless it decides to access the pool. The
+    second argument *p_v* must also be an lvalue.
 
     .. seealso::
 
@@ -1694,6 +2476,11 @@ Declared in ``mps.h``
 
     The number of :term:`size classes <size class>` that
     :c:func:`mps_sac_create` is guaranteed to accept.
+
+    More might be accepted: in fact, there might not be any limit in
+    the implementation on the maximum number of size classes, but if
+    you specify more than this many, you should be prepared to handle
+    the :term:`result code` :c:macro:`MPS_RES_LIMIT`.
 
     .. seealso::
 
@@ -1727,7 +2514,8 @@ Declared in ``mps.h``
         The :term:`client program` is responsible for synchronizing
         the access to the cache, but if the cache decides to access
         the pool, the MPS will properly synchronize with any other
-        threads that might be accessing the same pool.
+        :term:`threads <thread>` that might be accessing the same
+        pool.
 
     .. note::
 
@@ -1750,6 +2538,182 @@ Declared in ``mps.h``
     A macro alternative to :c:func:`mps_sac_free` that is faster than
     the function but does no checking. The arguments are identical to
     the function.
+
+    .. seealso::
+
+        :ref:`topic-cache`.
+
+
+.. c:type:: mps_sac_class_s
+
+    The type of the structure describing a :term:`size class` in a
+    :term:`segregated allocation cache`. ::
+
+        typedef struct mps_sac_class_s {
+            size_t   mps_block_size;
+            size_t   mps_cached_count;
+            unsigned mps_frequency;
+        } mps_sac_class_s;
+
+    An array of these structures must be passed to
+    :c:func:`mps_sac_create` when creating a segregated allocation
+    cache.
+
+    *mps_block_size* is the maximum :term:`size` (in bytes) of any
+    :term:`block` in this size class. It must be a multiple of the
+    alignment of the :term:`alignment` of the :term:`pool` to which
+    the cache belongs.
+
+    *mps_cached_count* is the number of blocks of this size class to
+    cache. It is advice to the MPS on how many blocks to cache, not an
+    absolute limit. The cache policy tries to accommodate fluctuations
+    in the population and minimize the cost of responding to client
+    requests; the purpose of this parameter is to limit how much
+    memory the :term:`client program` is willing to set aside for this
+    purpose. However, a *cached_count* of zero prevents any caching of
+    blocks falling into that size class.
+
+    *mps_frequency* is a number that describes the frequency of
+    requests (allocation and deallocation combined) in this size class
+    relative to the other size classes in the cache.
+
+    .. seealso::
+
+        :ref:`topic-cache`.
+
+
+.. c:function:: mps_res_t mps_sac_create(mps_sac_t *sac_o, mps_pool_t pool, size_t classes_count, mps_sac_class_s *classes)
+
+    Create a :term:`segregated allocation cache` for a :term:`pool`.
+
+    *sac_o* points to a location that will hold the address of the
+    segregated allocation cache.
+
+    *pool* is the pool the cache is attached to.
+
+    *classes_count* is the number of :term:`size classes <size class>`
+    in the cache.
+
+    *classes* points to the an array describing the size classes in
+    the cache.
+
+    Returns :c:macro:`MPS_RES_OK` if the segregated allocation cache
+    is created successfully. Returns :c:macro:`MPS_RES_MEMORY`
+    or:c:macro:`MPS_RES_COMMIT_LIMIT` when it fails to allocate memory
+    for the internal cache structure. Returns :c:macro:`MPS_RES_LIMIT`
+    if you ask for too many size classes: in this case, combine some
+    small adjacent classes. Returns :c:macro:`MPS_RES_PARAM` if the
+    pool doesn't support segregated allocation caches.
+
+    This function creates an allocation cache whose :term:`free list`
+    is segregated into the given size classes. The cache can get more
+    memory from the given pool, or return memory to it.
+
+    Segregated allocation caches can be associated with any pool that
+    supports :term:`manual` allocation using the functions
+    :c:func:`mps_alloc` and :c:func:`mps_free`.
+
+    The size classes are described by an array of element type
+    :c:func:`mps_sac_class_s`. This array is used to initialize the
+    segregated allocation cache, and is not needed
+    after:c:func:`mps_sac_create` returns. The following constraints
+    apply to the array:
+
+    * You must specify at least one size class. 
+
+    * All size classes must have different sizes.
+
+    * The size classes must be given in the order of increasing size.
+
+    * The smallest size must be at least as large as ``sizeof(void *)``.
+
+    * Each size must be a multiple of the :term:`alignment` of the
+      pool.
+
+    * There might be a limit on how many classes can be described, but
+      it will be at least :c:macro:`MPS_SAC_CLASS_LIMIT`.
+
+    The MPS automatically provides an "overlarge" size class for
+    arbitrarily large allocations above the largest size class
+    described. Allocations falling into the overlarge size class are
+    not cached.
+
+    Any allocations whose size falls between two size classes are
+    allocated from the larger size class.
+
+    .. seealso::
+
+        :ref:`topic-cache`.
+
+    .. note::
+
+        Too many size classes will slow down allocation; too few size
+        classes waste more space in internal fragmentation. It is
+        assumed that overlarge allocations are rare; otherwise, you
+        would add another size class for them, or even create separate
+        allocation caches or pools for them.
+
+    .. warning::
+
+        Segregated allocation caches work poorly with debugging pool
+        classes: the debugging checks only happen when blocks are
+        moved between the cache and the pool.
+
+
+.. c:function:: void mps_sac_destroy(mps_sac_t sac)
+
+    Destroy a :term:`segregated allocation cache`.
+
+    *sac* is the segregated allocation cache to destroy.
+
+    Returns all memory in the cache to the associated :term:`pool`.
+    The pool might then return some memory to the :term:`arena`, but
+    that's up to the pool's usual policy.
+
+    Destroying the cache has no effect on blocks allocated through it.
+
+    .. seealso::
+
+        :ref:`topic-cache`.
+
+
+.. c:function:: void mps_sac_flush(mps_sac_t sac)
+
+    Flush a :term:`segregated allocation cache`, returning all memory
+    held in it to the associated :term:`pool`.
+
+    *sac* is the segregated allocation cache to flush.
+
+    This is something that you'd typically do when you know you won't
+    be using the segregated allocation cache for awhile, but want to
+    hold on to the cache itself. Destroying a cache has the effect of
+    flushing it.
+
+    Flushing the segregated allocation cache might well cause the pool
+    to return some memory to the :term:`arena`, but that's up to the
+    pool's usual policy.
+
+    Note that the MPS might also decide to take memory from the
+    segregated allocation cache without the :term:`client program`
+    requesting a flush.
+
+    .. seealso::
+
+        :ref:`topic-cache`.
+
+    .. note::
+
+        The :term:`client program` is responsible for synchronizing
+        the access to the cache, but if the cache decides to access
+        the pool, the MPS will properly synchronize with any other
+        :term:`threads <thread>` that might be accessing the same
+        pool.
+
+
+.. c:type:: mps_sac_t
+
+    The type of :term:`segregated allocation caches <segregated
+    allocation cache>`.
 
     .. seealso::
 
@@ -1806,6 +2770,167 @@ Declared in ``mps.h``
         have an embedded structure shared between two scan methods, you
         must wrap the call with :c:func:`MPS_FIX_CALL` to ensure that the
         scan state is passed correctly.
+
+
+.. c:function:: mps_reg_scan_t mps_stack_scan_ambig
+
+    A root scanning function for :term:`ambiguous` scanning of
+    :term:`threads <thread>`, suitable for passing to
+    :c:func:`mps_root_create_reg`.
+
+    It scans all integer registers and everything on the stack of the
+    thread given, and can therefore only be used with roots of
+    :term:`rank` :c:macro:`MPS_RANK_AMBIG`. It only scans locations
+    that are at, or higher on the stack (that is, more recently
+    added), the stack bottom that was passed to
+    :c:func:`mps_thread_create`. References are assumed to be
+    represented as machine words, and are required to be
+    4-byte-aligned; unaligned values are ignored.
+
+    .. seealso::
+
+        :ref:`topic-platform`, :ref:`topic-root`.
+
+    .. note::
+
+        The MPS provides this function because it's hard to write: it
+        depends on the operating system, the architecture, and in some
+        cases the compiler.
+
+
+.. c:function:: mps_word_t mps_telemetry_control(mps_word_t reset_mask, mps_word_t flip_mask);
+
+    Update and return the :term:`telemetry filter`.
+
+    *reset_mask* is a :term:`bitmask` indicating the bits in the
+    telemetry filter that should be reset.
+
+    *flip_mask* is a bitmask indicating the bits in the telemetry
+    filter whose value should be flipped after the resetting.
+
+    Returns the previous value of the telemetry filter, prior to the
+    reset and the flip.
+
+    The parameters *reset_mask* and *flip_mask* allow the
+    specification of any binary operation on the filter control. For
+    typical operations, the parameters should be set as follows:
+
+    +-----------+--------------+-------------+
+    | Operation | *reset_mask* | *flip_mask* |
+    +===========+==============+=============+
+    | set(M)    | M            | M           |
+    +-----------+--------------+-------------+
+    | reset(M)  | M            | 0           |
+    +-----------+--------------+-------------+
+    | flip(M)   | 0            | M           |
+    +-----------+--------------+-------------+
+    | read()    | 0            | 0           |
+    +-----------+--------------+-------------+
+
+    The significance of the bits is liable to change, but the current
+    meanings (zero being the least significant bit) are:
+
+    0. per space or :term:`arena`;
+
+    1. per :term:`pool`;
+
+    2. per :term:`trace` or scan;
+
+    3. per :term:`page` (segment);
+
+    4. per :term:`reference` or :term:`fix`;
+
+    5. per allocation, :term:`block`, or :term:`object`;
+
+    6. user events (see :c:func:`mps_telemetry_intern`).
+
+    .. seealso::
+
+        :ref:`topic-telemetry`.
+
+
+.. c:function:: void mps_telemetry_flush(void);
+
+    Flush the internal event buffers into the :term:`telemetry stream`.
+
+    This function also calls :c:func:`mps_lib_io_flush` on the event
+    stream itself. This ensures that even the latest events are now
+    properly recorded, should the :term:`client program` terminate
+    (uncontrollably as a result of a bug, for example) or some
+    interactive tool require access to the event data. You could even
+    try calling this from a debugger after a problem.
+
+    .. seealso::
+
+        :ref:`topic-telemetry`.
+
+
+.. c:function:: mps_word_t mps_telemetry_intern(char *label)
+
+    Registers a string with the MPS, and receives a :term:`telemetry
+    label`, suitable for passing to :c:func:`mps_telemetry_label`.
+
+    *label* is a NUL-terminated string way. Its length should not
+    exceed 256 characters, including the terminating NUL.
+
+    Returns a telemtry label: a unique identifier that may be used to
+    represent the string in future.
+
+    The intention of this function is to provide an identifier that
+    can be used to concisely represent a string for the purposes of
+    :c:func:`mps_telemetry_label`. 
+
+    .. seealso::
+
+        :ref:`topic-telemetry`.
+
+    .. note::
+
+        The appropriate setting must be turned on in the
+        :term:`telemetry filter` (via :c:func:`mps_telemetry_control`)
+        before this function is invoked; the associated event is of
+        the user kind.
+
+
+.. c:function:: void mps_telemetry_label(mps_addr_t addr, mps_word_t label)
+
+    Associate a telemetry label returned from
+    :c:func:`mps_telemetry_intern` with an address.
+
+    *addr* is an address.
+
+    *label* is a telemetry label returned from
+    :c:func:`mps_telemetry_intern`.
+
+    The label will be associated with the address when it appears in
+    the :term:`telemetry stream`.
+
+    .. seealso::
+
+        :ref:`topic-telemetry`.
+
+    .. note::
+
+       The user kind must be set in the :term:`telemetry filter` (via
+       :c:func:`mps_telemetry_control`).
+
+
+.. c:type:: mps_thr_t
+
+    The type of registered :term:`thread` descriptions.
+
+    In a multi-threaded environment where :term:`incremental`
+    :term:`garbage collection` is used, threads must be registered
+    with the MPS using :c:func:`mps_thread_reg` so that the MPS can
+    examine their state.
+
+    Even in a single-threaded environment it may be useful to register
+    a thread with the MPS so that its stack can be registered as a
+    :term:`root` using :c:func:`mps_root_create_reg`.
+
+    .. seealso::
+
+        :ref:`topic-root`.
 
 
 ------------------------
@@ -2232,2770 +3357,182 @@ Declared in ``mpstd.h``
         :ref:`topic-platform`.
 
 
--------------
-Other symbols
--------------
-
-
-.. c:function:: size_t mps_message_gc_condemned_size(mps_arena_t arena, mps_message_tmessage)
-
-
-<h4>Summary</h4>
-
-:c:func:`mps_message_gc_condemned_size` returns the "condemned size" property of the specified message in the specified arena.
-
-
-<h4>Associated Protocols</h4>
-
-Message, GC.
-
-
-<h4>Arguments</h4>
-
-<code class="source"> arena</code>-- the arena
-
-
-  <code class="source">
-    message</code>-- a message of a message type that supports this method
-
-
-
-<h4>Returned Values</h4>
-
-An approximate size for the set of objects condemned in the collection that generated the message.
-
-
-<h4>Resources</h4>
-
-
-  <code class="filename">mps.h</code>
-
-
-
-<h4>Description</h4>
-
-Currently, the only type of message that supports this property is :c:type:`mps_message_type_gc`, such messages are generated whenever a garbage collection completes. This method returns an approximation to the size of the set of objects that were condemned in that collection.
-
-
-<h4>Example</h4>
-
-
-<h4>Error Handling</h4>
-
-
-<h4>See Also</h4>
-
-
-
-<code>mps_message_*</code>
-
-
-<h3>function <code><a id="mps_message_gc_live_size" name="mps_message_gc_live_size">mps_message_gc_live_size</a></code></h3>
-
-
-<h4>Summary</h4>
-
-:c:func:`mps_message_gc_live_size` returns the "live size" property of the specified message in the specified arena.
-
-
-<h4>Associated Protocols</h4>
-
-Message, GC.
-
-
-<h4>Syntax</h4>
-
-<code class="source"> size_t mps_message_gc_live_size(mps_arena_t arena, mps_message_t message)</code>
-
-
-<h4>Arguments</h4>
-
-<code class="source">arena</code> -- the arena;
-
-<code class="source">message</code> -- a message of a message type that supports this method.
-
-
-<h4>Returned Values</h4>
-
-The total size of the condemned objects that survived the collection that generated the message.
-
-
-<h4>Resources</h4>
-
-
-  <code class="filename">mps.h</code>
-
-
-
-<h4>Description</h4>
-
-Currently, the only type of message that supports this property is :c:type:`mps_message_type_gc`, such messages are generated whenever a garbage collection completes. This method returns the size of the set of objects that were condemned in that collection, but survived.
-
-
-<h4>Example</h4>
-
-
-<h4>Error Handling</h4>
-
-
-<h4>See Also</h4>
-
-
-
-<code>mps_message_*</code>
-
-
-<h3>function <code><a id="mps_message_gc_not_condemned_size" name="mps_message_gc_not_condemned_size">mps_message_gc_not_condemned_size</a></code></h3>
-
-
-<h4>Summary</h4>
-
-<code class="source">mps_message_gc_not_condemned_size</code> returns the "not condemned size" property of the specified message in the specified arena.
-
-
-<h4>Associated Protocols</h4>
-
-Message, GC.
-
-
-<h4>Syntax</h4>
-
-<code class="source">size_t mps_message_gc_not_condemned_size(mps_arena_t arena, mps_message_t message)</code>
-
-
-<h4>Arguments</h4>
-
-
-  <code class="source">arena</code> -- the arena
-
-
-
-  <code class="source">message</code> -- a message of a message type that supports this method
-
-
-
-<h4>Returned Values</h4>
-
-An approximate size for the set of objects that were in collected pools, but were not condemned in the collection that generated the message.
-
-
-<h4>Resources</h4>
-
-<code class="filename">mps.h</code>
-
-
-<h4>Description</h4>
-
-Currently, the only type of message that supports this property is :c:type:`mps_message_type_gc`; such messages are generated whenever a garbage collection completes. This method returns an approximation to the size of the set of objects that were in collected pools (so potentially subject to garbage collection), but were not condemned in that collection.
-
-
-<h4>Example</h4>
-
-
-<h4>Error Handling</h4>
-
-
-<h4>See Also</h4>
-
-
-
-<code>mps_message_*</code>
-
-
-<h3>function <code><a id="mps_message_gc_start_why"
-  name="mps_message_gc_start_why">mps_message_gc_start_why</a></code></h3>
-
-
-<h4>Summary</h4>
-
-<code class="source">mps_message_gc_start_why</code> returns the a string that describes why a particular collection started. 
-
-
-<h4>Associated Protocols</h4>
-
-Message, GC.
-
-
-<h4>Syntax</h4>
-
-<code class="source">const char * mps_message_gc_start_why(mps_arena_t arena, mps_message_t message)</code>
-
-
-<h4>Arguments</h4>
-
-<code class="source">arena</code> -- the arena
-
-<code class="source">message</code> -- a message of a message type that supports this method (<code>mps_message_type_gc_start()</code>)
-
-
-<h4>Returned Values</h4>
-
- A pointer to a string that is a   textual explanation of why this collection is starting. 
-
-
-<h4>Resources</h4>
-
-<code class="filename">mps.h</code>
-
-
-<h4>Description</h4>
-
-Currently, the only type of message that supports this property is :c:type:`mps_message_type_gc_start`; such messages are generated whenever a garbage collection starts. This method returns a string describing why the collection started. 
-
- The contents of the string must not be modified by the client.  The string and the pointer are only valid as long as the message has not been discarded (with <code>mps_message_discard</code>). 
-
-<h4>Example</h4>
-
-
-<h4>Error Handling</h4>
-
-
-<h4>See Also</h4>
-
-
-
-<code>mps_message_*</code>
-
-
-.. c:function:: mps_bool_t mps_message_get(mps_message_t *message_return, mps_arena_t arena, mps_message_type_tmessage_type)
-
-
-<h4>Summary</h4>
-
-Gets a message of the specified type from a message queue.
-
-
-<h4>Associated Protocols</h4>
-
-Message.
-
-
-<h4>Arguments</h4>
-
-
-  <code>message_return</code>
-  -- the handle to the message that was removed from the queue
-
-
-
-  <code>arena</code>
-  -- the arena
-
-
-
-  <code>message_type</code>
-  -- the type of message
-
-
-
-<h4>Returned Values</h4>
-
-Returns true if a message has been removed from the queue, false if not.
-
-
-<h4>Description</h4>
-
-
-  If there is a message of the specified type on the message queue of the specified arena,then this function removes one such message from the queue, returns a handle to it via the<code>message_return</code> argument, and returns true. Otherwise it returns false.
-
-
-
-<h4>Example</h4>
-
-
-<h4>See Also</h4>
-
-
-
-<code>mps_message_*</code>
-
-
-<h3><code><a id="mps_message_poll" name="mps_message_poll">mps_message_poll</a></code></h3>
-
-
-<h4>Summary</h4>
-
-:c:func:`mps_message_poll` determines whether there are currently any messages on a message queue.
-
-
-<h4>Associated Protocols</h4>
-
-Message.
-
-
-<h4>Syntax</h4>
-
-<code>mps_bool_t mps_message_poll(mps_arena_t arena)</code>
-
-
-<h4>Arguments</h4>
-
-
-  <code>arena</code>
-  -- the arena whose message queue you are interested in
-
-
-
-<h4>Returned Values</h4>
-
-A flag to indicate whether there are any messages on the queue.
-
-
-<h4>Description</h4>
-
-:c:func:`mps_message_poll` is used to determine whether there are currently any messages on the message queue of the specified arena.
-
-
-<h4>Example</h4>
-
-[missing]
-
-
-<h4>Error Handling</h4>
-
-Can't fail.
-
-
-<h4>See Also</h4>
-
-
-
-:c:func:`mps_message_get`
-
-
-<h4>Notes</h4>
-
-If you expect a particular type of message, it is usually more practical to just call :c:func:`mps_message_get`.
-
-
-.. c:function:: mps_bool_t mps_message_queue_type(mps_message_type_t *message_type_return, mps_arena_t arena)
-
-
-<h4>Summary</h4>
-
-:c:func:`mps_message_queue_type` returns the type of the first message on a message queue.
-
-
-<h4>Associated Protocols</h4>
-
-Message.
-
-
-<h4>Arguments</h4>
-
-message_type_return -- the type of the first message on the queue of the specified arena
-
-arena -- the arena
-
-
-<h4>Returned Values</h4>
-
-"True" if there are any messages on the queue of the specified arena, "false" if not.
-
-
-<h4>Description</h4>
-
-If there are any messages on the queue of the specified arena, then this function returns"true", and also returns the type of the first message via "message_type_return". Otherwise it returns "false".
-
-
-<h4>Example</h4>
-
-
-<h4>See Also</h4>
-
-
-
-<code>mps_message_*</code>
-
-
-.. c:type:: mps_message_t
-
-
-<h4>Summary</h4>
-
-:c:func:`mps_message_t` is used as a handle on an individual message.
-
-
-<h4>Associated Protocols</h4>
-
-Message.
-
-
-<h4>Type</h4>
-
-<code>typedef struct mps_message_s *mps_message_t</code>
-
-:c:func:`mps_message_s` is an incomplete structure type used only to declare the opaque type :c:func:`mps_message_t`.
-
-
-<h4>Description</h4>
-
-The opaque type :c:func:`mps_message_t` is used as a handle on an individual message. Messages are manually managed. They are created at the instigation of the MPS (but see :c:func:`mps_message_type_enable`), and are deleted by the client.
-
-An :c:func:`mps_message_t` is a reference into MPS managed memory, and can safely be stored as such in scannable memory.
-
-
-<h4>Example</h4>
-
-
-<h4>Error Handling</h4>
-
-Not applicable.
-
-
-<h4>See Also</h4>
-
-
-
-<code>mps_message_*</code>
-
-
-.. c:function:: mps_message_type_t mps_message_type(mps_arena_t arena, mps_message_t message)
-
-
-<h4>Summary</h4>
-
-:c:func:`mps_message_type` returns the type of a message.
-
-
-<h4>Associated Protocols</h4>
-
-Message.
-
-
-<h4>Arguments</h4>
-
-arena -- the arena containing the message
-
-message -- a valid message; that is, one previously returned by :c:func:`mps_message_get`, and notdiscarded via :c:func:`mps_message_discard`
-
-
-<h4>Returned Values</h4>
-
-The type of the specified message.
-
-
-<h4>Description</h4>
-
-:c:func:`mps_message_type` returns the type of a message.
-
-
-<h4>Example</h4>
-
-
-<h4>Error Handling</h4>
-
-
-<h4>See Also</h4>
-
-
-
-:c:func:`mps_message_clock`
-
-
-<h3>function <code><a id="mps_message_type_disable" name="mps_message_type_disable">mps_message_type_disable</a></code></h3>
-
-
-<h4>Summary</h4>
-
-:c:func:`mps_message_type_disable` restores the arena to the default state whereby messages of thespecified type are not generated.
-
-This reverses the effect of an earlier call to "m ps_message_type_enable".
-
-
-<h4>Associated Protocols</h4>
-
-Message.
-
-
-<h4>Syntax</h4>
-
-<code>void mps_message_type_disable(mps_arena_t arena, mps_message_type_t message_type)</code>
-
-
-<h4>Arguments</h4>
-
-arena -- the arena
-
-message_type -- the message type to be disabled
-
-
-
-<h4>Description</h4>
-
-This procedure may be used by the client to specify that messages of the specified type should not created for the specified arena.
-
-Messages are not generated by default, but the client may enable the generation of messages with :c:func:`mps_message_type_enable`.
-
-Any existing messages of the specified type are flushed from the message queue.
-
-
-<h4>Example</h4>
-
-[none]
-
-
-<h4>Error Handling</h4>
-
-Never fails.
-
-
-<h4>See Also</h4>
-
-
-
-<code>mps_message_*</code>
-
-
-<h4>Notes</h4>
-
-It is permitted to call this function when the message type is already disabled. Such a call will have no effect.
-
-
-.. c:function:: void mps_message_type_enable(mps_arena_t arena, mps_message_type_t message_type)
-
-
-<h4>Summary</h4>
-
-:c:func:`mps_message_type_enable` allows messages of the specified type to be created for thespecified arena. Without such enabling, the MPS will, by default, not generate any messages of thattype.
-
-
-<h4>Associated Protocols</h4>
-
-Message.
-
-
-<h4>Arguments</h4>
-
-arena -- the arena
-
-message_type -- the message type to be enabled
-
-
-
-<h4>Description</h4>
-
-This procedure may be used by the client to specify that messages of the specified type maybe created for the specified arena. Without such enabling, the MPS will by default not generate any messages of that type.
-
-Note that the enabling of messages of a particular type implies that the client application will handle and discard message of that type, or the message queue may consume unbounded resources.
-
-The client may disable message generation again by means of an equivalent call to :c:func:`mps_message_type_disable`.
-
-
-<h4>Example</h4>
-
-[none]
-
-
-<h4>Error Handling</h4>
-
-Never fails.
-
-
-<h4>See Also</h4>
-
-
-
-<code>mps_message_*</code>
-
-"Message Protocol"
-
-
-<h4>Notes</h4>
-
-It is permitted to call this function when the message type is already enabled. Such a call will have no effect.
-
-
-
-
-.. c:function:: mps_message_type_t mps_message_type_finalization(void)
-
-
-<h4>Summary</h4>
-
-:c:func:`mps_message_type_finalization` returns the type of finalization messages.
-
-
-<h4>Associated Protocols</h4>
-
-Message, Finalization.
-
-
-<h4>Arguments</h4>
-
-None.
-
-
-<h4>Returned Values</h4>
-
-The type of finalization messages.
-
-
-<h4>Resources</h4>
-
-Not applicable.
-
-
-<h4>Description</h4>
-
-:c:func:`mps_message_type_finalization` returns the type of finalization messages. Finalization messages are used by the MPS to implement finalization (see :c:func:`mps_finalize`).  When the MPS detects that an object is finalizable, it finalizes the object by posting a message of this type (note that there might be delays between the object becoming finalizable, the MPS detecting that, and the message being posted). 
-
-
-In addition to the usual methods applicable to messages, finalization
-messages support the :c:func:`mps_message_finalization_ref`
-method which returns a reference to the object that was registered for
-finalization.
-
-
-<h4>Example</h4>
-
-<pre>
-{
-  mps_message_type_t type;
-
-  if(mps_message_queue_type(&amp;type, arena)) {
-    if(type == mps_message_type_finalization()) {
-      process_finalization_message_from_queue();
-    } else {
-      unknown_message_type();
-    }
-  }
-}
-</pre>
-
-<h4>See Also</h4>
-
-
-
-<code>mps_message_*</code>,
-
-:c:func:`mps_finalize`
-
-
-<h3>function <code><a id="mps_message_type_gc" name="mps_message_type_gc">mps_message_type_gc</a></code></h3>
-
-
-<h4>Summary</h4>
-
-:c:type:`mps_message_type_gc` returns the type of garbage collection statistic messages.
-
-
-<h4>Associated Protocols</h4>
-
-Message.
-
-
-<h4>Syntax</h4>
-
-<code class="source">mps_message_type_t mps_message_type_gc(void)</code>
-
-
-<h4>Arguments</h4>
-
-None.
-
-
-<h4>Returned Values</h4>
-
-The type of garbage collection statistic messages.
-
-
-<h4>Resources</h4>
-
-
-  <code class="filename">mps.h</code>
-
-
-
-<h4>Description</h4>
-
-:c:type:`mps_message_type_gc` returns the type of garbage collection statistic messages. Garbage collection statistic messages are used by the MPS to give the client information about garbage collections that have occurred. Such information may be useful in analysing the client's memory usage over time.
-
-The access methods specific to a message of this type are:
-
-<ul>
-
-  <li><code class="source">mps_message_gc_live_size</code> -- gives the total size of the condemned objects that survived the collection that generated the message</li>
-
-  <li><code class="source">mps_message_gc_condemned_size</code>
-  -- gives an approximate size for the set of objects condemned in the collection that generated the message.</li>
-
-  <li><code class="source">mps_message_gc_not_condemned_size</code> -- gives an approximate size for the set of objects that were in collected pools, but were not condemned in the collection that generated the message.</li>
-
-</ul>
-
-
-<h4>Example</h4>
-
-<pre>
-{
-  mps_message_t message;
-  if(mps_message_get(&amp;message, arena, mps_message_type_gc())) {
-    size_t live, condemned, not_condemned;
-    live = mps_message_gc_live_size(arena, message);
-    condemned = mps_message_gc_condemned_size(arena, message);
-    not_condemned = mps_message_gc_not_condemned_size(arena,message);
-    mps_message_discard(arena, message);
-    process_collection_stats(live, condemned, not_condemned);
-  }
-}
-</pre>
-
-
-<h4>Error Handling</h4>
-
-Cannot fail.
-
-
-<h4>See Also</h4>
-
-
-
-<code>mps_message_*</code>.
-
-
-<h3>function <code><a id="mps_message_type_gc_start"
-name="mps_message_type_gc_start">mps_message_type_gc_start</a></code></h3>
-
-
-<h4>Summary</h4>
-
-
-:c:type:`mps_message_type_gc_start`
-returns the type of garbage collection start messages.
-
-
-<h4>Associated Protocols</h4>
-
-Message.
-
-
-<h4>Syntax</h4>
-
-<code class="source">mps_message_type_t mps_message_type_gc_start(void)</code>
-
-
-<h4>Arguments</h4>
-
-None.
-
-
-<h4>Returned Values</h4>
-
-The type of garbage collection start messages.
-
-
-<h4>Resources</h4>
-
-
-  <code class="filename">mps.h</code>
-
-
-
-<h4>Description</h4>
-
-
-:c:type:`mps_message_type_gc_start`
-returns the type of garbage collection start messages.
-The messages contain information about why the collection started. See
-<code>mps_message_gc_start_why</code>.
-
-
-The access methods specific to a message of this type are:
-
-<ul>
-
-  <li><code class="source">mps_message_gc_start_why</code> --
-  Returns a string that is a description of why the collection started.
-  </li>
-
-</ul>
-
-
-<h4>Example</h4>
-
-<pre>
-{
-  mps_message_t message;
-  if(mps_message_get(&amp;message, arena, mps_message_type_gc_start())) {
-    printf("Collection started; reason: %s\n",
-      mps_message_gc_start_why(arena, message));
-  }
-}
-</pre>
-
-
-<h4>Error Handling</h4>
-
-Cannot fail.
-
-
-<h4>See Also</h4>
-
-
-
-<code>mps_message_*</code>.
-
-
-.. c:type:: mps_message_type_t
-
-
-<h4>Summary</h4>
-
-:c:func:`mps_message_type_t` is the type of message types.
-
-
-<h4>Associated Protocols</h4>
-
-Message.
-
-
-<h4>Description</h4>
-
-:c:func:`mps_message_type_t` is the type whose values are the various message types. It is opaque.
-
-
-<h4>Example</h4>
-
-
-<h4>See Also</h4>
-
-
-
-<code>mps_message_*</code>
-
-
-.. c:function:: void mps_pool_check_fenceposts(mps_pool_t pool)
-
-
-<h4>Summary</h4>
-
-Check all the fenceposts in the pool.
-
-
-<h4>Associated Protocols</h4>
-
-Debug
-
-
-<h4>Arguments</h4>
-
-pool the pool whose fenceposts are to be checked
-
-
-<h4>Description</h4>
-
-This function is a debugging feature to check all the fenceposts in the pool. If a corrupted fencepost is found, an assert will fire. It is only useful to call this on a debug pool that had fenceposting turned, it does nothing on other pools.
-
-
-<h4>Example</h4>
-
-<code>mps_pool_check_fenceposts(gene_pool);</code>
-
-
-<h4>Error Handling</h4>
-
-If a corrupted fencepost is found, an assert will fire. You will probably want to look at the problem with a debugger.
-
-
-<h4>See Also</h4>
-
-
-
-<code>mps_class_*_debug</code>
-
-
-<h3>structure <code><a id="mps_pool_debug_option_s" name="mps_pool_debug_option_s">mps_pool_debug_option_s</a></code></h3>
-
-
-<h4>Summary</h4>
-
-This structure is used to pass debug options to :c:func:`mps_pool_create` for debug classes.
-
-
-<h4>Associated Protocols</h4>
-
-Debug.
-
-
-<h4>Type</h4>
-
-<pre>
-typedef struct mps_pool_debug_option_s {
-  void *fence_template;
-  size_t fence_size;
-} mps_pool_debug_option_s;
-</pre>
-
-
-<h4>Members</h4>
-
-
-  <code>fence_template</code>
-  the template for fencepost contents
-
-
-
-  <code>fence_size</code>
-  the size of the template in bytes
-
-
-
-<h4>Description</h4>
-
-Structures of this type are used to pass debug options to :c:func:`mps_pool_create` when creating instances of debug classes.
-
-Fenceposting is enabled by specifying a non-zero <code>fence_size</code>; the size must be a multiple of the [pool/format] alignment. The content of fenceposts is given as a template that is simply copied onto each fencepost (although sometimes the MPS will create fenceposts smaller than the given size, for example, to pad out some bit that was left unused because of alignmentrequirements).
-
-
-<h4>Example</h4>
-
-<pre>
-static mps_pool_debug_option_s debugOptions = { (void *)"postpost", 8 };
-if(mps_pool_create(&amp;pool, arena, mps_class_ams_debug(),
-                   &amp;debugOptions, 8192, 135, 8)
-   != MPS_RES_OK) {
-  printf("Error creating pool!"); exit(2);
-}
-</pre>
-
-
-<h4>See Also</h4>
-
-
-
-:c:func:`mps_pool_check_fenceposts`
-
-
-<h4>Notes</h4>
-
-Fencepost templates allow the client to specify complicated patterns that mimic illegal datavalues, that would cause an assert to fire if read by mistake, and that would never be written by any operation that writes at the wrong address by mistake.
-
-Another trick is to make the pattern contain an instruction sequence that would cause theprogram to error or stop if executed by mistake.
-
-
-<h3>function <code><a id="mps_rank_ambig" name="mps_rank_ambig">mps_rank_ambig</a></code></h3>
-
-
-<h4>Summary</h4>
-
-Function returning the value representing "rank ambig".
-
-
-<h4>Associated Protocols</h4>
-
-Allocation, Root, Scanning.
-
-
-<h4>Syntax</h4>
-
-<code>mps_rank_ambig()</code>
-
-
-<h4>Type</h4>
-
-<code>mps_rank_t mps_rank_ambig(void)</code>
-
-
-<h4>Arguments</h4>
-
-None.
-
-
-<h4>Returned Values</h4>
-
-Returns a value of type :c:func:`mps_rank_t` representing "rank ambig".
-
-
-<h4>Description</h4>
-
-Used to get a value for "rank ambig", which is used to denote that certain references (in a root, for example) are ambiguous references.
-
-
-<h4>Example</h4>
-
-
-<h4>See Also</h4>
-
-
-
-:c:func:`mps_rank_t`,
-
-:c:func:`mps_rank_exact`
-
-
-.. c:function:: mps_rank_t mps_rank_exact(void);
-
-
-<h4>Summary</h4>
-
-Used to declare references which the client wishes to be exact references.
-
-
-<h4>Associated Protocols</h4>
-
-Allocation, Root, Scanning.
-
-
-<h4>Arguments</h4>
-
-No arguments.
-
-
-<h4>Returned Values</h4>
-
-Returns a rank (see :c:func:`mps_rank_t`) which can be used to declare references to be exact references.
-
-
-<h4>Description</h4>
-
-Used to declare references which the client wishes to be exact, non-weak references.
-
-
-<h4>Example</h4>
-
-[missing]
-
-
-<h4>See Also</h4>
-
-
-
-:c:func:`mps_rank_t`,
-
-:c:func:`mps_rank_ambig`,
-
-:c:func:`mps_rank_weak`
-
-
-.. c:type:: mps_rank_t
-
-
-<h4>Summary</h4>
-
-A type whose values are "reference ranks".
-
-
-<h4>Associated Protocols</h4>
-
-Allocation, Root.
-
-
-<h4>Type</h4>
-
-<code>typedef unsigned int mps_rank_t;</code>
-
-
-<h4>Description</h4>
-
-:c:func:`mps_rank_t` is a concrete type. It is an alias (via the C typedef mechanism) for "unsigned int" provided for convenience and clarity. An object of type :c:func:`mps_rank_t` can store a value representing one reference rank. Reference ranks are used to conveniently express specific semantics of particular references. See "MPS Scanning Protocol" for descriptions of these semantics, and <code>mps_rank_*</code> for the actual ranks used to declare these semantics.
-
-
-<h4>Example</h4>
-
-(Probably won't be used explicitly, most likely to be seen in the prototype declaration for other MPS functions. For example, :c:func:`mps_root_create`.)
-
-
-<h4>See Also</h4>
-
-
-
-<code>mps_rank_*</code>
-
-
-.. c:function:: extern mps_rank_t mps_rank_weak(void);
-
-
-<h4>Summary</h4>
-
-Function to return a value used to represent "rank weak".
-
-
-<h4>Associated Protocols</h4>
-
-Allocation, Scanning.
-
-
-<h4>Arguments</h4>
-
-None.
-
-
-<h4>Returned Values</h4>
-
-Returns a value of type :c:func:`mps_rank_t` that represent "rank weak".
-
-
-<h4>Description</h4>
-
-:c:func:`mps_rank_weak` returns a value used to represent "rank weak".
-
-"Rank weak" is often used to denote that certain references (in a root or in objects allocated in a pool) are weak references.
-
-
-<h4>Example</h4>
-
-&lt;example of how to use the symbol&gt;
-
-
-<h4>See Also</h4>
-
-
-
-:c:func:`mps_rank_t`,
-
-:c:func:`mps_rank_exact`
-
-
-.. c:type:: mps_reg_scan_t
-
-
-<h4>Summary</h4>
-
-Type of root scanning functions for :c:func:`mps_root_create_reg`.
-
-
-<h4>Associated Protocols</h4>
-
-Root.
-
-
-<h4>Syntax</h4>
-
-<code>typedef mps_res_t (*mps_reg_scan_t)( mps_ss_t scan_state, mps_thr_t thread, void *p, size_t s)</code>
-
-
-<h4>Arguments</h4>
-
-scan_state a scan state
-
-thread the thread
-
-p a value passed through from root registration
-
-s a value passed through from root registration
-
-
-<h4>Returned Values</h4>
-
-A result code.
-
-
-<h4>Description</h4>
-
-This is the type of root scanning functions the client provides to :c:func:`mps_root_create_reg`.These functions will be called, whenever the root needs to be scanned, and passed the "p" and "s"values specified in the call to :c:func:`mps_root_create_reg`.
-
-
-<h4>See Also</h4>
-
-
-
-:c:func:`mps_root_create_reg`,
-
-:c:func:`mps_stack_scan_ambig`
-
-
-<h4>Notes</h4>
-
-Users are not expected to write any scanning functions of this type. The one function supplied with the MPS, :c:func:`mps_stack_scan_ambig`, should be enough for most purposes.
-
-
-.. c:type:: mps_res_t
-
-
-<h4>Summary</h4>
-
-:c:func:`mps_res_t` is the type of result codes returned by operations that may fail.
-
-
-<h4>Type</h4>
-
-<code>typedef int mps_res_t;</code>
-
-
-<h4>Description</h4>
-
-A result code indicates the success or failure of an operation, along with the reason for failure. Like UNIX error codes, the meaning of the code depends on the call that returned it. Refer to the documentation of the function for the exact meaning. This documentation describes the broad categories with mnemonic names for various sorts of problems.
-
-<code><a id="MPS_RES_OK" name="MPS_RES_OK">MPS_RES_OK</a></code>: The operation succeeded. Out and in/out parameters will only be updated if OK is returned, otherwise they will be left untouched. :c:macro:`MPS_RES_OK` is zero.
-
-<code><a id="MPS_RES_FAIL" name="MPS_RES_FAIL">MPS_RES_FAIL</a></code>: Something went wrong that does not fall into any of the other categories. The exact meaning depends on the call. See the documentation of the function.
-
-<code><a id="MPS_RES_RESOURCE" name="MPS_RES_RESOURCE">MPS_RES_RESOURCE</a></code>: A needed resource could not be obtained. Which resource, depends on the call. Compare with :c:macro:`MPS_RES_MEMORY`, which is a special case of this.
-
-<code><a id="MPS_RES_MEMORY" name="MPS_RES_MEMORY">MPS_RES_MEMORY</a></code>: Needed memory (committed memory, not address space) could not be obtained. (A <a href="#MPS_RES_MEMORY_detailed">more detailed explanation</a>).
-
-<code><a id="MPS_RES_LIMIT" name="MPS_RES_LIMIT">MPS_RES_LIMIT</a></code>: An internal limitation was reached. For example, the maximum number of something was reached. (A <a href="#MPS_RES_LIMIT_detailed">more detailed explanation</a>).
-
-<code><a id="MPS_RES_UNIMPL" name="MPS_RES_UNIMPL">MPS_RES_UNIMPL</a></code>: The operation, or some vital part of it, is unimplemented. This might be returned by functions that are no longer supported, or by operations that are included for future expansion, but not yet supported.
-
-<code><a id="MPS_RES_IO" name="MPS_RES_IO">MPS_RES_IO</a></code>: An I/O error occurred. Exactly what depends on the function.
-
-<code><a id="MPS_RES_COMMIT_LIMIT" name="MPS_RES_COMMIT_LIMIT">MPS_RES_COMMIT_LIMIT</a></code>: The arena's commit limit would have been exceeded as a result of (explicit or implicit) allocation. See protocol.arena.commit.
-
-<code><a id="MPS_RES_PARAM" name="MPS_RES_PARAM">MPS_RES_PARAM</a></code>: A parameter of the operation was invalid. (A <a href="#MPS_RES_PARAM_detailed">more detailed explanation</a>).
-
-
-Any function that might fail will return a result code. Any other results of the function are passed back in "return" parameters. See MPS Interface Conventions for more information.
-
-
-<h4>Example</h4>
-
-<pre>
-mps_addr_t p;
-mps_res_t res;
-
-res = mps_alloc(&amp;p, pool, sizeof(struct spong));
-if(res != MPS_RES_OK) {
-  handle_memory_error(res);
-  abort();
-}
-</pre>
-
-For more examples, s ee doc.mps.ref-man.if-conv.
-
-
-<h4>See Also</h4>
-
-
-
-<code>MPS_RES_*</code>
-
-
-.. c:function:: mps_res_t mps_root_create(mps_root_t *root_o, mps_arena_t arena, mps_rank_t rank, mps_rm_trm, mps_root_scan_t scan, void *p, size_t s)
-
-
-<h4>Summary</h4>
-
-The function :c:func:`mps_root_create` declares a root that consists of all the references indicated by a scanning function.
-
-
-<h4>Associated Protocols</h4>
-
-Root.
-
-
-<h4>Arguments</h4>
-
-root_o a pointer to a variable to store the new root structure
-
-arena the arena
-
-rank the rank of references in the root
-
-rm the root mode
-
-scan the scanning function
-
-p a value to be passed to the scanning function
-
-s a value to be passed to the scanning function
-
-
-<h4>Returned Values</h4>
-
-If the return value is :c:macro:`MPS_RES_OK`, a new root structure in "*root_o".
-
-
-<h4>Description</h4>
-
-The client provides a scanning function, that will be called with a scan state and "p" and"s", whenever the root needs to be scanned. See :c:func:`mps_root_scan_t` for details.
-
-If the rank of the root is not :c:macro:`MPS_RANK_AMBIG`, the contents of the root have to be valid whenever a GC happens, i.e., they have to be references to actual objects or "NULL". If you're using asynchronous GC, this could be right after the root is registered, so the root has to be valid when it is registered. It's OK for a root to have entries which point to memory not managed by the MPS --they will simply be ignored.
-
-
-<h4>Example</h4>
-
-<pre>
-static mps_root_t mmRoot;
-
-int main(void)
-{
-  mps_res_t res;
-
-  /* ... */
-
-  res = mps_root_create(&amp;mmRoot, arena, MPS_RANK_EXACT, (mps_rm_t)0,
-                        &amp;rootScanner, NULL, 0);
-  /* see doc of mps_root_scan_t for definition of rootScanner */
-  if(res != MPS_RES_OK)
-    exit(1);
-
-  /* ... */
-}
-</pre>
-
-
-<h4>Error Handling</h4>
-
-:c:func:`mps_root_create` returns :c:macro:`MPS_RES_MEMORY` when it fails to allocate memory for the internal root structure; you need to deallocate or reclaim something to make enough space, or expand the arena.
-
-
-<h4>See Also</h4>
-
-
-
-:c:func:`mps_root_scan_t`,
-
-:c:func:`mps_rm_t`,
-
-:c:func:`mps_rank_t`,
-
-:c:func:`mps_root_t`,
-
-:c:func:`mps_root_create_fmt`,
-
-:c:func:`mps_root_create_table`,
-
-:c:macro:`MPS_RM_CONST`
-
-
-<h4>Notes</h4>
-
-"p" and "s" are just arbitrary data that scanning function can use. This is needed because Clacks local functions.
-
-
-.. c:function:: mps_res_t mps_root_create_fmt(mps_root_t *root_o, mps_arena_t arena, mps_rank_t rank, mps_rm_t rm, mps_fmt_scan_t scan, mps_addr_t base, mps_addr_t limit)
-
-
-<h4>Summary</h4>
-
-The function :c:func:`mps_root_create_fmt` declares a root that consists of a block of objects, and provides a scanning function for them.
-
-
-<h4>Associated Protocols</h4>
-
-Root.
-
-
-<h4>Arguments</h4>
-
-root_o a pointer to a variable to store the new root structure
-
-arena the arena
-
-rank the rank of references in the root
-
-rm the root mode
-
-scan the scanning function
-
-base the address of the start of the root
-
-limit the address just beyond the end of the root
-
-
-<h4>Returned Values</h4>
-
-If the return value is :c:macro:`MPS_RES_OK`, the new root in "*root_o".
-
-
-<h4>Description</h4>
-
-The client provides a scanning function, that will be called with a scan state and an area of memory, whenever the root needs to be scanned. See :c:type:`mps_fmt_scan_t` for details.
-
-If the rank of the root is not :c:macro:`MPS_RANK_AMBIG`, the contents of the root have to be valid whenever a GC happens, i.e., they have to be references to actual objects or "NULL". If you're using asynchronous GC, this could be right after the root is registered, so the root has to be valid when it is registered. It's OK for a root to have entries which point to memory not managed by the MPS --they will simply be ignored.
-
-
-<h4>Example</h4>
-
-<pre>
-static mps_root_t mmRoot;
-SegmentDescriptor DataSegment;
-
-int main(void)
-{
-  mps_res_t res;
-
-  /* ... */
-
-  res = mps_root_create_fmt(&amp;mmRoot, arena, MPS_RANK_EXACT, (mps_rm_t)0,
-    &amp;scan_objs,
-    (mps_addr_t)DataSegment.base,
-    (mps_addr_t) (DataSegment.base + SegmentLength) );
-
-  /* see doc of mps_fmt_scan_t for definition of scan_objs */
-
-  if(res != MPS_RES_OK)
-    exit( EXIT_FAILURE );
-
-  /* ... */
-}
-</pre>
-
-
-<h4>Error Handling</h4>
-
-:c:func:`mps_root_create_fmt` returns :c:macro:`MPS_RES_MEMORY` when it fails to allocate memory for the internal root structure; you need to deallocate or reclaim something to make enough space, or expand the arena.
-
-
-<h4>See Also</h4>
-
-
-
-:c:type:`mps_fmt_scan_t`,
-
-:c:func:`mps_rm_t`,
-
-:c:func:`mps_rank_t`,
-
-:c:func:`mps_root_t`,
-
-:c:func:`mps_root_create`,
-
-:c:func:`mps_root_create_table`,
-
-:c:macro:`MPS_RM_PROT`,
-
-:c:macro:`MPS_RM_CONST`
-
-
-<h4>Notes</h4>
-
-This is like :c:func:`mps_root_create_table`, except you get to supply your own scanning function.This is like :c:func:`mps_root_create`, except the scanning function has a slightly different argument list(and the MPS knows where the root is).
-
-
-.. c:function:: mps_res_t mps_root_create_reg(mps_root_t * root_o, mps_arena_t arena, mps_rank_t rank, mps_rm_t rm, mps_thr_t thread, mps_reg_scan_t scan, void *p, size_t s)
-
-
-<h4>Summary</h4>
-
-:c:func:`mps_root_create_reg` registers a thread as a root.
-
-
-<h4>Associated Protocols</h4>
-
-Root.
-
-
-<h4>Arguments</h4>
-
-root_o a pointer to a variable to store the new root structure
-
-arena the arena
-
-rank the rank of references in the root
-
-rm the root mode
-
-thread the thread to the registered as a root
-
-scan the scanning function
-
-p a value to be passed to the scanning function
-
-s a value to be passed to the scanning function
-
-
-<h4>Returned Values</h4>
-
-If the return value is :c:macro:`MPS_RES_OK`, a new root structure in "*root_o".
-
-
-<h4>Description</h4>
-
-:c:func:`mps_root_create_reg` declares the state of a thread as a root. The client provides a scanning function that will be called and passed "p" and "s", whenever the root needs to be scanned. See :c:func:`mps_reg_scan_t` for details.
-
-If the rank of the root is not :c:macro:`MPS_RANK_AMBIG`, the contents of the root have to be valid whenever a GC happens, i.e., they have to be references to actual objects or "NULL". If you're using asynchronous GC, this could be right after the root is registered, so the root has to be valid when it is registered. It's OK for a root to have entries which point to memory not managed by the MPS --they will simply be ignored.
-
-
-<h4>Example</h4>
-
-<pre>
-typedef struct {
-  mps_root_t mmRoot;
-  mps_thr_t thread;
-  /* ...  */
-} ThreadLocals;
-
-void InitThread(ThreadLocals *thr)
-{
-  /* This is a hack to find the bottom of the stack. */
-  void *stackBottom=&amp;stackBottom;
-
-  mps_thread_reg(&amp;thr-&gt;thread, arena);
-  mps_root_create_reg(&amp;thr-&gt;mmRoot, arena, MPS_RANK_AMBIG, (mps_rm_t) 0,
-    thr-&gt;thread, mps_stack_scan_ambig, stackBottom, 0);
-
-  /* ...  */
-
-}
-</pre>
-
-
-<h4>Error Handling</h4>
-
-:c:func:`mps_root_create_reg` returns :c:macro:`MPS_RES_MEMORY` when it fails to allocate memory for the internal root structure; you need to deallocate or reclaim something to make enough space, or expand the arena.
-
-
-<h4>See Also</h4>
-
-
-
-:c:func:`mps_stack_scan_ambig`,
-
-:c:func:`mps_reg_scan_t`
-
-
-<h4>Notes</h4>
-
-Only one suitable scanning function is supplied with the MPS, namely :c:func:`mps_stack_scan_ambig`.
-
-
-.. c:function:: mps_res_t mps_root_create_table(mps_root_t *root_o, mps_arena_t arena, mps_rank_t rank, mps_rm_t rm, mps_addr_t *base, size_t size)
-
-
-<h4>Summary</h4>
-
-:c:func:`mps_root_create_table` create s a root that is a vector of references.
-
-
-<h4>Associated Protocols</h4>
-
-Root.
-
-
-<h4>Arguments</h4>
-
-root_o a pointer to a variable for storing the new root structure in
-
-arena the arena
-
-rank the rank of the references in this root
-
-rm the root mode
-
-base a pointer to the vector of references that is being registered
-
-size the number of references in the vector being registered
-
-
-<h4>Returned Values</h4>
-
-If the return value is :c:macro:`MPS_RES_OK`, the new root in "*root_o".
-
-
-<h4>Description</h4>
-
-This function declares a root that is a vector of references.
-
-If the rank of the root is not :c:macro:`MPS_RANK_AMBIG`, the contents of the root have to be valid whenever a GC happens, i.e., they have to be references to actual objects or "NULL". If you're using asynchronous GC, this could be right after the root is registered, so the root has to be valid when it is registered. It's OK for a root to have entries which point to memory not managed by the MPS --they will simply be ignored.
-
-
-<h4>Example</h4>
-
-<pre>
-static mps_root_t mmRoot;
-Object *Objects[rootCOUNT];
-
-int main(void)
-{
-  mps_res_t res;
-
-  /* ... */
-
-  res = mps_root_create_table(&amp;mmRoot, arena, MPS_RANK_EXACT, (mps_rm_t)0,
-                              (mps_addr_t) &amp;Objects, rootCOUNT );
-
-  if(res != MPS_RES_OK)
-    exit(1);
-
-  /* ... */
-}
-</pre>
-
-
-<h4>Error Handling</h4>
-
-:c:func:`mps_root_create_table` returns :c:macro:`MPS_RES_MEMORY` when it fails to allocate memory for the internal root structure; you need to deallocate or reclaim something to make enough space, or expand the arena.
-
-
-<h4>See Also</h4>
-
-
-
-:c:func:`mps_root_create_table_masked`,
-
-:c:macro:`MPS_RM_PROT`,
-
-:c:macro:`MPS_RM_CONST`
-
-
-.. c:function:: mps_res_t mps_root_create_table_masked(mps_root_t *root_o, mps_arena_t arena, mps_rank_t rank, mps_rm_t rm, mps_addr_t *base, size_t size, mps_word_t mask);
-
-
-<h4>Summary</h4>
-
-:c:func:`mps_root_create_table_masked` creates a root that is a vector of tagged values.
-
-
-<h4>Associated Protocols</h4>
-
-Root.
-
-
-<h4>Arguments</h4>
-
-root_o a pointer to a variable for storing the new root structure in
-
-arena the arena
-
-rank the rank of the references in this root
-
-rm the root mode
-
-base a pointer to the vector of references that is being registered
-
-
-  size the number of references in the vector being registered
-  <br />
-  mask any element that has any of the bits in mask set is ignored
-
-
-
-<h4>Returned Values</h4>
-
-If the return value is :c:macro:`MPS_RES_OK`, the new root in "*root_o".
-
-
-<h4>Description</h4>
-
-:c:func:`mps_root_create_table_masked` creates a root that is a table of tagged values. The mask parameter indicates which bits of a pointer are tag bits. References are assumed to have a tag of zero, values with other tags are ignored.
-
-If the rank of the root is not :c:macro:`MPS_RANK_AMBIG`, the contents of the root have to be valid whenever a GC happens, i.e., they have to be references to actual objects or "NULL". If you're using asynchronous GC, this could be right after the root is registered, so the root has to be valid when it is registered. It's OK for a root to have entries which point to memory not managed by the MPS --they will simply be ignored.
-
-
-<h4>Example</h4>
-
-<pre>
-#define tagMASK 0x0003
-
-static mps_root_t mmRoot;
-Object *Objects[rootCOUNT];
-
-int main(void)
-{
-  mps_res_t res;
-
-  /* ... */
-
-  res = mps_root_create_table_masked(&amp;mmRoot, arena, MPS_RANK_EXACT, (mps_rm_t)0,
-                                     (mps_addr_t)&amp;Objects, rootCOUNT,
-                                     (mps_word_t)tagMASK);
-  if(res != MPS_RES_OK)
-    exit(1);
-
-  /* ... */
-}
-</pre>
-
-
-<h4>Error Handling</h4>
-
-:c:func:`mps_root_create_table_masked` returns :c:macro:`MPS_RES_MEMORY` when it fails to allocate memory for the internal root structure; you need to deallocate or reclaim something to make enough space,or expand the arena.
-
-
-<h4>See Also</h4>
-
-
-
-:c:func:`mps_root_create_table`,
-
-:c:macro:`MPS_RM_PROT`,
-
-:c:macro:`MPS_RM_CONST`
-
-
-.. c:type:: mps_root_scan_t
-
-
-<h4>Summary</h4>
-
-Type of root scanning functions for :c:func:`mps_root_create`.
-
-
-<h4>Associated Protocols</h4>
-
-Root.
-
-
-<h4>Syntax</h4>
-
-<code>typedef mps_res_t (*mps_root_scan_t)(mps_ss_t scan_state, void * p, size_t s)</code>
-
-
-<h4>Arguments</h4>
-
-<code>scan_state</code> a scan state
-
-<code>p</code> an argument passed through from :c:func:`mps_root_create`
-
-<code>s</code> an argument passed through from :c:func:`mps_root_create`
-
-
-<h4>Returned Values</h4>
-
-A result code.
-
-
-<h4>Description</h4>
-
-This is the type of root scanning functions the client provides to:c:func:`mps_root_create`. The MPS will call these functions whenever the root needs to be scanned, with a scan state (of type :c:func:`mps_ss_t` ), and the <code>p</code> and<code>s</code> values specified in the call to :c:func:`mps_root_create`. Apart from the argument list, the scanning function works like the format scan methods: it needs to indicate all references using :c:func:`mps_fix` or <code>MPS_FIX*</code>.
-
-
-<h4>Example</h4>
-
-<pre>
-static StackFrame *stackBottom;
-
-/* root scanner for an imaginary interpreter for a stack-oriented language */
-static mps_res_t rootScanner(mps_ss_t ss, void * p, size_t s)
-{
-  StackFrame *frame;
-  size_t i;
-  mps_res_t res;
-
-  UNUSED(p);
-  UNUSED(s);
-
-  for(frame = stackBottom; frame != NULL; frame = frame-&gt;next)
-    for(i = frame-&gt;size; i &gt; 0; --i) {
-      res = mps_fix(ss, &amp;frame-&gt;locals[i]);
-      if(res != MPS_RES_OK) return res;
-    }
-
-  return res;
-}
-</pre>
-
-
-<h4>Error Handling</h4>
-
-If a fixing operation returns a value other than :c:macro:`MPS_RES_OK`, the scanning function must return that value, and may return without scanning further references. Generally, it is better if it returns as soon as possible. If the scanning is completed successfully, the function should return :c:macro:`MPS_RES_OK`.
-
-
-<h4>See Also</h4>
-
-
-
-:c:func:`mps_root_create`,
-
-:c:func:`mps_ss_t`,
-
-:c:func:`mps_fix`,
-
-:c:macro:`MPS_SCAN_BEGIN`,
-
-:c:macro:`MPS_SCAN_END`,
-
-<code><a href="#MPS_FIX12">MPS_FIX12</a></code>,
-
-<code><a href="#MPS_FIX1">MPS_FIX1</a></code>,
-
-<code><a href="#MPS_FIX2">MPS_FIX2</a></code>,
-
-:c:macro:`MPS_FIX_CALL`,
-
-:c:type:`mps_fmt_scan_t`
-
-
-.. c:type:: mps_roots_stepper_t
-
-
-<h4>Summary</h4>
-
-Type of the client-supplied root walker component.
-
-
-<h4>Associated Protocols</h4>
-
-None.
-
-
-<h4>Type</h4>
-
-
-  <code>typedef void (*mps_roots_stepper_t)( mps_addr_t *, mps_root_t, void *, size_t )</code>
-
-
-
-<h4>Arguments</h4>
-
-The function pointed to by an object of type :c:func:`mps_roots_stepper_t` takes the followingargument list:
-
-<code>(mps_addr_t *ref, mps_root_t root, void *p, size_t s)</code>
-
-ref is the address of a root which references an object in the arena. It's a pointer to a root which points to "something" in the client heap. That "something" will be an object if the root is an exact root. But it might be an interior pointer to an object if the root is an ambiguous root.
-
-root is the MPS root object which contains ref.
-
-p and s are two closure values which are copies of the corresponding values which the client passed into :c:func:`mps_arena_roots_walk`.
-
-
-<h4>Returned Values</h4>
-
-he function pointed to by an object of type :c:func:`mps_roots_stepper_t` returns no values.
-
-
-<h4>Description</h4>
-
-A pointer to a function is passed into the function :c:func:`mps_arena_roots_walk`; the pointer has this type. The root walker arranges to apply this function to all objects which are directly referenced from the roots.
-
-
-<h4>Example</h4>
-
-&lt;example of how to use the symbol&gt;
-
-
-<h4>Error Handling</h4>
-
-
-<h4>T</h4>
-
-he function pointed to by an object of type :c:func:`mps_roots_stepper_t` has no way of signalling an error to the caller.
-
-
-<h4>See Also</h4>
-
-
-
-:c:func:`mps_arena_roots_arena_walk`
-
-
-<h4>Notes</h4>
-
-
-.. c:type:: mps_sac_class_s
-
-
-<h4>Summary</h4>
-
-A structure describing a size class to be passed as an argument to :c:func:`mps_sac_create`.
-
-
-<h4>Associated Protocols</h4>
-
-Allocation cache
-
-
-<h4>Type</h4>
-
-<pre>
-typedef struct mps_sac_class_s {
-  size_t mps_block_size;
-  size_t mps_cached_count;
-  unsigned mps_frequency;
-} mps_sac_class_s;
-</pre>
-
-
-<h4>Description</h4>
-
-:c:func:`mps_sac_class_s` is the element type of the array passed to:c:func:`mps_sac_create` to describe the size classes. Each element of this array describes one class by specifying <code>block_size</code>, the maximum size (in bytes) in this class; <code>cached_count</code>, the number of objects of this class to cache; and <code>frequency</code>, a number that describes the frequency of requests (allocation and deallocation combined ) in this class relative to all the other classes. The classes should be given in the order of ascending size.
-
-<code>block_size</code> s have to be aligned to the pool alignment. All sizes must be different, and the smallest size must be large enough to hold a <code>void *</code>.
-
-
-  <code>cached_count</code>
-  is advice to the MPS on how many blocks to cache, not an absolute limit. The cache policy tries to accommodate fluctuations in the population and minimize the cost of responding to client requests; the purpose of this parameter is to limit how much memory the client is willing to set aside for this purpose. However, a
-  <code>cached_count</code>
-  of zero prevents any caching of blocks falling into that class.
-
-
-The MPS automatically provides an "overlarge" class for arbitrarily large objects above the largest class described. Allocations falling into the overlarge class are not cached.
-
-
-<h4>Example</h4>
-
-<pre>
-  mps_sac_t sac;
-  mps_sac_class_s classes[3] = { {8, 38, 1}, {136, 19, 3}, {512, 4, 1} };
-
-  res = mps_sac_create(&amp;sac, pool, 3, classes);
-  if (res != MPS_RES_OK) {
-    printf("Failed to create the allocation cache!");
-    exit(1);
-  }
-</pre>
-
-
-<h4>See Also</h4>
-
-
-
-:c:func:`mps_sac_create`
-
-
-<h4>Notes</h4>
-
-Any blocks whose size falls between two classes are allocated from the larger class.
-
-
-.. c:function:: mps_res_t mps_sac_create(mps_sac_t *sac_o, mps_pool_t pool, size_t classes_count, mps_sac_class_s *classes);
-
-
-<h4>Summary</h4>
-
-This function creates a segregated allocation cache.
-
-
-<h4>Associated Protocols</h4>
-
-Allocation cache
-
-
-<h4>Arguments</h4>
-
-sac_o a pointer to a variable to hold the cache created
-
-pool the pool the cache is attached to
-
-classes_count the number of the size classes
-
-classes pointer to the first element of an array describing the size classes
-
-
-<h4>Returned Values</h4>
-
-If the return value is :c:macro:`MPS_RES_OK`, a new cache in <code>*sac_o</code>.
-
-
-<h4>Description</h4>
-
-This function creates an allocation cache whose free-list is segregated into the given size classes. The cache can get more memory from the given pool, or return memory to it.
-
-Segregated allocation caches can be associated with any pool that supports :c:func:`mps_alloc` and :c:func:`mps_free`.
-
-The size classes are described by an array of element type :c:func:`mps_sac_class_s` (q.v.). This array is used to initialize the cache, and is not needed after:c:func:`mps_sac_create` returns. There might be a limit on how many classes can be described,but it will be no less than :c:macro:`MPS_SAC_CLASS_LIMIT`. You must specify at least one class.The MPS automatically provides an "overlarge" class for arbitrarily large objects above the largest class described. Allocations falling into the overlarge class are not cached.
-
-
-<h4>Example</h4>
-
-<pre>
-  mps_sac_t sac;
-  mps_sac_class_s classes[3] = { {8, 38, 1}, {136, 19, 3}, {512, 4, 1} };
-
-  res = mps_sac_create(&amp;sac, pool, 3, classes);
-  if (res != MPS_RES_OK) {
-    printf("Failed to create the allocation cache!");
-    exit(1);
-  }
-</pre>
-
-
-<h4>Error Handling</h4>
-
-:c:func:`mps_sac_create` returns :c:macro:`MPS_RES_MEMORY` or:c:macro:`MPS_RES_COMMIT_LIMIT` when it fails to allocate memory for the internal cache structure;see the documentation for those return codes for recovery options. It returns:c:macro:`MPS_RES_LIMIT` if you ask for too many size classes; combine some small adjacent classes. It returns :c:macro:`MPS_RES_PARAM` if the pool doesn't support segregated allocation caches.
-
-
-<h4>See Also</h4>
-
-
-
-:c:func:`mps_sac_class_s`,
-
-:c:macro:`MPS_SAC_CLASS_LIMIT`,
-
-:c:func:`mps_sac_destroy`,
-
-:c:macro:`MPS_RES_MEMORY`,
-
-:c:macro:`MPS_RES_COMMIT_LIMIT`,
-
-:c:macro:`MPS_RES_LIMIT`,
-
-:c:macro:`MPS_RES_PARAM`,
-
-:c:func:`mps_sac_t`
-
-
-<h4>Notes</h4>
-
-Too many classes will slow down allocation; too few classes waste more space in internal fragmentation. It is assumed that overlarge allocations are rare; otherwise, you would add another class for them, or even create separate allocation caches or pools for them.
-
-Some pools will work more efficiently with caches than others. In the future, the MPS might offer pools specially optimized for particular types of cache.
-
-Segregated allocation caches work poorly with debug pool classes at the moment: the checking only happens when blocks are moved between the cache and the pool. This will be fixed, but the speed of allocation with a debug class will always be similar to :c:func:`mps_alloc`, rather than cached speed.
-
-
-<h4>Type</h4>
-
-size_t
-
-
-<h4>Associated Protocols</h4>
-
-Allocation cache
-
-
-<h4>Description</h4>
-
-:c:macro:`MPS_SAC_CLASS_LIMIT` specifies a lower limit on the maximum number of classes that can be described in a call to :c:func:`mps_sac_create`, i.e., the MPS guarantees to accept at least this many classes. More might be accepted -- in fact, there might not be any limit in the implementation on the maximum number of classes, but if you specify more than this, you should be prepared to handle the error.
-
-:c:macro:`MPS_SAC_CLASS_LIMIT` is a macro suitable for use in a constant expression, both in a #if directive and wherever else constant expressions may be used.
-
-
-
-<h4>See Also</h4>
-
-
-
-:c:func:`mps_sac_create`
-
-
-<h4>Notes</h4>
-
-If you ask for too many size classes, :c:func:`mps_sac_create` returns :c:macro:`MPS_RES_LIMIT`; you can recover by combining some small adjacent classes.
-
-
-.. c:function:: void mps_sac_destroy(mps_sac_t);
-
-
-<h4>Summary</h4>
-
-This function destroys a segregated allocation cache.
-
-
-<h4>Associated Protocols</h4>
-
-Allocation cache
-
-
-<h4>Arguments</h4>
-
-sac the segregated allocation cache
-
-
-
-<h4>Description</h4>
-
-This function destroys a segregated allocation cache. All memory held in it is returned to the associated pool.
-
-
-<h4>Example</h4>
-
-<pre>
-  res = mps_sac_create(&amp;sac, pool, 3, classes);
-  if (res != MPS_RES_OK) {
-    printf("Failed to create the allocation cache!");
-    exit(1);
-  }
-
-  /* Use sac. */
-
-  mps_sac_destroy(sac);
-  mps_pool_destroy(pool);
-</pre>
-
-
-<h4>See Also</h4>
-
-
-
-:c:func:`mps_sac_create`,
-
-:c:func:`mps_sac_t`
-
-
-<h4>Notes</h4>
-
-Destroying the cache might well cause the pool to return some memory to the arena, but that's up to the pool's usual policy.
-
-Destroying the cache has no effect on objects allocated through it.
-
-
-.. c:function:: void mps_sac_flush(mps_sac_t sac);
-
-
-<h4>Summary</h4>
-
-This function flushes the segregated allocation cache given.
-
-
-<h4>Associated Protocols</h4>
-
-Allocation cache
-
-
-<h4>Arguments</h4>
-
-sac the segregated allocation cache
-
-
-
-<h4>Description</h4>
-
-This function flushes the segregated allocation cache given, returning all memory held in it to the associated pool.
-
-The client is responsible for synchronizing the access to the cache, but the MPS will properly synchronize with any other threads that might be accessing the same pool.
-
-
-<h4>Example</h4>
-
-<pre>
-  mps_sac_t sac_small, sac_large;
-
-  res = mps_sac_create(&amp;sac_small, pool, 3, small_classes);
-  if (res != MPS_RES_OK) {
-    printf("Failed to create the small allocation cache!");
-    exit(1);
-  }
-
-  res = mps_sac_create(&amp;sac_large, pool, 3, large_classes);
-  if (res != MPS_RES_OK) {
-    printf("Failed to create the large allocation cache!");
-    exit(1);
-  }
-
-  /* Use sac_small. */
-
-  mps_sac_flush(sac_small);
-
-  /* Use sac_large. */
-
-  mps_sac_flush(sac_large);
-
-  /* Use sac_small. */
-</pre>
-
-
-<h4>See Also</h4>
-
-
-
-:c:func:`mps_sac_t`
-
-
-<h4>Notes</h4>
-
-This is something that you'd typically do when you know you won't be using the cache for awhile, but want to hold on to the cache itself. Destroying a cache has the effect of flushing it,naturally.
-
-Flushing the cache might well cause the pool to return some memory to the arena, but that's up to the pool's usual policy.
-
-Note that the MPS might also decide to take memory from the cache without the client requesting a flush.
-
-
-.. c:type:: mps_sac_t
-
-
-<h4>Summary</h4>
-
-Type of segregated allocation caches.
-
-
-<h4>Associated Protocols</h4>
-
-Allocation cache
-
-
-<h4>Type</h4>
-
-<code>typedef struct mps_sac_s *mps_sac_t;</code>
-
-
-<h4>Description</h4>
-
-A value of this type represents an allocation cache with segregated free lists. It is an opaque type.
-
-
-<h4>Example</h4>
-
-<pre>
-  mps_sac_t sac;
-  mps_sac_class_s classes[3] = { {8, 38, 1}, {136, 19, 3}, {512, 4, 1} };
-
-  res = mps_sac_create(&amp;sac, pool, 3, classes);
-  if (res != MPS_RES_OK) {
-    printf("Failed to create the allocation cache!");
-    exit(1);
-  }
-</pre>
-
-
-<h4>See Also</h4>
-
-
-
-:c:func:`mps_sac_create`,
-
-:c:func:`mps_sac_destroy`,
-
-:c:macro:`MPS_SAC_ALLOC`,
-
-:c:func:`mps_sac_alloc`,
-
-:c:macro:`MPS_SAC_FREE`,
-
-:c:func:`mps_sac_free`,
-
-:c:func:`mps_sac_flush`
-
-
-<h4>Notes</h4>
-
-None.
-
-
-.. c:function:: mps_res_t mps_stack_scan_ambig(mps_ss_t scan_state, mps_thr_t thread, void *stack_bottom, size_t ignore)
-
-
-<h4>Summary</h4>
-
-A scanning function for ambiguous scanning of thread states.
-
-
-<h4>Associated Protocols</h4>
-
-Root.
-
-
-<h4>Arguments</h4>
-
-scan_state a scan state
-
-thread the thread
-
-stack_bottom a pointer to the bottom of the stack
-
-ignore ignored
-
-
-<h4>Returned Values</h4>
-
-A result code.
-
-
-<h4>Description</h4>
-
-This is a root scanning function of type :c:func:`mps_reg_scan_t`. It will scan all integer registers and everything on the stack of the thread given, and can therefore only be used with roots of rank :c:macro:`MPS_RANK_AMBIG`. It will only scan things at the given stack bottom pointer or higher on the stack (that is, more recently added). References are assumed to be represented as machine words, and are required to be 4-byte-aligned; unaligned values are ignored.
-
-Clients don't call this function, it is used as an argument of :c:func:`mps_root_create_reg`.
-
-
-<h4>Example</h4>
-
-<pre>
-typedef struct {
-  mps_root_t mmRoot;
-  mps_thr_t thread;
-  /* ... */
-} ThreadLocals;
-
-void InitThread(ThreadLocals *thr)
-{
-  /* This is a hack to find the bottom of the stack. */
-  void *stackBottom=&amp;stackBottom;
-
-  mps_thread_reg(&amp;thr-&gt;thread, arena);
-  mps_root_create_reg(&amp;thr-&gt;mmRoot, arena, MPS_RANK_AMBIG, (mps_rm_t)0,
-    thr-&gt;thread, mps_stack_scan_ambig, stackBottom, 0)
-
-  /* ... */
-}
-</pre>
-
-
-<h4>See Also</h4>
-
-
-
-:c:func:`mps_reg_scan_t`,
-
-:c:func:`mps_root_create_reg`
-
-
-<h4>Notes</h4>
-
-The MPS provides this function because it's hard to write (it's OS- and architecture-dependent and possibly compiler-dependent).
-
-
-.. c:function:: mps_word_t mps_telemetry_control(mps_word_t reset_mask, mps_word_t flip_mask);
-
-
-<h4>Summary</h4>
-
-This function is used to read and change the filters on the telemetry stream.
-
-
-<h4>Associated Protocols</h4>
-
-Telemetry.
-
-
-<h4>Arguments</h4>
-
-reset_mask is a bit mask indicating the bits that should be reset, regardless of previous value.
-
-flip_mask is a bit mask indicating the bits whose value should be flipped after the resetting.
-
-
-<h4>Returned Values</h4>
-
-The function returns the previous value of the telemetry filter control.
-
-
-<h4>Description</h4>
-
-This function is used to read and change the filters on the telemetry stream. It is generally for use by developers.
-
-The parameters reset_mask and flip_mask allow specifying any binary operation on the filter control. To use this function for typical operations, the parameters should be set as follows:
-
-Operation reset_mask flip_mask
-
-set(M) M M
-
-reset(M) M 0
-
-flip(M) 0 M
-
-read() 0 0
-
-The significance of the bits is liable to change, but the current values (number the least significant bit as zero) are:
-
-0 -- per space or arena
-
-1 -- per pool
-
-2 -- per trace or scan
-
-3 -- per page (segment)
-
-4 -- per reference or fix
-
-5 -- per allocation or object
-
-6 -- user events (e.g., :c:func:`mps_telemetry_intern`)
-
-
-<h4>Example</h4>
-
-
-<h4>See Also</h4>
-
-
-
-:c:func:`mps_lib_telemetry_control`
-
-
-.. c:function:: void mps_telemetry_flush(void);
-
-
-<h4>Summary</h4>
-
-This function is used to flush the internal event buffers.
-
-
-<h4>Associated Protocols</h4>
-
-Telemetry.
-
-
-<h4>Description</h4>
-
-This function is used to flush the internal event buffers into the event stream. This function also calls :c:func:`mps_lib_io_flush` on the event stream itself. This ensures that even the latest events are now properly recorded, should the application terminate (uncontrollably as a result of a bug, for example) or some interactive tool require access to the event data. You could even try calling this from a debugger after a problem.
-
-
-<h4>Example</h4>
-
-<code>mps_telemetry_flush();</code>
-
-
-<h4>See Also</h4>
-
-
-
-:c:func:`mps_lib_io_flush`
-
-
-.. c:function:: mps_word_t mps_telemetry_intern(char *)
-
-
-<h4>Summary</h4>
-
-This function registers a string with the MPS, and receives a unique identifier in return.This identifier is suitable for use with :c:func:`mps_telemetry_label`.
-
-
-<h4>Associated Protocols</h4>
-
-Telemetry
-
-
-<h4>Arguments</h4>
-
-The function receives a name as a nul-terminated string in the usual C way. The string's length should not exceed 256 characters, including nul terminating character. In appropriate varieties this restriction is checked and will cause the MPS to issue an ASSERT. So don't do it.
-
-
-<h4>Returned Values</h4>
-
-The function returns a unique identifier that may be used to represent the string in future.
-
-
-<h4>Description</h4>
-
-The intention of this function is to provide an immediate identifier that can be used to concisely represent a string for the purposes of :c:func:`mps_telemetry_label`. Note that the appropriate settings must be made to the telemetry filter (via :c:func:`mps_telemetry_control`) before this function is invoked; the associate event is of the user kind.
-
-
-<h4>Error Handling</h4>
-
-The string's length should not exceed 256 characters, including nul terminating character.This will cause the MPS to issue an ASSERT in appropriate varieties.
-
-
-<h4>See Also</h4>
-
-
-
-:c:func:`mps_telemetry_label`
-
-
-
-:c:func:`mps_telemetry_control`
-
-
-.. c:function:: void mps_telemetry_label(mps_addr_t, mps_word_t);
-
-
-<h4>Summary</h4>
-
-This function associates an identifier returned from :c:func:`mps_telemetry_intern`, and hence a string, with an address, in the telemetry stream.
-
-
-<h4>Associated Protocols</h4>
-
-telemetry
-
-
-<h4>Arguments</h4>
-
-The function receives an address and an identifier. The identifier should be one returned by :c:func:`mps_telemetry_intern` in the same session.
-
-
-<h4>Description</h4>
-
-This function is intended to associate the address with an identifier in the telemetry stream. Note that the user kind must be set in the telemetry filter.
-
-
-<h4>Example</h4>
-
-Typical uses include:
-
-- Label pools with a human-meaningful name;
-
-- Label allocated objects with their type or class.
-
-
-<h4>See Also</h4>
-
-
-
-:c:func:`mps_telemetry_intern`,
-
-:c:func:`mps_telemetry_control`,
-
-:c:func:`mps_thr_t`
-
-
-.. c:type:: mps_thr_t
-
-
-
-<h4>Summary</h4>
-
-:c:func:`mps_thr_t` is the type of thread records registered with the MPS.
-
-
-<h4>Associated Protocols</h4>
-
-Threads.
-
-
-<h4>Type</h4>
-
-<code>typedef mps_thr_s *mps_thr_t;</code>
-
-
-<h4>Description</h4>
-
-An object of the opaque type :c:func:`mps_thr_t` is a thread registration. In a multi-threaded environment where incremental garbage collection is used, threads must be registered with the MPS so that the MPS can examine their state.
-
-An object of type :c:func:`mps_thr_t` is obtained using the thread registration function :c:func:`mps_thread_reg`.
-
-
-<h4>Example</h4>
-
-<pre>
-  mps_thr_t this_thread;
-  mps_res_t res;
-
-  res = mps_thread_reg(&amp;this_thread, space);
-  if(res != MPS_RES_OK) return res;
-</pre>
-
-
-<h4>See Also</h4>
-
-
-
-:c:func:`mps_reg_t`,
-
-:c:func:`mps_thread_reg`,
-
-:c:func:`mps_thread_dereg`,
-
-:c:func:`mps_reg_scan_t`,
-
-:c:func:`mps_root_create_reg`,
-
-:c:func:`mps_stack_scan_ambig`
-
-
-<h2> <a id="section-4" name="section-4">4. Undocumented Symbols</a> </h2>
-
-The following MPS symbols are used or defined in MPS header files, and intended for client use, but are not yet documented in this reference manual.
-
-[This section is very out-of-date. RB 2012-08-15]
-
-<pre>
-mps_arena_t
-mps_pool_t
-mps_chain_t
-mps_root_t
-mps_ap_t
-mps_ld_t
-mps_ss_t
-mps_alloc_pattern_t
-mps_frame_t
-mps_word_t
-mps_shift_t
-mps_rm_t
-MPS_RES_OK
-MPS_RES_FAIL
-MPS_RES_UNIMPL
-MPS_RES_IO
-MPS_RES_COMMIT_LIMIT
-mps_ap_s
-mps_sac_freelist_block_s
-mps_sac_s
-mps_ld_s
-mps_ss_s
-mps_fmt_fixed_s
-MPS_BEGIN
-MPS_END
-mps_arena_step
-mps_arena_start_collect
-mps_arena_destroy
-mps_arena_reserved
-mps_arena_extend
-mps_arena_retract
-mps_fmt_create_fixed
-mps_fmt_destroy
-mps_addr_pool
-mps_addr_fmt
-mps_pool_create
-mps_pool_create_v
-mps_pool_destroy
-mps_gen_param_s
-mps_chain_create
-mps_chain_destroy
-mps_alloc_v
-mps_ap_create
-mps_ap_create_v
-mps_ap_destroy
-mps_reserve
-mps_commit
-mps_ap_fill
-mps_ap_fill_with_reservoir_permit
-mps_ap_trip
-MPS_SAC_ALLOC
-MPS_SAC_FREE
-mps_reservoir_limit_set
-mps_reservoir_limit
-mps_reservoir_available
-mps_reserve_with_reservoir_permit
-MPS_RESERVE_BLOCK
-MPS_RESERVE_WITH_RESERVOIRf_PERMIT_BLOCK
-mps_root_destroy
-mps_tramp_t
-mps_tramp
-mps_thread_reg
-mps_thread_dereg
-mps_ld_reset
-mps_ld_add
-mps_ld_merge
-mps_ld_isstale
-mps_collections
-mps_definalize
-mps_alert_collection_set
-mps_pool_check_free_space
-mps_lib_get_EOF
-mps_lib_stream_s
-mps_lib_get_stderr
-mps_lib_get_stdout
-mps_lib_fputc
-mps_lib_fputs
-mps_lib_assert_fail
-mps_clock_t
-mps_clock
-mps_clocks_per_sec
-mps_class_amcz
-mps_class_ams
-mps_class_ams_debug
-mps_class_awl
-mps_class_lo
-mps_mv_free_size
-mps_mv_size
-mps_class_mv
-mps_class_mv_debug
-mps_mvt_free_size
-mps_mvt_size
-mps_mvff_free_size
-mps_mvff_size
-mps_class_mvff_debug
-mps_SEH_filter
-mps_SEH_handler
-mps_io_t
-mps_io_create
-mps_io_destroy
-mps_io_write
-mps_io_flush
-MPS_PF_STRING
-MPS_PF_ALIGN
-MPS_ARCH_I3
-MPS_ARCH_I4
-MPS_ARCH_PP
-MPS_ARCH_S8
-MPS_ARCH_S9
-MPS_BUILD_GC
-MPS_BUILD_MV
-MPS_BUILD_SC
-MPS_OS_FR
-MPS_OS_LI
-MPS_OS_SO
-MPS_OS_W3
-MPS_OS_XC
-MPS_PF_FRI3GC
-MPS_PF_LII3GC
-MPS_PF_LIPPGC
-MPS_PF_SOS8GC
-MPS_PF_SOS9SC
-MPS_PF_W3I3MV
-MPS_PF_XCPPGC
-</pre>
-
-<h2><a id="section-A" name="section-A">A. References</a></h2>
-
-
-<h2><a id="section-B" name="section-B">B. Document History</a></h2>
-
-<table>
-
-<tr valign="top">
-
-  <td>2002-05-27</td>
-
-  <td><a href="mailto:rb@ravenbrook.com">RB</a></td>
-
-  <td> Created from individual MPS reference pages, originally written and mainted in Lotus Notes by members of the Memory Management Group of Global Graphics (formerly Harlequin).  I found many errors caused by the various conversions that this text has been through.  There are probably many more. </td>
-
-</tr>
-
-<tr valign="top">
-
-  <td>2002-06-17</td>
-
-  <td><a href="mailto:rb@ravenbrook.com">RB</a></td>
-
-  <td> Removed Global Graphics specific entries for confidential sources not included in open source release. </td>
-
-</tr>
-
-<tr valign="top">
-
-  <td>2002-06-18</td>
-
-  <td><a href="mailto:nb@ravenbrook.com">NB</a></td>
-
-  <td> Added contents table to section 3.</td>
-
-</tr>
-
-<tr valign="top">
-
-  <td>2002-06-20</td>
-
-  <td><a href="mailto:nb@ravenbrook.com">NB</a></td>
-
-  <td>Quite a bit of proof-reading, to insert missing spaces.  Also reformatted for easier editing, including the "See Also" sections.</td>
-
-</tr>
-
-<tr valign="top">
-
-  <td>2002-06-21</td>
-
-  <td><a href="mailto:nb@ravenbrook.com">NB</a></td>
-
-  <td>Removed obsolete symbols.</td>
-
-</tr>
-
-<tr valign="top">
-  <td>2003-01-01</td>
-  <td><a href="mailto:drj@ravenbrook.com">DRJ</a></td>
-  <td>[various edits in 2003]</td>
-</tr>
-
-<tr valign="top">
-  <td>2006-06-06</td>
-  <td><a href="mailto:rhsk@ravenbrook.com">RHSK</a></td>
-  <td>Marked copy format method as obsolete.</td>
-</tr>
-
-<tr valign="top">
-  <td>2007-06-19</td>
-  <td><a href="mailto:drj@ravenbrook.com">DRJ</a></td>
-  <td>mps_finalize and finalization messages: correct, clarify, and expand descriptions </td>
-</tr>
-
-<tr valign="top">
-  <td>2008-10-24</td>
-  <td><a href="mailto:rhsk@ravenbrook.com">RHSK</a></td>
-  <td>mps_arena_has_addr entry: fix wrong title; remove from undocumented symbols list.  (Also: fix html tag error; add missing document history entries).</td>
-</tr>
-
-<tr valign="top">
-  <td>2008-11-25</td>
-  <td><a href="mailto:rhsk@ravenbrook.com">RHSK</a></td>
-  <td>mps_message_clock: add entry.</td>
-</tr>
-
-<tr valign="top">
-  <td>2010-03-02</td>
-  <td><a href="mailto:rhsk@ravenbrook.com">RHSK</a></td>
-  <td>mps_addr_pool, mps_addr_fmt, mps_alert_collection_set: as yet Undocumented.</td>
-</tr>
-
-</table>
-
-
-<h2><a id="section-C" name="section-C">C. Copyright and License</a></h2>
-
-<hr />
-
-<div align="center">
-
-<code>$Id: //info.ravenbrook.com/project/mps/branch/2012-10-09/user-guide/manual/reference/index.html#1 $</code>
-
-
-<a href="/">Ravenbrook</a> /
-<a href="/project/">Projects</a> /
-<a href="/project/mps/">Memory Pool System</a> /
-<a href="/project/mps/master/">Master Product Sources</a> /
-<a href="/project/mps/master/manual/">Product Manuals</a>
-
-
-</div>
-
-</body>
-
-</html>
-
+-------------------------
+Undocumented in ``mps.h``
+-------------------------
+
+.. c:type:: mps_arena_t
+.. c:type:: mps_pool_t
+.. c:type:: mps_chain_t
+.. c:type:: mps_root_t
+.. c:type:: mps_ap_t
+.. c:type:: mps_ld_t
+.. c:type:: mps_ss_t
+.. c:type:: mps_alloc_pattern_t
+.. c:type:: mps_frame_t
+.. c:type:: mps_word_t
+.. c:type:: mps_shift_t
+.. c:type:: mps_rm_t
+.. c:type:: mps_sac_freelist_block_s
+.. c:type:: mps_ld_s
+.. c:type:: mps_ss_s
+.. c:type:: mps_fmt_fixed_s
+.. c::function:: mps_bool_t mps_arena_step(mps_arena_t arena, double interval, double multiplier)
+.. c:function:: mps_res_t mps_arena_start_collect(mps_arena_t arena)
+.. c:function:: void mps_arena_destroy(mps_arena_t arena)
+.. c:function:: size_t mps_arena_reserved(mps_arena_t arena)
+.. c:function:: mps_res_t mps_arena_extend(mps_arena_t arena, mps_addr_t base, size_t size)
+.. c:function:: mps_res_t mps_fmt_create_fixed(mps_fmt_t *fmt_o, mps_arena_t arena, mps_fmt_fixed_s *fmt_fixed)
+.. c:function:: void mps_fmt_destroy(mps_fmt_t format)
+.. c:function:: mps_bool_t mps_addr_pool(mps_pool_t *pool_o, mps_arena_t arena, mps_addr_t addr)
+.. c:function:: mps_bool_t mps_addr_fmt(mps_fmt_t *fmt_o, mps_arena_t arena, mps_addr_t addr)
+.. c:function:: mps_res_t mps_pool_create(mps_pool_t *pool_o, mps_arena_t arena, mps_class_t class, ...)
+.. c:function:: mps_res_t mps_pool_create_v(mps_pool_t *pool_o, mps_arena_t arena, mps_class_t class, va_list args)
+.. c:function:: void mps_pool_destroy(mps_pool_t pool)
+.. c:type:: mps_gen_param_s
+.. c:function:: mps_res_t mps_chain_create(mps_chain_t *chain_o, mps_arena_t arena, size_t gen_count, mps_gen_param_s *params)
+.. c:function:: void mps_chain_destroy(mps_chain_t chain)
+.. c:function:: mps_res_t mps_ap_create(mps_ap_t *ap_o, mps_pool_t pool, ...)
+.. c:function:: mps_res_t mps_ap_create_v(mps_ap_t *ap_o, mps_pool_t pool, va_list args)
+.. c:function:: void mps_ap_destroy(mps_ap_t mps_ap)
+.. c:function:: mps_res_t mps_reserve(mps_addr_t *p_o, mps_ap_t ap, size_t size)
+.. c:function:: mps_res_t mps_reserve_with_reservoir_permit(mps_addr_t *p_o, mps_ap_t ap, size_t size)
+.. c:function:: mps_bool_t mps_commit(mps_ap_t ap, mps_addr_t p, size_t size)
+.. c:function:: void mps_reservoir_limit_set(mps_arena_t arena, size_t size)
+.. c:function:: size_t mps_reservoir_limit(mps_arena_t arena)
+.. c:function:: size_t mps_reservoir_available(mps_arena_t arena)
+.. c:function:: MPS_RESERVE_BLOCK(mps_res_t res_v, mps_addr_t p_v, mps_ap_t ap, size_t size)
+.. c:function:: MPS_RESERVE_WITH_RESERVOIR_PERMIT_BLOCK(mps_res_t res_v, mps_addr_t p_v, mps_ap_t ap, size_t size)
+.. c:function:: void mps_root_destroy(mps_root_t mps_root)
+.. c:type:: void *(*mps_tramp_t)(void *p, size_t s)
+.. c:function:: void mps_tramp(void **r_o, mps_tramp_t tramp, void *p, size_t s)
+.. c:function:: mps_res_t mps_thread_reg(mps_thr_t *mps_thr_o, mps_arena_t arena)
+.. c:function:: void mps_thread_dereg(mps_thr_t thread)
+.. c:function:: void mps_ld_reset(mps_ld_t ld, mps_arena_t arena)
+.. c:function:: void mps_ld_add(mps_ld_t ld, mps_arena_t arena, mps_addr_t addr)
+.. c:function:: void mps_ld_merge(mps_ld_t ld, mps_arena_t arena, mps_ld_t from)
+.. c:function:: mps_bool_t mps_ld_isstale(mps_ld_t ld, mps_arena_t arena, mps_addr_t addr)
+.. c:function:: mps_word_t mps_collections(mps_arena_t arena)
+.. c:function:: mps_res_t mps_definalize(mps_arena_t arena, mps_addr_t *refref)
+.. c:function:: mps_res_t mps_alert_collection_set(mps_arena_t arena, mps_alert_collection_fn_t fn)
+.. c:type:: void (*mps_alert_collection_fn_t)(int, int)
+.. c:function:: void mps_pool_check_free_space(mps_pool_t mps_pool)
+
+
+----------------------------
+Undocumented in ``mpslib.h``
+----------------------------
+
+.. c:function:: int mps_lib_get_EOF(void)
+.. c:type:: mps_lib_FILE
+.. c:function:: mps_lib_FILE *mps_lib_get_stderr(void)
+.. c:function:: mps_lib_FILE *mps_lib_get_stdout(void)
+.. c:function:: int mps_lib_fputc(int c, mps_lib_FILE *stream)
+.. c:function:: int mps_lib_fputs(const char *s, mps_lib_FILE *stream)
+.. c:function:: void mps_lib_assert_fail(const char *message)
+.. c:function:: mps_clock_t mps_clock(void)
+.. c:type:: mps_clock_t
+.. c:function:: mps_clock_t mps_clocks_per_sec(void)
+
+
+-----------------------------
+Undocumented in ``mpscamc.h``
+-----------------------------
+
+.. c:function:: mps_class_t mps_class_amcz(void)
+
+
+-----------------------------
+Undocumented in ``mpscams.h``
+-----------------------------
+
+.. c:function:: mps_class_t mps_class_ams(void)
+.. c:function:: mps_class_t mps_class_ams_debug(void)
+
+
+-----------------------------
+Undocumented in ``mpscawl.h``
+-----------------------------
+
+.. c:function:: mps_class_t mps_class_awl(void)
+
+
+----------------------------
+Undocumented in ``mpsclo.h``
+----------------------------
+
+.. c:function:: mps_class_t mps_class_lo(void)
+
+
+----------------------------
+Undocumented in ``mpscmv.h``
+----------------------------
+
+.. c:function:: size_t mps_mv_free_size(mps_pool_t pool)
+.. c:function:: size_t mps_mv_size(mps_pool_t pool)
+.. c:function:: mps_class_t mps_class_mv(void)
+.. c:function:: mps_class_t mps_class_mv_debug(void)
+
+
+-----------------------------
+Undocumented in ``mpscmv2.h``
+-----------------------------
+
+.. c:function:: mps_class_t mps_class_mvt(void)
+.. c:function:: size_t mps_mvt_free_size(mps_pool_t pool)
+.. c:function:: size_t mps_mvt_size(mps_pool_t pool)
+
+
+------------------------------
+Undocumented in ``mpscmvff.h``
+------------------------------
+
+.. c:function:: size_t mps_mvff_free_size(mps_pool_t mpspool)
+.. c:function:: size_t mps_mvff_size(mps_pool_t pool)
+.. c:function:: mps_class_t mps_class_mvff_debug(void)
+
+
+---------------------------
+Undocumented in ``mpsw3.h``
+---------------------------
+
+.. c:function:: LONG mps_SEH_filter(LPEXCEPTION_POINTERS info, void **hp_o, size_t *hs_o)
+.. c:function:: void mps_SEH_handler(void *p, size_t s)
+
+---------------------------
+Undocumented in ``mpsio.h``
+---------------------------
+
+.. c:type:: mps_io_t
+.. c:function:: mps_res_t mps_io_create(mps_io_t *mps_io_r)
+.. c:function:: void mps_io_destroy(mps_io_t mps_io)
+.. c:function:: mps_res_t mps_io_write(mps_io_t mps_io, void *buf, size_t size)
+.. c:function:: mps_res_t mps_io_flush(mps_io_t mps_io)
+
+
+---------------------------
+Undocumented in ``mpstd.h``
+---------------------------
+
+.. c:macro:: MPS_PF_STRING
+.. c:macro:: MPS_PF_ALIGN
+.. c:macro:: MPS_ARCH_I3
+.. c:macro:: MPS_ARCH_I4
+.. c:macro:: MPS_ARCH_PP
+.. c:macro:: MPS_ARCH_S8
+.. c:macro:: MPS_ARCH_S9
+.. c:macro:: MPS_BUILD_GC
+.. c:macro:: MPS_BUILD_MV
+.. c:macro:: MPS_BUILD_SC
+.. c:macro:: MPS_OS_FR
+.. c:macro:: MPS_OS_LI
+.. c:macro:: MPS_OS_SO
+.. c:macro:: MPS_OS_W3
+.. c:macro:: MPS_OS_XC
+.. c:macro:: MPS_PF_FRI3GC
+.. c:macro:: MPS_PF_LII3GC
+.. c:macro:: MPS_PF_LIPPGC
+.. c:macro:: MPS_PF_SOS8GC
+.. c:macro:: MPS_PF_SOS9SC
+.. c:macro:: MPS_PF_W3I3MV
+.. c:macro:: MPS_PF_XCPPGC
