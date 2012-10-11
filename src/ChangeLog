@@ -1,5 +1,7 @@
 2012-10-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* buffer.c (Fkill_buffer): Null out the overlay list(s) as well.
+
 	* eval.c (Fautoload): Remember previous autoload status in load-history.
 
 2012-10-11  Paul Eggert  <eggert@cs.ucla.edu>
