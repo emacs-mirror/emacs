@@ -173,17 +173,6 @@ without invoking the usual minibuffer commands.  */)
 
 static Lisp_Object read_minibuf_unwind (Lisp_Object);
 static Lisp_Object run_exit_minibuf_hook (Lisp_Object);
-static Lisp_Object read_minibuf (Lisp_Object, Lisp_Object,
-                                 Lisp_Object,
-                                 int, Lisp_Object,
-                                 Lisp_Object, Lisp_Object,
-                                 int, int);
-static Lisp_Object read_minibuf_noninteractive (Lisp_Object, Lisp_Object,
-                                                Lisp_Object, Lisp_Object,
-                                                int, Lisp_Object,
-                                                Lisp_Object, Lisp_Object,
-                                                int, int);
-static Lisp_Object string_to_object (Lisp_Object, Lisp_Object);
 
 
 /* Read a Lisp object from VAL and return it.  If VAL is an empty
@@ -233,10 +222,10 @@ string_to_object (Lisp_Object val, Lisp_Object defalt)
 static Lisp_Object
 read_minibuf_noninteractive (Lisp_Object map, Lisp_Object initial,
 			     Lisp_Object prompt, Lisp_Object backup_n,
-			     int expflag,
+			     bool expflag,
 			     Lisp_Object histvar, Lisp_Object histpos,
 			     Lisp_Object defalt,
-			     int allow_props, int inherit_input_method)
+			     bool allow_props, bool inherit_input_method)
 {
   ptrdiff_t size, len;
   char *line;
@@ -376,23 +365,23 @@ If the current buffer is not a minibuffer, return its entire contents.  */)
    beginning of INITIAL if N <= 0.
 
    Normally return the result as a string (the text that was read),
-   but if EXPFLAG is nonzero, read it and return the object read.
+   but if EXPFLAG, read it and return the object read.
    If HISTVAR is given, save the value read on that history only if it doesn't
    match the front of that history list exactly.  The value is pushed onto
    the list as the string that was read.
 
    DEFALT specifies the default value for the sake of history commands.
 
-   If ALLOW_PROPS is nonzero, we do not throw away text properties.
+   If ALLOW_PROPS, do not throw away text properties.
 
-   if INHERIT_INPUT_METHOD is nonzero, the minibuffer inherits the
+   if INHERIT_INPUT_METHOD, the minibuffer inherits the
    current input method.  */
 
 static Lisp_Object
 read_minibuf (Lisp_Object map, Lisp_Object initial, Lisp_Object prompt,
-	      int expflag,
+	      bool expflag,
 	      Lisp_Object histvar, Lisp_Object histpos, Lisp_Object defalt,
-	      int allow_props, int inherit_input_method)
+	      bool allow_props, bool inherit_input_method)
 {
   Lisp_Object val;
   ptrdiff_t count = SPECPDL_INDEX ();
@@ -1447,7 +1436,7 @@ is used to further constrain the set of candidates.  */)
 	      if (bestmatchsize != SCHARS (eltstring)
 		  || bestmatchsize != matchsize)
 		/* Don't count the same string multiple times.  */
-		matchcount++;
+		matchcount += matchcount <= 1;
 	      bestmatchsize = matchsize;
 	      if (matchsize <= SCHARS (string)
 		  /* If completion-ignore-case is non-nil, don't

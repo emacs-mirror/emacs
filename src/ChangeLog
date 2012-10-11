@@ -1,3 +1,26 @@
+2012-10-11  Paul Eggert  <eggert@cs.ucla.edu>
+
+	lread.c, macros.c, marker.c, menu.c, minibuf.c: Use bool for booleans.
+	* lread.c (load_each_byte, new_backquote_flag, readchar)
+	(read_filtered_event, lisp_file_lexically_bound_p)
+	(safe_to_load_version, Fload, complete_filename_p, openp)
+	(build_load_history, readevalloop, read_escape, read1)
+	(string_to_number, read_vector, read_list):
+	* macros.c (Fstart_kbd_macro):
+	* marker.c (CONSIDER):
+	* menu.c (parse_single_submenu, digest_single_submenu)
+	(find_and_return_menu_selection, Fx_popup_menu):
+	* minibuf.c (read_minibuf_noninteractive, read_minibuf)
+	(Ftry_completion):
+	* nsmenu.m (ns_update_menubar, runMenuAt:forFrame:keymaps:):
+	(ns_menu_show):
+	* xmenu.c (set_frame_menubar, create_and_show_popup_menu)
+	(xmenu_show, xdialog_show):
+	Use bool for booleans.
+	* lread.c (safe_to_load_version): Rename from safe_to_load_p,
+	as it's not a predicate.  All uses changed.  Omit unnecessary
+	buffer termination.
+
 2012-10-11  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* editfns.c (save_excursion_save): Use nil if mark points to nowhere.

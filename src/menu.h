@@ -29,7 +29,7 @@ extern void init_menu_items (void);
 extern void finish_menu_items (void) ATTRIBUTE_CONST;
 extern void discard_menu_items (void);
 extern void save_menu_items (void);
-extern int parse_single_submenu (Lisp_Object, Lisp_Object, Lisp_Object);
+extern bool parse_single_submenu (Lisp_Object, Lisp_Object, Lisp_Object);
 extern void list_of_panes (Lisp_Object);
 #if defined (USE_X_TOOLKIT) || defined (USE_GTK) || defined (HAVE_NTGUI) \
   || defined (HAVE_NS)
@@ -38,7 +38,7 @@ extern void update_submenu_strings (widget_value *);
 extern void find_and_call_menu_selection (FRAME_PTR, int,
                                           Lisp_Object, void *);
 extern widget_value *xmalloc_widget_value (void);
-extern widget_value *digest_single_submenu (int, int, int);
+extern widget_value *digest_single_submenu (int, int, bool);
 #endif
 
 #ifdef HAVE_X_WINDOWS
@@ -47,8 +47,8 @@ extern void mouse_position_for_popup (FRAME_PTR f, int *x, int *y);
 
 extern Lisp_Object w32_menu_show (FRAME_PTR, int, int, int, int,
 				  Lisp_Object, const char **);
-extern Lisp_Object ns_menu_show (FRAME_PTR, int, int, int, int,
+extern Lisp_Object ns_menu_show (FRAME_PTR, int, int, bool, bool,
 				 Lisp_Object, const char **);
-extern Lisp_Object xmenu_show (FRAME_PTR, int, int, int, int,
+extern Lisp_Object xmenu_show (FRAME_PTR, int, int, bool, bool,
 			       Lisp_Object, const char **, Time);
 #endif /* MENU_H */
