@@ -1876,9 +1876,11 @@ this does nothing and returns nil.  */)
   CHECK_STRING (file);
 
   /* If function is defined and not as an autoload, don't override.  */
-  if (!EQ (XSYMBOL (function)->function, Qunbound)
-      && !(CONSP (XSYMBOL (function)->function)
-	   && EQ (XCAR (XSYMBOL (function)->function), Qautoload)))
+  if ((CONSP (XSYMBOL (function)->function)
+       && EQ (XCAR (XSYMBOL (function)->function), Qautoload)))
+    /* Remember that the function was already an autoload.  */
+    LOADHIST_ATTACH (Fcons (Qt, function));
+  else if (!EQ (XSYMBOL (function)->function, Qunbound))
     return Qnil;
 
   if (NILP (Vpurify_flag))

@@ -1,5 +1,8 @@
 2012-10-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/bytecomp.el (byte-compile-eval): Adjust to long-ago
+	changes to the format of load-history.
+
 	* international/mule-cmds.el (read-char-by-name): Move let-binding of
 	completion-ignore-case in case that var is buffer-local (bug#12615).
 

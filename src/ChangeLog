@@ -1,3 +1,7 @@
+2012-10-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* eval.c (Fautoload): Remember previous autoload status in load-history.
+
 2012-10-11  Paul Eggert  <eggert@cs.ucla.edu>
 
 	lread.c, macros.c, marker.c, menu.c, minibuf.c: Use bool for booleans.
