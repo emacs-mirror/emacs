@@ -26,7 +26,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include "lisp.h"
 #include "termchar.h"
-#include "termopts.h"
 /* cm.h must come after dispextern.h on Windows.  */
 #include "dispextern.h"
 #include "cm.h"
@@ -5919,15 +5918,16 @@ additional wait period, in milliseconds; this is for backwards compatibility.
    TIMEOUT is number of seconds to wait (float or integer),
    or t to wait forever.
    READING is true if reading input.
-   If DO_DISPLAY is >0 display process output while waiting.
-   If DO_DISPLAY is >1 perform an initial redisplay before waiting.
+   If DISPLAY_OPTION is >0 display process output while waiting.
+   If DISPLAY_OPTION is >1 perform an initial redisplay before waiting.
 */
 
 Lisp_Object
-sit_for (Lisp_Object timeout, bool reading, int do_display)
+sit_for (Lisp_Object timeout, bool reading, int display_option)
 {
   intmax_t sec;
   int nsec;
+  bool do_display = display_option > 0;
 
   swallow_events (do_display);
 
@@ -5935,7 +5935,7 @@ sit_for (Lisp_Object timeout, bool reading, int do_display)
       || !NILP (Vexecuting_kbd_macro))
     return Qnil;
 
-  if (do_display >= 2)
+  if (display_option > 1)
     redisplay_preserve_echo_area (2);
 
   if (INTEGERP (timeout))

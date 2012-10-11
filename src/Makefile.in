@@ -135,13 +135,10 @@ LIB_MATH=@LIB_MATH@
 ## -lpthreads, or empty.
 LIB_PTHREAD=@LIB_PTHREAD@
 
-LIBTIFF=@LIBTIFF@
-LIBJPEG=@LIBJPEG@
-LIBPNG=@LIBPNG@
-LIBGIF=@LIBGIF@
-LIBXPM=@LIBXPM@
+LIBIMAGE=@LIBTIFF@ @LIBJPEG@ @LIBPNG@ @LIBGIF@ @LIBXPM@
+
 XFT_LIBS=@XFT_LIBS@
-LIBX_EXTRA=$(LIBTIFF) $(LIBJPEG) $(LIBPNG) $(LIBGIF) $(LIBXPM) -lX11 $(XFT_LIBS)
+LIBX_EXTRA=-lX11 $(XFT_LIBS)
 
 FONTCONFIG_CFLAGS = @FONTCONFIG_CFLAGS@
 FONTCONFIG_LIBS = @FONTCONFIG_LIBS@
@@ -261,6 +258,13 @@ NS_OBJ=@NS_OBJ@
 NS_OBJC_OBJ=@NS_OBJC_OBJ@
 ## Only set if NS_IMPL_GNUSTEP.
 GNU_OBJC_CFLAGS=@GNU_OBJC_CFLAGS@
+## w32fns.o w32menu.c w32reg.o fringe.o fontset.o w32font.o w32term.o
+## w32xfns.o w32select.o image.o w32uniscribe.o if HAVE_W32, else
+## empty.
+W32_OBJ=@W32_OBJ@
+## -lkernel32 -luser32 -lgdi32 -lole32 -lcomdlg32 lusp10 -lcomctl32
+## --lwinspool if HAVE_W32, else empty.
+W32_LIBS=@W32_LIBS@
 
 ## Empty if !HAVE_X_WINDOWS
 ## xfont.o ftfont.o xftfont.o ftxfont.o if HAVE_XFT
@@ -342,7 +346,7 @@ base_obj = dispnew.o frame.o scroll.o xdisp.o menu.o $(XMENU_OBJ) window.o \
 	doprnt.o intervals.o textprop.o composite.o xml.o \
 	profiler.o \
 	$(MSDOS_OBJ) $(MSDOS_X_OBJ) $(NS_OBJ) $(CYGWIN_OBJ) $(FONT_OBJ) \
-	$(WINDOW_SYSTEM_OBJ)
+	$(W32_OBJ) $(WINDOW_SYSTEM_OBJ)
 obj = $(base_obj) $(NS_OBJC_OBJ)
 
 ## Object files used on some machine or other.
@@ -351,7 +355,7 @@ obj = $(base_obj) $(NS_OBJC_OBJ)
 ## in the list, in case they ever add any such entries.
 SOME_MACHINE_OBJECTS = dosfns.o msdos.o \
   xterm.o xfns.o xmenu.o xselect.o xrdb.o xsmfns.o fringe.o image.o \
-  fontset.o dbusbind.o \
+  fontset.o dbusbind.o cygw32.o \
   nsterm.o nsfns.o nsmenu.o nsselect.o nsimage.o nsfont.o \
   w32.o w32console.o w32fns.o w32heap.o w32inevt.o \
   w32menu.o w32proc.o w32reg.o w32select.o w32term.o w32xfns.o \
@@ -385,9 +389,11 @@ otherobj= $(TERMCAP_OBJ) $(PRE_ALLOC_OBJ) $(GMALLOC_OBJ) $(RALLOC_OBJ) \
 ## Note that SunOS needs -lm to come before -lc; otherwise, you get
 ## duplicated symbols.  If the standard libraries were compiled
 ## with GCC, we might need LIB_GCC again after them.
-LIBES = $(LIBS) $(LIBX_BASE) $(LIBX_OTHER) $(LIBSOUND) \
-   $(RSVG_LIBS) $(IMAGEMAGICK_LIBS) $(LIB_CLOCK_GETTIME) $(LIB_TIMER_TIME) \
-   $(DBUS_LIBS) $(LIB_EXECINFO) \
+LIBES = $(LIBS) $(W32_LIBS) $(LIBX_BASE) $(LIBIMAGE) \
+   $(LIBX_OTHER) $(LIBSOUND) \
+   $(RSVG_LIBS) $(IMAGEMAGICK_LIBS) $(LIB_CLOCK_GETTIME) \
+   $(LIB_TIMER_TIME) $(DBUS_LIBS) \
+   $(LIB_EXECINFO) \
    $(LIBXML2_LIBS) $(LIBGPM) $(LIBRESOLV) $(LIBS_SYSTEM) \
    $(LIBS_TERMCAP) $(GETLOADAVG_LIBS) $(SETTINGS_LIBS) $(LIBSELINUX_LIBS) \
    $(FREETYPE_LIBS) $(FONTCONFIG_LIBS) $(LIBOTF_LIBS) $(M17N_FLT_LIBS) \

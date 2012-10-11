@@ -118,7 +118,9 @@ it has not already been loaded."
 	(let* ((stub (concat "url-" scheme))
 	       (loader (intern stub)))
 	  (condition-case ()
-	      (require loader)
+	      ;; url-https.el was merged into url-http because of 8+3
+	      ;; filename limitations, so we have to do this dance.
+	      (require (if (equal "https" scheme) 'url-http loader))
 	    (error nil))
 	  (if (fboundp loader)
 	      (progn

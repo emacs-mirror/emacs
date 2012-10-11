@@ -2,16 +2,248 @@
 
 	* international/eucjp-ms.el: Re-generated.
 
+2012-10-10  Kenichi Handa  <handa@gnu.org>
+
+	* select.el (xselect--encode-string): If a coding is specified for
+	selection, and that is compatible with COMPOUND_TEXT, use it.
+
+2012-10-10  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (switch-to-buffer-preserve-window-point): New option.
+	(switch-to-buffer): Obey
+	`switch-to-buffer-preserve-window-point' (Bug#4041).
+
+2012-10-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* newcomment.el (comment-start-skip, comment-end-skip, comment-end):
+	Don't document nil as a useful value (bug#12583).
+
+2012-10-09  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-debug-message):
+	Remove "tramp-with-progress-reporter" from regexp of ignored functions.
+	(with-tramp-progress-reporter): Rename from
+	`tramp-with-progress-reporter'.
+	(with-tramp-file-property, with-tramp-connection-property):
+	Move from tramp-cache.el, rename from `with-file-property' and
+	`with-connection-property', respectively.
+
+	* net/tramp-cache.el: Remove `with-file-property' and
+	`with-connection-property'.
+
+	* net/tramp.el:
+	* net/tramp-gvfs.el:
+	* net/tramp-sh.el:
+	* net/tramp-smb.el: Adapt callees.
+
+	* net/trampver.el: Update release number.
+
+2012-10-09  Glenn Morris  <rgm@gnu.org>
+
+	* w32-fns.el (set-message-beep):
+	* term/w32-win.el (set-message-beep): Update declarations.
+
+2012-10-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* bindings.el (mode-line-toggle-read-only, mode-line-toggle-modified)
+	(mode-line-widen, mode-line-input-method-map)
+	(mode-line-coding-system-map, mode-line-remote)
+	(mode-line-unbury-buffer, mode-line-bury-buffer)
+	(mode-line-next-buffer, mode-line-previous-buffer):
+	Replace save-selected-window+select-window => with-selected-window.
+
+	* progmodes/cc-bytecomp.el (cc-bytecomp-defmacro): Remove, unused.
+	* progmodes/cc-vars.el (bq-process): Remove, unused.
+
+	* emacs-lisp/cl-macs.el (cl-defstruct): Obey the :read-only property.
+
+2012-10-09  Fabián Ezequiel Gallina  <fgallina@cuca>
+
+	Implemented `backward-up-list'-like navigation.
+	* progmodes/python.el (python-nav-up-list)
+	(python-nav-backward-up-list): New functions.
+	(python-mode-map): Define substitute key for backward-up-list to
+	python-nav-backward-up-list.
+
+2012-10-08  Fabián Ezequiel Gallina  <fgallina@cuca>
+
+	* progmodes/python.el (python-fill-paragraph): Rename from
+	python-fill-paragraph-function.  Fixed fill-paragraph for
+	decorators (Bug#12605).
+
+2012-10-08  Fabián Ezequiel Gallina  <fgallina@cuca>
+
+	* progmodes/python.el (python-shell-output-filter): Handle extra
+	carriage return in OSX (Bug#12409).
+
+2012-10-08  Fabián Ezequiel Gallina  <fgallina@cuca>
+
+	Fix shell handling of unbalanced quotes and parens in output.
+	* progmodes/python.el (python-rx-constituents): Add string-delimiter.
+	(python-syntax-propertize-function): Use it.
+	(python-shell-output-syntax-table): New var.
+	(inferior-python-mode): Prevent unbalanced parens/quotes from
+	previous output mess with current input context.
+
+2012-10-08  Juanma Barranquero  <lekktu@gmail.com>
+
+	* generic-x.el (javascript-generic-mode, javascript-generic-mode-hook):
+	Make obsolete aliases of js-mode and js-mode-hook (from js.el).
+
+2012-10-08  Michael Albinus  <michael.albinus@gmx.de>
+
+	* ffap.el (ffap-replace-file-component): Support Tramp file name
+	syntax, not only ange-ftp's one.
+
+2012-10-08  Glenn Morris  <rgm@gnu.org>
+
+	* cus-start.el (message-log-max): Set :version.
+
+	* calendar/calendar.el (calendar-intermonth-header): Doc fix.
+
+2012-10-08  Martin Rudalics  <rudalics@gmx.at>
+
+	* emacs-lisp/edebug.el (edebug-pop-to-buffer): Don't try to split
+	the minibuffer window (Bug#10851).
+
+2012-10-08  Fabián Ezequiel Gallina  <fgallina@cuca>
+
+	Enhancements on forward-sexp movement.
+	* progmodes/python.el (python-nav-beginning-of-statement)
+	(python-nav-end-of-statement): Return point-marker.
+	(python-nav-forward-sexp): lisp-like forward-sexp behavior.
+	(python-info-current-symbol)
+	(python-info-statement-starts-block-p): Rename from
+	python-info-beginning-of-block-p.
+	(python-info-statement-ends-block-p): Rename from
+	python-info-end-of-block-p.
+	(python-info-beginning-of-statement-p)
+	(python-info-end-of-statement-p)
+	(python-info-beginning-of-block-p, python-info-end-of-block-p):
+	New functions.
+
+2012-10-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* comint.el (comint-preinput-scroll-to-bottom): Preserve the
+	frame-selected-windows.
+
+2012-10-08  Daniel Colascione  <dancol@dancol.org>
+
+	* battery.el (battery-status-function): Check for
+	w32-battery-status itself, not system-time windows-nt.
+
+	* frame.el: Require cl-lib.
+	(display-format-alist): New variable mapping frame types to
+	functions that initialize them.
+	(window-system-for-display): New function: interprets
+	display-format-alist.
+	(make-frame-on-display): Remove existing display-selection logic
+	and just forward to make-frame, which will now DTRT.
+	(make-frame): Restructure to use window-system-for-display to
+	figure out how to create a frame on a given display.
+	(display-mouse-p): Look for frame-type w32, not a particular
+	system-type.
+
+	* loadup.el: Load w32 lisp code when we have the w32 feature.
+
+	* mouse.el (mouse-yank-primarY): Look for frame-type w32, not
+	system-type windows-nt.
+
+	* server.el (server-create-window-system-frame): Look for window
+	type.
+	(server-proces-filter): Only force a window system when windows-nt
+	_and_ w32.  Explain why.
+
+	* simple.el (normal-erase-is-backspace-mode): Add w32 to the list
+	of window systems we configure for the mode.
+
+	* startup.el (command-line): Mark window system is initialized
+	after we've done it.
+
+	* common-win.el (x-select-text): Look for w32, not windows-nt.
+
+	* ns-win.el: Require cl-lib.  Add ourselves to
+	display-format-alist.
+	(ns-initialize-window-system): Assert we're not initialized twice.
+
+	* w32-win.el: Enable lexical binding; require cl-lib; add
+	ourselves to display-format-alist.
+	(w32-handle-dropped-file): Convert incoming dropped files from
+	Windows paths to Cygwin ones before passing them on to the rest of
+	Emacs.
+	(w32-drag-n-drop): New paramter new-frame.  Simplify logic.
+	(w32-initialize-window-system): Assert we're not initialized twice.
+
+	* x-win.el: Require cl-lib; add ourselves to display-format-alist.
+	(x-initialize-window-system): Assert we're not initialized twice.
+
+	* w32-common-fns.el: New File.
+	(w32-version, w32-using-nt, w32-get-clipboard-data)
+	(w32-set-clipboard-data, x-set-selection, x-get-selection)
+	(w32-charset-info-alist, x-last-selected, text)
+	(x-get-selection-value, x-selection-value): Move here.
+
+	* w32-fns.el: Require w32-common-fns.
+	(w32-version, w32-using-nt, w32-get-clipboard-data)
+	(w32-set-clipboard-data, x-set-selection, x-get-selection)
+	(w32-charset-info-alist, x-last-selected, text)
+	(x-get-selection-value, x-selection-value): Move to
+	w32-common-fns.
+
+	* w32-vars.el:
+	(w32-allow-system-shell, w32-system-shells): Define only in
+	non-cygwin case.
+
+2012-10-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* subr.el (read-passwd-map): Don't use `defconst' (bug#12597).
+	(read-passwd): Remove a few more potential sources of leaks.
+
+2012-10-07  Fabián Ezequiel Gallina  <fgallina@cuca>
+
+	* progmodes/python.el (inferior-python-mode)
+	(python-shell-make-comint): Fix initialization of local
+	variables copied from parent buffer.
+
+2012-10-07  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* term/ns-win.el (ns-read-file-name): Update declaration to match
+	nsfns.m.
+	(ns-respond-to-change-font): Change fontsize separatly so we are sure
+	it is set when font is acted upon.
+
+2012-10-07  Fabián Ezequiel Gallina  <fgallina@cuca>
+
+	Enhancements to indentation.
+	* progmodes/python.el (python-indent-context): Give priority to
+	inside-string context.  Make comments indentation markers.
+	(python-indent-region): Do not mess with strings, unless it's the
+	enclosing set of quotes.
+
+2012-10-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* window.el (internal--before-save-selected-window)
+	(internal--after-save-selected-window): New functions extracted from
+	save-selected-window.  Make sure we return the `alist' we construct.
+	(save-selected-window): Use them.
+
+	* textmodes/tex-mode.el (tex-recenter-output-buffer):
+	Use with-selected-window.
+
+	* emacs-lisp/autoload.el (make-autoload): Add `cl-defmacro' to the
+	forms that define macros (bug#12593).
+
 2012-10-07  Kenichi Handa  <handa@gnu.org>
 
-	* international/mule-conf.el (compound-text-with-extensions): Add
-	:mime-charset property as x-ctext.
+	* international/mule-conf.el (compound-text-with-extensions):
+	Add :mime-charset property as x-ctext.
 
 2012-10-07  Stefan Merten  <smerten@oekonux.de>
 
 	* textmodes/rst.el (rst-new-adornment-down, rst-indent-field)
 	(rst-indent-literal-normal, rst-indent-literal-minimized)
 	(rst-indent-comment): Correct :version tag.
+	(rst-official-cvs-rev): Correct version string.
 
 2012-10-07  Glenn Morris  <rgm@gnu.org>
 

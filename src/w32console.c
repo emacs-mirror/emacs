@@ -36,7 +36,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "termhooks.h"
 #include "termchar.h"
 #include "dispextern.h"
-#include "w32heap.h"	/* for os_subtype */
+#include "w32term.h"
+#include "w32common.h" /* for os_subtype */
 #include "w32inevt.h"
 
 /* from window.c */
@@ -430,53 +431,6 @@ w32con_delete_glyphs (struct frame *f, int n)
   scroll_line (f, n, LEFT);
 }
 
-static unsigned int sound_type = 0xFFFFFFFF;
-#define MB_EMACS_SILENT (0xFFFFFFFF - 1)
-
-void
-w32_sys_ring_bell (struct frame *f)
-{
-  if (sound_type == 0xFFFFFFFF)
-    {
-      Beep (666, 100);
-    }
-  else if (sound_type == MB_EMACS_SILENT)
-    {
-      /* Do nothing.  */
-    }
-  else
-    MessageBeep (sound_type);
-}
-
-DEFUN ("set-message-beep", Fset_message_beep, Sset_message_beep, 1, 1, 0,
-       doc: /* Set the sound generated when the bell is rung.
-SOUND is 'asterisk, 'exclamation, 'hand, 'question, 'ok, or 'silent
-to use the corresponding system sound for the bell.  The 'silent sound
-prevents Emacs from making any sound at all.
-SOUND is nil to use the normal beep.  */)
-  (Lisp_Object sound)
-{
-  CHECK_SYMBOL (sound);
-
-  if (NILP (sound))
-      sound_type = 0xFFFFFFFF;
-  else if (EQ (sound, intern ("asterisk")))
-      sound_type = MB_ICONASTERISK;
-  else if (EQ (sound, intern ("exclamation")))
-      sound_type = MB_ICONEXCLAMATION;
-  else if (EQ (sound, intern ("hand")))
-      sound_type = MB_ICONHAND;
-  else if (EQ (sound, intern ("question")))
-      sound_type = MB_ICONQUESTION;
-  else if (EQ (sound, intern ("ok")))
-      sound_type = MB_OK;
-  else if (EQ (sound, intern ("silent")))
-      sound_type = MB_EMACS_SILENT;
-  else
-      sound_type = 0xFFFFFFFF;
-
-  return sound;
-}
 
 static void
 w32con_reset_terminal_modes (struct terminal *t)
@@ -850,5 +804,4 @@ scroll-back buffer.  */);
   defsubr (&Sset_screen_color);
   defsubr (&Sget_screen_color);
   defsubr (&Sset_cursor_size);
-  defsubr (&Sset_message_beep);
 }

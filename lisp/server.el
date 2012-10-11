@@ -833,35 +833,40 @@ This handles splitting the command if it would be bigger than
 
 (defun server-create-window-system-frame (display nowait proc parent-id
 						  &optional parameters)
-  (add-to-list 'frame-inherited-parameters 'client)
-  (if (not (fboundp 'make-frame-on-display))
-      (progn
-        ;; This emacs does not support X.
-        (server-log "Window system unsupported" proc)
-        (server-send-string proc "-window-system-unsupported \n")
-        nil)
-    ;; Flag frame as client-created, but use a dummy client.
-    ;; This will prevent the frame from being deleted when
-    ;; emacsclient quits while also preventing
-    ;; `server-save-buffers-kill-terminal' from unexpectedly
-    ;; killing emacs on that frame.
-    (let* ((params `((client . ,(if nowait 'nowait proc))
-                     ;; This is a leftover, see above.
-                     (environment . ,(process-get proc 'env))
-                     ,@parameters))
-	   (display (or display
-			(frame-parameter nil 'display)
-			(getenv "DISPLAY")
-			(error "Please specify display")))
-	   frame)
-      (if parent-id
-	  (push (cons 'parent-id (string-to-number parent-id)) params))
-      (setq frame (make-frame-on-display display params))
-      (server-log (format "%s created" frame) proc)
-      (select-frame frame)
-      (process-put proc 'frame frame)
-      (process-put proc 'terminal (frame-terminal frame))
-      frame)))
+  (let* ((display (or display
+                      (frame-parameter nil 'display)
+                      (error "Please specify display.")))
+         (w (or (cdr (assq 'window-system parameters))
+                (window-system-for-display display))))
+
+    (unless (assq w window-system-initialization-alist)
+      (setq w nil))
+
+    (cond (w
+           ;; Flag frame as client-created, but use a dummy client.
+           ;; This will prevent the frame from being deleted when
+           ;; emacsclient quits while also preventing
+           ;; `server-save-buffers-kill-terminal' from unexpectedly
+           ;; killing emacs on that frame.
+           (let* ((params `((client . ,(if nowait 'nowait proc))
+                            ;; This is a leftover, see above.
+                            (environment . ,(process-get proc 'env))
+                            ,@parameters))
+                  frame)
+             (if parent-id
+                 (push (cons 'parent-id (string-to-number parent-id)) params))
+             (add-to-list 'frame-inherited-parameters 'client)
+             (setq frame (make-frame-on-display display params))
+             (server-log (format "%s created" frame) proc)
+             (select-frame frame)
+             (process-put proc 'frame frame)
+             (process-put proc 'terminal (frame-terminal frame))
+             frame))
+
+          (t
+           (server-log "Window system unsupported" proc)
+           (server-send-string proc "-window-system-unsupported \n")
+           nil))))
 
 (defun server-goto-toplevel (proc)
   (condition-case nil
@@ -1121,9 +1126,13 @@ The following commands are accepted by the client:
                        tty-type (pop args-left)
                        dontkill (or dontkill
                                     (not use-current-frame)))
-                 ;; On Windows, emacsclient always asks for a tty frame.
-                 ;; If running a GUI server, force the frame type to GUI.
-                 (when (eq window-system 'w32)
+                 ;; On Windows, emacsclient always asks for a tty
+                 ;; frame.  If running a GUI server, force the frame
+                 ;; type to GUI.  (Cygwin is perfectly happy with
+                 ;; multi-tty support, so don't override the user's
+                 ;; choice there.)
+                 (when (and (eq system-type 'windows-nt)
+                            (eq window-system 'w32))
                    (push "-window-system" args-left)))
 
                 ;; -position LINE[:COLUMN]:  Set point to the given

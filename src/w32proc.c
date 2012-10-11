@@ -51,6 +51,7 @@ extern BOOL WINAPI IsValidLocale (LCID, DWORD);
 
 #include "lisp.h"
 #include "w32.h"
+#include "w32common.h"
 #include "w32heap.h"
 #include "systime.h"
 #include "syswait.h"
@@ -66,20 +67,6 @@ extern BOOL WINAPI IsValidLocale (LCID, DWORD);
 	    + (filedata).file_base))
 
 Lisp_Object Qhigh, Qlow;
-
-#ifdef EMACSDEBUG
-void
-_DebPrint (const char *fmt, ...)
-{
-  char buf[1024];
-  va_list args;
-
-  va_start (args, fmt);
-  vsprintf (buf, fmt, args);
-  va_end (args);
-  OutputDebugString (buf);
-}
-#endif
 
 typedef void (_CALLBACK_ *signal_handler) (int);
 

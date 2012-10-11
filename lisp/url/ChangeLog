@@ -1,3 +1,8 @@
+2012-10-08  Glenn Morris  <rgm@gnu.org>
+
+	* url-methods.el (url-scheme-get-property): url-https.el was
+	merged into url-http.el, so load the latter for https.  (Bug#12599)
+
 2012-10-02  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* url-http.el (url-http-user-agent-string): Leak less info.

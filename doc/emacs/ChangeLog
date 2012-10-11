@@ -1,3 +1,13 @@
+2012-10-10  Dani Moncayo  <dmoncayo@gmail.com>
+
+	* basic.texi (Arguments): Fix typos.
+
+2012-10-08  Glenn Morris  <rgm@gnu.org>
+
+	* cal-xtra.texi (Calendar Customizing): Mention calendar-month-header.
+
+	* calendar.texi (Writing Calendar Files): Mention cal-html-holidays.
+
 2012-10-06  Glenn Morris  <rgm@gnu.org>
 
 	* calendar.texi (Writing Calendar Files): Tweak week descriptions.
@@ -419,7 +429,7 @@
 	* misc.texi (emacsclient Options): Add cross-reference to "Windows
 	Startup".  (Bug#11091)
 
-2012-04-02  Dani Moncayo  <dmoncayo@gmail.com>  (tiny change)
+2012-04-02  Dani Moncayo  <dmoncayo@gmail.com>
 
 	* custom.texi (Changing a Variable): Fix example.
 
@@ -452,7 +462,7 @@
 	* mule.texi (International Chars):
 	etc/HELLO is for character demonstration.
 
-2012-03-15  Dani Moncayo  <dmoncayo@gmail.com>  (tiny change)
+2012-03-15  Dani Moncayo  <dmoncayo@gmail.com>
 
 	* dired.texi (Shell Commands in Dired): Fix typo.
 
@@ -479,7 +489,7 @@
 	* macos.texi (Mac / GNUstep Customization): Remove text about
 	ns-find-file and ns-drag-file (Bug#5855, Bug#10050).
 
-2012-02-25  Dani Moncayo  <dmoncayo@gmail.com>  (tiny change)
+2012-02-25  Dani Moncayo  <dmoncayo@gmail.com>
 
 	* buffers.texi (Select Buffer): Mention that saving in a new file
 	name can switch to a different major mode.

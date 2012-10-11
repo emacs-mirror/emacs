@@ -40,7 +40,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif /* HAVE_WINDOW_SYSTEM */
 
 #ifdef HAVE_NTGUI
+# ifdef NTGUI_UNICODE
+# define unicode_append_menu AppendMenuW
+# else /* !NTGUI_UNICODE */
 extern AppendMenuW_Proc unicode_append_menu;
+# endif /* NTGUI_UNICODE */
 extern HMENU current_popup_menu;
 #endif /* HAVE_NTGUI  */
 
@@ -327,7 +331,7 @@ single_menu_item (Lisp_Object key, Lisp_Object item, Lisp_Object dummy, void *sk
 {
   Lisp_Object map, item_string, enabled;
   struct gcpro gcpro1, gcpro2;
-  int res;
+  bool res;
   struct skp *skp = skp_v;
 
   /* Parse the menu item and leave the result in item_properties.  */

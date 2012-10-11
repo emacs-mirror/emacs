@@ -636,12 +636,12 @@ newline_cache_on_off (struct buffer *buf)
    If we don't find COUNT instances before reaching END, set *SHORTAGE
    to the number of TARGETs left unfound, and return END.
 
-   If ALLOW_QUIT is non-zero, set immediate_quit.  That's good to do
+   If ALLOW_QUIT, set immediate_quit.  That's good to do
    except when inside redisplay.  */
 
 ptrdiff_t
-scan_buffer (register int target, ptrdiff_t start, ptrdiff_t end,
-	     ptrdiff_t count, ptrdiff_t *shortage, int allow_quit)
+scan_buffer (int target, ptrdiff_t start, ptrdiff_t end,
+	     ptrdiff_t count, ptrdiff_t *shortage, bool allow_quit)
 {
   struct region_cache *newline_cache;
   int direction;
@@ -837,23 +837,23 @@ scan_buffer (register int target, ptrdiff_t start, ptrdiff_t end,
    the number of line boundaries left unfound, and position at
    the limit we bumped up against.
 
-   If ALLOW_QUIT is non-zero, set immediate_quit.  That's good to do
+   If ALLOW_QUIT, set immediate_quit.  That's good to do
    except in special cases.  */
 
 EMACS_INT
 scan_newline (ptrdiff_t start, ptrdiff_t start_byte,
 	      ptrdiff_t limit, ptrdiff_t limit_byte,
-	      register EMACS_INT count, int allow_quit)
+	      EMACS_INT count, bool allow_quit)
 {
   int direction = ((count > 0) ? 1 : -1);
 
-  register unsigned char *cursor;
+  unsigned char *cursor;
   unsigned char *base;
 
   ptrdiff_t ceiling;
-  register unsigned char *ceiling_addr;
+  unsigned char *ceiling_addr;
 
-  int old_immediate_quit = immediate_quit;
+  bool old_immediate_quit = immediate_quit;
 
   /* The code that follows is like scan_buffer
      but checks for either newline or carriage return.  */

@@ -18,6 +18,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 #include <windows.h>
+#include <stdio.h>
 #include <math.h>
 #include <ctype.h>
 #include <commdlg.h>
@@ -1434,6 +1435,9 @@ w32font_coverage_ok (FONTSIGNATURE * coverage, BYTE charset)
   return 1;
 }
 
+#ifndef WINDOWSNT
+#define _strlwr strlwr
+#endif /* !WINDOWSNT */
 
 static int
 check_face_name (LOGFONT *font, char *full_name)

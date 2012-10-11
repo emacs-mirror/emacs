@@ -29,7 +29,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 static ptrdiff_t cached_charpos;
 static ptrdiff_t cached_bytepos;
 static struct buffer *cached_buffer;
-static int cached_modiff;
+static EMACS_INT cached_modiff;
 
 /* Juanma Barranquero <lekktu@gmail.com> reported ~3x increased
    bootstrap time when byte_char_debug_check is enabled; so this

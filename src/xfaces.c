@@ -227,13 +227,13 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifdef HAVE_WINDOW_SYSTEM
 #include TERM_HEADER
 #include "fontset.h"
-#ifdef WINDOWSNT
+#ifdef HAVE_NTGUI
 #undef FRAME_X_DISPLAY_INFO
 #define FRAME_X_DISPLAY_INFO FRAME_W32_DISPLAY_INFO
 #define x_display_info w32_display_info
 #define check_x check_w32
 #define GCGraphicsExposures 0
-#endif /* WINDOWSNT */
+#endif /* HAVE_NTGUI */
 
 #ifdef HAVE_NS
 #undef FRAME_X_DISPLAY_INFO
@@ -625,7 +625,7 @@ x_free_gc (struct frame *f, GC gc)
 
 #endif /* HAVE_X_WINDOWS */
 
-#ifdef WINDOWSNT
+#ifdef HAVE_NTGUI
 /* W32 emulation of GCs */
 
 static GC
@@ -649,7 +649,7 @@ x_free_gc (struct frame *f, GC gc)
   xfree (gc);
 }
 
-#endif  /* WINDOWSNT */
+#endif  /* HAVE_NTGUI */
 
 #ifdef HAVE_NS
 /* NS emulation of GCs */
@@ -719,7 +719,7 @@ init_frame_faces (struct frame *f)
 #ifdef HAVE_X_WINDOWS
   if (!FRAME_X_P (f) || FRAME_X_WINDOW (f))
 #endif
-#ifdef WINDOWSNT
+#ifdef HAVE_NTGUI
   if (!FRAME_WINDOW_P (f) || FRAME_W32_WINDOW (f))
 #endif
 #ifdef HAVE_NS
@@ -1098,7 +1098,7 @@ defined_color (struct frame *f, const char *color_name, XColor *color_def,
   else if (FRAME_X_P (f))
     return x_defined_color (f, color_name, color_def, alloc);
 #endif
-#ifdef WINDOWSNT
+#ifdef HAVE_NTGUI
   else if (FRAME_W32_P (f))
     return w32_defined_color (f, color_name, color_def, alloc);
 #endif
@@ -3245,7 +3245,7 @@ FRAME 0 means change the face on all frames, and change the default
 	    param = Qbackground_color;
 	}
 #ifdef HAVE_WINDOW_SYSTEM
-#ifndef WINDOWSNT
+#ifndef HAVE_NTGUI
       else if (EQ (face, Qscroll_bar))
 	{
 	  /* Changing the colors of `scroll-bar' sets frame parameters
@@ -3255,7 +3255,7 @@ FRAME 0 means change the face on all frames, and change the default
 	  else if (EQ (attr, QCbackground))
 	    param = Qscroll_bar_background;
 	}
-#endif /* not WINDOWSNT */
+#endif /* not HAVE_NTGUI */
       else if (EQ (face, Qborder))
 	{
 	  /* Changing background color of `border' sets frame parameter
@@ -6362,7 +6362,7 @@ where R,G,B are numbers between 0 and 255 and name is an arbitrary string.  */)
 	    if (num >= 0 && name[num] == '\n')
 	      name[num] = 0;
 	    cmap = Fcons (Fcons (build_string (name),
-#ifdef WINDOWSNT
+#ifdef HAVE_NTGUI
 				 make_number (RGB (red, green, blue))),
 #else
 				 make_number ((red << 16) | (green << 8) | blue)),

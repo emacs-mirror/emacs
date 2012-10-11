@@ -117,20 +117,20 @@ Comments might be indented to a different value in order not to go beyond
 If there are any \\(...\\) pairs, the comment delimiter text is held to begin
 at the place matched by the close of the first pair.")
 ;;;###autoload
-(put 'comment-start-skip 'safe-local-variable 'string-or-null-p)
+(put 'comment-start-skip 'safe-local-variable 'stringp)
 
 ;;;###autoload
 (defvar comment-end-skip nil
   "Regexp to match the end of a comment plus everything back to its body.")
 ;;;###autoload
-(put 'comment-end-skip 'safe-local-variable 'string-or-null-p)
+(put 'comment-end-skip 'safe-local-variable 'stringp)
 
 ;;;###autoload
 (defvar comment-end (purecopy "")
   "String to insert to end a new comment.
 Should be an empty string if comments are terminated by end-of-line.")
 ;;;###autoload
-(put 'comment-end 'safe-local-variable 'string-or-null-p)
+(put 'comment-end 'safe-local-variable 'stringp)
 
 ;;;###autoload
 (defvar comment-indent-function 'comment-indent-default
@@ -327,9 +327,9 @@ terminated by the end of line (i.e. `comment-end' is empty)."
 ;;;###autoload
 (defun comment-normalize-vars (&optional noerror)
   "Check and setup the variables needed by other commenting functions.
-Functions autoloaded from newcomment.el, being entry points, should call
-this function before any other, so the rest of the code can assume that
-the variables are properly set."
+Any command calling functions from newcomment.el should call this function
+before any other, so the rest of the code can assume that the variables are
+properly set."
   (unless (and (not comment-start) noerror)
     (unless comment-start
       (let ((cs (read-string "No comment syntax is defined.  Use: ")))

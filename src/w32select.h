@@ -1,5 +1,6 @@
-/* Flags and parameters describing user options for handling the terminal.
-   Copyright (C) 1985-1986, 1990, 2001-2012  Free Software Foundation, Inc.
+/* Selection processing for Emacs on the Microsoft W32 API.
+
+Copyright (C) 1993-1994, 2001-2012 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -16,9 +17,12 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
+#ifndef W32SELECT_H
+#define W32SELECT_H
+#include <windows.h>
 
-/* Nonzero means use interrupt-driven input.  */
-extern bool interrupt_input;
+extern void syms_of_w32select (void);
+extern void globals_of_w32select (void);
+extern void term_w32select (void);
 
-/* Nonzero while interrupts are temporarily deferred during redisplay.  */
-extern bool interrupts_deferred;
+#endif

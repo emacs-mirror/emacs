@@ -4302,7 +4302,7 @@ wait_reading_process_output_1 (void)
      -1 meaning caller will actually read the input, so don't throw to
        the quit handler, or
 
-   DO_DISPLAY != 0 means redisplay should be done to show subprocess
+   DO_DISPLAY means redisplay should be done to show subprocess
      output that arrives.
 
    If WAIT_FOR_CELL is a cons cell, wait until its car is non-nil
@@ -4322,7 +4322,7 @@ wait_reading_process_output_1 (void)
 
 int
 wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
-			     int do_display,
+			     bool do_display,
 			     Lisp_Object wait_for_cell,
 			     struct Lisp_Process *wait_proc, int just_wait_proc)
 {
@@ -4419,7 +4419,7 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 
 	  do
 	    {
-	      int old_timers_run = timers_run;
+	      unsigned old_timers_run = timers_run;
 	      struct buffer *old_buffer = current_buffer;
 	      Lisp_Object old_window = selected_window;
 
@@ -4646,6 +4646,7 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 	      process_output_skip = 0;
 	    }
 #endif
+
 #if defined (USE_GTK) || defined (HAVE_GCONF) || defined (HAVE_GSETTINGS)
           nfds = xg_select
 #elif defined (HAVE_NS)
@@ -4752,7 +4753,7 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 
       if (read_kbd != 0)
 	{
-	  int old_timers_run = timers_run;
+	  unsigned old_timers_run = timers_run;
 	  struct buffer *old_buffer = current_buffer;
 	  Lisp_Object old_window = selected_window;
 	  int leave = 0;
@@ -6820,14 +6821,14 @@ extern int sys_select (int, SELECT_TYPE *, SELECT_TYPE *, SELECT_TYPE *,
    see full version for other parameters. We know that wait_proc will
      always be NULL, since `subprocesses' isn't defined.
 
-   DO_DISPLAY != 0 means redisplay should be done to show subprocess
+   DO_DISPLAY means redisplay should be done to show subprocess
    output that arrives.
 
    Return true if we received input from any process.  */
 
 int
 wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
-			     int do_display,
+			     bool do_display,
 			     Lisp_Object wait_for_cell,
 			     struct Lisp_Process *wait_proc, int just_wait_proc)
 {
@@ -6903,7 +6904,7 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 
 	  do
 	    {
-	      int old_timers_run = timers_run;
+	      unsigned old_timers_run = timers_run;
 	      timer_delay = timer_check ();
 	      if (timers_run != old_timers_run && do_display)
 		/* We must retry, since a timer may have requeued itself

@@ -5208,9 +5208,9 @@ EMACS_FONT_LOG is set.  Otherwise, it is set to t.  */);
 #ifdef HAVE_BDFFONT
   syms_of_bdffont ();
 #endif	/* HAVE_BDFFONT */
-#ifdef WINDOWSNT
+#ifdef HAVE_NTGUI
   syms_of_w32font ();
-#endif	/* WINDOWSNT */
+#endif	/* HAVE_NTGUI */
 #ifdef HAVE_NS
   syms_of_nsfont ();
 #endif	/* HAVE_NS */

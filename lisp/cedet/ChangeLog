@@ -1,3 +1,22 @@
+2012-10-08  David Engster  <deng@randomsample.de>>
+
+	* semantic/bovine/el.el: Add `semantic-default-elisp-setup' to
+	`emacs-lisp-mode-hook'.  This was accidentally removed during the
+	CEDET update (rev. 110325).
+
+2012-10-07  David Engster  <deng@randomsample.de>
+
+	* semantic/wisent/python.el (semantic-ctxt-current-function)
+	(semantic-ctxt-current-assignment): New overrides, simply
+	returning nil.  The defaults do not work correctly and can send
+	the parser in an infinite loop (bug#12458).
+
+	* semantic/ede-grammar.el (project-compile-target): Fix grammar
+	compilation after introduction of %provide statement.
+
+	* semantic.el (semantic-new-buffer-setup-functions): Remove setup
+	function for `f90-mode', since the parser only exists upstream.
+
 2012-10-06  Glenn Morris  <rgm@gnu.org>
 
 	* semantic/complete.el (semantic-displayor-tooltip-max-tags): Doc fix.

@@ -22,6 +22,11 @@
 	charsets/mapfiles/MULE-tibetan.map,
 	charsets/mapfiles/MULE-uviscii.map: Fix typo.
 
+2012-10-09  Glenn Morris  <rgm@gnu.org>
+
+	* admin.el (cusver-scan-cus-start): New function.
+	(cusver-check): Scan old cus-start.el.
+
 2012-10-07  Glenn Morris  <rgm@gnu.org>
 
 	* admin.el (cusver-new-version): Set default.

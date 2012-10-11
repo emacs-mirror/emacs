@@ -1,3 +1,8 @@
+2012-10-09  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* shr.el (shr-insert): \r is also not inserted, so don't try to delete
+	it.
+
 2012-10-06  Glenn Morris  <rgm@gnu.org>
 
 	* gnus-notifications.el (gnus-notifications):

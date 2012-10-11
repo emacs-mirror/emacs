@@ -1,3 +1,20 @@
+2012-10-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (obj): Add cygw32.o.
+
+2012-10-08  Daniel Colascione  <dancol@dancol.org>
+
+	* emacsclient.c: Include windows.h when HAVE_NTGUI.
+	(alt_display): New variable.  We send the display held by this
+	variable when the primary display is either unsupported or not
+	present.
+	(longopts): Allow display everywhere.
+	(w32_set_user_model_id): Move lower in file, inside HAVE_NTGUI
+	section.
+	(decode_options): Use alt_display.  Explain why.
+	(main): Retry connection with alt_display if connection with main
+	display fails.
+
 2012-10-01  Fabrice Popineau  <fabrice.popineau@gmail.com>
 
 	* make-docfile.c (write_globals): Special-case

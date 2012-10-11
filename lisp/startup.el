@@ -890,7 +890,8 @@ Amongst another things, it parses the command-line arguments."
       ;; Initialize the window system. (Open connection, etc.)
       (funcall
        (or (cdr (assq initial-window-system window-system-initialization-alist))
-	   (error "Unsupported window system `%s'" initial-window-system))))
+	   (error "Unsupported window system `%s'" initial-window-system)))
+      (put initial-window-system 'window-system-initialized t))
     ;; If there was an error, print the error message and exit.
     (error
      (princ

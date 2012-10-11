@@ -139,27 +139,6 @@ Returns VALUE."
     value))
 
 ;;;###tramp-autoload
-(defmacro with-file-property (vec file property &rest body)
-  "Check in Tramp cache for PROPERTY, otherwise execute BODY and set cache.
-FILE must be a local file name on a connection identified via VEC."
-  `(if (file-name-absolute-p ,file)
-      (let ((value (tramp-get-file-property ,vec ,file ,property 'undef)))
-	(when (eq value 'undef)
-	  ;; We cannot pass @body as parameter to
-	  ;; `tramp-set-file-property' because it mangles our
-	  ;; debug messages.
-	  (setq value (progn ,@body))
-	  (tramp-set-file-property ,vec ,file ,property value))
-	value)
-     ,@body))
-
-;;;###tramp-autoload
-(put 'with-file-property 'lisp-indent-function 3)
-(put 'with-file-property 'edebug-form-spec t)
-(tramp-compat-font-lock-add-keywords
- 'emacs-lisp-mode '("\\<with-file-property\\>"))
-
-;;;###tramp-autoload
 (defun tramp-flush-file-property (vec file)
   "Remove all properties of FILE in the cache context of VEC."
   ;; Remove file property of symlinks.
@@ -248,24 +227,6 @@ PROPERTY is set persistent when KEY is a vector."
     (setq tramp-cache-data-changed t)
     (tramp-message key 7 "%s %s" property value)
     value))
-
-;;;###tramp-autoload
-(defmacro with-connection-property (key property &rest body)
-  "Check in Tramp for property PROPERTY, otherwise executes BODY and set."
-  `(let ((value (tramp-get-connection-property ,key ,property 'undef)))
-    (when (eq value 'undef)
-      ;; We cannot pass ,@body as parameter to
-      ;; `tramp-set-connection-property' because it mangles our debug
-      ;; messages.
-      (setq value (progn ,@body))
-      (tramp-set-connection-property ,key ,property value))
-    value))
-
-;;;###tramp-autoload
-(put 'with-connection-property 'lisp-indent-function 2)
-(put 'with-connection-property 'edebug-form-spec t)
-(tramp-compat-font-lock-add-keywords
- 'emacs-lisp-mode '("\\<with-connection-property\\>"))
 
 ;;;###tramp-autoload
 (defun tramp-flush-connection-property (key)

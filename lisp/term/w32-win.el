@@ -1,4 +1,4 @@
-;;; w32-win.el --- parse switches controlling interface with W32 window system
+;;; w32-win.el --- parse switches controlling interface with W32 window system -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1993-1994, 2001-2012  Free Software Foundation, Inc.
 
@@ -68,6 +68,7 @@
 ;; (if (not (eq window-system 'w32))
 ;;     (error "%s: Loading w32-win.el but not compiled for w32" (invocation-name)))
 
+(eval-when-compile (require 'cl-lib))
 (require 'frame)
 (require 'mouse)
 (require 'scroll-bar)
@@ -88,7 +89,7 @@
 (make-obsolete 'w32-default-color-map nil "24.1")
 
 (declare-function w32-send-sys-command "w32fns.c")
-(declare-function set-message-beep "w32console.c")
+(declare-function set-message-beep "w32fns.c")
 
 ;; Conditional on new-fontset so bootstrapping works on non-GUI compiles
 (if (fboundp 'new-fontset)
@@ -102,7 +103,22 @@
 ;;   (interactive "e")
 ;;   (princ event))
 
-(defun w32-drag-n-drop (event)
+(defun w32-handle-dropped-file (window file-name)
+  (let ((f (if (eq system-type 'cygwin)
+               (cygwin-convert-path-from-windows file-name t)
+             (subst-char-in-string ?\\ ?/ file-name)))
+        (coding (or file-name-coding-system
+                    default-file-name-coding-system)))
+
+    (setq file-name
+          (mapconcat 'url-hexify-string
+                     (split-string (encode-coding-string f coding)
+                                   "/")
+                     "/")))
+		(dnd-handle-one-url window 'private
+				    (concat "file:" file-name)))
+
+(defun w32-drag-n-drop (event &optional new-frame)
   "Edit the files listed in the drag-n-drop EVENT.
 Switch to a buffer editing the last file dropped."
   (interactive "e")
@@ -116,26 +132,21 @@ Switch to a buffer editing the last file dropped."
 	   (y (cdr coords)))
       (if (and (> x 0) (> y 0))
 	  (set-frame-selected-window nil window))
-      (mapc (lambda (file-name)
-		(let ((f (subst-char-in-string ?\\ ?/ file-name))
-		      (coding (or file-name-coding-system
-				  default-file-name-coding-system)))
-		  (setq file-name
-			(mapconcat 'url-hexify-string
-				   (split-string (encode-coding-string f coding)
-						 "/")
-				   "/")))
-		(dnd-handle-one-url window 'private
-				    (concat "file:" file-name)))
-		(car (cdr (cdr event)))))
-  (raise-frame)))
+
+      (when new-frame
+        (select-frame (make-frame)))
+      (raise-frame)
+      (setq window (selected-window))
+
+      (mapc (apply-partially #'w32-handle-dropped-file window)
+            (car (cdr (cdr event)))))))
 
 (defun w32-drag-n-drop-other-frame (event)
   "Edit the files listed in the drag-n-drop EVENT, in other frames.
 May create new frames, or reuse existing ones.  The frame editing
 the last file dropped is selected."
   (interactive "e")
-  (mapcar 'find-file-other-frame (car (cdr (cdr event)))))
+  (w32-drag-n-drop event t))
 
 ;; Bind the drag-n-drop event.
 (global-set-key [drag-n-drop] 'w32-drag-n-drop)
@@ -230,6 +241,7 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
 
 (defun w32-initialize-window-system ()
   "Initialize Emacs for W32 GUI frames."
+  (cl-assert (not w32-initialized))
 
   ;; Do the actual Windows setup here; the above code just defines
   ;; functions and variables that we use now.
@@ -243,7 +255,7 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
             ;; so as not to choke when we use it in X resource queries.
             (replace-regexp-in-string "[.*]" "-" (invocation-name))))
 
-  (x-open-connection "" x-command-line-resources
+  (x-open-connection "w32" x-command-line-resources
                      ;; Exit with a fatal error if this fails and we
                      ;; are the initial display
                      (eq initial-window-system 'w32))
@@ -294,7 +306,7 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
           (setq default-frame-alist
                 (cons '(reverse . t) default-frame-alist)))))
 
-  ;; Don't let Emacs suspend under w32 gui
+  ;; Don't let Emacs suspend under Windows.
   (add-hook 'suspend-hook 'x-win-suspend-error)
 
   ;; Turn off window-splitting optimization; w32 is usually fast enough
@@ -312,6 +324,7 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
   (x-apply-session-resources)
   (setq w32-initialized t))
 
+(add-to-list 'display-format-alist '("\\`w32\\'" . w32))
 (add-to-list 'handle-args-function-alist '(w32 . x-handle-args))
 (add-to-list 'frame-creation-function-alist '(w32 . x-create-frame-with-faces))
 (add-to-list 'window-system-initialization-alist '(w32 . w32-initialize-window-system))
