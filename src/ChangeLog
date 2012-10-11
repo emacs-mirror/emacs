@@ -1,5 +1,7 @@
 2012-10-11  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* marker.c (cached_modiff): EMACS_INT, not int.
+
 	* w32select.c (waiting_for_input): Declare by including "keyboard.h"
 	instead of having a wrong decl.
 	* nsmenu.m (waiting_for_input): Remove wrong decl.
