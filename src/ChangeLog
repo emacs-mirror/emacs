@@ -1,3 +1,7 @@
+2012-10-11  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* nsmenu.m (waiting_for_input): Remove wrong decl.
+
 2012-10-10  Paul Eggert  <eggert@cs.ucla.edu>
 
 	keyboard.c, keymap.c: Use bool for booleans.
