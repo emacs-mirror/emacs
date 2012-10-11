@@ -1,8 +1,8 @@
 .. _pool-mvff:
 
-===================================
-Manual Variable-size First Fit pool
-===================================
+==========================================
+MVFF (Manual Variable-size First Fit) pool
+==========================================
 
 
 Buffered allocation (:c:func:`mps_reserve` and :c:func:`mps_commit`) is also supported, but in that case, the policy is rather different: buffers are filled worst-fit, and allocation is always upwards from the base. The arenaHigh parameter regulates whether new segments are acquired at high or low addresses;the slotHigh and firstFit parameters do not affect buffered allocation. Buffered and unbuffered allocation can be used at the same time, but in that case, the first allocation point must be created before any call to :c:func:`mps_alloc`.
