@@ -1,8 +1,6 @@
 2012-10-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* help-fns.el (describe-function-1): Handle autoloads w/o docstrings.
-	* emacs-lisp/cl-lib.el (cl--defsubst-expand): Move autoload...
-	* emacs-lisp/cl-macs.el (cl--defsubst-expand): ...here.
 
 	* emacs-lisp/bytecomp.el (byte-compile-eval): Adjust to long-ago
 	changes to the format of load-history.

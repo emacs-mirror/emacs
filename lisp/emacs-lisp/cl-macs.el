@@ -2595,9 +2595,6 @@ surrounded by (cl-block NAME ...).
               ,(and (memq '&key args) 'cl-whole) ,unsafe ,@argns)))
        (cl-defun ,name ,args ,@body))))
 
-;; Make sure functions defined with cl-defsubst can be inlined even in
-;; packages which do not require CL.
-;;;###autoload
 (defun cl--defsubst-expand (argns body simple whole unsafe &rest argvs)
   (if (and whole (not (cl--safe-expr-p (cons 'progn argvs)))) whole
     (if (cl--simple-exprs-p argvs) (setq simple t))
