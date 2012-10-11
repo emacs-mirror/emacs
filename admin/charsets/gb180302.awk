@@ -74,19 +74,30 @@ function index_to_gb(idx) {
 
 {
   gb = gb_to_index(decode_hex(substr($1, 3, 4)));
-  unicode = decode_hex(substr($2, 3, 4));
+  unicode = decode_hex(substr($2, 3));
   if ((gb == to_gb + 1) && (unicode == to_unicode + 1))
     {
       to_gb++;
       to_unicode++;
     }
-  else
+  else if (gb > to_gb) # ignore the case gb == to_gb that is a duplication
     {
       if (from_gb == to_gb)
-	printf "0x%04X 0x%04X\n", index_to_gb(from_gb), from_unicode;
+        {
+	  if (from_unicode <= 65535)
+	    printf "0x%04X 0x%04X\n", index_to_gb(from_gb), from_unicode;
+	  else
+	    printf "0x%04X 0x%08X\n", index_to_gb(from_gb), from_unicode;
+	}
       else if (from_gb < to_gb)
-	printf "0x%04X-0x%04X 0x%04X\n",
-	  index_to_gb(from_gb), index_to_gb(to_gb), from_unicode;
+        {
+	  if (from_unicode <= 65535)
+	    printf "0x%04X-0x%04X 0x%04X\n",
+		index_to_gb(from_gb), index_to_gb(to_gb), from_unicode;
+	  else
+	    printf "0x%04X-0x%04X 0x%08X\n",
+		index_to_gb(from_gb), index_to_gb(to_gb), from_unicode;
+	}
       from_gb = to_gb = gb;
       from_unicode = to_unicode = unicode;
     }

@@ -98,18 +98,17 @@ elif [ "$3" = "GLIBC-2-7" ] ; then
 	| sed -e 's/xa/x2/g' -e 's/xb/x3/g' -e 's/xc/x4/g' \
 	      -e 's/xd/x5/g' -e 's/xe/x6/g' -e 's/xf/x7/g' \
 	      -e 's,<U\([^>]*\)>[ 	]*/x\(..\)/x\(..\).*,0x\2\3 0x\1,' \
-	| tee temp \
 	| sort | ${AWKPROG}
 elif [ "$3" = "CZYBORRA" ] ; then
     # Source format is:
     #   =XX	U+YYYY
-    zcat $1 | sed -n -e "$2 p" \
+    sed -n -e "$2 p" < $1 \
 	| sed -e 's/=\(..\)[^U]*U+\([0-9A-F]*\).*/0x\1 0x\2/' \
 	| sort | ${AWKPROG}
 elif [ "$3" = "IANA" ] ; then
     # Source format is:
     #   0xXX	0xYYYY
-    zcat $1 | sed -n -e "$2 p" \
+    sed -n -e "$2 p" < $1 \
 	| sed -e 's/\(0x[0-9A-Fa-f]*\)[^0]*\(0x[0-9A-Fa-f]*\).*/\1 \2/' \
 	| sort | ${AWKPROG}
 elif [ "$3" = "UNICODE" ] ; then
@@ -117,25 +116,25 @@ elif [ "$3" = "UNICODE" ] ; then
     #   YYYY	XX
     # We perform reverse sort to prefer the first one in the
     # duplicated mappings (e.g. 0x20->U+0020, 0x20->U+00A0).
-    zcat $1 | sed -n -e "$2 p" \
+    sed -n -e "$2 p" < $1 \
 	| sed -e 's/\([0-9A-F]*\)[^0-9A-F]*\([0-9A-F]*\).*/0x\2 0x\1/' \
 	| sort -r
 elif [ "$3" = "UNICODE2" ] ; then
     # Source format is:
     #   0xXXXX	0xYYYY	# ...
-    zcat $1 | sed -n -e "$2 p" \
+    sed -n -e "$2 p" < $1 \
 	| sed -e 's/\([0-9A-Fx]*\)[^0]*\([0-9A-Fx]*\).*/\1 \2/' \
 	| ${AWKPROG} | sort -n -k 4,4
 elif [ "$3" = "YASUOKA" ] ; then
     # Source format is:
     # YYYY	0-XXXX (XXXX is a Kuten code)
-    zcat $1 | sed -n -e "$2 p" \
+    sed -n -e "$2 p" < $1 \
 	| sed -e 's/\([0-9A-F]*\)[^0]*0-\([0-9]*\).*/0x\2 0x\1/' \
 	| sort | ${AWKPROG}
 elif [ "$3" = "KANJI-DATABASE" ] ; then
     # Source format is:
     # C?-XXXX U+YYYYY .....
-    zcat $1 | sed -n -e "$2 p" \
+    sed -n -e "$2 p" < $1 \
 	| sed -e 's/...\(....\) U+\([0-9A-F]*\).*/0x\1 0x\2/' \
 	| sort | ${AWKPROG}
 else
