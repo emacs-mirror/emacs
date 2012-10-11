@@ -1,3 +1,12 @@
+2012-10-11  Kenichi Handa  <handa@gnu.org>
+
+	* charsets/CNS-2.map, charsets/CNS-3.map, charsets/CNS-4.map,
+	charsets/CNS-5.map, charsets/CNS-6.map, charsets/CNS-7.map,
+	charsets/CP932-2BYTE.map, charsets/GB180302.map,
+	charsets/GB180304.map, charsets/JISC6226.map,
+	charsets/JISX2131.map, charsets/MIK.map, charsets/PTCP154.map,
+	charsets/stdenc.map, charsets/symbol.map: Re-generated.
+
 2012-10-07  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* NEWS (NextStep/OSX port changes): OSX 10.4 or newer is required.
