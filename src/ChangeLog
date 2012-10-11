@@ -1,3 +1,8 @@
+2012-10-11  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* editfns.c (save_excursion_save): Use nil if mark points to nowhere.
+	(save_excursion_restore): Do not restore mark if it was not saved.
+
 2012-10-11  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* marker.c (cached_modiff): EMACS_INT, not int.
