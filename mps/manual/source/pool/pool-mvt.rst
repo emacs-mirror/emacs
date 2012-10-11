@@ -1,8 +1,8 @@
 .. _pool-mvt:
 
-======================================
-Manual Variable-size Temporal-fit pool
-======================================
+============================================
+MVT (Manual Variable-size Temporal-fit) pool
+============================================
 
 The MVT pool class manually manages variable-sized, unformatted objects. The MVT pool uses an allocation policy termed "temporal fit". Temporal fit attempts to place consecutive allocations next to each other. It relies on delaying reuse as long as possible to permit freed blocks to coalesce, thus maximizing the number of consecutive allocations that can be co-located. Temporal fit permits a very fast allocator and a deallocator competitive in speed with all other known policies.
 

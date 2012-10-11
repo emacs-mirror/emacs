@@ -1,8 +1,8 @@
 .. _pool-amc:
 
-=============================
-Automatic Mostly-Copying pool
-=============================
+===================================
+AMC (Automatic Mostly-Copying) pool
+===================================
 
 
 An AMC pool is both scannable and collectable. Objects may contain exact references to other objects that will preserve such other objects. Objects may be reclaimed if they are not reachable from a root. Objects may move during collection, unless reachable via a (direct) ambiguous reference. Objects in an AMC pool may be registered for finalization. Exact (that is, non-ambiguous)references into an object in an AMC pool must be to the start of the object.

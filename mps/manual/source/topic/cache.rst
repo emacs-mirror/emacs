@@ -108,3 +108,115 @@ What does this mean? (from mps_sac_alloc):
 
   MPS_SAC_FREE_FAST(sac, p, FooSIZE);
 </pre>
+
+
+
+<h4>Example</h4>
+
+<pre>
+  mps_sac_t sac;
+  mps_sac_class_s classes[3] = { {8, 38, 1}, {136, 19, 3}, {512, 4, 1} };
+
+  res = mps_sac_create(&amp;sac, pool, 3, classes);
+  if (res != MPS_RES_OK) {
+    printf("Failed to create the allocation cache!");
+    exit(1);
+  }
+</pre>
+
+
+
+
+<h4>Example</h4>
+
+<pre>
+  mps_sac_t sac;
+  mps_sac_class_s classes[3] = { {8, 38, 1}, {136, 19, 3}, {512, 4, 1} };
+
+  res = mps_sac_create(&amp;sac, pool, 3, classes);
+  if (res != MPS_RES_OK) {
+    printf("Failed to create the allocation cache!");
+    exit(1);
+  }
+</pre>
+
+
+
+    .. note::
+
+        Some pools will work more efficiently with segregated
+        allocation caches than others. [WHICH?] In the future, the MPS might
+        offer pools specially optimized for particular types of cache. [WHEN?]
+
+
+        Segregated allocation caches work poorly with debugging pool
+        classes: the debugging checks only happen when blocks are
+        moved between the cache and the pool. This will be fixed [WHEN?], but
+        the speed of allocation with a debug class will always be
+        similar to :c:func:`mps_alloc`, rather than cached speed.
+
+
+
+
+<h4>Example</h4>
+
+<pre>
+  res = mps_sac_create(&amp;sac, pool, 3, classes);
+  if (res != MPS_RES_OK) {
+    printf("Failed to create the allocation cache!");
+    exit(1);
+  }
+
+  /* Use sac. */
+
+  mps_sac_destroy(sac);
+  mps_pool_destroy(pool);
+</pre>
+
+
+
+
+<h4>Example</h4>
+
+<pre>
+  mps_sac_t sac_small, sac_large;
+
+  res = mps_sac_create(&amp;sac_small, pool, 3, small_classes);
+  if (res != MPS_RES_OK) {
+    printf("Failed to create the small allocation cache!");
+    exit(1);
+  }
+
+  res = mps_sac_create(&amp;sac_large, pool, 3, large_classes);
+  if (res != MPS_RES_OK) {
+    printf("Failed to create the large allocation cache!");
+    exit(1);
+  }
+
+  /* Use sac_small. */
+
+  mps_sac_flush(sac_small);
+
+  /* Use sac_large. */
+
+  mps_sac_flush(sac_large);
+
+  /* Use sac_small. */
+</pre>
+
+
+
+
+<h4>Example</h4>
+
+<pre>
+  mps_sac_t sac;
+  mps_sac_class_s classes[3] = { {8, 38, 1}, {136, 19, 3}, {512, 4, 1} };
+
+  res = mps_sac_create(&amp;sac, pool, 3, classes);
+  if (res != MPS_RES_OK) {
+    printf("Failed to create the allocation cache!");
+    exit(1);
+  }
+</pre>
+

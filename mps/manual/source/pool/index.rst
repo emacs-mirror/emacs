@@ -7,6 +7,8 @@ Pool reference
 
    pool-amc
    pool-amcz
+   pool-ams
+   pool-lo
    pool-mvff
    pool-mvt
    pool-snc
