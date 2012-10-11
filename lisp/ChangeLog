@@ -1,3 +1,8 @@
+2012-10-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* international/mule-cmds.el (read-char-by-name): Move let-binding of
+	completion-ignore-case in case that var is buffer-local (bug#12615).
+
 2012-10-11  Kenichi Handa  <handa@gnu.org>
 
 	* international/eucjp-ms.el: Re-generated.
@@ -10,8 +15,8 @@
 2012-10-10  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (switch-to-buffer-preserve-window-point): New option.
-	(switch-to-buffer): Obey
-	`switch-to-buffer-preserve-window-point' (Bug#4041).
+	(switch-to-buffer):
+	Obey `switch-to-buffer-preserve-window-point' (Bug#4041).
 
 2012-10-09  Stefan Monnier  <monnier@iro.umontreal.ca>
 
