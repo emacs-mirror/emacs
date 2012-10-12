@@ -677,10 +677,10 @@ Declared in ``mps.h``
     internal reasons) but which remains committed (mapped to RAM by
     the operating system). It is used by the arena to (attempt to)
     avoid calling the operating system to repeatedly map and unmap
-    areas of :term:`virtual memory <virtual memory (1)>` as the amount
-    of memory in use goes up and down. Spare committed memory is
-    counted as committed memory by :c:func:`mps_arena_committed` and
-    is restricted by :c:func:`mps_arena_commit_limit`.
+    areas of :term:`virtual memory>` as the amount of memory in use
+    goes up and down. Spare committed memory is counted as committed
+    memory by :c:func:`mps_arena_committed` and is restricted by
+    :c:func:`mps_arena_commit_limit`.
 
     The amount of "spare committed" memory can be limited by using
     :c:func:`mps_arena_spare_commit_limit_set`, and the value of that
@@ -2073,9 +2073,8 @@ Declared in ``mps.h``
     .. note::
 
         Running out of :term:`address space` (as might happen in
-        :term:`virtual memory <virtual memory (1)>` systems) is
-        indicated by returning :c:macro:`MPS_RES_RESOURCE`, not
-        ``MPS_RES_MEMORY``.
+        :term:`virtual memory` systems) is indicated by returning
+        :c:macro:`MPS_RES_RESOURCE`, not ``MPS_RES_MEMORY``.
 
 
 .. c:macro:: MPS_RES_OK
@@ -2118,8 +2117,8 @@ Declared in ``mps.h``
     it returns :c:macro:`MPS_RES_COMMIT_LIMIT`.
 
     This result code can be returned when the MPS runs out of
-    :term:`virtual memory <virtual memory (1)>`. If this happens, you
-    need to reclaim memory within your process (as for the result code
+    :term:`virtual memory`. If this happens, you need to reclaim
+    memory within your process (as for the result code
     :c:macro:`MPS_RES_MEMORY`), or terminate other processes running
     on the same machine.
 
@@ -2435,9 +2434,9 @@ Declared in ``mps.h``
     (rounded up to alignment, as usual).
 
     Returns :c:macro:`MPS_RES_MEMORY` if there wasn't enough memory,
-    :c:macro:`MPS_RES_COMMIT_LIMIT` if the :term:`commit limit`
-    was exceeded, or :c:macro:`MPS_RES_RESOURCE` if it ran out of
-    :term:`virtual memory <virtual memory (1)>`.
+    :c:macro:`MPS_RES_COMMIT_LIMIT` if the :term:`commit limit` was
+    exceeded, or :c:macro:`MPS_RES_RESOURCE` if it ran out of
+    :term:`virtual memory`.
 
     .. topics::
 
@@ -2984,12 +2983,12 @@ Declared in ``mpsavm.h``
     Return the :term:`arena class` for a :term:`virtual memory arena`.
 
     A virtual memory arena uses the operating system's :term:`virtual
-    memory <virtual memory (1)>` interface to allocate memory. The
-    chief consequence of this is that the arena can manage many more
-    virtual addresses than it needs to commit memory to. This gives it
-    flexibility as to where to place :term:`blocks <block>`, which
-    reduces :term:`fragmentation` and helps make :term:`garbage
-    collection` more efficient.
+    memory` interface to allocate memory. The chief consequence of
+    this is that the arena can manage many more virtual addresses than
+    it needs to commit memory to. This gives it flexibility as to
+    where to place :term:`blocks <block>`, which reduces
+    :term:`fragmentation` and helps make :term:`garbage collection`
+    more efficient.
 
     This class is similar to :c:func:`mps_arena_class_vmnz` but uses a
     more complex placement policy, which is more suited to copying

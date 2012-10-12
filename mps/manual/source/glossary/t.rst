@@ -16,12 +16,18 @@ Glossary: T
 
     tag
 
-        A tag is a piece of information associated with an :term:`object` or :term:`reference` that allows the representation of the object to be determined.
+        A tag is a piece of information associated with an
+        :term:`object` or :term:`reference` that allows the
+        representation of the object to be determined.
 
-        Tags are often used to represent types in the implementation of a dynamically-typed language.
-        In statically-typed languages, types are usually implicit and not permitted to change at run-time, so tagging is rarely required.
+        Tags are often used to represent types in the implementation
+        of a dynamically-typed language. In statically-typed
+        languages, types are usually implicit and not permitted to
+        change at run-time, so tagging is rarely required.
 
-        One of the simplest forms of tag is a :term:`word` at the beginning of the object that points to a block of information about the object's :term:`format`.
+        One of the simplest forms of tag is a :term:`word` at the
+        beginning of the object that points to a block of information
+        about the object's :term:`format`.
 
         .. figure:: ../diagrams/tag-word.png
             :align: center
@@ -29,7 +35,9 @@ Glossary: T
 
             Example of a tag-word at the start of an object.
 
-        Another common form of tagging is to :term:`align <alignment>` objects and keep information in the least significant bits of the :term:`address`.
+        Another common form of tagging is to :term:`align <alignment>`
+        objects and keep information in the least significant bits of
+        the :term:`address`.
 
         .. figure:: ../diagrams/tag-ref.png
             :align: center
@@ -37,7 +45,11 @@ Glossary: T
 
             Example of reference tagging, using the least significant bits.
 
-        In :term:`C`, when a structure contains a union, it is common to add a field to the structure to indicate which union member is currently being used. This field is known as a *discriminator*, and is a form of tag. Analogues occur in other languages, sometimes with compiler or run-time support.
+        In :term:`C`, when a structure contains a union, it is common
+        to add a field to the structure to indicate which union member
+        is currently being used. This field is known as a
+        *discriminator*, and is a form of tag. Analogues occur in
+        other languages, sometimes with compiler or run-time support.
 
         .. seealso:: :term:`tagged architecture`, :term:`header`.
 
@@ -45,11 +57,18 @@ Glossary: T
 
     tagged architecture
 
-        A tagged architecture is a hardware architecture where each memory :term:`word` is divided into a "data" and a :term:`tag` section. The data section is sufficiently large to contain a memory :term:`address` and the tag section is used to describe how the data section is to be interpreted (that is, it encodes the type of the data).
+        A tagged architecture is a hardware architecture where each
+        memory :term:`word` is divided into a "data" and a :term:`tag`
+        section. The data section is sufficiently large to contain a
+        memory :term:`address` and the tag section is used to describe
+        how the data section is to be interpreted (that is, it encodes
+        the type of the data).
 
         .. relevance::
 
-            Tagged architectures greatly simplify the implementation of a memory manager because each word of memory is self-describing.
+            Tagged architectures greatly simplify the implementation
+            of a memory manager because each word of memory is
+            self-describing.
 
         .. historical::
 
@@ -87,9 +106,11 @@ Glossary: T
 
         .. aka:: *TB (1)*.
 
-        A terabyte is 1024 :term:`gigabytes <gigabyte>`, or 1099511627776 :term:`bytes (1) <byte (1)>`.
+        A terabyte is 1024 :term:`gigabytes <gigabyte>`, or
+        1099511627776 :term:`bytes (1) <byte (1)>`.
 
-        See :term:`byte (1)` for general information on this and related quantities.
+        See :term:`byte (1)` for general information on this and
+        related quantities.
 
     termination
 
@@ -97,11 +118,22 @@ Glossary: T
 
     thrash
 
-        A :term:`cache (2)` is said to :term:`thrash` when its :term:`miss rate` is too high, and it spends most of its time servicing :term:`misses <miss>`. Thrashing is bad for performance, particularly :term:`virtual memory (1)` thrashing, because the relative cost of a miss is so high: it may slow a machine down by a factor of a hundred or more.
+        A :term:`cache (2)` is said to :term:`thrash` when its
+        :term:`miss rate` is too high, and it spends most of its time
+        servicing :term:`misses <miss>`. Thrashing is bad for
+        performance, particularly :term:`virtual memory`
+        thrashing, because the relative cost of a miss is so high: it
+        may slow a machine down by a factor of a hundred or more.
 
-        Thrashing is typically caused by a process or system having a :term:`working set` which is larger than its :term:`cache (1)` or :term:`main memory`. It may also be caused by a failure of :term:`cache policy`. A system with an inflexible cache policy may thrash even when the working set is quite small.
+        Thrashing is typically caused by a process or system having a
+        :term:`working set` which is larger than its :term:`cache (1)`
+        or :term:`main memory`. It may also be caused by a failure of
+        :term:`cache policy`. A system with an inflexible cache policy
+        may thrash even when the working set is quite small.
 
-        For instance, a virtual memory system which has four megabytes of :term:`physical memory (1)` but which has a working set of ten megabytes will :term:`thrash` badly.
+        For instance, a virtual memory system which has four megabytes
+        of :term:`physical memory (1)` but which has a working set of
+        ten megabytes will :term:`thrash` badly.
 
         .. bibref:: [DENNING68]_, [DENNING70]_, [DS72]_.
 
@@ -113,13 +145,29 @@ Glossary: T
 
         .. aka:: *condemned set*.
 
-        *Condemned* :term:`objects <object>` are those which are candidates for :term:`recycling <recycle>` within a :term:`collection cycle`.
+        *Condemned* :term:`objects <object>` are those which are
+        candidates for :term:`recycling <recycle>` within a
+        :term:`collection cycle`.
 
-        At the start of a collection cycle, the :term:`collector (1)` may choose to condemn some objects (the *condemned set* or *threatened set*) but not to condemn others (the :term:`immune set`). Objects that are not condemned are assumed to be :term:`alive` and behave as :term:`roots <root>` for the purposes of that collection cycle.
+        At the start of a collection cycle, the :term:`collector (1)`
+        may choose to condemn some objects (the *condemned set* or
+        *threatened set*) but not to condemn others (the :term:`immune
+        set`). Objects that are not condemned are assumed to be
+        :term:`alive` and behave as :term:`roots <root>` for the
+        purposes of that collection cycle.
 
-        Many simple :term:`tracing garbage collection` algorithms begin by condemning all objects, but :term:`generational garbage collectors <generational garbage collection>` will condemn individual :term:`generations <generation>` or combinations of generations. Often young generations are condemned but older ones are not, because objects in older generations are less likely to have become :term:`unreachable`.
+        Many simple :term:`tracing garbage collection` algorithms
+        begin by condemning all objects, but :term:`generational
+        garbage collectors <generational garbage collection>` will
+        condemn individual :term:`generations <generation>` or
+        combinations of generations. Often young generations are
+        condemned but older ones are not, because objects in older
+        generations are less likely to have become
+        :term:`unreachable`.
 
-        In collectors using :term:`tri-color marking`, at the start of a collection cycle the condemned set is exactly the set of objects that the collector colors :term:`white`.
+        In collectors using :term:`tri-color marking`, at the start of
+        a collection cycle the condemned set is exactly the set of
+        objects that the collector colors :term:`white`.
 
         .. opposite:: :term:`immune set`.
 
@@ -128,22 +176,46 @@ Glossary: T
 
         .. aka:: *TB (2)*, *translation buffer*, *ATC*, *address translation cache*.
 
-        The *translation lookaside buffer* or *address translation cache* is small piece of associative :term:`memory (1)` within a processor which caches part of the translation from :term:`virtual addresses <virtual address>` to :term:`physical addresses <physical address>`.
+        The *translation lookaside buffer* or *address translation
+        cache* is small piece of associative :term:`memory (1)` within
+        a processor which caches part of the translation from
+        :term:`virtual addresses <virtual address>` to :term:`physical
+        addresses <physical address>`.
 
-        In a :term:`virtual memory (1)` system there is a translation from :term:`virtual addresses <virtual address>` to :term:`physical addresses <physical address>`. This translation can often be very large and complex and the data structures that implement the translation (often a :term:`page-table <page table>`) can be too large to store efficiently on the processor. Instead, a few elements of the translation are stored in the TLB; the processor can access the TLB extremely quickly. If a required translation for a particular virtual address is not present in the TLB then *a TLB miss* is taken and the address is resolved using the more general mechanism.
+        In a :term:`virtual memory` system there is a translation
+        from :term:`virtual addresses <virtual address>` to
+        :term:`physical addresses <physical address>`. This
+        translation can often be very large and complex and the data
+        structures that implement the translation (often a
+        :term:`page-table <page table>`) can be too large to store
+        efficiently on the processor. Instead, a few elements of the
+        translation are stored in the TLB; the processor can access
+        the TLB extremely quickly. If a required translation for a
+        particular virtual address is not present in the TLB then *a
+        TLB miss* is taken and the address is resolved using the more
+        general mechanism.
 
     trace
 
-        In :term:`tracing garbage collection`, tracing is the process of following the :term:`graph` from all :term:`roots <root>`
-         to all :term:`reachable` data.
+        In :term:`tracing garbage collection`, tracing is the process
+        of following the :term:`graph` from all :term:`roots <root>`
+        to all :term:`reachable` data.
 
         .. similar:: :term:`scan`.
 
     tracing garbage collection
 
-        Tracing garbage collection is :term:`garbage collection` based on :term:`reachability <reachable>`.
+        Tracing garbage collection is :term:`garbage collection` based
+        on :term:`reachability <reachable>`.
 
-        Tracing garbage collection relies on the fact that if an :term:`object` is not :term:`reachable`, there is no way the :term:`mutator` could ever access it, and therefore it cannot be :term:`alive`. In each :term:`collection cycle`, some or all of the objects are :term:`condemned <threatened set>` and the :term:`graph` is :term:`traced <trace>` to find which of the condemned objects are reachable. Those that were not reachable may be :term:`reclaimed <reclaim>`.
+        Tracing garbage collection relies on the fact that if an
+        :term:`object` is not :term:`reachable`, there is no way the
+        :term:`mutator` could ever access it, and therefore it cannot
+        be :term:`alive`. In each :term:`collection cycle`, some or
+        all of the objects are :term:`condemned <threatened set>` and
+        the :term:`graph` is :term:`traced <trace>` to find which of
+        the condemned objects are reachable. Those that were not
+        reachable may be :term:`reclaimed <reclaim>`.
 
     translation buffer
 
@@ -151,7 +223,11 @@ Glossary: T
 
     transport
 
-        In a :term:`copying collector <copying garbage collection>`, transporting is preventing an :term:`object` in the :term:`condemned set` from being collected by copying it and adjusting the :term:`reference` by which it was discovered to point to the new copy.
+        In a :term:`copying collector <copying garbage collection>`,
+        transporting is preventing an :term:`object` in the
+        :term:`condemned set` from being collected by copying it and
+        adjusting the :term:`reference` by which it was discovered to
+        point to the new copy.
 
         .. seealso:: :term:`scavenging <copying garbage collection>`, :term:`snap-out`.
 
@@ -161,9 +237,20 @@ Glossary: T
 
     treadmill
 
-        Henry Baker has devised an :term:`incremental <incremental garbage collection>` non-:term:`moving <moving garbage collector>` :term:`garbage collector` that uses a circular doubly-linked list, called the treadmill, to implement :term:`tri-color marking`.
+        Henry Baker has devised an :term:`incremental <incremental
+        garbage collection>` non-:term:`moving <moving garbage
+        collector>` :term:`garbage collector` that uses a circular
+        doubly-linked list, called the treadmill, to implement
+        :term:`tri-color marking`.
 
-        Every :term:`object` is on the list. The list has four sections corresponding to :term:`colors <color>`. The :term:`black`, :term:`gray` and :term:`white` sections are used for tri-color marking,  and an additional :term:`off-white` section is used for :term:`free (3)` objects. The color of an object is changed by unlinking it from the list and relinking it to a different part of the list.
+        Every :term:`object` is on the list. The list has four
+        sections corresponding to :term:`colors <color>`. The
+        :term:`black`, :term:`gray` and :term:`white` sections are
+        used for tri-color marking, and an additional
+        :term:`off-white` section is used for :term:`free (3)`
+        objects. The color of an object is changed by unlinking it
+        from the list and relinking it to a different part of the
+        list.
 
         .. figure:: ../diagrams/treadmill.png
             :align: center
@@ -174,30 +261,70 @@ Glossary: T
         .. bibref:: [BAKER92C]_.
 
     tri-color invariant
-    tri-colour invariant, tricolor invariant, tricolour invariant
+    tri-colour invariant
+    tricolor invariant
+    tricolour invariant
 
-        The term "tri-color invariant" is used to refer to any of a number of properties of a :term:`reference` :term:`graph` that are preserved throughout a :term:`tri-color marking` algorithm to ensure the correctness.
+        The term "tri-color invariant" is used to refer to any of a
+        number of properties of a :term:`reference` :term:`graph` that
+        are preserved throughout a :term:`tri-color marking` algorithm
+        to ensure the correctness.
 
-        There are two important ones: the :term:`strong tri-color invariant` and the :term:`weak tri-color invariant`. When people say "the tri-color invariant" they probably mean the strong one.
+        There are two important ones: the :term:`strong tri-color
+        invariant` and the :term:`weak tri-color invariant`. When
+        people say "the tri-color invariant" they probably mean the
+        strong one.
 
         .. bibref:: [PIRINEN98]_.
 
     tri-color marking
-    tri-colour marking, tricolor marking, tricolour marking
+    tri-colour marking
+    tricolor marking
+    tricolour marking
 
-        Tri-color marking is a :term:`tracing garbage collection` algorithm that assigns a :term:`color` (:term:`black`, :term:`white`, or :term:`gray`) to each :term:`node` in the :term:`graph`. It is basic to :term:`incremental garbage collection`.
+        Tri-color marking is a :term:`tracing garbage collection`
+        algorithm that assigns a :term:`color` (:term:`black`,
+        :term:`white`, or :term:`gray`) to each :term:`node` in the
+        :term:`graph`. It is basic to :term:`incremental garbage
+        collection`.
 
-        Initially all nodes are colored white. The distinguished :term:`root set` is colored gray. The :term:`collector (2)` proceeds to discover the :term:`reachable` nodes by finding an :term:`edge` from a gray node to a white node and coloring the white node gray. Hence each tracing step involves choosing a gray node and graying its white children.
+        Initially all nodes are colored white. The distinguished
+        :term:`root set` is colored gray. The :term:`collector (2)`
+        proceeds to discover the :term:`reachable` nodes by finding an
+        :term:`edge` from a gray node to a white node and coloring the
+        white node gray. Hence each tracing step involves choosing a
+        gray node and graying its white children.
 
-        When all the edges from a gray node lead only to other gray (or black) nodes, the node is colored black. When no gray nodes remain, the reachable part of the graph has been discovered and any nodes that are still white may be :term:`recycled <recycle>`.
+        When all the edges from a gray node lead only to other gray
+        (or black) nodes, the node is colored black. When no gray
+        nodes remain, the reachable part of the graph has been
+        discovered and any nodes that are still white may be
+        :term:`recycled <recycle>`.
 
-        The :term:`mutator` is free to access any part of the graph and allocate new nodes while the :term:`collector (2)` is determining the reachable nodes, provided the :term:`tri-color invariant` is maintained, by changing the colors of the nodes affected, if necessary.
+        The :term:`mutator` is free to access any part of the graph
+        and allocate new nodes while the :term:`collector (2)` is
+        determining the reachable nodes, provided the :term:`tri-color
+        invariant` is maintained, by changing the colors of the nodes
+        affected, if necessary.
 
         .. historical::
 
-            "Tri-color marking" is the term used to describe an algorithm developed in 1975 by E. W. Dijkstra and others, as an exercise in proving cooperating programs correct. They chose as their problem a :term:`parallel garbage collector <parallel garbage collection>`, with the intent of illustrating cooperating sequential processes with a large shared data space but minimal exclusion and synchronization constraints.
+            "Tri-color marking" is the term used to describe an
+            algorithm developed in 1975 by E. W. Dijkstra and others,
+            as an exercise in proving cooperating programs correct.
+            They chose as their problem a :term:`parallel garbage
+            collector <parallel garbage collection>`, with the intent
+            of illustrating cooperating sequential processes with a
+            large shared data space but minimal exclusion and
+            synchronization constraints.
 
-        Although the algorithm developed in the paper is not necessarily the most efficient algorithm for a :term:`collector (1)`, it has been generally accepted to be correct: an important feature that not all garbage collectors can claim. A number of other garbage collection algorithms have been shown to be isomorphic to the tri-color marking algorithm and thus are also believed to be correct.
+        Although the algorithm developed in the paper is not
+        necessarily the most efficient algorithm for a
+        :term:`collector (1)`, it has been generally accepted to be
+        correct: an important feature that not all garbage collectors
+        can claim. A number of other garbage collection algorithms
+        have been shown to be isomorphic to the tri-color marking
+        algorithm and thus are also believed to be correct.
 
         .. seealso:: :term:`barrier (1)`.
 
@@ -208,9 +335,25 @@ Glossary: T
 
         .. aka:: *semi-space collector*.
 
-        A two-space :term:`collector (1)` is a simple form of a :term:`copying garbage collector <copying garbage collection>`. The available :term:`memory (2)` is divided into two halves, called :term:`semi-spaces <semi-space>`. :term:`Objects <object>` are allocated in one semi-space until it is full. The :term:`reachable` objects are then copied into the other semi-space (usually using a :term:`Cheney scan`) and the old semi-space is :term:`reclaimed <reclaim>`. :term:`Allocation <allocate>` continues in the new semi-space until it is full, at which point the process is repeated in reverse.
+        A two-space :term:`collector (1)` is a simple form of a
+        :term:`copying garbage collector <copying garbage
+        collection>`. The available :term:`memory (2)` is divided into
+        two halves, called :term:`semi-spaces <semi-space>`.
+        :term:`Objects <object>` are allocated in one semi-space until
+        it is full. The :term:`reachable` objects are then copied into
+        the other semi-space (usually using a :term:`Cheney scan`) and
+        the old semi-space is :term:`reclaimed <reclaim>`.
+        :term:`Allocation <allocate>` continues in the new semi-space
+        until it is full, at which point the process is repeated in
+        reverse.
 
-        The main disadvantage of a two-space collector is that it only makes use of half of the available memory. This can be tolerable in a :term:`virtual memory (1)` system if the :term:`garbage collector` is written carefully to preserve :term:`locality of reference`. Other forms of copying garbage collector, such as :term:`generational garbage collectors <generational garbage collection>`, have much lower overheads.
+        The main disadvantage of a two-space collector is that it only
+        makes use of half of the available memory. This can be
+        tolerable in a :term:`virtual memory` system if the
+        :term:`garbage collector` is written carefully to preserve
+        :term:`locality of reference`. Other forms of copying garbage
+        collector, such as :term:`generational garbage collectors
+        <generational garbage collection>`, have much lower overheads.
 
         .. figure:: ../diagrams/two-space-1.png
             :align: center
