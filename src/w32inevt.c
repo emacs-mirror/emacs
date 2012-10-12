@@ -576,6 +576,38 @@ maybe_generate_resize_event (void)
 		     0, 0, 0);
 }
 
+/* Here's an overview of how Emacs input works in non-GUI sessions on
+   MS-Windows.  (For description of the GUI input, see the commentary
+   before w32_msg_pump in w32fns.c.)
+
+   When Emacs is idle, it loops inside wait_reading_process_output,
+   calling pselect periodically to check whether any input is
+   available.  On Windows, pselect is redirected to sys_select, which
+   uses MsgWaitForMultipleObjects to wait for input, either from the
+   keyboard or from any of the Emacs subprocesses.  In addition,
+   MsgWaitForMultipleObjects wakes up when some Windows message is
+   posted to the input queue of the Emacs's main thread (which is the
+   thread in which sys_select runs).
+
+   When the Emacs's console window has focus, Windows sends input
+   events that originate from the keyboard or the mouse; these events
+   wake up MsgWaitForMultipleObjects, which reports that input is
+   available.  Emacs then calls w32_console_read_socket, below, to
+   read the input.  w32_console_read_socket uses
+   GetNumberOfConsoleInputEvents and ReadConsoleInput to peek at and
+   read the console input events.
+
+   One type of non-keyboard input event that gets reported as input
+   available is due to the Emacs's console window receiving focus.
+   When that happens, Emacs gets the FOCUS_EVENT event and sys_select
+   reports some input; however, w32_console_read_socket ignores such
+   events when called to read them.
+
+   Note that any other Windows message sent to the main thread will
+   also wake up MsgWaitForMultipleObjects.  These messages get
+   immediately dispatched to their destinations by calling
+   drain_message_queue.  */
+
 int
 w32_console_read_socket (struct terminal *terminal,
                          struct input_event *hold_quit)
