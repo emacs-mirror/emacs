@@ -1,5 +1,7 @@
 2012-10-12  Eli Zaretskii  <eliz@gnu.org>
 
+	* makefile.w32-in ($(BLD)/fileio.$(O)): Add sys/file.h.
+
 	* fileio.c (check_existing): New function.
 	(make_temp_name, Ffile_exists_p, Ffile_writable_p): Call it
 	instead of calling 'stat', when what's needed is to check whether

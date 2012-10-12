@@ -835,6 +835,7 @@ $(BLD)/fileio.$(O) : \
 	$(NT_INC)/pwd.h \
 	$(NT_INC)/sys/stat.h \
 	$(NT_INC)/unistd.h \
+	$(NT_INC)/sys/file.h \
 	$(BUFFER_H) \
 	$(CHARACTER_H) \
 	$(CODING_H) \
