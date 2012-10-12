@@ -345,15 +345,11 @@ static ptrdiff_t const PSEUDOVECTOR_FLAG
       = PSEUDOVECTOR_FLAG;
 
 /* In a pseudovector, the size field actually contains a word with one
-   PSEUDOVECTOR_FLAG bit set, and exactly one of the following bits to
-   indicate the actual type.
-   We use a bitset, even tho only one of the bits can be set at any
-   particular time just so as to be able to use micro-optimizations such as
-   testing membership of a particular subset of pseudovectors in Fequal.
-   It is not crucial, but there are plenty of bits here, so why not do it?  */
+   PSEUDOVECTOR_FLAG bit set, and one of the following values extracted
+   with PVEC_TYPE_MASK to indicate the actual type.  */
 enum pvec_type
 {
-  PVEC_NORMAL_VECTOR = 0,	/* Unused!  */
+  PVEC_NORMAL_VECTOR,
   PVEC_FREE,
   PVEC_PROCESS,
   PVEC_FRAME,
@@ -3031,7 +3027,7 @@ extern Lisp_Object oblookup (Lisp_Object, const char *, ptrdiff_t, ptrdiff_t);
   } while (0)
 extern int openp (Lisp_Object, Lisp_Object, Lisp_Object,
                   Lisp_Object *, Lisp_Object);
-Lisp_Object string_to_number (char const *, int, int);
+extern Lisp_Object string_to_number (char const *, int, bool);
 extern void map_obarray (Lisp_Object, void (*) (Lisp_Object, Lisp_Object),
                          Lisp_Object);
 extern void dir_warning (const char *, Lisp_Object);
@@ -3202,9 +3198,9 @@ extern ptrdiff_t fast_string_match_ignore_case (Lisp_Object, Lisp_Object);
 extern ptrdiff_t fast_looking_at (Lisp_Object, ptrdiff_t, ptrdiff_t,
                                   ptrdiff_t, ptrdiff_t, Lisp_Object);
 extern ptrdiff_t scan_buffer (int, ptrdiff_t, ptrdiff_t, ptrdiff_t,
-			      ptrdiff_t *, int);
+			      ptrdiff_t *, bool);
 extern EMACS_INT scan_newline (ptrdiff_t, ptrdiff_t, ptrdiff_t, ptrdiff_t,
-			       EMACS_INT, int);
+			       EMACS_INT, bool);
 extern ptrdiff_t find_next_newline (ptrdiff_t, int);
 extern ptrdiff_t find_next_newline_no_quit (ptrdiff_t, ptrdiff_t);
 extern ptrdiff_t find_before_next_newline (ptrdiff_t, ptrdiff_t, ptrdiff_t);
@@ -3247,7 +3243,7 @@ extern Lisp_Object Qdisabled, QCfilter;
 extern Lisp_Object Qup, Qdown, Qbottom;
 extern Lisp_Object Qtop;
 extern Lisp_Object last_undo_boundary;
-extern int input_pending;
+extern bool input_pending;
 extern Lisp_Object menu_bar_items (Lisp_Object);
 extern Lisp_Object tool_bar_items (Lisp_Object, int *);
 extern void discard_mouse_events (void);
@@ -3255,9 +3251,9 @@ extern void discard_mouse_events (void);
 void handle_input_available_signal (int);
 #endif
 extern Lisp_Object pending_funcalls;
-extern int detect_input_pending (void);
-extern int detect_input_pending_ignore_squeezables (void);
-extern int detect_input_pending_run_timers (int);
+extern bool detect_input_pending (void);
+extern bool detect_input_pending_ignore_squeezables (void);
+extern bool detect_input_pending_run_timers (bool);
 extern void safe_run_hooks (Lisp_Object);
 extern void cmd_error_internal (Lisp_Object, const char *);
 extern Lisp_Object command_loop_1 (void);
@@ -3336,7 +3332,7 @@ extern bool running_asynch_code;
 extern Lisp_Object QCtype, Qlocal;
 extern Lisp_Object Qprocessp;
 extern void kill_buffer_processes (Lisp_Object);
-extern int wait_reading_process_output (intmax_t, int, int, int,
+extern int wait_reading_process_output (intmax_t, int, int, bool,
                                         Lisp_Object,
                                         struct Lisp_Process *,
                                         int);
@@ -3568,7 +3564,8 @@ extern char *emacs_root_dir (void);
    Used during startup to detect startup of dumped Emacs.  */
 extern bool initialized;
 
-extern int immediate_quit;	    /* Nonzero means ^G can quit instantly.  */
+/* True means ^G can quit instantly.  */
+extern bool immediate_quit;
 
 extern void *xmalloc (size_t);
 extern void *xzalloc (size_t);

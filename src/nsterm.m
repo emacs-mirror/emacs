@@ -55,7 +55,6 @@ GNUstep port and post-20 update by Adrian Robert (arobert@cogsci.ucsd.edu)
 #include "ccl.h"
 
 #include "termhooks.h"
-#include "termopts.h"
 #include "termchar.h"
 
 #include "window.h"
@@ -1315,7 +1314,7 @@ static void
 ns_fullscreen_hook (FRAME_PTR f)
 {
   EmacsView *view = (EmacsView *)FRAME_NS_VIEW (f);
-  
+
   if (! f->async_visible) return;
 #ifndef NEW_STYLE_FS
   if (f->want_fullscreen == FULLSCREEN_BOTH)
@@ -5942,7 +5941,7 @@ not_in_argv (NSString *arg)
       [w setBackgroundColor: col];
       if ([col alphaComponent] != 1.0)
         [w setOpaque: NO];
-      
+
       f->border_width = bwidth;
       FRAME_NS_TITLEBAR_HEIGHT (f) = tibar_height;
       FRAME_TOOLBAR_HEIGHT (f) = tobar_height;
@@ -5995,7 +5994,7 @@ not_in_argv (NSString *arg)
             }
           break;
         }
-  
+
       emacsframe->want_fullscreen = FULLSCREEN_NONE;
     }
 

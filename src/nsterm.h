@@ -161,7 +161,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 - (EmacsMenu *)addSubmenuWithTitle: (const char *)title forFrame: (struct frame *)f;
 - (void) clear;
 - (Lisp_Object)runMenuAt: (NSPoint)p forFrame: (struct frame *)f
-                 keymaps: (int)keymaps;
+                 keymaps: (bool)keymaps;
 @end
 
 
@@ -792,7 +792,7 @@ extern void free_frame_tool_bar (FRAME_PTR f);
 extern void find_and_call_menu_selection (FRAME_PTR f,
     int menu_bar_items_used, Lisp_Object vector, void *client_data);
 extern Lisp_Object find_and_return_menu_selection (FRAME_PTR f,
-                                                   int keymaps,
+                                                   bool keymaps,
                                                    void *client_data);
 extern Lisp_Object ns_popup_dialog (Lisp_Object position, Lisp_Object contents,
                                     Lisp_Object header);

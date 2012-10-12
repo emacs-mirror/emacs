@@ -728,7 +728,8 @@ If ALIST is non-nil, the new pairs are prepended to it."
 ;;;###autoload
 (progn
   ;; Make sure functions defined with cl-defsubst can be inlined even in
-  ;; packages which do not require CL.
+  ;; packages which do not require CL.  We don't put an autoload cookie
+  ;; directly on that function, since those cookies only go to cl-loaddefs.
   (autoload 'cl--defsubst-expand "cl-macs")
   ;; Autoload, so autoload.el and font-lock can use it even when CL
   ;; is not loaded.

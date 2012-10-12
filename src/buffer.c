@@ -897,6 +897,8 @@ delete_all_overlays (struct buffer *b)
 {
   struct Lisp_Overlay *ov, *next;
 
+  /* FIXME: Since each drop_overlay will scan BUF_MARKERS to unlink its
+     markers, we have an unneeded O(N^2) behavior here.  */
   for (ov = b->overlays_before; ov; ov = next)
     {
       drop_overlay (b, ov);
@@ -1886,16 +1888,19 @@ cleaning up all windows currently displaying the buffer to be killed. */)
 
   if (b->base_buffer)
     {
-      /* Unchain all markers that belong to this indirect buffer.
-	 Don't unchain the markers that belong to the base buffer
-	 or its other indirect buffers.  */
-      for (m = BUF_MARKERS (b); m; )
-	{
-	  struct Lisp_Marker *next = m->next;
-	  if (m->buffer == b)
-	    unchain_marker (m);
-	  m = next;
-	}
+      { /* Unchain all markers that belong to this indirect buffer.
+	   Don't unchain the markers that belong to the base buffer
+	   or its other indirect buffers.  */
+	struct Lisp_Marker **mp;
+	for (mp = &BUF_MARKERS (b); *mp; )
+	  {
+	    struct Lisp_Marker *m = *mp;
+	    if (m->buffer == b)
+	      *mp = m->next;
+	    else
+	      mp = &m->next;
+	  }
+      }
     }
   else
     {
@@ -1911,8 +1916,12 @@ cleaning up all windows currently displaying the buffer to be killed. */)
       BUF_MARKERS (b) = NULL;
       set_buffer_intervals (b, NULL);
 
-      /* Perhaps we should explicitly free the interval tree here... */
+      /* Perhaps we should explicitly free the interval tree here...  */
     }
+  /* Since we've unlinked the markers, the overlays can't be here any more
+     either.  */
+  b->overlays_before = NULL;
+  b->overlays_after = NULL;
 
   /* Reset the local variables, so that this buffer's local values
      won't be protected from GC.  They would be protected
@@ -2176,7 +2185,7 @@ set_buffer_temp (struct buffer *b)
 DEFUN ("set-buffer", Fset_buffer, Sset_buffer, 1, 1, 0,
        doc: /* Make buffer BUFFER-OR-NAME current for editing operations.
 BUFFER-OR-NAME may be a buffer or the name of an existing buffer.  See
-also `save-excursion' when you want to make a buffer current
+also `with-current-buffer' when you want to make a buffer current
 temporarily.  This function does not display the buffer, so its effect
 ends when the current command terminates.  Use `switch-to-buffer' or
 `pop-to-buffer' to switch buffers permanently.  */)

@@ -34,11 +34,11 @@ extern Lisp_Object Qkeymap, Qmenu_bar;
 extern Lisp_Object Qremap;
 extern Lisp_Object Qmenu_item;
 extern Lisp_Object current_global_map;
-extern char *push_key_description (EMACS_INT, char *, int);
-extern Lisp_Object access_keymap (Lisp_Object, Lisp_Object, int, int, int);
-extern Lisp_Object get_keymap (Lisp_Object, int, int);
-extern void describe_map_tree (Lisp_Object, int, Lisp_Object, Lisp_Object,
-			      const char *, int, int, int, int);
+extern char *push_key_description (EMACS_INT, char *);
+extern Lisp_Object access_keymap (Lisp_Object, Lisp_Object, bool, bool, bool);
+extern Lisp_Object get_keymap (Lisp_Object, bool, bool);
+extern void describe_map_tree (Lisp_Object, bool, Lisp_Object, Lisp_Object,
+			       const char *, bool, bool, bool, bool);
 extern ptrdiff_t current_minor_maps (Lisp_Object **, Lisp_Object **);
 extern void initial_define_key (Lisp_Object, int, const char *);
 extern void initial_define_lispy_key (Lisp_Object, const char *, const char *);
@@ -47,7 +47,8 @@ extern void keys_of_keymap (void);
 
 typedef void (*map_keymap_function_t)
      (Lisp_Object key, Lisp_Object val, Lisp_Object args, void* data);
-extern void map_keymap (Lisp_Object map, map_keymap_function_t fun, Lisp_Object largs, void* cargs, int autoload);
+extern void map_keymap (Lisp_Object, map_keymap_function_t, Lisp_Object,
+			void *, bool);
 extern void map_keymap_canonical (Lisp_Object map,
 				  map_keymap_function_t fun,
 				  Lisp_Object args, void *data);

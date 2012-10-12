@@ -5818,6 +5818,26 @@ buffer with the name BUFFER-OR-NAME and return that buffer."
 	    buffer))
     (other-buffer)))
 
+(defcustom switch-to-buffer-preserve-window-point nil
+  "If non-nil, `switch-to-buffer' tries to preserve `window-point'.
+If this is nil, `switch-to-buffer' displays the buffer at that
+buffer's `point'.  If this is `already-displayed', it tries to
+display the buffer at its pevious position in the selected
+window, provided the buffer is currently displayed in some other
+window on any visible or iconified frame.  If this is t, it
+unconditionally tries to display the buffer at its previous
+position in the selected window.
+
+This variable is ignored if the the buffer is already displayed
+in the selected window or never appeared in it before, or if
+`switch-to-buffer' calls `pop-to-buffer' to display the buffer."
+  :type '(choice
+	  (const :tag "Never" nil)
+	  (const :tag "If already displayed elsewhere" already-displayed)
+	  (const :tag "Always" t))
+  :group 'windows
+  :version "24.3")
+
 (defun switch-to-buffer (buffer-or-name &optional norecord force-same-window)
   "Switch to buffer BUFFER-OR-NAME in the selected window.
 If the selected window cannot display the specified
@@ -5843,6 +5863,10 @@ If optional argument FORCE-SAME-WINDOW is non-nil, the buffer
 must be displayed in the selected window; if that is impossible,
 signal an error rather than calling `pop-to-buffer'.
 
+The option `switch-to-buffer-preserve-window-point' can be used
+to make the buffer appear at its last position in the selected
+window.
+
 Return the buffer switched to."
   (interactive
    (list (read-buffer-to-switch "Switch to buffer: ") nil 'force-same-window))
@@ -5859,7 +5883,19 @@ Return the buffer switched to."
       (if force-same-window
           (user-error "Cannot switch buffers in a dedicated window")
         (pop-to-buffer buffer norecord)))
-     (t (set-window-buffer nil buffer)))
+     (t
+      (let* ((entry (assq buffer (window-prev-buffers)))
+	     (displayed (and (eq switch-to-buffer-preserve-window-point
+				 'already-displayed)
+			     (get-buffer-window buffer 0))))
+	(set-window-buffer nil buffer)
+	(when (and entry
+		   (or (eq switch-to-buffer-preserve-window-point t)
+		       displayed))
+	  ;; Try to restore start and point of buffer in the selected
+	  ;; window (Bug#4041).
+	  (set-window-start (selected-window) (nth 1 entry) t)
+	  (set-window-point nil (nth 2 entry))))))
 
     (unless norecord
       (select-window (selected-window)))

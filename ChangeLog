@@ -1,3 +1,7 @@
+2012-10-11  Kenichi Handa  <handa@gnu.org>
+
+	* .bzrignore: Add several files under admin/charsets.
+
 2012-10-08  Daniel Colascione  <dancol@dancol.org>
 
 	* configure.ac: Add --with-w32 as a window system option.  Limit

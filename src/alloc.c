@@ -5689,7 +5689,7 @@ mark_object (Lisp_Object arg)
 	  pvectype = ((ptr->header.size & PVEC_TYPE_MASK)
 		      >> PSEUDOVECTOR_SIZE_BITS);
 	else
-	  pvectype = 0;
+	  pvectype = PVEC_NORMAL_VECTOR;
 
 	if (pvectype != PVEC_SUBR && pvectype != PVEC_BUFFER)
 	  CHECK_LIVE (live_vector_p);
@@ -6311,19 +6311,14 @@ gc_sweep (void)
 
   /* Free all unmarked buffers */
   {
-    register struct buffer *buffer = all_buffers, *prev = 0, *next;
+    register struct buffer *buffer, **bprev = &all_buffers;
 
     total_buffers = 0;
-    while (buffer)
+    for (buffer = all_buffers; buffer; buffer = *bprev)
       if (!VECTOR_MARKED_P (buffer))
 	{
-	  if (prev)
-	    prev->header.next = buffer->header.next;
-	  else
-	    all_buffers = buffer->header.next.buffer;
-	  next = buffer->header.next.buffer;
+	  *bprev = buffer->header.next.buffer;
 	  lisp_free (buffer);
-	  buffer = next;
 	}
       else
 	{
@@ -6331,7 +6326,7 @@ gc_sweep (void)
 	  /* Do not use buffer_(set|get)_intervals here.  */
 	  buffer->text->intervals = balance_intervals (buffer->text->intervals);
 	  total_buffers++;
-	  prev = buffer, buffer = buffer->header.next.buffer;
+	  bprev = &buffer->header.next.buffer;
 	}
   }
 

@@ -621,7 +621,7 @@ FILE is the file where FUNCTION was probably defined."
 	     ;; If the function is autoloaded, and its docstring has
 	     ;; key substitution constructs, load the library.
 	     (doc (progn
-		    (and (autoloadp real-def)
+		    (and (autoloadp real-def) doc-raw
 			 help-enable-auto-load
 			 (string-match "\\([^\\]=\\|[^=]\\|\\`\\)\\\\[[{<]"
 				       doc-raw)
