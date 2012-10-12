@@ -10,9 +10,14 @@ Glossary: U
 
         .. aka:: *misaligned*.
 
-        An :term:`address` is unaligned or misaligned if it does not comply with some :term:`alignment` constraint on it.
+        An :term:`address` is unaligned or misaligned if it does not
+        comply with some :term:`alignment` constraint on it.
 
-        For example, typically double precision floating point numbers occupy 8 :term:`bytes (1) <byte (1)>` and have an alignment of 4 bytes; that is, their address must be a multiple of four. If a program tries to access such a number using an address that is not a multiple of four, a :term:`bus error` will result.
+        For example, typically double precision floating point numbers
+        occupy 8 :term:`bytes (1) <byte (1)>` and have an alignment of
+        4 bytes; that is, their address must be a multiple of four. If
+        a program tries to access such a number using an address that
+        is not a multiple of four, a :term:`bus error` will result.
 
         .. opposite:: :term:`aligned <alignment>`.
 
@@ -20,9 +25,16 @@ Glossary: U
 
     unboxed
 
-        Unboxed :term:`objects <object>` are represented by an encoding of the data itself, and not by a :term:`pointer` to that data.
+        Unboxed :term:`objects <object>` are represented by an
+        encoding of the data itself, and not by a :term:`pointer` to
+        that data.
 
-        Representations are typically chosen so that unboxed values are the same size as the pointer part of a :term:`boxed` object. Sometimes the value is :term:`tagged <tag>` to distinguish it from a boxed object. The entire object is duplicated when the object is passed around,  so updates to it,  if allowed, only affect one copy.
+        Representations are typically chosen so that unboxed values
+        are the same size as the pointer part of a :term:`boxed`
+        object. Sometimes the value is :term:`tagged <tag>` to
+        distinguish it from a boxed object. The entire object is
+        duplicated when the object is passed around, so updates to it,
+        if allowed, only affect one copy.
 
         .. similar:: :term:`immediate data`.
 
@@ -36,15 +48,23 @@ Glossary: U
 
     undead
 
-        An undead object is an :term:`object` that cannot be proven to be :term:`dead` by the :term:`garbage collector`, but whose :term:`liveness <live>` is dubious.
+        An undead object is an :term:`object` that cannot be proven to
+        be :term:`dead` by the :term:`garbage collector`, but whose
+        :term:`liveness <live>` is dubious.
 
-        For example, an :term:`ambiguous reference` to an object on a :term:`page` may mark the entire page as :term:`reachable`. No further data is collected about that page. The other objects on the page will survive, even though their reachability has not been determined. They are *undead*.
+        For example, an :term:`ambiguous reference` to an object on a
+        :term:`page` may mark the entire page as :term:`reachable`. No
+        further data is collected about that page. The other objects
+        on the page will survive, even though their reachability has
+        not been determined. They are *undead*.
 
     unmapped
 
         .. aka:: *free (4)*.
 
-        A range of :term:`virtual addresses <virtual address>` is said to be *unmapped* (*free* on Windows) if there is no :term:`physical memory (2)` associated with the range.
+        A range of :term:`virtual addresses <virtual address>` is said
+        to be *unmapped* (*free* on Windows) if there is no
+        :term:`physical memory (2)` associated with the range.
 
         An unmapped range may or may not be :term:`reserved`.
 
@@ -52,9 +72,12 @@ Glossary: U
 
     unreachable
 
-        An :term:`object` is unreachable if there is no :term:`reference` chain to it from any :term:`root`.
+        An :term:`object` is unreachable if there is no
+        :term:`reference` chain to it from any :term:`root`.
 
-        An object will become unreachable when the :term:`mutator` overwrites its last (direct or indirect) reference to the object.
+        An object will become unreachable when the :term:`mutator`
+        overwrites its last (direct or indirect) reference to the
+        object.
 
         .. similar:: :term:`dead`.
 
@@ -70,9 +93,14 @@ Glossary: U
 
         .. aka:: *raw*.
 
-        A value is *unwrapped* or *raw* if it is not encoded with type information.
+        A value is *unwrapped* or *raw* if it is not encoded with type
+        information.
 
-        In a dynamically-typed language, the compiler may sometimes be able to pick a more compact or efficient representation for a value if it can prove that the type can be determined at compile-time. This is a particularly useful optimization for numeric values such as integers or floats.
+        In a dynamically-typed language, the compiler may sometimes be
+        able to pick a more compact or efficient representation for a
+        value if it can prove that the type can be determined at
+        compile-time. This is a particularly useful optimization for
+        numeric values such as integers or floats.
 
         .. opposite:: :term:`wrapped`.
 
