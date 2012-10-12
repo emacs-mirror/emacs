@@ -1,3 +1,7 @@
+2012-10-12  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsfont.m (nsfont_open): Remove font cache, it is not GC correct.
+
 2012-10-12  Glenn Morris  <rgm@gnu.org>
 
 	* buffer.c (Fset_buffer): Doc fix.  (Bug#12624)
