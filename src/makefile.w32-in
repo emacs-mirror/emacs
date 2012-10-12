@@ -833,9 +833,9 @@ $(BLD)/fileio.$(O) : \
 	$(SRC)/blockinput.h \
 	$(SRC)/commands.h \
 	$(NT_INC)/pwd.h \
+	$(NT_INC)/sys/file.h \
 	$(NT_INC)/sys/stat.h \
 	$(NT_INC)/unistd.h \
-	$(NT_INC)/sys/file.h \
 	$(BUFFER_H) \
 	$(CHARACTER_H) \
 	$(CODING_H) \
@@ -1633,6 +1633,7 @@ $(BLD)/w32select.$(O) : \
 	$(CHARSET_H) \
 	$(CODING_H) \
 	$(CONFIG_H) \
+	$(KEYBOARD_H) \
 	$(LISP_H) \
 	$(W32TERM_H)
 
