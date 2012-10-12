@@ -1,3 +1,7 @@
+2012-10-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* doc.c (get_doc_string): Don't signal an error if the file is missing.
+
 2012-10-12  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsterm.m (hold_event_q): New static variable.
