@@ -1,3 +1,8 @@
+2012-10-12  Glenn Morris  <rgm@gnu.org>
+
+	* mail/rmailsum.el (rmail-header-summary):
+	Fix 2010-11-26 test for multiline Subject: field.  (Bug#12625)
+
 2012-10-12  Fabián Ezequiel Gallina  <fgallina@cuca>
 
 	* progmodes/python.el (python-mode-map): Replace
