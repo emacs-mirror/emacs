@@ -178,7 +178,7 @@ Glossary: B
 
     brk
 
-        ``brk`` is a Unix system call that sets the limit of the :term:`data segment`. This limit is known as the *break*.
+        ``brk`` is a Unix system call that sets the limit of the data segment. This limit is known as the *break*.
 
         The :term:`C` library implementation of :term:`malloc` usually :term:`allocates <allocate>` :term:`memory (2)` for the :term:`heap` by extending the data segment using ``brk`` or :term:`sbrk`.
 

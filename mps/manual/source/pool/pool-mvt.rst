@@ -7,11 +7,7 @@ MVT (Manual Variable-size Temporal-fit) pool
 The MVT pool class manually manages variable-sized, unformatted objects. The MVT pool uses an allocation policy termed "temporal fit". Temporal fit attempts to place consecutive allocations next to each other. It relies on delaying reuse as long as possible to permit freed blocks to coalesce, thus maximizing the number of consecutive allocations that can be co-located. Temporal fit permits a very fast allocator and a deallocator competitive in speed with all other known policies.
 
 
-  Temporal fit is intended to take advantage of knowledge of object lifetimes, either
-  <cite>
-    apriori
-  </cite>
-  knowledge or knowledge acquired by profiling. The best performance of the MVT pool will be achieved by allocating objects with similar expected deathtimes together.
+Temporal fit is intended to take advantage of knowledge of object lifetimes, either apriori knowledge or knowledge acquired by profiling. The best performance of the MVT pool will be achieved by allocating objects with similar expected deathtimes together.
 
 
 A simple policy can be implemented to take advantage of MVT: Object size is typically well-correlated with object life-expectancy, and birthtime plus lifetime gives deathtime, so allocating objects of similar size sequentially from the same pool instance should result in objects allocated close to each other dying at about the same time.
@@ -20,17 +16,14 @@ An application that has several classes of objects of widely differing life expe
 
 Allocating objects with unknown or very different deathtimes together will pessimize the space performance of MVT.
 
+::
 
-<h4>Example</h4>
-
-<pre>
-  if(mps_pool_create(&amp;pool, arena, mps_class_mvt(), 8, 32, 256, 70, 20)
-     != MPS_RES_OK) {
-   printf("Error creating pool!");
-   exit(2);
- }
-</pre>
-
+    if(mps_pool_create(&amp;pool, arena, mps_class_mvt(), 8, 32, 256, 70, 20)
+       != MPS_RES_OK)
+    {
+        printf("Error creating pool!");
+        exit(2);
+    }
 
 
 Reserve depth
@@ -74,7 +67,8 @@ Deallocation
 
     The MVT pool class supports explicit freeing. See :c:func:`mps_pool_free`.
 
-<h4>Internal Notes</h4>
+
+Internal Notes
 
 Need a life-expectancy parameter! How else will different instances choose their Loci?
 

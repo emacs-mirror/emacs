@@ -20,20 +20,14 @@ Note that there will be no attempt to finalize objects in the context of :c:func
 
 Not all pool classes support finalization of objects.  In general only pools that manage objects whose liveness is determined by garbage collection will support finalization of objects.  For more information, see the Pool Class Catalog.
 
+::
 
+    mps_message_type_t type;
 
-<h4>Example</h4>
-
-<pre>
-{
-  mps_message_type_t type;
-
-  if(mps_message_queue_type(&amp;type, arena)) {
-    if(type == mps_message_type_finalization()) {
-      process_finalization_message_from_queue();
-    } else {
-      unknown_message_type();
+    if (mps_message_queue_type(&type, arena)) {
+        if (type == mps_message_type_finalization()) {
+            process_finalization_message_from_queue();
+        } else {
+            unknown_message_type();
+        }
     }
-  }
-}
-</pre>
