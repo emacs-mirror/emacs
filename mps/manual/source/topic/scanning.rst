@@ -5,183 +5,138 @@ Scanning
 ========
 
 
-
-<h4>Returned Values</h4>
-
-<p>Returns a result code, see ERROR HANDLING.</p>
-
-<p>If the reference rank of the object being scanned is not <code><a href="#MPS_RANK_AMBIG">MPS_RANK_AMBIG</a></code> then the reference pointed to by <code>ref_io</code> may be modified by <code><a href="#mps_fix">mps_fix</a></code>.</p>
+From the documentation for mps_fix:
 
 
-<h4>Description</h4>
+Returned Values
 
-<p>This function is the part of the scanning protocol used to indicate references. Scanning functions apply it, or <code><a href="#MPS_FIX12">MPS_FIX12</a></code>, or <code><a href="#MPS_FIX1">MPS_FIX1</a></code> and <code><a href="#MPS_FIX2">MPS_FIX2</a></code> to the references in the object being scanned.</p>
+Returns a result code, see :ref:`topic-error`.
 
-<p>It may only be called from within a scanning function. If it is called within a <code><a href="#MPS_SCAN_BEGIN">MPS_SCAN_BEGIN</a></code> block, <code><a href="#MPS_FIX_CALL">MPS_FIX_CALL</a></code> must be used (yes, really).</p>
-
-<p>This function does not perform any particular operation. The MPS may call scanning functions for a number of reasons, and <code><a href="#mps_fix">mps_fix</a></code> may take different actions depending on those reasons.</p>
+If the :term:`rank` of the object being scanned is not :c:macro:`MPS_RANK_AMBIG` then the reference pointed to by *ref_io* may be modified by :c:func:`mps_fix`.
 
 
-<h4>Example</h4>
+Description
 
-<pre>
-mps_res_t scan_array(mps_ss_t ss, mps_addr_t object, size_t length)
-{
-  size_t i;
+This function is the part of the scanning protocol used to indicate references. Scanning functions apply it, or :c:func:`MPS_FIX12`, or :c:func:`MPS_FIX1` and :c:func:`MPS_FIX2` the references in the object being scanned.
 
-  mps_res_t res;
-  mps_addr_t *array = (mps_addr_t *)object;
-  for(i = 0; i &lt; length; ++i) {
-    res = mps_fix(ss, &amp;array[i]);
-    if(res != MPS_RES_OK) return res;
-  }
+It may only be called from within a scanning function. If it is called within a :c:func:`MPS_SCAN_BEGIN` block, :c:func:`MPS_FIX_CALL` must be used (yes, really).
 
-  return res;
-}
-</pre>
+This function does not perform any particular operation. The MPS may call scanning functions for a number of reasons, and :c:func:`mps_fix` may take different actions depending on those reasons.
 
+::
 
-<h4>Error Handling</h4>
-
-<p>The function returns <code><a href="#MPS_RES_OK">MPS_RES_OK</a></code> if it was successful, in which case the scanning function should continue to scan the rest of the object, applying <code><a href="#mps_fix">mps_fix</a></code> to the remaining references. If <code><a href="#mps_fix">mps_fix</a></code> returns a value other than <code><a href="#MPS_RES_OK">MPS_RES_OK</a></code>, the scanning function must return that value, and may return without scanning further references. Generally, it is better if it returns as soon as possible.</p>
-
-
-
-
-
-<h4>Example</h4>
-
-<pre>
-mps_res_t scan_array(mps_ss_t ss, Array object, size_t length)
-{
-  size_t i;
-
-  mps_res_t res;
-  mps_addr_t *array = (mps_addr_t *)object;
-  MPS_SCAN_BEGIN(ss)
-  for(i = 0; i &lt; length; ++i) {
-    mps_addr_t ref = array[i];
-    if(MPS_FIX1(ss, ref)) {
-      /* if(((Object*)ref)-&gt;type == ScannableType) { */
-      /* You can do something here, but in the end, you must call MPS_FIX2. */
-      res = MPS_FIX2(ss, &amp;array[i]);
-      if(res != MPS_RES_OK)
-        return res;
-      /* } */
-    }
-  }
-  MPS_SCAN_END(ss);
-
-  return res;
-}
-</pre>
-
-
-
-
-<h4>Example</h4>
-
-<pre>
-mps_res_t scan_array(mps_ss_t ss, mps_addr_t object, size_t length) {
-  size_t i;
-
-  mps_res_t res;
-  mps_addr_t *array = (mps_addr_t *)object;
-  MPS_SCAN_BEGIN(ss)
-  for(i = 0; i &lt; length; ++i) {
-    res = MPS_FIX(ss, &amp;array[i]);
-    if(res != MPS_RES_OK)
-      return res;
-  }
-  MPS_SCAN_END(ss);
-
-  return res;
-}
-</pre>
-
-
-<h4>Error Handling</h4>
-
-<p>The macro returns <code><a href="#MPS_RES_OK">MPS_RES_OK</a></code> if it was successful, in which case the scanning function should continue to scan the rest of the object, fixing the remaining references. If <code><a href="#MPS_FIX12">MPS_FIX12</a></code> returns a value other than <code><a href="#MPS_RES_OK">MPS_RES_OK</a></code>, the scanning function must return that value, and may return without scanning further references. Generally, it is better if it returns as soon as possible.</p>
-
-
-
-
-<h4>Example</h4>
-
-<pre>
-mps_res_t scan_array(mps_ss_t ss, mps_addr_t object, size_t length)
-{
-  size_t i;
-  mps_res_t res;
-  mps_addr_t *array = (mps_addr_t *)object;
-
-  MPS_SCAN_BEGIN(ss)
-  for(i = 0; i &lt; length; ++i) {
-    res = MPS_FIX12(ss, &amp;array[i]);
-    if(res != MPS_RES_OK)
-      return res;
-  }
-  MPS_SCAN_END(ss);
-
-  return res;
-}
-</pre>
-
-
-
-
-
-
-<h4>Example</h4>
-
-<pre>
-/* Scanner for a simple Scheme-like language with just two interesting types */
-
-mps_res_t scan_objs(mps_ss_t ss, mps_addr_t base, mps_addr_t limit)
-{
-  mps_res_t res;
-  mps_addr_t obj;
-
-  MPS_SCAN_BEGIN(ss)
-  for(obj = base; obj &lt; limit;) { /* obj maps over the objects to scan */
-    switch(((Object*)obj)-&gt;type) {
-    case ArrayType:
-      {
+    mps_res_t scan_array(mps_ss_t ss, mps_addr_t object, size_t length)
+    {
         size_t i;
-        Array *array = (Array *)obj;
+        mps_res_t res;
+        mps_addr_t *array = (mps_addr_t *)object;
 
-        for(i = 0; i &lt; array-&gt;length; ++i) { /* fix each element */
-          res = MPS_FIX12(ss, &amp;array-&gt;contents[i]);
-          if(res != MPS_RES_OK) return res;
+        for (i = 0; i < length; ++i) {
+            res = mps_fix(ss, &array[i]);
+            if (res != MPS_RES_OK)
+                return res;
         }
 
-        obj = AddrAdd(obj, ArraySize(array)); /* move to next object */
-        break;
-      }
-
-    case StackFrameType:
-      {
-        StackFrame *frame = (StackFrame *)obj;
-        for(i = frame-&gt;size; i &gt; 0; --i) { /* fix each local var */
-          res = MPS_FIX12(ss, &amp;frame-&gt;locals[i]);
-          if(res != MPS_RES_OK) return res;
-        }
-
-        res = MPS_FIX12(ss, &amp;frame-&gt;next);
-        if(res != MPS_RES_OK) return res;
-        obj = AddrAdd(obj, StackFrameSize(frame));
-        break;
-      }
-
-    default: /* other types don't contain references */
-      obj = AddrAdd(obj, DefaultSize(obj));
-      break;
-
+        return res;
     }
-  }
-  MPS_SCAN_END(ss);
 
-  return res;
-}
-</pre>
+
+Error Handling
+
+The function returns :c:macro:`MPS_RES_OK` if it was successful, in which case the scanning function should continue to scan the rest of the object, applying :c:func:`mps_fix` to the remaining references. If :c:func:`mps_fix` returns a value other than :c:macro:`MPS_RES_OK`, the scanning function must return that value, and may return without scanning further references. Generally, it is better if it returns as soon as possible.
+
+::
+
+    mps_res_t scan_array(mps_ss_t ss, Array object, size_t length)
+    {
+        size_t i;
+        mps_res_t res;
+        mps_addr_t *array = (mps_addr_t *)object;
+        MPS_SCAN_BEGIN(ss) {
+            for (i = 0; i < length; ++i) {
+                mps_addr_t ref = array[i];
+                if (MPS_FIX1(ss, ref)) {
+                  /* if (((Object*)ref)->type == ScannableType) { */
+                  /* You can do something here, but in the end, you must call MPS_FIX2. */
+                  res = MPS_FIX2(ss, &array[i]);
+                  if (res != MPS_RES_OK)
+                      return res;
+                  /* } */
+                }
+            }
+        } MPS_SCAN_END(ss);
+
+        return res;
+    }
+
+::
+
+    mps_res_t scan_array(mps_ss_t ss, mps_addr_t object, size_t length) {
+        size_t i;
+        mps_res_t res;
+        mps_addr_t *array = (mps_addr_t *)object;
+
+        MPS_SCAN_BEGIN(ss) {
+            for (i = 0; i < length; ++i) {
+                res = MPS_FIX(ss, &array[i]);
+                if (res != MPS_RES_OK)
+                    return res;
+            }
+        } MPS_SCAN_END(ss);
+
+        return res;
+    }
+
+
+Error Handling
+
+The macro returns :c:macro:`MPS_RES_OK` if it was successful, in which case the scanning function should continue to scan the rest of the object, fixing the remaining references. If :c:func:`MPS_FIX12` returns a value other than :c:macro:`MPS_RES_OK`, the scanning function must return that value, and may return without scanning further references. Generally, it is better if it returns as soon as possible.
+
+::
+
+    /* Scanner for a simple Scheme-like language with just two interesting types */
+
+    mps_res_t scan_objs(mps_ss_t ss, mps_addr_t base, mps_addr_t limit)
+    {
+        mps_res_t res;
+        mps_addr_t obj;
+
+        MPS_SCAN_BEGIN(ss) {
+            for (obj = base; obj < limit;) { /* obj maps over the objects to scan */
+                switch(((Object*)obj)->type) {
+                case ArrayType: {
+                    size_t i;
+                    Array *array = (Array *)obj;
+
+                    for (i = 0; i < array->length; ++i) { /* fix each element */
+                        res = MPS_FIX12(ss, &array->contents[i]);
+                        if (res != MPS_RES_OK)
+                            return res;
+                    }
+
+                    obj = AddrAdd(obj, ArraySize(array)); /* move to next object */
+                    break;
+                }
+                case StackFrameType: {
+                    StackFrame *frame = (StackFrame *)obj;
+                    for (i = frame->size; i > 0; --i) { /* fix each local var */
+                        res = MPS_FIX12(ss, &frame->locals[i]);
+                        if (res != MPS_RES_OK)
+                            return res;
+                    }
+
+                    res = MPS_FIX12(ss, &frame->next);
+                    if (res != MPS_RES_OK)
+                        return res;
+                    obj = AddrAdd(obj, StackFrameSize(frame));
+                    break;
+                }
+                default: /* other types don't contain references */
+                    obj = AddrAdd(obj, DefaultSize(obj));
+                    break;
+                }
+            }
+        } MPS_SCAN_END(ss);
+
+        return res;
+    }
