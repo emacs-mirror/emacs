@@ -1,3 +1,19 @@
+2012-10-12  Eli Zaretskii  <eliz@gnu.org>
+
+	* fileio.c (check_existing): New function.
+	(make_temp_name, Ffile_exists_p, Ffile_writable_p): Call it
+	instead of calling 'stat', when what's needed is to check whether
+	a file exists.  This avoids expensive system calls on MS-Windows.
+	(Bug#12587)
+
+	* w32.c (init_environment): Call 'check_existing' instead of
+	'stat'.
+
+	* lread.c (openp) [WINDOWSNT]: Call 'access' instead of 'stat' to
+	determine whether a file exists and is not a directory.
+
+	* lisp.h (check_existing): Add prototype.
+
 2012-10-12  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsfont.m (nsfont_open): Remove font cache, it is not GC correct.

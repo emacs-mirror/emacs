@@ -52,6 +52,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define NOMINMAX 1
 #include <windows.h>
 #include <fcntl.h>
+#include <sys/file.h>
 #endif /* not WINDOWSNT */
 
 #ifdef MSDOS
@@ -668,7 +669,6 @@ make_temp_name (Lisp_Object prefix, bool base64_p)
 
   while (1)
     {
-      struct stat ignored;
       unsigned num = make_temp_name_count;
 
       p[0] = make_temp_name_tbl[num & 63], num >>= 6;
@@ -680,7 +680,7 @@ make_temp_name (Lisp_Object prefix, bool base64_p)
       make_temp_name_count += 25229;
       make_temp_name_count %= 225307;
 
-      if (stat (data, &ignored) < 0)
+      if (!check_existing (data))
 	{
 	  /* We want to return only if errno is ENOENT.  */
 	  if (errno == ENOENT)
@@ -2423,6 +2423,21 @@ On Unix, this is a name starting with a `/' or a `~'.  */)
   return file_name_absolute_p (SSDATA (filename)) ? Qt : Qnil;
 }
 
+/* Return true if FILENAME exists.  */
+bool
+check_existing (const char *filename)
+{
+#ifdef DOS_NT
+  /* The full emulation of Posix 'stat' is too expensive on
+     DOS/Windows, when all we want to know is whether the file exists.
+     So we use 'access' instead, which is much more lightweight.  */
+  return (access (filename, F_OK) >= 0);
+#else
+  struct stat st;
+  return (stat (filename, &st) >= 0);
+#endif
+}
+
 /* Return true if file FILENAME exists and can be executed.  */
 
 static bool
@@ -2490,7 +2505,6 @@ Use `file-symlink-p' to test for such links.  */)
 {
   Lisp_Object absname;
   Lisp_Object handler;
-  struct stat statbuf;
 
   CHECK_STRING (filename);
   absname = Fexpand_file_name (filename, Qnil);
@@ -2503,7 +2517,7 @@ Use `file-symlink-p' to test for such links.  */)
 
   absname = ENCODE_FILE (absname);
 
-  return (stat (SSDATA (absname), &statbuf) >= 0) ? Qt : Qnil;
+  return (check_existing (SSDATA (absname))) ? Qt : Qnil;
 }
 
 DEFUN ("file-executable-p", Ffile_executable_p, Sfile_executable_p, 1, 1, 0,
@@ -2584,7 +2598,6 @@ DEFUN ("file-writable-p", Ffile_writable_p, Sfile_writable_p, 1, 1, 0,
 {
   Lisp_Object absname, dir, encoded;
   Lisp_Object handler;
-  struct stat statbuf;
 
   CHECK_STRING (filename);
   absname = Fexpand_file_name (filename, Qnil);
@@ -2596,7 +2609,7 @@ DEFUN ("file-writable-p", Ffile_writable_p, Sfile_writable_p, 1, 1, 0,
     return call2 (handler, Qfile_writable_p, absname);
 
   encoded = ENCODE_FILE (absname);
-  if (stat (SSDATA (encoded), &statbuf) >= 0)
+  if (check_existing (SSDATA (encoded)))
     return (check_writable (SSDATA (encoded))
 	    ? Qt : Qnil);
 
@@ -2611,9 +2624,7 @@ DEFUN ("file-writable-p", Ffile_writable_p, Sfile_writable_p, 1, 1, 0,
   /* The read-only attribute of the parent directory doesn't affect
      whether a file or directory can be created within it.  Some day we
      should check ACLs though, which do affect this.  */
-  if (stat (SDATA (dir), &statbuf) < 0)
-    return Qnil;
-  return S_ISDIR (statbuf.st_mode) ? Qt : Qnil;
+  return (access (SDATA (dir), D_OK) < 0) ? Qnil : Qt;
 #else
   return (check_writable (!NILP (dir) ? SSDATA (dir) : "")
 	  ? Qt : Qnil);

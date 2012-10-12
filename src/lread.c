@@ -1449,7 +1449,6 @@ openp (Lisp_Object path, Lisp_Object str, Lisp_Object suffixes, Lisp_Object *sto
   bool absolute = 0;
   ptrdiff_t want_length;
   Lisp_Object filename;
-  struct stat st;
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5, gcpro6;
   Lisp_Object string, tail, encoded_fn;
   ptrdiff_t max_suffix_len = 0;
@@ -1543,11 +1542,18 @@ openp (Lisp_Object path, Lisp_Object str, Lisp_Object suffixes, Lisp_Object *sto
 	    }
 	  else
 	    {
+#ifndef WINDOWSNT
+	      struct stat st;
+#endif
 	      const char *pfn;
 
 	      encoded_fn = ENCODE_FILE (string);
 	      pfn = SSDATA (encoded_fn);
+#ifdef WINDOWSNT
+	      exists = access (pfn, F_OK) == 0 && access (pfn, D_OK) < 0;
+#else
 	      exists = (stat (pfn, &st) == 0 && ! S_ISDIR (st.st_mode));
+#endif
 	      if (exists)
 		{
 		  /* Check that we can access or open it.  */
