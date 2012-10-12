@@ -4,7 +4,7 @@
 Telemetry
 =========
 
-Typical uses of telemtry labels include:
+Typical uses of telemetry labels include:
 
 - Label pools with a human-meaningful name;
 

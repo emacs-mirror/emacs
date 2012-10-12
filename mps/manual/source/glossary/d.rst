@@ -16,7 +16,7 @@ Glossary: D
 
         2. Retaining a reference to a :term:`stack-allocated <stack allocation>` object, after the relevant :term:`stack frame` has been popped.
 
-        Dangling pointers can occur under :term:`automatic memory management`, because of a :term:`garbage collection` bug, such as :term:`premature collection` or :term:`moving <moving garbage collector>`, without updating all :term:`references <reference>`, but this is much rarer because :term:`GC` code is usually a single common core of reused code. FIXME
+        Dangling pointers can occur under :term:`automatic memory management`, because of a :term:`garbage collection` bug, such as premature collection or :term:`moving <moving garbage collector>` without updating all :term:`references <reference>`, but this is much rarer because :term:`GC` code is usually a single common core of reused code. FIXME
 
     data object
 

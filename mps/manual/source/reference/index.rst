@@ -205,13 +205,14 @@ Declared in ``mps.h``
     pushed since *frame*.
 
     The interpretation of this declaration depends on the :term:`pool`
-    that the allocation point belongs to. Typically, :term:`manual`
-    pool classes use this declaration to mean that the blocks are dead
-    and their space can be reclaimed immediately, whereas
-    :term:`automatic` pool classes use this declaration to mean that
-    the blocks are likely to be mostly dead, and may use this
-    declaration to alter its collection decisions. See the
-    documentation for the pool class.
+    that the allocation point belongs to. Typically, :term:`manual
+    <manual memory management>` pool classes use this declaration to
+    mean that the blocks are dead and their space can be reclaimed
+    immediately, whereas :term:`automatic <automatic memory
+    management>` pool classes use this declaration to mean that the
+    blocks are likely to be mostly dead, and may use this declaration
+    to alter its collection decisions. See the documentation for the
+    pool class.
 
     In general a frame other than the current frame can be popped (all
     frames pushed more recently will be invalidated as well, as
@@ -359,7 +360,7 @@ Declared in ``mps.h``
 
 .. c:function:: extern size_t mps_arena_committed(mps_arena_t arena)
 
-    Return the total :term:`committed memory` for an :term:`arena`.
+    Return the total :term:`committed` memory for an :term:`arena`.
 
     *arena* is the arena.
 
@@ -586,12 +587,13 @@ Declared in ``mps.h``
     *arena* is the arena whose roots you want to visit.
 
     *f* is a function that will be called for each reference to an
-    object in an :term:`automatically <automatic>` managed :term:`pool
-    class` that was found in a registered root beloging to the arena.
-    It takes four arguments: *ref* is the address of a reference to an
-    object in the arena, *root* is the root in which *ref* was found,
-    and *p* and *s* are the corresponding arguments that were passed
-    to :c:func:`mps_arena_roots_walk`.
+    object in an :term:`automatically <automatic memory management>`
+    managed :term:`pool class` that was found in a registered root
+    beloging to the arena. It takes four arguments: *ref* is the
+    address of a reference to an object in the arena, *root* is the
+    root in which *ref* was found, and *p* and *s* are the
+    corresponding arguments that were passed to
+    :c:func:`mps_arena_roots_walk`.
 
     *p* and *s* are arguments that will be passed to *f* each time it
     is called. This is intended to make it easy to pass, for example,
@@ -675,16 +677,16 @@ Declared in ``mps.h``
     internal reasons) but which remains committed (mapped to RAM by
     the operating system). It is used by the arena to (attempt to)
     avoid calling the operating system to repeatedly map and unmap
-    areas of :term:`virtual memory` as the amount of memory in use
-    goes up and down. Spare committed memory is counted as committed
-    memory by :c:func:`mps_arena_committed` and is restricted by
-    :c:func:`mps_arena_commit_limit`.
+    areas of :term:`virtual memory <virtual memory (1)>` as the amount
+    of memory in use goes up and down. Spare committed memory is
+    counted as committed memory by :c:func:`mps_arena_committed` and
+    is restricted by :c:func:`mps_arena_commit_limit`.
 
     The amount of "spare committed" memory can be limited by using
     :c:func:`mps_arena_spare_commit_limit_set`, and the value of that
     limit can be retrieved with
     :c:func:`mps_arena_spare_commit_limit`. This is analogous to the
-    functions for limiting the amount of :term:`committed memory`.
+    functions for limiting the amount of :term:`committed` memory.
 
     .. topics::
 
@@ -988,7 +990,8 @@ Declared in ``mps.h``
         } mps_fmt_A_s;
 
     Broadly speaking, object formats of variant A are suitable for use
-    in :term:`copying` or :term:`moving` :term:`pools <pool>`.
+    in :term:`copying <copying garbage collection>` or :term:`moving
+    <moving garbage collector>` :term:`pools <pool>`.
 
     *align* is an integer value specifying the alignment of objects
     allocated with this format. It should be large enough to satisfy
@@ -1044,9 +1047,10 @@ Declared in ``mps.h``
     *mps_class* method. See :c:type:`mps_fmt_A_s`.
 
     Broadly speaking, object formats of variant B are suitable for use
-    in :term:`copying` or :term:`moving` :term:`pools <pool>` (just
-    like variant A); the addition of a :term:`class method` allows
-    more information to be passed to various support tools (such as
+    in :term:`copying <copying garbage collection>` or :term:`moving
+    <moving garbage collector>` :term:`pools <pool>` (just like
+    variant A); the addition of a :term:`class method` allows more
+    information to be passed to various support tools (such as
     graphical browsers). See :c:type:`mps_fmt_class_t`.
 
     .. topics::
@@ -1074,7 +1078,7 @@ Declared in ``mps.h``
     *mps_headerSize* method. See :c:type:`mps_fmt_A_s`.
 
     Broadly speaking, the object formats of this variant are suitable
-    for use in :term:`automatic` memory management for objects with
+    for use in :term:`automatic memory management` for objects with
     :term:`headers <header>` (hence the name). More precisely, this
     variant is intended for formats where the :term:`client program's
     <client program>` pointers point some distance into the memory
@@ -1443,10 +1447,10 @@ Declared in ``mps.h``
     *message* is the message. After this call, *message* is invalid
     and should not be passed as an argument to any message functions.
 
-    Messages are essentially :term:`manually <manual>` managed. This
-    function allows the MPS to reclaim storage associated with
-    messages. If the client does not discard messages then the
-    resources used may grow without bound.
+    Messages are essentially :term:`manually <manual memory
+    management>` managed. This function allows the MPS to reclaim
+    storage associated with messages. If the client does not discard
+    messages then the resources used may grow without bound.
 
     As well as consuming resources, messages may have other effects
     that require them to be tidied by calling this function. In
@@ -1486,11 +1490,12 @@ Declared in ``mps.h``
     .. note::
 
         The reference returned is subject to the normal constraints,
-        such as might be imposed by a :term:`moving` collection, if
-        appropriate. For this reason, it is stored into the location
-        pointed to by *ref_o* in order to enable the :term:`client
-        program` to place it directly into scanned memory, without
-        imposing the restriction that the C stack be a :term:`root`.
+        such as might be imposed by a :term:`moving <moving garbage
+        collector>` collection, if appropriate. For this reason, it is
+        stored into the location pointed to by *ref_o* in order to
+        enable the :term:`client program` to place it directly into
+        scanned memory, without imposing the restriction that the C
+        stack be a :term:`root`.
 
     .. note::
 
@@ -1511,8 +1516,8 @@ Declared in ``mps.h``
     :c:func:`mps_message_type_gc`.
 
     The "condemned size" property is the approximate :term:`size` of
-    the set of objects :term:`condemned` in the :term:`garbage
-    collection` that generated the message.
+    the :term:`condemned set` in the :term:`garbage collection` that
+    generated the message.
 
     .. topics::
 
@@ -1550,8 +1555,8 @@ Declared in ``mps.h``
 
     The "not condemned size" property is the approximate size of the
     set of objects that were in collected :term:`pools <pool>`, but
-    were not :term:`condemned` in the :term:`garbage collection` that
-    generated the message.
+    were not in the :term:`condemned set` in the :term:`garbage
+    collection` that generated the message.
 
     .. topics::
 
@@ -1648,8 +1653,8 @@ Declared in ``mps.h``
 
     The type of a :term:`message`.
 
-    Messages are :term:`manually <manual>` managed. They are created
-    at the instigation of the MPS (but see
+    Messages are :term:`manually <manual memory management>` managed.
+    They are created at the instigation of the MPS (but see
     :c:func:`mps_message_type_enable`), and are deleted by the
     :term:`client program`.
 
@@ -1767,12 +1772,12 @@ Declared in ``mps.h``
     The access methods specific to a message of this type are:
 
     * :c:func:`mps_message_gc_live_size` returns the total size of the
-      :term:`condemned` objects that survived the garbage collection
-      that generated the message;
+      :term:`condemned set` that survived the garbage collection that
+      generated the message;
 
     * :c:func:`mps_message_gc_condemned_size` returns the approximate
-      size of the set of objects that were :term:`condemned` in the
-      garbage collection that generated the message;
+      size of :term:`condemned set` in the garbage collection that
+      generated the message;
 
     * :c:func:`mps_message_gc_not_condemned_size` returns the
       approximate size of the set of objects that were in collected
@@ -1885,7 +1890,8 @@ Declared in ``mps.h``
 
 .. c:function:: mps_rank_t mps_rank_ambig(void)
 
-    Return the :term:`rank` of :term:`ambiguous` references.
+    Return the :term:`rank` of :term:`ambiguous references <ambiguous
+    reference>`.
 
     .. topics::
 
@@ -1894,7 +1900,8 @@ Declared in ``mps.h``
 
 .. c:function:: mps_rank_t mps_rank_exact(void)
 
-    Return the :term:`rank` of :term:`exact` references.
+    Return the :term:`rank` of :term:`exact references <exact
+    reference>`.
 
     .. topics::
 
@@ -1914,7 +1921,8 @@ Declared in ``mps.h``
 
 .. c:function:: mps_rank_t mps_rank_weak(void)
 
-    Return the :term:`rank` of :term:`weak` references.
+    Return the :term:`rank` of :term:`weak references <weak
+    reference (1)>`.
 
     .. topics::
 
@@ -2065,8 +2073,9 @@ Declared in ``mps.h``
     .. note::
 
         Running out of :term:`address space` (as might happen in
-        :term:`virtual memory` systems) is indicated by returning
-        :c:macro:`MPS_RES_RESOURCE`, not ``MPS_RES_MEMORY``.
+        :term:`virtual memory <virtual memory (1)>` systems) is
+        indicated by returning :c:macro:`MPS_RES_RESOURCE`, not
+        ``MPS_RES_MEMORY``.
 
 
 .. c:macro:: MPS_RES_OK
@@ -2109,8 +2118,8 @@ Declared in ``mps.h``
     it returns :c:macro:`MPS_RES_COMMIT_LIMIT`.
 
     This result code can be returned when the MPS runs out of
-    :term:`virtual memory`. If this happens, you need to reclaim
-    memory within your process (as for the result code
+    :term:`virtual memory <virtual memory (1)>`. If this happens, you
+    need to reclaim memory within your process (as for the result code
     :c:macro:`MPS_RES_MEMORY`), or terminate other processes running
     on the same machine.
 
@@ -2385,10 +2394,10 @@ Declared in ``mps.h``
     with the arena. It receives four arguments:
 
     *ref* points to a reference in a root. The reference points to
-    something in the arena. If the root is :term:`exact` then the
-    reference points to the start of an allocated block, but if the
-    root is :term:`ambiguous` it might point to somewhere in the
-    middle of an allocated block.
+    something in the arena. If the root is :term:`exact <exact
+    reference>` then the reference points to the start of an allocated
+    block, but if the root is :term:`ambiguous <ambiguous reference>`
+    it might point to somewhere in the middle of an allocated block.
 
     *root* is the description of the root which contains *ref*.
 
@@ -2428,7 +2437,7 @@ Declared in ``mps.h``
     Returns :c:macro:`MPS_RES_MEMORY` if there wasn't enough memory,
     :c:macro:`MPS_RES_COMMIT_LIMIT` if the :term:`commit limit`
     was exceeded, or :c:macro:`MPS_RES_RESOURCE` if it ran out of
-    :term:`virtual memory`.
+    :term:`virtual memory <virtual memory (1)>`.
 
     .. topics::
 
@@ -2610,8 +2619,8 @@ Declared in ``mps.h``
     memory from the given pool, or return memory to it.
 
     Segregated allocation caches can be associated with any pool that
-    supports :term:`manual` allocation using the functions
-    :c:func:`mps_alloc` and :c:func:`mps_free`.
+    supports :term:`manual <manual memory management>` allocation
+    using the functions :c:func:`mps_alloc` and :c:func:`mps_free`.
 
     The size classes are described by an array of element type
     :c:func:`mps_sac_class_s`. This array is used to initialize the
@@ -2774,9 +2783,9 @@ Declared in ``mps.h``
 
 .. c:function:: mps_reg_scan_t mps_stack_scan_ambig
 
-    A root scanning function for :term:`ambiguous` scanning of
-    :term:`threads <thread>`, suitable for passing to
-    :c:func:`mps_root_create_reg`.
+    A root scanning function for :term:`ambiguous <ambiguous
+    reference>` scanning of :term:`threads <thread>`, suitable for
+    passing to :c:func:`mps_root_create_reg`.
 
     It scans all integer registers and everything on the stack of the
     thread given, and can therefore only be used with roots of
@@ -2919,8 +2928,8 @@ Declared in ``mps.h``
 
     The type of registered :term:`thread` descriptions.
 
-    In a multi-threaded environment where :term:`incremental`
-    :term:`garbage collection` is used, threads must be registered
+    In a multi-threaded environment where :term:`incremental
+    garbage collection` is used, threads must be registered
     with the MPS using :c:func:`mps_thread_reg` so that the MPS can
     examine their state.
 
@@ -2975,12 +2984,12 @@ Declared in ``mpsavm.h``
     Return the :term:`arena class` for a :term:`virtual memory arena`.
 
     A virtual memory arena uses the operating system's :term:`virtual
-    memory` interface to allocate memory. The chief consequence of
-    this is that the arena can manage many more virtual addresses than
-    it needs to commit memory to. This gives it flexibility as to
-    where to place :term:`blocks <block>`, which reduces
-    :term:`fragmentation` and helps make :term:`garbage collection`
-    more efficient.
+    memory <virtual memory (1)>` interface to allocate memory. The
+    chief consequence of this is that the arena can manage many more
+    virtual addresses than it needs to commit memory to. This gives it
+    flexibility as to where to place :term:`blocks <block>`, which
+    reduces :term:`fragmentation` and helps make :term:`garbage
+    collection` more efficient.
 
     This class is similar to :c:func:`mps_arena_class_vmnz` but uses a
     more complex placement policy, which is more suited to copying

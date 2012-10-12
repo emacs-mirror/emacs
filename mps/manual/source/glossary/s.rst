@@ -58,6 +58,10 @@ Glossary: S
 
         SDRAM uses an external clock signal to synchronize its data input and output. It is capable of achieving very high data rates for linear access to memory.
 
+    segment
+
+        .. mps:: ??
+
     segmentation violation
 
         A segmentation violation occurs when an attempt is made to access :term:`memory (2)` whose :term:`address` is well-formed, but to which access cannot be granted. This might be due to either a :term:`protection fault` or an :term:`invalid page fault`.
