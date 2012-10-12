@@ -3281,13 +3281,18 @@ queue_notifications (struct input_event *event, W32Msg *msg, struct frame *f,
   if (notification_buffer_in_use)
     {
       DWORD info_size = notifications_size;
+      Lisp_Object cs = intern ("utf-16le");
+      Lisp_Object obj = get_watch_object (make_number (notifications_desc));
 
       /* notifications_size could be zero when the buffer of
 	 notifications overflowed on the OS level, or when the
 	 directory being watched was itself deleted.  Do nothing in
 	 that case.  */
-      if (info_size)
+      if (info_size
+	  && !NILP (obj) && CONSP (obj))
 	{
+	  Lisp_Object callback = XCDR (obj);
+
 	  while (info_size >= min_size)
 	    {
 	      Lisp_Object utf_16_fn
@@ -3296,23 +3301,17 @@ queue_notifications (struct input_event *event, W32Msg *msg, struct frame *f,
 	      /* Note: mule-conf is preloaded, so utf-16le must
 		 already be defined at this point.  */
 	      Lisp_Object fname
-		= code_convert_string_norecord (utf_16_fn,
-						intern ("utf-16le"), 0);
+		= code_convert_string_norecord (utf_16_fn, cs, 0);
 	      Lisp_Object action = lispy_file_action (fni->Action);
-	      Lisp_Object obj;
 
-	      obj = get_watch_object (make_number (notifications_desc));
-	      if (!NILP (obj) && CONSP (obj))
-		{
-		  event->kind = FILE_NOTIFY_EVENT;
-		  event->code = (ptrdiff_t)notifications_desc;
-		  event->timestamp = msg->msg.time;
-		  event->modifiers = 0;
-		  event->frame_or_window = XCDR (obj);
-		  event->arg = Fcons (action, fname);
-		  kbd_buffer_store_event (event);
-		  (*evcount)++;
-		}
+	      event->kind = FILE_NOTIFY_EVENT;
+	      event->code = (ptrdiff_t)notifications_desc;
+	      event->timestamp = msg->msg.time;
+	      event->modifiers = 0;
+	      event->frame_or_window = callback;
+	      event->arg = Fcons (action, fname);
+	      kbd_buffer_store_event (event);
+	      (*evcount)++;
 
 	      if (!fni->NextEntryOffset)
 		break;
