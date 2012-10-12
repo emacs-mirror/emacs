@@ -2750,7 +2750,7 @@ This method signals `no-next-method' by default.  Override this
 method to not throw an error, and its return value becomes the
 return value of `call-next-method'."
   (signal 'no-next-method (list (object-name object) args))
-)
+  )
 
 (defgeneric clone (obj &rest params)
   "Make a copy of OBJ, and then supply PARAMS.
@@ -3050,7 +3050,7 @@ Optional argument NOESCAPE is passed to `prin1-to-string' when appropriate."
 ;;; Interfacing with imenu in emacs lisp mode
 ;;    (Only if the expression is defined)
 ;;
-(if (eval-when-compile (boundp 'list-imenu-generic-expression))
+(if (eval-when-compile (boundp 'lisp-imenu-generic-expression))
 (progn
 
 (defun eieio-update-lisp-imenu-expression ()
