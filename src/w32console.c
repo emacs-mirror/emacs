@@ -746,6 +746,9 @@ initialize_w32_display (struct terminal *term)
   else
     w32_console_unicode_input = 0;
 
+  /* This is needed by w32notify.c:send_notifications.  */
+  dwMainThreadId = GetCurrentThreadId ();
+
   /* Setup w32_display_info structure for this frame. */
 
   w32_initialize_display_info (build_string ("Console"));

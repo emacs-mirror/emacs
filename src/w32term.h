@@ -672,7 +672,7 @@ extern void deselect_palette (struct frame * f, HDC hdc);
 extern HDC get_frame_dc (struct frame * f);
 extern int release_frame_dc (struct frame * f, HDC hDC);
 
-extern void drain_message_queue (void);
+extern int drain_message_queue (void);
 
 extern BOOL get_next_msg (W32Msg *, BOOL);
 extern BOOL post_msg (W32Msg *);

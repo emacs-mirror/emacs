@@ -36,21 +36,32 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    return, and watch_worker then issues another call to
    ReadDirectoryChangesW.  (Except when it does not, see below.)
 
-   The WM_EMACS_FILENOTIFY message, posted to the message queue gets
-   dispatched to the main Emacs window procedure, which queues it for
-   processing by w32_read_socket.  When w32_read_socket sees this
-   message, it accesses the buffer with file notifications (using a
-   critical section), extracts the information, converts it to a
-   series of FILE_NOTIFY_EVENT events, and stuffs them into the input
-   event queue to be processed by keyboard.c input machinery
-   (read_char via a call to kbd_buffer_get_event).  When the
-   FILE_NOTIFY_EVENT event is processed by kbd_buffer_get_event, it is
-   converted to a Lispy event that can be bound to a command.  The
-   default binding is w32notify-handle-event, defined on subr.el.
+   In a GUI session, The WM_EMACS_FILENOTIFY message, posted to the
+   message queue gets dispatched to the main Emacs window procedure,
+   which queues it for processing by w32_read_socket.  When
+   w32_read_socket sees this message, it accesses the buffer with file
+   notifications (using a critical section), extracts the information,
+   converts it to a series of FILE_NOTIFY_EVENT events, and stuffs
+   them into the input event queue to be processed by keyboard.c input
+   machinery (read_char via a call to kbd_buffer_get_event).
 
-   After w32_read_socket is done processing the notifications, it
-   resets a flag signaling to all watch worker threads that the
-   notifications buffer is available for more input.
+   In a non-GUI session, we send the WM_EMACS_FILENOTIFY message to
+   the main (a.k.a. "Lisp") thread instead, since there are no window
+   procedures in console programs.  That message wakes up
+   MsgWaitForMultipleObjects inside sys_select, which then signals to
+   its caller that some keyboard input is available.  This causes
+   w32_console_read_socket to be called, which accesses the buffer
+   with file notifications and stuffs them into the input event queue
+   for keyboard.c to process.
+
+   When the FILE_NOTIFY_EVENT event is processed by keyboard.c's
+   kbd_buffer_get_event, it is converted to a Lispy event that can be
+   bound to a command.  The default binding is w32notify-handle-event,
+   defined on subr.el.
+
+   After w32_read_socket or w32_console_read_socket is done processing
+   the notifications, it resets a flag signaling to all watch worker
+   threads that the notifications buffer is available for more input.
 
    When the watch is removed by a call to w32notify-rm-watch, the main
    thread requests that the worker thread terminates by queuing an APC
@@ -134,12 +145,19 @@ send_notifications (BYTE *info, DWORD info_size, HANDLE hdir, int *terminate)
 	    memcpy (file_notifications, info, info_size);
 	  notifications_size = info_size;
 	  notifications_desc = hdir;
-	  if (FRAME_TERMCAP_P (f)
+	  /* If PostMessage fails, the message queue is full.  If that
+	     happens, the last thing they will worry about is file
+	     notifications.  So we effectively discard the
+	     notification in that case.  */
+	  if ((FRAME_TERMCAP_P (f)
+	       /* We send the message to the main (a.k.a. "Lisp")
+		  thread, where it will wake up MsgWaitForMultipleObjects
+		  inside sys_select, causing it to report that there's
+		  some keyboard input available.  This will in turn cause
+		  w32_console_read_socket to be called, which will pick
+		  up the file notifications.  */
+	       && PostThreadMessage (dwMainThreadId, WM_EMACS_FILENOTIFY, 0, 0))
 	      || (FRAME_W32_P (f)
-		  /* If PostMessage fails, the message queue is full.
-		     If that happens, the last thing they will worry
-		     about is file notifications.  So we effectively
-		     discard the notification in that case.  */
 		  && PostMessage (FRAME_W32_WINDOW (f),
 				  WM_EMACS_FILENOTIFY, 0, 0)))
 	    notification_buffer_in_use = 1;

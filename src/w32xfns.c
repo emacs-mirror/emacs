@@ -315,16 +315,22 @@ prepend_msg (W32Msg *lpmsg)
   return (TRUE);
 }
 
-/* Process all messages in the current thread's queue.  */
-void
+/* Process all messages in the current thread's queue.  Value is 1 if
+   one of these messages was WM_EMACS_FILENOTIFY, zero otherwise.  */
+int
 drain_message_queue (void)
 {
   MSG msg;
+  int retval = 0;
+
   while (PeekMessage (&msg, NULL, 0, 0, PM_REMOVE))
     {
+      if (msg.message == WM_EMACS_FILENOTIFY)
+	retval = 1;
       TranslateMessage (&msg);
       DispatchMessage (&msg);
     }
+  return retval;
 }
 
 /* x_sync is a no-op on W32.  */
