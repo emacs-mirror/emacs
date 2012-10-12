@@ -1652,7 +1652,7 @@ init_environment (char ** argv)
     /* For backwards compatibility, check if a .emacs file exists in C:/
        If not, then we can try to default to the appdata directory under the
        user's profile, which is more likely to be writable.   */
-    if (check_existing ("C:/.emacs"))
+    if (!check_existing ("C:/.emacs"))
       {
 	HRESULT profile_result;
 	/* Dynamically load ShGetFolderPath, as it won't exist on versions
